@@ -86,7 +86,7 @@ static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
  * @brief Resolves a single skin line, matching the surface name against
  * all three mesh models and storing the material in the appropriate skins array.
  */
-static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
+static void Cg_LoadClientSkin(ClientGameClientInfo *ci, char *line) {
 
   char *skin_name, *face_name = line;
 
@@ -105,8 +105,8 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
   }
 
   const struct {
-    const r_model_t *model;
-    r_material_t **skins;
+    const RenderModel *model;
+    RenderMaterial **skins;
   } meshes[] = {
     { ci->head, ci->head_skins },
     { ci->torso, ci->torso_skins },
@@ -118,7 +118,7 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
       continue;
     }
 
-    const r_mesh_face_t *face = meshes[m].model->mesh->faces;
+    const RenderMeshFace *face = meshes[m].model->mesh->faces;
     for (int32_t i = 0; i < meshes[m].model->mesh->num_faces; i++, face++) {
       if (!q_strcasecmp(face_name, face->name)) {
         meshes[m].skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
@@ -132,13 +132,13 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
  * @brief Parses a .skin file, resolving skins for each face across all three
  * mesh models (head, torso, legs). A face left unresolved is intentionally
  * omitted from that skin variant and is not drawn at all (see `has_skins`
- * and `skins` in r_entity_t, and the checks in r_mesh_draw.c / r_shadow.c);
+ * and `skins` in RenderEntity, and the checks in r_mesh_draw.c / r_shadow.c);
  * some third-party skins genuinely don't texture certain optional accessory
  * faces (e.g. straps, wrist rockets), and the modeler never intended them to
  * render for that variant. Returns false only if the .skin file itself could
  * not be found/read.
  */
-static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
+static bool Cg_LoadClientSkins(ClientGameClientInfo *ci, const char *skin) {
   char path[MAX_QPATH], line[MAX_STRING_CHARS];
   char *buffer;
   int64_t len;
@@ -168,8 +168,8 @@ static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
   cgi.FreeFile(buffer);
 
   const struct {
-    const r_model_t *model;
-    r_material_t **skins;
+    const RenderModel *model;
+    RenderMaterial **skins;
     const char *name;
   } meshes[] = {
     { ci->head, ci->head_skins, "head" },
@@ -182,7 +182,7 @@ static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
       continue;
     }
 
-    const r_mesh_face_t *face = meshes[m].model->mesh->faces;
+    const RenderMeshFace *face = meshes[m].model->mesh->faces;
     for (int32_t f = 0; f < meshes[m].model->mesh->num_faces; f++, face++) {
       if (!meshes[m].skins[f]) {
         Cg_Debug("%s: %s %s has no skin, face will not be drawn\n", path, meshes[m].name, face->name);
@@ -196,15 +196,15 @@ static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
 /**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static bool Cg_ValidateSkin(cg_client_info_t *ci) {
+static bool Cg_ValidateSkin(ClientGameClientInfo *ci) {
 
   if (!ci->head || !ci->torso || !ci->legs) {
     return false;
   }
 
   const struct {
-    const r_model_t *model;
-    r_material_t *const *skins;
+    const RenderModel *model;
+    RenderMaterial *const *skins;
   } meshes[] = {
     { ci->head, ci->head_skins },
     { ci->torso, ci->torso_skins },
@@ -225,7 +225,7 @@ static bool Cg_ValidateSkin(cg_client_info_t *ci) {
 /**
  * @brief Resolve and load the specified model/skin for the player.
  */
-static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const char *skin) {
+static bool Cg_LoadClientModel(ClientGameClientInfo *ci, const char *model, const char *skin) {
 
   q_strlcpy(ci->model, model, sizeof(ci->model));
   q_strlcpy(ci->skin, skin, sizeof(ci->skin));
@@ -266,7 +266,7 @@ static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const ch
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the `DEFAULT_CLIENT_INFO` constant.
  */
-void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
+void Cg_LoadClient(ClientGameClientInfo *ci, const char *s) {
   const char *t;
   char *v = NULL;
   int32_t i;
@@ -303,7 +303,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
   } else {
 
     // resolve the team
-    const g_team_id_t team_id = atoi(info[0]);
+    const GameTeamId team_id = atoi(info[0]);
     if (team_id != TEAM_NONE) {
       ci->team = cg_state.teams + team_id;
     } else {
@@ -389,7 +389,7 @@ void Cg_LoadClients(void) {
   memset(cg_state.clients, 0, sizeof(cg_state.clients));
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    cg_client_info_t *ci = &cg_state.clients[i];
+    ClientGameClientInfo *ci = &cg_state.clients[i];
     const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
     if (!*s) {
@@ -416,7 +416,7 @@ void Cg_LoadClients(void) {
 typedef struct {
   const char *partial;
   List *matches;
-} cg_skin_autocomplete_t;
+} ClientGameSkinAutocomplete;
 
 /**
  * @brief Fs_Enumerator for `Cg_SkinAutocomplete_ModelEnumerate`, appending a `model/skin`
@@ -424,7 +424,7 @@ typedef struct {
  */
 static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
 
-  const cg_skin_autocomplete_t *autocomplete = (cg_skin_autocomplete_t *) data;
+  const ClientGameSkinAutocomplete *autocomplete = (ClientGameSkinAutocomplete *) data;
 
   char name[MAX_QPATH];
   StripExtension(path + strlen("players/"), name);
@@ -448,7 +448,7 @@ static void Cg_SkinAutocomplete_ModelEnumerate(const char *path, void *data) {
  */
 void Cg_SkinAutocomplete_f(const uint32_t argi, List *matches) {
 
-  const cg_skin_autocomplete_t autocomplete = {
+  const ClientGameSkinAutocomplete autocomplete = {
     .partial = cgi.Argv(argi),
     .matches = matches
   };
@@ -459,7 +459,7 @@ void Cg_SkinAutocomplete_f(const uint32_t argi, List *matches) {
 /**
  * @brief Returns the next animation to advance to, defaulting to a no-op.
  */
-static entity_animation_t Cg_NextAnimation(const cl_entity_animation_t *a) {
+static EntityAnimation Cg_NextAnimation(const ClientEntityAnimation *a) {
 
   switch (a->animation) {
     case ANIM_BOTH_DEATH1:
@@ -489,7 +489,7 @@ static entity_animation_t Cg_NextAnimation(const cl_entity_animation_t *a) {
  * @brief Initiates a ragdoll animation on a client corpse. Jump a few frames back into the
  * death animation that preceeded the dead animation.
  */
-void Cg_ClientRagdoll(cl_entity_t *ent) {
+void Cg_ClientRagdoll(ClientEntity *ent) {
 
   switch (ent->animation1.animation) {
     case ANIM_BOTH_DEAD1:
@@ -508,12 +508,12 @@ void Cg_ClientRagdoll(cl_entity_t *ent) {
       return;
   }
 
-  const cg_client_info_t *ci = Cg_ClientInfo(ent);
+  const ClientGameClientInfo *ci = Cg_ClientInfo(ent);
   if (!ci->torso) {
     return;
   }
 
-  const r_mesh_animation_t *death = &ci->torso->mesh->animations[ent->animation1.animation];
+  const RenderMeshAnimation *death = &ci->torso->mesh->animations[ent->animation1.animation];
 
   const uint32_t frame_duration = 1000 / death->hz;
   const uint32_t anim_duration = death->num_frames * frame_duration;
@@ -529,15 +529,15 @@ void Cg_ClientRagdoll(cl_entity_t *ent) {
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
  */
-static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_t *a) {
-  const r_mesh_model_t *mesh = model->mesh;
+static void Cg_AnimateClientEntity_(const RenderModel *model, ClientEntityAnimation *a) {
+  const RenderMeshModel *mesh = model->mesh;
 
   if ((int32_t) a->animation > mesh->num_animations) {
     Cg_Warn("Invalid animation: %s: %d\n", model->media.name, a->animation);
     return;
   }
 
-  const r_mesh_animation_t *anim = &mesh->animations[a->animation];
+  const RenderMeshAnimation *anim = &mesh->animations[a->animation];
 
   if (!anim->num_frames || !anim->hz) {
     Cg_Warn("Bad animation sequence: %s: %d\n", model->media.name, a->animation);
@@ -553,7 +553,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
   if (elapsed_time >= anim_duration) { // to loop, or not to loop
 
     if (!anim->looped_frames) {
-      const entity_animation_t next = Cg_NextAnimation(a);
+      const EntityAnimation next = Cg_NextAnimation(a);
       if (next == a->animation) { // no change, just stay put
         a->old_frame = a->frame;
         a->lerp = a->fraction = 1.0;
@@ -594,7 +594,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
  * @brief Runs the animation sequences for the specified entity, setting the frame
  * indexes and interpolation fractions for the specified renderer entities.
  */
-static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
+static void Cg_AnimateClientEntity(ClientEntity *ent, RenderEntity *torso, RenderEntity *legs) {
 
   Cg_AnimateClientEntity_(torso->model, &ent->animation1);
 
@@ -676,17 +676,17 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
  * Models flagged `fixedlegs` in their `animation.cfg` opt out of this entirely: their legs
  * always face the same direction as the torso, with no independent yaw or turn animation.
  */
-static void Cg_RotateClientLegs(const cg_client_info_t *ci, cl_entity_t *ent, r_entity_t *legs) {
+static void Cg_RotateClientLegs(const ClientGameClientInfo *ci, ClientEntity *ent, RenderEntity *legs) {
 
   if (ci->legs->mesh->flags & MESH_MODEL_FIXED_LEGS) {
     ent->legs_yaw = ent->legs_current_yaw = ent->angles.y;
     return;
   }
 
-  vec3_t right;
+  Vec3 right;
   Vec3_Vectors(legs->angles, NULL, &right, NULL);
 
-  vec3_t move_dir;
+  Vec3 move_dir;
   move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
   move_dir.z = 0.f; // don't care about z, just x/y
 
@@ -741,7 +741,7 @@ static void Cg_RotateClientLegs(const cg_client_info_t *ci, cl_entity_t *ent, r_
 /**
  * @brief The tail of the `Cg_ClientInfo` chain: the slot the entity names.
  */
-static cg_client_info_t *Cg_ClientInfo_Common(const cl_entity_t *ent) {
+static ClientGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
 
   // a corpse names a slot of its own, holding the client info it died wearing, so that it is
   // not repainted by its owner changing skin and does not fall back to the default model when
@@ -759,10 +759,10 @@ ClientInfo Cg_ClientInfo = Cg_ClientInfo_Common;
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, torso, legs, weapon, flags, etc.
  */
-void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
+void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
 
-  const entity_state_t *s = &ent->current;
-  cg_client_info_t *ci = Cg_ClientInfo(ent);
+  const EntityState *s = &ent->current;
+  ClientGameClientInfo *ci = Cg_ClientInfo(ent);
 
   if (!ci->head || !ci->torso || !ci->legs) {
     const int32_t cs = (s->effects & EF_CORPSE) ? CS_CORPSES : CS_CLIENTS;
@@ -803,7 +803,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     e->tints[2] = ci->helmet.vec4;
   }
 
-  r_entity_t head, torso, legs;
+  RenderEntity head, torso, legs;
 
   // copy the specified entity to all body segments
   head = torso = legs = *e;
@@ -812,7 +812,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     Cg_RotateClientLegs(ci, ent, &legs);
   }
 
-  cg_client_info_t *skin = ci;
+  ClientGameClientInfo *skin = ci;
 
   // force the preferred skin on all _other_ players, not on ourselves
   if (cg_state.force_skin.torso && ent != cgi.client->entity) {
@@ -850,7 +850,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
   Cg_AnimateClientEntity(ent, &torso, &legs);
 
-  r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
+  RenderEntity *r_legs = cgi.AddEntity(cgi.view, &legs);
 
   if (!r_legs) {
     return; // if the legs were culled, we're done
@@ -859,18 +859,18 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   torso.parent = r_legs;
   torso.tag = "tag_torso";
 
-  r_entity_t *r_torso = cgi.AddEntity(cgi.view, &torso);
+  RenderEntity *r_torso = cgi.AddEntity(cgi.view, &torso);
   assert(r_torso);
 
   head.parent = r_torso;
   head.tag = "tag_head";
 
-  r_entity_t *r_head = cgi.AddEntity(cgi.view, &head);
+  RenderEntity *r_head = cgi.AddEntity(cgi.view, &head);
   assert(r_head);
 
-  r_entity_t *r_weapon = NULL;
+  RenderEntity *r_weapon = NULL;
   if (s->model2) {
-    r_weapon = cgi.AddEntity(cgi.view, &(const r_entity_t) {
+    r_weapon = cgi.AddEntity(cgi.view, &(const RenderEntity) {
       .parent = r_torso,
       .tag = "tag_weapon",
       .scale = e->scale,
@@ -884,7 +884,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
     // cache the muzzle position post-animation for muzzle flash and beam alignment
 
-    const vec3_t cfg_muzzle = r_weapon->model->mesh->config.link.muzzle;
+    const Vec3 cfg_muzzle = r_weapon->model->mesh->config.link.muzzle;
     if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
       ci->weapon_muzzle = Mat4_Transform(r_weapon->matrix, cfg_muzzle);
     } else {
@@ -892,9 +892,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     }
   }
 
-  r_entity_t *r_flag = NULL;
+  RenderEntity *r_flag = NULL;
   if (s->model3) {
-    r_flag = cgi.AddEntity(cgi.view, &(const r_entity_t) {
+    r_flag = cgi.AddEntity(cgi.view, &(const RenderEntity) {
       .parent = r_torso,
       .tag = "tag_head",
       .scale = e->scale,

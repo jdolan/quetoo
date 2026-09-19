@@ -79,10 +79,10 @@ static TeamPlayerView *initWithFrame(TeamPlayerView *self, const SDL_Rect *frame
 }
 
 /**
- * @fn void TeamPlayerView::setPlayer(TeamPlayerView *, const cg_client_info_t *)
+ * @fn void TeamPlayerView::setPlayer(TeamPlayerView *, const ClientGameClientInfo *)
  * @memberof TeamPlayerView
  */
-static void setPlayer(TeamPlayerView *self, const cg_client_info_t *client) {
+static void setPlayer(TeamPlayerView *self, const ClientGameClientInfo *client) {
 
   self->client = client;
 

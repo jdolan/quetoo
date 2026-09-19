@@ -143,7 +143,7 @@ static void enumerateHuds(const char *path, void *data) {
 
   Select *select = data;
 
-  fs_stat_t stat;
+  FsStat stat;
   if (cgi.StatFile(path, &stat)) {
 
     if (stat.type == FS_DIRECTORY) {

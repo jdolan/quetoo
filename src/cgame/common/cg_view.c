@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-cg_view_t cg_view;
+ClientGameView cg_view;
 
 #define CG_FOV_REFERENCE_ASPECT (16.f / 9.f)
 
@@ -30,7 +30,7 @@ cg_view_t cg_view;
  * @brief Computes the half-angle horizontal and vertical FOV, in degrees, for the
  * given reference FOV (horizontal, at @c CG_FOV_REFERENCE_ASPECT) and viewport size.
  */
-static vec2_t Cg_Fov(float fov_degrees, float width, float height) {
+static Vec2 Cg_Fov(float fov_degrees, float width, float height) {
 
   const float fov_half = Radians(fov_degrees / 2.f);
   const float aspect = width / height;
@@ -38,10 +38,10 @@ static vec2_t Cg_Fov(float fov_degrees, float width, float height) {
   if (aspect >= CG_FOV_REFERENCE_ASPECT) {
     const float fov_y = atanf(tanf(fov_half) / CG_FOV_REFERENCE_ASPECT);
     const float fov_x = atanf(tanf(fov_y) * aspect);
-    return Vec2(Degrees(fov_x), Degrees(fov_y));
+    return MakeVec2(Degrees(fov_x), Degrees(fov_y));
   } else {
     const float fov_y = atanf(tanf(fov_half) / aspect);
-    return Vec2(Degrees(fov_half), Degrees(fov_y));
+    return MakeVec2(Degrees(fov_half), Degrees(fov_y));
   }
 }
 
@@ -51,7 +51,7 @@ static vec2_t Cg_Fov(float fov_degrees, float width, float height) {
  * given viewport size. The inverse of @c Cg_Fov, used to reconstruct the FOV we are
  * interpolating away from when @c cg_fov changes mid-transition.
  */
-static float Cg_FovInverse(const vec2_t fov, float width, float height) {
+static float Cg_FovInverse(const Vec2 fov, float width, float height) {
 
   const float aspect = width / height;
 
@@ -111,7 +111,7 @@ static void Cg_UpdateFov(void) {
  * playback, or a chase target while spectating a live game. Without one there is nothing to
  * frame, and the camera is flying free.
  */
-bool Cg_CameraSubject(const player_state_t *ps) {
+bool Cg_CameraSubject(const PlayerState *ps) {
 
   if (cgi.client->demo_server) {
     return !cg_state.spectate.detached;
@@ -128,7 +128,7 @@ bool Cg_CameraSubject(const player_state_t *ps) {
  * playback sends no commands to anything. A player forcing `cg_third_person` while actually
  * playing is excluded, since their mouse and movement keys are busy.
  */
-bool Cg_FollowEligible(const player_state_t *ps) {
+bool Cg_FollowEligible(const PlayerState *ps) {
   return cg_state.camera_mode == CAMERA_FOLLOW && Cg_CameraSubject(ps);
 }
 
@@ -168,7 +168,7 @@ static void Cg_UpdateCameraMode(void) {
  * @remarks The keys named are the shipped defaults, which is all this can honestly claim: they
  * are bindings, and a player may have moved them.
  */
-static void Cg_PrintControls(const player_state_t *ps) {
+static void Cg_PrintControls(const PlayerState *ps) {
 
   if (cg_state.printed_controls) {
     return;
@@ -211,10 +211,10 @@ void Cg_CameraModeCycle_f(void) {
  * @brief Update the third person offset, if any. This is used as a client-side
  * option, as the default chase camera view, and as the follow camera.
  */
-static void Cg_UpdateThirdPerson(const player_state_t *ps) {
-  vec3_t forward, right, up, origin, point;
+static void Cg_UpdateThirdPerson(const PlayerState *ps) {
+  Vec3 forward, right, up, origin, point;
 
-  const box3_t bounds = Box3f(32.f, 32.f, 32.f);
+  const Box3 bounds = Box3f(32.f, 32.f, 32.f);
 
   if (ps->pm_state.flags & PMF_DEATH_CAM) {
     // the game has already resolved the camera into the view offset
@@ -244,23 +244,23 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
-  vec3_t offset;
-  vec3_t angles;
+  Vec3 offset;
+  Vec3 angles;
 
   if (follow) {
-    offset = Vec3(-cg_state.follow.distance, cg_third_person_y->value, cg_third_person_z->value);
+    offset = MakeVec3(-cg_state.follow.distance, cg_third_person_y->value, cg_third_person_z->value);
 
     // absolute, not relative to the subject: the camera holds its place in the world while the
     // player being watched turns, which is what makes it usable for reviewing a fight
-    angles = Vec3_ClampEuler(Vec3(cg_state.follow.pitch, cg_state.follow.yaw, 0.f));
+    angles = Vec3_ClampEuler(MakeVec3(cg_state.follow.pitch, cg_state.follow.yaw, 0.f));
   } else {
-    offset = Vec3(
+    offset = MakeVec3(
       cg_third_person_x->value,
       cg_third_person_y->value,
       cg_third_person_z->value
     );
 
-    angles = Vec3_ClampEuler(Vec3(
+    angles = Vec3_ClampEuler(MakeVec3(
       cgi.view->angles.x + cg_third_person_pitch->value,
       cgi.view->angles.y + cg_third_person_yaw->value,
       cgi.view->angles.z
@@ -277,7 +277,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
   origin = Vec3_Fmaf(origin, offset.y, right);
   origin = Vec3_Fmaf(origin, offset.x, forward);
 
-  const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+  const CmTrace tr = cgi.Trace(cgi.view->origin, origin, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
   cgi.view->origin = tr.end;
 
   point = Vec3_Subtract(point, cgi.view->origin);
@@ -291,7 +291,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
  * @brief Periodically calculates the player's horizontal speed, and interpolates it
  * over a small interval to smooth out rapid changes in velocity.
  */
-static float Cg_BobSpeedModulus(const player_state_t *ps) {
+static float Cg_BobSpeedModulus(const PlayerState *ps) {
   static float old_speed, new_speed;
   static uint32_t time;
 
@@ -310,7 +310,7 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
     const bool ducked = ps->pm_state.flags & PMF_DUCKED;
     const float max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
 
-    vec3_t velocity = ps->pm_state.velocity;
+    Vec3 velocity = ps->pm_state.velocity;
     velocity.z = 0.0;
 
     old_speed = new_speed;
@@ -329,7 +329,7 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
  * simple sin function. The player's speed, as well as whether or not they
  * are on the ground, determine the bob frequency and amplitude.
  */
-static void Cg_UpdateBob(const player_state_t *ps) {
+static void Cg_UpdateBob(const PlayerState *ps) {
   static uint32_t time;
   static float bob;
 
@@ -387,7 +387,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
  * @param ps0 The player state to interpolate from.
  * @param ps1 The player state to interpolate to.
  */
-static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1) {
+static void Cg_UpdateOrigin(const PlayerState *ps0, const PlayerState *ps1) {
 
   if (cgi.client->demo_server && cg_state.spectate.detached) {
     cgi.view->origin = cg_state.spectate.state.origin;
@@ -395,18 +395,18 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
   }
 
   if (Cg_UsePrediction()) {
-    cl_predicted_state_t *pr = &cgi.client->predicted_state;
+    ClientPredictedState *pr = &cgi.client->predicted_state;
     cgi.view->origin = Vec3_Add(pr->view.origin, pr->view.offset);
 
-    const vec3_t error = Vec3_Scale(pr->error, 1.f - cgi.client->lerp);
+    const Vec3 error = Vec3_Scale(pr->error, 1.f - cgi.client->lerp);
     cgi.view->origin = Vec3_Add(cgi.view->origin, error);
 
     cgi.view->origin.z -= pr->view.step_offset;
   } else {
-    vec3_t ps0_org = Vec3_Add(ps0->pm_state.origin, ps0->pm_state.view_offset);
+    Vec3 ps0_org = Vec3_Add(ps0->pm_state.origin, ps0->pm_state.view_offset);
     ps0_org.z -= ps0->pm_state.step_offset;
 
-    vec3_t ps1_org = Vec3_Add(ps1->pm_state.origin, ps1->pm_state.view_offset);
+    Vec3 ps1_org = Vec3_Add(ps1->pm_state.origin, ps1->pm_state.view_offset);
     ps1_org.z -= ps1->pm_state.step_offset;
 
     cgi.view->origin = Vec3_Mix(ps0_org, ps1_org, cgi.client->lerp);
@@ -418,8 +418,8 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
  * @param ps0 The player state to interpolate from.
  * @param ps1 The player state to interpolate to.
  */
-static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
-  vec3_t angles, angles0, angles1;
+static void Cg_UpdateAngles(const PlayerState *ps0, const PlayerState *ps1) {
+  Vec3 angles, angles0, angles1;
 
   if (cgi.client->demo_server && cg_state.spectate.detached) {
     cgi.view->angles = cg_state.spectate.state.view_angles;
@@ -441,7 +441,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
   }
 
   if (Cg_UsePrediction()) {
-    const cl_predicted_state_t *pr = &cgi.client->predicted_state;
+    const ClientPredictedState *pr = &cgi.client->predicted_state;
     cgi.view->angles = pr->view.angles;
   } else {
 
@@ -492,23 +492,23 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
  */
 static void Cg_UpdateAmbient(void) {
 
-  const cm_entity_t *worldspawn = editor->value
+  const CmEntity *worldspawn = editor->value
   ? cg_editor.entities[0].def
   : cgi.WorldModel()->bsp->cm->entities[0];
 
-  const cm_entity_t *ambient = cgi.EntityValue(worldspawn, "ambient");
+  const CmEntity *ambient = cgi.EntityValue(worldspawn, "ambient");
 
   if (ambient->parsed & ENTITY_VEC3) {
     cgi.view->ambient = ambient->vec3;
   } else {
-    cgi.view->ambient = Vec3(ambient->value, ambient->value, ambient->value);
+    cgi.view->ambient = MakeVec3(ambient->value, ambient->value, ambient->value);
   }
 }
 
 /**
  * @brief Updates the view origin, angles, and field of view.
  */
-void Cg_PrepareView(const cl_frame_t *frame) {
+void Cg_PrepareView(const ClientFrame *frame) {
 
   cgi.view->type = VIEW_MAIN;
   cgi.view->flags = VIEW_FLAG_NONE;
@@ -516,9 +516,9 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   assert(cg_framebuffer);
   cgi.view->framebuffer = cg_framebuffer;
 
-  cgi.view->viewport = Vec4i(0, 0, cg_framebuffer->size.w, cg_framebuffer->size.h);
+  cgi.view->viewport = MakeVec4i(0, 0, cg_framebuffer->size.w, cg_framebuffer->size.h);
 
-  const player_state_t *ps0;
+  const PlayerState *ps0;
 
   if (cgi.client->previous_frame) {
     ps0 = &cgi.client->previous_frame->ps;
@@ -527,7 +527,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
     ps0 = &frame->ps;
   }
 
-  const player_state_t *ps1 = &frame->ps;
+  const PlayerState *ps1 = &frame->ps;
 
   Cg_PrintControls(ps1);
 

@@ -21,75 +21,75 @@
 
 #include "cg_local.h"
 
-cg_state_t cg_state;
+ClientGameState cg_state;
 
-cvar_t *cg_add_atmospheric;
-cvar_t *cg_add_decals;
-cvar_t *cg_add_entities;
-cvar_t *cg_add_flares;
-cvar_t *cg_add_lights;
-cvar_t *cg_add_sprites;
-cvar_t *cg_add_weather;
-cvar_t *cg_bob;
-cvar_t *cg_draw_blend;
-cvar_t *cg_draw_blend_damage;
-cvar_t *cg_draw_blend_liquid;
-cvar_t *cg_draw_blend_pickup;
-cvar_t *cg_draw_blend_powerup;
-cvar_t *cg_draw_crosshair;
-cvar_t *cg_draw_crosshair_alpha;
-cvar_t *cg_draw_crosshair_color;
-cvar_t *cg_draw_crosshair_health;
-cvar_t *cg_draw_crosshair_pulse;
-cvar_t *cg_draw_crosshair_scale;
-cvar_t *cg_draw_diagnostics;
-cvar_t *cg_draw_fps;
-cvar_t *cg_draw_hud;
-cvar_t *cg_draw_ping;
-cvar_t *cg_draw_ping_warn;
-cvar_t *cg_hud;
-cvar_t *cg_draw_target_name;
-cvar_t *cg_draw_weapon;
-cvar_t *cg_draw_weapon_alpha;
-cvar_t *cg_draw_weapon_bob;
-cvar_t *cg_draw_weapon_x;
-cvar_t *cg_draw_weapon_y;
-cvar_t *cg_draw_weapon_z;
-cvar_t *cg_draw_vitals_pulse;
-cvar_t *cg_entity_bob;
-cvar_t *cg_entity_rotate;
-cvar_t *cg_force_skin;
-cvar_t *cg_fov;
-cvar_t *cg_fov_zoom;
-cvar_t *cg_fov_interpolate;
-cvar_t *cg_hit_sound;
-cvar_t *cg_predict;
-cvar_t *cg_quick_join_max_ping;
-cvar_t *cg_quick_join_min_clients;
-cvar_t *cg_sprite_physics;
-cvar_t *cg_camera_mode;
-cvar_t *cg_third_person;
-cvar_t *cg_third_person_x;
-cvar_t *cg_third_person_y;
-cvar_t *cg_third_person_z;
-cvar_t *cg_third_person_pitch;
-cvar_t *cg_third_person_yaw;
+Cvar *cg_add_atmospheric;
+Cvar *cg_add_decals;
+Cvar *cg_add_entities;
+Cvar *cg_add_flares;
+Cvar *cg_add_lights;
+Cvar *cg_add_sprites;
+Cvar *cg_add_weather;
+Cvar *cg_bob;
+Cvar *cg_draw_blend;
+Cvar *cg_draw_blend_damage;
+Cvar *cg_draw_blend_liquid;
+Cvar *cg_draw_blend_pickup;
+Cvar *cg_draw_blend_powerup;
+Cvar *cg_draw_crosshair;
+Cvar *cg_draw_crosshair_alpha;
+Cvar *cg_draw_crosshair_color;
+Cvar *cg_draw_crosshair_health;
+Cvar *cg_draw_crosshair_pulse;
+Cvar *cg_draw_crosshair_scale;
+Cvar *cg_draw_diagnostics;
+Cvar *cg_draw_fps;
+Cvar *cg_draw_hud;
+Cvar *cg_draw_ping;
+Cvar *cg_draw_ping_warn;
+Cvar *cg_hud;
+Cvar *cg_draw_target_name;
+Cvar *cg_draw_weapon;
+Cvar *cg_draw_weapon_alpha;
+Cvar *cg_draw_weapon_bob;
+Cvar *cg_draw_weapon_x;
+Cvar *cg_draw_weapon_y;
+Cvar *cg_draw_weapon_z;
+Cvar *cg_draw_vitals_pulse;
+Cvar *cg_entity_bob;
+Cvar *cg_entity_rotate;
+Cvar *cg_force_skin;
+Cvar *cg_fov;
+Cvar *cg_fov_zoom;
+Cvar *cg_fov_interpolate;
+Cvar *cg_hit_sound;
+Cvar *cg_predict;
+Cvar *cg_quick_join_max_ping;
+Cvar *cg_quick_join_min_clients;
+Cvar *cg_sprite_physics;
+Cvar *cg_camera_mode;
+Cvar *cg_third_person;
+Cvar *cg_third_person_x;
+Cvar *cg_third_person_y;
+Cvar *cg_third_person_z;
+Cvar *cg_third_person_pitch;
+Cvar *cg_third_person_yaw;
 
-cvar_t *cg_auto_switch;
-cvar_t *cg_color;
-cvar_t *cg_hand;
-cvar_t *cg_helmet;
+Cvar *cg_auto_switch;
+Cvar *cg_color;
+Cvar *cg_hand;
+Cvar *cg_helmet;
 #if defined(G_HOOK)
-cvar_t *cg_hook_style;
+Cvar *cg_hook_style;
 #endif
-cvar_t *cg_pants;
-cvar_t *cg_shirt;
-cvar_t *cg_skin;
+Cvar *cg_pants;
+Cvar *cg_shirt;
+Cvar *cg_skin;
 
-cvar_t *editor;
+Cvar *editor;
 
-cg_import_t cgi;
-static cg_export_t cge;
+ClientGameImport cgi;
+static ClientGameExport cge;
 
 /**
  * @brief Called when the client first comes up or switches game directories. Client
@@ -100,7 +100,7 @@ static void Cg_Init(void) {
   cgi.Print("Client game module initialization...\n");
 
   const char *s = va("%s %s", VERSION, BUILD);
-  cvar_t *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
+  Cvar *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
 
   cgi.Print("  Version:    ^2%s^7\n", cgame_version->string);
 
@@ -269,7 +269,7 @@ static void Cg_ParseTeamInfo(const char *s) {
     Cg_Error("Invalid team data: %s\n", s);
   }
 
-  cg_team_info_t *team = cg_state.teams;
+  ClientGameTeamInfo *team = cg_state.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
     team->id = atoi((char *) $(info, get, i + 0));
@@ -309,7 +309,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   switch (i) {
     case CS_GAMEPLAY:
-      cg_state.gameplay = (g_gameplay_id_t) strtol(s, NULL, 10);
+      cg_state.gameplay = (GameplayId) strtol(s, NULL, 10);
       return;
     case CS_NUM_TEAMS:
       cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
@@ -318,7 +318,7 @@ static void Cg_UpdateConfigString(int32_t i) {
       Cg_ParseTeamInfo(s);
       return;
     case CS_ITEM_SET:
-      cg_state.items = (g_items_t) strtol(s, NULL, 10);
+      cg_state.items = (GameItems) strtol(s, NULL, 10);
       return;
 #if defined(G_HOOK)
     case CS_HOOK_PULL_SPEED: {
@@ -343,7 +343,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
-    cg_client_info_t *ci = &cg_state.clients[i - CS_CLIENTS];
+    ClientGameClientInfo *ci = &cg_state.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
 
     // the server does not count connected clients for us: the entries it sends are the count
@@ -361,7 +361,7 @@ static void Cg_UpdateConfigString(int32_t i) {
     // one -- played a corpse's death over again where it lay.
     const int32_t client_num = i - CS_CLIENTS;
     for (int32_t j = 0; j < MAX_ENTITIES; j++) {
-      cl_entity_t *ent = &cgi.client->entities[j];
+      ClientEntity *ent = &cgi.client->entities[j];
 
       if (ent->current.effects & EF_CORPSE) {
         continue;
@@ -395,7 +395,7 @@ static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
   const char *sample = cgi.GetCvarString(team ? "cl_team_chat_sound" : "cl_chat_sound");
 
   if (sample && *sample) {
-    Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+    Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
       .sample = cgi.LoadSample(sample, ASSET_CONTEXT_SOUNDS),
       .flags = S_PLAY_UI
     });
@@ -491,7 +491,7 @@ float Cg_GetHookPullSpeed(void) {
  * game side, so the name and label a module offers can never drift from what
  * the server will actually coerce it to.
  */
-static const g_gameplay_t *Cg_ListGameplayModes_Common(size_t *count) {
+static const Gameplay *Cg_ListGameplayModes_Common(size_t *count) {
 
   *count = lengthof(g_gameplay_modes);
 
@@ -533,7 +533,7 @@ StateDidClear Cg_StateDidClear = Cg_StateDidClear_Common;
 /**
  * @brief Prepares the scene so that early rendering operations may begin.
  */
-static void Cg_PrepareScene(const cl_frame_t *frame) {
+static void Cg_PrepareScene(const ClientFrame *frame) {
 
   Cg_PrepareView(frame);
 
@@ -543,7 +543,7 @@ static void Cg_PrepareScene(const cl_frame_t *frame) {
 /**
  * @brief Populates the scene with entities, sprites, samples, etc.. for the interpolated frame.
  */
-static void Cg_PopulateScene(const cl_frame_t *frame) {
+static void Cg_PopulateScene(const ClientFrame *frame) {
 
   Cg_AddPortals(frame);
 
@@ -563,7 +563,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 /**
  * @brief The tail of the `Cg_SceneDidPopulate` chain: a notification, so it does nothing.
  */
-static void Cg_SceneDidPopulate_Common(const cl_frame_t *frame) {
+static void Cg_SceneDidPopulate_Common(const ClientFrame *frame) {
 }
 
 SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
@@ -571,7 +571,7 @@ SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
 /**
  * @brief Hands the frame to the HUD, and to what the HUD still does outside its View hierarchy.
  */
-static void Cg_UpdateScreen(const cl_frame_t *frame) {
+static void Cg_UpdateScreen(const ClientFrame *frame) {
 
   Cg_UpdateHud(frame);
 
@@ -588,7 +588,7 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 /**
  * @brief The tail of the `Cg_ScreenDidUpdate` chain: a notification, so it does nothing.
  */
-static void Cg_ScreenDidUpdate_Common(const cl_frame_t *frame) {
+static void Cg_ScreenDidUpdate_Common(const ClientFrame *frame) {
 }
 
 ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
@@ -596,7 +596,7 @@ ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
 /**
  * @brief Entry point that populates and returns the cgame export table with all function pointers.
  */
-cg_export_t *Cg_LoadCgame(cg_import_t *import) {
+ClientGameExport *Cg_LoadCgame(ClientGameImport *import) {
 
   cgi = *import;
 

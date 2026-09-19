@@ -135,20 +135,20 @@ typedef enum {
   DISCORD_INVALID,
   DISCORD_INACTIVE,
   DISCORD_ACTIVE
-} cg_discord_status_t;
+} ClientGameDiscordStatus;
 
 typedef struct {
   bool initialized;
   bool failed;
-  cg_discord_status_t status;
+  ClientGameDiscordStatus status;
 
   /**
    * @brief The party size last published, so that presence is refreshed when it changes.
    */
   int32_t party_max;
-} cg_discord_state_t;
+} ClientGameDiscordState;
 
-static cg_discord_state_t cg_discord_state;
+static ClientGameDiscordState cg_discord_state;
 
 static void Cg_DiscordReady(const DiscordUser *user) {
 
@@ -203,7 +203,7 @@ void Cg_UpdateDiscord(void) {
     char joinSecret[128];
     char spectateSecret[128];
 
-    const cl_server_info_t *server = cgi.ServerInfo();
+    const ClientServerInfo *server = cgi.ServerInfo();
     const int32_t party_max = server ? server->max_clients : 0;
 
     if (*cgi.state == CL_ACTIVE) {

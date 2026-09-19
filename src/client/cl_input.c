@@ -21,21 +21,21 @@
 
 #include "cl_local.h"
 
-static cvar_t *cl_forward_speed;
-static cvar_t *cl_pitch_speed;
-static cvar_t *cl_right_speed;
-static cvar_t *cl_up_speed;
-static cvar_t *cl_yaw_speed;
-static cvar_t *cl_capture_media_keys;
+static Cvar *cl_forward_speed;
+static Cvar *cl_pitch_speed;
+static Cvar *cl_right_speed;
+static Cvar *cl_up_speed;
+static Cvar *cl_yaw_speed;
+static Cvar *cl_capture_media_keys;
 
-cvar_t *m_interpolate;
-cvar_t *m_invert;
-cvar_t *m_sensitivity;
-cvar_t *m_sensitivity_zoom;
-cvar_t *m_pitch;
-cvar_t *m_yaw;
+Cvar *m_interpolate;
+Cvar *m_invert;
+Cvar *m_sensitivity;
+Cvar *m_sensitivity_zoom;
+Cvar *m_pitch;
+Cvar *m_yaw;
 
-static button_t cl_buttons[10];
+static InputButton cl_buttons[10];
 #define in_left cl_buttons[0]
 #define in_right cl_buttons[1]
 #define in_forward cl_buttons[2]
@@ -50,7 +50,7 @@ static button_t cl_buttons[10];
 /**
  * @brief Registers a key-down event for the given button, tracking which keys hold it.
  */
-void Cl_KeyDown(button_t *b) {
+void Cl_KeyDown(InputButton *b) {
   SDL_Scancode k;
 
   const char *c = Cmd_Argv(1);
@@ -87,7 +87,7 @@ void Cl_KeyDown(button_t *b) {
 /**
  * @brief Registers a key-up event for the given button, releasing it when all keys are up.
  */
-void Cl_KeyUp(button_t *b) {
+void Cl_KeyUp(InputButton *b) {
 
   if (Cmd_Argc() < 2) { // typed manually at the console, assume for un-sticking, so clear all
     b->keys[0] = b->keys[1] = 0;
@@ -211,7 +211,7 @@ static void Cl_CenterView_f(void) {
 /**
  * @brief Returns the fraction of the command interval for which the key was down.
  */
-float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
+float Cl_KeyState(InputButton *key, uint32_t cmd_msec) {
 
   uint32_t msec = key->msec;
   key->msec = 0;
@@ -283,7 +283,7 @@ static void Cl_TextEvent(const SDL_Event *event) {
     return;
   }
 
-  console_input_t *in = &cl_console.input;
+  ConsoleInput *in = &cl_console.input;
 
   const char *src = event->text.text;
 
@@ -391,7 +391,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
       SDL_Scancode key = event->key.scancode;
       if (cls.key_state.binds[key]) {
-        cmd_t *cmd;
+        Cmd *cmd;
 
         Cmd_TokenizeString(cls.key_state.binds[key]);
         if ((cmd = Cmd_Get(Cmd_Argv(0)))) {
@@ -473,7 +473,7 @@ void Cl_HandleEvents(void) {
 /**
  * @brief Clamps the player pitch angle to prevent looking too far up or down.
  */
-static void Cl_ClampPitch(const player_state_t *ps) {
+static void Cl_ClampPitch(const PlayerState *ps) {
 
   // ensure our pitch is valid
   float pitch = ps->pm_state.delta_angles.x;
@@ -497,7 +497,7 @@ static void Cl_ClampPitch(const player_state_t *ps) {
  * @brief Accumulate view offset and angle modifications for the specified command.
  * @details The resulting view offset and angles are used as early as possible for prediction.
  */
-void Cl_Look(pm_cmd_t *cmd) {
+void Cl_Look(PlayerMoveCmd *cmd) {
 
   cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
   cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
@@ -520,7 +520,7 @@ void Cl_Look(pm_cmd_t *cmd) {
  * @details This is called at ~60hz regardless of the client's framerate. This is to avoid micro-
  * commands, which introduce prediction errors (screen jitter).
  */
-void Cl_Move(pm_cmd_t *cmd) {
+void Cl_Move(PlayerMoveCmd *cmd) {
 
   cmd->forward += cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
   cmd->forward -= cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);

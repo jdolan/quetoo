@@ -59,7 +59,7 @@
  *
  * `PM_CmdScale` is not ported. It normalizes an axial +/-127 command so that a
  * diagonal is not `sqrt(2)` faster, scaling the wish by
- * `speed * max / (127 * total)`; Quetoo's `pm_cmd_t` carries the intended speed
+ * `speed * max / (127 * total)`; Quetoo's `PlayerMoveCmd` carries the intended speed
  * instead, so the equivalent is the wish-speed clamp the other kernels use. For
  * a command that fills its axes the two agree exactly, and they differ only for
  * partial input. Upstream's `PM_CheckJump` clearing `cmd.upmove` so that
@@ -79,7 +79,7 @@
  * is what this uses. And `pml.impactSpeed`, which `PM_SlideMove` tracks, is
  * written and never read anywhere in id's tree, so it is not tracked here.
  *
- * The corpse is id's too, box and eye height both, since `pm_params_t` carries
+ * The corpse is id's too, box and eye height both, since `PlayerMoveParams` carries
  * the dead box as well. What stays Quetoo's is the giblet: no Quake has one.
  *
  * Being finished is the point: this file matches what it imitates and should
@@ -111,7 +111,7 @@
   .maxs = { {  15.f,  15.f,  -8.f } }  /* PM_CheckDuck's corpse, against Quetoo's -4 */ \
 }
 
-const pm_params_t pm_quake3_params = {
+const PlayerMoveParams pm_quake3_params = {
   .gravity = 800,
   .accel_ground = 10.f,         // pm_accelerate
   .accel_ground_slick = 1.f,    // pm_airaccelerate, which is what slick ground gets
@@ -179,7 +179,7 @@ static bool pm_quake3_ground_plane;
  * @brief Slides `in` along `normal`. Unlike Quake II, a move already leaving the
  * plane is given back less rather than more, which is what the divide does.
  */
-static vec3_t Pm_Quake3ClipVelocity(const vec3_t in, const vec3_t normal) {
+static Vec3 Pm_Quake3ClipVelocity(const Vec3 in, const Vec3 normal) {
 
   float backoff = Vec3_Dot(in, normal);
 
@@ -207,11 +207,11 @@ static vec3_t Pm_Quake3ClipVelocity(const vec3_t in, const vec3_t normal) {
  */
 static bool Pm_Quake3SlideMove(const bool gravity) {
 
-  vec3_t primal_velocity = pm->s.velocity;
+  Vec3 primal_velocity = pm->s.velocity;
 
   // this only survives the move when gravity was asked for; upstream leaves it
   // uninitialized otherwise and discards the clips it takes below
-  vec3_t end_velocity = Vec3_Zero();
+  Vec3 end_velocity = Vec3_Zero();
 
   if (gravity) {
     end_velocity = pm->s.velocity;
@@ -225,7 +225,7 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
     }
   }
 
-  vec3_t planes[PM_QUAKE3_CLIP_PLANES];
+  Vec3 planes[PM_QUAKE3_CLIP_PLANES];
   int32_t num_planes = 0;
 
   if (pm_quake3_ground_plane) { // never turn against the ground plane
@@ -239,8 +239,8 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
   int32_t bump;
   for (bump = 0; bump < PM_QUAKE3_BUMPS; bump++) {
 
-    const vec3_t end = Vec3_Fmaf(pm->s.origin, time_left, pm->s.velocity);
-    const cm_trace_t trace = Pm_Trace(pm->s.origin, end, pm->bounds);
+    const Vec3 end = Vec3_Fmaf(pm->s.origin, time_left, pm->s.velocity);
+    const CmTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
 
     if (trace.all_solid) { // trapped in a solid
       pm->s.velocity.z = 0.f; // and do not build up falling damage
@@ -287,8 +287,8 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
         continue; // the move does not enter this plane
       }
 
-      vec3_t clipped = Pm_Quake3ClipVelocity(pm->s.velocity, planes[i]);
-      vec3_t end_clipped = Pm_Quake3ClipVelocity(end_velocity, planes[i]);
+      Vec3 clipped = Pm_Quake3ClipVelocity(pm->s.velocity, planes[i]);
+      Vec3 end_clipped = Pm_Quake3ClipVelocity(end_velocity, planes[i]);
 
       for (int32_t j = 0; j < num_planes; j++) {
 
@@ -308,7 +308,7 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
         }
 
         // so go along the crease the two of them make
-        const vec3_t dir = Vec3_Normalize(Vec3_Cross(planes[i], planes[j]));
+        const Vec3 dir = Vec3_Normalize(Vec3_Cross(planes[i], planes[j]));
 
         clipped = Vec3_Scale(dir, Vec3_Dot(dir, pm->s.velocity));
         end_clipped = Vec3_Scale(dir, Vec3_Dot(dir, end_velocity));
@@ -354,21 +354,21 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
  */
 static void Pm_Quake3StepSlideMove(const bool gravity) {
 
-  const vec3_t start_origin = pm->s.origin;
-  const vec3_t start_velocity = pm->s.velocity;
+  const Vec3 start_origin = pm->s.origin;
+  const Vec3 start_velocity = pm->s.velocity;
 
   if (!Pm_Quake3SlideMove(gravity)) {
     return; // went exactly where it wanted to on the first try
   }
 
-  const vec3_t below = Vec3(start_origin.x, start_origin.y,
+  const Vec3 below = MakeVec3(start_origin.x, start_origin.y,
                             start_origin.z - PM_QUAKE3_STEP_SIZE);
 
   // pm->Trace and not Pm_Trace throughout this function, as upstream has it: the
   // latter jitters the start by up to a unit to escape a solid, so it cannot
   // answer a question about the position as it stands, and the origin it returns
   // would carry that jitter into the move
-  cm_trace_t trace = pm->Trace(start_origin, below, pm->bounds);
+  CmTrace trace = pm->Trace(start_origin, below, pm->bounds);
 
   // never step up while still rising, unless there is floor right underneath
   if (pm->s.velocity.z > 0.f &&
@@ -376,7 +376,7 @@ static void Pm_Quake3StepSlideMove(const bool gravity) {
     return;
   }
 
-  const vec3_t above = Vec3(start_origin.x, start_origin.y,
+  const Vec3 above = MakeVec3(start_origin.x, start_origin.y,
                             start_origin.z + PM_QUAKE3_STEP_SIZE);
 
   trace = pm->Trace(start_origin, above, pm->bounds);
@@ -392,7 +392,7 @@ static void Pm_Quake3StepSlideMove(const bool gravity) {
   Pm_Quake3SlideMove(gravity);
 
   // and press back down however far we came up
-  const vec3_t back = Vec3(pm->s.origin.x, pm->s.origin.y, pm->s.origin.z - step);
+  const Vec3 back = MakeVec3(pm->s.origin.x, pm->s.origin.y, pm->s.origin.z - step);
 
   trace = pm->Trace(pm->s.origin, back, pm->bounds);
   if (!trace.all_solid) {
@@ -416,7 +416,7 @@ static void Pm_Quake3StepSlideMove(const bool gravity) {
  */
 static void Pm_Quake3Friction(void) {
 
-  vec3_t vel = pm->s.velocity;
+  Vec3 vel = pm->s.velocity;
 
   if (pm->s.flags & PMF_ON_GROUND) {
     vel.z = 0.f; // ignore slope movement
@@ -450,7 +450,7 @@ static void Pm_Quake3Friction(void) {
  * @brief Accelerates toward `dir`, up to `speed`. This is Quake II's, uncapped,
  * and strafe jumping is what comes of it.
  */
-static void Pm_Quake3Accelerate(const vec3_t dir, float speed, float accel) {
+static void Pm_Quake3Accelerate(const Vec3 dir, float speed, float accel) {
 
   const float add_speed = speed - Vec3_Dot(pm->s.velocity, dir);
   if (add_speed <= 0.f) {
@@ -501,9 +501,9 @@ static bool Pm_Quake3CheckWaterJump(void) {
     return false;
   }
 
-  const vec3_t forward = Vec3_Normalize(Vec3(pm_locals.forward.x, pm_locals.forward.y, 0.f));
+  const Vec3 forward = Vec3_Normalize(MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f));
 
-  vec3_t spot = Vec3_Fmaf(pm->s.origin, PM_QUAKE3_WATER_JUMP_DIST, forward);
+  Vec3 spot = Vec3_Fmaf(pm->s.origin, PM_QUAKE3_WATER_JUMP_DIST, forward);
   spot.z += PM_QUAKE3_WATER_JUMP_UP;
 
   if (!(pm->PointContents(spot) & CONTENTS_SOLID)) {
@@ -565,7 +565,7 @@ static void Pm_Quake3WaterMove(void) {
 
   Pm_Quake3Friction();
 
-  vec3_t wish = Vec3_Zero();
+  Vec3 wish = Vec3_Zero();
 
   if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
     wish.z = -PM_QUAKE3_WATER_SINK; // drift toward the bottom
@@ -576,7 +576,7 @@ static void Pm_Quake3WaterMove(void) {
   }
 
   float speed;
-  const vec3_t dir = Vec3_NormalizeLength(wish, &speed);
+  const Vec3 dir = Vec3_NormalizeLength(wish, &speed);
   speed = Minf(speed, pm->s.params.speed_water * PM_QUAKE3_SWIM_SCALE);
 
   Pm_Quake3Accelerate(dir, speed, pm->s.params.accel_water);
@@ -604,16 +604,16 @@ static void Pm_Quake3AirMove(void) {
   Pm_Quake3Friction();
 
   // the wish is flat, whatever the view is doing
-  const vec3_t forward = Vec3_Normalize(Vec3(pm_locals.forward.x, pm_locals.forward.y, 0.f));
-  const vec3_t right = Vec3_Normalize(Vec3(pm_locals.right.x, pm_locals.right.y, 0.f));
+  const Vec3 forward = Vec3_Normalize(MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f));
+  const Vec3 right = Vec3_Normalize(MakeVec3(pm_locals.right.x, pm_locals.right.y, 0.f));
 
-  vec3_t wish = Vec3_Zero();
+  Vec3 wish = Vec3_Zero();
   wish = Vec3_Fmaf(wish, pm->cmd.forward, forward);
   wish = Vec3_Fmaf(wish, pm->cmd.right, right);
   wish.z = 0.f;
 
   float speed;
-  const vec3_t dir = Vec3_NormalizeLength(wish, &speed);
+  const Vec3 dir = Vec3_NormalizeLength(wish, &speed);
   speed = Minf(speed, pm->s.params.speed_air);
 
   // with no cap on the wished speed the headroom is the whole of it, which is
@@ -639,7 +639,7 @@ static void Pm_Quake3WalkMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
-  const vec3_t normal = pm_locals.ground.plane.normal;
+  const Vec3 normal = pm_locals.ground.plane.normal;
 
   if (pm->water_level > WATER_WAIST && Vec3_Dot(pm_locals.forward, normal) > 0.f) {
     Pm_Quake3WaterMove(); // begin swimming
@@ -657,20 +657,20 @@ static void Pm_Quake3WalkMove(void) {
 
   Pm_Quake3Friction();
 
-  vec3_t forward = Vec3(pm_locals.forward.x, pm_locals.forward.y, 0.f);
-  vec3_t right = Vec3(pm_locals.right.x, pm_locals.right.y, 0.f);
+  Vec3 forward = MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f);
+  Vec3 right = MakeVec3(pm_locals.right.x, pm_locals.right.y, 0.f);
 
   // project the forward and right directions onto the ground plane, which is
   // what leaves the wish a vertical component to climb the slope with
   forward = Vec3_Normalize(Pm_Quake3ClipVelocity(forward, normal));
   right = Vec3_Normalize(Pm_Quake3ClipVelocity(right, normal));
 
-  vec3_t wish = Vec3_Zero();
+  Vec3 wish = Vec3_Zero();
   wish = Vec3_Fmaf(wish, pm->cmd.forward, forward);
   wish = Vec3_Fmaf(wish, pm->cmd.right, right);
 
   float speed;
-  const vec3_t dir = Vec3_NormalizeLength(wish, &speed);
+  const Vec3 dir = Vec3_NormalizeLength(wish, &speed);
   speed = Minf(speed, pm->s.params.speed_ground);
 
   if (pm->s.flags & PMF_DUCKED) {
@@ -719,7 +719,7 @@ static void Pm_Quake3DeadMove(void) {
   }
 
   float speed;
-  const vec3_t dir = Vec3_NormalizeLength(pm->s.velocity, &speed);
+  const Vec3 dir = Vec3_NormalizeLength(pm->s.velocity, &speed);
 
   speed -= PM_QUAKE3_DEAD_FRICTION;
 
@@ -738,12 +738,12 @@ static void Pm_Quake3GroundTrace(void) {
   // before anything below overwrites it
   const bool was_grounded = pm->ground.ent != NULL;
 
-  const vec3_t below = Vec3(pm->s.origin.x, pm->s.origin.y,
+  const Vec3 below = MakeVec3(pm->s.origin.x, pm->s.origin.y,
                             pm->s.origin.z - PM_QUAKE3_GROUND_PROBE);
 
   // Pm_Trace is itself Quake III's PM_CorrectAllSolid, so the corrective case
   // upstream spells out here is already taken
-  const cm_trace_t trace = Pm_Trace(pm->s.origin, below, pm->bounds);
+  const CmTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
   pm_locals.ground = trace;
 
   pm->s.flags &= ~PMF_ON_GROUND;
@@ -819,7 +819,7 @@ static void Pm_Quake3SetWaterLevel(void) {
   const float sample2 = pm->s.view_offset.z - pm->bounds.mins.z;
   const float sample1 = sample2 * .5f;
 
-  vec3_t point = Vec3(pm->s.origin.x, pm->s.origin.y,
+  Vec3 point = MakeVec3(pm->s.origin.x, pm->s.origin.y,
                       pm->s.origin.z + pm->bounds.mins.z + 1.f);
 
   int32_t contents = pm->PointContents(point);
@@ -886,7 +886,7 @@ static void Pm_Quake3CheckDuck(void) {
  */
 static void Pm_Quake3SnapVelocity(void) {
 
-  pm->s.velocity = Vec3(roundf(pm->s.velocity.x),
+  pm->s.velocity = MakeVec3(roundf(pm->s.velocity.x),
                         roundf(pm->s.velocity.y),
                         roundf(pm->s.velocity.z));
 }

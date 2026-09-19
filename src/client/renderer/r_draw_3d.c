@@ -41,7 +41,7 @@ typedef struct {
    * @brief Vertex count.
    */
   uint32_t num_vertexes;
-} r_draw_3d_arrays_t;
+} RenderDraw3dArrays;
 
 #define MAX_DRAW_3D_ARRAYS 0x100000
 #define MAX_DRAW_3D_VERTEXES (MAX_DRAW_3D_ARRAYS * 2)
@@ -54,23 +54,23 @@ typedef struct {
   /**
    * @brief Vertex position.
    */
-  vec3_t position;
+  Vec3 position;
 
   /**
    * @brief Vertex color.
    */
-  color32_t color;
-} r_draw_3d_vertex_t;
+  Color32 color;
+} RenderDraw3dVertex;
 
 /**
  * @brief 3D debug draw state.
  */
 static struct {
 
-  r_draw_3d_arrays_t draw_arrays[MAX_DRAW_3D_ARRAYS];
+  RenderDraw3dArrays draw_arrays[MAX_DRAW_3D_ARRAYS];
   int32_t num_draw_arrays;
 
-  r_draw_3d_vertex_t vertexes[MAX_DRAW_3D_VERTEXES];
+  RenderDraw3dVertex vertexes[MAX_DRAW_3D_VERTEXES];
   int32_t num_vertexes;
 
   Buffer *vertex_buffer;
@@ -113,7 +113,7 @@ static GraphicsPipeline *R_Draw3DPipeline(SDL_GPUPrimitiveType mode, bool depth_
 /**
  * @brief Appends a draw arrays batch to the 3D draw list.
  */
-static void R_AddDraw3DArrays(const r_draw_3d_arrays_t *draw) {
+static void R_AddDraw3DArrays(const RenderDraw3dArrays *draw) {
 
   if (r_draw_3d.num_draw_arrays == MAX_DRAW_3D_ARRAYS) {
     Com_Warn("MAX_DRAW_3D_ARRAYS\n");
@@ -131,7 +131,7 @@ static void R_AddDraw3DArrays(const r_draw_3d_arrays_t *draw) {
 /**
  * @brief Appends a single vertex to the 3D draw vertex buffer.
  */
-static void R_AddDraw3DVertex(const r_draw_3d_vertex_t *v) {
+static void R_AddDraw3DVertex(const RenderDraw3dVertex *v) {
 
   if (r_draw_3d.num_vertexes == MAX_DRAW_3D_VERTEXES) {
     Com_Warn("MAX_DRAW_3D_VERTEXES\n");
@@ -145,18 +145,18 @@ static void R_AddDraw3DVertex(const r_draw_3d_vertex_t *v) {
 /**
  * @brief Draws line strips or line lists in 3D space.
  */
-void R_Draw3DLines(SDL_GPUPrimitiveType mode, const vec3_t *points, size_t count, const color_t color, bool depth_test) {
+void R_Draw3DLines(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, const Color color, bool depth_test) {
 
-  const r_draw_3d_arrays_t draw = {
+  const RenderDraw3dArrays draw = {
     .mode = mode,
     .depth_test = depth_test,
     .first_vertex = (uint32_t) r_draw_3d.num_vertexes,
     .num_vertexes = (uint32_t) count,
   };
 
-  const vec3_t *in = points;
+  const Vec3 *in = points;
   for (size_t i = 0; i < count; i++, in++) {
-    R_AddDraw3DVertex(&(const r_draw_3d_vertex_t) {
+    R_AddDraw3DVertex(&(const RenderDraw3dVertex) {
       .position = *in,
       .color = Color_Color32(color)
     });
@@ -168,12 +168,12 @@ void R_Draw3DLines(SDL_GPUPrimitiveType mode, const vec3_t *points, size_t count
 /**
  * @brief Draws the bounding box using line strips in 3D space.
  */
-void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test) {
-  vec3_t points[8];
+void R_Draw3DBox(const Box3 bounds, const Color color, bool depth_test) {
+  Vec3 points[8];
 
   Box3_ToPoints(bounds, points);
 
-  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINESTRIP, (const vec3_t []) {
+  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINESTRIP, (const Vec3 []) {
     points[0],
     points[1],
     points[3],
@@ -181,7 +181,7 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test) {
     points[0],
   }, 5, color, depth_test);
 
-  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINESTRIP, (const vec3_t []) {
+  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINESTRIP, (const Vec3 []) {
     points[4],
     points[5],
     points[7],
@@ -189,22 +189,22 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test) {
     points[4],
   }, 5, color, depth_test);
 
-  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const vec3_t []) {
+  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const Vec3 []) {
     points[0],
     points[4],
   }, 2, color, depth_test);
 
-  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const vec3_t []) {
+  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const Vec3 []) {
     points[2],
     points[6],
   }, 2, color, depth_test);
 
-  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const vec3_t []) {
+  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const Vec3 []) {
     points[3],
     points[7],
   }, 2, color, depth_test);
 
-  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const vec3_t []) {
+  R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, (const Vec3 []) {
     points[1],
     points[5],
   }, 2, color, depth_test);
@@ -214,25 +214,25 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test) {
  * @brief Accumulates per-vertex normal, tangent, and bitangent debug lines for
  * nearby world BSP vertices when `r_draw_bsp_normals` is enabled.
  */
-static void R_UpdateBspNormals(const r_view_t *view) {
+static void R_UpdateBspNormals(const RenderView *view) {
 
   if (!r_draw_bsp_normals->value || !r_models.world) {
     return;
   }
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = r_models.world->bsp;
 
-  const r_bsp_vertex_t *v = bsp->vertexes;
+  const RenderBspVertex *v = bsp->vertexes;
   for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
 
-    const vec3_t pos = v->position;
+    const Vec3 pos = v->position;
     if (Vec3_Distance(pos, view->origin) > 512.f) {
       continue;
     }
 
-    const vec3_t normal[] = { pos, Vec3_Fmaf(pos, 8.f, v->normal) };
-    const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
-    const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
+    const Vec3 normal[] = { pos, Vec3_Fmaf(pos, 8.f, v->normal) };
+    const Vec3 tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
+    const Vec3 bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
     R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
 
@@ -250,13 +250,13 @@ static void R_UpdateBspNormals(const r_view_t *view) {
  * @brief Accumulates debug bounding boxes for all entities in the view when
  * `r_draw_entity_bounds` is enabled.
  */
-static void R_UpdateEntityBounds(const r_view_t *view) {
+static void R_UpdateEntityBounds(const RenderView *view) {
 
   if (!r_draw_entity_bounds->value) {
     return;
   }
 
-  const r_entity_t *e = view->entities;
+  const RenderEntity *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (e->parent) {
@@ -287,16 +287,16 @@ static void R_UpdateEntityBounds(const r_view_t *view) {
  * @brief Accumulates debug bounding boxes for lights near the view's forward
  * trace when `r_draw_light_bounds` is enabled.
  */
-static void R_UpdateLightBounds(const r_view_t *view) {
+static void R_UpdateLightBounds(const RenderView *view) {
 
   if (!r_draw_light_bounds->value) {
     return;
   }
 
-  const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-  const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
+  const Vec3 end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+  const CmTrace tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
 
-  const r_light_t *l = view->lights;
+  const RenderLight *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
     if (Vec3_Distance(tr.end, l->origin) < 64.f) {
       R_Draw3DBox(l->bounds, Color3fv(l->color), false);
@@ -307,10 +307,10 @@ static void R_UpdateLightBounds(const r_view_t *view) {
 /**
  * @brief Adds debug bounds for occlusion queries and BSP blocks.
  */
-static void R_UpdateOcclusionBounds(const r_view_t *view) {
+static void R_UpdateOcclusionBounds(const RenderView *view) {
 
   if (r_draw_occlusion_queries->value) {
-    const r_occlusion_query_t *q = r_occlusion.queries;
+    const RenderOcclusionQuery *q = r_occlusion.queries;
     for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
       const float dist = Vec3_Distance(Box3_Center(q->bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
@@ -323,7 +323,7 @@ static void R_UpdateOcclusionBounds(const r_view_t *view) {
   }
 
   if (r_draw_bsp_blocks->value && r_models.world) {
-    r_bsp_block_t *b = r_models.world->bsp->inline_models->blocks;
+    RenderBspBlock *b = r_models.world->bsp->inline_models->blocks;
     for (int32_t i = 0; i < r_models.world->bsp->inline_models->num_blocks; i++, b++) {
       const float dist = Vec3_Distance(Box3_Center(b->visible_bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
@@ -340,7 +340,7 @@ static void R_UpdateOcclusionBounds(const r_view_t *view) {
  * @brief Accumulates this frame's 3D line geometry and uploads it, growing the
  * vertex buffer on demand.
  */
-void R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
+void R_UpdateDraw3D(const RenderView *view, CopyPass *copyPass) {
 
   R_UpdateBspNormals(view);
   R_UpdateEntityBounds(view);
@@ -357,18 +357,18 @@ void R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
     r_draw_3d.vertex_buffer = release(r_draw_3d.vertex_buffer);
     r_draw_3d.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-      .size = count * sizeof(r_draw_3d_vertex_t),
+      .size = count * sizeof(RenderDraw3dVertex),
     });
     r_draw_3d.transfer_buffer = release(r_draw_3d.transfer_buffer);
     r_draw_3d.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
       .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-      .size = count * sizeof(r_draw_3d_vertex_t),
+      .size = count * sizeof(RenderDraw3dVertex),
     });
 
     r_draw_3d.vertex_buffer_capacity = (int32_t) count;
   }
 
-  const uint32_t size = count * sizeof(r_draw_3d_vertex_t);
+  const uint32_t size = count * sizeof(RenderDraw3dVertex);
 
   $(r_draw_3d.transfer_buffer, write, r_draw_3d.vertexes, size, true);
 
@@ -382,7 +382,7 @@ void R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
  * @brief Draws all 3D debug geometry accumulated for the current frame, into
  * the view's scene framebuffer.
  */
-void R_Draw3D(const r_view_t *view, RenderPass *pass) {
+void R_Draw3D(const RenderView *view, RenderPass *pass) {
 
   if (r_draw_3d.num_draw_arrays == 0) {
     return;
@@ -402,7 +402,7 @@ void R_Draw3D(const r_view_t *view, RenderPass *pass) {
 
   GraphicsPipeline *pipeline = NULL;
 
-  const r_draw_3d_arrays_t *draw = r_draw_3d.draw_arrays;
+  const RenderDraw3dArrays *draw = r_draw_3d.draw_arrays;
   for (int32_t i = 0; i < r_draw_3d.num_draw_arrays; i++, draw++) {
 
     GraphicsPipeline *next = R_Draw3DPipeline(draw->mode, draw->depth_test);
@@ -440,7 +440,7 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_draw_3d_vertex_t),
+      .pitch = sizeof(RenderDraw3dVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -449,13 +449,13 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
         .location = 0,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_draw_3d_vertex_t, position),
+        .offset = offsetof(RenderDraw3dVertex, position),
       },
       {
         .location = 1,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
-        .offset = offsetof(r_draw_3d_vertex_t, color),
+        .offset = offsetof(RenderDraw3dVertex, color),
       },
     },
     .num_vertex_attributes = 2,

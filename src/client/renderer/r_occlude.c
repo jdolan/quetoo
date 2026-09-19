@@ -24,7 +24,7 @@
 
 #include "r_local.h"
 
-r_occlusion_t r_occlusion;
+RenderOcclusion r_occlusion;
 
 /**
  * @brief Compacts this frame's world block query bounds by visibility, so that
@@ -37,9 +37,9 @@ static void R_UpdateOcclusionBounds(void) {
 
   assert(r_models.world);
 
-  const r_bsp_inline_model_t *in = r_models.world->bsp->inline_models;
+  const RenderBspInlineModel *in = r_models.world->bsp->inline_models;
 
-  const r_bsp_block_t *block = in->blocks;
+  const RenderBspBlock *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (block->query->result) {
@@ -56,7 +56,7 @@ static void R_UpdateOcclusionBounds(void) {
  * of block order, so both tests are resolved in priority order rather than
  * interleaved.
  */
-bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
+bool R_OccludeBox(const RenderView *view, const Box3 bounds) {
 
   if (!r_occlude->integer) {
     return false;
@@ -66,7 +66,7 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
     return false;
   }
 
-  const box3_t *b = r_occlusion.occluded_bounds;
+  const Box3 *b = r_occlusion.occluded_bounds;
   for (int32_t i = 0; i < r_occlusion.num_occluded_bounds; i++, b++) {
     if (Box3_Contains(*b, bounds)) {
       return true;
@@ -86,32 +86,32 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 /**
  * @brief Tests whether the given sphere origin is occluded by any occlusion query result.
  */
-bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
+bool R_OccludeSphere(const RenderView *view, const Vec3 origin, float radius) {
   return R_OccludeBox(view, Box3_FromCenterRadius(origin, radius));
 }
 
 /**
  * @brief Returns true if the box is culled or occluded.
  */
-bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
+bool R_CulludeBox(const RenderView *view, const Box3 bounds) {
   return R_CullBox(view, bounds) || R_OccludeBox(view, bounds);
 }
 
 /**
  * @brief Returns true if the sphere is culled or occluded.
  */
-bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
+bool R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius) {
   return R_CullSphere(view, point, radius) || R_OccludeSphere(view, point, radius);
 }
 
 /**
  * @brief Allocates an occlusion query with the specified bounds.
  */
-r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
+RenderOcclusionQuery *R_AllocOcclusionQuery(const Box3 bounds) {
 
   GPU_Assert(r_occlusion.num_queries < MAX_OCCLUSION_QUERIES, "Exceeded MAX_OCCLUSION_QUERIES (%d)", MAX_OCCLUSION_QUERIES);
 
-  r_occlusion_query_t *query = &r_occlusion.queries[r_occlusion.num_queries++];
+  RenderOcclusionQuery *query = &r_occlusion.queries[r_occlusion.num_queries++];
 
   query->bounds = bounds;
   query->first_box = (int32_t) r_occlusion.boxes->count;
@@ -124,7 +124,7 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 /**
  * @brief Appends a box to the given query's GPU-drawn instance geometry.
  */
-void R_AppendOcclusionQueryBox(r_occlusion_query_t *query, box3_t bounds) {
+void R_AppendOcclusionQueryBox(RenderOcclusionQuery *query, Box3 bounds) {
 
   assert(query->first_box + query->num_boxes == (int32_t) r_occlusion.boxes->count);
 
@@ -156,14 +156,14 @@ void R_LoadOcclusionQueries(void) {
   const int32_t num_boxes = (int32_t) r_occlusion.boxes->count;
   if (num_boxes) {
     r_occlusion.instance_buffer = $(r_context.device, createBufferWithConstMem,
-      SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion.boxes->elements, (Uint32) (num_boxes * sizeof(box3_t)));
+      SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion.boxes->elements, (Uint32) (num_boxes * sizeof(Box3)));
   }
 }
 
 /**
  * @brief Draws the active occlusion queries into the view depth buffer.
  */
-static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *commands) {
+static void R_DrawOcclusionQueries_(const RenderView *view, CommandBuffer *commands) {
 
   SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
 
@@ -187,7 +187,7 @@ static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *command
 
   $(pass, bindPipeline, r_occlusion.pipeline);
 
-  r_occlusion_query_t *q = r_occlusion.queries;
+  RenderOcclusionQuery *q = r_occlusion.queries;
   for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
     $(pass, beginQuery, r_occlusion.pool, i);
     $(pass, drawIndexedPrimitives, 36, q->num_boxes, 0, 0, q->first_box);
@@ -200,7 +200,7 @@ static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *command
 /**
  * @brief Draws and polls all occlusion queries for the current frame.
  */
-void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
+void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
   if (r_depth_pipeline.fence) {
 
@@ -228,7 +228,7 @@ void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
     }
   }
 
-  r_occlusion_query_t *q = r_occlusion.queries;
+  RenderOcclusionQuery *q = r_occlusion.queries;
   for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
 
     if (!r_occlude->integer) {
@@ -259,15 +259,15 @@ void R_InitOcclusionQueries(void) {
 
   memset(&r_occlusion, 0, sizeof(r_occlusion));
 
-  r_occlusion.boxes = $(alloc(Vector), initWithSize, sizeof(box3_t));
+  r_occlusion.boxes = $(alloc(Vector), initWithSize, sizeof(Box3));
 
   r_occlusion.pool = $(r_context.device, createQueryPool, &(SDL_GPUQueryPoolCreateInfo) {
     .type = SDL_GPU_QUERY_PRECISE_OCCLUSION,
     .query_count = MAX_OCCLUSION_QUERIES,
   });
 
-  vec3_t cube[8];
-  Box3_ToPoints(Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)), cube);
+  Vec3 cube[8];
+  Box3_ToPoints(MakeBox3(MakeVec3(0.f, 0.f, 0.f), MakeVec3(1.f, 1.f, 1.f)), cube);
 
   r_occlusion.vertex_buffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
@@ -309,12 +309,12 @@ void R_InitOcclusionQueries(void) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
       {
         .slot = 0,
-        .pitch = sizeof(vec3_t),
+        .pitch = sizeof(Vec3),
         .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
       },
       {
         .slot = 1,
-        .pitch = sizeof(box3_t),
+        .pitch = sizeof(Box3),
         .input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE,
       },
     },
@@ -330,13 +330,13 @@ void R_InitOcclusionQueries(void) {
         .location = 1,
         .buffer_slot = 1,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(box3_t, mins),
+        .offset = offsetof(Box3, mins),
       },
       {
         .location = 2,
         .buffer_slot = 1,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(box3_t, maxs),
+        .offset = offsetof(Box3, maxs),
       },
     },
     .num_vertex_attributes = 3,

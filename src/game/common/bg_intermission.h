@@ -45,7 +45,7 @@ typedef enum {
   NEXT_MAP_CS_VOTING, // "1" while ballots are being taken, else "0"
   NEXT_MAP_CS_MAPS, // the first name; from here the fields alternate name, votes
   NEXT_MAP_CS_FIELDS
-} next_map_cs_field_t;
+} NextMapCsField;
 
 /**
  * @brief The number of `\`-separated fields a `CS_NEXT_MAP` string with `count` maps has.

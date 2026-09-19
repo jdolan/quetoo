@@ -24,14 +24,14 @@
 #include "net_sock.h"
 
 /**
- * @brief Construct an HTTP URL from a `net_addr_t` and path.
+ * @brief Construct an HTTP URL from a `NetAddr` and path.
  * @param addr The server address.
  * @param path The URL path (e.g. "maps/`foo.bsp`").
  * @param buf The output buffer.
  * @param buf_size The size of the output buffer.
  * @return The number of characters written, or -1 on error.
  */
-int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t buf_size);
+int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t buf_size);
 
 /**
  * @brief Parse the request line of an HTTP request.

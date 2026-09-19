@@ -53,9 +53,9 @@ static const char *healthIconName(int16_t health) {
 /**
  * @brief The icon of the best armor carried, or `NULL`.
  */
-static const char *armorIconName(const player_state_t *ps) {
+static const char *armorIconName(const PlayerState *ps) {
 
-  for (g_item_tag_t t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
+  for (GameItemTag t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
     if (ps->inventory[t]) {
       return bg_item_defs[t].icon;
     }
@@ -117,7 +117,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   int16_t value = 0, med = -1, low = -1;
   const char *iconName = NULL;

@@ -68,7 +68,7 @@ bool Cg_ExportUsePrediction(void) {
 /**
  * @brief The tail of the `Cg_MoveCommandWillRun` chain: a notification, so it does nothing.
  */
-static void Cg_MoveCommandWillRun_Common(pm_move_t *pm, const cl_cmd_t *cmd) {
+static void Cg_MoveCommandWillRun_Common(PlayerMove *pm, const ClientCmd *cmd) {
 }
 
 MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
@@ -76,7 +76,7 @@ MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 /**
  * @brief The tail of the `Cg_MoveCommandDidRun` chain: a notification, so it does nothing.
  */
-static void Cg_MoveCommandDidRun_Common(const pm_move_t *pm, const cl_cmd_t *cmd) {
+static void Cg_MoveCommandDidRun_Common(const PlayerMove *pm, const ClientCmd *cmd) {
 }
 
 MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
@@ -84,7 +84,7 @@ MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 /**
  * @brief The tail of the `Cg_PredictionDidComplete` chain: a notification, so it does nothing.
  */
-static void Cg_PredictionDidComplete_Common(const pm_move_t *pm) {
+static void Cg_PredictionDidComplete_Common(const PlayerMove *pm) {
 }
 
 PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
@@ -92,7 +92,7 @@ PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common
 /**
  * @brief Trace wrapper for `Pm_Move`.
  */
-static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
+static CmTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
   return cgi.Trace(start, end, bounds, cgi.client->entity, CONTENTS_MASK_CLIP_PLAYER);
 }
 
@@ -112,10 +112,10 @@ void Cg_PredictMovement(const Vector *cmds) {
   assert(cmds);
   assert(cmds->count);
 
-  cl_predicted_state_t *pr = &cgi.client->predicted_state;
+  ClientPredictedState *pr = &cgi.client->predicted_state;
 
   // copy current state to into the move
-  pm_move_t pm = {};
+  PlayerMove pm = {};
   pm.s = cgi.client->frame.ps.pm_state;
 
   pm.ground = pr->ground;
@@ -134,7 +134,7 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   // run the commands
   for (uint32_t i = 0; i < cmds->count; i++) {
-    cl_cmd_t *cmd = VectorValue(cmds, cl_cmd_t *, i);
+    ClientCmd *cmd = VectorValue(cmds, ClientCmd *, i);
 
     if (cmd->cmd.msec) { // if the command has time, run it
 
@@ -177,13 +177,13 @@ void Cg_PredictMovement(const Vector *cmds) {
 
 /**
  * @brief Drives demo playback's free-flight camera directly through `Pm_Move`, independent of
- * the recorded `player_state_t` and of the network command backlog `Cg_PredictMovement` relies
+ * the recorded `PlayerState` and of the network command backlog `Cg_PredictMovement` relies
  * on (which never resolves during demo playback: no server ever acknowledges a demo's locally
  * numbered outgoing commands, so `Cl_PredictMovement` always exceeds `CMD_BACKUP` and never
  * calls in). Called every movement command cycle from `Cg_Move`, the same cadence prediction
  * would otherwise run at, using the `cmd` that cycle already built for us.
  */
-void Cg_UpdateSpectate(pm_cmd_t *cmd) {
+void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
 
   if (!cg_state.spectate.initialized) {
     cg_state.spectate.state.type = PM_SPECTATOR;
@@ -197,7 +197,7 @@ void Cg_UpdateSpectate(pm_cmd_t *cmd) {
     cg_state.spectate.initialized = true;
   }
 
-  pm_move_t pm = {};
+  PlayerMove pm = {};
   pm.s = cg_state.spectate.state;
 
   // Pm_SpectatorMove reads speed_spectator, accel_spectator and friction_spectator from the

@@ -36,24 +36,24 @@
 
 static jmp_buf env;
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
-static cvar_t *verbose;
+static Cvar *verbose;
 
-cvar_t *build;
-cvar_t *build_number;
-cvar_t *dedicated;
-cvar_t *developer;
-cvar_t *editor;
-cvar_t *rcon_address;
-cvar_t *rcon_password;
-cvar_t *threads;
-cvar_t *time_demo;
-cvar_t *time_scale;
-cvar_t *version;
+Cvar *build;
+Cvar *build_number;
+Cvar *dedicated;
+Cvar *developer;
+Cvar *editor;
+Cvar *rcon_address;
+Cvar *rcon_password;
+Cvar *threads;
+Cvar *time_demo;
+Cvar *time_scale;
+Cvar *version;
 
-static void Debug(const debug_t debug, const char *msg);
-static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Debug(const DebugFlags debug, const char *msg);
+static void Error(Err err, const char *msg) __attribute__((noreturn));
 static void Frame(const uint32_t msec);
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
@@ -115,7 +115,7 @@ static void Debug_f(void) {
 /**
  * @brief Prints debug output using colored escapes based on the debug category.
  */
-static void Debug(const debug_t debug, const char *msg) {
+static void Debug(const DebugFlags debug, const char *msg) {
 
   int32_t color = ESC_COLOR_WHITE;
   switch (debug) {
@@ -154,7 +154,7 @@ static bool jmp_set = false;
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
-static void Error(err_t err, const char *msg) {
+static void Error(Err err, const char *msg) {
 
   if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
     SDL_TriggerBreakpoint();
@@ -339,7 +339,7 @@ static void MemStats_f(void) {
 
   for (size_t i = 0; i < stats->count; i++) {
 
-    mem_stat_t *stat_i = VectorElement(stats, mem_stat_t, i);
+    MemStat *stat_i = VectorElement(stats, MemStat, i);
     const char *tag_name;
 
     if (stat_i->tag == -1) {
@@ -423,7 +423,7 @@ static void Init(void) {
 
   Con_Init();
 
-  cmd_t *game_cmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  Cmd *game_cmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
   Cmd_SetAutocomplete(game_cmd, Game_Autocomplete_f);
   Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");

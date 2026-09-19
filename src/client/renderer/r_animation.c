@@ -24,9 +24,9 @@
 /**
  * @brief Frees an animation media asset.
  */
-static void R_FreeAnimation(r_media_t *media) {
+static void R_FreeAnimation(RenderMedia *media) {
 
-  r_animation_t *animation = (r_animation_t *) media;
+  RenderAnimation *animation = (RenderAnimation *) media;
 
   Mem_Free(animation->frames);
 }
@@ -34,17 +34,17 @@ static void R_FreeAnimation(r_media_t *media) {
 /**
  * @brief Creates an animation from the specified image frames.
  */
-r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_image_t **images) {
+RenderAnimation *R_CreateAnimation(const char *name, int32_t num_images, const RenderImage **images) {
 
-  r_animation_t *animation = (r_animation_t *) R_AllocMedia(name, sizeof(r_animation_t), R_MEDIA_ANIMATION);
+  RenderAnimation *animation = (RenderAnimation *) R_AllocMedia(name, sizeof(RenderAnimation), R_MEDIA_ANIMATION);
 
   animation->media.Free = R_FreeAnimation;
   animation->num_frames = num_images;
-  animation->frames = Mem_TagMalloc(sizeof(r_image_t *) * num_images, MEM_TAG_RENDERER);
-  memcpy(animation->frames, images, sizeof(r_image_t *) * num_images);
+  animation->frames = Mem_TagMalloc(sizeof(RenderImage *) * num_images, MEM_TAG_RENDERER);
+  memcpy(animation->frames, images, sizeof(RenderImage *) * num_images);
 
   for (int32_t i = 0; i < num_images; i++) {
-    R_RegisterDependency((r_media_t *) animation, (r_media_t *) images[i]);
+    R_RegisterDependency((RenderMedia *) animation, (RenderMedia *) images[i]);
   }
 
   return animation;
@@ -53,7 +53,7 @@ r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_i
 /**
  * @brief Resolves an animation frame for the specified time.
  */
-const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time, int32_t offset) {
+const RenderImage *R_ResolveAnimation(const RenderAnimation *animation, float time, int32_t offset) {
   const int32_t frame = (int32_t) (animation->num_frames * time);
   return animation->frames[Mini(Maxi(frame + offset, 0), animation->num_frames - 1)];
 }

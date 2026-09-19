@@ -54,28 +54,28 @@ AI perception and world knowledge:
 
 ```c
 typedef struct g_ai_s {
-    g_client_t *client;          // The bot's client
+    GameClient *client;          // The bot's client
     
     // Perception
-    vec3_t eye_origin;           // View position
-    vec3_t aim_forward;          // Aim direction
+    Vec3 eye_origin;           // View position
+    Vec3 aim_forward;          // Aim direction
     
     // Navigation
-    ai_node_t *current_node;     // Current nav node
-    ai_node_t *goal_node;        // Target nav node
-    ai_node_t *path[MAX_NODES];  // Path to goal
+    AiNode *current_node;     // Current nav node
+    AiNode *goal_node;        // Target nav node
+    AiNode *path[MAX_NODES];  // Path to goal
     int32_t path_index;
     
     // Combat
-    g_entity_t *enemy;           // Current target
-    vec3_t enemy_last_pos;       // Last known position
+    GameEntity *enemy;           // Current target
+    Vec3 enemy_last_pos;       // Last known position
     uint32_t enemy_time;         // Last time saw enemy
     
     // Goals
-    ai_goal_t *goal;             // Current goal
+    AiGoal *goal;             // Current goal
     
     // Weapons
-    const g_item_t *weapon;      // Preferred weapon
+    const GameItem *weapon;      // Preferred weapon
     
     // Timing
     uint32_t think_time;         // Next think time
@@ -101,7 +101,7 @@ Links between nodes:
 ### Pathfinding (A*)
 
 ```c
-ai_node_t *Ai_Node_FindPath(ai_node_t *from, ai_node_t *to) {
+AiNode *Ai_Node_FindPath(AiNode *from, AiNode *to) {
     // A* algorithm
     // Heuristic: straight-line distance
     // Cost: actual path distance
@@ -128,7 +128,7 @@ Priority order:
 4. **No target** (pursue other goals)
 
 ```c
-bool Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
+bool Ai_CanSee(const GameClient *cl, const GameEntity *other) {
     // Check FOV (facing direction)
     // Trace line of sight
     // Return true if visible
@@ -185,7 +185,7 @@ Considers:
 ### Goal Weighting
 
 ```c
-float Ai_Item_Weight(const g_entity_t *item) {
+float Ai_Item_Weight(const GameEntity *item) {
     float weight = 0.0;
     
     if (item->item->type == ITEM_HEALTH) {
@@ -232,7 +232,7 @@ sv addbot "BotName"  # Add bot with specific name
 Server spawns bot as if player connected:
 1. Allocate client slot
 2. Create `g_ai_t` structure
-3. Link to `g_client_t`
+3. Link to `GameClient`
 4. Spawn entity
 5. Bot starts thinking next frame
 

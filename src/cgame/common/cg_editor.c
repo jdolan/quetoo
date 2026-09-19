@@ -27,7 +27,7 @@
 /**
  * @brief Global editor state.
  */
-cg_editor_t cg_editor = {
+ClientGameEditor cg_editor = {
   .show_func_groups = true,
   .selected = -1
 };
@@ -42,7 +42,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    const cm_entity_t *e = cg_editor.entities[i].def;
+    const CmEntity *e = cg_editor.entities[i].def;
     if (!e) {
       continue;
     }
@@ -63,9 +63,9 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
  * @brief Adds a dynamic light for the given editor light entity.
  * @return The resolved light color, for use in the selection overlay.
  */
-static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
+static Vec4 Cg_AddEditorEntity_Light(ClientGameEditorEntity *edit) {
 
-  r_light_t light = { 0 };
+  RenderLight light = { 0 };
 
   light.origin = cgi.EntityValue(edit->def, "origin")->vec3;
   light.radius = cgi.EntityValue(edit->def, "radius")->value;
@@ -79,7 +79,7 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
   if (team) {
     const int32_t master = Cg_FindTeamMaster("light", team);
     if (master != -1) {
-      const cm_entity_t *e = cg_editor.entities[master].def;
+      const CmEntity *e = cg_editor.entities[master].def;
       light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
       light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
       light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
@@ -89,7 +89,7 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
   }
 
   light.radius = light.radius ?: 300.f;
-  light.color = Vec3_Equal(Vec3_Zero(), light.color) ? Vec3(1.f, 1.f, 1.f) : light.color;
+  light.color = Vec3_Equal(Vec3_Zero(), light.color) ? MakeVec3(1.f, 1.f, 1.f) : light.color;
   light.intensity = light.intensity ?: 1.f;
   light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
   light.intensity = Cg_AnimateLight(light.intensity, style, drift);
@@ -103,9 +103,9 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
  * @brief Resolves the transform from world space to the entity's model space, in which
  * the BSP brushes of an entity with an origin are stored.
  */
-static mat4_t Cg_EditorEntityInverseMatrix(const cg_editor_entity_t *edit) {
+static Mat4 Cg_EditorEntityInverseMatrix(const ClientGameEditorEntity *edit) {
 
-  const cl_entity_t *ent = edit->ent;
+  const ClientEntity *ent = edit->ent;
   const float scale = cgi.EntityValue(edit->def, "scale")->value ?: 1.f;
 
   return Mat4_Inverse(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, scale));
@@ -116,17 +116,17 @@ static mat4_t Cg_EditorEntityInverseMatrix(const cg_editor_entity_t *edit) {
  * @details BSP brushes of an entity with an origin are stored in model space, so they
  * must be transformed by the entity's matrix to be drawn where the entity is.
  */
-static void Cg_DrawEditorBrush(const box3_t bounds, const mat4_t matrix, const color_t color) {
+static void Cg_DrawEditorBrush(const Box3 bounds, const Mat4 matrix, const Color color) {
   static const int32_t edges[] = {
     0, 1, 1, 3, 3, 2, 2, 0,
     4, 5, 5, 7, 7, 6, 6, 4,
     0, 4, 1, 5, 2, 6, 3, 7
   };
 
-  vec3_t points[8];
+  Vec3 points[8];
   Box3_ToPoints(bounds, points);
 
-  vec3_t lines[lengthof(edges)];
+  Vec3 lines[lengthof(edges)];
   for (size_t i = 0; i < lengthof(edges); i++) {
     lines[i] = Mat4_Transform(matrix, points[edges[i]]);
   }
@@ -137,7 +137,7 @@ static void Cg_DrawEditorBrush(const box3_t bounds, const mat4_t matrix, const c
 /**
  * @brief Populates the view and sound stage for the given editor frame.
  */
-void Cg_PopulateEditorScene(const cl_frame_t *frame) {
+void Cg_PopulateEditorScene(const ClientFrame *frame) {
   static bool did_print_help = false;
 
   if (!did_print_help) {
@@ -155,7 +155,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     did_print_help = true;
   }
 
-  cg_editor_entity_t *edit = cg_editor.entities;
+  ClientGameEditorEntity *edit = cg_editor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (!edit->def) {
@@ -167,10 +167,10 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
       continue;
     }
 
-    const cl_entity_t *ent = edit->ent;
+    const ClientEntity *ent = edit->ent;
 
-    vec4_t debug_color = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
-    vec4_t model_color = color_white.vec4;
+    Vec4 debug_color = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
+    Vec4 model_color = color_white.vec4;
 
     if (!q_strcmp(classname, "light")) {
       model_color = Cg_AddEditorEntity_Light(edit);
@@ -179,7 +179,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 
       // check for a client-side entity like misc_flame
 
-      cg_entity_t *misc = &cg_editor.entities[i].misc;
+      ClientGameEntity *misc = &cg_editor.entities[i].misc;
       if (misc->clazz) {
         if (misc->next_think <= cgi.client->unclamped_time) {
           misc->clazz->Think(misc);
@@ -193,7 +193,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     const bool is_selected = cg_editor.selected == edit->number;
 
     if (edit->brushes) {
-      const r_entity_t *e = cgi.AddEntity(cgi.view, &(const r_entity_t) {
+      const RenderEntity *e = cgi.AddEntity(cgi.view, &(const RenderEntity) {
         .id = edit,
         .origin = ent->origin,
         .angles = ent->angles,
@@ -206,15 +206,15 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
       });
 
       if (is_selected || q_strcmp(classname, "worldspawn")) {
-        const color_t color = is_selected ? color_red : Color4fv(debug_color);
+        const Color color = is_selected ? color_red : Color4fv(debug_color);
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
-          const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
+          const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
           Cg_DrawEditorBrush(brush->bounds, e->matrix, color);
         }
       }
 
     } else {
-      const r_entity_t *e = cgi.AddEntity(cgi.view, &(const r_entity_t) {
+      const RenderEntity *e = cgi.AddEntity(cgi.view, &(const RenderEntity) {
         .id = edit,
         .origin = ent->origin,
         .angles = ent->angles,
@@ -230,14 +230,14 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
         cgi.Draw3DBox(Box3_Expand(ent->abs_bounds, 2.f), color_red, true);
 
         if (edit->model && IS_MESH_MODEL(edit->model)) {
-          const r_mesh_config_t *view = &edit->model->mesh->config.view;
+          const RenderMeshConfig *view = &edit->model->mesh->config.view;
           if (!Vec3_Equal(Vec3_Zero(), view->muzzle)) {
-            const vec3_t muzzle = Mat4_Transform(e->matrix, view->muzzle);
-            Cg_AddSprite(&(cg_sprite_t) {
+            const Vec3 muzzle = Mat4_Transform(e->matrix, view->muzzle);
+            Cg_AddSprite(&(ClientGameSprite) {
               .animation = cg_sprite_impact_spark_01,
               .origin = muzzle,
               .size = 30.f,
-              .color = Vec3(1.f, .9f, .7f),
+              .color = MakeVec3(1.f, .9f, .7f),
             });
           }
         }
@@ -247,15 +247,15 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     }
 
     if (is_selected && q_strcmp(classname, "worldspawn")) {
-      vec3_t points[2] = { ent->origin };
+      Vec3 points[2] = { ent->origin };
 
-      points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(1.f, 0.f, 0.f));
+      points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(1.f, 0.f, 0.f));
       cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_red, true);
 
-      points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 1.f, 0.f));
+      points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(0.f, 1.f, 0.f));
       cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_green, true);
 
-      points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 0.f, 1.f));
+      points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(0.f, 0.f, 1.f));
       cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_blue, true);
     }
   }
@@ -268,12 +268,12 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 }
 
 /**
- * @brief Initializes the `cg_editor_entity_t` for the given entity number.
+ * @brief Initializes the `ClientGameEditorEntity` for the given entity number.
  * @details The slot must be zeroed before calling this function.
  */
 static void Cg_InitEditorEntity(int16_t number) {
 
-  cg_editor_entity_t *edit = &cg_editor.entities[number];
+  ClientGameEditorEntity *edit = &cg_editor.entities[number];
 
   edit->number = number;
   edit->ent = &cgi.client->entities[number];
@@ -303,7 +303,7 @@ static void Cg_InitEditorEntity(int16_t number) {
 
   const char *classname = cgi.EntityValue(edit->def, "classname")->string;
 
-  const cg_entity_class_t *clazz = NULL;
+  const ClientGameEntityClass *clazz = NULL;
   for (size_t j = 0; j < cg_num_entity_classes; j++) {
     if (!q_strcmp(classname, cg_entity_classes[j]->classname)) {
       clazz = cg_entity_classes[j];
@@ -315,7 +315,7 @@ static void Cg_InitEditorEntity(int16_t number) {
     return;
   }
 
-  cg_entity_t *misc = &edit->misc;
+  ClientGameEntity *misc = &edit->misc;
   misc->id = number;
   misc->clazz = clazz;
   misc->def = edit->def;
@@ -337,7 +337,7 @@ static void Cg_FreeEditorEntity(int16_t number) {
     cg_editor.selected = -1;
   }
 
-  cg_editor_entity_t *edit = &cg_editor.entities[number];
+  ClientGameEditorEntity *edit = &cg_editor.entities[number];
 
   cgi.FreeEntity(edit->def);
 
@@ -412,12 +412,12 @@ void Cg_FreeEditorEntities(void) {
  * @param out Receives the entity numbers of the intersected entities, nearest first.
  * @return The number of entity numbers written to `out`.
  */
-size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_t out[CG_EDITOR_MAX_CANDIDATES]) {
+size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t out[CG_EDITOR_MAX_CANDIDATES]) {
 
   float fractions[CG_EDITOR_MAX_CANDIDATES];
   size_t count = 0;
 
-  cg_editor_entity_t *edit = cg_editor.entities + 1;
+  ClientGameEditorEntity *edit = cg_editor.entities + 1;
   for (int32_t i = 1; i < MAX_ENTITIES; i++, edit++) {
 
     if (edit->def == NULL) {
@@ -433,15 +433,15 @@ size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_
     float fraction = 1.f;
 
     if (edit->brushes) {
-      const mat4_t inverse = Cg_EditorEntityInverseMatrix(edit);
+      const Mat4 inverse = Cg_EditorEntityInverseMatrix(edit);
 
-      const vec3_t model_start = Mat4_Transform(inverse, start);
-      const vec3_t model_end = Mat4_Transform(inverse, end);
+      const Vec3 model_start = Mat4_Transform(inverse, start);
+      const Vec3 model_end = Mat4_Transform(inverse, end);
 
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
+        const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
 
-        const cm_trace_t tr = cgi.TraceToBrush(model_start, model_end, brush);
+        const CmTrace tr = cgi.TraceToBrush(model_start, model_end, brush);
 
         if (tr.start_solid || tr.fraction >= fraction) {
           continue;
@@ -451,8 +451,8 @@ size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_
       }
     } else {
 
-      const entity_state_t *s = &edit->ent->current;
-      const box3_t bounds = Box3_Translate(s->bounds, s->origin);
+      const EntityState *s = &edit->ent->current;
+      const Box3 bounds = Box3_Translate(s->bounds, s->origin);
 
       fraction = Box3_RayFraction(start, end, bounds);
     }
@@ -482,16 +482,16 @@ size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_
 /**
  * @brief Traces the view ray for material selection.
  */
-cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end) {
+ClientGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
 
-  cg_editor_trace_t out = {
+  ClientGameEditorTrace out = {
     .ent = NULL,
     .trace = {
       .fraction = 1.f
     }
   };
 
-  cg_editor_entity_t *edit = cg_editor.entities;
+  ClientGameEditorEntity *edit = cg_editor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (edit->def == NULL) {
@@ -499,15 +499,15 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
     }
 
     if (edit->brushes) {
-      const mat4_t inverse = Cg_EditorEntityInverseMatrix(edit);
+      const Mat4 inverse = Cg_EditorEntityInverseMatrix(edit);
 
-      const vec3_t model_start = Mat4_Transform(inverse, start);
-      const vec3_t model_end = Mat4_Transform(inverse, end);
+      const Vec3 model_start = Mat4_Transform(inverse, start);
+      const Vec3 model_end = Mat4_Transform(inverse, end);
 
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
+        const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
 
-        const cm_trace_t tr = cgi.TraceToBrush(model_start, model_end, brush);
+        const CmTrace tr = cgi.TraceToBrush(model_start, model_end, brush);
 
         if (tr.start_solid || tr.fraction >= out.trace.fraction) {
           continue;
@@ -519,19 +519,19 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
       }
     } else if (IS_MESH_MODEL(edit->model)) {
 
-      const entity_state_t *s = &edit->ent->current;
-      const box3_t bounds = Box3_Translate(s->bounds, s->origin);
+      const EntityState *s = &edit->ent->current;
+      const Box3 bounds = Box3_Translate(s->bounds, s->origin);
 
       const float frac = Box3_RayFraction(start, end, bounds);
       if (frac >= out.trace.fraction) {
         continue;
       }
 
-      const r_mesh_model_t *mesh = edit->model->mesh;
+      const RenderMeshModel *mesh = edit->model->mesh;
       for (int32_t j = 0; j < mesh->num_faces; j++) {
         if (mesh->faces[j].material) {
           out.ent = edit;
-          out.trace = (cm_trace_t) {
+          out.trace = (CmTrace) {
             .fraction = frac,
             .end = Vec3_Mix(start, end, frac),
             .material = mesh->faces[j].material->cm,

@@ -66,11 +66,11 @@ typedef struct {
   char asset[MAX_QPATH];
   char url[MAX_OS_PATH * 2];
   int64_t size;
-} installer_release_t;
+} InstallerRelease;
 
 /**
  * @brief The installer type.
- * @details The installer runs a dedicated thread that steps through the `installer_state_t`
+ * @details The installer runs a dedicated thread that steps through the `InstallerState`
  * lifecycle. `Installer_Main` is called on the main thread via `Init`, which pumps an
  * `Installer_FrameFunction` in loop to show progress. When the `Installer_Main` returns, the
  * standard `Frame` loop begins.
@@ -100,7 +100,7 @@ static struct {
   /**
    * @brief The latest release, populated by `INSTALLER_CHECKING`.
    */
-  installer_release_t release;
+  InstallerRelease release;
 
   /**
    * @brief Whether a cold install of the game data has been attempted, so that
@@ -117,7 +117,7 @@ static struct {
   /**
    * @brief The installer status, used to expose progress via `Installer_FrameFunction`.
    */
-  installer_status_t status;
+  InstallerStatus status;
 } installer;
 
 /**
@@ -171,7 +171,7 @@ static ident Installer_Cast(ident object, Class *clazz) {
  * The asset size is taken from the API rather than a `HEAD`, because
  * `RESTClient` discards response headers.
  */
-static bool Installer_FetchRelease(const char *api, const char *want, installer_release_t *out) {
+static bool Installer_FetchRelease(const char *api, const char *want, InstallerRelease *out) {
 
   const char *headers[] = {
     "Accept", "application/vnd.github+json",
@@ -422,7 +422,7 @@ static bool Installer_DownloadToFile(const char *address, const char *path, int6
   URLSessionTask *task = (URLSessionTask *) download;
   $(task, resume);
 
-  installer_status_t *in = &installer.status;
+  InstallerStatus *in = &installer.status;
 
   while (task->state != URLSESSIONTASK_COMPLETED && task->state != URLSESSIONTASK_CANCELED) {
 
@@ -546,9 +546,9 @@ static void Installer_WritePending(const char *pending) {
  * @details Must be called from the installer thread without holding the mutex.
  */
 static void Installer_FindPending(const HashTable *table, ident key, ident value, ident data) {
-  cm_manifest_entry_t **out = data;
+  CmManifestEntry **out = data;
   if (*out) { return; } // already found
-  cm_manifest_entry_t *e = value;
+  CmManifestEntry *e = value;
   if (e->status == ENTRY_PENDING) {
     e->status = ENTRY_DOWNLOADING;
     *out = e;
@@ -556,7 +556,7 @@ static void Installer_FindPending(const HashTable *table, ident key, ident value
 }
 
 static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident value, ident data) {
-  const cm_manifest_entry_t *entry = value;
+  const CmManifestEntry *entry = value;
   if (entry->status == ENTRY_STALE) {
     char full_path[MAX_OS_PATH];
     q_snprintf(full_path, sizeof(full_path), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
@@ -569,15 +569,15 @@ static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident v
 }
 
 static void Installer_MarkPending(const HashTable *table, ident key, ident value, ident data) {
-  ((cm_manifest_entry_t *) value)->status = ENTRY_PENDING;
+  ((CmManifestEntry *) value)->status = ENTRY_PENDING;
 }
 
 static void Installer_MarkStale(const HashTable *table, ident key, ident value, ident data) {
-  ((cm_manifest_entry_t *) value)->status = ENTRY_STALE;
+  ((CmManifestEntry *) value)->status = ENTRY_STALE;
 }
 
 static void Installer_WriteManifestEntry(const HashTable *table, ident key, ident value, ident data) {
-  const cm_manifest_entry_t *entry = value;
+  const CmManifestEntry *entry = value;
   fprintf((FILE *) data, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
 }
 
@@ -605,14 +605,14 @@ typedef struct {
   HashTable *local;
   int32_t files_total;
   int32_t kbytes_total;
-} installer_compare_t;
+} InstallerCompare;
 
 static void Installer_CompareEntry(const HashTable *table, ident key, ident value, ident data) {
-  installer_compare_t *ctx = data;
-  cm_manifest_entry_t *re = value;
-  const cm_manifest_entry_t *le = ctx->local ? $(ctx->local, get, re->path) : NULL;
+  InstallerCompare *ctx = data;
+  CmManifestEntry *re = value;
+  const CmManifestEntry *le = ctx->local ? $(ctx->local, get, re->path) : NULL;
   if (le) {
-    ((cm_manifest_entry_t *) le)->status = ENTRY_CURRENT;
+    ((CmManifestEntry *) le)->status = ENTRY_CURRENT;
     if (q_strcmp(le->hash, re->hash) == 0) {
       re->status = ENTRY_CURRENT;
     }
@@ -644,7 +644,7 @@ static void Installer_Commit(void) {
  * @brief Downloads a single data file to the data directory.
  * @return True on success, false on failure.
  */
-static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
+static bool Installer_DownloadFile(const CmManifestEntry *entry) {
 
   // URL-encode the path (pass-through '/' as safe)
   const char *src = entry->path;
@@ -769,9 +769,9 @@ static HashTable *Installer_ReadManifest(void) {
  */
 static bool Installer_InstallData(void) {
 
-  installer_status_t *in = &installer.status;
+  InstallerStatus *in = &installer.status;
 
-  installer_release_t data;
+  InstallerRelease data;
   if (!Installer_FetchRelease(QUETOO_DATA_API_URL, QUETOO_DATA_ARCHIVE, &data)) {
     return false;
   }
@@ -820,7 +820,7 @@ static bool Installer_InstallData(void) {
  */
 static int Installer_DownloadThread(void *unused) {
 
-  installer_status_t *in = &installer.status;
+  InstallerStatus *in = &installer.status;
 
   while (true) {
 
@@ -831,9 +831,9 @@ static int Installer_DownloadThread(void *unused) {
       break;
     }
 
-    const cm_manifest_entry_t *entry = NULL;
+    const CmManifestEntry *entry = NULL;
     {
-      cm_manifest_entry_t *found = NULL;
+      CmManifestEntry *found = NULL;
       $(installer.remote_manifest, enumerate, Installer_FindPending, &found);
       if (found) {
         q_strlcpy(in->current_file, found->path, sizeof(in->current_file));
@@ -854,7 +854,7 @@ static int Installer_DownloadThread(void *unused) {
     if (ok) {
       in->files_done++;
       in->kbytes_done += (int32_t) ((entry->size + 1023) / 1024);
-      ((cm_manifest_entry_t *) entry)->status = ENTRY_CURRENT;
+      ((CmManifestEntry *) entry)->status = ENTRY_CURRENT;
     } else if (in->state == INSTALLER_DOWNLOADING) {
       in->state = INSTALLER_ERROR;
       q_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
@@ -871,13 +871,13 @@ static int Installer_DownloadThread(void *unused) {
  */
 static int Installer_Thread(void *unused) {
 
-  installer_status_t *in = &installer.status;
+  InstallerStatus *in = &installer.status;
 
   bool run = true;
   while (run) {
 
     SDL_LockMutex(installer.mutex);
-    const installer_state_t state = in->state;
+    const InstallerState state = in->state;
     SDL_UnlockMutex(installer.mutex);
 
     switch (state) {
@@ -964,7 +964,7 @@ static int Installer_Thread(void *unused) {
           $(local, enumerate, Installer_MarkStale, NULL);
         }
 
-        installer_compare_t ctx = { .local = local };
+        InstallerCompare ctx = { .local = local };
         $(remote, enumerate, Installer_CompareEntry, &ctx);
         const int32_t files_total = ctx.files_total;
         const int32_t kbytes_total = ctx.kbytes_total;
@@ -1476,10 +1476,10 @@ void Installer_Init(Installer_FrameFunction frame) {
   installer.thread = SDL_CreateThread(Installer_Thread, "installer", &installer);
   assert(installer.thread);
 
-  installer_status_t *in = &installer.status;
+  InstallerStatus *in = &installer.status;
 
   while (true) {
-    installer_status_t s;
+    InstallerStatus s;
 
     SDL_LockMutex(installer.mutex);
     s = *in;

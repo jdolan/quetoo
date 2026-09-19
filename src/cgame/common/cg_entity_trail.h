@@ -24,8 +24,8 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-void Cg_BreathTrail(cl_entity_t *ent);
-void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, float freq);
-void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end);
-void Cg_EntityTrail(cl_entity_t *ent);
+void Cg_BreathTrail(ClientEntity *ent);
+void Cg_BubbleTrail(ClientEntity *ent, const Vec3 start, const Vec3 end, float freq);
+void Cg_FlameTrail(ClientEntity *ent, const Vec3 start, const Vec3 end);
+void Cg_EntityTrail(ClientEntity *ent);
 #endif

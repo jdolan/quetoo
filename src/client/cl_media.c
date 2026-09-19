@@ -28,7 +28,7 @@
  */
 static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val, ident data) {
   (void) table;
-  const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) val;
+  const CmManifestEntry *entry = (const CmManifestEntry *) val;
   if (Fs_Exists(entry->path)) {
     if (!Cm_CheckManifestEntry(entry)) {
 
@@ -201,9 +201,9 @@ static void Cl_LoadSounds(void) {
   }
 
   for (int32_t i = 0; i < Cm_Bsp()->num_materials; i++) {
-    const cm_footsteps_t *footsteps = &Cm_Bsp()->materials[i]->footsteps;
+    const CmFootsteps *footsteps = &Cm_Bsp()->materials[i]->footsteps;
 
-    const asset_t *sample = footsteps->samples;
+    const Asset *sample = footsteps->samples;
     for (int32_t j = 0; j < footsteps->num_samples; j++, sample++) {
       S_LoadSample(sample->name, ASSET_CONTEXT_NONE);
     }
@@ -217,7 +217,7 @@ static void Cl_LoadMusics(void) {
 
   Cl_LoadingProgress(-1, "music");
 
-  s_music_t *const current = S_CurrentMusic();
+  SoundMusic *const current = S_CurrentMusic();
 
   S_ClearPlaylist();
 

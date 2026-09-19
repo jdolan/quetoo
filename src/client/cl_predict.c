@@ -25,9 +25,9 @@
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
-static int32_t Cl_HullForEntity(const entity_state_t *s) {
+static int32_t Cl_HullForEntity(const EntityState *s) {
 
-  const cl_entity_t *ent = &cl.entities[s->number];
+  const ClientEntity *ent = &cl.entities[s->number];
 
   switch (s->solid) {
 
@@ -40,7 +40,7 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
     }
 
     case SOLID_BSP: {
-      const cm_bsp_model_t *mod = cl.cm_models[s->model1];
+      const CmBspModel *mod = cl.cm_models[s->model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
@@ -64,20 +64,20 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
  * @brief Yields the contents mask (bitwise OR) for the specified point. The
  * world model and all solids are checked.
  */
-int32_t Cl_PointContents(const vec3_t point) {
+int32_t Cl_PointContents(const Vec3 point) {
 
   int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
 
   for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
     const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const EntityState *s = &cl.entity_states[snum];
 
     if (s->solid < SOLID_BOX) {
       continue;
     }
 
-    const cl_entity_t *ent = &cl.entities[s->number];
+    const ClientEntity *ent = &cl.entities[s->number];
 
     if (ent == cl.entity) {
       continue;
@@ -94,20 +94,20 @@ int32_t Cl_PointContents(const vec3_t point) {
 /**
  * @return The contents mask of all leafs that span the specified bounds.
  */
-int32_t Cl_BoxContents(const box3_t bounds) {
+int32_t Cl_BoxContents(const Box3 bounds) {
 
   int32_t contents = Cm_BoxContents(bounds, 0);
 
   for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
     const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const EntityState *s = &cl.entity_states[snum];
 
     if (s->solid < SOLID_BOX) {
       continue;
     }
 
-    const cl_entity_t *ent = &cl.entities[s->number];
+    const ClientEntity *ent = &cl.entities[s->number];
 
     if (ent == cl.entity) {
       continue;
@@ -129,20 +129,20 @@ int32_t Cl_BoxContents(const box3_t bounds) {
  * @brief A structure facilitating clipping to `SOLID_BOX` entities.
  */
 typedef struct {
-  vec3_t start, end;
-  box3_t bounds;
-  box3_t abs_bounds;
-  cm_trace_t trace;
-  const cl_entity_t *skip;
+  Vec3 start, end;
+  Box3 bounds;
+  Box3 abs_bounds;
+  CmTrace trace;
+  const ClientEntity *skip;
   int32_t contents;
-} cl_trace_t;
+} ClientTrace;
 
 /**
  * @brief Clips the specified trace to the specified entity.
  * @return True if the trace began in solid, so that the caller may stop.
  */
-static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
-  const entity_state_t *s = &ent->current;
+static bool Cl_ClipTraceToEntity(ClientTrace *trace, ClientEntity *ent) {
+  const EntityState *s = &ent->current;
 
   if (s->solid < SOLID_BOX) {
     return false;
@@ -166,7 +166,7 @@ static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
 
   const int32_t head_node = Cl_HullForEntity(s);
 
-  cm_trace_t tr;
+  CmTrace tr;
 
   if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
     tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
@@ -185,12 +185,12 @@ static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
 /**
  * @brief Clips the specified trace to other solid entities in the frame.
  */
-static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
+static void Cl_ClipTraceToEntities(ClientTrace *trace) {
 
   for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
     const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const EntityState *s = &cl.entity_states[snum];
 
     if (Cl_ClipTraceToEntity(trace, &cl.entities[s->number])) {
       return;
@@ -204,9 +204,9 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  *
  * @param skip An optional entity to skip.
  */
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents) {
+CmTrace Cl_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents) {
 
-  cl_trace_t trace = {
+  ClientTrace trace = {
     .start = start,
     .end = end,
     .bounds = bounds,
@@ -248,10 +248,10 @@ void Cl_PredictMovement(void) {
     return;
   }
 
-  Vector *cmds = $(alloc(Vector), initWithSize, sizeof(cl_cmd_t *));
+  Vector *cmds = $(alloc(Vector), initWithSize, sizeof(ClientCmd *));
 
   while (++ack <= last) {
-    cl_cmd_t *cmd = &cl.cmds[ack & CMD_MASK];
+    ClientCmd *cmd = &cl.cmds[ack & CMD_MASK];
     $(cmds, add, &cmd);
   }
 
@@ -268,12 +268,12 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-  const pm_state_t *in = &cl.frame.ps.pm_state;
+  const PlayerMoveState *in = &cl.frame.ps.pm_state;
 
-  cl_predicted_state_t *out = &cl.predicted_state;
+  ClientPredictedState *out = &cl.predicted_state;
 
-  // calculate the last cl_cmd_t we sent that the server has processed
-  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.incoming_acknowledged & CMD_MASK];
+  // calculate the last ClientCmd we sent that the server has processed
+  ClientCmd *cmd = &cl.cmds[cls.net_chan.incoming_acknowledged & CMD_MASK];
 
   // if prediction was not run (just spawned), don't sweat it
   if (cmd->prediction.time == 0) {

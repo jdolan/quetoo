@@ -28,56 +28,56 @@
 #include "shared/qstring.h"
 
 #define MEM_MAGIC 0x69696969
-typedef uint32_t mem_magic_t;
+typedef uint32_t MemMagic;
 
-typedef struct mem_block_s {
-  mem_magic_t magic;
-  mem_tag_t tag; // for group free
-  struct mem_block_s *parent;
-  struct mem_block_s *first_child;   // head of intrusive children list
-  struct mem_block_s *next_sibling;  // next in parent's children list
-  struct mem_block_s *prev_block;    // prev in global block list
-  struct mem_block_s *next_block;    // next in global block list
+typedef struct MemBlock {
+  MemMagic magic;
+  MemTag tag; // for group free
+  struct MemBlock *parent;
+  struct MemBlock *first_child;   // head of intrusive children list
+  struct MemBlock *next_sibling;  // next in parent's children list
+  struct MemBlock *prev_block;    // prev in global block list
+  struct MemBlock *next_block;    // next in global block list
   size_t size;
-} mem_block_t;
+} MemBlock;
 
 typedef struct {
-  mem_magic_t magic;
-} mem_footer_t;
+  MemMagic magic;
+} MemFooter;
 
 typedef struct {
-  mem_block_t *head;   // head of global doubly-linked block list
+  MemBlock *head;   // head of global doubly-linked block list
   size_t size;
   SDL_SpinLock lock;
-} mem_state_t;
+} MemState;
 
-static mem_state_t mem_state;
+static MemState mem_state;
 
 /**
  * @brief Returns a properly aligned pointer to the footer for a data block.
  */
-static inline mem_footer_t *Mem_Footer(const void *data, size_t size) {
+static inline MemFooter *Mem_Footer(const void *data, size_t size) {
   const uintptr_t addr = (uintptr_t) ((const byte *) data + size);
-  const uintptr_t aligned = (addr + _Alignof(mem_footer_t) - 1) & ~((uintptr_t) _Alignof(mem_footer_t) - 1);
-  return (mem_footer_t *) aligned;
+  const uintptr_t aligned = (addr + _Alignof(MemFooter) - 1) & ~((uintptr_t) _Alignof(MemFooter) - 1);
+  return (MemFooter *) aligned;
 }
 
 /**
  * @brief Throws a fatal error if the specified memory block is non-`NULL` but
  * not owned by the memory subsystem.
  */
-static mem_block_t *Mem_CheckMagic(void *p) {
-  mem_block_t *b = NULL;
+static MemBlock *Mem_CheckMagic(void *p) {
+  MemBlock *b = NULL;
 
   if (p) {
-    b = ((mem_block_t *) p) - 1;
+    b = ((MemBlock *) p) - 1;
 
     if (b->magic != MEM_MAGIC) {
       fprintf(stderr, "Invalid magic (%d) for %p\n", b->magic, p);
       raise(SIGABRT);
     }
 
-    mem_footer_t *footer = Mem_Footer(p, b->size);
+    MemFooter *footer = Mem_Footer(p, b->size);
 
     if (footer->magic != (MEM_MAGIC + b->size)) {
       fprintf(stderr, "Invalid footer magic (%d) for %p\n", b->magic, p);
@@ -98,7 +98,7 @@ void Mem_Check(void *p) {
 /**
  * @brief Recursively frees linked managed memory.
  */
-static void Mem_Free_(mem_block_t *b) {
+static void Mem_Free_(MemBlock *b) {
 
   // Validate this block before freeing its children
   if (b->magic != MEM_MAGIC) {
@@ -109,7 +109,7 @@ static void Mem_Free_(mem_block_t *b) {
 
   // Validate all children before freeing them
   if (b->first_child) {
-    mem_block_t *child = b->first_child;
+    MemBlock *child = b->first_child;
     int child_num = 0;
     bool has_corruption = false;
     while (child) {
@@ -136,7 +136,7 @@ static void Mem_Free_(mem_block_t *b) {
     // Recursively free children
     child = b->first_child;
     while (child) {
-      mem_block_t *next = child->next_sibling;
+      MemBlock *next = child->next_sibling;
       Mem_Free_(child);
       child = next;
     }
@@ -154,13 +154,13 @@ static void Mem_Free_(mem_block_t *b) {
  */
 void Mem_Free(void *p) {
   if (p) {
-    mem_block_t *b = Mem_CheckMagic(p);
+    MemBlock *b = Mem_CheckMagic(p);
 
     SDL_LockSpinlock(&mem_state.lock);
 
     if (b->parent) {
       // Unlink from parent's intrusive children list
-      mem_block_t **pp = &b->parent->first_child;
+      MemBlock **pp = &b->parent->first_child;
       while (*pp && *pp != b) {
         pp = &(*pp)->next_sibling;
       }
@@ -181,13 +181,13 @@ void Mem_Free(void *p) {
 /**
  * @brief Free all managed items allocated with the specified tag.
  */
-void Mem_FreeTag(mem_tag_t tag) {
+void Mem_FreeTag(MemTag tag) {
 
   SDL_LockSpinlock(&mem_state.lock);
 
-  mem_block_t *b = mem_state.head;
+  MemBlock *b = mem_state.head;
   while (b) {
-    mem_block_t *next = b->next_block;
+    MemBlock *next = b->next_block;
     if (tag == MEM_TAG_ALL || b->tag == tag) {
       // Unlink from global list
       if (b->prev_block) { b->prev_block->next_block = b->next_block; }
@@ -205,14 +205,14 @@ void Mem_FreeTag(mem_tag_t tag) {
  * @brief Returns the total size of a memory block.
  */
 static size_t Mem_BlockSize(const size_t size) {
-  const size_t aligned = (size + _Alignof(mem_footer_t) - 1) & ~(_Alignof(mem_footer_t) - 1);
-  return sizeof(mem_block_t) + aligned + sizeof(mem_footer_t);
+  const size_t aligned = (size + _Alignof(MemFooter) - 1) & ~(_Alignof(MemFooter) - 1);
+  return sizeof(MemBlock) + aligned + sizeof(MemFooter);
 }
 
 /**
- * @brief Performs the grunt work of allocating a `mem_block_t` and inserting it
+ * @brief Performs the grunt work of allocating a `MemBlock` and inserting it
  * into the managed memory structures. Note that parent should be a pointer to
- * a previously allocated structure, and not to a `mem_block_t`.
+ * a previously allocated structure, and not to a `MemBlock`.
  *
  * @param size The number of bytes to allocate.
  * @param tag The tag to allocate with (e.g. `MEM_TAG_DEFAULT`).
@@ -220,8 +220,8 @@ static size_t Mem_BlockSize(const size_t size) {
  *
  * @return A block of managed memory initialized to 0x0.
  */
-static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
-  mem_block_t *b, *p = Mem_CheckMagic(parent);
+static void *Mem_Malloc_(size_t size, MemTag tag, void *parent) {
+  MemBlock *b, *p = Mem_CheckMagic(parent);
 
   // allocate the block plus the desired size
   const size_t s = Mem_BlockSize(size);
@@ -239,8 +239,8 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 
   void *data = (void *) (b + 1);
 
-  mem_footer_t *footer = Mem_Footer(data, size);
-  footer->magic = (mem_magic_t) (MEM_MAGIC + b->size);
+  MemFooter *footer = Mem_Footer(data, size);
+  footer->magic = (MemMagic) (MEM_MAGIC + b->size);
 
   // insert it into the managed memory structures
   SDL_LockSpinlock(&mem_state.lock);
@@ -274,7 +274,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
  *
  * @return A block of managed memory initialized to 0x0.
  */
-void *Mem_TagMalloc(size_t size, mem_tag_t tag) {
+void *Mem_TagMalloc(size_t size, MemTag tag) {
   return Mem_Malloc_(size, tag, NULL);
 }
 
@@ -314,7 +314,7 @@ void *Mem_Realloc(void *p, size_t size) {
     return Mem_Malloc(size);
   }
 
-  mem_block_t *b = Mem_CheckMagic(p), *new_b;
+  MemBlock *b = Mem_CheckMagic(p), *new_b;
 
   // no change to size
   if (b->size == size) {
@@ -335,7 +335,7 @@ void *Mem_Realloc(void *p, size_t size) {
 
   // remove the old block while b is still a valid pointer
   if (b->parent) {
-    mem_block_t **pp = &b->parent->first_child;
+    MemBlock **pp = &b->parent->first_child;
     while (*pp && *pp != b) { pp = &(*pp)->next_sibling; }
     if (*pp) { *pp = b->next_sibling; }
   } else {
@@ -358,8 +358,8 @@ void *Mem_Realloc(void *p, size_t size) {
 
   void *data = (void *) (new_b + 1);
 
-  mem_footer_t *footer = Mem_Footer(data, size);
-  footer->magic = (mem_magic_t) (MEM_MAGIC + new_b->size);
+  MemFooter *footer = Mem_Footer(data, size);
+  footer->magic = (MemMagic) (MEM_MAGIC + new_b->size);
 
   if (!has_children) {
     SDL_LockSpinlock(&mem_state.lock);
@@ -378,7 +378,7 @@ void *Mem_Realloc(void *p, size_t size) {
 
   // change our children's parent pointers
   if (new_b->first_child) {
-    for (mem_block_t *child = new_b->first_child; child; child = child->next_sibling) {
+    for (MemBlock *child = new_b->first_child; child; child = child->next_sibling) {
       child->parent = new_b;
     }
   }
@@ -401,13 +401,13 @@ void *Mem_Realloc(void *p, size_t size) {
  * @return The child, for convenience.
  */
 void *Mem_Link(void *child, void *parent) {
-  mem_block_t *c = Mem_CheckMagic(child);
-  mem_block_t *p = Mem_CheckMagic(parent);
+  MemBlock *c = Mem_CheckMagic(child);
+  MemBlock *p = Mem_CheckMagic(parent);
 
   SDL_LockSpinlock(&mem_state.lock);
 
   if (c->parent) {
-    mem_block_t **pp = &c->parent->first_child;
+    MemBlock **pp = &c->parent->first_child;
     while (*pp && *pp != c) { pp = &(*pp)->next_sibling; }
     if (*pp) { *pp = c->next_sibling; }
   } else {
@@ -435,7 +435,7 @@ size_t Mem_Size(void) {
 /**
  * @brief Allocates and returns a copy of the specified string.
  */
-char *Mem_TagCopyString(const char *in, mem_tag_t tag) {
+char *Mem_TagCopyString(const char *in, MemTag tag) {
   char *out;
 
   out = Mem_TagMalloc(q_strlen(in) + 1, tag);
@@ -452,21 +452,21 @@ char *Mem_CopyString(const char *in) {
 }
 
 /**
- * @brief Comparison function for sorting `mem_stat_t` entries by descending allocated size.
+ * @brief Comparison function for sorting `MemStat` entries by descending allocated size.
  */
 static Order Mem_Stats_Sort(const ident a, const ident b) {
-  const int64_t diff = (int64_t) ((const mem_stat_t *) b)->size - (int64_t) ((const mem_stat_t *) a)->size;
+  const int64_t diff = (int64_t) ((const MemStat *) b)->size - (int64_t) ((const MemStat *) a)->size;
   return diff < 0 ? OrderAscending : diff > 0 ? OrderDescending : OrderSame;
 }
 
 /**
  * @brief Recursively calculates the total allocated size of a block, including all child blocks.
  */
-static size_t Mem_CalculateBlockSize(const mem_block_t *b) {
+static size_t Mem_CalculateBlockSize(const MemBlock *b) {
 
   size_t size = b->size;
 
-  for (mem_block_t *child = b->first_child; child; child = child->next_sibling) {
+  for (MemBlock *child = b->first_child; child; child = child->next_sibling) {
     size += Mem_CalculateBlockSize(child);
   }
 
@@ -480,16 +480,16 @@ Vector *Mem_Stats(void) {
 
   SDL_LockSpinlock(&mem_state.lock);
 
-  Vector *stat_array = $(alloc(Vector), initWithSize, sizeof(mem_stat_t));
+  Vector *stat_array = $(alloc(Vector), initWithSize, sizeof(MemStat));
 
-  mem_stat_t total = { .tag = -1, .size = mem_state.size, .count = 0 };
+  MemStat total = { .tag = -1, .size = mem_state.size, .count = 0 };
   $(stat_array, add, &total);
 
-  for (const mem_block_t *b = mem_state.head; b; b = b->next_block) {
-    mem_stat_t *stats = NULL;
+  for (const MemBlock *b = mem_state.head; b; b = b->next_block) {
+    MemStat *stats = NULL;
 
     for (size_t i = 0; i < stat_array->count; i++) {
-      mem_stat_t *stat_i = VectorElement(stat_array, mem_stat_t, i);
+      MemStat *stat_i = VectorElement(stat_array, MemStat, i);
       if (stat_i->tag == b->tag) {
         stats = stat_i;
         break;
@@ -497,7 +497,7 @@ Vector *Mem_Stats(void) {
     }
 
     if (stats == NULL) {
-      mem_stat_t entry = {
+      MemStat entry = {
         .tag = b->tag,
         .size = Mem_CalculateBlockSize(b),
         .count = 1

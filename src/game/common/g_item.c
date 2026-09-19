@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-const box3_t ITEM_BOUNDS = {
+const Box3 ITEM_BOUNDS = {
   .mins = { { -16.0, -16.0, -16.0 } },
   .maxs = { {  16.0,  16.0,  32.0 } }
 };
@@ -29,10 +29,10 @@ const box3_t ITEM_BOUNDS = {
 /**
  * @brief Finds an item by its entity class name.
  */
-const g_item_t *G_FindItemByClassName(const char *classname) {
+const GameItem *G_FindItemByClassName(const char *classname) {
 
-  for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
-    const g_item_t *it = &g_items[t];
+  for (GameItemTag t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
+    const GameItem *it = &g_items[t];
 
     if (!q_strcmp(it->def.classname, classname)) {
       return it;
@@ -45,15 +45,15 @@ const g_item_t *G_FindItemByClassName(const char *classname) {
 /**
  * @brief Finds an item by its display name.
  */
-const g_item_t *G_FindItem(const char *name) {
+const GameItem *G_FindItem(const char *name) {
 
   if (!name) {
     return NULL;
   }
 
-  const g_item_t *fallback = NULL;
-  for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
-    const g_item_t *it = &g_items[t];
+  const GameItem *fallback = NULL;
+  for (GameItemTag t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
+    const GameItem *it = &g_items[t];
 
     if (!q_strcasecmp(it->def.name, name)) {
       if (G_ItemAvailable(it)) {
@@ -74,7 +74,7 @@ const g_item_t *G_FindItem(const char *name) {
  *  appropriate weapon when `g_level.items == ITEMS_QUAKE`.
  *  `WEAPON_NONE` means no equivalent exists.
  */
-static const g_item_tag_t g_quake_weapon_map[WEAPON_LAST] = {
+static const GameItemTag g_quake_weapon_map[WEAPON_LAST] = {
   [WEAPON_BLASTER]          = WEAPON_QUAKE_SHOTGUN,
   [WEAPON_SHOTGUN]          = WEAPON_QUAKE_SHOTGUN,
   [WEAPON_SUPER_SHOTGUN]    = WEAPON_QUAKE_SUPER_SHOTGUN,
@@ -93,13 +93,13 @@ static const g_item_tag_t g_quake_weapon_map[WEAPON_LAST] = {
  *  `g_level.items == ITEMS_QUAKE`, or `NULL` if no mapping exists or the item is
  *  already a Quake weapon.
  */
-const g_item_t *G_MappedWeapon(const g_item_t *weapon) {
+const GameItem *G_MappedWeapon(const GameItem *weapon) {
 
   if (weapon->def.tag < WEAPON_FIRST || weapon->def.tag >= WEAPON_QUAKE_SHOTGUN) {
     return NULL; // already a Quake weapon, or unmapped
   }
 
-  const g_item_tag_t mapped = g_quake_weapon_map[weapon->def.tag];
+  const GameItemTag mapped = g_quake_weapon_map[weapon->def.tag];
   if (!mapped) {
     return NULL;
   }
@@ -112,9 +112,9 @@ const g_item_t *G_MappedWeapon(const g_item_t *weapon) {
  * will never return the shard armor, because shards are added to the currently
  * held armor type, or to jacket armor if no armor is held.
  */
-const g_item_t *G_ClientArmor(const g_client_t *cl) {
+const GameItem *G_ClientArmor(const GameClient *cl) {
 
-  for (g_item_tag_t armor = ARMOR_QUAKE_BODY; armor > ARMOR_SHARD; armor--) {
+  for (GameItemTag armor = ARMOR_QUAKE_BODY; armor > ARMOR_SHARD; armor--) {
 
     if (cl->inventory[armor]) {
       return &g_items[armor];
@@ -130,9 +130,9 @@ const g_item_t *G_ClientArmor(const g_client_t *cl) {
  * should expect the item to settle back onto the floor under its own physics.
  * @return True if the item was moved.
  */
-static bool G_ItemRestoreOrigin(g_entity_t *ent) {
+static bool G_ItemRestoreOrigin(GameEntity *ent) {
 
-  const cm_entity_t *origin = gi.EntityValue(ent->def, "origin");
+  const CmEntity *origin = gi.EntityValue(ent->def, "origin");
   if (!(origin->parsed & ENTITY_VEC3)) {
     return false;
   }
@@ -152,7 +152,7 @@ static bool G_ItemRestoreOrigin(g_entity_t *ent) {
 /**
  * @brief Think function that respawns an item entity after its delay expires.
  */
-static void G_ItemRespawn(g_entity_t *ent) {
+static void G_ItemRespawn(GameEntity *ent) {
 
   if (ent->team) {
     if (ent->team_next) {
@@ -177,7 +177,7 @@ static void G_ItemRespawn(g_entity_t *ent) {
  * in lava or slime. Called from `G_CheckWater`, so that only items that are actually
  * moving through the world are considered.
  */
-void G_CheckItemHazard(g_entity_t *ent) {
+void G_CheckItemHazard(GameEntity *ent) {
 
   if (!ent->item) {
     return;
@@ -207,7 +207,7 @@ void G_CheckItemHazard(g_entity_t *ent) {
 /**
  * @brief Schedules an item entity to respawn after the specified delay in milliseconds.
  */
-void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
+void G_SetItemRespawn(GameEntity *ent, uint32_t delay) {
 
   ent->next_think = g_level.time + delay;
   ent->Think = G_ItemRespawn;
@@ -223,7 +223,7 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 /**
  * @brief Handles pickup of the adrenaline powerup, restoring the player to max health.
  */
-static bool G_PickupAdrenaline(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
 
   if (cl->entity->health < cl->entity->max_health) {
     cl->entity->health = cl->entity->max_health;
@@ -239,7 +239,7 @@ static bool G_PickupAdrenaline(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief Handles pickup of the quad damage powerup, granting the player quad damage for its duration.
  */
-static bool G_PickupQuadDamage(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupQuadDamage(GameClient *cl, GameEntity *ent) {
 
   if (cl->inventory[POWERUP_QUAD]) {
     return false; // already have it
@@ -265,8 +265,8 @@ static bool G_PickupQuadDamage(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief Drops the quad damage powerup from the client's inventory as a world entity.
  */
-g_entity_t *G_TossQuadDamage(g_client_t *cl) {
-  g_entity_t *quad;
+GameEntity *G_TossQuadDamage(GameClient *cl) {
+  GameEntity *quad;
 
   if (!cl->inventory[POWERUP_QUAD]) {
     return NULL;
@@ -287,7 +287,7 @@ g_entity_t *G_TossQuadDamage(g_client_t *cl) {
 /**
  * @brief Handles pickup of the Invisibility, granting temporary invisibility.
  */
-static bool G_PickupInvisibility(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupInvisibility(GameClient *cl, GameEntity *ent) {
 
   if (cl->inventory[POWERUP_INVISIBILITY]) {
     return false; // already have it
@@ -304,7 +304,7 @@ static bool G_PickupInvisibility(g_client_t *cl, g_entity_t *ent) {
 
   cl->entity->s.effects |= EF_INVISIBILITY;
 
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_media.sounds.invisibility_pickup,
     .entity = cl->entity,
   }, MULTICAST_PHS);
@@ -315,13 +315,13 @@ static bool G_PickupInvisibility(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief Drops the Invisibility from the client's inventory as a world entity.
  */
-g_entity_t *G_TossInvisibility(g_client_t *cl) {
+GameEntity *G_TossInvisibility(GameClient *cl) {
 
   if (!cl->inventory[POWERUP_INVISIBILITY]) {
     return NULL;
   }
 
-  g_entity_t *item = G_DropItem(cl, &g_items[POWERUP_INVISIBILITY]);
+  GameEntity *item = G_DropItem(cl, &g_items[POWERUP_INVISIBILITY]);
 
   if (item) {
     item->timestamp = cl->invisibility_time;
@@ -337,7 +337,7 @@ g_entity_t *G_TossInvisibility(g_client_t *cl) {
 /**
  * @brief Handles pickup of the Invulnerability, granting temporary invulnerability.
  */
-static bool G_PickupInvulnerability(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupInvulnerability(GameClient *cl, GameEntity *ent) {
 
   if (cl->inventory[POWERUP_INVULNERABILITY]) {
     return false; // already have it
@@ -358,7 +358,7 @@ static bool G_PickupInvulnerability(g_client_t *cl, g_entity_t *ent) {
 
   cl->entity->s.effects |= EF_INVULNERABILITY;
 
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_media.sounds.invulnerability_pickup,
     .entity = cl->entity,
   }, MULTICAST_PHS);
@@ -369,13 +369,13 @@ static bool G_PickupInvulnerability(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief Drops the Invulnerability from the client's inventory as a world entity.
  */
-g_entity_t *G_TossInvulnerability(g_client_t *cl) {
+GameEntity *G_TossInvulnerability(GameClient *cl) {
 
   if (!cl->inventory[POWERUP_INVULNERABILITY]) {
     return NULL;
   }
 
-  g_entity_t *item = G_DropItem(cl, &g_items[POWERUP_INVULNERABILITY]);
+  GameEntity *item = G_DropItem(cl, &g_items[POWERUP_INVULNERABILITY]);
 
   if (item) {
     item->timestamp = cl->invulnerability_time;
@@ -392,7 +392,7 @@ g_entity_t *G_TossInvulnerability(g_client_t *cl) {
 /**
  * @brief The tail of the `G_TossInventory` chain, tossing the quad damage.
  */
-static void G_TossInventory_Common(g_client_t *cl) {
+static void G_TossInventory_Common(GameClient *cl) {
 
   G_TossQuadDamage(cl);
 }
@@ -402,14 +402,14 @@ TossInventory G_TossInventory = G_TossInventory_Common;
 /**
  * @brief Adds the given amount of ammo to the client's inventory, clamped to the item's maximum.
  */
-bool G_AddAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
+bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count) {
   int16_t max = item->def.max;
 
   if (!max) {
     return false;
   }
 
-  const g_item_tag_t index = item->def.tag;
+  const GameItemTag index = item->def.tag;
 
   cl->inventory[index] += count;
 
@@ -425,14 +425,14 @@ bool G_AddAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
 /**
  * @brief Sets the client's ammo count for the given item to an absolute value, clamped to its maximum.
  */
-bool G_SetAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
+bool G_SetAmmo(GameClient *cl, const GameItem *item, int16_t count) {
   int16_t max = item->def.max;
 
   if (!max) {
     return false;
   }
 
-  const g_item_tag_t index = item->def.tag;
+  const GameItemTag index = item->def.tag;
 
   cl->inventory[index] = count;
 
@@ -448,7 +448,7 @@ bool G_SetAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
 /**
  * @brief Handles pickup of an ammo item, adding its quantity to the client's inventory.
  */
-static bool G_PickupAmmo(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupAmmo(GameClient *cl, GameEntity *ent) {
   int32_t count;
 
   if (ent->count) {
@@ -471,7 +471,7 @@ static bool G_PickupAmmo(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief When picking up grenades, give the hand grenades weapon in addition to the ammo.
  */
-static bool G_PickupGrenades(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupGrenades(GameClient *cl, GameEntity *ent) {
 
   const bool pickup = G_PickupAmmo(cl, ent);
   if (pickup) {
@@ -490,14 +490,14 @@ static bool G_PickupGrenades(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief When "using" grenades, route it to the Hand Grenades
  */
-static void G_UseGrenades(g_client_t *cl, const g_item_t *item) {
+static void G_UseGrenades(GameClient *cl, const GameItem *item) {
   G_UseWeapon(cl, G_FindItem("Hand Grenades"));
 }
 
 /**
  * @brief When picking up the grenade launcher, give the hand grenades weapon as well.
  */
-static bool G_PickupGrenadeLauncher(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupGrenadeLauncher(GameClient *cl, GameEntity *ent) {
 
   const bool pickup = G_PickupWeapon(cl, ent);
   if (pickup) {
@@ -512,7 +512,7 @@ static bool G_PickupGrenadeLauncher(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief Handles pickup of a health item, healing the player according to health type rules.
  */
-static bool G_PickupHealth(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupHealth(GameClient *cl, GameEntity *ent) {
   int32_t h, max;
 
   const uint16_t tag = ent->item->def.tag;
@@ -572,10 +572,10 @@ static bool G_PickupHealth(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @return The `g_armor_info_t` for the specified item.
+ * @return The `GameArmorInfo` for the specified item.
  */
-const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
-  static const g_armor_info_t armor_info[] = {
+const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
+  static const GameArmorInfo armor_info[] = {
     { ARMOR_QUAKE_JACKET, 0.3, 0.0 },
     { ARMOR_QUAKE_COMBAT, 0.6, 0.0 },
     { ARMOR_QUAKE_BODY,   0.8, 0.0 },
@@ -600,13 +600,13 @@ const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 /**
  * @brief Handles pickup of an armor item, merging with or replacing the client's existing armor.
  */
-static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
 
-  const g_item_t *new_armor = ent->item;
-  const g_item_t *current_armor = G_ClientArmor(cl);
+  const GameItem *new_armor = ent->item;
+  const GameItem *current_armor = G_ClientArmor(cl);
 
-  const g_armor_info_t *new_info = G_ArmorInfo(new_armor);
-  const g_armor_info_t *current_info = G_ArmorInfo(current_armor);
+  const GameArmorInfo *new_info = G_ArmorInfo(new_armor);
+  const GameArmorInfo *current_info = G_ArmorInfo(current_armor);
 
   bool taken = false;
 
@@ -713,7 +713,7 @@ static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
  * has left the world. Features that would rather recycle it install over the
  * top.
  */
-static void G_ResetDroppedItem_Common(g_entity_t *ent) {
+static void G_ResetDroppedItem_Common(GameEntity *ent) {
   G_FreeEntity(ent);
 }
 
@@ -722,7 +722,7 @@ ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
 /**
  * @brief Sets the expiration timer and think function for a dropped item entity.
  */
-static void G_DropItem_SetExpiration(g_entity_t *ent) {
+static void G_DropItem_SetExpiration(GameEntity *ent) {
 
   ent->Think = G_ResetDroppedItem;
 
@@ -748,7 +748,7 @@ static void G_DropItem_SetExpiration(g_entity_t *ent) {
 /**
  * @brief Think function for dropped items that waits until the item lands before setting its expiration.
  */
-static void G_DropItem_Think(g_entity_t *ent) {
+static void G_DropItem_Think(GameEntity *ent) {
 
   // continue to think as we drop to the floor
   if (ent->ground.ent || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
@@ -761,7 +761,7 @@ static void G_DropItem_Think(g_entity_t *ent) {
 /**
  * @brief Touch callback that handles item pickup when a player contacts an item entity.
  */
-void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (G_Ai_InDeveloperMode()) {
     return;
@@ -793,7 +793,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
     G_DropItem_SetExpiration(ent);
   }
 
-  g_client_t *cl = other->client;
+  GameClient *cl = other->client;
 
   const bool pickup = ent->item->Pickup(cl, ent);
   if (pickup) {
@@ -812,7 +812,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
     cl->pickup_msg_time = g_level.time + 3000;
 
     if (ent->item->def.pickup_sound) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->item->pickup_sound_index,
         .origin = &other->s.origin,
       }, MULTICAST_PHS);
@@ -838,10 +838,10 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
  * @brief Handles the mechanics of dropping items, but does not adjust the client's
  * inventory. That is left to the caller.
  */
-g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
-  vec3_t forward;
+GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
+  Vec3 forward;
 
-  g_entity_t *it = G_AllocEntity(item->def.classname);
+  GameEntity *it = G_AllocEntity(item->def.classname);
   it->owner = cl->entity;
 
   it->bounds = Box3_Scale(ITEM_BOUNDS, ITEM_SCALE);
@@ -850,7 +850,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 
   // resolve forward direction and project origin
   if (cl->entity->dead) {
-    Vec3_Vectors(Vec3(.0f, cl->angles.y, .0f), &forward, NULL, NULL);
+    Vec3_Vectors(MakeVec3(.0f, cl->angles.y, .0f), &forward, NULL, NULL);
     it->s.origin = Vec3_Fmaf(cl->entity->s.origin, 24.f, forward);
   } else {
     Vec3_Vectors(cl->entity->s.angles, &forward, NULL, NULL);
@@ -858,7 +858,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
     it->s.origin.z -= it->bounds.mins.z;
   }
 
-  const cm_trace_t tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, cl->entity, CONTENTS_MASK_SOLID);
+  const CmTrace tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, cl->entity, CONTENTS_MASK_SOLID);
 
   it->item = item;
 
@@ -886,7 +886,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
   it->s.model1 = item->model_index;
 
   if (item->def.type == ITEM_TYPE_WEAPON) {
-    const g_item_t *ammo = item->def.ammo ? &g_items[item->def.ammo] : NULL;
+    const GameItem *ammo = item->def.ammo ? &g_items[item->def.ammo] : NULL;
     if (ammo) {
       it->health = ammo->def.quantity;
     }
@@ -907,7 +907,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
  * @brief The tail of the `G_ResolveInventoryItem` chain, resolving the name
  * against the item list.
  */
-static const g_item_t *G_ResolveInventoryItem_Common(g_client_t *cl, const char *name) {
+static const GameItem *G_ResolveInventoryItem_Common(GameClient *cl, const char *name) {
 
   (void) cl;
 
@@ -920,7 +920,7 @@ ResolveInventoryItem G_ResolveInventoryItem = G_ResolveInventoryItem_Common;
  * @brief Drops the given item from the client's inventory, reporting to them
  * when they can not.
  */
-void G_DropInventoryItem(g_client_t *cl, const g_item_t *it) {
+void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
 
   const char *name = it->def.name;
 
@@ -938,7 +938,7 @@ void G_DropInventoryItem(g_client_t *cl, const g_item_t *it) {
     return;
   }
 
-  const g_item_tag_t index = it->def.tag;
+  const GameItemTag index = it->def.tag;
 
   if (cl->inventory[index] == 0) {
     gi.ClientPrint(cl, PRINT_HIGH, "Out of item: %s\n", name);
@@ -974,7 +974,7 @@ void G_DropInventoryItem(g_client_t *cl, const g_item_t *it) {
 /**
  * @brief Use callback that reveals a hidden item and enables it for pickup.
  */
-static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_UseItem(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   ent->sv_flags &= ~SVF_NO_CLIENT;
   ent->Use = NULL;
@@ -993,7 +993,7 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator)
 /**
  * @brief Reset the item's interaction state based on the current game state.
  */
-static void G_ResetItem_Common(g_entity_t *ent) {
+static void G_ResetItem_Common(GameEntity *ent) {
 
   ent->solid = SOLID_TRIGGER;
   ent->sv_flags &= ~SVF_NO_CLIENT;
@@ -1030,8 +1030,8 @@ ResetItem G_ResetItem = G_ResetItem_Common;
  * @brief The tail of the `G_InhibitItem` chain: arena and instagib play with
  * whatever the client spawns with.
  */
-static bool G_InhibitItem_Common(const g_entity_t *ent) {
-  const g_gameplay_id_t gameplay = g_level.gameplay & ~GAMEPLAY_TEAMS;
+static bool G_InhibitItem_Common(const GameEntity *ent) {
+  const GameplayId gameplay = g_level.gameplay & ~GAMEPLAY_TEAMS;
   return gameplay == GAMEPLAY_ARENA || gameplay == GAMEPLAY_INSTAGIB;
 }
 
@@ -1041,9 +1041,9 @@ InhibitItem G_InhibitItem = G_InhibitItem_Common;
  * @brief Drops the specified item to the floor and sets up interaction
  * properties (Touch, Use, move type, ..).
  */
-static void G_ItemDropToFloor(g_entity_t *ent) {
-  cm_trace_t tr;
-  vec3_t dest;
+static void G_ItemDropToFloor(GameEntity *ent) {
+  CmTrace tr;
+  Vec3 dest;
   bool drop_node = false;
 
   ent->velocity = Vec3_Zero();
@@ -1067,7 +1067,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
 
       G_Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
 
-      ent->bounds = Box3_Expand3(ent->bounds, Vec3(-2.f, -2.f, -2.f));
+      ent->bounds = Box3_Expand3(ent->bounds, MakeVec3(-2.f, -2.f, -2.f));
 
       // try Quake 2 box
       tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
@@ -1100,7 +1100,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
  * This will be called for each item spawned in a level,
  * and for each item in each client's inventory.
  */
-void G_PrecacheItem(const g_item_t *it) {
+void G_PrecacheItem(const GameItem *it) {
   const char *s, *start;
   char data[MAX_QPATH];
   ptrdiff_t len;
@@ -1121,7 +1121,7 @@ void G_PrecacheItem(const g_item_t *it) {
 
   // parse everything for its ammo
   if (it->def.ammo) {
-    const g_item_t *ammo = &g_items[it->def.ammo];
+    const GameItem *ammo = &g_items[it->def.ammo];
 
     if (ammo != it) {
       G_PrecacheItem(ammo);
@@ -1164,7 +1164,7 @@ void G_PrecacheItem(const g_item_t *it) {
   }
 }
 
-static void G_SetupItem(g_item_t *it);
+static void G_SetupItem(GameItem *it);
 
 /**
  * @brief Sets the clipping size and plants the object on the floor.
@@ -1172,7 +1172,7 @@ static void G_SetupItem(g_item_t *it);
  * Items can't be immediately dropped to floor, because they might
  * be on an entity that hasn't spawned yet.
  */
-void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
+void G_SpawnItem(GameEntity *ent, const GameItem *item) {
 
   ent->item = item;
   G_PrecacheItem(ent->item);
@@ -1182,7 +1182,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
   if (ent->model) {
     ent->s.model1 = gi.ModelIndex(ent->model);
   } else {
-    G_SetupItem((g_item_t *) ent->item);
+    G_SetupItem((GameItem *) ent->item);
     ent->s.model1 = ent->item->model_index;
   }
 
@@ -1196,7 +1196,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 
   // weapons override the health field to store their ammo count
   if (ent->item->def.type == ITEM_TYPE_WEAPON) {
-    const g_item_t *ammo = ent->item->def.ammo ? &g_items[ent->item->def.ammo] : NULL;
+    const GameItem *ammo = ent->item->def.ammo ? &g_items[ent->item->def.ammo] : NULL;
     if (ammo) {
       ent->health = ammo->def.quantity;
     } else {
@@ -1218,12 +1218,12 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 /**
  * @brief The item list; allocated and initialized in `G_InitItems`.
  */
-g_item_t *g_items;
+GameItem *g_items;
 
 /**
  * @brief Returns true if the item belongs to the active item set.
  */
-bool G_ItemAvailable(const g_item_t *item) {
+bool G_ItemAvailable(const GameItem *item) {
 
   if (item->def.type == ITEM_TYPE_WEAPON) {
     if (g_level.items == ITEMS_QUAKE) {
@@ -1268,7 +1268,7 @@ bool G_ItemAvailable(const g_item_t *item) {
  * @brief The tail of the `G_InitItem` chain, answering for the deathmatch item
  * types and erroring on any other.
  */
-static void G_InitItem_Common(g_item_t *it) {
+static void G_InitItem_Common(GameItem *it) {
 
   switch (it->def.type) {
     case ITEM_TYPE_ARMOR:
@@ -1363,7 +1363,7 @@ InitItem G_InitItem = G_InitItem_Common;
  * @brief Fills in an item's behaviour and indexes its media. The behaviour is a
  * hook, so a feature answering for its own type never has to remember the media.
  */
-static void G_SetupItem(g_item_t *it) {
+static void G_SetupItem(GameItem *it) {
 
   G_InitItem(it);
 
@@ -1376,9 +1376,9 @@ static void G_SetupItem(g_item_t *it) {
  */
 void G_InitItems(void) {
 
-  g_items = gi.Malloc(ITEM_TOTAL * sizeof(g_item_t), MEM_TAG_GAME);
+  g_items = gi.Malloc(ITEM_TOTAL * sizeof(GameItem), MEM_TAG_GAME);
 
-  for (g_item_tag_t tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
+  for (GameItemTag tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
     g_items[tag].def = bg_item_defs[tag];
     G_SetupItem(&g_items[tag]);
   }

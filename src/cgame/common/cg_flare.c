@@ -29,28 +29,28 @@ typedef struct {
   /**
    * @brief The face this flare is anchored to.
    */
-  const r_bsp_face_t *face;
+  const RenderBspFace *face;
 
   /**
    * @brief The material stage defining this flare.
    */
-  const r_stage_t *stage;
+  const RenderStage *stage;
 
   /**
    * @brief The bounds of all faces represented by this flare.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The sprite input and output instances.
    */
-  r_sprite_t in, out;
+  RenderSprite in, out;
 
   /**
    * @brief The entity referencing the model containin this flare, if any.
    */
-  const cl_entity_t *entity;
-} cg_flare_t;
+  const ClientEntity *entity;
+} ClientGameFlare;
 
 static Vector *cg_flares;
 
@@ -66,16 +66,16 @@ void Cg_AddFlares(void) {
   }
 
   for (size_t i = 0; i < cg_flares->count; i++) {
-    cg_flare_t *flare = VectorValue(cg_flares, cg_flare_t *, i);
+    ClientGameFlare *flare = VectorValue(cg_flares, ClientGameFlare *, i);
 
-    mat4_t matrix = Mat4_Identity();
+    Mat4 matrix = Mat4_Identity();
     flare->entity = NULL;
 
-    const r_bsp_inline_model_t *in = flare->face->node->model;
+    const RenderBspInlineModel *in = flare->face->node->model;
 
     if (in != cgi.WorldModel()->bsp->inline_models && !editor->value) {
 
-      const cl_entity_t *e = cgi.client->entities;
+      const ClientEntity *e = cgi.client->entities;
       for (int32_t j = 0; j < MAX_ENTITIES; j++, e++) {
 
         if (!e->current.model1) {
@@ -86,7 +86,7 @@ void Cg_AddFlares(void) {
           continue;
         }
 
-        const r_model_t *mod = cgi.client->models[e->current.model1];
+        const RenderModel *mod = cgi.client->models[e->current.model1];
 
         if (mod && mod->type == MODEL_BSP_INLINE) {
           if (in == mod->bsp_inline) {
@@ -100,12 +100,12 @@ void Cg_AddFlares(void) {
       assert(flare->entity);
     }
 
-    cm_bsp_plane_t plane = *(flare->face->plane->cm);
+    CmBspPlane plane = *(flare->face->plane->cm);
 
     if (flare->entity) {
       flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
 
-      const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
+      const Vec4 out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
 
       plane.normal = out.xyz;
       plane.dist = out.w;
@@ -129,9 +129,9 @@ void Cg_AddFlares(void) {
 /**
  * @brief Creates a flare from the specified face and stage.
  */
-cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
+ClientGameFlare *Cg_LoadFlare(const RenderBspFace *face, const RenderStage *stage) {
 
-  cg_flare_t *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
+  ClientGameFlare *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
 
   flare->face = face;
   flare->stage = stage;
@@ -159,7 +159,7 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 /**
  * @brief Returns true if two faces share a vertex position, indicating geometric adjacency.
  */
-static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
+static _Bool Cg_FacesShareVertex(const RenderBspFace *a, const RenderBspFace *b) {
 
   const float epsilon = 1.f;
 
@@ -180,10 +180,10 @@ static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
 static void Cg_MergeFlares(void) {
 
   for (size_t i = 0; i < cg_flares->count; i++) {
-    cg_flare_t *a = VectorValue(cg_flares, cg_flare_t *, i);
+    ClientGameFlare *a = VectorValue(cg_flares, ClientGameFlare *, i);
 
     for (size_t j = i + 1; j < cg_flares->count; j++) {
-      cg_flare_t *b = VectorValue(cg_flares, cg_flare_t *, j);
+      ClientGameFlare *b = VectorValue(cg_flares, ClientGameFlare *, j);
 
       if (a->face->brush_side == b->face->brush_side &&
           Cg_FacesShareVertex(a->face, b->face)) {
@@ -212,21 +212,21 @@ static void Cg_MergeFlares(void) {
  */
 void Cg_LoadFlares(void) {
 
-  cg_flares = $(alloc(Vector), initWithSize, sizeof(cg_flare_t *));
+  cg_flares = $(alloc(Vector), initWithSize, sizeof(ClientGameFlare *));
 
-  const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+  const RenderBspModel *bsp = cgi.WorldModel()->bsp;
 
-  const r_bsp_face_t *face = bsp->faces;
+  const RenderBspFace *face = bsp->faces;
   for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
     if (!face->brush_side) {
       continue;
     }
 
-    const r_material_t *material = face->brush_side->material;
+    const RenderMaterial *material = face->brush_side->material;
     if (material->cm->stage_flags & STAGE_FLARE) {
 
-      const r_stage_t *stage = material->stages;
+      const RenderStage *stage = material->stages;
       while (stage) {
         if (stage->cm->flags & STAGE_FLARE) {
           break;
@@ -239,7 +239,7 @@ void Cg_LoadFlares(void) {
         continue;
       }
 
-      cg_flare_t *flare = Cg_LoadFlare(face, stage);
+      ClientGameFlare *flare = Cg_LoadFlare(face, stage);
       $(cg_flares, add, &flare);
     }
   }

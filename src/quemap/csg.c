@@ -54,12 +54,12 @@
  * @remark May by empty if A is contained inside B.
  * @remark The originals are undisturbed.
  */
-static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
+static CsgBrush *SubtractBrush(CsgBrush *a, CsgBrush *b) {
 
-  csg_brush_t *in = a;
-  csg_brush_t *out = NULL;
+  CsgBrush *in = a;
+  CsgBrush *out = NULL;
 
-  csg_brush_t *front = NULL, *back = NULL;
+  CsgBrush *front = NULL, *back = NULL;
 
   for (int32_t i = 0; i < b->num_brush_sides && in; i++) {
     SplitBrush(in, b->brush_sides[i].plane, &front, &back);
@@ -87,7 +87,7 @@ static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
  * @return True if the two brushes do not intersect.
  * @remarks There will be false negatives for some non-axial combinations.
  */
-static bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
+static bool BrushesDisjoint(const CsgBrush *a, const CsgBrush *b) {
 
   // check bounding boxes
   if (!Box3_Intersects(a->bounds, b->bounds)) {
@@ -107,22 +107,22 @@ static bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 }
 
 /**
- * @brief Create a list of `csg_brush_t` for the `brush_t` between start and start + count.
+ * @brief Create a list of `CsgBrush` for the `Brush` between start and start + count.
  */
-csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
+CsgBrush *MakeBrushes(int32_t index, int32_t count) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  csg_brush_t *list = NULL;
+  CsgBrush *list = NULL;
 
-  const brush_t *in = &brushes[index];
+  const Brush *in = &brushes[index];
   for (int32_t i = 0; i < count; i++, in++) {
 
     if (!in->num_brush_sides) {
       continue;
     }
     
-    csg_brush_t *out = AllocBrush(in->num_brush_sides);
+    CsgBrush *out = AllocBrush(in->num_brush_sides);
 
     out->original = in;
     out->num_brush_sides = in->num_brush_sides;
@@ -153,8 +153,8 @@ csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
 /**
  * @brief Appends brushes from the list tail onto the accumulator list; returns the new tail.
  */
-static csg_brush_t *AddBrushToBrushes(csg_brush_t *list, csg_brush_t *tail) {
-  csg_brush_t *walk, *next;
+static CsgBrush *AddBrushToBrushes(CsgBrush *list, CsgBrush *tail) {
+  CsgBrush *walk, *next;
 
   for (walk = list; walk; walk = next) { // add to end of list
     next = walk->next;
@@ -169,9 +169,9 @@ static csg_brush_t *AddBrushToBrushes(csg_brush_t *list, csg_brush_t *tail) {
 /**
  * @brief Builds a new list that doesn't hold the given brush.
  */
-static csg_brush_t *RemoveBrushFromBrushes(csg_brush_t *list, const csg_brush_t *skip) {
-  csg_brush_t *next;
-  csg_brush_t *new_list = NULL;
+static CsgBrush *RemoveBrushFromBrushes(CsgBrush *list, const CsgBrush *skip) {
+  CsgBrush *next;
+  CsgBrush *new_list = NULL;
 
   for (; list; list = next) {
     next = list->next;
@@ -188,7 +188,7 @@ static csg_brush_t *RemoveBrushFromBrushes(csg_brush_t *list, const csg_brush_t 
 /**
  * @brief Returns true if b1 is allowed to bite b2
  */
-static inline bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
+static inline bool BrushGE(const CsgBrush *b1, const CsgBrush *b2) {
   // detail brushes never bite structural brushes
   if ((b1->original->contents & CONTENTS_DETAIL) && !(b2->original->contents & CONTENTS_DETAIL)) {
     return false;
@@ -207,35 +207,35 @@ static inline bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
  * @brief Carves any intersecting solid brushes into the minimum number
  * of non-intersecting brushes.
  */
-csg_brush_t *SubtractBrushes(csg_brush_t *head) {
+CsgBrush *SubtractBrushes(CsgBrush *head) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
   size_t head_count = CountBrushes(head);
 
-  csg_brush_t *keep = NULL;
+  CsgBrush *keep = NULL;
 
 newlist:
   if (!head) {
     return NULL;
   }
 
-  csg_brush_t *tail = head;
+  CsgBrush *tail = head;
   for (; tail->next; tail = tail->next) {
     // find tail
   }
 
-  csg_brush_t *next;
-  for (csg_brush_t *b1 = head; b1; b1 = next) {
+  CsgBrush *next;
+  for (CsgBrush *b1 = head; b1; b1 = next) {
     next = b1->next;
-    csg_brush_t *b2 = next;
+    CsgBrush *b2 = next;
     for (; b2; b2 = b2->next) {
       if (BrushesDisjoint(b1, b2)) {
         continue;
       }
 
-      csg_brush_t *sub1 = NULL;
-      csg_brush_t *sub2 = NULL;
+      CsgBrush *sub1 = NULL;
+      CsgBrush *sub2 = NULL;
 
       size_t c1 = SIZE_MAX;
       size_t c2 = SIZE_MAX;

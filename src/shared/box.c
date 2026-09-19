@@ -26,16 +26,16 @@
 /**
  * @see box.h
  */
-size_t Box3_Merge(const box3_t *boxes, size_t count, box3_t **out) {
+size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out) {
 
   if (!count) {
     *out = NULL;
     return 0;
   }
 
-  const vec3_t cell = Box3_Size(boxes[0]);
+  const Vec3 cell = Box3_Size(boxes[0]);
 
-  vec3_t origin = boxes[0].mins;
+  Vec3 origin = boxes[0].mins;
   for (size_t i = 1; i < count; i++) {
     origin = Vec3_Minf(origin, boxes[i].mins);
   }
@@ -43,18 +43,18 @@ size_t Box3_Merge(const box3_t *boxes, size_t count, box3_t **out) {
   // Quantize each box's mins to an integer cell coordinate, scoped to the
   // touched region only (not any larger grid the boxes may belong to).
 
-  vec3i_t *coords = malloc(count * sizeof(vec3i_t));
+  Vec3i *coords = malloc(count * sizeof(Vec3i));
 
   int32_t size_x = 0, size_y = 0, size_z = 0;
 
   for (size_t i = 0; i < count; i++) {
-    const vec3_t rel = Vec3_Subtract(boxes[i].mins, origin);
+    const Vec3 rel = Vec3_Subtract(boxes[i].mins, origin);
 
     const int32_t x = (int32_t) roundf(rel.x / cell.x);
     const int32_t y = (int32_t) roundf(rel.y / cell.y);
     const int32_t z = (int32_t) roundf(rel.z / cell.z);
 
-    coords[i] = Vec3i(x, y, z);
+    coords[i] = MakeVec3i(x, y, z);
 
     size_x = Maxi(size_x, x + 1);
     size_y = Maxi(size_y, y + 1);
@@ -66,7 +66,7 @@ size_t Box3_Merge(const box3_t *boxes, size_t count, box3_t **out) {
   uint8_t *occupied = calloc(1, xy * size_z);
 
   for (size_t i = 0; i < count; i++) {
-    const vec3i_t c = coords[i];
+    const Vec3i c = coords[i];
     occupied[c.z * xy + c.y * size_x + c.x] = 1;
   }
 
@@ -75,7 +75,7 @@ size_t Box3_Merge(const box3_t *boxes, size_t count, box3_t **out) {
   // Greedily merge contiguous runs of occupied cells into boxes: extend as far as
   // possible along X, then Y, then Z, consuming every cell the merged box covers.
 
-  box3_t *merged = malloc(count * sizeof(box3_t));
+  Box3 *merged = malloc(count * sizeof(Box3));
   size_t num_merged = 0;
 
   for (int32_t z = 0; z < size_z; z++) {
@@ -131,16 +131,16 @@ size_t Box3_Merge(const box3_t *boxes, size_t count, box3_t **out) {
           }
         }
 
-        const vec3_t mins = Vec3_Add(origin, Vec3_Multiply(Vec3i_CastVec3(Vec3i(x, y, z)), cell));
-        const vec3_t maxs = Vec3_Add(origin, Vec3_Multiply(Vec3i_CastVec3(Vec3i(ex + 1, ey + 1, ez + 1)), cell));
+        const Vec3 mins = Vec3_Add(origin, Vec3_Multiply(Vec3i_CastVec3(MakeVec3i(x, y, z)), cell));
+        const Vec3 maxs = Vec3_Add(origin, Vec3_Multiply(Vec3i_CastVec3(MakeVec3i(ex + 1, ey + 1, ez + 1)), cell));
 
-        merged[num_merged++] = Box3(mins, maxs);
+        merged[num_merged++] = MakeBox3(mins, maxs);
       }
     }
   }
 
   free(occupied);
 
-  *out = realloc(merged, num_merged * sizeof(box3_t));
+  *out = realloc(merged, num_merged * sizeof(Box3));
   return num_merged;
 }

@@ -21,12 +21,12 @@
 
 #include "g_local.h"
 
-static cvar_t *g_ai_name_prefix;
+static Cvar *g_ai_name_prefix;
 
 /**
  * @brief The static roster of bot definitions.
  */
-static const g_ai_roster_t g_ai_roster[] = {
+static const GameAiRoster g_ai_roster[] = {
   // name          skin                  guid                                    skill  aggr   aware
   { "Enforcer",    "enforcer/default",    "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .50f,  .50f,  .50f },
   { "Guard",       "guard/default",       "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
@@ -91,7 +91,7 @@ static void G_Ai_ShuffleRoster(void) {
 /**
  * @brief Returns true if the given name is already in use by a connected client other than @p cl.
  */
-static _Bool G_Ai_NameInUse(const g_client_t *cl, const char *name) {
+static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
 
   G_ForEachClient(other, {
     if (other == cl) {
@@ -115,13 +115,13 @@ static _Bool G_Ai_NameInUse(const g_client_t *cl, const char *name) {
  * already taken by another connected client, appends " 1", " 2", etc. until a
  * unique name is found.
  */
-const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
+const GameAiRoster *G_Ai_GetUserInfo(const GameClient *cl, char *info) {
 
   if (g_ai_roster_index == g_ai_roster_count) {
     G_Ai_ShuffleRoster();
   }
 
-  const g_ai_roster_t *entry = &g_ai_roster[g_ai_roster_order[g_ai_roster_index]];
+  const GameAiRoster *entry = &g_ai_roster[g_ai_roster_order[g_ai_roster_index]];
 
   g_ai_roster_index++;
 

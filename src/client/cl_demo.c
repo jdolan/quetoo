@@ -49,7 +49,7 @@ static void Cl_AddDemoKeyframe(int32_t frame_num, int32_t offset) {
   if (cls.demo.num_keyframes == cls.demo.max_keyframes) {
     cls.demo.max_keyframes = cls.demo.max_keyframes ? cls.demo.max_keyframes * 2 : 64;
     cls.demo.keyframes = Mem_Realloc(cls.demo.keyframes,
-                                      cls.demo.max_keyframes * sizeof(demo_keyframe_t));
+                                      cls.demo.max_keyframes * sizeof(DemoKeyframe));
   }
 
   cls.demo.keyframes[cls.demo.num_keyframes].frame_num = frame_num;
@@ -64,11 +64,11 @@ static void Cl_AddDemoKeyframe(int32_t frame_num, int32_t offset) {
  * having received them at connect time.
  */
 static void Cl_WriteDemoHeader(void) {
-  static entity_state_t null_state;
-  mem_buf_t msg;
+  static EntityState null_state;
+  MemBuf msg;
   byte buffer[MAX_MSG_SIZE];
 
-  demo_header_t *header = &cls.demo.header;
+  DemoHeader *header = &cls.demo.header;
   memset(header, 0, sizeof(*header));
 
   memcpy(header->magic, DEMO_MAGIC, sizeof(header->magic));
@@ -111,7 +111,7 @@ static void Cl_WriteDemoHeader(void) {
 
   // and baselines
   for (size_t i = 0; i < lengthof(cl.entities); i++) {
-    entity_state_t *ent = &cl.entities[i].baseline;
+    EntityState *ent = &cl.entities[i].baseline;
     if (i != 0 && !ent->number) { // entity 0 is worldspawn; never skip it
       continue;
     }
@@ -174,12 +174,12 @@ void Cl_WriteDemoMessage(void) {
 
   Cl_AddDemoKeyframe(frame_num, (int32_t) Fs_Tell(cls.demo.file));
 
-  static player_state_t null_ps;
+  static PlayerState null_ps;
 
   // bounded by MAX_MSG_SIZE to match what Sv_GetDemoMessage accepts as a valid chunk on
   // playback, and what the server's own relay buffers and Netchan_Transmit can actually carry in
   // one message - unlike a plain on-disk record size, this isn't a purely local concern.
-  mem_buf_t msg;
+  MemBuf msg;
   byte buffer[MAX_MSG_SIZE];
   Mem_InitBuffer(&msg, buffer, sizeof(buffer));
 
@@ -202,7 +202,7 @@ void Cl_WriteDemoMessage(void) {
       break;
     }
     const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const EntityState *s = &cl.entity_states[snum];
     Net_WriteDeltaEntity(&msg, &cl.entities[s->number].baseline, s, true);
   }
   Net_WriteShort(&msg, -1);
@@ -243,7 +243,7 @@ void Cl_Stop_f(void) {
     const int32_t ofs_keyframes = (int32_t) Fs_Tell(cls.demo.file);
 
     for (size_t i = 0; i < cls.demo.num_keyframes; i++) {
-      demo_keyframe_t entry = cls.demo.keyframes[i];
+      DemoKeyframe entry = cls.demo.keyframes[i];
       entry.frame_num = LittleLong(entry.frame_num);
       entry.offset = LittleLong(entry.offset);
       Fs_Write(cls.demo.file, &entry, sizeof(entry), 1);

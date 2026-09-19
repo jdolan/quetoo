@@ -21,12 +21,12 @@
 
 #include "cl_local.h"
 
-cl_static_t cls;
+ClientStatic cls;
 
 /**
  * @brief Null client stub: returns whether the installer is complete.
  */
-int32_t Cl_InstallerFrame(const installer_status_t *in) {
+int32_t Cl_InstallerFrame(const InstallerStatus *in) {
   return in->state >= INSTALLER_DONE;
 }
 

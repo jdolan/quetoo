@@ -24,11 +24,11 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-extern cvar_t *g_vote;
-extern cvar_t *g_vote_time;
-extern cvar_t *g_vote_threshold;
-extern cvar_t *g_vote_cooldown;
+extern Cvar *g_vote;
+extern Cvar *g_vote_time;
+extern Cvar *g_vote_threshold;
+extern Cvar *g_vote_cooldown;
 
-bool G_Vote_Eligible(const g_client_t *cl);
+bool G_Vote_Eligible(const GameClient *cl);
 void G_Vote_Init(void);
 #endif

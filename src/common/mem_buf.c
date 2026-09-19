@@ -26,7 +26,7 @@
 /**
  * @brief Initializes a fixed-size memory buffer backed by the given data array.
  */
-void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len) {
+void Mem_InitBuffer(MemBuf *buf, byte *data, size_t len) {
 
   memset(buf, 0, sizeof(*buf));
 
@@ -37,7 +37,7 @@ void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len) {
 /**
  * @brief Resets the buffer's write position to zero and clears the overflow flag.
  */
-void Mem_ClearBuffer(mem_buf_t *buf) {
+void Mem_ClearBuffer(MemBuf *buf) {
   buf->size = 0;
   buf->read = 0;
 }
@@ -46,7 +46,7 @@ void Mem_ClearBuffer(mem_buf_t *buf) {
  * @brief Advances the write cursor by `len` bytes and returns a pointer to the newly reserved region.
  * @details Errors if len exceeds the buffer's remaining capacity.
  */
-void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
+void *Mem_AllocBuffer(MemBuf *buf, size_t len) {
 
   if (len > buf->max_size - buf->size) {
     Com_Error(ERROR_FATAL, "Buffer overflow writing %zu bytes to %zu sized buffer\n", len, buf->max_size);
@@ -61,6 +61,6 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
 /**
  * @brief Copies `len` bytes from `data` into the next available region of the buffer.
  */
-void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len) {
+void Mem_WriteBuffer(MemBuf *buf, const void *data, size_t len) {
   memcpy(Mem_AllocBuffer(buf, len), data, len);
 }

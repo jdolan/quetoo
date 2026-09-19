@@ -98,7 +98,7 @@ The engine uses a modular architecture with dynamically loaded game logic:
 
 - **game module** (`game/.so`): Server-side game logic (weapons, entities, scoring)
 - **cgame module** (`cgame/.so`): Client-side game logic (HUD, view effects, prediction)
-- Both modules communicate with engine via fixed API (`g_import_t`, `cgi_t`)
+- Both modules communicate with engine via fixed API (`GameImport`, `cgi_t`)
 
 ### Rendering Architecture
 
@@ -128,7 +128,7 @@ The renderer uses a **compile-time voxel grid** for light culling:
 - `src/client/renderer/r_bsp_model.c` - Voxel data loading
 - `src/client/renderer/shaders/common.glsl` - Voxel lookup functions
 - `src/client/renderer/shaders/bsp_fs.glsl` - Fragment shader with voxel lighting
-- `src/collision/cm_bsp.h` - BSP file format (`bsp_lump_t`, `BSP_LUMP_VOXELS`)
+- `src/collision/cm_bsp.h` - BSP file format (`BspLump`, `BSP_LUMP_VOXELS`)
 
 See `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` for detailed implementation.
 
@@ -159,7 +159,7 @@ See `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` for detailed implementati
 ### Code Style
 
 - **Naming**: `Snake_case` for types, `camelCase` for functions/variables
-- **Structs**: Typedef'd with `_t` suffix (e.g., `vec3_t`, `entity_state_t`)
+- **Structs**: Typedef'd with `_t` suffix (e.g., `Vec3`, `EntityState`)
 - **OpenGL**: Modern OpenGL 4.1 Core Profile (macOS compatibility)
 - **Prefixes**: 
   - `r_` = renderer
@@ -177,7 +177,7 @@ See `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` for detailed implementati
 
 ### Vector Math
 
-- **vec3_t**: Float[3] array, passed by reference
+- **Vec3**: Float[3] array, passed by reference
 - **Macros**: `VectorCopy()`, `VectorAdd()`, `VectorScale()`, etc. in `src/shared/shared.h`
 - **Functions**: `Vec3_*()` functions in `src/shared/vector.c` for complex operations
 - **Box3**: AABB type with min/max vectors (`src/shared/box.h`)
@@ -321,7 +321,7 @@ grep -r "entity" doc/copilot/
 
 ```c
 // In initialization function
-cvar_t *my_var = cgi.AddCvar("r_my_feature", "1", CVAR_ARCHIVE, "Description");
+Cvar *my_var = cgi.AddCvar("r_my_feature", "1", CVAR_ARCHIVE, "Description");
 
 // Access in code
 if (my_var->integer) {

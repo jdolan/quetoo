@@ -24,17 +24,17 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_func_bob(g_entity_t *ent);
-void G_func_button(g_entity_t *ent);
-void G_func_conveyor(g_entity_t *ent);
-void G_func_door(g_entity_t *ent);
-void G_func_door_rotating(g_entity_t *ent);
-void G_func_door_secret(g_entity_t *ent);
-void G_func_killbox(g_entity_t *ent);
-void G_func_plat(g_entity_t *ent);
-void G_func_rotating(g_entity_t *ent);
-void G_func_timer(g_entity_t *ent);
-void G_func_train(g_entity_t *ent);
-void G_func_wall(g_entity_t *ent);
-void G_func_water(g_entity_t *ent);
+void G_func_bob(GameEntity *ent);
+void G_func_button(GameEntity *ent);
+void G_func_conveyor(GameEntity *ent);
+void G_func_door(GameEntity *ent);
+void G_func_door_rotating(GameEntity *ent);
+void G_func_door_secret(GameEntity *ent);
+void G_func_killbox(GameEntity *ent);
+void G_func_plat(GameEntity *ent);
+void G_func_rotating(GameEntity *ent);
+void G_func_timer(GameEntity *ent);
+void G_func_train(GameEntity *ent);
+void G_func_wall(GameEntity *ent);
+void G_func_water(GameEntity *ent);
 #endif

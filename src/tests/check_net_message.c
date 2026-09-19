@@ -24,7 +24,7 @@
 #include "net/net_message.h"
 #include "game/common/bg_pmove.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -41,12 +41,12 @@ void teardown(void) {
 }
 
 /**
- * @brief Helper: populate every pm_params_t field with a distinct non-default
+ * @brief Helper: populate every PlayerMoveParams field with a distinct non-default
  * value so a round-trip can detect any dropped or mis-ordered field.
  */
-static void Fill_TestParams(pm_params_t *p) {
+static void Fill_TestParams(PlayerMoveParams *p) {
   p->gravity = 750;
-  // a byte no `pm_movement_t` owns: what is under test is that the field reaches
+  // a byte no `PlayerMovement` owns: what is under test is that the field reaches
   // the other side intact, not what it selects once it arrives
   p->movement = 200;
   p->accel_ground = 11.f;       p->accel_ground_slick = 4.5f;
@@ -63,11 +63,11 @@ static void Fill_TestParams(pm_params_t *p) {
   // every component distinct, so a dropped or transposed one shows, and every
   // one fractional, so a serializer that quantized the box to whole units - as
   // Net_WriteBounds does - would fail here rather than in someone's prediction
-  p->bounds = (box3_t) { .mins = { { -17.25f, -18.5f, -25.75f } },
+  p->bounds = (Box3) { .mins = { { -17.25f, -18.5f, -25.75f } },
                          .maxs = { {  19.25f,  20.5f,  37.75f } } };
-  p->bounds_ducked = (box3_t) { .mins = { { -21.25f, -22.5f, -26.75f } },
+  p->bounds_ducked = (Box3) { .mins = { { -21.25f, -22.5f, -26.75f } },
                                 .maxs = { {  23.25f,  24.5f,   7.75f } } };
-  p->bounds_dead = (box3_t) { .mins = { { -27.25f, -28.5f, -29.75f } },
+  p->bounds_dead = (Box3) { .mins = { { -27.25f, -28.5f, -29.75f } },
                               .maxs = { {  30.25f,  31.5f,  -3.25f } } };
 }
 
@@ -77,20 +77,20 @@ static void Fill_TestParams(pm_params_t *p) {
  */
 START_TEST(check_PlayerState_Params_RoundTrip) {
   byte buffer[MAX_MSG_SIZE];
-  mem_buf_t buf;
+  MemBuf buf;
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
-  player_state_t from;
+  PlayerState from;
   memset(&from, 0, sizeof(from));
 
-  player_state_t to;
+  PlayerState to;
   memset(&to, 0, sizeof(to));
   Fill_TestParams(&to.pm_state.params);
 
   Net_WriteDeltaPlayerState(&buf, &from, &to);
   buf.read = 0;
 
-  player_state_t result;
+  PlayerState result;
   memset(&result, 0, sizeof(result));
   Net_ReadDeltaPlayerState(&buf, &from, &result);
 
@@ -98,8 +98,8 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
   ck_assert_int_eq(result.pm_state.params.movement, to.pm_state.params.movement);
 
   ck_assert_msg(memcmp(&result.pm_state.params.accel_ground, &to.pm_state.params.accel_ground,
-                       sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground)) == 0,
-                "pm_params_t (non-gravity) did not survive the round-trip");
+                       sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accel_ground)) == 0,
+                "PlayerMoveParams (non-gravity) did not survive the round-trip");
 } END_TEST
 
 /**
@@ -108,15 +108,15 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
  */
 START_TEST(check_PlayerState_Params_DeltaCompressed) {
   byte buf_a[MAX_MSG_SIZE], buf_b[MAX_MSG_SIZE];
-  mem_buf_t equal, diff;
+  MemBuf equal, diff;
   Mem_InitBuffer(&equal, buf_a, sizeof(buf_a));
   Mem_InitBuffer(&diff, buf_b, sizeof(buf_b));
 
-  player_state_t base;
+  PlayerState base;
   memset(&base, 0, sizeof(base));
   Fill_TestParams(&base.pm_state.params);
 
-  player_state_t zero;
+  PlayerState zero;
   memset(&zero, 0, sizeof(zero));
 
   // identical params: no PS_PM_PARAMS payload
@@ -135,15 +135,15 @@ START_TEST(check_PlayerState_Params_DeltaCompressed) {
  */
 START_TEST(check_PlayerState_Movement_DeltaCompressed) {
   byte buf_a[MAX_MSG_SIZE], buf_b[MAX_MSG_SIZE];
-  mem_buf_t movement_only, unchanged;
+  MemBuf movement_only, unchanged;
   Mem_InitBuffer(&movement_only, buf_a, sizeof(buf_a));
   Mem_InitBuffer(&unchanged, buf_b, sizeof(buf_b));
 
-  player_state_t from;
+  PlayerState from;
   memset(&from, 0, sizeof(from));
   Fill_TestParams(&from.pm_state.params);
 
-  player_state_t to = from;
+  PlayerState to = from;
   to.pm_state.params.movement = PM_MOVEMENT_QUAKE; // Fill_TestParams left it elsewhere
 
   Net_WriteDeltaPlayerState(&movement_only, &from, &to);
@@ -155,7 +155,7 @@ START_TEST(check_PlayerState_Movement_DeltaCompressed) {
 
   movement_only.read = 0;
 
-  player_state_t result = from;
+  PlayerState result = from;
   Net_ReadDeltaPlayerState(&movement_only, &from, &result);
 
   ck_assert_int_eq(result.pm_state.params.movement, to.pm_state.params.movement);

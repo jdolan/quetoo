@@ -28,7 +28,7 @@
 /**
  * @brief Initializes a trigger entity, setting its move direction, solid type, and model.
  */
-static void G_Trigger_Init(g_entity_t *ent) {
+static void G_Trigger_Init(GameEntity *ent) {
 
   if (!Vec3_Equal(ent->s.angles, Vec3_Zero())) {
     G_SetMoveDir(ent);
@@ -43,14 +43,14 @@ static void G_Trigger_Init(g_entity_t *ent) {
 /**
  * @brief The wait time has passed, so set back up for another activation
  */
-static void G_trigger_multiple_Wait(g_entity_t *ent) {
+static void G_trigger_multiple_Wait(GameEntity *ent) {
   ent->next_think = 0;
 }
 
 /**
  * @brief Called after the wait period expires, re-enabling the trigger for another activation.
  */
-static void G_trigger_multiple_Think(g_entity_t *ent) {
+static void G_trigger_multiple_Think(GameEntity *ent) {
 
   if (ent->next_think) {
     return; // already been triggered
@@ -71,8 +71,8 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 /**
  * @brief Fires the trigger's targets after the optional delay, then resets or removes the trigger.
  */
-static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
-                                   g_entity_t *activator) {
+static void G_trigger_multiple_Use(GameEntity *ent, GameEntity *other,
+                                   GameEntity *activator) {
 
   ent->activator = activator;
 
@@ -82,7 +82,7 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
 /**
  * @brief Handles use activation of a `trigger_multiple`, delegating to the think function.
  */
-static void G_trigger_multiple_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_multiple_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (!other->client) {
     const bool isProjectile = other->owner && other->owner->client;
@@ -94,7 +94,7 @@ static void G_trigger_multiple_Touch(g_entity_t *ent, g_entity_t *other, const c
   }
 
   if (!Vec3_Equal(ent->move_dir, Vec3_Zero())) {
-    vec3_t forward;
+    Vec3 forward;
 
     Vec3_Vectors(other->s.angles, &forward, NULL, NULL);
 
@@ -110,8 +110,8 @@ static void G_trigger_multiple_Touch(g_entity_t *ent, g_entity_t *other, const c
 /**
  * @brief Handles touch events on a `trigger_multiple`, activating it when a qualifying entity enters.
  */
-static void G_trigger_multiple_Enable(g_entity_t *ent, g_entity_t *other,
-                                      g_entity_t *activator) {
+static void G_trigger_multiple_Enable(GameEntity *ent, GameEntity *other,
+                                      GameEntity *activator) {
   ent->solid = SOLID_TRIGGER;
   ent->Use = G_trigger_multiple_Use;
   gi.LinkEntity(ent);
@@ -133,7 +133,7 @@ static void G_trigger_multiple_Enable(g_entity_t *ent, g_entity_t *other,
  triggered : If set, this trigger must be targeted before it will activate.
  shootable : If set, this trigger will fire when projectiles touch it.
  */
-void G_trigger_multiple(g_entity_t *ent) {
+void G_trigger_multiple(GameEntity *ent) {
 
   ent->sound = gi.SoundIndex("misc/chat");
 
@@ -170,7 +170,7 @@ void G_trigger_multiple(g_entity_t *ent) {
  -------- Spawn flags --------
  triggered : If set, this trigger must be targeted before it will activate.
  */
-void G_trigger_once(g_entity_t *ent) {
+void G_trigger_once(GameEntity *ent) {
   ent->wait = -1;
   G_trigger_multiple(ent);
 }
@@ -178,8 +178,8 @@ void G_trigger_once(g_entity_t *ent) {
 /**
  * @brief Enables a previously dormant triggered trigger, making it solid and ready to activate.
  */
-static void G_trigger_relay_Use(g_entity_t *ent, g_entity_t *other,
-                                g_entity_t *activator) {
+static void G_trigger_relay_Use(GameEntity *ent, GameEntity *other,
+                                GameEntity *activator) {
   G_UseTargets(ent, activator);
 }
 
@@ -193,7 +193,7 @@ static void G_trigger_relay_Use(g_entity_t *ent, g_entity_t *other,
  killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity.
  */
-void G_trigger_relay(g_entity_t *ent) {
+void G_trigger_relay(GameEntity *ent) {
   ent->Use = G_trigger_relay_Use;
 }
 
@@ -206,7 +206,7 @@ void G_trigger_relay(g_entity_t *ent) {
  target : The name of the entity or team to use on activation.
  killtarget : The name of the entity or team to kill on activation.
  */
-void G_trigger_always(g_entity_t *ent) {
+void G_trigger_always(GameEntity *ent) {
 
   // we must have some delay to make sure our use targets are present
   if (ent->delay < 0.2) {
@@ -224,7 +224,7 @@ void G_trigger_always(g_entity_t *ent) {
 /**
  * @brief Handles touch events on a `trigger_push`, applying velocity to the touching entity.
  */
-static void G_trigger_push_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (other->move_type == MOVE_TYPE_WALK || other->move_type == MOVE_TYPE_BOUNCE) {
 
@@ -237,7 +237,7 @@ static void G_trigger_push_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 
     if (other->push_time < g_level.time) {
       other->push_time = g_level.time + 1500;
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .origin = &other->s.origin,
       }, MULTICAST_PHS);
@@ -252,7 +252,7 @@ static void G_trigger_push_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 /**
  * @brief Handles use activation of a `trigger_push`, toggling its solidity on or off.
  */
-static void G_trigger_push_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_trigger_push_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->solid == SOLID_NOT) {
     ent->solid = SOLID_TRIGGER;
@@ -272,9 +272,9 @@ static void G_trigger_push_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
 /**
  * @brief Creates an effect trail for the specified entity.
  */
-static void G_trigger_push_Effect(g_entity_t *ent) {
+static void G_trigger_push_Effect(GameEntity *ent) {
 
-  g_entity_t *effect = G_AllocEntity(__func__);
+  GameEntity *effect = G_AllocEntity(__func__);
 
   effect->s.origin = Box3_Center(ent->bounds);
 
@@ -299,13 +299,13 @@ static void G_trigger_push_Effect(g_entity_t *ent) {
  start_off : If set, this entity must be activated before it will push players.
  toggle : If set, this entity is toggled each time it is activated.
  */
-void G_trigger_push(g_entity_t *ent) {
+void G_trigger_push(GameEntity *ent) {
 
   G_Trigger_Init(ent);
 
   ent->Touch = G_trigger_push_Touch;
 
-  const cm_entity_t *sound = gi.EntityValue(ent->def, "sound");
+  const CmEntity *sound = gi.EntityValue(ent->def, "sound");
   if (sound->parsed & ENTITY_STRING) {
     ent->move_info.sound_start = gi.SoundIndex(sound->string);
   } else {
@@ -333,7 +333,7 @@ void G_trigger_push(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a `trigger_hurt`, toggling its solidity on or off.
  */
-static void G_trigger_hurt_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_trigger_hurt_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->solid == SOLID_NOT) {
     ent->solid = SOLID_TRIGGER;
@@ -351,7 +351,7 @@ static void G_trigger_hurt_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
 /**
  * @brief Handles touch events on a `trigger_hurt`, dealing damage to entities that enter it.
  */
-static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (!other->take_damage) { // deal with items that land on us
 
@@ -385,7 +385,7 @@ static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
     dflags = DMG_NO_GOD;
   }
 
-  G_Damage(&(g_damage_t) {
+  G_Damage(&(GameDamage) {
     .target = other,
     .inflictor = ent,
     .attacker = NULL,
@@ -413,7 +413,7 @@ static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
  no_protection : If set, armor will not be used to absorb damage inflicted by this entity.
  slow : Decreases the damage rate to once per second.
  */
-void G_trigger_hurt(g_entity_t *ent) {
+void G_trigger_hurt(GameEntity *ent) {
 
   G_Trigger_Init(ent);
 
@@ -439,7 +439,7 @@ void G_trigger_hurt(g_entity_t *ent) {
 /**
  * @brief Handles touch events on a `trigger_exec`, executing a console command or script.
  */
-static void G_trigger_exec_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (ent->timestamp > g_level.time) {
     return;
@@ -468,7 +468,7 @@ static void G_trigger_exec_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
  script : The script file (.cfg) to execute.
  delay : The delay in seconds between activation and execution of the commands.
  */
-void G_trigger_exec(g_entity_t *ent) {
+void G_trigger_exec(GameEntity *ent) {
 
   const char *command = gi.EntityValue(ent->def, "command")->nullable_string;
   const char *script = gi.EntityValue(ent->def, "script")->nullable_string;

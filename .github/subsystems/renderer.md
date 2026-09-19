@@ -95,16 +95,16 @@ Materials define surface appearance:
 ```c
 typedef struct {
     char name[64];
-    r_image_t *diffusemap;      // Base color/texture
-    r_image_t *normalmap;       // Normal map (bump detail)
-    r_image_t *glossmap;        // Specular/gloss (roughness)
-    r_image_t *tintmap;         // Color tint modulation
-    vec3_t tint;                // Tint color
+    RenderImage *diffusemap;      // Base color/texture
+    RenderImage *normalmap;       // Normal map (bump detail)
+    RenderImage *glossmap;        // Specular/gloss (roughness)
+    RenderImage *tintmap;         // Color tint modulation
+    Vec3 tint;                // Tint color
     float roughness;            // Surface roughness (0=shiny, 1=matte)
     float hardness;             // Specular hardness
     float parallax;             // Parallax height scale
     uint32_t flags;             // Render flags
-} r_material_t;
+} RenderMaterial;
 ```
 
 ## Rendering Pipeline

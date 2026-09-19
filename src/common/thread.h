@@ -31,7 +31,7 @@ typedef enum {
   THREAD_IDLE,
   THREAD_RUNNING,
   THREAD_WAITING,
-} thread_status_t;
+} WorkerThreadStatus;
 
 typedef enum {
   THREAD_NONE,
@@ -40,7 +40,7 @@ typedef enum {
    * @brief The thread will not require `Thread_Wait` before returning to the pool.
    */
   THREAD_NO_WAIT
-} thread_options_t;
+} WorkerThreadOptions;
 
 typedef void (*ThreadRunFunc)(void *data);
 
@@ -48,16 +48,16 @@ typedef struct {
   SDL_Thread *thread;
   SDL_Condition *cond;
   SDL_Mutex *mutex;
-  thread_status_t status;
-  thread_options_t options;
+  WorkerThreadStatus status;
+  WorkerThreadOptions options;
   char name[64];
   ThreadRunFunc Run;
   void *data;
-} thread_t;
+} WorkerThread;
 
-thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread_options_t options);
+WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options);
 #define Thread_Create(function, data, options) Thread_Create_(#function, function, data, options)
-void Thread_Wait(thread_t *t);
+void Thread_Wait(WorkerThread *t);
 int32_t Thread_Count(void);
 void Thread_Init(ssize_t num_threads);
 void Thread_Shutdown(void);

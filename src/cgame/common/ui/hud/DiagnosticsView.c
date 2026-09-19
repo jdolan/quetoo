@@ -55,26 +55,26 @@ static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...
 /**
  * @brief Rebuilds the rows from the client, the view and the stage.
  */
-static void refresh(DiagnosticsView *self, const cl_frame_t *frame) {
+static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
 
-  const cl_client_t *cl = cgi.client;
-  const r_view_t *view = cgi.view;
-  const r_view_stats_t *r = &view->stats;
-  const s_stage_stats_t *s = &cgi.stage->stats;
+  const Client *cl = cgi.client;
+  const RenderView *view = cgi.view;
+  const RenderViewStats *r = &view->stats;
+  const SoundStageStats *s = &cgi.stage->stats;
 
   self->num_rows = 0;
 
-  const vec3_t origin = frame->ps.pm_state.origin;
+  const Vec3 origin = frame->ps.pm_state.origin;
   addRow(self, "origin", "%.0f %.0f %.0f", origin.x, origin.y, origin.z);
 
-  vec3_t velocity = frame->ps.pm_state.velocity;
+  Vec3 velocity = frame->ps.pm_state.velocity;
   velocity.z = 0.f;
   addRow(self, "speed", "%.0f", Vec3_Length(velocity));
 
   addRow(self, "leaf", "%d", cgi.PointLeafnum(view->origin, 0));
 
-  const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-  const cm_trace_t tr = cgi.Trace(view->origin, end, Box3_Zero(), NULL, CONTENTS_MASK_VISIBLE);
+  const Vec3 end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+  const CmTrace tr = cgi.Trace(view->origin, end, Box3_Zero(), NULL, CONTENTS_MASK_VISIBLE);
   if (tr.material) {
     addRow(self, "surface", "%s (%g %g %g) %g", tr.material->name,
            tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z, tr.plane.dist);
@@ -173,7 +173,7 @@ static void updateBindings(View *self, ident data) {
     cg_draw_diagnostics->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
-    cl_client_t *cl = cgi.client;
+    Client *cl = cgi.client;
 
     const uint32_t now = (uint32_t) SDL_GetTicks();
 
@@ -199,7 +199,7 @@ static void updateBindings(View *self, ident data) {
     if (now - this->refresh_time >= DIAGNOSTICS_REFRESH_INTERVAL) {
       this->refresh_time = now;
 
-      refresh(this, (const cl_frame_t *) data);
+      refresh(this, (const ClientFrame *) data);
       $((TableView *) self, reloadData);
     }
   }

@@ -30,7 +30,7 @@
 
 #include <SDL3/SDL.h>
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 char map_base[MAX_QPATH]; // the base name (e.g. "edge")
 
@@ -47,7 +47,7 @@ static void Print(const char *msg);
 /**
  * @brief Prints a debug message to stdout when the debug flag is set.
  */
-static void Debug(const debug_t debug, const char *msg) {
+static void Debug(const DebugFlags debug, const char *msg) {
 
   if (!debug) {
     return;
@@ -61,8 +61,8 @@ static void Shutdown(const char *msg);
 /**
  * @brief Prints an error message to stderr and terminates the process.
  */
-static void Error(err_t err, const char *msg) __attribute__((noreturn));
-static void Error(err_t err, const char *msg) {
+static void Error(Err err, const char *msg) __attribute__((noreturn));
+static void Error(Err err, const char *msg) {
 
   fprintf(stderr, "ERROR: Thread %d: %s", (int32_t) SDL_GetCurrentThreadID(), msg);
 

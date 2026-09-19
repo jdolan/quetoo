@@ -21,19 +21,19 @@
 
 #include "r_local.h"
 
-r_lights_t r_lights;
+RenderLights r_lights;
 
 /**
  * @brief Adds a light source to the view's light list.
  */
-void R_AddLight(r_view_t *view, const r_light_t *l) {
+void R_AddLight(RenderView *view, const RenderLight *l) {
 
   if (view->num_lights == MAX_LIGHTS) {
     Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
     return;
   }
 
-  r_light_t *out = &view->lights[view->num_lights++];
+  RenderLight *out = &view->lights[view->num_lights++];
 
   *out = *l;
 }
@@ -41,13 +41,13 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 /**
  * @brief Builds the dynamic light bitmask for the given bounds.
  */
-void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, r_active_dynamic_lights_t *out) {
+void R_ActiveDynamicLights(const RenderView *view, const Box3 bounds, RenderActiveDynamicLights *out) {
 
   memset(out, 0, sizeof(*out));
 
   int32_t j = 0;
 
-  const r_light_t *l = view->lights;
+  const RenderLight *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
     if (l->bsp_light) {
@@ -83,10 +83,10 @@ static void R_UploadLightBlock(CopyPass *copyPass, Buffer *buffer, const void *b
  * @brief Uploads light buffers and caches per-block and per-entity dynamic
  * light masks for the frame.
  */
-void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
+void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
 
-  r_bsp_lights_uniform_block_t *bsp_lights = &r_lights.bsp_block;
-  r_dynamic_lights_uniform_block_t *dynamic_lights = &r_lights.dynamic_block;
+  RenderBspLightsUniformBlock *bsp_lights = &r_lights.bsp_block;
+  RenderDynamicLightsUniformBlock *dynamic_lights = &r_lights.dynamic_block;
 
   memset(bsp_lights, 0, sizeof(*bsp_lights));
   memset(dynamic_lights, 0, sizeof(*dynamic_lights));
@@ -95,10 +95,10 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
   int32_t num_dynamic_lights = 0;
 
-  r_light_t *l = view->lights;
+  RenderLight *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    r_light_uniform_t *out;
+    RenderLightUniform *out;
     if (l->bsp_light) {
       const ptrdiff_t index = (ptrdiff_t) (l->bsp_light - r_models.world->bsp->lights);
       out = &bsp_lights->lights[index];
@@ -130,11 +130,11 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     }
 
     if (l->flags & R_LIGHT_NO_SHADOW) {
-      l->tile = Vec2(-1.f, -1.f);
+      l->tile = MakeVec2(-1.f, -1.f);
     } else {
       const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
       const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
-      l->tile = Vec2((float) (light_col * r_shadow_atlas.tile_size),
+      l->tile = MakeVec2((float) (light_col * r_shadow_atlas.tile_size),
                      (float) (light_row * r_shadow_atlas.tile_size));
     }
 
@@ -145,16 +145,16 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
   dynamic_lights->num_lights = num_dynamic_lights;
 
-  const uint32_t bsp_size = offsetof(r_bsp_lights_uniform_block_t, lights) + bsp_lights->num_lights * sizeof(r_light_uniform_t);
+  const uint32_t bsp_size = offsetof(RenderBspLightsUniformBlock, lights) + bsp_lights->num_lights * sizeof(RenderLightUniform);
   R_UploadLightBlock(copyPass, r_lights.bsp_buffer, bsp_lights, bsp_size);
 
-  const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, lights) + dynamic_lights->num_lights * sizeof(r_light_uniform_t);
+  const uint32_t dynamic_size = offsetof(RenderDynamicLightsUniformBlock, lights) + dynamic_lights->num_lights * sizeof(RenderLightUniform);
   R_UploadLightBlock(copyPass, r_lights.dynamic_buffer, dynamic_lights, dynamic_size);
 
   if (r_models.world) {
-    const r_bsp_inline_model_t *in = &r_models.world->bsp->inline_models[0];
+    const RenderBspInlineModel *in = &r_models.world->bsp->inline_models[0];
 
-    r_bsp_block_t *block = in->blocks;
+    RenderBspBlock *block = in->blocks;
     for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
       // a portal view cannot use occlusion queries resolved for another camera

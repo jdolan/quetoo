@@ -57,7 +57,7 @@
 #include "common/common.h"
 #include <Objectively/RESTClient.h>
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief A server must heartbeat within this window or be probed with pings.
@@ -85,7 +85,7 @@ quetoo_t quetoo;
  */
 #define MAX_PENDING_SERVERS 256
 
-typedef struct ms_server_s {
+typedef struct MasterServer {
   struct sockaddr_in addr;
   time_t registered;
   time_t last_heartbeat;
@@ -98,7 +98,7 @@ typedef struct ms_server_s {
   int32_t num_clients;
   int32_t max_clients;
   char players[MAX_CLIENTS][64];
-} ms_server_t;
+} MasterServer;
 
 static List *ms_servers;
 static int32_t ms_sock;
@@ -160,7 +160,7 @@ static void Ms_JsonEscape(const char *src, char *buf, size_t buf_size) {
 /**
  * @brief Posts a Discord webhook notification for a player joining a server.
  */
-static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name, int32_t num_clients) {
+static void Ms_DiscordNotify(const MasterServer *server, const char *player_name, int32_t num_clients) {
   if (!ms_discord_webhook) {
     return;
   }
@@ -192,7 +192,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name,
  * player list, and fires Discord notifications for any new players detected.
  * On first call (num_clients == -1), records current state without notifying.
  */
-static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
+static void Ms_ParseStatusString(MasterServer *server, const char *status) {
 
   char val[256];
 
@@ -287,10 +287,10 @@ static const char *atos(const struct sockaddr_in *addr) {
 /**
  * @brief Returns the server for the specified address, or `NULL`.
  */
-static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
+static MasterServer *Ms_GetServer(struct sockaddr_in *from) {
 
   for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    ms_server_t *server = (ms_server_t *) s->element;
+    MasterServer *server = (MasterServer *) s->element;
 
     const struct sockaddr_in *addr = &server->addr;
     if (addr->sin_addr.s_addr == from->sin_addr.s_addr && addr->sin_port == from->sin_port) {
@@ -304,7 +304,7 @@ static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
 /**
  * @brief Removes the specified server.
  */
-static void Ms_DropServer(ms_server_t *server) {
+static void Ms_DropServer(MasterServer *server) {
 
   if (ms_servers) {
     for (const ListNode *s = ms_servers->head; s; s = s->next) {
@@ -393,7 +393,7 @@ static uint32_t Ms_Challenge(void) {
  * @brief Issues the specified server's challenge, which it must echo in a
  * subsequent heartbeat to be listed.
  */
-static void Ms_SendChallenge(ms_server_t *server, time_t now) {
+static void Ms_SendChallenge(MasterServer *server, time_t now) {
 
   if (server->last_challenge && now - server->last_challenge < CHALLENGE_INTERVAL_SECONDS) {
     return; // do not let a heartbeat flood become a challenge flood
@@ -433,7 +433,7 @@ static uint32_t Ms_ParseChallenge(const char *cmd, const char *name) {
  * @brief Adds the specified server to the master.
  * @return The newly registered server, or `NULL` if it was rejected.
  */
-static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
+static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
 
   if (Ms_GetServer(from)) {
     Com_Warn("Duplicate registration from %s\n", atos(from));
@@ -448,7 +448,7 @@ static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
 
   size_t pending = 0;
   for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    if (!((const ms_server_t *) s->element)->validated) {
+    if (!((const MasterServer *) s->element)->validated) {
       pending++;
     }
   }
@@ -463,7 +463,7 @@ static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
     return NULL;
   }
 
-  ms_server_t *server = Mem_Malloc(sizeof(ms_server_t));
+  MasterServer *server = Mem_Malloc(sizeof(MasterServer));
 
   server->addr = *from;
   server->registered = time(NULL);
@@ -483,7 +483,7 @@ static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
  * @brief Removes the specified server.
  */
 static void Ms_RemoveServer(struct sockaddr_in *from, const char *cmd) {
-  ms_server_t *server = Ms_GetServer(from);
+  MasterServer *server = Ms_GetServer(from);
 
   if (!server) {
     Com_Warn("Shutdown from unregistered server %s\n", atos(from));
@@ -511,7 +511,7 @@ static void Ms_Frame(void) {
 
   for (ListNode *s = ms_servers ? ms_servers->head : NULL; s; ) {
     ListNode *next = s->next;
-    ms_server_t *server = (ms_server_t *) s->element;
+    MasterServer *server = (MasterServer *) s->element;
 
     if (now - server->last_heartbeat > SERVER_TIMEOUT_SECONDS) {
       Com_Print("Server %s timed out\n", stos(server));
@@ -529,7 +529,7 @@ static void Ms_Frame(void) {
  * @brief Send the servers list to the specified client address.
  */
 static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
-  mem_buf_t buf;
+  MemBuf buf;
   byte buffer[0xffff];
 
   // parse optional protocol version from command (e.g. "getservers 2026"), zero for all
@@ -550,7 +550,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
 
   uint32_t i = 0;
   for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    const ms_server_t *server = (ms_server_t *) s->element;
+    const MasterServer *server = (MasterServer *) s->element;
     if (server->validated && (protocol == 0 || server->protocol == protocol)) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
@@ -575,7 +575,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *
 
   const uint32_t challenge = Ms_ParseChallenge(cmd, "heartbeat");
 
-  ms_server_t *server = Ms_GetServer(from);
+  MasterServer *server = Ms_GetServer(from);
 
   if (!server) {
     if (!(server = Ms_AddServer(from))) {
@@ -639,7 +639,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 /**
  * @brief `Com_Debug` implementation.
  */
-static void Debug(const debug_t debug, const char *msg) {
+static void Debug(const DebugFlags debug, const char *msg) {
 
   if (debug) {
     fputs(msg, stdout);

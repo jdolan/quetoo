@@ -73,18 +73,18 @@
  * unacknowledged reliable
  */
 
-static cvar_t *net_show_packets;
-static cvar_t *net_show_drop;
+static Cvar *net_show_packets;
+static Cvar *net_show_drop;
 
-net_addr_t net_from;
-mem_buf_t net_message;
+NetAddr net_from;
+MemBuf net_message;
 static byte net_message_buffer[MAX_MSG_SIZE];
 
 /**
  * @brief Sends an out-of-band datagram
  */
-void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len) {
-  mem_buf_t send;
+void Netchan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size_t len) {
+  MemBuf send;
   byte send_buffer[MAX_MSG_SIZE];
 
   // write the packet header
@@ -100,7 +100,7 @@ void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, s
 /**
  * @brief Sends a text message in an out-of-band datagram
  */
-void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) {
+void Netchan_OutOfBandPrint(int32_t sock, const NetAddr *addr, const char *format, ...) {
   va_list args;
   char string[MAX_MSG_SIZE - 4];
 
@@ -116,7 +116,7 @@ void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *fo
 /**
  * @brief Called to open a channel to a remote system.
  */
-void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport) {
+void Netchan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport) {
 
   memset(chan, 0, sizeof(*chan));
 
@@ -135,7 +135,7 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
  * @return True if reliable data must be transmitted this frame, false
  * otherwise.
  */
-static bool Netchan_CheckRetransmit(net_chan_t *chan) {
+static bool Netchan_CheckRetransmit(NetChan *chan) {
 
   // if the remote side dropped the last reliable message, re-send it
   if (chan->incoming_acknowledged > chan->reliable_outgoing && chan->reliable_acknowledged
@@ -152,8 +152,8 @@ static bool Netchan_CheckRetransmit(net_chan_t *chan) {
  *
  * A 0 size will still generate a packet and deal with the reliable messages.
  */
-void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
-  mem_buf_t send;
+void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
+  MemBuf send;
   byte send_buffer[MAX_MSG_SIZE];
 
   // check for re-transmission of reliable message
@@ -216,7 +216,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
  * @brief Called when the current `net_message` is from `remote_address`
  * modifies `net_message` so that it points to the packet payload
  */
-bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
+bool Netchan_Process(NetChan *chan, MemBuf *msg) {
   uint32_t sequence, sequence_ack;
   uint32_t reliable_ack, reliable_message;
 

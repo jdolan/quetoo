@@ -113,7 +113,7 @@ static const char *resolveServerName(void) {
     return *hostname ? hostname : "Local server";
   }
 
-  const cl_server_info_t *server = cgi.ServerInfo();
+  const ClientServerInfo *server = cgi.ServerInfo();
   if (server && *server->name && *server->hostname) {
     return server->hostname;
   }
@@ -122,10 +122,10 @@ static const char *resolveServerName(void) {
 }
 
 /**
- * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
+ * @fn void LoadingViewController::setProgress(LoadingViewController *self, const ClientLoading loading)
  * @memberof LoadingViewController
  */
-static void setProgress(LoadingViewController *self, const cl_loading_t loading) {
+static void setProgress(LoadingViewController *self, const ClientLoading loading) {
 
   $(self->progressBar, setLabelFormat, va("%%0.0lf%%%% (%s)", loading.status));
   $(self->progressBar, setValue, loading.percent);

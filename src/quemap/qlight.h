@@ -27,7 +27,7 @@
 #include "writebsp.h"
 #include "voxel.h"
 
-int32_t Light_PointContents(const vec3_t p, int32_t head_node);
-cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);
+int32_t Light_PointContents(const Vec3 p, int32_t head_node);
+CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t head_node, int32_t mask);
 
 int32_t LIGHT_Main(void);

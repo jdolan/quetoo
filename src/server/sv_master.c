@@ -62,7 +62,7 @@ void Sv_HeartbeatMaster(void) {
  * @brief Records the challenge issued by the master server, to be echoed in our
  * heartbeats until it lists us.
  */
-void Sv_Challenge(const net_addr_t *from, uint32_t challenge) {
+void Sv_Challenge(const NetAddr *from, uint32_t challenge) {
 
   if (!challenge) {
     Com_Debug(DEBUG_SERVER, "Empty challenge from %s\n", Net_NetaddrToString(from));

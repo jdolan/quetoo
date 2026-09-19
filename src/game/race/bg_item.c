@@ -26,7 +26,7 @@
 /**
  * @brief The complete list of item definitions, shared between game and cgame.
  */
-const g_item_def_t bg_item_defs[] = {
+const GameItemDef bg_item_defs[] = {
 
   { /* ITEM_NONE */ },
 

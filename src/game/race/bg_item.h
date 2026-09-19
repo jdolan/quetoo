@@ -35,7 +35,7 @@ typedef enum {
   ITEM_TYPE_WEAPON,
 
   ITEM_TYPE_TOTAL
-} g_item_type_t;
+} GameItemType;
 
 /**
  * @brief Global item tags. Each tag is the item's index in `g_items[]`.
@@ -122,13 +122,13 @@ typedef enum {
   POWERUP_TOTAL = POWERUP_LAST - POWERUP_FIRST,
 
   ITEM_TOTAL = POWERUP_LAST,
-} g_item_tag_t;
+} GameItemTag;
 
 static_assert(ITEM_TOTAL <= MAX_INVENTORY, "ITEM_TOTAL exceeds MAX_INVENTORY; increase MAX_INVENTORY in shared.h");
 
 /**
  * @brief Shared item definition, visible to both game and cgame.
- * This struct holds all static data for an item; `g_item_t` (game only)
+ * This struct holds all static data for an item; `GameItem` (game only)
  * embeds this as its first member and adds runtime-computed fields.
  */
 typedef struct {
@@ -176,22 +176,22 @@ typedef struct {
   /**
    * @brief Tag of the ammo item this weapon consumes, or `ITEM_NONE`.
    */
-  g_item_tag_t ammo;
+  GameItemTag ammo;
 
   /**
    * @brief Global item tag; equals the item's index in `g_items[]`.
    */
-  g_item_tag_t tag;
+  GameItemTag tag;
 
   /**
-   * @brief Type-specific flags (e.g. `g_weapon_flags_t`).
+   * @brief Type-specific flags (e.g. `GameWeaponFlags`).
    */
   uint16_t flags;
 
   /**
    * @brief Item type category.
    */
-  g_item_type_t type;
+  GameItemType type;
 
   /**
    * @brief Relative priority used by AI for item selection.
@@ -206,7 +206,7 @@ typedef struct {
   /**
    * @brief RGB color for `EF_LIGHT` emission. Ignored if `light_radius` is 0.
    */
-  vec3_t light_color;
+  Vec3 light_color;
 
   /**
    * @brief Base radius for `EF_LIGHT` emission. 0 means no light.
@@ -217,14 +217,14 @@ typedef struct {
    * @brief Color used by cgame for item pickup / respawn effects.
    * Zero means "use cgame fallback palette".
    */
-  color_t effect_color;
+  Color effect_color;
 
-} g_item_def_t;
+} GameItemDef;
 
 /**
  * @brief The complete list of item definitions, shared between game and cgame.
  */
-extern const g_item_def_t bg_item_defs[];
+extern const GameItemDef bg_item_defs[];
 
 /**
  * @brief The count of `bg_item_defs`.

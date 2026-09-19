@@ -27,9 +27,9 @@
  * @brief For singular lights, simply toggle them. For teamed lights,
  * advance through the team, toggling two at a time.
  */
-static void G_target_light_Cycle(g_entity_t *ent) {
+static void G_target_light_Cycle(GameEntity *ent) {
 
-  g_entity_t *master = ent->team_master;
+  GameEntity *master = ent->team_master;
   if (master) {
     G_Debug("Cycling %s\n", etos(master->enemy));
 
@@ -49,7 +49,7 @@ static void G_target_light_Cycle(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a `target_light`, toggling or cycling the light after an optional delay.
  */
-static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_target_light_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->delay) {
     ent->Think = G_target_light_Cycle;
@@ -82,9 +82,9 @@ static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
  Use this entity to add switched lights. Use the wait key to synchronize
  color cycles with other entities.
 */
-void G_target_light(g_entity_t *ent) {
+void G_target_light(GameEntity *ent) {
 
-  vec3_t color = gi.EntityValue(ent->def, "color")->vec3;
+  Vec3 color = gi.EntityValue(ent->def, "color")->vec3;
   if (Vec3_Equal(color, Vec3_Zero())) {
     color = Vec3_One();
   }
@@ -113,7 +113,7 @@ void G_target_light(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a `target_speaker`, toggling looping sounds or playing a one-shot sound.
  */
-static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_target_speaker_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->spawn_flags & SPEAKER_LOOP) { // looping sound toggles
     if (ent->s.sound) {
@@ -122,7 +122,7 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
       ent->s.sound = ent->sound;
     }
   } else { // intermittent sound
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = ent->sound,
       .origin = &ent->s.origin,
     }, MULTICAST_PHS);
@@ -144,7 +144,7 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
  Use this entity only when a sound must be triggered by another entity. For
  ambient sounds, use the client-side version, misc_sound.
 */
-void G_target_speaker(g_entity_t *ent) {
+void G_target_speaker(GameEntity *ent) {
 
   const char *sound = gi.EntityValue(ent->def, "sound")->string;
   if (!q_strlen(sound)) {
@@ -173,7 +173,7 @@ void G_target_speaker(g_entity_t *ent) {
  message : The message to display.
  targetname : The target name of this entity.
  */
-void G_target_string(g_entity_t *ent) {
+void G_target_string(GameEntity *ent) {
 
   if (!ent->message) {
     ent->message = "";
@@ -188,21 +188,21 @@ void G_target_string(g_entity_t *ent) {
 #define BALLISTICS_CLASSNAME "ballistics_"
 #define TURRET_CLASSNAME     "turret_"
 
-typedef struct g_ballistics_type_s g_ballistics_type_t;
+typedef struct GameBallisticsType GameBallisticsType;
 
 /**
  * @brief One projectile a `ballistics_*` or `turret_*` entity may fire.
  */
-struct g_ballistics_type_s {
+struct GameBallisticsType {
 
   /**
    * @brief The classname suffix that selects this projectile.
    */
   const char *name;
 
-  void (*Fire)(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod);
+  void (*Fire)(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod);
 
-  g_muzzle_flash_t flash;
+  GameMuzzleFlash flash;
   uint32_t ballistics_mod;
   uint32_t turret_mod;
 
@@ -217,7 +217,7 @@ struct g_ballistics_type_s {
    * own refire so that a turret behaves exactly like the weapon it mounts. Mappers tune from
    * there, down to `min_wait`.
    */
-  cvar_t **refire;
+  Cvar **refire;
 
   /**
    * @brief The same, in millis, for the two projectiles that have no weapon to inherit from.
@@ -228,7 +228,7 @@ struct g_ballistics_type_s {
    * @brief The weapon's wind-up, if it has one, inserted between being used and firing so that
    * the entity primes exactly as the weapon does. Only the BFG has one.
    */
-  cvar_t **prefire;
+  Cvar **prefire;
 
   /**
    * @brief How far in units the projectile leaves the entity, which must clear its own bounds or
@@ -249,13 +249,13 @@ struct g_ballistics_type_s {
    */
   bool sustained;
 
-  cvar_t **damage;
-  cvar_t **knockback;
-  cvar_t **speed;
-  cvar_t **radius;
-  cvar_t **spread_x;
-  cvar_t **spread_y;
-  cvar_t **pellets;
+  Cvar **damage;
+  Cvar **knockback;
+  Cvar **speed;
+  Cvar **radius;
+  Cvar **spread_x;
+  Cvar **spread_y;
+  Cvar **pellets;
 
   int32_t default_damage;
   int32_t default_speed;
@@ -264,14 +264,14 @@ struct g_ballistics_type_s {
 /**
  * @brief Fires a blaster bolt.
  */
-static void G_ballistics_Blaster(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Blaster(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BlasterProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, mod);
 }
 
 /**
  * @brief Fires a burst of pellets.
  */
-static void G_ballistics_Shotgun(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Shotgun(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_ShotgunProjectiles(ent, attacker, start, dir, ent->damage, ent->knockback,
     (*type->spread_x)->integer, (*type->spread_y)->integer, (*type->pellets)->integer, mod);
 }
@@ -279,7 +279,7 @@ static void G_ballistics_Shotgun(const g_ballistics_type_t *type, g_entity_t *en
 /**
  * @brief Fires a single bullet.
  */
-static void G_ballistics_Machinegun(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Machinegun(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BulletProjectile(ent, attacker, start, dir, ent->damage, ent->knockback,
     (*type->spread_x)->integer, (*type->spread_y)->integer, mod);
 }
@@ -287,28 +287,28 @@ static void G_ballistics_Machinegun(const g_ballistics_type_t *type, g_entity_t 
 /**
  * @brief Fires a spike.
  */
-static void G_ballistics_Nail(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Nail(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_NailProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, mod);
 }
 
 /**
  * @brief Fires a rocket.
  */
-static void G_ballistics_Rocket(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Rocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_RocketProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damage_radius, mod);
 }
 
 /**
  * @brief Fires a Quake rocket.
  */
-static void G_ballistics_QuakeRocket(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_QuakeRocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_QuakeRocketProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damage_radius);
 }
 
 /**
  * @brief Fires a grenade.
  */
-static void G_ballistics_Grenade(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_GrenadeProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback,
     ent->damage_radius, SECONDS_TO_MILLIS(g_balance_grenadelauncher_timer->value), mod);
 }
@@ -316,7 +316,7 @@ static void G_ballistics_Grenade(const g_ballistics_type_t *type, g_entity_t *en
 /**
  * @brief Fires a Quake grenade.
  */
-static void G_ballistics_QuakeGrenade(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_QuakeGrenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_QuakeGrenadeProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback,
     ent->damage_radius, SECONDS_TO_MILLIS(g_balance_quake_grenadelauncher_timer->value));
 }
@@ -324,28 +324,28 @@ static void G_ballistics_QuakeGrenade(const g_ballistics_type_t *type, g_entity_
 /**
  * @brief Fires a hyperblaster bolt.
  */
-static void G_ballistics_Hyperblaster(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Hyperblaster(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_HyperblasterProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback);
 }
 
 /**
  * @brief Fires a BFG orb.
  */
-static void G_ballistics_Bfg(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Bfg(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BfgProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damage_radius);
 }
 
 /**
  * @brief Fires a railgun slug.
  */
-static void G_ballistics_Rail(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Rail(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_RailgunProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod);
 }
 
 /**
  * @brief Creates or refreshes a laser beam.
  */
-static void G_ballistics_Laser(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Laser(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LASER,
     g_media.sounds.laser_fly);
 }
@@ -353,7 +353,7 @@ static void G_ballistics_Laser(const g_ballistics_type_t *type, g_entity_t *ent,
 /**
  * @brief Creates or refreshes a lightning beam.
  */
-static void G_ballistics_Lightning(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Lightning(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LIGHTNING,
     g_media.sounds.lightning_fly);
 }
@@ -361,11 +361,11 @@ static void G_ballistics_Lightning(const g_ballistics_type_t *type, g_entity_t *
 /**
  * @brief Scatters giblets.
  */
-static void G_ballistics_Giblets(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Giblets(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
 
-  const cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+  const CmTrace tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
 
-  G_Giblets(&(const g_giblets_t) {
+  G_Giblets(&(const GameGiblets) {
     .origin = tr.fraction < 1.f ? ent->s.origin : start,
     .velocity = Vec3_Scale(dir, ent->speed),
     .count = RandomRangei(2, 5),
@@ -378,7 +378,7 @@ static void G_ballistics_Giblets(const g_ballistics_type_t *type, g_entity_t *en
   });
 }
 
-static const g_ballistics_type_t g_ballistics_types[] = {
+static const GameBallisticsType g_ballistics_types[] = {
   {
     .name = "blaster",
     .refire = &g_balance_blaster_refire,
@@ -605,7 +605,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
 /**
  * @brief Resolves the projectile named by the suffix of a `ballistics_*` or `turret_*` classname.
  */
-static const g_ballistics_type_t *G_ballistics_Type(const char *name) {
+static const GameBallisticsType *G_ballistics_Type(const char *name) {
 
   for (size_t i = 0; i < lengthof(g_ballistics_types); i++) {
     if (!q_strcmp(g_ballistics_types[i].name, name)) {
@@ -619,10 +619,10 @@ static const g_ballistics_type_t *G_ballistics_Type(const char *name) {
 /**
  * @brief Resolves the direction a trap fires in, tracking its target entity if it has one.
  */
-static vec3_t G_ballistics_Dir(g_entity_t *ent) {
+static Vec3 G_ballistics_Dir(GameEntity *ent) {
 
   if (ent->target) {
-    const g_entity_t *target = G_PickTarget(ent->target);
+    const GameEntity *target = G_PickTarget(ent->target);
 
     if (target) {
       return Vec3_Normalize(Vec3_Subtract(Box3_Center(target->abs_bounds), ent->s.origin));
@@ -642,12 +642,12 @@ static vec3_t G_ballistics_Dir(g_entity_t *ent) {
  * hitscan type may legitimately fire on every tick, which no flash and its sample survive. A
  * sustained beam is not a shot at all, so it never flashes.
  */
-static void G_ballistics_Fire(g_entity_t *ent, g_entity_t *attacker, const vec3_t dir, uint32_t mod) {
+static void G_ballistics_Fire(GameEntity *ent, GameEntity *attacker, const Vec3 dir, uint32_t mod) {
 
-  const g_ballistics_type_t *type = ent->ballistics;
+  const GameBallisticsType *type = ent->ballistics;
 
-  const vec3_t aim = Vec3_RandomizeDir(dir, ent->accel);
-  const vec3_t start = Vec3_Fmaf(ent->s.origin, type->muzzle ? (float) type->muzzle : 8.f, aim);
+  const Vec3 aim = Vec3_RandomizeDir(dir, ent->accel);
+  const Vec3 start = Vec3_Fmaf(ent->s.origin, type->muzzle ? (float) type->muzzle : 8.f, aim);
 
   // a beam is struck up once and hums thereafter, as the lightning weapons do, so it sounds
   // only on the tick that creates it and not on the ticks that sustain it
@@ -670,9 +670,9 @@ static void G_ballistics_Fire(g_entity_t *ent, g_entity_t *attacker, const vec3_
  * @brief Resolves the wind-up before a shot leaves, and primes the weapon if it has one.
  * @return The millis to wait before firing, or zero to fire at once.
  */
-static uint32_t G_ballistics_Prefire(g_entity_t *ent) {
+static uint32_t G_ballistics_Prefire(GameEntity *ent) {
 
-  const g_ballistics_type_t *type = ent->ballistics;
+  const GameBallisticsType *type = ent->ballistics;
 
   if (type->prefire == NULL) {
     return 0;
@@ -681,7 +681,7 @@ static uint32_t G_ballistics_Prefire(g_entity_t *ent) {
   const uint32_t prefire = (uint32_t) SECONDS_TO_MILLIS((*type->prefire)->value);
 
   if (prefire) {
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = g_media.sounds.bfg_prime,
       .origin = &ent->s.origin,
     }, MULTICAST_PHS);
@@ -693,9 +693,9 @@ static uint32_t G_ballistics_Prefire(g_entity_t *ent) {
 /**
  * @brief Think callback for a free-running trap; fires and re-arms itself.
  */
-static void G_ballistics_Think(g_entity_t *ent) {
+static void G_ballistics_Think(GameEntity *ent) {
 
-  const g_ballistics_type_t *type = ent->ballistics;
+  const GameBallisticsType *type = ent->ballistics;
 
   if (ent->activator && ent->activator->client) {
     G_ballistics_Fire(ent, ent->activator, ent->activator->client->forward, type->turret_mod);
@@ -719,7 +719,7 @@ static void G_ballistics_Think(g_entity_t *ent) {
  * @brief Handles use activation of a trap, toggling a free-running one or firing a single shot
  * after an optional delay.
  */
-static void G_ballistics_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_ballistics_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->spawn_flags & BALLISTICS_TOGGLE) {
 
@@ -730,7 +730,7 @@ static void G_ballistics_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *act
     } else {
       ent->next_think = 0;
 
-      const g_ballistics_type_t *type = ent->ballistics;
+      const GameBallisticsType *type = ent->ballistics;
 
       if (type->sustained) {
         G_FreeBeamProjectile(ent);
@@ -751,7 +751,7 @@ static void G_ballistics_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *act
   if (delay) {
     ent->next_think = g_level.time + (uint32_t) Maxi((int32_t) delay, QUETOO_TICK_MILLIS);
   } else {
-    const g_ballistics_type_t *type = ent->ballistics;
+    const GameBallisticsType *type = ent->ballistics;
 
     G_ballistics_Fire(ent, ent, G_ballistics_Dir(ent), type->ballistics_mod);
   }
@@ -761,9 +761,9 @@ static void G_ballistics_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *act
  * @brief Handles use activation of a turret, firing along the activator's view and crediting them
  * with any damage.
  */
-static void G_turret_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_turret_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
-  const g_ballistics_type_t *type = ent->ballistics;
+  const GameBallisticsType *type = ent->ballistics;
 
   // "wait" gates shots; a sustained beam must be refreshed far more often than that or it
   // expires between uses, and its damage interval is enforced by the beam itself
@@ -804,7 +804,7 @@ static void G_turret_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activat
  * @brief Common initialization for both roles, applying the balance defaults the mapper did not
  * override.
  */
-static void G_ballistics_Init(g_entity_t *ent, const g_ballistics_type_t *type) {
+static void G_ballistics_Init(GameEntity *ent, const GameBallisticsType *type) {
 
   ent->ballistics = type;
 
@@ -845,7 +845,7 @@ static void G_ballistics_Init(g_entity_t *ent, const g_ballistics_type_t *type) 
   ent->s.client = MAX_CLIENTS;
 
   if (type->sustained) {
-    vec3_t color = gi.EntityValue(ent->def, "color")->vec3;
+    Vec3 color = gi.EntityValue(ent->def, "color")->vec3;
     if (Vec3_Equal(color, Vec3_Zero())) {
       color = Vec3_One();
     }
@@ -893,7 +893,7 @@ static void G_ballistics_Init(g_entity_t *ent, const g_ballistics_type_t *type) 
  * nineteen, which flags model as nineteen independent checkboxes. Editors also group these by
  * their prefix, and the mapper picks a `turret_railgun` rather than a turret plus a checkbox.
  */
-bool G_ballistics(g_entity_t *ent) {
+bool G_ballistics(GameEntity *ent) {
 
   const char *name;
   bool turret;
@@ -908,7 +908,7 @@ bool G_ballistics(g_entity_t *ent) {
     return false;
   }
 
-  const g_ballistics_type_t *type = G_ballistics_Type(name);
+  const GameBallisticsType *type = G_ballistics_Type(name);
   if (type == NULL) {
     G_Warn("%s has no such projectile \"%s\"\n", etos(ent), name);
     G_FreeEntity(ent);

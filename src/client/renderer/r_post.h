@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-void R_DrawPost(const r_view_t *view);
+void R_DrawPost(const RenderView *view);
 
 #if defined(__R_LOCAL_H__)
 

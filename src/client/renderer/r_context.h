@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-extern r_context_t r_context;
+extern RenderContext r_context;
 
 void R_UpdateContext(void);
 

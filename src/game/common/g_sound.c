@@ -24,7 +24,7 @@
 /**
  * @brief Writes sound playback data into the network buffer.
  */
-static void G_Sound(const g_play_sound_t *play) {
+static void G_Sound(const GamePlaySound *play) {
 
   assert(play->index > -1);
   assert(play->index < MAX_SOUNDS);
@@ -71,8 +71,8 @@ static void G_Sound(const g_play_sound_t *play) {
 /**
  * @brief Plays a sound, multicasting it to nearby clients.
  */
-void G_MulticastSound(const g_play_sound_t *play, multicast_t to) {
-  vec3_t from = Vec3_Zero();
+void G_MulticastSound(const GamePlaySound *play, Multicast to) {
+  Vec3 from = Vec3_Zero();
 
   G_Sound(play);
 
@@ -90,7 +90,7 @@ void G_MulticastSound(const g_play_sound_t *play, multicast_t to) {
 /**
  * @brief Plays a sound to a single specific client.
  */
-void G_UnicastSound(const g_play_sound_t *play, const g_client_t *cl, bool reliable) {
+void G_UnicastSound(const GamePlaySound *play, const GameClient *cl, bool reliable) {
 
   G_Sound(play);
 

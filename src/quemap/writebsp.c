@@ -36,7 +36,7 @@
  * are known to be complete.
  */
 static struct {
-  const bsp_face_t *face;
+  const BspFace *face;
   int32_t draw_elements;
 } portal_faces[MAX_BSP_PORTALS];
 
@@ -49,9 +49,9 @@ void EmitPlanes(void) {
 
   bsp_file.num_planes = 0;
 
-  const plane_t *p = planes;
+  const Plane *p = planes;
   for (int32_t i = 0; i < num_planes; i++, p++) {
-    bsp_plane_t *out = &bsp_file.planes[bsp_file.num_planes];
+    BspPlane *out = &bsp_file.planes[bsp_file.num_planes];
 
     out->normal = p->normal;
     out->dist = (float) p->dist;
@@ -67,9 +67,9 @@ void EmitPlanes(void) {
  */
 void EmitMaterials(void) {
 
-  const material_t *m = materials;
+  const Material *m = materials;
   for (int32_t i = 0; i < num_materials; i++, m++) {
-    bsp_material_t *out = &bsp_file.materials[bsp_file.num_materials];
+    BspMaterial *out = &bsp_file.materials[bsp_file.num_materials];
 
     const char *name = m->cm->name;
     if (!q_strncmp(name, "textures/", 9)) {
@@ -86,7 +86,7 @@ void EmitMaterials(void) {
 /**
  * @brief Resolves the material index for the given BSP face.
  */
-static inline int32_t FaceMaterial(const bsp_face_t *face) {
+static inline int32_t FaceMaterial(const BspFace *face) {
   if (face->brush_side >= 0) {
     return bsp_file.brush_sides[face->brush_side].material;
   }
@@ -96,7 +96,7 @@ static inline int32_t FaceMaterial(const bsp_face_t *face) {
 /**
  * @brief Resolves the contents mask for the given BSP face.
  */
-static inline int32_t FaceContents(const bsp_face_t *face) {
+static inline int32_t FaceContents(const BspFace *face) {
   if (face->brush_side >= 0) {
     return bsp_file.brush_sides[face->brush_side].contents;
   }
@@ -106,7 +106,7 @@ static inline int32_t FaceContents(const bsp_face_t *face) {
 /**
  * @brief Resolves the surface mask for the given BSP face.
  */
-static inline int32_t FaceSurface(const bsp_face_t *face) {
+static inline int32_t FaceSurface(const BspFace *face) {
   if (face->brush_side >= 0) {
     return bsp_file.brush_sides[face->brush_side].surface;
   }
@@ -116,11 +116,11 @@ static inline int32_t FaceSurface(const bsp_face_t *face) {
 /**
  * @brief Emits brush faces for the given node.
  */
-static int32_t EmitFaces(const node_t *node, int32_t node_num) {
+static int32_t EmitFaces(const Node *node, int32_t node_num) {
 
   const int32_t num_faces = bsp_file.num_faces;
 
-  for (face_t *face = node->faces; face; face = face->next) {
+  for (Face *face = node->faces; face; face = face->next) {
 
     if (face->merged) {
       continue;
@@ -131,13 +131,13 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
   }
 
   // Emit pre-tessellated patch faces assigned to this node
-  for (patch_face_t *pf = node->patch_faces; pf; pf = pf->next) {
+  for (PatchFace *pf = node->patch_faces; pf; pf = pf->next) {
 
     if (bsp_file.num_faces >= MAX_BSP_FACES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
     }
 
-    bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
+    BspFace *out = &bsp_file.faces[bsp_file.num_faces];
     memset(out, 0, sizeof(*out));
     bsp_file.num_faces++;
 
@@ -159,7 +159,7 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
     }
 
     memcpy(&bsp_file.vertexes[bsp_file.num_vertexes], pf->vertexes,
-           pf->num_vertexes * sizeof(bsp_vertex_t));
+           pf->num_vertexes * sizeof(BspVertex));
     bsp_file.num_vertexes += pf->num_vertexes;
 
     // Copy elements to bsp_file, adjusting indices
@@ -182,13 +182,13 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
  * @brief Emits a leaf node into the BSP leaves lump, writing its contents, bounds, and leaf-brush references.
  * @return The index of the new leaf in `bsp_file`.leafs`.
  */
-static int32_t EmitLeaf(node_t *node) {
+static int32_t EmitLeaf(Node *node) {
 
   if (bsp_file.num_leafs == MAX_BSP_LEAFS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_LEAFS\n");
   }
 
-  bsp_leaf_t *out = &bsp_file.leafs[bsp_file.num_leafs];
+  BspLeaf *out = &bsp_file.leafs[bsp_file.num_leafs];
   bsp_file.num_leafs++;
 
   out->contents = node->contents;
@@ -197,7 +197,7 @@ static int32_t EmitLeaf(node_t *node) {
   // write the leaf_brushes
   out->first_leaf_brush = bsp_file.num_leaf_brushes;
 
-  for (const csg_brush_t *brush = node->brushes; brush; brush = brush->next) {
+  for (const CsgBrush *brush = node->brushes; brush; brush = brush->next) {
 
     if (bsp_file.num_leaf_brushes >= MAX_BSP_LEAF_BRUSHES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_BRUSHES\n");
@@ -230,7 +230,7 @@ static int32_t EmitLeaf(node_t *node) {
  * @brief Recursively emits a BSP node and its children into the BSP nodes and leafs lumps.
  * @return The index of the emitted node in `bsp_file`.nodes`.
  */
-static int32_t EmitNode(const node_t *node) {
+static int32_t EmitNode(const Node *node) {
 
   if (node->plane == PLANE_LEAF) {
     Com_Error(ERROR_FATAL, "Node does not reference a plane\n");
@@ -247,7 +247,7 @@ static int32_t EmitNode(const node_t *node) {
   Progress("Emitting nodes", -1);
 
   const int32_t node_num = bsp_file.num_nodes++;
-  bsp_node_t *out = &bsp_file.nodes[node_num];
+  BspNode *out = &bsp_file.nodes[node_num];
 
   out->plane = node->plane;
   out->contents = node->contents;
@@ -275,7 +275,7 @@ static int32_t EmitNode(const node_t *node) {
  * @brief Emits the entire BSP tree rooted at `tree->`head_node` into the BSP file.
  * @return The index of the head node in `bsp_file`.nodes`.
  */
-int32_t EmitNodes(const tree_t *tree) {
+int32_t EmitNodes(const Tree *tree) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
@@ -297,9 +297,9 @@ int32_t EmitNodes(const tree_t *tree) {
 /**
  * @brief Emits a single brush side into the BSP brush sides lump and returns a pointer to it.
  */
-static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
+static BspBrushSide *EmitBrushSide(const BrushSide *side) {
 
-  bsp_brush_side_t *out = bsp_file.brush_sides + bsp_file.num_brush_sides;
+  BspBrushSide *out = bsp_file.brush_sides + bsp_file.num_brush_sides;
 
   out->plane = side->plane;
   out->material = side->material;
@@ -319,9 +319,9 @@ static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
  * @brief Emits all sides of a brush into the BSP brush sides lump.
  * @return The number of brush sides emitted.
  */
-static int32_t EmitBrushSides(const brush_t *brush) {
+static int32_t EmitBrushSides(const Brush *brush) {
 
-  brush_side_t *side = brush->brush_sides;
+  BrushSide *side = brush->brush_sides;
   for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
     side->out = EmitBrushSide(side);
@@ -334,9 +334,9 @@ static int32_t EmitBrushSides(const brush_t *brush) {
 /**
  * @brief Emits a single brush and its sides into the BSP brushes lump and returns a pointer to the emitted brush.
  */
-static bsp_brush_t *EmitBrush(const brush_t *brush) {
+static BspBrush *EmitBrush(const Brush *brush) {
 
-  bsp_brush_t *out = bsp_file.brushes + bsp_file.num_brushes;
+  BspBrush *out = bsp_file.brushes + bsp_file.num_brushes;
 
   out->entity = brush->entity;
   out->contents = brush->contents;
@@ -354,7 +354,7 @@ static bsp_brush_t *EmitBrush(const brush_t *brush) {
  */
 void EmitBrushes(void) {
 
-  brush_t *brush = brushes;
+  Brush *brush = brushes;
   for (int32_t i = 0; i < num_brushes; i++, brush++) {
 
     if (!brush->num_brush_sides) {
@@ -381,7 +381,7 @@ void EmitEntities(void) {
   *out = '\0';
 
   for (int32_t i = 0; i < num_entities; i++) {
-    const entity_key_value_t *e = entities[i].values;
+    const EntityKeyValue *e = entities[i].values;
     if (e) {
       q_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {
@@ -447,7 +447,7 @@ void BeginBSPFile(void) {
  */
 static int32_t BrushSideEntity(const int32_t brush_side) {
 
-  const bsp_brush_t *brush = bsp_file.brushes;
+  const BspBrush *brush = bsp_file.brushes;
   for (int32_t i = 0; i < bsp_file.num_brushes; i++, brush++) {
     if (brush_side >= brush->first_brush_side &&
       brush_side < brush->first_brush_side + brush->num_brush_sides) {
@@ -465,11 +465,11 @@ static int32_t BrushSideEntity(const int32_t brush_side) {
  * which is the mapper's say over roll on a face whose normal leaves it undefined, as on a floor
  * or ceiling.
  */
-static void PortalFaceFrame(const bsp_face_t *face, const bsp_draw_elements_t *draw,
-                            vec3_t *origin, vec3_t *forward, vec3_t *up) {
+static void PortalFaceFrame(const BspFace *face, const BspDrawElements *draw,
+                            Vec3 *origin, Vec3 *forward, Vec3 *up) {
 
-  const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
-  const bsp_plane_t *plane = &bsp_file.planes[side->plane];
+  const BspBrushSide *side = &bsp_file.brush_sides[face->brush_side];
+  const BspPlane *plane = &bsp_file.planes[side->plane];
 
   // the BSP may have split the portal face into several, all of which share this brush side and
   // were grouped into these draw elements. Their bounds union to the bounds of the face the
@@ -482,7 +482,7 @@ static void PortalFaceFrame(const bsp_face_t *face, const bsp_draw_elements_t *d
 
   *forward = Vec3_Negate(plane->normal);
 
-  vec3_t u = Vec3_Negate(side->axis[1].xyz);
+  Vec3 u = Vec3_Negate(side->axis[1].xyz);
   u = Vec3_Subtract(u, Vec3_Scale(plane->normal, Vec3_Dot(u, plane->normal)));
 
   if (Vec3_Length(u) > FLT_EPSILON) {
@@ -501,11 +501,11 @@ static void EmitPortals(void) {
 
   for (int32_t i = 0; i < num_portal_faces; i++) {
 
-    const bsp_face_t *face = portal_faces[i].face;
+    const BspFace *face = portal_faces[i].face;
 
-    const bsp_draw_elements_t *draw = &bsp_file.draw_elements[portal_faces[i].draw_elements];
+    const BspDrawElements *draw = &bsp_file.draw_elements[portal_faces[i].draw_elements];
 
-    vec3_t entry_origin, entry_forward, entry_up;
+    Vec3 entry_origin, entry_forward, entry_up;
     PortalFaceFrame(face, draw, &entry_origin, &entry_forward, &entry_up);
 
     const int32_t e = BrushSideEntity(face->brush_side);
@@ -522,7 +522,7 @@ static void EmitPortals(void) {
       continue;
     }
 
-    const entity_t *exit = NULL;
+    const Entity *exit = NULL;
     for (int32_t j = 0; j < num_entities; j++) {
       const char *targetname = ValueForKey(&entities[j], "targetname", NULL);
       if (targetname && !q_strcmp(targetname, target)) {
@@ -536,19 +536,19 @@ static void EmitPortals(void) {
       continue;
     }
 
-    vec3_t angles = VectorForKey(exit, "angles", Vec3_Zero());
+    Vec3 angles = VectorForKey(exit, "angles", Vec3_Zero());
 
     const char *angle = ValueForKey(exit, "angle", NULL);
     if (angle) {
-      angles = Vec3(0.f, (float) atof(angle), 0.f);
+      angles = MakeVec3(0.f, (float) atof(angle), 0.f);
     }
 
-    vec3_t exit_forward, exit_up;
+    Vec3 exit_forward, exit_up;
     Vec3_Vectors(angles, &exit_forward, NULL, &exit_up);
 
-    const vec3_t exit_origin = VectorForKey(exit, "origin", Vec3_Zero());
+    const Vec3 exit_origin = VectorForKey(exit, "origin", Vec3_Zero());
 
-    bsp_portal_t *out = &bsp_file.portals[bsp_file.num_portals];
+    BspPortal *out = &bsp_file.portals[bsp_file.num_portals];
     bsp_file.num_portals++;
 
     out->brush_side = face->brush_side;
@@ -577,13 +577,13 @@ void EndBSPFile(void) {
 /**
  * @brief Allocates a new BSP model entry for the given entity and initializes its face and element offsets.
  */
-bsp_model_t *BeginModel(const entity_t *e) {
+BspModel *BeginModel(const Entity *e) {
 
   if (bsp_file.num_models == MAX_BSP_MODELS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_MODELS\n");
   }
 
-  bsp_model_t *mod = &bsp_file.models[bsp_file.num_models];
+  BspModel *mod = &bsp_file.models[bsp_file.num_models];
   bsp_file.num_models++;
 
   mod->entity = (int32_t) (ptrdiff_t) (e - entities);
@@ -597,7 +597,7 @@ bsp_model_t *BeginModel(const entity_t *e) {
 
   mod->bounds = Box3_Null();
 
-  const brush_t *brush = &brushes[start];
+  const Brush *brush = &brushes[start];
   for (int32_t j = start; j < end; j++, brush++) {
 
     if (brush->num_brush_sides) {
@@ -615,7 +615,7 @@ bsp_model_t *BeginModel(const entity_t *e) {
  * grates) are grouped by material, so their diffuse texture can be sampled and discarded
  * per-pixel, letting them cast per-pixel holes rather than solid silhouettes.
  */
-static void EmitDepthPassElements(bsp_model_t *mod) {
+static void EmitDepthPassElements(BspModel *mod) {
 
   mod->first_depth_pass_elements = bsp_file.num_draw_elements;
 
@@ -623,14 +623,14 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
     Com_Error(ERROR_FATAL, "MAX_BSP_DRAW_ELEMENTS\n");
   }
 
-  bsp_draw_elements_t *opaque = bsp_file.draw_elements + bsp_file.num_draw_elements;
+  BspDrawElements *opaque = bsp_file.draw_elements + bsp_file.num_draw_elements;
   opaque->material = -1;
   opaque->bounds = Box3_Null();
   opaque->first_element = bsp_file.num_elements;
 
-  Vector *alpha_test_faces = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
+  Vector *alpha_test_faces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
 
-  const bsp_face_t *face = &bsp_file.faces[mod->first_face];
+  const BspFace *face = &bsp_file.faces[mod->first_face];
   for (int32_t i = 0; i < mod->num_faces; i++, face++) {
 
     const int32_t surface = FaceSurface(face);
@@ -690,8 +690,8 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
  */
 static int32_t FaceCmp(const void * a, const void * b) {
 
-  const bsp_face_t *a_face = a;
-  const bsp_face_t *b_face = b;
+  const BspFace *a_face = a;
+  const BspFace *b_face = b;
 
   const int32_t a_material = FaceMaterial(a_face);
   const int32_t b_material = FaceMaterial(b_face);
@@ -717,8 +717,8 @@ static int32_t FaceCmp(const void * a, const void * b) {
 }
 
 static Order FaceCmpOrder(const ident a, const ident b) {
-  const bsp_face_t *const *a_face = a;
-  const bsp_face_t *const *b_face = b;
+  const BspFace *const *a_face = a;
+  const BspFace *const *b_face = b;
   const int32_t cmp = FaceCmp(*a_face, *b_face);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
@@ -742,14 +742,14 @@ int32_t EmitDrawElements(Vector *faces) {
       Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
     }
 
-    const bsp_face_t *a = VectorValue(faces, bsp_face_t *, i);
+    const BspFace *a = VectorValue(faces, BspFace *, i);
     const int32_t a_surface = FaceSurface(a);
 
     if (a_surface & SURF_MASK_NO_DRAW_ELEMENTS) {
       continue;
     }
 
-    bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
+    BspDrawElements *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
     bsp_file.num_draw_elements++;
 
     out->material = FaceMaterial(a);
@@ -770,7 +770,7 @@ int32_t EmitDrawElements(Vector *faces) {
 
     for (size_t j = i; j < faces->count; j++) {
 
-      const bsp_face_t *b = VectorValue(faces, bsp_face_t *, j);
+      const BspFace *b = VectorValue(faces, BspFace *, j);
 
       if (FaceCmp(a, b)) {
         break;
@@ -801,17 +801,17 @@ int32_t EmitDrawElements(Vector *faces) {
 /**
  * @brief Recursively emits block draw-element groups for all `CONTENTS_BLOCK` nodes in the BSP tree.
  */
-static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
+static void EmitBlocks_r(BspModel *mod, BspNode *node) {
 
   if (node->contents == CONTENTS_BLOCK) {
 
-    Vector *faces = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
+    Vector *faces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
 
-    bsp_face_t *face = bsp_file.faces + mod->first_face;
+    BspFace *face = bsp_file.faces + mod->first_face;
     for (int32_t i = 0; i < mod->num_faces; i++, face++) {
 
-      const bsp_brush_side_t *side = bsp_file.brush_sides + face->brush_side;
-      const bsp_material_t *material = bsp_file.materials + side->material;
+      const BspBrushSide *side = bsp_file.brush_sides + face->brush_side;
+      const BspMaterial *material = bsp_file.materials + side->material;
 
       if (Box3_ContainsPoint(node->bounds, Box3_Center(face->bounds))) {
         if (face->block != -1) {
@@ -828,13 +828,13 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
       return;
     }
 
-    bsp_block_t *out = &bsp_file.blocks[bsp_file.num_blocks++];
+    BspBlock *out = &bsp_file.blocks[bsp_file.num_blocks++];
     out->node = (int32_t) (ptrdiff_t) (node - bsp_file.nodes);
 
     out->visible_bounds = Box3_Null();
     for (size_t i = 0; i < faces->count; i++) {
 
-      bsp_face_t *face = VectorValue(faces, bsp_face_t *, i);
+      BspFace *face = VectorValue(faces, BspFace *, i);
       face->block = (int32_t) (ptrdiff_t) (out - bsp_file.blocks);
 
       out->visible_bounds = Box3_Union(out->visible_bounds, face->bounds);
@@ -856,16 +856,16 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 /**
  * @brief Emits all block draw-element groups for the given model.
  */
-static void EmitBlocks(bsp_model_t *mod) {
+static void EmitBlocks(BspModel *mod) {
   EmitBlocks_r(mod, bsp_file.nodes + mod->head_node);
 }
 
 /**
  * @brief Finalizes a BSP model: computes face counts, runs Phong shading, emits patches, depth-pass elements, and blocks.
  */
-void EndModel(bsp_model_t *mod) {
+void EndModel(BspModel *mod) {
 
-  const bsp_node_t *head_node = &bsp_file.nodes[mod->head_node];
+  const BspNode *head_node = &bsp_file.nodes[mod->head_node];
 
   mod->visible_bounds = head_node->visible_bounds;
 
@@ -889,7 +889,7 @@ void EndModel(bsp_model_t *mod) {
 
   EmitBlocks(mod);
 
-  const bsp_face_t *face = &bsp_file.faces[mod->first_face];
+  const BspFace *face = &bsp_file.faces[mod->first_face];
   for (int32_t i = 0; i < mod->num_faces; i++, face++) {
     if (face->block == -1) {
       Com_Warn("Model %d face %d (%s) was not assigned to a CONTENTS_BLOCK node\n",

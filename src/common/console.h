@@ -59,7 +59,7 @@ typedef struct {
    */
   uint32_t timestamp;
 
-} console_string_t;
+} ConsoleString;
 
 /**
  * @brief The maximum number of characters to buffer.
@@ -91,9 +91,9 @@ typedef struct {
    */
   SDL_Mutex *lock;
 
-} console_state_t;
+} ConsoleState;
 
-extern console_state_t console_state;
+extern ConsoleState console_state;
 
 /**
  * @brief The maximum number of lines to buffer for console input history.
@@ -103,7 +103,7 @@ extern console_state_t console_state;
 typedef enum {
   CON_HISTORY_PREV = 1,
   CON_HISTORY_NEXT
-} console_history_nav_t;
+} ConsoleHistoryNav;
 
 /**
  * @brief The console history structure.
@@ -125,7 +125,7 @@ typedef struct {
    */
   size_t pos;
 
-} console_history_t;
+} ConsoleHistory;
 
 /**
  * @brief The console input structure.
@@ -142,7 +142,7 @@ typedef struct {
    */
   size_t pos;
 
-} console_input_t;
+} ConsoleInput;
 
 /**
  * @brief The console structure.
@@ -177,12 +177,12 @@ typedef struct {
   /**
    * @brief The history structure.
    */
-  console_history_t history;
+  ConsoleHistory history;
 
   /**
    * @brief The input structure.
    */
-  console_input_t input;
+  ConsoleInput input;
 
   /**
    * @brief If true, input is echoed to the console subsystem.
@@ -192,8 +192,8 @@ typedef struct {
   /**
    * @brief An optional print callback.
    */
-  void (*Append)(const console_string_t *str);
-} console_t;
+  void (*Append)(const ConsoleString *str);
+} Console;
 
 /**
  * @brief The structure used for autocomplete values.
@@ -209,18 +209,18 @@ typedef struct {
    * @brief The value printed to the screen. If null, name isused.
    */
   char *description;
-} con_autocomplete_match_t;
+} ConAutocompleteMatch;
 
 void Con_Append(int32_t level, const char *string);
 size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines);
-size_t Con_Tail(const console_t *console, char **lines, size_t max_lines);
-void Con_NavigateHistory(console_t *console, console_history_nav_t nav);
-void Con_ReadHistory(console_t *console, file_t *file);
-void Con_WriteHistory(const console_t *console, file_t *file);
-bool Con_CompleteInput(console_t *console);
-void Con_SubmitInput(console_t *console);
-void Con_AddConsole(const console_t *console);
-void Con_RemoveConsole(const console_t *console);
+size_t Con_Tail(const Console *console, char **lines, size_t max_lines);
+void Con_NavigateHistory(Console *console, ConsoleHistoryNav nav);
+void Con_ReadHistory(Console *console, File *file);
+void Con_WriteHistory(const Console *console, File *file);
+bool Con_CompleteInput(Console *console);
+void Con_SubmitInput(Console *console);
+void Con_AddConsole(const Console *console);
+void Con_RemoveConsole(const Console *console);
 void Con_AutocompleteMatch(List *matches, const char *name, const char *description);
 void Con_AutocompleteInput_f(const uint32_t argi, List *matches);
 

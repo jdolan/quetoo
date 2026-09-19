@@ -25,10 +25,10 @@
 /**
  * @brief Loads BSP planes into renderer plane structures.
  */
-static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
-  r_bsp_plane_t *out;
+static void R_LoadBspPlanes(RenderBspModel *bsp) {
+  RenderBspPlane *out;
 
-  const cm_bsp_plane_t *in = bsp->cm->planes;
+  const CmBspPlane *in = bsp->cm->planes;
 
   bsp->num_planes = bsp->cm->num_planes;
   bsp->planes = out = Mem_LinkMalloc(bsp->num_planes * sizeof(*out), bsp);
@@ -41,27 +41,27 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 /**
  * @brief Loads and registers BSP materials.
  */
-static void R_LoadBspMaterials(r_model_t *mod) {
+static void R_LoadBspMaterials(RenderModel *mod) {
 
-  r_material_t **out;
-  const bsp_material_t *in = mod->bsp->cm->file->materials;
+  RenderMaterial **out;
+  const BspMaterial *in = mod->bsp->cm->file->materials;
 
   mod->bsp->num_materials = mod->bsp->cm->file->num_materials;
   mod->bsp->materials = out = Mem_LinkMalloc(mod->bsp->num_materials * sizeof(*out), mod->bsp);
 
   for (int32_t i = 0; i < mod->bsp->num_materials; i++, in++, out++) {
     *out = R_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
-    R_RegisterDependency((r_media_t *) mod, (r_media_t *) *out);
+    R_RegisterDependency((RenderMedia *) mod, (RenderMedia *) *out);
   }
 }
 
 /**
  * @brief Loads BSP brush sides.
  */
-static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
-  r_bsp_brush_side_t *out;
+static void R_LoadBspBrushSides(RenderBspModel *bsp) {
+  RenderBspBrushSide *out;
 
-  const bsp_brush_side_t *in = bsp->cm->file->brush_sides;
+  const BspBrushSide *in = bsp->cm->file->brush_sides;
 
   bsp->num_brush_sides = bsp->cm->file->num_brush_sides;
   bsp->brush_sides = out = Mem_LinkMalloc(bsp->num_brush_sides * sizeof(*out), bsp);
@@ -86,12 +86,12 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP patches.
  */
-static void R_LoadBspPatches(r_bsp_model_t *bsp) {
+static void R_LoadBspPatches(RenderBspModel *bsp) {
 
-  const bsp_patch_t *in = bsp->cm->file->patches;
+  const BspPatch *in = bsp->cm->file->patches;
 
   bsp->num_patches = bsp->cm->file->num_patches;
-  r_bsp_patch_t *out = bsp->patches = Mem_LinkMalloc(bsp->num_patches * sizeof(*out), bsp);
+  RenderBspPatch *out = bsp->patches = Mem_LinkMalloc(bsp->num_patches * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->num_patches; i++, in++, out++) {
 
@@ -107,12 +107,12 @@ static void R_LoadBspPatches(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP vertex data.
  */
-static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
+static void R_LoadBspVertexes(RenderBspModel *bsp) {
 
   bsp->num_vertexes = bsp->cm->file->num_vertexes;
-  r_bsp_vertex_t *out = bsp->vertexes = Mem_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
+  RenderBspVertex *out = bsp->vertexes = Mem_LinkMalloc(bsp->num_vertexes * sizeof(*out), bsp);
 
-  const bsp_vertex_t *in = bsp->cm->file->vertexes;
+  const BspVertex *in = bsp->cm->file->vertexes;
   for (int32_t i = 0; i < bsp->num_vertexes; i++, in++, out++) {
 
     out->position = in->position;
@@ -127,7 +127,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP triangle indices.
  */
-static void R_LoadBspElements(r_bsp_model_t *bsp) {
+static void R_LoadBspElements(RenderBspModel *bsp) {
 
   bsp->num_elements = bsp->cm->file->num_elements;
   uint32_t *out = bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(*out), bsp);
@@ -141,10 +141,10 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP faces.
  */
-static void R_LoadBspFaces(r_bsp_model_t *bsp) {
+static void R_LoadBspFaces(RenderBspModel *bsp) {
 
-  const bsp_face_t *in = bsp->cm->file->faces;
-  r_bsp_face_t *out;
+  const BspFace *in = bsp->cm->file->faces;
+  RenderBspFace *out;
 
   bsp->num_faces = bsp->cm->file->num_faces;
   bsp->faces = out = Mem_LinkMalloc(bsp->num_faces * sizeof(*out), bsp);
@@ -172,10 +172,10 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP leafs.
  */
-static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
-  r_bsp_leaf_t *out;
+static void R_LoadBspLeafs(RenderBspModel *bsp) {
+  RenderBspLeaf *out;
 
-  const bsp_leaf_t *in = bsp->cm->file->leafs;
+  const BspLeaf *in = bsp->cm->file->leafs;
 
   bsp->num_leafs = bsp->cm->file->num_leafs;
   bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
@@ -189,10 +189,10 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP nodes.
  */
-static void R_LoadBspNodes(r_bsp_model_t *bsp) {
-  r_bsp_node_t *out;
+static void R_LoadBspNodes(RenderBspModel *bsp) {
+  RenderBspNode *out;
 
-  const bsp_node_t *in = bsp->cm->file->nodes;
+  const BspNode *in = bsp->cm->file->nodes;
 
   bsp->num_nodes = bsp->cm->file->num_nodes;
   bsp->nodes = out = Mem_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
@@ -207,7 +207,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
     out->faces = bsp->faces + in->first_face;
     out->num_faces = in->num_faces;
 
-    r_bsp_face_t *f = out->faces;
+    RenderBspFace *f = out->faces;
     for (int32_t j = 0; j < out->num_faces; j++, f++) {
       f->node = out;
     }
@@ -217,7 +217,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
       if (c >= 0) {
         out->children[j] = bsp->nodes + c;
       } else {
-        out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - c));
+        out->children[j] = (RenderBspNode *) (bsp->leafs + (-1 - c));
       }
     }
   }
@@ -226,7 +226,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 /**
  * @brief Links a BSP node to its parent and inline model.
  */
-static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
+static void R_SetupBspNode(RenderBspInlineModel *model, RenderBspNode *parent, RenderBspNode *node) {
 
   node->model = model;
   node->parent = parent;
@@ -242,13 +242,13 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 /**
  * @brief Loads BSP draw batches.
  */
-static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
-  r_bsp_draw_elements_t *out;
+static void R_LoadBspDrawElements(RenderBspModel *bsp) {
+  RenderBspDrawElements *out;
 
   bsp->num_draw_elements = bsp->cm->file->num_draw_elements;
   bsp->draw_elements = out = Mem_LinkMalloc(bsp->num_draw_elements * sizeof(*out), bsp);
 
-  const bsp_draw_elements_t *in = bsp->cm->file->draw_elements;
+  const BspDrawElements *in = bsp->cm->file->draw_elements;
   for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
     if (in->material > -1) {
@@ -263,12 +263,12 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
     if (out->material && out->material->cm->stage_flags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
-      vec2_t st_mins = Vec2_Mins();
-      vec2_t st_maxs = Vec2_Maxs();
+      Vec2 st_mins = Vec2_Mins();
+      Vec2 st_maxs = Vec2_Maxs();
 
       const uint32_t *e = bsp->elements + in->first_element;
       for (int32_t j = 0; j < out->num_elements; j++, e++) {
-        const r_bsp_vertex_t *v = &bsp->vertexes[*e];
+        const RenderBspVertex *v = &bsp->vertexes[*e];
 
         st_mins = Vec2_Minf(st_mins, v->diffusemap);
         st_maxs = Vec2_Maxf(st_maxs, v->diffusemap);
@@ -282,13 +282,13 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP blocks and their decal state.
  */
-static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
-  r_bsp_block_t *out;
+static void R_LoadBspBlocks(RenderBspModel *bsp) {
+  RenderBspBlock *out;
 
   bsp->num_blocks = bsp->cm->file->num_blocks;
-  bsp->blocks = out = Mem_LinkMalloc(bsp->num_blocks * sizeof(r_bsp_block_t), bsp);
+  bsp->blocks = out = Mem_LinkMalloc(bsp->num_blocks * sizeof(RenderBspBlock), bsp);
 
-  const bsp_block_t *in = bsp->cm->file->blocks;
+  const BspBlock *in = bsp->cm->file->blocks;
   for (int32_t i = 0; i < bsp->num_blocks; i++, in++, out++) {
 
     out->node = bsp->nodes + in->node;
@@ -300,14 +300,14 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
       out->surface |= out->draw_elements[j].surface;
     }
 
-    r_bsp_block_decals_t *decals = &out->decals;
+    RenderBspBlockDecals *decals = &out->decals;
 
-    decals->triangles = $(alloc(Vector), initWithSize, sizeof(r_decal_triangle_t));
+    decals->triangles = $(alloc(Vector), initWithSize, sizeof(RenderDecalTriangle));
 
   }
 
-  const bsp_face_t *in_face = bsp->cm->file->faces;
-  r_bsp_face_t *out_face = bsp->faces;
+  const BspFace *in_face = bsp->cm->file->faces;
+  RenderBspFace *out_face = bsp->faces;
   for (int32_t i = 0; i < bsp->num_faces; i++, in_face++, out_face++) {
     if (in_face->block >= 0 && in_face->block < bsp->num_blocks) {
       out_face->block = &bsp->blocks[in_face->block];
@@ -318,10 +318,10 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP inline models.
  */
-static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
-  r_bsp_inline_model_t *out;
+static void R_LoadBspInlineModels(RenderBspModel *bsp) {
+  RenderBspInlineModel *out;
 
-  const bsp_model_t *in = bsp->cm->file->models;
+  const BspModel *in = bsp->cm->file->models;
 
   bsp->num_inline_models = bsp->cm->file->num_models;
   bsp->inline_models = out = Mem_LinkMalloc(bsp->num_inline_models * sizeof(*out), bsp);
@@ -356,18 +356,18 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
  * the face belongs to. The transform between them is composed per frame, since the model drawing
  * the face may be a mover.
  */
-static void R_LoadBspPortals(r_model_t *mod) {
+static void R_LoadBspPortals(RenderModel *mod) {
 
-  r_bsp_model_t *bsp = mod->bsp;
+  RenderBspModel *bsp = mod->bsp;
 
   bsp->num_portals = bsp->cm->file->num_portals;
   if (!bsp->num_portals) {
     return;
   }
 
-  r_bsp_portal_t *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->num_portals, bsp);
+  RenderBspPortal *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->num_portals, bsp);
 
-  const bsp_portal_t *in = bsp->cm->file->portals;
+  const BspPortal *in = bsp->cm->file->portals;
   for (int32_t i = 0; i < bsp->num_portals; i++, in++, out++) {
 
     if (in->draw_elements < 0 || in->draw_elements >= bsp->num_draw_elements) {
@@ -393,11 +393,11 @@ static void R_LoadBspPortals(r_model_t *mod) {
 
     for (int32_t j = 0; j < bsp->num_inline_models; j++) {
 
-      const r_bsp_inline_model_t *m = &bsp->inline_models[j];
+      const RenderBspInlineModel *m = &bsp->inline_models[j];
       const ptrdiff_t first = m->draw_elements - bsp->draw_elements;
 
       if (in->draw_elements >= first && in->draw_elements < first + m->num_draw_elements) {
-        out->model = (r_model_t *) R_FindMedia(va("%s#%d", mod->media.name, j), R_MEDIA_MODEL);
+        out->model = (RenderModel *) R_FindMedia(va("%s#%d", mod->media.name, j), R_MEDIA_MODEL);
         break;
       }
     }
@@ -409,12 +409,12 @@ static void R_LoadBspPortals(r_model_t *mod) {
  *//**
  * @brief Loads BSP lights.
  */
-static void R_LoadBspLights(r_bsp_model_t *bsp) {
+static void R_LoadBspLights(RenderBspModel *bsp) {
 
-  const bsp_light_t *in = bsp->cm->file->lights;
+  const BspLight *in = bsp->cm->file->lights;
 
   bsp->num_lights = bsp->cm->file->num_lights;
-  r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->num_lights, bsp);
+  RenderBspLight *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->num_lights, bsp);
 
   for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
 
@@ -435,13 +435,13 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 /**
  * @brief Appends merged voxel bounds to an occlusion query.
  */
-static void R_AppendOcclusionQueryVoxels(r_occlusion_query_t *query, const bsp_voxels_t *voxels, const int32_t *indices, int32_t num_indices) {
+static void R_AppendOcclusionQueryVoxels(RenderOcclusionQuery *query, const BspVoxels *voxels, const int32_t *indices, int32_t num_indices) {
 
   if (!num_indices) {
     return;
   }
 
-  box3_t *boxes = Mem_Malloc(num_indices * sizeof(box3_t));
+  Box3 *boxes = Mem_Malloc(num_indices * sizeof(Box3));
 
   const int32_t xy = voxels->size.x * voxels->size.y;
 
@@ -453,13 +453,13 @@ static void R_AppendOcclusionQueryVoxels(r_occlusion_query_t *query, const bsp_v
     const int32_t y = rem / voxels->size.x;
     const int32_t x = rem % voxels->size.x;
 
-    const vec3_t mins = Vec3_Add(voxels->bounds.mins, Vec3_Scale(Vec3(x, y, z), BSP_VOXEL_SIZE));
-    const vec3_t maxs = Vec3_Add(mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
+    const Vec3 mins = Vec3_Add(voxels->bounds.mins, Vec3_Scale(MakeVec3(x, y, z), BSP_VOXEL_SIZE));
+    const Vec3 maxs = Vec3_Add(mins, MakeVec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
 
-    boxes[i] = Box3(mins, maxs);
+    boxes[i] = MakeBox3(mins, maxs);
   }
 
-  box3_t *merged;
+  Box3 *merged;
   const size_t num_merged = Box3_Merge(boxes, num_indices, &merged);
 
   Mem_Free(boxes);
@@ -474,16 +474,16 @@ static void R_AppendOcclusionQueryVoxels(r_occlusion_query_t *query, const bsp_v
 /**
  * @brief Builds BSP block and light occlusion queries from voxel coverage.
  */
-static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+static void R_LoadBspOcclusionQueries(RenderBspModel *bsp) {
 
-  const bsp_file_t *file = bsp->cm->file;
-  const bsp_voxels_t *voxels = file->voxels;
+  const BspFile *file = bsp->cm->file;
+  const BspVoxels *voxels = file->voxels;
 
-  r_bsp_block_t *block = bsp->blocks;
-  const bsp_block_t *in_block = file->blocks;
+  RenderBspBlock *block = bsp->blocks;
+  const BspBlock *in_block = file->blocks;
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++, in_block++) {
 
-    const box3_t bounds = Box3_Union(block->node->bounds, block->visible_bounds);
+    const Box3 bounds = Box3_Union(block->node->bounds, block->visible_bounds);
     block->query = R_AllocOcclusionQuery(bounds);
 
     R_AppendOcclusionQueryVoxels(block->query, voxels,
@@ -494,8 +494,8 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
     }
   }
 
-  r_bsp_light_t *light = bsp->lights;
-  const bsp_light_t *in_light = file->lights;
+  RenderBspLight *light = bsp->lights;
+  const BspLight *in_light = file->lights;
   for (int32_t i = 0; i < bsp->num_lights; i++, light++, in_light++) {
 
     light->query = R_AllocOcclusionQuery(light->bounds);
@@ -512,12 +512,12 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP voxel lighting data.
  */
-static void R_LoadBspVoxels(r_model_t *mod) {
+static void R_LoadBspVoxels(RenderModel *mod) {
 
-  const bsp_voxels_t *in = mod->bsp->cm->file->voxels;
-  const byte *data = (byte *) in + sizeof(bsp_voxels_t);
+  const BspVoxels *in = mod->bsp->cm->file->voxels;
+  const byte *data = (byte *) in + sizeof(BspVoxels);
 
-  r_bsp_voxels_t *out = &mod->bsp->voxels;
+  RenderBspVoxels *out = &mod->bsp->voxels;
 
   out->size = in->size;
   out->num_voxels = out->size.x * out->size.y * out->size.z;
@@ -527,7 +527,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const byte *caustics_data = data;
   data += out->num_voxels * sizeof(byte) * 3;
 
-  out->caustics = (r_image_t *) R_AllocMedia("voxel_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->caustics = (RenderImage *) R_AllocMedia("voxel_caustics", sizeof(RenderImage), R_MEDIA_IMAGE);
   out->caustics->media.Free = R_FreeImage;
   out->caustics->type = IMG_VOXELS;
   out->caustics->width = out->size.x;
@@ -558,7 +558,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const int32_t *light_data = (const int32_t *) data;
   data += out->num_voxels * sizeof(int32_t) * 2;
 
-  out->light_data = (r_image_t *) R_AllocMedia("voxel_light_data", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->light_data = (RenderImage *) R_AllocMedia("voxel_light_data", sizeof(RenderImage), R_MEDIA_IMAGE);
   out->light_data->media.Free = R_FreeImage;
   out->light_data->type = IMG_VOXELS;
   out->light_data->width = out->size.x;
@@ -580,13 +580,13 @@ static void R_LoadBspVoxels(r_model_t *mod) {
         out->num_light_indices * sizeof(int32_t));
   }
 
-  out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->light_indices = (RenderImage *) R_AllocMedia("voxel_light_indices", sizeof(RenderImage), R_MEDIA_IMAGE);
   out->light_indices->media.Free = R_FreeImage;
   out->light_indices->type = IMG_VOXELS;
 
   const byte *occlusion_data = data;
 
-  out->occlusion = (r_image_t *) R_AllocMedia("voxel_occlusion", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->occlusion = (RenderImage *) R_AllocMedia("voxel_occlusion", sizeof(RenderImage), R_MEDIA_IMAGE);
   out->occlusion->media.Free = R_FreeImage;
   out->occlusion->type = IMG_VOXELS;
   out->occlusion->width = out->size.x;
@@ -606,22 +606,22 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   if (r_draw_bsp_voxels->value) {
     
-    out->voxels = Mem_LinkMalloc(out->num_voxels * sizeof(r_bsp_voxel_t), mod->bsp);
+    out->voxels = Mem_LinkMalloc(out->num_voxels * sizeof(RenderBspVoxel), mod->bsp);
 
     for (int32_t u = 0; u < out->size.z; u++) {
       for (int32_t t = 0; t < out->size.y; t++) {
         for (int32_t s = 0; s < out->size.x; s++) {
           const int32_t voxel_index = (u * out->size.y + t) * out->size.x + s;
-          r_bsp_voxel_t *voxel = &out->voxels[voxel_index];
+          RenderBspVoxel *voxel = &out->voxels[voxel_index];
 
-          const vec3_t voxel_mins = Vec3(
+          const Vec3 voxel_mins = MakeVec3(
             out->bounds.mins.x + s * BSP_VOXEL_SIZE,
             out->bounds.mins.y + t * BSP_VOXEL_SIZE,
             out->bounds.mins.z + u * BSP_VOXEL_SIZE
           );
 
-          const vec3_t voxel_maxs = Vec3_Add(voxel_mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
-          voxel->bounds = Box3(voxel_mins, voxel_maxs);
+          const Vec3 voxel_maxs = Vec3_Add(voxel_mins, MakeVec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
+          voxel->bounds = MakeBox3(voxel_mins, voxel_maxs);
 
           const int32_t first_light_index = light_data[voxel_index * 2 + 0];
           const int32_t num_light_indices = light_data[voxel_index * 2 + 1];
@@ -629,7 +629,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
           voxel->num_lights = num_light_indices;
 
           if (voxel->num_lights > 0) {
-            voxel->lights = Mem_LinkMalloc(voxel->num_lights * sizeof(r_bsp_light_t *), mod->bsp);
+            voxel->lights = Mem_LinkMalloc(voxel->num_lights * sizeof(RenderBspLight *), mod->bsp);
 
             for (int32_t i = 0; i < voxel->num_lights; i++) {
               const int32_t light_id = light_indices_data[first_light_index + i];
@@ -653,12 +653,12 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 /**
  * @brief Creates BSP vertex and index buffers.
  */
-static void R_LoadBspVertexArray(r_model_t *mod) {
+static void R_LoadBspVertexArray(RenderModel *mod) {
 
-  r_bsp_model_t *bsp = mod->bsp;
+  RenderBspModel *bsp = mod->bsp;
 
   bsp->vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
-                         bsp->vertexes, bsp->num_vertexes * sizeof(r_bsp_vertex_t));
+                         bsp->vertexes, bsp->num_vertexes * sizeof(RenderBspVertex));
 
   bsp->elements_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
                            bsp->elements, bsp->num_elements * sizeof(uint32_t));
@@ -670,15 +670,15 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 /**
  * @brief Creates renderer models for BSP inline models.
  */
-static void R_SetupBspInlineModels(r_model_t *mod) {
+static void R_SetupBspInlineModels(RenderModel *mod) {
 
-  r_bsp_inline_model_t *in = mod->bsp->inline_models;
+  RenderBspInlineModel *in = mod->bsp->inline_models;
   for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 
     char name[MAX_QPATH];
     q_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
 
-    r_model_t *out = (r_model_t *) R_AllocMedia(name, sizeof(r_model_t), R_MEDIA_MODEL);
+    RenderModel *out = (RenderModel *) R_AllocMedia(name, sizeof(RenderModel), R_MEDIA_MODEL);
 
     out->type = MODEL_BSP_INLINE;
     out->bsp_inline = in;
@@ -696,7 +696,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 /**
  * @brief Loads the sky cubemap specified in worldspawn.
  */
-static void R_LoadBspSky(r_model_t *mod) {
+static void R_LoadBspSky(RenderModel *mod) {
 
   const char *name = Cm_EntityValue(Cm_Worldspawn(), "sky")->nullable_string;
   if (name) {
@@ -739,11 +739,11 @@ static void R_LoadBspSky(r_model_t *mod) {
 /**
  * @brief Loads a BSP model into renderer structures.
  */
-static void R_LoadBspModel(r_model_t *mod, void *buffer) {
+static void R_LoadBspModel(RenderModel *mod, void *buffer) {
 
-  bsp_header_t *header = (bsp_header_t *) buffer;
+  BspHeader *header = (BspHeader *) buffer;
 
-  mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
+  mod->bsp = Mem_LinkMalloc(sizeof(RenderBspModel), mod);
   mod->bsp->cm = Cm_Bsp();
 
   Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
@@ -793,15 +793,15 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 /**
  * @brief Registers BSP model media dependencies.
  */
-static void R_RegisterBspModel(r_media_t *self) {
+static void R_RegisterBspModel(RenderMedia *self) {
 
-  r_model_t *mod = (r_model_t *) self;
+  RenderModel *mod = (RenderModel *) self;
 
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.caustics);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.occlusion);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->sky);
+  R_RegisterDependency(self, (RenderMedia *) mod->bsp->voxels.caustics);
+  R_RegisterDependency(self, (RenderMedia *) mod->bsp->voxels.occlusion);
+  R_RegisterDependency(self, (RenderMedia *) mod->bsp->voxels.light_data);
+  R_RegisterDependency(self, (RenderMedia *) mod->bsp->voxels.light_indices);
+  R_RegisterDependency(self, (RenderMedia *) mod->bsp->sky);
 
   r_models.world = mod;
 }
@@ -809,15 +809,15 @@ static void R_RegisterBspModel(r_media_t *self) {
 /**
  * @brief Frees BSP model GPU resources.
  */
-static void R_FreeBspModel(r_media_t *self) {
-  r_model_t *mod = (r_model_t *) self;
+static void R_FreeBspModel(RenderMedia *self) {
+  RenderModel *mod = (RenderModel *) self;
 
-  r_bsp_model_t *bsp = mod->bsp;
+  RenderBspModel *bsp = mod->bsp;
 
   bsp->vertex_buffer = release(bsp->vertex_buffer);
   bsp->elements_buffer = release(bsp->elements_buffer);
 
-  r_bsp_block_t *block = bsp->blocks;
+  RenderBspBlock *block = bsp->blocks;
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
     release(block->decals.triangles);
@@ -832,7 +832,7 @@ static void R_FreeBspModel(r_media_t *self) {
 /**
  * @brief BSP model format descriptor.
  */
-const r_model_format_t r_bsp_model_format = {
+const RenderModelFormat r_bsp_model_format = {
   .extension = "bsp",
   .type = MODEL_BSP,
   .Load = R_LoadBspModel,

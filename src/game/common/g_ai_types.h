@@ -27,10 +27,10 @@
 /**
  * @brief Sentinel value indicating an invalid or unset navigation node ID.
  */
-#define AI_NODE_INVALID ((ai_node_id_t)-1)
+#define AI_NODE_INVALID ((AiNodeId)-1)
 
 /**
- * @brief Temporary hardening for #960 (dangling `ai_goal_t` entity pointer
+ * @brief Temporary hardening for #960 (dangling `AiGoal` entity pointer
  * crashes in `G_Ai_Think`, root cause still unknown): re-resolves goal
  * entities by slot number against the canonical `ge.entities` table instead
  * of trusting the cached pointer, self-healing or clearing the goal as
@@ -49,7 +49,7 @@
 #define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\enforcer/default"
 
 /**
- * @brief The type of goal we're after. This controls which variant in `ai_goal_t`
+ * @brief The type of goal we're after. This controls which variant in `AiGoal`
  * we can access.
  */
 typedef enum {
@@ -57,7 +57,7 @@ typedef enum {
   AI_GOAL_POSITION,
   AI_GOAL_ENTITY,
   AI_GOAL_PATH
-} ai_goal_type_t;
+} AiGoalType;
 
 /**
  * @brief Bot combat styles.
@@ -68,7 +68,7 @@ typedef enum {
   AI_COMBAT_FLANK,
   AI_COMBAT_WANDER,
   AI_COMBAT_TOTAL
-} ai_combat_type_t;
+} AiCombatType;
 
 /**
  * @brief Bot trick jump timing states.
@@ -78,7 +78,7 @@ typedef enum {
   TRICK_JUMP_START,
   TRICK_JUMP_WAITING,
   TRICK_JUMP_TURNING
-} ai_trick_jump_t;
+} AiTrickJump;
 
 /**
  * @brief The variant structure of a goal.
@@ -88,7 +88,7 @@ typedef struct {
   /**
    * @brief Type of this goal; controls which union variant is active.
    */
-  ai_goal_type_t type;
+  AiGoalType type;
 
   /**
    * @brief Priority used to replace this goal with a more important one.
@@ -134,7 +134,7 @@ typedef struct {
       /**
        * @brief Target world-space position.
        */
-      vec3_t pos;
+      Vec3 pos;
     } position;
 
     struct {
@@ -142,7 +142,7 @@ typedef struct {
       /**
        * @brief Target entity.
        */
-      const g_entity_t *ent;
+      const GameEntity *ent;
 
 #if AI_GOAL_HARDENING
       /**
@@ -163,7 +163,7 @@ typedef struct {
       /**
        * @brief Active combat style against this entity.
        */
-      ai_combat_type_t combat_type;
+      AiCombatType combat_type;
 
       /**
        * @brief Level time when the bot first locked on to this enemy.
@@ -179,7 +179,7 @@ typedef struct {
     struct {
 
       /**
-       * @brief Array of `ai_node_id_t` forming the route.
+       * @brief Array of `AiNodeId` forming the route.
        */
       Vector *path;
 
@@ -191,22 +191,22 @@ typedef struct {
       /**
        * @brief World positions of current and next node.
        */
-      vec3_t path_position, next_path_position;
+      Vec3 path_position, next_path_position;
 
       /**
        * @brief Current trick jump state for this path segment.
        */
-      ai_trick_jump_t trick_jump;
+      AiTrickJump trick_jump;
 
       /**
        * @brief World position used as the trick jump target.
        */
-      vec3_t trick_position;
+      Vec3 trick_position;
 
       /**
        * @brief Optional entity the path is leading to.
        */
-      const g_entity_t *path_target;
+      const GameEntity *path_target;
 
 #if AI_GOAL_HARDENING
       /**
@@ -222,13 +222,13 @@ typedef struct {
       uint32_t path_target_spawn_id;
     } path;
   };
-} ai_goal_t;
+} AiGoal;
 
 /**
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*G_Ai_GoalFunc)(g_client_t *cl, pm_cmd_t *cmd);
+typedef uint32_t (*G_Ai_GoalFunc)(GameClient *cl, PlayerMoveCmd *cmd);
 
 /**
  * @brief Functional AI goal slot IDs, one per periodic decision function.
@@ -242,7 +242,7 @@ typedef enum {
   AI_FUNC_GOAL_TURN,
   AI_FUNC_GOAL_MOVE,
   AI_FUNC_GOAL_TOTAL
-} ai_func_goal_t;
+} AiFuncGoal;
 
 /**
  * @brief Static bot definition from the roster.
@@ -278,7 +278,7 @@ typedef struct {
    * @brief 0.0 (oblivious) to 1.0 (perceptive): item range, weapon choice.
    */
   float awareness;
-} g_ai_roster_t;
+} GameAiRoster;
 
 /**
  * @brief Per-bot runtime personality, initialized from the roster entry on spawn.
@@ -304,42 +304,42 @@ typedef struct {
    * @brief Per-bot phase offset for sinusoidal aim wobble.
    */
   float aim_phase;
-} ai_personality_t;
+} AiPersonality;
 
 /**
  * @brief AI-specific per-client state.
  */
-typedef struct ai_s {
+typedef struct Ai {
 
   /**
    * @brief Pointer to this bot's static roster definition.
    */
-  const g_ai_roster_t *roster;
+  const GameAiRoster *roster;
 
   /**
    * @brief Runtime personality derived from the roster.
    */
-  ai_personality_t personality;
+  AiPersonality personality;
 
   /**
-   * @brief Next think times indexed by `ai_func_goal_t`.
+   * @brief Next think times indexed by `AiFuncGoal`.
    */
   uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
 
   /**
    * @brief Current movement/navigation goal.
    */
-  ai_goal_t move_target;
+  AiGoal move_target;
 
   /**
    * @brief Saved movement goal, restored after a detour.
    */
-  ai_goal_t backup_move_target;
+  AiGoal backup_move_target;
 
   /**
    * @brief Current combat/enemy goal.
    */
-  ai_goal_t combat_target;
+  AiGoal combat_target;
 
   /**
    * @brief Next level time to re-evaluate weapon selection.
@@ -366,6 +366,6 @@ typedef struct ai_s {
    * Valid only when lookahead_frame == g_level.frame_num.
    */
   bool lookahead_no_ground;
-} ai_t;
+} Ai;
 
 #endif

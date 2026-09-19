@@ -21,18 +21,18 @@
 
 #include "r_local.h"
 
-r_depth_pipeline_t r_depth_pipeline;
+RenderDepthPipeline r_depth_pipeline;
 
 /**
  * @brief Draws world geometry into the view depth buffer.
  */
-void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
+void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
 
   if (!r_depth_pass->integer) {
     return;
   }
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
@@ -45,7 +45,7 @@ void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  const mat4_t model = Mat4_Identity();
+  const Mat4 model = Mat4_Identity();
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
@@ -55,8 +55,8 @@ void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
 
   // The Z pre-pass has no sampler bindings, so only draw the lumped opaque entry (entry with
   // no material); alpha-tested faces are left to the color pass, same as before this refactor.
-  const r_bsp_inline_model_t *world = bsp->inline_models;
-  const r_bsp_draw_elements_t *draw = world->depth_pass_elements;
+  const RenderBspInlineModel *world = bsp->inline_models;
+  const RenderBspDrawElements *draw = world->depth_pass_elements;
   for (int32_t i = 0; i < world->num_depth_pass_elements; i++, draw++) {
 
     if (draw->material) {
@@ -98,7 +98,7 @@ void R_InitDepthPass(void) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -106,7 +106,7 @@ void R_InitDepthPass(void) {
       .location = 0,
       .buffer_slot = 0,
       .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = offsetof(r_bsp_vertex_t, position),
+      .offset = offsetof(RenderBspVertex, position),
     },
     .num_vertex_attributes = 1,
   };

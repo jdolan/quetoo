@@ -21,13 +21,13 @@
 
 #pragma once
 
-void S_PlaySample(s_sample_t *sample);
-void S_AddSample(s_stage_t *stage, const s_play_sample_t *play);
+void S_PlaySample(SoundSample *sample);
+void S_AddSample(SoundStage *stage, const SoundPlaySample *play);
 
 #if defined(__S_LOCAL_H__)
 
 int32_t S_AllocChannel(void);
 void S_FreeChannel(int32_t c);
-void S_MixChannels(s_stage_t *stage);
+void S_MixChannels(SoundStage *stage);
 
 #endif

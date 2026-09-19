@@ -66,18 +66,18 @@ typedef enum {
   NA_BROADCAST,
   NA_DATAGRAM,
   NA_STREAM
-} net_addr_type_t;
+} NetAddrType;
 
 typedef struct {
-  net_addr_type_t type;
+  NetAddrType type;
   in_addr_t addr;
   in_port_t port;
-} net_addr_t;
+} NetAddr;
 
 typedef enum {
   NS_UDP_CLIENT,
   NS_UDP_SERVER
-} net_src_t;
+} NetSrc;
 
 /**
  * @brief The network channel provides a conduit for packet sequencing and
@@ -85,14 +85,14 @@ typedef enum {
  * through this interface.
  */
 typedef struct {
-  net_src_t source;
+  NetSrc source;
 
   uint32_t dropped; // between last packet and previous
 
   uint32_t last_received; // for timeouts
   uint32_t last_sent; // for retransmits
 
-  net_addr_t remote_address;
+  NetAddr remote_address;
 
   uint8_t qport; // to differentiate multiple clients behind NAT
 
@@ -106,10 +106,10 @@ typedef struct {
   uint32_t reliable_incoming; // single bit
   uint32_t reliable_outgoing; // outgoing sequence number of last reliable
 
-  mem_buf_t message; // writing buffer to send to server
+  MemBuf message; // writing buffer to send to server
   byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
 
   // message is copied to this buffer when it is first transfered
   size_t reliable_size;
   byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
-} net_chan_t;
+} NetChan;

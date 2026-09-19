@@ -77,7 +77,7 @@ Follow these conventions:
 
 | Convention | Rule |
 |------------|------|
-| Types | `snake_case` with `_t` suffix (`vec3_t`, `entity_state_t`) |
+| Types | `snake_case` with `_t` suffix (`Vec3`, `EntityState`) |
 | Functions/vars | `Xyz_TitleCase` with subsystem prefix |
 | Memory | `Mem_Malloc` / `Mem_Free`; use plain `malloc`/`free` only for function-scope allocations |
 | Vector math | `VectorCopy` / `VectorAdd` macros or `Vec3_*` functions |

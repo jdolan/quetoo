@@ -21,51 +21,51 @@
 
 #include "r_local.h"
 
-r_config_t r_config;
-r_uniforms_t r_uniforms;
-r_view_stats_t *r_stats;
+RenderConfig r_config;
+RenderUniforms r_uniforms;
+RenderViewStats *r_stats;
 
-cvar_t *r_alpha_test;
-cvar_t *r_cull;
-cvar_t *r_depth_pass;
-cvar_t *r_draw_bsp_blocks;
-cvar_t *r_draw_occlusion_queries;
-cvar_t *r_draw_bsp_normals;
-cvar_t *r_draw_bsp_voxels;
-cvar_t *r_draw_entity_bounds;
-cvar_t *r_draw_light_bounds;
-cvar_t *r_draw_material_stages;
-cvar_t *r_occlude;
-cvar_t *r_portals;
+Cvar *r_alpha_test;
+Cvar *r_cull;
+Cvar *r_depth_pass;
+Cvar *r_draw_bsp_blocks;
+Cvar *r_draw_occlusion_queries;
+Cvar *r_draw_bsp_normals;
+Cvar *r_draw_bsp_voxels;
+Cvar *r_draw_entity_bounds;
+Cvar *r_draw_light_bounds;
+Cvar *r_draw_material_stages;
+Cvar *r_occlude;
+Cvar *r_portals;
 
-cvar_t *r_ambient;
-cvar_t *r_ambient_occlusion;
-cvar_t *r_anisotropy;
-cvar_t *r_antialias;
-cvar_t *r_bloom;
-cvar_t *r_bloom_iterations;
-cvar_t *r_bloom_threshold;
-cvar_t *r_caustics;
-cvar_t *r_framebuffer_scale;
-cvar_t *r_fullscreen;
-cvar_t *r_fullscreen_width;
-cvar_t *r_fullscreen_height;
-cvar_t *r_gpu_driver;
-cvar_t *r_hardness;
-cvar_t *r_lighting_distance;
-cvar_t *r_modulate;
-cvar_t *r_modulate_mesh;
-cvar_t *r_saturation;
-cvar_t *r_parallax;
-cvar_t *r_parallax_shadow;
-cvar_t *r_roughness;
-cvar_t *r_screenshot_format;
-cvar_t *r_shadows;
-cvar_t *r_shadow_tile_size;
-cvar_t *r_specularity;
-cvar_t *r_swap_interval;
-cvar_t *r_window_height;
-cvar_t *r_window_width;
+Cvar *r_ambient;
+Cvar *r_ambient_occlusion;
+Cvar *r_anisotropy;
+Cvar *r_antialias;
+Cvar *r_bloom;
+Cvar *r_bloom_iterations;
+Cvar *r_bloom_threshold;
+Cvar *r_caustics;
+Cvar *r_framebuffer_scale;
+Cvar *r_fullscreen;
+Cvar *r_fullscreen_width;
+Cvar *r_fullscreen_height;
+Cvar *r_gpu_driver;
+Cvar *r_hardness;
+Cvar *r_lighting_distance;
+Cvar *r_modulate;
+Cvar *r_modulate_mesh;
+Cvar *r_saturation;
+Cvar *r_parallax;
+Cvar *r_parallax_shadow;
+Cvar *r_roughness;
+Cvar *r_screenshot_format;
+Cvar *r_shadows;
+Cvar *r_shadow_tile_size;
+Cvar *r_specularity;
+Cvar *r_swap_interval;
+Cvar *r_window_height;
+Cvar *r_window_width;
 
 /**
  * @brief MSAA sample count for the 3D scene.
@@ -87,9 +87,9 @@ SDL_GPUSampleCount R_SampleCount(void) {
 /**
  * @brief Updates the global uniform buffer object with view and projection matrices for the current frame.
  */
-void R_UpdateUniforms(const r_view_t *view) {
+void R_UpdateUniforms(const RenderView *view) {
 
-  struct r_uniform_block_t *out = &r_uniforms.block;
+  struct RenderUniformBlock *out = &r_uniforms.block;
   memset(out, 0, sizeof(*out));
 
   if (view) {
@@ -103,7 +103,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     const float xmin = ymin * aspect;
     const float xmax = ymax * aspect;
 
-    const mat4_t clip = Mat4((const float[]) {
+    const Mat4 clip = MakeMat4((const float[]) {
       1.f, 0.f, 0.f, 0.f,
       0.f, 1.f, 0.f, 0.f,
       0.f, 0.f, .5f, 0.f,
@@ -113,7 +113,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
-    out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f));
+    out->sky_projection = Mat4_FromScale3(MakeVec3(-1.f, 1.f, 1.f));
     out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
 
     out->light_projection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
@@ -136,17 +136,17 @@ void R_UpdateUniforms(const r_view_t *view) {
     // its high bound is undefined, and a zero-sized box would not either, since voxel_uvw
     // divides by it
     if (view->type == VIEW_PLAYER_MODEL) {
-      out->voxels.mins = Vec4(0.f, 0.f, 0.f, 0.f);
-      out->voxels.maxs = Vec4(1.f, 1.f, 1.f, 0.f);
-      out->voxels.size = Vec4(1.f, 1.f, 1.f, 0.f);
+      out->voxels.mins = MakeVec4(0.f, 0.f, 0.f, 0.f);
+      out->voxels.maxs = MakeVec4(1.f, 1.f, 1.f, 0.f);
+      out->voxels.size = MakeVec4(1.f, 1.f, 1.f, 0.f);
     } else {
-      const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
+      const RenderBspVoxels *voxels = &r_models.world->bsp->voxels;
 
       out->voxels.mins = Vec3_ToVec4(voxels->bounds.mins, 0.f);
       out->voxels.maxs = Vec3_ToVec4(voxels->bounds.maxs, 0.f);
 
-      const vec3_t pos = Vec3_Subtract(view->origin, voxels->bounds.mins);
-      const vec3_t extents = Box3_Size(voxels->bounds);
+      const Vec3 pos = Vec3_Subtract(view->origin, voxels->bounds.mins);
+      const Vec3 extents = Box3_Size(voxels->bounds);
 
       out->voxels.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
       out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
@@ -248,7 +248,7 @@ void R_BeginFrame(void) {
 /**
  * @brief Initializes the view, preparing it for a new frame.
  */
-void R_InitView(r_view_t *view) {
+void R_InitView(RenderView *view) {
 
   view->ticks = (uint32_t) SDL_GetTicks();
   view->num_beams = 0;
@@ -265,7 +265,7 @@ void R_InitView(r_view_t *view) {
 /**
  * @brief Renders the depth pre-pass and occlusion queries for the view.
  */
-void R_DrawViewDepth(r_view_t *view) {
+void R_DrawViewDepth(RenderView *view) {
 
   r_stats = &view->stats;
 
@@ -291,7 +291,7 @@ void R_DrawViewDepth(r_view_t *view) {
 /**
  * @brief Draws the main view.
  */
-void R_DrawMainView(r_view_t *view) {
+void R_DrawMainView(RenderView *view) {
 
   assert(view);
 
@@ -348,7 +348,7 @@ void R_DrawMainView(r_view_t *view) {
 /**
  * @brief Draws the player-model preview view.
  */
-void R_DrawPlayerModelView(r_view_t *view) {
+void R_DrawPlayerModelView(RenderView *view) {
 
   assert(view);
 

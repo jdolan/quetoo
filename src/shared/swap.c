@@ -92,10 +92,10 @@ float LittleFloat(float f) {
 }
 
 /**
- * @brief Converts all elements of a `mat4_t` to little-endian byte order.
+ * @brief Converts all elements of a `Mat4` to little-endian byte order.
  */
-mat4_t LittleMat4(const mat4_t m) {
-  mat4_t out = m;
+Mat4 LittleMat4(const Mat4 m) {
+  Mat4 out = m;
   for (int32_t i = 0; i < 4; i++) {
     for (int32_t j = 0; j < 4; j++) {
       out.m[i][j] = LittleFloat(out.m[i][j]);
@@ -105,54 +105,54 @@ mat4_t LittleMat4(const mat4_t m) {
 }
 
 /**
- * @brief Converts all components of a `vec3s_t` to little-endian byte order.
+ * @brief Converts all components of a `Vec3s` to little-endian byte order.
  */
-vec3s_t LittleVec3s(const vec3s_t v) {
-  return Vec3s(LittleShort(v.x),
+Vec3s LittleVec3s(const Vec3s v) {
+  return MakeVec3s(LittleShort(v.x),
          LittleShort(v.y),
          LittleShort(v.z));
 }
 
 /**
- * @brief Converts all components of a `vec3i_t` to little-endian byte order.
+ * @brief Converts all components of a `Vec3i` to little-endian byte order.
  */
-vec3i_t LittleVec3i(const vec3i_t v) {
-  return Vec3i(LittleLong(v.x),
+Vec3i LittleVec3i(const Vec3i v) {
+  return MakeVec3i(LittleLong(v.x),
          LittleLong(v.y),
          LittleLong(v.z));
 }
 
 /**
- * @brief Converts all components of a `vec2_t` to little-endian byte order.
+ * @brief Converts all components of a `Vec2` to little-endian byte order.
  */
-vec2_t LittleVec2(const vec2_t v) {
-  return Vec2(LittleFloat(v.x),
+Vec2 LittleVec2(const Vec2 v) {
+  return MakeVec2(LittleFloat(v.x),
         LittleFloat(v.y));
 }
 
 /**
- * @brief Converts all components of a `vec3_t` to little-endian byte order.
+ * @brief Converts all components of a `Vec3` to little-endian byte order.
  */
-vec3_t LittleVec3(const vec3_t v) {
-  return Vec3(LittleFloat(v.x),
+Vec3 LittleVec3(const Vec3 v) {
+  return MakeVec3(LittleFloat(v.x),
         LittleFloat(v.y),
         LittleFloat(v.z));
 }
 
 /**
- * @brief Converts all components of a `vec4_t` to little-endian byte order.
+ * @brief Converts all components of a `Vec4` to little-endian byte order.
  */
-vec4_t LittleVec4(const vec4_t v) {
-  return Vec4(LittleFloat(v.x),
+Vec4 LittleVec4(const Vec4 v) {
+  return MakeVec4(LittleFloat(v.x),
         LittleFloat(v.y),
         LittleFloat(v.z),
         LittleFloat(v.w));
 }
 
 /**
- * @brief Converts both min and max vectors of a `box3_t` to little-endian byte order.
+ * @brief Converts both min and max vectors of a `Box3` to little-endian byte order.
  */
-box3_t LittleBounds(const box3_t b) {
-  return Box3(LittleVec3(b.mins),
+Box3 LittleBounds(const Box3 b) {
+  return MakeBox3(LittleVec3(b.mins),
           LittleVec3(b.maxs));
 }

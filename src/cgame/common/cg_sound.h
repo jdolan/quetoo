@@ -22,7 +22,7 @@
 #pragma once
 
 #if defined(__CG_LOCAL_H__)
-void Cg_PrepareStage(const cl_frame_t *frame);
+void Cg_PrepareStage(const ClientFrame *frame);
 void Cg_ParseSound(void);
-void Cg_AddSample(s_stage_t *stage, const s_play_sample_t *play);
+void Cg_AddSample(SoundStage *stage, const SoundPlaySample *play);
 #endif

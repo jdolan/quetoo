@@ -55,16 +55,16 @@ static struct {
   /**
    * @brief Cached material-stage pipelines.
    */
-  r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
+  RenderStagePipeline stage_pipelines[MAX_STAGE_PIPELINES];
   int32_t num_stage_pipelines;
 } r_sky_draw;
 
 /**
  * @brief Returns the cached sky stage pipeline for the given blend mode.
  */
-static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
+static GraphicsPipeline *R_SkyStagePipeline(CmBlend src, CmBlend dest) {
 
-  r_stage_pipeline_t *p = r_sky_draw.stage_pipelines;
+  RenderStagePipeline *p = r_sky_draw.stage_pipelines;
   for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++, p++) {
     if (p->src == src && p->dest == dest) {
       return p->pipeline;
@@ -89,7 +89,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -97,7 +97,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
       .location = 0,
       .buffer_slot = 0,
       .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = offsetof(r_bsp_vertex_t, position),
+      .offset = offsetof(RenderBspVertex, position),
     },
     .num_vertex_attributes = 1,
   };
@@ -148,12 +148,12 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 /**
  * @brief Draws one sky material stage.
  */
-static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
-                                               const r_bsp_draw_elements_t *draw,
-                                               const r_stage_t *stage,
+static void R_DrawSkyDrawElementsMaterialStage(const RenderView *view,
+                                               const RenderBspDrawElements *draw,
+                                               const RenderStage *stage,
                                                RenderPass *pass) {
 
-  r_material_uniforms_t uniforms;
+  RenderMaterialUniforms uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
 
   SDL_GPUTexture *texture, *texture_next;
@@ -184,16 +184,16 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
 /**
  * @brief Draws all active material stages for a sky draw-elements batch.
  */
-static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
-                                                const r_bsp_draw_elements_t *draw,
+static void R_DrawSkyDrawElementsMaterialStages(const RenderView *view,
+                                                const RenderBspDrawElements *draw,
                                                 RenderPass *pass) {
 
-  const r_material_t *material = draw->material;
+  const RenderMaterial *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
     return;
   }
 
-  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
+  for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
 
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
@@ -206,11 +206,11 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
 /**
  * @brief Draws world sky surfaces with the active sky cubemap.
  */
-void R_DrawSky(const r_view_t *view, RenderPass *pass) {
+void R_DrawSky(const RenderView *view, RenderPass *pass) {
 
   assert(r_models.world);
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = r_models.world->bsp;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -248,15 +248,15 @@ void R_DrawSky(const r_view_t *view, RenderPass *pass) {
     { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.repeat_sampler->sampler },
   }, 2);
 
-  const r_bsp_inline_model_t *world = bsp->inline_models;
-  const r_bsp_block_t *block = world->blocks;
+  const RenderBspInlineModel *world = bsp->inline_models;
+  const RenderBspBlock *block = world->blocks;
   for (int32_t i = 0; i < world->num_blocks; i++, block++) {
 
     if (!(block->surface & SURF_SKY)) {
       continue;
     }
 
-    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    const RenderBspDrawElements *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
       if (!(draw->surface & SURF_SKY)) {
@@ -269,7 +269,7 @@ void R_DrawSky(const r_view_t *view, RenderPass *pass) {
 
       $(pass, bindPipeline, r_sky_draw.pipeline);
 
-      r_material_uniforms_t material;
+      RenderMaterialUniforms material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
       $(pass->commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
 
@@ -301,7 +301,7 @@ static void R_InitSkyPipeline(void) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -309,7 +309,7 @@ static void R_InitSkyPipeline(void) {
       .location = 0,
       .buffer_slot = 0,
       .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = offsetof(r_bsp_vertex_t, position),
+      .offset = offsetof(RenderBspVertex, position),
     },
     .num_vertex_attributes = 1,
   };

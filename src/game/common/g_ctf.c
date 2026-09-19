@@ -37,7 +37,7 @@ static struct {
 
 static bool installed;
 
-cvar_t *g_capture_limit;
+Cvar *g_capture_limit;
 
 static struct {
   uint16_t capture;
@@ -48,7 +48,7 @@ static struct {
 /**
  * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
  */
-g_team_t *G_TeamForFlag(const g_entity_t *ent) {
+GameTeam *G_TeamForFlag(const GameEntity *ent) {
 
   if (!ent->item || ent->item->def.type != ITEM_TYPE_FLAG) {
     return NULL;
@@ -68,7 +68,7 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
  * @brief Returns the flag entity currently placed for the given team, or `NULL`
  * if the map placed none.
  */
-g_entity_t *G_FlagForTeam(const g_team_t *t) {
+GameEntity *G_FlagForTeam(const GameTeam *t) {
 
   return t->flag_entity;
 }
@@ -76,7 +76,7 @@ g_entity_t *G_FlagForTeam(const g_team_t *t) {
 /**
  * @brief Returns the entity state effect flag for the given team, or 0 if none.
  */
-static int32_t G_EffectForTeam(const g_team_t *t) {
+static int32_t G_EffectForTeam(const GameTeam *t) {
 
   return t->effect;
 }
@@ -84,7 +84,7 @@ static int32_t G_EffectForTeam(const g_team_t *t) {
 /**
  * @brief Get the flag a player is holding, or `NULL` if we're not a flag-bearer.
  */
-const g_item_t *G_GetFlag(const g_client_t *cl) {
+const GameItem *G_GetFlag(const GameClient *cl) {
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
@@ -92,7 +92,7 @@ const g_item_t *G_GetFlag(const g_client_t *cl) {
       continue;
     }
 
-    g_entity_t *f = G_FlagForTeam(&g_team_list[i]);
+    GameEntity *f = G_FlagForTeam(&g_team_list[i]);
 
     if (f && cl->inventory[f->item->def.tag]) {
       return f->item;
@@ -105,9 +105,9 @@ const g_item_t *G_GetFlag(const g_client_t *cl) {
 /**
  * @brief A dropped flag has been idle for 30 seconds, return it.
  */
-static void G_ResetDroppedFlag(g_entity_t *ent) {
-  g_team_t *t;
-  g_entity_t *f;
+static void G_ResetDroppedFlag(GameEntity *ent) {
+  GameTeam *t;
+  GameEntity *f;
 
   if (!(t = G_TeamForFlag(ent)) || !(f = G_FlagForTeam(t))) {
     if (ent->spawn_flags & SF_ITEM_DROPPED) {
@@ -123,7 +123,7 @@ static void G_ResetDroppedFlag(g_entity_t *ent) {
 
   gi.LinkEntity(f);
 
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_ctf_media.return_
   }, MULTICAST_PHS_R);
 
@@ -137,7 +137,7 @@ static void G_ResetDroppedFlag(g_entity_t *ent) {
 /**
  * @brief Returns a dropped flag to its base, deferring anything else.
  */
-static void G_ResetDroppedItem_Ctf(g_entity_t *ent) {
+static void G_ResetDroppedItem_Ctf(GameEntity *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     G_ResetDroppedFlag(ent);
@@ -150,10 +150,10 @@ static void G_ResetDroppedItem_Ctf(g_entity_t *ent) {
 /**
  * @brief Resolves "flag" to whichever flag the client is carrying.
  */
-static const g_item_t *G_ResolveInventoryItem_Ctf(g_client_t *cl, const char *name) {
+static const GameItem *G_ResolveInventoryItem_Ctf(GameClient *cl, const char *name) {
 
   if (!q_strcasecmp(name, "flag")) {
-    const g_item_t *flag = G_GetFlag(cl);
+    const GameItem *flag = G_GetFlag(cl);
     if (flag) {
       return flag;
     }
@@ -209,7 +209,7 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
  * and teams are not optional. Replaces rather than qualifies, and so does not
  * defer to previous.
  */
-static g_gameplay_id_t G_ClampGameplay_Ctf(g_gameplay_id_t gameplay) {
+static GameplayId G_ClampGameplay_Ctf(GameplayId gameplay) {
   return GAMEPLAY_TEAM_DEATHMATCH;
 }
 
@@ -217,24 +217,24 @@ static g_gameplay_id_t G_ClampGameplay_Ctf(g_gameplay_id_t gameplay) {
  * @brief Steal the enemy's flag. If our own flag is dropped, return it. Else, if we are
  * carrying the enemy's flag and touch our own flag, that is a capture.
  */
-static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
+static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
   int32_t index;
 
   if (!cl->persistent.team) {
     return false;
   }
 
-  g_team_t *team = G_TeamForFlag(ent);
+  GameTeam *team = G_TeamForFlag(ent);
   if (!team) {
     return false; // a flag for a team this level does not have
   }
 
-  g_entity_t *team_flag = G_FlagForTeam(team);
+  GameEntity *team_flag = G_FlagForTeam(team);
   if (!team_flag) {
     return false; // the map placed no base flag for that team
   }
 
-  const g_item_t *carried_flag = G_GetFlag(cl);
+  const GameItem *carried_flag = G_GetFlag(cl);
 
   if (team == cl->persistent.team) { // our flag
 
@@ -248,7 +248,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
       team_flag->s.event = EV_ITEM_RESPAWN;
       team_flag->s.event_data = team_flag->item->def.tag;
 
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_ctf_media.return_
       }, MULTICAST_PHS);
 
@@ -258,8 +258,8 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
     }
 
     if (carried_flag) {
-      const g_team_t *other_team = &g_team_list[carried_flag->def.tag - FLAG_FIRST];
-      g_entity_t *other_team_flag = G_FlagForTeam(other_team);
+      const GameTeam *other_team = &g_team_list[carried_flag->def.tag - FLAG_FIRST];
+      GameEntity *other_team_flag = G_FlagForTeam(other_team);
       if (!other_team_flag) {
         return false;
       }
@@ -279,7 +279,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
         other_team_flag->s.event = EV_ITEM_RESPAWN;
         other_team_flag->s.event_data = other_team_flag->item->def.tag;
 
-        G_MulticastSound(&(const g_play_sound_t) {
+        G_MulticastSound(&(const GamePlaySound) {
           .index = g_ctf_media.capture
         }, MULTICAST_PHS_R);
 
@@ -290,7 +290,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
 
         {
           const bool player_ai = cl->ai != NULL;
-          g_capture_t capture = {
+          GameCapture capture = {
             .player_ai = player_ai,
             .time = (uint32_t) time(NULL),
           };
@@ -328,7 +328,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
   // link the flag model to the player
   cl->entity->s.model3 = team_flag->item->model_index;
 
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_ctf_media.steal,
   }, MULTICAST_PHS_R);
 
@@ -342,9 +342,9 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
  * @brief Sheds the carried flag's effects and announces it, then puts the flag
  * into the world. The caller owns the inventory bookkeeping.
  */
-static g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag) {
+static GameEntity *G_ReleaseFlag(GameClient *cl, const GameItem *flag) {
 
-  const g_team_t *team = &g_team_list[flag->def.tag - FLAG_FIRST];
+  const GameTeam *team = &g_team_list[flag->def.tag - FLAG_FIRST];
 
   cl->entity->s.model3 = 0;
   cl->entity->s.effects &= ~EF_CTF_MASK;
@@ -358,9 +358,9 @@ static g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag) {
  * @brief Tosses the flag the client is carrying into the world, clearing it
  * from their inventory first.
  */
-static g_entity_t *G_TossFlag(g_client_t *cl) {
+static GameEntity *G_TossFlag(GameClient *cl) {
 
-  const g_item_t *flag = G_GetFlag(cl);
+  const GameItem *flag = G_GetFlag(cl);
 
   if (!flag || !cl->inventory[flag->def.tag]) {
     return NULL;
@@ -374,7 +374,7 @@ static g_entity_t *G_TossFlag(g_client_t *cl) {
 /**
  * @brief Drop command callback that tosses the client's carried CTF flag.
  */
-static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
+static GameEntity *G_DropFlag(GameClient *cl, const GameItem *item) {
   return G_ReleaseFlag(cl, item);
 }
 
@@ -393,12 +393,12 @@ static void G_InitMedia_Ctf(void) {
 /**
  * @brief Hides a flag whose team is not playing this level.
  */
-static void G_ResetItem_Ctf(g_entity_t *ent) {
+static void G_ResetItem_Ctf(GameEntity *ent) {
 
   previous.ResetItem(ent);
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
-    const g_team_id_t flag_team = ent->item->def.tag - FLAG_FIRST;
+    const GameTeamId flag_team = ent->item->def.tag - FLAG_FIRST;
 
     if (flag_team >= g_level.num_teams) {
       ent->sv_flags |= SVF_NO_CLIENT;
@@ -413,7 +413,7 @@ static void G_ResetItem_Ctf(g_entity_t *ent) {
  * @brief Exempts the flags from the gameplay modes that withhold items, since
  * without them there is nothing to capture.
  */
-static bool G_InhibitItem_Ctf(const g_entity_t *ent) {
+static bool G_InhibitItem_Ctf(const GameEntity *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     return false;
@@ -425,7 +425,7 @@ static bool G_InhibitItem_Ctf(const g_entity_t *ent) {
 /**
  * @brief Answers for the flag item type.
  */
-static void G_InitItem_Ctf(g_item_t *it) {
+static void G_InitItem_Ctf(GameItem *it) {
 
   if (it->def.type == ITEM_TYPE_FLAG) {
     it->Pickup = G_PickupFlag;
@@ -439,7 +439,7 @@ static void G_InitItem_Ctf(g_item_t *it) {
 /**
  * @brief Tosses the flag a client leaving play is holding.
  */
-static void G_TossInventory_Ctf(g_client_t *cl) {
+static void G_TossInventory_Ctf(GameClient *cl) {
 
   G_TossFlag(cl);
 

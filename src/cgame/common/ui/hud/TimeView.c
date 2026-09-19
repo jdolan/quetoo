@@ -37,9 +37,9 @@ static View *init(View *self) {
 #pragma mark - CounterView
 
 /**
- * @see CounterView::textForFrame(CounterView *, const cl_frame_t *)
+ * @see CounterView::textForFrame(CounterView *, const ClientFrame *)
  */
-static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
+static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
   const char *time = cgi.ConfigString(CS_TIME);
 

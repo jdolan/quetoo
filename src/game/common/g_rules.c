@@ -75,10 +75,10 @@ static bool G_AllowNextMap_Common(void) {
 AllowNextMap G_AllowNextMap = G_AllowNextMap_Common;
 
 /**
- * @brief The tail of the `G_ClampGameplay` hook: every mode `g_gameplay_id_t`
+ * @brief The tail of the `G_ClampGameplay` hook: every mode `GameplayId`
  * defines is one this module supports, so there is nothing to coerce.
  */
-static g_gameplay_id_t G_ClampGameplay_Common(g_gameplay_id_t gameplay) {
+static GameplayId G_ClampGameplay_Common(GameplayId gameplay) {
   return gameplay;
 }
 

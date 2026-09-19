@@ -22,7 +22,7 @@
 #include "qlight.h"
 
 // we use a subset of the collision detection facilities for lighting
-static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
+static CmBspModel *bsp_models[MAX_BSP_MODELS];
 
 /**
  * @brief Box trace data encapsulation and context management.
@@ -32,12 +32,12 @@ typedef struct {
   /**
    * @brief The trace start and end points, as provided by the user.
    */
-  vec3_t start, end;
+  Vec3 start, end;
 
   /**
    * @brief The absolute bounds of the trace, spanning the start and end points.
    */
-  box3_t abs_bounds;
+  Box3 abs_bounds;
 
   /**
    * @brief The contents mask to collide with, as provided by the user.
@@ -52,18 +52,18 @@ typedef struct {
   /**
    * @brief The trace result.
    */
-  cm_trace_t trace;
+  CmTrace trace;
 
   /**
    * @brief The trace fraction not taking any epsilon nudging into account.
    */
   float unnudged_fraction;
-} cm_trace_data_t;
+} CmTraceData;
 
 /**
  * @brief Returns true if the given brush number has already been tested in this trace, using a hash cache.
  */
-static inline bool Light_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
+static inline bool Light_BrushAlreadyTested(CmTraceData *data, int32_t brush_num) {
   const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
 
   const bool skip = (data->brush_cache[hash] == brush_num);
@@ -76,7 +76,7 @@ static inline bool Light_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush
 /**
  * @brief Clips the bounded box to all brush sides for the given brush.
  */
-static inline void Light_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
+static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush) {
 
   if (!brush->num_brush_sides) {
     return;
@@ -90,15 +90,15 @@ static inline void Light_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_
   float leave_fraction = 1.f;
   float nudged_enter_fraction = -1.f;
 
-  cm_bsp_plane_t plane = { };
-  const cm_bsp_brush_side_t *side = NULL;
+  CmBspPlane plane = { };
+  const CmBspBrushSide *side = NULL;
 
   bool start_outside = false, end_outside = false;
 
-  const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
+  const CmBspBrushSide *s = brush->brush_sides + brush->num_brush_sides - 1;
   for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {
 
-    cm_bsp_plane_t *p = s->plane;
+    CmBspPlane *p = s->plane;
 
     const float dist = p->dist;
 
@@ -167,9 +167,9 @@ static inline void Light_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_
 /**
  * @brief Traces through a single BSP leaf, testing all brushes within against the bounding box.
  */
-static inline void Light_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
+static inline void Light_TraceToLeaf(CmTraceData *data, int32_t leaf_num) {
 
-  const cm_bsp_leaf_t *leaf = &Cm_Bsp()->leafs[leaf_num];
+  const CmBspLeaf *leaf = &Cm_Bsp()->leafs[leaf_num];
 
   if (!(leaf->contents & data->contents)) {
     return;
@@ -183,7 +183,7 @@ static inline void Light_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
       continue; // already checked this brush in another leaf
     }
 
-    const cm_bsp_brush_t *b = &Cm_Bsp()->brushes[brush_num];
+    const CmBspBrush *b = &Cm_Bsp()->brushes[brush_num];
 
     if (!(b->contents & data->contents)) {
       continue;
@@ -200,14 +200,14 @@ static inline void Light_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 /**
  * @brief Recursively traces the bounding box through the BSP tree from p1 to p2.
  */
-static inline void Light_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
-                                     const vec3_t p1, const vec3_t p2) {
+static inline void Light_TraceToNode(CmTraceData *data, int32_t num, float p1f, float p2f,
+                                     const Vec3 p1, const Vec3 p2) {
 
   next:;
   // find the point distances to the separating plane
   // and the offset for the size of the box
-  const cm_bsp_node_t *node = Cm_Bsp()->nodes + num;
-  const cm_bsp_plane_t plane = *node->plane;
+  const CmBspNode *node = Cm_Bsp()->nodes + num;
+  const CmBspPlane plane = *node->plane;
 
   float d1, d2;
   if (AXIAL(&plane)) {
@@ -267,7 +267,7 @@ static inline void Light_TraceToNode(cm_trace_data_t *data, int32_t num, float p
 
     const float midf1 = p1f + (p2f - p1f) * frac1;
 
-    const vec3_t mid = Vec3_Mix(p1, p2, frac1);
+    const Vec3 mid = Vec3_Mix(p1, p2, frac1);
 
     num = node->children[side];
 
@@ -285,7 +285,7 @@ static inline void Light_TraceToNode(cm_trace_data_t *data, int32_t num, float p
   const float midf2 = p1f + (p2f - p1f) * frac2;
 
   if (midf2 < data->unnudged_fraction) {
-    const vec3_t mid = Vec3_Mix(p1, p2, frac2);
+    const Vec3 mid = Vec3_Mix(p1, p2, frac2);
 
     num = node->children[side ^ 1];
 
@@ -314,17 +314,17 @@ static inline void Light_TraceToNode(cm_trace_data_t *data, int32_t num, float p
  *
  * @return The trace.
  */
-static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_node, int32_t contents) {
+static inline CmTrace Light_Trace_(Vec3 start, Vec3 end, int32_t head_node, int32_t contents) {
 
-  cm_trace_data_t data;
+  CmTraceData data;
 
-  data.trace = (cm_trace_t) {
+  data.trace = (CmTrace) {
     .fraction = 1.f
   };
 
   data.start = start;
   data.end = end;
-  data.abs_bounds = Box3_FromPoints((const vec3_t []) { start, end }, 2);
+  data.abs_bounds = Box3_FromPoints((const Vec3 []) { start, end }, 2);
   data.contents = contents;
   data.unnudged_fraction = 1.f + TRACE_EPSILON;
 
@@ -348,7 +348,7 @@ static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_nod
 /**
  * @brief Returns the combined brush contents at point p for the world and the optional inline model head node.
  */
-int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
+int32_t Light_PointContents(const Vec3 p, int32_t head_node) {
 
   int32_t contents = Cm_PointContents(p, 0, Mat4_Identity());
 
@@ -366,14 +366,14 @@ int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
  * @param mask The contents mask to clip to.
  * @return The trace.
  */
-cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
-  cm_trace_t trace = Light_Trace_(start, end, 0, mask);
+CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t head_node, int32_t mask) {
+  CmTrace trace = Light_Trace_(start, end, 0, mask);
   if (trace.start_solid) {
     trace.fraction = 0.f;
   }
 
   if (head_node) {
-    cm_trace_t tr = Light_Trace_(start, end, head_node, mask);
+    CmTrace tr = Light_Trace_(start, end, head_node, mask);
     if (tr.start_solid) {
       tr.fraction = 0.f;
     }

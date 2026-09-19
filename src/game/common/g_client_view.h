@@ -24,7 +24,7 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_ClientDamageKick(g_client_t *cl, const vec3_t dir, const float kick);
-void G_ClientEndFrame(g_client_t *cl);
+void G_ClientDamageKick(GameClient *cl, const Vec3 dir, const float kick);
+void G_ClientEndFrame(GameClient *cl);
 void G_EndClientFrames(void);
 #endif

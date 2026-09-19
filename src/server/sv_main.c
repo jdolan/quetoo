@@ -26,38 +26,38 @@
 
 #define INSTALLER_UPDATE_INTERVAL (4 * 60 * 60 * 1000u) // 4 hours in milliseconds
 
-sv_static_t svs; // persistent server info
-sv_server_t sv; // per-level server info
+ServerStatic svs; // persistent server info
+Server sv; // per-level server info
 
-sv_client_t *sv_client; // current client
+ServerClient *sv_client; // current client
 
-cvar_t *sv_demo_list;
-cvar_t *sv_enforce_time;
-cvar_t *sv_guid;
-cvar_t *sv_hostname;
-cvar_t *sv_map;
-cvar_t *sv_map_list;
-cvar_t *sv_map_list_shuffle;
-cvar_t *sv_max_clients;
-cvar_t *sv_max_entities;
-cvar_t *sv_min_clients;
-cvar_t *sv_master;
-cvar_t *sv_public;
-cvar_t *sv_stats_url;
-cvar_t *sv_timeout;
+Cvar *sv_demo_list;
+Cvar *sv_enforce_time;
+Cvar *sv_guid;
+Cvar *sv_hostname;
+Cvar *sv_map;
+Cvar *sv_map_list;
+Cvar *sv_map_list_shuffle;
+Cvar *sv_max_clients;
+Cvar *sv_max_entities;
+Cvar *sv_min_clients;
+Cvar *sv_master;
+Cvar *sv_public;
+Cvar *sv_stats_url;
+Cvar *sv_timeout;
 
 /**
  * @brief Called when the player is totally leaving the server, either willingly
  * or unwillingly. This is NOT called if the entire server is quitting
  * or crashing.
  */
-void Sv_DropClient(sv_client_t *client) {
+void Sv_DropClient(ServerClient *client) {
 
   Sv_ClearVoiceMutes(client);
 
   if (client->state > SV_CLIENT_FREE) { // send the disconnect
 
-    g_client_t *cl = client->gclient;
+    GameClient *cl = client->gclient;
 
     if (!cl->ai) { // bots have no network connection
       Mem_ClearBuffer(&client->net_chan.message);
@@ -77,7 +77,7 @@ void Sv_DropClient(sv_client_t *client) {
 
   client->datagram.messages = release(client->datagram.messages);
 
-  g_client_t *gclient = client->gclient;
+  GameClient *gclient = client->gclient;
   memset(client, 0, sizeof(*client));
 
   client->last_frame = -1;
@@ -95,7 +95,7 @@ const char *Sv_StatusString(void) {
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-    const sv_client_t *cl = &svs.clients[i];
+    const ServerClient *cl = &svs.clients[i];
 
     if ((cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) && cl->gclient->in_use) {
       char player[MAX_TOKEN_CHARS];
@@ -180,7 +180,7 @@ static void Sv_Connect_f(void) {
 
   Com_Debug(DEBUG_SERVER, "Sv_Connect_f()\n");
 
-  net_addr_t *addr = &net_from;
+  NetAddr *addr = &net_from;
 
   const int32_t version = (int32_t) strtol(Cmd_Argv(1), NULL, 0);
 
@@ -243,17 +243,17 @@ static void Sv_Connect_f(void) {
   }
 
   // resolve the client slot
-  sv_client_t *client = NULL;
+  ServerClient *client = NULL;
 
   // first check for an ungraceful reconnect (client crashed, perhaps)
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) { // not in use, not interested
       continue;
     }
 
-    const net_chan_t *ch = &cl->net_chan;
+    const NetChan *ch = &cl->net_chan;
 
     // the base address and either the qport or real port must match
     if (Net_CompareClientNetaddr(addr, &ch->remote_address)) {
@@ -266,7 +266,7 @@ static void Sv_Connect_f(void) {
 
   // otherwise, treat as a fresh connect to a new slot
   if (!client) {
-    sv_client_t *cl = svs.clients;
+    ServerClient *cl = svs.clients;
     for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
       if (cl->state == SV_CLIENT_FREE) { // we have a free one
         client = cl;
@@ -277,7 +277,7 @@ static void Sv_Connect_f(void) {
 
   // no free slots, see if there's an AI slot ready to go and boot them.
   if (!client) {
-    sv_client_t *cl = svs.clients;
+    ServerClient *cl = svs.clients;
     for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
       if (cl->gclient->ai) {
         client = cl;
@@ -352,7 +352,7 @@ static char sv_rcon_buffer[MAX_PRINT_MSG];
 /**
  * @brief Console appender for remote console.
  */
-static void Sv_Rcon_Print(const console_string_t *str) {
+static void Sv_Rcon_Print(const ConsoleString *str) {
 
   q_strlcat(sv_rcon_buffer, str->chars, sizeof(sv_rcon_buffer));
 }
@@ -376,7 +376,7 @@ static void Sv_Rcon_f(void) {
 
   // then redirect the remaining output back to the client
 
-  console_t rcon = { .Append = Sv_Rcon_Print };
+  Console rcon = { .Append = Sv_Rcon_Print };
   sv_rcon_buffer[0] = '\0';
 
   Con_AddConsole(&rcon);
@@ -452,7 +452,7 @@ static void Sv_UpdatePings(void) {
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-    sv_client_t *cl = &svs.clients[i];
+    ServerClient *cl = &svs.clients[i];
 
     if (cl->state != SV_CLIENT_ACTIVE) {
       continue;
@@ -491,7 +491,7 @@ static void Sv_CheckCommandTimes(void) {
 
   // inspect each client, ensuring they are reasonably in sync with us
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    sv_client_t *cl = &svs.clients[i];
+    ServerClient *cl = &svs.clients[i];
 
     if (cl->state < SV_CLIENT_ACTIVE) {
       continue;
@@ -544,7 +544,7 @@ static void Sv_ReadPackets(void) {
     const byte qport = Net_ReadByte(&net_message) & 0xff;
 
     // check for packets from connected clients
-    sv_client_t *cl = svs.clients;
+    ServerClient *cl = svs.clients;
     for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
       if (cl->state == SV_CLIENT_FREE) {
@@ -587,7 +587,7 @@ static void Sv_CheckTimeouts(void) {
     return;
   }
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
@@ -622,7 +622,7 @@ static void Sv_ResetEntities(void) {
   }
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
-    g_entity_t *ent = sv.entities[i].gent;
+    GameEntity *ent = sv.entities[i].gent;
     if (ent) {
       ent->s.event = 0;
       ent->s.event_data = 0;
@@ -631,14 +631,14 @@ static void Sv_ResetEntities(void) {
 }
 
 /**
- * @brief Syncs `sv_client_t` state with the game module's `g_client_t` for bot clients.
+ * @brief Syncs `ServerClient` state with the game module's `GameClient` for bot clients.
  * Called after each game frame to reflect bot connects and disconnects.
  */
 static void Sv_SyncGameClients(void) {
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    sv_client_t *client = &svs.clients[i];
-    const g_client_t *cl = client->gclient;
+    ServerClient *client = &svs.clients[i];
+    const GameClient *cl = client->gclient;
 
     if (client->state == SV_CLIENT_FREE) {
       if (cl->in_use && cl->ai) { // ai client has just connected
@@ -651,7 +651,7 @@ static void Sv_SyncGameClients(void) {
       }
     } else {
       if (!cl->in_use) { // ai client has just disconnected
-        g_client_t *gclient = client->gclient;
+        GameClient *gclient = client->gclient;
         memset(client, 0, sizeof(*client));
         client->last_frame = -1;
         client->gclient = gclient;
@@ -677,7 +677,7 @@ static void Sv_RunGameFrame(void) {
 /**
  * @brief Kicks the specified client from the server with an optional message.
  */
-void Sv_KickClient(sv_client_t *cl, const char *msg) {
+void Sv_KickClient(ServerClient *cl, const char *msg) {
   char buf[MAX_STRING_CHARS], name[32];
 
   if (!cl) {
@@ -710,7 +710,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
 /**
  * @brief A convenience function for printing out client addresses.
  */
-const char *Sv_NetaddrToString(const sv_client_t *cl) {
+const char *Sv_NetaddrToString(const ServerClient *cl) {
   return Net_NetaddrToString(&cl->net_chan.remote_address);
 }
 
@@ -719,7 +719,7 @@ const char *Sv_NetaddrToString(const sv_client_t *cl) {
  * @return False if the client was kicked for its `user_info`, in which case the slot is free
  * again and the caller MUST NOT touch it further.
  */
-bool Sv_UserInfoChanged(sv_client_t *cl) {
+bool Sv_UserInfoChanged(ServerClient *cl) {
   char *val;
   size_t i;
 
@@ -773,8 +773,8 @@ bool Sv_UserInfoChanged(sv_client_t *cl) {
  * @brief Installer frame callback for dedicated servers. Delays 100 ms and
  * logs state transitions to the console.
  */
-int32_t Sv_InstallerFrame(const installer_status_t *in) {
-  static installer_status_t last;
+int32_t Sv_InstallerFrame(const InstallerStatus *in) {
+  static InstallerStatus last;
 
   if (in->state != last.state || q_strcmp(in->current_file, last.current_file)) {
     switch (in->state) {

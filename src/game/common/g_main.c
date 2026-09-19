@@ -21,182 +21,182 @@
 
 #include "g_local.h"
 
-g_import_t gi;
-g_export_t ge;
+GameImport gi;
+GameExport ge;
 
-g_level_t g_level;
-g_media_t g_media;
+GameLevel g_level;
+GameMedia g_media;
 
-cvar_t *g_admin_password;
-cvar_t *g_ammo_respawn_time;
-cvar_t *g_auto_join;
-cvar_t *g_balance_armor_shard_respawn;
-cvar_t *g_balance_armor_jacket_respawn;
-cvar_t *g_balance_armor_combat_respawn;
-cvar_t *g_balance_armor_body_respawn;
-cvar_t *g_balance_bfg_damage;
-cvar_t *g_balance_bfg_knockback;
-cvar_t *g_balance_bfg_prefire;
-cvar_t *g_balance_bfg_radius;
-cvar_t *g_balance_bfg_refire;
-cvar_t *g_balance_bfg_speed;
-cvar_t *g_balance_blaster_damage;
-cvar_t *g_balance_blaster_knockback;
-cvar_t *g_balance_blaster_refire;
-cvar_t *g_balance_blaster_speed;
-cvar_t *g_balance_handgrenade_refire;
-cvar_t *g_balance_health_small_respawn;
-cvar_t *g_balance_health_medium_respawn;
-cvar_t *g_balance_health_large_respawn;
-cvar_t *g_balance_health_mega_respawn;
-cvar_t *g_balance_hyperblaster_climb_damage;
-cvar_t *g_balance_hyperblaster_climb_knockback;
-cvar_t *g_balance_hyperblaster_damage;
-cvar_t *g_balance_hyperblaster_knockback;
-cvar_t *g_balance_hyperblaster_refire;
-cvar_t *g_balance_hyperblaster_speed;
-cvar_t *g_balance_lightning_damage;
-cvar_t *g_balance_lightning_knockback;
-cvar_t *g_balance_lightning_length;
-cvar_t *g_balance_lightning_refire;
-cvar_t *g_balance_machinegun_damage;
-cvar_t *g_balance_machinegun_knockback;
-cvar_t *g_balance_machinegun_refire;
-cvar_t *g_balance_machinegun_spread_x;
-cvar_t *g_balance_machinegun_spread_y;
-cvar_t *g_balance_grenadelauncher_damage;
-cvar_t *g_balance_grenadelauncher_knockback;
-cvar_t *g_balance_grenadelauncher_radius;
-cvar_t *g_balance_grenadelauncher_refire;
-cvar_t *g_balance_grenadelauncher_speed;
-cvar_t *g_balance_grenadelauncher_timer;
-cvar_t *g_balance_quad_damage_respawn_time;
-cvar_t *g_balance_quad_damage_time;
-cvar_t *g_balance_quake_shotgun_damage;
-cvar_t *g_balance_quake_shotgun_knockback;
-cvar_t *g_balance_quake_shotgun_pellets;
-cvar_t *g_balance_quake_shotgun_refire;
-cvar_t *g_balance_quake_shotgun_spread_x;
-cvar_t *g_balance_quake_shotgun_spread_y;
-cvar_t *g_balance_quake_supershotgun_damage;
-cvar_t *g_balance_quake_supershotgun_knockback;
-cvar_t *g_balance_quake_supershotgun_pellets;
-cvar_t *g_balance_quake_supershotgun_refire;
-cvar_t *g_balance_quake_supershotgun_spread_x;
-cvar_t *g_balance_quake_supershotgun_spread_y;
-cvar_t *g_balance_quake_nailgun_damage;
-cvar_t *g_balance_quake_nailgun_knockback;
-cvar_t *g_balance_quake_nailgun_refire;
-cvar_t *g_balance_quake_nailgun_speed;
-cvar_t *g_balance_quake_supernailgun_damage;
-cvar_t *g_balance_quake_supernailgun_knockback;
-cvar_t *g_balance_quake_supernailgun_refire;
-cvar_t *g_balance_quake_supernailgun_speed;
-cvar_t *g_balance_quake_grenadelauncher_damage;
-cvar_t *g_balance_quake_grenadelauncher_knockback;
-cvar_t *g_balance_quake_grenadelauncher_radius;
-cvar_t *g_balance_quake_grenadelauncher_refire;
-cvar_t *g_balance_quake_grenadelauncher_speed;
-cvar_t *g_balance_quake_grenadelauncher_timer;
-cvar_t *g_balance_quake_rocketlauncher_damage;
-cvar_t *g_balance_quake_rocketlauncher_knockback;
-cvar_t *g_balance_quake_rocketlauncher_radius;
-cvar_t *g_balance_quake_rocketlauncher_refire;
-cvar_t *g_balance_quake_rocketlauncher_speed;
-cvar_t *g_balance_quake_thunderbolt_damage;
-cvar_t *g_balance_quake_thunderbolt_knockback;
-cvar_t *g_balance_quake_thunderbolt_length;
-cvar_t *g_balance_quake_thunderbolt_refire;
-cvar_t *g_balance_invisibility_respawn_time;
-cvar_t *g_balance_invisibility_time;
-cvar_t *g_balance_invulnerability_respawn_time;
-cvar_t *g_balance_invulnerability_time;
-cvar_t *g_balance_railgun_damage;
-cvar_t *g_balance_railgun_knockback;
-cvar_t *g_balance_railgun_refire;
-cvar_t *g_balance_rocketlauncher_damage;
-cvar_t *g_balance_rocketlauncher_knockback;
-cvar_t *g_balance_rocketlauncher_radius;
-cvar_t *g_balance_rocketlauncher_refire;
-cvar_t *g_balance_rocketlauncher_speed;
-cvar_t *g_balance_shotgun_damage;
-cvar_t *g_balance_shotgun_knockback;
-cvar_t *g_balance_shotgun_pellets;
-cvar_t *g_balance_shotgun_refire;
-cvar_t *g_balance_shotgun_spread_x;
-cvar_t *g_balance_shotgun_spread_y;
-cvar_t *g_balance_supershotgun_damage;
-cvar_t *g_balance_supershotgun_knockback;
-cvar_t *g_balance_supershotgun_pellets;
-cvar_t *g_balance_supershotgun_refire;
-cvar_t *g_balance_supershotgun_spread_x;
-cvar_t *g_balance_supershotgun_spread_y;
-cvar_t *g_cheats;
-cvar_t *g_frag_limit;
-cvar_t *g_friendly_fire;
-cvar_t *g_gameplay;
-cvar_t *g_movement;
+Cvar *g_admin_password;
+Cvar *g_ammo_respawn_time;
+Cvar *g_auto_join;
+Cvar *g_balance_armor_shard_respawn;
+Cvar *g_balance_armor_jacket_respawn;
+Cvar *g_balance_armor_combat_respawn;
+Cvar *g_balance_armor_body_respawn;
+Cvar *g_balance_bfg_damage;
+Cvar *g_balance_bfg_knockback;
+Cvar *g_balance_bfg_prefire;
+Cvar *g_balance_bfg_radius;
+Cvar *g_balance_bfg_refire;
+Cvar *g_balance_bfg_speed;
+Cvar *g_balance_blaster_damage;
+Cvar *g_balance_blaster_knockback;
+Cvar *g_balance_blaster_refire;
+Cvar *g_balance_blaster_speed;
+Cvar *g_balance_handgrenade_refire;
+Cvar *g_balance_health_small_respawn;
+Cvar *g_balance_health_medium_respawn;
+Cvar *g_balance_health_large_respawn;
+Cvar *g_balance_health_mega_respawn;
+Cvar *g_balance_hyperblaster_climb_damage;
+Cvar *g_balance_hyperblaster_climb_knockback;
+Cvar *g_balance_hyperblaster_damage;
+Cvar *g_balance_hyperblaster_knockback;
+Cvar *g_balance_hyperblaster_refire;
+Cvar *g_balance_hyperblaster_speed;
+Cvar *g_balance_lightning_damage;
+Cvar *g_balance_lightning_knockback;
+Cvar *g_balance_lightning_length;
+Cvar *g_balance_lightning_refire;
+Cvar *g_balance_machinegun_damage;
+Cvar *g_balance_machinegun_knockback;
+Cvar *g_balance_machinegun_refire;
+Cvar *g_balance_machinegun_spread_x;
+Cvar *g_balance_machinegun_spread_y;
+Cvar *g_balance_grenadelauncher_damage;
+Cvar *g_balance_grenadelauncher_knockback;
+Cvar *g_balance_grenadelauncher_radius;
+Cvar *g_balance_grenadelauncher_refire;
+Cvar *g_balance_grenadelauncher_speed;
+Cvar *g_balance_grenadelauncher_timer;
+Cvar *g_balance_quad_damage_respawn_time;
+Cvar *g_balance_quad_damage_time;
+Cvar *g_balance_quake_shotgun_damage;
+Cvar *g_balance_quake_shotgun_knockback;
+Cvar *g_balance_quake_shotgun_pellets;
+Cvar *g_balance_quake_shotgun_refire;
+Cvar *g_balance_quake_shotgun_spread_x;
+Cvar *g_balance_quake_shotgun_spread_y;
+Cvar *g_balance_quake_supershotgun_damage;
+Cvar *g_balance_quake_supershotgun_knockback;
+Cvar *g_balance_quake_supershotgun_pellets;
+Cvar *g_balance_quake_supershotgun_refire;
+Cvar *g_balance_quake_supershotgun_spread_x;
+Cvar *g_balance_quake_supershotgun_spread_y;
+Cvar *g_balance_quake_nailgun_damage;
+Cvar *g_balance_quake_nailgun_knockback;
+Cvar *g_balance_quake_nailgun_refire;
+Cvar *g_balance_quake_nailgun_speed;
+Cvar *g_balance_quake_supernailgun_damage;
+Cvar *g_balance_quake_supernailgun_knockback;
+Cvar *g_balance_quake_supernailgun_refire;
+Cvar *g_balance_quake_supernailgun_speed;
+Cvar *g_balance_quake_grenadelauncher_damage;
+Cvar *g_balance_quake_grenadelauncher_knockback;
+Cvar *g_balance_quake_grenadelauncher_radius;
+Cvar *g_balance_quake_grenadelauncher_refire;
+Cvar *g_balance_quake_grenadelauncher_speed;
+Cvar *g_balance_quake_grenadelauncher_timer;
+Cvar *g_balance_quake_rocketlauncher_damage;
+Cvar *g_balance_quake_rocketlauncher_knockback;
+Cvar *g_balance_quake_rocketlauncher_radius;
+Cvar *g_balance_quake_rocketlauncher_refire;
+Cvar *g_balance_quake_rocketlauncher_speed;
+Cvar *g_balance_quake_thunderbolt_damage;
+Cvar *g_balance_quake_thunderbolt_knockback;
+Cvar *g_balance_quake_thunderbolt_length;
+Cvar *g_balance_quake_thunderbolt_refire;
+Cvar *g_balance_invisibility_respawn_time;
+Cvar *g_balance_invisibility_time;
+Cvar *g_balance_invulnerability_respawn_time;
+Cvar *g_balance_invulnerability_time;
+Cvar *g_balance_railgun_damage;
+Cvar *g_balance_railgun_knockback;
+Cvar *g_balance_railgun_refire;
+Cvar *g_balance_rocketlauncher_damage;
+Cvar *g_balance_rocketlauncher_knockback;
+Cvar *g_balance_rocketlauncher_radius;
+Cvar *g_balance_rocketlauncher_refire;
+Cvar *g_balance_rocketlauncher_speed;
+Cvar *g_balance_shotgun_damage;
+Cvar *g_balance_shotgun_knockback;
+Cvar *g_balance_shotgun_pellets;
+Cvar *g_balance_shotgun_refire;
+Cvar *g_balance_shotgun_spread_x;
+Cvar *g_balance_shotgun_spread_y;
+Cvar *g_balance_supershotgun_damage;
+Cvar *g_balance_supershotgun_knockback;
+Cvar *g_balance_supershotgun_pellets;
+Cvar *g_balance_supershotgun_refire;
+Cvar *g_balance_supershotgun_spread_x;
+Cvar *g_balance_supershotgun_spread_y;
+Cvar *g_cheats;
+Cvar *g_frag_limit;
+Cvar *g_friendly_fire;
+Cvar *g_gameplay;
+Cvar *g_movement;
 
 /**
  * @brief What this level asked for, remembered so that setting `g_movement`
  * back to "default" returns to it rather than to Quetoo's.
  */
-static pm_movement_t g_movement_level;
-static g_gameplay_id_t g_gameplay_level;
+static PlayerMovement g_movement_level;
+static GameplayId g_gameplay_level;
 
-// player movement parameters (hydrated into pm_params_t by G_MovementParams)
-cvar_t *g_air_acceleration;
-cvar_t *g_air_friction;
-cvar_t *g_air_speed;
-cvar_t *g_duck_speed;
-cvar_t *g_duck_stand_speed;
-cvar_t *g_gravity;
-cvar_t *g_ground_acceleration;
-cvar_t *g_ground_acceleration_slick;
-cvar_t *g_ground_friction;
-cvar_t *g_ground_friction_slick;
-cvar_t *g_ground_speed;
-cvar_t *g_jump_speed;
-cvar_t *g_ladder_acceleration;
-cvar_t *g_ladder_friction;
-cvar_t *g_ladder_speed;
-cvar_t *g_spectator_acceleration;
-cvar_t *g_spectator_friction;
-cvar_t *g_spectator_speed;
-cvar_t *g_stop_speed;
-cvar_t *g_water_acceleration;
-cvar_t *g_water_friction;
-cvar_t *g_water_jump_speed;
-cvar_t *g_water_speed;
-cvar_t *g_death_cam;
-cvar_t *g_death_cam_distance;
-cvar_t *g_death_cam_height;
-cvar_t *g_death_cam_rise;
-cvar_t *g_death_cam_time;
-cvar_t *g_death_cam_velocity;
-cvar_t *g_motd;
-cvar_t *g_num_teams;
-cvar_t *g_password;
-cvar_t *g_player_projectile;
-cvar_t *g_respawn_protection;
-cvar_t *g_fall_damage;
-cvar_t *g_self_damage;
-cvar_t *g_self_knockback;
-cvar_t *g_show_attacker_stats;
-cvar_t *g_spawn_farthest;
-cvar_t *g_spectator_chat;
-cvar_t *g_time_limit;
-cvar_t *g_weapon_respawn_time;
-cvar_t *g_weapon_stay;
+// player movement parameters (hydrated into PlayerMoveParams by G_MovementParams)
+Cvar *g_air_acceleration;
+Cvar *g_air_friction;
+Cvar *g_air_speed;
+Cvar *g_duck_speed;
+Cvar *g_duck_stand_speed;
+Cvar *g_gravity;
+Cvar *g_ground_acceleration;
+Cvar *g_ground_acceleration_slick;
+Cvar *g_ground_friction;
+Cvar *g_ground_friction_slick;
+Cvar *g_ground_speed;
+Cvar *g_jump_speed;
+Cvar *g_ladder_acceleration;
+Cvar *g_ladder_friction;
+Cvar *g_ladder_speed;
+Cvar *g_spectator_acceleration;
+Cvar *g_spectator_friction;
+Cvar *g_spectator_speed;
+Cvar *g_stop_speed;
+Cvar *g_water_acceleration;
+Cvar *g_water_friction;
+Cvar *g_water_jump_speed;
+Cvar *g_water_speed;
+Cvar *g_death_cam;
+Cvar *g_death_cam_distance;
+Cvar *g_death_cam_height;
+Cvar *g_death_cam_rise;
+Cvar *g_death_cam_time;
+Cvar *g_death_cam_velocity;
+Cvar *g_motd;
+Cvar *g_num_teams;
+Cvar *g_password;
+Cvar *g_player_projectile;
+Cvar *g_respawn_protection;
+Cvar *g_fall_damage;
+Cvar *g_self_damage;
+Cvar *g_self_knockback;
+Cvar *g_show_attacker_stats;
+Cvar *g_spawn_farthest;
+Cvar *g_spectator_chat;
+Cvar *g_time_limit;
+Cvar *g_weapon_respawn_time;
+Cvar *g_weapon_stay;
 
-cvar_t *sv_min_clients;
-cvar_t *sv_max_clients;
-cvar_t *sv_max_entities;
-cvar_t *sv_hostname;
-cvar_t *dedicated;
-cvar_t *editor;
+Cvar *sv_min_clients;
+Cvar *sv_max_clients;
+Cvar *sv_max_entities;
+Cvar *sv_hostname;
+Cvar *dedicated;
+Cvar *editor;
 
-g_team_t g_team_list[MAX_TEAMS] = {
+GameTeam g_team_list[MAX_TEAMS] = {
   [TEAM_RED] = {
     .id = TEAM_RED,
     .name = "Red",
@@ -269,9 +269,9 @@ g_team_t g_team_list[MAX_TEAMS] = {
 void G_ResetTeams(void) {
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    g_team_t *team = &g_team_list[i];
+    GameTeam *team = &g_team_list[i];
     team->score = 0;
-    team->spawn_points = (g_spawn_points_t) { 0 };
+    team->spawn_points = (GameSpawnPoints) { 0 };
 #if defined(G_CTF)
     team->captures = 0;
     team->flag_entity = NULL;
@@ -339,10 +339,10 @@ void G_ResetItems(void) {
 /**
  * @brief Setup the effects for spawn points.
  */
-static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trail_t trail, const g_team_id_t team_id) {
+static void G_ResetTeamSpawnPoints(GameSpawnPoints *points, const GameEntityTrail trail, const GameTeamId team_id) {
 
   for (size_t i = 0; i < points->count; i++) {
-    g_entity_t *ent = points->spots[i];
+    GameEntity *ent = points->spots[i];
 
     if (trail && g_level.teams) {
 
@@ -360,7 +360,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
     } else {
 
       ent->s.trail = 0;
-      ent->s.color = (color32_t) { .rgba = 0 };
+      ent->s.color = (Color32) { .rgba = 0 };
       ent->sv_flags = SVF_NO_CLIENT;
 
       gi.UnlinkEntity(ent);
@@ -435,7 +435,7 @@ static void G_RestartGame(bool teamz) {
 
   gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
 
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_media.sounds.teleport
   }, MULTICAST_PHS_R);
 }
@@ -443,7 +443,7 @@ static void G_RestartGame(bool teamz) {
 /**
  * @brief Sets or clears the muted flag on a client, in chat and in voice.
  */
-void G_SetClientMuted(g_client_t *cl, bool mute) {
+void G_SetClientMuted(GameClient *cl, bool mute) {
 
   cl->persistent.muted = mute;
 
@@ -456,7 +456,7 @@ void G_SetClientMuted(g_client_t *cl, bool mute) {
  * @brief Sets or clears the muted flag on the named client.
  */
 void G_MuteClient(char *name, bool mute) {
-  g_client_t *cl;
+  GameClient *cl;
 
   if (!(cl = G_ClientByName(name))) {
     return;
@@ -473,15 +473,15 @@ void G_MuteClient(char *name, bool mute) {
  */
 static void G_PostStats(void) {
 
-  g_capture_t *captures = NULL;
+  GameCapture *captures = NULL;
   int32_t num_captures = 0;
 
 #if defined(G_CTF)
-  captures = (g_capture_t *) g_level.captures->elements;
+  captures = (GameCapture *) g_level.captures->elements;
   num_captures = (int32_t) g_level.captures->count;
 #endif
 
-  gi.PostStats((g_frag_t *) g_level.frags->elements, (int32_t) g_level.frags->count,
+  gi.PostStats((GameFrag *) g_level.frags->elements, (int32_t) g_level.frags->count,
                captures, num_captures);
 
   g_level.frags = release(g_level.frags);
@@ -513,7 +513,7 @@ static void G_BeginIntermission(void) {
   });
 
   // find an intermission spot
-  g_entity_t *ent = G_Find(NULL, EOFS(classname), "info_player_intermission");
+  GameEntity *ent = G_Find(NULL, EOFS(classname), "info_player_intermission");
   if (!ent) { // map does not have an intermission point
     ent = G_Find(NULL, EOFS(classname), "info_player_start");
     if (!ent) {
@@ -525,9 +525,9 @@ static void G_BeginIntermission(void) {
   g_level.intermission_angle = ent->s.angles;
 
   if (ent->target) {
-    const g_entity_t *target = G_PickTarget(ent->target);
+    const GameEntity *target = G_PickTarget(ent->target);
     if (target) {
-      const vec3_t dir = Vec3_Subtract(target->s.origin, ent->s.origin);
+      const Vec3 dir = Vec3_Subtract(target->s.origin, ent->s.origin);
       g_level.intermission_angle = Vec3_Euler(dir);
     } else {
       G_Debug("%s has invalid target %s\n", etos(ent), ent->target);
@@ -540,7 +540,7 @@ static void G_BeginIntermission(void) {
   });
 
   // play a dramatic sound effect
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_media.sounds.roar
   }, MULTICAST_PHS_R);
 
@@ -579,7 +579,7 @@ char *G_FormatTime(uint32_t time) {
 }
 
 /**
- * @brief Factory for `pm_params_t`, hydrated fresh from the g_* movement cvars at
+ * @brief Factory for `PlayerMoveParams`, hydrated fresh from the g_* movement cvars at
  * each `Pm_Move` call site. Values are passed through verbatim; `Pm_Move`
  * performs all sanitization (clamping, divide-by-zero guards).
  *
@@ -588,15 +588,15 @@ char *G_FormatTime(uint32_t time) {
  * anyone could set a comparable record under. Gravity is the exception, as the
  * level's when the level sets one; see `G_LevelGravity`.
  */
-pm_params_t G_MovementParams(void) {
+PlayerMoveParams G_MovementParams(void) {
 
-  const pm_movement_info_t *movement = Pm_Movement(g_level.movement);
-  pm_params_t params;
+  const PlayerMovementInfo *movement = Pm_Movement(g_level.movement);
+  PlayerMoveParams params;
 
   if (movement->params) {
     params = *movement->params;
   } else {
-    params = (pm_params_t) {
+    params = (PlayerMoveParams) {
       .gravity = DEFAULT_GRAVITY,
 
       .accel_ground = g_ground_acceleration->value,
@@ -649,7 +649,7 @@ float G_LevelGravity(void) {
     return g_level.gravity;
   }
 
-  const pm_movement_info_t *movement = Pm_Movement(g_level.movement);
+  const PlayerMovementInfo *movement = Pm_Movement(g_level.movement);
 
   return movement->params ? movement->params->gravity : DEFAULT_GRAVITY;
 }
@@ -662,9 +662,9 @@ float G_LevelGravity(void) {
  * unknown movement that quietly behaved like Quetoo's would be indistinguishable
  * from a working one.
  */
-static pm_movement_t G_CoerceMovement(void) {
+static PlayerMovement G_CoerceMovement(void) {
 
-  pm_movement_t movement = g_movement_level;
+  PlayerMovement movement = g_movement_level;
 
   if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
     if (!Pm_MovementByName(g_movement->string, &movement)) {
@@ -684,7 +684,7 @@ static pm_movement_t G_CoerceMovement(void) {
  * @brief Resolves the movement for a level that asks for `name`, which may be
  * empty. `g_movement` still wins if the admin named one.
  */
-pm_movement_t G_ResolveMovement(const char *name) {
+PlayerMovement G_ResolveMovement(const char *name) {
 
   g_movement_level = G_MOVEMENT_DEFAULT;
 
@@ -703,9 +703,9 @@ pm_movement_t G_ResolveMovement(const char *name) {
  * clamp it to a mode it supports, and coerces the cvar itself to whichever
  * canonical name results. "default" defers to the level, and is left alone.
  */
-static g_gameplay_id_t G_CoerceGameplay(void) {
+static GameplayId G_CoerceGameplay(void) {
 
-  g_gameplay_id_t gameplay = g_gameplay_level;
+  GameplayId gameplay = g_gameplay_level;
 
   if (q_strcmp(g_gameplay->string, "default")) { // "default" defers to the level
     gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
@@ -726,7 +726,7 @@ static g_gameplay_id_t G_CoerceGameplay(void) {
  * @brief Resolves the gameplay for a level that asks for `name`, which may be
  * empty. `g_gameplay` still wins if the admin named one.
  */
-g_gameplay_id_t G_ResolveGameplay(const char *name) {
+GameplayId G_ResolveGameplay(const char *name) {
 
   g_gameplay_level = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
 
@@ -761,7 +761,7 @@ static void G_CheckRules(void) {
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
 
-    const g_gameplay_id_t gameplay = G_CoerceGameplay();
+    const GameplayId gameplay = G_CoerceGameplay();
 
     // SetCvarString above re-marks modified whenever the string actually changed
     // (i.e. whenever we just coerced garbage, or the module clamped it to something
@@ -783,7 +783,7 @@ static void G_CheckRules(void) {
 
   if (g_movement->modified) { // change how players move, with no restart
 
-    const pm_movement_t movement = G_CoerceMovement();
+    const PlayerMovement movement = G_CoerceMovement();
 
     // as above, the coercion re-marks modified whenever it changed the string
     g_movement->modified = false;
@@ -966,7 +966,7 @@ static void G_Frame(void) {
   // inspect and enforce gameplay rules
   G_CheckRules();
 
-  // build the player_state_t structures for all players
+  // build the PlayerState structures for all players
   G_EndClientFrames();
 }
 
@@ -1039,19 +1039,19 @@ void G_Init(void) {
   ge.ClipEntity = G_ClipEntity;
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);
+    ge.clients[i] = gi.Malloc(sizeof(GameClient), MEM_TAG_GAME);
     ge.clients[i]->ps.client = i;
   }
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
-    ge.entities[i] = gi.Malloc(sizeof(g_entity_t), MEM_TAG_GAME);
+    ge.entities[i] = gi.Malloc(sizeof(GameEntity), MEM_TAG_GAME);
     ge.entities[i]->s.number = i;
   }
 
   gi.Print("Game module initialization...\n");
 
   const char *s = va("%s %s", BUILD, VERSION);
-  cvar_t *game_version = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+  Cvar *game_version = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   gi.Print("  Version:    ^2%s^7\n", game_version->string);
 
@@ -1181,7 +1181,7 @@ void G_Init(void) {
     "The player movement this level actually resolved to, published for the server browser. "
     "Read g_movement for what was requested.");
 
-  // player movement parameters (hydrated into pm_params_t by G_MovementParams)
+  // player movement parameters (hydrated into PlayerMoveParams by G_MovementParams)
   g_air_acceleration = gi.AddCvar("g_air_acceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
   g_air_friction = gi.AddCvar("g_air_friction", "0.125", 0, "Friction applied while airborne. Default 0.125; set 0 to remove air drag.");
   g_air_speed = gi.AddCvar("g_air_speed", "350", 0, "Wish-speed cap while airborne. Default 350.");
@@ -1304,7 +1304,7 @@ void G_RunTimers(void) {
  * we can call back into the server, and returning a populated game export
  * structure.
  */
-g_export_t *G_LoadGame(g_import_t *import) {
+GameExport *G_LoadGame(GameImport *import) {
 
   gi = *import;
 

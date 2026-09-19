@@ -22,10 +22,10 @@
 #include "tests.h"
 #include "r_local.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
-cvar_t *developer;
-cvar_t *editor;
+Cvar *developer;
+Cvar *editor;
 
 static bool Test_WaitForIdle(const RenderDevice *self) {
   return true;
@@ -35,7 +35,7 @@ static bool Test_WaitForIdle(const RenderDevice *self) {
  * @brief Setup fixture.
  */
 void setup(void) {
-  static cvar_t null_cvar;
+  static Cvar null_cvar;
 
   // Objectively dispatches through the instance's Class, so a stub device needs one
   static RenderDeviceInterface interface = { .waitForIdle = Test_WaitForIdle };
@@ -48,7 +48,7 @@ void setup(void) {
   Mem_Init();
 
   r_context.device = &device;
-  r_occlusion.boxes = $(alloc(Vector), initWithSize, sizeof(box3_t));
+  r_occlusion.boxes = $(alloc(Vector), initWithSize, sizeof(Box3));
 
   R_InitMedia();
 }
@@ -69,17 +69,17 @@ void teardown(void) {
 START_TEST(check_R_RegisterMedia) {
   R_BeginLoading();
 
-  r_media_t *parent1 = R_AllocMedia("parent1", sizeof(r_media_t), R_MEDIA_GENERIC);
+  RenderMedia *parent1 = R_AllocMedia("parent1", sizeof(RenderMedia), R_MEDIA_GENERIC);
   R_RegisterMedia(parent1);
 
   ck_assert_msg(R_FindMedia("parent1", R_MEDIA_GENERIC) == parent1, "Failed to find parent1");
 
-  r_media_t *child1 = R_AllocMedia("child1", sizeof(r_media_t), R_MEDIA_GENERIC);
+  RenderMedia *child1 = R_AllocMedia("child1", sizeof(RenderMedia), R_MEDIA_GENERIC);
   R_RegisterDependency(parent1, child1);
 
   ck_assert_msg(R_FindMedia("child1", R_MEDIA_GENERIC) == child1, "Failed to find child1");
 
-  r_media_t *grandchild1 = R_AllocMedia("grandchild1", sizeof(r_media_t), R_MEDIA_GENERIC);
+  RenderMedia *grandchild1 = R_AllocMedia("grandchild1", sizeof(RenderMedia), R_MEDIA_GENERIC);
   R_RegisterDependency(child1, grandchild1);
 
   R_EndLoading();
@@ -104,12 +104,12 @@ START_TEST(check_R_RegisterMedia) {
 
   R_BeginLoading();
 
-  r_media_t *copy0 = R_AllocMedia("copy", sizeof(r_media_t), R_MEDIA_GENERIC);
+  RenderMedia *copy0 = R_AllocMedia("copy", sizeof(RenderMedia), R_MEDIA_GENERIC);
   R_RegisterMedia(copy0);
 
   ck_assert_msg(R_FindMedia("copy", R_MEDIA_GENERIC) == copy0, "Failed to find copy0");
 
-  r_media_t *copy1 = R_AllocMedia("copy", sizeof(r_media_t), R_MEDIA_GENERIC);
+  RenderMedia *copy1 = R_AllocMedia("copy", sizeof(RenderMedia), R_MEDIA_GENERIC);
   R_RegisterMedia(copy1);
 
   ck_assert_msg(R_FindMedia("copy", R_MEDIA_GENERIC) == copy1, "Failed to replace copy0 with copy1");
@@ -124,7 +124,7 @@ START_TEST(check_R_RegisterMedia) {
 START_TEST(check_R_FreeMedia) {
   R_BeginLoading();
 
-  r_media_t *media = R_AllocMedia("free_me", sizeof(r_media_t), R_MEDIA_GENERIC);
+  RenderMedia *media = R_AllocMedia("free_me", sizeof(RenderMedia), R_MEDIA_GENERIC);
   R_RegisterMedia(media);
 
   ck_assert_msg(R_FindMedia("free_me", R_MEDIA_GENERIC) == media, "Failed to find free_me before free");

@@ -24,13 +24,13 @@
 /**
  * @brief Updates a spectating client's chase camera state to mirror their target.
  */
-void G_ClientChaseThink(g_client_t *cl) {
+void G_ClientChaseThink(GameClient *cl) {
 
-  g_entity_t *ent = cl->entity;
-  g_client_t *target = cl->chase_target;
+  GameEntity *ent = cl->entity;
+  GameClient *target = cl->chase_target;
 
   if (target) {
-    vec3_t new_delta;
+    Vec3 new_delta;
 
     // calculate delta angles if switching targets
     if (target != cl->old_chase_target) {
@@ -50,7 +50,7 @@ void G_ClientChaseThink(g_client_t *cl) {
     cl->angles = target->angles;
 
     // and player state
-    memcpy(&cl->ps.pm_state, &target->ps.pm_state, sizeof(pm_state_t));
+    memcpy(&cl->ps.pm_state, &target->ps.pm_state, sizeof(PlayerMoveState));
 
     // add in delta angles in case we've switched targets
     if (!Vec3_Equal(new_delta, Vec3_Zero())) {
@@ -77,14 +77,14 @@ void G_ClientChaseThink(g_client_t *cl) {
 /**
  * @brief Advances the chase camera to the next living player.
  */
-void G_ClientChaseNext(g_client_t *cl) {
+void G_ClientChaseNext(GameClient *cl) {
 
   if (!cl->chase_target) {
     G_ClientChaseStart(cl); // nobody to advance from, so acquire one
     return;
   }
 
-  g_client_t *next = NULL;
+  GameClient *next = NULL;
 
   int32_t i = cl->chase_target->ps.client;
   do {
@@ -108,14 +108,14 @@ void G_ClientChaseNext(g_client_t *cl) {
 /**
  * @brief Moves the chase camera back to the previous living player.
  */
-void G_ClientChasePrevious(g_client_t *cl) {
+void G_ClientChasePrevious(GameClient *cl) {
 
   if (!cl->chase_target) {
     G_ClientChaseStart(cl); // nobody to step back from, so acquire one
     return;
   }
 
-  g_client_t *prev = NULL;
+  GameClient *prev = NULL;
 
   int32_t i = cl->chase_target->ps.client;
   do {
@@ -139,7 +139,7 @@ void G_ClientChasePrevious(g_client_t *cl) {
 /**
  * @brief Finds the first available chase target and assigns it to the specified ent.
  */
-void G_ClientChaseTarget(g_client_t *cl) {
+void G_ClientChaseTarget(GameClient *cl) {
 
   G_ForEachClient(other, {
     if (other != cl && G_IsMeat(other->entity)) {
@@ -155,7 +155,7 @@ void G_ClientChaseTarget(g_client_t *cl) {
  * (`G_ClientThink`), as a standalone command, so a unified camera-mode cycle control can
  * drive it without stealing the attack button.
  */
-void G_ClientChaseStop(g_client_t *cl) {
+void G_ClientChaseStop(GameClient *cl) {
 
   if (cl->chase_target) {
     cl->chase_target = cl->old_chase_target = NULL;
@@ -169,7 +169,7 @@ void G_ClientChaseStop(g_client_t *cl) {
  * target while detached, so the spectator check lives here rather than in the command dispatch:
  * a dead player cycling weapons must not be put on someone else's back.
  */
-void G_ClientChaseStart(g_client_t *cl) {
+void G_ClientChaseStart(GameClient *cl) {
 
   if (!cl->chase_target && cl->persistent.spectator) {
     G_ClientChaseTarget(cl);

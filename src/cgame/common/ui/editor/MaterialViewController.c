@@ -113,12 +113,12 @@ static void viewWillAppear(ViewController *self) {
 
   MaterialViewController *this = (MaterialViewController *) self;
 
-  const vec3_t start = cgi.view->origin;
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
+  const Vec3 start = cgi.view->origin;
+  const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
 
-  r_material_t *material = NULL;
+  RenderMaterial *material = NULL;
 
-  const cg_editor_trace_t tr = Cg_MaterialSelectionTrace(start, end);
+  const ClientGameEditorTrace tr = Cg_MaterialSelectionTrace(start, end);
   if (tr.trace.fraction < 1.f && tr.trace.material) {
     material = cgi.LoadMaterial(tr.trace.material->name, tr.trace.material->context);
   }
@@ -139,10 +139,10 @@ static MaterialViewController *init(MaterialViewController *self) {
 }
 
 /**
- * @fn void MaterialViewController::setMaterial(MaterialViewController *self, r_material_t *material)
+ * @fn void MaterialViewController::setMaterial(MaterialViewController *self, RenderMaterial *material)
  * @memberof MaterialViewController
  */
-static void setMaterial(MaterialViewController *self, r_material_t *material) {
+static void setMaterial(MaterialViewController *self, RenderMaterial *material) {
 
   self->material = material;
 

@@ -33,7 +33,7 @@ typedef enum {
 	ENTRY_PENDING,
 	ENTRY_DOWNLOADING,
 	ENTRY_STALE,
-} cm_manifest_entry_status_t;
+} CmManifestEntryStatus;
 
 /**
  * @brief A single entry in a manifest.
@@ -59,12 +59,12 @@ typedef struct {
  /**
   * @brief Current update status of this entry.
   */
-	cm_manifest_entry_status_t status;
-} cm_manifest_entry_t;
+	CmManifestEntryStatus status;
+} CmManifestEntry;
 
 /**
  * @brief Allocates an empty manifest table.
- * @return A new HashTable mapping path strings to `cm_manifest_entry_t` values.
+ * @return A new HashTable mapping path strings to `CmManifestEntry` values.
  */
 HashTable *Cm_AllocManifest(void);
 
@@ -82,7 +82,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
  * @param entry The manifest entry to check.
  * @return true if the local file exists and its `MD5` matches the entry's hash.
  */
-bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry);
+bool Cm_CheckManifestEntry(const CmManifestEntry *entry);
 bool Cm_HashFile(const char *path, char *hex, size_t hex_size);
 
 /**
@@ -99,14 +99,14 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest);
  * Returns an empty table (never `NULL`) when @c data is `NULL` or @c len is zero.
  * @param data The manifest text data, or `NULL` for an empty manifest.
  * @param len The length of @c data in bytes.
- * @return A HashTable mapping path strings to `cm_manifest_entry_t` values.
+ * @return A HashTable mapping path strings to `CmManifestEntry` values.
  */
 HashTable *Cm_ParseManifest(const char *data, size_t len);
 
 /**
  * @brief Reads a manifest file into a table.
  * @param path The manifest file path (e.g. "maps/`edge.mf`").
- * @return A HashTable of `cm_manifest_entry_t`, or `NULL` if the file does not exist.
+ * @return A HashTable of `CmManifestEntry`, or `NULL` if the file does not exist.
  */
 HashTable *Cm_ReadManifest(const char *path);
 

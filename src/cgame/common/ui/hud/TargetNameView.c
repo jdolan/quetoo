@@ -37,9 +37,9 @@ static View *init(View *self) {
 #pragma mark - OverlayText
 
 /**
- * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   static uint32_t time;
   static char name[MAX_INFO_STRING_VALUE];
@@ -52,18 +52,18 @@ static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
     time = 0;
   }
 
-  const vec3_t pos = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
+  const Vec3 pos = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
 
-  const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CmTrace tr = cgi.Trace(cgi.view->origin, pos, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
   if (tr.fraction < 1.f) {
 
-    const cl_entity_t *ent = tr.ent;
+    const ClientEntity *ent = tr.ent;
 
     // a corpse is not someone to name: it cannot be spoken to, teamed with, or shot at to any
     // purpose, and naming it reads as though they were still standing where they fell
     if (ent->current.model1 == MODEL_CLIENT && !(ent->current.effects & EF_CORPSE)) {
 
-      const cg_client_info_t *client = Cg_ClientInfo(ent);
+      const ClientGameClientInfo *client = Cg_ClientInfo(ent);
 
       q_strlcpy(name, client->name, sizeof(name));
       time = cgi.client->unclamped_time;

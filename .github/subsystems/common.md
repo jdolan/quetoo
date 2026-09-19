@@ -35,7 +35,7 @@ Cmd_Execute("mycommand hello");
 
 **Configuration variables**:
 ```c
-typedef struct cvar_s {
+typedef struct Cvar {
     char *name;
     char *string;             // String value
     char *default_string;     // Default value
@@ -43,8 +43,8 @@ typedef struct cvar_s {
     float value;              // Float value
     uint32_t flags;           // CVAR_ARCHIVE, CVAR_USER_INFO, etc.
     bool modified;            // Changed since last check
-    struct cvar_s *next;
-} cvar_t;
+    struct Cvar *next;
+} Cvar;
 ```
 
 **Flags**:
@@ -57,7 +57,7 @@ typedef struct cvar_s {
 **Usage**:
 ```c
 // Create/get cvar
-cvar_t *my_var = Cvar_Add("my_setting", "1", CVAR_ARCHIVE, "My setting");
+Cvar *my_var = Cvar_Add("my_setting", "1", CVAR_ARCHIVE, "My setting");
 
 // Read value
 if (my_var->integer) {
@@ -81,10 +81,10 @@ Cvar_Set("my_setting", "0");
 int64_t Fs_Load(const char *filename, void **buffer);
 
 // Open file for reading
-file_t *Fs_OpenRead(const char *filename);
+File *Fs_OpenRead(const char *filename);
 
 // Read from file
-int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count);
+int64_t Fs_Read(File *file, void *buffer, size_t size, size_t count);
 
 // Check if file exists
 bool Fs_Exists(const char *filename);
@@ -103,13 +103,13 @@ void Fs_Enumerate(const char *path, Fs_EnumerateFunc func, void *data);
 **Tagged memory allocation**:
 ```c
 // Allocate with tag
-void *Mem_Malloc(size_t size, mem_tag_t tag);
+void *Mem_Malloc(size_t size, MemTag tag);
 
 // Free specific pointer
 void Mem_Free(void *ptr);
 
 // Free all memory with tag
-void Mem_FreeTag(mem_tag_t tag);
+void Mem_FreeTag(MemTag tag);
 
 // Linked allocation (freed with parent)
 void *Mem_Link(void *ptr, const void *parent);
@@ -130,7 +130,7 @@ typedef struct {
     byte *data;
     size_t size;      // Allocated size
     size_t position;  // Read/write position
-} mem_buf_t;
+} MemBuf;
 
 Mem_WriteBuffer(&buf, data, len);  // Append data
 Mem_ReadBuffer(&buf, data, len);   // Read data
@@ -141,10 +141,10 @@ Mem_ReadBuffer(&buf, data, len);   // Read data
 **Cross-platform threading** (pthreads on Unix, Windows threads):
 ```c
 // Create thread
-thread_t *Thread_Create(ThreadRunFunc run, void *data);
+WorkerThread *Thread_Create(ThreadRunFunc run, void *data);
 
 // Wait for thread
-void Thread_Wait(thread_t *t);
+void Thread_Wait(WorkerThread *t);
 
 // Mutexes
 thread_lock_t *Thread_CreateLock(void);
@@ -192,8 +192,8 @@ void Img_WriteJPEG(const char *filename, byte *data, uint32_t width, uint32_t he
 
 **Texture atlas** (pack small images into one large texture):
 ```c
-atlas_t *Atlas_Create(uint32_t size);  // Create 4096x4096 atlas
-atlas_image_t *Atlas_Insert(atlas_t *atlas, const SDL_Surface *surface);
+Atlas *Atlas_Create(uint32_t size);  // Create 4096x4096 atlas
+atlas_image_t *Atlas_Insert(Atlas *atlas, const SDL_Surface *surface);
 ```
 
 **Benefits**:

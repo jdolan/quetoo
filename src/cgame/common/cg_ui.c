@@ -194,7 +194,7 @@ void Cg_ClearUi(void) {
 /**
  * @brief Updates the loading screen
  */
-void Cg_UpdateLoading(const cl_loading_t loading) {
+void Cg_UpdateLoading(const ClientLoading loading) {
   static LoadingViewController *loadingViewController;
 
   if (loading.percent == 0) {
@@ -225,7 +225,7 @@ static void Cg_DeclineUpdate(ident data) {
   cgi.ConsentToUpdate(false);
 }
 
-int32_t Cg_UpdateInstaller(const installer_status_t *in) {
+int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
 
   if (updateViewController == NULL) {
     updateViewController = $(alloc(UpdateViewController), init);
@@ -277,16 +277,16 @@ int32_t Cg_UpdateInstaller(const installer_status_t *in) {
 }
 
 /**
- * @brief Inlet binding for `cvar_t *`.
+ * @brief Inlet binding for `Cvar *`.
  */
 void Cg_BindCvar(const Inlet *inlet, ident obj) {
 
   const char *name = cast(String, obj)->chars;
-  cvar_t *var = cgi.GetCvar(name);
+  Cvar *var = cgi.GetCvar(name);
 
   if (var == NULL) {
     Cg_Debug("%s not found\n", name);
   }
 
-  *(cvar_t **) inlet->dest = var;
+  *(Cvar **) inlet->dest = var;
 }

@@ -29,29 +29,29 @@
  * @param bounds The AABB of the moving object (zero-sized for a point trace).
  * @param head_node The BSP head node to trace against.
  * @param contents The contents mask; only brush sides with matching contents are tested.
- * @return The `cm_trace_t` result; check `fraction` (1.0 = no hit) and `surface`.
+ * @return The `CmTrace` result; check `fraction` (1.0 = no hit) and `surface`.
  */
 __attribute__ ((warn_unused_result))
-cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
+CmTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t head_node,
              int32_t contents);
 
 /** @brief Traces a point ray from `start` to `end` against a single brush.
  * @param start The trace start point.
  * @param end The trace end point.
  * @param brush The brush to trace against.
- * @return The `cm_trace_t` result. Check `start_solid` to detect the view origin being inside
+ * @return The `CmTrace` result. Check `start_solid` to detect the view origin being inside
  *   the brush — callers should skip such results when selecting entities.
  */
 __attribute__ ((warn_unused_result))
-cm_trace_t Cm_TraceToBrush(const vec3_t start, const vec3_t end, const cm_bsp_brush_t *brush);
+CmTrace Cm_TraceToBrush(const Vec3 start, const Vec3 end, const CmBspBrush *brush);
 
 /** @brief Like Cm_BoxTrace but applies a model transform to start, end and planes.
  * @param matrix The forward transform of the entity being traced against.
  * @param inverse_matrix The inverse transform, used to bring the ray into model space.
  */
 __attribute__ ((warn_unused_result))
-cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
-                        int32_t contents, const mat4_t matrix, const mat4_t inverse_matrix);
+CmTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t head_node,
+                        int32_t contents, const Mat4 matrix, const Mat4 inverse_matrix);
 
 /** @brief Returns the world-space AABB for the given solid type and model transform.
  * @param solid The solid type constant.
@@ -59,13 +59,13 @@ cm_trace_t Cm_TransformedBoxTrace(const vec3_t start, const vec3_t end, const bo
  * @param bounds The entity's local-space bounds.
  */
 __attribute__ ((warn_unused_result))
-box3_t Cm_EntityBounds(const solid_t solid, const mat4_t matrix, const box3_t bounds);
+Box3 Cm_EntityBounds(const Solid solid, const Mat4 matrix, const Box3 bounds);
 
 /** @brief Returns the AABB enclosing the entire swept path from start to end.
  * @param bounds The moving object's AABB; used to expand the swept volume.
  */
 __attribute__ ((warn_unused_result))
-box3_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box3_t bounds);
+Box3 Cm_TraceBounds(const Vec3 start, const Vec3 end, const Box3 bounds);
 
 #if defined(__CM_LOCAL_H__)
 #endif

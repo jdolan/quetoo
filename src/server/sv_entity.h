@@ -24,6 +24,6 @@
 #include "sv_types.h"
 
 #if defined(__SV_LOCAL_H__)
-void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg);
-void Sv_BuildClientFrame(sv_client_t *client);
+void Sv_WriteClientFrame(ServerClient *client, MemBuf *msg);
+void Sv_BuildClientFrame(ServerClient *client);
 #endif

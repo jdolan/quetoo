@@ -29,7 +29,7 @@ static struct {
 /**
  * @brief The tail of the `Cg_ListVoteTypes` hook: the common votes.
  */
-static const vote_type_t *Cg_ListVoteTypes_Common(size_t *count) {
+static const VoteType *Cg_ListVoteTypes_Common(size_t *count) {
   *count = lengthof(vote_types_common);
   return vote_types_common;
 }

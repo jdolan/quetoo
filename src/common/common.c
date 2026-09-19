@@ -222,7 +222,7 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
 /**
  * @return True if the specified debug flag(s) are enabled.
  */
-bool Com_IsDebug(const debug_t debug) {
+bool Com_IsDebug(const DebugFlags debug) {
   return (quetoo.debug_mask & debug) != 0;
 }
 
@@ -257,7 +257,7 @@ void Com_SetDebug(const char *debug) {
 
   static char token[DEBUG_CATEGORY_MAX_LEN];
 
-  parser_t parser = Parse_Init(debug, PARSER_NO_COMMENTS);
+  Parser parser = Parse_Init(debug, PARSER_NO_COMMENTS);
 
   while (true) {
 
@@ -324,7 +324,7 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
 /**
  * @brief Print a debug statement. If the format begins with '!', the function name is omitted.
  */
-void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
+void Com_Debug_(const DebugFlags debug, const char *func, const char *fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
@@ -337,7 +337,7 @@ void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
 /**
  * @brief Print a debug statement. If the format begins with '!', the function name is omitted.
  */
-void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) {
+void Com_Debugv_(const DebugFlags debug, const char *func, const char *fmt, va_list args) {
 
   if ((quetoo.debug_mask & debug) == 0) {
     return;
@@ -359,7 +359,7 @@ void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
+void Com_Error_(Err error, const char *func, const char *fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
@@ -374,7 +374,7 @@ void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
+void Com_Errorv_(Err error, const char *func, const char *fmt, va_list args) {
 
   if (quetoo.recursive_error) {
     if (quetoo.Error) {
@@ -409,7 +409,7 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
  */
 void Com_Error_f(void) {
 
-  const err_t err = !q_strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
+  const Err err = !q_strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
   Com_Error(err, "Test error (%s)\n", err == ERROR_FATAL ? "fatal" : "drop");
 }
 

@@ -23,17 +23,17 @@
 
 #include "s_local.h"
 
-s_context_t s_context;
+SoundContext s_context;
 
-cvar_t *s_get_error;
+Cvar *s_get_error;
 
-cvar_t *s_ambient_volume;
-cvar_t *s_doppler;
-cvar_t *s_effects;
-cvar_t *s_effects_volume;
-cvar_t *s_hrtf;
-cvar_t *s_rate;
-cvar_t *s_volume;
+Cvar *s_ambient_volume;
+Cvar *s_doppler;
+Cvar *s_effects;
+Cvar *s_effects_volume;
+Cvar *s_hrtf;
+Cvar *s_rate;
+Cvar *s_volume;
 
 /**
  * @brief Check and report OpenAL errors.
@@ -112,7 +112,7 @@ SF_VIRTUAL_IO s_rwops_io = {
  * @brief Returns the size of the PhysFS file for use as a libsndfile virtual file length callback.
  */
 static sf_count_t S_PhysFS_get_filelen(void *user_data) {
-  file_t *file = (file_t *) user_data;
+  File *file = (File *) user_data;
   return Fs_FileLength(file);
 }
 
@@ -120,7 +120,7 @@ static sf_count_t S_PhysFS_get_filelen(void *user_data) {
  * @brief Seeks the PhysFS file for use as a libsndfile virtual seek callback.
  */
 static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *user_data) {
-  file_t *file = (file_t *) user_data;
+  File *file = (File *) user_data;
 
   switch (whence) {
   case SEEK_SET:
@@ -141,7 +141,7 @@ static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *user_data) 
  * @brief Reads from the PhysFS file for use as a libsndfile virtual read callback.
  */
 static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *user_data) {
-  file_t *file = (file_t *) user_data;
+  File *file = (File *) user_data;
   return Fs_Read(file, ptr, 1, count);
 }
 
@@ -149,7 +149,7 @@ static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *user_data) {
  * @brief Writes to the PhysFS file for use as a libsndfile virtual write callback.
  */
 static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *user_data) {
-  file_t *file = (file_t *) user_data;
+  File *file = (File *) user_data;
   return Fs_Write(file, ptr, 1, count);
 }
 
@@ -157,7 +157,7 @@ static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *user_d
  * @brief Returns the current position of the PhysFS file for use as a libsndfile virtual tell callback.
  */
 static sf_count_t S_PhysFS_tell(void *user_data) {
-  file_t *file = (file_t *) user_data;
+  File *file = (File *) user_data;
   return Fs_Tell(file);
 }
 
@@ -203,7 +203,7 @@ void S_Stop(void) {
 /**
  * @brief Initialize the per-frame attributes of a sound stage.
  */
-void S_InitStage(s_stage_t *stage) {
+void S_InitStage(SoundStage *stage) {
   stage->ticks = (uint32_t) SDL_GetTicks();
   stage->num_samples = 0;
 }
@@ -211,7 +211,7 @@ void S_InitStage(s_stage_t *stage) {
 /**
  * @brief Renders the specified stage, adding channels from the defined play samples.
  */
-void S_RenderStage(s_stage_t *stage) {
+void S_RenderStage(SoundStage *stage) {
 
   assert(stage);
 
@@ -219,11 +219,11 @@ void S_RenderStage(s_stage_t *stage) {
     return;
   }
 
-  const s_play_sample_t *s = stage->samples;
+  const SoundPlaySample *s = stage->samples;
   for (int32_t i = 0; i < stage->num_samples; i++, s++) {
 
     if (s->flags & S_PLAY_FRAME) {
-      s_channel_t *ch = s_context.channels;
+      SoundChannel *ch = s_context.channels;
       int32_t j;
       for (j = 0; j < MAX_CHANNELS; j++, ch++) {
         if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) {

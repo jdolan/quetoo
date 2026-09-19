@@ -23,27 +23,27 @@
 
 #include "tree.h"
 
-typedef struct portal_s {
-  plane_t plane;
-  node_t *on_node; // NULL = outside box
-  node_t *nodes[2]; // [0] = front side of plane
-  struct portal_s *next[2];
-  cm_winding_t *winding;
-  brush_side_t *side; // NULL = non-visible
-  face_t *face[2]; // output face in bsp file
-} portal_t;
+typedef struct Portal {
+  Plane plane;
+  Node *on_node; // NULL = outside box
+  Node *nodes[2]; // [0] = front side of plane
+  struct Portal *next[2];
+  CmWinding *winding;
+  BrushSide *side; // NULL = non-visible
+  Face *face[2]; // output face in bsp file
+} Portal;
 
-void MakeHeadnodePortals(tree_t *tree);
-void MakeNodePortal(node_t *node);
-void SplitNodePortals(node_t *node);
+void MakeHeadnodePortals(Tree *tree);
+void MakeNodePortal(Node *node);
+void SplitNodePortals(Node *node);
 
-bool Portal_VisFlood(const portal_t *p);
-void RemovePortalFromNode(portal_t *portal, node_t *l);
+bool Portal_VisFlood(const Portal *p);
+void RemovePortalFromNode(Portal *portal, Node *l);
 
-bool FloodEntities(tree_t *tree);
-void FillOutside(tree_t *tree);
-void FindPortalBrushSides(tree_t *tree);
-void FreePortal(portal_t *p);
+bool FloodEntities(Tree *tree);
+void FillOutside(Tree *tree);
+void FindPortalBrushSides(Tree *tree);
+void FreePortal(Portal *p);
 
-void MakeTreePortals(tree_t *tree);
-void MakeTreeFaces(tree_t *tree);
+void MakeTreePortals(Tree *tree);
+void MakeTreeFaces(Tree *tree);

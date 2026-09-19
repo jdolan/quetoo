@@ -37,11 +37,11 @@ BSP file loading and format definitions:
 Collision tracing (raycasts and box traces):
 - `Cm_BoxTrace()` - Main trace function for swept AABB tests
 - `Cm_TransformedBoxTrace()` - Trace against rotated/translated models
-- Traces return `cm_trace_t` with hit info (fraction, plane, surface, contents)
+- Traces return `CmTrace` with hit info (fraction, plane, surface, contents)
 
 **Trace usage pattern**:
 ```c
-const cm_trace_t tr = Cm_BoxTrace(start, end, mins, maxs, 0, CONTENTS_MASK_SOLID);
+const CmTrace tr = Cm_BoxTrace(start, end, mins, maxs, 0, CONTENTS_MASK_SOLID);
 if (tr.fraction < 1.0) {
     // Hit something at tr.end
     // tr.plane has surface normal
@@ -67,7 +67,7 @@ Point and box testing:
 ### cm_entity.c / cm_entity.h
 BSP entity parsing:
 - `Cm_EntityString()` - Get raw entity string from BSP
-- `Cm_Entities()` - Parse entities into array of `cm_entity_t`
+- `Cm_Entities()` - Parse entities into array of `CmEntity`
 - Used by server to spawn entities, by client for info_player_start, etc.
 
 ### cm_material.c / cm_material.h
@@ -137,11 +137,11 @@ Polygon manipulation utilities:
 
 ### Tracing from Entity to Entity
 ```c
-vec3_t start, end;
+Vec3 start, end;
 Vec3_Copy(entity->s.origin, start);
 Vec3_Copy(target->s.origin, end);
 
-const cm_trace_t tr = Cm_BoxTrace(start, end, NULL, NULL, 0, CONTENTS_MASK_SOLID);
+const CmTrace tr = Cm_BoxTrace(start, end, NULL, NULL, 0, CONTENTS_MASK_SOLID);
 if (tr.fraction == 1.0) {
     // Clear line of sight
 }
@@ -149,11 +149,11 @@ if (tr.fraction == 1.0) {
 
 ### Finding Ground
 ```c
-vec3_t end;
+Vec3 end;
 Vec3_Copy(ent->s.origin, end);
 end[2] -= 1.0; // Check 1 unit down
 
-const cm_trace_t tr = Cm_BoxTrace(ent->s.origin, end, ent->mins, ent->maxs, 
+const CmTrace tr = Cm_BoxTrace(ent->s.origin, end, ent->mins, ent->maxs, 
                                    0, CONTENTS_MASK_SOLID);
 if (tr.fraction < 1.0) {
     // On ground, tr.plane has ground normal
@@ -162,7 +162,7 @@ if (tr.fraction < 1.0) {
 
 ### Checking for Water
 ```c
-vec3_t point;
+Vec3 point;
 Vec3_Copy(ent->s.origin, point);
 point[2] = ent->s.origin[2] + ent->mins[2] + 1.0; // Feet position
 
@@ -213,7 +213,7 @@ cm_no_areas 1        # Disable area portals (see through everything)
 ### Trace Debugging
 Add temporary debug output:
 ```c
-const cm_trace_t tr = Cm_BoxTrace(start, end, mins, maxs, 0, mask);
+const CmTrace tr = Cm_BoxTrace(start, end, mins, maxs, 0, mask);
 Com_Debug(DEBUG_COLLISION, "Trace %.1f%% hit, plane %s\n", 
           tr.fraction * 100.0, VectorToString(tr.plane.normal));
 ```

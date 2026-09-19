@@ -52,7 +52,7 @@ struct ConsoleText {
   /**
    * @brief The filter: `level` selects prints, `whence` the oldest to show.
    */
-  console_t console;
+  Console console;
 
   /**
    * @brief When the tail was last taken.

@@ -33,7 +33,7 @@
 #define BINDING_STORAGE_DECAL_INSTANCES 0
 
 /**
- * @brief One decal clipped to one face. Must match `r_decal_instance_t`.
+ * @brief One decal clipped to one face. Must match `RenderDecalInstance`.
  */
 struct decal_instance_t {
   vec4 origin;

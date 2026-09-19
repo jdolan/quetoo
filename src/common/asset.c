@@ -24,7 +24,7 @@
 /**
  * @brief Prepends the context prefix to a name if not already present.
  */
-void Asset_Path(const char *name, char *out, size_t len, asset_context_t context) {
+void Asset_Path(const char *name, char *out, size_t len, AssetContext context) {
 
   *out = '\0';
 

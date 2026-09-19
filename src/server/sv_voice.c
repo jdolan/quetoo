@@ -21,21 +21,21 @@
 
 #include "sv_local.h"
 
-cvar_t *sv_voice;
-cvar_t *sv_voice_rate;
+Cvar *sv_voice;
+Cvar *sv_voice_rate;
 
 /**
  * @brief Mutes or unmutes a speaker for one listener.
  * @details Filtering at the source means a muted player's audio is never relayed, so muting saves
  * the listener the bandwidth rather than merely the annoyance.
  */
-void Sv_MuteVoice(const g_client_t *listener, const g_client_t *speaker, bool mute) {
+void Sv_MuteVoice(const GameClient *listener, const GameClient *speaker, bool mute) {
 
   if (!listener || !speaker) {
     return;
   }
 
-  sv_client_t *cl = svs.clients + listener->ps.client;
+  ServerClient *cl = svs.clients + listener->ps.client;
   const uint64_t bit = (uint64_t) 1 << speaker->ps.client;
 
   if (mute) {
@@ -50,12 +50,12 @@ void Sv_MuteVoice(const g_client_t *listener, const g_client_t *speaker, bool mu
  * @details Client numbers are reused, so a mute left behind would silence whoever takes the slot
  * next, and would follow the muted player back in when they reconnect.
  */
-void Sv_ClearVoiceMutes(const sv_client_t *client) {
+void Sv_ClearVoiceMutes(const ServerClient *client) {
 
   const int32_t num = (int32_t) (client - svs.clients);
   const uint64_t bit = (uint64_t) 1 << num;
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
     cl->voice_mutes &= ~bit;
   }
@@ -69,7 +69,7 @@ void Sv_ClearVoiceMutes(const sv_client_t *client) {
  * discards the frame rather than dropping the client. The bucket refills at sv_voice_rate and is
  * never allowed to bank more than a second of it.
  */
-static bool Sv_ChargeVoice(sv_client_t *cl, int32_t bytes) {
+static bool Sv_ChargeVoice(ServerClient *cl, int32_t bytes) {
 
   const int32_t rate = Maxi(sv_voice_rate->integer, 0);
 
@@ -100,12 +100,12 @@ static bool Sv_ChargeVoice(sv_client_t *cl, int32_t bytes) {
  * out of the dedicated server keeps it dependency-light. Who may hear a channel is the game's to
  * say, beside the rules that already govern chat, rather than a client's to propose.
  */
-static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq, uint8_t flags,
+static void Sv_RelayVoice(const ServerClient *from, uint8_t channel, uint8_t seq, uint8_t flags,
                           const byte *data, int32_t len) {
 
   const int32_t speaker = (int32_t) (from - svs.clients);
 
-  mem_buf_t buf;
+  MemBuf buf;
   byte bytes[VOICE_MAX_PAYLOAD + 32]; // command, speaker, seq, flags, length
 
   Mem_InitBuffer(&buf, bytes, sizeof(bytes));
@@ -117,7 +117,7 @@ static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq,
   Net_WriteByte(&buf, len);
   Net_WriteData(&buf, data, len);
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl == from || cl->state != SV_CLIENT_ACTIVE) {
@@ -143,7 +143,7 @@ static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq,
 /**
  * @brief Parses a voice frame from a client, validating and relaying it.
  */
-void Sv_ParseVoice(sv_client_t *cl) {
+void Sv_ParseVoice(ServerClient *cl) {
 
   const uint8_t channel = Net_ReadByte(&net_message);
   const uint8_t seq = Net_ReadByte(&net_message);

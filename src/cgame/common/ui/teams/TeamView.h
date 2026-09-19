@@ -51,7 +51,7 @@ struct TeamView {
   /**
    * @brief The team info to render.
    */
-  const cg_team_info_t *team;
+  const ClientGameTeamInfo *team;
 
   /**
    * @brief The team name.
@@ -86,13 +86,13 @@ struct TeamViewInterface {
 
 
   /**
-   * @fn void TeamView::setTeam(TeamView *self, const cg_team_info_t *team)
+   * @fn void TeamView::setTeam(TeamView *self, const ClientGameTeamInfo *team)
    * @brief Sets the team info to render.
    * @param self The TeamView.
    * @param team The team info.
    * @memberof TeamView
    */
-  void (*setTeam)(TeamView *self, const cg_team_info_t *team);
+  void (*setTeam)(TeamView *self, const ClientGameTeamInfo *team);
 };
 
 /**

@@ -78,7 +78,7 @@ ivec3 decal_voxel_xyz(in vec3 position) {
 /**
  * @brief Unshadowed Lambert diffuse contribution from a single light.
  */
-vec3 decal_light(in light_t light, in vec3 normal) {
+vec3 decal_light(in Light light, in vec3 normal) {
 
   const vec3 dir = light.origin.xyz - in_model_position;
   const float dist = length(dir);

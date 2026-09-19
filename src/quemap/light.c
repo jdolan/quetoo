@@ -29,8 +29,8 @@ Vector *lights = NULL;
 /**
  * @brief Allocates and returns a new light structure.
  */
-static light_t *AllocLight(void) {
-  light_t *light = Mem_TagMalloc(sizeof(light_t), (mem_tag_t) MEM_TAG_LIGHT);
+static Light *AllocLight(void) {
+  Light *light = Mem_TagMalloc(sizeof(Light), (MemTag) MEM_TAG_LIGHT);
   light->target_entity = -1;
   return light;
 }
@@ -38,20 +38,20 @@ static light_t *AllocLight(void) {
 /**
  * @brief Frees a single light structure.
  */
-static void FreeLight(light_t *light) {
+static void FreeLight(Light *light) {
   Mem_Free(light);
 }
 
 /**
  * @brief Finds the `team_master` light entity for the given team.
  */
-static const cm_entity_t *FindTeamMaster(const char *team) {
+static const CmEntity *FindTeamMaster(const char *team) {
 
   if (!team) {
     return NULL;
   }
 
-  cm_entity_t **e = Cm_Bsp()->entities;
+  CmEntity **e = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
     const char *classname = Cm_EntityValue(*e, "classname")->string;
     if (!q_strcmp(classname, "light")) {
@@ -68,14 +68,14 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
 }
 
 /**
- * @brief Parses a light entity and returns a populated `light_t`, or `NULL` if the entity is not a light.
+ * @brief Parses a light entity and returns a populated `Light`, or `NULL` if the entity is not a light.
  */
-static light_t *LightForEntity(const cm_entity_t *entity) {
+static Light *LightForEntity(const CmEntity *entity) {
 
   const char *classname = Cm_EntityValue(entity, "classname")->string;
   if (!q_strcmp(classname, "light")) {
 
-    light_t *light = AllocLight();
+    Light *light = AllocLight();
 
     light->entity = Cm_EntityNumber(entity);
     light->origin = Cm_EntityValue(entity, "origin")->vec3;
@@ -86,7 +86,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 
     const float drift = Cm_EntityValue(entity, "drift")->value;
 
-    const cm_entity_t *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullable_string);
+    const CmEntity *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullable_string);
     if (master) {
       light->radius = light->radius ?: Cm_EntityValue(master, "radius")->value;
 
@@ -130,7 +130,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     // Resolve the target entity number now so the BSP carries the reference.
     const char *target = Cm_EntityValue(entity, "target")->nullable_string;
     if (target) {
-      const cm_bsp_t *bsp = Cm_Bsp();
+      const CmBsp *bsp = Cm_Bsp();
       for (int32_t i = 0; i < bsp->num_entities; i++) {
         const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullable_string;
         if (!q_strcmp(targetname, target)) {
@@ -160,7 +160,7 @@ void FreeLights(void) {
   }
 
   for (size_t i = 0; i < lights->count; i++) {
-    FreeLight(VectorValue(lights, light_t *, i));
+    FreeLight(VectorValue(lights, Light *, i));
   }
 
   lights = release(lights);
@@ -175,11 +175,11 @@ void BuildLights(void) {
 
   Progress("Building lights", 0);
 
-  lights = lights ?: $(alloc(Vector), initWithSize, sizeof(light_t *));
+  lights = lights ?: $(alloc(Vector), initWithSize, sizeof(Light *));
 
-  cm_entity_t **entity = Cm_Bsp()->entities;
+  CmEntity **entity = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
-    light_t *light = LightForEntity(*entity);
+    Light *light = LightForEntity(*entity);
     if (light) {
       $(lights, add, &light);
     }
@@ -210,10 +210,10 @@ void EmitLights(void) {
   Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
   Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->count);
 
-  bsp_light_t *out = bsp_file.lights;
+  BspLight *out = bsp_file.lights;
   for (size_t i = 0; i < lights->count; i++) {
 
-    light_t *light = VectorValue(lights, light_t *, i);
+    Light *light = VectorValue(lights, Light *, i);
 
     if (light->target_entity != -1) {
       // These will use the dynamic lighting code path at runtime and can not use precomputed
@@ -249,15 +249,15 @@ void EmitLights(void) {
       // for them. Alpha-tested faces (foliage, fences, grates) are grouped
       // by material below, so their diffuse texture can be sampled and
       // discarded per-pixel at draw time.
-      bsp_draw_elements_t *opaque = bsp_file.draw_elements + bsp_file.num_draw_elements;
+      BspDrawElements *opaque = bsp_file.draw_elements + bsp_file.num_draw_elements;
       opaque->material = -1;
       opaque->bounds = Box3_Null();
       opaque->first_element = bsp_file.num_elements;
 
-      Vector *alpha_test_faces = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
+      Vector *alpha_test_faces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
 
-      const bsp_model_t *worldspawn = bsp_file.models;
-      const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
+      const BspModel *worldspawn = bsp_file.models;
+      const BspFace *face = &bsp_file.faces[worldspawn->first_face];
       for (int32_t j = 0; j < worldspawn->num_faces; j++, face++) {
 
         if (!Box3_Intersects(face->bounds, out->bounds)) {
@@ -267,11 +267,11 @@ void EmitLights(void) {
         int32_t surface;
         int32_t contents;
         if (face->brush_side >= 0) {
-          const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+          const BspBrushSide *side = &bsp_file.brush_sides[face->brush_side];
           surface = side->surface;
           contents = side->contents;
         } else {
-          const bsp_patch_t *patch = &bsp_file.patches[face->patch];
+          const BspPatch *patch = &bsp_file.patches[face->patch];
           surface = patch->surface;
           contents = patch->contents;
         }

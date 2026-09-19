@@ -25,7 +25,7 @@
 
 #if defined(__G_LOCAL_H__)
 
-  extern g_item_t *g_items;
+  extern GameItem *g_items;
 
   /**
    * @brief Item bounding box scaling.
@@ -38,26 +38,26 @@
   #define QUAD_DAMAGE_FACTOR 2.5f
   #define QUAD_KNOCKBACK_FACTOR 2.f
 
-  extern const box3_t ITEM_BOUNDS;
+  extern const Box3 ITEM_BOUNDS;
 
-  bool G_AddAmmo(g_client_t *cl, const g_item_t *item, int16_t count);
-  void G_CheckItemHazard(g_entity_t *ent);
-  g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item);
-  void G_DropInventoryItem(g_client_t *cl, const g_item_t *item);
-  bool G_ItemAvailable(const g_item_t *item);
-  const g_item_t *G_FindItem(const char *name);
-  const g_item_t *G_FindItemByClassName(const char *classname);
-  const g_item_t *G_MappedWeapon(const g_item_t *weapon);
-  const g_item_t *G_ClientArmor(const g_client_t *cl);
-  const g_armor_info_t *G_ArmorInfo(const g_item_t *armor);
-  void G_PrecacheItem(const g_item_t *it);
-  void G_SetItemRespawn(g_entity_t *ent, uint32_t delay);
-  void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
-  bool G_SetAmmo(g_client_t *cl, const g_item_t *item, int16_t count);
-  g_entity_t *G_TossQuadDamage(g_client_t *cl);
-  g_entity_t *G_TossInvisibility(g_client_t *cl);
-  g_entity_t *G_TossInvulnerability(g_client_t *cl);
-  void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace);
+  bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count);
+  void G_CheckItemHazard(GameEntity *ent);
+  GameEntity *G_DropItem(GameClient *cl, const GameItem *item);
+  void G_DropInventoryItem(GameClient *cl, const GameItem *item);
+  bool G_ItemAvailable(const GameItem *item);
+  const GameItem *G_FindItem(const char *name);
+  const GameItem *G_FindItemByClassName(const char *classname);
+  const GameItem *G_MappedWeapon(const GameItem *weapon);
+  const GameItem *G_ClientArmor(const GameClient *cl);
+  const GameArmorInfo *G_ArmorInfo(const GameItem *armor);
+  void G_PrecacheItem(const GameItem *it);
+  void G_SetItemRespawn(GameEntity *ent, uint32_t delay);
+  void G_SpawnItem(GameEntity *ent, const GameItem *item);
+  bool G_SetAmmo(GameClient *cl, const GameItem *item, int16_t count);
+  GameEntity *G_TossQuadDamage(GameClient *cl);
+  GameEntity *G_TossInvisibility(GameClient *cl);
+  GameEntity *G_TossInvulnerability(GameClient *cl);
+  void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace);
   void G_InitItems(void);
 
 #endif

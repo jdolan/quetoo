@@ -28,7 +28,7 @@ static char **cl_key_names;
 /**
  * @brief  Sets the key state destination.
  */
-void Cl_SetKeyDest(cl_key_dest_t dest) {
+void Cl_SetKeyDest(ClientKeyDest dest) {
 
   if (dest == cls.key_state.dest) {
     if (dest == KEY_CONSOLE || dest == KEY_CHAT) {
@@ -85,7 +85,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 /**
  * @brief Returns the current key state destination.
  */
-cl_key_dest_t Cl_GetKeyDest(void) {
+ClientKeyDest Cl_GetKeyDest(void) {
   return cls.key_state.dest;
 }
 
@@ -98,7 +98,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
     return;
   }
 
-  console_input_t *in = &cl_console.input;
+  ConsoleInput *in = &cl_console.input;
 
   const SDL_Keycode key = event->key.key;
   switch (key) {
@@ -463,7 +463,7 @@ static void Cl_Bind_f(void) {
 /**
  * @brief Writes lines containing "bind key value"
  */
-void Cl_WriteBindings(file_t *f) {
+void Cl_WriteBindings(File *f) {
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     if (cls.key_state.binds[k] && cls.key_state.binds[k][0]) {
@@ -509,11 +509,11 @@ void Cl_InitKeys(void) {
   cl_key_names[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), cl_key_names);
   cl_key_names[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), cl_key_names);
 
-  memset(&cls.key_state, 0, sizeof(cl_key_state_t));
+  memset(&cls.key_state, 0, sizeof(ClientKeyState));
 
   // register our functions
-  cmd_t *bind_cmd = Cmd_Add("bind", Cl_Bind_f, CMD_CLIENT, NULL);
-  cmd_t *unbind_cmd = Cmd_Add("unbind", Cl_Unbind_f, CMD_CLIENT, NULL);
+  Cmd *bind_cmd = Cmd_Add("bind", Cl_Bind_f, CMD_CLIENT, NULL);
+  Cmd *unbind_cmd = Cmd_Add("unbind", Cl_Unbind_f, CMD_CLIENT, NULL);
 
   Cmd_SetAutocomplete(bind_cmd, Cl_Bind_Autocomplete_f);
   Cmd_SetAutocomplete(unbind_cmd, Cl_Bind_Autocomplete_f);

@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -54,8 +54,8 @@ static void Cmd2(void) {
 }
 
 START_TEST(check_Cmd_RemoveAll) {
-  cmd_t *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
-  cmd_t *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
+  Cmd *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
+  Cmd *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
 
   ck_assert(cmd1 != NULL);
   ck_assert(cmd2 != NULL);

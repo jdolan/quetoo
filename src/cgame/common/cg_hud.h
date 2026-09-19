@@ -30,14 +30,14 @@ typedef enum {
   CROSSHAIR_HEALTH_RED_YELLOW_WHITE,
   CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN,
   CROSSHAIR_HEALTH_WHITE_GREEN
-} cg_crosshair_health_t;
+} ClientGameCrosshairHealth;
 
 #define CROSSHAIR_SCALE 0.125f
 #define CROSSHAIR_PULSE_ALPHA 0.5f
 
 #if defined(__CG_LOCAL_H__)
 
-void Cg_UpdateHud(const cl_frame_t *frame);
-void Cg_DrawHud(const cl_frame_t *frame);
+void Cg_UpdateHud(const ClientFrame *frame);
+void Cg_DrawHud(const ClientFrame *frame);
 
 #endif

@@ -39,7 +39,7 @@ static void Sv_LoadDemoKeyframes(void) {
 
   int64_t max_keyframes = 0;
   if (ofs >= 0 && file_length > ofs) {
-    max_keyframes = (file_length - ofs) / (int64_t) sizeof(demo_keyframe_t);
+    max_keyframes = (file_length - ofs) / (int64_t) sizeof(DemoKeyframe);
   }
 
   if (sv.demo_header.num_keyframes < 0 || sv.demo_header.num_keyframes > max_keyframes) {
@@ -52,11 +52,11 @@ static void Sv_LoadDemoKeyframes(void) {
   }
 
   sv.num_demo_keyframes = sv.demo_header.num_keyframes;
-  sv.demo_keyframes = Mem_TagMalloc(sv.num_demo_keyframes * sizeof(demo_keyframe_t), MEM_TAG_SERVER);
+  sv.demo_keyframes = Mem_TagMalloc(sv.num_demo_keyframes * sizeof(DemoKeyframe), MEM_TAG_SERVER);
 
   for (int32_t i = 0; i < sv.num_demo_keyframes; i++) {
 
-    demo_keyframe_t entry;
+    DemoKeyframe entry;
     if (Fs_Read(sv.demo_file, &entry, sizeof(entry), 1) != 1) {
       sv.num_demo_keyframes = i;
       break;
@@ -120,7 +120,7 @@ void Sv_LoadDemo(void) {
  * needs before it can start receiving whatever frame is currently being broadcast to everyone
  * else, no matter how far into the recording that already is.
  */
-void Sv_SendDemoSetup(sv_client_t *cl) {
+void Sv_SendDemoSetup(ServerClient *cl) {
 
   if (!sv.demo_file || sv.num_demo_keyframes == 0) {
     return;
@@ -196,7 +196,7 @@ void Sv_SendDemoInfo(void) {
     return;
   }
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
@@ -395,7 +395,7 @@ size_t Sv_GetDemoFrame(byte *buffer) {
  * client, to the given client.
  * @return False once the recording is exhausted, ending the send loop for this tick.
  */
-bool Sv_SendDemoPacket(sv_client_t *cl, byte *buffer, size_t size) {
+bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
 
   if (sv.demo_paused) {
 

@@ -32,14 +32,14 @@
 #include "s_voice.h"
 #include "s_types.h"
 
-extern s_context_t s_context;
+extern SoundContext s_context;
 
-extern cvar_t *s_ambient_volume;
-extern cvar_t *s_doppler;
-extern cvar_t *s_effects;
-extern cvar_t *s_effects_volume;
-extern cvar_t *s_hrtf;
-extern cvar_t *s_rate;
-extern cvar_t *s_volume;
+extern Cvar *s_ambient_volume;
+extern Cvar *s_doppler;
+extern Cvar *s_effects;
+extern Cvar *s_effects_volume;
+extern Cvar *s_hrtf;
+extern Cvar *s_rate;
+extern Cvar *s_volume;
 
 #endif

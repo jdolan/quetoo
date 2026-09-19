@@ -25,7 +25,7 @@
 
 #if defined(__G_LOCAL_H__)
 #define DEFAULT_GRAVITY 800.0
-void G_TouchOccupy(g_entity_t *ent);
-void G_RunThink(g_entity_t *ent);
-void G_RunEntity(g_entity_t *ent);
+void G_TouchOccupy(GameEntity *ent);
+void G_RunThink(GameEntity *ent);
+void G_RunEntity(GameEntity *ent);
 #endif

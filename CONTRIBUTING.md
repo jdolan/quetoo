@@ -84,7 +84,7 @@ Quetoo is written in C. Please follow these conventions when contributing code.
 
 | Category | Convention | Example |
 |---|---|---|
-| Types/structs | `Snake_Case` with `_t` suffix | `entity_state_t`, `vec3_t` |
+| Types/structs | `Snake_Case` with `_t` suffix | `EntityState`, `Vec3` |
 | Functions | `camelCase` | `G_Damage()`, `R_DrawBspModel()` |
 | Variables | `camelCase` | `numEntities`, `frameTime` |
 | Constants/macros | `ALL_CAPS` | `MAX_CLIENTS`, `CVAR_ARCHIVE` |
@@ -119,9 +119,9 @@ Each subsystem uses a consistent file and function prefix:
 Use the provided vector types and helpers from `src/shared/`:
 
 ```c
-// vec3_t is float[3]
-vec3_t origin = Vec3(1.0f, 2.0f, 3.0f);
-vec3_t copy = Vec3_Copy(origin);
+// Vec3 is float[3]
+Vec3 origin = Vec3(1.0f, 2.0f, 3.0f);
+Vec3 copy = Vec3_Copy(origin);
 float len = Vec3_Length(origin);
 ```
 

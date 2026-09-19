@@ -24,7 +24,7 @@
 /**
  * @brief Loads `animation.cfg` for an MD3 model.
  */
-static void R_LoadMd3Animations(r_model_t *mod) {
+static void R_LoadMd3Animations(RenderModel *mod) {
   char path[MAX_QPATH];
   void *buf;
   int32_t skip = 0;
@@ -38,11 +38,11 @@ static void R_LoadMd3Animations(r_model_t *mod) {
     return;
   }
 
-  mod->mesh->animations = Mem_LinkMalloc(sizeof(r_mesh_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
+  mod->mesh->animations = Mem_LinkMalloc(sizeof(RenderMeshAnimation) * MD3_MAX_ANIMATIONS, mod->mesh);
 
   q_strlcpy(mod->mesh->sounds, "male", sizeof(mod->mesh->sounds));
 
-  parser_t parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
+  Parser parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
 
   while (true) {
 
@@ -92,7 +92,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
     }
 
     if (*token >= '0' && *token <= '9') {
-      r_mesh_animation_t *a = &mod->mesh->animations[mod->mesh->num_animations];
+      RenderMeshAnimation *a = &mod->mesh->animations[mod->mesh->num_animations];
 
       if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &a->first_frame, 1)) {
         break;
@@ -156,9 +156,9 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 /**
  * @brief Swaps MD3 texcoords to host endianness.
  */
-static d_md3_texcoord_t R_SwapMd3Texcoord(const d_md3_texcoord_t *in) {
+static Md3Texcoord R_SwapMd3Texcoord(const Md3Texcoord *in) {
 
-  d_md3_texcoord_t out = *in;
+  Md3Texcoord out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
   out.st = LittleVec2(out.st);
@@ -170,9 +170,9 @@ static d_md3_texcoord_t R_SwapMd3Texcoord(const d_md3_texcoord_t *in) {
 /**
  * @brief Swaps an MD3 vertex to host endianness.
  */
-static d_md3_vertex_t R_SwapMd3Vertex(const d_md3_vertex_t *in) {
+static Md3Vertex R_SwapMd3Vertex(const Md3Vertex *in) {
 
-  d_md3_vertex_t out = *in;
+  Md3Vertex out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
   out.point = LittleVec3s(out.point);
@@ -185,9 +185,9 @@ static d_md3_vertex_t R_SwapMd3Vertex(const d_md3_vertex_t *in) {
 /**
  * @brief Swaps an MD3 triangle to host endianness.
  */
-static d_md3_triangle_t R_SwapMd3Triangle(const d_md3_triangle_t *in) {
+static Md3Triangle R_SwapMd3Triangle(const Md3Triangle *in) {
 
-  d_md3_triangle_t out = *in;
+  Md3Triangle out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
   for (int32_t i = 0; i < 3; i++) {
@@ -201,9 +201,9 @@ static d_md3_triangle_t R_SwapMd3Triangle(const d_md3_triangle_t *in) {
 /**
  * @brief Swaps an MD3 frame to host endianness.
  */
-static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
+static Md3Frame R_SwapMd3Frame(const Md3Frame *in) {
 
-  d_md3_frame_t out = *in;
+  Md3Frame out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
   out.bounds = LittleBounds(out.bounds);
@@ -217,9 +217,9 @@ static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
 /**
  * @brief Swaps an MD3 tag to host endianness.
  */
-static d_md3_tag_t R_SwapMd3Tag(const d_md3_tag_t *in) {
+static Md3Tag R_SwapMd3Tag(const Md3Tag *in) {
 
-  d_md3_tag_t out = *in;
+  Md3Tag out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
   out.origin = LittleVec3(out.origin);
@@ -234,9 +234,9 @@ static d_md3_tag_t R_SwapMd3Tag(const d_md3_tag_t *in) {
 /**
  * @brief Swaps an MD3 surface to host endianness.
  */
-static d_md3_surface_t R_SwapMd3Surface(const d_md3_surface_t *in) {
+static Md3Surface R_SwapMd3Surface(const Md3Surface *in) {
 
-  d_md3_surface_t out = *in;
+  Md3Surface out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
   out.id = LittleLong(out.id);
@@ -260,9 +260,9 @@ static d_md3_surface_t R_SwapMd3Surface(const d_md3_surface_t *in) {
 /**
  * @brief Swaps an MD3 header to host endianness.
  */
-static d_md3_t R_SwapMd3(const d_md3_t *in) {
+static Md3 R_SwapMd3(const Md3 *in) {
 
-  d_md3_t out = *in;
+  Md3 out = *in;
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
   out.id = LittleLong(out.id);
@@ -286,11 +286,11 @@ static d_md3_t R_SwapMd3(const d_md3_t *in) {
 /**
  * @brief Loads an MD3 model into the mesh renderer format.
  */
-static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
+static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
 
   const byte *base = buffer;
 
-  const d_md3_t md3 = R_SwapMd3((d_md3_t *) base);
+  const Md3 md3 = R_SwapMd3((Md3 *) base);
 
   if (md3.id != MD3_IDENT) {
     Com_Error(ERROR_DROP, "%s MD3_IDENT is %d\n", mod->media.name, md3.id);
@@ -321,18 +321,18 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
     return;
   }
 
-  mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
+  mod->mesh = Mem_LinkMalloc(sizeof(RenderMeshModel), mod);
 
   {
     mod->mesh->num_frames = md3.num_frames;
-    mod->mesh->frames = Mem_LinkMalloc(mod->mesh->num_frames * sizeof(r_mesh_frame_t), mod->mesh);
+    mod->mesh->frames = Mem_LinkMalloc(mod->mesh->num_frames * sizeof(RenderMeshFrame), mod->mesh);
 
-    const d_md3_frame_t *in = (d_md3_frame_t *) (base + md3.ofs_frames);
-    r_mesh_frame_t *out = mod->mesh->frames;
+    const Md3Frame *in = (Md3Frame *) (base + md3.ofs_frames);
+    RenderMeshFrame *out = mod->mesh->frames;
 
     for (int32_t i = 0; i < mod->mesh->num_frames; i++, in++, out++) {
 
-      const d_md3_frame_t frame = R_SwapMd3Frame(in);
+      const Md3Frame frame = R_SwapMd3Frame(in);
 
       out->bounds = frame.bounds;
       
@@ -342,15 +342,15 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
   {
     mod->mesh->num_tags = md3.num_tags;
-    mod->mesh->tags = Mem_LinkMalloc(mod->mesh->num_tags * mod->mesh->num_frames * sizeof(r_mesh_tag_t), mod->mesh);
+    mod->mesh->tags = Mem_LinkMalloc(mod->mesh->num_tags * mod->mesh->num_frames * sizeof(RenderMeshTag), mod->mesh);
 
-    const d_md3_tag_t *in = (d_md3_tag_t *) (base + md3.ofs_tags);
-    r_mesh_tag_t *out = mod->mesh->tags;
+    const Md3Tag *in = (Md3Tag *) (base + md3.ofs_tags);
+    RenderMeshTag *out = mod->mesh->tags;
 
     for (int32_t i = 0; i < mod->mesh->num_frames; i++) {
       for (int32_t j = 0; j < mod->mesh->num_tags; j++, in++, out++) {
 
-        const d_md3_tag_t tag = R_SwapMd3Tag(in);
+        const Md3Tag tag = R_SwapMd3Tag(in);
 
         q_strlcpy(out->name, tag.name, MD3_MAX_PATH);
         out->matrix = Mat4_FromVectors(tag.axis[0], tag.axis[1], tag.axis[2], tag.origin);
@@ -360,14 +360,14 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
   {
     mod->mesh->num_faces = md3.num_surfaces;
-    mod->mesh->faces = Mem_LinkMalloc(mod->mesh->num_faces * sizeof(r_mesh_face_t), mod->mesh);
+    mod->mesh->faces = Mem_LinkMalloc(mod->mesh->num_faces * sizeof(RenderMeshFace), mod->mesh);
 
-    const d_md3_surface_t *in = (d_md3_surface_t *) (base + md3.ofs_surfaces);
-    r_mesh_face_t *out = mod->mesh->faces;
+    const Md3Surface *in = (Md3Surface *) (base + md3.ofs_surfaces);
+    RenderMeshFace *out = mod->mesh->faces;
 
     for (int32_t i = 0; i < mod->mesh->num_faces; i++, out++) {
 
-      const d_md3_surface_t surface = R_SwapMd3Surface(in);
+      const Md3Surface surface = R_SwapMd3Surface(in);
 
       if (surface.id != MD3_IDENT) {
         Com_Error(ERROR_DROP, "%s: %s: MD3_IDENT %d\n", mod->media.name, surface.name, surface.id);
@@ -393,18 +393,18 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
       {
         out->num_vertexes = surface.num_vertexes;
-        out->vertexes = Mem_LinkMalloc(out->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh);
+        out->vertexes = Mem_LinkMalloc(out->num_vertexes * mod->mesh->num_frames * sizeof(RenderMeshVertex), mod->mesh);
 
-        const d_md3_vertex_t *in_vertex = (d_md3_vertex_t *) (surface_base + surface.ofs_vertexes);
-        r_mesh_vertex_t *out_vertex = out->vertexes;
+        const Md3Vertex *in_vertex = (Md3Vertex *) (surface_base + surface.ofs_vertexes);
+        RenderMeshVertex *out_vertex = out->vertexes;
 
         for (int32_t j = 0; j < mod->mesh->num_frames; j++) {
 
-          const d_md3_texcoord_t *in_texcoord = (d_md3_texcoord_t *) (surface_base + surface.ofs_texcoords);
+          const Md3Texcoord *in_texcoord = (Md3Texcoord *) (surface_base + surface.ofs_texcoords);
 
           for (int32_t k = 0; k < out->num_vertexes; k++, in_vertex++, in_texcoord++, out_vertex++) {
 
-            const d_md3_vertex_t vertex = R_SwapMd3Vertex(in_vertex);
+            const Md3Vertex vertex = R_SwapMd3Vertex(in_vertex);
 
             out_vertex->position = Vec3_Scale(Vec3s_CastVec3(vertex.point), MD3_XYZ_SCALE);
 
@@ -422,7 +422,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
             out_vertex->normal = Vec3_Normalize(out_vertex->normal);
 
-            const d_md3_texcoord_t texcoord = R_SwapMd3Texcoord(in_texcoord);
+            const Md3Texcoord texcoord = R_SwapMd3Texcoord(in_texcoord);
 
             out_vertex->diffusemap = texcoord.st;
           }
@@ -433,12 +433,12 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
         out->num_elements = surface.num_triangles * 3;
         out->elements = Mem_LinkMalloc(out->num_elements * sizeof(uint32_t), mod->mesh);
 
-        const d_md3_triangle_t *in_triangle = (d_md3_triangle_t *) (surface_base + surface.ofs_triangles);
+        const Md3Triangle *in_triangle = (Md3Triangle *) (surface_base + surface.ofs_triangles);
         uint32_t *out_triangle = out->elements;
 
         for (int32_t j = 0; j < surface.num_triangles; j++, in_triangle++, out_triangle += 3) {
 
-          const d_md3_triangle_t tri = R_SwapMd3Triangle(in_triangle);
+          const Md3Triangle tri = R_SwapMd3Triangle(in_triangle);
 
           out_triangle[0] = tri.indexes[0];
           out_triangle[1] = tri.indexes[1];
@@ -446,7 +446,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
         }
       }
 
-      in = (d_md3_surface_t *) (surface_base + in->ofs_end);
+      in = (Md3Surface *) (surface_base + in->ofs_end);
     }
   }
 
@@ -472,7 +472,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 /**
  * @brief The MD3 model format descriptor.
  */
-const r_model_format_t r_md3_model_format = {
+const RenderModelFormat r_md3_model_format = {
   .extension = "md3",
   .type = MODEL_MESH,
   .Load = R_LoadMd3Model,

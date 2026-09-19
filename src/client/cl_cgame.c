@@ -29,15 +29,15 @@ static void *cgame_handle;
 /**
  * @brief Fetch the active debug mask.
  */
-static debug_t Cl_CgameDebugMask(void) {
+static DebugFlags Cl_CgameDebugMask(void) {
   return quetoo.debug_mask;
 }
 
 /**
  * @brief Forwards a debug message from the client game module to the engine console.
  */
-static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
+static void Cl_CgameDebug(const DebugFlags debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Cl_CgameDebug(const DebugFlags debug, const char *func, const char *fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
@@ -107,11 +107,11 @@ static float Cl_ReadFloat(void) {
   return Net_ReadFloat(&net_message);
 }
 
-static vec3_t Cl_ReadPosition(void) {
+static Vec3 Cl_ReadPosition(void) {
   return Net_ReadPosition(&net_message);
 }
 
-static vec3_t Cl_ReadDir(void) {
+static Vec3 Cl_ReadDir(void) {
   return Net_ReadDir(&net_message);
 }
 
@@ -119,7 +119,7 @@ static float Cl_ReadAngle(void) {
   return Net_ReadAngle(&net_message);
 }
 
-static vec3_t Cl_ReadAngles(void) {
+static Vec3 Cl_ReadAngles(void) {
   return Net_ReadAngles(&net_message);
 }
 
@@ -162,7 +162,7 @@ static void Cl_CgamePrintLevel(int32_t level, const char *fmt, ...) {
  * `Com_Cgame` names.
  */
 void Cl_InitCgame(void) {
-  cg_import_t import;
+  ClientGameImport import;
 
   const char *dir = Com_Cgame();
 
@@ -349,7 +349,7 @@ void Cl_InitCgame(void) {
 
   cgame_handle = handle;
 
-  cg_export_t *cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
+  ClientGameExport *cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
 
   if (!cgame) {
     cgame_handle = Sys_CloseLibrary(cgame_handle);

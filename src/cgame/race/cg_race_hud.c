@@ -60,7 +60,7 @@ static struct {
 /**
  * @see cg_race.h
  */
-void Cg_Race_Milestone(g_race_milestone_t kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record) {
+void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record) {
 
   if (label && *label) {
     q_strlcpy(cg_race_milestone.name, label, sizeof(cg_race_milestone.name));
@@ -103,17 +103,17 @@ static const char *Cg_Race_FormatDelta(int32_t delta, const char *against) {
 }
 
 /**
- * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
   if (ps->stats[STAT_RACE_MODE] == RACE_MODE_SPECTATOR) {
     return NULL;
   }
 
-  const g_race_run_state_t state = ps->stats[STAT_RACE_RUN];
+  const GameRaceRunState state = ps->stats[STAT_RACE_RUN];
   if (state == RACE_RUN_IDLE) {
     cg_race_milestone.shown = 0;
     return NULL;
@@ -211,13 +211,13 @@ struct SpeedViewInterface {
 };
 
 /**
- * @see CounterView::valueForFrame(CounterView *, const cl_frame_t *)
+ * @see CounterView::valueForFrame(CounterView *, const ClientFrame *)
  */
-static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
+static int32_t valueForFrame(CounterView *self, const ClientFrame *frame) {
 
   SpeedView *this = (SpeedView *) self;
 
-  vec3_t velocity = frame->ps.pm_state.velocity;
+  Vec3 velocity = frame->ps.pm_state.velocity;
   velocity.z = 0.f;
 
   this->speed += (Vec3_Length(velocity) - this->speed) * RACE_HUD_SPEED_LERP;
@@ -289,9 +289,9 @@ struct RunsViewInterface {
 };
 
 /**
- * @see CounterView::valueForFrame(CounterView *, const cl_frame_t *)
+ * @see CounterView::valueForFrame(CounterView *, const ClientFrame *)
  */
-static int32_t runsForFrame(CounterView *self, const cl_frame_t *frame) {
+static int32_t runsForFrame(CounterView *self, const ClientFrame *frame) {
   return frame->ps.stats[STAT_RACE_RUNS];
 }
 

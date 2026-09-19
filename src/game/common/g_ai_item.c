@@ -24,8 +24,8 @@
 /**
  * @return True if the bot entity can pick up the item entity.
  */
-bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
-  const g_item_t *item = other->item;
+bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
+  const GameItem *item = other->item;
 
   if (!item) {
     return false;
@@ -63,7 +63,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       return true;
 #if defined(G_TECH)
     case ITEM_TYPE_TECH:
-      for (g_item_tag_t tag = TECH_FIRST; tag < TECH_LAST; tag++) {
+      for (GameItemTag tag = TECH_FIRST; tag < TECH_LAST; tag++) {
         if (inventory[tag]) {
           return false;
         }
@@ -73,8 +73,8 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
 #endif
 #if defined(G_CTF)
     case ITEM_TYPE_FLAG: {
-      const g_team_id_t team = cl->persistent.team->id;
-      const g_team_id_t flag_team = (item->def.tag - FLAG_FIRST);
+      const GameTeamId team = cl->persistent.team->id;
+      const GameTeamId flag_team = (item->def.tag - FLAG_FIRST);
       if (flag_team == team && other->owner == NULL) {
         return false;
       }

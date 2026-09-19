@@ -156,11 +156,11 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         }
         $(deleteEntity, stateDidChange);
 
-        r_model_t *model = NULL;
+        RenderModel *model = NULL;
         if (number > 0) {
-          const cg_editor_entity_t *edit = &cg_editor.entities[number];
+          const ClientGameEditorEntity *edit = &cg_editor.entities[number];
           if (edit->model && IS_MESH_MODEL(edit->model)) {
-            model = (r_model_t *) edit->model;
+            model = (RenderModel *) edit->model;
           }
         }
         $(this->meshViewController, setModel, model);

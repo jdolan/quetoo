@@ -32,41 +32,41 @@ typedef enum {
   FS_DIRECTORY,
   FS_SYMLINK,
   FS_OTHER,
-} fs_file_type_t;
+} FsFileType;
 
 /**
  * @brief The @c Fs_Stat return type.
  */
 typedef struct {
-  fs_file_type_t type;
+  FsFileType type;
   int64_t size;
   int64_t created;
   int64_t modified;
   int64_t accessed;
-} fs_stat_t;
+} FsStat;
 
 const char *Fs_BaseDir(void);
 const char *Fs_BinDir(void);
 const char *Fs_LibDir(void);
 const char *Fs_DataDir(void);
-bool Fs_Close(file_t *file);
+bool Fs_Close(File *file);
 bool Fs_Delete(const char *filename);
-bool Fs_Eof(file_t *file);
+bool Fs_Eof(File *file);
 bool Fs_Exists(const char *filename);
-bool Fs_Flush(file_t *file);
-bool Fs_Stat(const char *filename, fs_stat_t *out);
+bool Fs_Flush(File *file);
+bool Fs_Stat(const char *filename, FsStat *out);
 const char *Fs_LastError(void);
 bool Fs_Mkdir(const char *dir);
-file_t *Fs_OpenAppend(const char *filename);
-file_t *Fs_OpenRead(const char *filename);
-file_t *Fs_OpenWrite(const char *filename);
-int64_t Fs_Print(file_t *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count);
-bool Fs_ReadLine(file_t *file, char *buffer, size_t len);
-bool Fs_Seek(file_t *file, int64_t offset);
-int64_t Fs_FileLength(file_t *file);
-int64_t Fs_Tell(file_t *file);
-int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count);
+File *Fs_OpenAppend(const char *filename);
+File *Fs_OpenRead(const char *filename);
+File *Fs_OpenWrite(const char *filename);
+int64_t Fs_Print(File *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+int64_t Fs_Read(File *file, void *buffer, size_t size, size_t count);
+bool Fs_ReadLine(File *file, char *buffer, size_t len);
+bool Fs_Seek(File *file, int64_t offset);
+int64_t Fs_FileLength(File *file);
+int64_t Fs_Tell(File *file);
+int64_t Fs_Write(File *file, const void *buffer, size_t size, size_t count);
 bool Fs_WriteAt(const char *filename, const void *data, size_t size, int64_t offset);
 int64_t Fs_Load(const char *filename, void **buffer);
 int64_t Fs_LastModTime(const char *filename);

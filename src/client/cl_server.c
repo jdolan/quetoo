@@ -28,10 +28,10 @@
 /**
  * @brief Allocates and prepends a new server info entry for the given network address.
  */
-static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
-  cl_server_info_t *s;
+static ClientServerInfo *Cl_AddServer(const NetAddr *addr) {
+  ClientServerInfo *s;
 
-  s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
+  s = (ClientServerInfo *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
 
   s->addr = *addr;
   q_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
@@ -48,9 +48,9 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 /**
  * @brief Finds the server info entry matching the given network address.
  */
-static net_addr_t Cl_ServerNetaddr(const net_addr_t *addr) {
+static NetAddr Cl_ServerNetaddr(const NetAddr *addr) {
 
-  net_addr_t a = *addr;
+  NetAddr a = *addr;
 
   // every loopback datagram is received stamped with no port, so a listen server has to be
   // keyed that way too, or the entry that asked can never be matched to its own answer
@@ -64,10 +64,10 @@ static net_addr_t Cl_ServerNetaddr(const net_addr_t *addr) {
 /**
  * @brief Returns the known server for the given address, or `NULL`.
  */
-static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
+static ClientServerInfo *Cl_ServerForNetaddr(const NetAddr *addr) {
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    cl_server_info_t *s = (cl_server_info_t *) $(cls.servers, get, i);
+    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (Net_CompareNetaddr(addr, &s->addr)) {
       return s;
@@ -95,10 +95,10 @@ void Cl_FreeServers(void) {
  * @remarks Matching is on the identity the server reports, not on how it looks. A server
  * that reports none is left alone rather than guessed at.
  */
-static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
+static void Cl_MergeDuplicateServers(const ClientServerInfo *server) {
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    const cl_server_info_t *other = (cl_server_info_t *) $(cls.servers, get, i);
+    const ClientServerInfo *other = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (other == server || Net_CompareNetaddr(&other->addr, &server->addr)) {
       continue;
@@ -119,7 +119,7 @@ static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
 void Cl_ParseServerInfo(void) {
   char string[MAX_MSG_SIZE];
 
-  cl_server_info_t *server = Cl_ServerForNetaddr(&net_from);
+  ClientServerInfo *server = Cl_ServerForNetaddr(&net_from);
   if (!server) { // unknown server, assumed response to broadcast
 
     server = Cl_AddServer(&net_from);
@@ -235,8 +235,8 @@ void Cl_ParseServerInfo(void) {
  * @brief Handles the `ping` console command, pinging a specific server address.
  */
 void Cl_Ping_f(void) {
-  net_addr_t addr;
-  cl_server_info_t *server;
+  NetAddr addr;
+  ClientServerInfo *server;
 
   if (Cmd_Argc() != 2) {
     Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
@@ -273,11 +273,11 @@ void Cl_Ping_f(void) {
  * @brief Queries the status of the server at `addr`, adding it to the list if it is unknown, so
  * that its hostname is at hand for the connection in progress. A local server is not listed.
  */
-void Cl_QueryServer(const net_addr_t *addr) {
+void Cl_QueryServer(const NetAddr *addr) {
 
-  const net_addr_t to = Cl_ServerNetaddr(addr);
+  const NetAddr to = Cl_ServerNetaddr(addr);
 
-  cl_server_info_t *server = Cl_ServerForNetaddr(&to);
+  ClientServerInfo *server = Cl_ServerForNetaddr(&to);
 
   if (!server) {
     server = Cl_AddServer(&to);
@@ -293,13 +293,13 @@ void Cl_QueryServer(const net_addr_t *addr) {
  * @brief Returns the known status of the server being connected to or played on, or `NULL` if
  * there is none or it has never been queried.
  */
-const cl_server_info_t *Cl_ServerInfo(void) {
+const ClientServerInfo *Cl_ServerInfo(void) {
 
   if (cls.server.address[0] == '\0') {
     return NULL;
   }
 
-  const net_addr_t addr = Cl_ServerNetaddr(&cls.server.addr);
+  const NetAddr addr = Cl_ServerNetaddr(&cls.server.addr);
 
   return Cl_ServerForNetaddr(&addr);
 }
@@ -309,7 +309,7 @@ const cl_server_info_t *Cl_ServerInfo(void) {
  */
 static void Cl_SendBroadcast(void) {
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) { // update old ping times
-    cl_server_info_t *s = (cl_server_info_t *) $(cls.servers, get, i);
+    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (s->source == SERVER_SOURCE_BCAST) {
       s->ping_time = quetoo.ticks;
@@ -317,7 +317,7 @@ static void Cl_SendBroadcast(void) {
     }
   }
 
-  net_addr_t addr;
+  NetAddr addr;
   memset(&addr, 0, sizeof(addr));
 
   addr.type = NA_BROADCAST;
@@ -334,7 +334,7 @@ static void Cl_SendBroadcast(void) {
  * @brief Handles the `servers` console command, querying the master server and sending a LAN broadcast.
  */
 void Cl_Servers_f(void) {
-  net_addr_t addr;
+  NetAddr addr;
 
   if (!Net_StringToNetaddr(HOST_MASTER, &addr)) {
     Com_Print("Failed to resolve %s\n", HOST_MASTER);
@@ -358,7 +358,7 @@ void Cl_Servers_f(void) {
  * @brief Parses the server list from a master server response and pings each entry.
  */
 void Cl_ParseServers(void) {
-  cl_server_info_t *server;
+  ClientServerInfo *server;
 
   Com_Debug(DEBUG_CLIENT, "Servers list from %s: %" PRIuPTR " bytes\n",
             Net_NetaddrToString(&net_from), (uintptr_t) net_message.size);
@@ -376,7 +376,7 @@ void Cl_ParseServers(void) {
 
   // parse the list
   while (buffptr + 1 < buffend) {
-    net_addr_t addr;
+    NetAddr addr;
     byte ip[4];
 
     ip[0] = *buffptr++; // parse the address
@@ -419,7 +419,7 @@ void Cl_ParseServers(void) {
   uint32_t queried = 0;
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    server = (cl_server_info_t *) $(cls.servers, get, i);
+    server = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (server->source == SERVER_SOURCE_INTERNET) {
       server->ping_time = quetoo.ticks;
@@ -447,7 +447,7 @@ void Cl_Servers_List_f(void) {
   char string[256];
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    const cl_server_info_t *s = (const cl_server_info_t *) $(cls.servers, get, i);
+    const ClientServerInfo *s = (const ClientServerInfo *) $(cls.servers, get, i);
 
     q_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,

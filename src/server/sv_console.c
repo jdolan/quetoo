@@ -36,12 +36,12 @@ static struct {
   bool dirty;
 } sv_console_curses;
 
-static console_t sv_console;
+static Console sv_console;
 
 /**
  * @brief Console append callback.
  */
-static void Sv_Print(const console_string_t *str) {
+static void Sv_Print(const ConsoleString *str) {
 
   sv_console_curses.dirty = true;
 }
@@ -51,7 +51,7 @@ static void Sv_Print(const console_string_t *str) {
  */
 static void Sv_HandleEvents(void) {
 
-  console_input_t *in = &sv_console.input;
+  ConsoleInput *in = &sv_console.input;
 
   int32_t key;
   while ((key = wgetch(sv_console_curses.window)) != ERR) {
@@ -228,7 +228,7 @@ static void Sv_DrawConsole_Input(void) {
 
   Sv_DrawConsole_Color(ESC_COLOR_ALT);
 
-  const console_input_t *in = &sv_console.input;
+  const ConsoleInput *in = &sv_console.input;
 
   const char *s = &in->buffer[(in->pos / sv_console.width) * sv_console.width];
 
@@ -352,7 +352,7 @@ void Sv_InitConsole(void) {
 
   Con_AddConsole(&sv_console);
 
-  file_t *file = Fs_OpenRead("history");
+  File *file = Fs_OpenRead("history");
   if (file) {
     Con_ReadHistory(&sv_console, file);
     Fs_Close(file);
@@ -380,7 +380,7 @@ void Sv_ShutdownConsole(void) {
 
   Con_RemoveConsole(&sv_console);
 
-  file_t *file = Fs_OpenWrite("history");
+  File *file = Fs_OpenWrite("history");
   if (file) {
     Con_WriteHistory(&sv_console, file);
     Fs_Close(file);

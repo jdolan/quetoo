@@ -23,9 +23,9 @@
 
 #include <string.h>
 /**
- * @brief Construct an HTTP URL from a `net_addr_t` and path.
+ * @brief Construct an HTTP URL from a `NetAddr` and path.
  */
-int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t buf_size) {
+int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t buf_size) {
 
   return q_snprintf(buf, buf_size, "http://%s:%d/%s",
                     Net_NetaddrToIpString(addr),

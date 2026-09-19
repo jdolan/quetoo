@@ -130,7 +130,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   StripExtension(filename, tempname);
   q_strlcat(tempname, ".tmp", sizeof(tempname));
 
-  file_t *file = Fs_OpenWrite(tempname);
+  File *file = Fs_OpenWrite(tempname);
   if (!file) {
     Com_Warn("Failed to open %s for writing\n", tempname);
     cl_download.data = release(cl_download.data);
@@ -190,7 +190,7 @@ void Cl_Precache_f(void) {
  * @brief Parses the baseline entity state for the given entity number.
  */
 static void Cl_ParseBaseline(void) {
-  static entity_state_t null_state;
+  static EntityState null_state;
 
   const int16_t number = Net_ReadShort(&net_message);
   const uint16_t bits = Net_ReadShort(&net_message);
@@ -199,7 +199,7 @@ static void Cl_ParseBaseline(void) {
     Com_Error(ERROR_DROP, "Invalid entity number: %d\n", number);
   }
 
-  cl_entity_t *ent = &cl.entities[number];
+  ClientEntity *ent = &cl.entities[number];
 
   Net_ReadDeltaEntity(&net_message, &null_state, &ent->baseline, number, bits);
 }
@@ -415,7 +415,7 @@ static void Cl_ParsePrint(void) {
     }
 
     if (sample) {
-      S_AddSample(&cl_stage, &(s_play_sample_t) {
+      S_AddSample(&cl_stage, &(SoundPlaySample) {
         .sample = S_LoadSample(sample, ASSET_CONTEXT_SOUNDS),
         .flags = S_PLAY_UI
       });

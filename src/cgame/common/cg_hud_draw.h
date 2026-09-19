@@ -74,21 +74,21 @@ typedef struct {
    * @brief When the state was last cleared; prints from before it are not shown.
    */
   uint32_t clear_time;
-} cg_hud_state_t;
+} ClientGameHudState;
 
-extern cg_hud_state_t cg_hud_state;
+extern ClientGameHudState cg_hud_state;
 
-extern cvar_t *cg_chat_lines;
-extern cvar_t *cg_chat_time;
-extern cvar_t *cg_notify_lines;
-extern cvar_t *cg_notify_time;
-extern cvar_t *cg_select_weapon_alpha;
-extern cvar_t *cg_select_weapon_delay;
-extern cvar_t *cg_select_weapon_fade;
-extern cvar_t *cg_select_weapon_interval;
+extern Cvar *cg_chat_lines;
+extern Cvar *cg_chat_time;
+extern Cvar *cg_notify_lines;
+extern Cvar *cg_notify_time;
+extern Cvar *cg_select_weapon_alpha;
+extern Cvar *cg_select_weapon_delay;
+extern Cvar *cg_select_weapon_fade;
+extern Cvar *cg_select_weapon_interval;
 
-bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha);
-bool Cg_AttemptSelectWeapon(const player_state_t *ps);
+bool Cg_UpdateSelectWeapon(const PlayerState *ps, float *alpha);
+bool Cg_AttemptSelectWeapon(const PlayerState *ps);
 void Cg_ParseCenterPrint(void);
 void Cg_InitHud(void);
 void Cg_LoadHudMedia(void);

@@ -28,23 +28,23 @@ extern in_addr_t net_lo;
 int32_t Net_GetError(void);
 const char *Net_GetErrorString(void);
 
-bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b);
-bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b);
+bool Net_CompareNetaddr(const NetAddr *a, const NetAddr *b);
+bool Net_CompareClientNetaddr(const NetAddr *a, const NetAddr *b);
 
-void Net_NetAddrToSockaddr(const net_addr_t *a, net_sockaddr *s);
-const char *Net_NetaddrToString(const net_addr_t *a);
+void Net_NetAddrToSockaddr(const NetAddr *a, net_sockaddr *s);
+const char *Net_NetaddrToString(const NetAddr *a);
 bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr);
-bool Net_StringToNetaddr(const char *s, net_addr_t *a);
+bool Net_StringToNetaddr(const char *s, NetAddr *a);
 
-int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port);
+int32_t Net_Socket(NetAddrType type, const char *iface, in_port_t port);
 int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog);
-int32_t Net_Accept(int32_t sock, net_addr_t *from);
+int32_t Net_Accept(int32_t sock, NetAddr *from);
 ssize_t Net_Send(int32_t sock, const void *data, size_t len);
 ssize_t Net_Recv(int32_t sock, void *data, size_t len);
 void Net_SetNonBlocking(int32_t sock, bool non_blocking);
 void Net_CloseSocket(int32_t sock);
 
-const char *Net_NetaddrToIpString(const net_addr_t *a);
+const char *Net_NetaddrToIpString(const NetAddr *a);
 
 void Net_Init(void);
 void Net_Shutdown(void);

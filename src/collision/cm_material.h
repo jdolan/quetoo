@@ -27,7 +27,7 @@
  * @brief Blend factors for material stage blending. Renderer-agnostic; the
  * renderer maps these to its backend equivalents (e.g. SDL_GPUBlendFactor).
  * @remarks BLEND_INVALID is deliberately 0, matching the zero-initialized
- * (never parsed a `blend` keyword) state of a fresh cm_stage_t. This lets
+ * (never parsed a `blend` keyword) state of a fresh CmStage. This lets
  * "ensure appropriate blend function defaults" (Cm_ParseStage) distinguish
  * "never set" from an explicit, meaningful `BLEND_ZERO` factor -- e.g. a
  * stage that explicitly sets `blend one zero` for opaque overwrite rendering.
@@ -41,7 +41,7 @@ typedef enum {
   BLEND_SRC_ALPHA,
   BLEND_ONE_MINUS_SRC_ALPHA,
   BLEND_DST_COLOR,
-} cm_blend_t;
+} CmBlend;
 
 /**
  * @brief Blend function source and destination factors.
@@ -49,10 +49,10 @@ typedef enum {
 typedef struct {
 
   /**
-   * @brief The blend factors (`cm_blend_t`).
+   * @brief The blend factors (`CmBlend`).
    */
-  cm_blend_t src, dest;
-} cm_stage_blend_t;
+  CmBlend src, dest;
+} CmStageBlend;
 
 /**
  * @brief Pulse animation parameters.
@@ -68,7 +68,7 @@ typedef struct {
    * @brief Optional random time offset in seconds.
    */
   float drift;
-} cm_stage_pulse_t;
+} CmStagePulse;
 
 /**
  * @brief Stretch animation parameters.
@@ -84,7 +84,7 @@ typedef struct {
    * @brief Stretch amplitude.
    */
   float amplitude;
-} cm_stage_stretch_t;
+} CmStageStretch;
 
 /**
  * @brief Rotation animation parameters.
@@ -95,7 +95,7 @@ typedef struct {
    * @brief Rotation frequency in Hz.
    */
   float hz;
-} cm_stage_rotate_t;
+} CmStageRotate;
 
 /**
  * @brief Texture scrolling parameters.
@@ -106,7 +106,7 @@ typedef struct {
    * @brief Scroll speed along S and T axes.
    */
   float s, t;
-} cm_stage_scroll_t;
+} CmStageScroll;
 
 /**
  * @brief Texture scale parameters.
@@ -117,7 +117,7 @@ typedef struct {
    * @brief Scale factors along S and T axes.
    */
   float s, t;
-} cm_stage_scale_t;
+} CmStageScale;
 
 /**
  * @brief Terrain blending parameters.
@@ -128,7 +128,7 @@ typedef struct {
    * @brief World-space Z range for blending.
    */
   float floor, ceil;
-} cm_stage_terrain_t;
+} CmStageTerrain;
 
 /**
  * @brief Dirtmap effect parameters.
@@ -139,7 +139,7 @@ typedef struct {
    * @brief Dirtmap blend intensity.
    */
   float intensity;
-} cm_stage_dirtmap_t;
+} CmStageDirtmap;
 
 /**
  * @brief Warp (liquid) animation parameters.
@@ -155,7 +155,7 @@ typedef struct {
    * @brief Warp amplitude.
    */
   float amplitude;
-} cm_stage_warp_t;
+} CmStageWarp;
 
 /**
  * @brief Stage lighting parameters.
@@ -174,7 +174,7 @@ typedef struct {
     STAGE_LIGHTING_MODE_MATERIAL,
     STAGE_LIGHTING_MODE_FLAT
   } mode;
-} cm_stage_lighting_t;
+} CmStageLighting;
 
 /**
  * @brief Shell effect parameters.
@@ -185,7 +185,7 @@ typedef struct {
    * @brief Shell expansion radius.
    */
   float radius;
-} cm_stage_shell_t;
+} CmStageShell;
 
 /**
  * @brief Frame animation parameters.
@@ -200,7 +200,7 @@ typedef struct {
   /**
    * @brief Resolved per-frame asset array.
    */
-  asset_t *frames;
+  Asset *frames;
 
   /**
    * @brief Playback rate in frames per second.
@@ -211,7 +211,7 @@ typedef struct {
    * @brief Optional random time offset in seconds.
    */
   float drift;
-} cm_stage_animation_t;
+} CmStageAnimation;
 
 typedef enum {
   TINT_R,
@@ -219,7 +219,7 @@ typedef enum {
   TINT_B,
 
   TINT_TOTAL
-} cm_stage_tint_src_t;
+} CmStageTintSrc;
 
 /**
  * @brief Stage flags indicate what assets and effects a material or stage may include.
@@ -260,87 +260,87 @@ typedef enum {
   STAGE_PORTAL        = (1 << 21),
 
   STAGE_DRAW          = (1 << 30),
-} cm_stage_flags_t;
+} CmStageFlags;
 
 /**
  * @brief Stages are ordered layers of visual effects rendered on top of their material.
  */
-typedef struct cm_stage_s {
+typedef struct CmStage {
 
   /**
    * @brief The stage flags.
    */
-  cm_stage_flags_t flags;
+  CmStageFlags flags;
 
   /**
    * @brief The stage asset.
    */
-  asset_t asset;
+  Asset asset;
 
   /**
    * @brief The stage alpha blend function.
    */
-  cm_stage_blend_t blend;
+  CmStageBlend blend;
 
   /**
    * @brief The stage color.
    */
-  color_t color;
+  Color color;
 
   /**
    * @brief The stage pulse parameters.
    */
-  cm_stage_pulse_t pulse;
+  CmStagePulse pulse;
 
   /**
    * @brief The stage stretch parameters.
    */
-  cm_stage_stretch_t stretch;
+  CmStageStretch stretch;
 
   /**
    * @brief The stage rotate parameters.
    */
-  cm_stage_rotate_t rotate;
+  CmStageRotate rotate;
 
   /**
    * @brief The stage scroll parameters.
    */
-  cm_stage_scroll_t scroll;
+  CmStageScroll scroll;
 
   /**
    * @brief The stage scale parameters.
    */
-  cm_stage_scale_t scale;
+  CmStageScale scale;
 
   /**
    * @brief The stage animation parameters.
    */
-  cm_stage_animation_t animation;
+  CmStageAnimation animation;
 
   /**
    * @brief The stage terrain parameters.
    */
-  cm_stage_terrain_t terrain;
+  CmStageTerrain terrain;
 
   /**
    * @brief The stage dirtmap parameters.
    */
-  cm_stage_dirtmap_t dirtmap;
+  CmStageDirtmap dirtmap;
 
   /**
    * @brief The stage warp parameters.
    */
-  cm_stage_warp_t warp;
+  CmStageWarp warp;
 
   /**
    * @brief The stage lighting parameters.
    */
-  cm_stage_lighting_t lighting;
+  CmStageLighting lighting;
 
   /**
    * @brief The stage shell parameters.
    */
-  cm_stage_shell_t shell;
+  CmStageShell shell;
 
   /**
    * @brief The stage emissive intensity [0, 1]. Adds unlit stage color to output.
@@ -350,8 +350,8 @@ typedef struct cm_stage_s {
   /**
    * @brief The next stage, or `NULL`.
    */
-  struct cm_stage_s *next;
-} cm_stage_t;
+  struct CmStage *next;
+} CmStage;
 
 #define MAX_FOOTSTEP_SAMPLES 6
 
@@ -368,13 +368,13 @@ typedef struct {
   /**
    * @brief The footstep sample assets.
    */
-  asset_t samples[MAX_FOOTSTEP_SAMPLES];
+  Asset samples[MAX_FOOTSTEP_SAMPLES];
 
   /**
    * @brief The number of footstep sample assets.
    */
   int32_t num_samples;
-} cm_footsteps_t;
+} CmFootsteps;
 
 #define MATERIAL_ROUGHNESS 1.f
 #define MATERIAL_HARDNESS 1.f
@@ -386,7 +386,7 @@ typedef struct {
 /**
  * @brief Materials define the rendering attributes of textures.
  */
-typedef struct cm_material_s {
+typedef struct CmMaterial {
 
   /**
    * @brief The material file path defining this material, if any.
@@ -406,37 +406,37 @@ typedef struct cm_material_s {
   /**
    * @brief The asset context for this material (e.g. textures, models, players).
    */
-  asset_context_t context;
+  AssetContext context;
 
   /**
    * @brief The diffusemap asset.
    */
-  asset_t diffusemap;
+  Asset diffusemap;
 
   /**
    * @brief The normalmap asset.
    */
-  asset_t normalmap;
+  Asset normalmap;
 
   /**
    * @brief The specularmap asset.
    */
-  asset_t specularmap;
+  Asset specularmap;
 
   /**
    * @brief The tintmap asset.
    */
-  asset_t tintmap;
+  Asset tintmap;
 
   /**
    * @brief Flags for the material.
    */
-  cm_stage_flags_t stage_flags;
+  CmStageFlags stage_flags;
 
   /**
    * @brief The material stages, if any.
    */
-  cm_stage_t *stages;
+  CmStage *stages;
 
   /**
    * @brief Contents flags applied to brush sides referencing this material.
@@ -481,41 +481,41 @@ typedef struct cm_material_s {
   /**
    * @brief The footsteps to play when the player walks on this material.
    */
-  cm_footsteps_t footsteps;
+  CmFootsteps footsteps;
 
   /**
    * @brief Default tint colors
    */
-  vec4_t tintmap_defaults[TINT_TOTAL];
+  Vec4 tintmap_defaults[TINT_TOTAL];
 
   /**
    * @brief True if this material has been modified and needs to be saved.
    */
   bool dirty;
-} cm_material_t;
+} CmMaterial;
 
 /**
  * @brief Loads the material with the given name in the given asset context.
  * @return The loaded material, or `NULL` on failure.
  */
-cm_material_t *Cm_LoadMaterial(const char *name, asset_context_t context);
+CmMaterial *Cm_LoadMaterial(const char *name, AssetContext context);
 
 /**
  * @brief Frees the material and all its stages.
  */
-void Cm_FreeMaterial(cm_material_t *material);
+void Cm_FreeMaterial(CmMaterial *material);
 
 /**
  * @brief Resolves all asset paths referenced by the material.
  * @return true if the diffusemap was resolved successfully.
  */
-bool Cm_ResolveMaterial(cm_material_t *material);
+bool Cm_ResolveMaterial(CmMaterial *material);
 
 /**
  * @brief Serializes the material to its file path on disk.
  * @return true on success.
  */
-bool Cm_SaveMaterial(const cm_material_t *material);
+bool Cm_SaveMaterial(const CmMaterial *material);
 
 /**
  * @brief Extracts the base name from a material path, stripping any diffusemap suffix.
@@ -525,7 +525,7 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len);
 /**
  * @brief Computes the expected .mat file path for the given material name and context.
  */
-void Cm_MaterialPath(const char *name, char *path, size_t len, asset_context_t context);
+void Cm_MaterialPath(const char *name, char *path, size_t len, AssetContext context);
 
 #if defined(__CM_LOCAL_H__)
 #endif

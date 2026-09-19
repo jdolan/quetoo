@@ -46,15 +46,15 @@ bool no_weld = false;
 /**
  * @brief Compiles the world model entity, performing CSG, BSP, portal, and face generation.
  */
-static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
+static void ProcessWorldModel(const Entity *e, BspModel *out) {
 
-  csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+  CsgBrush *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 
   if (!no_csg) {
     brushes = SubtractBrushes(brushes);
   }
 
-  tree_t *tree = BuildTree(brushes);
+  Tree *tree = BuildTree(brushes);
 
   MakeTreePortals(tree);
 
@@ -91,14 +91,14 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 /**
  * @brief Compiles a brush entity as an inline BSP model (e.g. `func_door`, `func_plat`).
  */
-static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
+static void ProcessInlineModel(const Entity *e, BspModel *out) {
 
-  csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+  CsgBrush *brushes = MakeBrushes(e->first_brush, e->num_brushes);
   if (!no_csg) {
     brushes = SubtractBrushes(brushes);
   }
 
-  tree_t *tree = BuildTree(brushes);
+  Tree *tree = BuildTree(brushes);
 
   MakeTreePortals(tree);
 
@@ -129,16 +129,16 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 static void ProcessModels(void) {
 
   for (int32_t i = 0; i < num_entities; i++) {
-    const entity_t *e = entities + i;
+    const Entity *e = entities + i;
 
     if (!e->num_brush_sides) {
       continue;
     }
 
-    const vec3_t origin = VectorForKey(e, "origin", Vec3_Zero());
+    const Vec3 origin = VectorForKey(e, "origin", Vec3_Zero());
     Com_Print("%s @ %s\n", ValueForKey(e, "classname", "Unknown"), vtos(origin));
 
-    bsp_model_t *mod = BeginModel(e);
+    BspModel *mod = BeginModel(e);
     if (i == 0) {
       ProcessWorldModel(e, mod);
     } else {

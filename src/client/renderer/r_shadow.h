@@ -49,12 +49,12 @@ typedef struct {
    * @brief The tile size in pixels.
    */
   Uint32 tile_size;
-} r_shadow_atlas_t;
+} RenderShadowAtlas;
 
-extern r_shadow_atlas_t r_shadow_atlas;
+extern RenderShadowAtlas r_shadow_atlas;
 
-void R_UpdateLightEntities(const r_view_t *view, r_light_t *l, int32_t index);
-void R_DrawShadows(const r_view_t *view);
+void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index);
+void R_DrawShadows(const RenderView *view);
 void R_ClearShadows(void);
 void R_InitShadows(void);
 void R_ShutdownShadows(void);

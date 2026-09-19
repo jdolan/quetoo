@@ -106,7 +106,7 @@ struct ScoreViewInterface {
   ViewInterface viewInterface;
 
   /**
-   * @fn ScoreView *ScoreView::initWithScore(ScoreView *self, const g_score_t *score, int32_t width)
+   * @fn ScoreView *ScoreView::initWithScore(ScoreView *self, const GameScore *score, int32_t width)
    * @brief Initializes this ScoreView for the given score, `width` wide.
    * @param self The ScoreView.
    * @param score The score.
@@ -114,7 +114,7 @@ struct ScoreViewInterface {
    * @return The initialized ScoreView, or `NULL` on error.
    * @memberof ScoreView
    */
-  ScoreView *(*initWithScore)(ScoreView *self, const g_score_t *score, int32_t width);
+  ScoreView *(*initWithScore)(ScoreView *self, const GameScore *score, int32_t width);
 
   /**
    * @fn void ScoreView::setDetails(ScoreView *self, const char *detail, const char *aside)

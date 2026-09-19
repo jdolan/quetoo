@@ -21,15 +21,15 @@
 
 #include "cg_local.h"
 
-static cg_sprite_t *cg_free_sprites;
-static cg_sprite_t *cg_active_sprites;
+static ClientGameSprite *cg_free_sprites;
+static ClientGameSprite *cg_active_sprites;
 
-static cg_sprite_t cg_sprites[MAX_SPRITES];
+static ClientGameSprite cg_sprites[MAX_SPRITES];
 
 /**
  * @brief Pushes the sprite onto the head of specified list.
  */
-static void Cg_PushSprite(cg_sprite_t *s, cg_sprite_t **list) {
+static void Cg_PushSprite(ClientGameSprite *s, ClientGameSprite **list) {
 
   s->prev = NULL;
 
@@ -45,7 +45,7 @@ static void Cg_PushSprite(cg_sprite_t *s, cg_sprite_t **list) {
  * @brief Pops the sprite from the specified list, repairing the list if it
  * becomes broken.
  */
-static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
+static void Cg_PopSprite(ClientGameSprite *s, ClientGameSprite **list) {
 
   if (s->prev) {
     s->prev->next = s->next;
@@ -65,7 +65,7 @@ static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
 /**
  * @brief Allocates a free sprite.
  */
-cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
+ClientGameSprite *Cg_AddSprite(const ClientGameSprite *in_s) {
 
   if (!cg_add_sprites->integer) {
     return NULL;
@@ -78,7 +78,7 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 
   assert(in_s->media);
 
-  cg_sprite_t *s = cg_free_sprites;
+  ClientGameSprite *s = cg_free_sprites;
 
   Cg_PopSprite(s, &cg_free_sprites);
 
@@ -99,8 +99,8 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
  * @brief Frees the specified sprite, returning the sprite it was pointing
  * to as a convenience for continued iteration.
  */
-cg_sprite_t *Cg_FreeSprite(cg_sprite_t *s) {
-  cg_sprite_t *next = s->next;
+ClientGameSprite *Cg_FreeSprite(ClientGameSprite *s) {
+  ClientGameSprite *next = s->next;
 
   Cg_PopSprite(s, &cg_active_sprites);
 
@@ -121,7 +121,7 @@ cg_sprite_t *Cg_FreeSprite(cg_sprite_t *s) {
  */
 void Cg_FreeSpritesByData(const void *data) {
 
-  cg_sprite_t *s = cg_active_sprites;
+  ClientGameSprite *s = cg_active_sprites;
   while (s) {
     if (s->data == data) {
       s->flags |= SPRITE_DATA_NOFREE;
@@ -159,7 +159,7 @@ void Cg_AddSprites(void) {
   const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
   const uint32_t client_time = cgi.client->unclamped_time, server_time = cgi.client->frame.time;
 
-  cg_sprite_t *s = cg_active_sprites;
+  ClientGameSprite *s = cg_active_sprites;
   while (s) {
 
     assert(s->media);
@@ -179,7 +179,7 @@ void Cg_AddSprites(void) {
       }
     }
 
-    cl_entity_t *entity = NULL;
+    ClientEntity *entity = NULL;
     if (s->flags & SPRITE_FOLLOW_ENTITY) {
       entity = &cgi.client->entities[s->entity.entity_id];
 
@@ -219,7 +219,7 @@ void Cg_AddSprites(void) {
       }
     }
 
-    vec3_t old_origin = s->origin;
+    Vec3 old_origin = s->origin;
 
     s->velocity = Vec3_Fmaf(s->velocity, delta, s->acceleration);
 
@@ -230,7 +230,7 @@ void Cg_AddSprites(void) {
     s->origin = Vec3_Fmaf(s->origin, delta, s->velocity);
 
     if (s->bounce && cg_sprite_physics->integer) {
-      vec3_t origin = s->origin;
+      Vec3 origin = s->origin;
 
       if (s->flags & SPRITE_FOLLOW_ENTITY) {
         old_origin = Vec3_Add(old_origin, entity->origin);
@@ -238,8 +238,8 @@ void Cg_AddSprites(void) {
       }
 
       const float size = s->size ?: max(s->height, s->width);
-      const box3_t bounds = Box3f(size, size, size);
-      cm_trace_t tr = cgi.Trace(old_origin, origin, bounds, NULL, CONTENTS_MASK_SOLID);
+      const Box3 bounds = Box3f(size, size, size);
+      CmTrace tr = cgi.Trace(old_origin, origin, bounds, NULL, CONTENTS_MASK_SOLID);
 
       if (tr.start_solid || tr.all_solid) {
         tr = cgi.Trace(old_origin, origin, Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
@@ -255,9 +255,9 @@ void Cg_AddSprites(void) {
       }
     }
 
-    const vec3_t color = Vec3_Mix(s->color, s->end_color, life);
+    const Vec3 color = Vec3_Mix(s->color, s->end_color, life);
 
-    vec3_t origin = s->origin;
+    Vec3 origin = s->origin;
     if (s->flags & SPRITE_FOLLOW_ENTITY) {
       origin = Vec3_Add(origin, entity->origin);
     }
@@ -266,7 +266,7 @@ void Cg_AddSprites(void) {
       case SPRITE_NORMAL:
         s->rotation += s->rotation_velocity * delta;
 
-        cgi.AddSprite(cgi.view, &(r_sprite_t) {
+        cgi.AddSprite(cgi.view, &(RenderSprite) {
           .origin = origin,
           .size = s->size,
           .width = s->width,
@@ -286,17 +286,17 @@ void Cg_AddSprites(void) {
           s->termination = Vec3_Fmaf(s->termination, delta, s->velocity);
         }
 
-        vec3_t termination = s->termination;
+        Vec3 termination = s->termination;
 
         if (s->flags & SPRITE_FOLLOW_ENTITY) {
           termination = Vec3_Add(termination, entity->origin);
         }
 
-        cgi.AddBeam(cgi.view, &(r_beam_t) {
+        cgi.AddBeam(cgi.view, &(RenderBeam) {
           .start = origin,
           .end = termination,
           .size = s->size,
-          .image = (r_image_t *) s->image,
+          .image = (RenderImage *) s->image,
           .color = color,
           .flags = s->flags,
           .lighting = s->lighting,

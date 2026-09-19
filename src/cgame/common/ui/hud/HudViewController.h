@@ -162,14 +162,14 @@ struct HudViewControllerInterface {
   void (*reload)(HudViewController *self);
 
   /**
-   * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
+   * @fn void HudViewController::updateWithFrame(HudViewController *self, const ClientFrame *frame)
    * @brief Resolves visibility, hands `frame` to the View hierarchy, and compiles the Theme's
    * icon atlas if a hud added to it. Called once per frame, before the client draws.
    * @param self The HudViewController.
    * @param frame The frame.
    * @memberof HudViewController
    */
-  void (*updateWithFrame)(HudViewController *self, const cl_frame_t *frame);
+  void (*updateWithFrame)(HudViewController *self, const ClientFrame *frame);
 
   /**
    * @fn void HudViewController::warm(HudViewController *self)

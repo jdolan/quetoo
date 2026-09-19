@@ -41,7 +41,7 @@ static struct {
  * rather than each vertex carrying its own copy of the decal.
  */
 static struct {
-  r_decal_instance_t instances[MAX_DECAL_INSTANCES];
+  RenderDecalInstance instances[MAX_DECAL_INSTANCES];
 
   Buffer *buffer;
 
@@ -68,7 +68,7 @@ static struct {
 /**
  * @brief Adds a decal to the view for rendering in the current frame.
  */
-void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
+void R_AddDecal(RenderView *view, const RenderDecal *decal) {
 
   assert(decal);
   assert(decal->image);
@@ -80,7 +80,7 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
     return;
   }
 
-  r_decal_t *out = &view->decals[view->num_decals++];
+  RenderDecal *out = &view->decals[view->num_decals++];
 
   *out = *decal;
 }
@@ -91,9 +91,9 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
  * `MEM_TAG_POLYLIB` at shutdown.
  */
 static _Thread_local struct {
-  cm_winding_t *decal;
-  cm_winding_t *face;
-  cm_winding_t *a, *b;
+  CmWinding *decal;
+  CmWinding *face;
+  CmWinding *a, *b;
   int32_t max_face_points;
   int32_t capacity;
 } r_decal_windings;
@@ -128,15 +128,15 @@ static void R_ReserveDecalWindings(int32_t face_points) {
  * @brief Appends the instance for a decal clipped to a single face.
  * @return The reference for the decal's vertexes to carry.
  */
-static uint32_t R_AddDecalInstance(const r_decal_t *decal,
-                                   const vec3_t normal,
-                                   const vec3_t tangent,
-                                   const vec3_t bitangent) {
+static uint32_t R_AddDecalInstance(const RenderDecal *decal,
+                                   const Vec3 normal,
+                                   const Vec3 tangent,
+                                   const Vec3 bitangent) {
 
   const uint32_t index = r_decals.next;
   const uint32_t generation = r_decals.generation;
 
-  r_decal_instance_t *instance = r_decals.instances + index;
+  RenderDecalInstance *instance = r_decals.instances + index;
 
   instance->origin = Vec3_ToVec4(decal->origin, decal->radius);
   instance->normal = Vec3_ToVec4(normal, 0.f);
@@ -169,7 +169,7 @@ static uint32_t R_AddDecalInstance(const r_decal_t *decal,
 /**
  * @brief Resolves the instance a decal vertex references.
  */
-static const r_decal_instance_t *R_DecalInstance(uint32_t reference) {
+static const RenderDecalInstance *R_DecalInstance(uint32_t reference) {
   return r_decals.instances + (reference & 0xffffff);
 }
 
@@ -201,11 +201,11 @@ static void R_UploadDecalInstances(CopyPass *pass) {
   const uint32_t head = (uint32_t) Mini((int32_t) r_decals.num_pending, (int32_t) (MAX_DECAL_INSTANCES - first));
 
   R_UploadDecalInstanceRange(pass, r_decals.instances + first,
-    head * sizeof(r_decal_instance_t), first * sizeof(r_decal_instance_t));
+    head * sizeof(RenderDecalInstance), first * sizeof(RenderDecalInstance));
 
   if (r_decals.num_pending > head) {
     R_UploadDecalInstanceRange(pass, r_decals.instances,
-      (r_decals.num_pending - head) * sizeof(r_decal_instance_t), 0);
+      (r_decals.num_pending - head) * sizeof(RenderDecalInstance), 0);
   }
 
   r_decals.num_pending = 0;
@@ -214,29 +214,29 @@ static void R_UploadDecalInstances(CopyPass *pass) {
 /**
  * @brief Clips a decal to a face and adds the resulting triangles to the face's block.
  */
-static void R_ClipDecalToFace(const r_view_t *view,
-                              const r_bsp_face_t *face,
-                              const r_decal_t *decal,
-                              const vec3_t normal,
-                              const vec3_t tangent,
-                              const vec3_t bitangent,
-                              r_bsp_block_decals_t *decals) {
+static void R_ClipDecalToFace(const RenderView *view,
+                              const RenderBspFace *face,
+                              const RenderDecal *decal,
+                              const Vec3 normal,
+                              const Vec3 tangent,
+                              const Vec3 bitangent,
+                              RenderBspBlockDecals *decals) {
 
-  vec3_t n = normal;
-  vec3_t t = tangent, b = bitangent;
+  Vec3 n = normal;
+  Vec3 t = tangent, b = bitangent;
 
   if (decal->rotation != 0.f) {
     const float cos_rot = cosf(decal->rotation);
     const float sin_rot = sinf(decal->rotation);
-    const vec3_t t_rot = Vec3_Add(Vec3_Scale(t, cos_rot), Vec3_Scale(b, sin_rot));
-    const vec3_t b_rot = Vec3_Add(Vec3_Scale(b, cos_rot), Vec3_Scale(t, -sin_rot));
+    const Vec3 t_rot = Vec3_Add(Vec3_Scale(t, cos_rot), Vec3_Scale(b, sin_rot));
+    const Vec3 b_rot = Vec3_Add(Vec3_Scale(b, cos_rot), Vec3_Scale(t, -sin_rot));
     t = t_rot;
     b = b_rot;
   }
 
-  const vec3_t org = decal->origin;
+  const Vec3 org = decal->origin;
   const float r = decal->radius;
-  const vec3_t positions[] = {
+  const Vec3 positions[] = {
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r)),
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b, -r)),
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b,  r)),
@@ -247,13 +247,13 @@ static void R_ClipDecalToFace(const r_view_t *view,
 
   R_ReserveDecalWindings(face->patch ? 4 * (n_edge - 1) : face->num_vertexes);
 
-  cm_winding_t *dw = r_decal_windings.decal;
+  CmWinding *dw = r_decal_windings.decal;
   dw->num_points = 4;
   for (int32_t i = 0; i < dw->num_points; i++) {
     dw->points[i] = Vec3_Add(positions[i], n);
   }
 
-  cm_winding_t *fw = r_decal_windings.face;
+  CmWinding *fw = r_decal_windings.face;
   if (face->patch) {
     fw->num_points = 0;
     for (int32_t i = 0; i < n_edge; i++)
@@ -271,7 +271,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
     }
   }
 
-  const cm_winding_t *w = Cm_ClipWindingToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
+  const CmWinding *w = Cm_ClipWindingToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
                                                       r_decal_windings.a, r_decal_windings.b,
                                                       r_decal_windings.capacity);
 
@@ -295,7 +295,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
       break;
     }
 
-    r_decal_triangle_t triangle;
+    RenderDecalTriangle triangle;
 
     const int32_t indices[3] = { 0, i + 1, i + 2 };
 
@@ -304,7 +304,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
       triangle.vertexes[j].instance = instance;
     }
 
-    decals->image = (r_image_t *) decal->image;
+    decals->image = (RenderImage *) decal->image;
     $(decals->triangles, add, &triangle);
   }
 
@@ -314,17 +314,17 @@ static void R_ClipDecalToFace(const r_view_t *view,
 /**
  * @brief Projects a decal onto the faces under a BSP node.
  */
-static void R_ClipDecalToNode(const r_view_t *view,
-                              const r_bsp_node_t *node,
-                              const r_decal_t *decal) {
+static void R_ClipDecalToNode(const RenderView *view,
+                              const RenderBspNode *node,
+                              const RenderDecal *decal) {
 
   if (node->contents > CONTENTS_NODE) {
     return;
   }
 
-  const box3_t decal_bounds = Box3_FromCenterRadius(decal->origin, decal->radius);
+  const Box3 decal_bounds = Box3_FromCenterRadius(decal->origin, decal->radius);
 
-  const r_bsp_face_t *face = node->faces;
+  const RenderBspFace *face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
     if (!face->patch) {
@@ -343,31 +343,31 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
-    const vec3_t normal = face->vertexes[0].normal;
-    const vec3_t tangent = face->vertexes[0].tangent;
-    const vec3_t bitangent = face->vertexes[0].bitangent;
+    const Vec3 normal = face->vertexes[0].normal;
+    const Vec3 tangent = face->vertexes[0].tangent;
+    const Vec3 bitangent = face->vertexes[0].bitangent;
 
     const float face_dist = Vec3_Dot(Vec3_Subtract(decal->origin, face->vertexes[0].position), normal);
     if (fabsf(face_dist) > decal->radius) {
       continue;
     }
 
-    r_decal_t face_projected = *decal;
+    RenderDecal face_projected = *decal;
     face_projected.origin = Vec3_Fmaf(decal->origin, -face_dist, normal);
     face_projected.radius = sqrtf(decal->radius * decal->radius - face_dist * face_dist);
 
     if (face_projected.radius >= 16.f) {
-      const vec3_t pos = Vec3_Add(Box3_Center(face->bounds), normal);
+      const Vec3 pos = Vec3_Add(Box3_Center(face->bounds), normal);
       if (Cm_BoxTrace(decal->origin, pos, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
         continue;
       }
     }
 
-    r_bsp_block_decals_t *decals = &face->block->decals;
+    RenderBspBlockDecals *decals = &face->block->decals;
     R_ClipDecalToFace(view, face, &face_projected, normal, tangent, bitangent, decals);
   }
 
-  const cm_bsp_plane_t *plane = node->plane->cm;
+  const CmBspPlane *plane = node->plane->cm;
   const float dist = Cm_DistanceToPlane(decal->origin, plane);
 
   if (dist > decal->radius) {
@@ -380,12 +380,12 @@ static void R_ClipDecalToNode(const r_view_t *view,
     return;
   }
 
-  r_decal_t projected = *decal;
+  RenderDecal projected = *decal;
   
   projected.origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
   projected.radius = sqrtf(decal->radius * decal->radius - dist * dist);
 
-  const box3_t bounds = Box3_FromCenterRadius(projected.origin, projected.radius);
+  const Box3 bounds = Box3_FromCenterRadius(projected.origin, projected.radius);
 
   face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
@@ -411,19 +411,19 @@ static void R_ClipDecalToNode(const r_view_t *view,
     }
 
     if (projected.radius >= 16.f) {
-      const vec3_t pos = Vec3_Add(Box3_Center(face->bounds), face->plane->cm->normal);
+      const Vec3 pos = Vec3_Add(Box3_Center(face->bounds), face->plane->cm->normal);
       if (Cm_BoxTrace(decal->origin, pos, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
         continue;
       }
     }
 
-    const vec3_t normal = face->plane->cm->normal;
-    const vec3_t sdir = face->brush_side->axis[0].xyz;
-    const vec3_t tdir = face->brush_side->axis[1].xyz;
-    vec3_t tangent, bitangent;
+    const Vec3 normal = face->plane->cm->normal;
+    const Vec3 sdir = face->brush_side->axis[0].xyz;
+    const Vec3 tdir = face->brush_side->axis[1].xyz;
+    Vec3 tangent, bitangent;
     Vec3_Tangents(normal, sdir, tdir, &tangent, &bitangent);
 
-    r_bsp_block_decals_t *decals = &face->block->decals;
+    RenderBspBlockDecals *decals = &face->block->decals;
     R_ClipDecalToFace(view, face, &projected, normal, tangent, bitangent, decals);
   }
 
@@ -439,21 +439,21 @@ static void R_ClipDecalToNode(const r_view_t *view,
  * geometry elsewhere in the world doesn't re-upload every frame that one of its
  * decals expires.
  */
-void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
+void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
 
   for (int32_t i = 0; i < view->num_decals; i++) {
-    const r_decal_t *decal = &view->decals[i];
+    const RenderDecal *decal = &view->decals[i];
 
-    const r_entity_t *e = view->entities;
+    const RenderEntity *e = view->entities;
     for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
       if (!IS_BSP_INLINE_MODEL(e->model)) {
         continue;
       }
 
-      r_bsp_inline_model_t *in = e->model->bsp_inline;
+      RenderBspInlineModel *in = e->model->bsp_inline;
 
-      r_decal_t d = *decal;
+      RenderDecal d = *decal;
       d.time = view->ticks;
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
 
@@ -461,7 +461,7 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
     }
   }
 
-  const r_entity_t *e = view->entities;
+  const RenderEntity *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (!IS_BSP_INLINE_MODEL(e->model)) {
@@ -470,17 +470,17 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
 
     const bool culled = R_CullEntity(view, e);
 
-    r_bsp_inline_model_t *in = e->model->bsp_inline;
+    RenderBspInlineModel *in = e->model->bsp_inline;
 
-    r_bsp_block_t *block = in->blocks;
+    RenderBspBlock *block = in->blocks;
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
-      r_bsp_block_decals_t *decals = &block->decals;
+      RenderBspBlockDecals *decals = &block->decals;
 
       for (size_t k = decals->triangles->count; k > 0; ) {
-        const r_decal_triangle_t *t = VectorElement(decals->triangles, r_decal_triangle_t, --k);
+        const RenderDecalTriangle *t = VectorElement(decals->triangles, RenderDecalTriangle, --k);
 
         const uint32_t reference = t->vertexes->instance;
-        const r_decal_instance_t *instance = R_DecalInstance(reference);
+        const RenderDecalInstance *instance = R_DecalInstance(reference);
 
         if (view->ticks - instance->time >= instance->lifetime ||
             (reference >> 24) != instance->generation) {
@@ -510,14 +510,14 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
         decals->vertex_buffer = release(decals->vertex_buffer);
         decals->vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
           .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-          .size = num_vertexes * sizeof(r_decal_vertex_t),
+          .size = num_vertexes * sizeof(RenderDecalVertex),
         });
         decals->vertex_buffer_capacity = num_vertexes;
       }
 
-      const void *data = VectorElement(decals->triangles, r_decal_triangle_t, 0);
+      const void *data = VectorElement(decals->triangles, RenderDecalTriangle, 0);
       $(pass, uploadData, decals->vertex_buffer->buffer, data,
-        num_vertexes * sizeof(r_decal_vertex_t), 0, true);
+        num_vertexes * sizeof(RenderDecalVertex), 0, true);
 
       decals->dirty = false;
     }
@@ -530,13 +530,13 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
  * @brief Renders decals projected onto BSP surfaces, alpha-blended and lit by the
  * clustered voxel lights, over the opaque scene (depth-tested, no depth write).
  */
-void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
+void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 
   assert(r_models.world);
 
   CommandBuffer *commands = r_context.device->commands;
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -560,7 +560,7 @@ void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
   SDL_GPUBuffer *instances[] = { r_decals.buffer->buffer };
   $(pass, bindVertexStorageBuffers, 0, instances, 1);
 
-  const r_entity_t *e = view->entities;
+  const RenderEntity *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (!IS_BSP_INLINE_MODEL(e->model)) {
@@ -577,8 +577,8 @@ void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
       $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &e->active_dynamic_lights, sizeof(e->active_dynamic_lights));
     }
 
-    const r_bsp_inline_model_t *in = e->model->bsp_inline;
-    const r_bsp_block_t *block = in->blocks;
+    const RenderBspInlineModel *in = e->model->bsp_inline;
+    const RenderBspBlock *block = in->blocks;
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
 
       if (block->query && !block->query->result) {
@@ -593,7 +593,7 @@ void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
         $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &block->active_dynamic_lights, sizeof(block->active_dynamic_lights));
       }
 
-      const r_bsp_block_decals_t *decals = &block->decals;
+      const RenderBspBlockDecals *decals = &block->decals;
 
       const int32_t num_vertexes = (int32_t) decals->triangles->count * 3;
       if (num_vertexes == 0 || !decals->vertex_buffer || !decals->image || !decals->image->texture) {
@@ -632,13 +632,13 @@ static void R_InitDecalPipeline(void) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_decal_vertex_t),
+      .pitch = sizeof(RenderDecalVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
     .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_decal_vertex_t, position) },
-      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT, .offset = offsetof(r_decal_vertex_t, instance) },
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderDecalVertex, position) },
+      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT, .offset = offsetof(RenderDecalVertex, instance) },
     },
     .num_vertex_attributes = 2,
   };

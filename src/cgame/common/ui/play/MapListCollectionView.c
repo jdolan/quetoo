@@ -99,10 +99,10 @@ static void enumerateMaps(const char *path, void *data) {
 
   MapList *maps = data;
 
-  file_t *file = cgi.OpenFile(path);
+  File *file = cgi.OpenFile(path);
   if (file) {
 
-    bsp_header_t header;
+    BspHeader header;
     if (cgi.ReadFile(file, (void *) &header, sizeof(header), 1) == 1) {
 
       for (size_t i = 0; i < sizeof(header) / sizeof(int32_t); i++) {
@@ -129,7 +129,7 @@ static void enumerateMaps(const char *path, void *data) {
       cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
       cgi.ReadFile(file, entities, 1, size);
 
-      parser_t parser = Parse_Init(entities, PARSER_NO_COMMENTS);
+      Parser parser = Parse_Init(entities, PARSER_NO_COMMENTS);
       char key[MAX_BSP_ENTITY_KEY], token[MAX_BSP_ENTITY_VALUE];
 
       while (true) {

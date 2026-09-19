@@ -77,7 +77,7 @@ static void render(View *self, Renderer *renderer) {
     this->view.fov.x = 30.f / 2.f;
 
     const SDL_Rect viewport = $(self, viewport);
-    this->view.viewport = Vec4i(viewport.x, viewport.y, viewport.w, viewport.h);
+    this->view.viewport = MakeVec4i(viewport.x, viewport.y, viewport.w, viewport.h);
 
     const float x = viewport.w / tanf(Radians(30.f));
     const float y = atan2f(viewport.w, x);
@@ -85,7 +85,7 @@ static void render(View *self, Renderer *renderer) {
 
     this->view.fov.y = Degrees(y) * a / 2.f;
 
-    this->view.origin = Vec3(180.f + (48.f * -this->zoom), 0.f, 32.f);
+    this->view.origin = MakeVec3(180.f + (48.f * -this->zoom), 0.f, 32.f);
 
     this->view.angles = Vec3_Euler(Vec3_Negate(this->view.origin));
 
@@ -109,7 +109,7 @@ static void render(View *self, Renderer *renderer) {
     cgi.AddEntity(&this->view, &this->platformCenter);
 
     this->torso.parent = cgi.AddEntity(&this->view, &this->legs);
-    r_entity_t *torso = cgi.AddEntity(&this->view, &this->torso);
+    RenderEntity *torso = cgi.AddEntity(&this->view, &this->torso);
 
     this->head.parent = torso;
     cgi.AddEntity(&this->view, &this->head);
@@ -120,9 +120,9 @@ static void render(View *self, Renderer *renderer) {
     const float light_x = sinf(this->view.ticks * .0125f);
     const float light_y = cosf(this->view.ticks * .0125f);
 
-    r_light_t light = {
-      .origin = Vec3(40.f + light_x, light_y, 80.f),
-      .color = Vec3(1.f, .9f, .8f),
+    RenderLight light = {
+      .origin = MakeVec3(40.f + light_x, light_y, 80.f),
+      .color = MakeVec3(1.f, .9f, .8f),
       .radius = 180.f,
       .intensity = 2.6f,
     };
@@ -174,36 +174,36 @@ static void updateBindings(View *self, ident data) {
 
   this->legs.model = this->client.legs;
   this->legs.scale = 1.f;
-  this->legs.color = Vec4(1.f, 1.f, 1.f, 1.f);
+  this->legs.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
   memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
   this->legs.has_skins = true;
 
   this->torso.model = this->client.torso;
   this->torso.scale = 1.f;
-  this->torso.color = Vec4(1.f, 1.f, 1.f, 1.f);
+  this->torso.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
   this->torso.tag = "tag_torso";
   memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
   this->torso.has_skins = true;
 
   this->head.model = this->client.head;
   this->head.scale = 1.f;
-  this->head.color = Vec4(1.f, 1.f, 1.f, 1.f);
+  this->head.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
   this->head.tag = "tag_head";
   memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
   this->head.has_skins = true;
 
   this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
   this->weapon.scale = 1.f;
-  this->weapon.color = Vec4(1.f, 1.f, 1.f, 1.f);
+  this->weapon.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
   this->weapon.tag = "tag_weapon";
 
   this->platformBase.model = cgi.LoadModel("models/platform/base/tris");
   this->platformBase.scale = 1.f;
-  this->platformBase.color = Vec4(1.f, 1.f, 1.f, 1.f);
+  this->platformBase.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
 
   this->platformCenter.model = cgi.LoadModel("models/platform/center/tris");
   this->platformCenter.scale = 1.f;
-  this->platformCenter.color = Vec4(1.f, 1.f, 1.f, 1.f);
+  this->platformCenter.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
 
   SDL_Surface *surface = cgi.LoadSurface(this->client.icon->media.name);
   $(this->iconView, setImageWithSurface, surface);
@@ -241,7 +241,7 @@ static bool captureEvent(Control *self, const SDL_Event *event) {
 /**
  * @brief Selects the next animation for the given animation.
  */
-static entity_animation_t nextAnimation(const entity_animation_t a) {
+static EntityAnimation nextAnimation(const EntityAnimation a) {
 
   switch (a) {
     case ANIM_TORSO_GESTURE:
@@ -273,13 +273,13 @@ static entity_animation_t nextAnimation(const entity_animation_t a) {
 /**
  * @brief Runs the animation, proceeding to the next in the sequence upon completion.
  */
-static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_entity_t *e) {
+static void animate_(const RenderMeshModel *model, ClientEntityAnimation *a, RenderEntity *e) {
 
   e->frame = e->old_frame = 0;
   e->lerp = 1.f;
   e->back_lerp = 0.f;
 
-  const r_mesh_animation_t *anim = &model->animations[a->animation];
+  const RenderMeshAnimation *anim = &model->animations[a->animation];
 
   const int32_t frameTime = 2000.f / anim->hz;
   const int32_t animationTime = anim->num_frames * frameTime;
@@ -322,7 +322,7 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
  */
 static void animate(PlayerModelView *self) {
 
-  const r_mesh_model_t *model = self->torso.model->mesh;
+  const RenderMeshModel *model = self->torso.model->mesh;
 
   animate_(model, &self->animation1, &self->torso);
   animate_(model, &self->animation2, &self->legs);
@@ -333,7 +333,7 @@ static void animate(PlayerModelView *self) {
   self->weapon.frame = 0;
   self->weapon.lerp = 1.f;
 
-  vec4_t tints[TINT_TOTAL] = {
+  Vec4 tints[TINT_TOTAL] = {
     Vec4_Zero(),
     Vec4_Zero(),
     Vec4_Zero()

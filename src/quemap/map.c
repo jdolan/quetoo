@@ -27,24 +27,24 @@
 #include "qbsp.h"
 #include "texture.h"
 
-map_format_t map_format;
+MapFormat map_format;
 
 int32_t num_entities;
-entity_t entities[MAX_BSP_ENTITIES];
+Entity entities[MAX_BSP_ENTITIES];
 
 int32_t num_brushes;
-brush_t brushes[MAX_BSP_BRUSHES];
+Brush brushes[MAX_BSP_BRUSHES];
 
 int32_t num_brush_sides;
-brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
+BrushSide brush_sides[MAX_BSP_BRUSH_SIDES];
 
 int32_t num_planes;
-plane_t planes[MAX_BSP_PLANES];
+Plane planes[MAX_BSP_PLANES];
 
 #define  PLANE_HASHES (size_t) MAX_WORLD_COORD
-static plane_t *plane_hash[PLANE_HASHES];
+static Plane *plane_hash[PLANE_HASHES];
 
-box3_t map_bounds;
+Box3 map_bounds;
 
 #define NORMAL_EPSILON 0.0001
 #define DIST_EPSILON   0.005
@@ -52,7 +52,7 @@ box3_t map_bounds;
 /**
  * @brief Returns true if the two planes are equal within `NORMAL_EPSILON` and `DIST_EPSILON`.
  */
-static bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
+static bool PlaneEqual(const Plane *p, const Vec3 normal, double dist) {
 
   if (EqualEpsilon(p->dist, dist, DIST_EPSILON) &&
     Vec3_EqualEpsilon(p->normal, normal, NORMAL_EPSILON)) {
@@ -65,7 +65,7 @@ static bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 /**
  * @brief Inserts a plane into the hash table for fast lookup by distance.
  */
-static inline void AddPlaneToHash(plane_t *p) {
+static inline void AddPlaneToHash(Plane *p) {
 
   const int32_t hash = ((int32_t) fabs(p->dist)) & (PLANE_HASHES - 1);
 
@@ -76,7 +76,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 /**
  * @brief Creates and registers a new plane and its mirror in the global planes table.
  */
-static int32_t CreatePlane(const vec3_t normal, double dist) {
+static int32_t CreatePlane(const Vec3 normal, double dist) {
 
   // bad plane
   if (Vec3_Length(normal) < 1.f - FLT_EPSILON) {
@@ -88,12 +88,12 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
     Com_Error(ERROR_FATAL, "MAX_BSP_PLANES\n");
   }
 
-  plane_t *a = &planes[num_planes++];
+  Plane *a = &planes[num_planes++];
   a->normal = normal;
   a->dist = dist;
   a->type = Cm_PlaneTypeForNormal(a->normal);
 
-  plane_t *b = &planes[num_planes++];
+  Plane *b = &planes[num_planes++];
   b->normal = Vec3_Negate(normal);
   b->dist = -dist;
   b->type = Cm_PlaneTypeForNormal(b->normal);
@@ -101,7 +101,7 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
   // always put axial planes facing positive first
   if (AXIAL(a)) {
     if (Cm_SignBitsForNormal(a->normal)) {
-      plane_t temp = *a;
+      Plane temp = *a;
       *a = *b;
       *b = temp;
 
@@ -119,9 +119,9 @@ static int32_t CreatePlane(const vec3_t normal, double dist) {
 /**
  * @brief If the specified normal is very close to an axis, align with it.
  */
-static vec3_t SnapNormal(const vec3_t normal) {
+static Vec3 SnapNormal(const Vec3 normal) {
 
-  vec3_t snapped = normal;
+  Vec3 snapped = normal;
 
   bool snap = false;
   for (int32_t i = 0; i < 3; i++) {
@@ -144,7 +144,7 @@ static vec3_t SnapNormal(const vec3_t normal) {
  * @brief Snaps normals within `NORMAL_EPSILON` to axial, and snaps axial plane
  * distances to integers, rounding towards the origin.
  */
-static void SnapPlane(vec3_t *normal, double *dist) {
+static void SnapPlane(Vec3 *normal, double *dist) {
 
   *normal = SnapNormal(*normal);
 
@@ -160,9 +160,9 @@ static void SnapPlane(vec3_t *normal, double *dist) {
 /**
  * @brief Finds or creates a plane matching the given normal and distance; returns its index.
  */
-int32_t FindPlane(const vec3_t normal, double dist) {
+int32_t FindPlane(const Vec3 normal, double dist) {
 
-  vec3_t snapped = normal;
+  Vec3 snapped = normal;
   SnapPlane(&snapped, &dist);
 
   const int32_t hash = ((int32_t) fabs(dist)) & (PLANE_HASHES - 1);
@@ -171,7 +171,7 @@ int32_t FindPlane(const vec3_t normal, double dist) {
   for (int32_t i = -1; i <= 1; i++) {
     const int32_t h = (hash + i) & (PLANE_HASHES - 1);
     
-    const plane_t *p = plane_hash[h];
+    const Plane *p = plane_hash[h];
     while (p) {
       if (PlaneEqual(p, snapped, dist)) {
         return (int32_t) (ptrdiff_t) (p - planes);
@@ -186,19 +186,19 @@ int32_t FindPlane(const vec3_t normal, double dist) {
 /**
  * @brief Derives a plane index from three coplanar points, or returns -1 if the points are degenerate.
  */
-static int32_t PlaneFromPoints(const vec3d_t p0, const vec3d_t p1, const vec3d_t p2) {
+static int32_t PlaneFromPoints(const Vec3d p0, const Vec3d p1, const Vec3d p2) {
 
-  const vec3d_t t1 = Vec3d_Subtract(p0, p1);
-  const vec3d_t t2 = Vec3d_Subtract(p2, p1);
+  const Vec3d t1 = Vec3d_Subtract(p0, p1);
+  const Vec3d t2 = Vec3d_Subtract(p2, p1);
 
-  const vec3d_t cross = Vec3d_Cross(t1, t2);
+  const Vec3d cross = Vec3d_Cross(t1, t2);
   const double length = Vec3d_Length(cross);
 
   if (length < 1e-6) {
     return -1;
   }
 
-  const vec3d_t normal = Vec3d_Scale(cross, 1.0 / length);
+  const Vec3d normal = Vec3d_Scale(cross, 1.0 / length);
   const double dist = Vec3d_Dot(p0, normal);
 
   return FindPlane(Vec3d_CastVec3(normal), dist);
@@ -207,11 +207,11 @@ static int32_t PlaneFromPoints(const vec3d_t p0, const vec3d_t p1, const vec3d_t
 /**
  * @brief Find the largest contents mask within the brush and force all sides to it.
  */
-static int32_t BrushContents(const brush_t *b) {
+static int32_t BrushContents(const Brush *b) {
 
   int32_t contents = 0;
 
-  brush_side_t *s = b->brush_sides;
+  BrushSide *s = b->brush_sides;
   for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
     if (s->contents > contents) {
       contents = s->contents;
@@ -232,8 +232,8 @@ static int32_t BrushContents(const brush_t *b) {
  */
 static int32_t SortBrushSides(const void *a, const void *b) {
 
-  const brush_side_t *a_side = a;
-  const brush_side_t *b_side = b;
+  const BrushSide *a_side = a;
+  const BrushSide *b_side = b;
 
   return planes[a_side->plane].type - planes[b_side->plane].type;
 }
@@ -242,7 +242,7 @@ static int32_t SortBrushSides(const void *a, const void *b) {
  * @brief Adds a bevel side referencing `plane` to the specified brush. The bevel will
  * borrow surface, contents and material from the nearest original brush side.
  */
-static void AddBrushBevel(brush_t *b, int32_t plane) {
+static void AddBrushBevel(Brush *b, int32_t plane) {
 
   if (num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
@@ -250,7 +250,7 @@ static void AddBrushBevel(brush_t *b, int32_t plane) {
 
 
   float dot = -1.f;
-  const brush_side_t *side = NULL, *s = b->brush_sides;
+  const BrushSide *side = NULL, *s = b->brush_sides;
   for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
     if (s->surface & SURF_BEVEL) {
       continue;
@@ -265,7 +265,7 @@ static void AddBrushBevel(brush_t *b, int32_t plane) {
 
   assert(side);
 
-  brush_side_t *bevel = &b->brush_sides[b->num_brush_sides++];
+  BrushSide *bevel = &b->brush_sides[b->num_brush_sides++];
   bevel->plane = plane;
   bevel->contents = side->contents;
   bevel->surface = side->surface | SURF_BEVEL;
@@ -279,12 +279,12 @@ static void AddBrushBevel(brush_t *b, int32_t plane) {
  * against axial bounding boxes. Ensures that the first 6 sides of every brush
  * are axial, which allows some optimizations in collision detection.
  */
-void AddBrushBevels(brush_t *b) {
+void AddBrushBevels(Brush *b) {
 
   for (int32_t axis = 0; axis < 3; axis++) {
     for (int32_t side = -1; side <= 1; side += 2) {
 
-      vec3_t normal = Vec3_Zero();
+      Vec3 normal = Vec3_Zero();
       normal.xyz[axis] = side;
 
       float dist;
@@ -309,16 +309,16 @@ void AddBrushBevels(brush_t *b) {
     }
   }
 
-  qsort(b->brush_sides, b->num_brush_sides, sizeof(brush_side_t), SortBrushSides);
+  qsort(b->brush_sides, b->num_brush_sides, sizeof(BrushSide), SortBrushSides);
 }
 
 /**
  * @brief Frees the brush sides allocated to `brush`, leaving an "emtpy" brush in place.
  * This is because, for error reporting, we want to preserve the indexes of brushes.
  */
-static void UnparseBrush(brush_t *brush, parser_t *parser) {
+static void UnparseBrush(Brush *brush, Parser *parser) {
 
-  brush_side_t *side = brush->brush_sides;
+  BrushSide *side = brush->brush_sides;
   for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
     if (side->winding) {
       Cm_FreeWinding(side->winding);
@@ -345,23 +345,23 @@ static void UnparseBrush(brush_t *brush, parser_t *parser) {
 /**
  * @brief Makes windings for sides and mins / maxs for the brush
  */
-void MakeBrushWindings(brush_t *brush) {
+void MakeBrushWindings(Brush *brush) {
 
   assert(brush->num_brush_sides);
 
   brush->bounds = Box3_Null();
 
-  brush_side_t *side = brush->brush_sides;
+  BrushSide *side = brush->brush_sides;
   for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
     if (side->surface & SURF_BEVEL) {
       continue;
     }
 
-    const plane_t *plane = &planes[side->plane];
+    const Plane *plane = &planes[side->plane];
     side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
-    const brush_side_t *s = brush->brush_sides;
+    const BrushSide *s = brush->brush_sides;
     for (int32_t j = 0; j < brush->num_brush_sides; j++, s++) {
       if (side == s) {
         continue;
@@ -369,7 +369,7 @@ void MakeBrushWindings(brush_t *brush) {
       if (s->surface & SURF_BEVEL) {
         continue;
       }
-      const plane_t *p = &planes[s->plane ^ 1];
+      const Plane *p = &planes[s->plane ^ 1];
       Cm_ClipWinding(&side->winding, p->normal, p->dist, SIDE_EPSILON);
 
       if (side->winding == NULL) {
@@ -404,9 +404,9 @@ void MakeBrushWindings(brush_t *brush) {
 /**
  * @brief Applies material-derived surface and contents flags to a brush side.
  */
-static void SetMaterialFlags(brush_side_t *side) {
+static void SetMaterialFlags(BrushSide *side) {
 
-  const material_t *material = &materials[side->material];
+  const Material *material = &materials[side->material];
   if (material->cm->contents) {
     if (side->contents == 0) {
       side->contents = material->cm->contents;
@@ -452,7 +452,7 @@ static void SetMaterialFlags(brush_side_t *side) {
 /**
  * @brief Parses a single brush or patchDef2 block from the map file and adds it to the entity.
  */
-static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
+static Brush *ParseBrush(Parser *parser, Entity *entity) {
   char token[MAX_TOKEN_CHARS];
 
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
@@ -465,7 +465,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
   if (Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
     if (!q_strcmp(token, "patchDef2")) {
       const int32_t entity_num = (int32_t) (entity - entities);
-      patch_t *patch = ParsePatch(parser, entity_num);
+      Patch *patch = ParsePatch(parser, entity_num);
       if (patch) {
         entity->num_patches++;
         //EmitPatchCollisionBrushes(patch, entity);
@@ -478,7 +478,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
   }
 
-  brush_t *brush = &brushes[num_brushes];
+  Brush *brush = &brushes[num_brushes];
   memset(brush, 0, sizeof(*brush));
 
   brush->entity = (int32_t) (entity - entities);
@@ -502,10 +502,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
     }
 
-    brush_side_t *side = &brush_sides[num_brush_sides];
+    BrushSide *side = &brush_sides[num_brush_sides];
     memset(side, 0, sizeof(*side));
 
-    vec3d_t points[3];
+    Vec3d points[3];
 
     // read the three point plane definition
     for (int32_t i = 0; i < 3; i++) {
@@ -591,7 +591,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
     // ensure that no other side on the brush references the same plane
     bool duplicate = false;
-    const brush_side_t *other = brush->brush_sides;
+    const BrushSide *other = brush->brush_sides;
     for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
       if (other->plane == side->plane) {
         Com_Warn("Entity %d brush %d: Duplicate plane within brush, skipping\n", brush->entity, brush->brush);
@@ -697,7 +697,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     if (brush->entity == 0) {
       Com_Warn("Entity %d brush %d: Origin brush in worldspawn\n", brush->entity, brush->brush);
     } else {
-      const vec3_t origin = Box3_Center(brush->bounds);
+      const Vec3 origin = Box3_Center(brush->bounds);
       SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));
     }
 
@@ -713,21 +713,21 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 /**
  * @brief Some entities are merged into the world, e.g. `func_group`.
  */
-static void MoveBrushesToWorld(entity_t *ent) {
+static void MoveBrushesToWorld(Entity *ent) {
 
   const int32_t new_brushes = ent->num_brushes;
   const int32_t world_brushes = entities[0].num_brushes;
 
-  brush_t *temp = Mem_TagMalloc(new_brushes * sizeof(brush_t), (mem_tag_t) MEM_TAG_BRUSH);
-  memcpy(temp, brushes + ent->first_brush, new_brushes * sizeof(brush_t));
+  Brush *temp = Mem_TagMalloc(new_brushes * sizeof(Brush), (MemTag) MEM_TAG_BRUSH);
+  memcpy(temp, brushes + ent->first_brush, new_brushes * sizeof(Brush));
 
   // make space to move the brushes (overlapped copy)
   memmove(brushes + world_brushes + new_brushes,
           brushes + world_brushes,
-          sizeof(brush_t) * (num_brushes - world_brushes - new_brushes));
+          sizeof(Brush) * (num_brushes - world_brushes - new_brushes));
 
   // copy the new brushes down
-  memcpy(brushes + world_brushes, temp, sizeof(brush_t) * new_brushes);
+  memcpy(brushes + world_brushes, temp, sizeof(Brush) * new_brushes);
 
   // fix up indexes
   entities[0].num_brushes += new_brushes;
@@ -743,21 +743,21 @@ static void MoveBrushesToWorld(entity_t *ent) {
 /**
  * @brief Some entities are merged into the world, e.g. `func_group`.
  */
-static void MovePatchesToWorld(entity_t *ent) {
+static void MovePatchesToWorld(Entity *ent) {
 
   const int32_t new_patches = ent->num_patches;
   const int32_t world_patches = entities[0].num_patches;
 
-  patch_t *temp = Mem_TagMalloc(new_patches * sizeof(patch_t), (mem_tag_t) MEM_TAG_PATCH);
-  memcpy(temp, patches + ent->first_patch, new_patches * sizeof(patch_t));
+  Patch *temp = Mem_TagMalloc(new_patches * sizeof(Patch), (MemTag) MEM_TAG_PATCH);
+  memcpy(temp, patches + ent->first_patch, new_patches * sizeof(Patch));
 
   // make space to move the patches (overlapped copy)
   memmove(patches + world_patches + new_patches,
           patches + world_patches,
-          sizeof(patch_t) * (num_patches - world_patches - new_patches));
+          sizeof(Patch) * (num_patches - world_patches - new_patches));
 
   // copy the new patches down
-  memcpy(patches + world_patches, temp, sizeof(patch_t) * new_patches);
+  memcpy(patches + world_patches, temp, sizeof(Patch) * new_patches);
 
   // fix up entity references
   for (int32_t i = 0; i < new_patches; i++) {
@@ -777,10 +777,10 @@ static void MovePatchesToWorld(entity_t *ent) {
 /**
  * @brief Parses one entity block (key-value pairs and brushes) from the map file.
  */
-static entity_t *ParseEntity(parser_t *parser) {
+static Entity *ParseEntity(Parser *parser) {
   char token[MAX_TOKEN_CHARS];
 
-  entity_t *entity = NULL;
+  Entity *entity = NULL;
 
   if (Parse_IsEOF(parser)) {
     return NULL;
@@ -815,7 +815,7 @@ static entity_t *ParseEntity(parser_t *parser) {
       }
 
       if (!q_strcmp(token, "{")) {
-        brush_t *brush = ParseBrush(parser, entity);
+        Brush *brush = ParseBrush(parser, entity);
         if (brush) {
           entity->num_brushes++;
           entity->num_brush_sides += brush->num_brush_sides;
@@ -823,7 +823,7 @@ static entity_t *ParseEntity(parser_t *parser) {
         }
 
       } else {
-        entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), (mem_tag_t) MEM_TAG_EPAIR);
+        EntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
 
         if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
           Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", num_entities);
@@ -836,22 +836,22 @@ static entity_t *ParseEntity(parser_t *parser) {
       }
     }
 
-    const vec3_t origin = VectorForKey(entity, "origin", Vec3_Zero());
+    const Vec3 origin = VectorForKey(entity, "origin", Vec3_Zero());
 
     // if there was an origin brush, offset all of the planes and texture
     if (!Vec3_Equal(origin, Vec3_Zero())) {
 
-      brush_t *brush = brushes + entity->first_brush;
+      Brush *brush = brushes + entity->first_brush;
       for (int32_t i = 0; i < entity->num_brushes; i++, brush++) {
 
         if (!brush->num_brush_sides) {
           continue;
         }
 
-        brush_side_t *side = brush->brush_sides;
+        BrushSide *side = brush->brush_sides;
         for (int32_t j = 0; j < brush->num_brush_sides; j++, side++) {
 
-          const plane_t *plane = &planes[side->plane];
+          const Plane *plane = &planes[side->plane];
           const double dist = plane->dist - Vec3_Dot(plane->normal, origin);
 
           side->plane = FindPlane(plane->normal, dist);
@@ -868,7 +868,7 @@ static entity_t *ParseEntity(parser_t *parser) {
     // CSG subtracted and included in the world's BSP tree. However, these brushes will
     // maintain a reference to their entity definition, so that any entity pairs
     // associated with them will still be available. Their brushes will point to their
-    // defining cm_entity_t.
+    // defining CmEntity.
     const char *classname = ValueForKey(entity, "classname", NULL);
     if (!q_strcmp(classname, "func_group") ||
       !q_strcmp(classname, "misc_dust") ||
@@ -886,7 +886,7 @@ static entity_t *ParseEntity(parser_t *parser) {
  * @brief Loads and parses the .map file, populating the global entities, brushes, planes, and patches arrays.
  * @return The resolved map format, also stored in the global `map_format`.
  */
-map_format_t LoadMapFile(const char *filename) {
+MapFormat LoadMapFile(const char *filename) {
 
   Com_Verbose("--- LoadMapFile ---\n");
 
@@ -914,11 +914,11 @@ map_format_t LoadMapFile(const char *filename) {
     Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
   }
 
-  parser_t parser = Parse_Init(buffer, PARSER_DEFAULT);
+  Parser parser = Parse_Init(buffer, PARSER_DEFAULT);
 
   for (int32_t i = 0, models = 0; i < MAX_BSP_ENTITIES; i++) {
 
-    entity_t *entity = ParseEntity(&parser);
+    Entity *entity = ParseEntity(&parser);
     if (!entity) {
       break;
     }

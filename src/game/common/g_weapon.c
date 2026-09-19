@@ -25,7 +25,7 @@
 /**
  * @brief Switches the client to a new weapon, animating the deselect/select sequence.
  */
-static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
+static void G_ChangeWeapon(GameClient *cl, const GameItem *item) {
 
   if (cl->weapon == NULL) {
     cl->weapon = item;
@@ -65,7 +65,7 @@ static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
 
   G_SetAnimation(cl, ANIM_TORSO_DROP, true);
 
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_media.sounds.weapon_switch,
     .entity = cl->entity,
   }, MULTICAST_PHS);
@@ -75,7 +75,7 @@ static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
  * @brief Gives the client the weapon item if eligible, staying it in place if `g_weapon_stay` is set.
  * @return True if the weapon was successfully picked up, false otherwise.
  */
-bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {
+bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
 
   if (g_weapon_stay->integer && ent->team == NULL && cl->inventory[ent->item->def.tag]) {
     return false;
@@ -86,7 +86,7 @@ bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {
   // add the weapon to inventory
   cl->inventory[ent->item->def.tag]++;
 
-  const g_item_t *ammo = ent->item->def.ammo ? &g_items[ent->item->def.ammo] : NULL;
+  const GameItem *ammo = ent->item->def.ammo ? &g_items[ent->item->def.ammo] : NULL;
   if (ammo) {
     const int16_t *stock = &cl->inventory[ammo->def.tag];
 
@@ -110,7 +110,7 @@ bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {
   const uint16_t auto_switch = cl->persistent.auto_switch;
   if (auto_switch == 1) { // switch from starting weapon
 
-    const g_item_tag_t tag = (g_level.items == ITEMS_QUAKE)
+    const GameItemTag tag = (g_level.items == ITEMS_QUAKE)
       ? WEAPON_QUAKE_SHOTGUN
       : WEAPON_BLASTER;
 
@@ -131,7 +131,7 @@ bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {
 /**
  * @return True if the client has both weapon and ammo, false otherwise.
  */
-static bool G_HasWeapon(const g_client_t *cl, const g_item_t *weapon) {
+static bool G_HasWeapon(const GameClient *cl, const GameItem *weapon) {
 
   if (!cl->inventory[weapon->def.tag]) {
     return false;
@@ -147,12 +147,12 @@ static bool G_HasWeapon(const g_client_t *cl, const g_item_t *weapon) {
 /**
  * @brief Selects the best available weapon for the client, preferring more powerful options.
  */
-void G_UseBestWeapon(g_client_t *cl) {
+void G_UseBestWeapon(GameClient *cl) {
 
-  const g_item_t *item = NULL;
+  const GameItem *item = NULL;
 
-  for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const g_item_t *weapon = &g_items[t];
+  for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
+    const GameItem *weapon = &g_items[t];
 
     if (!weapon) {
       continue;
@@ -175,7 +175,7 @@ void G_UseBestWeapon(g_client_t *cl) {
 /**
  * @brief Initiates a weapon change to @p item, or toggles back to the previous weapon if already active.
  */
-void G_UseWeapon(g_client_t *cl, const g_item_t *item) {
+void G_UseWeapon(GameClient *cl, const GameItem *item) {
 
   // see if we're already using it
   if (item == cl->weapon) {
@@ -198,16 +198,16 @@ void G_UseWeapon(g_client_t *cl, const g_item_t *item) {
  * @brief Drop the specified weapon if the client has sufficient ammo. Does not remove quantity,
  * that must be handled by the caller.
  */
-g_entity_t *G_DropWeapon(g_client_t *cl, const g_item_t *item) {
+GameEntity *G_DropWeapon(GameClient *cl, const GameItem *item) {
 
   if (!item->def.ammo) {
     return NULL;
   }
 
-  const g_item_t *ammo = &g_items[item->def.ammo];
+  const GameItem *ammo = &g_items[item->def.ammo];
   const uint16_t ammo_index = item->def.ammo;
 
-  g_entity_t *dropped = G_DropItem(cl, item);
+  GameEntity *dropped = G_DropItem(cl, item);
 
   if (dropped) {
     // now adjust dropped ammo quantity to reflect what we actually had available
@@ -228,9 +228,9 @@ g_entity_t *G_DropWeapon(g_client_t *cl, const g_item_t *item) {
 /**
  * @brief Toss the currently held weapon when dead.
  */
-g_entity_t *G_TossWeapon(g_client_t *cl) {
+GameEntity *G_TossWeapon(GameClient *cl) {
 
-  const g_item_t *weapon = cl->weapon;
+  const GameItem *weapon = cl->weapon;
 
   if (!weapon || !weapon->Drop || !weapon->def.ammo) { // don't drop if not holding
     return NULL;
@@ -242,7 +242,7 @@ g_entity_t *G_TossWeapon(g_client_t *cl) {
     return NULL;
   }
 
-  g_entity_t *dropped = G_DropItem(cl, weapon);
+  GameEntity *dropped = G_DropItem(cl, weapon);
 
   if (dropped) {
     if (dropped->health > ammo) {
@@ -257,7 +257,7 @@ g_entity_t *G_TossWeapon(g_client_t *cl) {
  * @brief Returns true if the specified client can fire their weapon, false
  * otherwise.
  */
-static bool G_FireWeapon(g_client_t *cl) {
+static bool G_FireWeapon(GameClient *cl) {
 
   const uint32_t buttons = (cl->latched_buttons | cl->buttons);
 
@@ -286,7 +286,7 @@ static bool G_FireWeapon(g_client_t *cl) {
   if (cl->ammo_index && ammo < ammo_needed) {
 
     if (g_level.time >= cl->pain_time) { // play a click sound
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.weapon_no_ammo,
         .entity = cl->entity,
       }, MULTICAST_PHS);
@@ -304,7 +304,7 @@ static bool G_FireWeapon(g_client_t *cl) {
 /**
  * @brief Records that the weapon was fired, decrementing ammo and advancing the attack animation.
  */
-static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_needed) {
+static void G_WeaponFired(GameClient *cl, uint32_t interval, uint32_t ammo_needed) {
 
   // set the attack animation
   G_SetAnimation(cl, ANIM_TORSO_ATTACK1, true);
@@ -333,7 +333,7 @@ static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_neede
   if (cl->inventory[POWERUP_QUAD]) {
 
     if (cl->quad_attack_time < g_level.time) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.quad_attack,
         .entity = cl->entity,
       }, MULTICAST_PHS);
@@ -346,7 +346,7 @@ static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_neede
 /**
  * @brief Runs weapon state logic for the client each frame, including firing, switching, and animations.
  */
-void G_ClientWeaponThink(g_client_t *cl) {
+void G_ClientWeaponThink(GameClient *cl) {
 
   if (cl->entity->dead) {
     return;
@@ -366,7 +366,7 @@ void G_ClientWeaponThink(g_client_t *cl) {
       if (cl->weapon != cl->next_weapon) {
         cl->weapon = cl->next_weapon;
 
-        const g_item_t *item = cl->weapon;
+        const GameItem *item = cl->weapon;
         if (item) {
 
           cl->entity->s.model2 = item->model_index;
@@ -406,7 +406,7 @@ void G_ClientWeaponThink(g_client_t *cl) {
 /**
  * @brief Broadcasts a muzzle flash event for the entity's current weapon.
  */
-static void G_ClientMuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
+static void G_ClientMuzzleFlash(GameEntity *ent, GameMuzzleFlash flash) {
 
   gi.WriteByte(SV_CMD_MUZZLE_FLASH);
   gi.WriteShort(ent->s.number);
@@ -422,7 +422,7 @@ static void G_ClientMuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
  * @param client The client whose colors the flash takes, being the operator of a `turret_*`
  * entity, or `MAX_CLIENTS` for anything firing on its own account.
  */
-void G_WorldMuzzleFlash(const vec3_t org, const vec3_t dir, g_muzzle_flash_t flash, uint8_t client) {
+void G_WorldMuzzleFlash(const Vec3 org, const Vec3 dir, GameMuzzleFlash flash, uint8_t client) {
 
   gi.WriteByte(SV_CMD_MUZZLE_FLASH);
   gi.WriteShort(MUZZLE_FLASH_WORLD);
@@ -437,10 +437,10 @@ void G_WorldMuzzleFlash(const vec3_t org, const vec3_t dir, g_muzzle_flash_t fla
 /**
  * @brief Fires a blaster bolt from the client's weapon.
  */
-void G_FireBlaster(g_client_t *cl) {
+void G_FireBlaster(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -456,10 +456,10 @@ void G_FireBlaster(g_client_t *cl) {
 /**
  * @brief Fires a spread of pellets from the shotgun.
  */
-void G_FireShotgun(g_client_t *cl) {
+void G_FireShotgun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -476,10 +476,10 @@ void G_FireShotgun(g_client_t *cl) {
 /**
  * @brief Fires a wider, denser spread of pellets from the super shotgun.
  */
-void G_FireSuperShotgun(g_client_t *cl) {
+void G_FireSuperShotgun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -496,10 +496,10 @@ void G_FireSuperShotgun(g_client_t *cl) {
 /**
  * @brief Fires a single machinegun bullet with random spread.
  */
-void G_FireMachinegun(g_client_t *cl) {
+void G_FireMachinegun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -516,20 +516,20 @@ void G_FireMachinegun(g_client_t *cl) {
 /**
  * @brief Defensive no-op think callback for held grenades.
  */
-static void G_HeldGrenadeThink(g_entity_t *ent) {
+static void G_HeldGrenadeThink(GameEntity *ent) {
   (void) ent;
 }
 
 /**
  * @brief Spawns a grenade entity attached to the client that ticks until thrown or released.
  */
-static void G_PullGrenadePin(g_client_t *cl) {
+static void G_PullGrenadePin(GameClient *cl) {
   if (cl->held_grenade) {
     G_FreeEntity(cl->held_grenade);
     cl->held_grenade = NULL;
   }
 
-  g_entity_t *nade = G_AllocEntity(__func__);
+  GameEntity *nade = G_AllocEntity(__func__);
   cl->held_grenade = nade;
   nade->owner = cl->entity;
   nade->s.origin = cl->entity->s.origin;
@@ -552,7 +552,7 @@ static void G_PullGrenadePin(g_client_t *cl) {
  * @brief Checks button status and hold time to determine if we're still holding
  * a primed grenade
  */
-static bool G_CheckGrenadeHold(g_client_t *cl, uint32_t buttons) {
+static bool G_CheckGrenadeHold(GameClient *cl, uint32_t buttons) {
   bool current_hold = buttons & BUTTON_ATTACK;
 
   // just pulled the pin
@@ -573,7 +573,7 @@ static bool G_CheckGrenadeHold(g_client_t *cl, uint32_t buttons) {
 /**
  * @brief Handles hand grenade pin-pulling, priming, and throwing logic.
  */
-void G_FireHandGrenade(g_client_t *cl) {
+void G_FireHandGrenade(GameClient *cl) {
 
   uint32_t buttons = (cl->latched_buttons | cl->buttons);
 
@@ -597,14 +597,14 @@ void G_FireHandGrenade(g_client_t *cl) {
     ammo = 0;
   }
 
-  // override quantity needed from g_item_t since grenades are both ammo and weapon
+  // override quantity needed from GameItem since grenades are both ammo and weapon
   const uint16_t ammo_needed = 1;
 
   // if the client does not have enough ammo, change weapons
   if (cl->ammo_index && ammo < ammo_needed) {
 
     if (g_level.time >= cl->pain_time) { // play a click sound
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.weapon_no_ammo,
         .entity = cl->entity,
       }, MULTICAST_PHS);
@@ -627,7 +627,7 @@ void G_FireHandGrenade(g_client_t *cl) {
 
     // play the timer sound if we're holding once every second
     if ((g_level.frame_num - cl->grenade_hold_frame) % QUETOO_TICK_RATE == 0) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.grenade_clang,
         .entity = cl->entity,
       }, MULTICAST_PHS);
@@ -645,7 +645,7 @@ void G_FireHandGrenade(g_client_t *cl) {
   throw_speed = Clampf(throw_speed, 500, 1200);
   const int32_t fuse = Clampf((int32_t) nade_time - (int32_t) hold_time, 1, (int32_t) nade_time);
 
-  vec3_t forward, right, up, org;
+  Vec3 forward, right, up, org;
 
   G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
   G_HandGrenadeProjectile(
@@ -661,7 +661,7 @@ void G_FireHandGrenade(g_client_t *cl) {
   );
 
   // play the sound if we throw it
-  G_MulticastSound(&(const g_play_sound_t) {
+  G_MulticastSound(&(const GamePlaySound) {
     .index = g_media.sounds.grenade_throw,
     .entity = cl->entity,
   }, MULTICAST_PHS);
@@ -677,10 +677,10 @@ void G_FireHandGrenade(g_client_t *cl) {
 /**
  * @brief Fires a bouncing grenade from the grenade launcher.
  */
-void G_FireGrenadeLauncher(g_client_t *cl) {
+void G_FireGrenadeLauncher(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -697,10 +697,10 @@ void G_FireGrenadeLauncher(g_client_t *cl) {
 /**
  * @brief Fires a rocket from the rocket launcher.
  */
-void G_FireRocketLauncher(g_client_t *cl) {
+void G_FireRocketLauncher(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -717,10 +717,10 @@ void G_FireRocketLauncher(g_client_t *cl) {
 /**
  * @brief Fires a hyperblaster bolt.
  */
-void G_FireHyperblaster(g_client_t *cl) {
+void G_FireHyperblaster(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -736,12 +736,12 @@ void G_FireHyperblaster(g_client_t *cl) {
 /**
  * @brief Fires a continuous lightning beam, dealing damage along its path.
  */
-void G_FireLightning(g_client_t *cl) {
+void G_FireLightning(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
-    g_entity_t *projectile = NULL;
+    GameEntity *projectile = NULL;
 
     while ((projectile = G_Find(projectile, EOFS(classname), "G_LightningProjectile"))) {
       if (projectile->owner == cl->entity) {
@@ -765,10 +765,10 @@ void G_FireLightning(g_client_t *cl) {
 /**
  * @brief Fires a railgun slug that instantly hits the first target along its path.
  */
-void G_FireRailgun(g_client_t *cl) {
+void G_FireRailgun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -788,10 +788,10 @@ void G_FireRailgun(g_client_t *cl) {
 /**
  * @brief Fires a spread of pellets from the Quake Shotgun.
  */
-void G_FireQuakeShotgun(g_client_t *cl) {
+void G_FireQuakeShotgun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
@@ -809,10 +809,10 @@ void G_FireQuakeShotgun(g_client_t *cl) {
 /**
  * @brief Fires a wider spread of shells from the Quake Super Shotgun.
  */
-void G_FireQuakeSuperShotgun(g_client_t *cl) {
+void G_FireQuakeSuperShotgun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
@@ -830,10 +830,10 @@ void G_FireQuakeSuperShotgun(g_client_t *cl) {
 /**
  * @brief Fires a single nail from the Quake nailgun.
  */
-void G_FireQuakeNailgun(g_client_t *cl) {
+void G_FireQuakeNailgun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
@@ -853,10 +853,10 @@ void G_FireQuakeNailgun(g_client_t *cl) {
 /**
  * @brief Fires two nails per shot from the Quake super nailgun, offset from parallel barrels.
  */
-void G_FireQuakeSuperNailgun(g_client_t *cl) {
+void G_FireQuakeSuperNailgun(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
@@ -882,10 +882,10 @@ void G_FireQuakeSuperNailgun(g_client_t *cl) {
 /**
  * @brief Fires a bouncing grenade from the Quake grenade launcher.
  */
-void G_FireQuakeGrenadeLauncher(g_client_t *cl) {
+void G_FireQuakeGrenadeLauncher(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
@@ -902,10 +902,10 @@ void G_FireQuakeGrenadeLauncher(g_client_t *cl) {
 /**
  * @brief Fires a rocket from the Quake rocket launcher.
  */
-void G_FireQuakeRocketLauncher(g_client_t *cl) {
+void G_FireQuakeRocketLauncher(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
@@ -922,12 +922,12 @@ void G_FireQuakeRocketLauncher(g_client_t *cl) {
 /**
  * @brief Fires a continuous lightning beam from the Quake thunderbolt.
  */
-void G_FireQuakeThunderbolt(g_client_t *cl) {
+void G_FireQuakeThunderbolt(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    vec3_t forward, right, up, org;
+    Vec3 forward, right, up, org;
 
-    g_entity_t *projectile = NULL;
+    GameEntity *projectile = NULL;
 
     while ((projectile = G_Find(projectile, EOFS(classname), "G_LightningProjectile"))) {
       if (projectile->owner == cl->entity) {
@@ -951,13 +951,13 @@ void G_FireQuakeThunderbolt(g_client_t *cl) {
 /**
  * @brief Think callback that detonates an in-flight BFG ball on expiry or target impact.
  */
-static void G_FireBfg_(g_entity_t *ent) {
+static void G_FireBfg_(GameEntity *ent) {
 
-  g_client_t *cl = ent->owner->client;
+  GameClient *cl = ent->owner->client;
 
   if (ent->owner->dead == false) {
     if (cl->weapon == &g_items[WEAPON_BFG10K]) {
-      vec3_t forward, right, up, org;
+      Vec3 forward, right, up, org;
 
       G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
@@ -978,19 +978,19 @@ static void G_FireBfg_(g_entity_t *ent) {
 /**
  * @brief Fires a BFG energy ball that damages everything along its flight path.
  */
-void G_FireBfg(g_client_t *cl) {
+void G_FireBfg(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
     cl->weapon_fire_time = g_level.time + SECONDS_TO_MILLIS(g_balance_bfg_refire->value + g_balance_bfg_prefire->value);
 
-    g_entity_t *timer = G_AllocEntity(__func__);
+    GameEntity *timer = G_AllocEntity(__func__);
     timer->owner = cl->entity;
     timer->sv_flags = SVF_NO_CLIENT;
 
     timer->Think = G_FireBfg_;
     timer->next_think = g_level.time + SECONDS_TO_MILLIS(g_balance_bfg_prefire->value) - QUETOO_TICK_MILLIS;
 
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = g_media.sounds.bfg_prime,
       .entity = cl->entity,
     }, MULTICAST_PHS);

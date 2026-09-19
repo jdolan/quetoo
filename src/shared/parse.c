@@ -25,14 +25,14 @@
 /**
  * @brief Return true if the parser is at the end of the input.
  */
-bool Parse_IsEOF(const parser_t *parser) {
+bool Parse_IsEOF(const Parser *parser) {
   return (*parser->position.ptr) == '\0';
 }
 
 /**
  * @brief Return true if the parser is at a newline boundary.
  */
-bool Parse_IsEOL(const parser_t *parser) {
+bool Parse_IsEOL(const Parser *parser) {
   const char c = *parser->position.ptr;
   return c == '\r' || c == '\n';
 }
@@ -40,14 +40,14 @@ bool Parse_IsEOL(const parser_t *parser) {
 /**
  * @brief Trigger a column increase
  */
-static void Parse_NextColumn(parser_t *parser, const size_t len) {
+static void Parse_NextColumn(Parser *parser, const size_t len) {
   parser->position.col += len;
 }
 
 /**
  * @brief Trigger a row increase
  */
-static void Parse_NextRow(parser_t *parser, const size_t len) {
+static void Parse_NextRow(Parser *parser, const size_t len) {
   parser->position.row += len;
   parser->position.col = 0;
 }
@@ -56,7 +56,7 @@ static void Parse_NextRow(parser_t *parser, const size_t len) {
  * @brief Attempt to skip whitespace and find the start of a new token. The cursor will either be positioned
  * at the start of a non-control character or at a newline if flags tell them not to traverse them.
  */
-static bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
+static bool Parse_SkipWhitespace(Parser *parser, const ParseFlags flags) {
   char c;
 
   while ((c = *parser->position.ptr) <= ' ') {
@@ -89,7 +89,7 @@ static bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
  * @brief Attempt to parse and skip a line comment that begins with the specified identifier.
  * Returns true if we found any comments.
  */
-static bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
+static bool Parse_SkipCommentLine(Parser *parser, const char *identifier) {
 
   if (q_strncmp(parser->position.ptr, identifier, q_strlen(identifier))) {
     return false;
@@ -132,7 +132,7 @@ static bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
  * @brief Attempt to parse and skip a block comment that begins with the specified identifier.
  * Returns true if we found any comments.
  */
-static bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const char *end) {
+static bool Parse_SkipCommentBlock(Parser *parser, const char *start, const char *end) {
 
   if (q_strncmp(parser->position.ptr, start, q_strlen(start))) {
     return false;
@@ -171,7 +171,7 @@ static bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const ch
  * only be called once the start of a token has been established.
  * @return false if we are at EOF
  */
-static bool Parse_SkipComments(parser_t *parser) {
+static bool Parse_SkipComments(Parser *parser) {
 
   while (true) {
     char c = *parser->position.ptr;
@@ -209,7 +209,7 @@ static bool Parse_SkipComments(parser_t *parser) {
  * @brief Handles the appending routine for output. Returns false if the added character would overflow the
  * output buffer.
  */
-static bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags, const char c, size_t *output_position, char *output, const size_t output_len) {
+static bool Parse_AppendOutputChar(Parser *parser, const ParseFlags flags, const char c, size_t *output_position, char *output, const size_t output_len) {
 
   if (!output) {
     return true;
@@ -229,7 +229,7 @@ static bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags, 
 /**
  * @brief Handles parsing a quoted string.
  */
-static bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags, size_t *output_position, char *output, const size_t output_len) {
+static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size_t *output_position, char *output, const size_t output_len) {
   char c = *parser->position.ptr;
 
   if (c != '"') {
@@ -328,8 +328,8 @@ static bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags,
  * buffer into this function.
  * @return false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
  */
-bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
-  parser_position_t old_position = { NULL, 0, 0 };
+bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const size_t output_len) {
+  ParserPosition old_position = { NULL, 0, 0 };
 
   if (!parser) {
     return false;
@@ -400,9 +400,9 @@ bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, cons
 }
 
 /**
- * @brief Get byte size for `parse_type_t`
+ * @brief Get byte size for `ParseType`
  */
-static size_t Parse_TypeSize(const parse_type_t type) {
+static size_t Parse_TypeSize(const ParseType type) {
 
   switch (type) {
   case PARSE_UINT8:
@@ -426,7 +426,7 @@ static size_t Parse_TypeSize(const parse_type_t type) {
 /**
  * @brief Parse the specified data type.
  */
-static bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
+static bool Parse_TypeParse(const ParseType type, const char *input, void *output) {
   int32_t result;
   static byte scan_buffer[sizeof(double)];
   const size_t type_size = Parse_TypeSize(type);
@@ -476,8 +476,8 @@ static __thread char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to h
  * if you only wish to verify that the data can be parsed and not actually store the results.
  * @return The number of primitives successfully parsed.
  */
-size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count) {
-  parser_position_t old_position = { NULL, 0, 0 };
+size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType type, void *output, const size_t count) {
+  ParserPosition old_position = { NULL, 0, 0 };
   const size_t type_size = Parse_TypeSize(type);
   size_t num_parsed = 0;
 
@@ -485,7 +485,7 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
     old_position = parser->position;
   }
 
-  const parse_flags_t prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
+  const ParseFlags prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
 
   if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
 

@@ -31,19 +31,19 @@ typedef struct {
   /**
    * @brief The mins of the bbox.
    */
-  vec3_t mins;
+  Vec3 mins;
 
   /**
    * @brief The maxs of the bbox.
    */
-  vec3_t maxs;
-} box3_t;
+  Vec3 maxs;
+} Box3;
 
 /**
  * @return A `box_t` with the specified mins and maxs.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3(const vec3_t mins, const vec3_t maxs) {
-  return (box3_t) {
+static inline Box3 __attribute__ ((warn_unused_result)) MakeBox3(const Vec3 mins, const Vec3 maxs) {
+  return (Box3) {
     .mins = mins,
     .maxs = maxs
   };
@@ -53,23 +53,23 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3(const vec3_t mins
  * @return A bounding box constructed from a 3d size parameter. The box is constructed
  * such that its center is zero, and its size matches `size`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3fv(const vec3_t size) {
-  return Box3(Vec3_Scale(size, -.5f), Vec3_Scale(size, .5f));
+static inline Box3 __attribute__ ((warn_unused_result)) Box3fv(const Vec3 size) {
+  return MakeBox3(Vec3_Scale(size, -.5f), Vec3_Scale(size, .5f));
 }
 
 /**
  * @return A bounding box constructed from size values. The box is constructed
  * such that its center is zero, and its size matches { `x`, `y`, `z` }.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3f(float x, float y, float z) {
-  return Box3fv(Vec3(x, y, z));
+static inline Box3 __attribute__ ((warn_unused_result)) Box3f(float x, float y, float z) {
+  return Box3fv(MakeVec3(x, y, z));
 }
 
 /**
  * @return A `box_t` centered around `0, 0, 0` with a size of zero.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Zero(void) {
-  return (box3_t) {
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Zero(void) {
+  return (Box3) {
     .mins = Vec3_Zero(),
     .maxs = Vec3_Zero()
   };
@@ -82,8 +82,8 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Zero(void) {
  * around that point. Using this as a seed guarantees that the first point added will
  * become the new seed.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Null(void) {
-  return (box3_t) {
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Null(void) {
+  return (Box3) {
     .mins = Vec3_Mins(),
     .maxs = Vec3_Maxs()
   };
@@ -92,7 +92,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Null(void) {
 /**
  * @return True if `bounds` has a negative size, false otherwise.
  */
-static inline bool __attribute__ ((warn_unused_result)) Box3_IsNull(const box3_t bounds) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_IsNull(const Box3 bounds) {
   return bounds.mins.x > bounds.maxs.x
     || bounds.mins.y > bounds.maxs.y
     || bounds.mins.z > bounds.maxs.z;
@@ -102,8 +102,8 @@ static inline bool __attribute__ ((warn_unused_result)) Box3_IsNull(const box3_t
  * @return A `box_t` that contains both the passed bounds as well as the passed
  * point.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Append(const box3_t bounds, const vec3_t point) {
-  return (box3_t) {
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Append(const Box3 bounds, const Vec3 point) {
+  return (Box3) {
     .mins = Vec3_Minf(bounds.mins, point),
     .maxs = Vec3_Maxf(bounds.maxs, point)
   };
@@ -112,21 +112,21 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Append(const box3
 /**
  * @return Whether `a` and `b` are equal or not.
  */
-static inline bool __attribute__ ((warn_unused_result)) Box3_Equal(const box3_t a, const box3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_Equal(const Box3 a, const Box3 b) {
   return Box3_IsNull(a) ? Box3_IsNull(b) : Vec3_Equal(a.mins, b.mins) && Vec3_Equal(a.maxs, b.maxs);
 }
 
 /**
  * @return A `box_t` that unions both of the passed bounds.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Union(const box3_t a, const box3_t b) {
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Union(const Box3 a, const Box3 b) {
   if (Box3_IsNull(a)) {
     return b;
   }
   if (Box3_IsNull(b)) {
     return a;
   }
-  return (box3_t) {
+  return (Box3) {
     .mins = Vec3_Minf(a.mins, b.mins),
     .maxs = Vec3_Maxf(a.maxs, b.maxs)
   };
@@ -135,8 +135,8 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Union(const box3_
 /**
  * @return A `box_t` constructed from a set of points.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromPoints(const vec3_t *points, const size_t num_points) {
-  box3_t bounds = Box3_Null();
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromPoints(const Vec3 *points, const size_t num_points) {
+  Box3 bounds = Box3_Null();
 
   for (size_t i = 0; i < num_points; i++, points++) {
     bounds = Box3_Append(bounds, *points);
@@ -148,11 +148,11 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromPoints(const 
 /**
  * @return A `box_t` constructed from a set of points.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromPointsStride(const void *points, const size_t num_points, const size_t stride) {
-  box3_t bounds = Box3_Null();
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromPointsStride(const void *points, const size_t num_points, const size_t stride) {
+  Box3 bounds = Box3_Null();
 
   for (size_t i = 0; i < num_points; i++, points += stride) {
-    bounds = Box3_Append(bounds, *(vec3_t *) points);
+    bounds = Box3_Append(bounds, *(Vec3 *) points);
   }
 
   return bounds;
@@ -160,15 +160,15 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromPointsStride(
 
 /**
  * @brief Writes the eight corner points of the bounding box to "points".
- * It must be at least 8 `vec3_t` wide. The output of the points are in
+ * It must be at least 8 `Vec3` wide. The output of the points are in
  * axis order - assuming bitflags of 1 2 4 = X Y Z - where a bit unset is
  * mins and a bit set is maxs. This ordering should not be changed, as
  * a few places in our code requires it to be this order.
  */
-static inline void Box3_ToPoints(const box3_t bounds, vec3_t *points) {
+static inline void Box3_ToPoints(const Box3 bounds, Vec3 *points) {
 
   for (int32_t i = 0; i < 8; i++) {
-    points[i] = Vec3(
+    points[i] = MakeVec3(
       ((i & 1) ? bounds.maxs : bounds.mins).x,
       ((i & 2) ? bounds.maxs : bounds.mins).y,
       ((i & 4) ? bounds.maxs : bounds.mins).z
@@ -179,7 +179,7 @@ static inline void Box3_ToPoints(const box3_t bounds, vec3_t *points) {
 /**
  * @return `true` if `a` intersects the bounds `b`, `false` otherwise.
 */
-static inline bool __attribute__ ((warn_unused_result)) Box3_Intersects(const box3_t a, const box3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_Intersects(const Box3 a, const Box3 b) {
 
   if (a.mins.x > b.maxs.x || a.mins.y > b.maxs.y || a.mins.z > b.maxs.z) {
     return false;
@@ -195,9 +195,9 @@ static inline bool __attribute__ ((warn_unused_result)) Box3_Intersects(const bo
 /**
  * @return A `box_t` that is the intersection of the passed bounds.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Intersection(const box3_t a, const box3_t b) {
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Intersection(const Box3 a, const Box3 b) {
   if (Box3_Intersects(a, b)) {
-    return (box3_t) {
+    return (Box3) {
       .mins = Vec3_Maxf(a.mins, b.mins),
       .maxs = Vec3_Minf(a.maxs, b.maxs)
     };
@@ -209,7 +209,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Intersection(cons
 /**
  * @return `true` if `a` contains the point `b`, `false` otherwise.
 */
-static inline bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(const box3_t a, const vec3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(const Box3 a, const Vec3 b) {
 
   if (a.mins.x > b.x || a.mins.y > b.y || a.mins.z > b.z) {
     return false;
@@ -225,7 +225,7 @@ static inline bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(const
 /**
  * @return `true` if `b` is fully contained within `a`, `false` otherwise.
  */
-static inline bool __attribute__ ((warn_unused_result)) Box3_Contains(const box3_t a, const box3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_Contains(const Box3 a, const Box3 b) {
 
   for (int32_t j = 0; j < 3; j++) {
     if (b.mins.xyz[j] < a.mins.xyz[j] || b.maxs.xyz[j] > a.maxs.xyz[j]) {
@@ -241,7 +241,7 @@ static inline bool __attribute__ ((warn_unused_result)) Box3_Contains(const box3
  *   misses. Returns `1.f` when `start` is inside `bounds` so that callers can trivially skip
  *   entities whose geometry contains the view origin.
  */
-static inline float __attribute__ ((warn_unused_result)) Box3_RayFraction(const vec3_t start, const vec3_t end, const box3_t bounds) {
+static inline float __attribute__ ((warn_unused_result)) Box3_RayFraction(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
   if (Box3_ContainsPoint(bounds, start)) {
     return 1.f;
@@ -277,21 +277,21 @@ static inline float __attribute__ ((warn_unused_result)) Box3_RayFraction(const 
  * @return The relative size of all three axis of the bounds. This also works as
  * a vector between the two points of the box.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Size(const box3_t a) {
+static inline Vec3 __attribute__ ((warn_unused_result)) Box3_Size(const Box3 a) {
   return Vec3_Subtract(a.maxs, a.mins);
 }
 
 /**
  * @return The box extents, or the half size.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Extents(const box3_t b) {
+static inline Vec3 __attribute__ ((warn_unused_result)) Box3_Extents(const Box3 b) {
   return Vec3_Scale(Box3_Size(b), 0.5f);
 }
 
 /**
  * @return The distance between the two corners of the bounds.
  */
-static inline float __attribute__ ((warn_unused_result)) Box3_Distance(const box3_t a) {
+static inline float __attribute__ ((warn_unused_result)) Box3_Distance(const Box3 a) {
   return Vec3_Distance(a.maxs, a.mins);
 }
 
@@ -299,31 +299,31 @@ static inline float __attribute__ ((warn_unused_result)) Box3_Distance(const box
  * @return The radius of the bounds (equivalent to `Box3_Distance(a) / 2`). This is
  * a sphere that contains the whole box, including its corners.
  */
-static inline float __attribute__ ((warn_unused_result)) Box3_Radius(const box3_t a) {
+static inline float __attribute__ ((warn_unused_result)) Box3_Radius(const Box3 a) {
   return Box3_Distance(a) / 2.f;
 }
 
 /**
  * @return The center of the bounding box.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Center(const box3_t b) {
+static inline Vec3 __attribute__ ((warn_unused_result)) Box3_Center(const Box3 b) {
   return Vec3_Mix(b.mins, b.maxs, .5f);
 }
 
 /**
  * @return A bounding box centered around `center` with a size of zero.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenter(const vec3_t center) {
-  return Box3(center, center);
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromCenter(const Vec3 center) {
+  return MakeBox3(center, center);
 }
 
 /**
  * @return A bounding box constructed from a 3d size parameter. The box is constructed
  * such that its center is `center`, and its size matches `size`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterSize(const vec3_t center, const vec3_t size) {
-  const vec3_t half_size = Vec3_Scale(size, .5f);
-  return Box3(
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromCenterSize(const Vec3 center, const Vec3 size) {
+  const Vec3 half_size = Vec3_Scale(size, .5f);
+  return MakeBox3(
     Vec3_Subtract(center, half_size),
     Vec3_Add(center, half_size)
   );
@@ -332,9 +332,9 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterSize(co
 /**
  * @return A bounding box constructed from the spherical radius, translated by `center`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterRadius(const vec3_t center, float radius) {
-  const vec3_t delta = Vec3(radius, radius, radius);
-  return Box3(
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromCenterRadius(const Vec3 center, float radius) {
+  const Vec3 delta = MakeVec3(radius, radius, radius);
+  return MakeBox3(
     Vec3_Subtract(center, delta),
     Vec3_Add(center, delta)
   );
@@ -343,8 +343,8 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromCenterRadius(
 /**
  * @return A bounding box translated by the specified offset.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Translate(const box3_t bounds, const vec3_t translation) {
-  return Box3(
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Translate(const Box3 bounds, const Vec3 translation) {
+  return MakeBox3(
     Vec3_Add(bounds.mins, translation),
     Vec3_Add(bounds.maxs, translation)
   );
@@ -354,8 +354,8 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Translate(const b
  * @return A bounding box expanded (or shrunk, if a value is negative) by the
  * specified expansion values on all six axis.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand3(const box3_t bounds, const vec3_t expansion) {
-  return Box3(
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Expand3(const Box3 bounds, const Vec3 expansion) {
+  return MakeBox3(
     Vec3_Subtract(bounds.mins, expansion),
     Vec3_Add(bounds.maxs, expansion)
   );
@@ -365,15 +365,15 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand3(const box
  * @return A bounding box expanded (or shrunk, if a value is negative) by the
  * specified expansion value on all six axis.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Expand(const box3_t bounds, float expansion) {
-  return Box3_Expand3(bounds, Vec3(expansion, expansion, expansion));
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Expand(const Box3 bounds, float expansion) {
+  return Box3_Expand3(bounds, MakeVec3(expansion, expansion, expansion));
 }
 
 /**
  * @return The bounding box `a` expanded by the bounding box `b`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_ExpandBox(const box3_t a, const box3_t b) {
-  return Box3(
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_ExpandBox(const Box3 a, const Box3 b) {
+  return MakeBox3(
     Vec3_Add(a.mins, b.mins),
     Vec3_Add(a.maxs, b.maxs)
   );
@@ -382,15 +382,15 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_ExpandBox(const b
 /**
  * @return The point `p` clamped by the bounding box `b`.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Box3_ClampPoint(const box3_t b, const vec3_t p) {
+static inline Vec3 __attribute__ ((warn_unused_result)) Box3_ClampPoint(const Box3 b, const Vec3 p) {
   return Vec3_Clamp(p, b.mins, b.maxs);
 }
 
 /**
  * @return The bounds `b` clamped by the bounding box `a`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_ClampBounds(const box3_t a, const box3_t b) {
-  return Box3(
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_ClampBounds(const Box3 a, const Box3 b) {
+  return MakeBox3(
     Vec3_Clamp(b.mins, a.mins, a.maxs),
     Vec3_Clamp(b.maxs, a.mins, a.maxs)
   );
@@ -399,22 +399,22 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_ClampBounds(const
 /**
  * @return A random point within the bounding box `b`, edges inclusive.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Box3_RandomPoint(const box3_t b) {
+static inline Vec3 __attribute__ ((warn_unused_result)) Box3_RandomPoint(const Box3 b) {
   return Vec3_Mix3(b.mins, b.maxs, Vec3_Random());
 }
 
 /**
  * @return The symetrical extents of `bounds`.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Box3_Symetrical(const box3_t bounds) {
+static inline Vec3 __attribute__ ((warn_unused_result)) Box3_Symetrical(const Box3 bounds) {
   return Vec3_Maxf(Vec3_Fabsf(bounds.mins), Vec3_Fabsf(bounds.maxs));
 }
 
 /**
  * @return The `bounds` scaled by `scale`.
  */
-static inline box3_t __attribute__ ((warn_unused_result)) Box3_Scale(const box3_t bounds, float scale) {
-  return Box3(
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_Scale(const Box3 bounds, float scale) {
+  return MakeBox3(
     Vec3_Scale(bounds.mins, scale),
     Vec3_Scale(bounds.maxs, scale)
   );
@@ -423,8 +423,8 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Scale(const box3_
 /**
  * @return The volume of `b`.
  */
-static inline float __attribute__ ((warn_unused_result)) Box3_Volume(const box3_t b) {
-  const vec3_t size =  Box3_Size(b);
+static inline float __attribute__ ((warn_unused_result)) Box3_Volume(const Box3 b) {
+  const Vec3 size =  Box3_Size(b);
   return size.x * size.y * size.z;
 }
 
@@ -437,4 +437,4 @@ static inline float __attribute__ ((warn_unused_result)) Box3_Volume(const box3_
  * caller owns this array and must `free` it. Unset if `count` is `0`.
  * @return The number of boxes written to `*out`.
  */
-size_t Box3_Merge(const box3_t *boxes, size_t count, box3_t **out);
+size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out);

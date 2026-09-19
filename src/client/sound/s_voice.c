@@ -86,7 +86,7 @@ typedef struct {
   uint8_t seq;
   bool started;
   bool playing;
-} s_voice_speaker_t;
+} SoundVoiceSpeaker;
 
 static struct {
   bool transmitting;
@@ -119,19 +119,19 @@ static struct {
 
   uint8_t channel;
 
-  s_voice_speaker_t speakers[MAX_CLIENTS + 1];
+  SoundVoiceSpeaker speakers[MAX_CLIENTS + 1];
 
   SDL_Thread *thread;
   SDL_Mutex *mutex;
   bool shutdown;
 } s_voice_state;
 
-cvar_t *s_voice;
-cvar_t *s_voice_bitrate;
-cvar_t *s_capture_gain;
-cvar_t *s_capture_normalize;
-cvar_t *s_voice_loopback;
-cvar_t *s_voice_volume;
+Cvar *s_voice;
+Cvar *s_voice_bitrate;
+Cvar *s_capture_gain;
+Cvar *s_capture_normalize;
+Cvar *s_voice_loopback;
+Cvar *s_voice_volume;
 
 /**
  * @brief Returns the effective playback gain for voice.
@@ -224,7 +224,7 @@ static void S_ApplyCaptureGain(int16_t *samples, size_t count) {
 /**
  * @brief Releases a speaker's source back to the pool, stopping and unqueueing it.
  */
-static void S_ReleaseSpeaker(s_voice_speaker_t *speaker) {
+static void S_ReleaseSpeaker(SoundVoiceSpeaker *speaker) {
 
   if (speaker->source) {
     alSourceStop(speaker->source);
@@ -246,17 +246,17 @@ static void S_ReleaseSpeaker(s_voice_speaker_t *speaker) {
 /**
  * @brief Prepares a speaker to be heard, displacing the least recently heard if the pool is full.
  */
-static bool S_AcquireSpeaker(s_voice_speaker_t *speaker) {
+static bool S_AcquireSpeaker(SoundVoiceSpeaker *speaker) {
 
   if (speaker->source) {
     return true;
   }
 
   int32_t sources = 0;
-  s_voice_speaker_t *oldest = NULL;
+  SoundVoiceSpeaker *oldest = NULL;
 
   for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
-    s_voice_speaker_t *s = s_voice_state.speakers + i;
+    SoundVoiceSpeaker *s = s_voice_state.speakers + i;
 
     if (s->source) {
       sources++;
@@ -309,7 +309,7 @@ static bool S_AcquireSpeaker(s_voice_speaker_t *speaker) {
  * are banked, so an irregular arrival does not start and immediately starve, and alSourcePlay is
  * re-issued whenever the source has fallen out of AL_PLAYING, which speech does routinely.
  */
-static void S_QueueSpeakerFrame(s_voice_speaker_t *speaker, const int16_t *samples) {
+static void S_QueueSpeakerFrame(SoundVoiceSpeaker *speaker, const int16_t *samples) {
 
   ALint processed = 0, queued = 0;
   alGetSourcei(speaker->source, AL_BUFFERS_PROCESSED, &processed);
@@ -349,7 +349,7 @@ static void S_QueueSpeakerFrame(s_voice_speaker_t *speaker, const int16_t *sampl
 /**
  * @brief Decodes one payload for a speaker and queues it, concealing any frames lost before it.
  */
-static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, int32_t len) {
+static void S_DecodeSpeakerFrame(SoundVoiceSpeaker *speaker, const byte *data, int32_t len) {
 
   int32_t decoded = opus_decode(speaker->decoder, data, len, s_voice_state.frame,
                                 VOICE_FRAME_SAMPLES, 0);
@@ -373,7 +373,7 @@ static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, i
  */
 static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const byte *data, int32_t len) {
 
-  s_voice_speaker_t *speaker = s_voice_state.speakers + client;
+  SoundVoiceSpeaker *speaker = s_voice_state.speakers + client;
 
   if (S_AcquireSpeaker(speaker)) {
 
@@ -432,7 +432,7 @@ void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const byte *data, in
 static void S_ExpireSpeakers(void) {
 
   for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
-    s_voice_speaker_t *speaker = s_voice_state.speakers + i;
+    SoundVoiceSpeaker *speaker = s_voice_state.speakers + i;
 
     if (!speaker->source) {
       continue;

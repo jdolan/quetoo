@@ -69,7 +69,7 @@ struct PowerupView {
   /**
    * @brief The item whose icon is shown, or `ITEM_NONE`.
    */
-  g_item_tag_t item;
+  GameItemTag item;
 
   /**
    * @brief The powerup shown.
@@ -100,7 +100,7 @@ struct PowerupViewInterface {
   PowerupView *(*initWithPowerup)(PowerupView *self, PowerupViewPowerup powerup);
 
   /**
-   * @fn void PowerupView::update(PowerupView *self, g_item_tag_t item, int16_t value)
+   * @fn void PowerupView::update(PowerupView *self, GameItemTag item, int16_t value)
    * @brief Shows the given item with the given seconds remaining, or hides this view when
    * `value` is not positive.
    * @param self The PowerupView.
@@ -108,7 +108,7 @@ struct PowerupViewInterface {
    * @param value The seconds remaining, or `0` to hide; negative shows the icon alone.
    * @memberof PowerupView
    */
-  void (*update)(PowerupView *self, g_item_tag_t item, int16_t value);
+  void (*update)(PowerupView *self, GameItemTag item, int16_t value);
 };
 
 CGAME_EXPORT Class *_PowerupView(void);

@@ -36,7 +36,7 @@ static void Sv_Heartbeat_f(void) {
  * @brief Sets `sv_client` and `sv_player` to the player identified by `Cmd_Argv(1)`.
  */
 static bool Sv_SetPlayer(void) {
-  sv_client_t *cl;
+  ServerClient *cl;
   int32_t i;
 
   if (Cmd_Argc() < 2) {
@@ -137,7 +137,7 @@ static void Sv_Map_f(void) {
  */
 void Sv_NextMap_f(void) {
 
-  const cm_entity_t *props = Sv_NextMap();
+  const CmEntity *props = Sv_NextMap();
   if (props) {
     const char *name = Cm_EntityValue(props, "name")->string;
     Sv_InitServer(name, props, SV_ACTIVE_GAME);
@@ -184,7 +184,7 @@ static void Sv_Status_f(void) {
   Com_Print("num ping name             lastmsg address               qport\n");
   Com_Print("--- ---- ---------------- ------- --------------------- -----\n");
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
@@ -217,7 +217,7 @@ static void Sv_ListEntities_f(void) {
   }
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
-    const g_entity_t *e = sv.entities[i].gent;
+    const GameEntity *e = sv.entities[i].gent;
 
     if (Cmd_Argc() > 1) {
       if (!GlobMatch(Cmd_Argv(1), e->classname, GLOB_FLAGS_NONE)) {
@@ -252,14 +252,14 @@ static void Sv_Say_f(void) {
     s++;
   }
 
-  const sv_client_t *client = svs.clients;
+  const ServerClient *client = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, client++) {
 
     if (client->state != SV_CLIENT_ACTIVE) {
       continue;
     }
 
-    const g_client_t *cl = svs.clients[i].gclient;
+    const GameClient *cl = svs.clients[i].gclient;
     Sv_ClientPrint(cl, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_CHAT, s);
   }
 
@@ -298,7 +298,7 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  const g_client_t *cl = sv_client->gclient;
+  const GameClient *cl = sv_client->gclient;
   Sv_ClientPrint(cl, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
   Com_Print("^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
 }
@@ -380,10 +380,10 @@ void Sv_InitAdmin(void) {
   Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings.");
   Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user.");
 
-  cmd_t *demo_cmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
+  Cmd *demo_cmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
   Cmd_SetAutocomplete(demo_cmd, Sv_Demo_Autocomplete_f);
 
-  cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
+  Cmd *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
   Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);
 
   Cmd_Add("next_map", Sv_NextMap_f, CMD_SERVER, "Advance to the next map in sv_map_list.");

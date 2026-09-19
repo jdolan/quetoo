@@ -24,8 +24,8 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-void Cg_AddDecal(const r_decal_t *decal);
-void Cg_GibEffect(const vec3_t org, int32_t count);
-void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count);
+void Cg_AddDecal(const RenderDecal *decal);
+void Cg_GibEffect(const Vec3 org, int32_t count);
+void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count);
 void Cg_ParseTempEntity(void);
 #endif

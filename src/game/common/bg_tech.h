@@ -26,7 +26,7 @@
 /**
  * @brief Tech powerups are an optional feature. A game module opts in by adding
  * g_tech.c to its _SOURCES and -DG_TECH to its AM_CPPFLAGS, then embedding
- * `g_client_tech_t` in its `g_client_t`. The MSVS build sets QuetooGameTech and
+ * `GameClientTech` in its `GameClient`. The MSVS build sets QuetooGameTech and
  * G_TECH; the Xcode build adds the source to the target and G_TECH to its
  * defines.
  *
@@ -52,4 +52,4 @@ typedef struct {
    * @brief Next time a tech powerup sound may play.
    */
   uint32_t sound_time;
-} g_client_tech_t;
+} GameClientTech;

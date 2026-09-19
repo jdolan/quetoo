@@ -24,16 +24,16 @@
 #include "g_local.h"
 #include "bg_vote.h"
 
-cvar_t *g_vote;
-cvar_t *g_vote_time;
-cvar_t *g_vote_threshold;
-cvar_t *g_vote_cooldown;
+Cvar *g_vote;
+Cvar *g_vote_time;
+Cvar *g_vote_threshold;
+Cvar *g_vote_cooldown;
 
 typedef enum {
   BALLOT_NONE,
   BALLOT_YES,
   BALLOT_NO
-} g_ballot_t;
+} GameBallot;
 
 static struct {
   bool active;
@@ -41,7 +41,7 @@ static struct {
   char arg[MAX_QPATH];
   char initiator[MAX_NET_NAME];
   uint32_t deadline;
-  g_ballot_t ballots[MAX_CLIENTS];
+  GameBallot ballots[MAX_CLIENTS];
   uint32_t cooldown[MAX_CLIENTS];
   int32_t published[3]; // yes, no and eligible as last published
 } g_vote_state;
@@ -58,7 +58,7 @@ static bool installed;
 /**
  * @brief Connected human players and spectators may vote; bots may not.
  */
-bool G_Vote_Eligible(const g_client_t *cl) {
+bool G_Vote_Eligible(const GameClient *cl) {
   return cl->in_use && !cl->ai;
 }
 
@@ -84,7 +84,7 @@ static bool G_Vote_ValidMapName(const char *name) {
  * @brief The eligible client with exactly this name, or `NULL`. A vote that
  * could land on the nearest name would be a vote on somebody else.
  */
-static g_client_t *G_Vote_ClientByName(const char *name) {
+static GameClient *G_Vote_ClientByName(const char *name) {
 
   G_ForEachClient(cl, {
     if (G_Vote_Eligible(cl) && !q_strcasecmp(cl->persistent.net_name, name)) {
@@ -98,7 +98,7 @@ static g_client_t *G_Vote_ClientByName(const char *name) {
 /**
  * @brief The common vote type `name` names, or `NULL`.
  */
-static const vote_type_t *G_Vote_Type(const char *name) {
+static const VoteType *G_Vote_Type(const char *name) {
 
   for (size_t i = 0; i < lengthof(vote_types_common); i++) {
     if (!q_strcmp(vote_types_common[i].name, name)) {
@@ -112,9 +112,9 @@ static const vote_type_t *G_Vote_Type(const char *name) {
 /**
  * @brief The tail of the `G_PrepareVote` chain: the common votes.
  */
-static bool G_PrepareVote_Common(const g_client_t *cl, const char *type, const char *arg, char *canonical, size_t size) {
+static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const char *arg, char *canonical, size_t size) {
 
-  const vote_type_t *vote = G_Vote_Type(type);
+  const VoteType *vote = G_Vote_Type(type);
   if (!vote) {
     return false;
   }
@@ -136,7 +136,7 @@ static bool G_PrepareVote_Common(const g_client_t *cl, const char *type, const c
       return true;
 
     case VOTE_ARG_CLIENT: {
-      const g_client_t *target = G_Vote_ClientByName(arg);
+      const GameClient *target = G_Vote_ClientByName(arg);
       if (!target) {
         return false;
       }
@@ -169,7 +169,7 @@ PrepareVote G_PrepareVote = G_PrepareVote_Common;
  */
 static bool G_ApplyVote_Common(const char *type, const char *arg) {
 
-  const vote_type_t *vote = G_Vote_Type(type);
+  const VoteType *vote = G_Vote_Type(type);
   if (!vote) {
     return false;
   }
@@ -189,7 +189,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
   }
 
   if (!q_strcmp(type, "spectate")) {
-    g_client_t *target = G_Vote_ClientByName(arg);
+    GameClient *target = G_Vote_ClientByName(arg);
     if (target && !target->persistent.spectator) {
       G_TossInventory(target);
       target->persistent.spectator = true;
@@ -199,7 +199,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
   }
 
   if (!q_strcmp(type, "mute")) {
-    g_client_t *target = G_Vote_ClientByName(arg);
+    GameClient *target = G_Vote_ClientByName(arg);
     if (target) {
       // mute the client the vote resolved, not one G_ClientByName might match a second time
       G_SetClientMuted(target, !target->persistent.muted);
@@ -319,7 +319,7 @@ static void G_Vote_Check(void) {
 /**
  * @brief Records a ballot, once per client per vote.
  */
-static void G_Vote_Cast(g_client_t *cl, g_ballot_t ballot) {
+static void G_Vote_Cast(GameClient *cl, GameBallot ballot) {
 
   if (!g_vote_state.active) {
     gi.ClientPrint(cl, PRINT_HIGH, "No vote is in progress\n");
@@ -339,7 +339,7 @@ static void G_Vote_Cast(g_client_t *cl, g_ballot_t ballot) {
 /**
  * @brief Opens a vote, if voting is enabled and nothing else is in progress.
  */
-static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
+static void G_Vote_Call(GameClient *cl, const char *type, const char *arg) {
 
   if (!g_vote->integer) {
     gi.ClientPrint(cl, PRINT_HIGH, "Voting is disabled\n");
@@ -387,7 +387,7 @@ static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
 /**
  * @brief `vote yes`, `vote no`, or `vote <type> [argument]`.
  */
-static bool G_HandleClientCommand_Vote(g_client_t *cl, const char *cmd) {
+static bool G_HandleClientCommand_Vote(GameClient *cl, const char *cmd) {
 
   if (q_strcmp(cmd, "vote")) {
     return previous.HandleClientCommand(cl, cmd);
@@ -427,7 +427,7 @@ static void G_FrameDidEnd_Vote(void) {
  * @brief A leaving client's ballot no longer counts, and their cooldown ends
  * with them so that a reconnecting client is not held to it.
  */
-static void G_ClientWillDisconnect_Vote(g_client_t *cl) {
+static void G_ClientWillDisconnect_Vote(GameClient *cl) {
 
   g_vote_state.ballots[cl->ps.client] = BALLOT_NONE;
   g_vote_state.cooldown[cl->ps.client] = 0;

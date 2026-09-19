@@ -24,5 +24,5 @@
 #include "quemap.h"
 #include "brush.h"
 
-csg_brush_t *MakeBrushes(int32_t index, int32_t count);
-csg_brush_t *SubtractBrushes(csg_brush_t *head);
+CsgBrush *MakeBrushes(int32_t index, int32_t count);
+CsgBrush *SubtractBrushes(CsgBrush *head);

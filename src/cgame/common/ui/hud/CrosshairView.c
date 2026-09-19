@@ -44,7 +44,7 @@ static void dealloc(Object *self) {
 /**
  * @brief Applies the `cg_draw_crosshair_health` scheme to the RGB of `color`.
  */
-static void applyHealth(vec4_t *color, int16_t health) {
+static void applyHealth(Vec4 *color, int16_t health) {
 
   const float frac = Clampf01(health / 100.f);
   const float over = Clampf01((health - 100) / 100.f);
@@ -143,7 +143,7 @@ static View *init(View *self) {
 /**
  * @brief Whether the crosshair is drawn for the given player state.
  */
-static bool visible(const player_state_t *ps) {
+static bool visible(const PlayerState *ps) {
 
   if (editor->value) {
     return true;
@@ -196,7 +196,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   if (cg_draw_crosshair->modified || cg_draw_crosshair_scale->modified) {
     cg_draw_crosshair->modified = false;
@@ -223,7 +223,7 @@ static void updateBindings(View *self, ident data) {
   if (cg_draw_crosshair_color->modified) {
     cg_draw_crosshair_color->modified = false;
 
-    color_t color = color_white;
+    Color color = color_white;
     if (q_strcmp(cg_draw_crosshair_color->string, "default")) {
       if (!Color_Parse(cg_draw_crosshair_color->string, &color)) {
         color = color_white;
@@ -241,7 +241,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  vec4_t color = this->color;
+  Vec4 color = this->color;
 
   applyHealth(&color, ps->stats[STAT_HEALTH]);
 
@@ -270,7 +270,7 @@ static void updateBindings(View *self, ident data) {
     color = Vec4_One();
   }
 
-  const color32_t rgba = Color_Color32(Color4fv(color));
+  const Color32 rgba = Color_Color32(Color4fv(color));
   this->imageView->color = (SDL_Color) { rgba.r, rgba.g, rgba.b, rgba.a };
 
   const SDL_Size imageSize = $(this->imageView->image, size);

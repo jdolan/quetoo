@@ -31,34 +31,34 @@
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
 
-cvar_t *cl_chat_sound;
-cvar_t *cl_max_fps;
-cvar_t *cl_no_lerp;
-cvar_t *cl_team_chat_sound;
-cvar_t *cl_timeout;
+Cvar *cl_chat_sound;
+Cvar *cl_max_fps;
+Cvar *cl_no_lerp;
+Cvar *cl_team_chat_sound;
+Cvar *cl_timeout;
 
-cvar_t *guid;
-cvar_t *name;
-cvar_t *active;
-cvar_t *message_level;
-cvar_t *password;
-cvar_t *rate;
+Cvar *guid;
+Cvar *name;
+Cvar *active;
+Cvar *message_level;
+Cvar *password;
+Cvar *rate;
 
-cvar_t *qport;
+Cvar *qport;
 
-cvar_t *cl_draw_net_messages;
+Cvar *cl_draw_net_messages;
 
-cl_static_t cls;
-cl_client_t cl;
+ClientStatic cls;
+Client cl;
 
-r_view_t cl_view;
-s_stage_t cl_stage;
+RenderView cl_view;
+SoundStage cl_stage;
 
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
  */
 static void Cl_SendConnect(void) {
-  net_addr_t addr;
+  NetAddr addr;
 
   memset(&addr, 0, sizeof(addr));
 
@@ -106,7 +106,7 @@ static void Cl_AttemptConnect(void) {
     return;
   }
 
-  net_addr_t addr;
+  NetAddr addr;
 
   if (!Net_StringToNetaddr(cls.server.address, &addr)) {
     Com_Warn("Bad server address: %s\n", cls.server.address);
@@ -136,7 +136,7 @@ static void Cl_AttemptConnect(void) {
 /**
  * @brief Initiates the connection process to the specified server.
  */
-void Cl_Connect(const net_addr_t *addr) {
+void Cl_Connect(const NetAddr *addr) {
 
   if (Com_WasInit(QUETOO_SERVER)) { // if running a local server, kill it
     Sv_ShutdownServer("Server quit\n");
@@ -154,7 +154,7 @@ void Cl_Connect(const net_addr_t *addr) {
  * @brief Handles the `connect` console command, connecting to the specified server address.
  */
 static void Cl_Connect_f(void) {
-  net_addr_t addr;
+  NetAddr addr;
 
   if (Cmd_Argc() != 2) {
     Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
@@ -174,7 +174,7 @@ static void Cl_Connect_f(void) {
 static void Cl_Rcon_f(void) {
   char message[1024];
   int32_t i;
-  net_addr_t to;
+  NetAddr to;
 
   if (!rcon_password->string) {
     Com_Print("No rcon_password set\n");
@@ -513,7 +513,7 @@ static const char *Cl_Username(void) {
  * @brief Writes key bindings and archived cvars to `quetoo.cfg`.
  */
 static void Cl_WriteConfiguration(void) {
-  file_t *f;
+  File *f;
 
   if (cls.state == CL_UNINITIALIZED) {
     return;
@@ -586,7 +586,7 @@ static void Cl_InitLocal(void) {
  * @brief Populates the renderer scene and issues main draw calls for the current frame.
  */
 static void Cl_UpdateScene(void) {
-  thread_t *thread;
+  WorkerThread *thread;
 
   cls.cgame->PrepareScene(&cl.frame);
 
@@ -614,7 +614,7 @@ static void Cl_UpdateScene(void) {
 /**
  * @brief InstallerFrame callback.
  */
-int32_t Cl_InstallerFrame(const installer_status_t *in) {
+int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
   R_InitView(&cl_view);
 

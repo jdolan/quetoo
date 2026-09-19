@@ -26,7 +26,7 @@
  */
 void Cl_UpdateScreen(void) {
 
-  static cl_key_dest_t previous_key_dest = KEY_UI;
+  static ClientKeyDest previous_key_dest = KEY_UI;
   if (cls.key_state.dest == KEY_UI) {
     if (previous_key_dest != KEY_UI) {
       Ui_ViewWillAppear();

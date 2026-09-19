@@ -24,7 +24,7 @@
 /**
  * @brief Updates the entity's world-space bounds.
  */
-static void R_SetEntityBounds(r_entity_t *e) {
+static void R_SetEntityBounds(RenderEntity *e) {
   if (e->model && !Box3_IsNull(e->model->bounds)) {
     e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
   } else {
@@ -35,7 +35,7 @@ static void R_SetEntityBounds(r_entity_t *e) {
 /**
  * @brief Tests whether the entity should be culled.
  */
-bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
+bool R_CullEntity(const RenderView *view, const RenderEntity *e) {
 
   if (view->type == VIEW_PLAYER_MODEL) {
     return false;
@@ -63,7 +63,7 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 /**
  * @brief Adds an entity to the view and returns the copied entry.
  */
-r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
+RenderEntity *R_AddEntity(RenderView *view, const RenderEntity *ent) {
 
   assert(view);
   assert(ent);
@@ -73,7 +73,7 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
     return NULL;
   }
 
-  r_entity_t *e = &view->entities[view->num_entities];
+  RenderEntity *e = &view->entities[view->num_entities];
   *e = *ent;
 
   e->matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, e->scale);
@@ -99,9 +99,9 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 /**
  * @brief Updates entity state for the frame.
  */
-void R_UpdateEntities(r_view_t *view, CopyPass *pass) {
+void R_UpdateEntities(RenderView *view, CopyPass *pass) {
 
-  r_entity_t *e = view->entities;
+  RenderEntity *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (e->model == NULL) {
@@ -115,7 +115,7 @@ void R_UpdateEntities(r_view_t *view, CopyPass *pass) {
 /**
  * @brief Draws the view's entities.
  */
-void R_DrawEntities(const r_view_t *view, RenderPass *pass) {
+void R_DrawEntities(const RenderView *view, RenderPass *pass) {
 
   R_DrawOpaqueBspEntities(view, pass);
 

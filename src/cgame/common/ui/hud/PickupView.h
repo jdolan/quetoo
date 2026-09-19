@@ -58,7 +58,7 @@ struct PickupView {
   /**
    * @brief The item shown, or `ITEM_NONE`.
    */
-  g_item_tag_t item;
+  GameItemTag item;
 
   /**
    * @brief The item name.

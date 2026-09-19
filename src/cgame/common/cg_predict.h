@@ -26,5 +26,5 @@
 #if defined(__CG_LOCAL_H__)
 bool Cg_ExportUsePrediction(void);
 void Cg_PredictMovement(const Vector *cmds);
-void Cg_UpdateSpectate(pm_cmd_t *cmd);
+void Cg_UpdateSpectate(PlayerMoveCmd *cmd);
 #endif

@@ -28,6 +28,6 @@
 void Sv_InitHttp(void);
 void Sv_ShutdownHttp(void);
 void Sv_HttpThink(void);
-void Sv_HttpClientDisconnect(sv_http_client_t *http);
+void Sv_HttpClientDisconnect(ServerHttpClient *http);
 
 #endif

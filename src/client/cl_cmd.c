@@ -26,7 +26,7 @@
  */
 static void Cl_InitMovementCommand(void) {
 
-  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  ClientCmd *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
   memset(cmd, 0, sizeof(*cmd));
 }
@@ -36,7 +36,7 @@ static void Cl_InitMovementCommand(void) {
  */
 void Cl_UpdateMovementCommand(uint32_t msec) {
 
-  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  ClientCmd *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
   cmd->cmd.msec = Minf(msec, 255u);
 
@@ -51,9 +51,9 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
  */
 static void Cl_FinalizeMovementCommand(void) {
 
-  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  ClientCmd *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-  cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+  ClientCmd *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 
   const uint32_t msec = cl.unclamped_time - prev->timestamp;
 
@@ -68,8 +68,8 @@ static void Cl_FinalizeMovementCommand(void) {
 /**
  * @brief Writes the most recent movement command(s) using delta-compression if available.
  */
-static void Cl_WriteMovementCommand(mem_buf_t *buf) {
-  static cl_cmd_t null_cmd;
+static void Cl_WriteMovementCommand(MemBuf *buf) {
+  static ClientCmd null_cmd;
 
   Net_WriteByte(buf, CL_CMD_MOVE);
 
@@ -79,7 +79,7 @@ static void Cl_WriteMovementCommand(mem_buf_t *buf) {
     Net_WriteLong(buf, cl.frame.frame_num);
   }
 
-  cl_cmd_t *from = &null_cmd, *to = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
+  ClientCmd *from = &null_cmd, *to = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
   Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 
   from = to; to = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
@@ -105,7 +105,7 @@ static void Cl_WriteUserInfoCommand(void) {
 /**
  * @brief Sends the entity info string tot he server over the reliable channel.
  */
-void Cl_WriteEntityInfoCommand(int16_t number, const cm_entity_t *entity) {
+void Cl_WriteEntityInfoCommand(int16_t number, const CmEntity *entity) {
 
   Net_WriteByte(&cls.net_chan.message, CL_CMD_ENTITY_INFO);
   Net_WriteShort(&cls.net_chan.message, number);
@@ -123,7 +123,7 @@ void Cl_WriteEntityInfoCommand(int16_t number, const cm_entity_t *entity) {
  * @details The channel is carried opaquely: the server asks the game who may hear it, exactly as
  * the game decides who receives a say or a say_team.
  */
-static void Cl_WriteVoiceCommand(mem_buf_t *buf) {
+static void Cl_WriteVoiceCommand(MemBuf *buf) {
 
   byte voice[VOICE_MAX_PAYLOAD];
   uint8_t seq, flags, channel;
@@ -176,8 +176,8 @@ void Cl_SendCommands(void) {
 
       Cl_FinalizeMovementCommand();
 
-      mem_buf_t buf;
-      byte data[sizeof(cl_cmd_t) * 3 + VOICE_MAX_PAYLOAD + 16];
+      MemBuf buf;
+      byte data[sizeof(ClientCmd) * 3 + VOICE_MAX_PAYLOAD + 16];
 
       Mem_InitBuffer(&buf, data, sizeof(data));
 

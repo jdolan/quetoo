@@ -24,7 +24,7 @@
 /**
  * @brief Moves a client to the intermission position and freezes their input.
  */
-void G_ClientToIntermission(g_client_t *cl) {
+void G_ClientToIntermission(GameClient *cl) {
 
   if (!cl->entity) {
     return;
@@ -65,7 +65,7 @@ void G_ClientToIntermission(g_client_t *cl) {
 /**
  * @brief Write the scores information for the specified client.
  */
-static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
+static void G_UpdateScore(const GameClient *cl, GameScore *s) {
 
   memset(s, 0, sizeof(*s));
 
@@ -101,7 +101,7 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
 /**
  * @brief The tail of the `G_WriteScore` chain: a notification, so it does nothing.
  */
-static void G_WriteScore_Common(const g_client_t *cl, g_score_t *s) {
+static void G_WriteScore_Common(const GameClient *cl, GameScore *s) {
 }
 
 WriteScore G_WriteScore = G_WriteScore_Common;
@@ -109,7 +109,7 @@ WriteScore G_WriteScore = G_WriteScore_Common;
 /**
  * @brief The tail of the `G_WriteStats` chain: a notification, so it does nothing.
  */
-static void G_WriteStats_Common(g_client_t *cl) {
+static void G_WriteStats_Common(GameClient *cl) {
 }
 
 WriteStats G_WriteStats = G_WriteStats_Common;
@@ -117,8 +117,8 @@ WriteStats G_WriteStats = G_WriteStats_Common;
 /**
  * @brief Returns the number of scores written to the buffer.
  */
-static size_t G_UpdateScores(g_score_t *scores) {
-  g_score_t *s = scores;
+static size_t G_UpdateScores(GameScore *scores) {
+  GameScore *s = scores;
   int32_t i;
 
   // assemble the client scores
@@ -131,7 +131,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
     memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
     for (i = 0; i < MAX_TEAMS; i++) {
-      g_team_t *team = &g_team_list[i];
+      GameTeam *team = &g_team_list[i];
 
       s->client = MAX_CLIENTS;
       s->score = team->score;
@@ -150,8 +150,8 @@ static size_t G_UpdateScores(g_score_t *scores) {
  * @brief Assemble the binary scores data for the client. Scores are sent in
  * chunks to overcome the 1400 byte UDP packet limitation.
  */
-void G_ClientScores(g_client_t *cl) {
-  static g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
+void G_ClientScores(GameClient *cl) {
+  static GameScore scores[MAX_CLIENTS + MAX_TEAMS];
   static size_t count;
 
   if (!cl->show_scores || (cl->scores_time > g_level.time)) {
@@ -169,7 +169,7 @@ void G_ClientScores(g_client_t *cl) {
   // send the scores over in chunks
   size_t i = 0, j = 0;
   while (++i < count) {
-    const size_t len = (i - j) * sizeof(g_score_t);
+    const size_t len = (i - j) * sizeof(GameScore);
     if (len > 512) {
       gi.WriteByte(SV_CMD_SCORES);
       gi.WriteShort((int32_t) j);
@@ -183,7 +183,7 @@ void G_ClientScores(g_client_t *cl) {
   }
 
   // send any remaining scores, and indicate that the sequence is complete
-  const size_t len = (i - j) * sizeof(g_score_t);
+  const size_t len = (i - j) * sizeof(GameScore);
 
   gi.WriteByte(SV_CMD_SCORES);
   gi.WriteShort((int32_t) j);
@@ -197,10 +197,10 @@ void G_ClientScores(g_client_t *cl) {
  * @brief Writes the stats array of the player state structure. The client's HUD is
  * largely derived from this information.
  */
-void G_ClientStats(g_client_t *cl) {
+void G_ClientStats(GameClient *cl) {
 
   // armor
-  const g_item_t *armor = G_ClientArmor(cl);
+  const GameItem *armor = G_ClientArmor(cl);
   if (armor) {
     cl->ps.stats[STAT_ARMOR] = cl->inventory[armor->def.tag];
   } else {
@@ -209,7 +209,7 @@ void G_ClientStats(g_client_t *cl) {
 
 #if defined(G_TECH)
   // tech
-  const g_item_t *tech = G_GetTech(cl);
+  const GameItem *tech = G_GetTech(cl);
   cl->ps.stats[STAT_TECH] = tech ? tech->def.tag : 0;
 #endif
 
@@ -263,7 +263,7 @@ void G_ClientStats(g_client_t *cl) {
   }
 
   // weapon: lower byte = current tag, upper byte = switching-to tag
-  const g_item_t *weapon = cl->weapon;
+  const GameItem *weapon = cl->weapon;
 
   if (weapon) {
     cl->ps.stats[STAT_WEAPON] = weapon->def.tag;
@@ -302,7 +302,7 @@ void G_ClientStats(g_client_t *cl) {
 /**
  * @brief Updates the player stats HUD for a spectating client.
  */
-void G_ClientSpectatorStats(g_client_t *cl) {
+void G_ClientSpectatorStats(GameClient *cl) {
 
   cl->ps.stats[STAT_SPECTATOR] = 1;
 

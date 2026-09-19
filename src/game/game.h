@@ -25,10 +25,10 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 42
+#define GAME_API_VERSION 43
 
 /**
- * @brief Server flags for `g_entity_t`.
+ * @brief Server flags for `GameEntity`.
  */
 #define SVF_NO_CLIENT (1 << 0) // don't send entity to clients
 #define SVF_GAME      (1 << 1) // game may extend from here
@@ -46,40 +46,40 @@
  * what it declares.
  * @details The server reads these fields at the offsets these declarations
  * produce. A game module extends a client and an entity by embedding the
- * matching type as the **first** member of its own `g_client_s` and
- * `g_entity_s`, so that the fields the server wants are always at offset zero
+ * matching type as the **first** member of its own `GameClient` and
+ * `GameEntity`, so that the fields the server wants are always at offset zero
  * and always in this order. C guarantees that a pointer to a structure points
  * at its first member, which makes the two views of the same memory a fact of
  * the language rather than a rule a module has to remember: there is nothing a
  * module can write in its own structures that moves them.
  *
  * The module's declarations are therefore the only ones that name these types.
- * The server's own view is all it needs, so `g_client_t` and `g_entity_t` mean
+ * The server's own view is all it needs, so `GameClient` and `GameEntity` mean
  * these types outside a module and the module's extended ones inside it.
  */
 
-typedef struct sv_game_client_s sv_game_client_t;
-typedef struct sv_game_entity_s sv_game_entity_t;
+typedef struct ServerGameClient ServerGameClient;
+typedef struct ServerGameEntity ServerGameEntity;
 
 #if defined(__G_LOCAL_H__)
-typedef struct g_client_s g_client_t;
-typedef struct g_entity_s g_entity_t;
+typedef struct GameClient GameClient;
+typedef struct GameEntity GameEntity;
 #else
-typedef sv_game_client_t g_client_t;
-typedef sv_game_entity_t g_entity_t;
+typedef ServerGameClient GameClient;
+typedef ServerGameEntity GameEntity;
 #endif
 
-struct sv_game_client_s {
+struct ServerGameClient {
 
   /**
    * @brief The entity bound to this client.
    */
-  g_entity_t *entity;
+  GameEntity *entity;
 
   /**
    * @brief Player state communicated to clients by the server.
    */
-  player_state_t ps;
+  PlayerState ps;
 
   /**
    * @brief Round-trip latency in milliseconds.
@@ -104,7 +104,7 @@ struct sv_game_client_s {
   /**
    * @brief Non-null if this client is a bot.
    */
-  struct ai_s *ai;
+  struct Ai *ai;
 };
 
 /**
@@ -112,12 +112,12 @@ struct sv_game_client_s {
  * as items, moving platforms, giblets and players. The game module and server
  * share a common base for this structure, but the game is free to extend it.
  */
-struct sv_game_entity_s {
+struct ServerGameEntity {
 
   /**
    * @brief Entity definition from the BSP file.
    */
-  const cm_entity_t *def;
+  const CmEntity *def;
 
   /**
    * @brief Entity class name; guaranteed set through `G_Spawn`.
@@ -132,7 +132,7 @@ struct sv_game_entity_s {
   /**
    * @brief Entity state written by the game and delta-compressed by the server.
    */
-  entity_state_t s;
+  EntityState s;
 
   /**
    * @brief True if the entity is currently allocated and active.
@@ -147,32 +147,32 @@ struct sv_game_entity_s {
   /**
    * @brief Game-set bounding box in entity-local space.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief Server-set bounding box in world space; populated by `gi.LinkEntity`.
    */
-  box3_t abs_bounds;
+  Box3 abs_bounds;
 
   /**
    * @brief Server-set entity size; populated by `gi.LinkEntity`.
    */
-  vec3_t size;
+  Vec3 size;
 
   /**
    * @brief Solid type defining clipping behavior.
    */
-  solid_t solid;
+  Solid solid;
 
   /**
    * @brief Entity that spawned this one; not clipped against its owner.
    */
-  g_entity_t *owner;
+  GameEntity *owner;
 
   /**
    * @brief Non-null for client entities 1..`sv_max_clients`.
    */
-  g_client_t *client;
+  GameClient *client;
 };
 
 /**
@@ -189,7 +189,7 @@ typedef struct {
   char     weapon[MAX_QPATH];
   int32_t  mod;
   uint32_t time;
-} g_frag_t;
+} GameFrag;
 
 /**
  * @brief A capture event accumulated during a CTF match, submitted to the stats service at intermission.
@@ -201,13 +201,13 @@ typedef struct {
   bool     player_ai;
   char     team[MAX_QPATH];
   uint32_t time;
-} g_capture_t;
+} GameCapture;
 
 /**
  * @brief The game import provides engine functionality and core configuration
  * such as frame intervals to the game module.
  */
-typedef struct g_import_s {
+typedef struct GameImport {
 
   /**
    * @defgroup console-appending Console appending
@@ -222,13 +222,13 @@ typedef struct g_import_s {
   /**
    * @return The active debug mask.
    */
-  debug_t (*DebugMask)(void);
+  DebugFlags (*DebugMask)(void);
 
   /**
    * @brief Prints a formatted debug message to the configured consoles.
    * @details If the provided `debug` mask is inactive, the message will not be printed.
    */
-  void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+  void (*Debug)(const DebugFlags debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
    * @brief Prints a formatted warning message to the configured consoles.
@@ -258,7 +258,7 @@ typedef struct g_import_s {
    * @param tag The tag to associate the managed block with (e.g. `MEM_TAG_GAME_LEVEL`).
    * @return A newly allocated block of managed memory under the given `tag`.
    */
-  void *(*Malloc)(size_t size, mem_tag_t tag);
+  void *(*Malloc)(size_t size, MemTag tag);
 
   /**
    * @return A newly allocated block of managed memory, linked to `parent`.
@@ -274,7 +274,7 @@ typedef struct g_import_s {
   /**
    * @brief Frees all managed memory allocated with the given `tag`.
    */
-  void (*FreeTag)(mem_tag_t tag);
+  void (*FreeTag)(MemTag tag);
 
   /**
    * @}
@@ -286,7 +286,7 @@ typedef struct g_import_s {
    * @brief Opens the specified file for reading.
    * @param path The file path (e.g. `"maps/torn.bsp"`).
    */
-  file_t *(*OpenFile)(const char *path);
+  File *(*OpenFile)(const char *path);
 
   /**
    * @brief Seeks to the specified offset.
@@ -294,7 +294,7 @@ typedef struct g_import_s {
    * @param offset The offset.
    * @return True on success, false on error.
    */
-  bool (*SeekFile)(file_t *file, int64_t offset);
+  bool (*SeekFile)(File *file, int64_t offset);
 
   /**
    * @brief Reads from the specified file.
@@ -304,13 +304,13 @@ typedef struct g_import_s {
    * @param count The count of the objects to read.
    * @return The number of objects read, or -1 on failure.
    */
-  int64_t (*ReadFile)(file_t *file, void *buffer, size_t size, size_t count);
+  int64_t (*ReadFile)(File *file, void *buffer, size_t size, size_t count);
 
   /**
    * @brief Opens the specified file for writing.
    * @param path The file path (e.g. `"maps.ui.list"`).
    */
-  file_t *(*OpenFileWrite)(const char *path);
+  File *(*OpenFileWrite)(const char *path);
 
   /**
    * @brief Writes `count` objects of size `size` from `buffer` to `file`.
@@ -320,14 +320,14 @@ typedef struct g_import_s {
    * @param count The count of the objects to write.
    * @return The number of objects written, or `-1` on error.
    */
-  int64_t (*WriteFile)(file_t *file, const void *buffer, size_t size, size_t count);
+  int64_t (*WriteFile)(File *file, const void *buffer, size_t size, size_t count);
 
   /**
    * @brief Closes the specified file.
    * @param file The file.
    * @return True on success, false on error.
    */
-  bool (*CloseFile)(file_t *file);
+  bool (*CloseFile)(File *file);
 
   /**
    * @brief Check if a file exists or not.
@@ -382,13 +382,13 @@ typedef struct g_import_s {
    * @param desc The variable description for builtin console help.
    * @return The console variable.
    */
-  cvar_t *(*AddCvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+  Cvar *(*AddCvar)(const char *name, const char *value, uint32_t flags, const char *desc);
 
   /**
    * @brief Resolves a console variable that is expected to be defined by the engine.
    * @return The predefined console variable.
    */
-  cvar_t *(*GetCvar)(const char *name);
+  Cvar *(*GetCvar)(const char *name);
 
   /**
    * @return The integer value of the console variable with the given name.
@@ -408,17 +408,17 @@ typedef struct g_import_s {
   /**
    * @brief Sets the console variable by `name` to `value`.
    */
-  cvar_t *(*SetCvarInteger)(const char *name, int32_t value);
+  Cvar *(*SetCvarInteger)(const char *name, int32_t value);
 
   /**
    * @brief Sets the console variable by `name` to `string`.
    */
-  cvar_t *(*SetCvarString)(const char *name, const char *string);
+  Cvar *(*SetCvarString)(const char *name, const char *string);
 
   /**
    * @brief Sets the console variable by `name` to `value`.
    */
-  cvar_t *(*SetCvarValue)(const char *name, float value);
+  Cvar *(*SetCvarValue)(const char *name, float value);
 
   /**
    * @brief Forces the console variable to take the value of the string immediately.
@@ -426,7 +426,7 @@ typedef struct g_import_s {
    * @param string The variable string.
    * @return The modified variable.
    */
-  cvar_t *(*ForceSetCvarString)(const char *name, const char *string);
+  Cvar *(*ForceSetCvarString)(const char *name, const char *string);
 
   /**
    * @brief Forces the console variable to take the given value immediately.
@@ -434,12 +434,12 @@ typedef struct g_import_s {
    * @param value The variable value.
    * @return The modified variable.
    */
-  cvar_t *(*ForceSetCvarValue)(const char *name, float value);
+  Cvar *(*ForceSetCvarValue)(const char *name, float value);
 
   /**
    * @brief Toggles the console variable by `name`.
    */
-  cvar_t *(*ToggleCvar)(const char *name);
+  Cvar *(*ToggleCvar)(const char *name);
 
   /**
    * @brief Registers and returns a console command.
@@ -449,7 +449,7 @@ typedef struct g_import_s {
    * @param desc The command description for builtin console help.
    * @return The console command.
    */
-  cmd_t *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
+  Cmd *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
 
   /**
    * @return The argument count for the currently executing command.
@@ -535,12 +535,12 @@ typedef struct g_import_s {
   /**
    * @return The BSP model for the currently loaded map.
    */
-  const cm_bsp_t *(*Bsp)(void);
+  const CmBsp *(*Bsp)(void);
   
   /**
    * @brief Returns the worldspawn entity definition.
    */
-  const cm_entity_t *(*Worldspawn)(void);
+  const CmEntity *(*Worldspawn)(void);
 
   /**
    * @brief Finds the entity pair for `key` within the specifed entity.
@@ -550,7 +550,7 @@ typedef struct g_import_s {
    * @remarks This function will always return non-`NULL` for convenience. Check the
    * parsed types on the returned pair to differentiate "not present" from "0."
    */
-  const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
+  const CmEntity *(*EntityValue)(const CmEntity *entity, const char *key);
 
   /**
    * @brief Finds all brushes within the specified entity.
@@ -560,23 +560,23 @@ typedef struct g_import_s {
    * in the source .map file. Even `func_group` and other entities which have their
    * contents merged into `worldspawn` during the compilation step are fully supported.
    */
-  Vector *(*EntityBrushes)(const cm_entity_t *entity);
+  Vector *(*EntityBrushes)(const CmEntity *entity);
 
   /**
    * @brief Parses a string of brace-delimited key-value entity definitions, the
    * format of a map's entity string and of `maps.lst`.
-   * @return A list of `cm_entity_t *`, each to be freed with `FreeEntity`.
+   * @return A list of `CmEntity *`, each to be freed with `FreeEntity`.
    */
   List *(*LoadEntities)(const char *entity_string);
 
   /**
    * @brief Frees an entity definition from `LoadEntities`.
    */
-  void (*FreeEntity)(cm_entity_t *entity);
+  void (*FreeEntity)(CmEntity *entity);
 
   /**
    * @brief Returns the server's map rotation, as configured by `sv_map_list`.
-   * @return A list of `cm_entity_t *`, each to be freed with `FreeEntity`, or `NULL`
+   * @return A list of `CmEntity *`, each to be freed with `FreeEntity`, or `NULL`
    * if no rotation is configured.
    * @remarks The list is a copy, so a `sv_map_list` edit can not free entries from
    * underneath the caller.
@@ -605,13 +605,13 @@ typedef struct g_import_s {
    * @return The contents mask at the specific point. The point is tested
    * against the world as well as all solid entities.
    */
-  int32_t (*PointContents)(const vec3_t point);
+  int32_t (*PointContents)(const Vec3 point);
 
   /**
    * @return The contents mask of all leafs within bounds. The box is tested
    * against the world as well as all solid entities.
    */
-  int32_t (*BoxContents)(const box3_t bounds);
+  int32_t (*BoxContents)(const Box3 bounds);
 
   /**
    * @return `true` if `point` resides inside `brush`, `false` otherwise.
@@ -620,7 +620,7 @@ typedef struct g_import_s {
    * @remarks This function is useful for testing points against non-solid brushes
    * from brush entities. For general purpose collision detection, use PointContents.
    */
-  bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+  bool (*PointInsideBrush)(const Vec3 point, const CmBspBrush *brush);
 
   /**
    * @brief Collision detection. Traces between the two endpoints, impacting
@@ -635,7 +635,7 @@ typedef struct g_import_s {
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
    */
-  cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *skip, int32_t contents);
+  CmTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *skip, int32_t contents);
 
   /**
    * @brief Collision detection. Traces between the two endpoints, impacting
@@ -650,25 +650,25 @@ typedef struct g_import_s {
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
    */
-  cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *ent, int32_t contents);
+  CmTrace (*Clip)(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *ent, int32_t contents);
 
   /**
    * @brief Set the model of a given entity by name.
    * @details For inline BSP models, the bounding box is also set and the entity linked.
    */
-  void (*SetModel)(g_entity_t *ent, const char *name);
+  void (*SetModel)(GameEntity *ent, const char *name);
 
   /**
    * @brief All solid and trigger entities must be linked when they are
    * initialized or moved. Linking resolves their absolute bounding box and
    * makes them eligible for physics interactions.
    */
-  void (*LinkEntity)(g_entity_t *ent);
+  void (*LinkEntity)(GameEntity *ent);
 
   /**
    * @brief All entities should be unlinked before being freed.
    */
-  void (*UnlinkEntity)(g_entity_t *ent);
+  void (*UnlinkEntity)(GameEntity *ent);
 
   /**
    * @brief Populates a list of entities occupying the specified bounding
@@ -681,15 +681,15 @@ typedef struct g_import_s {
    *
    * @return The number of entities found.
    */
-  size_t (*BoxEntities)(const box3_t bounds, g_entity_t **list, const size_t len, uint32_t type);
+  size_t (*BoxEntities)(const Box3 bounds, GameEntity **list, const size_t len, uint32_t type);
 
   /**
    * @}
    * @defgroup network Network messaging.
    */
 
-  void (*Multicast)(const vec3_t org, multicast_t to);
-  void (*Unicast)(const g_client_t *ent, const bool reliable);
+  void (*Multicast)(const Vec3 org, Multicast to);
+  void (*Unicast)(const GameClient *ent, const bool reliable);
   void (*WriteData)(const void *data, size_t len);
   void (*WriteChar)(const int32_t c);
   void (*WriteByte)(const int32_t c);
@@ -697,10 +697,10 @@ typedef struct g_import_s {
   void (*WriteLong)(const int32_t c);
   void (*WriteString)(const char *s);
   void (*WriteVector)(const float v);
-  void (*WritePosition)(const vec3_t pos);
-  void (*WriteDir)(const vec3_t pos); // single byte encoded, very coarse
+  void (*WritePosition)(const Vec3 pos);
+  void (*WriteDir)(const Vec3 pos); // single byte encoded, very coarse
   void (*WriteAngle)(const float v);
-  void (*WriteAngles)(const vec3_t angles);
+  void (*WriteAngles)(const Vec3 angles);
 
   /**
    * @brief Network console IO.
@@ -710,28 +710,28 @@ typedef struct g_import_s {
    * @remarks Only the game knows player names, so it owns the policy; the server owns only the
    * mask it consults before relaying. Mutes are cleared when either client disconnects.
    */
-  void (*MuteVoice)(const g_client_t *listener, const g_client_t *speaker, bool mute);
+  void (*MuteVoice)(const GameClient *listener, const GameClient *speaker, bool mute);
 
   void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-  void (*ClientPrint)(const g_client_t *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+  void (*ClientPrint)(const GameClient *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
    * @brief Submit frag and capture events accumulated during a match to the stats service.
    * @details The server handles URL, gating, JSON serialization, and HTTP POST.
    * @details This is best-effort delivery only; failures are silently discarded.
    */
-  void (*PostStats)(const g_frag_t *frags, size_t frags_len, const g_capture_t *captures, size_t captures_len);
+  void (*PostStats)(const GameFrag *frags, size_t frags_len, const GameCapture *captures, size_t captures_len);
 
   /**
    * @}
    */
-} g_import_t;
+} GameImport;
 
 /**
  * @brief The game export structure exposes core game module entry points to
  * the server. The game must populate this structure as part of `G_Init`.
  */
-typedef struct g_export_s {
+typedef struct GameExport {
 
   /**
    * @brief Game API version; validated by the server on load.
@@ -760,12 +760,12 @@ typedef struct g_export_s {
   /**
    * @brief Client array, `sv_max_clients` in length; allocated by the game.
    */
-  g_client_t *clients[MAX_CLIENTS];
+  GameClient *clients[MAX_CLIENTS];
 
   /**
    * @brief Entity array, `sv_max_entities` in length; allocated by the game.
    */
-  g_entity_t *entities[MAX_ENTITIES];
+  GameEntity *entities[MAX_ENTITIES];
 
   /**
    * @brief Called once when the game module is first loaded.
@@ -781,13 +781,13 @@ typedef struct g_export_s {
    * @brief Called at the start of each new level.
    * @param name The map name, e.g. "edge"
    */
-  void (*SpawnEntities)(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
+  void (*SpawnEntities)(const char *name, const CmEntity *props, CmEntity *const *entities, size_t num_entities);
 
   /**
    * @brief Called in editor mode to spawn or respawn a single entity at the given
    * entity number, taking ownership of `def`.
    */
-  void (*SpawnEditorEntity)(int32_t number, cm_entity_t *def);
+  void (*SpawnEditorEntity)(int32_t number, CmEntity *def);
 
   /**
    * @brief Called in editor mode to free the entity at the given entity number,
@@ -804,34 +804,34 @@ typedef struct g_export_s {
    * @remarks The server asks rather than being told, so that who may be addressed is enforced
    * here, beside the same rules that govern chat, rather than proposed by a client.
    */
-  bool (*ClientCanHearVoice)(const g_client_t *speaker, const g_client_t *listener, uint8_t channel);
+  bool (*ClientCanHearVoice)(const GameClient *speaker, const GameClient *listener, uint8_t channel);
 
-  bool (*ClientConnect)(g_client_t *cl, char *user_info);
+  bool (*ClientConnect)(GameClient *cl, char *user_info);
 
   /**
    * @brief Called when a client has fully spawned and should begin thinking.
    */
-  void (*ClientBegin)(g_client_t *cl);
+  void (*ClientBegin)(GameClient *cl);
 
   /**
    * @brief Called when the client's user info string changes.
    */
-  void (*ClientUserInfoChanged)(g_client_t *cl, const char *user_info);
+  void (*ClientUserInfoChanged)(GameClient *cl, const char *user_info);
 
   /**
    * @brief Called when a client disconnects.
    */
-  void (*ClientDisconnect)(g_client_t *cl);
+  void (*ClientDisconnect)(GameClient *cl);
 
   /**
    * @brief Called for unhandled client console commands (e.g. voting).
    */
-  void (*ClientCommand)(g_client_t *cl);
+  void (*ClientCommand)(GameClient *cl);
 
   /**
    * @brief Called each frame with the client's movement command.
    */
-  void (*ClientThink)(g_client_t *cl, pm_cmd_t *cmd);
+  void (*ClientThink)(GameClient *cl, PlayerMoveCmd *cmd);
 
   /**
    * @brief Called every `QUETOO_TICK_SECONDS` to advance game logic.
@@ -850,5 +850,5 @@ typedef struct g_export_s {
    * an entity solid to some movers and not others.
    * @param mover The entity the trace is on behalf of, or `NULL`.
    */
-  bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent);
-} g_export_t;
+  bool (*ClipEntity)(const GameEntity *mover, const GameEntity *ent);
+} GameExport;

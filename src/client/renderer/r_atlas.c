@@ -24,12 +24,12 @@
 /**
  * @brief Frees an atlas media asset.
  */
-static void R_FreeAtlas(r_media_t *media) {
-  r_atlas_t *atlas = (r_atlas_t *) media;
+static void R_FreeAtlas(RenderMedia *media) {
+  RenderAtlas *atlas = (RenderAtlas *) media;
   Vector *nodes = atlas->atlas->nodes;
 
   for (size_t i = 0; i < nodes->count; i++) {
-    atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
+    AtlasNode *node = VectorValue(nodes, AtlasNode *, i);
 
     for (int32_t layer = 0; layer < atlas->atlas->layers; layer++) {
       SDL_DestroySurface(node->surfaces[layer]);
@@ -42,23 +42,23 @@ static void R_FreeAtlas(r_media_t *media) {
 /**
  * @brief Loads or creates an atlas.
  */
-r_atlas_t *R_LoadAtlas(const char *name) {
+RenderAtlas *R_LoadAtlas(const char *name) {
 
-  r_atlas_t *atlas = (r_atlas_t *) R_FindMedia(name, R_MEDIA_ATLAS);
+  RenderAtlas *atlas = (RenderAtlas *) R_FindMedia(name, R_MEDIA_ATLAS);
   if (atlas == NULL) {
 
-    atlas = (r_atlas_t *) R_AllocMedia(name, sizeof(r_atlas_t), R_MEDIA_ATLAS);
+    atlas = (RenderAtlas *) R_AllocMedia(name, sizeof(RenderAtlas), R_MEDIA_ATLAS);
     atlas->media.Free = R_FreeAtlas;
 
-    atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), R_MEDIA_IMAGE);
+    atlas->image = (RenderImage *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(RenderImage), R_MEDIA_IMAGE);
     atlas->image->media.Free = R_FreeImage;
 
     atlas->image->type = IMG_ATLAS;
 
-    R_RegisterMedia((r_media_t *) atlas->image);
-    R_RegisterMedia((r_media_t *) atlas);
+    R_RegisterMedia((RenderMedia *) atlas->image);
+    R_RegisterMedia((RenderMedia *) atlas);
 
-    R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
+    R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlas->image);
 
     atlas->atlas = Atlas_Create(1);
   }
@@ -69,20 +69,20 @@ r_atlas_t *R_LoadAtlas(const char *name) {
 /**
  * @brief Loads an image into an atlas. Recompile the atlas before rendering the returned image.
  */
-r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
+RenderAtlasImage *R_LoadAtlasImage(RenderAtlas *atlas, const char *name, RenderImageType type) {
   Vector *nodes = atlas->atlas->nodes;
 
   for (size_t i = 0; i < nodes->count; i++) {
-    atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
+    AtlasNode *node = VectorValue(nodes, AtlasNode *, i);
 
-    r_atlas_image_t *atlas_image = node->data;
+    RenderAtlasImage *atlas_image = node->data;
     if (!q_strcmp(name, atlas_image->image.media.name)) {
-      R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas_image);
+      R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlas_image);
       return atlas_image;
     }
   }
 
-  r_atlas_image_t *atlas_image = (r_atlas_image_t *) R_AllocMedia(name, sizeof(*atlas_image), R_MEDIA_ATLAS_IMAGE);
+  RenderAtlasImage *atlas_image = (RenderAtlasImage *) R_AllocMedia(name, sizeof(*atlas_image), R_MEDIA_ATLAS_IMAGE);
   assert(atlas_image);
 
   SDL_Surface *surf = Img_LoadSurface(name);
@@ -92,7 +92,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
     surf = SDL_CreateSurfaceFrom(1, 1, SDL_PIXELFORMAT_RGBA32, (void *) &pixels, sizeof(pixels));
   }
 
-  atlas_node_t *node = Atlas_Insert(atlas->atlas, surf);
+  AtlasNode *node = Atlas_Insert(atlas->atlas, surf);
   assert(node);
 
   node->data = atlas_image;
@@ -103,7 +103,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
   atlas_image->image.width = surf->w;
   atlas_image->image.height = surf->h;
 
-  R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas_image);
+  R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlas_image);
 
   atlas->dirty = true;
 
@@ -113,9 +113,9 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 /**
  * @brief Updates atlas texture coordinates for a compiled node.
  */
-static void R_CompileAtlas_Node(const atlas_node_t *node, const r_atlas_t *atlas) {
+static void R_CompileAtlas_Node(const AtlasNode *node, const RenderAtlas *atlas) {
 
-  r_atlas_image_t *atlas_image = node->data;
+  RenderAtlasImage *atlas_image = node->data;
 
   atlas_image->image.texture = atlas->image->texture;
 
@@ -131,19 +131,19 @@ static void R_CompileAtlas_Node(const atlas_node_t *node, const r_atlas_t *atlas
 /**
  * @brief Compiles an atlas texture and updates its images.
  */
-void R_CompileAtlas(r_atlas_t *atlas) {
+void R_CompileAtlas(RenderAtlas *atlas) {
   Vector *nodes = atlas->atlas->nodes;
 
   if (!atlas->dirty) {
     return;
   }
 
-  R_FreeImage((r_media_t *) atlas->image);
+  R_FreeImage((RenderMedia *) atlas->image);
 
   int32_t levels = INT32_MAX;
 
   for (size_t i = 0; i < nodes->count; i++) {
-    const atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
+    const AtlasNode *node = VectorValue(nodes, AtlasNode *, i);
     levels = Mini(levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
   }
 
@@ -169,7 +169,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
       atlas->image->texture = $(r_context.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
 
       for (size_t i = 0; i < nodes->count; i++) {
-        R_CompileAtlas_Node(VectorValue(nodes, atlas_node_t *, i), atlas);
+        R_CompileAtlas_Node(VectorValue(nodes, AtlasNode *, i), atlas);
       }
     }
 
@@ -178,5 +178,5 @@ void R_CompileAtlas(r_atlas_t *atlas) {
     atlas->dirty = false;
   }
 
-  R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas->image);
+  R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlas->image);
 }

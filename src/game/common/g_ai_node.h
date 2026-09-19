@@ -24,8 +24,8 @@
 #if defined(__G_LOCAL_H__)
 
 uint32_t G_Ai_Node_Count(void);
-ai_node_id_t G_Ai_Node_Create(const vec3_t position);
-bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
+AiNodeId G_Ai_Node_Create(const Vec3 position);
+bool G_Ai_Node_IsLinked(const AiNodeId a, const AiNodeId b);
 
 /**
  * @brief A link from one AI node to another, with traversal cost.
@@ -35,52 +35,52 @@ typedef struct {
   /**
    * @brief Destination node ID.
    */
-  ai_node_id_t id;
+  AiNodeId id;
 
   /**
    * @brief Traversal cost to reach the destination node.
    */
   float cost;
-} ai_link_t;
+} AiLink;
 
-const Vector *G_Ai_Node_GetLinks(const ai_node_id_t a);
-vec3_t G_Ai_Node_GetPosition(const ai_node_id_t node);
-ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
-bool G_Ai_Node_CanPathTo(const vec3_t position);
+const Vector *G_Ai_Node_GetLinks(const AiNodeId a);
+Vec3 G_Ai_Node_GetPosition(const AiNodeId node);
+AiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float max_distance, const bool only_visible, const bool prefer_level);
+bool G_Ai_Node_CanPathTo(const Vec3 position);
 bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
-void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost);
-void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd);
+void G_Ai_Node_Link(const AiNodeId a, const AiNodeId b, const float cost);
+void G_Ai_Node_PlayerRoam(GameClient *cl, const PlayerMoveCmd *cmd);
 void G_Ai_Node_Render(void);
 void G_Ai_InitNodes(void);
 void G_Ai_NodesReady(void);
 void G_Ai_SaveNodes(void);
-void G_Ai_Node_Destroy(const ai_node_id_t id);
+void G_Ai_Node_Destroy(const AiNodeId id);
 void G_Ai_DeleteNodes(void);
 void G_Ai_ShutdownNodes(void);
 
-typedef float (*G_Ai_NodeCostFunc)(const ai_node_id_t a, const ai_node_id_t b);
+typedef float (*G_Ai_NodeCostFunc)(const AiNodeId a, const AiNodeId b);
 
 /**
  * @brief Heuristic cost function for A* pathfinding using Manhattan distance.
  */
-static inline float G_Ai_Node_Heuristic(const ai_node_id_t link, const ai_node_id_t end) {
-  const vec3_t av = G_Ai_Node_GetPosition(link);
-  const vec3_t bv = G_Ai_Node_GetPosition(end);
+static inline float G_Ai_Node_Heuristic(const AiNodeId link, const AiNodeId end) {
+  const Vec3 av = G_Ai_Node_GetPosition(link);
+  const Vec3 bv = G_Ai_Node_GetPosition(end);
   return fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
 }
 
 /**
  * @brief Computes the traversal cost between two nodes as their Euclidean distance.
  */
-static inline float G_Ai_Node_Cost(const ai_node_id_t a, const ai_node_id_t b) {
-  const vec3_t av = G_Ai_Node_GetPosition(a);
-  const vec3_t bv = G_Ai_Node_GetPosition(b);
+static inline float G_Ai_Node_Cost(const AiNodeId a, const AiNodeId b) {
+  const Vec3 av = G_Ai_Node_GetPosition(a);
+  const Vec3 bv = G_Ai_Node_GetPosition(b);
 
   return Vec3_Distance(av, bv);
 }
 
-Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const ai_node_id_t end, const G_Ai_NodeCostFunc heuristic, float *length);
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiNodeId end, const G_Ai_NodeCostFunc heuristic, float *length);
 Vector *G_Ai_Node_TestPath(void);
-bool G_Ai_DropItemLikeNode(g_entity_t *ent);
+bool G_Ai_DropItemLikeNode(GameEntity *ent);
 
 #endif

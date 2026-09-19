@@ -34,7 +34,7 @@ typedef enum {
   SV_LOADING,
   SV_ACTIVE_GAME,
   SV_ACTIVE_DEMO
-} sv_state_t;
+} ServerState;
 
 #if defined(__SV_LOCAL_H__)
 
@@ -46,31 +46,31 @@ typedef struct {
   /**
    * @brief The corresponding game entity; set once per map at spawn time.
    */
-  g_entity_t *gent;
+  GameEntity *gent;
 
   /**
    * @brief Baseline entity state for delta compression.
    */
-  entity_state_t baseline;
+  EntityState baseline;
 
   /**
    * @brief World sector for entity list management.
    */
-  struct sv_sector_s *sector;
+  struct ServerSector *sector;
 
   /**
    * @brief World-space transform for collision tests.
    */
-  mat4_t matrix;
+  Mat4 matrix;
 
   /**
    * @brief Inverse of matrix, used to bring traces into model space.
    */
-  mat4_t inverse_matrix;
-} sv_entity_t;
+  Mat4 inverse_matrix;
+} ServerEntity;
 
 /**
- * @brief The `sv_server_t` struct is wiped at each level load.
+ * @brief The `Server` struct is wiped at each level load.
  */
 typedef struct {
 
@@ -92,7 +92,7 @@ typedef struct {
   /**
    * @brief Collision models; [0] is worldspawn, rest are inline models.
    */
-  cm_bsp_model_t *cm_models[MAX_MODELS];
+  CmBspModel *cm_models[MAX_MODELS];
 
   /**
    * @brief Config strings enumerating all loaded assets (models, sounds, skins, etc.).
@@ -102,12 +102,12 @@ typedef struct {
   /**
    * @brief Server-side entity array.
    */
-  sv_entity_t entities[MAX_ENTITIES];
+  ServerEntity entities[MAX_ENTITIES];
 
   /**
    * @brief Multicast buffer, accumulated and delivered each server frame.
    */
-  mem_buf_t multicast;
+  MemBuf multicast;
 
   /**
    * @brief Backing storage for the multicast buffer.
@@ -117,17 +117,17 @@ typedef struct {
   /**
    * @brief Open demo file for demo playback, or `NULL` during live gameplay.
    */
-  file_t *demo_file;
+  File *demo_file;
 
   /**
    * @brief The fixed-size header read from `demo_file`, for demo playback.
    */
-  demo_header_t demo_header;
+  DemoHeader demo_header;
 
   /**
    * @brief The keyframe table read from `demo_file`, for demo playback seeking.
    */
-  demo_keyframe_t *demo_keyframes;
+  DemoKeyframe *demo_keyframes;
 
   /**
    * @brief The number of entries in `demo_keyframes`.
@@ -150,7 +150,7 @@ typedef struct {
    * nothing, leaving the viewer on the old frame until playback resumed somewhere unexpected.
    */
   bool demo_step;
-} sv_server_t;
+} Server;
 
 /**
  * @brief The server's client frame type. For each server frame, a unique client
@@ -162,7 +162,7 @@ typedef struct {
   /**
    * @brief Player state snapshot for this frame.
    */
-  player_state_t ps;
+  PlayerState ps;
 
   /**
    * @brief Number of delta-compressed entities in this frame.
@@ -178,7 +178,7 @@ typedef struct {
    * @brief Server time when this frame was dispatched, used to calculate ping.
    */
   uint32_t sent_time;
-} sv_client_frame_t;
+} ServerClientFrame;
 
 /**
  * @brief Clients are dropped after 20 seconds without receiving a packet.
@@ -214,7 +214,7 @@ typedef enum {
   SV_CLIENT_FREE,
   SV_CLIENT_CONNECTED,
   SV_CLIENT_ACTIVE
-} sv_client_state_t;
+} ServerClientState;
 
 /**
  * @brief The maximum size of a client's datagram buffer.
@@ -237,7 +237,7 @@ typedef struct {
    * @brief Byte length of this message.
    */
   size_t len;
-} sv_client_message_t;
+} ServerClientMessage;
 
 /**
  * @brief A datagram structure that maintains individual message offsets so
@@ -248,7 +248,7 @@ typedef struct {
   /**
    * @brief Managed-size buffer wrapping data[].
    */
-  mem_buf_t buffer;
+  MemBuf buffer;
 
   /**
    * @brief Raw message storage for this frame's datagram.
@@ -256,10 +256,10 @@ typedef struct {
   byte data[MAX_DATAGRAM_SIZE];
 
   /**
-   * @brief List of `sv_client_message_t` bounds for safe fragmentation.
+   * @brief List of `ServerClientMessage` bounds for safe fragmentation.
    */
   List *messages;
-} sv_client_datagram_t;
+} ServerClientDatagram;
 
 /**
  * @brief Tracks a client's HTTP file download connection.
@@ -271,7 +271,7 @@ typedef struct {
   byte *data;
   int32_t size;
   int32_t count;
-} sv_http_client_t;
+} ServerHttpClient;
 
 /**
  * @brief The server client type.
@@ -281,7 +281,7 @@ typedef struct {
   /**
    * @brief The corresponding game client; set once at game initialization.
    */
-  g_client_t *gclient;
+  GameClient *gclient;
 
   /**
    * @brief Voice chat budget, in bytes, refilled over time and spent on transmission.
@@ -297,7 +297,7 @@ typedef struct {
   /**
    * @brief Connection state of this client slot.
    */
-  sv_client_state_t state;
+  ServerClientState state;
 
   /**
    * @brief Raw user-info key-value string.
@@ -357,28 +357,28 @@ typedef struct {
   /**
    * @brief Per-frame datagram; accumulated, packetized and delivered each server frame.
    */
-  sv_client_datagram_t datagram;
+  ServerClientDatagram datagram;
 
   /**
    * @brief Circular buffer of sent frames; referenced by client for delta compression.
    */
-  sv_client_frame_t frames[PACKET_BACKUP];
+  ServerClientFrame frames[PACKET_BACKUP];
 
   /**
    * @brief HTTP file download connection for this client.
    */
-  sv_http_client_t http;
+  ServerHttpClient http;
 
   /**
    * @brief UDP network channel to this client.
    */
-  net_chan_t net_chan;
+  NetChan net_chan;
 
   /**
    * @brief Server time of last received packet, used to detect timeouts.
    */
   uint32_t last_message;
-} sv_client_t;
+} ServerClient;
 
 /**
  * @brief Challenges are a request for a connection. The client must receive
@@ -386,10 +386,10 @@ typedef struct {
  * provides basic protection against simple UDP DoS attacks.
  */
 typedef struct {
-  net_addr_t addr;
+  NetAddr addr;
   uint32_t challenge;
   uint32_t time;
-} sv_challenge_t;
+} ServerChallenge;
 
 /**
  * @brief The master server we advertise to, and the challenge it most recently
@@ -397,10 +397,10 @@ typedef struct {
  * list us, which proves that we receive traffic at the address we send from.
  */
 typedef struct {
-  net_addr_t addr;
+  NetAddr addr;
   uint32_t challenge;
   uint32_t challenge_time;
-} sv_master_t;
+} ServerMaster;
 
 /**
  * @brief `MAX_CHALLENGES` is large to prevent a denial of service attack that
@@ -415,7 +415,7 @@ typedef struct {
   char filename[MAX_QPATH];
 
   /**
-   * @brief Cached map list entries (`cm_entity_t *`) parsed from `sv_map_list`.
+   * @brief Cached map list entries (`CmEntity *`) parsed from `sv_map_list`.
    */
   List *list;
 
@@ -447,10 +447,10 @@ typedef struct {
    * place of the rotation's pick, or `-1`. Consumed as soon as it is read.
    */
   int32_t next;
-} sv_map_list_t;
+} ServerMapList;
 
 /**
- * @brief The `sv_static_t` structure is persistent for the execution of the
+ * @brief The `ServerStatic` structure is persistent for the execution of the
  * game. It is only cleared when `Sv_Init` is called. It is not exposed to the
  * game module.
  */
@@ -459,17 +459,17 @@ typedef struct {
   /**
    * @brief Current server lifecycle state.
    */
-  sv_state_t state;
+  ServerState state;
 
   /**
    * @brief Dynamically allocated array of connected client slots.
    */
-  sv_client_t *clients;
+  ServerClient *clients;
 
   /**
    * @brief Circular buffer of entity states for delta compression across all clients.
    */
-  entity_state_t *entity_states;
+  EntityState *entity_states;
 
   /**
    * @brief Length of `entity_states`; always `PACKET_BACKUP` * `MAX_ENTITIES`.
@@ -484,7 +484,7 @@ typedef struct {
   /**
    * @brief The configured master server, and its outstanding challenge.
    */
-  sv_master_t master;
+  ServerMaster master;
 
   /**
    * @brief Server time after which the next heartbeat is sent to master servers.
@@ -494,7 +494,7 @@ typedef struct {
   /**
    * @brief Pending connection challenges for DoS mitigation.
    */
-  sv_challenge_t challenges[MAX_CHALLENGES];
+  ServerChallenge challenges[MAX_CHALLENGES];
 
   /**
    * @brief Incremented at each map load to validate late-arriving connection handshakes.
@@ -504,12 +504,12 @@ typedef struct {
   /**
    * @brief The map list.
    */
-  sv_map_list_t maps;
+  ServerMapList maps;
 
   /**
    * @brief Exported API from the loaded game module.
    */
-  g_export_t *game;
-} sv_static_t;
+  GameExport *game;
+} ServerStatic;
 
 #endif

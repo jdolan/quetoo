@@ -42,7 +42,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     return previous.ParseConfigString(index);
   }
 
-  cg_next_map_state_t *next_map = &cg_state.next_map;
+  ClientGameNextMapState *next_map = &cg_state.next_map;
 
   char was[MAX_NEXT_MAPS][MAX_QPATH];
   memcpy(was, next_map->maps, sizeof(was));

@@ -47,7 +47,7 @@ static void dealloc(Object *self) {
 /**
  * @brief Appends a row for `score` to `column`.
  */
-static void addRow(ScoreboardView *self, StackView *column, const g_score_t *score) {
+static void addRow(ScoreboardView *self, StackView *column, const GameScore *score) {
 
   ScoreView *row = $(self, scoreView, score);
   assert(row);
@@ -64,7 +64,7 @@ static void addRow(ScoreboardView *self, StackView *column, const g_score_t *sco
 /**
  * @brief The badge over a player's icon: in CTF, the flag they carry.
  */
-static void configureBadge(ScoreView *row, const g_score_t *score) {
+static void configureBadge(ScoreView *row, const GameScore *score) {
 #if defined(G_CTF)
   if (score->flags & SCORE_CTF_FLAG) {
     $(row->badge, setImage, (Image *) Cg_HudImage(va("pics/flag%d", score->team)));
@@ -76,7 +76,7 @@ static void configureBadge(ScoreView *row, const g_score_t *score) {
 /**
  * @brief The stock team total.
  */
-static const char *teamTotal(const cg_team_info_t *team, const g_score_t *score) {
+static const char *teamTotal(const ClientGameTeamInfo *team, const GameScore *score) {
 #if defined(G_CTF)
   return va("%s^7 %d captures", team->name, score->captures);
 #else
@@ -262,10 +262,10 @@ static StackView *addColumn(ScoreboardView *self) {
 }
 
 /**
- * @fn ScoreView *ScoreboardView::scoreView(ScoreboardView *self, const g_score_t *score)
+ * @fn ScoreView *ScoreboardView::scoreView(ScoreboardView *self, const GameScore *score)
  * @memberof ScoreboardView
  */
-static ScoreView *scoreView(ScoreboardView *self, const g_score_t *score) {
+static ScoreView *scoreView(ScoreboardView *self, const GameScore *score) {
 
   ScoreView *row = $(alloc(ScoreView), initWithScore, score, self->rowWidth);
   assert(row);
@@ -322,10 +322,10 @@ static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
 }
 
 /**
- * @fn const char *ScoreboardView::valueForField(const ScoreboardView *self, const g_score_t *score, size_t field)
+ * @fn const char *ScoreboardView::valueForField(const ScoreboardView *self, const GameScore *score, size_t field)
  * @memberof ScoreboardView
  */
-static const char *valueForField(const ScoreboardView *self, const g_score_t *score, size_t field) {
+static const char *valueForField(const ScoreboardView *self, const GameScore *score, size_t field) {
 
   switch (field) {
     case 0:
@@ -344,10 +344,10 @@ static const char *valueForField(const ScoreboardView *self, const g_score_t *sc
 }
 
 /**
- * @fn void ScoreboardView::describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside)
+ * @fn void ScoreboardView::describe(const ScoreboardView *self, const GameScore *score, const char **detail, const char **aside)
  * @memberof ScoreboardView
  */
-static void describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside) {
+static void describe(const ScoreboardView *self, const GameScore *score, const char **detail, const char **aside) {
 
   const ScoreField *f;
   const size_t count = $((ScoreboardView *) self, fields, &f);
@@ -388,7 +388,7 @@ static void rebuild(ScoreboardView *self) {
   $((View *) self->columns, resize, &MakeSize(0, 0));
 
   size_t count;
-  const g_score_t *scores = Cg_Scores(&count);
+  const GameScore *scores = Cg_Scores(&count);
 
   if (count == 0) {
     return;
@@ -406,13 +406,13 @@ static void rebuild(ScoreboardView *self) {
   if (cg_state.num_teams) {
 
     // the aggregate scores follow the players' in the array
-    const g_score_t *totals = scores + count;
+    const GameScore *totals = scores + count;
 
     for (int32_t t = 0; t < cg_state.num_teams; t++) {
       Text *total = $(alloc(Text), initWithText, teamTotal(&cg_state.teams[t], &totals[t]), NULL);
       assert(total);
 
-      const color32_t rgba = Color_Color32(cg_state.teams[t].color);
+      const Color32 rgba = Color_Color32(cg_state.teams[t].color);
       const SDL_Color color = { rgba.r, rgba.g, rgba.b, 255 };
 
       $(total->view.style, addColorAttribute, "color", &color);

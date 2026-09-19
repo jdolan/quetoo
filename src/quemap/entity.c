@@ -24,16 +24,16 @@
 /**
  * @brief Sets or creates the key-value pair with the given key on the entity.
  */
-void SetValueForKey(entity_t *ent, const char *key, const char *value) {
+void SetValueForKey(Entity *ent, const char *key, const char *value) {
 
-  for (entity_key_value_t *e = ent->values; e; e = e->next) {
+  for (EntityKeyValue *e = ent->values; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
       q_strlcpy(e->value, value, sizeof(e->value));
       return;
     }
   }
 
-  entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), (mem_tag_t) MEM_TAG_EPAIR);
+  EntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
   e->next = ent->values;
   ent->values = e;
 
@@ -44,9 +44,9 @@ void SetValueForKey(entity_t *ent, const char *key, const char *value) {
 /**
  * @brief Returns the value for the given key on the entity, or def if not found.
  */
-const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
+const char *ValueForKey(const Entity *ent, const char *key, const char *def) {
 
-  for (const entity_key_value_t *e = ent->values; e; e = e->next) {
+  for (const EntityKeyValue *e = ent->values; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
       return e->value;
     }
@@ -56,13 +56,13 @@ const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 }
 
 /**
- * @brief Returns the `vec3_t` value for the given key on the entity, or def if not found or not parseable.
+ * @brief Returns the `Vec3` value for the given key on the entity, or def if not found or not parseable.
  */
-vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def) {
+Vec3 VectorForKey(const Entity *ent, const char *key, const Vec3 def) {
 
   const char *value = ValueForKey(ent, key, NULL);
   if (value) {
-    vec3_t out;
+    Vec3 out;
     if (Parse_QuickPrimitive(value, PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &out, 3) == 3) {
       return out;
     }

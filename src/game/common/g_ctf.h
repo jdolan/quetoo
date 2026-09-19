@@ -26,12 +26,12 @@
 
 #if defined(__G_LOCAL_H__)
 
-extern cvar_t *g_capture_limit;
+extern Cvar *g_capture_limit;
 
 void G_Ctf_Init(void);
 
-const g_item_t *G_GetFlag(const g_client_t *cl);
-g_team_t *G_TeamForFlag(const g_entity_t *ent);
-g_entity_t *G_FlagForTeam(const g_team_t *team);
+const GameItem *G_GetFlag(const GameClient *cl);
+GameTeam *G_TeamForFlag(const GameEntity *ent);
+GameEntity *G_FlagForTeam(const GameTeam *team);
 
 #endif

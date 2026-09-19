@@ -99,9 +99,9 @@ typedef struct {
    * they are freed (`Fs_Free`) in all code paths.
    */
   HashTable *loaded_files;
-} fs_state_t;
+} FsState;
 
-static fs_state_t fs_state;
+static FsState fs_state;
 
 /**
  * @brief Adds a command line search path, remembering it as a root so that
@@ -152,7 +152,7 @@ const char *Fs_DataDir(void) {
  *
  * @return True on successful flush and close, false otherwise.
  */
-bool Fs_Close(file_t *file) {
+bool Fs_Close(File *file) {
   return PHYSFS_close((PHYSFS_File *) file) ? true : false;
 }
 
@@ -166,7 +166,7 @@ bool Fs_Delete(const char *filename) {
 /**
  * @return True if the end of the file has been reached, false otherwise.
  */
-bool Fs_Eof(file_t *file) {
+bool Fs_Eof(File *file) {
   return PHYSFS_eof((PHYSFS_File *) file) ? true : false;
 }
 
@@ -180,22 +180,22 @@ bool Fs_Exists(const char *filename) {
 /**
  * @return True if the file flushed successfully, false otherwise.
  */
-bool Fs_Flush(file_t *file) {
+bool Fs_Flush(File *file) {
   return PHYSFS_flush((PHYSFS_File *) file) ? true : false;
 }
 
 /**
  * @brief Performs a @c stat on the given filename.
  * @param filename The filename.
- * @param out The @c fs_stat_t.
+ * @param out The @c FsStat.
  * @return True if the @c stat was successful, false otherwise.
  */
-bool Fs_Stat(const char *filename, fs_stat_t *out) {
+bool Fs_Stat(const char *filename, FsStat *out) {
 
   PHYSFS_Stat s;
   if (PHYSFS_stat(filename, &s)) {
     if (out) {
-      out->type = (fs_file_type_t) s.filetype;
+      out->type = (FsFileType) s.filetype;
       out->size = s.filesize;
       out->created = s.createtime;
       out->modified = s.modtime;
@@ -231,7 +231,7 @@ bool Fs_Mkdir(const char *dir) {
 /**
  * @brief Opens the specified file for appending.
  */
-file_t *Fs_OpenAppend(const char *filename) {
+File *Fs_OpenAppend(const char *filename) {
   char dir[MAX_OS_PATH];
   PHYSFS_File *file;
 
@@ -244,13 +244,13 @@ file_t *Fs_OpenAppend(const char *filename) {
     }
   }
 
-  return (file_t *) file;
+  return (File *) file;
 }
 
 /**
  * @brief Opens the specified file for reading.
  */
-file_t *Fs_OpenRead(const char *filename) {
+File *Fs_OpenRead(const char *filename) {
   PHYSFS_File *file;
 
   if ((file = PHYSFS_openRead(filename))) {
@@ -259,13 +259,13 @@ file_t *Fs_OpenRead(const char *filename) {
     }
   }
 
-  return (file_t *) file;
+  return (File *) file;
 }
 
 /**
  * @brief Opens the specified file for writing.
  */
-file_t *Fs_OpenWrite(const char *filename) {
+File *Fs_OpenWrite(const char *filename) {
   char dir[MAX_OS_PATH];
   PHYSFS_File *file;
 
@@ -282,7 +282,7 @@ file_t *Fs_OpenWrite(const char *filename) {
     }
   }
 
-  return (file_t *) file;
+  return (File *) file;
 }
 
 /**
@@ -290,7 +290,7 @@ file_t *Fs_OpenWrite(const char *filename) {
  *
  * @return The number of characters written, or -1 on failure.
  */
-int64_t Fs_Print(file_t *file, const char *fmt, ...) {
+int64_t Fs_Print(File *file, const char *fmt, ...) {
   static char string[MAX_PRINT_MSG];
   va_list args;
 
@@ -306,7 +306,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
  *
  * @return The number of objects read, or -1 on failure.
  */
-int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
+int64_t Fs_Read(File *file, void *buffer, size_t size, size_t count) {
   return PHYSFS_readBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
@@ -316,7 +316,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
  *
  * @return True on success, false on failures.
  */
-bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
+bool Fs_ReadLine(File *file, char *buffer, size_t len) {
   size_t i;
   char *c;
 
@@ -339,21 +339,21 @@ bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 /**
  * @brief Seeks to the specified offset.
  */
-bool Fs_Seek(file_t *file, int64_t offset) {
+bool Fs_Seek(File *file, int64_t offset) {
   return PHYSFS_seek((PHYSFS_File *) file, offset) ? true : false;
 }
 
 /**
  * @brief Get the length of a file in bytes
  */
-int64_t Fs_FileLength(file_t *file) {
+int64_t Fs_FileLength(File *file) {
   return PHYSFS_fileLength((PHYSFS_File *) file);
 }
 
 /**
  * @return The current file offset.
  */
-int64_t Fs_Tell(file_t *file) {
+int64_t Fs_Tell(File *file) {
   return PHYSFS_tell((PHYSFS_File *) file);
 }
 
@@ -362,7 +362,7 @@ int64_t Fs_Tell(file_t *file) {
  *
  * @return The number of objects written, or -1 on failure.
  */
-int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
+int64_t Fs_Write(File *file, const void *buffer, size_t size, size_t count) {
   return PHYSFS_writeBytes((PHYSFS_File *) file, buffer, (PHYSFS_uint64) size * (PHYSFS_uint64) count) / size;
 }
 
@@ -375,7 +375,7 @@ int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
  */
 int64_t Fs_Load(const char *filename, void **buffer) {
   int64_t len;
-  file_t *file;
+  File *file;
 
   if ((file = Fs_OpenRead(filename))) {
     const int64_t buffer_length = Fs_FileLength(file);
@@ -408,10 +408,10 @@ int64_t Fs_Load(const char *filename, void **buffer) {
       typedef struct {
         byte *data;
         int64_t len;
-      } fs_chunk_t;
+      } FsChunk;
 
       while (!Fs_Eof(file)) {
-        fs_chunk_t *chunk = Mem_TagMalloc(sizeof(fs_chunk_t), MEM_TAG_FS);
+        FsChunk *chunk = Mem_TagMalloc(sizeof(FsChunk), MEM_TAG_FS);
 
         chunk->data = Mem_LinkMalloc(FS_FILE_BUFFER, chunk);
         chunk->len = Fs_Read(file, chunk->data, 1, FS_FILE_BUFFER);
@@ -430,7 +430,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
           const ListNode *e = list->head;
           while (e) {
-            fs_chunk_t *b = e->element;
+            FsChunk *b = e->element;
 
             memcpy(buf, b->data, b->len);
             buf += (ptrdiff_t) b->len;
@@ -519,13 +519,13 @@ typedef struct {
   const char *pattern;
   Fs_Enumerator function;
   void *data;
-} fs_enumerate_t;
+} FsEnumerate;
 
 /**
  * @brief `PHYSFS_EnumerateCallback` for `Fs_Enumerate`.
  */
 static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) {
-  const fs_enumerate_t *enumerator = data;
+  const FsEnumerate *enumerator = data;
 
   char path[MAX_QPATH];
   q_snprintf(path, sizeof(path), "%s%s", dir, filename);
@@ -542,7 +542,7 @@ static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) 
  */
 void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
 
-  fs_enumerate_t enumerator = {
+  FsEnumerate enumerator = {
     .pattern = pattern,
     .function = func,
     .data = data,
@@ -936,7 +936,7 @@ bool Fs_WriteAt(const char *filename, const void *data, size_t size, int64_t off
  */
 void Fs_Init(const uint32_t flags) {
 
-  memset(&fs_state, 0, sizeof(fs_state_t));
+  memset(&fs_state, 0, sizeof(FsState));
 
   PHYSFS_Version physfs_version;
   PHYSFS_getLinkedVersion(&physfs_version);

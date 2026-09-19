@@ -91,7 +91,7 @@ static void Sv_ConfigStrings_f(void) {
 
   // write a packet full of data
 
-  net_chan_t *ch = &sv_client->net_chan;
+  NetChan *ch = &sv_client->net_chan;
 
   while (start < MAX_CONFIG_STRINGS) {
     const size_t len = q_strlen(sv.config_strings[start]);
@@ -122,8 +122,8 @@ static void Sv_ConfigStrings_f(void) {
  */
 static void Sv_Baselines_f(void) {
   uint32_t start;
-  entity_state_t null_state;
-  entity_state_t *base;
+  EntityState null_state;
+  EntityState *base;
 
   Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(sv_client));
 
@@ -189,7 +189,7 @@ static void Sv_Begin_f(void) {
 
   sv_client->state = SV_CLIENT_ACTIVE;
 
-  g_client_t *cl = sv_client->gclient;
+  GameClient *cl = sv_client->gclient;
 
   svs.game->ClientBegin(cl);
 
@@ -206,12 +206,12 @@ static void Sv_Disconnect_f(void) {
 /**
  * @brief Enumeration helper for `Sv_Info_f`.
  */
-static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
+static void Sv_Info_f_enumerate(Cvar *var, void *data) {
 
   if (var->flags & CVAR_SERVER_INFO) {
 
-    const sv_client_t *client = (sv_client_t *) data;
-    const g_client_t *cl = client->gclient;
+    const ServerClient *client = (ServerClient *) data;
+    const GameClient *cl = client->gclient;
 
     Sv_ClientPrint(cl, PRINT_MEDIUM, "%s %s\n", var->name, var->string);
   }
@@ -230,12 +230,12 @@ static void Sv_Info_f(void) {
   Cvar_Enumerate(Sv_Info_f_enumerate, (void *) sv_client);
 }
 
-typedef struct sv_user_string_cmd_s {
+typedef struct ServerUserStringCmd {
   char *name;
   void (*func)(void);
-} sv_user_string_cmd_t;
+} ServerUserStringCmd;
 
-static sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names to their functions
+static ServerUserStringCmd sv_user_string_cmds[] = { // mapping command names to their functions
   { "new", Sv_New_f },
   { "config_strings", Sv_ConfigStrings_f },
   { "baselines", Sv_Baselines_f },
@@ -253,7 +253,7 @@ static sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names t
  * it, pass it off to the game module.
  */
 static void Sv_UserStringCommand(const char *s) {
-  sv_user_string_cmd_t *c;
+  ServerUserStringCmd *c;
 
   Cmd_TokenizeString(s);
 
@@ -281,7 +281,7 @@ static void Sv_UserStringCommand(const char *s) {
 /**
  * @brief Account for command time and pass the command to game module.
  */
-static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
+static void Sv_ClientThink(ServerClient *cl, PlayerMoveCmd *cmd) {
 
   cl->cmd_msec += cmd->msec;
 
@@ -295,7 +295,7 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 /**
  * @brief The current `net_message` is parsed for the given client.
  */
-void Sv_ParseClientMessage(sv_client_t *cl) {
+void Sv_ParseClientMessage(ServerClient *cl) {
   int32_t strings_issued;
   int32_t moves_issued;
   int32_t voice_issued;
@@ -405,8 +405,8 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
         }
 
         // the client sends their 3 most recent movement commands every frame to combat packet loss
-        static pm_cmd_t null_cmd;
-        pm_cmd_t cmd[3];
+        static PlayerMoveCmd null_cmd;
+        PlayerMoveCmd cmd[3];
         Net_ReadDeltaMoveCmd(&net_message, &null_cmd, &cmd[0]);
         Net_ReadDeltaMoveCmd(&net_message, &cmd[0], &cmd[1]);
         Net_ReadDeltaMoveCmd(&net_message, &cmd[1], &cmd[2]);

@@ -31,7 +31,7 @@ typedef struct EntityViewInterface EntityViewInterface;
 
 /**
  * @file
- * @brief A View for editing `cm_entity_t`.
+ * @brief A View for editing `CmEntity`.
  */
 
 /**
@@ -47,7 +47,7 @@ typedef struct EntityViewDelegate {
   /**
    * @brief Callback invoked when the entity is edited.
    */
-  void (*didEditEntity)(EntityView *view, cm_entity_t *def);
+  void (*didEditEntity)(EntityView *view, CmEntity *def);
 } EntityViewDelegate;
 
 /**
@@ -74,12 +74,12 @@ struct EntityView {
   /**
    * @brief The editor entity. Pointer into the stable `cg_editor.entities[]` array.
    */
-  cg_editor_entity_t *edit;
+  ClientGameEditorEntity *edit;
 
   /**
    * @brief The specific key-value pair being edited by this view, or `NULL` for a new pair.
    */
-  cm_entity_t *pair;
+  CmEntity *pair;
 
   /**
    * @brief The entity key text field.
@@ -103,7 +103,7 @@ struct EntityViewInterface {
   StackViewInterface stackViewInterface;
 
   /**
-   * @fn EntityView *EntityView::initWithEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair)
+   * @fn EntityView *EntityView::initWithEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair)
    * @brief Initializes this EntityView.
    * @param self The EntityView.
    * @param edit The editor entity (pointer into `cg_editor.entities[]`).
@@ -111,17 +111,17 @@ struct EntityViewInterface {
    * @return The initialized EntityView, or `NULL` on error.
    * @memberof EntityView
    */
-  EntityView *(*initWithEntity)(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair);
+  EntityView *(*initWithEntity)(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair);
 
   /**
-   * @fn void EntityView::setEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair)
+   * @fn void EntityView::setEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair)
    * @brief Sets the entity and key-value pair to be edited.
    * @param self The EntityView.
    * @param edit The editor entity (pointer into `cg_editor.entities[]`).
    * @param pair The key-value pair being edited, or `NULL` for a new pair.
    * @memberof EntityView
    */
-  void (*setEntity)(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair);
+  void (*setEntity)(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair);
 };
 
 /**

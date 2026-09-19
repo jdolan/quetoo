@@ -22,7 +22,7 @@
 #include "tests.h"
 #include "collision/cm_entity.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -40,13 +40,13 @@ void teardown(void) {
 
 START_TEST(check_Cm_EntityToInfoString) {
 
-  const cm_entity_t entity = {
+  const CmEntity entity = {
     .key = "classname",
     .string = "light",
-    .next = &(cm_entity_t) {
+    .next = &(CmEntity) {
       .key = "color",
       .string = "1 1 0",
-      .next = &(cm_entity_t) {
+      .next = &(CmEntity) {
         .key = "origin",
         .string = "128 256 512"
       }
@@ -65,7 +65,7 @@ START_TEST(check_Cm_EntityFromInfoString) {
 
   const char *info = "classname\\light\\color\\1 1 0\\origin\\128 256 512";
 
-  cm_entity_t *entity = Cm_EntityFromInfoString(info);
+  CmEntity *entity = Cm_EntityFromInfoString(info);
 
   ck_assert_str_eq(Cm_EntityValue(entity, "classname")->string, "light");
   ck_assert_str_eq(Cm_EntityValue(entity, "color")->string, "1 1 0");

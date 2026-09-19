@@ -33,30 +33,30 @@ typedef struct {
   byte data[MAX_MSG_SIZE];
   size_t size;
   uint32_t timestamp;
-} net_udp_loop_message_t;
+} NetUdpLoopMessage;
 
 typedef struct {
-  net_udp_loop_message_t messages[MAX_NET_UDP_LOOPS];
+  NetUdpLoopMessage messages[MAX_NET_UDP_LOOPS];
   int32_t send, recv;
-} net_udp_loop_t;
+} NetUdpLoop;
 
 typedef struct {
-  net_udp_loop_t loops[2];
+  NetUdpLoop loops[2];
   int32_t sockets[2];
-} net_udp_state_t;
+} NetUdpState;
 
-static net_udp_state_t net_udp_state;
+static NetUdpState net_udp_state;
 
-static cvar_t *net_loop_latency;
-static cvar_t *net_loop_jitter;
-static cvar_t *net_loop_loss;
+static Cvar *net_loop_latency;
+static Cvar *net_loop_jitter;
+static Cvar *net_loop_loss;
 
 /**
  * @brief Reads a pending message, if available, from the loop buffer.
  * @return True if a message was read, false otherwise.
  */
-static bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
-  net_udp_loop_t *loop = &net_udp_state.loops[source];
+static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) {
+  NetUdpLoop *loop = &net_udp_state.loops[source];
 
   if (loop->send - loop->recv > MAX_NET_UDP_LOOPS) {
     loop->recv = loop->send - MAX_NET_UDP_LOOPS;
@@ -67,7 +67,7 @@ static bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_buf
   }
 
   const uint32_t i = loop->recv & (MAX_NET_UDP_LOOPS - 1);
-  const net_udp_loop_message_t *msg = &loop->messages[i];
+  const NetUdpLoopMessage *msg = &loop->messages[i];
 
   // simulate network latency and jitter
   const uint32_t delta = quetoo.ticks - msg->timestamp;
@@ -98,7 +98,7 @@ static bool Net_ReceiveDatagram_Loop(net_src_t source, net_addr_t *from, mem_buf
  * @brief Receive a datagram on the specified socket, populating the from
  * address with the sender.
  */
-bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
+bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf) {
 
   buf->read = buf->size = 0;
 
@@ -151,8 +151,8 @@ bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 /**
  * @brief Enqueues a datagram directly into the opposing side's loopback receive queue.
  */
-static bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t len) {
-  net_udp_loop_t *loop = &net_udp_state.loops[source ^ 1];
+static bool Net_SendDatagram_Loop(NetSrc source, const void *data, size_t len) {
+  NetUdpLoop *loop = &net_udp_state.loops[source ^ 1];
 
   const uint32_t i = loop->send & (MAX_NET_UDP_LOOPS - 1);
   loop->send++;
@@ -182,7 +182,7 @@ static bool Net_SendDatagramToAddr(int32_t sock, const net_sockaddr *to_addr, co
  * which occurs when sending to 255.255.255.255 on a socket bound to `INADDR_ANY`
  * because the kernel cannot determine the outgoing interface.
  */
-static bool Net_SendBroadcastDatagram(int32_t sock, const net_addr_t *to, const void *data, size_t len) {
+static bool Net_SendBroadcastDatagram(int32_t sock, const NetAddr *to, const void *data, size_t len) {
 
 #if !defined(_WIN32) && !defined(_MSC_VER)
   struct ifaddrs *ifap;
@@ -218,7 +218,7 @@ static bool Net_SendBroadcastDatagram(int32_t sock, const net_addr_t *to, const 
 /**
  * @brief Send a datagram to the specified address.
  */
-bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data, size_t len) {
+bool Net_SendDatagram(NetSrc source, const NetAddr *to, const void *data, size_t len) {
 
   if (to->type == NA_LOOP) {
     return Net_SendDatagram_Loop(source, data, len);
@@ -262,11 +262,11 @@ void Net_Sleep(uint32_t msec) {
 }
 
 /**
- * @brief Opens or closes the managed UDP socket for the given `net_src_t`. The
+ * @brief Opens or closes the managed UDP socket for the given `NetSrc`. The
  * interface and port are resolved from immutable console variables, optionally
  * set at the command line.
  */
-void Net_Config(net_src_t source, bool up) {
+void Net_Config(NetSrc source, bool up) {
   int32_t *sock = &net_udp_state.sockets[source];
 
   if (up) {
@@ -280,8 +280,8 @@ void Net_Config(net_src_t source, bool up) {
     net_loop_loss = Cvar_Add("net_loop_loss", "0.0", CVAR_DEVELOPER,
         "Simulate network packet loss, as a fraction, on localhost (developer tool)");
 
-    const cvar_t *net_interface = Cvar_Add("net_interface", "", CVAR_NO_SET, NULL);
-    const cvar_t *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+    const Cvar *net_interface = Cvar_Add("net_interface", "", CVAR_NO_SET, NULL);
+    const Cvar *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
     if (*sock == 0) {
       const char *iface = q_strlen(net_interface->string) ? net_interface->string : NULL;

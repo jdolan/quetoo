@@ -30,9 +30,9 @@
  * @param size The ripple size, or 0.0 to use the entity's size.
  * @param splash True to emit a splash effect, false otherwise.
  */
-void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, bool splash) {
+void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, bool splash) {
 
-  cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
+  CmTrace tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
   if (!tr.brush_side) {
     tr = gi.Trace(pos2, pos1, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
   }
@@ -40,8 +40,8 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
     return;
   }
 
-  const vec3_t pos = Vec3_Add(tr.end, Vec3_Up());
-  const vec3_t dir = tr.plane.normal;
+  const Vec3 pos = Vec3_Add(tr.end, Vec3_Up());
+  const Vec3 dir = tr.plane.normal;
 
   if (ent) {
     if (g_level.time - ent->ripple_time < 400) {
@@ -87,9 +87,9 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
  * @brief Returns true if the entity is facing a wall at too close proximity
  * for the specified projectile.
  */
-bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
+bool G_ImmediateWall(GameEntity *ent, GameEntity *projectile) {
 
-  const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
+  const CmTrace tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
                                  ent, CONTENTS_MASK_SOLID);
 
   return tr.fraction < 1.0;

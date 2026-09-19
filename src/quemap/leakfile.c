@@ -27,28 +27,28 @@
  * @brief Finds the shortest possible chain of portals that leads from the
  * outside leaf to a specifically occupied leaf.
  */
-void WriteLeakFile(const tree_t *tree) {
-  vec3_t point;
+void WriteLeakFile(const Tree *tree) {
+  Vec3 point;
 
   char path[MAX_OS_PATH];
   q_snprintf(path, sizeof(path), "maps/%s.lin", map_base);
 
-  file_t *file = Fs_OpenWrite(path);
+  File *file = Fs_OpenWrite(path);
   if (!file) {
     Com_Error(ERROR_FATAL, "Couldn't open %s\n", path);
   }
 
-  const node_t *node = &tree->outside_node;
+  const Node *node = &tree->outside_node;
   while (node->occupied > 1) {
     int32_t occupied = node->occupied;
 
-    const portal_t *next_portal = NULL;
-    const node_t *next_node = NULL;
+    const Portal *next_portal = NULL;
+    const Node *next_node = NULL;
 
     int32_t s;
 
     // find the most sparse portal in this node
-    for (const portal_t *p = node->portals; p; p = p->next[!s]) {
+    for (const Portal *p = node->portals; p; p = p->next[!s]) {
       s = (p->nodes[0] == node);
       if (p->nodes[s]->occupied && p->nodes[s]->occupied < occupied) {
         next_portal = p;

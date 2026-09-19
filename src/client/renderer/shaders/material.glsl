@@ -138,7 +138,7 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube te
 
 /**
  * @brief Declares the shared material and stage uniform block.
- * @remarks Field order must stay std140-compatible with r_material_uniforms_t.
+ * @remarks Field order must stay std140-compatible with RenderMaterialUniforms.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform material_block {
 

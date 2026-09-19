@@ -37,11 +37,11 @@ static View *init(View *self) {
 #pragma mark - OverlayText
 
 /**
- * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
   if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
     return "Spectating";

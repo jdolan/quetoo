@@ -83,7 +83,7 @@ static int32_t Sv_CreateBaseline(void) {
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    g_entity_t *ent = sv.entities[i].gent;
+    GameEntity *ent = sv.entities[i].gent;
 
     if (!ent || !ent->in_use) {
       continue;
@@ -129,7 +129,7 @@ static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
     Net_WriteByte(&net_message, SV_CMD_DISCONNECT);
   }
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++)
     if (cl->state >= SV_CLIENT_CONNECTED) {
       Netchan_Transmit(&cl->net_chan, net_message.data, net_message.size);
@@ -137,7 +137,7 @@ static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
 }
 
 /**
- * @brief Wipes the `sv_server_t` structure after freeing any references it holds.
+ * @brief Wipes the `Server` structure after freeing any references it holds.
  */
 static void Sv_ClearState(void) {
 
@@ -169,7 +169,7 @@ static void Sv_UpdateLatchedVars(void) {
  */
 static void Sv_InitClients(void) {
 
-  svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, MEM_TAG_SERVER);
+  svs.clients = Mem_TagMalloc(sizeof(ServerClient) * sv_max_clients->integer, MEM_TAG_SERVER);
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     svs.clients[i].gclient = svs.game->clients[i];
@@ -181,7 +181,7 @@ static void Sv_InitClients(void) {
  */
 static void Sv_InitEntityState(void) {
   svs.num_entity_states = PACKET_BACKUP * MAX_ENTITIES;
-  svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
+  svs.entity_states = Mem_TagMalloc(sizeof(EntityState) * svs.num_entity_states, MEM_TAG_SERVER);
 }
 
 /**
@@ -193,7 +193,7 @@ static void Sv_ShutdownClients(void) {
     return;
   }
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
     Sv_HttpClientDisconnect(&cl->http);
   }
@@ -238,7 +238,7 @@ static void Sv_ReconnectClients(void) {
  * we must allocate clients and edicts based on sizes the game module requests,
  * we refresh the game module.
  */
-static void Sv_InitEntities(sv_state_t state) {
+static void Sv_InitEntities(ServerState state) {
 
   if (svs.state == SV_UNINITIALIZED || Cvar_PendingLatched()) {
 
@@ -269,7 +269,7 @@ static void Sv_InitEntities(sv_state_t state) {
  * strings."  We hand off the entity string to the game module, which will
  * load the rest.
  */
-static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t state) {
+static void Sv_LoadMedia(const char *name, const CmEntity *props, ServerState state) {
 
   strcpy(sv.name, name);
   strcpy(sv.config_strings[CS_MESSAGE], name);
@@ -335,7 +335,7 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
  * clearing state. Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.
  */
-void Sv_InitServer(const char *name, const cm_entity_t *props, sv_state_t state) {
+void Sv_InitServer(const char *name, const CmEntity *props, ServerState state) {
   extern void Cl_Disconnect(void);
 
   Com_Debug(DEBUG_SERVER, "Sv_InitServer: %s (%d)\n", name, state);
@@ -357,7 +357,7 @@ void Sv_InitServer(const char *name, const cm_entity_t *props, sv_state_t state)
   // disconnect any local client, they'll immediately reconnect
   Cl_Disconnect();
 
-  // clear the sv_server_t structure
+  // clear the Server structure
   Sv_ClearState();
 
   Com_Print("Server initialization...\n");

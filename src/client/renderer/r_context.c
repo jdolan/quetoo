@@ -23,7 +23,7 @@
 
 #include <Objectively/Resource.h>
 
-r_context_t r_context;
+RenderContext r_context;
 
 /**
  * @brief Loads Objectively resources from the Quetoo VFS.

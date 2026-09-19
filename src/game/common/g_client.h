@@ -24,14 +24,14 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_ClientBegin(g_client_t *cl);
-void G_ClientBeginFrame(g_client_t *cl);
-bool G_ClientConnect(g_client_t *cl, char *user_info);
-void G_ClientDisconnect(g_client_t *cl);
-void G_ClientRespawn(g_client_t *cl, bool voluntary);
-void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd);
-box3_t G_ClientStandingBounds(const g_client_t *cl);
-void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info);
-void G_Giblets(const g_giblets_t *giblets);
+void G_ClientBegin(GameClient *cl);
+void G_ClientBeginFrame(GameClient *cl);
+bool G_ClientConnect(GameClient *cl, char *user_info);
+void G_ClientDisconnect(GameClient *cl);
+void G_ClientRespawn(GameClient *cl, bool voluntary);
+void G_ClientThink(GameClient *cl, PlayerMoveCmd *cmd);
+Box3 G_ClientStandingBounds(const GameClient *cl);
+void G_ClientUserInfoChanged(GameClient *cl, const char *user_info);
+void G_Giblets(const GameGiblets *giblets);
 #endif
-bool G_ClientCanHearVoice(const g_client_t *speaker, const g_client_t *listener, uint8_t channel);
+bool G_ClientCanHearVoice(const GameClient *speaker, const GameClient *listener, uint8_t channel);

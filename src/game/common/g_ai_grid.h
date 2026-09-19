@@ -23,40 +23,40 @@
 
 #include "g_local.h"
 
-typedef bool (*gridkdtree_filter_t)(size_t nodenum, void *data, float *distance);
+typedef bool (*GridKdTreeFilter)(size_t nodenum, void *data, float *distance);
 
-struct gheap_entry_s {
+struct GHeapEntry {
   float cost;
   void *data;
 };
 
-struct gheap_s {
+struct GHeap {
   size_t count;
   size_t capacity;
-  struct gheap_entry_s entries[];
+  struct GHeapEntry entries[];
 };
 
-struct kdtree_node_s {
+struct KdTreeNode {
   size_t nodenum;
-  struct kdtree_node_s *left;
-  struct kdtree_node_s *right;
+  struct KdTreeNode *left;
+  struct KdTreeNode *right;
 };
 
-struct gridkdtree_s {
+struct GridKdTree {
   size_t nodecount;
   size_t capacity;
-  vec3_t *srcdata;
-  struct kdtree_node_s *root;
-  struct kdtree_node_s nodes[];
+  Vec3 *srcdata;
+  struct KdTreeNode *root;
+  struct KdTreeNode nodes[];
 };
 
-void gridkdtree_free(struct gridkdtree_s **tree);
-struct gridkdtree_s *gridkdtree_create(vec3_t *srcdata, size_t count);
-size_t gridkdtree_query_filter(struct gridkdtree_s *tree, const vec3_t querypos, float max_distance,
-                               gridkdtree_filter_t filter, void *data);
+void gridkdtree_free(struct GridKdTree **tree);
+struct GridKdTree *gridkdtree_create(Vec3 *srcdata, size_t count);
+size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, float max_distance,
+                               GridKdTreeFilter filter, void *data);
 
-struct gheap_s *gheap_create(size_t capacity);
-void gheap_free(struct gheap_s **heap);
-bool gheap_push(struct gheap_s *heap, float cost, void *data);
-void *gheap_pop(struct gheap_s *heap);
-void gheap_reset(struct gheap_s *heap);
+struct GHeap *gheap_create(size_t capacity);
+void gheap_free(struct GHeap **heap);
+bool gheap_push(struct GHeap *heap, float cost, void *data);
+void *gheap_pop(struct GHeap *heap);
+void gheap_reset(struct GHeap *heap);

@@ -66,7 +66,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
   const bool valid = pickup > ITEM_NONE && pickup < ITEM_TOTAL;

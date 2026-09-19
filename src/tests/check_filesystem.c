@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 #define TEST_FILE "check_filesystem.txt"
 #define TEST_FILE_CONTENTS "This is a file written by check_filesystem.\n"
@@ -39,7 +39,7 @@ void setup(void) {
 
   // the read tests run against a file this fixture writes, so that they do not
   // require the game data to be installed
-  file_t *f = Fs_OpenWrite(TEST_FILE);
+  File *f = Fs_OpenWrite(TEST_FILE);
   ck_assert_msg(f != NULL, "Failed to open %s for writing", TEST_FILE);
 
   const size_t len = strlen(TEST_FILE_CONTENTS);
@@ -63,7 +63,7 @@ START_TEST(check_Fs_OpenRead) {
 
   ck_assert_msg(Fs_Exists(TEST_FILE), "%s does not exist", TEST_FILE);
 
-  file_t *f = Fs_OpenRead(TEST_FILE);
+  File *f = Fs_OpenRead(TEST_FILE);
 
   ck_assert_msg(f != NULL, "Failed to open %s", TEST_FILE);
   ck_assert_msg(Fs_Close(f), "Failed to close %s", TEST_FILE);
@@ -71,7 +71,7 @@ START_TEST(check_Fs_OpenRead) {
 } END_TEST
 
 START_TEST(check_Fs_OpenWrite) {
-  file_t *f = Fs_OpenWrite(__func__);
+  File *f = Fs_OpenWrite(__func__);
 
   ck_assert_msg(f != NULL, "Failed to open %s", __func__);
 

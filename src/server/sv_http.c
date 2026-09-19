@@ -58,7 +58,7 @@ static bool Sv_HttpIsAllowed(const char *filename) {
 /**
  * @brief Send an HTTP error response and close the connection.
  */
-static void Sv_HttpSendError(sv_http_client_t *http, int32_t code, const char *reason) {
+static void Sv_HttpSendError(ServerHttpClient *http, int32_t code, const char *reason) {
 
 	Net_HttpSendError(http->socket, code, reason);
 
@@ -69,7 +69,7 @@ static void Sv_HttpSendError(sv_http_client_t *http, int32_t code, const char *r
 /**
  * @brief Parse the completed HTTP request and begin the response.
  */
-static void Sv_HttpHandleRequest(sv_http_client_t *http) {
+static void Sv_HttpHandleRequest(ServerHttpClient *http) {
 
 	// null-terminate the request
 	http->request[http->request_len] = '\0';
@@ -130,14 +130,14 @@ static void Sv_HttpHandleRequest(sv_http_client_t *http) {
  */
 static void Sv_HttpAccept(void) {
 
-	net_addr_t from;
+	NetAddr from;
 	const int32_t sock = Net_Accept(sv_http_socket, &from);
 	if (sock == -1) {
 		return;
 	}
 
 	// match the source IP to a connected client
-	sv_client_t *cl = svs.clients;
+	ServerClient *cl = svs.clients;
 	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
 		if (cl->state == SV_CLIENT_FREE) {
@@ -169,7 +169,7 @@ static void Sv_HttpAccept(void) {
 /**
  * @brief Process a single client's HTTP connection.
  */
-static void Sv_HttpClientThink(sv_http_client_t *http) {
+static void Sv_HttpClientThink(ServerHttpClient *http) {
 
 	// still reading the request
 	if (!http->data) {
@@ -232,7 +232,7 @@ void Sv_HttpThink(void) {
 
 	Sv_HttpAccept();
 
-	sv_client_t *cl = svs.clients;
+	ServerClient *cl = svs.clients;
 	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
 		if (cl->http.socket <= 0) {
@@ -246,7 +246,7 @@ void Sv_HttpThink(void) {
 /**
  * @brief Close a client's active HTTP connection. Called when the client disconnects.
  */
-void Sv_HttpClientDisconnect(sv_http_client_t *http) {
+void Sv_HttpClientDisconnect(ServerHttpClient *http) {
 
 	if (http->socket > 0) {
 		Net_CloseSocket(http->socket);
@@ -264,7 +264,7 @@ void Sv_HttpClientDisconnect(sv_http_client_t *http) {
  */
 void Sv_InitHttp(void) {
 
-	const cvar_t *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+	const Cvar *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
 	const in_port_t port = net_port->integer;
 
@@ -287,7 +287,7 @@ void Sv_ShutdownHttp(void) {
 	}
 
 	// close all active client HTTP connections
-	sv_client_t *cl = svs.clients;
+	ServerClient *cl = svs.clients;
 	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 		Sv_HttpClientDisconnect(&cl->http);
 	}

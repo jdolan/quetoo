@@ -153,7 +153,7 @@ typedef enum {
 
   MEM_TAG_TOTAL,
   MEM_TAG_ALL = -1
-} mem_tag_t;
+} MemTag;
 
 /**
  * @brief The server, game and player movement frame rate.

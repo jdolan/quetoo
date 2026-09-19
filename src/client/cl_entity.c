@@ -22,11 +22,11 @@
 #include "cl_local.h"
 
 /**
- * @brief Parse the `player_state_t` for the current frame from the server, using delta
+ * @brief Parse the `PlayerState` for the current frame from the server, using delta
  * compression for all fields where possible.
  */
-static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
-  static player_state_t null_state;
+static void Cl_ParsePlayerState(const ClientFrame *delta_frame, ClientFrame *frame) {
+  static PlayerState null_state;
 
   if (delta_frame && delta_frame->valid) {
     Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
@@ -43,8 +43,8 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  * @return True if the delta is valid and the entity should be interpolated, false
  * if the delta is invalid and the entity should be snapped to `to`.
  */
-static bool Cl_ValidDeltaEntity(const cl_entity_t *ent,
-                                 const entity_state_t *from, const entity_state_t *to) {
+static bool Cl_ValidDeltaEntity(const ClientEntity *ent,
+                                 const EntityState *from, const EntityState *to) {
 
   if (!cl.previous_frame) {
     return false; // no continuous predecessor to interpolate from
@@ -73,9 +73,9 @@ static bool Cl_ValidDeltaEntity(const cl_entity_t *ent,
  * @brief Resets all trails to initial values
  * @param ent Entity to reset trails for
  */
-static void Cl_ResetTrails(cl_entity_t *ent) {
+static void Cl_ResetTrails(ClientEntity *ent) {
 
-  for (vec3_t *trail = ent->trail_origins;
+  for (Vec3 *trail = ent->trail_origins;
        trail < ent->trail_origins + lengthof(ent->trail_origins);
        trail++) {
     *trail = ent->previous_origin;
@@ -86,11 +86,11 @@ static void Cl_ResetTrails(cl_entity_t *ent) {
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
-static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, int16_t number, uint16_t bits) {
+static void Cl_ReadDeltaEntity(ClientFrame *frame, const EntityState *from, int16_t number, uint16_t bits) {
 
-  cl_entity_t *ent = &cl.entities[number];
+  ClientEntity *ent = &cl.entities[number];
 
-  entity_state_t *to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
+  EntityState *to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
   cl.entity_state++;
 
   frame->num_entities++;
@@ -117,12 +117,12 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, in
 /**
  * @brief An `svc_packetentities` has just been parsed, deal with the rest of the data stream.
  */
-static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
+static void Cl_ParseEntities(const ClientFrame *delta_frame, ClientFrame *frame) {
 
   frame->entity_state = cl.entity_state;
   frame->num_entities = 0;
 
-  entity_state_t *from = NULL;
+  EntityState *from = NULL;
   int16_t from_number;
 
   if (delta_frame == NULL || delta_frame->num_entities == 0) {
@@ -402,7 +402,7 @@ void Cl_Interpolate(void) {
   for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
     const uint32_t s = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    cl_entity_t *ent = &cl.entities[cl.entity_states[s].number];
+    ClientEntity *ent = &cl.entities[cl.entity_states[s].number];
 
     if (!Vec3_Equal(ent->prev.origin, ent->current.origin)) {
       ent->previous_origin = ent->origin;
@@ -441,11 +441,11 @@ void Cl_Interpolate(void) {
       ent->step_offset = ent->current.step_offset;
     }
 
-    vec3_t angles;
+    Vec3 angles;
     if (ent->current.solid == SOLID_BSP) {
       angles = ent->current.angles;
 
-      const r_model_t *mod = cl.models[ent->current.model1];
+      const RenderModel *mod = cl.models[ent->current.model1];
 
       assert(mod);
       assert(mod->bsp_inline);

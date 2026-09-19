@@ -23,8 +23,8 @@
 
 #include "common/asset.h"
 
-s_sample_t *S_LoadSample(const char *name, asset_context_t context);
-s_sample_t *S_LoadClientModelSample(const char *model, const char *sound_set, const char *name);
+SoundSample *S_LoadSample(const char *name, AssetContext context);
+SoundSample *S_LoadClientModelSample(const char *model, const char *sound_set, const char *name);
 
 #if defined(__S_LOCAL_H__)
 size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size);

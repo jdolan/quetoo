@@ -26,7 +26,7 @@
 /**
  * @brief Returns true if ent1 and ent2 are on the same team.
  */
-bool G_OnSameTeam(const g_client_t *a, const g_client_t *b) {
+bool G_OnSameTeam(const GameClient *a, const GameClient *b) {
 
   if (!a || !b) {
     return false;
@@ -171,9 +171,9 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
 /**
  * @see g_combat.h
  */
-bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
-  vec3_t dest;
-  cm_trace_t tr;
+bool G_CanDamage(const GameEntity *targ, const GameEntity *inflictor) {
+  Vec3 dest;
+  CmTrace tr;
 
   // BSP sub-models need special checking because their origin is 0,0,0
   if (targ->solid == SOLID_BSP) {
@@ -231,7 +231,7 @@ bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 /**
  * @brief Get the origin of an entity, whether brush or not
  */
-vec3_t G_GetOrigin(const g_entity_t *ent) {
+Vec3 G_GetOrigin(const GameEntity *ent) {
 
   if (ent->solid == SOLID_BSP) {
     return Box3_Center(ent->abs_bounds);
@@ -243,7 +243,7 @@ vec3_t G_GetOrigin(const g_entity_t *ent) {
 /**
  * @brief Emits a temporary damage visual effect at the specified position and surface normal.
  */
-static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal, int32_t damage) {
+static void G_SpawnDamage(GameTempEntity type, const Vec3 pos, const Vec3 normal, int32_t damage) {
 
   if (damage < 1) {
     return;
@@ -267,7 +267,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
  * @return The amount of damage absorbed, which is not necessarily the amount
  * of armor consumed.
  */
-static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int32_t damage, uint32_t dflags) {
+static int32_t G_CheckArmor(GameEntity *ent, const Vec3 pos, const Vec3 normal, int32_t damage, uint32_t dflags) {
 
   if (dflags & DMG_NO_ARMOR) {
     return 0;
@@ -277,8 +277,8 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
     return 0;
   }
 
-  const g_item_t *armor = G_ClientArmor(ent->client);
-  const g_armor_info_t *armor_info = G_ArmorInfo(armor);
+  const GameItem *armor = G_ClientArmor(ent->client);
+  const GameArmorInfo *armor_info = G_ArmorInfo(armor);
 
   if (!armor) {
     return 0;
@@ -304,7 +304,7 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  * @brief The tail of the `G_ModifyDamage` chain, applying the quad damage
  * powerup. Never vetoes. Features holding their own modifiers install over the top.
  */
-static bool G_ModifyDamage_Common(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
+static bool G_ModifyDamage_Common(GameEntity *target, GameEntity *attacker, int32_t *damage, int32_t *knockback) {
 
   if (attacker->client) {
     if (attacker->client->inventory[POWERUP_QUAD]) {
@@ -341,13 +341,13 @@ ModifyDamage G_ModifyDamage = G_ModifyDamage_Common;
  *
  *   mod The means of death, used by the obituaries routine.
  */
-void G_Damage(const g_damage_t *dmg) {
+void G_Damage(const GameDamage *dmg) {
 
-  g_entity_t *target = dmg->target;
-  g_entity_t *attacker = dmg->attacker ?: ge.entities[0];
-	const vec3_t dir = dmg->dir;
-	const vec3_t pos = dmg->point;
-	const vec3_t normal = dmg->normal;
+  GameEntity *target = dmg->target;
+  GameEntity *attacker = dmg->attacker ?: ge.entities[0];
+	const Vec3 dir = dmg->dir;
+	const Vec3 pos = dmg->point;
+	const Vec3 normal = dmg->normal;
 	int32_t damage = dmg->damage;
 	int32_t knockback = dmg->knockback;
 	int32_t dflags = dmg->flags;
@@ -376,7 +376,7 @@ void G_Damage(const g_damage_t *dmg) {
 
   if (target->client && !(dflags & DMG_NO_GOD)) { // invulnerability
     if (target->client->inventory[POWERUP_INVULNERABILITY]) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.invulnerability_protect,
         .entity = target,
       }, MULTICAST_PHS);
@@ -415,11 +415,11 @@ void G_Damage(const g_damage_t *dmg) {
     }
   }
 
-  g_client_t *client = target->client;
+  GameClient *client = target->client;
 
   // calculate velocity change due to knockback
   if (knockback && (target->move_type >= MOVE_TYPE_WALK)) {
-    vec3_t ndir, knockback_vel, knockback_avel;
+    Vec3 ndir, knockback_vel, knockback_avel;
 
     ndir = dir;
     ndir = Vec3_Normalize(ndir);
@@ -443,7 +443,7 @@ void G_Damage(const g_damage_t *dmg) {
 
     // apply angular velocity (rotate)
     if (client == NULL || (client->ps.pm_state.flags & PMF_GIBLET)) {
-      knockback_avel = Vec3(knockback, knockback, knockback);
+      knockback_avel = MakeVec3(knockback, knockback, knockback);
       target->avelocity = Vec3_Fmaf(target->avelocity, 100.f / mass, knockback_avel);
     }
 
@@ -502,7 +502,7 @@ void G_Damage(const g_damage_t *dmg) {
         const bool target_ai = target->client->ai != NULL;
 
         if (!attacker_ai || !target_ai) { // drop ai-on-ai frags
-          g_frag_t frag = {
+          GameFrag frag = {
             .mod = (int32_t) mod,
             .time = (uint32_t) time(NULL),
             .attacker_ai = attacker_ai,
@@ -562,7 +562,7 @@ void G_Damage(const g_damage_t *dmg) {
 /**
  * @brief Deals damage and knockback to all damageable entities within the specified radius of the inflictor.
  */
-void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int32_t damage,
+void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ignore, int32_t damage,
                     int32_t knockback, float radius, g_means_of_death mod) {
 
   G_ForEachEntity(ent, {
@@ -574,7 +574,7 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
       continue;
     }
 
-    vec3_t dir = Vec3_Subtract(ent->s.origin, inflictor->s.origin);
+    Vec3 dir = Vec3_Subtract(ent->s.origin, inflictor->s.origin);
     const float dist = Vec3_Length(dir) - Box3_Radius(ent->bounds);
 
     float d = Maxf(damage - 0.5 * dist, 0.f);
@@ -597,9 +597,9 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
     }
 
     // find closest point to inflictor
-    const vec3_t point = Box3_ClampPoint(ent->abs_bounds, inflictor->s.origin);
+    const Vec3 point = Box3_ClampPoint(ent->abs_bounds, inflictor->s.origin);
 
-    G_Damage(&(g_damage_t) {
+    G_Damage(&(GameDamage) {
       .target = ent,
       .inflictor = inflictor,
       .attacker = attacker,

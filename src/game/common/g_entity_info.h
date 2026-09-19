@@ -24,13 +24,13 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_info_player_deathmatch(g_entity_t *ent);
-void G_info_player_intermission(g_entity_t *ent);
-void G_info_notnull(g_entity_t *ent);
-void G_info_player_start(g_entity_t *ent);
-void G_info_player_team1(g_entity_t *ent);
-void G_info_player_team2(g_entity_t *ent);
-void G_info_player_team3(g_entity_t *ent);
-void G_info_player_team4(g_entity_t *ent);
-void G_info_player_team_any(g_entity_t *ent);
+void G_info_player_deathmatch(GameEntity *ent);
+void G_info_player_intermission(GameEntity *ent);
+void G_info_notnull(GameEntity *ent);
+void G_info_player_start(GameEntity *ent);
+void G_info_player_team1(GameEntity *ent);
+void G_info_player_team2(GameEntity *ent);
+void G_info_player_team3(GameEntity *ent);
+void G_info_player_team4(GameEntity *ent);
+void G_info_player_team_any(GameEntity *ent);
 #endif

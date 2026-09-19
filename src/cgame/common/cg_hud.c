@@ -27,7 +27,7 @@
 /**
  * @brief Resets the HUD state when the chase target changes, so nothing carries over.
  */
-static void Cg_UpdateChase(const player_state_t *ps) {
+static void Cg_UpdateChase(const PlayerState *ps) {
 
   if (ps->stats[STAT_CHASE] != cg_hud_state.chase_target) {
     Cg_ClearHud();
@@ -38,7 +38,7 @@ static void Cg_UpdateChase(const player_state_t *ps) {
 /**
  * @brief Plays the hit sound if the player inflicted damage this frame.
  */
-static void Cg_DrawDamageInflicted(const player_state_t *ps) {
+static void Cg_DrawDamageInflicted(const PlayerState *ps) {
 
   if (!cg_hit_sound->integer) {
     return;
@@ -49,7 +49,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
     if (cgi.client->unclamped_time - cg_hud_state.damage.hit_sound_time > 50) {
       cg_hud_state.damage.hit_sound_time = cgi.client->unclamped_time;
 
-      Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+      Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
         .sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0],
         .entity = Cg_Self()
       });
@@ -60,7 +60,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 /**
  * @brief Hands the frame to the HUD View hierarchy, which resolves its own visibility.
  */
-void Cg_UpdateHud(const cl_frame_t *frame) {
+void Cg_UpdateHud(const ClientFrame *frame) {
 
   if (cg_hud_view_controller) {
     $(cg_hud_view_controller, updateWithFrame, frame);
@@ -70,9 +70,9 @@ void Cg_UpdateHud(const cl_frame_t *frame) {
 /**
  * @brief What the HUD still does outside its View hierarchy each frame: the hit sound.
  */
-void Cg_DrawHud(const cl_frame_t *frame) {
+void Cg_DrawHud(const ClientFrame *frame) {
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
   Cg_UpdateChase(ps);
 

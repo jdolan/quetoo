@@ -23,7 +23,7 @@
 
 #include "s_local.h"
 
-cvar_t *s_music_volume;
+Cvar *s_music_volume;
 
 #define MUSIC_BUFFERS 8
 #define MUSIC_BUFFER_SIZE 16384
@@ -36,8 +36,8 @@ static struct {
   size_t resample_frame_buffer_size;
   int16_t *resample_frame_buffer;
   uint32_t next_buffer;
-  s_music_t *default_music;
-  s_music_t *current_music;
+  SoundMusic *default_music;
+  SoundMusic *current_music;
   List *playlist;
 
   SDL_Thread *thread; // thread sound system runs on
@@ -53,19 +53,19 @@ static float S_MusicGain(void) {
 }
 
 /**
- * @brief Retain event listener for `s_music_t`.
+ * @brief Retain event listener for `SoundMusic`.
  */
-static bool S_RetainMusic(s_media_t *self) {
+static bool S_RetainMusic(SoundMedia *self) {
   (void) self;
 
   return true;
 }
 
 /**
- * @brief Free event listener for `s_music_t`.
+ * @brief Free event listener for `SoundMusic`.
  */
-static void S_FreeMusic(s_media_t *self) {
-  s_music_t *music = (s_music_t *) self;
+static void S_FreeMusic(SoundMedia *self) {
+  SoundMusic *music = (SoundMusic *) self;
 
   if (music->snd) {
     sf_close(music->snd);
@@ -79,7 +79,7 @@ static void S_FreeMusic(s_media_t *self) {
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file_t **file) {
+static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, File **file) {
   char path[MAX_QPATH];
 
   *snd = NULL;
@@ -120,14 +120,14 @@ void S_ClearPlaylist(void) {
 /**
  * @brief Returns the currently playing music track, or `NULL` if none.
  */
-s_music_t *S_CurrentMusic(void) {
+SoundMusic *S_CurrentMusic(void) {
   return s_music_state.current_music;
 }
 
 /**
  * @brief Returns true if @p music is in the current playlist.
  */
-bool S_PlaylistContains(const s_music_t *music) {
+bool S_PlaylistContains(const SoundMusic *music) {
   if (!s_music_state.playlist) { return false; }
   for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
     if (n->element == music) { return true; }
@@ -138,20 +138,20 @@ bool S_PlaylistContains(const s_music_t *music) {
 /**
  * @brief Loads the music by the specified name.
  */
-s_music_t *S_LoadMusic(const char *name) {
+SoundMusic *S_LoadMusic(const char *name) {
   char key[MAX_QPATH];
-  s_music_t *music = NULL;
+  SoundMusic *music = NULL;
 
   StripExtension(name, key);
 
-  if (!(music = (s_music_t *) S_FindMedia(key, S_MEDIA_MUSIC))) {
+  if (!(music = (SoundMusic *) S_FindMedia(key, S_MEDIA_MUSIC))) {
     SF_INFO info;
     SNDFILE *snd;
-    file_t *file;
+    File *file;
 
     if (S_LoadMusicFile(key, &info, &snd, &file)) {
 
-      music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t), S_MEDIA_MUSIC);
+      music = (SoundMusic *) S_AllocMedia(key, sizeof(SoundMusic), S_MEDIA_MUSIC);
 
       music->media.type = S_MEDIA_MUSIC;
 
@@ -162,7 +162,7 @@ s_music_t *S_LoadMusic(const char *name) {
       music->snd = snd;
       music->file = file;
 
-      S_RegisterMedia((s_media_t *) music);
+      S_RegisterMedia((SoundMedia *) music);
     } else {
       Com_Debug(DEBUG_SOUND, "S_LoadMusic: Couldn't load %s\n", key);
       music = NULL;
@@ -201,7 +201,7 @@ void S_StopMusic(void) {
  * @param setup_buffers If the buffers should be pulled directly from the buffer list instead of
  * from the consumed buffer list. Use this on first call of Play only.
  */
-static void S_BufferMusic(s_music_t *music, bool setup_buffers) {
+static void S_BufferMusic(SoundMusic *music, bool setup_buffers) {
 
   if (!music->snd) {
     return;
@@ -270,9 +270,9 @@ static void S_BufferMusic(s_music_t *music, bool setup_buffers) {
 }
 
 /**
- * @brief Begins playback of the specified `s_music_t`.
+ * @brief Begins playback of the specified `SoundMusic`.
  */
-static void S_PlayMusic(s_music_t *music) {
+static void S_PlayMusic(SoundMusic *music) {
 
   Com_Debug(DEBUG_SOUND, "Playing %s\n", music->media.name);
 
@@ -304,20 +304,20 @@ static void S_PlayMusic(s_music_t *music) {
 /**
  * @brief Returns the previous track in the configured playlist.
  */
-static s_music_t *S_PrevMusic(void) {
+static SoundMusic *S_PrevMusic(void) {
 
   if (s_music_state.playlist && s_music_state.playlist->count) {
 
     for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
       if (n->element == s_music_state.current_music) {
         if (n->prev) {
-          return (s_music_t *) n->prev->element;
+          return (SoundMusic *) n->prev->element;
         }
         break;
       }
     }
 
-    return (s_music_t *) s_music_state.playlist->tail->element;
+    return (SoundMusic *) s_music_state.playlist->tail->element;
   }
 
   return s_music_state.default_music;
@@ -326,20 +326,20 @@ static s_music_t *S_PrevMusic(void) {
 /**
  * @brief Returns the next track in the configured playlist.
  */
-static s_music_t *S_NextMusic(void) {
+static SoundMusic *S_NextMusic(void) {
 
   if (s_music_state.playlist && s_music_state.playlist->count) {
 
     for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
       if (n->element == s_music_state.current_music) {
         if (n->next) {
-          return (s_music_t *) n->next->element;
+          return (SoundMusic *) n->next->element;
         }
         break;
       }
     }
 
-    return (s_music_t *) s_music_state.playlist->head->element;
+    return (SoundMusic *) s_music_state.playlist->head->element;
   }
 
   return s_music_state.default_music;
@@ -382,7 +382,7 @@ static int S_MusicThread(void *data) {
  * @brief Ensures music playback continues by selecting a new track when one
  * completes.
  */
-void S_RenderMusic(const s_stage_t *stage) {
+void S_RenderMusic(const SoundStage *stage) {
 
   SDL_LockMutex(s_music_state.mutex);
 
@@ -421,8 +421,8 @@ void S_RenderMusic(const s_stage_t *stage) {
 void S_NextTrack_f(void) {
 
   if (S_MusicGain()) {
-    s_music_t *current = S_CurrentMusic();
-    s_music_t *music = S_NextMusic();
+    SoundMusic *current = S_CurrentMusic();
+    SoundMusic *music = S_NextMusic();
 
     if (music) {
       if (music == s_music_state.default_music && current == s_music_state.default_music) {
@@ -444,7 +444,7 @@ void S_NextTrack_f(void) {
 void S_PrevTrack_f(void) {
 
   if (S_MusicGain()) {
-    s_music_t *music = S_PrevMusic();
+    SoundMusic *music = S_PrevMusic();
 
     if (music) {
       S_PlayMusic(music);

@@ -28,7 +28,7 @@
 /**
  * @file
  *
- * @brief A Select exposing a cvar_t.
+ * @brief A Select exposing a Cvar.
  */
 
 typedef struct CvarSelect CvarSelect;
@@ -57,7 +57,7 @@ struct CvarSelect {
   /**
    * @brief The variable.
    */
-  cvar_t *var;
+  Cvar *var;
 
   /**
    * @brief Set to true if the variable expects a string value, false for integer.
@@ -81,13 +81,13 @@ struct CvarSelectInterface {
   SelectInterface selectInterface;
 
   /**
-   * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
+   * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, Cvar *var)
    * @brief Initializes this CvarSelect with the given variable.
    * @param var The variable.
    * @return The initialized CvarSelect, or `NULL` on error.
    * @memberof CvarSelect
    */
-  CvarSelect *(*initWithVariable)(CvarSelect *self, cvar_t *var);
+  CvarSelect *(*initWithVariable)(CvarSelect *self, Cvar *var);
 
   /**
    * @fn CvarSelect *CvarSelect::initWithVariabeName(CvarSelect *self, const char (name)

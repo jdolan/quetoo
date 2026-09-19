@@ -101,7 +101,7 @@ static View *init(View *self) {
  * @brief Joins the tail of `console` into `text`. Con_Wrap opens each line in its own color, so
  * nothing carries between them.
  */
-static void tail(const console_t *console, size_t height, Text *text) {
+static void tail(const Console *console, size_t height, Text *text) {
 
   if (height == 0) {
     $(text, setText, NULL);
@@ -155,7 +155,7 @@ static size_t escapeCarets(const char *s, size_t count, char *out, size_t size) 
  * @brief The input line: the prompt in `esc`, the buffer scrolled to keep the cursor in view,
  * and the cursor at the insertion point. Typed carets are literal, not color escapes.
  */
-static void inputLine(const console_t *console, int32_t esc, Text *text) {
+static void inputLine(const Console *console, int32_t esc, Text *text) {
 
   const char *s = console->input.buffer;
   size_t pos = console->input.pos;

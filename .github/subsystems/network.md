@@ -82,7 +82,7 @@ Provides efficient binary serialization with bit precision:
 - `Net_WriteDeltaEntity()` - Write delta-compressed entity state
 - Corresponding `Net_Read*()` functions
 
-**Message buffer** (`mem_buf_t`):
+**Message buffer** (`MemBuf`):
 - Automatically grows as data is written
 - Tracks read/write position
 - Can be "rewound" to re-read
@@ -164,14 +164,14 @@ Entity state fields are delta-compressed individually:
 
 ```c
 typedef struct {
-    vec3_t origin;           // 3x16 bits (compressed)
-    vec3_t angles;           // 3x8 bits (compressed)
+    Vec3 origin;           // 3x16 bits (compressed)
+    Vec3 angles;           // 3x8 bits (compressed)
     uint16_t animation;      // Animation frame
     uint16_t model;          // Model index
     uint32_t effects;        // Visual effects flags
     uint8_t bounds;          // Bounding box index
     // ... ~30 fields total
-} entity_state_t;
+} EntityState;
 ```
 
 Only changed fields are transmitted. Typical entity update:
@@ -185,13 +185,13 @@ Only changed fields are transmitted. Typical entity update:
 typedef enum {
     NA_DATAGRAM,  // UDP (default for game traffic)
     NA_STREAM     // TCP (admin/rcon)
-} net_addr_type_t;
+} NetAddrType;
 
 typedef struct {
-    net_addr_type_t type;
+    NetAddrType type;
     in_addr_t ip;           // IPv4 address
     in_port_t port;
-} net_addr_t;
+} NetAddr;
 ```
 
 Currently IPv4 only. IPv6 support is a TODO.
@@ -243,7 +243,7 @@ net_show_packets 0    # Debug: show packet traffic (1=basic, 2=verbose)
 ### Server: Broadcasting to All Clients
 ```c
 for (int i = 0; i < sv_max_clients->integer; i++) {
-    sv_client_t *cl = &svs.clients[i];
+    ServerClient *cl = &svs.clients[i];
     if (cl->state != SV_CLIENT_ACTIVE)
         continue;
     
@@ -262,7 +262,7 @@ Net_WriteDeltaUserCmd(&cls.netchan.message, &old_cmd, &cmd);
 
 ### Reading Messages
 ```c
-mem_buf_t msg;
+MemBuf msg;
 // ... receive into msg ...
 
 const uint8_t cmd = Net_ReadByte(&msg);

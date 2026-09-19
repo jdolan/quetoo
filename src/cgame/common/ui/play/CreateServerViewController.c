@@ -49,7 +49,7 @@ static void createServer(Button *button) {
   PointerArray *selectedMaps = $(this->mapList, selectedMaps);
   if (selectedMaps->count) {
 
-    file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
+    File *file = cgi.OpenFileWrite(MAP_LIST_UI);
     if (file) {
 
       String *string = str("");
@@ -127,7 +127,7 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
 
-  const cvar_t *sv_min_clients = cgi.GetCvar("sv_min_clients");
+  const Cvar *sv_min_clients = cgi.GetCvar("sv_min_clients");
   const int32_t bots = sv_min_clients ? Maxi(0, sv_min_clients->integer - 1) : 0;
   $(this->bots, setDefaultText, va("%d", bots));
 
@@ -136,7 +136,7 @@ static void loadView(ViewController *self) {
   $(this->gameplay, addOption, "Default", "default");
 
   size_t num_modes;
-  const g_gameplay_t *modes = Cg_ListGameplayModes(&num_modes);
+  const Gameplay *modes = Cg_ListGameplayModes(&num_modes);
   if (num_modes <= 1) {
     $(gameplayInput, removeFromSuperview);
   } else {
@@ -149,7 +149,7 @@ static void loadView(ViewController *self) {
   $(this->movement, addOption, "Default", "default");
 
   for (size_t i = 0; i < Pm_MovementCount(); i++) {
-    const pm_movement_info_t *movement = Pm_Movement((pm_movement_t) i);
+    const PlayerMovementInfo *movement = Pm_Movement((PlayerMovement) i);
     $(this->movement, addOption, movement->label, (ident) movement->name);
   }
 

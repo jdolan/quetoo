@@ -27,7 +27,7 @@
 
 /**
  * @file
- * @brief A Slider bound to a cvar_t.
+ * @brief A Slider bound to a Cvar.
  */
 
 typedef struct CvarSlider CvarSlider;
@@ -54,7 +54,7 @@ struct CvarSlider {
   /**
    * @brief The variable.
    */
-  cvar_t *var;
+  Cvar *var;
 };
 
 /**
@@ -68,7 +68,7 @@ struct CvarSliderInterface {
   SliderInterface sliderInterface;
 
   /**
-   * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step)
+   * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, Cvar *var, double min, double max, double step)
    * @brief Initializes this Slider with the given variable.
    * @param var The variable.
    * @param min The minimum value.
@@ -77,7 +77,7 @@ struct CvarSliderInterface {
    * @return The initialized CvarSlider, or `NULL` on error.
    * @memberof CvarSlider
    */
-  CvarSlider *(*initWithVariable)(CvarSlider *self, cvar_t *var, double min, double max, double step);
+  CvarSlider *(*initWithVariable)(CvarSlider *self, Cvar *var, double min, double max, double step);
 };
 
 /**

@@ -102,9 +102,9 @@ SDL_Surface *Img_LoadSurfaceFromData(const void *data, size_t len) {
 /**
  * @brief Resolves the average color of the pixels which exceed the highpass filter.
  */
-color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
+Color Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 
-  color_t out = color_white;
+  Color out = color_white;
 
   if (surf) {
     float max = 0.f;
@@ -112,7 +112,7 @@ color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
     // first find the brightest sample
     const int32_t *pixel = surf->pixels;
     for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
-      const color_t c = Color4bv(*pixel);
+      const Color c = Color4bv(*pixel);
       const float f = Vec3_Hmaxf(c.vec3);
       if (f > max) {
         max = f;
@@ -121,12 +121,12 @@ color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 
     // now accumulate the ones that pass the filter
 
-    vec3_t accumulator = Vec3_Zero();
+    Vec3 accumulator = Vec3_Zero();
     int32_t passed = 0;
 
     pixel = surf->pixels;
     for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
-      const color_t c = Color4bv(*pixel);
+      const Color c = Color4bv(*pixel);
 
       if (Vec3_Hmaxf(c.vec3) >= filter * max) {
         accumulator = Vec3_Add(accumulator, c.vec3);
@@ -145,7 +145,7 @@ color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 /**
  * @brief Resolves the average color of the specified surface.
  */
-color_t Img_Color(const SDL_Surface *surf) {
+Color Img_Color(const SDL_Surface *surf) {
   return Img_ColorHighPass(surf, 0.f);
 }
 
@@ -351,7 +351,7 @@ typedef struct {
   uint16_t Height;         /* 0Eh  Height of image */
   uint8_t PixelDepth;      /* 10h  Image pixel size */
   uint8_t ImageDescriptor; /* 11h  Image descriptor byte */
-} r_tga_header_t;
+} RenderTgaHeader;
 
 /**
  * @brief Write pixel data to a TGA file.
@@ -365,7 +365,7 @@ bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height)
     return false;
   }
 
-  const r_tga_header_t header = {
+  const RenderTgaHeader header = {
     0, // no image data
     0, // no colormap
     2, // truecolor, no colormap, no encoding

@@ -37,14 +37,14 @@ static struct {
   List *free;
 } cg_lights;
 
-static cg_light_t *Cg_PopLight(List *lights) {
+static ClientGameLight *Cg_PopLight(List *lights) {
 
   if (lights == NULL || lights->head == NULL) {
     return NULL;
   }
 
   ListNode *node = lights->head;
-  cg_light_t *light = node->element;
+  ClientGameLight *light = node->element;
 
   $(lights, removeNode, node);
 
@@ -54,11 +54,11 @@ static cg_light_t *Cg_PopLight(List *lights) {
 /**
  * @brief Allocates a dynamic light source.
  */
-static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
+static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
 
-  cg_light_t *light = Cg_PopLight(cg_lights.free);
+  ClientGameLight *light = Cg_PopLight(cg_lights.free);
   if (light == NULL) {
-    light = cgi.Malloc(sizeof(cg_light_t), MEM_TAG_CGAME_LEVEL);
+    light = cgi.Malloc(sizeof(ClientGameLight), MEM_TAG_CGAME_LEVEL);
   }
 
   *light = *in;
@@ -74,7 +74,7 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
 /**
  * @brief Frees the specified light source.
  */
-static void Cg_FreeLight(cg_light_t *light) {
+static void Cg_FreeLight(ClientGameLight *light) {
 
   ListNode *node = $(cg_lights.allocated, nodeForElement, light);
   assert(node);
@@ -86,7 +86,7 @@ static void Cg_FreeLight(cg_light_t *light) {
 /**
  * @brief Adds a dynamic light source to the current view if dynamic lights are enabled.
  */
-void Cg_AddLight(const cg_light_t *in) {
+void Cg_AddLight(const ClientGameLight *in) {
 
   if (!cg_add_lights->value) {
     return;
@@ -149,7 +149,7 @@ static int32_t Cg_ResolveBspModel(const char *model) {
  */
 static void Cg_AddBspLights(void) {
 
-  r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
+  RenderBspLight *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
     const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
@@ -166,19 +166,19 @@ static void Cg_AddBspLights(void) {
         continue;
       }
 
-      const vec3_t compiled_origin = cgi.EntityValue(l->target_entity, "origin")->vec3;
-      const vec3_t offset = Vec3_Subtract(l->origin, compiled_origin);
+      const Vec3 compiled_origin = cgi.EntityValue(l->target_entity, "origin")->vec3;
+      const Vec3 offset = Vec3_Subtract(l->origin, compiled_origin);
 
-      vec3_t origin = l->origin;
+      Vec3 origin = l->origin;
       for (int32_t j = 0; j < MAX_ENTITIES; j++) {
-        const cl_entity_t *ent = &cgi.client->entities[j];
+        const ClientEntity *ent = &cgi.client->entities[j];
         if (ent->current.model1 == model1) {
           origin = Mat4_Transform(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f), offset);
           break;
         }
       }
 
-      cgi.AddLight(cgi.view, &(const r_light_t) {
+      cgi.AddLight(cgi.view, &(const RenderLight) {
         .origin = origin,
         .color = l->color,
         .radius = l->radius,
@@ -186,7 +186,7 @@ static void Cg_AddBspLights(void) {
         .bounds = Box3_FromCenterRadius(origin, l->radius),
       });
     } else {
-      cgi.AddLight(cgi.view, &(const r_light_t) {
+      cgi.AddLight(cgi.view, &(const RenderLight) {
         .origin = l->origin,
         .color = l->color,
         .radius = l->radius,
@@ -206,7 +206,7 @@ void Cg_AddDynamicLights(void) {
   for (ListNode *node = cg_lights.allocated->head; node; ) {
     ListNode *next = node->next;
 
-    cg_light_t *light = node->element;
+    ClientGameLight *light = node->element;
 
     const uint32_t age = cgi.client->unclamped_time - light->time;
     float intensity = light->intensity;
@@ -215,7 +215,7 @@ void Cg_AddDynamicLights(void) {
     }
 
     if (cg_add_lights->value) {
-      cgi.AddLight(cgi.view, &(const r_light_t) {
+      cgi.AddLight(cgi.view, &(const RenderLight) {
         .origin = light->origin,
         .color = light->color,
         .radius = light->radius,

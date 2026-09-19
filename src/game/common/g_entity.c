@@ -35,15 +35,15 @@ typedef struct {
   /**
    * @brief The instance initializer.
    */
-  void (*Init)(g_entity_t *ent);
-} g_entity_class_t;
+  void (*Init)(GameEntity *ent);
+} GameEntityClass;
 
-static void G_worldspawn(g_entity_t *ent);
+static void G_worldspawn(GameEntity *ent);
 
 /**
  * @brief The entity classes.
  */
-static const g_entity_class_t g_entity_classes[] = {
+static const GameEntityClass g_entity_classes[] = {
 
   { "func_bob", G_func_bob },
   { "func_button", G_func_button },
@@ -109,26 +109,26 @@ static const g_entity_class_t g_entity_classes[] = {
   { "misc_weather", G_FreeEntity },
 };
 
-static const cm_entity_t *g_map;
+static const CmEntity *g_map;
 
 /**
  * @brief The value `key` holds in the map's own metadata, or `NULL` before it is loaded.
  */
-static const cm_entity_t *G_MapValue(const char *key) {
+static const CmEntity *G_MapValue(const char *key) {
   return g_map ? gi.EntityValue(g_map, key) : NULL;
 }
 
 /**
  * @brief Populates the entity fields which are common to all classes from its definition.
  */
-static void G_InitEntityFields(g_entity_t *ent) {
+static void G_InitEntityFields(GameEntity *ent) {
 
   ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
   ent->s.angles = gi.EntityValue(ent->def, "angles")->vec3;
 
-  const cm_entity_t *angle = gi.EntityValue(ent->def, "angle");
+  const CmEntity *angle = gi.EntityValue(ent->def, "angle");
   if (angle->parsed & ENTITY_FLOAT) {
-    ent->s.angles = Vec3(0.f, angle->value, 0.f);
+    ent->s.angles = MakeVec3(0.f, angle->value, 0.f);
   }
 
   ent->model = gi.EntityValue(ent->def, "model")->nullable_string;
@@ -158,10 +158,10 @@ static void G_InitEntityFields(g_entity_t *ent) {
  * @brief The tail of the `G_InitEntity` chain: the items, the weapons'
  * projectiles and the built-in classes.
  */
-static bool G_InitEntity_Common(g_entity_t *ent) {
+static bool G_InitEntity_Common(GameEntity *ent) {
 
   // check item spawn functions
-  const g_item_t *it = G_FindItemByClassName(ent->classname);
+  const GameItem *it = G_FindItemByClassName(ent->classname);
   if (it) {
     G_SpawnItem(ent, it);
     return true;
@@ -174,7 +174,7 @@ static bool G_InitEntity_Common(g_entity_t *ent) {
 
   // check normal spawn functions
   for (size_t i = 0; i < lengthof(g_entity_classes); i++) {
-    const g_entity_class_t *clazz = g_entity_classes + i;
+    const GameEntityClass *clazz = g_entity_classes + i;
 
     if (!q_strcmp(clazz->classname, ent->classname)) {
       clazz->Init(ent);
@@ -198,10 +198,10 @@ LevelWillSpawn G_LevelWillSpawn = G_LevelWillSpawn_Common;
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static void G_SpawnEntity(cm_entity_t *def) {
+static void G_SpawnEntity(CmEntity *def) {
 
   const char *classname = gi.EntityValue(def, "classname")->string;
-  g_entity_t *ent = G_AllocEntity(classname);
+  GameEntity *ent = G_AllocEntity(classname);
 
   ent->def = def;
 
@@ -242,7 +242,7 @@ static const struct {
  * @brief Resolves the class initializer to run for the given editor entity, or `NULL`
  * if it should remain an inert placeholder.
  */
-static const g_entity_class_t *G_EditorEntityClass(const g_entity_t *ent) {
+static const GameEntityClass *G_EditorEntityClass(const GameEntity *ent) {
 
   for (size_t i = 0; i < lengthof(g_editor_entity_classes); i++) {
 
@@ -278,11 +278,11 @@ static const g_entity_class_t *G_EditorEntityClass(const g_entity_t *ent) {
  */
 void G_FreeEditorEntity(int32_t number) {
 
-  g_entity_t *ent = ge.entities[number];
+  GameEntity *ent = ge.entities[number];
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    g_entity_t *e = ge.entities[i];
+    GameEntity *e = ge.entities[i];
 
     if (e == ent || !e->in_use || e->client) {
       continue;
@@ -303,20 +303,20 @@ void G_FreeEditorEntity(int32_t number) {
  * All other classes become inert placeholders, which the server configures for
  * presentation in `Sv_ConfigureEditorEntity`.
  */
-void G_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
+void G_SpawnEditorEntity(int32_t number, CmEntity *def) {
 
   if (ge.entities[number]->in_use) {
     G_FreeEditorEntity(number);
   }
 
   const char *classname = gi.EntityValue(def, "classname")->string;
-  g_entity_t *ent = G_AllocEntityAt(number, classname);
+  GameEntity *ent = G_AllocEntityAt(number, classname);
 
   ent->def = def;
 
   G_InitEntityFields(ent);
 
-  const g_entity_class_t *clazz = G_EditorEntityClass(ent);
+  const GameEntityClass *clazz = G_EditorEntityClass(ent);
   if (clazz) {
     clazz->Init(ent);
   } else {
@@ -345,7 +345,7 @@ static void G_InitEntityTeams(void) {
       continue;
     }
 
-    g_entity_t *team = ent;
+    GameEntity *team = ent;
     ent->team_master = ent;
 
     teams++;
@@ -512,7 +512,7 @@ static void G_InitTeamSpawns(Vector *team_spawns[MAX_TEAMS]) {
   }
 #endif
 
-  g_entity_t *spot = NULL;
+  GameEntity *spot = NULL;
 
   while ((spot = G_Find(spot, EOFS(classname), "info_player_team_any")) != NULL) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
@@ -537,7 +537,7 @@ static void G_ResolveSpawnPoints(Vector *dm_spawns, Vector *team_spawns[MAX_TEAM
   if (!dm_spawns) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
       for (uint32_t i = 0; team_spawns[t] && i < team_spawns[t]->count; i++) {
-        G_AddSpawn(&dm_spawns, VectorValue(team_spawns[t], g_entity_t *, i));
+        G_AddSpawn(&dm_spawns, VectorValue(team_spawns[t], GameEntity *, i));
       }
     }
 
@@ -587,7 +587,7 @@ ConfigureLevel G_ConfigureLevel = G_ConfigureLevel_Common;
 /**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
-void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities) {
+void G_SpawnEntities(const char *name, const CmEntity *props, CmEntity *const *entities, size_t num_entities) {
 
   // Drop bots, they will reconnect via G_Ai_Frame
   G_ForEachClient(cl, {
@@ -610,10 +610,10 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   G_LevelWillSpawn();
 
-  g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
+  g_level.frags    = $(alloc(Vector), initWithSize, sizeof(GameFrag));
 
 #if defined(G_CTF)
-  g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
+  g_level.captures = $(alloc(Vector), initWithSize, sizeof(GameCapture));
 #endif
 
   // Clear real client entity pointers before freeing entities to prevent dangling references
@@ -755,7 +755,7 @@ static void G_worldspawn_Music(void) {
  give : A comma-delimited item string to give each player on spawn.
  items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
  */
-static void G_worldspawn(g_entity_t *ent) {
+static void G_worldspawn(GameEntity *ent) {
 
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
@@ -778,13 +778,13 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_MESSAGE, g_level.message);
 
-  const cm_entity_t *gravity_map = G_MapValue("gravity");
+  const CmEntity *gravity_map = G_MapValue("gravity");
   if (q_strcmp(g_gravity->string, g_gravity->default_string)) { // prefer an explicit g_gravity override
     g_level.gravity = g_gravity->integer;
   } else if (gravity_map && (gravity_map->parsed & ENTITY_INTEGER) && gravity_map->integer > 0) { // then map metadata gravity
     g_level.gravity = gravity_map->integer;
   } else { // or worldspawn; unset, it stays zero, and the movement's gravity applies
-    const cm_entity_t *gravity = gi.EntityValue(ent->def, "gravity");
+    const CmEntity *gravity = gi.EntityValue(ent->def, "gravity");
     if (gravity->parsed & ENTITY_INTEGER) {
       if (gravity->integer) {
         g_level.gravity = gravity->integer;
@@ -800,7 +800,7 @@ static void G_worldspawn(g_entity_t *ent) {
 
   // the gameplay is g_gameplay if the admin named one, else this level's
   // metadata, else its worldspawn, else deathmatch, as the movement is below
-  const cm_entity_t *gameplay_map = G_MapValue("gameplay");
+  const CmEntity *gameplay_map = G_MapValue("gameplay");
   const char *gameplay = (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1)
                          ? G_GameplayById(gameplay_map->integer)->name
                          : gi.EntityValue(ent->def, "gameplay")->string;
@@ -809,7 +809,7 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
-  const cm_entity_t *items = gi.EntityValue(ent->def, "items");
+  const CmEntity *items = gi.EntityValue(ent->def, "items");
   if (q_strcasecmp(items->string, "quake") == 0) {
     g_level.items = ITEMS_QUAKE;
   } else {
@@ -822,7 +822,7 @@ static void G_worldspawn(g_entity_t *ent) {
   // for, else this level's metadata, else its worldspawn, else Quetoo's. It needs
   // no config string, because it reaches the client inside the movement
   // parameters, which are networked per-player
-  const cm_entity_t *movement_map = G_MapValue("movement");
+  const CmEntity *movement_map = G_MapValue("movement");
   const char *movement = (movement_map && *movement_map->string)
                          ? movement_map->string
                          : gi.EntityValue(ent->def, "movement")->string;
@@ -839,18 +839,18 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.num_teams = -1; // G_InitSpawnPoints derives it from the spawn points
   }
 
-  const cm_entity_t *min_clients_map = G_MapValue("min_clients");
+  const CmEntity *min_clients_map = G_MapValue("min_clients");
   if (min_clients_map && (min_clients_map->parsed & ENTITY_INTEGER) && min_clients_map->integer > -1) {
     g_level.min_clients_map = min_clients_map->integer;
   } else {
     g_level.min_clients_map = -1;
   }
 
-  const cm_entity_t *frag_limit_map = G_MapValue("frag_limit");
+  const CmEntity *frag_limit_map = G_MapValue("frag_limit");
   if (frag_limit_map && (frag_limit_map->parsed & ENTITY_INTEGER) && frag_limit_map->integer > -1) { // prefer map metadata frag_limit
     g_level.frag_limit = frag_limit_map->integer;
   } else { // or fall back on worldspawn
-    const cm_entity_t *frag_limit = gi.EntityValue(ent->def, "frag_limit");
+    const CmEntity *frag_limit = gi.EntityValue(ent->def, "frag_limit");
     if (frag_limit->parsed & ENTITY_INTEGER) {
       g_level.frag_limit = frag_limit->integer;
     } else {
@@ -859,11 +859,11 @@ static void G_worldspawn(g_entity_t *ent) {
   }
 
 #if defined(G_CTF)
-  const cm_entity_t *capture_limit_map = G_MapValue("capture_limit");
+  const CmEntity *capture_limit_map = G_MapValue("capture_limit");
   if (capture_limit_map && (capture_limit_map->parsed & ENTITY_INTEGER) && capture_limit_map->integer > -1) { // prefer map metadata capture_limit
     g_level.capture_limit = capture_limit_map->integer;
   } else { // or fall back on worldspawn
-    const cm_entity_t *capture_limit = gi.EntityValue(ent->def, "capture_limit");
+    const CmEntity *capture_limit = gi.EntityValue(ent->def, "capture_limit");
     if (capture_limit->parsed & ENTITY_INTEGER) {
       g_level.capture_limit = capture_limit->integer;
     } else {
@@ -873,11 +873,11 @@ static void G_worldspawn(g_entity_t *ent) {
 #endif
 
   float minutes;
-  const cm_entity_t *time_limit_map = G_MapValue("time_limit");
+  const CmEntity *time_limit_map = G_MapValue("time_limit");
   if (time_limit_map && (time_limit_map->parsed & ENTITY_FLOAT) && time_limit_map->value > -1.f) { // prefer map metadata time_limit
     minutes = time_limit_map->value;
   } else { // or fall back on worldspawn
-    const cm_entity_t *time_limit = gi.EntityValue(ent->def, "time_limit");
+    const CmEntity *time_limit = gi.EntityValue(ent->def, "time_limit");
     if (time_limit->parsed & ENTITY_FLOAT) {
       minutes = time_limit->value;
     } else {
@@ -886,11 +886,11 @@ static void G_worldspawn(g_entity_t *ent) {
   }
   g_level.time_limit = minutes * 60 * 1000;
 
-  const cm_entity_t *music_map = G_MapValue("music");
+  const CmEntity *music_map = G_MapValue("music");
   if (music_map && *music_map->string) { // prefer map metadata music
     q_strlcpy(g_level.music, music_map->string, sizeof(g_level.music));
   } else { // or fall back on worldspawn
-    const cm_entity_t *music = gi.EntityValue(ent->def, "music");
+    const CmEntity *music = gi.EntityValue(ent->def, "music");
     if (*music->string) {
       q_strlcpy(g_level.music, music->string, sizeof(g_level.music));
     } else {

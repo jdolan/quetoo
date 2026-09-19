@@ -38,7 +38,7 @@ void Cg_Race_Init(void);
 /**
  * @brief The run's time from the two stats it is split across.
  */
-uint32_t Cg_Race_Time(const player_state_t *ps);
+uint32_t Cg_Race_Time(const PlayerState *ps);
 
 /**
  * @brief Formats a run time as the HUD and the board show it.
@@ -50,7 +50,7 @@ const char *Cg_Race_FormatTime(uint32_t ms);
  * what was passed, the time, and how it compares against this racer's best
  * and the course record, `RACE_MILESTONE_NO_DELTA` for no comparison.
  */
-void Cg_Race_Milestone(g_race_milestone_t kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record);
+void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record);
 
 /**
  * @brief The View classes race's HUD JSON names, exported so that they resolve by name.

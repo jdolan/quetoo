@@ -36,8 +36,8 @@ typedef struct {
   /**
    * @brief The actual number of points will vary.
    */
-  vec3_t points[0];
-} cm_winding_t;
+  Vec3 points[0];
+} CmWinding;
 
 /**
  * @brief A winding point, clipped against a specific plane.
@@ -47,7 +47,7 @@ typedef struct {
   /**
    * @brief The clipped point.
    */
-  vec3_t point;
+  Vec3 point;
 
   /**
    * @brief The distance from the plane.
@@ -58,118 +58,118 @@ typedef struct {
    * @brief The plane side.
    */
   int32_t side;
-} cm_clip_point_t;
+} CmClipPoint;
 
 /**
  * @brief Allocates a winding with space for `num_points` points.
  */
-cm_winding_t *Cm_AllocWinding(int32_t num_points);
+CmWinding *Cm_AllocWinding(int32_t num_points);
 
 /**
  * @brief Frees the winding.
  */
-void Cm_FreeWinding(cm_winding_t *w);
+void Cm_FreeWinding(CmWinding *w);
 
 /**
  * @brief Returns a deep copy of the winding.
  */
-cm_winding_t *Cm_CopyWinding(const cm_winding_t *w);
+CmWinding *Cm_CopyWinding(const CmWinding *w);
 
 /**
  * @brief Returns a new winding with points in the reverse order.
  */
-cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w);
+CmWinding *Cm_ReverseWinding(const CmWinding *w);
 
 /**
  * @brief Returns the axis-aligned bounding box enclosing the winding.
  */
-box3_t Cm_WindingBounds(const cm_winding_t *w);
+Box3 Cm_WindingBounds(const CmWinding *w);
 
 /**
  * @brief Returns the centroid of the winding.
  */
-vec3_t Cm_WindingCenter(const cm_winding_t *w);
+Vec3 Cm_WindingCenter(const CmWinding *w);
 
 /**
  * @brief Returns the surface area of the winding.
  */
-float Cm_WindingArea(const cm_winding_t *w);
+float Cm_WindingArea(const CmWinding *w);
 
 /**
  * @brief Returns the minimum distance from point p to the winding boundary.
  * @param dir If non-`NULL`, receives the direction from p to the nearest point.
  */
-float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *dir);
+float Cm_DistanceToWinding(const CmWinding *w, const Vec3 p, Vec3 *dir);
 
 /**
  * @brief Creates a large axially-aligned winding for the given plane.
  */
-cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist);
+CmWinding *Cm_WindingForPlane(const Vec3 normal, double dist);
 
 /**
  * @brief Creates a winding from the vertex loop of a BSP face.
  */
-cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face);
+CmWinding *Cm_WindingForFace(const BspFile *file, const BspFace *face);
 
 /**
  * @brief Creates a winding from the vertex loop of a BSP brush side.
  */
-cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_side_t *brush_side);
+CmWinding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brush_side);
 
 /**
  * @brief Computes the plane normal and distance from a winding's points.
  */
-void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist);
+void Cm_PlaneForWinding(const CmWinding *w, Vec3 *normal, double *dist);
 
 /**
  * @brief Splits the winding by the plane, producing front and back halves.
  */
-void Cm_SplitWinding(const cm_winding_t *w, const vec3_t normal, double dist, double epsilon, cm_winding_t **front, cm_winding_t **back);
+void Cm_SplitWinding(const CmWinding *w, const Vec3 normal, double dist, double epsilon, CmWinding **front, CmWinding **back);
 
 /**
  * @brief Clips the winding to the front half-space of the plane, freeing the back.
  */
-void Cm_ClipWinding(cm_winding_t **w, const vec3_t normal, double dist, double epsilon);
+void Cm_ClipWinding(CmWinding **w, const Vec3 normal, double dist, double epsilon);
 
 /**
  * @brief Clips winding in against the clip winding's plane, returning the front fragment.
  */
-cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon);
+CmWinding *Cm_ClipWindingToWinding(const CmWinding *in, const CmWinding *clip, const Vec3 normal, double epsilon);
 
 /**
  * @brief Clips `in` against every edge of `clip` without allocating, using the
  * caller-supplied scratch windings `a` and `b`.
  */
-const cm_winding_t *Cm_ClipWindingToWindingInto(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon, cm_winding_t *a, cm_winding_t *b, int32_t capacity);
+const CmWinding *Cm_ClipWindingToWindingInto(const CmWinding *in, const CmWinding *clip, const Vec3 normal, double epsilon, CmWinding *a, CmWinding *b, int32_t capacity);
 
 /**
  * @brief Merges two coplanar windings into a single winding, if possible.
  * @return The merged winding, or `NULL` if the windings could not be merged.
  */
-cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal);
+CmWinding *Cm_MergeWindings(const CmWinding *a, const CmWinding *b, const Vec3 normal);
 
 /**
  * @brief Fills elements[] with triangle indices for the winding (fan triangulation).
  * @return The number of indices written.
  */
-int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements);
+int32_t Cm_ElementsForWinding(const CmWinding *w, int32_t *elements);
 
 /**
  * @brief Returns the area of the triangle formed by the three vertices.
  */
-float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c);
+float Cm_TriangleArea(const Vec3 a, const Vec3 b, const Vec3 c);
 
 /**
  * @brief Computes barycentric coordinates of point p in triangle abc.
- * @param out If non-`NULL`, receives the barycentric weights as a `vec3_t`.
+ * @param out If non-`NULL`, receives the barycentric weights as a `Vec3`.
  * @return The interpolated scalar value at p.
  */
-float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out);
+float Cm_Barycentric(const Vec3 a, const Vec3 b, const Vec3 c, const Vec3 p, Vec3 *out);
 
 /**
  * @brief Clips the axis-aligned bounding box by the given plane, returning the clipped box.
  */
-box3_t Cm_ClipBox(const box3_t in, const vec4_t plane);
+Box3 Cm_ClipBox(const Box3 in, const Vec4 plane);
 
 /**
  * @brief A UV mapped vertex primitive.
@@ -179,35 +179,35 @@ typedef struct {
   /**
    * @brief The vertex position.
    */
-  vec3_t *position;
+  Vec3 *position;
 
   /**
    * @brief The vertex normal.
    */
-  vec3_t *normal;
+  Vec3 *normal;
 
   /**
    * @brief The vertex tangent.
    */
-  vec3_t *tangent;
+  Vec3 *tangent;
 
   /**
    * @brief The vertex bitangent.
    */
-  vec3_t *bitangent;
+  Vec3 *bitangent;
 
   /**
    * @brief The vertex texture coordinate.
    */
-  vec2_t *st;
+  Vec2 *st;
 
   /**
    * @brief The number of triangles referencing this vertex.
    */
   int32_t num_tris;
-} cm_vertex_t;
+} CmVertex;
 
 /**
  * @brief Computes and accumulates tangent and bitangent vectors for the given vertex range.
  */
-void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexes, const int32_t *elements, int32_t num_elements);
+void Cm_Tangents(CmVertex *vertexes, int32_t base_vertex, int32_t num_vertexes, const int32_t *elements, int32_t num_elements);

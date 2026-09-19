@@ -28,17 +28,17 @@
  * current transform.
  * @return `false` if the entity that contains @c portal is not in the current frame (@c SVF_NO_CLIENT, etc.).
  */
-static bool Cg_PortalMatrix(const cl_frame_t *frame, const r_bsp_portal_t *portal, mat4_t *matrix) {
+static bool Cg_PortalMatrix(const ClientFrame *frame, const RenderBspPortal *portal, Mat4 *matrix) {
 
   assert(portal->model);
 
   for (int32_t i = 0; i < frame->num_entities; i++) {
 
     const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cgi.client->entity_states[snum];
+    const EntityState *s = &cgi.client->entity_states[snum];
 
     if (cgi.client->models[s->model1] == portal->model) {
-      const cl_entity_t *ent = &cgi.client->entities[s->number];
+      const ClientEntity *ent = &cgi.client->entities[s->number];
 
       *matrix = Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f);
       return true;
@@ -54,18 +54,18 @@ static bool Cg_PortalMatrix(const cl_frame_t *frame, const r_bsp_portal_t *porta
  * into each. All that is wanted here is the transform of the entity drawing each portal's face,
  * which only the client game can resolve.
  */
-void Cg_AddPortals(const cl_frame_t *frame) {
+void Cg_AddPortals(const ClientFrame *frame) {
 
-  const r_model_t *world = cgi.WorldModel();
+  const RenderModel *world = cgi.WorldModel();
   if (!world) {
     return;
   }
 
   for (int32_t i = 0; i < world->bsp->num_portals; i++) {
 
-    r_bsp_portal_t *p = &world->bsp->portals[i];
+    RenderBspPortal *p = &world->bsp->portals[i];
 
-    mat4_t matrix;
+    Mat4 matrix;
     if (Cg_PortalMatrix(frame, p, &matrix)) {
       cgi.AddPortal(cgi.view, p, matrix);
     }

@@ -91,14 +91,14 @@ value it displaced to call as `previous`.
 
 ```c
 /* g_module.h — the contract, and the single authoritative list of hooks */
-typedef void (*ResetDroppedItem)(g_entity_t *ent);
+typedef void (*ResetDroppedItem)(GameEntity *ent);
 
 extern ResetDroppedItem G_ResetDroppedItem;
 ```
 
 ```c
 /* g_item.c — the domain file owns the tail of the chain */
-static void G_ResetDroppedItem_Common(g_entity_t *ent) {
+static void G_ResetDroppedItem_Common(GameEntity *ent) {
   G_FreeEntity(ent);
 }
 
@@ -112,7 +112,7 @@ static struct {
   ResolveInventoryItem ResolveInventoryItem;
 } previous;
 
-static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
+static void G_ResetDroppedItem_Tech(GameEntity *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_TECH) {
     G_ResetDroppedTech(ent);
@@ -172,7 +172,7 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 
 - Hook type: **VerbSubject**, PascalCase, no prefix — `ResetDroppedItem`,
   `ResolveInventoryItem`, `InhibitItem`, `ConfigureLevel`, `PrepareMove`. This
-  matches `g_entity_t::Think` and `::Touch`, and the `cg_entity.h` typedefs.
+  matches `GameEntity::Think` and `::Touch`, and the `cg_entity.h` typedefs.
 - Dispatch pointer: the type with a `G_` prefix — `G_ResetDroppedItem`.
 - Feature implementation: the dispatch pointer with the feature suffixed —
   `G_ResetDroppedItem_Tech`, `G_ResolveInventoryItem_Ctf`. Reading a call site's
@@ -386,7 +386,7 @@ The HUD and the scoreboard are not hooks at all any more; see
 way, on `G_CTF` and `G_TECH` guards. Both have since become ObjectivelyMVC Views a
 module arranges in JSON - see [The client game](#the-client-game). The team modes a mod offers used to be a
 per-module manifest in `cg_team_mode.c`; that file is gone now that team play is
-a bit on `g_gameplay_t` (`GAME_TEAMS`) rather than a mode a menu had to enumerate.
+a bit on `Gameplay` (`GAME_TEAMS`) rather than a mode a menu had to enumerate.
 
 The cgame gets the **same** feature defines as its game module, in all three build
 systems, and it includes that module's own `g_types.h`. That is what keeps the two
@@ -408,7 +408,7 @@ Two rules come out of the way they used to be written:
   `Warn` and `Error`, and because the preprocessor expands a function-like macro
   wherever the identifier is followed by a paren - it does not care that a dot
   precedes it - they rewrote member accesses. `gi.Warn(fmt, ...)` compiled as
-  `gi.Warn_(__func__, fmt, ...)`, so `gi.Warn` was not a member of `g_import_t` at
+  `gi.Warn_(__func__, fmt, ...)`, so `gi.Warn` was not a member of `GameImport` at
   all and looking it up in `game.h` found nothing.
 - **Do not gate on the debug mask.** `Com_Debugv_` returns early on an inactive
   mask, so a gate in the macro only skips formatting the arguments. The one place
@@ -426,7 +426,7 @@ in conflict.
 
 ### The movement kernel is a selection, not a hook
 
-How a player moves is the one variation point that is not a hook. `pm_params_t`
+How a player moves is the one variation point that is not a hook. `PlayerMoveParams`
 carries a `kernel`, `Pm_Move` dispatches on it, and each kernel is a whole
 `bg_pmove_*.c` that owns everything after the move is initialized: the ground,
 water, ladder and duck checks, the slide, the step. `bg_pmove.c` keeps only what
@@ -437,8 +437,8 @@ and `bg_pmove_local.h` is the contract between the two.
 Three things drove that shape rather than a `Move` function pointer, which is
 what this started as:
 
-1. **A kernel cannot be networked, but a selection can.** `pm_params_t` already
-   travels per-player inside `pm_state_t`, delta-compressed as a unit, so the
+1. **A kernel cannot be networked, but a selection can.** `PlayerMoveParams` already
+   travels per-player inside `PlayerMoveState`, delta-compressed as a unit, so the
    id reaches the client with the parameters it belongs to and prediction
    cannot disagree about which physics is running. A function pointer has to
    be installed on both sides separately, by two modules that might not.
@@ -449,7 +449,7 @@ what this started as:
    another record set under the same movement, and shared code that everyone
    edits can never offer that. A kernel in its own file is finished once it
    matches what it is imitating. Changing what one does is a new id appended to
-   `pm_movement_t`, never an edit; the exception is `bg_pmove.c` itself, where a
+   `PlayerMovement`, never an edit; the exception is `bg_pmove.c` itself, where a
    fault is a fault in every ruleset.
 
 The cost is duplication between kernels, accepted deliberately: two kernels that
@@ -457,7 +457,7 @@ differ are meant to differ, and a shared "fix" between them would be a change in
 behaviour rather than a repair. What a kernel MUST NOT do is read a cvar, keep
 state between moves, look at the clock, or use a random number - the server and
 the client both run it. Anything a ruleset needs in order to vary travels in
-`pm_params_t` or is a constant in the kernel's own file.
+`PlayerMoveParams` or is a constant in the kernel's own file.
 
 Because the parameters are per-player rather than per-server, this is also what a
 class-based mod uses: each class gets its movement, and a mod with several
@@ -465,12 +465,12 @@ rulesets gives each player the one their map or their vote selected, by writing
 those fields in `G_PrepareMove`.
 
 `bg_hook.h` and `bg_tech.h` were `g_hook_types.h` and `g_tech_types.h`. They exist
-because `g_types.h` must embed `g_client_hook_t` in `g_client_t`, and `g_hook.h`
-cannot be the source of it: `g_hook.h` includes `g_types.h` for the `g_client_t`
+because `g_types.h` must embed `GameClientHook` in `GameClient`, and `g_hook.h`
+cannot be the source of it: `g_hook.h` includes `g_types.h` for the `GameClient`
 its own declarations take, and `__G_LOCAL_H__` is defined for the whole
 translation unit, so folding the types into `g_hook.h` puts its declarations in
 front of the types they need. That is not a style choice, it is a cycle - it was
-tried, and the compiler says `unknown type name 'g_client_t'`.
+tried, and the compiler says `unknown type name 'GameClient'`.
 
 They are `bg_` rather than `g_` because both sides genuinely use them:
 `Hook_StyleName` and `Hook_StyleByName` live in `bg_hook.h`, so the three style
@@ -726,8 +726,8 @@ does not.
 Everything drawn during play is a HUD View, including what used to be the engine's:
 `NotifyView` and `ChatView` tail the console through `cgi.Tail`, `ChatView` also owns the
 chat input (`cg_message_mode`, `cg_message_mode_2`), `PingView` shows the round trip the
-client records on `cl_client_t`, and `DiagnosticsView` tables the counters the renderer
-keeps on `r_view_t` and the mixer on `s_stage_t`. A variant MAY place, restyle or omit
+client records on `Client`, and `DiagnosticsView` tables the counters the renderer
+keeps on `RenderView` and the mixer on `SoundStage`. A variant MAY place, restyle or omit
 any of them. Only the drop-down console stays in the client, because it MUST outlive a
 client game that fails to load.
 
@@ -745,14 +745,14 @@ In descending order of how much guard they retire:
 
 ### What stays a guard
 
-`cg_types.h`'s `hook_pull_speed` in `cg_state_t`, `cg_predict.c`'s single
+`cg_types.h`'s `hook_pull_speed` in `ClientGameState`, `cg_predict.c`'s single
 prediction branch, and the menu outlets in `MovementCombatViewController.c`, which
 are driven by a JSON resource rather than by code. `cg_main.{c,h}`'s are wiring -
 the `hook_style` cvar, the config string, the accessor - and the two in
 `cg_local.h` are the feature includes, which are guards like any other.
 
 `cg_team_mode.c` no longer exists: team play is now the `GAME_TEAMS` bit on
-`g_gameplay_t`, so there is no per-module manifest of team modes to guard.
+`Gameplay`, so there is no per-module manifest of team modes to guard.
 
 ### Where the guards went
 
@@ -835,14 +835,14 @@ out and no warning.
   generic path called them they silently dropped nothing. Any implementation
   behind a hook must use what it is handed.
 - **Layout, not logic, is the usual failure.** `G_HOOK` adds `hook_pull_speed` to
-  `cg_state_t`, shifting every field after it. A module compiled with a different
+  `ClientGameState`, shifting every field after it. A module compiled with a different
   define set than the objects it links reads those at the wrong offsets and
   presents as a network fault. This is why every common source is compiled once
   per module rather than shared, in all three build systems.
 - **The server's view of a client and an entity is the first member of the
-  module's.** `game.h` declares `sv_game_client_t` and `sv_game_entity_t` - the
+  module's.** `game.h` declares `ServerGameClient` and `ServerGameEntity` - the
   fields the server reads, in the order it reads them - and a module's
-  `g_client_s` and `g_entity_s` embed the matching one as their first member.
+  `GameClient` and `GameEntity` embed the matching one as their first member.
   Because C guarantees that a pointer to a structure points at its first member,
   the two views of the same memory are a fact of the language, not a rule anyone
   has to remember: there is nothing a module can write that moves those fields.
@@ -856,7 +856,7 @@ out and no warning.
   `static_assert`s over it - three copies of the same list, one of which existed
   only to check the other two. The assertions could compare offsets and sizes but
   not types, and they had been passing over a real discrepancy: `game.h` said
-  `struct g_ai_s *ai` where every module said `struct ai_s *ai`. Both are
+  `struct g_ai_s *ai` where every module said `struct Ai *ai`. Both are
   pointers, so both are the same size at the same offset.
 
 ## Adding a common source file

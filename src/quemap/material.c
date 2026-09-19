@@ -26,14 +26,14 @@
  * @brief The global material count and array used by the map compiler.
  */
 int32_t num_materials;
-material_t materials[MAX_BSP_MATERIALS];
+Material materials[MAX_BSP_MATERIALS];
 
 /**
  * @brief Finds the material with the specified name, allocating a new one if necessary.
  */
 int32_t LoadMaterial(const char *name) {
 
-  material_t *m = materials;
+  Material *m = materials;
   for (int32_t i = 0; i < num_materials; i++, m++) {
     if (!q_strcmp(name, m->cm->name)) {
       return i;
@@ -65,7 +65,7 @@ int32_t LoadMaterial(const char *name) {
  */
 void FreeMaterials(void) {
 
-  material_t *m = materials;
+  Material *m = materials;
   for (int32_t i = 0; i < num_materials; i++, m++) {
     Cm_FreeMaterial(m->cm);
     SDL_DestroySurface(m->diffusemap);

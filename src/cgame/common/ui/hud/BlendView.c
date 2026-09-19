@@ -85,9 +85,9 @@ static SDL_Color liquidTint(void) {
     return Colors.Transparent;
   }
 
-  color_t color;
+  Color color;
 
-  const cm_trace_t tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
+  const CmTrace tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
   if (tr.brush) {
     const char *name = tr.brush->brush_sides[0].material->name;
     color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
@@ -105,7 +105,7 @@ static SDL_Color liquidTint(void) {
 
   color.a = Clampf(cg_draw_blend_liquid->value * 0.4f, 0.f, 0.4f);
 
-  const color32_t rgba = Color_Color32(color);
+  const Color32 rgba = Color_Color32(color);
   return (SDL_Color) { rgba.r, rgba.g, rgba.b, rgba.a };
 }
 
@@ -153,7 +153,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   $(self, setVisibility, cg_draw_blend->value ? ViewVisibilityVisible : ViewVisibilityHidden);
 

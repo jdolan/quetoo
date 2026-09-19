@@ -24,11 +24,11 @@
 #include "sv_types.h"
 
 #if defined(__SV_LOCAL_H__)
-extern cvar_t *sv_voice;
-extern cvar_t *sv_voice_rate;
+extern Cvar *sv_voice;
+extern Cvar *sv_voice_rate;
 
 void Sv_InitVoice(void);
-void Sv_ParseVoice(sv_client_t *cl);
-void Sv_MuteVoice(const g_client_t *listener, const g_client_t *speaker, bool mute);
-void Sv_ClearVoiceMutes(const sv_client_t *client);
+void Sv_ParseVoice(ServerClient *cl);
+void Sv_MuteVoice(const GameClient *listener, const GameClient *speaker, bool mute);
+void Sv_ClearVoiceMutes(const ServerClient *client);
 #endif

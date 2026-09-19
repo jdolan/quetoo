@@ -38,14 +38,14 @@ typedef struct {
   /**
    * @brief The item model, or `NULL` if not found.
    */
-  const r_model_t *model;
+  const RenderModel *model;
 
-} cg_item_t;
+} ClientGameItem;
 
 /**
- * @brief Per-item cache, indexed by `g_item_tag_t`. Populated at load time.
+ * @brief Per-item cache, indexed by `GameItemTag`. Populated at load time.
  */
-extern cg_item_t cg_items[ITEM_TOTAL];
+extern ClientGameItem cg_items[ITEM_TOTAL];
 
 /**
  * @brief Cached per-weapon data derived from `bg_item_defs` at load time.
@@ -55,25 +55,25 @@ typedef struct {
   /**
    * @brief The weapon's item tag.
    */
-  g_item_tag_t tag;
+  GameItemTag tag;
 
   /**
    * @brief The ammo item tag this weapon consumes, or `ITEM_NONE`.
    */
-  g_item_tag_t ammo_tag;
+  GameItemTag ammo_tag;
 
 
   /**
    * @brief The weapon model, or `NULL` if not found.
    */
-  const r_model_t *model;
+  const RenderModel *model;
 
-} cg_weapon_t;
+} ClientGameWeapon;
 
 /**
  * @brief Per-weapon cache, indexed by (tag - `WEAPON_FIRST`). Populated at load time.
  */
-extern cg_weapon_t cg_weapons[WEAPON_TOTAL];
+extern ClientGameWeapon cg_weapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache (item models, weapon ammo tags).
@@ -84,15 +84,15 @@ void Cg_InitInventory(void);
 /**
  * @brief Returns true if the player has at least one weapon in inventory.
  */
-bool Cg_HasWeapon(const player_state_t *ps);
+bool Cg_HasWeapon(const PlayerState *ps);
 
 /**
  * @brief Returns the active weapon index into `cg_weapons[]`, or `WEAPON_SELECT_OFF`.
  * Prefers the weapon being switched to over the one currently equipped.
  */
-int16_t Cg_ActiveWeapon(const player_state_t *ps);
+int16_t Cg_ActiveWeapon(const PlayerState *ps);
 
 /**
  * @brief Returns the active ammo quantity, or 0 if the active weapon has no ammo.
  */
-int16_t Cg_ActiveAmmo(const player_state_t *ps);
+int16_t Cg_ActiveAmmo(const PlayerState *ps);

@@ -44,13 +44,13 @@
 // since EF_DESPAWN fades from a timestamp a new entity never gets
 #define RACE_GHOST_EFFECTS (EF_CLIENT | EF_RACE_GHOST)
 
-static g_race_line_t g_race_lines[MAX_CLIENTS];
+static GameRaceLine g_race_lines[MAX_CLIENTS];
 
-static g_race_line_t *G_Race_ClientLine(const g_client_t *cl) {
+static GameRaceLine *G_Race_ClientLine(const GameClient *cl) {
   return &g_race_lines[cl->ps.client];
 }
 
-static const char *G_Race_LinePath(pm_movement_t movement) {
+static const char *G_Race_LinePath(PlayerMovement movement) {
   return va("records/%s-%s.ghost", g_level.name, Pm_Movement(movement)->name);
 }
 
@@ -61,7 +61,7 @@ static const char *G_Race_LineTime(uint32_t ms) {
 /**
  * @brief Room for one more sample in `line`, in memory of `tag`.
  */
-static g_race_sample_t *G_Race_AddSample(g_race_line_t *line, mem_tag_t tag) {
+static GameRaceSample *G_Race_AddSample(GameRaceLine *line, MemTag tag) {
 
   if (line->count == RACE_MAX_SAMPLES) {
     return NULL;
@@ -69,10 +69,10 @@ static g_race_sample_t *G_Race_AddSample(g_race_line_t *line, mem_tag_t tag) {
 
   if (line->count == line->capacity) {
     const size_t capacity = line->capacity ? line->capacity * 2 : 1024;
-    g_race_sample_t *samples = gi.Malloc(capacity * sizeof(g_race_sample_t), tag);
+    GameRaceSample *samples = gi.Malloc(capacity * sizeof(GameRaceSample), tag);
 
     if (line->samples) {
-      memcpy(samples, line->samples, line->count * sizeof(g_race_sample_t));
+      memcpy(samples, line->samples, line->count * sizeof(GameRaceSample));
       gi.Free(line->samples);
     }
 
@@ -83,7 +83,7 @@ static g_race_sample_t *G_Race_AddSample(g_race_line_t *line, mem_tag_t tag) {
   return &line->samples[line->count++];
 }
 
-static void G_Race_FreeLine(g_race_line_t *line) {
+static void G_Race_FreeLine(GameRaceLine *line) {
 
   gi.Free(line->samples);
   memset(line, 0, sizeof(*line));
@@ -153,7 +153,7 @@ void G_Race_LoadLine(void) {
       continue;
     }
 
-    g_race_sample_t sample;
+    GameRaceSample sample;
     int32_t animation1, animation2;
 
     const uint32_t previous = g_level.race_line.count
@@ -173,7 +173,7 @@ void G_Race_LoadLine(void) {
     sample.animation1 = animation1;
     sample.animation2 = animation2;
 
-    g_race_sample_t *added = G_Race_AddSample(&g_level.race_line, MEM_TAG_GAME_LEVEL);
+    GameRaceSample *added = G_Race_AddSample(&g_level.race_line, MEM_TAG_GAME_LEVEL);
     if (!added) {
       break;
     }
@@ -196,9 +196,9 @@ void G_Race_LoadLine(void) {
   gi.SetConfigString(CS_RACE_GHOST, g_level.race_line.count ? g_level.race_line_client : "");
 }
 
-static void G_Race_WriteLine(file_t *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void G_Race_WriteLine(File *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
-static void G_Race_WriteLine(file_t *file, const char *fmt, ...) {
+static void G_Race_WriteLine(File *file, const char *fmt, ...) {
   char line[MAX_STRING_CHARS];
 
   va_list args;
@@ -212,12 +212,12 @@ static void G_Race_WriteLine(file_t *file, const char *fmt, ...) {
 /**
  * @brief Writes `cl`'s line as the course record's, and makes it the level's.
  */
-static void G_Race_SaveLine(g_client_t *cl) {
-  const g_race_run_t *run = &cl->race_run;
-  const g_race_line_t *line = G_Race_ClientLine(cl);
+static void G_Race_SaveLine(GameClient *cl) {
+  const GameRaceRun *run = &cl->race_run;
+  const GameRaceLine *line = G_Race_ClientLine(cl);
   const char *path = G_Race_LinePath(run->movement);
 
-  file_t *file = gi.OpenFileWrite(path);
+  File *file = gi.OpenFileWrite(path);
   if (!file) {
     G_Warn("Failed to open %s for writing\n", path);
     return;
@@ -236,7 +236,7 @@ static void G_Race_SaveLine(g_client_t *cl) {
   G_Race_WriteLine(file, "samples %zu\n", line->count);
 
   for (size_t i = 0; i < line->count; i++) {
-    const g_race_sample_t *s = &line->samples[i];
+    const GameRaceSample *s = &line->samples[i];
 
     G_Race_WriteLine(file, "%u %.2f %.2f %.2f %.1f %.1f %.1f %u %u\n", s->time,
                      s->origin.x, s->origin.y, s->origin.z, s->angles.x, s->angles.y, s->angles.z,
@@ -252,30 +252,30 @@ static void G_Race_SaveLine(g_client_t *cl) {
 
 // ---------------------------------------------------------------- the run's line
 
-void G_Race_BeginLine(g_client_t *cl) {
+void G_Race_BeginLine(GameClient *cl) {
 
   G_Race_DropLine(cl);
   G_Race_SampleLine(cl);
 }
 
-void G_Race_SampleLine(g_client_t *cl) {
+void G_Race_SampleLine(GameClient *cl) {
 
   if (G_Race_Mode(cl) != RACE_MODE_RACE) { // a practice run is nobody's record
     return;
   }
 
-  g_race_line_t *line = G_Race_ClientLine(cl);
+  GameRaceLine *line = G_Race_ClientLine(cl);
   const uint32_t time = g_level.time - cl->race_run.start_time;
 
   // a client may move more than once a tick; the tick's sample is where it ended
-  g_race_sample_t *sample = line->count && line->samples[line->count - 1].time == time
+  GameRaceSample *sample = line->count && line->samples[line->count - 1].time == time
                             ? &line->samples[line->count - 1]
                             : G_Race_AddSample(line, MEM_TAG_GAME);
   if (!sample) {
     return;
   }
 
-  const g_entity_t *ent = cl->entity;
+  const GameEntity *ent = cl->entity;
 
   sample->time = time;
   sample->origin = ent->s.origin;
@@ -284,8 +284,8 @@ void G_Race_SampleLine(g_client_t *cl) {
   sample->animation2 = ent->s.animation2;
 }
 
-void G_Race_KeepLine(g_client_t *cl) {
-  const g_race_line_t *line = G_Race_ClientLine(cl);
+void G_Race_KeepLine(GameClient *cl) {
+  const GameRaceLine *line = G_Race_ClientLine(cl);
 
   if (line->count == RACE_MAX_SAMPLES) {
     G_Warn("%s's course record on %s outran the raceline; not kept\n", cl->persistent.net_name, g_level.name);
@@ -296,7 +296,7 @@ void G_Race_KeepLine(g_client_t *cl) {
   G_Race_DropLine(cl);
 }
 
-void G_Race_DropLine(g_client_t *cl) {
+void G_Race_DropLine(GameClient *cl) {
   G_Race_FreeLine(G_Race_ClientLine(cl));
 }
 
@@ -313,8 +313,8 @@ void G_Race_Shutdown(void) {
  * @brief Moves the ghost to where the record was at this point in the run,
  * and lets it go once the record is over.
  */
-static void G_Race_Ghost_Think(g_entity_t *ent) {
-  const g_race_line_t *line = &g_level.race_line;
+static void G_Race_Ghost_Think(GameEntity *ent) {
+  const GameRaceLine *line = &g_level.race_line;
 
   if (!ent->owner || !ent->owner->in_use || !ent->owner->client || ent->owner->client->race_ghost != ent) {
     G_FreeEntity(ent);
@@ -333,7 +333,7 @@ static void G_Race_Ghost_Think(g_entity_t *ent) {
     return;
   }
 
-  const g_race_sample_t *sample = &line->samples[ent->count];
+  const GameRaceSample *sample = &line->samples[ent->count];
 
   ent->s.origin = sample->origin;
   ent->s.angles = sample->angles;
@@ -345,7 +345,7 @@ static void G_Race_Ghost_Think(g_entity_t *ent) {
   ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
-void G_Race_SpawnGhost(g_client_t *cl) {
+void G_Race_SpawnGhost(GameClient *cl) {
 
   G_Race_RemoveGhost(cl);
 
@@ -353,7 +353,7 @@ void G_Race_SpawnGhost(g_client_t *cl) {
     return;
   }
 
-  g_entity_t *ent = G_AllocEntity(__func__);
+  GameEntity *ent = G_AllocEntity(__func__);
 
   ent->owner = cl->entity;
   ent->solid = SOLID_NOT;
@@ -376,7 +376,7 @@ void G_Race_SpawnGhost(g_client_t *cl) {
   cl->race_ghost = ent;
 }
 
-void G_Race_RemoveGhost(g_client_t *cl) {
+void G_Race_RemoveGhost(GameClient *cl) {
 
   if (cl->race_ghost) {
     G_FreeEntity(cl->race_ghost);
@@ -387,7 +387,7 @@ void G_Race_RemoveGhost(g_client_t *cl) {
 /**
  * @brief Toggles racing against the course record's ghost.
  */
-void G_Race_Ghost_f(g_client_t *cl) {
+void G_Race_Ghost_f(GameClient *cl) {
 
   cl->persistent.race_ghost = !cl->persistent.race_ghost;
 

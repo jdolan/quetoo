@@ -37,7 +37,7 @@ static bool HasSuffix(const char *str, const char *suffix) {
 
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
   List *assets = data;
-  const cm_manifest_entry_t *entry = value;
+  const CmManifestEntry *entry = value;
   $(assets, append, q_strdup(entry->path));
 }
 

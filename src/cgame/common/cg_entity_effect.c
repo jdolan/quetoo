@@ -24,7 +24,7 @@
 /**
  * @brief Returns an HSV color from a hue pointer, substituting a default hue if the pointer is `NULL` or negative.
  */
-vec3_t Cg_EffectColor(float *hue, const float default_hue) {
+Vec3 Cg_EffectColor(float *hue, const float default_hue) {
 
   if (hue) {
     if (*hue < 0.f) {
@@ -41,18 +41,18 @@ vec3_t Cg_EffectColor(float *hue, const float default_hue) {
  * @param client A client number, or any value `>= MAX_CLIENTS` for effects owned by the world,
  * which resolve to `default_hue`.
  */
-vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
+Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
 
   assert(client >= 0);
 
   float client_hue = -1.f;
 
   if (client < MAX_CLIENTS) {
-    const cg_client_info_t *ci = &cg_state.clients[client];
+    const ClientGameClientInfo *ci = &cg_state.clients[client];
     client_hue = ci->team ? ci->team->hue : ci->hue;
   }
 
-  const vec3_t color = Cg_EffectColor(&client_hue, default_hue);
+  const Vec3 color = Cg_EffectColor(&client_hue, default_hue);
 
   if (hue) {
     *hue = client_hue;
@@ -64,16 +64,16 @@ vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float defaul
 /**
  * @brief Adds an inactive player indicator sprite above the entity's position.
  */
-static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
+static void Cg_InactiveEffect(ClientEntity *ent, const Vec3 org) {
 
   if (ent == cgi.client->entity && !cgi.client->third_person) {
     return;
   }
 
-  cgi.AddSprite(cgi.view, &(const r_sprite_t) {
-    .origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
+  cgi.AddSprite(cgi.view, &(const RenderSprite) {
+    .origin = Vec3_Add(org, MakeVec3(0.f, 0.f, 50.f)),
     .color = color_white.vec3,
-    .media = (r_media_t *) cg_sprite_inactive,
+    .media = (RenderMedia *) cg_sprite_inactive,
     .size = 32.f,
   });
 }
@@ -82,7 +82,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
  * @brief The tail of the `Cg_EntityEffects` chain: processes the entity's
  * effects mask, augmenting the renderer entity with the effects common knows.
  */
-static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
+static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
 
   e->effects = ent->current.effects;
 
@@ -102,17 +102,17 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
   }
 
   if (e->effects & EF_RESPAWN) {
-    const vec3_t color = Cg_ClientEffectColor(ent->current.client, NULL, 0.167f);
+    const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, 0.167f);
     e->shell = Vec4_Fmaf(e->shell, 0.5f, Vec3_ToVec4(color, 0.f));
     e->shell.w = fmaxf(e->shell.w, 0.333f);
   }
 
   if (e->effects & EF_QUAD) {
     const float pulse = 4.f + sinf(cgi.client->unclamped_time * 0.006f) * .75f;
-    const cg_light_t l = {
+    const ClientGameLight l = {
       .origin = e->origin,
       .radius = 350.f,
-      .color = Vec3(.2f, .4f, 1.f),
+      .color = MakeVec3(.2f, .4f, 1.f),
       .intensity = pulse,
       .source = ent,
     };
@@ -125,10 +125,10 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
 
   if (e->effects & EF_INVULNERABILITY) {
     const float pulse = 4.f + sinf(cgi.client->unclamped_time * 0.006f) * .75f;
-    const cg_light_t l = {
+    const ClientGameLight l = {
       .origin = e->origin,
       .radius = 350.f,
-      .color = Vec3(1.f, 0.f, 0.f),
+      .color = MakeVec3(1.f, 0.f, 0.f),
       .intensity = pulse,
       .source = ent,
     };
@@ -142,12 +142,12 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
 #if defined(G_CTF)
   if (e->effects & EF_CTF_MASK) {
 
-    for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
+    for (GameTeamId team = TEAM_RED; team < MAX_TEAMS; team++) {
       if (e->effects & (EF_CTF_RED << team)) {
-        const vec3_t color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
+        const Vec3 color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
         const float pulse = 2.5f + sinf(cgi.client->unclamped_time * 0.005f) * .5f;
 
-        const cg_light_t l = {
+        const ClientGameLight l = {
           .origin = e->origin,
           .radius = 250.0,
           .color = color,
@@ -164,7 +164,7 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
   }
 
 #endif
-  const vec3_t shell_rgb = Vec3(e->shell.x, e->shell.y, e->shell.z);
+  const Vec3 shell_rgb = MakeVec3(e->shell.x, e->shell.y, e->shell.z);
   if (Vec3_Length(shell_rgb) > 0.f) {
     e->shell = Vec3_ToVec4(Vec3_Normalize(shell_rgb), e->shell.w);
     e->effects |= EF_SHELL;
@@ -173,9 +173,9 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
   e->color = Vec4_One();
 
   if (e->effects & EF_INVISIBILITY) {
-    e->shell = Vec4(1.f, 1.f, 1.f, .125f);
+    e->shell = MakeVec4(1.f, 1.f, 1.f, .125f);
     e->effects |= EF_SHELL | EF_BLEND | EF_NO_SHADOW;
-    e->color = Vec4(1.f, 1.f, 1.f, 0.f);
+    e->color = MakeVec4(1.f, 1.f, 1.f, 0.f);
   }
 
   if (ent->current.trail == TRAIL_QUAKE_NAIL) {
@@ -196,7 +196,7 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
   }
 
   if (e->effects & EF_LIGHT) {
-    Cg_AddLight(&(const cg_light_t) {
+    Cg_AddLight(&(const ClientGameLight) {
       .origin = e->origin,
       .radius = ent->current.termination.x,
       .color = Color32_Color(ent->current.color).vec3,
@@ -207,7 +207,7 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
 
   if (e->effects & EF_LIGHT_PULSE) {
     const float pulse = .25f + .75f * (1.f + sinf(cgi.client->unclamped_time * .003f)) * .5f;
-    Cg_AddLight(&(const cg_light_t) {
+    Cg_AddLight(&(const ClientGameLight) {
       .origin = Vec3_Fmaf(e->origin, 32.f, Vec3_Up()),
       .radius = ent->current.termination.x * pulse,
       .color = Color32_Color(ent->current.color).vec3,
@@ -218,8 +218,8 @@ static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
   if (e->effects & EF_TEAM_TINT) {
     assert(ent->current.animation1 < MAX_TEAMS);
 
-    const cg_team_info_t *team = cg_state.teams + ent->current.animation1;
-    e->tints[0] = Vec4(team->color.r, team->color.g, team->color.b, 1.f);
+    const ClientGameTeamInfo *team = cg_state.teams + ent->current.animation1;
+    e->tints[0] = MakeVec4(team->color.r, team->color.g, team->color.b, 1.f);
 
     for (int32_t i = 1; i < 3; i++) {
       e->tints[i] = e->tints[0];

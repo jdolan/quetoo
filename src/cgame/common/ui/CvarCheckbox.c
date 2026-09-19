@@ -61,7 +61,7 @@ static void updateBindings(View *self, ident data) {
 
   const ControlState state = this->state;
 
-  const cvar_t *var = ((CvarCheckbox *) self)->var;
+  const Cvar *var = ((CvarCheckbox *) self)->var;
   if (var) {
 
     this->state = var->value ? ControlStateSelected : ControlStateDefault;
@@ -87,11 +87,11 @@ void cvarCheckboxDidToggle(Checkbox *checkbox) {
 }
 
 /**
- * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, cvar_t *var)
+ * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, Cvar *var)
  *
  * @memberof CvarCheckbox
  */
-static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
+static CvarCheckbox *initWithVariable(CvarCheckbox *self, Cvar *var) {
 
   self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL);
   if (self) {

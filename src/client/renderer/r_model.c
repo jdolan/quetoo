@@ -21,12 +21,12 @@
 
 #include "r_local.h"
 
-r_models_t r_models;
+RenderModels r_models;
 
 /**
  * @brief Loads the model by the specified name.
  */
-r_model_t *R_LoadModel(const char *name) {
+RenderModel *R_LoadModel(const char *name) {
   char key[MAX_QPATH];
 
   if (!name || !name[0]) {
@@ -39,16 +39,16 @@ r_model_t *R_LoadModel(const char *name) {
     StripExtension(name, key);
   }
 
-  r_model_t *mod = (r_model_t *) R_FindMedia(key, R_MEDIA_MODEL);
+  RenderModel *mod = (RenderModel *) R_FindMedia(key, R_MEDIA_MODEL);
   if (mod == NULL) {
 
-    const r_model_format_t formats[] = {
+    const RenderModelFormat formats[] = {
       r_obj_model_format,
       r_md3_model_format,
       r_bsp_model_format
     };
 
-    const r_model_format_t *format = formats;
+    const RenderModelFormat *format = formats;
     char path[MAX_QPATH];
 
     size_t i;
@@ -79,7 +79,7 @@ r_model_t *R_LoadModel(const char *name) {
       return NULL;
     }
 
-    mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t), R_MEDIA_MODEL);
+    mod = (RenderModel *) R_AllocMedia(key, sizeof(RenderModel), R_MEDIA_MODEL);
 
     mod->media.Register = format->Register;
     mod->media.Free = format->Free;
@@ -98,7 +98,7 @@ r_model_t *R_LoadModel(const char *name) {
 
     mod->radius = Box3_Radius(mod->bounds);
 
-    R_RegisterMedia((r_media_t *) mod);
+    R_RegisterMedia((RenderMedia *) mod);
   }
 
   return mod;
@@ -107,7 +107,7 @@ r_model_t *R_LoadModel(const char *name) {
 /**
  * @brief Returns the currently loaded world model (BSP).
  */
-r_model_t *R_WorldModel(void) {
+RenderModel *R_WorldModel(void) {
   return r_models.world;
 }
 

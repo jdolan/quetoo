@@ -23,4 +23,4 @@
 
 #include "tree.h"
 
-void WriteLeakFile(const tree_t *tree);
+void WriteLeakFile(const Tree *tree);

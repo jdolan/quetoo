@@ -30,7 +30,7 @@
 /**
  * @brief Like vtos, but without parens.
  */
-static char *vs(const vec3_t v) {
+static char *vs(const Vec3 v) {
   static char buf[MAX_TOKEN_CHARS];
 
   q_snprintf(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
@@ -40,7 +40,7 @@ static char *vs(const vec3_t v) {
 /**
  * @brief Rebuilds the transform matrix from the raw fields of a config.
  */
-static void RebuildMeshConfigTransform(r_mesh_config_t *cfg) {
+static void RebuildMeshConfigTransform(RenderMeshConfig *cfg) {
 
   cfg->transform = Mat4_Identity();
   cfg->transform = Mat4_ConcatTranslation(cfg->transform, cfg->translate);
@@ -63,9 +63,9 @@ static void didEndEditing(TextView *textView) {
 
   const char *text = textView->attributedText->chars ?: "";
 
-  r_mesh_config_t *world = &this->model->mesh->config.world;
-  r_mesh_config_t *link  = &this->model->mesh->config.link;
-  r_mesh_config_t *view  = &this->model->mesh->config.view;
+  RenderMeshConfig *world = &this->model->mesh->config.world;
+  RenderMeshConfig *link  = &this->model->mesh->config.link;
+  RenderMeshConfig *view  = &this->model->mesh->config.view;
 
   if (textView == this->worldTranslate) {
     sscanf(text, "%f %f %f", &world->translate.x, &world->translate.y, &world->translate.z);
@@ -149,12 +149,12 @@ static void viewWillAppear(ViewController *self) {
 
   MeshViewController *this = (MeshViewController *) self;
 
-  r_model_t *model = NULL;
+  RenderModel *model = NULL;
 
   if (cg_editor.selected > 0) {
-    const cg_editor_entity_t *edit = &cg_editor.entities[cg_editor.selected];
+    const ClientGameEditorEntity *edit = &cg_editor.entities[cg_editor.selected];
     if (edit->model && IS_MESH_MODEL(edit->model)) {
-      model = (r_model_t *) edit->model;
+      model = (RenderModel *) edit->model;
     }
   }
 
@@ -174,18 +174,18 @@ static MeshViewController *init(MeshViewController *self) {
 }
 
 /**
- * @fn void MeshViewController::setModel(MeshViewController *self, r_model_t *model)
+ * @fn void MeshViewController::setModel(MeshViewController *self, RenderModel *model)
  * @memberof MeshViewController
  */
-static void setModel(MeshViewController *self, r_model_t *model) {
+static void setModel(MeshViewController *self, RenderModel *model) {
 
   self->model = model;
 
   const bool is_weapon = self->model && !q_strncmp(self->model->media.name, "models/weapons/", 15);
 
-  const r_mesh_config_t *world = self->model ? &self->model->mesh->config.world : &(r_mesh_config_t) { .scale = 1.f };
-  const r_mesh_config_t *link  = self->model ? &self->model->mesh->config.link  : &(r_mesh_config_t) { .scale = 1.f };
-  const r_mesh_config_t *view  = self->model ? &self->model->mesh->config.view  : &(r_mesh_config_t) { .scale = 1.f };
+  const RenderMeshConfig *world = self->model ? &self->model->mesh->config.world : &(RenderMeshConfig) { .scale = 1.f };
+  const RenderMeshConfig *link  = self->model ? &self->model->mesh->config.link  : &(RenderMeshConfig) { .scale = 1.f };
+  const RenderMeshConfig *view  = self->model ? &self->model->mesh->config.view  : &(RenderMeshConfig) { .scale = 1.f };
 
   $(self->worldTranslate, setAttributedText, vs(world->translate));
   $(self->worldRotate,    setAttributedText, vs(world->rotate));

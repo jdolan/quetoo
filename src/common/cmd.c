@@ -25,28 +25,28 @@
 #include "console.h"
 #include "filesystem.h"
 
-typedef struct cmd_args_s {
+typedef struct CmdArgs {
   int32_t argc;
   char argv[MAX_STRING_TOKENS][MAX_TOKEN_CHARS];
   char args[MAX_STRING_CHARS];
-} cmd_args_t;
+} CmdArgs;
 
 #define CBUF_CHARS 65536
 
-typedef struct cmd_state_s {
+typedef struct CmdState {
   HashTable *commands;
 
-  mem_buf_t buf;
+  MemBuf buf;
   char buffers[2][CBUF_CHARS];
 
-  cmd_args_t args;
+  CmdArgs args;
 
   bool wait; // commands may be deferred one frame
 
   int32_t alias_loop_count;
-} cmd_state_t;
+} CmdState;
 
-static cmd_state_t cmd_state;
+static CmdState cmd_state;
 
 #define MAX_ALIAS_LOOP_COUNT 8
 
@@ -217,7 +217,7 @@ void Cmd_TokenizeString(const char *text) {
     return;
   }
 
-  parser_t parser = Parse_Init(text, PARSER_DEFAULT);
+  Parser parser = Parse_Init(text, PARSER_DEFAULT);
 
   while (true) {
     // stop after we've exhausted our token buffer
@@ -258,14 +258,14 @@ void Cmd_TokenizeString(const char *text) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
+static Cmd *Cmd_Get_(const char *name, const bool case_sensitive) {
 
   if (cmd_state.commands) {
     List *list = $(cmd_state.commands, get, (void *) name);
 
     if (list) {
       if (list->count == 1) { // only 1 entry, return it
-        cmd_t *cmd = list->head->element;
+        Cmd *cmd = list->head->element;
 
         if (!case_sensitive || q_strcmp(cmd->name, name) == 0) {
           return cmd;
@@ -273,7 +273,7 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
       } else {
         // only return the exact match
         for (const ListNode *node = list->head; node; node = node->next) {
-          cmd_t *cmd = node->element;
+          Cmd *cmd = node->element;
 
           if (!q_strcmp(cmd->name, name)) {
             return cmd;
@@ -289,21 +289,21 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-cmd_t *Cmd_Get(const char *name) {
+Cmd *Cmd_Get(const char *name) {
   return Cmd_Get_(name, false);
 }
 
 static Order Cmd_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcasecmp(((const cmd_t *) a)->name, ((const cmd_t *) b)->name);
+  const int32_t cmp = q_strcasecmp(((const Cmd *) a)->name, ((const Cmd *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 typedef struct {
   PointerArray *cmds;
-} Cmd_Enumerate_ctx_t;
+} CmdEnumerateCtx;
 
 static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value, ident data) {
-  Cmd_Enumerate_ctx_t *ctx = data;
+  CmdEnumerateCtx *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
     $(ctx->cmds, add, node->element);
@@ -314,7 +314,7 @@ static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value
  * @brief Enumerates all known commands with the given function.
  */
 void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
-  Cmd_Enumerate_ctx_t ctx = {
+  CmdEnumerateCtx ctx = {
     .cmds = $(alloc(PointerArray), init),
   };
 
@@ -322,7 +322,7 @@ void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
   $(ctx.cmds, sort, Cmd_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.cmds->count; i++) {
-    func((cmd_t *) $(ctx.cmds, get, i), data);
+    func((Cmd *) $(ctx.cmds, get, i), data);
   }
 
   release(ctx.cmds);
@@ -331,9 +331,9 @@ void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
 /**
  * @brief Adds the specified command, bound to the given function.
  */
-cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
+Cmd *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
                const char *description) {
-  cmd_t *cmd;
+  Cmd *cmd;
 
   if (Cvar_Get(name)) {
     Com_Debug(DEBUG_CONSOLE, "%s already defined as a var\n", name);
@@ -371,15 +371,15 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 /**
  * @brief Assign the specified autocomplete function to the given command.
  */
-void Cmd_SetAutocomplete(cmd_t *cmd, AutocompleteFunc autocomplete) {
+void Cmd_SetAutocomplete(Cmd *cmd, AutocompleteFunc autocomplete) {
   cmd->Autocomplete = autocomplete;
 }
 
 /**
  * @brief Adds the specified alias command, bound to the given commands string.
  */
-static cmd_t *Cmd_Alias(const char *name, const char *commands) {
-  cmd_t *cmd;
+static Cmd *Cmd_Alias(const char *name, const char *commands) {
+  Cmd *cmd;
 
   if (Cvar_Get(name)) {
     Com_Debug(DEBUG_CONSOLE, "%s already defined as a var\n", name);
@@ -413,7 +413,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
  * @brief Removes the specified command from its backing list.
  * @note Disables the list destroy callback so the caller controls cmd lifetime.
  */
-static List *Cmd_RemovePtr_(cmd_t *cmd) {
+static List *Cmd_RemovePtr_(Cmd *cmd) {
   List *list = $(cmd_state.commands, get, (void *) cmd->name);
 
   ListNode *node = $(list, nodeForElement, cmd);
@@ -434,7 +434,7 @@ static List *Cmd_RemovePtr_(cmd_t *cmd) {
  * @brief Removes the specified command.
  */
 void Cmd_Remove(const char *name) {
-  cmd_t *cmd = Cmd_Get_(name, true);
+  Cmd *cmd = Cmd_Get_(name, true);
 
   if (cmd) {
     List *list = Cmd_RemovePtr_(cmd);
@@ -451,13 +451,13 @@ void Cmd_Remove(const char *name) {
 typedef struct {
   uint32_t flags;
   List *cmds;
-} Cmd_RemoveAll_ctx_t;
+} CmdRemoveAllCtx;
 
 static void Cmd_RemoveAll_collect(const HashTable *table, ident key, ident value, ident data) {
-  Cmd_RemoveAll_ctx_t *ctx = data;
+  CmdRemoveAllCtx *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    cmd_t *cmd = node->element;
+    Cmd *cmd = node->element;
     if (cmd->flags & ctx->flags) {
       $(ctx->cmds, append, cmd);
     }
@@ -468,7 +468,7 @@ static void Cmd_RemoveAll_collect(const HashTable *table, ident key, ident value
  * @brief Removes all commands which match the specified flags mask.
  */
 void Cmd_RemoveAll(uint32_t flags) {
-  Cmd_RemoveAll_ctx_t ctx = {
+  CmdRemoveAllCtx ctx = {
     .flags = flags,
     .cmds = $(alloc(List), init),
   };
@@ -476,7 +476,7 @@ void Cmd_RemoveAll(uint32_t flags) {
   $(cmd_state.commands, enumerate, Cmd_RemoveAll_collect, &ctx);
 
   for (const ListNode *node = ctx.cmds->head; node; node = node->next) {
-    cmd_t *cmd = node->element;
+    Cmd *cmd = node->element;
     List *list = Cmd_RemovePtr_(cmd);
 
     if (!list->count) {
@@ -493,7 +493,7 @@ void Cmd_RemoveAll(uint32_t flags) {
 /**
  * @brief Stringify a command. This memory is temporary.
  */
-static const char *Cmd_Stringify(const cmd_t *cmd) {
+static const char *Cmd_Stringify(const Cmd *cmd) {
   static char buffer[MAX_STRING_CHARS];
   buffer[0] = '\0';
 
@@ -517,7 +517,7 @@ static char cmd_complete_pattern[MAX_STRING_CHARS];
 /**
  * @brief Enumeration helper for `Cmd_CompleteCommand`.
  */
-static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
+static void Cmd_CompleteCommand_enumerate(Cmd *cmd, void *data) {
   List *matches = data;
 
   if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
@@ -537,7 +537,7 @@ void Cmd_CompleteCommand(const char *pattern, List *matches) {
  * @brief A complete command line has been parsed, so try to execute it
  */
 void Cmd_ExecuteString(const char *text) {
-  cmd_t *cmd;
+  Cmd *cmd;
 
   Cmd_TokenizeString(text);
 
@@ -575,7 +575,7 @@ void Cmd_ExecuteString(const char *text) {
 /**
  * @brief Enumeration helper for `Cmd_Alias_f`.
  */
-static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data) {
+static void Cmd_Alias_f_enumerate(Cmd *cmd, void *data) {
 
   if (cmd->commands) {
     Com_Print("%s: %s\n", cmd->name, cmd->commands);
@@ -622,10 +622,10 @@ static void Cmd_Alias_f(void) {
 
 typedef struct {
   PointerArray *strs;
-} Cmd_List_ctx_t;
+} CmdListCtx;
 
-static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
-  Cmd_List_ctx_t *ctx = data;
+static void Cmd_List_f_enumerate(Cmd *cmd, void *data) {
+  CmdListCtx *ctx = data;
   $(ctx->strs, add, q_strdup(Cmd_Stringify(cmd)));
 }
 
@@ -638,7 +638,7 @@ static Order Cmd_List_sortfn(const ident a, const ident b) {
  * @brief Lists all known commands at the console.
  */
 static void Cmd_List_f(void) {
-  Cmd_List_ctx_t ctx = {
+  CmdListCtx ctx = {
     .strs = $(alloc(PointerArray), initWithDestroy, free),
   };
 
@@ -710,7 +710,7 @@ static void Cmd_Wait_f(void) {
 
 typedef struct {
   PointerArray *lists;
-} Cmd_Shutdown_ctx_t;
+} CmdShutdownCtx;
 
 static void Cmd_Shutdown_collect(const HashTable *table, ident key, ident value, ident data) {
   $(((PointerArray *) data), add, value);
@@ -728,7 +728,7 @@ void Cmd_Init(void) {
   Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
   Cmd_Add("cmd_list", Cmd_List_f, 0, NULL);
-  cmd_t *exec_cmd = Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
+  Cmd *exec_cmd = Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
   Cmd_SetAutocomplete(exec_cmd, Cmd_Exec_Autocomplete_f);
   Cmd_Add("echo", Cmd_Echo_f, 0, NULL);
   Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
@@ -765,7 +765,7 @@ void Cmd_Init(void) {
  */
 void Cmd_Shutdown(void) {
 
-  Cmd_Shutdown_ctx_t ctx = {
+  CmdShutdownCtx ctx = {
     .lists = $(alloc(PointerArray), init),
   };
 

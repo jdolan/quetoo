@@ -24,8 +24,8 @@
 
 #include "ConsoleViewController.h"
 
-extern cl_static_t cls;
-extern cl_client_t cl;
+extern ClientStatic cls;
+extern Client cl;
 
 static WindowController *windowController;
 
@@ -45,16 +45,16 @@ static NavigationViewController *navigationViewController;
 /**
  * @brief Retain callback for Ui sounds.
  */
-static bool Ui_RetainSample(s_media_t *media) {
+static bool Ui_RetainSample(SoundMedia *media) {
   return true;
 }
 
 /**
  * @brief Loads a sample for the Ui.
  */
-static s_sample_t *Ui_LoadSample(const char *name) {
+static SoundSample *Ui_LoadSample(const char *name) {
 
-  s_sample_t *sample = S_LoadSample(name, ASSET_CONTEXT_UI);
+  SoundSample *sample = S_LoadSample(name, ASSET_CONTEXT_UI);
 
   if (sample) {
     sample->media.Retain = Ui_RetainSample;
@@ -194,7 +194,7 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  const cl_key_dest_t dest = cls.key_state.dest;
+  const ClientKeyDest dest = cls.key_state.dest;
 
   const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
   const bool menus = dest == KEY_UI || cls.state == CL_LOADING || (cls.state != CL_ACTIVE && dest != KEY_CONSOLE);
@@ -320,7 +320,7 @@ void Ui_Init(void) {
   $(rootViewController, addChildViewController, (ViewController *) consoleViewController);
 
   for (int32_t i = 0; i < 10; i++) {
-    const color32_t c = Color_Color32(ColorEsc(i));
+    const Color32 c = Color_Color32(ColorEsc(i));
     TextEscapeColors[i] = (SDL_Color) { c.r, c.g, c.b, c.a };
   }
 

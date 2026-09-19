@@ -24,7 +24,7 @@
 #include "net_types.h"
 
 /**
- * @brief Delta compression flags for `pm_state_t`.
+ * @brief Delta compression flags for `PlayerMoveState`.
  */
 #define PS_PM_CLIENT        (1 << 0)
 #define PS_PM_ENTITY        (1 << 1)
@@ -56,7 +56,7 @@
 #define CMD_MUZZLE  0x80
 
 /**
- * @brief These flags indicate which fields in a given `entity_state_t` must be
+ * @brief These flags indicate which fields in a given `EntityState` must be
  * written or read for delta compression from one snapshot to the next.
  */
 #define U_ORIGIN      (1 << 0)
@@ -79,36 +79,36 @@
 /**
  * @brief Message writing and reading facilities.
  */
-void Net_WriteData(mem_buf_t *msg, const void *data, size_t len);
-void Net_WriteChar(mem_buf_t *msg, int32_t c);
-void Net_WriteByte(mem_buf_t *msg, int32_t c);
-void Net_WriteShort(mem_buf_t *msg, int32_t c);
-void Net_WriteLong(mem_buf_t *msg, int32_t c);
-void Net_WriteString(mem_buf_t *msg, const char *s);
-void Net_WriteFloat(mem_buf_t *msg, float f);
-void Net_WritePosition(mem_buf_t *msg, const vec3_t pos);
-void Net_WriteAngle(mem_buf_t *msg, float f);
-void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles);
-void Net_WriteDir(mem_buf_t *msg, const vec3_t dir);
-void Net_WriteBounds(mem_buf_t *msg, const box3_t bounds);
-void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to);
-void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to);
-void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, bool force);
+void Net_WriteData(MemBuf *msg, const void *data, size_t len);
+void Net_WriteChar(MemBuf *msg, int32_t c);
+void Net_WriteByte(MemBuf *msg, int32_t c);
+void Net_WriteShort(MemBuf *msg, int32_t c);
+void Net_WriteLong(MemBuf *msg, int32_t c);
+void Net_WriteString(MemBuf *msg, const char *s);
+void Net_WriteFloat(MemBuf *msg, float f);
+void Net_WritePosition(MemBuf *msg, const Vec3 pos);
+void Net_WriteAngle(MemBuf *msg, float f);
+void Net_WriteAngles(MemBuf *msg, const Vec3 angles);
+void Net_WriteDir(MemBuf *msg, const Vec3 dir);
+void Net_WriteBounds(MemBuf *msg, const Box3 bounds);
+void Net_WriteDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, const PlayerMoveCmd *to);
+void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const PlayerState *to);
+void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityState *to, bool force);
 
-void Net_BeginReading(mem_buf_t *msg);
-void Net_ReadData(mem_buf_t *msg, void *data, size_t len);
-int32_t Net_ReadChar(mem_buf_t *msg);
-int32_t Net_ReadByte(mem_buf_t *msg);
-int32_t Net_ReadShort(mem_buf_t *msg);
-int32_t Net_ReadLong(mem_buf_t *msg);
-char *Net_ReadString(mem_buf_t *msg);
-char *Net_ReadStringLine(mem_buf_t *msg);
-float Net_ReadFloat(mem_buf_t *msg);
-vec3_t Net_ReadPosition(mem_buf_t *msg);
-float Net_ReadAngle(mem_buf_t *msg);
-vec3_t Net_ReadAngles(mem_buf_t *msg);
-vec3_t Net_ReadDir(mem_buf_t *msg);
-box3_t Net_ReadBounds(mem_buf_t *msg);
-void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to);
-void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);
-void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to, int16_t number, uint16_t bits);
+void Net_BeginReading(MemBuf *msg);
+void Net_ReadData(MemBuf *msg, void *data, size_t len);
+int32_t Net_ReadChar(MemBuf *msg);
+int32_t Net_ReadByte(MemBuf *msg);
+int32_t Net_ReadShort(MemBuf *msg);
+int32_t Net_ReadLong(MemBuf *msg);
+char *Net_ReadString(MemBuf *msg);
+char *Net_ReadStringLine(MemBuf *msg);
+float Net_ReadFloat(MemBuf *msg);
+Vec3 Net_ReadPosition(MemBuf *msg);
+float Net_ReadAngle(MemBuf *msg);
+Vec3 Net_ReadAngles(MemBuf *msg);
+Vec3 Net_ReadDir(MemBuf *msg);
+Box3 Net_ReadBounds(MemBuf *msg);
+void Net_ReadDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, PlayerMoveCmd *to);
+void Net_ReadDeltaPlayerState(MemBuf *msg, const PlayerState *from, PlayerState *to);
+void Net_ReadDeltaEntity(MemBuf *msg, const EntityState *from, EntityState *to, int16_t number, uint16_t bits);

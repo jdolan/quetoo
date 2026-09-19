@@ -31,9 +31,9 @@ typedef struct {
   size_t max_size; // maximum size before overflow
   size_t size; // current size
   size_t read;
-} mem_buf_t;
+} MemBuf;
 
-void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len);
-void Mem_ClearBuffer(mem_buf_t *buf);
-void *Mem_AllocBuffer(mem_buf_t *buf, size_t len);
-void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len);
+void Mem_InitBuffer(MemBuf *buf, byte *data, size_t len);
+void Mem_ClearBuffer(MemBuf *buf);
+void *Mem_AllocBuffer(MemBuf *buf, size_t len);
+void Mem_WriteBuffer(MemBuf *buf, const void *data, size_t len);

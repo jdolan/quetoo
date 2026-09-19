@@ -26,15 +26,15 @@
 /**
  * @brief The grappling hook is an optional feature. A game module opts in by
  * adding g_hook.c to its _SOURCES and -DG_HOOK to its AM_CPPFLAGS, then
- * embedding `g_client_hook_t` in its `g_client_t` and `g_hook_style_t` in its
- * `g_client_persistent_t`. The MSVS build sets QuetooGameHook and G_HOOK; the
+ * embedding `GameClientHook` in its `GameClient` and `GameHookStyle` in its
+ * `GameClientPersistent`. The MSVS build sets QuetooGameHook and G_HOOK; the
  * Xcode build adds the source to the target and G_HOOK to its defines.
  *
  * @details This is `bg_` rather than `g_` because both sides use it: the game
  * parses the style a client asked for, and the client game offers the choice.
  * It is deliberately free of game types, both so that `g_types.h` may include it
  * before defining them - `g_hook.h` cannot, because its own declarations need
- * `g_client_t` - and so that the client game may include it at all. The hook owns
+ * `GameClient` - and so that the client game may include it at all. The hook owns
  * everything else it needs: its cvars, its media indices and its enabled state
  * all live in g_hook.c. The module supplies only this per-client state, plus the
  * MOD_HOOK, TE_HOOK_IMPACT and TRAIL_HOOK values, which are read off the wire by
@@ -44,7 +44,7 @@
  * below are all the shared code there is; both sides still compile them.
  */
 
-struct g_entity_s;
+struct GameEntity;
 
 /**
  * @brief Hook style.
@@ -53,7 +53,7 @@ typedef enum {
   HOOK_PULL,
   HOOK_SWING_MANUAL,
   HOOK_SWING_AUTO
-} g_hook_style_t;
+} GameHookStyle;
 
 /**
  * @brief Per-client hook state. This is reset when the client respawns; the
@@ -73,13 +73,13 @@ typedef struct {
   /**
    * @brief The hook entity the client is attached to.
    */
-  struct g_entity_s *entity;
+  struct GameEntity *entity;
 
   /**
    * @brief True if the client is currently pulling toward the hook.
    */
   bool pull;
-} g_client_hook_t;
+} GameClientHook;
 
 /**
  * @return The name of the given hook style, as the `g_hook_style` cvar and a
@@ -88,7 +88,7 @@ typedef struct {
  * declared once here rather than spelled out in a menu and a parser that must
  * agree by inspection.
  */
-static inline const char *Hook_StyleName(g_hook_style_t style) {
+static inline const char *Hook_StyleName(GameHookStyle style) {
 
   switch (style) {
     case HOOK_SWING_MANUAL:
@@ -104,9 +104,9 @@ static inline const char *Hook_StyleName(g_hook_style_t style) {
  * @return The hook style of the given name, defaulting to `HOOK_PULL` for any
  * name that is not one of them, including "default".
  */
-static inline g_hook_style_t Hook_StyleByName(const char *name) {
+static inline GameHookStyle Hook_StyleByName(const char *name) {
 
-  for (g_hook_style_t style = HOOK_PULL; style <= HOOK_SWING_AUTO; style++) {
+  for (GameHookStyle style = HOOK_PULL; style <= HOOK_SWING_AUTO; style++) {
     if (!q_strcmp(name, Hook_StyleName(style))) {
       return style;
     }

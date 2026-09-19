@@ -27,7 +27,7 @@
 #define _Class _CameraControlsView
 
 /**
- * @brief The icon and name for each camera, indexed by `cg_camera_mode_t`, with the detached
+ * @brief The icon and name for each camera, indexed by `ClientGameCameraMode`, with the detached
  * camera last: it is the absence of a subject rather than a way of framing one.
  */
 static const struct {
@@ -79,7 +79,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   const bool detached = !Cg_CameraSubject(ps);
 

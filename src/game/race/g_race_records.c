@@ -76,14 +76,14 @@ static uint32_t G_Race_HashBytes(uint32_t hash, const void *data, size_t length)
 /**
  * @brief An FNV-1a hash of the fields, not the struct: there is padding after movement.
  */
-static uint32_t G_Race_HashParams(const pm_params_t *params) {
+static uint32_t G_Race_HashParams(const PlayerMoveParams *params) {
 
   uint32_t hash = 2166136261u;
 
   // the fields, not the struct: there is padding after movement
   hash = G_Race_HashBytes(hash, &params->gravity, sizeof(params->gravity));
   hash = G_Race_HashBytes(hash, &params->movement, sizeof(params->movement));
-  hash = G_Race_HashBytes(hash, &params->accel_ground, sizeof(*params) - offsetof(pm_params_t, accel_ground));
+  hash = G_Race_HashBytes(hash, &params->accel_ground, sizeof(*params) - offsetof(PlayerMoveParams, accel_ground));
 
   return hash;
 }
@@ -92,11 +92,11 @@ static uint32_t G_Race_HashParams(const pm_params_t *params) {
  * @brief Reads `key_N` for N from `first` up, as long as they are there: a
  * value is at most `MAX_BSP_ENTITY_VALUE` long, so a list is one key per time.
  */
-static uint16_t G_Race_ParseTimes(const cm_entity_t *def, const char *key, int32_t first, uint32_t *times) {
+static uint16_t G_Race_ParseTimes(const CmEntity *def, const char *key, int32_t first, uint32_t *times) {
   uint16_t count = 0;
 
   for (int32_t n = first; n <= RACE_MAX_CHECKPOINTS; n++) {
-    const cm_entity_t *time = gi.EntityValue(def, va("%s_%d", key, n));
+    const CmEntity *time = gi.EntityValue(def, va("%s_%d", key, n));
 
     if (!(time->parsed & ENTITY_INTEGER)) {
       break;
@@ -112,7 +112,7 @@ static uint16_t G_Race_ParseTimes(const cm_entity_t *def, const char *key, int32
  * @brief Fastest first.
  */
 static int32_t G_Race_CompareRecords(const void *a, const void *b) {
-  const g_race_record_t *ra = a, *rb = b;
+  const GameRaceRecord *ra = a, *rb = b;
 
   if (ra->movement != rb->movement) {
     return (int32_t) ra->movement - (int32_t) rb->movement;
@@ -125,21 +125,21 @@ static int32_t G_Race_CompareRecords(const void *a, const void *b) {
  * @brief Keeps the records fastest first within each movement.
  */
 static void G_Race_SortRecords(void) {
-  qsort(g_level.race_records, g_level.race_record_count, sizeof(g_race_record_t), G_Race_CompareRecords);
+  qsort(g_level.race_records, g_level.race_record_count, sizeof(GameRaceRecord), G_Race_CompareRecords);
 }
 
 /**
  * @brief Room for one more record, in level memory so that the level's end
  * frees it along with everything else.
  */
-static g_race_record_t *G_Race_AddRecord(void) {
+static GameRaceRecord *G_Race_AddRecord(void) {
 
   if (g_level.race_record_count == g_level.race_record_capacity) {
     const size_t capacity = g_level.race_record_capacity ? g_level.race_record_capacity * 2 : 32;
-    g_race_record_t *records = gi.Malloc(capacity * sizeof(g_race_record_t), MEM_TAG_GAME_LEVEL);
+    GameRaceRecord *records = gi.Malloc(capacity * sizeof(GameRaceRecord), MEM_TAG_GAME_LEVEL);
 
     if (g_level.race_records) {
-      memcpy(records, g_level.race_records, g_level.race_record_count * sizeof(g_race_record_t));
+      memcpy(records, g_level.race_records, g_level.race_record_count * sizeof(GameRaceRecord));
       gi.Free(g_level.race_records);
     }
 
@@ -147,7 +147,7 @@ static g_race_record_t *G_Race_AddRecord(void) {
     g_level.race_record_capacity = capacity;
   }
 
-  g_race_record_t *record = &g_level.race_records[g_level.race_record_count++];
+  GameRaceRecord *record = &g_level.race_records[g_level.race_record_count++];
   memset(record, 0, sizeof(*record));
   return record;
 }
@@ -155,10 +155,10 @@ static g_race_record_t *G_Race_AddRecord(void) {
 /**
  * @brief The client's record under `movement`, or `NULL` for none yet.
  */
-static g_race_record_t *G_Race_FindRecord(const char *guid, pm_movement_t movement) {
+static GameRaceRecord *G_Race_FindRecord(const char *guid, PlayerMovement movement) {
 
   for (size_t i = 0; i < g_level.race_record_count; i++) {
-    g_race_record_t *record = &g_level.race_records[i];
+    GameRaceRecord *record = &g_level.race_records[i];
 
     if (record->movement == movement && !q_strcmp(record->guid, guid)) {
       return record;
@@ -171,7 +171,7 @@ static g_race_record_t *G_Race_FindRecord(const char *guid, pm_movement_t moveme
 /**
  * @see g_race.h
  */
-const g_race_record_t *G_Race_BestRecord(pm_movement_t movement) {
+const GameRaceRecord *G_Race_BestRecord(PlayerMovement movement) {
 
   for (size_t i = 0; i < g_level.race_record_count; i++) {
     if (g_level.race_records[i].movement == movement) {
@@ -185,19 +185,19 @@ const g_race_record_t *G_Race_BestRecord(pm_movement_t movement) {
 /**
  * @see g_race.h
  */
-const g_race_record_t *G_Race_Record(const char *guid, pm_movement_t movement) {
+const GameRaceRecord *G_Race_Record(const char *guid, PlayerMovement movement) {
   return G_Race_FindRecord(guid, movement);
 }
 
 /**
  * @see g_race.h
  */
-size_t G_Race_Rank(const g_race_record_t *record, size_t *count) {
+size_t G_Race_Rank(const GameRaceRecord *record, size_t *count) {
   size_t rank = 0;
 
   *count = 0;
   for (size_t i = 0; i < g_level.race_record_count; i++) {
-    const g_race_record_t *r = &g_level.race_records[i];
+    const GameRaceRecord *r = &g_level.race_records[i];
 
     if (r->movement != record->movement) {
       continue;
@@ -221,7 +221,7 @@ static void G_Race_PublishRecords(void) {
   size_t shown = 0;
 
   for (size_t i = 0; i < g_level.race_record_count && shown < RACE_RECORDS_SHOWN; i++) {
-    const g_race_record_t *record = &g_level.race_records[i];
+    const GameRaceRecord *record = &g_level.race_records[i];
 
     if (record->movement != g_level.movement) {
       continue;
@@ -243,13 +243,13 @@ static void G_Race_PublishRecords(void) {
 /**
  * @brief Reads one block, or says why it is not a record.
  */
-static bool G_Race_ParseRecord(const cm_entity_t *def, int32_t index) {
+static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
 
   const char *guid = gi.EntityValue(def, "guid")->nullable_string;
   const char *movement_name = gi.EntityValue(def, "movement")->nullable_string;
-  const cm_entity_t *time = gi.EntityValue(def, "time");
+  const CmEntity *time = gi.EntityValue(def, "time");
 
-  pm_movement_t movement;
+  PlayerMovement movement;
 
   if (!guid || !*guid) {
     G_Warn("Record %d in %s has no guid\n", index, G_Race_RecordsPath());
@@ -271,7 +271,7 @@ static bool G_Race_ParseRecord(const cm_entity_t *def, int32_t index) {
     return false;
   }
 
-  g_race_record_t *record = G_Race_AddRecord();
+  GameRaceRecord *record = G_Race_AddRecord();
 
   q_strlcpy(record->guid, guid, sizeof(record->guid));
   q_strlcpy(record->name, gi.EntityValue(def, "name")->string, sizeof(record->name));
@@ -312,7 +312,7 @@ void G_Race_LoadRecords(void) {
 
   int32_t index = 0;
   for (const ListNode *node = defs->head; node; node = node->next, index++) {
-    cm_entity_t *def = node->element;
+    CmEntity *def = node->element;
     G_Race_ParseRecord(def, index);
     gi.FreeEntity(def);
   }
@@ -326,12 +326,12 @@ void G_Race_LoadRecords(void) {
   G_Debug("Loaded %zu records from %s\n", g_level.race_record_count, G_Race_RecordsPath());
 }
 
-static void G_Race_WriteLine(file_t *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void G_Race_WriteLine(File *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 /**
  * @brief Formats one line into the records file.
  */
-static void G_Race_WriteLine(file_t *file, const char *fmt, ...) {
+static void G_Race_WriteLine(File *file, const char *fmt, ...) {
   char line[MAX_STRING_CHARS];
 
   va_list args;
@@ -345,7 +345,7 @@ static void G_Race_WriteLine(file_t *file, const char *fmt, ...) {
 /**
  * @brief Writes a numbered key per time, `key_N` from `first` up, as the loader reads them.
  */
-static void G_Race_WriteTimes(file_t *file, const char *key, int32_t first, const uint32_t *times, uint16_t count) {
+static void G_Race_WriteTimes(File *file, const char *key, int32_t first, const uint32_t *times, uint16_t count) {
 
   for (uint16_t i = 0; i < count; i++) {
     G_Race_WriteLine(file, "  \"%s_%d\" \"%u\"\n", key, first + i, times[i]);
@@ -357,7 +357,7 @@ static void G_Race_WriteTimes(file_t *file, const char *key, int32_t first, cons
  */
 static void G_Race_SaveRecords(void) {
 
-  file_t *file = gi.OpenFileWrite(G_Race_RecordsPath());
+  File *file = gi.OpenFileWrite(G_Race_RecordsPath());
   if (!file) {
     G_Warn("Failed to open %s for writing\n", G_Race_RecordsPath());
     return;
@@ -366,7 +366,7 @@ static void G_Race_SaveRecords(void) {
   G_Race_WriteLine(file, "// Race records for %s: one personal best per player per movement\n", g_level.name);
 
   for (size_t i = 0; i < g_level.race_record_count; i++) {
-    const g_race_record_t *r = &g_level.race_records[i];
+    const GameRaceRecord *r = &g_level.race_records[i];
 
     G_Race_WriteLine(file, "{\n");
     G_Race_WriteLine(file, "  \"guid\" \"%s\"\n", r->guid);
@@ -389,12 +389,12 @@ static void G_Race_SaveRecords(void) {
 /**
  * @see g_race.h
  */
-bool G_Race_SubmitRecord(g_client_t *cl) {
-  const g_race_run_t *run = &cl->race_run;
+bool G_Race_SubmitRecord(GameClient *cl) {
+  const GameRaceRun *run = &cl->race_run;
 
-  const g_race_record_t *best = G_Race_BestRecord(run->movement);
+  const GameRaceRecord *best = G_Race_BestRecord(run->movement);
 
-  g_race_record_t *record = G_Race_FindRecord(cl->persistent.guid, run->movement);
+  GameRaceRecord *record = G_Race_FindRecord(cl->persistent.guid, run->movement);
 
   if (record && record->time <= run->elapsed) {
     G_Race_CenterPrint(cl, "Finished in %s, your best is %s (+%s)", G_Race_RecordTime(run->elapsed),

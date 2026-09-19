@@ -86,12 +86,12 @@ static void enumerateDemos(const char *path, void *data) {
 
   DemoList *demos = data;
 
-  file_t *file = cgi.OpenFile(path);
+  File *file = cgi.OpenFile(path);
   if (!file) {
     return;
   }
 
-  demo_header_t header;
+  DemoHeader header;
   if (cgi.ReadFile(file, &header, sizeof(header), 1) != 1 ||
       memcmp(header.magic, DEMO_MAGIC, sizeof(header.magic)) ||
       LittleLong(header.version) != DEMO_VERSION) {
@@ -118,7 +118,7 @@ static void enumerateDemos(const char *path, void *data) {
   info->duration = header.duration;
   info->favorite = header.favorite != 0;
 
-  fs_stat_t stat;
+  FsStat stat;
   if (cgi.StatFile(path, &stat)) {
     info->modified = stat.modified;
   }

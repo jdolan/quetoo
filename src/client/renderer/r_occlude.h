@@ -23,10 +23,10 @@
 
 #include "r_types.h"
 
-bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
-bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
-bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
-bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
+bool R_CulludeBox(const RenderView *view, const Box3 bounds);
+bool R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius);
+bool R_OccludeBox(const RenderView *view, const Box3 bounds);
+bool R_OccludeSphere(const RenderView *view, const Vec3 origin, float radius);
 
 #if defined(__R_LOCAL_H__)
 
@@ -42,7 +42,7 @@ typedef struct {
   /**
    * @brief Allocated occlusion queries.
    */
-  r_occlusion_query_t queries[MAX_OCCLUSION_QUERIES];
+  RenderOcclusionQuery queries[MAX_OCCLUSION_QUERIES];
 
   /**
    * @brief Number of allocated queries.
@@ -53,14 +53,14 @@ typedef struct {
    * @brief The bounds of this frame's occluded world block queries, compacted so
    * that `R_OccludeBox` need only visit the blocks relevant to each of its passes.
    */
-  box3_t occluded_bounds[MAX_BSP_BLOCKS];
+  Box3 occluded_bounds[MAX_BSP_BLOCKS];
   int32_t num_occluded_bounds;
 
   /**
    * @brief The bounds of this frame's visible world block queries, compacted as
    * above.
    */
-  box3_t visible_bounds[MAX_BSP_BLOCKS];
+  Box3 visible_bounds[MAX_BSP_BLOCKS];
   int32_t num_visible_bounds;
 
   /**
@@ -97,15 +97,15 @@ typedef struct {
    * @brief Query result transfer buffer.
    */
   TransferBuffer *transfer;
-} r_occlusion_t;
+} RenderOcclusion;
 
-extern r_occlusion_t r_occlusion;
+extern RenderOcclusion r_occlusion;
 
-r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds);
-void R_AppendOcclusionQueryBox(r_occlusion_query_t *query, box3_t bounds);
+RenderOcclusionQuery *R_AllocOcclusionQuery(const Box3 bounds);
+void R_AppendOcclusionQueryBox(RenderOcclusionQuery *query, Box3 bounds);
 void R_FreeOcclusionQueries(void);
 void R_LoadOcclusionQueries(void);
-void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands);
+void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands);
 void R_InitOcclusionQueries(void);
 void R_ShutdownOcclusionQueries(void);
 

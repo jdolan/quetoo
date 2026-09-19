@@ -30,7 +30,7 @@
 
 #include <SDL3/SDL_thread.h>
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -56,7 +56,7 @@ void teardown(void) {
 
 START_TEST(check_Net_HttpUrl) {
 
-	net_addr_t addr;
+	NetAddr addr;
 	ck_assert(Net_StringToNetaddr("192.168.1.100:1998", &addr));
 
 	char buf[256];
@@ -69,7 +69,7 @@ START_TEST(check_Net_HttpUrl) {
 
 START_TEST(check_Net_HttpUrl_empty_path) {
 
-	net_addr_t addr;
+	NetAddr addr;
 	ck_assert(Net_StringToNetaddr("10.0.0.1:8080", &addr));
 
 	char buf[256];
@@ -82,7 +82,7 @@ START_TEST(check_Net_HttpUrl_empty_path) {
 
 START_TEST(check_Net_HttpUrl_small_buffer) {
 
-	net_addr_t addr;
+	NetAddr addr;
 	ck_assert(Net_StringToNetaddr("127.0.0.1:1998", &addr));
 
 	char buf[16];
@@ -261,15 +261,15 @@ typedef struct {
 	char parsed_method[16];
 	char parsed_path[256];
 	bool ok;
-} http_server_t;
+} HttpServer;
 
 static int SDLCALL http_server_thread(void *data) {
-	http_server_t *ctx = data;
+	HttpServer *ctx = data;
 
 	// Make listen socket blocking so accept() waits for the client
 	Net_SetNonBlocking(ctx->listen_sock, false);
 
-	net_addr_t from;
+	NetAddr from;
 	const int32_t client = Net_Accept(ctx->listen_sock, &from);
 	if (client < 0) {
 		ctx->ok = false;
@@ -322,7 +322,7 @@ START_TEST(check_Net_Http_roundtrip) {
 
 	const char payload[] = "Hello, Quetoo!\nThis is a test file download.\n";
 
-	http_server_t server = {
+	HttpServer server = {
 		.listen_sock = listen_sock,
 		.port = port,
 		.payload = payload,

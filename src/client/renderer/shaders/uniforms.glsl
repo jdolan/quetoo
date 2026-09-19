@@ -66,7 +66,7 @@
 /**
  * @brief Voxel grid bounds and dimensions.
  */
-struct voxels_t {
+struct Voxels {
   /**
    * @brief World-space voxel minimums.
    */
@@ -120,7 +120,7 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
   /**
    * @brief Voxel grid parameters.
    */
-  voxels_t voxels;
+  Voxels voxels;
 
   /**
    * @brief View depth range in world units.

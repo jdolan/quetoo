@@ -57,7 +57,7 @@ typedef enum {
    * @brief Allow all comments
    */
   PARSER_ALL_COMMENTS = PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS | PARSER_POUND_LINE_COMMENTS
-} parser_flags_t;
+} ParserFlags;
 
 /**
  * @brief State used to determine parser positioning
@@ -65,7 +65,7 @@ typedef enum {
 typedef struct {
   const char *ptr;
   uint32_t row, col;
-} parser_position_t;
+} ParserPosition;
 
 /**
  * @brief A parser struct to be kept alive for the parsing procedure. Stores state required
@@ -74,12 +74,12 @@ typedef struct {
  */
 typedef struct {
   // static members, only set on initialization
-  parser_flags_t flags;
+  ParserFlags flags;
   const char *start;
 
   // dynamic members, change through parsing
-  parser_position_t position;
-} parser_t;
+  ParserPosition position;
+} Parser;
 
 /**
  * @brief Bitflags applied to a single parse routine call.
@@ -121,7 +121,7 @@ typedef enum {
    * @brief Default parser settings
    */
   PARSE_DEFAULT = PARSE_COPY_QUOTED_LITERALS
-} parse_flags_t;
+} ParseFlags;
 
 /**
  * @brief Types for `Parser_Parse`
@@ -135,51 +135,51 @@ typedef enum {
   PARSE_INT32,
   PARSE_FLOAT,
   PARSE_DOUBLE
-} parse_type_t;
+} ParseType;
 
 /**
  * @brief Initialize a parser with the specified data and flags.
  */
-static inline parser_t __attribute__ ((warn_unused_result)) Parse_Init(const char *data, const parser_flags_t flags) {
+static inline Parser __attribute__ ((warn_unused_result)) Parse_Init(const char *data, const ParserFlags flags) {
 
-  return (parser_t) {
+  return (Parser) {
     .start = data,
     .position.ptr = data,
     .flags = flags
   };
 }
 
-bool Parse_IsEOF(const parser_t *parser);
-bool Parse_IsEOL(const parser_t *parser);
-bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len);
-size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count);
+bool Parse_IsEOF(const Parser *parser);
+bool Parse_IsEOL(const Parser *parser);
+bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const size_t output_len);
+size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType type, void *output, const size_t count);
 
-static inline bool Parse_SkipToken(parser_t *parser, const parse_flags_t flags) {
+static inline bool Parse_SkipToken(Parser *parser, const ParseFlags flags) {
   return Parse_Token(parser, flags, NULL, 0);
 }
 
-static inline size_t Parse_SkipPrimitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type,
+static inline size_t Parse_SkipPrimitive(Parser *parser, const ParseFlags flags, const ParseType type,
                      const size_t count) {
   return Parse_Primitive(parser, flags, type, NULL, count);
 }
 
-static inline bool Parse_PeekToken(parser_t *parser, const parse_flags_t flags, void *output, const size_t output_len) {
+static inline bool Parse_PeekToken(Parser *parser, const ParseFlags flags, void *output, const size_t output_len) {
   return Parse_Token(parser, flags | PARSE_PEEK, output, output_len);
 }
 
-static inline size_t Parse_PeekPrimitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type,
+static inline size_t Parse_PeekPrimitive(Parser *parser, const ParseFlags flags, const ParseType type,
                      void *output, const size_t count) {
   return Parse_Primitive(parser, flags | PARSE_PEEK, type, output, count);
 }
 
-static inline bool Parse_QuickToken(const char *data, const parser_flags_t parser_flags, const parse_flags_t flags,
+static inline bool Parse_QuickToken(const char *data, const ParserFlags parser_flags, const ParseFlags flags,
                    void *output, const size_t output_len) {
-  parser_t p = Parse_Init(data, parser_flags);
+  Parser p = Parse_Init(data, parser_flags);
   return Parse_Token(&p, flags, output, output_len);
 }
 
-static inline size_t Parse_QuickPrimitive(const char *data, const parser_flags_t parser_flags, const parse_flags_t flags,
-                      const parse_type_t type, void *output, const size_t count) {
-  parser_t p = Parse_Init(data, parser_flags);
+static inline size_t Parse_QuickPrimitive(const char *data, const ParserFlags parser_flags, const ParseFlags flags,
+                      const ParseType type, void *output, const size_t count) {
+  Parser p = Parse_Init(data, parser_flags);
   return Parse_Primitive(&p, flags, type, output, count);
 }

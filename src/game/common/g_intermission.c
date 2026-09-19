@@ -24,7 +24,7 @@
 #include "g_local.h"
 #include "bg_intermission.h"
 
-cvar_t *g_vote_next_map;
+Cvar *g_vote_next_map;
 
 #define BALLOT_NONE -1
 
@@ -102,7 +102,7 @@ static const char *G_Intermission_MapAt(const List *list, int32_t index) {
     return NULL;
   }
 
-  return gi.EntityValue((const cm_entity_t *) node->element, "name")->string;
+  return gi.EntityValue((const CmEntity *) node->element, "name")->string;
 }
 
 /**
@@ -140,7 +140,7 @@ static void G_Intermission_SelectMaps(void) {
     }
 
     for (const ListNode *node = list->head; node; node = node->next) {
-      gi.FreeEntity((cm_entity_t *) node->element);
+      gi.FreeEntity((CmEntity *) node->element);
     }
 
     release(list);
@@ -278,7 +278,7 @@ static void G_Intermission_End(void) {
 /**
  * @brief Records a ballot, which a client may change until the intermission ends.
  */
-static void G_Intermission_Cast(g_client_t *cl, int32_t map) {
+static void G_Intermission_Cast(GameClient *cl, int32_t map) {
 
   if (!g_intermission_state.active || !g_intermission_state.voting) {
     gi.ClientPrint(cl, PRINT_HIGH, "No map vote is in progress\n");
@@ -308,7 +308,7 @@ static void G_Intermission_Cast(g_client_t *cl, int32_t map) {
 /**
  * @brief `vote_map <n>`, where `n` is the candidate as the client game numbers them.
  */
-static bool G_HandleClientCommand_Intermission(g_client_t *cl, const char *cmd) {
+static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) {
 
   if (q_strcmp(cmd, "vote_map")) {
     return previous.HandleClientCommand(cl, cmd);
@@ -358,7 +358,7 @@ static void G_FrameDidEnd_Intermission(void) {
  * @brief A leaving client's ballot leaves with them, so that it can neither decide the
  * vote nor be inherited by whoever takes their slot.
  */
-static void G_ClientWillDisconnect_Intermission(g_client_t *cl) {
+static void G_ClientWillDisconnect_Intermission(GameClient *cl) {
 
   if (g_intermission_state.ballots[cl->ps.client] != BALLOT_NONE) {
     g_intermission_state.ballots[cl->ps.client] = BALLOT_NONE;

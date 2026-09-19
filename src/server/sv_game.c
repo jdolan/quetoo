@@ -27,15 +27,15 @@
 /**
  * @brief Fetch the active debug mask.
  */
-static debug_t Sv_DebugMask(void) {
+static DebugFlags Sv_DebugMask(void) {
   return quetoo.debug_mask;
 }
 
 /**
  * @brief Forwards debug output from the game module to the common debug system.
  */
-static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
+static void Sv_GameDebug(const DebugFlags debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Sv_GameDebug(const DebugFlags debug, const char *func, const char *fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
@@ -62,7 +62,7 @@ static void Sv_GameError(const char *func, const char *fmt, ...) {
 /**
  * @brief Also sets mins and maxs for inline bsp models.
  */
-static void Sv_SetModel(g_entity_t *ent, const char *name) {
+static void Sv_SetModel(GameEntity *ent, const char *name) {
 
   if (!name) {
     Com_Warn("%s: NULL\n", etos(ent));
@@ -73,7 +73,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 
   // if it is an inline model, get the size information for it
   if (name[0] == '*') {
-    const cm_bsp_model_t *mod = Cm_Model(name);
+    const CmBspModel *mod = Cm_Model(name);
     ent->bounds = mod->bounds;
     Sv_LinkEntity(ent);
   }
@@ -176,14 +176,14 @@ static void Sv_WriteVector(const float v) {
 /**
  * @brief Writes a position vector to the server multicast buffer.
  */
-static void Sv_WritePosition(const vec3_t pos) {
+static void Sv_WritePosition(const Vec3 pos) {
   Net_WritePosition(&sv.multicast, pos);
 }
 
 /**
  * @brief Writes a direction vector to the server multicast buffer.
  */
-static void Sv_WriteDir(const vec3_t dir) {
+static void Sv_WriteDir(const Vec3 dir) {
   Net_WriteDir(&sv.multicast, dir);
 }
 
@@ -197,7 +197,7 @@ static void Sv_WriteAngle(const float v) {
 /**
  * @brief Writes an angles vector to the server multicast buffer.
  */
-static void Sv_WriteAngles(const vec3_t angles) {
+static void Sv_WriteAngles(const Vec3 angles) {
   Net_WriteAngles(&sv.multicast, angles);
 }
 
@@ -226,13 +226,13 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *user_data) {
  * single public IP, which it cannot otherwise distinguish (payloads only ever
  * identify a player, not the reporting server).
  */
-static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_capture_t *captures, size_t captures_len) {
+static void Sv_PostStats(const GameFrag *frags, size_t frags_len, const GameCapture *captures, size_t captures_len) {
 
   if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
     return;
   }
 
-  const cvar_t *net_port = Cvar_Get("net_port");
+  const Cvar *net_port = Cvar_Get("net_port");
 
   const char *headers[] = {
     "X-Quetoo-Port",     net_port->string,
@@ -242,17 +242,17 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
 
   if (frags_len) {
 
-    const JSONProperties sv_frag_properties = MakeJSONProperties(g_frag_t,
-      MakeJSONProperty(g_frag_t, level,         JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_frag_t, attacker,      JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_frag_t, attacker_guid, JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_frag_t, attacker_ai,   JSONSerializeBoole,      NULL, NULL),
-      MakeJSONProperty(g_frag_t, target,        JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_frag_t, target_guid,   JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_frag_t, target_ai,     JSONSerializeBoole,      NULL, NULL),
-      MakeJSONProperty(g_frag_t, weapon,        JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_frag_t, mod,           JSONSerializeInt32,      NULL, NULL),
-      MakeJSONProperty(g_frag_t, time,          JSONSerializeInt32,      NULL, NULL)
+    const JSONProperties sv_frag_properties = MakeJSONProperties(GameFrag,
+      MakeJSONProperty(GameFrag, level,         JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, attacker,      JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, attacker_guid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, attacker_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(GameFrag, target,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, target_guid,   JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, target_ai,     JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(GameFrag, weapon,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, mod,           JSONSerializeInt32,      NULL, NULL),
+      MakeJSONProperty(GameFrag, time,          JSONSerializeInt32,      NULL, NULL)
     );
 
     static char frags_url[MAX_STRING_CHARS];
@@ -271,13 +271,13 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
 
   if (captures_len) {
 
-    const JSONProperties sv_capture_properties = MakeJSONProperties(g_capture_t,
-      MakeJSONProperty(g_capture_t, level,       JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_capture_t, player,      JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_capture_t, player_guid, JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_capture_t, player_ai,   JSONSerializeBoole,      NULL, NULL),
-      MakeJSONProperty(g_capture_t, team,        JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(g_capture_t, time,        JSONSerializeInt32,      NULL, NULL)
+    const JSONProperties sv_capture_properties = MakeJSONProperties(GameCapture,
+      MakeJSONProperty(GameCapture, level,       JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameCapture, player,      JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameCapture, player_guid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameCapture, player_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(GameCapture, team,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameCapture, time,        JSONSerializeInt32,      NULL, NULL)
     );
 
     static char captures_url[MAX_STRING_CHARS];
@@ -306,7 +306,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
  * deemed less confusing to "mod" authors back in the day.
  */
 void Sv_InitGame(void) {
-  g_import_t import;
+  GameImport import;
 
   if (svs.game) {
     Com_Error(ERROR_FATAL, "Game already loaded\n");
@@ -413,7 +413,7 @@ void Sv_InitGame(void) {
     Com_Error(ERROR_DROP, "Failed to open %s's game module\n", dir);
   }
   
-  g_export_t *game = (g_export_t *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);
+  GameExport *game = (GameExport *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);
 
   if (!game) {
     game_handle = Sys_CloseLibrary(game_handle);

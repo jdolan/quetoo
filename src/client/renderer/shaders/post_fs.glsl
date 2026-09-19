@@ -46,7 +46,7 @@ layout (std140, set = 3, binding = 0) uniform locals_block {
 };
 
 /**
- * @brief Post-processing stage selector, mirroring the r_post_stage_t C enum.
+ * @brief Post-processing stage selector, mirroring the RenderPostStage C enum.
  */
 const int R_POST_BLOOM_EXTRACT = 0;
 const int R_POST_BLOOM_BLUR_X  = 1;

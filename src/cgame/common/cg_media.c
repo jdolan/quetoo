@@ -21,118 +21,118 @@
 
 #include "cg_local.h"
 
-s_sample_t *cg_sample_blaster_fire;
-s_sample_t *cg_sample_blaster_hit;
-s_sample_t *cg_sample_shotgun_fire;
-s_sample_t *cg_sample_supershotgun_fire;
-s_sample_t *cg_sample_machinegun_fire[3];
-s_sample_t *cg_sample_machinegun_hit[3];
-s_sample_t *cg_sample_grenadelauncher_fire;
-s_sample_t *cg_sample_rocketlauncher_fire;
-s_sample_t *cg_sample_hyperblaster_fire;
-s_sample_t *cg_sample_hyperblaster_hit;
-s_sample_t *cg_sample_lightning_fire;
-s_sample_t *cg_sample_laser_fire;
-s_sample_t *cg_sample_lightning_discharge;
-s_sample_t *cg_sample_railgun_fire;
-s_sample_t *cg_sample_bfg_fire;
-s_sample_t *cg_sample_bfg_hit;
+SoundSample *cg_sample_blaster_fire;
+SoundSample *cg_sample_blaster_hit;
+SoundSample *cg_sample_shotgun_fire;
+SoundSample *cg_sample_supershotgun_fire;
+SoundSample *cg_sample_machinegun_fire[3];
+SoundSample *cg_sample_machinegun_hit[3];
+SoundSample *cg_sample_grenadelauncher_fire;
+SoundSample *cg_sample_rocketlauncher_fire;
+SoundSample *cg_sample_hyperblaster_fire;
+SoundSample *cg_sample_hyperblaster_hit;
+SoundSample *cg_sample_lightning_fire;
+SoundSample *cg_sample_laser_fire;
+SoundSample *cg_sample_lightning_discharge;
+SoundSample *cg_sample_railgun_fire;
+SoundSample *cg_sample_bfg_fire;
+SoundSample *cg_sample_bfg_hit;
 #if defined(G_HOOK)
-s_sample_t *cg_sample_hook_hit;
+SoundSample *cg_sample_hook_hit;
 #endif
 
-s_sample_t *cg_sample_quake_shotgun_fire;
-s_sample_t *cg_sample_quake_supershotgun_fire;
-s_sample_t *cg_sample_quake_nailgun_fire;
-s_sample_t *cg_sample_quake_supernailgun_fire;
-s_sample_t *cg_sample_quake_nail_hit;
-s_sample_t *cg_sample_quake_grenadelauncher_fire;
-s_sample_t *cg_sample_quake_rocketlauncher_fire;
+SoundSample *cg_sample_quake_shotgun_fire;
+SoundSample *cg_sample_quake_supershotgun_fire;
+SoundSample *cg_sample_quake_nailgun_fire;
+SoundSample *cg_sample_quake_supernailgun_fire;
+SoundSample *cg_sample_quake_nail_hit;
+SoundSample *cg_sample_quake_grenadelauncher_fire;
+SoundSample *cg_sample_quake_rocketlauncher_fire;
 
-s_sample_t *cg_sample_explosion;
-s_sample_t *cg_sample_teleport;
-s_sample_t *cg_sample_respawn;
-s_sample_t *cg_sample_sparks;
-s_sample_t *cg_sample_fire;
-s_sample_t *cg_sample_steam;
+SoundSample *cg_sample_explosion;
+SoundSample *cg_sample_teleport;
+SoundSample *cg_sample_respawn;
+SoundSample *cg_sample_sparks;
+SoundSample *cg_sample_fire;
+SoundSample *cg_sample_steam;
 
-s_sample_t *cg_sample_rain;
-s_sample_t *cg_sample_snow;
-s_sample_t* cg_sample_ash;
-s_sample_t *cg_sample_underwater;
-s_sample_t *cg_sample_hits[2];
-s_sample_t *cg_sample_gib;
+SoundSample *cg_sample_rain;
+SoundSample *cg_sample_snow;
+SoundSample* cg_sample_ash;
+SoundSample *cg_sample_underwater;
+SoundSample *cg_sample_hits[2];
+SoundSample *cg_sample_gib;
 
-static r_atlas_t *cg_sprite_atlas;
+static RenderAtlas *cg_sprite_atlas;
 
-r_atlas_image_t *cg_sprite_particle;
-r_atlas_image_t *cg_sprite_particle2;
-r_atlas_image_t *cg_sprite_particle3;
-r_atlas_image_t *cg_sprite_flash;
-r_atlas_image_t *cg_sprite_ring;
-r_atlas_image_t *cg_sprite_blaster_flash;
-r_atlas_image_t *cg_sprite_aniso_flare_01;
-r_atlas_image_t *cg_sprite_rain;
-r_atlas_image_t *cg_sprite_snow;
-r_atlas_image_t* cg_sprite_ash;
-r_atlas_image_t *cg_sprite_bubble;
-r_atlas_image_t *cg_sprite_teleport;
-r_atlas_image_t *cg_sprite_teleport_core;
-r_atlas_image_t *cg_sprite_smoke;
-r_atlas_image_t *cg_sprite_flame;
-r_atlas_image_t *cg_sprite_explosion_glow;
-r_atlas_image_t *cg_sprite_explosion_flash;
-r_atlas_image_t *cg_sprite_spark;
-r_atlas_image_t *cg_sprite_steam;
-r_atlas_image_t *cg_sprite_inactive;
-r_atlas_image_t *cg_sprite_plasma_var01;
-r_atlas_image_t *cg_sprite_plasma_var02;
-r_atlas_image_t *cg_sprite_plasma_var03;
-r_atlas_image_t *cg_sprite_blob_01;
-r_atlas_image_t *cg_sprite_electro_02;
-r_atlas_image_t *cg_sprite_splash_02_03;
-r_atlas_image_t *cg_sprite_impact_spark_01_dot;
-r_atlas_image_t *cg_sprite_puff_cloud;
-r_atlas_image_t *cg_sprite_water_circle;
-r_atlas_image_t *cg_sprite_water_ring;
-r_atlas_image_t *cg_sprite_water_ring2;
-r_atlas_image_t *cg_sprite_abstract_01;
-r_atlas_image_t *cg_sprite_node_wait;
-r_atlas_image_t *cg_sprite_node_slow;
+RenderAtlasImage *cg_sprite_particle;
+RenderAtlasImage *cg_sprite_particle2;
+RenderAtlasImage *cg_sprite_particle3;
+RenderAtlasImage *cg_sprite_flash;
+RenderAtlasImage *cg_sprite_ring;
+RenderAtlasImage *cg_sprite_blaster_flash;
+RenderAtlasImage *cg_sprite_aniso_flare_01;
+RenderAtlasImage *cg_sprite_rain;
+RenderAtlasImage *cg_sprite_snow;
+RenderAtlasImage* cg_sprite_ash;
+RenderAtlasImage *cg_sprite_bubble;
+RenderAtlasImage *cg_sprite_teleport;
+RenderAtlasImage *cg_sprite_teleport_core;
+RenderAtlasImage *cg_sprite_smoke;
+RenderAtlasImage *cg_sprite_flame;
+RenderAtlasImage *cg_sprite_explosion_glow;
+RenderAtlasImage *cg_sprite_explosion_flash;
+RenderAtlasImage *cg_sprite_spark;
+RenderAtlasImage *cg_sprite_steam;
+RenderAtlasImage *cg_sprite_inactive;
+RenderAtlasImage *cg_sprite_plasma_var01;
+RenderAtlasImage *cg_sprite_plasma_var02;
+RenderAtlasImage *cg_sprite_plasma_var03;
+RenderAtlasImage *cg_sprite_blob_01;
+RenderAtlasImage *cg_sprite_electro_02;
+RenderAtlasImage *cg_sprite_splash_02_03;
+RenderAtlasImage *cg_sprite_impact_spark_01_dot;
+RenderAtlasImage *cg_sprite_puff_cloud;
+RenderAtlasImage *cg_sprite_water_circle;
+RenderAtlasImage *cg_sprite_water_ring;
+RenderAtlasImage *cg_sprite_water_ring2;
+RenderAtlasImage *cg_sprite_abstract_01;
+RenderAtlasImage *cg_sprite_node_wait;
+RenderAtlasImage *cg_sprite_node_slow;
 
-r_image_t *cg_beam_hook;
-r_image_t *cg_beam_arrow;
-r_image_t *cg_beam_line;
-r_image_t *cg_beam_rail;
-r_image_t *cg_beam_lightning;
-r_image_t *cg_beam_tracer;
-r_image_t *cg_beam_tail;
+RenderImage *cg_beam_hook;
+RenderImage *cg_beam_arrow;
+RenderImage *cg_beam_line;
+RenderImage *cg_beam_rail;
+RenderImage *cg_beam_lightning;
+RenderImage *cg_beam_tracer;
+RenderImage *cg_beam_tail;
 
-r_animation_t *cg_sprite_explosion;
-r_animation_t *cg_sprite_explosion_ring_02;
-r_animation_t *cg_sprite_rocket_flame;
-r_animation_t *cg_sprite_blaster_flame;
-r_animation_t *cg_sprite_smoke_04;
-r_animation_t *cg_sprite_smoke_05;
-r_animation_t *cg_sprite_blaster_ring;
-r_animation_t *cg_bfg_explosion_1;
-r_animation_t *cg_sprite_bfg_explosion_2;
-r_animation_t *cg_sprite_bfg_explosion_3;
-r_animation_t *cg_sprite_poof_01;
-r_animation_t *cg_sprite_poof_02;
-r_animation_t *cg_sprite_blood_01;
-r_animation_t *cg_sprite_electro_01;
-r_animation_t *cg_sprite_fireball_01;
-r_animation_t *cg_sprite_impact_spark_01;
-r_animation_t *cg_sprite_hyperball_01;
-r_animation_t *cg_sprite_fizz_01;
+RenderAnimation *cg_sprite_explosion;
+RenderAnimation *cg_sprite_explosion_ring_02;
+RenderAnimation *cg_sprite_rocket_flame;
+RenderAnimation *cg_sprite_blaster_flame;
+RenderAnimation *cg_sprite_smoke_04;
+RenderAnimation *cg_sprite_smoke_05;
+RenderAnimation *cg_sprite_blaster_ring;
+RenderAnimation *cg_bfg_explosion_1;
+RenderAnimation *cg_sprite_bfg_explosion_2;
+RenderAnimation *cg_sprite_bfg_explosion_3;
+RenderAnimation *cg_sprite_poof_01;
+RenderAnimation *cg_sprite_poof_02;
+RenderAnimation *cg_sprite_blood_01;
+RenderAnimation *cg_sprite_electro_01;
+RenderAnimation *cg_sprite_fireball_01;
+RenderAnimation *cg_sprite_impact_spark_01;
+RenderAnimation *cg_sprite_hyperball_01;
+RenderAnimation *cg_sprite_fizz_01;
 
-static r_atlas_t *cg_decal_atlas;
+static RenderAtlas *cg_decal_atlas;
 
-r_atlas_image_t *cg_decal_bullet[3];
-r_atlas_image_t *cg_decal_blood[4];
-r_atlas_image_t *cg_decal_burn[4];
-r_atlas_image_t *cg_decal_slug[4];
+RenderAtlasImage *cg_decal_bullet[3];
+RenderAtlasImage *cg_decal_blood[4];
+RenderAtlasImage *cg_decal_burn[4];
+RenderAtlasImage *cg_decal_slug[4];
 
 Framebuffer *cg_framebuffer;
 
@@ -174,7 +174,7 @@ void Cg_DestroyFramebuffer(void) {
 /**
  * @brief Loads a numbered atlas image sequence and returns it as an animation.
  */
-static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
+static RenderAnimation *Cg_LoadAnimatedSprite(RenderAtlas *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
   assert(last_frame > first_frame);
 
   char format_path[MAX_QPATH];
@@ -182,10 +182,10 @@ static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, c
 
   char name[MAX_QPATH];
   const uint32_t length = (last_frame - first_frame) + 1;
-  const r_image_t *images[length];
+  const RenderImage *images[length];
   for (uint32_t i = 0; i < length; i++) {
     q_snprintf(name, MAX_QPATH, format_path, i + first_frame);
-    images[i] = (r_image_t *) cgi.LoadAtlasImage(atlas, name, IMG_SPRITE);
+    images[i] = (RenderImage *) cgi.LoadAtlasImage(atlas, name, IMG_SPRITE);
   }
 
   return cgi.CreateAnimation(base_path, length, images);

@@ -22,7 +22,7 @@
 #pragma once
 
 #if defined(__CG_LOCAL_H__)
-extern button_t cg_buttons[4];
+extern InputButton cg_buttons[4];
 #define in_speed cg_buttons[0]
 #define in_attack cg_buttons[1]
 #define in_hook cg_buttons[2]
@@ -31,8 +31,8 @@ extern button_t cg_buttons[4];
 const char *Cg_KeyBind(const char *bind);
 void Cg_HandleEvent(const SDL_Event *event);
 void Cg_ParseViewKick(void);
-void Cg_Look(pm_cmd_t *cmd);
-void Cg_ExportMove(pm_cmd_t *cmd);
+void Cg_Look(PlayerMoveCmd *cmd);
+void Cg_ExportMove(PlayerMoveCmd *cmd);
 void Cg_ClearInput(void);
 void Cg_InitInput(void);
 #endif

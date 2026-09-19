@@ -52,7 +52,7 @@ static void updateBindings(View *self, ident data) {
   super(View, self, updateBindings, data);
 
   if (data) {
-    const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+    const PlayerState *ps = &((const ClientFrame *) data)->ps;
     $((PowerupView *) self, update, ps->stats[STAT_TECH], -1);
   }
 }

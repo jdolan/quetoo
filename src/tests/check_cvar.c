@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -55,7 +55,7 @@ void teardown(void) {
 
 START_TEST(check_Cvar_Get) {
   // check that we can create a variable and that its fields are populated correctly
-  cvar_t *var = Cvar_Add("var", "3.2", CVAR_ARCHIVE, __func__);
+  Cvar *var = Cvar_Add("var", "3.2", CVAR_ARCHIVE, __func__);
 
   ck_assert(var != NULL);
   ck_assert_str_eq(var->name, "var");
@@ -67,7 +67,7 @@ START_TEST(check_Cvar_Get) {
 
   // check that a subsequent call for the same variable does not modify the value
   // but does modify all meta-data
-  cvar_t *var_copy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
+  Cvar *var_copy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
 
   ck_assert(var_copy == var);
   ck_assert_str_eq(var->string, "3.2");
@@ -87,8 +87,8 @@ START_TEST(check_Cvar_Get) {
 } END_TEST
 
 START_TEST(check_Cvar_WriteAll) {
-  cvar_t *vars[32];
-  file_t *file;
+  Cvar *vars[32];
+  File *file;
 
   // create a whole mess of variables
   for (uint32_t i = 0; i < lengthof(vars); i++) {

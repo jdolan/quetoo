@@ -21,16 +21,16 @@
 
 #include "cg_local.h"
 
-cvar_t *cg_chat_lines;
-cvar_t *cg_chat_time;
-cvar_t *cg_notify_lines;
-cvar_t *cg_notify_time;
-cvar_t *cg_select_weapon_alpha;
-cvar_t *cg_select_weapon_delay;
-cvar_t *cg_select_weapon_fade;
-cvar_t *cg_select_weapon_interval;
+Cvar *cg_chat_lines;
+Cvar *cg_chat_time;
+Cvar *cg_notify_lines;
+Cvar *cg_notify_time;
+Cvar *cg_select_weapon_alpha;
+Cvar *cg_select_weapon_delay;
+Cvar *cg_select_weapon_fade;
+Cvar *cg_select_weapon_interval;
 
-cg_hud_state_t cg_hud_state;
+ClientGameHudState cg_hud_state;
 
 /**
  * @brief Parses a center print message from the server into the center print state.
@@ -66,7 +66,7 @@ void Cg_ParseCenterPrint(void) {
  * @brief Scrolls the weapon selection bar forward or backward by one weapon slot.
  */
 static void Cg_SelectWeapon(const int8_t dir) {
-  const player_state_t *ps = &cgi.client->frame.ps;
+  const PlayerState *ps = &cgi.client->frame.ps;
 
   if (cgi.client->demo_server) {
     return; // a demo holds one player: there is nobody to scan to, and the weapon they had
@@ -126,7 +126,7 @@ static void Cg_SelectWeapon(const int8_t dir) {
 /**
  * @brief Ensures the currently selected weapon tag refers to a weapon the player actually carries.
  */
-static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
+static void Cg_ValidateSelectedWeapon(const PlayerState *ps) {
 
   // if we were off, start from our current weapon.
   if (cg_hud_state.weapon.bit == WEAPON_SELECT_OFF) {
@@ -161,7 +161,7 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 /**
  * @brief Issues a use command for the pending selected weapon if the selection timer has expired.
  */
-bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
+bool Cg_AttemptSelectWeapon(const PlayerState *ps) {
 
   cg_hud_state.weapon.time = 0;
 
@@ -191,7 +191,7 @@ bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
  * @param alpha The weapon bar opacity to return, fading over `cg_select_weapon_fade`.
  * @return Whether the weapon bar is shown.
  */
-bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha) {
+bool Cg_UpdateSelectWeapon(const PlayerState *ps, float *alpha) {
 
   *alpha = 0.f;
 

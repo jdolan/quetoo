@@ -22,23 +22,23 @@
 #include "cg_local.h"
 
 typedef struct {
-  g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
+  GameScore scores[MAX_CLIENTS + MAX_TEAMS];
   size_t num_scores;
 
-  g_score_t pending[MAX_CLIENTS + MAX_TEAMS];
+  GameScore pending[MAX_CLIENTS + MAX_TEAMS];
   size_t num_pending;
 
   uint32_t generation;
-} cg_score_state_t;
+} ClientGameScoreState;
 
-static cg_score_state_t cg_score_state;
+static ClientGameScoreState cg_score_state;
 
 /**
- * @brief A comparator for sorting `g_score_t`.
+ * @brief A comparator for sorting `GameScore`.
  */
 static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
-  const g_score_t *sa = (g_score_t *) a;
-  const g_score_t *sb = (g_score_t *) b;
+  const GameScore *sa = (GameScore *) a;
+  const GameScore *sb = (GameScore *) b;
 
   // push spectators to the bottom of the board
   const int16_t s1 = (sa->flags & SCORE_SPECTATOR ? -9999 : sa->score);
@@ -69,7 +69,7 @@ void Cg_ParseScores(void) {
     return;
   }
 
-  cgi.ReadData(cg_score_state.pending + index, count * sizeof(g_score_t));
+  cgi.ReadData(cg_score_state.pending + index, count * sizeof(GameScore));
   cg_score_state.num_pending = index + count;
 
   if (cgi.ReadByte()) { // last packet in sequence
@@ -84,7 +84,7 @@ void Cg_ParseScores(void) {
 
     memcpy(cg_score_state.scores, cg_score_state.pending, sizeof(cg_score_state.scores));
 
-    qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t), Cg_ParseScores_Compare);
+    qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(GameScore), Cg_ParseScores_Compare);
 
     cg_score_state.generation++;
   }
@@ -93,7 +93,7 @@ void Cg_ParseScores(void) {
 /**
  * @see cg_score.h
  */
-const g_score_t *Cg_Scores(size_t *count) {
+const GameScore *Cg_Scores(size_t *count) {
   *count = cg_score_state.num_scores;
   return cg_score_state.scores;
 }

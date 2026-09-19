@@ -25,42 +25,42 @@
 
 #if defined(__G_LOCAL_H__)
 
-void G_KillBox(g_entity_t *ent);
-void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod);
-void G_Gib(g_entity_t *ent);
-void G_InitPlayerSpawn(g_entity_t *ent);
-box3_t G_PlayerBounds(void);
-void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand);
-g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match);
+void G_KillBox(GameEntity *ent);
+void G_Explode(GameEntity *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod);
+void G_Gib(GameEntity *ent);
+void G_InitPlayerSpawn(GameEntity *ent);
+Box3 G_PlayerBounds(void);
+void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *up, Vec3 *org, float hand);
+GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match);
 
-void G_AddSpawn(Vector **spawns, g_entity_t *spot);
+void G_AddSpawn(Vector **spawns, GameEntity *spot);
 void G_CollectSpawns(const char *class_name, Vector **spawns);
-void G_SetSpawnPoints(g_spawn_points_t *points, const Vector *spawns);
-g_entity_t *G_PickTarget(const char *target_name);
-void G_UseTargets(g_entity_t *ent, g_entity_t *activator);
-void G_SetMoveDir(g_entity_t *ent);
-const g_gameplay_t *G_GameplayByName(const char *c);
-const g_gameplay_t *G_GameplayById(g_gameplay_id_t id);
-g_team_t *G_TeamByName(const char *c);
-size_t G_TeamSize(const g_team_t *team);
-g_team_t *G_SmallestTeam(void);
-g_client_t *G_ClientByName(char *name);
-bool G_IsMeat(const g_entity_t *ent);
-bool G_IsStationary(const g_entity_t *ent);
-bool G_IsStructural(const cm_trace_t *trace);
-bool G_IsSky(const cm_trace_t *trace);
-void G_SetAnimation(g_client_t *cl, entity_animation_t anim, bool restart);
-bool G_IsAnimation(g_client_t *cl, entity_animation_t anim);
-g_entity_t *G_AllocEntity(const char *classname);
-g_entity_t *G_AllocEntityAt(int32_t number, const char *classname);
-void G_InvalidateEntityReferences(const g_entity_t *ent);
-void G_FreeEntity(g_entity_t *ent);
-void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns);
+GameEntity *G_PickTarget(const char *target_name);
+void G_UseTargets(GameEntity *ent, GameEntity *activator);
+void G_SetMoveDir(GameEntity *ent);
+const Gameplay *G_GameplayByName(const char *c);
+const Gameplay *G_GameplayById(GameplayId id);
+GameTeam *G_TeamByName(const char *c);
+size_t G_TeamSize(const GameTeam *team);
+GameTeam *G_SmallestTeam(void);
+GameClient *G_ClientByName(char *name);
+bool G_IsMeat(const GameEntity *ent);
+bool G_IsStationary(const GameEntity *ent);
+bool G_IsStructural(const CmTrace *trace);
+bool G_IsSky(const CmTrace *trace);
+void G_SetAnimation(GameClient *cl, EntityAnimation anim, bool restart);
+bool G_IsAnimation(GameClient *cl, EntityAnimation anim);
+GameEntity *G_AllocEntity(const char *classname);
+GameEntity *G_AllocEntityAt(int32_t number, const char *classname);
+void G_InvalidateEntityReferences(const GameEntity *ent);
+void G_FreeEntity(GameEntity *ent);
+void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 #define G_ForEachClient(var, block) \
 { \
   for (int32_t i = 0; i < sv_max_clients->integer; i++) { \
-    g_client_t *var = ge.clients[i]; \
+    GameClient *var = ge.clients[i]; \
     if (var->in_use) { \
       block; \
     } \
@@ -70,7 +70,7 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__
 #define G_ForEachFreeClient(var, block) \
 { \
   for (int32_t i = 0; i < sv_max_clients->integer; i++) { \
-    g_client_t *var = ge.clients[i]; \
+    GameClient *var = ge.clients[i]; \
     if (!var->in_use) { \
       block; \
     } \
@@ -80,7 +80,7 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__
 #define G_ForEachEntity(var, block) \
 { \
   for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
-    g_entity_t *var = ge.entities[i]; \
+    GameEntity *var = ge.entities[i]; \
     if (var->in_use) { \
       block; \
     } \
@@ -90,7 +90,7 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__
 #define G_ForEachFreeEntity(var, block) \
 { \
   for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
-    g_entity_t *var = ge.entities[i]; \
+    GameEntity *var = ge.entities[i]; \
     if (!var->in_use) { \
       block; \
     } \

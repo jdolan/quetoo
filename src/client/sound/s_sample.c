@@ -75,7 +75,7 @@ void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, 
 /**
  * @brief Attempts to load a sample's audio data from the given file path into an OpenAL buffer.
  */
-static int32_t S_LoadSampleBuffer_(s_sample_t *sample, char *path) {
+static int32_t S_LoadSampleBuffer_(SoundSample *sample, char *path) {
 
   void *buf;
   const int64_t len = Fs_Load(path, &buf);
@@ -138,7 +138,7 @@ static int32_t S_LoadSampleBuffer_(s_sample_t *sample, char *path) {
 /**
  * @brief Searches for and loads the audio file for the given sample, trying supported formats in order.
  */
-static void S_LoadSampleBuffer(s_sample_t *sample) {
+static void S_LoadSampleBuffer(SoundSample *sample) {
   const char *snd_formats[] = { "ogg", "wav", NULL };
 
   if (sample->media.name[0] == '*') { // placeholder
@@ -165,10 +165,10 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
 }
 
 /**
- * @brief Free event listener for `s_sample_t`.
+ * @brief Free event listener for `SoundSample`.
  */
-static void S_FreeSample(s_media_t *self) {
-  s_sample_t *sample = (s_sample_t *) self;
+static void S_FreeSample(SoundMedia *self) {
+  SoundSample *sample = (SoundSample *) self;
 
   if (sample->buffer) {
     alDeleteBuffers(1, &sample->buffer);
@@ -177,18 +177,18 @@ static void S_FreeSample(s_media_t *self) {
 }
 
 /**
- * @brief Free event listener for aliased `s_sample_t`. Does not delete the
+ * @brief Free event listener for aliased `SoundSample`. Does not delete the
  * OpenAL buffer, which is owned by the sample being aliased.
  */
-static void S_FreeAliasedSample(s_media_t *self) {
-  s_sample_t *sample = (s_sample_t *) self;
+static void S_FreeAliasedSample(SoundMedia *self) {
+  SoundSample *sample = (SoundSample *) self;
   sample->buffer = 0;
 }
 
 /**
  * @brief Loads or returns a cached sound sample by name.
  */
-s_sample_t *S_LoadSample(const char *name, asset_context_t context) {
+SoundSample *S_LoadSample(const char *name, AssetContext context) {
 
   if (!s_context.context) {
     return NULL;
@@ -208,16 +208,16 @@ s_sample_t *S_LoadSample(const char *name, asset_context_t context) {
     Asset_Path(stripped, key, sizeof(key), context);
   }
 
-  s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
+  SoundSample *sample = (SoundSample *) S_FindMedia(key, S_MEDIA_SAMPLE);
   if (sample == NULL) {
 
-    sample = (s_sample_t *) S_AllocMedia(key, sizeof(s_sample_t), S_MEDIA_SAMPLE);
+    sample = (SoundSample *) S_AllocMedia(key, sizeof(SoundSample), S_MEDIA_SAMPLE);
 
     sample->media.Free = S_FreeSample;
 
     S_LoadSampleBuffer(sample);
 
-    S_RegisterMedia((s_media_t *) sample);
+    S_RegisterMedia((SoundMedia *) sample);
   }
 
   return sample;
@@ -226,10 +226,10 @@ s_sample_t *S_LoadSample(const char *name, asset_context_t context) {
 /**
  * @brief Loads or returns a cached player-model sound sample from the given model and name.
  * @param model The player model name, e.g. `"nitro"`.
- * @param sound_set The model's sound set, e.g. `"male"`, `"female"`, `"cyborg"` (see `r_mesh_model_t.sounds`).
+ * @param sound_set The model's sound set, e.g. `"male"`, `"female"`, `"cyborg"` (see `RenderMeshModel.sounds`).
  * @param name The sample name, e.g. `"*death_1"`.
  */
-s_sample_t *S_LoadClientModelSample(const char *model, const char *sound_set, const char *name) {
+SoundSample *S_LoadClientModelSample(const char *model, const char *sound_set, const char *name) {
 
   if (!s_context.context) {
     return NULL;
@@ -242,7 +242,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *sound_set, co
   char key[MAX_QPATH];
   q_snprintf(key, sizeof(key), "players/%s/%s", model, name + 1);
 
-  s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
+  SoundSample *sample = (SoundSample *) S_FindMedia(key, S_MEDIA_SAMPLE);
   if (sample == NULL) {
 
     char relative[MAX_QPATH];
@@ -252,7 +252,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *sound_set, co
     if (sample->buffer) {
       Com_Debug(DEBUG_SOUND, "Loaded %s\n", key);
     } else {
-      s_sample_t *aliased = NULL;
+      SoundSample *aliased = NULL;
 
       if (sound_set && sound_set[0]) {
         q_snprintf(relative, sizeof(relative), "common/%s/%s", sound_set, name + 1);
@@ -270,7 +270,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *sound_set, co
 
       if (aliased->buffer) {
 
-        S_RegisterDependency((s_media_t *) sample, (s_media_t *) aliased);
+        S_RegisterDependency((SoundMedia *) sample, (SoundMedia *) aliased);
 
         sample->buffer = aliased->buffer;
         sample->num_samples = aliased->num_samples;

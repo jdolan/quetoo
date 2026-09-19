@@ -28,18 +28,18 @@
 typedef struct {
   int32_t *indices;
   size_t count;
-} voxel_light_indices_t;
+} VoxelLightIndices;
 
 static void Voxel_CollectLightIndex(const HashTable *table, ident key, ident value, ident data) {
-  voxel_light_indices_t *collector = data;
-  const light_t *light = key;
+  VoxelLightIndices *collector = data;
+  const Light *light = key;
 
   if (light->out) {
     collector->indices[collector->count++] = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
   }
 }
 
-voxels_t voxels;
+Voxels voxels;
 
 /**
  * @brief Create an `SDL_Surface` with the given voxel data.
@@ -108,11 +108,11 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
   const size_t voxel_size = (size_t) in->reserved;
   switch (voxel_size) {
 
-    case sizeof(vec3_t): {
-      const vec3_t *in_voxel = (vec3_t *) in->pixels;
+    case sizeof(Vec3): {
+      const Vec3 *in_voxel = (Vec3 *) in->pixels;
 
       out = SDL_CreateSurface(in->w, in->h, SDL_PIXELFORMAT_RGB24);
-      color24_t *out_voxel = (color24_t *) out->pixels;
+      Color24 *out_voxel = (Color24 *) out->pixels;
 
       for (int32_t x = 0; x < in->w; x++) {
         for (int32_t y = 0; y < in->h; y++) {
@@ -122,11 +122,11 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
     }
       break;
 
-    case sizeof(color24_t): {
-      const color24_t *in_voxel = (color24_t *) in->pixels;
+    case sizeof(Color24): {
+      const Color24 *in_voxel = (Color24 *) in->pixels;
 
       out = SDL_CreateSurface(in->w, in->h, SDL_PIXELFORMAT_RGB24);
-      color24_t *out_voxel = (color24_t *) out->pixels;
+      Color24 *out_voxel = (Color24 *) out->pixels;
 
       for (int32_t x = 0; x < in->w; x++) {
         for (int32_t y = 0; y < in->h; y++) {
@@ -136,11 +136,11 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
     }
       break;
 
-    case sizeof(color32_t): {
-      const color32_t *in_voxel = (color32_t *) in->pixels;
+    case sizeof(Color32): {
+      const Color32 *in_voxel = (Color32 *) in->pixels;
 
       out = SDL_CreateSurface(in->w, in->h, SDL_PIXELFORMAT_RGBA32);
-      color32_t *out_voxel = (color32_t *) out->pixels;
+      Color32 *out_voxel = (Color32 *) out->pixels;
 
       for (int32_t x = 0; x < in->w; x++) {
         for (int32_t y = 0; y < in->h; y++) {
@@ -168,7 +168,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
  */
 static void BuildVoxelExtents(void) {
 
-  const bsp_model_t *world = bsp_file.models;
+  const BspModel *world = bsp_file.models;
   
   // Align mins to voxel grid (round down to nearest multiple of BSP_VOXEL_SIZE)
   voxels.stu_bounds.mins.x = floorf(world->visible_bounds.mins.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
@@ -197,9 +197,9 @@ static void BuildVoxelVoxels(void) {
     Com_Error(ERROR_FATAL, "MAX_BSP_VOXELS\n");
   }
 
-  voxels.voxels = Mem_TagMalloc(voxels.num_voxels * sizeof(voxel_t), (mem_tag_t) MEM_TAG_VOXEL);
+  voxels.voxels = Mem_TagMalloc(voxels.num_voxels * sizeof(Voxel), (MemTag) MEM_TAG_VOXEL);
 
-  voxel_t *v = voxels.voxels;
+  Voxel *v = voxels.voxels;
 
   for (int32_t z = 0; z < voxels.size.z; z++) {
     for (int32_t y = 0; y < voxels.size.y; y++) {
@@ -208,9 +208,9 @@ static void BuildVoxelVoxels(void) {
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         v = &voxels.voxels[index];
 
-        v->xyz = Vec3i(x, y, z);
+        v->xyz = MakeVec3i(x, y, z);
 
-        v->origin = Vec3(
+        v->origin = MakeVec3(
           voxels.stu_bounds.mins.x + (v->xyz.x + 0.5f) * BSP_VOXEL_SIZE,
           voxels.stu_bounds.mins.y + (v->xyz.y + 0.5f) * BSP_VOXEL_SIZE,
           voxels.stu_bounds.mins.z + (v->xyz.z + 0.5f) * BSP_VOXEL_SIZE
@@ -231,13 +231,13 @@ static void DebugVoxels(void) {
 #if 0
   const char *path = va("maps/%s.voxel.map", map_base);
 
-  file_t *file = Fs_OpenWrite(path);
+  File *file = Fs_OpenWrite(path);
   if (file == NULL) {
     Com_Warn("Failed to open %s\n", path);
     return;
   }
 
-  voxel_t *v = voxels.voxels;
+  Voxel *v = voxels.voxels;
   for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
 
     Fs_Print(file, "{\n");
@@ -275,15 +275,15 @@ size_t BuildVoxels(void) {
  */
 void LightVoxel(int32_t voxel_num) {
 
-  voxel_t *voxel = &voxels.voxels[voxel_num];
+  Voxel *voxel = &voxels.voxels[voxel_num];
 
-  vec3_t points[9];
+  Vec3 points[9];
   points[0] = voxel->origin;
   Box3_ToPoints(voxel->bounds, &points[1]);
 
   for (size_t i = 0; i < lights->count; i++) {
 
-    light_t *light = VectorValue(lights, light_t *, i);
+    Light *light = VectorValue(lights, Light *, i);
     if (light->target_entity != -1) {
       continue;
     }
@@ -293,7 +293,7 @@ void LightVoxel(int32_t voxel_num) {
 
     for (size_t j = 0; j < lengthof(points); j++) {
 
-      const cm_trace_t to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_MASK_SHADOW);
+      const CmTrace to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_MASK_SHADOW);
       if (to_voxel.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, to_voxel.end)) {
         $(voxel->lights, set, light, light);
         break;
@@ -308,10 +308,10 @@ void LightVoxel(int32_t voxel_num) {
  */
 void FloodLights(void) {
 
-  voxel_t *v = voxels.voxels;
+  Voxel *v = voxels.voxels;
 
   for (size_t i = 0; i < lights->count; i++) {
-    light_t *l = VectorValue(lights, light_t *, i);
+    Light *l = VectorValue(lights, Light *, i);
 
     l->visible_bounds = Box3_Null();
 
@@ -319,7 +319,7 @@ void FloodLights(void) {
       continue;
     }
 
-    box3_t bounds = Box3_Null();
+    Box3 bounds = Box3_Null();
 
     for (size_t j = 0; j < voxels.num_voxels; j++) {
       if ($(v[j].lights, get, l) != NULL) {
@@ -350,12 +350,12 @@ void FloodLights(void) {
 typedef struct {
   Vector **light_voxel_lists;
   int32_t voxel_index;
-} light_voxel_data_t;
+} LightVoxelData;
 
 static void Voxel_AppendLightVoxel(const HashTable *table, ident key, ident value, ident data) {
 
-  light_voxel_data_t *d = data;
-  const light_t *light = key;
+  LightVoxelData *d = data;
+  const Light *light = key;
 
   if (light->out) {
     const int32_t light_index = (int32_t) (light->out - bsp_file.lights);
@@ -377,14 +377,14 @@ void AssignLightVoxels(void) {
     return;
   }
 
-  Vector **light_voxel_lists = Mem_TagMalloc(bsp_file.num_lights * sizeof(Vector *), (mem_tag_t) MEM_TAG_VOXEL);
+  Vector **light_voxel_lists = Mem_TagMalloc(bsp_file.num_lights * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
   for (int32_t i = 0; i < bsp_file.num_lights; i++) {
     light_voxel_lists[i] = $(alloc(Vector), initWithSize, sizeof(int32_t));
   }
 
   for (size_t i = 0; i < voxels.num_voxels; i++) {
 
-    light_voxel_data_t data = {
+    LightVoxelData data = {
       .light_voxel_lists = light_voxel_lists,
       .voxel_index = (int32_t) i
     };
@@ -423,7 +423,7 @@ void AssignLightVoxels(void) {
  */
 static int32_t *Voxel_BuildNodeToBlock(void) {
 
-  int32_t *node_to_block = Mem_TagMalloc(bsp_file.num_nodes * sizeof(int32_t), (mem_tag_t) MEM_TAG_VOXEL);
+  int32_t *node_to_block = Mem_TagMalloc(bsp_file.num_nodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
 
   for (int32_t i = 0; i < bsp_file.num_nodes; i++) {
     node_to_block[i] = -1;
@@ -439,13 +439,13 @@ static int32_t *Voxel_BuildNodeToBlock(void) {
 /**
  * @brief Builds parent index arrays for the BSP node tree, so that leafs and nodes may be
  * walked upward to their enclosing `CONTENTS_BLOCK` ancestor. The flattened, on-disk BSP tree
- * has no parent pointers, unlike quemap's transient tree-building `node_t`, so we derive them
+ * has no parent pointers, unlike quemap's transient tree-building `Node`, so we derive them
  * here with a single pass over the node array.
  */
 static void Voxel_BuildParents(int32_t **node_parent, int32_t **leaf_parent) {
 
-  *node_parent = Mem_TagMalloc(bsp_file.num_nodes * sizeof(int32_t), (mem_tag_t) MEM_TAG_VOXEL);
-  *leaf_parent = Mem_TagMalloc(bsp_file.num_leafs * sizeof(int32_t), (mem_tag_t) MEM_TAG_VOXEL);
+  *node_parent = Mem_TagMalloc(bsp_file.num_nodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
+  *leaf_parent = Mem_TagMalloc(bsp_file.num_leafs * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
 
   for (int32_t i = 0; i < bsp_file.num_nodes; i++) {
     (*node_parent)[i] = -1;
@@ -454,7 +454,7 @@ static void Voxel_BuildParents(int32_t **node_parent, int32_t **leaf_parent) {
     (*leaf_parent)[i] = -1;
   }
 
-  const bsp_node_t *node = bsp_file.nodes;
+  const BspNode *node = bsp_file.nodes;
   for (int32_t i = 0; i < bsp_file.num_nodes; i++, node++) {
     for (int32_t c = 0; c < 2; c++) {
       const int32_t child = node->children[c];
@@ -508,7 +508,7 @@ void AssignBlockVoxels(void) {
 
   int32_t *node_to_block = Voxel_BuildNodeToBlock();
 
-  Vector **block_voxel_lists = Mem_TagMalloc(bsp_file.num_blocks * sizeof(Vector *), (mem_tag_t) MEM_TAG_VOXEL);
+  Vector **block_voxel_lists = Mem_TagMalloc(bsp_file.num_blocks * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
   for (int32_t i = 0; i < bsp_file.num_blocks; i++) {
     block_voxel_lists[i] = $(alloc(Vector), initWithSize, sizeof(int32_t));
   }
@@ -521,7 +521,7 @@ void AssignBlockVoxels(void) {
 
     Progress("Assigning block voxels", 100.f * i / voxels.num_voxels);
 
-    const voxel_t *voxel = &voxels.voxels[i];
+    const Voxel *voxel = &voxels.voxels[i];
 
     const size_t num_leafs = Cm_BoxLeafnums(voxel->bounds, leafs, lengthof(leafs), NULL, head_node);
 
@@ -591,7 +591,7 @@ void AssignBlockVoxels(void) {
  */
 void CausticsVoxel(int32_t voxel_num) {
 
-  voxel_t *voxel = &voxels.voxels[voxel_num];
+  Voxel *voxel = &voxels.voxels[voxel_num];
   
   const int32_t contents = Cm_BoxContents(voxel->bounds, 0);
 
@@ -600,7 +600,7 @@ void CausticsVoxel(int32_t voxel_num) {
     return;
   }
   
-  vec3_t points[9];
+  Vec3 points[9];
   points[0] = voxel->origin;
   Box3_ToPoints(voxel->bounds, &points[1]);
 
@@ -608,17 +608,17 @@ void CausticsVoxel(int32_t voxel_num) {
   const float weight = 1.f / lengthof(points);
 
   for (int32_t i = 0; i < bsp_file.num_brushes; i++) {
-    const bsp_brush_t *brush = &bsp_file.brushes[i];
+    const BspBrush *brush = &bsp_file.brushes[i];
     
     if (!(brush->contents & CONTENTS_MASK_LIQUID)) {
       continue;
     }
 
-    const vec3_t brush_center = Box3_Center(brush->bounds);
+    const Vec3 brush_center = Box3_Center(brush->bounds);
     
     for (size_t j = 0; j < lengthof(points); j++) {
 
-      vec3_t liquid_point = Box3_ClampPoint(brush->bounds, points[j]);
+      Vec3 liquid_point = Box3_ClampPoint(brush->bounds, points[j]);
       const float dist = Vec3_Distance(points[j], liquid_point);
       
       if (dist > CAUSTICS_RADIUS) {
@@ -627,9 +627,9 @@ void CausticsVoxel(int32_t voxel_num) {
 
       // ClampPoint can land on brush AABB bounds outside the actual liquid brush volume.
       // Nudge toward the brush center and require that the target is truly liquid.
-      const vec3_t to_center = Vec3_Subtract(brush_center, liquid_point);
+      const Vec3 to_center = Vec3_Subtract(brush_center, liquid_point);
       float to_center_length;
-      const vec3_t to_center_dir = Vec3_NormalizeLength(to_center, &to_center_length);
+      const Vec3 to_center_dir = Vec3_NormalizeLength(to_center, &to_center_length);
       if (to_center_length > 0.f) {
         liquid_point = Vec3_Fmaf(liquid_point, 1.f, to_center_dir);
       }
@@ -638,10 +638,10 @@ void CausticsVoxel(int32_t voxel_num) {
         continue;
       }
       
-      const cm_trace_t trace = Light_Trace(points[j], liquid_point, 0, CONTENTS_MASK_SHADOW);
+      const CmTrace trace = Light_Trace(points[j], liquid_point, 0, CONTENTS_MASK_SHADOW);
       if (trace.fraction == 1.f) {
         const float strength = Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
-        const vec3_t dir = Vec3_Normalize(Vec3_Subtract(liquid_point, points[j]));
+        const Vec3 dir = Vec3_Normalize(Vec3_Subtract(liquid_point, points[j]));
         voxel->caustics = Vec3_Fmaf(voxel->caustics, strength, dir);
       }
     }
@@ -657,19 +657,19 @@ void CausticsVoxel(int32_t voxel_num) {
  */
 void ExposureVoxel(int32_t voxel_num) {
 
-  voxel_t *voxel = &voxels.voxels[voxel_num];
+  Voxel *voxel = &voxels.voxels[voxel_num];
   
   // Use dome vectors to sample hemisphere for better coverage
-  static const vec3_t dome_vectors[] = DOME_UNIFORM_16X;
+  static const Vec3 dome_vectors[] = DOME_UNIFORM_16X;
   
   float exposure_sum = 0.f;
   
   for (size_t i = 0; i < lengthof(dome_vectors); i++) {
-    const vec3_t start = voxel->origin;
-    const vec3_t dir = Vec3_Scale(dome_vectors[i], MAX_WORLD_AXIAL);
-    const vec3_t end = Vec3_Add(start, dir);
+    const Vec3 start = voxel->origin;
+    const Vec3 dir = Vec3_Scale(dome_vectors[i], MAX_WORLD_AXIAL);
+    const Vec3 end = Vec3_Add(start, dir);
     
-    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_MASK_SHADOW);
+    const CmTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SHADOW);
     
     // If we hit sky or nothing, count as exposed
     if (trace.surface & SURF_SKY || trace.fraction == 1.f) {
@@ -694,18 +694,18 @@ void ExposureVoxel(int32_t voxel_num) {
  */
 void OccludeVoxel(int32_t voxel_num) {
 
-  voxel_t *voxel = &voxels.voxels[voxel_num];
+  Voxel *voxel = &voxels.voxels[voxel_num];
 
-  static const vec3_t sphere_vectors[] = SPHERE_UNIFORM_32X;
+  static const Vec3 sphere_vectors[] = SPHERE_UNIFORM_32X;
 
   float fraction_sum = 0.f;
 
   for (size_t i = 0; i < lengthof(sphere_vectors); i++) {
-    const vec3_t start = voxel->origin;
-    const vec3_t dir = Vec3_Scale(sphere_vectors[i], OCCLUSION_RADIUS);
-    const vec3_t end = Vec3_Add(start, dir);
+    const Vec3 start = voxel->origin;
+    const Vec3 dir = Vec3_Scale(sphere_vectors[i], OCCLUSION_RADIUS);
+    const Vec3 end = Vec3_Add(start, dir);
 
-    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID);
+    const CmTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID);
     fraction_sum += trace.fraction;
   }
 
@@ -721,16 +721,16 @@ void SmoothVoxels(void) {
 
   const size_t n = voxels.num_voxels;
 
-  float *smooth_occ = Mem_TagMalloc(n * sizeof(float), (mem_tag_t) MEM_TAG_VOXEL);
-  float *smooth_exp = Mem_TagMalloc(n * sizeof(float), (mem_tag_t) MEM_TAG_VOXEL);
-  vec3_t *smooth_caust = Mem_TagMalloc(n * sizeof(vec3_t), (mem_tag_t) MEM_TAG_VOXEL);
+  float *smooth_occ = Mem_TagMalloc(n * sizeof(float), (MemTag) MEM_TAG_VOXEL);
+  float *smooth_exp = Mem_TagMalloc(n * sizeof(float), (MemTag) MEM_TAG_VOXEL);
+  Vec3 *smooth_caust = Mem_TagMalloc(n * sizeof(Vec3), (MemTag) MEM_TAG_VOXEL);
 
   for (int32_t z = 0; z < voxels.size.z; z++) {
     for (int32_t y = 0; y < voxels.size.y; y++) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         float occ_sum = 0.f, exp_sum = 0.f;
-        vec3_t caust_sum = Vec3_Zero();
+        Vec3 caust_sum = Vec3_Zero();
         int32_t count = 0;
 
         for (int32_t dz = -1; dz <= 1; dz++) {
@@ -783,7 +783,7 @@ void EmitVoxels(void) {
 
   voxels.num_light_indices = 0;
 
-  voxel_t *v = voxels.voxels;
+  Voxel *v = voxels.voxels;
   int32_t min_lights = INT32_MAX, max_lights = 0;
   size_t total_lights = 0;
   
@@ -805,7 +805,7 @@ void EmitVoxels(void) {
   Com_Verbose("Voxel light stats: min=%d max=%d avg=%.1f total=%zd\n",
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
-  bsp_file.voxels_size = sizeof(bsp_voxels_t);
+  bsp_file.voxels_size = sizeof(BspVoxels);
   bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 3; // caustics xyz (RGB)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
@@ -818,7 +818,7 @@ void EmitVoxels(void) {
   bsp_file.voxels->num_light_indices = (int32_t) voxels.num_light_indices;
   bsp_file.voxels->bounds = voxels.stu_bounds;
 
-  byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
+  byte *out = (byte *) bsp_file.voxels + sizeof(BspVoxels);
   
   byte *out_data = out;
   out += voxels.num_voxels * sizeof(byte) * 3; // RGB = caustics xyz
@@ -831,9 +831,9 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const voxel_t *voxel = &voxels.voxels[index];
+        const Voxel *voxel = &voxels.voxels[index];
 
-        const vec3_t caustics = Vec3_Clamp(voxel->caustics, Vec3_Negate(Vec3_One()), Vec3_One());
+        const Vec3 caustics = Vec3_Clamp(voxel->caustics, Vec3_Negate(Vec3_One()), Vec3_One());
         *out_data++ = (byte)((caustics.x * 0.5f + 0.5f) * 255.f);
         *out_data++ = (byte)((caustics.y * 0.5f + 0.5f) * 255.f);
         *out_data++ = (byte)((caustics.z * 0.5f + 0.5f) * 255.f);
@@ -849,7 +849,7 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const voxel_t *voxel = &voxels.voxels[index];
+        const Voxel *voxel = &voxels.voxels[index];
 
         *out_light_data++ = voxel->lights_offset;
         *out_light_data++ = voxel->lights_count;
@@ -865,10 +865,10 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const voxel_t *voxel = &voxels.voxels[index];
+        const Voxel *voxel = &voxels.voxels[index];
 
         int32_t *indices = out_light_indices;
-        voxel_light_indices_t collector = {
+        VoxelLightIndices collector = {
           .indices = out_light_indices
         };
 
@@ -890,7 +890,7 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const voxel_t *voxel = &voxels.voxels[index];
+        const Voxel *voxel = &voxels.voxels[index];
 
         *out_occlusion++ = (byte)(Clampf01(voxel->occlusion) * 255.f);
         *out_occlusion++ = (byte)(Clampf01(voxel->exposure) * 255.f);
@@ -908,10 +908,10 @@ void EmitVoxels(void) {
  */
 void FreeVoxels(void) {
 
-  voxel_t *v = voxels.voxels;
+  Voxel *v = voxels.voxels;
   for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
     release(v->lights);
   }
 
-  Mem_FreeTag((mem_tag_t) MEM_TAG_VOXEL);
+  Mem_FreeTag((MemTag) MEM_TAG_VOXEL);
 }

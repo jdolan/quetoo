@@ -33,12 +33,12 @@ typedef enum {
   SCREENSHOT_NONE,
   SCREENSHOT_DEFAULT,
   SCREENSHOT_VIEW,
-} r_screenshot_type_t;
+} RenderScreenshotType;
 
 /**
  * @brief Pending screenshot type.
  */
-static r_screenshot_type_t r_pending_screenshot;
+static RenderScreenshotType r_pending_screenshot;
 
 /**
  * @brief Initializes image output directories.
@@ -153,7 +153,7 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 /**
  * @brief Captures the resolved color buffer if a screenshot is pending.
  */
-void R_Screenshot(r_view_t *view) {
+void R_Screenshot(RenderView *view) {
 
   if (r_pending_screenshot == SCREENSHOT_NONE) {
     return;
@@ -184,9 +184,9 @@ void R_Screenshot_f(void) {
 /**
  * @brief Retains persistent image media.
  */
-bool R_RetainImage(r_media_t *self) {
+bool R_RetainImage(RenderMedia *self) {
 
-  switch (((r_image_t *) self)->type) {
+  switch (((RenderImage *) self)->type) {
     case IMG_PROGRAM:
       return true;
     default:
@@ -197,9 +197,9 @@ bool R_RetainImage(r_media_t *self) {
 /**
  * @brief Frees an image texture.
  */
-void R_FreeImage(r_media_t *media) {
+void R_FreeImage(RenderMedia *media) {
 
-  r_image_t *image = (r_image_t *) media;
+  RenderImage *image = (RenderImage *) media;
 
   image->texture = release(image->texture);
 }
@@ -207,9 +207,9 @@ void R_FreeImage(r_media_t *media) {
 /**
  * @brief Loads an image by name.
  */
-r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
+RenderImage *R_LoadImage(const char *name, RenderImageType type) {
   char key[MAX_QPATH];
-  r_image_t *image;
+  RenderImage *image;
 
   if (!name || !name[0]) {
     Com_Error(ERROR_DROP, "NULL name\n");
@@ -217,12 +217,12 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
   StripExtension(name, key);
 
-  image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE);
+  image = (RenderImage *) R_FindMedia(key, R_MEDIA_IMAGE);
   if (image) {
     return image;
   }
 
-  image = (r_image_t *) R_FindMedia(key, R_MEDIA_ATLAS_IMAGE);
+  image = (RenderImage *) R_FindMedia(key, R_MEDIA_ATLAS_IMAGE);
   if (image) {
     return image;
   }
@@ -234,7 +234,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     return NULL;
   }
 
-  image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), R_MEDIA_IMAGE);
+  image = (RenderImage *) R_AllocMedia(key, sizeof(RenderImage), R_MEDIA_IMAGE);
 
   image->media.Retain = R_RetainImage;
   image->media.Free = R_FreeImage;
@@ -246,13 +246,13 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->width = surface->w / 4;
     image->height = surface->h / 3;
 
-    const vec2s_t offsets[] = {
-      Vec2s(2, 1),
-      Vec2s(0, 1),
-      Vec2s(3, 1),
-      Vec2s(1, 1),
-      Vec2s(1, 0),
-      Vec2s(1, 2)
+    const Vec2s offsets[] = {
+      MakeVec2s(2, 1),
+      MakeVec2s(0, 1),
+      MakeVec2s(3, 1),
+      MakeVec2s(1, 1),
+      MakeVec2s(1, 0),
+      MakeVec2s(1, 2)
     };
 
     const int32_t rotations[] = {
@@ -335,7 +335,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
   $(image->texture, setName, image->media.name);
 
-  R_RegisterMedia((r_media_t *) image);
+  R_RegisterMedia((RenderMedia *) image);
 
   SDL_DestroySurface(surface);
 
@@ -345,16 +345,16 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 /**
  * @brief Dump the image to the specified output file.
  */
-static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap, bool raw) {
+static void R_DumpImage(const RenderImage *image, const char *output, bool mipmap, bool raw) {
 }
 
 /**
  * @brief Enumerates loaded images for dumping.
  */
-static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
+static void R_DumpImages_enumerator(const RenderMedia *media, void *data) {
 
   if (media->type == R_MEDIA_IMAGE) {
-    const r_image_t *image = (const r_image_t *) media;
+    const RenderImage *image = (const RenderImage *) media;
     char path[MAX_OS_PATH];
 
     q_snprintf(path, sizeof(path), "imgdmp/%s", image->media.name);

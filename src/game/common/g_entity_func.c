@@ -24,11 +24,11 @@
 /**
  * @brief Finalizes linear movement, snapping the entity to its destination and translating any riding entities.
  */
-static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
+static void G_MoveInfo_Linear_Done(GameEntity *ent) {
 
-  const vec3_t snap = Vec3_Subtract(ent->move_info.dest, ent->s.origin);
+  const Vec3 snap = Vec3_Subtract(ent->move_info.dest, ent->s.origin);
 
-  const box3_t old_bounds = ent->abs_bounds;
+  const Box3 old_bounds = ent->abs_bounds;
 
   ent->s.origin = ent->move_info.dest;
 
@@ -39,8 +39,8 @@ static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
   // bypasses G_Physics_Push_Translate and riders lose their
   // ground entity reference.
   if (!Vec3_Equal(snap, Vec3_Zero())) {
-    const box3_t total_bounds = Box3_Union(old_bounds, ent->abs_bounds);
-    g_entity_t *others[MAX_ENTITIES];
+    const Box3 total_bounds = Box3_Union(old_bounds, ent->abs_bounds);
+    GameEntity *others[MAX_ENTITIES];
     const size_t len = gi.BoxEntities(total_bounds, others, lengthof(others), BOX_ALL);
     for (size_t i = 0; i < len; i++) {
       if (others[i]->ground.ent == ent) {
@@ -60,10 +60,10 @@ static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 /**
  * @brief Called each tick during the final approach of linear movement to detect when the destination is reached.
  */
-static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Linear_Final(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
-  vec3_t dir;
+  Vec3 dir;
   const float distance = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
 
   if (distance == 0.0 || Vec3_Dot(dir, move->dir) < 0.0) {
@@ -79,8 +79,8 @@ static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
  * @brief Starts a move with constant velocity. The entity will think again when it
  * has reached its destination.
  */
-static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Linear_Constant(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
   const float distance = Vec3_Distance(move->dest, ent->s.origin);
   move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
@@ -97,8 +97,8 @@ static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
  * @brief Sets up a non-constant move, i.e. one that will accelerate near the beginning
  * and decelerate towards the end.
  */
-static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
   if (move->current_speed == 0.0) { // starting or restarting after being blocked
 
@@ -229,9 +229,9 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
  * @brief The angular delta from `a` to `b`, per axis, taking the shortest arc. This matches the
  * convention in `Vec3_MixEuler`, so the server's rotation follows the path the client renders.
  */
-static vec3_t G_MoveInfo_Angular_Delta(const vec3_t a, const vec3_t b) {
+static Vec3 G_MoveInfo_Angular_Delta(const Vec3 a, const Vec3 b) {
 
-  vec3_t delta = Vec3_Subtract(b, a);
+  Vec3 delta = Vec3_Subtract(b, a);
 
   for (size_t i = 0; i < 3; i++) {
     delta.xyz[i] = fmodf(delta.xyz[i], 360.f);
@@ -251,8 +251,8 @@ static vec3_t G_MoveInfo_Angular_Delta(const vec3_t a, const vec3_t b) {
  * entity is travelling *right now*, it is safe to call each tick of a ramped move, whose duration is
  * not simply distance over speed.
  */
-static void G_MoveInfo_Angular_Lerp(g_entity_t *ent, float distance, float speed) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Angular_Lerp(GameEntity *ent, float distance, float speed) {
+  GameMoveInfo *move = &ent->move_info;
 
   if (Vec3_Equal(move->start_angles, move->end_angles)) {
     return;
@@ -260,7 +260,7 @@ static void G_MoveInfo_Angular_Lerp(g_entity_t *ent, float distance, float speed
 
   const float time = Maxf(distance / Maxf(speed, FLT_EPSILON), QUETOO_TICK_SECONDS);
 
-  const vec3_t delta = G_MoveInfo_Angular_Delta(ent->s.angles, move->end_angles);
+  const Vec3 delta = G_MoveInfo_Angular_Delta(ent->s.angles, move->end_angles);
 
   ent->avelocity = Vec3_Scale(delta, 1.f / time);
 }
@@ -269,8 +269,8 @@ static void G_MoveInfo_Angular_Lerp(g_entity_t *ent, float distance, float speed
  * @brief Resets velocity and resolves the direction of travel towards `dest`, common to all
  * linear movement.
  */
-static void G_MoveInfo_Linear_Setup(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Linear_Setup(GameEntity *ent, const Vec3 dest, void (*Done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->move_info;
 
   ent->velocity = Vec3_Zero();
   move->current_speed = 0.0;
@@ -286,8 +286,8 @@ static void G_MoveInfo_Linear_Setup(g_entity_t *ent, const vec3_t dest, void (*D
  * @brief Mixes speed from `move_info.start_speed` to `move_info.speed` as a function of the
  * distance covered, which is what a mapper means by a mover that speeds up over its run.
  */
-static void G_MoveInfo_Linear_Ramp(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Linear_Ramp(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
   const float distance = Vec3_Distance(move->dest, ent->s.origin);
   const float total = Vec3_Distance(move->end_origin, move->start_origin);
@@ -314,9 +314,9 @@ static void G_MoveInfo_Linear_Ramp(g_entity_t *ent) {
  * caller must have set `move_info.start_origin` and `end_origin`, from which the ramp resolves how
  * far along the move the entity is.
  */
-static void G_MoveInfo_Linear_Init_Ramp(g_entity_t *ent, const vec3_t dest, float speed_start,
-                                        float speed_end, void (*Done)(g_entity_t *)) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Linear_Init_Ramp(GameEntity *ent, const Vec3 dest, float speed_start,
+                                        float speed_end, void (*Done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->move_info;
 
   G_MoveInfo_Linear_Setup(ent, dest, Done);
 
@@ -331,13 +331,13 @@ static void G_MoveInfo_Linear_Init_Ramp(g_entity_t *ent, const vec3_t dest, floa
  * accelerative movements are initiated through this function. Animations are
  * also kicked off here.
  */
-static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
-  g_move_info_t *move = &ent->move_info;
+static void G_MoveInfo_Linear_Init(GameEntity *ent, const Vec3 dest, void (*Done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->move_info;
 
   G_MoveInfo_Linear_Setup(ent, dest, Done);
 
   if (move->accel == 0.0 && move->decel == 0.0) { // constant
-    const g_entity_t *master = (ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent;
+    const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent;
     if (g_level.current_entity == master) {
       G_MoveInfo_Linear_Constant(ent);
     } else {
@@ -353,7 +353,7 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Do
 /**
  * @brief Finalizes angular movement by zeroing angular velocity and invoking the Done callback.
  */
-static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
+static void G_MoveInfo_Angular_Done(GameEntity *ent) {
 
   ent->avelocity = Vec3_Zero();
   ent->move_info.Done(ent);
@@ -362,9 +362,9 @@ static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
 /**
  * @brief Called during the final tick of angular movement to snap the entity to its exact destination angles.
  */
-static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
-  vec3_t delta;
+static void G_MoveInfo_Angular_Final(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
+  Vec3 delta;
 
   if (move->state == MOVE_STATE_GOING_UP) {
     delta = Vec3_Subtract(move->end_angles, ent->s.angles);
@@ -386,9 +386,9 @@ static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
 /**
  * @brief Begins angular movement by computing angular velocity toward the target angles.
  */
-static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
-  vec3_t delta;
+static void G_MoveInfo_Angular_Begin(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
+  Vec3 delta;
 
   // set move to the vector needed to move
   if (move->state == MOVE_STATE_GOING_UP) {
@@ -421,13 +421,13 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
 /**
  * @brief Initializes angular movement for the specified entity, scheduling the beginning of rotation.
  */
-static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *)) {
+static void G_MoveInfo_Angular_Init(GameEntity *ent, void (*Done)(GameEntity *)) {
 
   ent->avelocity = Vec3_Zero();
 
   ent->move_info.Done = Done;
 
-  const g_entity_t *master = (ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent;
+  const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent;
   if (g_level.current_entity == master) {
     G_MoveInfo_Angular_Begin(ent);
   } else {
@@ -440,9 +440,9 @@ static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *))
  * @brief When a `MOVE_TYPE_PUSH` or `MOVE_TYPE_STOP` is blocked, deal with the
  * obstacle by damaging it.
  */
-static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
+static void G_MoveType_Push_Blocked(GameEntity *ent, GameEntity *other) {
 
-  const vec3_t dir = ent->velocity;
+  const Vec3 dir = ent->velocity;
 
   // func_bob gets its own obituary; every other pusher uses the generic crush message
   const uint32_t mod = q_strcmp(ent->classname, "func_bob") ? MOD_CRUSH : MOD_BOB;
@@ -470,7 +470,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
   ent->touch_time = g_level.time + 1000;
 
   if (G_IsMeat(other)) {
-    G_Damage(&(g_damage_t) {
+    G_Damage(&(GameDamage) {
       .target = other,
       .inflictor = ent,
       .attacker = NULL,
@@ -483,7 +483,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
       .mod = mod
     });
   } else {
-    G_Damage(&(g_damage_t) {
+    G_Damage(&(GameDamage) {
       .target = other,
       .inflictor = ent,
       .attacker = NULL,
@@ -503,17 +503,17 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
 
 #define PLAT_LOW_TRIGGER  1
 
-static void G_func_plat_GoingDown(g_entity_t *ent);
+static void G_func_plat_GoingDown(GameEntity *ent);
 
 /**
  * @brief Called when a platform reaches its top (raised) position, scheduling the return trip.
  */
-static void G_func_plat_Top(g_entity_t *ent) {
+static void G_func_plat_Top(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_end) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_end,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -531,17 +531,17 @@ static void G_func_plat_Top(g_entity_t *ent) {
 /**
  * @brief Called when a platform reaches its bottom (lowered) position, marking movement complete.
  */
-static void G_func_plat_Bottom(g_entity_t *ent) {
+static void G_func_plat_Bottom(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_end) {
-      vec3_t pos;
+      Vec3 pos;
 
       pos = Box3_Center(ent->abs_bounds);
       pos.z = ent->abs_bounds.maxs.z;
 
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_end,
         .origin = &pos,
       }, MULTICAST_PHS);
@@ -556,12 +556,12 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 /**
  * @brief Initiates downward movement of a platform toward its lowered position.
  */
-static void G_func_plat_GoingDown(g_entity_t *ent) {
+static void G_func_plat_GoingDown(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_start) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -577,17 +577,17 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
 /**
  * @brief Initiates upward movement of a platform toward its raised position.
  */
-static void G_func_plat_GoingUp(g_entity_t *ent) {
+static void G_func_plat_GoingUp(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_start) {
-      vec3_t pos;
+      Vec3 pos;
 
       pos = Box3_Center(ent->abs_bounds);
       pos.z = ent->abs_bounds.maxs.z;
 
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .origin = &pos,
       }, MULTICAST_PHS);
@@ -603,7 +603,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 /**
  * @brief Handles a platform blocked by an obstacle, reversing its direction of travel.
  */
-static void G_func_plat_Blocked(g_entity_t *ent, g_entity_t *other) {
+static void G_func_plat_Blocked(GameEntity *ent, GameEntity *other) {
 
   G_MoveType_Push_Blocked(ent, other);
 
@@ -623,7 +623,7 @@ static void G_func_plat_Blocked(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief Handles use activation of a platform, starting its downward descent.
  */
-static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_func_plat_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->Think) {
     return; // already down
@@ -635,7 +635,7 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *acti
 /**
  * @brief Handles touch events on the platform trigger, sending the platform upward when a player steps on it.
  */
-static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_plat_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (!other->client) {
     return;
@@ -657,8 +657,8 @@ static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
 /**
  * @brief Creates the touch trigger volume used to automatically raise the platform.
  */
-static void G_func_plat_CreateTrigger(g_entity_t *ent, float lip) {
-  g_entity_t *trigger;
+static void G_func_plat_CreateTrigger(GameEntity *ent, float lip) {
+  GameEntity *trigger;
 
   // middle trigger
   trigger = G_AllocEntity(__func__);
@@ -667,7 +667,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent, float lip) {
   trigger->solid = SOLID_TRIGGER;
   trigger->enemy = ent;
 
-  box3_t bounds = Box3_Expand3(ent->bounds, Vec3(-16.f, -16.f, 0.f));
+  Box3 bounds = Box3_Expand3(ent->bounds, MakeVec3(-16.f, -16.f, 0.f));
   bounds.maxs.z += lip;
 
   bounds.mins.z = bounds.maxs.z - (ent->pos1.z - ent->pos2.z + lip);
@@ -704,7 +704,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent, float lip) {
  -------- Spawn flags --------
  low_trigger : If set, the touch field for this platform will only exist at the lower position.
  */
-void G_func_plat(g_entity_t *ent) {
+void G_func_plat(GameEntity *ent) {
 
   ent->s.angles = Vec3_Zero();
 
@@ -740,7 +740,7 @@ void G_func_plat(g_entity_t *ent) {
   ent->pos1 = ent->s.origin;
   ent->pos2 = ent->s.origin;
 
-  const cm_entity_t *height = gi.EntityValue(ent->def, "height");
+  const CmEntity *height = gi.EntityValue(ent->def, "height");
   if (height->parsed & ENTITY_INTEGER) { // use the specified height
     ent->pos2.z -= height->integer;
   } else { // or derive it from the model height
@@ -778,8 +778,8 @@ void G_func_plat(g_entity_t *ent) {
   }
 }
 
-static void G_func_bob_Top(g_entity_t *ent);
-static void G_func_bob_Bottom(g_entity_t *ent);
+static void G_func_bob_Top(GameEntity *ent);
+static void G_func_bob_Bottom(GameEntity *ent);
 
 /**
  * @brief Drives a `func_bob`'s motion each tick along a single half-sine spanning the whole leg:
@@ -792,12 +792,12 @@ static void G_func_bob_Bottom(g_entity_t *ent);
  * destination. `ent->random` doubles as the "compression" exponent (see `G_func_bob`): >1 narrows
  * the peak and adds hang time at the ends, <1 flattens/widens the peak.
  */
-static void G_func_bob_Ease(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_func_bob_Ease(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
   const float total_distance = Vec3_Distance(move->start_origin, move->end_origin);
 
-  vec3_t dir;
+  Vec3 dir;
   const float remaining = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
 
   // G_MoveInfo_Linear_Done snaps position exactly to `dest`, so this threshold is the size of
@@ -827,8 +827,8 @@ static void G_func_bob_Ease(g_entity_t *ent) {
 /**
  * @brief Starts a `func_bob` moving toward `dest`, easing via `G_func_bob_Ease`.
  */
-static void G_func_bob_Move(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
-  g_move_info_t *move = &ent->move_info;
+static void G_func_bob_Move(GameEntity *ent, const Vec3 dest, void (*Done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->move_info;
 
   ent->velocity = Vec3_Zero();
   move->dest = dest;
@@ -844,7 +844,7 @@ static void G_func_bob_Move(g_entity_t *ent, const vec3_t dest, void (*Done)(g_e
 /**
  * @brief Sends a `func_bob` toward its end position.
  */
-static void G_func_bob_GoingUp(g_entity_t *ent) {
+static void G_func_bob_GoingUp(GameEntity *ent) {
   ent->move_info.state = MOVE_STATE_GOING_UP;
   G_func_bob_Move(ent, ent->move_info.end_origin, G_func_bob_Top);
 }
@@ -852,7 +852,7 @@ static void G_func_bob_GoingUp(g_entity_t *ent) {
 /**
  * @brief Sends a `func_bob` back toward its start position.
  */
-static void G_func_bob_GoingDown(g_entity_t *ent) {
+static void G_func_bob_GoingDown(GameEntity *ent) {
   ent->move_info.state = MOVE_STATE_GOING_DOWN;
   G_func_bob_Move(ent, ent->move_info.start_origin, G_func_bob_Bottom);
 }
@@ -860,7 +860,7 @@ static void G_func_bob_GoingDown(g_entity_t *ent) {
 /**
  * @brief Called when a `func_bob` reaches its end position; schedules the return leg.
  */
-static void G_func_bob_Top(g_entity_t *ent) {
+static void G_func_bob_Top(GameEntity *ent) {
   ent->move_info.state = MOVE_STATE_TOP;
   ent->s.sound = 0;
 
@@ -871,7 +871,7 @@ static void G_func_bob_Top(g_entity_t *ent) {
 /**
  * @brief Called when a `func_bob` reaches its start position; schedules the outbound leg.
  */
-static void G_func_bob_Bottom(g_entity_t *ent) {
+static void G_func_bob_Bottom(GameEntity *ent) {
   ent->move_info.state = MOVE_STATE_BOTTOM;
   ent->s.sound = 0;
 
@@ -883,7 +883,7 @@ static void G_func_bob_Bottom(g_entity_t *ent) {
  * @brief Toggles a `func_bob` on or off when triggered. Pausing freezes it in place; resuming
  * continues toward wherever it was already headed, per `move_info.state`.
  */
-static void G_func_bob_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+static void G_func_bob_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->next_think) { // active (moving, or waiting between legs) - pause in place
     ent->Think = NULL;
@@ -929,7 +929,7 @@ static void G_func_bob_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activ
  -------- Spawn flags --------
  start_off : If set, the entity starts motionless and waits to be triggered.
  */
-void G_func_bob(g_entity_t *ent) {
+void G_func_bob(GameEntity *ent) {
 
   ent->s.angles = Vec3_Zero();
 
@@ -1023,11 +1023,11 @@ void G_func_bob(g_entity_t *ent) {
 /**
  * @brief Damages entities that touch a rotating brush while it is in motion.
  */
-static void G_func_rotating_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_rotating_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (ent->damage) {
     if (!Vec3_Equal(ent->avelocity, Vec3_Zero())) {
-      G_Damage(&(g_damage_t) {
+      G_Damage(&(GameDamage) {
         .target = other,
         .inflictor = ent,
         .attacker = NULL,
@@ -1046,8 +1046,8 @@ static void G_func_rotating_Touch(g_entity_t *ent, g_entity_t *other, const cm_t
 /**
  * @brief Toggles rotation of a `func_rotating` brush on or off when triggered.
  */
-static void G_func_rotating_Use(g_entity_t *ent, g_entity_t *other,
-                                g_entity_t *activator) {
+static void G_func_rotating_Use(GameEntity *ent, GameEntity *other,
+                                GameEntity *activator) {
 
   if (!Vec3_Equal(ent->avelocity, Vec3_Zero())) {
     ent->s.sound = 0;
@@ -1078,7 +1078,7 @@ static void G_func_rotating_Use(g_entity_t *ent, g_entity_t *other,
  touch_pain : If set, any interaction with the entity will inflict damage to the player.
  stop : If set and the entity is blocked, the entity will stop rotating.
  */
-void G_func_rotating(g_entity_t *ent) {
+void G_func_rotating(GameEntity *ent) {
 
   ent->solid = SOLID_BSP;
 
@@ -1125,15 +1125,15 @@ void G_func_rotating(g_entity_t *ent) {
 /**
  * @brief Called when a button has fully returned to its resting (bottom) position.
  */
-static void G_func_button_Done(g_entity_t *ent) {
+static void G_func_button_Done(GameEntity *ent) {
   ent->move_info.state = MOVE_STATE_BOTTOM;
 }
 
 /**
  * @brief Moves a button back to its starting position and re-enables damage if applicable.
  */
-static void G_func_button_Reset(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_func_button_Reset(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
   move->state = MOVE_STATE_GOING_DOWN;
 
@@ -1147,8 +1147,8 @@ static void G_func_button_Reset(g_entity_t *ent) {
 /**
  * @brief Called when a button reaches its pressed position, firing targets and scheduling the reset.
  */
-static void G_func_button_Wait(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_func_button_Wait(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
   move->state = MOVE_STATE_TOP;
 
@@ -1163,8 +1163,8 @@ static void G_func_button_Wait(g_entity_t *ent) {
 /**
  * @brief Initiates button press movement from its resting position toward its destination.
  */
-static void G_func_button_Activate(g_entity_t *ent) {
-  g_move_info_t *move = &ent->move_info;
+static void G_func_button_Activate(GameEntity *ent) {
+  GameMoveInfo *move = &ent->move_info;
 
   if (move->state == MOVE_STATE_GOING_UP || move->state == MOVE_STATE_TOP) {
     return;
@@ -1173,7 +1173,7 @@ static void G_func_button_Activate(g_entity_t *ent) {
   move->state = MOVE_STATE_GOING_UP;
 
   if (move->sound_start && !(ent->flags & FL_TEAM_SLAVE)) {
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = move->sound_start,
       .entity = ent,
     }, MULTICAST_PHS);
@@ -1185,8 +1185,8 @@ static void G_func_button_Activate(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a button by storing the activator and pressing the button.
  */
-static void G_func_button_Use(g_entity_t *ent, g_entity_t *other,
-                              g_entity_t *activator) {
+static void G_func_button_Use(GameEntity *ent, GameEntity *other,
+                              GameEntity *activator) {
 
   ent->activator = activator;
   G_func_button_Activate(ent);
@@ -1195,7 +1195,7 @@ static void G_func_button_Use(g_entity_t *ent, g_entity_t *other,
 /**
  * @brief Handles touch events on a button, pressing it when a live player makes contact.
  */
-static void G_func_button_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_button_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (!other->client) {
     return;
@@ -1212,7 +1212,7 @@ static void G_func_button_Touch(g_entity_t *ent, g_entity_t *other, const cm_tra
 /**
  * @brief Handles button death (destroyed by damage), triggering it as if it were pressed.
  */
-static void G_func_button_Die(g_entity_t *ent, g_entity_t *attacker,
+static void G_func_button_Die(GameEntity *ent, GameEntity *attacker,
                               uint32_t mod) {
 
   ent->health = ent->max_health;
@@ -1235,8 +1235,8 @@ static void G_func_button_Die(g_entity_t *ent, g_entity_t *attacker,
  health : If set, the button must be killed instead of touched to use.
  targetname : The target name of this entity if it is to be triggered.
  */
-void G_func_button(g_entity_t *ent) {
-  vec3_t abs_move_dir;
+void G_func_button(GameEntity *ent) {
+  Vec3 abs_move_dir;
   float dist;
 
   G_SetMoveDir(ent);
@@ -1297,17 +1297,17 @@ void G_func_button(g_entity_t *ent) {
 #define DOOR_ROTATING_X_AXIS   0x8
 #define DOOR_ROTATING_Y_AXIS   0x10
 
-static void G_func_door_GoingDown(g_entity_t *ent);
+static void G_func_door_GoingDown(GameEntity *ent);
 
 /**
  * @brief Called when a door reaches its fully open position, scheduling automatic closure.
  */
-static void G_func_door_Top(g_entity_t *ent) {
+static void G_func_door_Top(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_end) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_end,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1331,12 +1331,12 @@ static void G_func_door_Top(g_entity_t *ent) {
 /**
  * @brief Called when a door reaches its fully closed position, marking movement complete.
  */
-static void G_func_door_Bottom(g_entity_t *ent) {
+static void G_func_door_Bottom(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_end) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_end,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1351,10 +1351,10 @@ static void G_func_door_Bottom(g_entity_t *ent) {
 /**
  * @brief Initiates closing movement of a door toward its start (closed) origin.
  */
-static void G_func_door_GoingDown(g_entity_t *ent) {
+static void G_func_door_GoingDown(GameEntity *ent) {
   if (!(ent->flags & FL_TEAM_SLAVE)) {
     if (ent->move_info.sound_start) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1377,7 +1377,7 @@ static void G_func_door_GoingDown(g_entity_t *ent) {
 /**
  * @brief Initiates opening movement of a door toward its end (open) origin.
  */
-static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
+static void G_func_door_GoingUp(GameEntity *ent, GameEntity *activator) {
 
   if (ent->move_info.state == MOVE_STATE_GOING_UP) {
     return; // already going up
@@ -1392,7 +1392,7 @@ static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
     if (ent->move_info.sound_start) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1412,8 +1412,8 @@ static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
 /**
  * @brief Handles use activation of a door, toggling it open or closed for all team members.
  */
-static void G_func_door_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
-  g_entity_t *e;
+static void G_func_door_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
+  GameEntity *e;
 
   if (ent->flags & FL_TEAM_SLAVE) {
     return;
@@ -1443,7 +1443,7 @@ static void G_func_door_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *acti
 /**
  * @brief Touch callback for a door's proximity trigger, opening the door when a player enters the volume.
  */
-static void G_func_door_TouchTrigger(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_door_TouchTrigger(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (other->health <= 0) {
     return;
@@ -1465,8 +1465,8 @@ static void G_func_door_TouchTrigger(g_entity_t *ent, g_entity_t *other, const c
 /**
  * @brief Adjusts the speeds of all door team members so they all complete their movement simultaneously.
  */
-static void G_func_door_CalculateMove(g_entity_t *ent) {
-  g_entity_t *e;
+static void G_func_door_CalculateMove(GameEntity *ent) {
+  GameEntity *e;
 
   if (ent->flags & FL_TEAM_SLAVE) {
     return; // only the team master does this
@@ -1504,21 +1504,21 @@ static void G_func_door_CalculateMove(g_entity_t *ent) {
 /**
  * @brief Creates the proximity trigger volume that automatically opens a door when entered.
  */
-static void G_func_door_CreateTrigger(g_entity_t *ent) {
-  g_entity_t *trigger;
+static void G_func_door_CreateTrigger(GameEntity *ent) {
+  GameEntity *trigger;
 
   if (ent->flags & FL_TEAM_SLAVE) {
     return; // only the team leader spawns a trigger
   }
 
-  box3_t bounds = ent->abs_bounds;
+  Box3 bounds = ent->abs_bounds;
 
   for (trigger = ent->team_next; trigger; trigger = trigger->team_next) {
     bounds = Box3_Union(bounds, trigger->abs_bounds);
   }
 
   // expand
-  bounds = Box3_Expand3(bounds, Vec3(60.f, 60.f, 0.f));
+  bounds = Box3_Expand3(bounds, MakeVec3(60.f, 60.f, 0.f));
 
   trigger = G_AllocEntity(__func__);
   trigger->bounds = bounds;
@@ -1534,14 +1534,14 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 /**
  * @brief Handles a door blocked by an obstacle, reversing its travel direction.
  */
-static void G_func_door_Blocked(g_entity_t *ent, g_entity_t *other) {
+static void G_func_door_Blocked(GameEntity *ent, GameEntity *other) {
 
   G_MoveType_Push_Blocked(ent, other);
 
   // if a door has a negative wait, it would never come back if blocked,
   // so let it just squash the object to death real fast
   if (ent->move_info.wait >= 0) {
-    g_entity_t *e;
+    GameEntity *e;
     if (ent->move_info.state == MOVE_STATE_GOING_DOWN) {
       for (e = ent->team_master; e; e = e->team_next) {
         G_func_door_GoingUp(e, e->activator);
@@ -1557,9 +1557,9 @@ static void G_func_door_Blocked(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief Handles door death (destroyed by damage), forcing the door open for all team members.
  */
-static void G_func_door_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
+static void G_func_door_Die(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
-  g_entity_t *e;
+  GameEntity *e;
 
   for (e = ent->team_master; e; e = e->team_next) {
     e->health = ent->max_health;
@@ -1572,7 +1572,7 @@ static void G_func_door_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod)
 /**
  * @brief Displays the door's locked message when a player first touches it.
  */
-static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (!other->client) {
     return;
@@ -1590,7 +1590,7 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
     gi.Unicast(other->client, true);
   }
 
-  G_UnicastSound(&(const g_play_sound_t) {
+  G_UnicastSound(&(const GamePlaySound) {
     .index = g_media.sounds.chat,
   }, other->client, true);
 }
@@ -1613,8 +1613,8 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
  start_open : The door to moves to its destination when spawned, and operates in reverse.
  toggle : The door will wait in both the start and end states for a trigger event.
  */
-void G_func_door(g_entity_t *ent) {
-  vec3_t abs_move_dir;
+void G_func_door(GameEntity *ent) {
+  Vec3 abs_move_dir;
 
   // spawnflag 16 is the QUAKED-documented toggle position; normalize to DOOR_TOGGLE (0x2)
   // since 0x10 is otherwise only meaningful for func_door_rotating
@@ -1623,7 +1623,7 @@ void G_func_door(g_entity_t *ent) {
   }
 
   if (!(gi.EntityValue(ent->def, "angle")->parsed & ENTITY_INTEGER)) {
-    ent->s.angles = Vec3(0.0, -1.0, 0.0); // default to sliding up
+    ent->s.angles = MakeVec3(0.0, -1.0, 0.0); // default to sliding up
   }
 
   G_SetMoveDir(ent);
@@ -1737,7 +1737,7 @@ void G_func_door(g_entity_t *ent) {
  x_axis : The door will rotate along its X axis.
  y_axis : The door will rotate along its Y axis.
  */
-void G_func_door_rotating(g_entity_t *ent) {
+void G_func_door_rotating(GameEntity *ent) {
   ent->s.angles = Vec3_Zero();
 
   // set the axis of rotation
@@ -1840,19 +1840,19 @@ void G_func_door_rotating(g_entity_t *ent) {
 #define SECRET_FIRST_LEFT    2
 #define SECRET_FIRST_DOWN    4
 
-static void G_func_door_secret_Move1(g_entity_t *ent);
-static void G_func_door_secret_Move2(g_entity_t *ent);
-static void G_func_door_secret_Move3(g_entity_t *ent);
-static void G_func_door_secret_Move4(g_entity_t *ent);
-static void G_func_door_secret_Move5(g_entity_t *ent);
-static void G_func_door_secret_Move6(g_entity_t *ent);
-static void G_func_door_secret_Done(g_entity_t *ent);
+static void G_func_door_secret_Move1(GameEntity *ent);
+static void G_func_door_secret_Move2(GameEntity *ent);
+static void G_func_door_secret_Move3(GameEntity *ent);
+static void G_func_door_secret_Move4(GameEntity *ent);
+static void G_func_door_secret_Move5(GameEntity *ent);
+static void G_func_door_secret_Move6(GameEntity *ent);
+static void G_func_door_secret_Done(GameEntity *ent);
 
 /**
  * @brief Handles use activation of a secret door, beginning its two-stage open sequence.
  */
-static void G_func_door_secret_Use(g_entity_t *ent, g_entity_t *other,
-                                   g_entity_t *activator) {
+static void G_func_door_secret_Use(GameEntity *ent, GameEntity *other,
+                                   GameEntity *activator) {
 
   // make sure we're not already moving
   if (!Vec3_Equal(ent->s.origin, Vec3_Zero())) {
@@ -1864,7 +1864,7 @@ static void G_func_door_secret_Use(g_entity_t *ent, g_entity_t *other,
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_start) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1877,7 +1877,7 @@ static void G_func_door_secret_Use(g_entity_t *ent, g_entity_t *other,
 /**
  * @brief First stage pause of the secret door open sequence before beginning lateral movement.
  */
-static void G_func_door_secret_Move1(g_entity_t *ent) {
+static void G_func_door_secret_Move1(GameEntity *ent) {
 
   ent->next_think = g_level.time + 1000;
   ent->Think = G_func_door_secret_Move2;
@@ -1886,7 +1886,7 @@ static void G_func_door_secret_Move1(g_entity_t *ent) {
 /**
  * @brief Second stage of the secret door sequence, sliding the door laterally.
  */
-static void G_func_door_secret_Move2(g_entity_t *ent) {
+static void G_func_door_secret_Move2(GameEntity *ent) {
 
   G_MoveInfo_Linear_Init(ent, ent->pos2, G_func_door_secret_Move3);
 }
@@ -1894,7 +1894,7 @@ static void G_func_door_secret_Move2(g_entity_t *ent) {
 /**
  * @brief Third stage of the secret door sequence, pausing at the open position before returning.
  */
-static void G_func_door_secret_Move3(g_entity_t *ent) {
+static void G_func_door_secret_Move3(GameEntity *ent) {
 
   if (ent->wait == -1.0) {
     return;
@@ -1903,7 +1903,7 @@ static void G_func_door_secret_Move3(g_entity_t *ent) {
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_end) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_end,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1919,12 +1919,12 @@ static void G_func_door_secret_Move3(g_entity_t *ent) {
 /**
  * @brief Fourth stage of the secret door sequence, starting the return slide.
  */
-static void G_func_door_secret_Move4(g_entity_t *ent) {
+static void G_func_door_secret_Move4(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_start) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1939,7 +1939,7 @@ static void G_func_door_secret_Move4(g_entity_t *ent) {
 /**
  * @brief Fifth stage pause of the secret door return sequence before the final slide back.
  */
-static void G_func_door_secret_Move5(g_entity_t *ent) {
+static void G_func_door_secret_Move5(GameEntity *ent) {
 
   ent->next_think = g_level.time + 1000;
   ent->Think = G_func_door_secret_Move6;
@@ -1948,7 +1948,7 @@ static void G_func_door_secret_Move5(g_entity_t *ent) {
 /**
  * @brief Sixth stage of the secret door sequence, sliding the door back to its origin.
  */
-static void G_func_door_secret_Move6(g_entity_t *ent) {
+static void G_func_door_secret_Move6(GameEntity *ent) {
 
   G_MoveInfo_Linear_Init(ent, Vec3_Zero(), G_func_door_secret_Done);
 }
@@ -1956,7 +1956,7 @@ static void G_func_door_secret_Move6(g_entity_t *ent) {
 /**
  * @brief Completes the secret door movement sequence, restoring damage if applicable.
  */
-static void G_func_door_secret_Done(g_entity_t *ent) {
+static void G_func_door_secret_Done(GameEntity *ent) {
 
   if (!(ent->target_name) || (ent->spawn_flags & SECRET_ALWAYS_SHOOT)) {
     ent->dead = true;
@@ -1966,7 +1966,7 @@ static void G_func_door_secret_Done(g_entity_t *ent) {
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
     if (ent->move_info.sound_end) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_end,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -1979,7 +1979,7 @@ static void G_func_door_secret_Done(g_entity_t *ent) {
 /**
  * @brief Handles a secret door blocked by a player, dealing damage and delaying retraction.
  */
-static void G_func_door_secret_Blocked(g_entity_t *ent, g_entity_t *other) {
+static void G_func_door_secret_Blocked(GameEntity *ent, GameEntity *other) {
 
   if (!other->client) {
     return;
@@ -1991,7 +1991,7 @@ static void G_func_door_secret_Blocked(g_entity_t *ent, g_entity_t *other) {
 
   ent->touch_time = g_level.time + 500;
 
-  G_Damage(&(g_damage_t) {
+  G_Damage(&(GameDamage) {
     .target = other,
     .inflictor = ent,
     .attacker = ent,
@@ -2010,7 +2010,7 @@ static void G_func_door_secret_Blocked(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief Handles secret door death (shot open), triggering it as if it were used.
  */
-static void G_func_door_secret_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
+static void G_func_door_secret_Die(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
   ent->take_damage = false;
   G_func_door_secret_Use(ent, attacker, attacker);
@@ -2036,8 +2036,8 @@ always_shoot : The door will open when shot, even if it is targeted.
 first_left : The door will first slide to the left.
 first_down : The door will first slide down.
 */
-void G_func_door_secret(g_entity_t *ent) {
-  vec3_t forward, right, up;
+void G_func_door_secret(GameEntity *ent) {
+  Vec3 forward, right, up;
 
   ent->move_type = MOVE_TYPE_PUSH;
   ent->solid = SOLID_BSP;
@@ -2116,8 +2116,8 @@ void G_func_door_secret(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a `func_wall`, toggling its solidity on or off.
  */
-static void G_func_wall_Use(g_entity_t *ent, g_entity_t *other,
-                            g_entity_t *activator) {
+static void G_func_wall_Use(GameEntity *ent, GameEntity *other,
+                            GameEntity *activator) {
 
   if (ent->solid == SOLID_NOT) {
     ent->solid = SOLID_BSP;
@@ -2151,7 +2151,7 @@ static void G_func_wall_Use(g_entity_t *ent, g_entity_t *other,
  toggle : The wall may be triggered off and on.
  start_on : The wall will initially be present, but can be toggled off.
  */
-void G_func_wall(g_entity_t *ent) {
+void G_func_wall(GameEntity *ent) {
   ent->move_type = MOVE_TYPE_PUSH;
   gi.SetModel(ent, ent->model);
 
@@ -2194,8 +2194,8 @@ void G_func_wall(g_entity_t *ent) {
  -------- Spawn flags ---------
  start_open : If set, causes the water to move to its destination when spawned and operate in reverse.
  */
-void G_func_water(g_entity_t *ent) {
-  vec3_t abs_move_dir;
+void G_func_water(GameEntity *ent) {
+  Vec3 abs_move_dir;
 
   G_SetMoveDir(ent);
   ent->move_type = MOVE_TYPE_PUSH;
@@ -2254,16 +2254,16 @@ void G_func_water(g_entity_t *ent) {
 #define PATH_CORNER_TELEPORT    1
 #define PATH_CORNER_NO_EFFECTS  2
 
-static void G_func_train_Next(g_entity_t *ent);
+static void G_func_train_Next(GameEntity *ent);
 
 /**
  * @brief Trains built around a `common/origin` brush are positioned by that origin, which is also
  * the point they rotate about. Trains without one are positioned by their lower bounding corner,
  * as they always have been.
  */
-static bool G_func_train_HasOrigin(const g_entity_t *ent) {
+static bool G_func_train_HasOrigin(const GameEntity *ent) {
 
-  const cm_entity_t *origin = gi.EntityValue(ent->def, "origin");
+  const CmEntity *origin = gi.EntityValue(ent->def, "origin");
 
   return (origin->parsed & ENTITY_VEC3) && !Vec3_Equal(origin->vec3, Vec3_Zero());
 }
@@ -2271,7 +2271,7 @@ static bool G_func_train_HasOrigin(const g_entity_t *ent) {
 /**
  * @brief The offset from a `path_corner`'s origin to the train's own origin.
  */
-static vec3_t G_func_train_Offset(const g_entity_t *ent) {
+static Vec3 G_func_train_Offset(const GameEntity *ent) {
 
   return G_func_train_HasOrigin(ent) ? Vec3_Zero() : Vec3_Negate(ent->bounds.mins);
 }
@@ -2280,7 +2280,7 @@ static vec3_t G_func_train_Offset(const g_entity_t *ent) {
  * @brief Whether `corner` orients the train explicitly, by either key an editor might write for
  * it: `angle` for the rotation widget, or `angles` for all three axes.
  */
-static bool G_path_corner_HasAngles(const g_entity_t *corner) {
+static bool G_path_corner_HasAngles(const GameEntity *corner) {
 
   return (gi.EntityValue(corner->def, "angles")->parsed & ENTITY_VEC3) ||
          (gi.EntityValue(corner->def, "angle")->parsed & ENTITY_FLOAT);
@@ -2292,14 +2292,14 @@ static bool G_path_corner_HasAngles(const g_entity_t *corner) {
  * lets a mapper record which way it actually faces, letting auto-computed leg angles below be
  * expressed relative to that resting pose rather than to world east.
  */
-static float G_func_train_Heading(const g_entity_t *ent) {
+static float G_func_train_Heading(const GameEntity *ent) {
 
-  const cm_entity_t *angle = gi.EntityValue(ent->def, "angle");
+  const CmEntity *angle = gi.EntityValue(ent->def, "angle");
   if (angle->parsed & ENTITY_FLOAT) {
     return angle->value;
   }
 
-  const cm_entity_t *angles = gi.EntityValue(ent->def, "angles");
+  const CmEntity *angles = gi.EntityValue(ent->def, "angles");
   if (angles->parsed & ENTITY_VEC3) {
     return angles->vec3.y;
   }
@@ -2312,15 +2312,15 @@ static float G_func_train_Heading(const g_entity_t *ent) {
  * own resting heading, or its current angles if the leg has no horizontal component to face, as
  * when riding straight up or down a shaft.
  */
-static vec3_t G_func_train_AnglesForLeg(const g_entity_t *ent, const vec3_t from, const vec3_t to) {
+static Vec3 G_func_train_AnglesForLeg(const GameEntity *ent, const Vec3 from, const Vec3 to) {
 
-  const vec3_t dir = Vec3_Subtract(to, from);
+  const Vec3 dir = Vec3_Subtract(to, from);
 
   if (dir.x == 0.f && dir.y == 0.f) {
     return ent->s.angles;
   }
 
-  vec3_t angles = Vec3_Euler(dir);
+  Vec3 angles = Vec3_Euler(dir);
 
   angles.y = fmodf(angles.y - G_func_train_Heading(ent) + 360.f, 360.f);
 
@@ -2333,7 +2333,7 @@ static vec3_t G_func_train_AnglesForLeg(const g_entity_t *ent, const vec3_t from
  * follows its rails without the mapper angling every corner by hand. Rotation pivots about the
  * train's origin, so it requires an origin brush and is skipped for legacy trains.
  */
-static vec3_t G_func_train_Angles(const g_entity_t *ent, const g_entity_t *corner, const vec3_t from) {
+static Vec3 G_func_train_Angles(const GameEntity *ent, const GameEntity *corner, const Vec3 from) {
 
   if (!G_func_train_HasOrigin(ent)) {
     if (G_path_corner_HasAngles(corner)) {
@@ -2355,7 +2355,7 @@ static vec3_t G_func_train_Angles(const g_entity_t *ent, const g_entity_t *corne
  * will depart towards, so that it starts out aligned with its route rather than snapping around
  * over its first leg.
  */
-static vec3_t G_func_train_AnglesAt(const g_entity_t *ent, const g_entity_t *corner) {
+static Vec3 G_func_train_AnglesAt(const GameEntity *ent, const GameEntity *corner) {
 
   if (!G_func_train_HasOrigin(ent)) {
     return ent->s.angles;
@@ -2365,7 +2365,7 @@ static vec3_t G_func_train_AnglesAt(const g_entity_t *ent, const g_entity_t *cor
     return corner->s.angles;
   }
 
-  const g_entity_t *next = corner->target ? G_PickTarget(corner->target) : NULL;
+  const GameEntity *next = corner->target ? G_PickTarget(corner->target) : NULL;
 
   return next ? G_func_train_AnglesForLeg(ent, corner->s.origin, next->s.origin) : ent->s.angles;
 }
@@ -2373,7 +2373,7 @@ static vec3_t G_func_train_AnglesAt(const g_entity_t *ent, const g_entity_t *cor
 /**
  * @brief Called when a train arrives at a `path_corner`, firing pathtargets and scheduling the next segment.
  */
-static void G_func_train_Wait(g_entity_t *ent) {
+static void G_func_train_Wait(GameEntity *ent) {
 
   if (!Vec3_Equal(ent->s.angles, ent->move_info.end_angles)) {
     ent->s.angles = ent->move_info.end_angles;
@@ -2383,7 +2383,7 @@ static void G_func_train_Wait(g_entity_t *ent) {
 
   const char *path_target = gi.EntityValue(ent->target_ent->def, "pathtarget")->nullable_string;
   if (path_target) {
-    g_entity_t *target_ent = ent->target_ent;
+    GameEntity *target_ent = ent->target_ent;
     const char *target = target_ent->target;
     target_ent->target = path_target;
     G_UseTargets(target_ent, ent->activator);
@@ -2409,7 +2409,7 @@ static void G_func_train_Wait(g_entity_t *ent) {
 
     if (!(ent->flags & FL_TEAM_SLAVE)) {
       if (ent->move_info.sound_end) {
-        G_MulticastSound(&(const g_play_sound_t) {
+        G_MulticastSound(&(const GamePlaySound) {
           .index = ent->move_info.sound_end,
           .entity = ent,
         }, MULTICAST_PHS);
@@ -2424,9 +2424,9 @@ static void G_func_train_Wait(g_entity_t *ent) {
 /**
  * @brief Advances the train to the next `path_corner` in its route.
  */
-static void G_func_train_Next(g_entity_t *ent) {
-  g_entity_t *target;
-  vec3_t dest;
+static void G_func_train_Next(GameEntity *ent) {
+  GameEntity *target;
+  Vec3 dest;
   bool first;
 
   first = true;
@@ -2470,7 +2470,7 @@ again:
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
     if (ent->move_info.sound_start) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = ent->move_info.sound_start,
         .entity = ent,
       }, MULTICAST_PHS);
@@ -2506,9 +2506,9 @@ again:
  * picks up where it left off: the ramp is a function of how far along the leg we are, so retaining
  * the leg's original `start_origin` is all it takes to resume at the speed we stopped at.
  */
-static void G_func_train_Resume(g_entity_t *ent) {
-  g_entity_t *target;
-  vec3_t dest;
+static void G_func_train_Resume(GameEntity *ent) {
+  GameEntity *target;
+  Vec3 dest;
 
   target = ent->target_ent;
 
@@ -2534,8 +2534,8 @@ static void G_func_train_Resume(g_entity_t *ent) {
 /**
  * @brief Locates the initial `path_corner` and positions the train at its starting origin.
  */
-static void G_func_train_Find(g_entity_t *ent) {
-  g_entity_t *target;
+static void G_func_train_Find(GameEntity *ent) {
+  GameEntity *target;
 
   if (!ent->target) {
     G_Debug("No target specified\n");
@@ -2572,8 +2572,8 @@ static void G_func_train_Find(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a train, toggling movement on or off.
  */
-static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
-                             g_entity_t *activator) {
+static void G_func_train_Use(GameEntity *ent, GameEntity *other,
+                             GameEntity *activator) {
   ent->activator = activator;
 
   if (ent->spawn_flags & TRAIN_START_ON) {
@@ -2644,7 +2644,7 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
  jump, and the mapper is responsible for hiding both corners from view.
  no_effects : Suppress the teleport effect.
  */
-void G_func_train(g_entity_t *ent) {
+void G_func_train(GameEntity *ent) {
   ent->move_type = MOVE_TYPE_PUSH;
 
   ent->s.angles = Vec3_Zero();
@@ -2688,7 +2688,7 @@ void G_func_train(g_entity_t *ent) {
 /**
  * @brief Fires all targets of a `func_timer` and schedules the next timer tick.
  */
-static void G_func_timer_Think(g_entity_t *ent) {
+static void G_func_timer_Think(GameEntity *ent) {
 
   G_UseTargets(ent, ent->activator);
 
@@ -2701,8 +2701,8 @@ static void G_func_timer_Think(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a `func_timer`, toggling it on or off.
  */
-static void G_func_timer_Use(g_entity_t *ent, g_entity_t *other,
-                             g_entity_t *activator) {
+static void G_func_timer_Use(GameEntity *ent, GameEntity *other,
+                             GameEntity *activator) {
   ent->activator = activator;
 
   // if on, turn it off
@@ -2732,7 +2732,7 @@ static void G_func_timer_Use(g_entity_t *ent, g_entity_t *other,
  -------- Spawn flags --------
  start_on : If set, the timer will begin firing once spawned.
  */
-void G_func_timer(g_entity_t *ent) {
+void G_func_timer(GameEntity *ent) {
 
   if (!ent->wait) {
     ent->wait = 1.0;
@@ -2762,8 +2762,8 @@ void G_func_timer(g_entity_t *ent) {
 /**
  * @brief Handles use activation of a `func_conveyor`, toggling the belt speed on or off.
  */
-static void G_func_conveyor_Use(g_entity_t *ent, g_entity_t *other,
-                                g_entity_t *activator) {
+static void G_func_conveyor_Use(GameEntity *ent, GameEntity *other,
+                                GameEntity *activator) {
   if (ent->spawn_flags & 1) {
     ent->speed = 0;
     ent->spawn_flags &= ~1;
@@ -2788,7 +2788,7 @@ static void G_func_conveyor_Use(g_entity_t *ent, g_entity_t *other,
  start_on : The conveyor will be active immediately.
  toggle : The conveyor is toggled each time it is used.
  */
-void G_func_conveyor(g_entity_t *ent) {
+void G_func_conveyor(GameEntity *ent) {
   if (!ent->speed) {
     ent->speed = 100;
   }

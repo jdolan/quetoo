@@ -38,7 +38,7 @@ static void updateBindings(View *self, ident data) {
   TeamView *this = (TeamView *) self;
 
   if (this->team) {
-    const color32_t c = Color_Color32(this->team->color);
+    const Color32 c = Color_Color32(this->team->color);
 
     $(this->name->text, setText, this->team->name);
     $(this->name->text->view.style, addColorAttribute, "color", &MakeColor(c.r, c.g, c.b, c.a));
@@ -49,7 +49,7 @@ static void updateBindings(View *self, ident data) {
 
   $((View *) this->players, removeAllSubviews);
 
-  const cg_client_info_t *client = cg_state.clients;
+  const ClientGameClientInfo *client = cg_state.clients;
   for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
 
     if (*client->info && client->team == this->team) {
@@ -88,10 +88,10 @@ static TeamView *initWithFrame(TeamView *self, const SDL_Rect *frame) {
 }
 
 /**
- * @fn void TeamView::setTeam(TeamView *, const cg_team_info_t *)
+ * @fn void TeamView::setTeam(TeamView *, const ClientGameTeamInfo *)
  * @memberof TeamView
  */
-static void setTeam(TeamView *self, const cg_team_info_t *team) {
+static void setTeam(TeamView *self, const ClientGameTeamInfo *team) {
 
   self->team = team;
 

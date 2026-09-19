@@ -25,9 +25,9 @@
  * @brief Vertex type for the fullscreen post-processing quad.
  */
 typedef struct {
-  vec2_t position;
-  vec2_t texcoord;
-} r_post_vertex_t;
+  Vec2 position;
+  Vec2 texcoord;
+} RenderPostVertex;
 
 /**
  * @brief Post-processing stage selector.
@@ -37,7 +37,7 @@ typedef enum {
   R_POST_BLOOM_BLUR_X,
   R_POST_BLOOM_BLUR_Y,
   R_POST_TONEMAP,
-} r_post_stage_t;
+} RenderPostStage;
 
 /**
  * @brief Per-pass post-processing uniforms.
@@ -47,7 +47,7 @@ typedef struct {
   float bloom;
   float bloom_threshold;
   float padding;
-} r_post_locals_t;
+} RenderPostLocals;
 
 /**
  * @brief The post-processing state.
@@ -110,7 +110,7 @@ static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
  */
 static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
                        Texture *color, Texture *bloom,
-                       int32_t width, int32_t height, const r_post_locals_t *locals) {
+                       int32_t width, int32_t height, const RenderPostLocals *locals) {
 
   CommandBuffer *commands = r_context.device->commands;
 
@@ -143,7 +143,7 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
 /**
  * @brief Applies bloom and tonemapping to the rendered scene.
  */
-void R_DrawPost(const r_view_t *view) {
+void R_DrawPost(const RenderView *view) {
 
   if (!r_models.world) {
     return;
@@ -170,7 +170,7 @@ void R_DrawPost(const r_view_t *view) {
     R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
                scene_color, scene_color,
                r_post.bloom_width, r_post.bloom_height,
-               &(r_post_locals_t) {
+               &(RenderPostLocals) {
                  .post_stage = R_POST_BLOOM_EXTRACT,
                  .bloom_threshold = r_bloom_threshold->value,
                });
@@ -182,13 +182,13 @@ void R_DrawPost(const r_view_t *view) {
                  r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0],
                  r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0],
                  r_post.bloom_width, r_post.bloom_height,
-                 &(r_post_locals_t) { .post_stage = R_POST_BLOOM_BLUR_X });
+                 &(RenderPostLocals) { .post_stage = R_POST_BLOOM_BLUR_X });
 
       R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
                  r_post.bloom_framebuffers[1]->colorAttachments[0].textures[0],
                  r_post.bloom_framebuffers[1]->colorAttachments[0].textures[0],
                  r_post.bloom_width, r_post.bloom_height,
-                 &(r_post_locals_t) { .post_stage = R_POST_BLOOM_BLUR_Y });
+                 &(RenderPostLocals) { .post_stage = R_POST_BLOOM_BLUR_Y });
     }
   }
 
@@ -196,7 +196,7 @@ void R_DrawPost(const r_view_t *view) {
              scene_color,
              bloom ? r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0] : scene_color,
              (int32_t) present->size.w, (int32_t) present->size.h,
-             &(r_post_locals_t) {
+             &(RenderPostLocals) {
                .post_stage = R_POST_TONEMAP,
                .bloom = r_bloom->value,
              });
@@ -212,7 +212,7 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
     .vertex_input_state = {
       .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
         .slot = 0,
-        .pitch = sizeof(r_post_vertex_t),
+        .pitch = sizeof(RenderPostVertex),
         .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
       },
       .num_vertex_buffers = 1,
@@ -221,13 +221,13 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
           .location = 0,
           .buffer_slot = 0,
           .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-          .offset = offsetof(r_post_vertex_t, position),
+          .offset = offsetof(RenderPostVertex, position),
         },
         {
           .location = 1,
           .buffer_slot = 0,
           .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-          .offset = offsetof(r_post_vertex_t, texcoord),
+          .offset = offsetof(RenderPostVertex, texcoord),
         },
       },
       .num_vertex_attributes = 2,
@@ -265,13 +265,13 @@ void R_InitPost(void) {
 
   memset(&r_post, 0, sizeof(r_post));
 
-  const r_post_vertex_t vertexes[] = {
-    { .position = Vec2(-1.f, -1.f), .texcoord = Vec2(0.f, 1.f) },
-    { .position = Vec2( 1.f, -1.f), .texcoord = Vec2(1.f, 1.f) },
-    { .position = Vec2( 1.f,  1.f), .texcoord = Vec2(1.f, 0.f) },
-    { .position = Vec2(-1.f, -1.f), .texcoord = Vec2(0.f, 1.f) },
-    { .position = Vec2( 1.f,  1.f), .texcoord = Vec2(1.f, 0.f) },
-    { .position = Vec2(-1.f,  1.f), .texcoord = Vec2(0.f, 0.f) },
+  const RenderPostVertex vertexes[] = {
+    { .position = MakeVec2(-1.f, -1.f), .texcoord = MakeVec2(0.f, 1.f) },
+    { .position = MakeVec2( 1.f, -1.f), .texcoord = MakeVec2(1.f, 1.f) },
+    { .position = MakeVec2( 1.f,  1.f), .texcoord = MakeVec2(1.f, 0.f) },
+    { .position = MakeVec2(-1.f, -1.f), .texcoord = MakeVec2(0.f, 1.f) },
+    { .position = MakeVec2( 1.f,  1.f), .texcoord = MakeVec2(1.f, 0.f) },
+    { .position = MakeVec2(-1.f,  1.f), .texcoord = MakeVec2(0.f, 0.f) },
   };
 
   r_post.vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));

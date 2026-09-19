@@ -22,7 +22,7 @@
 #include "tests.h"
 #include "collision/cm_entity.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -54,11 +54,11 @@ START_TEST(check_parse_simple_brush) {
     "}\n"
     "}\n";
 
-  cm_entity_t *e = Cm_AllocEntity();
+  CmEntity *e = Cm_AllocEntity();
   SDL_strlcpy(e->key, "classname", sizeof(e->key));
   SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
-  cm_entity_t *entities[] = { e };
+  CmEntity *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
 
   ck_assert_ptr_nonnull(e->brushes);
@@ -81,11 +81,11 @@ START_TEST(check_parse_no_brushes) {
     "\"origin\" \"0 0 0\"\n"
     "}\n";
 
-  cm_entity_t *e = Cm_AllocEntity();
+  CmEntity *e = Cm_AllocEntity();
   SDL_strlcpy(e->key, "classname", sizeof(e->key));
   SDL_strlcpy(e->string, "info_player_deathmatch", sizeof(e->string));
 
-  cm_entity_t *entities[] = { e };
+  CmEntity *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
 
   ck_assert_ptr_null(e->brushes);
@@ -117,11 +117,11 @@ START_TEST(check_parse_patchdef2) {
     "}\n"
     "}\n";
 
-  cm_entity_t *e = Cm_AllocEntity();
+  CmEntity *e = Cm_AllocEntity();
   SDL_strlcpy(e->key, "classname", sizeof(e->key));
   SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
-  cm_entity_t *entities[] = { e };
+  CmEntity *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
 
   ck_assert_ptr_nonnull(e->brushes);
@@ -162,11 +162,11 @@ START_TEST(check_parse_mixed_brush_and_patch) {
     "}\n"
     "}\n";
 
-  cm_entity_t *e = Cm_AllocEntity();
+  CmEntity *e = Cm_AllocEntity();
   SDL_strlcpy(e->key, "classname", sizeof(e->key));
   SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
-  cm_entity_t *entities[] = { e };
+  CmEntity *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
 
   ck_assert_ptr_nonnull(e->brushes);
@@ -205,11 +205,11 @@ START_TEST(check_parse_multiple_entities) {
     "}\n"
     "}\n";
 
-  cm_entity_t *e0 = Cm_AllocEntity();
-  cm_entity_t *e1 = Cm_AllocEntity();
-  cm_entity_t *e2 = Cm_AllocEntity();
+  CmEntity *e0 = Cm_AllocEntity();
+  CmEntity *e1 = Cm_AllocEntity();
+  CmEntity *e2 = Cm_AllocEntity();
 
-  cm_entity_t *entities[] = { e0, e1, e2 };
+  CmEntity *entities[] = { e0, e1, e2 };
   Cm_ParseMapBrushes(map_text, entities, 3);
 
   // worldspawn gets its brush
@@ -257,10 +257,10 @@ START_TEST(check_parse_long_token_value) {
     "}\n",
     long_value);
 
-  cm_entity_t *e0 = Cm_AllocEntity();
-  cm_entity_t *e1 = Cm_AllocEntity();
+  CmEntity *e0 = Cm_AllocEntity();
+  CmEntity *e1 = Cm_AllocEntity();
 
-  cm_entity_t *entities[] = { e0, e1 };
+  CmEntity *entities[] = { e0, e1 };
   Cm_ParseMapBrushes(map_text, entities, 2);
 
   // worldspawn must still get its brushes despite the long token
@@ -293,11 +293,11 @@ START_TEST(check_parse_preserves_comments) {
     "}\n"
     "}\n";
 
-  cm_entity_t *e = Cm_AllocEntity();
+  CmEntity *e = Cm_AllocEntity();
   SDL_strlcpy(e->key, "classname", sizeof(e->key));
   SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
-  cm_entity_t *entities[] = { e };
+  CmEntity *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
 
   ck_assert_ptr_nonnull(e->brushes);
@@ -317,11 +317,11 @@ START_TEST(check_parse_preserves_comments) {
 
 START_TEST(check_copy_entity_preserves_brushes) {
 
-  cm_entity_t *origin = Cm_AllocEntity();
+  CmEntity *origin = Cm_AllocEntity();
   SDL_strlcpy(origin->key, "origin", sizeof(origin->key));
   SDL_strlcpy(origin->string, "128 256 512", sizeof(origin->string));
 
-  cm_entity_t *classname = Cm_AllocEntity();
+  CmEntity *classname = Cm_AllocEntity();
   SDL_strlcpy(classname->key, "classname", sizeof(classname->key));
   SDL_strlcpy(classname->string, "worldspawn", sizeof(classname->string));
   classname->brushes = Mem_TagCopyString("{ test brush data }\n", MEM_TAG_COLLISION);
@@ -330,11 +330,11 @@ START_TEST(check_copy_entity_preserves_brushes) {
   origin->next = classname;
   classname->prev = origin;
 
-  cm_entity_t *copy = Cm_CopyEntity(origin);
+  CmEntity *copy = Cm_CopyEntity(origin);
 
   // After copy+sort, brushes must be findable somewhere in the linked list
   const char *found_brushes = NULL;
-  for (const cm_entity_t *n = copy; n; n = n->next) {
+  for (const CmEntity *n = copy; n; n = n->next) {
     if (n->brushes) {
       found_brushes = n->brushes;
       break;
@@ -374,11 +374,11 @@ START_TEST(check_parse_fewer_bsp_entities) {
     "}\n"
     "}\n";
 
-  cm_entity_t *e0 = Cm_AllocEntity();
-  cm_entity_t *e1 = Cm_AllocEntity();
+  CmEntity *e0 = Cm_AllocEntity();
+  CmEntity *e1 = Cm_AllocEntity();
 
   // BSP only has worldspawn and light (func_group was merged)
-  cm_entity_t *entities[] = { e0, e1 };
+  CmEntity *entities[] = { e0, e1 };
   Cm_ParseMapBrushes(map_text, entities, 2);
 
   // worldspawn gets its brush

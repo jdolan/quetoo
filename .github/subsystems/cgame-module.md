@@ -28,7 +28,7 @@ The client-side game module implements client-only features: HUD, view effects, 
 
 ### cg_main.c / cg_main.h
 Module initialization and main loop:
-- `Cg_LoadCgame()` - Entry point, returns `cg_export_t`
+- `Cg_LoadCgame()` - Entry point, returns `ClientGameExport`
 - `Cg_Init()` - Initialize cgame
 - `Cg_Shutdown()` - Cleanup
 - `Cg_UpdateMedia()` - Load/reload assets (models, sounds)
@@ -189,15 +189,15 @@ Discord Rich Presence integration:
 
 ```c
 typedef struct {
-    cl_client_t *client;          // Client state
-    const cl_state_t *state;      // Connection state
-    const r_context_t *context;   // Renderer context
-    r_view_t *view;               // View definition (camera, FOV, etc.)
-    s_stage_t *stage;             // Audio stage
+    Client *client;          // Client state
+    const ClientState *state;      // Connection state
+    const RenderContext *context;   // Renderer context
+    RenderView *view;               // View definition (camera, FOV, etc.)
+    SoundStage *stage;             // Audio stage
     
     // Console
     void (*Print)(const char *fmt, ...);
-    void (*Debug)(debug_t debug, const char *func, const char *fmt, ...);
+    void (*Debug)(DebugFlags debug, const char *func, const char *fmt, ...);
     void (*Warn)(const char *func, const char *fmt, ...);
     void (*Error)(const char *func, const char *fmt, ...) __attribute__((noreturn));
     
@@ -205,21 +205,21 @@ typedef struct {
     // ...
     
     // Rendering
-    void (*AddEntity)(const r_entity_t *ent);
-    void (*AddLight)(const r_light_t *light);
-    void (*AddSprite)(const r_sprite_t *sprite);
+    void (*AddEntity)(const RenderEntity *ent);
+    void (*AddLight)(const RenderLight *light);
+    void (*AddSprite)(const RenderSprite *sprite);
     
     // Media
-    const r_model_t *(*LoadModel)(const char *name);
-    const r_image_t *(*LoadImage)(const char *name, uint32_t type);
-    const s_sample_t *(*LoadSample)(const char *name);
+    const RenderModel *(*LoadModel)(const char *name);
+    const RenderImage *(*LoadImage)(const char *name, uint32_t type);
+    const SoundSample *(*LoadSample)(const char *name);
     
     // Sound
-    void (*AddSample)(const s_stage_t *stage, const s_sample_t *sample, ...);
+    void (*AddSample)(const SoundStage *stage, const SoundSample *sample, ...);
     
     // Prediction (uses shared Pmove)
     void (*Pmove)(pmove_t *pm);
-} cg_import_t;
+} ClientGameImport;
 ```
 
 ### Exports to Client (`cge`)
@@ -232,13 +232,13 @@ typedef struct {
     void (*Shutdown)(void);
     void (*UpdateMedia)(const char *mapname);
     void (*LoadClient)(cl_client_info_t *ci);
-    void (*Interpolate)(const cl_frame_t *frame);
+    void (*Interpolate)(const ClientFrame *frame);
     void (*UsePrediction)(void);
-    void (*PredictMovement)(const vec3_t angles, const user_cmd_t *cmd);
-    void (*UpdateView)(const cl_frame_t *frame);
+    void (*PredictMovement)(const Vec3 angles, const user_cmd_t *cmd);
+    void (*UpdateView)(const ClientFrame *frame);
     void (*ParseMessage)(int32_t cmd);
     void (*Frame)(void);
-} cg_export_t;
+} ClientGameExport;
 ```
 
 ## Frame Flow
@@ -283,7 +283,7 @@ Without prediction, movement feels laggy (50-100ms delay to server). Prediction 
 
 Server sends events as part of entity state:
 ```c
-entity_state_t.event = EV_FOOTSTEP;
+EntityState.event = EV_FOOTSTEP;
 ```
 
 Client detects event and plays effect:
@@ -310,7 +310,7 @@ void Cg_ParseTempEntity(void) {
     const int32_t type = cgi.ReadByte();
     switch (type) {
         case TE_EXPLOSION:
-            const vec3_t pos = cgi.ReadPosition();
+            const Vec3 pos = cgi.ReadPosition();
             Cg_ExplosionEffect(pos);
             Cg_AddLight(pos, 150.0, RGB(1.0, 0.5, 0.0));
             break;
@@ -329,7 +329,7 @@ const r_pixel_t y = cgi.context->height * 0.9; // 90% from top
 cgi.DrawString(x, y, va("%d", cl_client->health), CON_COLOR_DEFAULT);
 
 // Draw ammo icon
-const r_image_t *icon = cgi.LoadImage("pics/i_shells.tga", IMG_PIC);
+const RenderImage *icon = cgi.LoadImage("pics/i_shells.tga", IMG_PIC);
 cgi.DrawImage(x, y, 1.0, icon, color_white);
 ```
 
@@ -364,14 +364,14 @@ Particles are simple sprites with physics:
 
 ```c
 typedef struct {
-    vec3_t origin;
-    vec3_t velocity;
-    vec3_t acceleration;  // Usually gravity
-    color32_t color;
+    Vec3 origin;
+    Vec3 velocity;
+    Vec3 acceleration;  // Usually gravity
+    Color32 color;
     float alpha;
     float size;
     uint32_t lifetime;
-    const r_image_t *image;
+    const RenderImage *image;
 } cg_particle_t;
 ```
 
@@ -414,7 +414,7 @@ cg_add_lights 1          # Dynamic lights
 
 ### Adding Dynamic Light
 ```c
-r_light_t light = {
+RenderLight light = {
     .origin = { x, y, z },
     .radius = 150.0,
     .color = RGB(1.0, 0.5, 0.0),  // Orange

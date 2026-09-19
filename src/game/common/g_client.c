@@ -84,7 +84,7 @@ static bool G_IsDeathCamMod(uint32_t mod) {
 /**
  * @brief Make a tasteless death announcement and record scores.
  */
-static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod) {
+static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod) {
   char buffer[MAX_PRINT_MSG];
 
   const bool frag = attacker && attacker->client && attacker->client != cl;
@@ -409,7 +409,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 
     if (g_show_attacker_stats->integer) {
       int16_t a = 0;
-      const g_item_t *armor = G_ClientArmor(attacker->client);
+      const GameItem *armor = G_ClientArmor(attacker->client);
       if (armor) {
         a = attacker->client->inventory[armor->def.tag];
       }
@@ -444,14 +444,14 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 /**
  * @brief Play a sloppy sound when impacting the world.
  */
-static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_ClientGiblet_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   // G_TouchOccupy passes no trace, and is the only way a giblet reaches a player
   if (ent->damage && other->client && other != ent->owner && other->take_damage) {
     if ((uint32_t) ent->count <= g_level.time) {
       ent->count = g_level.time + 500;
 
-      G_Damage(&(g_damage_t) {
+      G_Damage(&(GameDamage) {
         .target = other,
         .inflictor = ent,
         .attacker = ent->owner,
@@ -476,7 +476,7 @@ static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
     if (speed > 40.0 && G_IsStructural(trace)) {
 
       if (g_level.time - ent->touch_time > 200) {
-        G_MulticastSound(&(const g_play_sound_t) {
+        G_MulticastSound(&(const GamePlaySound) {
           .index = ent->sound,
           .entity = ent,
         }, MULTICAST_PHS);
@@ -504,7 +504,7 @@ static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
  * otherwise fly clean; the trail is assigned by `G_ClientCorpse_Think`, which they never run,
  * along with the despawn this mirrors.
  */
-static void G_Giblet_Think(g_entity_t *ent) {
+static void G_Giblet_Think(GameEntity *ent) {
 
   if (g_level.time >= ent->timestamp) {
 
@@ -541,7 +541,7 @@ static void G_Giblet_Think(g_entity_t *ent) {
  * @brief Sink into the floor after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
  */
-static void G_ClientCorpse_Think(g_entity_t *ent) {
+static void G_ClientCorpse_Think(GameEntity *ent) {
 
   const uint32_t age = g_level.time - ent->timestamp;
 
@@ -550,7 +550,7 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
       const int32_t dmg = ent->health;
 
       if (ent->water_type & CONTENTS_LAVA) {
-        G_Damage(&(g_damage_t) {
+        G_Damage(&(GameDamage) {
           .target = ent,
           .inflictor = NULL,
           .attacker = NULL,
@@ -565,7 +565,7 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
       }
 
       if (ent->water_type & CONTENTS_SLIME) {
-        G_Damage(&(g_damage_t) {
+        G_Damage(&(GameDamage) {
           .target = ent,
           .inflictor = NULL,
           .attacker = NULL,
@@ -617,7 +617,7 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
 /**
  * @brief Fires a ragdoll jolt event; the client handles all animation locally.
  */
-static void G_ClientCorpse_Pain(g_entity_t *ent, g_entity_t *attacker, int16_t damage, int16_t knockback) {
+static void G_ClientCorpse_Pain(GameEntity *ent, GameEntity *attacker, int16_t damage, int16_t knockback) {
   ent->s.event = EV_CLIENT_RAGDOLL;
 }
 
@@ -626,9 +626,9 @@ static void G_ClientCorpse_Pain(g_entity_t *ent, g_entity_t *attacker, int16_t d
  * Giblets bounce when damaged, and eventually sink through the floor and disappear. When
  * `damage` is set they also injure whatever they strike, credited to `attacker`.
  */
-void G_Giblets(const g_giblets_t *giblets) {
+void G_Giblets(const GameGiblets *giblets) {
 
-  const box3_t bounds[NUM_GIB_MODELS] = {
+  const Box3 bounds[NUM_GIB_MODELS] = {
     Box3f(12.f, 12.f, 12.f),
     Box3f(12.f, 12.f, 12.f),
     Box3f(8.f, 8.f, 8.f),
@@ -646,7 +646,7 @@ void G_Giblets(const g_giblets_t *giblets) {
       gib_index = RandomRangei(0, NUM_GIB_MODELS - 2);
     }
 
-    g_entity_t *gib = G_AllocEntity(__func__);
+    GameEntity *gib = G_AllocEntity(__func__);
 
     gib->s.origin = giblets->origin;
 
@@ -704,9 +704,9 @@ void G_Giblets(const g_giblets_t *giblets) {
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
  */
-static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
+static void G_ClientCorpse_Die(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
-  G_Giblets(&(const g_giblets_t) {
+  G_Giblets(&(const GameGiblets) {
     .origin = ent->s.origin,
     .velocity = ent->velocity,
     .count = RandomRangei(4, 8),
@@ -775,7 +775,7 @@ static uint8_t G_ClientCorpseAnimation(uint8_t animation) {
  * @remarks The ring is also the corpse limit. Whoever still holds the slot we come around to is
  * gibbed rather than quietly deleted, so a body always leaves in a way the player can read.
  */
-static void G_ClientCorpseSlot(g_entity_t *corpse, const g_client_t *cl) {
+static void G_ClientCorpseSlot(GameEntity *corpse, const GameClient *cl) {
 
   static uint32_t index;
 
@@ -796,7 +796,7 @@ static void G_ClientCorpseSlot(g_entity_t *corpse, const g_client_t *cl) {
  * @brief Spawns a corpse for the specified client. The corpse will eventually sink into the floor
  * and disappear if not over-killed.
  */
-static void G_ClientCorpse(g_client_t *cl) {
+static void G_ClientCorpse(GameClient *cl) {
 
   if (cl->entity->sv_flags & SVF_NO_CLIENT) {
     return;
@@ -810,7 +810,7 @@ static void G_ClientCorpse(g_client_t *cl) {
     return;
   }
 
-  g_entity_t *ent = G_AllocEntity(__func__);
+  GameEntity *ent = G_AllocEntity(__func__);
 
   ent->solid = SOLID_DEAD;
 
@@ -853,13 +853,13 @@ static void G_ClientCorpse(g_client_t *cl) {
  * certain items we're holding and force the client into a temporary spectator
  * state with the scoreboard shown.
  */
-static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
+static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
-  g_client_t *cl = ent->client;
+  GameClient *cl = ent->client;
 
   // gibbing randomizes the corpse velocity, so seed the death camera from the
   // velocity we actually died with
-  const vec3_t velocity = ent->velocity;
+  const Vec3 velocity = ent->velocity;
 
   G_ClientObituary(cl, attacker, mod);
 
@@ -876,7 +876,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   if (gibbed) {
     G_ClientCorpse_Die(ent, attacker, mod);
   } else {
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = g_media.sounds.death[Randomi() % lengthof(g_media.sounds.death)],
       .entity = ent,
       .origin = &ent->s.origin, // send the origin in case of fast respawn
@@ -973,27 +973,27 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
  * specified quantity of ammo, while health and armor are set to
  * the specified quantity.
  */
-static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
+static void G_Give(GameClient *cl, char *it, int16_t quantity) {
 
   if (!q_strcasecmp(it, "Health")) {
     cl->entity->health = quantity;
     return;
   }
 
-  const g_item_t *item = G_FindItem(it);
+  const GameItem *item = G_FindItem(it);
 
   if (!item) {
     return;
   }
 
-  const g_item_tag_t index = item->def.tag;
+  const GameItemTag index = item->def.tag;
 
   if (item->def.type == ITEM_TYPE_WEAPON) { // weapons receive quantity as ammo
     cl->inventory[index]++;
 
     if (item->def.ammo) {
-      const g_item_t *ammo = &g_items[item->def.ammo];
-      const g_item_tag_t ammo_index = ammo->def.tag;
+      const GameItem *ammo = &g_items[item->def.ammo];
+      const GameItemTag ammo_index = ammo->def.tag;
 
       if (quantity > -1) {
         cl->inventory[ammo_index] = quantity;
@@ -1013,8 +1013,8 @@ static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
 /**
  * @brief Initializes a client's starting inventory based on the current game mode.
  */
-static void G_InitInventory_Common(g_client_t *cl) {
-  const g_item_t *item;
+static void G_InitInventory_Common(GameClient *cl) {
+  const GameItem *item;
 
   // instagib gets railgun and slugs, both in normal mode and warmup
   if ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
@@ -1056,9 +1056,9 @@ InitInventory G_InitInventory = G_InitInventory_Common;
 /**
  * @brief Returns the distance to the nearest enemy from the given spot.
  */
-static float G_EnemyRangeFromSpot(g_client_t *cl, g_entity_t *spot) {
+static float G_EnemyRangeFromSpot(GameClient *cl, GameEntity *spot) {
   float dist, best_dist;
-  vec3_t v;
+  Vec3 v;
 
   best_dist = 9999999.0;
 
@@ -1094,9 +1094,9 @@ static float G_EnemyRangeFromSpot(g_client_t *cl, g_entity_t *spot) {
 /**
  * @brief Checks if spawning a player in this spot would cause a telefrag.
  */
-static bool G_WouldTelefrag(const vec3_t spot) {
-  g_entity_t *ents[MAX_ENTITIES];
-  box3_t bounds = Box3_Translate(G_PlayerBounds(), spot);
+static bool G_WouldTelefrag(const Vec3 spot) {
+  GameEntity *ents[MAX_ENTITIES];
+  Box3 bounds = Box3_Translate(G_PlayerBounds(), spot);
 
   bounds.mins.z -= PM_STEP_HEIGHT;
   bounds.maxs.z += PM_STEP_HEIGHT;
@@ -1116,7 +1116,7 @@ static bool G_WouldTelefrag(const vec3_t spot) {
 /**
  * @brief Selects a random unoccupied spawn point from the given set.
  */
-static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points) {
+static GameEntity *G_SelectRandomSpawnPoint(const GameSpawnPoints *spawn_points) {
 
   if (!spawn_points->count) {
     if (spawn_points == &g_level.spawn_points) {
@@ -1145,10 +1145,10 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 /**
  * @brief Adds unique spawn pointers from @c points into @c pool.
  */
-static uint32_t G_CollectSpawnPoints(g_entity_t **pool, uint32_t count, const g_spawn_points_t *points) {
+static uint32_t G_CollectSpawnPoints(GameEntity **pool, uint32_t count, const GameSpawnPoints *points) {
 
   for (uint32_t i = 0; i < points->count; i++) {
-    g_entity_t *spot = points->spots[i];
+    GameEntity *spot = points->spots[i];
     bool exists = false;
 
     for (uint32_t j = 0; j < count; j++) {
@@ -1169,7 +1169,7 @@ static uint32_t G_CollectSpawnPoints(g_entity_t **pool, uint32_t count, const g_
 /**
  * @brief Selects a random unoccupied spawn point from a flat list.
  */
-static g_entity_t *G_SelectRandomSpawnPointFromPool(g_entity_t **spots, const uint32_t count) {
+static GameEntity *G_SelectRandomSpawnPointFromPool(GameEntity **spots, const uint32_t count) {
 
   if (!count) {
     return G_SelectRandomSpawnPoint(&g_level.spawn_points);
@@ -1194,8 +1194,8 @@ static g_entity_t *G_SelectRandomSpawnPointFromPool(g_entity_t **spots, const ui
 /**
  * @brief Selects the spawn point farthest from all enemies for the given client.
  */
-static g_entity_t *G_SelectFarthestSpawnPoint(g_client_t *cl, const g_spawn_points_t *spawn_points) {
-  g_entity_t *spot, *best_spot;
+static GameEntity *G_SelectFarthestSpawnPoint(GameClient *cl, const GameSpawnPoints *spawn_points) {
+  GameEntity *spot, *best_spot;
   float dist, best_dist;
 
   spot = best_spot = NULL;
@@ -1222,12 +1222,12 @@ static g_entity_t *G_SelectFarthestSpawnPoint(g_client_t *cl, const g_spawn_poin
 /**
  * @brief Selects the farthest spawn point from a flat list.
  */
-static g_entity_t *G_SelectFarthestSpawnPointFromPool(g_client_t *cl, g_entity_t **spots, const uint32_t count) {
-  g_entity_t *best_spot = NULL;
+static GameEntity *G_SelectFarthestSpawnPointFromPool(GameClient *cl, GameEntity **spots, const uint32_t count) {
+  GameEntity *best_spot = NULL;
   float best_dist = 0.0;
 
   for (uint32_t i = 0; i < count; i++) {
-    g_entity_t *spot = spots[i];
+    GameEntity *spot = spots[i];
     const float dist = G_EnemyRangeFromSpot(cl, spot);
 
     if (dist > best_dist && !G_WouldTelefrag(spot->s.origin)) {
@@ -1246,10 +1246,10 @@ static g_entity_t *G_SelectFarthestSpawnPointFromPool(g_client_t *cl, g_entity_t
 /**
  * @brief Selects an appropriate deathmatch spawn point for the given client.
  */
-static g_entity_t *G_SelectDeathmatchSpawnPoint(g_client_t *cl) {
+static GameEntity *G_SelectDeathmatchSpawnPoint(GameClient *cl) {
   // Include team spawns in non-team modes to improve spawn distribution on maps
   // that define both DM and team spawn entities.
-  g_entity_t *pool[MAX_ENTITIES];
+  GameEntity *pool[MAX_ENTITIES];
   uint32_t count = 0;
   
   count = G_CollectSpawnPoints(pool, count, &g_level.spawn_points);
@@ -1268,7 +1268,7 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_client_t *cl) {
 /**
  * @brief Selects an appropriate team spawn point for the given client.
  */
-static g_entity_t *G_SelectTeamSpawnPoint(g_client_t *cl) {
+static GameEntity *G_SelectTeamSpawnPoint(GameClient *cl) {
 
   if (!cl->persistent.team) {
     return NULL;
@@ -1284,8 +1284,8 @@ static g_entity_t *G_SelectTeamSpawnPoint(g_client_t *cl) {
 /**
  * @brief Selects the most appropriate spawn point for the given client.
  */
-static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
-  g_entity_t *spawn = NULL;
+static GameEntity *G_SelectSpawnPoint(GameClient *cl) {
+  GameEntity *spawn = NULL;
 
   if (g_level.teams) { // try team spawns first if applicable
     spawn = G_SelectTeamSpawnPoint(cl);
@@ -1301,7 +1301,7 @@ static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
 /**
  * @brief The tail of the `G_PrepareSpawn` chain: the spawn point as selected.
  */
-static void G_PrepareSpawn_Common(g_client_t *cl, g_client_spawn_t *spawn) {
+static void G_PrepareSpawn_Common(GameClient *cl, GameClientSpawn *spawn) {
 }
 
 PrepareSpawn G_PrepareSpawn = G_PrepareSpawn_Common;
@@ -1309,7 +1309,7 @@ PrepareSpawn G_PrepareSpawn = G_PrepareSpawn_Common;
 /**
  * @brief The tail of the `G_ClientWillBegin` chain: a notification, so it does nothing.
  */
-static void G_ClientWillBegin_Common(g_client_t *cl) {
+static void G_ClientWillBegin_Common(GameClient *cl) {
 }
 
 ClientWillBegin G_ClientWillBegin = G_ClientWillBegin_Common;
@@ -1317,7 +1317,7 @@ ClientWillBegin G_ClientWillBegin = G_ClientWillBegin_Common;
 /**
  * @brief The tail of the `G_ClientDidBegin` chain: a notification, so it does nothing.
  */
-static void G_ClientDidBegin_Common(g_client_t *cl) {
+static void G_ClientDidBegin_Common(GameClient *cl) {
 }
 
 ClientDidBegin G_ClientDidBegin = G_ClientDidBegin_Common;
@@ -1325,7 +1325,7 @@ ClientDidBegin G_ClientDidBegin = G_ClientDidBegin_Common;
 /**
  * @brief The tail of the `G_ClientWillChangeUserInfo` chain: a notification, so it does nothing.
  */
-static void G_ClientWillChangeUserInfo_Common(g_client_t *cl, const char *user_info) {
+static void G_ClientWillChangeUserInfo_Common(GameClient *cl, const char *user_info) {
 }
 
 ClientWillChangeUserInfo G_ClientWillChangeUserInfo = G_ClientWillChangeUserInfo_Common;
@@ -1333,7 +1333,7 @@ ClientWillChangeUserInfo G_ClientWillChangeUserInfo = G_ClientWillChangeUserInfo
 /**
  * @brief The tail of the `G_ClientDidChangeUserInfo` chain: a notification, so it does nothing.
  */
-static void G_ClientDidChangeUserInfo_Common(g_client_t *cl) {
+static void G_ClientDidChangeUserInfo_Common(GameClient *cl) {
 }
 
 ClientDidChangeUserInfo G_ClientDidChangeUserInfo = G_ClientDidChangeUserInfo_Common;
@@ -1341,7 +1341,7 @@ ClientDidChangeUserInfo G_ClientDidChangeUserInfo = G_ClientDidChangeUserInfo_Co
 /**
  * @brief The tail of the `G_ClientWillDisconnect` chain: a notification, so it does nothing.
  */
-static void G_ClientWillDisconnect_Common(g_client_t *cl) {
+static void G_ClientWillDisconnect_Common(GameClient *cl) {
 }
 
 ClientWillDisconnect G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
@@ -1349,7 +1349,7 @@ ClientWillDisconnect G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
 /**
  * @brief The tail of the `G_ClientDidDisconnect` chain: a notification, so it does nothing.
  */
-static void G_ClientDidDisconnect_Common(g_client_t *cl) {
+static void G_ClientDidDisconnect_Common(GameClient *cl) {
 }
 
 ClientDidDisconnect G_ClientDidDisconnect = G_ClientDidDisconnect_Common;
@@ -1357,7 +1357,7 @@ ClientDidDisconnect G_ClientDidDisconnect = G_ClientDidDisconnect_Common;
 /**
  * @brief The tail of the `G_ClientWillThink` chain: a notification, so it does nothing.
  */
-static void G_ClientWillThink_Common(g_client_t *cl, const pm_cmd_t *cmd) {
+static void G_ClientWillThink_Common(GameClient *cl, const PlayerMoveCmd *cmd) {
 }
 
 ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
@@ -1365,7 +1365,7 @@ ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
 /**
  * @brief The tail of the `G_ClientDidMove` chain: a notification, so it does nothing.
  */
-static void G_ClientDidMove_Common(g_client_t *cl, const pm_cmd_t *cmd) {
+static void G_ClientDidMove_Common(GameClient *cl, const PlayerMoveCmd *cmd) {
 }
 
 ClientDidMove G_ClientDidMove = G_ClientDidMove_Common;
@@ -1373,7 +1373,7 @@ ClientDidMove G_ClientDidMove = G_ClientDidMove_Common;
 /**
  * @brief Spawns the client's entity, as a player or a spectator.
  */
-static void G_ClientRespawn_(g_client_t *cl) {
+static void G_ClientRespawn_(GameClient *cl) {
 
   if (!cl->entity) {
     return;
@@ -1389,7 +1389,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
   G_ClientCorpse(cl);
 
   // clear the client, retaining only critical fields
-  const g_client_t tmp = *cl;
+  const GameClient tmp = *cl;
   memset(cl, 0, sizeof(*cl));
 
   cl->entity = tmp.entity;
@@ -1400,13 +1400,13 @@ static void G_ClientRespawn_(g_client_t *cl) {
   cl->persistent = tmp.persistent;
   memmove(cl->user_info, cl->persistent.user_info, sizeof(cl->user_info));
 
-  g_entity_t *ent = cl->entity;
+  GameEntity *ent = cl->entity;
 
   // find a spawn point
-  const g_entity_t *spawn = G_SelectSpawnPoint(cl);
+  const GameEntity *spawn = G_SelectSpawnPoint(cl);
   assert(spawn);
 
-  g_client_spawn_t place = {
+  GameClientSpawn place = {
     .origin = spawn->s.origin,
     .angles = spawn->s.angles,
     .clip_mask = cl->ai ? CONTENTS_MASK_CLIP_MONSTER : CONTENTS_MASK_CLIP_PLAYER,
@@ -1476,7 +1476,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
       ? g_media.sounds.quake_teleport[RandomRangei(0, 5)]
       : g_media.sounds.teleport;
 
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = teleport_sound,
       .origin = &ent->s.origin,
     }, MULTICAST_PHS);
@@ -1526,7 +1526,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
  * @brief In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
-void G_ClientRespawn(g_client_t *cl, bool voluntary) {
+void G_ClientRespawn(GameClient *cl, bool voluntary) {
 
   G_ClientRespawn_(cl);
 
@@ -1562,7 +1562,7 @@ void G_ClientRespawn(g_client_t *cl, bool voluntary) {
  * @brief Called when a client has finished connecting, and is ready
  * to be placed into the game. This will happen every level load.
  */
-void G_ClientBegin(g_client_t *cl) {
+void G_ClientBegin(GameClient *cl) {
   char welcome[MAX_STRING_CHARS];
 
   G_ClientWillBegin(cl);
@@ -1630,9 +1630,9 @@ void G_ClientBegin(g_client_t *cl) {
  * @brief The client's standing box, which the client game sizes their model by:
  * their own movement parameters once they have moved, and the level's until then.
  */
-box3_t G_ClientStandingBounds(const g_client_t *cl) {
+Box3 G_ClientStandingBounds(const GameClient *cl) {
 
-  const box3_t bounds = cl->ps.pm_state.params.bounds;
+  const Box3 bounds = cl->ps.pm_state.params.bounds;
 
   return Box3_Size(bounds).z > 0.f ? bounds : G_PlayerBounds();
 }
@@ -1640,7 +1640,7 @@ box3_t G_ClientStandingBounds(const g_client_t *cl) {
 /**
  * @brief Applies updates from a client's user info string to their persistent state.
  */
-void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
+void G_ClientUserInfoChanged(GameClient *cl, const char *user_info) {
   char name[MAX_NET_NAME];
 
   G_ClientWillChangeUserInfo(cl, user_info);
@@ -1702,7 +1702,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
     q_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
   }
 
-  const g_team_t *team = cl->persistent.team;
+  const GameTeam *team = cl->persistent.team;
 
   // set skin
   if (team) { // players must use team_skin to change
@@ -1804,7 +1804,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, client_info);
 
   // set hand, if anything should go wrong, it defaults to 0 (centered)
-  cl->persistent.hand = (g_hand_t) strtol(InfoString_Get(user_info, "hand"), NULL, 10);
+  cl->persistent.hand = (GameHand) strtol(InfoString_Get(user_info, "hand"), NULL, 10);
 
   if (cl->entity) {
     s = InfoString_Get(user_info, "active");
@@ -1837,7 +1837,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
  * and eventually get to `G_Begin()`.
  * Changing levels will NOT cause this to be called again.
  */
-bool G_ClientConnect(g_client_t *cl, char *user_info) {
+bool G_ClientConnect(GameClient *cl, char *user_info) {
 
   // check password
   if (q_strlen(g_password->string) && !cl->ai) {
@@ -1864,7 +1864,7 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
 /**
  * @brief Called when a player drops from the server. Not be called between levels.
  */
-void G_ClientDisconnect(g_client_t *cl) {
+void G_ClientDisconnect(GameClient *cl) {
 
   G_ClientWillDisconnect(cl);
 
@@ -1909,15 +1909,15 @@ void G_ClientDisconnect(g_client_t *cl) {
 
   G_ClientDidDisconnect(cl);
 
-  memset(cl, 0, sizeof(g_client_t));
+  memset(cl, 0, sizeof(GameClient));
   cl->ps.client = client;
 }
 
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
-  const g_entity_t *self = g_level.current_entity;
+static CmTrace G_ClientMove_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+  const GameEntity *self = g_level.current_entity;
 
   return gi.Trace(start, end, bounds, self, self->clip_mask);
 }
@@ -1925,7 +1925,7 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
 #if defined(_DEBUG)
 static bool g_recording_pmove = false;
 static bool g_play_pmove = false;
-static file_t *g_pmove_file;
+static File *g_pmove_file;
 static uint64_t pmove_frame = 0;
 static uint64_t pmove_frames = 0;
 
@@ -1965,13 +1965,13 @@ void G_PlayPmove(void) {
   }
 
   g_play_pmove = true;
-  pmove_frames = gi.LoadFile("pmove.deboog", NULL) / sizeof(pm_move_t);
+  pmove_frames = gi.LoadFile("pmove.deboog", NULL) / sizeof(PlayerMove);
   g_pmove_file = gi.OpenFile("pmove.deboog");
   gi.Print("Starting pmove playback\n");
 
   if (gi.Argc() > 1) {
     pmove_frame = strtoull(gi.Argv(1), NULL, 10);
-    gi.SeekFile(g_pmove_file, sizeof(pm_move_t) * pmove_frame);
+    gi.SeekFile(g_pmove_file, sizeof(PlayerMove) * pmove_frame);
   } else {
     pmove_frame = 0;
   }
@@ -1982,7 +1982,7 @@ void G_PlayPmove(void) {
  * @brief The tail of the `G_PrepareMove` chain, handing the move the entity's
  * own velocity.
  */
-static void G_PrepareMove_Common(g_client_t *cl, pm_move_t *pm) {
+static void G_PrepareMove_Common(GameClient *cl, PlayerMove *pm) {
 
   pm->s.velocity = cl->entity->velocity;
 }
@@ -1999,10 +1999,10 @@ ClipEntity G_ClipEntity = NULL;
 /**
  * @brief Process the movement command, call `Pm_Move` and act on the result.
  */
-static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
-  vec3_t old_velocity, velocity;
+static void G_ClientMove(GameClient *cl, PlayerMoveCmd *cmd) {
+  Vec3 old_velocity, velocity;
 
-  g_entity_t *ent = cl->entity;
+  GameEntity *ent = cl->entity;
 
   // save the raw angles sent over in the command
   cl->cmd_angles = cmd->angles;
@@ -2020,7 +2020,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
   // a class-based mod could override fields here for per-player physics
   cl->ps.pm_state.params = G_MovementParams();
 
-  pm_move_t pm;
+  PlayerMove pm;
   memset(&pm, 0, sizeof(pm));
 
 #if defined(_DEBUG)
@@ -2095,10 +2095,10 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
 
     if (pm.s.flags & PMF_JUMPED) {
       if (g_level.time - 100 > cl->jump_time) {
-        vec3_t angles, forward, point;
-        cm_trace_t tr;
+        Vec3 angles, forward, point;
+        CmTrace tr;
 
-        angles = Vec3(0.0, ent->s.angles.y, 0.0);
+        angles = MakeVec3(0.0, ent->s.angles.y, 0.0);
         Vec3_Vectors(angles, &forward, NULL, NULL);
 
         point = Vec3_Fmaf(ent->s.origin, cl->speed * .4f, velocity);
@@ -2129,7 +2129,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
       }
     } else if (pm.s.flags & PMF_TIME_LAND) {
       if (g_level.time - 800 > cl->land_time) {
-        g_entity_event_t event = EV_CLIENT_LAND;
+        GameEntityEvent event = EV_CLIENT_LAND;
 
         if (G_IsAnimation(cl, ANIM_LEGS_JUMP2)) {
           G_SetAnimation(cl, ANIM_LEGS_LAND2, true);
@@ -2158,7 +2158,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
             cl->pain_time = g_level.time; // suppress pain sound
 
             // TODO: get normal from what we've landed on
-            G_Damage(&(g_damage_t) {
+            G_Damage(&(GameDamage) {
               .target = ent,
               .inflictor = NULL,
               .attacker = NULL,
@@ -2205,9 +2205,9 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
   // touch every object we collided with objects
   if (ent->move_type != MOVE_TYPE_NO_CLIP) {
 
-    const cm_trace_t *touched = pm.touched;
+    const CmTrace *touched = pm.touched;
     for (int32_t i = 0; i < pm.num_touched; i++, touched++) {
-      g_entity_t *other = touched->ent;
+      GameEntity *other = touched->ent;
 
       if (!other->Touch) {
         continue;
@@ -2223,12 +2223,12 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
 /**
  * @brief Expire any items which are time-sensitive.
  */
-static void G_ClientInventoryThink(g_client_t *cl) {
+static void G_ClientInventoryThink(GameClient *cl) {
 
   if (cl->inventory[POWERUP_QUAD]) { // if they have quad
 
     if (cl->quad_countdown_time && cl->quad_countdown_time < g_level.time) { // play the countdown sound      
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.quad_expire,
         .entity = cl->entity,
       }, MULTICAST_PHS);
@@ -2254,7 +2254,7 @@ static void G_ClientInventoryThink(g_client_t *cl) {
       cl->inventory[POWERUP_INVISIBILITY] = 0;
       cl->entity->s.effects &= ~EF_INVISIBILITY;
 
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.invisibility_expire,
         .entity = cl->entity,
       }, MULTICAST_PHS);
@@ -2264,7 +2264,7 @@ static void G_ClientInventoryThink(g_client_t *cl) {
   if (cl->inventory[POWERUP_INVULNERABILITY]) {
 
     if (cl->invulnerability_countdown_time && cl->invulnerability_countdown_time < g_level.time) {
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.invulnerability_expire,
         .entity = cl->entity,
       }, MULTICAST_PHS);
@@ -2301,7 +2301,7 @@ static void G_ClientInventoryThink(g_client_t *cl) {
  * @brief This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
-void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
+void G_ClientThink(GameClient *cl, PlayerMoveCmd *cmd) {
 
   if (g_level.intermission_time) {
     return;
@@ -2375,13 +2375,13 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
  * @brief This will be called once for each server frame, before running
  * any other entities in the world.
  */
-void G_ClientBeginFrame(g_client_t *cl) {
+void G_ClientBeginFrame(GameClient *cl) {
 
   if (g_level.intermission_time) {
     return;
   }
 
-  g_entity_t *ent = cl->entity;
+  GameEntity *ent = cl->entity;
 
   if ((G_IsMeat(ent) && ent->dead) ||  ((cl->buttons | cl->latched_buttons) & BUTTON_SCORE)) {
     cl->show_scores = true;
@@ -2429,7 +2429,7 @@ void G_ClientBeginFrame(g_client_t *cl) {
  * heard, the team channel reaches only teammates, and a spectator is held to other spectators
  * wherever g_spectator_chat says chat would be.
  */
-bool G_ClientCanHearVoice(const g_client_t *speaker, const g_client_t *listener, uint8_t channel) {
+bool G_ClientCanHearVoice(const GameClient *speaker, const GameClient *listener, uint8_t channel) {
 
   if (!speaker || !listener) {
     return false;

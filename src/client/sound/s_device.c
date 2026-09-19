@@ -33,8 +33,8 @@ static struct {
   bool warned_shared_device;
 } s_devices;
 
-cvar_t *s_buffer_frames;
-cvar_t *s_capture_device;
+Cvar *s_buffer_frames;
+Cvar *s_capture_device;
 
 /**
  * @brief Prints the devices in the given list.

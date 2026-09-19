@@ -23,14 +23,14 @@
 
 #include "s_types.h"
 
-void S_InitStage(s_stage_t *stage);
-void S_RenderStage(s_stage_t *stage);
+void S_InitStage(SoundStage *stage);
+void S_RenderStage(SoundStage *stage);
 void S_Init(void);
 void S_Shutdown(void);
 void S_Stop(void);
 
 #if defined(__S_LOCAL_H__)
-extern cvar_t *s_get_error;
+extern Cvar *s_get_error;
 
 void S_GetError_(const char *function, const char *msg);
 

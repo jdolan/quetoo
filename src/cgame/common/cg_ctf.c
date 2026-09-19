@@ -34,7 +34,7 @@ typedef struct HeldFlagViewInterface HeldFlagViewInterface;
 typedef struct {
   ImageView imageView;
   HeldFlagViewInterface *interface[0];
-  g_item_tag_t flag;
+  GameItemTag flag;
 } HeldFlagView;
 
 struct HeldFlagViewInterface {
@@ -53,10 +53,10 @@ static void updateBindings(View *self, ident data) {
   }
 
   HeldFlagView *this = (HeldFlagView *) self;
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
-  g_item_tag_t flag = ITEM_NONE;
-  for (g_item_tag_t i = FLAG_FIRST; i < FLAG_LAST; i++) {
+  GameItemTag flag = ITEM_NONE;
+  for (GameItemTag i = FLAG_FIRST; i < FLAG_LAST; i++) {
     if (ps->inventory[i]) {
       flag = i;
       break;
@@ -121,7 +121,7 @@ Class *_HeldFlagView(void) {
  * duplicate row - there is nothing here to drift out of sync with the game
  * side, since it is the same static data.
  */
-static const g_gameplay_t *Cg_ListGameplayModes_Ctf(size_t *count) {
+static const Gameplay *Cg_ListGameplayModes_Ctf(size_t *count) {
 
   *count = 1;
 

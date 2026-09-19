@@ -22,7 +22,7 @@
 #include "tests.h"
 #include "collision/cm_polylib.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -41,7 +41,7 @@ void teardown(void) {
 /**
  * @brief Prints a winding's point list to stdout for debugging.
  */
-static void __attribute__((unused)) PrintWinding(const char *name, const cm_winding_t *w) {
+static void __attribute__((unused)) PrintWinding(const char *name, const CmWinding *w) {
 
   if (w) {
     printf("%s: %p has %d points\n", name, w, w->num_points);
@@ -55,17 +55,17 @@ static void __attribute__((unused)) PrintWinding(const char *name, const cm_wind
 
 START_TEST(check_Cm_ClipWinding_front) {
 
-  cm_winding_t *a = Cm_AllocWinding(4);
+  CmWinding *a = Cm_AllocWinding(4);
   a->num_points = 4;
 
-  a->points[0] = Vec3(0,    0,   0);
-  a->points[1] = Vec3(1024, 0,   0);
-  a->points[2] = Vec3(1024, 0, 512);
-  a->points[3] = Vec3(0,    0, 512);
+  a->points[0] = MakeVec3(0,    0,   0);
+  a->points[1] = MakeVec3(1024, 0,   0);
+  a->points[2] = MakeVec3(1024, 0, 512);
+  a->points[3] = MakeVec3(0,    0, 512);
 
-  cm_winding_t *b = Cm_CopyWinding(a);
+  CmWinding *b = Cm_CopyWinding(a);
 
-  Cm_ClipWinding(&a, Vec3(1, 0, 0), -1, SIDE_EPSILON);
+  Cm_ClipWinding(&a, MakeVec3(1, 0, 0), -1, SIDE_EPSILON);
 
   ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -80,15 +80,15 @@ START_TEST(check_Cm_ClipWinding_front) {
 
 START_TEST(check_Cm_ClipWinding_back) {
 
-  cm_winding_t *a = Cm_AllocWinding(4);
+  CmWinding *a = Cm_AllocWinding(4);
   a->num_points = 4;
 
-  a->points[0] = Vec3(0,    0,   0);
-  a->points[1] = Vec3(1024, 0,   0);
-  a->points[2] = Vec3(1024, 0, 512);
-  a->points[3] = Vec3(0,    0, 512);
+  a->points[0] = MakeVec3(0,    0,   0);
+  a->points[1] = MakeVec3(1024, 0,   0);
+  a->points[2] = MakeVec3(1024, 0, 512);
+  a->points[3] = MakeVec3(0,    0, 512);
 
-  Cm_ClipWinding(&a, Vec3(1, 0, 0), 1024 + SIDE_EPSILON, SIDE_EPSILON);
+  Cm_ClipWinding(&a, MakeVec3(1, 0, 0), 1024 + SIDE_EPSILON, SIDE_EPSILON);
 
   ck_assert_ptr_eq(NULL, a);
 
@@ -96,20 +96,20 @@ START_TEST(check_Cm_ClipWinding_back) {
 
 START_TEST(check_Cm_ClipWinding_both) {
 
-  cm_winding_t *a = Cm_AllocWinding(4);
+  CmWinding *a = Cm_AllocWinding(4);
   a->num_points = 4;
 
-  a->points[0] = Vec3(0,    0,   0);
-  a->points[1] = Vec3(1024, 0,   0);
-  a->points[2] = Vec3(1024, 0, 512);
-  a->points[3] = Vec3(0,    0, 512);
+  a->points[0] = MakeVec3(0,    0,   0);
+  a->points[1] = MakeVec3(1024, 0,   0);
+  a->points[2] = MakeVec3(1024, 0, 512);
+  a->points[3] = MakeVec3(0,    0, 512);
 
-  cm_winding_t *b = Cm_CopyWinding(a);
+  CmWinding *b = Cm_CopyWinding(a);
 
-  b->points[0] = Vec3(512,  0,   0);
-  b->points[3] = Vec3(512,  0, 512);
+  b->points[0] = MakeVec3(512,  0,   0);
+  b->points[3] = MakeVec3(512,  0, 512);
 
-  Cm_ClipWinding(&a, Vec3(1, 0, 0), 512, SIDE_EPSILON);
+  Cm_ClipWinding(&a, MakeVec3(1, 0, 0), 512, SIDE_EPSILON);
 
   ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -124,17 +124,17 @@ START_TEST(check_Cm_ClipWinding_both) {
 
 START_TEST(check_Cm_ClipWinding_on) {
 
-  cm_winding_t *a = Cm_AllocWinding(4);
+  CmWinding *a = Cm_AllocWinding(4);
   a->num_points = 4;
 
-  a->points[0] = Vec3(0,    0,   0);
-  a->points[1] = Vec3(1024, 0,   0);
-  a->points[2] = Vec3(1024, 0, 512);
-  a->points[3] = Vec3(0,    0, 512);
+  a->points[0] = MakeVec3(0,    0,   0);
+  a->points[1] = MakeVec3(1024, 0,   0);
+  a->points[2] = MakeVec3(1024, 0, 512);
+  a->points[3] = MakeVec3(0,    0, 512);
 
-  cm_winding_t *b = Cm_CopyWinding(a);
+  CmWinding *b = Cm_CopyWinding(a);
 
-  Cm_ClipWinding(&a, Vec3(1, 0, 0), 0, SIDE_EPSILON);
+  Cm_ClipWinding(&a, MakeVec3(1, 0, 0), 0, SIDE_EPSILON);
 
   ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -142,7 +142,7 @@ START_TEST(check_Cm_ClipWinding_on) {
     ck_assert(Vec3_Equal(b->points[i], a->points[i]));
   }
 
-  Cm_ClipWinding(&a, Vec3(-1, 0, 0), -1024, SIDE_EPSILON);
+  Cm_ClipWinding(&a, MakeVec3(-1, 0, 0), -1024, SIDE_EPSILON);
 
   ck_assert_int_eq(b->num_points, a->num_points);
 
@@ -157,12 +157,12 @@ START_TEST(check_Cm_ClipWinding_on) {
 
 START_TEST(check_Cm_ElementsForWinding_triangle) {
 
-  cm_winding_t *w = Cm_AllocWinding(3);
+  CmWinding *w = Cm_AllocWinding(3);
   w->num_points = 3;
 
-  w->points[0] = Vec3(0, 0, 0);
-  w->points[1] = Vec3(1, 0, 0);
-  w->points[2] = Vec3(0, 1, 0);
+  w->points[0] = MakeVec3(0, 0, 0);
+  w->points[1] = MakeVec3(1, 0, 0);
+  w->points[2] = MakeVec3(0, 1, 0);
 
   int32_t elements[(w->num_points - 2) * 3];
   const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -177,13 +177,13 @@ START_TEST(check_Cm_ElementsForWinding_triangle) {
 
 START_TEST(check_Cm_ElementsForWinding_quad) {
 
-  cm_winding_t *w = Cm_AllocWinding(4);
+  CmWinding *w = Cm_AllocWinding(4);
   w->num_points = 4;
 
-  w->points[0] = Vec3(0, 0, 0);
-  w->points[1] = Vec3(1, 0, 0);
-  w->points[2] = Vec3(1, 1, 0);
-  w->points[3] = Vec3(0, 1, 0);
+  w->points[0] = MakeVec3(0, 0, 0);
+  w->points[1] = MakeVec3(1, 0, 0);
+  w->points[2] = MakeVec3(1, 1, 0);
+  w->points[3] = MakeVec3(0, 1, 0);
 
   int32_t elements[(w->num_points - 2) * 3];
   const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -202,13 +202,13 @@ START_TEST(check_Cm_ElementsForWinding_quad) {
 
 START_TEST(check_Cm_ElementsForWinding_skinnyQuad) {
 
-  cm_winding_t *w = Cm_AllocWinding(4);
+  CmWinding *w = Cm_AllocWinding(4);
   w->num_points = 4;
 
-  w->points[0] = Vec3(0, 0, 0);
-  w->points[1] = Vec3(128, 0, 0);
-  w->points[2] = Vec3(128, 1, 0);
-  w->points[3] = Vec3(0, 1, 0);
+  w->points[0] = MakeVec3(0, 0, 0);
+  w->points[1] = MakeVec3(128, 0, 0);
+  w->points[2] = MakeVec3(128, 1, 0);
+  w->points[3] = MakeVec3(0, 1, 0);
 
   int32_t elements[(w->num_points - 2) * 3];
   const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -227,16 +227,16 @@ START_TEST(check_Cm_ElementsForWinding_skinnyQuad) {
 
 START_TEST(check_Cm_ElementsForWinding_colinearQuad) {
 
-  cm_winding_t *w = Cm_AllocWinding(6);
+  CmWinding *w = Cm_AllocWinding(6);
   w->num_points = 6;
 
-  w->points[0] = Vec3(0, 0, 0);
-  w->points[1] = Vec3(1, 0, 0);
-  w->points[2] = Vec3(2, 0, 0);
+  w->points[0] = MakeVec3(0, 0, 0);
+  w->points[1] = MakeVec3(1, 0, 0);
+  w->points[2] = MakeVec3(2, 0, 0);
 
-  w->points[3] = Vec3(2, 2, 0);
-  w->points[4] = Vec3(1, 2, 0);
-  w->points[5] = Vec3(0, 2, 0);
+  w->points[3] = MakeVec3(2, 2, 0);
+  w->points[4] = MakeVec3(1, 2, 0);
+  w->points[5] = MakeVec3(0, 2, 0);
 
   int32_t elements[(w->num_points - 2) * 3];
   const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -263,15 +263,15 @@ START_TEST(check_Cm_ElementsForWinding_colinearQuad) {
 
 START_TEST(check_Cm_ElementsForWinding_cornerCase) {
 
-  cm_winding_t *w = Cm_AllocWinding(6);
+  CmWinding *w = Cm_AllocWinding(6);
   w->num_points = 6;
 
-  w->points[0] = Vec3(0, 0.000, 0.000);
-  w->points[1] = Vec3(0, -1.375, 2.000);
-  w->points[2] = Vec3(0, -20.875, 31.375);
-  w->points[3] = Vec3(0, -30.750, 30.750);
-  w->points[4] = Vec3(0, -19.500, 19.500);
-  w->points[5] = Vec3(0, -12.000, 12.000);
+  w->points[0] = MakeVec3(0, 0.000, 0.000);
+  w->points[1] = MakeVec3(0, -1.375, 2.000);
+  w->points[2] = MakeVec3(0, -20.875, 31.375);
+  w->points[3] = MakeVec3(0, -30.750, 30.750);
+  w->points[4] = MakeVec3(0, -19.500, 19.500);
+  w->points[5] = MakeVec3(0, -12.000, 12.000);
 
   int32_t elements[(w->num_points - 2) * 3];
   const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -282,16 +282,16 @@ START_TEST(check_Cm_ElementsForWinding_cornerCase) {
 
 START_TEST(check_Cm_ElementsForWinding_invalid) {
 
-  cm_winding_t *w = Cm_AllocWinding(3);
+  CmWinding *w = Cm_AllocWinding(3);
   w->num_points = 3;
 
   // This is a real invalid winding emitted from edge.map. Plotting this winding shows
   // that indeed, the points are essentially colinear. This is a better test than the
   // somewhat contrived ones above.
 
-  w->points[2] = Vec3(1516.32446, 1435.71924, 592.605286);
-  w->points[1] = Vec3(1511.57983, 1428.12781, 595.452087);
-  w->points[0] = Vec3(1506.83521, 1420.53638, 598.298889);
+  w->points[2] = MakeVec3(1516.32446, 1435.71924, 592.605286);
+  w->points[1] = MakeVec3(1511.57983, 1428.12781, 595.452087);
+  w->points[0] = MakeVec3(1506.83521, 1420.53638, 598.298889);
 
   int32_t elements[(w->num_points - 2) * 3];
   const int32_t num_elements = Cm_ElementsForWinding(w, elements);
@@ -301,11 +301,11 @@ START_TEST(check_Cm_ElementsForWinding_invalid) {
 } END_TEST
 
 START_TEST(check_Cm_TriangleArea) {
-  vec3_t a, b, c;
+  Vec3 a, b, c;
 
-  a = Vec3(0, 0, 0);
-  b = Vec3(0, 1, 0);
-  c = Vec3(1, 1, 0);
+  a = MakeVec3(0, 0, 0);
+  b = MakeVec3(0, 1, 0);
+  c = MakeVec3(1, 1, 0);
 
   const float area = Cm_TriangleArea(a, b, c);
   ck_assert(area == 0.5);
@@ -313,13 +313,13 @@ START_TEST(check_Cm_TriangleArea) {
 } END_TEST
 
 START_TEST(check_Cm_Barycentric) {
-  vec3_t a, b, c, p, out;
+  Vec3 a, b, c, p, out;
 
-  a = Vec3(0, 0, 0);
-  b = Vec3(0, 1, 0);
-  c = Vec3(1, 1, 0);
+  a = MakeVec3(0, 0, 0);
+  b = MakeVec3(0, 1, 0);
+  c = MakeVec3(1, 1, 0);
 
-  p = Vec3(0, 0, 0);
+  p = MakeVec3(0, 0, 0);
 
   Cm_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
@@ -327,7 +327,7 @@ START_TEST(check_Cm_Barycentric) {
   ck_assert(out.y == 0);
   ck_assert(out.z == 0);
 
-  p = Vec3(0, 1, 0);
+  p = MakeVec3(0, 1, 0);
 
   Cm_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
@@ -335,7 +335,7 @@ START_TEST(check_Cm_Barycentric) {
   ck_assert(out.y == 1);
   ck_assert(out.z == 0);
 
-  p = Vec3(1, 1, 0);
+  p = MakeVec3(1, 1, 0);
 
   Cm_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
@@ -343,7 +343,7 @@ START_TEST(check_Cm_Barycentric) {
   ck_assert(out.y == 0);
   ck_assert(out.z == 1);
 
-  p = Vec3(0.5, 0.5, 0);
+  p = MakeVec3(0.5, 0.5, 0);
 
   Cm_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
@@ -355,21 +355,21 @@ START_TEST(check_Cm_Barycentric) {
 
 START_TEST(check_Cm_ClipWindingToWinding_full_inside) {
   // Clip a small quad completely inside a larger quad
-  cm_winding_t *large = Cm_AllocWinding(4);
+  CmWinding *large = Cm_AllocWinding(4);
   large->num_points = 4;
-  large->points[0] = Vec3(0, 0, 0);
-  large->points[1] = Vec3(100, 0, 0);
-  large->points[2] = Vec3(100, 0, 100);
-  large->points[3] = Vec3(0, 0, 100);
+  large->points[0] = MakeVec3(0, 0, 0);
+  large->points[1] = MakeVec3(100, 0, 0);
+  large->points[2] = MakeVec3(100, 0, 100);
+  large->points[3] = MakeVec3(0, 0, 100);
 
-  cm_winding_t *small = Cm_AllocWinding(4);
+  CmWinding *small = Cm_AllocWinding(4);
   small->num_points = 4;
-  small->points[0] = Vec3(25, 0, 25);
-  small->points[1] = Vec3(75, 0, 25);
-  small->points[2] = Vec3(75, 0, 75);
-  small->points[3] = Vec3(25, 0, 75);
+  small->points[0] = MakeVec3(25, 0, 25);
+  small->points[1] = MakeVec3(75, 0, 25);
+  small->points[2] = MakeVec3(75, 0, 75);
+  small->points[3] = MakeVec3(25, 0, 75);
 
-  cm_winding_t *result = Cm_ClipWindingToWinding(small, large, Vec3(0, 1, 0), SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(small, large, MakeVec3(0, 1, 0), SIDE_EPSILON);
 
   ck_assert_ptr_nonnull(result);
   ck_assert_int_eq(4, result->num_points);
@@ -387,21 +387,21 @@ START_TEST(check_Cm_ClipWindingToWinding_full_inside) {
 
 START_TEST(check_Cm_ClipWindingToWinding_full_outside) {
   // Clip a quad completely outside another quad
-  cm_winding_t *clip = Cm_AllocWinding(4);
+  CmWinding *clip = Cm_AllocWinding(4);
   clip->num_points = 4;
-  clip->points[0] = Vec3(0, 0, 0);
-  clip->points[1] = Vec3(50, 0, 0);
-  clip->points[2] = Vec3(50, 0, 50);
-  clip->points[3] = Vec3(0, 0, 50);
+  clip->points[0] = MakeVec3(0, 0, 0);
+  clip->points[1] = MakeVec3(50, 0, 0);
+  clip->points[2] = MakeVec3(50, 0, 50);
+  clip->points[3] = MakeVec3(0, 0, 50);
 
-  cm_winding_t *outside = Cm_AllocWinding(4);
+  CmWinding *outside = Cm_AllocWinding(4);
   outside->num_points = 4;
-  outside->points[0] = Vec3(100, 0, 100);
-  outside->points[1] = Vec3(150, 0, 100);
-  outside->points[2] = Vec3(150, 0, 150);
-  outside->points[3] = Vec3(100, 0, 150);
+  outside->points[0] = MakeVec3(100, 0, 100);
+  outside->points[1] = MakeVec3(150, 0, 100);
+  outside->points[2] = MakeVec3(150, 0, 150);
+  outside->points[3] = MakeVec3(100, 0, 150);
 
-  cm_winding_t *result = Cm_ClipWindingToWinding(outside, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(outside, clip, MakeVec3(0, 1, 0), SIDE_EPSILON);
 
   ck_assert_ptr_null(result);
 
@@ -413,14 +413,14 @@ START_TEST(check_Cm_ClipWindingToWinding_full_outside) {
 /**
  * @brief Builds an axis-aligned quad in the y = 0 plane.
  */
-static cm_winding_t *CheckQuad(float x0, float z0, float x1, float z1) {
+static CmWinding *CheckQuad(float x0, float z0, float x1, float z1) {
 
-  cm_winding_t *w = Cm_AllocWinding(4);
+  CmWinding *w = Cm_AllocWinding(4);
   w->num_points = 4;
-  w->points[0] = Vec3(x0, 0, z0);
-  w->points[1] = Vec3(x1, 0, z0);
-  w->points[2] = Vec3(x1, 0, z1);
-  w->points[3] = Vec3(x0, 0, z1);
+  w->points[0] = MakeVec3(x0, 0, z0);
+  w->points[1] = MakeVec3(x1, 0, z0);
+  w->points[2] = MakeVec3(x1, 0, z1);
+  w->points[3] = MakeVec3(x0, 0, z1);
 
   return w;
 }
@@ -435,18 +435,18 @@ START_TEST(check_Cm_ClipWindingToWindingInto_parity) {
     { 25.f, -5.f, 75.f,  25.f  }, // corner overlap
   };
 
-  cm_winding_t *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
+  CmWinding *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
 
   for (size_t c = 0; c < lengthof(cases); c++) {
-    cm_winding_t *in = CheckQuad(cases[c][0], cases[c][1], cases[c][2], cases[c][3]);
+    CmWinding *in = CheckQuad(cases[c][0], cases[c][1], cases[c][2], cases[c][3]);
 
-    cm_winding_t *expected = Cm_ClipWindingToWinding(in, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+    CmWinding *expected = Cm_ClipWindingToWinding(in, clip, MakeVec3(0, 1, 0), SIDE_EPSILON);
 
     const int32_t capacity = in->num_points + 4 * clip->num_points;
-    cm_winding_t *a = Cm_AllocWinding(capacity);
-    cm_winding_t *b = Cm_AllocWinding(capacity);
+    CmWinding *a = Cm_AllocWinding(capacity);
+    CmWinding *b = Cm_AllocWinding(capacity);
 
-    const cm_winding_t *actual = Cm_ClipWindingToWindingInto(in, clip, Vec3(0, 1, 0),
+    const CmWinding *actual = Cm_ClipWindingToWindingInto(in, clip, MakeVec3(0, 1, 0),
                                                              SIDE_EPSILON, a, b, capacity);
 
     if (expected == NULL) {
@@ -472,14 +472,14 @@ START_TEST(check_Cm_ClipWindingToWindingInto_parity) {
 } END_TEST
 
 START_TEST(check_Cm_ClipWindingToWindingInto_full_outside) {
-  cm_winding_t *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
-  cm_winding_t *in = CheckQuad(100.f, 100.f, 150.f, 150.f);
+  CmWinding *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
+  CmWinding *in = CheckQuad(100.f, 100.f, 150.f, 150.f);
 
   const int32_t capacity = in->num_points + 4 * clip->num_points;
-  cm_winding_t *a = Cm_AllocWinding(capacity);
-  cm_winding_t *b = Cm_AllocWinding(capacity);
+  CmWinding *a = Cm_AllocWinding(capacity);
+  CmWinding *b = Cm_AllocWinding(capacity);
 
-  ck_assert_ptr_null(Cm_ClipWindingToWindingInto(in, clip, Vec3(0, 1, 0), SIDE_EPSILON,
+  ck_assert_ptr_null(Cm_ClipWindingToWindingInto(in, clip, MakeVec3(0, 1, 0), SIDE_EPSILON,
                                                  a, b, capacity));
 
   Cm_FreeWinding(a);
@@ -491,14 +491,14 @@ START_TEST(check_Cm_ClipWindingToWindingInto_full_outside) {
 
 START_TEST(check_Cm_ClipWindingToWindingInto_full_inside) {
   // Nothing clips, so the input itself is returned and the scratch is untouched
-  cm_winding_t *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
-  cm_winding_t *in = CheckQuad(10.f, 10.f, 40.f, 40.f);
+  CmWinding *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
+  CmWinding *in = CheckQuad(10.f, 10.f, 40.f, 40.f);
 
   const int32_t capacity = in->num_points + 4 * clip->num_points;
-  cm_winding_t *a = Cm_AllocWinding(capacity);
-  cm_winding_t *b = Cm_AllocWinding(capacity);
+  CmWinding *a = Cm_AllocWinding(capacity);
+  CmWinding *b = Cm_AllocWinding(capacity);
 
-  const cm_winding_t *result = Cm_ClipWindingToWindingInto(in, clip, Vec3(0, 1, 0),
+  const CmWinding *result = Cm_ClipWindingToWindingInto(in, clip, MakeVec3(0, 1, 0),
                                                            SIDE_EPSILON, a, b, capacity);
 
   ck_assert_ptr_eq(result, in);
@@ -512,21 +512,21 @@ START_TEST(check_Cm_ClipWindingToWindingInto_full_inside) {
 
 START_TEST(check_Cm_ClipWindingToWinding_partial_overlap) {
   // Clip a quad partially overlapping another
-  cm_winding_t *clip = Cm_AllocWinding(4);
+  CmWinding *clip = Cm_AllocWinding(4);
   clip->num_points = 4;
-  clip->points[0] = Vec3(0, 0, 0);
-  clip->points[1] = Vec3(50, 0, 0);
-  clip->points[2] = Vec3(50, 0, 50);
-  clip->points[3] = Vec3(0, 0, 50);
+  clip->points[0] = MakeVec3(0, 0, 0);
+  clip->points[1] = MakeVec3(50, 0, 0);
+  clip->points[2] = MakeVec3(50, 0, 50);
+  clip->points[3] = MakeVec3(0, 0, 50);
 
-  cm_winding_t *overlap = Cm_AllocWinding(4);
+  CmWinding *overlap = Cm_AllocWinding(4);
   overlap->num_points = 4;
-  overlap->points[0] = Vec3(25, 0, 25);
-  overlap->points[1] = Vec3(75, 0, 25);
-  overlap->points[2] = Vec3(75, 0, 75);
-  overlap->points[3] = Vec3(25, 0, 75);
+  overlap->points[0] = MakeVec3(25, 0, 25);
+  overlap->points[1] = MakeVec3(75, 0, 25);
+  overlap->points[2] = MakeVec3(75, 0, 75);
+  overlap->points[3] = MakeVec3(25, 0, 75);
 
-  cm_winding_t *result = Cm_ClipWindingToWinding(overlap, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(overlap, clip, MakeVec3(0, 1, 0), SIDE_EPSILON);
 
   ck_assert_ptr_nonnull(result);
   ck_assert_int_ge(result->num_points, 3); // At least a triangle
@@ -547,20 +547,20 @@ START_TEST(check_Cm_ClipWindingToWinding_partial_overlap) {
 
 START_TEST(check_Cm_ClipWindingToWinding_triangle) {
   // Clip a quad to a triangular region
-  cm_winding_t *triangle = Cm_AllocWinding(3);
+  CmWinding *triangle = Cm_AllocWinding(3);
   triangle->num_points = 3;
-  triangle->points[0] = Vec3(0, 0, 0);
-  triangle->points[1] = Vec3(100, 0, 0);
-  triangle->points[2] = Vec3(50, 0, 100);
+  triangle->points[0] = MakeVec3(0, 0, 0);
+  triangle->points[1] = MakeVec3(100, 0, 0);
+  triangle->points[2] = MakeVec3(50, 0, 100);
 
-  cm_winding_t *quad = Cm_AllocWinding(4);
+  CmWinding *quad = Cm_AllocWinding(4);
   quad->num_points = 4;
-  quad->points[0] = Vec3(10, 0, 10);
-  quad->points[1] = Vec3(90, 0, 10);
-  quad->points[2] = Vec3(90, 0, 90);
-  quad->points[3] = Vec3(10, 0, 90);
+  quad->points[0] = MakeVec3(10, 0, 10);
+  quad->points[1] = MakeVec3(90, 0, 10);
+  quad->points[2] = MakeVec3(90, 0, 90);
+  quad->points[3] = MakeVec3(10, 0, 90);
 
-  cm_winding_t *result = Cm_ClipWindingToWinding(quad, triangle, Vec3(0, 1, 0), SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(quad, triangle, MakeVec3(0, 1, 0), SIDE_EPSILON);
 
   ck_assert_ptr_nonnull(result);
   ck_assert_int_ge(result->num_points, 3); // At least a triangle
@@ -573,21 +573,21 @@ START_TEST(check_Cm_ClipWindingToWinding_triangle) {
 
 START_TEST(check_Cm_ClipWindingToWinding_vertical_plane) {
   // Test clipping on a vertical plane (wall)
-  cm_winding_t *clip = Cm_AllocWinding(4);
+  CmWinding *clip = Cm_AllocWinding(4);
   clip->num_points = 4;
-  clip->points[0] = Vec3(0, 0, 0);
-  clip->points[1] = Vec3(0, 0, 100);
-  clip->points[2] = Vec3(0, 100, 100);
-  clip->points[3] = Vec3(0, 100, 0);
+  clip->points[0] = MakeVec3(0, 0, 0);
+  clip->points[1] = MakeVec3(0, 0, 100);
+  clip->points[2] = MakeVec3(0, 100, 100);
+  clip->points[3] = MakeVec3(0, 100, 0);
   
-  cm_winding_t *in = Cm_AllocWinding(4);
+  CmWinding *in = Cm_AllocWinding(4);
   in->num_points = 4;
-  in->points[0] = Vec3(0, 25, 25);
-  in->points[1] = Vec3(0, 25, 75);
-  in->points[2] = Vec3(0, 75, 75);
-  in->points[3] = Vec3(0, 75, 25);
+  in->points[0] = MakeVec3(0, 25, 25);
+  in->points[1] = MakeVec3(0, 25, 75);
+  in->points[2] = MakeVec3(0, 75, 75);
+  in->points[3] = MakeVec3(0, 75, 25);
   
-  cm_winding_t *result = Cm_ClipWindingToWinding(in, clip, Vec3(1, 0, 0), SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(in, clip, MakeVec3(1, 0, 0), SIDE_EPSILON);
   
   ck_assert_ptr_nonnull(result);
   ck_assert_int_eq(4, result->num_points);
@@ -605,13 +605,13 @@ START_TEST(check_Cm_ClipWindingToWinding_vertical_plane) {
 
 START_TEST(check_Cm_ClipWindingToWinding_diagonal_plane) {
   // Test clipping on a diagonal plane
-  const vec3_t normal = Vec3_Normalize(Vec3(1, 0, 1));
+  const Vec3 normal = Vec3_Normalize(MakeVec3(1, 0, 1));
   
   // Create a square on the diagonal plane
-  const vec3_t tangent = Vec3_Normalize(Vec3(-1, 0, 1));
-  const vec3_t bitangent = Vec3(0, 1, 0);
+  const Vec3 tangent = Vec3_Normalize(MakeVec3(-1, 0, 1));
+  const Vec3 bitangent = MakeVec3(0, 1, 0);
   
-  cm_winding_t *clip = Cm_AllocWinding(4);
+  CmWinding *clip = Cm_AllocWinding(4);
   clip->num_points = 4;
   clip->points[0] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -50), Vec3_Scale(bitangent, -50)), Vec3_Zero());
   clip->points[1] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, 50), Vec3_Scale(bitangent, -50)), Vec3_Zero());
@@ -619,14 +619,14 @@ START_TEST(check_Cm_ClipWindingToWinding_diagonal_plane) {
   clip->points[3] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -50), Vec3_Scale(bitangent, 50)), Vec3_Zero());
   
   // Small square in the center
-  cm_winding_t *in = Cm_AllocWinding(4);
+  CmWinding *in = Cm_AllocWinding(4);
   in->num_points = 4;
   in->points[0] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -10), Vec3_Scale(bitangent, -10)), Vec3_Zero());
   in->points[1] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, 10), Vec3_Scale(bitangent, -10)), Vec3_Zero());
   in->points[2] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, 10), Vec3_Scale(bitangent, 10)), Vec3_Zero());
   in->points[3] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -10), Vec3_Scale(bitangent, 10)), Vec3_Zero());
   
-  cm_winding_t *result = Cm_ClipWindingToWinding(in, clip, normal, SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(in, clip, normal, SIDE_EPSILON);
   
   ck_assert_ptr_nonnull(result);
   ck_assert_int_eq(4, result->num_points);
@@ -639,23 +639,23 @@ START_TEST(check_Cm_ClipWindingToWinding_diagonal_plane) {
 
 START_TEST(check_Cm_ClipWindingToWinding_offset_planes) {
   // Test clipping windings that are offset from each other
-  cm_winding_t *clip = Cm_AllocWinding(4);
+  CmWinding *clip = Cm_AllocWinding(4);
   clip->num_points = 4;
-  clip->points[0] = Vec3(0, 1, 0);
-  clip->points[1] = Vec3(100, 1, 0);
-  clip->points[2] = Vec3(100, 1, 100);
-  clip->points[3] = Vec3(0, 1, 100);
+  clip->points[0] = MakeVec3(0, 1, 0);
+  clip->points[1] = MakeVec3(100, 1, 0);
+  clip->points[2] = MakeVec3(100, 1, 100);
+  clip->points[3] = MakeVec3(0, 1, 100);
   
   // Decal winding offset by 1 unit in normal direction
-  cm_winding_t *in = Cm_AllocWinding(4);
+  CmWinding *in = Cm_AllocWinding(4);
   in->num_points = 4;
-  in->points[0] = Vec3(25, 2, 25);
-  in->points[1] = Vec3(75, 2, 25);
-  in->points[2] = Vec3(75, 2, 75);
-  in->points[3] = Vec3(25, 2, 75);
+  in->points[0] = MakeVec3(25, 2, 25);
+  in->points[1] = MakeVec3(75, 2, 25);
+  in->points[2] = MakeVec3(75, 2, 75);
+  in->points[3] = MakeVec3(25, 2, 75);
   
   // This should still work if we use a large enough epsilon
-  cm_winding_t *result = Cm_ClipWindingToWinding(in, clip, Vec3(0, 1, 0), 2.0);
+  CmWinding *result = Cm_ClipWindingToWinding(in, clip, MakeVec3(0, 1, 0), 2.0);
   
   ck_assert_ptr_nonnull(result);
   ck_assert_int_eq(4, result->num_points);
@@ -669,22 +669,22 @@ START_TEST(check_Cm_ClipWindingToWinding_offset_planes) {
 START_TEST(check_Cm_ClipWindingToWinding_decal_scenario) {
   // Simulate actual decal clipping scenario
   // Face on a floor
-  cm_winding_t *face = Cm_AllocWinding(4);
+  CmWinding *face = Cm_AllocWinding(4);
   face->num_points = 4;
-  face->points[0] = Vec3(-64, 0, -64);
-  face->points[1] = Vec3(64, 0, -64);
-  face->points[2] = Vec3(64, 0, 64);
-  face->points[3] = Vec3(-64, 0, 64);
+  face->points[0] = MakeVec3(-64, 0, -64);
+  face->points[1] = MakeVec3(64, 0, -64);
+  face->points[2] = MakeVec3(64, 0, 64);
+  face->points[3] = MakeVec3(-64, 0, 64);
   
   // Decal quad in center of face
-  cm_winding_t *decal = Cm_AllocWinding(4);
+  CmWinding *decal = Cm_AllocWinding(4);
   decal->num_points = 4;
-  decal->points[0] = Vec3(-16, 0, -16);
-  decal->points[1] = Vec3(16, 0, -16);
-  decal->points[2] = Vec3(16, 0, 16);
-  decal->points[3] = Vec3(-16, 0, 16);
+  decal->points[0] = MakeVec3(-16, 0, -16);
+  decal->points[1] = MakeVec3(16, 0, -16);
+  decal->points[2] = MakeVec3(16, 0, 16);
+  decal->points[3] = MakeVec3(-16, 0, 16);
   
-  cm_winding_t *result = Cm_ClipWindingToWinding(decal, face, Vec3(0, 1, 0), SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(decal, face, MakeVec3(0, 1, 0), SIDE_EPSILON);
   
   ck_assert_ptr_nonnull(result);
   ck_assert_int_eq(4, result->num_points);
@@ -702,22 +702,22 @@ START_TEST(check_Cm_ClipWindingToWinding_decal_scenario) {
 
 START_TEST(check_Cm_ClipWindingToWinding_edge_aligned) {
   // Test when decal edge aligns with face edge
-  cm_winding_t *face = Cm_AllocWinding(4);
+  CmWinding *face = Cm_AllocWinding(4);
   face->num_points = 4;
-  face->points[0] = Vec3(0, 0, 0);
-  face->points[1] = Vec3(64, 0, 0);
-  face->points[2] = Vec3(64, 0, 64);
-  face->points[3] = Vec3(0, 0, 64);
+  face->points[0] = MakeVec3(0, 0, 0);
+  face->points[1] = MakeVec3(64, 0, 0);
+  face->points[2] = MakeVec3(64, 0, 64);
+  face->points[3] = MakeVec3(0, 0, 64);
   
   // Decal that extends to face edge
-  cm_winding_t *decal = Cm_AllocWinding(4);
+  CmWinding *decal = Cm_AllocWinding(4);
   decal->num_points = 4;
-  decal->points[0] = Vec3(0, 0, 16);
-  decal->points[1] = Vec3(32, 0, 16);
-  decal->points[2] = Vec3(32, 0, 48);
-  decal->points[3] = Vec3(0, 0, 48);
+  decal->points[0] = MakeVec3(0, 0, 16);
+  decal->points[1] = MakeVec3(32, 0, 16);
+  decal->points[2] = MakeVec3(32, 0, 48);
+  decal->points[3] = MakeVec3(0, 0, 48);
   
-  cm_winding_t *result = Cm_ClipWindingToWinding(decal, face, Vec3(0, 1, 0), SIDE_EPSILON);
+  CmWinding *result = Cm_ClipWindingToWinding(decal, face, MakeVec3(0, 1, 0), SIDE_EPSILON);
   
   ck_assert_ptr_nonnull(result);
   ck_assert_int_eq(4, result->num_points);
@@ -730,20 +730,20 @@ START_TEST(check_Cm_ClipWindingToWinding_edge_aligned) {
 
 START_TEST(check_Cm_DistanceToWinding) {
 
-  cm_winding_t *w = Cm_AllocWinding(3);
+  CmWinding *w = Cm_AllocWinding(3);
   w->num_points = 3;
 
-  w->points[0] = Vec3(0.f, 0.f, 0.f);
-  w->points[1] = Vec3(0.f, 1.f, 0.f);
-  w->points[2] = Vec3(1.f, 0.f, 0.f);
+  w->points[0] = MakeVec3(0.f, 0.f, 0.f);
+  w->points[1] = MakeVec3(0.f, 1.f, 0.f);
+  w->points[2] = MakeVec3(1.f, 0.f, 0.f);
 
-  vec3_t dir;
+  Vec3 dir;
   ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[0], &dir));
   ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[1], &dir));
   ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[2], &dir));
 
-  ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, Vec3(.5f, .5f, 0.f), &dir));
-  ck_assert_float_eq(1.f, Cm_DistanceToWinding(w, Vec3(0.f, 2.f, 0.f), &dir));
+  ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, MakeVec3(.5f, .5f, 0.f), &dir));
+  ck_assert_float_eq(1.f, Cm_DistanceToWinding(w, MakeVec3(0.f, 2.f, 0.f), &dir));
 
   Cm_FreeWinding(w);
 

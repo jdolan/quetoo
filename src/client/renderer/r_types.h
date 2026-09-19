@@ -43,12 +43,12 @@ typedef enum {
   R_MEDIA_MODEL,
   R_MEDIA_MATERIAL,
   R_MEDIA_TOTAL
-} r_media_type_t;
+} RenderMediaType;
 
 /**
  * @brief Images, atlases, models, materials, etc. are all managed as media.
  */
-typedef struct r_media_s {
+typedef struct RenderMedia {
 
   /**
    * @brief The media name.
@@ -58,7 +58,7 @@ typedef struct r_media_s {
   /**
    * @brief The media type.
    */
-  r_media_type_t type;
+  RenderMediaType type;
 
   /**
    * @brief The media on which this media depends.
@@ -68,23 +68,23 @@ typedef struct r_media_s {
   /**
    * @brief The media registration callback.
    */
-  void (*Register)(struct r_media_s *self);
+  void (*Register)(struct RenderMedia *self);
 
   /**
    * @brief The media retain callback, to avoid being freed.
    */
-  bool (*Retain)(struct r_media_s *self);
+  bool (*Retain)(struct RenderMedia *self);
 
   /**
    * @brief The free callback, to release any system resources.
    */
-  void (*Free)(struct r_media_s *self);
+  void (*Free)(struct RenderMedia *self);
 
   /**
    * @brief The media seed, to determine if this media is current.
    */
   int32_t seed;
-} r_media_t;
+} RenderMedia;
 
 /**
  * @brief Model types.
@@ -94,7 +94,7 @@ typedef enum {
   MODEL_BSP,
   MODEL_BSP_INLINE,
   MODEL_MESH
-} r_model_type_t;
+} RenderModelType;
 
 /**
  * @brief Image types.
@@ -107,7 +107,7 @@ typedef enum {
   IMG_MATERIAL,
   IMG_CUBEMAP,
   IMG_VOXELS,
-} r_image_type_t;
+} RenderImageType;
 
 /**
  * @brief Images are referenced by materials, models, entities, particles, etc.
@@ -117,12 +117,12 @@ typedef struct {
   /**
    * @brief The media.
    */
-  r_media_t media;
+  RenderMedia media;
 
   /**
    * @brief The image type.
    */
-  r_image_type_t type;
+  RenderImageType type;
 
   /**
    * @brief The image width, height and depth (or layers, faces, etc..).
@@ -133,7 +133,7 @@ typedef struct {
    * @brief The GPU texture (ObjectivelyGPU). Owns the sampled texture.
    */
   Texture *texture;
-} r_image_t;
+} RenderImage;
 
 /**
  * @brief An image atlas.
@@ -143,54 +143,54 @@ typedef struct {
   /**
    * @brief The media.
    */
-  r_media_t media;
+  RenderMedia media;
 
   /**
    * @brief The atlas.
    */
-  atlas_t *atlas;
+  Atlas *atlas;
 
   /**
    * @brief The compiled image atlas containing all nodes.
    */
-  r_image_t *image;
+  RenderImage *image;
 
   /**
    * @brief True if this at atlas should be recompiled.
    */
   bool dirty;
-} r_atlas_t;
+} RenderAtlas;
 
 /**
- * @brief An atlas image, castable to `r_image_t` and `r_media_t`.
+ * @brief An atlas image, castable to `RenderImage` and `RenderMedia`.
  */
 typedef struct {
 
   /**
    * @brief The image.
    */
-  r_image_t image;
+  RenderImage image;
 
   /**
    * @brief The atlas node that created this atlas image.
    */
-  atlas_node_t *node;
+  AtlasNode *node;
 
   /**
    * @brief The texture coordinates of this atlas image within the atlas.
    */
-  vec4_t texcoords;
-} r_atlas_image_t;
+  Vec4 texcoords;
+} RenderAtlasImage;
 
 /**
- * @brief An animation, castable to `r_media_t`.
+ * @brief An animation, castable to `RenderMedia`.
  */
 typedef struct {
 
   /**
    * @brief The media.
    */
-  r_media_t media;
+  RenderMedia media;
 
   /**
    * @brief The number of frames in this animation.
@@ -200,18 +200,18 @@ typedef struct {
   /**
    * @brief The frames in this animation.
    */
-  const r_image_t **frames;
-} r_animation_t;
+  const RenderImage **frames;
+} RenderAnimation;
 
 /**
  * @brief Material stages.
  */
-typedef struct r_stage_s {
+typedef struct RenderStage {
 
   /**
    * @brief The backing collision material stage.
    */
-  const cm_stage_t *cm;
+  const CmStage *cm;
 
   /**
    * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
@@ -223,38 +223,38 @@ typedef struct r_stage_s {
   /**
    * @brief Stages with a render pass will reference an image, atlas image, material, animation, etc.
    */
-  r_media_t *media;
+  RenderMedia *media;
 
   /**
    * @brief The next stage in the material.
    */
-  struct r_stage_s *next;
-} r_stage_t;
+  struct RenderStage *next;
+} RenderStage;
 
 /**
  * @brief Materials define texture, animation and lighting properties for BSP and mesh models.
  */
-typedef struct r_material_s {
+typedef struct RenderMaterial {
 
   /**
    * @brief Materials are media.
    */
-  r_media_t media;
+  RenderMedia media;
 
   /**
    * @brief The collision material definition.
    */
-  cm_material_t *cm;
+  CmMaterial *cm;
 
   /**
    * @brief The layered texture containing the diffusemap, normalmap and specularmap.
    */
-  r_image_t *texture;
+  RenderImage *texture;
 
   /**
    * @brief Animated stage definitions.
    */
-  r_stage_t *stages;
+  RenderStage *stages;
 
   /**
    * @brief The time when this material was last animated.
@@ -264,18 +264,18 @@ typedef struct r_material_s {
   /**
    * @brief The diffusemap color.
    */
-  color_t color;
-} r_material_t;
+  Color color;
+} RenderMaterial;
 
 /**
  * @brief Decals are projected textures that conform to BSP geometry.
  */
-typedef struct r_decal_s {
+typedef struct RenderDecal {
 
   /**
    * @brief The decal origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The decal radius.
@@ -285,12 +285,12 @@ typedef struct r_decal_s {
   /**
    * @brief The decal color.
    */
-  color_t color;
+  Color color;
 
   /**
    * @brief The decal atlas image.
    */
-  r_atlas_image_t *image;
+  RenderAtlasImage *image;
 
   /**
    * @brief The decal creation time in ticks.
@@ -306,19 +306,19 @@ typedef struct r_decal_s {
    * @brief The decal rotation angle in radians.
    */
   float rotation;
-} r_decal_t;
+} RenderDecal;
 
 #define MAX_DECALS 0x800
 
 /**
  * @brief Hardware occlusion queries.
  */
-typedef struct r_occlusion_query_s {
+typedef struct RenderOcclusionQuery {
 
   /**
    * @brief The query bounds used for CPU-side culling.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The first instance index in the shared per-instance box buffer.
@@ -334,7 +334,7 @@ typedef struct r_occlusion_query_s {
    * @brief True if the query produced visible fragments.
    */
   bool result;
-} r_occlusion_query_t;
+} RenderOcclusionQuery;
 
 /**
  * @brief BSP plane structure.
@@ -344,8 +344,8 @@ typedef struct {
   /**
    * @brief The collision plane.
    */
-  const cm_bsp_plane_t *cm;
-} r_bsp_plane_t;
+  const CmBspPlane *cm;
+} RenderBspPlane;
 
 /**
  * @brief BSP brush side structure.
@@ -355,17 +355,17 @@ typedef struct {
   /**
    * @brief The plane.
    */
-  const r_bsp_plane_t *plane;
+  const RenderBspPlane *plane;
 
   /**
    * @brief The material.
    */
-  const r_material_t *material;
+  const RenderMaterial *material;
 
   /**
    * @brief The texture axis for S and T, in xyz + offset notation.
    */
-  vec4_t axis[2];
+  Vec4 axis[2];
 
   /**
    * @brief The brush contents.
@@ -381,17 +381,17 @@ typedef struct {
    * @brief The surface value, for lights or Phong grouping.
    */
   int32_t value;
-} r_bsp_brush_side_t;
+} RenderBspBrushSide;
 
 /**
- * @brief BSP patch structure, resolved from `bsp_patch_t`.
+ * @brief BSP patch structure, resolved from `BspPatch`.
  */
 typedef struct {
 
   /**
    * @brief The material.
    */
-  const r_material_t *material;
+  const RenderMaterial *material;
 
   /**
    * @brief The brush contents.
@@ -402,7 +402,7 @@ typedef struct {
    * @brief The surface flags.
    */
   int32_t surface;
-} r_bsp_patch_t;
+} RenderBspPatch;
 
 /**
  * @brief BSP vertex structure.
@@ -412,73 +412,73 @@ typedef struct {
   /**
    * @brief The position.
    */
-  vec3_t position;
+  Vec3 position;
 
   /**
    * @brief The normal, for Phong shading.
    */
-  vec3_t normal;
+  Vec3 normal;
 
   /**
    * @brief The tangent, for per-pixel lighting.
    */
-  vec3_t tangent;
+  Vec3 tangent;
 
   /**
    * @brief The bitangent, for per-pixel lighting.
    */
-  vec3_t bitangent;
+  Vec3 bitangent;
 
   /**
    * @brief The diffusemap texture coordinate.
    */
-  vec2_t diffusemap;
+  Vec2 diffusemap;
 
   /**
    * @brief The color, for alpha blending and vertex lighting effects.
    */
-  color32_t color;
-} r_bsp_vertex_t;
+  Color32 color;
+} RenderBspVertex;
 
 /**
  * @brief BSP faces, which may reside on the front or back of their node.
  */
-typedef struct r_bsp_face_s {
+typedef struct RenderBspFace {
 
   /**
    * @brief The brush side which generated this face, or `NULL` for patch faces.
    */
-  r_bsp_brush_side_t *brush_side;
+  RenderBspBrushSide *brush_side;
 
   /**
    * @brief The plane on which this face resides (to disambiguate `node`).
    */
-  r_bsp_plane_t *plane;
+  RenderBspPlane *plane;
 
   /**
    * @brief The patch which generated this face, or `NULL` for brush faces.
    */
-  r_bsp_patch_t *patch;
+  RenderBspPatch *patch;
 
   /**
    * @brief The node containing this face.
    */
-  struct r_bsp_node_s *node;
+  struct RenderBspNode *node;
 
   /**
    * @brief The block containing this face.
    */
-  struct r_bsp_block_s *block;
+  struct RenderBspBlock *block;
 
   /**
    * @brief The AABB of this face.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The vertexes.
    */
-  r_bsp_vertex_t *vertexes;
+  RenderBspVertex *vertexes;
 
   /**
    * @brief The count of vertexes.
@@ -494,7 +494,7 @@ typedef struct r_bsp_face_s {
    * @brief The count of elements.
    */
   int32_t num_elements;
-} r_bsp_face_t;
+} RenderBspFace;
 
 /**
  * @brief BSP draw elements for one material within an inline model.
@@ -504,7 +504,7 @@ typedef struct {
   /**
    * @brief The material.
    */
-  r_material_t *material;
+  RenderMaterial *material;
 
   /**
    * @brief The surface flags.
@@ -514,7 +514,7 @@ typedef struct {
   /**
    * @brief The AABB of the elements.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array.
@@ -529,18 +529,18 @@ typedef struct {
   /**
    * @brief Texture coordinate origin for stage transforms (scale, stretch, rotate).
    */
-  vec2_t st_origin;
+  Vec2 st_origin;
 
   /**
    * @brief The portal these elements show, or `NULL` if they are not a portal face.
    */
-  struct r_bsp_portal_s *portal;
-} r_bsp_draw_elements_t;
+  struct RenderBspPortal *portal;
+} RenderBspDrawElements;
 
 /**
  * @brief BSP nodes comprise the tree representation of the world.
  */
-typedef struct r_bsp_node_s {
+typedef struct RenderBspNode {
 
   /**
    * @brief The contents mask; one of `CONTENTS_NODE` or `CONTENTS_BLOCK` for nodes.
@@ -550,47 +550,47 @@ typedef struct r_bsp_node_s {
   /**
    * @brief The AABB.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The parent node.
    */
-  struct r_bsp_node_s *parent;
+  struct RenderBspNode *parent;
 
   /**
    * @brief The inline model. Each inline model contains its own sub-tree.
    */
-  struct r_bsp_inline_model_s *model;
+  struct RenderBspInlineModel *model;
 
   /**
    * @brief The plane that created this node.
    */
-  r_bsp_plane_t *plane;
+  RenderBspPlane *plane;
 
   /**
    * @brief The child nodes, which may be leaves.
    */
-  struct r_bsp_node_s *children[2];
+  struct RenderBspNode *children[2];
 
   /**
    * @brief The AABB of visible faces within this node.
    */
-  box3_t visible_bounds;
+  Box3 visible_bounds;
 
   /**
    * @brief The faces within this node.
    */
-  r_bsp_face_t *faces;
+  RenderBspFace *faces;
 
   /**
    * @brief The count of faces.
    */
   int32_t num_faces;
-} r_bsp_node_t;
+} RenderBspNode;
 
 /**
  * @brief BSP leafs terminate BSP tree branches.
- * @remarks Leafs can be cast to `r_bsp_node_t`.
+ * @remarks Leafs can be cast to `RenderBspNode`.
  */
 typedef struct {
 
@@ -602,18 +602,18 @@ typedef struct {
   /**
    * @brief The AABB.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The parent node.
    */
-  struct r_bsp_node_s *parent;
+  struct RenderBspNode *parent;
 
   /**
    * @brief The inline model. Each inline model contains its own sub-tree.
    */
-  struct r_bsp_inline_model_s *model;
-} r_bsp_leaf_t;
+  struct RenderBspInlineModel *model;
+} RenderBspLeaf;
 
 /**
  * @brief The maximum number of decals that can be attached to a single BSP block.
@@ -629,7 +629,7 @@ typedef struct {
 #define MAX_DYNAMIC_LIGHTS 512
 typedef struct {
   uint32_t mask[MAX_DYNAMIC_LIGHTS / 32];
-} r_active_dynamic_lights_t;
+} RenderActiveDynamicLights;
 
 /**
  * @brief The width of the lighting LOD blend zone beyond r_lighting_distance.
@@ -643,9 +643,9 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The decal atlas, cast to `r_image_t` for texture binding.
+   * @brief The decal atlas, cast to `RenderImage` for texture binding.
    */
-  r_image_t *image;
+  RenderImage *image;
 
   /**
    * @brief The triangles of the decals attached to the containing block.
@@ -663,22 +663,22 @@ typedef struct {
    */
   bool dirty;
 
-} r_bsp_block_decals_t;
+} RenderBspBlockDecals;
 
 /**
  * @brief BSP blocks are large, axial-aligned, gridded nodes used to aggregate rendering operations.
  */
-typedef struct r_bsp_block_s {
+typedef struct RenderBspBlock {
 
   /**
    * @brief The `CONTENTS_BLOCK` node defining this block.
    */
-  r_bsp_node_t *node;
+  RenderBspNode *node;
 
   /**
    * @brief The draw elements within this block.
    */
-  r_bsp_draw_elements_t *draw_elements;
+  RenderBspDrawElements *draw_elements;
 
   /**
    * @brief The count of draw elements.
@@ -688,12 +688,12 @@ typedef struct r_bsp_block_s {
   /**
    * @brief The visible bounds of this block, used for occlusion query and culling.
    */
-  box3_t visible_bounds;
+  Box3 visible_bounds;
 
   /**
    * @brief The occlusion query for this block.
    */
-  r_occlusion_query_t *query;
+  RenderOcclusionQuery *query;
 
   /**
    * @brief The bitwise OR of all draw element surface flags for this block.
@@ -703,39 +703,39 @@ typedef struct r_bsp_block_s {
   /**
    * @brief The decals for this block.
    */
-  r_bsp_block_decals_t decals;
+  RenderBspBlockDecals decals;
 
   /**
    * @brief The cached dynamic light bitmask for this block.
    */
-  r_active_dynamic_lights_t active_dynamic_lights;
+  RenderActiveDynamicLights active_dynamic_lights;
 
-} r_bsp_block_t;
+} RenderBspBlock;
 
 /**
  * @brief A BSP inline model.
  */
-typedef struct r_bsp_inline_model_s {
+typedef struct RenderBspInlineModel {
 
   /**
    * @brief The backing entity definition for this inline model.
    */
-  cm_entity_t *entity;
+  CmEntity *entity;
 
   /**
    * @brief The head node of this inline model.
    */
-  r_bsp_node_t *head_node;
+  RenderBspNode *head_node;
 
   /**
    * @brief For frustum culling.
    */
-  box3_t visible_bounds;
+  Box3 visible_bounds;
 
   /**
    * @brief The faces of this inline model.
    */
-  r_bsp_face_t *faces;
+  RenderBspFace *faces;
 
   /**
    * @brief The count of faces.
@@ -747,7 +747,7 @@ typedef struct r_bsp_inline_model_s {
    * @details Entry 0 lumps all opaque faces into a single draw elements, with a sentinel
    * material of NULL. Each subsequent entry is a unique alpha-tested material.
    */
-  r_bsp_draw_elements_t *depth_pass_elements;
+  RenderBspDrawElements *depth_pass_elements;
 
   /**
    * @brief The count of depth pass draw elements.
@@ -757,7 +757,7 @@ typedef struct r_bsp_inline_model_s {
   /**
    * @brief The draw elements of this inline model.
    */
-  r_bsp_draw_elements_t *draw_elements;
+  RenderBspDrawElements *draw_elements;
 
   /**
    * @brief The count of draw elements.
@@ -767,35 +767,35 @@ typedef struct r_bsp_inline_model_s {
   /**
    * @brief The blocks of this inline model.
    */
-  r_bsp_block_t *blocks;
+  RenderBspBlock *blocks;
 
   /**
    * @brief The count of blocks.
    */
   int32_t num_blocks;
 
-} r_bsp_inline_model_t;
+} RenderBspInlineModel;
 
 /**
  * @brief A BSP portal: a `SURF_PORTAL` face, and the point the world is viewed from to fill it.
- * @details Resolved by the compiler into `BSP_LUMP_PORTALS`; see `bsp_portal_t`.
+ * @details Resolved by the compiler into `BSP_LUMP_PORTALS`; see `BspPortal`.
  */
-typedef struct r_bsp_portal_s {
+typedef struct RenderBspPortal {
 
   /**
    * @brief The inline model whose faces show this portal.
    */
-  struct r_model_s *model;
+  struct RenderModel *model;
 
   /**
    * @brief The center of the portal face, in the model's space.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The bounds of the portal face, in the model's space.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The portal face's outward normal, in the model's space.
@@ -804,7 +804,7 @@ typedef struct r_bsp_portal_s {
    *   `entry` forward, which points the way travel through the portal runs rather than the way
    *   the face is seen from.
    */
-  vec3_t normal;
+  Vec3 normal;
 
   /**
    * @brief The portal face's frame, in the model's space.
@@ -813,29 +813,29 @@ typedef struct r_bsp_portal_s {
    *   its portal faces with it, so the frame reaches the world only through the model matrix of
    *   the entity drawing it that frame.
    */
-  mat4_t entry;
+  Mat4 entry;
 
   /**
    * @brief The frame of the entity this portal views the world from, in world space.
    * @details The exit is a point entity, which the compiler resolves once and which nothing
    *   moves, so unlike `entry` this is already where it belongs.
    */
-  mat4_t exit;
+  Mat4 exit;
 
   /**
    * @brief The center of the portal face this frame, in world space.
    */
-  vec3_t abs_origin;
+  Vec3 abs_origin;
 
   /**
    * @brief The bounds of the portal face this frame, in world space, for culling.
    */
-  box3_t abs_bounds;
+  Box3 abs_bounds;
 
   /**
    * @brief The portal face's plane this frame, in world space, for culling.
    */
-  cm_bsp_plane_t abs_plane;
+  CmBspPlane abs_plane;
 
   /**
    * @brief Carries a point or direction from the portal face's frame into the frame of the
@@ -845,13 +845,13 @@ typedef struct r_bsp_portal_s {
    *   that the face shows, which is what gives a portal parallax rather than the flatness of a
    *   fixed camera.
    */
-  mat4_t matrix;
+  Mat4 matrix;
 
   /**
    * @brief The view of this portal's destination, from the renderer's pool, or `NULL` if this
    * portal was not added to a view this frame.
    */
-  struct r_view_s *view;
+  struct RenderView *view;
 
   /**
    * @brief The layer of the portal texture this portal was drawn into this frame, or `-1`.
@@ -860,7 +860,7 @@ typedef struct r_bsp_portal_s {
    */
   int32_t layer;
 
-} r_bsp_portal_t;
+} RenderBspPortal;
 
 /**
  * @brief A BSP light source, including shadow, style, and entity data.
@@ -870,17 +870,17 @@ typedef struct {
   /**
    * @brief The entity that defines this light.
    */
-  cm_entity_t *entity;
+  CmEntity *entity;
 
   /**
    * @brief The light origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The light color.
    */
-  vec3_t color;
+  Vec3 color;
 
   /**
    * @brief The light radius.
@@ -895,12 +895,12 @@ typedef struct {
   /**
    * @brief The light bounds (sphere).
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The occlusion query for this light.
    */
-  r_occlusion_query_t *query;
+  RenderOcclusionQuery *query;
 
   /**
    * @brief The draw elements of this light's shadow geometry, into `bsp->draw_elements`.
@@ -908,7 +908,7 @@ typedef struct {
    * unique alpha-test material visible to the light, so alpha-tested faces (foliage, fences,
    * grates) cast pixel-correct shadows.
    */
-  r_bsp_draw_elements_t *draw_elements;
+  RenderBspDrawElements *draw_elements;
 
   /**
    * @brief The count of draw elements.
@@ -928,8 +928,8 @@ typedef struct {
   /**
    * @brief The target entity for dynamic lights attached to inline model entities, or `NULL`.
    */
-  cm_entity_t *target_entity;
-} r_bsp_light_t;
+  CmEntity *target_entity;
+} RenderBspLight;
 
 /**
  * @brief Individual voxel data for CPU-side access.
@@ -939,7 +939,7 @@ typedef struct {
   /**
    * @brief The voxel's world-space bounds.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The voxel's combined contents mask.
@@ -949,13 +949,13 @@ typedef struct {
   /**
    * @brief The lights affecting this voxel.
    */
-  const r_bsp_light_t **lights;
+  const RenderBspLight **lights;
 
   /**
    * @brief The number of lights affecting this voxel.
    */
   int32_t num_lights;
-} r_bsp_voxel_t;
+} RenderBspVoxel;
 
 /**
  * @brief The BSP voxel grid, including light index data for clustered forward lighting.
@@ -965,7 +965,7 @@ typedef struct {
   /**
    * @brief The grid dimensions in voxels.
    */
-  vec3i_t size;
+  Vec3i size;
 
   /**
    * @brief The total number of voxels.
@@ -975,27 +975,27 @@ typedef struct {
   /**
    * @brief The voxel bounds in world space.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief Array of individual voxel data (for CPU-side access and debugging).
    */
-  r_bsp_voxel_t *voxels;
+  RenderBspVoxel *voxels;
 
   /**
    * @brief The voxel caustics 3D texture (`RGB8`): caustics direction+strength.
    */
-  r_image_t *caustics;
+  RenderImage *caustics;
 
   /**
    * @brief The voxel occlusion 3D texture (`RG8`): spatial occlusion (r) and sky exposure (g).
    */
-  r_image_t *occlusion;
+  RenderImage *occlusion;
 
   /**
    * @brief Media placeholder for the per-voxel light data (see `light_data_buffer`).
    */
-  r_image_t *light_data;
+  RenderImage *light_data;
 
   /**
    * @brief The storage buffer of per-voxel light ranges.
@@ -1005,7 +1005,7 @@ typedef struct {
   /**
    * @brief Voxel light index texture to sample the index buffer (`R32I`).
    */
-  r_image_t *light_indices;
+  RenderImage *light_indices;
 
   /**
    * @brief The storage buffer backing the light index vector (`R32I`).
@@ -1017,7 +1017,7 @@ typedef struct {
    */
   int32_t num_light_indices;
 
-} r_bsp_voxels_t;
+} RenderBspVoxels;
 
 /**
  * @brief The renderer representation of the BSP model.
@@ -1027,7 +1027,7 @@ typedef struct {
   /**
    * @brief The backing collision BSP model.
    */
-  const cm_bsp_t *cm;
+  const CmBsp *cm;
 
   /**
    * @brief The count of planes.
@@ -1037,7 +1037,7 @@ typedef struct {
   /**
    * @brief The planes array.
    */
-  r_bsp_plane_t *planes;
+  RenderBspPlane *planes;
 
   /**
    * @brief The count of materials.
@@ -1047,7 +1047,7 @@ typedef struct {
   /**
    * @brief The materials array.
    */
-  r_material_t **materials;
+  RenderMaterial **materials;
 
   /**
    * @brief The count of brush sides.
@@ -1057,7 +1057,7 @@ typedef struct {
   /**
    * @brief The brush sides array.
    */
-  r_bsp_brush_side_t *brush_sides;
+  RenderBspBrushSide *brush_sides;
 
   /**
    * @brief The count of patches.
@@ -1067,7 +1067,7 @@ typedef struct {
   /**
    * @brief The patches array.
    */
-  r_bsp_patch_t *patches;
+  RenderBspPatch *patches;
 
   /**
    * @brief The count of vertexes.
@@ -1077,7 +1077,7 @@ typedef struct {
   /**
    * @brief The vertexes array.
    */
-  r_bsp_vertex_t *vertexes;
+  RenderBspVertex *vertexes;
 
   /**
    * @brief The count of elements.
@@ -1097,7 +1097,7 @@ typedef struct {
   /**
    * @brief The faces array.
    */
-  r_bsp_face_t *faces;
+  RenderBspFace *faces;
 
   /**
    * @brief The count of draw elements.
@@ -1107,7 +1107,7 @@ typedef struct {
   /**
    * @brief The draw elements array.
    */
-  r_bsp_draw_elements_t *draw_elements;
+  RenderBspDrawElements *draw_elements;
 
   /**
    * @brief The count of nodes.
@@ -1117,7 +1117,7 @@ typedef struct {
   /**
    * @brief The nodes array.
    */
-  r_bsp_node_t *nodes;
+  RenderBspNode *nodes;
 
   /**
    * @brief The count of leafs.
@@ -1127,7 +1127,7 @@ typedef struct {
   /**
    * @brief The leafs array.
    */
-  r_bsp_leaf_t *leafs;
+  RenderBspLeaf *leafs;
 
   /**
    * @brief The count of blocks.
@@ -1137,7 +1137,7 @@ typedef struct {
   /**
    * @brief The blocks array.
    */
-  r_bsp_block_t *blocks;
+  RenderBspBlock *blocks;
 
   /**
    * @brief The count of inline models.
@@ -1147,7 +1147,7 @@ typedef struct {
   /**
    * @brief The inline models array.
    */
-  r_bsp_inline_model_t *inline_models;
+  RenderBspInlineModel *inline_models;
 
   /**
    * @brief The count of lights.
@@ -1157,7 +1157,7 @@ typedef struct {
   /**
    * @brief The lights array.
    */
-  r_bsp_light_t *lights;
+  RenderBspLight *lights;
 
   /**
    * @brief The count of portals.
@@ -1167,12 +1167,12 @@ typedef struct {
   /**
    * @brief The portals array.
    */
-  r_bsp_portal_t *portals;
+  RenderBspPortal *portals;
 
   /**
    * @brief The voxel data.
    */
-  r_bsp_voxels_t voxels;
+  RenderBspVoxels voxels;
 
   /**
    * @brief The vertex array (VAO) name.
@@ -1203,14 +1203,14 @@ typedef struct {
   /**
    * @brief The first inline BSP model, aka worldspawn.
    */
-  struct r_model_s *worldspawn;
+  struct RenderModel *worldspawn;
 
   /**
    * @brief The sky cubemap texture (RGB8).
    */
-  r_image_t *sky;
+  RenderImage *sky;
 
-} r_bsp_model_t;
+} RenderBspModel;
 
 /**
  * @brief The mesh vertex type.
@@ -1220,28 +1220,28 @@ typedef struct {
   /**
    * @brief The vertex position.
    */
-  vec3_t position;
+  Vec3 position;
 
   /**
    * @brief The vertex normal.
    */
-  vec3_t normal;
+  Vec3 normal;
 
   /**
    * @brief The vertex tangent, for per-pixel lighting.
    */
-  vec3_t tangent;
+  Vec3 tangent;
 
   /**
    * @brief The vertex bitangent, for per-pixel lighting.
    */
-  vec3_t bitangent;
+  Vec3 bitangent;
 
   /**
    * @brief The diffusemap texture coordinate.
    */
-  vec2_t diffusemap;
-} r_mesh_vertex_t;
+  Vec2 diffusemap;
+} RenderMeshVertex;
 
 /**
  * @brief The mesh frame type.
@@ -1251,13 +1251,13 @@ typedef struct {
   /**
    * @brief The frame bounds.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The frame translation offset.
    */
-  vec3_t translate;
-} r_mesh_frame_t;
+  Vec3 translate;
+} RenderMeshFrame;
 
 /**
  * @brief A mesh attachment tag.
@@ -1272,8 +1272,8 @@ typedef struct {
   /**
    * @brief The tag matrix.
    */
-  mat4_t matrix;
-} r_mesh_tag_t;
+  Mat4 matrix;
+} RenderMeshTag;
 
 /**
  * @brief A mesh face.
@@ -1288,12 +1288,12 @@ typedef struct {
   /**
    * @brief The material.
    */
-  r_material_t *material;
+  RenderMaterial *material;
 
   /**
    * @brief The vertexes.
    */
-  r_mesh_vertex_t *vertexes;
+  RenderMeshVertex *vertexes;
 
   /**
    * @brief The count of vertexes.
@@ -1319,7 +1319,7 @@ typedef struct {
    * @brief The elements pointer in the shared mesh VAO.
    */
   void *indices;
-} r_mesh_face_t;
+} RenderMeshFace;
 
 /**
  * @brief Max mesh model faces (matches MD3_MAX_SURFACES, the larger of the
@@ -1352,7 +1352,7 @@ typedef struct {
    * @brief The animation playback rate in frames per second.
    */
   int32_t hz;
-} r_mesh_animation_t;
+} RenderMeshAnimation;
 
 /**
  * @brief Provides load-time normalization of mesh models.
@@ -1361,12 +1361,12 @@ typedef struct {
   /**
    * @brief The translation component.
    */
-  vec3_t translate;
+  Vec3 translate;
 
   /**
    * @brief The rotation component (Euler angles).
    */
-  vec3_t rotate;
+  Vec3 rotate;
 
   /**
    * @brief The scale component.
@@ -1376,13 +1376,13 @@ typedef struct {
   /**
    * @brief The muzzle position in model space.
    */
-  vec3_t muzzle;
+  Vec3 muzzle;
 
   /**
    * @brief The normalization transform matrix.
    */
-  mat4_t transform;
-} r_mesh_config_t;
+  Mat4 transform;
+} RenderMeshConfig;
 
 /**
  * @brief Mesh model flags, parsed from `animation.cfg`.
@@ -1399,7 +1399,7 @@ typedef enum {
    * `fixedtorso` directive.
    */
   MESH_MODEL_FIXED_TORSO = (1 << 1)
-} r_mesh_model_flags_t;
+} RenderMeshModelFlags;
 
 /**
  * @brief The mesh model type.
@@ -1407,7 +1407,7 @@ typedef enum {
 typedef struct {
 
   /**
-   * @brief The mesh model flags (see `r_mesh_model_flags_t`).
+   * @brief The mesh model flags (see `RenderMeshModelFlags`).
    */
   uint32_t flags;
 
@@ -1419,7 +1419,7 @@ typedef struct {
   /**
    * @brief The vertex array.
    */
-  r_mesh_vertex_t *vertexes;
+  RenderMeshVertex *vertexes;
 
   /**
    * @brief The count of vertexes.
@@ -1439,7 +1439,7 @@ typedef struct {
   /**
    * @brief The animation frames.
    */
-  r_mesh_frame_t *frames;
+  RenderMeshFrame *frames;
 
   /**
    * @brief The count of frames.
@@ -1449,7 +1449,7 @@ typedef struct {
   /**
    * @brief The model tags.
    */
-  r_mesh_tag_t *tags;
+  RenderMeshTag *tags;
 
   /**
    * @brief The count of tags.
@@ -1459,7 +1459,7 @@ typedef struct {
   /**
    * @brief The model faces.
    */
-  r_mesh_face_t *faces;
+  RenderMeshFace *faces;
 
   /**
    * @brief The count of faces.
@@ -1469,7 +1469,7 @@ typedef struct {
   /**
    * @brief The animations.
    */
-  r_mesh_animation_t *animations;
+  RenderMeshAnimation *animations;
 
   /**
    * @brief The count of animations.
@@ -1493,17 +1493,17 @@ typedef struct {
     /**
      * @brief The world-space normalization configuration.
      */
-    r_mesh_config_t world;
+    RenderMeshConfig world;
 
     /**
      * @brief The view-space normalization configuration.
      */
-    r_mesh_config_t view;
+    RenderMeshConfig view;
 
     /**
      * @brief The link-space normalization configuration.
      */
-    r_mesh_config_t link;
+    RenderMeshConfig link;
 
   /**
    * @brief The mesh normalization configurations.
@@ -1519,50 +1519,50 @@ typedef struct {
    * @brief The GPU elements (index) buffer.
    */
   Buffer *elements_buffer;
-} r_mesh_model_t;
+} RenderMeshModel;
 
 /**
  * @brief Models represent a subset of the BSP or a mesh.
  */
-typedef struct r_model_s {
+typedef struct RenderModel {
 
   /**
    * @brief The media.
    */
-  r_media_t media;
+  RenderMedia media;
 
   /**
    * @brief The model type.
    */
-  r_model_type_t type;
+  RenderModelType type;
   union {
 
     /**
      * @brief The BSP model data.
      */
-    r_bsp_model_t *bsp;
+    RenderBspModel *bsp;
 
     /**
      * @brief The inline BSP model data.
      */
-    r_bsp_inline_model_t *bsp_inline;
+    RenderBspInlineModel *bsp_inline;
 
     /**
      * @brief The mesh model data.
      */
-    r_mesh_model_t *mesh;
+    RenderMeshModel *mesh;
   };
 
   /**
    * @brief The model bounds.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The model bounding radius.
    */
   float radius;
-} r_model_t;
+} RenderModel;
 
 #define IS_BSP_MODEL(m) (m && m->type == MODEL_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MODEL_BSP_INLINE)
@@ -1582,23 +1582,23 @@ typedef struct {
   /**
    * @brief The model type.
    */
-  r_model_type_t type;
+  RenderModelType type;
 
   /**
    * @brief The load function.
    */
-  void (*Load)(r_model_t *mod, void *buffer);
+  void (*Load)(RenderModel *mod, void *buffer);
 
   /**
    * @brief The media registration callback.
    */
-  void (*Register)(r_media_t *self);
+  void (*Register)(RenderMedia *self);
 
   /**
    * @brief The media free callback.
    */
-  void (*Free)(r_media_t *self);
-} r_model_format_t;
+  void (*Free)(RenderMedia *self);
+} RenderModelFormat;
 
 /**
  * @brief The models type.
@@ -1608,14 +1608,14 @@ typedef struct {
   /**
    * @brief The currently loaded BSP model, if any.
    */
-  r_model_t *world;
+  RenderModel *world;
 
-} r_models_t;
+} RenderModels;
 
 /**
  * @brief The models instance.
  */
-extern r_models_t r_models;
+extern RenderModels r_models;
 
 /**
  * @brief Sprite rendering flags.
@@ -1626,7 +1626,7 @@ enum {
   SPRITE_CGAME       = 1 << 16
 };
 
-typedef uint32_t r_sprite_flags_t;
+typedef uint32_t RenderSpriteFlags;
 
 /**
  * @brief Sprite billboard axis constraints.
@@ -1636,7 +1636,7 @@ typedef enum {
   SPRITE_AXIS_X   = 1,
   SPRITE_AXIS_Y   = 2,
   SPRITE_AXIS_Z   = 4
-} r_sprite_billboard_axis_t;
+} RenderSpriteBillboardAxis;
 
 /**
  * @brief Sprites are billboarded alpha blended quads, optionally animated.
@@ -1646,7 +1646,7 @@ typedef struct {
   /**
    * @brief The sprite origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The sprite size; if set, this is used for both width & height, otherwise width/height are used.
@@ -1664,9 +1664,9 @@ typedef struct {
   float height;
 
   /**
-   * @brief The sprite media (an `r_animation_t`, `r_image_t`, etc).
+   * @brief The sprite media (an `RenderAnimation`, `RenderImage`, etc).
    */
-  r_media_t *media;
+  RenderMedia *media;
 
   /**
    * @brief The sprite's rotation, for non-beam sprites.
@@ -1677,7 +1677,7 @@ typedef struct {
    * @brief The sprite color. Components above 1 are permitted, and reach the
    * HDR scene target unscaled.
    */
-  vec3_t color;
+  Vec3 color;
 
   /**
    * @brief The sprite's life from 0 to 1.
@@ -1687,23 +1687,23 @@ typedef struct {
   /**
    * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
    */
-  vec3_t dir;
+  Vec3 dir;
 
   /**
    * @brief Axis modifier for billboard sprites.
    */
-  r_sprite_billboard_axis_t axis;
+  RenderSpriteBillboardAxis axis;
 
   /**
    * @brief Sprite flags
    */
-  r_sprite_flags_t flags;
+  RenderSpriteFlags flags;
 
   /**
    * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
    */
   float lighting;
-} r_sprite_t;
+} RenderSprite;
 
 #define MAX_SPRITES    0x8000
 
@@ -1715,12 +1715,12 @@ typedef struct {
   /**
    * @brief The beam start.
    */
-  vec3_t start;
+  Vec3 start;
 
   /**
    * @brief The beam end.
    */
-  vec3_t end;
+  Vec3 end;
 
   /**
    * @brief The beam size.
@@ -1730,13 +1730,13 @@ typedef struct {
   /**
    * @brief The beam texture.
    */
-  r_image_t *image;
+  RenderImage *image;
 
   /**
    * @brief The beam color. Components above 1 are permitted, and reach the
    * HDR scene target unscaled.
    */
-  vec3_t color;
+  Vec3 color;
 
   /**
    * @brief The beam texture translation.
@@ -1751,13 +1751,13 @@ typedef struct {
   /**
    * @brief The beam flags.
    */
-  r_sprite_flags_t flags;
+  RenderSpriteFlags flags;
 
   /**
    * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
    */
   float lighting;
-} r_beam_t;
+} RenderBeam;
 
 #define MAX_BEAMS 0x200
 
@@ -1782,35 +1782,35 @@ typedef struct {
   /**
    * @brief The quad center, and the animation interpolation factor in `w`.
    */
-  alignas(16) vec4_t center;
+  alignas(16) Vec4 center;
 
   /**
    * @brief The first half axis, and the lighting intensity in `w`.
    */
-  vec4_t a;
+  Vec4 a;
 
   /**
    * @brief The second half axis.
    */
-  vec4_t b;
+  Vec4 b;
 
   /**
    * @brief The diffusemap rect: `xy` min, `zw` max.
    */
-  vec4_t texcoords;
+  Vec4 texcoords;
 
   /**
    * @brief The next diffusemap rect, for animation.
    */
-  vec4_t next_texcoords;
+  Vec4 next_texcoords;
 
   /**
    * @brief The quad color.
    */
-  vec4_t color;
-} r_sprite_instance_t;
+  Vec4 color;
+} RenderSpriteInstance;
 
-static_assert(sizeof(r_sprite_instance_t) == 96, "r_sprite_instance_t must match sprite_instance_t in sprite_vs.glsl");
+static_assert(sizeof(RenderSpriteInstance) == 96, "RenderSpriteInstance must match sprite_instance_t in sprite_vs.glsl");
 
 /**
  * @brief The batching state for a sprite instance, parallel to it by index.
@@ -1820,18 +1820,18 @@ typedef struct {
   /**
    * @brief The diffusemap texture.
    */
-  const r_image_t *diffusemap;
+  const RenderImage *diffusemap;
 
   /**
    * @brief The next diffusemap texture, for animation interpolation.
    */
-  const r_image_t *next_diffusemap;
+  const RenderImage *next_diffusemap;
 
   /**
    * @brief The sprite bounds.
    */
-  box3_t bounds;
-} r_sprite_batch_t;
+  Box3 bounds;
+} RenderSpriteBatch;
 
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
@@ -1855,7 +1855,7 @@ typedef struct {
 /**
  * @brief A renderable entity instance.
  */
-typedef struct r_entity_s {
+typedef struct RenderEntity {
 
   /**
    * @brief The entity identifier.
@@ -1865,7 +1865,7 @@ typedef struct r_entity_s {
   /**
    * @brief The parent entity, if any, for linked mesh models.
    */
-  const struct r_entity_s *parent;
+  const struct RenderEntity *parent;
 
   /**
    * @brief The tag name, if any, for linked mesh models.
@@ -1875,17 +1875,17 @@ typedef struct r_entity_s {
   /**
    * @brief The entity origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The entity termination for beams.
    */
-  vec3_t termination;
+  Vec3 termination;
 
   /**
    * @brief The entity angles.
    */
-  vec3_t angles;
+  Vec3 angles;
 
   /**
    * @brief The entity scale, for mesh models.
@@ -1895,37 +1895,37 @@ typedef struct r_entity_s {
   /**
    * @brief The relative entity bounds, as known by the client.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The absolute entity bounds, as known by the client.
    */
-  box3_t abs_bounds;
+  Box3 abs_bounds;
 
   /**
    * @brief The visual model bounds, in world space, for frustum culling.
    */
-  box3_t abs_model_bounds;
+  Box3 abs_model_bounds;
 
   /**
    * @brief The cached dynamic light bitmask for this entity.
    */
-  r_active_dynamic_lights_t active_dynamic_lights;
+  RenderActiveDynamicLights active_dynamic_lights;
 
   /**
    * @brief The model matrix.
    */
-  mat4_t matrix;
+  Mat4 matrix;
 
   /**
    * @brief The inverse model matrix.
    */
-  mat4_t inverse_matrix;
+  Mat4 inverse_matrix;
 
   /**
    * @brief The model, if any.
    */
-  const r_model_t *model;
+  const RenderModel *model;
 
   /**
    * @brief Frame animations.
@@ -1944,7 +1944,7 @@ typedef struct r_entity_s {
    * `NULL` entry means the face has no skin and should not be drawn at all,
    * rather than falling back to the mesh's baked-in default material.
    */
-  r_material_t *skins[MAX_MESH_FACES];
+  RenderMaterial *skins[MAX_MESH_FACES];
 
   /**
    * @brief Whether `skins` is populated and authoritative for this entity.
@@ -1964,19 +1964,19 @@ typedef struct r_entity_s {
   /**
    * @brief The entity shade color.
    */
-  vec4_t color;
+  Vec4 color;
 
   /**
    * @brief The entity shell color for flag carriers, etc.
    */
-  vec4_t shell;
+  Vec4 shell;
 
   /**
    * @brief Tint maps allow users to customize their player skins.
    */
-  vec4_t tints[TINT_TOTAL];
+  Vec4 tints[TINT_TOTAL];
 
-} r_entity_t;
+} RenderEntity;
 
 /**
  * @brief Light sources per scene.
@@ -2005,12 +2005,12 @@ typedef struct {
   /**
    * @brief The light origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The light color.
    */
-  vec3_t color;
+  Vec3 color;
 
   /**
    * @brief The light radius.
@@ -2025,12 +2025,12 @@ typedef struct {
   /**
    * @brief The light bounds, or the volume visible to the light.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The backing BSP light, for static light sources.
    */
-  const r_bsp_light_t *bsp_light;
+  const RenderBspLight *bsp_light;
 
   /**
    * @brief The optional light source entity identifier.
@@ -2045,7 +2045,7 @@ typedef struct {
   /**
    * @brief The shadow-casting entities intersecting this light.
    */
-  const r_entity_t *entities[MAX_ENTITIES];
+  const RenderEntity *entities[MAX_ENTITIES];
 
   /**
    * @brief The count of intersecting entities.
@@ -2055,13 +2055,13 @@ typedef struct {
   /**
    * @brief The shadow atlas tile origin in pixels.
    */
-  vec2_t tile;
+  Vec2 tile;
 
   /**
    * @brief The hash of this light's shadow map inputs, or `0` if it casts none this frame.
    */
   uint64_t hash;
-} r_light_t;
+} RenderLight;
 
 /**
  * @brief View types.
@@ -2071,7 +2071,7 @@ typedef enum {
   VIEW_MAIN,
   VIEW_PLAYER_MODEL,
   VIEW_PORTAL,
-} r_view_type_t;
+} RenderViewType;
 
 /**
  * @brief View flags.
@@ -2079,7 +2079,7 @@ typedef enum {
 typedef enum {
   VIEW_FLAG_NONE = 0x0,
   VIEW_FLAG_NO_DELTA = 0x1
-} r_view_flags_t;
+} RenderViewFlags;
 
 /**
  * @brief Draw statistics, accumulated by the renderer for each view it draws.
@@ -2185,22 +2185,22 @@ typedef struct {
    * @brief The count of rendered decal draw element batches.
    */
   int32_t decal_draw_elements;
-} r_view_stats_t;
+} RenderViewStats;
 
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
-typedef struct r_view_s {
+typedef struct RenderView {
 
   /**
    * @brief The view type.
    */
-  r_view_type_t type;
+  RenderViewType type;
 
   /**
    * @brief The view flags.
    */
-  r_view_flags_t flags;
+  RenderViewFlags flags;
 
   /**
    * @brief The target scene framebuffer.
@@ -2210,42 +2210,42 @@ typedef struct r_view_s {
   /**
    * @brief The viewport, in device pixels.
    */
-  vec4i_t viewport;
+  Vec4i viewport;
 
   /**
    * @brief The horizontal and vertical field of view.
    */
-  vec2_t fov;
+  Vec2 fov;
 
   /**
    * @brief The depth range; near and far clipping plane distances.
    */
-  vec2_t depth_range;
+  Vec2 depth_range;
 
   /**
    * @brief The view origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The view angles.
    */
-  vec3_t angles;
+  Vec3 angles;
 
   /**
    * @brief The forward vector, derived from angles.
    */
-  vec3_t forward;
+  Vec3 forward;
 
   /**
    * @brief The right vector, derived from angles.
    */
-  vec3_t right;
+  Vec3 right;
 
   /**
    * @brief The up vector, derived from angles.
    */
-  vec3_t up;
+  Vec3 up;
 
   /**
    * @brief The contents mask at the view origin.
@@ -2260,12 +2260,12 @@ typedef struct r_view_s {
   /**
    * @brief The ambient modulation, per channel.
    */
-  vec3_t ambient;
+  Vec3 ambient;
 
   /**
    * @brief The entities to render for the current frame.
    */
-  r_entity_t entities[MAX_ENTITIES];
+  RenderEntity entities[MAX_ENTITIES];
 
   /**
    * @brief The count of entities.
@@ -2275,7 +2275,7 @@ typedef struct r_view_s {
   /**
    * @brief The sprites to render for the current frame.
    */
-  r_sprite_t sprites[MAX_SPRITES];
+  RenderSprite sprites[MAX_SPRITES];
 
   /**
    * @brief The count of sprites.
@@ -2285,7 +2285,7 @@ typedef struct r_view_s {
   /**
    * @brief The beams to render for the current frame.
    */
-  r_beam_t beams[MAX_BEAMS];
+  RenderBeam beams[MAX_BEAMS];
 
   /**
    * @brief The count of beams.
@@ -2295,7 +2295,7 @@ typedef struct r_view_s {
   /**
    * @brief The portals whose views are drawn for this view to sample.
    */
-  r_bsp_portal_t *portals[MAX_PORTALS];
+  RenderBspPortal *portals[MAX_PORTALS];
 
   /**
    * @brief The count of portals.
@@ -2305,7 +2305,7 @@ typedef struct r_view_s {
   /**
    * @brief The batching state for the current frame's sprite instances.
    */
-  r_sprite_batch_t sprite_batches[MAX_SPRITE_INSTANCES];
+  RenderSpriteBatch sprite_batches[MAX_SPRITE_INSTANCES];
 
   /**
    * @brief The count of sprite instances.
@@ -2315,7 +2315,7 @@ typedef struct r_view_s {
   /**
    * @brief The lights to render for the current frame.
    */
-  r_light_t lights[MAX_LIGHTS];
+  RenderLight lights[MAX_LIGHTS];
 
   /**
    * @brief The count of lights.
@@ -2325,7 +2325,7 @@ typedef struct r_view_s {
   /**
    * @brief New decals added this frame, to be processed during `R_UpdateDecals`.
    */
-  r_decal_t decals[MAX_DECALS];
+  RenderDecal decals[MAX_DECALS];
 
   /**
    * @brief The count of decals.
@@ -2335,13 +2335,13 @@ typedef struct r_view_s {
   /**
    * @brief The view frustum, for box and sphere culling.
    */
-  cm_bsp_plane_t frustum[4];
+  CmBspPlane frustum[4];
 
   /**
    * @brief Draw statistics for the most recent render of this view.
    */
-  r_view_stats_t stats;
-} r_view_t;
+  RenderViewStats stats;
+} RenderView;
 
 /**
  * @brief Window and GPU device information.
@@ -2387,7 +2387,7 @@ typedef struct {
    * @brief A 1x1 opaque white @c Texture, useful for binding to unused @c Samplers.
    */
   Texture *null_texture;
-} r_context_t;
+} RenderContext;
 
 #if defined(__R_LOCAL_H__)
 
@@ -2398,7 +2398,7 @@ typedef struct {
   /**
    * @brief The blend operators.
    */
-  cm_blend_t src, dest;
+  CmBlend src, dest;
 
   /**
    * @brief The depth write flag.
@@ -2409,6 +2409,6 @@ typedef struct {
    * @brief The cached pipeline.
    */
   GraphicsPipeline *pipeline;
-} r_stage_pipeline_t;
+} RenderStagePipeline;
 
 #endif

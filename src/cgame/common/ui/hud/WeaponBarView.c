@@ -135,7 +135,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   float alpha;
   const bool visible = Cg_UpdateSelectWeapon(ps, &alpha);

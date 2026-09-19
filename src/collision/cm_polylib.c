@@ -28,17 +28,17 @@ static SDL_AtomicInt c_windings;
 /**
  * @brief Allocates a winding for the given number of points.
  */
-cm_winding_t *Cm_AllocWinding(int32_t num_points) {
+CmWinding *Cm_AllocWinding(int32_t num_points) {
 
   SDL_AddAtomicInt(&c_windings, 1);
 
-  return Mem_TagMalloc(sizeof(int32_t) + sizeof(vec3_t) * num_points, MEM_TAG_POLYLIB);
+  return Mem_TagMalloc(sizeof(int32_t) + sizeof(Vec3) * num_points, MEM_TAG_POLYLIB);
 }
 
 /**
  * @brief Frees the given winding.
  */
-void Cm_FreeWinding(cm_winding_t *w) {
+void Cm_FreeWinding(CmWinding *w) {
 
   SDL_AddAtomicInt(&c_windings, -1);
 
@@ -48,13 +48,13 @@ void Cm_FreeWinding(cm_winding_t *w) {
 /**
  * @brief Returns a copy of the given winding.
  */
-cm_winding_t *Cm_CopyWinding(const cm_winding_t *w) {
+CmWinding *Cm_CopyWinding(const CmWinding *w) {
 
-  cm_winding_t *c = Cm_AllocWinding(w->num_points);
+  CmWinding *c = Cm_AllocWinding(w->num_points);
 
   c->num_points = w->num_points;
 
-  memcpy(c->points, w->points, c->num_points * sizeof(vec3_t));
+  memcpy(c->points, w->points, c->num_points * sizeof(Vec3));
 
   return c;
 }
@@ -62,9 +62,9 @@ cm_winding_t *Cm_CopyWinding(const cm_winding_t *w) {
 /**
  * @brief Returns a new winding with its points in reverse order.
  */
-cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w) {
+CmWinding *Cm_ReverseWinding(const CmWinding *w) {
 
-  cm_winding_t *c = Cm_AllocWinding(w->num_points);
+  CmWinding *c = Cm_AllocWinding(w->num_points);
 
   for (int32_t i = 0; i < w->num_points; i++) {
     c->points[i] = w->points[w->num_points - 1 - i];
@@ -77,16 +77,16 @@ cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w) {
 /**
  * @brief Returns the AABB enclosing all points of the winding.
  */
-box3_t Cm_WindingBounds(const cm_winding_t *w) {
+Box3 Cm_WindingBounds(const CmWinding *w) {
   return Box3_FromPoints(w->points, w->num_points);
 }
 
 /**
  * @brief Returns the centroid of the winding.
  */
-vec3_t Cm_WindingCenter(const cm_winding_t *w) {
+Vec3 Cm_WindingCenter(const CmWinding *w) {
 
-  vec3_t center = Vec3_Zero();
+  Vec3 center = Vec3_Zero();
 
   for (int32_t i = 0; i < w->num_points; i++) {
     center = Vec3_Add(w->points[i], center);
@@ -98,7 +98,7 @@ vec3_t Cm_WindingCenter(const cm_winding_t *w) {
 /**
  * @brief Returns the surface area of the winding.
  */
-float Cm_WindingArea(const cm_winding_t *w) {
+float Cm_WindingArea(const CmWinding *w) {
   float area = 0.0;
 
   for (int32_t i = 2; i < w->num_points; i++) {
@@ -112,27 +112,27 @@ float Cm_WindingArea(const cm_winding_t *w) {
  * @brief Calculates the distance from `p` to `w`.
  * @see https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
  */
-float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *dir) {
+float Cm_DistanceToWinding(const CmWinding *w, const Vec3 p, Vec3 *dir) {
 
   float distance = FLT_MAX;
 
   for (int32_t i = 0; i < w->num_points; i++) {
 
-    const vec3_t a = w->points[(i + 0) % w->num_points];
-    const vec3_t b = w->points[(i + 1) % w->num_points];
+    const Vec3 a = w->points[(i + 0) % w->num_points];
+    const Vec3 b = w->points[(i + 1) % w->num_points];
 
     const float dist_squared = Vec3_DistanceSquared(a, b);
     if (dist_squared == 0.f) {
       continue;
     }
 
-    const vec3_t pa = Vec3_Subtract(p, a);
-    const vec3_t ba = Vec3_Subtract(b, a);
+    const Vec3 pa = Vec3_Subtract(p, a);
+    const Vec3 ba = Vec3_Subtract(b, a);
 
     const float f = Maxf(0.f, Minf(1.f, Vec3_Dot(pa, ba) / dist_squared));
-    const vec3_t q = Vec3_Fmaf(a, f, ba);
+    const Vec3 q = Vec3_Fmaf(a, f, ba);
 
-    vec3_t dir0;
+    Vec3 dir0;
     const float dist = Vec3_DistanceDir(q, p, &dir0);
 
     if (dist < distance) {
@@ -149,16 +149,16 @@ float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *dir) {
 /**
  * @brief Computes the plane equation for the given winding's points.
  */
-void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
+void Cm_PlaneForWinding(const CmWinding *w, Vec3 *normal, double *dist) {
 
-  const vec3d_t a = Vec3_CastVec3d(w->points[0]);
-  const vec3d_t b = Vec3_CastVec3d(w->points[1]);
-  const vec3d_t c = Vec3_CastVec3d(w->points[2]);
+  const Vec3d a = Vec3_CastVec3d(w->points[0]);
+  const Vec3d b = Vec3_CastVec3d(w->points[1]);
+  const Vec3d c = Vec3_CastVec3d(w->points[2]);
 
-  const vec3d_t ba = Vec3d_Subtract(b, a);
-  const vec3d_t ca = Vec3d_Subtract(c, a);
+  const Vec3d ba = Vec3d_Subtract(b, a);
+  const Vec3d ca = Vec3d_Subtract(c, a);
 
-  const vec3d_t n = Vec3d_Normalize(Vec3d_Cross(ca, ba));
+  const Vec3d n = Vec3d_Normalize(Vec3d_Cross(ca, ba));
 
   *normal = Vec3d_CastVec3(n);
   *dist = Vec3d_Dot(a, n);
@@ -167,9 +167,9 @@ void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
 /**
  * @brief Create a massive polygon for the specified plane.
  */
-cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
+CmWinding *Cm_WindingForPlane(const Vec3 normal, double dist) {
 
-  const vec3d_t norm = Vec3d_Normalize(Vec3d(normal.x, normal.y, normal.z));
+  const Vec3d norm = Vec3d_Normalize(MakeVec3d(normal.x, normal.y, normal.z));
 
   // find the major axis
   double max = 0.0;
@@ -185,14 +185,14 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
     Com_Error(ERROR_FATAL, "No axis found\n");
   }
 
-  vec3d_t up, right;
+  Vec3d up, right;
   switch (x) {
     case 0:
     case 1:
-      right = Vec3d(-norm.y, norm.x, 0.0);
+      right = MakeVec3d(-norm.y, norm.x, 0.0);
       break;
     case 2:
-      right = Vec3d(0.0, -norm.z, norm.y);
+      right = MakeVec3d(0.0, -norm.z, norm.y);
       break;
     default:
       Com_Error(ERROR_FATAL, "Bad axis\n");
@@ -202,13 +202,13 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
   right = Vec3d_Normalize(right);
   up = Vec3d_Normalize(Vec3d_Cross(norm, right));
 
-  const vec3d_t r = Vec3d_Scale(right, MAX_WORLD_AXIAL);
-  const vec3d_t u = Vec3d_Scale(up, MAX_WORLD_AXIAL);
+  const Vec3d r = Vec3d_Scale(right, MAX_WORLD_AXIAL);
+  const Vec3d u = Vec3d_Scale(up, MAX_WORLD_AXIAL);
 
-  const vec3d_t org = Vec3d_Fma(Vec3d_Zero(), dist, norm);
+  const Vec3d org = Vec3d_Fma(Vec3d_Zero(), dist, norm);
 
   // project a really big quad onto the plane
-  vec3d_t points[4];
+  Vec3d points[4];
 
   points[0] = Vec3d_Subtract(org, r);
   points[0] = Vec3d_Add(points[0], u);
@@ -222,7 +222,7 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
   points[3] = Vec3d_Subtract(org, r);
   points[3] = Vec3d_Subtract(points[3], u);
 
-  cm_winding_t *w = Cm_AllocWinding(4);
+  CmWinding *w = Cm_AllocWinding(4);
 
   w->points[0] = Vec3d_CastVec3(points[0]);
   w->points[1] = Vec3d_CastVec3(points[1]);
@@ -237,21 +237,21 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
 /**
  * @brief Creates a winding for the given face, removing any collinear points.
  */
-cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) {
+CmWinding *Cm_WindingForFace(const BspFile *file, const BspFace *face) {
 
-  cm_winding_t *w = Cm_AllocWinding(face->num_vertexes);
+  CmWinding *w = Cm_AllocWinding(face->num_vertexes);
   const int32_t v = face->first_vertex;
 
   for (int32_t i = 0; i < face->num_vertexes; i++) {
 
-    const bsp_vertex_t *v0 = &file->vertexes[(v + (i + 0) % face->num_vertexes)];
-    const bsp_vertex_t *v1 = &file->vertexes[(v + (i + 1) % face->num_vertexes)];
-    const bsp_vertex_t *v2 = &file->vertexes[(v + (i + 2) % face->num_vertexes)];
+    const BspVertex *v0 = &file->vertexes[(v + (i + 0) % face->num_vertexes)];
+    const BspVertex *v1 = &file->vertexes[(v + (i + 1) % face->num_vertexes)];
+    const BspVertex *v2 = &file->vertexes[(v + (i + 2) % face->num_vertexes)];
 
     w->points[w->num_points] = v0->position;
     w->num_points++;
 
-    vec3_t a, b;
+    Vec3 a, b;
     a = Vec3_Subtract(v1->position, v0->position);
     b = Vec3_Subtract(v2->position, v1->position);
 
@@ -269,14 +269,14 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 /**
  * @brief Creates a winding for the given brush side, clipped to its brush.
  */
-cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_side_t *brush_side) {
+CmWinding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brush_side) {
 
-  const bsp_plane_t *plane = file->planes + brush_side->plane;
-  cm_winding_t *winding = Cm_WindingForPlane(plane->normal, plane->dist);
+  const BspPlane *plane = file->planes + brush_side->plane;
+  CmWinding *winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
   const int32_t side = (int32_t) (brush_side - file->brush_sides);
 
-  const bsp_brush_t *brush = file->brushes;
+  const BspBrush *brush = file->brushes;
   for (int32_t i = 0; i < file->num_brushes; i++, brush++) {
 
     if (side >= brush->first_brush_side
@@ -285,7 +285,7 @@ cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_sid
     }
   }
 
-  const bsp_brush_side_t *s = file->brush_sides + brush->first_brush_side;
+  const BspBrushSide *s = file->brush_sides + brush->first_brush_side;
   for (int32_t i = 0; i < brush->num_brush_sides; i++, s++) {
     if (s == brush_side) {
       continue;
@@ -293,7 +293,7 @@ cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_sid
     if (s->surface & SURF_BEVEL) {
       continue;
     }
-    const bsp_plane_t *p = &file->planes[s->plane ^ 1];
+    const BspPlane *p = &file->planes[s->plane ^ 1];
     Cm_ClipWinding(&winding, p->normal, p->dist, SIDE_EPSILON);
 
     if (winding == NULL) {
@@ -308,11 +308,11 @@ cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_sid
  * @brief Removes duplicate adjacent points from the winding, in place.
  * @return False if fewer than three points remain, leaving `w` degenerate.
  */
-static bool Cm_CompactWinding(cm_winding_t *w) {
+static bool Cm_CompactWinding(CmWinding *w) {
 
   for (int32_t i = 0; i < w->num_points; i++) {
-    const vec3_t a = w->points[(i + 0) % w->num_points];
-    const vec3_t b = w->points[(i + 1) % w->num_points];
+    const Vec3 a = w->points[(i + 0) % w->num_points];
+    const Vec3 b = w->points[(i + 1) % w->num_points];
 
     if (Vec3_EqualEpsilon(a, b, FLT_EPSILON)) {
 
@@ -331,7 +331,7 @@ static bool Cm_CompactWinding(cm_winding_t *w) {
  * @brief Removes duplicate points from the winding, freeing it if fewer than
  * three points remain.
  */
-static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
+static CmWinding *Cm_FixWinding(CmWinding *w) {
 
   if (!Cm_CompactWinding(w)) {
     Cm_FreeWinding(w);
@@ -344,18 +344,18 @@ static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
 /**
  * @brief Splits the winding by the given plane into front and back components.
  */
-void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, double epsilon,
-            cm_winding_t **front, cm_winding_t **back) {
+void Cm_SplitWinding(const CmWinding *in, const Vec3 normal, double dist, double epsilon,
+            CmWinding **front, CmWinding **back) {
 
   assert(in->num_points);
   const int32_t max_points = in->num_points + 4;
 
-  cm_clip_point_t clip_points[max_points];
-  memset(&clip_points, 0, max_points * sizeof(cm_clip_point_t));
+  CmClipPoint clip_points[max_points];
+  memset(&clip_points, 0, max_points * sizeof(CmClipPoint));
 
   int32_t side_front = 0, side_back = 0;
 
-  cm_clip_point_t *c = clip_points;
+  CmClipPoint *c = clip_points;
   for (int32_t i = 0; i < in->num_points; i++, c++) {
     c->point = in->points[i];
     c->dist = (double) Vec3_Dot(c->point, normal) - dist;
@@ -382,11 +382,11 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
     return;
   }
 
-  cm_winding_t *f = Cm_AllocWinding(max_points);
-  cm_winding_t *b = Cm_AllocWinding(max_points);
+  CmWinding *f = Cm_AllocWinding(max_points);
+  CmWinding *b = Cm_AllocWinding(max_points);
 
   for (int32_t i = 0; i < in->num_points; i++) {
-    const cm_clip_point_t *c = clip_points + i;
+    const CmClipPoint *c = clip_points + i;
 
     if (c->side == SIDE_ON) {
       f->points[f->num_points] = c->point;
@@ -408,7 +408,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
       b->num_points++;
     }
 
-    const cm_clip_point_t *d = clip_points + ((i + 1) % in->num_points);
+    const CmClipPoint *d = clip_points + ((i + 1) % in->num_points);
 
     if (d->side == SIDE_ON || d->side == c->side) {
       continue;
@@ -419,7 +419,7 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
       continue; // Points too close, skip interpolation
     }
 
-    vec3d_t mid = Vec3d_Zero();
+    Vec3d mid = Vec3d_Zero();
     const double dot = c->dist / denom;
     for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
       if (normal.xyz[j] > 1.f - FLT_EPSILON) {
@@ -450,13 +450,13 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
  * @brief Classifies each point of the winding against the given plane.
  * @param clip_points Receives one entry per point of `in`.
  */
-static void Cm_ClassifyWindingPoints(const cm_winding_t *in, const vec3_t normal, double dist,
-                                     double epsilon, cm_clip_point_t *clip_points,
+static void Cm_ClassifyWindingPoints(const CmWinding *in, const Vec3 normal, double dist,
+                                     double epsilon, CmClipPoint *clip_points,
                                      int32_t *side_front, int32_t *side_back) {
 
   *side_front = *side_back = 0;
 
-  cm_clip_point_t *c = clip_points;
+  CmClipPoint *c = clip_points;
   for (int32_t i = 0; i < in->num_points; i++, c++) {
     c->point = in->points[i];
     c->dist = (double) Vec3_Dot(c->point, normal) - dist;
@@ -477,14 +477,14 @@ static void Cm_ClassifyWindingPoints(const cm_winding_t *in, const vec3_t normal
  * @param capacity The number of points `out` can hold.
  * @remarks Neither winding is allocated or freed, and they MUST NOT alias.
  */
-static void Cm_EmitClippedWinding(const cm_winding_t *in, const cm_clip_point_t *clip_points,
-                                  const vec3_t normal, double dist, cm_winding_t *out,
+static void Cm_EmitClippedWinding(const CmWinding *in, const CmClipPoint *clip_points,
+                                  const Vec3 normal, double dist, CmWinding *out,
                                   int32_t capacity) {
 
   out->num_points = 0;
 
   for (int32_t i = 0; i < in->num_points; i++) {
-    const cm_clip_point_t *c = clip_points + i;
+    const CmClipPoint *c = clip_points + i;
 
     if (c->side == SIDE_BOTH) {
       out->points[out->num_points] = c->point;
@@ -497,7 +497,7 @@ static void Cm_EmitClippedWinding(const cm_winding_t *in, const cm_clip_point_t 
       out->num_points++;
     }
 
-    const cm_clip_point_t *d = clip_points + ((i + 1) % in->num_points);
+    const CmClipPoint *d = clip_points + ((i + 1) % in->num_points);
 
     if (d->side == SIDE_BOTH || d->side == c->side) {
       continue;
@@ -508,7 +508,7 @@ static void Cm_EmitClippedWinding(const cm_winding_t *in, const cm_clip_point_t 
       continue; // Points too close, skip interpolation
     }
 
-    vec3d_t mid = Vec3d_Zero();
+    Vec3d mid = Vec3d_Zero();
     const double dot = c->dist / denom;
     for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
       if (normal.xyz[j] > 1.f - FLT_EPSILON) {
@@ -532,15 +532,15 @@ static void Cm_EmitClippedWinding(const cm_winding_t *in, const cm_clip_point_t 
 /**
  * @brief Clips the winding against the given plane.
  */
-void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, double epsilon) {
+void Cm_ClipWinding(CmWinding **in_out, const Vec3 normal, double dist, double epsilon) {
 
-  cm_winding_t *in = *in_out;
+  CmWinding *in = *in_out;
 
   assert(in->num_points);
   const int32_t max_points = in->num_points + 4;
 
-  cm_clip_point_t clip_points[max_points];
-  memset(clip_points, 0, max_points * sizeof(cm_clip_point_t));
+  CmClipPoint clip_points[max_points];
+  memset(clip_points, 0, max_points * sizeof(CmClipPoint));
 
   int32_t side_front, side_back;
   Cm_ClassifyWindingPoints(in, normal, dist, epsilon, clip_points, &side_front, &side_back);
@@ -555,7 +555,7 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
     return;
   }
 
-  cm_winding_t *out = Cm_AllocWinding(max_points);
+  CmWinding *out = Cm_AllocWinding(max_points);
 
   Cm_EmitClippedWinding(in, clip_points, normal, dist, out, max_points);
 
@@ -572,24 +572,24 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
  * @return The clipped winding, or `NULL` if fully clipped away.
  * @remarks The input winding is NOT freed. The returned winding must be freed by caller.
  */
-cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon) {
+CmWinding *Cm_ClipWindingToWinding(const CmWinding *in, const CmWinding *clip, const Vec3 normal, double epsilon) {
 
   assert(in);
   assert(clip);
   assert(in->num_points >= 3);
   assert(clip->num_points >= 3);
   
-  cm_winding_t *current = Cm_CopyWinding(in);
+  CmWinding *current = Cm_CopyWinding(in);
   
   // Clip against each edge of the clipping winding
   for (int32_t edge = 0; edge < clip->num_points && current != NULL; edge++) {
     
-    const vec3_t edge_start = clip->points[edge];
-    const vec3_t edge_end = clip->points[(edge + 1) % clip->num_points];
+    const Vec3 edge_start = clip->points[edge];
+    const Vec3 edge_end = clip->points[(edge + 1) % clip->num_points];
     
     // Build edge plane (perpendicular to edge, in the winding plane)
-    const vec3_t edge_dir = Vec3_Normalize(Vec3_Subtract(edge_end, edge_start));
-    const vec3_t edge_normal = Vec3_Cross(edge_dir, normal);
+    const Vec3 edge_dir = Vec3_Normalize(Vec3_Subtract(edge_end, edge_start));
+    const Vec3 edge_normal = Vec3_Cross(edge_dir, normal);
     const double edge_dist = Vec3_Dot(edge_normal, edge_start);
     
     // Clip against this edge plane (keep front side)
@@ -616,9 +616,9 @@ cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t
  * `Cm_ClipWindingToWinding` on hot paths, and note the result is only valid
  * until the next call reusing the same scratch windings.
  */
-const cm_winding_t *Cm_ClipWindingToWindingInto(const cm_winding_t *in, const cm_winding_t *clip,
-                                                const vec3_t normal, double epsilon,
-                                                cm_winding_t *a, cm_winding_t *b,
+const CmWinding *Cm_ClipWindingToWindingInto(const CmWinding *in, const CmWinding *clip,
+                                                const Vec3 normal, double epsilon,
+                                                CmWinding *a, CmWinding *b,
                                                 int32_t capacity) {
 
   assert(in);
@@ -629,20 +629,20 @@ const cm_winding_t *Cm_ClipWindingToWindingInto(const cm_winding_t *in, const cm
   assert(b);
   assert(capacity >= in->num_points + 4 * clip->num_points);
 
-  const cm_winding_t *current = in;
-  cm_winding_t *spare = a;
+  const CmWinding *current = in;
+  CmWinding *spare = a;
 
   for (int32_t edge = 0; edge < clip->num_points; edge++) {
 
-    const vec3_t edge_start = clip->points[edge];
-    const vec3_t edge_end = clip->points[(edge + 1) % clip->num_points];
+    const Vec3 edge_start = clip->points[edge];
+    const Vec3 edge_end = clip->points[(edge + 1) % clip->num_points];
 
-    const vec3_t edge_dir = Vec3_Normalize(Vec3_Subtract(edge_end, edge_start));
-    const vec3_t edge_normal = Vec3_Cross(edge_dir, normal);
+    const Vec3 edge_dir = Vec3_Normalize(Vec3_Subtract(edge_end, edge_start));
+    const Vec3 edge_normal = Vec3_Cross(edge_dir, normal);
     const double edge_dist = Vec3_Dot(edge_normal, edge_start);
 
-    cm_clip_point_t clip_points[current->num_points];
-    memset(clip_points, 0, current->num_points * sizeof(cm_clip_point_t));
+    CmClipPoint clip_points[current->num_points];
+    memset(clip_points, 0, current->num_points * sizeof(CmClipPoint));
 
     int32_t side_front, side_back;
     Cm_ClassifyWindingPoints(current, edge_normal, edge_dist, epsilon, clip_points,
@@ -676,10 +676,10 @@ const cm_winding_t *Cm_ClipWindingToWindingInto(const cm_winding_t *in, const cm
  * Returns `NULL` if the faces couldn't be merged, or the new face.
  * The originals will NOT be freed.
  */
-cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal) {
-  vec3_t p1, p2, back;
+CmWinding *Cm_MergeWindings(const CmWinding *a, const CmWinding *b, const Vec3 normal) {
+  Vec3 p1, p2, back;
   int32_t i, j, k, l;
-  vec3_t cross, delta;
+  Vec3 cross, delta;
   float dot;
 
   // find a common edge
@@ -690,8 +690,8 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
     p1 = a->points[i];
     p2 = a->points[(i + 1) % a->num_points];
     for (j = 0; j < b->num_points; j++) {
-      vec3_t p3 = b->points[j];
-      vec3_t p4 = b->points[(j + 1) % b->num_points];
+      Vec3 p3 = b->points[j];
+      Vec3 p4 = b->points[(j + 1) % b->num_points];
       for (k = 0; k < 3; k++) {
         if (fabsf(p1.xyz[k] - p4.xyz[k]) > ON_EPSILON) {
           break;
@@ -741,7 +741,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
   const bool keep2 = dot < -COLINEAR_EPSILON;
 
   // build the new polygon
-  cm_winding_t *merged = Cm_AllocWinding(a->num_points + b->num_points);
+  CmWinding *merged = Cm_AllocWinding(a->num_points + b->num_points);
 
   // copy first polygon
   for (k = (i + 1) % a->num_points; k != i; k = (k + 1) % a->num_points) {
@@ -773,18 +773,18 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
  * @param elements The output array, which must be `>= (w->num_points - 2) * 3` in length.
  * @return The number of vertex elements written to tris.
  */
-int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
+int32_t Cm_ElementsForWinding(const CmWinding *w, int32_t *elements) {
 
   int32_t *out = elements;
 
   typedef struct {
-    vec3_t position;
+    Vec3 position;
     int32_t index;
     int32_t corner;
-  } point_t;
+  } Point;
 
   int32_t num_points = w->num_points;
-  point_t points[num_points];
+  Point points[num_points];
 
   for (int32_t i = 0; i < num_points; i++) {
     points[i].position = w->points[i];
@@ -798,12 +798,12 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
     int32_t num_corners = 0;
     for (int32_t i = 0; i < num_points; i++) {
 
-      point_t *a = &points[(i + 0) % num_points];
-      point_t *b = &points[(i + 1) % num_points];
-      point_t *c = &points[(i + 2) % num_points];
+      Point *a = &points[(i + 0) % num_points];
+      Point *b = &points[(i + 1) % num_points];
+      Point *c = &points[(i + 2) % num_points];
 
-      const vec3_t ba = Vec3_Direction(b->position, a->position);
-      const vec3_t cb = Vec3_Direction(c->position, b->position);
+      const Vec3 ba = Vec3_Direction(b->position, a->position);
+      const Vec3 cb = Vec3_Direction(c->position, b->position);
 
       const float dot = Vec3_Dot(ba, cb);
       if (dot > 1.f - COLINEAR_EPSILON) {
@@ -822,14 +822,14 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 
     // chip away at edges with colinear points first
 
-    const point_t *clip = NULL;
+    const Point *clip = NULL;
     if (num_corners < num_points) {
       float best = FLT_MAX;
 
       for (int32_t i = 0; i < num_points; i++) {
-        const point_t *a = &points[(i + 0) % num_points];
-        const point_t *b = &points[(i + 1) % num_points];
-        const point_t *c = &points[(i + 2) % num_points];
+        const Point *a = &points[(i + 0) % num_points];
+        const Point *b = &points[(i + 1) % num_points];
+        const Point *c = &points[(i + 2) % num_points];
 
         if (!a->corner && b->corner) {
           const float area = Cm_TriangleArea(a->position, b->position, c->position);
@@ -864,11 +864,11 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 /**
 * @return The area of the triangle defined by a, b and c.
 */
-float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
+float Cm_TriangleArea(const Vec3 a, const Vec3 b, const Vec3 c) {
 
-   const vec3_t ba = Vec3_Subtract(b, a);
-   const vec3_t ca = Vec3_Subtract(c, a);
-   const vec3_t cross = Vec3_Cross(ba, ca);
+   const Vec3 ba = Vec3_Subtract(b, a);
+   const Vec3 ca = Vec3_Subtract(c, a);
+   const Vec3 cross = Vec3_Cross(ba, ca);
 
    return Vec3_Length(cross) * 0.5f;
 }
@@ -878,7 +878,7 @@ float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
 * @remarks The `max_area` checks ensure that p is (approximately) inside the triangle abc.
 * @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
 */
-float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out) {
+float Cm_Barycentric(const Vec3 a, const Vec3 b, const Vec3 c, const Vec3 p, Vec3 *out) {
 
   const float abc = Cm_TriangleArea(a, b, c);
   if (abc) {
@@ -915,7 +915,7 @@ float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_
  * @brief Calculates the tangent vectors for the given vertexes and triangle elements.
  * @see http://foundationsofgameenginedev.com/FGED2-sample.pdf
  */
-void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexes, const int32_t *elements, int32_t num_elements) {
+void Cm_Tangents(CmVertex *vertexes, int32_t base_vertex, int32_t num_vertexes, const int32_t *elements, int32_t num_elements) {
 
   for (int32_t i = 0; i < num_elements; i += 3) {
 
@@ -923,12 +923,12 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexe
     const int32_t i1 = *(elements + i + 1) - base_vertex;
     const int32_t i2 = *(elements + i + 2) - base_vertex;
 
-    cm_vertex_t *v0 = vertexes + i0;
-    cm_vertex_t *v1 = vertexes + i1;
-    cm_vertex_t *v2 = vertexes + i2;
+    CmVertex *v0 = vertexes + i0;
+    CmVertex *v1 = vertexes + i1;
+    CmVertex *v2 = vertexes + i2;
 
-    const vec3_t e1 = Vec3_Subtract(*v1->position, *v0->position);
-    const vec3_t e2 = Vec3_Subtract(*v2->position, *v0->position);
+    const Vec3 e1 = Vec3_Subtract(*v1->position, *v0->position);
+    const Vec3 e2 = Vec3_Subtract(*v2->position, *v0->position);
 
     const double x1 = v1->st->x - v0->st->x;
     const double x2 = v2->st->x - v0->st->x;
@@ -942,8 +942,8 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexe
       continue;
     }
 
-    const vec3_t t = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e1, y2), Vec3_Scale(e2, y1)), r);
-    const vec3_t b = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e2, x1), Vec3_Scale(e1, x2)), r);
+    const Vec3 t = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e1, y2), Vec3_Scale(e2, y1)), r);
+    const Vec3 b = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e2, x1), Vec3_Scale(e1, x2)), r);
 
     *v0->tangent = Vec3_Add(*v0->tangent, t);
     *v1->tangent = Vec3_Add(*v1->tangent, t);
@@ -958,11 +958,11 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexe
     v2->num_tris++;
   }
 
-  cm_vertex_t *v = vertexes;
+  CmVertex *v = vertexes;
   for (int32_t i = 0; i < num_vertexes; i++, v++) {
 
-    const vec3_t sdir = *v->tangent;
-    const vec3_t tdir = *v->bitangent;
+    const Vec3 sdir = *v->tangent;
+    const Vec3 tdir = *v->bitangent;
 
     Vec3_Tangents(*v->normal, sdir, tdir, v->tangent, v->bitangent);
   }
@@ -971,15 +971,15 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexe
 /**
  * @brief Clips an AABB to the positive half-space of the given plane.
  */
-box3_t Cm_ClipBox(const box3_t in, const vec4_t plane) {
-  box3_t out = Box3_Null();
+Box3 Cm_ClipBox(const Box3 in, const Vec4 plane) {
+  Box3 out = Box3_Null();
 
-  vec3_t corners[8];
+  Vec3 corners[8];
   Box3_ToPoints(in, corners);
 
   // There are 8 corners in the AABB
   for (size_t i = 0; i < lengthof(corners); i++) {
-    const vec3_t corner = corners[i];
+    const Vec3 corner = corners[i];
 
     // If the corner is on the positive side of the plane, include it
     const float dist = Vec3_Dot(plane.xyz, corner) - plane.w;
@@ -988,7 +988,7 @@ box3_t Cm_ClipBox(const box3_t in, const vec4_t plane) {
       out.maxs = Vec3_Maxf(out.maxs, corner);
     } else {
       // Otherwise, project the corner onto the plane and include it
-      const vec3_t point = Vec3_Subtract(corner, Vec3_Scale(plane.xyz, dist));
+      const Vec3 point = Vec3_Subtract(corner, Vec3_Scale(plane.xyz, dist));
       out.mins = Vec3_Minf(out.mins, point);
       out.maxs = Vec3_Maxf(out.maxs, point);
     }

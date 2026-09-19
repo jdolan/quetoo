@@ -23,14 +23,14 @@
 
 #include "console.h"
 
-console_state_t console_state;
+ConsoleState console_state;
 
 /**
- * @brief Allocates a new `console_string_t`.
+ * @brief Allocates a new `ConsoleString`.
  */
-static console_string_t *Con_AllocString(int32_t level, const char *string) {
+static ConsoleString *Con_AllocString(int32_t level, const char *string) {
 
-  console_string_t *str = calloc(1, sizeof(console_string_t));
+  ConsoleString *str = calloc(1, sizeof(ConsoleString));
   if (str == NULL) {
     raise(SIGABRT);
     return NULL;
@@ -74,7 +74,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 /**
  * @brief Frees the specified `console_str_t`.
  */
-static void Con_FreeString(console_string_t *str) {
+static void Con_FreeString(ConsoleString *str) {
 
   if (str) {
     free(str->chars);
@@ -111,7 +111,7 @@ static void Con_Dump_f(void) {
     path = Cmd_Argv(1);
   }
 
-  file_t *file;
+  File *file;
   if (!(file = Fs_OpenWrite(path))) {
     Com_Warn("Couldn't open %s\n", path);
   } else {
@@ -119,7 +119,7 @@ static void Con_Dump_f(void) {
 
     const ListNode *list = console_state.strings->head;
     while (list) {
-      const char *c = ((console_string_t *) list->element)->chars;
+      const char *c = ((ConsoleString *) list->element)->chars;
       while (*c) {
         if (q_striscolor(c)) {
           c++;
@@ -144,7 +144,7 @@ static void Con_Dump_f(void) {
 /**
  * @return True if `str` passes the console's filter, false otherwise.
  */
-static bool Con_Filter(const console_t *console, const console_string_t *str) {
+static bool Con_Filter(const Console *console, const ConsoleString *str) {
 
   if (console->level) {
     return console->level & str->level;
@@ -160,7 +160,7 @@ void Con_Append(int32_t level, const char *string) {
 
   assert(string);
 
-  console_string_t *str = Con_AllocString(level, string);
+  ConsoleString *str = Con_AllocString(level, string);
 
   SDL_LockMutex(console_state.lock);
 
@@ -169,7 +169,7 @@ void Con_Append(int32_t level, const char *string) {
 
   while (console_state.size > CON_MAX_SIZE) {
     ListNode *first = console_state.strings->head;
-    console_string_t *old = first->element;
+    ConsoleString *old = first->element;
 
     console_state.size -= old->size;
     $(console_state.strings, removeNode, first);
@@ -182,7 +182,7 @@ void Con_Append(int32_t level, const char *string) {
     // iterate the configured consoles and append the new string
 
     for (ListNode *node = console_state.consoles->head; node; node = node->next) {
-      const console_t *console = node->element;
+      const Console *console = node->element;
 
       if (console->Append) {
         if (Con_Filter(console, str)) {
@@ -280,7 +280,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
  *
  * @return The number of line offsets.
  */
-size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
+size_t Con_Tail(const Console *console, char **lines, size_t max_lines) {
 
   assert(console);
 
@@ -289,7 +289,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
   ListNode *start = NULL;
   ListNode *list = console_state.strings->tail;
   while (list) {
-    const console_string_t *str = list->element;
+    const ConsoleString *str = list->element;
 
     if (str->timestamp < console->whence) {
       break;
@@ -314,7 +314,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
   size_t count = 0;
 
   while (start) {
-    const console_string_t *str = start->element;
+    const ConsoleString *str = start->element;
 
     if (Con_Filter(console, str)) {
       count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
@@ -329,11 +329,11 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 /**
  * @brief Navigate history, copying the history line to the input buffer.
  */
-void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
+void Con_NavigateHistory(Console *console, ConsoleHistoryNav nav) {
 
   assert(console);
 
-  console_history_t *hist = &console->history;
+  ConsoleHistory *hist = &console->history;
 
   size_t p = 0;
   switch (nav) {
@@ -346,7 +346,7 @@ void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
   }
 
   if (q_strlen(hist->strings[p])) {
-    console_input_t *in = &console->input;
+    ConsoleInput *in = &console->input;
 
     q_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
     in->pos = q_strlen(in->buffer);
@@ -358,13 +358,13 @@ void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
 /**
  * @brief Reads the history log from file into the console's history.
  */
-void Con_ReadHistory(console_t *console, file_t *file) {
+void Con_ReadHistory(Console *console, File *file) {
   char str[MAX_PRINT_MSG];
 
   assert(console);
   assert(file);
 
-  console_history_t *hist = &console->history;
+  ConsoleHistory *hist = &console->history;
 
   while (Fs_ReadLine(file, str, sizeof(str))) {
     q_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
@@ -376,12 +376,12 @@ void Con_ReadHistory(console_t *console, file_t *file) {
 /**
  * @brief Writes the history buffer of the first configured console to file.
  */
-void Con_WriteHistory(const console_t *console, file_t *file) {
+void Con_WriteHistory(const Console *console, File *file) {
 
   assert(console);
   assert(file);
 
-  const console_history_t *hist = &console->history;
+  const ConsoleHistory *hist = &console->history;
 
   for (size_t i = CON_HISTORY_SIZE; i > 0; i--) {
 
@@ -396,8 +396,8 @@ void Con_WriteHistory(const console_t *console, file_t *file) {
  * @brief Autocomplete match compare function
  */
 static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
-  const con_autocomplete_match_t *ma = (const con_autocomplete_match_t *) a;
-  const con_autocomplete_match_t *mb = (const con_autocomplete_match_t *) b;
+  const ConAutocompleteMatch *ma = (const ConAutocompleteMatch *) a;
+  const ConAutocompleteMatch *mb = (const ConAutocompleteMatch *) b;
 
   return q_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
 }
@@ -407,7 +407,7 @@ static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
  */
 void Con_AutocompleteMatch(List *matches, const char *name, const char *description) {
 
-  con_autocomplete_match_t *match = Mem_Malloc(sizeof(con_autocomplete_match_t));
+  ConAutocompleteMatch *match = Mem_Malloc(sizeof(ConAutocompleteMatch));
 
   match->name = Mem_CopyString(name);
   Mem_Link(match->name, match);
@@ -419,7 +419,7 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
 
   ListNode *insert_after = NULL;
   for (ListNode *node = matches->head; node; node = node->next) {
-    const con_autocomplete_match_t *m = node->element;
+    const ConAutocompleteMatch *m = node->element;
     const int32_t cmp = Con_AutocompleteMatchCompare(m, match);
     if (cmp == 0) {
       Mem_Free(match);
@@ -455,7 +455,7 @@ void Con_AutocompleteInput_f(const uint32_t argi, List *matches) {
 /**
  * @brief Prints the list of autocomplete matches to the console, formatted in columns.
  */
-static void Con_PrintMatches(const console_t *console, List *matches) {
+static void Con_PrintMatches(const Console *console, List *matches) {
   const uint32_t num_matches = (uint32_t) matches->count;
 
   if (!num_matches) {
@@ -470,7 +470,7 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
 
   // calculate width per column
   for (const ListNode *m = matches->head; m; m = m->next) {
-    const con_autocomplete_match_t *match = m->element;
+    const ConAutocompleteMatch *match = m->element;
     const char *str = (match->description ?: match->name);
     const size_t str_len = q_strlen(str);
 
@@ -496,7 +496,7 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
   if (per_row == 1 || (!all_simple && num_rows == 1)) {
     
     for (const ListNode *m = matches->head; m; m = m->next) {
-      const con_autocomplete_match_t *match = m->element;
+      const ConAutocompleteMatch *match = m->element;
       const char *str = (match->description ?: match->name);
 
       Con_Append(PRINT_ECHO, va("%s\n", str));
@@ -512,7 +512,7 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
     line[0] = '\0';
 
     for (size_t i = 0; m && i < per_row; i++, m = m->next) {
-      const con_autocomplete_match_t *match = m->element;
+      const ConAutocompleteMatch *match = m->element;
       const char *str = (match->description ?: match->name);
       const size_t str_len = q_strlen(str);
 
@@ -544,7 +544,7 @@ static char *Con_CommonPrefix(List *matches) {
 
   for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
     ListNode *e = matches->head;
-    const con_autocomplete_match_t *m = e->element;
+    const ConAutocompleteMatch *m = e->element;
     const char c = m->name[i];
 
     e = e->next;
@@ -573,7 +573,7 @@ static char *Con_CommonPrefix(List *matches) {
  * append it. If multiple matches are found, append the longest possible
  * common prefix they all share.
  */
-bool Con_CompleteInput(console_t *console) {
+bool Con_CompleteInput(Console *console) {
   const char *match;
   List *matches = $(alloc(List), init);
 
@@ -607,12 +607,12 @@ bool Con_CompleteInput(console_t *console) {
     autocomplete = Con_AutocompleteInput_f;
   } else {
     const char *name = Cmd_Argv(0);
-    const cmd_t *command = Cmd_Get(name);
+    const Cmd *command = Cmd_Get(name);
 
     if (command) {
       autocomplete = command->Autocomplete;
     } else {
-      const cvar_t *cvar = Cvar_Get(name);
+      const Cvar *cvar = Cvar_Get(name);
 
       if (cvar) {
         autocomplete = cvar->Autocomplete;
@@ -635,7 +635,7 @@ bool Con_CompleteInput(console_t *console) {
   bool output_quotes = false;
 
   if (matches->count == 1) {
-    match = ((const con_autocomplete_match_t *) matches->head->element)->name;
+    match = ((const ConAutocompleteMatch *) matches->head->element)->name;
 
     if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s\" ", match);
@@ -701,7 +701,7 @@ bool Con_CompleteInput(console_t *console) {
  * command subsystem, appending it to all configured consoles, and resetting the
  * input state.
  */
-void Con_SubmitInput(console_t *console) {
+void Con_SubmitInput(Console *console) {
 
   if (*console->input.buffer) {
 
@@ -733,7 +733,7 @@ void Con_SubmitInput(console_t *console) {
 /**
  * @brief Adds the given console to the configured consoles.
  */
-void Con_AddConsole(const console_t *console) {
+void Con_AddConsole(const Console *console) {
 
   SDL_LockMutex(console_state.lock);
 
@@ -745,7 +745,7 @@ void Con_AddConsole(const console_t *console) {
 /**
  * @brief Removes the given console from the configured consoles.
  */
-void Con_RemoveConsole(const console_t *console) {
+void Con_RemoveConsole(const Console *console) {
 
   SDL_LockMutex(console_state.lock);
 

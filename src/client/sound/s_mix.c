@@ -71,7 +71,7 @@ void S_FreeChannel(int32_t c) {
  * @param ch The channel.
  * @return True if the channel is audible, false if it should be freed.
  */
-static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
+static bool S_SpatializeChannel(const SoundStage *stage, SoundChannel *ch) {
 
   ch->gain = 1.f;
 
@@ -138,7 +138,7 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 /**
  * @brief Updates all active channels for the current frame.
  */
-void S_MixChannels(s_stage_t *stage) {
+void S_MixChannels(SoundStage *stage) {
 
   if (s_doppler->modified) {
     alDopplerFactor(s_doppler->value);
@@ -159,7 +159,7 @@ void S_MixChannels(s_stage_t *stage) {
   }
 
   if (s_context.effects.loaded) {
-    const cm_voxel_t *voxel = Cm_VoxelForPoint(stage->origin);
+    const CmVoxel *voxel = Cm_VoxelForPoint(stage->origin);
     const float r = voxel ? voxel->occlusion : 0.f;
     if (r != s_context.reverb) {
       s_context.reverb = r;
@@ -182,7 +182,7 @@ void S_MixChannels(s_stage_t *stage) {
 
   stage->stats.reverb = s_context.reverb;
 
-  s_channel_t *ch = s_context.channels;
+  SoundChannel *ch = s_context.channels;
   for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
     if (ch->play.sample == NULL) {
@@ -279,7 +279,7 @@ void S_MixChannels(s_stage_t *stage) {
  * @brief Plays a sample immediately without spatialization or stage processing.
  * Use for UI sounds that must work regardless of client connection state.
  */
-void S_PlaySample(s_sample_t *sample) {
+void S_PlaySample(SoundSample *sample) {
 
   if (!s_context.context) {
     return;
@@ -298,7 +298,7 @@ void S_PlaySample(s_sample_t *sample) {
     return;
   }
 
-  s_context.channels[c].play = (s_play_sample_t) {
+  s_context.channels[c].play = (SoundPlaySample) {
     .sample = sample,
     .flags = S_PLAY_UI,
   };
@@ -321,7 +321,7 @@ void S_PlaySample(s_sample_t *sample) {
 /**
  * @brief Adds a sample to the sound stage for mixing in the current frame.
  */
-void S_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
+void S_AddSample(SoundStage *stage, const SoundPlaySample *play) {
 
   assert(stage);
 

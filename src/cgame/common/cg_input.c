@@ -22,21 +22,21 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-button_t cg_buttons[4];
+InputButton cg_buttons[4];
 
 #define CG_FOLLOW_ZOOM_SPEED 400.f
 #define CG_FOLLOW_DISTANCE_MIN 40.f
 #define CG_FOLLOW_DISTANCE_MAX 800.f
 
-static cvar_t *cg_run;
+static Cvar *cg_run;
 
 typedef struct {
-  vec3_t prev, next, kick;
+  Vec3 prev, next, kick;
   uint32_t timestamp;
   uint32_t interval;
-} cg_kick_t;
+} ClientGameKick;
 
-static cg_kick_t cg_kick;
+static ClientGameKick cg_kick;
 
 /**
  * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
@@ -121,7 +121,7 @@ void Cg_HandleEvent(const SDL_Event *event) {
  */
 void Cg_ParseViewKick(void) {
 
-  const vec3_t kick = Vec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
+  const Vec3 kick = MakeVec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
 
   cg_kick.prev = cg_kick.kick;
   cg_kick.next = Vec3_Add(cg_kick.prev, kick);
@@ -133,21 +133,21 @@ void Cg_ParseViewKick(void) {
 /**
  * @brief Applies damage kick for the current command, ensuring that kick affects the player's aim.
  */
-static void Cg_ViewKick(const pm_cmd_t *cmd) {
+static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
 
   if (cg_kick.timestamp > cgi.client->unclamped_time) {
     memset(&cg_kick, 0, sizeof(cg_kick));
   }
 
-  const player_state_t *ps1 = &cgi.client->frame.ps;
+  const PlayerState *ps1 = &cgi.client->frame.ps;
 
   if (cg_state.snap_angles) {
     // Snap is handled authoritatively in Cg_UpdateAngles; just clear kick state here.
     memset(&cg_kick, 0, sizeof(cg_kick));
   } else if (cgi.client->previous_frame) {
-      const player_state_t *ps0 = &cgi.client->previous_frame->ps;
-      vec3_t delta0 = ps0->pm_state.delta_angles;
-      vec3_t delta1 = ps1->pm_state.delta_angles;
+      const PlayerState *ps0 = &cgi.client->previous_frame->ps;
+      Vec3 delta0 = ps0->pm_state.delta_angles;
+      Vec3 delta1 = ps1->pm_state.delta_angles;
 
       if (!Vec3_Equal(delta0, delta1)) {
         static int32_t frame;
@@ -165,7 +165,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
   if (delta < cg_kick.interval) {
     const float frac = Minf(delta, cmd->msec) / (float) cg_kick.interval;
 
-    vec3_t kick;
+    Vec3 kick;
     kick = Vec3_Subtract(cg_kick.next, cg_kick.prev);
     kick = Vec3_Scale(kick, frac);
 
@@ -196,14 +196,14 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 /**
  * @brief Applies weapon fire recoil animation to the view model.
  */
-static void Cg_WeaponKick(const pm_cmd_t *cmd) {
+static void Cg_WeaponKick(const PlayerMoveCmd *cmd) {
   static float kick;
 
   if (cgi.client->third_person) {
     return;
   }
 
-  const cl_entity_t *ent = Cg_Self();
+  const ClientEntity *ent = Cg_Self();
 
   if (!ent) {
     return;
@@ -213,7 +213,7 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 
   if (ent->animation1.animation == ANIM_TORSO_ATTACK1 && ent->animation1.fraction <= 0.33) {
 
-    const player_state_t *ps = &cgi.client->frame.ps;
+    const PlayerState *ps = &cgi.client->frame.ps;
 
     float degrees, interval = 64.0;
 
@@ -270,9 +270,9 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 
 /**
  * @brief Augments the view offset and angles for the specified command.
- * @see Cl_Look(pm_cmd_t)
+ * @see Cl_Look(PlayerMoveCmd)
  */
-void Cg_Look(pm_cmd_t *cmd) {
+void Cg_Look(PlayerMoveCmd *cmd) {
 
   if (cgi.client->demo_server && cg_state.spectate.detached) {
     return; // a camera that has left the recorded player behind does not take their recoil
@@ -286,7 +286,7 @@ void Cg_Look(pm_cmd_t *cmd) {
 /**
  * @brief Accumulate movement and button interactions for the specified command.
  */
-static void Cg_Move_Common(pm_cmd_t *cmd) {
+static void Cg_Move_Common(PlayerMoveCmd *cmd) {
 
   if (cgi.client->demo_server) {
 
@@ -304,7 +304,7 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
 
       // Encode the pixel-accurate muzzle position as a player-relative offset
       // so the server can use it instead of its hardcoded approximation.
-      const cg_client_info_t *ci = &cg_state.clients[cgi.client->frame.ps.client];
+      const ClientGameClientInfo *ci = &cg_state.clients[cgi.client->frame.ps.client];
       if (!Vec3_Equal(ci->weapon_muzzle, Vec3_Zero())) {
         cmd->muzzle = Vec3_Subtract(ci->weapon_muzzle, cgi.client->entity->current.origin);
       }
@@ -369,7 +369,7 @@ Move Cg_Move = Cg_Move_Common;
  * that the chain a module installs from `Cg_Module_Init` is the one that gets
  * called.
  */
-void Cg_ExportMove(pm_cmd_t *cmd) {
+void Cg_ExportMove(PlayerMoveCmd *cmd) {
   Cg_Move(cmd);
 }
 

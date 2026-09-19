@@ -23,12 +23,12 @@
 
 #include "r_types.h"
 
-r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *p);
-r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *p);
+RenderSprite *R_AddSprite(RenderView *view, const RenderSprite *p);
+RenderBeam *R_AddBeam(RenderView *view, const RenderBeam *p);
 
 #if defined(__R_LOCAL_H__)
-void R_UpdateSprites(r_view_t *view, CopyPass *copyPass);
-void R_DrawSprites(const r_view_t *view, RenderPass *pass);
+void R_UpdateSprites(RenderView *view, CopyPass *copyPass);
+void R_DrawSprites(const RenderView *view, RenderPass *pass);
 void R_ShutdownSprites(void);
 void R_InitSprites(void);
 void R_UpdateSpritePipeline(void);

@@ -54,7 +54,7 @@ struct MeshViewController {
   /**
    * @brief The model being edited.
    */
-  r_model_t *model;
+  RenderModel *model;
 
   /**
    * @brief World.cfg translate text view ("x y z").
@@ -127,13 +127,13 @@ struct MeshViewControllerInterface {
   MeshViewController *(*init)(MeshViewController *self);
 
   /**
-   * @fn void MeshViewController::setModel(MeshViewController *self, r_model_t *model)
+   * @fn void MeshViewController::setModel(MeshViewController *self, RenderModel *model)
    * @brief Sets the model to edit, parsing its config files.
    * @param self The MeshViewController.
    * @param model The model to edit, or `NULL` to clear.
    * @memberof MeshViewController
    */
-  void (*setModel)(MeshViewController *self, r_model_t *model);
+  void (*setModel)(MeshViewController *self, RenderModel *model);
 
   /**
    * @fn void MeshViewController::save(MeshViewController *self)

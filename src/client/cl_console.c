@@ -21,15 +21,15 @@
 
 #include "cl_local.h"
 
-console_t cl_console;
+Console cl_console;
 
-cvar_t *cl_console_height;
-cvar_t *cl_draw_console_background_alpha;
+Cvar *cl_console_height;
+Cvar *cl_draw_console_background_alpha;
 
 /**
  * @brief Outputs a stripped (color-code-free) console string to stdout.
  */
-static void Cl_Print(const console_string_t *str) {
+static void Cl_Print(const ConsoleString *str) {
   char stripped[q_strlen(str->chars) + 1];
 
   q_strcolorstrip(str->chars, stripped);
@@ -72,10 +72,10 @@ static void Cl_Backtrace_f(void) {
  */
 __attribute__((noreturn))
 static void Cl_Error_f(void) {
-  err_t err = ERROR_DROP;
+  Err err = ERROR_DROP;
 
   if (Cmd_Argc() > 1) {
-    err = (err_t) strtoul(Cmd_Argv(1), NULL, 10);
+    err = (Err) strtoul(Cmd_Argv(1), NULL, 10);
   }
 
   Com_Error(err, __func__);
@@ -94,7 +94,7 @@ void Cl_InitConsole(void) {
 
   Con_AddConsole(&cl_console);
 
-  file_t *file = Fs_OpenRead("history");
+  File *file = Fs_OpenRead("history");
   if (file) {
     Con_ReadHistory(&cl_console, file);
     Fs_Close(file);
@@ -120,7 +120,7 @@ void Cl_ShutdownConsole(void) {
 
   Con_RemoveConsole(&cl_console);
 
-  file_t *file = Fs_OpenWrite("history");
+  File *file = Fs_OpenWrite("history");
   if (file) {
     Con_WriteHistory(&cl_console, file);
     Fs_Close(file);

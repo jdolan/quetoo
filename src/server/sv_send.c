@@ -24,13 +24,13 @@
 /**
  * @brief Sends text across to be displayed if the level filter passes.
  */
-void Sv_ClientPrint(const g_client_t *cl, const int32_t level, const char *fmt, ...) {
+void Sv_ClientPrint(const GameClient *cl, const int32_t level, const char *fmt, ...) {
 
   if (cl->ai) {
     return;
   }
 
-  sv_client_t *client = svs.clients + cl->ps.client;
+  ServerClient *client = svs.clients + cl->ps.client;
 
   if (client->state != SV_CLIENT_ACTIVE) {
     Com_Debug(DEBUG_SERVER, "Issued to unspawned client\n");
@@ -81,7 +81,7 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
     Com_Print("%s", copy);
   }
 
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (level < cl->message_level) {
@@ -128,7 +128,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
  * truncated. Mem_WriteBuffer raises ERROR_FATAL on overflow, so an unchecked write here would take
  * the entire server down rather than sacrifice one client's frame.
  */
-void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
+void Sv_ClientDatagramMessage(ServerClient *cl, byte *data, size_t len) {
 
   // Ensure the datagram buffer is initialized
   if (!cl->datagram.buffer.data) {
@@ -148,7 +148,7 @@ void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     return;
   }
 
-  sv_client_message_t *msg = Mem_TagMalloc(sizeof(*msg), MEM_TAG_SERVER);
+  ServerClientMessage *msg = Mem_TagMalloc(sizeof(*msg), MEM_TAG_SERVER);
 
   msg->offset = cl->datagram.buffer.size;
   msg->len = len;
@@ -166,14 +166,14 @@ void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 /**
  * @brief Sends the contents of the mutlicast buffer to a single client.
  */
-void Sv_Unicast(const g_client_t *cl, const bool reliable) {
+void Sv_Unicast(const GameClient *cl, const bool reliable) {
 
   if (cl->ai) {
     Mem_ClearBuffer(&sv.multicast);
     return;
   }
 
-  sv_client_t *client = svs.clients + cl->ps.client;
+  ServerClient *client = svs.clients + cl->ps.client;
 
   if (reliable) {
     Mem_WriteBuffer(&client->net_chan.message, sv.multicast.data, sv.multicast.size);
@@ -188,7 +188,7 @@ void Sv_Unicast(const g_client_t *cl, const bool reliable) {
  * @brief Sends the contents of `sv.multicast` to a subset of the clients,
  * then clears `sv.multicast`.
  */
-void Sv_Multicast(const vec3_t origin, multicast_t to) {
+void Sv_Multicast(const Vec3 origin, Multicast to) {
 
   bool reliable = false;
 
@@ -218,7 +218,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
   }
 
   // send the data to all relevant clients
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t j = 0; j < sv_max_clients->integer; j++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
@@ -254,20 +254,20 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 /**
  * @brief Builds and transmits the current frame packet to the specified client.
  */
-static void Sv_SendClientDatagram(sv_client_t *cl) {
+static void Sv_SendClientDatagram(ServerClient *cl) {
   byte buffer[MAX_MSG_SIZE];
-  mem_buf_t buf;
+  MemBuf buf;
 
   Sv_BuildClientFrame(cl);
 
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
-  // send over all the relevant entity_state_t and the player_state_t
+  // send over all the relevant EntityState and the PlayerState
   Sv_WriteClientFrame(cl, &buf);
 
   if (cl->datagram.messages) {
     for (const ListNode *node = cl->datagram.messages->head; node; node = node->next) {
-      const sv_client_message_t *msg = (const sv_client_message_t *) node->element;
+      const ServerClientMessage *msg = (const ServerClientMessage *) node->element;
 
       // if we would overflow the packet, flush it first
       if (buf.size + msg->len > (MAX_MSG_SIZE_UDP - 16)) {
@@ -305,7 +305,7 @@ void Sv_SendClientPackets(void) {
     // an unwatched demo server shouldn't burn through its recording, or advance a playlist,
     // with nobody connected to see it
     bool demo_watched = false;
-    const sv_client_t *c = svs.clients;
+    const ServerClient *c = svs.clients;
     for (int32_t i = 0; i < sv_max_clients->integer; i++, c++) {
       if (c->state != SV_CLIENT_FREE && !svs.clients[i].gclient->ai) {
         demo_watched = true;
@@ -325,7 +325,7 @@ void Sv_SendClientPackets(void) {
   }
 
   // send a message to each connected client
-  sv_client_t *cl = svs.clients;
+  ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {

@@ -399,7 +399,7 @@ static void hideForEditor(View *view, ident data) {
  */
 static void warm(HudViewController *self) {
 
-  for (g_item_tag_t t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
+  for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
     if (bg_item_defs[t].icon) {
       $(self, image, bg_item_defs[t].icon);
     }
@@ -424,10 +424,10 @@ static void warm(HudViewController *self) {
 }
 
 /**
- * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
+ * @fn void HudViewController::updateWithFrame(HudViewController *self, const ClientFrame *frame)
  * @memberof HudViewController
  */
-static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
+static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   assert(frame);
 
@@ -436,7 +436,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
     $(self, reload);
   }
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
   $((View *) self->navEdit, updateBindings, (ident) frame);
   $((View *) self->notify, updateBindings, (ident) frame);

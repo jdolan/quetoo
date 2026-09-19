@@ -24,12 +24,12 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-extern const cg_entity_class_t cg_misc_dust;
-extern const cg_entity_class_t cg_misc_flame;
-extern const cg_entity_class_t cg_misc_model;
-extern const cg_entity_class_t cg_misc_sound;
-extern const cg_entity_class_t cg_misc_sparks;
-extern const cg_entity_class_t cg_misc_sprite;
-extern const cg_entity_class_t cg_misc_steam;
-extern const cg_entity_class_t cg_misc_weather;
+extern const ClientGameEntityClass cg_misc_dust;
+extern const ClientGameEntityClass cg_misc_flame;
+extern const ClientGameEntityClass cg_misc_model;
+extern const ClientGameEntityClass cg_misc_sound;
+extern const ClientGameEntityClass cg_misc_sparks;
+extern const ClientGameEntityClass cg_misc_sprite;
+extern const ClientGameEntityClass cg_misc_steam;
+extern const ClientGameEntityClass cg_misc_weather;
 #endif

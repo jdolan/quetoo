@@ -37,9 +37,9 @@ static View *init(View *self) {
 #pragma mark - OverlayText
 
 /**
- * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   if (!cg_state.vote.active) {
     return NULL;

@@ -23,4 +23,4 @@
 
 #include "tree.h"
 
-void FixTJunctions(tree_t *tree);
+void FixTJunctions(Tree *tree);

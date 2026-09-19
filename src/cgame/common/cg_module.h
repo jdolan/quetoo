@@ -114,7 +114,7 @@ void Cg_Module_Shutdown(void);
  * list common offers. The menu MUST NOT assume a fixed set - a mod that plays
  * only one mode should not have to hide options it will never honor.
  */
-typedef const g_gameplay_t *(*ListGameplayModes)(size_t *count);
+typedef const Gameplay *(*ListGameplayModes)(size_t *count);
 
 extern ListGameplayModes Cg_ListGameplayModes;
 
@@ -154,7 +154,7 @@ extern FilterCreateServerMapList Cg_FilterCreateServerMapList;
  * Prediction traces on behalf of `cgi.client->entity`; `mover` is `NULL` for a
  * trace with no entity behind it. An implementation MUST be pure.
  */
-typedef bool (*ClipClientEntity)(const cl_entity_t *mover, const cl_entity_t *ent);
+typedef bool (*ClipClientEntity)(const ClientEntity *mover, const ClientEntity *ent);
 
 extern ClipClientEntity Cg_ClipEntity;
 
@@ -177,7 +177,7 @@ extern UsePrediction Cg_UsePrediction;
  * @details Chainable. A feature adding an input reads its own key, sets what it
  * sets on `cmd` and defers to previous.
  */
-typedef void (*Move)(pm_cmd_t *cmd);
+typedef void (*Move)(PlayerMoveCmd *cmd);
 
 extern Move Cg_Move;
 
@@ -188,7 +188,7 @@ extern Move Cg_Move;
  * set for the commands that follow.
  * @details Notification; the tail does nothing.
  */
-typedef void (*MoveCommandWillRun)(pm_move_t *pm, const cl_cmd_t *cmd);
+typedef void (*MoveCommandWillRun)(PlayerMove *pm, const ClientCmd *cmd);
 
 extern MoveCommandWillRun Cg_MoveCommandWillRun;
 
@@ -197,7 +197,7 @@ extern MoveCommandWillRun Cg_MoveCommandWillRun;
  * prediction.
  * @details Notification; the tail does nothing.
  */
-typedef void (*MoveCommandDidRun)(const pm_move_t *pm, const cl_cmd_t *cmd);
+typedef void (*MoveCommandDidRun)(const PlayerMove *pm, const ClientCmd *cmd);
 
 extern MoveCommandDidRun Cg_MoveCommandDidRun;
 
@@ -206,7 +206,7 @@ extern MoveCommandDidRun Cg_MoveCommandDidRun;
  * the view will be rendered from.
  * @details Notification; the tail does nothing.
  */
-typedef void (*PredictionDidComplete)(const pm_move_t *pm);
+typedef void (*PredictionDidComplete)(const PlayerMove *pm);
 
 extern PredictionDidComplete Cg_PredictionDidComplete;
 
@@ -276,7 +276,7 @@ extern MediaDidLoad Cg_MediaDidLoad;
  * client game adds for this frame. A feature adds its own here.
  * @details Notification; the tail does nothing.
  */
-typedef void (*SceneDidPopulate)(const cl_frame_t *frame);
+typedef void (*SceneDidPopulate)(const ClientFrame *frame);
 
 extern SceneDidPopulate Cg_SceneDidPopulate;
 
@@ -285,7 +285,7 @@ extern SceneDidPopulate Cg_SceneDidPopulate;
  * feature that draws an overlay of its own does so here, over the top.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ScreenDidUpdate)(const cl_frame_t *frame);
+typedef void (*ScreenDidUpdate)(const ClientFrame *frame);
 
 extern ScreenDidUpdate Cg_ScreenDidUpdate;
 
@@ -305,7 +305,7 @@ extern ScreenDidUpdate Cg_ScreenDidUpdate;
  * adds around the call. Sounds and events are not decided here; they have played
  * by the time the scene is populated.
  */
-typedef void (*AddEntity)(cl_entity_t *ent);
+typedef void (*AddEntity)(ClientEntity *ent);
 
 extern AddEntity Cg_AddEntity;
 
@@ -316,7 +316,7 @@ extern AddEntity Cg_AddEntity;
  * @details Chainable. A feature that defines an effect of its own calls previous
  * and then reads its flag, as `EF_GAME` leaves it room to.
  */
-typedef void (*EntityEffects)(cl_entity_t *ent, r_entity_t *e);
+typedef void (*EntityEffects)(ClientEntity *ent, RenderEntity *e);
 
 extern EntityEffects Cg_EntityEffects;
 
@@ -328,7 +328,7 @@ extern EntityEffects Cg_EntityEffects;
  * a ghost, a dummy - answers its own info for it and defers to previous for
  * the rest.
  */
-typedef cg_client_info_t *(*ClientInfo)(const cl_entity_t *ent);
+typedef ClientGameClientInfo *(*ClientInfo)(const ClientEntity *ent);
 
 extern ClientInfo Cg_ClientInfo;
 
@@ -359,7 +359,7 @@ extern DescribeGameMode Cg_DescribeGameMode;
  * accepts, and the game's `PrepareVote` chain must accept every name listed.
  * The list MUST be static storage; the screen keeps pointers into it.
  */
-typedef const vote_type_t *(*ListVoteTypes)(size_t *count);
+typedef const VoteType *(*ListVoteTypes)(size_t *count);
 
 extern ListVoteTypes Cg_ListVoteTypes;
 

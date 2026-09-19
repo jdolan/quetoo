@@ -28,12 +28,12 @@
  * management. This works like a meta-BSP tree, providing fast searches via
  * recursion to find entities within an arbitrary box.
  */
-typedef struct sv_sector_s {
+typedef struct ServerSector {
   int32_t axis; // -1 = leaf
   float dist;
-  struct sv_sector_s *children[2];
+  struct ServerSector *children[2];
   List *entities;
-} sv_sector_t;
+} ServerSector;
 
 #define SECTOR_DEPTH  4
 #define SECTOR_NODES  32
@@ -43,24 +43,24 @@ typedef struct sv_sector_s {
  * context issued to `Sv_BoxEntities`.
  */
 typedef struct {
-  sv_sector_t sectors[SECTOR_NODES];
+  ServerSector sectors[SECTOR_NODES];
   size_t num_sectors;
 
-  box3_t box;
+  Box3 box;
 
-  g_entity_t **box_entities;
+  GameEntity **box_entities;
   size_t num_box_entities, max_box_entities;
 
   uint32_t box_type; // BOX_SOLID, BOX_TRIGGER, ..
-} sv_world_t;
+} ServerWorld;
 
-static sv_world_t sv_world;
+static ServerWorld sv_world;
 
 /**
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
-static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
-  sv_sector_t *sector = &sv_world.sectors[sv_world.num_sectors];
+static ServerSector *Sv_CreateSector(int32_t depth, const Box3 bounds) {
+  ServerSector *sector = &sv_world.sectors[sv_world.num_sectors];
   sv_world.num_sectors++;
 
   if (depth == SECTOR_DEPTH) {
@@ -69,7 +69,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
     return sector;
   }
 
-  vec3_t size = Box3_Size(bounds);
+  Vec3 size = Box3_Size(bounds);
 
   if (size.x > size.y) {
     sector->axis = 0;
@@ -79,7 +79,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
 
   sector->dist = 0.5f * (bounds.maxs.xyz[sector->axis] + bounds.mins.xyz[sector->axis]);
 
-  box3_t bounds1 = bounds, bounds2 = bounds;
+  Box3 bounds1 = bounds, bounds2 = bounds;
 
   bounds1.maxs.xyz[sector->axis] = bounds2.mins.xyz[sector->axis] = sector->dist;
 
@@ -106,7 +106,7 @@ static void Sv_InitWorld(void) {
 /**
  * @brief Initializes the world and spawns all entities for the current map.
  */
-void Sv_SpawnEntities(const char *name, const cm_entity_t *props) {
+void Sv_SpawnEntities(const char *name, const CmEntity *props) {
 
   Sv_InitWorld();
 
@@ -124,7 +124,7 @@ void Sv_SpawnEntities(const char *name, const cm_entity_t *props) {
         num_entities, sv_max_entities->integer);
     }
 
-    cm_entity_t **defs = Mem_TagMalloc(sizeof(cm_entity_t *) * num_entities, MEM_TAG_SERVER);
+    CmEntity **defs = Mem_TagMalloc(sizeof(CmEntity *) * num_entities, MEM_TAG_SERVER);
     for (int32_t i = 0; i < num_entities; i++) {
       defs[i] = Cm_CopyEntity(Cm_Bsp()->entities[i]);
     }
@@ -155,12 +155,12 @@ void Sv_SpawnEntities(const char *name, const cm_entity_t *props) {
  * @brief Called before moving or freeing an entity to remove it from the clipping
  * hull.
  */
-void Sv_UnlinkEntity(g_entity_t *ent) {
+void Sv_UnlinkEntity(GameEntity *ent) {
 
-  sv_entity_t *sent = &sv.entities[ent->s.number];
+  ServerEntity *sent = &sv.entities[ent->s.number];
 
   if (sent->sector) {
-    sv_sector_t *sector = (sv_sector_t *) sent->sector;
+    ServerSector *sector = (ServerSector *) sent->sector;
     if (sector->entities) {
       for (ListNode *node = sector->entities->head; node; node = node->next) {
         if (node->element == ent) {
@@ -170,7 +170,7 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
       }
     }
 
-    g_entity_t *gent = sent->gent;
+    GameEntity *gent = sent->gent;
     memset(sent, 0, sizeof(*sent));
     sent->gent = gent;
   }
@@ -180,7 +180,7 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
  * @brief Called whenever an entity changes origin, mins, maxs, or solid to add it to
  * the clipping hull.
  */
-void Sv_LinkEntity(g_entity_t *ent) {
+void Sv_LinkEntity(GameEntity *ent) {
 
   // remove it from its current sector
   Sv_UnlinkEntity(ent);
@@ -207,9 +207,9 @@ void Sv_LinkEntity(g_entity_t *ent) {
       break;
   }
 
-  const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
+  const Vec3 angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
-  sv_entity_t *sent = &sv.entities[ent->s.number];
+  ServerEntity *sent = &sv.entities[ent->s.number];
 
   sent->matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
   sent->inverse_matrix = Mat4_Inverse(sent->matrix);
@@ -220,7 +220,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
   }
 
   // find the first sector that the ent's box crosses
-  sv_sector_t *sector = sv_world.sectors;
+  ServerSector *sector = sv_world.sectors;
   while (true) {
 
     if (sector->axis == -1) {
@@ -247,7 +247,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 /**
  * @return True if the entity matches the current world filter, false otherwise.
  */
-static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
+static bool Sv_BoxEntities_Filter(const GameEntity *ent) {
 
   switch (ent->solid) {
     case SOLID_TRIGGER:
@@ -276,11 +276,11 @@ static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 /**
  * @brief Recursively collects entities from the sector tree that overlap the query box.
  */
-static void Sv_BoxEntities_r(sv_sector_t *sector) {
+static void Sv_BoxEntities_r(ServerSector *sector) {
 
   if (sector->entities) {
     for (const ListNode *node = sector->entities->head; node; node = node->next) {
-      g_entity_t *ent = (g_entity_t *) node->element;
+      GameEntity *ent = (GameEntity *) node->element;
 
       if (Sv_BoxEntities_Filter(ent)) {
 
@@ -319,7 +319,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
  *
  * @return The number of entities found.
  */
-size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len, uint32_t type) {
+size_t Sv_BoxEntities(const Box3 bounds, GameEntity **list, const size_t len, uint32_t type) {
 
   sv_world.box = bounds;
   sv_world.box_entities = list;
@@ -339,7 +339,7 @@ size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len, 
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
-static int32_t Sv_HullForEntity(const g_entity_t *ent) {
+static int32_t Sv_HullForEntity(const GameEntity *ent) {
 
   switch (ent->solid) {
 
@@ -355,7 +355,7 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
     }
 
     case SOLID_BSP: {
-      const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
+      const CmBspModel *mod = sv.cm_models[ent->s.model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
@@ -374,8 +374,8 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
  * @brief Returns the contents mask for the specified point. This includes world
  * contents as well as contents for any solid entities this point intersects.
  */
-int32_t Sv_PointContents(const vec3_t point) {
-  g_entity_t *entities[MAX_ENTITIES];
+int32_t Sv_PointContents(const Vec3 point) {
+  GameEntity *entities[MAX_ENTITIES];
 
   // get base contents from world
   int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
@@ -385,12 +385,12 @@ int32_t Sv_PointContents(const vec3_t point) {
 
   // iterate the box entities, checking each one for an intersection
   for (size_t i = 0; i < len; i++) {
-    const g_entity_t *ent = entities[i];
+    const GameEntity *ent = entities[i];
 
     const int32_t head_node = Sv_HullForEntity(ent);
     if (head_node != -1) {
 
-      const sv_entity_t *sent = &sv.entities[ent->s.number];
+      const ServerEntity *sent = &sv.entities[ent->s.number];
       contents |= Cm_PointContents(point, head_node, sent->inverse_matrix);
     }
   }
@@ -402,8 +402,8 @@ int32_t Sv_PointContents(const vec3_t point) {
  * @brief Returns the contents mask for the specified bounds. This includes world
  * contents as well as contents for any solid entities this point intersects.
  */
-int32_t Sv_BoxContents(const box3_t bounds) {
-  g_entity_t *entities[MAX_ENTITIES];
+int32_t Sv_BoxContents(const Box3 bounds) {
+  GameEntity *entities[MAX_ENTITIES];
 
   // get base contents from world
   int32_t contents = Cm_BoxContents(bounds, 0);
@@ -413,12 +413,12 @@ int32_t Sv_BoxContents(const box3_t bounds) {
 
   // iterate the box entities, checking each one for an intersection
   for (size_t i = 0; i < len; i++) {
-    const g_entity_t *ent = entities[i];
+    const GameEntity *ent = entities[i];
 
     const int32_t head_node = Sv_HullForEntity(ent);
     if (head_node != -1) {
 
-      const sv_entity_t *sent = &sv.entities[ent->s.number];
+      const ServerEntity *sent = &sv.entities[ent->s.number];
       contents |= Cm_BoxContents(Mat4_TransformBounds(sent->inverse_matrix, bounds), head_node);
     }
   }
@@ -428,18 +428,18 @@ int32_t Sv_BoxContents(const box3_t bounds) {
 
 // an entity's movement, with allowed exceptions and other info
 typedef struct {
-  vec3_t start, end;
-  box3_t bounds; // size of the moving object
-  box3_t abs_bounds; // enclose the test object along entire move
-  cm_trace_t trace;
-  const g_entity_t *skip;
+  Vec3 start, end;
+  Box3 bounds; // size of the moving object
+  Box3 abs_bounds; // enclose the test object along entire move
+  CmTrace trace;
+  const GameEntity *skip;
   int32_t contents;
-} sv_trace_t;
+} ServerTrace;
 
 /**
  * @brief Clips the specified trace to the specified entity.
  */
-static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
+static void Sv_ClipTraceToEntity(ServerTrace *trace, const GameEntity *ent) {
 
   if (trace->skip) { // see if we can skip it
 
@@ -480,9 +480,9 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
     return;
   }
 
-  const sv_entity_t *sent = &sv.entities[ent->s.number];
+  const ServerEntity *sent = &sv.entities[ent->s.number];
 
-  cm_trace_t tr;
+  CmTrace tr;
   
   if (Mat4_Equal(sent->matrix, Mat4_Identity())) {
     tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
@@ -494,7 +494,7 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
   if (tr.all_solid || tr.fraction < trace->trace.fraction) {
 
     trace->trace = tr;
-    trace->trace.ent = (g_entity_t *) ent;
+    trace->trace.ent = (GameEntity *) ent;
 
     if (tr.all_solid) { // we were actually blocked
       return;
@@ -506,8 +506,8 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
  * @brief Clips the specified trace to other entities in its bounds. This is the basis of all
  * collision and interaction for the server. Tread carefully.
  */
-static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
-  g_entity_t *e[MAX_ENTITIES];
+static void Sv_ClipTraceToEntities(ServerTrace *trace) {
+  GameEntity *e[MAX_ENTITIES];
 
   const size_t len = Sv_BoxEntities(trace->abs_bounds, e, lengthof(e), BOX_COLLIDE);
   for (size_t i = 0; i < len; i++) {
@@ -521,10 +521,10 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
-                    const g_entity_t *skip, int32_t contents) {
+CmTrace Sv_Trace(const Vec3 start, const Vec3 end, const Box3 bounds,
+                    const GameEntity *skip, int32_t contents) {
 
-  sv_trace_t trace = {
+  ServerTrace trace = {
     .start = start,
     .end = end,
     .bounds = bounds,
@@ -545,10 +545,10 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 /**
  * @brief Tests a clip of the specified translation against the specified entity.
  */
-cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds,
-                   const g_entity_t *test, int32_t contents) {
+CmTrace Sv_Clip(const Vec3 start, const Vec3 end, const Box3 bounds,
+                   const GameEntity *test, int32_t contents) {
 
-  sv_trace_t trace = {
+  ServerTrace trace = {
     .trace = {
       .fraction = 1.f
     },

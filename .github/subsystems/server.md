@@ -143,7 +143,7 @@ Server maintains circular buffer of world state snapshots:
 ```c
 typedef struct {
     int32_t frame_num;              // Unique frame number
-    entity_state_t entities[MAX];   // All entity states this frame
+    EntityState entities[MAX];   // All entity states this frame
     int32_t num_entities;
 } sv_frame_t;
 
@@ -172,7 +172,7 @@ Clients send movement commands at their framerate:
 // Client sends this structure
 typedef struct {
     int32_t msec;        // Frame time
-    vec3_t angles;       // View angles
+    Vec3 angles;       // View angles
     int16_t forward;     // Forward/back input (-400 to +400)
     int16_t right;       // Left/right strafe
     int16_t up;          // Jump/crouch
@@ -192,7 +192,7 @@ Server accumulates commands and runs physics at fixed 60 Hz:
 Each connected client has:
 ```c
 typedef struct {
-    sv_client_state_t state;        // Connection state
+    ServerClientState state;        // Connection state
     netchan_t netchan;              // Network channel
     
     user_cmd_t last_cmd;            // Last movement command
@@ -207,8 +207,8 @@ typedef struct {
     
     char userinfo[MAX_USER_INFO];   // Name, skin, team, etc.
     
-    g_client_t *client;             // Game module client data
-} sv_client_t;
+    GameClient *client;             // Game module client data
+} ServerClient;
 ```
 
 ## Console Variables
@@ -254,7 +254,7 @@ SV_Multicast(origin, MULTICAST_PHS);  // Send to hearable set
 ### Spawning Entities
 ```c
 // Game module spawns entity
-g_entity_t *ent = G_Spawn();
+GameEntity *ent = G_Spawn();
 ent->classname = "item_health";
 Vec3_Copy(origin, ent->s.origin);
 ent->solid = SOLID_TRIGGER;
@@ -265,7 +265,7 @@ gi.LinkEntity(ent);
 
 ### Kicking Players
 ```c
-sv_client_t *cl = &svs.clients[client_num];
+ServerClient *cl = &svs.clients[client_num];
 SV_DropClient(cl, "Kicked by admin");
 SV_BroadcastPrint("%s was kicked\n", cl->name);
 ```

@@ -37,7 +37,7 @@ static void Sv_RefreshMapList(void) {
 /**
  * @brief The rotation entry at `index`, or `NULL`.
  */
-static const cm_entity_t *Sv_MapAt(int32_t index) {
+static const CmEntity *Sv_MapAt(int32_t index) {
 
   if (svs.maps.list == NULL || index < 0 || index >= svs.maps.length) {
     return NULL;
@@ -48,12 +48,12 @@ static const cm_entity_t *Sv_MapAt(int32_t index) {
     node = node->next;
   }
 
-  return node ? (const cm_entity_t *) node->element : NULL;
+  return node ? (const CmEntity *) node->element : NULL;
 }
 
 /**
  * @brief Returns a copy of the configured map list, or `NULL` if there is none.
- * @return A list of `cm_entity_t *`, each to be freed with `Cm_FreeEntity`.
+ * @return A list of `CmEntity *`, each to be freed with `Cm_FreeEntity`.
  * @remarks The copy is the caller's, so that a `sv_map_list` edit which re-parses the
  * list underneath them does not free entries they still hold.
  */
@@ -68,7 +68,7 @@ List *Sv_MapList(void) {
   List *copy = $(alloc(List), init);
 
   for (const ListNode *node = svs.maps.list->head; node; node = node->next) {
-    $(copy, append, Cm_CopyEntity((const cm_entity_t *) node->element));
+    $(copy, append, Cm_CopyEntity((const CmEntity *) node->element));
   }
 
   return copy;
@@ -106,7 +106,7 @@ void Sv_SetNextMap(int32_t index) {
 /**
  * @brief Returns the next map from the configured list, or `NULL` if unavailable.
  */
-const cm_entity_t *Sv_NextMap(void) {
+const CmEntity *Sv_NextMap(void) {
 
   Sv_RefreshMapList();
 
@@ -163,9 +163,9 @@ void Sv_InitMapList(void) {
 
   int32_t i = 0;
   for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
-    cm_entity_t *props = (cm_entity_t *) node->element;
+    CmEntity *props = (CmEntity *) node->element;
 
-    const cm_entity_t *name = Cm_EntityValue(props, "name");
+    const CmEntity *name = Cm_EntityValue(props, "name");
     if (q_strlen(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_map_list->string);
       Cm_FreeEntity(props);

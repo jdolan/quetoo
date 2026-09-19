@@ -54,13 +54,13 @@ typedef struct {
    */
   void *data;
 
-} atlas_node_t;
+} AtlasNode;
 
 /**
  * @brief A comparator for sorting atlast nodes for packing.
  * @details The default comparator sorts nodes by image height.
  */
-typedef int32_t (*AtlasNodeComparator)(const atlas_node_t *a, const atlas_node_t *b);
+typedef int32_t (*AtlasNodeComparator)(const AtlasNode *a, const AtlasNode *b);
 
 /**
  * @brief A blit function for blitting packed nodes into the atlas.
@@ -78,7 +78,7 @@ typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SD
  * two separate surfaces, where each input node occupies the same coordinates in both
  * surfaces. All layers in a given node must be of the same size.
  */
-typedef struct atlas_s {
+typedef struct Atlas {
 
   /**
    * @brief Number of surface layers in the atlas.
@@ -86,7 +86,7 @@ typedef struct atlas_s {
   int32_t layers;
 
   /**
-   * @brief Array of `atlas_node_t` pointers to be packed.
+   * @brief Array of `AtlasNode` pointers to be packed.
    */
   Vector *nodes;
 
@@ -112,10 +112,10 @@ typedef struct atlas_s {
    */
   int32_t tag;
 
-} atlas_t;
+} Atlas;
 
-atlas_t *Atlas_Create(int32_t layers);
-atlas_node_t *Atlas_Insert(atlas_t *atlas, ...);
-atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface);
-int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...);
-void Atlas_Destroy(atlas_t *atlas);
+Atlas *Atlas_Create(int32_t layers);
+AtlasNode *Atlas_Insert(Atlas *atlas, ...);
+AtlasNode *Atlas_Find(Atlas *atlas, int32_t layer, SDL_Surface *surface);
+int32_t Atlas_Compile(Atlas *atlas, int32_t start, ...);
+void Atlas_Destroy(Atlas *atlas);

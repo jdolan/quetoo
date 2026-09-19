@@ -47,8 +47,8 @@ static void updateBindings(View *self, ident data) {
   $(self, setVisibility, cg_draw_ping->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
-    const cl_client_t *cl = cgi.client;
-    const cl_frame_t *frame = (const cl_frame_t *) data;
+    const Client *cl = cgi.client;
+    const ClientFrame *frame = (const ClientFrame *) data;
     const uint32_t now = (uint32_t) SDL_GetTicks();
 
     if (cl->dropped != this->dropped) {
@@ -74,10 +74,10 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - CounterView
 
 /**
- * @see CounterView::textForFrame(CounterView *, const cl_frame_t *)
+ * @see CounterView::textForFrame(CounterView *, const ClientFrame *)
  * @remarks Unlike the base implementation, the ping is shown while spectating.
  */
-static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
+static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
   snprintf(self->text, sizeof(self->text), "%d", $(self, valueForFrame, frame));
 

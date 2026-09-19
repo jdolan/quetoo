@@ -183,10 +183,10 @@ static UpdateViewController *init(UpdateViewController *self) {
 }
 
 /**
- * @fn void UpdateViewController::setStatus(UpdateViewController *self, const installer_state_t status)
+ * @fn void UpdateViewController::setStatus(UpdateViewController *self, const InstallerState status)
  * @memberof UpdateViewController
  */
-static void setStatus(UpdateViewController *self, const installer_status_t *in) {
+static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
 
 	SDL_LockMutex(self->pendingImagesLock);
 	const Array *pending = (Array *) self->pendingImages;

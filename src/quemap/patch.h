@@ -23,7 +23,7 @@
 
 #include "quemap.h"
 
-struct node_s;
+struct Node;
 
 #define MAX_PATCH_WIDTH   15
 #define MAX_PATCH_HEIGHT  15
@@ -34,24 +34,24 @@ struct node_s;
  * @brief A Bézier patch control point with position and texture coordinates.
  */
 typedef struct {
-  vec3_t position;
-  vec2_t st;
-} patch_control_point_t;
+  Vec3 position;
+  Vec2 st;
+} PatchControlPoint;
 
 /**
  * @brief A pre-tessellated patch face (one per 3×3 sub-patch).
  */
-typedef struct patch_face_s {
+typedef struct PatchFace {
 
   /**
    * @brief The AABB of this tessellated face.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The tessellated vertexes.
    */
-  bsp_vertex_t vertexes[(PATCH_SUBDIVISIONS + 1) * (PATCH_SUBDIVISIONS + 1)];
+  BspVertex vertexes[(PATCH_SUBDIVISIONS + 1) * (PATCH_SUBDIVISIONS + 1)];
 
   /**
    * @brief The count of vertexes.
@@ -71,23 +71,23 @@ typedef struct patch_face_s {
   /**
    * @brief The owning patch.
    */
-  struct patch_s *patch;
+  struct Patch *patch;
 
   /**
    * @brief The emitted BSP face.
    */
-  bsp_face_t *out;
+  BspFace *out;
 
   /**
    * @brief Linked list pointer for node assignment.
    */
-  struct patch_face_s *next;
-} patch_face_t;
+  struct PatchFace *next;
+} PatchFace;
 
 /**
  * @brief The map file representation of a Bézier surface patch (patchDef2).
  */
-typedef struct patch_s {
+typedef struct Patch {
 
   /**
    * @brief The texture name.
@@ -102,7 +102,7 @@ typedef struct patch_s {
   /**
    * @brief The control point grid.
    */
-  patch_control_point_t control_points[MAX_PATCH_WIDTH * MAX_PATCH_HEIGHT];
+  PatchControlPoint control_points[MAX_PATCH_WIDTH * MAX_PATCH_HEIGHT];
 
   /**
    * @brief The entity number within the map.
@@ -127,30 +127,30 @@ typedef struct patch_s {
   /**
    * @brief The AABB of all tessellated faces.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The emitted BSP patch, assigned during EmitPatches.
    */
-  bsp_patch_t *out;
+  BspPatch *out;
 
   /**
    * @brief The pre-tessellated faces.
    */
-  patch_face_t *faces;
+  PatchFace *faces;
 
   /**
    * @brief The count of pre-tessellated faces.
    */
   int32_t num_faces;
-} patch_t;
+} Patch;
 
 extern int32_t num_patches;
-extern patch_t patches[MAX_PATCHES];
+extern Patch patches[MAX_PATCHES];
 
-patch_t *ParsePatch(parser_t *parser, int32_t entity);
-void EmitPatchCollisionBrushes(patch_t *patch, entity_t *entity);
+Patch *ParsePatch(Parser *parser, int32_t entity);
+void EmitPatchCollisionBrushes(Patch *patch, Entity *entity);
 void TessellatePatches(int32_t entity_num);
-void AssignPatchFacesToNodes(struct node_s *head_node, int32_t entity_num);
+void AssignPatchFacesToNodes(struct Node *head_node, int32_t entity_num);
 void FreePatchFaces(int32_t entity_num);
-void EmitPatches(const bsp_model_t *mod);
+void EmitPatches(const BspModel *mod);

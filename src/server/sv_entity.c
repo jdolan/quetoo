@@ -22,10 +22,10 @@
 #include "sv_local.h"
 
 /**
- * @brief Writes a delta update of an `entity_state_t` list to the message.
+ * @brief Writes a delta update of an `EntityState` list to the message.
  */
-static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
-  entity_state_t *old_state = NULL, *new_state = NULL;
+static void Sv_WriteEntities(ServerClientFrame *from, ServerClientFrame *to, MemBuf *msg) {
+  EntityState *old_state = NULL, *new_state = NULL;
   int32_t old_index, new_index;
   int16_t old_num, new_num;
   int16_t from_num_entities;
@@ -92,8 +92,8 @@ static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem
 /**
  * @brief Writes a delta-compressed player state to the message buffer.
  */
-static void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
-  static player_state_t null_state;
+static void Sv_WritePlayerState(ServerClientFrame *from, ServerClientFrame *to, MemBuf *msg) {
+  static PlayerState null_state;
 
   if (from) {
     Net_WriteDeltaPlayerState(msg, &from->ps, &to->ps);
@@ -105,8 +105,8 @@ static void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, 
 /**
  * @brief Assembles and writes a complete client frame to the message buffer.
  */
-void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
-  sv_client_frame_t *frame, *delta_frame;
+void Sv_WriteClientFrame(ServerClient *client, MemBuf *msg) {
+  ServerClientFrame *frame, *delta_frame;
   int32_t delta_frame_num;
 
   // this is the frame we are creating
@@ -140,19 +140,19 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 /**
  * @brief Decides which entities are going to be visible to the client and copies off the player state.
  */
-void Sv_BuildClientFrame(sv_client_t *client) {
+void Sv_BuildClientFrame(ServerClient *client) {
 
-  g_client_t *cl = client->gclient;
+  GameClient *cl = client->gclient;
 
   if (!cl->in_use) {
     return; // not in game yet
   }
 
   // this is the frame we are creating
-  sv_client_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
+  ServerClientFrame *frame = &client->frames[sv.frame_num & PACKET_MASK];
   frame->sent_time = quetoo.ticks; // timestamp for ping calculation
 
-  // grab the current player_state_t
+  // grab the current PlayerState
   frame->ps = cl->ps;
 
   // build up the list of relevant entities
@@ -161,7 +161,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    const g_entity_t *ent = sv.entities[i].gent;
+    const GameEntity *ent = sv.entities[i].gent;
 
     if (!ent->in_use) {
       continue;
@@ -183,8 +183,8 @@ void Sv_BuildClientFrame(sv_client_t *client) {
       }
     }
 
-    // copy it to the circular entity_state_t array
-    entity_state_t *s = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
+    // copy it to the circular EntityState array
+    EntityState *s = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
 
     *s = ent->s;
 

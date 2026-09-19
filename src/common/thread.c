@@ -46,10 +46,10 @@ typedef struct {
   /**
    * @brief The threads.
    */
-  thread_t *threads;
-} thread_pool_t;
+  WorkerThread *threads;
+} WorkerThreadPool;
 
-static thread_pool_t thread_pool;
+static WorkerThreadPool thread_pool;
 
 /**
  * @brief A sentinel thread function to indicate thread termination.
@@ -70,7 +70,7 @@ _Thread_local SDL_ThreadID thread_id;
  * @brief Wrap the user's function in our own for introspection.
  */
 static int32_t Thread_Run(void *data) {
-  thread_t *t = (thread_t *) data;
+  WorkerThread *t = (WorkerThread *) data;
 
   thread_id = SDL_GetCurrentThreadID();
 
@@ -112,9 +112,9 @@ static void Thread_Init_(ssize_t num_threads) {
   thread_pool.num_threads = num_threads;
 
   if (thread_pool.num_threads) {
-    thread_pool.threads = Mem_Malloc(sizeof(thread_t) * thread_pool.num_threads);
+    thread_pool.threads = Mem_Malloc(sizeof(WorkerThread) * thread_pool.num_threads);
 
-    thread_t *t = thread_pool.threads;
+    WorkerThread *t = thread_pool.threads;
 
     for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
       t->cond = SDL_CreateCondition();
@@ -130,7 +130,7 @@ static void Thread_Init_(ssize_t num_threads) {
 static void Thread_Shutdown_(void) {
 
   if (thread_pool.num_threads) {
-    thread_t *t = thread_pool.threads;
+    WorkerThread *t = thread_pool.threads;
 
     for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
       Thread_Wait(t);
@@ -149,13 +149,13 @@ static void Thread_Shutdown_(void) {
  * @brief Creates a new thread to run the specified function. Callers must use
  * `Thread_Wait` on the returned handle to release the thread when finished.
  */
-thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread_options_t options) {
+WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options) {
 
   // if threads are available, find an idle one and dispatch it
   if (thread_pool.num_threads) {
     SDL_LockSpinlock(&thread_pool.lock);
 
-    thread_t *t = thread_pool.threads;
+    WorkerThread *t = thread_pool.threads;
     for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
 
       // if the thread appears idle, lock it and check again
@@ -196,7 +196,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
 /**
  * @brief Wait for the specified thread to complete.
  */
-void Thread_Wait(thread_t *t) {
+void Thread_Wait(WorkerThread *t) {
 
   if (!t) {
     return;

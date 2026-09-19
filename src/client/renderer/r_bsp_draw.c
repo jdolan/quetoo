@@ -53,14 +53,14 @@ enum {
  * @brief Per-draw BSP uniforms, shared by both stages.
  */
 typedef struct {
-  mat4_t model;
-  r_active_dynamic_lights_t active_dynamic_lights;
+  Mat4 model;
+  RenderActiveDynamicLights active_dynamic_lights;
 
   /**
    * @brief The layer of texture_portal this draw's faces sample, or `-1` for none.
    */
   int32_t portal_layer;
-} r_bsp_uniform_locals_t;
+} RenderBspUniformLocals;
 
 #define MAX_STAGE_PIPELINES 16
 
@@ -102,18 +102,18 @@ static struct {
   /**
    * @brief Cached bound material state.
    */
-  const r_material_t *material;
+  const RenderMaterial *material;
   int32_t surface;
 
   /**
    * @brief The locals as last pushed, so that the portal layer can be updated alone.
    */
-  r_bsp_uniform_locals_t locals;
+  RenderBspUniformLocals locals;
 
   /**
    * @brief Cached material-stage pipelines.
    */
-  r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
+  RenderStagePipeline stage_pipelines[MAX_STAGE_PIPELINES];
   int32_t num_stage_pipelines;
 } r_bsp_draw;
 
@@ -122,7 +122,7 @@ static struct {
  * @details The portal layer resets to `-1` here, so a model holding no portal face never pushes
  * one; `R_PushBspPortalLayer` sets it for the draws that do.
  */
-static inline void R_PushBspUniformLocals(const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
+static inline void R_PushBspUniformLocals(const RenderBspUniformLocals *locals, RenderPass *pass) {
 
   r_bsp_draw.locals = *locals;
   r_bsp_draw.locals.portal_layer = -1;
@@ -143,7 +143,7 @@ static inline void R_PushBspUniformLocals(const r_bsp_uniform_locals_t *locals, 
  * layer here -- and portal views are bound the placeholder texture, not the portal texture they
  * are being drawn into, so the face would come out solid black rather than portalled.
  */
-static inline void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw, RenderPass *pass) {
+static inline void R_PushBspPortalLayer(const RenderView *view, const RenderBspDrawElements *draw, RenderPass *pass) {
 
   const int32_t layer = draw->portal && view->type != VIEW_PORTAL ? draw->portal->layer : -1;
 
@@ -161,8 +161,8 @@ static inline void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_e
  * material and surface. The portal layer keeps its own cache, because draw elements sharing a
  * material need not share a portal -- two portal faces cut from the same brush do not.
  */
-static inline void R_BindBspDrawElements(const r_view_t *view,
-                                         const r_bsp_draw_elements_t *draw,
+static inline void R_BindBspDrawElements(const RenderView *view,
+                                         const RenderBspDrawElements *draw,
                                          GraphicsPipeline *pipeline,
                                          RenderPass *pass) {
 
@@ -179,7 +179,7 @@ static inline void R_BindBspDrawElements(const r_view_t *view,
       .sampler = r_bsp_draw.repeat_sampler->sampler,
     }, 1);
 
-    r_material_uniforms_t material;
+    RenderMaterialUniforms material;
     R_MaterialUniforms(draw->material, draw->surface, &material);
     $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
   }
@@ -190,9 +190,9 @@ static inline void R_BindBspDrawElements(const r_view_t *view,
 /**
  * @brief Returns the cached BSP material-stage pipeline for the given blend state.
  */
-static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend_t dest, bool depth_write) {
+static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend dest, bool depth_write) {
 
-  const r_stage_pipeline_t *p = r_bsp_draw.stage_pipelines;
+  const RenderStagePipeline *p = r_bsp_draw.stage_pipelines;
   for (int32_t i = 0; i < r_bsp_draw.num_stage_pipelines; i++, p++) {
     if (p->src == src && p->dest == dest && p->depth_write == depth_write) {
       return p->pipeline;
@@ -233,17 +233,17 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
     .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, position) },
-      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, normal) },
-      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, tangent) },
-      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, bitangent) },
-      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_bsp_vertex_t, diffusemap) },
-      { .location = 5, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM, .offset = offsetof(r_bsp_vertex_t, color) },
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderBspVertex, position) },
+      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderBspVertex, normal) },
+      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderBspVertex, tangent) },
+      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderBspVertex, bitangent) },
+      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(RenderBspVertex, diffusemap) },
+      { .location = 5, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM, .offset = offsetof(RenderBspVertex, color) },
     },
     .num_vertex_attributes = 6,
   };
@@ -277,7 +277,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
   release(vertexShader);
   release(fragmentShader);
 
-  r_stage_pipeline_t *out = &r_bsp_draw.stage_pipelines[r_bsp_draw.num_stage_pipelines++];
+  RenderStagePipeline *out = &r_bsp_draw.stage_pipelines[r_bsp_draw.num_stage_pipelines++];
 
   out->src = src;
   out->dest = dest;
@@ -293,7 +293,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
  * portal view cannot use them at all -- they were resolved for a camera somewhere else
  * entirely -- so it culls its own frustum and nothing more.
  */
-static inline bool R_CullBspBlock(const r_view_t *view, const r_bsp_block_t *block) {
+static inline bool R_CullBspBlock(const RenderView *view, const RenderBspBlock *block) {
 
   if (view->type == VIEW_PORTAL) {
     return R_CullBox(view, block->visible_bounds);
@@ -305,14 +305,14 @@ static inline bool R_CullBspBlock(const r_view_t *view, const r_bsp_block_t *blo
 /**
  * @brief Draws one material stage for a BSP draw batch.
  */
-static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
-                                               const r_entity_t *entity,
-                                               const r_bsp_draw_elements_t *draw,
-                                               const r_stage_t *stage,
+static void R_DrawBspDrawElementsMaterialStage(const RenderView *view,
+                                               const RenderEntity *entity,
+                                               const RenderBspDrawElements *draw,
+                                               const RenderStage *stage,
                                                bool depth_write,
                                                RenderPass *pass) {
 
-  r_material_uniforms_t uniforms;
+  RenderMaterialUniforms uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
 
   SDL_GPUTexture *texture, *texture_next;
@@ -339,13 +339,13 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 /**
  * @brief Draws all active material stages for a BSP draw batch.
  */
-static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
-                                                const r_entity_t *entity,
-                                                const r_bsp_draw_elements_t *draw,
+static void R_DrawBspDrawElementsMaterialStages(const RenderView *view,
+                                                const RenderEntity *entity,
+                                                const RenderBspDrawElements *draw,
                                                 bool depth_write,
                                                 RenderPass *pass) {
 
-  const r_material_t *material = draw->material;
+  const RenderMaterial *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
     return;
   }
@@ -362,7 +362,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 
   R_PushBspPortalLayer(view, draw, pass);
 
-  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
+  for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
 
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
@@ -375,20 +375,20 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 /**
  * @brief Draws material stages for a BSP inline model entity.
  */
-static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
+static void R_DrawBspEntityMaterialStages(const RenderView *view, const RenderEntity *entity, RenderPass *pass) {
 
-  r_bsp_uniform_locals_t locals = {
+  RenderBspUniformLocals locals = {
     .model = entity->matrix,
   };
 
-  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+  const RenderBspInlineModel *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     R_PushBspUniformLocals(&locals, pass);
   }
 
-  const r_bsp_block_t *block = in->blocks;
+  const RenderBspBlock *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (IS_WORLDSPAWN(entity->model)) {
@@ -401,7 +401,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
       R_PushBspUniformLocals(&locals, pass);
     }
 
-    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    const RenderBspDrawElements *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
       if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
@@ -416,9 +416,9 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 /**
  * @brief Draws the opaque draw elements in a BSP block.
  */
-static void R_DrawOpaqueBspBlock(const r_view_t *view, const r_bsp_block_t *block, RenderPass *pass) {
+static void R_DrawOpaqueBspBlock(const RenderView *view, const RenderBspBlock *block, RenderPass *pass) {
 
-  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  const RenderBspDrawElements *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
     if (draw->surface & (SURF_SKY | SURF_MASK_BLEND | SURF_ALPHA_TEST)) {
@@ -441,9 +441,9 @@ static void R_DrawOpaqueBspBlock(const r_view_t *view, const r_bsp_block_t *bloc
 /**
  * @brief Draws the alpha-tested draw elements in a BSP block.
  */
-static void R_DrawAlphaTestBspBlock(const r_view_t *view, const r_bsp_block_t *block, RenderPass *pass) {
+static void R_DrawAlphaTestBspBlock(const RenderView *view, const RenderBspBlock *block, RenderPass *pass) {
 
-  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  const RenderBspDrawElements *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
     if (!(draw->surface & SURF_ALPHA_TEST) || (draw->surface & SURF_MASK_BLEND)) {
@@ -466,20 +466,20 @@ static void R_DrawAlphaTestBspBlock(const r_view_t *view, const r_bsp_block_t *b
 /**
  * @brief Draws opaque geometry for a BSP inline model entity.
  */
-static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
+static void R_DrawOpaqueBspEntity(const RenderView *view, const RenderEntity *entity, RenderPass *pass) {
 
-  r_bsp_uniform_locals_t locals = {
+  RenderBspUniformLocals locals = {
     .model = entity->matrix,
   };
 
-  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+  const RenderBspInlineModel *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     R_PushBspUniformLocals(&locals, pass);
   }
 
-  const r_bsp_block_t *block = in->blocks;
+  const RenderBspBlock *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (IS_WORLDSPAWN(entity->model)) {
@@ -504,20 +504,20 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 /**
  * @brief Draws alpha-tested geometry for a BSP inline model entity.
  */
-static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
+static void R_DrawAlphaTestBspEntity(const RenderView *view, const RenderEntity *entity, RenderPass *pass) {
 
-  r_bsp_uniform_locals_t locals = {
+  RenderBspUniformLocals locals = {
     .model = entity->matrix,
   };
 
-  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+  const RenderBspInlineModel *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     R_PushBspUniformLocals(&locals, pass);
   }
 
-  const r_bsp_block_t *block = in->blocks;
+  const RenderBspBlock *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (IS_WORLDSPAWN(entity->model)) {
@@ -538,13 +538,13 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 /**
  * @brief Draws opaque, alpha-tested, and material-stage BSP inline model geometry.
  */
-void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
+void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
 
   assert(r_models.world);
 
   R_DrawSky(view, pass);
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -606,7 +606,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
 
-  const r_entity_t *e = view->entities;
+  const RenderEntity *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (!IS_BSP_INLINE_MODEL(e->model)) {
@@ -674,9 +674,9 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
 /**
  * @brief Draws the translucent draw elements in a BSP block.
  */
-static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, const r_bsp_block_t *block, RenderPass *pass) {
+static void R_DrawBlendBspBlock(const RenderView *view, const RenderEntity *entity, const RenderBspBlock *block, RenderPass *pass) {
 
-  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  const RenderBspDrawElements *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
     if (!(draw->surface & SURF_MASK_BLEND) || (draw->surface & SURF_SKY)) {
@@ -702,20 +702,20 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
 /**
  * @brief Draws translucent geometry for a BSP inline model entity.
  */
-static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
+static void R_DrawBlendBspEntity(const RenderView *view, const RenderEntity *entity, RenderPass *pass) {
 
-  r_bsp_uniform_locals_t locals = {
+  RenderBspUniformLocals locals = {
     .model = entity->matrix,
   };
 
-  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+  const RenderBspInlineModel *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     R_PushBspUniformLocals(&locals, pass);
   }
 
-  const r_bsp_block_t *block = in->blocks;
+  const RenderBspBlock *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (!(block->surface & SURF_MASK_BLEND)) {
@@ -739,11 +739,11 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
 /**
  * @brief Draws translucent BSP inline model geometry.
  */
-void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
+void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
 
   assert(r_models.world);
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = r_models.world->bsp;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -806,7 +806,7 @@ void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
 
-  const r_entity_t *e = view->entities;
+  const RenderEntity *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (!IS_BSP_INLINE_MODEL(e->model)) {
@@ -855,7 +855,7 @@ void R_InitBspPipeline(void) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -864,37 +864,37 @@ void R_InitBspPipeline(void) {
         .location = 0,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, position),
+        .offset = offsetof(RenderBspVertex, position),
       },
       {
         .location = 1,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, normal),
+        .offset = offsetof(RenderBspVertex, normal),
       },
       {
         .location = 2,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, tangent),
+        .offset = offsetof(RenderBspVertex, tangent),
       },
       {
         .location = 3,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, bitangent),
+        .offset = offsetof(RenderBspVertex, bitangent),
       },
       {
         .location = 4,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-        .offset = offsetof(r_bsp_vertex_t, diffusemap),
+        .offset = offsetof(RenderBspVertex, diffusemap),
       },
       {
         .location = 5,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
-        .offset = offsetof(r_bsp_vertex_t, color),
+        .offset = offsetof(RenderBspVertex, color),
       },
     },
     .num_vertex_attributes = 6,

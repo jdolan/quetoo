@@ -25,7 +25,7 @@
 /**
  * @brief Inspect all damage received this frame and play a pain sound if appropriate.
  */
-static void G_ClientDamage(g_client_t *cl) {
+static void G_ClientDamage(GameClient *cl) {
 
   if (cl->damage_health || cl->damage_armor) {
     // play an appropriate pain sound
@@ -44,9 +44,9 @@ static void G_ClientDamage(g_client_t *cl) {
         pain = 3;
       }
 
-      const vec3_t org = Vec3_Add(cl->ps.pm_state.origin, cl->ps.pm_state.view_offset);
+      const Vec3 org = Vec3_Add(cl->ps.pm_state.origin, cl->ps.pm_state.view_offset);
 
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.pain[pain],
         .entity = cl->entity,
         .origin = &org,
@@ -63,21 +63,21 @@ static void G_ClientDamage(g_client_t *cl) {
 /**
  * @brief Handles water entry and exit
  */
-static void G_ClientWaterInteraction(g_client_t *cl) {
+static void G_ClientWaterInteraction(GameClient *cl) {
 
-  g_entity_t *ent = cl->entity;
+  GameEntity *ent = cl->entity;
 
   if (ent->move_type == MOVE_TYPE_NO_CLIP) {
     cl->drown_time = g_level.time + 12000; // don't need air
     return;
   }
 
-  const pm_water_level_t water_level = ent->water_level;
-  const pm_water_level_t old_water_level = cl->old_water_level;
+  const PlayerMoveWaterLevel water_level = ent->water_level;
+  const PlayerMoveWaterLevel old_water_level = cl->old_water_level;
 
   // if just entered a water volume, play a sound
   if (old_water_level <= WATER_NONE && water_level >= WATER_FEET) {
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = g_media.sounds.water_in,
       .entity = ent,
     }, MULTICAST_PHS);
@@ -85,7 +85,7 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
 
   // completely exited the water
   if (old_water_level >= WATER_FEET && water_level == WATER_NONE) {
-    G_MulticastSound(&(const g_play_sound_t) {
+    G_MulticastSound(&(const GamePlaySound) {
       .index = g_media.sounds.water_out,
       .entity = ent,
     }, MULTICAST_PHS);
@@ -102,9 +102,9 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
 
     // head just coming out of water, play a gasp if we were down for a while
     if (old_water_level == WATER_UNDER && water_level != WATER_UNDER && (cl->drown_time - g_level.time) < 8000) {
-      const vec3_t org = Vec3_Add(cl->ps.pm_state.origin, cl->ps.pm_state.view_offset);
+      const Vec3 org = Vec3_Add(cl->ps.pm_state.origin, cl->ps.pm_state.view_offset);
 
-      G_MulticastSound(&(const g_play_sound_t) {
+      G_MulticastSound(&(const GamePlaySound) {
         .index = g_media.sounds.gasp,
         .entity = ent,
         .origin = &org,
@@ -137,7 +137,7 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
         cl->pain_time = g_level.time;
 
         // and apply the damage
-        G_Damage(&(g_damage_t) {
+        G_Damage(&(GameDamage) {
           .target = ent,
           .inflictor = NULL,
           .attacker = NULL,
@@ -168,7 +168,7 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
       }
 
       if (ent->water_type & CONTENTS_LAVA) {
-        G_Damage(&(g_damage_t) {
+        G_Damage(&(GameDamage) {
           .target = ent,
           .inflictor = NULL,
           .attacker = NULL,
@@ -183,7 +183,7 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
       }
 
       if (ent->water_type & CONTENTS_SLIME) {
-        G_Damage(&(g_damage_t) {
+        G_Damage(&(GameDamage) {
           .target = ent,
           .inflictor = NULL,
           .attacker = NULL,
@@ -206,9 +206,9 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
  * @brief Set the angles of the client's world model, after clamping them to sane
  * values.
  */
-static void G_ClientWorldAngles(g_client_t *cl) {
+static void G_ClientWorldAngles(GameClient *cl) {
 
-  g_entity_t *ent = cl->entity;
+  GameEntity *ent = cl->entity;
 
   if (ent->dead) { // just lay there like a lump
     ent->s.angles.x = ent->s.angles.z = 0.0;
@@ -243,19 +243,19 @@ static void G_ClientWorldAngles(g_client_t *cl) {
  * corpse. Nothing about it is sent to the client beyond `PMF_DEATH_CAM`, so it
  * interpolates, replays in demos and propagates to chase cameras for free.
  */
-static void G_ClientDeathCam(g_client_t *cl) {
+static void G_ClientDeathCam(GameClient *cl) {
 
   if (!(cl->ps.pm_state.flags & PMF_DEATH_CAM)) {
     return;
   }
 
-  const g_entity_t *ent = cl->entity;
+  const GameEntity *ent = cl->entity;
 
   // resolve the corpse's eyes directly, mirroring Pm_CheckDuck. the view offset
   // can't be used here: we overwrite it below, and pmove only reclaims its z
   // for the dead, so its x and y would feed the camera back into itself
-  const vec3_t eyes = Vec3_Add(ent->s.origin,
-                               Vec3(0.f, 0.f, (cl->ps.pm_state.flags & PMF_GIBLET) ? 0.f : -16.f));
+  const Vec3 eyes = Vec3_Add(ent->s.origin,
+                               MakeVec3(0.f, 0.f, (cl->ps.pm_state.flags & PMF_GIBLET) ? 0.f : -16.f));
 
   const float duration = Maxf(g_death_cam_time->value, QUETOO_TICK_MILLIS);
 
@@ -278,9 +278,9 @@ static void G_ClientDeathCam(g_client_t *cl) {
   // corpse's origin rather than its eyes, which sit close enough to the floor
   // to start solid, and the clamp is applied to the resolved position only, so
   // that grazing a wall doesn't permanently arrest the camera
-  vec3_t origin = cl->death_cam_origin;
+  Vec3 origin = cl->death_cam_origin;
 
-  const cm_trace_t tr = gi.Trace(ent->s.origin, origin, Box3f(16.f, 16.f, 16.f), ent,
+  const CmTrace tr = gi.Trace(ent->s.origin, origin, Box3f(16.f, 16.f, 16.f), ent,
                                  CONTENTS_MASK_CLIP_PLAYER);
   if (!tr.start_solid && !tr.all_solid) {
     origin = tr.end;
@@ -289,17 +289,17 @@ static void G_ClientDeathCam(g_client_t *cl) {
   cl->ps.pm_state.view_offset = Vec3_Subtract(origin, ent->s.origin);
 
   // look at the corpse, in absolute terms
-  const vec3_t dir = Vec3_Subtract(eyes, origin);
+  const Vec3 dir = Vec3_Subtract(eyes, origin);
 
   if (Vec3_Length(dir) > 1.f) {
-    const vec3_t angles = Vec3_Euler(Vec3_Normalize(dir));
+    const Vec3 angles = Vec3_Euler(Vec3_Normalize(dir));
 
     cl->death_cam_angles.x = angles.x;
     cl->death_cam_angles.z = 0.f;
 
     // yaw is meaningless when we're looking straight down at ourselves, and
     // solving for it anyway swings the camera through half a turn in a frame
-    if (Vec3_Length(Vec3(dir.x, dir.y, 0.f)) > 16.f) {
+    if (Vec3_Length(MakeVec3(dir.x, dir.y, 0.f)) > 16.f) {
       cl->death_cam_angles.y = angles.y;
     }
   }
@@ -311,8 +311,8 @@ static void G_ClientDeathCam(g_client_t *cl) {
 /**
  * @brief Adds view kick in the specified direction to the specified client.
  */
-void G_ClientDamageKick(g_client_t *cl, const vec3_t dir, const float kick) {
-  vec3_t ndir;
+void G_ClientDamageKick(GameClient *cl, const Vec3 dir, const float kick) {
+  Vec3 ndir;
 
   ndir = Vec3_Normalize(dir);
 
@@ -326,14 +326,14 @@ void G_ClientDamageKick(g_client_t *cl, const vec3_t dir, const float kick) {
 /**
  * @brief Adds view angle kick based on entity events (falling, landing, etc).
  */
-static void G_ClientFallKick(g_client_t *cl, const float kick) {
+static void G_ClientFallKick(GameClient *cl, const float kick) {
   cl->kick_angles.x += kick;
 }
 
 /**
  * @brief Sends the kick angles accumulated this frame to the client.
  */
-static void G_ClientKickAngles(g_client_t *cl) {
+static void G_ClientKickAngles(GameClient *cl) {
 
   switch (cl->entity->s.event) {
     case EV_CLIENT_LAND:
@@ -374,9 +374,9 @@ static void G_ClientKickAngles(g_client_t *cl) {
  * towards the end of each frame, after our ground entity and water level have
  * been resolved.
  */
-static void G_ClientAnimation(g_client_t *cl) {
+static void G_ClientAnimation(GameClient *cl) {
 
-  g_entity_t *ent = cl->entity;
+  GameEntity *ent = cl->entity;
 
   if (ent->s.model1 != MODEL_CLIENT) {
     return;
@@ -437,9 +437,9 @@ static void G_ClientAnimation(g_client_t *cl) {
 
   if (g_level.time - 400 > cl->land_time && g_level.time - 50 > cl->ground_time) {
 
-    vec3_t forward;
+    Vec3 forward;
     
-    const vec3_t euler = Vec3(0.0, ent->s.angles.y, 0.0);
+    const Vec3 euler = MakeVec3(0.0, ent->s.angles.y, 0.0);
     Vec3_Vectors(euler, &forward, NULL, NULL);
 
     const bool backwards = Vec3_Dot(ent->velocity, forward) < -0.1;
@@ -466,7 +466,7 @@ static void G_ClientAnimation(g_client_t *cl) {
     const bool running = G_IsAnimation(cl, ANIM_LEGS_RUN) || G_IsAnimation(cl, ANIM_LEGS_BACK);
     const float run_threshold = running ? 270.0 : 290.0;
 
-    entity_animation_t anim = ANIM_LEGS_RUN;
+    EntityAnimation anim = ANIM_LEGS_RUN;
 
     if (cl->speed < run_threshold) {
       anim = ANIM_LEGS_WALK;
@@ -488,10 +488,10 @@ static void G_ClientAnimation(g_client_t *cl) {
 /**
  * @brief Called for each client at the end of the server frame.
  */
-void G_ClientEndFrame(g_client_t *cl) {
+void G_ClientEndFrame(GameClient *cl) {
 
   // If the origin or velocity have changed since G_ClientThink(),
-  // update the pm_state_t values. This will happen when the client
+  // update the PlayerMoveState values. This will happen when the client
   // is pushed by another entity or kicked by an explosion.
   //
   // If it wasn't updated here, the view position would lag a frame
@@ -555,7 +555,7 @@ FrameDidEnd G_FrameDidEnd = G_FrameDidEnd_Common;
  */
 void G_EndClientFrames(void) {
 
-  // finalize the player_state_t for this frame
+  // finalize the PlayerState for this frame
   G_ForEachClient(cl, {
     if (cl->entity) {
       G_ClientEndFrame(cl);

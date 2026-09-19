@@ -30,9 +30,9 @@ typedef struct {
   int32_t index; // current work cycle
   int32_t count; // total work cycles
   int32_t percent; // last fraction of work completed
-} work_t;
+} WorkState;
 
-static work_t work;
+static WorkState work;
 
 /**
  * @brief Return an iteration of work, updating progress when appropriate.
@@ -99,7 +99,7 @@ void Work(const char *name, WorkFunc func, int32_t count) {
   if (thread_count == 0) {
     RunWorkFunc(0);
   } else {
-    thread_t *threads[thread_count];
+    WorkerThread *threads[thread_count];
 
     for (int32_t i = 0; i < thread_count; i++) {
       threads[i] = Thread_Create(RunWorkFunc, NULL, 0);

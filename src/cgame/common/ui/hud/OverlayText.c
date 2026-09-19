@@ -57,10 +57,10 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - OverlayText
 
 /**
- * @fn const char *OverlayText::textForFrame(OverlayText *self, const cl_frame_t *frame)
+ * @fn const char *OverlayText::textForFrame(OverlayText *self, const ClientFrame *frame)
  * @memberof OverlayText
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
   return NULL;
 }
 

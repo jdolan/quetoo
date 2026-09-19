@@ -26,21 +26,21 @@
 
 #if defined(__G_LOCAL_H__)
 
-extern cvar_t *g_hook;
-extern cvar_t *g_hook_auto_refire;
-extern cvar_t *g_hook_distance;
-extern cvar_t *g_hook_pull_speed;
-extern cvar_t *g_hook_refire;
-extern cvar_t *g_hook_sky;
-extern cvar_t *g_hook_speed;
-extern cvar_t *g_hook_style;
+extern Cvar *g_hook;
+extern Cvar *g_hook_auto_refire;
+extern Cvar *g_hook_distance;
+extern Cvar *g_hook_pull_speed;
+extern Cvar *g_hook_refire;
+extern Cvar *g_hook_sky;
+extern Cvar *g_hook_speed;
+extern Cvar *g_hook_style;
 
 void G_Hook_Init(void);
 void G_Hook_CheckState(void);
 
-void G_HookDetach(g_client_t *cl);
-void G_HookThink(g_client_t *cl, const bool refire);
-g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir);
-void G_SetClientHookStyle(g_client_t *cl);
+void G_HookDetach(GameClient *cl);
+void G_HookThink(GameClient *cl, const bool refire);
+GameEntity *G_HookProjectile(GameEntity *ent, const Vec3 start, const Vec3 dir);
+void G_SetClientHookStyle(GameClient *cl);
 
 #endif

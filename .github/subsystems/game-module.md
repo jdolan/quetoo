@@ -214,52 +214,52 @@ Game calls these server functions:
 typedef struct {
     // Console output
     void (*Print)(const char *fmt, ...);
-    void (*Debug)(debug_t debug, const char *func, const char *fmt, ...);
+    void (*Debug)(DebugFlags debug, const char *func, const char *fmt, ...);
     void (*Warn)(const char *func, const char *fmt, ...);
     void (*Error)(const char *func, const char *fmt, ...) __attribute__((noreturn));
     
     // Memory
-    void *(*Malloc)(size_t size, mem_tag_t tag);
+    void *(*Malloc)(size_t size, MemTag tag);
     void (*Free)(void *p);
     
     // Filesystem
     int64_t (*LoadFile)(const char *filename, void **buffer);
     
     // Console variables
-    cvar_t *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+    Cvar *(*Cvar)(const char *name, const char *value, uint32_t flags, const char *desc);
     
     // Commands
     void (*AddCmd)(const char *name, Cmd_ExecuteFunc_t func, const char *desc);
     
     // Collision
-    cm_trace_t (*Trace)(vec3_t start, vec3_t end, vec3_t mins, vec3_t maxs, 
-                        const g_entity_t *skip, int32_t contents);
-    int32_t (*PointContents)(vec3_t point);
+    CmTrace (*Trace)(Vec3 start, Vec3 end, Vec3 mins, Vec3 maxs, 
+                        const GameEntity *skip, int32_t contents);
+    int32_t (*PointContents)(Vec3 point);
     
     // Entity management
-    void (*LinkEntity)(g_entity_t *ent);
-    void (*UnlinkEntity)(g_entity_t *ent);
-    int32_t (*BoxEntities)(box3_t bounds, g_entity_t **list, int32_t len, uint32_t type);
+    void (*LinkEntity)(GameEntity *ent);
+    void (*UnlinkEntity)(GameEntity *ent);
+    int32_t (*BoxEntities)(Box3 bounds, GameEntity **list, int32_t len, uint32_t type);
     
     // Multicast
-    void (*Unicast)(const g_entity_t *ent, bool reliable);
-    void (*Multicast)(vec3_t origin, multicast_t to);
+    void (*Unicast)(const GameEntity *ent, bool reliable);
+    void (*Multicast)(Vec3 origin, Multicast to);
     
     // Positioned events
-    void (*PositionedSound)(vec3_t origin, g_entity_t *ent, uint16_t index, atten_t atten);
+    void (*PositionedSound)(Vec3 origin, GameEntity *ent, uint16_t index, atten_t atten);
     
     // Message writing (for multicast/unicast)
     void (*WriteByte)(int32_t c);
     void (*WriteShort)(int32_t c);
     void (*WriteLong)(int32_t c);
     void (*WriteString)(const char *s);
-    void (*WritePosition)(vec3_t pos);
+    void (*WritePosition)(Vec3 pos);
     void (*WriteAngle)(float f);
-    void (*WriteAngles)(vec3_t angles);
+    void (*WriteAngles)(Vec3 angles);
     
     // Config strings (level name, sky, etc.)
     void (*SetConfigString)(uint16_t index, const char *string);
-} g_import_t;
+} GameImport;
 ```
 
 ### Exports to Server (`ge`)
@@ -275,46 +275,46 @@ typedef struct {
     void (*Shutdown)(void);
     
     // Level spawning
-    void (*SpawnEntities)(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
+    void (*SpawnEntities)(const char *name, const CmEntity *props, CmEntity *const *entities, size_t num_entities);
     
     // Main game loop
     void (*Frame)(void);
     
     // Client events
-    bool (*ClientConnect)(g_entity_t *ent, char *userinfo);
-    void (*ClientBegin)(g_entity_t *ent);
-    void (*ClientUserInfoChanged)(g_entity_t *ent, const char *userinfo);
-    void (*ClientDisconnect)(g_entity_t *ent);
-    void (*ClientCommand)(g_entity_t *ent);
-    void (*ClientThink)(g_entity_t *ent, user_cmd_t *cmd);
+    bool (*ClientConnect)(GameEntity *ent, char *userinfo);
+    void (*ClientBegin)(GameEntity *ent);
+    void (*ClientUserInfoChanged)(GameEntity *ent, const char *userinfo);
+    void (*ClientDisconnect)(GameEntity *ent);
+    void (*ClientCommand)(GameEntity *ent);
+    void (*ClientThink)(GameEntity *ent, user_cmd_t *cmd);
 } game_export_t;
 ```
 
 ## Entity Structure
 
-Game extends base `g_entity_t` with additional fields:
+Game extends base `GameEntity` with additional fields:
 
 ```c
-struct g_entity_s {
+struct GameEntity {
     // Base (shared with server)
-    const cm_entity_t *def;        // BSP entity definition
+    const CmEntity *def;        // BSP entity definition
     const char *classname;
-    entity_state_t s;              // Network state
+    EntityState s;              // Network state
     
     // Game-specific
-    void (*Think)(g_entity_t *self);              // Think function
-    void (*Touch)(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace);
-    void (*Use)(g_entity_t *self, g_entity_t *other, g_entity_t *activator);
+    void (*Think)(GameEntity *self);              // Think function
+    void (*Touch)(GameEntity *self, GameEntity *other, const CmTrace *trace);
+    void (*Use)(GameEntity *self, GameEntity *other, GameEntity *activator);
     
-    vec3_t velocity;               // Current velocity
-    vec3_t avelocity;             // Angular velocity
+    Vec3 velocity;               // Current velocity
+    Vec3 avelocity;             // Angular velocity
     int32_t mass;                 // For physics
     
     float next_think;             // Time of next Think() call
     
-    g_entity_t *ground_entity;    // What we're standing on
-    g_entity_t *owner;            // Who created this (projectiles)
-    g_entity_t *enemy;            // Current target (AI)
+    GameEntity *ground_entity;    // What we're standing on
+    GameEntity *owner;            // Who created this (projectiles)
+    GameEntity *enemy;            // Current target (AI)
     
     int32_t health;               // Hit points
     int32_t max_health;
@@ -326,7 +326,7 @@ struct g_entity_s {
     
     uint32_t timestamp;           // For timing (item respawn, etc.)
     
-    g_client_t *client;           // If this is a player
+    GameClient *client;           // If this is a player
     
     // ... many more fields
 };
@@ -410,8 +410,8 @@ Pmove(&pm);  // Updates ps with new position/velocity
 ## Damage System
 
 ```c
-void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
-              vec3_t dir, vec3_t point, vec3_t normal, int32_t damage, 
+void G_Damage(GameEntity *target, GameEntity *inflictor, GameEntity *attacker,
+              Vec3 dir, Vec3 point, Vec3 normal, int32_t damage, 
               int32_t knockback, int32_t dflags, uint32_t mod);
 ```
 
@@ -433,7 +433,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 ### Hitscan Weapons
 Instant hit, no projectile:
 ```c
-const cm_trace_t tr = gi.Trace(start, end, NULL, NULL, self, CONTENTS_MASK_CLIP_PROJECTILE);
+const CmTrace tr = gi.Trace(start, end, NULL, NULL, self, CONTENTS_MASK_CLIP_PROJECTILE);
 if (tr.fraction < 1.0) {
     G_Damage(tr.ent, self, self, forward, tr.end, tr.plane.normal, 
              damage, knockback, 0, MOD_MACHINEGUN);
@@ -443,7 +443,7 @@ if (tr.fraction < 1.0) {
 ### Projectile Weapons
 Spawns entity that flies:
 ```c
-g_entity_t *rocket = G_Spawn();
+GameEntity *rocket = G_Spawn();
 rocket->owner = self;
 rocket->solid = SOLID_PROJECTILE;
 rocket->physics = PHYSICS_TOSS;
@@ -456,11 +456,11 @@ gi.LinkEntity(rocket);
 ### Splash Damage
 Area-of-effect:
 ```c
-void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, 
-                    int32_t damage, g_entity_t *ignore, float radius) {
+void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, 
+                    int32_t damage, GameEntity *ignore, float radius) {
     // Find all entities within radius
-    g_entity_t *ents[MAX_ENTITIES];
-    const box3_t bounds = Box3_Expand(Box3_FromRadius(inflictor->s.origin, radius), radius);
+    GameEntity *ents[MAX_ENTITIES];
+    const Box3 bounds = Box3_Expand(Box3_FromRadius(inflictor->s.origin, radius), radius);
     const int32_t num = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_ALL);
     
     for (int32_t i = 0; i < num; i++) {
@@ -479,7 +479,7 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker,
 
 Items defined in `g_items[]` array:
 ```c
-g_item_t g_items[] = {
+GameItem g_items[] = {
     {
         .classname = "item_health",
         .pickup = G_PickupHealth,
@@ -530,21 +530,21 @@ g_show_traces 1       # Visualize collision traces
 
 ### Delayed Actions
 ```c
-void DelayedFunction(g_entity_t *self) {
+void DelayedFunction(GameEntity *self) {
     // Do something later
     gi.PositionedSound(self->s.origin, NULL, sound_index, ATTEN_NORM);
     G_FreeEntity(self);
 }
 
 // Set up delayed call
-g_entity_t *timer = G_Spawn();
+GameEntity *timer = G_Spawn();
 timer->think = DelayedFunction;
 timer->next_think = g_level.time + 3.0;  // 3 seconds later
 ```
 
 ### Finding Entities
 ```c
-g_entity_t *ent = NULL;
+GameEntity *ent = NULL;
 while ((ent = G_Find(ent, EOFS(targetname), "door1"))) {
     // Found entity with targetname "door1"
     ent->use(ent, NULL, activator);
@@ -553,9 +553,9 @@ while ((ent = G_Find(ent, EOFS(targetname), "door1"))) {
 
 ### Trigger Activation
 ```c
-void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
+void G_UseTargets(GameEntity *ent, GameEntity *activator) {
     if (ent->target) {
-        g_entity_t *t = NULL;
+        GameEntity *t = NULL;
         while ((t = G_Find(t, EOFS(targetname), ent->target))) {
             if (t->use) {
                 t->use(t, ent, activator);

@@ -80,7 +80,7 @@ static Image *thumbnail(const char *map) {
  */
 static void addMap(IntermissionView *self, int32_t index) {
 
-  const cg_next_map_state_t *next_map = &cg_state.next_map;
+  const ClientGameNextMapState *next_map = &cg_state.next_map;
 
   StackView *tile = $(alloc(StackView), initWithFrame, NULL);
   assert(tile);
@@ -173,7 +173,7 @@ static void updateBindings(View *self, ident data) {
 
   IntermissionView *this = (IntermissionView *) self;
 
-  const cg_next_map_state_t *next_map = &cg_state.next_map;
+  const ClientGameNextMapState *next_map = &cg_state.next_map;
 
   if (data) {
 

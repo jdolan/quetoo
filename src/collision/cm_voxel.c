@@ -28,13 +28,13 @@
  * @param pos The world-space query position.
  * @return Pointer into cm_bsp.voxels[], clamped to grid bounds. Safe to call from any thread.
  */
-const cm_voxel_t *Cm_VoxelForPoint(const vec3_t pos) {
+const CmVoxel *Cm_VoxelForPoint(const Vec3 pos) {
 
   if (!cm_bsp.voxels) {
     return NULL;
   }
 
-  const vec3_t rel = Vec3_Subtract(pos, cm_bsp.voxel_bounds.mins);
+  const Vec3 rel = Vec3_Subtract(pos, cm_bsp.voxel_bounds.mins);
 
   int32_t xi = (int32_t) (rel.x / BSP_VOXEL_SIZE);
   int32_t yi = (int32_t) (rel.y / BSP_VOXEL_SIZE);

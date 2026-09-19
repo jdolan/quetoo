@@ -79,7 +79,7 @@ static struct {
   /**
    * @brief Default shell image.
    */
-  r_image_t *shell;
+  RenderImage *shell;
 
   /**
    * @brief Fallback voxel textures for player-model views.
@@ -91,41 +91,41 @@ static struct {
   /**
    * @brief Cached stage pipelines keyed by blend function.
    */
-  r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
+  RenderStagePipeline stage_pipelines[MAX_STAGE_PIPELINES];
   int32_t num_stage_pipelines;
 
   /**
    * @brief The material, stage-draw flag and dynamic light mask for the face in progress.
    */
-  const r_material_t *material;
+  const RenderMaterial *material;
   bool draw_stages;
-  const r_active_dynamic_lights_t *active_dynamic_lights;
+  const RenderActiveDynamicLights *active_dynamic_lights;
 } r_mesh_draw;
 
 /**
  * @brief Per-entity mesh vertex uniforms.
  */
 typedef struct {
-  mat4_t model;
+  Mat4 model;
   float lerp;
   float padding[3];
-  vec4_t color;
-  r_active_dynamic_lights_t active_dynamic_lights;
-} r_mesh_locals_t;
+  Vec4 color;
+  RenderActiveDynamicLights active_dynamic_lights;
+} RenderMeshLocals;
 
 /**
  * @brief Per-entity fragment locals.
  */
 typedef struct {
-  r_active_dynamic_lights_t active_dynamic_lights;
-} r_mesh_fragment_locals_t;
+  RenderActiveDynamicLights active_dynamic_lights;
+} RenderMeshFragmentLocals;
 
 /**
  * @brief Returns the cached mesh stage pipeline for the specified blend function.
  */
-static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
+static GraphicsPipeline *R_MeshStagePipeline(CmBlend src, CmBlend dest) {
 
-  r_stage_pipeline_t *p = r_mesh_draw.stage_pipelines;
+  RenderStagePipeline *p = r_mesh_draw.stage_pipelines;
   for (int32_t i = 0; i < r_mesh_draw.num_stage_pipelines; i++, p++) {
     if (p->src == src && p->dest == dest) {
       return p->pipeline;
@@ -165,20 +165,20 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
-      { .slot = 0, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
-      { .slot = 1, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+      { .slot = 0, .pitch = sizeof(RenderMeshVertex), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+      { .slot = 1, .pitch = sizeof(RenderMeshVertex), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
     },
     .num_vertex_buffers = 2,
     .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
-      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
-      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
-      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, bitangent) },
-      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_mesh_vertex_t, diffusemap) },
-      { .location = 5, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
-      { .location = 6, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
-      { .location = 7, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
-      { .location = 8, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, bitangent) },
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, position) },
+      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, normal) },
+      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, tangent) },
+      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, bitangent) },
+      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(RenderMeshVertex, diffusemap) },
+      { .location = 5, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, position) },
+      { .location = 6, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, normal) },
+      { .location = 7, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, tangent) },
+      { .location = 8, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, bitangent) },
     },
     .num_vertex_attributes = 9,
   };
@@ -212,7 +212,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_draw.stage_pipelines[r_mesh_draw.num_stage_pipelines++] = (r_stage_pipeline_t) {
+  r_mesh_draw.stage_pipelines[r_mesh_draw.num_stage_pipelines++] = (RenderStagePipeline) {
     .src = src, .dest = dest, .depth_write = false, .pipeline = pipeline,
   };
 
@@ -222,15 +222,15 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 /**
  * @brief Draws one material stage for a mesh face.
  */
-static void R_DrawMeshEntityMaterialStage(const r_view_t *view,
-                                          const r_entity_t *e,
-                                          const r_mesh_face_t *face,
-                                          const r_stage_t *stage,
+static void R_DrawMeshEntityMaterialStage(const RenderView *view,
+                                          const RenderEntity *e,
+                                          const RenderMeshFace *face,
+                                          const RenderStage *stage,
                                           RenderPass *pass) {
 
-  const r_material_t *material = r_mesh_draw.material;
+  const RenderMaterial *material = r_mesh_draw.material;
 
-  r_mesh_material_uniforms_t uniforms = { 0 };
+  RenderMeshMaterialUniforms uniforms = { 0 };
   R_MaterialUniforms(material, material->cm->surface, &uniforms.material);
 
   SDL_GPUTexture *texture, *texture_next;
@@ -262,7 +262,7 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view,
 /**
  * @brief Draws a shell stage for a mesh face.
  */
-static void R_DrawMeshEntityShellEffect(const r_view_t *view, const r_entity_t *e, const r_mesh_face_t *face, RenderPass *pass) {
+static void R_DrawMeshEntityShellEffect(const RenderView *view, const RenderEntity *e, const RenderMeshFace *face, RenderPass *pass) {
 
   if (!(e->effects & EF_SHELL)) {
     return;
@@ -275,7 +275,7 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, const r_entity_t *
     }
   }
 
-  for (const r_stage_t *stage = r_mesh_draw.material->stages; stage; stage = stage->next) {
+  for (const RenderStage *stage = r_mesh_draw.material->stages; stage; stage = stage->next) {
     if (stage->cm->flags & STAGE_SHELL) {
       R_DrawMeshEntityMaterialStage(view, e, face, stage, pass);
       return;
@@ -284,7 +284,7 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, const r_entity_t *
 
   const float radius = (e->effects & EF_WEAPON) ? .25f : 1.f;
 
-  const cm_stage_t cm = {
+  const CmStage cm = {
     .flags = STAGE_COLOR | STAGE_SHELL
         | STAGE_SCALE_S | STAGE_SCALE_T
         | STAGE_SCROLL_S | STAGE_SCROLL_T
@@ -297,10 +297,10 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, const r_entity_t *
     .lighting = { 1.f, STAGE_LIGHTING_MODE_FLAT },
   };
 
-  const r_stage_t default_shell = {
+  const RenderStage default_shell = {
     .cm = &cm,
     .flags = cm.flags,
-    .media = (r_media_t *) r_mesh_draw.shell,
+    .media = (RenderMedia *) r_mesh_draw.shell,
   };
 
   R_DrawMeshEntityMaterialStage(view, e, face, &default_shell, pass);
@@ -309,9 +309,9 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, const r_entity_t *
 /**
  * @brief Draws a mesh face's material stages and shell effect.
  */
-static void R_DrawMeshEntityMaterialStages(const r_view_t *view, const r_entity_t *e, const r_mesh_face_t *face, RenderPass *pass) {
+static void R_DrawMeshEntityMaterialStages(const RenderView *view, const RenderEntity *e, const RenderMeshFace *face, RenderPass *pass) {
 
-  const r_material_t *material = r_mesh_draw.material;
+  const RenderMaterial *material = r_mesh_draw.material;
 
   if (!r_draw_material_stages->integer) {
     return;
@@ -321,7 +321,7 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, const r_entity_
     return;
   }
 
-  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
+  for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
     }
@@ -334,9 +334,9 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, const r_entity_
 /**
  * @brief Binds per-face mesh uniforms and vertex buffers.
  */
-static void R_BindMeshEntityFace(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face, RenderPass *pass) {
+static void R_BindMeshEntityFace(const RenderEntity *e, const RenderMeshModel *mesh, const RenderMeshFace *face, RenderPass *pass) {
 
-  r_mesh_locals_t locals = {
+  RenderMeshLocals locals = {
     .model = e->matrix,
     .lerp = e->lerp,
     .color = e->color,
@@ -361,7 +361,7 @@ static void R_BindMeshEntityFace(const r_entity_t *e, const r_mesh_model_t *mesh
 
   $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
-  const uint32_t stride = sizeof(r_mesh_vertex_t);
+  const uint32_t stride = sizeof(RenderMeshVertex);
   const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
   const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
 
@@ -374,20 +374,20 @@ static void R_BindMeshEntityFace(const r_entity_t *e, const r_mesh_model_t *mesh
 /**
  * @brief Draws a single mesh face.
  */
-static void R_DrawMeshEntityFace(const r_view_t *view,
-                                 const r_entity_t *e,
-                                 const r_mesh_model_t *mesh,
-                                 const r_mesh_face_t *face,
+static void R_DrawMeshEntityFace(const RenderView *view,
+                                 const RenderEntity *e,
+                                 const RenderMeshModel *mesh,
+                                 const RenderMeshFace *face,
                                  RenderPass *pass) {
 
-  const r_material_t *material = r_mesh_draw.material;
+  const RenderMaterial *material = r_mesh_draw.material;
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
     .sampler = r_mesh_draw.repeat_sampler->sampler,
   }, 1);
 
-  r_mesh_material_uniforms_t material_uniforms;
+  RenderMeshMaterialUniforms material_uniforms;
   R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
   memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
 
@@ -419,13 +419,13 @@ static void R_DrawMeshEntityFace(const r_view_t *view,
 /**
  * @brief Draws a mesh face's material stages without the base face draw.
  */
-static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view,
-                                               const r_entity_t *e,
-                                               const r_mesh_model_t *mesh,
-                                               const r_mesh_face_t *face,
+static void R_DrawMeshEntityFaceMaterialStages(const RenderView *view,
+                                               const RenderEntity *e,
+                                               const RenderMeshModel *mesh,
+                                               const RenderMeshFace *face,
                                                RenderPass *pass) {
 
-  const r_material_t *material = r_mesh_draw.material;
+  const RenderMaterial *material = r_mesh_draw.material;
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
@@ -440,9 +440,9 @@ static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view,
 /**
  * @brief Draws a mesh entity.
  */
-static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPass *pass) {
+static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, RenderPass *pass) {
 
-  const r_mesh_model_t *mesh = e->model->mesh;
+  const RenderMeshModel *mesh = e->model->mesh;
   assert(mesh);
 
   if (!mesh->vertex_buffer) {
@@ -457,7 +457,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
     });
   }
 
-  r_mesh_fragment_locals_t fragment_locals = { 0 };
+  RenderMeshFragmentLocals fragment_locals = { 0 };
   memcpy(&fragment_locals.active_dynamic_lights, &e->active_dynamic_lights, sizeof(fragment_locals.active_dynamic_lights));
   $(pass->commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
@@ -467,10 +467,10 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
     .buffer = mesh->elements_buffer->buffer
   }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  const r_mesh_face_t *face = mesh->faces;
+  const RenderMeshFace *face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-    const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+    const RenderMaterial *material = R_MeshEntityFaceMaterial(e, face, i);
     if (!material) {
       continue;
     }
@@ -497,7 +497,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
   face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-    const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+    const RenderMaterial *material = R_MeshEntityFaceMaterial(e, face, i);
     if (!material) {
       continue;
     }
@@ -526,7 +526,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
     face = mesh->faces;
     for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-      const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+      const RenderMaterial *material = R_MeshEntityFaceMaterial(e, face, i);
       if (!material) {
         continue;
       }
@@ -547,7 +547,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
   face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-    const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+    const RenderMaterial *material = R_MeshEntityFaceMaterial(e, face, i);
     if (!material) {
       continue;
     }
@@ -582,12 +582,12 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
 /**
  * @brief Draws mesh entities for the view.
  */
-void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
+void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
 
   // The player model preview must never bind the current world's voxel/sky
   // data: its view origin has no relation to the loaded map's lighting, so
   // doing so would produce seemingly random lighting on the preview model.
-  const r_bsp_model_t *bsp = view->type == VIEW_PLAYER_MODEL ? NULL : r_models.world->bsp;
+  const RenderBspModel *bsp = view->type == VIEW_PLAYER_MODEL ? NULL : r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -642,7 +642,7 @@ void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
 
-  const r_entity_t *e = view->entities;
+  const RenderEntity *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (!IS_MESH_MODEL(e->model)) {
@@ -692,20 +692,20 @@ void R_InitMeshPipeline(void) {
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
-      { .slot = 0, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
-      { .slot = 1, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+      { .slot = 0, .pitch = sizeof(RenderMeshVertex), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+      { .slot = 1, .pitch = sizeof(RenderMeshVertex), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
     },
     .num_vertex_buffers = 2,
     .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
-      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
-      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
-      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, bitangent) },
-      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_mesh_vertex_t, diffusemap) },
-      { .location = 5, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
-      { .location = 6, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
-      { .location = 7, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
-      { .location = 8, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, bitangent) },
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, position) },
+      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, normal) },
+      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, tangent) },
+      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, bitangent) },
+      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(RenderMeshVertex, diffusemap) },
+      { .location = 5, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, position) },
+      { .location = 6, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, normal) },
+      { .location = 7, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, tangent) },
+      { .location = 8, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(RenderMeshVertex, bitangent) },
     },
     .num_vertex_attributes = 9,
   };

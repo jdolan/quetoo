@@ -65,7 +65,7 @@ struct CounterView {
   Text *caption;
 
   /**
-   * @brief The index into `player_state_t::stats`.
+   * @brief The index into `PlayerState::stats`.
    */
   int32_t stat;
 
@@ -93,7 +93,7 @@ struct CounterViewInterface {
    * @brief Initializes this CounterView with the given caption, counting the given stat.
    * @param self The CounterView.
    * @param caption The caption.
-   * @param stat The index into `player_state_t::stats`, or `COUNTER_VIEW_NO_STAT` when a
+   * @param stat The index into `PlayerState::stats`, or `COUNTER_VIEW_NO_STAT` when a
    * subclass overrides CounterView::valueForFrame.
    * @return The initialized CounterView, or `NULL` on error.
    * @memberof CounterView
@@ -101,7 +101,7 @@ struct CounterViewInterface {
   CounterView *(*initWithCaption)(CounterView *self, const char *caption, int32_t stat);
 
   /**
-   * @fn const char *CounterView::textForFrame(CounterView *self, const cl_frame_t *frame)
+   * @fn const char *CounterView::textForFrame(CounterView *self, const ClientFrame *frame)
    * @brief Resolves the text shown for the given frame.
    * @details The default formats CounterView::valueForFrame, blank while spectating without a
    * chase target; subclasses showing something other than a number override this.
@@ -110,10 +110,10 @@ struct CounterViewInterface {
    * @return The text, valid until the next call.
    * @memberof CounterView
    */
-  const char *(*textForFrame)(CounterView *self, const cl_frame_t *frame);
+  const char *(*textForFrame)(CounterView *self, const ClientFrame *frame);
 
   /**
-   * @fn int32_t CounterView::valueForFrame(CounterView *self, const cl_frame_t *frame)
+   * @fn int32_t CounterView::valueForFrame(CounterView *self, const ClientFrame *frame)
    * @brief Resolves the value shown for the given frame.
    * @details The default reads `stat` from the frame's player state; subclasses deriving a
    * value some other way override this.
@@ -122,7 +122,7 @@ struct CounterViewInterface {
    * @return The value.
    * @memberof CounterView
    */
-  int32_t (*valueForFrame)(CounterView *self, const cl_frame_t *frame);
+  int32_t (*valueForFrame)(CounterView *self, const ClientFrame *frame);
 
 };
 

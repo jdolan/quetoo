@@ -51,7 +51,7 @@ layout (location = 8) in vec3 in_next_bitangent;
 
 /**
  * @brief Declares the per-entity mesh locals block.
- * @remarks Uses scalar padding to stay std140-compatible with r_mesh_locals_t.
+ * @remarks Uses scalar padding to stay std140-compatible with RenderMeshLocals.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
   mat4 model;

@@ -60,7 +60,7 @@ START_TEST(check_Ms_AddServer) {
   Ms_AddServer(&addr);
   ck_assert_int_eq((int) ms_servers->count, 1);
 
-  ms_server_t *server = (ms_server_t *) ms_servers->head->element;
+  MasterServer *server = (MasterServer *) ms_servers->head->element;
   ck_assert_msg(server->addr.sin_addr.s_addr == addr.sin_addr.s_addr, "Corrupt server address");
 
   Ms_AddServer(&addr);
@@ -85,13 +85,13 @@ START_TEST(check_Ms_AddServer) {
   Ms_RemoveServer(&addr, va("shutdown %u", server->challenge));
   ck_assert_int_eq((int) ms_servers->count, 1);
 
-  ms_server_t *s = Ms_GetServer(&addr);
+  MasterServer *s = Ms_GetServer(&addr);
   ck_assert_msg(!s, "Server was not NULL");
 
 } END_TEST
 
 START_TEST(check_Ms_BlacklistServer) {
-  file_t *f = Fs_OpenAppend("servers-blacklist");
+  File *f = Fs_OpenAppend("servers-blacklist");
   ck_assert_msg(f != NULL, "Failed to open servers-blacklist");
 
   const char *test = "192.168.0.*\n";

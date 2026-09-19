@@ -105,7 +105,7 @@ struct JoinServerViewController {
    * it survives a re-sort and a refresh, and by address rather than by hostname,
    * which servers do not advertise uniquely. Zeroed when nothing is selected.
    */
-  net_addr_t selectedAddr;
+  NetAddr selectedAddr;
 };
 
 /**

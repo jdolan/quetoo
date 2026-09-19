@@ -24,8 +24,8 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_misc_portal(g_entity_t *ent);
-void G_misc_teleporter(g_entity_t *ent);
-void G_misc_teleporter_dest(g_entity_t *ent);
-void G_misc_fireball(g_entity_t *ent);
+void G_misc_portal(GameEntity *ent);
+void G_misc_teleporter(GameEntity *ent);
+void G_misc_teleporter_dest(GameEntity *ent);
+void G_misc_fireball(GameEntity *ent);
 #endif

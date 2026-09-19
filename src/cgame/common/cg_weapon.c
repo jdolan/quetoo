@@ -24,23 +24,23 @@
 /**
  * @brief Adds weapon bob due to running, walking, crouching, etc.
  */
-static void Cg_WeaponBob(const player_state_t *ps, vec3_t *offset, vec3_t *angles) {
-  const vec3_t bob = Vec3(0.2f, 0.4f, 0.2f);
+static void Cg_WeaponBob(const PlayerState *ps, Vec3 *offset, Vec3 *angles) {
+  const Vec3 bob = MakeVec3(0.2f, 0.4f, 0.2f);
 
   *offset = Vec3_Fmaf(*offset, cg_view.bob, bob);
-  *angles = Vec3_Add(*angles, Vec3(0.f, 1.5f * cg_view.bob, 0.f));
+  *angles = Vec3_Add(*angles, MakeVec3(0.f, 1.5f * cg_view.bob, 0.f));
 }
 
 /**
  * @brief Calculates a kick offset and angles based on our player's animation state.
  */
-static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t *offset, vec3_t *angles) {
+static void Cg_WeaponOffset(ClientEntity *ent, Vec3 *offset, Vec3 *angles) {
 
-  const vec3_t drop_raise_offset = Vec3(-4.f, -4.f, -4.f);
-  const vec3_t drop_raise_angles = Vec3(25.f, -35.f, 2.f);
+  const Vec3 drop_raise_offset = MakeVec3(-4.f, -4.f, -4.f);
+  const Vec3 drop_raise_angles = MakeVec3(25.f, -35.f, 2.f);
 
-  const vec3_t kick_offset = Vec3(-6.f, 0.f, 0.f);
-  const vec3_t kick_angles = Vec3(-2.f, 0.f, 0.f);
+  const Vec3 kick_offset = MakeVec3(-6.f, 0.f, 0.f);
+  const Vec3 kick_angles = MakeVec3(-2.f, 0.f, 0.f);
 
   *offset = Vec3_Zero();
   *angles = Vec3_Zero();
@@ -59,15 +59,15 @@ static void Cg_WeaponOffset(cl_entity_t *ent, vec3_t *offset, vec3_t *angles) {
   *offset = Vec3_Scale(*offset, cg_bob->value);
   *angles = Vec3_Scale(*angles, cg_bob->value);
 
-  *offset = Vec3_Add(*offset, Vec3(cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value));
+  *offset = Vec3_Add(*offset, MakeVec3(cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value));
 }
 
 /**
  * @brief Periodically calculates the player's velocity, and interpolates it
  * over a small interval to smooth out rapid changes.
  */
-static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
-  static vec3_t old_speed, new_speed;
+static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
+  static Vec3 old_speed, new_speed;
   static uint32_t time;
 
   if (cgi.client->unclamped_time < time) {
@@ -77,7 +77,7 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
     new_speed = Vec3_Zero();
   }
 
-  vec3_t speed;
+  Vec3 speed;
 
   const uint32_t delta = cgi.client->unclamped_time - time;
   if (delta < 100) {
@@ -109,12 +109,12 @@ static void Cg_SpeedModulus(const player_state_t *ps, vec3_t *offset) {
 /**
  * @brief Adds the first-person weapon model to the view.
  */
-void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
-  static r_entity_t w;
-  vec3_t offset, angles;
-  vec3_t velocity;
+void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
+  static RenderEntity w;
+  Vec3 offset, angles;
+  Vec3 velocity;
 
-  const player_state_t *ps = &cgi.client->frame.ps;
+  const PlayerState *ps = &cgi.client->frame.ps;
 
   if (!cg_draw_weapon->value) {
     return;
@@ -175,7 +175,7 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
   w.effects = EF_WEAPON | EF_NO_SHADOW;
 
-  w.color = Vec4(1.0, 1.0, 1.0, 1.0);
+  w.color = MakeVec4(1.0, 1.0, 1.0, 1.0);
 
   if (cg_draw_weapon_alpha->value < 1.0) {
     w.effects |= EF_BLEND;
@@ -187,21 +187,21 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
   if (self->effects & EF_INVISIBILITY) {
     w.effects |= EF_BLEND | EF_NO_SHADOW;
-    w.color = Vec4(1.f, 1.f, 1.f, 0.f);
+    w.color = MakeVec4(1.f, 1.f, 1.f, 0.f);
   }
 
-  w.abs_bounds = Box3_FromCenterSize(cgi.view->origin, Vec3(16.f, 16.f, 16.f));
+  w.abs_bounds = Box3_FromCenterSize(cgi.view->origin, MakeVec3(16.f, 16.f, 16.f));
 
   w.lerp = w.scale = 1.0;
 
-  r_entity_t *weapon = cgi.AddEntity(cgi.view, &w);
+  RenderEntity *weapon = cgi.AddEntity(cgi.view, &w);
 
-  cg_client_info_t *ci = &cg_state.clients[cgi.client->frame.ps.client];
+  ClientGameClientInfo *ci = &cg_state.clients[cgi.client->frame.ps.client];
 
-  vec3_t weapon_origin;
+  Vec3 weapon_origin;
   Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weapon_origin);
 
-  const vec3_t cfg_muzzle = weapon->model->mesh ? weapon->model->mesh->config.view.muzzle : Vec3_Zero();
+  const Vec3 cfg_muzzle = weapon->model->mesh ? weapon->model->mesh->config.view.muzzle : Vec3_Zero();
   if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
     ci->weapon_muzzle = Mat4_Transform(weapon->matrix, cfg_muzzle);
   } else {
