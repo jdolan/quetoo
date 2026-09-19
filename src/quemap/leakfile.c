@@ -38,12 +38,12 @@ void WriteLeakFile(const Tree *tree) {
     Com_Error(ERROR_FATAL, "Couldn't open %s\n", path);
   }
 
-  const Node *node = &tree->outside_node;
+  const Node *node = &tree->outsideNode;
   while (node->occupied > 1) {
     int32_t occupied = node->occupied;
 
-    const Portal *next_portal = NULL;
-    const Node *next_node = NULL;
+    const Portal *nextPortal = NULL;
+    const Node *nextNode = NULL;
 
     int32_t s;
 
@@ -51,15 +51,15 @@ void WriteLeakFile(const Tree *tree) {
     for (const Portal *p = node->portals; p; p = p->next[!s]) {
       s = (p->nodes[0] == node);
       if (p->nodes[s]->occupied && p->nodes[s]->occupied < occupied) {
-        next_portal = p;
-        next_node = p->nodes[s];
-        occupied = next_node->occupied;
+        nextPortal = p;
+        nextNode = p->nodes[s];
+        occupied = nextNode->occupied;
       }
     }
-    node = next_node;
+    node = nextNode;
 
     // add the portal center
-    point = Cm_WindingCenter(next_portal->winding);
+    point = Cm_WindingCenter(nextPortal->winding);
     Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
   }
   

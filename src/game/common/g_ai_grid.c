@@ -79,19 +79,19 @@ static struct KdTreeNode *kdtree_build(struct KdTreeBuildCtx *ctx, const size_t 
 
   struct KdTreeNode *node = gkdt_alloc_node(ctx->tree);
   const size_t mid = (ctx->slicesize - 1) / 2;
-  const size_t next_dim = (dim + 1) % 3;
+  const size_t nextDim = (dim + 1) % 3;
 
   node->nodenum = ctx->sortedx[mid];
   node->left = kdtree_build(&(struct KdTreeBuildCtx) {
     .tree = ctx->tree,
     .sortedx = ctx->sortedx,
     .slicesize = mid
-  }, next_dim);
+  }, nextDim);
   node->right = kdtree_build(&(struct KdTreeBuildCtx) {
     .tree = ctx->tree,
     .sortedx = ctx->sortedx + mid + 1,
     .slicesize = ctx->slicesize - mid - 1
-  }, next_dim);
+  }, nextDim);
 
   return node;
 }
@@ -147,36 +147,36 @@ static void kdtree_query_filter_rec(struct KdTreeFilterCtx *ctx, const struct Kd
   }
 
   const Vec3 pos = ctx->tree->srcdata[node->nodenum];
-  float filter_dist = INFINITY;
+  float filterDist = INFINITY;
 
-  if (ctx->filter(node->nodenum, ctx->data, &filter_dist) && filter_dist < ctx->bestdist) {
+  if (ctx->filter(node->nodenum, ctx->data, &filterDist) && filterDist < ctx->bestdist) {
     ctx->best = node->nodenum;
-    ctx->bestdist = filter_dist;
+    ctx->bestdist = filterDist;
   }
 
   const double sdist = ctx->querypos.xyz[dim] - pos.xyz[dim];
-  const struct KdTreeNode *near_node = sdist < 0 ? node->left : node->right;
-  const struct KdTreeNode *far_node = sdist < 0 ? node->right : node->left;
-  const size_t next_dim = (dim + 1) % 3;
+  const struct KdTreeNode *nearNode = sdist < 0 ? node->left : node->right;
+  const struct KdTreeNode *farNode = sdist < 0 ? node->right : node->left;
+  const size_t nextDim = (dim + 1) % 3;
 
-  kdtree_query_filter_rec(ctx, near_node, next_dim);
+  kdtree_query_filter_rec(ctx, nearNode, nextDim);
 
   if (sdist * sdist <= ctx->bestdist) {
-    kdtree_query_filter_rec(ctx, far_node, next_dim);
+    kdtree_query_filter_rec(ctx, farNode, nextDim);
   }
 }
 
-size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, const float max_distance,
+size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, const float maxDistance,
                                GridKdTreeFilter filter, void *data) {
 
-  if (!tree || !tree->root || !filter || max_distance <= 0.f) {
+  if (!tree || !tree->root || !filter || maxDistance <= 0.f) {
     return SIZE_MAX;
   }
 
   struct KdTreeFilterCtx ctx = {
     .tree = tree,
     .querypos = querypos,
-    .bestdist = (double) max_distance * max_distance,
+    .bestdist = (double) maxDistance * maxDistance,
     .best = SIZE_MAX,
     .filter = filter,
     .data = data
@@ -236,12 +236,12 @@ bool gheap_push(struct GHeap *heap, const float cost, void *data) {
   }
 
   while (i != 0) {
-    const size_t parent_index = (i - 1) / 2;
-    struct GHeapEntry *parent = &heap->entries[parent_index];
+    const size_t parentIndex = (i - 1) / 2;
+    struct GHeapEntry *parent = &heap->entries[parentIndex];
 
     if (heap->entries[i].cost < parent->cost) {
       hswap(&heap->entries[i], parent);
-      i = parent_index;
+      i = parentIndex;
     } else {
       break;
     }

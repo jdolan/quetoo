@@ -249,9 +249,9 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
     }
 
     if (key == SDLK_G) {
-      self->show_func_groups = !self->show_func_groups;
-      cg_editor.show_func_groups = self->show_func_groups;
-      cgi.Print("func_group entities %s\n", self->show_func_groups ? "^2shown" : "^1hidden");
+      self->showFuncGroups = !self->showFuncGroups;
+      cg_editor.showFuncGroups = self->showFuncGroups;
+      cgi.Print("func_group entities %s\n", self->showFuncGroups ? "^2shown" : "^1hidden");
     }
 
     if (key == SDLK_U && cgi.GetKeyDest() == KEY_UI && self->entity) {
@@ -347,7 +347,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
       case NOTIFICATION_ENTITY_PARSED: {
 
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
-        const char *info = cgi.client->config_strings[CS_ENTITIES + number];
+        const char *info = cgi.client->configStrings[CS_ENTITIES + number];
 
         ClientGameEditorEntity *entity = &cg_editor.entities[number];
 
@@ -429,7 +429,7 @@ static void deleteEntity(EntityViewController *self) {
 static EntityViewController *init(EntityViewController *self) {
   self = (EntityViewController *) super(ViewController, self, init);
   if (self) {
-    self->show_func_groups = true;
+    self->showFuncGroups = true;
   }
   return self;
 }
@@ -471,7 +471,7 @@ static void setEntity(EntityViewController *self, ClientGameEditorEntity *entity
     const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
     if (!q_strcmp(classname, "light")) {
 
-      const char *team = cgi.EntityValue(self->entity->def, "team")->nullable_string;
+      const char *team = cgi.EntityValue(self->entity->def, "team")->nullableString;
       const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
       if (teamMaster != -1 && teamMaster != self->entity->number) {
 

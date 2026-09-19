@@ -54,7 +54,7 @@ void Img_BlurSurface(SDL_Surface *surf, int32_t radius);
 /**
  * @brief Rotates the specified surface clockwise by the number of rotations.
  */
-SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
+SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t numRotations);
 
 /**
 * @brief Write pixel data to a PNG file.

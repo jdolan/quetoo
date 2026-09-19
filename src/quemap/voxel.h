@@ -34,31 +34,31 @@ typedef struct {
   float exposure;
   float occlusion;
   HashTable *lights;
-  int32_t lights_offset;
-  int32_t lights_count;
+  int32_t lightsOffset;
+  int32_t lightsCount;
 } Voxel;
 
 /**
  * @brief The voxel grid type.
  */
 typedef struct {
-  Box3 stu_bounds;
+  Box3 stuBounds;
   Vec3i size;
-  size_t num_voxels;
+  size_t numVoxels;
   Voxel *voxels;
-  size_t num_light_indices;
+  size_t numLightIndices;
 } Voxels;
 
 extern Voxels voxels;
 
 size_t BuildVoxels(void);
-void LightVoxel(int32_t voxel_num);
+void LightVoxel(int32_t voxelNum);
 void FloodLights(void);
 void AssignLightVoxels(void);
 void AssignBlockVoxels(void);
-void CausticsVoxel(int32_t voxel_num);
-void ExposureVoxel(int32_t voxel_num);
-void OccludeVoxel(int32_t voxel_num);
+void CausticsVoxel(int32_t voxelNum);
+void ExposureVoxel(int32_t voxelNum);
+void OccludeVoxel(int32_t voxelNum);
 void SmoothVoxels(void);
 void EmitVoxels(void);
 void FreeVoxels(void);

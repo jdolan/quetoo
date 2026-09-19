@@ -48,7 +48,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
     return NULL;
   }
 
-  if (time > cgi.client->unclamped_time) {
+  if (time > cgi.client->unclampedTime) {
     time = 0;
   }
 
@@ -66,11 +66,11 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
       const ClientGameClientInfo *client = Cg_ClientInfo(ent);
 
       q_strlcpy(name, client->name, sizeof(name));
-      time = cgi.client->unclamped_time;
+      time = cgi.client->unclampedTime;
     }
   }
 
-  if (cgi.client->unclamped_time - time > 500) {
+  if (cgi.client->unclampedTime - time > 500) {
     return NULL;
   }
 

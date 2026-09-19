@@ -47,21 +47,21 @@ typedef struct {
   /**
    * @brief Number of allocated queries.
    */
-  int32_t num_queries;
+  int32_t numQueries;
 
   /**
    * @brief The bounds of this frame's occluded world block queries, compacted so
    * that `R_OccludeBox` need only visit the blocks relevant to each of its passes.
    */
-  Box3 occluded_bounds[MAX_BSP_BLOCKS];
-  int32_t num_occluded_bounds;
+  Box3 occludedBounds[MAX_BSP_BLOCKS];
+  int32_t numOccludedBounds;
 
   /**
    * @brief The bounds of this frame's visible world block queries, compacted as
    * above.
    */
-  Box3 visible_bounds[MAX_BSP_BLOCKS];
-  int32_t num_visible_bounds;
+  Box3 visibleBounds[MAX_BSP_BLOCKS];
+  int32_t numVisibleBounds;
 
   /**
    * @brief Per-instance occlusion box bounds.
@@ -76,17 +76,17 @@ typedef struct {
   /**
    * @brief Per-instance box buffer.
    */
-  Buffer *instance_buffer;
+  Buffer *instanceBuffer;
 
   /**
    * @brief Unit-cube vertex buffer.
    */
-  Buffer *vertex_buffer;
+  Buffer *vertexBuffer;
 
   /**
    * @brief Unit-cube index buffer.
    */
-  Buffer *elements_buffer;
+  Buffer *elementsBuffer;
 
   /**
    * @brief Occlusion query pipeline.

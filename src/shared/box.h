@@ -135,10 +135,10 @@ static inline Box3 __attribute__ ((warn_unused_result)) Box3_Union(const Box3 a,
 /**
  * @return A `box_t` constructed from a set of points.
  */
-static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromPoints(const Vec3 *points, const size_t num_points) {
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromPoints(const Vec3 *points, const size_t numPoints) {
   Box3 bounds = Box3_Null();
 
-  for (size_t i = 0; i < num_points; i++, points++) {
+  for (size_t i = 0; i < numPoints; i++, points++) {
     bounds = Box3_Append(bounds, *points);
   }
 
@@ -148,10 +148,10 @@ static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromPoints(const Ve
 /**
  * @return A `box_t` constructed from a set of points.
  */
-static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromPointsStride(const void *points, const size_t num_points, const size_t stride) {
+static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromPointsStride(const void *points, const size_t numPoints, const size_t stride) {
   Box3 bounds = Box3_Null();
 
-  for (size_t i = 0; i < num_points; i++, points += stride) {
+  for (size_t i = 0; i < numPoints; i++, points += stride) {
     bounds = Box3_Append(bounds, *(Vec3 *) points);
   }
 
@@ -322,10 +322,10 @@ static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromCenter(const Ve
  * such that its center is `center`, and its size matches `size`.
  */
 static inline Box3 __attribute__ ((warn_unused_result)) Box3_FromCenterSize(const Vec3 center, const Vec3 size) {
-  const Vec3 half_size = Vec3_Scale(size, .5f);
+  const Vec3 halfSize = Vec3_Scale(size, .5f);
   return MakeBox3(
-    Vec3_Subtract(center, half_size),
-    Vec3_Add(center, half_size)
+    Vec3_Subtract(center, halfSize),
+    Vec3_Add(center, halfSize)
   );
 }
 

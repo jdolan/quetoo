@@ -31,7 +31,7 @@ void Mem_InitBuffer(MemBuf *buf, byte *data, size_t len) {
   memset(buf, 0, sizeof(*buf));
 
   buf->data = data;
-  buf->max_size = len;
+  buf->maxSize = len;
 }
 
 /**
@@ -48,8 +48,8 @@ void Mem_ClearBuffer(MemBuf *buf) {
  */
 void *Mem_AllocBuffer(MemBuf *buf, size_t len) {
 
-  if (len > buf->max_size - buf->size) {
-    Com_Error(ERROR_FATAL, "Buffer overflow writing %zu bytes to %zu sized buffer\n", len, buf->max_size);
+  if (len > buf->maxSize - buf->size) {
+    Com_Error(ERROR_FATAL, "Buffer overflow writing %zu bytes to %zu sized buffer\n", len, buf->maxSize);
   }
 
   void *data = buf->data + buf->size;

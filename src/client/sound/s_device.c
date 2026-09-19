@@ -29,8 +29,8 @@
 static struct {
   SDL_AudioStream *playback;
   SDL_AudioStream *capture;
-  bool capture_failed;
-  bool warned_shared_device;
+  bool captureFailed;
+  bool warnedSharedDevice;
 } s_devices;
 
 Cvar *s_buffer_frames;
@@ -120,13 +120,13 @@ bool S_InitPlayback(void) {
 
   SDL_ResumeAudioStreamDevice(s_devices.playback);
 
-  SDL_AudioSpec device_spec;
-  int32_t device_frames = 0;
+  SDL_AudioSpec deviceSpec;
+  int32_t deviceFrames = 0;
 
-  if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(s_devices.playback), &device_spec, &device_frames)) {
+  if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(s_devices.playback), &deviceSpec, &deviceFrames)) {
     Com_Print("  Playback:   ^2%s^7\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_devices.playback)));
-    Com_Print("  Buffer:     ^2%d frames (%.1fms) @ %dhz^7\n", device_frames,
-              device_frames * 1000.f / device_spec.freq, device_spec.freq);
+    Com_Print("  Buffer:     ^2%d frames (%.1fms) @ %dhz^7\n", deviceFrames,
+              deviceFrames * 1000.f / deviceSpec.freq, deviceSpec.freq);
   }
 
   return true;
@@ -154,7 +154,7 @@ void S_ShutdownPlayback(void) {
  */
 static void S_CheckSharedDevice(const char *capture) {
 
-  if (!s_devices.playback || s_devices.warned_shared_device) {
+  if (!s_devices.playback || s_devices.warnedSharedDevice) {
     return;
   }
 
@@ -166,7 +166,7 @@ static void S_CheckSharedDevice(const char *capture) {
              "Run s_capture_device_list and set s_capture_device to a separate microphone to avoid it.\n",
              capture);
 
-    s_devices.warned_shared_device = true;
+    s_devices.warnedSharedDevice = true;
   }
 }
 
@@ -212,13 +212,13 @@ bool S_OpenCapture(int32_t rate) {
     return true;
   }
 
-  if (s_devices.capture_failed) {
+  if (s_devices.captureFailed) {
     return false;
   }
 
   if (s_capture_device->modified) {
     s_capture_device->modified = false;
-    s_devices.warned_shared_device = false;
+    s_devices.warnedSharedDevice = false;
   }
 
   const SDL_AudioSpec spec = {
@@ -231,7 +231,7 @@ bool S_OpenCapture(int32_t rate) {
 
   if (!s_devices.capture) {
     Com_Warn("Failed to open capture device: %s\n", SDL_GetError());
-    s_devices.capture_failed = true;
+    s_devices.captureFailed = true;
     return false;
   }
 
@@ -254,7 +254,7 @@ void S_CloseCapture(void) {
     s_devices.capture = NULL;
   }
 
-  s_devices.capture_failed = false;
+  s_devices.captureFailed = false;
 }
 
 /**

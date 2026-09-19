@@ -45,7 +45,7 @@ void Cl_ToggleConsole_f(void) {
     return;
   }
 
-  if (cls.key_state.dest == KEY_CONSOLE) {
+  if (cls.keyState.dest == KEY_CONSOLE) {
     if (cls.state == CL_ACTIVE) {
       Cl_SetKeyDest(KEY_GAME);
     } else {

@@ -45,11 +45,11 @@ void Sv_HeartbeatMaster(void) {
     return;
   }
 
-  if (svs.next_heartbeat > quetoo.ticks) {
+  if (svs.nextHeartbeat > quetoo.ticks) {
     return; // not time to send yet
   }
 
-  svs.next_heartbeat = quetoo.ticks + HEARTBEAT_SECONDS * 1000;
+  svs.nextHeartbeat = quetoo.ticks + HEARTBEAT_SECONDS * 1000;
 
   Com_Debug(DEBUG_SERVER, "Sending heartbeat to %s\n", Net_NetaddrToString(&svs.master.addr));
 
@@ -79,9 +79,9 @@ void Sv_Challenge(const NetAddr *from, uint32_t challenge) {
 
   // answer at once, but throttled, so that a flood of forged challenges
   // cannot turn us into a heartbeat flood aimed at the master
-  if (quetoo.ticks >= svs.master.challenge_time) {
-    svs.master.challenge_time = quetoo.ticks + 1000;
-    svs.next_heartbeat = 0;
+  if (quetoo.ticks >= svs.master.challengeTime) {
+    svs.master.challengeTime = quetoo.ticks + 1000;
+    svs.nextHeartbeat = 0;
   }
 }
 

@@ -208,14 +208,14 @@ static void R_LoadMeshTangents(RenderModel *mod) {
   assert(mod->mesh);
 
   const RenderMeshFace *face = mod->mesh->faces;
-  for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+  for (int32_t i = 0; i < mod->mesh->numFaces; i++, face++) {
 
-    CmVertex *vertexes = Mem_Malloc(sizeof(CmVertex) * face->num_vertexes);
+    CmVertex *vertexes = Mem_Malloc(sizeof(CmVertex) * face->numVertexes);
 
-    for (int32_t j = 0; j < mod->mesh->num_frames; j++) {
+    for (int32_t j = 0; j < mod->mesh->numFrames; j++) {
 
-      RenderMeshVertex *v = face->vertexes + face->num_vertexes * j;
-      for (int32_t k = 0; k < face->num_vertexes; k++, v++) {
+      RenderMeshVertex *v = face->vertexes + face->numVertexes * j;
+      for (int32_t k = 0; k < face->numVertexes; k++, v++) {
         vertexes[k] = (CmVertex) {
           .position = &v->position,
           .normal = &v->normal,
@@ -225,7 +225,7 @@ static void R_LoadMeshTangents(RenderModel *mod) {
         };
       }
 
-      Cm_Tangents(vertexes, 0, face->num_vertexes, (int32_t *) face->elements, face->num_elements);
+      Cm_Tangents(vertexes, 0, face->numVertexes, (int32_t *) face->elements, face->numElements);
     }
 
     Mem_Free(vertexes);
@@ -241,42 +241,42 @@ void R_LoadMeshVertexArray(RenderModel *mod) {
 
   RenderMeshModel *mesh = mod->mesh;
 
-  if (!mesh->num_faces) {
+  if (!mesh->numFaces) {
     return;
   }
 
   {
     const RenderMeshFace *face = mesh->faces;
-    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
-      mesh->num_vertexes += face->num_vertexes;
-      mesh->num_elements += face->num_elements;
+    for (int32_t i = 0; i < mesh->numFaces; i++, face++) {
+      mesh->numVertexes += face->numVertexes;
+      mesh->numElements += face->numElements;
     }
   }
 
-  assert(mesh->num_vertexes);
-  assert(mesh->num_elements);
+  assert(mesh->numVertexes);
+  assert(mesh->numElements);
 
-  mesh->vertexes = Mem_LinkMalloc(mesh->num_vertexes * mesh->num_frames * sizeof(RenderMeshVertex), mesh);
-  mesh->elements = Mem_LinkMalloc(mesh->num_elements * sizeof(uint32_t), mesh);
+  mesh->vertexes = Mem_LinkMalloc(mesh->numVertexes * mesh->numFrames * sizeof(RenderMeshVertex), mesh);
+  mesh->elements = Mem_LinkMalloc(mesh->numElements * sizeof(uint32_t), mesh);
 
   RenderMeshVertex *vertex = mesh->vertexes;
   uint32_t *elements = mesh->elements;
 
   {
     RenderMeshFace *face = mesh->faces;
-    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+    for (int32_t i = 0; i < mesh->numFaces; i++, face++) {
 
-      memcpy(vertex, face->vertexes, face->num_vertexes * mesh->num_frames * sizeof(RenderMeshVertex));
+      memcpy(vertex, face->vertexes, face->numVertexes * mesh->numFrames * sizeof(RenderMeshVertex));
       Mem_Free(face->vertexes);
 
       face->vertexes = vertex;
-      vertex += face->num_vertexes * mesh->num_frames;
+      vertex += face->numVertexes * mesh->numFrames;
 
-      memcpy(elements, face->elements, face->num_elements * sizeof(uint32_t));
+      memcpy(elements, face->elements, face->numElements * sizeof(uint32_t));
       Mem_Free(face->elements);
 
       face->elements = elements;
-      elements += face->num_elements;
+      elements += face->numElements;
     }
   }
 
@@ -284,21 +284,21 @@ void R_LoadMeshVertexArray(RenderModel *mod) {
 
   {
     RenderMeshFace *face = mesh->faces;
-    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
-      face->base_vertex = (int32_t) (face->vertexes - mesh->vertexes);
+    for (int32_t i = 0; i < mesh->numFaces; i++, face++) {
+      face->baseVertex = (int32_t) (face->vertexes - mesh->vertexes);
       face->indices = (void *) ((face->elements - mesh->elements) * sizeof(uint32_t));
     }
   }
 
-  mesh->vertex_buffer = $(r_context.device, createBufferWithConstMem,
+  mesh->vertexBuffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_VERTEX,
       mesh->vertexes,
-      mesh->num_vertexes * mesh->num_frames * sizeof(RenderMeshVertex));
+      mesh->numVertexes * mesh->numFrames * sizeof(RenderMeshVertex));
 
-  mesh->elements_buffer = $(r_context.device, createBufferWithConstMem,
+  mesh->elementsBuffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX,
       mesh->elements,
-      mesh->num_elements * sizeof(uint32_t));
+      mesh->numElements * sizeof(uint32_t));
 }
 
 /**
@@ -308,7 +308,7 @@ void R_RegisterMeshModel(RenderMedia *self) {
   RenderModel *mod = (RenderModel *) self;
 
   const RenderMeshFace *face = mod->mesh->faces;
-  for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+  for (int32_t i = 0; i < mod->mesh->numFaces; i++, face++) {
     if (face->material) {
       R_RegisterDependency(self, (RenderMedia *) face->material);
     }
@@ -322,7 +322,7 @@ void R_FreeMeshModel(RenderMedia *self) {
   RenderModel *mod = (RenderModel *) self;
 
   if (mod->mesh) {
-    mod->mesh->vertex_buffer = release(mod->mesh->vertex_buffer);
-    mod->mesh->elements_buffer = release(mod->mesh->elements_buffer);
+    mod->mesh->vertexBuffer = release(mod->mesh->vertexBuffer);
+    mod->mesh->elementsBuffer = release(mod->mesh->elementsBuffer);
   }
 }

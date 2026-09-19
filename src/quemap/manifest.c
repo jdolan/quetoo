@@ -33,21 +33,21 @@ static HashTable *paths;
 
 static bool HasSuffix(const char *str, const char *suffix) {
 	const size_t len = q_strlen(str);
-	const size_t suffix_len = q_strlen(suffix);
-	return len >= suffix_len && !q_strcmp(str + len - suffix_len, suffix);
+	const size_t suffixLen = q_strlen(suffix);
+	return len >= suffixLen && !q_strcmp(str + len - suffixLen, suffix);
 }
 
 static Order AssetPathCompare(const ident a, const ident b) {
-	const char *const *path_a = a;
-	const char *const *path_b = b;
-	const int32_t cmp = q_strcmp(*path_a, *path_b);
+	const char *const *pathA = a;
+	const char *const *pathB = b;
+	const int32_t cmp = q_strcmp(*pathA, *pathB);
 	return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 static void CollectAssetPath(const HashTable *table, ident key, ident value, ident data) {
-	Vector *asset_paths = data;
+	Vector *assetPaths = data;
 	const char *path = value;
-	$(asset_paths, add, &path);
+	$(assetPaths, add, &path);
 }
 
 /**
@@ -125,9 +125,9 @@ static bool AddFirstWithExtensions(const char *name, const char **extensions) {
  * @brief Attempts to add the specified sound in any available format.
  */
 static void AddSound(const char *sound) {
-	const char *sound_extensions[] = { "ogg", "wav", NULL };
+	const char *soundExtensions[] = { "ogg", "wav", NULL };
 
-	if (!AddFirstWithExtensions(va("sounds/%s", sound), sound_extensions)) {
+	if (!AddFirstWithExtensions(va("sounds/%s", sound), soundExtensions)) {
 		Com_Warn("Failed to add %s\n", sound);
 	}
 }
@@ -136,9 +136,9 @@ static void AddSound(const char *sound) {
  * @brief Attempts to add the specified image in any available format.
  */
 static void AddImage(const char *image) {
-	const char *image_extensions[] = { "tga", "png", "jpg", NULL };
+	const char *imageExtensions[] = { "tga", "png", "jpg", NULL };
 
-	if (!AddFirstWithExtensions(image, image_extensions)) {
+	if (!AddFirstWithExtensions(image, imageExtensions)) {
 		Com_Warn("Failed to add %s\n", image);
 	}
 }
@@ -166,7 +166,7 @@ static void AddMaterial(const CmMaterial *material) {
 
 		for (const CmStage *stage = material->stages; stage; stage = stage->next) {
 			Add(stage->asset.path);
-			for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+			for (int32_t i = 0; i < stage->animation.numFrames; i++) {
 				Add(stage->animation.frames[i].path);
 			}
 		}
@@ -180,7 +180,7 @@ static void AddMaterial(const CmMaterial *material) {
  */
 static void AddBspMaterials(void) {
 
-	for (int32_t i = 0; i < bsp_file.num_materials; i++) {
+	for (int32_t i = 0; i < bsp_file.numMaterials; i++) {
 		const char *name = bsp_file.materials[i].name;
 
 		CmMaterial *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
@@ -202,14 +202,14 @@ static void AddModel_enumerate(const char *path, void *data) {
  * @brief Adds the specified model and all assets in its directory.
  */
 static void AddModel(const char *model) {
-	const char *model_formats[] = { "md3", "obj", NULL };
+	const char *modelFormats[] = { "md3", "obj", NULL };
 	char path[MAX_QPATH];
 
 	if (model[0] == '*') { // inline bsp model
 		return;
 	}
 
-	if (!AddFirstWithExtensions(model, model_formats)) {
+	if (!AddFirstWithExtensions(model, modelFormats)) {
 		Com_Warn("Failed to resolve %s\n", model);
 		return;
 	}
@@ -224,7 +224,7 @@ static void AddModel(const char *model) {
  */
 static void AddEntities(void) {
 
-	List *entities = Cm_LoadEntities(bsp_file.entity_string);
+	List *entities = Cm_LoadEntities(bsp_file.entityString);
   entities->destroy = (Consumer) Cm_FreeEntity;
 
 	for (const ListNode *node = entities->head; node; node = node->next) {
@@ -307,19 +307,19 @@ int32_t WriteManifest(void) {
 	AddMapshots();
 
 	// add the bsp itself to the manifest
-	const char *bsp_path = va("maps/%s.bsp", map_base);
-	Add(bsp_path);
+	const char *bspPath = va("maps/%s.bsp", map_base);
+	Add(bspPath);
 
 	// sort the asset paths
-	Vector *asset_paths = $(alloc(Vector), initWithSize, sizeof(char *));
-	$(paths, enumerate, CollectAssetPath, asset_paths);
-	$(asset_paths, sort, AssetPathCompare);
+	Vector *assetPaths = $(alloc(Vector), initWithSize, sizeof(char *));
+	$(paths, enumerate, CollectAssetPath, assetPaths);
+	$(assetPaths, sort, AssetPathCompare);
 
 	// build the manifest entries with checksums
 	HashTable *manifest = Cm_AllocManifest();
 
-	for (size_t i = 0; i < asset_paths->count; i++) {
-		const char *path = VectorValue(asset_paths, char *, i);
+	for (size_t i = 0; i < assetPaths->count; i++) {
+		const char *path = VectorValue(assetPaths, char *, i);
 
 		void *data = NULL;
 		const int64_t len = Fs_Load(path, &data);
@@ -335,21 +335,21 @@ int32_t WriteManifest(void) {
 		}
 	}
 
-	release(asset_paths);
+	release(assetPaths);
 	release(paths);
 
 	// write the manifest
-	char mf_path[MAX_OS_PATH];
-	q_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+	char mfPath[MAX_OS_PATH];
+	q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", map_base);
 
-	const int32_t count = Cm_WriteManifest(mf_path, manifest);
+	const int32_t count = Cm_WriteManifest(mfPath, manifest);
 	if (count < 0) {
-		Com_Error(ERROR_FATAL, "Failed to write %s\n", mf_path);
+		Com_Error(ERROR_FATAL, "Failed to write %s\n", mfPath);
 	}
 
 	Cm_FreeManifest(manifest);
 
-	Com_Print("Wrote %s (%d assets)\n", mf_path, count);
+	Com_Print("Wrote %s (%d assets)\n", mfPath, count);
 
 	return 0;
 }

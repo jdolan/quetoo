@@ -76,7 +76,7 @@ typedef struct {
    * @brief When false, `func_group` entities are excluded from editor traces and scene drawing.
    * @details Toggled via the 'G' key in the EntityViewController.
    */
-  bool show_func_groups;
+  bool showFuncGroups;
 
   /**
    * @brief The entity number of the currently selected entity, or 0 if none.

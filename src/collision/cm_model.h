@@ -54,7 +54,7 @@ const CmEntity *Cm_Worldspawn(void);
 /**
  * @brief Returns the contents mask for the given BSP leaf number.
  */
-int32_t Cm_LeafContents(const int32_t leaf_num);
+int32_t Cm_LeafContents(const int32_t leafNum);
 
 /**
  * @brief Returns a const pointer to the global BSP collision model.

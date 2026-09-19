@@ -85,10 +85,10 @@ static byte net_message_buffer[MAX_MSG_SIZE];
  */
 void Netchan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size_t len) {
   MemBuf send;
-  byte send_buffer[MAX_MSG_SIZE];
+  byte sendBuffer[MAX_MSG_SIZE];
 
   // write the packet header
-  Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
+  Mem_InitBuffer(&send, sendBuffer, sizeof(sendBuffer));
 
   Net_WriteLong(&send, -1); // -1 sequence means out of band
   Mem_WriteBuffer(&send, data, len);
@@ -121,14 +121,14 @@ void Netchan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport) {
   memset(chan, 0, sizeof(*chan));
 
   chan->source = source;
-  chan->remote_address = *addr;
+  chan->remoteAddress = *addr;
   chan->qport = qport;
 
-  chan->last_received = quetoo.ticks;
-  chan->incoming_sequence = 0;
-  chan->outgoing_sequence = 1;
+  chan->lastReceived = quetoo.ticks;
+  chan->incomingSequence = 0;
+  chan->outgoingSequence = 1;
 
-  Mem_InitBuffer(&chan->message, chan->message_buffer, sizeof(chan->message_buffer));
+  Mem_InitBuffer(&chan->message, chan->messageBuffer, sizeof(chan->messageBuffer));
 }
 
 /**
@@ -138,8 +138,8 @@ void Netchan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport) {
 static bool Netchan_CheckRetransmit(NetChan *chan) {
 
   // if the remote side dropped the last reliable message, re-send it
-  if (chan->incoming_acknowledged > chan->reliable_outgoing && chan->reliable_acknowledged
-          != chan->reliable_sequence) {
+  if (chan->incomingAcknowledged > chan->reliableOutgoing && chan->reliableAcknowledged
+          != chan->reliableSequence) {
     return true;
   }
 
@@ -154,28 +154,28 @@ static bool Netchan_CheckRetransmit(NetChan *chan) {
  */
 void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
   MemBuf send;
-  byte send_buffer[MAX_MSG_SIZE];
+  byte sendBuffer[MAX_MSG_SIZE];
 
   // check for re-transmission of reliable message
-  bool send_reliable = Netchan_CheckRetransmit(chan);
+  bool sendReliable = Netchan_CheckRetransmit(chan);
 
   // or for transmission of a new one
-  if (!chan->reliable_size && chan->message.size) {
-    memcpy(chan->reliable_buffer, chan->message_buffer, chan->message.size);
-    chan->reliable_size = chan->message.size;
+  if (!chan->reliableSize && chan->message.size) {
+    memcpy(chan->reliableBuffer, chan->messageBuffer, chan->message.size);
+    chan->reliableSize = chan->message.size;
     chan->message.size = 0;
-    chan->reliable_sequence ^= 1;
-    send_reliable = true;
+    chan->reliableSequence ^= 1;
+    sendReliable = true;
   }
 
   // write the packet header
-  Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
+  Mem_InitBuffer(&send, sendBuffer, sizeof(sendBuffer));
 
-  const uint32_t w1 = (chan->outgoing_sequence & ~(1u << 31)) | ((uint32_t) send_reliable << 31);
-  const uint32_t w2 = (chan->incoming_sequence & ~(1u << 31)) | ((uint32_t) chan->reliable_incoming << 31);
+  const uint32_t w1 = (chan->outgoingSequence & ~(1u << 31)) | ((uint32_t) sendReliable << 31);
+  const uint32_t w2 = (chan->incomingSequence & ~(1u << 31)) | ((uint32_t) chan->reliableIncoming << 31);
 
-  chan->outgoing_sequence++;
-  chan->last_sent = quetoo.ticks;
+  chan->outgoingSequence++;
+  chan->lastSent = quetoo.ticks;
 
   Net_WriteLong(&send, w1);
   Net_WriteLong(&send, w2);
@@ -186,29 +186,29 @@ void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
   }
 
   // copy the reliable message to the packet first
-  if (send_reliable) {
-    Mem_WriteBuffer(&send, chan->reliable_buffer, chan->reliable_size);
-    chan->reliable_outgoing = chan->outgoing_sequence;
+  if (sendReliable) {
+    Mem_WriteBuffer(&send, chan->reliableBuffer, chan->reliableSize);
+    chan->reliableOutgoing = chan->outgoingSequence;
   }
 
   // add the unreliable part if space is available
-  if (send.max_size - send.size >= len) {
+  if (send.maxSize - send.size >= len) {
     Mem_WriteBuffer(&send, data, len);
   } else {
     Com_Warn("Netchan_Transmit: dumped unreliable\n");
   }
 
   // send the datagram
-  Net_SendDatagram(chan->source, &chan->remote_address, send.data, send.size);
+  Net_SendDatagram(chan->source, &chan->remoteAddress, send.data, send.size);
 
   if (net_show_packets->value) {
-    if (send_reliable)
+    if (sendReliable)
       Com_Print("Send %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) send.size,
-                chan->outgoing_sequence - 1, chan->reliable_sequence, chan->incoming_sequence,
-                chan->reliable_incoming);
+                chan->outgoingSequence - 1, chan->reliableSequence, chan->incomingSequence,
+                chan->reliableIncoming);
     else
       Com_Print("Send %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) send.size,
-                chan->outgoing_sequence - 1, chan->incoming_sequence, chan->reliable_incoming);
+                chan->outgoingSequence - 1, chan->incomingSequence, chan->reliableIncoming);
   }
 }
 
@@ -217,67 +217,67 @@ void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
  * modifies `net_message` so that it points to the packet payload
  */
 bool Netchan_Process(NetChan *chan, MemBuf *msg) {
-  uint32_t sequence, sequence_ack;
-  uint32_t reliable_ack, reliable_message;
+  uint32_t sequence, sequenceAck;
+  uint32_t reliableAck, reliableMessage;
 
   // get sequence numbers
   Net_BeginReading(msg);
 
   sequence = Net_ReadLong(msg);
-  sequence_ack = Net_ReadLong(msg);
+  sequenceAck = Net_ReadLong(msg);
 
   // read the qport if we are a server
   if (chan->source == NS_UDP_SERVER) {
     Net_ReadByte(msg);
   }
 
-  reliable_message = sequence >> 31u;
-  reliable_ack = sequence_ack >> 31u;
+  reliableMessage = sequence >> 31u;
+  reliableAck = sequenceAck >> 31u;
 
   sequence &= ~(1u << 31);
-  sequence_ack &= ~(1u << 31);
+  sequenceAck &= ~(1u << 31);
 
   if (net_show_packets->value) {
-    if (reliable_message)
+    if (reliableMessage)
       Com_Print("Recv %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) msg->size,
-                sequence, chan->reliable_incoming ^ 1, sequence_ack, reliable_ack);
+                sequence, chan->reliableIncoming ^ 1, sequenceAck, reliableAck);
     else
       Com_Print("Recv %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) msg->size, sequence,
-                sequence_ack, reliable_ack);
+                sequenceAck, reliableAck);
   }
 
   // discard stale or duplicated packets
-  if (sequence <= chan->incoming_sequence) {
+  if (sequence <= chan->incomingSequence) {
     if (net_show_drop->value)
       Com_Print("%s:Out of order packet %i at %i\n",
-                Net_NetaddrToString(&chan->remote_address), sequence, chan->incoming_sequence);
+                Net_NetaddrToString(&chan->remoteAddress), sequence, chan->incomingSequence);
     return false;
   }
 
   // dropped packets don't keep the message from being used
-  chan->dropped = sequence - (chan->incoming_sequence + 1);
+  chan->dropped = sequence - (chan->incomingSequence + 1);
   if (chan->dropped > 0) {
     if (net_show_drop->value)
-      Com_Print("%s:Dropped %i packets at %i\n", Net_NetaddrToString(&chan->remote_address),
+      Com_Print("%s:Dropped %i packets at %i\n", Net_NetaddrToString(&chan->remoteAddress),
                 chan->dropped, sequence);
   }
 
   // if the current outgoing reliable message has been acknowledged
   // clear the buffer to make way for the next
-  if (reliable_ack == chan->reliable_sequence) {
-    chan->reliable_size = 0;    // it has been received
+  if (reliableAck == chan->reliableSequence) {
+    chan->reliableSize = 0;    // it has been received
   }
 
   // if this message contains a reliable message, bump reliable_incoming
-  chan->incoming_sequence = sequence;
-  chan->incoming_acknowledged = sequence_ack;
-  chan->reliable_acknowledged = reliable_ack;
-  if (reliable_message) {
-    chan->reliable_incoming ^= 1;
+  chan->incomingSequence = sequence;
+  chan->incomingAcknowledged = sequenceAck;
+  chan->reliableAcknowledged = reliableAck;
+  if (reliableMessage) {
+    chan->reliableIncoming ^= 1;
   }
 
   // the message can now be read from the current message pointer
-  chan->last_received = quetoo.ticks;
+  chan->lastReceived = quetoo.ticks;
 
   return true;
 }

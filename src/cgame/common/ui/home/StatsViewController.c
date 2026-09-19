@@ -78,7 +78,7 @@ static const JSONProperties killsByWeaponProperties = {
 
 static const JSONArrayProperties killsByWeaponArrayProperties = {
   .properties = &killsByWeaponProperties,
-  .capacity = lengthof(((StatsResponse *) 0)->kills_by_weapon),
+  .capacity = lengthof(((StatsResponse *) 0)->killsByWeapon),
   .count = JSONArrayProperties_NoCount
 };
 
@@ -87,9 +87,9 @@ static const JSONProperty stats_response_fields[] = {
   MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, captures, NULL, JSONDeserializeInt32, NULL),
-  MakeJSONProperty(StatsResponse, time_played, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(StatsResponse, timePlayed, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, nemesis, NULL, JSONDeserializeStruct, (ident) &nemesisProperties),
-  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties),
+  MakeJSONProperty(StatsResponse, killsByWeapon, NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties),
   { .key = NULL }
 };
 
@@ -110,7 +110,7 @@ static StatsResponse pendingStatsResponse;
  * @brief `RESTClientCompletion` for `fetchStats`. Runs on the HTTP session thread;
  * hydrates `stats_pending` and dispatches `NOTIFICATION_STATS_FETCHED` as the signal.
  */
-static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
+static void fetchStatsComplete(int32_t status, Data *data, void *userData) {
 
   memset(&pendingStatsResponse, 0, sizeof(pendingStatsResponse));
 
@@ -133,13 +133,13 @@ static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
  */
 static void fetchStats(StatsViewController *this) {
 
-  const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (q_strlen(guid_hash) == 0) {
+  const char *guidHash = cgi.GetCvarString("guid_hash");
+  if (q_strlen(guidHash) == 0) {
     return;
   }
 
   char url[MAX_STRING_CHARS];
-  q_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
+  q_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guidHash);
 
   $(cgi.restClient, getAsync, url, NULL, fetchStatsComplete, NULL);
 }
@@ -154,8 +154,8 @@ static size_t numberOfRows(const TableView *tableView) {
   StatsViewController *this = tableView->dataSource.self;
 
   size_t i;
-  const KillsByWeapon *w = this->stats.kills_by_weapon;
-  for (i = 0; i < lengthof(this->stats.kills_by_weapon); i++, w++) {
+  const KillsByWeapon *w = this->stats.killsByWeapon;
+  for (i = 0; i < lengthof(this->stats.killsByWeapon); i++, w++) {
     if (q_strlen(w->weapon) == 0) {
       break;
     }
@@ -173,7 +173,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   StatsViewController *this = tableView->dataSource.self;
 
-  const KillsByWeapon *w = &this->stats.kills_by_weapon[row];
+  const KillsByWeapon *w = &this->stats.killsByWeapon[row];
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
@@ -245,7 +245,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
       const double kd = s->deaths > 0 ? (double) s->frags / s->deaths : (double) s->frags;
       $(this->kd->text, setText, s->frags ? va("%.2f", kd) : "—");
 
-      $(this->time->text, setText, formatTime(s->time_played));
+      $(this->time->text, setText, formatTime(s->timePlayed));
       $(this->nemesis->text, setText, s->nemesis.name[0] ? s->nemesis.name : "—");
 
       $(this->weapons, reloadData);

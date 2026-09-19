@@ -67,7 +67,7 @@ typedef struct Light {
   /**
    * @brief The visible light bounds.
    */
-  Box3 visible_bounds;
+  Box3 visibleBounds;
 
   /**
    * @brief The light style.
@@ -87,7 +87,7 @@ typedef struct Light {
   /**
    * @brief The entity number of the inline model entity this light is attached to, or 0.
    */
-  int32_t target_entity;
+  int32_t targetEntity;
 } Light;
 
 extern Vector *lights;

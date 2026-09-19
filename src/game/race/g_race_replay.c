@@ -93,10 +93,10 @@ static void G_Race_FreeLine(GameRaceLine *line) {
 
 void G_Race_LoadLine(void) {
 
-  gi.Free(g_level.race_line.samples); // the record was just beaten, or this is the same map again
-  memset(&g_level.race_line, 0, sizeof(g_level.race_line));
-  g_level.race_line_holder[0] = g_level.race_line_client[0] = '\0';
-  g_level.race_line_time = 0;
+  gi.Free(g_level.raceLine.samples); // the record was just beaten, or this is the same map again
+  memset(&g_level.raceLine, 0, sizeof(g_level.raceLine));
+  g_level.raceLineHolder[0] = g_level.raceLineClient[0] = '\0';
+  g_level.raceLineTime = 0;
 
   const char *path = G_Race_LinePath(g_level.movement);
 
@@ -136,11 +136,11 @@ void G_Race_LoadLine(void) {
       }
 
       if (!q_strcmp(key, "holder")) {
-        q_strlcpy(g_level.race_line_holder, value, sizeof(g_level.race_line_holder));
+        q_strlcpy(g_level.raceLineHolder, value, sizeof(g_level.raceLineHolder));
       } else if (!q_strcmp(key, "client")) {
-        q_strlcpy(g_level.race_line_client, value, sizeof(g_level.race_line_client));
+        q_strlcpy(g_level.raceLineClient, value, sizeof(g_level.raceLineClient));
       } else if (!q_strcmp(key, "time")) {
-        g_level.race_line_time = (uint32_t) strtoul(value, NULL, 10);
+        g_level.raceLineTime = (uint32_t) strtoul(value, NULL, 10);
       } else if (!q_strcmp(key, "bsp")) {
         if (q_strcmp(value, bsp)) {
           G_Warn("%s was set on another build of %s; ignoring it\n", path, g_level.name);
@@ -156,8 +156,8 @@ void G_Race_LoadLine(void) {
     GameRaceSample sample;
     int32_t animation1, animation2;
 
-    const uint32_t previous = g_level.race_line.count
-                              ? g_level.race_line.samples[g_level.race_line.count - 1].time
+    const uint32_t previous = g_level.raceLine.count
+                              ? g_level.raceLine.samples[g_level.raceLine.count - 1].time
                               : 0;
 
     if (sscanf(line, "%u %f %f %f %f %f %f %d %d", &sample.time,
@@ -173,7 +173,7 @@ void G_Race_LoadLine(void) {
     sample.animation1 = animation1;
     sample.animation2 = animation2;
 
-    GameRaceSample *added = G_Race_AddSample(&g_level.race_line, MEM_TAG_GAME_LEVEL);
+    GameRaceSample *added = G_Race_AddSample(&g_level.raceLine, MEM_TAG_GAME_LEVEL);
     if (!added) {
       break;
     }
@@ -183,17 +183,17 @@ void G_Race_LoadLine(void) {
 
   gi.FreeFile(buffer);
 
-  if (valid && g_level.race_line.count != expected) {
-    G_Warn("%s promised %zu samples and has %zu\n", path, expected, g_level.race_line.count);
+  if (valid && g_level.raceLine.count != expected) {
+    G_Warn("%s promised %zu samples and has %zu\n", path, expected, g_level.raceLine.count);
     valid = false;
   }
 
-  if (!valid || !g_level.race_line.count) {
-    G_Race_FreeLine(&g_level.race_line);
-    g_level.race_line_time = 0;
+  if (!valid || !g_level.raceLine.count) {
+    G_Race_FreeLine(&g_level.raceLine);
+    g_level.raceLineTime = 0;
   }
 
-  gi.SetConfigString(CS_RACE_GHOST, g_level.race_line.count ? g_level.race_line_client : "");
+  gi.SetConfigString(CS_RACE_GHOST, g_level.raceLine.count ? g_level.raceLineClient : "");
 }
 
 static void G_Race_WriteLine(File *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -213,7 +213,7 @@ static void G_Race_WriteLine(File *file, const char *fmt, ...) {
  * @brief Writes `cl`'s line as the course record's, and makes it the level's.
  */
 static void G_Race_SaveLine(GameClient *cl) {
-  const GameRaceRun *run = &cl->race_run;
+  const GameRaceRun *run = &cl->raceRun;
   const GameRaceLine *line = G_Race_ClientLine(cl);
   const char *path = G_Race_LinePath(run->movement);
 
@@ -226,9 +226,9 @@ static void G_Race_SaveLine(GameClient *cl) {
   const char *client = gi.GetConfigString(CS_CLIENTS + cl->ps.client);
 
   G_Race_WriteLine(file, "// Race line for %s under %s: the course record, %s in %s\n", g_level.name,
-                   Pm_Movement(run->movement)->name, cl->persistent.net_name, G_Race_LineTime(run->elapsed));
+                   Pm_Movement(run->movement)->name, cl->persistent.netName, G_Race_LineTime(run->elapsed));
   G_Race_WriteLine(file, "// samples are: time x y z pitch yaw roll animation1 animation2\n");
-  G_Race_WriteLine(file, "holder %s\n", cl->persistent.net_name);
+  G_Race_WriteLine(file, "holder %s\n", cl->persistent.netName);
   G_Race_WriteLine(file, "guid %s\n", cl->persistent.guid);
   G_Race_WriteLine(file, "client %s\n", client);
   G_Race_WriteLine(file, "time %u\n", run->elapsed);
@@ -265,7 +265,7 @@ void G_Race_SampleLine(GameClient *cl) {
   }
 
   GameRaceLine *line = G_Race_ClientLine(cl);
-  const uint32_t time = g_level.time - cl->race_run.start_time;
+  const uint32_t time = g_level.time - cl->raceRun.startTime;
 
   // a client may move more than once a tick; the tick's sample is where it ended
   GameRaceSample *sample = line->count && line->samples[line->count - 1].time == time
@@ -288,7 +288,7 @@ void G_Race_KeepLine(GameClient *cl) {
   const GameRaceLine *line = G_Race_ClientLine(cl);
 
   if (line->count == RACE_MAX_SAMPLES) {
-    G_Warn("%s's course record on %s outran the raceline; not kept\n", cl->persistent.net_name, g_level.name);
+    G_Warn("%s's course record on %s outran the raceline; not kept\n", cl->persistent.netName, g_level.name);
   } else if (line->count) {
     G_Race_SaveLine(cl);
   }
@@ -314,9 +314,9 @@ void G_Race_Shutdown(void) {
  * and lets it go once the record is over.
  */
 static void G_Race_Ghost_Think(GameEntity *ent) {
-  const GameRaceLine *line = &g_level.race_line;
+  const GameRaceLine *line = &g_level.raceLine;
 
-  if (!ent->owner || !ent->owner->in_use || !ent->owner->client || ent->owner->client->race_ghost != ent) {
+  if (!ent->owner || !ent->owner->inUse || !ent->owner->client || ent->owner->client->raceGhost != ent) {
     G_FreeEntity(ent);
     return;
   }
@@ -328,7 +328,7 @@ static void G_Race_Ghost_Think(GameEntity *ent) {
   }
 
   if ((size_t) ent->count + 1 >= line->count) {
-    ent->owner->client->race_ghost = NULL;
+    ent->owner->client->raceGhost = NULL;
     G_FreeEntity(ent);
     return;
   }
@@ -342,14 +342,14 @@ static void G_Race_Ghost_Think(GameEntity *ent) {
 
   gi.LinkEntity(ent);
 
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 void G_Race_SpawnGhost(GameClient *cl) {
 
   G_Race_RemoveGhost(cl);
 
-  if (!cl->persistent.race_ghost || !g_level.race_line.count) {
+  if (!cl->persistent.raceGhost || !g_level.raceLine.count) {
     return;
   }
 
@@ -357,30 +357,30 @@ void G_Race_SpawnGhost(GameClient *cl) {
 
   ent->owner = cl->entity;
   ent->solid = SOLID_NOT;
-  ent->move_type = MOVE_TYPE_NONE;
-  ent->clip_mask = 0;
+  ent->moveType = MOVE_TYPE_NONE;
+  ent->clipMask = 0;
 
   ent->s.client = cl->entity->s.client;
   ent->s.model1 = MODEL_CLIENT;
   ent->s.effects = RACE_GHOST_EFFECTS;
-  ent->s.origin = g_level.race_line.samples[0].origin;
-  ent->s.angles = g_level.race_line.samples[0].angles;
+  ent->s.origin = g_level.raceLine.samples[0].origin;
+  ent->s.angles = g_level.raceLine.samples[0].angles;
 
-  ent->timestamp = cl->race_run.start_time;
+  ent->timestamp = cl->raceRun.startTime;
   ent->count = 0;
   ent->Think = G_Race_Ghost_Think;
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(ent);
 
-  cl->race_ghost = ent;
+  cl->raceGhost = ent;
 }
 
 void G_Race_RemoveGhost(GameClient *cl) {
 
-  if (cl->race_ghost) {
-    G_FreeEntity(cl->race_ghost);
-    cl->race_ghost = NULL;
+  if (cl->raceGhost) {
+    G_FreeEntity(cl->raceGhost);
+    cl->raceGhost = NULL;
   }
 }
 
@@ -389,17 +389,17 @@ void G_Race_RemoveGhost(GameClient *cl) {
  */
 void G_Race_Ghost_f(GameClient *cl) {
 
-  cl->persistent.race_ghost = !cl->persistent.race_ghost;
+  cl->persistent.raceGhost = !cl->persistent.raceGhost;
 
-  if (!cl->persistent.race_ghost) {
+  if (!cl->persistent.raceGhost) {
     G_Race_RemoveGhost(cl);
     gi.ClientPrint(cl, PRINT_HIGH, "Ghost off\n");
     return;
   }
 
-  if (g_level.race_line.count) {
+  if (g_level.raceLine.count) {
     gi.ClientPrint(cl, PRINT_HIGH, "Ghost on: %s, %s, from your next start\n",
-                   g_level.race_line_holder, G_Race_LineTime(g_level.race_line_time));
+                   g_level.raceLineHolder, G_Race_LineTime(g_level.raceLineTime));
   } else {
     gi.ClientPrint(cl, PRINT_HIGH, "Ghost on, once someone sets a course record under %s\n",
                    Pm_Movement(g_level.movement)->name);

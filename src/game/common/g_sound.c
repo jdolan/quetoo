@@ -77,7 +77,7 @@ void G_MulticastSound(const GamePlaySound *play, Multicast to) {
   G_Sound(play);
 
   if (play->entity) {
-    from = Box3_Center(play->entity->abs_bounds);
+    from = Box3_Center(play->entity->absBounds);
   }
 
   if (play->origin) {

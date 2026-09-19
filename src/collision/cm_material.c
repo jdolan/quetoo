@@ -468,12 +468,12 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
 
     if (!q_strcmp(token, "anim")) {
 
-      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->animation.num_frames, 1) != 1) {
+      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->animation.numFrames, 1) != 1) {
         Cm_MaterialWarn(m, parser, "Need number of frames");
         continue;
       }
 
-      if (s->animation.num_frames < 1) {
+      if (s->animation.numFrames < 1) {
         Cm_MaterialWarn(m, parser, "Invalid number of frames");
       }
 
@@ -491,7 +491,7 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
       }
 
       // the frame images are loaded once the stage is parsed completely
-      if (s->animation.num_frames && s->animation.fps >= 0.0) {
+      if (s->animation.numFrames && s->animation.fps >= 0.0) {
         s->flags |= STAGE_ANIMATION;
       }
 
@@ -605,7 +605,7 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
                 s->scroll.s, s->scroll.t,
                 s->scale.s, s->scale.t,
                 s->terrain.floor, s->terrain.ceil,
-                s->animation.num_frames, s->animation.fps, s->animation.drift);
+                s->animation.numFrames, s->animation.fps, s->animation.drift);
 
       return true;
     }
@@ -686,7 +686,7 @@ static CmMaterial *Cm_AllocMaterial(const char *name, AssetContext context) {
   mat->specularity = MATERIAL_SPECULARITY;
   mat->parallax = MATERIAL_PARALLAX;
   mat->shadow = MATERIAL_SHADOW;
-  mat->alpha_test = MATERIAL_ALPHA_TEST;
+  mat->alphaTest = MATERIAL_ALPHA_TEST;
 
   return mat;
 }
@@ -753,24 +753,24 @@ CmMaterial *Cm_LoadMaterial(const char *name, AssetContext context) {
       Vec4 *color = &unused_color;
 
       if (!q_strcmp(token, "tintmap.tint_r_default")) {
-        color = &m->tintmap_defaults[TINT_R];
+        color = &m->tintmapDefaults[TINT_R];
       } else if (!q_strcmp(token, "tintmap.tint_g_default")) {
-        color = &m->tintmap_defaults[TINT_G];
+        color = &m->tintmapDefaults[TINT_G];
       } else if (!q_strcmp(token, "tintmap.tint_b_default")) {
-        color = &m->tintmap_defaults[TINT_B];
+        color = &m->tintmapDefaults[TINT_B];
       } else {
         Cm_MaterialWarn(m, &parser, va("Invalid token \"%s\"", token));
       }
 
-      const size_t num_parsed = Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, color->xyzw, 4);
-      if (num_parsed < 3 || num_parsed > 4) {
+      const size_t numParsed = Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, color->xyzw, 4);
+      if (numParsed < 3 || numParsed > 4) {
         Cm_MaterialWarn(m, &parser, "Invalid color (must be 3 or 4 components)");
       } else {
-        if (num_parsed != 4) {
+        if (numParsed != 4) {
           color->w = 1.f;
         }
 
-        for (size_t i = 0; i < num_parsed; i++) {
+        for (size_t i = 0; i < numParsed; i++) {
           if (color->xyzw[i] < 0.f || color->xyzw[i] > 1.f) {
             Cm_MaterialWarn(m, &parser, "Color number out of range (must be between 0.0 and 1.0)");
           }
@@ -806,11 +806,11 @@ CmMaterial *Cm_LoadMaterial(const char *name, AssetContext context) {
 
     } else if (!q_strcmp(token, "alpha_test")) {
 
-      if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
+      if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alphaTest, 1) != 1) {
         Cm_MaterialWarn(m, &parser, "No alpha test specified");
-      } else if (m->alpha_test < 0.f || m->alpha_test > 1.f) {
+      } else if (m->alphaTest < 0.f || m->alphaTest > 1.f) {
         Cm_MaterialWarn(m, &parser, "Invalid alpha test value, must be > 0.0 and < 1.0");
-        m->alpha_test = MATERIAL_ALPHA_TEST;
+        m->alphaTest = MATERIAL_ALPHA_TEST;
       }
 
       m->surface |= SURF_ALPHA_TEST;
@@ -867,7 +867,7 @@ CmMaterial *Cm_LoadMaterial(const char *name, AssetContext context) {
 
       Cm_AppendStage(m, s);
 
-      m->stage_flags |= s->flags;
+      m->stageFlags |= s->flags;
     }
   }
 
@@ -921,7 +921,7 @@ static bool Cm_ResolveStageAnimation(CmStage *stage, AssetContext context) {
     return false;
   }
 
-  const size_t size = sizeof(Asset) * stage->animation.num_frames;
+  const size_t size = sizeof(Asset) * stage->animation.numFrames;
   stage->animation.frames = Mem_LinkMalloc(size, stage);
 
   char base[MAX_QPATH];
@@ -937,7 +937,7 @@ static bool Cm_ResolveStageAnimation(CmStage *stage, AssetContext context) {
   int32_t start = (int32_t) strtol(c, NULL, 10);
   *c = '\0';
 
-  for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+  for (int32_t i = 0; i < stage->animation.numFrames; i++) {
 
     Asset *frame = &stage->animation.frames[i];
     q_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
@@ -1025,17 +1025,17 @@ static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
 
   CmFootsteps *footsteps = data;
 
-  if (footsteps->num_samples == lengthof(footsteps->samples)) {
+  if (footsteps->numSamples == lengthof(footsteps->samples)) {
     Com_Debug(DEBUG_COLLISION, "MAX_FOOTSTEP_SAMPLES\n");
     return;
   }
 
-  Asset *out = footsteps->samples + footsteps->num_samples;
+  Asset *out = footsteps->samples + footsteps->numSamples;
 
   q_strlcpy(out->name, file, sizeof(out->name));
   q_strlcpy(out->path, file, sizeof(out->path));
 
-  footsteps->num_samples++;
+  footsteps->numSamples++;
 }
 
 /**
@@ -1043,10 +1043,10 @@ static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
  */
 static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
 
-  const Asset *a_asset = a;
-  const Asset *b_asset = b;
+  const Asset *aAsset = a;
+  const Asset *bAsset = b;
 
-  return q_strcmp(a_asset->name, b_asset->name);
+  return q_strcmp(aAsset->name, bAsset->name);
 }
 
 /**
@@ -1062,10 +1062,10 @@ static void Cm_ResolveFootsteps(CmFootsteps *footsteps) {
 
   Fs_Enumerate(pattern, Cm_ResolveFootsteps_Enumerate, footsteps);
 
-  if (!footsteps->num_samples) {
+  if (!footsteps->numSamples) {
     Com_Warn("Footsteps \"%s\" have no samples\n", footsteps->name);
   } else {
-    qsort(footsteps->samples, footsteps->num_samples, sizeof(Asset), Cm_ResolveFootsteps_Compare);
+    qsort(footsteps->samples, footsteps->numSamples, sizeof(Asset), Cm_ResolveFootsteps_Compare);
   }
 }
 
@@ -1153,9 +1153,9 @@ static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File
 
   if (stage->flags & STAGE_ANIMATION) {
     if (stage->animation.drift != 0.f) {
-      Fs_Print(file, "\t\tanim %u %0.2f %0.3f\n", stage->animation.num_frames, stage->animation.fps, stage->animation.drift);
+      Fs_Print(file, "\t\tanim %u %0.2f %0.3f\n", stage->animation.numFrames, stage->animation.fps, stage->animation.drift);
     } else {
-      Fs_Print(file, "\t\tanim %u %0.2f\n", stage->animation.num_frames, stage->animation.fps);
+      Fs_Print(file, "\t\tanim %u %0.2f\n", stage->animation.numFrames, stage->animation.fps);
     }
   }
 
@@ -1246,8 +1246,8 @@ static void Cm_WriteMaterial(const CmMaterial *material, File *file) {
 
   if (material->surface & SURF_ALPHA_TEST) {
 
-    if (material->alpha_test != MATERIAL_ALPHA_TEST) {
-      Fs_Print(file, "\talpha_test %0.3f\n", material->alpha_test);
+    if (material->alphaTest != MATERIAL_ALPHA_TEST) {
+      Fs_Print(file, "\talpha_test %0.3f\n", material->alphaTest);
     }
   }
 

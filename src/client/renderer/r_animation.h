@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-RenderAnimation *R_CreateAnimation(const char *name, int32_t num_images, const RenderImage **images);
+RenderAnimation *R_CreateAnimation(const char *name, int32_t numImages, const RenderImage **images);
 
 #if defined(__R_LOCAL_H__)
 const RenderImage *R_ResolveAnimation(const RenderAnimation *animation, float time, int32_t offset);

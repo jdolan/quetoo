@@ -190,10 +190,10 @@ static int32_t blit(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *r
   for (int32_t x = 0; x < src->w; x++) {
     for (int32_t y = 0; y < src->h; y++) {
 
-      const Color32 *in_color = in + y * src->w + x;
-      Color32 *out_color = out + y * dest->w + x;
+      const Color32 *inColor = in + y * src->w + x;
+      Color32 *outColor = out + y * dest->w + x;
 
-      *out_color = *in_color;
+      *outColor = *inColor;
     }
   }
 

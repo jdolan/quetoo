@@ -96,7 +96,7 @@ typedef struct {
   /**
    * @brief The number of samples.
    */
-  size_t num_samples;
+  size_t numSamples;
 
   /**
    * @brief True for stereo sounds, which will not be spatialized.
@@ -186,7 +186,7 @@ typedef struct {
   /**
    * @brief The time when this channel was last started.
    */
-  uint32_t start_time;
+  uint32_t startTime;
 
   /**
    * @brief The stage frame number this channel was last added in.
@@ -265,7 +265,7 @@ typedef struct {
   /**
    * @brief Auxiliary effect slot the reverb effect is attached to.
    */
-  ALuint reverb_slot;
+  ALuint reverbSlot;
 
   /**
    * @brief True if the filters above are currently loaded.
@@ -311,32 +311,32 @@ typedef struct {
   /**
    * @brief The size in bytes of the raw sample buffer.
    */
-  size_t raw_sample_buffer_size;
+  size_t rawSampleBufferSize;
 
   /**
    * @brief Scratch buffer for raw float sample data before conversion.
    */
-  float *raw_sample_buffer;
+  float *rawSampleBuffer;
 
   /**
    * @brief The size in bytes of the converted sample buffer.
    */
-  size_t converted_sample_buffer_size;
+  size_t convertedSampleBufferSize;
 
   /**
    * @brief Converted raw sample buffer (float → int16).
    */
-  int16_t *converted_sample_buffer;
+  int16_t *convertedSampleBuffer;
 
   /**
    * @brief The size in bytes of the resampling scratch buffer.
    */
-  size_t resample_buffer_size;
+  size_t resampleBufferSize;
 
   /**
    * @brief Scratch buffer for resampled audio data.
    */
-  int16_t *resample_buffer;
+  int16_t *resampleBuffer;
 
   /**
    * @brief The mixed channels.
@@ -346,7 +346,7 @@ typedef struct {
   /**
    * @brief The number of channels currently playing.
    */
-  int32_t num_active_channels;
+  int32_t numActiveChannels;
 
   /**
    * @brief The OpenAL sound sources.
@@ -366,7 +366,7 @@ typedef struct {
   /**
    * @brief Stage ticks at last mix, used to compute per-frame dt for filter interpolation.
    */
-  uint32_t prev_ticks;
+  uint32_t prevTicks;
 } SoundContext;
 
 /**
@@ -377,7 +377,7 @@ typedef struct {
   /**
    * @brief The count of channels playing after the stage was mixed.
    */
-  int32_t num_channels;
+  int32_t numChannels;
 
   /**
    * @brief The reverb intensity at the listener origin.
@@ -438,7 +438,7 @@ typedef struct SoundStage {
   /**
    * @brief The count of samples.
    */
-  int32_t num_samples;
+  int32_t numSamples;
 
   /**
    * @brief Statistics for the most recent render of this stage.

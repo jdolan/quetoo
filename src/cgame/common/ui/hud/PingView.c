@@ -53,10 +53,10 @@ static void updateBindings(View *self, ident data) {
 
     if (cl->dropped != this->dropped) {
       this->dropped = cl->dropped;
-      this->dropped_time = now;
+      this->droppedTime = now;
     }
 
-    const bool dropping = this->dropped_time && now - this->dropped_time < PING_DROPPED_INTERVAL;
+    const bool dropping = this->droppedTime && now - this->droppedTime < PING_DROPPED_INTERVAL;
     const bool lagging = dropping || frame->ps.stats[STAT_PING] > cg_draw_ping_warn->integer;
 
     View *value = (View *) this->counterView.value;

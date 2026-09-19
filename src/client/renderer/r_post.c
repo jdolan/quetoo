@@ -43,9 +43,9 @@ typedef enum {
  * @brief Per-pass post-processing uniforms.
  */
 typedef struct {
-  int32_t post_stage;
+  int32_t postStage;
   float bloom;
-  float bloom_threshold;
+  float bloomThreshold;
   float padding;
 } RenderPostLocals;
 
@@ -57,23 +57,23 @@ static struct {
   /**
    * @brief Fullscreen quad vertex buffer.
    */
-  Buffer *vertex_buffer;
+  Buffer *vertexBuffer;
 
   /**
    * @brief Half-resolution bloom ping-pong framebuffers.
    */
-  Framebuffer *bloom_framebuffers[2];
-  int32_t bloom_width, bloom_height;
+  Framebuffer *bloomFramebuffers[2];
+  int32_t bloomWidth, bloomHeight;
 
   /**
    * @brief Bloom pipeline.
    */
-  GraphicsPipeline *bloom_pipeline;
+  GraphicsPipeline *bloomPipeline;
 
   /**
    * @brief Composite pipeline.
    */
-  GraphicsPipeline *composite_pipeline;
+  GraphicsPipeline *compositePipeline;
 
   /**
    * @brief Sampler for scene and bloom textures.
@@ -86,18 +86,18 @@ static struct {
  */
 static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 
-  r_post.bloom_width  = width  / 2;
-  r_post.bloom_height = height / 2;
+  r_post.bloomWidth  = width  / 2;
+  r_post.bloomHeight = height / 2;
 
-  if (r_post.bloom_width  < 1) { r_post.bloom_width  = 1; }
-  if (r_post.bloom_height < 1) { r_post.bloom_height = 1; }
+  if (r_post.bloomWidth  < 1) { r_post.bloomWidth  = 1; }
+  if (r_post.bloomHeight < 1) { r_post.bloomHeight = 1; }
 
   for (int32_t i = 0; i < 2; i++) {
 
-    r_post.bloom_framebuffers[i] = release(r_post.bloom_framebuffers[i]);
+    r_post.bloomFramebuffers[i] = release(r_post.bloomFramebuffers[i]);
 
-    r_post.bloom_framebuffers[i] = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
-      .size = MakeSize(r_post.bloom_width, r_post.bloom_height),
+    r_post.bloomFramebuffers[i] = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+      .size = MakeSize(r_post.bloomWidth, r_post.bloomHeight),
       .colorAttachments = { { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT } },
       .numColorTargets = 1,
       .sampleCount = SDL_GPU_SAMPLECOUNT_1,
@@ -114,10 +114,10 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
 
   CommandBuffer *commands = r_context.device->commands;
 
-  const SDL_GPUColorTargetInfo color_target =
+  const SDL_GPUColorTargetInfo colorTarget =
       $(target, colorTargetInfo, 0, SDL_GPU_LOADOP_DONT_CARE, SDL_GPU_STOREOP_STORE);
 
-  RenderPass *pass = $(commands, beginRenderPass, &color_target, 1, NULL);
+  RenderPass *pass = $(commands, beginRenderPass, &colorTarget, 1, NULL);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -126,7 +126,7 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
   });
 
   $(pass, bindPipeline, pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_post.vertex_buffer->buffer }, 1);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_post.vertexBuffer->buffer }, 1);
 
   $(pass, bindFragmentSamplers, 0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = color->texture, .sampler = r_post.sampler->sampler },
@@ -157,9 +157,9 @@ void R_DrawPost(const RenderView *view) {
   Framebuffer *scene = view->framebuffer;
   Framebuffer *present = r_context.device->framebuffer;
 
-  Texture *scene_color = $(scene, resolveColorTexture, 0);
+  Texture *sceneColor = $(scene, resolveColorTexture, 0);
 
-  if (scene->size.w != r_post.bloom_width * 2 || scene->size.h != r_post.bloom_height * 2) {
+  if (scene->size.w != r_post.bloomWidth * 2 || scene->size.h != r_post.bloomHeight * 2) {
     R_CreateBloomFramebuffers((int32_t) scene->size.w, (int32_t) scene->size.h);
   }
 
@@ -167,37 +167,37 @@ void R_DrawPost(const RenderView *view) {
 
   if (bloom) {
 
-    R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
-               scene_color, scene_color,
-               r_post.bloom_width, r_post.bloom_height,
+    R_PostPass(r_post.bloomFramebuffers[0], r_post.bloomPipeline,
+               sceneColor, sceneColor,
+               r_post.bloomWidth, r_post.bloomHeight,
                &(RenderPostLocals) {
-                 .post_stage = R_POST_BLOOM_EXTRACT,
-                 .bloom_threshold = r_bloom_threshold->value,
+                 .postStage = R_POST_BLOOM_EXTRACT,
+                 .bloomThreshold = r_bloom_threshold->value,
                });
 
     const int32_t iterations = Clampf(r_bloom_iterations->integer, 1, 8);
     for (int32_t i = 0; i < iterations; i++) {
 
-      R_PostPass(r_post.bloom_framebuffers[1], r_post.bloom_pipeline,
-                 r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0],
-                 r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0],
-                 r_post.bloom_width, r_post.bloom_height,
-                 &(RenderPostLocals) { .post_stage = R_POST_BLOOM_BLUR_X });
+      R_PostPass(r_post.bloomFramebuffers[1], r_post.bloomPipeline,
+                 r_post.bloomFramebuffers[0]->colorAttachments[0].textures[0],
+                 r_post.bloomFramebuffers[0]->colorAttachments[0].textures[0],
+                 r_post.bloomWidth, r_post.bloomHeight,
+                 &(RenderPostLocals) { .postStage = R_POST_BLOOM_BLUR_X });
 
-      R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
-                 r_post.bloom_framebuffers[1]->colorAttachments[0].textures[0],
-                 r_post.bloom_framebuffers[1]->colorAttachments[0].textures[0],
-                 r_post.bloom_width, r_post.bloom_height,
-                 &(RenderPostLocals) { .post_stage = R_POST_BLOOM_BLUR_Y });
+      R_PostPass(r_post.bloomFramebuffers[0], r_post.bloomPipeline,
+                 r_post.bloomFramebuffers[1]->colorAttachments[0].textures[0],
+                 r_post.bloomFramebuffers[1]->colorAttachments[0].textures[0],
+                 r_post.bloomWidth, r_post.bloomHeight,
+                 &(RenderPostLocals) { .postStage = R_POST_BLOOM_BLUR_Y });
     }
   }
 
-  R_PostPass(present, r_post.composite_pipeline,
-             scene_color,
-             bloom ? r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0] : scene_color,
+  R_PostPass(present, r_post.compositePipeline,
+             sceneColor,
+             bloom ? r_post.bloomFramebuffers[0]->colorAttachments[0].textures[0] : sceneColor,
              (int32_t) present->size.w, (int32_t) present->size.h,
              &(RenderPostLocals) {
-               .post_stage = R_POST_TONEMAP,
+               .postStage = R_POST_TONEMAP,
                .bloom = r_bloom->value,
              });
 }
@@ -274,10 +274,10 @@ void R_InitPost(void) {
     { .position = MakeVec2(-1.f,  1.f), .texcoord = MakeVec2(0.f, 0.f) },
   };
 
-  r_post.vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
+  r_post.vertexBuffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
 
-  r_post.bloom_pipeline = R_CreatePostPipeline(SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT);
-  r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorAttachments[0].format);
+  r_post.bloomPipeline = R_CreatePostPipeline(SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT);
+  r_post.compositePipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorAttachments[0].format);
 
   r_post.sampler = $(r_context.device, createSamplerLinearClamp);
 }
@@ -287,14 +287,14 @@ void R_InitPost(void) {
  */
 void R_ShutdownPost(void) {
 
-  r_post.vertex_buffer = release(r_post.vertex_buffer);
+  r_post.vertexBuffer = release(r_post.vertexBuffer);
 
   for (int32_t i = 0; i < 2; i++) {
-    r_post.bloom_framebuffers[i] = release(r_post.bloom_framebuffers[i]);
+    r_post.bloomFramebuffers[i] = release(r_post.bloomFramebuffers[i]);
   }
 
-  r_post.bloom_pipeline = release(r_post.bloom_pipeline);
-  r_post.composite_pipeline = release(r_post.composite_pipeline);
+  r_post.bloomPipeline = release(r_post.bloomPipeline);
+  r_post.compositePipeline = release(r_post.compositePipeline);
   r_post.sampler = release(r_post.sampler);
 }
 

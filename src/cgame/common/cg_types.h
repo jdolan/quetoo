@@ -109,7 +109,7 @@ typedef struct {
    */
   char maps[MAX_NEXT_MAPS][MAX_QPATH];
   int32_t votes[MAX_NEXT_MAPS];
-  int32_t num_maps;
+  int32_t numMaps;
 
   /**
    * @brief Bumped whenever the candidates change, so that a view redraws the thumbnails
@@ -157,25 +157,25 @@ typedef struct {
    * @brief The floor and ceiling of the client's standing box, which their model
    * is scaled and seated to.
    */
-  float standing_floor, standing_ceiling;
+  float standingFloor, standingCeiling;
 
   /**
    * @brief The head model and materials.
    */
   RenderModel *head;
-  RenderMaterial *head_skins[MAX_MESH_FACES];
+  RenderMaterial *headSkins[MAX_MESH_FACES];
 
   /**
    * @brief The torso model and materials.
    */
   RenderModel *torso;
-  RenderMaterial *torso_skins[MAX_MESH_FACES];
+  RenderMaterial *torsoSkins[MAX_MESH_FACES];
 
   /**
    * @brief The legs model and materials.
    */
   RenderModel *legs;
-  RenderMaterial *legs_skins[MAX_MESH_FACES];
+  RenderMaterial *legsSkins[MAX_MESH_FACES];
 
   /**
    * @brief The skin icon for the scoreboard.
@@ -191,7 +191,7 @@ typedef struct {
    * @brief The cached weapon muzzle position in world space, transformed from
    * the model-space muzzle defined in `link.cfg` / `view.cfg`.
    */
-  Vec3 weapon_muzzle;
+  Vec3 weaponMuzzle;
 } ClientGameClientInfo;
 
 #define WEATHER_NONE 0x0
@@ -273,7 +273,7 @@ typedef struct {
   /**
    * @brief The forced skin (foreskin?) client info.
    */
-  ClientGameClientInfo force_skin;
+  ClientGameClientInfo forceSkin;
 
   /**
    * @brief The teams.
@@ -293,44 +293,44 @@ typedef struct {
   /**
    * @brief Non-zero if teams play is enabled.
    */
-  int32_t num_teams;
+  int32_t numTeams;
 
   #if defined(G_HOOK)
 /**
    * @brief Grapple hook speed, for client side prediction.
    */
-  float hook_pull_speed;
+  float hookPullSpeed;
 #endif
 
   
   /**
    * @brief The current number of clients connected to the server.
    */
-  int32_t num_clients;
+  int32_t numClients;
 
   /**
    * @brief Bot navitation node editor.
    */
-  int32_t nav_edit;
+  int32_t navEdit;
 
   /**
    * @brief Center print message state from `SV_CMD_CENTER_PRINT`.
    */
   struct {
     char lines[CG_CENTER_PRINT_LINES][MAX_STRING_CHARS];
-    int32_t num_lines;
+    int32_t numLines;
     uint32_t time;
-  } center_print;
+  } centerPrint;
 
   /**
    * @brief Pending view angle snap from a reliable `SV_CMD_SNAP_ANGLES` message.
    */
-  bool snap_angles;
+  bool snapAngles;
 
   /**
    * @brief The view angles to snap to.
    */
-  Vec3 snap_view_angles;
+  Vec3 snapViewAngles;
 
   /**
    * @brief The vote in progress, from `CS_VOTE`.
@@ -340,17 +340,17 @@ typedef struct {
   /**
    * @brief The intermission's map candidates, from `CS_NEXT_MAP`.
    */
-  ClientGameNextMapState next_map;
+  ClientGameNextMapState nextMap;
 
   /**
    * @brief The camera mode, cycled by `camera`.
    */
-  ClientGameCameraMode camera_mode;
+  ClientGameCameraMode cameraMode;
 
   /**
    * @brief Whether the transport and camera controls have been printed for this connection.
    */
-  bool printed_controls;
+  bool printedControls;
 
   /**
    * @brief Follow camera state, shared by live spectating and demo playback.

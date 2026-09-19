@@ -43,7 +43,7 @@ void Cg_InitInventory(void) {
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     ClientGameWeapon *w = &cg_weapons[t - WEAPON_FIRST];
     w->tag = t;
-    w->ammo_tag = bg_item_defs[t].ammo;
+    w->ammoTag = bg_item_defs[t].ammo;
     w->model = cg_items[t].model;
   }
 }
@@ -91,10 +91,10 @@ int16_t Cg_ActiveAmmo(const PlayerState *ps) {
     return 0;
   }
 
-  const GameItemTag ammo_tag = cg_weapons[active].ammo_tag;
-  if (!ammo_tag) {
+  const GameItemTag ammoTag = cg_weapons[active].ammoTag;
+  if (!ammoTag) {
     return 0;
   }
 
-  return ps->inventory[ammo_tag];
+  return ps->inventory[ammoTag];
 }

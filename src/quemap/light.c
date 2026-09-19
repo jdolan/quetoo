@@ -31,7 +31,7 @@ Vector *lights = NULL;
  */
 static Light *AllocLight(void) {
   Light *light = Mem_TagMalloc(sizeof(Light), (MemTag) MEM_TAG_LIGHT);
-  light->target_entity = -1;
+  light->targetEntity = -1;
   return light;
 }
 
@@ -52,11 +52,11 @@ static const CmEntity *FindTeamMaster(const char *team) {
   }
 
   CmEntity **e = Cm_Bsp()->entities;
-  for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+  for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++, e++) {
     const char *classname = Cm_EntityValue(*e, "classname")->string;
     if (!q_strcmp(classname, "light")) {
-      const char *ent_team = Cm_EntityValue(*e, "team")->nullable_string;
-      if (ent_team && !q_strcmp(ent_team, team)) {
+      const char *entTeam = Cm_EntityValue(*e, "team")->nullableString;
+      if (entTeam && !q_strcmp(entTeam, team)) {
         if (Cm_EntityValue(*e, "team_master")->parsed) {
           return *e;
         }
@@ -86,7 +86,7 @@ static Light *LightForEntity(const CmEntity *entity) {
 
     const float drift = Cm_EntityValue(entity, "drift")->value;
 
-    const CmEntity *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullable_string);
+    const CmEntity *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullableString);
     if (master) {
       light->radius = light->radius ?: Cm_EntityValue(master, "radius")->value;
 
@@ -115,31 +115,31 @@ static Light *LightForEntity(const CmEntity *entity) {
 
     // Compute per-light phase from origin hash, scaled by drift.
     // This gives each compiled light instance a unique stable offset.
-    const float effective_drift = drift ?: light->drift;
-    if (effective_drift > 0.f) {
+    const float effectiveDrift = drift ?: light->drift;
+    if (effectiveDrift > 0.f) {
       const float h = fabsf(sinf(light->origin.x * 127.1f +
                                  light->origin.y * 311.7f +
                                  light->origin.z *  74.7f));
-      light->drift = effective_drift * fmodf(h, 1.f);
+      light->drift = effectiveDrift * fmodf(h, 1.f);
     }
 
     light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
-    light->visible_bounds = Box3_Null();
+    light->visibleBounds = Box3_Null();
 
     // Entity-attached lights target an inline model entity and move with it at runtime.
     // Resolve the target entity number now so the BSP carries the reference.
-    const char *target = Cm_EntityValue(entity, "target")->nullable_string;
+    const char *target = Cm_EntityValue(entity, "target")->nullableString;
     if (target) {
       const CmBsp *bsp = Cm_Bsp();
-      for (int32_t i = 0; i < bsp->num_entities; i++) {
-        const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullable_string;
+      for (int32_t i = 0; i < bsp->numEntities; i++) {
+        const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullableString;
         if (!q_strcmp(targetname, target)) {
-          light->target_entity = i;
+          light->targetEntity = i;
           break;
         }
       }
 
-      if (light->target_entity == -1) {
+      if (light->targetEntity == -1) {
         Com_Warn("Entity light @ %s: target \"%s\" not found\n", vtos(light->origin), target);
       }
     }
@@ -178,12 +178,12 @@ void BuildLights(void) {
   lights = lights ?: $(alloc(Vector), initWithSize, sizeof(Light *));
 
   CmEntity **entity = Cm_Bsp()->entities;
-  for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
+  for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++, entity++) {
     Light *light = LightForEntity(*entity);
     if (light) {
       $(lights, add, &light);
     }
-    Progress("Building lights", i * 100.f / Cm_Bsp()->num_entities);
+    Progress("Building lights", i * 100.f / Cm_Bsp()->numEntities);
   }
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", (uint32_t) SDL_GetTicks() - start);
@@ -215,11 +215,11 @@ void EmitLights(void) {
 
     Light *light = VectorValue(lights, Light *, i);
 
-    if (light->target_entity != -1) {
+    if (light->targetEntity != -1) {
       // These will use the dynamic lighting code path at runtime and can not use precomputed
       // bounds or voxelization, because they can move; simply emit them to the BSP.
     } else {
-      if (Box3_IsNull(light->visible_bounds)) {
+      if (Box3_IsNull(light->visibleBounds)) {
         Com_Warn("light @ %s has no visible bounds; is it inside of CONTENTS_SOLID?\n", vtos(light->origin));
         continue;
       }
@@ -232,15 +232,15 @@ void EmitLights(void) {
     out->radius = light->radius;
     out->color = light->color;
     out->intensity = light->intensity;
-    out->bounds = light->visible_bounds;
-    out->target_entity = light->target_entity;
+    out->bounds = light->visibleBounds;
+    out->targetEntity = light->targetEntity;
     q_strlcpy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 
-    if (light->target_entity == -1) {
-      out->first_draw_elements = bsp_file.num_draw_elements;
+    if (light->targetEntity == -1) {
+      out->firstDrawElements = bsp_file.numDrawElements;
 
-      if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
+      if (bsp_file.numDrawElements == MAX_BSP_DRAW_ELEMENTS) {
         Com_Error(ERROR_FATAL, "MAX_BSP_DRAW_ELEMENTS\n");
       }
 
@@ -249,16 +249,16 @@ void EmitLights(void) {
       // for them. Alpha-tested faces (foliage, fences, grates) are grouped
       // by material below, so their diffuse texture can be sampled and
       // discarded per-pixel at draw time.
-      BspDrawElements *opaque = bsp_file.draw_elements + bsp_file.num_draw_elements;
+      BspDrawElements *opaque = bsp_file.drawElements + bsp_file.numDrawElements;
       opaque->material = -1;
       opaque->bounds = Box3_Null();
-      opaque->first_element = bsp_file.num_elements;
+      opaque->firstElement = bsp_file.numElements;
 
-      Vector *alpha_test_faces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
+      Vector *alphaTestFaces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
 
       const BspModel *worldspawn = bsp_file.models;
-      const BspFace *face = &bsp_file.faces[worldspawn->first_face];
-      for (int32_t j = 0; j < worldspawn->num_faces; j++, face++) {
+      const BspFace *face = &bsp_file.faces[worldspawn->firstFace];
+      for (int32_t j = 0; j < worldspawn->numFaces; j++, face++) {
 
         if (!Box3_Intersects(face->bounds, out->bounds)) {
           continue;
@@ -266,8 +266,8 @@ void EmitLights(void) {
 
         int32_t surface;
         int32_t contents;
-        if (face->brush_side >= 0) {
-          const BspBrushSide *side = &bsp_file.brush_sides[face->brush_side];
+        if (face->brushSide >= 0) {
+          const BspBrushSide *side = &bsp_file.brushSides[face->brushSide];
           surface = side->surface;
           contents = side->contents;
         } else {
@@ -277,7 +277,7 @@ void EmitLights(void) {
         }
 
         if (surface & SURF_ALPHA_TEST) {
-          $(alpha_test_faces, add, &face);
+          $(alphaTestFaces, add, &face);
           continue;
         }
 
@@ -297,29 +297,29 @@ void EmitLights(void) {
           continue;
         }
 
-        if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
+        if (bsp_file.numElements + face->numElements >= MAX_BSP_ELEMENTS) {
           Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
         }
 
-        memcpy(bsp_file.elements + bsp_file.num_elements, bsp_file.elements + face->first_element, sizeof(int32_t) * face->num_elements);
+        memcpy(bsp_file.elements + bsp_file.numElements, bsp_file.elements + face->firstElement, sizeof(int32_t) * face->numElements);
 
-        bsp_file.num_elements += face->num_elements;
+        bsp_file.numElements += face->numElements;
 
-        opaque->num_elements += face->num_elements;
+        opaque->numElements += face->numElements;
         opaque->bounds = Box3_Union(opaque->bounds, face->bounds);
       }
 
-      if (opaque->num_elements) {
-        bsp_file.num_draw_elements++;
+      if (opaque->numElements) {
+        bsp_file.numDrawElements++;
       }
 
-      if (alpha_test_faces->count) {
-        EmitDrawElements(alpha_test_faces);
+      if (alphaTestFaces->count) {
+        EmitDrawElements(alphaTestFaces);
       }
 
-      release(alpha_test_faces);
+      release(alphaTestFaces);
 
-      out->num_draw_elements = bsp_file.num_draw_elements - out->first_draw_elements;
+      out->numDrawElements = bsp_file.numDrawElements - out->firstDrawElements;
     }
 
     out++;
@@ -327,7 +327,7 @@ void EmitLights(void) {
     Progress("Emitting lights", 100.f * i / lights->count);
   }
 
-  bsp_file.num_lights = (int32_t) (ptrdiff_t) (out - bsp_file.lights);
+  bsp_file.numLights = (int32_t) (ptrdiff_t) (out - bsp_file.lights);
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
 }

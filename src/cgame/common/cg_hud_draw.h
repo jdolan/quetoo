@@ -48,23 +48,23 @@ typedef struct {
   } pulse;
 
   struct {
-    uint32_t hit_sound_time;
+    uint32_t hitSoundTime;
   } damage;
 
   struct {
-    uint32_t pickup_time;
-    uint32_t damage_time;
+    uint32_t pickupTime;
+    uint32_t damageTime;
     int16_t pickup;
   } blend;
 
   struct {
-    int16_t bit, used_bit;
-    uint32_t time, bar_time;
+    int16_t bit, usedBit;
+    uint32_t time, barTime;
     int16_t num;
     bool has[WEAPON_TOTAL];
   } weapon;
 
-  int16_t chase_target;
+  int16_t chaseTarget;
 
   struct {
     bool team;
@@ -73,7 +73,7 @@ typedef struct {
   /**
    * @brief When the state was last cleared; prints from before it are not shown.
    */
-  uint32_t clear_time;
+  uint32_t clearTime;
 } ClientGameHudState;
 
 extern ClientGameHudState cg_hud_state;

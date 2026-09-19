@@ -30,7 +30,7 @@ static void *cgame_handle;
  * @brief Fetch the active debug mask.
  */
 static DebugFlags Cl_CgameDebugMask(void) {
-  return quetoo.debug_mask;
+  return quetoo.debugMask;
 }
 
 /**
@@ -140,7 +140,7 @@ static char *Cl_ConfigString(int32_t index) {
     return "";
   }
 
-  return cl.config_strings[index];
+  return cl.configStrings[index];
 }
 
 /**
@@ -356,8 +356,8 @@ void Cl_InitCgame(void) {
     Com_Error(ERROR_FATAL, "Failed to load %s's client game\n", dir);
   }
 
-  if (cgame->api_version != CGAME_API_VERSION) {
-    const int32_t version = cgame->api_version;
+  if (cgame->apiVersion != CGAME_API_VERSION) {
+    const int32_t version = cgame->apiVersion;
     cgame_handle = Sys_CloseLibrary(cgame_handle);
     Com_Error(ERROR_FATAL, "%s's client game is version %i, not %i\n", dir, version, CGAME_API_VERSION);
   }

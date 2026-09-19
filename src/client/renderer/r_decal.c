@@ -30,7 +30,7 @@ static struct {
   /**
    * @brief The decal atlas sampler (linear, clamp).
    */
-  Sampler *diffusemap_sampler;
+  Sampler *diffusemapSampler;
 
 } r_decal_pipeline;
 
@@ -49,7 +49,7 @@ static struct {
    * @brief The transfer buffer sourcing the instance uploads, held for the subsystem's
    * lifetime because they run for as long as decals are pending.
    */
-  TransferBuffer *transfer_buffer;
+  TransferBuffer *transferBuffer;
 
   /**
    * @brief The ring cursor, and the generation it is presently writing.
@@ -60,8 +60,8 @@ static struct {
   /**
    * @brief The instances appended since the last upload.
    */
-  uint32_t first_pending;
-  uint32_t num_pending;
+  uint32_t firstPending;
+  uint32_t numPending;
 
 } r_decals;
 
@@ -75,12 +75,12 @@ void R_AddDecal(RenderView *view, const RenderDecal *decal) {
   assert(decal->radius > 0.f);
   assert(decal->lifetime > 0);
 
-  if (view->num_decals == MAX_DECALS) {
+  if (view->numDecals == MAX_DECALS) {
     Com_Warn("MAX_DECALS\n");
     return;
   }
 
-  RenderDecal *out = &view->decals[view->num_decals++];
+  RenderDecal *out = &view->decals[view->numDecals++];
 
   *out = *decal;
 }
@@ -94,7 +94,7 @@ static _Thread_local struct {
   CmWinding *decal;
   CmWinding *face;
   CmWinding *a, *b;
-  int32_t max_face_points;
+  int32_t maxFacePoints;
   int32_t capacity;
 } r_decal_windings;
 
@@ -102,13 +102,13 @@ static _Thread_local struct {
  * @brief Grows the per-thread scratch windings to accommodate a face of
  * `face_points` points.
  */
-static void R_ReserveDecalWindings(int32_t face_points) {
+static void R_ReserveDecalWindings(int32_t facePoints) {
 
   if (r_decal_windings.decal == NULL) {
     r_decal_windings.decal = Cm_AllocWinding(4);
   }
 
-  if (face_points > r_decal_windings.max_face_points) {
+  if (facePoints > r_decal_windings.maxFacePoints) {
 
     if (r_decal_windings.face) {
       Cm_FreeWinding(r_decal_windings.face);
@@ -116,11 +116,11 @@ static void R_ReserveDecalWindings(int32_t face_points) {
       Cm_FreeWinding(r_decal_windings.b);
     }
 
-    r_decal_windings.capacity = 4 + 4 * face_points;
-    r_decal_windings.face = Cm_AllocWinding(face_points);
+    r_decal_windings.capacity = 4 + 4 * facePoints;
+    r_decal_windings.face = Cm_AllocWinding(facePoints);
     r_decal_windings.a = Cm_AllocWinding(r_decal_windings.capacity);
     r_decal_windings.b = Cm_AllocWinding(r_decal_windings.capacity);
-    r_decal_windings.max_face_points = face_points;
+    r_decal_windings.maxFacePoints = facePoints;
   }
 }
 
@@ -148,12 +148,12 @@ static uint32_t R_AddDecalInstance(const RenderDecal *decal,
   instance->lifetime = decal->lifetime;
   instance->generation = generation;
 
-  if (r_decals.num_pending == 0) {
-    r_decals.first_pending = index;
+  if (r_decals.numPending == 0) {
+    r_decals.firstPending = index;
   }
 
-  if (r_decals.num_pending < MAX_DECAL_INSTANCES) {
-    r_decals.num_pending++;
+  if (r_decals.numPending < MAX_DECAL_INSTANCES) {
+    r_decals.numPending++;
   }
 
   r_decals.next++;
@@ -178,10 +178,10 @@ static const RenderDecalInstance *R_DecalInstance(uint32_t reference) {
  */
 static void R_UploadDecalInstanceRange(CopyPass *pass, const void *instances, uint32_t size, uint32_t offset) {
 
-  $(r_decals.transfer_buffer, write, instances, size, true);
+  $(r_decals.transferBuffer, write, instances, size, true);
 
   $(pass, uploadBuffer,
-    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_decals.transfer_buffer->buffer },
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_decals.transferBuffer->buffer },
     &(SDL_GPUBufferRegion) { .buffer = r_decals.buffer->buffer, .offset = offset, .size = size },
     false);
 }
@@ -193,22 +193,22 @@ static void R_UploadDecalInstanceRange(CopyPass *pass, const void *instances, ui
  */
 static void R_UploadDecalInstances(CopyPass *pass) {
 
-  if (r_decals.num_pending == 0) {
+  if (r_decals.numPending == 0) {
     return;
   }
 
-  const uint32_t first = r_decals.num_pending == MAX_DECAL_INSTANCES ? 0 : r_decals.first_pending;
-  const uint32_t head = (uint32_t) Mini((int32_t) r_decals.num_pending, (int32_t) (MAX_DECAL_INSTANCES - first));
+  const uint32_t first = r_decals.numPending == MAX_DECAL_INSTANCES ? 0 : r_decals.firstPending;
+  const uint32_t head = (uint32_t) Mini((int32_t) r_decals.numPending, (int32_t) (MAX_DECAL_INSTANCES - first));
 
   R_UploadDecalInstanceRange(pass, r_decals.instances + first,
     head * sizeof(RenderDecalInstance), first * sizeof(RenderDecalInstance));
 
-  if (r_decals.num_pending > head) {
+  if (r_decals.numPending > head) {
     R_UploadDecalInstanceRange(pass, r_decals.instances,
-      (r_decals.num_pending - head) * sizeof(RenderDecalInstance), 0);
+      (r_decals.numPending - head) * sizeof(RenderDecalInstance), 0);
   }
 
-  r_decals.num_pending = 0;
+  r_decals.numPending = 0;
 }
 
 /**
@@ -226,12 +226,12 @@ static void R_ClipDecalToFace(const RenderView *view,
   Vec3 t = tangent, b = bitangent;
 
   if (decal->rotation != 0.f) {
-    const float cos_rot = cosf(decal->rotation);
-    const float sin_rot = sinf(decal->rotation);
-    const Vec3 t_rot = Vec3_Add(Vec3_Scale(t, cos_rot), Vec3_Scale(b, sin_rot));
-    const Vec3 b_rot = Vec3_Add(Vec3_Scale(b, cos_rot), Vec3_Scale(t, -sin_rot));
-    t = t_rot;
-    b = b_rot;
+    const float cosRot = cosf(decal->rotation);
+    const float sinRot = sinf(decal->rotation);
+    const Vec3 tRot = Vec3_Add(Vec3_Scale(t, cosRot), Vec3_Scale(b, sinRot));
+    const Vec3 bRot = Vec3_Add(Vec3_Scale(b, cosRot), Vec3_Scale(t, -sinRot));
+    t = tRot;
+    b = bRot;
   }
 
   const Vec3 org = decal->origin;
@@ -243,30 +243,30 @@ static void R_ClipDecalToFace(const RenderView *view,
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b,  r)),
   };
 
-  const int32_t n_edge = face->patch ? (int32_t) sqrtf((float) face->num_vertexes) : 0;
+  const int32_t nEdge = face->patch ? (int32_t) sqrtf((float) face->numVertexes) : 0;
 
-  R_ReserveDecalWindings(face->patch ? 4 * (n_edge - 1) : face->num_vertexes);
+  R_ReserveDecalWindings(face->patch ? 4 * (nEdge - 1) : face->numVertexes);
 
   CmWinding *dw = r_decal_windings.decal;
-  dw->num_points = 4;
-  for (int32_t i = 0; i < dw->num_points; i++) {
+  dw->numPoints = 4;
+  for (int32_t i = 0; i < dw->numPoints; i++) {
     dw->points[i] = Vec3_Add(positions[i], n);
   }
 
   CmWinding *fw = r_decal_windings.face;
   if (face->patch) {
-    fw->num_points = 0;
-    for (int32_t i = 0; i < n_edge; i++)
-      fw->points[fw->num_points++] = face->vertexes[i].position;
-    for (int32_t j = 1; j < n_edge; j++)
-      fw->points[fw->num_points++] = face->vertexes[j * n_edge + (n_edge - 1)].position;
-    for (int32_t i = n_edge - 2; i >= 0; i--)
-      fw->points[fw->num_points++] = face->vertexes[(n_edge - 1) * n_edge + i].position;
-    for (int32_t j = n_edge - 2; j >= 1; j--)
-      fw->points[fw->num_points++] = face->vertexes[j * n_edge].position;
+    fw->numPoints = 0;
+    for (int32_t i = 0; i < nEdge; i++)
+      fw->points[fw->numPoints++] = face->vertexes[i].position;
+    for (int32_t j = 1; j < nEdge; j++)
+      fw->points[fw->numPoints++] = face->vertexes[j * nEdge + (nEdge - 1)].position;
+    for (int32_t i = nEdge - 2; i >= 0; i--)
+      fw->points[fw->numPoints++] = face->vertexes[(nEdge - 1) * nEdge + i].position;
+    for (int32_t j = nEdge - 2; j >= 1; j--)
+      fw->points[fw->numPoints++] = face->vertexes[j * nEdge].position;
   } else {
-    fw->num_points = face->num_vertexes;
-    for (int32_t i = 0; i < face->num_vertexes; i++) {
+    fw->numPoints = face->numVertexes;
+    for (int32_t i = 0; i < face->numVertexes; i++) {
       fw->points[i] = face->vertexes[i].position;
     }
   }
@@ -275,22 +275,22 @@ static void R_ClipDecalToFace(const RenderView *view,
                                                       r_decal_windings.a, r_decal_windings.b,
                                                       r_decal_windings.capacity);
 
-  if (w == NULL || w->num_points < 3) {
+  if (w == NULL || w->numPoints < 3) {
     return;
   }
 
-  const int32_t num_triangles = w->num_points - 2;
-  const int32_t overflow = (int32_t) decals->triangles->count + num_triangles - MAX_BSP_BLOCK_DECALS;
+  const int32_t numTriangles = w->numPoints - 2;
+  const int32_t overflow = (int32_t) decals->triangles->count + numTriangles - MAX_BSP_BLOCK_DECALS;
   if (overflow > 0) {
-    const int32_t remove_count = Mini(overflow, (int32_t) decals->triangles->count);
-    for (int32_t i = 0; i < remove_count; i++) {
+    const int32_t removeCount = Mini(overflow, (int32_t) decals->triangles->count);
+    for (int32_t i = 0; i < removeCount; i++) {
       $(decals->triangles, removeAtFast, 0);
     }
   }
 
   const uint32_t instance = R_AddDecalInstance(decal, normal, t, b);
 
-  for (int32_t i = 0; i < num_triangles; i++) {
+  for (int32_t i = 0; i < numTriangles; i++) {
     if (decals->triangles->count == MAX_BSP_BLOCK_DECALS) {
       break;
     }
@@ -322,10 +322,10 @@ static void R_ClipDecalToNode(const RenderView *view,
     return;
   }
 
-  const Box3 decal_bounds = Box3_FromCenterRadius(decal->origin, decal->radius);
+  const Box3 decalBounds = Box3_FromCenterRadius(decal->origin, decal->radius);
 
   const RenderBspFace *face = node->faces;
-  for (int32_t i = 0; i < node->num_faces; i++, face++) {
+  for (int32_t i = 0; i < node->numFaces; i++, face++) {
 
     if (!face->patch) {
       continue;
@@ -339,7 +339,7 @@ static void R_ClipDecalToNode(const RenderView *view,
       continue;
     }
 
-    if (!Box3_Intersects(face->bounds, decal_bounds)) {
+    if (!Box3_Intersects(face->bounds, decalBounds)) {
       continue;
     }
 
@@ -347,16 +347,16 @@ static void R_ClipDecalToNode(const RenderView *view,
     const Vec3 tangent = face->vertexes[0].tangent;
     const Vec3 bitangent = face->vertexes[0].bitangent;
 
-    const float face_dist = Vec3_Dot(Vec3_Subtract(decal->origin, face->vertexes[0].position), normal);
-    if (fabsf(face_dist) > decal->radius) {
+    const float faceDist = Vec3_Dot(Vec3_Subtract(decal->origin, face->vertexes[0].position), normal);
+    if (fabsf(faceDist) > decal->radius) {
       continue;
     }
 
-    RenderDecal face_projected = *decal;
-    face_projected.origin = Vec3_Fmaf(decal->origin, -face_dist, normal);
-    face_projected.radius = sqrtf(decal->radius * decal->radius - face_dist * face_dist);
+    RenderDecal faceProjected = *decal;
+    faceProjected.origin = Vec3_Fmaf(decal->origin, -faceDist, normal);
+    faceProjected.radius = sqrtf(decal->radius * decal->radius - faceDist * faceDist);
 
-    if (face_projected.radius >= 16.f) {
+    if (faceProjected.radius >= 16.f) {
       const Vec3 pos = Vec3_Add(Box3_Center(face->bounds), normal);
       if (Cm_BoxTrace(decal->origin, pos, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
         continue;
@@ -364,7 +364,7 @@ static void R_ClipDecalToNode(const RenderView *view,
     }
 
     RenderBspBlockDecals *decals = &face->block->decals;
-    R_ClipDecalToFace(view, face, &face_projected, normal, tangent, bitangent, decals);
+    R_ClipDecalToFace(view, face, &faceProjected, normal, tangent, bitangent, decals);
   }
 
   const CmBspPlane *plane = node->plane->cm;
@@ -388,17 +388,17 @@ static void R_ClipDecalToNode(const RenderView *view,
   const Box3 bounds = Box3_FromCenterRadius(projected.origin, projected.radius);
 
   face = node->faces;
-  for (int32_t i = 0; i < node->num_faces; i++, face++) {
+  for (int32_t i = 0; i < node->numFaces; i++, face++) {
 
     if (face->patch) {
       continue;
     }
 
-    if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
+    if (!(face->brushSide->contents & CONTENTS_MASK_SOLID)) {
       continue;
     }
 
-    if (face->brush_side->surface & (SURF_SKY | SURF_PORTAL)) {
+    if (face->brushSide->surface & (SURF_SKY | SURF_PORTAL)) {
       continue;
     }
 
@@ -418,8 +418,8 @@ static void R_ClipDecalToNode(const RenderView *view,
     }
 
     const Vec3 normal = face->plane->cm->normal;
-    const Vec3 sdir = face->brush_side->axis[0].xyz;
-    const Vec3 tdir = face->brush_side->axis[1].xyz;
+    const Vec3 sdir = face->brushSide->axis[0].xyz;
+    const Vec3 tdir = face->brushSide->axis[1].xyz;
     Vec3 tangent, bitangent;
     Vec3_Tangents(normal, sdir, tdir, &tangent, &bitangent);
 
@@ -441,28 +441,28 @@ static void R_ClipDecalToNode(const RenderView *view,
  */
 void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
 
-  for (int32_t i = 0; i < view->num_decals; i++) {
+  for (int32_t i = 0; i < view->numDecals; i++) {
     const RenderDecal *decal = &view->decals[i];
 
     const RenderEntity *e = view->entities;
-    for (int32_t j = 0; j < view->num_entities; j++, e++) {
+    for (int32_t j = 0; j < view->numEntities; j++, e++) {
 
       if (!IS_BSP_INLINE_MODEL(e->model)) {
         continue;
       }
 
-      RenderBspInlineModel *in = e->model->bsp_inline;
+      RenderBspInlineModel *in = e->model->bspInline;
 
       RenderDecal d = *decal;
       d.time = view->ticks;
-      d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
+      d.origin = Mat4_Transform(e->inverseMatrix, decal->origin);
 
-      R_ClipDecalToNode(view, in->head_node, &d);
+      R_ClipDecalToNode(view, in->headNode, &d);
     }
   }
 
   const RenderEntity *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+  for (int32_t i = 0; i < view->numEntities; i++, e++) {
 
     if (!IS_BSP_INLINE_MODEL(e->model)) {
       continue;
@@ -470,10 +470,10 @@ void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
 
     const bool culled = R_CullEntity(view, e);
 
-    RenderBspInlineModel *in = e->model->bsp_inline;
+    RenderBspInlineModel *in = e->model->bspInline;
 
     RenderBspBlock *block = in->blocks;
-    for (int32_t j = 0; j < in->num_blocks; j++, block++) {
+    for (int32_t j = 0; j < in->numBlocks; j++, block++) {
       RenderBspBlockDecals *decals = &block->decals;
 
       for (size_t k = decals->triangles->count; k > 0; ) {
@@ -489,8 +489,8 @@ void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
         }
       }
 
-      const int32_t num_vertexes = (int32_t) decals->triangles->count * 3;
-      if (num_vertexes == 0 || !decals->dirty) {
+      const int32_t numVertexes = (int32_t) decals->triangles->count * 3;
+      if (numVertexes == 0 || !decals->dirty) {
         continue;
       }
 
@@ -502,22 +502,22 @@ void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
         continue;
       }
 
-      if (R_CulludeBox(view, block->visible_bounds)) {
+      if (R_CulludeBox(view, block->visibleBounds)) {
         continue;
       }
 
-      if (num_vertexes > decals->vertex_buffer_capacity) {
-        decals->vertex_buffer = release(decals->vertex_buffer);
-        decals->vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+      if (numVertexes > decals->vertexBufferCapacity) {
+        decals->vertexBuffer = release(decals->vertexBuffer);
+        decals->vertexBuffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
           .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-          .size = num_vertexes * sizeof(RenderDecalVertex),
+          .size = numVertexes * sizeof(RenderDecalVertex),
         });
-        decals->vertex_buffer_capacity = num_vertexes;
+        decals->vertexBufferCapacity = numVertexes;
       }
 
       const void *data = VectorElement(decals->triangles, RenderDecalTriangle, 0);
-      $(pass, uploadData, decals->vertex_buffer->buffer, data,
-        num_vertexes * sizeof(RenderDecalVertex), 0, true);
+      $(pass, uploadData, decals->vertexBuffer->buffer, data,
+        numVertexes * sizeof(RenderDecalVertex), 0, true);
 
       decals->dirty = false;
     }
@@ -550,10 +550,10 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
   $(pass, bindPipeline, r_decal_pipeline.pipeline);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.bsp_buffer->buffer,
-    r_lights.dynamic_buffer->buffer,
-    bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.voxel_fallback_buffer->buffer,
+    r_lights.bspBuffer->buffer,
+    r_lights.dynamicBuffer->buffer,
+    bsp->voxels.lightDataBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : r_lights.voxelFallbackBuffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, 0, storage, 4);
 
@@ -561,7 +561,7 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
   $(pass, bindVertexStorageBuffers, 0, instances, 1);
 
   const RenderEntity *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+  for (int32_t i = 0; i < view->numEntities; i++, e++) {
 
     if (!IS_BSP_INLINE_MODEL(e->model)) {
       continue;
@@ -574,42 +574,42 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
     if (!IS_WORLDSPAWN(e->model)) {
-      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &e->active_dynamic_lights, sizeof(e->active_dynamic_lights));
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &e->activeDynamicLights, sizeof(e->activeDynamicLights));
     }
 
-    const RenderBspInlineModel *in = e->model->bsp_inline;
+    const RenderBspInlineModel *in = e->model->bspInline;
     const RenderBspBlock *block = in->blocks;
-    for (int32_t j = 0; j < in->num_blocks; j++, block++) {
+    for (int32_t j = 0; j < in->numBlocks; j++, block++) {
 
       if (block->query && !block->query->result) {
         continue;
       }
 
-      if (R_CulludeBox(view, block->visible_bounds)) {
+      if (R_CulludeBox(view, block->visibleBounds)) {
         continue;
       }
 
       if (IS_WORLDSPAWN(e->model)) {
-        $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &block->active_dynamic_lights, sizeof(block->active_dynamic_lights));
+        $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &block->activeDynamicLights, sizeof(block->activeDynamicLights));
       }
 
       const RenderBspBlockDecals *decals = &block->decals;
 
-      const int32_t num_vertexes = (int32_t) decals->triangles->count * 3;
-      if (num_vertexes == 0 || !decals->vertex_buffer || !decals->image || !decals->image->texture) {
+      const int32_t numVertexes = (int32_t) decals->triangles->count * 3;
+      if (numVertexes == 0 || !decals->vertexBuffer || !decals->image || !decals->image->texture) {
         continue;
       }
 
       $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
         .texture = decals->image->texture->texture,
-        .sampler = r_decal_pipeline.diffusemap_sampler->sampler,
+        .sampler = r_decal_pipeline.diffusemapSampler->sampler,
       }, 1);
 
-      $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = decals->vertex_buffer->buffer }, 1);
+      $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = decals->vertexBuffer->buffer }, 1);
 
-      $(pass, drawPrimitives, num_vertexes, 1, 0, 0);
+      $(pass, drawPrimitives, numVertexes, 1, 0, 0);
 
-      r_stats->decal_draw_elements++;
+      r_stats->decalDrawElements++;
     }
   }
 }
@@ -673,7 +673,7 @@ static void R_InitDecalPipeline(void) {
     },
     &info);
 
-  r_decal_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearClamp);
+  r_decal_pipeline.diffusemapSampler = $(r_context.device, createSamplerLinearClamp);
 }
 
 /**
@@ -682,7 +682,7 @@ static void R_InitDecalPipeline(void) {
 static void R_ShutdownDecalPipeline(void) {
 
   r_decal_pipeline.pipeline = release(r_decal_pipeline.pipeline);
-  r_decal_pipeline.diffusemap_sampler = release(r_decal_pipeline.diffusemap_sampler);
+  r_decal_pipeline.diffusemapSampler = release(r_decal_pipeline.diffusemapSampler);
 }
 
 /**
@@ -706,7 +706,7 @@ void R_InitDecals(void) {
     .size = sizeof(r_decals.instances),
   });
 
-  r_decals.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  r_decals.transferBuffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
     .size = sizeof(r_decals.instances),
   });
@@ -722,5 +722,5 @@ void R_ShutdownDecals(void) {
   R_ShutdownDecalPipeline();
 
   r_decals.buffer = release(r_decals.buffer);
-  r_decals.transfer_buffer = release(r_decals.transfer_buffer);
+  r_decals.transferBuffer = release(r_decals.transferBuffer);
 }

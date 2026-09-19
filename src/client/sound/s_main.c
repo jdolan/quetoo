@@ -60,40 +60,40 @@ void S_GetError_(const char *function, const char *msg) {
 /**
  * @brief Returns the size of the `SDL_IOStream` for use as a libsndfile virtual file length callback.
  */
-static sf_count_t S_RWops_get_filelen(void *user_data) {
-  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+static sf_count_t S_RWops_get_filelen(void *userData) {
+  SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_GetIOSize(rwops);
 }
 
 /**
  * @brief Seeks the `SDL_IOStream` for use as a libsndfile virtual seek callback.
  */
-static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *user_data) {
-  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *userData) {
+  SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_SeekIO(rwops, offset, whence);
 }
 
 /**
  * @brief Reads from the `SDL_IOStream` for use as a libsndfile virtual read callback.
  */
-static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *user_data) {
-  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *userData) {
+  SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_ReadIO(rwops, ptr, count);
 }
 
 /**
  * @brief Writes to the `SDL_IOStream` for use as a libsndfile virtual write callback.
  */
-static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *user_data) {
-  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *userData) {
+  SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_WriteIO(rwops, ptr, count);
 }
 
 /**
  * @brief Returns the current position of the `SDL_IOStream` for use as a libsndfile virtual tell callback.
  */
-static sf_count_t S_RWops_tell(void *user_data) {
-  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+static sf_count_t S_RWops_tell(void *userData) {
+  SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_TellIO(rwops);
 }
 
@@ -111,16 +111,16 @@ SF_VIRTUAL_IO s_rwops_io = {
 /**
  * @brief Returns the size of the PhysFS file for use as a libsndfile virtual file length callback.
  */
-static sf_count_t S_PhysFS_get_filelen(void *user_data) {
-  File *file = (File *) user_data;
+static sf_count_t S_PhysFS_get_filelen(void *userData) {
+  File *file = (File *) userData;
   return Fs_FileLength(file);
 }
 
 /**
  * @brief Seeks the PhysFS file for use as a libsndfile virtual seek callback.
  */
-static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *user_data) {
-  File *file = (File *) user_data;
+static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *userData) {
+  File *file = (File *) userData;
 
   switch (whence) {
   case SEEK_SET:
@@ -140,24 +140,24 @@ static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *user_data) 
 /**
  * @brief Reads from the PhysFS file for use as a libsndfile virtual read callback.
  */
-static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *user_data) {
-  File *file = (File *) user_data;
+static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *userData) {
+  File *file = (File *) userData;
   return Fs_Read(file, ptr, 1, count);
 }
 
 /**
  * @brief Writes to the PhysFS file for use as a libsndfile virtual write callback.
  */
-static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *user_data) {
-  File *file = (File *) user_data;
+static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *userData) {
+  File *file = (File *) userData;
   return Fs_Write(file, ptr, 1, count);
 }
 
 /**
  * @brief Returns the current position of the PhysFS file for use as a libsndfile virtual tell callback.
  */
-static sf_count_t S_PhysFS_tell(void *user_data) {
-  File *file = (File *) user_data;
+static sf_count_t S_PhysFS_tell(void *userData) {
+  File *file = (File *) userData;
   return Fs_Tell(file);
 }
 
@@ -189,7 +189,7 @@ void S_Stop(void) {
     s_context.channels[i].filter = filters[i];
   }
 
-  s_context.prev_ticks = 0;
+  s_context.prevTicks = 0;
 
   alSourceStopv(MAX_CHANNELS, s_context.sources);
 
@@ -205,7 +205,7 @@ void S_Stop(void) {
  */
 void S_InitStage(SoundStage *stage) {
   stage->ticks = (uint32_t) SDL_GetTicks();
-  stage->num_samples = 0;
+  stage->numSamples = 0;
 }
 
 /**
@@ -220,7 +220,7 @@ void S_RenderStage(SoundStage *stage) {
   }
 
   const SoundPlaySample *s = stage->samples;
-  for (int32_t i = 0; i < stage->num_samples; i++, s++) {
+  for (int32_t i = 0; i < stage->numSamples; i++, s++) {
 
     if (s->flags & S_PLAY_FRAME) {
       SoundChannel *ch = s_context.channels;
@@ -368,7 +368,7 @@ void S_Init(void) {
     return;
   }
 
-  const int efx_supported = alcIsExtensionPresent(s_context.device, "ALC_EXT_EFX");
+  const int efxSupported = alcIsExtensionPresent(s_context.device, "ALC_EXT_EFX");
 
   s_context.renderer = (const char *) alGetString(AL_RENDERER);
   s_context.vendor = (const char *) alGetString(AL_VENDOR);
@@ -379,22 +379,22 @@ void S_Init(void) {
   Com_Print("  Version:    ^2%s^7\n", s_context.version);
 
   if (s_hrtf->integer) {
-    ALCint hrtf_status;
-    alcGetIntegerv(s_context.device, ALC_HRTF_STATUS_SOFT, 1, &hrtf_status);
-    if (hrtf_status == ALC_HRTF_ENABLED_SOFT || hrtf_status == ALC_HRTF_REQUIRED_SOFT) {
+    ALCint hrtfStatus;
+    alcGetIntegerv(s_context.device, ALC_HRTF_STATUS_SOFT, 1, &hrtfStatus);
+    if (hrtfStatus == ALC_HRTF_ENABLED_SOFT || hrtfStatus == ALC_HRTF_REQUIRED_SOFT) {
       const ALCchar *name = alcGetString(s_context.device, ALC_HRTF_SPECIFIER_SOFT);
       Com_Print("  HRTF:       ^2%s^7\n", name ? name : "enabled");
     } else {
-      Com_Warn("HRTF requested but not enabled (status %d)\n", hrtf_status);
+      Com_Warn("HRTF requested but not enabled (status %d)\n", hrtfStatus);
     }
   }
 
   {
-    char ext_buf[4096];
-    q_strlcpy(ext_buf, alGetString(AL_EXTENSIONS) ? alGetString(AL_EXTENSIONS) : "", sizeof(ext_buf));
+    char extBuf[4096];
+    q_strlcpy(extBuf, alGetString(AL_EXTENSIONS) ? alGetString(AL_EXTENSIONS) : "", sizeof(extBuf));
     char *save = NULL;
     bool first = true;
-    for (char *tok = q_strtok_r(ext_buf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
+    for (char *tok = q_strtok_r(extBuf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
       if (first) {
         Com_Verbose("  Extensions: ^2%s^7\n", tok);
         first = false;
@@ -405,17 +405,17 @@ void S_Init(void) {
   }
 
   {
-    const char *alc_ext = alcGetString(s_context.device, ALC_EXTENSIONS);
-    char ext_buf[4096];
-    q_strlcpy(ext_buf, alc_ext ? alc_ext : "", sizeof(ext_buf));
+    const char *alcExt = alcGetString(s_context.device, ALC_EXTENSIONS);
+    char extBuf[4096];
+    q_strlcpy(extBuf, alcExt ? alcExt : "", sizeof(extBuf));
     char *save = NULL;
-    for (char *tok = q_strtok_r(ext_buf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
+    for (char *tok = q_strtok_r(extBuf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
       Com_Verbose("              ^2%s^7\n", tok);
     }
   }
 
   if (s_effects->integer) {
-    if (!efx_supported) {
+    if (!efxSupported) {
       Com_Warn("s_effects is enabled but OpenAL driver does not support them.\n");
       Cvar_ForceSetInteger(s_effects->name, 0);
       s_effects->modified = false;
@@ -439,8 +439,8 @@ void S_Init(void) {
         }
       }
 
-      alGenAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
-      alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
+      alGenAuxiliaryEffectSlots(1, &s_context.effects.reverbSlot);
+      alAuxiliaryEffectSloti(s_context.effects.reverbSlot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
 
       if (alGetError() == AL_NO_ERROR) {
         s_context.effects.loaded = true;
@@ -467,7 +467,7 @@ void S_Init(void) {
 
   S_InitVoice();
 
-  s_context.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
+  s_context.resampleBuffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
 /**
@@ -496,7 +496,7 @@ void S_Shutdown(void) {
         filters[i] = s_context.channels[i].filter;
       }
       alDeleteFilters(MAX_CHANNELS, filters);
-      alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
+      alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverbSlot);
       alDeleteEffects(1, &s_context.effects.reverb);
       s_context.effects.loaded = false;
     }
@@ -521,9 +521,9 @@ void S_Shutdown(void) {
 
   Cmd_RemoveAll(CMD_SOUND);
 
-  Mem_Free(s_context.raw_sample_buffer);
-  Mem_Free(s_context.converted_sample_buffer);
-  Mem_Free(s_context.resample_buffer);
+  Mem_Free(s_context.rawSampleBuffer);
+  Mem_Free(s_context.convertedSampleBuffer);
+  Mem_Free(s_context.resampleBuffer);
 
   Mem_FreeTag(MEM_TAG_SOUND);
 }

@@ -94,18 +94,18 @@ void Work(const char *name, WorkFunc func, int32_t count) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  const int32_t thread_count = Thread_Count();
+  const int32_t threadCount = Thread_Count();
 
-  if (thread_count == 0) {
+  if (threadCount == 0) {
     RunWorkFunc(0);
   } else {
-    WorkerThread *threads[thread_count];
+    WorkerThread *threads[threadCount];
 
-    for (int32_t i = 0; i < thread_count; i++) {
+    for (int32_t i = 0; i < threadCount; i++) {
       threads[i] = Thread_Create(RunWorkFunc, NULL, 0);
     }
 
-    for (int32_t i = 0; i < thread_count; i++) {
+    for (int32_t i = 0; i < threadCount; i++) {
       Thread_Wait(threads[i]);
     }
   }

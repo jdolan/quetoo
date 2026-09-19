@@ -116,10 +116,10 @@ bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf) {
   }
 
   net_sockaddr addr;
-  socklen_t addr_len = sizeof(addr);
+  socklen_t addrLen = sizeof(addr);
 
-  const ssize_t received = recvfrom(sock, (void *) buf->data, (int32_t) buf->max_size, 0,
-                                    (struct sockaddr *) &addr, &addr_len);
+  const ssize_t received = recvfrom(sock, (void *) buf->data, (int32_t) buf->maxSize, 0,
+                                    (struct sockaddr *) &addr, &addrLen);
 
   from->addr = addr.sin_addr.s_addr;
   from->port = addr.sin_port;
@@ -138,7 +138,7 @@ bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf) {
   from->addr = addr.sin_addr.s_addr;
   from->port = addr.sin_port;
 
-  if (received == ((ssize_t) buf->max_size)) {
+  if (received == ((ssize_t) buf->maxSize)) {
     Com_Warn("Oversized packet from %s\n", Net_NetaddrToString(from));
     return false;
   }
@@ -167,8 +167,8 @@ static bool Net_SendDatagram_Loop(NetSrc source, const void *data, size_t len) {
 /**
  * @brief Sends a datagram to the specified socket address.
  */
-static bool Net_SendDatagramToAddr(int32_t sock, const net_sockaddr *to_addr, const void *data, size_t len) {
-  const ssize_t sent = sendto(sock, data, (int32_t) len, 0, (const struct sockaddr *) to_addr, sizeof(*to_addr));
+static bool Net_SendDatagramToAddr(int32_t sock, const net_sockaddr *toAddr, const void *data, size_t len) {
+  const ssize_t sent = sendto(sock, data, (int32_t) len, 0, (const struct sockaddr *) toAddr, sizeof(*toAddr));
   if (sent == -1) {
     Com_Warn("%s\n", Net_GetErrorString());
     return false;
@@ -209,9 +209,9 @@ static bool Net_SendBroadcastDatagram(int32_t sock, const NetAddr *to, const voi
   }
 #endif
 
-  net_sockaddr to_addr;
-  Net_NetAddrToSockaddr(to, &to_addr);
-  return Net_SendDatagramToAddr(sock, &to_addr, data, len);
+  net_sockaddr toAddr;
+  Net_NetAddrToSockaddr(to, &toAddr);
+  return Net_SendDatagramToAddr(sock, &toAddr, data, len);
 }
 
 
@@ -237,9 +237,9 @@ bool Net_SendDatagram(NetSrc source, const NetAddr *to, const void *data, size_t
     return Net_SendBroadcastDatagram(sock, to, data, len);
   }
 
-  net_sockaddr to_addr;
-  Net_NetAddrToSockaddr(to, &to_addr);
-  return Net_SendDatagramToAddr(sock, &to_addr, data, len);
+  net_sockaddr toAddr;
+  Net_NetAddrToSockaddr(to, &toAddr);
+  return Net_SendDatagramToAddr(sock, &toAddr, data, len);
 }
 
 /**
@@ -280,12 +280,12 @@ void Net_Config(NetSrc source, bool up) {
     net_loop_loss = Cvar_Add("net_loop_loss", "0.0", CVAR_DEVELOPER,
         "Simulate network packet loss, as a fraction, on localhost (developer tool)");
 
-    const Cvar *net_interface = Cvar_Add("net_interface", "", CVAR_NO_SET, NULL);
-    const Cvar *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+    const Cvar *netInterface = Cvar_Add("net_interface", "", CVAR_NO_SET, NULL);
+    const Cvar *netPort = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
     if (*sock == 0) {
-      const char *iface = q_strlen(net_interface->string) ? net_interface->string : NULL;
-      const in_port_t port = source == NS_UDP_SERVER ? net_port->integer : 0;
+      const char *iface = q_strlen(netInterface->string) ? netInterface->string : NULL;
+      const in_port_t port = source == NS_UDP_SERVER ? netPort->integer : 0;
 
       *sock = Net_Socket(NA_DATAGRAM, iface, port);
     }

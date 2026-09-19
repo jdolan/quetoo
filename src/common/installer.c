@@ -90,12 +90,12 @@ static struct {
   /**
    * @brief The remote data manifest.
    */
-  HashTable *remote_manifest;
+  HashTable *remoteManifest;
 
   /**
    * @brief The local data manifest.
    */
-  HashTable *local_manifest;
+  HashTable *localManifest;
 
   /**
    * @brief The latest release, populated by `INSTALLER_CHECKING`.
@@ -106,7 +106,7 @@ static struct {
    * @brief Whether a cold install of the game data has been attempted, so that
    * a failure falls through to the file by file sync instead of retrying.
    */
-  bool installed_data;
+  bool installedData;
 
   /**
    * @brief Whether the player has agreed to install an available update.
@@ -278,8 +278,8 @@ static bool Installer_IsRoot(const char *dir) {
  */
 static void Installer_Join(char *out, size_t len, const char *dir, const char *name) {
 
-  const size_t dir_len = q_strlen(dir);
-  const bool separated = dir_len && Installer_IsSeparator(dir[dir_len - 1]);
+  const size_t dirLen = q_strlen(dir);
+  const bool separated = dirLen && Installer_IsSeparator(dir[dirLen - 1]);
 
   q_snprintf(out, (int32_t) len, "%s%s%s", dir, separated ? "" : "/", name);
 }
@@ -430,8 +430,8 @@ static bool Installer_DownloadToFile(const char *address, const char *path, int6
     const bool cancelled = in->state == INSTALLER_CANCELLED;
     if (!cancelled) {
       const int64_t total = expected > 0 ? expected : (int64_t) task->bytesExpectedToReceive;
-      in->kbytes_done = (int32_t) (task->bytesReceived / 1024);
-      in->kbytes_total = (int32_t) (total / 1024);
+      in->kbytesDone = (int32_t) (task->bytesReceived / 1024);
+      in->kbytesTotal = (int32_t) (total / 1024);
     }
     SDL_UnlockMutex(installer.mutex);
 
@@ -558,12 +558,12 @@ static void Installer_FindPending(const HashTable *table, ident key, ident value
 static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident value, ident data) {
   const CmManifestEntry *entry = value;
   if (entry->status == ENTRY_STALE) {
-    char full_path[MAX_OS_PATH];
-    q_snprintf(full_path, sizeof(full_path), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
-    if (SDL_RemovePath(full_path)) {
+    char fullPath[MAX_OS_PATH];
+    q_snprintf(fullPath, sizeof(fullPath), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
+    if (SDL_RemovePath(fullPath)) {
       Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
     } else {
-      Com_Warn("Failed to remove stale file: %s\n", full_path);
+      Com_Warn("Failed to remove stale file: %s\n", fullPath);
     }
   }
 }
@@ -603,8 +603,8 @@ static bool Installer_WriteManifest(const char *path, HashTable *manifest) {
 
 typedef struct {
   HashTable *local;
-  int32_t files_total;
-  int32_t kbytes_total;
+  int32_t filesTotal;
+  int32_t kbytesTotal;
 } InstallerCompare;
 
 static void Installer_CompareEntry(const HashTable *table, ident key, ident value, ident data) {
@@ -618,25 +618,25 @@ static void Installer_CompareEntry(const HashTable *table, ident key, ident valu
     }
   }
   if (re->status == ENTRY_PENDING) {
-    ctx->files_total++;
-    ctx->kbytes_total += (int32_t) ((re->size + 1023) / 1024);
+    ctx->filesTotal++;
+    ctx->kbytesTotal += (int32_t) ((re->size + 1023) / 1024);
   }
 }
 
 static void Installer_Commit(void) {
 
-  if (installer.local_manifest) {
-    $(installer.local_manifest, enumerate, Installer_PruneStaleEntry, NULL);
-    Cm_FreeManifest(installer.local_manifest);
-    installer.local_manifest = NULL;
+  if (installer.localManifest) {
+    $(installer.localManifest, enumerate, Installer_PruneStaleEntry, NULL);
+    Cm_FreeManifest(installer.localManifest);
+    installer.localManifest = NULL;
   }
 
-  if (installer.remote_manifest) {
-    char mf_path[MAX_OS_PATH];
-    q_snprintf(mf_path, sizeof(mf_path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
-    Installer_WriteManifest(mf_path, installer.remote_manifest);
-    Cm_FreeManifest(installer.remote_manifest);
-    installer.remote_manifest = NULL;
+  if (installer.remoteManifest) {
+    char mfPath[MAX_OS_PATH];
+    q_snprintf(mfPath, sizeof(mfPath), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+    Installer_WriteManifest(mfPath, installer.remoteManifest);
+    Cm_FreeManifest(installer.remoteManifest);
+    installer.remoteManifest = NULL;
   }
 }
 
@@ -786,9 +786,9 @@ static bool Installer_InstallData(void) {
 
   SDL_LockMutex(installer.mutex);
   in->state = INSTALLER_INSTALLING_DATA;
-  in->kbytes_done = 0;
-  in->kbytes_total = (int32_t) (data.size / 1024);
-  q_strlcpy(in->current_file, data.asset, sizeof(in->current_file));
+  in->kbytesDone = 0;
+  in->kbytesTotal = (int32_t) (data.size / 1024);
+  q_strlcpy(in->currentFile, data.asset, sizeof(in->currentFile));
   SDL_UnlockMutex(installer.mutex);
 
   bool success = Installer_DownloadToFile(data.url, archive, data.size);
@@ -834,9 +834,9 @@ static int Installer_DownloadThread(void *unused) {
     const CmManifestEntry *entry = NULL;
     {
       CmManifestEntry *found = NULL;
-      $(installer.remote_manifest, enumerate, Installer_FindPending, &found);
+      $(installer.remoteManifest, enumerate, Installer_FindPending, &found);
       if (found) {
-        q_strlcpy(in->current_file, found->path, sizeof(in->current_file));
+        q_strlcpy(in->currentFile, found->path, sizeof(in->currentFile));
         entry = found;
       }
     }
@@ -852,8 +852,8 @@ static int Installer_DownloadThread(void *unused) {
     SDL_LockMutex(installer.mutex);
 
     if (ok) {
-      in->files_done++;
-      in->kbytes_done += (int32_t) ((entry->size + 1023) / 1024);
+      in->filesDone++;
+      in->kbytesDone += (int32_t) ((entry->size + 1023) / 1024);
       ((CmManifestEntry *) entry)->status = ENTRY_CURRENT;
     } else if (in->state == INSTALLER_DOWNLOADING) {
       in->state = INSTALLER_ERROR;
@@ -910,7 +910,7 @@ static int Installer_Thread(void *unused) {
         } else if (Installer_CompareVersions(installer.release.tag, version->string) > 0) {
           if (writable) {
             in->state = INSTALLER_UPDATE_AVAILABLE;
-            q_strlcpy(in->current_file, installer.release.asset, sizeof(in->current_file));
+            q_strlcpy(in->currentFile, installer.release.asset, sizeof(in->currentFile));
           } else {
             in->state = INSTALLER_COMPARING;
             if (!managed) {
@@ -928,8 +928,8 @@ static int Installer_Thread(void *unused) {
 
       case INSTALLER_COMPARING: {
 
-        if (!installer.installed_data && !Installer_HasManifest()) {
-          installer.installed_data = true;
+        if (!installer.installedData && !Installer_HasManifest()) {
+          installer.installedData = true;
           if (!Installer_InstallData()) {
             Com_Warn("Falling back to a file by file sync\n");
           }
@@ -942,13 +942,13 @@ static int Installer_Thread(void *unused) {
         }
 
         Data *data = NULL;
-        char manifest_url[MAX_OS_PATH];
-        q_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
-        const int32_t http_status = $($$(RESTClient, sharedInstance), get, manifest_url, NULL, &data);
-        if (http_status != 200 || !data) {
+        char manifestUrl[MAX_OS_PATH];
+        q_snprintf(manifestUrl, sizeof(manifestUrl), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
+        const int32_t httpStatus = $($$(RESTClient, sharedInstance), get, manifestUrl, NULL, &data);
+        if (httpStatus != 200 || !data) {
           SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_ERROR;
-          q_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", http_status);
+          q_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", httpStatus);
           SDL_UnlockMutex(installer.mutex);
           release(data);
           break;
@@ -966,21 +966,21 @@ static int Installer_Thread(void *unused) {
 
         InstallerCompare ctx = { .local = local };
         $(remote, enumerate, Installer_CompareEntry, &ctx);
-        const int32_t files_total = ctx.files_total;
-        const int32_t kbytes_total = ctx.kbytes_total;
+        const int32_t filesTotal = ctx.filesTotal;
+        const int32_t kbytesTotal = ctx.kbytesTotal;
 
-        installer.remote_manifest = remote;
-        installer.local_manifest = local;
+        installer.remoteManifest = remote;
+        installer.localManifest = local;
 
         SDL_LockMutex(installer.mutex);
-        if (files_total == 0) {
+        if (filesTotal == 0) {
           in->state = INSTALLER_COMMITTING;
         } else {
           in->state = INSTALLER_DOWNLOADING;
-          in->files_total = files_total;
-          in->kbytes_total = kbytes_total;
-          in->files_done = 0;
-          in->kbytes_done = 0;
+          in->filesTotal = filesTotal;
+          in->kbytesTotal = kbytesTotal;
+          in->filesDone = 0;
+          in->kbytesDone = 0;
         }
         SDL_UnlockMutex(installer.mutex);
       }
@@ -1024,8 +1024,8 @@ static int Installer_Thread(void *unused) {
         if (in->state != INSTALLER_CANCELLED) {
           if (consent > 0) {
             in->state = INSTALLER_DOWNLOADING_UPDATE;
-            in->kbytes_done = 0;
-            in->kbytes_total = (int32_t) (installer.release.size / 1024);
+            in->kbytesDone = 0;
+            in->kbytesTotal = (int32_t) (installer.release.size / 1024);
           } else {
             Com_Print("Skipping the update to Quetoo %s.\n", installer.release.tag);
             in->state = INSTALLER_COMPARING;
@@ -1316,7 +1316,7 @@ static int32_t Installer_EachPending(FILE *file, const char *root, Installer_Pen
     return -1;
   }
 
-  const size_t root_len = q_strlen(root);
+  const size_t rootLen = q_strlen(root);
 
   int32_t count = 0;
 
@@ -1330,12 +1330,12 @@ static int32_t Installer_EachPending(FILE *file, const char *root, Installer_Pen
       return -1;
     }
 
-    if (q_strncmp(line, root, root_len) || !Installer_IsSeparator(line[root_len])) {
+    if (q_strncmp(line, root, rootLen) || !Installer_IsSeparator(line[rootLen])) {
       continue;
     }
 
     char target[MAX_OS_PATH];
-    q_snprintf(target, sizeof(target), "%s%s", Fs_BaseDir(), line + root_len);
+    q_snprintf(target, sizeof(target), "%s%s", Fs_BaseDir(), line + rootLen);
 
     if (!func(line, target, cleanup)) {
       return -1;
@@ -1524,10 +1524,10 @@ void Installer_Shutdown(void) {
     installer.mutex = NULL;
   }
 
-  Cm_FreeManifest(installer.remote_manifest);
-  installer.remote_manifest = NULL;
+  Cm_FreeManifest(installer.remoteManifest);
+  installer.remoteManifest = NULL;
 
-  Cm_FreeManifest(installer.local_manifest);
-  installer.local_manifest = NULL;
+  Cm_FreeManifest(installer.localManifest);
+  installer.localManifest = NULL;
 }
 

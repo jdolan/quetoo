@@ -49,25 +49,25 @@ static void Fill_TestParams(PlayerMoveParams *p) {
   // a byte no `PlayerMovement` owns: what is under test is that the field reaches
   // the other side intact, not what it selects once it arrives
   p->movement = 200;
-  p->accel_ground = 11.f;       p->accel_ground_slick = 4.5f;
-  p->accel_air = 3.f;           p->accel_water = 3.5f;
-  p->accel_spectator = 2.75f;   p->accel_ladder = 17.f;
-  p->friction_ground = 6.5f;    p->friction_ground_slick = 2.5f;
-  p->friction_air = 0.25f;      p->friction_water = 2.25f;
-  p->friction_spectator = 2.6f; p->friction_ladder = 5.5f;
-  p->speed_ground = 310.f;      p->speed_air = 360.f;
-  p->speed_water = 150.f;       p->speed_ladder = 130.f;
-  p->speed_spectator = 510.f;   p->speed_stop = 110.f;
-  p->speed_jump = 280.f;        p->speed_ducked = 145.f;
-  p->speed_duck_stand = 205.f;  p->speed_water_jump = 430.f;
+  p->accelGround = 11.f;       p->accelGroundSlick = 4.5f;
+  p->accelAir = 3.f;           p->accelWater = 3.5f;
+  p->accelSpectator = 2.75f;   p->accelLadder = 17.f;
+  p->frictionGround = 6.5f;    p->frictionGroundSlick = 2.5f;
+  p->frictionAir = 0.25f;      p->frictionWater = 2.25f;
+  p->frictionSpectator = 2.6f; p->frictionLadder = 5.5f;
+  p->speedGround = 310.f;      p->speedAir = 360.f;
+  p->speedWater = 150.f;       p->speedLadder = 130.f;
+  p->speedSpectator = 510.f;   p->speedStop = 110.f;
+  p->speedJump = 280.f;        p->speedDucked = 145.f;
+  p->speedDuckStand = 205.f;  p->speedWaterJump = 430.f;
   // every component distinct, so a dropped or transposed one shows, and every
   // one fractional, so a serializer that quantized the box to whole units - as
   // Net_WriteBounds does - would fail here rather than in someone's prediction
   p->bounds = (Box3) { .mins = { { -17.25f, -18.5f, -25.75f } },
                          .maxs = { {  19.25f,  20.5f,  37.75f } } };
-  p->bounds_ducked = (Box3) { .mins = { { -21.25f, -22.5f, -26.75f } },
+  p->boundsDucked = (Box3) { .mins = { { -21.25f, -22.5f, -26.75f } },
                                 .maxs = { {  23.25f,  24.5f,   7.75f } } };
-  p->bounds_dead = (Box3) { .mins = { { -27.25f, -28.5f, -29.75f } },
+  p->boundsDead = (Box3) { .mins = { { -27.25f, -28.5f, -29.75f } },
                               .maxs = { {  30.25f,  31.5f,  -3.25f } } };
 }
 
@@ -85,7 +85,7 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
 
   PlayerState to;
   memset(&to, 0, sizeof(to));
-  Fill_TestParams(&to.pm_state.params);
+  Fill_TestParams(&to.pmState.params);
 
   Net_WriteDeltaPlayerState(&buf, &from, &to);
   buf.read = 0;
@@ -94,11 +94,11 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
   memset(&result, 0, sizeof(result));
   Net_ReadDeltaPlayerState(&buf, &from, &result);
 
-  ck_assert_int_eq(result.pm_state.params.gravity, to.pm_state.params.gravity);
-  ck_assert_int_eq(result.pm_state.params.movement, to.pm_state.params.movement);
+  ck_assert_int_eq(result.pmState.params.gravity, to.pmState.params.gravity);
+  ck_assert_int_eq(result.pmState.params.movement, to.pmState.params.movement);
 
-  ck_assert_msg(memcmp(&result.pm_state.params.accel_ground, &to.pm_state.params.accel_ground,
-                       sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accel_ground)) == 0,
+  ck_assert_msg(memcmp(&result.pmState.params.accelGround, &to.pmState.params.accelGround,
+                       sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) == 0,
                 "PlayerMoveParams (non-gravity) did not survive the round-trip");
 } END_TEST
 
@@ -107,14 +107,14 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
  * payload should be written (delta compression must skip the block).
  */
 START_TEST(check_PlayerState_Params_DeltaCompressed) {
-  byte buf_a[MAX_MSG_SIZE], buf_b[MAX_MSG_SIZE];
+  byte bufA[MAX_MSG_SIZE], bufB[MAX_MSG_SIZE];
   MemBuf equal, diff;
-  Mem_InitBuffer(&equal, buf_a, sizeof(buf_a));
-  Mem_InitBuffer(&diff, buf_b, sizeof(buf_b));
+  Mem_InitBuffer(&equal, bufA, sizeof(bufA));
+  Mem_InitBuffer(&diff, bufB, sizeof(bufB));
 
   PlayerState base;
   memset(&base, 0, sizeof(base));
-  Fill_TestParams(&base.pm_state.params);
+  Fill_TestParams(&base.pmState.params);
 
   PlayerState zero;
   memset(&zero, 0, sizeof(zero));
@@ -134,32 +134,32 @@ START_TEST(check_PlayerState_Params_DeltaCompressed) {
  * must reach the client, and must not cost the whole parameter block.
  */
 START_TEST(check_PlayerState_Movement_DeltaCompressed) {
-  byte buf_a[MAX_MSG_SIZE], buf_b[MAX_MSG_SIZE];
-  MemBuf movement_only, unchanged;
-  Mem_InitBuffer(&movement_only, buf_a, sizeof(buf_a));
-  Mem_InitBuffer(&unchanged, buf_b, sizeof(buf_b));
+  byte bufA[MAX_MSG_SIZE], bufB[MAX_MSG_SIZE];
+  MemBuf movementOnly, unchanged;
+  Mem_InitBuffer(&movementOnly, bufA, sizeof(bufA));
+  Mem_InitBuffer(&unchanged, bufB, sizeof(bufB));
 
   PlayerState from;
   memset(&from, 0, sizeof(from));
-  Fill_TestParams(&from.pm_state.params);
+  Fill_TestParams(&from.pmState.params);
 
   PlayerState to = from;
-  to.pm_state.params.movement = PM_MOVEMENT_QUAKE; // Fill_TestParams left it elsewhere
+  to.pmState.params.movement = PM_MOVEMENT_QUAKE; // Fill_TestParams left it elsewhere
 
-  Net_WriteDeltaPlayerState(&movement_only, &from, &to);
+  Net_WriteDeltaPlayerState(&movementOnly, &from, &to);
   Net_WriteDeltaPlayerState(&unchanged, &from, &from);
 
-  ck_assert_msg(movement_only.size == unchanged.size + 1,
+  ck_assert_msg(movementOnly.size == unchanged.size + 1,
                 "a movement change should cost one byte over no change (%zu vs %zu)",
-                movement_only.size, unchanged.size);
+                movementOnly.size, unchanged.size);
 
-  movement_only.read = 0;
+  movementOnly.read = 0;
 
   PlayerState result = from;
-  Net_ReadDeltaPlayerState(&movement_only, &from, &result);
+  Net_ReadDeltaPlayerState(&movementOnly, &from, &result);
 
-  ck_assert_int_eq(result.pm_state.params.movement, to.pm_state.params.movement);
-  ck_assert_int_eq(result.pm_state.params.gravity, from.pm_state.params.gravity);
+  ck_assert_int_eq(result.pmState.params.movement, to.pmState.params.movement);
+  ck_assert_int_eq(result.pmState.params.gravity, from.pmState.params.gravity);
 } END_TEST
 
 /**

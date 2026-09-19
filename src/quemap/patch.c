@@ -30,9 +30,9 @@ Patch patches[MAX_PATCHES];
 
 static void EvaluatePatch(const PatchControlPoint cp[3][3],
               float s, float t,
-              Vec3 *out_position,
-              Vec2 *out_st,
-              Vec3 *out_normal);
+              Vec3 *outPosition,
+              Vec2 *outSt,
+              Vec3 *outNormal);
 
 /**
  * @brief Parses a patchDef2 block from the map file.
@@ -52,7 +52,7 @@ static void EvaluatePatch(const PatchControlPoint cp[3][3],
  * The opening `{` of the brush has already been consumed, and the `patchDef2`
  * token has been peeked but not consumed.
  */
-Patch *ParsePatch(Parser *parser, int32_t entity_num) {
+Patch *ParsePatch(Parser *parser, int32_t entityNum) {
   char token[MAX_TOKEN_CHARS];
 
   // consume "patchDef2"
@@ -70,7 +70,7 @@ Patch *ParsePatch(Parser *parser, int32_t entity_num) {
 
   Patch *patch = &patches[num_patches];
   memset(patch, 0, sizeof(*patch));
-  patch->entity = entity_num;
+  patch->entity = entityNum;
 
   // read texture name
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
@@ -85,9 +85,9 @@ Patch *ParsePatch(Parser *parser, int32_t entity_num) {
     Com_Error(ERROR_FATAL, "Expected '(' for patch dimensions, got '%s'\n", token);
   }
 
-  int32_t num_rows, num_cols;
-  Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &num_rows, 1);
-  Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &num_cols, 1);
+  int32_t numRows, numCols;
+  Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &numRows, 1);
+  Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &numCols, 1);
 
   // skip the 3 reserved values
   int32_t reserved;
@@ -101,8 +101,8 @@ Patch *ParsePatch(Parser *parser, int32_t entity_num) {
   }
 
   // Store as width (columns) x height (rows) internally
-  patch->width = num_cols;
-  patch->height = num_rows;
+  patch->width = numCols;
+  patch->height = numRows;
 
   if (patch->width < 3 || patch->height < 3 ||
     patch->width > MAX_PATCH_WIDTH || patch->height > MAX_PATCH_HEIGHT ||
@@ -117,7 +117,7 @@ Patch *ParsePatch(Parser *parser, int32_t entity_num) {
   }
 
   // read rows of control points (num_rows outer lines, num_cols inner points)
-  for (int32_t row = 0; row < num_rows; row++) {
+  for (int32_t row = 0; row < numRows; row++) {
 
     // read "(" to begin row
     Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
@@ -125,8 +125,8 @@ Patch *ParsePatch(Parser *parser, int32_t entity_num) {
       Com_Error(ERROR_FATAL, "Expected '(' for patch row %d, got '%s'\n", row, token);
     }
 
-    for (int32_t col = 0; col < num_cols; col++) {
-      PatchControlPoint *cp = &patch->control_points[row * num_cols + col];
+    for (int32_t col = 0; col < numCols; col++) {
+      PatchControlPoint *cp = &patch->controlPoints[row * numCols + col];
 
       // read "("
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
@@ -209,24 +209,24 @@ static void EmitPatchCollisionBrush(Entity *entity,
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
   }
 
-  const int32_t caulk_material = LoadMaterial("common/caulk");
+  const int32_t caulkMaterial = LoadMaterial("common/caulk");
 
   Brush *brush = &brushes[num_brushes];
   memset(brush, 0, sizeof(*brush));
   brush->entity = (int32_t) (entity - entities);
-  brush->brush = num_brushes - entity->first_brush;
-  brush->brush_sides = &brush_sides[num_brush_sides];
+  brush->brush = num_brushes - entity->firstBrush;
+  brush->brushSides = &brush_sides[num_brush_sides];
 
   // Front face: derive from triangle vertices so all 3 lie exactly on the plane.
   // Flip to match the outward Bézier surface normal direction.
   const bool flip = Vec3_Dot(cross, normal) < 0.f;
-  const Vec3 front_normal = flip ? Vec3_Negate(Vec3_Normalize(cross))
+  const Vec3 frontNormal = flip ? Vec3_Negate(Vec3_Normalize(cross))
                                    : Vec3_Normalize(cross);
-  const double front_dist = Vec3_Dot(front_normal, v[0]);
+  const double frontDist = Vec3_Dot(frontNormal, v[0]);
 
   // Back face: opposite normal, offset by thickness
-  const Vec3 back_normal = Vec3_Negate(front_normal);
-  const double back_dist = -front_dist + PATCH_COLLISION_THICKNESS;
+  const Vec3 backNormal = Vec3_Negate(frontNormal);
+  const double backDist = -frontDist + PATCH_COLLISION_THICKNESS;
 
   // Side planes: for each edge, the outward normal is edge × front_normal.
   // When we flipped front_normal, we must also flip edges to keep side normals outward.
@@ -237,68 +237,68 @@ static void EmitPatchCollisionBrush(Entity *entity,
     Vec3_Scale(Vec3_Subtract(v[0], v[2]), ws),
   };
 
-  int32_t num_sides = 0;
+  int32_t numSides = 0;
   BrushSide *side;
 
   // Front
-  side = &brush->brush_sides[num_sides];
+  side = &brush->brushSides[numSides];
   memset(side, 0, sizeof(*side));
-  side->plane = FindPlane(front_normal, front_dist);
+  side->plane = FindPlane(frontNormal, frontDist);
   side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   side->surface = SURF_NO_DRAW;
-  side->material = caulk_material;
+  side->material = caulkMaterial;
   q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
   side->scale = MakeVec2(1.f, 1.f);
-  num_sides++;
+  numSides++;
 
   // Back
-  side = &brush->brush_sides[num_sides];
+  side = &brush->brushSides[numSides];
   memset(side, 0, sizeof(*side));
-  side->plane = FindPlane(back_normal, back_dist);
+  side->plane = FindPlane(backNormal, backDist);
   side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   side->surface = SURF_NO_DRAW;
-  side->material = caulk_material;
+  side->material = caulkMaterial;
   q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
   side->scale = MakeVec2(1.f, 1.f);
-  num_sides++;
+  numSides++;
 
   // 3 side planes
   for (int32_t i = 0; i < 3; i++) {
-    Vec3 side_normal = Vec3_Cross(edges[i], front_normal);
-    const float len = Vec3_Length(side_normal);
+    Vec3 sideNormal = Vec3_Cross(edges[i], frontNormal);
+    const float len = Vec3_Length(sideNormal);
     if (len < 0.1f) {
       continue;
     }
-    side_normal = Vec3_Scale(side_normal, 1.f / len);
-    const double side_dist = Vec3_Dot(side_normal, v[i]);
+    sideNormal = Vec3_Scale(sideNormal, 1.f / len);
+    const double sideDist = Vec3_Dot(sideNormal, v[i]);
 
-    side = &brush->brush_sides[num_sides];
+    side = &brush->brushSides[numSides];
     memset(side, 0, sizeof(*side));
-    side->plane = FindPlane(side_normal, side_dist);
+    side->plane = FindPlane(sideNormal, sideDist);
     side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
     side->surface = SURF_NO_DRAW;
-    side->material = caulk_material;
+    side->material = caulkMaterial;
     q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
     side->scale = MakeVec2(1.f, 1.f);
-    num_sides++;
+    numSides++;
   }
 
-  if (num_sides < 4) {
+  if (numSides < 4) {
     return;
   }
 
-  brush->num_brush_sides = num_sides;
-  num_brush_sides += num_sides;
+  brush->numBrushSides = numSides;
+  num_brush_sides += numSides;
   num_brushes++;
 
   brush->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
 
   MakeBrushWindings(brush);
 
-  if (brush->num_brush_sides) {
+  if (brush->numBrushSides) {
     AddBrushBevels(brush);
-    entity->num_brushes++;
-    entity->num_brush_sides += brush->num_brush_sides;
+    entity->numBrushes++;
+    entity->numBrushSides += brush->numBrushSides;
     entity->bounds = Box3_Union(entity->bounds, brush->bounds);
   }
 }
@@ -313,52 +313,52 @@ void EmitPatchCollisionBrushes(Patch *patch, Entity *entity) {
     return;
   }
 
-  const int32_t num_sub_patches_s = (patch->width - 1) / 2;
-  const int32_t num_sub_patches_t = (patch->height - 1) / 2;
+  const int32_t numSubPatchesS = (patch->width - 1) / 2;
+  const int32_t numSubPatchesT = (patch->height - 1) / 2;
 
-  for (int32_t sub_t = 0; sub_t < num_sub_patches_t; sub_t++) {
-    for (int32_t sub_s = 0; sub_s < num_sub_patches_s; sub_s++) {
+  for (int32_t subT = 0; subT < numSubPatchesT; subT++) {
+    for (int32_t subS = 0; subS < numSubPatchesS; subS++) {
 
       // Extract the 3×3 control point sub-grid
-      PatchControlPoint sub_cp[3][3];
+      PatchControlPoint subCp[3][3];
       for (int32_t row = 0; row < 3; row++) {
         for (int32_t col = 0; col < 3; col++) {
-          const int32_t src_row = sub_t * 2 + row;
-          const int32_t src_col = sub_s * 2 + col;
-          sub_cp[row][col] = patch->control_points[src_row * patch->width + src_col];
+          const int32_t srcRow = subT * 2 + row;
+          const int32_t srcCol = subS * 2 + col;
+          subCp[row][col] = patch->controlPoints[srcRow * patch->width + srcCol];
         }
       }
 
       // Determine subdivision count based on sub-patch size
       Vec3 corner00, corner10, corner01;
-      Vec2 st_dummy;
-      EvaluatePatch(sub_cp, 0.f, 0.f, &corner00, &st_dummy, NULL);
-      EvaluatePatch(sub_cp, 1.f, 0.f, &corner10, &st_dummy, NULL);
-      EvaluatePatch(sub_cp, 0.f, 1.f, &corner01, &st_dummy, NULL);
+      Vec2 stDummy;
+      EvaluatePatch(subCp, 0.f, 0.f, &corner00, &stDummy, NULL);
+      EvaluatePatch(subCp, 1.f, 0.f, &corner10, &stDummy, NULL);
+      EvaluatePatch(subCp, 0.f, 1.f, &corner01, &stDummy, NULL);
 
-      const float size_s = Vec3_Distance(corner00, corner10);
-      const float size_t = Vec3_Distance(corner00, corner01);
+      const float sizeS = Vec3_Distance(corner00, corner10);
+      const float sizeT = Vec3_Distance(corner00, corner01);
 
-      const int32_t subdivs_s = Maxi(1, (int32_t) (size_s / PATCH_COLLISION_FACET_SIZE));
-      const int32_t subdivs_t = Maxi(1, (int32_t) (size_t / PATCH_COLLISION_FACET_SIZE));
+      const int32_t subdivsS = Maxi(1, (int32_t) (sizeS / PATCH_COLLISION_FACET_SIZE));
+      const int32_t subdivsT = Maxi(1, (int32_t) (sizeT / PATCH_COLLISION_FACET_SIZE));
 
       // Tessellate and emit a brush for each quad cell
-      for (int32_t j = 0; j < subdivs_t; j++) {
-        for (int32_t i = 0; i < subdivs_s; i++) {
+      for (int32_t j = 0; j < subdivsT; j++) {
+        for (int32_t i = 0; i < subdivsS; i++) {
 
-          const float s0 = (float) i / (float) subdivs_s;
-          const float s1 = (float) (i + 1) / (float) subdivs_s;
-          const float t0 = (float) j / (float) subdivs_t;
-          const float t1 = (float) (j + 1) / (float) subdivs_t;
+          const float s0 = (float) i / (float) subdivsS;
+          const float s1 = (float) (i + 1) / (float) subdivsS;
+          const float t0 = (float) j / (float) subdivsT;
+          const float t1 = (float) (j + 1) / (float) subdivsT;
 
           Vec3 verts[4], normal;
           Vec2 st;
           Vec3 n00, n10, n01, n11;
 
-          EvaluatePatch(sub_cp, s0, t0, &verts[0], &st, &n00);
-          EvaluatePatch(sub_cp, s1, t0, &verts[1], &st, &n10);
-          EvaluatePatch(sub_cp, s0, t1, &verts[2], &st, &n01);
-          EvaluatePatch(sub_cp, s1, t1, &verts[3], &st, &n11);
+          EvaluatePatch(subCp, s0, t0, &verts[0], &st, &n00);
+          EvaluatePatch(subCp, s1, t0, &verts[1], &st, &n10);
+          EvaluatePatch(subCp, s0, t1, &verts[2], &st, &n01);
+          EvaluatePatch(subCp, s1, t1, &verts[3], &st, &n11);
 
           // Average normal for extrusion direction
           normal = Vec3_Normalize(Vec3_Add(Vec3_Add(n00, n10), Vec3_Add(n01, n11)));
@@ -399,9 +399,9 @@ static float BezierQuadraticDeriv(float p0, float p1, float p2, float t) {
  */
 static void EvaluatePatch(const PatchControlPoint cp[3][3],
               float s, float t,
-              Vec3 *out_position,
-              Vec2 *out_st,
-              Vec3 *out_normal) {
+              Vec3 *outPosition,
+              Vec2 *outSt,
+              Vec3 *outNormal) {
 
   // Evaluate the 3×3 biquadratic Bézier surface
   for (int32_t k = 0; k < 3; k++) {
@@ -416,7 +416,7 @@ static void EvaluatePatch(const PatchControlPoint cp[3][3],
                       cp[1][2].position.xyz[k],
                       cp[2][2].position.xyz[k], t);
     // Then interpolate along columns (s direction)
-    out_position->xyz[k] = BezierQuadratic(r0, r1, r2, s);
+    outPosition->xyz[k] = BezierQuadratic(r0, r1, r2, s);
   }
 
   // Interpolate texture coordinates
@@ -430,10 +430,10 @@ static void EvaluatePatch(const PatchControlPoint cp[3][3],
     const float r2 = BezierQuadratic(cp[0][2].st.xy[k],
                       cp[1][2].st.xy[k],
                       cp[2][2].st.xy[k], t);
-    out_st->xy[k] = BezierQuadratic(r0, r1, r2, s);
+    outSt->xy[k] = BezierQuadratic(r0, r1, r2, s);
   }
 
-  if (out_normal) {
+  if (outNormal) {
     // Compute partial derivatives for normal
     Vec3 ds, dt;
     for (int32_t k = 0; k < 3; k++) {
@@ -460,12 +460,12 @@ static void EvaluatePatch(const PatchControlPoint cp[3][3],
       dt.xyz[k] = BezierQuadraticDeriv(c0, c1, c2, t);
     }
 
-    *out_normal = Vec3_Cross(dt, ds);
-    const float len = Vec3_Length(*out_normal);
+    *outNormal = Vec3_Cross(dt, ds);
+    const float len = Vec3_Length(*outNormal);
     if (len > 0.f) {
-      *out_normal = Vec3_Scale(*out_normal, 1.f / len);
+      *outNormal = Vec3_Scale(*outNormal, 1.f / len);
     } else {
-      *out_normal = MakeVec3(0.f, 0.f, 1.f);
+      *outNormal = MakeVec3(0.f, 0.f, 1.f);
     }
   }
 }
@@ -476,14 +476,14 @@ static void EvaluatePatch(const PatchControlPoint cp[3][3],
  * on the `Patch`, and updates the patch bounds accordingly. These precomputed
  * faces are later used when emitting BSP geometry.
  */
-void TessellatePatches(int32_t entity_num) {
+void TessellatePatches(int32_t entityNum) {
 
   const int32_t subdivisions = PATCH_SUBDIVISIONS;
 
   for (int32_t p = 0; p < num_patches; p++) {
     Patch *patch = &patches[p];
 
-    if (patch->entity != entity_num) {
+    if (patch->entity != entityNum) {
       continue;
     }
 
@@ -491,33 +491,33 @@ void TessellatePatches(int32_t entity_num) {
       continue;
     }
 
-    const int32_t num_sub_patches_s = (patch->width - 1) / 2;
-    const int32_t num_sub_patches_t = (patch->height - 1) / 2;
+    const int32_t numSubPatchesS = (patch->width - 1) / 2;
+    const int32_t numSubPatchesT = (patch->height - 1) / 2;
 
-    patch->num_faces = num_sub_patches_s * num_sub_patches_t;
-    patch->faces = Mem_TagMalloc(patch->num_faces * sizeof(PatchFace), (MemTag) MEM_TAG_PATCH);
+    patch->numFaces = numSubPatchesS * numSubPatchesT;
+    patch->faces = Mem_TagMalloc(patch->numFaces * sizeof(PatchFace), (MemTag) MEM_TAG_PATCH);
     patch->bounds = Box3_Null();
 
-    int32_t face_index = 0;
-    for (int32_t sub_t = 0; sub_t < num_sub_patches_t; sub_t++) {
-      for (int32_t sub_s = 0; sub_s < num_sub_patches_s; sub_s++) {
+    int32_t faceIndex = 0;
+    for (int32_t subT = 0; subT < numSubPatchesT; subT++) {
+      for (int32_t subS = 0; subS < numSubPatchesS; subS++) {
 
         // Extract the 3×3 control point sub-grid
-        PatchControlPoint sub_cp[3][3];
+        PatchControlPoint subCp[3][3];
         for (int32_t row = 0; row < 3; row++) {
           for (int32_t col = 0; col < 3; col++) {
-            const int32_t src_row = sub_t * 2 + row;
-            const int32_t src_col = sub_s * 2 + col;
-            sub_cp[row][col] = patch->control_points[src_row * patch->width + src_col];
+            const int32_t srcRow = subT * 2 + row;
+            const int32_t srcCol = subS * 2 + col;
+            subCp[row][col] = patch->controlPoints[srcRow * patch->width + srcCol];
           }
         }
 
-        PatchFace *pf = &patch->faces[face_index++];
+        PatchFace *pf = &patch->faces[faceIndex++];
         memset(pf, 0, sizeof(*pf));
         pf->patch = patch;
         pf->bounds = Box3_Null();
 
-        const int32_t verts_per_edge = subdivisions + 1;
+        const int32_t vertsPerEdge = subdivisions + 1;
 
         // Tessellate: generate (subdivisions+1)² vertices
         for (int32_t j = 0; j <= subdivisions; j++) {
@@ -526,12 +526,12 @@ void TessellatePatches(int32_t entity_num) {
           for (int32_t i = 0; i <= subdivisions; i++) {
             const float s = (float) i / (float) subdivisions;
 
-            BspVertex *v = &pf->vertexes[pf->num_vertexes];
+            BspVertex *v = &pf->vertexes[pf->numVertexes];
             memset(v, 0, sizeof(*v));
 
             Vec3 normal;
             Vec2 st;
-            EvaluatePatch(sub_cp, s, t, &v->position, &st, &normal);
+            EvaluatePatch(subCp, s, t, &v->position, &st, &normal);
 
             v->normal = normal;
             v->diffusemap.x = st.x;
@@ -540,24 +540,24 @@ void TessellatePatches(int32_t entity_num) {
 
             pf->bounds = Box3_Append(pf->bounds, v->position);
 
-            pf->num_vertexes++;
+            pf->numVertexes++;
           }
         }
 
-        assert(pf->num_vertexes == verts_per_edge * verts_per_edge);
+        assert(pf->numVertexes == vertsPerEdge * vertsPerEdge);
 
         // Generate triangle elements (local 0-based indices)
         for (int32_t j = 0; j < subdivisions; j++) {
           for (int32_t i = 0; i < subdivisions; i++) {
-            const int32_t base = j * verts_per_edge + i;
+            const int32_t base = j * vertsPerEdge + i;
 
-            pf->elements[pf->num_elements++] = base;
-            pf->elements[pf->num_elements++] = base + verts_per_edge + 1;
-            pf->elements[pf->num_elements++] = base + verts_per_edge;
+            pf->elements[pf->numElements++] = base;
+            pf->elements[pf->numElements++] = base + vertsPerEdge + 1;
+            pf->elements[pf->numElements++] = base + vertsPerEdge;
 
-            pf->elements[pf->num_elements++] = base;
-            pf->elements[pf->num_elements++] = base + 1;
-            pf->elements[pf->num_elements++] = base + verts_per_edge + 1;
+            pf->elements[pf->numElements++] = base;
+            pf->elements[pf->numElements++] = base + 1;
+            pf->elements[pf->numElements++] = base + vertsPerEdge + 1;
           }
         }
 
@@ -586,24 +586,24 @@ static void AssignPatchFaceToNode_r(Node *node, PatchFace *pf) {
     }
   }
 
-  pf->next = node->patch_faces;
-  node->patch_faces = pf;
+  pf->next = node->patchFaces;
+  node->patchFaces = pf;
 }
 
 /**
  * @brief Assigns pre-tessellated patch faces to BSP tree nodes.
  */
-void AssignPatchFacesToNodes(Node *head_node, int32_t entity_num) {
+void AssignPatchFacesToNodes(Node *headNode, int32_t entityNum) {
 
   for (int32_t p = 0; p < num_patches; p++) {
     Patch *patch = &patches[p];
 
-    if (patch->entity != entity_num) {
+    if (patch->entity != entityNum) {
       continue;
     }
 
-    for (int32_t f = 0; f < patch->num_faces; f++) {
-      AssignPatchFaceToNode_r(head_node, &patch->faces[f]);
+    for (int32_t f = 0; f < patch->numFaces; f++) {
+      AssignPatchFaceToNode_r(headNode, &patch->faces[f]);
     }
   }
 }
@@ -611,18 +611,18 @@ void AssignPatchFacesToNodes(Node *head_node, int32_t entity_num) {
 /**
  * @brief Frees pre-tessellated patch face data for the given entity.
  */
-void FreePatchFaces(int32_t entity_num) {
+void FreePatchFaces(int32_t entityNum) {
 
   for (int32_t p = 0; p < num_patches; p++) {
     Patch *patch = &patches[p];
 
-    if (patch->entity != entity_num) {
+    if (patch->entity != entityNum) {
       continue;
     }
 
     Mem_Free(patch->faces);
     patch->faces = NULL;
-    patch->num_faces = 0;
+    patch->numFaces = 0;
   }
 }
 
@@ -631,12 +631,12 @@ void FreePatchFaces(int32_t entity_num) {
  */
 void EmitPatches(const BspModel *mod) {
 
-  const int32_t entity_num = mod->entity;
+  const int32_t entityNum = mod->entity;
 
   for (int32_t p = 0; p < num_patches; p++) {
     Patch *patch = &patches[p];
 
-    if (patch->entity != entity_num) {
+    if (patch->entity != entityNum) {
       continue;
     }
 
@@ -644,13 +644,13 @@ void EmitPatches(const BspModel *mod) {
       continue;
     }
 
-    if (bsp_file.num_patches >= MAX_BSP_PATCHES) {
+    if (bsp_file.numPatches >= MAX_BSP_PATCHES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_PATCHES\n");
     }
 
-    patch->out = &bsp_file.patches[bsp_file.num_patches];
+    patch->out = &bsp_file.patches[bsp_file.numPatches];
     memset(patch->out, 0, sizeof(*patch->out));
-    bsp_file.num_patches++;
+    bsp_file.numPatches++;
 
     patch->out->entity = patch->entity;
     patch->out->material = patch->material;
@@ -660,18 +660,18 @@ void EmitPatches(const BspModel *mod) {
     patch->out->height = patch->height;
 
     // Set the patch index on all emitted BSP faces
-    const int32_t patch_index = (int32_t) (patch->out - bsp_file.patches);
+    const int32_t patchIndex = (int32_t) (patch->out - bsp_file.patches);
 
-    for (int32_t f = 0; f < patch->num_faces; f++) {
+    for (int32_t f = 0; f < patch->numFaces; f++) {
       if (patch->faces[f].out) {
-        patch->faces[f].out->patch = patch_index;
+        patch->faces[f].out->patch = patchIndex;
       }
     }
 
-    const int32_t num_points = patch->width * patch->height;
-    for (int32_t i = 0; i < num_points; i++) {
-      patch->out->control_points[i].position = patch->control_points[i].position;
-      patch->out->control_points[i].st = patch->control_points[i].st;
+    const int32_t numPoints = patch->width * patch->height;
+    for (int32_t i = 0; i < numPoints; i++) {
+      patch->out->controlPoints[i].position = patch->controlPoints[i].position;
+      patch->out->controlPoints[i].st = patch->controlPoints[i].st;
     }
   }
 }

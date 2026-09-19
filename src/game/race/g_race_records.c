@@ -83,7 +83,7 @@ static uint32_t G_Race_HashParams(const PlayerMoveParams *params) {
   // the fields, not the struct: there is padding after movement
   hash = G_Race_HashBytes(hash, &params->gravity, sizeof(params->gravity));
   hash = G_Race_HashBytes(hash, &params->movement, sizeof(params->movement));
-  hash = G_Race_HashBytes(hash, &params->accel_ground, sizeof(*params) - offsetof(PlayerMoveParams, accel_ground));
+  hash = G_Race_HashBytes(hash, &params->accelGround, sizeof(*params) - offsetof(PlayerMoveParams, accelGround));
 
   return hash;
 }
@@ -125,7 +125,7 @@ static int32_t G_Race_CompareRecords(const void *a, const void *b) {
  * @brief Keeps the records fastest first within each movement.
  */
 static void G_Race_SortRecords(void) {
-  qsort(g_level.race_records, g_level.race_record_count, sizeof(GameRaceRecord), G_Race_CompareRecords);
+  qsort(g_level.raceRecords, g_level.raceRecordCount, sizeof(GameRaceRecord), G_Race_CompareRecords);
 }
 
 /**
@@ -134,20 +134,20 @@ static void G_Race_SortRecords(void) {
  */
 static GameRaceRecord *G_Race_AddRecord(void) {
 
-  if (g_level.race_record_count == g_level.race_record_capacity) {
-    const size_t capacity = g_level.race_record_capacity ? g_level.race_record_capacity * 2 : 32;
+  if (g_level.raceRecordCount == g_level.raceRecordCapacity) {
+    const size_t capacity = g_level.raceRecordCapacity ? g_level.raceRecordCapacity * 2 : 32;
     GameRaceRecord *records = gi.Malloc(capacity * sizeof(GameRaceRecord), MEM_TAG_GAME_LEVEL);
 
-    if (g_level.race_records) {
-      memcpy(records, g_level.race_records, g_level.race_record_count * sizeof(GameRaceRecord));
-      gi.Free(g_level.race_records);
+    if (g_level.raceRecords) {
+      memcpy(records, g_level.raceRecords, g_level.raceRecordCount * sizeof(GameRaceRecord));
+      gi.Free(g_level.raceRecords);
     }
 
-    g_level.race_records = records;
-    g_level.race_record_capacity = capacity;
+    g_level.raceRecords = records;
+    g_level.raceRecordCapacity = capacity;
   }
 
-  GameRaceRecord *record = &g_level.race_records[g_level.race_record_count++];
+  GameRaceRecord *record = &g_level.raceRecords[g_level.raceRecordCount++];
   memset(record, 0, sizeof(*record));
   return record;
 }
@@ -157,8 +157,8 @@ static GameRaceRecord *G_Race_AddRecord(void) {
  */
 static GameRaceRecord *G_Race_FindRecord(const char *guid, PlayerMovement movement) {
 
-  for (size_t i = 0; i < g_level.race_record_count; i++) {
-    GameRaceRecord *record = &g_level.race_records[i];
+  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
+    GameRaceRecord *record = &g_level.raceRecords[i];
 
     if (record->movement == movement && !q_strcmp(record->guid, guid)) {
       return record;
@@ -173,9 +173,9 @@ static GameRaceRecord *G_Race_FindRecord(const char *guid, PlayerMovement moveme
  */
 const GameRaceRecord *G_Race_BestRecord(PlayerMovement movement) {
 
-  for (size_t i = 0; i < g_level.race_record_count; i++) {
-    if (g_level.race_records[i].movement == movement) {
-      return &g_level.race_records[i];
+  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
+    if (g_level.raceRecords[i].movement == movement) {
+      return &g_level.raceRecords[i];
     }
   }
 
@@ -196,8 +196,8 @@ size_t G_Race_Rank(const GameRaceRecord *record, size_t *count) {
   size_t rank = 0;
 
   *count = 0;
-  for (size_t i = 0; i < g_level.race_record_count; i++) {
-    const GameRaceRecord *r = &g_level.race_records[i];
+  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
+    const GameRaceRecord *r = &g_level.raceRecords[i];
 
     if (r->movement != record->movement) {
       continue;
@@ -220,8 +220,8 @@ static void G_Race_PublishRecords(void) {
   char string[MAX_STRING_CHARS] = "";
   size_t shown = 0;
 
-  for (size_t i = 0; i < g_level.race_record_count && shown < RACE_RECORDS_SHOWN; i++) {
-    const GameRaceRecord *record = &g_level.race_records[i];
+  for (size_t i = 0; i < g_level.raceRecordCount && shown < RACE_RECORDS_SHOWN; i++) {
+    const GameRaceRecord *record = &g_level.raceRecords[i];
 
     if (record->movement != g_level.movement) {
       continue;
@@ -245,8 +245,8 @@ static void G_Race_PublishRecords(void) {
  */
 static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
 
-  const char *guid = gi.EntityValue(def, "guid")->nullable_string;
-  const char *movement_name = gi.EntityValue(def, "movement")->nullable_string;
+  const char *guid = gi.EntityValue(def, "guid")->nullableString;
+  const char *movementName = gi.EntityValue(def, "movement")->nullableString;
   const CmEntity *time = gi.EntityValue(def, "time");
 
   PlayerMovement movement;
@@ -256,7 +256,7 @@ static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
     return false;
   }
 
-  if (!movement_name || !Pm_MovementByName(movement_name, &movement)) {
+  if (!movementName || !Pm_MovementByName(movementName, &movement)) {
     G_Warn("Record %d in %s has no movement, or one nothing answers to\n", index, G_Race_RecordsPath());
     return false;
   }
@@ -267,7 +267,7 @@ static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
   }
 
   if (G_Race_FindRecord(guid, movement)) {
-    G_Warn("Record %d in %s repeats %s under %s\n", index, G_Race_RecordsPath(), guid, movement_name);
+    G_Warn("Record %d in %s repeats %s under %s\n", index, G_Race_RecordsPath(), guid, movementName);
     return false;
   }
 
@@ -282,12 +282,12 @@ static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
   record->params = (uint32_t) strtoul(gi.EntityValue(def, "params")->string, NULL, 16);
   record->time = time->integer;
 
-  record->checkpoint_count = G_Race_ParseTimes(def, "checkpoint", 1, record->checkpoint_times);
-  record->split_count = G_Race_ParseTimes(def, "split", 1, record->split_times);
-  record->stage_count = G_Race_ParseTimes(def, "stage", 2, record->stage_times);
+  record->checkpointCount = G_Race_ParseTimes(def, "checkpoint", 1, record->checkpointTimes);
+  record->splitCount = G_Race_ParseTimes(def, "split", 1, record->splitTimes);
+  record->stageCount = G_Race_ParseTimes(def, "stage", 2, record->stageTimes);
 
   sscanf(gi.EntityValue(def, "speed")->string, "%f %f %f",
-         &record->start_speed, &record->top_speed, &record->average_speed);
+         &record->startSpeed, &record->topSpeed, &record->averageSpeed);
 
   return true;
 }
@@ -298,8 +298,8 @@ static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
 void G_Race_LoadRecords(void) {
 
   // the level's end freed the last map's, and this may be the same map again
-  g_level.race_records = NULL;
-  g_level.race_record_count = g_level.race_record_capacity = 0;
+  g_level.raceRecords = NULL;
+  g_level.raceRecordCount = g_level.raceRecordCapacity = 0;
 
   void *buffer;
   if (gi.LoadFile(G_Race_RecordsPath(), &buffer) <= 0) { // missing, or empty and so not even a buffer
@@ -323,7 +323,7 @@ void G_Race_LoadRecords(void) {
   G_Race_SortRecords();
   G_Race_PublishRecords();
 
-  G_Debug("Loaded %zu records from %s\n", g_level.race_record_count, G_Race_RecordsPath());
+  G_Debug("Loaded %zu records from %s\n", g_level.raceRecordCount, G_Race_RecordsPath());
 }
 
 static void G_Race_WriteLine(File *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -365,8 +365,8 @@ static void G_Race_SaveRecords(void) {
 
   G_Race_WriteLine(file, "// Race records for %s: one personal best per player per movement\n", g_level.name);
 
-  for (size_t i = 0; i < g_level.race_record_count; i++) {
-    const GameRaceRecord *r = &g_level.race_records[i];
+  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
+    const GameRaceRecord *r = &g_level.raceRecords[i];
 
     G_Race_WriteLine(file, "{\n");
     G_Race_WriteLine(file, "  \"guid\" \"%s\"\n", r->guid);
@@ -376,10 +376,10 @@ static void G_Race_SaveRecords(void) {
     G_Race_WriteLine(file, "  \"movement\" \"%s\"\n", Pm_Movement(r->movement)->name);
     G_Race_WriteLine(file, "  \"params\" \"%08x\"\n", r->params);
     G_Race_WriteLine(file, "  \"time\" \"%u\"\n", r->time);
-    G_Race_WriteTimes(file, "checkpoint", 1, r->checkpoint_times, r->checkpoint_count);
-    G_Race_WriteTimes(file, "split", 1, r->split_times, r->split_count);
-    G_Race_WriteTimes(file, "stage", 2, r->stage_times, r->stage_count);
-    G_Race_WriteLine(file, "  \"speed\" \"%.0f %.0f %.0f\"\n", r->start_speed, r->top_speed, r->average_speed);
+    G_Race_WriteTimes(file, "checkpoint", 1, r->checkpointTimes, r->checkpointCount);
+    G_Race_WriteTimes(file, "split", 1, r->splitTimes, r->splitCount);
+    G_Race_WriteTimes(file, "stage", 2, r->stageTimes, r->stageCount);
+    G_Race_WriteLine(file, "  \"speed\" \"%.0f %.0f %.0f\"\n", r->startSpeed, r->topSpeed, r->averageSpeed);
     G_Race_WriteLine(file, "}\n");
   }
 
@@ -390,7 +390,7 @@ static void G_Race_SaveRecords(void) {
  * @see g_race.h
  */
 bool G_Race_SubmitRecord(GameClient *cl) {
-  const GameRaceRun *run = &cl->race_run;
+  const GameRaceRun *run = &cl->raceRun;
 
   const GameRaceRecord *best = G_Race_BestRecord(run->movement);
 
@@ -403,51 +403,51 @@ bool G_Race_SubmitRecord(GameClient *cl) {
   }
 
   const uint32_t previous = record ? record->time : 0;
-  const uint32_t best_time = best ? best->time : 0;
+  const uint32_t bestTime = best ? best->time : 0;
 
   if (!record) {
     record = G_Race_AddRecord();
   }
 
   q_strlcpy(record->guid, cl->persistent.guid, sizeof(record->guid));
-  q_strlcpy(record->name, cl->persistent.net_name, sizeof(record->name));
-  q_strlcpy(record->ip, InfoString_Get(cl->persistent.user_info, "ip"), sizeof(record->ip));
+  q_strlcpy(record->name, cl->persistent.netName, sizeof(record->name));
+  q_strlcpy(record->ip, InfoString_Get(cl->persistent.userInfo, "ip"), sizeof(record->ip));
 
   const time_t now = time(NULL);
   strftime(record->date, sizeof(record->date), "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
 
   record->movement = run->movement;
-  record->params = G_Race_HashParams(&cl->ps.pm_state.params);
+  record->params = G_Race_HashParams(&cl->ps.pmState.params);
   record->time = run->elapsed;
 
-  record->checkpoint_count = run->checkpoint_count;
-  memcpy(record->checkpoint_times, run->checkpoint_times, sizeof(record->checkpoint_times));
-  record->split_count = run->split_count;
-  memcpy(record->split_times, run->split_times, sizeof(record->split_times));
-  record->stage_count = run->stage > 1 ? run->stage - 1 : 0;
-  memcpy(record->stage_times, run->stage_times, sizeof(record->stage_times));
+  record->checkpointCount = run->checkpointCount;
+  memcpy(record->checkpointTimes, run->checkpointTimes, sizeof(record->checkpointTimes));
+  record->splitCount = run->splitCount;
+  memcpy(record->splitTimes, run->splitTimes, sizeof(record->splitTimes));
+  record->stageCount = run->stage > 1 ? run->stage - 1 : 0;
+  memcpy(record->stageTimes, run->stageTimes, sizeof(record->stageTimes));
 
-  record->start_speed = run->start_speed;
-  record->top_speed = run->top_speed;
-  record->average_speed = run->speed_samples ? run->speed_sum / run->speed_samples : 0.f;
+  record->startSpeed = run->startSpeed;
+  record->topSpeed = run->topSpeed;
+  record->averageSpeed = run->speedSamples ? run->speedSum / run->speedSamples : 0.f;
 
   G_Race_SortRecords();
   G_Race_SaveRecords();
   G_Race_PublishRecords();
 
-  const bool course_record = !best_time || run->elapsed < best_time;
+  const bool courseRecord = !bestTime || run->elapsed < bestTime;
 
   size_t count;
   const size_t rank = G_Race_Rank(G_Race_FindRecord(cl->persistent.guid, run->movement), &count);
   const char *standing = va("#%zu of %zu", rank, count);
   const char *time = G_Race_RecordTime(run->elapsed);
 
-  if (course_record) {
-    if (best_time) {
+  if (courseRecord) {
+    if (bestTime) {
       gi.BroadcastPrint(PRINT_HIGH, "^3%s set the course record, %s faster^7\n",
-                        cl->persistent.net_name, G_Race_RecordTime(best_time - run->elapsed));
+                        cl->persistent.netName, G_Race_RecordTime(bestTime - run->elapsed));
     } else {
-      gi.BroadcastPrint(PRINT_HIGH, "^3%s set the first course record^7\n", cl->persistent.net_name);
+      gi.BroadcastPrint(PRINT_HIGH, "^3%s set the first course record^7\n", cl->persistent.netName);
     }
     G_Race_CenterPrint(cl, "^3Course record^7 %s, %s", time, standing);
   } else if (previous) {
@@ -457,5 +457,5 @@ bool G_Race_SubmitRecord(GameClient *cl) {
     G_Race_CenterPrint(cl, "^2Personal best^7 %s, %s", time, standing);
   }
 
-  return course_record;
+  return courseRecord;
 }

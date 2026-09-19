@@ -27,11 +27,11 @@
  */
 bool WindingIsSmall(const CmWinding *w) {
 
-  int32_t valid_edges = 0;
-  for (int32_t i = 0; i < w->num_points; i++) {
-    const float dist = Vec3_Distance(w->points[i], w->points[(i + 1) % w->num_points]);
+  int32_t validEdges = 0;
+  for (int32_t i = 0; i < w->numPoints; i++) {
+    const float dist = Vec3_Distance(w->points[i], w->points[(i + 1) % w->numPoints]);
     if (dist >= ON_EPSILON) {
-      if (++valid_edges == 3) {
+      if (++validEdges == 3) {
         return false;
       }
     }
@@ -44,7 +44,7 @@ bool WindingIsSmall(const CmWinding *w) {
  */
 bool WindingIsLarge(const CmWinding *w) {
 
-  for (int32_t i = 0; i < w->num_points; i++) {
+  for (int32_t i = 0; i < w->numPoints; i++) {
     for (int32_t j = 0; j < 3; j++)
       if (w->points[i].xyz[j] < -MAX_WORLD_COORD || w->points[i].xyz[j] > MAX_WORLD_COORD) {
         return true;

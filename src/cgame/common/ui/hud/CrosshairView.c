@@ -157,7 +157,7 @@ static bool visible(const PlayerState *ps) {
     return false;
   }
 
-  if (cgi.client->third_person) {
+  if (cgi.client->thirdPerson) {
     return false;
   }
 
@@ -165,7 +165,7 @@ static bool visible(const PlayerState *ps) {
     return false;
   }
 
-  if (ps->pm_state.type == PM_DEAD) {
+  if (ps->pmState.type == PM_DEAD) {
     return false;
   }
 
@@ -173,7 +173,7 @@ static bool visible(const PlayerState *ps) {
     return false;
   }
 
-  if (cg_state.center_print.time > cgi.client->unclamped_time) {
+  if (cg_state.centerPrint.time > cgi.client->unclampedTime) {
     return false;
   }
 
@@ -251,12 +251,12 @@ static void updateBindings(View *self, ident data) {
 
     const int16_t p = ps->stats[STAT_PICKUP];
     if (p && p != cg_hud_state.pulse.pickup) {
-      cg_hud_state.pulse.time = cgi.client->unclamped_time;
+      cg_hud_state.pulse.time = cgi.client->unclampedTime;
     }
 
     cg_hud_state.pulse.pickup = p;
 
-    const uint32_t delta = cgi.client->unclamped_time - cg_hud_state.pulse.time;
+    const uint32_t delta = cgi.client->unclampedTime - cg_hud_state.pulse.time;
     if (delta < 300) {
       const float frac = delta / 300.f;
       scale += sinf(frac * M_PI) * CROSSHAIR_SCALE;

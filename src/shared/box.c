@@ -45,7 +45,7 @@ size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out) {
 
   Vec3i *coords = malloc(count * sizeof(Vec3i));
 
-  int32_t size_x = 0, size_y = 0, size_z = 0;
+  int32_t sizeX = 0, sizeY = 0, sizeZ = 0;
 
   for (size_t i = 0; i < count; i++) {
     const Vec3 rel = Vec3_Subtract(boxes[i].mins, origin);
@@ -56,18 +56,18 @@ size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out) {
 
     coords[i] = MakeVec3i(x, y, z);
 
-    size_x = Maxi(size_x, x + 1);
-    size_y = Maxi(size_y, y + 1);
-    size_z = Maxi(size_z, z + 1);
+    sizeX = Maxi(sizeX, x + 1);
+    sizeY = Maxi(sizeY, y + 1);
+    sizeZ = Maxi(sizeZ, z + 1);
   }
 
-  const int32_t xy = size_x * size_y;
+  const int32_t xy = sizeX * sizeY;
 
-  uint8_t *occupied = calloc(1, xy * size_z);
+  uint8_t *occupied = calloc(1, xy * sizeZ);
 
   for (size_t i = 0; i < count; i++) {
     const Vec3i c = coords[i];
-    occupied[c.z * xy + c.y * size_x + c.x] = 1;
+    occupied[c.z * xy + c.y * sizeX + c.x] = 1;
   }
 
   free(coords);
@@ -76,48 +76,48 @@ size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out) {
   // possible along X, then Y, then Z, consuming every cell the merged box covers.
 
   Box3 *merged = malloc(count * sizeof(Box3));
-  size_t num_merged = 0;
+  size_t numMerged = 0;
 
-  for (int32_t z = 0; z < size_z; z++) {
-    for (int32_t y = 0; y < size_y; y++) {
-      for (int32_t x = 0; x < size_x; x++) {
+  for (int32_t z = 0; z < sizeZ; z++) {
+    for (int32_t y = 0; y < sizeY; y++) {
+      for (int32_t x = 0; x < sizeX; x++) {
 
-        if (!occupied[z * xy + y * size_x + x]) {
+        if (!occupied[z * xy + y * sizeX + x]) {
           continue;
         }
 
         int32_t ex = x;
-        while (ex + 1 < size_x && occupied[z * xy + y * size_x + (ex + 1)]) {
+        while (ex + 1 < sizeX && occupied[z * xy + y * sizeX + (ex + 1)]) {
           ex++;
         }
 
         int32_t ey = y;
-        while (ey + 1 < size_y) {
-          bool row_occupied = true;
+        while (ey + 1 < sizeY) {
+          bool rowOccupied = true;
           for (int32_t xi = x; xi <= ex; xi++) {
-            if (!occupied[z * xy + (ey + 1) * size_x + xi]) {
-              row_occupied = false;
+            if (!occupied[z * xy + (ey + 1) * sizeX + xi]) {
+              rowOccupied = false;
               break;
             }
           }
-          if (!row_occupied) {
+          if (!rowOccupied) {
             break;
           }
           ey++;
         }
 
         int32_t ez = z;
-        while (ez + 1 < size_z) {
-          bool plane_occupied = true;
-          for (int32_t yi = y; yi <= ey && plane_occupied; yi++) {
+        while (ez + 1 < sizeZ) {
+          bool planeOccupied = true;
+          for (int32_t yi = y; yi <= ey && planeOccupied; yi++) {
             for (int32_t xi = x; xi <= ex; xi++) {
-              if (!occupied[(ez + 1) * xy + yi * size_x + xi]) {
-                plane_occupied = false;
+              if (!occupied[(ez + 1) * xy + yi * sizeX + xi]) {
+                planeOccupied = false;
                 break;
               }
             }
           }
-          if (!plane_occupied) {
+          if (!planeOccupied) {
             break;
           }
           ez++;
@@ -126,7 +126,7 @@ size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out) {
         for (int32_t zi = z; zi <= ez; zi++) {
           for (int32_t yi = y; yi <= ey; yi++) {
             for (int32_t xi = x; xi <= ex; xi++) {
-              occupied[zi * xy + yi * size_x + xi] = 0;
+              occupied[zi * xy + yi * sizeX + xi] = 0;
             }
           }
         }
@@ -134,13 +134,13 @@ size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out) {
         const Vec3 mins = Vec3_Add(origin, Vec3_Multiply(Vec3i_CastVec3(MakeVec3i(x, y, z)), cell));
         const Vec3 maxs = Vec3_Add(origin, Vec3_Multiply(Vec3i_CastVec3(MakeVec3i(ex + 1, ey + 1, ez + 1)), cell));
 
-        merged[num_merged++] = MakeBox3(mins, maxs);
+        merged[numMerged++] = MakeBox3(mins, maxs);
       }
     }
   }
 
   free(occupied);
 
-  *out = realloc(merged, num_merged * sizeof(Box3));
-  return num_merged;
+  *out = realloc(merged, numMerged * sizeof(Box3));
+  return numMerged;
 }

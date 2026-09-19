@@ -36,24 +36,24 @@ static ConsoleString *Con_AllocString(int32_t level, const char *string) {
     return NULL;
   }
 
-  const size_t string_len = q_strlen(string) + 4;
+  const size_t stringLen = q_strlen(string) + 4;
 
   str->level = level;
-  str->chars = calloc(string_len, 1);
+  str->chars = calloc(stringLen, 1);
 
-  q_strlcpy(str->chars, string, string_len); // copy in input
+  q_strlcpy(str->chars, string, stringLen); // copy in input
 
   // remove trailing newline/carriage return
-  size_t chars_len = q_strlen(str->chars);
-  while (chars_len > 0 && (str->chars[chars_len - 1] == '\n' || str->chars[chars_len - 1] == '\r')) {
-    str->chars[--chars_len] = '\0';
+  size_t charsLen = q_strlen(str->chars);
+  while (charsLen > 0 && (str->chars[charsLen - 1] == '\n' || str->chars[charsLen - 1] == '\r')) {
+    str->chars[--charsLen] = '\0';
   }
 
-  if (chars_len < 2 || str->chars[chars_len - 2] != '^' || str->chars[chars_len - 1] != '7') { // append ^7 if we need it
-    q_strlcat(str->chars, "^7", string_len);
+  if (charsLen < 2 || str->chars[charsLen - 2] != '^' || str->chars[charsLen - 1] != '7') { // append ^7 if we need it
+    q_strlcat(str->chars, "^7", stringLen);
   }
 
-  if (q_strlcat(str->chars, "\n", string_len) >= string_len) {
+  if (q_strlcat(str->chars, "\n", stringLen) >= stringLen) {
     raise(SIGABRT);
     return NULL;
   }
@@ -63,7 +63,7 @@ static ConsoleString *Con_AllocString(int32_t level, const char *string) {
     return NULL;
   }
 
-  str->size = string_len;
+  str->size = stringLen;
   str->length = q_strcolorlen(str->chars);
 
   str->timestamp = quetoo.ticks;
@@ -211,21 +211,21 @@ void Con_Append(int32_t level, const char *string) {
  * @remarks If `lines` is `NULL`, this function simply counts the number of
  * wrapped lines in `chars`.
  */
-size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines) {
+size_t Con_Wrap(const char *chars, size_t lineWidth, char **lines, size_t maxLines) {
 
   size_t count = 0;
 
-  int8_t wrap_color = ESC_COLOR_DEFAULT, color = ESC_COLOR_DEFAULT;
+  int8_t wrapColor = ESC_COLOR_DEFAULT, color = ESC_COLOR_DEFAULT;
 
   const char *line = chars;
   while (*line) {
 
     size_t width = 0;
 
-    wrap_color = color;
+    wrapColor = color;
 
     const char *c = line;
-    while (*c && width < line_width) {
+    while (*c && width < lineWidth) {
 
       if (*c == '\n') {
         break;
@@ -242,7 +242,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 
     const char *eol = c;
 
-    if (width == line_width) {
+    if (width == lineWidth) {
       while (!isspace(*eol)) {
         if (eol == line) {
           eol = c;
@@ -253,10 +253,10 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
     }
 
     if (lines) {
-      if (count < max_lines) {
+      if (count < maxLines) {
         lines[count] = Mem_Malloc((eol - line) + 3);
         lines[count][0] = ESC_COLOR;
-        lines[count][1] = wrap_color + '0';
+        lines[count][1] = wrapColor + '0';
         lines[count][2] = '\0';
         q_strlcat(lines[count], line, (eol - line) + 3);
       } else {
@@ -280,11 +280,11 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
  *
  * @return The number of line offsets.
  */
-size_t Con_Tail(const Console *console, char **lines, size_t max_lines) {
+size_t Con_Tail(const Console *console, char **lines, size_t maxLines) {
 
   assert(console);
 
-  ssize_t back = console->scroll + max_lines;
+  ssize_t back = console->scroll + maxLines;
 
   ListNode *start = NULL;
   ListNode *list = console_state.strings->tail;
@@ -317,7 +317,7 @@ size_t Con_Tail(const Console *console, char **lines, size_t max_lines) {
     const ConsoleString *str = start->element;
 
     if (Con_Filter(console, str)) {
-      count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
+      count += Con_Wrap(str->chars, console->width, lines + count, maxLines - count);
     }
 
     start = start->next;
@@ -417,7 +417,7 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
     Mem_Link(match->description, match);
   }
 
-  ListNode *insert_after = NULL;
+  ListNode *insertAfter = NULL;
   for (ListNode *node = matches->head; node; node = node->next) {
     const ConAutocompleteMatch *m = node->element;
     const int32_t cmp = Con_AutocompleteMatchCompare(m, match);
@@ -426,14 +426,14 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
       return;
     }
     if (cmp < 0) {
-      insert_after = node;
+      insertAfter = node;
     } else {
       break;
     }
   }
 
-  if (insert_after) {
-    $(matches, insertAfter, insert_after, match);
+  if (insertAfter) {
+    $(matches, insertAfter, insertAfter, match);
   } else {
     $(matches, prepend, match);
   }
@@ -456,9 +456,9 @@ void Con_AutocompleteInput_f(const uint32_t argi, List *matches) {
  * @brief Prints the list of autocomplete matches to the console, formatted in columns.
  */
 static void Con_PrintMatches(const Console *console, List *matches) {
-  const uint32_t num_matches = (uint32_t) matches->count;
+  const uint32_t numMatches = (uint32_t) matches->count;
 
-  if (!num_matches) {
+  if (!numMatches) {
     return;
   }
 
@@ -466,16 +466,16 @@ static void Con_PrintMatches(const Console *console, List *matches) {
   Con_Append(PRINT_ECHO, "\n");
 
   size_t widest = 0;
-  bool all_simple = true;
+  bool allSimple = true;
 
   // calculate width per column
   for (const ListNode *m = matches->head; m; m = m->next) {
     const ConAutocompleteMatch *match = m->element;
     const char *str = (match->description ?: match->name);
-    const size_t str_len = q_strlen(str);
+    const size_t strLen = q_strlen(str);
 
     if (match->description) {
-      all_simple = false;
+      allSimple = false;
     }
 
     if (q_strchr(str, '\n') != NULL) {
@@ -483,17 +483,17 @@ static void Con_PrintMatches(const Console *console, List *matches) {
       break;
     }
 
-    if (str_len > widest) {
-      widest = str_len + 1;
+    if (strLen > widest) {
+      widest = strLen + 1;
     }
   }
 
   // calculate # that can fit in a row
-  const size_t per_row = Maxf(console->width / (widest ? widest : 1u), 1u);
-  const size_t num_rows = Maxf(num_matches / per_row, 1u);
+  const size_t perRow = Maxf(console->width / (widest ? widest : 1u), 1u);
+  const size_t numRows = Maxf(numMatches / perRow, 1u);
 
   // simple path
-  if (per_row == 1 || (!all_simple && num_rows == 1)) {
+  if (perRow == 1 || (!allSimple && numRows == 1)) {
     
     for (const ListNode *m = matches->head; m; m = m->next) {
       const ConAutocompleteMatch *match = m->element;
@@ -506,19 +506,19 @@ static void Con_PrintMatches(const Console *console, List *matches) {
   }
 
   const ListNode *m = matches->head;
-  char line[per_row * widest + 1];
+  char line[perRow * widest + 1];
 
   while (m) {
     line[0] = '\0';
 
-    for (size_t i = 0; m && i < per_row; i++, m = m->next) {
+    for (size_t i = 0; m && i < perRow; i++, m = m->next) {
       const ConAutocompleteMatch *match = m->element;
       const char *str = (match->description ?: match->name);
-      const size_t str_len = q_strlen(str);
+      const size_t strLen = q_strlen(str);
 
       q_strlcat(line, str, sizeof(line));
 
-      for (size_t x = 0; x < widest - str_len; x++) {
+      for (size_t x = 0; x < widest - strLen; x++) {
         q_strlcat(line, " ", sizeof(line));
       }
     }
@@ -578,14 +578,14 @@ bool Con_CompleteInput(Console *console) {
   List *matches = $(alloc(List), init);
 
   char *partial = console->input.buffer;
-  size_t max_len = sizeof(console->input.buffer) - 1;
+  size_t maxLen = sizeof(console->input.buffer) - 1;
 
   if (*partial == '\\' || *partial == '/') {
     partial++;
-    max_len--; // prevent buffer overflow
+    maxLen--; // prevent buffer overflow
   }
 
-  const size_t partial_len = q_strlen(partial);
+  const size_t partialLen = q_strlen(partial);
 
   if (!*partial) {
     release(matches);
@@ -595,9 +595,9 @@ bool Con_CompleteInput(Console *console) {
   Cmd_TokenizeString(partial);
 
   uint32_t argi = Cmd_Argc() - 1;
-  const bool new_argument = partial[q_strlen(partial) - 1] == ' ';
+  const bool newArgument = partial[q_strlen(partial) - 1] == ' ';
 
-  if (new_argument) {
+  if (newArgument) {
     argi++;
   }
 
@@ -632,14 +632,14 @@ bool Con_CompleteInput(Console *console) {
     return false;
   }
 
-  bool output_quotes = false;
+  bool outputQuotes = false;
 
   if (matches->count == 1) {
     match = ((const ConAutocompleteMatch *) matches->head->element)->name;
 
     if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s\" ", match);
-      output_quotes = true;
+      outputQuotes = true;
     } else {
       match = va("%s ", match);
     }
@@ -650,30 +650,30 @@ bool Con_CompleteInput(Console *console) {
       match = Cmd_Argv(argi);
     } else if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s", match);
-      output_quotes = true;
+      outputQuotes = true;
     }
   }
 
-  if (new_argument) {
-    q_strlcat(partial, match, max_len);
+  if (newArgument) {
+    q_strlcat(partial, match, maxLen);
   } else {
-    size_t arg_pos = 0;
-    bool input_quotes = false;
+    size_t argPos = 0;
+    bool inputQuotes = false;
 
     if (Cmd_Argc() > 1) {
-      const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
-      arg_pos = q_strlen(partial) - q_strlen(last_arg);
+      const char *lastArg = Cmd_Argv(Cmd_Argc() - 1);
+      argPos = q_strlen(partial) - q_strlen(lastArg);
 
-      uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] ==
+      uint8_t numQuotes = (partial[partialLen - 1] == '"') + (partial[argPos - 1 - (partial[partialLen - 1] == '"')] ==
                            '"');
 
-      if (num_quotes) {
-        arg_pos -= num_quotes;
-        input_quotes = true;
+      if (numQuotes) {
+        argPos -= numQuotes;
+        inputQuotes = true;
       }
     }
 
-    if (!output_quotes && input_quotes) {
+    if (!outputQuotes && inputQuotes) {
 
       if (matches->count == 1) {
         match = va("\"%s\"", match);
@@ -682,7 +682,7 @@ bool Con_CompleteInput(Console *console) {
       }
     }
 
-    q_snprintf(partial + arg_pos, (size_t) (max_len - arg_pos), "%s", match);
+    q_snprintf(partial + argPos, (size_t) (maxLen - argPos), "%s", match);
   }
 
   console->input.pos = q_strlen(console->input.buffer);
@@ -710,8 +710,8 @@ void Con_SubmitInput(Console *console) {
 
     console->history.pos = console->history.index;
 
-    const size_t buf_len = q_strlen(console->input.buffer);
-    if (!buf_len || console->input.buffer[buf_len - 1] != '\n') {
+    const size_t bufLen = q_strlen(console->input.buffer);
+    if (!bufLen || console->input.buffer[bufLen - 1] != '\n') {
       q_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
     }
 

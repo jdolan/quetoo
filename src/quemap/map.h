@@ -46,7 +46,7 @@ typedef struct Plane {
   /**
    * @brief The plane hash chain, for fast plane lookups.
    */
-  struct Plane *hash_chain;
+  struct Plane *hashChain;
 } Plane;
 
 /**
@@ -152,12 +152,12 @@ typedef struct Brush {
   /**
    * @brief The brush sides (pointer to a statically allocated global array).
    */
-  BrushSide *brush_sides;
+  BrushSide *brushSides;
 
   /**
    * @brief The number of brush sides.
    */
-  int32_t num_brush_sides;
+  int32_t numBrushSides;
 
   /**
    * @brief The BSP brush emitted from this map brush.

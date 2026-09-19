@@ -74,7 +74,7 @@ static void updateBindings(View *self, ident data) {
     $((ImageView *) self, setImage, (Image *) Cg_HudImage(bg_item_defs[flag].icon));
   }
 
-  ((ImageView *) self)->color.a = (Uint8) (Clampf(sinf(cgi.client->unclamped_time / 150.f), 0.75f, 1.f) * 255);
+  ((ImageView *) self)->color.a = (Uint8) (Clampf(sinf(cgi.client->unclampedTime / 150.f), 0.75f, 1.f) * 255);
 }
 
 /**

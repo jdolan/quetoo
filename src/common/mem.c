@@ -34,10 +34,10 @@ typedef struct MemBlock {
   MemMagic magic;
   MemTag tag; // for group free
   struct MemBlock *parent;
-  struct MemBlock *first_child;   // head of intrusive children list
-  struct MemBlock *next_sibling;  // next in parent's children list
-  struct MemBlock *prev_block;    // prev in global block list
-  struct MemBlock *next_block;    // next in global block list
+  struct MemBlock *firstChild;   // head of intrusive children list
+  struct MemBlock *nextSibling;  // next in parent's children list
+  struct MemBlock *prevBlock;    // prev in global block list
+  struct MemBlock *nextBlock;    // next in global block list
   size_t size;
 } MemBlock;
 
@@ -108,35 +108,35 @@ static void Mem_Free_(MemBlock *b) {
   }
 
   // Validate all children before freeing them
-  if (b->first_child) {
-    MemBlock *child = b->first_child;
-    int child_num = 0;
-    bool has_corruption = false;
+  if (b->firstChild) {
+    MemBlock *child = b->firstChild;
+    int childNum = 0;
+    bool hasCorruption = false;
     while (child) {
       if (child->magic != MEM_MAGIC) {
-        has_corruption = true;
+        hasCorruption = true;
         fprintf(stderr, "Mem_Free_: Parent %p (tag: %d, size: %zu) has corrupted child #%d: %p (magic: %d)\n",
-                (void *)b, b->tag, b->size, child_num, (void *)child, child->magic);
+                (void *)b, b->tag, b->size, childNum, (void *)child, child->magic);
         fprintf(stderr, "  First 8 words of bad child: %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx\n",
                 ((unsigned long long *)child)[0], ((unsigned long long *)child)[1],
                 ((unsigned long long *)child)[2], ((unsigned long long *)child)[3],
                 ((unsigned long long *)child)[4], ((unsigned long long *)child)[5],
                 ((unsigned long long *)child)[6], ((unsigned long long *)child)[7]);
       }
-      child = child->next_sibling;
-      child_num++;
+      child = child->nextSibling;
+      childNum++;
     }
 
-    if (has_corruption) {
+    if (hasCorruption) {
       fprintf(stderr, "Mem_Free_: Parent details - address: %p, magic: %d, tag: %d, size: %zu, num_children: %d\n",
-              (void *)b, b->magic, b->tag, b->size, child_num);
+              (void *)b, b->magic, b->tag, b->size, childNum);
       raise(SIGABRT);
     }
 
     // Recursively free children
-    child = b->first_child;
+    child = b->firstChild;
     while (child) {
-      MemBlock *next = child->next_sibling;
+      MemBlock *next = child->nextSibling;
       Mem_Free_(child);
       child = next;
     }
@@ -160,16 +160,16 @@ void Mem_Free(void *p) {
 
     if (b->parent) {
       // Unlink from parent's intrusive children list
-      MemBlock **pp = &b->parent->first_child;
+      MemBlock **pp = &b->parent->firstChild;
       while (*pp && *pp != b) {
-        pp = &(*pp)->next_sibling;
+        pp = &(*pp)->nextSibling;
       }
-      if (*pp) { *pp = b->next_sibling; }
+      if (*pp) { *pp = b->nextSibling; }
     } else {
       // Unlink from global doubly-linked list
-      if (b->prev_block) { b->prev_block->next_block = b->next_block; }
-      else { mem_state.head = b->next_block; }
-      if (b->next_block) { b->next_block->prev_block = b->prev_block; }
+      if (b->prevBlock) { b->prevBlock->nextBlock = b->nextBlock; }
+      else { mem_state.head = b->nextBlock; }
+      if (b->nextBlock) { b->nextBlock->prevBlock = b->prevBlock; }
     }
 
     Mem_Free_(b);
@@ -187,12 +187,12 @@ void Mem_FreeTag(MemTag tag) {
 
   MemBlock *b = mem_state.head;
   while (b) {
-    MemBlock *next = b->next_block;
+    MemBlock *next = b->nextBlock;
     if (tag == MEM_TAG_ALL || b->tag == tag) {
       // Unlink from global list
-      if (b->prev_block) { b->prev_block->next_block = b->next_block; }
-      else { mem_state.head = b->next_block; }
-      if (b->next_block) { b->next_block->prev_block = b->prev_block; }
+      if (b->prevBlock) { b->prevBlock->nextBlock = b->nextBlock; }
+      else { mem_state.head = b->nextBlock; }
+      if (b->nextBlock) { b->nextBlock->prevBlock = b->prevBlock; }
       Mem_Free_(b);
     }
     b = next;
@@ -247,13 +247,13 @@ static void *Mem_Malloc_(size_t size, MemTag tag, void *parent) {
 
   if (b->parent) {
     // Prepend to parent's intrusive children list
-    b->next_sibling = b->parent->first_child;
-    b->parent->first_child = b;
+    b->nextSibling = b->parent->firstChild;
+    b->parent->firstChild = b;
   } else {
     // Prepend to global doubly-linked list
-    b->next_block = mem_state.head;
-    b->prev_block = NULL;
-    if (mem_state.head) { mem_state.head->prev_block = b; }
+    b->nextBlock = mem_state.head;
+    b->prevBlock = NULL;
+    if (mem_state.head) { mem_state.head->prevBlock = b; }
     mem_state.head = b;
   }
 
@@ -314,7 +314,7 @@ void *Mem_Realloc(void *p, size_t size) {
     return Mem_Malloc(size);
   }
 
-  MemBlock *b = Mem_CheckMagic(p), *new_b;
+  MemBlock *b = Mem_CheckMagic(p), *newB;
 
   // no change to size
   if (b->size == size) {
@@ -322,68 +322,68 @@ void *Mem_Realloc(void *p, size_t size) {
   }
 
   // allocate the block plus the desired size
-  const size_t old_size = b->size;
+  const size_t oldSize = b->size;
   const size_t s = Mem_BlockSize(size);
 
   // Once unlinked, a childless block is unreachable by other threads, so the
   // reallocation can happen without holding the lock. A block with children is
   // still reachable through their parent pointers, so it keeps the lock until
   // those have been re-seated.
-  const bool has_children = b->first_child != NULL;
+  const bool hasChildren = b->firstChild != NULL;
 
   SDL_LockSpinlock(&mem_state.lock);
 
   // remove the old block while b is still a valid pointer
   if (b->parent) {
-    MemBlock **pp = &b->parent->first_child;
-    while (*pp && *pp != b) { pp = &(*pp)->next_sibling; }
-    if (*pp) { *pp = b->next_sibling; }
+    MemBlock **pp = &b->parent->firstChild;
+    while (*pp && *pp != b) { pp = &(*pp)->nextSibling; }
+    if (*pp) { *pp = b->nextSibling; }
   } else {
-    if (b->prev_block) { b->prev_block->next_block = b->next_block; }
-    else { mem_state.head = b->next_block; }
-    if (b->next_block) { b->next_block->prev_block = b->prev_block; }
+    if (b->prevBlock) { b->prevBlock->nextBlock = b->nextBlock; }
+    else { mem_state.head = b->nextBlock; }
+    if (b->nextBlock) { b->nextBlock->prevBlock = b->prevBlock; }
   }
 
-  if (!has_children) {
+  if (!hasChildren) {
     SDL_UnlockSpinlock(&mem_state.lock);
   }
 
   b->size = size;
 
-  if (!(new_b = realloc(b, s))) {
+  if (!(newB = realloc(b, s))) {
     fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
     raise(SIGABRT);
     return NULL;
   }
 
-  void *data = (void *) (new_b + 1);
+  void *data = (void *) (newB + 1);
 
   MemFooter *footer = Mem_Footer(data, size);
-  footer->magic = (MemMagic) (MEM_MAGIC + new_b->size);
+  footer->magic = (MemMagic) (MEM_MAGIC + newB->size);
 
-  if (!has_children) {
+  if (!hasChildren) {
     SDL_LockSpinlock(&mem_state.lock);
   }
 
   // re-seat us in our parent or in global list
-  if (new_b->parent) {
-    new_b->next_sibling = new_b->parent->first_child;
-    new_b->parent->first_child = new_b;
+  if (newB->parent) {
+    newB->nextSibling = newB->parent->firstChild;
+    newB->parent->firstChild = newB;
   } else {
-    new_b->next_block = mem_state.head;
-    new_b->prev_block = NULL;
-    if (mem_state.head) { mem_state.head->prev_block = new_b; }
-    mem_state.head = new_b;
+    newB->nextBlock = mem_state.head;
+    newB->prevBlock = NULL;
+    if (mem_state.head) { mem_state.head->prevBlock = newB; }
+    mem_state.head = newB;
   }
 
   // change our children's parent pointers
-  if (new_b->first_child) {
-    for (MemBlock *child = new_b->first_child; child; child = child->next_sibling) {
-      child->parent = new_b;
+  if (newB->firstChild) {
+    for (MemBlock *child = newB->firstChild; child; child = child->nextSibling) {
+      child->parent = newB;
     }
   }
 
-  mem_state.size -= old_size;
+  mem_state.size -= oldSize;
   mem_state.size += size;
 
   SDL_UnlockSpinlock(&mem_state.lock);
@@ -407,18 +407,18 @@ void *Mem_Link(void *child, void *parent) {
   SDL_LockSpinlock(&mem_state.lock);
 
   if (c->parent) {
-    MemBlock **pp = &c->parent->first_child;
-    while (*pp && *pp != c) { pp = &(*pp)->next_sibling; }
-    if (*pp) { *pp = c->next_sibling; }
+    MemBlock **pp = &c->parent->firstChild;
+    while (*pp && *pp != c) { pp = &(*pp)->nextSibling; }
+    if (*pp) { *pp = c->nextSibling; }
   } else {
-    if (c->prev_block) { c->prev_block->next_block = c->next_block; }
-    else { mem_state.head = c->next_block; }
-    if (c->next_block) { c->next_block->prev_block = c->prev_block; }
+    if (c->prevBlock) { c->prevBlock->nextBlock = c->nextBlock; }
+    else { mem_state.head = c->nextBlock; }
+    if (c->nextBlock) { c->nextBlock->prevBlock = c->prevBlock; }
   }
 
   c->parent = p;
-  c->next_sibling = p->first_child;
-  p->first_child = c;
+  c->nextSibling = p->firstChild;
+  p->firstChild = c;
 
   SDL_UnlockSpinlock(&mem_state.lock);
 
@@ -466,7 +466,7 @@ static size_t Mem_CalculateBlockSize(const MemBlock *b) {
 
   size_t size = b->size;
 
-  for (MemBlock *child = b->first_child; child; child = child->next_sibling) {
+  for (MemBlock *child = b->firstChild; child; child = child->nextSibling) {
     size += Mem_CalculateBlockSize(child);
   }
 
@@ -480,18 +480,18 @@ Vector *Mem_Stats(void) {
 
   SDL_LockSpinlock(&mem_state.lock);
 
-  Vector *stat_array = $(alloc(Vector), initWithSize, sizeof(MemStat));
+  Vector *statArray = $(alloc(Vector), initWithSize, sizeof(MemStat));
 
   MemStat total = { .tag = -1, .size = mem_state.size, .count = 0 };
-  $(stat_array, add, &total);
+  $(statArray, add, &total);
 
-  for (const MemBlock *b = mem_state.head; b; b = b->next_block) {
+  for (const MemBlock *b = mem_state.head; b; b = b->nextBlock) {
     MemStat *stats = NULL;
 
-    for (size_t i = 0; i < stat_array->count; i++) {
-      MemStat *stat_i = VectorElement(stat_array, MemStat, i);
-      if (stat_i->tag == b->tag) {
-        stats = stat_i;
+    for (size_t i = 0; i < statArray->count; i++) {
+      MemStat *statI = VectorElement(statArray, MemStat, i);
+      if (statI->tag == b->tag) {
+        stats = statI;
         break;
       }
     }
@@ -502,7 +502,7 @@ Vector *Mem_Stats(void) {
         .size = Mem_CalculateBlockSize(b),
         .count = 1
       };
-      $(stat_array, add, &entry);
+      $(statArray, add, &entry);
     } else {
       stats->size += Mem_CalculateBlockSize(b);
       stats->count++;
@@ -511,9 +511,9 @@ Vector *Mem_Stats(void) {
 
   SDL_UnlockSpinlock(&mem_state.lock);
 
-  $(stat_array, sort, Mem_Stats_Sort);
+  $(statArray, sort, Mem_Stats_Sort);
 
-  return stat_array;
+  return statArray;
 }
 
 /**

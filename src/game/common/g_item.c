@@ -155,21 +155,21 @@ static bool G_ItemRestoreOrigin(GameEntity *ent) {
 static void G_ItemRespawn(GameEntity *ent) {
 
   if (ent->team) {
-    if (ent->team_next) {
-      ent = ent->team_next;
+    if (ent->teamNext) {
+      ent = ent->teamNext;
     } else {
-      ent = ent->team_master;
+      ent = ent->teamMaster;
     }
   }
 
-  ent->sv_flags &= ~SVF_NO_CLIENT;
+  ent->svFlags &= ~SVF_NO_CLIENT;
   ent->solid = SOLID_TRIGGER;
 
   gi.LinkEntity(ent);
 
   // send an effect
   ent->s.event = EV_ITEM_RESPAWN;
-  ent->s.event_data = ent->item->def.tag;
+  ent->s.eventData = ent->item->def.tag;
 }
 
 /**
@@ -183,11 +183,11 @@ void G_CheckItemHazard(GameEntity *ent) {
     return;
   }
 
-  if (!(ent->spawn_flags & SF_ITEM_HAZARD_RESPAWN)) {
+  if (!(ent->spawnFlags & SF_ITEM_HAZARD_RESPAWN)) {
     return;
   }
 
-  if (!(ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+  if (!(ent->waterType & (CONTENTS_LAVA | CONTENTS_SLIME))) {
     return;
   }
 
@@ -195,13 +195,13 @@ void G_CheckItemHazard(GameEntity *ent) {
     return;
   }
 
-  ent->water_level = WATER_NONE;
-  ent->water_type = 0;
+  ent->waterLevel = WATER_NONE;
+  ent->waterType = 0;
 
   gi.LinkEntity(ent);
 
   ent->s.event = EV_ITEM_RESPAWN;
-  ent->s.event_data = ent->item->def.tag;
+  ent->s.eventData = ent->item->def.tag;
 }
 
 /**
@@ -209,11 +209,11 @@ void G_CheckItemHazard(GameEntity *ent) {
  */
 void G_SetItemRespawn(GameEntity *ent, uint32_t delay) {
 
-  ent->next_think = g_level.time + delay;
+  ent->nextThink = g_level.time + delay;
   ent->Think = G_ItemRespawn;
 
   ent->solid = SOLID_NOT;
-  ent->sv_flags |= SVF_NO_CLIENT;
+  ent->svFlags |= SVF_NO_CLIENT;
 
   G_ItemRestoreOrigin(ent);
 
@@ -225,11 +225,11 @@ void G_SetItemRespawn(GameEntity *ent, uint32_t delay) {
  */
 static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
 
-  if (cl->entity->health < cl->entity->max_health) {
-    cl->entity->health = cl->entity->max_health;
+  if (cl->entity->health < cl->entity->maxHealth) {
+    cl->entity->health = cl->entity->maxHealth;
   }
 
-  if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
     G_SetItemRespawn(ent, 40000);
   }
 
@@ -249,12 +249,12 @@ static bool G_PickupQuadDamage(GameClient *cl, GameEntity *ent) {
 
   uint32_t delta = 3000;
 
-  if (ent->spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
-    cl->quad_damage_time = ent->next_think;
-    cl->quad_countdown_time = ent->next_think - delta;
+  if (ent->spawnFlags & SF_ITEM_DROPPED) { // receive only the time left
+    cl->quadDamageTime = ent->nextThink;
+    cl->quadCountdownTime = ent->nextThink - delta;
   } else {
-    cl->quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_balance_quad_damage_time->value);
-    cl->quad_countdown_time = cl->quad_damage_time - delta;
+    cl->quadDamageTime = g_level.time + SECONDS_TO_MILLIS(g_balance_quad_damage_time->value);
+    cl->quadCountdownTime = cl->quadDamageTime - delta;
     G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balance_quad_damage_respawn_time->value));
   }
 
@@ -275,10 +275,10 @@ GameEntity *G_TossQuadDamage(GameClient *cl) {
   quad = G_DropItem(cl, &g_items[POWERUP_QUAD]);
 
   if (quad) {
-    quad->timestamp = cl->quad_damage_time;
+    quad->timestamp = cl->quadDamageTime;
   }
 
-  cl->quad_damage_time = 0.0;
+  cl->quadDamageTime = 0.0;
   cl->inventory[POWERUP_QUAD] = 0;
 
   return quad;
@@ -295,17 +295,17 @@ static bool G_PickupInvisibility(GameClient *cl, GameEntity *ent) {
 
   cl->inventory[POWERUP_INVISIBILITY] = 1;
 
-  if (ent->spawn_flags & SF_ITEM_DROPPED) {
-    cl->invisibility_time = ent->next_think;
+  if (ent->spawnFlags & SF_ITEM_DROPPED) {
+    cl->invisibilityTime = ent->nextThink;
   } else {
-    cl->invisibility_time = g_level.time + SECONDS_TO_MILLIS(g_balance_invisibility_time->value);
+    cl->invisibilityTime = g_level.time + SECONDS_TO_MILLIS(g_balance_invisibility_time->value);
     G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balance_invisibility_respawn_time->value));
   }
 
   cl->entity->s.effects |= EF_INVISIBILITY;
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.invisibility_pickup,
+    .index = g_media.sounds.invisibilityPickup,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -324,10 +324,10 @@ GameEntity *G_TossInvisibility(GameClient *cl) {
   GameEntity *item = G_DropItem(cl, &g_items[POWERUP_INVISIBILITY]);
 
   if (item) {
-    item->timestamp = cl->invisibility_time;
+    item->timestamp = cl->invisibilityTime;
   }
 
-  cl->invisibility_time = 0;
+  cl->invisibilityTime = 0;
   cl->inventory[POWERUP_INVISIBILITY] = 0;
   cl->entity->s.effects &= ~EF_INVISIBILITY;
 
@@ -347,19 +347,19 @@ static bool G_PickupInvulnerability(GameClient *cl, GameEntity *ent) {
 
   uint32_t delta = 3000;
 
-  if (ent->spawn_flags & SF_ITEM_DROPPED) {
-    cl->invulnerability_time = ent->next_think;
-    cl->invulnerability_countdown_time = ent->next_think - delta;
+  if (ent->spawnFlags & SF_ITEM_DROPPED) {
+    cl->invulnerabilityTime = ent->nextThink;
+    cl->invulnerabilityCountdownTime = ent->nextThink - delta;
   } else {
-    cl->invulnerability_time = g_level.time + SECONDS_TO_MILLIS(g_balance_invulnerability_time->value);
-    cl->invulnerability_countdown_time = cl->invulnerability_time - delta;
+    cl->invulnerabilityTime = g_level.time + SECONDS_TO_MILLIS(g_balance_invulnerability_time->value);
+    cl->invulnerabilityCountdownTime = cl->invulnerabilityTime - delta;
     G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balance_invulnerability_respawn_time->value));
   }
 
   cl->entity->s.effects |= EF_INVULNERABILITY;
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.invulnerability_pickup,
+    .index = g_media.sounds.invulnerabilityPickup,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -378,11 +378,11 @@ GameEntity *G_TossInvulnerability(GameClient *cl) {
   GameEntity *item = G_DropItem(cl, &g_items[POWERUP_INVULNERABILITY]);
 
   if (item) {
-    item->timestamp = cl->invulnerability_time;
+    item->timestamp = cl->invulnerabilityTime;
   }
 
-  cl->invulnerability_time = 0;
-  cl->invulnerability_countdown_time = 0;
+  cl->invulnerabilityTime = 0;
+  cl->invulnerabilityCountdownTime = 0;
   cl->inventory[POWERUP_INVULNERABILITY] = 0;
   cl->entity->s.effects &= ~EF_INVULNERABILITY;
 
@@ -461,7 +461,7 @@ static bool G_PickupAmmo(GameClient *cl, GameEntity *ent) {
     return false;
   }
 
-  if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
     G_SetItemRespawn(ent, g_ammo_respawn_time->value * 1000);
   }
 
@@ -479,7 +479,7 @@ static bool G_PickupGrenades(GameClient *cl, GameEntity *ent) {
       cl->inventory[WEAPON_HAND_GRENADE]++;
     }
 
-    if (cl->persistent.auto_switch && cl->weapon == &g_items[WEAPON_BLASTER]) {
+    if (cl->persistent.autoSwitch && cl->weapon == &g_items[WEAPON_BLASTER]) {
       G_UseWeapon(cl, &g_items[WEAPON_HAND_GRENADE]);
     }
   }
@@ -517,22 +517,22 @@ static bool G_PickupHealth(GameClient *cl, GameEntity *ent) {
 
   const uint16_t tag = ent->item->def.tag;
 
-  const bool always_add = tag == HEALTH_SMALL;
-  const bool always_pickup = (tag == HEALTH_SMALL || tag == HEALTH_MEGA || tag == HEALTH_QUAKE_MEGA);
+  const bool alwaysAdd = tag == HEALTH_SMALL;
+  const bool alwaysPickup = (tag == HEALTH_SMALL || tag == HEALTH_MEGA || tag == HEALTH_QUAKE_MEGA);
 
-  if (cl->entity->health < cl->entity->max_health || always_add || always_pickup) {
+  if (cl->entity->health < cl->entity->maxHealth || alwaysAdd || alwaysPickup) {
 
     h = cl->entity->health + ent->item->def.quantity; // target health points
-    max = cl->entity->max_health;
+    max = cl->entity->maxHealth;
 
-    if (always_pickup) { // resolve max
+    if (alwaysPickup) { // resolve max
       if (h > max && cl) {
         if (tag == HEALTH_MEGA || tag == HEALTH_QUAKE_MEGA) {
-          cl->boost_time = g_level.time + 1000;
+          cl->boostTime = g_level.time + 1000;
         }
-        max = cl->max_boost_health;
+        max = cl->maxBoostHealth;
       }
-    } else if (always_add) {
+    } else if (alwaysAdd) {
       max = INT16_MAX;
     }
     if (h > max) { // and enforce it
@@ -602,82 +602,82 @@ const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
  */
 static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
 
-  const GameItem *new_armor = ent->item;
-  const GameItem *current_armor = G_ClientArmor(cl);
+  const GameItem *newArmor = ent->item;
+  const GameItem *currentArmor = G_ClientArmor(cl);
 
-  const GameArmorInfo *new_info = G_ArmorInfo(new_armor);
-  const GameArmorInfo *current_info = G_ArmorInfo(current_armor);
+  const GameArmorInfo *newInfo = G_ArmorInfo(newArmor);
+  const GameArmorInfo *currentInfo = G_ArmorInfo(currentArmor);
 
   bool taken = false;
 
-  if (new_armor->def.tag == ARMOR_SHARD) { // always take it, ignoring cap
-    if (current_armor) {
-      cl->inventory[current_armor->def.tag] =
-          Clampf(cl->inventory[current_armor->def.tag] + new_armor->def.quantity,
-                0, cl->max_armor);
+  if (newArmor->def.tag == ARMOR_SHARD) { // always take it, ignoring cap
+    if (currentArmor) {
+      cl->inventory[currentArmor->def.tag] =
+          Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity,
+                0, cl->maxArmor);
     } else {
       cl->inventory[ARMOR_JACKET] =
-          Clampf((int16_t) new_armor->def.quantity, 0, cl->max_armor);
+          Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
     }
 
     taken = true;
-  } else if (!current_armor) { // no current armor, take it
-    cl->inventory[new_armor->def.tag] =
-        Clampf((int16_t) new_armor->def.quantity, 0, cl->max_armor);
+  } else if (!currentArmor) { // no current armor, take it
+    cl->inventory[newArmor->def.tag] =
+        Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
 
     taken = true;
-  } else if (new_armor->def.tag >= ARMOR_QUAKE_JACKET) {
+  } else if (newArmor->def.tag >= ARMOR_QUAKE_JACKET) {
     // Quake-family armor uses Q1 effective-score logic: full swap, no salvage.
     // A pickup is only accepted if it strictly improves the player's effective score.
-    const float current_score = current_info->normal_protection * cl->inventory[current_armor->def.tag];
-    const float new_score = new_info->normal_protection * new_armor->def.quantity;
+    const float currentScore = currentInfo->normalProtection * cl->inventory[currentArmor->def.tag];
+    const float newScore = newInfo->normalProtection * newArmor->def.quantity;
 
-    if (new_score > current_score) {
-      cl->inventory[current_armor->def.tag] = 0;
-      cl->inventory[new_armor->def.tag] = Clampf((int16_t) new_armor->def.quantity, 0, cl->max_armor);
+    if (newScore > currentScore) {
+      cl->inventory[currentArmor->def.tag] = 0;
+      cl->inventory[newArmor->def.tag] = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
       taken = true;
     }
   } else {
     // Q2-family armor uses salvage-conversion logic.
     // we picked up stronger armor than we currently had
-    if (new_info->normal_protection > current_info->normal_protection) {
+    if (newInfo->normalProtection > currentInfo->normalProtection) {
 
       // get the ratio between the new and old armor to add a portion to
       // new armor pickup. Ganked from q2pro (thanks skuller)
-      const float salvage = current_info->normal_protection / new_info->normal_protection;
-      const int16_t salvage_count = salvage * cl->inventory[current_armor->def.tag];
+      const float salvage = currentInfo->normalProtection / newInfo->normalProtection;
+      const int16_t salvageCount = salvage * cl->inventory[currentArmor->def.tag];
 
-      const int16_t new_count = Clampf(salvage_count + new_armor->def.quantity, 0, new_armor->def.max);
+      const int16_t newCount = Clampf(salvageCount + newArmor->def.quantity, 0, newArmor->def.max);
 
-      if (new_count < cl->max_armor) {
-        cl->inventory[current_armor->def.tag] = 0;
+      if (newCount < cl->maxArmor) {
+        cl->inventory[currentArmor->def.tag] = 0;
 
-        cl->inventory[new_armor->def.tag] =
-            Clampf(new_count, 0, cl->max_armor);
+        cl->inventory[newArmor->def.tag] =
+            Clampf(newCount, 0, cl->maxArmor);
       }
 
       taken = true;
     } else {
       // we picked up the same, or weaker
-      const float salvage = new_info->normal_protection / current_info->normal_protection;
-      const int16_t salvage_count = salvage * new_armor->def.quantity;
+      const float salvage = newInfo->normalProtection / currentInfo->normalProtection;
+      const int16_t salvageCount = salvage * newArmor->def.quantity;
 
-      int16_t new_count = salvage_count + cl->inventory[current_armor->def.tag];
-      new_count = Clampf(new_count, 0, current_armor->def.max);
+      int16_t newCount = salvageCount + cl->inventory[currentArmor->def.tag];
+      newCount = Clampf(newCount, 0, currentArmor->def.max);
 
       // take it
-      if (cl->inventory[current_armor->def.tag] < new_count &&
-              cl->inventory[current_armor->def.tag] < cl->max_armor) {
-        cl->inventory[current_armor->def.tag] =
-            Clampf(new_count, 0, cl->max_armor);
+      if (cl->inventory[currentArmor->def.tag] < newCount &&
+              cl->inventory[currentArmor->def.tag] < cl->maxArmor) {
+        cl->inventory[currentArmor->def.tag] =
+            Clampf(newCount, 0, cl->maxArmor);
 
         taken = true;
       }
     }
   }
 
-  if (taken && !(ent->spawn_flags & SF_ITEM_DROPPED)) {
-    switch (new_armor->def.tag) {
+  if (taken && !(ent->spawnFlags & SF_ITEM_DROPPED)) {
+    switch (newArmor->def.tag) {
       case ARMOR_SHARD:
         G_SetItemRespawn(ent, g_balance_armor_shard_respawn->integer * 1000);
         break;
@@ -700,7 +700,7 @@ static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
         G_SetItemRespawn(ent, g_balance_armor_body_respawn->integer * 1000);
         break;
       default:
-        G_Debug("Invalid armor tag: %d\n", new_armor->def.tag);
+        G_Debug("Invalid armor tag: %d\n", newArmor->def.tag);
         break;
     }
   }
@@ -742,7 +742,7 @@ static void G_DropItem_SetExpiration(GameEntity *ent) {
     expiration /= 2;
   }
 
-  ent->next_think = g_level.time + expiration;
+  ent->nextThink = g_level.time + expiration;
 }
 
 /**
@@ -754,7 +754,7 @@ static void G_DropItem_Think(GameEntity *ent) {
   if (ent->ground.ent || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
     G_DropItem_SetExpiration(ent);
   } else {
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
   }
 }
 
@@ -770,7 +770,7 @@ void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
   // an item that was dropped ignores whoever dropped it for a moment; one that
   // nobody dropped ignores everybody, so an item placed by the game cannot be
   // taken the instant it appears
-  if (ent->touch_time > g_level.time) {
+  if (ent->touchTime > g_level.time) {
     if (ent->owner == NULL || other == ent->owner) {
       return;
     }
@@ -807,28 +807,28 @@ void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
     cl->ps.stats[STAT_PICKUP] = tag;
     
     if (ent->item->Use) {
-      cl->last_pickup = ent->item;
+      cl->lastPickup = ent->item;
     }
-    cl->pickup_msg_time = g_level.time + 3000;
+    cl->pickupMsgTime = g_level.time + 3000;
 
-    if (ent->item->def.pickup_sound) {
+    if (ent->item->def.pickupSound) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->item->pickup_sound_index,
+        .index = ent->item->pickupSoundIndex,
         .origin = &other->s.origin,
       }, MULTICAST_PHS);
     }
 
     other->s.event = EV_ITEM_PICKUP;
-    other->s.event_data = ent->item->def.tag;
+    other->s.eventData = ent->item->def.tag;
   }
 
-  if (!(ent->spawn_flags & SF_ITEM_TARGETS_USED)) {
+  if (!(ent->spawnFlags & SF_ITEM_TARGETS_USED)) {
     G_UseTargets(ent, other);
-    ent->spawn_flags |= SF_ITEM_TARGETS_USED;
+    ent->spawnFlags |= SF_ITEM_TARGETS_USED;
   }
 
   if (pickup) {
-    if (ent->spawn_flags & SF_ITEM_DROPPED) {
+    if (ent->spawnFlags & SF_ITEM_DROPPED) {
       G_FreeEntity(ent);
     }
   }
@@ -863,7 +863,7 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
   it->item = item;
 
   // we're in a bad spot, forget it
-  if (tr.start_solid) {
+  if (tr.startSolid) {
     G_ResetDroppedItem(it);
 
     return NULL;
@@ -871,19 +871,19 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
 
   it->s.origin = tr.end;
 
-  it->spawn_flags |= SF_ITEM_DROPPED;
-  it->move_type = MOVE_TYPE_BOUNCE;
+  it->spawnFlags |= SF_ITEM_DROPPED;
+  it->moveType = MOVE_TYPE_BOUNCE;
   it->Touch = G_TouchItem;
   it->s.effects = item->def.effects | EF_MODULATE;
 
-  if (item->def.light_radius) {
+  if (item->def.lightRadius) {
     it->s.effects |= EF_LIGHT | EF_LIGHT_PULSE;
-    it->s.color = Color_Color32(Color3fv(item->def.light_color));
-    it->s.termination.x = item->def.light_radius;
+    it->s.color = Color_Color32(Color3fv(item->def.lightColor));
+    it->s.termination.x = item->def.lightRadius;
   }
-  it->touch_time = g_level.time + 1000;
+  it->touchTime = g_level.time + 1000;
 
-  it->s.model1 = item->model_index;
+  it->s.model1 = item->modelIndex;
 
   if (item->def.type == ITEM_TYPE_WEAPON) {
     const GameItem *ammo = item->def.ammo ? &g_items[item->def.ammo] : NULL;
@@ -896,7 +896,7 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
   it->velocity.z = 300.0 + (Randomf() * 50.0);
 
   it->Think = G_DropItem_Think;
-  it->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  it->nextThink = g_level.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(it);
 
@@ -945,27 +945,27 @@ void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
     return;
   }
 
-  int32_t drop_quantity;
+  int32_t dropQuantity;
 
   if (it->def.type == ITEM_TYPE_AMMO) {
-    drop_quantity = it->def.quantity;
+    dropQuantity = it->def.quantity;
   } else {
-    drop_quantity = 1;
+    dropQuantity = 1;
   }
 
-  if (cl->inventory[index] < drop_quantity) {
+  if (cl->inventory[index] < dropQuantity) {
     gi.ClientPrint(cl, PRINT_HIGH, "Quantity too low: %s\n", name);
     return;
   }
 
-  cl->inventory[index] -= drop_quantity;
-  cl->last_dropped = it;
+  cl->inventory[index] -= dropQuantity;
+  cl->lastDropped = it;
 
   it->Drop(cl, it);
 
   // adjust weapon if we need to
   if (it->def.type == ITEM_TYPE_WEAPON) {
-    if (cl->weapon == it && !cl->next_weapon && !cl->inventory[index]) {
+    if (cl->weapon == it && !cl->nextWeapon && !cl->inventory[index]) {
       G_UseBestWeapon(cl);
     }
   }
@@ -976,10 +976,10 @@ void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
  */
 static void G_UseItem(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
-  ent->sv_flags &= ~SVF_NO_CLIENT;
+  ent->svFlags &= ~SVF_NO_CLIENT;
   ent->Use = NULL;
 
-  if (ent->spawn_flags & SF_ITEM_NO_TOUCH) {
+  if (ent->spawnFlags & SF_ITEM_NO_TOUCH) {
     ent->solid = SOLID_BOX;
     ent->Touch = NULL;
   } else {
@@ -996,28 +996,28 @@ static void G_UseItem(GameEntity *ent, GameEntity *other, GameEntity *activator)
 static void G_ResetItem_Common(GameEntity *ent) {
 
   ent->solid = SOLID_TRIGGER;
-  ent->sv_flags &= ~SVF_NO_CLIENT;
+  ent->svFlags &= ~SVF_NO_CLIENT;
   ent->Touch = G_TouchItem;
 
-  if (ent->spawn_flags & SF_ITEM_TRIGGER) {
-    ent->sv_flags |= SVF_NO_CLIENT;
+  if (ent->spawnFlags & SF_ITEM_TRIGGER) {
+    ent->svFlags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
     ent->Use = G_UseItem;
   }
 
-  if (ent->spawn_flags & SF_ITEM_NO_TOUCH) {
+  if (ent->spawnFlags & SF_ITEM_NO_TOUCH) {
     ent->solid = SOLID_BOX;
     ent->Touch = NULL;
   }
 
   if (G_InhibitItem(ent) || (ent->flags & FL_TEAM_SLAVE)) {
-    ent->sv_flags |= SVF_NO_CLIENT;
+    ent->svFlags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
   }
 
   // if we were mid-respawn, get us out of it
   if (ent->Think == G_ItemRespawn) {
-    ent->next_think = 0;
+    ent->nextThink = 0;
     ent->Think = NULL;
   }
 
@@ -1044,26 +1044,26 @@ InhibitItem G_InhibitItem = G_InhibitItem_Common;
 static void G_ItemDropToFloor(GameEntity *ent) {
   CmTrace tr;
   Vec3 dest;
-  bool drop_node = false;
+  bool dropNode = false;
 
   ent->velocity = Vec3_Zero();
   dest = ent->s.origin;
 
-  if (!(ent->spawn_flags & SF_ITEM_HOVER)) {
-    ent->move_type = MOVE_TYPE_BOUNCE;
-    drop_node = true;
+  if (!(ent->spawnFlags & SF_ITEM_HOVER)) {
+    ent->moveType = MOVE_TYPE_BOUNCE;
+    dropNode = true;
   } else {
-    ent->move_type = MOVE_TYPE_FLY;
+    ent->moveType = MOVE_TYPE_FLY;
   }
 
   tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
-  if (tr.start_solid) {
+  if (tr.startSolid) {
     // try thinner box
     G_Debug("%s in too small of a spot for large box, correcting..\n", etos(ent));
     ent->bounds.maxs.z /= 2.0;
 
     tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
-    if (tr.start_solid) {
+    if (tr.startSolid) {
 
       G_Debug("%s still can't fit, trying Q2 box..\n", etos(ent));
 
@@ -1071,7 +1071,7 @@ static void G_ItemDropToFloor(GameEntity *ent) {
 
       // try Quake 2 box
       tr = gi.Trace(ent->s.origin, dest, ent->bounds, ent, CONTENTS_MASK_SOLID);
-      if (tr.start_solid) {
+      if (tr.startSolid) {
 
         G_Debug("%s trying higher, last attempt..\n", etos(ent));
 
@@ -1079,7 +1079,7 @@ static void G_ItemDropToFloor(GameEntity *ent) {
 
         // make an effort to come up out of the floor (broken maps)
         tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, CONTENTS_MASK_SOLID);
-        if (tr.start_solid) {
+        if (tr.startSolid) {
           G_Warn("%s start_solid\n", etos(ent));
           G_FreeEntity(ent);
           return;
@@ -1090,7 +1090,7 @@ static void G_ItemDropToFloor(GameEntity *ent) {
 
   G_ResetItem(ent);
 
-  if (drop_node) {
+  if (dropNode) {
     G_Ai_DropItemLikeNode(ent);
   }
 }
@@ -1109,8 +1109,8 @@ void G_PrecacheItem(const GameItem *it) {
     return;
   }
 
-  if (it->def.pickup_sound) {
-    gi.SoundIndex(it->def.pickup_sound);
+  if (it->def.pickupSound) {
+    gi.SoundIndex(it->def.pickupSound);
   }
   if (it->def.model) {
     gi.ModelIndex(it->def.model);
@@ -1183,15 +1183,15 @@ void G_SpawnItem(GameEntity *ent, const GameItem *item) {
     ent->s.model1 = gi.ModelIndex(ent->model);
   } else {
     G_SetupItem((GameItem *) ent->item);
-    ent->s.model1 = ent->item->model_index;
+    ent->s.model1 = ent->item->modelIndex;
   }
 
   ent->s.effects = item->def.effects | EF_MODULATE;
 
-  if (item->def.light_radius) {
+  if (item->def.lightRadius) {
     ent->s.effects |= EF_LIGHT | EF_LIGHT_PULSE;
-    ent->s.color = Color_Color32(Color3fv(item->def.light_color));
-    ent->s.termination.x = item->def.light_radius;
+    ent->s.color = Color_Color32(Color3fv(item->def.lightColor));
+    ent->s.termination.x = item->def.lightRadius;
   }
 
   // weapons override the health field to store their ammo count
@@ -1211,7 +1211,7 @@ void G_SpawnItem(GameEntity *ent, const GameItem *item) {
   }
 #endif
 
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS * 2;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS * 2;
   ent->Think = G_ItemDropToFloor;
 }
 
@@ -1367,8 +1367,8 @@ static void G_SetupItem(GameItem *it) {
 
   G_InitItem(it);
 
-  it->model_index = gi.ModelIndex(it->def.model);
-  it->pickup_sound_index = gi.SoundIndex(it->def.pickup_sound);
+  it->modelIndex = gi.ModelIndex(it->def.model);
+  it->pickupSoundIndex = gi.SoundIndex(it->def.pickupSound);
 }
 
 /**

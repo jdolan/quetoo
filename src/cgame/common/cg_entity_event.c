@@ -27,7 +27,7 @@ typedef struct {
   float start;
   float peak;
   float end;
-  float peak_life;
+  float peakLife;
 } ClientGameItemRespawnIntensity;
 
 typedef struct {
@@ -52,14 +52,14 @@ typedef struct {
  */
 static float Cg_ItemRespawnIntensity(const float life, const ClientGameItemRespawnIntensity *intensity) {
 
-  const float clamped_life = Clampf01(life);
+  const float clampedLife = Clampf01(life);
 
-  if (clamped_life <= intensity->peak_life) {
-    const float t = Smoothf(clamped_life, 0.f, intensity->peak_life);
+  if (clampedLife <= intensity->peakLife) {
+    const float t = Smoothf(clampedLife, 0.f, intensity->peakLife);
     return Mixf(intensity->start, intensity->peak, t);
   }
 
-  const float t = Smoothf(clamped_life, intensity->peak_life, 1.f);
+  const float t = Smoothf(clampedLife, intensity->peakLife, 1.f);
   return Mixf(intensity->peak, intensity->end, t);
 }
 
@@ -86,7 +86,7 @@ static void Cg_ItemRespawn_Think(ClientGameSprite *sprite, float life, float del
 
   const Vec3 color = Vec3_Scale(helix->color, intensity);
   sprite->color = color;
-  sprite->end_color = color;
+  sprite->endColor = color;
 }
 
 /**
@@ -109,7 +109,7 @@ static void Cg_ItemRespawnRing_Think(ClientGameSprite *sprite, float life, float
 
   const Vec3 color = Vec3_Scale(ring->color, intensity);
   sprite->color = color;
-  sprite->end_color = color;
+  sprite->endColor = color;
 }
 
 /**
@@ -140,12 +140,12 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
       helix->intensity.start = RandomRangef(0.0f, 0.15f);
       helix->intensity.peak = RandomRangef(1.5f, 2.5f);
       helix->intensity.end = RandomRangef(0.0f, 0.15f);
-      helix->intensity.peak_life = RandomRangef(0.2f, 0.4f);
+      helix->intensity.peakLife = RandomRangef(0.2f, 0.4f);
 
       const float angle = phase + strand * M_PI;
 
       Cg_AddSprite(&(ClientGameSprite) {
-        .atlas_image = cg_sprite_particle3,
+        .atlasImage = cg_sprite_particle3,
         .origin = org,
         .termination = org,
         .lifetime = RandomRangeu(1700, 2301),
@@ -165,10 +165,10 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
   ring->intensity.start = RandomRangef(0.0f, 0.15f);
   ring->intensity.peak = RandomRangef(1.4f, 2.0f);
   ring->intensity.end = RandomRangef(0.0f, 0.15f);
-  ring->intensity.peak_life = RandomRangef(0.2f, 0.4f);
+  ring->intensity.peakLife = RandomRangef(0.2f, 0.4f);
 
   Cg_AddSprite(&(ClientGameSprite) {
-    .atlas_image = cg_sprite_ring,
+    .atlasImage = cg_sprite_ring,
     .origin = Vec3_Fmaf(org, height, Vec3_Up()),
     .termination = org,
     .lifetime = 1200,
@@ -183,7 +183,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
     .origin = Vec3_Fmaf(org, 20.f, Vec3_Up()),
     .lifetime = 1000,
     .size = 150.f,
-    .atlas_image = cg_sprite_particle,
+    .atlasImage = cg_sprite_particle,
     .color = color.vec3,
   });
 
@@ -208,11 +208,11 @@ static void Cg_ItemPickupEffect(const Vec3 org, const Color color) {
       .origin = org,
       .lifetime = 400,
       .size = 10.f,
-      .atlas_image = cg_sprite_ring,
+      .atlasImage = cg_sprite_ring,
       .color = color.vec3,
       .dir = Vec3_Up()
     }))) {
-    s->size_velocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
+    s->sizeVelocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
   }
 
   // glow
@@ -220,7 +220,7 @@ static void Cg_ItemPickupEffect(const Vec3 org, const Color color) {
     .origin = org,
     .lifetime = 1000,
     .size = 150,
-    .atlas_image = cg_sprite_particle,
+    .atlasImage = cg_sprite_particle,
     .color = color.vec3,
   });
 
@@ -241,7 +241,7 @@ void Cg_TeleporterEffect(const Vec3 org) {
   for (int32_t i = 0; i < 64; i++) {
 
     Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_particle,
+      .atlasImage = cg_sprite_particle,
       .size = 8.f,
       .origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)), MakeVec3(0.f, 0.f, RandomRangef(8.f, 32.f))),
       .velocity = Vec3_Add(Vec3_RandomRange(-24.f, 24.f), MakeVec3(0.f, 0.f, RandomRangef(16.f, 48.f))),
@@ -320,12 +320,12 @@ static SoundSample *Cg_Footstep(ClientEntity *ent) {
   if (tr.material) {
     const CmFootsteps *footsteps = &cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES)->cm->footsteps;
 
-    if (footsteps->num_samples) {
+    if (footsteps->numSamples) {
       static uint32_t last_index = -1;
-      uint32_t index = RandomRangeu(0, footsteps->num_samples);
+      uint32_t index = RandomRangeu(0, footsteps->numSamples);
 
       if (last_index == index) {
-        index = (index ^ 1) % footsteps->num_samples;
+        index = (index ^ 1) % footsteps->numSamples;
       }
 
       last_index = index;
@@ -385,16 +385,16 @@ void Cg_EntityEvent(ClientEntity *ent) {
       break;
 
     case EV_ITEM_RESPAWN: {
-      const GameItemTag tag = (GameItemTag) s->event_data;
-      const Color effect_color = bg_item_defs[tag].effect_color;
+      const GameItemTag tag = (GameItemTag) s->eventData;
+      const Color effectColor = bg_item_defs[tag].effectColor;
       play.sample = cg_sample_respawn;
-      Cg_ItemRespawnEffect(s->origin, effect_color);
+      Cg_ItemRespawnEffect(s->origin, effectColor);
       break;
     }
     case EV_ITEM_PICKUP: {
-      const GameItemTag tag = (GameItemTag) s->event_data;
-      const Color effect_color = bg_item_defs[tag].effect_color;
-      Cg_ItemPickupEffect(s->origin, effect_color);
+      const GameItemTag tag = (GameItemTag) s->eventData;
+      const Color effectColor = bg_item_defs[tag].effectColor;
+      Cg_ItemPickupEffect(s->origin, effectColor);
     }
       break;
 

@@ -39,14 +39,14 @@ typedef struct {
 
   EntityKeyValue *values;
 
-  int32_t first_brush;
-  int32_t num_brushes;
+  int32_t firstBrush;
+  int32_t numBrushes;
 
-  int32_t first_brush_side;
-  int32_t num_brush_sides;
+  int32_t firstBrushSide;
+  int32_t numBrushSides;
 
-  int32_t first_patch;
-  int32_t num_patches;
+  int32_t firstPatch;
+  int32_t numPatches;
 
   Box3 bounds;
 

@@ -127,20 +127,20 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
 
-  const Cvar *sv_min_clients = cgi.GetCvar("sv_min_clients");
-  const int32_t bots = sv_min_clients ? Maxi(0, sv_min_clients->integer - 1) : 0;
+  const Cvar *svMinClients = cgi.GetCvar("sv_min_clients");
+  const int32_t bots = svMinClients ? Maxi(0, svMinClients->integer - 1) : 0;
   $(this->bots, setDefaultText, va("%d", bots));
 
   this->bots->delegate.didEndEditing = botsDidEndEditing;
 
   $(this->gameplay, addOption, "Default", "default");
 
-  size_t num_modes;
-  const Gameplay *modes = Cg_ListGameplayModes(&num_modes);
-  if (num_modes <= 1) {
+  size_t numModes;
+  const Gameplay *modes = Cg_ListGameplayModes(&numModes);
+  if (numModes <= 1) {
     $(gameplayInput, removeFromSuperview);
   } else {
-    for (size_t i = 0; i < num_modes; i++) {
+    for (size_t i = 0; i < numModes; i++) {
       $(this->gameplay, addOption, modes[i].label, (ident) modes[i].name);
     }
   }

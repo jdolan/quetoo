@@ -121,9 +121,9 @@ const char *Sys_UserDir(void) {
     }
 
     {
-      const size_t pref_len = q_strlen(pref);
-      if (pref_len > 0 && (pref[pref_len - 1] == '/' || pref[pref_len - 1] == '\\')) {
-        pref[pref_len - 1] = '\0';
+      const size_t prefLen = q_strlen(pref);
+      if (prefLen > 0 && (pref[prefLen - 1] == '/' || pref[prefLen - 1] == '\\')) {
+        pref[prefLen - 1] = '\0';
       }
     }
 
@@ -200,13 +200,13 @@ bool Sys_HasLibrary(const char *game, const char *name) {
 const char *Sys_LibraryDir(const char *game, const char *name) {
 
   char path[MAX_OS_PATH];
-  const char *so_name = Sys_LibraryName(name);
+  const char *soName = Sys_LibraryName(name);
 
-  if (Fs_FindLibrary(game, so_name, path, sizeof(path))) {
+  if (Fs_FindLibrary(game, soName, path, sizeof(path))) {
     return game;
   }
 
-  if (Fs_FindLibrary(DEFAULT_GAME, so_name, path, sizeof(path))) {
+  if (Fs_FindLibrary(DEFAULT_GAME, soName, path, sizeof(path))) {
     return DEFAULT_GAME;
   }
 
@@ -256,16 +256,16 @@ void *Sys_CloseLibrary(void *handle) {
  * `entry_point` is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
-void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
+void *Sys_LoadLibrary(void *handle, const char *entryPoint, void *params) {
   typedef void *EntryPointFunc(void *);
-  EntryPointFunc *EntryPoint;
+  EntryPointFunc *entryPointFunc;
 
   assert(handle);
-  assert(entry_point);
+  assert(entryPoint);
 
-  EntryPoint = (EntryPointFunc *) dlsym(handle, entry_point);
-  if (!EntryPoint) {
-    Com_Warn("Failed to resolve entry point: %s\n", entry_point);
+  entryPointFunc = (EntryPointFunc *) dlsym(handle, entryPoint);
+  if (!entryPointFunc) {
+    Com_Warn("Failed to resolve entry point: %s\n", entryPoint);
     return NULL;
   }
 
@@ -275,12 +275,12 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
   // Dl_info are a glibc extension gated behind _GNU_SOURCE, and only dyld
   // redirects a path by its leaf name, so this stays where it is needed.
   Dl_info info;
-  if (dladdr((void *) EntryPoint, &info) && info.dli_fname) {
-    Com_Print("  %s from %s\n", entry_point, info.dli_fname);
+  if (dladdr((void *) entryPointFunc, &info) && info.dli_fname) {
+    Com_Print("  %s from %s\n", entryPoint, info.dli_fname);
   }
 #endif
 
-  return EntryPoint(params);
+  return entryPointFunc(params);
 }
 
 /**
@@ -461,16 +461,16 @@ void Sys_InstallLocalBin(void) {
  * @param start How many frames to skip
  * @param count How many frames total to include
  */
-char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
+char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
   char buf[8192] = "";
 
 #if HAVE_EXECINFO
   void *symbols[MAX_BACKTRACE_SYMBOLS];
-  const int32_t symbol_count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
+  const int32_t symbolCount = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 
-  char **strings = backtrace_symbols(symbols, symbol_count);
+  char **strings = backtrace_symbols(symbols, symbolCount);
 
-  for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
+  for (uint32_t i = start, s = 0; s < maxCount && i < (uint32_t) symbolCount; i++, s++) {
     q_strlcat(buf, strings[i], sizeof(buf));
     q_strlcat(buf, "\n", sizeof(buf));
   }
@@ -637,9 +637,9 @@ void Sys_Raise(const char *msg) {
   char timestamp[32] = "";
   {
     time_t t = time(NULL);
-    struct tm *tm_local = localtime(&t);
-    if (tm_local) {
-      strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_local);
+    struct tm *tmLocal = localtime(&t);
+    if (tmLocal) {
+      strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tmLocal);
     }
   }
 
@@ -655,27 +655,27 @@ void Sys_Raise(const char *msg) {
   if (Com_WasInit(QUETOO_CLIENT)) {
 
     // Truncate the dialog message to avoid oversized message boxes
-    char *dialog_msg = NULL;
-    SDL_asprintf(&dialog_msg, "%s\n\nFull report saved to:\n%s", crash, sys_crash_log_path);
-    if (q_strlen(dialog_msg) > CRASH_REPORT_DIALOG_MAX) {
-      dialog_msg[CRASH_REPORT_DIALOG_MAX] = '\0';
+    char *dialogMsg = NULL;
+    SDL_asprintf(&dialogMsg, "%s\n\nFull report saved to:\n%s", crash, sys_crash_log_path);
+    if (q_strlen(dialogMsg) > CRASH_REPORT_DIALOG_MAX) {
+      dialogMsg[CRASH_REPORT_DIALOG_MAX] = '\0';
     }
 
     // Build a pre-filled GitHub new-issue URL
-    char *issue_body = NULL;
-    SDL_asprintf(&issue_body, "**Quetoo %s %s crash report**\n\n**Error:** %s\n\n**Backtrace:**\n``\n%s\n``\n",
+    char *issueBody = NULL;
+    SDL_asprintf(&issueBody, "**Quetoo %s %s crash report**\n\n**Error:** %s\n\n**Backtrace:**\n``\n%s\n``\n",
                  VERSION, BUILD, msg, crash);
 
-    char *encoded_body = Sys_UrlEncode(issue_body);
-    free(issue_body);
+    char *encodedBody = Sys_UrlEncode(issueBody);
+    free(issueBody);
 
-    char *issue_url = NULL;
-    SDL_asprintf(&issue_url, "%s?title=Crash%%20Report&body=%s",
-                 CRASH_REPORT_GITHUB_URL, encoded_body);
-    free(encoded_body);
+    char *issueUrl = NULL;
+    SDL_asprintf(&issueUrl, "%s?title=Crash%%20Report&body=%s",
+                 CRASH_REPORT_GITHUB_URL, encodedBody);
+    free(encodedBody);
 
-    if (q_strlen(issue_url) > CRASH_REPORT_URL_MAX) {
-      issue_url[CRASH_REPORT_URL_MAX] = '\0';
+    if (q_strlen(issueUrl) > CRASH_REPORT_URL_MAX) {
+      issueUrl[CRASH_REPORT_URL_MAX] = '\0';
     }
 
     const SDL_MessageBoxButtonData buttons[] = {
@@ -698,7 +698,7 @@ void Sys_Raise(const char *msg) {
     const SDL_MessageBoxData data = {
       .flags      = SDL_MESSAGEBOX_ERROR,
       .title      = "Fatal Error",
-      .message    = dialog_msg,
+      .message    = dialogMsg,
       .numbuttons = lengthof(buttons),
       .buttons    = buttons,
     };
@@ -711,14 +711,14 @@ void Sys_Raise(const char *msg) {
         SDL_SetClipboardText(crash);
         break;
       case 2:
-        SDL_OpenURL(issue_url);
+        SDL_OpenURL(issueUrl);
         break;
       default:
         break;
     }
 
-    free(dialog_msg);
-    free(issue_url);
+    free(dialogMsg);
+    free(issueUrl);
   }
 
   free(crash);
@@ -775,14 +775,14 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
 
   static const char header[] = "\n--- Fatal Signal ---\n";
 
-  const char *sig_name;
+  const char *sigName;
   switch (sig) {
-    case SIGSEGV: sig_name = "SIGSEGV\n"; break;
-    case SIGILL:  sig_name = "SIGILL\n";  break;
-    case SIGFPE:  sig_name = "SIGFPE\n";  break;
-    case SIGABRT: sig_name = "SIGABRT\n"; break;
-    case SIGBUS:  sig_name = "SIGBUS\n";  break;
-    default:      sig_name = "Unknown signal\n"; break;
+    case SIGSEGV: sigName = "SIGSEGV\n"; break;
+    case SIGILL:  sigName = "SIGILL\n";  break;
+    case SIGFPE:  sigName = "SIGFPE\n";  break;
+    case SIGABRT: sigName = "SIGABRT\n"; break;
+    case SIGBUS:  sigName = "SIGBUS\n";  break;
+    default:      sigName = "Unknown signal\n"; break;
   }
 
 #if HAVE_EXECINFO
@@ -796,7 +796,7 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
       continue;
     }
     (void) write(fds[i], header, sizeof(header) - 1);
-    (void) write(fds[i], sig_name, q_strlen(sig_name));
+    (void) write(fds[i], sigName, q_strlen(sigName));
 #if HAVE_EXECINFO
     backtrace_symbols_fd(frames, count, fds[i]);
 #endif

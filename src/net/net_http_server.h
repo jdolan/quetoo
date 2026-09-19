@@ -31,7 +31,7 @@
  * @param buf_size The size of the output buffer.
  * @return The number of characters written, or -1 on error.
  */
-int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t buf_size);
+int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t bufSize);
 
 /**
  * @brief Parse the request line of an HTTP request.
@@ -42,8 +42,8 @@ int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t buf
  * @param path_size The size of the path buffer.
  * @return True if the request line was successfully parsed.
  */
-bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_size,
-                              char *path, size_t path_size);
+bool Net_HttpParseRequestLine(const char *request, char *method, size_t methodSize,
+                              char *path, size_t pathSize);
 
 /**
  * @brief Format an HTTP/1.0 response header into a buffer.
@@ -56,8 +56,8 @@ bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_s
  * @return The number of characters written.
  */
 int32_t Net_HttpFormatResponse(int32_t status, const char *reason,
-                               const char *content_type, int64_t content_length,
-                               char *buf, size_t buf_size);
+                               const char *contentType, int64_t contentLength,
+                               char *buf, size_t bufSize);
 
 /**
  * @brief Send an HTTP error response on a socket.

@@ -156,7 +156,7 @@ static bool jmp_set = false;
  */
 static void Error(Err err, const char *msg) {
 
-  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+  if (quetoo.debugMask & DEBUG_BREAKPOINT) {
     SDL_TriggerBreakpoint();
   }
 
@@ -171,7 +171,7 @@ static void Error(Err err, const char *msg) {
       Sv_ShutdownServer(msg);
       Cl_Disconnect();
       Cl_Drop(msg);
-      quetoo.recursive_error = false;
+      quetoo.recursiveError = false;
       longjmp(env, err);
 
     case ERROR_FATAL:
@@ -209,7 +209,7 @@ static void Verbose(const char *msg) {
  */
 static void Warn(const char *msg) {
 
-  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+  if (quetoo.debugMask & DEBUG_BREAKPOINT) {
     SDL_TriggerBreakpoint();
   }
 
@@ -335,29 +335,29 @@ static void MemStats_f(void) {
 
   Com_Print("Memory stats:\n");
 
-  size_t sum = 0, reported_total = 0;
+  size_t sum = 0, reportedTotal = 0;
 
   for (size_t i = 0; i < stats->count; i++) {
 
-    MemStat *stat_i = VectorElement(stats, MemStat, i);
-    const char *tag_name;
+    MemStat *statI = VectorElement(stats, MemStat, i);
+    const char *tagName;
 
-    if (stat_i->tag == -1) {
-      Com_Print("total: %" PRIuPTR " bytes\n", stat_i->size);
-      reported_total = stat_i->size;
+    if (statI->tag == -1) {
+      Com_Print("total: %" PRIuPTR " bytes\n", statI->size);
+      reportedTotal = statI->size;
       continue;
-    } else if (stat_i->tag < MEM_TAG_TOTAL) {
-      tag_name = mem_tag_names[stat_i->tag];
+    } else if (statI->tag < MEM_TAG_TOTAL) {
+      tagName = mem_tag_names[statI->tag];
     } else {
-      tag_name = va("#%d", stat_i->tag);
+      tagName = va("#%d", statI->tag);
     }
 
-    Com_Print(" [%s] %" PRIuPTR " bytes - %" PRIuPTR " blocks\n", tag_name, stat_i->size, stat_i->count);
-    sum += stat_i->size;
+    Com_Print(" [%s] %" PRIuPTR " bytes - %" PRIuPTR " blocks\n", tagName, statI->size, statI->count);
+    sum += statI->size;
   }
 
-  if (sum != reported_total) {
-    Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
+  if (sum != reportedTotal) {
+    Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reportedTotal);
   }
 
   Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %zu blocks\n", console_state.size, (size_t) console_state.strings->count);
@@ -423,8 +423,8 @@ static void Init(void) {
 
   Con_Init();
 
-  Cmd *game_cmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
-  Cmd_SetAutocomplete(game_cmd, Game_Autocomplete_f);
+  Cmd *gameCmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  Cmd_SetAutocomplete(gameCmd, Game_Autocomplete_f);
   Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
   Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
@@ -528,11 +528,11 @@ int32_t main(int32_t argc, char *argv[]) {
 
   printf("Quetoo %s %s\n", VERSION, BUILD);
 
-  const int sdl_linked = SDL_GetVersion();
+  const int sdlLinked = SDL_GetVersion();
   printf("SDL %d.%d.%d (compiled %d.%d.%d)\n",
-         SDL_VERSIONNUM_MAJOR(sdl_linked),
-         SDL_VERSIONNUM_MINOR(sdl_linked),
-         SDL_VERSIONNUM_MICRO(sdl_linked),
+         SDL_VERSIONNUM_MAJOR(sdlLinked),
+         SDL_VERSIONNUM_MINOR(sdlLinked),
+         SDL_VERSIONNUM_MICRO(sdlLinked),
          SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
 
   memset(&quetoo, 0, sizeof(quetoo));

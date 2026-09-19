@@ -177,7 +177,7 @@ bool G_CanDamage(const GameEntity *targ, const GameEntity *inflictor) {
 
   // BSP sub-models need special checking because their origin is 0,0,0
   if (targ->solid == SOLID_BSP) {
-    dest = Box3_Center(targ->abs_bounds);
+    dest = Box3_Center(targ->absBounds);
     tr = gi.Trace(inflictor->s.origin, dest, Box3_Zero(), inflictor, CONTENTS_MASK_SOLID);
     if (tr.fraction == 1.0) {
       return true;
@@ -234,7 +234,7 @@ bool G_CanDamage(const GameEntity *targ, const GameEntity *inflictor) {
 Vec3 G_GetOrigin(const GameEntity *ent) {
 
   if (ent->solid == SOLID_BSP) {
-    return Box3_Center(ent->abs_bounds);
+    return Box3_Center(ent->absBounds);
   } else {
     return ent->s.origin;
   }
@@ -278,7 +278,7 @@ static int32_t G_CheckArmor(GameEntity *ent, const Vec3 pos, const Vec3 normal, 
   }
 
   const GameItem *armor = G_ClientArmor(ent->client);
-  const GameArmorInfo *armor_info = G_ArmorInfo(armor);
+  const GameArmorInfo *armorInfo = G_ArmorInfo(armor);
 
   if (!armor) {
     return 0;
@@ -288,9 +288,9 @@ static int32_t G_CheckArmor(GameEntity *ent, const Vec3 pos, const Vec3 normal, 
   int32_t saved;
 
   if (dflags & DMG_ENERGY) {
-    saved = Clampf(damage * armor_info->energy_protection, 0, quantity);
+    saved = Clampf(damage * armorInfo->energyProtection, 0, quantity);
   } else {
-    saved = Clampf(damage * armor_info->normal_protection, 0, quantity);
+    saved = Clampf(damage * armorInfo->normalProtection, 0, quantity);
   }
 
   ent->client->inventory[armor->def.tag] -= saved;
@@ -360,12 +360,12 @@ void G_Damage(const GameDamage *dmg) {
   assert(knockback >= 0);
   assert(knockback <= INT16_MAX);
 
-  if (!target->take_damage) {
+  if (!target->takeDamage) {
     return;
   }
 
   if (target->client) { // respawn protection
-    if (target->client->respawn_protection_time > g_level.time) {
+    if (target->client->respawnProtectionTime > g_level.time) {
       return;
     }
   }
@@ -377,7 +377,7 @@ void G_Damage(const GameDamage *dmg) {
   if (target->client && !(dflags & DMG_NO_GOD)) { // invulnerability
     if (target->client->inventory[POWERUP_INVULNERABILITY]) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.invulnerability_protect,
+        .index = g_media.sounds.invulnerabilityProtect,
         .entity = target,
       }, MULTICAST_PHS);
       damage = 0;
@@ -418,8 +418,8 @@ void G_Damage(const GameDamage *dmg) {
   GameClient *client = target->client;
 
   // calculate velocity change due to knockback
-  if (knockback && (target->move_type >= MOVE_TYPE_WALK)) {
-    Vec3 ndir, knockback_vel, knockback_avel;
+  if (knockback && (target->moveType >= MOVE_TYPE_WALK)) {
+    Vec3 ndir, knockbackVel, knockbackAvel;
 
     ndir = dir;
     ndir = Vec3_Normalize(ndir);
@@ -437,60 +437,60 @@ void G_Damage(const GameDamage *dmg) {
       knockback *= g_self_knockback->value;
     }
 
-    knockback_vel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
+    knockbackVel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
 
-    target->velocity = Vec3_Add(target->velocity, knockback_vel);
+    target->velocity = Vec3_Add(target->velocity, knockbackVel);
 
     // apply angular velocity (rotate)
-    if (client == NULL || (client->ps.pm_state.flags & PMF_GIBLET)) {
-      knockback_avel = MakeVec3(knockback, knockback, knockback);
-      target->avelocity = Vec3_Fmaf(target->avelocity, 100.f / mass, knockback_avel);
+    if (client == NULL || (client->ps.pmState.flags & PMF_GIBLET)) {
+      knockbackAvel = MakeVec3(knockback, knockback, knockback);
+      target->avelocity = Vec3_Fmaf(target->avelocity, 100.f / mass, knockbackAvel);
     }
 
     if (client && target->velocity.z >= PM_STEP_HEIGHT) { // make sure the client can leave the ground
-      client->ps.pm_state.flags |= PMF_TIME_PUSHED;
-      client->ps.pm_state.time = 120;
+      client->ps.pmState.flags |= PMF_TIME_PUSHED;
+      client->ps.pmState.time = 120;
     }
   }
 
-  int32_t damage_armor = 0, damage_health = 0;
+  int32_t damageArmor = 0, damageHealth = 0;
 
   // check for god mode protection
   if ((target->flags & FL_GOD_MODE) && !(dflags & DMG_NO_GOD)) {
-    damage_armor = damage;
-    damage_health = 0;
+    damageArmor = damage;
+    damageHealth = 0;
     G_SpawnDamage(TE_BLOOD, pos, normal, damage);
   } else { // or armor protection
-    damage_armor = G_CheckArmor(target, pos, normal, damage, dflags);
-    damage_health = damage - damage_armor;
+    damageArmor = G_CheckArmor(target, pos, normal, damage, dflags);
+    damageHealth = damage - damageArmor;
   }
 
-  const bool was_dead = target->dead;
+  const bool wasDead = target->dead;
 
   // do the damage
-  if (damage_health && (target->health || target->dead)) {
+  if (damageHealth && (target->health || target->dead)) {
     if (G_IsMeat(target)) {
-      G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
+      G_SpawnDamage(TE_BLOOD, pos, normal, damageHealth);
     } else if (dflags & DMG_BULLET) {
-      G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
+      G_SpawnDamage(TE_BULLET, pos, normal, damageHealth);
     } else {
-      G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
+      G_SpawnDamage(TE_SPARKS, pos, normal, damageHealth);
     }
 
 #if defined(G_TECH)
     if (attacker->client && G_HasTech(attacker->client, TECH_VAMPIRE)) {
       if (!target->dead && attacker != target && !G_OnSameTeam(attacker->client, target->client)) {
-        attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->max_health);
+        attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->maxHealth);
         G_PlayTechSound(attacker->client);
       }
     }
 #endif
 
-    target->health -= damage_health;
+    target->health -= damageHealth;
 
     // for hit sound
-    if (!was_dead && attacker->client && attacker->client != client) {
-      attacker->client->damage_inflicted += damage_health + damage_armor;
+    if (!wasDead && attacker->client && attacker->client != client) {
+      attacker->client->damageInflicted += damageHealth + damageArmor;
     }
 
     // kill target if he has *excessive blood loss*
@@ -498,24 +498,24 @@ void G_Damage(const GameDamage *dmg) {
       target->dead = true;
 
       if (attacker->client && target->client) {
-        const bool attacker_ai = attacker->client->ai != NULL;
-        const bool target_ai = target->client->ai != NULL;
+        const bool attackerAi = attacker->client->ai != NULL;
+        const bool targetAi = target->client->ai != NULL;
 
-        if (!attacker_ai || !target_ai) { // drop ai-on-ai frags
+        if (!attackerAi || !targetAi) { // drop ai-on-ai frags
           GameFrag frag = {
             .mod = (int32_t) mod,
             .time = (uint32_t) time(NULL),
-            .attacker_ai = attacker_ai,
-            .target_ai = target_ai,
+            .attackerAi = attackerAi,
+            .targetAi = targetAi,
           };
           q_strlcpy(frag.level, g_level.name, sizeof(frag.level));
-          q_strlcpy(frag.attacker, attacker->client->persistent.net_name, sizeof(frag.attacker));
-          q_strlcpy(frag.attacker_guid, attacker->client->persistent.guid, sizeof(frag.attacker_guid));
-          q_strlcpy(frag.target, target->client->persistent.net_name, sizeof(frag.target));
-          q_strlcpy(frag.target_guid, target->client->persistent.guid, sizeof(frag.target_guid));
+          q_strlcpy(frag.attacker, attacker->client->persistent.netName, sizeof(frag.attacker));
+          q_strlcpy(frag.attackerGuid, attacker->client->persistent.guid, sizeof(frag.attackerGuid));
+          q_strlcpy(frag.target, target->client->persistent.netName, sizeof(frag.target));
+          q_strlcpy(frag.targetGuid, target->client->persistent.guid, sizeof(frag.targetGuid));
           q_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
-          if (frag.attacker_guid[0] && frag.target_guid[0]) {
+          if (frag.attackerGuid[0] && frag.targetGuid[0]) {
             $(g_level.frags, add, &frag);
           }
         }
@@ -532,24 +532,24 @@ void G_Damage(const GameDamage *dmg) {
   }
 
   // if the target was already dead, invoke pain (if any) and we're done
-  if (was_dead) {
-    if (damage_health && target->Pain) {
-      target->Pain(target, attacker, damage_health, knockback);
+  if (wasDead) {
+    if (damageHealth && target->Pain) {
+      target->Pain(target, attacker, damageHealth, knockback);
     }
     return;
   }
 
   // invoke the pain callback
-  if ((damage_health || knockback) && target->Pain) {
-    target->Pain(target, attacker, damage_health, knockback);
+  if ((damageHealth || knockback) && target->Pain) {
+    target->Pain(target, attacker, damageHealth, knockback);
   }
 
   // add view kick on a player this frame
   if (client) {
-    client->damage_armor += damage_armor;
-    client->damage_health += damage_health;
+    client->damageArmor += damageArmor;
+    client->damageHealth += damageHealth;
 
-    float kick = (damage_armor + damage_health) / 50.0;
+    float kick = (damageArmor + damageHealth) / 50.0;
 
     if (kick > 1.0) {
       kick = 1.0;
@@ -570,7 +570,7 @@ void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ign
       continue;
     }
 
-    if (!ent->take_damage) {
+    if (!ent->takeDamage) {
       continue;
     }
 
@@ -597,7 +597,7 @@ void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ign
     }
 
     // find closest point to inflictor
-    const Vec3 point = Box3_ClampPoint(ent->abs_bounds, inflictor->s.origin);
+    const Vec3 point = Box3_ClampPoint(ent->absBounds, inflictor->s.origin);
 
     G_Damage(&(GameDamage) {
       .target = ent,

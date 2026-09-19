@@ -75,15 +75,15 @@ RenderAtlasImage *R_LoadAtlasImage(RenderAtlas *atlas, const char *name, RenderI
   for (size_t i = 0; i < nodes->count; i++) {
     AtlasNode *node = VectorValue(nodes, AtlasNode *, i);
 
-    RenderAtlasImage *atlas_image = node->data;
-    if (!q_strcmp(name, atlas_image->image.media.name)) {
-      R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlas_image);
-      return atlas_image;
+    RenderAtlasImage *atlasImage = node->data;
+    if (!q_strcmp(name, atlasImage->image.media.name)) {
+      R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlasImage);
+      return atlasImage;
     }
   }
 
-  RenderAtlasImage *atlas_image = (RenderAtlasImage *) R_AllocMedia(name, sizeof(*atlas_image), R_MEDIA_ATLAS_IMAGE);
-  assert(atlas_image);
+  RenderAtlasImage *atlasImage = (RenderAtlasImage *) R_AllocMedia(name, sizeof(*atlasImage), R_MEDIA_ATLAS_IMAGE);
+  assert(atlasImage);
 
   SDL_Surface *surf = Img_LoadSurface(name);
   if (!surf) {
@@ -95,19 +95,19 @@ RenderAtlasImage *R_LoadAtlasImage(RenderAtlas *atlas, const char *name, RenderI
   AtlasNode *node = Atlas_Insert(atlas->atlas, surf);
   assert(node);
 
-  node->data = atlas_image;
+  node->data = atlasImage;
   node->w = surf->w;
   node->h = surf->h;
 
-  atlas_image->image.type = type;
-  atlas_image->image.width = surf->w;
-  atlas_image->image.height = surf->h;
+  atlasImage->image.type = type;
+  atlasImage->image.width = surf->w;
+  atlasImage->image.height = surf->h;
 
-  R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlas_image);
+  R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlasImage);
 
   atlas->dirty = true;
 
-  return atlas_image;
+  return atlasImage;
 }
 
 /**
@@ -115,17 +115,17 @@ RenderAtlasImage *R_LoadAtlasImage(RenderAtlas *atlas, const char *name, RenderI
  */
 static void R_CompileAtlas_Node(const AtlasNode *node, const RenderAtlas *atlas) {
 
-  RenderAtlasImage *atlas_image = node->data;
+  RenderAtlasImage *atlasImage = node->data;
 
-  atlas_image->image.texture = atlas->image->texture;
+  atlasImage->image.texture = atlas->image->texture;
 
   const float w = atlas->image->width, h = atlas->image->height;
   const float texel = (1.f / atlas->image->width) * .5f;
 
-  atlas_image->texcoords.x = (node->x / w) + texel;
-  atlas_image->texcoords.y = (node->y / h) + texel;
-  atlas_image->texcoords.z = ((node->x + node->w) / w) - (texel * 2);
-  atlas_image->texcoords.w = ((node->y + node->h) / h) - (texel * 2);
+  atlasImage->texcoords.x = (node->x / w) + texel;
+  atlasImage->texcoords.y = (node->y / h) + texel;
+  atlasImage->texcoords.z = ((node->x + node->w) / w) - (texel * 2);
+  atlasImage->texcoords.w = ((node->y + node->h) / h) - (texel * 2);
 }
 
 /**
@@ -154,7 +154,7 @@ void R_CompileAtlas(RenderAtlas *atlas) {
 
   for (int32_t width = 1024; atlas->image->width == 0; width += 512) {
 
-    if (width > r_config.max_texture_size) {
+    if (width > r_config.maxTextureSize) {
       Com_Error(ERROR_DROP, "Atlas exceeds maximum texture size\n");
     }
 

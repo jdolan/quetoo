@@ -80,7 +80,7 @@ static Image *thumbnail(const char *map) {
  */
 static void addMap(IntermissionView *self, int32_t index) {
 
-  const ClientGameNextMapState *next_map = &cg_state.next_map;
+  const ClientGameNextMapState *nextMap = &cg_state.nextMap;
 
   StackView *tile = $(alloc(StackView), initWithFrame, NULL);
   assert(tile);
@@ -90,7 +90,7 @@ static void addMap(IntermissionView *self, int32_t index) {
   ImageView *mapshot = $(alloc(ImageView), initWithFrame, NULL);
   assert(mapshot);
 
-  Image *image = thumbnail(next_map->maps[index]);
+  Image *image = thumbnail(nextMap->maps[index]);
   $(mapshot, setImage, image);
   release(image);
 
@@ -101,15 +101,15 @@ static void addMap(IntermissionView *self, int32_t index) {
   // the key that picks it, which is the only way to pick one: the HUD layer is drawn
   // beneath the menus and never sees the mouse
   Text *name = $(alloc(Text), initWithText,
-                 next_map->voting ? va("%d  %s", index + 1, next_map->maps[index])
-                                  : next_map->maps[index], NULL);
+                 nextMap->voting ? va("%d  %s", index + 1, nextMap->maps[index])
+                                  : nextMap->maps[index], NULL);
   assert(name);
 
   $((View *) name, addClassName, "name");
   $((View *) tile, addSubview, (View *) name);
   release(name);
 
-  if (next_map->voting) {
+  if (nextMap->voting) {
     self->votes[index] = $(alloc(Text), initWithText, "", NULL);
     assert(self->votes[index]);
 
@@ -134,7 +134,7 @@ static void rebuild(IntermissionView *self) {
 
   memset(self->votes, 0, sizeof(self->votes));
 
-  for (int32_t i = 0; i < cg_state.next_map.num_maps; i++) {
+  for (int32_t i = 0; i < cg_state.nextMap.numMaps; i++) {
     addMap(self, i);
   }
 }
@@ -173,20 +173,20 @@ static void updateBindings(View *self, ident data) {
 
   IntermissionView *this = (IntermissionView *) self;
 
-  const ClientGameNextMapState *next_map = &cg_state.next_map;
+  const ClientGameNextMapState *nextMap = &cg_state.nextMap;
 
   if (data) {
 
     // rebuilt before the recursion, so that new tiles take this frame too
-    if (next_map->generation != this->generation) {
-      this->generation = next_map->generation;
+    if (nextMap->generation != this->generation) {
+      this->generation = nextMap->generation;
 
       $(this, rebuild);
     }
 
-    for (int32_t i = 0; i < next_map->num_maps; i++) {
+    for (int32_t i = 0; i < nextMap->numMaps; i++) {
       if (this->votes[i]) {
-        $(this->votes[i], setText, va("%d", next_map->votes[i]));
+        $(this->votes[i], setText, va("%d", nextMap->votes[i]));
       }
     }
 

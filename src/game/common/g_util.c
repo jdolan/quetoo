@@ -37,11 +37,11 @@ void G_AddSpawn(Vector **spawns, GameEntity *spot) {
 /**
  * @brief Appends every entity of the given class to `spawns`.
  */
-void G_CollectSpawns(const char *class_name, Vector **spawns) {
+void G_CollectSpawns(const char *className, Vector **spawns) {
 
   GameEntity *spot = NULL;
 
-  while ((spot = G_Find(spot, EOFS(classname), class_name)) != NULL) {
+  while ((spot = G_Find(spot, EOFS(classname), className)) != NULL) {
     G_AddSpawn(spawns, spot);
   }
 }
@@ -95,34 +95,34 @@ void G_InitPlayerSpawn(GameEntity *ent) {
 void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *up, Vec3 *org, float hand) {
 
   // resolve the projectile destination
-  const Vec3 start = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
+  const Vec3 start = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl->forward);
   const CmTrace tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   // resolve the projectile origin
-  Vec3 ent_forward, ent_right, ent_up;
-  Vec3_Vectors(cl->angles, &ent_forward, &ent_right, &ent_up);
+  Vec3 entForward, entRight, entUp;
+  Vec3_Vectors(cl->angles, &entForward, &entRight, &entUp);
 
   // use the client-supplied muzzle offset if valid
   const Vec3 muzzle = cl->cmd.muzzle;
-  const float muzzle_len = Vec3_Length(muzzle);
-  if ((cl->cmd.buttons & BUTTON_ATTACK) && muzzle_len > 0.f && muzzle_len <= 64.f) {
+  const float muzzleLen = Vec3_Length(muzzle);
+  if ((cl->cmd.buttons & BUTTON_ATTACK) && muzzleLen > 0.f && muzzleLen <= 64.f) {
     *org = Vec3_Add(cl->entity->s.origin, muzzle);
   } else {
-    *org = Vec3_Fmaf(start, 24.f, ent_forward);
+    *org = Vec3_Fmaf(start, 24.f, entForward);
 
     switch (cl->persistent.hand) {
       case HAND_RIGHT:
-        *org = Vec3_Fmaf(*org, +6.f * hand, ent_right);
+        *org = Vec3_Fmaf(*org, +6.f * hand, entRight);
         break;
       case HAND_LEFT:
-        *org = Vec3_Fmaf(*org, -6.f * hand, ent_right);
+        *org = Vec3_Fmaf(*org, -6.f * hand, entRight);
         break;
       default:
         break;
     }
 
-    *org = Vec3_Fmaf(*org, -12.f, ent_up);
+    *org = Vec3_Fmaf(*org, -12.f, entUp);
   }
 
   const CmTrace check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
@@ -156,7 +156,7 @@ GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match) {
   for (int32_t i = from ? from->s.number + 1 : 0; i < sv_max_entities->integer; i++) {
 
     GameEntity *ent = ge.entities[i];
-    if (!ent->in_use) {
+    if (!ent->inUse) {
       continue;
     }
     char *s = *(char **) ((byte *) ent + field);
@@ -176,11 +176,11 @@ GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match) {
 /**
  * @brief Searches all active entities for the next targeted one.
  */
-GameEntity *G_PickTarget(const char *target_name) {
+GameEntity *G_PickTarget(const char *targetName) {
   GameEntity *choice[MAX_TARGETS];
-  int32_t num_choices = 0;
+  int32_t numChoices = 0;
 
-  if (!target_name) {
+  if (!targetName) {
     G_Debug("NULL target_name\n");
     return NULL;
   }
@@ -188,25 +188,25 @@ GameEntity *G_PickTarget(const char *target_name) {
   GameEntity *ent = NULL;
   while (true) {
 
-    ent = G_Find(ent, EOFS(target_name), target_name);
+    ent = G_Find(ent, EOFS(targetName), targetName);
 
     if (!ent) {
       break;
     }
 
-    choice[num_choices++] = ent;
+    choice[numChoices++] = ent;
 
-    if (num_choices == MAX_TARGETS) {
+    if (numChoices == MAX_TARGETS) {
       break;
     }
   }
 
-  if (!num_choices) {
-    G_Debug("Target %s not found\n", target_name);
+  if (!numChoices) {
+    G_Debug("Target %s not found\n", targetName);
     return NULL;
   }
 
-  return choice[RandomRangeu(0, num_choices)];
+  return choice[RandomRangeu(0, numChoices)];
 }
 
 /**
@@ -228,7 +228,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
   if (ent->delay) {
     // create a temp entity to fire at a later time
     GameEntity *temp = G_AllocEntity(__func__);
-    temp->next_think = g_level.time + ent->delay * 1000;
+    temp->nextThink = g_level.time + ent->delay * 1000;
     temp->Think = G_UseTargets_Delay;
     temp->activator = activator;
     if (!activator) {
@@ -253,12 +253,12 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
   }
 
   // kill kill_targets
-  const char *kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
-  if (kill_target) {
+  const char *killTarget = gi.EntityValue(ent->def, "killtarget")->nullableString;
+  if (killTarget) {
     GameEntity *target = NULL;
-    while ((target = G_Find(target, EOFS(target_name), kill_target))) {
+    while ((target = G_Find(target, EOFS(targetName), killTarget))) {
       G_FreeEntity(target);
-      if (!ent->in_use) {
+      if (!ent->inUse) {
         G_Debug("%s was removed while using kill_targets\n", etos(ent));
         return;
       }
@@ -268,7 +268,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
   // fire targets
   if (ent->target) {
     GameEntity *target = NULL;
-    while ((target = G_Find(target, EOFS(target_name), ent->target))) {
+    while ((target = G_Find(target, EOFS(targetName), ent->target))) {
 
       if (target == ent) {
         G_Debug("%s tried to use itself\n", etos(ent));
@@ -277,7 +277,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
 
       if (target->Use) {
         target->Use(target, ent, activator);
-        if (!ent->in_use) { // see if our target freed us
+        if (!ent->inUse) { // see if our target freed us
           G_Debug("%s was removed while using targets\n", etos(ent));
           break;
         }
@@ -291,17 +291,17 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
  */
 void G_SetMoveDir(GameEntity *ent) {
 
-  const Vec3 angles_up = MakeVec3(0.0, -1.0, 0.0);
-  const Vec3 dir_up = MakeVec3(0.0, 0.0, 1.0 );
-  const Vec3 angles_down = MakeVec3(0.0, -2.0, 0.0);
-  const Vec3 dir_down = MakeVec3(0.0, 0.0, -1.0);
+  const Vec3 anglesUp = MakeVec3(0.0, -1.0, 0.0);
+  const Vec3 dirUp = MakeVec3(0.0, 0.0, 1.0 );
+  const Vec3 anglesDown = MakeVec3(0.0, -2.0, 0.0);
+  const Vec3 dirDown = MakeVec3(0.0, 0.0, -1.0);
 
-  if (Vec3_Equal(ent->s.angles, angles_up)) {
-    ent->move_dir = dir_up;
-  } else if (Vec3_Equal(ent->s.angles, angles_down)) {
-    ent->move_dir = dir_down;
+  if (Vec3_Equal(ent->s.angles, anglesUp)) {
+    ent->moveDir = dirUp;
+  } else if (Vec3_Equal(ent->s.angles, anglesDown)) {
+    ent->moveDir = dirDown;
   } else {
-    Vec3_Vectors(ent->s.angles, &ent->move_dir, NULL, NULL);
+    Vec3_Vectors(ent->s.angles, &ent->moveDir, NULL, NULL);
   }
 
   ent->s.angles = Vec3_Zero();
@@ -319,16 +319,16 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
 
   GameEntity *e = ge.entities[number];
 
-  if (e->in_use) {
+  if (e->inUse) {
     G_Error("Entity %d is already in use: %s\n", number, etos(e));
   }
 
   e->classname = classname;
-  e->in_use = true;
-  e->water_level = WATER_UNKNOWN;
+  e->inUse = true;
+  e->waterLevel = WATER_UNKNOWN;
   e->timestamp = g_level.time;
   e->s.number = number;
-  e->s.spawn_id = g_spawn_id++;
+  e->s.spawnId = g_spawn_id++;
 
   return e;
 }
@@ -340,7 +340,7 @@ GameEntity *G_AllocEntity(const char *classname) {
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    if (!ge.entities[i]->in_use) {
+    if (!ge.entities[i]->inUse) {
       return G_AllocEntityAt(i, classname);
     }
   }
@@ -372,16 +372,16 @@ void G_InvalidateEntityReferences(const GameEntity *ent) {
     if (other->activator == ent) {
       other->activator = NULL;
     }
-    if (other->target_ent == ent) {
-      other->target_ent = NULL;
+    if (other->targetEnt == ent) {
+      other->targetEnt = NULL;
     }
     if (other->ground.ent == ent) {
       other->ground.ent = NULL;
     }
 
     if (other->client) {
-      if (other->client->held_grenade == ent) {
-        other->client->held_grenade = NULL;
+      if (other->client->heldGrenade == ent) {
+        other->client->heldGrenade = NULL;
       }
       if (other->client->ai) {
         G_Ai_InvalidateReferences(other->client->ai, ent);
@@ -442,7 +442,7 @@ void G_KillBox(GameEntity *ent) {
         .mod = MOD_TELEFRAG
       });
 
-      if (ents[i]->in_use && !ents[i]->dead) {
+      if (ents[i]->inUse && !ents[i]->dead) {
         break;
       }
     } else {
@@ -581,7 +581,7 @@ GameTeam *G_TeamByName(const char *c) {
     return NULL;
   }
 
-  for (int32_t i = 0; i < g_level.num_teams; i++) {
+  for (int32_t i = 0; i < g_level.numTeams; i++) {
 
     if (!q_strcolorcmp(g_team_list[i].name, c)) {
       return &g_team_list[i];
@@ -616,7 +616,7 @@ GameTeam *G_SmallestTeam(void) {
   size_t size = SIZE_MAX;
 
   GameTeam *team = g_team_list;
-  for (int32_t i = 0; i < g_level.num_teams; i++, team++) {
+  for (int32_t i = 0; i < g_level.numTeams; i++, team++) {
     const size_t s = G_TeamSize(team);
     if (s < size) {
       smallest = team;
@@ -637,7 +637,7 @@ GameClient *G_ClientByName(char *name) {
   int32_t match = INT32_MAX;
 
   G_ForEachClient(cl, {
-    const int32_t m = q_strcmp(name, cl->persistent.net_name);
+    const int32_t m = q_strcmp(name, cl->persistent.netName);
     if (m < match) {
       client = cl;
       match = m;
@@ -652,7 +652,7 @@ GameClient *G_ClientByName(char *name) {
  */
 bool G_IsMeat(const GameEntity *ent) {
 
-  if (!ent || !ent->in_use) {
+  if (!ent || !ent->inUse) {
     return false;
   }
 
@@ -672,11 +672,11 @@ bool G_IsMeat(const GameEntity *ent) {
  */
 bool G_IsStationary(const GameEntity *ent) {
 
-  if (!ent || !ent->in_use) {
+  if (!ent || !ent->inUse) {
     return false;
   }
 
-  if (ent->move_type) {
+  if (ent->moveType) {
     return false;
   }
 
@@ -742,14 +742,14 @@ void G_SetAnimation(GameClient *cl, EntityAnimation anim, bool restart) {
   // while most go to one or the other, and are throttled
 
   if (anim < ANIM_LEGS_WALKCR) {
-    if (restart || cl->animation1_time <= g_level.time) {
+    if (restart || cl->animation1Time <= g_level.time) {
       G_SetAnimation_(&cl->entity->s.animation1, anim, restart);
-      cl->animation1_time = g_level.time + 50;
+      cl->animation1Time = g_level.time + 50;
     }
   } else {
-    if (restart || cl->animation2_time <= g_level.time) {
+    if (restart || cl->animation2Time <= g_level.time) {
       G_SetAnimation_(&cl->entity->s.animation2, anim, restart);
-      cl->animation2_time = g_level.time + 50;
+      cl->animation2Time = g_level.time + 50;
     }
   }
 }

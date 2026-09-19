@@ -27,17 +27,17 @@
 void G_ClientChaseThink(GameClient *cl) {
 
   GameEntity *ent = cl->entity;
-  GameClient *target = cl->chase_target;
+  GameClient *target = cl->chaseTarget;
 
   if (target) {
-    Vec3 new_delta;
+    Vec3 newDelta;
 
     // calculate delta angles if switching targets
-    if (target != cl->old_chase_target) {
-      new_delta = Vec3_Subtract(cl->angles, target->angles);
-      cl->old_chase_target = target;
+    if (target != cl->oldChaseTarget) {
+      newDelta = Vec3_Subtract(cl->angles, target->angles);
+      cl->oldChaseTarget = target;
     } else {
-      new_delta = Vec3_Zero();
+      newDelta = Vec3_Zero();
     }
 
     // copy origin
@@ -50,25 +50,25 @@ void G_ClientChaseThink(GameClient *cl) {
     cl->angles = target->angles;
 
     // and player state
-    memcpy(&cl->ps.pm_state, &target->ps.pm_state, sizeof(PlayerMoveState));
+    memcpy(&cl->ps.pmState, &target->ps.pmState, sizeof(PlayerMoveState));
 
     // add in delta angles in case we've switched targets
-    if (!Vec3_Equal(new_delta, Vec3_Zero())) {
-      cl->ps.pm_state.delta_angles = Vec3_Add(cl->ps.pm_state.delta_angles, new_delta);
+    if (!Vec3_Equal(newDelta, Vec3_Zero())) {
+      cl->ps.pmState.deltaAngles = Vec3_Add(cl->ps.pmState.deltaAngles, newDelta);
     }
 
     // disable the spectator's input
-    cl->ps.pm_state.type = PM_FREEZE;
+    cl->ps.pmState.type = PM_FREEZE;
   } else {
-    cl->ps.pm_state.delta_angles.z = -cl->ps.pm_state.delta_angles.z;
+    cl->ps.pmState.deltaAngles.z = -cl->ps.pmState.deltaAngles.z;
 
     // drop any death camera inherited from the client we were chasing, which
     // pmove won't reclaim for a spectator
-    cl->ps.pm_state.flags &= ~PMF_DEATH_CAM;
-    cl->ps.pm_state.view_offset = Vec3_Zero();
+    cl->ps.pmState.flags &= ~PMF_DEATH_CAM;
+    cl->ps.pmState.viewOffset = Vec3_Zero();
 
     // enable the spectator's input
-    cl->ps.pm_state.type = PM_SPECTATOR;
+    cl->ps.pmState.type = PM_SPECTATOR;
   }
 
   gi.LinkEntity(ent);
@@ -79,14 +79,14 @@ void G_ClientChaseThink(GameClient *cl) {
  */
 void G_ClientChaseNext(GameClient *cl) {
 
-  if (!cl->chase_target) {
+  if (!cl->chaseTarget) {
     G_ClientChaseStart(cl); // nobody to advance from, so acquire one
     return;
   }
 
   GameClient *next = NULL;
 
-  int32_t i = cl->chase_target->ps.client;
+  int32_t i = cl->chaseTarget->ps.client;
   do {
     i++;
 
@@ -100,9 +100,9 @@ void G_ClientChaseNext(GameClient *cl) {
       break;
     }
 
-  } while (next != cl->chase_target);
+  } while (next != cl->chaseTarget);
 
-  cl->chase_target = next;
+  cl->chaseTarget = next;
 }
 
 /**
@@ -110,14 +110,14 @@ void G_ClientChaseNext(GameClient *cl) {
  */
 void G_ClientChasePrevious(GameClient *cl) {
 
-  if (!cl->chase_target) {
+  if (!cl->chaseTarget) {
     G_ClientChaseStart(cl); // nobody to step back from, so acquire one
     return;
   }
 
   GameClient *prev = NULL;
 
-  int32_t i = cl->chase_target->ps.client;
+  int32_t i = cl->chaseTarget->ps.client;
   do {
     i--;
 
@@ -131,9 +131,9 @@ void G_ClientChasePrevious(GameClient *cl) {
       break;
     }
 
-  } while (prev != cl->chase_target);
+  } while (prev != cl->chaseTarget);
 
-  cl->chase_target = prev;
+  cl->chaseTarget = prev;
 }
 
 /**
@@ -143,7 +143,7 @@ void G_ClientChaseTarget(GameClient *cl) {
 
   G_ForEachClient(other, {
     if (other != cl && G_IsMeat(other->entity)) {
-      cl->chase_target = other;
+      cl->chaseTarget = other;
       break;
     }
   });
@@ -157,8 +157,8 @@ void G_ClientChaseTarget(GameClient *cl) {
  */
 void G_ClientChaseStop(GameClient *cl) {
 
-  if (cl->chase_target) {
-    cl->chase_target = cl->old_chase_target = NULL;
+  if (cl->chaseTarget) {
+    cl->chaseTarget = cl->oldChaseTarget = NULL;
     G_ClientChaseThink(cl);
   }
 }
@@ -171,7 +171,7 @@ void G_ClientChaseStop(GameClient *cl) {
  */
 void G_ClientChaseStart(GameClient *cl) {
 
-  if (!cl->chase_target && cl->persistent.spectator) {
+  if (!cl->chaseTarget && cl->persistent.spectator) {
     G_ClientChaseTarget(cl);
     G_ClientChaseThink(cl);
   }

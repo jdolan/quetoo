@@ -39,7 +39,7 @@ typedef struct {
   /**
    * @brief The frame number this entry was recorded at.
    */
-  int32_t frame_num;
+  int32_t frameNum;
 
   /**
    * @brief The byte offset of this frame's message within the demo file.
@@ -103,12 +103,12 @@ typedef struct {
   /**
    * @brief The number of entries in the keyframe table. Written when recording stops.
    */
-  int32_t num_keyframes;
+  int32_t numKeyframes;
 
   /**
    * @brief The byte offset of the keyframe table. Written when recording stops.
    */
-  int32_t ofs_keyframes;
+  int32_t ofsKeyframes;
 } DemoHeader;
 
 /**
@@ -170,16 +170,16 @@ typedef struct {
 
   int32_t flags;
 
-  int32_t num_frames;
-  int32_t num_shaders;
-  int32_t num_vertexes;
-  int32_t num_triangles;
+  int32_t numFrames;
+  int32_t numShaders;
+  int32_t numVertexes;
+  int32_t numTriangles;
 
-  int32_t ofs_triangles;
-  int32_t ofs_shaders;
-  int32_t ofs_texcoords;
-  int32_t ofs_vertexes;
-  int32_t ofs_end;
+  int32_t ofsTriangles;
+  int32_t ofsShaders;
+  int32_t ofsTexcoords;
+  int32_t ofsVertexes;
+  int32_t ofsEnd;
 } Md3Surface;
 
 typedef struct {
@@ -190,13 +190,13 @@ typedef struct {
 
   int32_t flags;
 
-  int32_t num_frames;
-  int32_t num_tags;
-  int32_t num_surfaces;
-  int32_t num_shaders;
+  int32_t numFrames;
+  int32_t numTags;
+  int32_t numSurfaces;
+  int32_t numShaders;
 
-  int32_t ofs_frames;
-  int32_t ofs_tags;
-  int32_t ofs_surfaces;
-  int32_t ofs_end;
+  int32_t ofsFrames;
+  int32_t ofsTags;
+  int32_t ofsSurfaces;
+  int32_t ofsEnd;
 } Md3;

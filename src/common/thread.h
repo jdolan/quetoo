@@ -59,7 +59,7 @@ WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, Wo
 #define Thread_Create(function, data, options) Thread_Create_(#function, function, data, options)
 void Thread_Wait(WorkerThread *t);
 int32_t Thread_Count(void);
-void Thread_Init(ssize_t num_threads);
+void Thread_Init(ssize_t numThreads);
 void Thread_Shutdown(void);
 
 extern SDL_ThreadID thread_main;

@@ -126,7 +126,7 @@ void Cg_ParseViewKick(void) {
   cg_kick.prev = cg_kick.kick;
   cg_kick.next = Vec3_Add(cg_kick.prev, kick);
 
-  cg_kick.timestamp = cgi.client->unclamped_time;
+  cg_kick.timestamp = cgi.client->unclampedTime;
   cg_kick.interval = 64;
 }
 
@@ -135,33 +135,33 @@ void Cg_ParseViewKick(void) {
  */
 static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
 
-  if (cg_kick.timestamp > cgi.client->unclamped_time) {
+  if (cg_kick.timestamp > cgi.client->unclampedTime) {
     memset(&cg_kick, 0, sizeof(cg_kick));
   }
 
   const PlayerState *ps1 = &cgi.client->frame.ps;
 
-  if (cg_state.snap_angles) {
+  if (cg_state.snapAngles) {
     // Snap is handled authoritatively in Cg_UpdateAngles; just clear kick state here.
     memset(&cg_kick, 0, sizeof(cg_kick));
-  } else if (cgi.client->previous_frame) {
-      const PlayerState *ps0 = &cgi.client->previous_frame->ps;
-      Vec3 delta0 = ps0->pm_state.delta_angles;
-      Vec3 delta1 = ps1->pm_state.delta_angles;
+  } else if (cgi.client->previousFrame) {
+      const PlayerState *ps0 = &cgi.client->previousFrame->ps;
+      Vec3 delta0 = ps0->pmState.deltaAngles;
+      Vec3 delta1 = ps1->pmState.deltaAngles;
 
       if (!Vec3_Equal(delta0, delta1)) {
         static int32_t frame;
 
-        if (cgi.client->frame.frame_num != frame) {
+        if (cgi.client->frame.frameNum != frame) {
           Cg_Debug("Delta kick %s\n", vtos(cg_kick.kick));
           memset(&cg_kick, 0, sizeof(cg_kick));
 
-          frame = cgi.client->frame.frame_num;
+          frame = cgi.client->frame.frameNum;
         }
       }
   }
 
-  const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
+  const uint32_t delta = cgi.client->unclampedTime - cg_kick.timestamp;
   if (delta < cg_kick.interval) {
     const float frac = Minf(delta, cmd->msec) / (float) cg_kick.interval;
 
@@ -174,7 +174,7 @@ static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
 
   } else if (!Vec3_Equal(cg_kick.kick, Vec3_Zero())) {
 
-    if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+    if (cgi.client->frame.ps.pmState.type == PM_DEAD) {
       return;
     }
 
@@ -187,7 +187,7 @@ static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
       cg_kick.prev = cg_kick.kick;
       cg_kick.next = Vec3_Zero();
 
-      cg_kick.timestamp = cgi.client->unclamped_time;
+      cg_kick.timestamp = cgi.client->unclampedTime;
       cg_kick.interval = 240;
     }
   }
@@ -199,7 +199,7 @@ static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
 static void Cg_WeaponKick(const PlayerMoveCmd *cmd) {
   static float kick;
 
-  if (cgi.client->third_person) {
+  if (cgi.client->thirdPerson) {
     return;
   }
 
@@ -274,7 +274,7 @@ static void Cg_WeaponKick(const PlayerMoveCmd *cmd) {
  */
 void Cg_Look(PlayerMoveCmd *cmd) {
 
-  if (cgi.client->demo_server && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cg_state.spectate.detached) {
     return; // a camera that has left the recorded player behind does not take their recoil
   }
 
@@ -288,7 +288,7 @@ void Cg_Look(PlayerMoveCmd *cmd) {
  */
 static void Cg_Move_Common(PlayerMoveCmd *cmd) {
 
-  if (cgi.client->demo_server) {
+  if (cgi.client->demoServer) {
 
     // attack leaves the recorded player behind, and picks them back up. Live, the game module
     // already does exactly this with the attack button, so only playback needs it here
@@ -305,8 +305,8 @@ static void Cg_Move_Common(PlayerMoveCmd *cmd) {
       // Encode the pixel-accurate muzzle position as a player-relative offset
       // so the server can use it instead of its hardcoded approximation.
       const ClientGameClientInfo *ci = &cg_state.clients[cgi.client->frame.ps.client];
-      if (!Vec3_Equal(ci->weapon_muzzle, Vec3_Zero())) {
-        cmd->muzzle = Vec3_Subtract(ci->weapon_muzzle, cgi.client->entity->current.origin);
+      if (!Vec3_Equal(ci->weaponMuzzle, Vec3_Zero())) {
+        cmd->muzzle = Vec3_Subtract(ci->weaponMuzzle, cgi.client->entity->current.origin);
       }
     }
   }
@@ -345,10 +345,10 @@ static void Cg_Move_Common(PlayerMoveCmd *cmd) {
     // is never applied, and demo playback sends no commands at all - so they pan the camera in
     // and out instead. cmd->forward arrives as cl_forward_speed * msec * key fraction, so it is
     // divided back down to the milliseconds held before being scaled to a per-second rate
-    const float forward_speed = cgi.GetCvarValue("cl_forward_speed");
+    const float forwardSpeed = cgi.GetCvarValue("cl_forward_speed");
 
-    if (forward_speed > 0.f) {
-      const float millis = cmd->forward / forward_speed;
+    if (forwardSpeed > 0.f) {
+      const float millis = cmd->forward / forwardSpeed;
 
       cg_state.follow.distance = Clampf(
         cg_state.follow.distance - millis * (CG_FOLLOW_ZOOM_SPEED / 1000.f),
@@ -357,7 +357,7 @@ static void Cg_Move_Common(PlayerMoveCmd *cmd) {
     }
   }
 
-  if (cgi.client->demo_server && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cg_state.spectate.detached) {
     Cg_UpdateSpectate(cmd);
   }
 }

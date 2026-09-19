@@ -73,7 +73,7 @@ void Cg_AddFlares(void) {
 
     const RenderBspInlineModel *in = flare->face->node->model;
 
-    if (in != cgi.WorldModel()->bsp->inline_models && !editor->value) {
+    if (in != cgi.WorldModel()->bsp->inlineModels && !editor->value) {
 
       const ClientEntity *e = cgi.client->entities;
       for (int32_t j = 0; j < MAX_ENTITIES; j++, e++) {
@@ -89,7 +89,7 @@ void Cg_AddFlares(void) {
         const RenderModel *mod = cgi.client->models[e->current.model1];
 
         if (mod && mod->type == MODEL_BSP_INLINE) {
-          if (in == mod->bsp_inline) {
+          if (in == mod->bspInline) {
             matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
             flare->entity = e;
             break;
@@ -137,7 +137,7 @@ ClientGameFlare *Cg_LoadFlare(const RenderBspFace *face, const RenderStage *stag
   flare->stage = stage;
 
   flare->bounds = Box3_Null();
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
+  for (int32_t i = 0; i < face->numVertexes; i++) {
     flare->bounds = Box3_Append(flare->bounds, face->vertexes[i].position);
   }
 
@@ -163,8 +163,8 @@ static _Bool Cg_FacesShareVertex(const RenderBspFace *a, const RenderBspFace *b)
 
   const float epsilon = 1.f;
 
-  for (int32_t i = 0; i < a->num_vertexes; i++) {
-    for (int32_t j = 0; j < b->num_vertexes; j++) {
+  for (int32_t i = 0; i < a->numVertexes; i++) {
+    for (int32_t j = 0; j < b->numVertexes; j++) {
       if (Vec3_Distance(a->vertexes[i].position, b->vertexes[j].position) < epsilon) {
         return true;
       }
@@ -185,7 +185,7 @@ static void Cg_MergeFlares(void) {
     for (size_t j = i + 1; j < cg_flares->count; j++) {
       ClientGameFlare *b = VectorValue(cg_flares, ClientGameFlare *, j);
 
-      if (a->face->brush_side == b->face->brush_side &&
+      if (a->face->brushSide == b->face->brushSide &&
           Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
@@ -217,14 +217,14 @@ void Cg_LoadFlares(void) {
   const RenderBspModel *bsp = cgi.WorldModel()->bsp;
 
   const RenderBspFace *face = bsp->faces;
-  for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
+  for (int32_t i = 0; i < bsp->numFaces; i++, face++) {
 
-    if (!face->brush_side) {
+    if (!face->brushSide) {
       continue;
     }
 
-    const RenderMaterial *material = face->brush_side->material;
-    if (material->cm->stage_flags & STAGE_FLARE) {
+    const RenderMaterial *material = face->brushSide->material;
+    if (material->cm->stageFlags & STAGE_FLARE) {
 
       const RenderStage *stage = material->stages;
       while (stage) {

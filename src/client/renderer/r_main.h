@@ -92,22 +92,22 @@ typedef struct {
   /**
    * @brief Maximum texture unit count.
    */
-  int32_t max_texunits;
+  int32_t maxTexunits;
 
   /**
    * @brief Maximum 2D texture size.
    */
-  int32_t max_texture_size;
+  int32_t maxTextureSize;
 
   /**
    * @brief Maximum 3D texture size.
    */
-  int32_t max_3d_texture_size;
+  int32_t max3dTextureSize;
 
   /**
    * @brief Maximum uniform block size.
    */
-  int32_t max_uniform_block_size;
+  int32_t maxUniformBlockSize;
 } RenderConfig;
 
 extern RenderConfig r_config;
@@ -130,7 +130,7 @@ typedef struct {
   /**
    * @brief View origin in voxel-space coordinates.
    */
-  Vec4 view_coordinate;
+  Vec4 viewCoordinate;
 
   /**
    * @brief Voxel grid dimensions.
@@ -166,12 +166,12 @@ typedef struct {
     /**
      * @brief The projection matrix for environment cubemaps.
      */
-    Mat4 sky_projection;
+    Mat4 skyProjection;
 
     /**
      * @brief The projection matrix for point light shadow passes.
      */
-    Mat4 light_projection;
+    Mat4 lightProjection;
 
     /**
      * @brief The voxel uniforms.
@@ -181,12 +181,12 @@ typedef struct {
     /**
      * @brief The depth range (near, far) in world units.
      */
-    Vec2 depth_range;
+    Vec2 depthRange;
 
     /**
      * @brief The view type, e.g. `VIEW_MAIN`.
      */
-    int32_t view_type;
+    int32_t viewType;
 
     /**
      * @brief The renderer time in milliseconds.
@@ -216,12 +216,12 @@ typedef struct {
     /**
      * @brief Ambient occlusion scalar.
      */
-    float ambient_occlusion;
+    float ambientOcclusion;
 
     /**
      * @brief Vertex-lighting distance threshold.
      */
-    float lighting_distance;
+    float lightingDistance;
 
     /**
      * @brief Non-zero when the in-game editor is active.

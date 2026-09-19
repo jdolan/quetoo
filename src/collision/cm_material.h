@@ -195,7 +195,7 @@ typedef struct {
   /**
    * @brief Total number of animation frames.
    */
-  int32_t num_frames;
+  int32_t numFrames;
 
   /**
    * @brief Resolved per-frame asset array.
@@ -373,7 +373,7 @@ typedef struct {
   /**
    * @brief The number of footstep sample assets.
    */
-  int32_t num_samples;
+  int32_t numSamples;
 } CmFootsteps;
 
 #define MATERIAL_ROUGHNESS 1.f
@@ -431,7 +431,7 @@ typedef struct CmMaterial {
   /**
    * @brief Flags for the material.
    */
-  CmStageFlags stage_flags;
+  CmStageFlags stageFlags;
 
   /**
    * @brief The material stages, if any.
@@ -451,7 +451,7 @@ typedef struct CmMaterial {
   /**
    * @brief The alpha test threshold.
    */
-  float alpha_test;
+  float alphaTest;
 
   /**
    * @brief The roughness factor to use for the normalmap.
@@ -486,7 +486,7 @@ typedef struct CmMaterial {
   /**
    * @brief Default tint colors
    */
-  Vec4 tintmap_defaults[TINT_TOTAL];
+  Vec4 tintmapDefaults[TINT_TOTAL];
 
   /**
    * @brief True if this material has been modified and needs to be saved.

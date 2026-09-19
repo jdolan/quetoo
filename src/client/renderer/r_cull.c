@@ -114,6 +114,6 @@ void R_UpdateFrustum(RenderView *view) {
     p[i].normal = Vec3_Normalize(p[i].normal);
     p[i].dist = Vec3_Dot(view->origin, p[i].normal);
     p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
-    p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
+    p[i].signBits = Cm_SignBitsForNormal(p[i].normal);
   }
 }

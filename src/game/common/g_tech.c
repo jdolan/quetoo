@@ -245,7 +245,7 @@ void G_Tech_CheckState(void) {
  * @brief Returns the distance to the nearest tech from the given spot.
  */
 static float G_TechRangeFromSpawn(const GameEntity *spawn) {
-  float best_dist = FLT_MAX;
+  float bestDist = FLT_MAX;
   bool any = false;
 
   for (GameItemTag tech = TECH_FIRST; tech < TECH_LAST; tech++) {
@@ -265,8 +265,8 @@ static float G_TechRangeFromSpawn(const GameEntity *spawn) {
     const Vec3 v = Vec3_Subtract(spawn->s.origin, ent->s.origin);
     const float dist = Vec3_Length(v);
 
-    if (dist < best_dist) {
-      best_dist = dist;
+    if (dist < bestDist) {
+      bestDist = dist;
     }
 
     any = true;
@@ -276,21 +276,21 @@ static float G_TechRangeFromSpawn(const GameEntity *spawn) {
     return Randomf() * MAX_WORLD_DIST;
   }
 
-  return best_dist;
+  return bestDist;
 }
 
 /**
  * @brief Finds the spawn point farthest from all existing tech items within the given set.
  */
-static void G_SelectFarthestTechSpawnPoint(const GameSpawnPoints *spawn_points, GameEntity **point, float *point_dist) {
+static void G_SelectFarthestTechSpawnPoint(const GameSpawnPoints *spawnPoints, GameEntity **point, float *pointDist) {
 
-  for (size_t i = 0; i < spawn_points->count; i++) {
-    GameEntity *spot = spawn_points->spots[i];
+  for (size_t i = 0; i < spawnPoints->count; i++) {
+    GameEntity *spot = spawnPoints->spots[i];
     float dist = G_TechRangeFromSpawn(spot);
 
-    if (dist > *point_dist) {
+    if (dist > *pointDist) {
       *point = spot;
-      *point_dist = dist;
+      *pointDist = dist;
     }
   }
 }
@@ -299,19 +299,19 @@ static void G_SelectFarthestTechSpawnPoint(const GameSpawnPoints *spawn_points, 
  * @brief Selects the optimal spawn point for a tech item by maximizing distance from all other techs.
  */
 static GameEntity *G_SelectTechSpawnPoint(void) {
-  float point_dist = -FLT_MAX;
+  float pointDist = -FLT_MAX;
   GameEntity *point = NULL;
 
   if (g_level.teams) {
-    for (int32_t i = 0; i < g_level.num_teams; i++) {
-      G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawn_points, &point, &point_dist);
+    for (int32_t i = 0; i < g_level.numTeams; i++) {
+      G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawnPoints, &point, &pointDist);
     }
   } else {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
+    G_SelectFarthestTechSpawnPoint(&g_level.spawnPoints, &point, &pointDist);
   }
 
   if (!point) {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
+    G_SelectFarthestTechSpawnPoint(&g_level.spawnPoints, &point, &pointDist);
   }
 
   return point;
@@ -339,14 +339,14 @@ static void G_SpawnTech(const GameItem *item) {
   ent->s.origin = Vec3_Fmaf(spawn->s.origin, 32.f, forward);
 
   G_SpawnItem(ent, item);
-  ent->next_think = 0;
+  ent->nextThink = 0;
   ent->Think = NULL;
 
   // Treat spawned techs like dropped items so they can land near spawn points
   // instead of forcing immediate pickup on spawn.
-  ent->spawn_flags |= SF_ITEM_DROPPED;
-  ent->move_type = MOVE_TYPE_BOUNCE;
-  ent->touch_time = g_level.time + 1000;
+  ent->spawnFlags |= SF_ITEM_DROPPED;
+  ent->moveType = MOVE_TYPE_BOUNCE;
+  ent->touchTime = g_level.time + 1000;
 
   ent->velocity = Vec3_Scale(forward, 100.f);
   ent->velocity.z = 300.f + (Randomf() * 50.f);
@@ -444,12 +444,12 @@ void G_PlayTechSound(GameClient *cl) {
     return;
   }
 
-  if (cl->tech.sound_time < g_level.time) {
+  if (cl->tech.soundTime < g_level.time) {
     G_MulticastSound(&(const GamePlaySound) {
       .index = g_tech_media.sounds[tech->def.tag - TECH_FIRST],
       .entity = cl->entity,
     }, MULTICAST_PHS);
-    cl->tech.sound_time = g_level.time + 500;
+    cl->tech.soundTime = g_level.time + 500;
   }
 }
 
@@ -464,11 +464,11 @@ void G_Tech_ClientThink(GameEntity *ent) {
     return;
   }
 
-  if (cl->tech.regen_time < g_level.time) {
-    cl->tech.regen_time = g_level.time + TECH_REGEN_TICK_TIME;
+  if (cl->tech.regenTime < g_level.time) {
+    cl->tech.regenTime = g_level.time + TECH_REGEN_TICK_TIME;
 
-    if (ent->health < ent->max_health) {
-      ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->max_health);
+    if (ent->health < ent->maxHealth) {
+      ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->maxHealth);
       G_PlayTechSound(cl);
     }
   }

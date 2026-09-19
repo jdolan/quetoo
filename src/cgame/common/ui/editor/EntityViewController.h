@@ -91,7 +91,7 @@ struct EntityViewController {
    * @brief When false, func_group entities are hidden and excluded from traces.
    * @details Toggled via the 'G' key.
    */
-  bool show_func_groups;
+  bool showFuncGroups;
 
   /**
    * @brief The entity numbers intersected by the selection ray, nearest first.

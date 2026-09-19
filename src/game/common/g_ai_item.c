@@ -41,7 +41,7 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
         return true;
       }
 
-      return cl->entity->health < cl->entity->max_health;
+      return cl->entity->health < cl->entity->maxHealth;
     case ITEM_TYPE_ARMOR:
       if (item->def.tag == ARMOR_SHARD ||
         inventory[item->def.tag] < item->def.max) {
@@ -74,8 +74,8 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
 #if defined(G_CTF)
     case ITEM_TYPE_FLAG: {
       const GameTeamId team = cl->persistent.team->id;
-      const GameTeamId flag_team = (item->def.tag - FLAG_FIRST);
-      if (flag_team == team && other->owner == NULL) {
+      const GameTeamId flagTeam = (item->def.tag - FLAG_FIRST);
+      if (flagTeam == team && other->owner == NULL) {
         return false;
       }
 

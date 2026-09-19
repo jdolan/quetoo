@@ -120,7 +120,7 @@ void Cm_ParseEntity(CmEntity *pair) {
 
   if (q_strlen(pair->string)) {
     pair->parsed |= ENTITY_STRING;
-    pair->nullable_string = pair->string;
+    pair->nullableString = pair->string;
   }
 
   if (Parse_QuickPrimitive(pair->string,
@@ -224,11 +224,11 @@ CmEntity *Cm_SortEntity(CmEntity *entity) {
 /**
  * @brief Loads the BSP entity string lump.
  */
-List *Cm_LoadEntities(const char *entity_string) {
+List *Cm_LoadEntities(const char *entityString) {
 
   List *entities = $(alloc(List), init);
 
-  Parser parser = Parse_Init(entity_string, PARSER_ALL_COMMENTS);
+  Parser parser = Parse_Init(entityString, PARSER_ALL_COMMENTS);
 
   while (true) {
 
@@ -283,7 +283,7 @@ List *Cm_LoadEntities(const char *entity_string) {
  */
 int32_t Cm_EntityNumber(const CmEntity *entity) {
 
-  for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
+  for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++) {
     if (Cm_Bsp()->entities[i] == entity) {
       return i;
     }
@@ -378,7 +378,7 @@ Vector *Cm_EntityBrushes(const CmEntity *entity) {
   Vector *brushes = $(alloc(Vector), initWithSize, sizeof(CmBspBrush *));
 
   CmBspBrush *brush = Cm_Bsp()->brushes;
-  for (int32_t i = 0; i < Cm_Bsp()->num_brushes; i++, brush++) {
+  for (int32_t i = 0; i < Cm_Bsp()->numBrushes; i++, brush++) {
 
     if (brush->entity == entity) {
       $(brushes, add, &brush);
@@ -439,36 +439,36 @@ CmEntity *Cm_EntityFromInfoString(const char *str) {
  * definitions (including patchDef2 blocks) for each entity. Entity ordering in
  * the map text must match the entities array.
  */
-void Cm_ParseMapBrushes(const char *map_text, CmEntity **entities, int32_t num_entities) {
+void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEntities) {
 
-  Parser parser = Parse_Init(map_text, PARSER_DEFAULT);
+  Parser parser = Parse_Init(mapText, PARSER_DEFAULT);
 
-  for (int32_t i = 0; i < num_entities; i++) {
+  for (int32_t i = 0; i < numEntities; i++) {
     CmEntity *e = entities[i];
 
     const char *brushes = NULL;
-    bool in_entity = false;
-    int32_t brush_depth = 0;
+    bool inEntity = false;
+    int32_t brushDepth = 0;
     char token[MAX_TOKEN_CHARS] = "";
 
     while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
 
       if (!q_strcmp(token, "{")) {
-        if (!in_entity) {
-          in_entity = true;
+        if (!inEntity) {
+          inEntity = true;
         } else {
-          brush_depth++;
-          if (brush_depth == 1 && !brushes) {
+          brushDepth++;
+          if (brushDepth == 1 && !brushes) {
             brushes = parser.position.ptr - 1;
           }
         }
       }
 
       if (!q_strcmp(token, "}")) {
-        if (brush_depth > 0) {
-          brush_depth--;
-        } else if (in_entity) {
-          in_entity = false;
+        if (brushDepth > 0) {
+          brushDepth--;
+        } else if (inEntity) {
+          inEntity = false;
           break;
         }
       }

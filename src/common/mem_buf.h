@@ -28,7 +28,7 @@
  */
 typedef struct {
   byte *data;
-  size_t max_size; // maximum size before overflow
+  size_t maxSize; // maximum size before overflow
   size_t size; // current size
   size_t read;
 } MemBuf;

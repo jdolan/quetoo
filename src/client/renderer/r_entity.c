@@ -26,9 +26,9 @@
  */
 static void R_SetEntityBounds(RenderEntity *e) {
   if (e->model && !Box3_IsNull(e->model->bounds)) {
-    e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+    e->absModelBounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
   } else {
-    e->abs_model_bounds = e->abs_bounds;
+    e->absModelBounds = e->absBounds;
   }
 }
 
@@ -49,11 +49,11 @@ bool R_CullEntity(const RenderView *view, const RenderEntity *e) {
     return false;
   }
 
-  if (Box3_IsNull(e->abs_model_bounds)) {
+  if (Box3_IsNull(e->absModelBounds)) {
     return true;
   }
 
-  if (R_CulludeBox(view, e->abs_model_bounds)) {
+  if (R_CulludeBox(view, e->absModelBounds)) {
     return true;
   }
 
@@ -68,12 +68,12 @@ RenderEntity *R_AddEntity(RenderView *view, const RenderEntity *ent) {
   assert(view);
   assert(ent);
 
-  if (view->num_entities == MAX_ENTITIES) {
+  if (view->numEntities == MAX_ENTITIES) {
     Com_Warn("MAX_ENTITIES\n");
     return NULL;
   }
 
-  RenderEntity *e = &view->entities[view->num_entities];
+  RenderEntity *e = &view->entities[view->numEntities];
   *e = *ent;
 
   e->matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, e->scale);
@@ -87,11 +87,11 @@ RenderEntity *R_AddEntity(RenderView *view, const RenderEntity *ent) {
     R_ApplyMeshConfig(e);
   }
 
-  e->inverse_matrix = Mat4_Inverse(e->matrix);
+  e->inverseMatrix = Mat4_Inverse(e->matrix);
 
   R_SetEntityBounds(e);
 
-  view->num_entities++;
+  view->numEntities++;
 
   return e;
 }
@@ -102,13 +102,13 @@ RenderEntity *R_AddEntity(RenderView *view, const RenderEntity *ent) {
 void R_UpdateEntities(RenderView *view, CopyPass *pass) {
 
   RenderEntity *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+  for (int32_t i = 0; i < view->numEntities; i++, e++) {
 
     if (e->model == NULL) {
       continue;
     }
 
-    R_ActiveDynamicLights(view, e->abs_model_bounds, &e->active_dynamic_lights);
+    R_ActiveDynamicLights(view, e->absModelBounds, &e->activeDynamicLights);
   }
 }
 

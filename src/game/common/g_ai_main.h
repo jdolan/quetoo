@@ -48,6 +48,6 @@ void G_Ai_Frame(void);
 void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
 bool G_Ai_InDeveloperMode(void);
-bool G_Ai_ShouldSlowDrop(const AiNodeId from_node, const AiNodeId to_node);
+bool G_Ai_ShouldSlowDrop(const AiNodeId fromNode, const AiNodeId toNode);
 
 #endif

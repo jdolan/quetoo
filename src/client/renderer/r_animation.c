@@ -34,16 +34,16 @@ static void R_FreeAnimation(RenderMedia *media) {
 /**
  * @brief Creates an animation from the specified image frames.
  */
-RenderAnimation *R_CreateAnimation(const char *name, int32_t num_images, const RenderImage **images) {
+RenderAnimation *R_CreateAnimation(const char *name, int32_t numImages, const RenderImage **images) {
 
   RenderAnimation *animation = (RenderAnimation *) R_AllocMedia(name, sizeof(RenderAnimation), R_MEDIA_ANIMATION);
 
   animation->media.Free = R_FreeAnimation;
-  animation->num_frames = num_images;
-  animation->frames = Mem_TagMalloc(sizeof(RenderImage *) * num_images, MEM_TAG_RENDERER);
-  memcpy(animation->frames, images, sizeof(RenderImage *) * num_images);
+  animation->numFrames = numImages;
+  animation->frames = Mem_TagMalloc(sizeof(RenderImage *) * numImages, MEM_TAG_RENDERER);
+  memcpy(animation->frames, images, sizeof(RenderImage *) * numImages);
 
-  for (int32_t i = 0; i < num_images; i++) {
+  for (int32_t i = 0; i < numImages; i++) {
     R_RegisterDependency((RenderMedia *) animation, (RenderMedia *) images[i]);
   }
 
@@ -54,6 +54,6 @@ RenderAnimation *R_CreateAnimation(const char *name, int32_t num_images, const R
  * @brief Resolves an animation frame for the specified time.
  */
 const RenderImage *R_ResolveAnimation(const RenderAnimation *animation, float time, int32_t offset) {
-  const int32_t frame = (int32_t) (animation->num_frames * time);
-  return animation->frames[Mini(Maxi(frame + offset, 0), animation->num_frames - 1)];
+  const int32_t frame = (int32_t) (animation->numFrames * time);
+  return animation->frames[Mini(Maxi(frame + offset, 0), animation->numFrames - 1)];
 }

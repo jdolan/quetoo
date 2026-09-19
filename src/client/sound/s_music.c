@@ -30,14 +30,14 @@ Cvar *s_music_volume;
 
 static struct {
   ALuint source;
-  ALuint music_buffers[MUSIC_BUFFERS];
-  float *raw_frame_buffer;
-  int16_t *frame_buffer;
-  size_t resample_frame_buffer_size;
-  int16_t *resample_frame_buffer;
-  uint32_t next_buffer;
-  SoundMusic *default_music;
-  SoundMusic *current_music;
+  ALuint musicBuffers[MUSIC_BUFFERS];
+  float *rawFrameBuffer;
+  int16_t *frameBuffer;
+  size_t resampleFrameBufferSize;
+  int16_t *resampleFrameBuffer;
+  uint32_t nextBuffer;
+  SoundMusic *defaultMusic;
+  SoundMusic *currentMusic;
   List *playlist;
 
   SDL_Thread *thread; // thread sound system runs on
@@ -121,7 +121,7 @@ void S_ClearPlaylist(void) {
  * @brief Returns the currently playing music track, or `NULL` if none.
  */
 SoundMusic *S_CurrentMusic(void) {
-  return s_music_state.current_music;
+  return s_music_state.currentMusic;
 }
 
 /**
@@ -184,7 +184,7 @@ SoundMusic *S_LoadMusic(const char *name) {
  */
 void S_StopMusic(void) {
 
-  if (s_music_state.current_music == NULL) {
+  if (s_music_state.currentMusic == NULL) {
     return;
   }
   
@@ -193,7 +193,7 @@ void S_StopMusic(void) {
   alSourceStop(s_music_state.source);
   S_GetError(NULL);
 
-  s_music_state.current_music = NULL;
+  s_music_state.currentMusic = NULL;
 }
 
 /**
@@ -201,68 +201,68 @@ void S_StopMusic(void) {
  * @param setup_buffers If the buffers should be pulled directly from the buffer list instead of
  * from the consumed buffer list. Use this on first call of Play only.
  */
-static void S_BufferMusic(SoundMusic *music, bool setup_buffers) {
+static void S_BufferMusic(SoundMusic *music, bool setupBuffers) {
 
   if (!music->snd) {
     return;
   }
 
-  int32_t buffers_processed = MUSIC_BUFFERS;
+  int32_t buffersProcessed = MUSIC_BUFFERS;
 
-  if (!setup_buffers) {
+  if (!setupBuffers) {
     // if we're EOF, we can quit here and just let the source expire buffers
     if (music->eof) {
       return;
     }
 
-    alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+    alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffersProcessed);
   } else {
     music->eof = false;
     sf_seek(music->snd, 0, SEEK_SET);
   }
 
-  if (!buffers_processed) {
+  if (!buffersProcessed) {
     return;
   }
 
   int32_t i;
 
   // go through the buffers we have left to add and start decoding
-  for (i = 0; i < buffers_processed; i++) {
+  for (i = 0; i < buffersProcessed; i++) {
 
-    const sf_count_t wanted_frames = (MUSIC_BUFFER_SIZE / sizeof(*s_music_state.frame_buffer)) / music->info.channels;
-    sf_count_t frames = sf_readf_float(music->snd, s_music_state.raw_frame_buffer, wanted_frames) * music->info.channels;
+    const sf_count_t wantedFrames = (MUSIC_BUFFER_SIZE / sizeof(*s_music_state.frameBuffer)) / music->info.channels;
+    sf_count_t frames = sf_readf_float(music->snd, s_music_state.rawFrameBuffer, wantedFrames) * music->info.channels;
 
     if (!frames) {
       break;
     }
     
-    S_ConvertSamples(s_music_state.raw_frame_buffer, frames, &s_music_state.frame_buffer, NULL);
+    S_ConvertSamples(s_music_state.rawFrameBuffer, frames, &s_music_state.frameBuffer, NULL);
 
-    const int16_t *frame_buffer = s_music_state.frame_buffer;
+    const int16_t *frameBuffer = s_music_state.frameBuffer;
 
     if (music->info.samplerate != s_rate->integer) {
       frames = S_Resample(music->info.channels,
                           music->info.samplerate,
                           s_rate->integer,
                           frames,
-                          s_music_state.frame_buffer,
-                          &s_music_state.resample_frame_buffer,
-                          &s_music_state.resample_frame_buffer_size);
-      frame_buffer = s_music_state.resample_frame_buffer;
+                          s_music_state.frameBuffer,
+                          &s_music_state.resampleFrameBuffer,
+                          &s_music_state.resampleFrameBufferSize);
+      frameBuffer = s_music_state.resampleFrameBuffer;
     }
 
     ALuint buffer;
 
-    if (setup_buffers) {
-      buffer = s_music_state.music_buffers[s_music_state.next_buffer];
-      s_music_state.next_buffer = (s_music_state.next_buffer + 1) % MUSIC_BUFFERS;
+    if (setupBuffers) {
+      buffer = s_music_state.musicBuffers[s_music_state.nextBuffer];
+      s_music_state.nextBuffer = (s_music_state.nextBuffer + 1) % MUSIC_BUFFERS;
     } else {
       alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
     }
 
     const ALsizei size = (ALsizei) frames * sizeof(int16_t);
-    alBufferData(buffer, AL_FORMAT_STEREO16, frame_buffer, size, s_rate->integer);
+    alBufferData(buffer, AL_FORMAT_STEREO16, frameBuffer, size, s_rate->integer);
 
     alSourceQueueBuffers(s_music_state.source, 1, &buffer);
     S_GetError(NULL);
@@ -280,17 +280,17 @@ static void S_PlayMusic(SoundMusic *music) {
 
   S_StopMusic();
 
-  int32_t buffers_processed;
-  alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+  int32_t buffersProcessed;
+  alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffersProcessed);
 
-  if (buffers_processed) {
-    ALuint buffers_list[buffers_processed];
-    alSourceUnqueueBuffers(s_music_state.source, buffers_processed, buffers_list);
+  if (buffersProcessed) {
+    ALuint buffersList[buffersProcessed];
+    alSourceUnqueueBuffers(s_music_state.source, buffersProcessed, buffersList);
   }
 
-  s_music_state.next_buffer = 0;
+  s_music_state.nextBuffer = 0;
 
-  s_music_state.current_music = music;
+  s_music_state.currentMusic = music;
 
   S_BufferMusic(music, true);
 
@@ -309,7 +309,7 @@ static SoundMusic *S_PrevMusic(void) {
   if (s_music_state.playlist && s_music_state.playlist->count) {
 
     for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
-      if (n->element == s_music_state.current_music) {
+      if (n->element == s_music_state.currentMusic) {
         if (n->prev) {
           return (SoundMusic *) n->prev->element;
         }
@@ -320,7 +320,7 @@ static SoundMusic *S_PrevMusic(void) {
     return (SoundMusic *) s_music_state.playlist->tail->element;
   }
 
-  return s_music_state.default_music;
+  return s_music_state.defaultMusic;
 }
 
 /**
@@ -331,7 +331,7 @@ static SoundMusic *S_NextMusic(void) {
   if (s_music_state.playlist && s_music_state.playlist->count) {
 
     for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
-      if (n->element == s_music_state.current_music) {
+      if (n->element == s_music_state.currentMusic) {
         if (n->next) {
           return (SoundMusic *) n->next->element;
         }
@@ -342,7 +342,7 @@ static SoundMusic *S_NextMusic(void) {
     return (SoundMusic *) s_music_state.playlist->head->element;
   }
 
-  return s_music_state.default_music;
+  return s_music_state.defaultMusic;
 }
 
 /**
@@ -350,8 +350,8 @@ static SoundMusic *S_NextMusic(void) {
  */
 static void S_MusicThreadTick(void) {
 
-  if (s_music_state.current_music) {
-    S_BufferMusic(s_music_state.current_music, false);
+  if (s_music_state.currentMusic) {
+    S_BufferMusic(s_music_state.currentMusic, false);
   }
 }
 
@@ -425,7 +425,7 @@ void S_NextTrack_f(void) {
     SoundMusic *music = S_NextMusic();
 
     if (music) {
-      if (music == s_music_state.default_music && current == s_music_state.default_music) {
+      if (music == s_music_state.defaultMusic && current == s_music_state.defaultMusic) {
         Com_Debug(DEBUG_SOUND, "Default music already playing\n");
       } else {
         S_PlayMusic(music);
@@ -486,9 +486,9 @@ void S_InitMusic(void) {
   
   s_music_volume = Cvar_Add("s_music_volume", "0.5", CVAR_ARCHIVE, "Music volume level.");
 
-  s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(float) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
-  s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
-  s_music_state.resample_frame_buffer = NULL;
+  s_music_state.rawFrameBuffer = Mem_TagMalloc(sizeof(float) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
+  s_music_state.frameBuffer = Mem_TagMalloc(sizeof(int16_t) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
+  s_music_state.resampleFrameBuffer = NULL;
 
   Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
   Cmd_Add("s_prev_track", S_PrevTrack_f, CMD_SOUND, "Play the previous music track.");
@@ -510,14 +510,14 @@ void S_InitMusic(void) {
     alSourcei(s_music_state.source, AL_DIRECT_CHANNELS_SOFT, AL_TRUE);
   }
 
-  alGenBuffers(MUSIC_BUFFERS, s_music_state.music_buffers);
+  alGenBuffers(MUSIC_BUFFERS, s_music_state.musicBuffers);
 
-  if (!*s_music_state.music_buffers) {
+  if (!*s_music_state.musicBuffers) {
     Com_Warn("Couldn't allocate buffers: %s\n", alGetString(alGetError()));
     return;
   }
 
-  s_music_state.default_music = S_LoadMusic("gtdstudio-explore");
+  s_music_state.defaultMusic = S_LoadMusic("gtdstudio-explore");
   S_ClearPlaylist();
 
   s_music_state.mutex = SDL_CreateMutex();
@@ -535,7 +535,7 @@ void S_ShutdownMusic(void) {
 
   if (s_music_state.source) {
     alDeleteSources(1, &s_music_state.source);
-    alDeleteBuffers(MUSIC_BUFFERS, s_music_state.music_buffers);
+    alDeleteBuffers(MUSIC_BUFFERS, s_music_state.musicBuffers);
 
     S_GetError(NULL);
   }
@@ -552,10 +552,10 @@ void S_ShutdownMusic(void) {
   // kill mutex
   SDL_DestroyMutex(s_music_state.mutex);
   
-  Mem_Free(s_music_state.raw_frame_buffer);
-  Mem_Free(s_music_state.frame_buffer);
+  Mem_Free(s_music_state.rawFrameBuffer);
+  Mem_Free(s_music_state.frameBuffer);
 
-  if (s_music_state.resample_frame_buffer) {
-    Mem_Free(s_music_state.resample_frame_buffer);
+  if (s_music_state.resampleFrameBuffer) {
+    Mem_Free(s_music_state.resampleFrameBuffer);
   }
 }

@@ -271,10 +271,10 @@ void G_ResetTeams(void) {
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
     GameTeam *team = &g_team_list[i];
     team->score = 0;
-    team->spawn_points = (GameSpawnPoints) { 0 };
+    team->spawnPoints = (GameSpawnPoints) { 0 };
 #if defined(G_CTF)
     team->captures = 0;
-    team->flag_entity = NULL;
+    team->flagEntity = NULL;
 #endif
   }
 
@@ -285,24 +285,24 @@ void G_ResetTeams(void) {
  * @brief Send the names of the teams to the clients.
  */
 void G_SetTeamNames(void) {
-  char team_info[MAX_STRING_CHARS] = { '\0' };
+  char teamInfo[MAX_STRING_CHARS] = { '\0' };
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
 
     if (i != TEAM_RED) {
-      q_strlcat(team_info, "\\", sizeof(team_info));
+      q_strlcat(teamInfo, "\\", sizeof(teamInfo));
     }
 
-    q_strlcat(team_info, va("%d", g_team_list[i].id), sizeof(team_info));
-    q_strlcat(team_info, "\\", sizeof(team_info));
-    q_strlcat(team_info, g_team_list[i].name, sizeof(team_info));
-    q_strlcat(team_info, "\\", sizeof(team_info));
-    q_strlcat(team_info, va("%d", g_team_list[i].color), sizeof(team_info));
-    q_strlcat(team_info, "\\", sizeof(team_info));
-    q_strlcat(team_info, Color_Unparse(g_team_list[i].shirt), sizeof(team_info));
+    q_strlcat(teamInfo, va("%d", g_team_list[i].id), sizeof(teamInfo));
+    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
+    q_strlcat(teamInfo, g_team_list[i].name, sizeof(teamInfo));
+    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
+    q_strlcat(teamInfo, va("%d", g_team_list[i].color), sizeof(teamInfo));
+    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
+    q_strlcat(teamInfo, Color_Unparse(g_team_list[i].shirt), sizeof(teamInfo));
   }
 
-  gi.SetConfigString(CS_TEAM_INFO, team_info);
+  gi.SetConfigString(CS_TEAM_INFO, teamInfo);
 }
 
 /**
@@ -316,7 +316,7 @@ void G_ResetItems(void) {
       continue;
     }
 
-    if (ent->spawn_flags & SF_ITEM_DROPPED) {
+    if (ent->spawnFlags & SF_ITEM_DROPPED) {
       G_FreeEntity(ent);
       continue;
     }
@@ -339,7 +339,7 @@ void G_ResetItems(void) {
 /**
  * @brief Setup the effects for spawn points.
  */
-static void G_ResetTeamSpawnPoints(GameSpawnPoints *points, const GameEntityTrail trail, const GameTeamId team_id) {
+static void G_ResetTeamSpawnPoints(GameSpawnPoints *points, const GameEntityTrail trail, const GameTeamId teamId) {
 
   for (size_t i = 0; i < points->count; i++) {
     GameEntity *ent = points->spots[i];
@@ -350,18 +350,18 @@ static void G_ResetTeamSpawnPoints(GameSpawnPoints *points, const GameEntityTrai
         // Shared spawn point (already claimed by another team): use yellow
         ent->s.color = Color_Color32(ColorHSV(color_hue_yellow, 1.f, 1.f));
       } else {
-        ent->s.color = Color_Color32(ColorHSV(g_team_list[team_id].color, 1.f, 1.f));
+        ent->s.color = Color_Color32(ColorHSV(g_team_list[teamId].color, 1.f, 1.f));
       }
 
       ent->s.trail = trail;
-      ent->sv_flags = 0;
+      ent->svFlags = 0;
 
       gi.LinkEntity(ent);
     } else {
 
       ent->s.trail = 0;
       ent->s.color = (Color32) { .rgba = 0 };
-      ent->sv_flags = SVF_NO_CLIENT;
+      ent->svFlags = SVF_NO_CLIENT;
 
       gi.UnlinkEntity(ent);
     }
@@ -375,12 +375,12 @@ void G_ResetSpawnPoints(void) {
 
   // reset trails to 0 first
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, 0, 0);
+    G_ResetTeamSpawnPoints(&g_team_list[t].spawnPoints, 0, 0);
   }
 
   // then apply team-based trails, this is done twice so neutrality gets applied properly
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
+    G_ResetTeamSpawnPoints(&g_team_list[t].spawnPoints, TRAIL_PLAYER_SPAWN, t);
   }
 }
 
@@ -414,7 +414,7 @@ static void G_RestartGame(bool teamz) {
       }
     }
 
-    G_ClientUserInfoChanged(cl, cl->persistent.user_info);
+    G_ClientUserInfoChanged(cl, cl->persistent.userInfo);
     G_ClientRespawn(cl, false);
   });
 
@@ -474,15 +474,15 @@ void G_MuteClient(char *name, bool mute) {
 static void G_PostStats(void) {
 
   GameCapture *captures = NULL;
-  int32_t num_captures = 0;
+  int32_t numCaptures = 0;
 
 #if defined(G_CTF)
   captures = (GameCapture *) g_level.captures->elements;
-  num_captures = (int32_t) g_level.captures->count;
+  numCaptures = (int32_t) g_level.captures->count;
 #endif
 
   gi.PostStats((GameFrag *) g_level.frags->elements, (int32_t) g_level.frags->count,
-               captures, num_captures);
+               captures, numCaptures);
 
   g_level.frags = release(g_level.frags);
 
@@ -497,11 +497,11 @@ static void G_PostStats(void) {
  */
 static void G_BeginIntermission(void) {
 
-  if (g_level.intermission_time) {
+  if (g_level.intermissionTime) {
     return; // already activated
   }
 
-  g_level.intermission_time = g_level.time;
+  g_level.intermissionTime = g_level.time;
 
   G_PostStats();
 
@@ -521,14 +521,14 @@ static void G_BeginIntermission(void) {
     }
   }
 
-  g_level.intermission_origin = ent->s.origin;
-  g_level.intermission_angle = ent->s.angles;
+  g_level.intermissionOrigin = ent->s.origin;
+  g_level.intermissionAngle = ent->s.angles;
 
   if (ent->target) {
     const GameEntity *target = G_PickTarget(ent->target);
     if (target) {
       const Vec3 dir = Vec3_Subtract(target->s.origin, ent->s.origin);
-      g_level.intermission_angle = Vec3_Euler(dir);
+      g_level.intermissionAngle = Vec3_Euler(dir);
     } else {
       G_Debug("%s has invalid target %s\n", etos(ent), ent->target);
     }
@@ -599,34 +599,34 @@ PlayerMoveParams G_MovementParams(void) {
     params = (PlayerMoveParams) {
       .gravity = DEFAULT_GRAVITY,
 
-      .accel_ground = g_ground_acceleration->value,
-      .accel_ground_slick = g_ground_acceleration_slick->value,
-      .accel_air = g_air_acceleration->value,
-      .accel_water = g_water_acceleration->value,
-      .accel_spectator = g_spectator_acceleration->value,
-      .accel_ladder = g_ladder_acceleration->value,
+      .accelGround = g_ground_acceleration->value,
+      .accelGroundSlick = g_ground_acceleration_slick->value,
+      .accelAir = g_air_acceleration->value,
+      .accelWater = g_water_acceleration->value,
+      .accelSpectator = g_spectator_acceleration->value,
+      .accelLadder = g_ladder_acceleration->value,
 
-      .friction_ground = g_ground_friction->value,
-      .friction_ground_slick = g_ground_friction_slick->value,
-      .friction_air = g_air_friction->value,
-      .friction_water = g_water_friction->value,
-      .friction_spectator = g_spectator_friction->value,
-      .friction_ladder = g_ladder_friction->value,
+      .frictionGround = g_ground_friction->value,
+      .frictionGroundSlick = g_ground_friction_slick->value,
+      .frictionAir = g_air_friction->value,
+      .frictionWater = g_water_friction->value,
+      .frictionSpectator = g_spectator_friction->value,
+      .frictionLadder = g_ladder_friction->value,
 
-      .speed_ground = g_ground_speed->value,
-      .speed_air = g_air_speed->value,
-      .speed_water = g_water_speed->value,
-      .speed_ladder = g_ladder_speed->value,
-      .speed_spectator = g_spectator_speed->value,
-      .speed_stop = g_stop_speed->value,
-      .speed_jump = g_jump_speed->value,
-      .speed_ducked = g_duck_speed->value,
-      .speed_duck_stand = g_duck_stand_speed->value,
-      .speed_water_jump = g_water_jump_speed->value,
+      .speedGround = g_ground_speed->value,
+      .speedAir = g_air_speed->value,
+      .speedWater = g_water_speed->value,
+      .speedLadder = g_ladder_speed->value,
+      .speedSpectator = g_spectator_speed->value,
+      .speedStop = g_stop_speed->value,
+      .speedJump = g_jump_speed->value,
+      .speedDucked = g_duck_speed->value,
+      .speedDuckStand = g_duck_stand_speed->value,
+      .speedWaterJump = g_water_jump_speed->value,
 
       .bounds = PM_BOUNDS,
-      .bounds_ducked = PM_CROUCHED_BOUNDS,
-      .bounds_dead = PM_DEAD_BOUNDS,
+      .boundsDucked = PM_CROUCHED_BOUNDS,
+      .boundsDead = PM_DEAD_BOUNDS,
     };
   }
 
@@ -740,7 +740,7 @@ GameplayId G_ResolveGameplay(const char *name) {
 static void G_CheckRules(void) {
   bool restart = false;
 
-  if (g_level.intermission_time) {
+  if (g_level.intermissionTime) {
     return;
   }
 
@@ -832,22 +832,22 @@ static void G_CheckRules(void) {
   if (g_num_teams->modified) { // reset teams, scores, etc
     g_num_teams->modified = false;
 
-    int32_t num_teams;
+    int32_t numTeams;
 
     if (!q_strcmp(g_num_teams->string, "default")) {
-      num_teams = -1; // G_InitNumTeams will pick this up
+      numTeams = -1; // G_InitNumTeams will pick this up
     } else {
-      num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);
+      numTeams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);
     }
 
-    if (g_level.num_teams != num_teams) {
-      g_level.num_teams = num_teams;
+    if (g_level.numTeams != numTeams) {
+      g_level.numTeams = numTeams;
 
       if (g_level.teams) {
         G_InitNumTeams();
 
         gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
-                  g_level.num_teams);
+                  g_level.numTeams);
 
         restart = true;
       }
@@ -862,14 +862,14 @@ static void G_CheckRules(void) {
 
   if (g_frag_limit->modified) {
     g_frag_limit->modified = false;
-    g_level.frag_limit = g_frag_limit->integer;
+    g_level.fragLimit = g_frag_limit->integer;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", g_level.frag_limit);
+    gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", g_level.fragLimit);
   }
 
   if (g_time_limit->modified) {
     g_time_limit->modified = false;
-    g_level.time_limit = g_time_limit->value * 60 * 1000;
+    g_level.timeLimit = g_time_limit->value * 60 * 1000;
 
     gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_time_limit->value);
   }
@@ -887,7 +887,7 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (ent->spawn_flags & SF_ITEM_DROPPED) {
+        if (ent->spawnFlags & SF_ITEM_DROPPED) {
           continue;
         }
 
@@ -895,7 +895,7 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (!(ent->sv_flags & SVF_NO_CLIENT)) {
+        if (!(ent->svFlags & SVF_NO_CLIENT)) {
           continue;
         }
 
@@ -903,7 +903,7 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        ent->next_think = 0;
+        ent->nextThink = 0;
         ent->Think(ent); // force a respawn
       });
     }
@@ -930,15 +930,15 @@ FrameWillBegin G_FrameWillBegin = G_FrameWillBegin_Common;
  */
 static void G_Frame(void) {
 
-  g_level.frame_num++;
-  g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
+  g_level.frameNum++;
+  g_level.time = g_level.frameNum * QUETOO_TICK_MILLIS;
 
   G_FrameWillBegin();
 
   // check for level change after running intermission
-  if (g_level.intermission_time) {
-    if (g_level.time > g_level.intermission_time + INTERMISSION && G_AllowNextMap()) {
-      g_level.intermission_time = 0;
+  if (g_level.intermissionTime) {
+    if (g_level.time > g_level.intermissionTime + INTERMISSION && G_AllowNextMap()) {
+      g_level.intermissionTime = 0;
 
       gi.Cbuf("next_map\n");
 
@@ -949,7 +949,7 @@ static void G_Frame(void) {
 
   // treat each object in turn, even the world gets a chance to think
   G_ForEachEntity(ent, {
-    g_level.current_entity = ent;
+    g_level.currentEntity = ent;
 
     if (ent->client) {
       G_ClientBeginFrame(ent->client);
@@ -957,7 +957,7 @@ static void G_Frame(void) {
       G_RunEntity(ent);
     }
 
-    g_level.current_entity = NULL;
+    g_level.currentEntity = NULL;
   });
 
   // let the AI think
@@ -996,22 +996,22 @@ static void G_Restart_f(void) {
  */
 void G_InitNumTeams(void) {
 
-  if (g_level.num_teams == -1) { // set to default, so let's set number of teams
-    g_level.num_teams = 0;
+  if (g_level.numTeams == -1) { // set to default, so let's set number of teams
+    g_level.numTeams = 0;
 
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-      if (!g_team_list[t].spawn_points.count) {
+      if (!g_team_list[t].spawnPoints.count) {
         break;
       }
 
-      g_level.num_teams++;
+      g_level.numTeams++;
     }
 
-    g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
+    g_level.numTeams = Clampf(g_level.numTeams, 2, MAX_TEAMS);
   }
 
-  gi.SetConfigString(CS_NUM_TEAMS, va("%d", g_level.teams ? g_level.num_teams : 0));
+  gi.SetConfigString(CS_NUM_TEAMS, va("%d", g_level.teams ? g_level.numTeams : 0));
 }
 
 /**
@@ -1051,9 +1051,9 @@ void G_Init(void) {
   gi.Print("Game module initialization...\n");
 
   const char *s = va("%s %s", BUILD, VERSION);
-  Cvar *game_version = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+  Cvar *gameVersion = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-  gi.Print("  Version:    ^2%s^7\n", game_version->string);
+  gi.Print("  Version:    ^2%s^7\n", gameVersion->string);
 
   gi.AddCvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
   gi.AddCvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
@@ -1283,16 +1283,16 @@ void G_Shutdown(void) {
 void G_RunTimers(void) {
   uint32_t time = g_level.time;
 
-  if (g_level.time_limit) { // check time_limit
-    if (time >= (uint32_t) g_level.time_limit) {
+  if (g_level.timeLimit) { // check time_limit
+    if (time >= (uint32_t) g_level.timeLimit) {
       gi.BroadcastPrint(PRINT_HIGH, "Time limit hit\n");
       G_EndLevel();
       return;
     }
-    time = g_level.time_limit - g_level.time; // count down
+    time = g_level.timeLimit - g_level.time; // count down
   }
 
-  if (g_level.frame_num % QUETOO_TICK_RATE == 0) { // send time updates once per second
+  if (g_level.frameNum % QUETOO_TICK_RATE == 0) { // send time updates once per second
     gi.SetConfigString(CS_TIME, G_FormatTime(time));
   }
 }
@@ -1318,7 +1318,7 @@ GameExport *G_LoadGame(GameImport *import) {
 
   memset(&ge, 0, sizeof(ge));
 
-  ge.api_version = GAME_API_VERSION;
+  ge.apiVersion = GAME_API_VERSION;
   ge.protocol = PROTOCOL_MINOR;
   ge.cgame = GAME_NAME;
 

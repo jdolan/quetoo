@@ -108,17 +108,17 @@ typedef struct {
   /**
    * @brief Previous distress value, used for debug logging.
    */
-  float last_distress;
+  float lastDistress;
 
   /**
    * @brief Last recorded distance to the goal destination.
    */
-  float last_distance;
+  float lastDistance;
 
   /**
    * @brief When true, extends the distress timeout from 1s to 15s.
    */
-  bool distress_extension;
+  bool distressExtension;
   
   union {
     struct {
@@ -156,24 +156,24 @@ typedef struct {
       /**
        * @brief Spawn ID at goal-set time; used to detect entity reuse.
        */
-      uint8_t spawn_id;
+      uint8_t spawnId;
 
       // specific to combat goal
 
       /**
        * @brief Active combat style against this entity.
        */
-      AiCombatType combat_type;
+      AiCombatType combatType;
 
       /**
        * @brief Level time when the bot first locked on to this enemy.
        */
-      uint32_t lock_on_time;
+      uint32_t lockOnTime;
 
       /**
        * @brief Current flank offset angle for circle-strafing.
        */
-      float flank_angle;
+      float flankAngle;
     } entity;
 
     struct {
@@ -186,40 +186,40 @@ typedef struct {
       /**
        * @brief Index of the current node being navigated toward.
        */
-      uint32_t path_index;
+      uint32_t pathIndex;
 
       /**
        * @brief World positions of current and next node.
        */
-      Vec3 path_position, next_path_position;
+      Vec3 pathPosition, nextPathPosition;
 
       /**
        * @brief Current trick jump state for this path segment.
        */
-      AiTrickJump trick_jump;
+      AiTrickJump trickJump;
 
       /**
        * @brief World position used as the trick jump target.
        */
-      Vec3 trick_position;
+      Vec3 trickPosition;
 
       /**
        * @brief Optional entity the path is leading to.
        */
-      const GameEntity *path_target;
+      const GameEntity *pathTarget;
 
 #if AI_GOAL_HARDENING
       /**
        * @brief Entity slot number of `path_target` at goal-set time; see
        * `entity.number` above.
        */
-      int32_t path_target_number;
+      int32_t pathTargetNumber;
 #endif
 
       /**
        * @brief Spawn ID of `path_target` at goal-set time.
        */
-      uint32_t path_target_spawn_id;
+      uint32_t pathTargetSpawnId;
     } path;
   };
 } AiGoal;
@@ -303,7 +303,7 @@ typedef struct {
   /**
    * @brief Per-bot phase offset for sinusoidal aim wobble.
    */
-  float aim_phase;
+  float aimPhase;
 } AiPersonality;
 
 /**
@@ -324,48 +324,48 @@ typedef struct Ai {
   /**
    * @brief Next think times indexed by `AiFuncGoal`.
    */
-  uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
+  uint32_t funcGoalNextThinks[AI_FUNC_GOAL_TOTAL];
 
   /**
    * @brief Current movement/navigation goal.
    */
-  AiGoal move_target;
+  AiGoal moveTarget;
 
   /**
    * @brief Saved movement goal, restored after a detour.
    */
-  AiGoal backup_move_target;
+  AiGoal backupMoveTarget;
 
   /**
    * @brief Current combat/enemy goal.
    */
-  AiGoal combat_target;
+  AiGoal combatTarget;
 
   /**
    * @brief Next level time to re-evaluate weapon selection.
    */
-  uint32_t weapon_check_time;
+  uint32_t weaponCheckTime;
 
   /**
    * @brief Level time before the bot attempts to reacquire a goal.
    */
-  uint32_t reacquire_time;
+  uint32_t reacquireTime;
 
   /**
    * @brief Random per-bot offset applied to distress jump timing.
    */
-  uint32_t distress_jump_offset;
+  uint32_t distressJumpOffset;
 
   /**
    * @brief Frame number for which the lookahead ground-loss result was computed.
    */
-  uint32_t lookahead_frame;
+  uint32_t lookaheadFrame;
 
   /**
    * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead.
    * Valid only when lookahead_frame == g_level.frame_num.
    */
-  bool lookahead_no_ground;
+  bool lookaheadNoGround;
 } Ai;
 
 #endif

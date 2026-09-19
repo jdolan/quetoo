@@ -33,8 +33,8 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
     return 0;
   }
 
-  for (i = 0; i < max && sv.config_strings[start + i][0]; i++)
-    if (!q_strcmp(sv.config_strings[start + i], name)) {
+  for (i = 0; i < max && sv.configStrings[start + i][0]; i++)
+    if (!q_strcmp(sv.configStrings[start + i], name)) {
       return i;
     }
 
@@ -47,7 +47,7 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
     return 0;
   }
 
-  q_strlcpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
+  q_strlcpy(sv.configStrings[start + i], name, sizeof(sv.configStrings[i]));
 
   if (svs.state != SV_LOADING) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -85,7 +85,7 @@ static int32_t Sv_CreateBaseline(void) {
 
     GameEntity *ent = sv.entities[i].gent;
 
-    if (!ent || !ent->in_use) {
+    if (!ent || !ent->inUse) {
       continue;
     }
 
@@ -132,7 +132,7 @@ static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
   ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++)
     if (cl->state >= SV_CLIENT_CONNECTED) {
-      Netchan_Transmit(&cl->net_chan, net_message.data, net_message.size);
+      Netchan_Transmit(&cl->netChan, net_message.data, net_message.size);
     }
 }
 
@@ -150,7 +150,7 @@ static void Sv_ClearState(void) {
   memset(&sv, 0, sizeof(sv));
   Com_QuitSubsystem(QUETOO_SERVER);
 
-  svs.next_heartbeat = 0;
+  svs.nextHeartbeat = 0;
 }
 
 /**
@@ -180,8 +180,8 @@ static void Sv_InitClients(void) {
  * @brief Allocates the entity state ring buffer used for delta compression.
  */
 static void Sv_InitEntityState(void) {
-  svs.num_entity_states = PACKET_BACKUP * MAX_ENTITIES;
-  svs.entity_states = Mem_TagMalloc(sizeof(EntityState) * svs.num_entity_states, MEM_TAG_SERVER);
+  svs.numEntityStates = PACKET_BACKUP * MAX_ENTITIES;
+  svs.entityStates = Mem_TagMalloc(sizeof(EntityState) * svs.numEntityStates, MEM_TAG_SERVER);
 }
 
 /**
@@ -201,8 +201,8 @@ static void Sv_ShutdownClients(void) {
   Mem_Free(svs.clients);
   svs.clients = NULL;
 
-  Mem_Free(svs.entity_states);
-  svs.entity_states = NULL;
+  Mem_Free(svs.entityStates);
+  svs.entityStates = NULL;
 }
 
 /**
@@ -221,15 +221,15 @@ static void Sv_ReconnectClients(void) {
     }
 
     // invalidate last frame to force a baseline
-    svs.clients[i].last_frame = -1;
-    svs.clients[i].last_message = quetoo.ticks;
+    svs.clients[i].lastFrame = -1;
+    svs.clients[i].lastMessage = quetoo.ticks;
 
     // and discard the previous map's latency samples, which this map's frames do not answer
     // for, along with the frames themselves: their send times outlive the frame numbering that
     // reaches back for them, and would otherwise answer an early acknowledgement on the new map
     memset(svs.clients[i].frames, 0, sizeof(svs.clients[i].frames));
-    svs.clients[i].frame_latency_index = 0;
-    svs.clients[i].frame_latency_count = 0;
+    svs.clients[i].frameLatencyIndex = 0;
+    svs.clients[i].frameLatencyCount = 0;
   }
 }
 
@@ -261,7 +261,7 @@ static void Sv_InitEntities(ServerState state) {
     Sv_ReconnectClients();
   }
 
-  svs.spawn_count++;
+  svs.spawnCount++;
 }
 
 /**
@@ -272,12 +272,12 @@ static void Sv_InitEntities(ServerState state) {
 static void Sv_LoadMedia(const char *name, const CmEntity *props, ServerState state) {
 
   strcpy(sv.name, name);
-  strcpy(sv.config_strings[CS_MESSAGE], name);
+  strcpy(sv.configStrings[CS_MESSAGE], name);
 
   if (state == SV_ACTIVE_DEMO) { // loading a demo
     Cvar_ForceSetString(sv_map->name, "");
 
-    svs.spawn_count = 0;
+    svs.spawnCount = 0;
 
     Sv_LoadDemo();
 
@@ -285,26 +285,26 @@ static void Sv_LoadMedia(const char *name, const CmEntity *props, ServerState st
   } else { // loading a map
     Cvar_ForceSetString(sv_map->name, sv.name);
 
-    q_snprintf(sv.config_strings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
+    q_snprintf(sv.configStrings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
-    sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], NULL);
+    sv.cmModels[0] = Cm_LoadBspModel(sv.configStrings[CS_BSP], NULL);
 
     // advertise the bsp we actually loaded, so that a client can prove it loaded
     // the same one. Hashing the file rather than trusting our own manifest: a
     // stale .mf would otherwise have us reject correct clients
-    if (!Cm_HashFile(sv.config_strings[CS_BSP], sv.config_strings[CS_BSP_HASH], MAX_STRING_CHARS)) {
-      Com_Error(ERROR_DROP, "Failed to hash %s\n", sv.config_strings[CS_BSP]);
+    if (!Cm_HashFile(sv.configStrings[CS_BSP], sv.configStrings[CS_BSP_HASH], MAX_STRING_CHARS)) {
+      Com_Error(ERROR_DROP, "Failed to hash %s\n", sv.configStrings[CS_BSP]);
     }
 
-    const char *dir = Fs_RealDir(sv.config_strings[CS_BSP]);
-    const size_t dir_len = q_strlen(dir);
-    if (dir_len >= 4 && !q_strcmp(dir + dir_len - 4, ".pk3")) {
-      q_strlcpy(sv.config_strings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
+    const char *dir = Fs_RealDir(sv.configStrings[CS_BSP]);
+    const size_t dirLen = q_strlen(dir);
+    if (dirLen >= 4 && !q_strcmp(dir + dirLen - 4, ".pk3")) {
+      q_strlcpy(sv.configStrings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
     } else {
-      sv.config_strings[CS_PK3][0] = '\0';
+      sv.configStrings[CS_PK3][0] = '\0';
     }
 
-    q_snprintf(sv.config_strings[CS_MANIFEST], MAX_STRING_CHARS, "maps/%s.mf", sv.name);
+    q_snprintf(sv.configStrings[CS_MANIFEST], MAX_STRING_CHARS, "maps/%s.mf", sv.name);
 
     for (int32_t i = 0; i < Cm_NumModels(); i++) {
 
@@ -312,19 +312,19 @@ static void Sv_LoadMedia(const char *name, const CmEntity *props, ServerState st
         Com_Error(ERROR_DROP, "Sub-model count exceeds protocol limits\n");
       }
 
-      char *s = sv.config_strings[CS_MODELS + i];
+      char *s = sv.configStrings[CS_MODELS + i];
       q_snprintf(s, MAX_STRING_CHARS, "*%d", i);
 
-      sv.cm_models[i] = Cm_Model(s);
+      sv.cmModels[i] = Cm_Model(s);
     }
 
     svs.state = SV_LOADING;
 
     Sv_SpawnEntities(name, props);
 
-    const int32_t num_entities = Sv_CreateBaseline();
+    const int32_t numEntities = Sv_CreateBaseline();
 
-    Com_Print("  Loaded map %s, %d entities.\n", sv.name, num_entities);
+    Com_Print("  Loaded map %s, %d entities.\n", sv.name, numEntities);
   }
 
 }
@@ -364,7 +364,7 @@ void Sv_InitServer(const char *name, const CmEntity *props, ServerState state) {
 
   Net_Config(NS_UDP_SERVER, true);
 
-  Mem_InitBuffer(&sv.multicast, sv.multicast_buffer, sizeof(sv.multicast_buffer));
+  Mem_InitBuffer(&sv.multicast, sv.multicastBuffer, sizeof(sv.multicastBuffer));
 
   // initialize entities, reloading the game module if necessary
   Sv_InitEntities(state);

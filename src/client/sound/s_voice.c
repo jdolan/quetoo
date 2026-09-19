@@ -92,9 +92,9 @@ static struct {
   bool transmitting;
   bool enabled;
 
-  bool capture_silent;
-  int32_t silent_frames;
-  float capture_peak;
+  bool captureSilent;
+  int32_t silentFrames;
+  float capturePeak;
 
   OpusEncoder *encoder;
 
@@ -109,12 +109,12 @@ static struct {
     uint8_t channel;
   } out[VOICE_OUT_FRAMES];
 
-  int32_t out_head;
-  int32_t out_tail;
+  int32_t outHead;
+  int32_t outTail;
   // deliberately never reset: a listener measures the gap between sequence numbers to conceal
   // losses, and restarting at zero would read as a jump backwards whenever the final frame of the
   // previous transmission went missing, concealing frames that were never sent
-  uint8_t out_seq;
+  uint8_t outSeq;
   bool ending;
 
   uint8_t channel;
@@ -148,23 +148,23 @@ static float S_VoiceGain(void) {
  */
 static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
 
-  if (s_voice_state.capture_silent) {
+  if (s_voice_state.captureSilent) {
     return;
   }
 
   for (size_t i = 0; i < count; i++) {
     if (samples[i]) {
-      s_voice_state.silent_frames = 0;
+      s_voice_state.silentFrames = 0;
       return;
     }
   }
 
-  if (++s_voice_state.silent_frames == (1000 / VOICE_FRAME_MILLIS) * 3) {
+  if (++s_voice_state.silentFrames == (1000 / VOICE_FRAME_MILLIS) * 3) {
     Com_Warn("Capture device yielded only silence for 3 seconds.\n"
              "Check that microphone access is granted, and that the device is not muted.\n"
              "Run s_capture_device_list and set s_capture_device to choose another.\n");
 
-    s_voice_state.capture_silent = true;
+    s_voice_state.captureSilent = true;
   }
 }
 
@@ -192,17 +192,17 @@ static float S_CaptureNormalize(const int16_t *samples, size_t count) {
     }
   }
 
-  if (peak > s_voice_state.capture_peak) {
-    s_voice_state.capture_peak = peak;
+  if (peak > s_voice_state.capturePeak) {
+    s_voice_state.capturePeak = peak;
   } else {
-    s_voice_state.capture_peak += (peak - s_voice_state.capture_peak) * 0.05f;
+    s_voice_state.capturePeak += (peak - s_voice_state.capturePeak) * 0.05f;
   }
 
-  if (s_voice_state.capture_peak < 64.f) {
+  if (s_voice_state.capturePeak < 64.f) {
     return 1.f;
   }
 
-  return Clampf((INT16_MAX * 0.6f) / s_voice_state.capture_peak, 1.f, 16.f);
+  return Clampf((INT16_MAX * 0.6f) / s_voice_state.capturePeak, 1.f, 16.f);
 }
 
 /**
@@ -460,15 +460,15 @@ static void S_ExpireSpeakers(void) {
  */
 static void S_EnqueueVoiceFrame(const byte *data, int32_t len, uint8_t flags) {
 
-  if (s_voice_state.out_head - s_voice_state.out_tail == VOICE_OUT_FRAMES) {
-    s_voice_state.out_tail++;
+  if (s_voice_state.outHead - s_voice_state.outTail == VOICE_OUT_FRAMES) {
+    s_voice_state.outTail++;
   }
 
-  const int32_t i = s_voice_state.out_head++ % VOICE_OUT_FRAMES;
+  const int32_t i = s_voice_state.outHead++ % VOICE_OUT_FRAMES;
 
   memcpy(s_voice_state.out[i].data, data, len);
   s_voice_state.out[i].len = (uint8_t) len;
-  s_voice_state.out[i].seq = s_voice_state.out_seq++;
+  s_voice_state.out[i].seq = s_voice_state.outSeq++;
   s_voice_state.out[i].flags = flags;
   s_voice_state.out[i].channel = s_voice_state.channel;
 }
@@ -489,9 +489,9 @@ int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel) 
 
   SDL_LockMutex(s_voice_state.mutex);
 
-  if (s_voice_state.out_head != s_voice_state.out_tail) {
+  if (s_voice_state.outHead != s_voice_state.outTail) {
 
-    const int32_t i = s_voice_state.out_tail++ % VOICE_OUT_FRAMES;
+    const int32_t i = s_voice_state.outTail++ % VOICE_OUT_FRAMES;
 
     len = s_voice_state.out[i].len;
 
@@ -553,7 +553,7 @@ static void S_PumpVoice(void) {
       S_EnqueueVoiceFrame(s_voice_state.payload, len, 0);
 
       if (s_voice_loopback->integer) {
-        S_AddVoice_(VOICE_SELF, s_voice_state.out_seq - 1, 0, s_voice_state.payload, len);
+        S_AddVoice_(VOICE_SELF, s_voice_state.outSeq - 1, 0, s_voice_state.payload, len);
       }
     }
   }
@@ -611,9 +611,9 @@ void S_StartVoice(uint8_t channel) {
     s_voice_state.channel = channel;
     s_voice_state.ending = false;
 
-    s_voice_state.capture_silent = false;
-    s_voice_state.silent_frames = 0;
-    s_voice_state.capture_peak = 0.f;
+    s_voice_state.captureSilent = false;
+    s_voice_state.silentFrames = 0;
+    s_voice_state.capturePeak = 0.f;
 
     S_ResumeCapture();
 
@@ -718,7 +718,7 @@ void S_StopVoices(void) {
     S_ReleaseSpeaker(s_voice_state.speakers + i);
   }
 
-  s_voice_state.out_head = s_voice_state.out_tail = 0;
+  s_voice_state.outHead = s_voice_state.outTail = 0;
 
   SDL_UnlockMutex(s_voice_state.mutex);
 }

@@ -57,8 +57,8 @@ static CmTrace Test_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
   const float to = end.z + bounds.mins.z;
 
   if (from < TEST_FLOOR) { // started inside the floor
-    trace.start_solid = true;
-    trace.all_solid = to < TEST_FLOOR;
+    trace.startSolid = true;
+    trace.allSolid = to < TEST_FLOOR;
     trace.fraction = 0.f;
     trace.end = start;
     trace.plane.normal = Vec3_Up();
@@ -112,22 +112,22 @@ static PlayerMove Test_Move(PlayerMovement movement) {
   } else { // Quetoo's follows the server's cvars, which a test has none of
     pm.s.params = (PlayerMoveParams) {
       .gravity = 800,
-      .accel_ground = PM_ACCEL_GROUND,
-      .accel_air = PM_ACCEL_AIR,
-      .friction_ground = PM_FRICT_GROUND,
-      .friction_air = PM_FRICT_AIR,
-      .speed_ground = PM_SPEED_RUN,
-      .speed_air = PM_SPEED_AIR,
-      .speed_water = PM_SPEED_WATER,
-      .accel_water = PM_ACCEL_WATER,
-      .friction_water = PM_FRICT_WATER,
-      .speed_stop = PM_SPEED_STOP,
-      .speed_jump = PM_SPEED_JUMP,
-      .speed_ducked = PM_SPEED_DUCKED,
-      .speed_duck_stand = PM_SPEED_DUCK_STAND,
+      .accelGround = PM_ACCEL_GROUND,
+      .accelAir = PM_ACCEL_AIR,
+      .frictionGround = PM_FRICT_GROUND,
+      .frictionAir = PM_FRICT_AIR,
+      .speedGround = PM_SPEED_RUN,
+      .speedAir = PM_SPEED_AIR,
+      .speedWater = PM_SPEED_WATER,
+      .accelWater = PM_ACCEL_WATER,
+      .frictionWater = PM_FRICT_WATER,
+      .speedStop = PM_SPEED_STOP,
+      .speedJump = PM_SPEED_JUMP,
+      .speedDucked = PM_SPEED_DUCKED,
+      .speedDuckStand = PM_SPEED_DUCK_STAND,
       .bounds = PM_BOUNDS,
-      .bounds_ducked = PM_CROUCHED_BOUNDS,
-      .bounds_dead = PM_DEAD_BOUNDS,
+      .boundsDucked = PM_CROUCHED_BOUNDS,
+      .boundsDead = PM_DEAD_BOUNDS,
     };
   }
 
@@ -342,7 +342,7 @@ START_TEST(check_Air_ControlAngles) {
     PlayerMove pm = Test_Move(movements[i]);
 
     pm.s.origin.z = 8192.f;
-    pm.s.velocity = MakeVec3(pm.s.params.speed_ground, 0.f, 0.f);
+    pm.s.velocity = MakeVec3(pm.s.params.speedGround, 0.f, 0.f);
 
     const float before = Vec2_Length(Vec3_XY(pm.s.velocity));
 
@@ -408,14 +408,14 @@ START_TEST(check_Quake2_Ducks) {
 
   ck_assert_msg(pm.s.flags & PMF_DUCKED, "did not duck on the ground");
   ck_assert_msg(pm.bounds.maxs.z == 4.f, "ducked to %g, expected 4", pm.bounds.maxs.z);
-  ck_assert_msg(pm.s.view_offset.z == -2.f,
-                "the ducked eye was at %g, expected -2", pm.s.view_offset.z);
+  ck_assert_msg(pm.s.viewOffset.z == -2.f,
+                "the ducked eye was at %g, expected -2", pm.s.viewOffset.z);
 
   Test_Command(&pm, 0, 0, 0);
 
   ck_assert_msg(!(pm.s.flags & PMF_DUCKED), "did not stand back up");
-  ck_assert_msg(pm.s.view_offset.z == 22.f,
-                "the standing eye was at %g, expected 22", pm.s.view_offset.z);
+  ck_assert_msg(pm.s.viewOffset.z == 22.f,
+                "the standing eye was at %g, expected 22", pm.s.viewOffset.z);
 } END_TEST
 
 /**
@@ -551,14 +551,14 @@ START_TEST(check_Quake3_DucksInAir) {
 
   ck_assert_msg(pm.s.flags & PMF_DUCKED, "did not duck on the ground");
   ck_assert_msg(pm.bounds.maxs.z == 16.f, "ducked to %g, expected 16", pm.bounds.maxs.z);
-  ck_assert_msg(pm.s.view_offset.z == 12.f,
-                "the ducked eye was at %g, expected 12", pm.s.view_offset.z);
+  ck_assert_msg(pm.s.viewOffset.z == 12.f,
+                "the ducked eye was at %g, expected 12", pm.s.viewOffset.z);
 
   Test_Command(&pm, 0, 0, 0);
 
   ck_assert_msg(!(pm.s.flags & PMF_DUCKED), "did not stand back up");
-  ck_assert_msg(pm.s.view_offset.z == 26.f,
-                "the standing eye was at %g, expected 26", pm.s.view_offset.z);
+  ck_assert_msg(pm.s.viewOffset.z == 26.f,
+                "the standing eye was at %g, expected 26", pm.s.viewOffset.z);
 
   // and airborne, where Quake II refuses
   PlayerMove air = Test_Move(PM_MOVEMENT_QUAKE3);
@@ -625,18 +625,18 @@ START_TEST(check_Movement_BoxAndEye) {
   ck_assert_msg(quetoo.bounds.maxs.z == 36.f,
                 "Quetoo stood %g tall, expected 36", quetoo.bounds.maxs.z);
 
-  ck_assert_msg(quake.s.view_offset.z == 22.f,
-                "Quake's eye was at %g, expected 22", quake.s.view_offset.z);
+  ck_assert_msg(quake.s.viewOffset.z == 22.f,
+                "Quake's eye was at %g, expected 22", quake.s.viewOffset.z);
 
   PlayerMove race = Test_Move(PM_MOVEMENT_RACE);
   Test_Command(&race, 0, 0, 0);
 
   ck_assert_msg(race.bounds.maxs.z == 32.f,
                 "racing stood %g tall, expected 32", race.bounds.maxs.z);
-  ck_assert_msg(race.s.view_offset.z == 22.f,
-                "racing's eye was at %g, expected 22", race.s.view_offset.z);
-  ck_assert_msg(fabsf(quetoo.s.view_offset.z - 30.f) < .01f,
-                "Quetoo's eye was at %g, expected 30", quetoo.s.view_offset.z);
+  ck_assert_msg(race.s.viewOffset.z == 22.f,
+                "racing's eye was at %g, expected 22", race.s.viewOffset.z);
+  ck_assert_msg(fabsf(quetoo.s.viewOffset.z - 30.f) < .01f,
+                "Quetoo's eye was at %g, expected 30", quetoo.s.viewOffset.z);
 } END_TEST
 
 /**
@@ -689,7 +689,7 @@ START_TEST(check_Movement_CorpseBox) {
 
   const struct {
     PlayerMovement movement;
-    float maxs_z, eye_z;
+    float maxsZ, eyeZ;
   } expected[] = {
     { PM_MOVEMENT_QUETOO, -4.f, -16.f }, // Quetoo's own corpse
     { PM_MOVEMENT_QUAKE,  -4.f, -16.f }, // QuakeWorld resized nothing on death
@@ -705,14 +705,14 @@ START_TEST(check_Movement_CorpseBox) {
 
     const char *name = Pm_Movement(expected[i].movement)->name;
 
-    ck_assert_msg(pm.bounds.maxs.z == expected[i].maxs_z,
+    ck_assert_msg(pm.bounds.maxs.z == expected[i].maxsZ,
                   "%s's corpse topped out at %g, expected %g",
-                  name, pm.bounds.maxs.z, expected[i].maxs_z);
+                  name, pm.bounds.maxs.z, expected[i].maxsZ);
     ck_assert_msg(pm.bounds.mins.z == -24.f,
                   "%s's corpse stood on %g, expected -24", name, pm.bounds.mins.z);
-    ck_assert_msg(pm.s.view_offset.z == expected[i].eye_z,
+    ck_assert_msg(pm.s.viewOffset.z == expected[i].eyeZ,
                   "%s's corpse looked from %g, expected %g",
-                  name, pm.s.view_offset.z, expected[i].eye_z);
+                  name, pm.s.viewOffset.z, expected[i].eyeZ);
   }
 } END_TEST
 

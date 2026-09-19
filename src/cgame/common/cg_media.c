@@ -143,7 +143,7 @@ void Cg_CreateFramebuffer(void) {
   
   Cg_DestroyFramebuffer();
 
-  const SDL_Rect rect = cgi.context->window_bounds;
+  const SDL_Rect rect = cgi.context->windowBounds;
 
   // Color 0: the HDR scene, cleared opaque black. Color 1: a float depth copy
   // (gl_FragCoord.z) the sprite pass samples for soft particles -- double
@@ -174,21 +174,21 @@ void Cg_DestroyFramebuffer(void) {
 /**
  * @brief Loads a numbered atlas image sequence and returns it as an animation.
  */
-static RenderAnimation *Cg_LoadAnimatedSprite(RenderAtlas *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
-  assert(last_frame > first_frame);
+static RenderAnimation *Cg_LoadAnimatedSprite(RenderAtlas *atlas, char *basePath, char *seqNumFmt, uint32_t firstFrame, uint32_t lastFrame) {
+  assert(lastFrame > firstFrame);
 
-  char format_path[MAX_QPATH];
-  q_snprintf(format_path, sizeof(format_path), "%s%s", base_path, seq_num_fmt);
+  char formatPath[MAX_QPATH];
+  q_snprintf(formatPath, sizeof(formatPath), "%s%s", basePath, seqNumFmt);
 
   char name[MAX_QPATH];
-  const uint32_t length = (last_frame - first_frame) + 1;
+  const uint32_t length = (lastFrame - firstFrame) + 1;
   const RenderImage *images[length];
   for (uint32_t i = 0; i < length; i++) {
-    q_snprintf(name, MAX_QPATH, format_path, i + first_frame);
+    q_snprintf(name, MAX_QPATH, formatPath, i + firstFrame);
     images[i] = (RenderImage *) cgi.LoadAtlasImage(atlas, name, IMG_SPRITE);
   }
 
-  return cgi.CreateAnimation(base_path, length, images);
+  return cgi.CreateAnimation(basePath, length, images);
 }
 
 /**

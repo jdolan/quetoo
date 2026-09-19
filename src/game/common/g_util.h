@@ -34,9 +34,9 @@ void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *
 GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match);
 
 void G_AddSpawn(Vector **spawns, GameEntity *spot);
-void G_CollectSpawns(const char *class_name, Vector **spawns);
+void G_CollectSpawns(const char *className, Vector **spawns);
 void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns);
-GameEntity *G_PickTarget(const char *target_name);
+GameEntity *G_PickTarget(const char *targetName);
 void G_UseTargets(GameEntity *ent, GameEntity *activator);
 void G_SetMoveDir(GameEntity *ent);
 const Gameplay *G_GameplayByName(const char *c);
@@ -61,7 +61,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 { \
   for (int32_t i = 0; i < sv_max_clients->integer; i++) { \
     GameClient *var = ge.clients[i]; \
-    if (var->in_use) { \
+    if (var->inUse) { \
       block; \
     } \
   } \
@@ -71,7 +71,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 { \
   for (int32_t i = 0; i < sv_max_clients->integer; i++) { \
     GameClient *var = ge.clients[i]; \
-    if (!var->in_use) { \
+    if (!var->inUse) { \
       block; \
     } \
   } \
@@ -81,7 +81,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 { \
   for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
     GameEntity *var = ge.entities[i]; \
-    if (var->in_use) { \
+    if (var->inUse) { \
       block; \
     } \
   } \
@@ -91,7 +91,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 { \
   for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
     GameEntity *var = ge.entities[i]; \
-    if (!var->in_use) { \
+    if (!var->inUse) { \
       block; \
     } \
   } \

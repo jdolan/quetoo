@@ -64,7 +64,7 @@ static void Cl_SendConnect(void) {
 
   if (!Net_StringToNetaddr(cls.server.address, &addr)) {
     Com_Print("Bad server address\n");
-    cls.server.connect_time = 0;
+    cls.server.connectTime = 0;
     return;
   }
 
@@ -93,7 +93,7 @@ static void Cl_AttemptConnect(void) {
     q_strlcpy(cls.server.address, "localhost", sizeof(cls.server.address));
 
     cls.state = CL_CONNECTING;
-    cls.server.connect_time = 0;
+    cls.server.connectTime = 0;
   }
 
   // re-send if we haven't received a reply yet
@@ -102,7 +102,7 @@ static void Cl_AttemptConnect(void) {
   }
 
   // don't flood connection packets
-  if (cls.server.connect_time && (quetoo.ticks - cls.server.connect_time < 1000)) {
+  if (cls.server.connectTime && (quetoo.ticks - cls.server.connectTime < 1000)) {
     return;
   }
 
@@ -118,7 +118,7 @@ static void Cl_AttemptConnect(void) {
     addr.port = htons(PORT_SERVER);
   }
 
-  cls.server.connect_time = quetoo.ticks;
+  cls.server.connectTime = quetoo.ticks;
   cls.server.addr = addr;
 
   Cl_QueryServer(&addr);
@@ -147,7 +147,7 @@ void Cl_Connect(const NetAddr *addr) {
   q_strlcpy(cls.server.address, Net_NetaddrToString(addr), sizeof(cls.server.address));
 
   cls.state = CL_CONNECTING;
-  cls.server.connect_time = 0;
+  cls.server.connectTime = 0;
 }
 
 /**
@@ -199,7 +199,7 @@ static void Cl_Rcon_f(void) {
   }
 
   if (cls.state >= CL_CONNECTED) {
-    to = cls.net_chan.remote_address;
+    to = cls.netChan.remoteAddress;
   } else {
     if (*rcon_address->string == '\0') {
       Com_Print("Not connected and no rcon_address set\n");
@@ -234,8 +234,8 @@ void Cl_ForwardCmdToServer(void) {
   const char *cmd = Cmd_Argv(0);
   const char *args = Cmd_Args();
 
-  Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-  Net_WriteString(&cls.net_chan.message, va("%s %s", cmd, args));
+  Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
+  Net_WriteString(&cls.netChan.message, va("%s %s", cmd, args));
 
   //Com_Debug("Forwarding '%s %s'\n", cmd, args);
 }
@@ -275,7 +275,7 @@ void Cl_ClearState(void) {
   // be cleared here: SV_CMD_DEMO_INFO arrives just ahead of the SV_CMD_SERVER_DATA that calls us
   cls.demo.paused = false;
 
-  Mem_ClearBuffer(&cls.net_chan.message);
+  Mem_ClearBuffer(&cls.netChan.message);
 }
 
 /**
@@ -287,7 +287,7 @@ void Cl_SendDisconnect(void) {
   cmd[0] = CL_CMD_STRING;
   strcpy((char *) cmd + 1, "disconnect");
 
-  Netchan_Transmit(&cls.net_chan, cmd, q_strlen((char *) cmd));
+  Netchan_Transmit(&cls.netChan, cmd, q_strlen((char *) cmd));
 }
 
 /**
@@ -315,20 +315,20 @@ void Cl_Disconnect(void) {
   memset(cls.server.address, 0, sizeof(cls.server.address));
   memset(&cls.server.addr, 0, sizeof(cls.server.addr));
 
-  cls.server.connect_time = 0;
+  cls.server.connectTime = 0;
   cls.state = CL_DISCONNECTED;
 
   if (time_demo->value) {
-    const float s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
-    Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
-          cl.time_demo_frames / s);
+    const float s = (quetoo.ticks - cl.timeDemoStart) / 1000.0;
+    Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.timeDemoFrames, s,
+          cl.timeDemoFrames / s);
 
-    cl.time_demo_frames = cl.time_demo_start = 0;
+    cl.timeDemoFrames = cl.timeDemoStart = 0;
   }
 
   Cl_SetKeyDest(KEY_UI);
 
-  cls.broadcast_time = 0;
+  cls.broadcastTime = 0;
 }
 
 /**
@@ -358,7 +358,7 @@ void Cl_Reconnect_f(void) {
       Cl_Disconnect();
     }
 
-    cls.server.connect_time = 0; // fire immediately
+    cls.server.connectTime = 0; // fire immediately
     cls.state = CL_CONNECTING;
   } else {
     Com_Print("No server to reconnect to\n");
@@ -396,10 +396,10 @@ static void Cl_ConnectionlessPacket(void) {
       return;
     }
 
-    Netchan_Setup(NS_UDP_CLIENT, &cls.net_chan, &net_from, qport->integer);
+    Netchan_Setup(NS_UDP_CLIENT, &cls.netChan, &net_from, qport->integer);
 
-    Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-    Net_WriteString(&cls.net_chan.message, "new");
+    Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
+    Net_WriteString(&cls.netChan.message, "new");
 
     cls.state = CL_CONNECTED;
 
@@ -473,12 +473,12 @@ static void Cl_ReadPackets(void) {
     }
 
     // packet from server
-    if (!Net_CompareNetaddr(&net_from, &cls.net_chan.remote_address)) {
+    if (!Net_CompareNetaddr(&net_from, &cls.netChan.remoteAddress)) {
       Com_Debug(DEBUG_CLIENT, "%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
       continue;
     }
 
-    if (!Netchan_Process(&cls.net_chan, &net_message)) {
+    if (!Netchan_Process(&cls.netChan, &net_message)) {
       continue; // wasn't accepted for some reason
     }
 
@@ -488,7 +488,7 @@ static void Cl_ReadPackets(void) {
   // check timeout
   if (cls.state >= CL_CONNECTED) {
 
-    const uint32_t delta = quetoo.ticks - cls.net_chan.last_received;
+    const uint32_t delta = quetoo.ticks - cls.netChan.lastReceived;
     if (delta > cl_timeout->value * 1000) {
       Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&net_from));
       Cl_Disconnect();
@@ -651,28 +651,28 @@ void Cl_Frame(const uint32_t msec) {
   cl.time += msec;
 
   // and the unclamped simulation time
-  cl.unclamped_time += msec;
+  cl.unclampedTime += msec;
 
   // and the pending command duration
-  cl.frame_msec += msec;
+  cl.frameMsec += msec;
 
   // and the total ticks
   cl.ticks = quetoo.ticks;
 
   if (time_demo->value) { // accumulate timed demo statistics
-    if (!cl.time_demo_start) {
-      cl.time_demo_start = quetoo.ticks;
+    if (!cl.timeDemoStart) {
+      cl.timeDemoStart = quetoo.ticks;
     }
-    cl.time_demo_frames++;
+    cl.timeDemoFrames++;
   } else {
-    float target_fps = cl_max_fps->value;
-    if (target_fps == 0.f) {
-      if (r_context.display_mode) {
-        target_fps = r_context.display_mode->refresh_rate;
+    float targetFps = cl_max_fps->value;
+    if (targetFps == 0.f) {
+      if (r_context.displayMode) {
+        targetFps = r_context.displayMode->refresh_rate;
       }
     }
-    if (target_fps > 0.f) { // cap render frame rate
-      if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / target_fps) {
+    if (targetFps > 0.f) { // cap render frame rate
+      if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / targetFps) {
         return;
       }
     }
@@ -692,7 +692,7 @@ void Cl_Frame(const uint32_t msec) {
 
   if (cls.state == CL_ACTIVE) {
 
-    Cl_UpdateMovementCommand(cl.frame_msec);
+    Cl_UpdateMovementCommand(cl.frameMsec);
 
     Cl_SendCommands();
 
@@ -716,7 +716,7 @@ void Cl_Frame(const uint32_t msec) {
   cls.cgame->UpdateDiscord();
 
   frame_timestamp = quetoo.ticks;
-  cl.frame_msec = 0;
+  cl.frameMsec = 0;
 }
 
 /**

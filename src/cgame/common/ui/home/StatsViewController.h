@@ -48,9 +48,9 @@ typedef struct {
   int32_t frags;
   int32_t deaths;
   int32_t captures;
-  int32_t time_played;
+  int32_t timePlayed;
   Nemesis nemesis;
-  KillsByWeapon kills_by_weapon[20];
+  KillsByWeapon killsByWeapon[20];
 } StatsResponse;
 
 /**

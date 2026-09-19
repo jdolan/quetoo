@@ -141,7 +141,7 @@ typedef struct {
   /**
    * @brief Sound to play on pickup.
    */
-  const char *pickup_sound;
+  const char *pickupSound;
 
   /**
    * @brief World model path.
@@ -206,18 +206,18 @@ typedef struct {
   /**
    * @brief RGB color for `EF_LIGHT` emission. Ignored if `light_radius` is 0.
    */
-  Vec3 light_color;
+  Vec3 lightColor;
 
   /**
    * @brief Base radius for `EF_LIGHT` emission. 0 means no light.
    */
-  float light_radius;
+  float lightRadius;
 
   /**
    * @brief Color used by cgame for item pickup / respawn effects.
    * Zero means "use cgame fallback palette".
    */
-  Color effect_color;
+  Color effectColor;
 
 } GameItemDef;
 

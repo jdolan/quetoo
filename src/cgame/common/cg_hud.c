@@ -29,9 +29,9 @@
  */
 static void Cg_UpdateChase(const PlayerState *ps) {
 
-  if (ps->stats[STAT_CHASE] != cg_hud_state.chase_target) {
+  if (ps->stats[STAT_CHASE] != cg_hud_state.chaseTarget) {
     Cg_ClearHud();
-    cg_hud_state.chase_target = ps->stats[STAT_CHASE];
+    cg_hud_state.chaseTarget = ps->stats[STAT_CHASE];
   }
 }
 
@@ -46,8 +46,8 @@ static void Cg_DrawDamageInflicted(const PlayerState *ps) {
 
   const int16_t dmg = ps->stats[STAT_DAMAGE_INFLICT];
   if (dmg) {
-    if (cgi.client->unclamped_time - cg_hud_state.damage.hit_sound_time > 50) {
-      cg_hud_state.damage.hit_sound_time = cgi.client->unclamped_time;
+    if (cgi.client->unclampedTime - cg_hud_state.damage.hitSoundTime > 50) {
+      cg_hud_state.damage.hitSoundTime = cgi.client->unclampedTime;
 
       Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
         .sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0],

@@ -47,7 +47,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
     return;
   }
 
-  switch (cls.key_state.dest) {
+  switch (cls.keyState.dest) {
     case KEY_UI:
       break;
 
@@ -63,10 +63,10 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
         const SDL_Buttoncode scancode = event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN;
         uint32_t *last = scancode == SDL_SCANCODE_MWHEELUP ? &last_up : &last_down;
 
-        if (*last == cl.unclamped_time) {
+        if (*last == cl.unclampedTime) {
           break; // already fired this direction this frame
         }
-        *last = cl.unclamped_time;
+        *last = cl.unclampedTime;
 
         SDL_Event e;
         memset(&e, 0, sizeof(e));
@@ -93,7 +93,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
  */
 void Cl_MouseMotionEvent(const SDL_Event *event) {
 
-  if (cls.key_state.dest != KEY_GAME) {
+  if (cls.keyState.dest != KEY_GAME) {
     return;
   }
 
@@ -102,23 +102,23 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
     m_sensitivity->modified = false;
   }
 
-  cls.mouse_state.old_x = cls.mouse_state.x;
-  cls.mouse_state.old_y = cls.mouse_state.y;
+  cls.mouseState.oldX = cls.mouseState.x;
+  cls.mouseState.oldY = cls.mouseState.y;
 
-  cls.mouse_state.x = event->motion.xrel * m_sensitivity->value;
-  cls.mouse_state.y = event->motion.yrel * m_sensitivity->value;
+  cls.mouseState.x = event->motion.xrel * m_sensitivity->value;
+  cls.mouseState.y = event->motion.yrel * m_sensitivity->value;
 
   if (m_interpolate->value) {
-    cls.mouse_state.x = (cls.mouse_state.x + cls.mouse_state.old_x) * 0.5f;
-    cls.mouse_state.y = (cls.mouse_state.y + cls.mouse_state.old_y) * 0.5f;
+    cls.mouseState.x = (cls.mouseState.x + cls.mouseState.oldX) * 0.5f;
+    cls.mouseState.y = (cls.mouseState.y + cls.mouseState.oldY) * 0.5f;
   }
 
   if (cls.state == CL_ACTIVE) {
     if (m_invert->value) {
-      cls.mouse_state.y = -cls.mouse_state.y;
+      cls.mouseState.y = -cls.mouseState.y;
     }
 
-    cl.angles.y -= m_yaw->value * cls.mouse_state.x;
-    cl.angles.x += m_pitch->value * cls.mouse_state.y;
+    cl.angles.y -= m_yaw->value * cls.mouseState.x;
+    cl.angles.x += m_pitch->value * cls.mouseState.y;
   }
 }

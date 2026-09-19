@@ -277,23 +277,23 @@ static inline Mat4 __attribute__ ((warn_unused_result)) Mat4_FromRotationTransla
  */
 static inline Mat4 __attribute__ ((warn_unused_result)) Mat4_LookAt(const Vec3 eye, const Vec3 pos, const Vec3 up) {
 
-  Vec3 Z = Vec3_Direction(eye, pos);
-  Vec3 X = Vec3_Normalize(Vec3_Cross(up, Z));
-  Vec3 Y = Vec3_Normalize(Vec3_Cross(Z, X));
+  Vec3 z = Vec3_Direction(eye, pos);
+  Vec3 x = Vec3_Normalize(Vec3_Cross(up, z));
+  Vec3 y = Vec3_Normalize(Vec3_Cross(z, x));
 
   Mat4 m;
-  m.m[0][0] = X.x;
-  m.m[1][0] = X.y;
-  m.m[2][0] = X.z;
-  m.m[3][0] = -Vec3_Dot(X, eye);
-  m.m[0][1] = Y.x;
-  m.m[1][1] = Y.y;
-  m.m[2][1] = Y.z;
-  m.m[3][1] = -Vec3_Dot(Y, eye);
-  m.m[0][2] = Z.x;
-  m.m[1][2] = Z.y;
-  m.m[2][2] = Z.z;
-  m.m[3][2] = -Vec3_Dot(Z, eye);
+  m.m[0][0] = x.x;
+  m.m[1][0] = x.y;
+  m.m[2][0] = x.z;
+  m.m[3][0] = -Vec3_Dot(x, eye);
+  m.m[0][1] = y.x;
+  m.m[1][1] = y.y;
+  m.m[2][1] = y.z;
+  m.m[3][1] = -Vec3_Dot(y, eye);
+  m.m[0][2] = z.x;
+  m.m[1][2] = z.y;
+  m.m[2][2] = z.z;
+  m.m[3][2] = -Vec3_Dot(z, eye);
   m.m[0][3] = 0.f;
   m.m[1][3] = 0.f;
   m.m[2][3] = 0.f;
@@ -513,10 +513,10 @@ static inline Mat4 __attribute__ ((warn_unused_result)) Mat4_ConcatRotation(cons
 /**
  * @return The result of the input matrix concatenated with a 3d rotation matrix.
  */
-static inline Mat4 __attribute__ ((warn_unused_result)) Mat4_ConcatRotation3(Mat4 in, const Vec3 euler_angles) {
-  in = Mat4_ConcatRotation(in, euler_angles.x, MakeVec3(1.f, 0.f, 0.f));
-  in = Mat4_ConcatRotation(in, euler_angles.y, MakeVec3(0.f, 1.f, 0.f));
-  in = Mat4_ConcatRotation(in, euler_angles.z, MakeVec3(0.f, 0.f, 1.f));
+static inline Mat4 __attribute__ ((warn_unused_result)) Mat4_ConcatRotation3(Mat4 in, const Vec3 eulerAngles) {
+  in = Mat4_ConcatRotation(in, eulerAngles.x, MakeVec3(1.f, 0.f, 0.f));
+  in = Mat4_ConcatRotation(in, eulerAngles.y, MakeVec3(0.f, 1.f, 0.f));
+  in = Mat4_ConcatRotation(in, eulerAngles.z, MakeVec3(0.f, 0.f, 1.f));
   return in;
 }
 

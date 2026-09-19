@@ -97,8 +97,8 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
     if (other == cl) {
       continue;
     }
-    const char *other_name = InfoString_Get(other->user_info, "name");
-    if (other_name && q_strcmp(other_name, name) == 0) {
+    const char *otherName = InfoString_Get(other->userInfo, "name");
+    if (otherName && q_strcmp(otherName, name) == 0) {
       return true;
     }
   });

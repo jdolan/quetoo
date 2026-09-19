@@ -63,12 +63,12 @@ typedef struct {
   /**
    * @brief Previous (incoming) origin, in case movement fails and must be reverted.
    */
-  Vec3 previous_origin;
+  Vec3 previousOrigin;
 
   /**
    * @brief Previous (incoming) velocity, used for detecting landings.
    */
-  Vec3 previous_velocity;
+  Vec3 previousVelocity;
 
   /**
    * @brief Directional vectors based on command angles, with Z component.
@@ -78,7 +78,7 @@ typedef struct {
   /**
    * @brief Directional vectors without Z component, for air and ground movement.
    */
-  Vec3 forward_xy, right_xy;
+  Vec3 forwardXy, rightXy;
 
   /**
    * @brief The current movement command duration, in seconds.
@@ -93,12 +93,12 @@ typedef struct {
   /**
    * @brief The clipping planes per slide-move.
    */
-  CmBspPlane clip_planes[MAX_CLIP_PLANES];
+  CmBspPlane clipPlanes[MAX_CLIP_PLANES];
 
   /**
    * @brief The number of clipping planes per slide-move.
    */
-  int32_t num_clip_planes;
+  int32_t numClipPlanes;
 
 } PlayerMoveLocals;
 
@@ -113,8 +113,8 @@ extern PlayerMoveLocals pm_locals;
  */
 #define Pm_Debug(...) \
   do { \
-    if (pm->DebugMask() & pm->debug_mask) { \
-      pm->Debug(pm->debug_mask, __func__, __VA_ARGS__); \
+    if (pm->DebugMask() & pm->debugMask) { \
+      pm->Debug(pm->debugMask, __func__, __VA_ARGS__); \
     } \
   } while (0)
 

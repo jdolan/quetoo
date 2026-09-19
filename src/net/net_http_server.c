@@ -25,9 +25,9 @@
 /**
  * @brief Construct an HTTP URL from a `NetAddr` and path.
  */
-int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t buf_size) {
+int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t bufSize) {
 
-  return q_snprintf(buf, buf_size, "http://%s:%d/%s",
+  return q_snprintf(buf, bufSize, "http://%s:%d/%s",
                     Net_NetaddrToIpString(addr),
                     ntohs(addr->port),
                     path);
@@ -36,40 +36,40 @@ int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t buf
 /**
  * @brief Parse the request line of an HTTP request.
  */
-bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_size,
-                              char *path, size_t path_size) {
+bool Net_HttpParseRequestLine(const char *request, char *method, size_t methodSize,
+                              char *path, size_t pathSize) {
 
   const char *space = q_strchr(request, ' ');
   if (!space) {
     return false;
   }
 
-  const size_t method_len = space - request;
-  if (method_len >= method_size) {
+  const size_t methodLen = space - request;
+  if (methodLen >= methodSize) {
     return false;
   }
 
-  memcpy(method, request, method_len);
-  method[method_len] = '\0';
+  memcpy(method, request, methodLen);
+  method[methodLen] = '\0';
 
   // skip the space and leading slash
-  const char *path_start = space + 1;
-  if (*path_start == '/') {
-    path_start++;
+  const char *pathStart = space + 1;
+  if (*pathStart == '/') {
+    pathStart++;
   }
 
-  const char *path_end = q_strchr(path_start, ' ');
-  if (!path_end) {
+  const char *pathEnd = q_strchr(pathStart, ' ');
+  if (!pathEnd) {
     return false;
   }
 
-  const size_t path_len = path_end - path_start;
-  if (path_len >= path_size) {
+  const size_t pathLen = pathEnd - pathStart;
+  if (pathLen >= pathSize) {
     return false;
   }
 
-  memcpy(path, path_start, path_len);
-  path[path_len] = '\0';
+  memcpy(path, pathStart, pathLen);
+  path[pathLen] = '\0';
 
   return true;
 }
@@ -78,24 +78,24 @@ bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_s
  * @brief Format an HTTP/1.0 response header into a buffer.
  */
 int32_t Net_HttpFormatResponse(int32_t status, const char *reason,
-                               const char *content_type, int64_t content_length,
-                               char *buf, size_t buf_size) {
+                               const char *contentType, int64_t contentLength,
+                               char *buf, size_t bufSize) {
 
-  if (content_type) {
-    return q_snprintf(buf, buf_size,
+  if (contentType) {
+    return q_snprintf(buf, bufSize,
       "HTTP/1.0 %d %s\r\n"
       "Connection: close\r\n"
       "Content-Length: %" PRId64 "\r\n"
       "Content-Type: %s\r\n"
       "\r\n",
-      status, reason, content_length, content_type);
+      status, reason, contentLength, contentType);
   } else {
-    return q_snprintf(buf, buf_size,
+    return q_snprintf(buf, bufSize,
       "HTTP/1.0 %d %s\r\n"
       "Connection: close\r\n"
       "Content-Length: %" PRId64 "\r\n"
       "\r\n",
-      status, reason, content_length);
+      status, reason, contentLength);
   }
 }
 

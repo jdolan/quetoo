@@ -24,7 +24,7 @@
 #include "s_types.h"
 
 void S_BeginLoading(void);
-void S_LoadClientModelSamples(const char *model, const char *sound_set);
+void S_LoadClientModelSamples(const char *model, const char *soundSet);
 void S_EndLoading(void);
 
 #if defined(__S_LOCAL_H__)

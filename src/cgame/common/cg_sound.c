@@ -31,7 +31,7 @@ void Cg_PrepareStage(const ClientFrame *frame) {
   cgi.stage->forward = cgi.view->forward;
   cgi.stage->right = cgi.view->right;
   cgi.stage->up = cgi.view->up;
-  cgi.stage->velocity = frame->ps.pm_state.velocity;
+  cgi.stage->velocity = frame->ps.pmState.velocity;
   cgi.stage->contents = cgi.view->contents;
 }
 
@@ -46,13 +46,13 @@ void Cg_ParseSound(void) {
 
   const byte flags = cgi.ReadByte();
 
-  const uint8_t sample_index = cgi.ReadByte();
+  const uint8_t sampleIndex = cgi.ReadByte();
   SoundPlaySample play = {
-    .sample = cgi.client->sounds[sample_index]
+    .sample = cgi.client->sounds[sampleIndex]
   };
 
   if (!play.sample) {
-    Cg_Warn("NULL sample for sound index %u\n", sample_index);
+    Cg_Warn("NULL sample for sound index %u\n", sampleIndex);
   }
 
   if (flags & SOUND_ENTITY) {
@@ -61,7 +61,7 @@ void Cg_ParseSound(void) {
     const ClientEntity *ent = &cgi.client->entities[number];
     play.entity = ent;
     if (ent->current.solid == SOLID_BSP) {
-      play.origin = Box3_Center(ent->abs_bounds);
+      play.origin = Box3_Center(ent->absBounds);
     } else {
       play.origin = ent->current.origin;
       if (play.sample && play.sample->media.name[0] == '*') {
@@ -110,7 +110,7 @@ static void Cg_PlaySampleThink(const SoundStage *stage, SoundPlaySample *play) {
     if (ent == Cg_Self()) {
       play->flags |= S_PLAY_RELATIVE;
     } else if (ent->current.solid == SOLID_BSP) {
-      play->origin = Box3_ClampPoint(ent->abs_bounds, stage->origin);
+      play->origin = Box3_ClampPoint(ent->absBounds, stage->origin);
       play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
     } else {
       play->origin = ent->origin;

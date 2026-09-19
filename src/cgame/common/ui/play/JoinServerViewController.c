@@ -208,7 +208,7 @@ static void refreshDetails(JoinServerViewController *self) {
   setLabelText(self->mapLabel, *server->name ? server->name : _unset);
   setLabelText(self->gameplayLabel, *server->gameplay ? server->gameplay : _unset);
   setLabelText(self->movementLabel, *server->movement ? server->movement : _unset);
-  setLabelText(self->playersLabel, va("%d / %d", server->clients, server->max_clients));
+  setLabelText(self->playersLabel, va("%d / %d", server->clients, server->maxClients));
   setLabelText(self->pingLabel, pingUnanswered(server) ? _unset : va("%d ms", server->ping));
 
   $((View *) self->connectButton, setVisibility, ViewVisibilityVisible);
@@ -289,10 +289,10 @@ static void didClickQuickJoin(Button *button) {
 
   JoinServerViewController *this = button->delegate.self;
 
-  const int32_t max_ping = maxPing();
-  const int32_t min_clients = Clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
+  const int32_t maxPingValue = maxPing();
+  const int32_t minClients = Clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
-  uint32_t total_weight = 0;
+  uint32_t totalWeight = 0;
 
   const size_t count = this->servers ? this->servers->count : 0;
 
@@ -301,49 +301,49 @@ static void didClickQuickJoin(Button *button) {
 
     int32_t weight = 1;
 
-    if (!(server->clients < min_clients || server->clients >= server->max_clients)) {
+    if (!(server->clients < minClients || server->clients >= server->maxClients)) {
       // more weight for more populated servers
-      weight += (server->clients - min_clients) * 5;
+      weight += (server->clients - minClients) * 5;
 
       // more weight for lower ping servers
-      weight += (max_ping - server->ping) / 10;
+      weight += (maxPingValue - server->ping) / 10;
 
-      if (server->ping > max_ping) { // one third weight for high ping servers
+      if (server->ping > maxPingValue) { // one third weight for high ping servers
         weight /= 3;
       }
     }
 
-    total_weight += max(weight, 1);
+    totalWeight += max(weight, 1);
   }
 
-  if (total_weight == 0) {
+  if (totalWeight == 0) {
     return;
   }
 
-  const uint32_t random_weight = RandomRangeu(0, total_weight);
-  uint32_t current_weight = 0;
+  const uint32_t randomWeight = RandomRangeu(0, totalWeight);
+  uint32_t currentWeight = 0;
 
   for (size_t i = 0; i < count; i++) {
     const ClientServerInfo *server = $(this->servers, get, i);
 
     int32_t weight = 1;
 
-    if (server->ping > max_ping ||
-      server->clients < min_clients ||
-      server->clients >= server->max_clients) {
+    if (server->ping > maxPingValue ||
+      server->clients < minClients ||
+      server->clients >= server->maxClients) {
 
       weight = 0;
     } else {
       // more weight for more populated servers
-      weight += server->clients - min_clients;
+      weight += server->clients - minClients;
 
       // more weight for lower ping servers
-      weight += (max_ping - server->ping) / 20;
+      weight += (maxPingValue - server->ping) / 20;
     }
 
-    current_weight += weight;
+    currentWeight += weight;
 
-    if (current_weight > random_weight) {
+    if (currentWeight > randomWeight) {
       cgi.Connect(&server->addr);
       break;
     }
@@ -405,7 +405,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   } else if (q_strcmp(column->identifier, _map) == 0) {
     $(cell->text, setText, server->name);
   } else if (q_strcmp(column->identifier, _players) == 0) {
-    $(cell->text, setText, va("%d / %d", server->clients, server->max_clients));
+    $(cell->text, setText, va("%d / %d", server->clients, server->maxClients));
   } else if (q_strcmp(column->identifier, _ping) == 0) {
 
     if (pingUnanswered(server)) {

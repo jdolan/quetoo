@@ -66,7 +66,7 @@ typedef struct {
   /**
    * @brief Inverse of matrix, used to bring traces into model space.
    */
-  Mat4 inverse_matrix;
+  Mat4 inverseMatrix;
 } ServerEntity;
 
 /**
@@ -82,7 +82,7 @@ typedef struct {
   /**
    * @brief Current simulation frame number.
    */
-  uint32_t frame_num;
+  uint32_t frameNum;
 
   /**
    * @brief Map name, e.g. "maps/edge".
@@ -92,12 +92,12 @@ typedef struct {
   /**
    * @brief Collision models; [0] is worldspawn, rest are inline models.
    */
-  CmBspModel *cm_models[MAX_MODELS];
+  CmBspModel *cmModels[MAX_MODELS];
 
   /**
    * @brief Config strings enumerating all loaded assets (models, sounds, skins, etc.).
    */
-  char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
+  char configStrings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
   /**
    * @brief Server-side entity array.
@@ -112,44 +112,44 @@ typedef struct {
   /**
    * @brief Backing storage for the multicast buffer.
    */
-  byte multicast_buffer[MAX_MSG_SIZE];
+  byte multicastBuffer[MAX_MSG_SIZE];
 
   /**
    * @brief Open demo file for demo playback, or `NULL` during live gameplay.
    */
-  File *demo_file;
+  File *demoFile;
 
   /**
    * @brief The fixed-size header read from `demo_file`, for demo playback.
    */
-  DemoHeader demo_header;
+  DemoHeader demoHeader;
 
   /**
    * @brief The keyframe table read from `demo_file`, for demo playback seeking.
    */
-  DemoKeyframe *demo_keyframes;
+  DemoKeyframe *demoKeyframes;
 
   /**
    * @brief The number of entries in `demo_keyframes`.
    */
-  int32_t num_demo_keyframes;
+  int32_t numDemoKeyframes;
 
   /**
    * @brief The frame number of the most recently read demo message, for demo playback.
    */
-  int32_t demo_frame_num;
+  int32_t demoFrameNum;
 
   /**
    * @brief True if demo playback is currently paused.
    */
-  bool demo_paused;
+  bool demoPaused;
 
   /**
    * @brief Set by `Sv_SeekDemo` to release exactly one frame even while paused. Without it a
    * seek issued from the paused transport controls would move the file position but transmit
    * nothing, leaving the viewer on the old frame until playback resumed somewhere unexpected.
    */
-  bool demo_step;
+  bool demoStep;
 } Server;
 
 /**
@@ -167,17 +167,17 @@ typedef struct {
   /**
    * @brief Number of delta-compressed entities in this frame.
    */
-  int16_t num_entities;
+  int16_t numEntities;
 
   /**
    * @brief Index into the entity state circular buffer.
    */
-  uint32_t entity_state;
+  uint32_t entityState;
 
   /**
    * @brief Server time when this frame was dispatched, used to calculate ping.
    */
-  uint32_t sent_time;
+  uint32_t sentTime;
 } ServerClientFrame;
 
 /**
@@ -267,7 +267,7 @@ typedef struct {
 typedef struct {
   int32_t socket;
   char request[1024];
-  int32_t request_len;
+  int32_t requestLen;
   byte *data;
   int32_t size;
   int32_t count;
@@ -286,13 +286,13 @@ typedef struct {
   /**
    * @brief Voice chat budget, in bytes, refilled over time and spent on transmission.
    */
-  int32_t voice_bytes;
-  uint32_t voice_time;
+  int32_t voiceBytes;
+  uint32_t voiceTime;
 
   /**
    * @brief Mask of clients this one has muted; their voice is never relayed here.
    */
-  uint64_t voice_mutes;
+  uint64_t voiceMutes;
 
   /**
    * @brief Connection state of this client slot.
@@ -302,7 +302,7 @@ typedef struct {
   /**
    * @brief Raw user-info key-value string.
    */
-  char user_info[MAX_INFO_STRING_STRING];
+  char userInfo[MAX_INFO_STRING_STRING];
 
   /**
    * @brief Player name extracted from `user_info`, stripped of color codes.
@@ -312,22 +312,22 @@ typedef struct {
   /**
    * @brief Minimum print level for chat messages delivered to this client.
    */
-  int32_t message_level;
+  int32_t messageLevel;
 
   /**
    * @brief Last acknowledged frame number for delta compression; -1 sends baselines.
    */
-  int32_t last_frame;
+  int32_t lastFrame;
 
   /**
    * @brief Accumulated movement command duration; exceeding server elapsed time indicates cheating.
    */
-  uint32_t cmd_msec;
+  uint32_t cmdMsec;
 
   /**
    * @brief Consecutive anti-cheat violation count for `cmd_msec` drift.
    */
-  uint16_t cmd_msec_errors;
+  uint16_t cmdMsecErrors;
 
   /**
    * @brief Ring buffer of recent per-frame delivery timestamps for ping estimation.
@@ -335,19 +335,19 @@ typedef struct {
    * client that acknowledged on a fixed stride hold a subset of the slots indefinitely, so
    * samples of any age were averaged in forever.
    */
-  uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
+  uint32_t frameLatency[SV_CLIENT_LATENCY_COUNT];
 
   /**
    * @brief The next slot of `frame_latency` to write.
    */
-  uint32_t frame_latency_index;
+  uint32_t frameLatencyIndex;
 
   /**
    * @brief How many slots of `frame_latency` have been written, saturating at the ring size.
    * @remarks A latency of zero is a legitimate sample on a loopback or local network, so the
    * count says which slots are populated rather than testing the samples themselves.
    */
-  uint32_t frame_latency_count;
+  uint32_t frameLatencyCount;
 
   /**
    * @brief Estimated round-trip latency in milliseconds.
@@ -372,12 +372,12 @@ typedef struct {
   /**
    * @brief UDP network channel to this client.
    */
-  NetChan net_chan;
+  NetChan netChan;
 
   /**
    * @brief Server time of last received packet, used to detect timeouts.
    */
-  uint32_t last_message;
+  uint32_t lastMessage;
 } ServerClient;
 
 /**
@@ -399,7 +399,7 @@ typedef struct {
 typedef struct {
   NetAddr addr;
   uint32_t challenge;
-  uint32_t challenge_time;
+  uint32_t challengeTime;
 } ServerMaster;
 
 /**
@@ -469,17 +469,17 @@ typedef struct {
   /**
    * @brief Circular buffer of entity states for delta compression across all clients.
    */
-  EntityState *entity_states;
+  EntityState *entityStates;
 
   /**
    * @brief Length of `entity_states`; always `PACKET_BACKUP` * `MAX_ENTITIES`.
    */
-  uint32_t num_entity_states;
+  uint32_t numEntityStates;
 
   /**
    * @brief Next free index in `entity_states` for newly spawned entities.
    */
-  uint32_t next_entity_state;
+  uint32_t nextEntityState;
 
   /**
    * @brief The configured master server, and its outstanding challenge.
@@ -489,7 +489,7 @@ typedef struct {
   /**
    * @brief Server time after which the next heartbeat is sent to master servers.
    */
-  uint32_t next_heartbeat;
+  uint32_t nextHeartbeat;
 
   /**
    * @brief Pending connection challenges for DoS mitigation.
@@ -499,7 +499,7 @@ typedef struct {
   /**
    * @brief Incremented at each map load to validate late-arriving connection handshakes.
    */
-  uint32_t spawn_count;
+  uint32_t spawnCount;
 
   /**
    * @brief The map list.

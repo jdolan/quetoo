@@ -53,14 +53,14 @@ const char *Cg_Race_FormatTime(uint32_t ms) {
 static struct {
   char name[MAX_QPATH];
   uint32_t time;
-  int32_t vs_best, vs_record;
+  int32_t vsBest, vsRecord;
   uint32_t shown; // when it went up, in unclamped client time; 0 for none
 } cg_race_milestone;
 
 /**
  * @see cg_race.h
  */
-void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record) {
+void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vsBest, int32_t vsRecord) {
 
   if (label && *label) {
     q_strlcpy(cg_race_milestone.name, label, sizeof(cg_race_milestone.name));
@@ -70,9 +70,9 @@ void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *labe
   }
 
   cg_race_milestone.time = time;
-  cg_race_milestone.vs_best = vs_best;
-  cg_race_milestone.vs_record = vs_record;
-  cg_race_milestone.shown = cgi.client->unclamped_time;
+  cg_race_milestone.vsBest = vsBest;
+  cg_race_milestone.vsRecord = vsRecord;
+  cg_race_milestone.shown = cgi.client->unclampedTime;
 }
 
 #pragma mark - RaceRunView
@@ -138,17 +138,17 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
     q_strlcat(text, va("\n^7%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), sizeof(text));
   }
 
-  if (cg_race_milestone.shown && cgi.client->unclamped_time - cg_race_milestone.shown < RACE_HUD_MILESTONE_MILLIS) {
+  if (cg_race_milestone.shown && cgi.client->unclampedTime - cg_race_milestone.shown < RACE_HUD_MILESTONE_MILLIS) {
 
     q_strlcat(text, va("\n^7%s  %s", cg_race_milestone.name, Cg_Race_FormatTime(cg_race_milestone.time)), sizeof(text));
 
-    if (cg_race_milestone.vs_best != RACE_MILESTONE_NO_DELTA &&
-        cg_race_milestone.vs_best != cg_race_milestone.vs_record) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vs_best, "best")), sizeof(text));
+    if (cg_race_milestone.vsBest != RACE_MILESTONE_NO_DELTA &&
+        cg_race_milestone.vsBest != cg_race_milestone.vsRecord) {
+      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vsBest, "best")), sizeof(text));
     }
 
-    if (cg_race_milestone.vs_record != RACE_MILESTONE_NO_DELTA) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vs_record, "record")), sizeof(text));
+    if (cg_race_milestone.vsRecord != RACE_MILESTONE_NO_DELTA) {
+      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vsRecord, "record")), sizeof(text));
     }
   }
 
@@ -217,7 +217,7 @@ static int32_t valueForFrame(CounterView *self, const ClientFrame *frame) {
 
   SpeedView *this = (SpeedView *) self;
 
-  Vec3 velocity = frame->ps.pm_state.velocity;
+  Vec3 velocity = frame->ps.pmState.velocity;
   velocity.z = 0.f;
 
   this->speed += (Vec3_Length(velocity) - this->speed) * RACE_HUD_SPEED_LERP;

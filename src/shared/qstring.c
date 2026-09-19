@@ -33,15 +33,15 @@ size_t q_strlcpy(char *dst, const char *src, size_t size) {
 		return 0;
 	}
 
-	const size_t src_len = strlen(src);
+	const size_t srcLen = strlen(src);
 
 	if (size) {
-		const size_t copy = src_len < size - 1 ? src_len : size - 1;
+		const size_t copy = srcLen < size - 1 ? srcLen : size - 1;
 		memcpy(dst, src, copy);
 		dst[copy] = '\0';
 	}
 
-	return src_len;
+	return srcLen;
 }
 
 /**
@@ -53,16 +53,16 @@ size_t q_strlcat(char *dst, const char *src, size_t size) {
 		return strlen(dst);
 	}
 
-	const size_t dst_len = strlen(dst);
-	const size_t src_len = strlen(src);
+	const size_t dstLen = strlen(dst);
+	const size_t srcLen = strlen(src);
 
-	if (dst_len < size) {
-		const size_t copy = src_len < size - dst_len - 1 ? src_len : size - dst_len - 1;
-		memcpy(dst + dst_len, src, copy);
-		dst[dst_len + copy] = '\0';
+	if (dstLen < size) {
+		const size_t copy = srcLen < size - dstLen - 1 ? srcLen : size - dstLen - 1;
+		memcpy(dst + dstLen, src, copy);
+		dst[dstLen + copy] = '\0';
 	}
 
-	return dst_len + src_len;
+	return dstLen + srcLen;
 }
 
 /**
@@ -164,11 +164,11 @@ char *q_strndup(const char *s, size_t n) {
 /**
  * @see qstring.h
  */
-char *q_strtok_r(char *s, const char *delim, char **save_ptr) {
+char *q_strtok_r(char *s, const char *delim, char **savePtr) {
 #if defined(_MSC_VER)
 	return strtok_s(s, delim, save_ptr);
 #else
-	return strtok_r(s, delim, save_ptr);
+	return strtok_r(s, delim, savePtr);
 #endif
 }
 

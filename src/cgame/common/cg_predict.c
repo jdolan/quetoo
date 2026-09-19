@@ -31,23 +31,23 @@ static bool Cg_UsePrediction_Common(void) {
     return false;
   }
 
-  if (cgi.client->demo_server) {
+  if (cgi.client->demoServer) {
     return false;
   }
 
-  if (cgi.client->third_person) {
+  if (cgi.client->thirdPerson) {
     return false;
   }
 
-  if (cgi.client->delta_frame == NULL) {
+  if (cgi.client->deltaFrame == NULL) {
     return false;
   }
 
-  if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+  if (cgi.client->frame.ps.pmState.type == PM_DEAD) {
     return false;
   }
 
-  if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
+  if (cgi.client->frame.ps.pmState.type == PM_FREEZE) {
     return false;
   }
 
@@ -112,15 +112,15 @@ void Cg_PredictMovement(const Vector *cmds) {
   assert(cmds);
   assert(cmds->count);
 
-  ClientPredictedState *pr = &cgi.client->predicted_state;
+  ClientPredictedState *pr = &cgi.client->predictedState;
 
   // copy current state to into the move
   PlayerMove pm = {};
-  pm.s = cgi.client->frame.ps.pm_state;
+  pm.s = cgi.client->frame.ps.pmState;
 
   pm.ground = pr->ground;
 #if defined(G_HOOK)
-  pm.hook_pull_speed = cg_state.hook_pull_speed;
+  pm.hookPullSpeed = cg_state.hookPullSpeed;
 #endif
 
   pm.PointContents = cgi.PointContents;
@@ -130,7 +130,7 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   pm.Debug = cgi.Debug;
   pm.DebugMask = cgi.DebugMask;
-  pm.debug_mask = DEBUG_PMOVE_CLIENT;
+  pm.debugMask = DEBUG_PMOVE_CLIENT;
 
   // run the commands
   for (uint32_t i = 0; i < cmds->count; i++) {
@@ -161,13 +161,13 @@ void Cg_PredictMovement(const Vector *cmds) {
   if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {
     pr->view.origin = pm.s.origin;
   }
-  pr->view.offset = pm.s.view_offset;
-  pr->view.step_offset = pm.s.step_offset;
+  pr->view.offset = pm.s.viewOffset;
+  pr->view.stepOffset = pm.s.stepOffset;
 
   // If the server is requesting a snap, use the authoritative angles rather than
   // the last cmd angles, which may be stale (pre-snap) pending commands.
-  if (cg_state.snap_angles) {
-    pr->view.angles = cg_state.snap_view_angles;
+  if (cg_state.snapAngles) {
+    pr->view.angles = cg_state.snapViewAngles;
   } else {
     pr->view.angles = pm.cmd.angles;
   }
@@ -202,7 +202,7 @@ void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
 
   // Pm_SpectatorMove reads speed_spectator, accel_spectator and friction_spectator from the
   // movement parameters, which the recording carries; without them the camera holds still
-  pm.s.params = cgi.client->frame.ps.pm_state.params;
+  pm.s.params = cgi.client->frame.ps.pmState.params;
 
   pm.cmd = *cmd;
   pm.cmd.angles = cgi.client->angles;
@@ -213,7 +213,7 @@ void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
 
   pm.Debug = cgi.Debug;
   pm.DebugMask = cgi.DebugMask;
-  pm.debug_mask = DEBUG_PMOVE_CLIENT;
+  pm.debugMask = DEBUG_PMOVE_CLIENT;
 
   Pm_Move(&pm);
 

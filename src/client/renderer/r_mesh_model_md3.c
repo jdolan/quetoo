@@ -92,17 +92,17 @@ static void R_LoadMd3Animations(RenderModel *mod) {
     }
 
     if (*token >= '0' && *token <= '9') {
-      RenderMeshAnimation *a = &mod->mesh->animations[mod->mesh->num_animations];
+      RenderMeshAnimation *a = &mod->mesh->animations[mod->mesh->numAnimations];
 
-      if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &a->first_frame, 1)) {
+      if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &a->firstFrame, 1)) {
         break;
       }
 
-      if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &a->num_frames, 1)) {
+      if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &a->numFrames, 1)) {
         break;
       }
 
-      if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &a->looped_frames, 1)) {
+      if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_INT32, &a->loopedFrames, 1)) {
         break;
       }
 
@@ -110,28 +110,28 @@ static void R_LoadMd3Animations(RenderModel *mod) {
         break;
       }
 
-      if (mod->mesh->num_animations == ANIM_LEGS_WALKCR) {
-        skip = a->first_frame - mod->mesh->animations[ANIM_TORSO_GESTURE].first_frame;
+      if (mod->mesh->numAnimations == ANIM_LEGS_WALKCR) {
+        skip = a->firstFrame - mod->mesh->animations[ANIM_TORSO_GESTURE].firstFrame;
       }
 
-      if (mod->mesh->num_animations >= ANIM_LEGS_WALKCR) {
-        a->first_frame -= skip;
+      if (mod->mesh->numAnimations >= ANIM_LEGS_WALKCR) {
+        a->firstFrame -= skip;
       }
 
-      if (!a->num_frames) {
-        Com_Warn("%s: No frames for %d\n", mod->media.name, mod->mesh->num_animations);
+      if (!a->numFrames) {
+        Com_Warn("%s: No frames for %d\n", mod->media.name, mod->mesh->numAnimations);
       }
 
       if (!a->hz) {
-        Com_Warn("%s: No hz for %d\n", mod->media.name, mod->mesh->num_animations);
+        Com_Warn("%s: No hz for %d\n", mod->media.name, mod->mesh->numAnimations);
       }
 
-      Com_Debug(DEBUG_RENDERER, "Parsed %d: %d %d %d %d\n", mod->mesh->num_animations,
-                a->first_frame, a->num_frames, a->looped_frames, a->hz);
+      Com_Debug(DEBUG_RENDERER, "Parsed %d: %d %d %d %d\n", mod->mesh->numAnimations,
+                a->firstFrame, a->numFrames, a->loopedFrames, a->hz);
 
-      mod->mesh->num_animations++;
+      mod->mesh->numAnimations++;
 
-      if (mod->mesh->num_animations == MD3_MAX_ANIMATIONS) {
+      if (mod->mesh->numAnimations == MD3_MAX_ANIMATIONS) {
         Com_Warn("MD3_MAX_ANIMATIONS reached: %s\n", mod->media.name);
         break;
       }
@@ -150,7 +150,7 @@ static void R_LoadMd3Animations(RenderModel *mod) {
 
   Fs_Free(buf);
 
-  Com_Debug(DEBUG_RENDERER, "Loaded %d animations: %s\n", mod->mesh->num_animations, mod->media.name);
+  Com_Debug(DEBUG_RENDERER, "Loaded %d animations: %s\n", mod->mesh->numAnimations, mod->media.name);
 }
 
 /**
@@ -300,20 +300,20 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
     Com_Error(ERROR_DROP, "%s MD3_VERSION is %d\n", mod->media.name, md3.version);
   }
 
-  if (md3.num_frames < MD3_MIN_FRAMES) {
-    Com_Error(ERROR_DROP, "%s MD3_MIN_FRAMES %d\n", mod->media.name, md3.num_frames);
+  if (md3.numFrames < MD3_MIN_FRAMES) {
+    Com_Error(ERROR_DROP, "%s MD3_MIN_FRAMES %d\n", mod->media.name, md3.numFrames);
   }
 
-  if (md3.num_frames > MD3_MAX_FRAMES) {
-    Com_Error(ERROR_DROP, "%s MD3_MAX_FRAMES %d\n", mod->media.name, md3.num_frames);
+  if (md3.numFrames > MD3_MAX_FRAMES) {
+    Com_Error(ERROR_DROP, "%s MD3_MAX_FRAMES %d\n", mod->media.name, md3.numFrames);
   }
 
-  if (md3.num_tags > MD3_MAX_TAGS) {
-    Com_Error(ERROR_DROP, "%s MD3_MAX_TAGS %d\n", mod->media.name, md3.num_tags);
+  if (md3.numTags > MD3_MAX_TAGS) {
+    Com_Error(ERROR_DROP, "%s MD3_MAX_TAGS %d\n", mod->media.name, md3.numTags);
   }
 
-  if (md3.num_surfaces > MD3_MAX_SURFACES) {
-    Com_Error(ERROR_DROP, "%s MD3_MAX_SURFACES %d\n", mod->media.name, md3.num_surfaces);
+  if (md3.numSurfaces > MD3_MAX_SURFACES) {
+    Com_Error(ERROR_DROP, "%s MD3_MAX_SURFACES %d\n", mod->media.name, md3.numSurfaces);
   }
 
   if (q_strncmp(mod->media.name, "players/", 8)) {
@@ -324,13 +324,13 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
   mod->mesh = Mem_LinkMalloc(sizeof(RenderMeshModel), mod);
 
   {
-    mod->mesh->num_frames = md3.num_frames;
-    mod->mesh->frames = Mem_LinkMalloc(mod->mesh->num_frames * sizeof(RenderMeshFrame), mod->mesh);
+    mod->mesh->numFrames = md3.numFrames;
+    mod->mesh->frames = Mem_LinkMalloc(mod->mesh->numFrames * sizeof(RenderMeshFrame), mod->mesh);
 
-    const Md3Frame *in = (Md3Frame *) (base + md3.ofs_frames);
+    const Md3Frame *in = (Md3Frame *) (base + md3.ofsFrames);
     RenderMeshFrame *out = mod->mesh->frames;
 
-    for (int32_t i = 0; i < mod->mesh->num_frames; i++, in++, out++) {
+    for (int32_t i = 0; i < mod->mesh->numFrames; i++, in++, out++) {
 
       const Md3Frame frame = R_SwapMd3Frame(in);
 
@@ -341,14 +341,14 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
   }
 
   {
-    mod->mesh->num_tags = md3.num_tags;
-    mod->mesh->tags = Mem_LinkMalloc(mod->mesh->num_tags * mod->mesh->num_frames * sizeof(RenderMeshTag), mod->mesh);
+    mod->mesh->numTags = md3.numTags;
+    mod->mesh->tags = Mem_LinkMalloc(mod->mesh->numTags * mod->mesh->numFrames * sizeof(RenderMeshTag), mod->mesh);
 
-    const Md3Tag *in = (Md3Tag *) (base + md3.ofs_tags);
+    const Md3Tag *in = (Md3Tag *) (base + md3.ofsTags);
     RenderMeshTag *out = mod->mesh->tags;
 
-    for (int32_t i = 0; i < mod->mesh->num_frames; i++) {
-      for (int32_t j = 0; j < mod->mesh->num_tags; j++, in++, out++) {
+    for (int32_t i = 0; i < mod->mesh->numFrames; i++) {
+      for (int32_t j = 0; j < mod->mesh->numTags; j++, in++, out++) {
 
         const Md3Tag tag = R_SwapMd3Tag(in);
 
@@ -359,13 +359,13 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
   }
 
   {
-    mod->mesh->num_faces = md3.num_surfaces;
-    mod->mesh->faces = Mem_LinkMalloc(mod->mesh->num_faces * sizeof(RenderMeshFace), mod->mesh);
+    mod->mesh->numFaces = md3.numSurfaces;
+    mod->mesh->faces = Mem_LinkMalloc(mod->mesh->numFaces * sizeof(RenderMeshFace), mod->mesh);
 
-    const Md3Surface *in = (Md3Surface *) (base + md3.ofs_surfaces);
+    const Md3Surface *in = (Md3Surface *) (base + md3.ofsSurfaces);
     RenderMeshFace *out = mod->mesh->faces;
 
-    for (int32_t i = 0; i < mod->mesh->num_faces; i++, out++) {
+    for (int32_t i = 0; i < mod->mesh->numFaces; i++, out++) {
 
       const Md3Surface surface = R_SwapMd3Surface(in);
 
@@ -373,42 +373,42 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
         Com_Error(ERROR_DROP, "%s: %s: MD3_IDENT %d\n", mod->media.name, surface.name, surface.id);
       }
 
-      if (surface.num_shaders > MD3_MAX_SHADERS) {
-        Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_SHADERS %d\n", mod->media.name, surface.name, surface.num_shaders);
+      if (surface.numShaders > MD3_MAX_SHADERS) {
+        Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_SHADERS %d\n", mod->media.name, surface.name, surface.numShaders);
       }
 
-      if (in->num_triangles > MD3_MAX_TRIANGLES) {
-        Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_TRIANGLES %d\n", mod->media.name, surface.name, surface.num_triangles);
+      if (in->numTriangles > MD3_MAX_TRIANGLES) {
+        Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_TRIANGLES %d\n", mod->media.name, surface.name, surface.numTriangles);
       }
 
-      if (in->num_vertexes > MD3_MAX_VERTEXES) {
-        Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_VERTEXES %d\n", mod->media.name, surface.name, surface.num_vertexes);
+      if (in->numVertexes > MD3_MAX_VERTEXES) {
+        Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_VERTEXES %d\n", mod->media.name, surface.name, surface.numVertexes);
       }
 
       q_strlcpy(out->name, surface.name, MD3_MAX_PATH);
 
-      const byte *surface_base = (byte *) in;
+      const byte *surfaceBase = (byte *) in;
 
       out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_PLAYERS);
 
       {
-        out->num_vertexes = surface.num_vertexes;
-        out->vertexes = Mem_LinkMalloc(out->num_vertexes * mod->mesh->num_frames * sizeof(RenderMeshVertex), mod->mesh);
+        out->numVertexes = surface.numVertexes;
+        out->vertexes = Mem_LinkMalloc(out->numVertexes * mod->mesh->numFrames * sizeof(RenderMeshVertex), mod->mesh);
 
-        const Md3Vertex *in_vertex = (Md3Vertex *) (surface_base + surface.ofs_vertexes);
-        RenderMeshVertex *out_vertex = out->vertexes;
+        const Md3Vertex *inVertex = (Md3Vertex *) (surfaceBase + surface.ofsVertexes);
+        RenderMeshVertex *outVertex = out->vertexes;
 
-        for (int32_t j = 0; j < mod->mesh->num_frames; j++) {
+        for (int32_t j = 0; j < mod->mesh->numFrames; j++) {
 
-          const Md3Texcoord *in_texcoord = (Md3Texcoord *) (surface_base + surface.ofs_texcoords);
+          const Md3Texcoord *inTexcoord = (Md3Texcoord *) (surfaceBase + surface.ofsTexcoords);
 
-          for (int32_t k = 0; k < out->num_vertexes; k++, in_vertex++, in_texcoord++, out_vertex++) {
+          for (int32_t k = 0; k < out->numVertexes; k++, inVertex++, inTexcoord++, outVertex++) {
 
-            const Md3Vertex vertex = R_SwapMd3Vertex(in_vertex);
+            const Md3Vertex vertex = R_SwapMd3Vertex(inVertex);
 
-            out_vertex->position = Vec3_Scale(Vec3s_CastVec3(vertex.point), MD3_XYZ_SCALE);
+            outVertex->position = Vec3_Scale(Vec3s_CastVec3(vertex.point), MD3_XYZ_SCALE);
 
-            mod->bounds = Box3_Append(mod->bounds, out_vertex->position);
+            mod->bounds = Box3_Append(mod->bounds, outVertex->position);
 
             float lat = (vertex.norm >> 8) & 0xff;
             float lon = (vertex.norm & 0xff);
@@ -416,37 +416,37 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
             lat *= M_PI / 128.0;
             lon *= M_PI / 128.0;
 
-            out_vertex->normal.x = cos(lat) * sin(lon);
-            out_vertex->normal.y = sin(lat) * sin(lon);
-            out_vertex->normal.z = cos(lon);
+            outVertex->normal.x = cos(lat) * sin(lon);
+            outVertex->normal.y = sin(lat) * sin(lon);
+            outVertex->normal.z = cos(lon);
 
-            out_vertex->normal = Vec3_Normalize(out_vertex->normal);
+            outVertex->normal = Vec3_Normalize(outVertex->normal);
 
-            const Md3Texcoord texcoord = R_SwapMd3Texcoord(in_texcoord);
+            const Md3Texcoord texcoord = R_SwapMd3Texcoord(inTexcoord);
 
-            out_vertex->diffusemap = texcoord.st;
+            outVertex->diffusemap = texcoord.st;
           }
         }
       }
 
       {
-        out->num_elements = surface.num_triangles * 3;
-        out->elements = Mem_LinkMalloc(out->num_elements * sizeof(uint32_t), mod->mesh);
+        out->numElements = surface.numTriangles * 3;
+        out->elements = Mem_LinkMalloc(out->numElements * sizeof(uint32_t), mod->mesh);
 
-        const Md3Triangle *in_triangle = (Md3Triangle *) (surface_base + surface.ofs_triangles);
-        uint32_t *out_triangle = out->elements;
+        const Md3Triangle *inTriangle = (Md3Triangle *) (surfaceBase + surface.ofsTriangles);
+        uint32_t *outTriangle = out->elements;
 
-        for (int32_t j = 0; j < surface.num_triangles; j++, in_triangle++, out_triangle += 3) {
+        for (int32_t j = 0; j < surface.numTriangles; j++, inTriangle++, outTriangle += 3) {
 
-          const Md3Triangle tri = R_SwapMd3Triangle(in_triangle);
+          const Md3Triangle tri = R_SwapMd3Triangle(inTriangle);
 
-          out_triangle[0] = tri.indexes[0];
-          out_triangle[1] = tri.indexes[1];
-          out_triangle[2] = tri.indexes[2];
+          outTriangle[0] = tri.indexes[0];
+          outTriangle[1] = tri.indexes[1];
+          outTriangle[2] = tri.indexes[2];
         }
       }
 
-      in = (Md3Surface *) (surface_base + in->ofs_end);
+      in = (Md3Surface *) (surfaceBase + in->ofsEnd);
     }
   }
 
@@ -460,12 +460,12 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");
   Com_Debug(DEBUG_RENDERER, "!R_LoadMd3Model:   %s\n", mod->media.name);
-  Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->mesh->num_vertexes);
-  Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->mesh->num_elements);
-  Com_Debug(DEBUG_RENDERER, "!  Frames:         %d\n", mod->mesh->num_frames);
-  Com_Debug(DEBUG_RENDERER, "!  Tags:           %d\n", mod->mesh->num_tags);
-  Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->mesh->num_faces);
-  Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->num_animations);
+  Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->mesh->numVertexes);
+  Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->mesh->numElements);
+  Com_Debug(DEBUG_RENDERER, "!  Frames:         %d\n", mod->mesh->numFrames);
+  Com_Debug(DEBUG_RENDERER, "!  Tags:           %d\n", mod->mesh->numTags);
+  Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->mesh->numFaces);
+  Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->numAnimations);
   Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 

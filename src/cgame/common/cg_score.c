@@ -23,10 +23,10 @@
 
 typedef struct {
   GameScore scores[MAX_CLIENTS + MAX_TEAMS];
-  size_t num_scores;
+  size_t numScores;
 
   GameScore pending[MAX_CLIENTS + MAX_TEAMS];
-  size_t num_pending;
+  size_t numPending;
 
   uint32_t generation;
 } ClientGameScoreState;
@@ -62,29 +62,29 @@ void Cg_ParseScores(void) {
   }
 
   if (index == 0) {
-    cg_score_state.num_pending = 0;
-  } else if ((size_t) index != cg_score_state.num_pending) {
-    Cg_Warn("Score packet %d arrived with %zu pending\n", index, cg_score_state.num_pending);
-    cg_score_state.num_pending = 0;
+    cg_score_state.numPending = 0;
+  } else if ((size_t) index != cg_score_state.numPending) {
+    Cg_Warn("Score packet %d arrived with %zu pending\n", index, cg_score_state.numPending);
+    cg_score_state.numPending = 0;
     return;
   }
 
   cgi.ReadData(cg_score_state.pending + index, count * sizeof(GameScore));
-  cg_score_state.num_pending = index + count;
+  cg_score_state.numPending = index + count;
 
   if (cgi.ReadByte()) { // last packet in sequence
 
-    cg_score_state.num_scores = cg_score_state.num_pending;
-    cg_score_state.num_pending = 0;
+    cg_score_state.numScores = cg_score_state.numPending;
+    cg_score_state.numPending = 0;
 
     // the aggregate scores are the last set in the array
-    if (cg_state.num_teams) {
-      cg_score_state.num_scores -= MAX_TEAMS;
+    if (cg_state.numTeams) {
+      cg_score_state.numScores -= MAX_TEAMS;
     }
 
     memcpy(cg_score_state.scores, cg_score_state.pending, sizeof(cg_score_state.scores));
 
-    qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(GameScore), Cg_ParseScores_Compare);
+    qsort(cg_score_state.scores, cg_score_state.numScores, sizeof(GameScore), Cg_ParseScores_Compare);
 
     cg_score_state.generation++;
   }
@@ -94,7 +94,7 @@ void Cg_ParseScores(void) {
  * @see cg_score.h
  */
 const GameScore *Cg_Scores(size_t *count) {
-  *count = cg_score_state.num_scores;
+  *count = cg_score_state.numScores;
   return cg_score_state.scores;
 }
 

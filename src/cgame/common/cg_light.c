@@ -65,7 +65,7 @@ static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
 
   light->intensity = light->intensity ?: 1.f;
 
-  light->time = cgi.client->unclamped_time;
+  light->time = cgi.client->unclampedTime;
 
   $(cg_lights.allocated, prepend, light);
   return light;
@@ -106,15 +106,15 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 
   if (style && *style) {
     const size_t len = q_strlen(style);
-    const uint32_t phase_offset = (uint32_t)(drift * len * 100);
-    const uint32_t time = cgi.client->unclamped_time + phase_offset;
-    const uint32_t style_index = (time / 100) % len;
-    const uint32_t style_time = (time / 100) * 100;
+    const uint32_t phaseOffset = (uint32_t)(drift * len * 100);
+    const uint32_t time = cgi.client->unclampedTime + phaseOffset;
+    const uint32_t styleIndex = (time / 100) % len;
+    const uint32_t styleTime = (time / 100) * 100;
 
-    const float lerp = (time - style_time) / 100.f;
+    const float lerp = (time - styleTime) / 100.f;
 
-    const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-    const float u = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+    const float s = (style[(styleIndex + 0) % len] - 'a') / (float) ('z' - 'a');
+    const float u = (style[(styleIndex + 1) % len] - 'a') / (float) ('z' - 'a');
 
     intensity *= Clampf(Mixf(s, u, lerp), FLT_EPSILON, 1.f);
   }
@@ -129,7 +129,7 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 static int32_t Cg_ResolveBspModel(const char *model) {
 
   for (int32_t i = 1; i < MAX_MODELS; i++) {
-    if (!q_strcmp(cgi.client->config_strings[CS_MODELS + i], model)) {
+    if (!q_strcmp(cgi.client->configStrings[CS_MODELS + i], model)) {
       return i;
     }
   }
@@ -150,13 +150,13 @@ static int32_t Cg_ResolveBspModel(const char *model) {
 static void Cg_AddBspLights(void) {
 
   RenderBspLight *l = cgi.WorldModel()->bsp->lights;
-  for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
+  for (int32_t i = 0; i < cgi.WorldModel()->bsp->numLights; i++, l++) {
 
     const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
-    if (l->target_entity) {
+    if (l->targetEntity) {
 
-      const char *model = cgi.EntityValue(l->target_entity, "model")->nullable_string;
+      const char *model = cgi.EntityValue(l->targetEntity, "model")->nullableString;
       if (!model) {
         continue;
       }
@@ -166,8 +166,8 @@ static void Cg_AddBspLights(void) {
         continue;
       }
 
-      const Vec3 compiled_origin = cgi.EntityValue(l->target_entity, "origin")->vec3;
-      const Vec3 offset = Vec3_Subtract(l->origin, compiled_origin);
+      const Vec3 compiledOrigin = cgi.EntityValue(l->targetEntity, "origin")->vec3;
+      const Vec3 offset = Vec3_Subtract(l->origin, compiledOrigin);
 
       Vec3 origin = l->origin;
       for (int32_t j = 0; j < MAX_ENTITIES; j++) {
@@ -192,7 +192,7 @@ static void Cg_AddBspLights(void) {
         .radius = l->radius,
         .intensity = intensity,
         .bounds = l->bounds,
-        .bsp_light = l,
+        .bspLight = l,
       });
     }
   }
@@ -208,7 +208,7 @@ void Cg_AddDynamicLights(void) {
 
     ClientGameLight *light = node->element;
 
-    const uint32_t age = cgi.client->unclamped_time - light->time;
+    const uint32_t age = cgi.client->unclampedTime - light->time;
     float intensity = light->intensity;
     if (light->decay) {
       intensity = Mixf(intensity, 0.f, age / (float) light->decay);

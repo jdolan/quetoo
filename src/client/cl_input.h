@@ -39,6 +39,6 @@ void Cl_Look(PlayerMoveCmd *cmd);
 void Cl_Move(PlayerMoveCmd *cmd);
 void Cl_KeyDown(InputButton *b);
 void Cl_KeyUp(InputButton *b);
-float Cl_KeyState(InputButton *key, uint32_t cmd_msec);
+float Cl_KeyState(InputButton *key, uint32_t cmdMsec);
 
 #endif

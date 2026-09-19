@@ -100,9 +100,9 @@ static void Cg_Init(void) {
   cgi.Print("Client game module initialization...\n");
 
   const char *s = va("%s %s", VERSION, BUILD);
-  Cvar *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
+  Cvar *cgameVersion = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
 
-  cgi.Print("  Version:    ^2%s^7\n", cgame_version->string);
+  cgi.Print("  Version:    ^2%s^7\n", cgameVersion->string);
 
   Cg_InitInput();
 
@@ -312,7 +312,7 @@ static void Cg_UpdateConfigString(int32_t i) {
       cg_state.gameplay = (GameplayId) strtol(s, NULL, 10);
       return;
     case CS_NUM_TEAMS:
-      cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
+      cg_state.numTeams = Clampf(atoi(s), 0, MAX_TEAMS);
       return;
     case CS_TEAM_INFO:
       Cg_ParseTeamInfo(s);
@@ -323,16 +323,16 @@ static void Cg_UpdateConfigString(int32_t i) {
 #if defined(G_HOOK)
     case CS_HOOK_PULL_SPEED: {
       char *end;
-      cg_state.hook_pull_speed = strtof(s, &end);
-      if (end == s || *end || !isfinite(cg_state.hook_pull_speed) || cg_state.hook_pull_speed <= 0.f) {
+      cg_state.hookPullSpeed = strtof(s, &end);
+      if (end == s || *end || !isfinite(cg_state.hookPullSpeed) || cg_state.hookPullSpeed <= 0.f) {
         Cg_Warn("Invalid hook pull speed \"%s\"\n", s);
-        cg_state.hook_pull_speed = PM_SPEED_HOOK_PULL;
+        cg_state.hookPullSpeed = PM_SPEED_HOOK_PULL;
       }
       return;
     }
 #endif
     case CS_NAV_EDIT:
-      cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);
+      cg_state.navEdit = (int32_t) strtol(s, NULL, 10);
       return;
   }
 
@@ -347,10 +347,10 @@ static void Cg_UpdateConfigString(int32_t i) {
     Cg_LoadClient(ci, s);
 
     // the server does not count connected clients for us: the entries it sends are the count
-    cg_state.num_clients = 0;
+    cg_state.numClients = 0;
     for (int32_t j = 0; j < MAX_CLIENTS; j++) {
       if (*cgi.ConfigString(CS_CLIENTS + j)) {
-        cg_state.num_clients++;
+        cg_state.numClients++;
       }
     }
 
@@ -359,7 +359,7 @@ static void Cg_UpdateConfigString(int32_t i) {
     // excepted: it is not its owner, and it keeps the animation it died in however they go on
     // to dress. Without that, a client info sent for any reason at all -- and respawning is
     // one -- played a corpse's death over again where it lay.
-    const int32_t client_num = i - CS_CLIENTS;
+    const int32_t clientNum = i - CS_CLIENTS;
     for (int32_t j = 0; j < MAX_ENTITIES; j++) {
       ClientEntity *ent = &cgi.client->entities[j];
 
@@ -367,7 +367,7 @@ static void Cg_UpdateConfigString(int32_t i) {
         continue;
       }
 
-      if ((ent->current.effects & EF_CLIENT) && ent->current.client == (uint8_t) client_num) {
+      if ((ent->current.effects & EF_CLIENT) && ent->current.client == (uint8_t) clientNum) {
         ent->animation1.time = ent->animation2.time = 0;
         ent->animation1.frame = ent->animation2.frame = -1;
       }
@@ -456,8 +456,8 @@ static bool Cg_ParseMessage(int32_t cmd) {
       return true;
 
     case SV_CMD_SNAP_ANGLES:
-      cg_state.snap_view_angles = cgi.ReadAngles();
-      cg_state.snap_angles = true;
+      cg_state.snapViewAngles = cgi.ReadAngles();
+      cg_state.snapAngles = true;
       return true;
 
     case SV_CMD_CENTER_PRINT:
@@ -481,7 +481,7 @@ static bool Cg_ParseMessage(int32_t cmd) {
  */
 float Cg_GetHookPullSpeed(void) {
 
-  return cg_state.hook_pull_speed;
+  return cg_state.hookPullSpeed;
 }
 #endif
 
@@ -576,7 +576,7 @@ static void Cg_UpdateScreen(const ClientFrame *frame) {
   Cg_UpdateHud(frame);
 
   // The HUD hides itself in nav edit and shows the instructions instead
-  if (!cg_state.nav_edit) {
+  if (!cg_state.navEdit) {
     Cg_DrawHud(frame);
   }
 
@@ -600,7 +600,7 @@ ClientGameExport *Cg_LoadCgame(ClientGameImport *import) {
 
   cgi = *import;
 
-  cge.api_version = CGAME_API_VERSION;
+  cge.apiVersion = CGAME_API_VERSION;
   cge.protocol = PROTOCOL_MINOR;
   cge.name = GAME_NAME;
 

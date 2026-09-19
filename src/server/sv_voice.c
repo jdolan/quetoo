@@ -39,9 +39,9 @@ void Sv_MuteVoice(const GameClient *listener, const GameClient *speaker, bool mu
   const uint64_t bit = (uint64_t) 1 << speaker->ps.client;
 
   if (mute) {
-    cl->voice_mutes |= bit;
+    cl->voiceMutes |= bit;
   } else {
-    cl->voice_mutes &= ~bit;
+    cl->voiceMutes &= ~bit;
   }
 }
 
@@ -57,10 +57,10 @@ void Sv_ClearVoiceMutes(const ServerClient *client) {
 
   ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
-    cl->voice_mutes &= ~bit;
+    cl->voiceMutes &= ~bit;
   }
 
-  svs.clients[num].voice_mutes = 0;
+  svs.clients[num].voiceMutes = 0;
 }
 
 /**
@@ -77,20 +77,20 @@ static bool Sv_ChargeVoice(ServerClient *cl, int32_t bytes) {
     return false;
   }
 
-  if (cl->voice_time) {
-    cl->voice_bytes += (int32_t) ((quetoo.ticks - cl->voice_time) * rate / 1000);
-    cl->voice_bytes = Mini(cl->voice_bytes, rate);
+  if (cl->voiceTime) {
+    cl->voiceBytes += (int32_t) ((quetoo.ticks - cl->voiceTime) * rate / 1000);
+    cl->voiceBytes = Mini(cl->voiceBytes, rate);
   } else {
-    cl->voice_bytes = rate;
+    cl->voiceBytes = rate;
   }
 
-  cl->voice_time = quetoo.ticks;
+  cl->voiceTime = quetoo.ticks;
 
-  if (cl->voice_bytes < bytes) {
+  if (cl->voiceBytes < bytes) {
     return false;
   }
 
-  cl->voice_bytes -= bytes;
+  cl->voiceBytes -= bytes;
   return true;
 }
 
@@ -128,7 +128,7 @@ static void Sv_RelayVoice(const ServerClient *from, uint8_t channel, uint8_t seq
       continue;
     }
 
-    if (cl->voice_mutes & ((uint64_t) 1 << speaker)) {
+    if (cl->voiceMutes & ((uint64_t) 1 << speaker)) {
       continue;
     }
 

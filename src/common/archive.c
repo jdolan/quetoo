@@ -150,16 +150,16 @@ static bool Archive_Spawn(const char * const *args) {
     return false;
   }
 
-  int exit_code = -1;
+  int exitCode = -1;
   size_t length = 0;
-  void *output = SDL_ReadProcess(process, &length, &exit_code);
+  void *output = SDL_ReadProcess(process, &length, &exitCode);
 
   if (output == NULL) {
-    SDL_WaitProcess(process, true, &exit_code);
+    SDL_WaitProcess(process, true, &exitCode);
   }
 
-  if (exit_code != 0) {
-    Com_Warn("%s exited %d\n", args[0], exit_code);
+  if (exitCode != 0) {
+    Com_Warn("%s exited %d\n", args[0], exitCode);
     if (output && length) {
       Com_Warn("%s: %.*s\n", args[0], (int32_t) length, (const char *) output);
     }
@@ -168,7 +168,7 @@ static bool Archive_Spawn(const char * const *args) {
   SDL_free(output);
   SDL_DestroyProcess(process);
 
-  return exit_code == 0;
+  return exitCode == 0;
 }
 
 /**

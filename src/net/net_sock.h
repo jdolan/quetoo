@@ -41,7 +41,7 @@ int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog);
 int32_t Net_Accept(int32_t sock, NetAddr *from);
 ssize_t Net_Send(int32_t sock, const void *data, size_t len);
 ssize_t Net_Recv(int32_t sock, void *data, size_t len);
-void Net_SetNonBlocking(int32_t sock, bool non_blocking);
+void Net_SetNonBlocking(int32_t sock, bool nonBlocking);
 void Net_CloseSocket(int32_t sock);
 
 const char *Net_NetaddrToIpString(const NetAddr *a);

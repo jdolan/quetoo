@@ -192,7 +192,7 @@ char * __attribute__ ((warn_unused_result)) q_strndup(const char *s, size_t n);
 /**
  * @brief Portable reentrant tokenizer. Uses strtok_s on MSVC.
  */
-char *q_strtok_r(char *s, const char *delim, char **save_ptr);
+char *q_strtok_r(char *s, const char *delim, char **savePtr);
 
 /**
  * @brief Lowercases the string `in` into `out`. `out` must be at least as

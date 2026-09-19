@@ -47,34 +47,34 @@ typedef struct {
    * application. On Windows, this will always be set. On Mac and Linux, it
    * is set for the .app and .tgz distributables.
    */
-  char base_dir[MAX_OS_PATH];
+  char baseDir[MAX_OS_PATH];
 
   /**
    * @brief The binaries directory.
    */
-  char bin_dir[MAX_OS_PATH];
+  char binDir[MAX_OS_PATH];
 
   /**
    * @brief The shared libraries directory.
    */
-  char lib_dir[MAX_OS_PATH];
+  char libDir[MAX_OS_PATH];
 
   /**
    * @brief The data directory.
    */
-  char data_dir[MAX_OS_PATH];
+  char dataDir[MAX_OS_PATH];
 
   /**
    * @brief The bundled resources directory, or empty if not running from a bundle.
    */
-  char resources_dir[MAX_OS_PATH];
+  char resourcesDir[MAX_OS_PATH];
 
   /**
    * @brief The base search paths (all those present after invoking `Fs_Init`).
    * When calling `Fs_SetGameDir`, all paths following the base paths are
    * unloaded.
    */
-  char **base_search_paths;
+  char **baseSearchPaths;
 
   /**
    * @brief Search paths given on the command line with `-p` or `--path`.
@@ -82,8 +82,8 @@ typedef struct {
    * the install directories, so that a development tree laid out the same way
    * resolves modules and assets the same way.
    */
-  char command_line_paths[MAX_COMMAND_LINE_PATHS][MAX_OS_PATH];
-  size_t num_command_line_paths;
+  char commandLinePaths[MAX_COMMAND_LINE_PATHS][MAX_OS_PATH];
+  size_t numCommandLinePaths;
 
   /**
    * @brief An explicit write directory given on the command line with
@@ -92,13 +92,13 @@ typedef struct {
    * @remarks Deliberately not one of `command_line_paths`: a root resolves
    * modules, and this is where server-named downloads are written.
    */
-  char write_dir_override[MAX_OS_PATH];
+  char writeDirOverride[MAX_OS_PATH];
 
   /**
    * @brief For debugging purposes, track all loaded files to ensure that
    * they are freed (`Fs_Free`) in all code paths.
    */
-  HashTable *loaded_files;
+  HashTable *loadedFiles;
 } FsState;
 
 static FsState fs_state;
@@ -111,40 +111,40 @@ static void Fs_AddCommandLinePath(const char *path) {
 
   Fs_AddToSearchPath(path);
 
-  if (fs_state.num_command_line_paths == MAX_COMMAND_LINE_PATHS) {
+  if (fs_state.numCommandLinePaths == MAX_COMMAND_LINE_PATHS) {
     Com_Warn("Ignoring %s; only %d command line paths are supported\n", path, MAX_COMMAND_LINE_PATHS);
     return;
   }
 
-  q_strlcpy(fs_state.command_line_paths[fs_state.num_command_line_paths++], path, MAX_OS_PATH);
+  q_strlcpy(fs_state.commandLinePaths[fs_state.numCommandLinePaths++], path, MAX_OS_PATH);
 }
 
 /**
  * @return The base directory, if running from a bundled application.
  */
 const char *Fs_BaseDir(void) {
-  return fs_state.base_dir;
+  return fs_state.baseDir;
 }
 
 /**
  * @return The binaries directory.
  */
 const char *Fs_BinDir(void) {
-  return fs_state.bin_dir;
+  return fs_state.binDir;
 }
 
 /**
  * @return The shared libraries directory.
  */
 const char *Fs_LibDir(void) {
-  return fs_state.lib_dir;
+  return fs_state.libDir;
 }
 
 /**
  * @return The data directory.
  */
 const char *Fs_DataDir(void) {
-  return fs_state.data_dir;
+  return fs_state.dataDir;
 }
 
 /**
@@ -378,11 +378,11 @@ int64_t Fs_Load(const char *filename, void **buffer) {
   File *file;
 
   if ((file = Fs_OpenRead(filename))) {
-    const int64_t buffer_length = Fs_FileLength(file);
+    const int64_t bufferLength = Fs_FileLength(file);
 
     // if we can calculate the length, we can pull it easily
-    if (buffer_length != -1) {
-      len = buffer_length;
+    if (bufferLength != -1) {
+      len = bufferLength;
 
       if (buffer) {
         if (len > 0) {
@@ -393,7 +393,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
             Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
           }
 
-          $(fs_state.loaded_files, set, *buffer,
+          $(fs_state.loadedFiles, set, *buffer,
                     (void *) Mem_CopyString(filename));
         } else {
           *buffer = NULL;
@@ -438,7 +438,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
             e = e->next;
           }
 
-          $(fs_state.loaded_files, set, *buffer,
+          $(fs_state.loadedFiles, set, *buffer,
                     (void *) Mem_CopyString(filename));
         } else {
 
@@ -468,10 +468,10 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 void Fs_Free(void *buffer) {
 
   if (buffer) {
-    if (!$(fs_state.loaded_files, get, buffer)) {
+    if (!$(fs_state.loadedFiles, get, buffer)) {
       Com_Warn("Invalid buffer\n");
     } else {
-      $(fs_state.loaded_files, remove, buffer);
+      $(fs_state.loadedFiles, remove, buffer);
     }
     Mem_Free(buffer);
   }
@@ -578,21 +578,21 @@ void Fs_CompleteFile(const char *pattern, List *matches) {
  */
 static bool Fs_IsRoot(const char *path) {
 
-  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
-    if (!q_strcmp(path, fs_state.command_line_paths[p])) {
+  for (size_t p = 0; p < fs_state.numCommandLinePaths; p++) {
+    if (!q_strcmp(path, fs_state.commandLinePaths[p])) {
       return true;
     }
   }
 
-  if (!q_strcmp(path, fs_state.lib_dir)) {
+  if (!q_strcmp(path, fs_state.libDir)) {
     return true;
   }
   
-  if (!q_strcmp(path, fs_state.data_dir)) {
+  if (!q_strcmp(path, fs_state.dataDir)) {
     return true;
   }
   
-  if (*fs_state.resources_dir && !q_strcmp(path, fs_state.resources_dir)) {
+  if (*fs_state.resourcesDir && !q_strcmp(path, fs_state.resourcesDir)) {
     return true;
   }
   
@@ -627,16 +627,16 @@ static void Fs_CompleteGame_root(const char *root, const char *pattern, List *ma
  */
 void Fs_CompleteGame(const char *pattern, List *matches) {
 
-  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
-    Fs_CompleteGame_root(fs_state.command_line_paths[p], pattern, matches);
+  for (size_t p = 0; p < fs_state.numCommandLinePaths; p++) {
+    Fs_CompleteGame_root(fs_state.commandLinePaths[p], pattern, matches);
   }
 
-  Fs_CompleteGame_root(fs_state.lib_dir, pattern, matches);
+  Fs_CompleteGame_root(fs_state.libDir, pattern, matches);
   Fs_CompleteGame_root(Sys_UserDir(), pattern, matches);
-  Fs_CompleteGame_root(fs_state.data_dir, pattern, matches);
+  Fs_CompleteGame_root(fs_state.dataDir, pattern, matches);
 
-  if (*fs_state.resources_dir) {
-    Fs_CompleteGame_root(fs_state.resources_dir, pattern, matches);
+  if (*fs_state.resourcesDir) {
+    Fs_CompleteGame_root(fs_state.resourcesDir, pattern, matches);
   }
 }
 
@@ -652,14 +652,14 @@ void Fs_AddToSearchPath(const char *path) {
   if (SDL_GetPathInfo(path, &info)) {
     Com_Print("Adding path %s..\n", path);
 
-    const bool is_dir = (info.type == SDL_PATHTYPE_DIRECTORY);
+    const bool isDir = (info.type == SDL_PATHTYPE_DIRECTORY);
 
-    if (PHYSFS_mount(path, NULL, !is_dir) == 0) {
+    if (PHYSFS_mount(path, NULL, !isDir) == 0) {
       Com_Warn("%s: %s\n", path, Fs_LastError());
       return;
     }
 
-    if ((fs_state.flags & FS_AUTO_LOAD_ARCHIVES) && is_dir) {
+    if ((fs_state.flags & FS_AUTO_LOAD_ARCHIVES) && isDir) {
       Fs_Enumerate("*.pk3", Fs_AddToSearchPath_enumerate, (void *) path);
     }
   } else {
@@ -696,11 +696,11 @@ void Fs_AddToSearchPathv(const char *dir, ...) {
  */
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 
-  const char *real_dir = Fs_RealDir(path);
-  const char *enum_dir = data;
+  const char *realDir = Fs_RealDir(path);
+  const char *enumDir = data;
 
-  if (!q_strcmp(real_dir, enum_dir)) {
-    Fs_AddToSearchPathv(real_dir, path + 1, NULL);
+  if (!q_strcmp(realDir, enumDir)) {
+    Fs_AddToSearchPathv(realDir, path + 1, NULL);
   }
 }
 
@@ -724,8 +724,8 @@ static void Fs_AddUserSearchPath(const char *dir) {
 
   Fs_AddToSearchPath(path);
 
-  if (*fs_state.write_dir_override) {
-    Fs_SetWriteDir(fs_state.write_dir_override);
+  if (*fs_state.writeDirOverride) {
+    Fs_SetWriteDir(fs_state.writeDirOverride);
   } else {
     Fs_SetWriteDir(path);
   }
@@ -736,15 +736,15 @@ static void Fs_AddUserSearchPath(const char *dir) {
  */
 static void Fs_AddGameSearchPath(const char *dir) {
 
-  if (*fs_state.resources_dir) {
-    Fs_AddToSearchPathv(fs_state.resources_dir, dir, NULL);
+  if (*fs_state.resourcesDir) {
+    Fs_AddToSearchPathv(fs_state.resourcesDir, dir, NULL);
   }
 
-  Fs_AddToSearchPathv(fs_state.lib_dir, dir, NULL);
-  Fs_AddToSearchPathv(fs_state.data_dir, dir, NULL);
+  Fs_AddToSearchPathv(fs_state.libDir, dir, NULL);
+  Fs_AddToSearchPathv(fs_state.dataDir, dir, NULL);
 
-  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
-    Fs_AddToSearchPathv(fs_state.command_line_paths[p], dir, NULL);
+  for (size_t p = 0; p < fs_state.numCommandLinePaths; p++) {
+    Fs_AddToSearchPathv(fs_state.commandLinePaths[p], dir, NULL);
   }
 }
 
@@ -766,7 +766,7 @@ bool Fs_SetGame(const char *game, const char *cgame) {
   // iterate the current search path, removing those which are not base paths
   char **paths = PHYSFS_getSearchPath();
   for (char **path = paths; *path; path++) {
-    char **p = fs_state.base_search_paths;
+    char **p = fs_state.baseSearchPaths;
     while (*p != NULL) {
       if (!q_strcmp(*path, *p)) {
         break;
@@ -819,22 +819,22 @@ bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len) 
   }
 
   const char *roots[MAX_COMMAND_LINE_PATHS + 3];
-  size_t num_roots = 0;
+  size_t numRoots = 0;
 
-  roots[num_roots++] = Sys_UserDir();
+  roots[numRoots++] = Sys_UserDir();
 
-  for (size_t p = fs_state.num_command_line_paths; p > 0; p--) {
-    roots[num_roots++] = fs_state.command_line_paths[p - 1];
+  for (size_t p = fs_state.numCommandLinePaths; p > 0; p--) {
+    roots[numRoots++] = fs_state.commandLinePaths[p - 1];
   }
 
-  roots[num_roots++] = fs_state.data_dir;
-  roots[num_roots++] = fs_state.lib_dir;
+  roots[numRoots++] = fs_state.dataDir;
+  roots[numRoots++] = fs_state.libDir;
 
-  if (*fs_state.resources_dir) {
-    roots[num_roots++] = fs_state.resources_dir;
+  if (*fs_state.resourcesDir) {
+    roots[numRoots++] = fs_state.resourcesDir;
   }
 
-  for (size_t r = 0; r < num_roots; r++) {
+  for (size_t r = 0; r < numRoots; r++) {
     q_snprintf(path, len, "%s/%s/%s", roots[r], game, name);
 
     SDL_PathInfo info;
@@ -852,9 +852,9 @@ bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len) 
  */
 void Fs_SetWriteDir(const char *dir) {
 
-  SDL_PathInfo dir_info;
-  if (SDL_GetPathInfo(dir, &dir_info)) {
-    if (dir_info.type != SDL_PATHTYPE_DIRECTORY) {
+  SDL_PathInfo dirInfo;
+  if (SDL_GetPathInfo(dir, &dirInfo)) {
+    if (dirInfo.type != SDL_PATHTYPE_DIRECTORY) {
       Com_Warn("%s exists but is not a directory\n", dir);
       return;
     }
@@ -938,11 +938,11 @@ void Fs_Init(const uint32_t flags) {
 
   memset(&fs_state, 0, sizeof(FsState));
 
-  PHYSFS_Version physfs_version;
-  PHYSFS_getLinkedVersion(&physfs_version);
+  PHYSFS_Version physfsVersion;
+  PHYSFS_getLinkedVersion(&physfsVersion);
 
   Com_Debug(DEBUG_FILESYSTEM, "Initializing PhysFS %i.%i.%i...\n",
-        physfs_version.major, physfs_version.minor, physfs_version.patch);
+        physfsVersion.major, physfsVersion.minor, physfsVersion.patch);
 
   if (PHYSFS_init(Com_Argv(0)) == 0) {
     Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
@@ -952,9 +952,9 @@ void Fs_Init(const uint32_t flags) {
 
   PHYSFS_permitSymbolicLinks(true);
 
-  q_strlcpy(fs_state.bin_dir, BINDIR, MAX_OS_PATH);
-  q_strlcpy(fs_state.lib_dir, PKGLIBDIR, MAX_OS_PATH);
-  q_strlcpy(fs_state.data_dir, PKGDATADIR, MAX_OS_PATH);
+  q_strlcpy(fs_state.binDir, BINDIR, MAX_OS_PATH);
+  q_strlcpy(fs_state.libDir, PKGLIBDIR, MAX_OS_PATH);
+  q_strlcpy(fs_state.dataDir, PKGDATADIR, MAX_OS_PATH);
 
   const char *path = Sys_ExecutablePath();
   if (path) {
@@ -965,9 +965,9 @@ void Fs_Init(const uint32_t flags) {
 #if defined(__APPLE__)
     if ((c = q_strstr(path, "Quetoo.app"))) {
       *(c + q_strlen("Quetoo.app")) = '\0';
-      q_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+      q_strlcpy(fs_state.baseDir, path, sizeof(fs_state.baseDir));
 
-      if (q_strstr(fs_state.base_dir, "AppTranslocation")) {
+      if (q_strstr(fs_state.baseDir, "AppTranslocation")) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
           "Move Quetoo to Applications",
           "Quetoo cannot run from this location.\n\n"
@@ -990,20 +990,20 @@ void Fs_Init(const uint32_t flags) {
        * game to fall back on the read-only copy of quetoo-data that it originally came with.
        */
 
-      q_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
-      q_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.base_dir);
-      q_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", Sys_UserDir());
+      q_snprintf(fs_state.binDir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.baseDir);
+      q_snprintf(fs_state.libDir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.baseDir);
+      q_snprintf(fs_state.dataDir, MAX_OS_PATH, "%s/share", Sys_UserDir());
 
       // Ensure data_dir/default exists so PhysFS will mount it. On first launch
       // this directory tree doesn't exist yet, and Fs_AddToSearchPath silently
       // skips non-existent paths, leaving the installer with nowhere to write.
-      char data_default[MAX_OS_PATH];
-      q_snprintf(data_default, MAX_OS_PATH, "%s/%s", fs_state.data_dir, DEFAULT_GAME);
-      SDL_CreateDirectory(data_default);
+      char dataDefault[MAX_OS_PATH];
+      q_snprintf(dataDefault, MAX_OS_PATH, "%s/%s", fs_state.dataDir, DEFAULT_GAME);
+      SDL_CreateDirectory(dataDefault);
 
-      q_snprintf(fs_state.resources_dir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
-      Fs_AddToSearchPathv(fs_state.resources_dir, NULL);
-      Fs_AddToSearchPathv(fs_state.resources_dir, DEFAULT_GAME, NULL);
+      q_snprintf(fs_state.resourcesDir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.baseDir);
+      Fs_AddToSearchPathv(fs_state.resourcesDir, NULL);
+      Fs_AddToSearchPathv(fs_state.resourcesDir, DEFAULT_GAME, NULL);
     }
 #elif defined(__linux__)
     if ((c = q_strstr(path, "/bin/"))) {
@@ -1031,11 +1031,11 @@ void Fs_Init(const uint32_t flags) {
 #endif
   }
 
-  Fs_AddToSearchPathv(fs_state.lib_dir, NULL);
-  Fs_AddToSearchPathv(fs_state.data_dir, NULL);
+  Fs_AddToSearchPathv(fs_state.libDir, NULL);
+  Fs_AddToSearchPathv(fs_state.dataDir, NULL);
 
-  Fs_AddToSearchPathv(fs_state.lib_dir, DEFAULT_GAME, NULL);
-  Fs_AddToSearchPathv(fs_state.data_dir, DEFAULT_GAME, NULL);
+  Fs_AddToSearchPathv(fs_state.libDir, DEFAULT_GAME, NULL);
+  Fs_AddToSearchPathv(fs_state.dataDir, DEFAULT_GAME, NULL);
 
   // finally add any paths specified on the command line
   int32_t i;
@@ -1050,22 +1050,22 @@ void Fs_Init(const uint32_t flags) {
       // mounted, but deliberately not remembered as a root: roots resolve
       // modules, and the engine writes server-named downloads here
       Fs_AddToSearchPath(Com_Argv(i + 1));
-      q_strlcpy(fs_state.write_dir_override, Com_Argv(i + 1), sizeof(fs_state.write_dir_override));
+      q_strlcpy(fs_state.writeDirOverride, Com_Argv(i + 1), sizeof(fs_state.writeDirOverride));
       continue;
     }
   }
 
   // as with the install directories, the default game beneath them is a base
   // path, present whichever game is later selected
-  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
-    Fs_AddToSearchPathv(fs_state.command_line_paths[p], DEFAULT_GAME, NULL);
+  for (size_t p = 0; p < fs_state.numCommandLinePaths; p++) {
+    Fs_AddToSearchPathv(fs_state.commandLinePaths[p], DEFAULT_GAME, NULL);
   }
 
   // these paths will be retained across all game modules
-  fs_state.base_search_paths = PHYSFS_getSearchPath();
+  fs_state.baseSearchPaths = PHYSFS_getSearchPath();
 
-  fs_state.loaded_files = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
-  fs_state.loaded_files->destroyValue = Mem_Free;
+  fs_state.loadedFiles = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
+  fs_state.loadedFiles->destroyValue = Mem_Free;
 }
 
 /**
@@ -1084,10 +1084,10 @@ void Fs_Shutdown(void) {
     return;
   }
 
-  $(fs_state.loaded_files, enumerate, Fs_LoadedFiles_, NULL);
-  release(fs_state.loaded_files);
+  $(fs_state.loadedFiles, enumerate, Fs_LoadedFiles_, NULL);
+  release(fs_state.loadedFiles);
 
-  PHYSFS_freeList(fs_state.base_search_paths);
+  PHYSFS_freeList(fs_state.baseSearchPaths);
 
   PHYSFS_deinit();
 }

@@ -31,7 +31,7 @@ typedef struct {
   /**
    * @brief The number of points in the winding.
    */
-  int32_t num_points;
+  int32_t numPoints;
 
   /**
    * @brief The actual number of points will vary.
@@ -63,7 +63,7 @@ typedef struct {
 /**
  * @brief Allocates a winding with space for `num_points` points.
  */
-CmWinding *Cm_AllocWinding(int32_t num_points);
+CmWinding *Cm_AllocWinding(int32_t numPoints);
 
 /**
  * @brief Frees the winding.
@@ -114,7 +114,7 @@ CmWinding *Cm_WindingForFace(const BspFile *file, const BspFace *face);
 /**
  * @brief Creates a winding from the vertex loop of a BSP brush side.
  */
-CmWinding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brush_side);
+CmWinding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSide);
 
 /**
  * @brief Computes the plane normal and distance from a winding's points.
@@ -204,10 +204,10 @@ typedef struct {
   /**
    * @brief The number of triangles referencing this vertex.
    */
-  int32_t num_tris;
+  int32_t numTris;
 } CmVertex;
 
 /**
  * @brief Computes and accumulates tangent and bitangent vectors for the given vertex range.
  */
-void Cm_Tangents(CmVertex *vertexes, int32_t base_vertex, int32_t num_vertexes, const int32_t *elements, int32_t num_elements);
+void Cm_Tangents(CmVertex *vertexes, int32_t baseVertex, int32_t numVertexes, const int32_t *elements, int32_t numElements);

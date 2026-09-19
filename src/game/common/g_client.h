@@ -26,12 +26,12 @@
 #if defined(__G_LOCAL_H__)
 void G_ClientBegin(GameClient *cl);
 void G_ClientBeginFrame(GameClient *cl);
-bool G_ClientConnect(GameClient *cl, char *user_info);
+bool G_ClientConnect(GameClient *cl, char *userInfo);
 void G_ClientDisconnect(GameClient *cl);
 void G_ClientRespawn(GameClient *cl, bool voluntary);
 void G_ClientThink(GameClient *cl, PlayerMoveCmd *cmd);
 Box3 G_ClientStandingBounds(const GameClient *cl);
-void G_ClientUserInfoChanged(GameClient *cl, const char *user_info);
+void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo);
 void G_Giblets(const GameGiblets *giblets);
 #endif
 bool G_ClientCanHearVoice(const GameClient *speaker, const GameClient *listener, uint8_t channel);

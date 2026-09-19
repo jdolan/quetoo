@@ -113,21 +113,21 @@ void R_UpdateUniforms(const RenderView *view) {
     out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
-    out->sky_projection = Mat4_FromScale3(MakeVec3(-1.f, 1.f, 1.f));
-    out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
+    out->skyProjection = Mat4_FromScale3(MakeVec3(-1.f, 1.f, 1.f));
+    out->skyProjection = Mat4_ConcatTranslation(out->skyProjection, Vec3_Negate(view->origin));
 
-    out->light_projection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
+    out->lightProjection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
 
-    out->depth_range.x = NEAR_DIST;
-    out->depth_range.y = MAX_WORLD_DIST;
-    out->view_type = view->type;
+    out->depthRange.x = NEAR_DIST;
+    out->depthRange.y = MAX_WORLD_DIST;
+    out->viewType = view->type;
     out->ticks = view->ticks;
     out->ambient = Vec3_Scale(view->ambient, r_ambient->value);
     out->modulate = r_modulate->value;
     out->saturation = r_saturation->value;
     out->caustics = r_caustics->value;
-    out->ambient_occlusion = r_ambient_occlusion->value;
-    out->lighting_distance = r_lighting_distance->value;
+    out->ambientOcclusion = r_ambient_occlusion->value;
+    out->lightingDistance = r_lighting_distance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
 
@@ -148,7 +148,7 @@ void R_UpdateUniforms(const RenderView *view) {
       const Vec3 pos = Vec3_Subtract(view->origin, voxels->bounds.mins);
       const Vec3 extents = Box3_Size(voxels->bounds);
 
-      out->voxels.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
+      out->voxels.viewCoordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
       out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
     }
   }
@@ -251,13 +251,13 @@ void R_BeginFrame(void) {
 void R_InitView(RenderView *view) {
 
   view->ticks = (uint32_t) SDL_GetTicks();
-  view->num_beams = 0;
-  view->num_portals = 0;
-  view->num_entities = 0;
-  view->num_lights = 0;
-  view->num_sprites = 0;
-  view->num_sprite_instances = 0;
-  view->num_decals = 0;
+  view->numBeams = 0;
+  view->numPortals = 0;
+  view->numEntities = 0;
+  view->numLights = 0;
+  view->numSprites = 0;
+  view->numSpriteInstances = 0;
+  view->numDecals = 0;
 
   memset(&view->stats, 0, sizeof(view->stats));
 }
@@ -327,8 +327,8 @@ void R_DrawMainView(RenderView *view) {
     $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
-  const SDL_GPULoadOp depth_loadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
-  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depth_loadop, SDL_GPU_STOREOP_STORE);
+  const SDL_GPULoadOp depthLoadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
+  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depthLoadop, SDL_GPU_STOREOP_STORE);
 
   {
     RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
@@ -468,10 +468,10 @@ static void R_InitConfig(void) {
   r_config.vendor = "SDL_gpu";
   r_config.version = SDL_GetGPUDeviceDriver(r_context.device->device);
 
-  r_config.max_texunits = 16;
-  r_config.max_texture_size = 16384;
-  r_config.max_3d_texture_size = 2048;
-  r_config.max_uniform_block_size = 65536;
+  r_config.maxTexunits = 16;
+  r_config.maxTextureSize = 16384;
+  r_config.max3dTextureSize = 2048;
+  r_config.maxUniformBlockSize = 65536;
 
   Com_Print(  "  Renderer:   ^2%s^7\n", r_config.renderer);
   Com_Print(  "  Vendor:     ^2%s^7\n", r_config.vendor);
@@ -524,8 +524,8 @@ void R_Init(void) {
 
   R_InitPost();
 
-  const SDL_Rect bounds = r_context.window_bounds;
-  const float density = r_context.display_mode->pixel_density;
+  const SDL_Rect bounds = r_context.windowBounds;
+  const float density = r_context.displayMode->pixel_density;
 
   Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h,
             (int32_t) (bounds.w * density), (int32_t) (bounds.h * density));

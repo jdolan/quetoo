@@ -64,12 +64,12 @@ struct DiagnosticsView {
   /**
    * @brief The count of rows.
    */
-  size_t num_rows;
+  size_t numRows;
 
   /**
    * @brief When the rows were last rebuilt.
    */
-  uint32_t refresh_time;
+  uint32_t refreshTime;
 
   /**
    * @brief The rows, rebuilt on each refresh.

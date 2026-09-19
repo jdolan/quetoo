@@ -35,16 +35,16 @@ static void G_Trigger_Init(GameEntity *ent) {
   }
 
   ent->solid = SOLID_TRIGGER;
-  ent->move_type = MOVE_TYPE_NONE;
+  ent->moveType = MOVE_TYPE_NONE;
   gi.SetModel(ent, ent->model);
-  ent->sv_flags = SVF_NO_CLIENT;
+  ent->svFlags = SVF_NO_CLIENT;
 }
 
 /**
  * @brief The wait time has passed, so set back up for another activation
  */
 static void G_trigger_multiple_Wait(GameEntity *ent) {
-  ent->next_think = 0;
+  ent->nextThink = 0;
 }
 
 /**
@@ -52,7 +52,7 @@ static void G_trigger_multiple_Wait(GameEntity *ent) {
  */
 static void G_trigger_multiple_Think(GameEntity *ent) {
 
-  if (ent->next_think) {
+  if (ent->nextThink) {
     return; // already been triggered
   }
 
@@ -60,11 +60,11 @@ static void G_trigger_multiple_Think(GameEntity *ent) {
 
   if (ent->wait < 0) { // a trigger_once, which fires the once and is gone
     ent->Touch = NULL;
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
     ent->Think = G_FreeEntity;
   } else { // otherwise re-arm, at zero meaning as often as we are touched
     ent->Think = G_trigger_multiple_Wait;
-    ent->next_think = g_level.time + (uint32_t) Maxi((int32_t) SECONDS_TO_MILLIS(ent->wait), QUETOO_TICK_MILLIS);
+    ent->nextThink = g_level.time + (uint32_t) Maxi((int32_t) SECONDS_TO_MILLIS(ent->wait), QUETOO_TICK_MILLIS);
   }
 }
 
@@ -86,19 +86,19 @@ static void G_trigger_multiple_Touch(GameEntity *ent, GameEntity *other, const C
 
   if (!other->client) {
     const bool isProjectile = other->owner && other->owner->client;
-    if (isProjectile && (ent->spawn_flags & SHOOTABLE)) {
+    if (isProjectile && (ent->spawnFlags & SHOOTABLE)) {
       // we're a shootable trigger, and we've been shot
     } else {
       return;
     }
   }
 
-  if (!Vec3_Equal(ent->move_dir, Vec3_Zero())) {
+  if (!Vec3_Equal(ent->moveDir, Vec3_Zero())) {
     Vec3 forward;
 
     Vec3_Vectors(other->s.angles, &forward, NULL, NULL);
 
-    if (Vec3_Dot(forward, ent->move_dir) < 0.0) {
+    if (Vec3_Dot(forward, ent->moveDir) < 0.0) {
       return;
     }
   }
@@ -138,10 +138,10 @@ void G_trigger_multiple(GameEntity *ent) {
   ent->sound = gi.SoundIndex("misc/chat");
 
   ent->Touch = G_trigger_multiple_Touch;
-  ent->move_type = MOVE_TYPE_NONE;
-  ent->sv_flags |= SVF_NO_CLIENT;
+  ent->moveType = MOVE_TYPE_NONE;
+  ent->svFlags |= SVF_NO_CLIENT;
 
-  if (ent->spawn_flags & TRIGGERED) {
+  if (ent->spawnFlags & TRIGGERED) {
     ent->solid = SOLID_NOT;
     ent->Use = G_trigger_multiple_Enable;
   } else {
@@ -226,25 +226,25 @@ void G_trigger_always(GameEntity *ent) {
  */
 static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
-  if (other->move_type == MOVE_TYPE_WALK || other->move_type == MOVE_TYPE_BOUNCE) {
+  if (other->moveType == MOVE_TYPE_WALK || other->moveType == MOVE_TYPE_BOUNCE) {
 
-    other->velocity = Vec3_Scale(ent->move_dir, ent->speed * 10.0);
+    other->velocity = Vec3_Scale(ent->moveDir, ent->speed * 10.0);
 
     if (other->client) {
-      other->client->ps.pm_state.flags |= PMF_TIME_PUSHED;
-      other->client->ps.pm_state.time = 240;
+      other->client->ps.pmState.flags |= PMF_TIME_PUSHED;
+      other->client->ps.pmState.time = 240;
     }
 
-    if (other->push_time < g_level.time) {
-      other->push_time = g_level.time + 1500;
+    if (other->pushTime < g_level.time) {
+      other->pushTime = g_level.time + 1500;
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .origin = &other->s.origin,
       }, MULTICAST_PHS);
     }
   }
 
-  if (ent->spawn_flags & PUSH_ONCE) {
+  if (ent->spawnFlags & PUSH_ONCE) {
     G_FreeEntity(ent);
   }
 }
@@ -264,7 +264,7 @@ static void G_trigger_push_Use(GameEntity *ent, GameEntity *other, GameEntity *a
 
   G_Debug("%s is now %s\n", etos(ent), ent->solid == SOLID_NOT ? "off" : "on");
 
-  if (!(ent->spawn_flags & PUSH_TOGGLE)) {
+  if (!(ent->spawnFlags & PUSH_TOGGLE)) {
     ent->Use = NULL;
   }
 }
@@ -278,7 +278,7 @@ static void G_trigger_push_Effect(GameEntity *ent) {
 
   effect->s.origin = Box3_Center(ent->bounds);
 
-  effect->move_type = MOVE_TYPE_NONE;
+  effect->moveType = MOVE_TYPE_NONE;
   effect->s.trail = TRAIL_TELEPORTER;
 
   gi.LinkEntity(effect);
@@ -307,17 +307,17 @@ void G_trigger_push(GameEntity *ent) {
 
   const CmEntity *sound = gi.EntityValue(ent->def, "sound");
   if (sound->parsed & ENTITY_STRING) {
-    ent->move_info.sound_start = gi.SoundIndex(sound->string);
+    ent->moveInfo.soundStart = gi.SoundIndex(sound->string);
   } else {
-    ent->move_info.sound_start = gi.SoundIndex("trigger/push");
+    ent->moveInfo.soundStart = gi.SoundIndex("trigger/push");
   }
 
   if (!ent->speed) {
     ent->speed = 100;
   }
 
-  if (ent->spawn_flags & (PUSH_START_OFF | PUSH_TOGGLE)) {
-    if (ent->spawn_flags & PUSH_START_OFF) {
+  if (ent->spawnFlags & (PUSH_START_OFF | PUSH_TOGGLE)) {
+    if (ent->spawnFlags & PUSH_START_OFF) {
       ent->solid = SOLID_NOT;
     }
     ent->Use = G_trigger_push_Use;
@@ -325,7 +325,7 @@ void G_trigger_push(GameEntity *ent) {
 
   gi.LinkEntity(ent);
 
-  if (ent->spawn_flags & PUSH_EFFECT) {
+  if (ent->spawnFlags & PUSH_EFFECT) {
     G_trigger_push_Effect(ent);
   }
 }
@@ -343,7 +343,7 @@ static void G_trigger_hurt_Use(GameEntity *ent, GameEntity *other, GameEntity *a
 
   gi.LinkEntity(ent);
 
-  if (!(ent->spawn_flags & 2)) {
+  if (!(ent->spawnFlags & 2)) {
     ent->Use = NULL;
   }
 }
@@ -353,7 +353,7 @@ static void G_trigger_hurt_Use(GameEntity *ent, GameEntity *other, GameEntity *a
  */
 static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
-  if (!other->take_damage) { // deal with items that land on us
+  if (!other->takeDamage) { // deal with items that land on us
 
     if (other->item) {
       G_ResetDroppedItem(other);
@@ -371,7 +371,7 @@ static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTra
     return;
   }
 
-  if (ent->spawn_flags & 16) {
+  if (ent->spawnFlags & 16) {
     ent->timestamp = g_level.time + 1000;
   } else {
     ent->timestamp = g_level.time + 100;
@@ -381,7 +381,7 @@ static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTra
 
   int32_t dflags = DMG_NO_ARMOR;
 
-  if (ent->spawn_flags & 8) {
+  if (ent->spawnFlags & 8) {
     dflags = DMG_NO_GOD;
   }
 
@@ -423,13 +423,13 @@ void G_trigger_hurt(GameEntity *ent) {
     ent->damage = 2;
   }
 
-  if (ent->spawn_flags & 1) {
+  if (ent->spawnFlags & 1) {
     ent->solid = SOLID_NOT;
   } else {
     ent->solid = SOLID_TRIGGER;
   }
 
-  if (ent->spawn_flags & 2) {
+  if (ent->spawnFlags & 2) {
     ent->Use = G_trigger_hurt_Use;
   }
 
@@ -447,13 +447,13 @@ static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CmTra
 
   ent->timestamp = g_level.time + ent->delay * 1000;
 
-  const char *command = gi.EntityValue(ent->def, "command")->nullable_string;
+  const char *command = gi.EntityValue(ent->def, "command")->nullableString;
   if (command) {
     gi.Cbuf(va("%s\n", command));
   }
 
   else {
-    const char *script = gi.EntityValue(ent->def, "script")->nullable_string;
+    const char *script = gi.EntityValue(ent->def, "script")->nullableString;
     if (script) {
       gi.Cbuf(va("exec %s\n", script));
     }
@@ -470,8 +470,8 @@ static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CmTra
  */
 void G_trigger_exec(GameEntity *ent) {
 
-  const char *command = gi.EntityValue(ent->def, "command")->nullable_string;
-  const char *script = gi.EntityValue(ent->def, "script")->nullable_string;
+  const char *command = gi.EntityValue(ent->def, "command")->nullableString;
+  const char *script = gi.EntityValue(ent->def, "script")->nullableString;
   if (!command && !script) {
     G_Debug("No command or script at %s", vtos(ent->s.origin));
     G_FreeEntity(ent);

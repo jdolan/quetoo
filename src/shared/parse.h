@@ -151,7 +151,7 @@ static inline Parser __attribute__ ((warn_unused_result)) Parse_Init(const char 
 
 bool Parse_IsEOF(const Parser *parser);
 bool Parse_IsEOL(const Parser *parser);
-bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const size_t output_len);
+bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const size_t outputLen);
 size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType type, void *output, const size_t count);
 
 static inline bool Parse_SkipToken(Parser *parser, const ParseFlags flags) {
@@ -163,8 +163,8 @@ static inline size_t Parse_SkipPrimitive(Parser *parser, const ParseFlags flags,
   return Parse_Primitive(parser, flags, type, NULL, count);
 }
 
-static inline bool Parse_PeekToken(Parser *parser, const ParseFlags flags, void *output, const size_t output_len) {
-  return Parse_Token(parser, flags | PARSE_PEEK, output, output_len);
+static inline bool Parse_PeekToken(Parser *parser, const ParseFlags flags, void *output, const size_t outputLen) {
+  return Parse_Token(parser, flags | PARSE_PEEK, output, outputLen);
 }
 
 static inline size_t Parse_PeekPrimitive(Parser *parser, const ParseFlags flags, const ParseType type,
@@ -172,14 +172,14 @@ static inline size_t Parse_PeekPrimitive(Parser *parser, const ParseFlags flags,
   return Parse_Primitive(parser, flags | PARSE_PEEK, type, output, count);
 }
 
-static inline bool Parse_QuickToken(const char *data, const ParserFlags parser_flags, const ParseFlags flags,
-                   void *output, const size_t output_len) {
-  Parser p = Parse_Init(data, parser_flags);
-  return Parse_Token(&p, flags, output, output_len);
+static inline bool Parse_QuickToken(const char *data, const ParserFlags parserFlags, const ParseFlags flags,
+                   void *output, const size_t outputLen) {
+  Parser p = Parse_Init(data, parserFlags);
+  return Parse_Token(&p, flags, output, outputLen);
 }
 
-static inline size_t Parse_QuickPrimitive(const char *data, const ParserFlags parser_flags, const ParseFlags flags,
+static inline size_t Parse_QuickPrimitive(const char *data, const ParserFlags parserFlags, const ParseFlags flags,
                       const ParseType type, void *output, const size_t count) {
-  Parser p = Parse_Init(data, parser_flags);
+  Parser p = Parse_Init(data, parserFlags);
   return Parse_Primitive(&p, flags, type, output, count);
 }

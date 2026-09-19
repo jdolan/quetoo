@@ -32,10 +32,10 @@ static bool Cg_PortalMatrix(const ClientFrame *frame, const RenderBspPortal *por
 
   assert(portal->model);
 
-  for (int32_t i = 0; i < frame->num_entities; i++) {
+  for (int32_t i = 0; i < frame->numEntities; i++) {
 
-    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    const EntityState *s = &cgi.client->entity_states[snum];
+    const uint32_t snum = (frame->entityState + i) & ENTITY_STATE_MASK;
+    const EntityState *s = &cgi.client->entityStates[snum];
 
     if (cgi.client->models[s->model1] == portal->model) {
       const ClientEntity *ent = &cgi.client->entities[s->number];
@@ -61,7 +61,7 @@ void Cg_AddPortals(const ClientFrame *frame) {
     return;
   }
 
-  for (int32_t i = 0; i < world->bsp->num_portals; i++) {
+  for (int32_t i = 0; i < world->bsp->numPortals; i++) {
 
     RenderBspPortal *p = &world->bsp->portals[i];
 

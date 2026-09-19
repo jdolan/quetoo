@@ -76,7 +76,7 @@ CmBspPlane Cm_Plane(const Vec3 normal, float dist) {
     .normal = normal,
     .dist = dist,
     .type = Cm_PlaneTypeForNormal(normal),
-    .sign_bits = Cm_SignBitsForNormal(normal)
+    .signBits = Cm_SignBitsForNormal(normal)
   };
 }
 
@@ -103,8 +103,8 @@ bool Cm_PointInsideBrush(const Vec3 point, const CmBspBrush *brush) {
 
   if (Box3_ContainsPoint(brush->bounds, point)) {
 
-    const CmBspBrushSide *side = brush->brush_sides;
-    for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+    const CmBspBrushSide *side = brush->brushSides;
+    for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
       if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
         return false;
       }
@@ -133,7 +133,7 @@ int32_t Cm_BoxOnPlaneSide(const Box3 bounds, const CmBspPlane *p) {
   }
 
   float dist1, dist2;
-  switch (p->sign_bits) {
+  switch (p->signBits) {
     case 0:
       dist1 = Vec3_Dot(p->normal, bounds.maxs);
       dist2 = Vec3_Dot(p->normal, bounds.mins);
@@ -191,7 +191,7 @@ typedef struct {
   /**
    * @brief Head node of the appended box hull subtree.
    */
-  int32_t head_node;
+  int32_t headNode;
 
   /**
    * @brief The 12 planes defining the box hull faces.
@@ -219,49 +219,49 @@ static CmBox cm_box;
  */
 void Cm_InitBoxHull(CmBsp *bsp) {
 
-  if (bsp->num_planes + 12 > MAX_BSP_PLANES) {
+  if (bsp->numPlanes + 12 > MAX_BSP_PLANES) {
     Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
   }
 
-  if (bsp->num_nodes + 6 > MAX_BSP_NODES) {
+  if (bsp->numNodes + 6 > MAX_BSP_NODES) {
     Com_Error(ERROR_DROP, "MAX_BSP_NODES\n");
   }
 
-  if (bsp->num_leafs + 1 > MAX_BSP_LEAFS) {
+  if (bsp->numLeafs + 1 > MAX_BSP_LEAFS) {
     Com_Error(ERROR_DROP, "MAX_BSP_LEAFS\n");
   }
 
-  if (bsp->num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
+  if (bsp->numLeafBrushes + 1 > MAX_BSP_LEAF_BRUSHES) {
     Com_Error(ERROR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
   }
 
-  if (bsp->num_brushes + 1 > MAX_BSP_BRUSHES) {
+  if (bsp->numBrushes + 1 > MAX_BSP_BRUSHES) {
     Com_Error(ERROR_DROP, "MAX_BSP_BRUSHES\n");
   }
 
-  if (bsp->num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
+  if (bsp->numBrushSides + 6 > MAX_BSP_BRUSH_SIDES) {
     Com_Error(ERROR_DROP, "MAX_BSP_BRUSH_SIDES\n");
   }
 
   // head node
-  cm_box.head_node = bsp->num_nodes;
+  cm_box.headNode = bsp->numNodes;
 
   // planes
-  cm_box.planes = &bsp->planes[bsp->num_planes];
+  cm_box.planes = &bsp->planes[bsp->numPlanes];
 
   // leaf
-  cm_box.leaf = &bsp->leafs[bsp->num_leafs];
+  cm_box.leaf = &bsp->leafs[bsp->numLeafs];
   cm_box.leaf->contents = CONTENTS_MONSTER;
-  cm_box.leaf->first_leaf_brush = bsp->num_leaf_brushes;
-  cm_box.leaf->num_leaf_brushes = 1;
+  cm_box.leaf->firstLeafBrush = bsp->numLeafBrushes;
+  cm_box.leaf->numLeafBrushes = 1;
 
   // leaf brush
-  bsp->leaf_brushes[bsp->num_leaf_brushes] = bsp->num_brushes;
+  bsp->leafBrushes[bsp->numLeafBrushes] = bsp->numBrushes;
 
   // brush
-  cm_box.brush = &bsp->brushes[bsp->num_brushes];
-  cm_box.brush->num_brush_sides = 6;
-  cm_box.brush->brush_sides = bsp->brush_sides + bsp->num_brush_sides;
+  cm_box.brush = &bsp->brushes[bsp->numBrushes];
+  cm_box.brush->numBrushSides = 6;
+  cm_box.brush->brushSides = bsp->brushSides + bsp->numBrushSides;
   cm_box.brush->contents = CONTENTS_MONSTER;
 
   for (int32_t i = 0; i < 6; i++) {
@@ -270,30 +270,30 @@ void Cm_InitBoxHull(CmBsp *bsp) {
     CmBspPlane *plane = &cm_box.planes[i * 2];
     plane->normal = Vec3_Zero();
     plane->normal.xyz[i >> 1] = 1.f;
-    plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
+    plane->signBits = Cm_SignBitsForNormal(plane->normal);
     plane->type = Cm_PlaneTypeForNormal(plane->normal);
 
     plane = &cm_box.planes[i * 2 + 1];
     plane->normal = Vec3_Zero();
     plane->normal.xyz[i >> 1] = -1.f;
-    plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
+    plane->signBits = Cm_SignBitsForNormal(plane->normal);
     plane->type = Cm_PlaneTypeForNormal(plane->normal);
 
     const int32_t s = i & 1;
 
     // fill in nodes, one per side
-    CmBspNode *node = &bsp->nodes[cm_box.head_node + i];
-    node->plane = bsp->planes + (bsp->num_planes + i * 2);
-    node->children[s] = -1 - bsp->num_leafs;
+    CmBspNode *node = &bsp->nodes[cm_box.headNode + i];
+    node->plane = bsp->planes + (bsp->numPlanes + i * 2);
+    node->children[s] = -1 - bsp->numLeafs;
     if (i != 5) {
-      node->children[s ^ 1] = cm_box.head_node + i + 1;
+      node->children[s ^ 1] = cm_box.headNode + i + 1;
     } else {
-      node->children[s ^ 1] = -1 - bsp->num_leafs;
+      node->children[s ^ 1] = -1 - bsp->numLeafs;
     }
 
     // fill in brush sides, one per side
-    CmBspBrushSide *side = &bsp->brush_sides[bsp->num_brush_sides + i];
-    side->plane = bsp->planes + (bsp->num_planes + i * 2 + s);
+    CmBspBrushSide *side = &bsp->brushSides[bsp->numBrushSides + i];
+    side->plane = bsp->planes + (bsp->numPlanes + i * 2 + s);
   }
 }
 
@@ -320,19 +320,19 @@ int32_t Cm_SetBoxHull(const Box3 bounds, const int32_t contents) {
 
   cm_box.leaf->contents = cm_box.brush->contents = contents;
 
-  return cm_box.head_node;
+  return cm_box.headNode;
 }
 
 /**
  * @return The leaf number containing the specified point.
  */
-int32_t Cm_PointLeafnum(const Vec3 p, int32_t head_node) {
+int32_t Cm_PointLeafnum(const Vec3 p, int32_t headNode) {
 
-  if (!cm_bsp.num_nodes) {
+  if (!cm_bsp.numNodes) {
     return 0;
   }
 
-  int32_t num = head_node;
+  int32_t num = headNode;
   while (num >= 0) {
     const CmBspNode *node = cm_bsp.nodes + num;
     const float dist = Cm_DistanceToPlane(p, node->plane);
@@ -357,21 +357,21 @@ int32_t Cm_PointLeafnum(const Vec3 p, int32_t head_node) {
  *
  * @remarks The input point is transformed because node planes can't be transformed.
  */
-int32_t Cm_PointContents(const Vec3 p, int32_t head_node, const Mat4 inverse_matrix) {
+int32_t Cm_PointContents(const Vec3 p, int32_t headNode, const Mat4 inverseMatrix) {
 
-  if (!cm_bsp.num_nodes) {
+  if (!cm_bsp.numNodes) {
     return 0;
   }
 
   Vec3 p0 = p;
 
-  if (!Mat4_Equal(inverse_matrix, Mat4_Identity())) {
-    p0 = Mat4_Transform(inverse_matrix, p);
+  if (!Mat4_Equal(inverseMatrix, Mat4_Identity())) {
+    p0 = Mat4_Transform(inverseMatrix, p);
   }
 
-  const int32_t leaf_num = Cm_PointLeafnum(p0, head_node);
+  const int32_t leafNum = Cm_PointLeafnum(p0, headNode);
 
-  return cm_bsp.leafs[leaf_num].contents;
+  return cm_bsp.leafs[leafNum].contents;
 }
 
 /**
@@ -397,7 +397,7 @@ typedef struct {
   /**
    * @brief Index of the topmost node that fully contains the box.
    */
-  int32_t top_node;
+  int32_t topNode;
 
   /**
    * @brief Accumulated contents from all touched leafs.
@@ -409,34 +409,34 @@ typedef struct {
  * @brief Recurse the BSP tree from the specified node, accumulating leafs the
  * given box occupies in the data structure.
  */
-static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
+static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t nodeNum) {
 
   while (true) {
-    if (node_num < 0) {
-      const int32_t leaf_num = -1 - node_num;
-      data->contents |= cm_bsp.leafs[leaf_num].contents;
+    if (nodeNum < 0) {
+      const int32_t leafNum = -1 - nodeNum;
+      data->contents |= cm_bsp.leafs[leafNum].contents;
 
       if (data->count < data->length) {
-        data->list[data->count++] = leaf_num;
+        data->list[data->count++] = leafNum;
       }
 
       return;
     }
 
-    const CmBspNode *node = &cm_bsp.nodes[node_num];
+    const CmBspNode *node = &cm_bsp.nodes[nodeNum];
     const CmBspPlane plane = *node->plane;
     const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);
 
     if (side == SIDE_FRONT) {
-      node_num = node->children[0];
+      nodeNum = node->children[0];
     } else if (side == SIDE_BACK) {
-      node_num = node->children[1];
+      nodeNum = node->children[1];
     } else { // go down both
-      if (data->top_node == -1) {
-        data->top_node = node_num;
+      if (data->topNode == -1) {
+        data->topNode = nodeNum;
       }
       Cm_BoxLeafnums_r(data, node->children[0]);
-      node_num = node->children[1];
+      nodeNum = node->children[1];
     }
   }
 }
@@ -455,22 +455,22 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
  *
  * @return The number of leafs accumulated to the list.
  */
-size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *top_node,
-            int32_t head_node) {
+size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *topNode,
+            int32_t headNode) {
 
   cm_box_leafnum_data data = {
     .bounds = bounds,
     .list = list,
     .length = length,
-    .top_node = -1
+    .topNode = -1
   };
 
-  if (cm_bsp.num_nodes) {
-    Cm_BoxLeafnums_r(&data, head_node);
+  if (cm_bsp.numNodes) {
+    Cm_BoxLeafnums_r(&data, headNode);
   }
 
-  if (top_node) {
-    *top_node = data.top_node;
+  if (topNode) {
+    *topNode = data.topNode;
   }
 
   if (data.length > 0 && data.count == data.length) {
@@ -487,15 +487,15 @@ size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *
  * @param matrix The matrix to transform the bounds by.
  * @return The contents mask of all leafs within the transformed bounds.
  */
-int32_t Cm_BoxContents(const Box3 bounds, int32_t head_node) {
+int32_t Cm_BoxContents(const Box3 bounds, int32_t headNode) {
   cm_box_leafnum_data data = {
     .bounds = bounds,
     .list = NULL,
     .length = 0,
-    .top_node = -1
+    .topNode = -1
   };
 
-  Cm_BoxLeafnums_r(&data, head_node);
+  Cm_BoxLeafnums_r(&data, headNode);
 
   return data.contents;
 }

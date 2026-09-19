@@ -88,12 +88,12 @@ START_TEST(check_R_RegisterMedia) {
   ck_assert_msg(R_FindMedia("child1", R_MEDIA_GENERIC) == child1, "Erroneously freed child1");
   ck_assert_msg(R_FindMedia("grandchild1", R_MEDIA_GENERIC) == grandchild1, "Erroneously freed grandchild1");
 
-  int32_t old_seed = parent1->seed;
+  int32_t oldSeed = parent1->seed;
 
   R_BeginLoading();
 
   ck_assert(R_FindMedia("parent1", R_MEDIA_GENERIC) == parent1);
-  ck_assert_msg(old_seed != parent1->seed, "Seed for parent1 has not changed");
+  ck_assert_msg(oldSeed != parent1->seed, "Seed for parent1 has not changed");
   ck_assert_msg(child1->seed == parent1->seed, "Dependency child1 not retained");
   ck_assert_msg(grandchild1->seed == parent1->seed, "Dependency grandchild1 not retained");
 

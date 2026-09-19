@@ -290,13 +290,13 @@ Color ColorEsc(int32_t esc) {
  * @brief Extracts the emoji sequence at `in` to `out`, returning a pointer to the next character
  * after the emoji sequence.
  */
-const char *EmojiEsc(const char *in, char *out, size_t out_size) {
+const char *EmojiEsc(const char *in, char *out, size_t outSize) {
 
   assert(*in == ESC_EMOJI);
 
   in++;
 
-  for (size_t i = 0; i < out_size - 1; i++) {
+  for (size_t i = 0; i < outSize - 1; i++) {
     if (isalnum(*in) || q_strchr("_", *in)) {
       if (out) {
         *out++ = *in++;

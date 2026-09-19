@@ -403,12 +403,12 @@ static void rebuild(ScoreboardView *self) {
   const int32_t reserved = self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0;
   const size_t rows = rowsThatFit(self, 64, reserved);
 
-  if (cg_state.num_teams) {
+  if (cg_state.numTeams) {
 
     // the aggregate scores follow the players' in the array
     const GameScore *totals = scores + count;
 
-    for (int32_t t = 0; t < cg_state.num_teams; t++) {
+    for (int32_t t = 0; t < cg_state.numTeams; t++) {
       Text *total = $(alloc(Text), initWithText, teamTotal(&cg_state.teams[t], &totals[t]), NULL);
       assert(total);
 
@@ -424,7 +424,7 @@ static void rebuild(ScoreboardView *self) {
     StackView *spectators = $(self, addColumn);
     $((View *) spectators, addClassName, "spectators");
 
-    for (int32_t t = 0; t < cg_state.num_teams; t++) {
+    for (int32_t t = 0; t < cg_state.numTeams; t++) {
       StackView *column = addRowsColumn(self);
 
       size_t added = 0;

@@ -195,7 +195,7 @@ typedef struct {
   /**
    * @brief The number of frames in this animation.
    */
-  int32_t num_frames;
+  int32_t numFrames;
 
   /**
    * @brief The frames in this animation.
@@ -323,12 +323,12 @@ typedef struct RenderOcclusionQuery {
   /**
    * @brief The first instance index in the shared per-instance box buffer.
    */
-  int32_t first_box;
+  int32_t firstBox;
 
   /**
    * @brief The count of instanced boxes drawn for this query.
    */
-  int32_t num_boxes;
+  int32_t numBoxes;
 
   /**
    * @brief True if the query produced visible fragments.
@@ -448,7 +448,7 @@ typedef struct RenderBspFace {
   /**
    * @brief The brush side which generated this face, or `NULL` for patch faces.
    */
-  RenderBspBrushSide *brush_side;
+  RenderBspBrushSide *brushSide;
 
   /**
    * @brief The plane on which this face resides (to disambiguate `node`).
@@ -483,7 +483,7 @@ typedef struct RenderBspFace {
   /**
    * @brief The count of vertexes.
    */
-  int32_t num_vertexes;
+  int32_t numVertexes;
 
   /**
    * @brief The elements.
@@ -493,7 +493,7 @@ typedef struct RenderBspFace {
   /**
    * @brief The count of elements.
    */
-  int32_t num_elements;
+  int32_t numElements;
 } RenderBspFace;
 
 /**
@@ -524,12 +524,12 @@ typedef struct {
   /**
    * @brief The count of elements.
    */
-  int32_t num_elements;
+  int32_t numElements;
 
   /**
    * @brief Texture coordinate origin for stage transforms (scale, stretch, rotate).
    */
-  Vec2 st_origin;
+  Vec2 stOrigin;
 
   /**
    * @brief The portal these elements show, or `NULL` if they are not a portal face.
@@ -575,7 +575,7 @@ typedef struct RenderBspNode {
   /**
    * @brief The AABB of visible faces within this node.
    */
-  Box3 visible_bounds;
+  Box3 visibleBounds;
 
   /**
    * @brief The faces within this node.
@@ -585,7 +585,7 @@ typedef struct RenderBspNode {
   /**
    * @brief The count of faces.
    */
-  int32_t num_faces;
+  int32_t numFaces;
 } RenderBspNode;
 
 /**
@@ -655,8 +655,8 @@ typedef struct {
   /**
    * @brief The decal vertex buffer, and its capacity in vertices.
    */
-  Buffer *vertex_buffer;
-  int32_t vertex_buffer_capacity;
+  Buffer *vertexBuffer;
+  int32_t vertexBufferCapacity;
 
   /**
    * @brief True if the containing block's decals require uploading.
@@ -678,17 +678,17 @@ typedef struct RenderBspBlock {
   /**
    * @brief The draw elements within this block.
    */
-  RenderBspDrawElements *draw_elements;
+  RenderBspDrawElements *drawElements;
 
   /**
    * @brief The count of draw elements.
    */
-  int32_t num_draw_elements;
+  int32_t numDrawElements;
 
   /**
    * @brief The visible bounds of this block, used for occlusion query and culling.
    */
-  Box3 visible_bounds;
+  Box3 visibleBounds;
 
   /**
    * @brief The occlusion query for this block.
@@ -708,7 +708,7 @@ typedef struct RenderBspBlock {
   /**
    * @brief The cached dynamic light bitmask for this block.
    */
-  RenderActiveDynamicLights active_dynamic_lights;
+  RenderActiveDynamicLights activeDynamicLights;
 
 } RenderBspBlock;
 
@@ -725,12 +725,12 @@ typedef struct RenderBspInlineModel {
   /**
    * @brief The head node of this inline model.
    */
-  RenderBspNode *head_node;
+  RenderBspNode *headNode;
 
   /**
    * @brief For frustum culling.
    */
-  Box3 visible_bounds;
+  Box3 visibleBounds;
 
   /**
    * @brief The faces of this inline model.
@@ -740,29 +740,29 @@ typedef struct RenderBspInlineModel {
   /**
    * @brief The count of faces.
    */
-  int32_t num_faces;
+  int32_t numFaces;
 
   /**
    * @brief The depth pass draw elements of this inline model.
    * @details Entry 0 lumps all opaque faces into a single draw elements, with a sentinel
    * material of NULL. Each subsequent entry is a unique alpha-tested material.
    */
-  RenderBspDrawElements *depth_pass_elements;
+  RenderBspDrawElements *depthPassElements;
 
   /**
    * @brief The count of depth pass draw elements.
    */
-  int32_t num_depth_pass_elements;
+  int32_t numDepthPassElements;
 
   /**
    * @brief The draw elements of this inline model.
    */
-  RenderBspDrawElements *draw_elements;
+  RenderBspDrawElements *drawElements;
 
   /**
    * @brief The count of draw elements.
    */
-  int32_t num_draw_elements;
+  int32_t numDrawElements;
 
   /**
    * @brief The blocks of this inline model.
@@ -772,7 +772,7 @@ typedef struct RenderBspInlineModel {
   /**
    * @brief The count of blocks.
    */
-  int32_t num_blocks;
+  int32_t numBlocks;
 
 } RenderBspInlineModel;
 
@@ -825,17 +825,17 @@ typedef struct RenderBspPortal {
   /**
    * @brief The center of the portal face this frame, in world space.
    */
-  Vec3 abs_origin;
+  Vec3 absOrigin;
 
   /**
    * @brief The bounds of the portal face this frame, in world space, for culling.
    */
-  Box3 abs_bounds;
+  Box3 absBounds;
 
   /**
    * @brief The portal face's plane this frame, in world space, for culling.
    */
-  CmBspPlane abs_plane;
+  CmBspPlane absPlane;
 
   /**
    * @brief Carries a point or direction from the portal face's frame into the frame of the
@@ -908,12 +908,12 @@ typedef struct {
    * unique alpha-test material visible to the light, so alpha-tested faces (foliage, fences,
    * grates) cast pixel-correct shadows.
    */
-  RenderBspDrawElements *draw_elements;
+  RenderBspDrawElements *drawElements;
 
   /**
    * @brief The count of draw elements.
    */
-  int32_t num_draw_elements;
+  int32_t numDrawElements;
 
   /**
    * @brief The style string, a-z (26 levels), animated at 10Hz.
@@ -928,7 +928,7 @@ typedef struct {
   /**
    * @brief The target entity for dynamic lights attached to inline model entities, or `NULL`.
    */
-  CmEntity *target_entity;
+  CmEntity *targetEntity;
 } RenderBspLight;
 
 /**
@@ -954,7 +954,7 @@ typedef struct {
   /**
    * @brief The number of lights affecting this voxel.
    */
-  int32_t num_lights;
+  int32_t numLights;
 } RenderBspVoxel;
 
 /**
@@ -970,7 +970,7 @@ typedef struct {
   /**
    * @brief The total number of voxels.
    */
-  int32_t num_voxels;
+  int32_t numVoxels;
 
   /**
    * @brief The voxel bounds in world space.
@@ -995,27 +995,27 @@ typedef struct {
   /**
    * @brief Media placeholder for the per-voxel light data (see `light_data_buffer`).
    */
-  RenderImage *light_data;
+  RenderImage *lightData;
 
   /**
    * @brief The storage buffer of per-voxel light ranges.
    */
-  Buffer *light_data_buffer;
+  Buffer *lightDataBuffer;
 
   /**
    * @brief Voxel light index texture to sample the index buffer (`R32I`).
    */
-  RenderImage *light_indices;
+  RenderImage *lightIndices;
 
   /**
    * @brief The storage buffer backing the light index vector (`R32I`).
    */
-  Buffer *light_indices_buffer;
+  Buffer *lightIndicesBuffer;
 
   /**
    * @brief The length of `light_indices_buffer`.
    */
-  int32_t num_light_indices;
+  int32_t numLightIndices;
 
 } RenderBspVoxels;
 
@@ -1032,7 +1032,7 @@ typedef struct {
   /**
    * @brief The count of planes.
    */
-  int32_t num_planes;
+  int32_t numPlanes;
 
   /**
    * @brief The planes array.
@@ -1042,7 +1042,7 @@ typedef struct {
   /**
    * @brief The count of materials.
    */
-  int32_t num_materials;
+  int32_t numMaterials;
 
   /**
    * @brief The materials array.
@@ -1052,17 +1052,17 @@ typedef struct {
   /**
    * @brief The count of brush sides.
    */
-  int32_t num_brush_sides;
+  int32_t numBrushSides;
 
   /**
    * @brief The brush sides array.
    */
-  RenderBspBrushSide *brush_sides;
+  RenderBspBrushSide *brushSides;
 
   /**
    * @brief The count of patches.
    */
-  int32_t num_patches;
+  int32_t numPatches;
 
   /**
    * @brief The patches array.
@@ -1072,7 +1072,7 @@ typedef struct {
   /**
    * @brief The count of vertexes.
    */
-  int32_t num_vertexes;
+  int32_t numVertexes;
 
   /**
    * @brief The vertexes array.
@@ -1082,7 +1082,7 @@ typedef struct {
   /**
    * @brief The count of elements.
    */
-  int32_t num_elements;
+  int32_t numElements;
 
   /**
    * @brief The elements array.
@@ -1092,7 +1092,7 @@ typedef struct {
   /**
    * @brief The count of faces.
    */
-  int32_t num_faces;
+  int32_t numFaces;
 
   /**
    * @brief The faces array.
@@ -1102,17 +1102,17 @@ typedef struct {
   /**
    * @brief The count of draw elements.
    */
-  int32_t num_draw_elements;
+  int32_t numDrawElements;
 
   /**
    * @brief The draw elements array.
    */
-  RenderBspDrawElements *draw_elements;
+  RenderBspDrawElements *drawElements;
 
   /**
    * @brief The count of nodes.
    */
-  int32_t num_nodes;
+  int32_t numNodes;
 
   /**
    * @brief The nodes array.
@@ -1122,7 +1122,7 @@ typedef struct {
   /**
    * @brief The count of leafs.
    */
-  int32_t num_leafs;
+  int32_t numLeafs;
 
   /**
    * @brief The leafs array.
@@ -1132,7 +1132,7 @@ typedef struct {
   /**
    * @brief The count of blocks.
    */
-  int32_t num_blocks;
+  int32_t numBlocks;
 
   /**
    * @brief The blocks array.
@@ -1142,17 +1142,17 @@ typedef struct {
   /**
    * @brief The count of inline models.
    */
-  int32_t num_inline_models;
+  int32_t numInlineModels;
 
   /**
    * @brief The inline models array.
    */
-  RenderBspInlineModel *inline_models;
+  RenderBspInlineModel *inlineModels;
 
   /**
    * @brief The count of lights.
    */
-  int32_t num_lights;
+  int32_t numLights;
 
   /**
    * @brief The lights array.
@@ -1162,7 +1162,7 @@ typedef struct {
   /**
    * @brief The count of portals.
    */
-  int32_t num_portals;
+  int32_t numPortals;
 
   /**
    * @brief The portals array.
@@ -1177,28 +1177,28 @@ typedef struct {
   /**
    * @brief The vertex array (VAO) name.
    */
-  uint32_t vertex_array;
+  uint32_t vertexArray;
 
   /**
    * @brief The vertex buffer.
    */
-  Buffer *vertex_buffer;
+  Buffer *vertexBuffer;
 
   /**
    * @brief The elements (index) buffer.
    */
-  Buffer *elements_buffer;
+  Buffer *elementsBuffer;
   struct {
 
     /**
      * @brief The depth pass vertex array (VAO) name.
      */
-    uint32_t vertex_array;
+    uint32_t vertexArray;
 
   /**
    * @brief The depth pass vertex array.
    */
-  } depth_pass;
+  } depthPass;
 
   /**
    * @brief The first inline BSP model, aka worldspawn.
@@ -1298,7 +1298,7 @@ typedef struct {
   /**
    * @brief The count of vertexes.
    */
-  int32_t num_vertexes;
+  int32_t numVertexes;
 
   /**
    * @brief The elements.
@@ -1308,12 +1308,12 @@ typedef struct {
   /**
    * @brief The count of elements.
    */
-  int32_t num_elements;
+  int32_t numElements;
 
   /**
    * @brief The base vertex in the shared mesh VAO.
    */
-  int32_t base_vertex;
+  int32_t baseVertex;
 
   /**
    * @brief The elements pointer in the shared mesh VAO.
@@ -1336,17 +1336,17 @@ typedef struct {
   /**
    * @brief The index of the first frame.
    */
-  int32_t first_frame;
+  int32_t firstFrame;
 
   /**
    * @brief The total number of frames.
    */
-  int32_t num_frames;
+  int32_t numFrames;
 
   /**
    * @brief The number of frames that loop.
    */
-  int32_t looped_frames;
+  int32_t loopedFrames;
 
   /**
    * @brief The animation playback rate in frames per second.
@@ -1424,7 +1424,7 @@ typedef struct {
   /**
    * @brief The count of vertexes.
    */
-  int32_t num_vertexes;
+  int32_t numVertexes;
 
   /**
    * @brief The elements array.
@@ -1434,7 +1434,7 @@ typedef struct {
   /**
    * @brief The count of elements.
    */
-  int32_t num_elements;
+  int32_t numElements;
 
   /**
    * @brief The animation frames.
@@ -1444,7 +1444,7 @@ typedef struct {
   /**
    * @brief The count of frames.
    */
-  int32_t num_frames;
+  int32_t numFrames;
 
   /**
    * @brief The model tags.
@@ -1454,7 +1454,7 @@ typedef struct {
   /**
    * @brief The count of tags.
    */
-  int32_t num_tags;
+  int32_t numTags;
 
   /**
    * @brief The model faces.
@@ -1464,7 +1464,7 @@ typedef struct {
   /**
    * @brief The count of faces.
    */
-  int32_t num_faces;
+  int32_t numFaces;
 
   /**
    * @brief The animations.
@@ -1474,12 +1474,12 @@ typedef struct {
   /**
    * @brief The count of animations.
    */
-  int32_t num_animations;
+  int32_t numAnimations;
 
   /**
    * @brief The base vertex in the shared mesh VAO.
    */
-  int32_t base_vertex;
+  int32_t baseVertex;
 
   /**
    * @brief The indices pointer in the shared mesh VAO.
@@ -1513,12 +1513,12 @@ typedef struct {
   /**
    * @brief The GPU vertex buffer holding all frames of all faces.
    */
-  Buffer *vertex_buffer;
+  Buffer *vertexBuffer;
 
   /**
    * @brief The GPU elements (index) buffer.
    */
-  Buffer *elements_buffer;
+  Buffer *elementsBuffer;
 } RenderMeshModel;
 
 /**
@@ -1545,7 +1545,7 @@ typedef struct RenderModel {
     /**
      * @brief The inline BSP model data.
      */
-    RenderBspInlineModel *bsp_inline;
+    RenderBspInlineModel *bspInline;
 
     /**
      * @brief The mesh model data.
@@ -1802,7 +1802,7 @@ typedef struct {
   /**
    * @brief The next diffusemap rect, for animation.
    */
-  Vec4 next_texcoords;
+  Vec4 nextTexcoords;
 
   /**
    * @brief The quad color.
@@ -1825,7 +1825,7 @@ typedef struct {
   /**
    * @brief The next diffusemap texture, for animation interpolation.
    */
-  const RenderImage *next_diffusemap;
+  const RenderImage *nextDiffusemap;
 
   /**
    * @brief The sprite bounds.
@@ -1900,17 +1900,17 @@ typedef struct RenderEntity {
   /**
    * @brief The absolute entity bounds, as known by the client.
    */
-  Box3 abs_bounds;
+  Box3 absBounds;
 
   /**
    * @brief The visual model bounds, in world space, for frustum culling.
    */
-  Box3 abs_model_bounds;
+  Box3 absModelBounds;
 
   /**
    * @brief The cached dynamic light bitmask for this entity.
    */
-  RenderActiveDynamicLights active_dynamic_lights;
+  RenderActiveDynamicLights activeDynamicLights;
 
   /**
    * @brief The model matrix.
@@ -1920,7 +1920,7 @@ typedef struct RenderEntity {
   /**
    * @brief The inverse model matrix.
    */
-  Mat4 inverse_matrix;
+  Mat4 inverseMatrix;
 
   /**
    * @brief The model, if any.
@@ -1930,12 +1930,12 @@ typedef struct RenderEntity {
   /**
    * @brief Frame animations.
    */
-  int32_t frame, old_frame;
+  int32_t frame, oldFrame;
 
   /**
    * @brief Frame interpolation.
    */
-  float lerp, back_lerp;
+  float lerp, backLerp;
 
   /**
    * @brief Mesh model skins, up to one per face.
@@ -1954,7 +1954,7 @@ typedef struct RenderEntity {
    * means `skins` is authoritative for each face: a `NULL` entry explicitly
    * means "do not draw this face" (see `Cg_LoadClientSkins`).
    */
-  bool has_skins;
+  bool hasSkins;
 
   /**
    * @brief The entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).
@@ -2030,7 +2030,7 @@ typedef struct {
   /**
    * @brief The backing BSP light, for static light sources.
    */
-  const RenderBspLight *bsp_light;
+  const RenderBspLight *bspLight;
 
   /**
    * @brief The optional light source entity identifier.
@@ -2050,7 +2050,7 @@ typedef struct {
   /**
    * @brief The count of intersecting entities.
    */
-  int32_t num_entities;
+  int32_t numEntities;
 
   /**
    * @brief The shadow atlas tile origin in pixels.
@@ -2089,102 +2089,102 @@ typedef struct {
   /**
    * @brief The count of visible lights.
    */
-  int32_t lights_visible;
+  int32_t lightsVisible;
 
   /**
    * @brief The count of occluded lights.
    */
-  int32_t lights_occluded;
+  int32_t lightsOccluded;
 
   /**
    * @brief The count of lights with cached shadowmaps.
    */
-  int32_t lights_cached;
+  int32_t lightsCached;
 
   /**
    * @brief The count of visible entities.
    */
-  int32_t entities_visible;
+  int32_t entitiesVisible;
 
   /**
    * @brief The count of occluded entities.
    */
-  int32_t entities_occluded;
+  int32_t entitiesOccluded;
 
   /**
    * @brief The count of visible (non-occluded) BSP blocks.
    */
-  int32_t blocks_visible;
+  int32_t blocksVisible;
 
   /**
    * @brief The count of occluded BSP blocks.
    */
-  int32_t blocks_occluded;
+  int32_t blocksOccluded;
 
   /**
    * @brief The count of currently allocated occlusion queries.
    */
-  int32_t queries_allocated;
+  int32_t queriesAllocated;
 
   /**
    * @brief The count of visible occlusion queries this frame.
    */
-  int32_t queries_visible;
+  int32_t queriesVisible;
 
   /**
    * @brief The count of occluded occlusion queries this frame.
    */
-  int32_t queries_occluded;
+  int32_t queriesOccluded;
 
   /**
    * @brief The counts of portals the client game offered, and of those actually drawn.
    */
-  int32_t portals_offered, portals_drawn;
+  int32_t portalsOffered, portalsDrawn;
 
   /**
    * @brief The count of triangles drawn into portal views this frame.
    */
-  int32_t portals_triangles;
+  int32_t portalsTriangles;
 
   /**
    * @brief The count of rendered inline BSP models.
    */
-  int32_t bsp_inline_models;
+  int32_t bspInlineModels;
 
   /**
    * @brief The count of rendered BSP draw element batches.
    */
-  int32_t bsp_draw_elements;
+  int32_t bspDrawElements;
 
   /**
    * @brief The count of rendered BSP triangles.
    */
-  int32_t bsp_triangles;
+  int32_t bspTriangles;
 
   /**
    * @brief The count of rendered mesh models.
    */
-  int32_t mesh_models;
+  int32_t meshModels;
 
   /**
    * @brief The count of rendered mesh draw element batches.
    */
-  int32_t mesh_draw_elements;
+  int32_t meshDrawElements;
 
   /**
    * @brief The count of rendered mesh triangles.
    */
-  int32_t mesh_triangles;
+  int32_t meshTriangles;
 
   /**
    * @brief The count of rendered sprite draw element batches.
    */
-  int32_t sprite_draw_elements;
+  int32_t spriteDrawElements;
 
   /**
    * @brief The count of rendered decal draw element batches.
    */
-  int32_t decal_draw_elements;
+  int32_t decalDrawElements;
 } RenderViewStats;
 
 /**
@@ -2220,7 +2220,7 @@ typedef struct RenderView {
   /**
    * @brief The depth range; near and far clipping plane distances.
    */
-  Vec2 depth_range;
+  Vec2 depthRange;
 
   /**
    * @brief The view origin.
@@ -2270,7 +2270,7 @@ typedef struct RenderView {
   /**
    * @brief The count of entities.
    */
-  int32_t num_entities;
+  int32_t numEntities;
 
   /**
    * @brief The sprites to render for the current frame.
@@ -2280,7 +2280,7 @@ typedef struct RenderView {
   /**
    * @brief The count of sprites.
    */
-  int32_t num_sprites;
+  int32_t numSprites;
 
   /**
    * @brief The beams to render for the current frame.
@@ -2290,7 +2290,7 @@ typedef struct RenderView {
   /**
    * @brief The count of beams.
    */
-  int32_t num_beams;
+  int32_t numBeams;
 
   /**
    * @brief The portals whose views are drawn for this view to sample.
@@ -2300,17 +2300,17 @@ typedef struct RenderView {
   /**
    * @brief The count of portals.
    */
-  int32_t num_portals;
+  int32_t numPortals;
 
   /**
    * @brief The batching state for the current frame's sprite instances.
    */
-  RenderSpriteBatch sprite_batches[MAX_SPRITE_INSTANCES];
+  RenderSpriteBatch spriteBatches[MAX_SPRITE_INSTANCES];
 
   /**
    * @brief The count of sprite instances.
    */
-  int32_t num_sprite_instances;
+  int32_t numSpriteInstances;
 
   /**
    * @brief The lights to render for the current frame.
@@ -2320,7 +2320,7 @@ typedef struct RenderView {
   /**
    * @brief The count of lights.
    */
-  int32_t num_lights;
+  int32_t numLights;
 
   /**
    * @brief New decals added this frame, to be processed during `R_UpdateDecals`.
@@ -2330,7 +2330,7 @@ typedef struct RenderView {
   /**
    * @brief The count of decals.
    */
-  int32_t num_decals;
+  int32_t numDecals;
 
   /**
    * @brief The view frustum, for box and sphere culling.
@@ -2356,12 +2356,12 @@ typedef struct {
   /**
    * @brief The display mode.
    */
-  const SDL_DisplayMode *display_mode;
+  const SDL_DisplayMode *displayMode;
 
   /**
    * @brief The display usable bounds, which may be smaller than the display mode resolution.
    */
-  SDL_Rect display_usable_bounds;
+  SDL_Rect displayUsableBounds;
 
   /**
    * @brief The application window.
@@ -2371,12 +2371,12 @@ typedef struct {
   /**
    * @brief The window flags.
    */
-  SDL_WindowFlags window_flags;
+  SDL_WindowFlags windowFlags;
 
   /**
    * @brief The window position and size in logical pixels.
    */
-  SDL_Rect window_bounds;
+  SDL_Rect windowBounds;
 
   /**
    * @brief The GPU render device.
@@ -2386,7 +2386,7 @@ typedef struct {
   /**
    * @brief A 1x1 opaque white @c Texture, useful for binding to unused @c Samplers.
    */
-  Texture *null_texture;
+  Texture *nullTexture;
 } RenderContext;
 
 #if defined(__R_LOCAL_H__)
@@ -2403,7 +2403,7 @@ typedef struct {
   /**
    * @brief The depth write flag.
    */
-  bool depth_write;
+  bool depthWrite;
 
   /**
    * @brief The cached pipeline.

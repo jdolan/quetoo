@@ -26,7 +26,7 @@
  */
 static void Cl_InitMovementCommand(void) {
 
-  ClientCmd *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  ClientCmd *cmd = &cl.cmds[cls.netChan.outgoingSequence & CMD_MASK];
 
   memset(cmd, 0, sizeof(*cmd));
 }
@@ -36,14 +36,14 @@ static void Cl_InitMovementCommand(void) {
  */
 void Cl_UpdateMovementCommand(uint32_t msec) {
 
-  ClientCmd *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  ClientCmd *cmd = &cl.cmds[cls.netChan.outgoingSequence & CMD_MASK];
 
   cmd->cmd.msec = Minf(msec, 255u);
 
   Cl_Look(&cmd->cmd);
 
   cmd->time = cl.time;
-  cmd->timestamp = cl.unclamped_time;
+  cmd->timestamp = cl.unclampedTime;
 }
 
 /**
@@ -51,18 +51,18 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
  */
 static void Cl_FinalizeMovementCommand(void) {
 
-  ClientCmd *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  ClientCmd *cmd = &cl.cmds[cls.netChan.outgoingSequence & CMD_MASK];
 
-  ClientCmd *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+  ClientCmd *prev = &cl.cmds[(cls.netChan.outgoingSequence - 1) & CMD_MASK];
 
-  const uint32_t msec = cl.unclamped_time - prev->timestamp;
+  const uint32_t msec = cl.unclampedTime - prev->timestamp;
 
   cmd->cmd.msec = Minf(msec, 255u);
 
   Cl_Move(&cmd->cmd);
 
   cmd->time = cl.time;
-  cmd->timestamp = cl.unclamped_time;
+  cmd->timestamp = cl.unclampedTime;
 }
 
 /**
@@ -76,16 +76,16 @@ static void Cl_WriteMovementCommand(MemBuf *buf) {
   if (!cl.frame.valid) {
     Net_WriteLong(buf, -1);
   } else {
-    Net_WriteLong(buf, cl.frame.frame_num);
+    Net_WriteLong(buf, cl.frame.frameNum);
   }
 
-  ClientCmd *from = &null_cmd, *to = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
+  ClientCmd *from = &null_cmd, *to = &cl.cmds[(cls.netChan.outgoingSequence - 2) & CMD_MASK];
   Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 
-  from = to; to = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+  from = to; to = &cl.cmds[(cls.netChan.outgoingSequence - 1) & CMD_MASK];
   Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 
-  from = to;  to = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
+  from = to;  to = &cl.cmds[(cls.netChan.outgoingSequence) & CMD_MASK];
   Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 }
 
@@ -97,8 +97,8 @@ static void Cl_WriteUserInfoCommand(void) {
   if (cvar_user_info_modified) {
     cvar_user_info_modified = false;
 
-    Net_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
-    Net_WriteString(&cls.net_chan.message, Cvar_UserInfo());
+    Net_WriteByte(&cls.netChan.message, CL_CMD_USER_INFO);
+    Net_WriteString(&cls.netChan.message, Cvar_UserInfo());
   }
 }
 
@@ -107,13 +107,13 @@ static void Cl_WriteUserInfoCommand(void) {
  */
 void Cl_WriteEntityInfoCommand(int16_t number, const CmEntity *entity) {
 
-  Net_WriteByte(&cls.net_chan.message, CL_CMD_ENTITY_INFO);
-  Net_WriteShort(&cls.net_chan.message, number);
+  Net_WriteByte(&cls.netChan.message, CL_CMD_ENTITY_INFO);
+  Net_WriteShort(&cls.netChan.message, number);
 
   char *info = Cm_EntityToInfoString(entity);
 
   Com_Debug(DEBUG_EDITOR, "%d: %s\n", number, info);
-  Net_WriteString(&cls.net_chan.message, info);
+  Net_WriteString(&cls.netChan.message, info);
 
   Mem_Free(info);
 }
@@ -142,7 +142,7 @@ static void Cl_WriteVoiceCommand(MemBuf *buf) {
   Net_WriteData(buf, voice, len);
 
   // light our own indicator, so holding the key is visible without anyone to hear it
-  cl.voice_time[cl.frame.ps.client] = cl.unclamped_time;
+  cl.voiceTime[cl.frame.ps.client] = cl.unclampedTime;
 }
 
 /**
@@ -153,7 +153,7 @@ static void Cl_WriteVoiceCommand(MemBuf *buf) {
  */
 void Cl_SendCommands(void) {
 
-  const uint32_t delta = quetoo.ticks - cls.net_chan.last_sent;
+  const uint32_t delta = quetoo.ticks - cls.netChan.lastSent;
 
   if (delta < 4) {
     return;
@@ -163,8 +163,8 @@ void Cl_SendCommands(void) {
     case CL_CONNECTED:
     case CL_LOADING:
 
-      if (cls.net_chan.message.size || delta > 1000) {
-        Netchan_Transmit(&cls.net_chan, NULL, 0);
+      if (cls.netChan.message.size || delta > 1000) {
+        Netchan_Transmit(&cls.netChan, NULL, 0);
         cl.packets++;
       }
 
@@ -185,7 +185,7 @@ void Cl_SendCommands(void) {
 
       Cl_WriteVoiceCommand(&buf);
 
-      Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
+      Netchan_Transmit(&cls.netChan, buf.data, buf.size);
       cl.packets++;
 
       Cl_InitMovementCommand();

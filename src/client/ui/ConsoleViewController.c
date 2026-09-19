@@ -70,7 +70,7 @@ static void update(ConsoleViewController *self) {
 
   View *view = (View *) self->console;
 
-  const bool console = cls.key_state.dest == KEY_CONSOLE && cls.state != CL_LOADING;
+  const bool console = cls.keyState.dest == KEY_CONSOLE && cls.state != CL_LOADING;
 
   $(view, setVisibility, console ? ViewVisibilityVisible : ViewVisibilityHidden);
 

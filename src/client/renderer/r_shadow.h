@@ -48,7 +48,7 @@ typedef struct {
   /**
    * @brief The tile size in pixels.
    */
-  Uint32 tile_size;
+  Uint32 tileSize;
 } RenderShadowAtlas;
 
 extern RenderShadowAtlas r_shadow_atlas;

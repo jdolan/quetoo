@@ -126,7 +126,7 @@ typedef struct ClientGameImport {
    * @param max_count The maximum number of frames to include.
    * @return A heap-allocated string describing the stack; caller must `free()` it.
    */
-  char *(*Backtrace)(uint32_t start, uint32_t max_count);
+  char *(*Backtrace)(uint32_t start, uint32_t maxCount);
 
   /**
    * @}
@@ -419,7 +419,7 @@ typedef struct ClientGameImport {
    * @param max_lines The capacity of `lines`.
    * @return The count of lines collected.
    */
-  size_t (*Tail)(const Console *console, char **lines, size_t max_lines);
+  size_t (*Tail)(const Console *console, char **lines, size_t maxLines);
 
   /**
    * @}
@@ -701,7 +701,7 @@ typedef struct ClientGameImport {
    * @param matrix The matrix by which to transform planes.
    * @return The number of leafs accumulated to the list.
    */
-  size_t (*BoxLeafnums)(const Box3 bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node);
+  size_t (*BoxLeafnums)(const Box3 bounds, int32_t *list, size_t length, int32_t *topNode, int32_t headNode);
 
   /**
    * @return True if `point` resides inside `brush`, falses otherwise.
@@ -738,7 +738,7 @@ typedef struct ClientGameImport {
    * @param head_node The head node to recurse from, or 0 for the world.
    * @return The leaf number, or -1 if outside.
    */
-  int32_t (*PointLeafnum)(const Vec3 p, int32_t head_node);
+  int32_t (*PointLeafnum)(const Vec3 p, int32_t headNode);
 
   /**
    * @}
@@ -774,7 +774,7 @@ typedef struct ClientGameImport {
   /**
    * @brief Returns the fraction of the command interval for which the key was down.
    */
-  float (*KeyState)(InputButton *key, uint32_t cmd_msec);
+  float (*KeyState)(InputButton *key, uint32_t cmdMsec);
 
   /**
    * @brief Update the loading progress during media loading.
@@ -808,12 +808,12 @@ typedef struct ClientGameImport {
    * @param name The sample name (e.g. `"*gurp"`).
    * @return The loaded sample, which may be an aliased common sample.
    */
-  SoundSample *(*LoadClientModelSample)(const char *model, const char *sound_set, const char *name);
+  SoundSample *(*LoadClientModelSample)(const char *model, const char *soundSet, const char *name);
 
   /**
    * @brief Precache all sound samples for a given player model.
    */
-  void (*LoadClientModelSamples)(const char *model, const char *sound_set);
+  void (*LoadClientModelSamples)(const char *model, const char *soundSet);
 
   /**
    * @brief Adds a sound sample to the playback queue.
@@ -900,7 +900,7 @@ typedef struct ClientGameImport {
    * @param images The image pointer list.
    * @return The animation that has been created.
    */
-  RenderAnimation *(*CreateAnimation)(const char *name, int32_t num_images, const RenderImage **images);
+  RenderAnimation *(*CreateAnimation)(const char *name, int32_t numImages, const RenderImage **images);
 
   /**
    * @brief Loads the material with the given name.
@@ -989,7 +989,7 @@ typedef struct ClientGameImport {
    * @param color Color.
    * @param depth_test Depth test.
   */
-  void (*Draw3DLines)(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, const Color color, bool depth_test);
+  void (*Draw3DLines)(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, const Color color, bool depthTest);
 
   /**
    * @brief Draw a 3D bbox at the given coordinates.
@@ -997,7 +997,7 @@ typedef struct ClientGameImport {
    * @param color Color.
    * @param depth_test Depth test.
   */
-  void (*Draw3DBox)(const Box3 bounds, const Color color, bool depth_test);
+  void (*Draw3DBox)(const Box3 bounds, const Color color, bool depthTest);
 
   /**
    * @}
@@ -1010,7 +1010,7 @@ typedef struct ClientGameImport {
  */
 typedef struct ClientGameExport {
 
-  int32_t api_version;
+  int32_t apiVersion;
   int32_t protocol;
 
   /**

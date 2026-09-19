@@ -27,15 +27,15 @@
  * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation,
  * so be sure to initialize to `NULL` before calling if it's first time!
  */
-size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size) {
+size_t S_Resample(const int32_t channels, const int32_t sourceRate, const int32_t destRate, const size_t numFrames, const int16_t *inFrames, int16_t **outFrames, size_t *outSize) {
   
-  const float stepscale = (float) source_rate / (float) dest_rate;
-  const size_t outcount = NearestMultiple((size_t) (num_frames / stepscale), channels);
+  const float stepscale = (float) sourceRate / (float) destRate;
+  const size_t outcount = NearestMultiple((size_t) (numFrames / stepscale), channels);
   const size_t size = outcount * sizeof(int16_t);
 
-  if (out_size && *out_size < size) {
-    *out_frames = Mem_Realloc(*out_frames, size);
-    *out_size = size;
+  if (outSize && *outSize < size) {
+    *outFrames = Mem_Realloc(*outFrames, size);
+    *outSize = size;
   }
 
   int32_t samplefrac = 0;
@@ -44,12 +44,12 @@ size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32
   for (size_t i = 0; i < outcount; ) {
     for (int32_t c = 0; c < channels; c++, i++) {
       int32_t srcsample = NearestMultiple(samplefrac >> 8, channels) + c;
-      if (srcsample >= (int32_t)(num_frames * channels)) {
-        srcsample = (int32_t)(num_frames * channels) - channels + c;
+      if (srcsample >= (int32_t)(numFrames * channels)) {
+        srcsample = (int32_t)(numFrames * channels) - channels + c;
       }
 
       samplefrac += fracstep;
-      (*out_frames)[i] = LittleShort(in_frames[srcsample]);
+      (*outFrames)[i] = LittleShort(inFrames[srcsample]);
     }
   }
 
@@ -59,16 +59,16 @@ size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32
 /**
  * @brief Converts floating-point audio samples to 16-bit signed integers.
  */
-void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, int16_t **out_samples, size_t *out_size) {
-  const size_t size = sizeof(int16_t) * num_samples;
+void S_ConvertSamples(const float *inputSamples, const sf_count_t numSamples, int16_t **outSamples, size_t *outSize) {
+  const size_t size = sizeof(int16_t) * numSamples;
 
-  if (out_size && *out_size < size) {
-    *out_samples = Mem_Realloc(*out_samples, size);
-    *out_size = size;
+  if (outSize && *outSize < size) {
+    *outSamples = Mem_Realloc(*outSamples, size);
+    *outSize = size;
   }
 
-  for (sf_count_t i = 0; i < num_samples; i++) {
-    (*out_samples)[i] = (int16_t) Clampf(input_samples[i] * 32768.0f, INT16_MIN, INT16_MAX);
+  for (sf_count_t i = 0; i < numSamples; i++) {
+    (*outSamples)[i] = (int16_t) Clampf(inputSamples[i] * 32768.0f, INT16_MIN, INT16_MAX);
   }
 }
 
@@ -90,28 +90,28 @@ static int32_t S_LoadSampleBuffer_(SoundSample *sample, char *path) {
     SNDFILE *snd = sf_open_virtual(&s_rwops_io, SFM_READ, &info, rw);
 
     if (snd) {
-      const size_t raw_size = sizeof(float) * info.frames * info.channels;
+      const size_t rawSize = sizeof(float) * info.frames * info.channels;
 
-      if (s_context.raw_sample_buffer_size < raw_size) {
-        s_context.raw_sample_buffer = Mem_Realloc(s_context.raw_sample_buffer, raw_size);
-        s_context.raw_sample_buffer_size = raw_size;
+      if (s_context.rawSampleBufferSize < rawSize) {
+        s_context.rawSampleBuffer = Mem_Realloc(s_context.rawSampleBuffer, rawSize);
+        s_context.rawSampleBufferSize = rawSize;
       }
 
-      sf_count_t count = sf_readf_float(snd, s_context.raw_sample_buffer, info.frames) * info.channels;
+      sf_count_t count = sf_readf_float(snd, s_context.rawSampleBuffer, info.frames) * info.channels;
 
-      S_ConvertSamples(s_context.raw_sample_buffer, count, &s_context.converted_sample_buffer, &s_context.converted_sample_buffer_size);
+      S_ConvertSamples(s_context.rawSampleBuffer, count, &s_context.convertedSampleBuffer, &s_context.convertedSampleBufferSize);
 
-      const int16_t *buffer = s_context.converted_sample_buffer;
+      const int16_t *buffer = s_context.convertedSampleBuffer;
 
       if (info.samplerate != s_rate->integer) {
-        count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &s_context.resample_buffer, &s_context.resample_buffer_size);
-        buffer = s_context.resample_buffer;
+        count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &s_context.resampleBuffer, &s_context.resampleBufferSize);
+        buffer = s_context.resampleBuffer;
       }
 
       sample->stereo = info.channels != 1;
-      sample->num_samples = count;
+      sample->numSamples = count;
 
-      assert(sample->num_samples);
+      assert(sample->numSamples);
 
       alGenBuffers(1, &sample->buffer);
 
@@ -139,14 +139,14 @@ static int32_t S_LoadSampleBuffer_(SoundSample *sample, char *path) {
  * @brief Searches for and loads the audio file for the given sample, trying supported formats in order.
  */
 static void S_LoadSampleBuffer(SoundSample *sample) {
-  const char *snd_formats[] = { "ogg", "wav", NULL };
+  const char *sndFormats[] = { "ogg", "wav", NULL };
 
   if (sample->media.name[0] == '*') { // placeholder
     return;
   }
 
   char path[MAX_QPATH];
-  for (const char **fmt = snd_formats; *fmt; fmt++) {
+  for (const char **fmt = sndFormats; *fmt; fmt++) {
     q_snprintf(path, sizeof(path), "%s.%s", sample->media.name, *fmt);
     if (S_LoadSampleBuffer_(sample, path)) {
       break;
@@ -229,7 +229,7 @@ SoundSample *S_LoadSample(const char *name, AssetContext context) {
  * @param sound_set The model's sound set, e.g. `"male"`, `"female"`, `"cyborg"` (see `RenderMeshModel.sounds`).
  * @param name The sample name, e.g. `"*death_1"`.
  */
-SoundSample *S_LoadClientModelSample(const char *model, const char *sound_set, const char *name) {
+SoundSample *S_LoadClientModelSample(const char *model, const char *soundSet, const char *name) {
 
   if (!s_context.context) {
     return NULL;
@@ -254,8 +254,8 @@ SoundSample *S_LoadClientModelSample(const char *model, const char *sound_set, c
     } else {
       SoundSample *aliased = NULL;
 
-      if (sound_set && sound_set[0]) {
-        q_snprintf(relative, sizeof(relative), "common/%s/%s", sound_set, name + 1);
+      if (soundSet && soundSet[0]) {
+        q_snprintf(relative, sizeof(relative), "common/%s/%s", soundSet, name + 1);
 
         aliased = S_LoadSample(relative, ASSET_CONTEXT_PLAYERS);
         if (!aliased->buffer) {
@@ -273,7 +273,7 @@ SoundSample *S_LoadClientModelSample(const char *model, const char *sound_set, c
         S_RegisterDependency((SoundMedia *) sample, (SoundMedia *) aliased);
 
         sample->buffer = aliased->buffer;
-        sample->num_samples = aliased->num_samples;
+        sample->numSamples = aliased->numSamples;
         sample->stereo = aliased->stereo;
         sample->media.Free = S_FreeAliasedSample;
 

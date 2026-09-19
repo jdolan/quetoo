@@ -32,20 +32,20 @@ RenderOcclusion r_occlusion;
  */
 static void R_UpdateOcclusionBounds(void) {
 
-  r_occlusion.num_occluded_bounds = 0;
-  r_occlusion.num_visible_bounds = 0;
+  r_occlusion.numOccludedBounds = 0;
+  r_occlusion.numVisibleBounds = 0;
 
   assert(r_models.world);
 
-  const RenderBspInlineModel *in = r_models.world->bsp->inline_models;
+  const RenderBspInlineModel *in = r_models.world->bsp->inlineModels;
 
   const RenderBspBlock *block = in->blocks;
-  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+  for (int32_t i = 0; i < in->numBlocks; i++, block++) {
 
     if (block->query->result) {
-      r_occlusion.visible_bounds[r_occlusion.num_visible_bounds++] = block->query->bounds;
+      r_occlusion.visibleBounds[r_occlusion.numVisibleBounds++] = block->query->bounds;
     } else {
-      r_occlusion.occluded_bounds[r_occlusion.num_occluded_bounds++] = block->query->bounds;
+      r_occlusion.occludedBounds[r_occlusion.numOccludedBounds++] = block->query->bounds;
     }
   }
 }
@@ -66,15 +66,15 @@ bool R_OccludeBox(const RenderView *view, const Box3 bounds) {
     return false;
   }
 
-  const Box3 *b = r_occlusion.occluded_bounds;
-  for (int32_t i = 0; i < r_occlusion.num_occluded_bounds; i++, b++) {
+  const Box3 *b = r_occlusion.occludedBounds;
+  for (int32_t i = 0; i < r_occlusion.numOccludedBounds; i++, b++) {
     if (Box3_Contains(*b, bounds)) {
       return true;
     }
   }
 
-  b = r_occlusion.visible_bounds;
-  for (int32_t i = 0; i < r_occlusion.num_visible_bounds; i++, b++) {
+  b = r_occlusion.visibleBounds;
+  for (int32_t i = 0; i < r_occlusion.numVisibleBounds; i++, b++) {
     if (Box3_Intersects(*b, bounds)) {
       return false;
     }
@@ -109,13 +109,13 @@ bool R_CulludeSphere(const RenderView *view, const Vec3 point, const float radiu
  */
 RenderOcclusionQuery *R_AllocOcclusionQuery(const Box3 bounds) {
 
-  GPU_Assert(r_occlusion.num_queries < MAX_OCCLUSION_QUERIES, "Exceeded MAX_OCCLUSION_QUERIES (%d)", MAX_OCCLUSION_QUERIES);
+  GPU_Assert(r_occlusion.numQueries < MAX_OCCLUSION_QUERIES, "Exceeded MAX_OCCLUSION_QUERIES (%d)", MAX_OCCLUSION_QUERIES);
 
-  RenderOcclusionQuery *query = &r_occlusion.queries[r_occlusion.num_queries++];
+  RenderOcclusionQuery *query = &r_occlusion.queries[r_occlusion.numQueries++];
 
   query->bounds = bounds;
-  query->first_box = (int32_t) r_occlusion.boxes->count;
-  query->num_boxes = 0;
+  query->firstBox = (int32_t) r_occlusion.boxes->count;
+  query->numBoxes = 0;
   query->result = true;
 
   return query;
@@ -126,10 +126,10 @@ RenderOcclusionQuery *R_AllocOcclusionQuery(const Box3 bounds) {
  */
 void R_AppendOcclusionQueryBox(RenderOcclusionQuery *query, Box3 bounds) {
 
-  assert(query->first_box + query->num_boxes == (int32_t) r_occlusion.boxes->count);
+  assert(query->firstBox + query->numBoxes == (int32_t) r_occlusion.boxes->count);
 
   $(r_occlusion.boxes, add, &bounds);
-  query->num_boxes++;
+  query->numBoxes++;
 }
 
 /**
@@ -137,13 +137,13 @@ void R_AppendOcclusionQueryBox(RenderOcclusionQuery *query, Box3 bounds) {
  */
 void R_FreeOcclusionQueries(void) {
 
-  r_occlusion.num_queries = 0;
+  r_occlusion.numQueries = 0;
 
   if (r_occlusion.boxes) {
     $(r_occlusion.boxes, removeAll);
   }
 
-  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
+  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
 }
 
 /**
@@ -151,12 +151,12 @@ void R_FreeOcclusionQueries(void) {
  */
 void R_LoadOcclusionQueries(void) {
 
-  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
+  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
 
-  const int32_t num_boxes = (int32_t) r_occlusion.boxes->count;
-  if (num_boxes) {
-    r_occlusion.instance_buffer = $(r_context.device, createBufferWithConstMem,
-      SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion.boxes->elements, (Uint32) (num_boxes * sizeof(Box3)));
+  const int32_t numBoxes = (int32_t) r_occlusion.boxes->count;
+  if (numBoxes) {
+    r_occlusion.instanceBuffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion.boxes->elements, (Uint32) (numBoxes * sizeof(Box3)));
   }
 }
 
@@ -173,13 +173,13 @@ static void R_DrawOcclusionQueries_(const RenderView *view, CommandBuffer *comma
 
   RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-  if (r_occlusion.instance_buffer) {
+  if (r_occlusion.instanceBuffer) {
     $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-      { .buffer = r_occlusion.vertex_buffer->buffer },
-      { .buffer = r_occlusion.instance_buffer->buffer },
+      { .buffer = r_occlusion.vertexBuffer->buffer },
+      { .buffer = r_occlusion.instanceBuffer->buffer },
     }, 2);
     $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-      .buffer = r_occlusion.elements_buffer->buffer
+      .buffer = r_occlusion.elementsBuffer->buffer
     }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
   }
 
@@ -188,9 +188,9 @@ static void R_DrawOcclusionQueries_(const RenderView *view, CommandBuffer *comma
   $(pass, bindPipeline, r_occlusion.pipeline);
 
   RenderOcclusionQuery *q = r_occlusion.queries;
-  for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
+  for (int32_t i = 0; i < r_occlusion.numQueries; i++, q++) {
     $(pass, beginQuery, r_occlusion.pool, i);
-    $(pass, drawIndexedPrimitives, 36, q->num_boxes, 0, 0, q->first_box);
+    $(pass, drawIndexedPrimitives, 36, q->numBoxes, 0, 0, q->firstBox);
     $(pass, endQuery, r_occlusion.pool, i);
   }
 
@@ -208,7 +208,7 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
       const Uint64 *results = $(r_occlusion.transfer, map, false);
 
-      for (int32_t i = 0; i < r_occlusion.num_queries; i++) {
+      for (int32_t i = 0; i < r_occlusion.numQueries; i++) {
         r_occlusion.queries[i].result = results[i] > 0;
       }
 
@@ -221,7 +221,7 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
       }
 
       CopyPass *pass = $(commands, beginCopyPass);
-      $(pass, downloadQueryResults, r_occlusion.pool, 0, r_occlusion.num_queries, &(SDL_GPUTransferBufferLocation) {
+      $(pass, downloadQueryResults, r_occlusion.pool, 0, r_occlusion.numQueries, &(SDL_GPUTransferBufferLocation) {
         .transfer_buffer = r_occlusion.transfer->buffer,
       });
       release(pass);
@@ -229,7 +229,7 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
   }
 
   RenderOcclusionQuery *q = r_occlusion.queries;
-  for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
+  for (int32_t i = 0; i < r_occlusion.numQueries; i++, q++) {
 
     if (!r_occlude->integer) {
       q->result = true;
@@ -241,11 +241,11 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
       }
     }
 
-    r_stats->queries_allocated++;
+    r_stats->queriesAllocated++;
     if (q->result) {
-      r_stats->queries_visible++;
+      r_stats->queriesVisible++;
     } else {
-      r_stats->queries_occluded++;
+      r_stats->queriesOccluded++;
     }
   }
 
@@ -269,7 +269,7 @@ void R_InitOcclusionQueries(void) {
   Vec3 cube[8];
   Box3_ToPoints(MakeBox3(MakeVec3(0.f, 0.f, 0.f), MakeVec3(1.f, 1.f, 1.f)), cube);
 
-  r_occlusion.vertex_buffer = $(r_context.device, createBufferWithConstMem,
+  r_occlusion.vertexBuffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
 
   const uint32_t elements[] = {
@@ -281,7 +281,7 @@ void R_InitOcclusionQueries(void) {
     5, 7, 1, 7, 3, 1,
   };
 
-  r_occlusion.elements_buffer = $(r_context.device, createBufferWithConstMem,
+  r_occlusion.elementsBuffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_INDEX, elements, sizeof(elements));
 
   r_occlusion.transfer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
@@ -366,9 +366,9 @@ void R_InitOcclusionQueries(void) {
 void R_ShutdownOcclusionQueries(void) {
 
   r_occlusion.pipeline = release(r_occlusion.pipeline);
-  r_occlusion.vertex_buffer = release(r_occlusion.vertex_buffer);
-  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
-  r_occlusion.elements_buffer = release(r_occlusion.elements_buffer);
+  r_occlusion.vertexBuffer = release(r_occlusion.vertexBuffer);
+  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
+  r_occlusion.elementsBuffer = release(r_occlusion.elementsBuffer);
   r_occlusion.pool = release(r_occlusion.pool);
   r_occlusion.transfer = release(r_occlusion.transfer);
   r_occlusion.boxes = release(r_occlusion.boxes);

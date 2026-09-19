@@ -30,17 +30,17 @@ void G_ClientToIntermission(GameClient *cl) {
     return;
   }
 
-  cl->entity->s.origin = g_level.intermission_origin;
-  cl->ps.pm_state.origin = g_level.intermission_origin;
+  cl->entity->s.origin = g_level.intermissionOrigin;
+  cl->ps.pmState.origin = g_level.intermissionOrigin;
 
-  cl->ps.pm_state.view_angles = Vec3_Zero();
-  cl->ps.pm_state.delta_angles = g_level.intermission_angle;
+  cl->ps.pmState.viewAngles = Vec3_Zero();
+  cl->ps.pmState.deltaAngles = g_level.intermissionAngle;
 
-  cl->ps.pm_state.view_offset = Vec3_Zero();
-  cl->ps.pm_state.step_offset = 0.f;
+  cl->ps.pmState.viewOffset = Vec3_Zero();
+  cl->ps.pmState.stepOffset = 0.f;
 
-  cl->ps.pm_state.flags &= ~PMF_DEATH_CAM;
-  cl->ps.pm_state.type = PM_FREEZE;
+  cl->ps.pmState.flags &= ~PMF_DEATH_CAM;
+  cl->ps.pmState.type = PM_FREEZE;
 
   cl->entity->s.model1 = 0;
   cl->entity->s.model2 = 0;
@@ -52,14 +52,14 @@ void G_ClientToIntermission(GameClient *cl) {
   cl->entity->dead = true;
 
   // show scores
-  cl->show_scores = true;
+  cl->showScores = true;
 
   // hide the HUD
   memset(cl->inventory, 0, sizeof(cl->inventory));
   cl->weapon = NULL;
 
-  cl->ammo_index = 0;
-  cl->pickup_msg_time = 0;
+  cl->ammoIndex = 0;
+  cl->pickupMsgTime = 0;
 }
 
 /**
@@ -154,16 +154,16 @@ void G_ClientScores(GameClient *cl) {
   static GameScore scores[MAX_CLIENTS + MAX_TEAMS];
   static size_t count;
 
-  if (!cl->show_scores || (cl->scores_time > g_level.time)) {
+  if (!cl->showScores || (cl->scoresTime > g_level.time)) {
     return;
   }
 
-  cl->scores_time = g_level.time + 500;
+  cl->scoresTime = g_level.time + 500;
 
   // update the scoreboard if it's stale; this is shared to all clients
-  if (g_level.scores_time <= g_level.time) {
+  if (g_level.scoresTime <= g_level.time) {
     count = G_UpdateScores(scores);
-    g_level.scores_time = g_level.time + 500;
+    g_level.scoresTime = g_level.time + 500;
   }
 
   // send the scores over in chunks
@@ -219,9 +219,9 @@ void G_ClientStats(GameClient *cl) {
 #endif
 
   // damage received and inflicted
-  cl->ps.stats[STAT_DAMAGE_ARMOR] = cl->damage_armor;
-  cl->ps.stats[STAT_DAMAGE_HEALTH] = cl->damage_health;
-  cl->ps.stats[STAT_DAMAGE_INFLICT] = cl->damage_inflicted;
+  cl->ps.stats[STAT_DAMAGE_ARMOR] = cl->damageArmor;
+  cl->ps.stats[STAT_DAMAGE_HEALTH] = cl->damageHealth;
+  cl->ps.stats[STAT_DAMAGE_INFLICT] = cl->damageInflicted;
 
   // frags
   cl->ps.stats[STAT_FRAGS] = cl->persistent.score;
@@ -236,7 +236,7 @@ void G_ClientStats(GameClient *cl) {
   }
 
   // pickup message
-  if (g_level.time > cl->pickup_msg_time) {
+  if (g_level.time > cl->pickupMsgTime) {
     cl->ps.stats[STAT_PICKUP] = 0;
   }
 
@@ -245,7 +245,7 @@ void G_ClientStats(GameClient *cl) {
 
   // scores
   cl->ps.stats[STAT_SCORES] = 0;
-  if (g_level.intermission_time || cl->show_scores) {
+  if (g_level.intermissionTime || cl->showScores) {
     cl->ps.stats[STAT_SCORES] |= 1;
   }
 
@@ -256,7 +256,7 @@ void G_ClientStats(GameClient *cl) {
   }
 
   // time
-  if (g_level.intermission_time) {
+  if (g_level.intermissionTime) {
     cl->ps.stats[STAT_TIME] = 0;
   } else {
     cl->ps.stats[STAT_TIME] = CS_TIME;
@@ -271,24 +271,24 @@ void G_ClientStats(GameClient *cl) {
     cl->ps.stats[STAT_WEAPON] = 0;
   }
 
-  if (cl->next_weapon) {
-    cl->ps.stats[STAT_WEAPON] |= (cl->next_weapon->def.tag << 8);
+  if (cl->nextWeapon) {
+    cl->ps.stats[STAT_WEAPON] |= (cl->nextWeapon->def.tag << 8);
   }
 
-  if (g_level.time <= cl->quad_damage_time) {
-    cl->ps.stats[STAT_QUAD_TIME] = ceil((cl->quad_damage_time - g_level.time) / 1000.0);
+  if (g_level.time <= cl->quadDamageTime) {
+    cl->ps.stats[STAT_QUAD_TIME] = ceil((cl->quadDamageTime - g_level.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_QUAD_TIME] = 0;
   }
 
-  if (g_level.time <= cl->invisibility_time) {
-    cl->ps.stats[STAT_INVISIBILITY_TIME] = ceil((cl->invisibility_time - g_level.time) / 1000.0);
+  if (g_level.time <= cl->invisibilityTime) {
+    cl->ps.stats[STAT_INVISIBILITY_TIME] = ceil((cl->invisibilityTime - g_level.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_INVISIBILITY_TIME] = 0;
   }
 
-  if (g_level.time <= cl->invulnerability_time) {
-    cl->ps.stats[STAT_INVULNERABILITY_TIME] = ceil((cl->invulnerability_time - g_level.time) / 1000.0);
+  if (g_level.time <= cl->invulnerabilityTime) {
+    cl->ps.stats[STAT_INVULNERABILITY_TIME] = ceil((cl->invulnerabilityTime - g_level.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_INVULNERABILITY_TIME] = 0;
   }
@@ -307,15 +307,15 @@ void G_ClientSpectatorStats(GameClient *cl) {
   cl->ps.stats[STAT_SPECTATOR] = 1;
 
   // chase camera inherits stats from their chase target
-  if (cl->chase_target && G_IsMeat(cl->chase_target->entity)) {
+  if (cl->chaseTarget && G_IsMeat(cl->chaseTarget->entity)) {
 
-    memcpy(cl->ps.stats, cl->chase_target->ps.stats, sizeof(cl->ps.stats));
+    memcpy(cl->ps.stats, cl->chaseTarget->ps.stats, sizeof(cl->ps.stats));
 
     cl->ps.stats[STAT_SPECTATOR] = 1;
-    cl->ps.stats[STAT_CHASE] = cl->chase_target->entity->s.number;
+    cl->ps.stats[STAT_CHASE] = cl->chaseTarget->entity->s.number;
 
     // scores are independent of chase camera target
-    if (g_level.intermission_time || cl->show_scores) {
+    if (g_level.intermissionTime || cl->showScores) {
       cl->ps.stats[STAT_SCORES] = 1;
     } else {
       cl->ps.stats[STAT_SCORES] = 0;

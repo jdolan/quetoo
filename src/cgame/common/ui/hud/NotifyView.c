@@ -60,7 +60,7 @@ static void updateBindings(View *self, ident data) {
 
     const uint32_t since = now > millis ? now - millis : 0;
 
-    this->console.whence = since > cg_hud_state.clear_time ? since : cg_hud_state.clear_time;
+    this->console.whence = since > cg_hud_state.clearTime ? since : cg_hud_state.clearTime;
 
     $(this, tail, self->superview->frame.w, lines);
   }

@@ -48,7 +48,7 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
   }
 #endif
 
-  const GameEntity *dest = G_Find(NULL, EOFS(target_name), ent->target);
+  const GameEntity *dest = G_Find(NULL, EOFS(targetName), ent->target);
 
   if (!dest) {
     G_Warn("Couldn't find destination\n");
@@ -59,7 +59,7 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
   gi.UnlinkEntity(other);
 
   // capture entry position before the move
-  const Vec3 entry_origin = other->s.origin;
+  const Vec3 entryOrigin = other->s.origin;
 
   other->s.origin = dest->s.origin;
   other->s.origin.z += 8.0;
@@ -69,15 +69,15 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
 
   if (other->client) {
     // overwrite velocity and hold them in place briefly
-    other->client->ps.pm_state.flags &= ~PMF_TIME_MASK;
-    other->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
+    other->client->ps.pmState.flags &= ~PMF_TIME_MASK;
+    other->client->ps.pmState.flags = PMF_TIME_TELEPORT;
 
-    other->client->ps.pm_state.time = 20;
+    other->client->ps.pmState.time = 20;
 
     // snap view angles directly to the destination; the client will snap
     // cl.angles to match, so no delta_angles compensation is needed
-    other->client->ps.pm_state.view_angles = dest->s.angles;
-    other->client->ps.pm_state.delta_angles = Vec3_Zero();
+    other->client->ps.pmState.viewAngles = dest->s.angles;
+    other->client->ps.pmState.deltaAngles = Vec3_Zero();
     other->client->angles = dest->s.angles;
 
     Vec3_Vectors(other->client->angles, &other->client->forward, &other->client->right, &other->client->up);
@@ -99,23 +99,23 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
   other->velocity.z = 150.0;
 
   // play the teleport sound at the entry point and at the destination
-  const char *custom_sound = gi.EntityValue(ent->def, "sound")->nullable_string;
-  int32_t sound_index;
-  if (custom_sound) {
-    sound_index = gi.SoundIndex(custom_sound);
+  const char *customSound = gi.EntityValue(ent->def, "sound")->nullableString;
+  int32_t soundIndex;
+  if (customSound) {
+    soundIndex = gi.SoundIndex(customSound);
   } else if (g_level.items == ITEMS_QUAKE && !q_strcmp(ent->classname, "trigger_teleporter")) {
-    sound_index = g_media.sounds.quake_teleport[RandomRangei(0, 5)];
+    soundIndex = g_media.sounds.quakeTeleport[RandomRangei(0, 5)];
   } else {
-    sound_index = g_media.sounds.teleport;
+    soundIndex = g_media.sounds.teleport;
   }
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = sound_index,
-    .origin = &entry_origin,
+    .index = soundIndex,
+    .origin = &entryOrigin,
   }, MULTICAST_PHS);
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = sound_index,
+    .index = soundIndex,
     .origin = &dest->s.origin,
   }, MULTICAST_PHS);
 
@@ -123,7 +123,7 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_TELEPORT);
-  gi.WritePosition(Box3_Center(ent->abs_bounds));
+  gi.WritePosition(Box3_Center(ent->absBounds));
   gi.Multicast(ent->s.origin, MULTICAST_PHS);
 
   // and set the event on the teleportee (visual burst at destination)
@@ -140,7 +140,7 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
  * @brief Creates bot node links
  */
 static void G_misc_teleporter_Think(GameEntity *ent) {
-  const GameEntity *dest = G_Find(NULL, EOFS(target_name), ent->target);
+  const GameEntity *dest = G_Find(NULL, EOFS(targetName), ent->target);
 
   if (!dest) {
     G_Warn("Couldn't find destination\n");
@@ -148,23 +148,23 @@ static void G_misc_teleporter_Think(GameEntity *ent) {
   }
 
   // find nodes closest to src and dst
-  const AiNodeId src_node = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
-  const AiNodeId dst_node = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
+  const AiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+  const AiNodeId dstNode = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
 
-  if (src_node != AI_NODE_INVALID && dst_node != AI_NODE_INVALID) {
+  if (srcNode != AI_NODE_INVALID && dstNode != AI_NODE_INVALID) {
 
     // make a new node on top of src so we touch the teleporter, connect
     // it to dst with a small cost
 
-    const AiNodeId new_node = G_Ai_Node_Create(ent->s.origin);
+    const AiNodeId newNode = G_Ai_Node_Create(ent->s.origin);
 
     // use default cost for the entrance
-    G_Ai_Node_Link(src_node, new_node, Vec3_Distance(G_Ai_Node_GetPosition(src_node), ent->s.origin));
+    G_Ai_Node_Link(srcNode, newNode, Vec3_Distance(G_Ai_Node_GetPosition(srcNode), ent->s.origin));
 
     // small cost for teleport node
-    G_Ai_Node_Link(new_node, dst_node, 1.f);
+    G_Ai_Node_Link(newNode, dstNode, 1.f);
 
-    ent->node = src_node;
+    ent->node = srcNode;
   }
 }
 
@@ -188,7 +188,7 @@ void G_misc_teleporter(GameEntity *ent) {
   }
 
   ent->solid = SOLID_TRIGGER;
-  ent->move_type = MOVE_TYPE_NONE;
+  ent->moveType = MOVE_TYPE_NONE;
 
   if (ent->model) { // model form, trigger_teleporter
     gi.SetModel(ent, ent->model);
@@ -202,7 +202,7 @@ void G_misc_teleporter(GameEntity *ent) {
     v.z -= 16.0;
 
     // add effect if ent is not buried and effect is not inhibited
-    if (!gi.PointContents(v) && !(ent->spawn_flags & 1)) {
+    if (!gi.PointContents(v) && !(ent->spawnFlags & 1)) {
       ent->s.sound = gi.SoundIndex("misc/teleport_hum");
       ent->s.trail = TRAIL_TELEPORTER;
     }
@@ -210,15 +210,15 @@ void G_misc_teleporter(GameEntity *ent) {
 
   ent->Touch = G_misc_teleporter_Touch;
 
-  const char *custom_sound = gi.EntityValue(ent->def, "sound")->nullable_string;
-  if (custom_sound) {
-    gi.SoundIndex(custom_sound);
+  const char *customSound = gi.EntityValue(ent->def, "sound")->nullableString;
+  if (customSound) {
+    gi.SoundIndex(customSound);
   }
   
   // create link to destination
   if (!G_Ai_InDeveloperMode()) {
     ent->Think = G_misc_teleporter_Think;
-    ent->next_think = g_level.time + 1;
+    ent->nextThink = g_level.time + 1;
   }
 
   gi.LinkEntity(ent);
@@ -240,7 +240,7 @@ void G_misc_portal(GameEntity *ent) {
 
   gi.SetModel(ent, ent->model);
 
-  ent->move_type = MOVE_TYPE_NONE;
+  ent->moveType = MOVE_TYPE_NONE;
   ent->solid = SOLID_NOT;
 
   gi.LinkEntity(ent);
@@ -267,11 +267,11 @@ static void G_misc_fireball_Think(GameEntity *ent) {
 
     ent->s.effects = EF_DESPAWN;
 
-    ent->move_type = MOVE_TYPE_NO_CLIP;
+    ent->moveType = MOVE_TYPE_NO_CLIP;
     ent->velocity.z = -8.0;
 
     ent->Think = G_FreeEntity;
-    ent->next_think = g_level.time + 3000;
+    ent->nextThink = g_level.time + 3000;
 
     gi.LinkEntity(ent);
   } else {
@@ -284,8 +284,8 @@ static void G_misc_fireball_Think(GameEntity *ent) {
  */
 static void G_misc_fireball_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
-  if (g_level.time - ent->touch_time > 500) {
-    ent->touch_time = g_level.time;
+  if (g_level.time - ent->touchTime > 500) {
+    ent->touchTime = g_level.time;
 
     G_Damage(&(GameDamage) {
       .target = other,
@@ -325,7 +325,7 @@ static void G_misc_fireball_Fly(GameEntity *ent) {
   fireball->s.trail = TRAIL_FIREBALL;
 
   fireball->solid = SOLID_TRIGGER;
-  fireball->move_type = MOVE_TYPE_BOUNCE;
+  fireball->moveType = MOVE_TYPE_BOUNCE;
   fireball->mass = 10.f;
 
   fireball->s.model1 = g_media.models.fireball;
@@ -334,7 +334,7 @@ static void G_misc_fireball_Fly(GameEntity *ent) {
   fireball->Touch = G_misc_fireball_Touch;
 
   fireball->Think = G_misc_fireball_Think;
-  fireball->next_think = g_level.time + 3000;
+  fireball->nextThink = g_level.time + 3000;
 
   gi.LinkEntity(fireball);
 
@@ -347,7 +347,7 @@ static void G_misc_fireball_Fly(GameEntity *ent) {
     }, MULTICAST_PHS);
   }
 
-  ent->next_think = g_level.time + (ent->wait * 1000.0) + (ent->random * 1000 * RandomRangef(-1.f, 1.f));
+  ent->nextThink = g_level.time + (ent->wait * 1000.0) + (ent->random * 1000 * RandomRangef(-1.f, 1.f));
 }
 
 /*QUAKED misc_fireball (1 0.3 0.1) (-6 -6 -6) (6 6 6)
@@ -383,5 +383,5 @@ void G_misc_fireball(GameEntity *ent) {
   }
 
   ent->Think = G_misc_fireball_Fly;
-  ent->next_think = g_level.time + (Randomf() * 1000);
+  ent->nextThink = g_level.time + (Randomf() * 1000);
 }

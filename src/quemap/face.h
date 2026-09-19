@@ -41,7 +41,7 @@ typedef struct Face {
   /**
    * @brief The original brush side that created this face.
    */
-  const struct BrushSide *brush_side;
+  const struct BrushSide *brushSide;
 
   /**
    * @brief The plane number.

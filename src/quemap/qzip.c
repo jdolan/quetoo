@@ -31,8 +31,8 @@ bool update_zip = false;
 
 static bool HasSuffix(const char *str, const char *suffix) {
   const size_t len = q_strlen(str);
-  const size_t suffix_len = q_strlen(suffix);
-  return len >= suffix_len && !q_strcmp(str + len - suffix_len, suffix);
+  const size_t suffixLen = q_strlen(suffix);
+  return len >= suffixLen && !q_strcmp(str + len - suffixLen, suffix);
 }
 
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
@@ -54,12 +54,12 @@ int32_t ZIP_Main(void) {
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
   // read the manifest
-  char mf_path[MAX_OS_PATH];
-  q_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+  char mfPath[MAX_OS_PATH];
+  q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", map_base);
 
-  HashTable *manifest = Cm_ReadManifest(mf_path);
+  HashTable *manifest = Cm_ReadManifest(mfPath);
   if (!manifest) {
-    Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mf_path);
+    Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mfPath);
   }
 
   // the manifest includes the bsp and all referenced assets
@@ -67,7 +67,7 @@ int32_t ZIP_Main(void) {
   assets->destroy = free;
 
   // include the manifest itself so the pk3 is self-contained
-  $(assets, append, q_strdup(mf_path));
+  $(assets, append, q_strdup(mfPath));
   $(manifest, enumerate, CollectManifestAsset, assets);
 
   Cm_FreeManifest(manifest);
@@ -150,11 +150,11 @@ int32_t ZIP_Main(void) {
       const char *dir = Fs_RealDir(existing);
 
       if (dir) {
-        char to_update[MAX_OS_PATH];
-        q_snprintf(to_update, sizeof(to_update), "%s/%s", dir, existing);
+        char toUpdate[MAX_OS_PATH];
+        q_snprintf(toUpdate, sizeof(toUpdate), "%s/%s", dir, existing);
 
-        rename(path, to_update);
-        Com_Print("Renamed %s to %s\n", path, to_update);
+        rename(path, toUpdate);
+        Com_Print("Renamed %s to %s\n", path, toUpdate);
       } else {
         Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
       }

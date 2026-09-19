@@ -145,7 +145,7 @@ typedef struct {
   /**
    * @brief The party size last published, so that presence is refreshed when it changes.
    */
-  int32_t party_max;
+  int32_t partyMax;
 } ClientGameDiscordState;
 
 static ClientGameDiscordState cg_discord_state;
@@ -163,7 +163,7 @@ static void Cg_DiscordReady(const DiscordUser *user) {
 static const char *Cg_DescribeGameMode_Common(void) {
 
 #if defined(G_CTF)
-  return va("%i-Team CTF", cg_state.num_teams);
+  return va("%i-Team CTF", cg_state.numTeams);
 #else
   const char *mode;
 
@@ -179,8 +179,8 @@ static const char *Cg_DescribeGameMode_Common(void) {
       break;
   }
 
-  if (cg_state.num_teams) {
-    return va("%i-Team %s", cg_state.num_teams, mode);
+  if (cg_state.numTeams) {
+    return va("%i-Team %s", cg_state.numTeams, mode);
   }
 
   return mode;
@@ -197,21 +197,21 @@ void Cg_UpdateDiscord(void) {
 
   if (cg_discord_state.initialized) {
     DiscordRichPresence presence = { 0 };
-    bool needs_update = false;
+    bool needsUpdate = false;
 
     char details[128];
     char joinSecret[128];
     char spectateSecret[128];
 
     const ClientServerInfo *server = cgi.ServerInfo();
-    const int32_t party_max = server ? server->max_clients : 0;
+    const int32_t partyMax = server ? server->maxClients : 0;
 
     if (*cgi.state == CL_ACTIVE) {
 
       // the status reply that carries the party size arrives on its own schedule, and may
       // land after we are already in game, so publish again when it does
-      if (cg_discord_state.status != DISCORD_ACTIVE || cg_discord_state.party_max != party_max) {
-        needs_update = true;
+      if (cg_discord_state.status != DISCORD_ACTIVE || cg_discord_state.partyMax != partyMax) {
+        needsUpdate = true;
       
         presence.largeImageKey = "default";
         presence.state = "Playing";
@@ -232,15 +232,15 @@ void Cg_UpdateDiscord(void) {
           presence.spectateSecret = spectateSecret;
         }
 
-        presence.partySize = cg_state.num_clients;
-        presence.partyMax = party_max;
-        cg_discord_state.party_max = party_max;
+        presence.partySize = cg_state.numClients;
+        presence.partyMax = partyMax;
+        cg_discord_state.partyMax = partyMax;
         cg_discord_state.status = DISCORD_ACTIVE;
         presence.instance = true;
       }
     } else {
       if (cg_discord_state.status != DISCORD_INACTIVE) {
-        needs_update = true;
+        needsUpdate = true;
       
         presence.largeImageKey = "default";
         presence.state = "In Main Menu";
@@ -249,7 +249,7 @@ void Cg_UpdateDiscord(void) {
       }
     }
 
-    if (needs_update) {
+    if (needsUpdate) {
       Discord_UpdatePresence(&presence);
     }
   }

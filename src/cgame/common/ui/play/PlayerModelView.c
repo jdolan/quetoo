@@ -117,11 +117,11 @@ static void render(View *self, Renderer *renderer) {
     this->weapon.parent = torso;
     cgi.AddEntity(&this->view, &this->weapon);
 
-    const float light_x = sinf(this->view.ticks * .0125f);
-    const float light_y = cosf(this->view.ticks * .0125f);
+    const float lightX = sinf(this->view.ticks * .0125f);
+    const float lightY = cosf(this->view.ticks * .0125f);
 
     RenderLight light = {
-      .origin = MakeVec3(40.f + light_x, light_y, 80.f),
+      .origin = MakeVec3(40.f + lightX, lightY, 80.f),
       .color = MakeVec3(1.f, .9f, .8f),
       .radius = 180.f,
       .intensity = 2.6f,
@@ -175,22 +175,22 @@ static void updateBindings(View *self, ident data) {
   this->legs.model = this->client.legs;
   this->legs.scale = 1.f;
   this->legs.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
-  memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
-  this->legs.has_skins = true;
+  memcpy(this->legs.skins, this->client.legsSkins, sizeof(this->legs.skins));
+  this->legs.hasSkins = true;
 
   this->torso.model = this->client.torso;
   this->torso.scale = 1.f;
   this->torso.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
   this->torso.tag = "tag_torso";
-  memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
-  this->torso.has_skins = true;
+  memcpy(this->torso.skins, this->client.torsoSkins, sizeof(this->torso.skins));
+  this->torso.hasSkins = true;
 
   this->head.model = this->client.head;
   this->head.scale = 1.f;
   this->head.color = MakeVec4(1.f, 1.f, 1.f, 1.f);
   this->head.tag = "tag_head";
-  memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
-  this->head.has_skins = true;
+  memcpy(this->head.skins, this->client.headSkins, sizeof(this->head.skins));
+  this->head.hasSkins = true;
 
   this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
   this->weapon.scale = 1.f;
@@ -275,14 +275,14 @@ static EntityAnimation nextAnimation(const EntityAnimation a) {
  */
 static void animate_(const RenderMeshModel *model, ClientEntityAnimation *a, RenderEntity *e) {
 
-  e->frame = e->old_frame = 0;
+  e->frame = e->oldFrame = 0;
   e->lerp = 1.f;
-  e->back_lerp = 0.f;
+  e->backLerp = 0.f;
 
   const RenderMeshAnimation *anim = &model->animations[a->animation];
 
   const int32_t frameTime = 2000.f / anim->hz;
-  const int32_t animationTime = anim->num_frames * frameTime;
+  const int32_t animationTime = anim->numFrames * frameTime;
   const int32_t elapsedTime = cgi.client->ticks - a->time;
 
   if (elapsedTime >= animationTime) {
@@ -295,14 +295,14 @@ static void animate_(const RenderMeshModel *model, ClientEntityAnimation *a, Ren
   }
 
   int32_t frame = elapsedTime / frameTime;
-  frame = anim->first_frame + frame;
+  frame = anim->firstFrame + frame;
 
   if (frame != a->frame) {
     if (a->frame == -1) {
-      a->old_frame = frame;
+      a->oldFrame = frame;
       a->frame = frame;
     } else {
-      a->old_frame = a->frame;
+      a->oldFrame = a->frame;
       a->frame = frame;
     }
   }
@@ -311,9 +311,9 @@ static void animate_(const RenderMeshModel *model, ClientEntityAnimation *a, Ren
   a->fraction = elapsedTime / (float) animationTime;
 
   e->frame = a->frame;
-  e->old_frame = a->old_frame;
+  e->oldFrame = a->oldFrame;
   e->lerp = a->lerp;
-  e->back_lerp = 1.f - a->lerp;
+  e->backLerp = 1.f - a->lerp;
 }
 
 /**

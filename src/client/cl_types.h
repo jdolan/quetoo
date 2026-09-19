@@ -68,12 +68,12 @@ typedef struct {
   /**
    * @brief Sequential frame identifier, used for delta.
    */
-  int32_t frame_num;
+  int32_t frameNum;
 
   /**
    * @brief The delta frame number; negative values indicate no delta.
    */
-  int32_t delta_frame_num;
+  int32_t deltaFrameNum;
 
   /**
    * @brief The player state.
@@ -83,12 +83,12 @@ typedef struct {
   /**
    * @brief The number of entities in the frame.
    */
-  int32_t num_entities;
+  int32_t numEntities;
 
   /**
    * @brief Non-masked index into `cl.entity_states`.
    */
-  uint32_t entity_state;
+  uint32_t entityState;
 
   /**
    * @brief False if delta parsing failed.
@@ -126,7 +126,7 @@ typedef struct {
   /**
    * @brief The previous frame index.
    */
-  int32_t old_frame;
+  int32_t oldFrame;
 
   /**
    * @brief The interpolation fraction between `old_frame` and frame.
@@ -173,7 +173,7 @@ typedef struct {
   /**
    * @brief The last frame in which this entity was seen.
    */
-  int32_t frame_num;
+  int32_t frameNum;
 
   /**
    * @brief Timestamp for intermittent effects.
@@ -183,7 +183,7 @@ typedef struct {
   /**
    * @brief Trail emission origins, one per trail ID.
    */
-  Vec3 trail_origins[TRAIL_ID_COUNT];
+  Vec3 trailOrigins[TRAIL_ID_COUNT];
 
   /**
    * @brief Torso animation state.
@@ -203,7 +203,7 @@ typedef struct {
   /**
    * @brief The previous interpolated origin.
    */
-  Vec3 previous_origin;
+  Vec3 previousOrigin;
 
   /**
    * @brief Interpolated termination (for beams).
@@ -223,22 +223,22 @@ typedef struct {
   /**
    * @brief Absolute bounding box in world space.
    */
-  Box3 abs_bounds;
+  Box3 absBounds;
 
   /**
    * @brief Ideal leg yaw (player models only).
    */
-  float legs_yaw;
+  float legsYaw;
 
   /**
    * @brief Current interpolated leg yaw (player models only).
    */
-  float legs_current_yaw;
+  float legsCurrentYaw;
 
   /**
    * @brief Interpolated vertical step offset for stair smoothing.
    */
-  float step_offset;
+  float stepOffset;
 
   /**
    * @brief Snapped transform matrix, used for traces.
@@ -248,7 +248,7 @@ typedef struct {
   /**
    * @brief Inverse transform matrix, used for point contents tests.
    */
-  Mat4 inverse_matrix;
+  Mat4 inverseMatrix;
 } ClientEntity;
 
 /**
@@ -289,7 +289,7 @@ typedef struct {
     /**
      * @brief The predicted step offset.
      */
-    float step_offset;
+    float stepOffset;
   } view;
 
   /**
@@ -318,12 +318,12 @@ typedef struct {
   /**
    * @brief Total frames rendered during a timedemo run.
    */
-  uint32_t time_demo_frames;
+  uint32_t timeDemoFrames;
 
   /**
    * @brief System time at which the current timedemo run began.
    */
-  uint32_t time_demo_start;
+  uint32_t timeDemoStart;
 
   /**
    * @brief Packets sent since the diagnostics last read and cleared it.
@@ -343,7 +343,7 @@ typedef struct {
   /**
    * @brief The predicted state (view origin, offset, angles, etc.) of the client.
    */
-  ClientPredictedState predicted_state;
+  ClientPredictedState predictedState;
 
   /**
    * @brief The most recently interpolated server frame.
@@ -358,12 +358,12 @@ typedef struct {
   /**
    * @brief The delta frame for the currently received frame, or `NULL`. Pointer into `frames`.
    */
-  const ClientFrame *delta_frame;
+  const ClientFrame *deltaFrame;
 
   /**
    * @brief The previously received sequential frame, or `NULL`. Pointer into `frames`.
    */
-  const ClientFrame *previous_frame;
+  const ClientFrame *previousFrame;
 
   /**
    * @brief All known server-side entities, parsed from received frames.
@@ -378,12 +378,12 @@ typedef struct {
   /**
    * @brief Large shared buffer of entity states used for delta-compression across parsed frames.
    */
-  EntityState entity_states[ENTITY_STATE_BACKUP];
+  EntityState entityStates[ENTITY_STATE_BACKUP];
 
   /**
    * @brief The entity state index for parsing server frames.
    */
-  uint32_t entity_state;
+  uint32_t entityState;
 
   /**
    * @brief Clamped simulation time, always between the previous and most recent server frame times.
@@ -393,12 +393,12 @@ typedef struct {
   /**
    * @brief Unclamped time in milliseconds since launch. Affected by `time_scale`; useful for effect durations.
    */
-  uint32_t unclamped_time;
+  uint32_t unclampedTime;
 
   /**
    * @brief The time each client was last heard speaking, for the voice indicator.
    */
-  uint32_t voice_time[MAX_CLIENTS];
+  uint32_t voiceTime[MAX_CLIENTS];
 
   /**
    * @brief Unclamped time in milliseconds since the player connected. Not affected by `time_scale`.
@@ -408,7 +408,7 @@ typedef struct {
   /**
    * @brief The duration of the current frame, in milliseconds.
    */
-  uint32_t frame_msec;
+  uint32_t frameMsec;
 
   /**
    * @brief The interpolation fraction for the current frame.
@@ -423,23 +423,23 @@ typedef struct {
   /**
    * @brief True if the client is viewing a demo.
    */
-  bool demo_server;
+  bool demoServer;
 
 
   /**
    * @brief True if the client is in third-person view (disables client-side prediction).
    */
-  bool third_person;
+  bool thirdPerson;
 
   /**
    * @brief The parsed configuration strings.
    */
-  char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
+  char configStrings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
   /**
    * @brief Collision BSP inline models loaded for client-side prediction.
    */
-  CmBspModel *cm_models[MAX_MODELS];
+  CmBspModel *cmModels[MAX_MODELS];
 
   /**
    * @brief Renderer models resolved from `config_strings`.
@@ -459,7 +459,7 @@ typedef struct {
   /**
    * @brief Index into `config_strings` used to verify file presence or initiate downloads.
    */
-  int32_t precache_check;
+  int32_t precacheCheck;
 } Client;
 
 typedef enum {
@@ -549,7 +549,7 @@ typedef struct {
   /**
    * @brief Previous relative mouse delta, for interpolation.
    */
-  float old_x, old_y;
+  float oldX, oldY;
 } ClientMouseState;
 
 typedef struct {
@@ -638,12 +638,12 @@ typedef struct {
   /**
    * @brief The maximum number of clients.
    */
-  int32_t max_clients;
+  int32_t maxClients;
 
   /**
    * @brief System time when the server was last pinged.
    */
-  uint32_t ping_time;
+  uint32_t pingTime;
 
   /**
    * @brief Measured round-trip latency to the server in milliseconds.
@@ -654,7 +654,7 @@ typedef struct {
    * @brief Exponentially smoothed ping, retained across refreshes to damp the
    * per-request variance from one-shot status replies.
    */
-  int32_t ping_smoothed;
+  int32_t pingSmoothed;
 } ClientServerInfo;
 
 /**
@@ -675,7 +675,7 @@ typedef struct {
   /**
    * @brief System time of last connection attempt, for retransmits.
    */
-  uint32_t connect_time;
+  uint32_t connectTime;
 
   /**
    * @brief Challenge value received from the server, used when connecting.
@@ -685,7 +685,7 @@ typedef struct {
   /**
    * @brief Server spawn count, used to detect map changes.
    */
-  uint32_t spawn_count;
+  uint32_t spawnCount;
 } ClientServer;
 
 /**
@@ -712,7 +712,7 @@ typedef struct {
    * @brief The frame number most recently written to `file`, or `-1`. Guards against writing a
    * duplicate record when a received packet carried no new `SV_CMD_FRAME`.
    */
-  int32_t last_frame_num;
+  int32_t lastFrameNum;
 
   /**
    * @brief The (absolute, server-since-map-load) frame number of the first frame written this
@@ -723,7 +723,7 @@ typedef struct {
    * conversion would be measured against the wrong origin whenever recording didn't start at
    * frame 0 (i.e. always, in practice).
    */
-  int32_t start_frame_num;
+  int32_t startFrameNum;
 
   /**
    * @brief Raw bytes of any non-`SV_CMD_FRAME` commands (chat, centerprint, temp entities,
@@ -734,12 +734,12 @@ typedef struct {
    * packets before any of them carries a new frame, and this must not lose data to its own
    * capacity before Cl_WriteDemoMessage gets a chance to decide what actually fits in one chunk.
    */
-  byte event_buffer[MAX_MSG_SIZE * 4];
+  byte eventBuffer[MAX_MSG_SIZE * 4];
 
   /**
    * @brief The number of valid bytes in `event_buffer`.
    */
-  size_t event_size;
+  size_t eventSize;
 
   /**
    * @brief The total duration of the demo currently being played back, in milliseconds, or `0`
@@ -767,12 +767,12 @@ typedef struct {
   /**
    * @brief The number of valid entries in `keyframes`.
    */
-  size_t num_keyframes;
+  size_t numKeyframes;
 
   /**
    * @brief The allocated capacity of `keyframes`.
    */
-  size_t max_keyframes;
+  size_t maxKeyframes;
 } ClientDemo;
 
 /**
@@ -823,12 +823,12 @@ typedef struct {
   /**
    * @brief The key binding and press state.
    */
-  ClientKeyState key_state;
+  ClientKeyState keyState;
 
   /**
    * @brief The mouse position state.
    */
-  ClientMouseState mouse_state;
+  ClientMouseState mouseState;
 
   /**
    * @brief List of `ClientServerInfo` discovered from all sources.
@@ -838,7 +838,7 @@ typedef struct {
   /**
    * @brief System time when the last LAN broadcast ping was sent.
    */
-  uint32_t broadcast_time;
+  uint32_t broadcastTime;
 
   /**
    * @brief The current server.
@@ -848,7 +848,7 @@ typedef struct {
   /**
    * @brief The network channel to the current server.
    */
-  NetChan net_chan;
+  NetChan netChan;
 
   /**
    * @brief Media loading progress state.

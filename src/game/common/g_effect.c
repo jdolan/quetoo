@@ -33,10 +33,10 @@
 void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, bool splash) {
 
   CmTrace tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
-  if (!tr.brush_side) {
+  if (!tr.brushSide) {
     tr = gi.Trace(pos2, pos1, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
   }
-  if (!tr.brush_side) {
+  if (!tr.brushSide) {
     return;
   }
 
@@ -44,15 +44,15 @@ void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, boo
   const Vec3 dir = tr.plane.normal;
 
   if (ent) {
-    if (g_level.time - ent->ripple_time < 400) {
+    if (g_level.time - ent->rippleTime < 400) {
       return;
     }
     
-    ent->ripple_time = g_level.time;
+    ent->rippleTime = g_level.time;
 
     if (size == 0.f) {
-      if (ent->ripple_size) {
-        size = ent->ripple_size;
+      if (ent->rippleSize) {
+        size = ent->rippleSize;
       } else {
         size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
       }
@@ -63,7 +63,7 @@ void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, boo
   gi.WriteByte(TE_RIPPLE);
   gi.WritePosition(pos);
   gi.WriteDir(dir);
-  gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
+  gi.WriteLong((int32_t) (ptrdiff_t) (tr.brushSide - gi.Bsp()->brushSides));
   gi.WriteByte((uint8_t) size);
   gi.WriteByte((uint8_t) splash);
 
@@ -75,7 +75,7 @@ void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, boo
     gi.WriteByte(TE_RIPPLE);
     gi.WritePosition(Vec3_Add(pos, Vec3_Down()));
     gi.WriteDir(Vec3_Negate(dir));
-    gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
+    gi.WriteLong((int32_t) (ptrdiff_t) (tr.brushSide - gi.Bsp()->brushSides));
     gi.WriteByte((uint8_t) size);
     gi.WriteByte((uint8_t) false);
 

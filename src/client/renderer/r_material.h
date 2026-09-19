@@ -66,14 +66,14 @@ typedef enum {
  */
 typedef struct {
   alignas(16) Vec4 color;
-  Vec2 st_origin;
+  Vec2 stOrigin;
   Vec2 stretch;
   Vec2 scroll;
   Vec2 scale;
   Vec2 terrain;
   Vec2 warp;
   int32_t surface;
-  float alpha_test;
+  float alphaTest;
   float roughness;
   float hardness;
   float specularity;
@@ -94,14 +94,14 @@ void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderM
 
 bool R_StageUniforms(const RenderView *view, const RenderEntity *entity,
                      const RenderBspDrawElements *draw, const RenderStage *stage,
-                     RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next);
+                     RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **textureNext);
 
 /**
  * @brief Mesh material uniforms, including tint colors.
  */
 typedef struct {
   RenderMaterialUniforms material;
-  Vec4 tint_colors[TINT_TOTAL];
+  Vec4 tintColors[TINT_TOTAL];
 } RenderMeshMaterialUniforms;
 
 #endif

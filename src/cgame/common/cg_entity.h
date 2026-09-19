@@ -61,7 +61,7 @@ typedef struct {
   /**
    * @brief The size of the opaque data.
    */
-  size_t data_size;
+  size_t dataSize;
 
 } ClientGameEntityClass;
 
@@ -111,7 +111,7 @@ struct ClientGameEntity {
    * @brief Timestamp for next emission.
    * @details Client game entities will Think() each frame, unless deferred.
    */
-  uint32_t next_think;
+  uint32_t nextThink;
 
   /**
    * @brief Randomization of `next_think`.

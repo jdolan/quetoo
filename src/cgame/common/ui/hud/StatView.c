@@ -143,7 +143,7 @@ static void updateBindings(View *self, ident data) {
 
         const int16_t active = Cg_ActiveWeapon(ps);
         if (active != WEAPON_SELECT_OFF) {
-          low = (int16_t) bg_item_defs[cg_weapons[active].ammo_tag].quantity;
+          low = (int16_t) bg_item_defs[cg_weapons[active].ammoTag].quantity;
           iconName = bg_item_defs[cg_weapons[active].tag].icon;
         }
       }
@@ -162,7 +162,7 @@ static void updateBindings(View *self, ident data) {
   if (value < low) {
     color = Colors.Red;
     if (cg_draw_vitals_pulse->integer) {
-      pulse = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f);
+      pulse = Clampf(sinf(cgi.client->unclampedTime / 250.f), 0.75f, 1.f);
     }
   } else if (value < med) {
     color = Colors.Yellow;

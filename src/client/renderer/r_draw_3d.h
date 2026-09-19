@@ -23,8 +23,8 @@
 
 #include "r_types.h"
 
-void R_Draw3DLines(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, const Color color, bool depth_test);
-void R_Draw3DBox(const Box3 bounds, const Color color, bool depth_test);
+void R_Draw3DLines(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, const Color color, bool depthTest);
+void R_Draw3DBox(const Box3 bounds, const Color color, bool depthTest);
 
 #if defined(__R_LOCAL_H__)
 void R_UpdateDraw3D(const RenderView *view, CopyPass *copyPass);

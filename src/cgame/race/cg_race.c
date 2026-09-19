@@ -108,10 +108,10 @@ static bool Cg_ParseServerCommand_Race(int32_t cmd) {
     q_strlcpy(label, cgi.ReadString(), sizeof(label));
 
     const uint32_t time = cgi.ReadLong();
-    const int32_t vs_best = cgi.ReadLong();
-    const int32_t vs_record = cgi.ReadLong();
+    const int32_t vsBest = cgi.ReadLong();
+    const int32_t vsRecord = cgi.ReadLong();
 
-    Cg_Race_Milestone(kind, number, label, time, vs_best, vs_record);
+    Cg_Race_Milestone(kind, number, label, time, vsBest, vsRecord);
     return true;
   }
 

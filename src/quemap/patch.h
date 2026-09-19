@@ -56,7 +56,7 @@ typedef struct PatchFace {
   /**
    * @brief The count of vertexes.
    */
-  int32_t num_vertexes;
+  int32_t numVertexes;
 
   /**
    * @brief The tessellated triangle elements (local 0-based indices).
@@ -66,7 +66,7 @@ typedef struct PatchFace {
   /**
    * @brief The count of elements.
    */
-  int32_t num_elements;
+  int32_t numElements;
 
   /**
    * @brief The owning patch.
@@ -102,7 +102,7 @@ typedef struct Patch {
   /**
    * @brief The control point grid.
    */
-  PatchControlPoint control_points[MAX_PATCH_WIDTH * MAX_PATCH_HEIGHT];
+  PatchControlPoint controlPoints[MAX_PATCH_WIDTH * MAX_PATCH_HEIGHT];
 
   /**
    * @brief The entity number within the map.
@@ -142,7 +142,7 @@ typedef struct Patch {
   /**
    * @brief The count of pre-tessellated faces.
    */
-  int32_t num_faces;
+  int32_t numFaces;
 } Patch;
 
 extern int32_t num_patches;
@@ -150,7 +150,7 @@ extern Patch patches[MAX_PATCHES];
 
 Patch *ParsePatch(Parser *parser, int32_t entity);
 void EmitPatchCollisionBrushes(Patch *patch, Entity *entity);
-void TessellatePatches(int32_t entity_num);
-void AssignPatchFacesToNodes(struct Node *head_node, int32_t entity_num);
-void FreePatchFaces(int32_t entity_num);
+void TessellatePatches(int32_t entityNum);
+void AssignPatchFacesToNodes(struct Node *headNode, int32_t entityNum);
+void FreePatchFaces(int32_t entityNum);
 void EmitPatches(const BspModel *mod);

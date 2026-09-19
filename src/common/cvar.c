@@ -120,37 +120,37 @@ float Cvar_GetValue(const char *name) {
  */
 static const char *Cvar_Stringify(const Cvar *var) {
   const char *modifiers[8];
-  size_t mod_count = 0;
+  size_t modCount = 0;
 
   if (var->flags & CVAR_ARCHIVE) {
-    modifiers[mod_count++] = "^2archived^7";
+    modifiers[modCount++] = "^2archived^7";
   }
   if (var->flags & CVAR_USER_INFO) {
-    modifiers[mod_count++] = "^4user^7";
+    modifiers[modCount++] = "^4user^7";
   }
   if (var->flags & CVAR_SERVER_INFO) {
-    modifiers[mod_count++] = "^5server^7";
+    modifiers[modCount++] = "^5server^7";
   }
   if (var->flags & CVAR_DEVELOPER) {
-    modifiers[mod_count++] = "^1developer^7";
+    modifiers[modCount++] = "^1developer^7";
   }
   if (var->flags & CVAR_NO_SET) {
-    modifiers[mod_count++] = "^3readonly^7";
+    modifiers[modCount++] = "^3readonly^7";
   }
   if (var->flags & CVAR_LATCH) {
-    modifiers[mod_count++] = "^6latched^7";
+    modifiers[modCount++] = "^6latched^7";
   }
 
   static char str[MAX_STRING_CHARS];
   q_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
-  if (q_strcmp(var->string, var->default_string)) {
-    q_strlcat(str, va(" [\"^3%s^7\"]", var->default_string), sizeof(str));
+  if (q_strcmp(var->string, var->defaultString)) {
+    q_strlcat(str, va(" [\"^3%s^7\"]", var->defaultString), sizeof(str));
   }
 
-  if (mod_count) {
+  if (modCount) {
     q_strlcat(str, " (", sizeof(str));
-    for (size_t i = 0; i < mod_count; i++) {
+    for (size_t i = 0; i < modCount; i++) {
       if (i) {
         q_strlcat(str, ", ", sizeof(str));
       }
@@ -248,10 +248,10 @@ Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *
   Cvar *var = Cvar_Get(name);
   if (var) {
     if (value) {
-      if (var->default_string) {
-        Mem_Free((void *) var->default_string);
+      if (var->defaultString) {
+        Mem_Free((void *) var->defaultString);
       }
-      var->default_string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
+      var->defaultString = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
     }
     var->flags |= flags;
     if (description) {
@@ -268,7 +268,7 @@ Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *
   assert(var);
   
   var->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CVAR), var);
-  var->default_string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
+  var->defaultString = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
   var->string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
   var->value = strtof(var->string, NULL);
   var->integer = (int32_t) strtol(var->string, NULL, 0);
@@ -336,11 +336,11 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
 
     // while latched variables can only be changed on map load
     if (var->flags & CVAR_LATCH) {
-      if (var->latched_string) {
-        if (!q_strcmp(value, var->latched_string)) {
+      if (var->latchedString) {
+        if (!q_strcmp(value, var->latchedString)) {
           return var;
         }
-        Mem_Free(var->latched_string);
+        Mem_Free(var->latchedString);
       } else {
         if (!q_strcmp(value, var->string)) {
           return var;
@@ -349,7 +349,7 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
 
       if (Com_WasInit(QUETOO_SERVER)) {
         Com_Print("%s will be changed for next game.\n", name);
-        var->latched_string = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
+        var->latchedString = Mem_Link(Mem_TagCopyString(value, MEM_TAG_CVAR), var);
       } else {
         if (var->string) {
           Mem_Free(var->string);
@@ -362,9 +362,9 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
       return var;
     }
   } else {
-    if (var->latched_string) {
-      Mem_Free(var->latched_string);
-      var->latched_string = NULL;
+    if (var->latchedString) {
+      Mem_Free(var->latchedString);
+      var->latchedString = NULL;
     }
   }
 
@@ -470,8 +470,8 @@ Cvar *Cvar_Toggle(const char *name) {
 static void Cvar_ResetDeveloper_enumerate(Cvar *var, void *data) {
 
   if (var->flags & CVAR_DEVELOPER) {
-    if (var->default_string) {
-      Cvar_ForceSetString(var->name, var->default_string);
+    if (var->defaultString) {
+      Cvar_ForceSetString(var->name, var->defaultString);
     }
   }
 }
@@ -491,7 +491,7 @@ void Cvar_ResetDeveloper(void) {
  */
 static void Cvar_PendingLatched_enumerate(Cvar *var, void *data) {
 
-  if (var->latched_string) {
+  if (var->latchedString) {
     *((bool *) data) = true;
   }
 }
@@ -512,11 +512,11 @@ bool Cvar_PendingLatched(void) {
  */
 static void Cvar_UpdateLatched_enumerate(Cvar *var, void *data) {
 
-  if (var->latched_string) {
+  if (var->latchedString) {
     Mem_Free(var->string);
 
-    var->string = var->latched_string;
-    var->latched_string = NULL;
+    var->string = var->latchedString;
+    var->latchedString = NULL;
     var->value = strtof(var->string, NULL);
     var->integer = (int32_t) strtol(var->string, NULL, 0);
     var->modified = true;
@@ -769,19 +769,19 @@ void Cvar_Init(void) {
 
   cvar_vars = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
-  Cmd *set_cmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
-  Cmd *seta_cmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
-  Cmd *sets_cmd = Cmd_Add("sets", Cvar_Set_f, 0, "Set a server-info console variable");
-  Cmd *setu_cmd = Cmd_Add("setu", Cvar_Set_f, 0, "Set a user-info console variable");
+  Cmd *setCmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
+  Cmd *setaCmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
+  Cmd *setsCmd = Cmd_Add("sets", Cvar_Set_f, 0, "Set a server-info console variable");
+  Cmd *setuCmd = Cmd_Add("setu", Cvar_Set_f, 0, "Set a user-info console variable");
 
-  Cmd_SetAutocomplete(set_cmd, Cvar_Set_Autocomplete_f);
-  Cmd_SetAutocomplete(seta_cmd, Cvar_Set_Autocomplete_f);
-  Cmd_SetAutocomplete(sets_cmd, Cvar_Set_Autocomplete_f);
-  Cmd_SetAutocomplete(setu_cmd, Cvar_Set_Autocomplete_f);
+  Cmd_SetAutocomplete(setCmd, Cvar_Set_Autocomplete_f);
+  Cmd_SetAutocomplete(setaCmd, Cvar_Set_Autocomplete_f);
+  Cmd_SetAutocomplete(setsCmd, Cvar_Set_Autocomplete_f);
+  Cmd_SetAutocomplete(setuCmd, Cvar_Set_Autocomplete_f);
 
-  Cmd *toggle_cmd = Cmd_Add("toggle", Cvar_Toggle_f, 0, "Toggle a cvar between 0 and 1");
+  Cmd *toggleCmd = Cmd_Add("toggle", Cvar_Toggle_f, 0, "Toggle a cvar between 0 and 1");
 
-  Cmd_SetAutocomplete(toggle_cmd, Cvar_Set_Autocomplete_f);
+  Cmd_SetAutocomplete(toggleCmd, Cvar_Set_Autocomplete_f);
 
   Cmd_Add("cvar_list", Cvar_List_f, 0, NULL);
 

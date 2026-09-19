@@ -171,9 +171,9 @@ START_TEST(check_Cm_Manifest_roundtrip) {
 	Cm_AddManifestEntry(manifest, "maps/edge.nav", content3, strlen(content3));
 
 	// save original entries for comparison
-	const CmManifestEntry orig_tex  = *((CmManifestEntry *) $(manifest, get, (void *) "textures/edge/floor01_d.tga"));
-	const CmManifestEntry orig_snd  = *((CmManifestEntry *) $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg"));
-	const CmManifestEntry orig_nav  = *((CmManifestEntry *) $(manifest, get, (void *) "maps/edge.nav"));
+	const CmManifestEntry origTex  = *((CmManifestEntry *) $(manifest, get, (void *) "textures/edge/floor01_d.tga"));
+	const CmManifestEntry origSnd  = *((CmManifestEntry *) $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg"));
+	const CmManifestEntry origNav  = *((CmManifestEntry *) $(manifest, get, (void *) "maps/edge.nav"));
 
 	Cm_WriteManifest("test_roundtrip.mf", manifest);
 	Cm_FreeManifest(manifest);
@@ -186,18 +186,18 @@ START_TEST(check_Cm_Manifest_roundtrip) {
 
 	e = $(loaded, get, (void *) "textures/edge/floor01_d.tga");
 	ck_assert_msg(e != NULL, "Missing textures/edge/floor01_d.tga after roundtrip");
-	ck_assert_str_eq(e->hash, orig_tex.hash);
-	ck_assert_int_eq(e->size, orig_tex.size);
+	ck_assert_str_eq(e->hash, origTex.hash);
+	ck_assert_int_eq(e->size, origTex.size);
 
 	e = $(loaded, get, (void *) "sounds/weapons/rg_fire.ogg");
 	ck_assert_msg(e != NULL, "Missing sounds/weapons/rg_fire.ogg after roundtrip");
-	ck_assert_str_eq(e->hash, orig_snd.hash);
-	ck_assert_int_eq(e->size, orig_snd.size);
+	ck_assert_str_eq(e->hash, origSnd.hash);
+	ck_assert_int_eq(e->size, origSnd.size);
 
 	e = $(loaded, get, (void *) "maps/edge.nav");
 	ck_assert_msg(e != NULL, "Missing maps/edge.nav after roundtrip");
-	ck_assert_str_eq(e->hash, orig_nav.hash);
-	ck_assert_int_eq(e->size, orig_nav.size);
+	ck_assert_str_eq(e->hash, origNav.hash);
+	ck_assert_int_eq(e->size, origNav.size);
 
 	Cm_FreeManifest(loaded);
 

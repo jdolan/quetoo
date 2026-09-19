@@ -100,7 +100,7 @@ static const char *resolveMapTitle(void) {
  */
 static const char *resolveServerName(void) {
 
-  if (cgi.client->demo_server) {
+  if (cgi.client->demoServer) {
     return "Demo playback";
   }
 

@@ -38,19 +38,19 @@ ClientGameHudState cg_hud_state;
 void Cg_ParseCenterPrint(void) {
   char *c, *out, *line;
 
-  memset(&cg_state.center_print, 0, sizeof(cg_state.center_print));
+  memset(&cg_state.centerPrint, 0, sizeof(cg_state.centerPrint));
 
   c = cgi.ReadString();
 
-  line = cg_state.center_print.lines[0];
+  line = cg_state.centerPrint.lines[0];
   out = line;
 
-  while (*c && cg_state.center_print.num_lines < CG_CENTER_PRINT_LINES - 1) {
+  while (*c && cg_state.centerPrint.numLines < CG_CENTER_PRINT_LINES - 1) {
 
     if (*c == '\n') {
       line += MAX_STRING_CHARS;
       out = line;
-      cg_state.center_print.num_lines++;
+      cg_state.centerPrint.numLines++;
       c++;
       continue;
     }
@@ -58,8 +58,8 @@ void Cg_ParseCenterPrint(void) {
     *out++ = *c++;
   }
 
-  cg_state.center_print.num_lines++;
-  cg_state.center_print.time = cgi.client->unclamped_time + 3000;
+  cg_state.centerPrint.numLines++;
+  cg_state.centerPrint.time = cgi.client->unclampedTime + 3000;
 }
 
 /**
@@ -68,12 +68,12 @@ void Cg_ParseCenterPrint(void) {
 static void Cg_SelectWeapon(const int8_t dir) {
   const PlayerState *ps = &cgi.client->frame.ps;
 
-  if (cgi.client->demo_server) {
+  if (cgi.client->demoServer) {
     return; // a demo holds one player: there is nobody to scan to, and the weapon they had
             // selected is theirs rather than the viewer's to change
   }
 
-  if (ps->stats[STAT_SPECTATOR] || ps->pm_state.type == PM_DEAD) {
+  if (ps->stats[STAT_SPECTATOR] || ps->pmState.type == PM_DEAD) {
 
     // not gated on STAT_CHASE: stepping to another target while detached acquires one, which is
     // how a free-flying spectator lands back on a player
@@ -93,9 +93,9 @@ static void Cg_SelectWeapon(const int8_t dir) {
 
   int16_t bit = cg_hud_state.weapon.bit;
   if (bit < 0 || bit >= WEAPON_TOTAL || !has[bit]) {
-    const int16_t current_tag = ps->stats[STAT_WEAPON] & 0xFF;
-    if (current_tag >= WEAPON_FIRST && current_tag < WEAPON_LAST) {
-      bit = current_tag - WEAPON_FIRST;
+    const int16_t currentTag = ps->stats[STAT_WEAPON] & 0xFF;
+    if (currentTag >= WEAPON_FIRST && currentTag < WEAPON_LAST) {
+      bit = currentTag - WEAPON_FIRST;
     } else {
       bit = WEAPON_SELECT_OFF;
     }
@@ -113,8 +113,8 @@ static void Cg_SelectWeapon(const int8_t dir) {
 
     if (has[bit]) {
       cg_hud_state.weapon.bit = bit;
-      cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_delay->integer;
-      cg_hud_state.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+      cg_hud_state.weapon.time = cgi.client->unclampedTime + cg_select_weapon_delay->integer;
+      cg_hud_state.weapon.barTime = cgi.client->unclampedTime + cg_select_weapon_interval->integer;
       return;
     }
   }
@@ -172,8 +172,8 @@ bool Cg_AttemptSelectWeapon(const PlayerState *ps) {
       const char *classname = bg_item_defs[cg_weapons[cg_hud_state.weapon.bit].tag].classname;
       cgi.Cbuf(va("use %s\n", classname));
 
-      cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
-      cg_hud_state.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+      cg_hud_state.weapon.time = cgi.client->unclampedTime + cg_select_weapon_interval->integer;
+      cg_hud_state.weapon.barTime = cgi.client->unclampedTime + cg_select_weapon_interval->integer;
 
       return true;
     }
@@ -196,11 +196,11 @@ bool Cg_UpdateSelectWeapon(const PlayerState *ps, float *alpha) {
   *alpha = 0.f;
 
   // spectator/dead
-  if (!Cg_HasWeapon(ps) || ps->pm_state.type == PM_DEAD) {
+  if (!Cg_HasWeapon(ps) || ps->pmState.type == PM_DEAD) {
     cg_hud_state.weapon.bit = -1;
     cg_hud_state.weapon.time = 0;
-    cg_hud_state.weapon.bar_time = 0;
-    cg_hud_state.weapon.used_bit = 0;
+    cg_hud_state.weapon.barTime = 0;
+    cg_hud_state.weapon.usedBit = 0;
     return false;
   }
 
@@ -218,30 +218,30 @@ bool Cg_UpdateSelectWeapon(const PlayerState *ps, float *alpha) {
   if (!cg_hud_state.weapon.num) {
     cg_hud_state.weapon.bit = -1;
     cg_hud_state.weapon.time = 0;
-    cg_hud_state.weapon.bar_time = 0;
-    cg_hud_state.weapon.used_bit = 0;
+    cg_hud_state.weapon.barTime = 0;
+    cg_hud_state.weapon.usedBit = 0;
     return false;
   }
 
   const int16_t switching = ((ps->stats[STAT_WEAPON] >> 8) & 0xFF);
 
-  if (cg_hud_state.weapon.used_bit != switching) {
-    cg_hud_state.weapon.used_bit = switching;
+  if (cg_hud_state.weapon.usedBit != switching) {
+    cg_hud_state.weapon.usedBit = switching;
 
-    if (cg_hud_state.weapon.used_bit && !ps->stats[STAT_SPECTATOR]) {
+    if (cg_hud_state.weapon.usedBit && !ps->stats[STAT_SPECTATOR]) {
 
       // we changed weapons without using scrolly, show it for a bit
-      cg_hud_state.weapon.bit = cg_hud_state.weapon.used_bit - 1;
-      cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
-      cg_hud_state.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+      cg_hud_state.weapon.bit = cg_hud_state.weapon.usedBit - 1;
+      cg_hud_state.weapon.time = cgi.client->unclampedTime + cg_select_weapon_interval->integer;
+      cg_hud_state.weapon.barTime = cgi.client->unclampedTime + cg_select_weapon_interval->integer;
     }
   }
 
   // not changing or ran out of time
-  if (cg_hud_state.weapon.time <= cgi.client->unclamped_time) {
+  if (cg_hud_state.weapon.time <= cgi.client->unclampedTime) {
     Cg_AttemptSelectWeapon(ps);
 
-    if (cg_hud_state.weapon.time <= cgi.client->unclamped_time) {
+    if (cg_hud_state.weapon.time <= cgi.client->unclampedTime) {
       return false;
     }
   }
@@ -256,7 +256,7 @@ bool Cg_UpdateSelectWeapon(const PlayerState *ps, float *alpha) {
     cg_select_weapon_fade->value = Clampf(cg_select_weapon_fade->value, 0.f, cg_select_weapon_interval->value);
   }
 
-  const int32_t delta = cg_hud_state.weapon.bar_time - cgi.client->unclamped_time;
+  const int32_t delta = cg_hud_state.weapon.barTime - cgi.client->unclampedTime;
   if (cg_select_weapon_fade->integer > 0) {
     *alpha = Clampf(delta / (float) cg_select_weapon_fade->integer, 0.f, 1.f);
   } else {
@@ -344,5 +344,5 @@ void Cg_ClearHud(void) {
   memset(&cg_hud_state, 0, sizeof(cg_hud_state));
 
   cg_hud_state.weapon.bit = WEAPON_SELECT_OFF;
-  cg_hud_state.clear_time = (uint32_t) SDL_GetTicks();
+  cg_hud_state.clearTime = (uint32_t) SDL_GetTicks();
 }

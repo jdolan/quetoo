@@ -43,7 +43,7 @@ typedef struct CmdState {
 
   bool wait; // commands may be deferred one frame
 
-  int32_t alias_loop_count;
+  int32_t aliasLoopCount;
 } CmdState;
 
 static CmdState cmd_state;
@@ -57,7 +57,7 @@ void Cbuf_AddText(const char *text) {
 
   const size_t l = q_strlen(text);
 
-  if (cmd_state.buf.size + l >= cmd_state.buf.max_size) {
+  if (cmd_state.buf.size + l >= cmd_state.buf.maxSize) {
     Com_Warn("Overflow\n");
     return;
   }
@@ -121,7 +121,7 @@ void Cbuf_InsertFromDefer(void) {
  */
 void Cbuf_Execute(void) {
 
-  cmd_state.alias_loop_count = 0; // don't allow infinite alias loops
+  cmd_state.aliasLoopCount = 0; // don't allow infinite alias loops
 
   while (cmd_state.buf.size) {
 
@@ -258,7 +258,7 @@ void Cmd_TokenizeString(const char *text) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-static Cmd *Cmd_Get_(const char *name, const bool case_sensitive) {
+static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
 
   if (cmd_state.commands) {
     List *list = $(cmd_state.commands, get, (void *) name);
@@ -267,7 +267,7 @@ static Cmd *Cmd_Get_(const char *name, const bool case_sensitive) {
       if (list->count == 1) { // only 1 entry, return it
         Cmd *cmd = list->head->element;
 
-        if (!case_sensitive || q_strcmp(cmd->name, name) == 0) {
+        if (!caseSensitive || q_strcmp(cmd->name, name) == 0) {
           return cmd;
         }
       } else {
@@ -550,7 +550,7 @@ void Cmd_ExecuteString(const char *text) {
     if (cmd->Execute) {
       cmd->Execute();
     } else if (cmd->commands) {
-      if (++cmd_state.alias_loop_count == MAX_ALIAS_LOOP_COUNT) {
+      if (++cmd_state.aliasLoopCount == MAX_ALIAS_LOOP_COUNT) {
         Com_Warn("ALIAS_LOOP_COUNT\n");
       } else {
         Cbuf_AddText(cmd->commands);
@@ -728,8 +728,8 @@ void Cmd_Init(void) {
   Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
   Cmd_Add("cmd_list", Cmd_List_f, 0, NULL);
-  Cmd *exec_cmd = Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
-  Cmd_SetAutocomplete(exec_cmd, Cmd_Exec_Autocomplete_f);
+  Cmd *execCmd = Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
+  Cmd_SetAutocomplete(execCmd, Cmd_Exec_Autocomplete_f);
   Cmd_Add("echo", Cmd_Echo_f, 0, NULL);
   Cmd_Add("alias", Cmd_Alias_f, CMD_SYSTEM, NULL);
   Cmd_Add("wait", Cmd_Wait_f, 0, NULL);

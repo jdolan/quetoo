@@ -63,12 +63,12 @@ typedef struct {
   /**
    * @brief Level time when the hook think was last called.
    */
-  uint32_t think_time;
+  uint32_t thinkTime;
 
   /**
    * @brief Hook may fire again when time exceeds this.
    */
-  uint32_t fire_time;
+  uint32_t fireTime;
 
   /**
    * @brief The hook entity the client is attached to.

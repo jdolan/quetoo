@@ -83,20 +83,20 @@ static void updateBindings(View *self, ident data) {
 
   const bool detached = !Cg_CameraSubject(ps);
 
-  if (detached != this->detached || cg_state.camera_mode != this->mode) {
+  if (detached != this->detached || cg_state.cameraMode != this->mode) {
 
     this->detached = detached;
-    this->mode = cg_state.camera_mode;
+    this->mode = cg_state.cameraMode;
 
     const size_t camera = detached ? CAMERA_MODE_TOTAL : this->mode;
 
     $(this->icon, setImage, (Image *) Cg_HudImage(cg_cameras[camera].icon));
     $(this->name, setText, cg_cameras[camera].name);
 
-    this->time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+    this->time = cgi.client->unclampedTime + cg_select_weapon_interval->integer;
   }
 
-  const bool visible = cgi.client->unclamped_time < this->time;
+  const bool visible = cgi.client->unclampedTime < this->time;
 
   $(self, setVisibility, visible ? ViewVisibilityVisible : ViewVisibilityHidden);
 }

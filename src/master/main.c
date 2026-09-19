@@ -88,15 +88,15 @@ Quetoo quetoo;
 typedef struct MasterServer {
   struct sockaddr_in addr;
   time_t registered;
-  time_t last_heartbeat;
+  time_t lastHeartbeat;
   uint32_t challenge;
-  time_t last_challenge;
+  time_t lastChallenge;
   bool validated;
   char hostname[256];
   char map[64];
   int32_t protocol;
-  int32_t num_clients;
-  int32_t max_clients;
+  int32_t numClients;
+  int32_t maxClients;
   char players[MAX_CLIENTS][64];
 } MasterServer;
 
@@ -116,7 +116,7 @@ static const char *ms_discord_webhook;
  * @brief Extracts the value for the given key from a Quake infostring.
  * @return True if the key was found and the value copied, false otherwise.
  */
-static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t buf_size) {
+static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bufSize) {
   char search[256];
   q_snprintf(search, sizeof(search), "\\%s\\", key);
 
@@ -134,7 +134,7 @@ static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bu
   } else {
     len = q_strlen(p);
   }
-  len = Minui64(len, buf_size - 1);
+  len = Minui64(len, bufSize - 1);
 
   memcpy(buf, p, len);
   buf[len] = '\0';
@@ -144,11 +144,11 @@ static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bu
 /**
  * @brief JSON-escapes `src` into `buf`.
  */
-static void Ms_JsonEscape(const char *src, char *buf, size_t buf_size) {
+static void Ms_JsonEscape(const char *src, char *buf, size_t bufSize) {
   size_t out = 0;
-  for (const char *s = src; *s && out + 2 < buf_size; s++) {
+  for (const char *s = src; *s && out + 2 < bufSize; s++) {
     if (*s == '"' || *s == '\\') {
-      if (out + 3 < buf_size) {
+      if (out + 3 < bufSize) {
         buf[out++] = '\\';
       }
     }
@@ -160,17 +160,17 @@ static void Ms_JsonEscape(const char *src, char *buf, size_t buf_size) {
 /**
  * @brief Posts a Discord webhook notification for a player joining a server.
  */
-static void Ms_DiscordNotify(const MasterServer *server, const char *player_name, int32_t num_clients) {
+static void Ms_DiscordNotify(const MasterServer *server, const char *playerName, int32_t numClients) {
   if (!ms_discord_webhook) {
     return;
   }
 
-  char escaped_player[128];
-  char escaped_host[256];
-  char escaped_map[128];
-  Ms_JsonEscape(player_name, escaped_player, sizeof(escaped_player));
-  Ms_JsonEscape(server->hostname, escaped_host, sizeof(escaped_host));
-  Ms_JsonEscape(server->map, escaped_map, sizeof(escaped_map));
+  char escapedPlayer[128];
+  char escapedHost[256];
+  char escapedMap[128];
+  Ms_JsonEscape(playerName, escapedPlayer, sizeof(escapedPlayer));
+  Ms_JsonEscape(server->hostname, escapedHost, sizeof(escapedHost));
+  Ms_JsonEscape(server->map, escapedMap, sizeof(escapedMap));
 
   const char *ip = inet_ntoa(server->addr.sin_addr);
   const int32_t port = ntohs(server->addr.sin_port);
@@ -178,8 +178,8 @@ static void Ms_DiscordNotify(const MasterServer *server, const char *player_name
   char json[1024];
   q_snprintf(json, sizeof(json),
     "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
-    escaped_player, escaped_host, escaped_map,
-    num_clients, server->max_clients,
+    escapedPlayer, escapedHost, escapedMap,
+    numClients, server->maxClients,
     ip, port);
 
   Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
@@ -204,74 +204,74 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
     server->protocol = atoi(val);
   }
 
-  server->max_clients = 0;
+  server->maxClients = 0;
   if (Ms_InfoValue(status, "sv_max_clients", val, sizeof(val))) {
-    server->max_clients = atoi(val);
+    server->maxClients = atoi(val);
   }
 
-  bool map_changed = false;
+  bool mapChanged = false;
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
-    map_changed = q_strcmp(server->map, val) != 0;
+    mapChanged = q_strcmp(server->map, val) != 0;
     q_strlcpy(server->map, val, sizeof(server->map));
   }
 
-  char new_players[MAX_CLIENTS][64];
-  int32_t new_count = 0;
+  char newPlayers[MAX_CLIENTS][64];
+  int32_t newCount = 0;
 
   // player lines begin after the infostring's trailing newline
   const char *line = q_strchr(status, '\n');
-  while (line && new_count < MAX_CLIENTS) {
+  while (line && newCount < MAX_CLIENTS) {
     line++; // skip the newline
     if (*line == '\0') {
       break;
     }
 
     // isolate the current player line to prevent cross-line key lookups
-    const char *line_end = q_strchr(line, '\n');
-    char cur_line[256];
-    if (line_end) {
-      q_strlcpy(cur_line, line, (size_t) (line_end - line) + 1 < sizeof(cur_line) ? (size_t)(line_end - line) + 1 : sizeof(cur_line));
+    const char *lineEnd = q_strchr(line, '\n');
+    char curLine[256];
+    if (lineEnd) {
+      q_strlcpy(curLine, line, (size_t) (lineEnd - line) + 1 < sizeof(curLine) ? (size_t)(lineEnd - line) + 1 : sizeof(curLine));
     } else {
-      q_strlcpy(cur_line, line, sizeof(cur_line));
+      q_strlcpy(curLine, line, sizeof(curLine));
     }
 
     char name[64] = { 0 };
-    char ai_val[4] = { 0 };
-    if (Ms_InfoValue(cur_line, "name", name, sizeof(name)) && name[0]) {
+    char aiVal[4] = { 0 };
+    if (Ms_InfoValue(curLine, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
       q_strcolorstrip(name, stripped);
-      Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
-      Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
-      if (!atoi(ai_val)) {
-        q_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
-        new_count++;
+      Ms_InfoValue(curLine, "ai", aiVal, sizeof(aiVal));
+      Com_Verbose("Player: %s ai=%s\n", stripped, aiVal[0] ? aiVal : "(none)");
+      if (!atoi(aiVal)) {
+        q_strlcpy(newPlayers[newCount], stripped, sizeof(newPlayers[newCount]));
+        newCount++;
       }
     }
 
-    line = line_end;
+    line = lineEnd;
   }
 
-  const int32_t old_count = server->num_clients;
-  const bool initialized = (old_count >= 0);
+  const int32_t oldCount = server->numClients;
+  const bool initialized = (oldCount >= 0);
 
-  if (initialized && !map_changed) {
-    for (int32_t i = 0; i < new_count; i++) {
+  if (initialized && !mapChanged) {
+    for (int32_t i = 0; i < newCount; i++) {
       bool found = false;
-      for (int32_t j = 0; j < old_count; j++) {
-        if (!q_strcmp(new_players[i], server->players[j])) {
+      for (int32_t j = 0; j < oldCount; j++) {
+        if (!q_strcmp(newPlayers[i], server->players[j])) {
           found = true;
           break;
         }
       }
       if (!found) {
-        Ms_DiscordNotify(server, new_players[i], new_count);
+        Ms_DiscordNotify(server, newPlayers[i], newCount);
       }
     }
   }
 
-  server->num_clients = new_count;
-  for (int32_t i = 0; i < new_count; i++) {
-    q_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
+  server->numClients = newCount;
+  for (int32_t i = 0; i < newCount; i++) {
+    q_strlcpy(server->players[i], newPlayers[i], sizeof(server->players[i]));
   }
 }
 
@@ -395,7 +395,7 @@ static uint32_t Ms_Challenge(void) {
  */
 static void Ms_SendChallenge(MasterServer *server, time_t now) {
 
-  if (server->last_challenge && now - server->last_challenge < CHALLENGE_INTERVAL_SECONDS) {
+  if (server->lastChallenge && now - server->lastChallenge < CHALLENGE_INTERVAL_SECONDS) {
     return; // do not let a heartbeat flood become a challenge flood
   }
 
@@ -403,7 +403,7 @@ static void Ms_SendChallenge(MasterServer *server, time_t now) {
     server->challenge = Ms_Challenge();
   }
 
-  server->last_challenge = now;
+  server->lastChallenge = now;
 
   char buffer[32];
   memcpy(buffer, "\xFF\xFF\xFF\xFF", 4);
@@ -467,8 +467,8 @@ static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
 
   server->addr = *from;
   server->registered = time(NULL);
-  server->last_heartbeat = server->registered;
-  server->num_clients = -1;
+  server->lastHeartbeat = server->registered;
+  server->numClients = -1;
 
   if (!ms_servers) {
     ms_servers = $(alloc(List), init);
@@ -513,7 +513,7 @@ static void Ms_Frame(void) {
     ListNode *next = s->next;
     MasterServer *server = (MasterServer *) s->element;
 
-    if (now - server->last_heartbeat > SERVER_TIMEOUT_SECONDS) {
+    if (now - server->lastHeartbeat > SERVER_TIMEOUT_SECONDS) {
       Com_Print("Server %s timed out\n", stos(server));
       Ms_DropServer(server);
     } else if (!server->validated && now - server->registered > VALIDATION_TIMEOUT_SECONDS) {
@@ -592,7 +592,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *
     return;
   }
 
-  server->last_heartbeat = now;
+  server->lastHeartbeat = now;
 
   if (!server->validated) {
     server->validated = true;
@@ -703,7 +703,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
   quetoo.Init = Init;
   quetoo.Shutdown = Shutdown;
-  quetoo.log_file_name = "quetoo-master.log";
+  quetoo.logFileName = "quetoo-master.log";
 
   signal(SIGINT, Sys_Signal);
   signal(SIGTERM, Sys_Signal);
@@ -779,10 +779,10 @@ int32_t quetoo_main(int32_t argc, char **argv) {
         struct sockaddr_in from;
         memset(&from, 0, sizeof(from));
 
-        socklen_t from_len = sizeof(from);
+        socklen_t fromLen = sizeof(from);
 
         const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer) - 1, 0,
-                                     (struct sockaddr *) &from, &from_len);
+                                     (struct sockaddr *) &from, &fromLen);
 
         if (len > 0) {
           buffer[len] = '\0';

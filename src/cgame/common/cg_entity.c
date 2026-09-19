@@ -38,17 +38,17 @@ static const CmEntity *Cg_FindEntity(const CmEntity *from, const Cg_EntityPredic
 
   int32_t start = 0;
   if (from) {
-    while (start < bsp->num_entities) {
+    while (start < bsp->numEntities) {
       if (bsp->entities[start] == from) {
         break;
       }
       start++;
     }
-    assert(start < bsp->num_entities);
+    assert(start < bsp->numEntities);
     start++;
   }
 
-  for (int32_t i = start; i < bsp->num_entities; i++) {
+  for (int32_t i = start; i < bsp->numEntities; i++) {
     const CmEntity *e = bsp->entities[i];
     if (predicate(e, data)) {
       return e;
@@ -62,14 +62,14 @@ static const CmEntity *Cg_FindEntity(const CmEntity *from, const Cg_EntityPredic
  * @brief Predicate function testing whether an entity's targetname matches the given string.
  */
 static bool Cg_EntityTarget_Predicate(const CmEntity *e, void *data) {
-  return !q_strcmp(cgi.EntityValue(e, "targetname")->nullable_string, data);
+  return !q_strcmp(cgi.EntityValue(e, "targetname")->nullableString, data);
 }
 
 /**
  * @brief Predicate function testing whether an entity's team key matches the given string.
  */
 static bool Cg_EntityTeam_Predicate(const CmEntity *e, void *data) {
-  return !q_strcmp(cgi.EntityValue(e, "team")->nullable_string, data);
+  return !q_strcmp(cgi.EntityValue(e, "team")->nullableString, data);
 }
 
 /**
@@ -113,7 +113,7 @@ void Cg_LoadEntities(void) {
   cg_entities = $(alloc(Vector), initWithSize, sizeof(ClientGameEntity));
 
   const CmBsp *bsp = cgi.WorldModel()->bsp->cm;
-  for (int32_t i = 0; i < bsp->num_entities; i++) {
+  for (int32_t i = 0; i < bsp->numEntities; i++) {
 
     const CmEntity *def = bsp->entities[i];
     const char *classname = cgi.EntityValue(def, "classname")->string;
@@ -133,28 +133,28 @@ void Cg_LoadEntities(void) {
         e.bounds = Box3_FromCenter(e.origin);
 
         if (cgi.EntityValue(def, "target")->parsed & ENTITY_STRING) {
-          const char *target_name = cgi.EntityValue(def, "target")->string;
-          e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) target_name);
+          const char *targetName = cgi.EntityValue(def, "target")->string;
+          e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) targetName);
           if (!e.target) {
             Cg_Warn("Target not found for %s @ %s\n", classname, vtos(e.origin));
           }
         }
 
         if (cgi.EntityValue(def, "team")->parsed & ENTITY_STRING) {
-          const char *team_name = cgi.EntityValue(def, "team")->string;
-          e.team = Cg_FindEntity(def, Cg_EntityTeam_Predicate, (void *) team_name);
+          const char *teamName = cgi.EntityValue(def, "team")->string;
+          e.team = Cg_FindEntity(def, Cg_EntityTeam_Predicate, (void *) teamName);
         }
 
-        e.data = cgi.Malloc(e.clazz->data_size, MEM_TAG_CGAME_LEVEL);
+        e.data = cgi.Malloc(e.clazz->dataSize, MEM_TAG_CGAME_LEVEL);
 
         e.clazz->Init(&e);
 
         // Reset periodic thinker scheduling so media reloads don't "catch up" from t=0
         // and spam emissions for several frames (e.g. misc_sound during r_restart).
-        e.next_think = cgi.client->unclamped_time;
+        e.nextThink = cgi.client->unclampedTime;
         if (e.hz > 0.f) {
           const float interval = 1000.f / e.hz;
-          e.next_think += interval * Randomf();
+          e.nextThink += interval * Randomf();
         }
 
         $(cg_entities, add, &e);
@@ -192,7 +192,7 @@ ClientEntity *Cg_Self(void) {
  * @brief The player bounding box under the movement parameters the server sent.
  */
 Box3 Cg_PlayerBounds(bool ducked) {
-  return Pm_Bounds(&cgi.client->frame.ps.pm_state.params, ducked);
+  return Pm_Bounds(&cgi.client->frame.ps.pmState.params, ducked);
 }
 
 /**
@@ -204,7 +204,7 @@ bool Cg_IsDucking(const ClientEntity *ent) {
 
   const ClientGameClientInfo *ci = Cg_ClientInfo(ent);
 
-  return (ci->standing_ceiling - ci->standing_floor) - height > PM_STOP_EPSILON;
+  return (ci->standingCeiling - ci->standingFloor) - height > PM_STOP_EPSILON;
 }
 
 /**
@@ -233,10 +233,10 @@ void Cg_Interpolate(const ClientFrame *frame) {
 
   cgi.client->entity = Cg_Self();
 
-  for (int32_t i = 0; i < frame->num_entities; i++) {
+  for (int32_t i = 0; i < frame->numEntities; i++) {
 
-    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    EntityState *s = &cgi.client->entity_states[snum];
+    const uint32_t snum = (frame->entityState + i) & ENTITY_STATE_MASK;
+    EntityState *s = &cgi.client->entityStates[snum];
 
     ClientEntity *ent = &cgi.client->entities[s->number];
 
@@ -265,7 +265,7 @@ static void Cg_AddEntity_Common(ClientEntity *ent) {
     .angles = ent->angles,
     .scale = 1.f,
     .bounds = ent->bounds,
-    .abs_bounds = ent->abs_bounds,
+    .absBounds = ent->absBounds,
     .effects = ent->current.effects,
     .color = Color32_Vec4(ent->current.color),
   };
@@ -286,7 +286,7 @@ static void Cg_AddEntity_Common(ClientEntity *ent) {
     Cg_AddClientEntity(ent, &e);
 
     // add our view weapon, if it's our view entity and we're in first-person
-    if (ent == Cg_Self() && !cgi.client->third_person) {
+    if (ent == Cg_Self() && !cgi.client->thirdPerson) {
       Cg_AddWeapon(ent, &e);
     }
 
@@ -294,7 +294,7 @@ static void Cg_AddEntity_Common(ClientEntity *ent) {
   }
 
   // don't draw our own giblet, since the view is inside it
-  if (ent == cgi.client->entity && !cgi.client->third_person) {
+  if (ent == cgi.client->entity && !cgi.client->thirdPerson) {
     e.effects |= EF_NO_DRAW;
   }
 
@@ -333,10 +333,10 @@ void Cg_AddEntities(const ClientFrame *frame) {
   }
 
   // add server side entities
-  for (int32_t i = 0; i < frame->num_entities; i++) {
+  for (int32_t i = 0; i < frame->numEntities; i++) {
 
-    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    const EntityState *s = &cgi.client->entity_states[snum];
+    const uint32_t snum = (frame->entityState + i) & ENTITY_STATE_MASK;
+    const EntityState *s = &cgi.client->entityStates[snum];
     ClientEntity *ent = &cgi.client->entities[s->number];
 
     Cg_AddEntity(ent);
@@ -346,14 +346,14 @@ void Cg_AddEntities(const ClientFrame *frame) {
   ClientGameEntity *e = cg_entities->elements;
   for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
 
-    if (e->next_think > cgi.client->unclamped_time) {
+    if (e->nextThink > cgi.client->unclampedTime) {
       continue;
     }
 
     e->clazz->Think(e);
 
     if (e->hz) {
-      e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
+      e->nextThink += 1000.f / e->hz + 1000.f * e->drift * Randomf();
     }
   }
 }

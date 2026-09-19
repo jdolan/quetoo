@@ -63,7 +63,7 @@ CmEntity *Cm_SortEntity(CmEntity *entity);
  * @brief Parses an entity string into a List of entity linked lists.
  * @return A List of `CmEntity`* head pointers (one per entity).
  */
-List *Cm_LoadEntities(const char *entity_string);
+List *Cm_LoadEntities(const char *entityString);
 
 /**
  * @brief Returns the index of the entity in the BSP entities array, or -1 if not found.
@@ -99,7 +99,7 @@ CmEntity *Cm_EntityFromInfoString(const char *str);
 /**
  * @brief Parses brushes from .map text and attaches them to the corresponding entities.
  */
-void Cm_ParseMapBrushes(const char *map_text, CmEntity **entities, int32_t num_entities);
+void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEntities);
 
 #if defined(__CM_LOCAL_H__)
 #endif

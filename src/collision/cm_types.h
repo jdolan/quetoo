@@ -100,7 +100,7 @@ typedef struct {
   /**
    * @brief Sign bit mask of normal components, used for fast plane side tests.
    */
-  int32_t sign_bits;
+  int32_t signBits;
 } CmBspPlane;
 
 /**
@@ -122,7 +122,7 @@ typedef struct {
   /**
    * @brief The index of the head node in the BSP file.
    */
-  int32_t head_node;
+  int32_t headNode;
 
   /**
    * @brief The model bounds.
@@ -178,7 +178,7 @@ typedef struct CmEntity {
    * @brief The entity pair value, as a nullable string pointer.
    * @remarks This will be `NULL` if no string was present.
    */
-  char *nullable_string;
+  char *nullableString;
 
   /**
    * @brief The entity pair value, as an integer.
@@ -288,12 +288,12 @@ typedef struct CmBspBrush {
   /**
    * @brief The brush sides.
    */
-  CmBspBrushSide *brush_sides;
+  CmBspBrushSide *brushSides;
 
   /**
    * @brief The number of brush sides.
    */
-  int32_t num_brush_sides;
+  int32_t numBrushSides;
 
   /**
    * @brief The brush bounds.
@@ -317,12 +317,12 @@ typedef struct {
   /**
    * @brief The index of the first leaf-brush reference.
    */
-  int32_t first_leaf_brush;
+  int32_t firstLeafBrush;
 
   /**
    * @brief The number of leaf-brush references for this leaf.
    */
-  int32_t num_leaf_brushes;
+  int32_t numLeafBrushes;
 } CmBspLeaf;
 
 /**
@@ -393,12 +393,12 @@ typedef struct {
   /**
    * @brief File modification time, for compatibility checking.
    */
-  int64_t mod_time;
+  int64_t modTime;
 
   /**
    * @brief Number of planes.
    */
-  int32_t num_planes;
+  int32_t numPlanes;
 
   /**
    * @brief Plane array.
@@ -408,7 +408,7 @@ typedef struct {
   /**
    * @brief Number of BSP nodes.
    */
-  int32_t num_nodes;
+  int32_t numNodes;
 
   /**
    * @brief Node array.
@@ -418,7 +418,7 @@ typedef struct {
   /**
    * @brief Number of BSP leafs.
    */
-  int32_t num_leafs;
+  int32_t numLeafs;
 
   /**
    * @brief Leaf array.
@@ -428,7 +428,7 @@ typedef struct {
   /**
    * @brief Number of brushes.
    */
-  int32_t num_brushes;
+  int32_t numBrushes;
 
   /**
    * @brief Brush array.
@@ -438,27 +438,27 @@ typedef struct {
   /**
    * @brief Number of brush sides.
    */
-  int32_t num_brush_sides;
+  int32_t numBrushSides;
 
   /**
    * @brief Brush side array.
    */
-  CmBspBrushSide *brush_sides;
+  CmBspBrushSide *brushSides;
 
   /**
    * @brief Number of leaf-brush references.
    */
-  int32_t num_leaf_brushes;
+  int32_t numLeafBrushes;
 
   /**
    * @brief Leaf-brush reference array.
    */
-  int32_t *leaf_brushes;
+  int32_t *leafBrushes;
 
   /**
    * @brief Number of inline models.
    */
-  int32_t num_models;
+  int32_t numModels;
 
   /**
    * @brief Inline model array.
@@ -468,7 +468,7 @@ typedef struct {
   /**
    * @brief Number of parsed entities.
    */
-  int32_t num_entities;
+  int32_t numEntities;
 
   /**
    * @brief Parsed entity array.
@@ -478,7 +478,7 @@ typedef struct {
   /**
    * @brief Number of materials referenced by brush sides.
    */
-  int32_t num_materials;
+  int32_t numMaterials;
 
   /**
    * @brief Material pointer array.
@@ -488,17 +488,17 @@ typedef struct {
   /**
    * @brief Voxel grid dimensions.
    */
-  Vec3i voxel_size;
+  Vec3i voxelSize;
 
   /**
    * @brief Voxel grid world bounds.
    */
-  Box3 voxel_bounds;
+  Box3 voxelBounds;
 
   /**
    * @brief Number of voxels (voxel_size.x * y * z).
    */
-  int32_t num_voxels;
+  int32_t numVoxels;
 
   /**
    * @brief Decoded voxel array, indexed by (z*size.y + y)*size.x + x.
@@ -517,12 +517,12 @@ typedef struct {
   /**
    * @brief True if the trace started and ended within the same solid.
    */
-  bool all_solid;
+  bool allSolid;
 
   /**
    * @brief True if the trace started within a solid but exited it.
    */
-  bool start_solid;
+  bool startSolid;
 
   /**
    * @brief The fraction of the desired distance traveled (0.0 - 1.0).
@@ -542,7 +542,7 @@ typedef struct {
   /**
    * @brief The impacted brush side; prefer derived fields.
    */
-  const struct CmBspBrushSide *brush_side;
+  const struct CmBspBrushSide *brushSide;
 
   /**
    * @brief The impacted plane, transformed by the matrix provided to `Cm_BoxTrace`.

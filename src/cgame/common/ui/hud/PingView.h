@@ -53,7 +53,7 @@ struct PingView {
   /**
    * @brief The dropped packet count last seen, and when it last grew.
    */
-  uint32_t dropped, dropped_time;
+  uint32_t dropped, droppedTime;
 };
 
 struct PingViewInterface {

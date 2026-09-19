@@ -25,7 +25,7 @@
 
 typedef struct Portal {
   Plane plane;
-  Node *on_node; // NULL = outside box
+  Node *onNode; // NULL = outside box
   Node *nodes[2]; // [0] = front side of plane
   struct Portal *next[2];
   CmWinding *winding;

@@ -45,7 +45,7 @@ typedef struct {
 
 const Vector *G_Ai_Node_GetLinks(const AiNodeId a);
 Vec3 G_Ai_Node_GetPosition(const AiNodeId node);
-AiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float max_distance, const bool only_visible, const bool prefer_level);
+AiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 bool G_Ai_Node_CanPathTo(const Vec3 position);
 bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const AiNodeId a, const AiNodeId b, const float cost);

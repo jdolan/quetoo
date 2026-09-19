@@ -88,19 +88,19 @@ static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
  */
 static void Cg_LoadClientSkin(ClientGameClientInfo *ci, char *line) {
 
-  char *skin_name, *face_name = line;
+  char *skinName, *faceName = line;
 
-  if ((skin_name = q_strchr(face_name, ','))) {
-    *skin_name++ = '\0';
+  if ((skinName = q_strchr(faceName, ','))) {
+    *skinName++ = '\0';
 
-    while (isspace(*skin_name)) {
-      skin_name++;
+    while (isspace(*skinName)) {
+      skinName++;
     }
   } else {
     return;
   }
 
-  if (!*skin_name) {
+  if (!*skinName) {
     return;
   }
 
@@ -108,9 +108,9 @@ static void Cg_LoadClientSkin(ClientGameClientInfo *ci, char *line) {
     const RenderModel *model;
     RenderMaterial **skins;
   } meshes[] = {
-    { ci->head, ci->head_skins },
-    { ci->torso, ci->torso_skins },
-    { ci->legs, ci->legs_skins },
+    { ci->head, ci->headSkins },
+    { ci->torso, ci->torsoSkins },
+    { ci->legs, ci->legsSkins },
   };
 
   for (size_t m = 0; m < 3; m++) {
@@ -119,9 +119,9 @@ static void Cg_LoadClientSkin(ClientGameClientInfo *ci, char *line) {
     }
 
     const RenderMeshFace *face = meshes[m].model->mesh->faces;
-    for (int32_t i = 0; i < meshes[m].model->mesh->num_faces; i++, face++) {
-      if (!q_strcasecmp(face_name, face->name)) {
-        meshes[m].skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
+    for (int32_t i = 0; i < meshes[m].model->mesh->numFaces; i++, face++) {
+      if (!q_strcasecmp(faceName, face->name)) {
+        meshes[m].skins[i] = cgi.LoadMaterial(skinName, ASSET_CONTEXT_PLAYERS);
         return;
       }
     }
@@ -172,9 +172,9 @@ static bool Cg_LoadClientSkins(ClientGameClientInfo *ci, const char *skin) {
     RenderMaterial **skins;
     const char *name;
   } meshes[] = {
-    { ci->head, ci->head_skins, "head" },
-    { ci->torso, ci->torso_skins, "torso" },
-    { ci->legs, ci->legs_skins, "legs" },
+    { ci->head, ci->headSkins, "head" },
+    { ci->torso, ci->torsoSkins, "torso" },
+    { ci->legs, ci->legsSkins, "legs" },
   };
 
   for (size_t m = 0; m < 3; m++) {
@@ -183,7 +183,7 @@ static bool Cg_LoadClientSkins(ClientGameClientInfo *ci, const char *skin) {
     }
 
     const RenderMeshFace *face = meshes[m].model->mesh->faces;
-    for (int32_t f = 0; f < meshes[m].model->mesh->num_faces; f++, face++) {
+    for (int32_t f = 0; f < meshes[m].model->mesh->numFaces; f++, face++) {
       if (!meshes[m].skins[f]) {
         Cg_Debug("%s: %s %s has no skin, face will not be drawn\n", path, meshes[m].name, face->name);
       }
@@ -206,15 +206,15 @@ static bool Cg_ValidateSkin(ClientGameClientInfo *ci) {
     const RenderModel *model;
     RenderMaterial *const *skins;
   } meshes[] = {
-    { ci->head, ci->head_skins },
-    { ci->torso, ci->torso_skins },
-    { ci->legs, ci->legs_skins },
+    { ci->head, ci->headSkins },
+    { ci->torso, ci->torsoSkins },
+    { ci->legs, ci->legsSkins },
   };
 
   // a part with no faces at all (e.g. a head merged into the torso mesh,
   // leaving head.md3 as an empty placeholder) has nothing to validate here
   for (size_t m = 0; m < lengthof(meshes); m++) {
-    if (meshes[m].model->mesh->num_faces && !meshes[m].skins[0]) {
+    if (meshes[m].model->mesh->numFaces && !meshes[m].skins[0]) {
       return false;
     }
   }
@@ -292,20 +292,20 @@ void Cg_LoadClient(ClientGameClientInfo *ci, const char *s) {
   }
 
   // split info into tokens
-  char info_string[sizeof(ci->info)];
+  char infoString[sizeof(ci->info)];
   char *info[MAX_CLIENT_INFO_ENTRIES];
-  q_strlcpy(info_string, s, sizeof(info_string));
+  q_strlcpy(infoString, s, sizeof(infoString));
 
-  const size_t entries = Cg_SplitClientInfo(info_string, info, lengthof(info));
+  const size_t entries = Cg_SplitClientInfo(infoString, info, lengthof(info));
 
   if (entries < MIN_CLIENT_INFO_ENTRIES) { // invalid info
     Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
   } else {
 
     // resolve the team
-    const GameTeamId team_id = atoi(info[0]);
-    if (team_id != TEAM_NONE) {
-      ci->team = cg_state.teams + team_id;
+    const GameTeamId teamId = atoi(info[0]);
+    if (teamId != TEAM_NONE) {
+      ci->team = cg_state.teams + teamId;
     } else {
       ci->team = NULL;
     }
@@ -346,8 +346,8 @@ void Cg_LoadClient(ClientGameClientInfo *ci, const char *s) {
       ci->hue = -1;
     }
 
-    ci->standing_floor = PM_BOUNDS.mins.z;
-    ci->standing_ceiling = PM_BOUNDS.maxs.z;
+    ci->standingFloor = PM_BOUNDS.mins.z;
+    ci->standingCeiling = PM_BOUNDS.maxs.z;
 
     if (entries > MIN_CLIENT_INFO_ENTRIES) {
       float floor, ceiling;
@@ -355,8 +355,8 @@ void Cg_LoadClient(ClientGameClientInfo *ci, const char *s) {
       if (sscanf(info[7], "%f/%f%n", &floor, &ceiling, &n) == 2 && !info[7][n] &&
           floor >= -MAX_CLIENT_INFO_EXTENT && ceiling <= MAX_CLIENT_INFO_EXTENT &&
           ceiling - floor >= MIN_CLIENT_INFO_HEIGHT) {
-        ci->standing_floor = floor;
-        ci->standing_ceiling = ceiling;
+        ci->standingFloor = floor;
+        ci->standingCeiling = ceiling;
       } else {
         Cg_Warn("Invalid standing box \"%s\" for %s\n", info[7], ci->name);
       }
@@ -403,10 +403,10 @@ void Cg_LoadClients(void) {
     }
   }
 
-  memset(&cg_state.force_skin, 0, sizeof(cg_state.force_skin));
+  memset(&cg_state.forceSkin, 0, sizeof(cg_state.forceSkin));
 
   if (*cg_force_skin->string) {
-    Cg_LoadClient(&cg_state.force_skin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_force_skin->string));
+    Cg_LoadClient(&cg_state.forceSkin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_force_skin->string));
   }
 }
 
@@ -515,13 +515,13 @@ void Cg_ClientRagdoll(ClientEntity *ent) {
 
   const RenderMeshAnimation *death = &ci->torso->mesh->animations[ent->animation1.animation];
 
-  const uint32_t frame_duration = 1000 / death->hz;
-  const uint32_t anim_duration = death->num_frames * frame_duration;
-  const uint32_t ragdoll_frames = 300 / frame_duration;
-  const uint32_t ragdoll_duration = ragdoll_frames * frame_duration;
+  const uint32_t frameDuration = 1000 / death->hz;
+  const uint32_t animDuration = death->numFrames * frameDuration;
+  const uint32_t ragdollFrames = 300 / frameDuration;
+  const uint32_t ragdollDuration = ragdollFrames * frameDuration;
 
-  ent->animation1.time = cgi.client->unclamped_time - anim_duration + ragdoll_duration;
-  ent->animation2.time = cgi.client->unclamped_time - anim_duration + ragdoll_duration;
+  ent->animation1.time = cgi.client->unclampedTime - animDuration + ragdollDuration;
+  ent->animation2.time = cgi.client->unclampedTime - animDuration + ragdollDuration;
 }
 
 /**
@@ -532,62 +532,62 @@ void Cg_ClientRagdoll(ClientEntity *ent) {
 static void Cg_AnimateClientEntity_(const RenderModel *model, ClientEntityAnimation *a) {
   const RenderMeshModel *mesh = model->mesh;
 
-  if ((int32_t) a->animation > mesh->num_animations) {
+  if ((int32_t) a->animation > mesh->numAnimations) {
     Cg_Warn("Invalid animation: %s: %d\n", model->media.name, a->animation);
     return;
   }
 
   const RenderMeshAnimation *anim = &mesh->animations[a->animation];
 
-  if (!anim->num_frames || !anim->hz) {
+  if (!anim->numFrames || !anim->hz) {
     Cg_Warn("Bad animation sequence: %s: %d\n", model->media.name, a->animation);
     return;
   }
 
-  const uint32_t elapsed_time = cgi.client->unclamped_time - a->time;
-  const uint32_t frame_duration = 1000 / anim->hz;
-  const uint32_t anim_duration = anim->num_frames * frame_duration;
+  const uint32_t elapsedTime = cgi.client->unclampedTime - a->time;
+  const uint32_t frameDuration = 1000 / anim->hz;
+  const uint32_t animDuration = anim->numFrames * frameDuration;
 
-  int32_t frame = elapsed_time / frame_duration;
+  int32_t frame = elapsedTime / frameDuration;
 
-  if (elapsed_time >= anim_duration) { // to loop, or not to loop
+  if (elapsedTime >= animDuration) { // to loop, or not to loop
 
-    if (!anim->looped_frames) {
+    if (!anim->loopedFrames) {
       const EntityAnimation next = Cg_NextAnimation(a);
       if (next == a->animation) { // no change, just stay put
-        a->old_frame = a->frame;
+        a->oldFrame = a->frame;
         a->lerp = a->fraction = 1.0;
         return;
       }
 
       a->animation = next; // or move into the next animation
-      a->time = cgi.client->unclamped_time;
+      a->time = cgi.client->unclampedTime;
 
       Cg_AnimateClientEntity_(model, a);
       return;
     }
 
-    frame = (frame - anim->num_frames) % anim->looped_frames;
+    frame = (frame - anim->numFrames) % anim->loopedFrames;
   }
 
   if (a->reverse) {
-    frame = (anim->num_frames - 1) - frame;
+    frame = (anim->numFrames - 1) - frame;
   }
 
-  frame = anim->first_frame + frame;
+  frame = anim->firstFrame + frame;
 
   if (frame != a->frame) {
     if (a->frame == -1) {
-      a->old_frame = frame;
+      a->oldFrame = frame;
       a->frame = frame;
     } else {
-      a->old_frame = a->frame;
+      a->oldFrame = a->frame;
       a->frame = frame;
     }
   }
 
-  a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
-  a->fraction = Clampf01(elapsed_time / (float) anim_duration);
+  a->lerp = (elapsedTime % frameDuration) / (float) frameDuration;
+  a->fraction = Clampf01(elapsedTime / (float) animDuration);
 }
 
 /**
@@ -599,16 +599,16 @@ static void Cg_AnimateClientEntity(ClientEntity *ent, RenderEntity *torso, Rende
   Cg_AnimateClientEntity_(torso->model, &ent->animation1);
 
   torso->frame = ent->animation1.frame;
-  torso->old_frame = ent->animation1.old_frame;
+  torso->oldFrame = ent->animation1.oldFrame;
   torso->lerp = ent->animation1.lerp;
-  torso->back_lerp = 1.0 - ent->animation1.lerp;
+  torso->backLerp = 1.0 - ent->animation1.lerp;
 
   Cg_AnimateClientEntity_(torso->model, &ent->animation2);
 
   legs->frame = ent->animation2.frame;
-  legs->old_frame = ent->animation2.old_frame;
+  legs->oldFrame = ent->animation2.oldFrame;
   legs->lerp = ent->animation2.lerp;
-  legs->back_lerp = 1.0 - ent->animation2.lerp;
+  legs->backLerp = 1.0 - ent->animation2.lerp;
 }
 
 /**
@@ -679,60 +679,60 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
 static void Cg_RotateClientLegs(const ClientGameClientInfo *ci, ClientEntity *ent, RenderEntity *legs) {
 
   if (ci->legs->mesh->flags & MESH_MODEL_FIXED_LEGS) {
-    ent->legs_yaw = ent->legs_current_yaw = ent->angles.y;
+    ent->legsYaw = ent->legsCurrentYaw = ent->angles.y;
     return;
   }
 
   Vec3 right;
   Vec3_Vectors(legs->angles, NULL, &right, NULL);
 
-  Vec3 move_dir;
-  move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
-  move_dir.z = 0.f; // don't care about z, just x/y
+  Vec3 moveDir;
+  moveDir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
+  moveDir.z = 0.f; // don't care about z, just x/y
 
   if (ent->animation2.animation < ANIM_LEGS_SWIM) {
-    if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
-      move_dir = Vec3_Normalize(move_dir);
-      float legs_yaw = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+    if (Vec3_Length(moveDir) > CLIENT_LEGS_SPEED_EPSILON) {
+      moveDir = Vec3_Normalize(moveDir);
+      float legsYaw = Vec3_Dot(moveDir, right) * CLIENT_LEGS_YAW_MAX;
 
       if (ent->animation2.animation == ANIM_LEGS_BACK || ent->animation2.reverse) {
-        legs_yaw = -legs_yaw;
+        legsYaw = -legsYaw;
       }
 
-      ent->legs_yaw = ent->angles.y + legs_yaw;
+      ent->legsYaw = ent->angles.y + legsYaw;
     } else {
-      ent->legs_yaw = ent->angles.y;
+      ent->legsYaw = ent->angles.y;
     }
   } else {
 
-    const float angle_diff = SmallestAngleBetween(ent->legs_yaw, ent->angles.y);
+    const float angleDiff = SmallestAngleBetween(ent->legsYaw, ent->angles.y);
 
-    if (ent->animation2.animation == ANIM_LEGS_TURN || fabsf(angle_diff) > CLIENT_LEGS_YAW_MAX) {
-      ent->legs_yaw = ent->angles.y;
+    if (ent->animation2.animation == ANIM_LEGS_TURN || fabsf(angleDiff) > CLIENT_LEGS_YAW_MAX) {
+      ent->legsYaw = ent->angles.y;
 
       // change animation as well
       if (ent->animation2.animation == ANIM_LEGS_IDLE) {
-        ent->animation2.time = cgi.client->unclamped_time;
-        ent->animation2.frame = ent->animation2.old_frame = -1;
+        ent->animation2.time = cgi.client->unclampedTime;
+        ent->animation2.frame = ent->animation2.oldFrame = -1;
         ent->animation2.lerp = ent->animation2.fraction = 0;
       }
     }
   }
 
-  ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
+  ent->legsCurrentYaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frameMsec), ent->legsCurrentYaw, ent->legsYaw);
 
-  const float angle_delta = AngleMod(ent->legs_current_yaw - ent->legs_yaw + 180.0f) - 180.0f;
+  const float angleDelta = AngleMod(ent->legsCurrentYaw - ent->legsYaw + 180.0f) - 180.0f;
 
-  ent->legs_current_yaw = AngleMod(ent->legs_yaw + clamp(angle_delta, -CLIENT_LEGS_CLAMP, CLIENT_LEGS_CLAMP));
+  ent->legsCurrentYaw = AngleMod(ent->legsYaw + clamp(angleDelta, -CLIENT_LEGS_CLAMP, CLIENT_LEGS_CLAMP));
 
-  if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
+  if (fabsf(SmallestAngleBetween(ent->legsYaw, ent->legsCurrentYaw)) > 1) {
     if (ent->animation2.animation == ANIM_LEGS_IDLE) {
-      ent->animation2.time = cgi.client->unclamped_time;
+      ent->animation2.time = cgi.client->unclampedTime;
       ent->animation2.animation = ANIM_LEGS_TURN;
     }
   } else {
     if (ent->animation2.animation == ANIM_LEGS_TURN) {
-      ent->animation2.time = cgi.client->unclamped_time;
+      ent->animation2.time = cgi.client->unclampedTime;
       ent->animation2.animation = ANIM_LEGS_IDLE;
     }
   }
@@ -774,7 +774,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
 
   // deal with our own player model
   if (ent == cgi.client->entity) {
-    if (!cgi.client->third_person) {
+    if (!cgi.client->thirdPerson) {
       e->effects |= EF_SELF | EF_NO_DRAW;
 
       // keep our shadow underneath us using the predicted origin
@@ -782,11 +782,11 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       e->origin.y = cgi.view->origin.y;
     } else {
       // in third-person, treat ourselves exactly like any other client
-      e->origin.z -= ent->step_offset;
+      e->origin.z -= ent->stepOffset;
       Cg_BreathTrail(ent);
     }
   } else {
-    e->origin.z -= ent->step_offset;
+    e->origin.z -= ent->stepOffset;
     Cg_BreathTrail(ent);
   }
 
@@ -815,21 +815,21 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
   ClientGameClientInfo *skin = ci;
 
   // force the preferred skin on all _other_ players, not on ourselves
-  if (cg_state.force_skin.torso && ent != cgi.client->entity) {
-    skin = &cg_state.force_skin;
+  if (cg_state.forceSkin.torso && ent != cgi.client->entity) {
+    skin = &cg_state.forceSkin;
   }
 
   legs.model = skin->legs;
-  legs.angles.y = ent->legs_current_yaw;
+  legs.angles.y = ent->legsCurrentYaw;
   legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
   legs.bounds = legs.model->bounds;
-  memcpy(legs.skins, skin->legs_skins, sizeof(legs.skins));
-  legs.has_skins = true;
+  memcpy(legs.skins, skin->legsSkins, sizeof(legs.skins));
+  legs.hasSkins = true;
 
   // the model is built for PM_BOUNDS; a client whose standing box is another
   // size has the whole rig scaled to its height and seated on its floor
-  legs.scale = e->scale * (ci->standing_ceiling - ci->standing_floor) / Box3_Size(PM_BOUNDS).z;
-  legs.origin.z += ci->standing_floor - legs.scale * PM_BOUNDS.mins.z;
+  legs.scale = e->scale * (ci->standingCeiling - ci->standingFloor) / Box3_Size(PM_BOUNDS).z;
+  legs.origin.z += ci->standingFloor - legs.scale * PM_BOUNDS.mins.z;
 
   torso.model = skin->torso;
   torso.origin = Vec3_Zero();
@@ -838,40 +838,40 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
     torso.angles.x = 0.0; // fixedtorso: never pitch independently of the legs
   }
   torso.bounds = torso.model->bounds;
-  memcpy(torso.skins, skin->torso_skins, sizeof(torso.skins));
-  torso.has_skins = true;
+  memcpy(torso.skins, skin->torsoSkins, sizeof(torso.skins));
+  torso.hasSkins = true;
 
   head.model = skin->head;
   head.origin = Vec3_Zero();
   head.angles.y = 0.0;
   head.bounds = head.model->bounds;
-  memcpy(head.skins, skin->head_skins, sizeof(head.skins));
-  head.has_skins = true;
+  memcpy(head.skins, skin->headSkins, sizeof(head.skins));
+  head.hasSkins = true;
 
   Cg_AnimateClientEntity(ent, &torso, &legs);
 
-  RenderEntity *r_legs = cgi.AddEntity(cgi.view, &legs);
+  RenderEntity *rLegs = cgi.AddEntity(cgi.view, &legs);
 
-  if (!r_legs) {
+  if (!rLegs) {
     return; // if the legs were culled, we're done
   }
 
-  torso.parent = r_legs;
+  torso.parent = rLegs;
   torso.tag = "tag_torso";
 
-  RenderEntity *r_torso = cgi.AddEntity(cgi.view, &torso);
-  assert(r_torso);
+  RenderEntity *rTorso = cgi.AddEntity(cgi.view, &torso);
+  assert(rTorso);
 
-  head.parent = r_torso;
+  head.parent = rTorso;
   head.tag = "tag_head";
 
-  RenderEntity *r_head = cgi.AddEntity(cgi.view, &head);
-  assert(r_head);
+  RenderEntity *rHead = cgi.AddEntity(cgi.view, &head);
+  assert(rHead);
 
-  RenderEntity *r_weapon = NULL;
+  RenderEntity *rWeapon = NULL;
   if (s->model2) {
-    r_weapon = cgi.AddEntity(cgi.view, &(const RenderEntity) {
-      .parent = r_torso,
+    rWeapon = cgi.AddEntity(cgi.view, &(const RenderEntity) {
+      .parent = rTorso,
       .tag = "tag_weapon",
       .scale = e->scale,
       .model = cgi.client->models[s->model2],
@@ -880,22 +880,22 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .shell = e->shell,
     });
 
-    assert(r_weapon);
+    assert(rWeapon);
 
     // cache the muzzle position post-animation for muzzle flash and beam alignment
 
-    const Vec3 cfg_muzzle = r_weapon->model->mesh->config.link.muzzle;
-    if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
-      ci->weapon_muzzle = Mat4_Transform(r_weapon->matrix, cfg_muzzle);
+    const Vec3 cfgMuzzle = rWeapon->model->mesh->config.link.muzzle;
+    if (!Vec3_Equal(cfgMuzzle, Vec3_Zero())) {
+      ci->weaponMuzzle = Mat4_Transform(rWeapon->matrix, cfgMuzzle);
     } else {
-      ci->weapon_muzzle = r_weapon->origin;
+      ci->weaponMuzzle = rWeapon->origin;
     }
   }
 
-  RenderEntity *r_flag = NULL;
+  RenderEntity *rFlag = NULL;
   if (s->model3) {
-    r_flag = cgi.AddEntity(cgi.view, &(const RenderEntity) {
-      .parent = r_torso,
+    rFlag = cgi.AddEntity(cgi.view, &(const RenderEntity) {
+      .parent = rTorso,
       .tag = "tag_head",
       .scale = e->scale,
       .model = cgi.client->models[s->model3],
@@ -904,7 +904,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .shell = e->shell,
     });
 
-    assert(r_flag);
+    assert(rFlag);
   }
 
   if (s->model4) {

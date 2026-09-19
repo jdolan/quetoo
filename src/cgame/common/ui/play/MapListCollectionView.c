@@ -121,12 +121,12 @@ static void enumerateMaps(const char *path, void *data) {
       q_strlcpy(info->message, path, sizeof(info->message));
       q_strlcpy(info->games, DEFAULT_GAMES, sizeof(info->games));
 
-      const int32_t size = header.lumps[BSP_LUMP_ENTITIES].file_len;
+      const int32_t size = header.lumps[BSP_LUMP_ENTITIES].fileLen;
 
       char *entities = malloc(size + 1);
       entities[size] = '\0';
 
-      cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
+      cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].fileOfs);
       cgi.ReadFile(file, entities, 1, size);
 
       Parser parser = Parse_Init(entities, PARSER_NO_COMMENTS);

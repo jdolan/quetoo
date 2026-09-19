@@ -32,7 +32,7 @@ const char *Sys_UserDir(void);
 bool Sys_HasLibrary(const char *game, const char *name);
 const char *Sys_LibraryDir(const char *game, const char *name);
 void *Sys_OpenLibrary(const char *game, const char *name);
-void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params);
+void *Sys_LoadLibrary(void *handle, const char *entryPoint, void *params);
 void *Sys_CloseLibrary(void *handle);
 
 #if defined(__linux__)
@@ -40,7 +40,7 @@ void Sys_InstallDesktopEntry(void);
 void Sys_InstallLocalBin(void);
 #endif
 
-char *Sys_Backtrace(uint32_t start, uint32_t max_count);
+char *Sys_Backtrace(uint32_t start, uint32_t maxCount);
 void Sys_Raise(const char *msg);
 void Sys_Signal(int32_t s);
 void Sys_InitCrashSignals(void);

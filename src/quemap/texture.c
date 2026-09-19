@@ -48,19 +48,19 @@ static void TextureAxisForPlane(const Plane *plane, Vec3 *xv, Vec3 *yv) {
     { {  0,  0, -1 } }, // north wall
   };
 
-  int32_t best_axis = 0;
+  int32_t bestAxis = 0;
   float best = 0.0;
 
   for (int32_t i = 0; i < 6; i++) {
     const float dot = Vec3_Dot(plane->normal, base_axis[i * 3]);
     if (dot > best) {
       best = dot;
-      best_axis = i;
+      bestAxis = i;
     }
   }
 
-  *xv = base_axis[best_axis * 3 + 1];
-  *yv = base_axis[best_axis * 3 + 2];
+  *xv = base_axis[bestAxis * 3 + 1];
+  *yv = base_axis[bestAxis * 3 + 2];
 }
 
 /**

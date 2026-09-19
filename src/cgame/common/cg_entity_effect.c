@@ -24,15 +24,15 @@
 /**
  * @brief Returns an HSV color from a hue pointer, substituting a default hue if the pointer is `NULL` or negative.
  */
-Vec3 Cg_EffectColor(float *hue, const float default_hue) {
+Vec3 Cg_EffectColor(float *hue, const float defaultHue) {
 
   if (hue) {
     if (*hue < 0.f) {
-      *hue = default_hue;
+      *hue = defaultHue;
     }
     return ColorHSV(*hue, 1.f, 1.f).vec3;
   } else {
-    return ColorHSV(default_hue, 1.f, 1.f).vec3;
+    return ColorHSV(defaultHue, 1.f, 1.f).vec3;
   }
 }
 
@@ -41,21 +41,21 @@ Vec3 Cg_EffectColor(float *hue, const float default_hue) {
  * @param client A client number, or any value `>= MAX_CLIENTS` for effects owned by the world,
  * which resolve to `default_hue`.
  */
-Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
+Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultHue) {
 
   assert(client >= 0);
 
-  float client_hue = -1.f;
+  float clientHue = -1.f;
 
   if (client < MAX_CLIENTS) {
     const ClientGameClientInfo *ci = &cg_state.clients[client];
-    client_hue = ci->team ? ci->team->hue : ci->hue;
+    clientHue = ci->team ? ci->team->hue : ci->hue;
   }
 
-  const Vec3 color = Cg_EffectColor(&client_hue, default_hue);
+  const Vec3 color = Cg_EffectColor(&clientHue, defaultHue);
 
   if (hue) {
-    *hue = client_hue;
+    *hue = clientHue;
   }
 
   return color;
@@ -66,7 +66,7 @@ Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float default_
  */
 static void Cg_InactiveEffect(ClientEntity *ent, const Vec3 org) {
 
-  if (ent == cgi.client->entity && !cgi.client->third_person) {
+  if (ent == cgi.client->entity && !cgi.client->thirdPerson) {
     return;
   }
 
@@ -87,13 +87,13 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   e->effects = ent->current.effects;
 
   if (e->effects & EF_ROTATE) {
-    const float rotate = cgi.client->unclamped_time;
+    const float rotate = cgi.client->unclampedTime;
     e->angles.y = cg_entity_rotate->value * rotate / M_PI;
   }
 
   if (e->effects & EF_BOB) {
     e->termination = e->origin;
-    const float bob = sinf(cgi.client->unclamped_time * 0.005f + ent->current.number);
+    const float bob = sinf(cgi.client->unclampedTime * 0.005f + ent->current.number);
     e->origin.z += cg_entity_bob->value * bob;
   }
 
@@ -108,7 +108,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 
   if (e->effects & EF_QUAD) {
-    const float pulse = 4.f + sinf(cgi.client->unclamped_time * 0.006f) * .75f;
+    const float pulse = 4.f + sinf(cgi.client->unclampedTime * 0.006f) * .75f;
     const ClientGameLight l = {
       .origin = e->origin,
       .radius = 350.f,
@@ -124,7 +124,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 
   if (e->effects & EF_INVULNERABILITY) {
-    const float pulse = 4.f + sinf(cgi.client->unclamped_time * 0.006f) * .75f;
+    const float pulse = 4.f + sinf(cgi.client->unclampedTime * 0.006f) * .75f;
     const ClientGameLight l = {
       .origin = e->origin,
       .radius = 350.f,
@@ -145,7 +145,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
     for (GameTeamId team = TEAM_RED; team < MAX_TEAMS; team++) {
       if (e->effects & (EF_CTF_RED << team)) {
         const Vec3 color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
-        const float pulse = 2.5f + sinf(cgi.client->unclamped_time * 0.005f) * .5f;
+        const float pulse = 2.5f + sinf(cgi.client->unclampedTime * 0.005f) * .5f;
 
         const ClientGameLight l = {
           .origin = e->origin,
@@ -164,9 +164,9 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 
 #endif
-  const Vec3 shell_rgb = MakeVec3(e->shell.x, e->shell.y, e->shell.z);
-  if (Vec3_Length(shell_rgb) > 0.f) {
-    e->shell = Vec3_ToVec4(Vec3_Normalize(shell_rgb), e->shell.w);
+  const Vec3 shellRgb = MakeVec3(e->shell.x, e->shell.y, e->shell.z);
+  if (Vec3_Length(shellRgb) > 0.f) {
+    e->shell = Vec3_ToVec4(Vec3_Normalize(shellRgb), e->shell.w);
     e->effects |= EF_SHELL;
   }
 
@@ -185,14 +185,14 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   if (e->effects & EF_DESPAWN) {
 
     if (!(ent->prev.effects & EF_DESPAWN)) {
-      ent->timestamp = cgi.client->unclamped_time;
+      ent->timestamp = cgi.client->unclampedTime;
     }
 
     e->effects |= (EF_BLEND | EF_NO_SHADOW);
 
-    const float fade = 1.f - (cgi.client->unclamped_time - ent->timestamp) / 3000.f;
-    const float clamped_fade = Clampf01(fade);
-    e->color = Vec4_Scale(e->color, clamped_fade);
+    const float fade = 1.f - (cgi.client->unclampedTime - ent->timestamp) / 3000.f;
+    const float clampedFade = Clampf01(fade);
+    e->color = Vec4_Scale(e->color, clampedFade);
   }
 
   if (e->effects & EF_LIGHT) {
@@ -206,7 +206,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 
   if (e->effects & EF_LIGHT_PULSE) {
-    const float pulse = .25f + .75f * (1.f + sinf(cgi.client->unclamped_time * .003f)) * .5f;
+    const float pulse = .25f + .75f * (1.f + sinf(cgi.client->unclampedTime * .003f)) * .5f;
     Cg_AddLight(&(const ClientGameLight) {
       .origin = Vec3_Fmaf(e->origin, 32.f, Vec3_Up()),
       .radius = ent->current.termination.x * pulse,

@@ -184,24 +184,24 @@ typedef struct {
   /**
    * @brief The enabled debug categories.
    */
-  DebugFlags debug_mask;
+  DebugFlags debugMask;
 
   /**
    * @brief Used by `Com_Error` to detect a cyclical error condition.
    * @remarks If your Error function doesn't exit, make sure to set this to false.
    */
-  bool recursive_error;
+  bool recursiveError;
 
   /**
    * @brief Used by the common printing functions to spit out a file that we can
    * use to diagnose startup errors.
    */
-  FILE *log_file;
+  FILE *logFile;
 
   /**
    * @brief Optional log file name override within the selected game dir.
    */
-  const char *log_file_name;
+  const char *logFileName;
 
   void (*Debug)(const DebugFlags debug, const char *msg);
   void (*Error)(Err error, const char *msg) __attribute__((noreturn));

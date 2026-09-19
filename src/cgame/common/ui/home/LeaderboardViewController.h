@@ -42,7 +42,7 @@ typedef struct {
   int32_t frags;
   int32_t deaths;
   int32_t captures;
-  int32_t time_played;
+  int32_t timePlayed;
 } LeaderboardEntry;
 
 /**
@@ -50,7 +50,7 @@ typedef struct {
  */
 typedef struct {
   LeaderboardEntry entries[LEADERBOARD_MAX_ENTRIES];
-  size_t num_entries;
+  size_t numEntries;
 } LeaderboardResponse;
 
 typedef struct LeaderboardViewController LeaderboardViewController;

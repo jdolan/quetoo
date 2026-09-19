@@ -89,27 +89,27 @@ typedef struct {
 
   uint32_t dropped; // between last packet and previous
 
-  uint32_t last_received; // for timeouts
-  uint32_t last_sent; // for retransmits
+  uint32_t lastReceived; // for timeouts
+  uint32_t lastSent; // for retransmits
 
-  NetAddr remote_address;
+  NetAddr remoteAddress;
 
   uint8_t qport; // to differentiate multiple clients behind NAT
 
   // sequencing variables
-  uint32_t incoming_sequence;
-  uint32_t incoming_acknowledged;
-  uint32_t outgoing_sequence;
+  uint32_t incomingSequence;
+  uint32_t incomingAcknowledged;
+  uint32_t outgoingSequence;
 
-  uint32_t reliable_sequence; // single bit
-  uint32_t reliable_acknowledged; // single bit
-  uint32_t reliable_incoming; // single bit
-  uint32_t reliable_outgoing; // outgoing sequence number of last reliable
+  uint32_t reliableSequence; // single bit
+  uint32_t reliableAcknowledged; // single bit
+  uint32_t reliableIncoming; // single bit
+  uint32_t reliableOutgoing; // outgoing sequence number of last reliable
 
   MemBuf message; // writing buffer to send to server
-  byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
+  byte messageBuffer[MAX_MSG_SIZE - 10]; // leave space for header
 
   // message is copied to this buffer when it is first transfered
-  size_t reliable_size;
-  byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
+  size_t reliableSize;
+  byte reliableBuffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
 } NetChan;

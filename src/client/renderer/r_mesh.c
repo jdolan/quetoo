@@ -46,15 +46,15 @@ void R_ApplyMeshConfig(RenderEntity *e) {
  */
 static const RenderMeshTag *R_MeshTag(const RenderModel *mod, const char *name, const int32_t frame) {
 
-  if (frame >= mod->mesh->num_frames) {
+  if (frame >= mod->mesh->numFrames) {
     Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
     return NULL;
   }
 
   const RenderMeshModel *model = mod->mesh;
-  const RenderMeshTag *tag = &model->tags[frame * model->num_tags];
+  const RenderMeshTag *tag = &model->tags[frame * model->numTags];
 
-  for (int32_t i = 0; i < model->num_tags; i++, tag++) {
+  for (int32_t i = 0; i < model->numTags; i++, tag++) {
     if (!q_strcmp(name, tag->name)) {
       return tag;
     }
@@ -69,7 +69,7 @@ static const RenderMeshTag *R_MeshTag(const RenderModel *mod, const char *name, 
  */
 void R_ApplyMeshTag(RenderEntity *e) {
 
-  const RenderMeshTag *t1 = R_MeshTag(e->parent->model, e->tag, e->parent->old_frame);
+  const RenderMeshTag *t1 = R_MeshTag(e->parent->model, e->tag, e->parent->oldFrame);
   const RenderMeshTag *t2 = R_MeshTag(e->parent->model, e->tag, e->parent->frame);
 
   if (!t1 || !t2) {
@@ -77,13 +77,13 @@ void R_ApplyMeshTag(RenderEntity *e) {
     return;
   }
 
-  Mat4 tag_transform = Mat4_Mix(t2->matrix, t1->matrix, e->parent->back_lerp);
-  tag_transform = Mat4_Concat(tag_transform, e->matrix);
-  e->matrix = Mat4_Concat(e->parent->matrix, tag_transform);
+  Mat4 tagTransform = Mat4_Mix(t2->matrix, t1->matrix, e->parent->backLerp);
+  tagTransform = Mat4_Concat(tagTransform, e->matrix);
+  e->matrix = Mat4_Concat(e->parent->matrix, tagTransform);
   Vec3 forward;
   Mat4_Vectors(e->matrix, &forward, NULL, NULL, &e->origin);
 
   e->angles = Vec3_Euler(forward);
   e->scale = Mat4_ToScale(e->matrix);
-  e->abs_bounds = Mat4_TransformBounds(e->matrix, e->bounds);
+  e->absBounds = Mat4_TransformBounds(e->matrix, e->bounds);
 }

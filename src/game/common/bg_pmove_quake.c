@@ -67,31 +67,31 @@
 
 const PlayerMoveParams pm_quake_params = {
   .gravity = 800,               // sv_gravity
-  .accel_ground = 10.f,         // sv_accelerate
-  .accel_ground_slick = 10.f,   // unused: Quake has no slick surfaces
-  .accel_air = 10.f,            // sv_accelerate again; PM_AirMove passes it to both
-  .accel_water = 10.f,          // sv_wateraccelerate
-  .accel_spectator = 10.f,
-  .accel_ladder = 10.f,         // unused: Quake has no ladders
-  .friction_ground = 4.f,       // sv_friction
-  .friction_ground_slick = 0.f, // unused
-  .friction_air = 0.f,          // Quake applies no friction while airborne
-  .friction_water = 4.f,        // sv_waterfriction
-  .friction_spectator = 6.f,    // sv_friction * 1.5, as SpectatorMove had it
-  .friction_ladder = 0.f,       // unused
-  .speed_ground = 320.f,        // sv_maxspeed
-  .speed_air = 320.f,
-  .speed_water = 320.f,         // the same cap; the water scale is applied below
-  .speed_ladder = 0.f,          // unused
-  .speed_spectator = 500.f,     // sv_spectatormaxspeed
-  .speed_stop = 100.f,          // sv_stopspeed
-  .speed_jump = 270.f,
-  .speed_ducked = 320.f,        // unused: there is no ducking
-  .speed_duck_stand = 320.f,    // unused
-  .speed_water_jump = 310.f,
+  .accelGround = 10.f,         // sv_accelerate
+  .accelGroundSlick = 10.f,   // unused: Quake has no slick surfaces
+  .accelAir = 10.f,            // sv_accelerate again; PM_AirMove passes it to both
+  .accelWater = 10.f,          // sv_wateraccelerate
+  .accelSpectator = 10.f,
+  .accelLadder = 10.f,         // unused: Quake has no ladders
+  .frictionGround = 4.f,       // sv_friction
+  .frictionGroundSlick = 0.f, // unused
+  .frictionAir = 0.f,          // Quake applies no friction while airborne
+  .frictionWater = 4.f,        // sv_waterfriction
+  .frictionSpectator = 6.f,    // sv_friction * 1.5, as SpectatorMove had it
+  .frictionLadder = 0.f,       // unused
+  .speedGround = 320.f,        // sv_maxspeed
+  .speedAir = 320.f,
+  .speedWater = 320.f,         // the same cap; the water scale is applied below
+  .speedLadder = 0.f,          // unused
+  .speedSpectator = 500.f,     // sv_spectatormaxspeed
+  .speedStop = 100.f,          // sv_stopspeed
+  .speedJump = 270.f,
+  .speedDucked = 320.f,        // unused: there is no ducking
+  .speedDuckStand = 320.f,    // unused
+  .speedWaterJump = 310.f,
   .bounds = PM_QUAKE_BOUNDS,
-  .bounds_ducked = PM_QUAKE_BOUNDS, // never ducks, so never consulted
-  .bounds_dead = PM_QUAKE_BOUNDS_DEAD // a corpse is Quetoo's; QuakeWorld had none
+  .boundsDucked = PM_QUAKE_BOUNDS, // never ducks, so never consulted
+  .boundsDead = PM_QUAKE_BOUNDS_DEAD // a corpse is Quetoo's; QuakeWorld had none
 };
 
 #define PM_QUAKE_STEP_SIZE       18.f  // STEPSIZE
@@ -143,27 +143,27 @@ static void Pm_QuakeFlyMove(void) {
   // the loop: each bump re-derives the slide from it rather than from the
   // already-clipped velocity, which is what lets a second plane give back speed
   // the first one took
-  const Vec3 primal_velocity = pm->s.velocity;
-  const Vec3 original_velocity = pm->s.velocity;
+  const Vec3 primalVelocity = pm->s.velocity;
+  const Vec3 originalVelocity = pm->s.velocity;
 
   CmBspPlane planes[PM_QUAKE_CLIP_PLANES];
-  int32_t num_planes = 0;
+  int32_t numPlanes = 0;
 
-  float time_left = pm_locals.time;
+  float timeLeft = pm_locals.time;
 
   for (int32_t bump = 0; bump < PM_QUAKE_BUMPS; bump++) {
 
-    const Vec3 end = Vec3_Fmaf(pm->s.origin, time_left, pm->s.velocity);
+    const Vec3 end = Vec3_Fmaf(pm->s.origin, timeLeft, pm->s.velocity);
     const CmTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
 
-    if (trace.start_solid || trace.all_solid) { // trapped in a solid
+    if (trace.startSolid || trace.allSolid) { // trapped in a solid
       pm->s.velocity = Vec3_Zero();
       return;
     }
 
     if (trace.fraction > 0.f) { // covered some distance
       pm->s.origin = trace.end;
-      num_planes = 0;
+      numPlanes = 0;
     }
 
     if (trace.fraction == 1.f) { // moved the entire distance
@@ -172,34 +172,34 @@ static void Pm_QuakeFlyMove(void) {
 
     Pm_TouchEntity(&trace);
 
-    time_left -= time_left * trace.fraction;
+    timeLeft -= timeLeft * trace.fraction;
 
-    if (num_planes >= PM_QUAKE_CLIP_PLANES) { // this should not happen
+    if (numPlanes >= PM_QUAKE_CLIP_PLANES) { // this should not happen
       pm->s.velocity = Vec3_Zero();
       break;
     }
 
-    planes[num_planes++] = trace.plane;
+    planes[numPlanes++] = trace.plane;
 
     // slide along the first plane that the others do not immediately undo
     int32_t i;
-    for (i = 0; i < num_planes; i++) {
-      pm->s.velocity = Pm_QuakeClipVelocity(original_velocity, planes[i].normal);
+    for (i = 0; i < numPlanes; i++) {
+      pm->s.velocity = Pm_QuakeClipVelocity(originalVelocity, planes[i].normal);
 
       int32_t j;
-      for (j = 0; j < num_planes; j++) {
+      for (j = 0; j < numPlanes; j++) {
         if (j != i && Vec3_Dot(pm->s.velocity, planes[j].normal) < 0.f) {
           break;
         }
       }
 
-      if (j == num_planes) {
+      if (j == numPlanes) {
         break;
       }
     }
 
-    if (i == num_planes) { // no such plane, so go along the crease
-      if (num_planes != 2) {
+    if (i == numPlanes) { // no such plane, so go along the crease
+      if (numPlanes != 2) {
         pm->s.velocity = Vec3_Zero();
         break;
       }
@@ -209,14 +209,14 @@ static void Pm_QuakeFlyMove(void) {
     }
 
     // stop dead rather than oscillate in a sloping corner
-    if (Vec3_Dot(pm->s.velocity, primal_velocity) <= 0.f) {
+    if (Vec3_Dot(pm->s.velocity, primalVelocity) <= 0.f) {
       pm->s.velocity = Vec3_Zero();
       break;
     }
   }
 
   if (pm->s.flags & PMF_TIME_WATER_JUMP) {
-    pm->s.velocity = primal_velocity;
+    pm->s.velocity = primalVelocity;
   }
 }
 
@@ -244,20 +244,20 @@ static void Pm_QuakeGroundMove(void) {
   }
 
   const Vec3 original = pm->s.origin;
-  const Vec3 original_velocity = pm->s.velocity;
+  const Vec3 originalVelocity = pm->s.velocity;
 
   Pm_QuakeFlyMove();
 
   const Vec3 down = pm->s.origin;
-  const Vec3 down_velocity = pm->s.velocity;
+  const Vec3 downVelocity = pm->s.velocity;
 
   pm->s.origin = original;
-  pm->s.velocity = original_velocity;
+  pm->s.velocity = originalVelocity;
 
   // and again from a step height up
   trace = Pm_Trace(pm->s.origin, Vec3_Fmaf(pm->s.origin, PM_QUAKE_STEP_SIZE, Vec3_Up()),
                    pm->bounds);
-  if (!trace.start_solid && !trace.all_solid) {
+  if (!trace.startSolid && !trace.allSolid) {
     pm->s.origin = trace.end;
   }
 
@@ -267,26 +267,26 @@ static void Pm_QuakeGroundMove(void) {
   trace = Pm_Trace(pm->s.origin, Vec3_Fmaf(pm->s.origin, PM_QUAKE_STEP_SIZE, Vec3_Down()),
                    pm->bounds);
 
-  bool use_down = trace.plane.normal.z < PM_QUAKE_GROUND_NORMAL;
-  if (!use_down) {
-    if (!trace.start_solid && !trace.all_solid) {
+  bool useDown = trace.plane.normal.z < PM_QUAKE_GROUND_NORMAL;
+  if (!useDown) {
+    if (!trace.startSolid && !trace.allSolid) {
       pm->s.origin = trace.end;
     }
 
-    const float down_dist = Vec2_DistanceSquared(Vec3_XY(down), Vec3_XY(original));
-    const float up_dist = Vec2_DistanceSquared(Vec3_XY(pm->s.origin), Vec3_XY(original));
+    const float downDist = Vec2_DistanceSquared(Vec3_XY(down), Vec3_XY(original));
+    const float upDist = Vec2_DistanceSquared(Vec3_XY(pm->s.origin), Vec3_XY(original));
 
-    use_down = down_dist > up_dist;
+    useDown = downDist > upDist;
   }
 
-  if (use_down) {
+  if (useDown) {
     pm->s.origin = down;
-    pm->s.velocity = down_velocity;
+    pm->s.velocity = downVelocity;
   } else { // the stepped move went farther, but its vertical speed is the flat one's
-    pm->s.velocity.z = down_velocity.z;
+    pm->s.velocity.z = downVelocity.z;
 
     // tell the view how far it climbed, or stairs snap the camera
-    pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
+    pm->step = pm->s.origin.z - pm_locals.previousOrigin.z;
   }
 }
 
@@ -306,7 +306,7 @@ static void Pm_QuakeFriction(void) {
     return;
   }
 
-  float friction = pm->s.params.friction_ground;
+  float friction = pm->s.params.frictionGround;
 
   if (pm->s.flags & PMF_ON_GROUND) {
 
@@ -326,10 +326,10 @@ static void Pm_QuakeFriction(void) {
 
   float drop = 0.f;
 
-  if (pm->water_level >= WATER_WAIST) {
-    drop = speed * pm->s.params.friction_water * (float) pm->water_level * pm_locals.time;
+  if (pm->waterLevel >= WATER_WAIST) {
+    drop = speed * pm->s.params.frictionWater * (float) pm->waterLevel * pm_locals.time;
   } else if (pm->s.flags & PMF_ON_GROUND) {
-    const float control = Maxf(speed, pm->s.params.speed_stop);
+    const float control = Maxf(speed, pm->s.params.speedStop);
     drop = control * friction * pm_locals.time;
   }
 
@@ -345,14 +345,14 @@ static void Pm_QuakeAccelerate(const Vec3 dir, float speed, float accel) {
     return;
   }
 
-  const float add_speed = speed - Vec3_Dot(pm->s.velocity, dir);
-  if (add_speed <= 0.f) {
+  const float addSpeed = speed - Vec3_Dot(pm->s.velocity, dir);
+  if (addSpeed <= 0.f) {
     return;
   }
 
-  const float accel_speed = Minf(accel * pm_locals.time * speed, add_speed);
+  const float accelSpeed = Minf(accel * pm_locals.time * speed, addSpeed);
 
-  pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
+  pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
 }
 
 /**
@@ -370,16 +370,16 @@ static void Pm_QuakeAirAccelerate(const Vec3 dir, float speed, float accel) {
     return;
   }
 
-  const float wish_speed = Minf(speed, PM_QUAKE_AIR_WISH_SPEED);
+  const float wishSpeed = Minf(speed, PM_QUAKE_AIR_WISH_SPEED);
 
-  const float add_speed = wish_speed - Vec3_Dot(pm->s.velocity, dir);
-  if (add_speed <= 0.f) {
+  const float addSpeed = wishSpeed - Vec3_Dot(pm->s.velocity, dir);
+  if (addSpeed <= 0.f) {
     return;
   }
 
-  const float accel_speed = Minf(accel * speed * pm_locals.time, add_speed);
+  const float accelSpeed = Minf(accel * speed * pm_locals.time, addSpeed);
 
-  pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
+  pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
 }
 
 /**
@@ -389,28 +389,28 @@ static void Pm_QuakeWaterMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
-  Vec3 wish_velocity = Vec3_Zero();
-  wish_velocity = Vec3_Fmaf(wish_velocity, pm->cmd.forward, pm_locals.forward);
-  wish_velocity = Vec3_Fmaf(wish_velocity, pm->cmd.right, pm_locals.right);
+  Vec3 wishVelocity = Vec3_Zero();
+  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.forward, pm_locals.forward);
+  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.right, pm_locals.right);
 
   if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
-    wish_velocity.z -= PM_QUAKE_WATER_SINK; // drift toward the bottom
+    wishVelocity.z -= PM_QUAKE_WATER_SINK; // drift toward the bottom
   } else {
-    wish_velocity.z += pm->cmd.up;
+    wishVelocity.z += pm->cmd.up;
   }
 
   float speed;
-  const Vec3 dir = Vec3_NormalizeLength(wish_velocity, &speed);
-  speed = Minf(speed, pm->s.params.speed_water) * PM_QUAKE_WATER_SCALE;
+  const Vec3 dir = Vec3_NormalizeLength(wishVelocity, &speed);
+  speed = Minf(speed, pm->s.params.speedWater) * PM_QUAKE_WATER_SCALE;
 
-  Pm_QuakeAccelerate(dir, speed, pm->s.params.accel_water);
+  Pm_QuakeAccelerate(dir, speed, pm->s.params.accelWater);
 
   // assume a stair or a slope, and press down from a step height above
   const Vec3 dest = Vec3_Fmaf(pm->s.origin, pm_locals.time, pm->s.velocity);
   const Vec3 start = MakeVec3(dest.x, dest.y, dest.z + PM_QUAKE_STEP_SIZE + 1.f);
 
   const CmTrace trace = Pm_Trace(start, dest, pm->bounds);
-  if (!trace.start_solid && !trace.all_solid) { // walked up the step
+  if (!trace.startSolid && !trace.allSolid) { // walked up the step
     pm->s.origin = trace.end;
     return;
   }
@@ -432,26 +432,26 @@ static void Pm_QuakeAirMove(void) {
   forward = Vec3_Normalize(forward);
   right = Vec3_Normalize(right);
 
-  Vec3 wish_velocity = Vec3_Zero();
-  wish_velocity = Vec3_Fmaf(wish_velocity, pm->cmd.forward, forward);
-  wish_velocity = Vec3_Fmaf(wish_velocity, pm->cmd.right, right);
-  wish_velocity.z = 0.f;
+  Vec3 wishVelocity = Vec3_Zero();
+  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.forward, forward);
+  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.right, right);
+  wishVelocity.z = 0.f;
 
   // the ground speed bounds the wish in the air as well, because upstream bounds
   // both with `movevars.maxspeed`; `speed_air` is deliberately unread here
   float speed;
-  const Vec3 dir = Vec3_NormalizeLength(wish_velocity, &speed);
-  speed = Minf(speed, pm->s.params.speed_ground);
+  const Vec3 dir = Vec3_NormalizeLength(wishVelocity, &speed);
+  speed = Minf(speed, pm->s.params.speedGround);
 
   const float gravity = pm->s.params.gravity * pm_locals.time;
 
   if (pm->s.flags & PMF_ON_GROUND) {
     pm->s.velocity.z = 0.f;
-    Pm_QuakeAccelerate(dir, speed, pm->s.params.accel_ground);
+    Pm_QuakeAccelerate(dir, speed, pm->s.params.accelGround);
     pm->s.velocity.z -= gravity;
     Pm_QuakeGroundMove();
   } else {
-    Pm_QuakeAirAccelerate(dir, speed, pm->s.params.accel_air);
+    Pm_QuakeAirAccelerate(dir, speed, pm->s.params.accelAir);
     pm->s.velocity.z -= gravity;
     Pm_QuakeFlyMove();
   }
@@ -489,7 +489,7 @@ static void Pm_QuakeCategorizePosition(void) {
         pm->s.time = 0;
       }
 
-      if (!trace.start_solid && !trace.all_solid) {
+      if (!trace.startSolid && !trace.allSolid) {
         pm->s.origin = trace.end;
       }
     }
@@ -499,26 +499,26 @@ static void Pm_QuakeCategorizePosition(void) {
     }
   }
 
-  pm->water_level = WATER_NONE;
-  pm->water_type = 0;
+  pm->waterLevel = WATER_NONE;
+  pm->waterType = 0;
 
   Vec3 point = MakeVec3(pm->s.origin.x, pm->s.origin.y,
                       pm->s.origin.z + pm->bounds.mins.z + 1.f);
 
   int32_t contents = pm->PointContents(point);
   if (contents & CONTENTS_MASK_LIQUID) {
-    pm->water_type = contents;
-    pm->water_level = WATER_FEET;
+    pm->waterType = contents;
+    pm->waterLevel = WATER_FEET;
 
     point.z = pm->s.origin.z + (pm->bounds.mins.z + pm->bounds.maxs.z) * .5f;
     contents = pm->PointContents(point);
     if (contents & CONTENTS_MASK_LIQUID) {
-      pm->water_level = WATER_WAIST;
+      pm->waterLevel = WATER_WAIST;
 
       point.z = pm->s.origin.z + PM_QUAKE_WATER_UNDER;
       contents = pm->PointContents(point);
       if (contents & CONTENTS_MASK_LIQUID) {
-        pm->water_level = WATER_UNDER;
+        pm->waterLevel = WATER_UNDER;
         pm->s.flags |= PMF_UNDER_WATER;
       }
     }
@@ -541,13 +541,13 @@ static void Pm_QuakeJump(void) {
     return;
   }
 
-  if (pm->water_level >= WATER_WAIST) { // swimming, not jumping
+  if (pm->waterLevel >= WATER_WAIST) { // swimming, not jumping
     pm->s.flags &= ~PMF_ON_GROUND;
     memset(&pm->ground, 0, sizeof(pm->ground));
 
-    if (pm->water_type & CONTENTS_LAVA) {
+    if (pm->waterType & CONTENTS_LAVA) {
       pm->s.velocity.z = 50.f;
-    } else if (pm->water_type & CONTENTS_SLIME) {
+    } else if (pm->waterType & CONTENTS_SLIME) {
       pm->s.velocity.z = 80.f;
     } else {
       pm->s.velocity.z = 100.f;
@@ -566,7 +566,7 @@ static void Pm_QuakeJump(void) {
   pm->s.flags &= ~PMF_ON_GROUND;
   memset(&pm->ground, 0, sizeof(pm->ground));
 
-  pm->s.velocity.z += pm->s.params.speed_jump;
+  pm->s.velocity.z += pm->s.params.speedJump;
 
   pm->s.flags |= PMF_JUMPED | PMF_JUMP_HELD;
 }
@@ -601,7 +601,7 @@ static void Pm_QuakeCheckWaterJump(void) {
   }
 
   pm->s.velocity = Vec3_Scale(forward, PM_QUAKE_WATER_JUMP_PUSH);
-  pm->s.velocity.z = pm->s.params.speed_water_jump;
+  pm->s.velocity.z = pm->s.params.speedWaterJump;
 
   pm->s.flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
   pm->s.time = PM_QUAKE_WATER_JUMP_TIME;
@@ -632,7 +632,7 @@ static void Pm_QuakeNudgePosition(void) {
                                       base.y + offsets[y],
                                       base.z + offsets[z]);
 
-        if (!pm->Trace(candidate, candidate, pm->bounds).start_solid) {
+        if (!pm->Trace(candidate, candidate, pm->bounds).startSolid) {
           pm->s.origin = candidate;
           return;
         }
@@ -651,9 +651,9 @@ static void Pm_QuakeNudgePosition(void) {
 static void Pm_QuakeViewOffset(void) {
 
   if (pm->s.type == PM_DEAD) {
-    pm->s.view_offset.z = (pm->s.flags & PMF_GIBLET) ? 0.f : -16.f;
+    pm->s.viewOffset.z = (pm->s.flags & PMF_GIBLET) ? 0.f : -16.f;
   } else {
-    pm->s.view_offset.z = PM_QUAKE_VIEW_HEIGHT;
+    pm->s.viewOffset.z = PM_QUAKE_VIEW_HEIGHT;
   }
 }
 
@@ -668,7 +668,7 @@ void Pm_QuakeMove(void) {
 
   Pm_QuakeCategorizePosition();
 
-  if (pm->water_level == WATER_WAIST) {
+  if (pm->waterLevel == WATER_WAIST) {
     Pm_QuakeCheckWaterJump();
   }
 
@@ -688,7 +688,7 @@ void Pm_QuakeMove(void) {
 
   Pm_QuakeFriction();
 
-  if (pm->water_level >= WATER_WAIST) {
+  if (pm->waterLevel >= WATER_WAIST) {
     Pm_QuakeWaterMove();
   } else {
     Pm_QuakeAirMove();

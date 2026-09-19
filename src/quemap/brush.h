@@ -28,13 +28,13 @@
  */
 typedef struct CsgBrush {
   const struct Brush *original;
-  struct BrushSide *brush_sides;
-  int32_t num_brush_sides;
+  struct BrushSide *brushSides;
+  int32_t numBrushSides;
   Box3 bounds;
   struct CsgBrush *next;
 } CsgBrush;
 
-CsgBrush *AllocBrush(int32_t num_sides);
+CsgBrush *AllocBrush(int32_t numSides);
 void FreeBrush(CsgBrush *brush);
 void FreeBrushes(CsgBrush *brushes);
 size_t CountBrushes(const CsgBrush *brushes);
@@ -42,5 +42,5 @@ CsgBrush *CopyBrush(const CsgBrush *brush);
 float BrushVolume(CsgBrush *brush);
 CsgBrush *BrushFromBounds(const Box3 bounds);
 int32_t BrushOnPlaneSide(const CsgBrush *brush, int32_t plane);
-int32_t BrushOnPlaneSideSplits(const CsgBrush *brush, int32_t plane, int32_t *num_splits);
+int32_t BrushOnPlaneSideSplits(const CsgBrush *brush, int32_t plane, int32_t *numSplits);
 void SplitBrush(const CsgBrush *brush, int32_t plane, CsgBrush **front, CsgBrush **back);

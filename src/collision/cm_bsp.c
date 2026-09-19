@@ -48,26 +48,26 @@ sizeof(*((T *) 0)->F)
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
 
 static BspLumpMeta bsp_lump_meta[BSP_LUMP_LAST] = {
-  BSP_LUMP_SIZE_STRUCT(entity_string_size, entity_string, MAX_BSP_ENTITIES_SIZE),
-  BSP_LUMP_NUM_STRUCT(num_materials, materials, MAX_BSP_MATERIALS),
-  BSP_LUMP_NUM_STRUCT(num_planes, planes, MAX_BSP_PLANES),
-  BSP_LUMP_NUM_STRUCT(num_brush_sides, brush_sides, MAX_BSP_BRUSH_SIDES),
-  BSP_LUMP_NUM_STRUCT(num_brushes, brushes, MAX_BSP_BRUSHES),
-  BSP_LUMP_NUM_STRUCT(num_patches, patches, MAX_BSP_PATCHES),
-  BSP_LUMP_NUM_STRUCT(num_vertexes, vertexes, MAX_BSP_VERTEXES),
-  BSP_LUMP_NUM_STRUCT(num_elements, elements, MAX_BSP_ELEMENTS),
-  BSP_LUMP_NUM_STRUCT(num_faces, faces, MAX_BSP_FACES),
-  BSP_LUMP_NUM_STRUCT(num_nodes, nodes, MAX_BSP_NODES),
-  BSP_LUMP_NUM_STRUCT(num_leaf_brushes, leaf_brushes, MAX_BSP_LEAF_BRUSHES),
-  BSP_LUMP_NUM_STRUCT(num_leafs, leafs, MAX_BSP_LEAFS),
-  BSP_LUMP_NUM_STRUCT(num_draw_elements, draw_elements, MAX_BSP_DRAW_ELEMENTS),
-  BSP_LUMP_NUM_STRUCT(num_blocks, blocks, MAX_BSP_BLOCKS),
-  BSP_LUMP_NUM_STRUCT(num_models, models, MAX_BSP_MODELS),
-  BSP_LUMP_NUM_STRUCT(num_lights, lights, MAX_BSP_LIGHTS),
-  BSP_LUMP_SIZE_STRUCT(voxels_size, voxels, MAX_BSP_VOXELS_SIZE),
-  BSP_LUMP_NUM_STRUCT(num_light_voxels, light_voxels, MAX_BSP_LIGHT_VOXELS),
-  BSP_LUMP_NUM_STRUCT(num_block_voxels, block_voxels, MAX_BSP_BLOCK_VOXELS),
-  BSP_LUMP_NUM_STRUCT(num_portals, portals, MAX_BSP_PORTALS),
+  BSP_LUMP_SIZE_STRUCT(entityStringSize, entityString, MAX_BSP_ENTITIES_SIZE),
+  BSP_LUMP_NUM_STRUCT(numMaterials, materials, MAX_BSP_MATERIALS),
+  BSP_LUMP_NUM_STRUCT(numPlanes, planes, MAX_BSP_PLANES),
+  BSP_LUMP_NUM_STRUCT(numBrushSides, brushSides, MAX_BSP_BRUSH_SIDES),
+  BSP_LUMP_NUM_STRUCT(numBrushes, brushes, MAX_BSP_BRUSHES),
+  BSP_LUMP_NUM_STRUCT(numPatches, patches, MAX_BSP_PATCHES),
+  BSP_LUMP_NUM_STRUCT(numVertexes, vertexes, MAX_BSP_VERTEXES),
+  BSP_LUMP_NUM_STRUCT(numElements, elements, MAX_BSP_ELEMENTS),
+  BSP_LUMP_NUM_STRUCT(numFaces, faces, MAX_BSP_FACES),
+  BSP_LUMP_NUM_STRUCT(numNodes, nodes, MAX_BSP_NODES),
+  BSP_LUMP_NUM_STRUCT(numLeafBrushes, leafBrushes, MAX_BSP_LEAF_BRUSHES),
+  BSP_LUMP_NUM_STRUCT(numLeafs, leafs, MAX_BSP_LEAFS),
+  BSP_LUMP_NUM_STRUCT(numDrawElements, drawElements, MAX_BSP_DRAW_ELEMENTS),
+  BSP_LUMP_NUM_STRUCT(numBlocks, blocks, MAX_BSP_BLOCKS),
+  BSP_LUMP_NUM_STRUCT(numModels, models, MAX_BSP_MODELS),
+  BSP_LUMP_NUM_STRUCT(numLights, lights, MAX_BSP_LIGHTS),
+  BSP_LUMP_SIZE_STRUCT(voxelsSize, voxels, MAX_BSP_VOXELS_SIZE),
+  BSP_LUMP_NUM_STRUCT(numLightVoxels, lightVoxels, MAX_BSP_LIGHT_VOXELS),
+  BSP_LUMP_NUM_STRUCT(numBlockVoxels, blockVoxels, MAX_BSP_BLOCK_VOXELS),
+  BSP_LUMP_NUM_STRUCT(numPortals, portals, MAX_BSP_PORTALS),
 };
 
 /**
@@ -96,19 +96,19 @@ static void Bsp_SwapPlanes(void *lump, const int32_t num) {
  */
 static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 
-  BspBrushSide *brush_side = (BspBrushSide *) lump;
+  BspBrushSide *brushSide = (BspBrushSide *) lump;
 
   for (int32_t i = 0; i < num; i++) {
 
-    brush_side->plane = LittleLong(brush_side->plane);
-    brush_side->material = LittleLong(brush_side->material);
-    brush_side->axis[0] = LittleVec4(brush_side->axis[0]);
-    brush_side->axis[1] = LittleVec4(brush_side->axis[1]);
-    brush_side->contents = LittleLong(brush_side->contents);
-    brush_side->surface = LittleLong(brush_side->surface);
-    brush_side->value = LittleLong(brush_side->value);
+    brushSide->plane = LittleLong(brushSide->plane);
+    brushSide->material = LittleLong(brushSide->material);
+    brushSide->axis[0] = LittleVec4(brushSide->axis[0]);
+    brushSide->axis[1] = LittleVec4(brushSide->axis[1]);
+    brushSide->contents = LittleLong(brushSide->contents);
+    brushSide->surface = LittleLong(brushSide->surface);
+    brushSide->value = LittleLong(brushSide->value);
 
-    brush_side++;
+    brushSide++;
   }
 }
 
@@ -123,8 +123,8 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 
     brush->entity = LittleLong(brush->entity);
     brush->contents = LittleLong(brush->contents);
-    brush->first_brush_side = LittleLong(brush->first_brush_side);
-    brush->num_brush_sides = LittleLong(brush->num_brush_sides);
+    brush->firstBrushSide = LittleLong(brush->firstBrushSide);
+    brush->numBrushSides = LittleLong(brush->numBrushSides);
     brush->bounds = LittleBounds(brush->bounds);
 
     brush++;
@@ -155,10 +155,10 @@ static void Bsp_SwapPatches(void *lump, const int32_t num) {
       Com_Error(ERROR_DROP, "MAX_PATCH_SIZE\n");
     }
 
-    const int32_t num_points = patch->width * patch->height;
-    for (int32_t j = 0; j < num_points; j++) {
-      patch->control_points[j].position = LittleVec3(patch->control_points[j].position);
-      patch->control_points[j].st = LittleVec2(patch->control_points[j].st);
+    const int32_t numPoints = patch->width * patch->height;
+    for (int32_t j = 0; j < numPoints; j++) {
+      patch->controlPoints[j].position = LittleVec3(patch->controlPoints[j].position);
+      patch->controlPoints[j].st = LittleVec2(patch->controlPoints[j].st);
     }
 
     patch++;
@@ -206,7 +206,7 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
   for (int32_t i = 0; i < num; i++) {
 
-    face->brush_side = LittleLong(face->brush_side);
+    face->brushSide = LittleLong(face->brushSide);
     face->plane = LittleLong(face->plane);
     face->patch = LittleLong(face->patch);
     face->node = LittleLong(face->node);
@@ -214,11 +214,11 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
     face->bounds = LittleBounds(face->bounds);
 
-    face->first_vertex = LittleLong(face->first_vertex);
-    face->num_vertexes = LittleLong(face->num_vertexes);
+    face->firstVertex = LittleLong(face->firstVertex);
+    face->numVertexes = LittleLong(face->numVertexes);
 
-    face->first_element = LittleLong(face->first_element);
-    face->num_elements = LittleLong(face->num_elements);
+    face->firstElement = LittleLong(face->firstElement);
+    face->numElements = LittleLong(face->numElements);
 
     face++;
   }
@@ -239,10 +239,10 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
     node->contents = LittleLong(node->contents);
 
     node->bounds = LittleBounds(node->bounds);
-    node->visible_bounds = LittleBounds(node->visible_bounds);
+    node->visibleBounds = LittleBounds(node->visibleBounds);
 
-    node->first_face = LittleLong(node->first_face);
-    node->num_faces = LittleLong(node->num_faces);
+    node->firstFace = LittleLong(node->firstFace);
+    node->numFaces = LittleLong(node->numFaces);
 
     node++;
   }
@@ -253,10 +253,10 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
  */
 static void Bsp_SwapLeafBrushes(void *lump, const int32_t num) {
 
-  int32_t *leaf_brush = (int32_t *) lump;
+  int32_t *leafBrush = (int32_t *) lump;
 
   for (int32_t i = 0; i < num; i++) {
-    leaf_brush[i] = LittleLong(leaf_brush[i]);
+    leafBrush[i] = LittleLong(leafBrush[i]);
   }
 }
 
@@ -271,8 +271,8 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 
     leaf->contents = LittleLong(leaf->contents);
     leaf->bounds = LittleBounds(leaf->bounds);
-    leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
-    leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
+    leaf->firstLeafBrush = LittleLong(leaf->firstLeafBrush);
+    leaf->numLeafBrushes = LittleLong(leaf->numLeafBrushes);
 
     leaf++;
   }
@@ -290,8 +290,8 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
     draw->material = LittleLong(draw->material);
     draw->surface = LittleLong(draw->surface);
     draw->bounds = LittleBounds(draw->bounds);
-    draw->first_element = LittleLong(draw->first_element);
-    draw->num_elements = LittleLong(draw->num_elements);
+    draw->firstElement = LittleLong(draw->firstElement);
+    draw->numElements = LittleLong(draw->numElements);
 
     draw++;
   }
@@ -307,11 +307,11 @@ static void Bsp_SwapBlocks(void *lump, const int32_t num) {
   for (int32_t i = 0; i < num; i++) {
 
     block->node = LittleLong(block->node);
-    block->first_draw_element = LittleLong(block->first_draw_element);
-    block->num_draw_elements = LittleLong(block->num_draw_elements);
-    block->visible_bounds = LittleBounds(block->visible_bounds);
-    block->first_voxel = LittleLong(block->first_voxel);
-    block->num_voxels = LittleLong(block->num_voxels);
+    block->firstDrawElement = LittleLong(block->firstDrawElement);
+    block->numDrawElements = LittleLong(block->numDrawElements);
+    block->visibleBounds = LittleBounds(block->visibleBounds);
+    block->firstVoxel = LittleLong(block->firstVoxel);
+    block->numVoxels = LittleLong(block->numVoxels);
 
     block++;
   }
@@ -327,22 +327,22 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
   for (int32_t i = 0; i < num; i++) {
 
     model->entity = LittleLong(model->entity);
-    model->head_node = LittleLong(model->head_node);
+    model->headNode = LittleLong(model->headNode);
 
     model->bounds = LittleBounds(model->bounds);
-    model->visible_bounds = LittleBounds(model->visible_bounds);
+    model->visibleBounds = LittleBounds(model->visibleBounds);
 
-    model->first_face = LittleLong(model->first_face);
-    model->num_faces = LittleLong(model->num_faces);
+    model->firstFace = LittleLong(model->firstFace);
+    model->numFaces = LittleLong(model->numFaces);
 
-    model->first_depth_pass_elements = LittleLong(model->first_depth_pass_elements);
-    model->num_depth_pass_elements = LittleLong(model->num_depth_pass_elements);
+    model->firstDepthPassElements = LittleLong(model->firstDepthPassElements);
+    model->numDepthPassElements = LittleLong(model->numDepthPassElements);
 
-    model->first_draw_elements = LittleLong(model->first_draw_elements);
-    model->num_draw_elements = LittleLong(model->num_draw_elements);
+    model->firstDrawElements = LittleLong(model->firstDrawElements);
+    model->numDrawElements = LittleLong(model->numDrawElements);
 
-    model->first_block = LittleLong(model->first_block);
-    model->num_blocks = LittleLong(model->num_blocks);
+    model->firstBlock = LittleLong(model->firstBlock);
+    model->numBlocks = LittleLong(model->numBlocks);
 
     model++;
   }
@@ -363,10 +363,10 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
     light->intensity = LittleFloat(light->intensity);
     light->bounds = LittleBounds(light->bounds);
     light->drift = LittleFloat(light->drift);
-    light->first_draw_elements = LittleLong(light->first_draw_elements);
-    light->num_draw_elements = LittleLong(light->num_draw_elements);
-    light->first_voxel = LittleLong(light->first_voxel);
-    light->num_voxels = LittleLong(light->num_voxels);
+    light->firstDrawElements = LittleLong(light->firstDrawElements);
+    light->numDrawElements = LittleLong(light->numDrawElements);
+    light->firstVoxel = LittleLong(light->firstVoxel);
+    light->numVoxels = LittleLong(light->numVoxels);
     light++;
   }
 }
@@ -379,14 +379,14 @@ static void Bsp_SwapPortals(void *lump, const int32_t num) {
   BspPortal *portal = (BspPortal *) lump;
 
   for (int32_t i = 0; i < num; i++) {
-    portal->brush_side = LittleLong(portal->brush_side);
-    portal->draw_elements = LittleLong(portal->draw_elements);
-    portal->entry_origin = LittleVec3(portal->entry_origin);
-    portal->entry_forward = LittleVec3(portal->entry_forward);
-    portal->entry_up = LittleVec3(portal->entry_up);
-    portal->exit_origin = LittleVec3(portal->exit_origin);
-    portal->exit_forward = LittleVec3(portal->exit_forward);
-    portal->exit_up = LittleVec3(portal->exit_up);
+    portal->brushSide = LittleLong(portal->brushSide);
+    portal->drawElements = LittleLong(portal->drawElements);
+    portal->entryOrigin = LittleVec3(portal->entryOrigin);
+    portal->entryForward = LittleVec3(portal->entryForward);
+    portal->entryUp = LittleVec3(portal->entryUp);
+    portal->exitOrigin = LittleVec3(portal->exitOrigin);
+    portal->exitForward = LittleVec3(portal->exitForward);
+    portal->exitUp = LittleVec3(portal->exitUp);
     portal++;
   }
 }
@@ -399,7 +399,7 @@ static void Bsp_SwapVoxels(void *lump, const int32_t num) {
   BspVoxels *voxel = (BspVoxels *) lump;
 
   voxel->size = LittleVec3i(voxel->size);
-  voxel->num_light_indices = LittleLong(voxel->num_light_indices);
+  voxel->numLightIndices = LittleLong(voxel->numLightIndices);
   voxel->bounds = LittleBounds(voxel->bounds);
 }
 
@@ -430,7 +430,7 @@ static void Bsp_SwapBlockVoxels(void *lump, const int32_t num) {
 /**
  * @brief Swap entry point.
  */
-static void Bsp_SwapLump(const BspLumpId lump_id, void *lump, int32_t count) {
+static void Bsp_SwapLump(const BspLumpId lumpId, void *lump, int32_t count) {
 
   const Bsp_SwapFunction swap[BSP_LUMP_LAST] = {
     NULL,
@@ -455,7 +455,7 @@ static void Bsp_SwapLump(const BspLumpId lump_id, void *lump, int32_t count) {
     Bsp_SwapPortals,
   };
 
-  if (swap[lump_id]) {
+  if (swap[lumpId]) {
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
     swap[lump_id](lump, count);
 #endif
@@ -469,7 +469,7 @@ int64_t Bsp_Size(const BspHeader *file) {
   int64_t total = 0;
 
   for (BspLumpId lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
-    total += LittleLong(file->lumps[lump].file_len);
+    total += LittleLong(file->lumps[lump].fileLen);
   }
 
   return total;
@@ -495,11 +495,11 @@ int32_t Bsp_Verify(const BspHeader *file) {
 /**
  * @brief Read the lump length/offset from the BSP file.
  */
-static void Bsp_GetLumpPosition(const BspHeader *file, const BspLumpId lump_id, BspLump *lump) {
+static void Bsp_GetLumpPosition(const BspHeader *file, const BspLumpId lumpId, BspLump *lump) {
 
-  *lump = file->lumps[lump_id];
-  lump->file_len = LittleLong(lump->file_len);
-  lump->file_ofs = LittleLong(lump->file_ofs);
+  *lump = file->lumps[lumpId];
+  lump->fileLen = LittleLong(lump->fileLen);
+  lump->fileOfs = LittleLong(lump->fileOfs);
 }
 
 /**
@@ -518,13 +518,13 @@ static void Bsp_GetLumpPosition(const BspHeader *file, const BspLumpId lump_id, 
  * count and data pointers in memory. They may be empty. If count is `LUMP_SKIPPED`,
  * the lump is a valid lump but not stored/used by the library.
  */
-static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lump_id, int32_t **count, void ***data) {
+static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lumpId, int32_t **count, void ***data) {
 
-  if (lump_id >= BSP_LUMP_LAST) {
+  if (lumpId >= BSP_LUMP_LAST) {
     return false;
   }
 
-  BspLumpMeta *meta = &bsp_lump_meta[lump_id];
+  BspLumpMeta *meta = &bsp_lump_meta[lumpId];
 
   if (!meta->type_size) {
 
@@ -549,50 +549,50 @@ static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lump_id, int3
 /**
  * @brief Check whether the specified lump is loaded in memory or not.
  */
-bool Bsp_LumpLoaded(const BspFile *bsp, const BspLumpId lump_id) {
+bool Bsp_LumpLoaded(const BspFile *bsp, const BspLumpId lumpId) {
 
-  return bsp->loaded_lumps & (BspLumpId) (1 << lump_id);
+  return bsp->loadedLumps & (BspLumpId) (1 << lumpId);
 }
 
 /**
  * @brief Unloads the specified lump from memory.
  */
-void Bsp_UnloadLump(BspFile *bsp, const BspLumpId lump_id) {
+void Bsp_UnloadLump(BspFile *bsp, const BspLumpId lumpId) {
 
-  if (!Bsp_LumpLoaded(bsp, lump_id)) {
+  if (!Bsp_LumpLoaded(bsp, lumpId)) {
     return;
   }
 
-  int32_t *lump_count;
-  void **lump_data;
+  int32_t *lumpCount;
+  void **lumpData;
 
-  if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
-    Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lump_id);
+  if (!Bsp_GetLumpOffsets(bsp, lumpId, &lumpCount, &lumpData)) {
+    Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lumpId);
   }
 
   // lump is valid but we're skipping it
-  if (lump_count == LUMP_SKIPPED) {
+  if (lumpCount == LUMP_SKIPPED) {
     return;
   }
 
   // free memory
-  if (*lump_data) {
-    Mem_Free(*lump_data);
-    *lump_data = NULL;
+  if (*lumpData) {
+    Mem_Free(*lumpData);
+    *lumpData = NULL;
   }
 
-  *lump_count = 0;
+  *lumpCount = 0;
 
-  bsp->loaded_lumps &= ~((BspLumpId) (1 << lump_id));
+  bsp->loadedLumps &= ~((BspLumpId) (1 << lumpId));
 }
 
 /**
  * @brief Unloads the specified lumps from memory.
  */
-void Bsp_UnloadLumps(BspFile *bsp, const BspLumpId lump_bits) {
+void Bsp_UnloadLumps(BspFile *bsp, const BspLumpId lumpBits) {
 
   for (BspLumpId lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
-    if (lump_bits & (BspLumpId) (1 << lump)) {
+    if (lumpBits & (BspLumpId) (1 << lump)) {
       Bsp_UnloadLump(bsp, lump);
     }
   }
@@ -602,60 +602,60 @@ void Bsp_UnloadLumps(BspFile *bsp, const BspLumpId lump_bits) {
  * @brief Load a lump into memory from the specified BSP file. Returns false
  * if an error occured during the load that is recoverable.
  */
-bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lump_id) {
+bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lumpId) {
 
-  int32_t *lump_count;
-  void **lump_data;
+  int32_t *lumpCount;
+  void **lumpData;
 
-  if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
-    Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lump_id);
+  if (!Bsp_GetLumpOffsets(bsp, lumpId, &lumpCount, &lumpData)) {
+    Com_Error(ERROR_DROP, "Tried to load an invalid lump (%i)\n", lumpId);
   }
 
   // lump is valid but we're skipping it
-  if (lump_count == LUMP_SKIPPED) {
+  if (lumpCount == LUMP_SKIPPED) {
     return true;
   }
 
   // unload the lump if we're already loaded
-  Bsp_UnloadLump(bsp, lump_id);
+  Bsp_UnloadLump(bsp, lumpId);
 
   // find the lump in the file
   BspLump lump;
-  Bsp_GetLumpPosition(file, lump_id, &lump);
+  Bsp_GetLumpPosition(file, lumpId, &lump);
 
-  const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
+  const size_t lumpTypeSize = bsp_lump_meta[lumpId].type_size;
 
-  if (lump.file_len < 0 || lump.file_ofs < 0) {
+  if (lump.fileLen < 0 || lump.fileOfs < 0) {
     Com_Error(ERROR_DROP, "Lump (%i) has invalid offset (%i) or size (%i)\n",
-              lump_id, lump.file_ofs, lump.file_len);
+              lumpId, lump.fileOfs, lump.fileLen);
   }
 
-  if (lump.file_len % lump_type_size) {
+  if (lump.fileLen % lumpTypeSize) {
     Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n",
-              lump_id, lump.file_len, lump_type_size);
+              lumpId, lump.fileLen, lumpTypeSize);
   }
 
-  *lump_count = lump.file_len / lump_type_size;
+  *lumpCount = lump.fileLen / lumpTypeSize;
 
-  if (*lump_count >= (int32_t) bsp_lump_meta[lump_id].max_count) {
-    Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lump_id, *lump_count,
-              bsp_lump_meta[lump_id].max_count);
+  if (*lumpCount >= (int32_t) bsp_lump_meta[lumpId].max_count) {
+    Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lumpId, *lumpCount,
+              bsp_lump_meta[lumpId].max_count);
   }
 
-  if (*lump_count) {
-    *lump_data = Mem_TagMalloc(lump.file_len, MEM_TAG_BSP | (lump_id << 16));
+  if (*lumpCount) {
+    *lumpData = Mem_TagMalloc(lump.fileLen, MEM_TAG_BSP | (lumpId << 16));
 
     // blit the data into memory
-    if (lump.file_ofs && lump.file_len) {
-      const byte *src = ((const byte *) file) + lump.file_ofs;
+    if (lump.fileOfs && lump.fileLen) {
+      const byte *src = ((const byte *) file) + lump.fileOfs;
 
-      memcpy(*lump_data, src, lump.file_len);
+      memcpy(*lumpData, src, lump.fileLen);
 
-      Bsp_SwapLump(lump_id, *lump_data, *lump_count);
+      Bsp_SwapLump(lumpId, *lumpData, *lumpCount);
     }
   }
 
-  bsp->loaded_lumps |= (BspLumpId) (1 << lump_id);
+  bsp->loadedLumps |= (BspLumpId) (1 << lumpId);
 
   return true;
 }
@@ -664,10 +664,10 @@ bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lump_id) 
  * @brief Loads the specified lumps into memory. If a failure occurs at any point during
  * loading, it will stop trying to load more and return false.
  */
-bool Bsp_LoadLumps(const BspHeader *file, BspFile *bsp, const BspLumpId lump_bits) {
+bool Bsp_LoadLumps(const BspHeader *file, BspFile *bsp, const BspLumpId lumpBits) {
 
   for (BspLumpId lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
-    if (lump_bits & (BspLumpId) (1 << lump)) {
+    if (lumpBits & (BspLumpId) (1 << lump)) {
       if (!Bsp_LoadLump(file, bsp, lump)) {
         return false;
       }
@@ -686,40 +686,40 @@ bool Bsp_LoadLumps(const BspHeader *file, BspFile *bsp, const BspLumpId lump_bit
  * aren't storing a pointer to the old lump data. The lump size pointer (as in, `num_x` or
  * `x_size`) won't be modified by this function call, so be careful!
  */
-void Bsp_AllocLump(BspFile *bsp, const BspLumpId lump_id, const size_t count) {
+void Bsp_AllocLump(BspFile *bsp, const BspLumpId lumpId, const size_t count) {
 
   // mark as loaded
-  if (!Bsp_LumpLoaded(bsp, lump_id)) {
-    bsp->loaded_lumps |= (BspLumpId) (1 << lump_id);
+  if (!Bsp_LumpLoaded(bsp, lumpId)) {
+    bsp->loadedLumps |= (BspLumpId) (1 << lumpId);
   }
 
-  int32_t *lump_count;
-  void **lump_data;
+  int32_t *lumpCount;
+  void **lumpData;
 
-  if (!Bsp_GetLumpOffsets(bsp, lump_id, &lump_count, &lump_data)) {
-    Com_Error(ERROR_DROP, "Tried to allocate an invalid lump (%i)\n", lump_id);
+  if (!Bsp_GetLumpOffsets(bsp, lumpId, &lumpCount, &lumpData)) {
+    Com_Error(ERROR_DROP, "Tried to allocate an invalid lump (%i)\n", lumpId);
   }
 
   // lump is valid but we're skipping it
-  if (lump_count == LUMP_SKIPPED) {
+  if (lumpCount == LUMP_SKIPPED) {
     return;
   }
 
   // calculate size
-  const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
+  const size_t lumpTypeSize = bsp_lump_meta[lumpId].type_size;
 
-  const size_t old_count = (size_t) *lump_count;
+  const size_t oldCount = (size_t) *lumpCount;
 
-  *lump_data = Mem_Realloc(*lump_data, lump_type_size * count);
+  *lumpData = Mem_Realloc(*lumpData, lumpTypeSize * count);
 
   // Mem_Realloc does not zero-initialize newly grown memory, unlike the initial
   // allocation (which uses calloc). Zero it explicitly so that callers who grow a
   // lump after populating it (e.g. quemap's -light stage growing the draw elements
   // lump after loading it from the -bsp/-vis stage) don't read garbage for fields
   // that are accumulated in place (e.g. `num_elements += ...`).
-  if (count > old_count) {
-    uint8_t *data = (uint8_t *) *lump_data;
-    memset(data + old_count * lump_type_size, 0, (count - old_count) * lump_type_size);
+  if (count > oldCount) {
+    uint8_t *data = (uint8_t *) *lumpData;
+    memset(data + oldCount * lumpTypeSize, 0, (count - oldCount) * lumpTypeSize);
   }
 }
 
@@ -736,25 +736,25 @@ void Bsp_Write(File *file, const BspFile *bsp) {
   header.version = LittleLong(BSP_VERSION);
 
   // store where we are, write what we got
-  int64_t header_pos = Fs_Tell(file);
+  int64_t headerPos = Fs_Tell(file);
   Fs_Write(file, &header, sizeof(header), 1);
 
   // write out the lumps now
 
-  int64_t current_position = Fs_Tell(file);
+  int64_t currentPosition = Fs_Tell(file);
   memset(header.lumps, 0, sizeof(header.lumps));
 
   for (BspLumpId lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
 
-    int32_t *lump_count;
-    void **lump_data;
+    int32_t *lumpCount;
+    void **lumpData;
 
     const size_t size = bsp_lump_meta[lump].type_size;
 
-    Bsp_GetLumpOffsets(bsp, lump, &lump_count, &lump_data);
+    Bsp_GetLumpOffsets(bsp, lump, &lumpCount, &lumpData);
 
     // lump is valid but we're skipping it
-    if (lump_count == LUMP_SKIPPED || *lump_count == 0) {
+    if (lumpCount == LUMP_SKIPPED || *lumpCount == 0) {
       continue;
     }
 
@@ -766,11 +766,11 @@ void Bsp_Write(File *file, const BspFile *bsp) {
 #endif
 
     // write and increase position for next lump
-    const int64_t len = Fs_Write(file, *lump_data, size, *lump_count);
-    const int64_t lump_size = (int32_t) (len * size);
+    const int64_t len = Fs_Write(file, *lumpData, size, *lumpCount);
+    const int64_t lumpSize = (int32_t) (len * size);
 
-    header.lumps[lump].file_len = LittleLong((int32_t) lump_size);
-    header.lumps[lump].file_ofs = LittleLong((int32_t) current_position);
+    header.lumps[lump].fileLen = LittleLong((int32_t) lumpSize);
+    header.lumps[lump].fileOfs = LittleLong((int32_t) currentPosition);
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
     // swap back to memory endianness
@@ -779,13 +779,13 @@ void Bsp_Write(File *file, const BspFile *bsp) {
     }
 #endif
 
-    current_position += lump_size;
+    currentPosition += lumpSize;
   }
 
   // go back and write the finished header
-  Fs_Seek(file, header_pos);
+  Fs_Seek(file, headerPos);
   Fs_Write(file, &header, sizeof(header), 1);
 
   // return to where we were
-  Fs_Seek(file, current_position);
+  Fs_Seek(file, currentPosition);
 }

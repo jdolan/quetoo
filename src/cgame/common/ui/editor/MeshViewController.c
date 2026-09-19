@@ -181,7 +181,7 @@ static void setModel(MeshViewController *self, RenderModel *model) {
 
   self->model = model;
 
-  const bool is_weapon = self->model && !q_strncmp(self->model->media.name, "models/weapons/", 15);
+  const bool isWeapon = self->model && !q_strncmp(self->model->media.name, "models/weapons/", 15);
 
   const RenderMeshConfig *world = self->model ? &self->model->mesh->config.world : &(RenderMeshConfig) { .scale = 1.f };
   const RenderMeshConfig *link  = self->model ? &self->model->mesh->config.link  : &(RenderMeshConfig) { .scale = 1.f };
@@ -200,20 +200,20 @@ static void setModel(MeshViewController *self, RenderModel *model) {
   $(self->viewScale,      setAttributedText, va("%g", view->scale));
   $(self->viewMuzzle,     setAttributedText, vs(view->muzzle));
 
-  TextView *link_views[] = { self->linkTranslate, self->linkRotate, self->linkScale };
-  TextView *view_views[] = { self->viewTranslate, self->viewRotate, self->viewScale, self->viewMuzzle };
+  TextView *linkViews[] = { self->linkTranslate, self->linkRotate, self->linkScale };
+  TextView *viewViews[] = { self->viewTranslate, self->viewRotate, self->viewScale, self->viewMuzzle };
 
-  for (size_t i = 0; i < lengthof(link_views); i++) {
-    link_views[i]->control.state &= ~ControlStateDisabled;
-    if (!is_weapon) {
-      link_views[i]->control.state |= ControlStateDisabled;
+  for (size_t i = 0; i < lengthof(linkViews); i++) {
+    linkViews[i]->control.state &= ~ControlStateDisabled;
+    if (!isWeapon) {
+      linkViews[i]->control.state |= ControlStateDisabled;
     }
   }
 
-  for (size_t i = 0; i < lengthof(view_views); i++) {
-    view_views[i]->control.state &= ~ControlStateDisabled;
-    if (!is_weapon) {
-      view_views[i]->control.state |= ControlStateDisabled;
+  for (size_t i = 0; i < lengthof(viewViews); i++) {
+    viewViews[i]->control.state &= ~ControlStateDisabled;
+    if (!isWeapon) {
+      viewViews[i]->control.state |= ControlStateDisabled;
     }
   }
 }

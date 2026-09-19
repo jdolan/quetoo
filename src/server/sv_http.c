@@ -72,7 +72,7 @@ static void Sv_HttpSendError(ServerHttpClient *http, int32_t code, const char *r
 static void Sv_HttpHandleRequest(ServerHttpClient *http) {
 
 	// null-terminate the request
-	http->request[http->request_len] = '\0';
+	http->request[http->requestLen] = '\0';
 
 	// parse the request line
 	char method[16], filename[MAX_OS_PATH];
@@ -100,9 +100,9 @@ static void Sv_HttpHandleRequest(ServerHttpClient *http) {
 	}
 
 	// load the file
-	void *file_data = NULL;
-	const int64_t file_size = Fs_Load(filename, &file_data);
-	if (file_size == -1 || !file_data) {
+	void *fileData = NULL;
+	const int64_t fileSize = Fs_Load(filename, &fileData);
+	if (fileSize == -1 || !fileData) {
 		Com_Debug(DEBUG_SERVER, "HTTP: File not found: %s\n", filename);
 		Sv_HttpSendError(http, 404, "Not Found");
 		return;
@@ -110,19 +110,19 @@ static void Sv_HttpHandleRequest(ServerHttpClient *http) {
 
 	// build the response header
 	char header[256];
-	const int32_t header_len = Net_HttpFormatResponse(200, "OK",
-		"application/octet-stream", file_size, header, sizeof(header));
+	const int32_t headerLen = Net_HttpFormatResponse(200, "OK",
+		"application/octet-stream", fileSize, header, sizeof(header));
 
 	// allocate a single buffer for header + file data
-	http->size = header_len + (int32_t) file_size;
+	http->size = headerLen + (int32_t) fileSize;
 	http->data = Mem_Malloc(http->size);
-	memcpy(http->data, header, header_len);
-	memcpy(http->data + header_len, file_data, file_size);
+	memcpy(http->data, header, headerLen);
+	memcpy(http->data + headerLen, fileData, fileSize);
 	http->count = 0;
 
-	Fs_Free(file_data);
+	Fs_Free(fileData);
 
-	Com_Debug(DEBUG_SERVER, "HTTP: Serving %s (%" PRId64 " bytes)\n", filename, file_size);
+	Com_Debug(DEBUG_SERVER, "HTTP: Serving %s (%" PRId64 " bytes)\n", filename, fileSize);
 }
 
 /**
@@ -144,7 +144,7 @@ static void Sv_HttpAccept(void) {
 			continue;
 		}
 
-		if (cl->net_chan.remote_address.addr != from.addr) {
+		if (cl->netChan.remoteAddress.addr != from.addr) {
 			continue;
 		}
 
@@ -174,16 +174,16 @@ static void Sv_HttpClientThink(ServerHttpClient *http) {
 	// still reading the request
 	if (!http->data) {
 		const ssize_t received = Net_Recv(http->socket,
-			http->request + http->request_len,
-			sizeof(http->request) - 1 - http->request_len);
+			http->request + http->requestLen,
+			sizeof(http->request) - 1 - http->requestLen);
 
 		if (received > 0) {
-			http->request_len += (int32_t) received;
+			http->requestLen += (int32_t) received;
 
 			// check for end of HTTP request
 			if (q_strstr(http->request, "\r\n\r\n")) {
 				Sv_HttpHandleRequest(http);
-			} else if (http->request_len >= (int32_t) sizeof(http->request) - 1) {
+			} else if (http->requestLen >= (int32_t) sizeof(http->request) - 1) {
 				Sv_HttpSendError(http, 400, "Bad Request");
 			}
 		} else if (received == 0) {
@@ -264,9 +264,9 @@ void Sv_HttpClientDisconnect(ServerHttpClient *http) {
  */
 void Sv_InitHttp(void) {
 
-	const Cvar *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+	const Cvar *netPort = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
-	const in_port_t port = net_port->integer;
+	const in_port_t port = netPort->integer;
 
 	sv_http_socket = Net_SocketListen(NULL, port, 8);
 	if (sv_http_socket == -1) {

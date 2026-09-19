@@ -27,8 +27,8 @@
 static void G_Give_f(GameClient *cl) {
   const GameItem *it;
   uint32_t quantity;
-  bool give_all;
-  GameEntity *it_ent;
+  bool giveAll;
+  GameEntity *itEnt;
 
   if (sv_max_clients->integer > 1 && !g_cheats->value) {
     gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
@@ -48,23 +48,23 @@ static void G_Give_f(GameClient *cl) {
   }
 
   if (q_strcasecmp(name, "all") == 0) {
-    give_all = true;
+    giveAll = true;
   } else {
-    give_all = false;
+    giveAll = false;
   }
 
-  if (give_all || q_strcasecmp(gi.Argv(1), "health") == 0) {
+  if (giveAll || q_strcasecmp(gi.Argv(1), "health") == 0) {
     if (gi.Argc() == 3) {
       cl->entity->health = quantity;
     } else {
-      cl->entity->health = cl->entity->max_health + 5;
+      cl->entity->health = cl->entity->maxHealth + 5;
     }
-    if (!give_all) {
+    if (!giveAll) {
       return;
     }
   }
 
-  if (give_all || q_strcasecmp(name, "armor") == 0) {
+  if (giveAll || q_strcasecmp(name, "armor") == 0) {
     for (GameItemTag t = ARMOR_FIRST; t < ARMOR_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -75,12 +75,12 @@ static void G_Give_f(GameClient *cl) {
       }
       cl->inventory[t] = it->def.max;
     }
-    if (!give_all) {
+    if (!giveAll) {
       return;
     }
   }
 
-  if (give_all || q_strcasecmp(name, "weapons") == 0) {
+  if (giveAll || q_strcasecmp(name, "weapons") == 0) {
     for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -91,12 +91,12 @@ static void G_Give_f(GameClient *cl) {
       }
       cl->inventory[t] += 1;
     }
-    if (!give_all) {
+    if (!giveAll) {
       return;
     }
   }
 
-  if (give_all || q_strcasecmp(name, "ammo") == 0) {
+  if (giveAll || q_strcasecmp(name, "ammo") == 0) {
     for (GameItemTag t = AMMO_FIRST; t < AMMO_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -118,12 +118,12 @@ static void G_Give_f(GameClient *cl) {
       }
       G_AddAmmo(cl, it, quantity);
     }
-    if (!give_all) {
+    if (!giveAll) {
       return;
     }
   }
 
-  if (give_all) { // we've given full health and inventory
+  if (giveAll) { // we've given full health and inventory
     return;
   }
 
@@ -150,13 +150,13 @@ static void G_Give_f(GameClient *cl) {
       cl->inventory[it->def.tag] += it->def.quantity;
     }
   } else { // or spawn and touch whatever they asked for
-    it_ent = G_AllocEntity(it->def.classname);
+    itEnt = G_AllocEntity(it->def.classname);
 
-    G_SpawnItem(it_ent, it);
-    G_TouchItem(it_ent, cl->entity, NULL);
+    G_SpawnItem(itEnt, it);
+    G_TouchItem(itEnt, cl->entity, NULL);
 
-    if (it_ent->in_use) {
-      G_FreeEntity(it_ent);
+    if (itEnt->inUse) {
+      G_FreeEntity(itEnt);
     }
   }
 }
@@ -197,11 +197,11 @@ static void G_NoClip_f(GameClient *cl) {
 
   if (sv_max_clients->integer > 1 && !g_cheats->value) {
     gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
-  } else if (cl->entity->move_type == MOVE_TYPE_NO_CLIP) {
-    cl->entity->move_type = MOVE_TYPE_WALK;
+  } else if (cl->entity->moveType == MOVE_TYPE_NO_CLIP) {
+    cl->entity->moveType = MOVE_TYPE_WALK;
     gi.ClientPrint(cl, PRINT_HIGH, "no_clip disabled\n");
   } else {
-    cl->entity->move_type = MOVE_TYPE_NO_CLIP;
+    cl->entity->moveType = MOVE_TYPE_NO_CLIP;
     gi.ClientPrint(cl, PRINT_HIGH, "no_clip enabled\n");
   }
 }
@@ -211,7 +211,7 @@ static void G_NoClip_f(GameClient *cl) {
  */
 static void G_Wave_f(GameClient *cl) {
 
-  if (cl->entity->sv_flags & SVF_NO_CLIENT) {
+  if (cl->entity->svFlags & SVF_NO_CLIENT) {
     return;
   }
 
@@ -232,7 +232,7 @@ static void G_Use_f(GameClient *cl) {
   }
 
   if (G_Ai_InDeveloperMode()) {
-    cl->entity->move_node = true;
+    cl->entity->moveNode = true;
     return;
   }
 
@@ -245,7 +245,7 @@ static void G_Use_f(GameClient *cl) {
       it = G_FindItemByClassName(s);
     }
   } else {
-    it = cl->last_pickup;
+    it = cl->lastPickup;
 
     if (!it) {
       return;
@@ -300,11 +300,11 @@ static void G_Drop_f(GameClient *cl) {
  */
 static void G_WeaponLast_f(GameClient *cl) {
 
-  if (!cl->weapon || !cl->prev_weapon) {
+  if (!cl->weapon || !cl->prevWeapon) {
     return;
   }
 
-  const GameItemTag index = cl->prev_weapon->def.tag;
+  const GameItemTag index = cl->prevWeapon->def.tag;
 
   if (!cl->inventory[index]) {
     return;
@@ -328,7 +328,7 @@ static void G_WeaponLast_f(GameClient *cl) {
  */
 static void G_Kill_f(GameClient *cl) {
 
-  if ((g_level.time - cl->respawn_time) < 1000) {
+  if ((g_level.time - cl->respawnTime) < 1000) {
     return;
   }
 
@@ -366,7 +366,7 @@ void G_Mute_f(void) {
 
   G_SetClientMuted(cl, !cl->persistent.muted);
 
-  gi.Print(" %s is now %smuted\n", cl->persistent.net_name, cl->persistent.muted ? "" : "un");
+  gi.Print(" %s is now %smuted\n", cl->persistent.netName, cl->persistent.muted ? "" : "un");
 }
 
 /**
@@ -378,8 +378,8 @@ static const char *G_ExpandVariable(GameClient *cl, char v) {
   switch (v) {
 
     case 'd': // last dropped item
-      if (cl->last_dropped) {
-        return cl->last_dropped->def.name;
+      if (cl->lastDropped) {
+        return cl->lastDropped->def.name;
       }
       return "";
 
@@ -476,11 +476,11 @@ static void G_Say_f(GameClient *cl) {
 
   if (!team) { // chat flood protection, does not pertain to teams
 
-    if (g_level.time < cl->chat_time) {
+    if (g_level.time < cl->chatTime) {
       return;
     }
 
-    cl->chat_time = g_level.time + 250;
+    cl->chatTime = g_level.time + 250;
   }
 
   char message[MAX_STRING_CHARS];
@@ -491,12 +491,12 @@ static void G_Say_f(GameClient *cl) {
   }
 
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
-  q_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, message);
+  q_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.netName, color, message);
 
   // chat carries its sender rather than arriving pre-formatted, so the client game decides how it
   // reads, and can attribute it to a player rather than matching text against a pattern
   G_ForEachClient(other, {
-    if (other->persistent.muted_clients & ((uint64_t) 1 << cl->ps.client)) {
+    if (other->persistent.mutedClients & ((uint64_t) 1 << cl->ps.client)) {
       continue;
     }
     if (team && !G_OnSameTeam(cl, other)) {
@@ -525,13 +525,13 @@ static void G_PlayerList_f(GameClient *cl) {
 
   // connect time, ping, score, name
   G_ForEachClient(c, {
-    const int32_t seconds = (g_level.frame_num - c->persistent.first_frame) / QUETOO_TICK_RATE;
+    const int32_t seconds = (g_level.frameNum - c->persistent.firstFrame) / QUETOO_TICK_RATE;
 
     char st[80];
     q_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
                c->ping,
                c->persistent.score,
-               c->persistent.net_name,
+               c->persistent.netName,
                c->persistent.skin);
 
     if (q_strlen(text) + q_strlen(st) > sizeof(text) - 200) {
@@ -549,11 +549,11 @@ static void G_PlayerList_f(GameClient *cl) {
 /**
  * @brief Returns true if the client's team was changed, false otherwise.
  */
-bool G_AddClientToTeam(GameClient *cl, const char *team_name) {
+bool G_AddClientToTeam(GameClient *cl, const char *teamName) {
   GameTeam *team;
 
-  if (!(team = G_TeamByName(team_name))) { // resolve team
-    gi.ClientPrint(cl, PRINT_HIGH, "Team \"%s\" doesn't exist\n", team_name);
+  if (!(team = G_TeamByName(teamName))) { // resolve team
+    gi.ClientPrint(cl, PRINT_HIGH, "Team \"%s\" doesn't exist\n", teamName);
     return false;
   }
 
@@ -568,9 +568,9 @@ bool G_AddClientToTeam(GameClient *cl, const char *team_name) {
   cl->persistent.team = team;
   cl->persistent.spectator = false;
 
-  char *user_info = q_strdup(cl->persistent.user_info);
-  G_ClientUserInfoChanged(cl, user_info);
-  free(user_info);
+  char *userInfo = q_strdup(cl->persistent.userInfo);
+  G_ClientUserInfoChanged(cl, userInfo);
+  free(userInfo);
 
   return true;
 }
@@ -603,7 +603,7 @@ static void G_Team_f(GameClient *cl) {
 static void G_Spectate_f(GameClient *cl) {
 
   // prevent spectator spamming
-  if (g_level.time - cl->respawn_time < 1000) {
+  if (g_level.time - cl->respawnTime < 1000) {
     return;
   }
 
@@ -665,7 +665,7 @@ static void G_Admin_f(GameClient *cl) {
   if (!cl->persistent.admin) { // not yet an admin, assuming auth
     if (q_strcmp(gi.Argv(1), g_admin_password->string) == 0) {
       cl->persistent.admin = true;
-      gi.BroadcastPrint(PRINT_HIGH, "%s became an admin\n", cl->persistent.net_name);
+      gi.BroadcastPrint(PRINT_HIGH, "%s became an admin\n", cl->persistent.netName);
     } else {
       gi.ClientPrint(cl, PRINT_HIGH, "Invalid admin password\n");
     }
@@ -703,7 +703,7 @@ static void G_EditorUse_f(GameClient *cl) {
 
   GameEntity *ent = ge.entities[number];
 
-  if (!ent->in_use) {
+  if (!ent->inUse) {
     gi.ClientPrint(cl, PRINT_HIGH, "Entity %d is not in use\n", number);
     return;
   }
@@ -777,14 +777,14 @@ static void G_MutePlayer_f(GameClient *cl, bool mute) {
   const uint64_t bit = (uint64_t) 1 << other->ps.client;
 
   if (mute) {
-    cl->persistent.muted_clients |= bit;
+    cl->persistent.mutedClients |= bit;
   } else {
-    cl->persistent.muted_clients &= ~bit;
+    cl->persistent.mutedClients &= ~bit;
   }
 
   gi.MuteVoice(cl, other, mute);
 
-  gi.ClientPrint(cl, PRINT_HIGH, "%s %s\n", other->persistent.net_name, mute ? "muted" : "unmuted");
+  gi.ClientPrint(cl, PRINT_HIGH, "%s %s\n", other->persistent.netName, mute ? "muted" : "unmuted");
 }
 
 void G_ClientCommand(GameClient *cl) {
@@ -814,7 +814,7 @@ void G_ClientCommand(GameClient *cl) {
   }
 
   // most commands can not be executed during intermission
-  if (g_level.intermission_time) {
+  if (g_level.intermissionTime) {
     return;
   }
 

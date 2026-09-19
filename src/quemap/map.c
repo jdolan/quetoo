@@ -69,7 +69,7 @@ static inline void AddPlaneToHash(Plane *p) {
 
   const int32_t hash = ((int32_t) fabs(p->dist)) & (PLANE_HASHES - 1);
 
-  p->hash_chain = plane_hash[hash];
+  p->hashChain = plane_hash[hash];
   plane_hash[hash] = p;
 }
 
@@ -176,7 +176,7 @@ int32_t FindPlane(const Vec3 normal, double dist) {
       if (PlaneEqual(p, snapped, dist)) {
         return (int32_t) (ptrdiff_t) (p - planes);
       }
-      p = p->hash_chain;
+      p = p->hashChain;
     }
   }
 
@@ -211,15 +211,15 @@ static int32_t BrushContents(const Brush *b) {
 
   int32_t contents = 0;
 
-  BrushSide *s = b->brush_sides;
-  for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+  BrushSide *s = b->brushSides;
+  for (int32_t i = 0; i < b->numBrushSides; i++, s++) {
     if (s->contents > contents) {
       contents = s->contents;
     }
   }
 
-  s = b->brush_sides;
-  for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+  s = b->brushSides;
+  for (int32_t i = 0; i < b->numBrushSides; i++, s++) {
     s->contents = contents;
   }
 
@@ -232,10 +232,10 @@ static int32_t BrushContents(const Brush *b) {
  */
 static int32_t SortBrushSides(const void *a, const void *b) {
 
-  const BrushSide *a_side = a;
-  const BrushSide *b_side = b;
+  const BrushSide *aSide = a;
+  const BrushSide *bSide = b;
 
-  return planes[a_side->plane].type - planes[b_side->plane].type;
+  return planes[aSide->plane].type - planes[bSide->plane].type;
 }
 
 /**
@@ -250,8 +250,8 @@ static void AddBrushBevel(Brush *b, int32_t plane) {
 
 
   float dot = -1.f;
-  const BrushSide *side = NULL, *s = b->brush_sides;
-  for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+  const BrushSide *side = NULL, *s = b->brushSides;
+  for (int32_t i = 0; i < b->numBrushSides; i++, s++) {
     if (s->surface & SURF_BEVEL) {
       continue;
     }
@@ -265,7 +265,7 @@ static void AddBrushBevel(Brush *b, int32_t plane) {
 
   assert(side);
 
-  BrushSide *bevel = &b->brush_sides[b->num_brush_sides++];
+  BrushSide *bevel = &b->brushSides[b->numBrushSides++];
   bevel->plane = plane;
   bevel->contents = side->contents;
   bevel->surface = side->surface | SURF_BEVEL;
@@ -297,19 +297,19 @@ void AddBrushBevels(Brush *b) {
       const int32_t plane = FindPlane(normal, dist);
 
       int32_t j;
-      for (j = 0; j < b->num_brush_sides; j++) {
-        if (b->brush_sides[j].plane == plane) {
+      for (j = 0; j < b->numBrushSides; j++) {
+        if (b->brushSides[j].plane == plane) {
           break;
         }
       }
 
-      if (j == b->num_brush_sides) {
+      if (j == b->numBrushSides) {
         AddBrushBevel(b, plane);
       }
     }
   }
 
-  qsort(b->brush_sides, b->num_brush_sides, sizeof(BrushSide), SortBrushSides);
+  qsort(b->brushSides, b->numBrushSides, sizeof(BrushSide), SortBrushSides);
 }
 
 /**
@@ -318,15 +318,15 @@ void AddBrushBevels(Brush *b) {
  */
 static void UnparseBrush(Brush *brush, Parser *parser) {
 
-  BrushSide *side = brush->brush_sides;
-  for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+  BrushSide *side = brush->brushSides;
+  for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
     if (side->winding) {
       Cm_FreeWinding(side->winding);
     }
   }
 
-  num_brush_sides -= brush->num_brush_sides;
-  brush->num_brush_sides = 0;
+  num_brush_sides -= brush->numBrushSides;
+  brush->numBrushSides = 0;
   brush->bounds = Box3_Null();
 
   // If parser is provided, skip to the end of the brush in the file
@@ -347,12 +347,12 @@ static void UnparseBrush(Brush *brush, Parser *parser) {
  */
 void MakeBrushWindings(Brush *brush) {
 
-  assert(brush->num_brush_sides);
+  assert(brush->numBrushSides);
 
   brush->bounds = Box3_Null();
 
-  BrushSide *side = brush->brush_sides;
-  for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+  BrushSide *side = brush->brushSides;
+  for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
     if (side->surface & SURF_BEVEL) {
       continue;
@@ -361,8 +361,8 @@ void MakeBrushWindings(Brush *brush) {
     const Plane *plane = &planes[side->plane];
     side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
 
-    const BrushSide *s = brush->brush_sides;
-    for (int32_t j = 0; j < brush->num_brush_sides; j++, s++) {
+    const BrushSide *s = brush->brushSides;
+    for (int32_t j = 0; j < brush->numBrushSides; j++, s++) {
       if (side == s) {
         continue;
       }
@@ -464,10 +464,10 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
   // Check if this is a patchDef2 block
   if (Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
     if (!q_strcmp(token, "patchDef2")) {
-      const int32_t entity_num = (int32_t) (entity - entities);
-      Patch *patch = ParsePatch(parser, entity_num);
+      const int32_t entityNum = (int32_t) (entity - entities);
+      Patch *patch = ParsePatch(parser, entityNum);
       if (patch) {
-        entity->num_patches++;
+        entity->numPatches++;
         //EmitPatchCollisionBrushes(patch, entity);
       }
       return NULL;
@@ -482,8 +482,8 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
   memset(brush, 0, sizeof(*brush));
 
   brush->entity = (int32_t) (entity - entities);
-  brush->brush = num_brushes - entity->first_brush;
-  brush->brush_sides = &brush_sides[num_brush_sides];
+  brush->brush = num_brushes - entity->firstBrush;
+  brush->brushSides = &brush_sides[num_brush_sides];
 
   num_brushes++;
 
@@ -591,8 +591,8 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
 
     // ensure that no other side on the brush references the same plane
     bool duplicate = false;
-    const BrushSide *other = brush->brush_sides;
-    for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
+    const BrushSide *other = brush->brushSides;
+    for (int32_t i = 0; i < brush->numBrushSides; i++, other++) {
       if (other->plane == side->plane) {
         Com_Warn("Entity %d brush %d: Duplicate plane within brush, skipping\n", brush->entity, brush->brush);
         duplicate = true;
@@ -663,7 +663,7 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
       side->contents |= CONTENTS_DETAIL;
     }
 
-    brush->num_brush_sides++;
+    brush->numBrushSides++;
     num_brush_sides++;
   }
 
@@ -685,7 +685,7 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
   // create windings for sides and bounds for brush
   MakeBrushWindings(brush);
 
-  if (!brush->num_brush_sides) {
+  if (!brush->numBrushSides) {
     return brush;
   }
 
@@ -715,29 +715,29 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
  */
 static void MoveBrushesToWorld(Entity *ent) {
 
-  const int32_t new_brushes = ent->num_brushes;
-  const int32_t world_brushes = entities[0].num_brushes;
+  const int32_t newBrushes = ent->numBrushes;
+  const int32_t worldBrushes = entities[0].numBrushes;
 
-  Brush *temp = Mem_TagMalloc(new_brushes * sizeof(Brush), (MemTag) MEM_TAG_BRUSH);
-  memcpy(temp, brushes + ent->first_brush, new_brushes * sizeof(Brush));
+  Brush *temp = Mem_TagMalloc(newBrushes * sizeof(Brush), (MemTag) MEM_TAG_BRUSH);
+  memcpy(temp, brushes + ent->firstBrush, newBrushes * sizeof(Brush));
 
   // make space to move the brushes (overlapped copy)
-  memmove(brushes + world_brushes + new_brushes,
-          brushes + world_brushes,
-          sizeof(Brush) * (num_brushes - world_brushes - new_brushes));
+  memmove(brushes + worldBrushes + newBrushes,
+          brushes + worldBrushes,
+          sizeof(Brush) * (num_brushes - worldBrushes - newBrushes));
 
   // copy the new brushes down
-  memcpy(brushes + world_brushes, temp, sizeof(Brush) * new_brushes);
+  memcpy(brushes + worldBrushes, temp, sizeof(Brush) * newBrushes);
 
   // fix up indexes
-  entities[0].num_brushes += new_brushes;
+  entities[0].numBrushes += newBrushes;
   for (int32_t i = 1; i < num_entities; i++) {
-    entities[i].first_brush += new_brushes;
+    entities[i].firstBrush += newBrushes;
   }
   Mem_Free(temp);
 
-  ent->num_brushes = 0;
-  ent->num_brush_sides = 0;
+  ent->numBrushes = 0;
+  ent->numBrushSides = 0;
 }
 
 /**
@@ -745,33 +745,33 @@ static void MoveBrushesToWorld(Entity *ent) {
  */
 static void MovePatchesToWorld(Entity *ent) {
 
-  const int32_t new_patches = ent->num_patches;
-  const int32_t world_patches = entities[0].num_patches;
+  const int32_t newPatches = ent->numPatches;
+  const int32_t worldPatches = entities[0].numPatches;
 
-  Patch *temp = Mem_TagMalloc(new_patches * sizeof(Patch), (MemTag) MEM_TAG_PATCH);
-  memcpy(temp, patches + ent->first_patch, new_patches * sizeof(Patch));
+  Patch *temp = Mem_TagMalloc(newPatches * sizeof(Patch), (MemTag) MEM_TAG_PATCH);
+  memcpy(temp, patches + ent->firstPatch, newPatches * sizeof(Patch));
 
   // make space to move the patches (overlapped copy)
-  memmove(patches + world_patches + new_patches,
-          patches + world_patches,
-          sizeof(Patch) * (num_patches - world_patches - new_patches));
+  memmove(patches + worldPatches + newPatches,
+          patches + worldPatches,
+          sizeof(Patch) * (num_patches - worldPatches - newPatches));
 
   // copy the new patches down
-  memcpy(patches + world_patches, temp, sizeof(Patch) * new_patches);
+  memcpy(patches + worldPatches, temp, sizeof(Patch) * newPatches);
 
   // fix up entity references
-  for (int32_t i = 0; i < new_patches; i++) {
-    patches[world_patches + i].entity = 0;
+  for (int32_t i = 0; i < newPatches; i++) {
+    patches[worldPatches + i].entity = 0;
   }
 
   // fix up indexes
-  entities[0].num_patches += new_patches;
+  entities[0].numPatches += newPatches;
   for (int32_t i = 1; i < num_entities; i++) {
-    entities[i].first_patch += new_patches;
+    entities[i].firstPatch += newPatches;
   }
   Mem_Free(temp);
 
-  ent->num_patches = 0;
+  ent->numPatches = 0;
 }
 
 /**
@@ -799,9 +799,9 @@ static Entity *ParseEntity(Parser *parser) {
 
     entity->bounds = Box3_Null();
 
-    entity->first_brush = num_brushes;
-    entity->first_brush_side = num_brush_sides;
-    entity->first_patch = num_patches;
+    entity->firstBrush = num_brushes;
+    entity->firstBrushSide = num_brush_sides;
+    entity->firstPatch = num_patches;
 
     while (true) {
 
@@ -817,8 +817,8 @@ static Entity *ParseEntity(Parser *parser) {
       if (!q_strcmp(token, "{")) {
         Brush *brush = ParseBrush(parser, entity);
         if (brush) {
-          entity->num_brushes++;
-          entity->num_brush_sides += brush->num_brush_sides;
+          entity->numBrushes++;
+          entity->numBrushSides += brush->numBrushSides;
           entity->bounds = Box3_Union(entity->bounds, brush->bounds);
         }
 
@@ -841,15 +841,15 @@ static Entity *ParseEntity(Parser *parser) {
     // if there was an origin brush, offset all of the planes and texture
     if (!Vec3_Equal(origin, Vec3_Zero())) {
 
-      Brush *brush = brushes + entity->first_brush;
-      for (int32_t i = 0; i < entity->num_brushes; i++, brush++) {
+      Brush *brush = brushes + entity->firstBrush;
+      for (int32_t i = 0; i < entity->numBrushes; i++, brush++) {
 
-        if (!brush->num_brush_sides) {
+        if (!brush->numBrushSides) {
           continue;
         }
 
-        BrushSide *side = brush->brush_sides;
-        for (int32_t j = 0; j < brush->num_brush_sides; j++, side++) {
+        BrushSide *side = brush->brushSides;
+        for (int32_t j = 0; j < brush->numBrushSides; j++, side++) {
 
           const Plane *plane = &planes[side->plane];
           const double dist = plane->dist - Vec3_Dot(plane->normal, origin);
@@ -923,7 +923,7 @@ MapFormat LoadMapFile(const char *filename) {
       break;
     }
 
-    if (entity->num_brush_sides) {
+    if (entity->numBrushSides) {
       SetValueForKey(entity, "model", va("*%d", models++));
     }
   }

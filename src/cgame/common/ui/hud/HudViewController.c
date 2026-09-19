@@ -102,7 +102,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   HudViewController *this = (HudViewController *) self;
 
   if (event->type == SDL_EVENT_KEY_DOWN) {
-    if (cgi.client->demo_server && cgi.GetKeyDest() == KEY_GAME) {
+    if (cgi.client->demoServer && cgi.GetKeyDest() == KEY_GAME) {
       $((View *) this->demoControls, respondToEvent, event);
     }
   }
@@ -445,7 +445,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
-  const bool scores = ps->stats[STAT_SCORES] && !cg_state.nav_edit;
+  const bool scores = ps->stats[STAT_SCORES] && !cg_state.navEdit;
 
   $((View *) self->scoreboard, setVisibility,
     scores ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -456,7 +456,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The maps are published only during the intermission, so their presence is what says
   // there is one; like the scoreboard, this shows when the hud does not
-  const bool intermission = cg_state.next_map.active && !cg_state.nav_edit;
+  const bool intermission = cg_state.nextMap.active && !cg_state.navEdit;
 
   $((View *) self->intermission, setVisibility,
     intermission ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -467,7 +467,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // demo transport controls: only while paused, never during active playback, so they never
   // intrude on a video capture the way an always-on overlay would
-  const bool demoControls = cgi.client->demo_server && cgi.demo->paused;
+  const bool demoControls = cgi.client->demoServer && cgi.demo->paused;
 
   $((View *) self->demoControls, setVisibility,
     demoControls ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -478,13 +478,13 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // the camera announcement shows itself only while spectating or watching a demo, and only
   // just after the camera changes, which it decides for itself in updateBindings
-  if (cgi.client->demo_server || ps->stats[STAT_SPECTATOR]) {
+  if (cgi.client->demoServer || ps->stats[STAT_SPECTATOR]) {
     $((View *) self->cameraControls, updateBindings, (ident) frame);
   } else {
     $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
-  const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
+  const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.navEdit;
 
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);

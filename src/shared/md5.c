@@ -158,19 +158,19 @@ void md5_update(md5_ctx *ctx, const void *data, size_t size) {
 }
 
 void md5_finalize(md5_ctx *ctx, uint8_t result[16]) {
-    uint64_t total_bits = ctx->size * 8;  // save before padding modifies size
+    uint64_t totalBits = ctx->size * 8;  // save before padding modifies size
 
     size_t index = ctx->size % 64;
-    size_t pad_size = (index < 56) ? (56 - index) : (120 - index);
+    size_t padSize = (index < 56) ? (56 - index) : (120 - index);
 
     static const uint8_t padding[64] = {0x80};
-    md5_update(ctx, padding, pad_size);
+    md5_update(ctx, padding, padSize);
 
-    uint8_t size_bytes[8];
+    uint8_t sizeBytes[8];
     for (int i = 0; i < 8; i++) {
-        size_bytes[i] = (uint8_t)(total_bits >> (i * 8));
+        sizeBytes[i] = (uint8_t)(totalBits >> (i * 8));
     }
-    md5_update(ctx, size_bytes, 8);
+    md5_update(ctx, sizeBytes, 8);
 
     for (int i = 0; i < 4; i++) {
         result[i*4]   = (uint8_t)(ctx->buffer[i]);

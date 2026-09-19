@@ -48,7 +48,7 @@ bool no_weld = false;
  */
 static void ProcessWorldModel(const Entity *e, BspModel *out) {
 
-  CsgBrush *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+  CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
 
   if (!no_csg) {
     brushes = SubtractBrushes(brushes);
@@ -81,9 +81,9 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
 
   TessellatePatches(out->entity);
 
-  AssignPatchFacesToNodes(tree->head_node, out->entity);
+  AssignPatchFacesToNodes(tree->headNode, out->entity);
 
-  out->head_node = EmitNodes(tree);
+  out->headNode = EmitNodes(tree);
 
   FreeTree(tree);
 }
@@ -93,7 +93,7 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
  */
 static void ProcessInlineModel(const Entity *e, BspModel *out) {
 
-  CsgBrush *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+  CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
   if (!no_csg) {
     brushes = SubtractBrushes(brushes);
   }
@@ -116,9 +116,9 @@ static void ProcessInlineModel(const Entity *e, BspModel *out) {
 
   TessellatePatches(out->entity);
 
-  AssignPatchFacesToNodes(tree->head_node, out->entity);
+  AssignPatchFacesToNodes(tree->headNode, out->entity);
 
-  out->head_node = EmitNodes(tree);
+  out->headNode = EmitNodes(tree);
 
   FreeTree(tree);
 }
@@ -131,7 +131,7 @@ static void ProcessModels(void) {
   for (int32_t i = 0; i < num_entities; i++) {
     const Entity *e = entities + i;
 
-    if (!e->num_brush_sides) {
+    if (!e->numBrushSides) {
       continue;
     }
 

@@ -47,10 +47,10 @@ static void R_FreeMaterial(RenderMedia *self) {
  */
 static RenderAnimation *R_LoadStageAnimation(const RenderMaterial *material, RenderStage *stage, int32_t index) {
 
-  const RenderImage *images[stage->cm->animation.num_frames];
+  const RenderImage *images[stage->cm->animation.numFrames];
   const RenderImage **out = images;
 
-  for (int32_t i = 0; i < stage->cm->animation.num_frames; i++, out++) {
+  for (int32_t i = 0; i < stage->cm->animation.numFrames; i++, out++) {
 
     Asset *frame = &stage->cm->animation.frames[i];
     if (*frame->path) {
@@ -61,7 +61,7 @@ static RenderAnimation *R_LoadStageAnimation(const RenderMaterial *material, Ren
     }
   }
 
-  return R_CreateAnimation(va("%s_%d_animation", material->media.name, index), stage->cm->animation.num_frames, images);
+  return R_CreateAnimation(va("%s_%d_animation", material->media.name, index), stage->cm->animation.numFrames, images);
 }
 
 /**
@@ -127,16 +127,16 @@ static void R_NormalizeMaterialHeightmap(SDL_Surface *normalmap) {
   const int32_t w = normalmap->w;
   const int32_t h = normalmap->h;
 
-  bool has_heightmap = false;
+  bool hasHeightmap = false;
   Color32 *pixels = normalmap->pixels;
   for (int32_t i = 0; i < w * h; i++) {
     if (pixels[i].a != 255) {
-      has_heightmap = true;
+      hasHeightmap = true;
       break;
     }
   }
 
-  if (!has_heightmap) {
+  if (!hasHeightmap) {
     return;
   }
 
@@ -181,10 +181,10 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
  * @brief Resolves the media for a material's stages.
  */
 static void R_ResolveMaterialStages(RenderMaterial *material) {
-  int32_t num_stages = 0;
+  int32_t numStages = 0;
 
   const CmMaterial *cm = material->cm;
-  for (const CmStage *cs = cm->stages; cs; cs = cs->next, num_stages++) {
+  for (const CmStage *cs = cm->stages; cs; cs = cs->next, numStages++) {
 
     RenderStage *stage = (RenderStage *) Mem_LinkMalloc(sizeof(RenderStage), material);
     stage->cm = cs;
@@ -198,7 +198,7 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
 
     if (*stage->cm->asset.path) {
       if (stage->cm->flags & STAGE_ANIMATION) {
-        stage->media = (RenderMedia *) R_LoadStageAnimation(material, stage, num_stages);
+        stage->media = (RenderMedia *) R_LoadStageAnimation(material, stage, numStages);
       } else {
         stage->media = (RenderMedia *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
       }
@@ -211,7 +211,7 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
     R_AppendStage(material, stage);
   }
 
-  Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->cm->name, num_stages);
+  Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->cm->name, numStages);
 }
 
 /**
@@ -263,7 +263,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
   const int32_t w = material->texture->width = diffusemap->w;
   const int32_t h = material->texture->height = diffusemap->h;
 
-  const size_t layer_size = w * h * 4;
+  const size_t layerSize = w * h * 4;
 
   switch (cm->context) {
     case ASSET_CONTEXT_TEXTURES:
@@ -312,12 +312,12 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
       material->texture->depth = 4;
 
-      byte *data = malloc(layer_size * material->texture->depth);
+      byte *data = malloc(layerSize * material->texture->depth);
 
-      memcpy(data + 0 * layer_size, diffusemap->pixels, layer_size);
-      memcpy(data + 1 * layer_size, normalmap->pixels, layer_size);
-      memcpy(data + 2 * layer_size, specularmap->pixels, layer_size);
-      memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
+      memcpy(data + 0 * layerSize, diffusemap->pixels, layerSize);
+      memcpy(data + 1 * layerSize, normalmap->pixels, layerSize);
+      memcpy(data + 2 * layerSize, specularmap->pixels, layerSize);
+      memcpy(data + 3 * layerSize, tintmap->pixels, layerSize);
 
       const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
 
@@ -378,7 +378,7 @@ void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderM
   memset(out, 0, sizeof(*out));
 
   out->surface = surface;
-  out->alpha_test = cm->alpha_test * r_alpha_test->value;
+  out->alphaTest = cm->alphaTest * r_alpha_test->value;
   out->roughness = cm->roughness * r_roughness->value;
   out->hardness = cm->hardness * r_hardness->value;
   out->specularity = cm->specularity * r_specularity->value;
@@ -403,7 +403,7 @@ static float R_StageDriftHash(const void *a, const void *b) {
  * @brief Populates stage uniforms and resolves stage textures.
  */
 bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const RenderBspDrawElements *draw, const RenderStage *stage,
-                     RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next) {
+                     RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **textureNext) {
 
   const CmStage *cm = stage->cm;
 
@@ -411,7 +411,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
 
   out->flags = stage->flags;
   out->color = cm->color.vec4;
-  out->st_origin = draw ? draw->st_origin : Vec2_Zero();
+  out->stOrigin = draw ? draw->stOrigin : Vec2_Zero();
   out->stretch = MakeVec2(cm->stretch.amplitude, cm->stretch.hz);
   out->scroll = MakeVec2(cm->scroll.s, cm->scroll.t);
   out->scale = MakeVec2(cm->scale.s, cm->scale.t);
@@ -426,7 +426,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
   out->shell = cm->shell.radius;
 
   *texture = NULL;
-  *texture_next = NULL;
+  *textureNext = NULL;
 
   if (stage->media == NULL) {
     return false;
@@ -438,14 +438,14 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
       const RenderImage *image = (const RenderImage *) stage->media;
       if (image->texture) {
         *texture = image->texture->texture;
-        *texture_next = image->texture->texture;
+        *textureNext = image->texture->texture;
       }
     }
       break;
 
     case R_MEDIA_ANIMATION: {
       const RenderAnimation *animation = (const RenderAnimation *) stage->media;
-      if (animation->num_frames == 0) {
+      if (animation->numFrames == 0) {
         return false;
       }
 
@@ -459,22 +459,22 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
         }
       } else {
         const float drift = cm->animation.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
-        const float frame_f = (view->ticks / 1000.f + drift) * cm->animation.fps;
-        frame = (int32_t) frame_f;
+        const float frameF = (view->ticks / 1000.f + drift) * cm->animation.fps;
+        frame = (int32_t) frameF;
         if (cm->flags & STAGE_ANIM_LERP) {
-          lerp = frame_f - floorf(frame_f);
+          lerp = frameF - floorf(frameF);
         }
       }
 
-      const RenderImage *cur = animation->frames[((frame % animation->num_frames) + animation->num_frames) % animation->num_frames];
+      const RenderImage *cur = animation->frames[((frame % animation->numFrames) + animation->numFrames) % animation->numFrames];
       *texture = cur->texture ? cur->texture->texture : NULL;
 
       if (cm->flags & STAGE_ANIM_LERP) {
-        const RenderImage *next = animation->frames[(((frame + 1) % animation->num_frames) + animation->num_frames) % animation->num_frames];
-        *texture_next = next->texture ? next->texture->texture : NULL;
+        const RenderImage *next = animation->frames[(((frame + 1) % animation->numFrames) + animation->numFrames) % animation->numFrames];
+        *textureNext = next->texture ? next->texture->texture : NULL;
         out->lerp = lerp;
       } else {
-        *texture_next = *texture;
+        *textureNext = *texture;
       }
     }
       break;
@@ -483,7 +483,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
       return false;
   }
 
-  return *texture != NULL && *texture_next != NULL;
+  return *texture != NULL && *textureNext != NULL;
 }
 
 /**

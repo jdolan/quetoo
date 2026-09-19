@@ -121,7 +121,7 @@
 
 /**
  * @brief The default player bounding boxes: what `PlayerMoveParams.bounds`,
- * `.bounds_ducked` and `.bounds_dead` default to, and what code with no
+ * `.bounds_ducked` and `.boundsDead` default to, and what code with no
  * parameters to hand may use. `Pm_Bounds` gives the live box for a set of
  * parameters; the dead box is read straight from them, by `Pm_Init`.
  */
@@ -185,18 +185,18 @@ typedef struct PlayerMove {
 
   PlayerMoveState s; // movement state (in / out)
 
-  float hook_pull_speed; // hook pull speed (in)
+  float hookPullSpeed; // hook pull speed (in)
 
   CmTrace touched[PM_MAX_TOUCHS]; // entities touched (out)
-  int32_t num_touched;
+  int32_t numTouched;
 
   Vec3 angles; // clamped, and including kick and delta (out)
   Box3 bounds; // bounding box size (out)
 
   CmTrace ground; // (in / out)
 
-  int32_t water_type; // water type and level (out)
-  PlayerMoveWaterLevel water_level;
+  int32_t waterType; // water type and level (out)
+  PlayerMoveWaterLevel waterLevel;
 
   float step; // traversed step height (out)
 
@@ -210,7 +210,7 @@ typedef struct PlayerMove {
   // print debug messages for development
   DebugFlags (*DebugMask)(void);
   void (*Debug)(const DebugFlags debug, const char *func, const char *fmt, ...);
-  DebugFlags debug_mask;
+  DebugFlags debugMask;
 } PlayerMove;
 
 /**
@@ -295,4 +295,4 @@ bool Pm_MovementByName(const char *name, PlayerMovement *movement);
  * `PlayerMoveParams.kernel` names. The parameters travel with the player, so the
  * server and the client run the same kernel over the same numbers.
  */
-void Pm_Move(PlayerMove *pm_move);
+void Pm_Move(PlayerMove *pmMove);

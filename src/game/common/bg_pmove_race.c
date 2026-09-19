@@ -69,31 +69,31 @@
 
 const PlayerMoveParams pm_race_params = {
   .gravity = 800,
-  .accel_ground = 10.f,
-  .accel_ground_slick = 10.f,
-  .accel_air = 1.f,             // uncapped wish, so strafing gains over a wide arc
-  .accel_water = 10.f,
-  .accel_spectator = 10.f,
-  .accel_ladder = 10.f,
-  .friction_ground = 6.f,
-  .friction_ground_slick = 0.f,
-  .friction_air = 0.f,
-  .friction_water = 1.f,
-  .friction_spectator = 6.f,
-  .friction_ladder = 6.f,
-  .speed_ground = 300.f,
-  .speed_air = 300.f,
-  .speed_water = 400.f,
-  .speed_ladder = 200.f,
-  .speed_spectator = 500.f,
-  .speed_stop = 100.f,
-  .speed_jump = 270.f,          // what a jump adds, not what it sets
-  .speed_ducked = 100.f,
-  .speed_duck_stand = 0.f,
-  .speed_water_jump = 350.f,
+  .accelGround = 10.f,
+  .accelGroundSlick = 10.f,
+  .accelAir = 1.f,             // uncapped wish, so strafing gains over a wide arc
+  .accelWater = 10.f,
+  .accelSpectator = 10.f,
+  .accelLadder = 10.f,
+  .frictionGround = 6.f,
+  .frictionGroundSlick = 0.f,
+  .frictionAir = 0.f,
+  .frictionWater = 1.f,
+  .frictionSpectator = 6.f,
+  .frictionLadder = 6.f,
+  .speedGround = 300.f,
+  .speedAir = 300.f,
+  .speedWater = 400.f,
+  .speedLadder = 200.f,
+  .speedSpectator = 500.f,
+  .speedStop = 100.f,
+  .speedJump = 270.f,          // what a jump adds, not what it sets
+  .speedDucked = 100.f,
+  .speedDuckStand = 0.f,
+  .speedWaterJump = 350.f,
   .bounds = PM_RACE_BOUNDS,
-  .bounds_ducked = PM_RACE_BOUNDS_DUCKED,
-  .bounds_dead = PM_RACE_BOUNDS_DUCKED // a corpse is simply ducked, as in Quake II
+  .boundsDucked = PM_RACE_BOUNDS_DUCKED,
+  .boundsDead = PM_RACE_BOUNDS_DUCKED // a corpse is simply ducked, as in Quake II
 };
 
 #define PM_RACE_STEP_SIZE        18.f  // STEPSIZE
@@ -172,26 +172,26 @@ static Vec3 Pm_RaceClipVelocity(const Vec3 in, const Vec3 normal) {
  */
 static void Pm_RaceSlideMove(void) {
 
-  const Vec3 primal_velocity = pm->s.velocity;
+  const Vec3 primalVelocity = pm->s.velocity;
 
   CmBspPlane planes[PM_RACE_CLIP_PLANES];
-  int32_t num_planes = 0;
+  int32_t numPlanes = 0;
 
-  float time_left = pm_locals.time;
+  float timeLeft = pm_locals.time;
 
   for (int32_t bump = 0; bump < PM_RACE_BUMPS; bump++) {
 
-    const Vec3 end = Vec3_Fmaf(pm->s.origin, time_left, pm->s.velocity);
+    const Vec3 end = Vec3_Fmaf(pm->s.origin, timeLeft, pm->s.velocity);
     const CmTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
 
-    if (trace.all_solid) { // trapped in a solid
+    if (trace.allSolid) { // trapped in a solid
       pm->s.velocity.z = 0.f; // and do not build up falling damage
       return;
     }
 
     if (trace.fraction > 0.f) { // covered some distance
       pm->s.origin = trace.end;
-      num_planes = 0;
+      numPlanes = 0;
     }
 
     if (trace.fraction == 1.f) { // moved the entire distance
@@ -200,34 +200,34 @@ static void Pm_RaceSlideMove(void) {
 
     Pm_TouchEntity(&trace);
 
-    time_left -= time_left * trace.fraction;
+    timeLeft -= timeLeft * trace.fraction;
 
-    if (num_planes >= PM_RACE_CLIP_PLANES) { // this should not happen
+    if (numPlanes >= PM_RACE_CLIP_PLANES) { // this should not happen
       pm->s.velocity = Vec3_Zero();
       break;
     }
 
-    planes[num_planes++] = trace.plane;
+    planes[numPlanes++] = trace.plane;
 
     // slide along the first plane that the others do not immediately undo
     int32_t i;
-    for (i = 0; i < num_planes; i++) {
+    for (i = 0; i < numPlanes; i++) {
       pm->s.velocity = Pm_RaceClipVelocity(pm->s.velocity, planes[i].normal);
 
       int32_t j;
-      for (j = 0; j < num_planes; j++) {
+      for (j = 0; j < numPlanes; j++) {
         if (j != i && Vec3_Dot(pm->s.velocity, planes[j].normal) < 0.f) {
           break;
         }
       }
 
-      if (j == num_planes) {
+      if (j == numPlanes) {
         break;
       }
     }
 
-    if (i == num_planes) { // no such plane, so go along the crease
-      if (num_planes != 2) {
+    if (i == numPlanes) { // no such plane, so go along the crease
+      if (numPlanes != 2) {
         pm->s.velocity = Vec3_Zero();
         break;
       }
@@ -237,14 +237,14 @@ static void Pm_RaceSlideMove(void) {
     }
 
     // stop dead rather than oscillate in a sloping corner
-    if (Vec3_Dot(pm->s.velocity, primal_velocity) <= 0.f) {
+    if (Vec3_Dot(pm->s.velocity, primalVelocity) <= 0.f) {
       pm->s.velocity = Vec3_Zero();
       break;
     }
   }
 
   if (pm->s.time) { // a timed move keeps the velocity it was given
-    pm->s.velocity = primal_velocity;
+    pm->s.velocity = primalVelocity;
   }
 }
 
@@ -254,25 +254,25 @@ static void Pm_RaceSlideMove(void) {
  */
 static void Pm_RaceStepSlideMove(void) {
 
-  const Vec3 start_origin = pm->s.origin;
-  const Vec3 start_velocity = pm->s.velocity;
+  const Vec3 startOrigin = pm->s.origin;
+  const Vec3 startVelocity = pm->s.velocity;
 
   Pm_RaceSlideMove();
 
-  const Vec3 down_origin = pm->s.origin;
-  const Vec3 down_velocity = pm->s.velocity;
+  const Vec3 downOrigin = pm->s.origin;
+  const Vec3 downVelocity = pm->s.velocity;
 
-  const Vec3 up = MakeVec3(start_origin.x, start_origin.y,
-                         start_origin.z + PM_RACE_STEP_SIZE);
+  const Vec3 up = MakeVec3(startOrigin.x, startOrigin.y,
+                         startOrigin.z + PM_RACE_STEP_SIZE);
 
   // pm->Trace and not Pm_Trace: the latter jitters the start by up to a unit to
   // escape a solid, so it cannot answer whether the box fits where it is
-  if (pm->Trace(up, up, pm->bounds).all_solid) {
+  if (pm->Trace(up, up, pm->bounds).allSolid) {
     return; // no room to step up
   }
 
   pm->s.origin = up;
-  pm->s.velocity = start_velocity;
+  pm->s.velocity = startVelocity;
 
   Pm_RaceSlideMove();
 
@@ -282,23 +282,23 @@ static void Pm_RaceStepSlideMove(void) {
 
   const CmTrace trace = Pm_Trace(pm->s.origin, down, pm->bounds);
 
-  if (!trace.all_solid) {
+  if (!trace.allSolid) {
     pm->s.origin = trace.end;
   }
 
-  const float down_dist = Vec2_DistanceSquared(Vec3_XY(down_origin), Vec3_XY(start_origin));
-  const float up_dist = Vec2_DistanceSquared(Vec3_XY(pm->s.origin), Vec3_XY(start_origin));
+  const float downDist = Vec2_DistanceSquared(Vec3_XY(downOrigin), Vec3_XY(startOrigin));
+  const float upDist = Vec2_DistanceSquared(Vec3_XY(pm->s.origin), Vec3_XY(startOrigin));
 
-  if (down_dist > up_dist || trace.plane.normal.z < PM_RACE_STEP_NORMAL) {
-    pm->s.origin = down_origin;
-    pm->s.velocity = down_velocity;
+  if (downDist > upDist || trace.plane.normal.z < PM_RACE_STEP_NORMAL) {
+    pm->s.origin = downOrigin;
+    pm->s.velocity = downVelocity;
     return;
   }
 
   // walking along a plane keeps the vertical speed the flat move ended with
-  pm->s.velocity.z = down_velocity.z;
+  pm->s.velocity.z = downVelocity.z;
 
-  pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
+  pm->step = pm->s.origin.z - pm_locals.previousOrigin.z;
 }
 
 /**
@@ -322,12 +322,12 @@ static void Pm_RaceFriction(void) {
   // would scrub the climb as well as the run
   if (((pm->s.flags & PMF_ON_GROUND) && !slick && !pm_race_sliding) ||
       (pm->s.flags & PMF_ON_LADDER)) {
-    const float control = Maxf(speed, pm->s.params.speed_stop);
-    drop += control * pm->s.params.friction_ground * pm_locals.time;
+    const float control = Maxf(speed, pm->s.params.speedStop);
+    drop += control * pm->s.params.frictionGround * pm_locals.time;
   }
 
-  if (pm->water_level && !(pm->s.flags & PMF_ON_LADDER)) {
-    drop += speed * pm->s.params.friction_water * (float) pm->water_level * pm_locals.time;
+  if (pm->waterLevel && !(pm->s.flags & PMF_ON_LADDER)) {
+    drop += speed * pm->s.params.frictionWater * (float) pm->waterLevel * pm_locals.time;
   }
 
   pm->s.velocity = Vec3_Scale(pm->s.velocity, Maxf(0.f, speed - drop) / speed);
@@ -338,14 +338,14 @@ static void Pm_RaceFriction(void) {
  */
 static void Pm_RaceAccelerate(const Vec3 dir, float speed, float accel) {
 
-  const float add_speed = speed - Vec3_Dot(pm->s.velocity, dir);
-  if (add_speed <= 0.f) {
+  const float addSpeed = speed - Vec3_Dot(pm->s.velocity, dir);
+  if (addSpeed <= 0.f) {
     return;
   }
 
-  const float accel_speed = Minf(accel * pm_locals.time * speed, add_speed);
+  const float accelSpeed = Minf(accel * pm_locals.time * speed, addSpeed);
 
-  pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
+  pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
 }
 
 /**
@@ -356,7 +356,7 @@ static Vec3 Pm_RaceAddCurrents(Vec3 wish) {
   if ((pm->s.flags & PMF_ON_LADDER) &&
       fabsf(pm->s.velocity.z) <= PM_RACE_LADDER_HOLD) {
 
-    const float speed = pm->s.params.speed_ladder;
+    const float speed = pm->s.params.speedLadder;
 
     if (pm->angles.x <= -15.f && pm->cmd.forward > 0) {
       wish.z = speed;
@@ -374,30 +374,30 @@ static Vec3 Pm_RaceAddCurrents(Vec3 wish) {
     wish.y = Clampf(wish.y, -PM_RACE_LADDER_SPEED, PM_RACE_LADDER_SPEED);
   }
 
-  if (pm->water_type & CONTENTS_MASK_CURRENT) {
+  if (pm->waterType & CONTENTS_MASK_CURRENT) {
     Vec3 current = Vec3_Zero();
 
-    if (pm->water_type & CONTENTS_CURRENT_0) {
+    if (pm->waterType & CONTENTS_CURRENT_0) {
       current.x += 1.f;
     }
-    if (pm->water_type & CONTENTS_CURRENT_90) {
+    if (pm->waterType & CONTENTS_CURRENT_90) {
       current.y += 1.f;
     }
-    if (pm->water_type & CONTENTS_CURRENT_180) {
+    if (pm->waterType & CONTENTS_CURRENT_180) {
       current.x -= 1.f;
     }
-    if (pm->water_type & CONTENTS_CURRENT_270) {
+    if (pm->waterType & CONTENTS_CURRENT_270) {
       current.y -= 1.f;
     }
-    if (pm->water_type & CONTENTS_CURRENT_UP) {
+    if (pm->waterType & CONTENTS_CURRENT_UP) {
       current.z += 1.f;
     }
-    if (pm->water_type & CONTENTS_CURRENT_DOWN) {
+    if (pm->waterType & CONTENTS_CURRENT_DOWN) {
       current.z -= 1.f;
     }
 
-    float speed = pm->s.params.speed_water;
-    if (pm->water_level == WATER_FEET && (pm->s.flags & PMF_ON_GROUND)) {
+    float speed = pm->s.params.speedWater;
+    if (pm->waterLevel == WATER_FEET && (pm->s.flags & PMF_ON_GROUND)) {
       speed *= .5f;
     }
 
@@ -453,9 +453,9 @@ static void Pm_RaceWaterMove(void) {
 
   float speed;
   const Vec3 dir = Vec3_NormalizeLength(wish, &speed);
-  speed = Minf(speed, pm->s.params.speed_ground) * PM_RACE_WATER_SCALE;
+  speed = Minf(speed, pm->s.params.speedGround) * PM_RACE_WATER_SCALE;
 
-  Pm_RaceAccelerate(dir, speed, pm->s.params.accel_water);
+  Pm_RaceAccelerate(dir, speed, pm->s.params.accelWater);
 
   Pm_RaceStepSlideMove();
 }
@@ -487,16 +487,16 @@ static void Pm_RaceAirMove(void) {
   float speed;
   const Vec3 dir = Vec3_NormalizeLength(wish, &speed);
 
-  const float max_speed = (pm->s.flags & PMF_DUCKED)
-                          ? pm->s.params.speed_ducked
-                          : pm->s.params.speed_ground;
-  speed = Minf(speed, max_speed);
+  const float maxSpeed = (pm->s.flags & PMF_DUCKED)
+                          ? pm->s.params.speedDucked
+                          : pm->s.params.speedGround;
+  speed = Minf(speed, maxSpeed);
 
   const float gravity = pm->s.params.gravity * pm_locals.time;
 
   if (pm->s.flags & PMF_ON_LADDER) {
 
-    Pm_RaceAccelerate(dir, speed, pm->s.params.accel_ladder);
+    Pm_RaceAccelerate(dir, speed, pm->s.params.accelLadder);
 
     if (wish.z == 0.f) { // hold still against gravity
       if (pm->s.velocity.z > 0.f) {
@@ -510,7 +510,7 @@ static void Pm_RaceAirMove(void) {
 
   } else if (pm->s.flags & PMF_ON_GROUND) {
 
-    float accel = pm->s.params.accel_ground;
+    float accel = pm->s.params.accelGround;
 
     if (pm_race_sliding) {
       Vec3 along = pm->s.velocity;
@@ -546,7 +546,7 @@ static void Pm_RaceAirMove(void) {
 
     // a plain acceleration at 1, with no cap on the wished speed, so strafing
     // gains over a wide arc - which is what racing wants
-    Pm_RaceAccelerate(dir, speed, pm->s.params.accel_air);
+    Pm_RaceAccelerate(dir, speed, pm->s.params.accelAir);
 
     pm->s.velocity.z -= gravity;
 
@@ -564,7 +564,7 @@ static void Pm_RaceCategorizePosition(void) {
   // ground the move was handed is what carries the edge - and it must be read
   // before this function overwrites it, or every grounded frame looks like a
   // landing and the jump lockout never lifts
-  const bool was_grounded = pm->ground.ent != NULL;
+  const bool wasGrounded = pm->ground.ent != NULL;
 
   if (pm->s.flags & PMF_TIME_PUSHED) { // the plumbing asks us not to seek ground
     pm->s.flags &= ~PMF_ON_GROUND;
@@ -583,7 +583,7 @@ static void Pm_RaceCategorizePosition(void) {
     pm_locals.ground = trace;
 
     // a steep plane is still ground if we started inside it
-    if (!trace.ent || (trace.plane.normal.z < PM_RACE_GROUND_NORMAL && !trace.start_solid)) {
+    if (!trace.ent || (trace.plane.normal.z < PM_RACE_GROUND_NORMAL && !trace.startSolid)) {
       pm->s.flags &= ~PMF_ON_GROUND;
       memset(&pm->ground, 0, sizeof(pm->ground));
     } else {
@@ -603,7 +603,7 @@ static void Pm_RaceCategorizePosition(void) {
         pm_race_sliding = true;
       }
 
-      if (!was_grounded) { // just landed
+      if (!wasGrounded) { // just landed
 
         // a hard landing locks the jump out briefly
         if (pm->s.velocity.z < PM_RACE_LAND_SPEED) {
@@ -618,11 +618,11 @@ static void Pm_RaceCategorizePosition(void) {
     Pm_TouchEntity(&trace);
   }
 
-  pm->water_level = WATER_NONE;
-  pm->water_type = 0;
+  pm->waterLevel = WATER_NONE;
+  pm->waterType = 0;
 
   // the samples follow the eye, so ducking changes what counts as submerged
-  const float sample2 = pm->s.view_offset.z - pm->bounds.mins.z;
+  const float sample2 = pm->s.viewOffset.z - pm->bounds.mins.z;
   const float sample1 = sample2 * .5f;
 
   Vec3 point = MakeVec3(pm->s.origin.x, pm->s.origin.y,
@@ -631,20 +631,20 @@ static void Pm_RaceCategorizePosition(void) {
   int32_t contents = pm->PointContents(point);
 
   if (contents & CONTENTS_MASK_LIQUID) {
-    pm->water_type = contents;
-    pm->water_level = WATER_FEET;
+    pm->waterType = contents;
+    pm->waterLevel = WATER_FEET;
 
     point.z = pm->s.origin.z + pm->bounds.mins.z + sample1;
     contents = pm->PointContents(point);
 
     if (contents & CONTENTS_MASK_LIQUID) {
-      pm->water_level = WATER_WAIST;
+      pm->waterLevel = WATER_WAIST;
 
       point.z = pm->s.origin.z + pm->bounds.mins.z + sample2;
       contents = pm->PointContents(point);
 
       if (contents & CONTENTS_MASK_LIQUID) {
-        pm->water_level = WATER_UNDER;
+        pm->waterLevel = WATER_UNDER;
         pm->s.flags |= PMF_UNDER_WATER;
       }
     }
@@ -675,7 +675,7 @@ static void Pm_RaceCheckJump(void) {
     return;
   }
 
-  if (pm->water_level >= WATER_WAIST) { // swimming, not jumping
+  if (pm->waterLevel >= WATER_WAIST) { // swimming, not jumping
     pm->s.flags &= ~PMF_ON_GROUND;
     memset(&pm->ground, 0, sizeof(pm->ground));
 
@@ -683,9 +683,9 @@ static void Pm_RaceCheckJump(void) {
       return;
     }
 
-    if (pm->water_type & CONTENTS_LAVA) {
+    if (pm->waterType & CONTENTS_LAVA) {
       pm->s.velocity.z = 50.f;
-    } else if (pm->water_type & CONTENTS_SLIME) {
+    } else if (pm->waterType & CONTENTS_SLIME) {
       pm->s.velocity.z = 80.f;
     } else {
       pm->s.velocity.z = 100.f;
@@ -712,7 +712,7 @@ static void Pm_RaceCheckJump(void) {
   // a jump adds to the vertical speed already present rather than replacing it,
   // so jumps can be stacked off a ramp or a lift
 
-  const float jump = Minf(pm->s.params.speed_jump,
+  const float jump = Minf(pm->s.params.speedJump,
                           PM_RACE_JUMP_CEILING - pm->s.velocity.z);
 
   pm->s.velocity.z += jump;
@@ -740,7 +740,7 @@ static void Pm_RaceCheckSpecialMovement(void) {
     pm->s.flags |= PMF_ON_LADDER;
   }
 
-  if (pm->water_level != WATER_WAIST) {
+  if (pm->waterLevel != WATER_WAIST) {
     return;
   }
 
@@ -758,7 +758,7 @@ static void Pm_RaceCheckSpecialMovement(void) {
   }
 
   pm->s.velocity = Vec3_Scale(forward, PM_RACE_WATER_JUMP_PUSH);
-  pm->s.velocity.z = pm->s.params.speed_water_jump;
+  pm->s.velocity.z = pm->s.params.speedWaterJump;
 
   pm->s.flags |= PMF_TIME_WATER_JUMP;
   pm->s.time = PM_RACE_WATER_JUMP_TIME;
@@ -772,7 +772,7 @@ static void Pm_RaceCheckDuck(void) {
 
   if (pm->s.type == PM_DEAD) {
     if (pm->s.flags & PMF_GIBLET) {
-      pm->s.view_offset.z = 8.f;
+      pm->s.viewOffset.z = 8.f;
       return;
     }
 
@@ -781,7 +781,7 @@ static void Pm_RaceCheckDuck(void) {
     // leaves the box Pm_Init took from the parameters, which is the same box and
     // is the one a ruleset can actually change
     pm->s.flags |= PMF_DUCKED;
-    pm->s.view_offset.z = PM_RACE_VIEW_HEIGHT_DUCK;
+    pm->s.viewOffset.z = PM_RACE_VIEW_HEIGHT_DUCK;
     return;
   } else if (pm->cmd.up < 0 && pm->ground.ent) {
     // Quake II reads its own ON_GROUND flag here, which persists between moves;
@@ -792,7 +792,7 @@ static void Pm_RaceCheckDuck(void) {
     pm->bounds = Pm_Bounds(&pm->s.params, false);
 
     // again pm->Trace, so a ceiling cannot be jittered out from under us
-    if (!pm->Trace(pm->s.origin, pm->s.origin, pm->bounds).all_solid) {
+    if (!pm->Trace(pm->s.origin, pm->s.origin, pm->bounds).allSolid) {
       pm->s.flags &= ~PMF_DUCKED;
     }
   }
@@ -800,7 +800,7 @@ static void Pm_RaceCheckDuck(void) {
   const bool ducked = pm->s.flags & PMF_DUCKED;
 
   pm->bounds = Pm_Bounds(&pm->s.params, ducked);
-  pm->s.view_offset.z = ducked ? PM_RACE_VIEW_HEIGHT_DUCK : PM_RACE_VIEW_HEIGHT;
+  pm->s.viewOffset.z = ducked ? PM_RACE_VIEW_HEIGHT_DUCK : PM_RACE_VIEW_HEIGHT;
 }
 
 /**
@@ -872,13 +872,13 @@ static void Pm_RaceSnapPosition(void) {
       candidate.z += sign.z / PM_RACE_SNAP;
     }
 
-    if (!pm->Trace(candidate, candidate, pm->bounds).all_solid) {
+    if (!pm->Trace(candidate, candidate, pm->bounds).allSolid) {
       pm->s.origin = candidate;
       return;
     }
   }
 
-  pm->s.origin = pm_locals.previous_origin; // nowhere to be, so stay put
+  pm->s.origin = pm_locals.previousOrigin; // nowhere to be, so stay put
 }
 
 /**
@@ -917,7 +917,7 @@ void Pm_RaceMove(void) {
 
     Pm_RaceFriction();
 
-    if (pm->water_level >= WATER_WAIST) {
+    if (pm->waterLevel >= WATER_WAIST) {
       Pm_RaceWaterMove();
     } else {
       Pm_RaceAirMove();

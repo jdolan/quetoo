@@ -36,24 +36,24 @@ static void Cg_WeaponBob(const PlayerState *ps, Vec3 *offset, Vec3 *angles) {
  */
 static void Cg_WeaponOffset(ClientEntity *ent, Vec3 *offset, Vec3 *angles) {
 
-  const Vec3 drop_raise_offset = MakeVec3(-4.f, -4.f, -4.f);
-  const Vec3 drop_raise_angles = MakeVec3(25.f, -35.f, 2.f);
+  const Vec3 dropRaiseOffset = MakeVec3(-4.f, -4.f, -4.f);
+  const Vec3 dropRaiseAngles = MakeVec3(25.f, -35.f, 2.f);
 
-  const Vec3 kick_offset = MakeVec3(-6.f, 0.f, 0.f);
-  const Vec3 kick_angles = MakeVec3(-2.f, 0.f, 0.f);
+  const Vec3 kickOffset = MakeVec3(-6.f, 0.f, 0.f);
+  const Vec3 kickAngles = MakeVec3(-2.f, 0.f, 0.f);
 
   *offset = Vec3_Zero();
   *angles = Vec3_Zero();
 
   if (ent->animation1.animation == ANIM_TORSO_DROP) {
-    *offset = Vec3_Fmaf(*offset, ent->animation1.fraction, drop_raise_offset);
-    *angles = Vec3_Scale(drop_raise_angles, ent->animation1.fraction);
+    *offset = Vec3_Fmaf(*offset, ent->animation1.fraction, dropRaiseOffset);
+    *angles = Vec3_Scale(dropRaiseAngles, ent->animation1.fraction);
   } else if (ent->animation1.animation == ANIM_TORSO_RAISE) {
-    *offset = Vec3_Fmaf(*offset, 1.f - ent->animation1.fraction, drop_raise_offset);
-    *angles = Vec3_Scale(drop_raise_angles, 1.f - ent->animation1.fraction);
+    *offset = Vec3_Fmaf(*offset, 1.f - ent->animation1.fraction, dropRaiseOffset);
+    *angles = Vec3_Scale(dropRaiseAngles, 1.f - ent->animation1.fraction);
   } else if (ent->animation1.animation == ANIM_TORSO_ATTACK1) {
-    *offset = Vec3_Fmaf(*offset, 1.f - ent->animation1.fraction, kick_offset);
-    *angles = Vec3_Scale(kick_angles, 1.f - ent->animation1.fraction);
+    *offset = Vec3_Fmaf(*offset, 1.f - ent->animation1.fraction, kickOffset);
+    *angles = Vec3_Scale(kickAngles, 1.f - ent->animation1.fraction);
   }
 
   *offset = Vec3_Scale(*offset, cg_bob->value);
@@ -70,7 +70,7 @@ static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
   static Vec3 old_speed, new_speed;
   static uint32_t time;
 
-  if (cgi.client->unclamped_time < time) {
+  if (cgi.client->unclampedTime < time) {
     time = 0;
 
     old_speed = Vec3_Zero();
@@ -79,7 +79,7 @@ static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
 
   Vec3 speed;
 
-  const uint32_t delta = cgi.client->unclamped_time - time;
+  const uint32_t delta = cgi.client->unclampedTime - time;
   if (delta < 100) {
     const float lerp = delta / 100.f;
 
@@ -89,13 +89,13 @@ static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
   } else {
     old_speed = new_speed;
 
-    new_speed.x = -Clampf(ps->pm_state.velocity.x / 200.f, -1.f, 1.f);
-    new_speed.y = -Clampf(ps->pm_state.velocity.y / 200.f, -1.f, 1.f);
-    new_speed.z = -Clampf(ps->pm_state.velocity.z / 200.f, -.3f, 1.f);
+    new_speed.x = -Clampf(ps->pmState.velocity.x / 200.f, -1.f, 1.f);
+    new_speed.y = -Clampf(ps->pmState.velocity.y / 200.f, -1.f, 1.f);
+    new_speed.z = -Clampf(ps->pmState.velocity.z / 200.f, -.3f, 1.f);
 
     speed = old_speed;
 
-    time = cgi.client->unclamped_time;
+    time = cgi.client->unclampedTime;
   }
 
   if (cg_draw_weapon_bob->modified) {
@@ -120,7 +120,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
     return;
   }
 
-  if (cgi.client->third_person) {
+  if (cgi.client->thirdPerson) {
     return;
   }
 
@@ -132,7 +132,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
     return; // spectating
   }
 
-  if (cgi.client->demo_server && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cg_state.spectate.detached) {
     return; // the camera has left the recorded player behind, and their weapon with it
   }
 
@@ -190,7 +190,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
     w.color = MakeVec4(1.f, 1.f, 1.f, 0.f);
   }
 
-  w.abs_bounds = Box3_FromCenterSize(cgi.view->origin, MakeVec3(16.f, 16.f, 16.f));
+  w.absBounds = Box3_FromCenterSize(cgi.view->origin, MakeVec3(16.f, 16.f, 16.f));
 
   w.lerp = w.scale = 1.0;
 
@@ -198,13 +198,13 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   ClientGameClientInfo *ci = &cg_state.clients[cgi.client->frame.ps.client];
 
-  Vec3 weapon_origin;
-  Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weapon_origin);
+  Vec3 weaponOrigin;
+  Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weaponOrigin);
 
-  const Vec3 cfg_muzzle = weapon->model->mesh ? weapon->model->mesh->config.view.muzzle : Vec3_Zero();
-  if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
-    ci->weapon_muzzle = Mat4_Transform(weapon->matrix, cfg_muzzle);
+  const Vec3 cfgMuzzle = weapon->model->mesh ? weapon->model->mesh->config.view.muzzle : Vec3_Zero();
+  if (!Vec3_Equal(cfgMuzzle, Vec3_Zero())) {
+    ci->weaponMuzzle = Mat4_Transform(weapon->matrix, cfgMuzzle);
   } else {
-    ci->weapon_muzzle = weapon_origin;
+    ci->weaponMuzzle = weaponOrigin;
   }
 }

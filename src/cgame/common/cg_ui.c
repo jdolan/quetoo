@@ -246,7 +246,7 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
     }
 
     ViewController *dialog = (ViewController *) $(alloc(DialogViewController), initWithDialog, &(const Dialog) {
-      .message = va("Quetoo %s is available. Install it?", in->current_file),
+      .message = va("Quetoo %s is available. Install it?", in->currentFile),
       .ok = "Install",
       .cancel = "Not now",
       .okFunction = Cg_AcceptUpdate,

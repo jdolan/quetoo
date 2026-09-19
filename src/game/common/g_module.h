@@ -422,12 +422,12 @@ typedef struct {
   /**
    * @brief The clip mask the client's entity moves with.
    */
-  int32_t clip_mask;
+  int32_t clipMask;
 
   /**
    * @brief Whether whatever occupies the spawn is telefragged.
    */
-  bool kill_box;
+  bool killBox;
 } GameClientSpawn;
 
 /**
@@ -461,7 +461,7 @@ extern ClientDidBegin G_ClientDidBegin;
  * holds what it held, and `user_info` what they sent, unvalidated.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillChangeUserInfo)(GameClient *cl, const char *user_info);
+typedef void (*ClientWillChangeUserInfo)(GameClient *cl, const char *userInfo);
 
 extern ClientWillChangeUserInfo G_ClientWillChangeUserInfo;
 

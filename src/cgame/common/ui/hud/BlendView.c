@@ -59,7 +59,7 @@ static void dealloc(Object *self) {
  */
 static float decayingAlpha(uint32_t start, uint32_t decay, float alpha) {
 
-  const uint32_t elapsed = cgi.client->unclamped_time - start;
+  const uint32_t elapsed = cgi.client->unclampedTime - start;
   if (start && elapsed <= decay) {
     return cg_draw_blend->value * alpha * (1.f - elapsed / (float) decay);
   }
@@ -71,7 +71,7 @@ static float decayingAlpha(uint32_t start, uint32_t decay, float alpha) {
  * @brief The alpha of a powerup glow, pulsing.
  */
 static float pulsingAlpha(void) {
-  return fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value;
+  return fabsf(sinf(Radians(cgi.client->unclampedTime * 0.2))) * cg_draw_blend_powerup->value;
 }
 
 /**
@@ -89,7 +89,7 @@ static SDL_Color liquidTint(void) {
 
   const CmTrace tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
   if (tr.brush) {
-    const char *name = tr.brush->brush_sides[0].material->name;
+    const char *name = tr.brush->brushSides[0].material->name;
     color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
     const float f = Maxf(color.r, Maxf(color.g, color.b));
     if (f > 0.f) {
@@ -170,20 +170,20 @@ static void updateBindings(View *self, ident data) {
 
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
   if (pickup && pickup != cg_hud_state.blend.pickup) {
-    cg_hud_state.blend.pickup_time = cgi.client->unclamped_time;
+    cg_hud_state.blend.pickupTime = cgi.client->unclampedTime;
   }
   cg_hud_state.blend.pickup = pickup;
 
   if (ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH]) {
-    cg_hud_state.blend.damage_time = cgi.client->unclamped_time;
+    cg_hud_state.blend.damageTime = cgi.client->unclampedTime;
   }
 
   float alphas[BlendViewTotal] = {
-    [BlendViewPickup] = cg_draw_blend_pickup->value ? decayingAlpha(cg_hud_state.blend.pickup_time, BLEND_PICKUP_TIME, cg_draw_blend_pickup->value) : 0.f,
+    [BlendViewPickup] = cg_draw_blend_pickup->value ? decayingAlpha(cg_hud_state.blend.pickupTime, BLEND_PICKUP_TIME, cg_draw_blend_pickup->value) : 0.f,
     [BlendViewQuad] = ps->stats[STAT_QUAD_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvisibility] = ps->stats[STAT_INVISIBILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvulnerability] = ps->stats[STAT_INVULNERABILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
-    [BlendViewDamage] = cg_draw_blend_damage->value ? decayingAlpha(cg_hud_state.blend.damage_time, BLEND_DAMAGE_TIME, cg_draw_blend_damage->value) : 0.f,
+    [BlendViewDamage] = cg_draw_blend_damage->value ? decayingAlpha(cg_hud_state.blend.damageTime, BLEND_DAMAGE_TIME, cg_draw_blend_damage->value) : 0.f,
   };
 
   for (size_t i = 0; i < BlendViewTotal; i++) {

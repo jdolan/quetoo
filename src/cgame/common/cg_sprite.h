@@ -84,8 +84,8 @@ enum {
  * @brief Type-safe mapping to entity & spawn ID
  */
 typedef struct {
-  int16_t entity_id;
-  uint8_t spawn_id;
+  int16_t entityId;
+  uint8_t spawnId;
 } ClientGameSpriteEntity;
 
 /**
@@ -95,8 +95,8 @@ typedef struct {
  */
 static inline ClientGameSpriteEntity Cg_GetSpriteEntity(const ClientEntity *ent) {
   return (ClientGameSpriteEntity) {
-    .entity_id = ent->current.number,
-    .spawn_id = ent->current.spawn_id
+    .entityId = ent->current.number,
+    .spawnId = ent->current.spawnId
   };
 }
 
@@ -143,7 +143,7 @@ struct ClientGameSprite {
   /**
    * @brief The sprite rotation velocity.
    */
-  float rotation_velocity;
+  float rotationVelocity;
 
   /**
    * @brief The sprite direction. { 0, 0, 0 } is billboard.
@@ -159,7 +159,7 @@ struct ClientGameSprite {
    * @brief The sprite's end color.
    * @see color
    */
-  Vec3 end_color;
+  Vec3 endColor;
 
   /**
    * @brief The sprite size, in world units. If this is specified, width/height are not used.
@@ -179,12 +179,12 @@ struct ClientGameSprite {
   /**
    * @brief The sprite size velocity.
    */
-  float size_velocity;
+  float sizeVelocity;
 
   /**
    * @brief The sprite size acceleration.
    */
-  float size_acceleration;
+  float sizeAcceleration;
 
   /**
    * @brief The sprite bounce factor.
@@ -223,7 +223,7 @@ struct ClientGameSprite {
   union {
     RenderMedia *media;
     RenderImage *image;
-    RenderAtlasImage *atlas_image;
+    RenderAtlasImage *atlasImage;
     RenderAnimation *animation;
   };
 
@@ -255,10 +255,10 @@ struct ClientGameSprite {
  * @brief Calculate a lifetime value that causes the animation to run at a specified framerate.
  */
 static inline uint32_t Cg_AnimationLifetime(const RenderAnimation *animation, const float fps) {
-  return animation->num_frames * FRAMES_TO_SECONDS(fps);
+  return animation->numFrames * FRAMES_TO_SECONDS(fps);
 }
 
-ClientGameSprite *Cg_AddSprite(const ClientGameSprite *in_s);
+ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS);
 ClientGameSprite *Cg_FreeSprite(ClientGameSprite *p);
 void Cg_FreeSpritesByData(const void *data);
 void Cg_FreeSprites(void);

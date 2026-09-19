@@ -50,21 +50,21 @@ void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
   $(pass, bindPipeline, r_depth_pipeline.pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
-  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertexBuffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   // The Z pre-pass has no sampler bindings, so only draw the lumped opaque entry (entry with
   // no material); alpha-tested faces are left to the color pass, same as before this refactor.
-  const RenderBspInlineModel *world = bsp->inline_models;
-  const RenderBspDrawElements *draw = world->depth_pass_elements;
-  for (int32_t i = 0; i < world->num_depth_pass_elements; i++, draw++) {
+  const RenderBspInlineModel *world = bsp->inlineModels;
+  const RenderBspDrawElements *draw = world->depthPassElements;
+  for (int32_t i = 0; i < world->numDepthPassElements; i++, draw++) {
 
     if (draw->material) {
       continue;
     }
 
     const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-    $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+    $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
   }
 
   pass = release(pass);

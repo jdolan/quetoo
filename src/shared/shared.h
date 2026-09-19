@@ -164,7 +164,7 @@ typedef struct {
   /**
    * @brief Spawn identifier; changes when an entity slot is reused for a new entity.
    */
-  uint8_t spawn_id;
+  uint8_t spawnId;
 
   /**
    * @brief World-space position of the entity.
@@ -194,7 +194,7 @@ typedef struct {
   /**
    * @brief Optional event payload byte (event-specific semantics).
    */
-  uint8_t event_data;
+  uint8_t eventData;
 
   /**
    * @brief Bit mask of active visual effects (`EF_ROTATE`, `EF_BOB`, etc.).
@@ -239,7 +239,7 @@ typedef struct {
   /**
    * @brief Vertical position offset from stair-step interpolation.
    */
-  int8_t step_offset;
+  int8_t stepOffset;
 } EntityState;
 
 /**
@@ -290,16 +290,16 @@ typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
   uint8_t movement;    // which movement Pm_Move runs; a PlayerMovement, see bg_pmove.h
 
-  float accel_ground, accel_ground_slick, accel_air, accel_water,
-        accel_spectator, accel_ladder;
+  float accelGround, accelGroundSlick, accelAir, accelWater,
+        accelSpectator, accelLadder;
 
-  float friction_ground, friction_ground_slick, friction_air, friction_water,
-        friction_spectator, friction_ladder;
+  float frictionGround, frictionGroundSlick, frictionAir, frictionWater,
+        frictionSpectator, frictionLadder;
 
-  float speed_ground, speed_air, speed_water, speed_ladder, speed_spectator,
-        speed_stop, speed_jump, speed_ducked, speed_duck_stand, speed_water_jump;
+  float speedGround, speedAir, speedWater, speedLadder, speedSpectator,
+        speedStop, speedJump, speedDucked, speedDuckStand, speedWaterJump;
 
-  Box3 bounds, bounds_ducked, bounds_dead;
+  Box3 bounds, boundsDucked, boundsDead;
 } PlayerMoveParams;
 
 /**
@@ -311,11 +311,11 @@ typedef struct {
  * the loop sends padding as a parameter. Add a float at the end and the count
  * follows; the boxes qualify only because a `Box3` is six plain floats.
  */
-#define PM_PARAMS_FLOATS ((sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accel_ground)) / sizeof(float))
+#define PM_PARAMS_FLOATS ((sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) / sizeof(float))
 
-_Static_assert(offsetof(PlayerMoveParams, accel_ground) == sizeof(float),
+_Static_assert(offsetof(PlayerMoveParams, accelGround) == sizeof(float),
                "PlayerMoveParams.movement must fit in the padding after gravity");
-_Static_assert(offsetof(PlayerMoveParams, bounds_dead) + sizeof(Box3) == sizeof(PlayerMoveParams),
+_Static_assert(offsetof(PlayerMoveParams, boundsDead) + sizeof(Box3) == sizeof(PlayerMoveParams),
                "PlayerMoveParams must not end in padding, which the block would carry");
 _Static_assert(sizeof(Box3) == 6 * sizeof(float),
                "Box3 must be six floats for PlayerMoveParams to travel");
@@ -332,12 +332,12 @@ typedef struct {
   uint16_t flags; // game-specific state flags
   uint16_t time; // duration for temporal state flags
   PlayerMoveParams params; // server-tunable movement parameters (incl. gravity)
-  Vec3 view_offset; // add to origin to resolve eyes
-  float step_offset; // add to final origin to resolve step interpolation
-  Vec3 view_angles; // base view angles
-  Vec3 delta_angles; // offset for spawns, pushers, etc.
-  Vec3 hook_position; // position we're hooking to
-  uint16_t hook_length; // length of the hook, for swing hook
+  Vec3 viewOffset; // add to origin to resolve eyes
+  float stepOffset; // add to final origin to resolve step interpolation
+  Vec3 viewAngles; // base view angles
+  Vec3 deltaAngles; // offset for spawns, pushers, etc.
+  Vec3 hookPosition; // position we're hooking to
+  uint16_t hookLength; // length of the hook, for swing hook
 } PlayerMoveState;
 
 /**
@@ -376,7 +376,7 @@ typedef struct PlayerState {
   /**
    * @brief Quantized player movement state snapshot.
    */
-  PlayerMoveState pm_state;
+  PlayerMoveState pmState;
 
   /**
    * @brief Game-defined statistics array (health, ammo, scores, etc.).
@@ -411,7 +411,7 @@ typedef enum {
 
 typedef struct {
   uint32_t keys[2]; // keys holding it down
-  uint32_t down_time; // msec timestamp
+  uint32_t downTime; // msec timestamp
   uint32_t msec; // msec down this frame
   InputButtonState state;
 } InputButton;
@@ -444,9 +444,9 @@ typedef void (*AutocompleteFunc)(const uint32_t argi, List *matches);
  */
 typedef struct Cvar {
   const char *name;
-  const char *default_string;
+  const char *defaultString;
   char *string;
-  char *latched_string; // for CVAR_LATCH vars
+  char *latchedString; // for CVAR_LATCH vars
   float value;
   int32_t integer;
   uint32_t flags;
@@ -554,7 +554,7 @@ void StripExtension(const char *in, char *out);
 
 bool StrIsEmoji(const char *s);
 Color ColorEsc(int32_t esc);
-const char *EmojiEsc(const char *in, char *out, size_t out_size);
+const char *EmojiEsc(const char *in, char *out, size_t outSize);
 
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const Vec3 v);

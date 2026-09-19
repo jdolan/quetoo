@@ -65,7 +65,7 @@ static void Cg_PopSprite(ClientGameSprite *s, ClientGameSprite **list) {
 /**
  * @brief Allocates a free sprite.
  */
-ClientGameSprite *Cg_AddSprite(const ClientGameSprite *in_s) {
+ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS) {
 
   if (!cg_add_sprites->integer) {
     return NULL;
@@ -76,18 +76,18 @@ ClientGameSprite *Cg_AddSprite(const ClientGameSprite *in_s) {
     return NULL;
   }
 
-  assert(in_s->media);
+  assert(inS->media);
 
   ClientGameSprite *s = cg_free_sprites;
 
   Cg_PopSprite(s, &cg_free_sprites);
 
-  *s = *in_s;
+  *s = *inS;
 
-  if (in_s->flags & SPRITE_SERVER_TIME) {
+  if (inS->flags & SPRITE_SERVER_TIME) {
     s->time = s->timestamp = cgi.client->frame.time;
   } else {
-    s->time = s->timestamp = cgi.client->unclamped_time;
+    s->time = s->timestamp = cgi.client->unclampedTime;
   }
 
   Cg_PushSprite(s, &cg_active_sprites);
@@ -156,15 +156,15 @@ void Cg_AddSprites(void) {
     return;
   }
 
-  const float delta = MILLIS_TO_SECONDS(cgi.client->frame_msec);
-  const uint32_t client_time = cgi.client->unclamped_time, server_time = cgi.client->frame.time;
+  const float delta = MILLIS_TO_SECONDS(cgi.client->frameMsec);
+  const uint32_t clientTime = cgi.client->unclampedTime, serverTime = cgi.client->frame.time;
 
   ClientGameSprite *s = cg_active_sprites;
   while (s) {
 
     assert(s->media);
 
-    const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? server_time : client_time;
+    const uint32_t time = (s->flags & SPRITE_SERVER_TIME) ? serverTime : clientTime;
 
     const float life = (time - s->time) / (float) (s->lifetime ?: 1);
 
@@ -181,37 +181,37 @@ void Cg_AddSprites(void) {
 
     ClientEntity *entity = NULL;
     if (s->flags & SPRITE_FOLLOW_ENTITY) {
-      entity = &cgi.client->entities[s->entity.entity_id];
+      entity = &cgi.client->entities[s->entity.entityId];
 
-      if (entity->frame_num != cgi.client->frame.frame_num ||
-        entity->current.spawn_id != s->entity.spawn_id) {
+      if (entity->frameNum != cgi.client->frame.frameNum ||
+        entity->current.spawnId != s->entity.spawnId) {
 
-        if (!(s->flags & SPRITE_ENTITY_UNLINK_ON_DEATH) || entity->prev.spawn_id != s->entity.spawn_id) {
+        if (!(s->flags & SPRITE_ENTITY_UNLINK_ON_DEATH) || entity->prev.spawnId != s->entity.spawnId) {
           s = Cg_FreeSprite(s);
           continue;
         }
 
         s->flags &= ~(SPRITE_FOLLOW_ENTITY | SPRITE_ENTITY_UNLINK_ON_DEATH);
-        s->origin = Vec3_Add(s->origin, entity->previous_origin);
+        s->origin = Vec3_Add(s->origin, entity->previousOrigin);
 
         if (s->type == SPRITE_BEAM) {
-          s->termination = Vec3_Add(s->termination, entity->previous_origin);
+          s->termination = Vec3_Add(s->termination, entity->previousOrigin);
         }
       }
     }
 
-    s->size_velocity += s->size_acceleration * delta;
+    s->sizeVelocity += s->sizeAcceleration * delta;
 
     if (s->size) {
-      s->size += s->size_velocity * delta;
+      s->size += s->sizeVelocity * delta;
 
       if (s->size <= 0.f) {
         s = Cg_FreeSprite(s);
         continue;
       }
     } else {
-      s->width += s->size_velocity * delta;
-      s->height += s->size_velocity * delta;
+      s->width += s->sizeVelocity * delta;
+      s->height += s->sizeVelocity * delta;
 
       if (s->width <= 0.f || s->height <= 0.f) {
         s = Cg_FreeSprite(s);
@@ -219,7 +219,7 @@ void Cg_AddSprites(void) {
       }
     }
 
-    Vec3 old_origin = s->origin;
+    Vec3 oldOrigin = s->origin;
 
     s->velocity = Vec3_Fmaf(s->velocity, delta, s->acceleration);
 
@@ -233,16 +233,16 @@ void Cg_AddSprites(void) {
       Vec3 origin = s->origin;
 
       if (s->flags & SPRITE_FOLLOW_ENTITY) {
-        old_origin = Vec3_Add(old_origin, entity->origin);
+        oldOrigin = Vec3_Add(oldOrigin, entity->origin);
         origin = Vec3_Add(origin, entity->origin);
       }
 
       const float size = s->size ?: max(s->height, s->width);
       const Box3 bounds = Box3f(size, size, size);
-      CmTrace tr = cgi.Trace(old_origin, origin, bounds, NULL, CONTENTS_MASK_SOLID);
+      CmTrace tr = cgi.Trace(oldOrigin, origin, bounds, NULL, CONTENTS_MASK_SOLID);
 
-      if (tr.start_solid || tr.all_solid) {
-        tr = cgi.Trace(old_origin, origin, Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
+      if (tr.startSolid || tr.allSolid) {
+        tr = cgi.Trace(oldOrigin, origin, Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
       }
 
       if (tr.fraction < 1.0) {
@@ -255,7 +255,7 @@ void Cg_AddSprites(void) {
       }
     }
 
-    const Vec3 color = Vec3_Mix(s->color, s->end_color, life);
+    const Vec3 color = Vec3_Mix(s->color, s->endColor, life);
 
     Vec3 origin = s->origin;
     if (s->flags & SPRITE_FOLLOW_ENTITY) {
@@ -264,7 +264,7 @@ void Cg_AddSprites(void) {
 
     switch (s->type) {
       case SPRITE_NORMAL:
-        s->rotation += s->rotation_velocity * delta;
+        s->rotation += s->rotationVelocity * delta;
 
         cgi.AddSprite(cgi.view, &(RenderSprite) {
           .origin = origin,

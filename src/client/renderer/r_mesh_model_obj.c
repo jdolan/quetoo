@@ -49,17 +49,17 @@ typedef struct {
  */
 static uint32_t R_FindOrAppendObjVertex(RenderMeshFace *face, const RenderMeshVertex *v) {
 
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
+  for (int32_t i = 0; i < face->numVertexes; i++) {
     if (!memcmp(v, face->vertexes + i, sizeof(*v))) {
       return i;
     }
   }
 
-  face->num_vertexes++;
-  face->vertexes = Mem_Realloc(face->vertexes, face->num_vertexes * sizeof(RenderMeshVertex));
+  face->numVertexes++;
+  face->vertexes = Mem_Realloc(face->vertexes, face->numVertexes * sizeof(RenderMeshVertex));
 
-  face->vertexes[face->num_vertexes - 1] = *v;
-  return face->num_vertexes - 1;
+  face->vertexes[face->numVertexes - 1] = *v;
+  return face->numVertexes - 1;
 }
 
 /**
@@ -67,10 +67,10 @@ static uint32_t R_FindOrAppendObjVertex(RenderMeshFace *face, const RenderMeshVe
  */
 static void R_AppendObjElements(RenderMeshFace *face, uint32_t a, uint32_t b, uint32_t c) {
 
-  face->num_elements += 3;
-  face->elements = Mem_Realloc(face->elements, face->num_elements * sizeof(uint32_t));
+  face->numElements += 3;
+  face->elements = Mem_Realloc(face->elements, face->numElements * sizeof(uint32_t));
 
-  uint32_t *elements = ((uint32_t *) face->elements) + face->num_elements - 3;
+  uint32_t *elements = ((uint32_t *) face->elements) + face->numElements - 3;
 
   elements[0] = a;
   elements[1] = b;
@@ -84,7 +84,7 @@ static void R_LoadObjModel(RenderModel *mod, void *buffer) {
   RenderMeshModel *out;
 
   mod->mesh = out = Mem_LinkMalloc(sizeof(RenderMeshModel), mod);
-  out->num_frames = 1;
+  out->numFrames = 1;
 
   RenderObj obj = {
     .v = $(alloc(Vector), initWithSize, sizeof(Vec3)),
@@ -171,12 +171,12 @@ static void R_LoadObjModel(RenderModel *mod, void *buffer) {
     release(group.f);
   }
 
-  out->num_faces = (int32_t) obj.g->count;
-  assert(out->num_faces <= MAX_MESH_FACES);
+  out->numFaces = (int32_t) obj.g->count;
+  assert(out->numFaces <= MAX_MESH_FACES);
 
-  out->faces = Mem_LinkMalloc(out->num_faces * sizeof(RenderMeshFace), out);
+  out->faces = Mem_LinkMalloc(out->numFaces * sizeof(RenderMeshFace), out);
 
-  for (int32_t i = 0; i < out->num_faces; i++) {
+  for (int32_t i = 0; i < out->numFaces; i++) {
     const RenderObjGroup *group = VectorElement(obj.g, RenderObjGroup, i);
     RenderMeshFace *face = out->faces + i;
 
@@ -243,12 +243,12 @@ static void R_LoadObjModel(RenderModel *mod, void *buffer) {
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");
   Com_Debug(DEBUG_RENDERER, "!R_LoadObjModel:   %s\n", mod->media.name);
-  Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->mesh->num_vertexes);
-  Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->mesh->num_elements);
-  Com_Debug(DEBUG_RENDERER, "!  Frames:         %d\n", mod->mesh->num_frames);
-  Com_Debug(DEBUG_RENDERER, "!  Tags:           %d\n", mod->mesh->num_tags);
-  Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->mesh->num_faces);
-  Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->num_animations);
+  Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->mesh->numVertexes);
+  Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->mesh->numElements);
+  Com_Debug(DEBUG_RENDERER, "!  Frames:         %d\n", mod->mesh->numFrames);
+  Com_Debug(DEBUG_RENDERER, "!  Tags:           %d\n", mod->mesh->numTags);
+  Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->mesh->numFaces);
+  Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->numAnimations);
   Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 

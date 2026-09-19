@@ -94,12 +94,12 @@ struct ServerGameClient {
   /**
    * @brief Raw user info key-value string.
    */
-  char user_info[MAX_INFO_STRING_STRING];
+  char userInfo[MAX_INFO_STRING_STRING];
 
   /**
    * @brief True if this client slot is currently active.
    */
-  bool in_use;
+  bool inUse;
 
   /**
    * @brief Non-null if this client is a bot.
@@ -137,12 +137,12 @@ struct ServerGameEntity {
   /**
    * @brief True if the entity is currently allocated and active.
    */
-  bool in_use;
+  bool inUse;
 
   /**
    * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
    */
-  uint32_t sv_flags;
+  uint32_t svFlags;
 
   /**
    * @brief Game-set bounding box in entity-local space.
@@ -152,7 +152,7 @@ struct ServerGameEntity {
   /**
    * @brief Server-set bounding box in world space; populated by `gi.LinkEntity`.
    */
-  Box3 abs_bounds;
+  Box3 absBounds;
 
   /**
    * @brief Server-set entity size; populated by `gi.LinkEntity`.
@@ -181,11 +181,11 @@ struct ServerGameEntity {
 typedef struct {
   char     level[MAX_QPATH];
   char     attacker[MAX_QPATH];
-  char     attacker_guid[MAX_QPATH];
-  bool     attacker_ai;
+  char     attackerGuid[MAX_QPATH];
+  bool     attackerAi;
   char     target[MAX_QPATH];
-  char     target_guid[MAX_QPATH];
-  bool     target_ai;
+  char     targetGuid[MAX_QPATH];
+  bool     targetAi;
   char     weapon[MAX_QPATH];
   int32_t  mod;
   uint32_t time;
@@ -197,8 +197,8 @@ typedef struct {
 typedef struct {
   char     level[MAX_QPATH];
   char     player[MAX_QPATH];
-  char     player_guid[MAX_QPATH];
-  bool     player_ai;
+  char     playerGuid[MAX_QPATH];
+  bool     playerAi;
   char     team[MAX_QPATH];
   uint32_t time;
 } GameCapture;
@@ -246,7 +246,7 @@ typedef struct GameImport {
    * @param max_count The maximum number of frames to include.
    * @return A heap-allocated string describing the stack; caller must `free()` it.
    */
-  char *(*Backtrace)(uint32_t start, uint32_t max_count);
+  char *(*Backtrace)(uint32_t start, uint32_t maxCount);
 
   /**
    * @}
@@ -567,7 +567,7 @@ typedef struct GameImport {
    * format of a map's entity string and of `maps.lst`.
    * @return A list of `CmEntity *`, each to be freed with `FreeEntity`.
    */
-  List *(*LoadEntities)(const char *entity_string);
+  List *(*LoadEntities)(const char *entityString);
 
   /**
    * @brief Frees an entity definition from `LoadEntities`.
@@ -720,7 +720,7 @@ typedef struct GameImport {
    * @details The server handles URL, gating, JSON serialization, and HTTP POST.
    * @details This is best-effort delivery only; failures are silently discarded.
    */
-  void (*PostStats)(const GameFrag *frags, size_t frags_len, const GameCapture *captures, size_t captures_len);
+  void (*PostStats)(const GameFrag *frags, size_t fragsLen, const GameCapture *captures, size_t capturesLen);
 
   /**
    * @}
@@ -736,7 +736,7 @@ typedef struct GameExport {
   /**
    * @brief Game API version; validated by the server on load.
    */
-  int32_t api_version;
+  int32_t apiVersion;
 
   /**
    * @brief Minor protocol version; must match that of `cgame`.
@@ -781,7 +781,7 @@ typedef struct GameExport {
    * @brief Called at the start of each new level.
    * @param name The map name, e.g. "edge"
    */
-  void (*SpawnEntities)(const char *name, const CmEntity *props, CmEntity *const *entities, size_t num_entities);
+  void (*SpawnEntities)(const char *name, const CmEntity *props, CmEntity *const *entities, size_t numEntities);
 
   /**
    * @brief Called in editor mode to spawn or respawn a single entity at the given
@@ -806,7 +806,7 @@ typedef struct GameExport {
    */
   bool (*ClientCanHearVoice)(const GameClient *speaker, const GameClient *listener, uint8_t channel);
 
-  bool (*ClientConnect)(GameClient *cl, char *user_info);
+  bool (*ClientConnect)(GameClient *cl, char *userInfo);
 
   /**
    * @brief Called when a client has fully spawned and should begin thinking.
@@ -816,7 +816,7 @@ typedef struct GameExport {
   /**
    * @brief Called when the client's user info string changes.
    */
-  void (*ClientUserInfoChanged)(GameClient *cl, const char *user_info);
+  void (*ClientUserInfoChanged)(GameClient *cl, const char *userInfo);
 
   /**
    * @brief Called when a client disconnects.

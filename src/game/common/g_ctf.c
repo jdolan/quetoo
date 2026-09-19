@@ -54,7 +54,7 @@ GameTeam *G_TeamForFlag(const GameEntity *ent) {
     return NULL;
   }
 
-  for (int32_t i = 0; i < g_level.num_teams; i++) {
+  for (int32_t i = 0; i < g_level.numTeams; i++) {
 
     if (!q_strcmp(ent->classname, g_team_list[i].flag)) {
       return &g_team_list[i];
@@ -70,7 +70,7 @@ GameTeam *G_TeamForFlag(const GameEntity *ent) {
  */
 GameEntity *G_FlagForTeam(const GameTeam *t) {
 
-  return t->flag_entity;
+  return t->flagEntity;
 }
 
 /**
@@ -86,7 +86,7 @@ static int32_t G_EffectForTeam(const GameTeam *t) {
  */
 const GameItem *G_GetFlag(const GameClient *cl) {
 
-  for (int32_t i = 0; i < g_level.num_teams; i++) {
+  for (int32_t i = 0; i < g_level.numTeams; i++) {
 
     if (&g_team_list[i] == cl->persistent.team) {
       continue;
@@ -110,15 +110,15 @@ static void G_ResetDroppedFlag(GameEntity *ent) {
   GameEntity *f;
 
   if (!(t = G_TeamForFlag(ent)) || !(f = G_FlagForTeam(t))) {
-    if (ent->spawn_flags & SF_ITEM_DROPPED) {
+    if (ent->spawnFlags & SF_ITEM_DROPPED) {
       G_FreeEntity(ent); // nothing to return it to; do not strand it
     }
     return;
   }
 
-  f->sv_flags &= ~SVF_NO_CLIENT;
+  f->svFlags &= ~SVF_NO_CLIENT;
   f->s.event = EV_ITEM_RESPAWN;
-  f->s.event_data = f->item->def.tag;
+  f->s.eventData = f->item->def.tag;
   f->solid = SOLID_TRIGGER;
 
   gi.LinkEntity(f);
@@ -169,9 +169,9 @@ static bool G_CheckCvars_Ctf(void) {
 
   if (g_capture_limit->modified) {
     g_capture_limit->modified = false;
-    g_level.capture_limit = g_capture_limit->integer;
+    g_level.captureLimit = g_capture_limit->integer;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", g_level.capture_limit);
+    gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", g_level.captureLimit);
   }
 
   return previous.CheckCvars();
@@ -182,10 +182,10 @@ static bool G_CheckCvars_Ctf(void) {
  */
 static bool G_CheckWinner_Ctf(void) {
 
-  if (g_level.capture_limit) {
+  if (g_level.captureLimit) {
 
-    for (int32_t i = 0; i < g_level.num_teams; i++) {
-      if (g_team_list[i].captures >= g_level.capture_limit) {
+    for (int32_t i = 0; i < g_level.numTeams; i++) {
+      if (g_team_list[i].captures >= g_level.captureLimit) {
         gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
         return true;
       }
@@ -229,77 +229,77 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
     return false; // a flag for a team this level does not have
   }
 
-  GameEntity *team_flag = G_FlagForTeam(team);
-  if (!team_flag) {
+  GameEntity *teamFlag = G_FlagForTeam(team);
+  if (!teamFlag) {
     return false; // the map placed no base flag for that team
   }
 
-  const GameItem *carried_flag = G_GetFlag(cl);
+  const GameItem *carriedFlag = G_GetFlag(cl);
 
   if (team == cl->persistent.team) { // our flag
 
-    if (ent->spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
+    if (ent->spawnFlags & SF_ITEM_DROPPED) { // return it if necessary
 
-      team_flag->solid = SOLID_TRIGGER;
-      team_flag->sv_flags &= ~SVF_NO_CLIENT;
+      teamFlag->solid = SOLID_TRIGGER;
+      teamFlag->svFlags &= ~SVF_NO_CLIENT;
 
-      gi.LinkEntity(team_flag);
+      gi.LinkEntity(teamFlag);
 
-      team_flag->s.event = EV_ITEM_RESPAWN;
-      team_flag->s.event_data = team_flag->item->def.tag;
+      teamFlag->s.event = EV_ITEM_RESPAWN;
+      teamFlag->s.eventData = teamFlag->item->def.tag;
 
       G_MulticastSound(&(const GamePlaySound) {
         .index = g_ctf_media.return_
       }, MULTICAST_PHS);
 
-      gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.net_name, team->name, team->id + 1);
+      gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.netName, team->name, team->id + 1);
 
       return true;
     }
 
-    if (carried_flag) {
-      const GameTeam *other_team = &g_team_list[carried_flag->def.tag - FLAG_FIRST];
-      GameEntity *other_team_flag = G_FlagForTeam(other_team);
-      if (!other_team_flag) {
+    if (carriedFlag) {
+      const GameTeam *otherTeam = &g_team_list[carriedFlag->def.tag - FLAG_FIRST];
+      GameEntity *otherTeamFlag = G_FlagForTeam(otherTeam);
+      if (!otherTeamFlag) {
         return false;
       }
 
-      index = other_team_flag->item->def.tag;
+      index = otherTeamFlag->item->def.tag;
       if (cl->inventory[index]) { // capture
 
         cl->inventory[index] = 0;
-        cl->entity->s.effects &= ~G_EffectForTeam(other_team);
+        cl->entity->s.effects &= ~G_EffectForTeam(otherTeam);
         cl->entity->s.model3 = 0;
 
-        other_team_flag->solid = SOLID_TRIGGER;
-        other_team_flag->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
+        otherTeamFlag->solid = SOLID_TRIGGER;
+        otherTeamFlag->svFlags &= ~SVF_NO_CLIENT; // reset the other flag
 
-        gi.LinkEntity(other_team_flag);
+        gi.LinkEntity(otherTeamFlag);
 
-        other_team_flag->s.event = EV_ITEM_RESPAWN;
-        other_team_flag->s.event_data = other_team_flag->item->def.tag;
+        otherTeamFlag->s.event = EV_ITEM_RESPAWN;
+        otherTeamFlag->s.eventData = otherTeamFlag->item->def.tag;
 
         G_MulticastSound(&(const GamePlaySound) {
           .index = g_ctf_media.capture
         }, MULTICAST_PHS_R);
 
-        gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.net_name, other_team->name, other_team->id + 1);
+        gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.netName, otherTeam->name, otherTeam->id + 1);
 
         team->captures++;
         cl->persistent.captures++;
 
         {
-          const bool player_ai = cl->ai != NULL;
+          const bool playerAi = cl->ai != NULL;
           GameCapture capture = {
-            .player_ai = player_ai,
+            .playerAi = playerAi,
             .time = (uint32_t) time(NULL),
           };
           q_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
-          q_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
-          q_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
-          q_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
+          q_strlcpy(capture.player,      cl->persistent.netName,   sizeof(capture.player));
+          q_strlcpy(capture.playerGuid, cl->persistent.guid,       sizeof(capture.playerGuid));
+          q_strlcpy(capture.team,        otherTeam->name,          sizeof(capture.team));
 
-          if (capture.player_guid[0]) {
+          if (capture.playerGuid[0]) {
             $(g_level.captures, add, &capture);
           }
         }
@@ -313,26 +313,26 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
   }
 
   // it's enemy's flag, so take it if we can
-  if (carried_flag) {
+  if (carriedFlag) {
     return false; // we have one already
   }
 
-  team_flag->solid = SOLID_NOT;
-  team_flag->sv_flags |= SVF_NO_CLIENT;
+  teamFlag->solid = SOLID_NOT;
+  teamFlag->svFlags |= SVF_NO_CLIENT;
 
-  gi.LinkEntity(team_flag);
+  gi.LinkEntity(teamFlag);
 
-  index = team_flag->item->def.tag;
+  index = teamFlag->item->def.tag;
   cl->inventory[index] = 1;
 
   // link the flag model to the player
-  cl->entity->s.model3 = team_flag->item->model_index;
+  cl->entity->s.model3 = teamFlag->item->modelIndex;
 
   G_MulticastSound(&(const GamePlaySound) {
     .index = g_ctf_media.steal,
   }, MULTICAST_PHS_R);
 
-  gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.net_name, team->name, team->id + 1);
+  gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.netName, team->name, team->id + 1);
 
   cl->entity->s.effects |= G_EffectForTeam(team);
   return true;
@@ -349,7 +349,7 @@ static GameEntity *G_ReleaseFlag(GameClient *cl, const GameItem *flag) {
   cl->entity->s.model3 = 0;
   cl->entity->s.effects &= ~EF_CTF_MASK;
 
-  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.net_name, team->name, team->id + 1);
+  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.netName, team->name, team->id + 1);
 
   return G_DropItem(cl, flag);
 }
@@ -398,10 +398,10 @@ static void G_ResetItem_Ctf(GameEntity *ent) {
   previous.ResetItem(ent);
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
-    const GameTeamId flag_team = ent->item->def.tag - FLAG_FIRST;
+    const GameTeamId flagTeam = ent->item->def.tag - FLAG_FIRST;
 
-    if (flag_team >= g_level.num_teams) {
-      ent->sv_flags |= SVF_NO_CLIENT;
+    if (flagTeam >= g_level.numTeams) {
+      ent->svFlags |= SVF_NO_CLIENT;
       ent->solid = SOLID_NOT;
 
       gi.LinkEntity(ent);

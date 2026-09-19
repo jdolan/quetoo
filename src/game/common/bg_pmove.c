@@ -54,7 +54,7 @@ Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked) {
 
   // the box arrives whole, so the parameters are the only thing that decides it.
   // A movement that wants a bigger player declares a bigger box
-  return ducked ? params->bounds_ducked : params->bounds;
+  return ducked ? params->boundsDucked : params->bounds;
 }
 
 /**
@@ -124,18 +124,18 @@ void Pm_TouchEntity(const CmTrace *trace) {
     return;
   }
 
-  if (pm->num_touched == PM_MAX_TOUCHS) {
+  if (pm->numTouched == PM_MAX_TOUCHS) {
     Pm_Debug("MAX_TOUCH_ENTS\n");
     return;
   }
 
-  for (int32_t i = 0; i < pm->num_touched; i++) {
+  for (int32_t i = 0; i < pm->numTouched; i++) {
     if (pm->touched[i].ent == trace->ent) {
       return;
     }
   }
 
-  pm->touched[pm->num_touched++] = *trace;
+  pm->touched[pm->numTouched++] = *trace;
 }
 
 /**
@@ -154,7 +154,7 @@ CmTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
         const Vec3 point = Vec3_Add(start, MakeVec3(offsets[i], offsets[j], offsets[k]));
         const CmTrace trace = pm->Trace(point, end, bounds);
         
-        if (!trace.all_solid) {
+        if (!trace.allSolid) {
 
           if (i != 0 || j != 0 || k != 0) {
             Pm_Debug("Fixed all-solid\n");
@@ -193,24 +193,24 @@ void Pm_Friction(const bool flying) {
     return;
   }
 
-  const float control = Maxf(pm->s.params.speed_stop, speed);
+  const float control = Maxf(pm->s.params.speedStop, speed);
 
   float friction = 0.f;
 
   if (pm->s.type == PM_SPECTATOR) { // spectator friction
-    friction = pm->s.params.friction_spectator;
+    friction = pm->s.params.frictionSpectator;
   } else if (pm->s.flags & PMF_ON_LADDER) { // ladder friction
-    friction = pm->s.params.friction_ladder;
-  } else if (pm->water_level > WATER_FEET) { // water friction
-    friction = pm->s.params.friction_water;
+    friction = pm->s.params.frictionLadder;
+  } else if (pm->waterLevel > WATER_FEET) { // water friction
+    friction = pm->s.params.frictionWater;
   } else if (pm->s.flags & PMF_ON_GROUND) { // ground friction
     if (pm_locals.ground.ent && (pm_locals.ground.surface & SURF_SLICK)) {
-      friction = pm->s.params.friction_ground_slick;
+      friction = pm->s.params.frictionGroundSlick;
     } else {
-      friction = pm->s.params.friction_ground;
+      friction = pm->s.params.frictionGround;
     }
   } else { // everything else friction
-    friction = pm->s.params.friction_air;
+    friction = pm->s.params.frictionAir;
   }
 
   friction = Maxf(0.f, friction); // never reverse direction
@@ -225,17 +225,17 @@ void Pm_Friction(const bool flying) {
  * @brief Handles user intended acceleration.
  */
 void Pm_Accelerate(const Vec3 dir, float speed, float accel) {
-  const float current_speed = Vec3_Dot(pm->s.velocity, dir);
-  const float add_speed = speed - current_speed;
+  const float currentSpeed = Vec3_Dot(pm->s.velocity, dir);
+  const float addSpeed = speed - currentSpeed;
 
-  if (add_speed > 0.f) {
-    float accel_speed = accel * pm_locals.time * speed;
+  if (addSpeed > 0.f) {
+    float accelSpeed = accel * pm_locals.time * speed;
 
-    if (accel_speed > add_speed) {
-      accel_speed = add_speed;
+    if (accelSpeed > addSpeed) {
+      accelSpeed = addSpeed;
     }
 
-    pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
+    pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
   }
 }
 
@@ -268,14 +268,14 @@ static void Pm_SpectatorMove(void) {
 
   float speed;
   vel = Vec3_NormalizeLength(vel, &speed);
-  speed = Clampf(speed, 0.f, Maxf(0.f, pm->s.params.speed_spectator));
+  speed = Clampf(speed, 0.f, Maxf(0.f, pm->s.params.speedSpectator));
 
   if (speed < PM_STOP_EPSILON) {
     speed = 0.f;
   }
 
   // accelerate
-  Pm_Accelerate(vel, speed, Maxf(0.f, pm->s.params.accel_spectator));
+  Pm_Accelerate(vel, speed, Maxf(0.f, pm->s.params.accelSpectator));
 
   // do the move
   pm->s.origin = Vec3_Fmaf(pm->s.origin, pm_locals.time, pm->s.velocity);
@@ -300,7 +300,7 @@ static void Pm_Init(void) {
     if (pm->s.flags & PMF_GIBLET) {
       pm->bounds = PM_GIBLET_BOUNDS;
     } else {
-      pm->bounds = pm->s.params.bounds_dead;
+      pm->bounds = pm->s.params.boundsDead;
     }
   } else {
     pm->bounds = Pm_Bounds(&pm->s.params, false);
@@ -308,9 +308,9 @@ static void Pm_Init(void) {
 
   pm->angles = Vec3_Zero();
 
-  pm->num_touched = 0;
-  pm->water_level = WATER_NONE;
-  pm->water_type = 0;
+  pm->numTouched = 0;
+  pm->waterLevel = WATER_NONE;
+  pm->waterType = 0;
 
   pm->step = 0.f;
 
@@ -339,10 +339,10 @@ static void Pm_Init(void) {
 static void Pm_ClampAngles(void) {
 
   // copy the command angles into the outgoing state
-  pm->s.view_angles = pm->cmd.angles;
+  pm->s.viewAngles = pm->cmd.angles;
 
   // add the delta angles
-  pm->angles = Vec3_Add(pm->cmd.angles, pm->s.delta_angles);
+  pm->angles = Vec3_Add(pm->cmd.angles, pm->s.deltaAngles);
 
   // clamp pitch to prevent the player from looking up or down more than 90º
   if (pm->angles.x > 90.f && pm->angles.x < 270.f) {
@@ -360,8 +360,8 @@ static void Pm_InitLocal(void) {
   memset(&pm_locals, 0, sizeof(pm_locals));
 
   // save previous values in case move fails, and to detect landings
-  pm_locals.previous_origin = pm->s.origin;
-  pm_locals.previous_velocity = pm->s.velocity;
+  pm_locals.previousOrigin = pm->s.origin;
+  pm_locals.previousVelocity = pm->s.velocity;
 
   // convert from milliseconds to seconds
   pm_locals.time = pm->cmd.msec * .001f;
@@ -370,7 +370,7 @@ static void Pm_InitLocal(void) {
   Vec3_Vectors(pm->angles, &pm_locals.forward, &pm_locals.right, &pm_locals.up);
 
   // and calculate the directional vectors in the XY plane
-  Vec3_Vectors(MakeVec3(0.f, pm->angles.y, 0.f), &pm_locals.forward_xy, &pm_locals.right_xy, NULL);
+  Vec3_Vectors(MakeVec3(0.f, pm->angles.y, 0.f), &pm_locals.forwardXy, &pm_locals.rightXy, NULL);
 }
 
 /**
@@ -380,18 +380,18 @@ void Pm_CheckViewStep(void) {
 
   // add the step offset we've made on this frame
   if (pm->step) {
-    pm->s.step_offset += pm->step;
+    pm->s.stepOffset += pm->step;
   }
 
   // calculate change to the step offset
-  if (pm->s.step_offset) {
+  if (pm->s.stepOffset) {
 
-    const float step_speed = pm_locals.time * (PM_SPEED_STEP * (Maxf(1.f, fabsf(pm->s.step_offset) / PM_STEP_HEIGHT)));
+    const float stepSpeed = pm_locals.time * (PM_SPEED_STEP * (Maxf(1.f, fabsf(pm->s.stepOffset) / PM_STEP_HEIGHT)));
 
-    if (pm->s.step_offset > 0) {
-      pm->s.step_offset = Maxf(0.f, pm->s.step_offset - step_speed);
+    if (pm->s.stepOffset > 0) {
+      pm->s.stepOffset = Maxf(0.f, pm->s.stepOffset - stepSpeed);
     } else {
-      pm->s.step_offset = Minf(0.f, pm->s.step_offset + step_speed);
+      pm->s.stepOffset = Minf(0.f, pm->s.stepOffset + stepSpeed);
     }
   }
 }
@@ -400,8 +400,8 @@ void Pm_CheckViewStep(void) {
  * @brief Called by the game and the client game to update the player's
  * authoritative or predicted movement state, respectively.
  */
-void Pm_Move(PlayerMove *pm_move) {
-  pm = pm_move;
+void Pm_Move(PlayerMove *pmMove) {
+  pm = pmMove;
 
   Pm_Init();
 

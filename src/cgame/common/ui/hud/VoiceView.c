@@ -75,9 +75,9 @@ static void updateBindings(View *self, ident data) {
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
 
-    const uint32_t time = cgi.client->voice_time[i];
+    const uint32_t time = cgi.client->voiceTime[i];
 
-    if (!time || cgi.client->unclamped_time - time > VOICE_VIEW_TIMEOUT) {
+    if (!time || cgi.client->unclampedTime - time > VOICE_VIEW_TIMEOUT) {
       continue;
     }
 

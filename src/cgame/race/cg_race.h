@@ -50,7 +50,7 @@ const char *Cg_Race_FormatTime(uint32_t ms);
  * what was passed, the time, and how it compares against this racer's best
  * and the course record, `RACE_MILESTONE_NO_DELTA` for no comparison.
  */
-void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record);
+void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vsBest, int32_t vsRecord);
 
 /**
  * @brief The View classes race's HUD JSON names, exported so that they resolve by name.

@@ -32,7 +32,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
 
   GameEntity *ent = sv.entities[number].gent;
 
-  if (!ent->in_use) {
+  if (!ent->inUse) {
     return;
   }
 
@@ -70,8 +70,8 @@ void Sv_ConfigureEditorEntity(int32_t number) {
     } else {
       // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
       // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
-      const CmEntity *bsp_def = number < Cm_Bsp()->num_entities ? Cm_Bsp()->entities[number] : ent->def;
-      Vector *brushes = Cm_EntityBrushes(bsp_def);
+      const CmEntity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
+      Vector *brushes = Cm_EntityBrushes(bspDef);
       if (brushes->count) {
         ent->bounds = Box3_Null();
         for (uint32_t j = 0; j < brushes->count; j++) {
@@ -117,8 +117,8 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
     Cm_FreeEntity(ent);
   } else {
-    for (int32_t i = Cm_Bsp()->num_entities; i < sv_max_entities->integer; i++) {
-      if (sv.entities[i].gent->in_use == false) {
+    for (int32_t i = Cm_Bsp()->numEntities; i < sv_max_entities->integer; i++) {
+      if (sv.entities[i].gent->inUse == false) {
         number = i;
         break;
       }
@@ -167,7 +167,7 @@ void Sv_LoadEditorMap(void) {
     return;
   }
 
-  Cm_ParseMapBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
+  Cm_ParseMapBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->numEntities);
 
   Fs_Free(buffer);
 }
@@ -200,10 +200,10 @@ void Sv_SaveEditorMap_f(void) {
   Fs_Print(file, "// Game: Quetoo\n");
   Fs_Print(file, "// Format: Valve220\n");
 
-  int32_t entity_num = 0;
+  int32_t entityNum = 0;
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    if (!sv.config_strings[CS_ENTITIES + i][0]) {
+    if (!sv.configStrings[CS_ENTITIES + i][0]) {
       continue;
     }
 
@@ -212,7 +212,7 @@ void Sv_SaveEditorMap_f(void) {
       continue;
     }
 
-    Fs_Print(file, "// entity %d\n", entity_num++);
+    Fs_Print(file, "// entity %d\n", entityNum++);
     Fs_Print(file, "{\n");
 
     for (const CmEntity *e = ent->def; e; e = e->next) {
@@ -233,5 +233,5 @@ void Sv_SaveEditorMap_f(void) {
 
   Fs_Close(file);
 
-  Com_Print("Wrote %d entities to %s\n", entity_num, path);
+  Com_Print("Wrote %d entities to %s\n", entityNum, path);
 }

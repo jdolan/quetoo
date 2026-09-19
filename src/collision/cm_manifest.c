@@ -25,7 +25,7 @@
 /**
  * @brief Computes the `MD5` hex digest of the given data.
  */
-static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) {
+static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hexSize) {
 
 	md5_ctx ctx;
 	uint8_t digest[16];
@@ -34,7 +34,7 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
 	md5_update(&ctx, data, len);
 	md5_finalize(&ctx, digest);
 
-	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hex_size; i++) {
+	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hexSize; i++) {
 		q_snprintf(hex + i * 2, 3, "%02x", digest[i]);
 	}
 }
@@ -45,7 +45,7 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
  * @details Both sides of the wire hash the same way, so that the server can
  * advertise what it loaded and the client can prove it loaded the same thing.
  */
-bool Cm_HashFile(const char *path, char *hex, size_t hex_size) {
+bool Cm_HashFile(const char *path, char *hex, size_t hexSize) {
 
 	void *data = NULL;
 	const int64_t len = Fs_Load(path, &data);
@@ -56,7 +56,7 @@ bool Cm_HashFile(const char *path, char *hex, size_t hex_size) {
 		return false;
 	}
 
-	Cm_Md5Hex(data, len, hex, hex_size);
+	Cm_Md5Hex(data, len, hex, hexSize);
 	Fs_Free(data);
 
 	return true;

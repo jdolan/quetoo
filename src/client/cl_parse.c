@@ -39,7 +39,7 @@ static struct {
 /**
  * @brief `RESTClientCompletion` for `Cl_CheckOrDownloadFile`.
  */
-static void Cl_DownloadComplete(int32_t status, Data *data, void *user_data) {
+static void Cl_DownloadComplete(int32_t status, Data *data, void *userData) {
 
 	release(cl_download.data);
 	cl_download.data = (status == 200 && data) ? retain(data) : NULL;
@@ -91,7 +91,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
 
   // derive the download URL from the server address we're connected to
   char url[MAX_OS_PATH];
-  Net_HttpUrl(&cls.net_chan.remote_address, filename, url, sizeof(url));
+  Net_HttpUrl(&cls.netChan.remoteAddress, filename, url, sizeof(url));
 
   Com_Print("Downloading %s...\n", filename);
 
@@ -140,12 +140,12 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   Fs_Write(file, cl_download.data->bytes, 1, cl_download.data->length);
   Fs_Close(file);
 
-  const size_t downloaded_length = cl_download.data->length;
+  const size_t downloadedLength = cl_download.data->length;
 
   cl_download.data = release(cl_download.data);
 
   if (Fs_Rename(tempname, filename)) {
-    Com_Print("Downloaded %s (%zu bytes)\n", filename, downloaded_length);
+    Com_Print("Downloaded %s (%zu bytes)\n", filename, downloadedLength);
 
     if (q_strstr(filename, ".pk3")) {
       Fs_AddToSearchPath(filename);
@@ -179,9 +179,9 @@ void Cl_Precache_f(void) {
     return;
   }
 
-  cls.server.spawn_count = (uint32_t) strtoul(Cmd_Argv(1), NULL, 0);
+  cls.server.spawnCount = (uint32_t) strtoul(Cmd_Argv(1), NULL, 0);
 
-  cl.precache_check = CS_PK3;
+  cl.precacheCheck = CS_PK3;
 
   Cl_RequestNextDownload();
 }
@@ -226,17 +226,17 @@ int32_t Cl_ParseConfigString(void) {
     Com_Error(ERROR_DROP, "Invalid index %i\n", i);
   }
 
-  q_strlcpy(cl.config_strings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
+  q_strlcpy(cl.configStrings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
 
-  const char *s = cl.config_strings[i];
+  const char *s = cl.configStrings[i];
 
   if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
     if (cls.state == CL_ACTIVE) {
       cl.models[i - CS_MODELS] = R_LoadModel(s);
       if (*s == '*') {
-        cl.cm_models[i - CS_MODELS] = Cm_Model(s);
+        cl.cmModels[i - CS_MODELS] = Cm_Model(s);
       } else {
-        cl.cm_models[i - CS_MODELS] = NULL;
+        cl.cmModels[i - CS_MODELS] = NULL;
       }
     }
   } else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
@@ -310,7 +310,7 @@ static void Cl_ParseVoice(void) {
     return;
   }
 
-  cl.voice_time[client] = cl.unclamped_time;
+  cl.voiceTime[client] = cl.unclampedTime;
 
   S_AddVoice(client, seq, flags, data, len);
 }
@@ -334,9 +334,9 @@ static void Cl_ParseServerData(void) {
   }
 
   // determine if we're viewing a demo
-  cl.demo_server = Net_ReadByte(&net_message);
+  cl.demoServer = Net_ReadByte(&net_message);
 
-  if (cl.demo_server) {
+  if (cl.demoServer) {
     Com_Print("^3Demo playback controls:^7\n"
               "  Pause/resume:  ^2SPACE^7\n"
               "  Prev frame:    ^2LEFT^7\n"
@@ -447,14 +447,14 @@ static void Cl_UpdateNetStats(void) {
     return;
   }
 
-  cl.dropped += cls.net_chan.dropped;
+  cl.dropped += cls.netChan.dropped;
 }
 
 /**
  * @brief Parses a complete server message, dispatching each command to its handler.
  */
 void Cl_ParseServerMessage(void) {
-  int32_t cmd, old_cmd;
+  int32_t cmd, oldCmd;
 
   if (cl_draw_net_messages->integer == 1) {
     Com_Print("%u ", (uint32_t) net_message.size);
@@ -470,9 +470,9 @@ void Cl_ParseServerMessage(void) {
       Com_Error(ERROR_DROP, "Bad server message\n");
     }
 
-    const size_t cmd_start = net_message.read;
+    const size_t cmdStart = net_message.read;
 
-    old_cmd = cmd;
+    oldCmd = cmd;
     cmd = Net_ReadByte(&net_message);
 
     if (cmd == -1) {
@@ -523,7 +523,7 @@ void Cl_ParseServerMessage(void) {
           memset(&cls.download, 0, sizeof(cls.download));
         }
         cls.state = CL_CONNECTING;
-        cls.server.connect_time = 0; // fire immediately
+        cls.server.connectTime = 0; // fire immediately
         break;
 
       case SV_CMD_SERVER_DATA:
@@ -547,7 +547,7 @@ void Cl_ParseServerMessage(void) {
         if (!cls.cgame->ParseMessage(cmd)) {
           Com_Error(ERROR_DROP, "Illegible server message:\n"
                     " %d: last command was %s\n", cmd,
-                    old_cmd < (int32_t) lengthof(sv_cmd_names) ? sv_cmd_names[old_cmd] : "unknown");
+                    oldCmd < (int32_t) lengthof(sv_cmd_names) ? sv_cmd_names[oldCmd] : "unknown");
         }
         break;
     }
@@ -566,10 +566,10 @@ void Cl_ParseServerMessage(void) {
     // resetting here would silently drop whatever events landed in it. Cl_WriteDemoMessage
     // clears this once it actually flushes the accumulated bytes into a recorded frame.
     if (cls.demo.file && cmd != SV_CMD_FRAME && cmd != SV_CMD_VOICE) {
-      const size_t len = net_message.read - cmd_start;
-      if (cls.demo.event_size + len <= sizeof(cls.demo.event_buffer)) {
-        memcpy(cls.demo.event_buffer + cls.demo.event_size, net_message.data + cmd_start, len);
-        cls.demo.event_size += len;
+      const size_t len = net_message.read - cmdStart;
+      if (cls.demo.eventSize + len <= sizeof(cls.demo.eventBuffer)) {
+        memcpy(cls.demo.eventBuffer + cls.demo.eventSize, net_message.data + cmdStart, len);
+        cls.demo.eventSize += len;
       } else {
         Com_Warn("Demo event buffer full, dropping command %d\n", cmd);
       }

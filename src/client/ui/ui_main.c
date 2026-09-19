@@ -114,18 +114,18 @@ void Ui_HandleEvent(const SDL_Event *event) {
 
     // paused demo playback frees the mouse for the transport controls while staying in KEY_GAME,
     // so pointer events have to reach the UI even though the menus aren't up
-    const bool demo_paused = cls.demo.paused;
+    const bool demoPaused = cls.demo.paused;
 
-    if (cls.key_state.dest != KEY_UI && !demo_paused) {
+    if (cls.keyState.dest != KEY_UI && !demoPaused) {
       switch (event->type) {
         case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
           break;
         case SDL_EVENT_KEY_DOWN:
-          if (editor->value && cls.key_state.dest == KEY_GAME) {
+          if (editor->value && cls.keyState.dest == KEY_GAME) {
             break;
           }
           // demo transport keys are owned by HudViewController, not the bind table
-          if (cl.demo_server) {
+          if (cl.demoServer) {
             break;
           }
           if (event->key.key == SDLK_TAB || event->key.key == SDLK_KP_TAB) {
@@ -133,7 +133,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
           }
         case SDL_EVENT_KEY_UP:
         case SDL_EVENT_TEXT_INPUT:
-          if (cls.key_state.dest == KEY_CHAT) {
+          if (cls.keyState.dest == KEY_CHAT) {
             break;
           }
         default:
@@ -194,7 +194,7 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  const ClientKeyDest dest = cls.key_state.dest;
+  const ClientKeyDest dest = cls.keyState.dest;
 
   const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
   const bool menus = dest == KEY_UI || cls.state == CL_LOADING || (cls.state != CL_ACTIVE && dest != KEY_CONSOLE);

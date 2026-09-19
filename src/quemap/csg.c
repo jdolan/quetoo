@@ -61,8 +61,8 @@ static CsgBrush *SubtractBrush(CsgBrush *a, CsgBrush *b) {
 
   CsgBrush *front = NULL, *back = NULL;
 
-  for (int32_t i = 0; i < b->num_brush_sides && in; i++) {
-    SplitBrush(in, b->brush_sides[i].plane, &front, &back);
+  for (int32_t i = 0; i < b->numBrushSides && in; i++) {
+    SplitBrush(in, b->brushSides[i].plane, &front, &back);
     if (in != a) {
       FreeBrush(in);
     }
@@ -95,9 +95,9 @@ static bool BrushesDisjoint(const CsgBrush *a, const CsgBrush *b) {
   }
 
   // check for opposing planes
-  for (int32_t i = 0; i < a->num_brush_sides; i++) {
-    for (int32_t j = 0; j < b->num_brush_sides; j++) {
-      if (a->brush_sides[i].plane == (b->brush_sides[j].plane ^ 1)) {
+  for (int32_t i = 0; i < a->numBrushSides; i++) {
+    for (int32_t j = 0; j < b->numBrushSides; j++) {
+      if (a->brushSides[i].plane == (b->brushSides[j].plane ^ 1)) {
         return true; // opposite planes, so not touching
       }
     }
@@ -118,22 +118,22 @@ CsgBrush *MakeBrushes(int32_t index, int32_t count) {
   const Brush *in = &brushes[index];
   for (int32_t i = 0; i < count; i++, in++) {
 
-    if (!in->num_brush_sides) {
+    if (!in->numBrushSides) {
       continue;
     }
     
-    CsgBrush *out = AllocBrush(in->num_brush_sides);
+    CsgBrush *out = AllocBrush(in->numBrushSides);
 
     out->original = in;
-    out->num_brush_sides = in->num_brush_sides;
+    out->numBrushSides = in->numBrushSides;
 
-    for (int32_t j = 0; j < out->num_brush_sides; j++) {
+    for (int32_t j = 0; j < out->numBrushSides; j++) {
 
-      out->brush_sides[j] = in->brush_sides[j];
-      out->brush_sides[j].original = &in->brush_sides[j];
+      out->brushSides[j] = in->brushSides[j];
+      out->brushSides[j].original = &in->brushSides[j];
 
-      if (in->brush_sides[j].winding) {
-        out->brush_sides[j].winding = Cm_CopyWinding(in->brush_sides[j].winding);
+      if (in->brushSides[j].winding) {
+        out->brushSides[j].winding = Cm_CopyWinding(in->brushSides[j].winding);
       }
     }
     
@@ -171,7 +171,7 @@ static CsgBrush *AddBrushToBrushes(CsgBrush *list, CsgBrush *tail) {
  */
 static CsgBrush *RemoveBrushFromBrushes(CsgBrush *list, const CsgBrush *skip) {
   CsgBrush *next;
-  CsgBrush *new_list = NULL;
+  CsgBrush *newList = NULL;
 
   for (; list; list = next) {
     next = list->next;
@@ -179,10 +179,10 @@ static CsgBrush *RemoveBrushFromBrushes(CsgBrush *list, const CsgBrush *skip) {
       FreeBrush(list);
       continue;
     }
-    list->next = new_list;
-    new_list = list;
+    list->next = newList;
+    newList = list;
   }
-  return new_list;
+  return newList;
 }
 
 /**
@@ -211,7 +211,7 @@ CsgBrush *SubtractBrushes(CsgBrush *head) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  size_t head_count = CountBrushes(head);
+  size_t headCount = CountBrushes(head);
 
   CsgBrush *keep = NULL;
 
@@ -306,7 +306,7 @@ newlist:
     Progress("Subtracting brushes", -1);
   }
 
-  Com_Verbose("SubtractBrushes: %zi / %zi\n", head_count, CountBrushes(keep));
+  Com_Verbose("SubtractBrushes: %zi / %zi\n", headCount, CountBrushes(keep));
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Subtracting brushes", (uint32_t) SDL_GetTicks() - start);
 

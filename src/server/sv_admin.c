@@ -29,7 +29,7 @@
  * @brief Forces an immediate heartbeat to all registered master servers.
  */
 static void Sv_Heartbeat_f(void) {
-  svs.next_heartbeat = 0;
+  svs.nextHeartbeat = 0;
 }
 
 /**
@@ -198,9 +198,9 @@ static void Sv_Status_f(void) {
                i,
                ping,
                cl->name,
-               quetoo.ticks - cl->last_message,
-               Net_NetaddrToString(&(cl->net_chan.remote_address)),
-               cl->net_chan.qport);
+               quetoo.ticks - cl->lastMessage,
+               Net_NetaddrToString(&(cl->netChan.remoteAddress)),
+               cl->netChan.qport);
 
     Com_Print("%s\n", status);
   }
@@ -336,7 +336,7 @@ static void Sv_UserInfo_f(void) {
     return;
   }
 
-  Com_PrintInfo(sv_client->user_info);
+  Com_PrintInfo(sv_client->userInfo);
 }
 
 /**
@@ -365,8 +365,8 @@ static void Sv_Stuff_f(void) {
     q_strlcat(text, Cmd_Argv(i), sizeof(text));
   }
 
-  Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-  Net_WriteString(&sv_client->net_chan.message, va("%s\n", text));
+  Net_WriteByte(&sv_client->netChan.message, SV_CMD_CBUF_TEXT);
+  Net_WriteString(&sv_client->netChan.message, va("%s\n", text));
 }
 
 /**
@@ -380,11 +380,11 @@ void Sv_InitAdmin(void) {
   Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings.");
   Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user.");
 
-  Cmd *demo_cmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
-  Cmd_SetAutocomplete(demo_cmd, Sv_Demo_Autocomplete_f);
+  Cmd *demoCmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
+  Cmd_SetAutocomplete(demoCmd, Sv_Demo_Autocomplete_f);
 
-  Cmd *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
-  Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);
+  Cmd *mapCmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
+  Cmd_SetAutocomplete(mapCmd, Sv_Map_Autocomplete_f);
 
   Cmd_Add("next_map", Sv_NextMap_f, CMD_SERVER, "Advance to the next map in sv_map_list.");
 

@@ -60,7 +60,7 @@ typedef struct {
   /**
    * @brief The ammo item tag this weapon consumes, or `ITEM_NONE`.
    */
-  GameItemTag ammo_tag;
+  GameItemTag ammoTag;
 
 
   /**

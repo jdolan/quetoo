@@ -38,7 +38,7 @@ void R_UpdateMeshPipeline(void);
 static inline const RenderMaterial *R_MeshEntityFaceMaterial(const RenderEntity *e,
                                                             const RenderMeshFace *face,
                                                             int32_t i) {
-  if (e->has_skins) {
+  if (e->hasSkins) {
     return e->skins[i];
   }
   return face->material;

@@ -38,18 +38,18 @@ static const char *_value = "value";
 static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...) {
 
-  if (self->num_rows == DIAGNOSTICS_MAX_ROWS) {
+  if (self->numRows == DIAGNOSTICS_MAX_ROWS) {
     return;
   }
 
-  q_strlcpy(self->rows[self->num_rows].name, name, DIAGNOSTICS_ROW_NAME);
+  q_strlcpy(self->rows[self->numRows].name, name, DIAGNOSTICS_ROW_NAME);
 
   va_list args;
   va_start(args, fmt);
-  vsnprintf(self->rows[self->num_rows].value, DIAGNOSTICS_ROW_VALUE, fmt, args);
+  vsnprintf(self->rows[self->numRows].value, DIAGNOSTICS_ROW_VALUE, fmt, args);
   va_end(args);
 
-  self->num_rows++;
+  self->numRows++;
 }
 
 /**
@@ -62,12 +62,12 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   const RenderViewStats *r = &view->stats;
   const SoundStageStats *s = &cgi.stage->stats;
 
-  self->num_rows = 0;
+  self->numRows = 0;
 
-  const Vec3 origin = frame->ps.pm_state.origin;
+  const Vec3 origin = frame->ps.pmState.origin;
   addRow(self, "origin", "%.0f %.0f %.0f", origin.x, origin.y, origin.z);
 
-  Vec3 velocity = frame->ps.pm_state.velocity;
+  Vec3 velocity = frame->ps.pmState.velocity;
   velocity.z = 0.f;
   addRow(self, "speed", "%.0f", Vec3_Length(velocity));
 
@@ -86,21 +86,21 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   addRow(self, "dropped", "%u", cl->dropped);
 
   addRow(self, "queries", "%d allocated, %d visible, %d occluded",
-         r->queries_allocated, r->queries_visible, r->queries_occluded);
+         r->queriesAllocated, r->queriesVisible, r->queriesOccluded);
   addRow(self, "lights", "%d visible, %d occluded, %d cached",
-         r->lights_visible, r->lights_occluded, r->lights_cached);
-  addRow(self, "entities", "%d visible, %d occluded", r->entities_visible, r->entities_occluded);
-  addRow(self, "blocks", "%d visible, %d occluded", r->blocks_visible, r->blocks_occluded);
-  addRow(self, "portals", "%d offered, %d drawn, %d triangles", r->portals_offered, r->portals_drawn, r->portals_triangles);
+         r->lightsVisible, r->lightsOccluded, r->lightsCached);
+  addRow(self, "entities", "%d visible, %d occluded", r->entitiesVisible, r->entitiesOccluded);
+  addRow(self, "blocks", "%d visible, %d occluded", r->blocksVisible, r->blocksOccluded);
+  addRow(self, "portals", "%d offered, %d drawn, %d triangles", r->portalsOffered, r->portalsDrawn, r->portalsTriangles);
   addRow(self, "bsp", "%d models, %d draws, %d triangles",
-         r->bsp_inline_models, r->bsp_draw_elements, r->bsp_triangles);
+         r->bspInlineModels, r->bspDrawElements, r->bspTriangles);
   addRow(self, "mesh", "%d models, %d draws, %d triangles",
-         r->mesh_models, r->mesh_draw_elements, r->mesh_triangles);
+         r->meshModels, r->meshDrawElements, r->meshTriangles);
   addRow(self, "sprites", "%d sprites, %d beams, %d instances, %d draws",
-         view->num_sprites, view->num_beams, view->num_sprite_instances, r->sprite_draw_elements);
-  addRow(self, "decals", "%d draws", r->decal_draw_elements);
+         view->numSprites, view->numBeams, view->numSpriteInstances, r->spriteDrawElements);
+  addRow(self, "decals", "%d draws", r->decalDrawElements);
 
-  addRow(self, "sound", "%d channels, reverb %.2f", s->num_channels, s->reverb);
+  addRow(self, "sound", "%d channels, reverb %.2f", s->numChannels, s->reverb);
 }
 
 #pragma mark - TableViewDataSource
@@ -109,7 +109,7 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
  * @see TableViewDataSource::numberOfRows
  */
 static size_t numberOfRows(const TableView *tableView) {
-  return ((DiagnosticsView *) tableView)->num_rows;
+  return ((DiagnosticsView *) tableView)->numRows;
 }
 
 #pragma mark - TableViewDelegate
@@ -196,8 +196,8 @@ static void updateBindings(View *self, ident data) {
       this->time = now;
     }
 
-    if (now - this->refresh_time >= DIAGNOSTICS_REFRESH_INTERVAL) {
-      this->refresh_time = now;
+    if (now - this->refreshTime >= DIAGNOSTICS_REFRESH_INTERVAL) {
+      this->refreshTime = now;
 
       refresh(this, (const ClientFrame *) data);
       $((TableView *) self, reloadData);

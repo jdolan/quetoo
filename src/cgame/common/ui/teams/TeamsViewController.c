@@ -32,7 +32,7 @@
  * @see CollectionViewDataSource::numberOfItems(const CollectionView *)
  */
 static size_t numberOfItems(const CollectionView *collectionView) {
-  return cg_state.num_teams ?: 1;
+  return cg_state.numTeams ?: 1;
 }
 
 /**
@@ -40,7 +40,7 @@ static size_t numberOfItems(const CollectionView *collectionView) {
  */
 static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-  if (cg_state.num_teams == 0) {
+  if (cg_state.numTeams == 0) {
     return NULL;
   }
 

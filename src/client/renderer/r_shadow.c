@@ -24,8 +24,8 @@ RenderShadowAtlas r_shadow_atlas;
  */
 typedef struct {
   Mat4 model;
-  Mat4 light_view;
-  Vec4 light_origin;
+  Mat4 lightView;
+  Vec4 lightOrigin;
   float lerp;
 } RenderShadowLocals;
 
@@ -43,39 +43,39 @@ static struct {
   /**
    * @brief The opaque BSP shadow pipeline.
    */
-  GraphicsPipeline *bsp_opaque_pipeline;
+  GraphicsPipeline *bspOpaquePipeline;
 
   /**
    * @brief The BSP shadow pipeline for alpha-tested materials, discarding
    * transparent texels so foliage, fences and grates cast holes.
    */
-  GraphicsPipeline *bsp_alpha_test_pipeline;
+  GraphicsPipeline *bspAlphaTestPipeline;
 
   /**
    * @brief The mesh shadow pipeline.
    */
-  GraphicsPipeline *mesh_opaque_pipeline;
+  GraphicsPipeline *meshOpaquePipeline;
 
   /**
    * @brief The mesh shadow pipeline for alpha-tested materials, discarding
    * transparent texels so foliage, fences and grates cast holes.
    */
-  GraphicsPipeline *mesh_alpha_test_pipeline;
+  GraphicsPipeline *meshAlphaTestPipeline;
 
   /**
    * @brief The shadow-atlas clear pipeline.
    */
-  GraphicsPipeline *clear_pipeline;
+  GraphicsPipeline *clearPipeline;
 
   /**
    * @brief The sampler used to bind alpha-tested materials' diffuse textures.
    */
-  Sampler *repeat_sampler;
+  Sampler *repeatSampler;
 
   /**
    * @brief Cube-face view matrices for shadow lights.
    */
-  Mat4 light_view[6];
+  Mat4 lightView[6];
 
   /**
    * @brief The cube face currently being rendered.
@@ -122,9 +122,9 @@ static uint64_t R_HashLightEntity(uint64_t hash, const RenderEntity *e) {
 
   if (IS_MESH_MODEL(e->model)) {
     hash = R_HashShadowBytes(hash, &e->frame, sizeof(e->frame));
-    hash = R_HashShadowBytes(hash, &e->old_frame, sizeof(e->old_frame));
+    hash = R_HashShadowBytes(hash, &e->oldFrame, sizeof(e->oldFrame));
     hash = R_HashShadowBytes(hash, &e->lerp, sizeof(e->lerp));
-    hash = R_HashShadowBytes(hash, e->skins, e->model->mesh->num_faces * sizeof(e->skins[0]));
+    hash = R_HashShadowBytes(hash, e->skins, e->model->mesh->numFaces * sizeof(e->skins[0]));
   }
 
   return hash;
@@ -143,7 +143,7 @@ static uint64_t R_HashLightEntity(uint64_t hash, const RenderEntity *e) {
  */
 void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index) {
 
-  l->num_entities = 0;
+  l->numEntities = 0;
   l->hash = 0;
 
   if (l->flags & R_LIGHT_NO_SHADOW) {
@@ -161,16 +161,16 @@ void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index
   hash = R_HashShadowBytes(hash, &l->tile, sizeof(l->tile));
   hash = R_HashShadowBytes(hash, &r_alpha_test->value, sizeof(r_alpha_test->value));
 
-  const bool bsp_light_geometry = l->bsp_light && l->bsp_light->num_draw_elements;
-  hash = R_HashShadowBytes(hash, &bsp_light_geometry, sizeof(bsp_light_geometry));
+  const bool bspLightGeometry = l->bspLight && l->bspLight->numDrawElements;
+  hash = R_HashShadowBytes(hash, &bspLightGeometry, sizeof(bspLightGeometry));
 
-  const Vec3 closest_point = Box3_ClampPoint(l->bounds, view->origin);
-  const float dist = Vec3_Distance(closest_point, view->origin);
+  const Vec3 closestPoint = Box3_ClampPoint(l->bounds, view->origin);
+  const float dist = Vec3_Distance(closestPoint, view->origin);
 
   if (dist <= r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
 
     const RenderEntity *e = view->entities;
-    for (int32_t i = 0; i < view->num_entities; i++, e++) {
+    for (int32_t i = 0; i < view->numEntities; i++, e++) {
 
       if (e->model == NULL) {
         continue;
@@ -188,11 +188,11 @@ void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index
         continue;
       }
 
-      if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
+      if (!Box3_Intersects(l->bounds, e->absModelBounds)) {
         continue;
       }
 
-      l->entities[l->num_entities++] = e;
+      l->entities[l->numEntities++] = e;
 
       hash = R_HashLightEntity(hash, e);
     }
@@ -201,7 +201,7 @@ void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index
   l->hash = hash ?: 1;
 
   if (l->hash == r_shadow_draw.hashes[index]) {
-    r_stats->lights_cached++;
+    r_stats->lightsCached++;
   }
 }
 
@@ -226,29 +226,29 @@ static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const Ren
     return pipeline;
   }
 
-  const bool alpha_test = (draw->surface & SURF_ALPHA_TEST) && draw->material;
+  const bool alphaTest = (draw->surface & SURF_ALPHA_TEST) && draw->material;
 
-  GraphicsPipeline *draw_pipeline = alpha_test
-    ? r_shadow_draw.bsp_alpha_test_pipeline
-    : r_shadow_draw.bsp_opaque_pipeline;
+  GraphicsPipeline *drawPipeline = alphaTest
+    ? r_shadow_draw.bspAlphaTestPipeline
+    : r_shadow_draw.bspOpaquePipeline;
 
-  if (pipeline != draw_pipeline) {
-    pipeline = draw_pipeline;
+  if (pipeline != drawPipeline) {
+    pipeline = drawPipeline;
     $(pass, bindPipeline, pipeline);
   }
 
-  if (alpha_test) {
+  if (alphaTest) {
     $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
-      .sampler = r_shadow_draw.repeat_sampler->sampler,
+      .sampler = r_shadow_draw.repeatSampler->sampler,
     }, 1);
 
-    const float alpha_test_value = draw->material->cm->alpha_test * r_alpha_test->value;
-    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
+    const float alphaTestValue = draw->material->cm->alphaTest * r_alpha_test->value;
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alphaTestValue, sizeof(alphaTestValue));
   }
 
-  const uint32_t first_index = (uint32_t) ((uintptr_t) draw->elements / sizeof(uint32_t));
-  $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+  const uint32_t firstIndex = (uint32_t) ((uintptr_t) draw->elements / sizeof(uint32_t));
+  $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
 
   return pipeline;
 }
@@ -258,14 +258,14 @@ static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const Ren
  */
 static void R_DrawBspDrawElementsShadows(RenderPass *pass, const RenderBspDrawElements *draw, int32_t count) {
 
-  GraphicsPipeline *pipeline = r_shadow_draw.bsp_opaque_pipeline;
+  GraphicsPipeline *pipeline = r_shadow_draw.bspOpaquePipeline;
 
   for (int32_t i = 0; i < count; i++, draw++) {
     pipeline = R_DrawBspDrawElementsShadow(pass, draw, pipeline);
   }
 
-  if (pipeline != r_shadow_draw.bsp_opaque_pipeline) {
-    $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
+  if (pipeline != r_shadow_draw.bspOpaquePipeline) {
+    $(pass, bindPipeline, r_shadow_draw.bspOpaquePipeline);
   }
 }
 
@@ -279,23 +279,23 @@ static void R_DrawBspDrawElementsShadows(RenderPass *pass, const RenderBspDrawEl
  */
 static void R_DrawBspBlocksShadows(RenderPass *pass, const RenderLight *l, const RenderBspInlineModel *in) {
 
-  GraphicsPipeline *pipeline = r_shadow_draw.bsp_opaque_pipeline;
+  GraphicsPipeline *pipeline = r_shadow_draw.bspOpaquePipeline;
 
   const RenderBspBlock *block = in->blocks;
-  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+  for (int32_t i = 0; i < in->numBlocks; i++, block++) {
 
-    if (!Box3_Intersects(l->bounds, block->visible_bounds)) {
+    if (!Box3_Intersects(l->bounds, block->visibleBounds)) {
       continue;
     }
 
-    const RenderBspDrawElements *draw = block->draw_elements;
-    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+    const RenderBspDrawElements *draw = block->drawElements;
+    for (int32_t j = 0; j < block->numDrawElements; j++, draw++) {
       pipeline = R_DrawBspDrawElementsShadow(pass, draw, pipeline);
     }
   }
 
-  if (pipeline != r_shadow_draw.bsp_opaque_pipeline) {
-    $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
+  if (pipeline != r_shadow_draw.bspOpaquePipeline) {
+    $(pass, bindPipeline, r_shadow_draw.bspOpaquePipeline);
   }
 }
 
@@ -304,27 +304,27 @@ static void R_DrawBspBlocksShadows(RenderPass *pass, const RenderLight *l, const
  */
 static void R_DrawBspEntityShadows(const RenderLight *l, const RenderEntity *e, RenderPass *pass) {
 
-  const RenderBspInlineModel *in = e->model->bsp_inline;
+  const RenderBspInlineModel *in = e->model->bspInline;
 
-  if (!in->num_depth_pass_elements) {
+  if (!in->numDepthPassElements) {
     return;
   }
 
   $(r_context.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const RenderShadowLocals) {
     .model = e->matrix,
-    .light_view = r_shadow_draw.light_view[r_shadow_draw.face],
-    .light_origin = Vec3_ToVec4(l->origin, l->radius),
+    .lightView = r_shadow_draw.lightView[r_shadow_draw.face],
+    .lightOrigin = Vec3_ToVec4(l->origin, l->radius),
     .lerp = 0.f,
   }, sizeof(RenderShadowLocals));
 
   if (IS_WORLDSPAWN(e->model)) {
-    if (l->bsp_light && l->bsp_light->num_draw_elements) {
-      R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
+    if (l->bspLight && l->bspLight->numDrawElements) {
+      R_DrawBspDrawElementsShadows(pass, l->bspLight->drawElements, l->bspLight->numDrawElements);
     } else {
       R_DrawBspBlocksShadows(pass, l, in);
     }
   } else {
-    R_DrawBspDrawElementsShadows(pass, in->depth_pass_elements, in->num_depth_pass_elements);
+    R_DrawBspDrawElementsShadows(pass, in->depthPassElements, in->numDepthPassElements);
   }
 }
 
@@ -333,7 +333,7 @@ static void R_DrawBspEntityShadows(const RenderLight *l, const RenderEntity *e, 
  */
 static void R_DrawBspEntitiesShadows(const RenderView *view, const RenderLight *l, RenderPass *pass) {
 
-  const Uint32 ts = r_shadow_atlas.tile_size;
+  const Uint32 ts = r_shadow_atlas.tileSize;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = l->tile.x,
@@ -346,7 +346,7 @@ static void R_DrawBspEntitiesShadows(const RenderView *view, const RenderLight *
 
   $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
-  for (int32_t i = 0; i < l->num_entities; i++) {
+  for (int32_t i = 0; i < l->numEntities; i++) {
 
     const RenderEntity *e = l->entities[i];
 
@@ -365,25 +365,25 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
 
   const RenderMeshModel *mesh = e->model->mesh;
 
-  if (!mesh->elements_buffer) {
+  if (!mesh->elementsBuffer) {
     return;
   }
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-    .buffer = mesh->elements_buffer->buffer
+    .buffer = mesh->elementsBuffer->buffer
   }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   const uint32_t stride = sizeof(RenderMeshVertex);
 
   $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const RenderShadowLocals) {
     .model = e->matrix,
-    .light_view =  r_shadow_draw.light_view[r_shadow_draw.face],
-    .light_origin = Vec3_ToVec4(l->origin, l->radius),
+    .lightView =  r_shadow_draw.lightView[r_shadow_draw.face],
+    .lightOrigin = Vec3_ToVec4(l->origin, l->radius),
     .lerp = e->lerp,
   }, sizeof(RenderShadowLocals));
 
   const RenderMeshFace *face = mesh->faces;
-  for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+  for (int32_t i = 0; i < mesh->numFaces; i++, face++) {
 
     const RenderMaterial *material = R_MeshEntityFaceMaterial(e, face, i);
     if (!material) {
@@ -394,32 +394,32 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
       continue;
     }
 
-    GraphicsPipeline *pipeline = r_shadow_draw.mesh_opaque_pipeline;
+    GraphicsPipeline *pipeline = r_shadow_draw.meshOpaquePipeline;
 
     if (material->cm->surface & SURF_ALPHA_TEST) {
-      pipeline = r_shadow_draw.mesh_alpha_test_pipeline;
+      pipeline = r_shadow_draw.meshAlphaTestPipeline;
 
       $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
         .texture = material->texture->texture->texture,
-        .sampler = r_shadow_draw.repeat_sampler->sampler,
+        .sampler = r_shadow_draw.repeatSampler->sampler,
       }, 1);
 
-      const float alpha_test_value = material->cm->alpha_test * r_alpha_test->value;
-      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
+      const float alphaTestValue = material->cm->alphaTest * r_alpha_test->value;
+      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alphaTestValue, sizeof(alphaTestValue));
     }
 
     $(pass, bindPipeline, pipeline);
 
-    const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
-    const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
+    const uint32_t oldOffset = (uint32_t) (face->baseVertex + e->oldFrame * face->numVertexes) * stride;
+    const uint32_t curOffset = (uint32_t) (face->baseVertex + e->frame * face->numVertexes) * stride;
 
     $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-      { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
-      { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
+      { .buffer = mesh->vertexBuffer->buffer, .offset = oldOffset },
+      { .buffer = mesh->vertexBuffer->buffer, .offset = curOffset },
     }, 2);
 
-    const uint32_t first_index = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
-    $(pass, drawIndexedPrimitives, face->num_elements, 1, first_index, 0, 0);
+    const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
+    $(pass, drawIndexedPrimitives, face->numElements, 1, firstIndex, 0, 0);
   }
 }
 
@@ -430,7 +430,7 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
  */
 static void R_DrawMeshEntitiesShadows(const RenderView *view, const RenderLight *l, RenderPass *pass) {
 
-  const Uint32 ts = r_shadow_atlas.tile_size;
+  const Uint32 ts = r_shadow_atlas.tileSize;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = l->tile.x,
@@ -443,7 +443,7 @@ static void R_DrawMeshEntitiesShadows(const RenderView *view, const RenderLight 
 
   $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
-  for (int32_t j = 0; j < l->num_entities; j++) {
+  for (int32_t j = 0; j < l->numEntities; j++) {
     const RenderEntity *e = l->entities[j];
 
     if (!IS_MESH_MODEL(e->model)) {
@@ -475,12 +475,12 @@ void R_DrawShadows(const RenderView *view) {
 
     RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-    const Uint32 ts = r_shadow_atlas.tile_size;
+    const Uint32 ts = r_shadow_atlas.tileSize;
 
-    $(pass, bindPipeline, r_shadow_draw.clear_pipeline);
+    $(pass, bindPipeline, r_shadow_draw.clearPipeline);
 
     const RenderLight *l = view->lights;
-    for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    for (int32_t i = 0; i < view->numLights; i++, l++) {
 
       if (!R_LightShadowDirty(l, i)) {
         continue;
@@ -500,23 +500,23 @@ void R_DrawShadows(const RenderView *view) {
       $(pass, drawPrimitives, 3, 1, 0, 0);
     }
 
-    $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
+    $(pass, bindPipeline, r_shadow_draw.bspOpaquePipeline);
 
     if (bsp) {
       $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-        { .buffer = bsp->vertex_buffer->buffer },
-        { .buffer = bsp->vertex_buffer->buffer },
+        { .buffer = bsp->vertexBuffer->buffer },
+        { .buffer = bsp->vertexBuffer->buffer },
       }, 2);
 
       $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-        .buffer = bsp->elements_buffer->buffer
+        .buffer = bsp->elementsBuffer->buffer
       }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
     }
 
     $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
     l = view->lights;
-    for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    for (int32_t i = 0; i < view->numLights; i++, l++) {
 
       if (!R_LightShadowDirty(l, i)) {
         continue;
@@ -528,7 +528,7 @@ void R_DrawShadows(const RenderView *view) {
     }
 
     l = view->lights;
-    for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    for (int32_t i = 0; i < view->numLights; i++, l++) {
 
       if (!R_LightShadowDirty(l, i)) {
         continue;
@@ -541,7 +541,7 @@ void R_DrawShadows(const RenderView *view) {
   }
 
   const RenderLight *l = view->lights;
-  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+  for (int32_t i = 0; i < view->numLights; i++, l++) {
     if (R_LightShadowDirty(l, i)) {
       r_shadow_draw.hashes[i] = l->hash;
     }
@@ -565,17 +565,17 @@ void R_InitShadows(void) {
 
   memset(&r_shadow_atlas, 0, sizeof(r_shadow_atlas));
 
-  r_shadow_atlas.tile_size = Maxi(r_shadow_tile_size->integer, 128);
+  r_shadow_atlas.tileSize = Maxi(r_shadow_tile_size->integer, 128);
 
-  const Uint32 atlas_size = SHADOW_ATLAS_LIGHTS_PER_ROW * r_shadow_atlas.tile_size;
+  const Uint32 atlasSize = SHADOW_ATLAS_LIGHTS_PER_ROW * r_shadow_atlas.tileSize;
 
   for (int32_t face = 0; face < 6; face++) {
     r_shadow_atlas.textures[face] = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D,
       .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
       .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
-      .width = atlas_size,
-      .height = atlas_size,
+      .width = atlasSize,
+      .height = atlasSize,
       .layer_count_or_depth = 1,
       .num_levels = 1,
       .sample_count = SDL_GPU_SAMPLECOUNT_1,
@@ -630,7 +630,7 @@ void R_InitShadows(void) {
     },
   };
 
-  r_shadow_draw.bsp_opaque_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_shadow_draw.bspOpaquePipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -645,7 +645,7 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 2,
   };
 
-  r_shadow_draw.mesh_opaque_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_shadow_draw.meshOpaquePipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -677,7 +677,7 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 3,
   };
 
-  r_shadow_draw.mesh_alpha_test_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_shadow_draw.meshAlphaTestPipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -693,14 +693,14 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 3,
   };
 
-  r_shadow_draw.bsp_alpha_test_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_shadow_draw.bspAlphaTestPipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(alphaTestVertexShader);
   release(alphaTestFragmentShader);
 
-  r_shadow_draw.repeat_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_shadow_draw.repeatSampler = $(r_context.device, createSamplerLinearRepeat);
 
-  SDL_GPUGraphicsPipelineCreateInfo clear_info = {
+  SDL_GPUGraphicsPipelineCreateInfo clearInfo = {
     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .rasterizer_state = {
       .fill_mode = SDL_GPU_FILLMODE_FILL,
@@ -719,21 +719,21 @@ void R_InitShadows(void) {
     },
   };
 
-  r_shadow_draw.clear_pipeline = $(r_context.device, loadGraphicsPipeline,
+  r_shadow_draw.clearPipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/shadow_clear_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     },
     "shaders/shadow_clear_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     },
-    &clear_info);
+    &clearInfo);
 
-  r_shadow_draw.light_view[0] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 1.f,  0.f,  0.f), MakeVec3(0.f, -1.f,  0.f));
-  r_shadow_draw.light_view[1] = Mat4_LookAt(Vec3_Zero(), MakeVec3(-1.f,  0.f,  0.f), MakeVec3(0.f, -1.f,  0.f));
-  r_shadow_draw.light_view[2] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f,  1.f,  0.f), MakeVec3(0.f,  0.f,  1.f));
-  r_shadow_draw.light_view[3] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f, -1.f,  0.f), MakeVec3(0.f,  0.f, -1.f));
-  r_shadow_draw.light_view[4] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f,  0.f,  1.f), MakeVec3(0.f, -1.f,  0.f));
-  r_shadow_draw.light_view[5] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f,  0.f, -1.f), MakeVec3(0.f, -1.f,  0.f));
+  r_shadow_draw.lightView[0] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 1.f,  0.f,  0.f), MakeVec3(0.f, -1.f,  0.f));
+  r_shadow_draw.lightView[1] = Mat4_LookAt(Vec3_Zero(), MakeVec3(-1.f,  0.f,  0.f), MakeVec3(0.f, -1.f,  0.f));
+  r_shadow_draw.lightView[2] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f,  1.f,  0.f), MakeVec3(0.f,  0.f,  1.f));
+  r_shadow_draw.lightView[3] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f, -1.f,  0.f), MakeVec3(0.f,  0.f, -1.f));
+  r_shadow_draw.lightView[4] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f,  0.f,  1.f), MakeVec3(0.f, -1.f,  0.f));
+  r_shadow_draw.lightView[5] = Mat4_LookAt(Vec3_Zero(), MakeVec3( 0.f,  0.f, -1.f), MakeVec3(0.f, -1.f,  0.f));
 }
 
 /**
@@ -741,12 +741,12 @@ void R_InitShadows(void) {
  */
 void R_ShutdownShadows(void) {
 
-  r_shadow_draw.bsp_opaque_pipeline = release(r_shadow_draw.bsp_opaque_pipeline);
-  r_shadow_draw.bsp_alpha_test_pipeline = release(r_shadow_draw.bsp_alpha_test_pipeline);
-  r_shadow_draw.mesh_opaque_pipeline = release(r_shadow_draw.mesh_opaque_pipeline);
-  r_shadow_draw.mesh_alpha_test_pipeline = release(r_shadow_draw.mesh_alpha_test_pipeline);
-  r_shadow_draw.clear_pipeline = release(r_shadow_draw.clear_pipeline);
-  r_shadow_draw.repeat_sampler = release(r_shadow_draw.repeat_sampler);
+  r_shadow_draw.bspOpaquePipeline = release(r_shadow_draw.bspOpaquePipeline);
+  r_shadow_draw.bspAlphaTestPipeline = release(r_shadow_draw.bspAlphaTestPipeline);
+  r_shadow_draw.meshOpaquePipeline = release(r_shadow_draw.meshOpaquePipeline);
+  r_shadow_draw.meshAlphaTestPipeline = release(r_shadow_draw.meshAlphaTestPipeline);
+  r_shadow_draw.clearPipeline = release(r_shadow_draw.clearPipeline);
+  r_shadow_draw.repeatSampler = release(r_shadow_draw.repeatSampler);
   r_shadow_atlas.sampler = release(r_shadow_atlas.sampler);
 
   for (int32_t face = 0; face < 6; face++) {

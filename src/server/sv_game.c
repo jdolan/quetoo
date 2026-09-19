@@ -28,7 +28,7 @@
  * @brief Fetch the active debug mask.
  */
 static DebugFlags Sv_DebugMask(void) {
-  return quetoo.debug_mask;
+  return quetoo.debugMask;
 }
 
 /**
@@ -94,12 +94,12 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
   }
 
   // make sure it's actually changed
-  if (!q_strcmp(sv.config_strings[index], val)) {
+  if (!q_strcmp(sv.configStrings[index], val)) {
     return;
   }
 
   // change the string in sv.config_strings
-  q_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
+  q_strlcpy(sv.configStrings[index], val, sizeof(sv.configStrings[0]));
 
   if (svs.state >= SV_ACTIVE_GAME) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -121,7 +121,7 @@ const char *Sv_GetConfigString(const int32_t index) {
     return NULL;
   }
 
-  return sv.config_strings[index];
+  return sv.configStrings[index];
 }
 
 /**
@@ -206,8 +206,8 @@ static void *game_handle;
 /**
  * @brief `RESTClientCompletion` for `Sv_PostStats`.
  */
-static void Sv_PostStatsCallback(int32_t status, Data *data, void *user_data) {
-  const char *url = user_data;
+static void Sv_PostStatsCallback(int32_t status, Data *data, void *userData) {
+  const char *url = userData;
 
   if (status < 200 || status >= 300) {
     Com_Warn("Sv_PostStatsCallback: POST to %s failed (HTTP %d): %.*s\n", url, status,
@@ -226,30 +226,30 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *user_data) {
  * single public IP, which it cannot otherwise distinguish (payloads only ever
  * identify a player, not the reporting server).
  */
-static void Sv_PostStats(const GameFrag *frags, size_t frags_len, const GameCapture *captures, size_t captures_len) {
+static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCapture *captures, size_t capturesLen) {
 
   if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
     return;
   }
 
-  const Cvar *net_port = Cvar_Get("net_port");
+  const Cvar *netPort = Cvar_Get("net_port");
 
   const char *headers[] = {
-    "X-Quetoo-Port",     net_port->string,
+    "X-Quetoo-Port",     netPort->string,
     "X-Quetoo-Hostname", sv_hostname->string,
     NULL
   };
 
-  if (frags_len) {
+  if (fragsLen) {
 
-    const JSONProperties sv_frag_properties = MakeJSONProperties(GameFrag,
+    const JSONProperties svFragProperties = MakeJSONProperties(GameFrag,
       MakeJSONProperty(GameFrag, level,         JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameFrag, attacker,      JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, attacker_guid, JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, attacker_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(GameFrag, attackerGuid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, attackerAi,   JSONSerializeBoole,      NULL, NULL),
       MakeJSONProperty(GameFrag, target,        JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, target_guid,   JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, target_ai,     JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(GameFrag, targetGuid,   JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameFrag, targetAi,     JSONSerializeBoole,      NULL, NULL),
       MakeJSONProperty(GameFrag, weapon,        JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameFrag, mod,           JSONSerializeInt32,      NULL, NULL),
       MakeJSONProperty(GameFrag, time,          JSONSerializeInt32,      NULL, NULL)
@@ -259,23 +259,23 @@ static void Sv_PostStats(const GameFrag *frags, size_t frags_len, const GameCapt
     q_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromStructs, &sv_frag_properties, (ident) frags, frags_len);
+    Data *data = $(ctx, dataFromStructs, &svFragProperties, (ident) frags, fragsLen);
     release(ctx);
     assert(data);
 
-    Com_Print("POSTing %zd frags to %s\n", frags_len, frags_url);
+    Com_Print("POSTing %zd frags to %s\n", fragsLen, frags_url);
     $($$(RESTClient, sharedInstance), postAsync, frags_url, data, headers, Sv_PostStatsCallback, frags_url);
 
     release(data);
   }
 
-  if (captures_len) {
+  if (capturesLen) {
 
-    const JSONProperties sv_capture_properties = MakeJSONProperties(GameCapture,
+    const JSONProperties svCaptureProperties = MakeJSONProperties(GameCapture,
       MakeJSONProperty(GameCapture, level,       JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameCapture, player,      JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameCapture, player_guid, JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameCapture, player_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(GameCapture, playerGuid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(GameCapture, playerAi,   JSONSerializeBoole,      NULL, NULL),
       MakeJSONProperty(GameCapture, team,        JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameCapture, time,        JSONSerializeInt32,      NULL, NULL)
     );
@@ -284,11 +284,11 @@ static void Sv_PostStats(const GameFrag *frags, size_t frags_len, const GameCapt
     q_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromStructs, &sv_capture_properties, (ident) captures, captures_len);
+    Data *data = $(ctx, dataFromStructs, &svCaptureProperties, (ident) captures, capturesLen);
     release(ctx);
     assert(data);
 
-    Com_Print("POSTing %zd captures to %s\n", captures_len, captures_url);
+    Com_Print("POSTing %zd captures to %s\n", capturesLen, captures_url);
     $($$(RESTClient, sharedInstance), postAsync, captures_url, data, headers, Sv_PostStatsCallback, captures_url);
 
     release(data);
@@ -420,8 +420,8 @@ void Sv_InitGame(void) {
     Com_Error(ERROR_DROP, "Failed to load %s's game module\n", dir);
   }
 
-  if (game->api_version != GAME_API_VERSION) {
-    const int32_t version = game->api_version;
+  if (game->apiVersion != GAME_API_VERSION) {
+    const int32_t version = game->apiVersion;
     game_handle = Sys_CloseLibrary(game_handle);
     Com_Error(ERROR_DROP, "%s's game module is version %i, not %i\n", dir, version, GAME_API_VERSION);
   }

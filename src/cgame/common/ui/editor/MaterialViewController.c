@@ -48,7 +48,7 @@ static void didSetValue(Slider *slider, double value) {
   } else if (slider == this->shadow) {
     this->material->cm->shadow = slider->value;
   } else if (slider == this->alphaTest) {
-    this->material->cm->alpha_test = slider->value;
+    this->material->cm->alphaTest = slider->value;
   } else {
     Cg_Debug("Unknown Slider %p\n", (void *) slider);
     return;
@@ -157,7 +157,7 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
     $(self->specularity, setValue, (double) self->material->cm->specularity);
     $(self->parallax, setValue, (double) self->material->cm->parallax);
     $(self->shadow, setValue, (double) self->material->cm->shadow);
-    $(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
+    $(self->alphaTest, setValue, (double) self->material->cm->alphaTest);
 
   } else {
     $(self->name, setDefaultText, NULL);

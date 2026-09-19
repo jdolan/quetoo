@@ -56,7 +56,7 @@ typedef struct {
   /**
    * @brief Number of BSP lights.
    */
-  int32_t num_lights;
+  int32_t numLights;
 
   /**
    * @brief BSP lights indexed by BSP lump index.
@@ -72,7 +72,7 @@ typedef struct {
   /**
    * @brief Number of dynamic lights.
    */
-  int32_t num_lights;
+  int32_t numLights;
 
   /**
    * @brief Dynamic lights in view order.
@@ -88,34 +88,34 @@ typedef struct {
   /**
    * @brief GPU buffer for `bsp_block`.
    */
-  Buffer *bsp_buffer;
+  Buffer *bspBuffer;
 
   /**
    * @brief CPU copy of the BSP light block.
    */
-  RenderBspLightsUniformBlock bsp_block;
+  RenderBspLightsUniformBlock bspBlock;
 
   /**
    * @brief GPU buffer for `dynamic_block`.
    */
-  Buffer *dynamic_buffer;
+  Buffer *dynamicBuffer;
 
   /**
    * @brief CPU copy of the dynamic light block.
    */
-  RenderDynamicLightsUniformBlock dynamic_block;
+  RenderDynamicLightsUniformBlock dynamicBlock;
 
   /**
    * @brief The transfer buffer sourcing both blocks' uploads, held for the renderer's
    * lifetime because they are uploaded every frame.
    */
-  TransferBuffer *transfer_buffer;
+  TransferBuffer *transferBuffer;
 
   /**
    * @brief One voxel with no lights, bound where a level has no clustered light
    * data, or a view has no level.
    */
-  Buffer *voxel_fallback_buffer;
+  Buffer *voxelFallbackBuffer;
 } RenderLights;
 
 /**

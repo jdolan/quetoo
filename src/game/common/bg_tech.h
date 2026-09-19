@@ -46,10 +46,10 @@ typedef struct {
   /**
    * @brief Next regeneration tick time, for the regeneration tech.
    */
-  uint32_t regen_time;
+  uint32_t regenTime;
 
   /**
    * @brief Next time a tech powerup sound may play.
    */
-  uint32_t sound_time;
+  uint32_t soundTime;
 } GameClientTech;

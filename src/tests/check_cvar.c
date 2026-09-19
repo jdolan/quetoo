@@ -67,9 +67,9 @@ START_TEST(check_Cvar_Get) {
 
   // check that a subsequent call for the same variable does not modify the value
   // but does modify all meta-data
-  Cvar *var_copy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
+  Cvar *varCopy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
 
-  ck_assert(var_copy == var);
+  ck_assert(varCopy == var);
   ck_assert_str_eq(var->string, "3.2");
   ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
   ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);

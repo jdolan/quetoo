@@ -171,8 +171,8 @@ void setup(void) {
  */
 void teardown(void) {
 
-  gi.Free(g_level.race_records);
-  gi.Free(g_level.race_line.samples);
+  gi.Free(g_level.raceRecords);
+  gi.Free(g_level.raceLine.samples);
 
   Fs_Shutdown();
 
@@ -184,31 +184,31 @@ void teardown(void) {
  */
 static void Test_FinishRun(GameClient *cl, const char *guid, const char *name, uint32_t elapsed) {
 
-  GameRaceRun *run = &cl->race_run;
+  GameRaceRun *run = &cl->raceRun;
   memset(run, 0, sizeof(*run));
 
   q_strlcpy(cl->persistent.guid, guid, sizeof(cl->persistent.guid));
-  q_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
+  q_strlcpy(cl->persistent.netName, name, sizeof(cl->persistent.netName));
 
   // a real run has real params behind it, not the zeroed struct a fresh fixture starts with
-  cl->ps.pm_state.params = *Pm_Movement(PM_MOVEMENT_RACE)->params;
+  cl->ps.pmState.params = *Pm_Movement(PM_MOVEMENT_RACE)->params;
 
   run->movement = PM_MOVEMENT_RACE;
   run->elapsed = elapsed;
 
-  run->checkpoint_count = 2;
-  run->checkpoint_times[0] = elapsed / 3;
-  run->checkpoint_times[1] = 2 * elapsed / 3;
+  run->checkpointCount = 2;
+  run->checkpointTimes[0] = elapsed / 3;
+  run->checkpointTimes[1] = 2 * elapsed / 3;
 
-  run->split_count = 1;
-  run->split_times[0] = elapsed / 2;
+  run->splitCount = 1;
+  run->splitTimes[0] = elapsed / 2;
 
   run->stage = 1; // never left stage 1, so no stage times are recorded
 
-  run->start_speed = 320.f;
-  run->top_speed = 900.f;
-  run->speed_sum = 640.f * 10.f;
-  run->speed_samples = 10;
+  run->startSpeed = 320.f;
+  run->topSpeed = 900.f;
+  run->speedSum = 640.f * 10.f;
+  run->speedSamples = 10;
 }
 
 START_TEST(check_G_Race_Records_RoundTrip) {
@@ -216,35 +216,35 @@ START_TEST(check_G_Race_Records_RoundTrip) {
   Test_FinishRun(&test_client, "guid-alice", "Alice", 83412);
 
   ck_assert(G_Race_SubmitRecord(&test_client));
-  ck_assert_uint_eq(g_level.race_record_count, 1);
+  ck_assert_uint_eq(g_level.raceRecordCount, 1);
 
   const uint32_t params = G_Race_Record("guid-alice", PM_MOVEMENT_RACE)->params;
   ck_assert_uint_ne(params, 0); // the fixture's params are not the zeroed struct's hash
 
   // forget everything in memory, and what was published, and reload from what was just written
-  gi.Free(g_level.race_records);
-  memset(&g_level.race_records, 0, sizeof(g_level.race_records));
-  g_level.race_record_count = g_level.race_record_capacity = 0;
+  gi.Free(g_level.raceRecords);
+  memset(&g_level.raceRecords, 0, sizeof(g_level.raceRecords));
+  g_level.raceRecordCount = g_level.raceRecordCapacity = 0;
   memset(test_cs_race_records, 0, sizeof(test_cs_race_records));
 
   G_Race_LoadRecords();
 
-  ck_assert_uint_eq(g_level.race_record_count, 1);
+  ck_assert_uint_eq(g_level.raceRecordCount, 1);
 
   const GameRaceRecord *record = G_Race_Record("guid-alice", PM_MOVEMENT_RACE);
   ck_assert_ptr_nonnull(record);
   ck_assert_str_eq(record->name, "Alice");
   ck_assert_uint_eq(record->time, 83412);
   ck_assert_uint_eq(record->params, params);
-  ck_assert_uint_eq(record->checkpoint_count, 2);
-  ck_assert_uint_eq(record->checkpoint_times[0], 83412 / 3);
-  ck_assert_uint_eq(record->checkpoint_times[1], 2 * 83412 / 3);
-  ck_assert_uint_eq(record->split_count, 1);
-  ck_assert_uint_eq(record->split_times[0], 83412 / 2);
-  ck_assert_uint_eq(record->stage_count, 0);
-  ck_assert_float_eq_tol(record->start_speed, 320.f, 1.f);
-  ck_assert_float_eq_tol(record->top_speed, 900.f, 1.f);
-  ck_assert_float_eq_tol(record->average_speed, 640.f, 1.f);
+  ck_assert_uint_eq(record->checkpointCount, 2);
+  ck_assert_uint_eq(record->checkpointTimes[0], 83412 / 3);
+  ck_assert_uint_eq(record->checkpointTimes[1], 2 * 83412 / 3);
+  ck_assert_uint_eq(record->splitCount, 1);
+  ck_assert_uint_eq(record->splitTimes[0], 83412 / 2);
+  ck_assert_uint_eq(record->stageCount, 0);
+  ck_assert_float_eq_tol(record->startSpeed, 320.f, 1.f);
+  ck_assert_float_eq_tol(record->topSpeed, 900.f, 1.f);
+  ck_assert_float_eq_tol(record->averageSpeed, 640.f, 1.f);
 
   ck_assert(q_strlen(test_cs_race_records) > 0);
 
@@ -268,7 +268,7 @@ START_TEST(check_G_Race_Records_KeepsBestOnly) {
   record = G_Race_Record("guid-bob", PM_MOVEMENT_RACE);
   ck_assert_ptr_nonnull(record);
   ck_assert_uint_eq(record->time, 80000);
-  ck_assert_uint_eq(g_level.race_record_count, 1); // one record per client, not one per run
+  ck_assert_uint_eq(g_level.raceRecordCount, 1); // one record per client, not one per run
 
 } END_TEST
 
@@ -289,7 +289,7 @@ START_TEST(check_G_Race_Records_MalformedSkipped) {
 
   G_Race_LoadRecords();
 
-  ck_assert_uint_eq(g_level.race_record_count, 0);
+  ck_assert_uint_eq(g_level.raceRecordCount, 0);
   ck_assert_ptr_null(G_Race_Record("guid-nobody", PM_MOVEMENT_RACE));
 
 } END_TEST
@@ -312,17 +312,17 @@ START_TEST(check_G_Race_Line_RoundTrip) {
   G_Race_KeepLine(&test_client);
 
   // G_Race_KeepLine reloaded g_level.race_line from disk, since the movement matches
-  ck_assert_uint_eq(g_level.race_line.count, 3);
-  ck_assert_str_eq(g_level.race_line_holder, "Carol");
-  ck_assert_uint_eq(g_level.race_line_time, 200);
+  ck_assert_uint_eq(g_level.raceLine.count, 3);
+  ck_assert_str_eq(g_level.raceLineHolder, "Carol");
+  ck_assert_uint_eq(g_level.raceLineTime, 200);
 
-  for (size_t i = 0; i < g_level.race_line.count; i++) {
-    const GameRaceSample *sample = &g_level.race_line.samples[i];
-    const uint32_t expected_time = (uint32_t) i * 100;
+  for (size_t i = 0; i < g_level.raceLine.count; i++) {
+    const GameRaceSample *sample = &g_level.raceLine.samples[i];
+    const uint32_t expectedTime = (uint32_t) i * 100;
 
-    ck_assert_uint_eq(sample->time, expected_time);
-    ck_assert_float_eq_tol(sample->origin.x, (float) expected_time, .01f);
-    ck_assert_float_eq_tol(sample->origin.y, (float) expected_time * 2.f, .01f);
+    ck_assert_uint_eq(sample->time, expectedTime);
+    ck_assert_float_eq_tol(sample->origin.x, (float) expectedTime, .01f);
+    ck_assert_float_eq_tol(sample->origin.y, (float) expectedTime * 2.f, .01f);
     ck_assert_uint_eq(sample->animation1, 1);
     ck_assert_uint_eq(sample->animation2, 2);
   }
@@ -346,7 +346,7 @@ START_TEST(check_G_Race_Line_BspMismatchRejected) {
   Test_FinishRun(&test_client, "guid-dan", "Dan", 100);
   G_Race_KeepLine(&test_client);
 
-  ck_assert_uint_gt(g_level.race_line.count, 0);
+  ck_assert_uint_gt(g_level.raceLine.count, 0);
 
   // a rebuild of the map changes the hash the ghost was tied to
   File *file = gi.OpenFileWrite("records/checkrace-race.ghost");
@@ -367,8 +367,8 @@ START_TEST(check_G_Race_Line_BspMismatchRejected) {
 
   G_Race_LoadLine();
 
-  ck_assert_uint_eq(g_level.race_line.count, 0);
-  ck_assert_uint_eq(g_level.race_line_time, 0);
+  ck_assert_uint_eq(g_level.raceLine.count, 0);
+  ck_assert_uint_eq(g_level.raceLineTime, 0);
 
 } END_TEST
 

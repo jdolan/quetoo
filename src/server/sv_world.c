@@ -44,14 +44,14 @@ typedef struct ServerSector {
  */
 typedef struct {
   ServerSector sectors[SECTOR_NODES];
-  size_t num_sectors;
+  size_t numSectors;
 
   Box3 box;
 
-  GameEntity **box_entities;
-  size_t num_box_entities, max_box_entities;
+  GameEntity **boxEntities;
+  size_t numBoxEntities, maxBoxEntities;
 
-  uint32_t box_type; // BOX_SOLID, BOX_TRIGGER, ..
+  uint32_t boxType; // BOX_SOLID, BOX_TRIGGER, ..
 } ServerWorld;
 
 static ServerWorld sv_world;
@@ -60,8 +60,8 @@ static ServerWorld sv_world;
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
 static ServerSector *Sv_CreateSector(int32_t depth, const Box3 bounds) {
-  ServerSector *sector = &sv_world.sectors[sv_world.num_sectors];
-  sv_world.num_sectors++;
+  ServerSector *sector = &sv_world.sectors[sv_world.numSectors];
+  sv_world.numSectors++;
 
   if (depth == SECTOR_DEPTH) {
     sector->axis = -1;
@@ -94,13 +94,13 @@ static ServerSector *Sv_CreateSector(int32_t depth, const Box3 bounds) {
  */
 static void Sv_InitWorld(void) {
 
-  for (size_t i = 0; i < sv_world.num_sectors; i++) {
+  for (size_t i = 0; i < sv_world.numSectors; i++) {
     sv_world.sectors[i].entities = release(sv_world.sectors[i].entities);
   }
 
   memset(&sv_world, 0, sizeof(sv_world));
 
-  Sv_CreateSector(0, sv.cm_models[0]->bounds);
+  Sv_CreateSector(0, sv.cmModels[0]->bounds);
 }
 
 /**
@@ -117,27 +117,27 @@ void Sv_SpawnEntities(const char *name, const CmEntity *props) {
   if (editor->value) {
     Sv_LoadEditorMap();
 
-    const int32_t num_entities = Cm_Bsp()->num_entities;
+    const int32_t numEntities = Cm_Bsp()->numEntities;
 
-    if (num_entities > sv_max_entities->integer) {
+    if (numEntities > sv_max_entities->integer) {
       Com_Error(ERROR_DROP, "Map has %d entities but sv_max_entities is %d\n",
-        num_entities, sv_max_entities->integer);
+        numEntities, sv_max_entities->integer);
     }
 
-    CmEntity **defs = Mem_TagMalloc(sizeof(CmEntity *) * num_entities, MEM_TAG_SERVER);
-    for (int32_t i = 0; i < num_entities; i++) {
+    CmEntity **defs = Mem_TagMalloc(sizeof(CmEntity *) * numEntities, MEM_TAG_SERVER);
+    for (int32_t i = 0; i < numEntities; i++) {
       defs[i] = Cm_CopyEntity(Cm_Bsp()->entities[i]);
     }
 
-    svs.game->SpawnEntities(name, props, defs, num_entities);
+    svs.game->SpawnEntities(name, props, defs, numEntities);
 
     Mem_Free(defs);
 
-    for (int32_t i = 0; i < num_entities; i++) {
+    for (int32_t i = 0; i < numEntities; i++) {
       Sv_ConfigureEditorEntity(i);
     }
   } else {
-    svs.game->SpawnEntities(name, props, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
+    svs.game->SpawnEntities(name, props, Cm_Bsp()->entities, Cm_Bsp()->numEntities);
   }
 
   /*
@@ -185,7 +185,7 @@ void Sv_LinkEntity(GameEntity *ent) {
   // remove it from its current sector
   Sv_UnlinkEntity(ent);
 
-  if (!ent->in_use) { // and if its free, we're done
+  if (!ent->inUse) { // and if its free, we're done
     return;
   }
 
@@ -212,8 +212,8 @@ void Sv_LinkEntity(GameEntity *ent) {
   ServerEntity *sent = &sv.entities[ent->s.number];
 
   sent->matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
-  sent->inverse_matrix = Mat4_Inverse(sent->matrix);
-  ent->abs_bounds = Cm_EntityBounds(ent->solid, sent->matrix, ent->bounds);
+  sent->inverseMatrix = Mat4_Inverse(sent->matrix);
+  ent->absBounds = Cm_EntityBounds(ent->solid, sent->matrix, ent->bounds);
 
   if (ent->solid == SOLID_NOT) {
     return;
@@ -227,9 +227,9 @@ void Sv_LinkEntity(GameEntity *ent) {
       break;
     }
 
-    if (ent->abs_bounds.mins.xyz[sector->axis] > sector->dist) {
+    if (ent->absBounds.mins.xyz[sector->axis] > sector->dist) {
       sector = sector->children[0];
-    } else if (ent->abs_bounds.maxs.xyz[sector->axis] < sector->dist) {
+    } else if (ent->absBounds.maxs.xyz[sector->axis] < sector->dist) {
       sector = sector->children[1];
     } else {
       break; // crosses the node
@@ -252,7 +252,7 @@ static bool Sv_BoxEntities_Filter(const GameEntity *ent) {
   switch (ent->solid) {
     case SOLID_TRIGGER:
     case SOLID_PROJECTILE:
-      if (sv_world.box_type & BOX_OCCUPY) {
+      if (sv_world.boxType & BOX_OCCUPY) {
         return true;
       }
       break;
@@ -260,7 +260,7 @@ static bool Sv_BoxEntities_Filter(const GameEntity *ent) {
     case SOLID_DEAD:
     case SOLID_BOX:
     case SOLID_BSP:
-      if (sv_world.box_type & BOX_COLLIDE) {
+      if (sv_world.boxType & BOX_COLLIDE) {
         return true;
       }
       break;
@@ -284,12 +284,12 @@ static void Sv_BoxEntities_r(ServerSector *sector) {
 
       if (Sv_BoxEntities_Filter(ent)) {
 
-        if (Box3_Intersects(ent->abs_bounds, sv_world.box)) {
+        if (Box3_Intersects(ent->absBounds, sv_world.box)) {
 
-          sv_world.box_entities[sv_world.num_box_entities] = ent;
-          sv_world.num_box_entities++;
+          sv_world.boxEntities[sv_world.numBoxEntities] = ent;
+          sv_world.numBoxEntities++;
 
-          if (sv_world.num_box_entities == sv_world.max_box_entities) {
+          if (sv_world.numBoxEntities == sv_world.maxBoxEntities) {
             Com_Warn("sv_world.max_box_entities\n");
             return;
           }
@@ -322,17 +322,17 @@ static void Sv_BoxEntities_r(ServerSector *sector) {
 size_t Sv_BoxEntities(const Box3 bounds, GameEntity **list, const size_t len, uint32_t type) {
 
   sv_world.box = bounds;
-  sv_world.box_entities = list;
-  sv_world.num_box_entities = 0;
-  sv_world.max_box_entities = len;
-  sv_world.box_type = type;
+  sv_world.boxEntities = list;
+  sv_world.numBoxEntities = 0;
+  sv_world.maxBoxEntities = len;
+  sv_world.boxType = type;
 
   Sv_BoxEntities_r(sv_world.sectors);
 
   sv_world.box = Box3_Zero();
-  sv_world.box_entities = NULL;
+  sv_world.boxEntities = NULL;
 
-  return sv_world.num_box_entities;
+  return sv_world.numBoxEntities;
 }
 
 /**
@@ -355,11 +355,11 @@ static int32_t Sv_HullForEntity(const GameEntity *ent) {
     }
 
     case SOLID_BSP: {
-      const CmBspModel *mod = sv.cm_models[ent->s.model1];
+      const CmBspModel *mod = sv.cmModels[ent->s.model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
-      return mod->head_node;
+      return mod->headNode;
     }
 
     case SOLID_EDITOR:
@@ -387,11 +387,11 @@ int32_t Sv_PointContents(const Vec3 point) {
   for (size_t i = 0; i < len; i++) {
     const GameEntity *ent = entities[i];
 
-    const int32_t head_node = Sv_HullForEntity(ent);
-    if (head_node != -1) {
+    const int32_t headNode = Sv_HullForEntity(ent);
+    if (headNode != -1) {
 
       const ServerEntity *sent = &sv.entities[ent->s.number];
-      contents |= Cm_PointContents(point, head_node, sent->inverse_matrix);
+      contents |= Cm_PointContents(point, headNode, sent->inverseMatrix);
     }
   }
 
@@ -415,11 +415,11 @@ int32_t Sv_BoxContents(const Box3 bounds) {
   for (size_t i = 0; i < len; i++) {
     const GameEntity *ent = entities[i];
 
-    const int32_t head_node = Sv_HullForEntity(ent);
-    if (head_node != -1) {
+    const int32_t headNode = Sv_HullForEntity(ent);
+    if (headNode != -1) {
 
       const ServerEntity *sent = &sv.entities[ent->s.number];
-      contents |= Cm_BoxContents(Mat4_TransformBounds(sent->inverse_matrix, bounds), head_node);
+      contents |= Cm_BoxContents(Mat4_TransformBounds(sent->inverseMatrix, bounds), headNode);
     }
   }
 
@@ -430,7 +430,7 @@ int32_t Sv_BoxContents(const Box3 bounds) {
 typedef struct {
   Vec3 start, end;
   Box3 bounds; // size of the moving object
-  Box3 abs_bounds; // enclose the test object along entire move
+  Box3 absBounds; // enclose the test object along entire move
   CmTrace trace;
   const GameEntity *skip;
   int32_t contents;
@@ -471,8 +471,8 @@ static void Sv_ClipTraceToEntity(ServerTrace *trace, const GameEntity *ent) {
     }
   }
 
-  const int32_t head_node = Sv_HullForEntity(ent);
-  if (head_node == -1) {
+  const int32_t headNode = Sv_HullForEntity(ent);
+  if (headNode == -1) {
     return;
   }
 
@@ -485,18 +485,18 @@ static void Sv_ClipTraceToEntity(ServerTrace *trace, const GameEntity *ent) {
   CmTrace tr;
   
   if (Mat4_Equal(sent->matrix, Mat4_Identity())) {
-    tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
+    tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, headNode, trace->contents);
   } else {
-    tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, sent->matrix, sent->inverse_matrix);
+    tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, headNode, trace->contents, sent->matrix, sent->inverseMatrix);
   }
 
   // check for a full or partial intersection
-  if (tr.all_solid || tr.fraction < trace->trace.fraction) {
+  if (tr.allSolid || tr.fraction < trace->trace.fraction) {
 
     trace->trace = tr;
     trace->trace.ent = (GameEntity *) ent;
 
-    if (tr.all_solid) { // we were actually blocked
+    if (tr.allSolid) { // we were actually blocked
       return;
     }
   }
@@ -509,7 +509,7 @@ static void Sv_ClipTraceToEntity(ServerTrace *trace, const GameEntity *ent) {
 static void Sv_ClipTraceToEntities(ServerTrace *trace) {
   GameEntity *e[MAX_ENTITIES];
 
-  const size_t len = Sv_BoxEntities(trace->abs_bounds, e, lengthof(e), BOX_COLLIDE);
+  const size_t len = Sv_BoxEntities(trace->absBounds, e, lengthof(e), BOX_COLLIDE);
   for (size_t i = 0; i < len; i++) {
     Sv_ClipTraceToEntity(trace, e[i]);
   }
@@ -528,7 +528,7 @@ CmTrace Sv_Trace(const Vec3 start, const Vec3 end, const Box3 bounds,
     .start = start,
     .end = end,
     .bounds = bounds,
-    .abs_bounds = Cm_TraceBounds(start, end, bounds),
+    .absBounds = Cm_TraceBounds(start, end, bounds),
     .skip = skip,
     .contents = contents,
     .trace = {

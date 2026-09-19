@@ -78,7 +78,7 @@ void Cl_KeyDown(InputButton *b) {
   }
 
   // save the down time so that we can calculate fractional time later
-  b->down_time = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclamped_time;
+  b->downTime = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclampedTime;
 
   // and indicate that the key is down
   b->state |= (BUTTON_STATE_HELD | BUTTON_STATE_DOWN);
@@ -114,9 +114,9 @@ void Cl_KeyUp(InputButton *b) {
 
   // save timestamp
   const char *t = Cmd_Argv(2);
-  const uint32_t up_time = atoi(t);
-  if (up_time) {
-    b->msec += up_time - b->down_time;
+  const uint32_t upTime = atoi(t);
+  if (upTime) {
+    b->msec += upTime - b->downTime;
   } else {
     b->msec += 10;
   }
@@ -211,17 +211,17 @@ static void Cl_CenterView_f(void) {
 /**
  * @brief Returns the fraction of the command interval for which the key was down.
  */
-float Cl_KeyState(InputButton *key, uint32_t cmd_msec) {
+float Cl_KeyState(InputButton *key, uint32_t cmdMsec) {
 
   uint32_t msec = key->msec;
   key->msec = 0;
 
   if (key->state) { // still down, reset downtime for next frame
-    msec += cl.unclamped_time - key->down_time;
-    key->down_time = cl.unclamped_time;
+    msec += cl.unclampedTime - key->downTime;
+    key->downTime = cl.unclampedTime;
   }
 
-  const float frac = (msec * 1000.0) / (cmd_msec * 1000.0);
+  const float frac = (msec * 1000.0) / (cmdMsec * 1000.0);
 
   return Clampf01(frac);
 }
@@ -235,7 +235,7 @@ static void Cl_UpdateMouseState(void) {
 
   // paused demo playback stays in KEY_GAME so the HUD (and its transport controls) keep
   // drawing, but wants a visible, ungrabbed cursor to drive those controls with
-  if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE || cls.demo.paused ||
+  if (cls.keyState.dest == KEY_UI || cls.keyState.dest == KEY_CONSOLE || cls.demo.paused ||
       (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
     SDL_ShowCursor();
     SDL_SetWindowMouseGrab(r_context.window, false);
@@ -247,7 +247,7 @@ static void Cl_UpdateMouseState(void) {
   // Cl_SetKeyDest owns relative mouse mode for key destination changes, but pausing a demo
   // doesn't change destination, so the pause state is reconciled here each frame instead - and
   // so it survives a trip through the menus and back
-  if (cls.key_state.dest == KEY_GAME) {
+  if (cls.keyState.dest == KEY_GAME) {
     SDL_SetWindowRelativeMouseMode(r_context.window, !cls.demo.paused);
   }
 }
@@ -279,7 +279,7 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
  */
 static void Cl_TextEvent(const SDL_Event *event) {
 
-  if (cls.key_state.dest != KEY_CONSOLE) {
+  if (cls.keyState.dest != KEY_CONSOLE) {
     return;
   }
 
@@ -313,7 +313,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       return true;
 
     case SDL_EVENT_WINDOW_FOCUS_LOST:
-      if (cls.key_state.dest == KEY_GAME) {
+      if (cls.keyState.dest == KEY_GAME) {
         Cl_SetKeyDest(KEY_UI);
       }
       return false;
@@ -336,7 +336,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
         switch (cls.state) {
           case CL_DISCONNECTED:
-            if (cls.key_state.dest == KEY_CONSOLE) {
+            if (cls.keyState.dest == KEY_CONSOLE) {
               Cl_ToggleConsole_f();
               return true;
             }
@@ -346,7 +346,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
           case CL_LOADING:
             Com_Error(ERROR_DROP, "Connection aborted by user\n");
           case CL_ACTIVE:
-            switch (cls.key_state.dest) {
+            switch (cls.keyState.dest) {
               case KEY_CHAT:
               case KEY_UI:
                 Cl_SetKeyDest(KEY_GAME);
@@ -390,13 +390,13 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       // for everything other than ESC, check for system-level command binds
 
       SDL_Scancode key = event->key.scancode;
-      if (cls.key_state.binds[key]) {
+      if (cls.keyState.binds[key]) {
         Cmd *cmd;
 
-        Cmd_TokenizeString(cls.key_state.binds[key]);
+        Cmd_TokenizeString(cls.keyState.binds[key]);
         if ((cmd = Cmd_Get(Cmd_Argv(0)))) {
           if (cmd->flags & CMD_SYSTEM) {
-            Cbuf_AddText(cls.key_state.binds[key]);
+            Cbuf_AddText(cls.keyState.binds[key]);
             Cbuf_Execute();
             return true;
           }
@@ -476,7 +476,7 @@ void Cl_HandleEvents(void) {
 static void Cl_ClampPitch(const PlayerState *ps) {
 
   // ensure our pitch is valid
-  float pitch = ps->pm_state.delta_angles.x;
+  float pitch = ps->pmState.deltaAngles.x;
 
   if (cl.angles.x + pitch < -360.0) {
     cl.angles.x += 360.0; // wrapped

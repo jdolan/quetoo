@@ -35,7 +35,7 @@ static SoundMediaState s_media_state;
 /**
  * @brief Precaches all of the sexed sounds for a given player model.
  */
-void S_LoadClientModelSamples(const char *model, const char *sound_set) {
+void S_LoadClientModelSamples(const char *model, const char *soundSet) {
 
   Vector *sounds = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
 
@@ -49,7 +49,7 @@ void S_LoadClientModelSamples(const char *model, const char *sound_set) {
 
   for (size_t i = 0; i < sounds->count; i++) {
     const SoundMedia *media = VectorValue(sounds, SoundMedia *, i);
-    S_LoadClientModelSample(model, sound_set, media->name);
+    S_LoadClientModelSample(model, soundSet, media->name);
   }
 
   release(sounds);
@@ -253,18 +253,18 @@ static void S_EndLoading_Collect(const HashTable *table, ident k, ident v, ident
 void S_EndLoading(void) {
 
   // Collect keys to remove (can't modify table during enumeration)
-  Vector *to_free = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
+  Vector *toFree = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
 
-  $(s_media_state.media, enumerate, S_EndLoading_Collect, to_free);
+  $(s_media_state.media, enumerate, S_EndLoading_Collect, toFree);
 
-  for (size_t i = 0; i < to_free->count; i++) {
-    SoundMedia *media = VectorValue(to_free, SoundMedia *, i);
+  for (size_t i = 0; i < toFree->count; i++) {
+    SoundMedia *media = VectorValue(toFree, SoundMedia *, i);
     $(s_media_state.media, remove, media->name);
     S_FreeMedia_(NULL, media, true);
     Mem_Free(media);
   }
 
-  release(to_free);
+  release(toFree);
 }
 
 /**
@@ -335,17 +335,17 @@ static void S_ShutdownMedia_Collect(const HashTable *table, ident k, ident v, id
  */
 void S_ShutdownMedia(void) {
 
-  Vector *to_free = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
-  $(s_media_state.media, enumerate, S_ShutdownMedia_Collect, to_free);
+  Vector *toFree = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
+  $(s_media_state.media, enumerate, S_ShutdownMedia_Collect, toFree);
 
-  for (size_t i = 0; i < to_free->count; i++) {
-    SoundMedia *media = VectorValue(to_free, SoundMedia *, i);
+  for (size_t i = 0; i < toFree->count; i++) {
+    SoundMedia *media = VectorValue(toFree, SoundMedia *, i);
     $(s_media_state.media, remove, media->name);
     S_FreeMedia_(NULL, media, true);
     Mem_Free(media);
   }
 
-  release(to_free);
+  release(toFree);
   release(s_media_state.media);
 
   if (s_media_state.keys) {

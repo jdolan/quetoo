@@ -37,7 +37,7 @@ static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val,
       // Cl_UpdatePrediction, which is the only comparison that can be
       // authoritative, so nothing here needs to be fatal
       Com_Warn("%s differs from %s (expected %s)\n", entry->path,
-               cl.config_strings[CS_MANIFEST], entry->hash);
+               cl.configStrings[CS_MANIFEST], entry->hash);
     }
   } else {
     Cl_CheckOrDownloadFile(entry->path);
@@ -57,24 +57,24 @@ void Cl_RequestNextDownload(void) {
   }
 
   // check pk3 archive (may contain everything including manifest and bsp)
-  if (cl.precache_check == CS_PK3) {
-    cl.precache_check = CS_MANIFEST;
+  if (cl.precacheCheck == CS_PK3) {
+    cl.precacheCheck = CS_MANIFEST;
 
-    if (*cl.config_strings[CS_PK3] != '\0') {
-      Cl_CheckOrDownloadFile(cl.config_strings[CS_PK3]);
+    if (*cl.configStrings[CS_PK3] != '\0') {
+      Cl_CheckOrDownloadFile(cl.configStrings[CS_PK3]);
     }
   }
 
   // download the manifest and all assets it references (including the bsp)
-  if (cl.precache_check == CS_MANIFEST) {
-    cl.precache_check++;
+  if (cl.precacheCheck == CS_MANIFEST) {
+    cl.precacheCheck++;
 
-    if (*cl.config_strings[CS_MANIFEST] != '\0') {
-      Cl_CheckOrDownloadFile(cl.config_strings[CS_MANIFEST]);
+    if (*cl.configStrings[CS_MANIFEST] != '\0') {
+      Cl_CheckOrDownloadFile(cl.configStrings[CS_MANIFEST]);
 
-      HashTable *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
+      HashTable *manifest = Cm_ReadManifest(cl.configStrings[CS_MANIFEST]);
       if (!manifest) {
-        Com_Error(ERROR_DROP, "Failed to read %s\n", cl.config_strings[CS_MANIFEST]);
+        Com_Error(ERROR_DROP, "Failed to read %s\n", cl.configStrings[CS_MANIFEST]);
       }
 
       $(manifest, enumerate, Cl_CheckManifestEntry_, NULL);
@@ -89,8 +89,8 @@ void Cl_RequestNextDownload(void) {
 
   Cl_LoadMedia();
 
-  Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-  Net_WriteString(&cls.net_chan.message, va("begin %i\n", cls.server.spawn_count));
+  Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
+  Net_WriteString(&cls.netChan.message, va("begin %i\n", cls.server.spawnCount));
 }
 
 
@@ -158,13 +158,13 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
  */
 static void Cl_LoadModels(void) {
 
-  Cl_LoadingProgress(0, cl.config_strings[CS_BSP]);
+  Cl_LoadingProgress(0, cl.configStrings[CS_BSP]);
 
-  R_LoadModel(cl.config_strings[CS_BSP]);
+  R_LoadModel(cl.configStrings[CS_BSP]);
 
   for (int32_t i = 0; i < MAX_MODELS; i++) {
 
-    const char *str = cl.config_strings[CS_MODELS + i];
+    const char *str = cl.configStrings[CS_MODELS + i];
     if (*str == 0) {
       break;
     }
@@ -192,7 +192,7 @@ static void Cl_LoadSounds(void) {
 
   for (int32_t i = 0; i < MAX_SOUNDS; i++) {
 
-    const char *str = cl.config_strings[CS_SOUNDS + i];
+    const char *str = cl.configStrings[CS_SOUNDS + i];
     if (*str == 0) {
       break;
     }
@@ -200,11 +200,11 @@ static void Cl_LoadSounds(void) {
     cl.sounds[i] = S_LoadSample(str, ASSET_CONTEXT_SOUNDS);
   }
 
-  for (int32_t i = 0; i < Cm_Bsp()->num_materials; i++) {
+  for (int32_t i = 0; i < Cm_Bsp()->numMaterials; i++) {
     const CmFootsteps *footsteps = &Cm_Bsp()->materials[i]->footsteps;
 
     const Asset *sample = footsteps->samples;
-    for (int32_t j = 0; j < footsteps->num_samples; j++, sample++) {
+    for (int32_t j = 0; j < footsteps->numSamples; j++, sample++) {
       S_LoadSample(sample->name, ASSET_CONTEXT_NONE);
     }
   }
@@ -223,7 +223,7 @@ static void Cl_LoadMusics(void) {
 
   for (int32_t i = 0; i < MAX_MUSICS; i++) {
 
-    const char *str = cl.config_strings[CS_MUSICS + i];
+    const char *str = cl.configStrings[CS_MUSICS + i];
     if (*str == 0) {
       break;
     }
@@ -245,7 +245,7 @@ void Cl_LoadMedia(void) {
 
   cls.state = CL_LOADING;
 
-  List *mapshots = Cl_Mapshots(cl.config_strings[CS_BSP]);
+  List *mapshots = Cl_Mapshots(cl.configStrings[CS_BSP]);
   const size_t len = mapshots->count;
 
   if (len > 0) {

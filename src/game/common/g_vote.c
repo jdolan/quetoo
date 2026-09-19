@@ -59,7 +59,7 @@ static bool installed;
  * @brief Connected human players and spectators may vote; bots may not.
  */
 bool G_Vote_Eligible(const GameClient *cl) {
-  return cl->in_use && !cl->ai;
+  return cl->inUse && !cl->ai;
 }
 
 /**
@@ -87,7 +87,7 @@ static bool G_Vote_ValidMapName(const char *name) {
 static GameClient *G_Vote_ClientByName(const char *name) {
 
   G_ForEachClient(cl, {
-    if (G_Vote_Eligible(cl) && !q_strcasecmp(cl->persistent.net_name, name)) {
+    if (G_Vote_Eligible(cl) && !q_strcasecmp(cl->persistent.netName, name)) {
       return cl;
     }
   });
@@ -140,12 +140,12 @@ static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const c
       if (!target) {
         return false;
       }
-      q_strlcpy(canonical, target->persistent.net_name, size);
+      q_strlcpy(canonical, target->persistent.netName, size);
       return true;
     }
 
     case VOTE_ARG_INTEGER: {
-      if (!q_strcmp(type, "bots") && g_level.min_clients_map > -1) {
+      if (!q_strcmp(type, "bots") && g_level.minClientsMap > -1) {
         return false;
       }
 
@@ -204,7 +204,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
       // mute the client the vote resolved, not one G_ClientByName might match a second time
       G_SetClientMuted(target, !target->persistent.muted);
 
-      gi.BroadcastPrint(PRINT_HIGH, "%s is now %smuted\n", target->persistent.net_name,
+      gi.BroadcastPrint(PRINT_HIGH, "%s is now %smuted\n", target->persistent.netName,
                         target->persistent.muted ? "" : "un");
     }
     return true;
@@ -294,7 +294,7 @@ static void G_Vote_Check(void) {
     return;
   }
 
-  if (g_level.intermission_time) { // the level is ending; a vote does not decide it
+  if (g_level.intermissionTime) { // the level is ending; a vote does not decide it
     gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s cancelled\n", g_vote_state.type,
                       *g_vote_state.arg ? " " : "", g_vote_state.arg);
     g_vote_state.active = false;
@@ -372,12 +372,12 @@ static void G_Vote_Call(GameClient *cl, const char *type, const char *arg) {
   g_vote_state.active = true;
   q_strlcpy(g_vote_state.type, type, sizeof(g_vote_state.type));
   q_strlcpy(g_vote_state.arg, canonical, sizeof(g_vote_state.arg));
-  q_strlcpy(g_vote_state.initiator, cl->persistent.net_name, sizeof(g_vote_state.initiator));
+  q_strlcpy(g_vote_state.initiator, cl->persistent.netName, sizeof(g_vote_state.initiator));
   g_vote_state.deadline = g_level.time + Maxf(1.f, g_vote_time->value) * 1000;
   g_vote_state.ballots[cl->ps.client] = BALLOT_YES;
   g_vote_state.cooldown[cl->ps.client] = g_level.time + Maxf(0.f, g_vote_cooldown->value) * 1000;
 
-  gi.BroadcastPrint(PRINT_HIGH, "%s called a vote: %s%s%s\n", cl->persistent.net_name, type,
+  gi.BroadcastPrint(PRINT_HIGH, "%s called a vote: %s%s%s\n", cl->persistent.netName, type,
                     *canonical ? " " : "", canonical);
 
   G_Vote_Publish();
@@ -404,7 +404,7 @@ static bool G_HandleClientCommand_Vote(GameClient *cl, const char *cmd) {
     G_Vote_Cast(cl, BALLOT_YES);
   } else if (!q_strcasecmp(what, "no")) {
     G_Vote_Cast(cl, BALLOT_NO);
-  } else if (g_level.intermission_time) {
+  } else if (g_level.intermissionTime) {
     gi.ClientPrint(cl, PRINT_HIGH, "The level is ending\n");
   } else {
     G_Vote_Call(cl, what, gi.Argc() > 2 ? gi.Argv(2) : "");

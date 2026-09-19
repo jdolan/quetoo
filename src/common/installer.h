@@ -62,11 +62,11 @@ typedef enum {
  */
 typedef struct {
 	InstallerState state;
-	int32_t files_done;
-	int32_t files_total;
-	int32_t kbytes_done;
-	int32_t kbytes_total;
-	char current_file[MAX_OS_PATH];
+	int32_t filesDone;
+	int32_t filesTotal;
+	int32_t kbytesDone;
+	int32_t kbytesTotal;
+	char currentFile[MAX_OS_PATH];
   char error[MAX_STRING_CHARS];
 } InstallerStatus;
 

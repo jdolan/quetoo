@@ -75,7 +75,7 @@ static void updateBindings(View *self, ident data) {
 
   NavEditView *this = (NavEditView *) self;
 
-  const bool shown = cg_state.nav_edit == 1;
+  const bool shown = cg_state.navEdit == 1;
 
   $(self, setVisibility, shown ? ViewVisibilityVisible : ViewVisibilityHidden);
 

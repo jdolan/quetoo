@@ -78,7 +78,7 @@ static bool S_SpatializeChannel(const SoundStage *stage, SoundChannel *ch) {
   if (!(ch->play.flags & S_PLAY_UI)) {
 
     // fade out frame sounds that are no longer being submitted
-    if (ch->start_time && (ch->play.flags & S_PLAY_FRAME)) {
+    if (ch->startTime && (ch->play.flags & S_PLAY_FRAME)) {
       if (ch->timestamp != stage->ticks) {
         const uint32_t delta = stage->ticks - ch->timestamp;
 
@@ -107,7 +107,7 @@ static bool S_SpatializeChannel(const SoundStage *stage, SoundChannel *ch) {
   }
 
   if (s_context.effects.loaded) {
-    const uint32_t delta = s_context.prev_ticks ? stage->ticks - s_context.prev_ticks : 0;
+    const uint32_t delta = s_context.prevTicks ? stage->ticks - s_context.prevTicks : 0;
 
     // Underwater: 300 ms transition, heavy lowpass (muffled and dark)
     {
@@ -174,11 +174,11 @@ void S_MixChannels(SoundStage *stage) {
         alEffectf(s_context.effects.reverb, AL_REVERB_DECAY_TIME, 0.1f + 2.4f * r);
         alEffectf(s_context.effects.reverb, AL_REVERB_ROOM_ROLLOFF_FACTOR, r);
       }
-      alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
+      alAuxiliaryEffectSloti(s_context.effects.reverbSlot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
     }
   }
 
-  s_context.num_active_channels = 0;
+  s_context.numActiveChannels = 0;
 
   stage->stats.reverb = s_context.reverb;
 
@@ -224,12 +224,12 @@ void S_MixChannels(SoundStage *stage) {
     if (s_context.effects.loaded) {
       alSourcei(src, AL_DIRECT_FILTER, (ALint) ch->filter);
       alSourcef(src, AL_AIR_ABSORPTION_FACTOR, 0.025f); // 0.05 dB/m × (1 m / 40 units)
-      const ALuint send = (ch->play.flags & S_PLAY_UI) ? AL_EFFECTSLOT_NULL : (ALuint) s_context.effects.reverb_slot;
+      const ALuint send = (ch->play.flags & S_PLAY_UI) ? AL_EFFECTSLOT_NULL : (ALuint) s_context.effects.reverbSlot;
       alSource3i(src, AL_AUXILIARY_SEND_FILTER, (ALint) send, 0, AL_FILTER_NULL);
     }
 
-    if (ch->start_time == 0) {
-      ch->start_time = stage->ticks;
+    if (ch->startTime == 0) {
+      ch->startTime = stage->ticks;
 
       alSourcei(src, AL_BUFFER, ch->play.sample->buffer);
 
@@ -250,7 +250,7 @@ void S_MixChannels(SoundStage *stage) {
       }
 
       if (ch->play.flags & S_PLAY_AMBIENT) {
-        alSourcei(src, AL_SAMPLE_OFFSET, Randomf() * (int32_t) ch->play.sample->num_samples);
+        alSourcei(src, AL_SAMPLE_OFFSET, Randomf() * (int32_t) ch->play.sample->numSamples);
       }
 
       alSourcePlay(src);
@@ -267,12 +267,12 @@ void S_MixChannels(SoundStage *stage) {
 
     S_GetError(ch->play.sample->media.name);
 
-    s_context.num_active_channels++;
+    s_context.numActiveChannels++;
   }
 
-  stage->stats.num_channels = s_context.num_active_channels;
+  stage->stats.numChannels = s_context.numActiveChannels;
 
-  s_context.prev_ticks = stage->ticks;
+  s_context.prevTicks = stage->ticks;
 }
 
 /**
@@ -304,7 +304,7 @@ void S_PlaySample(SoundSample *sample) {
   };
   s_context.channels[c].gain = 1.f;
   s_context.channels[c].pitch = 1.f;
-  s_context.channels[c].start_time = (uint32_t) SDL_GetTicks();
+  s_context.channels[c].startTime = (uint32_t) SDL_GetTicks();
 
   const ALuint src = s_context.sources[c];
   alSourcef(src, AL_GAIN, S_EffectsGain());
@@ -351,11 +351,11 @@ void S_AddSample(SoundStage *stage, const SoundPlaySample *play) {
     }
   }
 
-  if (stage->num_samples == MAX_SOUNDS) {
+  if (stage->numSamples == MAX_SOUNDS) {
     Com_Debug(DEBUG_SOUND, "MAX_SOUNDS");
     return;
   }
 
-  stage->samples[stage->num_samples] = *play;
-  stage->num_samples++;
+  stage->samples[stage->numSamples] = *play;
+  stage->numSamples++;
 }

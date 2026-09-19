@@ -66,20 +66,20 @@ void R_UpdateContext(void) {
 
   assert(r_context.window);
 
-  r_context.window_flags = SDL_GetWindowFlags(r_context.window);
+  r_context.windowFlags = SDL_GetWindowFlags(r_context.window);
 
-  SDL_GetWindowPosition(r_context.window, &r_context.window_bounds.x, &r_context.window_bounds.y);
-  SDL_GetWindowSize(r_context.window, &r_context.window_bounds.w, &r_context.window_bounds.h);
+  SDL_GetWindowPosition(r_context.window, &r_context.windowBounds.x, &r_context.windowBounds.y);
+  SDL_GetWindowSize(r_context.window, &r_context.windowBounds.w, &r_context.windowBounds.h);
 
-  if (!(r_context.window_flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
-    Cvar_ForceSetInteger("r_window_width", r_context.window_bounds.w);
-    Cvar_ForceSetInteger("r_window_height", r_context.window_bounds.h);
+  if (!(r_context.windowFlags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
+    Cvar_ForceSetInteger("r_window_width", r_context.windowBounds.w);
+    Cvar_ForceSetInteger("r_window_height", r_context.windowBounds.h);
     r_window_width->modified = false;
     r_window_height->modified = false;
   }
 
   r_context.display = SDL_GetDisplayForWindow(r_context.window);
-  r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
+  r_context.displayMode = SDL_GetCurrentDisplayMode(r_context.display);
 
   R_UpdateUniforms(NULL);
 }
@@ -105,25 +105,25 @@ void R_InitContext(void) {
   int32_t w = bounds.w;
   int32_t h = bounds.h;
 
-  SDL_WindowFlags window_flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
+  SDL_WindowFlags windowFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
   switch (r_fullscreen->integer) {
     case 0:
-      window_flags |= SDL_WINDOW_RESIZABLE;
+      windowFlags |= SDL_WINDOW_RESIZABLE;
       w = r_window_width->integer ?: w;
       h = r_window_height->integer ?: h;
       break;
     case 1:
-      window_flags |= SDL_WINDOW_BORDERLESS;
+      windowFlags |= SDL_WINDOW_BORDERLESS;
       break;
     case 2:
-      window_flags |= SDL_WINDOW_FULLSCREEN;
+      windowFlags |= SDL_WINDOW_FULLSCREEN;
       w = r_fullscreen_width->integer ?: w;
       h = r_fullscreen_height->integer ?: h;
       break;
   }
 
-  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
+  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, windowFlags)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create window: %s\n", SDL_GetError());
   }
 
@@ -177,7 +177,7 @@ void R_InitContext(void) {
   const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
 
   Framebuffer *framebuffer = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
-    .size = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h),
+    .size = MakeSize(r_context.windowBounds.w, r_context.windowBounds.h),
     .colorAttachments = { { .format = format, .clearColor = { 0.f, 0.f, 0.f, 1.f } } },
     .numColorTargets = 1,
     .sampleCount = SDL_GPU_SAMPLECOUNT_1,
@@ -186,7 +186,7 @@ void R_InitContext(void) {
   $(r_context.device, setFramebuffer, framebuffer);
   release(framebuffer);
 
-  r_context.null_texture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D, 1, 0xffffffff);
+  r_context.nullTexture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D, 1, 0xffffffff);
 }
 
 /**
@@ -199,7 +199,7 @@ void R_ShutdownContext(void) {
 
   $(r_context.device, waitForIdle);
 
-  r_context.null_texture = release(r_context.null_texture);
+  r_context.nullTexture = release(r_context.nullTexture);
   r_context.device = release(r_context.device);
 
   if (r_context.window) {
@@ -215,7 +215,7 @@ void R_ShutdownContext(void) {
  */
 Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
 
-  const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f) * r_context.display_mode->pixel_density;
+  const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f) * r_context.displayMode->pixel_density;
 
   GPU_FramebufferCreateInfo create = *info;
 

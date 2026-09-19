@@ -32,7 +32,7 @@
  * @return The `CmTrace` result; check `fraction` (1.0 = no hit) and `surface`.
  */
 __attribute__ ((warn_unused_result))
-CmTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t head_node,
+CmTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode,
              int32_t contents);
 
 /** @brief Traces a point ray from `start` to `end` against a single brush.
@@ -50,8 +50,8 @@ CmTrace Cm_TraceToBrush(const Vec3 start, const Vec3 end, const CmBspBrush *brus
  * @param inverse_matrix The inverse transform, used to bring the ray into model space.
  */
 __attribute__ ((warn_unused_result))
-CmTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t head_node,
-                        int32_t contents, const Mat4 matrix, const Mat4 inverse_matrix);
+CmTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode,
+                        int32_t contents, const Mat4 matrix, const Mat4 inverseMatrix);
 
 /** @brief Returns the world-space AABB for the given solid type and model transform.
  * @param solid The solid type constant.

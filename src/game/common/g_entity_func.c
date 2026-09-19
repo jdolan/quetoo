@@ -26,11 +26,11 @@
  */
 static void G_MoveInfo_Linear_Done(GameEntity *ent) {
 
-  const Vec3 snap = Vec3_Subtract(ent->move_info.dest, ent->s.origin);
+  const Vec3 snap = Vec3_Subtract(ent->moveInfo.dest, ent->s.origin);
 
-  const Box3 old_bounds = ent->abs_bounds;
+  const Box3 oldBounds = ent->absBounds;
 
-  ent->s.origin = ent->move_info.dest;
+  ent->s.origin = ent->moveInfo.dest;
 
   gi.LinkEntity(ent);
 
@@ -39,9 +39,9 @@ static void G_MoveInfo_Linear_Done(GameEntity *ent) {
   // bypasses G_Physics_Push_Translate and riders lose their
   // ground entity reference.
   if (!Vec3_Equal(snap, Vec3_Zero())) {
-    const Box3 total_bounds = Box3_Union(old_bounds, ent->abs_bounds);
+    const Box3 totalBounds = Box3_Union(oldBounds, ent->absBounds);
     GameEntity *others[MAX_ENTITIES];
-    const size_t len = gi.BoxEntities(total_bounds, others, lengthof(others), BOX_ALL);
+    const size_t len = gi.BoxEntities(totalBounds, others, lengthof(others), BOX_ALL);
     for (size_t i = 0; i < len; i++) {
       if (others[i]->ground.ent == ent) {
         others[i]->s.origin = Vec3_Add(others[i]->s.origin, snap);
@@ -52,16 +52,16 @@ static void G_MoveInfo_Linear_Done(GameEntity *ent) {
 
   ent->velocity = Vec3_Zero();
 
-  ent->move_info.current_speed = 0.0;
+  ent->moveInfo.currentSpeed = 0.0;
 
-  ent->move_info.Done(ent);
+  ent->moveInfo.Done(ent);
 }
 
 /**
  * @brief Called each tick during the final approach of linear movement to detect when the destination is reached.
  */
 static void G_MoveInfo_Linear_Final(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
   Vec3 dir;
   const float distance = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
@@ -72,7 +72,7 @@ static void G_MoveInfo_Linear_Final(GameEntity *ent) {
   }
 
   ent->Think = G_MoveInfo_Linear_Final;
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -80,16 +80,16 @@ static void G_MoveInfo_Linear_Final(GameEntity *ent) {
  * has reached its destination.
  */
 static void G_MoveInfo_Linear_Constant(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
   const float distance = Vec3_Distance(move->dest, ent->s.origin);
-  move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
+  move->constFrames = distance / move->speed * QUETOO_TICK_RATE;
 
-  move->current_speed = move->speed;
+  move->currentSpeed = move->speed;
 
   ent->velocity = Vec3_Scale(move->dir, move->speed);
 
-  ent->next_think = g_level.time + move->const_frames * QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + move->constFrames * QUETOO_TICK_MILLIS;
   ent->Think = G_MoveInfo_Linear_Final;
 }
 
@@ -98,24 +98,24 @@ static void G_MoveInfo_Linear_Constant(GameEntity *ent) {
  * and decelerate towards the end.
  */
 static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
-  if (move->current_speed == 0.0) { // starting or restarting after being blocked
+  if (move->currentSpeed == 0.0) { // starting or restarting after being blocked
 
     const float distance = Vec3_Distance(move->dest, ent->s.origin);
     const float dt2 = QUETOO_TICK_SECONDS * QUETOO_TICK_SECONDS;
 
-    const float accel_time = move->speed / move->accel;
-    const float decel_time = move->speed / move->decel;
+    const float accelTime = move->speed / move->accel;
+    const float decelTime = move->speed / move->decel;
 
-    move->accel_frames = (int32_t)(accel_time * QUETOO_TICK_RATE);
+    move->accelFrames = (int32_t)(accelTime * QUETOO_TICK_RATE);
 
-    const float avg_speed = move->speed * 0.5f;
+    const float avgSpeed = move->speed * 0.5f;
 
-    const float accel_distance = avg_speed * accel_time;
-    const float decel_distance = avg_speed * decel_time;
+    const float accelDistance = avgSpeed * accelTime;
+    const float decelDistance = avgSpeed * decelTime;
 
-    if (accel_distance + decel_distance > distance) {
+    if (accelDistance + decelDistance > distance) {
       G_Debug("Clamping acceleration for %s\n", etos(ent));
 
       // The continuous-time ramp formula is inaccurate for the small frame
@@ -129,9 +129,9 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
       //
       // Any gap not covered by accel/decel is padded with const frames at
       // peak speed so Final is only called with a sub-frame residual.
-      move->accel_frames = 0;
-      move->decel_frames = 0;
-      move->const_frames = 0;
+      move->accelFrames = 0;
+      move->decelFrames = 0;
+      move->constFrames = 0;
 
       for (int32_t n = 1; ; n++) {
         const float peak = (float)n * move->accel * QUETOO_TICK_SECONDS;
@@ -147,16 +147,16 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
           break;
         }
 
-        move->accel_frames = n;
-        move->decel_frames = nd;
+        move->accelFrames = n;
+        move->decelFrames = nd;
       }
 
-      const float peak_speed = (float)move->accel_frames * move->accel * QUETOO_TICK_SECONDS;
-      if (peak_speed > 0.f) {
-        const float ad = move->accel * dt2 * (float)(move->accel_frames * (move->accel_frames + 1)) * 0.5f;
-        const float dd = move->decel * dt2 * (float)(move->decel_frames * (move->decel_frames - 1)) * 0.5f;
+      const float peakSpeed = (float)move->accelFrames * move->accel * QUETOO_TICK_SECONDS;
+      if (peakSpeed > 0.f) {
+        const float ad = move->accel * dt2 * (float)(move->accelFrames * (move->accelFrames + 1)) * 0.5f;
+        const float dd = move->decel * dt2 * (float)(move->decelFrames * (move->decelFrames - 1)) * 0.5f;
         const float remaining = distance - ad - dd;
-        move->const_frames = remaining > 0.f ? (int32_t)floorf(remaining / (peak_speed * QUETOO_TICK_SECONDS)) : 0;
+        move->constFrames = remaining > 0.f ? (int32_t)floorf(remaining / (peakSpeed * QUETOO_TICK_SECONDS)) : 0;
       }
     } else {
       // accel_frames (truncated above) reaches a "peak_speed" slightly below the
@@ -166,51 +166,51 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
       // Final before Done can fire. Rebuild the plan from the realized peak
       // speed instead, using the same discrete-distance formulas as the
       // clamped path above, so it is self-consistent.
-      if (move->accel_frames < 1) {
-        move->accel_frames = 1;
+      if (move->accelFrames < 1) {
+        move->accelFrames = 1;
       }
 
       // accel_frames may have just been floored to 1 for a very punchy accel value whose
       // 1-tick ramp would overshoot move->speed; the runtime accel loop below clamps
       // current_speed to move->speed in that case, so the plan must match that clamp or
       // decel/const_frames will be sized for a peak the entity never actually reaches.
-      const float peak_speed = Minf((float)move->accel_frames * move->accel * QUETOO_TICK_SECONDS, move->speed);
+      const float peakSpeed = Minf((float)move->accelFrames * move->accel * QUETOO_TICK_SECONDS, move->speed);
 
-      move->decel_frames = (int32_t)(peak_speed / move->decel * QUETOO_TICK_RATE);
-      if (move->decel_frames < 1) {
-        move->decel_frames = 1;
+      move->decelFrames = (int32_t)(peakSpeed / move->decel * QUETOO_TICK_RATE);
+      if (move->decelFrames < 1) {
+        move->decelFrames = 1;
       }
 
-      const float actual_accel_distance = move->accel * dt2 * (float)(move->accel_frames * (move->accel_frames + 1)) * 0.5f;
-      const float actual_decel_distance = move->decel * dt2 * (float)(move->decel_frames * (move->decel_frames - 1)) * 0.5f;
+      const float actualAccelDistance = move->accel * dt2 * (float)(move->accelFrames * (move->accelFrames + 1)) * 0.5f;
+      const float actualDecelDistance = move->decel * dt2 * (float)(move->decelFrames * (move->decelFrames - 1)) * 0.5f;
 
-      const float const_distance = distance - actual_accel_distance - actual_decel_distance;
-      move->const_frames = const_distance > 0.f ? (int32_t)(const_distance / peak_speed * QUETOO_TICK_RATE) : 0;
+      const float constDistance = distance - actualAccelDistance - actualDecelDistance;
+      move->constFrames = constDistance > 0.f ? (int32_t)(constDistance / peakSpeed * QUETOO_TICK_RATE) : 0;
     }
   }
 
   // accelerate
-  if (move->accel_frames) {
-    move->current_speed += move->accel * QUETOO_TICK_SECONDS;
-    if (move->current_speed > move->speed) {
-      move->current_speed = move->speed;
+  if (move->accelFrames) {
+    move->currentSpeed += move->accel * QUETOO_TICK_SECONDS;
+    if (move->currentSpeed > move->speed) {
+      move->currentSpeed = move->speed;
     }
-    move->accel_frames--;
+    move->accelFrames--;
   }
 
   // maintain speed — current_speed carries forward from the accel phase:
   // move->speed for the non-clamped path, or peak speed for the clamped path.
-  else if (move->const_frames) {
-    move->const_frames--;
+  else if (move->constFrames) {
+    move->constFrames--;
   }
 
   // decelerate
-  else if (move->decel_frames) {
-    move->current_speed -= move->decel * QUETOO_TICK_SECONDS;
-    if (move->current_speed < move->speed * 0.05f) {
-      move->current_speed = move->speed * 0.05f;
+  else if (move->decelFrames) {
+    move->currentSpeed -= move->decel * QUETOO_TICK_SECONDS;
+    if (move->currentSpeed < move->speed * 0.05f) {
+      move->currentSpeed = move->speed * 0.05f;
     }
-    move->decel_frames--;
+    move->decelFrames--;
   }
 
   // done
@@ -219,9 +219,9 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
     return;
   }
 
-  ent->velocity = Vec3_Scale(move->dir, move->current_speed);
+  ent->velocity = Vec3_Scale(move->dir, move->currentSpeed);
 
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
   ent->Think = G_MoveInfo_Linear_Accelerate;
 }
 
@@ -252,15 +252,15 @@ static Vec3 G_MoveInfo_Angular_Delta(const Vec3 a, const Vec3 b) {
  * not simply distance over speed.
  */
 static void G_MoveInfo_Angular_Lerp(GameEntity *ent, float distance, float speed) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
-  if (Vec3_Equal(move->start_angles, move->end_angles)) {
+  if (Vec3_Equal(move->startAngles, move->endAngles)) {
     return;
   }
 
   const float time = Maxf(distance / Maxf(speed, FLT_EPSILON), QUETOO_TICK_SECONDS);
 
-  const Vec3 delta = G_MoveInfo_Angular_Delta(ent->s.angles, move->end_angles);
+  const Vec3 delta = G_MoveInfo_Angular_Delta(ent->s.angles, move->endAngles);
 
   ent->avelocity = Vec3_Scale(delta, 1.f / time);
 }
@@ -269,17 +269,17 @@ static void G_MoveInfo_Angular_Lerp(GameEntity *ent, float distance, float speed
  * @brief Resets velocity and resolves the direction of travel towards `dest`, common to all
  * linear movement.
  */
-static void G_MoveInfo_Linear_Setup(GameEntity *ent, const Vec3 dest, void (*Done)(GameEntity *)) {
-  GameMoveInfo *move = &ent->move_info;
+static void G_MoveInfo_Linear_Setup(GameEntity *ent, const Vec3 dest, void (*done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->moveInfo;
 
   ent->velocity = Vec3_Zero();
-  move->current_speed = 0.0;
+  move->currentSpeed = 0.0;
 
   move->dest = dest;
   move->dir = Vec3_Subtract(dest, ent->s.origin);
   move->dir = Vec3_Normalize(move->dir);
 
-  move->Done = Done;
+  move->Done = done;
 }
 
 /**
@@ -287,26 +287,26 @@ static void G_MoveInfo_Linear_Setup(GameEntity *ent, const Vec3 dest, void (*Don
  * distance covered, which is what a mapper means by a mover that speeds up over its run.
  */
 static void G_MoveInfo_Linear_Ramp(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
   const float distance = Vec3_Distance(move->dest, ent->s.origin);
-  const float total = Vec3_Distance(move->end_origin, move->start_origin);
+  const float total = Vec3_Distance(move->endOrigin, move->startOrigin);
 
   const float frac = total > 0.f ? Clampf01(1.f - distance / total) : 1.f;
 
-  move->current_speed = Mixf(move->start_speed, move->speed, frac);
+  move->currentSpeed = Mixf(move->startSpeed, move->speed, frac);
 
-  ent->velocity = Vec3_Scale(move->dir, move->current_speed);
+  ent->velocity = Vec3_Scale(move->dir, move->currentSpeed);
 
-  G_MoveInfo_Angular_Lerp(ent, distance, move->current_speed);
+  G_MoveInfo_Angular_Lerp(ent, distance, move->currentSpeed);
 
-  if (distance <= move->current_speed * QUETOO_TICK_SECONDS) {
+  if (distance <= move->currentSpeed * QUETOO_TICK_SECONDS) {
     ent->Think = G_MoveInfo_Linear_Final;
   } else {
     ent->Think = G_MoveInfo_Linear_Ramp;
   }
 
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -314,14 +314,14 @@ static void G_MoveInfo_Linear_Ramp(GameEntity *ent) {
  * caller must have set `move_info.start_origin` and `end_origin`, from which the ramp resolves how
  * far along the move the entity is.
  */
-static void G_MoveInfo_Linear_Init_Ramp(GameEntity *ent, const Vec3 dest, float speed_start,
-                                        float speed_end, void (*Done)(GameEntity *)) {
-  GameMoveInfo *move = &ent->move_info;
+static void G_MoveInfo_Linear_Init_Ramp(GameEntity *ent, const Vec3 dest, float speedStart,
+                                        float speedEnd, void (*done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->moveInfo;
 
-  G_MoveInfo_Linear_Setup(ent, dest, Done);
+  G_MoveInfo_Linear_Setup(ent, dest, done);
 
-  move->start_speed = Maxf(speed_start, 1.f);
-  move->speed = Maxf(speed_end, 1.f);
+  move->startSpeed = Maxf(speedStart, 1.f);
+  move->speed = Maxf(speedEnd, 1.f);
 
   G_MoveInfo_Linear_Ramp(ent);
 }
@@ -331,22 +331,22 @@ static void G_MoveInfo_Linear_Init_Ramp(GameEntity *ent, const Vec3 dest, float 
  * accelerative movements are initiated through this function. Animations are
  * also kicked off here.
  */
-static void G_MoveInfo_Linear_Init(GameEntity *ent, const Vec3 dest, void (*Done)(GameEntity *)) {
-  GameMoveInfo *move = &ent->move_info;
+static void G_MoveInfo_Linear_Init(GameEntity *ent, const Vec3 dest, void (*done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->moveInfo;
 
-  G_MoveInfo_Linear_Setup(ent, dest, Done);
+  G_MoveInfo_Linear_Setup(ent, dest, done);
 
   if (move->accel == 0.0 && move->decel == 0.0) { // constant
-    const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent;
-    if (g_level.current_entity == master) {
+    const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->teamMaster : ent;
+    if (g_level.currentEntity == master) {
       G_MoveInfo_Linear_Constant(ent);
     } else {
-      ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+      ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
       ent->Think = G_MoveInfo_Linear_Constant;
     }
   } else { // accelerative
     ent->Think = G_MoveInfo_Linear_Accelerate;
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
   }
 }
 
@@ -356,20 +356,20 @@ static void G_MoveInfo_Linear_Init(GameEntity *ent, const Vec3 dest, void (*Done
 static void G_MoveInfo_Angular_Done(GameEntity *ent) {
 
   ent->avelocity = Vec3_Zero();
-  ent->move_info.Done(ent);
+  ent->moveInfo.Done(ent);
 }
 
 /**
  * @brief Called during the final tick of angular movement to snap the entity to its exact destination angles.
  */
 static void G_MoveInfo_Angular_Final(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
   Vec3 delta;
 
   if (move->state == MOVE_STATE_GOING_UP) {
-    delta = Vec3_Subtract(move->end_angles, ent->s.angles);
+    delta = Vec3_Subtract(move->endAngles, ent->s.angles);
   } else {
-    delta = Vec3_Subtract(move->start_angles, ent->s.angles);
+    delta = Vec3_Subtract(move->startAngles, ent->s.angles);
   }
 
   if (Vec3_Equal(delta, Vec3_Zero())) {
@@ -380,21 +380,21 @@ static void G_MoveInfo_Angular_Final(GameEntity *ent) {
   ent->avelocity = Vec3_Scale(delta, 1.0 / QUETOO_TICK_SECONDS);
 
   ent->Think = G_MoveInfo_Angular_Done;
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
  * @brief Begins angular movement by computing angular velocity toward the target angles.
  */
 static void G_MoveInfo_Angular_Begin(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
   Vec3 delta;
 
   // set move to the vector needed to move
   if (move->state == MOVE_STATE_GOING_UP) {
-    delta = Vec3_Subtract(move->end_angles, ent->s.angles);
+    delta = Vec3_Subtract(move->endAngles, ent->s.angles);
   } else {
-    delta = Vec3_Subtract(move->start_angles, ent->s.angles);
+    delta = Vec3_Subtract(move->startAngles, ent->s.angles);
   }
 
   // calculate length of vector
@@ -414,24 +414,24 @@ static void G_MoveInfo_Angular_Begin(GameEntity *ent) {
   ent->avelocity = Vec3_Scale(delta, 1.0 / time);
 
   // set next_think to trigger a think when dest is reached
-  ent->next_think = g_level.time + frames * QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + frames * QUETOO_TICK_MILLIS;
   ent->Think = G_MoveInfo_Angular_Final;
 }
 
 /**
  * @brief Initializes angular movement for the specified entity, scheduling the beginning of rotation.
  */
-static void G_MoveInfo_Angular_Init(GameEntity *ent, void (*Done)(GameEntity *)) {
+static void G_MoveInfo_Angular_Init(GameEntity *ent, void (*done)(GameEntity *)) {
 
   ent->avelocity = Vec3_Zero();
 
-  ent->move_info.Done = Done;
+  ent->moveInfo.Done = done;
 
-  const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent;
-  if (g_level.current_entity == master) {
+  const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->teamMaster : ent;
+  if (g_level.currentEntity == master) {
     G_MoveInfo_Angular_Begin(ent);
   } else {
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
     ent->Think = G_MoveInfo_Angular_Begin;
   }
 }
@@ -463,11 +463,11 @@ static void G_MoveType_Push_Blocked(GameEntity *ent, GameEntity *other) {
     return;
   }
 
-  if (g_level.time < ent->touch_time) {
+  if (g_level.time < ent->touchTime) {
     return;
   }
 
-  ent->touch_time = g_level.time + 1000;
+  ent->touchTime = g_level.time + 1000;
 
   if (G_IsMeat(other)) {
     G_Damage(&(GameDamage) {
@@ -495,7 +495,7 @@ static void G_MoveType_Push_Blocked(GameEntity *ent, GameEntity *other) {
       .flags = 0,
       .mod = mod
     });
-    if (other->in_use) {
+    if (other->inUse) {
       G_Explode(other, 60, 60, 80.0, 0);
     }
   }
@@ -512,9 +512,9 @@ static void G_func_plat_Top(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_end) {
+    if (ent->moveInfo.soundEnd) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_end,
+        .index = ent->moveInfo.soundEnd,
         .entity = ent,
       }, MULTICAST_PHS);
     }
@@ -522,10 +522,10 @@ static void G_func_plat_Top(GameEntity *ent) {
     ent->s.sound = 0;
   }
 
-  ent->move_info.state = MOVE_STATE_TOP;
+  ent->moveInfo.state = MOVE_STATE_TOP;
 
   ent->Think = G_func_plat_GoingDown;
-  ent->next_think = g_level.time + 3000;
+  ent->nextThink = g_level.time + 3000;
 }
 
 /**
@@ -535,14 +535,14 @@ static void G_func_plat_Bottom(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_end) {
+    if (ent->moveInfo.soundEnd) {
       Vec3 pos;
 
-      pos = Box3_Center(ent->abs_bounds);
-      pos.z = ent->abs_bounds.maxs.z;
+      pos = Box3_Center(ent->absBounds);
+      pos.z = ent->absBounds.maxs.z;
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_end,
+        .index = ent->moveInfo.soundEnd,
         .origin = &pos,
       }, MULTICAST_PHS);
     }
@@ -550,7 +550,7 @@ static void G_func_plat_Bottom(GameEntity *ent) {
     ent->s.sound = 0;
   }
 
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
 }
 
 /**
@@ -560,18 +560,18 @@ static void G_func_plat_GoingDown(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_start) {
+    if (ent->moveInfo.soundStart) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .entity = ent,
       }, MULTICAST_PHS);
     }
 
-    ent->s.sound = ent->move_info.sound_middle;
+    ent->s.sound = ent->moveInfo.soundMiddle;
   }
 
-  ent->move_info.state = MOVE_STATE_GOING_DOWN;
-  G_MoveInfo_Linear_Init(ent, ent->move_info.end_origin, G_func_plat_Bottom);
+  ent->moveInfo.state = MOVE_STATE_GOING_DOWN;
+  G_MoveInfo_Linear_Init(ent, ent->moveInfo.endOrigin, G_func_plat_Bottom);
 }
 
 /**
@@ -581,23 +581,23 @@ static void G_func_plat_GoingUp(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_start) {
+    if (ent->moveInfo.soundStart) {
       Vec3 pos;
 
-      pos = Box3_Center(ent->abs_bounds);
-      pos.z = ent->abs_bounds.maxs.z;
+      pos = Box3_Center(ent->absBounds);
+      pos.z = ent->absBounds.maxs.z;
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .origin = &pos,
       }, MULTICAST_PHS);
     }
 
-    ent->s.sound = ent->move_info.sound_middle;
+    ent->s.sound = ent->moveInfo.soundMiddle;
   }
 
-  ent->move_info.state = MOVE_STATE_GOING_UP;
-  G_MoveInfo_Linear_Init(ent, ent->move_info.start_origin, G_func_plat_Top);
+  ent->moveInfo.state = MOVE_STATE_GOING_UP;
+  G_MoveInfo_Linear_Init(ent, ent->moveInfo.startOrigin, G_func_plat_Top);
 }
 
 /**
@@ -609,13 +609,13 @@ static void G_func_plat_Blocked(GameEntity *ent, GameEntity *other) {
 
   // Dead blockers (e.g. giblets) should not cause direction flips and
   // movement sound restarts every frame.
-  if (!other->in_use || other->dead) {
+  if (!other->inUse || other->dead) {
     return;
   }
 
-  if (ent->move_info.state == MOVE_STATE_GOING_UP) {
+  if (ent->moveInfo.state == MOVE_STATE_GOING_UP) {
     G_func_plat_GoingDown(ent);
-  } else if (ent->move_info.state == MOVE_STATE_GOING_DOWN) {
+  } else if (ent->moveInfo.state == MOVE_STATE_GOING_DOWN) {
     G_func_plat_GoingUp(ent);
   }
 }
@@ -647,10 +647,10 @@ static void G_func_plat_Touch(GameEntity *ent, GameEntity *other, const CmTrace 
 
   ent = ent->enemy; // now point at the plat, not the trigger
 
-  if (ent->move_info.state == MOVE_STATE_BOTTOM) {
+  if (ent->moveInfo.state == MOVE_STATE_BOTTOM) {
     G_func_plat_GoingUp(ent);
-  } else if (ent->move_info.state == MOVE_STATE_TOP) {
-    ent->next_think = g_level.time + 1000; // the player is still on the plat, so delay going down
+  } else if (ent->moveInfo.state == MOVE_STATE_TOP) {
+    ent->nextThink = g_level.time + 1000; // the player is still on the plat, so delay going down
   }
 }
 
@@ -663,7 +663,7 @@ static void G_func_plat_CreateTrigger(GameEntity *ent, float lip) {
   // middle trigger
   trigger = G_AllocEntity(__func__);
   trigger->Touch = G_func_plat_Touch;
-  trigger->move_type = MOVE_TYPE_NONE;
+  trigger->moveType = MOVE_TYPE_NONE;
   trigger->solid = SOLID_TRIGGER;
   trigger->enemy = ent;
 
@@ -672,7 +672,7 @@ static void G_func_plat_CreateTrigger(GameEntity *ent, float lip) {
 
   bounds.mins.z = bounds.maxs.z - (ent->pos1.z - ent->pos2.z + lip);
 
-  if (ent->spawn_flags & PLAT_LOW_TRIGGER) {
+  if (ent->spawnFlags & PLAT_LOW_TRIGGER) {
     bounds.maxs.z = bounds.mins.z + lip;
   }
 
@@ -709,7 +709,7 @@ void G_func_plat(GameEntity *ent) {
   ent->s.angles = Vec3_Zero();
 
   ent->solid = SOLID_BSP;
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
 
   gi.SetModel(ent, ent->model);
 
@@ -751,30 +751,30 @@ void G_func_plat(GameEntity *ent) {
 
   G_func_plat_CreateTrigger(ent, lip); // the "start moving" trigger
 
-  if (ent->target_name) {
-    ent->move_info.state = MOVE_STATE_GOING_UP;
+  if (ent->targetName) {
+    ent->moveInfo.state = MOVE_STATE_GOING_UP;
   } else {
     ent->s.origin = ent->pos2;
-    ent->move_info.state = MOVE_STATE_BOTTOM;
+    ent->moveInfo.state = MOVE_STATE_BOTTOM;
   }
 
   gi.LinkEntity(ent);
 
-  ent->move_info.speed = ent->speed;
-  ent->move_info.accel = ent->accel;
-  ent->move_info.decel = ent->decel;
-  ent->move_info.wait = ent->wait;
+  ent->moveInfo.speed = ent->speed;
+  ent->moveInfo.accel = ent->accel;
+  ent->moveInfo.decel = ent->decel;
+  ent->moveInfo.wait = ent->wait;
 
-  ent->move_info.start_origin = ent->pos1;
-  ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.end_origin = ent->pos2;
-  ent->move_info.end_angles = ent->s.angles;
+  ent->moveInfo.startOrigin = ent->pos1;
+  ent->moveInfo.startAngles = ent->s.angles;
+  ent->moveInfo.endOrigin = ent->pos2;
+  ent->moveInfo.endAngles = ent->s.angles;
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("func/plat_start_%d", s + 1));
-    ent->move_info.sound_middle = gi.SoundIndex(va("func/plat_middle_%d", s + 1));
-    ent->move_info.sound_end = gi.SoundIndex(va("func/plat_end_%d", s + 1));
+    ent->moveInfo.soundStart = gi.SoundIndex(va("func/plat_start_%d", s + 1));
+    ent->moveInfo.soundMiddle = gi.SoundIndex(va("func/plat_middle_%d", s + 1));
+    ent->moveInfo.soundEnd = gi.SoundIndex(va("func/plat_end_%d", s + 1));
   }
 }
 
@@ -793,9 +793,9 @@ static void G_func_bob_Bottom(GameEntity *ent);
  * the peak and adds hang time at the ends, <1 flattens/widens the peak.
  */
 static void G_func_bob_Ease(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
-  const float total_distance = Vec3_Distance(move->start_origin, move->end_origin);
+  const float totalDistance = Vec3_Distance(move->startOrigin, move->endOrigin);
 
   Vec3 dir;
   const float remaining = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
@@ -804,79 +804,79 @@ static void G_func_bob_Ease(GameEntity *ent) {
   // that final pop. A fixed .25 units is invisible on a long mover but reads as a visible jump
   // on a short leg (e.g. .25 is ~3% of an 8-unit travel) - scale it down for short legs instead,
   // capped at the old constant so long legs keep the same tolerance as before.
-  const float arrival_epsilon = Clampf(total_distance * .01f, .01f, .25f);
+  const float arrivalEpsilon = Clampf(totalDistance * .01f, .01f, .25f);
 
-  if (remaining <= arrival_epsilon || Vec3_Dot(dir, move->dir) < 0.f) {
+  if (remaining <= arrivalEpsilon || Vec3_Dot(dir, move->dir) < 0.f) {
     G_MoveInfo_Linear_Done(ent);
     return;
   }
 
-  const float traveled = total_distance - remaining;
+  const float traveled = totalDistance - remaining;
 
-  const float t = traveled / total_distance;
+  const float t = traveled / totalDistance;
   const float speed = move->speed * powf(sinf((float) M_PI * t), ent->random);
 
   // small floor to guarantee forward progress against the curve's asymptotic tail; kept tiny so
   // it doesn't reintroduce a visible plateau before the final snap
   ent->velocity = Vec3_Scale(move->dir, Maxf(speed, move->speed * .005f));
 
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
   ent->Think = G_func_bob_Ease;
 }
 
 /**
  * @brief Starts a `func_bob` moving toward `dest`, easing via `G_func_bob_Ease`.
  */
-static void G_func_bob_Move(GameEntity *ent, const Vec3 dest, void (*Done)(GameEntity *)) {
-  GameMoveInfo *move = &ent->move_info;
+static void G_func_bob_Move(GameEntity *ent, const Vec3 dest, void (*done)(GameEntity *)) {
+  GameMoveInfo *move = &ent->moveInfo;
 
   ent->velocity = Vec3_Zero();
   move->dest = dest;
   move->dir = Vec3_Normalize(Vec3_Subtract(dest, ent->s.origin));
-  move->Done = Done;
+  move->Done = done;
 
-  ent->s.sound = move->sound_middle;
+  ent->s.sound = move->soundMiddle;
 
   ent->Think = G_func_bob_Ease;
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
  * @brief Sends a `func_bob` toward its end position.
  */
 static void G_func_bob_GoingUp(GameEntity *ent) {
-  ent->move_info.state = MOVE_STATE_GOING_UP;
-  G_func_bob_Move(ent, ent->move_info.end_origin, G_func_bob_Top);
+  ent->moveInfo.state = MOVE_STATE_GOING_UP;
+  G_func_bob_Move(ent, ent->moveInfo.endOrigin, G_func_bob_Top);
 }
 
 /**
  * @brief Sends a `func_bob` back toward its start position.
  */
 static void G_func_bob_GoingDown(GameEntity *ent) {
-  ent->move_info.state = MOVE_STATE_GOING_DOWN;
-  G_func_bob_Move(ent, ent->move_info.start_origin, G_func_bob_Bottom);
+  ent->moveInfo.state = MOVE_STATE_GOING_DOWN;
+  G_func_bob_Move(ent, ent->moveInfo.startOrigin, G_func_bob_Bottom);
 }
 
 /**
  * @brief Called when a `func_bob` reaches its end position; schedules the return leg.
  */
 static void G_func_bob_Top(GameEntity *ent) {
-  ent->move_info.state = MOVE_STATE_TOP;
+  ent->moveInfo.state = MOVE_STATE_TOP;
   ent->s.sound = 0;
 
   ent->Think = G_func_bob_GoingDown;
-  ent->next_think = g_level.time + (uint32_t) (ent->wait * 1000.f);
+  ent->nextThink = g_level.time + (uint32_t) (ent->wait * 1000.f);
 }
 
 /**
  * @brief Called when a `func_bob` reaches its start position; schedules the outbound leg.
  */
 static void G_func_bob_Bottom(GameEntity *ent) {
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
   ent->s.sound = 0;
 
   ent->Think = G_func_bob_GoingUp;
-  ent->next_think = g_level.time + (uint32_t) (ent->wait * 1000.f);
+  ent->nextThink = g_level.time + (uint32_t) (ent->wait * 1000.f);
 }
 
 /**
@@ -885,13 +885,13 @@ static void G_func_bob_Bottom(GameEntity *ent) {
  */
 static void G_func_bob_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
-  if (ent->next_think) { // active (moving, or waiting between legs) - pause in place
+  if (ent->nextThink) { // active (moving, or waiting between legs) - pause in place
     ent->Think = NULL;
-    ent->next_think = 0;
+    ent->nextThink = 0;
     ent->velocity = Vec3_Zero();
     ent->s.sound = 0;
   } else { // paused - resume toward wherever it was already headed
-    if (ent->move_info.state == MOVE_STATE_BOTTOM || ent->move_info.state == MOVE_STATE_GOING_UP) {
+    if (ent->moveInfo.state == MOVE_STATE_BOTTOM || ent->moveInfo.state == MOVE_STATE_GOING_UP) {
       G_func_bob_GoingUp(ent);
     } else {
       G_func_bob_GoingDown(ent);
@@ -934,13 +934,13 @@ void G_func_bob(GameEntity *ent) {
   ent->s.angles = Vec3_Zero();
 
   ent->solid = SOLID_BSP;
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
 
   gi.SetModel(ent, ent->model);
 
   const char *sound = gi.EntityValue(ent->def, "sound")->string;
   if (*sound) {
-    ent->move_info.sound_middle = gi.SoundIndex(sound);
+    ent->moveInfo.soundMiddle = gi.SoundIndex(sound);
   }
 
   if (!ent->speed) {
@@ -954,13 +954,13 @@ void G_func_bob(GameEntity *ent) {
   ent->pos1 = ent->s.origin;
   ent->pos2 = Vec3_Add(ent->pos1, gi.EntityValue(ent->def, "velocity")->vec3);
 
-  const float total_distance = Vec3_Distance(ent->pos1, ent->pos2);
-  if (total_distance == 0.f) {
+  const float totalDistance = Vec3_Distance(ent->pos1, ent->pos2);
+  if (totalDistance == 0.f) {
     G_Warn("%s @ %s has no \"velocity\" and will not move\n", ent->classname, vtos(ent->s.origin));
   }
 
   // Average speed of a half-sine leg is (2/pi) * peak, giving leg_time = distance * pi / (2 * speed).
-  const float leg_time = total_distance > 0.f ? (total_distance * (float) M_PI) / (2.f * ent->speed) : 0.f;
+  const float legTime = totalDistance > 0.f ? (totalDistance * (float) M_PI) / (2.f * ent->speed) : 0.f;
 
   // reuse the generic `random` field to cache the "compression" exponent, read once here rather
   // than every tick in G_func_bob_Ease. If unset, auto-derive it from the leg's duration instead of
@@ -976,23 +976,23 @@ void G_func_bob(GameEntity *ent) {
   if (compression > 0.f) {
     ent->random = compression;
   } else {
-    const float z = logf(leg_time) / 1.61f;
+    const float z = logf(legTime) / 1.61f;
     ent->random = .35f + .65f * expf(-z * z);
   }
 
-  ent->move_info.speed = ent->speed;
+  ent->moveInfo.speed = ent->speed;
 
-  ent->move_info.start_origin = ent->pos1;
-  ent->move_info.end_origin = ent->pos2;
+  ent->moveInfo.startOrigin = ent->pos1;
+  ent->moveInfo.endOrigin = ent->pos2;
 
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
 
   ent->Blocked = G_MoveType_Push_Blocked;
   ent->Use = G_func_bob_Use;
 
   gi.LinkEntity(ent);
 
-  if (!(ent->spawn_flags & BOB_START_OFF)) {
+  if (!(ent->spawnFlags & BOB_START_OFF)) {
     // Stagger the initial phase across identical func_bobs so they don't move in lockstep, but
     // only when the mapper opts in via "drift" - absent means a single (or non-array) func_bob
     // starts moving immediately, same as every other func_* entity, rather than picking a hidden
@@ -1003,13 +1003,13 @@ void G_func_bob(GameEntity *ent) {
     // others, since the mapper has no easy way to know the entity's actual cycle length. So
     // derive the window from the entity's own numbers: the full up-down-wait cycle is twice
     // the leg time (computed above, alongside the auto-compression derivation) plus twice the wait.
-    const float cycle_time = 2.f * (leg_time + ent->wait);
+    const float cycleTime = 2.f * (legTime + ent->wait);
 
-    const float drift_scale = gi.EntityValue(ent->def, "drift")->value;
+    const float driftScale = gi.EntityValue(ent->def, "drift")->value;
 
     ent->Think = G_func_bob_GoingUp;
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS +
-                       (uint32_t) (RandomRangef(0.f, Maxf(drift_scale, 0.f) * cycle_time) * 1000.f);
+    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS +
+                       (uint32_t) (RandomRangef(0.f, Maxf(driftScale, 0.f) * cycleTime) * 1000.f);
   }
 }
 
@@ -1054,9 +1054,9 @@ static void G_func_rotating_Use(GameEntity *ent, GameEntity *other,
     ent->avelocity = Vec3_Zero();
     ent->Touch = NULL;
   } else {
-    ent->s.sound = ent->move_info.sound_middle;
-    ent->avelocity = Vec3_Scale(ent->move_dir, ent->speed);
-    if (ent->spawn_flags & ROTATE_TOUCH_PAIN) {
+    ent->s.sound = ent->moveInfo.soundMiddle;
+    ent->avelocity = Vec3_Scale(ent->moveDir, ent->speed);
+    if (ent->spawnFlags & ROTATE_TOUCH_PAIN) {
       ent->Touch = G_func_rotating_Touch;
     }
   }
@@ -1082,25 +1082,25 @@ void G_func_rotating(GameEntity *ent) {
 
   ent->solid = SOLID_BSP;
 
-  if (ent->spawn_flags & ROTATE_TOUCH_STOP) {
-    ent->move_type = MOVE_TYPE_STOP;
+  if (ent->spawnFlags & ROTATE_TOUCH_STOP) {
+    ent->moveType = MOVE_TYPE_STOP;
   } else {
-    ent->move_type = MOVE_TYPE_PUSH;
+    ent->moveType = MOVE_TYPE_PUSH;
   }
 
   // set the axis of rotation
-  ent->move_dir = Vec3_Zero();
-  if (ent->spawn_flags & ROTATE_AXIS_X) {
-    ent->move_dir.z = 1.0;
-  } else if (ent->spawn_flags & ROTATE_AXIS_Y) {
-    ent->move_dir.x = 1.0;
+  ent->moveDir = Vec3_Zero();
+  if (ent->spawnFlags & ROTATE_AXIS_X) {
+    ent->moveDir.z = 1.0;
+  } else if (ent->spawnFlags & ROTATE_AXIS_Y) {
+    ent->moveDir.x = 1.0;
   } else {
-    ent->move_dir.y = 1.0;
+    ent->moveDir.y = 1.0;
   }
 
   // check for reverse rotation
-  if (ent->spawn_flags & ROTATE_REVERSE) {
-    ent->move_dir = Vec3_Negate(ent->move_dir);
+  if (ent->spawnFlags & ROTATE_REVERSE) {
+    ent->moveDir = Vec3_Negate(ent->moveDir);
   }
 
   if (!ent->speed) {
@@ -1114,7 +1114,7 @@ void G_func_rotating(GameEntity *ent) {
   ent->Use = G_func_rotating_Use;
   ent->Blocked = G_MoveType_Push_Blocked;
 
-  if (ent->spawn_flags & ROTATE_START_ON) {
+  if (ent->spawnFlags & ROTATE_START_ON) {
     ent->Use(ent, NULL, NULL);
   }
 
@@ -1126,21 +1126,21 @@ void G_func_rotating(GameEntity *ent) {
  * @brief Called when a button has fully returned to its resting (bottom) position.
  */
 static void G_func_button_Done(GameEntity *ent) {
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
 }
 
 /**
  * @brief Moves a button back to its starting position and re-enables damage if applicable.
  */
 static void G_func_button_Reset(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
   move->state = MOVE_STATE_GOING_DOWN;
 
-  G_MoveInfo_Linear_Init(ent, move->start_origin, G_func_button_Done);
+  G_MoveInfo_Linear_Init(ent, move->startOrigin, G_func_button_Done);
 
   if (ent->health) {
-    ent->take_damage = true;
+    ent->takeDamage = true;
   }
 }
 
@@ -1148,14 +1148,14 @@ static void G_func_button_Reset(GameEntity *ent) {
  * @brief Called when a button reaches its pressed position, firing targets and scheduling the reset.
  */
 static void G_func_button_Wait(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
   move->state = MOVE_STATE_TOP;
 
   G_UseTargets(ent, ent->activator);
 
   if (move->wait >= 0) {
-    ent->next_think = g_level.time + move->wait * 1000;
+    ent->nextThink = g_level.time + move->wait * 1000;
     ent->Think = G_func_button_Reset;
   }
 }
@@ -1164,7 +1164,7 @@ static void G_func_button_Wait(GameEntity *ent) {
  * @brief Initiates button press movement from its resting position toward its destination.
  */
 static void G_func_button_Activate(GameEntity *ent) {
-  GameMoveInfo *move = &ent->move_info;
+  GameMoveInfo *move = &ent->moveInfo;
 
   if (move->state == MOVE_STATE_GOING_UP || move->state == MOVE_STATE_TOP) {
     return;
@@ -1172,14 +1172,14 @@ static void G_func_button_Activate(GameEntity *ent) {
 
   move->state = MOVE_STATE_GOING_UP;
 
-  if (move->sound_start && !(ent->flags & FL_TEAM_SLAVE)) {
+  if (move->soundStart && !(ent->flags & FL_TEAM_SLAVE)) {
     G_MulticastSound(&(const GamePlaySound) {
-      .index = move->sound_start,
+      .index = move->soundStart,
       .entity = ent,
     }, MULTICAST_PHS);
   }
 
-  G_MoveInfo_Linear_Init(ent, move->end_origin, G_func_button_Wait);
+  G_MoveInfo_Linear_Init(ent, move->endOrigin, G_func_button_Wait);
 }
 
 /**
@@ -1215,8 +1215,8 @@ static void G_func_button_Touch(GameEntity *ent, GameEntity *other, const CmTrac
 static void G_func_button_Die(GameEntity *ent, GameEntity *attacker,
                               uint32_t mod) {
 
-  ent->health = ent->max_health;
-  ent->take_damage = false;
+  ent->health = ent->maxHealth;
+  ent->takeDamage = false;
 
   ent->activator = attacker;
   G_func_button_Activate(ent);
@@ -1236,11 +1236,11 @@ static void G_func_button_Die(GameEntity *ent, GameEntity *attacker,
  targetname : The target name of this entity if it is to be triggered.
  */
 void G_func_button(GameEntity *ent) {
-  Vec3 abs_move_dir;
+  Vec3 absMoveDir;
   float dist;
 
   G_SetMoveDir(ent);
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
   ent->solid = SOLID_BSP;
   gi.SetModel(ent, ent->model);
 
@@ -1248,7 +1248,7 @@ void G_func_button(GameEntity *ent) {
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("func/button_%d", s + 1));
+    ent->moveInfo.soundStart = gi.SoundIndex(va("func/button_%d", s + 1));
   }
 
   if (!ent->speed) {
@@ -1265,30 +1265,30 @@ void G_func_button(GameEntity *ent) {
   }
 
   ent->pos1 = ent->s.origin;
-  abs_move_dir.x = fabsf(ent->move_dir.x);
-  abs_move_dir.y = fabsf(ent->move_dir.y);
-  abs_move_dir.z = fabsf(ent->move_dir.z);
-  dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y + abs_move_dir.z * ent->size.z - lip;
-  ent->pos2 = Vec3_Fmaf(ent->pos1, dist, ent->move_dir);
+  absMoveDir.x = fabsf(ent->moveDir.x);
+  absMoveDir.y = fabsf(ent->moveDir.y);
+  absMoveDir.z = fabsf(ent->moveDir.z);
+  dist = absMoveDir.x * ent->size.x + absMoveDir.y * ent->size.y + absMoveDir.z * ent->size.z - lip;
+  ent->pos2 = Vec3_Fmaf(ent->pos1, dist, ent->moveDir);
 
   ent->Use = G_func_button_Use;
 
   if (ent->health) {
-    ent->max_health = ent->health;
+    ent->maxHealth = ent->health;
     ent->Die = G_func_button_Die;
-    ent->take_damage = true;
-  } else if (!ent->target_name) {
+    ent->takeDamage = true;
+  } else if (!ent->targetName) {
     ent->Touch = G_func_button_Touch;
   }
 
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
 
-  ent->move_info.speed = ent->speed;
-  ent->move_info.wait = ent->wait;
-  ent->move_info.start_origin = ent->pos1;
-  ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.end_origin = ent->pos2;
-  ent->move_info.end_angles = ent->s.angles;
+  ent->moveInfo.speed = ent->speed;
+  ent->moveInfo.wait = ent->wait;
+  ent->moveInfo.startOrigin = ent->pos1;
+  ent->moveInfo.startAngles = ent->s.angles;
+  ent->moveInfo.endOrigin = ent->pos2;
+  ent->moveInfo.endAngles = ent->s.angles;
 }
 
 #define DOOR_START_OPEN        0x1
@@ -1306,9 +1306,9 @@ static void G_func_door_Top(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_end) {
+    if (ent->moveInfo.soundEnd) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_end,
+        .index = ent->moveInfo.soundEnd,
         .entity = ent,
       }, MULTICAST_PHS);
     }
@@ -1316,15 +1316,15 @@ static void G_func_door_Top(GameEntity *ent) {
     ent->s.sound = 0;
   }
 
-  ent->move_info.state = MOVE_STATE_TOP;
+  ent->moveInfo.state = MOVE_STATE_TOP;
 
-  if (ent->spawn_flags & DOOR_TOGGLE) {
+  if (ent->spawnFlags & DOOR_TOGGLE) {
     return;
   }
 
-  if (ent->move_info.wait >= 0) {
+  if (ent->moveInfo.wait >= 0) {
     ent->Think = G_func_door_GoingDown;
-    ent->next_think = g_level.time + ent->move_info.wait * 1000;
+    ent->nextThink = g_level.time + ent->moveInfo.wait * 1000;
   }
 }
 
@@ -1335,9 +1335,9 @@ static void G_func_door_Bottom(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_end) {
+    if (ent->moveInfo.soundEnd) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_end,
+        .index = ent->moveInfo.soundEnd,
         .entity = ent,
       }, MULTICAST_PHS);
     }
@@ -1345,7 +1345,7 @@ static void G_func_door_Bottom(GameEntity *ent) {
     ent->s.sound = 0;
   }
 
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
 }
 
 /**
@@ -1353,22 +1353,22 @@ static void G_func_door_Bottom(GameEntity *ent) {
  */
 static void G_func_door_GoingDown(GameEntity *ent) {
   if (!(ent->flags & FL_TEAM_SLAVE)) {
-    if (ent->move_info.sound_start) {
+    if (ent->moveInfo.soundStart) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .entity = ent,
       }, MULTICAST_PHS);
     }
-    ent->s.sound = ent->move_info.sound_middle;
+    ent->s.sound = ent->moveInfo.soundMiddle;
   }
-  if (ent->max_health) {
-    ent->take_damage = true;
-    ent->health = ent->max_health;
+  if (ent->maxHealth) {
+    ent->takeDamage = true;
+    ent->health = ent->maxHealth;
   }
 
-  ent->move_info.state = MOVE_STATE_GOING_DOWN;
+  ent->moveInfo.state = MOVE_STATE_GOING_DOWN;
   if (q_strcmp(ent->classname, "func_door_rotating")) {
-    G_MoveInfo_Linear_Init(ent, ent->move_info.start_origin, G_func_door_Bottom);
+    G_MoveInfo_Linear_Init(ent, ent->moveInfo.startOrigin, G_func_door_Bottom);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Bottom);
   }
@@ -1379,29 +1379,29 @@ static void G_func_door_GoingDown(GameEntity *ent) {
  */
 static void G_func_door_GoingUp(GameEntity *ent, GameEntity *activator) {
 
-  if (ent->move_info.state == MOVE_STATE_GOING_UP) {
+  if (ent->moveInfo.state == MOVE_STATE_GOING_UP) {
     return; // already going up
   }
 
-  if (ent->move_info.state == MOVE_STATE_TOP) { // reset top wait time
-    if (ent->move_info.wait >= 0) {
-      ent->next_think = g_level.time + ent->move_info.wait * 1000;
+  if (ent->moveInfo.state == MOVE_STATE_TOP) { // reset top wait time
+    if (ent->moveInfo.wait >= 0) {
+      ent->nextThink = g_level.time + ent->moveInfo.wait * 1000;
     }
     return;
   }
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
-    if (ent->move_info.sound_start) {
+    if (ent->moveInfo.soundStart) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .entity = ent,
       }, MULTICAST_PHS);
     }
-    ent->s.sound = ent->move_info.sound_middle;
+    ent->s.sound = ent->moveInfo.soundMiddle;
   }
-  ent->move_info.state = MOVE_STATE_GOING_UP;
+  ent->moveInfo.state = MOVE_STATE_GOING_UP;
   if (q_strcmp(ent->classname, "func_door_rotating")) {
-    G_MoveInfo_Linear_Init(ent, ent->move_info.end_origin, G_func_door_Top);
+    G_MoveInfo_Linear_Init(ent, ent->moveInfo.endOrigin, G_func_door_Top);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Top);
   }
@@ -1419,11 +1419,11 @@ static void G_func_door_Use(GameEntity *ent, GameEntity *other, GameEntity *acti
     return;
   }
 
-  if (ent->spawn_flags & DOOR_TOGGLE) {
-    if (ent->move_info.state == MOVE_STATE_GOING_UP
-            || ent->move_info.state == MOVE_STATE_TOP) {
+  if (ent->spawnFlags & DOOR_TOGGLE) {
+    if (ent->moveInfo.state == MOVE_STATE_GOING_UP
+            || ent->moveInfo.state == MOVE_STATE_TOP) {
       // trigger all paired doors
-      for (e = ent; e; e = e->team_next) {
+      for (e = ent; e; e = e->teamNext) {
         e->message = NULL;
         e->Touch = NULL;
         G_func_door_GoingDown(e);
@@ -1433,7 +1433,7 @@ static void G_func_door_Use(GameEntity *ent, GameEntity *other, GameEntity *acti
   }
 
   // trigger all paired doors
-  for (e = ent; e; e = e->team_next) {
+  for (e = ent; e; e = e->teamNext) {
     e->message = NULL;
     e->Touch = NULL;
     G_func_door_GoingUp(e, activator);
@@ -1453,11 +1453,11 @@ static void G_func_door_TouchTrigger(GameEntity *ent, GameEntity *other, const C
     return;
   }
 
-  if (g_level.time < ent->touch_time) {
+  if (g_level.time < ent->touchTime) {
     return;
   }
 
-  ent->touch_time = g_level.time + 1000;
+  ent->touchTime = g_level.time + 1000;
 
   G_func_door_Use(ent->owner, other, other);
 }
@@ -1473,31 +1473,31 @@ static void G_func_door_CalculateMove(GameEntity *ent) {
   }
 
   // find the smallest distance any member of the team will be moving
-  float min = fabsf(ent->move_info.distance);
-  for (e = ent->team_next; e; e = e->team_next) {
-    float dist = fabsf(e->move_info.distance);
+  float min = fabsf(ent->moveInfo.distance);
+  for (e = ent->teamNext; e; e = e->teamNext) {
+    float dist = fabsf(e->moveInfo.distance);
     if (dist < min) {
       min = dist;
     }
   }
 
-  const float time = min / ent->move_info.speed;
+  const float time = min / ent->moveInfo.speed;
 
   // adjust speeds so they will all complete at the same time
-  for (e = ent; e; e = e->team_next) {
-    const float new_speed = fabsf(e->move_info.distance) / time;
-    const float ratio = new_speed / e->move_info.speed;
-    if (e->move_info.accel == e->move_info.speed) {
-      e->move_info.accel = new_speed;
+  for (e = ent; e; e = e->teamNext) {
+    const float newSpeed = fabsf(e->moveInfo.distance) / time;
+    const float ratio = newSpeed / e->moveInfo.speed;
+    if (e->moveInfo.accel == e->moveInfo.speed) {
+      e->moveInfo.accel = newSpeed;
     } else {
-      e->move_info.accel *= ratio;
+      e->moveInfo.accel *= ratio;
     }
-    if (e->move_info.decel == e->move_info.speed) {
-      e->move_info.decel = new_speed;
+    if (e->moveInfo.decel == e->moveInfo.speed) {
+      e->moveInfo.decel = newSpeed;
     } else {
-      e->move_info.decel *= ratio;
+      e->moveInfo.decel *= ratio;
     }
-    e->move_info.speed = new_speed;
+    e->moveInfo.speed = newSpeed;
   }
 }
 
@@ -1511,10 +1511,10 @@ static void G_func_door_CreateTrigger(GameEntity *ent) {
     return; // only the team leader spawns a trigger
   }
 
-  Box3 bounds = ent->abs_bounds;
+  Box3 bounds = ent->absBounds;
 
-  for (trigger = ent->team_next; trigger; trigger = trigger->team_next) {
-    bounds = Box3_Union(bounds, trigger->abs_bounds);
+  for (trigger = ent->teamNext; trigger; trigger = trigger->teamNext) {
+    bounds = Box3_Union(bounds, trigger->absBounds);
   }
 
   // expand
@@ -1524,7 +1524,7 @@ static void G_func_door_CreateTrigger(GameEntity *ent) {
   trigger->bounds = bounds;
   trigger->owner = ent;
   trigger->solid = SOLID_TRIGGER;
-  trigger->move_type = MOVE_TYPE_NONE;
+  trigger->moveType = MOVE_TYPE_NONE;
   trigger->Touch = G_func_door_TouchTrigger;
   gi.LinkEntity(trigger);
 
@@ -1540,14 +1540,14 @@ static void G_func_door_Blocked(GameEntity *ent, GameEntity *other) {
 
   // if a door has a negative wait, it would never come back if blocked,
   // so let it just squash the object to death real fast
-  if (ent->move_info.wait >= 0) {
+  if (ent->moveInfo.wait >= 0) {
     GameEntity *e;
-    if (ent->move_info.state == MOVE_STATE_GOING_DOWN) {
-      for (e = ent->team_master; e; e = e->team_next) {
+    if (ent->moveInfo.state == MOVE_STATE_GOING_DOWN) {
+      for (e = ent->teamMaster; e; e = e->teamNext) {
         G_func_door_GoingUp(e, e->activator);
       }
     } else {
-      for (e = ent->team_master; e; e = e->team_next) {
+      for (e = ent->teamMaster; e; e = e->teamNext) {
         G_func_door_GoingDown(e);
       }
     }
@@ -1561,12 +1561,12 @@ static void G_func_door_Die(GameEntity *ent, GameEntity *attacker, uint32_t mod)
 
   GameEntity *e;
 
-  for (e = ent->team_master; e; e = e->team_next) {
-    e->health = ent->max_health;
-    e->take_damage = false;
+  for (e = ent->teamMaster; e; e = e->teamNext) {
+    e->health = ent->maxHealth;
+    e->takeDamage = false;
   }
 
-  G_func_door_Use(ent->team_master, attacker, attacker);
+  G_func_door_Use(ent->teamMaster, attacker, attacker);
 }
 
 /**
@@ -1578,11 +1578,11 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const CmTrace 
     return;
   }
 
-  if (g_level.time < ent->touch_time) {
+  if (g_level.time < ent->touchTime) {
     return;
   }
 
-  ent->touch_time = g_level.time + 10000;
+  ent->touchTime = g_level.time + 10000;
 
   if (ent->message && q_strlen(ent->message)) {
     gi.WriteByte(SV_CMD_CENTER_PRINT);
@@ -1614,12 +1614,12 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const CmTrace 
  toggle : The door will wait in both the start and end states for a trigger event.
  */
 void G_func_door(GameEntity *ent) {
-  Vec3 abs_move_dir;
+  Vec3 absMoveDir;
 
   // spawnflag 16 is the QUAKED-documented toggle position; normalize to DOOR_TOGGLE (0x2)
   // since 0x10 is otherwise only meaningful for func_door_rotating
-  if (ent->spawn_flags & 0x10) {
-    ent->spawn_flags = (ent->spawn_flags & ~0x10) | DOOR_TOGGLE;
+  if (ent->spawnFlags & 0x10) {
+    ent->spawnFlags = (ent->spawnFlags & ~0x10) | DOOR_TOGGLE;
   }
 
   if (!(gi.EntityValue(ent->def, "angle")->parsed & ENTITY_INTEGER)) {
@@ -1627,7 +1627,7 @@ void G_func_door(GameEntity *ent) {
   }
 
   G_SetMoveDir(ent);
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
   ent->solid = SOLID_BSP;
   gi.SetModel(ent, ent->model);
 
@@ -1661,15 +1661,15 @@ void G_func_door(GameEntity *ent) {
 
   // calculate second position
   ent->pos1 = ent->s.origin;
-  abs_move_dir = Vec3_Fabsf(ent->move_dir);
-  ent->move_info.distance = abs_move_dir.x * ent->size.x +
-                                   abs_move_dir.y * ent->size.y +
-                                   abs_move_dir.z * ent->size.z - lip;
+  absMoveDir = Vec3_Fabsf(ent->moveDir);
+  ent->moveInfo.distance = absMoveDir.x * ent->size.x +
+                                   absMoveDir.y * ent->size.y +
+                                   absMoveDir.z * ent->size.z - lip;
 
-  ent->pos2 = Vec3_Fmaf(ent->pos1, ent->move_info.distance, ent->move_dir);
+  ent->pos2 = Vec3_Fmaf(ent->pos1, ent->moveInfo.distance, ent->moveDir);
 
   // if it starts open, switch the positions
-  if (ent->spawn_flags & DOOR_START_OPEN) {
+  if (ent->spawnFlags & DOOR_START_OPEN) {
     ent->s.origin = ent->pos2;
     ent->pos2 = ent->pos1;
     ent->pos1 = ent->s.origin;
@@ -1677,40 +1677,40 @@ void G_func_door(GameEntity *ent) {
 
   gi.LinkEntity(ent);
 
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
 
   if (ent->health) {
-    ent->take_damage = true;
+    ent->takeDamage = true;
     ent->Die = G_func_door_Die;
-    ent->max_health = ent->health;
-  } else if (ent->target_name && ent->message) {
+    ent->maxHealth = ent->health;
+  } else if (ent->targetName && ent->message) {
     ent->Touch = G_func_door_Touch;
   }
 
-  ent->move_info.speed = ent->speed;
-  ent->move_info.accel = ent->accel;
-  ent->move_info.decel = ent->decel;
-  ent->move_info.wait = ent->wait;
+  ent->moveInfo.speed = ent->speed;
+  ent->moveInfo.accel = ent->accel;
+  ent->moveInfo.decel = ent->decel;
+  ent->moveInfo.wait = ent->wait;
 
-  ent->move_info.start_origin = ent->pos1;
-  ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.end_origin = ent->pos2;
-  ent->move_info.end_angles = ent->s.angles;
+  ent->moveInfo.startOrigin = ent->pos1;
+  ent->moveInfo.startAngles = ent->s.angles;
+  ent->moveInfo.endOrigin = ent->pos2;
+  ent->moveInfo.endAngles = ent->s.angles;
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
-    ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
-    ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
+    ent->moveInfo.soundStart = gi.SoundIndex(va("func/door_start_%d", s + 1));
+    ent->moveInfo.soundMiddle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
+    ent->moveInfo.soundEnd = gi.SoundIndex(va("func/door_end_%d", s + 1));
   }
 
   // to simplify logic elsewhere, make non-teamed doors into a team of one
   if (!ent->team) {
-    ent->team_master = ent;
+    ent->teamMaster = ent;
   }
 
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
-  if (ent->health || ent->target_name) {
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  if (ent->health || ent->targetName) {
     ent->Think = G_func_door_CalculateMove;
   } else {
     ent->Think = G_func_door_CreateTrigger;
@@ -1741,27 +1741,27 @@ void G_func_door_rotating(GameEntity *ent) {
   ent->s.angles = Vec3_Zero();
 
   // set the axis of rotation
-  ent->move_dir = Vec3_Zero();
-  if (ent->spawn_flags & DOOR_ROTATING_X_AXIS) {
-    ent->move_dir.z = 1.0;
-  } else if (ent->spawn_flags & DOOR_ROTATING_Y_AXIS) {
-    ent->move_dir.x = 1.0;
+  ent->moveDir = Vec3_Zero();
+  if (ent->spawnFlags & DOOR_ROTATING_X_AXIS) {
+    ent->moveDir.z = 1.0;
+  } else if (ent->spawnFlags & DOOR_ROTATING_Y_AXIS) {
+    ent->moveDir.x = 1.0;
   } else {
-    ent->move_dir.y = 1.0;
+    ent->moveDir.y = 1.0;
   }
 
   // check for reverse rotation
-  if (ent->spawn_flags & DOOR_ROTATING_REVERSE) {
-    ent->move_dir = Vec3_Negate(ent->move_dir);
+  if (ent->spawnFlags & DOOR_ROTATING_REVERSE) {
+    ent->moveDir = Vec3_Negate(ent->moveDir);
   }
 
   const float rotation = gi.EntityValue(ent->def, "rotation")->value ?: 90.f;
 
   ent->pos1 = ent->s.angles;
-  ent->pos2 = Vec3_Fmaf(ent->s.angles, rotation, ent->move_dir);
-  ent->move_info.distance = rotation;
+  ent->pos2 = Vec3_Fmaf(ent->s.angles, rotation, ent->moveDir);
+  ent->moveInfo.distance = rotation;
 
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
   ent->solid = SOLID_BSP;
   gi.SetModel(ent, ent->model);
 
@@ -1786,50 +1786,50 @@ void G_func_door_rotating(GameEntity *ent) {
   }
 
   // if it starts open, switch the positions
-  if (ent->spawn_flags & DOOR_START_OPEN) {
+  if (ent->spawnFlags & DOOR_START_OPEN) {
     ent->s.angles = ent->pos2;
     ent->pos2 = ent->pos1;
     ent->pos1 = ent->s.angles;
-    ent->move_dir = Vec3_Negate(ent->move_dir);
+    ent->moveDir = Vec3_Negate(ent->moveDir);
   }
 
   if (ent->health) {
-    ent->take_damage = true;
+    ent->takeDamage = true;
     ent->Die = G_func_door_Die;
-    ent->max_health = ent->health;
+    ent->maxHealth = ent->health;
   }
 
-  if (ent->target_name && ent->message) {
+  if (ent->targetName && ent->message) {
     ent->Touch = G_func_door_Touch;
   }
 
-  ent->move_info.state = MOVE_STATE_BOTTOM;
-  ent->move_info.speed = ent->speed;
-  ent->move_info.accel = ent->accel;
-  ent->move_info.decel = ent->decel;
-  ent->move_info.wait = ent->wait;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.speed = ent->speed;
+  ent->moveInfo.accel = ent->accel;
+  ent->moveInfo.decel = ent->decel;
+  ent->moveInfo.wait = ent->wait;
 
-  ent->move_info.start_origin = ent->s.origin;
-  ent->move_info.start_angles = ent->pos1;
-  ent->move_info.end_origin = ent->s.origin;
-  ent->move_info.end_angles = ent->pos2;
+  ent->moveInfo.startOrigin = ent->s.origin;
+  ent->moveInfo.startAngles = ent->pos1;
+  ent->moveInfo.endOrigin = ent->s.origin;
+  ent->moveInfo.endAngles = ent->pos2;
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
-    ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
-    ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
+    ent->moveInfo.soundStart = gi.SoundIndex(va("func/door_start_%d", s + 1));
+    ent->moveInfo.soundMiddle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
+    ent->moveInfo.soundEnd = gi.SoundIndex(va("func/door_end_%d", s + 1));
   }
 
   // to simplify logic elsewhere, make non-teamed doors into a team of one
   if (!ent->team) {
-    ent->team_master = ent;
+    ent->teamMaster = ent;
   }
 
   gi.LinkEntity(ent);
 
-  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
-  if (ent->health || ent->target_name) {
+  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  if (ent->health || ent->targetName) {
     ent->Think = G_func_door_CalculateMove;
   } else {
     ent->Think = G_func_door_CreateTrigger;
@@ -1863,14 +1863,14 @@ static void G_func_door_secret_Use(GameEntity *ent, GameEntity *other,
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_start) {
+    if (ent->moveInfo.soundStart) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .entity = ent,
       }, MULTICAST_PHS);
     }
 
-    ent->s.sound = ent->move_info.sound_middle;
+    ent->s.sound = ent->moveInfo.soundMiddle;
   }
 }
 
@@ -1879,7 +1879,7 @@ static void G_func_door_secret_Use(GameEntity *ent, GameEntity *other,
  */
 static void G_func_door_secret_Move1(GameEntity *ent) {
 
-  ent->next_think = g_level.time + 1000;
+  ent->nextThink = g_level.time + 1000;
   ent->Think = G_func_door_secret_Move2;
 }
 
@@ -1902,9 +1902,9 @@ static void G_func_door_secret_Move3(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_end) {
+    if (ent->moveInfo.soundEnd) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_end,
+        .index = ent->moveInfo.soundEnd,
         .entity = ent,
       }, MULTICAST_PHS);
     }
@@ -1912,7 +1912,7 @@ static void G_func_door_secret_Move3(GameEntity *ent) {
     ent->s.sound = 0;
   }
 
-  ent->next_think = g_level.time + ent->wait * 1000;
+  ent->nextThink = g_level.time + ent->wait * 1000;
   ent->Think = G_func_door_secret_Move4;
 }
 
@@ -1923,14 +1923,14 @@ static void G_func_door_secret_Move4(GameEntity *ent) {
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_start) {
+    if (ent->moveInfo.soundStart) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .entity = ent,
       }, MULTICAST_PHS);
     }
 
-    ent->s.sound = ent->move_info.sound_middle;
+    ent->s.sound = ent->moveInfo.soundMiddle;
   }
 
   G_MoveInfo_Linear_Init(ent, ent->pos1, G_func_door_secret_Move5);
@@ -1941,7 +1941,7 @@ static void G_func_door_secret_Move4(GameEntity *ent) {
  */
 static void G_func_door_secret_Move5(GameEntity *ent) {
 
-  ent->next_think = g_level.time + 1000;
+  ent->nextThink = g_level.time + 1000;
   ent->Think = G_func_door_secret_Move6;
 }
 
@@ -1958,16 +1958,16 @@ static void G_func_door_secret_Move6(GameEntity *ent) {
  */
 static void G_func_door_secret_Done(GameEntity *ent) {
 
-  if (!(ent->target_name) || (ent->spawn_flags & SECRET_ALWAYS_SHOOT)) {
+  if (!(ent->targetName) || (ent->spawnFlags & SECRET_ALWAYS_SHOOT)) {
     ent->dead = true;
-    ent->take_damage = true;
+    ent->takeDamage = true;
   }
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (ent->move_info.sound_end) {
+    if (ent->moveInfo.soundEnd) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_end,
+        .index = ent->moveInfo.soundEnd,
         .entity = ent,
       }, MULTICAST_PHS);
     }
@@ -1985,11 +1985,11 @@ static void G_func_door_secret_Blocked(GameEntity *ent, GameEntity *other) {
     return;
   }
 
-  if (g_level.time < ent->touch_time) {
+  if (g_level.time < ent->touchTime) {
     return;
   }
 
-  ent->touch_time = g_level.time + 500;
+  ent->touchTime = g_level.time + 500;
 
   G_Damage(&(GameDamage) {
     .target = other,
@@ -2004,7 +2004,7 @@ static void G_func_door_secret_Blocked(GameEntity *ent, GameEntity *other) {
     .mod = MOD_CRUSH
   });
 
-  ent->next_think = g_level.time + 1;
+  ent->nextThink = g_level.time + 1;
 }
 
 /**
@@ -2012,7 +2012,7 @@ static void G_func_door_secret_Blocked(GameEntity *ent, GameEntity *other) {
  */
 static void G_func_door_secret_Die(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
-  ent->take_damage = false;
+  ent->takeDamage = false;
   G_func_door_secret_Use(ent, attacker, attacker);
 }
 
@@ -2039,16 +2039,16 @@ first_down : The door will first slide down.
 void G_func_door_secret(GameEntity *ent) {
   Vec3 forward, right, up;
 
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
   ent->solid = SOLID_BSP;
   gi.SetModel(ent, ent->model);
 
   ent->Blocked = G_func_door_secret_Blocked;
   ent->Use = G_func_door_secret_Use;
 
-  if (!(ent->target_name) || (ent->spawn_flags & SECRET_ALWAYS_SHOOT)) {
+  if (!(ent->targetName) || (ent->spawnFlags & SECRET_ALWAYS_SHOOT)) {
     ent->dead = true;
-    ent->take_damage = true;
+    ent->takeDamage = true;
     ent->Die = G_func_door_secret_Die;
   }
 
@@ -2069,31 +2069,31 @@ void G_func_door_secret(GameEntity *ent) {
     ent->speed = 50.0;
   }
 
-  ent->move_info.speed = ent->speed;
+  ent->moveInfo.speed = ent->speed;
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
-    ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
-    ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
+    ent->moveInfo.soundStart = gi.SoundIndex(va("func/door_start_%d", s + 1));
+    ent->moveInfo.soundMiddle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
+    ent->moveInfo.soundEnd = gi.SoundIndex(va("func/door_end_%d", s + 1));
   }
 
   // calculate positions
   Vec3_Vectors(ent->s.angles, &forward, &right, &up);
   ent->s.angles = Vec3_Zero();
 
-  const float side = 1.0 - (ent->spawn_flags & SECRET_FIRST_LEFT);
+  const float side = 1.0 - (ent->spawnFlags & SECRET_FIRST_LEFT);
 
   const float length = fabsf(Vec3_Dot(forward, ent->size));
 
   float width;
-  if (ent->spawn_flags & SECRET_FIRST_DOWN) {
+  if (ent->spawnFlags & SECRET_FIRST_DOWN) {
     width = fabsf(Vec3_Dot(up, ent->size));
   } else {
     width = fabsf(Vec3_Dot(right, ent->size));
   }
 
-  if (ent->spawn_flags & SECRET_FIRST_DOWN) {
+  if (ent->spawnFlags & SECRET_FIRST_DOWN) {
     ent->pos1 = Vec3_Fmaf(ent->s.origin, -1.0 * width, up);
   } else {
     ent->pos1 = Vec3_Fmaf(ent->s.origin, side * width, right);
@@ -2102,10 +2102,10 @@ void G_func_door_secret(GameEntity *ent) {
   ent->pos2 = Vec3_Fmaf(ent->pos1, length - lip, forward);
 
   if (ent->health) {
-    ent->take_damage = true;
+    ent->takeDamage = true;
     ent->Die = G_func_door_secret_Die;
-    ent->max_health = ent->health;
-  } else if (ent->target_name && ent->message) {
+    ent->maxHealth = ent->health;
+  } else if (ent->targetName && ent->message) {
     gi.SoundIndex("misc/chat");
     ent->Touch = G_func_door_Touch;
   }
@@ -2121,15 +2121,15 @@ static void G_func_wall_Use(GameEntity *ent, GameEntity *other,
 
   if (ent->solid == SOLID_NOT) {
     ent->solid = SOLID_BSP;
-    ent->sv_flags &= ~SVF_NO_CLIENT;
+    ent->svFlags &= ~SVF_NO_CLIENT;
     G_KillBox(ent);
   } else {
     ent->solid = SOLID_NOT;
-    ent->sv_flags |= SVF_NO_CLIENT;
+    ent->svFlags |= SVF_NO_CLIENT;
   }
   gi.LinkEntity(ent);
 
-  if (!(ent->spawn_flags & 2)) {
+  if (!(ent->spawnFlags & 2)) {
     ent->Use = NULL;
   }
 }
@@ -2152,30 +2152,30 @@ static void G_func_wall_Use(GameEntity *ent, GameEntity *other,
  start_on : The wall will initially be present, but can be toggled off.
  */
 void G_func_wall(GameEntity *ent) {
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
   gi.SetModel(ent, ent->model);
 
-  if ((ent->spawn_flags & WALL_SPAWN_FLAGS) == 0) {
+  if ((ent->spawnFlags & WALL_SPAWN_FLAGS) == 0) {
     ent->solid = SOLID_BSP;
     gi.LinkEntity(ent);
     return;
   }
 
   // it must be triggered to use start_on or toggle
-  ent->spawn_flags |= WALL_TRIGGER;
+  ent->spawnFlags |= WALL_TRIGGER;
 
   // and if it's start_on, it must be toggled
-  if (ent->spawn_flags & WALL_START_ON) {
-    ent->spawn_flags |= WALL_TOGGLE;
+  if (ent->spawnFlags & WALL_START_ON) {
+    ent->spawnFlags |= WALL_TOGGLE;
   }
 
   ent->Use = G_func_wall_Use;
 
-  if (ent->spawn_flags & WALL_START_ON) {
+  if (ent->spawnFlags & WALL_START_ON) {
     ent->solid = SOLID_BSP;
   } else {
     ent->solid = SOLID_NOT;
-    ent->sv_flags |= SVF_NO_CLIENT;
+    ent->svFlags |= SVF_NO_CLIENT;
   }
 
   gi.LinkEntity(ent);
@@ -2195,53 +2195,53 @@ void G_func_wall(GameEntity *ent) {
  start_open : If set, causes the water to move to its destination when spawned and operate in reverse.
  */
 void G_func_water(GameEntity *ent) {
-  Vec3 abs_move_dir;
+  Vec3 absMoveDir;
 
   G_SetMoveDir(ent);
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
   ent->solid = SOLID_BSP;
   gi.SetModel(ent, ent->model);
 
   // calculate second position
   ent->pos1 = ent->s.origin;
-  abs_move_dir = Vec3_Fabsf(ent->move_dir);
+  absMoveDir = Vec3_Fabsf(ent->moveDir);
   float lip = gi.EntityValue(ent->def, "lip")->value;
-  ent->move_info.distance = abs_move_dir.x * ent->size.x +
-                    abs_move_dir.y * ent->size.y +
-                    abs_move_dir.z * ent->size.z - lip;
+  ent->moveInfo.distance = absMoveDir.x * ent->size.x +
+                    absMoveDir.y * ent->size.y +
+                    absMoveDir.z * ent->size.z - lip;
 
-  ent->pos2 = Vec3_Fmaf(ent->pos1, ent->move_info.distance, ent->move_dir);
+  ent->pos2 = Vec3_Fmaf(ent->pos1, ent->moveInfo.distance, ent->moveDir);
 
   // if it starts open, switch the positions
-  if (ent->spawn_flags & DOOR_START_OPEN) {
+  if (ent->spawnFlags & DOOR_START_OPEN) {
     ent->s.origin = ent->pos2;
     ent->pos2 = ent->pos1;
     ent->pos1 = ent->s.origin;
   }
 
-  ent->move_info.start_origin = ent->pos1;
-  ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.end_origin = ent->pos2;
-  ent->move_info.end_angles = ent->s.angles;
+  ent->moveInfo.startOrigin = ent->pos1;
+  ent->moveInfo.startAngles = ent->s.angles;
+  ent->moveInfo.endOrigin = ent->pos2;
+  ent->moveInfo.endAngles = ent->s.angles;
 
-  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->moveInfo.state = MOVE_STATE_BOTTOM;
 
   if (!ent->speed) {
     ent->speed = 25.0;
   }
 
-  ent->move_info.speed = ent->speed;
+  ent->moveInfo.speed = ent->speed;
 
   if (!ent->wait) {
     ent->wait = -1;
   }
 
-  ent->move_info.wait = ent->wait;
+  ent->moveInfo.wait = ent->wait;
 
   ent->Use = G_func_door_Use;
 
   if (ent->wait == -1) {
-    ent->spawn_flags |= DOOR_TOGGLE;
+    ent->spawnFlags |= DOOR_TOGGLE;
   }
 
   gi.LinkEntity(ent);
@@ -2375,42 +2375,42 @@ static Vec3 G_func_train_AnglesAt(const GameEntity *ent, const GameEntity *corne
  */
 static void G_func_train_Wait(GameEntity *ent) {
 
-  if (!Vec3_Equal(ent->s.angles, ent->move_info.end_angles)) {
-    ent->s.angles = ent->move_info.end_angles;
+  if (!Vec3_Equal(ent->s.angles, ent->moveInfo.endAngles)) {
+    ent->s.angles = ent->moveInfo.endAngles;
     ent->avelocity = Vec3_Zero();
     gi.LinkEntity(ent);
   }
 
-  const char *path_target = gi.EntityValue(ent->target_ent->def, "pathtarget")->nullable_string;
-  if (path_target) {
-    GameEntity *target_ent = ent->target_ent;
-    const char *target = target_ent->target;
-    target_ent->target = path_target;
-    G_UseTargets(target_ent, ent->activator);
-    target_ent->target = target;
+  const char *pathTarget = gi.EntityValue(ent->targetEnt->def, "pathtarget")->nullableString;
+  if (pathTarget) {
+    GameEntity *targetEnt = ent->targetEnt;
+    const char *target = targetEnt->target;
+    targetEnt->target = pathTarget;
+    G_UseTargets(targetEnt, ent->activator);
+    targetEnt->target = target;
 
     // make sure we didn't get killed by a killtarget
-    if (!ent->in_use) {
+    if (!ent->inUse) {
       return;
     }
   }
 
-  if (ent->move_info.wait) {
-    if (ent->move_info.wait > 0) {
-      ent->next_think = g_level.time + (ent->move_info.wait * 1000);
+  if (ent->moveInfo.wait) {
+    if (ent->moveInfo.wait > 0) {
+      ent->nextThink = g_level.time + (ent->moveInfo.wait * 1000);
       ent->Think = G_func_train_Next;
-    } else if (ent->spawn_flags & TRAIN_TOGGLE) {
+    } else if (ent->spawnFlags & TRAIN_TOGGLE) {
       G_func_train_Next(ent);
-      ent->spawn_flags &= ~TRAIN_START_ON;
+      ent->spawnFlags &= ~TRAIN_START_ON;
       ent->velocity = Vec3_Zero();
       ent->avelocity = Vec3_Zero();
-      ent->next_think = 0;
+      ent->nextThink = 0;
     }
 
     if (!(ent->flags & FL_TEAM_SLAVE)) {
-      if (ent->move_info.sound_end) {
+      if (ent->moveInfo.soundEnd) {
         G_MulticastSound(&(const GamePlaySound) {
-          .index = ent->move_info.sound_end,
+          .index = ent->moveInfo.soundEnd,
           .entity = ent,
         }, MULTICAST_PHS);
       }
@@ -2444,7 +2444,7 @@ again:
   ent->target = target->target;
 
   // check for a teleport path_corner
-  if (target->spawn_flags & PATH_CORNER_TELEPORT) {
+  if (target->spawnFlags & PATH_CORNER_TELEPORT) {
     if (!first) {
       G_Debug("%s has teleport path_corner %s\n", etos(ent), etos(target));
       return;
@@ -2454,51 +2454,51 @@ again:
 
     ent->s.angles = G_func_train_AnglesAt(ent, target);
     ent->avelocity = Vec3_Zero();
-    ent->move_info.speed = target->speed ? : ent->speed;
+    ent->moveInfo.speed = target->speed ? : ent->speed;
 
-    if (!(target->spawn_flags & PATH_CORNER_NO_EFFECTS)) {
+    if (!(target->spawnFlags & PATH_CORNER_NO_EFFECTS)) {
       ent->s.event = EV_CLIENT_TELEPORT;
     }
     gi.LinkEntity(ent);
     goto again;
   }
 
-  const float speed = ent->move_info.speed;
+  const float speed = ent->moveInfo.speed;
 
-  ent->move_info.wait = target->wait;
-  ent->target_ent = target;
+  ent->moveInfo.wait = target->wait;
+  ent->targetEnt = target;
 
   if (!(ent->flags & FL_TEAM_SLAVE)) {
-    if (ent->move_info.sound_start) {
+    if (ent->moveInfo.soundStart) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->move_info.sound_start,
+        .index = ent->moveInfo.soundStart,
         .entity = ent,
       }, MULTICAST_PHS);
     }
-    ent->s.sound = ent->move_info.sound_middle;
+    ent->s.sound = ent->moveInfo.soundMiddle;
   }
 
   dest = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
-  ent->move_info.state = MOVE_STATE_TOP;
-  ent->move_info.start_origin = ent->s.origin;
-  ent->move_info.end_origin = dest;
+  ent->moveInfo.state = MOVE_STATE_TOP;
+  ent->moveInfo.startOrigin = ent->s.origin;
+  ent->moveInfo.endOrigin = dest;
 
-  ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.end_angles = G_func_train_Angles(ent, target, ent->s.origin);
+  ent->moveInfo.startAngles = ent->s.angles;
+  ent->moveInfo.endAngles = G_func_train_Angles(ent, target, ent->s.origin);
   ent->avelocity = Vec3_Zero();
 
-  const float dest_speed = target->speed ? : ent->speed;
+  const float destSpeed = target->speed ? : ent->speed;
 
-  if (speed != dest_speed) {
-    G_MoveInfo_Linear_Init_Ramp(ent, dest, speed, dest_speed, G_func_train_Wait);
+  if (speed != destSpeed) {
+    G_MoveInfo_Linear_Init_Ramp(ent, dest, speed, destSpeed, G_func_train_Wait);
   } else {
-    ent->move_info.start_speed = dest_speed;
-    ent->move_info.speed = dest_speed;
+    ent->moveInfo.startSpeed = destSpeed;
+    ent->moveInfo.speed = destSpeed;
     G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
-    G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->move_info.start_origin), dest_speed);
+    G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->moveInfo.startOrigin), destSpeed);
   }
 
-  ent->spawn_flags |= TRAIN_START_ON;
+  ent->spawnFlags |= TRAIN_START_ON;
 }
 
 /**
@@ -2510,25 +2510,25 @@ static void G_func_train_Resume(GameEntity *ent) {
   GameEntity *target;
   Vec3 dest;
 
-  target = ent->target_ent;
+  target = ent->targetEnt;
 
   dest = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
-  ent->move_info.state = MOVE_STATE_TOP;
-  ent->move_info.end_origin = dest;
+  ent->moveInfo.state = MOVE_STATE_TOP;
+  ent->moveInfo.endOrigin = dest;
 
-  ent->move_info.start_angles = ent->s.angles;
+  ent->moveInfo.startAngles = ent->s.angles;
   ent->avelocity = Vec3_Zero();
 
-  const float speed = ent->move_info.speed;
+  const float speed = ent->moveInfo.speed;
 
-  if (ent->move_info.start_speed != speed) {
-    G_MoveInfo_Linear_Init_Ramp(ent, dest, ent->move_info.start_speed, speed, G_func_train_Wait);
+  if (ent->moveInfo.startSpeed != speed) {
+    G_MoveInfo_Linear_Init_Ramp(ent, dest, ent->moveInfo.startSpeed, speed, G_func_train_Wait);
   } else {
     G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
     G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->s.origin), speed);
   }
 
-  ent->spawn_flags |= TRAIN_START_ON;
+  ent->spawnFlags |= TRAIN_START_ON;
 }
 
 /**
@@ -2551,19 +2551,19 @@ static void G_func_train_Find(GameEntity *ent) {
   ent->s.origin = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
 
   ent->s.angles = G_func_train_AnglesAt(ent, target);
-  ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.end_angles = ent->s.angles;
-  ent->move_info.speed = target->speed ? : ent->speed;
+  ent->moveInfo.startAngles = ent->s.angles;
+  ent->moveInfo.endAngles = ent->s.angles;
+  ent->moveInfo.speed = target->speed ? : ent->speed;
 
   gi.LinkEntity(ent);
 
   // if not triggered, start immediately
-  if (!ent->target_name) {
-    ent->spawn_flags |= TRAIN_START_ON;
+  if (!ent->targetName) {
+    ent->spawnFlags |= TRAIN_START_ON;
   }
 
-  if (ent->spawn_flags & TRAIN_START_ON) {
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  if (ent->spawnFlags & TRAIN_START_ON) {
+    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
     ent->Think = G_func_train_Next;
     ent->activator = ent;
   }
@@ -2576,16 +2576,16 @@ static void G_func_train_Use(GameEntity *ent, GameEntity *other,
                              GameEntity *activator) {
   ent->activator = activator;
 
-  if (ent->spawn_flags & TRAIN_START_ON) {
-    if (!(ent->spawn_flags & TRAIN_TOGGLE)) {
+  if (ent->spawnFlags & TRAIN_START_ON) {
+    if (!(ent->spawnFlags & TRAIN_TOGGLE)) {
       return;
     }
-    ent->spawn_flags &= ~TRAIN_START_ON;
+    ent->spawnFlags &= ~TRAIN_START_ON;
     ent->velocity = Vec3_Zero();
     ent->avelocity = Vec3_Zero();
-    ent->next_think = 0;
+    ent->nextThink = 0;
   } else {
-    if (ent->target_ent) {
+    if (ent->targetEnt) {
       G_func_train_Resume(ent);
     } else {
       G_func_train_Next(ent);
@@ -2645,11 +2645,11 @@ static void G_func_train_Use(GameEntity *ent, GameEntity *other,
  no_effects : Suppress the teleport effect.
  */
 void G_func_train(GameEntity *ent) {
-  ent->move_type = MOVE_TYPE_PUSH;
+  ent->moveType = MOVE_TYPE_PUSH;
 
   ent->s.angles = Vec3_Zero();
 
-  if (ent->spawn_flags & TRAIN_BLOCK_STOPS) {
+  if (ent->spawnFlags & TRAIN_BLOCK_STOPS) {
     ent->damage = 0;
   } else {
     if (!ent->damage) {
@@ -2661,14 +2661,14 @@ void G_func_train(GameEntity *ent) {
 
   const char *sound = gi.EntityValue(ent->def, "sound")->string;
   if (*sound) {
-    ent->move_info.sound_middle = gi.SoundIndex(sound);
+    ent->moveInfo.soundMiddle = gi.SoundIndex(sound);
   }
 
   if (!ent->speed) {
     ent->speed = 100.0;
   }
 
-  ent->move_info.speed = ent->speed;
+  ent->moveInfo.speed = ent->speed;
 
   ent->Use = G_func_train_Use;
   ent->Blocked = G_MoveType_Push_Blocked;
@@ -2678,7 +2678,7 @@ void G_func_train(GameEntity *ent) {
   if (ent->target) {
     // start trains on the second frame, to make sure their targets have had
     // a chance to spawn
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
     ent->Think = G_func_train_Find;
   } else {
     G_Debug("No target: %s\n", vtos(ent->s.origin));
@@ -2695,7 +2695,7 @@ static void G_func_timer_Think(GameEntity *ent) {
   const uint32_t wait = ent->wait * 1000;
   const uint32_t rand = ent->random * 1000 * RandomRangef(-1.f, 1.f);
 
-  ent->next_think = g_level.time + wait + rand;
+  ent->nextThink = g_level.time + wait + rand;
 }
 
 /**
@@ -2706,14 +2706,14 @@ static void G_func_timer_Use(GameEntity *ent, GameEntity *other,
   ent->activator = activator;
 
   // if on, turn it off
-  if (ent->next_think) {
-    ent->next_think = 0;
+  if (ent->nextThink) {
+    ent->nextThink = 0;
     return;
   }
 
   // turn it on
   if (ent->delay) {
-    ent->next_think = g_level.time + ent->delay * 1000;
+    ent->nextThink = g_level.time + ent->delay * 1000;
   } else {
     G_func_timer_Think(ent);
   }
@@ -2746,17 +2746,17 @@ void G_func_timer(GameEntity *ent) {
     G_Debug("random >= wait: %s\n", vtos(ent->s.origin));
   }
 
-  if (ent->spawn_flags & 1) {
+  if (ent->spawnFlags & 1) {
 
     const uint32_t delay = ent->delay * 1000;
     const uint32_t wait = ent->wait * 1000;
     const uint32_t rand = ent->random * 1000 * RandomRangef(-1.f, 1.f);
 
-    ent->next_think = g_level.time + delay + wait + rand;
+    ent->nextThink = g_level.time + delay + wait + rand;
     ent->activator = ent;
   }
 
-  ent->sv_flags = SVF_NO_CLIENT;
+  ent->svFlags = SVF_NO_CLIENT;
 }
 
 /**
@@ -2764,15 +2764,15 @@ void G_func_timer(GameEntity *ent) {
  */
 static void G_func_conveyor_Use(GameEntity *ent, GameEntity *other,
                                 GameEntity *activator) {
-  if (ent->spawn_flags & 1) {
+  if (ent->spawnFlags & 1) {
     ent->speed = 0;
-    ent->spawn_flags &= ~1;
+    ent->spawnFlags &= ~1;
   } else {
     ent->speed = ent->count;
-    ent->spawn_flags |= 1;
+    ent->spawnFlags |= 1;
   }
 
-  if (!(ent->spawn_flags & 2)) {
+  if (!(ent->spawnFlags & 2)) {
     ent->count = 0;
   }
 }
@@ -2793,7 +2793,7 @@ void G_func_conveyor(GameEntity *ent) {
     ent->speed = 100;
   }
 
-  if (!(ent->spawn_flags & 1)) {
+  if (!(ent->spawnFlags & 1)) {
     ent->count = ent->speed;
     ent->speed = 0;
   }

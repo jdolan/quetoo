@@ -139,12 +139,12 @@ void Net_WriteAngles(MemBuf *msg, const Vec3 angles) {
  */
 void Net_WriteDir(MemBuf *msg, const Vec3 dir) {
   int32_t i, best = 0;
-  float best_d = 0.0;
+  float bestD = 0.0;
 
   for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
     const float d = Vec3_Dot(dir, approximate_normals[i]);
-    if (d > best_d) {
-      best_d = d;
+    if (d > bestD) {
+      bestD = d;
       best = i;
     }
   }
@@ -255,60 +255,60 @@ void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const Playe
     bits |= PS_PM_ENTITY;
   }
 
-  if (to->pm_state.type != from->pm_state.type) {
+  if (to->pmState.type != from->pmState.type) {
     bits |= PS_PM_TYPE;
   }
 
-  if (!Vec3_Equal(to->pm_state.origin, from->pm_state.origin)) {
+  if (!Vec3_Equal(to->pmState.origin, from->pmState.origin)) {
     bits |= PS_PM_ORIGIN;
   }
 
-  if (!Vec3_Equal(to->pm_state.velocity, from->pm_state.velocity)) {
+  if (!Vec3_Equal(to->pmState.velocity, from->pmState.velocity)) {
     bits |= PS_PM_VELOCITY;
   }
 
-  if (to->pm_state.flags != from->pm_state.flags) {
+  if (to->pmState.flags != from->pmState.flags) {
     bits |= PS_PM_FLAGS;
   }
 
-  if (to->pm_state.time != from->pm_state.time) {
+  if (to->pmState.time != from->pmState.time) {
     bits |= PS_PM_TIME;
   }
 
-  if (to->pm_state.params.gravity != from->pm_state.params.gravity) {
+  if (to->pmState.params.gravity != from->pmState.params.gravity) {
     bits |= PS_PM_GRAVITY;
   }
 
-  if (to->pm_state.params.movement != from->pm_state.params.movement) {
+  if (to->pmState.params.movement != from->pmState.params.movement) {
     bits |= PS_PM_MOVEMENT;
   }
 
-  if (!Vec3_Equal(to->pm_state.view_offset, from->pm_state.view_offset)) {
+  if (!Vec3_Equal(to->pmState.viewOffset, from->pmState.viewOffset)) {
     bits |= PS_PM_VIEW_OFFSET;
   }
 
-  if (!Vec3_Equal(to->pm_state.view_angles, from->pm_state.view_angles)) {
+  if (!Vec3_Equal(to->pmState.viewAngles, from->pmState.viewAngles)) {
     bits |= PS_PM_VIEW_ANGLES;
   }
 
-  if (!Vec3_Equal(to->pm_state.delta_angles, from->pm_state.delta_angles)) {
+  if (!Vec3_Equal(to->pmState.deltaAngles, from->pmState.deltaAngles)) {
     bits |= PS_PM_DELTA_ANGLES;
   }
 
-  if (!Vec3_Equal(to->pm_state.hook_position, from->pm_state.hook_position)) {
+  if (!Vec3_Equal(to->pmState.hookPosition, from->pmState.hookPosition)) {
     bits |= PS_PM_HOOK_POSITION;
   }
 
-  if (to->pm_state.hook_length != from->pm_state.hook_length) {
+  if (to->pmState.hookLength != from->pmState.hookLength) {
     bits |= PS_PM_HOOK_LENGTH;
   }
 
-  if (to->pm_state.step_offset != from->pm_state.step_offset) {
+  if (to->pmState.stepOffset != from->pmState.stepOffset) {
     bits |= PS_PM_STEP_OFFSET;
   }
 
-  if (memcmp(&to->pm_state.params.accel_ground, &from->pm_state.params.accel_ground,
-             sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accel_ground)) != 0) {
+  if (memcmp(&to->pmState.params.accelGround, &from->pmState.params.accelGround,
+             sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) != 0) {
     bits |= PS_PM_PARAMS;
   }
 
@@ -323,95 +323,95 @@ void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const Playe
   }
 
   if (bits & PS_PM_TYPE) {
-    Net_WriteByte(msg, to->pm_state.type);
+    Net_WriteByte(msg, to->pmState.type);
   }
 
   if (bits & PS_PM_ORIGIN) {
-    Net_WritePosition(msg, to->pm_state.origin);
+    Net_WritePosition(msg, to->pmState.origin);
   }
 
   if (bits & PS_PM_VELOCITY) {
-    Net_WritePosition(msg, to->pm_state.velocity);
+    Net_WritePosition(msg, to->pmState.velocity);
   }
 
   if (bits & PS_PM_FLAGS) {
-    Net_WriteShort(msg, to->pm_state.flags);
+    Net_WriteShort(msg, to->pmState.flags);
   }
 
   if (bits & PS_PM_TIME) {
-    Net_WriteShort(msg, to->pm_state.time);
+    Net_WriteShort(msg, to->pmState.time);
   }
 
   if (bits & PS_PM_GRAVITY) {
-    Net_WriteShort(msg, to->pm_state.params.gravity);
+    Net_WriteShort(msg, to->pmState.params.gravity);
   }
 
   if (bits & PS_PM_MOVEMENT) {
-    Net_WriteByte(msg, to->pm_state.params.movement);
+    Net_WriteByte(msg, to->pmState.params.movement);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {
-    Net_WritePosition(msg, to->pm_state.view_offset);
+    Net_WritePosition(msg, to->pmState.viewOffset);
   }
 
   if (bits & PS_PM_VIEW_ANGLES) {
-    Net_WriteAngles(msg, to->pm_state.view_angles);
+    Net_WriteAngles(msg, to->pmState.viewAngles);
   }
 
   if (bits & PS_PM_DELTA_ANGLES) {
-    Net_WriteAngles(msg, to->pm_state.delta_angles);
+    Net_WriteAngles(msg, to->pmState.deltaAngles);
   }
 
   if (bits & PS_PM_HOOK_POSITION) {
-    Net_WritePosition(msg, to->pm_state.hook_position);
+    Net_WritePosition(msg, to->pmState.hookPosition);
   }
 
   if (bits & PS_PM_HOOK_LENGTH) {
-    Net_WriteShort(msg, to->pm_state.hook_length);
+    Net_WriteShort(msg, to->pmState.hookLength);
   }
 
   if (bits & PS_PM_STEP_OFFSET) {
-    Net_WriteFloat(msg, to->pm_state.step_offset);
+    Net_WriteFloat(msg, to->pmState.stepOffset);
   }
 
   if (bits & PS_PM_PARAMS) {
     float params[PM_PARAMS_FLOATS];
-    memcpy(params, &to->pm_state.params.accel_ground, sizeof(params));
+    memcpy(params, &to->pmState.params.accelGround, sizeof(params));
 
     for (size_t i = 0; i < PM_PARAMS_FLOATS; i++) {
       Net_WriteFloat(msg, params[i]);
     }
   }
 
-  uint32_t stat_bits = 0;
+  uint32_t statBits = 0;
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
     if (to->stats[i] != from->stats[i]) {
-      stat_bits |= 1 << i;
+      statBits |= 1 << i;
     }
   }
 
-  Net_WriteLong(msg, stat_bits);
+  Net_WriteLong(msg, statBits);
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
-    if (stat_bits & (1U << i)) {
+    if (statBits & (1U << i)) {
       Net_WriteShort(msg, to->stats[i]);
     }
   }
 
-  uint64_t inv_bits = 0;
+  uint64_t invBits = 0;
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
     if (to->inventory[i] != from->inventory[i]) {
-      inv_bits |= (uint64_t) 1 << i;
+      invBits |= (uint64_t) 1 << i;
     }
   }
 
-  Net_WriteLong(msg, (int32_t) (inv_bits & 0xFFFFFFFF));
-  Net_WriteLong(msg, (int32_t) (inv_bits >> 32));
+  Net_WriteLong(msg, (int32_t) (invBits & 0xFFFFFFFF));
+  Net_WriteLong(msg, (int32_t) (invBits >> 32));
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
-    if (inv_bits & ((uint64_t) 1 << i)) {
+    if (invBits & ((uint64_t) 1 << i)) {
       Net_WriteShort(msg, to->inventory[i]);
     }
   }
@@ -428,11 +428,11 @@ void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityStat
     Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
   }
 
-  if (to->step_offset != from->step_offset) {
+  if (to->stepOffset != from->stepOffset) {
     bits |= U_STEP_OFFSET;
   }
 
-  if (to->spawn_id != from->spawn_id) {
+  if (to->spawnId != from->spawnId) {
     bits |= U_SPAWN_ID;
   }
 
@@ -499,11 +499,11 @@ void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityStat
   Net_WriteShort(msg, bits);
 
   if (bits & U_STEP_OFFSET) {
-    Net_WriteByte(msg, to->step_offset);
+    Net_WriteByte(msg, to->stepOffset);
   }
 
   if (bits & U_SPAWN_ID) {
-    Net_WriteByte(msg, to->spawn_id);
+    Net_WriteByte(msg, to->spawnId);
   }
 
   if (bits & U_ORIGIN) {
@@ -525,7 +525,7 @@ void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityStat
 
   if (bits & U_EVENT) {
     Net_WriteByte(msg, to->event);
-    Net_WriteByte(msg, to->event_data);
+    Net_WriteByte(msg, to->eventData);
   }
 
   if (bits & U_EFFECTS) {
@@ -828,55 +828,55 @@ void Net_ReadDeltaPlayerState(MemBuf *msg, const PlayerState *from, PlayerState 
   }
 
   if (bits & PS_PM_TYPE) {
-    to->pm_state.type = Net_ReadByte(msg);
+    to->pmState.type = Net_ReadByte(msg);
   }
 
   if (bits & PS_PM_ORIGIN) {
-    to->pm_state.origin = Net_ReadPosition(msg);
+    to->pmState.origin = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_VELOCITY) {
-    to->pm_state.velocity = Net_ReadPosition(msg);
+    to->pmState.velocity = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_FLAGS) {
-    to->pm_state.flags = Net_ReadShort(msg);
+    to->pmState.flags = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_TIME) {
-    to->pm_state.time = Net_ReadShort(msg);
+    to->pmState.time = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_GRAVITY) {
-    to->pm_state.params.gravity = Net_ReadShort(msg);
+    to->pmState.params.gravity = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_MOVEMENT) {
-    to->pm_state.params.movement = Net_ReadByte(msg);
+    to->pmState.params.movement = Net_ReadByte(msg);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {
-    to->pm_state.view_offset = Net_ReadPosition(msg);
+    to->pmState.viewOffset = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_VIEW_ANGLES) {
-    to->pm_state.view_angles = Net_ReadAngles(msg);
+    to->pmState.viewAngles = Net_ReadAngles(msg);
   }
 
   if (bits & PS_PM_DELTA_ANGLES) {
-    to->pm_state.delta_angles = Net_ReadAngles(msg);
+    to->pmState.deltaAngles = Net_ReadAngles(msg);
   }
 
   if (bits & PS_PM_HOOK_POSITION) {
-    to->pm_state.hook_position = Net_ReadPosition(msg);
+    to->pmState.hookPosition = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_HOOK_LENGTH) {
-    to->pm_state.hook_length = Net_ReadShort(msg);
+    to->pmState.hookLength = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_STEP_OFFSET) {
-    to->pm_state.step_offset = Net_ReadFloat(msg);
+    to->pmState.stepOffset = Net_ReadFloat(msg);
   }
 
   if (bits & PS_PM_PARAMS) {
@@ -886,22 +886,22 @@ void Net_ReadDeltaPlayerState(MemBuf *msg, const PlayerState *from, PlayerState 
       params[i] = Net_ReadFloat(msg);
     }
 
-    memcpy(&to->pm_state.params.accel_ground, params, sizeof(params));
+    memcpy(&to->pmState.params.accelGround, params, sizeof(params));
   }
 
-  const int32_t stat_bits = Net_ReadLong(msg);
+  const int32_t statBits = Net_ReadLong(msg);
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
-    if (stat_bits & (1U << i)) {
+    if (statBits & (1U << i)) {
       to->stats[i] = Net_ReadShort(msg);
     }
   }
 
-  const uint64_t inv_bits = (uint64_t) (uint32_t) Net_ReadLong(msg) |
+  const uint64_t invBits = (uint64_t) (uint32_t) Net_ReadLong(msg) |
                             ((uint64_t) (uint32_t) Net_ReadLong(msg) << 32);
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
-    if (inv_bits & ((uint64_t) 1 << i)) {
+    if (invBits & ((uint64_t) 1 << i)) {
       to->inventory[i] = Net_ReadShort(msg);
     }
   }
@@ -918,11 +918,11 @@ void Net_ReadDeltaEntity(MemBuf *msg, const EntityState *from, EntityState *to,
   to->number = number;
 
   if (bits & U_STEP_OFFSET) {
-    to->step_offset = Net_ReadByte(msg);
+    to->stepOffset = Net_ReadByte(msg);
   }
 
   if (bits & U_SPAWN_ID) {
-    to->spawn_id = Net_ReadByte(msg);
+    to->spawnId = Net_ReadByte(msg);
   }
 
   if (bits & U_ORIGIN) {
@@ -944,10 +944,10 @@ void Net_ReadDeltaEntity(MemBuf *msg, const EntityState *from, EntityState *to,
 
   if (bits & U_EVENT) {
     to->event = Net_ReadByte(msg);
-    to->event_data = Net_ReadByte(msg);
+    to->eventData = Net_ReadByte(msg);
   } else {
     to->event = 0;
-    to->event_data = 0;
+    to->eventData = 0;
   }
 
   if (bits & U_EFFECTS) {

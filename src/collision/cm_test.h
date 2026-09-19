@@ -75,23 +75,23 @@ int32_t Cm_SetBoxHull(const Box3 bounds, const int32_t contents);
 /**
  * @brief Returns the leaf number containing the given point.
  */
-int32_t Cm_PointLeafnum(const Vec3 p, int32_t head_node);
+int32_t Cm_PointLeafnum(const Vec3 p, int32_t headNode);
 
 /**
  * @brief Returns the contents mask at the given point in the BSP tree.
  */
-int32_t Cm_PointContents(const Vec3 p, int32_t head_node, const Mat4 inverse_matrix);
+int32_t Cm_PointContents(const Vec3 p, int32_t headNode, const Mat4 inverseMatrix);
 
 /**
  * @brief Fills list[] with leaf numbers that overlap the bounding box.
  * @return The number of leaves written to list[].
  */
-size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node);
+size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *topNode, int32_t headNode);
 
 /**
  * @brief Returns the combined contents mask for all BSP leaves overlapping the bounding box.
  */
-int32_t Cm_BoxContents(const Box3 bounds, int32_t head_node);
+int32_t Cm_BoxContents(const Box3 bounds, int32_t headNode);
 
 #if defined(__CM_LOCAL_H__)
 void Cm_InitBoxHull(CmBsp *bsp);

@@ -32,9 +32,9 @@ int32_t Cg_TrailContents(const Vec3 start, const Vec3 end) {
 /**
  * @brief Calculates the life start fraction and fractional step for trail particle spawning.
  */
-static inline void Cg_ParticleTrailLifeOffset(Vec3 start, Vec3 end, float speed, float step, float *life_start, float *life_frac) {
-  *life_start = (speed - Vec3_Distance(start, end)) / 1000;
-  *life_frac = (1.0 - *life_start) * step;
+static inline void Cg_ParticleTrailLifeOffset(Vec3 start, Vec3 end, float speed, float step, float *lifeStart, float *lifeFrac) {
+  *lifeStart = (speed - Vec3_Distance(start, end)) / 1000;
+  *lifeFrac = (1.0 - *lifeStart) * step;
 }
 
 /**
@@ -48,7 +48,7 @@ static inline void Cg_ParticleTrailLifeOffset(Vec3 start, Vec3 end, float speed,
  * @return The number of whole steps that was travelled by this trail.
 */
 static int32_t Cg_TrailCount(const Vec3 end, float freq, ClientEntity *ent, ClientTrailId trail, Vec3 *start, Vec3 *dir) {
-  const float dist = Vec3_Distance(end, ent ? ent->trail_origins[trail] : *start);
+  const float dist = Vec3_Distance(end, ent ? ent->trailOrigins[trail] : *start);
   static Vec3 _start, _dir;
 
   // haven't travelled long enough yet
@@ -70,9 +70,9 @@ static int32_t Cg_TrailCount(const Vec3 end, float freq, ClientEntity *ent, Clie
 
   // adjust new origin
   if (ent) {
-    *start = ent->trail_origins[trail];
-    *dir = Vec3_Scale(Vec3_Subtract(end, ent->trail_origins[trail]), 1.0f / dist);
-    ent->trail_origins[trail] = Vec3_Fmaf(ent->trail_origins[trail], steps * freq, *dir);
+    *start = ent->trailOrigins[trail];
+    *dir = Vec3_Scale(Vec3_Subtract(end, ent->trailOrigins[trail]), 1.0f / dist);
+    ent->trailOrigins[trail] = Vec3_Fmaf(ent->trailOrigins[trail], steps * freq, *dir);
   } else {
     *dir = Vec3_Scale(Vec3_Subtract(end, *start), 1.0f / dist);
   }
@@ -89,7 +89,7 @@ void Cg_BreathTrail(ClientEntity *ent) {
     return;
   }
 
-  if (cgi.client->unclamped_time < ent->timestamp) {
+  if (cgi.client->unclampedTime < ent->timestamp) {
     return;
   }
 
@@ -112,7 +112,7 @@ void Cg_BreathTrail(ClientEntity *ent) {
     if ((contents & CONTENTS_MASK_LIQUID) == CONTENTS_WATER) {
 
       Cg_AddSprite(&(ClientGameSprite) {
-        .atlas_image = cg_sprite_bubble,
+        .atlasImage = cg_sprite_bubble,
         .origin = Vec3_Add(pos, Vec3_RandomRange(-2.f, 2.f)),
         .velocity = Vec3_Add(Vec3_Add(Vec3_Scale(forward, 2.f), Vec3_RandomRange(-5.f, 5.f)), MakeVec3(0.f, 0.f, 6.f)),
         .acceleration.z = 10.f,
@@ -122,7 +122,7 @@ void Cg_BreathTrail(ClientEntity *ent) {
         .lighting = 1.f
       });
 
-      ent->timestamp = cgi.client->unclamped_time + 800;
+      ent->timestamp = cgi.client->unclampedTime + 800;
     }
   }
 }
@@ -136,7 +136,7 @@ void Cg_FlameTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   const Vec3 color = ColorHSV(hue, 1.f, 1.f).vec3;
 
   ClientGameSprite *s = Cg_AddSprite(&(ClientGameSprite) {
-    .atlas_image = cg_sprite_flame,
+    .atlasImage = cg_sprite_flame,
     .origin = end,
     .velocity = Vec3_RandomRange(-4.f, 4.f),
     .acceleration.z = 15.f,
@@ -166,7 +166,7 @@ static void Cg_BubbleTrail_Think(ClientGameSprite *s, float life, float delta) {
   s->velocity = Vec3_Zero();
   s->acceleration = Vec3_Zero();
 
-  s->lifetime = Mini(cgi.client->unclamped_time + 100 - s->time, s->lifetime);
+  s->lifetime = Mini(cgi.client->unclampedTime + 100 - s->time, s->lifetime);
 }
 
 /**
@@ -195,7 +195,7 @@ void Cg_BubbleTrail(ClientEntity *ent, const Vec3 start, const Vec3 end, float f
     const float v = RandomRangef(.6f, 1.f);
 
     ClientGameSprite *s = Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_bubble,
+      .atlasImage = cg_sprite_bubble,
       .origin = Vec3_Add(pos, Vec3_RandomRange(-2.f, 2.f)),
       .velocity = Vec3_Add(Vec3_RandomRange(-5.f, 5.f), MakeVec3(0.f, 0.f, 6.f)),
       .acceleration = Vec3_Add(Vec3_RandomRange(-4.f, 4.f), MakeVec3(0.f, 0.f, 14.f)),
@@ -219,7 +219,7 @@ void Cg_BubbleTrail(ClientEntity *ent, const Vec3 start, const Vec3 end, float f
       s->lifetime *= .66f;
     }
 
-    s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
+    s->sizeVelocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
   }
 }
 
@@ -253,12 +253,12 @@ static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
       const float pdist = Vec3_Distance(Vec3_Zero(), porg) / scale;
 
       if (!Cg_AddSprite(&(ClientGameSprite) {
-        .atlas_image = cg_sprite_particle,
+        .atlasImage = cg_sprite_particle,
         .lifetime = 1000,
         .velocity = Vec3_Scale(pdir, pdist * 10.f),
         .origin = Vec3_Add(porg, Vec3_Mix(end, org, 1.0f / i)),
         .size = Maxf(1.85f, powf(1.85f - pdist, power)),
-        .size_velocity = Mixf(-3.5f, -.2f, pdist) * RandomRangef(.66f, 1.f),
+        .sizeVelocity = Mixf(-3.5f, -.2f, pdist) * RandomRangef(.66f, 1.f),
         .color = color,
         .lighting = .3f,
       })) {
@@ -300,22 +300,22 @@ static void Cg_GrenadeTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
 
     for (int32_t i = 0; i <= count; i++) {
       Cg_AddSprite(&(ClientGameSprite) {
-        .atlas_image = cg_sprite_smoke,
+        .atlasImage = cg_sprite_smoke,
         .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
         .velocity = MakeVec3(RandomRangef(-5.f, 5.f), RandomRangef(-5.f, 5.f), RandomRangef(10.f, 20.f)),
         .lifetime = RandomRangef(600.f, 900.f),
         .color = MakeVec3(.6f, .6f, .6f),
         .size = 1.5f,
-        .size_velocity = 10.f,
+        .sizeVelocity = 10.f,
         .rotation = RandomRadian(),
-        .rotation_velocity = RandomRangef(.2f, .8f),
+        .rotationVelocity = RandomRangef(.2f, .8f),
         .lighting = 1.f,
       });
     }
   }
 
   // Dynamic lights — green glow with red detonator blink
-  const float pulse = sinf(cgi.client->unclamped_time * .02f) * .5f + .5f;
+  const float pulse = sinf(cgi.client->unclampedTime * .02f) * .5f + .5f;
 
   Cg_AddLight(&(ClientGameLight) {
     .origin = end,
@@ -352,22 +352,22 @@ static void Cg_QuakeGrenadeTrail(ClientEntity *ent, const Vec3 start, const Vec3
 
     for (int32_t i = 0; i <= count; i++) {
       Cg_AddSprite(&(ClientGameSprite) {
-        .atlas_image = cg_sprite_smoke,
+        .atlasImage = cg_sprite_smoke,
         .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
         .velocity = MakeVec3(RandomRangef(-5.f, 5.f), RandomRangef(-5.f, 5.f), RandomRangef(10.f, 20.f)),
         .lifetime = RandomRangef(600.f, 900.f),
         .color = MakeVec3(.6f, .6f, .6f),
         .size = 1.5f,
-        .size_velocity = 10.f,
+        .sizeVelocity = 10.f,
         .rotation = RandomRadian(),
-        .rotation_velocity = RandomRangef(.2f, .8f),
+        .rotationVelocity = RandomRangef(.2f, .8f),
         .lighting = 1.f,
       });
     }
   }
 
   // Dynamic light — warm orange ember pulse from the burning fuse
-  const float pulse = sinf(cgi.client->unclamped_time * .025f) * .5f + .5f;
+  const float pulse = sinf(cgi.client->unclampedTime * .025f) * .5f + .5f;
 
   Cg_AddLight(&(ClientGameLight) {
     .origin = end,
@@ -390,7 +390,7 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
   int32_t count;
   Vec3 origin;
 
-  float sine = sinf(cgi.client->unclamped_time * .001f) * M_PI;
+  float sine = sinf(cgi.client->unclampedTime * .001f) * M_PI;
 
   const Vec3 velocity = Vec3_Subtract(ent->current.origin, ent->prev.origin);
   const Vec3 direction = Vec3_Normalize(velocity);
@@ -424,22 +424,22 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
   count = Cg_TrailCount(end, 12.f, ent, TRAIL_PRIMARY, &origin, NULL);
   if (count && !liquid) {
     const float step = 1.f / count;
-    float life_start, life_frac;
+    float lifeStart, lifeFrac;
 
-    Cg_ParticleTrailLifeOffset(start, origin, speed, step, &life_start, &life_frac);
+    Cg_ParticleTrailLifeOffset(start, origin, speed, step, &lifeStart, &lifeFrac);
 
     for (int32_t i = 0; i < count; i++) {
-      const float particle_life_frac = life_start + (life_frac * (i + 1));
+      const float particleLifeFrac = lifeStart + (lifeFrac * (i + 1));
 
       // fire
       if (!Cg_AddSprite(&(ClientGameSprite) {
           .animation = cg_sprite_rocket_flame,
-          .lifetime = Cg_AnimationLifetime(cg_sprite_rocket_flame, 90) * particle_life_frac,
+          .lifetime = Cg_AnimationLifetime(cg_sprite_rocket_flame, 90) * particleLifeFrac,
           .origin = Vec3_Mix(start, origin, step * i),
           .velocity = velocity,
           .rotation = RandomRadian(),
           .size = 10.f,
-          .size_velocity = -20.f,
+          .sizeVelocity = -20.f,
           .color = MakeVec3(1.f, 1.f, 1.f),
         })) {
         break;
@@ -451,23 +451,23 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
   count = Cg_TrailCount(end, 16.f, ent, TRAIL_SECONDARY, &origin, NULL);
   if (count && !liquid) {
     const float step = 1.f / count;
-    float life_start, life_frac;
+    float lifeStart, lifeFrac;
 
-    Cg_ParticleTrailLifeOffset(start, origin, speed, step, &life_start, &life_frac);
+    Cg_ParticleTrailLifeOffset(start, origin, speed, step, &lifeStart, &lifeFrac);
 
     for (int32_t i = 0; i < count; i++) {
-      const float particle_life_frac = life_start + (life_frac * (i + 1));
+      const float particleLifeFrac = lifeStart + (lifeFrac * (i + 1));
 
       // interlace smoke 1 and 2 for some subtle variety
       // smoke 1
       if (!Cg_AddSprite(&(ClientGameSprite) {
           .animation = cg_sprite_smoke_04,
-          .lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 60) * particle_life_frac,
+          .lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 60) * particleLifeFrac,
           .origin = Vec3_Add(Vec3_Mix(start, origin, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
           .velocity = Vec3_Scale(velocity, 0.5),
           .rotation = RandomRadian(),
           .size = Randomf() * 5.f + 10.f,
-          .size_velocity = Randomf() * 5.f + 10.f,
+          .sizeVelocity = Randomf() * 5.f + 10.f,
           .color = MakeVec3(.5f, .5f, .5f),
           .lighting = 1.f
         })) {
@@ -477,12 +477,12 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
       // smoke 2
       if (!Cg_AddSprite(&(ClientGameSprite) {
           .animation = cg_sprite_smoke_05,
-          .lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 60) * particle_life_frac,
+          .lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 60) * particleLifeFrac,
           .origin = Vec3_Add(Vec3_Mix(start, origin, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
           .velocity = Vec3_Scale(velocity, 0.5),
           .rotation = RandomRadian(),
           .size = Randomf() * 5.f + 10.f,
-          .size_velocity = Randomf() * 5.f + 10.f,
+          .sizeVelocity = Randomf() * 5.f + 10.f,
           .color = MakeVec3(.5f, .5f, .5f),
           .lighting = 1.f
         })) {
@@ -495,17 +495,17 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
   count = Cg_TrailCount(end, 10.f, ent, TRAIL_TERTIARY, &origin, NULL);
   if (count) {
     const float step = 1.f / count;
-    float life_start, life_frac;
+    float lifeStart, lifeFrac;
 
-    Cg_ParticleTrailLifeOffset(start, origin, speed, step, &life_start, &life_frac);
+    Cg_ParticleTrailLifeOffset(start, origin, speed, step, &lifeStart, &lifeFrac);
 
     for (int32_t i = 0; i < count; i++) {
-      const float particle_life_frac = life_start + (life_frac * (i + 1));
+      const float particleLifeFrac = lifeStart + (lifeFrac * (i + 1));
 
       // sparks
       if (!Cg_AddSprite(&(ClientGameSprite) {
-          .atlas_image = cg_sprite_particle,
-          .lifetime = RandomRangef(900.f, 1300.f) * particle_life_frac,
+          .atlasImage = cg_sprite_particle,
+          .lifetime = RandomRangef(900.f, 1300.f) * particleLifeFrac,
           .origin = Vec3_Mix(start, origin, step * i),
           .velocity = Vec3_RandomRange(-10.f, 10.f),
           .acceleration = Vec3_RandomRange(-10.f, 10.f),
@@ -537,7 +537,7 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
   }
 
   const Vec3 color = ColorHSV(204.f, .8f, 1.f).vec3;
-  const Vec3 core_color = MakeVec3(.5f, .85f, 1.f);
+  const Vec3 coreColor = MakeVec3(.5f, .85f, 1.f);
 
   Vec3 dir = Vec3_Direction(start, end);
 
@@ -548,10 +548,10 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
   };
 
   // outer rim
-  if (ent->timestamp < cgi.client->unclamped_time) {
+  if (ent->timestamp < cgi.client->unclampedTime) {
     for (int32_t i = 0; i < 3; i++) {
       Cg_AddSprite(&(ClientGameSprite) {
-        .atlas_image = variation[i],
+        .atlasImage = variation[i],
         .size = RandomRangef(12.f, 18.f),
         .rotation = RandomRadian(),
         .lifetime = 100.f,
@@ -561,7 +561,7 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
         .entity = Cg_GetSpriteEntity(ent)
       });
     }
-    ent->timestamp = cgi.client->unclamped_time + 32;
+    ent->timestamp = cgi.client->unclampedTime + 32;
   }
 
   // center blob
@@ -570,7 +570,7 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
     .origin = ent->origin,
     .size = RandomRangef(14.f, 18.f),
     .rotation = RandomRadian(),
-    .color = core_color,
+    .color = coreColor,
     .lighting = .1f,
   });
 
@@ -587,10 +587,10 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
   cgi.AddBeam(cgi.view, &(RenderBeam) {
     .start = Vec3_Fmaf(end, 70.f, dir),
     .end = start,
-    .color = core_color,
+    .color = coreColor,
     .image = cg_beam_tail,
     .size = 6.0f,
-    .translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
+    .translate = cgi.client->unclampedTime * RandomRangef(.003f, .009f),
     .lighting = .5f,
   });
 
@@ -611,24 +611,24 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
   const float dist = Vec3_Distance(start, end);
 
   // World-space oscillation axes — reads clearly from any viewing angle
-  const Vec3 world_up = MakeVec3(0.f, 0.f, 1.f);
-  const Vec3 world_right = Vec3_Normalize(Vec3_Cross(dir, world_up));
+  const Vec3 worldUp = MakeVec3(0.f, 0.f, 1.f);
+  const Vec3 worldRight = Vec3_Normalize(Vec3_Cross(dir, worldUp));
 
   // Break beam into oscillating segments
-  const float segment_length = 4.f;
-  const int32_t num_segments = Maxi(1, (int32_t)(dist / segment_length));
-  const float translate = cgi.client->unclamped_time * .006f;
+  const float segmentLength = 4.f;
+  const int32_t numSegments = Maxi(1, (int32_t)(dist / segmentLength));
+  const float translate = cgi.client->unclampedTime * .006f;
 
   // Smooth continuous time for fluid wave animation
-  const float time = cgi.client->unclamped_time * .01f;
+  const float time = cgi.client->unclampedTime * .01f;
 
   // Precompute joint positions along the oscillating path
-  Vec3 joints[num_segments + 1];
+  Vec3 joints[numSegments + 1];
   joints[0] = start;
-  joints[num_segments] = end;
+  joints[numSegments] = end;
 
-  for (int32_t i = 1; i < num_segments; i++) {
-    const float frac = (float)i / (float)num_segments;
+  for (int32_t i = 1; i < numSegments; i++) {
+    const float frac = (float)i / (float)numSegments;
     Vec3 point = Vec3_Mix(start, end, frac);
 
     // Taper amplitude — sharper falloff near endpoints
@@ -636,30 +636,30 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
     const float along = frac * dist;
 
     // Dominant up/down wave in world Z
-    const float offset_z = sinf(along * .056f - time * 3.f) * 12.f * envelope;
+    const float offsetZ = sinf(along * .056f - time * 3.f) * 12.f * envelope;
 
     // Small random sideways jitter in world horizontal
     const float hash = sinf(along * .37f + time * 7.f) * sinf(along * .71f - time * 3.3f);
-    const float offset_h = hash * 5.f * envelope;
-    point = Vec3_Fmaf(point, offset_h, world_right);
-    point.z += offset_z;
+    const float offsetH = hash * 5.f * envelope;
+    point = Vec3_Fmaf(point, offsetH, worldRight);
+    point.z += offsetZ;
 
     joints[i] = point;
   }
 
   // Draw segments with slight overlap to hide joints
-  for (int32_t i = 0; i < num_segments; i++) {
-    const Vec3 seg_start = joints[i];
-    const Vec3 seg_end = joints[i + 1];
-    const Vec3 seg_dir = Vec3_Normalize(Vec3_Subtract(seg_end, seg_start));
+  for (int32_t i = 0; i < numSegments; i++) {
+    const Vec3 segStart = joints[i];
+    const Vec3 segEnd = joints[i + 1];
+    const Vec3 segDir = Vec3_Normalize(Vec3_Subtract(segEnd, segStart));
 
     // Extend each segment slightly to hide joints
-    const Vec3 draw_start = i > 0 ? Vec3_Fmaf(seg_start, -2.f, seg_dir) : seg_start;
-    const Vec3 draw_end = i < num_segments - 1 ? Vec3_Fmaf(seg_end, 2.f, seg_dir) : seg_end;
+    const Vec3 drawStart = i > 0 ? Vec3_Fmaf(segStart, -2.f, segDir) : segStart;
+    const Vec3 drawEnd = i < numSegments - 1 ? Vec3_Fmaf(segEnd, 2.f, segDir) : segEnd;
 
     cgi.AddBeam(cgi.view, &(const RenderBeam) {
-      .start = draw_start,
-      .end = draw_end,
+      .start = drawStart,
+      .end = drawEnd,
       .color = MakeVec3(.85f, .85f, 1.f),
       .image = cg_beam_lightning,
       .size = 5.5f,
@@ -670,7 +670,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
 
   // beam endpoint cap
   Cg_AddSprite(&(ClientGameSprite) {
-    .atlas_image = cg_sprite_electro_02,
+    .atlasImage = cg_sprite_electro_02,
     .origin = Vec3_Fmaf(end, -10.f, dir),
     .lifetime = 30.f,
     .size = 50.f,
@@ -679,7 +679,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
   });
 
   // lights and flying sparks
-  const int32_t seed = (int32_t) cgi.client->unclamped_time % 96;
+  const int32_t seed = (int32_t) cgi.client->unclampedTime % 96;
   for (float f = seed; f < Vec3_Distance(start, end); f += 128.f) {
     Cg_AddLight(&(const ClientGameLight) {
       .origin = Vec3_Fmaf(start, f + seed, dir),
@@ -689,7 +689,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
     });
 
     Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_particle3,
+      .atlasImage = cg_sprite_particle3,
       .origin = Vec3_Fmaf(start, f + seed, dir),
       .velocity = Vec3_Scale(Vec3_Add(dir, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
       .acceleration.z = -SPRITE_GRAVITY * 3.0,
@@ -714,7 +714,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
           .rotation = RandomRadian()
   });
 
-  if (ent->timestamp < cgi.client->unclamped_time) {
+  if (ent->timestamp < cgi.client->unclampedTime) {
 
     Vec3 dir;
     Vec3_Vectors(ent->angles, &dir, NULL, NULL);
@@ -724,11 +724,11 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
       // hit billboards
       for (int32_t i = 0; i < 2; i++) {
         Cg_AddSprite(&(ClientGameSprite) {
-          .atlas_image = cg_sprite_electro_02,
+          .atlasImage = cg_sprite_electro_02,
           .origin = end,
           .lifetime = 60 * (i + 1),
           .size = RandomRangef(100.f, 200.f),
-          .size_velocity = 400.f,
+          .sizeVelocity = 400.f,
           .rotation = RandomRadian(),
           .dir = Vec3_RandomRange(-1.f, 1.f),
           .color = MakeVec3(.75f, .75f, 1.f),
@@ -737,11 +737,11 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
 
       // hit decal
       Cg_AddSprite(&(ClientGameSprite) {
-        .atlas_image = cg_sprite_electro_02,
+        .atlasImage = cg_sprite_electro_02,
         .origin = Vec3_Add(end, dir),
         .lifetime = 120,
         .size = RandomRangef(100.f, 200.f),
-        .size_velocity = 400.f,
+        .sizeVelocity = 400.f,
         .rotation = RandomRadian(),
         .dir = dir,
         .color = MakeVec3(.75f, .75f, 1.f),
@@ -750,7 +750,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
       // hit sparks
       for (int32_t i = 0; i < 2; i++) {
         Cg_AddSprite(&(ClientGameSprite) {
-          .atlas_image = cg_sprite_particle3,
+          .atlasImage = cg_sprite_particle3,
           .origin = end,
           .velocity = Vec3_Scale(Vec3_Add(dir, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
           .acceleration.z = -SPRITE_GRAVITY * 3.0,
@@ -762,7 +762,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
       }
     }
 
-    ent->timestamp = cgi.client->unclamped_time + 25; // 40hz
+    ent->timestamp = cgi.client->unclampedTime + 25; // 40hz
   }
 }
 
@@ -800,8 +800,8 @@ static void Cg_BfgTrail_Think(ClientGameSprite *sprite, float life, float delta)
     sprite->acceleration = MakeVec3(0.f, 0.f, -3.f * SPRITE_GRAVITY);
     const float lifetime = RandomRangef(2000, 3500);
     sprite->lifetime = lifetime;
-    sprite->size_velocity = -sprite->size / MILLIS_TO_SECONDS(lifetime);
-    sprite->time = sprite->timestamp = cgi.client->unclamped_time;
+    sprite->sizeVelocity = -sprite->size / MILLIS_TO_SECONDS(lifetime);
+    sprite->time = sprite->timestamp = cgi.client->unclampedTime;
     sprite->bounce = .2f;
     return;
   }
@@ -824,7 +824,7 @@ static void Cg_BfgTrail_Think(ClientGameSprite *sprite, float life, float delta)
  * @brief Renders the BFG projectile trail with a core sphere and orbiting ball sprites.
  */
 static void Cg_BfgTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
-  const float mod = fmodf((float)cgi.client->unclamped_time, 100.f) / 100.f;
+  const float mod = fmodf((float)cgi.client->unclampedTime, 100.f) / 100.f;
 
   if (Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID) {
     Cg_BubbleTrail(ent, ent->prev.origin, ent->origin, .5f);
@@ -837,14 +837,14 @@ static void Cg_BfgTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
     .media = (RenderMedia *) cg_sprite_hyperball_01,
     .rotation = mod * 200.f * M_PI,
     .color = MakeVec3(1.f, 1.f, 1.f),
-    .life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f),
+    .life = fmod(cgi.client->unclampedTime * 0.001f, 1.0f),
   });
 
-  if (ent->timestamp < cgi.client->unclamped_time) {
-    ent->timestamp = cgi.client->unclamped_time + 4;
+  if (ent->timestamp < cgi.client->unclampedTime) {
+    ent->timestamp = cgi.client->unclampedTime + 4;
   
     Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_particle,
+      .atlasImage = cg_sprite_particle,
       .origin = Vec3_Zero(),
       .size = 6.f,
       .color = MakeVec3(.5f, 1.f, 0.5f),
@@ -871,13 +871,13 @@ static void Cg_BfgTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
  */
 static void Cg_TeleporterTrail_Think(ClientGameSprite *sprite, float life, float delta) {
 
-  const float t = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+  const float t = MILLIS_TO_SECONDS(cgi.client->unclampedTime);
   const float phase = sprite->rotation;
-  const float orbit_speed = 5.f;
-  const float max_radius = 20.f;
-  const float radius = max_radius * (1.f - life * .6f);
+  const float orbitSpeed = 5.f;
+  const float maxRadius = 20.f;
+  const float radius = maxRadius * (1.f - life * .6f);
 
-  const float angle = phase + t * orbit_speed;
+  const float angle = phase + t * orbitSpeed;
   sprite->origin.x = cosf(angle) * radius;
   sprite->origin.y = sinf(angle) * radius;
   sprite->origin.z = -16.f + life * 56.f;
@@ -888,25 +888,25 @@ static void Cg_TeleporterTrail_Think(ClientGameSprite *sprite, float life, float
 static void Cg_TeleporterTrail(ClientEntity *ent) {
 
   const Vec3 gold = ColorHSV(color_hue_yellow, .7f, 1.f).vec3;
-  const float t = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+  const float t = MILLIS_TO_SECONDS(cgi.client->unclampedTime);
 
   Cg_AddSprite(&(ClientGameSprite) {
-    .atlas_image = cg_sprite_teleport_core,
+    .atlasImage = cg_sprite_teleport_core,
     .origin = Vec3_Fmaf(ent->origin, 8.f, Vec3_Up()),
     .size = 64.f,
     .color = Vec3_Scale(gold, .7f + sinf(t * 3.f) * .15f),
   });
 
   // Helix sprites
-  if (ent->timestamp <= cgi.client->unclamped_time) {
-    ent->timestamp = cgi.client->unclamped_time + 32;
+  if (ent->timestamp <= cgi.client->unclampedTime) {
+    ent->timestamp = cgi.client->unclampedTime + 32;
 
     Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_spark,
+      .atlasImage = cg_sprite_spark,
       .origin = Vec3_Zero(),
       .size = 2.5f,
       .color = gold,
-      .end_color = MakeVec3(1.f, 1.f, .8f),
+      .endColor = MakeVec3(1.f, 1.f, .8f),
       .lifetime = 1200,
       .rotation = RandomRangef(0.f, 2.f * M_PI),
       .flags = SPRITE_FOLLOW_ENTITY | SPRITE_DATA_NOFREE,
@@ -918,17 +918,17 @@ static void Cg_TeleporterTrail(ClientEntity *ent) {
   }
 
   // Rising rings
-  if ((cgi.client->unclamped_time % 200) < cgi.client->frame_msec) {
+  if ((cgi.client->unclampedTime % 200) < cgi.client->frameMsec) {
     Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_ring,
+      .atlasImage = cg_sprite_ring,
       .dir = Vec3_Up(),
       .origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
       .velocity.z = RandomRangef(60.f, 100.f),
       .lifetime = 600,
       .size = 48.f,
-      .size_velocity = 32.f,
+      .sizeVelocity = 32.f,
       .color = gold,
-      .end_color = Vec3_Scale(gold, .2f),
+      .endColor = Vec3_Scale(gold, .2f),
     });
   }
 
@@ -947,7 +947,7 @@ static void Cg_TeleporterTrail(ClientEntity *ent) {
  * @brief Returns a sinusoidally oscillating value at the given frequency, amplitude, base, and phase.
  */
 static inline float Cg_Oscillate(const float freq, const float amplitude, const float base, const float phase) {
-  const float seconds = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+  const float seconds = MILLIS_TO_SECONDS(cgi.client->unclampedTime);
   return base + sinf((phase + seconds * 2 * freq * 2)) * (amplitude * 0.5);
 }
 
@@ -1054,7 +1054,7 @@ static void Cg_LaserTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   if (Cg_TrailCount(end, 24.f, ent, TRAIL_PRIMARY, NULL, NULL)) {
 
     Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_particle,
+      .atlasImage = cg_sprite_particle,
       .lifetime = 300,
       .size = RandomRangef(4.f, 8.f),
       .rotation = RandomRadian(),
@@ -1108,7 +1108,7 @@ static void Cg_FireballTrail(ClientEntity *ent, const Vec3 start, const Vec3 end
   };
 
   if (ent->current.effects & EF_DESPAWN) {
-    const float decay = Clampf01((cgi.client->unclamped_time - ent->timestamp) / 1000.f);
+    const float decay = Clampf01((cgi.client->unclampedTime - ent->timestamp) / 1000.f);
     l.radius *= (1.f - decay);
   } else {
 
@@ -1118,23 +1118,23 @@ static void Cg_FireballTrail(ClientEntity *ent, const Vec3 start, const Vec3 end
       const float step = 1.f / count;
       for (int32_t i = 0; i <= count; i++) {
         Cg_AddSprite(&(ClientGameSprite) {
-          .atlas_image = cg_sprite_smoke,
+          .atlasImage = cg_sprite_smoke,
           .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
           .velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f)),
           .acceleration = Vec3_Scale(dir, -20.f),
           .lifetime = RandomRangef(600.f, 900.f),
           .color = MakeVec3(.4f, .25f, .15f),
           .size = 2.5f,
-          .size_velocity = 15.f,
+          .sizeVelocity = 15.f,
           .rotation = RandomRangef(.0f, M_PI),
-          .rotation_velocity = RandomRangef(.2f, 1.f),
+          .rotationVelocity = RandomRangef(.2f, 1.f),
           .lighting = .5f,
         });
       }
     }
 
     Cg_FlameTrail(ent, start, end);
-    ent->timestamp = cgi.client->unclamped_time;
+    ent->timestamp = cgi.client->unclampedTime;
   }
 
   Cg_AddLight(&l);
@@ -1149,22 +1149,22 @@ static void Cg_OrbitTrail_Think(ClientGameSprite *sprite, float life, float delt
   if (!(sprite->flags & SPRITE_FOLLOW_ENTITY)) {
     sprite->Think = NULL;
     sprite->velocity = MakeVec3(0.f, 0.f, RandomRangef(20.f, 60.f));
-    sprite->size_velocity = -sprite->size / MILLIS_TO_SECONDS(sprite->lifetime);
-    sprite->time = sprite->timestamp = cgi.client->unclamped_time;
+    sprite->sizeVelocity = -sprite->size / MILLIS_TO_SECONDS(sprite->lifetime);
+    sprite->time = sprite->timestamp = cgi.client->unclampedTime;
     sprite->lifetime = RandomRangeu(500, 1000);
     return;
   }
 
-  const float t = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+  const float t = MILLIS_TO_SECONDS(cgi.client->unclampedTime);
   const float phase = sprite->rotation;
-  const float orbit_speed = 3.f;
+  const float orbitSpeed = 3.f;
   const float radius = 24.f;
-  const float bob_speed = 2.f;
+  const float bobSpeed = 2.f;
 
-  const float angle = phase + t * orbit_speed;
+  const float angle = phase + t * orbitSpeed;
   sprite->origin.x = cosf(angle) * radius;
   sprite->origin.y = sinf(angle) * radius;
-  sprite->origin.z = 16.f + sinf(phase * 3.f + t * bob_speed) * 12.f;
+  sprite->origin.z = 16.f + sinf(phase * 3.f + t * bobSpeed) * 12.f;
 
   sprite->size = 2.f + sinf(t * 5.f + phase) * .5f;
 }
@@ -1177,17 +1177,17 @@ static void Cg_OrbitTrail_Think(ClientGameSprite *sprite, float life, float delt
 static void Cg_OrbitalTrail(ClientEntity *ent, const Vec3 start, const Vec3 end, const Vec3 color) {
 
   // Orbiting sprites: spawn a few at staggered intervals
-  if (ent->timestamp < cgi.client->unclamped_time) {
-    ent->timestamp = cgi.client->unclamped_time + 80;
+  if (ent->timestamp < cgi.client->unclampedTime) {
+    ent->timestamp = cgi.client->unclampedTime + 80;
 
     const float phase = RandomRangef(0.f, 2.f * M_PI);
 
     Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_spark,
+      .atlasImage = cg_sprite_spark,
       .origin = Vec3_Zero(),
       .size = 2.5f,
       .color = color,
-      .end_color = MakeVec3(1.f, 1.f, 1.f),
+      .endColor = MakeVec3(1.f, 1.f, 1.f),
       .lifetime = 2000,
       .rotation = phase,
       .flags = SPRITE_FOLLOW_ENTITY | SPRITE_DATA_NOFREE | SPRITE_ENTITY_UNLINK_ON_DEATH,
@@ -1203,15 +1203,15 @@ static void Cg_OrbitalTrail(ClientEntity *ent, const Vec3 start, const Vec3 end,
   for (int32_t i = 0; i < count; i++) {
 
     if (!Cg_AddSprite(&(ClientGameSprite) {
-      .atlas_image = cg_sprite_particle,
+      .atlasImage = cg_sprite_particle,
       .lifetime = RandomRangeu(300, 800),
       .size = RandomRangef(1.f, 2.f),
-      .size_velocity = RandomRangef(-3.f, -1.f),
+      .sizeVelocity = RandomRangef(-3.f, -1.f),
       .origin = Vec3_Add(start, Vec3_RandomRanges(-12.f, 12.f, -12.f, 12.f, 8.f, 28.f)),
       .velocity = Vec3_RandomRanges(-8.f, 8.f, -8.f, 8.f, 10.f, 30.f),
       .friction = 30.f,
       .color = color,
-      .end_color = Vec3_Scale(color, .3f),
+      .endColor = Vec3_Scale(color, .3f),
       .lighting = .5f
     })) {
       break;
@@ -1247,7 +1247,7 @@ void Cg_EntityTrail(ClientEntity *ent) {
   const EntityState *s = &ent->current;
 
   Vec3 start, end;
-  start = ent->previous_origin;
+  start = ent->previousOrigin;
 
   // beams have two origins, most entities have just one
   if (s->effects & EF_BEAM) {
@@ -1255,11 +1255,11 @@ void Cg_EntityTrail(ClientEntity *ent) {
     end = ent->termination;
 
     // client is overridden to specify owner of the beam
-    if (ent->current.client == cgi.client->frame.ps.client && !cgi.client->third_person) {
+    if (ent->current.client == cgi.client->frame.ps.client && !cgi.client->thirdPerson) {
 
       // we own this beam (lightning, grapple, etc..)
       // anchor start to the client-side muzzle; keep end as the server-authoritative termination
-      start = cg_state.clients[ent->current.client].weapon_muzzle;
+      start = cg_state.clients[ent->current.client].weaponMuzzle;
 
 #if defined(G_HOOK)
       if (s->trail == TRAIL_HOOK) {

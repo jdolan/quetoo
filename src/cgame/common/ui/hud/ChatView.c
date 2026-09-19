@@ -137,7 +137,7 @@ static void updateBindings(View *self, ident data) {
 
     const uint32_t since = typing || now < millis ? 0 : now - millis;
 
-    this->history->console.whence = since > cg_hud_state.clear_time ? since : cg_hud_state.clear_time;
+    this->history->console.whence = since > cg_hud_state.clearTime ? since : cg_hud_state.clearTime;
 
     $(this->history, tail, self->superview->frame.w / 3, lines);
   }

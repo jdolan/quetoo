@@ -35,7 +35,7 @@ static int32_t largest_winding = 0;
 /**
  * @brief Processes a single face, inserting vertices from all other coplanar faces that lie on its edges to eliminate T-junctions.
  */
-static void FixTJunctions_(int32_t face_num) {
+static void FixTJunctions_(int32_t faceNum) {
   static _Thread_local CmWinding *face_winding, *f_winding;
 
   if (!face_winding) {
@@ -43,16 +43,16 @@ static void FixTJunctions_(int32_t face_num) {
     f_winding = Cm_AllocWinding(largest_winding);
   }
 
-  Face *face = VectorValue(faces, Face *, face_num);
+  Face *face = VectorValue(faces, Face *, faceNum);
 
-  SDL_SpinLock *face_lock = &faces_locks[face_num];
+  SDL_SpinLock *faceLock = &faces_locks[faceNum];
 
-  const Plane *plane = &planes[face->brush_side->plane];
+  const Plane *plane = &planes[face->brushSide->plane];
 
   // Make a copy of face->w for testing
-  SDL_LockSpinlock(face_lock);
-  memcpy(face_winding, face->w, sizeof(CmWinding) + (face->w->num_points * sizeof(Vec3)));
-  SDL_UnlockSpinlock(face_lock);
+  SDL_LockSpinlock(faceLock);
+  memcpy(face_winding, face->w, sizeof(CmWinding) + (face->w->numPoints * sizeof(Vec3)));
+  SDL_UnlockSpinlock(faceLock);
 
   for (size_t s = 0; s < faces->count; s++) {
 
@@ -61,13 +61,13 @@ static void FixTJunctions_(int32_t face_num) {
       continue;
     }
     
-    SDL_SpinLock *f_lock = &faces_locks[s];
+    SDL_SpinLock *fLock = &faces_locks[s];
 
-    SDL_LockSpinlock(f_lock);
-    memcpy(f_winding, f->w, sizeof(CmWinding) + (f->w->num_points * sizeof(Vec3)));
-    SDL_UnlockSpinlock(f_lock);
+    SDL_LockSpinlock(fLock);
+    memcpy(f_winding, f->w, sizeof(CmWinding) + (f->w->numPoints * sizeof(Vec3)));
+    SDL_UnlockSpinlock(fLock);
 
-    for (int32_t i = 0; i < f_winding->num_points; i++) {
+    for (int32_t i = 0; i < f_winding->numPoints; i++) {
       const Vec3 v = f_winding->points[i];
 
       const double d = Vec3_Dot(v, plane->normal) - plane->dist;
@@ -77,18 +77,18 @@ static void FixTJunctions_(int32_t face_num) {
 
       // v is on face's plane, so test it against face's edges
 
-      for (int32_t j = 0; j < face_winding->num_points; j++) {
+      for (int32_t j = 0; j < face_winding->numPoints; j++) {
 
-        const Vec3 v0 = face_winding->points[(j + 0) % face_winding->num_points];
-        const Vec3 v1 = face_winding->points[(j + 1) % face_winding->num_points];
+        const Vec3 v0 = face_winding->points[(j + 0) % face_winding->numPoints];
+        const Vec3 v1 = face_winding->points[(j + 1) % face_winding->numPoints];
 
         Vec3 a;
-        const float a_dist = Vec3_DistanceDir(v0, v, &a);
+        const float aDist = Vec3_DistanceDir(v0, v, &a);
 
         Vec3 b;
-        const float b_dist = Vec3_DistanceDir(v1, v, &b);
+        const float bDist = Vec3_DistanceDir(v1, v, &b);
 
-        if (a_dist < ON_EPSILON || b_dist < ON_EPSILON) {
+        if (aDist < ON_EPSILON || bDist < ON_EPSILON) {
           break; // face already includes v
         }
 
@@ -98,10 +98,10 @@ static void FixTJunctions_(int32_t face_num) {
         }
 
         // v sits between v0 and v1, so add it to the face
-        CmWinding *w = Cm_AllocWinding(face_winding->num_points + 1);
-        w->num_points = face_winding->num_points + 1;
+        CmWinding *w = Cm_AllocWinding(face_winding->numPoints + 1);
+        w->numPoints = face_winding->numPoints + 1;
 
-        for (int32_t k = 0; k < w->num_points; k++) {
+        for (int32_t k = 0; k < w->numPoints; k++) {
           if (k <= j) {
             w->points[k] = face_winding->points[k];
           } else if (k == j + 1) {
@@ -111,14 +111,14 @@ static void FixTJunctions_(int32_t face_num) {
           }
         }
 
-        SDL_LockSpinlock(face_lock);
+        SDL_LockSpinlock(faceLock);
 
         // Copy back to face, and copy to temp winding
         Cm_FreeWinding(face->w);
         face->w = w;
-        memcpy(face_winding, face->w, sizeof(CmWinding) + (face->w->num_points * sizeof(Vec3)));
+        memcpy(face_winding, face->w, sizeof(CmWinding) + (face->w->numPoints * sizeof(Vec3)));
 
-        SDL_UnlockSpinlock(face_lock);
+        SDL_UnlockSpinlock(faceLock);
 
         SDL_AddAtomicInt(&c_tjunctions, 1);
         break;
@@ -150,7 +150,7 @@ static void FixTJunctions_r(Node *node) {
     $(faces, add, &face);
     $(faces_set, set, face, face);
 
-    largest_winding = Maxi(largest_winding, face->w->num_points);
+    largest_winding = Maxi(largest_winding, face->w->numPoints);
   }
 }
 
@@ -164,11 +164,11 @@ void FixTJunctions(Tree *tree) {
 
   faces = $(alloc(Vector), initWithSize, sizeof(Face *));
   faces_set = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
-  FixTJunctions_r(tree->head_node);
+  FixTJunctions_r(tree->headNode);
   faces_set = release(faces_set);
 
-  const int32_t largest_point_count = largest_winding;
-  largest_winding = sizeof(CmWinding) + (sizeof(Vec3) * largest_point_count);
+  const int32_t largestPointCount = largest_winding;
+  largest_winding = sizeof(CmWinding) + (sizeof(Vec3) * largestPointCount);
 
   faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->count);
 

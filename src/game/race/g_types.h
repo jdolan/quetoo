@@ -248,15 +248,15 @@ typedef struct {
   uint64_t checkpoints; // bit N - 1 is set once checkpoint N has spawned
   uint64_t splits;      // likewise for splits 1 through N
   uint64_t stages;      // likewise for stages 2 through N; a run begins in stage 1
-  uint16_t checkpoint_count, split_count, stage_count;
-  uint16_t start_count;
-  uint16_t finish_count;
+  uint16_t checkpointCount, splitCount, stageCount;
+  uint16_t startCount;
+  uint16_t finishCount;
   struct GameEntity *barriers[RACE_MAX_BARRIERS]; // the func_race_* brushes, in spawn order
-  uint16_t barrier_count;
-  bool malformed, splits_malformed, stages_malformed; // a number out of range was seen
+  uint16_t barrierCount;
+  bool malformed, splitsMalformed, stagesMalformed; // a number out of range was seen
   bool valid;        // checkpoints 1 through N and a finish; nothing else bears on it
-  bool splits_valid; // splits 1 through N, so they time
-  bool stages_valid; // stages 2 through N, each with somewhere to return to
+  bool splitsValid; // splits 1 through N, so they time
+  bool stagesValid; // stages 2 through N, each with somewhere to return to
 } GameRaceCourse;
 
 /**
@@ -267,17 +267,17 @@ typedef struct {
   GameRaceRunState state;
   GameRaceMode mode; // the mode the run was started in, which is what decides whether it counts
   PlayerMovement movement; // the movement it was started under, which is what a record is comparable within
-  uint16_t checkpoint_count;
-  uint16_t split_count;
+  uint16_t checkpointCount;
+  uint16_t splitCount;
   uint16_t stage; // the one under way, from 1
-  uint32_t start_time;
+  uint32_t startTime;
   uint32_t elapsed; // set on finish
-  uint32_t checkpoint_times[RACE_MAX_CHECKPOINTS]; // from the start
-  uint32_t split_times[RACE_MAX_CHECKPOINTS];
-  uint32_t stage_times[RACE_MAX_CHECKPOINTS]; // stage_times[N - 2] is when stage N began
-  float start_speed, end_speed, top_speed;
-  float speed_sum; // over speed_samples, for the average
-  uint32_t speed_samples;
+  uint32_t checkpointTimes[RACE_MAX_CHECKPOINTS]; // from the start
+  uint32_t splitTimes[RACE_MAX_CHECKPOINTS];
+  uint32_t stageTimes[RACE_MAX_CHECKPOINTS]; // stage_times[N - 2] is when stage N began
+  float startSpeed, endSpeed, topSpeed;
+  float speedSum; // over speed_samples, for the average
+  uint32_t speedSamples;
   uint8_t invalid; // GameRaceInvalid
 } GameRaceRun;
 
@@ -295,11 +295,11 @@ typedef struct {
   PlayerMovement movement;
   uint32_t params; // a hash of the PlayerMoveParams the run was made under, for information
   uint32_t time;
-  uint16_t checkpoint_count, split_count, stage_count;
-  uint32_t checkpoint_times[RACE_MAX_CHECKPOINTS];
-  uint32_t split_times[RACE_MAX_CHECKPOINTS];
-  uint32_t stage_times[RACE_MAX_CHECKPOINTS];
-  float start_speed, top_speed, average_speed;
+  uint16_t checkpointCount, splitCount, stageCount;
+  uint32_t checkpointTimes[RACE_MAX_CHECKPOINTS];
+  uint32_t splitTimes[RACE_MAX_CHECKPOINTS];
+  uint32_t stageTimes[RACE_MAX_CHECKPOINTS];
+  float startSpeed, topSpeed, averageSpeed;
 } GameRaceRecord;
 
 /**
@@ -487,9 +487,9 @@ typedef struct {
    * @brief How the client is taking part, their best on this map under the
    * level's movement in milliseconds or 0 for none, and their runs so far.
    */
-  uint8_t race_mode; // GameRaceMode
-  uint32_t race_best;
-  uint16_t race_runs;
+  uint8_t raceMode; // GameRaceMode
+  uint32_t raceBest;
+  uint16_t raceRuns;
 } GameScore;
 
 /**
@@ -677,12 +677,12 @@ typedef struct {
   /**
    * @brief Protection fraction against normal damage.
    */
-  float normal_protection;
+  float normalProtection;
 
   /**
    * @brief Protection fraction against energy damage.
    */
-  float energy_protection;
+  float energyProtection;
 } GameArmorInfo;
 
 #if defined(__G_LOCAL_H__)
@@ -772,12 +772,12 @@ typedef struct GameItem {
   /**
    * @brief Precached model index; calculated at init.
    */
-  uint16_t model_index;
+  uint16_t modelIndex;
 
   /**
    * @brief Precached pickup sound index; calculated at init.
    */
-  uint16_t pickup_sound_index;
+  uint16_t pickupSoundIndex;
 } GameItem;
 
 #define EOFS(x) (ptrdiff_t) &(((GameEntity *) 0)->x)
@@ -800,37 +800,37 @@ typedef struct {
   /**
    * @brief Starting origin.
    */
-  Vec3 start_origin;
+  Vec3 startOrigin;
 
   /**
    * @brief Starting angles.
    */
-  Vec3 start_angles;
+  Vec3 startAngles;
 
   /**
    * @brief Ending origin.
    */
-  Vec3 end_origin;
+  Vec3 endOrigin;
 
   /**
    * @brief Ending angles.
    */
-  Vec3 end_angles;
+  Vec3 endAngles;
 
   /**
    * @brief Sound played when movement begins.
    */
-  uint16_t sound_start;
+  uint16_t soundStart;
 
   /**
    * @brief Sound played while moving.
    */
-  uint16_t sound_middle;
+  uint16_t soundMiddle;
 
   /**
    * @brief Sound played when movement ends.
    */
-  uint16_t sound_end;
+  uint16_t soundEnd;
 
   /**
    * @brief Acceleration rate.
@@ -846,7 +846,7 @@ typedef struct {
    * @brief The speed at the start of a ramped move, from which the entity is mixed towards
    * `speed` over the course of the move.
    */
-  float start_speed;
+  float startSpeed;
 
   /**
    * @brief Deceleration rate.
@@ -881,22 +881,22 @@ typedef struct {
   /**
    * @brief Current movement speed.
    */
-  float current_speed;
+  float currentSpeed;
 
   /**
    * @brief Number of frames the move uses constant speed.
    */
-  int32_t const_frames;
+  int32_t constFrames;
 
   /**
    * @brief Number of frames the move is accelerating.
    */
-  int32_t accel_frames;
+  int32_t accelFrames;
 
   /**
    * @brief Number of frames the move is decelerating.
    */
-  int32_t decel_frames;
+  int32_t decelFrames;
 
   /**
    * @brief Callback invoked when the move completes.
@@ -915,44 +915,44 @@ typedef struct {
     uint16_t gibs[NUM_GIB_MODELS];
 
     uint16_t grenade;
-    uint16_t quake_grenade;
-    uint16_t quake_nail;
+    uint16_t quakeGrenade;
+    uint16_t quakeNail;
     uint16_t rocket;
-    uint16_t quake_rocket;
+    uint16_t quakeRocket;
 
     uint16_t fireball;
   } models;
 
   struct GameMediaSounds {
-    uint16_t gib_hits[NUM_GIB_SOUNDS];
+    uint16_t gibHits[NUM_GIB_SOUNDS];
     uint16_t lava[3];
     uint16_t pain[4];
 
-    uint16_t bfg_hit;
-    uint16_t bfg_prime;
+    uint16_t bfgHit;
+    uint16_t bfgPrime;
     uint16_t death[2];
     uint16_t gasp;
     uint16_t gurp;
-    uint16_t grenade_hit;
-    uint16_t grenade_clang;
-    uint16_t grenade_throw;
-    uint16_t grenade_tick;
-    uint16_t quake_grenade_hit;
-    uint16_t quake_nail_hit;
-    uint16_t rocket_fly;
-    uint16_t lightning_fly;
-    uint16_t laser_fly;
-    uint16_t quad_attack;
-    uint16_t quad_expire;
+    uint16_t grenadeHit;
+    uint16_t grenadeClang;
+    uint16_t grenadeThrow;
+    uint16_t grenadeTick;
+    uint16_t quakeGrenadeHit;
+    uint16_t quakeNailHit;
+    uint16_t rocketFly;
+    uint16_t lightningFly;
+    uint16_t laserFly;
+    uint16_t quadAttack;
+    uint16_t quadExpire;
 
     uint16_t teleport;
-    uint16_t quake_teleport[5];
+    uint16_t quakeTeleport[5];
 
-    uint16_t water_in;
-    uint16_t water_out;
+    uint16_t waterIn;
+    uint16_t waterOut;
 
-    uint16_t weapon_no_ammo;
-    uint16_t weapon_switch;
+    uint16_t weaponNoAmmo;
+    uint16_t weaponSwitch;
 
     uint16_t countdown[11];
 
@@ -960,11 +960,11 @@ typedef struct {
 
     uint16_t chat;
 
-    uint16_t invulnerability_pickup;
-    uint16_t invulnerability_expire;
-    uint16_t invulnerability_protect;
-    uint16_t invisibility_pickup;
-    uint16_t invisibility_expire;
+    uint16_t invulnerabilityPickup;
+    uint16_t invulnerabilityExpire;
+    uint16_t invulnerabilityProtect;
+    uint16_t invisibilityPickup;
+    uint16_t invisibilityExpire;
   } sounds;
 
   struct GameMediaImages {
@@ -997,7 +997,7 @@ typedef struct {
   /**
    * @brief Current server frame number.
    */
-  uint32_t frame_num;
+  uint32_t frameNum;
 
   /**
    * @brief Level time in milliseconds.
@@ -1043,22 +1043,22 @@ typedef struct {
       /**
    * @brief Number of active teams.
    */
-  int32_t num_teams;
+  int32_t numTeams;
 
     /**
    * @brief Map-specified minimum clients override.
    */
-  int32_t min_clients_map;
+  int32_t minClientsMap;
 
   /**
    * @brief Frag limit; game ends when a player reaches this.
    */
-  int32_t frag_limit;
+  int32_t fragLimit;
 
     /**
    * @brief Time limit in minutes; game ends when exceeded.
    */
-  int32_t time_limit;
+  int32_t timeLimit;
 
   /**
    * @brief Background music track.
@@ -1068,32 +1068,32 @@ typedef struct {
   /**
    * @brief Level time when scores were last updated.
    */
-  uint32_t scores_time;
+  uint32_t scoresTime;
 
   /**
    * @brief Level time when intermission began.
    */
-  uint32_t intermission_time;
+  uint32_t intermissionTime;
 
   /**
    * @brief Camera origin during intermission.
    */
-  Vec3 intermission_origin;
+  Vec3 intermissionOrigin;
 
   /**
    * @brief Camera angles during intermission.
    */
-  Vec3 intermission_angle;
+  Vec3 intermissionAngle;
 
   /**
    * @brief Entity currently being processed by `G_RunFrame`.
    */
-  GameEntity *current_entity;
+  GameEntity *currentEntity;
 
   /**
    * @brief Global spawn points (used in non-team modes).
    */
-  GameSpawnPoints spawn_points;
+  GameSpawnPoints spawnPoints;
 
   /**
    * @brief Accumulated frag events for this map, POSTed at intermission.
@@ -1103,23 +1103,23 @@ typedef struct {
   /**
    * @brief The course the triggers describe, validated in `G_ConfigureLevel`.
    */
-  GameRaceCourse race_course;
+  GameRaceCourse raceCourse;
 
   /**
    * @brief Every personal best on record for this map, all movements, sorted
    * by movement and then time. Level memory, so the change of level frees it.
    */
-  GameRaceRecord *race_records;
-  size_t race_record_count, race_record_capacity;
+  GameRaceRecord *raceRecords;
+  size_t raceRecordCount, raceRecordCapacity;
 
   /**
    * @brief The course record's raceline under this level's movement, from
    * `records/<map>-<movement>.ghost`, and whose it is. Level memory.
    */
-  GameRaceLine race_line;
-  char race_line_holder[MAX_QPATH];
-  char race_line_client[MAX_STRING_CHARS]; // the holder's CS_CLIENTS string, for the ghost's skin
-  uint32_t race_line_time;
+  GameRaceLine raceLine;
+  char raceLineHolder[MAX_QPATH];
+  char raceLineClient[MAX_STRING_CHARS]; // the holder's CS_CLIENTS string, for the ghost's skin
+  uint32_t raceLineTime;
 
   } GameLevel;
 
@@ -1383,7 +1383,7 @@ typedef struct {
     /**
    * @brief Spawn points for this team.
    */
-  GameSpawnPoints spawn_points;
+  GameSpawnPoints spawnPoints;
 
   } GameTeam;
 
@@ -1420,17 +1420,17 @@ typedef struct {
   /**
    * @brief Frame number when the client first entered the game.
    */
-  uint32_t first_frame;
+  uint32_t firstFrame;
 
   /**
    * @brief Raw user info key-value string.
    */
-  char user_info[MAX_INFO_STRING_STRING];
+  char userInfo[MAX_INFO_STRING_STRING];
 
   /**
    * @brief Display name.
    */
-  char net_name[MAX_NET_NAME];
+  char netName[MAX_NET_NAME];
 
   /**
    * @brief Player model/skin path.
@@ -1446,17 +1446,17 @@ typedef struct {
    * @brief The standing box last published on `CS_CLIENTS`, so that a change of
    * movement parameters republishes it.
    */
-  Box3 standing_bounds;
+  Box3 standingBounds;
 
   /**
    * @brief Non-zero if weapons should auto-switch on pickup.
    */
-  uint16_t auto_switch;
+  uint16_t autoSwitch;
 
   /**
    * @brief The player's selected hook style.
    */
-  GameHookStyle hook_style;
+  GameHookStyle hookStyle;
 
     /**
    * @brief Current team assignment.
@@ -1501,7 +1501,7 @@ typedef struct {
   /**
    * @brief Mask of clients this one has muted, in both chat and voice.
    */
-  uint64_t muted_clients;
+  uint64_t mutedClients;
 
   /**
    * @brief Per-install GUID sent via userinfo, used for stats reporting.
@@ -1511,22 +1511,22 @@ typedef struct {
   /**
    * @brief Racing or practicing, chosen by the client and kept across respawns.
    */
-  GameRaceMode race_mode;
+  GameRaceMode raceMode;
 
   /**
    * @brief Where `kill` returns a practicing client to, once they have `store`d.
    */
-  GameRaceSpawn race_spawn;
+  GameRaceSpawn raceSpawn;
 
   /**
    * @brief Whether the course record's ghost runs alongside this client's runs.
    */
-  bool race_ghost;
+  bool raceGhost;
 
   /**
    * @brief The runs started on this map, for the HUD.
    */
-  uint16_t race_runs;
+  uint16_t raceRuns;
 } GameClientPersistent;
 
 /**
@@ -1563,31 +1563,31 @@ struct GameClient {
   /**
    * @brief The run in progress, cleared with the rest of this structure on respawn.
    */
-  GameRaceRun race_run;
+  GameRaceRun raceRun;
 
   /**
    * @brief Bit N is set while `race_course.barriers[N]` lets this client pass,
    * as decided at the end of the last frame and sent to them then.
    */
-  uint32_t race_passable;
+  uint32_t racePassable;
 
   /**
    * @brief The race trigger last touched and when, so that standing in one does
    * not fire it every frame.
    */
-  const GameEntity *race_trigger;
-  uint32_t race_trigger_time;
+  const GameEntity *raceTrigger;
+  uint32_t raceTriggerTime;
 
   /**
    * @brief A start zone entered but not yet left or jumped out of, for the
    * start modes that begin the run on the way out rather than on the way in.
    */
-  const GameEntity *race_start;
+  const GameEntity *raceStart;
 
   /**
    * @brief The course record's ghost running alongside this client, or NULL.
    */
-  GameEntity *race_ghost;
+  GameEntity *raceGhost;
 
   /**
    * @brief Item inventory counts indexed by item index.
@@ -1602,17 +1602,17 @@ struct GameClient {
   /**
    * @brief Previously active weapon.
    */
-  const GameItem *prev_weapon;
+  const GameItem *prevWeapon;
 
   /**
    * @brief Weapon currently being switched to.
    */
-  const GameItem *next_weapon;
+  const GameItem *nextWeapon;
 
   /**
    * @brief Inventory index of the current weapon's ammo.
    */
-  uint16_t ammo_index;
+  uint16_t ammoIndex;
 
   /**
    * @brief Current frame button state.
@@ -1622,67 +1622,67 @@ struct GameClient {
   /**
    * @brief Previous frame button state.
    */
-  uint32_t old_buttons;
+  uint32_t oldButtons;
 
   /**
    * @brief Buttons pressed this frame (edge-triggered).
    */
-  uint32_t latched_buttons;
+  uint32_t latchedButtons;
 
   /**
    * @brief Level time when the weapon think was last called.
    */
-  uint32_t weapon_think_time;
+  uint32_t weaponThinkTime;
 
   /**
    * @brief Weapon may fire again when time exceeds this.
    */
-  uint32_t weapon_fire_time;
+  uint32_t weaponFireTime;
 
   /**
    * @brief Level time when the weapon was last fired.
    */
-  uint32_t weapon_fired_time;
+  uint32_t weaponFiredTime;
 
   /**
    * @brief Level time when the weapon was last changed.
    */
-  uint32_t weapon_change_time;
+  uint32_t weaponChangeTime;
 
   /**
    * @brief Water level from the previous frame.
    */
-  PlayerMoveWaterLevel old_water_level;
+  PlayerMoveWaterLevel oldWaterLevel;
 
           /**
    * @brief Alternating barrel index for the Quake nailgun.
    * Odd = right barrel (+2 units), even = left barrel (-2 units).
    */
-  uint32_t quake_nailgun_barrel;
+  uint32_t quakeNailgunBarrel;
 
   /**
    */
-  int16_t damage_armor;
+  int16_t damageArmor;
 
   /**
    * @brief Damage taken to health this frame.
    */
-  int16_t damage_health;
+  int16_t damageHealth;
 
   /**
    * @brief Damage inflicted on other clients this frame.
    */
-  int16_t damage_inflicted;
+  int16_t damageInflicted;
 
   /**
    * @brief Maximum armor the client can carry.
    */
-  int16_t max_armor;
+  int16_t maxArmor;
 
   /**
    * @brief Maximum health the client can be boosted to.
    */
-  int16_t max_boost_health;
+  int16_t maxBoostHealth;
 
   /**
    * @brief Horizontal speed after the last move.
@@ -1702,190 +1702,190 @@ struct GameClient {
   /**
    * @brief Angles received in the last movement command.
    */
-  Vec3 cmd_angles;
+  Vec3 cmdAngles;
 
   /**
    * @brief View kick angles accumulated this frame.
    */
-  Vec3 kick_angles;
+  Vec3 kickAngles;
 
   /**
    * @brief Client may respawn when time exceeds this.
    */
-  uint32_t respawn_time;
+  uint32_t respawnTime;
 
   /**
    * @brief The time at which this client died, used to gate the forced
    * BOTH_DEATHx -> BOTH_DEADx animation transition (see DEATH_ANIM_SETTLE_TIME).
    */
-  uint32_t death_time;
+  uint32_t deathTime;
 
   /**
    * @brief Respawn protection expires at this time.
    */
-  uint32_t respawn_protection_time;
+  uint32_t respawnProtectionTime;
 
   /**
    * @brief Level time when the client last touched the ground.
    */
-  uint32_t ground_time;
+  uint32_t groundTime;
 
   /**
    * @brief Falling damage becomes eligible when time exceeds this.
    */
-  uint32_t boost_time;
+  uint32_t boostTime;
 
   /**
    * @brief Drowning damage becomes eligible when time exceeds this.
    */
-  uint32_t drown_time;
+  uint32_t drownTime;
 
   /**
    * @brief Sizzle damage becomes eligible when time exceeds this.
    */
-  uint32_t sizzle_time;
+  uint32_t sizzleTime;
 
   /**
    * @brief Landing event fires when time exceeds this.
    */
-  uint32_t land_time;
+  uint32_t landTime;
 
   /**
    * @brief Client may jump when time exceeds this.
    */
-  uint32_t jump_time;
+  uint32_t jumpTime;
 
   /**
    * @brief Pain sound may play when time exceeds this.
    */
-  uint32_t pain_time;
+  uint32_t painTime;
 
   /**
    * @brief Footstep sound plays when time exceeds this.
    */
-  uint32_t footstep_time;
+  uint32_t footstepTime;
 
   /**
    * @brief Primary animation may update when time exceeds this.
    */
-  uint32_t animation1_time;
+  uint32_t animation1Time;
 
   /**
    * @brief Secondary animation may update when time exceeds this.
    */
-  uint32_t animation2_time;
+  uint32_t animation2Time;
 
   /**
    * @brief Held grenade detonates when time exceeds this.
    */
-  uint32_t grenade_time;
+  uint32_t grenadeTime;
 
   /**
    * @brief Level time when the client began holding a primed grenade.
    */
-  uint32_t grenade_hold_time;
+  uint32_t grenadeHoldTime;
 
   /**
    * @brief Frame number when the grenade pin was pulled.
    */
-  uint32_t grenade_hold_frame;
+  uint32_t grenadeHoldFrame;
 
   /**
    * @brief The grenade entity the client is currently holding.
    */
-  GameEntity *held_grenade;
+  GameEntity *heldGrenade;
 
   /**
    * @brief Pickup message is displayed until time exceeds this.
    */
-  uint32_t pickup_msg_time;
+  uint32_t pickupMsgTime;
 
   /**
    * @brief Last usable item picked up.
    */
-  const GameItem *last_pickup;
+  const GameItem *lastPickup;
 
   /**
    * @brief Client may chat when time exceeds this.
    */
-  uint32_t chat_time;
+  uint32_t chatTime;
 
   /**
    * @brief Quad damage is active while time is less than this.
    */
-  uint32_t quad_damage_time;
+  uint32_t quadDamageTime;
 
   /**
    * @brief Quad damage countdown warning threshold.
    */
-  uint32_t quad_countdown_time;
+  uint32_t quadCountdownTime;
 
   /**
    * @brief Quad attack sound plays when time exceeds this.
    */
-  uint32_t quad_attack_time;
+  uint32_t quadAttackTime;
 
   /**
    * @brief Invisibility is active while time is less than this.
    */
-  uint32_t invisibility_time;
+  uint32_t invisibilityTime;
 
   /**
    * @brief Invulnerability is active while time is less than this.
    */
-  uint32_t invulnerability_time;
+  uint32_t invulnerabilityTime;
 
   /**
    * @brief Pentagram countdown warning threshold.
    */
-  uint32_t invulnerability_countdown_time;
+  uint32_t invulnerabilityCountdownTime;
 
   /**
    * @brief Client being chased in spectator mode.
    */
-  GameClient *chase_target;
+  GameClient *chaseTarget;
 
   /**
    * @brief Previously chased client.
    */
-  GameClient *old_chase_target;
+  GameClient *oldChaseTarget;
 
   /**
    * @brief Last dropped item, used for variable expansion.
    */
-  const GameItem *last_dropped;
+  const GameItem *lastDropped;
 
   /**
    * @brief Death camera position and velocity, in world space. Valid while
    * `PMF_DEATH_CAM` is set on the player state.
    */
-  Vec3 death_cam_origin, death_cam_velocity;
+  Vec3 deathCamOrigin, deathCamVelocity;
 
   /**
    * @brief The displacement the camera eases through as it settles, away from
    * the point of death.
    */
-  Vec3 death_cam_offset;
+  Vec3 deathCamOffset;
 
   /**
    * @brief The angles the death camera is looking through.
    */
-  Vec3 death_cam_angles;
+  Vec3 deathCamAngles;
 
   /**
    * @brief The level time at which the death camera was armed.
    */
-  uint32_t death_cam_time;
+  uint32_t deathCamTime;
 
   /**
    * @brief True if the scoreboard layout flag should be set.
    */
-  bool show_scores;
+  bool showScores;
 
   /**
    * @brief Scores may be sent when time exceeds this.
    */
-  uint32_t scores_time;
+  uint32_t scoresTime;
 
   };
 
@@ -1908,7 +1908,7 @@ struct GameEntity {
   /**
    * @brief Spawn flags (`SF_ITEM_HOVER`, etc.).
    */
-  uint32_t spawn_flags;
+  uint32_t spawnFlags;
 
   /**
    * @brief Means of death this entity inflicts, for projectiles and other inflictors.
@@ -1923,17 +1923,17 @@ struct GameEntity {
   /**
    * @brief Physics move type.
    */
-  GameMoveType move_type;
+  GameMoveType moveType;
 
   /**
    * @brief Physics move parameters and state.
    */
-  GameMoveInfo move_info;
+  GameMoveInfo moveInfo;
 
   /**
    * @brief Clip mask (e.g. `CONTENTS_MASK_CLIP_PROJECTILE`).
    */
-  int32_t clip_mask;
+  int32_t clipMask;
 
   /**
    * @brief General-purpose timestamp.
@@ -1944,7 +1944,7 @@ struct GameEntity {
    * @brief Time of the last muzzle flash, throttling the flash rate of rapid
    * firing entities independently of how often they actually fire.
    */
-  uint32_t flash_time;
+  uint32_t flashTime;
 
   /**
    * @brief Target name to fire when triggered.
@@ -1954,7 +1954,7 @@ struct GameEntity {
   /**
    * @brief This entity's target name.
    */
-  const char *target_name;
+  const char *targetName;
 
   /**
    * @brief Message to print when triggered.
@@ -1969,7 +1969,7 @@ struct GameEntity {
   /**
    * @brief Cached pointer to the target entity.
    */
-  GameEntity *target_ent;
+  GameEntity *targetEnt;
 
   /**
    * @brief Movement speed and acceleration parameters.
@@ -1979,7 +1979,7 @@ struct GameEntity {
   /**
    * @brief Direction of movement derived from angles.
    */
-  Vec3 move_dir;
+  Vec3 moveDir;
 
   /**
    * @brief Start and end positions for movers.
@@ -2004,7 +2004,7 @@ struct GameEntity {
   /**
    * @brief Level time of the next Think invocation.
    */
-  uint32_t next_think;
+  uint32_t nextThink;
 
   /**
    * @brief Per-frame think callback.
@@ -2039,27 +2039,27 @@ struct GameEntity {
   /**
    * @brief Cooldown timer for Touch events.
    */
-  uint32_t touch_time;
+  uint32_t touchTime;
 
   /**
    * @brief Sound to play when this projectile hits a structural surface.
    */
-  uint16_t hit_sound;
+  uint16_t hitSound;
 
   /**
    * @brief Time of the last push interaction.
    */
-  uint32_t push_time;
+  uint32_t pushTime;
 
   /**
    * @brief Time of the last water ripple.
    */
-  uint32_t ripple_time;
+  uint32_t rippleTime;
 
   /**
    * @brief Radius of the last water ripple.
    */
-  float ripple_size;
+  float rippleSize;
 
   /**
    * @brief Current health.
@@ -2069,7 +2069,7 @@ struct GameEntity {
   /**
    * @brief Maximum health.
    */
-  int16_t max_health;
+  int16_t maxHealth;
 
   /**
    * @brief True if the entity is dead.
@@ -2079,7 +2079,7 @@ struct GameEntity {
   /**
    * @brief True if the entity can receive damage.
    */
-  bool take_damage;
+  bool takeDamage;
 
   /**
    * @brief Damage dealt on contact.
@@ -2094,7 +2094,7 @@ struct GameEntity {
   /**
    * @brief Radius for splash damage.
    */
-  float damage_radius;
+  float damageRadius;
 
   /**
    * @brief General-purpose counter (usage varies by entity type).
@@ -2114,12 +2114,12 @@ struct GameEntity {
   /**
    * @brief First entity in a team chain.
    */
-  GameEntity *team_master;
+  GameEntity *teamMaster;
 
   /**
    * @brief Next entity in the team chain.
    */
-  GameEntity *team_next;
+  GameEntity *teamNext;
 
   /**
    * @brief Looping ambient sound index.
@@ -2149,12 +2149,12 @@ struct GameEntity {
   /**
    * @brief Content type of water the entity is submerged in.
    */
-  int32_t water_type;
+  int32_t waterType;
 
   /**
    * @brief Current water immersion level.
    */
-  PlayerMoveWaterLevel water_level;
+  PlayerMoveWaterLevel waterLevel;
 
   /**
    * @brief Item definition for bonus item entities.
@@ -2175,14 +2175,14 @@ struct GameEntity {
   /**
    * @brief True if the entity should advance along the item path.
    */
-  bool move_node;
+  bool moveNode;
 
   /**
    * @brief What this brush is to a racer's movement, for the `func_race_*` classes.
    */
-  GameRaceBarrier race_barrier;
-  GameRaceGate race_gate;
-  uint16_t race_barrier_slot; // its index in race_course.barriers
+  GameRaceBarrier raceBarrier;
+  GameRaceGate raceGate;
+  uint16_t raceBarrierSlot; // its index in race_course.barriers
 };
 
 typedef struct GameEntity GameEntity;

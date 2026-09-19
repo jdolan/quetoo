@@ -175,25 +175,25 @@ static bool Parse_SkipComments(Parser *parser) {
 
   while (true) {
     char c = *parser->position.ptr;
-    bool parsed_comments = false;
+    bool parsedComments = false;
 
     if (c == '/') {
 
-      if (!parsed_comments && (parser->flags & PARSER_C_LINE_COMMENTS)) {
-        parsed_comments = Parse_SkipCommentLine(parser, "//") || parsed_comments;
+      if (!parsedComments && (parser->flags & PARSER_C_LINE_COMMENTS)) {
+        parsedComments = Parse_SkipCommentLine(parser, "//") || parsedComments;
       }
 
-      if (!parsed_comments && (parser->flags & PARSER_C_BLOCK_COMMENTS)) {
-        parsed_comments = Parse_SkipCommentBlock(parser, "/*", "*/") || parsed_comments;
+      if (!parsedComments && (parser->flags & PARSER_C_BLOCK_COMMENTS)) {
+        parsedComments = Parse_SkipCommentBlock(parser, "/*", "*/") || parsedComments;
       }
     } else if (c == '#') {
 
-      if (!parsed_comments && (parser->flags & PARSER_POUND_LINE_COMMENTS)) {
-        parsed_comments = Parse_SkipCommentLine(parser, "#") || parsed_comments;
+      if (!parsedComments && (parser->flags & PARSER_POUND_LINE_COMMENTS)) {
+        parsedComments = Parse_SkipCommentLine(parser, "#") || parsedComments;
       }
     }
 
-    if (!parsed_comments) {
+    if (!parsedComments) {
       break;
     }
 
@@ -209,18 +209,18 @@ static bool Parse_SkipComments(Parser *parser) {
  * @brief Handles the appending routine for output. Returns false if the added character would overflow the
  * output buffer.
  */
-static bool Parse_AppendOutputChar(Parser *parser, const ParseFlags flags, const char c, size_t *output_position, char *output, const size_t output_len) {
+static bool Parse_AppendOutputChar(Parser *parser, const ParseFlags flags, const char c, size_t *outputPosition, char *output, const size_t outputLen) {
 
   if (!output) {
     return true;
   }
 
-  if (*output_position >= output_len - 1) { // buffer overrun
+  if (*outputPosition >= outputLen - 1) { // buffer overrun
     if (!(flags & PARSE_ALLOW_OVERRUN)) {
       return false;
     }
   } else {
-    output[(*output_position)++] = c;
+    output[(*outputPosition)++] = c;
   }
 
   return true;
@@ -229,7 +229,7 @@ static bool Parse_AppendOutputChar(Parser *parser, const ParseFlags flags, const
 /**
  * @brief Handles parsing a quoted string.
  */
-static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size_t *output_position, char *output, const size_t output_len) {
+static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size_t *outputPosition, char *output, const size_t outputLen) {
   char c = *parser->position.ptr;
 
   if (c != '"') {
@@ -237,7 +237,7 @@ static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size
   }
 
   if (flags & PARSE_RETAIN_QUOTES) {
-    if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
+    if (!Parse_AppendOutputChar(parser, flags, '"', outputPosition, output, outputLen)) {
       return false;
     }
   }
@@ -277,7 +277,7 @@ static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size
         if (escaped != '\0') {
 
           // copy it in
-          if (!Parse_AppendOutputChar(parser, flags, escaped, output_position, output, output_len)) {
+          if (!Parse_AppendOutputChar(parser, flags, escaped, outputPosition, output, outputLen)) {
             return false;
           }
 
@@ -292,8 +292,8 @@ static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size
       if (*parser->position.ptr == '\0') {
         return false;
       }
-      if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len) ||
-        !Parse_AppendOutputChar(parser, flags, *parser->position.ptr, output_position, output, output_len)) {
+      if (!Parse_AppendOutputChar(parser, flags, c, outputPosition, output, outputLen) ||
+        !Parse_AppendOutputChar(parser, flags, *parser->position.ptr, outputPosition, output, outputLen)) {
         return false;
       }
 
@@ -309,13 +309,13 @@ static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size
     }
 
     // regular char, just append
-    if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len)) {
+    if (!Parse_AppendOutputChar(parser, flags, c, outputPosition, output, outputLen)) {
       return false;
     }
   }
 
   if (flags & PARSE_RETAIN_QUOTES) {
-    if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
+    if (!Parse_AppendOutputChar(parser, flags, '"', outputPosition, output, outputLen)) {
       return false;
     }
   }
@@ -328,21 +328,21 @@ static bool Parse_ParseQuotedString(Parser *parser, const ParseFlags flags, size
  * buffer into this function.
  * @return false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
  */
-bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const size_t output_len) {
-  ParserPosition old_position = { NULL, 0, 0 };
+bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const size_t outputLen) {
+  ParserPosition oldPosition = { NULL, 0, 0 };
 
   if (!parser) {
     return false;
   }
 
   if (flags & PARSE_PEEK) {
-    old_position = parser->position;
+    oldPosition = parser->position;
   }
 
   // empty out da token
   if (output) {
 
-    if (!output_len) {
+    if (!outputLen) {
       return false; // why did you do this
     }
 
@@ -371,7 +371,7 @@ bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const siz
 
   if (c == '"') { // handle quotes with special function
 
-    if (!Parse_ParseQuotedString(parser, flags, &i, output, output_len)) {
+    if (!Parse_ParseQuotedString(parser, flags, &i, output, outputLen)) {
       return false;
     }
 
@@ -379,7 +379,7 @@ bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const siz
     // regular token
     while (c > 32) {
 
-      if (!Parse_AppendOutputChar(parser, flags, c, &i, output, output_len)) {
+      if (!Parse_AppendOutputChar(parser, flags, c, &i, output, outputLen)) {
         return false;
       }
 
@@ -388,12 +388,12 @@ bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const siz
     }
   }
 
-  if (!Parse_AppendOutputChar(parser, flags, '\0', &i, output, output_len)) {
+  if (!Parse_AppendOutputChar(parser, flags, '\0', &i, output, outputLen)) {
     return false;
   }
 
   if (flags & PARSE_PEEK) {
-    parser->position = old_position;
+    parser->position = oldPosition;
   }
 
   return true;
@@ -429,7 +429,7 @@ static size_t Parse_TypeSize(const ParseType type) {
 static bool Parse_TypeParse(const ParseType type, const char *input, void *output) {
   int32_t result;
   static byte scan_buffer[sizeof(double)];
-  const size_t type_size = Parse_TypeSize(type);
+  const size_t typeSize = Parse_TypeSize(type);
 
   switch (type) {
   case PARSE_UINT8:
@@ -461,7 +461,7 @@ static bool Parse_TypeParse(const ParseType type, const char *input, void *outpu
 
   if (result == 1) {
     if (output) {
-      memcpy(output, scan_buffer, type_size);
+      memcpy(output, scan_buffer, typeSize);
     }
     return true;
   }
@@ -477,23 +477,23 @@ static __thread char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to h
  * @return The number of primitives successfully parsed.
  */
 size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType type, void *output, const size_t count) {
-  ParserPosition old_position = { NULL, 0, 0 };
-  const size_t type_size = Parse_TypeSize(type);
-  size_t num_parsed = 0;
+  ParserPosition oldPosition = { NULL, 0, 0 };
+  const size_t typeSize = Parse_TypeSize(type);
+  size_t numParsed = 0;
 
   if (flags & PARSE_PEEK) {
-    old_position = parser->position;
+    oldPosition = parser->position;
   }
 
-  const ParseFlags prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
+  const ParseFlags primFlags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
 
-  if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
+  if (!Parse_Token(parser, primFlags, scratch, sizeof(scratch))) {
 
     if (flags & PARSE_PEEK) {
-      parser->position = old_position;
+      parser->position = oldPosition;
     }
 
-    return num_parsed;
+    return numParsed;
   }
 
   // if we had quotes...
@@ -501,18 +501,18 @@ size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType t
     // init sub-parser without quotes
     scratch[q_strlen(scratch) - 1] = '\0';
 
-    num_parsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
+    numParsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
   } else {
     for (size_t i = 0; i < count; i++) {
 
       if (i != 0) { // 0 is parsed above for quote checking
-        if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
+        if (!Parse_Token(parser, primFlags, scratch, sizeof(scratch))) {
 
           if (flags & PARSE_PEEK) {
-            parser->position = old_position;
+            parser->position = oldPosition;
           }
 
-          return num_parsed;
+          return numParsed;
         }
       }
 
@@ -520,17 +520,17 @@ size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType t
         break;
       }
 
-      num_parsed++;
+      numParsed++;
 
       if (output) {
-        output = ((uint8_t *) output) + type_size;
+        output = ((uint8_t *) output) + typeSize;
       }
     }
   }
 
   if (flags & PARSE_PEEK) {
-    parser->position = old_position;
+    parser->position = oldPosition;
   }
 
-  return num_parsed;
+  return numParsed;
 }

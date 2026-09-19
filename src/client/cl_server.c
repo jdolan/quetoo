@@ -125,7 +125,7 @@ void Cl_ParseServerInfo(void) {
     server = Cl_AddServer(&net_from);
 
     server->source = SERVER_SOURCE_BCAST;
-    server->ping_time = cls.broadcast_time;
+    server->pingTime = cls.broadcastTime;
   }
 
   const size_t length = net_message.read < net_message.size
@@ -138,9 +138,9 @@ void Cl_ParseServerInfo(void) {
             Net_NetaddrToString(&net_from), (uintptr_t) length);
 
   // First line is the server infostring; subsequent lines are player entries.
-  char *player_start = q_strchr(string, '\n');
-  if (player_start) {
-    *player_start++ = '\0';
+  char *playerStart = q_strchr(string, '\n');
+  if (playerStart) {
+    *playerStart++ = '\0';
   }
 
   char hostname[sizeof(server->hostname)];
@@ -150,25 +150,25 @@ void Cl_ParseServerInfo(void) {
 
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  const char *server_guid = InfoString_Get(string, "sv_guid");
+  const char *serverGuid = InfoString_Get(string, "sv_guid");
   const char *mode = InfoString_Get(string, "g_gameplay_mode");
   q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
   const char *move = InfoString_Get(string, "g_movement_mode");
   q_strlcpy(movement, *move ? move : InfoString_Get(string, "g_movement"), sizeof(movement));
-  const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
+  const int32_t maxClients = atoi(InfoString_Get(string, "sv_max_clients"));
 
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
     q_strlcpy(server->name, name, sizeof(server->name));
-    q_strlcpy(server->guid, server_guid, sizeof(server->guid));
+    q_strlcpy(server->guid, serverGuid, sizeof(server->guid));
     q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
     q_strlcpy(server->movement, movement, sizeof(server->movement));
-    server->max_clients = max_clients;
+    server->maxClients = maxClients;
 
     server->clients = 0;
     server->bots = 0;
 
-    const char *line = player_start;
+    const char *line = playerStart;
     while (line && *line) {
       const char *end = q_strchr(line, '\n');
       if (!end) {
@@ -188,22 +188,22 @@ void Cl_ParseServerInfo(void) {
       line = end + 1;
     }
 
-    const int32_t sample = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
+    const int32_t sample = Clampf(quetoo.ticks - server->pingTime, 1u, 999u);
 
     // smooth across refreshes so the displayed ping converges instead of
     // bouncing on each request's one-shot round-trip measurement
-    if (server->ping_smoothed == 0) {
-      server->ping_smoothed = sample;
+    if (server->pingSmoothed == 0) {
+      server->pingSmoothed = sample;
     } else {
-      server->ping_smoothed = (server->ping_smoothed * 3 + sample) / 4;
+      server->pingSmoothed = (server->pingSmoothed * 3 + sample) / 4;
     }
 
-    server->ping = server->ping_smoothed;
+    server->ping = server->pingSmoothed;
     server->error[0] = '\0';
 
     Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, gameplay %s, %d/%d clients (%d bots), %dms\n",
               Net_NetaddrToString(&net_from), server->hostname, server->name, server->gameplay,
-              server->clients, server->max_clients, server->bots, server->ping);
+              server->clients, server->maxClients, server->bots, server->ping);
 
     Cl_MergeDuplicateServers(server);
 
@@ -214,7 +214,7 @@ void Cl_ParseServerInfo(void) {
     server->movement[0] = '\0';
 
     server->clients = 0;
-    server->max_clients = 0;
+    server->maxClients = 0;
     server->bots = 0;
 
     q_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
@@ -261,7 +261,7 @@ void Cl_Ping_f(void) {
     server->source = SERVER_SOURCE_USER;
   }
 
-  server->ping_time = quetoo.ticks;
+  server->pingTime = quetoo.ticks;
   server->ping = 999;
 
   Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
@@ -284,7 +284,7 @@ void Cl_QueryServer(const NetAddr *addr) {
     server->source = SERVER_SOURCE_USER;
   }
 
-  server->ping_time = quetoo.ticks;
+  server->pingTime = quetoo.ticks;
 
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
 }
@@ -312,7 +312,7 @@ static void Cl_SendBroadcast(void) {
     ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (s->source == SERVER_SOURCE_BCAST) {
-      s->ping_time = quetoo.ticks;
+      s->pingTime = quetoo.ticks;
       s->ping = 999;
     }
   }
@@ -327,7 +327,7 @@ static void Cl_SendBroadcast(void) {
 
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
 
-  cls.broadcast_time = quetoo.ticks;
+  cls.broadcastTime = quetoo.ticks;
 }
 
 /**
@@ -422,7 +422,7 @@ void Cl_ParseServers(void) {
     server = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (server->source == SERVER_SOURCE_INTERNET) {
-      server->ping_time = quetoo.ticks;
+      server->pingTime = quetoo.ticks;
       server->ping = 0;
 
       Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
@@ -451,7 +451,7 @@ void Cl_Servers_List_f(void) {
 
     q_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
-               s->max_clients, s->ping);
+               s->maxClients, s->ping);
     Com_Print("%s\n", string);
   }
 }

@@ -89,7 +89,7 @@ rgb9e5 float3_to_rgb9e5(const float rgb[3])
   float maxrgb, maxm;
   int rm, gm, bm;
   float rc, gc, bc;
-  int exp_shared;
+  int expShared;
   double denom;
 
   rc = ClampRange_for_rgb9e5(rgb[0]);
@@ -97,17 +97,17 @@ rgb9e5 float3_to_rgb9e5(const float rgb[3])
   bc = ClampRange_for_rgb9e5(rgb[2]);
 
   maxrgb = MaxOf3(rc, gc, bc);
-  exp_shared = Max(-RGB9E5_EXP_BIAS-1, FloorLog2(maxrgb)) + 1 + RGB9E5_EXP_BIAS;
-  assert(exp_shared <= RGB9E5_MAX_VALID_BIASED_EXP);
-  assert(exp_shared >= 0);
+  expShared = Max(-RGB9E5_EXP_BIAS-1, FloorLog2(maxrgb)) + 1 + RGB9E5_EXP_BIAS;
+  assert(expShared <= RGB9E5_MAX_VALID_BIASED_EXP);
+  assert(expShared >= 0);
   /* This pow function could be replaced by a table. */
-  denom = pow(2, exp_shared - RGB9E5_EXP_BIAS - RGB9E5_MANTISSA_BITS);
+  denom = pow(2, expShared - RGB9E5_EXP_BIAS - RGB9E5_MANTISSA_BITS);
 
   maxm = (int) floor(maxrgb / denom + 0.5);
   if (maxm == MAX_RGB9E5_MANTISSA+1) {
   denom *= 2;
-  exp_shared += 1;
-  assert(exp_shared <= RGB9E5_MAX_VALID_BIASED_EXP);
+  expShared += 1;
+  assert(expShared <= RGB9E5_MAX_VALID_BIASED_EXP);
   } else {
   assert(maxm <= MAX_RGB9E5_MANTISSA);
   }
@@ -126,7 +126,7 @@ rgb9e5 float3_to_rgb9e5(const float rgb[3])
   retval.field.r = rm;
   retval.field.g = gm;
   retval.field.b = bm;
-  retval.field.biasedexponent = exp_shared;
+  retval.field.biasedexponent = expShared;
 
   return retval;
 }

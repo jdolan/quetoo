@@ -79,7 +79,7 @@ static void FreeTreePortals_r(Node *node) {
 }
 
 void FreeTreePortals(Tree *tree) {
-  FreeTreePortals_r(tree->head_node);
+  FreeTreePortals_r(tree->headNode);
 }
 
 /**
@@ -117,8 +117,8 @@ void FreeTree_r(Node *node) {
 void FreeTree(Tree *tree) {
 
   Com_Verbose("--- FreeTree ---\n");
-  FreeTreePortals_r(tree->head_node);
-  FreeTree_r(tree->head_node);
+  FreeTreePortals_r(tree->headNode);
+  FreeTree_r(tree->headNode);
   Mem_Free(tree);
   Com_Verbose("--- FreeTree complete ---\n");
 }
@@ -154,7 +154,7 @@ static int32_t SelectSplitSideHeuristic(const BrushSide *side, const CsgBrush *b
 
   const int32_t plane = side->plane & ~1;
 
-  int32_t front = 0, back = 0, on = 0, num_split_sides = 0;
+  int32_t front = 0, back = 0, on = 0, numSplitSides = 0;
 
   for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
 
@@ -171,12 +171,12 @@ static int32_t SelectSplitSideHeuristic(const BrushSide *side, const CsgBrush *b
       on++;
     }
 
-    num_split_sides += i;
+    numSplitSides += i;
   }
 
   // give a value estimate for using this plane
 
-  int32_t value = 5 * on - 5 * num_split_sides - abs(front - back);
+  int32_t value = 5 * on - 5 * numSplitSides - abs(front - back);
 
   if (AXIAL(&planes[plane])) {
     value += 5;
@@ -190,16 +190,16 @@ static int32_t SelectSplitSideHeuristic(const BrushSide *side, const CsgBrush *b
  */
 static const BrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
 
-  const BrushSide *best_side = NULL;
-  int32_t best_value = INT32_MIN;
+  const BrushSide *bestSide = NULL;
+  int32_t bestValue = INT32_MIN;
 
   Vector *cache = $(alloc(Vector), initWithSize, sizeof(intptr_t));
 
-  bool have_structural = false;
+  bool haveStructural = false;
   for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
     if (!(brush->original->contents & CONTENTS_DETAIL)) {
       if (brush->original->contents & CONTENTS_MASK_VISIBLE) {
-        have_structural = true;
+        haveStructural = true;
         break;
       }
     }
@@ -208,13 +208,13 @@ static const BrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
   for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
 
     if (brush->original->contents & CONTENTS_DETAIL) {
-      if (have_structural) {
+      if (haveStructural) {
         continue;
       }
     }
 
-    const BrushSide *side = brush->brush_sides;
-    for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+    const BrushSide *side = brush->brushSides;
+    for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
       if (side->surface & SURF_BEVEL) {
         continue;
@@ -240,31 +240,31 @@ static const BrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
 
       CsgBrush *front, *back;
       SplitBrush(node->volume, plane, &front, &back);
-      const bool valid_split = (front && back);
+      const bool validSplit = (front && back);
       if (front) {
         FreeBrush(front);
       }
       if (back) {
         FreeBrush(back);
       }
-      if (!valid_split) {
+      if (!validSplit) {
         continue;
       }
 
       const int32_t value = SelectSplitSideHeuristic(side, brushes);
-      if (value > best_value) {
-        best_side = side->original;
-        best_value = value;
+      if (value > bestValue) {
+        bestSide = side->original;
+        bestValue = value;
       }
 
-      intptr_t cached_plane = plane;
-      $(cache, add, &cached_plane);
+      intptr_t cachedPlane = plane;
+      $(cache, add, &cachedPlane);
     }
   }
 
   release(cache);
 
-  return best_side;
+  return bestSide;
 }
 
 /**
@@ -278,29 +278,29 @@ static void SplitBrushes(CsgBrush *brushes, const Node *node, CsgBrush **front, 
 
     const int32_t s = BrushOnPlaneSide(brush, node->plane);
     if (s == SIDE_BOTH) {
-      CsgBrush *front_brush, *back_brush;
-      SplitBrush(brush, node->plane, &front_brush, &back_brush);
-      if (front_brush) {
-        front_brush->next = *front;
-        *front = front_brush;
+      CsgBrush *frontBrush, *backBrush;
+      SplitBrush(brush, node->plane, &frontBrush, &backBrush);
+      if (frontBrush) {
+        frontBrush->next = *front;
+        *front = frontBrush;
       }
-      if (back_brush) {
-        back_brush->next = *back;
-        *back = back_brush;
+      if (backBrush) {
+        backBrush->next = *back;
+        *back = backBrush;
       }
       continue;
     }
 
-    CsgBrush *new_brush = CopyBrush(brush);
+    CsgBrush *newBrush = CopyBrush(brush);
 
     if (s & SIDE_FRONT) {
-      new_brush->next = *front;
-      *front = new_brush;
+      newBrush->next = *front;
+      *front = newBrush;
       continue;
     }
     if (s & SIDE_BACK) {
-      new_brush->next = *back;
-      *back = new_brush;
+      newBrush->next = *back;
+      *back = newBrush;
       continue;
     }
   }
@@ -316,15 +316,15 @@ static Node *BuildTree_r(Node *node, CsgBrush *brushes) {
   const Vec3 size = Box3_Size(node->volume->bounds);
 
   int32_t axis = 0;
-  float longest_side = 0.f;
+  float longestSide = 0.f;
   for (int32_t i = 0; i < 3; i++) {
-    if (size.xyz[i] > longest_side) {
-      longest_side = size.xyz[i];
+    if (size.xyz[i] > longestSide) {
+      longestSide = size.xyz[i];
       axis = i;
     }
   }
 
-  if (longest_side > BSP_BLOCK_SIZE) {
+  if (longestSide > BSP_BLOCK_SIZE) {
     node->contents = CONTENTS_BLOCK;
 
     if (node->parent) {
@@ -345,12 +345,12 @@ static Node *BuildTree_r(Node *node, CsgBrush *brushes) {
       node->contents = CONTENTS_NODE;
     }
 
-    node->split_side = SelectSplitSide(node, brushes);
-    if (!node->split_side) {
+    node->splitSide = SelectSplitSide(node, brushes);
+    if (!node->splitSide) {
       return LeafNode(node, brushes);
     }
 
-    node->plane = node->split_side->plane & ~1;
+    node->plane = node->splitSide->plane & ~1;
   }
 
   node->children[0] = AllocNode();
@@ -388,41 +388,41 @@ Tree *BuildTree(CsgBrush *brushes) {
 
   tree->bounds = Box3_Null();
 
-  int32_t num_brushes = 0;
-  int32_t num_brush_sides = 0;
+  int32_t numBrushes = 0;
+  int32_t numBrushSides = 0;
 
   for (CsgBrush *b = brushes; b; b = b->next) {
-    num_brushes++;
+    numBrushes++;
 
     const float volume = BrushVolume(b);
     if (volume < micro_volume) {
       Com_Warn("Entity %d brush %d produced microvolume\n", b->original->entity, b->original->brush);
     }
 
-    const BrushSide *s = b->brush_sides;
-    for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+    const BrushSide *s = b->brushSides;
+    for (int32_t i = 0; i < b->numBrushSides; i++, s++) {
       if (s->surface & SURF_BEVEL) {
         continue;
       }
       if (s->surface & SURF_NODE) {
         continue;
       }
-      num_brush_sides++;
+      numBrushSides++;
     }
 
     tree->bounds = Box3_Union(tree->bounds, b->bounds);
   }
 
-  assert(num_brushes);
-  assert(num_brush_sides);
+  assert(numBrushes);
+  assert(numBrushSides);
 
-  Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
-  Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
+  Com_Debug(DEBUG_ALL, "%5i brushes\n", numBrushes);
+  Com_Debug(DEBUG_ALL, "%5i brush sides\n", numBrushSides);
 
-  tree->head_node = AllocNode();
-  tree->head_node->volume = BrushFromBounds(Box3_Expand(tree->bounds, 1.f));
+  tree->headNode = AllocNode();
+  tree->headNode->volume = BrushFromBounds(Box3_Expand(tree->bounds, 1.f));
 
-  BuildTree_r(tree->head_node, brushes);
+  BuildTree_r(tree->headNode, brushes);
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Building tree", (uint32_t) SDL_GetTicks() - start);
 
@@ -484,7 +484,7 @@ static Box3 CalcNodeVisibleBounds_r(Node *node) {
   const Box3 a = CalcNodeVisibleBounds_r(node->children[0]);
   const Box3 b = CalcNodeVisibleBounds_r(node->children[1]);
 
-  node->visible_bounds = Box3_Union(a, b);
+  node->visibleBounds = Box3_Union(a, b);
 
   for (Face *face = node->faces; face; face = face->next) {
 
@@ -494,10 +494,10 @@ static Box3 CalcNodeVisibleBounds_r(Node *node) {
     }
 
     assert(f->w);
-    node->visible_bounds = Box3_Union(node->visible_bounds, Cm_WindingBounds(f->w));
+    node->visibleBounds = Box3_Union(node->visibleBounds, Cm_WindingBounds(f->w));
   }
 
-  return node->visible_bounds;
+  return node->visibleBounds;
 }
 
 
@@ -507,7 +507,7 @@ static Box3 CalcNodeVisibleBounds_r(Node *node) {
 void MergeTreeFaces(Tree *tree) {
   Com_Verbose("--- MergeTreeFaces ---\n");
   c_merged_faces = 0;
-  MergeFaces_r(tree->head_node);
-  CalcNodeVisibleBounds_r(tree->head_node);
+  MergeFaces_r(tree->headNode);
+  CalcNodeVisibleBounds_r(tree->headNode);
   Com_Verbose("%5i merged faces\n", c_merged_faces);
 }

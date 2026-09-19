@@ -32,15 +32,15 @@ typedef struct Node {
   struct Node *parent;
   int32_t plane; // -1 = leaf node
   Box3 bounds; // valid after portalization
-  Box3 visible_bounds; // valid after face merging
+  Box3 visibleBounds; // valid after face merging
   CsgBrush *volume; // one for each leaf/node
   int32_t contents; // OR of all brush contents, or CONTENTS_NODE, CONTENTS_BLOCK
 
   // nodes only
-  const BrushSide *split_side; // the side that created the node
+  const BrushSide *splitSide; // the side that created the node
   struct Node *children[2];
   Face *faces;
-  struct PatchFace *patch_faces;
+  struct PatchFace *patchFaces;
 
   // leafs only
   CsgBrush *brushes; // fragments of all brushes in this leaf
@@ -53,8 +53,8 @@ Node *AllocNode(void);
 void FreeNode(Node *node);
 
 typedef struct {
-  Node *head_node;
-  Node outside_node;
+  Node *headNode;
+  Node outsideNode;
   Box3 bounds;
 } Tree;
 

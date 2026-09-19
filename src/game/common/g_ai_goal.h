@@ -26,7 +26,7 @@
 
 void G_Ai_SetPositionGoal(const GameClient *cl, AiGoal *goal, float priority, const Vec3 position);
 void G_Ai_SetEntityGoal(const GameClient *cl, AiGoal *goal, float priority, const GameEntity *entity);
-void G_Ai_SetPathGoal(const GameClient *cl, AiGoal *goal, float priority, Vector *path, const GameEntity *path_target);
+void G_Ai_SetPathGoal(const GameClient *cl, AiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget);
 void G_Ai_CopyGoal(const AiGoal *from, AiGoal *to);
 void G_Ai_ClearGoal(AiGoal *goal);
 bool G_Ai_GoalHasEntity(const AiGoal *goal, const GameEntity *ent);

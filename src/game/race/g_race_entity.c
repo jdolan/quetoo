@@ -38,16 +38,16 @@
 /**
  * @brief The common half of every race trigger's setup.
  */
-static void G_trigger_race_Init(GameEntity *ent, void (*Touch)(GameEntity *, GameEntity *, const CmTrace *)) {
+static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, GameEntity *, const CmTrace *)) {
 
   if (ent->wait == 0.f) {
     ent->wait = RACE_TRIGGER_WAIT;
   }
 
   ent->solid = SOLID_TRIGGER;
-  ent->move_type = MOVE_TYPE_NONE;
-  ent->sv_flags |= SVF_NO_CLIENT;
-  ent->Touch = Touch;
+  ent->moveType = MOVE_TYPE_NONE;
+  ent->svFlags |= SVF_NO_CLIENT;
+  ent->Touch = touch;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
@@ -96,7 +96,7 @@ static void G_trigger_race_start_Touch(GameEntity *ent, GameEntity *other, const
  */
 static void G_trigger_race_start(GameEntity *ent) {
 
-  const char *mode = gi.EntityValue(ent->def, "start_mode")->nullable_string;
+  const char *mode = gi.EntityValue(ent->def, "start_mode")->nullableString;
 
   if (!mode || !*mode || !q_strcasecmp(mode, "touch")) {
     ent->count = RACE_START_TOUCH;
@@ -155,7 +155,7 @@ static void G_trigger_race_checkpoint(GameEntity *ent) {
  * @brief The trigger's number as its milestones are announced.
  */
 static const char *G_trigger_race_Label(const GameEntity *ent) {
-  return gi.EntityValue(ent->def, "label")->nullable_string;
+  return gi.EntityValue(ent->def, "label")->nullableString;
 }
 
 /**
@@ -201,7 +201,7 @@ static void G_trigger_race_split(GameEntity *ent) {
 static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) &&
-      G_Race_Stage(other->client, ent->count, G_trigger_race_Label(ent), ent->target_ent)) {
+      G_Race_Stage(other->client, ent->count, G_trigger_race_Label(ent), ent->targetEnt)) {
     G_UseTargets(ent, other);
   }
 }
@@ -223,7 +223,7 @@ static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const
 static void G_trigger_race_stage(GameEntity *ent) {
 
   const CmEntity *stage = gi.EntityValue(ent->def, "stage");
-  const char *restart = gi.EntityValue(ent->def, "restart_target")->nullable_string;
+  const char *restart = gi.EntityValue(ent->def, "restart_target")->nullableString;
 
   const bool complete = (stage->parsed & ENTITY_INTEGER) && restart && *restart;
 
@@ -246,17 +246,17 @@ void G_Race_ResolveStages(void) {
   GameEntity *stage = NULL;
   while ((stage = G_Find(stage, EOFS(classname), "trigger_race_stage"))) {
 
-    const char *name = gi.EntityValue(stage->def, "restart_target")->nullable_string;
+    const char *name = gi.EntityValue(stage->def, "restart_target")->nullableString;
 
-    GameEntity *anchor = G_Find(NULL, EOFS(target_name), name);
+    GameEntity *anchor = G_Find(NULL, EOFS(targetName), name);
 
-    if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(target_name), name)) {
+    if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
       G_Warn("%s needs restart_target to name one info_notnull, and \"%s\" does not\n", etos(stage), name);
-      g_level.race_course.stages_valid = false;
+      g_level.raceCourse.stagesValid = false;
       continue;
     }
 
-    stage->target_ent = anchor;
+    stage->targetEnt = anchor;
   }
 }
 
@@ -297,21 +297,21 @@ static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
     return;
   }
 
-  if (g_level.race_course.barrier_count == RACE_MAX_BARRIERS) {
+  if (g_level.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
     G_Warn("%s is one func_race_* too many; the level may have %d\n", etos(ent), RACE_MAX_BARRIERS);
     G_FreeEntity(ent);
     return;
   }
 
-  ent->race_barrier = barrier;
-  ent->race_barrier_slot = g_level.race_course.barrier_count;
+  ent->raceBarrier = barrier;
+  ent->raceBarrierSlot = g_level.raceCourse.barrierCount;
   ent->solid = SOLID_BSP;
-  ent->move_type = MOVE_TYPE_NONE;
+  ent->moveType = MOVE_TYPE_NONE;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
 
-  g_level.race_course.barriers[g_level.race_course.barrier_count++] = ent;
+  g_level.raceCourse.barriers[g_level.raceCourse.barrierCount++] = ent;
 }
 
 /*QUAKED func_race_checkpoint_gate (0 .5 .8) ?
@@ -328,7 +328,7 @@ static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
 static void G_func_race_checkpoint_gate(GameEntity *ent) {
 
   const CmEntity *cp = gi.EntityValue(ent->def, "cp");
-  const char *mode = gi.EntityValue(ent->def, "mode")->nullable_string;
+  const char *mode = gi.EntityValue(ent->def, "mode")->nullableString;
 
   if (!(cp->parsed & ENTITY_INTEGER) || cp->integer < 1 || cp->integer > RACE_MAX_CHECKPOINTS) {
     G_Warn("%s needs cp, an integer from 1 through %d\n", etos(ent), RACE_MAX_CHECKPOINTS);
@@ -351,7 +351,7 @@ static void G_func_race_checkpoint_gate(GameEntity *ent) {
     return;
   }
 
-  ent->race_gate = gate;
+  ent->raceGate = gate;
 
   G_func_race_Init(ent, RACE_BARRIER_GATE);
 }
@@ -369,9 +369,9 @@ static void G_func_race_checkpoint_gate(GameEntity *ent) {
 static void G_func_race_oneway_wall(GameEntity *ent) {
 
   G_SetMoveDir(ent);
-  ent->move_dir.z = 0.f;
+  ent->moveDir.z = 0.f;
 
-  if (Vec3_Equal(ent->move_dir, Vec3_Zero())) {
+  if (Vec3_Equal(ent->moveDir, Vec3_Zero())) {
     G_Warn("%s needs angle, a direction of travel in the horizontal plane\n", etos(ent));
     G_FreeEntity(ent);
     return;
@@ -390,48 +390,48 @@ static void G_func_race_oneway_wall(GameEntity *ent) {
  */
 static bool G_Race_Passes(const GameClient *cl, const GameEntity *ent) {
 
-  if (ent->race_barrier == RACE_BARRIER_GATE) {
-    const GameRaceRun *run = &cl->race_run;
+  if (ent->raceBarrier == RACE_BARRIER_GATE) {
+    const GameRaceRun *run = &cl->raceRun;
 
     if (run->state != RACE_RUN_ACTIVE) {
       return true;
     }
 
-    const GameRaceGate *gate = &ent->race_gate;
+    const GameRaceGate *gate = &ent->raceGate;
     const bool open = gate->mode == RACE_GATE_EXACT
-                      ? run->checkpoint_count == gate->checkpoint
-                      : run->checkpoint_count >= gate->checkpoint;
+                      ? run->checkpointCount == gate->checkpoint
+                      : run->checkpointCount >= gate->checkpoint;
 
     return open != gate->invert;
   }
 
   const GameEntity *self = cl->entity;
 
-  if (gi.Clip(self->s.origin, self->s.origin, self->bounds, ent, CONTENTS_MASK_CLIP_PLAYER).start_solid) {
+  if (gi.Clip(self->s.origin, self->s.origin, self->bounds, ent, CONTENTS_MASK_CLIP_PLAYER).startSolid) {
     return true;
   }
 
-  const Vec3 offset = Vec3_Subtract(self->s.origin, Box3_Center(ent->abs_bounds));
+  const Vec3 offset = Vec3_Subtract(self->s.origin, Box3_Center(ent->absBounds));
 
-  return offset.x * ent->move_dir.x + offset.y * ent->move_dir.y < 0.f;
+  return offset.x * ent->moveDir.x + offset.y * ent->moveDir.y < 0.f;
 }
 
 /**
  * @see g_race.h
  */
 void G_Race_UpdateBarriers(GameClient *cl) {
-  const GameRaceCourse *course = &g_level.race_course;
+  const GameRaceCourse *course = &g_level.raceCourse;
 
-  if (!course->barrier_count) {
+  if (!course->barrierCount) {
     return;
   }
 
-  cl->race_passable = 0;
+  cl->racePassable = 0;
   int32_t count = 0;
 
-  for (uint16_t i = 0; i < course->barrier_count; i++) {
+  for (uint16_t i = 0; i < course->barrierCount; i++) {
     if (G_Race_Passes(cl, course->barriers[i])) {
-      cl->race_passable |= 1u << i;
+      cl->racePassable |= 1u << i;
       count++;
     }
   }
@@ -439,8 +439,8 @@ void G_Race_UpdateBarriers(GameClient *cl) {
   gi.WriteByte(SV_CMD_RACE_BARRIERS);
   gi.WriteByte(count);
 
-  for (uint16_t i = 0; i < course->barrier_count; i++) {
-    if (cl->race_passable & (1u << i)) {
+  for (uint16_t i = 0; i < course->barrierCount; i++) {
+    if (cl->racePassable & (1u << i)) {
       gi.WriteShort(course->barriers[i]->s.number);
     }
   }
@@ -456,11 +456,11 @@ void G_Race_UpdateBarriers(GameClient *cl) {
  */
 bool G_Race_ClipEntity(const GameEntity *mover, const GameEntity *ent) {
 
-  if (ent->race_barrier == RACE_BARRIER_NONE || !mover || !mover->client) {
+  if (ent->raceBarrier == RACE_BARRIER_NONE || !mover || !mover->client) {
     return true;
   }
 
-  return !(mover->client->race_passable & (1u << ent->race_barrier_slot));
+  return !(mover->client->racePassable & (1u << ent->raceBarrierSlot));
 }
 
 static const struct {

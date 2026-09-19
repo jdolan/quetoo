@@ -28,12 +28,12 @@ RenderLights r_lights;
  */
 void R_AddLight(RenderView *view, const RenderLight *l) {
 
-  if (view->num_lights == MAX_LIGHTS) {
+  if (view->numLights == MAX_LIGHTS) {
     Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
     return;
   }
 
-  RenderLight *out = &view->lights[view->num_lights++];
+  RenderLight *out = &view->lights[view->numLights++];
 
   *out = *l;
 }
@@ -48,9 +48,9 @@ void R_ActiveDynamicLights(const RenderView *view, const Box3 bounds, RenderActi
   int32_t j = 0;
 
   const RenderLight *l = view->lights;
-  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+  for (int32_t i = 0; i < view->numLights; i++, l++) {
 
-    if (l->bsp_light) {
+    if (l->bspLight) {
       continue;
     }
 
@@ -71,10 +71,10 @@ void R_ActiveDynamicLights(const RenderView *view, const Box3 bounds, RenderActi
  */
 static void R_UploadLightBlock(CopyPass *copyPass, Buffer *buffer, const void *block, uint32_t size) {
 
-  $(r_lights.transfer_buffer, write, block, size, true);
+  $(r_lights.transferBuffer, write, block, size, true);
 
   $(copyPass, uploadBuffer,
-    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_lights.transfer_buffer->buffer },
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_lights.transferBuffer->buffer },
     &(SDL_GPUBufferRegion) { .buffer = buffer->buffer, .size = size },
     true);
 }
@@ -85,29 +85,29 @@ static void R_UploadLightBlock(CopyPass *copyPass, Buffer *buffer, const void *b
  */
 void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
 
-  RenderBspLightsUniformBlock *bsp_lights = &r_lights.bsp_block;
-  RenderDynamicLightsUniformBlock *dynamic_lights = &r_lights.dynamic_block;
+  RenderBspLightsUniformBlock *bspLights = &r_lights.bspBlock;
+  RenderDynamicLightsUniformBlock *dynamicLights = &r_lights.dynamicBlock;
 
-  memset(bsp_lights, 0, sizeof(*bsp_lights));
-  memset(dynamic_lights, 0, sizeof(*dynamic_lights));
+  memset(bspLights, 0, sizeof(*bspLights));
+  memset(dynamicLights, 0, sizeof(*dynamicLights));
 
-  bsp_lights->num_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
+  bspLights->numLights = r_models.world ? r_models.world->bsp->numLights : 0;
 
-  int32_t num_dynamic_lights = 0;
+  int32_t numDynamicLights = 0;
 
   RenderLight *l = view->lights;
-  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+  for (int32_t i = 0; i < view->numLights; i++, l++) {
 
     RenderLightUniform *out;
-    if (l->bsp_light) {
-      const ptrdiff_t index = (ptrdiff_t) (l->bsp_light - r_models.world->bsp->lights);
-      out = &bsp_lights->lights[index];
+    if (l->bspLight) {
+      const ptrdiff_t index = (ptrdiff_t) (l->bspLight - r_models.world->bsp->lights);
+      out = &bspLights->lights[index];
     } else {
-      if (num_dynamic_lights == MAX_DYNAMIC_LIGHTS) {
+      if (numDynamicLights == MAX_DYNAMIC_LIGHTS) {
         Com_Debug(DEBUG_RENDERER, "MAX_DYNAMIC_LIGHTS\n");
         continue;
       }
-      out = &dynamic_lights->lights[num_dynamic_lights++];
+      out = &dynamicLights->lights[numDynamicLights++];
     }
 
     out->origin = Vec3_ToVec4(l->origin, l->radius);
@@ -117,25 +117,25 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
     // culls its own frustum and nothing more
     if (view->type == VIEW_PORTAL) {
       l->occluded = R_CullBox(view, l->bounds);
-    } else if (l->bsp_light) {
-      l->occluded = !l->bsp_light->query->result;
+    } else if (l->bspLight) {
+      l->occluded = !l->bspLight->query->result;
     } else {
       l->occluded = R_CulludeBox(view, l->bounds);
     }
 
     if (l->occluded) {
-      r_stats->lights_occluded++;
+      r_stats->lightsOccluded++;
     } else {
-      r_stats->lights_visible++;
+      r_stats->lightsVisible++;
     }
 
     if (l->flags & R_LIGHT_NO_SHADOW) {
       l->tile = MakeVec2(-1.f, -1.f);
     } else {
-      const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
-      const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
-      l->tile = MakeVec2((float) (light_col * r_shadow_atlas.tile_size),
-                     (float) (light_row * r_shadow_atlas.tile_size));
+      const int32_t lightCol = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
+      const int32_t lightRow = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
+      l->tile = MakeVec2((float) (lightCol * r_shadow_atlas.tileSize),
+                     (float) (lightRow * r_shadow_atlas.tileSize));
     }
 
     out->tile = l->tile;
@@ -143,30 +143,30 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
     R_UpdateLightEntities(view, l, i);
   }
 
-  dynamic_lights->num_lights = num_dynamic_lights;
+  dynamicLights->numLights = numDynamicLights;
 
-  const uint32_t bsp_size = offsetof(RenderBspLightsUniformBlock, lights) + bsp_lights->num_lights * sizeof(RenderLightUniform);
-  R_UploadLightBlock(copyPass, r_lights.bsp_buffer, bsp_lights, bsp_size);
+  const uint32_t bspSize = offsetof(RenderBspLightsUniformBlock, lights) + bspLights->numLights * sizeof(RenderLightUniform);
+  R_UploadLightBlock(copyPass, r_lights.bspBuffer, bspLights, bspSize);
 
-  const uint32_t dynamic_size = offsetof(RenderDynamicLightsUniformBlock, lights) + dynamic_lights->num_lights * sizeof(RenderLightUniform);
-  R_UploadLightBlock(copyPass, r_lights.dynamic_buffer, dynamic_lights, dynamic_size);
+  const uint32_t dynamicSize = offsetof(RenderDynamicLightsUniformBlock, lights) + dynamicLights->numLights * sizeof(RenderLightUniform);
+  R_UploadLightBlock(copyPass, r_lights.dynamicBuffer, dynamicLights, dynamicSize);
 
   if (r_models.world) {
-    const RenderBspInlineModel *in = &r_models.world->bsp->inline_models[0];
+    const RenderBspInlineModel *in = &r_models.world->bsp->inlineModels[0];
 
     RenderBspBlock *block = in->blocks;
-    for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+    for (int32_t i = 0; i < in->numBlocks; i++, block++) {
 
       // a portal view cannot use occlusion queries resolved for another camera
       const bool culled = view->type == VIEW_PORTAL
-        ? R_CullBox(view, block->visible_bounds)
+        ? R_CullBox(view, block->visibleBounds)
         : block->query->result == 0;
 
       if (culled) {
         continue;
       }
 
-      R_ActiveDynamicLights(view, block->visible_bounds, &block->active_dynamic_lights);
+      R_ActiveDynamicLights(view, block->visibleBounds, &block->activeDynamicLights);
     }
   }
 }
@@ -178,24 +178,24 @@ void R_InitLights(void) {
 
   memset(&r_lights, 0, sizeof(r_lights));
 
-  r_lights.bsp_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  r_lights.bspBuffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-    .size = sizeof(r_lights.bsp_block),
+    .size = sizeof(r_lights.bspBlock),
   });
 
-  r_lights.dynamic_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  r_lights.dynamicBuffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-    .size = sizeof(r_lights.dynamic_block),
+    .size = sizeof(r_lights.dynamicBlock),
   });
 
-  r_lights.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  r_lights.transferBuffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-    .size = Maxi(sizeof(r_lights.bsp_block), sizeof(r_lights.dynamic_block)),
+    .size = Maxi(sizeof(r_lights.bspBlock), sizeof(r_lights.dynamicBlock)),
   });
 
-  const int32_t no_lights[2] = { 0, 0 };
-  r_lights.voxel_fallback_buffer = $(r_context.device, createBufferWithConstMem,
-      SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ, no_lights, sizeof(no_lights));
+  const int32_t noLights[2] = { 0, 0 };
+  r_lights.voxelFallbackBuffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ, noLights, sizeof(noLights));
 }
 
 /**
@@ -203,8 +203,8 @@ void R_InitLights(void) {
  */
 void R_ShutdownLights(void) {
 
-  r_lights.bsp_buffer = release(r_lights.bsp_buffer);
-  r_lights.dynamic_buffer = release(r_lights.dynamic_buffer);
-  r_lights.transfer_buffer = release(r_lights.transfer_buffer);
-  r_lights.voxel_fallback_buffer = release(r_lights.voxel_fallback_buffer);
+  r_lights.bspBuffer = release(r_lights.bspBuffer);
+  r_lights.dynamicBuffer = release(r_lights.dynamicBuffer);
+  r_lights.transferBuffer = release(r_lights.transferBuffer);
+  r_lights.voxelFallbackBuffer = release(r_lights.voxelFallbackBuffer);
 }

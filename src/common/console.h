@@ -212,8 +212,8 @@ typedef struct {
 } ConAutocompleteMatch;
 
 void Con_Append(int32_t level, const char *string);
-size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines);
-size_t Con_Tail(const Console *console, char **lines, size_t max_lines);
+size_t Con_Wrap(const char *chars, size_t lineWidth, char **lines, size_t maxLines);
+size_t Con_Tail(const Console *console, char **lines, size_t maxLines);
 void Con_NavigateHistory(Console *console, ConsoleHistoryNav nav);
 void Con_ReadHistory(Console *console, File *file);
 void Con_WriteHistory(const Console *console, File *file);

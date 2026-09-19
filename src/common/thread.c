@@ -41,7 +41,7 @@ typedef struct {
   /**
    * @brief The number of threads in the pool.
    */
-  size_t num_threads;
+  size_t numThreads;
 
   /**
    * @brief The threads.
@@ -99,24 +99,24 @@ static int32_t Thread_Run(void *data) {
 /**
  * @brief Initializes the threads backing the thread pool.
  */
-static void Thread_Init_(ssize_t num_threads) {
+static void Thread_Init_(ssize_t numThreads) {
 
-  if (num_threads == 0) {
-    num_threads = SDL_GetNumLogicalCPUCores();
-  } else if (num_threads == -1) {
-    num_threads = 0;
-  } else if (num_threads > MAX_THREADS) {
-    num_threads = MAX_THREADS;
+  if (numThreads == 0) {
+    numThreads = SDL_GetNumLogicalCPUCores();
+  } else if (numThreads == -1) {
+    numThreads = 0;
+  } else if (numThreads > MAX_THREADS) {
+    numThreads = MAX_THREADS;
   }
 
-  thread_pool.num_threads = num_threads;
+  thread_pool.numThreads = numThreads;
 
-  if (thread_pool.num_threads) {
-    thread_pool.threads = Mem_Malloc(sizeof(WorkerThread) * thread_pool.num_threads);
+  if (thread_pool.numThreads) {
+    thread_pool.threads = Mem_Malloc(sizeof(WorkerThread) * thread_pool.numThreads);
 
     WorkerThread *t = thread_pool.threads;
 
-    for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
+    for (size_t i = 0; i < thread_pool.numThreads; i++, t++) {
       t->cond = SDL_CreateCondition();
       t->mutex = SDL_CreateMutex();
       t->thread = SDL_CreateThread(Thread_Run, __func__, t);
@@ -129,10 +129,10 @@ static void Thread_Init_(ssize_t num_threads) {
  */
 static void Thread_Shutdown_(void) {
 
-  if (thread_pool.num_threads) {
+  if (thread_pool.numThreads) {
     WorkerThread *t = thread_pool.threads;
 
-    for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
+    for (size_t i = 0; i < thread_pool.numThreads; i++, t++) {
       Thread_Wait(t);
       t->Run = ThreadTerminate;
       SDL_SignalCondition(t->cond);
@@ -152,11 +152,11 @@ static void Thread_Shutdown_(void) {
 WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options) {
 
   // if threads are available, find an idle one and dispatch it
-  if (thread_pool.num_threads) {
+  if (thread_pool.numThreads) {
     SDL_LockSpinlock(&thread_pool.lock);
 
     WorkerThread *t = thread_pool.threads;
-    for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
+    for (size_t i = 0; i < thread_pool.numThreads; i++, t++) {
 
       // if the thread appears idle, lock it and check again
       if (t->status == THREAD_IDLE) {
@@ -218,17 +218,17 @@ void Thread_Wait(WorkerThread *t) {
  * @brief Returns the number of threads in the pool.
  */
 int32_t Thread_Count(void) {
-  return (int32_t) thread_pool.num_threads;
+  return (int32_t) thread_pool.numThreads;
 }
 
 /**
  * @brief Initializes the thread pool.
  */
-void Thread_Init(ssize_t num_threads) {
+void Thread_Init(ssize_t numThreads) {
 
   memset(&thread_pool, 0, sizeof(thread_pool));
 
-  Thread_Init_(num_threads);
+  Thread_Init_(numThreads);
 
   thread_main = SDL_GetCurrentThreadID();
 }

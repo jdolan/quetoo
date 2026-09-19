@@ -287,9 +287,9 @@ int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog) {
  */
 int32_t Net_Accept(int32_t sock, NetAddr *from) {
   net_sockaddr addr;
-  socklen_t addr_len = sizeof(addr);
+  socklen_t addrLen = sizeof(addr);
 
-  const int32_t client = (int32_t) accept(sock, (struct sockaddr *) &addr, &addr_len);
+  const int32_t client = (int32_t) accept(sock, (struct sockaddr *) &addr, &addrLen);
   if (client == -1) {
     return -1;
   }
@@ -324,8 +324,8 @@ ssize_t Net_Recv(int32_t sock, void *data, size_t len) {
 /**
  * @brief Make the specified socket non-blocking.
  */
-void Net_SetNonBlocking(int32_t sock, bool non_blocking) {
-  int32_t i = non_blocking;
+void Net_SetNonBlocking(int32_t sock, bool nonBlocking) {
+  int32_t i = nonBlocking;
 
   if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
     Com_Error(ERROR_DROP, "ioctl: %s\n", Net_GetErrorString());

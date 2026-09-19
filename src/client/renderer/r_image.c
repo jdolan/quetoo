@@ -266,8 +266,8 @@ RenderImage *R_LoadImage(const char *name, RenderImageType type) {
 
     image->depth = 6;
 
-    const size_t face_size = image->width * image->height * 4;
-    byte *data = malloc(face_size * 6);
+    const size_t faceSize = image->width * image->height * 4;
+    byte *data = malloc(faceSize * 6);
 
     for (size_t i = 0; i < 6; i++) {
 
@@ -298,7 +298,7 @@ RenderImage *R_LoadImage(const char *name, RenderImageType type) {
 
       SDL_Surface *rgba = SDL_ConvertSurface(side, SDL_PIXELFORMAT_RGBA32);
       for (int32_t y = 0; y < image->height; y++) {
-        memcpy(data + i * face_size + y * image->width * 4,
+        memcpy(data + i * faceSize + y * image->width * 4,
                (const byte *) rgba->pixels + y * rgba->pitch,
                image->width * 4);
       }

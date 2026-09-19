@@ -252,7 +252,7 @@ static void PrintHelpMessage(void) {
  * @return Exit code.
  */
 int32_t main(int32_t argc, char **argv) {
-  int32_t num_threads = 0;
+  int32_t numThreads = 0;
   const char *game = DEFAULT_GAME;
 
   printf("Quemap %s %s\n", VERSION, BUILD);
@@ -299,7 +299,7 @@ int32_t main(int32_t argc, char **argv) {
     }
 
     if (!q_strcmp(Com_Argv(i), "-t") || !q_strcmp(Com_Argv(i), "--threads")) {
-      num_threads = atoi(Com_Argv(i + 1));
+      numThreads = atoi(Com_Argv(i + 1));
       continue;
     }
 
@@ -337,7 +337,7 @@ int32_t main(int32_t argc, char **argv) {
     Com_Error(ERROR_FATAL, "No action specified.\n");
   }
 
-  Thread_Init(num_threads);
+  Thread_Init(numThreads);
   Com_Print("Using %d threads\n", Thread_Count());
 
   const char *filename = Com_Argv(Com_Argc() - 1);

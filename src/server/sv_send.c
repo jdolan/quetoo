@@ -37,7 +37,7 @@ void Sv_ClientPrint(const GameClient *cl, const int32_t level, const char *fmt, 
     return;
   }
 
-  if (level < client->message_level) {
+  if (level < client->messageLevel) {
     Com_Debug(DEBUG_SERVER, "Filtered by message level\n");
     return;
   }
@@ -50,9 +50,9 @@ void Sv_ClientPrint(const GameClient *cl, const int32_t level, const char *fmt, 
 
   va_end(args);
 
-  Net_WriteByte(&client->net_chan.message, SV_CMD_PRINT);
-  Net_WriteByte(&client->net_chan.message, level);
-  Net_WriteString(&client->net_chan.message, string);
+  Net_WriteByte(&client->netChan.message, SV_CMD_PRINT);
+  Net_WriteByte(&client->netChan.message, level);
+  Net_WriteString(&client->netChan.message, string);
 }
 
 /**
@@ -84,7 +84,7 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
   ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
-    if (level < cl->message_level) {
+    if (level < cl->messageLevel) {
       continue;
     }
 
@@ -96,9 +96,9 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
       continue;
     }
 
-    Net_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
-    Net_WriteByte(&cl->net_chan.message, level);
-    Net_WriteString(&cl->net_chan.message, string);
+    Net_WriteByte(&cl->netChan.message, SV_CMD_PRINT);
+    Net_WriteByte(&cl->netChan.message, level);
+    Net_WriteString(&cl->netChan.message, string);
   }
 }
 
@@ -143,7 +143,7 @@ void Sv_ClientDatagramMessage(ServerClient *cl, byte *data, size_t len) {
     }
   }
 
-  if (len > cl->datagram.buffer.max_size - cl->datagram.buffer.size) {
+  if (len > cl->datagram.buffer.maxSize - cl->datagram.buffer.size) {
     Com_Warn("Datagram full for %s, dropping %zu byte message\n", Sv_NetaddrToString(cl), len);
     return;
   }
@@ -176,7 +176,7 @@ void Sv_Unicast(const GameClient *cl, const bool reliable) {
   ServerClient *client = svs.clients + cl->ps.client;
 
   if (reliable) {
-    Mem_WriteBuffer(&client->net_chan.message, sv.multicast.data, sv.multicast.size);
+    Mem_WriteBuffer(&client->netChan.message, sv.multicast.data, sv.multicast.size);
   } else {
     Sv_ClientDatagramMessage(client, sv.multicast.data, sv.multicast.size);
   }
@@ -225,7 +225,7 @@ void Sv_Multicast(const Vec3 origin, Multicast to) {
       continue;
     }
 
-    if (cl->net_chan.message.max_size == 0) {
+    if (cl->netChan.message.maxSize == 0) {
       continue;
     }
 
@@ -242,7 +242,7 @@ void Sv_Multicast(const Vec3 origin, Multicast to) {
     }
 
     if (reliable) {
-      Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
+      Mem_WriteBuffer(&cl->netChan.message, sv.multicast.data, sv.multicast.size);
     } else {
       Sv_ClientDatagramMessage(cl, sv.multicast.data, sv.multicast.size);
     }
@@ -273,7 +273,7 @@ static void Sv_SendClientDatagram(ServerClient *cl) {
       if (buf.size + msg->len > (MAX_MSG_SIZE_UDP - 16)) {
         Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
-        Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+        Netchan_Transmit(&cl->netChan, buf.data, buf.size);
 
         Mem_ClearBuffer(&buf);
       }
@@ -283,7 +283,7 @@ static void Sv_SendClientDatagram(ServerClient *cl) {
   }
 
   // send the pending packet, which may include reliable messages
-  Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+  Netchan_Transmit(&cl->netChan, buf.data, buf.size);
 }
 
 /**
@@ -297,24 +297,24 @@ void Sv_SendClientPackets(void) {
 
   // for demo playback, this tick's frame is read once and shared by every client, rather than
   // each client consuming its own chunk from the demo file
-  byte demo_buffer[MAX_MSG_SIZE];
-  size_t demo_size = 0;
+  byte demoBuffer[MAX_MSG_SIZE];
+  size_t demoSize = 0;
 
   if (svs.state == SV_ACTIVE_DEMO) {
 
     // an unwatched demo server shouldn't burn through its recording, or advance a playlist,
     // with nobody connected to see it
-    bool demo_watched = false;
+    bool demoWatched = false;
     const ServerClient *c = svs.clients;
     for (int32_t i = 0; i < sv_max_clients->integer; i++, c++) {
       if (c->state != SV_CLIENT_FREE && !svs.clients[i].gclient->ai) {
-        demo_watched = true;
+        demoWatched = true;
         break;
       }
     }
 
-    if (demo_watched) {
-      demo_size = Sv_GetDemoFrame(demo_buffer);
+    if (demoWatched) {
+      demoSize = Sv_GetDemoFrame(demoBuffer);
 
       // reaching EOF with no next demo, or an invalid one, shuts the server down and frees
       // svs.clients from underneath us
@@ -337,7 +337,7 @@ void Sv_SendClientPackets(void) {
     }
 
     if (svs.state == SV_ACTIVE_DEMO) { // send the demo packet
-      if (!Sv_SendDemoPacket(cl, demo_buffer, demo_size)) {
+      if (!Sv_SendDemoPacket(cl, demoBuffer, demoSize)) {
         break; // recording is done, so we're done
       }
     } else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
@@ -349,10 +349,10 @@ void Sv_SendClientPackets(void) {
 
       cl->datagram.messages = release(cl->datagram.messages);
 
-    } else if (cl->net_chan.message.size) { // update reliable
-      Netchan_Transmit(&cl->net_chan, NULL, 0);
-    } else if (quetoo.ticks - cl->net_chan.last_sent > 1000) { // or just don't timeout
-      Netchan_Transmit(&cl->net_chan, NULL, 0);
+    } else if (cl->netChan.message.size) { // update reliable
+      Netchan_Transmit(&cl->netChan, NULL, 0);
+    } else if (quetoo.ticks - cl->netChan.lastSent > 1000) { // or just don't timeout
+      Netchan_Transmit(&cl->netChan, NULL, 0);
     }
   }
 }

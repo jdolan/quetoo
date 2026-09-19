@@ -52,7 +52,7 @@ struct GridKdTree {
 
 void gridkdtree_free(struct GridKdTree **tree);
 struct GridKdTree *gridkdtree_create(Vec3 *srcdata, size_t count);
-size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, float max_distance,
+size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, float maxDistance,
                                GridKdTreeFilter filter, void *data);
 
 struct GHeap *gheap_create(size_t capacity);

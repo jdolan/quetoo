@@ -37,7 +37,7 @@ typedef struct {
   /**
    * @brief The absolute bounds of the trace, spanning the start and end points.
    */
-  Box3 abs_bounds;
+  Box3 absBounds;
 
   /**
    * @brief The contents mask to collide with, as provided by the user.
@@ -47,7 +47,7 @@ typedef struct {
   /**
    * @brief The brush cache, to avoid multiple tests against the same brush.
    */
-  int32_t brush_cache[128];
+  int32_t brushCache[128];
 
   /**
    * @brief The trace result.
@@ -57,18 +57,18 @@ typedef struct {
   /**
    * @brief The trace fraction not taking any epsilon nudging into account.
    */
-  float unnudged_fraction;
+  float unnudgedFraction;
 } CmTraceData;
 
 /**
  * @brief Returns true if the given brush number has already been tested in this trace, using a hash cache.
  */
-static inline bool Light_BrushAlreadyTested(CmTraceData *data, int32_t brush_num) {
-  const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
+static inline bool Light_BrushAlreadyTested(CmTraceData *data, int32_t brushNum) {
+  const int32_t hash = brushNum & (lengthof(data->brushCache) - 1);
 
-  const bool skip = (data->brush_cache[hash] == brush_num);
+  const bool skip = (data->brushCache[hash] == brushNum);
 
-  data->brush_cache[hash] = brush_num;
+  data->brushCache[hash] = brushNum;
 
   return skip;
 }
@@ -78,25 +78,25 @@ static inline bool Light_BrushAlreadyTested(CmTraceData *data, int32_t brush_num
  */
 static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush) {
 
-  if (!brush->num_brush_sides) {
+  if (!brush->numBrushSides) {
     return;
   }
 
-  if (!Box3_Intersects(data->abs_bounds, brush->bounds)) {
+  if (!Box3_Intersects(data->absBounds, brush->bounds)) {
     return;
   }
 
-  float enter_fraction = -1.f;
-  float leave_fraction = 1.f;
-  float nudged_enter_fraction = -1.f;
+  float enterFraction = -1.f;
+  float leaveFraction = 1.f;
+  float nudgedEnterFraction = -1.f;
 
   CmBspPlane plane = { };
   const CmBspBrushSide *side = NULL;
 
-  bool start_outside = false, end_outside = false;
+  bool startOutside = false, endOutside = false;
 
-  const CmBspBrushSide *s = brush->brush_sides + brush->num_brush_sides - 1;
-  for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {
+  const CmBspBrushSide *s = brush->brushSides + brush->numBrushSides - 1;
+  for (int32_t i = brush->numBrushSides - 1; i >= 0; i--, s--) {
 
     CmBspPlane *p = s->plane;
 
@@ -106,10 +106,10 @@ static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush
     const float d2 = Vec3_Dot(data->end, p->normal) - dist;
 
     if (d1 > 0.f) {
-      start_outside = true;
+      startOutside = true;
     }
     if (d2 > 0.f) {
-      end_outside = true;
+      endOutside = true;
     }
 
     // if completely in front of plane, the trace does not intersect with the brush
@@ -123,39 +123,39 @@ static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush
     }
 
     // the trace intersects this side
-    const float d2d1_dist = (d1 - d2);
+    const float d2d1Dist = (d1 - d2);
 
     if (d1 > d2) { // enter
-      const float f = d1 / d2d1_dist;
-      if (f > enter_fraction) {
-        enter_fraction = f;
+      const float f = d1 / d2d1Dist;
+      if (f > enterFraction) {
+        enterFraction = f;
         plane = *p;
         side = s;
-        nudged_enter_fraction = (d1 - TRACE_EPSILON) / d2d1_dist;
+        nudgedEnterFraction = (d1 - TRACE_EPSILON) / d2d1Dist;
       }
     } else { // leave
-      const float f = d1 / d2d1_dist;
-      if (f < leave_fraction) {
-        leave_fraction = f;
+      const float f = d1 / d2d1Dist;
+      if (f < leaveFraction) {
+        leaveFraction = f;
       }
     }
   }
 
   // some sort of collision has occurred
 
-  if (!start_outside) { // original point was inside brush
-    data->trace.start_solid = true;
-    if (!end_outside) {
-      data->trace.all_solid = true;
+  if (!startOutside) { // original point was inside brush
+    data->trace.startSolid = true;
+    if (!endOutside) {
+      data->trace.allSolid = true;
       data->trace.contents = brush->contents;
       data->trace.fraction = 0.f;
-      data->unnudged_fraction = 0.f;
+      data->unnudgedFraction = 0.f;
     }
-  } else if (enter_fraction < leave_fraction) { // pierced brush
-    if (enter_fraction > -1.f && enter_fraction < data->unnudged_fraction && nudged_enter_fraction < data->trace.fraction) {
-      data->unnudged_fraction = enter_fraction;
-      data->trace.fraction = nudged_enter_fraction;
-      data->trace.brush_side = side;
+  } else if (enterFraction < leaveFraction) { // pierced brush
+    if (enterFraction > -1.f && enterFraction < data->unnudgedFraction && nudgedEnterFraction < data->trace.fraction) {
+      data->unnudgedFraction = enterFraction;
+      data->trace.fraction = nudgedEnterFraction;
+      data->trace.brushSide = side;
       data->trace.plane = plane;
       data->trace.contents = side->contents;
       data->trace.surface = side->surface;
@@ -167,23 +167,23 @@ static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush
 /**
  * @brief Traces through a single BSP leaf, testing all brushes within against the bounding box.
  */
-static inline void Light_TraceToLeaf(CmTraceData *data, int32_t leaf_num) {
+static inline void Light_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
 
-  const CmBspLeaf *leaf = &Cm_Bsp()->leafs[leaf_num];
+  const CmBspLeaf *leaf = &Cm_Bsp()->leafs[leafNum];
 
   if (!(leaf->contents & data->contents)) {
     return;
   }
 
   // trace line against all brushes in the leaf
-  for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
-    const int32_t brush_num = Cm_Bsp()->leaf_brushes[leaf->first_leaf_brush + i];
+  for (int32_t i = 0; i < leaf->numLeafBrushes; i++) {
+    const int32_t brushNum = Cm_Bsp()->leafBrushes[leaf->firstLeafBrush + i];
 
-    if (Light_BrushAlreadyTested(data, brush_num)) {
+    if (Light_BrushAlreadyTested(data, brushNum)) {
       continue; // already checked this brush in another leaf
     }
 
-    const CmBspBrush *b = &Cm_Bsp()->brushes[brush_num];
+    const CmBspBrush *b = &Cm_Bsp()->brushes[brushNum];
 
     if (!(b->contents & data->contents)) {
       continue;
@@ -191,7 +191,7 @@ static inline void Light_TraceToLeaf(CmTraceData *data, int32_t leaf_num) {
 
     Light_TraceToBrush(data, b);
 
-    if (data->trace.all_solid) {
+    if (data->trace.allSolid) {
       return;
     }
   }
@@ -262,7 +262,7 @@ static inline void Light_TraceToNode(CmTraceData *data, int32_t num, float p1f, 
   }
 
   // move up to the node if we can potentially hit it
-  if (p1f < data->unnudged_fraction) {
+  if (p1f < data->unnudgedFraction) {
     frac1 = Clampf01(frac1);
 
     const float midf1 = p1f + (p2f - p1f) * frac1;
@@ -284,7 +284,7 @@ static inline void Light_TraceToNode(CmTraceData *data, int32_t num, float p1f, 
 
   const float midf2 = p1f + (p2f - p1f) * frac2;
 
-  if (midf2 < data->unnudged_fraction) {
+  if (midf2 < data->unnudgedFraction) {
     const Vec3 mid = Vec3_Mix(p1, p2, frac2);
 
     num = node->children[side ^ 1];
@@ -314,7 +314,7 @@ static inline void Light_TraceToNode(CmTraceData *data, int32_t num, float p1f, 
  *
  * @return The trace.
  */
-static inline CmTrace Light_Trace_(Vec3 start, Vec3 end, int32_t head_node, int32_t contents) {
+static inline CmTrace Light_Trace_(Vec3 start, Vec3 end, int32_t headNode, int32_t contents) {
 
   CmTraceData data;
 
@@ -324,13 +324,13 @@ static inline CmTrace Light_Trace_(Vec3 start, Vec3 end, int32_t head_node, int3
 
   data.start = start;
   data.end = end;
-  data.abs_bounds = Box3_FromPoints((const Vec3 []) { start, end }, 2);
+  data.absBounds = Box3_FromPoints((const Vec3 []) { start, end }, 2);
   data.contents = contents;
-  data.unnudged_fraction = 1.f + TRACE_EPSILON;
+  data.unnudgedFraction = 1.f + TRACE_EPSILON;
 
-  memset(data.brush_cache, 0xff, sizeof(data.brush_cache));
+  memset(data.brushCache, 0xff, sizeof(data.brushCache));
 
-  Light_TraceToNode(&data, head_node, 0.f, 1.f, data.start, data.end);
+  Light_TraceToNode(&data, headNode, 0.f, 1.f, data.start, data.end);
 
   data.trace.fraction = Maxf(0.f, data.trace.fraction);
 
@@ -348,12 +348,12 @@ static inline CmTrace Light_Trace_(Vec3 start, Vec3 end, int32_t head_node, int3
 /**
  * @brief Returns the combined brush contents at point p for the world and the optional inline model head node.
  */
-int32_t Light_PointContents(const Vec3 p, int32_t head_node) {
+int32_t Light_PointContents(const Vec3 p, int32_t headNode) {
 
   int32_t contents = Cm_PointContents(p, 0, Mat4_Identity());
 
-  if (head_node) {
-    contents |= Cm_PointContents(p, head_node, Mat4_Identity());
+  if (headNode) {
+    contents |= Cm_PointContents(p, headNode, Mat4_Identity());
   }
 
   return contents;
@@ -366,15 +366,15 @@ int32_t Light_PointContents(const Vec3 p, int32_t head_node) {
  * @param mask The contents mask to clip to.
  * @return The trace.
  */
-CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t head_node, int32_t mask) {
+CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t headNode, int32_t mask) {
   CmTrace trace = Light_Trace_(start, end, 0, mask);
-  if (trace.start_solid) {
+  if (trace.startSolid) {
     trace.fraction = 0.f;
   }
 
-  if (head_node) {
-    CmTrace tr = Light_Trace_(start, end, head_node, mask);
-    if (tr.start_solid) {
+  if (headNode) {
+    CmTrace tr = Light_Trace_(start, end, headNode, mask);
+    if (tr.startSolid) {
       tr.fraction = 0.f;
     }
     if (tr.fraction < trace.fraction) {
@@ -391,25 +391,25 @@ CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t head_node, int32_t
 static void LightWorld(void) {
 
   // build voxel
-  const size_t num_voxel = BuildVoxels();
+  const size_t numVoxel = BuildVoxels();
 
   // build lights out of entities and brush sides
   BuildLights();
 
   // calculate direct lighting
-  Work("Lighting", LightVoxel, (int32_t) num_voxel);
+  Work("Lighting", LightVoxel, (int32_t) numVoxel);
 
   // feather lights into neighboring voxels to smooth boundaries
   FloodLights();
 
   // calculate exposure from sky visibility
-  Work("Exposure", ExposureVoxel, (int32_t) num_voxel);
+  Work("Exposure", ExposureVoxel, (int32_t) numVoxel);
 
   // calculate caustics from liquid contents
-  Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
+  Work("Caustics", CausticsVoxel, (int32_t) numVoxel);
 
   // calculate reverb enclosure
-  Work("Occlusion", OccludeVoxel, (int32_t) num_voxel);
+  Work("Occlusion", OccludeVoxel, (int32_t) numVoxel);
 
   // smooth voxel grid to reduce 32-unit grid discontinuities
   SmoothVoxels();
@@ -447,7 +447,7 @@ int32_t LIGHT_Main(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
+  if (bsp_file.numNodes == 0 || bsp_file.numFaces == 0) {
     Com_Error(ERROR_FATAL, "Empty map\n");
   }
 
