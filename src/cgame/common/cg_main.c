@@ -610,11 +610,11 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.HandleEvent = Cg_HandleEvent;
   cge.Look = Cg_Look;
   cge.Move = Cg_ExportMove;
+  cge.Chat = Cg_Chat;
+  cge.Voice = Cg_Voice;
   cge.LoadMedia = Cg_LoadMedia;
   cge.FreeMedia = Cg_FreeMedia;
   cge.ParsedMessage = Cg_ParsedMessage;
-  cge.Chat = Cg_Chat;
-  cge.Voice = Cg_Voice;
   cge.ParseMessage = Cg_ParseMessage;
   cge.Interpolate = Cg_Interpolate;
   cge.UsePrediction = Cg_ExportUsePrediction;
