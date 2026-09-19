@@ -193,6 +193,11 @@ dnl Check for OpenAL
 dnl ----------------
 PKG_CHECK_MODULES([OPENAL], [openal >= 1.20])
 
+dnl --------------
+dnl Check for Opus
+dnl --------------
+PKG_CHECK_MODULES([OPUS], [opus >= 1.3])
+
 dnl -------------------
 dnl Check for PhysicsFS
 dnl -------------------

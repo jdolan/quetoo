@@ -1868,6 +1868,15 @@ void G_ClientDisconnect(g_client_t *cl) {
 
   G_ClientWillDisconnect(cl);
 
+  // client numbers are reused, so a mute left behind would silence whoever inherits the slot
+  const uint64_t bit = (uint64_t) 1 << cl->ps.client;
+
+  G_ForEachClient(other, {
+    other->persistent.muted_clients &= ~bit;
+  });
+
+  cl->persistent.muted_clients = 0;
+
   if (cl->entity) {
     G_TossInventory(cl);
     G_TossInvisibility(cl);
@@ -2412,4 +2421,38 @@ void G_ClientBeginFrame(g_client_t *cl) {
 #endif
 
   cl->latched_buttons = 0;
+}
+
+/**
+ * @brief Returns true if `listener` may hear `speaker` on `channel`.
+ * @details Voice is governed by the same rules as chat: an administratively muted player is not
+ * heard, the team channel reaches only teammates, and a spectator is held to other spectators
+ * wherever g_spectator_chat says chat would be.
+ */
+bool G_ClientCanHearVoice(const g_client_t *speaker, const g_client_t *listener, uint8_t channel) {
+
+  if (!speaker || !listener) {
+    return false;
+  }
+
+  if (speaker->persistent.muted) {
+    return false;
+  }
+
+  switch (channel) {
+
+    case VOICE_CHANNEL_TEAM:
+      return G_OnSameTeam(speaker, listener);
+
+    case VOICE_CHANNEL_ALL:
+      if (speaker->persistent.spectator && !g_spectator_chat->integer) {
+        return listener->persistent.spectator;
+      }
+      return true;
+
+    default:
+      // a channel this game does not define is refused, rather than widened to everyone: the byte
+      // arrives from a client and nothing stops it being arbitrary
+      return false;
+  }
 }

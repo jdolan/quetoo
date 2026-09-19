@@ -40,4 +40,5 @@
 #include "sv_master.h"
 #include "sv_send.h"
 #include "sv_types.h"
+#include "sv_voice.h"
 #include "sv_world.h"

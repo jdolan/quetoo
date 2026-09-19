@@ -15,6 +15,7 @@ noinst_HEADERS = \
 	sv_master.h \
 	sv_send.h \
 	sv_types.h \
+	sv_voice.h \
 	sv_world.h
 
 noinst_LTLIBRARIES = \
@@ -34,6 +35,7 @@ libserver_la_SOURCES = \
 	sv_map_list.c \
 	sv_master.c \
 	sv_send.c \
+	sv_voice.c \
 	sv_world.c
 
 libserver_la_CFLAGS = \

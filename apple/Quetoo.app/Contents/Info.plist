@@ -24,6 +24,8 @@
 	<string>10.15</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Quetoo uses your microphone for in-game voice chat.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

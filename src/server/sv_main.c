@@ -53,6 +53,8 @@ cvar_t *sv_timeout;
  */
 void Sv_DropClient(sv_client_t *client) {
 
+  Sv_ClearVoiceMutes(client);
+
   if (client->state > SV_CLIENT_FREE) { // send the disconnect
 
     g_client_t *cl = client->gclient;
@@ -990,6 +992,8 @@ static void Sv_InitLocal(void) {
 
   // set this so clients and server browsers can see it
   Cvar_Add("sv_protocol", va("%i", PROTOCOL_MAJOR), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+
+  Sv_InitVoice();
 }
 
 /**

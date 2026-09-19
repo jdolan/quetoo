@@ -497,8 +497,22 @@ typedef enum {
   SV_CMD_RECONNECT,
   SV_CMD_SERVER_DATA, // [long] protocol ...
   SV_CMD_DEMO_INFO, // [long] duration in ms, [byte] paused; from a demo relay, on every change
+  SV_CMD_CHAT, // [byte] speaker [byte] flags [string] message; flags are the game's
+  SV_CMD_VOICE, // [byte] speaker [byte] seq [byte] flags [pos] origin [byte] len [data]
   SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
+
+/**
+ * @brief The largest Opus payload accepted for one voice frame. Generous for 20ms of speech at any
+ * sane bitrate, and small enough that a malformed length is refused before a decoder sees it.
+ */
+#define VOICE_MAX_PAYLOAD 128
+
+/**
+ * @brief Voice transmission flags.
+ */
+#define VOICE_END 0x01 // the last frame of a transmission, sent when the key is released
+#define VOICE_NO_POS 0x02 // the speaker has no position; play relative to the listener
 
 /**
  * @brief Client protocol commands. The game and client game module are free
@@ -510,6 +524,7 @@ typedef enum {
   CL_CMD_STRING, // [string] message
   CL_CMD_USER_INFO, // [user_info_string]
   CL_CMD_ENTITY_INFO, // [short] number [entity_info_string]
+  CL_CMD_VOICE, // [byte] channel [byte] seq [byte] flags [byte] len [data]; the channel is the game's
   CL_CMD_CGAME, // the game may extend from here
 } cl_packet_cmd_t;
 

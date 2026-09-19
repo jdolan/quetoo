@@ -289,6 +289,11 @@ typedef struct {
   ALCcontext *context;
 
   /**
+   * @brief True once SDL audio is up, whether or not OpenAL initialization went on to succeed.
+   */
+  bool initialized;
+
+  /**
    * @brief The renderer string reported by the AL driver.
    */
   const char *renderer;

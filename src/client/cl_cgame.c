@@ -144,6 +144,20 @@ static char *Cl_ConfigString(int32_t index) {
 }
 
 /**
+ * @brief Appends a formatted message to the consoles at the given level.
+ */
+static void Cl_CgamePrintLevel(int32_t level, const char *fmt, ...) {
+  char string[MAX_PRINT_MSG];
+
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(string, sizeof(string), fmt, args);
+  va_end(args);
+
+  Con_Append(level, string);
+}
+
+/**
  * @brief Initializes the client game subsystem, running the client game that
  * `Com_Cgame` names.
  */
@@ -176,6 +190,7 @@ void Cl_InitCgame(void) {
   import.stage = &cl_stage;
 
   import.Print = Com_Print;
+  import.PrintLevel = Cl_CgamePrintLevel;
   import.Debug = Cl_CgameDebug;
   import.DebugMask = Cl_CgameDebugMask;
   import.Warn = Cl_CgameWarn;
@@ -292,6 +307,8 @@ void Cl_InitCgame(void) {
 
   import.LoadingProgress = Cl_LoadingProgress;
   
+  import.StartVoice = S_StartVoice;
+  import.StopVoice = S_StopVoice;
   import.LoadSample = S_LoadSample;
   import.LoadClientModelSample = S_LoadClientModelSample;
   import.LoadClientModelSamples = S_LoadClientModelSamples;

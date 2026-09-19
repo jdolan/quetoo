@@ -241,6 +241,7 @@ void G_CallTimeOut(g_entity_t *ent);
 void G_CallTimeIn(void);
 void G_RunTimers(void);
 void G_MuteClient(char *name, bool mute);
+void G_SetClientMuted(g_client_t *cl, bool mute);
 
 g_export_t *G_LoadGame(g_import_t *import);
 

@@ -45,12 +45,25 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1054
+#define PROTOCOL_MINOR 1055
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
+/**
+ * @brief Chat flags, carried opaquely by SV_CMD_CHAT. The engine does not interpret these; teams
+ * are a game concern, as CS_TEAM_INFO is, so a module defines whatever channels it supports.
+ */
+#define CHAT_TEAM 0x01 // addressed to a team rather than to everyone
+
+/**
+ * @brief Voice channels, carried opaquely by CL_CMD_VOICE. The client game names them when it
+ * transmits and the game answers for them when the server asks who may hear.
+ */
+#define VOICE_CHANNEL_ALL 0
+#define VOICE_CHANNEL_TEAM 1
+
 typedef enum {
   SV_CMD_SOUND = SV_CMD_CGAME,
   SV_CMD_MUZZLE_FLASH,
@@ -1484,6 +1497,11 @@ typedef struct {
    * @brief True if the player is muted.
    */
   bool muted;
+
+  /**
+   * @brief Mask of clients this one has muted, in both chat and voice.
+   */
+  uint64_t muted_clients;
 
   /**
    * @brief Per-install GUID sent via userinfo, used for stats reporting.

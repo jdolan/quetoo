@@ -46,6 +46,8 @@ static const char *DEFAULT_BINDS =
     "bind \"left shift\" +speed\n"
     "bind e use\n"
 
+    "bind v +voice\n"
+
     "bind t cg_message_mode\n"
     "bind return cg_message_mode\n"
     "bind y cg_message_mode_2\n"

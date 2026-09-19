@@ -129,6 +129,8 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\CenterPrintView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\ChatView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\ChatView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\VoiceView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\VoiceView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\ConsoleText.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\ConsoleText.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\NotifyView.c" />

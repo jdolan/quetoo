@@ -34,3 +34,4 @@ box3_t G_ClientStandingBounds(const g_client_t *cl);
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info);
 void G_Giblets(const g_giblets_t *giblets);
 #endif
+bool G_ClientCanHearVoice(const g_client_t *speaker, const g_client_t *listener, uint8_t channel);

@@ -72,7 +72,7 @@ static View *init(View *self) {
     $(self, awakeWithResourceName, "ui/hud/ChatView.json");
     $(self, resolve, outlets);
 
-    this->history->console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
+    this->history->console.level = PRINT_CHAT;
 
     this->input->delegate.self = this;
     this->input->delegate.didEndEditing = didEndEditing;

@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 53
+#define CGAME_API_VERSION 58
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -91,6 +91,13 @@ typedef struct cg_import_s {
    * @brief Prints a formatted message to the configured consoles.
    */
   void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+  /**
+   * @brief Prints a formatted message to the consoles at the given level.
+   * @remarks The level is what console views filter on, so chat must arrive as PRINT_CHAT to reach
+   * the chat view rather than the notification lines.
+   */
+  void (*PrintLevel)(int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
   /**
    * @return The active debug mask.
@@ -782,6 +789,16 @@ typedef struct cg_import_s {
    * @param context The asset context, e.g. `ASSET_CONTEXT_SOUNDS`, `ASSET_CONTEXT_PLAYERS`.
    * @return The loaded sample.
    */
+  /**
+   * @brief Begins a voice transmission on `channel`, which the game defines.
+   */
+  void (*StartVoice)(uint8_t channel);
+
+  /**
+   * @brief Ends a voice transmission.
+   */
+  void (*StopVoice)(void);
+
   s_sample_t *(*LoadSample)(const char *name, asset_context_t context);
 
   /**
@@ -1125,6 +1142,23 @@ typedef struct cg_export_s {
   /**
    * @brief Called each frame to draw any non-view visual elements, such as the HUD.
    */
+  /**
+   * @brief Interprets an incoming chat message, which the module renders itself.
+   * @param client The sender's client number.
+   * @param flags CHAT_TEAM, plus whatever the game defines above CHAT_GAME.
+   * @remarks The message arrives unformatted, with its sender intact, so a module decides how it
+   * reads and who it is shown to. Nothing is printed unless the module prints it.
+   */
+  void (*Chat)(int32_t client, uint8_t flags, const char *message);
+
+  /**
+   * @brief Interprets an incoming voice frame, returning false to discard it.
+   * @remarks This is presentation, not policy. The frame has already been sent, so declining it
+   * saves nothing and conceals nothing from a client that declines to decline. Anything that must
+   * actually be enforced, muting above all, belongs on the server where the relay can refuse it.
+   */
+  bool (*Voice)(int32_t client, uint8_t flags);
+
   void (*UpdateScreen)(const cl_frame_t *frame);
 
   /**

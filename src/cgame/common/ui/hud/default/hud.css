@@ -336,3 +336,22 @@ ChatView TextView > Text {
   font-style: bold;
   font-size: 28;
 }
+
+VoiceView {
+  alignment: bottom-left;
+  axis: horizontal;
+  padding-left: 32;
+  padding-bottom: 240;
+  spacing: 6;
+}
+
+VoiceView ImageView {
+  width: 20;
+  height: 20;
+}
+
+VoiceView Text {
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}

@@ -331,6 +331,43 @@ static void Cg_Score_up_f(void) {
 }
 
 /**
+ * @brief Begins a push to talk voice transmission.
+ * @details Takes an optional channel name, so that a module's own channels can be bound. Without
+ * one, holding shift promotes it to the team channel, the way shift sends a chat line as say_team:
+ * key binds carry no modifier of their own, so one bind has to serve both.
+ */
+static void Cg_Voice_down_f(void) {
+
+  const char *name = cgi.Argv(1);
+
+  // button commands are passed the scancode and time, so a bare bind presents a number here
+  if (name[0] && !isdigit(name[0])) {
+
+    if (!q_strcmp(name, "team")) {
+      cgi.StartVoice(VOICE_CHANNEL_TEAM);
+    } else if (!q_strcmp(name, "all")) {
+      cgi.StartVoice(VOICE_CHANNEL_ALL);
+    } else {
+      cgi.Print("Unknown voice channel \"%s\"\n", name);
+    }
+
+    return;
+  }
+
+  const bool team = SDL_GetModState() & SDL_KMOD_SHIFT;
+
+  cgi.StartVoice(team ? VOICE_CHANNEL_TEAM : VOICE_CHANNEL_ALL);
+}
+
+static void Cg_Voice_up_f(void) {
+  cgi.StopVoice();
+}
+
+static void Cg_VoiceTeam_down_f(void) {
+  cgi.StartVoice(VOICE_CHANNEL_TEAM);
+}
+
+/**
  * @brief Init cgame input system.
  */
 void Cg_InitInput(void) {
@@ -345,6 +382,10 @@ void Cg_InitInput(void) {
   cgi.AddCmd("-hook", Cg_Hook_up_f, CMD_CGAME, NULL);
   cgi.AddCmd("+score", Cg_Score_down_f, CMD_CGAME, NULL);
   cgi.AddCmd("-score", Cg_Score_up_f, CMD_CGAME, NULL);
+  cgi.AddCmd("+voice", Cg_Voice_down_f, CMD_CGAME, "Transmit voice chat while held; hold shift for your team.");
+  cgi.AddCmd("-voice", Cg_Voice_up_f, CMD_CGAME, NULL);
+  cgi.AddCmd("+voice_team", Cg_VoiceTeam_down_f, CMD_CGAME, "Transmit voice chat to your team while held.");
+  cgi.AddCmd("-voice_team", Cg_Voice_up_f, CMD_CGAME, NULL);
 
   Cg_ClearInput();
 }

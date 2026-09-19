@@ -124,8 +124,11 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 
 /**
  * @brief Writes to the specified datagram, noting the offset of the message.
+ * @remarks Messages that do not fit in the client's remaining datagram capacity are dropped, not
+ * truncated. Mem_WriteBuffer raises ERROR_FATAL on overflow, so an unchecked write here would take
+ * the entire server down rather than sacrifice one client's frame.
  */
-static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
+void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 
   // Ensure the datagram buffer is initialized
   if (!cl->datagram.buffer.data) {
@@ -138,6 +141,11 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     if (len > MAX_MSG_SIZE) {
       Com_Error(ERROR_DROP, "Single datagram message exceeded MAX_MSG_SIZE\n");
     }
+  }
+
+  if (len > cl->datagram.buffer.max_size - cl->datagram.buffer.size) {
+    Com_Warn("Datagram full for %s, dropping %zu byte message\n", Sv_NetaddrToString(cl), len);
+    return;
   }
 
   sv_client_message_t *msg = Mem_TagMalloc(sizeof(*msg), MEM_TAG_SERVER);

@@ -368,6 +368,39 @@ static void Cg_UpdateConfigString(int32_t i) {
 /**
  * @brief React to a parsed server command.
  */
+/**
+ * @brief Renders an incoming chat message.
+ * @details The sender arrives as a client number rather than as text, so the message can be
+ * attributed, coloured and filtered by who said it instead of by what it happens to say.
+ */
+static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
+
+  const bool team = flags & CHAT_TEAM;
+
+  const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
+
+  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cg_state.clients[client].name, color, message);
+
+  // the sound is the module's to choose, because only it knows which kind of message this is
+  const char *sample = cgi.GetCvarString(team ? "cl_team_chat_sound" : "cl_chat_sound");
+
+  if (sample && *sample) {
+    Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+      .sample = cgi.LoadSample(sample, ASSET_CONTEXT_SOUNDS),
+      .flags = S_PLAY_UI
+    });
+  }
+}
+
+/**
+ * @brief Accepts an incoming voice frame.
+ * @details Presentation only: the frame has already crossed the network, so declining it here
+ * saves nothing. Muting is enforced by the server, which refuses to relay in the first place.
+ */
+static bool Cg_Voice(int32_t client, uint8_t flags) {
+  return true;
+}
+
 static void Cg_ParsedMessage(int32_t cmd, void *data) {
 
   switch (cmd) {
@@ -570,6 +603,8 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.LoadMedia = Cg_LoadMedia;
   cge.FreeMedia = Cg_FreeMedia;
   cge.ParsedMessage = Cg_ParsedMessage;
+  cge.Chat = Cg_Chat;
+  cge.Voice = Cg_Voice;
   cge.ParseMessage = Cg_ParseMessage;
   cge.Interpolate = Cg_Interpolate;
   cge.UsePrediction = Cg_ExportUsePrediction;

@@ -264,6 +264,64 @@ static void Cl_ParseDemoInfo(void) {
 }
 
 /**
+ * @brief Parses a chat message and hands it to the client game to render.
+ * @details Chat carries its sender rather than arriving pre-formatted, so the module decides how it
+ * reads and whether it is shown at all. The engine prints nothing here.
+ */
+static void Cl_ParseChat(void) {
+
+  const int32_t client = Net_ReadByte(&net_message);
+  const uint8_t flags = Net_ReadByte(&net_message);
+  const char *message = Net_ReadString(&net_message);
+
+  if (client < 0 || client >= MAX_CLIENTS) {
+    Com_Debug(DEBUG_CLIENT, "Rejecting chat from client %d\n", client);
+    return;
+  }
+
+  if (cls.cgame) {
+    cls.cgame->Chat(client, flags, message);
+  }
+}
+
+/**
+ * @brief Parses a relayed voice frame and hands it to the sound subsystem.
+ */
+static void Cl_ParseVoice(void) {
+
+  const int32_t client = Net_ReadByte(&net_message);
+  const uint8_t seq = Net_ReadByte(&net_message);
+  const uint8_t flags = Net_ReadByte(&net_message);
+
+  vec3_t origin = Vec3_Zero();
+
+  if (!(flags & VOICE_NO_POS)) {
+    origin = Net_ReadPosition(&net_message);
+  }
+
+  const int32_t len = Net_ReadByte(&net_message);
+
+  if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
+    Com_Error(ERROR_DROP, "Illegible voice frame of %d bytes\n", len);
+  }
+
+  if (client < 0 || client >= MAX_CLIENTS) {
+    Com_Error(ERROR_DROP, "Illegible voice frame from client %d\n", client);
+  }
+
+  byte data[VOICE_MAX_PAYLOAD];
+  Net_ReadData(&net_message, data, len);
+
+  if (cls.cgame && !cls.cgame->Voice(client, flags)) {
+    return;
+  }
+
+  cl.voice_time[client] = cl.unclamped_time;
+
+  S_AddVoice(client, seq, flags, origin, data, len);
+}
+
+/**
  * @brief Parses the initial server data packet, resetting client state and loading the game.
  */
 static void Cl_ParseServerData(void) {
@@ -355,35 +413,11 @@ static void Cl_ParsePrint(void) {
   // the server shouldn't have sent us anything below our level anyway
   if (level >= message_level->integer) {
 
-    // check to see if we should ignore the message
-    if (*cl_ignore->string) {
-      parser_t parser = Parse_Init(cl_ignore->string, PARSER_DEFAULT);
-      char pattern[MAX_STRING_CHARS];
-
-      while (true) {
-
-        if (!Parse_Token(&parser, PARSE_DEFAULT, pattern, sizeof(pattern))) {
-          break;
-        }
-
-        if (GlobMatch(pattern, string, GLOB_FLAGS_NONE)) {
-          return;
-        }
-      }
-    }
-
+    // chat from a player arrives as SV_CMD_CHAT and is sounded by the client game, which is the
+    // only side that knows what kind of message it is; this remains for console originated chat
     char *sample = NULL;
-    switch (level) {
-      case PRINT_CHAT:
-      case PRINT_TEAM_CHAT:
-        if (level == PRINT_CHAT && *cl_chat_sound->string) {
-          sample = cl_chat_sound->string;
-        } else if (level == PRINT_TEAM_CHAT && *cl_team_chat_sound->string) {
-          sample = cl_team_chat_sound->string;
-        }
-        break;
-      default:
-        break;
+    if (level == PRINT_CHAT && *cl_chat_sound->string) {
+      sample = cl_chat_sound->string;
     }
 
     if (sample) {
@@ -506,6 +540,14 @@ void Cl_ParseServerMessage(void) {
         Cl_ParseDemoInfo();
         break;
 
+      case SV_CMD_CHAT:
+        Cl_ParseChat();
+        break;
+
+      case SV_CMD_VOICE:
+        Cl_ParseVoice();
+        break;
+
       default:
         // delegate to the client game module before failing
         if (!cls.cgame->ParseMessage(cmd)) {
@@ -521,12 +563,15 @@ void Cl_ParseServerMessage(void) {
     // capture every non-frame command verbatim so it rides along with the next recorded demo
     // frame: chat, centerprint, temp entities, sounds, etc. are one-shot events, not part of the
     // continuous entity/player state Cl_WriteDemoMessage re-synthesizes from cl.frame.
+    // Voice is the exception: recording speech to disk is a consent question, it would swamp the
+    // event buffer and start dropping the events above, and the demo relay re-broadcasts to every
+    // spectator with none of the sender's recipient filtering.
     // Deliberately NOT reset at the top of this function: Sv_SendClientDatagram fragments a
     // tick's datagram into a second packet (its own Cl_ParseServerMessage call) when queued
     // messages overflow one packet, and that second packet carries no SV_CMD_FRAME at all -
     // resetting here would silently drop whatever events landed in it. Cl_WriteDemoMessage
     // clears this once it actually flushes the accumulated bytes into a recorded frame.
-    if (cls.demo.file && cmd != SV_CMD_FRAME) {
+    if (cls.demo.file && cmd != SV_CMD_FRAME && cmd != SV_CMD_VOICE) {
       const size_t len = net_message.read - cmd_start;
       if (cls.demo.event_size + len <= sizeof(cls.demo.event_buffer)) {
         memcpy(cls.demo.event_buffer + cls.demo.event_size, net_message.data + cmd_start, len);

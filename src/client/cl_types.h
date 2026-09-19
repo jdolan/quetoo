@@ -396,6 +396,11 @@ typedef struct {
   uint32_t unclamped_time;
 
   /**
+   * @brief The time each client was last heard speaking, for the voice indicator.
+   */
+  uint32_t voice_time[MAX_CLIENTS];
+
+  /**
    * @brief Unclamped time in milliseconds since the player connected. Not affected by `time_scale`.
    */
   uint32_t ticks;

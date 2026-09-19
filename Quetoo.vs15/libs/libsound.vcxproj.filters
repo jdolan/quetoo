@@ -18,7 +18,13 @@
     <ClInclude Include="..\..\src\client\sound\s_mix.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\sound\s_device.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\client\sound\s_music.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\sound\s_voice.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\sound\s_sample.h">
@@ -41,7 +47,13 @@
     <ClCompile Include="..\..\src\client\sound\s_mix.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\sound\s_device.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\client\sound\s_music.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\sound\s_voice.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\sound\s_sample.c">

@@ -536,10 +536,14 @@ void Cl_Move(pm_cmd_t *cmd) {
 
 /**
  * @brief Resets all button states, clearing any held inputs.
+ * @remarks Voice is released here too, so that losing focus or dropping a key up event cannot
+ * leave the microphone transmitting.
  */
 void Cl_ClearInput(void) {
 
   memset(cl_buttons, 0, sizeof(cl_buttons));
+
+  S_StopVoice();
 }
 
 /**

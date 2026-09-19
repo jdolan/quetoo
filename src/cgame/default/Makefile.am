@@ -108,6 +108,7 @@ cguihuddir = \
 
 cguihud_DATA = \
 	$(CGUI_DIR)/hud/ChatView.json \
+	$(CGUI_DIR)/hud/VoiceView.json \
 	$(CGUI_DIR)/hud/CounterView.json \
 	$(CGUI_DIR)/hud/DemoControlsView.json \
 	$(CGUI_DIR)/hud/PickupView.json \
@@ -287,6 +288,7 @@ cgame_la_SOURCES = \
 	ui/hud/TargetNameView.c \
 	ui/hud/TeamBannerView.c \
 	ui/hud/TimeView.c \
+	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \
 	ui/hud/WeaponBarView.c \
 	ui/main/LoadingViewController.c \

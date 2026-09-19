@@ -273,6 +273,8 @@ static void S_InitLocal(void) {
 
   s_get_error = Cvar_Add("s_get_error", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
 
+  S_InitDevices();
+
   s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
   s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
   s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
@@ -302,28 +304,67 @@ void S_Init(void) {
 
   S_InitLocal();
 
-  s_context.device = alcOpenDevice(NULL);
+  if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+    Com_Warn("Failed to initialize audio: %s\n", SDL_GetError());
+    return;
+  }
+
+  s_context.initialized = true;
+
+  if (!alcIsExtensionPresent(NULL, "ALC_SOFT_loopback")) {
+    Com_Warn("OpenAL driver does not support ALC_SOFT_loopback\n");
+    return;
+  }
+
+  s_context.device = alcLoopbackOpenDeviceSOFT(NULL);
 
   if (!s_context.device) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
     return;
   }
 
-  if (s_hrtf->integer && alcIsExtensionPresent(s_context.device, "ALC_SOFT_HRTF")) {
-    ALCint attrs[7] = { ALC_HRTF_SOFT, ALC_TRUE };
-    int n = 2;
-    if (alcIsExtensionPresent(s_context.device, "ALC_SOFT_output_mode")) {
-      attrs[n++] = ALC_OUTPUT_MODE_SOFT;
-      attrs[n++] = ALC_STEREO_HRTF_SOFT;
+  if (!alcIsRenderFormatSupportedSOFT(s_context.device, s_rate->integer, ALC_STEREO_SOFT, ALC_SHORT_SOFT)) {
+    Com_Warn("Unsupported render format: %dhz stereo 16 bit\n", s_rate->integer);
+    return;
+  }
+
+  {
+    ALCint attrs[11] = {
+      ALC_FREQUENCY, s_rate->integer,
+      ALC_FORMAT_CHANNELS_SOFT, ALC_STEREO_SOFT,
+      ALC_FORMAT_TYPE_SOFT, ALC_SHORT_SOFT,
+    };
+    int n = 6;
+
+    if (s_hrtf->integer && alcIsExtensionPresent(s_context.device, "ALC_SOFT_HRTF")) {
+      attrs[n++] = ALC_HRTF_SOFT;
+      attrs[n++] = ALC_TRUE;
+
+      if (alcIsExtensionPresent(s_context.device, "ALC_SOFT_output_mode")) {
+        attrs[n++] = ALC_OUTPUT_MODE_SOFT;
+        attrs[n++] = ALC_STEREO_HRTF_SOFT;
+      }
     }
+
     attrs[n] = 0;
     s_context.context = alcCreateContext(s_context.device, attrs);
-  } else {
-    s_context.context = alcCreateContext(s_context.device, NULL);
   }
 
   if (!s_context.context || !alcMakeContextCurrent(s_context.context)) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
+    return;
+  }
+
+  if (!S_InitPlayback()) {
+
+    // leave nothing half built: S_Shutdown keys media and music off the context, and neither
+    // has been initialized yet
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(s_context.context);
+    s_context.context = NULL;
+
+    alcCloseDevice(s_context.device);
+    s_context.device = NULL;
     return;
   }
 
@@ -418,48 +459,63 @@ void S_Init(void) {
 
   S_GetError(NULL);
 
-  Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
+  Com_Print("Sound initialized (OpenAL loopback via SDL, %dhz)\n", s_rate->integer);
 
   S_InitMedia();
 
   S_InitMusic();
+
+  S_InitVoice();
 
   s_context.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
 /**
  * @brief Shuts down the sound subsystem, releasing all OpenAL resources and the context.
+ * @details Tears down in the reverse order of initialization, and tolerates initialization having
+ * failed part way: the playback stream goes first so that no in-flight SDL callback can render
+ * through a context that is being destroyed, and each stage is skipped if it never came up.
  */
 void S_Shutdown(void) {
 
-  if (!s_context.context) {
+  if (!s_context.initialized) {
     return;
   }
 
-  S_Stop();
+  S_ShutdownPlayback();
 
-  alDeleteSources(MAX_CHANNELS, s_context.sources);
+  if (s_context.context) {
 
-  if (s_context.effects.loaded) {
-    ALuint filters[MAX_CHANNELS];
-    for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-      filters[i] = s_context.channels[i].filter;
+    S_Stop();
+
+    alDeleteSources(MAX_CHANNELS, s_context.sources);
+
+    if (s_context.effects.loaded) {
+      ALuint filters[MAX_CHANNELS];
+      for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+        filters[i] = s_context.channels[i].filter;
+      }
+      alDeleteFilters(MAX_CHANNELS, filters);
+      alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
+      alDeleteEffects(1, &s_context.effects.reverb);
+      s_context.effects.loaded = false;
     }
-    alDeleteFilters(MAX_CHANNELS, filters);
-    alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
-    alDeleteEffects(1, &s_context.effects.reverb);
-    s_context.effects.loaded = false;
+
+    S_GetError(NULL);
+
+    S_ShutdownVoice();
+
+    S_ShutdownMusic();
+
+    S_ShutdownMedia();
+
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(s_context.context);
   }
 
-  S_GetError(NULL);
-
-  S_ShutdownMusic();
-
-  S_ShutdownMedia();
-
-  alcMakeContextCurrent(NULL);
-  alcDestroyContext(s_context.context);
-  alcCloseDevice(s_context.device);
+  if (s_context.device) {
+    alcCloseDevice(s_context.device);
+  }
 
   SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
