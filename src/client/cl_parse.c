@@ -293,12 +293,6 @@ static void Cl_ParseVoice(void) {
   const uint8_t seq = Net_ReadByte(&net_message);
   const uint8_t flags = Net_ReadByte(&net_message);
 
-  vec3_t origin = Vec3_Zero();
-
-  if (!(flags & VOICE_NO_POS)) {
-    origin = Net_ReadPosition(&net_message);
-  }
-
   const int32_t len = Net_ReadByte(&net_message);
 
   if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
@@ -318,7 +312,7 @@ static void Cl_ParseVoice(void) {
 
   cl.voice_time[client] = cl.unclamped_time;
 
-  S_AddVoice(client, seq, flags, origin, data, len);
+  S_AddVoice(client, seq, flags, data, len);
 }
 
 /**

@@ -106,23 +106,14 @@ static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq,
   const int32_t speaker = (int32_t) (from - svs.clients);
 
   mem_buf_t buf;
-  byte bytes[VOICE_MAX_PAYLOAD + 32]; // command, speaker, seq, flags, origin, length
+  byte bytes[VOICE_MAX_PAYLOAD + 32]; // command, speaker, seq, flags, length
 
   Mem_InitBuffer(&buf, bytes, sizeof(bytes));
-
-  if (!from->gclient || from->gclient->ai) {
-    flags |= VOICE_NO_POS;
-  }
 
   Net_WriteByte(&buf, SV_CMD_VOICE);
   Net_WriteByte(&buf, speaker);
   Net_WriteByte(&buf, seq);
   Net_WriteByte(&buf, flags);
-
-  if (!(flags & VOICE_NO_POS)) {
-    Net_WritePosition(&buf, from->gclient->ps.pm_state.origin);
-  }
-
   Net_WriteByte(&buf, len);
   Net_WriteData(&buf, data, len);
 

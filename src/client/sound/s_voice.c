@@ -246,7 +246,7 @@ static void S_ReleaseSpeaker(s_voice_speaker_t *speaker) {
 /**
  * @brief Prepares a speaker to be heard, displacing the least recently heard if the pool is full.
  */
-static bool S_AcquireSpeaker(s_voice_speaker_t *speaker, uint8_t flags) {
+static bool S_AcquireSpeaker(s_voice_speaker_t *speaker) {
 
   if (speaker->source) {
     return true;
@@ -284,14 +284,9 @@ static bool S_AcquireSpeaker(s_voice_speaker_t *speaker, uint8_t flags) {
   alSourcef(speaker->source, AL_DOPPLER_FACTOR, 0.f);
   alSource3i(speaker->source, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
 
-  // Panned toward the speaker for awareness, but never attenuated: a teammate across the map is
-  // exactly when a callout matters most. Under AL_LINEAR_DISTANCE_CLAMPED a zero rolloff is unity
-  // gain at any distance, while the direction survives.
-  alSourcef(speaker->source, AL_ROLLOFF_FACTOR, 0.f);
-  alSourcef(speaker->source, AL_REFERENCE_DISTANCE, 256.f);
-  alSourcef(speaker->source, AL_MAX_DISTANCE, 2048.f);
-
-  alSourcei(speaker->source, AL_SOURCE_RELATIVE, (flags & VOICE_NO_POS) ? AL_TRUE : AL_FALSE);
+  // Voice is never spatialized: a relative source at the listener's own origin keeps a callout
+  // equally audible whoever makes it, and whatever the listener happens to be facing.
+  alSourcei(speaker->source, AL_SOURCE_RELATIVE, AL_TRUE);
 
   int32_t err;
   speaker->decoder = opus_decoder_create(VOICE_RATE, 1, &err);
@@ -376,16 +371,11 @@ static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, i
  * @remarks The voice thread pumps capture with the lock held, so the local monitor reaches this
  * directly; SDL mutexes are not recursive and the public entry point would deadlock it.
  */
-static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
-                        const byte *data, int32_t len) {
+static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const byte *data, int32_t len) {
 
   s_voice_speaker_t *speaker = s_voice_state.speakers + client;
 
-  if (S_AcquireSpeaker(speaker, flags)) {
-
-    if (!(flags & VOICE_NO_POS)) {
-      alSourcefv(speaker->source, AL_POSITION, origin.xyz);
-    }
+  if (S_AcquireSpeaker(speaker)) {
 
     if (speaker->started) {
       const uint8_t lost = (uint8_t) (seq - speaker->seq);
@@ -413,8 +403,7 @@ static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const vec3_t
 /**
  * @brief Accepts one voice frame from the network.
  */
-void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
-                const byte *data, int32_t len) {
+void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const byte *data, int32_t len) {
 
   if (!s_voice_state.enabled || !s_voice->integer) {
     return;
@@ -432,7 +421,7 @@ void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
 
   SDL_LockMutex(s_voice_state.mutex);
 
-  S_AddVoice_(client, seq, flags, origin, data, len);
+  S_AddVoice_(client, seq, flags, data, len);
 
   SDL_UnlockMutex(s_voice_state.mutex);
 }
@@ -564,8 +553,7 @@ static void S_PumpVoice(void) {
       S_EnqueueVoiceFrame(s_voice_state.payload, len, 0);
 
       if (s_voice_loopback->integer) {
-        S_AddVoice_(VOICE_SELF, s_voice_state.out_seq - 1, VOICE_NO_POS, Vec3_Zero(),
-                    s_voice_state.payload, len);
+        S_AddVoice_(VOICE_SELF, s_voice_state.out_seq - 1, 0, s_voice_state.payload, len);
       }
     }
   }

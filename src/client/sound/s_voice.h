@@ -32,7 +32,7 @@ void S_StartVoice(uint8_t channel);
 void S_StopVoice(void);
 void S_StopVoices(void);
 int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel);
-void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin, const byte *data, int32_t len);
+void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const byte *data, int32_t len);
 
 #if defined(__S_LOCAL_H__)
 void S_InitVoice(void);

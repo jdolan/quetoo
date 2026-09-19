@@ -512,7 +512,6 @@ typedef enum {
  * @brief Voice transmission flags.
  */
 #define VOICE_END 0x01 // the last frame of a transmission, sent when the key is released
-#define VOICE_NO_POS 0x02 // the speaker has no position; play relative to the listener
 
 /**
  * @brief Client protocol commands. The game and client game module are free
