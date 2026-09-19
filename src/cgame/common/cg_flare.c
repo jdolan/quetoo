@@ -52,7 +52,7 @@ typedef struct {
   const ClientEntity *entity;
 } ClientGameFlare;
 
-static Vector *cg_flares;
+static Vector *cgFlares;
 
 #define FLARE_ALPHA_RAMP 0.01
 
@@ -61,12 +61,12 @@ static Vector *cg_flares;
  */
 void Cg_AddFlares(void) {
 
-  if (!cg_add_flares->value) {
+  if (!cg_addFlares->value) {
     return;
   }
 
-  for (size_t i = 0; i < cg_flares->count; i++) {
-    ClientGameFlare *flare = VectorValue(cg_flares, ClientGameFlare *, i);
+  for (size_t i = 0; i < cgFlares->count; i++) {
+    ClientGameFlare *flare = VectorValue(cgFlares, ClientGameFlare *, i);
 
     Mat4 matrix = Mat4_Identity();
     flare->entity = NULL;
@@ -114,7 +114,7 @@ void Cg_AddFlares(void) {
     // Dot product gives us facing: positive=front, negative=back
     const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
     // Use absolute value to allow sprites from behind, but abs(dot) reduces visibility for grazing angles
-    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_add_flares->value);
+    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_addFlares->value);
 
     if (alpha == 0.f) {
       continue;
@@ -179,17 +179,17 @@ static _Bool Cg_FacesShareVertex(const RenderBspFace *a, const RenderBspFace *b)
  */
 static void Cg_MergeFlares(void) {
 
-  for (size_t i = 0; i < cg_flares->count; i++) {
-    ClientGameFlare *a = VectorValue(cg_flares, ClientGameFlare *, i);
+  for (size_t i = 0; i < cgFlares->count; i++) {
+    ClientGameFlare *a = VectorValue(cgFlares, ClientGameFlare *, i);
 
-    for (size_t j = i + 1; j < cg_flares->count; j++) {
-      ClientGameFlare *b = VectorValue(cg_flares, ClientGameFlare *, j);
+    for (size_t j = i + 1; j < cgFlares->count; j++) {
+      ClientGameFlare *b = VectorValue(cgFlares, ClientGameFlare *, j);
 
       if (a->face->brushSide == b->face->brushSide &&
           Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
-        $(cg_flares, removeAt, j);
+        $(cgFlares, removeAt, j);
         cgi.Free(b);
 
         j--;
@@ -212,7 +212,7 @@ static void Cg_MergeFlares(void) {
  */
 void Cg_LoadFlares(void) {
 
-  cg_flares = $(alloc(Vector), initWithSize, sizeof(ClientGameFlare *));
+  cgFlares = $(alloc(Vector), initWithSize, sizeof(ClientGameFlare *));
 
   const RenderBspModel *bsp = cgi.WorldModel()->bsp;
 
@@ -240,13 +240,13 @@ void Cg_LoadFlares(void) {
       }
 
       ClientGameFlare *flare = Cg_LoadFlare(face, stage);
-      $(cg_flares, add, &flare);
+      $(cgFlares, add, &flare);
     }
   }
 
   Cg_MergeFlares();
 
-  Cg_Debug("Loaded %zu flares\n", cg_flares->count);
+  Cg_Debug("Loaded %zu flares\n", cgFlares->count);
 }
 
 /**
@@ -254,8 +254,8 @@ void Cg_LoadFlares(void) {
  */
 void Cg_FreeFlares(void) {
 
-  if (cg_flares) {
-    release(cg_flares);
-    cg_flares = NULL;
+  if (cgFlares) {
+    release(cgFlares);
+    cgFlares = NULL;
   }
 }

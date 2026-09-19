@@ -51,7 +51,7 @@ typedef struct {
   Uint32 tileSize;
 } RenderShadowAtlas;
 
-extern RenderShadowAtlas r_shadow_atlas;
+extern RenderShadowAtlas rShadowAtlas;
 
 void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index);
 void R_DrawShadows(const RenderView *view);

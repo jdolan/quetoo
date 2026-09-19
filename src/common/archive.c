@@ -38,7 +38,7 @@
  * @brief Windows reserves these names in every directory, with or without an
  * extension. Creating one from archive content is never legitimate.
  */
-static const char *archive_reserved_names[] = {
+static const char *archiveReservedNames[] = {
   "CON", "PRN", "AUX", "NUL",
   "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
   "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
@@ -54,8 +54,8 @@ static bool Archive_IsReservedName(const char *component, size_t len) {
     stem++;
   }
 
-  for (size_t i = 0; i < lengthof(archive_reserved_names); i++) {
-    const char *reserved = archive_reserved_names[i];
+  for (size_t i = 0; i < lengthof(archiveReservedNames); i++) {
+    const char *reserved = archiveReservedNames[i];
     if (stem == q_strlen(reserved) && q_strncasecmp(component, reserved, stem) == 0) {
       return true;
     }

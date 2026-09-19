@@ -32,15 +32,15 @@
 
 Quetoo quetoo;
 
-char map_base[MAX_QPATH]; // the base name (e.g. "edge")
+char mapBase[MAX_QPATH]; // the base name (e.g. "edge")
 
-char map_name[MAX_OS_PATH]; // the input map name (e.g. "maps/edge.map")
-char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
+char mapName[MAX_OS_PATH]; // the input map name (e.g. "maps/edge.map")
+char bspName[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
 bool verbose = false;
 bool debug = false;
-bool do_bsp = false;
-bool do_zip = false;
+bool doBsp = false;
+bool doZip = false;
 
 static void Print(const char *msg);
 
@@ -68,7 +68,7 @@ static void Error(Err err, const char *msg) {
 
   fflush(stderr);
 
-  if (SDL_GetCurrentThreadID() == thread_main) {
+  if (SDL_GetCurrentThreadID() == threadMain) {
     Shutdown(msg);
     exit(err);
   } else {
@@ -153,30 +153,30 @@ static void Check_BSP_Options(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
     if (!q_strcmp(Com_Argv(i), "--micro-volume")) {
-      micro_volume = atof(Com_Argv(i + 1));
-      Com_Verbose("micro_volume = %f\n", micro_volume);
+      microVolume = atof(Com_Argv(i + 1));
+      Com_Verbose("micro_volume = %f\n", microVolume);
       i++;
     } else if (!q_strcmp(Com_Argv(i), "--no-csg")) {
       Com_Verbose("no_csg = true\n");
-      no_csg = true;
+      noCsg = true;
     } else if (!q_strcmp(Com_Argv(i), "--no-detail")) {
       Com_Verbose("no_detail = true\n");
-      no_detail = true;
+      noDetail = true;
     } else if (!q_strcmp(Com_Argv(i), "--no-liquid")) {
       Com_Verbose("no_liquid = true\n");
-      no_liquid = true;
+      noLiquid = true;
     } else if (!q_strcmp(Com_Argv(i), "--no-merge")) {
       Com_Verbose("no_merge = true\n");
-      no_merge = true;
+      noMerge = true;
     } else if (!q_strcmp(Com_Argv(i), "--no-phong")) {
       Com_Verbose("no_phong = true\n");
-      no_phong = true;
+      noPhong = true;
     } else if (!q_strcmp(Com_Argv(i), "--no-tjunc")) {
       Com_Verbose("no_tjunc = true\n");
-      no_tjunc = true;
+      noTjunc = true;
     } else if (!q_strcmp(Com_Argv(i), "--no-weld")) {
       Com_Verbose("no_weld = true\n");
-      no_weld = true;
+      noWeld = true;
     } else {
       break;
     }
@@ -201,10 +201,10 @@ static void Check_ZIP_Options(int32_t argc) {
   for (int32_t i = argc; i < Com_Argc(); i++) {
 
     if (!q_strcmp(Com_Argv(i), "--include-shared")) {
-      include_shared = true;
+      includeShared = true;
       Com_Verbose("Including shared assets\n");
     } else if (!q_strcmp(Com_Argv(i), "--update")) {
-      update_zip = true;
+      updateZip = true;
       Com_Verbose("Updating existing zip archive\n");
     } else {
       break;
@@ -321,18 +321,18 @@ int32_t main(int32_t argc, char **argv) {
   for (int32_t i = 1; i < Com_Argc(); i++) {
 
     if (!q_strcmp(Com_Argv(i), "-bsp")) {
-      do_bsp = true;
+      doBsp = true;
       Check_BSP_Options(i + 1);
       Check_LIGHT_Options(i + 1);
     }
 
     if (!q_strcmp(Com_Argv(i), "-zip")) {
-      do_zip = true;
+      doZip = true;
       Check_ZIP_Options(i + 1);
     }
   }
 
-  if (!do_bsp && !do_zip) {
+  if (!doBsp && !doZip) {
     PrintHelpMessage();
     Com_Error(ERROR_FATAL, "No action specified.\n");
   }
@@ -348,26 +348,26 @@ int32_t main(int32_t argc, char **argv) {
   }
 
   // resolve the base name, used for all output files
-  StripExtension(Basename(filename), map_base);
+  StripExtension(Basename(filename), mapBase);
 
-  StripExtension(filename, map_name);
-  q_strlcat(map_name, ".map", sizeof(map_name));
+  StripExtension(filename, mapName);
+  q_strlcat(mapName, ".map", sizeof(mapName));
 
-  if (!Fs_Exists(map_name)) {
-    q_snprintf(map_name, sizeof(map_name), "maps/%s.map", map_base);
+  if (!Fs_Exists(mapName)) {
+    q_snprintf(mapName, sizeof(mapName), "maps/%s.map", mapBase);
   }
 
-  StripExtension(filename, bsp_name);
-  q_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
+  StripExtension(filename, bspName);
+  q_strlcat(bspName, ".bsp", sizeof(bspName));
 
-  if (!Fs_Exists(bsp_name)) {
-    q_snprintf(bsp_name, sizeof(bsp_name), "maps/%s.bsp", map_base);
+  if (!Fs_Exists(bspName)) {
+    q_snprintf(bspName, sizeof(bspName), "maps/%s.bsp", mapBase);
   }
 
   // start timer
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if (do_bsp) {
+  if (doBsp) {
 
     BSP_Main();
 
@@ -379,7 +379,7 @@ int32_t main(int32_t argc, char **argv) {
   // always write the manifest after compilation (or before -zip)
   WriteManifest();
 
-  if (do_zip) {
+  if (doZip) {
     ZIP_Main();
   }
 

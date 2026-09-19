@@ -26,14 +26,14 @@
 #include "portal.h"
 #include "qbsp.h"
 
-static SDL_AtomicInt c_active_nodes;
+static SDL_AtomicInt cActiveNodes;
 
 /**
  * @brief Allocates a new BSP tree node with default values.
  */
 Node *AllocNode(void) {
 
-  SDL_AddAtomicInt(&c_active_nodes, 1);
+  SDL_AddAtomicInt(&cActiveNodes, 1);
 
   return Mem_TagMalloc(sizeof(Node), (MemTag) MEM_TAG_NODE);
 }
@@ -43,7 +43,7 @@ Node *AllocNode(void) {
  */
 void FreeNode(Node *node) {
 
-  SDL_AddAtomicInt(&c_active_nodes, -1);
+  SDL_AddAtomicInt(&cActiveNodes, -1);
 
   Mem_Free(node);
 }
@@ -395,7 +395,7 @@ Tree *BuildTree(CsgBrush *brushes) {
     numBrushes++;
 
     const float volume = BrushVolume(b);
-    if (volume < micro_volume) {
+    if (volume < microVolume) {
       Com_Warn("Entity %d brush %d produced microvolume\n", b->original->entity, b->original->brush);
     }
 
@@ -429,7 +429,7 @@ Tree *BuildTree(CsgBrush *brushes) {
   return tree;
 }
 
-static int32_t c_merged_faces;
+static int32_t cMergedFaces;
 
 /**
  * @brief Recursively merges coplanar, co-material faces in the subtree rooted at node.
@@ -459,7 +459,7 @@ again:
         continue;
       }
 
-      c_merged_faces++;
+      cMergedFaces++;
 
       merged->next = node->faces;
       node->faces = merged;
@@ -506,8 +506,8 @@ static Box3 CalcNodeVisibleBounds_r(Node *node) {
  */
 void MergeTreeFaces(Tree *tree) {
   Com_Verbose("--- MergeTreeFaces ---\n");
-  c_merged_faces = 0;
+  cMergedFaces = 0;
   MergeFaces_r(tree->headNode);
   CalcNodeVisibleBounds_r(tree->headNode);
-  Com_Verbose("%5i merged faces\n", c_merged_faces);
+  Com_Verbose("%5i merged faces\n", cMergedFaces);
 }

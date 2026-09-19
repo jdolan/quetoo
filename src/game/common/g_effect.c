@@ -44,11 +44,11 @@ void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, boo
   const Vec3 dir = tr.plane.normal;
 
   if (ent) {
-    if (g_level.time - ent->rippleTime < 400) {
+    if (gLevel.time - ent->rippleTime < 400) {
       return;
     }
     
-    ent->rippleTime = g_level.time;
+    ent->rippleTime = gLevel.time;
 
     if (size == 0.f) {
       if (ent->rippleSize) {

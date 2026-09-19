@@ -31,10 +31,10 @@ static struct {
   SDL_AudioStream *capture;
   bool captureFailed;
   bool warnedSharedDevice;
-} s_devices;
+} module;
 
-Cvar *s_buffer_frames;
-Cvar *s_capture_device;
+Cvar *s_bufferFrames;
+Cvar *s_captureDevice;
 
 /**
  * @brief Prints the devices in the given list.
@@ -57,7 +57,7 @@ static void S_DeviceList(SDL_AudioDeviceID *devices, int32_t count, const char *
 }
 
 /**
- * @brief Prints the available microphones, for use with s_capture_device.
+ * @brief Prints the available microphones, for use with s_captureDevice.
  */
 static void S_CaptureDeviceList_f(void) {
   int32_t count = 0;
@@ -87,7 +87,7 @@ static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additio
     const int32_t bytes = additional < (int32_t) sizeof(buffer) ? additional : (int32_t) sizeof(buffer);
     const int32_t samples = bytes / S_FRAME_SIZE;
 
-    alcRenderSamplesSOFT(s_context.device, buffer, samples);
+    alcRenderSamplesSOFT(sContext.device, buffer, samples);
     SDL_PutAudioStreamData(stream, buffer, samples * (int32_t) S_FRAME_SIZE);
 
     additional -= samples * (int32_t) S_FRAME_SIZE;
@@ -99,8 +99,8 @@ static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additio
  */
 bool S_InitPlayback(void) {
 
-  if (s_buffer_frames->integer > 0) {
-    SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, va("%d", s_buffer_frames->integer));
+  if (s_bufferFrames->integer > 0) {
+    SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, va("%d", s_bufferFrames->integer));
   } else {
     SDL_ResetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES);
   }
@@ -111,20 +111,20 @@ bool S_InitPlayback(void) {
     .freq = s_rate->integer,
   };
 
-  s_devices.playback = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, S_RenderSamples, NULL);
+  module.playback = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, S_RenderSamples, NULL);
 
-  if (!s_devices.playback) {
+  if (!module.playback) {
     Com_Warn("Failed to open playback device: %s\n", SDL_GetError());
     return false;
   }
 
-  SDL_ResumeAudioStreamDevice(s_devices.playback);
+  SDL_ResumeAudioStreamDevice(module.playback);
 
   SDL_AudioSpec deviceSpec;
   int32_t deviceFrames = 0;
 
-  if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(s_devices.playback), &deviceSpec, &deviceFrames)) {
-    Com_Print("  Playback:   ^2%s^7\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_devices.playback)));
+  if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(module.playback), &deviceSpec, &deviceFrames)) {
+    Com_Print("  Playback:   ^2%s^7\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(module.playback)));
     Com_Print("  Buffer:     ^2%d frames (%.1fms) @ %dhz^7\n", deviceFrames,
               deviceFrames * 1000.f / deviceSpec.freq, deviceSpec.freq);
   }
@@ -139,9 +139,9 @@ bool S_InitPlayback(void) {
  */
 void S_ShutdownPlayback(void) {
 
-  if (s_devices.playback) {
-    SDL_DestroyAudioStream(s_devices.playback);
-    s_devices.playback = NULL;
+  if (module.playback) {
+    SDL_DestroyAudioStream(module.playback);
+    module.playback = NULL;
   }
 }
 
@@ -154,11 +154,11 @@ void S_ShutdownPlayback(void) {
  */
 static void S_CheckSharedDevice(const char *capture) {
 
-  if (!s_devices.playback || s_devices.warnedSharedDevice) {
+  if (!module.playback || module.warnedSharedDevice) {
     return;
   }
 
-  const char *playback = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_devices.playback));
+  const char *playback = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(module.playback));
 
   if (playback && capture && !q_strcmp(playback, capture)) {
     Com_Warn("Microphone and speakers are both \"%s\".\n"
@@ -166,16 +166,16 @@ static void S_CheckSharedDevice(const char *capture) {
              "Run s_capture_device_list and set s_capture_device to a separate microphone to avoid it.\n",
              capture);
 
-    s_devices.warnedSharedDevice = true;
+    module.warnedSharedDevice = true;
   }
 }
 
 /**
- * @brief Resolves s_capture_device to a recording device, falling back to the system default.
+ * @brief Resolves s_captureDevice to a recording device, falling back to the system default.
  */
 static SDL_AudioDeviceID S_CaptureDevice(void) {
 
-  if (!s_capture_device->string[0]) {
+  if (!s_captureDevice->string[0]) {
     return SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
   }
 
@@ -185,14 +185,14 @@ static SDL_AudioDeviceID S_CaptureDevice(void) {
 
   for (int32_t i = 0; i < count; i++) {
     const char *name = SDL_GetAudioDeviceName(devices[i]);
-    if (name && !q_strcmp(name, s_capture_device->string)) {
+    if (name && !q_strcmp(name, s_captureDevice->string)) {
       device = devices[i];
       break;
     }
   }
 
   if (device == SDL_AUDIO_DEVICE_DEFAULT_RECORDING) {
-    Com_Warn("Capture device \"%s\" not found, using the default\n", s_capture_device->string);
+    Com_Warn("Capture device \"%s\" not found, using the default\n", s_captureDevice->string);
   }
 
   SDL_free(devices);
@@ -203,22 +203,22 @@ static SDL_AudioDeviceID S_CaptureDevice(void) {
  * @brief Opens the capture device, paused, warning once if it is unavailable.
  * @details Capture is opened on first use rather than at initialization, so that players who never
  * speak are never prompted for microphone access and never light the recording indicator.
- * @remarks Resolves s_capture_device, whose string the main thread is free to replace, so this must
+ * @remarks Resolves s_captureDevice, whose string the main thread is free to replace, so this must
  * only be called from the main thread.
  */
 bool S_OpenCapture(int32_t rate) {
 
-  if (s_devices.capture) {
+  if (module.capture) {
     return true;
   }
 
-  if (s_devices.captureFailed) {
+  if (module.captureFailed) {
     return false;
   }
 
-  if (s_capture_device->modified) {
-    s_capture_device->modified = false;
-    s_devices.warnedSharedDevice = false;
+  if (s_captureDevice->modified) {
+    s_captureDevice->modified = false;
+    module.warnedSharedDevice = false;
   }
 
   const SDL_AudioSpec spec = {
@@ -227,15 +227,15 @@ bool S_OpenCapture(int32_t rate) {
     .freq = rate,
   };
 
-  s_devices.capture = SDL_OpenAudioDeviceStream(S_CaptureDevice(), &spec, NULL, NULL);
+  module.capture = SDL_OpenAudioDeviceStream(S_CaptureDevice(), &spec, NULL, NULL);
 
-  if (!s_devices.capture) {
+  if (!module.capture) {
     Com_Warn("Failed to open capture device: %s\n", SDL_GetError());
-    s_devices.captureFailed = true;
+    module.captureFailed = true;
     return false;
   }
 
-  const char *name = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_devices.capture));
+  const char *name = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(module.capture));
 
   Com_Print("Capture opened (%s)\n", name);
 
@@ -249,12 +249,12 @@ bool S_OpenCapture(int32_t rate) {
  */
 void S_CloseCapture(void) {
 
-  if (s_devices.capture) {
-    SDL_DestroyAudioStream(s_devices.capture);
-    s_devices.capture = NULL;
+  if (module.capture) {
+    SDL_DestroyAudioStream(module.capture);
+    module.capture = NULL;
   }
 
-  s_devices.captureFailed = false;
+  module.captureFailed = false;
 }
 
 /**
@@ -262,9 +262,9 @@ void S_CloseCapture(void) {
  */
 void S_ResumeCapture(void) {
 
-  if (s_devices.capture) {
-    SDL_ClearAudioStream(s_devices.capture);
-    SDL_ResumeAudioStreamDevice(s_devices.capture);
+  if (module.capture) {
+    SDL_ClearAudioStream(module.capture);
+    SDL_ResumeAudioStreamDevice(module.capture);
   }
 }
 
@@ -273,9 +273,9 @@ void S_ResumeCapture(void) {
  */
 void S_PauseCapture(void) {
 
-  if (s_devices.capture) {
-    SDL_PauseAudioStreamDevice(s_devices.capture);
-    SDL_ClearAudioStream(s_devices.capture);
+  if (module.capture) {
+    SDL_PauseAudioStreamDevice(module.capture);
+    SDL_ClearAudioStream(module.capture);
   }
 }
 
@@ -283,7 +283,7 @@ void S_PauseCapture(void) {
  * @brief Returns true if the capture device is open.
  */
 bool S_Capturing(void) {
-  return s_devices.capture != NULL;
+  return module.capture != NULL;
 }
 
 /**
@@ -291,11 +291,11 @@ bool S_Capturing(void) {
  */
 int32_t S_ReadCapture(void *data, int32_t len) {
 
-  if (!s_devices.capture || SDL_GetAudioStreamAvailable(s_devices.capture) < len) {
+  if (!module.capture || SDL_GetAudioStreamAvailable(module.capture) < len) {
     return 0;
   }
 
-  return SDL_GetAudioStreamData(s_devices.capture, data, len);
+  return SDL_GetAudioStreamData(module.capture, data, len);
 }
 
 /**
@@ -303,8 +303,8 @@ int32_t S_ReadCapture(void *data, int32_t len) {
  */
 void S_InitDevices(void) {
 
-  s_buffer_frames = Cvar_Add("s_buffer_frames", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Playback buffer size in sample frames, or 0 to let SDL choose. Raise this if audio crackles.");
-  s_capture_device = Cvar_Add("s_capture_device", "", CVAR_ARCHIVE, "The microphone to capture from, or empty for the system default.");
+  s_bufferFrames = Cvar_Add("s_buffer_frames", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Playback buffer size in sample frames, or 0 to let SDL choose. Raise this if audio crackles.");
+  s_captureDevice = Cvar_Add("s_capture_device", "", CVAR_ARCHIVE, "The microphone to capture from, or empty for the system default.");
 
   Cmd_Add("s_capture_device_list", S_CaptureDeviceList_f, CMD_SOUND, "List the available microphones.");
   Cmd_Add("s_playback_device_list", S_PlaybackDeviceList_f, CMD_SOUND, "List the available speakers.");

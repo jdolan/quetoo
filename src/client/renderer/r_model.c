@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-RenderModels r_models;
+RenderModels rModels;
 
 /**
  * @brief Loads the model by the specified name.
@@ -34,7 +34,7 @@ RenderModel *R_LoadModel(const char *name) {
   }
 
   if (*name == '*') {
-    q_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
+    q_snprintf(key, sizeof(key), "%s#%s", rModels.world->media.name, name + 1);
   } else {
     StripExtension(name, key);
   }
@@ -43,9 +43,9 @@ RenderModel *R_LoadModel(const char *name) {
   if (mod == NULL) {
 
     const RenderModelFormat formats[] = {
-      r_obj_model_format,
-      r_md3_model_format,
-      r_bsp_model_format
+      rObjModelFormat,
+      rMd3ModelFormat,
+      rBspModelFormat
     };
 
     const RenderModelFormat *format = formats;
@@ -108,7 +108,7 @@ RenderModel *R_LoadModel(const char *name) {
  * @brief Returns the currently loaded world model (BSP).
  */
 RenderModel *R_WorldModel(void) {
-  return r_models.world;
+  return rModels.world;
 }
 
 /**
@@ -116,7 +116,7 @@ RenderModel *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 
-  memset(&r_models, 0, sizeof(r_models));
+  memset(&rModels, 0, sizeof(rModels));
 
   R_InitMeshPipeline();
 }
@@ -126,7 +126,7 @@ void R_InitModels(void) {
  */
 void R_ShutdownModels(void) {
 
-  memset(&r_models, 0, sizeof(r_models));
+  memset(&rModels, 0, sizeof(rModels));
 
   R_ShutdownMeshPipeline();
 }

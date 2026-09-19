@@ -24,14 +24,14 @@
 #include "portal.h"
 #include "qbsp.h"
 
-static SDL_AtomicInt c_active_portals;
+static SDL_AtomicInt cActivePortals;
 
 /**
  * @brief Allocates and returns a new portal.
  */
 static Portal *AllocPortal(void) {
 
-  SDL_AddAtomicInt(&c_active_portals, 1);
+  SDL_AddAtomicInt(&cActivePortals, 1);
 
   return Mem_TagMalloc(sizeof(Portal), (MemTag) MEM_TAG_PORTAL);
 }
@@ -45,7 +45,7 @@ void FreePortal(Portal *p) {
     Cm_FreeWinding(p->winding);
   }
 
-  SDL_AddAtomicInt(&c_active_portals, -1);
+  SDL_AddAtomicInt(&cActivePortals, -1);
 
   Mem_Free(p);
 }
@@ -83,7 +83,7 @@ static bool Portal_EntityFlood(const Portal *p) {
   return true;
 }
 
-static int32_t c_small_portals;
+static int32_t cSmallPortals;
 
 /**
  * @brief Links the portal into the portal lists of both front and back nodes.
@@ -248,7 +248,7 @@ void MakeNodePortal(Node *node) {
   }
 
   if (WindingIsSmall(w)) {
-    c_small_portals++;
+    cSmallPortals++;
     Cm_FreeWinding(w);
     return;
   }
@@ -292,13 +292,13 @@ void SplitNodePortals(Node *node) {
     if (frontWinding && WindingIsSmall(frontWinding)) {
       Cm_FreeWinding(frontWinding);
       frontWinding = NULL;
-      c_small_portals++;
+      cSmallPortals++;
     }
 
     if (backWinding && WindingIsSmall(backWinding)) {
       Cm_FreeWinding(backWinding);
       backWinding = NULL;
-      c_small_portals++;
+      cSmallPortals++;
     }
 
     if (!frontWinding && !backWinding) { // tiny windings on both sides
@@ -456,7 +456,7 @@ bool FloodEntities(Tree *tree) {
   bool insideOccupied = false;
 
   const Entity *ent = &entities[1];
-  for (int32_t i = 1; i < num_entities; i++, ent++) {
+  for (int32_t i = 1; i < numEntities; i++, ent++) {
 
     // Skip brush entities, we're only interested in point entities for flooding
     if (ent->numBrushes || ent->numPatches) {
@@ -485,9 +485,9 @@ bool FloodEntities(Tree *tree) {
   return insideOccupied && !tree->outsideNode.occupied;
 }
 
-static int32_t c_outside;
-static int32_t c_inside;
-static int32_t c_solid;
+static int32_t cOutside;
+static int32_t cInside;
+static int32_t cSolid;
 
 static void FillOutside_r(Node *node) {
 
@@ -500,13 +500,13 @@ static void FillOutside_r(Node *node) {
   // anything not reachable by an entity can be filled away
   if (!node->occupied) {
     if (node->contents != CONTENTS_SOLID) {
-      c_outside++;
+      cOutside++;
       node->contents = CONTENTS_SOLID;
     } else {
-      c_solid++;
+      cSolid++;
     }
   } else {
-    c_inside++;
+    cInside++;
   }
 }
 
@@ -515,17 +515,17 @@ static void FillOutside_r(Node *node) {
  */
 void FillOutside(Tree *tree) {
 
-  c_outside = 0;
-  c_inside = 0;
-  c_solid = 0;
+  cOutside = 0;
+  cInside = 0;
+  cSolid = 0;
 
   Com_Verbose("--- FillOutside ---\n");
 
   FillOutside_r(tree->headNode);
   
-  Com_Verbose("%5i solid leafs\n", c_solid);
-  Com_Verbose("%5i leafs filled\n", c_outside);
-  Com_Verbose("%5i inside leafs\n", c_inside);
+  Com_Verbose("%5i solid leafs\n", cSolid);
+  Com_Verbose("%5i leafs filled\n", cOutside);
+  Com_Verbose("%5i inside leafs\n", cInside);
 }
 
 /**
@@ -658,7 +658,7 @@ static Face *FaceFromPortal(Portal *p, int32_t pside) {
   return f;
 }
 
-static int32_t c_faces;
+static int32_t cFaces;
 
 /**
  * @brief Create faces from portals and the brush sides they reference.
@@ -692,7 +692,7 @@ static void MakeFaces_r(Node *node) {
       f->next = p->onNode->faces;
       p->onNode->faces = f;
       p->face[s] = f;
-      c_faces++;
+      cFaces++;
     }
   }
 }
@@ -703,9 +703,9 @@ static void MakeFaces_r(Node *node) {
 void MakeTreeFaces(Tree *tree) {
   Com_Verbose("--- MakeTreeFaces ---\n");
 
-  c_faces = 0;
+  cFaces = 0;
 
   MakeFaces_r(tree->headNode);
 
-  Com_Verbose("%5i faces\n", c_faces);
+  Com_Verbose("%5i faces\n", cFaces);
 }

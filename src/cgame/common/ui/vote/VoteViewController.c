@@ -121,7 +121,7 @@ static void refreshClients(VoteViewController *this) {
   $(this->client, removeAllOptions);
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    const ClientGameClientInfo *ci = &cg_state.clients[i];
+    const ClientGameClientInfo *ci = &cgState.clients[i];
     if (*ci->name) {
       $(this->client, addOption, ci->name, NULL);
     }
@@ -130,13 +130,13 @@ static void refreshClients(VoteViewController *this) {
 
 static void refreshStatus(VoteViewController *this) {
 
-  const bool active = cg_state.vote.active;
+  const bool active = cgState.vote.active;
 
   if (active) {
     $(this->status->text, setText, va("%s called a vote: %s%s%s  (Yes %d  No %d of %d)",
-                                      cg_state.vote.initiator, cg_state.vote.type,
-                                      *cg_state.vote.arg ? " " : "", cg_state.vote.arg,
-                                      cg_state.vote.yes, cg_state.vote.no, cg_state.vote.eligible));
+                                      cgState.vote.initiator, cgState.vote.type,
+                                      *cgState.vote.arg ? " " : "", cgState.vote.arg,
+                                      cgState.vote.yes, cgState.vote.no, cgState.vote.eligible));
   } else {
     $(this->status->text, setText, "No vote is in progress");
   }

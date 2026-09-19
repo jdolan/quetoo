@@ -36,7 +36,7 @@ static const char *_deaths = "Deaths";
 static const char *_kd = "KD";
 static const char *_time_played = "Time";
 
-static const JSONProperty leaderboard_entry_fields[] = {
+static const JSONProperty leaderboardEntryFields[] = {
   MakeJSONProperty(LeaderboardEntry, rank, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, name, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(LeaderboardEntry, guid, NULL, JSONDeserializeCharacters, NULL),
@@ -47,10 +47,10 @@ static const JSONProperty leaderboard_entry_fields[] = {
   { .key = NULL }
 };
 
-static const JSONProperties leaderboard_entry_properties = {
+static const JSONProperties leaderboardEntryProperties = {
   .name = "LeaderboardEntry",
   .size = sizeof(LeaderboardEntry),
-  .properties = leaderboard_entry_fields
+  .properties = leaderboardEntryFields
 };
 
 /**
@@ -100,7 +100,7 @@ static void fetchLeaderboardComplete(int32_t status, Data *data, void *userData)
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
     pendingLeaderboardResponse.numEntries = $(ctx, structsFromData,
-                                               &leaderboard_entry_properties,
+                                               &leaderboardEntryProperties,
                                                data,
                                                pendingLeaderboardResponse.entries,
                                                LEADERBOARD_MAX_ENTRIES);

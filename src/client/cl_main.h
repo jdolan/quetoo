@@ -23,10 +23,10 @@
 
 #include "cl_types.h"
 
-extern Cvar *cl_chat_sound;
-extern Cvar *cl_max_fps;
-extern Cvar *cl_no_lerp;
-extern Cvar *cl_team_chat_sound;
+extern Cvar *cl_chatSound;
+extern Cvar *cl_maxFps;
+extern Cvar *cl_noLerp;
+extern Cvar *cl_teamChatSound;
 extern Cvar *cl_timeout;
 
 extern Cvar *guid;
@@ -44,14 +44,14 @@ void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);
 
-extern RenderView cl_view;
-extern SoundStage cl_stage;
+extern RenderView clView;
+extern SoundStage clStage;
 
 #if defined(__CL_LOCAL_H__)
 
 extern Cvar *qport;
 
-extern Cvar *cl_draw_net_messages;
+extern Cvar *cl_drawNetMessages;
 
 extern Client cl;
 extern ClientStatic cls;

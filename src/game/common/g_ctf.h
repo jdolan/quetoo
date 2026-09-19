@@ -26,7 +26,7 @@
 
 #if defined(__G_LOCAL_H__)
 
-extern Cvar *g_capture_limit;
+extern Cvar *g_captureLimit;
 
 void G_Ctf_Init(void);
 

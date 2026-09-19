@@ -34,7 +34,7 @@ typedef struct PingViewInterface PingViewInterface;
 /**
  * @brief The round trip time to the server, in milliseconds, as the server measures it.
  * @details The value carries the class name `lagging` while packets were dropped in the last
- * second or the round trip exceeds `cg_draw_ping_warn`. Hidden when `cg_draw_ping` is off.
+ * second or the round trip exceeds `cg_drawPingWarn`. Hidden when `cg_drawPing` is off.
  * @extends CounterView
  */
 struct PingView {

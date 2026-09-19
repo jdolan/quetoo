@@ -22,7 +22,7 @@
 #include "brush.h"
 #include "map.h"
 
-static SDL_AtomicInt c_active_brushes;
+static SDL_AtomicInt cActiveBrushes;
 
 /**
  * @brief Allocates a new CSG brush with the given number of sides.
@@ -33,7 +33,7 @@ CsgBrush *AllocBrush(int32_t numBrushSides) {
 
   brush->brushSides = Mem_LinkMalloc(sizeof(BrushSide) * numBrushSides, brush);
 
-  SDL_AddAtomicInt(&c_active_brushes, 1);
+  SDL_AddAtomicInt(&cActiveBrushes, 1);
 
   return brush;
 }
@@ -45,7 +45,7 @@ void FreeBrush(CsgBrush *brush) {
 
   assert(brush);
 
-  SDL_AddAtomicInt(&c_active_brushes, -1);
+  SDL_AddAtomicInt(&cActiveBrushes, -1);
   
   for (int32_t i = 0; i < brush->numBrushSides; i++) {
     if (brush->brushSides[i].winding) {

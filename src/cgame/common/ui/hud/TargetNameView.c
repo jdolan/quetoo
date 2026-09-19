@@ -44,7 +44,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
   static uint32_t time;
   static char name[MAX_INFO_STRING_VALUE];
 
-  if (!cg_draw_target_name->integer) {
+  if (!cg_drawTargetName->integer) {
     return NULL;
   }
 

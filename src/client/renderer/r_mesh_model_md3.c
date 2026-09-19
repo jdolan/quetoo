@@ -472,7 +472,7 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
 /**
  * @brief The MD3 model format descriptor.
  */
-const RenderModelFormat r_md3_model_format = {
+const RenderModelFormat rMd3ModelFormat = {
   .extension = "md3",
   .type = MODEL_MESH,
   .Load = R_LoadMd3Model,

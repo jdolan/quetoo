@@ -43,8 +43,8 @@ static const char *_unset = "—";
  */
 #define JOIN_PING_UNANSWERED 999
 
-static Cvar *cg_join_server_hide_empty;
-static Cvar *cg_join_server_hide_bots;
+static Cvar *cg_joinServerHideEmpty;
+static Cvar *cg_joinServerHideBots;
 
 static JoinServerViewController *sortingJoinServerViewController;
 
@@ -105,7 +105,7 @@ static void setLabelText(Label *label, const char *text) {
  * number, so that moving the slider visibly splits the list.
  */
 static int32_t maxPing(void) {
-  return Clampf(cg_quick_join_max_ping->integer, 1, 999);
+  return Clampf(cg_quickJoinMaxPing->integer, 1, 999);
 }
 
 /**
@@ -290,7 +290,7 @@ static void didClickQuickJoin(Button *button) {
   JoinServerViewController *this = button->delegate.self;
 
   const int32_t maxPingValue = maxPing();
-  const int32_t minClients = Clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
+  const int32_t minClients = Clampf(cg_quickJoinMinClients->integer, 0, MAX_CLIENTS);
 
   uint32_t totalWeight = 0;
 
@@ -640,12 +640,12 @@ static void reloadServers(JoinServerViewController *self) {
   for (size_t i = 0; i < count; i++) {
     ClientServerInfo *server = $(servers, get, i);
 
-    const int32_t clients = cg_join_server_hide_bots->value ? server->clients - server->bots : server->clients;
+    const int32_t clients = cg_joinServerHideBots->value ? server->clients - server->bots : server->clients;
 
-    if (clients == 0 && (cg_join_server_hide_empty->value || cg_join_server_hide_bots->value)) {
+    if (clients == 0 && (cg_joinServerHideEmpty->value || cg_joinServerHideBots->value)) {
       Cg_Debug("Hiding %s: %d clients, %d bots, hide_empty %d, hide_bots %d\n",
                server->hostname, server->clients, server->bots,
-               cg_join_server_hide_empty->integer, cg_join_server_hide_bots->integer);
+               cg_joinServerHideEmpty->integer, cg_joinServerHideBots->integer);
 
       hidden++;
       continue;
@@ -685,8 +685,8 @@ static void initialize(Class *clazz) {
 
   ((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;
 
-  cg_join_server_hide_empty = cgi.AddCvar("cg_join_server_hide_empty", "0", CVAR_ARCHIVE, NULL);
-  cg_join_server_hide_bots = cgi.AddCvar("cg_join_server_hide_bots", "0", CVAR_ARCHIVE, NULL);
+  cg_joinServerHideEmpty = cgi.AddCvar("cg_join_server_hide_empty", "0", CVAR_ARCHIVE, NULL);
+  cg_joinServerHideBots = cgi.AddCvar("cg_join_server_hide_bots", "0", CVAR_ARCHIVE, NULL);
 }
 
 /**

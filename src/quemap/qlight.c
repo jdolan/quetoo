@@ -22,7 +22,7 @@
 #include "qlight.h"
 
 // we use a subset of the collision detection facilities for lighting
-static CmBspModel *bsp_models[MAX_BSP_MODELS];
+static CmBspModel *bspModels[MAX_BSP_MODELS];
 
 /**
  * @brief Box trace data encapsulation and context management.
@@ -435,7 +435,7 @@ static void LightWorld(void) {
 
 /**
  * @brief `LIGHT` stage entry point: builds and bakes all lights, and writes the updated BSP.
- * @details `BSP_Main()` always runs immediately before this in the same process, so `bsp_file`
+ * @details `BSP_Main()` always runs immediately before this in the same process, so `bspFile`
  * is already fully populated in memory; there is no need to reload it from disk here. The
  * collision model, however, is a distinct representation that must be built from the .bsp file
  * `BSP_Main()` just wrote.
@@ -443,29 +443,29 @@ static void LightWorld(void) {
 int32_t LIGHT_Main(void) {
 
   Com_Print("\n------------------------------------------\n");
-  Com_Print("\nLighting %s\n\n", bsp_name);
+  Com_Print("\nLighting %s\n\n", bspName);
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if (bsp_file.numNodes == 0 || bsp_file.numFaces == 0) {
+  if (bspFile.numNodes == 0 || bspFile.numFaces == 0) {
     Com_Error(ERROR_FATAL, "Empty map\n");
   }
 
-  bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
+  bspModels[0] = Cm_LoadBspModel(bspName, NULL);
   for (int32_t i = 1; i < Cm_NumModels(); i++) {
-    bsp_models[i] = Cm_Model(va("*%d", i));
+    bspModels[i] = Cm_Model(va("*%d", i));
   }
 
   LightWorld();
 
-  WriteBSPFile(va("maps/%s.bsp", map_base));
+  WriteBSPFile(va("maps/%s.bsp", mapBase));
 
   for (int32_t tag = MEM_TAG_QLIGHT; tag < MEM_TAG_QMAT; tag++) {
     Mem_FreeTag(tag);
   }
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
-  Com_Print("\nLit %s in %d ms\n", bsp_name, (end - start));
+  Com_Print("\nLit %s in %d ms\n", bspName, (end - start));
 
   return 0;
 }

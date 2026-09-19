@@ -37,7 +37,7 @@ typedef struct ConsoleViewControllerInterface ConsoleViewControllerInterface;
  * @brief The console layer, above the menus and the HUD, holding the drop-down console.
  * @details The layer fills the window but never takes a hit, so the menus beneath stay clickable.
  * The console shows while the key destination is the console, filling the window until there is
- * a game to show and `cl_console_height` of it after.
+ * a game to show and `cl_consoleHeight` of it after.
  * @extends ViewController
  */
 struct ConsoleViewController {

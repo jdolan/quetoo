@@ -27,13 +27,13 @@
 #if defined(__G_LOCAL_H__)
 
 extern Cvar *g_hook;
-extern Cvar *g_hook_auto_refire;
-extern Cvar *g_hook_distance;
-extern Cvar *g_hook_pull_speed;
-extern Cvar *g_hook_refire;
-extern Cvar *g_hook_sky;
-extern Cvar *g_hook_speed;
-extern Cvar *g_hook_style;
+extern Cvar *g_hookAutoRefire;
+extern Cvar *g_hookDistance;
+extern Cvar *g_hookPullSpeed;
+extern Cvar *g_hookRefire;
+extern Cvar *g_hookSky;
+extern Cvar *g_hookSpeed;
+extern Cvar *g_hookStyle;
 
 void G_Hook_Init(void);
 void G_Hook_CheckState(void);

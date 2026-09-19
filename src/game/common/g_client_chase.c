@@ -90,7 +90,7 @@ void G_ClientChaseNext(GameClient *cl) {
   do {
     i++;
 
-    if (i == sv_max_clients->integer) {
+    if (i == sv_maxClients->integer) {
       i = 0;
     }
 
@@ -122,7 +122,7 @@ void G_ClientChasePrevious(GameClient *cl) {
     i--;
 
     if (i == -1) {
-      i = sv_max_clients->integer - 1;
+      i = sv_maxClients->integer - 1;
     }
 
     prev = ge.clients[i];

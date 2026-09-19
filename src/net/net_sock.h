@@ -23,7 +23,7 @@
 
 #include "net_types.h"
 
-extern in_addr_t net_lo;
+extern in_addr_t netLo;
 
 int32_t Net_GetError(void);
 const char *Net_GetErrorString(void);

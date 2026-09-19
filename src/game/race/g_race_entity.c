@@ -252,7 +252,7 @@ void G_Race_ResolveStages(void) {
 
     if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
       G_Warn("%s needs restart_target to name one info_notnull, and \"%s\" does not\n", etos(stage), name);
-      g_level.raceCourse.stagesValid = false;
+      gLevel.raceCourse.stagesValid = false;
       continue;
     }
 
@@ -297,21 +297,21 @@ static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
     return;
   }
 
-  if (g_level.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
+  if (gLevel.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
     G_Warn("%s is one func_race_* too many; the level may have %d\n", etos(ent), RACE_MAX_BARRIERS);
     G_FreeEntity(ent);
     return;
   }
 
   ent->raceBarrier = barrier;
-  ent->raceBarrierSlot = g_level.raceCourse.barrierCount;
+  ent->raceBarrierSlot = gLevel.raceCourse.barrierCount;
   ent->solid = SOLID_BSP;
   ent->moveType = MOVE_TYPE_NONE;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
 
-  g_level.raceCourse.barriers[g_level.raceCourse.barrierCount++] = ent;
+  gLevel.raceCourse.barriers[gLevel.raceCourse.barrierCount++] = ent;
 }
 
 /*QUAKED func_race_checkpoint_gate (0 .5 .8) ?
@@ -420,7 +420,7 @@ static bool G_Race_Passes(const GameClient *cl, const GameEntity *ent) {
  * @see g_race.h
  */
 void G_Race_UpdateBarriers(GameClient *cl) {
-  const GameRaceCourse *course = &g_level.raceCourse;
+  const GameRaceCourse *course = &gLevel.raceCourse;
 
   if (!course->barrierCount) {
     return;

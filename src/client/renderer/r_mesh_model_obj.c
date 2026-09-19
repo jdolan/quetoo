@@ -255,7 +255,7 @@ static void R_LoadObjModel(RenderModel *mod, void *buffer) {
 /**
  * @brief The OBJ model format descriptor.
  */
-const RenderModelFormat r_obj_model_format = {
+const RenderModelFormat rObjModelFormat = {
   .extension = "obj",
   .type = MODEL_MESH,
   .Load = R_LoadObjModel,

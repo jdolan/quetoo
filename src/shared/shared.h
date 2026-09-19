@@ -532,7 +532,7 @@ typedef enum {
  * transmitting entity angles, which would otherwise require 12 bytes.
  */
 #define NUM_APPROXIMATE_NORMALS 162
-extern const Vec3 approximate_normals[NUM_APPROXIMATE_NORMALS];
+extern const Vec3 approximateNormals[NUM_APPROXIMATE_NORMALS];
 
 /**
  * @brief String manipulation functions.

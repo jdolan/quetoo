@@ -420,7 +420,7 @@ typedef struct {
  * get their own compiled copy through header inclusion - no cross-binary
  * linkage, and no drift, since it is one source text.
  */
-static const Gameplay g_gameplay_modes[] = {
+static const Gameplay gGameplayModes[] = {
   { GAMEPLAY_DEATHMATCH,      "deathmatch",      "Deathmatch" },
   { GAMEPLAY_TEAM_DEATHMATCH, "team_deathmatch", "Team Deathmatch" },
   { GAMEPLAY_INSTAGIB,        "instagib",        "Instagib" },

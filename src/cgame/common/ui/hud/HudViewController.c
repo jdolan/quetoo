@@ -31,12 +31,12 @@
 
 #define HUD_DEFAULT "default"
 
-HudViewController *cg_hud_view_controller;
+HudViewController *cgHudViewController;
 
 AtlasImage *Cg_HudImage(const char *name) {
 
-  if (cg_hud_view_controller) {
-    return $(cg_hud_view_controller, image, name);
+  if (cgHudViewController) {
+    return $(cgHudViewController, image, name);
   }
 
   return NULL;
@@ -51,8 +51,8 @@ static void dealloc(Object *self) {
 
   HudViewController *this = (HudViewController *) self;
 
-  if (cg_hud_view_controller == this) {
-    cg_hud_view_controller = NULL;
+  if (cgHudViewController == this) {
+    cgHudViewController = NULL;
   }
 
   release(this->hud);
@@ -400,8 +400,8 @@ static void hideForEditor(View *view, ident data) {
 static void warm(HudViewController *self) {
 
   for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bg_item_defs[t].icon) {
-      $(self, image, bg_item_defs[t].icon);
+    if (bgItemDefs[t].icon) {
+      $(self, image, bgItemDefs[t].icon);
     }
   }
 
@@ -445,7 +445,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
-  const bool scores = ps->stats[STAT_SCORES] && !cg_state.navEdit;
+  const bool scores = ps->stats[STAT_SCORES] && !cgState.navEdit;
 
   $((View *) self->scoreboard, setVisibility,
     scores ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -456,7 +456,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The maps are published only during the intermission, so their presence is what says
   // there is one; like the scoreboard, this shows when the hud does not
-  const bool intermission = cg_state.nextMap.active && !cg_state.navEdit;
+  const bool intermission = cgState.nextMap.active && !cgState.navEdit;
 
   $((View *) self->intermission, setVisibility,
     intermission ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -484,7 +484,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
     $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
-  const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.navEdit;
+  const bool hidden = !cg_drawHud->integer || !ps->stats[STAT_TIME] || cgState.navEdit;
 
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);

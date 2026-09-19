@@ -44,7 +44,7 @@ static void updateBindings(View *self, ident data) {
 
   PingView *this = (PingView *) self;
 
-  $(self, setVisibility, cg_draw_ping->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $(self, setVisibility, cg_drawPing->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     const Client *cl = cgi.client;
@@ -57,7 +57,7 @@ static void updateBindings(View *self, ident data) {
     }
 
     const bool dropping = this->droppedTime && now - this->droppedTime < PING_DROPPED_INTERVAL;
-    const bool lagging = dropping || frame->ps.stats[STAT_PING] > cg_draw_ping_warn->integer;
+    const bool lagging = dropping || frame->ps.stats[STAT_PING] > cg_drawPingWarn->integer;
 
     View *value = (View *) this->counterView.value;
 

@@ -32,15 +32,15 @@ static struct {
  * @brief The games this module plays as variants of deathmatch, which the maps name
  * rather than `lithium`.
  */
-static const char *cg_lithium_games[] = { "dm", "tdm", "duel", "instagib" };
+static const char *cgLithiumGames[] = { "dm", "tdm", "duel", "instagib" };
 
 /**
  * @brief Lists a map made for any of the deathmatch variants.
  */
 static bool Cg_FilterCreateServerMapList_Lithium(const MapListItemInfo *info) {
 
-  for (size_t i = 0; i < lengthof(cg_lithium_games); i++) {
-    if (q_str_has_token(info->games, cg_lithium_games[i])) {
+  for (size_t i = 0; i < lengthof(cgLithiumGames); i++) {
+    if (q_str_has_token(info->games, cgLithiumGames[i])) {
       return true;
     }
   }

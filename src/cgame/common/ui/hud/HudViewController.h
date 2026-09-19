@@ -92,7 +92,7 @@ struct HudViewController {
 
   /**
    * @brief The diagnostics table, added to each hud's layout and shown while
-   * `cg_draw_diagnostics` is set.
+   * `cg_drawDiagnostics` is set.
    */
   DiagnosticsView *diagnostics;
 
@@ -186,7 +186,7 @@ CGAME_EXPORT Class *_HudViewController(void);
 /**
  * @brief The HudViewController, or `NULL` when the HUD is not loaded.
  */
-extern HudViewController *cg_hud_view_controller;
+extern HudViewController *cgHudViewController;
 
 /**
  * @return The AtlasImage for the given resource name from the Theme's icon atlas, or `NULL`.

@@ -25,7 +25,7 @@
 #include "patch.h"
 #include "tree.h"
 
-int32_t num_patches;
+int32_t numPatches;
 Patch patches[MAX_PATCHES];
 
 static void EvaluatePatch(const PatchControlPoint cp[3][3],
@@ -64,11 +64,11 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
     Com_Error(ERROR_FATAL, "Expected '{' after patchDef2, got '%s'\n", token);
   }
 
-  if (num_patches == MAX_PATCHES) {
+  if (numPatches == MAX_PATCHES) {
     Com_Error(ERROR_FATAL, "MAX_PATCHES\n");
   }
 
-  Patch *patch = &patches[num_patches];
+  Patch *patch = &patches[numPatches];
   memset(patch, 0, sizeof(*patch));
   patch->entity = entityNum;
 
@@ -177,7 +177,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
   patch->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   patch->surface = 0;
 
-  num_patches++;
+  numPatches++;
   return patch;
 }
 
@@ -202,20 +202,20 @@ static void EmitPatchCollisionBrush(Entity *entity,
     return;
   }
 
-  if (num_brushes >= MAX_BSP_BRUSHES) {
+  if (numBrushes >= MAX_BSP_BRUSHES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
   }
-  if (num_brush_sides + 5 >= MAX_BSP_BRUSH_SIDES) {
+  if (numBrushSides + 5 >= MAX_BSP_BRUSH_SIDES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
   }
 
   const int32_t caulkMaterial = LoadMaterial("common/caulk");
 
-  Brush *brush = &brushes[num_brushes];
+  Brush *brush = &brushes[numBrushes];
   memset(brush, 0, sizeof(*brush));
   brush->entity = (int32_t) (entity - entities);
-  brush->brush = num_brushes - entity->firstBrush;
-  brush->brushSides = &brush_sides[num_brush_sides];
+  brush->brush = numBrushes - entity->firstBrush;
+  brush->brushSides = &brushSides[numBrushSides];
 
   // Front face: derive from triangle vertices so all 3 lie exactly on the plane.
   // Flip to match the outward Bézier surface normal direction.
@@ -288,8 +288,8 @@ static void EmitPatchCollisionBrush(Entity *entity,
   }
 
   brush->numBrushSides = numSides;
-  num_brush_sides += numSides;
-  num_brushes++;
+  numBrushSides += numSides;
+  numBrushes++;
 
   brush->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
 
@@ -480,7 +480,7 @@ void TessellatePatches(int32_t entityNum) {
 
   const int32_t subdivisions = PATCH_SUBDIVISIONS;
 
-  for (int32_t p = 0; p < num_patches; p++) {
+  for (int32_t p = 0; p < numPatches; p++) {
     Patch *patch = &patches[p];
 
     if (patch->entity != entityNum) {
@@ -595,7 +595,7 @@ static void AssignPatchFaceToNode_r(Node *node, PatchFace *pf) {
  */
 void AssignPatchFacesToNodes(Node *headNode, int32_t entityNum) {
 
-  for (int32_t p = 0; p < num_patches; p++) {
+  for (int32_t p = 0; p < numPatches; p++) {
     Patch *patch = &patches[p];
 
     if (patch->entity != entityNum) {
@@ -613,7 +613,7 @@ void AssignPatchFacesToNodes(Node *headNode, int32_t entityNum) {
  */
 void FreePatchFaces(int32_t entityNum) {
 
-  for (int32_t p = 0; p < num_patches; p++) {
+  for (int32_t p = 0; p < numPatches; p++) {
     Patch *patch = &patches[p];
 
     if (patch->entity != entityNum) {
@@ -633,7 +633,7 @@ void EmitPatches(const BspModel *mod) {
 
   const int32_t entityNum = mod->entity;
 
-  for (int32_t p = 0; p < num_patches; p++) {
+  for (int32_t p = 0; p < numPatches; p++) {
     Patch *patch = &patches[p];
 
     if (patch->entity != entityNum) {
@@ -644,13 +644,13 @@ void EmitPatches(const BspModel *mod) {
       continue;
     }
 
-    if (bsp_file.numPatches >= MAX_BSP_PATCHES) {
+    if (bspFile.numPatches >= MAX_BSP_PATCHES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_PATCHES\n");
     }
 
-    patch->out = &bsp_file.patches[bsp_file.numPatches];
+    patch->out = &bspFile.patches[bspFile.numPatches];
     memset(patch->out, 0, sizeof(*patch->out));
-    bsp_file.numPatches++;
+    bspFile.numPatches++;
 
     patch->out->entity = patch->entity;
     patch->out->material = patch->material;
@@ -660,7 +660,7 @@ void EmitPatches(const BspModel *mod) {
     patch->out->height = patch->height;
 
     // Set the patch index on all emitted BSP faces
-    const int32_t patchIndex = (int32_t) (patch->out - bsp_file.patches);
+    const int32_t patchIndex = (int32_t) (patch->out - bspFile.patches);
 
     for (int32_t f = 0; f < patch->numFaces; f++) {
       if (patch->faces[f].out) {

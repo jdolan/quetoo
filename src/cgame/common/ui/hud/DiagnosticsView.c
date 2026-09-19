@@ -170,7 +170,7 @@ static void updateBindings(View *self, ident data) {
   DiagnosticsView *this = (DiagnosticsView *) self;
 
   $(self, setVisibility,
-    cg_draw_diagnostics->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+    cg_drawDiagnostics->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     Client *cl = cgi.client;

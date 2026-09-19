@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-Vector *cg_entities = NULL;
+Vector *cgEntities = NULL;
 
 /**
  * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
@@ -78,8 +78,8 @@ static bool Cg_EntityTeam_Predicate(const CmEntity *e, void *data) {
 ClientGameEntity *Cg_EntityForDefinition(const CmEntity *e) {
 
   if (e) {
-    for (uint32_t i = 0; i < cg_entities->count; i++) {
-      ClientGameEntity *ent = VectorElement(cg_entities, ClientGameEntity, i);
+    for (uint32_t i = 0; i < cgEntities->count; i++) {
+      ClientGameEntity *ent = VectorElement(cgEntities, ClientGameEntity, i);
       if (ent->def == e) {
         return ent;
       }
@@ -89,18 +89,18 @@ ClientGameEntity *Cg_EntityForDefinition(const CmEntity *e) {
   return NULL;
 }
 
-const ClientGameEntityClass *cg_entity_classes[] = {
-  &cg_misc_dust,
-  &cg_misc_flame,
-  &cg_misc_model,
-  &cg_misc_sound,
-  &cg_misc_sparks,
-  &cg_misc_sprite,
-  &cg_misc_steam,
-  &cg_misc_weather
+const ClientGameEntityClass *cgEntityClasses[] = {
+  &cgMiscDust,
+  &cgMiscFlame,
+  &cgMiscModel,
+  &cgMiscSound,
+  &cgMiscSparks,
+  &cgMiscSprite,
+  &cgMiscSteam,
+  &cgMiscWeather
 };
 
-const size_t cg_num_entity_classes = lengthof(cg_entity_classes);
+const size_t cgNumEntityClasses = lengthof(cgEntityClasses);
 
 /**
  * @brief Loads entities from the current level.
@@ -110,7 +110,7 @@ void Cg_LoadEntities(void) {
 
   Cg_FreeEntities();
 
-  cg_entities = $(alloc(Vector), initWithSize, sizeof(ClientGameEntity));
+  cgEntities = $(alloc(Vector), initWithSize, sizeof(ClientGameEntity));
 
   const CmBsp *bsp = cgi.WorldModel()->bsp->cm;
   for (int32_t i = 0; i < bsp->numEntities; i++) {
@@ -118,13 +118,13 @@ void Cg_LoadEntities(void) {
     const CmEntity *def = bsp->entities[i];
     const char *classname = cgi.EntityValue(def, "classname")->string;
 
-    const ClientGameEntityClass **clazz = cg_entity_classes;
-    for (size_t j = 0; j < cg_num_entity_classes; j++, clazz++) {
+    const ClientGameEntityClass **clazz = cgEntityClasses;
+    for (size_t j = 0; j < cgNumEntityClasses; j++, clazz++) {
 
       if (!q_strcmp(classname, (*clazz)->classname)) {
 
         ClientGameEntity e = {
-          .id = MAX_ENTITIES + (int32_t) cg_entities->count,
+          .id = MAX_ENTITIES + (int32_t) cgEntities->count,
           .clazz = *clazz,
           .def = def
         };
@@ -157,7 +157,7 @@ void Cg_LoadEntities(void) {
           e.nextThink += interval * Randomf();
         }
 
-        $(cg_entities, add, &e);
+        $(cgEntities, add, &e);
       }
     }
   }
@@ -168,9 +168,9 @@ void Cg_LoadEntities(void) {
  */
 void Cg_FreeEntities(void) {
 
-  if (cg_entities) {
-    release(cg_entities);
-    cg_entities = NULL;
+  if (cgEntities) {
+    release(cgEntities);
+    cgEntities = NULL;
   }
 }
 
@@ -320,7 +320,7 @@ AddEntity Cg_AddEntity = Cg_AddEntity_Common;
  */
 void Cg_AddEntities(const ClientFrame *frame) {
 
-  if (!cg_add_entities->value) {
+  if (!cg_addEntities->value) {
     
     // add the world model
     cgi.AddEntity(cgi.view, &(const RenderEntity) {
@@ -343,8 +343,8 @@ void Cg_AddEntities(const ClientFrame *frame) {
   }
 
   // and client side entities too
-  ClientGameEntity *e = cg_entities->elements;
-  for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
+  ClientGameEntity *e = cgEntities->elements;
+  for (uint32_t i = 0; i < cgEntities->count; i++, e++) {
 
     if (e->nextThink > cgi.client->unclampedTime) {
       continue;

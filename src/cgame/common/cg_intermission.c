@@ -31,10 +31,10 @@ static struct {
  * @brief Bumped whenever the candidates change, never reset, so that a view comparing
  * against it sees a change even across a level.
  */
-static uint32_t cg_next_map_generation;
+static uint32_t cgNextMapGeneration;
 
 /**
- * @brief Reads `CS_NEXT_MAP` into `cg_state.next_map`.
+ * @brief Reads `CS_NEXT_MAP` into `cgState.next_map`.
  */
 static bool Cg_ParseConfigString_Intermission(int32_t index) {
 
@@ -42,7 +42,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     return previous.ParseConfigString(index);
   }
 
-  ClientGameNextMapState *nextMap = &cg_state.nextMap;
+  ClientGameNextMapState *nextMap = &cgState.nextMap;
 
   char was[MAX_NEXT_MAPS][MAX_QPATH];
   memcpy(was, nextMap->maps, sizeof(was));
@@ -53,7 +53,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   memset(nextMap, 0, sizeof(*nextMap));
 
   if (!*s) {
-    nextMap->generation = numWas ? ++cg_next_map_generation : cg_next_map_generation;
+    nextMap->generation = numWas ? ++cgNextMapGeneration : cgNextMapGeneration;
     return true;
   }
 
@@ -91,10 +91,10 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
 
   // only the names cost anything to show, so the tally moving is not a redraw
   if (nextMap->numMaps != numWas || memcmp(was, nextMap->maps, sizeof(was))) {
-    cg_next_map_generation++;
+    cgNextMapGeneration++;
   }
 
-  nextMap->generation = cg_next_map_generation;
+  nextMap->generation = cgNextMapGeneration;
 
   return true;
 }
@@ -115,7 +115,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
     return false;
   }
 
-  if (!cg_state.nextMap.active || !cg_state.nextMap.voting) {
+  if (!cgState.nextMap.active || !cgState.nextMap.voting) {
     return false;
   }
 
@@ -127,7 +127,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
 
   const int32_t map = (int32_t) (event->key.key - SDLK_1);
 
-  if (map < 0 || map >= cg_state.nextMap.numMaps) {
+  if (map < 0 || map >= cgState.nextMap.numMaps) {
     return false;
   }
 
@@ -141,7 +141,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
  */
 static void Cg_StateDidClear_Intermission(void) {
 
-  memset(&cg_state.nextMap, 0, sizeof(cg_state.nextMap));
+  memset(&cgState.nextMap, 0, sizeof(cgState.nextMap));
 
   previous.StateDidClear();
 }

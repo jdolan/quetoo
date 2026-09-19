@@ -33,7 +33,7 @@ typedef struct FpsViewInterface FpsViewInterface;
 
 /**
  * @brief The frame rate, counted by the HUD itself and refreshed once a second.
- * @details Hidden when `cg_draw_fps` is off.
+ * @details Hidden when `cg_drawFps` is off.
  * @extends CounterView
  */
 struct FpsView {

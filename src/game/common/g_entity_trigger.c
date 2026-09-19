@@ -60,11 +60,11 @@ static void G_trigger_multiple_Think(GameEntity *ent) {
 
   if (ent->wait < 0) { // a trigger_once, which fires the once and is gone
     ent->Touch = NULL;
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
     ent->Think = G_FreeEntity;
   } else { // otherwise re-arm, at zero meaning as often as we are touched
     ent->Think = G_trigger_multiple_Wait;
-    ent->nextThink = g_level.time + (uint32_t) Maxi((int32_t) SECONDS_TO_MILLIS(ent->wait), QUETOO_TICK_MILLIS);
+    ent->nextThink = gLevel.time + (uint32_t) Maxi((int32_t) SECONDS_TO_MILLIS(ent->wait), QUETOO_TICK_MILLIS);
   }
 }
 
@@ -235,8 +235,8 @@ static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CmTra
       other->client->ps.pmState.time = 240;
     }
 
-    if (other->pushTime < g_level.time) {
-      other->pushTime = g_level.time + 1500;
+    if (other->pushTime < gLevel.time) {
+      other->pushTime = gLevel.time + 1500;
       G_MulticastSound(&(const GamePlaySound) {
         .index = ent->moveInfo.soundStart,
         .origin = &other->s.origin,
@@ -367,14 +367,14 @@ static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTra
     return;
   }
 
-  if (ent->timestamp > g_level.time) {
+  if (ent->timestamp > gLevel.time) {
     return;
   }
 
   if (ent->spawnFlags & 16) {
-    ent->timestamp = g_level.time + 1000;
+    ent->timestamp = gLevel.time + 1000;
   } else {
-    ent->timestamp = g_level.time + 100;
+    ent->timestamp = gLevel.time + 100;
   }
 
   const int16_t d = ent->damage;
@@ -441,11 +441,11 @@ void G_trigger_hurt(GameEntity *ent) {
  */
 static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
-  if (ent->timestamp > g_level.time) {
+  if (ent->timestamp > gLevel.time) {
     return;
   }
 
-  ent->timestamp = g_level.time + ent->delay * 1000;
+  ent->timestamp = gLevel.time + ent->delay * 1000;
 
   const char *command = gi.EntityValue(ent->def, "command")->nullableString;
   if (command) {

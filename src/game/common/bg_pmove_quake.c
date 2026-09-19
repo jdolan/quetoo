@@ -65,7 +65,7 @@
   .maxs = { {  16.f,  16.f,  -4.f } }  /* Quetoo's corpse: QuakeWorld resized nothing on death */ \
 }
 
-const PlayerMoveParams pm_quake_params = {
+const PlayerMoveParams pmQuakeParams = {
   .gravity = 800,               // sv_gravity
   .accelGround = 10.f,         // sv_accelerate
   .accelGroundSlick = 10.f,   // unused: Quake has no slick surfaces
@@ -149,7 +149,7 @@ static void Pm_QuakeFlyMove(void) {
   CmBspPlane planes[PM_QUAKE_CLIP_PLANES];
   int32_t numPlanes = 0;
 
-  float timeLeft = pm_locals.time;
+  float timeLeft = pmLocals.time;
 
   for (int32_t bump = 0; bump < PM_QUAKE_BUMPS; bump++) {
 
@@ -233,8 +233,8 @@ static void Pm_QuakeGroundMove(void) {
   }
 
   // try moving straight there first
-  const Vec3 dest = MakeVec3(pm->s.origin.x + pm->s.velocity.x * pm_locals.time,
-                           pm->s.origin.y + pm->s.velocity.y * pm_locals.time,
+  const Vec3 dest = MakeVec3(pm->s.origin.x + pm->s.velocity.x * pmLocals.time,
+                           pm->s.origin.y + pm->s.velocity.y * pmLocals.time,
                            pm->s.origin.z);
 
   CmTrace trace = Pm_Trace(pm->s.origin, dest, pm->bounds);
@@ -286,7 +286,7 @@ static void Pm_QuakeGroundMove(void) {
     pm->s.velocity.z = downVelocity.z;
 
     // tell the view how far it climbed, or stairs snap the camera
-    pm->step = pm->s.origin.z - pm_locals.previousOrigin.z;
+    pm->step = pm->s.origin.z - pmLocals.previousOrigin.z;
   }
 }
 
@@ -327,10 +327,10 @@ static void Pm_QuakeFriction(void) {
   float drop = 0.f;
 
   if (pm->waterLevel >= WATER_WAIST) {
-    drop = speed * pm->s.params.frictionWater * (float) pm->waterLevel * pm_locals.time;
+    drop = speed * pm->s.params.frictionWater * (float) pm->waterLevel * pmLocals.time;
   } else if (pm->s.flags & PMF_ON_GROUND) {
     const float control = Maxf(speed, pm->s.params.speedStop);
-    drop = control * friction * pm_locals.time;
+    drop = control * friction * pmLocals.time;
   }
 
   pm->s.velocity = Vec3_Scale(pm->s.velocity, Maxf(0.f, speed - drop) / speed);
@@ -350,7 +350,7 @@ static void Pm_QuakeAccelerate(const Vec3 dir, float speed, float accel) {
     return;
   }
 
-  const float accelSpeed = Minf(accel * pm_locals.time * speed, addSpeed);
+  const float accelSpeed = Minf(accel * pmLocals.time * speed, addSpeed);
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
 }
@@ -377,7 +377,7 @@ static void Pm_QuakeAirAccelerate(const Vec3 dir, float speed, float accel) {
     return;
   }
 
-  const float accelSpeed = Minf(accel * speed * pm_locals.time, addSpeed);
+  const float accelSpeed = Minf(accel * speed * pmLocals.time, addSpeed);
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
 }
@@ -390,8 +390,8 @@ static void Pm_QuakeWaterMove(void) {
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
   Vec3 wishVelocity = Vec3_Zero();
-  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.forward, pm_locals.forward);
-  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.right, pm_locals.right);
+  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.forward, pmLocals.forward);
+  wishVelocity = Vec3_Fmaf(wishVelocity, pm->cmd.right, pmLocals.right);
 
   if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
     wishVelocity.z -= PM_QUAKE_WATER_SINK; // drift toward the bottom
@@ -406,7 +406,7 @@ static void Pm_QuakeWaterMove(void) {
   Pm_QuakeAccelerate(dir, speed, pm->s.params.accelWater);
 
   // assume a stair or a slope, and press down from a step height above
-  const Vec3 dest = Vec3_Fmaf(pm->s.origin, pm_locals.time, pm->s.velocity);
+  const Vec3 dest = Vec3_Fmaf(pm->s.origin, pmLocals.time, pm->s.velocity);
   const Vec3 start = MakeVec3(dest.x, dest.y, dest.z + PM_QUAKE_STEP_SIZE + 1.f);
 
   const CmTrace trace = Pm_Trace(start, dest, pm->bounds);
@@ -426,8 +426,8 @@ static void Pm_QuakeAirMove(void) {
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
   // the wish is horizontal, from a basis flattened rather than projected
-  Vec3 forward = MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f);
-  Vec3 right = MakeVec3(pm_locals.right.x, pm_locals.right.y, 0.f);
+  Vec3 forward = MakeVec3(pmLocals.forward.x, pmLocals.forward.y, 0.f);
+  Vec3 right = MakeVec3(pmLocals.right.x, pmLocals.right.y, 0.f);
 
   forward = Vec3_Normalize(forward);
   right = Vec3_Normalize(right);
@@ -443,7 +443,7 @@ static void Pm_QuakeAirMove(void) {
   const Vec3 dir = Vec3_NormalizeLength(wishVelocity, &speed);
   speed = Minf(speed, pm->s.params.speedGround);
 
-  const float gravity = pm->s.params.gravity * pm_locals.time;
+  const float gravity = pm->s.params.gravity * pmLocals.time;
 
   if (pm->s.flags & PMF_ON_GROUND) {
     pm->s.velocity.z = 0.f;
@@ -482,7 +482,7 @@ static void Pm_QuakeCategorizePosition(void) {
     } else {
       pm->s.flags |= PMF_ON_GROUND;
       pm->ground = trace;
-      pm_locals.ground = trace;
+      pmLocals.ground = trace;
 
       if (pm->s.flags & PMF_TIME_WATER_JUMP) {
         pm->s.flags &= ~PMF_TIME_WATER_JUMP;
@@ -584,7 +584,7 @@ static void Pm_QuakeCheckWaterJump(void) {
     return;
   }
 
-  Vec3 forward = MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f);
+  Vec3 forward = MakeVec3(pmLocals.forward.x, pmLocals.forward.y, 0.f);
   forward = Vec3_Normalize(forward);
 
   Vec3 spot = Vec3_Fmaf(pm->s.origin, PM_QUAKE_WATER_JUMP_DIST, forward);

@@ -23,13 +23,13 @@
 
 /**
  * @brief Re-parses the map list if the configured file has changed since it was loaded.
- * @remarks The filename is compared even when `sv_map_list` is empty, so that clearing
+ * @remarks The filename is compared even when `sv_mapList` is empty, so that clearing
  * it drops the rotation rather than leaving the last one loaded.
  */
 static void Sv_RefreshMapList(void) {
 
-  if (q_strcmp(svs.maps.filename, sv_map_list->string) ||
-      (*sv_map_list->string && Fs_LastModTime(sv_map_list->string) != svs.maps.modtime)) {
+  if (q_strcmp(svs.maps.filename, sv_mapList->string) ||
+      (*sv_mapList->string && Fs_LastModTime(sv_mapList->string) != svs.maps.modtime)) {
     Sv_InitMapList();
   }
 }
@@ -54,7 +54,7 @@ static const CmEntity *Sv_MapAt(int32_t index) {
 /**
  * @brief Returns a copy of the configured map list, or `NULL` if there is none.
  * @return A list of `CmEntity *`, each to be freed with `Cm_FreeEntity`.
- * @remarks The copy is the caller's, so that a `sv_map_list` edit which re-parses the
+ * @remarks The copy is the caller's, so that a `sv_mapList` edit which re-parses the
  * list underneath them does not free entries they still hold.
  */
 List *Sv_MapList(void) {
@@ -121,7 +121,7 @@ const CmEntity *Sv_NextMap(void) {
 
   if (next >= 0 && next < svs.maps.length) {
     svs.maps.index = next;
-  } else if (sv_map_list_shuffle->value && svs.maps.length > 1) {
+  } else if (sv_mapListShuffle->value && svs.maps.length > 1) {
     const int32_t index = svs.maps.index;
     do {
       svs.maps.index = (int32_t) RandomRangeu(0, (uint32_t) svs.maps.length);
@@ -142,19 +142,19 @@ void Sv_InitMapList(void) {
 
   Sv_ShutdownMapList();
 
-  if (*sv_map_list->string == '\0') {
+  if (*sv_mapList->string == '\0') {
     return;
   }
 
   char *buffer;
-  if (Fs_Load(sv_map_list->string, (void **) &buffer) <= 0) {
-    Com_Warn("Couldn't load %s\n", sv_map_list->string);
+  if (Fs_Load(sv_mapList->string, (void **) &buffer) <= 0) {
+    Com_Warn("Couldn't load %s\n", sv_mapList->string);
     return;
   }
 
-  q_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
+  q_strlcpy(svs.maps.filename, sv_mapList->string, sizeof(svs.maps.filename));
 
-  svs.maps.modtime = Fs_LastModTime(sv_map_list->string);
+  svs.maps.modtime = Fs_LastModTime(sv_mapList->string);
 
   svs.maps.list = Cm_LoadEntities(buffer);
 
@@ -167,7 +167,7 @@ void Sv_InitMapList(void) {
 
     const CmEntity *name = Cm_EntityValue(props, "name");
     if (q_strlen(name->string) == 0) {
-      Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_map_list->string);
+      Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_mapList->string);
       Cm_FreeEntity(props);
     } else {
       $(valid, append, props);

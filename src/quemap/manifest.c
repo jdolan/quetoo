@@ -54,7 +54,7 @@ static void CollectAssetPath(const HashTable *table, ident key, ident value, ide
  * @brief Forbidden extensions that must never appear in a manifest.
  * A malicious map could reference `server.cfg` to expose `rcon_password`, etc.
  */
-static const char *forbidden_extensions[] = { ".cfg", ".rc", NULL };
+static const char *forbiddenExtensions[] = { ".cfg", ".rc", NULL };
 
 /**
  * @brief Adds the specified resource path if it exists.
@@ -83,7 +83,7 @@ static bool Add(const char *name) {
 		return false;
 	}
 
-	for (const char **ext = forbidden_extensions; *ext; ext++) {
+	for (const char **ext = forbiddenExtensions; *ext; ext++) {
 		if (HasSuffix(name, *ext)) {
 			Com_Warn("Rejecting forbidden file type: %s\n", name);
 			return false;
@@ -180,8 +180,8 @@ static void AddMaterial(const CmMaterial *material) {
  */
 static void AddBspMaterials(void) {
 
-	for (int32_t i = 0; i < bsp_file.numMaterials; i++) {
-		const char *name = bsp_file.materials[i].name;
+	for (int32_t i = 0; i < bspFile.numMaterials; i++) {
+		const char *name = bspFile.materials[i].name;
 
 		CmMaterial *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
 
@@ -224,7 +224,7 @@ static void AddModel(const char *model) {
  */
 static void AddEntities(void) {
 
-	List *entities = Cm_LoadEntities(bsp_file.entityString);
+	List *entities = Cm_LoadEntities(bspFile.entityString);
   entities->destroy = (Consumer) Cm_FreeEntity;
 
 	for (const ListNode *node = entities->head; node; node = node->next) {
@@ -250,21 +250,21 @@ static void AddEntities(void) {
  * @brief Adds the navigation file.
  */
 static void AddNavigation(void) {
-	Add(va("maps/%s.nav", map_base));
+	Add(va("maps/%s.nav", mapBase));
 }
 
 /**
  * @brief Adds the location file.
  */
 static void AddLocation(void) {
-	Add(va("maps/%s.loc", map_base));
+	Add(va("maps/%s.loc", mapBase));
 }
 
 /**
  * @brief Adds documentation.
  */
 static void AddDocumentation(void) {
-	Add(va("docs/map-%s.txt", map_base));
+	Add(va("docs/map-%s.txt", mapBase));
 }
 
 /**
@@ -281,7 +281,7 @@ static void AddMapshots_enumerate(const char *path, void *data) {
  * @brief Adds mapshot images.
  */
 static void AddMapshots(void) {
-	Fs_Enumerate(va("mapshots/%s/*", map_base), AddMapshots_enumerate, NULL);
+	Fs_Enumerate(va("mapshots/%s/*", mapBase), AddMapshots_enumerate, NULL);
 }
 
 /**
@@ -291,13 +291,13 @@ static void AddMapshots(void) {
 int32_t WriteManifest(void) {
 
 	Com_Print("\n------------------------------------------\n");
-	Com_Print("\nWriting manifest for %s\n\n", bsp_name);
+	Com_Print("\nWriting manifest for %s\n\n", bspName);
 
 	paths = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
 	paths->destroyKey = free;
 	paths->destroyValue = free;
 
-	LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
+	LoadBSPFile(bspName, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
 
 	AddBspMaterials();
 	AddEntities();
@@ -307,7 +307,7 @@ int32_t WriteManifest(void) {
 	AddMapshots();
 
 	// add the bsp itself to the manifest
-	const char *bspPath = va("maps/%s.bsp", map_base);
+	const char *bspPath = va("maps/%s.bsp", mapBase);
 	Add(bspPath);
 
 	// sort the asset paths
@@ -340,7 +340,7 @@ int32_t WriteManifest(void) {
 
 	// write the manifest
 	char mfPath[MAX_OS_PATH];
-	q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", map_base);
+	q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
 	const int32_t count = Cm_WriteManifest(mfPath, manifest);
 	if (count < 0) {

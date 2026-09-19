@@ -30,12 +30,12 @@ void S_Shutdown(void);
 void S_Stop(void);
 
 #if defined(__S_LOCAL_H__)
-extern Cvar *s_get_error;
+extern Cvar *s_getError;
 
 void S_GetError_(const char *function, const char *msg);
 
 #define S_GetError(msg) { \
-  if (s_get_error->integer) { \
+  if (s_getError->integer) { \
     S_GetError_(__func__, msg); \
   } \
 }

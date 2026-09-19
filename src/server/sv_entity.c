@@ -159,7 +159,7 @@ void Sv_BuildClientFrame(ServerClient *client) {
   frame->numEntities = 0;
   frame->entityState = svs.nextEntityState;
 
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
 
     const GameEntity *ent = sv.entities[i].gent;
 

@@ -21,8 +21,8 @@
 
 #include "cg_local.h"
 
-static Cvar *editor_grid_size;
-static Cvar *editor_select_dist;
+static Cvar *editor_gridSize;
+static Cvar *editor_selectDist;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
@@ -46,12 +46,12 @@ static void setEntityOriginFromClientView(CmEntity *entity) {
   Vec3 origin = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
   const CmTrace tr = cgi.Trace(cgi.view->origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
 
-  origin = Vec3_Fmaf(tr.end, editor_grid_size->value, Vec3_Negate(cgi.view->forward));
-  origin = Vec3_Quantize(origin, editor_grid_size->value);
+  origin = Vec3_Fmaf(tr.end, editor_gridSize->value, Vec3_Negate(cgi.view->forward));
+  origin = Vec3_Quantize(origin, editor_gridSize->value);
 
   if (cgi.PointLeafnum(origin, 0) == -1) {
     origin = Vec3_Fmaf(cgi.view->origin, 256.f, cgi.view->forward);
-    origin = Vec3_Quantize(origin, editor_grid_size->value);
+    origin = Vec3_Quantize(origin, editor_gridSize->value);
   }
 
   cgi.SetEntityKeyValue(entity, "origin", ENTITY_VEC3, &origin);
@@ -182,7 +182,7 @@ static void cycleCandidate(EntityViewController *self, int32_t dir) {
 
   self->candidate = candidate;
 
-  ClientGameEditorEntity *entity = &cg_editor.entities[self->candidates[candidate]];
+  ClientGameEditorEntity *entity = &cgEditor.entities[self->candidates[candidate]];
 
   $(self, setEntity, entity);
 
@@ -244,13 +244,13 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   } else if (mod == SDL_KMOD_NONE) {
 
     if (key >= SDLK_1 && key <= SDLK_8) {
-      cgi.SetCvarValue(editor_grid_size->name, (1 << (key - SDLK_1)));
-      cgi.Print("Editor grid size set to %g\n", editor_grid_size->value);
+      cgi.SetCvarValue(editor_gridSize->name, (1 << (key - SDLK_1)));
+      cgi.Print("Editor grid size set to %g\n", editor_gridSize->value);
     }
 
     if (key == SDLK_G) {
       self->showFuncGroups = !self->showFuncGroups;
-      cg_editor.showFuncGroups = self->showFuncGroups;
+      cgEditor.showFuncGroups = self->showFuncGroups;
       cgi.Print("func_group entities %s\n", self->showFuncGroups ? "^2shown" : "^1hidden");
     }
 
@@ -272,7 +272,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         right.x = SignOf(cgi.view->right.x);
       }
 
-      const float step = editor_grid_size->value;
+      const float step = editor_gridSize->value;
 
       switch (key) {
         case SDLK_W:
@@ -315,7 +315,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       if (!Vec3_Equal(move, Vec3_Zero()) && !isBrushEntity(self->entity)) {
 
         Vec3 origin = cgi.EntityValue(e, "origin")->vec3;
-        origin = Vec3_Quantize(Vec3_Add(origin, move), editor_grid_size->value);
+        origin = Vec3_Quantize(Vec3_Add(origin, move), editor_gridSize->value);
 
         cgi.SetEntityKeyValue(e, "origin", ENTITY_VEC3, &origin);
 
@@ -349,7 +349,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
         const char *info = cgi.client->configStrings[CS_ENTITIES + number];
 
-        ClientGameEditorEntity *entity = &cg_editor.entities[number];
+        ClientGameEditorEntity *entity = &cgEditor.entities[number];
 
         if (this->entity && number == this->entity->number) {
           $(this, setEntity, entity);
@@ -375,12 +375,12 @@ static void viewWillAppear(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   const Vec3 start = cgi.view->origin;
-  const Vec3 end = Vec3_Fmaf(start, editor_select_dist->value, cgi.view->forward);
+  const Vec3 end = Vec3_Fmaf(start, editor_selectDist->value, cgi.view->forward);
 
   this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates);
   this->candidate = 0;
 
-  $(this, setEntity, this->numCandidates ? &cg_editor.entities[this->candidates[0]] : &cg_editor.entities[0]);
+  $(this, setEntity, this->numCandidates ? &cgEditor.entities[this->candidates[0]] : &cgEditor.entities[0]);
 
   super(ViewController, self, viewWillAppear);
 }
@@ -389,7 +389,7 @@ static void viewWillAppear(ViewController *self) {
  * @see ViewController::viewWillDisappear(ViewController *)
  */
 static void viewWillDisappear(ViewController *self) {
-  cg_editor.selected = -1;
+  cgEditor.selected = -1;
 }
 
 #pragma mark - EntityViewController
@@ -475,7 +475,7 @@ static void setEntity(EntityViewController *self, ClientGameEditorEntity *entity
       const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
       if (teamMaster != -1 && teamMaster != self->entity->number) {
 
-        self->teamEntity = &cg_editor.entities[teamMaster];
+        self->teamEntity = &cgEditor.entities[teamMaster];
 
         for (CmEntity *e = self->teamEntity->def; e; e = e->next) {
 
@@ -504,7 +504,7 @@ static void setEntity(EntityViewController *self, ClientGameEditorEntity *entity
     self->teamEntity = NULL;
   }
 
-  cg_editor.selected = self->entity ? self->entity->number : -1;
+  cgEditor.selected = self->entity ? self->entity->number : -1;
 
   $((View *) self->pairs, sizeToFit);
   $((View *) self->teamPairs, sizeToFit);
@@ -535,8 +535,8 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
-  editor_grid_size = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
-  editor_select_dist = cgi.AddCvar("editor_select_dist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
+  editor_gridSize = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_selectDist = cgi.AddCvar("editor_select_dist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
 }
 
 /**

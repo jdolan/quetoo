@@ -26,7 +26,7 @@
 #if defined(__CL_LOCAL_H__)
 
 extern Cvar *m_sensitivity;
-extern Cvar *m_sensitivity_zoom;
+extern Cvar *m_sensitivityZoom;
 extern Cvar *m_interpolate;
 extern Cvar *m_invert;
 extern Cvar *m_pitch;

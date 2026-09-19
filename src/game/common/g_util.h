@@ -59,7 +59,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 
 #define G_ForEachClient(var, block) \
 { \
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) { \
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) { \
     GameClient *var = ge.clients[i]; \
     if (var->inUse) { \
       block; \
@@ -69,7 +69,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 
 #define G_ForEachFreeClient(var, block) \
 { \
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) { \
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) { \
     GameClient *var = ge.clients[i]; \
     if (!var->inUse) { \
       block; \
@@ -79,7 +79,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 
 #define G_ForEachEntity(var, block) \
 { \
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) { \
     GameEntity *var = ge.entities[i]; \
     if (var->inUse) { \
       block; \
@@ -89,7 +89,7 @@ void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__
 
 #define G_ForEachFreeEntity(var, block) \
 { \
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) { \
     GameEntity *var = ge.entities[i]; \
     if (!var->inUse) { \
       block; \

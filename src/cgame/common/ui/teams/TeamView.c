@@ -49,7 +49,7 @@ static void updateBindings(View *self, ident data) {
 
   $((View *) this->players, removeAllSubviews);
 
-  const ClientGameClientInfo *client = cg_state.clients;
+  const ClientGameClientInfo *client = cgState.clients;
   for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
 
     if (*client->info && client->team == this->team) {

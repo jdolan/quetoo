@@ -68,7 +68,7 @@ typedef struct {
 /**
  * @brief The votes every game offers.
  */
-static const VoteType vote_types_common[] = {
+static const VoteType voteTypesCommon[] = {
   { "map", "Change map", VOTE_ARG_MAP, 0, 0 },
   { "bots", "Bots", VOTE_ARG_INTEGER, 0, 8 },
   { "spectate", "Force spectate", VOTE_ARG_CLIENT, 0, 0 },

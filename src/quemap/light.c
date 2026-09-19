@@ -206,11 +206,11 @@ void EmitLights(void) {
     Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
   }
 
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->count);
+  Bsp_AllocLump(&bspFile, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
+  Bsp_AllocLump(&bspFile, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
+  Bsp_AllocLump(&bspFile, BSP_LUMP_LIGHTS, lights->count);
 
-  BspLight *out = bsp_file.lights;
+  BspLight *out = bspFile.lights;
   for (size_t i = 0; i < lights->count; i++) {
 
     Light *light = VectorValue(lights, Light *, i);
@@ -238,9 +238,9 @@ void EmitLights(void) {
     out->drift = light->drift;
 
     if (light->targetEntity == -1) {
-      out->firstDrawElements = bsp_file.numDrawElements;
+      out->firstDrawElements = bspFile.numDrawElements;
 
-      if (bsp_file.numDrawElements == MAX_BSP_DRAW_ELEMENTS) {
+      if (bspFile.numDrawElements == MAX_BSP_DRAW_ELEMENTS) {
         Com_Error(ERROR_FATAL, "MAX_BSP_DRAW_ELEMENTS\n");
       }
 
@@ -249,15 +249,15 @@ void EmitLights(void) {
       // for them. Alpha-tested faces (foliage, fences, grates) are grouped
       // by material below, so their diffuse texture can be sampled and
       // discarded per-pixel at draw time.
-      BspDrawElements *opaque = bsp_file.drawElements + bsp_file.numDrawElements;
+      BspDrawElements *opaque = bspFile.drawElements + bspFile.numDrawElements;
       opaque->material = -1;
       opaque->bounds = Box3_Null();
-      opaque->firstElement = bsp_file.numElements;
+      opaque->firstElement = bspFile.numElements;
 
       Vector *alphaTestFaces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
 
-      const BspModel *worldspawn = bsp_file.models;
-      const BspFace *face = &bsp_file.faces[worldspawn->firstFace];
+      const BspModel *worldspawn = bspFile.models;
+      const BspFace *face = &bspFile.faces[worldspawn->firstFace];
       for (int32_t j = 0; j < worldspawn->numFaces; j++, face++) {
 
         if (!Box3_Intersects(face->bounds, out->bounds)) {
@@ -267,11 +267,11 @@ void EmitLights(void) {
         int32_t surface;
         int32_t contents;
         if (face->brushSide >= 0) {
-          const BspBrushSide *side = &bsp_file.brushSides[face->brushSide];
+          const BspBrushSide *side = &bspFile.brushSides[face->brushSide];
           surface = side->surface;
           contents = side->contents;
         } else {
-          const BspPatch *patch = &bsp_file.patches[face->patch];
+          const BspPatch *patch = &bspFile.patches[face->patch];
           surface = patch->surface;
           contents = patch->contents;
         }
@@ -297,20 +297,20 @@ void EmitLights(void) {
           continue;
         }
 
-        if (bsp_file.numElements + face->numElements >= MAX_BSP_ELEMENTS) {
+        if (bspFile.numElements + face->numElements >= MAX_BSP_ELEMENTS) {
           Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
         }
 
-        memcpy(bsp_file.elements + bsp_file.numElements, bsp_file.elements + face->firstElement, sizeof(int32_t) * face->numElements);
+        memcpy(bspFile.elements + bspFile.numElements, bspFile.elements + face->firstElement, sizeof(int32_t) * face->numElements);
 
-        bsp_file.numElements += face->numElements;
+        bspFile.numElements += face->numElements;
 
         opaque->numElements += face->numElements;
         opaque->bounds = Box3_Union(opaque->bounds, face->bounds);
       }
 
       if (opaque->numElements) {
-        bsp_file.numDrawElements++;
+        bspFile.numDrawElements++;
       }
 
       if (alphaTestFaces->count) {
@@ -319,7 +319,7 @@ void EmitLights(void) {
 
       release(alphaTestFaces);
 
-      out->numDrawElements = bsp_file.numDrawElements - out->firstDrawElements;
+      out->numDrawElements = bspFile.numDrawElements - out->firstDrawElements;
     }
 
     out++;
@@ -327,7 +327,7 @@ void EmitLights(void) {
     Progress("Emitting lights", 100.f * i / lights->count);
   }
 
-  bsp_file.numLights = (int32_t) (ptrdiff_t) (out - bsp_file.lights);
+  bspFile.numLights = (int32_t) (ptrdiff_t) (out - bspFile.lights);
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
 }

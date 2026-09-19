@@ -542,7 +542,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
     causticsRgba[i * 4 + 3] = 255;
   }
 
-  out->caustics->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  out->caustics->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -565,7 +565,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
   out->lightData->height = out->size.y;
   out->lightData->depth = out->size.z;
 
-  out->lightDataBuffer = $(r_context.device, createBufferWithConstMem,
+  out->lightDataBuffer = $(rContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
       lightData,
       out->numVoxels * sizeof(int32_t) * 2);
@@ -574,7 +574,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
   data += out->numLightIndices * sizeof(int32_t);
 
   if (out->numLightIndices > 0) {
-    out->lightIndicesBuffer = $(r_context.device, createBufferWithConstMem,
+    out->lightIndicesBuffer = $(rContext.device, createBufferWithConstMem,
         SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
         lightIndicesData,
         out->numLightIndices * sizeof(int32_t));
@@ -593,7 +593,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
   out->occlusion->height = out->size.y;
   out->occlusion->depth = out->size.z;
 
-  out->occlusion->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  out->occlusion->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -604,7 +604,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
   }, occlusionData);
 
-  if (r_draw_bsp_voxels->value) {
+  if (r_drawBspVoxels->value) {
     
     out->voxels = Mem_LinkMalloc(out->numVoxels * sizeof(RenderBspVoxel), mod->bsp);
 
@@ -657,10 +657,10 @@ static void R_LoadBspVertexArray(RenderModel *mod) {
 
   RenderBspModel *bsp = mod->bsp;
 
-  bsp->vertexBuffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
+  bsp->vertexBuffer = $(rContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
                          bsp->vertexes, bsp->numVertexes * sizeof(RenderBspVertex));
 
-  bsp->elementsBuffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
+  bsp->elementsBuffer = $(rContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
                            bsp->elements, bsp->numElements * sizeof(uint32_t));
 
   $(bsp->vertexBuffer, setName, va("%s vertexes", mod->media.name));
@@ -803,7 +803,7 @@ static void R_RegisterBspModel(RenderMedia *self) {
   R_RegisterDependency(self, (RenderMedia *) mod->bsp->voxels.lightIndices);
   R_RegisterDependency(self, (RenderMedia *) mod->bsp->sky);
 
-  r_models.world = mod;
+  rModels.world = mod;
 }
 
 /**
@@ -832,7 +832,7 @@ static void R_FreeBspModel(RenderMedia *self) {
 /**
  * @brief BSP model format descriptor.
  */
-const RenderModelFormat r_bsp_model_format = {
+const RenderModelFormat rBspModelFormat = {
   .extension = "bsp",
   .type = MODEL_BSP,
   .Load = R_LoadBspModel,

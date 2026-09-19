@@ -124,10 +124,10 @@ struct ClientGameEntity {
   void *data;
 };
 
-extern const ClientGameEntityClass *cg_entity_classes[];
-extern const size_t cg_num_entity_classes;
+extern const ClientGameEntityClass *cgEntityClasses[];
+extern const size_t cgNumEntityClasses;
 
-extern Vector *cg_entities;
+extern Vector *cgEntities;
 
 ClientGameEntity *Cg_EntityForDefinition(const CmEntity *e);
 void Cg_LoadEntities(void);

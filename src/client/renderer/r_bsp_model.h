@@ -24,5 +24,5 @@
 #include "r_types.h"
 
 #if defined(__R_LOCAL_H__)
-extern const RenderModelFormat r_bsp_model_format;
+extern const RenderModelFormat rBspModelFormat;
 #endif

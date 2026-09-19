@@ -87,25 +87,25 @@ static int32_t S_LoadSampleBuffer_(SoundSample *sample, char *path) {
     SF_INFO info;
     memset(&info, 0, sizeof(info));
 
-    SNDFILE *snd = sf_open_virtual(&s_rwops_io, SFM_READ, &info, rw);
+    SNDFILE *snd = sf_open_virtual(&sRwopsIo, SFM_READ, &info, rw);
 
     if (snd) {
       const size_t rawSize = sizeof(float) * info.frames * info.channels;
 
-      if (s_context.rawSampleBufferSize < rawSize) {
-        s_context.rawSampleBuffer = Mem_Realloc(s_context.rawSampleBuffer, rawSize);
-        s_context.rawSampleBufferSize = rawSize;
+      if (sContext.rawSampleBufferSize < rawSize) {
+        sContext.rawSampleBuffer = Mem_Realloc(sContext.rawSampleBuffer, rawSize);
+        sContext.rawSampleBufferSize = rawSize;
       }
 
-      sf_count_t count = sf_readf_float(snd, s_context.rawSampleBuffer, info.frames) * info.channels;
+      sf_count_t count = sf_readf_float(snd, sContext.rawSampleBuffer, info.frames) * info.channels;
 
-      S_ConvertSamples(s_context.rawSampleBuffer, count, &s_context.convertedSampleBuffer, &s_context.convertedSampleBufferSize);
+      S_ConvertSamples(sContext.rawSampleBuffer, count, &sContext.convertedSampleBuffer, &sContext.convertedSampleBufferSize);
 
-      const int16_t *buffer = s_context.convertedSampleBuffer;
+      const int16_t *buffer = sContext.convertedSampleBuffer;
 
       if (info.samplerate != s_rate->integer) {
-        count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &s_context.resampleBuffer, &s_context.resampleBufferSize);
-        buffer = s_context.resampleBuffer;
+        count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &sContext.resampleBuffer, &sContext.resampleBufferSize);
+        buffer = sContext.resampleBuffer;
       }
 
       sample->stereo = info.channels != 1;
@@ -190,7 +190,7 @@ static void S_FreeAliasedSample(SoundMedia *self) {
  */
 SoundSample *S_LoadSample(const char *name, AssetContext context) {
 
-  if (!s_context.context) {
+  if (!sContext.context) {
     return NULL;
   }
 
@@ -231,7 +231,7 @@ SoundSample *S_LoadSample(const char *name, AssetContext context) {
  */
 SoundSample *S_LoadClientModelSample(const char *model, const char *soundSet, const char *name) {
 
-  if (!s_context.context) {
+  if (!sContext.context) {
     return NULL;
   }
 

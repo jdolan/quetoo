@@ -53,7 +53,7 @@ static const char *formatTime(int32_t seconds) {
   return va("%dm", m);
 }
 
-static const JSONProperty nemesis_fields[] = {
+static const JSONProperty nemesisFields[] = {
   MakeJSONProperty(Nemesis, name, NULL, JSONDeserializeCharacters, NULL),
   { .key = NULL }
 };
@@ -61,10 +61,10 @@ static const JSONProperty nemesis_fields[] = {
 static const JSONProperties nemesisProperties = {
   .name = "Nemesis",
   .size = sizeof(Nemesis),
-  .properties = nemesis_fields
+  .properties = nemesisFields
 };
 
-static const JSONProperty kills_by_weapon_fields[] = {
+static const JSONProperty killsByWeaponFields[] = {
   MakeJSONProperty(KillsByWeapon, weapon, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(KillsByWeapon, frags, NULL, JSONDeserializeInt32, NULL),
   { .key = NULL }
@@ -73,7 +73,7 @@ static const JSONProperty kills_by_weapon_fields[] = {
 static const JSONProperties killsByWeaponProperties = {
   .name = "KillsByWeapon",
   .size = sizeof(KillsByWeapon),
-  .properties = kills_by_weapon_fields
+  .properties = killsByWeaponFields
 };
 
 static const JSONArrayProperties killsByWeaponArrayProperties = {
@@ -82,7 +82,7 @@ static const JSONArrayProperties killsByWeaponArrayProperties = {
   .count = JSONArrayProperties_NoCount
 };
 
-static const JSONProperty stats_response_fields[] = {
+static const JSONProperty statsResponseFields[] = {
   MakeJSONProperty(StatsResponse, rank, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
@@ -96,7 +96,7 @@ static const JSONProperty stats_response_fields[] = {
 static const JSONProperties statsResponseProperties = {
   .name = "StatsResponse",
   .size = sizeof(StatsResponse),
-  .properties = stats_response_fields
+  .properties = statsResponseFields
 };
 
 /**

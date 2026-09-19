@@ -67,7 +67,7 @@
   .maxs = { {  16.f,  16.f,   4.f } } \
 }
 
-const PlayerMoveParams pm_race_params = {
+const PlayerMoveParams pmRaceParams = {
   .gravity = 800,
   .accelGround = 10.f,
   .accelGroundSlick = 10.f,
@@ -141,7 +141,7 @@ const PlayerMoveParams pm_race_params = {
  * them, decided each move by `Pm_RaceCategorizePosition` and spent by
  * `Pm_RaceAirMove`. Reset at the top of every move, so nothing survives one.
  */
-static bool pm_race_sliding;
+static bool pmRaceSliding;
 
 /**
  * @brief Slides `in` along `normal`, giving a little back.
@@ -177,7 +177,7 @@ static void Pm_RaceSlideMove(void) {
   CmBspPlane planes[PM_RACE_CLIP_PLANES];
   int32_t numPlanes = 0;
 
-  float timeLeft = pm_locals.time;
+  float timeLeft = pmLocals.time;
 
   for (int32_t bump = 0; bump < PM_RACE_BUMPS; bump++) {
 
@@ -298,7 +298,7 @@ static void Pm_RaceStepSlideMove(void) {
   // walking along a plane keeps the vertical speed the flat move ended with
   pm->s.velocity.z = downVelocity.z;
 
-  pm->step = pm->s.origin.z - pm_locals.previousOrigin.z;
+  pm->step = pm->s.origin.z - pmLocals.previousOrigin.z;
 }
 
 /**
@@ -315,19 +315,19 @@ static void Pm_RaceFriction(void) {
 
   float drop = 0.f;
 
-  const bool slick = pm_locals.ground.surface & SURF_SLICK;
+  const bool slick = pmLocals.ground.surface & SURF_SLICK;
 
   // not while riding a slope: the whole point of keeping the ground there is to
   // carry speed off it, and ground friction applies to all three axes, so it
   // would scrub the climb as well as the run
-  if (((pm->s.flags & PMF_ON_GROUND) && !slick && !pm_race_sliding) ||
+  if (((pm->s.flags & PMF_ON_GROUND) && !slick && !pmRaceSliding) ||
       (pm->s.flags & PMF_ON_LADDER)) {
     const float control = Maxf(speed, pm->s.params.speedStop);
-    drop += control * pm->s.params.frictionGround * pm_locals.time;
+    drop += control * pm->s.params.frictionGround * pmLocals.time;
   }
 
   if (pm->waterLevel && !(pm->s.flags & PMF_ON_LADDER)) {
-    drop += speed * pm->s.params.frictionWater * (float) pm->waterLevel * pm_locals.time;
+    drop += speed * pm->s.params.frictionWater * (float) pm->waterLevel * pmLocals.time;
   }
 
   pm->s.velocity = Vec3_Scale(pm->s.velocity, Maxf(0.f, speed - drop) / speed);
@@ -343,7 +343,7 @@ static void Pm_RaceAccelerate(const Vec3 dir, float speed, float accel) {
     return;
   }
 
-  const float accelSpeed = Minf(accel * pm_locals.time * speed, addSpeed);
+  const float accelSpeed = Minf(accel * pmLocals.time * speed, addSpeed);
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
 }
@@ -407,22 +407,22 @@ static Vec3 Pm_RaceAddCurrents(Vec3 wish) {
   if (pm->s.flags & PMF_ON_GROUND) {
     Vec3 current = Vec3_Zero();
 
-    if (pm_locals.ground.contents & CONTENTS_CURRENT_0) {
+    if (pmLocals.ground.contents & CONTENTS_CURRENT_0) {
       current.x += 1.f;
     }
-    if (pm_locals.ground.contents & CONTENTS_CURRENT_90) {
+    if (pmLocals.ground.contents & CONTENTS_CURRENT_90) {
       current.y += 1.f;
     }
-    if (pm_locals.ground.contents & CONTENTS_CURRENT_180) {
+    if (pmLocals.ground.contents & CONTENTS_CURRENT_180) {
       current.x -= 1.f;
     }
-    if (pm_locals.ground.contents & CONTENTS_CURRENT_270) {
+    if (pmLocals.ground.contents & CONTENTS_CURRENT_270) {
       current.y -= 1.f;
     }
-    if (pm_locals.ground.contents & CONTENTS_CURRENT_UP) {
+    if (pmLocals.ground.contents & CONTENTS_CURRENT_UP) {
       current.z += 1.f;
     }
-    if (pm_locals.ground.contents & CONTENTS_CURRENT_DOWN) {
+    if (pmLocals.ground.contents & CONTENTS_CURRENT_DOWN) {
       current.z -= 1.f;
     }
 
@@ -440,8 +440,8 @@ static void Pm_RaceWaterMove(void) {
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
   Vec3 wish = Vec3_Zero();
-  wish = Vec3_Fmaf(wish, pm->cmd.forward, pm_locals.forward);
-  wish = Vec3_Fmaf(wish, pm->cmd.right, pm_locals.right);
+  wish = Vec3_Fmaf(wish, pm->cmd.forward, pmLocals.forward);
+  wish = Vec3_Fmaf(wish, pm->cmd.right, pmLocals.right);
 
   if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
     wish.z -= PM_RACE_WATER_SINK; // drift toward the bottom
@@ -492,7 +492,7 @@ static void Pm_RaceAirMove(void) {
                           : pm->s.params.speedGround;
   speed = Minf(speed, maxSpeed);
 
-  const float gravity = pm->s.params.gravity * pm_locals.time;
+  const float gravity = pm->s.params.gravity * pmLocals.time;
 
   if (pm->s.flags & PMF_ON_LADDER) {
 
@@ -512,7 +512,7 @@ static void Pm_RaceAirMove(void) {
 
     float accel = pm->s.params.accelGround;
 
-    if (pm_race_sliding) {
+    if (pmRaceSliding) {
       Vec3 along = pm->s.velocity;
       along.z = 0.f;
       along = Vec3_Normalize(along);
@@ -523,14 +523,14 @@ static void Pm_RaceAirMove(void) {
       if (Vec3_Dot(along, dir) > PM_RACE_SLIDE_ALIGNMENT) {
         accel = PM_RACE_SLIDE_ACCEL;
       } else {
-        pm_race_sliding = false;
+        pmRaceSliding = false;
       }
     }
 
     // gravity applies with the ground under us, which is what lets a rising
     // slope contact arc rather than hold. Sliding keeps the vertical speed it
     // arrived with; not sliding gives it up, as ordinary ground does
-    if (!pm_race_sliding) {
+    if (!pmRaceSliding) {
       pm->s.velocity.z = 0.f;
     }
 
@@ -580,7 +580,7 @@ static void Pm_RaceCategorizePosition(void) {
                               pm->s.origin.z - PM_RACE_GROUND_PROBE);
 
     const CmTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
-    pm_locals.ground = trace;
+    pmLocals.ground = trace;
 
     // a steep plane is still ground if we started inside it
     if (!trace.ent || (trace.plane.normal.z < PM_RACE_GROUND_NORMAL && !trace.startSolid)) {
@@ -600,7 +600,7 @@ static void Pm_RaceCategorizePosition(void) {
 
       // riding a slope upward, with the ground still under us
       if (pm->s.velocity.z > PM_RACE_UP_SPEED && !(pm->s.flags & PMF_JUMP_HELD)) {
-        pm_race_sliding = true;
+        pmRaceSliding = true;
       }
 
       if (!wasGrounded) { // just landed
@@ -730,7 +730,7 @@ static void Pm_RaceCheckSpecialMovement(void) {
 
   pm->s.flags &= ~PMF_ON_LADDER;
 
-  Vec3 forward = MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f);
+  Vec3 forward = MakeVec3(pmLocals.forward.x, pmLocals.forward.y, 0.f);
   forward = Vec3_Normalize(forward);
 
   const Vec3 ahead = Vec3_Fmaf(pm->s.origin, PM_RACE_LADDER_PROBE, forward);
@@ -878,7 +878,7 @@ static void Pm_RaceSnapPosition(void) {
     }
   }
 
-  pm->s.origin = pm_locals.previousOrigin; // nowhere to be, so stay put
+  pm->s.origin = pmLocals.previousOrigin; // nowhere to be, so stay put
 }
 
 /**
@@ -886,7 +886,7 @@ static void Pm_RaceSnapPosition(void) {
  */
 void Pm_RaceMove(void) {
 
-  pm_race_sliding = false;
+  pmRaceSliding = false;
 
   Pm_RaceCheckDuck();
 
@@ -902,7 +902,7 @@ void Pm_RaceMove(void) {
     // stay exactly in place
   } else if (pm->s.flags & PMF_TIME_WATER_JUMP) {
 
-    pm->s.velocity.z -= pm->s.params.gravity * pm_locals.time;
+    pm->s.velocity.z -= pm->s.params.gravity * pmLocals.time;
 
     if (pm->s.velocity.z < 0.f) { // cancel as soon as we fall again
       pm->s.flags &= ~(PMF_TIME_WATER_JUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);

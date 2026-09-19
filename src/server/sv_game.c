@@ -201,7 +201,7 @@ static void Sv_WriteAngles(const Vec3 angles) {
   Net_WriteAngles(&sv.multicast, angles);
 }
 
-static void *game_handle;
+static void *gameHandle;
 
 /**
  * @brief `RESTClientCompletion` for `Sv_PostStats`.
@@ -219,7 +219,7 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *userData) {
 
 /**
  * @brief Serializes frag events from the game module to JSON and POSTs them
- * asynchronously to `sv_stats_url`. Gated on `sv_public` and a non-empty URL.
+ * asynchronously to `sv_statsUrl`. Gated on `sv_public` and a non-empty URL.
  *
  * Each request also carries `X-Quetoo-Port` and `X-Quetoo-Hostname` headers so
  * that the stats service can disambiguate multiple server instances sharing a
@@ -228,7 +228,7 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *userData) {
  */
 static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCapture *captures, size_t capturesLen) {
 
-  if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
+  if (!sv_statsUrl->string[0] || sv_public->integer <= 0) {
     return;
   }
 
@@ -256,7 +256,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     );
 
     static char frags_url[MAX_STRING_CHARS];
-    q_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
+    q_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &svFragProperties, (ident) frags, fragsLen);
@@ -281,7 +281,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     );
 
     static char captures_url[MAX_STRING_CHARS];
-    q_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
+    q_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &svCaptureProperties, (ident) captures, capturesLen);
@@ -408,21 +408,21 @@ void Sv_InitGame(void) {
     Com_Error(ERROR_DROP, "Neither %s nor %s provides a game module\n", Com_Game(), DEFAULT_GAME);
   }
 
-  game_handle = Sys_OpenLibrary(dir, "game");
-  if (!game_handle) {
+  gameHandle = Sys_OpenLibrary(dir, "game");
+  if (!gameHandle) {
     Com_Error(ERROR_DROP, "Failed to open %s's game module\n", dir);
   }
   
-  GameExport *game = (GameExport *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);
+  GameExport *game = (GameExport *) Sys_LoadLibrary(gameHandle, "G_LoadGame", &import);
 
   if (!game) {
-    game_handle = Sys_CloseLibrary(game_handle);
+    gameHandle = Sys_CloseLibrary(gameHandle);
     Com_Error(ERROR_DROP, "Failed to load %s's game module\n", dir);
   }
 
   if (game->apiVersion != GAME_API_VERSION) {
     const int32_t version = game->apiVersion;
-    game_handle = Sys_CloseLibrary(game_handle);
+    gameHandle = Sys_CloseLibrary(gameHandle);
     Com_Error(ERROR_DROP, "%s's game module is version %i, not %i\n", dir, version, GAME_API_VERSION);
   }
 
@@ -458,5 +458,5 @@ void Sv_ShutdownGame(void) {
   Com_Print("Game down\n");
   Com_QuitSubsystem(QUETOO_GAME);
 
-  game_handle = Sys_CloseLibrary(game_handle);
+  gameHandle = Sys_CloseLibrary(gameHandle);
 }

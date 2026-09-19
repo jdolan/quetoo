@@ -120,7 +120,7 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   pm.ground = pr->ground;
 #if defined(G_HOOK)
-  pm.hookPullSpeed = cg_state.hookPullSpeed;
+  pm.hookPullSpeed = cgState.hookPullSpeed;
 #endif
 
   pm.PointContents = cgi.PointContents;
@@ -166,8 +166,8 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   // If the server is requesting a snap, use the authoritative angles rather than
   // the last cmd angles, which may be stale (pre-snap) pending commands.
-  if (cg_state.snapAngles) {
-    pr->view.angles = cg_state.snapViewAngles;
+  if (cgState.snapAngles) {
+    pr->view.angles = cgState.snapViewAngles;
   } else {
     pr->view.angles = pm.cmd.angles;
   }
@@ -185,20 +185,20 @@ void Cg_PredictMovement(const Vector *cmds) {
  */
 void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
 
-  if (!cg_state.spectate.initialized) {
-    cg_state.spectate.state.type = PM_SPECTATOR;
-    cg_state.spectate.state.origin = cgi.view->origin;
+  if (!cgState.spectate.initialized) {
+    cgState.spectate.state.type = PM_SPECTATOR;
+    cgState.spectate.state.origin = cgi.view->origin;
 
     // take over the look angles from wherever the camera is pointing, rather than from the
     // recorded player's aim, which is what cgi.client->angles still holds: Cg_UpdateAngles stops
     // syncing it once this mode resolves the view, and every move from here reads it back
     cgi.client->angles = cgi.view->angles;
 
-    cg_state.spectate.initialized = true;
+    cgState.spectate.initialized = true;
   }
 
   PlayerMove pm = {};
-  pm.s = cg_state.spectate.state;
+  pm.s = cgState.spectate.state;
 
   // Pm_SpectatorMove reads speed_spectator, accel_spectator and friction_spectator from the
   // movement parameters, which the recording carries; without them the camera holds still
@@ -217,5 +217,5 @@ void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
 
   Pm_Move(&pm);
 
-  cg_state.spectate.state = pm.s;
+  cgState.spectate.state = pm.s;
 }

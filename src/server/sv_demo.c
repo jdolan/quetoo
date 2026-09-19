@@ -197,7 +197,7 @@ void Sv_SendDemoInfo(void) {
   }
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
       continue;
@@ -214,15 +214,15 @@ void Sv_SendDemoInfo(void) {
  */
 static void Sv_DemoCompleted(void) {
 
-  if (sv_demo_list->string[0]) {
+  if (sv_demoList->string[0]) {
 
     const char *currentDemo = sv.name;
-    const char *nextDemo = q_strstr(sv_demo_list->string, currentDemo);
+    const char *nextDemo = q_strstr(sv_demoList->string, currentDemo);
     char demoToken[MAX_QPATH];
 
     if (!nextDemo) {
 
-      nextDemo = sv_demo_list->string;
+      nextDemo = sv_demoList->string;
     } else {
 
       nextDemo += q_strlen(currentDemo);
@@ -230,7 +230,7 @@ static void Sv_DemoCompleted(void) {
       if (nextDemo[0] == ' ') {
         nextDemo++;
       } else if (!nextDemo[0]) {
-        nextDemo = sv_demo_list->string;
+        nextDemo = sv_demoList->string;
       }
     }
 
@@ -256,7 +256,7 @@ static void Sv_DemoCompleted(void) {
  */
 static void Sv_DemoEnded(void) {
 
-  if (sv_demo_list->string[0]) {
+  if (sv_demoList->string[0]) {
     Sv_DemoCompleted();
     return;
   }

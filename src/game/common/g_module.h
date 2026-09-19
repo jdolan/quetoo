@@ -104,14 +104,14 @@ extern ConfigureLevel G_ConfigureLevel;
 /**
  * @brief Indexes the models and sounds the module needs for the level ahead.
  * @details The whole of the deathmatch media is the default; a feature indexes
- * its own on top, and keeps the indices itself rather than growing `g_media`.
+ * its own on top, and keeps the indices itself rather than growing `gMedia`.
  */
 typedef void (*InitMedia)(void);
 
 extern InitMedia G_InitMedia;
 
 /**
- * @brief The level is about to be spawned: `g_level` is reset and named, the
+ * @brief The level is about to be spawned: `gLevel` is reset and named, the
  * previous level's entities are about to be freed, and nothing of the new one,
  * not even the worldspawn, exists yet. A feature that layers per-level
  * settings over cvars the worldspawn reads does so here.
@@ -519,7 +519,7 @@ extern ClientDidMove G_ClientDidMove;
  * command answers true for that name and the built-in never sees it. The tail
  * handles nothing, so an unclaimed command falls through to the built-in table
  * and, failing that, to chat. While the level is ending the built-in table
- * ignores everything but chat; `g_level.intermission_time` says so. `cmd` is
+ * ignores everything but chat; `gLevel.intermission_time` says so. `cmd` is
  * `gi.Argv(0)`;
  * an implementation MUST NOT call `gi.TokenizeString`, which would replace it
  * under the built-in table that runs next.

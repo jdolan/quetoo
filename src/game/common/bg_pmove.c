@@ -62,12 +62,12 @@ Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked) {
  * apart. Quetoo's carries no parameters of its own: it is the one that follows
  * the server's movement cvars, which is what makes it the default.
  */
-static const PlayerMovementInfo pm_movements[] = {
+static const PlayerMovementInfo pmMovements[] = {
   [PM_MOVEMENT_QUETOO] = { .name = "quetoo", .label = "Quetoo",      .params = NULL, .hook = true },
-  [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Quetoo Race", .params = &pm_race_params },
-  [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "Quake",       .params = &pm_quake_params },
-  [PM_MOVEMENT_QUAKE2] = { .name = "quake2", .label = "Quake2",      .params = &pm_quake2_params },
-  [PM_MOVEMENT_QUAKE3] = { .name = "quake3", .label = "Quake3",      .params = &pm_quake3_params },
+  [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Quetoo Race", .params = &pmRaceParams },
+  [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "Quake",       .params = &pmQuakeParams },
+  [PM_MOVEMENT_QUAKE2] = { .name = "quake2", .label = "Quake2",      .params = &pmQuake2Params },
+  [PM_MOVEMENT_QUAKE3] = { .name = "quake3", .label = "Quake3",      .params = &pmQuake3Params },
 };
 
 /**
@@ -75,18 +75,18 @@ static const PlayerMovementInfo pm_movements[] = {
  */
 const PlayerMovementInfo *Pm_Movement(PlayerMovement movement) {
 
-  if ((size_t) movement >= lengthof(pm_movements)) {
+  if ((size_t) movement >= lengthof(pmMovements)) {
     return NULL;
   }
 
-  return &pm_movements[movement];
+  return &pmMovements[movement];
 }
 
 /**
  * @see bg_pmove.h
  */
 size_t Pm_MovementCount(void) {
-  return lengthof(pm_movements);
+  return lengthof(pmMovements);
 }
 
 /**
@@ -100,8 +100,8 @@ bool Pm_MovementByName(const char *name, PlayerMovement *movement) {
     return false;
   }
 
-  for (size_t i = 0; i < lengthof(pm_movements); i++) {
-    if (!q_strcasecmp(pm_movements[i].name, name)) {
+  for (size_t i = 0; i < lengthof(pmMovements); i++) {
+    if (!q_strcasecmp(pmMovements[i].name, name)) {
       *movement = (PlayerMovement) i;
       return true;
     }
@@ -112,7 +112,7 @@ bool Pm_MovementByName(const char *name, PlayerMovement *movement) {
 
 PlayerMove *pm;
 
-PlayerMoveLocals pm_locals;
+PlayerMoveLocals pmLocals;
 
 /**
  * @brief Mark the specified entity as touched. This enables the game module to
@@ -204,7 +204,7 @@ void Pm_Friction(const bool flying) {
   } else if (pm->waterLevel > WATER_FEET) { // water friction
     friction = pm->s.params.frictionWater;
   } else if (pm->s.flags & PMF_ON_GROUND) { // ground friction
-    if (pm_locals.ground.ent && (pm_locals.ground.surface & SURF_SLICK)) {
+    if (pmLocals.ground.ent && (pmLocals.ground.surface & SURF_SLICK)) {
       friction = pm->s.params.frictionGroundSlick;
     } else {
       friction = pm->s.params.frictionGround;
@@ -216,7 +216,7 @@ void Pm_Friction(const bool flying) {
   friction = Maxf(0.f, friction); // never reverse direction
 
   // scale the velocity, taking care to not reverse direction
-  const float scale = Maxf(0.f, speed - (friction * control * pm_locals.time)) / speed;
+  const float scale = Maxf(0.f, speed - (friction * control * pmLocals.time)) / speed;
 
   pm->s.velocity = Vec3_Scale(pm->s.velocity, scale);
 }
@@ -229,7 +229,7 @@ void Pm_Accelerate(const Vec3 dir, float speed, float accel) {
   const float addSpeed = speed - currentSpeed;
 
   if (addSpeed > 0.f) {
-    float accelSpeed = accel * pm_locals.time * speed;
+    float accelSpeed = accel * pmLocals.time * speed;
 
     if (accelSpeed > addSpeed) {
       accelSpeed = addSpeed;
@@ -248,7 +248,7 @@ void Pm_Gravity(void) {
     return;
   }
 
-  pm->s.velocity.z -= pm->s.params.gravity * pm_locals.time;
+  pm->s.velocity.z -= pm->s.params.gravity * pmLocals.time;
 }
 
 /**
@@ -260,8 +260,8 @@ static void Pm_SpectatorMove(void) {
 
   // user intentions on X/Y/Z
   Vec3 vel = Vec3_Zero();
-  vel = Vec3_Fmaf(vel, pm->cmd.forward, pm_locals.forward);
-  vel = Vec3_Fmaf(vel, pm->cmd.right, pm_locals.right);
+  vel = Vec3_Fmaf(vel, pm->cmd.forward, pmLocals.forward);
+  vel = Vec3_Fmaf(vel, pm->cmd.right, pmLocals.right);
 
   // add explicit Z
   vel.z += pm->cmd.up;
@@ -278,7 +278,7 @@ static void Pm_SpectatorMove(void) {
   Pm_Accelerate(vel, speed, Maxf(0.f, pm->s.params.accelSpectator));
 
   // do the move
-  pm->s.origin = Vec3_Fmaf(pm->s.origin, pm_locals.time, pm->s.velocity);
+  pm->s.origin = Vec3_Fmaf(pm->s.origin, pmLocals.time, pm->s.velocity);
 }
 
 /**
@@ -357,20 +357,20 @@ static void Pm_ClampAngles(void) {
  */
 static void Pm_InitLocal(void) {
 
-  memset(&pm_locals, 0, sizeof(pm_locals));
+  memset(&pmLocals, 0, sizeof(pmLocals));
 
   // save previous values in case move fails, and to detect landings
-  pm_locals.previousOrigin = pm->s.origin;
-  pm_locals.previousVelocity = pm->s.velocity;
+  pmLocals.previousOrigin = pm->s.origin;
+  pmLocals.previousVelocity = pm->s.velocity;
 
   // convert from milliseconds to seconds
-  pm_locals.time = pm->cmd.msec * .001f;
+  pmLocals.time = pm->cmd.msec * .001f;
 
   // calculate the directional vectors for this move
-  Vec3_Vectors(pm->angles, &pm_locals.forward, &pm_locals.right, &pm_locals.up);
+  Vec3_Vectors(pm->angles, &pmLocals.forward, &pmLocals.right, &pmLocals.up);
 
   // and calculate the directional vectors in the XY plane
-  Vec3_Vectors(MakeVec3(0.f, pm->angles.y, 0.f), &pm_locals.forwardXy, &pm_locals.rightXy, NULL);
+  Vec3_Vectors(MakeVec3(0.f, pm->angles.y, 0.f), &pmLocals.forwardXy, &pmLocals.rightXy, NULL);
 }
 
 /**
@@ -386,7 +386,7 @@ void Pm_CheckViewStep(void) {
   // calculate change to the step offset
   if (pm->s.stepOffset) {
 
-    const float stepSpeed = pm_locals.time * (PM_SPEED_STEP * (Maxf(1.f, fabsf(pm->s.stepOffset) / PM_STEP_HEIGHT)));
+    const float stepSpeed = pmLocals.time * (PM_SPEED_STEP * (Maxf(1.f, fabsf(pm->s.stepOffset) / PM_STEP_HEIGHT)));
 
     if (pm->s.stepOffset > 0) {
       pm->s.stepOffset = Maxf(0.f, pm->s.stepOffset - stepSpeed);

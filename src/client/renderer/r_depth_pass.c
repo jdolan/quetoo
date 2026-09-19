@@ -21,18 +21,18 @@
 
 #include "r_local.h"
 
-RenderDepthPipeline r_depth_pipeline;
+RenderDepthPipeline rDepthPipeline;
 
 /**
  * @brief Draws world geometry into the view depth buffer.
  */
 void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
 
-  if (!r_depth_pass->integer) {
+  if (!r_depthPass->integer) {
     return;
   }
 
-  const RenderBspModel *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = rModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
@@ -46,10 +46,10 @@ void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
   });
 
   const Mat4 model = Mat4_Identity();
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
-  $(pass, bindPipeline, r_depth_pipeline.pipeline);
+  $(pass, bindPipeline, rDepthPipeline.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertexBuffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -75,17 +75,17 @@ void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
  */
 void R_InitDepthPass(void) {
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(rContext.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2,
   });
 
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
+  info.multisample_state.sample_count = rSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -117,7 +117,7 @@ void R_InitDepthPass(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_depth_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  rDepthPipeline.pipeline = $(rContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -127,8 +127,8 @@ void R_InitDepthPass(void) {
  * @brief Releases the depth pre-pass pipeline.
  */
 void R_ShutdownDepthPass(void) {
-  r_depth_pipeline.pipeline = release(r_depth_pipeline.pipeline);
-  r_depth_pipeline.fence = release(r_depth_pipeline.fence);
+  rDepthPipeline.pipeline = release(rDepthPipeline.pipeline);
+  rDepthPipeline.fence = release(rDepthPipeline.fence);
 }
 
 /**

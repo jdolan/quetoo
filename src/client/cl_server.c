@@ -119,23 +119,23 @@ static void Cl_MergeDuplicateServers(const ClientServerInfo *server) {
 void Cl_ParseServerInfo(void) {
   char string[MAX_MSG_SIZE];
 
-  ClientServerInfo *server = Cl_ServerForNetaddr(&net_from);
+  ClientServerInfo *server = Cl_ServerForNetaddr(&netFrom);
   if (!server) { // unknown server, assumed response to broadcast
 
-    server = Cl_AddServer(&net_from);
+    server = Cl_AddServer(&netFrom);
 
     server->source = SERVER_SOURCE_BCAST;
     server->pingTime = cls.broadcastTime;
   }
 
-  const size_t length = net_message.read < net_message.size
-                        ? Minz(net_message.size - net_message.read, sizeof(string) - 1)
+  const size_t length = netMessage.read < netMessage.size
+                        ? Minz(netMessage.size - netMessage.read, sizeof(string) - 1)
                         : 0;
-  Net_ReadData(&net_message, string, length);
+  Net_ReadData(&netMessage, string, length);
   string[length] = '\0';
 
   Com_Debug(DEBUG_CLIENT, "Status from %s: %" PRIuPTR " bytes\n",
-            Net_NetaddrToString(&net_from), (uintptr_t) length);
+            Net_NetaddrToString(&netFrom), (uintptr_t) length);
 
   // First line is the server infostring; subsequent lines are player entries.
   char *playerStart = q_strchr(string, '\n');
@@ -202,7 +202,7 @@ void Cl_ParseServerInfo(void) {
     server->error[0] = '\0';
 
     Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, gameplay %s, %d/%d clients (%d bots), %dms\n",
-              Net_NetaddrToString(&net_from), server->hostname, server->name, server->gameplay,
+              Net_NetaddrToString(&netFrom), server->hostname, server->name, server->gameplay,
               server->clients, server->maxClients, server->bots, server->ping);
 
     Cl_MergeDuplicateServers(server);
@@ -220,7 +220,7 @@ void Cl_ParseServerInfo(void) {
     q_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
 
     Com_Debug(DEBUG_CLIENT, "Status from %s rejected: sv_hostname %s, sv_map %s\n",
-              Net_NetaddrToString(&net_from),
+              Net_NetaddrToString(&netFrom),
               hostname[0] ? "present" : "MISSING", name[0] ? "present" : "MISSING");
   }
 
@@ -361,16 +361,16 @@ void Cl_ParseServers(void) {
   ClientServerInfo *server;
 
   Com_Debug(DEBUG_CLIENT, "Servers list from %s: %" PRIuPTR " bytes\n",
-            Net_NetaddrToString(&net_from), (uintptr_t) net_message.size);
+            Net_NetaddrToString(&netFrom), (uintptr_t) netMessage.size);
 
-  if (net_message.size <= 12) {
+  if (netMessage.size <= 12) {
     Com_Debug(DEBUG_CLIENT, "Servers list is empty (the master knows of no servers "
               "for protocol %d)\n", PROTOCOL_MAJOR);
     return;
   }
 
-  byte *buffptr = net_message.data + 12;
-  byte *buffend = buffptr + net_message.size - 12;
+  byte *buffptr = netMessage.data + 12;
+  byte *buffend = buffptr + netMessage.size - 12;
 
   uint32_t parsed = 0;
 
@@ -412,7 +412,7 @@ void Cl_ParseServers(void) {
     parsed++;
   }
 
-  net_message.read = net_message.size;
+  netMessage.read = netMessage.size;
 
   // then ping them
 

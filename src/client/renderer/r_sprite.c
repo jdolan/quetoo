@@ -73,7 +73,7 @@ static struct {
    * @brief The scene depth sampler.
    */
   Sampler *depthSampler;
-} r_sprite_draw;
+} module;
 
 /**
  * @brief Resolves the texture coordinate rect for a sprite image.
@@ -163,7 +163,7 @@ static RenderSpriteBatch *R_AllocSpriteInstance(RenderView *view, RenderSpriteIn
   RenderSpriteBatch *batch = &view->spriteBatches[index];
   memset(batch, 0, sizeof(*batch));
 
-  *instance = &r_sprite_draw.instances[index];
+  *instance = &module.instances[index];
   memset(*instance, 0, sizeof(**instance));
 
   return batch;
@@ -359,11 +359,11 @@ void R_UpdateSprites(RenderView *view, CopyPass *copyPass) {
 
   const uint32_t size = (uint32_t) view->numSpriteInstances * sizeof(RenderSpriteInstance);
 
-  $(r_sprite_draw.transferBuffer, write, r_sprite_draw.instances, size, true);
+  $(module.transferBuffer, write, module.instances, size, true);
 
   $(copyPass, uploadBuffer,
-    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_sprite_draw.transferBuffer->buffer },
-    &(SDL_GPUBufferRegion) { .buffer = r_sprite_draw.instanceBuffer->buffer, .size = size },
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = module.transferBuffer->buffer },
+    &(SDL_GPUBufferRegion) { .buffer = module.instanceBuffer->buffer, .size = size },
     true);
 }
 
@@ -372,15 +372,15 @@ void R_UpdateSprites(RenderView *view, CopyPass *copyPass) {
  */
 void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 
-  assert(r_models.world);
+  assert(rModels.world);
 
   if (view->numSpriteInstances == 0) {
     return;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
 
-  const RenderBspModel *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = rModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -389,23 +389,23 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
 
-  $(pass, bindPipeline, r_sprite_draw.pipeline);
-  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+  $(pass, bindPipeline, module.pipeline);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = module.elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   Texture *depthTexture = $(framebuffer, previousColorTexture, 1);
   $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depthTexture->texture,
-    .sampler = r_sprite_draw.depthSampler->sampler,
+    .sampler = module.depthSampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.bspBuffer->buffer,
-    r_lights.dynamicBuffer->buffer,
+    rLights.bspBuffer->buffer,
+    rLights.dynamicBuffer->buffer,
     bsp->voxels.lightDataBuffer->buffer,
-    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : r_lights.voxelFallbackBuffer->buffer,
-    r_sprite_draw.instanceBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
+    module.instanceBuffer->buffer,
   };
   $(pass, bindVertexStorageBuffers, 0, storage, 5);
 
@@ -435,13 +435,13 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
     $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
-      { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
-      { .texture = in->nextDiffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
+      { .texture = in->diffusemap->texture->texture, .sampler = module.sampler->sampler },
+      { .texture = in->nextDiffusemap->texture->texture, .sampler = module.sampler->sampler },
     }, 2);
 
     $(pass, drawIndexedPrimitives, (uint32_t) batchSize * 6, 1, (uint32_t) i * 6, 0, 0);
 
-    r_stats->spriteDrawElements++;
+    rStats->spriteDrawElements++;
 
     i += batchSize;
   }
@@ -453,7 +453,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 static void R_InitSpritePipeline(void) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
+  info.multisample_state.sample_count = rSceneSamples;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
@@ -486,7 +486,7 @@ static void R_InitSpritePipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sprite_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
+  module.pipeline = $(rContext.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_storage_buffers = 5,
@@ -499,8 +499,8 @@ static void R_InitSpritePipeline(void) {
     },
     &info);
 
-  r_sprite_draw.sampler = $(r_context.device, createSamplerLinearClamp);
-  r_sprite_draw.depthSampler = $(r_context.device, createSamplerNearestClamp);
+  module.sampler = $(rContext.device, createSamplerLinearClamp);
+  module.depthSampler = $(rContext.device, createSamplerNearestClamp);
 }
 
 /**
@@ -508,7 +508,7 @@ static void R_InitSpritePipeline(void) {
  */
 void R_InitSprites(void) {
 
-  memset(&r_sprite_draw, 0, sizeof(r_sprite_draw));
+  memset(&module, 0, sizeof(module));
 
   const size_t numElements = MAX_SPRITE_INSTANCES * 6;
   uint32_t *elements = malloc(numElements * sizeof(uint32_t));
@@ -522,19 +522,19 @@ void R_InitSprites(void) {
     elements[e + 5] = v + 3;
   }
 
-  r_sprite_draw.elementsBuffer = $(r_context.device, createBufferWithConstMem,
+  module.elementsBuffer = $(rContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX, elements, (Uint32) (numElements * sizeof(uint32_t)));
 
   free(elements);
 
-  r_sprite_draw.instanceBuffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  module.instanceBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-    .size = sizeof(r_sprite_draw.instances),
+    .size = sizeof(module.instances),
   });
 
-  r_sprite_draw.transferBuffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-    .size = sizeof(r_sprite_draw.instances),
+    .size = sizeof(module.instances),
   });
 
   R_InitSpritePipeline();
@@ -545,12 +545,12 @@ void R_InitSprites(void) {
  */
 void R_ShutdownSprites(void) {
 
-  r_sprite_draw.pipeline = release(r_sprite_draw.pipeline);
-  r_sprite_draw.sampler = release(r_sprite_draw.sampler);
-  r_sprite_draw.depthSampler = release(r_sprite_draw.depthSampler);
-  r_sprite_draw.instanceBuffer = release(r_sprite_draw.instanceBuffer);
-  r_sprite_draw.elementsBuffer = release(r_sprite_draw.elementsBuffer);
-  r_sprite_draw.transferBuffer = release(r_sprite_draw.transferBuffer);
+  module.pipeline = release(module.pipeline);
+  module.sampler = release(module.sampler);
+  module.depthSampler = release(module.depthSampler);
+  module.instanceBuffer = release(module.instanceBuffer);
+  module.elementsBuffer = release(module.elementsBuffer);
+  module.transferBuffer = release(module.transferBuffer);
 }
 
 /**

@@ -22,8 +22,8 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-Cvar *g_ai_no_target;
-Cvar *g_ai_node_dev;
+Cvar *g_aiNoTarget;
+Cvar *g_aiNodeDev;
 
 /**
  * @brief Linear interpolation between a and b by fraction t (0.0 to 1.0).
@@ -57,7 +57,7 @@ static bool G_Ai_IsArmed(const GameClient *cl) {
   const float threshold = AI_ARMED_PRIORITY * Lerpf(1.25f, .6f, cl->ai->personality.aggression);
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const GameItem *it = &g_items[t];
+    const GameItem *it = &gItems[t];
     if (cl->inventory[t] && it->def.priority >= threshold) {
       return true;
     }
@@ -177,7 +177,7 @@ static Order G_Ai_CompareItemsOrder(const ident a, const ident b) {
 }
 
 static inline int64_t G_Ai_Microseconds(void) {
-  return (int64_t) g_level.time * 1000;
+  return (int64_t) gLevel.time * 1000;
 }
 
 #define AI_ITEM_UNREACHABLE -1.0
@@ -245,8 +245,8 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PlayerMoveCmd *cmd) {
 
 
   // if we got stuck, don't hunt for items for a little bit
-  if (cl->ai->reacquireTime > g_level.time) {
-    return cl->ai->reacquireTime - g_level.time; 
+  if (cl->ai->reacquireTime > gLevel.time) {
+    return cl->ai->reacquireTime - gLevel.time; 
   }
 
   // skip item seeking if we're in the air, or if we're armed, healthy, and fighting
@@ -365,7 +365,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PlayerMoveCmd *cmd) {
         }
       }
 
-      if (!pathFound && g_ai_node_dev->integer) {
+      if (!pathFound && g_aiNodeDev->integer) {
         gi.WriteByte(SV_CMD_TEMP_ENTITY);
         gi.WriteByte(TE_TRACER);
         gi.WritePosition(cl->entity->s.origin);
@@ -413,7 +413,7 @@ static AiRange G_Ai_GetRange(const float distance) {
  */
 static void G_Ai_PickWeapon(GameClient *cl) {
 
-  cl->ai->weaponCheckTime = g_level.time + 250; // don't try again for a bit
+  cl->ai->weaponCheckTime = gLevel.time + 250; // don't try again for a bit
 
   AiRange targRange;
 
@@ -429,7 +429,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
   const int16_t *inventory = cl->inventory;
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const GameItem *it = &g_items[t];
+    const GameItem *it = &gItems[t];
 
     if (!inventory[t]) { // not in stock
       continue;
@@ -523,7 +523,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
 
   gi.TokenizeString(va("use %s", bestWeapon->item->def.name));
   ge.ClientCommand(cl);
-  cl->ai->weaponCheckTime = g_level.time + 300; // don't try again for a bit
+  cl->ai->weaponCheckTime = gLevel.time + 300; // don't try again for a bit
   G_Ai_Debug("weapon choice: %s (%d choices)\n", bestWeapon->item->def.name, (int32_t) numWeapons);
 }
 
@@ -609,7 +609,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PlayerMoveCmd *cmd) {
   }
 
 
-  if (g_ai_no_target->integer || g_ai_node_dev->integer) {
+  if (g_aiNoTarget->integer || g_aiNodeDev->integer) {
 
     if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
       G_Ai_ClearGoal(&cl->ai->combatTarget);
@@ -720,7 +720,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PlayerMoveCmd *cmd) {
       // skilled bots react faster (100-400ms vs 500-1200ms)
       const uint32_t lockMin = (uint32_t) Lerpf(500.f, 100.f, cl->ai->personality.skill);
       const uint32_t lockMax = (uint32_t) Lerpf(1200.f, 400.f, cl->ai->personality.skill);
-      cl->ai->combatTarget.entity.lockOnTime = g_level.time + RandomRangeu(lockMin, lockMax);
+      cl->ai->combatTarget.entity.lockOnTime = gLevel.time + RandomRangeu(lockMin, lockMax);
 
       if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK) {
         cl->ai->combatTarget.entity.flankAngle = Randomb() ? -90 : 90;
@@ -772,20 +772,20 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PlayerMoveCmd *cmd) {
   // if we're dead, just keep clicking so we respawn.
   if (cl->entity->dead) {
 
-    if (g_level.frameNum & 1) {
+    if (gLevel.frameNum & 1) {
       cmd->buttons = BUTTON_ATTACK;
     }
     return 1;
   }
 
 
-  if (cl->ai->weaponCheckTime < g_level.time) { // check for a new weapon every once in a while
+  if (cl->ai->weaponCheckTime < gLevel.time) { // check for a new weapon every once in a while
     G_Ai_PickWeapon(cl);
   }
 
   // we're alive - if we're aiming at an enemy, start-a-firin
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-    if (cl->ai->combatTarget.entity.lockOnTime < g_level.time) {
+    if (cl->ai->combatTarget.entity.lockOnTime < gLevel.time) {
 
       const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
       const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
@@ -796,7 +796,7 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PlayerMoveCmd *cmd) {
       if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone))) {
         const uint32_t grenadeHoldTime = cl->grenadeHoldTime;
         if (grenadeHoldTime) {
-          if (g_level.time - grenadeHoldTime < RandomRangeu(1500, 2500)) {
+          if (gLevel.time - grenadeHoldTime < RandomRangeu(1500, 2500)) {
             cmd->buttons |= BUTTON_ATTACK;
           }
         } else {
@@ -900,14 +900,14 @@ static inline float G_Ai_Wander(GameClient *cl, PlayerMoveCmd *cmd) {
   return *angle;
 }
 
-static GameEntity *g_ai_current_entity;
+static GameEntity *gAiCurrentEntity;
 
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static CmTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
-  const GameEntity *ent= g_ai_current_entity;
+  const GameEntity *ent= gAiCurrentEntity;
 
   if (ent->solid == SOLID_DEAD) {
     return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_CORPSE);
@@ -1013,7 +1013,7 @@ static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
     goal->distress = 0;
     goal->lastDistance = 0;
     goal->distressExtension = false;
-    cl->ai->reacquireTime = g_level.time + 1000;
+    cl->ai->reacquireTime = gLevel.time + 1000;
       
     G_Ai_Debug("Distress threshold reached\n");
     return false;
@@ -1231,7 +1231,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PlayerMoveCmd *cmd) {
   cmd->forward = dir.x;
   cmd->right = dir.y;
 
-  g_ai_current_entity = ent;
+  gAiCurrentEntity = ent;
 
   // predict ahead
   PlayerMove pm;
@@ -1262,11 +1262,11 @@ static uint32_t G_Ai_Move(GameClient *cl, PlayerMoveCmd *cmd) {
 
   // predict a few frames ahead for timely edge/mover stoppage; cache result per
   // tick so the three sub-passes of G_Ai_ClientThink share one expensive Pm_Move
-  if (cl->ai->lookaheadFrame != g_level.frameNum) {
+  if (cl->ai->lookaheadFrame != gLevel.frameNum) {
     PlayerMove pmAhead = pm;
     pmAhead.cmd.msec = 100;
     Pm_Move(&pmAhead);
-    cl->ai->lookaheadFrame = g_level.frameNum;
+    cl->ai->lookaheadFrame = gLevel.frameNum;
     cl->ai->lookaheadNoGround = !pmAhead.ground.ent;
   }
 
@@ -1354,7 +1354,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PlayerMoveCmd *cmd) {
 
     if (moveLen < smolDist) {
       
-      if (cl->ai->distressJumpOffset <= g_level.time) {
+      if (cl->ai->distressJumpOffset <= gLevel.time) {
         // if we're navving, node is above us, and we're on ground, jump; we're probably trying
         // to trick-jump or something
         if (cl->ai->moveTarget.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent) {
@@ -1534,8 +1534,8 @@ static uint32_t G_Ai_Turn(GameClient *cl, PlayerMoveCmd *cmd) {
     const float wobble = (1.f - cl->ai->personality.skill) * 2.f
         + ((weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
     const float phase = cl->ai->personality.aimPhase;
-    idealAngles.x += sinf((g_level.time + phase) / 128.0f) * 4.3f * wobble;
-    idealAngles.y += cosf((g_level.time + phase) / 164.0f) * 4.0f * wobble;
+    idealAngles.x += sinf((gLevel.time + phase) / 128.0f) * 4.3f * wobble;
+    idealAngles.y += cosf((gLevel.time + phase) / 164.0f) * 4.0f * wobble;
   }
 
   const Vec3 viewAngles = cl->angles;
@@ -1693,7 +1693,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PlayerMoveCmd *cmd) {
 /**
  * @brief Static list of func goal functions
  */
-static const G_Ai_GoalFunc g_ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
+static const G_Ai_GoalFunc gAiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
   [AI_FUNC_GOAL_LONGRANGE] = G_Ai_LongRange,
   [AI_FUNC_GOAL_HUNT] = G_Ai_Hunt,
   [AI_FUNC_GOAL_WEAPONRY] = G_Ai_Weaponry,
@@ -1767,12 +1767,12 @@ void G_Ai_Think(GameClient *cl, PlayerMoveCmd *cmd) {
   // run functional goals
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
-    if (cl->ai->funcGoalNextThinks[i] <= g_level.time) {
+    if (cl->ai->funcGoalNextThinks[i] <= gLevel.time) {
       const int64_t funcStart = G_Ai_Microseconds();
-      const uint32_t next = g_ai_goalfuncs[i](cl, cmd);
+      const uint32_t next = gAiGoalfuncs[i](cl, cmd);
       const int64_t funcUs = G_Ai_Microseconds() - funcStart;
 
-      cl->ai->funcGoalNextThinks[i] = g_level.time + next;
+      cl->ai->funcGoalNextThinks[i] = gLevel.time + next;
 
       if (funcUs > 50000) { // > 50ms for one goal function is pathological
         G_Warn("%s goal func %d took %dms\n",
@@ -1865,7 +1865,7 @@ static void G_Ai_ClientThink(GameEntity *ent) {
     msecLeft -= cmd.msec;
   }
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -1880,7 +1880,7 @@ static void G_Ai_ClientBegin(GameClient *cl) {
   G_Debug("Spawned %s at %s", cl->persistent.netName, vtos(cl->entity->s.origin));
 
   cl->entity->Think = G_Ai_ClientThink;
-  cl->entity->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  cl->entity->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -1904,15 +1904,15 @@ static void G_Ai_Connect(GameClient *cl) {
  */
 void G_Ai_Frame(void) {
 
-  if (g_level.intermissionTime) {
+  if (gLevel.intermissionTime) {
     return;
   }
 
-  if (g_level.time == 1000) {
+  if (gLevel.time == 1000) {
     G_Ai_NodesReady();
   }
 
-  if (g_level.time % 1000 == 0) {
+  if (gLevel.time % 1000 == 0) {
 
     int32_t humanClients = 0;
     int32_t aiClients = 0;
@@ -1926,9 +1926,9 @@ void G_Ai_Frame(void) {
 
     const int32_t activeClients = humanClients + aiClients;
 
-    const int32_t baseMinClients = g_level.minClientsMap > -1 ? g_level.minClientsMap : sv_min_clients->integer;
+    const int32_t baseMinClients = gLevel.minClientsMap > -1 ? gLevel.minClientsMap : sv_minClients->integer;
     const int32_t minClients = Maxi(0, baseMinClients);
-    const int32_t maxClients = Maxi(0, sv_max_clients->integer);
+    const int32_t maxClients = Maxi(0, sv_maxClients->integer);
 
     const int32_t desiredClients = Mini(minClients, maxClients);
 
@@ -2025,14 +2025,14 @@ void G_Ai_OffsetNodes_f(void);
  */
 void G_Ai_Init(void) {
 
-  g_ai_no_target = gi.AddCvar("g_ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
-  g_ai_node_dev = gi.AddCvar("g_ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
+  g_aiNoTarget = gi.AddCvar("g_ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
+  g_aiNodeDev = gi.AddCvar("g_ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
   
-  if (g_ai_node_dev->integer) {
+  if (g_aiNodeDev->integer) {
     gi.SetCvarInteger("g_cheats", 1);
   }
 
-  gi.SetConfigString(CS_NAV_EDIT, g_ai_node_dev->string);
+  gi.SetConfigString(CS_NAV_EDIT, g_aiNodeDev->string);
 
   gi.AddCmd("g_ai_save_nodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
   gi.AddCmd("g_ai_delete_node", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
@@ -2066,5 +2066,5 @@ void G_Ai_Shutdown(void) {
  */
 bool G_Ai_InDeveloperMode(void) {
 
-  return g_ai_node_dev->integer == 1;
+  return g_aiNodeDev->integer == 1;
 }

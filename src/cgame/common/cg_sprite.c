@@ -21,10 +21,10 @@
 
 #include "cg_local.h"
 
-static ClientGameSprite *cg_free_sprites;
-static ClientGameSprite *cg_active_sprites;
+static ClientGameSprite *cgFreeSprites;
+static ClientGameSprite *cgActiveSprites;
 
-static ClientGameSprite cg_sprites[MAX_SPRITES];
+static ClientGameSprite cgSprites[MAX_SPRITES];
 
 /**
  * @brief Pushes the sprite onto the head of specified list.
@@ -67,20 +67,20 @@ static void Cg_PopSprite(ClientGameSprite *s, ClientGameSprite **list) {
  */
 ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS) {
 
-  if (!cg_add_sprites->integer) {
+  if (!cg_addSprites->integer) {
     return NULL;
   }
 
-  if (!cg_free_sprites) {
+  if (!cgFreeSprites) {
     Cg_Debug("No free sprites\n");
     return NULL;
   }
 
   assert(inS->media);
 
-  ClientGameSprite *s = cg_free_sprites;
+  ClientGameSprite *s = cgFreeSprites;
 
-  Cg_PopSprite(s, &cg_free_sprites);
+  Cg_PopSprite(s, &cgFreeSprites);
 
   *s = *inS;
 
@@ -90,7 +90,7 @@ ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS) {
     s->time = s->timestamp = cgi.client->unclampedTime;
   }
 
-  Cg_PushSprite(s, &cg_active_sprites);
+  Cg_PushSprite(s, &cgActiveSprites);
 
   return s;
 }
@@ -102,9 +102,9 @@ ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS) {
 ClientGameSprite *Cg_FreeSprite(ClientGameSprite *s) {
   ClientGameSprite *next = s->next;
 
-  Cg_PopSprite(s, &cg_active_sprites);
+  Cg_PopSprite(s, &cgActiveSprites);
 
-  Cg_PushSprite(s, &cg_free_sprites);
+  Cg_PushSprite(s, &cgFreeSprites);
 
   if (s->data && !(s->flags & SPRITE_DATA_NOFREE)) {
     cgi.Free(s->data);
@@ -121,7 +121,7 @@ ClientGameSprite *Cg_FreeSprite(ClientGameSprite *s) {
  */
 void Cg_FreeSpritesByData(const void *data) {
 
-  ClientGameSprite *s = cg_active_sprites;
+  ClientGameSprite *s = cgActiveSprites;
   while (s) {
     if (s->data == data) {
       s->flags |= SPRITE_DATA_NOFREE;
@@ -137,13 +137,13 @@ void Cg_FreeSpritesByData(const void *data) {
  */
 void Cg_FreeSprites(void) {
 
-  cg_free_sprites = NULL;
-  cg_active_sprites = NULL;
+  cgFreeSprites = NULL;
+  cgActiveSprites = NULL;
 
-  memset(cg_sprites, 0, sizeof(cg_sprites));
+  memset(cgSprites, 0, sizeof(cgSprites));
 
-  for (size_t i = 0; i < lengthof(cg_sprites); i++) {
-    Cg_PushSprite(&cg_sprites[i], &cg_free_sprites);
+  for (size_t i = 0; i < lengthof(cgSprites); i++) {
+    Cg_PushSprite(&cgSprites[i], &cgFreeSprites);
   }
 }
 
@@ -152,14 +152,14 @@ void Cg_FreeSprites(void) {
  */
 void Cg_AddSprites(void) {
 
-  if (!cg_add_sprites->integer) {
+  if (!cg_addSprites->integer) {
     return;
   }
 
   const float delta = MILLIS_TO_SECONDS(cgi.client->frameMsec);
   const uint32_t clientTime = cgi.client->unclampedTime, serverTime = cgi.client->frame.time;
 
-  ClientGameSprite *s = cg_active_sprites;
+  ClientGameSprite *s = cgActiveSprites;
   while (s) {
 
     assert(s->media);
@@ -229,7 +229,7 @@ void Cg_AddSprites(void) {
 
     s->origin = Vec3_Fmaf(s->origin, delta, s->velocity);
 
-    if (s->bounce && cg_sprite_physics->integer) {
+    if (s->bounce && cg_spritePhysics->integer) {
       Vec3 origin = s->origin;
 
       if (s->flags & SPRITE_FOLLOW_ENTITY) {

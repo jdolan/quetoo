@@ -100,17 +100,17 @@ typedef struct MasterServer {
   char players[MAX_CLIENTS][64];
 } MasterServer;
 
-static List *ms_servers;
-static int32_t ms_sock;
+static List *msServers;
+static int32_t msSock;
 
 #if !defined(_WIN32)
-static int32_t ms_urandom = -1;
+static int32_t msUrandom = -1;
 #endif
 
 static bool verbose;
 static bool debug;
 
-static const char *ms_discord_webhook;
+static const char *msDiscordWebhook;
 
 /**
  * @brief Extracts the value for the given key from a Quake infostring.
@@ -161,7 +161,7 @@ static void Ms_JsonEscape(const char *src, char *buf, size_t bufSize) {
  * @brief Posts a Discord webhook notification for a player joining a server.
  */
 static void Ms_DiscordNotify(const MasterServer *server, const char *playerName, int32_t numClients) {
-  if (!ms_discord_webhook) {
+  if (!msDiscordWebhook) {
     return;
   }
 
@@ -183,7 +183,7 @@ static void Ms_DiscordNotify(const MasterServer *server, const char *playerName,
     ip, port);
 
   Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
-  $($$(RESTClient, sharedInstance), postAsync, ms_discord_webhook, body, NULL, NULL, NULL);
+  $($$(RESTClient, sharedInstance), postAsync, msDiscordWebhook, body, NULL, NULL, NULL);
   release(body);
 }
 
@@ -289,7 +289,7 @@ static const char *atos(const struct sockaddr_in *addr) {
  */
 static MasterServer *Ms_GetServer(struct sockaddr_in *from) {
 
-  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
+  for (const ListNode *s = msServers ? msServers->head : NULL; s; s = s->next) {
     MasterServer *server = (MasterServer *) s->element;
 
     const struct sockaddr_in *addr = &server->addr;
@@ -306,10 +306,10 @@ static MasterServer *Ms_GetServer(struct sockaddr_in *from) {
  */
 static void Ms_DropServer(MasterServer *server) {
 
-  if (ms_servers) {
-    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+  if (msServers) {
+    for (const ListNode *s = msServers->head; s; s = s->next) {
       if (s->element == server) {
-        $(ms_servers, removeNode, (ListNode *) s);
+        $(msServers, removeNode, (ListNode *) s);
         break;
       }
     }
@@ -380,7 +380,7 @@ static uint32_t Ms_Challenge(void) {
       Com_Error(ERROR_FATAL, "Failed to generate a challenge\n");
     }
 #else
-    if (read(ms_urandom, &challenge, sizeof(challenge)) != (ssize_t) sizeof(challenge)) {
+    if (read(msUrandom, &challenge, sizeof(challenge)) != (ssize_t) sizeof(challenge)) {
       Com_Error(ERROR_FATAL, "Failed to read /dev/urandom: %s\n", strerror(errno));
     }
 #endif
@@ -412,7 +412,7 @@ static void Ms_SendChallenge(MasterServer *server, time_t now) {
 
   Com_Verbose("Challenging %s\n", stos(server));
 
-  sendto(ms_sock, buffer, 4 + len, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
+  sendto(msSock, buffer, 4 + len, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
 }
 
 /**
@@ -441,13 +441,13 @@ static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
   }
 
   // bound the list before touching the filesystem for the blacklist
-  if (ms_servers && ms_servers->count >= MAX_SERVERS) {
+  if (msServers && msServers->count >= MAX_SERVERS) {
     Com_Warn("Server list is full, rejecting %s\n", atos(from));
     return NULL;
   }
 
   size_t pending = 0;
-  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
+  for (const ListNode *s = msServers ? msServers->head : NULL; s; s = s->next) {
     if (!((const MasterServer *) s->element)->validated) {
       pending++;
     }
@@ -470,10 +470,10 @@ static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
   server->lastHeartbeat = server->registered;
   server->numClients = -1;
 
-  if (!ms_servers) {
-    ms_servers = $(alloc(List), init);
+  if (!msServers) {
+    msServers = $(alloc(List), init);
   }
-  $(ms_servers, append, server);
+  $(msServers, append, server);
   Com_Print("Server %s registered, awaiting validation\n", stos(server));
 
   return server;
@@ -509,7 +509,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from, const char *cmd) {
 static void Ms_Frame(void) {
   const time_t now = time(NULL);
 
-  for (ListNode *s = ms_servers ? ms_servers->head : NULL; s; ) {
+  for (ListNode *s = msServers ? msServers->head : NULL; s; ) {
     ListNode *next = s->next;
     MasterServer *server = (MasterServer *) s->element;
 
@@ -549,7 +549,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   Mem_WriteBuffer(&buf, servers, q_strlen(servers));
 
   uint32_t i = 0;
-  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
+  for (const ListNode *s = msServers ? msServers->head : NULL; s; s = s->next) {
     const MasterServer *server = (MasterServer *) s->element;
     if (server->validated && (protocol == 0 || server->protocol == protocol)) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
@@ -558,7 +558,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
     }
   }
 
-  if ((sendto(ms_sock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
+  if ((sendto(msSock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
     Com_Warn("%s: %s\n", atos(from), strerror(errno));
   } else {
     Com_Verbose("Sent %d servers (protocol %d) to %s\n", i, protocol, atos(from));
@@ -675,11 +675,11 @@ static void Shutdown(const char *msg) {
     fputs(msg, stdout);
   }
 
-  if (ms_servers) {
-    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+  if (msServers) {
+    for (const ListNode *s = msServers->head; s; s = s->next) {
       Mem_Free(s->element);
     }
-    release(ms_servers);
+    release(msServers);
   }
 
   Fs_Shutdown();
@@ -729,18 +729,18 @@ int32_t quetoo_main(int32_t argc, char **argv) {
     }
   }
 
-  ms_discord_webhook = getenv("QUETOO_DISCORD_WEBHOOK");
-  if (ms_discord_webhook) {
+  msDiscordWebhook = getenv("QUETOO_DISCORD_WEBHOOK");
+  if (msDiscordWebhook) {
     Com_Print("Discord webhook configured\n");
   }
 
 #if !defined(_WIN32)
-  if ((ms_urandom = open("/dev/urandom", O_RDONLY)) == -1) {
+  if ((msUrandom = open("/dev/urandom", O_RDONLY)) == -1) {
     Com_Error(ERROR_FATAL, "Failed to open /dev/urandom: %s\n", strerror(errno));
   }
 #endif
 
-  ms_sock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  msSock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   struct sockaddr_in address;
   memset(&address, 0, sizeof(address));
@@ -749,7 +749,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   address.sin_port = htons(PORT_MASTER);
   address.sin_addr.s_addr = INADDR_ANY;
 
-  if ((bind(ms_sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
+  if ((bind(msSock, (struct sockaddr *) &address, sizeof(address))) == -1) {
     Com_Error(ERROR_FATAL, "Failed to bind port %i\n", PORT_MASTER);
   }
 
@@ -760,18 +760,18 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
     FD_ZERO(&set);
 #if defined(_WIN32)
-    FD_SET((SOCKET) ms_sock, &set);
+    FD_SET((SOCKET) msSock, &set);
 #else
-    FD_SET(ms_sock, &set);
+    FD_SET(msSock, &set);
 #endif
 
     struct timeval delay;
     delay.tv_sec = 1;
     delay.tv_usec = 0;
 
-    if (select(ms_sock + 1, &set, NULL, NULL, &delay) > 0) {
+    if (select(msSock + 1, &set, NULL, NULL, &delay) > 0) {
 
-      if (FD_ISSET(ms_sock, &set)) {
+      if (FD_ISSET(msSock, &set)) {
 
         char buffer[0xffff];
         memset(buffer, 0, sizeof(buffer));
@@ -781,7 +781,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
         socklen_t fromLen = sizeof(from);
 
-        const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer) - 1, 0,
+        const ssize_t len = recvfrom(msSock, buffer, sizeof(buffer) - 1, 0,
                                      (struct sockaddr *) &from, &fromLen);
 
         if (len > 0) {

@@ -35,7 +35,7 @@ static struct {
    * @brief The free lights.
    */
   List *free;
-} cg_lights;
+} module;
 
 static ClientGameLight *Cg_PopLight(List *lights) {
 
@@ -56,7 +56,7 @@ static ClientGameLight *Cg_PopLight(List *lights) {
  */
 static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
 
-  ClientGameLight *light = Cg_PopLight(cg_lights.free);
+  ClientGameLight *light = Cg_PopLight(module.free);
   if (light == NULL) {
     light = cgi.Malloc(sizeof(ClientGameLight), MEM_TAG_CGAME_LEVEL);
   }
@@ -67,7 +67,7 @@ static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
 
   light->time = cgi.client->unclampedTime;
 
-  $(cg_lights.allocated, prepend, light);
+  $(module.allocated, prepend, light);
   return light;
 }
 
@@ -76,11 +76,11 @@ static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
  */
 static void Cg_FreeLight(ClientGameLight *light) {
 
-  ListNode *node = $(cg_lights.allocated, nodeForElement, light);
+  ListNode *node = $(module.allocated, nodeForElement, light);
   assert(node);
 
-  $(cg_lights.allocated, removeNode, node);
-  $(cg_lights.free, prepend, light);
+  $(module.allocated, removeNode, node);
+  $(module.free, prepend, light);
 }
 
 /**
@@ -88,7 +88,7 @@ static void Cg_FreeLight(ClientGameLight *light) {
  */
 void Cg_AddLight(const ClientGameLight *in) {
 
-  if (!cg_add_lights->value) {
+  if (!cg_addLights->value) {
     return;
   }
 
@@ -203,7 +203,7 @@ static void Cg_AddBspLights(void) {
  */
 void Cg_AddDynamicLights(void) {
 
-  for (ListNode *node = cg_lights.allocated->head; node; ) {
+  for (ListNode *node = module.allocated->head; node; ) {
     ListNode *next = node->next;
 
     ClientGameLight *light = node->element;
@@ -214,7 +214,7 @@ void Cg_AddDynamicLights(void) {
       intensity = Mixf(intensity, 0.f, age / (float) light->decay);
     }
 
-    if (cg_add_lights->value) {
+    if (cg_addLights->value) {
       cgi.AddLight(cgi.view, &(const RenderLight) {
         .origin = light->origin,
         .color = light->color,
@@ -249,10 +249,10 @@ void Cg_AddLights(void) {
  */
 void Cg_InitLights(void) {
 
-  memset(&cg_lights, 0, sizeof(cg_lights));
+  memset(&module, 0, sizeof(module));
 
-  cg_lights.allocated = $(alloc(List), init);
-  cg_lights.free = $(alloc(List), init);
+  module.allocated = $(alloc(List), init);
+  module.free = $(alloc(List), init);
 }
 
 /**
@@ -260,13 +260,13 @@ void Cg_InitLights(void) {
  */
 void Cg_FreeLights(void) {
 
-  if (cg_lights.allocated) {
-    cg_lights.allocated->destroy = cgi.Free;
-    cg_lights.allocated = release(cg_lights.allocated);
+  if (module.allocated) {
+    module.allocated->destroy = cgi.Free;
+    module.allocated = release(module.allocated);
   }
 
-  if (cg_lights.free) {
-    cg_lights.free->destroy = cgi.Free;
-    cg_lights.free = release(cg_lights.free);
+  if (module.free) {
+    module.free->destroy = cgi.Free;
+    module.free = release(module.free);
   }
 }

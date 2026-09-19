@@ -632,7 +632,7 @@ typedef struct {
 } RenderActiveDynamicLights;
 
 /**
- * @brief The width of the lighting LOD blend zone beyond r_lighting_distance.
+ * @brief The width of the lighting LOD blend zone beyond r_lightingDistance.
  * @remarks Must match LIGHTING_LOD_BLEND_DIST in shaders/light.glsl.
  */
 #define LIGHTING_LOD_BLEND_DIST 128.f
@@ -1567,7 +1567,7 @@ typedef struct RenderModel {
 #define IS_BSP_MODEL(m) (m && m->type == MODEL_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MODEL_BSP_INLINE)
 #define IS_MESH_MODEL(m) (m && m->type == MODEL_MESH)
-#define IS_WORLDSPAWN(m) (IS_BSP_MODEL(r_models.world) && IS_BSP_INLINE_MODEL(m) && r_models.world->bsp->worldspawn == m)
+#define IS_WORLDSPAWN(m) (IS_BSP_MODEL(rModels.world) && IS_BSP_INLINE_MODEL(m) && rModels.world->bsp->worldspawn == m)
 
 /**
  * @brief The model format type.
@@ -1615,7 +1615,7 @@ typedef struct {
 /**
  * @brief The models instance.
  */
-extern RenderModels r_models;
+extern RenderModels rModels;
 
 /**
  * @brief Sprite rendering flags.

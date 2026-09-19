@@ -145,7 +145,7 @@ typedef struct Patch {
   int32_t numFaces;
 } Patch;
 
-extern int32_t num_patches;
+extern int32_t numPatches;
 extern Patch patches[MAX_PATCHES];
 
 Patch *ParsePatch(Parser *parser, int32_t entity);

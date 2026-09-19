@@ -30,7 +30,7 @@ typedef struct {
   int32_t seed; // for freeing stale assets
 } SoundMediaState;
 
-static SoundMediaState s_media_state;
+static SoundMediaState sMediaState;
 
 /**
  * @brief Precaches all of the sexed sounds for a given player model.
@@ -39,8 +39,8 @@ void S_LoadClientModelSamples(const char *model, const char *soundSet) {
 
   Vector *sounds = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
 
-  for (const ListNode *node = s_media_state.keys ? s_media_state.keys->head : NULL; node; node = node->next) {
-    SoundMedia *media = $(s_media_state.media, get, node->element);
+  for (const ListNode *node = sMediaState.keys ? sMediaState.keys->head : NULL; node; node = node->next) {
+    SoundMedia *media = $(sMediaState.media, get, node->element);
 
     if (media && media->name[0] == '*') {
       $(sounds, add, &media);
@@ -62,8 +62,8 @@ void S_ListMedia_f(void) {
 
   Com_Print("Loaded media:\n");
 
-  for (const ListNode *node = s_media_state.keys ? s_media_state.keys->head : NULL; node; node = node->next) {
-    SoundMedia *media = $(s_media_state.media, get, node->element);
+  for (const ListNode *node = sMediaState.keys ? sMediaState.keys->head : NULL; node; node = node->next) {
+    SoundMedia *media = $(sMediaState.media, get, node->element);
 
     if (media) {
       Com_Print("%s\n", media->name);
@@ -110,18 +110,18 @@ static bool S_FreeMedia_(const char *key, SoundMedia *media, bool force);
  */
 static void S_RegisterMedia_InsertSortedKey(const char *name) {
 
-  if (!s_media_state.keys) {
-    s_media_state.keys = $(alloc(List), init);
+  if (!sMediaState.keys) {
+    sMediaState.keys = $(alloc(List), init);
   }
 
   // find insertion point (insert before first node where name <= existing)
-  for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
+  for (ListNode *n = sMediaState.keys->head; n; n = n->next) {
     if (q_strcmp(name, (const char *) n->element) <= 0) {
-      $(s_media_state.keys, insertAfter, n->prev, (void *) name);
+      $(sMediaState.keys, insertAfter, n->prev, (void *) name);
       return;
     }
   }
-  $(s_media_state.keys, append, (void *) name);
+  $(sMediaState.keys, append, (void *) name);
 }
 
 /**
@@ -130,26 +130,26 @@ static void S_RegisterMedia_InsertSortedKey(const char *name) {
 void S_RegisterMedia(SoundMedia *media) {
 
   // check to see if we're already seeded
-  if (media->seed != s_media_state.seed) {
+  if (media->seed != sMediaState.seed) {
     SoundMedia *m;
 
-    if ((m = $(s_media_state.media, get, media->name))) {
+    if ((m = $(sMediaState.media, get, media->name))) {
       if (m != media) {
         Com_Debug(DEBUG_SOUND, "Replacing %s\n", media->name);
         S_FreeMedia_(NULL, m, true);
-        $(s_media_state.media, set, media->name, media);
+        $(sMediaState.media, set, media->name, media);
       } else {
         Com_Debug(DEBUG_SOUND, "Retaining %s\n", media->name);
       }
     } else {
       Com_Debug(DEBUG_SOUND, "Inserting %s\n", media->name);
-      $(s_media_state.media, set, media->name, media);
+      $(sMediaState.media, set, media->name, media);
 
       S_RegisterMedia_InsertSortedKey(media->name);
     }
 
     // re-seed the media to retain it
-    media->seed = s_media_state.seed;
+    media->seed = sMediaState.seed;
   }
 
   // finally re-register all dependencies
@@ -171,7 +171,7 @@ SoundMedia *S_FindMedia(const char *name, SoundMediaType type) {
 
   q_strlcpy(lookup.name, name, sizeof(lookup.name));
 
-  SoundMedia *media = $(s_media_state.media, get, &lookup);
+  SoundMedia *media = $(sMediaState.media, get, &lookup);
   if (media) {
     S_RegisterMedia(media);
   }
@@ -208,7 +208,7 @@ static bool S_FreeMedia_(const char *key, SoundMedia *media, bool force) {
   (void) key;
 
   if (!force) { // see if the media should be freed
-    if (media->seed == s_media_state.seed || (media->Retain && media->Retain(media))) {
+    if (media->seed == sMediaState.seed || (media->Retain && media->Retain(media))) {
       return false;
     }
   }
@@ -223,10 +223,10 @@ static bool S_FreeMedia_(const char *key, SoundMedia *media, bool force) {
   media->dependencies = release(media->dependencies);
 
   // remove key from sorted keys list
-  if (s_media_state.keys) {
-    for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
+  if (sMediaState.keys) {
+    for (ListNode *n = sMediaState.keys->head; n; n = n->next) {
       if (n->element == media->name) {
-        $(s_media_state.keys, removeNode, n);
+        $(sMediaState.keys, removeNode, n);
         break;
       }
     }
@@ -242,7 +242,7 @@ static void S_EndLoading_Collect(const HashTable *table, ident k, ident v, ident
   (void) table; (void) k;
   SoundMedia *media = (SoundMedia *) v;
   Vector *vec = (Vector *) data;
-  if (!(media->seed == s_media_state.seed || (media->Retain && media->Retain(media)))) {
+  if (!(media->seed == sMediaState.seed || (media->Retain && media->Retain(media)))) {
     $(vec, add, &media);
   }
 }
@@ -255,11 +255,11 @@ void S_EndLoading(void) {
   // Collect keys to remove (can't modify table during enumeration)
   Vector *toFree = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
 
-  $(s_media_state.media, enumerate, S_EndLoading_Collect, toFree);
+  $(sMediaState.media, enumerate, S_EndLoading_Collect, toFree);
 
   for (size_t i = 0; i < toFree->count; i++) {
     SoundMedia *media = VectorValue(toFree, SoundMedia *, i);
-    $(s_media_state.media, remove, media->name);
+    $(sMediaState.media, remove, media->name);
     S_FreeMedia_(NULL, media, true);
     Mem_Free(media);
   }
@@ -275,9 +275,9 @@ void S_BeginLoading(void) {
 
   do {
     s = Randomi();
-  } while (s == s_media_state.seed);
+  } while (s == sMediaState.seed);
 
-  s_media_state.seed = s;
+  sMediaState.seed = s;
 }
 
 /**
@@ -311,9 +311,9 @@ static bool S_MediaEqual(const void * a, const void * b) {
  */
 void S_InitMedia(void) {
 
-  memset(&s_media_state, 0, sizeof(s_media_state));
+  memset(&sMediaState, 0, sizeof(sMediaState));
 
-  s_media_state.media = $(alloc(HashTable), init,
+  sMediaState.media = $(alloc(HashTable), init,
                           (HashTableHashFunc) S_MediaHash,
                           (HashTableEqualFunc) S_MediaEqual);
 
@@ -336,20 +336,20 @@ static void S_ShutdownMedia_Collect(const HashTable *table, ident k, ident v, id
 void S_ShutdownMedia(void) {
 
   Vector *toFree = $(alloc(Vector), initWithSize, sizeof(SoundMedia *));
-  $(s_media_state.media, enumerate, S_ShutdownMedia_Collect, toFree);
+  $(sMediaState.media, enumerate, S_ShutdownMedia_Collect, toFree);
 
   for (size_t i = 0; i < toFree->count; i++) {
     SoundMedia *media = VectorValue(toFree, SoundMedia *, i);
-    $(s_media_state.media, remove, media->name);
+    $(sMediaState.media, remove, media->name);
     S_FreeMedia_(NULL, media, true);
     Mem_Free(media);
   }
 
   release(toFree);
-  release(s_media_state.media);
+  release(sMediaState.media);
 
-  if (s_media_state.keys) {
-    release(s_media_state.keys);
+  if (sMediaState.keys) {
+    release(sMediaState.keys);
   }
 }
 

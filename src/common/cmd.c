@@ -46,7 +46,7 @@ typedef struct CmdState {
   int32_t aliasLoopCount;
 } CmdState;
 
-static CmdState cmd_state;
+static CmdState cmdState;
 
 #define MAX_ALIAS_LOOP_COUNT 8
 
@@ -57,12 +57,12 @@ void Cbuf_AddText(const char *text) {
 
   const size_t l = q_strlen(text);
 
-  if (cmd_state.buf.size + l >= cmd_state.buf.maxSize) {
+  if (cmdState.buf.size + l >= cmdState.buf.maxSize) {
     Com_Warn("Overflow\n");
     return;
   }
 
-  Mem_WriteBuffer(&cmd_state.buf, text, l);
+  Mem_WriteBuffer(&cmdState.buf, text, l);
 }
 
 /**
@@ -74,11 +74,11 @@ void Cbuf_InsertText(const char *text) {
     void *temp;
 
     // copy off any commands still remaining in the exec buffer
-    const size_t size = cmd_state.buf.size;
+    const size_t size = cmdState.buf.size;
     if (size) {
       temp = Mem_TagMalloc(size, MEM_TAG_CMD);
-      memcpy(temp, cmd_state.buf.data, size);
-      Mem_ClearBuffer(&cmd_state.buf);
+      memcpy(temp, cmdState.buf.data, size);
+      Mem_ClearBuffer(&cmdState.buf);
     } else {
       temp = NULL; // shut up compiler
     }
@@ -88,7 +88,7 @@ void Cbuf_InsertText(const char *text) {
 
     // add the copied off data
     if (size) {
-      Mem_WriteBuffer(&cmd_state.buf, temp, size);
+      Mem_WriteBuffer(&cmdState.buf, temp, size);
       Mem_Free(temp);
     }
   }
@@ -99,11 +99,11 @@ void Cbuf_InsertText(const char *text) {
  */
 void Cbuf_CopyToDefer(void) {
 
-  memcpy(cmd_state.buffers[1], cmd_state.buffers[0], cmd_state.buf.size);
+  memcpy(cmdState.buffers[1], cmdState.buffers[0], cmdState.buf.size);
 
-  memset(cmd_state.buffers[0], 0, sizeof(cmd_state.buffers[0]));
+  memset(cmdState.buffers[0], 0, sizeof(cmdState.buffers[0]));
 
-  cmd_state.buf.size = 0;
+  cmdState.buf.size = 0;
 }
 
 /**
@@ -111,9 +111,9 @@ void Cbuf_CopyToDefer(void) {
  */
 void Cbuf_InsertFromDefer(void) {
 
-  Cbuf_InsertText(cmd_state.buffers[1]);
+  Cbuf_InsertText(cmdState.buffers[1]);
 
-  memset(cmd_state.buffers[1], 0, sizeof(cmd_state.buffers[1]));
+  memset(cmdState.buffers[1], 0, sizeof(cmdState.buffers[1]));
 }
 
 /**
@@ -121,18 +121,18 @@ void Cbuf_InsertFromDefer(void) {
  */
 void Cbuf_Execute(void) {
 
-  cmd_state.aliasLoopCount = 0; // don't allow infinite alias loops
+  cmdState.aliasLoopCount = 0; // don't allow infinite alias loops
 
-  while (cmd_state.buf.size) {
+  while (cmdState.buf.size) {
 
     // read a single command line from the buffer
-    char line[sizeof(cmd_state.args.args)] = "";
+    char line[sizeof(cmdState.args.args)] = "";
 
     // find a \n or; line break
-    char *text = (char *) cmd_state.buf.data;
+    char *text = (char *) cmdState.buf.data;
 
     uint32_t i, quotes = 0;
-    for (i = 0; i < cmd_state.buf.size; i++) {
+    for (i = 0; i < cmdState.buf.size; i++) {
       if (text[i] == '"') {
         quotes++;
       }
@@ -154,13 +154,13 @@ void Cbuf_Execute(void) {
     // this is necessary because commands (exec, alias) can insert data at the
     // beginning of the text buffer
 
-    if (i == cmd_state.buf.size) {
-      cmd_state.buf.size = 0;
+    if (i == cmdState.buf.size) {
+      cmdState.buf.size = 0;
     } else {
       i++;
 
-      cmd_state.buf.size = cmd_state.buf.size - i;
-      memmove(text, text + i, cmd_state.buf.size);
+      cmdState.buf.size = cmdState.buf.size - i;
+      memmove(text, text + i, cmdState.buf.size);
     }
 
     // execute the command linequit
@@ -168,8 +168,8 @@ void Cbuf_Execute(void) {
     Cmd_ExecuteString(line);
 
     // skip out while text still remains in buffer, leaving it for next frame
-    if (cmd_state.wait) {
-      cmd_state.wait = false;
+    if (cmdState.wait) {
+      cmdState.wait = false;
       break;
     }
   }
@@ -179,24 +179,24 @@ void Cbuf_Execute(void) {
  * @return The command argument count.
  */
 int32_t Cmd_Argc(void) {
-  return cmd_state.args.argc;
+  return cmdState.args.argc;
 }
 
 /**
  * @return The command argument at the specified index.
  */
 const char *Cmd_Argv(int32_t arg) {
-  if (arg >= cmd_state.args.argc) {
+  if (arg >= cmdState.args.argc) {
     return "";
   }
-  return cmd_state.args.argv[arg];
+  return cmdState.args.argv[arg];
 }
 
 /**
  * @return A single string containing all command arguments.
  */
 const char *Cmd_Args(void) {
-  return cmd_state.args.args;
+  return cmdState.args.args;
 }
 
 /**
@@ -205,7 +205,7 @@ const char *Cmd_Args(void) {
 void Cmd_TokenizeString(const char *text) {
 
   // clear the command state from the last string
-  memset(&cmd_state.args, 0, sizeof(cmd_state.args));
+  memset(&cmdState.args, 0, sizeof(cmdState.args));
 
   if (!text) {
     return;
@@ -221,19 +221,19 @@ void Cmd_TokenizeString(const char *text) {
 
   while (true) {
     // stop after we've exhausted our token buffer
-    if (cmd_state.args.argc == MAX_STRING_TOKENS) {
+    if (cmdState.args.argc == MAX_STRING_TOKENS) {
       Com_Warn("MAX_STRING_TOKENS exceeded\n");
       return;
     }
 
-    // set cmd_state.args to everything after the command name
-    if (cmd_state.args.argc == 1) {
-      q_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
+    // set cmdState.args to everything after the command name
+    if (cmdState.args.argc == 1) {
+      q_strlcpy(cmdState.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
       // strip off any trailing whitespace
-      size_t l = q_strlen(cmd_state.args.args);
+      size_t l = q_strlen(cmdState.args.args);
       if (l > 0) {
-        char *c = &cmd_state.args.args[l - 1];
+        char *c = &cmdState.args.args[l - 1];
 
         while (*c <= ' ') {
           *c-- = '\0';
@@ -241,17 +241,17 @@ void Cmd_TokenizeString(const char *text) {
       }
     }
 
-    if (!Parse_Token(&parser, PARSE_NO_WRAP | PARSE_COPY_QUOTED_LITERALS, cmd_state.args.argv[cmd_state.args.argc], MAX_TOKEN_CHARS)) { // we're done
+    if (!Parse_Token(&parser, PARSE_NO_WRAP | PARSE_COPY_QUOTED_LITERALS, cmdState.args.argv[cmdState.args.argc], MAX_TOKEN_CHARS)) { // we're done
       return;
     }
 
     // expand console variables
-    if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && q_strcmp(cmd_state.args.argv[0], "alias")) {
-      const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
-      q_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
+    if (*cmdState.args.argv[cmdState.args.argc] == '$' && q_strcmp(cmdState.args.argv[0], "alias")) {
+      const char *c = Cvar_GetString(cmdState.args.argv[cmdState.args.argc] + 1);
+      q_strlcpy(cmdState.args.argv[cmdState.args.argc], c, MAX_TOKEN_CHARS);
     }
 
-    cmd_state.args.argc++;
+    cmdState.args.argc++;
   }
 }
 
@@ -260,8 +260,8 @@ void Cmd_TokenizeString(const char *text) {
  */
 static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
 
-  if (cmd_state.commands) {
-    List *list = $(cmd_state.commands, get, (void *) name);
+  if (cmdState.commands) {
+    List *list = $(cmdState.commands, get, (void *) name);
 
     if (list) {
       if (list->count == 1) { // only 1 entry, return it
@@ -318,7 +318,7 @@ void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
     .cmds = $(alloc(PointerArray), init),
   };
 
-  $(cmd_state.commands, enumerate, Cmd_Enumerate_collect, &ctx);
+  $(cmdState.commands, enumerate, Cmd_Enumerate_collect, &ctx);
   $(ctx.cmds, sort, Cmd_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.cmds->count; i++) {
@@ -356,12 +356,12 @@ Cmd *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
   }
 
   void *key = (void *) cmd->name;
-  List *list = $(cmd_state.commands, get, key);
+  List *list = $(cmdState.commands, get, key);
 
   if (!list) {
     list = $(alloc(List), init);
     list->destroy = Mem_Free;
-    $(cmd_state.commands, set, key, list);
+    $(cmdState.commands, set, key, list);
   }
 
   $(list, prepend, cmd);
@@ -397,12 +397,12 @@ static Cmd *Cmd_Alias(const char *name, const char *commands) {
   cmd->commands = Mem_Link(Mem_TagCopyString(commands, MEM_TAG_CMD), cmd);
 
   void *key = (void *) cmd->name;
-  List *list = $(cmd_state.commands, get, key);
+  List *list = $(cmdState.commands, get, key);
 
   if (!list) {
     list = $(alloc(List), init);
     list->destroy = Mem_Free;
-    $(cmd_state.commands, set, key, list);
+    $(cmdState.commands, set, key, list);
   }
 
   $(list, prepend, cmd);
@@ -414,7 +414,7 @@ static Cmd *Cmd_Alias(const char *name, const char *commands) {
  * @note Disables the list destroy callback so the caller controls cmd lifetime.
  */
 static List *Cmd_RemovePtr_(Cmd *cmd) {
-  List *list = $(cmd_state.commands, get, (void *) cmd->name);
+  List *list = $(cmdState.commands, get, (void *) cmd->name);
 
   ListNode *node = $(list, nodeForElement, cmd);
   if (!node) {
@@ -440,7 +440,7 @@ void Cmd_Remove(const char *name) {
     List *list = Cmd_RemovePtr_(cmd);
 
     if (!list->count) {
-      $(cmd_state.commands, remove, (void *) name);
+      $(cmdState.commands, remove, (void *) name);
       release(list);
     }
 
@@ -473,14 +473,14 @@ void Cmd_RemoveAll(uint32_t flags) {
     .cmds = $(alloc(List), init),
   };
 
-  $(cmd_state.commands, enumerate, Cmd_RemoveAll_collect, &ctx);
+  $(cmdState.commands, enumerate, Cmd_RemoveAll_collect, &ctx);
 
   for (const ListNode *node = ctx.cmds->head; node; node = node->next) {
     Cmd *cmd = node->element;
     List *list = Cmd_RemovePtr_(cmd);
 
     if (!list->count) {
-      $(cmd_state.commands, remove, (void *) cmd->name);
+      $(cmdState.commands, remove, (void *) cmd->name);
       release(list);
     }
 
@@ -512,7 +512,7 @@ static const char *Cmd_Stringify(const Cmd *cmd) {
   return buffer;
 }
 
-static char cmd_complete_pattern[MAX_STRING_CHARS];
+static char cmdCompletePattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for `Cmd_CompleteCommand`.
@@ -520,7 +520,7 @@ static char cmd_complete_pattern[MAX_STRING_CHARS];
 static void Cmd_CompleteCommand_enumerate(Cmd *cmd, void *data) {
   List *matches = data;
 
-  if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
+  if (GlobMatch(cmdCompletePattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
     Con_AutocompleteMatch(matches, cmd->name, Cmd_Stringify(cmd));
   }
 }
@@ -529,7 +529,7 @@ static void Cmd_CompleteCommand_enumerate(Cmd *cmd, void *data) {
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, List *matches) {
-  q_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
+  q_strlcpy(cmdCompletePattern, pattern, sizeof(cmdCompletePattern));
   Cmd_Enumerate(Cmd_CompleteCommand_enumerate, matches);
 }
 
@@ -550,7 +550,7 @@ void Cmd_ExecuteString(const char *text) {
     if (cmd->Execute) {
       cmd->Execute();
     } else if (cmd->commands) {
-      if (++cmd_state.aliasLoopCount == MAX_ALIAS_LOOP_COUNT) {
+      if (++cmdState.aliasLoopCount == MAX_ALIAS_LOOP_COUNT) {
         Com_Warn("ALIAS_LOOP_COUNT\n");
       } else {
         Cbuf_AddText(cmd->commands);
@@ -705,7 +705,7 @@ static void Cmd_Echo_f(void) {
  * next frame. This allows commands like: bind g "+attack; wait; -attack;"
  */
 static void Cmd_Wait_f(void) {
-  cmd_state.wait = true;
+  cmdState.wait = true;
 }
 
 typedef struct {
@@ -721,11 +721,11 @@ static void Cmd_Shutdown_collect(const HashTable *table, ident key, ident value,
  */
 void Cmd_Init(void) {
 
-  memset(&cmd_state, 0, sizeof(cmd_state));
+  memset(&cmdState, 0, sizeof(cmdState));
 
-  cmd_state.commands = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
+  cmdState.commands = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
-  Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
+  Mem_InitBuffer(&cmdState.buf, (byte *) cmdState.buffers[0], sizeof(cmdState.buffers[0]));
 
   Cmd_Add("cmd_list", Cmd_List_f, 0, NULL);
   Cmd *execCmd = Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
@@ -757,7 +757,7 @@ void Cmd_Init(void) {
   Cbuf_AddText("\n");
   Cbuf_CopyToDefer();
 
-  // Com_Debug("Deferred buffer: %s", cmd_state.buffers[1]);
+  // Com_Debug("Deferred buffer: %s", cmdState.buffers[1]);
 }
 
 /**
@@ -769,7 +769,7 @@ void Cmd_Shutdown(void) {
     .lists = $(alloc(PointerArray), init),
   };
 
-  $(cmd_state.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
+  $(cmdState.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
     release((List *) $(ctx.lists, get, i));
@@ -777,7 +777,7 @@ void Cmd_Shutdown(void) {
 
   release(ctx.lists);
 
-  cmd_state.commands = release(cmd_state.commands);
+  cmdState.commands = release(cmdState.commands);
 }
 
 /*

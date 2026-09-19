@@ -25,9 +25,9 @@
 
 #if defined(__G_LOCAL_H__)
 extern Cvar *g_vote;
-extern Cvar *g_vote_time;
-extern Cvar *g_vote_threshold;
-extern Cvar *g_vote_cooldown;
+extern Cvar *g_voteTime;
+extern Cvar *g_voteThreshold;
+extern Cvar *g_voteCooldown;
 
 bool G_Vote_Eligible(const GameClient *cl);
 void G_Vote_Init(void);

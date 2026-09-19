@@ -24,35 +24,35 @@
 #include "r_types.h"
 
 extern Cvar *r_ambient;
-extern Cvar *r_ambient_occlusion;
+extern Cvar *r_ambientOcclusion;
 extern Cvar *r_anisotropy;
 extern Cvar *r_antialias;
 extern Cvar *r_bloom;
-extern Cvar *r_bloom_iterations;
-extern Cvar *r_bloom_threshold;
+extern Cvar *r_bloomIterations;
+extern Cvar *r_bloomThreshold;
 extern Cvar *r_caustics;
-extern Cvar *r_framebuffer_scale;
+extern Cvar *r_framebufferScale;
 extern Cvar *r_fullscreen;
-extern Cvar *r_fullscreen_width;
-extern Cvar *r_fullscreen_height;
-extern Cvar *r_gpu_driver;
+extern Cvar *r_fullscreenWidth;
+extern Cvar *r_fullscreenHeight;
+extern Cvar *r_gpuDriver;
 extern Cvar *r_hardness;
-extern Cvar *r_lighting_distance;
+extern Cvar *r_lightingDistance;
 extern Cvar *r_modulate;
-extern Cvar *r_modulate_mesh;
+extern Cvar *r_modulateMesh;
 extern Cvar *r_saturation;
 extern Cvar *r_parallax;
-extern Cvar *r_parallax_shadow;
+extern Cvar *r_parallaxShadow;
 extern Cvar *r_roughness;
-extern Cvar *r_screenshot_format;
+extern Cvar *r_screenshotFormat;
 extern Cvar *r_shadows;
-extern Cvar *r_shadow_tile_size;
+extern Cvar *r_shadowTileSize;
 extern Cvar *r_specularity;
-extern Cvar *r_swap_interval;
-extern Cvar *r_window_height;
-extern Cvar *r_window_width;
+extern Cvar *r_swapInterval;
+extern Cvar *r_windowHeight;
+extern Cvar *r_windowWidth;
 
-extern SDL_GPUSampleCount r_scene_samples;
+extern SDL_GPUSampleCount rSceneSamples;
 SDL_GPUSampleCount R_SampleCount(void);
 
 void R_Init(void);
@@ -67,7 +67,7 @@ void R_UpdateUniforms(const RenderView *view);
 
 #if defined(__R_LOCAL_H__)
 
-extern RenderViewStats *r_stats;
+extern RenderViewStats *rStats;
 
 /**
  * @brief Renderer driver information.
@@ -110,7 +110,7 @@ typedef struct {
   int32_t maxUniformBlockSize;
 } RenderConfig;
 
-extern RenderConfig r_config;
+extern RenderConfig rConfig;
 
 /**
  * @brief Vec4-aligned voxel uniforms.
@@ -244,17 +244,17 @@ typedef struct {
 /**
  * @brief Per-frame global uniforms.
  */
-extern RenderUniforms r_uniforms;
-extern Cvar *r_alpha_test;
+extern RenderUniforms rUniforms;
+extern Cvar *r_alphaTest;
 extern Cvar *r_cull;
-extern Cvar *r_depth_pass;
-extern Cvar *r_draw_bsp_blocks;
-extern Cvar *r_draw_occlusion_queries;
-extern Cvar *r_draw_bsp_normals;
-extern Cvar *r_draw_bsp_voxels;
-extern Cvar *r_draw_entity_bounds;
-extern Cvar *r_draw_light_bounds;
-extern Cvar *r_draw_material_stages;
+extern Cvar *r_depthPass;
+extern Cvar *r_drawBspBlocks;
+extern Cvar *r_drawOcclusionQueries;
+extern Cvar *r_drawBspNormals;
+extern Cvar *r_drawBspVoxels;
+extern Cvar *r_drawEntityBounds;
+extern Cvar *r_drawLightBounds;
+extern Cvar *r_drawMaterialStages;
 extern Cvar *r_occlude;
 extern Cvar *r_portals;
 

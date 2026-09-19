@@ -415,7 +415,7 @@ typedef struct {
   char filename[MAX_QPATH];
 
   /**
-   * @brief Cached map list entries (`CmEntity *`) parsed from `sv_map_list`.
+   * @brief Cached map list entries (`CmEntity *`) parsed from `sv_mapList`.
    */
   List *list;
 

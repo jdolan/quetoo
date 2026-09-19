@@ -34,21 +34,21 @@ static struct {
 	SDL_AtomicInt complete;
 	int32_t status;
 	Data *data;
-} cl_download;
+} module;
 
 /**
  * @brief `RESTClientCompletion` for `Cl_CheckOrDownloadFile`.
  */
 static void Cl_DownloadComplete(int32_t status, Data *data, void *userData) {
 
-	release(cl_download.data);
-	cl_download.data = (status == 200 && data) ? retain(data) : NULL;
+	release(module.data);
+	module.data = (status == 200 && data) ? retain(data) : NULL;
 
-	cl_download.status = status;
-	SDL_SetAtomicInt(&cl_download.complete, 1);
+	module.status = status;
+	SDL_SetAtomicInt(&module.complete, 1);
 }
 
-static char *sv_cmd_names[32] = {
+static char *svCmdNames[32] = {
   "SV_CMD_BAD",
   "SV_CMD_BASELINE",
   "SV_CMD_CBUF_TEXT",
@@ -95,14 +95,14 @@ void Cl_CheckOrDownloadFile(const char *filename) {
 
   Com_Print("Downloading %s...\n", filename);
 
-  SDL_SetAtomicInt(&cl_download.complete, 0);
-  cl_download.status = 0;
-  cl_download.data = release(cl_download.data);
+  SDL_SetAtomicInt(&module.complete, 0);
+  module.status = 0;
+  module.data = release(module.data);
 
   $($$(RESTClient, sharedInstance), getAsync, url, NULL, Cl_DownloadComplete, NULL);
 
   const char *base = Basename(filename);
-  while (!SDL_GetAtomicInt(&cl_download.complete)) {
+  while (!SDL_GetAtomicInt(&module.complete)) {
 
     if (cls.state == CL_DISCONNECTED) {
       Com_Warn("Disconnected during download of %s\n", filename);
@@ -113,15 +113,15 @@ void Cl_CheckOrDownloadFile(const char *filename) {
     SDL_Delay(16);
   }
 
-  if (cl_download.status != 200 || !cl_download.data) {
-    Com_Warn("Failed to download %s (HTTP %d)\n", filename, cl_download.status);
-    cl_download.data = release(cl_download.data);
+  if (module.status != 200 || !module.data) {
+    Com_Warn("Failed to download %s (HTTP %d)\n", filename, module.status);
+    module.data = release(module.data);
     return;
   }
 
-  if (cl_download.data->length > MAX_DOWNLOAD_SIZE) {
-    Com_Warn("Download %s exceeds maximum size (%zu bytes)\n", filename, cl_download.data->length);
-    cl_download.data = release(cl_download.data);
+  if (module.data->length > MAX_DOWNLOAD_SIZE) {
+    Com_Warn("Download %s exceeds maximum size (%zu bytes)\n", filename, module.data->length);
+    module.data = release(module.data);
     return;
   }
 
@@ -133,16 +133,16 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   File *file = Fs_OpenWrite(tempname);
   if (!file) {
     Com_Warn("Failed to open %s for writing\n", tempname);
-    cl_download.data = release(cl_download.data);
+    module.data = release(module.data);
     return;
   }
 
-  Fs_Write(file, cl_download.data->bytes, 1, cl_download.data->length);
+  Fs_Write(file, module.data->bytes, 1, module.data->length);
   Fs_Close(file);
 
-  const size_t downloadedLength = cl_download.data->length;
+  const size_t downloadedLength = module.data->length;
 
-  cl_download.data = release(cl_download.data);
+  module.data = release(module.data);
 
   if (Fs_Rename(tempname, filename)) {
     Com_Print("Downloaded %s (%zu bytes)\n", filename, downloadedLength);
@@ -192,8 +192,8 @@ void Cl_Precache_f(void) {
 static void Cl_ParseBaseline(void) {
   static EntityState null_state;
 
-  const int16_t number = Net_ReadShort(&net_message);
-  const uint16_t bits = Net_ReadShort(&net_message);
+  const int16_t number = Net_ReadShort(&netMessage);
+  const uint16_t bits = Net_ReadShort(&netMessage);
 
   if (number < 0 || number >= MAX_ENTITIES) {
     Com_Error(ERROR_DROP, "Invalid entity number: %d\n", number);
@@ -201,7 +201,7 @@ static void Cl_ParseBaseline(void) {
 
   ClientEntity *ent = &cl.entities[number];
 
-  Net_ReadDeltaEntity(&net_message, &null_state, &ent->baseline, number, bits);
+  Net_ReadDeltaEntity(&netMessage, &null_state, &ent->baseline, number, bits);
 }
 
 /**
@@ -209,7 +209,7 @@ static void Cl_ParseBaseline(void) {
  */
 static const char *Cl_ParseCbufText(void) {
 
-  const char *text = Net_ReadString(&net_message);
+  const char *text = Net_ReadString(&netMessage);
 
   Cbuf_AddText(text);
 
@@ -220,13 +220,13 @@ static const char *Cl_ParseCbufText(void) {
  * @brief Parses a config string update from the server message and applies it to the client.
  */
 int32_t Cl_ParseConfigString(void) {
-  const int32_t i = Net_ReadShort(&net_message);
+  const int32_t i = Net_ReadShort(&netMessage);
 
   if (i < 0 || i >= MAX_CONFIG_STRINGS) {
     Com_Error(ERROR_DROP, "Invalid index %i\n", i);
   }
 
-  q_strlcpy(cl.configStrings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
+  q_strlcpy(cl.configStrings[i], Net_ReadString(&netMessage), MAX_STRING_CHARS);
 
   const char *s = cl.configStrings[i];
 
@@ -257,8 +257,8 @@ int32_t Cl_ParseConfigString(void) {
  */
 static void Cl_ParseDemoInfo(void) {
 
-  cls.demo.duration = Net_ReadLong(&net_message);
-  cls.demo.paused = Net_ReadByte(&net_message);
+  cls.demo.duration = Net_ReadLong(&netMessage);
+  cls.demo.paused = Net_ReadByte(&netMessage);
 
   Com_Debug(DEBUG_CLIENT, "Demo duration %d ms, paused %d\n", cls.demo.duration, cls.demo.paused);
 }
@@ -270,9 +270,9 @@ static void Cl_ParseDemoInfo(void) {
  */
 static void Cl_ParseChat(void) {
 
-  const int32_t client = Net_ReadByte(&net_message);
-  const uint8_t flags = Net_ReadByte(&net_message);
-  const char *message = Net_ReadString(&net_message);
+  const int32_t client = Net_ReadByte(&netMessage);
+  const uint8_t flags = Net_ReadByte(&netMessage);
+  const char *message = Net_ReadString(&netMessage);
 
   if (client < 0 || client >= MAX_CLIENTS) {
     Com_Debug(DEBUG_CLIENT, "Rejecting chat from client %d\n", client);
@@ -289,11 +289,11 @@ static void Cl_ParseChat(void) {
  */
 static void Cl_ParseVoice(void) {
 
-  const int32_t client = Net_ReadByte(&net_message);
-  const uint8_t seq = Net_ReadByte(&net_message);
-  const uint8_t flags = Net_ReadByte(&net_message);
+  const int32_t client = Net_ReadByte(&netMessage);
+  const uint8_t seq = Net_ReadByte(&netMessage);
+  const uint8_t flags = Net_ReadByte(&netMessage);
 
-  const int32_t len = Net_ReadByte(&net_message);
+  const int32_t len = Net_ReadByte(&netMessage);
 
   if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
     Com_Error(ERROR_DROP, "Illegible voice frame of %d bytes\n", len);
@@ -304,7 +304,7 @@ static void Cl_ParseVoice(void) {
   }
 
   byte data[VOICE_MAX_PAYLOAD];
-  Net_ReadData(&net_message, data, len);
+  Net_ReadData(&netMessage, data, len);
 
   if (cls.cgame && !cls.cgame->Voice(client, flags)) {
     return;
@@ -325,8 +325,8 @@ static void Cl_ParseServerData(void) {
   Cl_SetKeyDest(KEY_CONSOLE);
 
   // parse protocol version number
-  const int32_t major = Net_ReadLong(&net_message);
-  const int32_t minor = Net_ReadLong(&net_message);
+  const int32_t major = Net_ReadLong(&netMessage);
+  const int32_t minor = Net_ReadLong(&netMessage);
 
   // ensure protocol major matches
   if (major != PROTOCOL_MAJOR) {
@@ -334,7 +334,7 @@ static void Cl_ParseServerData(void) {
   }
 
   // determine if we're viewing a demo
-  cl.demoServer = Net_ReadByte(&net_message);
+  cl.demoServer = Net_ReadByte(&netMessage);
 
   if (cl.demoServer) {
     Com_Print("^3Demo playback controls:^7\n"
@@ -346,7 +346,7 @@ static void Cl_ParseServerData(void) {
 
   // the game and client game directories, validated before being copied off:
   // truncating first would turn an over-long name into a legal one
-  const char *s = Net_ReadString(&net_message);
+  const char *s = Net_ReadString(&netMessage);
 
   if (!Com_IsValidGame(s)) {
     Com_Error(ERROR_DROP, "Server sent an invalid game directory: %s\n", s);
@@ -355,7 +355,7 @@ static void Cl_ParseServerData(void) {
   char game[MAX_QPATH];
   q_strlcpy(game, s, sizeof(game));
 
-  s = Net_ReadString(&net_message);
+  s = Net_ReadString(&netMessage);
 
   if (!Com_IsValidGame(s)) {
     Com_Error(ERROR_DROP, "Server sent an invalid cgame directory: %s\n", s);
@@ -391,7 +391,7 @@ static void Cl_ParseServerData(void) {
   }
 
   // get the full level name
-  const char *name = Net_ReadString(&net_message);
+  const char *name = Net_ReadString(&netMessage);
   Com_Print("\n");
   Com_Print("^2%s^7\n", name);
 }
@@ -401,8 +401,8 @@ static void Cl_ParseServerData(void) {
  */
 static void Cl_ParsePrint(void) {
 
-  const byte level = Net_ReadByte(&net_message);
-  const char *string = Net_ReadString(&net_message);
+  const byte level = Net_ReadByte(&netMessage);
+  const char *string = Net_ReadString(&netMessage);
 
   // the server shouldn't have sent us anything below our level anyway
   if (level >= message_level->integer) {
@@ -410,12 +410,12 @@ static void Cl_ParsePrint(void) {
     // chat from a player arrives as SV_CMD_CHAT and is sounded by the client game, which is the
     // only side that knows what kind of message it is; this remains for console originated chat
     char *sample = NULL;
-    if (level == PRINT_CHAT && *cl_chat_sound->string) {
-      sample = cl_chat_sound->string;
+    if (level == PRINT_CHAT && *cl_chatSound->string) {
+      sample = cl_chatSound->string;
     }
 
     if (sample) {
-      S_AddSample(&cl_stage, &(SoundPlaySample) {
+      S_AddSample(&clStage, &(SoundPlaySample) {
         .sample = S_LoadSample(sample, ASSET_CONTEXT_SOUNDS),
         .flags = S_PLAY_UI
       });
@@ -426,11 +426,11 @@ static void Cl_ParsePrint(void) {
 }
 
 /**
- * @brief Prints a network message label when `cl_draw_net_messages` >= 2.
+ * @brief Prints a network message label when `cl_drawNetMessages` >= 2.
  */
 static void Cl_ShowNet(const char *s) {
-  if (cl_draw_net_messages->integer >= 2) {
-    Com_Print("%3u: %s\n", (uint32_t) (net_message.read - 1), s);
+  if (cl_drawNetMessages->integer >= 2) {
+    Com_Print("%3u: %s\n", (uint32_t) (netMessage.read - 1), s);
   }
 }
 
@@ -456,9 +456,9 @@ static void Cl_UpdateNetStats(void) {
 void Cl_ParseServerMessage(void) {
   int32_t cmd, oldCmd;
 
-  if (cl_draw_net_messages->integer == 1) {
-    Com_Print("%u ", (uint32_t) net_message.size);
-  } else if (cl_draw_net_messages->integer >= 2) {
+  if (cl_drawNetMessages->integer == 1) {
+    Com_Print("%u ", (uint32_t) netMessage.size);
+  } else if (cl_drawNetMessages->integer >= 2) {
     Com_Print("------------------\n");
   }
 
@@ -466,22 +466,22 @@ void Cl_ParseServerMessage(void) {
 
   // parse the message
   while (true) {
-    if (net_message.read > net_message.size) {
+    if (netMessage.read > netMessage.size) {
       Com_Error(ERROR_DROP, "Bad server message\n");
     }
 
-    const size_t cmdStart = net_message.read;
+    const size_t cmdStart = netMessage.read;
 
     oldCmd = cmd;
-    cmd = Net_ReadByte(&net_message);
+    cmd = Net_ReadByte(&netMessage);
 
     if (cmd == -1) {
       Cl_ShowNet("END OF MESSAGE");
       break;
     }
 
-    if (cl_draw_net_messages->integer >= 2 && cmd < (int32_t) lengthof(sv_cmd_names) && sv_cmd_names[cmd]) {
-      Cl_ShowNet(sv_cmd_names[cmd]);
+    if (cl_drawNetMessages->integer >= 2 && cmd < (int32_t) lengthof(svCmdNames) && svCmdNames[cmd]) {
+      Cl_ShowNet(svCmdNames[cmd]);
     }
 
     void *data = NULL;
@@ -547,7 +547,7 @@ void Cl_ParseServerMessage(void) {
         if (!cls.cgame->ParseMessage(cmd)) {
           Com_Error(ERROR_DROP, "Illegible server message:\n"
                     " %d: last command was %s\n", cmd,
-                    oldCmd < (int32_t) lengthof(sv_cmd_names) ? sv_cmd_names[oldCmd] : "unknown");
+                    oldCmd < (int32_t) lengthof(svCmdNames) ? svCmdNames[oldCmd] : "unknown");
         }
         break;
     }
@@ -566,9 +566,9 @@ void Cl_ParseServerMessage(void) {
     // resetting here would silently drop whatever events landed in it. Cl_WriteDemoMessage
     // clears this once it actually flushes the accumulated bytes into a recorded frame.
     if (cls.demo.file && cmd != SV_CMD_FRAME && cmd != SV_CMD_VOICE) {
-      const size_t len = net_message.read - cmdStart;
+      const size_t len = netMessage.read - cmdStart;
       if (cls.demo.eventSize + len <= sizeof(cls.demo.eventBuffer)) {
-        memcpy(cls.demo.eventBuffer + cls.demo.eventSize, net_message.data + cmdStart, len);
+        memcpy(cls.demo.eventBuffer + cls.demo.eventSize, netMessage.data + cmdStart, len);
         cls.demo.eventSize += len;
       } else {
         Com_Warn("Demo event buffer full, dropping command %d\n", cmd);

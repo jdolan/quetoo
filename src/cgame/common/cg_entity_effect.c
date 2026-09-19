@@ -48,7 +48,7 @@ Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultH
   float clientHue = -1.f;
 
   if (client < MAX_CLIENTS) {
-    const ClientGameClientInfo *ci = &cg_state.clients[client];
+    const ClientGameClientInfo *ci = &cgState.clients[client];
     clientHue = ci->team ? ci->team->hue : ci->hue;
   }
 
@@ -73,7 +73,7 @@ static void Cg_InactiveEffect(ClientEntity *ent, const Vec3 org) {
   cgi.AddSprite(cgi.view, &(const RenderSprite) {
     .origin = Vec3_Add(org, MakeVec3(0.f, 0.f, 50.f)),
     .color = color_white.vec3,
-    .media = (RenderMedia *) cg_sprite_inactive,
+    .media = (RenderMedia *) cgSpriteInactive,
     .size = 32.f,
   });
 }
@@ -88,13 +88,13 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
 
   if (e->effects & EF_ROTATE) {
     const float rotate = cgi.client->unclampedTime;
-    e->angles.y = cg_entity_rotate->value * rotate / M_PI;
+    e->angles.y = cg_entityRotate->value * rotate / M_PI;
   }
 
   if (e->effects & EF_BOB) {
     e->termination = e->origin;
     const float bob = sinf(cgi.client->unclampedTime * 0.005f + ent->current.number);
-    e->origin.z += cg_entity_bob->value * bob;
+    e->origin.z += cg_entityBob->value * bob;
   }
 
   if (e->effects & EF_INACTIVE) {
@@ -144,7 +144,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
 
     for (GameTeamId team = TEAM_RED; team < MAX_TEAMS; team++) {
       if (e->effects & (EF_CTF_RED << team)) {
-        const Vec3 color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
+        const Vec3 color = Cg_EffectColor(&cgState.teams[team].hue, 0.f);
         const float pulse = 2.5f + sinf(cgi.client->unclampedTime * 0.005f) * .5f;
 
         const ClientGameLight l = {
@@ -218,7 +218,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   if (e->effects & EF_TEAM_TINT) {
     assert(ent->current.animation1 < MAX_TEAMS);
 
-    const ClientGameTeamInfo *team = cg_state.teams + ent->current.animation1;
+    const ClientGameTeamInfo *team = cgState.teams + ent->current.animation1;
     e->tints[0] = MakeVec4(team->color.r, team->color.g, team->color.b, 1.f);
 
     for (int32_t i = 1; i < 3; i++) {

@@ -148,12 +148,12 @@ typedef struct {
   int32_t partyMax;
 } ClientGameDiscordState;
 
-static ClientGameDiscordState cg_discord_state;
+static ClientGameDiscordState cgDiscordState;
 
 static void Cg_DiscordReady(const DiscordUser *user) {
 
   cgi.Print("Discord Loaded (%s)\n", user->username);
-  cg_discord_state.initialized = true;
+  cgDiscordState.initialized = true;
 }
 
 /**
@@ -163,11 +163,11 @@ static void Cg_DiscordReady(const DiscordUser *user) {
 static const char *Cg_DescribeGameMode_Common(void) {
 
 #if defined(G_CTF)
-  return va("%i-Team CTF", cg_state.numTeams);
+  return va("%i-Team CTF", cgState.numTeams);
 #else
   const char *mode;
 
-  switch (cg_state.gameplay & ~GAMEPLAY_TEAMS) {
+  switch (cgState.gameplay & ~GAMEPLAY_TEAMS) {
     case GAMEPLAY_ARENA:
       mode = "Arena";
       break;
@@ -179,8 +179,8 @@ static const char *Cg_DescribeGameMode_Common(void) {
       break;
   }
 
-  if (cg_state.numTeams) {
-    return va("%i-Team %s", cg_state.numTeams, mode);
+  if (cgState.numTeams) {
+    return va("%i-Team %s", cgState.numTeams, mode);
   }
 
   return mode;
@@ -191,11 +191,11 @@ DescribeGameMode Cg_DescribeGameMode = Cg_DescribeGameMode_Common;
 
 void Cg_UpdateDiscord(void) {
 
-  if (cg_discord_state.failed) {
+  if (cgDiscordState.failed) {
     return;
   }
 
-  if (cg_discord_state.initialized) {
+  if (cgDiscordState.initialized) {
     DiscordRichPresence presence = { 0 };
     bool needsUpdate = false;
 
@@ -210,7 +210,7 @@ void Cg_UpdateDiscord(void) {
 
       // the status reply that carries the party size arrives on its own schedule, and may
       // land after we are already in game, so publish again when it does
-      if (cg_discord_state.status != DISCORD_ACTIVE || cg_discord_state.partyMax != partyMax) {
+      if (cgDiscordState.status != DISCORD_ACTIVE || cgDiscordState.partyMax != partyMax) {
         needsUpdate = true;
       
         presence.largeImageKey = "default";
@@ -232,20 +232,20 @@ void Cg_UpdateDiscord(void) {
           presence.spectateSecret = spectateSecret;
         }
 
-        presence.partySize = cg_state.numClients;
+        presence.partySize = cgState.numClients;
         presence.partyMax = partyMax;
-        cg_discord_state.partyMax = partyMax;
-        cg_discord_state.status = DISCORD_ACTIVE;
+        cgDiscordState.partyMax = partyMax;
+        cgDiscordState.status = DISCORD_ACTIVE;
         presence.instance = true;
       }
     } else {
-      if (cg_discord_state.status != DISCORD_INACTIVE) {
+      if (cgDiscordState.status != DISCORD_INACTIVE) {
         needsUpdate = true;
       
         presence.largeImageKey = "default";
         presence.state = "In Main Menu";
 
-        cg_discord_state.status = DISCORD_INACTIVE;
+        cgDiscordState.status = DISCORD_INACTIVE;
       }
     }
 
@@ -299,7 +299,7 @@ void Cg_InitDiscord(void) {
     Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
   } __except(EXCEPTION_EXECUTE_HANDLER) {
     Cg_Warn("Discord RPC initialization crashed, Rich Presence disabled\n");
-    cg_discord_state.failed = true;
+    cgDiscordState.failed = true;
   }
 #else
   Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
@@ -308,9 +308,9 @@ void Cg_InitDiscord(void) {
 
 void Cg_ShutdownDiscord(void) {
 
-  if (!cg_discord_state.failed) {
+  if (!cgDiscordState.failed) {
     Discord_Shutdown();
   }
 
-  memset(&cg_discord_state, 0, sizeof(cg_discord_state));
+  memset(&cgDiscordState, 0, sizeof(cgDiscordState));
 }

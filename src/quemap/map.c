@@ -27,24 +27,24 @@
 #include "qbsp.h"
 #include "texture.h"
 
-MapFormat map_format;
+MapFormat mapFormat;
 
-int32_t num_entities;
+int32_t numEntities;
 Entity entities[MAX_BSP_ENTITIES];
 
-int32_t num_brushes;
+int32_t numBrushes;
 Brush brushes[MAX_BSP_BRUSHES];
 
-int32_t num_brush_sides;
-BrushSide brush_sides[MAX_BSP_BRUSH_SIDES];
+int32_t numBrushSides;
+BrushSide brushSides[MAX_BSP_BRUSH_SIDES];
 
-int32_t num_planes;
+int32_t numPlanes;
 Plane planes[MAX_BSP_PLANES];
 
 #define  PLANE_HASHES (size_t) MAX_WORLD_COORD
-static Plane *plane_hash[PLANE_HASHES];
+static Plane *planeHash[PLANE_HASHES];
 
-Box3 map_bounds;
+Box3 mapBounds;
 
 #define NORMAL_EPSILON 0.0001
 #define DIST_EPSILON   0.005
@@ -69,8 +69,8 @@ static inline void AddPlaneToHash(Plane *p) {
 
   const int32_t hash = ((int32_t) fabs(p->dist)) & (PLANE_HASHES - 1);
 
-  p->hashChain = plane_hash[hash];
-  plane_hash[hash] = p;
+  p->hashChain = planeHash[hash];
+  planeHash[hash] = p;
 }
 
 /**
@@ -84,16 +84,16 @@ static int32_t CreatePlane(const Vec3 normal, double dist) {
   }
 
   // create a new plane
-  if (num_planes + 2 > MAX_BSP_PLANES) {
+  if (numPlanes + 2 > MAX_BSP_PLANES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_PLANES\n");
   }
 
-  Plane *a = &planes[num_planes++];
+  Plane *a = &planes[numPlanes++];
   a->normal = normal;
   a->dist = dist;
   a->type = Cm_PlaneTypeForNormal(a->normal);
 
-  Plane *b = &planes[num_planes++];
+  Plane *b = &planes[numPlanes++];
   b->normal = Vec3_Negate(normal);
   b->dist = -dist;
   b->type = Cm_PlaneTypeForNormal(b->normal);
@@ -107,13 +107,13 @@ static int32_t CreatePlane(const Vec3 normal, double dist) {
 
       AddPlaneToHash(a);
       AddPlaneToHash(b);
-      return num_planes - 1;
+      return numPlanes - 1;
     }
   }
 
   AddPlaneToHash(a);
   AddPlaneToHash(b);
-  return num_planes - 2;
+  return numPlanes - 2;
 }
 
 /**
@@ -171,7 +171,7 @@ int32_t FindPlane(const Vec3 normal, double dist) {
   for (int32_t i = -1; i <= 1; i++) {
     const int32_t h = (hash + i) & (PLANE_HASHES - 1);
     
-    const Plane *p = plane_hash[h];
+    const Plane *p = planeHash[h];
     while (p) {
       if (PlaneEqual(p, snapped, dist)) {
         return (int32_t) (ptrdiff_t) (p - planes);
@@ -244,7 +244,7 @@ static int32_t SortBrushSides(const void *a, const void *b) {
  */
 static void AddBrushBevel(Brush *b, int32_t plane) {
 
-  if (num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
+  if (numBrushSides >= MAX_BSP_BRUSH_SIDES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
   }
 
@@ -271,7 +271,7 @@ static void AddBrushBevel(Brush *b, int32_t plane) {
   bevel->surface = side->surface | SURF_BEVEL;
   bevel->material = side->material;
 
-  num_brush_sides++;
+  numBrushSides++;
 }
 
 /**
@@ -325,7 +325,7 @@ static void UnparseBrush(Brush *brush, Parser *parser) {
     }
   }
 
-  num_brush_sides -= brush->numBrushSides;
+  numBrushSides -= brush->numBrushSides;
   brush->numBrushSides = 0;
   brush->bounds = Box3_Null();
 
@@ -474,18 +474,18 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
     }
   }
 
-  if (num_brushes == MAX_BSP_BRUSHES) {
+  if (numBrushes == MAX_BSP_BRUSHES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
   }
 
-  Brush *brush = &brushes[num_brushes];
+  Brush *brush = &brushes[numBrushes];
   memset(brush, 0, sizeof(*brush));
 
   brush->entity = (int32_t) (entity - entities);
-  brush->brush = num_brushes - entity->firstBrush;
-  brush->brushSides = &brush_sides[num_brush_sides];
+  brush->brush = numBrushes - entity->firstBrush;
+  brush->brushSides = &brushSides[numBrushSides];
 
-  num_brushes++;
+  numBrushes++;
 
   while (true) {
 
@@ -498,11 +498,11 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
       break;
     }
 
-    if (num_brush_sides == MAX_BSP_BRUSH_SIDES) {
+    if (numBrushSides == MAX_BSP_BRUSH_SIDES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
     }
 
-    BrushSide *side = &brush_sides[num_brush_sides];
+    BrushSide *side = &brushSides[numBrushSides];
     memset(side, 0, sizeof(*side));
 
     Vec3d points[3];
@@ -512,7 +512,7 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
 
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
       if (q_strcmp(token, "(")) {
-        Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
       }
 
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i].x, 1);
@@ -521,7 +521,7 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
 
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
       if (q_strcmp(token, ")")) {
-        Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
       }
     }
 
@@ -539,15 +539,15 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
 
     if (!q_strcmp(token, "[")) {
       // Valve-220: [ ux uy uz shift_x ] [ vx vy vz shift_y ] rotation scale_x scale_y
-      if (map_format == MAP_FORMAT_UNKNOWN) {
-        map_format = MAP_FORMAT_VALVE;
-      } else if (map_format != MAP_FORMAT_VALVE) {
-        Com_Error(ERROR_FATAL, "Mixed map format: Valve-220 brush side in a non-Valve map (brush %d)\n", num_brushes);
+      if (mapFormat == MAP_FORMAT_UNKNOWN) {
+        mapFormat = MAP_FORMAT_VALVE;
+      } else if (mapFormat != MAP_FORMAT_VALVE) {
+        Com_Error(ERROR_FATAL, "Mixed map format: Valve-220 brush side in a non-Valve map (brush %d)\n", numBrushes);
       }
       for (int32_t i = 0; i < 2; i++) {
         Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
         if (q_strcmp(token, "[")) {
-          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
         }
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].x, 1);
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].y, 1);
@@ -555,7 +555,7 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].w, 1); // shift
         Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
         if (q_strcmp(token, "]")) {
-          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
         }
       }
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
@@ -563,10 +563,10 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
     } else {
       // Standard Q1/Q3: shift_x shift_y rotation scale_x scale_y
-      if (map_format == MAP_FORMAT_UNKNOWN) {
-        map_format = MAP_FORMAT_Q3;
-      } else if (map_format == MAP_FORMAT_VALVE) {
-        Com_Error(ERROR_FATAL, "Mixed map format: standard brush side in a Valve-220 map (brush %d)\n", num_brushes);
+      if (mapFormat == MAP_FORMAT_UNKNOWN) {
+        mapFormat = MAP_FORMAT_Q3;
+      } else if (mapFormat == MAP_FORMAT_VALVE) {
+        Com_Error(ERROR_FATAL, "Mixed map format: standard brush side in a Valve-220 map (brush %d)\n", numBrushes);
       }
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
@@ -664,20 +664,20 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
     }
 
     brush->numBrushSides++;
-    num_brush_sides++;
+    numBrushSides++;
   }
 
   // get the content for the entire brush
   brush->contents = BrushContents(brush);
 
   // allow detail brushes to be removed
-  if (no_detail && (brush->contents & CONTENTS_DETAIL)) {
+  if (noDetail && (brush->contents & CONTENTS_DETAIL)) {
     UnparseBrush(brush, NULL);
     return brush;
   }
 
   // allow liquid brushes to be removed
-  if (no_liquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
+  if (noLiquid && (brush->contents & CONTENTS_MASK_LIQUID)) {
     UnparseBrush(brush, NULL);
     return brush;
   }
@@ -724,14 +724,14 @@ static void MoveBrushesToWorld(Entity *ent) {
   // make space to move the brushes (overlapped copy)
   memmove(brushes + worldBrushes + newBrushes,
           brushes + worldBrushes,
-          sizeof(Brush) * (num_brushes - worldBrushes - newBrushes));
+          sizeof(Brush) * (numBrushes - worldBrushes - newBrushes));
 
   // copy the new brushes down
   memcpy(brushes + worldBrushes, temp, sizeof(Brush) * newBrushes);
 
   // fix up indexes
   entities[0].numBrushes += newBrushes;
-  for (int32_t i = 1; i < num_entities; i++) {
+  for (int32_t i = 1; i < numEntities; i++) {
     entities[i].firstBrush += newBrushes;
   }
   Mem_Free(temp);
@@ -754,7 +754,7 @@ static void MovePatchesToWorld(Entity *ent) {
   // make space to move the patches (overlapped copy)
   memmove(patches + worldPatches + newPatches,
           patches + worldPatches,
-          sizeof(Patch) * (num_patches - worldPatches - newPatches));
+          sizeof(Patch) * (numPatches - worldPatches - newPatches));
 
   // copy the new patches down
   memcpy(patches + worldPatches, temp, sizeof(Patch) * newPatches);
@@ -766,7 +766,7 @@ static void MovePatchesToWorld(Entity *ent) {
 
   // fix up indexes
   entities[0].numPatches += newPatches;
-  for (int32_t i = 1; i < num_entities; i++) {
+  for (int32_t i = 1; i < numEntities; i++) {
     entities[i].firstPatch += newPatches;
   }
   Mem_Free(temp);
@@ -790,18 +790,18 @@ static Entity *ParseEntity(Parser *parser) {
 
   if (!q_strcmp(token, "{")) {
 
-    if (num_entities == MAX_BSP_ENTITIES) {
+    if (numEntities == MAX_BSP_ENTITIES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES\n");
     }
 
-    entity = &entities[num_entities];
-    num_entities++;
+    entity = &entities[numEntities];
+    numEntities++;
 
     entity->bounds = Box3_Null();
 
-    entity->firstBrush = num_brushes;
-    entity->firstBrushSide = num_brush_sides;
-    entity->firstPatch = num_patches;
+    entity->firstBrush = numBrushes;
+    entity->firstBrushSide = numBrushSides;
+    entity->firstPatch = numPatches;
 
     while (true) {
 
@@ -826,7 +826,7 @@ static Entity *ParseEntity(Parser *parser) {
         EntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
 
         if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
-          Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", num_entities);
+          Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", numEntities);
         }
 
         Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, e->value, sizeof(e->value));
@@ -884,30 +884,30 @@ static Entity *ParseEntity(Parser *parser) {
 
 /**
  * @brief Loads and parses the .map file, populating the global entities, brushes, planes, and patches arrays.
- * @return The resolved map format, also stored in the global `map_format`.
+ * @return The resolved map format, also stored in the global `mapFormat`.
  */
 MapFormat LoadMapFile(const char *filename) {
 
   Com_Verbose("--- LoadMapFile ---\n");
 
-  map_format = MAP_FORMAT_UNKNOWN;
+  mapFormat = MAP_FORMAT_UNKNOWN;
 
   memset(entities, 0, sizeof(entities));
-  num_entities = 0;
+  numEntities = 0;
 
   memset(brushes, 0, sizeof(brushes));
-  num_brushes = 0;
+  numBrushes = 0;
 
-  memset(brush_sides, 0, sizeof(brush_sides));
-  num_brush_sides = 0;
+  memset(brushSides, 0, sizeof(brushSides));
+  numBrushSides = 0;
 
   memset(planes, 0, sizeof(planes));
-  num_planes = 0;
+  numPlanes = 0;
 
   memset(patches, 0, sizeof(patches));
-  num_patches = 0;
+  numPatches = 0;
 
-  memset(plane_hash, 0, sizeof(plane_hash));
+  memset(planeHash, 0, sizeof(planeHash));
 
   void *buffer;
   if (Fs_Load(filename, &buffer) == -1) {
@@ -928,18 +928,18 @@ MapFormat LoadMapFile(const char *filename) {
     }
   }
 
-  map_bounds = entities[0].bounds;
+  mapBounds = entities[0].bounds;
 
-  Com_Verbose("%5i brushes\n", num_brushes);
-  Com_Verbose("%5i brush sides\n", num_brush_sides);
-  Com_Verbose("%5i patches\n", num_patches);
-  Com_Verbose("%5i entities\n", num_entities);
-  Com_Verbose("%5i planes\n", num_planes);
+  Com_Verbose("%5i brushes\n", numBrushes);
+  Com_Verbose("%5i brush sides\n", numBrushSides);
+  Com_Verbose("%5i patches\n", numPatches);
+  Com_Verbose("%5i entities\n", numEntities);
+  Com_Verbose("%5i planes\n", numPlanes);
   Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",
-        map_bounds.mins.x, map_bounds.mins.y, map_bounds.mins.z,
-        map_bounds.maxs.x, map_bounds.maxs.y, map_bounds.maxs.z);
+        mapBounds.mins.x, mapBounds.mins.y, mapBounds.mins.z,
+        mapBounds.maxs.x, mapBounds.maxs.y, mapBounds.maxs.z);
 
   Fs_Free(buffer);
 
-  return map_format;
+  return mapFormat;
 }

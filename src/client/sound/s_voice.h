@@ -22,11 +22,11 @@
 #pragma once
 
 extern Cvar *s_voice;
-extern Cvar *s_voice_bitrate;
-extern Cvar *s_capture_gain;
-extern Cvar *s_capture_normalize;
-extern Cvar *s_voice_loopback;
-extern Cvar *s_voice_volume;
+extern Cvar *s_voiceBitrate;
+extern Cvar *s_captureGain;
+extern Cvar *s_captureNormalize;
+extern Cvar *s_voiceLoopback;
+extern Cvar *s_voiceVolume;
 
 void S_StartVoice(uint8_t channel);
 void S_StopVoice(void);

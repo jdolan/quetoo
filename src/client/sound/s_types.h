@@ -448,7 +448,7 @@ typedef struct SoundStage {
 
 #if defined(__S_LOCAL_H__)
 
-extern SF_VIRTUAL_IO s_rwops_io;
-extern SF_VIRTUAL_IO s_physfs_io;
+extern SF_VIRTUAL_IO sRwopsIo;
+extern SF_VIRTUAL_IO sPhysfsIo;
 
 #endif

@@ -82,7 +82,7 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
   }
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (level < cl->messageLevel) {
       continue;
@@ -219,7 +219,7 @@ void Sv_Multicast(const Vec3 origin, Multicast to) {
 
   // send the data to all relevant clients
   ServerClient *cl = svs.clients;
-  for (int32_t j = 0; j < sv_max_clients->integer; j++, cl++) {
+  for (int32_t j = 0; j < sv_maxClients->integer; j++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
       continue;
@@ -306,7 +306,7 @@ void Sv_SendClientPackets(void) {
     // with nobody connected to see it
     bool demoWatched = false;
     const ServerClient *c = svs.clients;
-    for (int32_t i = 0; i < sv_max_clients->integer; i++, c++) {
+    for (int32_t i = 0; i < sv_maxClients->integer; i++, c++) {
       if (c->state != SV_CLIENT_FREE && !svs.clients[i].gclient->ai) {
         demoWatched = true;
         break;
@@ -326,7 +326,7 @@ void Sv_SendClientPackets(void) {
 
   // send a message to each connected client
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
       continue;

@@ -31,7 +31,7 @@ void WriteLeakFile(const Tree *tree) {
   Vec3 point;
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "maps/%s.lin", map_base);
+  q_snprintf(path, sizeof(path), "maps/%s.lin", mapBase);
 
   File *file = Fs_OpenWrite(path);
   if (!file) {

@@ -24,10 +24,10 @@
 #include "cl_types.h"
 
 #if defined(__CL_LOCAL_H__)
-extern Console cl_console;
+extern Console clConsole;
 
-extern Cvar *cl_console_height;
-extern Cvar *cl_draw_console_background_alpha;
+extern Cvar *cl_consoleHeight;
+extern Cvar *cl_drawConsoleBackgroundAlpha;
 
 void Cl_ToggleConsole_f(void);
 void Cl_InitConsole(void);

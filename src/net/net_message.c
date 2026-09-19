@@ -142,7 +142,7 @@ void Net_WriteDir(MemBuf *msg, const Vec3 dir) {
   float bestD = 0.0;
 
   for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-    const float d = Vec3_Dot(dir, approximate_normals[i]);
+    const float d = Vec3_Dot(dir, approximateNormals[i]);
     if (d > bestD) {
       bestD = d;
       best = i;
@@ -749,7 +749,7 @@ Vec3 Net_ReadDir(MemBuf *msg) {
     Com_Error(ERROR_DROP, "%d out of range\n", b);
   }
 
-  return approximate_normals[b];
+  return approximateNormals[b];
 }
 
 /**

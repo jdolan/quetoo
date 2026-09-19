@@ -41,7 +41,7 @@ typedef struct {
   SDL_Surface *diffusemap;
 } Material;
 
-extern int32_t num_materials;
+extern int32_t numMaterials;
 extern Material materials[MAX_BSP_MATERIALS];
 
 int32_t LoadMaterial(const char *name);

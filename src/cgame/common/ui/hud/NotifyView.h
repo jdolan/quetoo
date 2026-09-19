@@ -32,8 +32,8 @@ typedef struct NotifyView NotifyView;
 typedef struct NotifyViewInterface NotifyViewInterface;
 
 /**
- * @brief The last few console lines, shown for `cg_notify_time` seconds while playing.
- * @details `cg_notify_lines` sets how many; `0` disables the view.
+ * @brief The last few console lines, shown for `cg_notifyTime` seconds while playing.
+ * @details `cg_notifyLines` sets how many; `0` disables the view.
  * @extends ConsoleText
  */
 struct NotifyView {

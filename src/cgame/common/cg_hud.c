@@ -29,9 +29,9 @@
  */
 static void Cg_UpdateChase(const PlayerState *ps) {
 
-  if (ps->stats[STAT_CHASE] != cg_hud_state.chaseTarget) {
+  if (ps->stats[STAT_CHASE] != cgHudState.chaseTarget) {
     Cg_ClearHud();
-    cg_hud_state.chaseTarget = ps->stats[STAT_CHASE];
+    cgHudState.chaseTarget = ps->stats[STAT_CHASE];
   }
 }
 
@@ -40,17 +40,17 @@ static void Cg_UpdateChase(const PlayerState *ps) {
  */
 static void Cg_DrawDamageInflicted(const PlayerState *ps) {
 
-  if (!cg_hit_sound->integer) {
+  if (!cg_hitSound->integer) {
     return;
   }
 
   const int16_t dmg = ps->stats[STAT_DAMAGE_INFLICT];
   if (dmg) {
-    if (cgi.client->unclampedTime - cg_hud_state.damage.hitSoundTime > 50) {
-      cg_hud_state.damage.hitSoundTime = cgi.client->unclampedTime;
+    if (cgi.client->unclampedTime - cgHudState.damage.hitSoundTime > 50) {
+      cgHudState.damage.hitSoundTime = cgi.client->unclampedTime;
 
       Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-        .sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0],
+        .sample = dmg >= 25 ? cgSampleHits[1] : cgSampleHits[0],
         .entity = Cg_Self()
       });
     }
@@ -62,8 +62,8 @@ static void Cg_DrawDamageInflicted(const PlayerState *ps) {
  */
 void Cg_UpdateHud(const ClientFrame *frame) {
 
-  if (cg_hud_view_controller) {
-    $(cg_hud_view_controller, updateWithFrame, frame);
+  if (cgHudViewController) {
+    $(cgHudViewController, updateWithFrame, frame);
   }
 }
 
@@ -76,7 +76,7 @@ void Cg_DrawHud(const ClientFrame *frame) {
 
   Cg_UpdateChase(ps);
 
-  if (!cg_draw_hud->integer) {
+  if (!cg_drawHud->integer) {
     return;
   }
 

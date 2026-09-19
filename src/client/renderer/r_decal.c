@@ -32,7 +32,7 @@ static struct {
    */
   Sampler *diffusemapSampler;
 
-} r_decal_pipeline;
+} decalPipeline;
 
 /**
  * @brief The decal instances, shared by every block and read by decal_vs.
@@ -63,7 +63,7 @@ static struct {
   uint32_t firstPending;
   uint32_t numPending;
 
-} r_decals;
+} module;
 
 /**
  * @brief Adds a decal to the view for rendering in the current frame.
@@ -96,7 +96,7 @@ static _Thread_local struct {
   CmWinding *a, *b;
   int32_t maxFacePoints;
   int32_t capacity;
-} r_decal_windings;
+} decalWindings;
 
 /**
  * @brief Grows the per-thread scratch windings to accommodate a face of
@@ -104,23 +104,23 @@ static _Thread_local struct {
  */
 static void R_ReserveDecalWindings(int32_t facePoints) {
 
-  if (r_decal_windings.decal == NULL) {
-    r_decal_windings.decal = Cm_AllocWinding(4);
+  if (decalWindings.decal == NULL) {
+    decalWindings.decal = Cm_AllocWinding(4);
   }
 
-  if (facePoints > r_decal_windings.maxFacePoints) {
+  if (facePoints > decalWindings.maxFacePoints) {
 
-    if (r_decal_windings.face) {
-      Cm_FreeWinding(r_decal_windings.face);
-      Cm_FreeWinding(r_decal_windings.a);
-      Cm_FreeWinding(r_decal_windings.b);
+    if (decalWindings.face) {
+      Cm_FreeWinding(decalWindings.face);
+      Cm_FreeWinding(decalWindings.a);
+      Cm_FreeWinding(decalWindings.b);
     }
 
-    r_decal_windings.capacity = 4 + 4 * facePoints;
-    r_decal_windings.face = Cm_AllocWinding(facePoints);
-    r_decal_windings.a = Cm_AllocWinding(r_decal_windings.capacity);
-    r_decal_windings.b = Cm_AllocWinding(r_decal_windings.capacity);
-    r_decal_windings.maxFacePoints = facePoints;
+    decalWindings.capacity = 4 + 4 * facePoints;
+    decalWindings.face = Cm_AllocWinding(facePoints);
+    decalWindings.a = Cm_AllocWinding(decalWindings.capacity);
+    decalWindings.b = Cm_AllocWinding(decalWindings.capacity);
+    decalWindings.maxFacePoints = facePoints;
   }
 }
 
@@ -133,10 +133,10 @@ static uint32_t R_AddDecalInstance(const RenderDecal *decal,
                                    const Vec3 tangent,
                                    const Vec3 bitangent) {
 
-  const uint32_t index = r_decals.next;
-  const uint32_t generation = r_decals.generation;
+  const uint32_t index = module.next;
+  const uint32_t generation = module.generation;
 
-  RenderDecalInstance *instance = r_decals.instances + index;
+  RenderDecalInstance *instance = module.instances + index;
 
   instance->origin = Vec3_ToVec4(decal->origin, decal->radius);
   instance->normal = Vec3_ToVec4(normal, 0.f);
@@ -148,19 +148,19 @@ static uint32_t R_AddDecalInstance(const RenderDecal *decal,
   instance->lifetime = decal->lifetime;
   instance->generation = generation;
 
-  if (r_decals.numPending == 0) {
-    r_decals.firstPending = index;
+  if (module.numPending == 0) {
+    module.firstPending = index;
   }
 
-  if (r_decals.numPending < MAX_DECAL_INSTANCES) {
-    r_decals.numPending++;
+  if (module.numPending < MAX_DECAL_INSTANCES) {
+    module.numPending++;
   }
 
-  r_decals.next++;
+  module.next++;
 
-  if (r_decals.next == MAX_DECAL_INSTANCES) {
-    r_decals.next = 0;
-    r_decals.generation = (r_decals.generation + 1) & 0xff;
+  if (module.next == MAX_DECAL_INSTANCES) {
+    module.next = 0;
+    module.generation = (module.generation + 1) & 0xff;
   }
 
   return (generation << 24) | index;
@@ -170,7 +170,7 @@ static uint32_t R_AddDecalInstance(const RenderDecal *decal,
  * @brief Resolves the instance a decal vertex references.
  */
 static const RenderDecalInstance *R_DecalInstance(uint32_t reference) {
-  return r_decals.instances + (reference & 0xffffff);
+  return module.instances + (reference & 0xffffff);
 }
 
 /**
@@ -178,11 +178,11 @@ static const RenderDecalInstance *R_DecalInstance(uint32_t reference) {
  */
 static void R_UploadDecalInstanceRange(CopyPass *pass, const void *instances, uint32_t size, uint32_t offset) {
 
-  $(r_decals.transferBuffer, write, instances, size, true);
+  $(module.transferBuffer, write, instances, size, true);
 
   $(pass, uploadBuffer,
-    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_decals.transferBuffer->buffer },
-    &(SDL_GPUBufferRegion) { .buffer = r_decals.buffer->buffer, .offset = offset, .size = size },
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = module.transferBuffer->buffer },
+    &(SDL_GPUBufferRegion) { .buffer = module.buffer->buffer, .offset = offset, .size = size },
     false);
 }
 
@@ -193,22 +193,22 @@ static void R_UploadDecalInstanceRange(CopyPass *pass, const void *instances, ui
  */
 static void R_UploadDecalInstances(CopyPass *pass) {
 
-  if (r_decals.numPending == 0) {
+  if (module.numPending == 0) {
     return;
   }
 
-  const uint32_t first = r_decals.numPending == MAX_DECAL_INSTANCES ? 0 : r_decals.firstPending;
-  const uint32_t head = (uint32_t) Mini((int32_t) r_decals.numPending, (int32_t) (MAX_DECAL_INSTANCES - first));
+  const uint32_t first = module.numPending == MAX_DECAL_INSTANCES ? 0 : module.firstPending;
+  const uint32_t head = (uint32_t) Mini((int32_t) module.numPending, (int32_t) (MAX_DECAL_INSTANCES - first));
 
-  R_UploadDecalInstanceRange(pass, r_decals.instances + first,
+  R_UploadDecalInstanceRange(pass, module.instances + first,
     head * sizeof(RenderDecalInstance), first * sizeof(RenderDecalInstance));
 
-  if (r_decals.numPending > head) {
-    R_UploadDecalInstanceRange(pass, r_decals.instances,
-      (r_decals.numPending - head) * sizeof(RenderDecalInstance), 0);
+  if (module.numPending > head) {
+    R_UploadDecalInstanceRange(pass, module.instances,
+      (module.numPending - head) * sizeof(RenderDecalInstance), 0);
   }
 
-  r_decals.numPending = 0;
+  module.numPending = 0;
 }
 
 /**
@@ -247,13 +247,13 @@ static void R_ClipDecalToFace(const RenderView *view,
 
   R_ReserveDecalWindings(face->patch ? 4 * (nEdge - 1) : face->numVertexes);
 
-  CmWinding *dw = r_decal_windings.decal;
+  CmWinding *dw = decalWindings.decal;
   dw->numPoints = 4;
   for (int32_t i = 0; i < dw->numPoints; i++) {
     dw->points[i] = Vec3_Add(positions[i], n);
   }
 
-  CmWinding *fw = r_decal_windings.face;
+  CmWinding *fw = decalWindings.face;
   if (face->patch) {
     fw->numPoints = 0;
     for (int32_t i = 0; i < nEdge; i++)
@@ -272,8 +272,8 @@ static void R_ClipDecalToFace(const RenderView *view,
   }
 
   const CmWinding *w = Cm_ClipWindingToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
-                                                      r_decal_windings.a, r_decal_windings.b,
-                                                      r_decal_windings.capacity);
+                                                      decalWindings.a, decalWindings.b,
+                                                      decalWindings.capacity);
 
   if (w == NULL || w->numPoints < 3) {
     return;
@@ -508,7 +508,7 @@ void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
 
       if (numVertexes > decals->vertexBufferCapacity) {
         decals->vertexBuffer = release(decals->vertexBuffer);
-        decals->vertexBuffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+        decals->vertexBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
           .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
           .size = numVertexes * sizeof(RenderDecalVertex),
         });
@@ -532,11 +532,11 @@ void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
  */
 void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 
-  assert(r_models.world);
+  assert(rModels.world);
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
 
-  const RenderBspModel *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = rModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -545,19 +545,19 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
 
-  $(pass, bindPipeline, r_decal_pipeline.pipeline);
+  $(pass, bindPipeline, decalPipeline.pipeline);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.bspBuffer->buffer,
-    r_lights.dynamicBuffer->buffer,
+    rLights.bspBuffer->buffer,
+    rLights.dynamicBuffer->buffer,
     bsp->voxels.lightDataBuffer->buffer,
-    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : r_lights.voxelFallbackBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, 0, storage, 4);
 
-  SDL_GPUBuffer *instances[] = { r_decals.buffer->buffer };
+  SDL_GPUBuffer *instances[] = { module.buffer->buffer };
   $(pass, bindVertexStorageBuffers, 0, instances, 1);
 
   const RenderEntity *e = view->entities;
@@ -602,14 +602,14 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 
       $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
         .texture = decals->image->texture->texture,
-        .sampler = r_decal_pipeline.diffusemapSampler->sampler,
+        .sampler = decalPipeline.diffusemapSampler->sampler,
       }, 1);
 
       $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = decals->vertexBuffer->buffer }, 1);
 
       $(pass, drawPrimitives, numVertexes, 1, 0, 0);
 
-      r_stats->decalDrawElements++;
+      rStats->decalDrawElements++;
     }
   }
 }
@@ -620,7 +620,7 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 static void R_InitDecalPipeline(void) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
+  info.multisample_state.sample_count = rSceneSamples;
 
   info.depth_stencil_state.enable_depth_write = false;
 
@@ -659,7 +659,7 @@ static void R_InitDecalPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_decal_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
+  decalPipeline.pipeline = $(rContext.device, loadGraphicsPipeline,
     "shaders/decal_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_storage_buffers = 1,
@@ -673,7 +673,7 @@ static void R_InitDecalPipeline(void) {
     },
     &info);
 
-  r_decal_pipeline.diffusemapSampler = $(r_context.device, createSamplerLinearClamp);
+  decalPipeline.diffusemapSampler = $(rContext.device, createSamplerLinearClamp);
 }
 
 /**
@@ -681,8 +681,8 @@ static void R_InitDecalPipeline(void) {
  */
 static void R_ShutdownDecalPipeline(void) {
 
-  r_decal_pipeline.pipeline = release(r_decal_pipeline.pipeline);
-  r_decal_pipeline.diffusemapSampler = release(r_decal_pipeline.diffusemapSampler);
+  decalPipeline.pipeline = release(decalPipeline.pipeline);
+  decalPipeline.diffusemapSampler = release(decalPipeline.diffusemapSampler);
 }
 
 /**
@@ -699,16 +699,16 @@ void R_UpdateDecalPipeline(void) {
  */
 void R_InitDecals(void) {
 
-  memset(&r_decals, 0, sizeof(r_decals));
+  memset(&module, 0, sizeof(module));
 
-  r_decals.buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  module.buffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-    .size = sizeof(r_decals.instances),
+    .size = sizeof(module.instances),
   });
 
-  r_decals.transferBuffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-    .size = sizeof(r_decals.instances),
+    .size = sizeof(module.instances),
   });
 
   R_InitDecalPipeline();
@@ -721,6 +721,6 @@ void R_ShutdownDecals(void) {
 
   R_ShutdownDecalPipeline();
 
-  r_decals.buffer = release(r_decals.buffer);
-  r_decals.transferBuffer = release(r_decals.transferBuffer);
+  module.buffer = release(module.buffer);
+  module.transferBuffer = release(module.transferBuffer);
 }

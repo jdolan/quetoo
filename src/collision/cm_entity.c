@@ -21,7 +21,7 @@
 
 #include "cm_local.h"
 
-static const CmEntity null_entity = { 0 };
+static const CmEntity nullEntity = { 0 };
 
 /**
  * @brief Allocates and returns a new zeroed entity key-value pair.
@@ -184,7 +184,7 @@ static Order Cm_SortEntity_cmp(const ident a, const ident b) {
 CmEntity *Cm_SortEntity(CmEntity *entity) {
 
   assert(entity);
-  assert(entity != &null_entity);
+  assert(entity != &nullEntity);
 
   Vector *pairs = $(alloc(Vector), initWithSize, sizeof(CmEntity *));
 
@@ -303,7 +303,7 @@ const CmEntity *Cm_EntityValue(const CmEntity *entity, const char *key) {
     }
   }
 
-  return &null_entity;
+  return &nullEntity;
 }
 
 /**
@@ -317,7 +317,7 @@ const CmEntity *Cm_EntityValue(const CmEntity *entity, const char *key) {
  */
 CmEntity *Cm_EntitySetKeyValue(CmEntity *entity, const char *key, CmEntityParsed field, const void *value) {
 
-  assert(entity != &null_entity);
+  assert(entity != &nullEntity);
 
   CmEntity *e;
   CmEntity *target = NULL;

@@ -53,7 +53,7 @@ static void updateBindings(View *self, ident data) {
   $(self, setVisibility, valid ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (valid) {
-    const Color32 color = Color_Color32(ColorHSVA(cg_state.teams[team].hue, 1.f, 1.f, .14f));
+    const Color32 color = Color_Color32(ColorHSVA(cgState.teams[team].hue, 1.f, 1.f, .14f));
     const SDL_Color background = { color.r, color.g, color.b, color.a };
 
     if (memcmp(&background, &self->backgroundColor, sizeof(background))) {

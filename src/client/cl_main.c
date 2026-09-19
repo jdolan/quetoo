@@ -31,10 +31,10 @@
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
 
-Cvar *cl_chat_sound;
-Cvar *cl_max_fps;
-Cvar *cl_no_lerp;
-Cvar *cl_team_chat_sound;
+Cvar *cl_chatSound;
+Cvar *cl_maxFps;
+Cvar *cl_noLerp;
+Cvar *cl_teamChatSound;
 Cvar *cl_timeout;
 
 Cvar *guid;
@@ -46,13 +46,13 @@ Cvar *rate;
 
 Cvar *qport;
 
-Cvar *cl_draw_net_messages;
+Cvar *cl_drawNetMessages;
 
 ClientStatic cls;
 Client cl;
 
-RenderView cl_view;
-SoundStage cl_stage;
+RenderView clView;
+SoundStage clStage;
 
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
@@ -75,7 +75,7 @@ static void Cl_SendConnect(void) {
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
                          qport->integer, cls.server.challenge, Cvar_UserInfo());
 
-  cvar_user_info_modified = false;
+  cvarUserInfoModified = false;
 }
 
 /**
@@ -377,26 +377,26 @@ void Cl_Drop(const char *text) {
  */
 static void Cl_ConnectionlessPacket(void) {
 
-  Net_BeginReading(&net_message);
-  Net_ReadLong(&net_message); // skip the -1
+  Net_BeginReading(&netMessage);
+  Net_ReadLong(&netMessage); // skip the -1
 
-  const char *s = Net_ReadStringLine(&net_message);
+  const char *s = Net_ReadStringLine(&netMessage);
 
   Cmd_TokenizeString(s);
 
   const char *c = Cmd_Argv(0);
 
-  Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&net_from), c);
+  Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&netFrom), c);
 
   // server connection
   if (!q_strcmp(c, "client_connect")) {
 
     if (cls.state == CL_CONNECTED) {
-      Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&net_from));
+      Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&netFrom));
       return;
     }
 
-    Netchan_Setup(NS_UDP_CLIENT, &cls.netChan, &net_from, qport->integer);
+    Netchan_Setup(NS_UDP_CLIENT, &cls.netChan, &netFrom, qport->integer);
 
     Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
     Net_WriteString(&cls.netChan.message, "new");
@@ -414,14 +414,14 @@ static void Cl_ConnectionlessPacket(void) {
 
   // print command from somewhere
   if (!q_strcmp(c, "print")) {
-    s = Net_ReadString(&net_message);
+    s = Net_ReadString(&netMessage);
     Com_Print("%s", s);
     return;
   }
 
   // ping from somewhere
   if (!q_strcmp(c, "ping")) {
-    Netchan_OutOfBandPrint(NS_UDP_CLIENT, &net_from, "ack");
+    Netchan_OutOfBandPrint(NS_UDP_CLIENT, &netFrom, "ack");
     return;
   }
 
@@ -434,7 +434,7 @@ static void Cl_ConnectionlessPacket(void) {
   // challenge from the server we are connecting to
   if (!q_strcmp(c, "challenge")) {
     if (cls.state != CL_CONNECTING) {
-      Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
+      Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&netFrom));
       return;
     }
     cls.server.challenge = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
@@ -442,7 +442,7 @@ static void Cl_ConnectionlessPacket(void) {
     return;
   }
 
-  Com_Warn("Unknown command: %s from %s\n", c, Net_NetaddrToString(&net_from));
+  Com_Warn("Unknown command: %s from %s\n", c, Net_NetaddrToString(&netFrom));
 }
 
 /**
@@ -450,35 +450,35 @@ static void Cl_ConnectionlessPacket(void) {
  */
 static void Cl_ReadPackets(void) {
 
-  memset(&net_from, 0, sizeof(net_from));
+  memset(&netFrom, 0, sizeof(netFrom));
 
-  while (Net_ReceiveDatagram(NS_UDP_CLIENT, &net_from, &net_message)) {
+  while (Net_ReceiveDatagram(NS_UDP_CLIENT, &netFrom, &netMessage)) {
 
     // remote command packet
-    if (*(int32_t *) net_message.data == -1) {
+    if (*(int32_t *) netMessage.data == -1) {
       Cl_ConnectionlessPacket();
       continue;
     }
 
     // dump it if not connected
     if (cls.state <= CL_CONNECTING) {
-      Com_Debug(DEBUG_CLIENT, "%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
+      Com_Debug(DEBUG_CLIENT, "%s: Unsolicited packet\n", Net_NetaddrToString(&netFrom));
       continue;
     }
 
     // check for runt packets
-    if (net_message.size < 8) {
-      Com_Debug(DEBUG_CLIENT, "%s: Runt packet\n", Net_NetaddrToString(&net_from));
+    if (netMessage.size < 8) {
+      Com_Debug(DEBUG_CLIENT, "%s: Runt packet\n", Net_NetaddrToString(&netFrom));
       continue;
     }
 
     // packet from server
-    if (!Net_CompareNetaddr(&net_from, &cls.netChan.remoteAddress)) {
-      Com_Debug(DEBUG_CLIENT, "%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
+    if (!Net_CompareNetaddr(&netFrom, &cls.netChan.remoteAddress)) {
+      Com_Debug(DEBUG_CLIENT, "%s: Sequenced packet without connection\n", Net_NetaddrToString(&netFrom));
       continue;
     }
 
-    if (!Netchan_Process(&cls.netChan, &net_message)) {
+    if (!Netchan_Process(&cls.netChan, &netMessage)) {
       continue; // wasn't accepted for some reason
     }
 
@@ -490,7 +490,7 @@ static void Cl_ReadPackets(void) {
 
     const uint32_t delta = quetoo.ticks - cls.netChan.lastReceived;
     if (delta > cl_timeout->value * 1000) {
-      Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&net_from));
+      Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&netFrom));
       Cl_Disconnect();
     }
   }
@@ -536,10 +536,10 @@ static void Cl_WriteConfiguration(void) {
 static void Cl_InitLocal(void) {
 
   // register our variables
-  cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
-  cl_max_fps = Cvar_Add("cl_max_fps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
-  cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
-  cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
+  cl_chatSound = Cvar_Add("cl_chat_sound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
+  cl_maxFps = Cvar_Add("cl_max_fps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
+  cl_noLerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
+  cl_teamChatSound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
   cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
 
   // user info
@@ -553,7 +553,7 @@ static void Cl_InitLocal(void) {
 
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
-  cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
+  cl_drawNetMessages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
 
   // register our commands
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
@@ -596,17 +596,17 @@ static void Cl_UpdateScene(void) {
     thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }
 
-  R_DrawViewDepth(&cl_view);
+  R_DrawViewDepth(&clView);
 
   Thread_Wait(thread);
 
-  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
+  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &clStage, THREAD_NONE);
 
-  R_DrawPortals(&cl_view);
+  R_DrawPortals(&clView);
 
-  R_DrawMainView(&cl_view);
+  R_DrawMainView(&clView);
 
-  R_DrawPost(&cl_view);
+  R_DrawPost(&clView);
 
   Thread_Wait(thread);
 }
@@ -616,9 +616,9 @@ static void Cl_UpdateScene(void) {
  */
 int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
-  R_InitView(&cl_view);
+  R_InitView(&clView);
 
-  S_InitStage(&cl_stage);
+  S_InitStage(&clStage);
 
   Cl_HandleEvents();
 
@@ -630,9 +630,9 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
   R_EndFrame();
 
-  S_RenderStage(&cl_stage);
+  S_RenderStage(&clStage);
 
-  R_Screenshot(&cl_view);
+  R_Screenshot(&clView);
 
   return res;
 }
@@ -665,10 +665,10 @@ void Cl_Frame(const uint32_t msec) {
     }
     cl.timeDemoFrames++;
   } else {
-    float targetFps = cl_max_fps->value;
+    float targetFps = cl_maxFps->value;
     if (targetFps == 0.f) {
-      if (r_context.displayMode) {
-        targetFps = r_context.displayMode->refresh_rate;
+      if (rContext.displayMode) {
+        targetFps = rContext.displayMode->refresh_rate;
       }
     }
     if (targetFps > 0.f) { // cap render frame rate
@@ -678,9 +678,9 @@ void Cl_Frame(const uint32_t msec) {
     }
   }
 
-  R_InitView(&cl_view);
+  R_InitView(&clView);
 
-  S_InitStage(&cl_stage);
+  S_InitStage(&clStage);
 
   Cl_AttemptConnect();
 
@@ -704,14 +704,14 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     Cl_SendCommands();
 
-    S_RenderStage(&cl_stage);
+    S_RenderStage(&clStage);
   }
 
   Cl_UpdateScreen();
 
   R_EndFrame();
 
-  R_Screenshot(&cl_view);
+  R_Screenshot(&clView);
 
   cls.cgame->UpdateDiscord();
 

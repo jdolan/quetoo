@@ -35,7 +35,7 @@ static void Voxel_CollectLightIndex(const HashTable *table, ident key, ident val
   const Light *light = key;
 
   if (light->out) {
-    collector->indices[collector->count++] = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+    collector->indices[collector->count++] = (int32_t) (ptrdiff_t) (light->out - bspFile.lights);
   }
 }
 
@@ -168,7 +168,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
  */
 static void BuildVoxelExtents(void) {
 
-  const BspModel *world = bsp_file.models;
+  const BspModel *world = bspFile.models;
   
   // Align mins to voxel grid (round down to nearest multiple of BSP_VOXEL_SIZE)
   voxels.stuBounds.mins.x = floorf(world->visibleBounds.mins.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
@@ -229,7 +229,7 @@ static void BuildVoxelVoxels(void) {
  */
 static void DebugVoxels(void) {
 #if 0
-  const char *path = va("maps/%s.voxel.map", map_base);
+  const char *path = va("maps/%s.voxel.map", mapBase);
 
   File *file = Fs_OpenWrite(path);
   if (file == NULL) {
@@ -358,7 +358,7 @@ static void Voxel_AppendLightVoxel(const HashTable *table, ident key, ident valu
   const Light *light = key;
 
   if (light->out) {
-    const int32_t lightIndex = (int32_t) (light->out - bsp_file.lights);
+    const int32_t lightIndex = (int32_t) (light->out - bspFile.lights);
     $(d->lightVoxelLists[lightIndex], add, &d->voxelIndex);
   }
 }
@@ -373,12 +373,12 @@ void AssignLightVoxels(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if (bsp_file.numLights == 0) {
+  if (bspFile.numLights == 0) {
     return;
   }
 
-  Vector **lightVoxelLists = Mem_TagMalloc(bsp_file.numLights * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
-  for (int32_t i = 0; i < bsp_file.numLights; i++) {
+  Vector **lightVoxelLists = Mem_TagMalloc(bspFile.numLights * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
+  for (int32_t i = 0; i < bspFile.numLights; i++) {
     lightVoxelLists[i] = $(alloc(Vector), initWithSize, sizeof(int32_t));
   }
 
@@ -393,18 +393,18 @@ void AssignLightVoxels(void) {
   }
 
   int32_t total = 0;
-  for (int32_t i = 0; i < bsp_file.numLights; i++) {
+  for (int32_t i = 0; i < bspFile.numLights; i++) {
     total += (int32_t) lightVoxelLists[i]->count;
   }
 
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHT_VOXELS, total);
-  bsp_file.numLightVoxels = total;
+  Bsp_AllocLump(&bspFile, BSP_LUMP_LIGHT_VOXELS, total);
+  bspFile.numLightVoxels = total;
 
-  int32_t *out = bsp_file.lightVoxels;
-  for (int32_t i = 0; i < bsp_file.numLights; i++) {
+  int32_t *out = bspFile.lightVoxels;
+  for (int32_t i = 0; i < bspFile.numLights; i++) {
 
-    bsp_file.lights[i].firstVoxel = (int32_t) (out - bsp_file.lightVoxels);
-    bsp_file.lights[i].numVoxels = (int32_t) lightVoxelLists[i]->count;
+    bspFile.lights[i].firstVoxel = (int32_t) (out - bspFile.lightVoxels);
+    bspFile.lights[i].numVoxels = (int32_t) lightVoxelLists[i]->count;
 
     memcpy(out, lightVoxelLists[i]->elements, lightVoxelLists[i]->count * sizeof(int32_t));
     out += lightVoxelLists[i]->count;
@@ -419,18 +419,18 @@ void AssignLightVoxels(void) {
 
 /**
  * @brief Builds a lookup from `CONTENTS_BLOCK` node index to the index of the block it defines
- * within `bsp_file.blocks`, or -1 if the node is not a block.
+ * within `bspFile.blocks`, or -1 if the node is not a block.
  */
 static int32_t *Voxel_BuildNodeToBlock(void) {
 
-  int32_t *nodeToBlock = Mem_TagMalloc(bsp_file.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
+  int32_t *nodeToBlock = Mem_TagMalloc(bspFile.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
 
-  for (int32_t i = 0; i < bsp_file.numNodes; i++) {
+  for (int32_t i = 0; i < bspFile.numNodes; i++) {
     nodeToBlock[i] = -1;
   }
 
-  for (int32_t i = 0; i < bsp_file.numBlocks; i++) {
-    nodeToBlock[bsp_file.blocks[i].node] = i;
+  for (int32_t i = 0; i < bspFile.numBlocks; i++) {
+    nodeToBlock[bspFile.blocks[i].node] = i;
   }
 
   return nodeToBlock;
@@ -444,18 +444,18 @@ static int32_t *Voxel_BuildNodeToBlock(void) {
  */
 static void Voxel_BuildParents(int32_t **nodeParent, int32_t **leafParent) {
 
-  *nodeParent = Mem_TagMalloc(bsp_file.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
-  *leafParent = Mem_TagMalloc(bsp_file.numLeafs * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
+  *nodeParent = Mem_TagMalloc(bspFile.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
+  *leafParent = Mem_TagMalloc(bspFile.numLeafs * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
 
-  for (int32_t i = 0; i < bsp_file.numNodes; i++) {
+  for (int32_t i = 0; i < bspFile.numNodes; i++) {
     (*nodeParent)[i] = -1;
   }
-  for (int32_t i = 0; i < bsp_file.numLeafs; i++) {
+  for (int32_t i = 0; i < bspFile.numLeafs; i++) {
     (*leafParent)[i] = -1;
   }
 
-  const BspNode *node = bsp_file.nodes;
-  for (int32_t i = 0; i < bsp_file.numNodes; i++, node++) {
+  const BspNode *node = bspFile.nodes;
+  for (int32_t i = 0; i < bspFile.numNodes; i++, node++) {
     for (int32_t c = 0; c < 2; c++) {
       const int32_t child = node->children[c];
       if (child >= 0) {
@@ -469,14 +469,14 @@ static void Voxel_BuildParents(int32_t **nodeParent, int32_t **leafParent) {
 
 /**
  * @brief Walks up from the given leaf to its enclosing `CONTENTS_BLOCK` ancestor, returning the
- * index of that block within `bsp_file.blocks`, or -1 if none is found.
+ * index of that block within `bspFile.blocks`, or -1 if none is found.
  */
 static int32_t Voxel_BlockForLeaf(int32_t leafNum, const int32_t *nodeParent, const int32_t *leafParent,
                                    const int32_t *nodeToBlock) {
 
   int32_t nodeNum = leafParent[leafNum];
 
-  while (nodeNum != -1 && bsp_file.nodes[nodeNum].contents != CONTENTS_BLOCK) {
+  while (nodeNum != -1 && bspFile.nodes[nodeNum].contents != CONTENTS_BLOCK) {
     nodeNum = nodeParent[nodeNum];
   }
 
@@ -499,7 +499,7 @@ void AssignBlockVoxels(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if (bsp_file.numBlocks == 0) {
+  if (bspFile.numBlocks == 0) {
     return;
   }
 
@@ -508,12 +508,12 @@ void AssignBlockVoxels(void) {
 
   int32_t *nodeToBlock = Voxel_BuildNodeToBlock();
 
-  Vector **blockVoxelLists = Mem_TagMalloc(bsp_file.numBlocks * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
-  for (int32_t i = 0; i < bsp_file.numBlocks; i++) {
+  Vector **blockVoxelLists = Mem_TagMalloc(bspFile.numBlocks * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
+  for (int32_t i = 0; i < bspFile.numBlocks; i++) {
     blockVoxelLists[i] = $(alloc(Vector), initWithSize, sizeof(int32_t));
   }
 
-  const int32_t headNode = bsp_file.models[0].headNode;
+  const int32_t headNode = bspFile.models[0].headNode;
 
   static int32_t leafs[MAX_BSP_LEAFS];
 
@@ -557,18 +557,18 @@ void AssignBlockVoxels(void) {
   }
 
   int32_t total = 0;
-  for (int32_t i = 0; i < bsp_file.numBlocks; i++) {
+  for (int32_t i = 0; i < bspFile.numBlocks; i++) {
     total += (int32_t) blockVoxelLists[i]->count;
   }
 
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_BLOCK_VOXELS, total);
-  bsp_file.numBlockVoxels = total;
+  Bsp_AllocLump(&bspFile, BSP_LUMP_BLOCK_VOXELS, total);
+  bspFile.numBlockVoxels = total;
 
-  int32_t *out = bsp_file.blockVoxels;
-  for (int32_t i = 0; i < bsp_file.numBlocks; i++) {
+  int32_t *out = bspFile.blockVoxels;
+  for (int32_t i = 0; i < bspFile.numBlocks; i++) {
 
-    bsp_file.blocks[i].firstVoxel = (int32_t) (out - bsp_file.blockVoxels);
-    bsp_file.blocks[i].numVoxels = (int32_t) blockVoxelLists[i]->count;
+    bspFile.blocks[i].firstVoxel = (int32_t) (out - bspFile.blockVoxels);
+    bspFile.blocks[i].numVoxels = (int32_t) blockVoxelLists[i]->count;
 
     memcpy(out, blockVoxelLists[i]->elements, blockVoxelLists[i]->count * sizeof(int32_t));
     out += blockVoxelLists[i]->count;
@@ -607,8 +607,8 @@ void CausticsVoxel(int32_t voxelNum) {
   voxel->caustics = Vec3_Zero();
   const float weight = 1.f / lengthof(points);
 
-  for (int32_t i = 0; i < bsp_file.numBrushes; i++) {
-    const BspBrush *brush = &bsp_file.brushes[i];
+  for (int32_t i = 0; i < bspFile.numBrushes; i++) {
+    const BspBrush *brush = &bspFile.brushes[i];
     
     if (!(brush->contents & CONTENTS_MASK_LIQUID)) {
       continue;
@@ -805,20 +805,20 @@ void EmitVoxels(void) {
   Com_Verbose("Voxel light stats: min=%d max=%d avg=%.1f total=%zd\n",
               minLights, maxLights, (float)totalLights / voxels.numVoxels, totalLights);
 
-  bsp_file.voxelsSize = sizeof(BspVoxels);
-  bsp_file.voxelsSize += voxels.numVoxels * sizeof(byte) * 3; // caustics xyz (RGB)
-  bsp_file.voxelsSize += voxels.numVoxels * sizeof(int32_t) * 2; // light indices offset and count
-  bsp_file.voxelsSize += voxels.numLightIndices * sizeof(int32_t);
-  bsp_file.voxelsSize += voxels.numVoxels * sizeof(byte) * 2; // occlusion + exposure (RG)
+  bspFile.voxelsSize = sizeof(BspVoxels);
+  bspFile.voxelsSize += voxels.numVoxels * sizeof(byte) * 3; // caustics xyz (RGB)
+  bspFile.voxelsSize += voxels.numVoxels * sizeof(int32_t) * 2; // light indices offset and count
+  bspFile.voxelsSize += voxels.numLightIndices * sizeof(int32_t);
+  bspFile.voxelsSize += voxels.numVoxels * sizeof(byte) * 2; // occlusion + exposure (RG)
 
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_VOXELS, bsp_file.voxelsSize);
-  memset(bsp_file.voxels, 0, bsp_file.voxelsSize);
+  Bsp_AllocLump(&bspFile, BSP_LUMP_VOXELS, bspFile.voxelsSize);
+  memset(bspFile.voxels, 0, bspFile.voxelsSize);
 
-  bsp_file.voxels->size = voxels.size;
-  bsp_file.voxels->numLightIndices = (int32_t) voxels.numLightIndices;
-  bsp_file.voxels->bounds = voxels.stuBounds;
+  bspFile.voxels->size = voxels.size;
+  bspFile.voxels->numLightIndices = (int32_t) voxels.numLightIndices;
+  bspFile.voxels->bounds = voxels.stuBounds;
 
-  byte *out = (byte *) bsp_file.voxels + sizeof(BspVoxels);
+  byte *out = (byte *) bspFile.voxels + sizeof(BspVoxels);
   
   byte *outData = out;
   out += voxels.numVoxels * sizeof(byte) * 3; // RGB = caustics xyz

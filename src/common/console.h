@@ -93,7 +93,7 @@ typedef struct {
 
 } ConsoleState;
 
-extern ConsoleState console_state;
+extern ConsoleState consoleState;
 
 /**
  * @brief The maximum number of lines to buffer for console input history.

@@ -72,7 +72,7 @@ static void G_MoveInfo_Linear_Final(GameEntity *ent) {
   }
 
   ent->Think = G_MoveInfo_Linear_Final;
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -89,7 +89,7 @@ static void G_MoveInfo_Linear_Constant(GameEntity *ent) {
 
   ent->velocity = Vec3_Scale(move->dir, move->speed);
 
-  ent->nextThink = g_level.time + move->constFrames * QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + move->constFrames * QUETOO_TICK_MILLIS;
   ent->Think = G_MoveInfo_Linear_Final;
 }
 
@@ -221,7 +221,7 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
 
   ent->velocity = Vec3_Scale(move->dir, move->currentSpeed);
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
   ent->Think = G_MoveInfo_Linear_Accelerate;
 }
 
@@ -306,7 +306,7 @@ static void G_MoveInfo_Linear_Ramp(GameEntity *ent) {
     ent->Think = G_MoveInfo_Linear_Ramp;
   }
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -338,15 +338,15 @@ static void G_MoveInfo_Linear_Init(GameEntity *ent, const Vec3 dest, void (*done
 
   if (move->accel == 0.0 && move->decel == 0.0) { // constant
     const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->teamMaster : ent;
-    if (g_level.currentEntity == master) {
+    if (gLevel.currentEntity == master) {
       G_MoveInfo_Linear_Constant(ent);
     } else {
-      ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+      ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
       ent->Think = G_MoveInfo_Linear_Constant;
     }
   } else { // accelerative
     ent->Think = G_MoveInfo_Linear_Accelerate;
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
   }
 }
 
@@ -380,7 +380,7 @@ static void G_MoveInfo_Angular_Final(GameEntity *ent) {
   ent->avelocity = Vec3_Scale(delta, 1.0 / QUETOO_TICK_SECONDS);
 
   ent->Think = G_MoveInfo_Angular_Done;
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -414,7 +414,7 @@ static void G_MoveInfo_Angular_Begin(GameEntity *ent) {
   ent->avelocity = Vec3_Scale(delta, 1.0 / time);
 
   // set next_think to trigger a think when dest is reached
-  ent->nextThink = g_level.time + frames * QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + frames * QUETOO_TICK_MILLIS;
   ent->Think = G_MoveInfo_Angular_Final;
 }
 
@@ -428,10 +428,10 @@ static void G_MoveInfo_Angular_Init(GameEntity *ent, void (*done)(GameEntity *))
   ent->moveInfo.Done = done;
 
   const GameEntity *master = (ent->flags & FL_TEAM_SLAVE) ? ent->teamMaster : ent;
-  if (g_level.currentEntity == master) {
+  if (gLevel.currentEntity == master) {
     G_MoveInfo_Angular_Begin(ent);
   } else {
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
     ent->Think = G_MoveInfo_Angular_Begin;
   }
 }
@@ -463,11 +463,11 @@ static void G_MoveType_Push_Blocked(GameEntity *ent, GameEntity *other) {
     return;
   }
 
-  if (g_level.time < ent->touchTime) {
+  if (gLevel.time < ent->touchTime) {
     return;
   }
 
-  ent->touchTime = g_level.time + 1000;
+  ent->touchTime = gLevel.time + 1000;
 
   if (G_IsMeat(other)) {
     G_Damage(&(GameDamage) {
@@ -525,7 +525,7 @@ static void G_func_plat_Top(GameEntity *ent) {
   ent->moveInfo.state = MOVE_STATE_TOP;
 
   ent->Think = G_func_plat_GoingDown;
-  ent->nextThink = g_level.time + 3000;
+  ent->nextThink = gLevel.time + 3000;
 }
 
 /**
@@ -650,7 +650,7 @@ static void G_func_plat_Touch(GameEntity *ent, GameEntity *other, const CmTrace 
   if (ent->moveInfo.state == MOVE_STATE_BOTTOM) {
     G_func_plat_GoingUp(ent);
   } else if (ent->moveInfo.state == MOVE_STATE_TOP) {
-    ent->nextThink = g_level.time + 1000; // the player is still on the plat, so delay going down
+    ent->nextThink = gLevel.time + 1000; // the player is still on the plat, so delay going down
   }
 }
 
@@ -820,7 +820,7 @@ static void G_func_bob_Ease(GameEntity *ent) {
   // it doesn't reintroduce a visible plateau before the final snap
   ent->velocity = Vec3_Scale(move->dir, Maxf(speed, move->speed * .005f));
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
   ent->Think = G_func_bob_Ease;
 }
 
@@ -838,7 +838,7 @@ static void G_func_bob_Move(GameEntity *ent, const Vec3 dest, void (*done)(GameE
   ent->s.sound = move->soundMiddle;
 
   ent->Think = G_func_bob_Ease;
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -865,7 +865,7 @@ static void G_func_bob_Top(GameEntity *ent) {
   ent->s.sound = 0;
 
   ent->Think = G_func_bob_GoingDown;
-  ent->nextThink = g_level.time + (uint32_t) (ent->wait * 1000.f);
+  ent->nextThink = gLevel.time + (uint32_t) (ent->wait * 1000.f);
 }
 
 /**
@@ -876,7 +876,7 @@ static void G_func_bob_Bottom(GameEntity *ent) {
   ent->s.sound = 0;
 
   ent->Think = G_func_bob_GoingUp;
-  ent->nextThink = g_level.time + (uint32_t) (ent->wait * 1000.f);
+  ent->nextThink = gLevel.time + (uint32_t) (ent->wait * 1000.f);
 }
 
 /**
@@ -1008,7 +1008,7 @@ void G_func_bob(GameEntity *ent) {
     const float driftScale = gi.EntityValue(ent->def, "drift")->value;
 
     ent->Think = G_func_bob_GoingUp;
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS +
+    ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS +
                        (uint32_t) (RandomRangef(0.f, Maxf(driftScale, 0.f) * cycleTime) * 1000.f);
   }
 }
@@ -1155,7 +1155,7 @@ static void G_func_button_Wait(GameEntity *ent) {
   G_UseTargets(ent, ent->activator);
 
   if (move->wait >= 0) {
-    ent->nextThink = g_level.time + move->wait * 1000;
+    ent->nextThink = gLevel.time + move->wait * 1000;
     ent->Think = G_func_button_Reset;
   }
 }
@@ -1324,7 +1324,7 @@ static void G_func_door_Top(GameEntity *ent) {
 
   if (ent->moveInfo.wait >= 0) {
     ent->Think = G_func_door_GoingDown;
-    ent->nextThink = g_level.time + ent->moveInfo.wait * 1000;
+    ent->nextThink = gLevel.time + ent->moveInfo.wait * 1000;
   }
 }
 
@@ -1385,7 +1385,7 @@ static void G_func_door_GoingUp(GameEntity *ent, GameEntity *activator) {
 
   if (ent->moveInfo.state == MOVE_STATE_TOP) { // reset top wait time
     if (ent->moveInfo.wait >= 0) {
-      ent->nextThink = g_level.time + ent->moveInfo.wait * 1000;
+      ent->nextThink = gLevel.time + ent->moveInfo.wait * 1000;
     }
     return;
   }
@@ -1453,11 +1453,11 @@ static void G_func_door_TouchTrigger(GameEntity *ent, GameEntity *other, const C
     return;
   }
 
-  if (g_level.time < ent->touchTime) {
+  if (gLevel.time < ent->touchTime) {
     return;
   }
 
-  ent->touchTime = g_level.time + 1000;
+  ent->touchTime = gLevel.time + 1000;
 
   G_func_door_Use(ent->owner, other, other);
 }
@@ -1578,11 +1578,11 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const CmTrace 
     return;
   }
 
-  if (g_level.time < ent->touchTime) {
+  if (gLevel.time < ent->touchTime) {
     return;
   }
 
-  ent->touchTime = g_level.time + 10000;
+  ent->touchTime = gLevel.time + 10000;
 
   if (ent->message && q_strlen(ent->message)) {
     gi.WriteByte(SV_CMD_CENTER_PRINT);
@@ -1591,7 +1591,7 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const CmTrace 
   }
 
   G_UnicastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.chat,
+    .index = gMedia.sounds.chat,
   }, other->client, true);
 }
 
@@ -1709,7 +1709,7 @@ void G_func_door(GameEntity *ent) {
     ent->teamMaster = ent;
   }
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
   if (ent->health || ent->targetName) {
     ent->Think = G_func_door_CalculateMove;
   } else {
@@ -1828,7 +1828,7 @@ void G_func_door_rotating(GameEntity *ent) {
 
   gi.LinkEntity(ent);
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
   if (ent->health || ent->targetName) {
     ent->Think = G_func_door_CalculateMove;
   } else {
@@ -1879,7 +1879,7 @@ static void G_func_door_secret_Use(GameEntity *ent, GameEntity *other,
  */
 static void G_func_door_secret_Move1(GameEntity *ent) {
 
-  ent->nextThink = g_level.time + 1000;
+  ent->nextThink = gLevel.time + 1000;
   ent->Think = G_func_door_secret_Move2;
 }
 
@@ -1912,7 +1912,7 @@ static void G_func_door_secret_Move3(GameEntity *ent) {
     ent->s.sound = 0;
   }
 
-  ent->nextThink = g_level.time + ent->wait * 1000;
+  ent->nextThink = gLevel.time + ent->wait * 1000;
   ent->Think = G_func_door_secret_Move4;
 }
 
@@ -1941,7 +1941,7 @@ static void G_func_door_secret_Move4(GameEntity *ent) {
  */
 static void G_func_door_secret_Move5(GameEntity *ent) {
 
-  ent->nextThink = g_level.time + 1000;
+  ent->nextThink = gLevel.time + 1000;
   ent->Think = G_func_door_secret_Move6;
 }
 
@@ -1985,11 +1985,11 @@ static void G_func_door_secret_Blocked(GameEntity *ent, GameEntity *other) {
     return;
   }
 
-  if (g_level.time < ent->touchTime) {
+  if (gLevel.time < ent->touchTime) {
     return;
   }
 
-  ent->touchTime = g_level.time + 500;
+  ent->touchTime = gLevel.time + 500;
 
   G_Damage(&(GameDamage) {
     .target = other,
@@ -2004,7 +2004,7 @@ static void G_func_door_secret_Blocked(GameEntity *ent, GameEntity *other) {
     .mod = MOD_CRUSH
   });
 
-  ent->nextThink = g_level.time + 1;
+  ent->nextThink = gLevel.time + 1;
 }
 
 /**
@@ -2397,7 +2397,7 @@ static void G_func_train_Wait(GameEntity *ent) {
 
   if (ent->moveInfo.wait) {
     if (ent->moveInfo.wait > 0) {
-      ent->nextThink = g_level.time + (ent->moveInfo.wait * 1000);
+      ent->nextThink = gLevel.time + (ent->moveInfo.wait * 1000);
       ent->Think = G_func_train_Next;
     } else if (ent->spawnFlags & TRAIN_TOGGLE) {
       G_func_train_Next(ent);
@@ -2563,7 +2563,7 @@ static void G_func_train_Find(GameEntity *ent) {
   }
 
   if (ent->spawnFlags & TRAIN_START_ON) {
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
     ent->Think = G_func_train_Next;
     ent->activator = ent;
   }
@@ -2678,7 +2678,7 @@ void G_func_train(GameEntity *ent) {
   if (ent->target) {
     // start trains on the second frame, to make sure their targets have had
     // a chance to spawn
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = gLevel.time + QUETOO_TICK_MILLIS;
     ent->Think = G_func_train_Find;
   } else {
     G_Debug("No target: %s\n", vtos(ent->s.origin));
@@ -2695,7 +2695,7 @@ static void G_func_timer_Think(GameEntity *ent) {
   const uint32_t wait = ent->wait * 1000;
   const uint32_t rand = ent->random * 1000 * RandomRangef(-1.f, 1.f);
 
-  ent->nextThink = g_level.time + wait + rand;
+  ent->nextThink = gLevel.time + wait + rand;
 }
 
 /**
@@ -2713,7 +2713,7 @@ static void G_func_timer_Use(GameEntity *ent, GameEntity *other,
 
   // turn it on
   if (ent->delay) {
-    ent->nextThink = g_level.time + ent->delay * 1000;
+    ent->nextThink = gLevel.time + ent->delay * 1000;
   } else {
     G_func_timer_Think(ent);
   }
@@ -2752,7 +2752,7 @@ void G_func_timer(GameEntity *ent) {
     const uint32_t wait = ent->wait * 1000;
     const uint32_t rand = ent->random * 1000 * RandomRangef(-1.f, 1.f);
 
-    ent->nextThink = g_level.time + delay + wait + rand;
+    ent->nextThink = gLevel.time + delay + wait + rand;
     ent->activator = ent;
   }
 

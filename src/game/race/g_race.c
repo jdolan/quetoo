@@ -27,7 +27,7 @@
  *
  * A run is a sequence: start, checkpoints 1 through N in order, finish. The
  * course says what N is and whether it has a start zone at all; a course with
- * none starts the run on the client's first movement. Times are `g_level.time`,
+ * none starts the run on the client's first movement. Times are `gLevel.time`,
  * in milliseconds, and the run keeps its own so that the HUD can show it and a
  * record can later be made of it.
  *
@@ -142,7 +142,7 @@ static void G_Race_Reset(GameClient *cl) {
  * @see g_race.h
  */
 void G_Race_AddStart(void) {
-  g_level.raceCourse.startCount++;
+  gLevel.raceCourse.startCount++;
 }
 
 /**
@@ -164,28 +164,28 @@ static bool G_Race_AddToSequence(uint64_t *sequence, bool *malformed, int32_t n,
  * @see g_race.h
  */
 bool G_Race_AddCheckpoint(int32_t checkpoint) {
-  return G_Race_AddToSequence(&g_level.raceCourse.checkpoints, &g_level.raceCourse.malformed, checkpoint, 1);
+  return G_Race_AddToSequence(&gLevel.raceCourse.checkpoints, &gLevel.raceCourse.malformed, checkpoint, 1);
 }
 
 /**
  * @see g_race.h
  */
 bool G_Race_AddSplit(int32_t split) {
-  return G_Race_AddToSequence(&g_level.raceCourse.splits, &g_level.raceCourse.splitsMalformed, split, 1);
+  return G_Race_AddToSequence(&gLevel.raceCourse.splits, &gLevel.raceCourse.splitsMalformed, split, 1);
 }
 
 /**
  * @see g_race.h
  */
 bool G_Race_AddStage(int32_t stage) {
-  return G_Race_AddToSequence(&g_level.raceCourse.stages, &g_level.raceCourse.stagesMalformed, stage, 2);
+  return G_Race_AddToSequence(&gLevel.raceCourse.stages, &gLevel.raceCourse.stagesMalformed, stage, 2);
 }
 
 /**
  * @see g_race.h
  */
 void G_Race_AddFinish(void) {
-  g_level.raceCourse.finishCount++;
+  gLevel.raceCourse.finishCount++;
 }
 
 /**
@@ -220,7 +220,7 @@ static bool G_Race_ValidateSequence(uint64_t sequence, bool malformed, int32_t f
  * on their own terms and spoil only themselves.
  */
 static void G_Race_ValidateCourse(void) {
-  GameRaceCourse *course = &g_level.raceCourse;
+  GameRaceCourse *course = &gLevel.raceCourse;
 
   course->valid = G_Race_ValidateSequence(course->checkpoints, course->malformed, 1, &course->checkpointCount) &&
                   course->finishCount > 0;
@@ -236,12 +236,12 @@ static void G_Race_ValidateCourse(void) {
  */
 bool G_Race_Debounced(GameClient *cl, const GameEntity *ent, float wait) {
 
-  if (cl->raceTrigger == ent && g_level.time - cl->raceTriggerTime < wait * 1000.f) {
+  if (cl->raceTrigger == ent && gLevel.time - cl->raceTriggerTime < wait * 1000.f) {
     return true;
   }
 
   cl->raceTrigger = ent;
-  cl->raceTriggerTime = g_level.time;
+  cl->raceTriggerTime = gLevel.time;
   return false;
 }
 
@@ -254,7 +254,7 @@ bool G_Race_Start(GameClient *cl) {
     return false;
   }
 
-  if (!g_level.raceCourse.valid) {
+  if (!gLevel.raceCourse.valid) {
     gi.ClientPrint(cl, PRINT_HIGH, "This level has no valid course: it needs a finish and checkpoints 1 through N\n");
     return false;
   }
@@ -268,7 +268,7 @@ bool G_Race_Start(GameClient *cl) {
   run->mode = G_Race_Mode(cl);
   run->movement = cl->ps.pmState.params.movement;
   run->stage = 1;
-  run->startTime = g_level.time;
+  run->startTime = gLevel.time;
 
   cl->persistent.raceRuns++;
   run->startSpeed = run->topSpeed = speed;
@@ -376,12 +376,12 @@ bool G_Race_Checkpoint(GameClient *cl, uint16_t checkpoint) {
     return false;
   }
 
-  run->checkpointTimes[run->checkpointCount++] = g_level.time - run->startTime;
+  run->checkpointTimes[run->checkpointCount++] = gLevel.time - run->startTime;
 
   G_Race_Milestone(cl, RACE_MILESTONE_CHECKPOINT, checkpoint, NULL, run->checkpointTimes[checkpoint - 1]);
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.teleport,
+    .index = gMedia.sounds.teleport,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -395,7 +395,7 @@ bool G_Race_Checkpoint(GameClient *cl, uint16_t checkpoint) {
 bool G_Race_Split(GameClient *cl, uint16_t split, const char *label) {
   GameRaceRun *run = &cl->raceRun;
 
-  if (!G_Race_CanRun(cl) || run->state != RACE_RUN_ACTIVE || !g_level.raceCourse.splitsValid) {
+  if (!G_Race_CanRun(cl) || run->state != RACE_RUN_ACTIVE || !gLevel.raceCourse.splitsValid) {
     return false;
   }
 
@@ -403,7 +403,7 @@ bool G_Race_Split(GameClient *cl, uint16_t split, const char *label) {
     return false;
   }
 
-  const uint32_t time = g_level.time - run->startTime;
+  const uint32_t time = gLevel.time - run->startTime;
 
   run->splitTimes[run->splitCount++] = time;
 
@@ -419,7 +419,7 @@ bool G_Race_Split(GameClient *cl, uint16_t split, const char *label) {
 bool G_Race_Stage(GameClient *cl, uint16_t stage, const char *label, const GameEntity *anchor) {
   GameRaceRun *run = &cl->raceRun;
 
-  if (!G_Race_CanRun(cl) || !g_level.raceCourse.stagesValid) {
+  if (!G_Race_CanRun(cl) || !gLevel.raceCourse.stagesValid) {
     return false;
   }
 
@@ -427,7 +427,7 @@ bool G_Race_Stage(GameClient *cl, uint16_t stage, const char *label, const GameE
   bool counted = false;
 
   if (run->state == RACE_RUN_ACTIVE && stage == run->stage + 1) {
-    run->stageTimes[stage - 2] = g_level.time - run->startTime;
+    run->stageTimes[stage - 2] = gLevel.time - run->startTime;
     run->stage = stage;
 
     G_Race_Milestone(cl, RACE_MILESTONE_STAGE, stage, label, run->stageTimes[stage - 2]);
@@ -464,7 +464,7 @@ bool G_Race_Finish(GameClient *cl) {
     return false;
   }
 
-  const uint16_t remaining = g_level.raceCourse.checkpointCount - run->checkpointCount;
+  const uint16_t remaining = gLevel.raceCourse.checkpointCount - run->checkpointCount;
   if (remaining) {
     gi.ClientPrint(cl, PRINT_HIGH, "%u checkpoint%s remaining\n", remaining, remaining == 1 ? "" : "s");
     return false;
@@ -479,7 +479,7 @@ bool G_Race_Finish(GameClient *cl) {
   }
 
   run->state = RACE_RUN_FINISHED;
-  run->elapsed = g_level.time - run->startTime;
+  run->elapsed = gLevel.time - run->startTime;
   run->endSpeed = Vec3_Length(cl->entity->velocity);
   run->topSpeed = Maxf(run->topSpeed, run->endSpeed);
 
@@ -498,7 +498,7 @@ bool G_Race_Finish(GameClient *cl) {
   }
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.teleport,
+    .index = gMedia.sounds.teleport,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -517,7 +517,7 @@ static void G_Race_SetMode(GameClient *cl, GameRaceMode mode) {
     return;
   }
 
-  if (g_level.time - cl->respawnTime < 1000) { // as spectate and join are
+  if (gLevel.time - cl->respawnTime < 1000) { // as spectate and join are
     return;
   }
 
@@ -602,7 +602,7 @@ static void G_Race_Kill_f(GameClient *cl) {
     return;
   }
 
-  if (g_level.time - cl->respawnTime < RACE_KILL_INTERVAL) {
+  if (gLevel.time - cl->respawnTime < RACE_KILL_INTERVAL) {
     return;
   }
 
@@ -621,7 +621,7 @@ static void G_Race_NoClip_f(GameClient *cl) {
   }
 
   const bool practicing = G_Race_Mode(cl) == RACE_MODE_PRACTICE;
-  const bool cheating = sv_max_clients->integer <= 1 || g_cheats->value;
+  const bool cheating = sv_maxClients->integer <= 1 || g_cheats->value;
 
   if (!practicing && !cheating) {
     gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
@@ -643,7 +643,7 @@ static void G_Race_NoClip_f(GameClient *cl) {
  */
 static void G_Race_Status_f(GameClient *cl) {
   const GameRaceRun *run = &cl->raceRun;
-  const GameRaceCourse *course = &g_level.raceCourse;
+  const GameRaceCourse *course = &gLevel.raceCourse;
 
   gi.ClientPrint(cl, PRINT_HIGH, "Course: %u checkpoint%s, %u start%s, %u finish%s%s\n",
                  course->checkpointCount, course->checkpointCount == 1 ? "" : "s",
@@ -651,7 +651,7 @@ static void G_Race_Status_f(GameClient *cl) {
                  course->finishCount, course->finishCount == 1 ? "" : "es",
                  course->valid ? "" : " ^1(invalid)^7");
 
-  const GameRaceRecord *record = G_Race_Record(cl->persistent.guid, g_level.movement);
+  const GameRaceRecord *record = G_Race_Record(cl->persistent.guid, gLevel.movement);
   if (record) {
     size_t count;
     const size_t rank = G_Race_Rank(record, &count);
@@ -661,7 +661,7 @@ static void G_Race_Status_f(GameClient *cl) {
   switch (run->state) {
     case RACE_RUN_ACTIVE:
       gi.ClientPrint(cl, PRINT_HIGH, "Running: %s, checkpoint %u of %u%s\n",
-                     G_Race_FormatTime(g_level.time - run->startTime),
+                     G_Race_FormatTime(gLevel.time - run->startTime),
                      run->checkpointCount, course->checkpointCount,
                      course->stagesValid && course->stageCount ? va(", stage %u of %u", run->stage, course->stageCount) : "");
       break;
@@ -701,13 +701,13 @@ static void G_ConfigureLevel_Race(void) {
   G_Race_LoadRecords();
   G_Race_LoadLine();
 
-  const GameRaceCourse *course = &g_level.raceCourse;
+  const GameRaceCourse *course = &gLevel.raceCourse;
 
   gi.SetConfigString(CS_RACE_COURSE, va("%u\\%u\\%u", course->checkpointCount,
                                         course->finishCount, course->valid));
 
   if (!course->valid) {
-    G_Warn("%s has no valid course: it needs a finish and checkpoints 1 through N\n", g_level.name);
+    G_Warn("%s has no valid course: it needs a finish and checkpoints 1 through N\n", gLevel.name);
   }
 
   // the course is new, and so is the ground a stored position stood on
@@ -809,7 +809,7 @@ static bool G_AllowHook_Race(const GameClient *cl) {
  */
 static bool G_HandleClientCommand_Race(GameClient *cl, const char *cmd) {
 
-  if (g_level.intermissionTime) {
+  if (gLevel.intermissionTime) {
     return previous.HandleClientCommand(cl, cmd);
   }
 
@@ -867,7 +867,7 @@ static void G_ClientWillThink_Race(GameClient *cl, const PlayerMoveCmd *cmd) {
     return;
   }
 
-  if (!g_level.raceCourse.startCount && cl->raceRun.state == RACE_RUN_IDLE &&
+  if (!gLevel.raceCourse.startCount && cl->raceRun.state == RACE_RUN_IDLE &&
       (cmd->forward || cmd->right || cmd->up)) {
     G_Race_Start(cl);
   }
@@ -942,7 +942,7 @@ static void G_WriteStats_Race(GameClient *cl) {
 
   uint32_t time = 0;
   if (run->state == RACE_RUN_ACTIVE) {
-    time = g_level.time - run->startTime;
+    time = gLevel.time - run->startTime;
   } else if (run->state == RACE_RUN_FINISHED) {
     time = run->elapsed;
   }
@@ -968,7 +968,7 @@ static void G_WriteScore_Race(const GameClient *cl, GameScore *s) {
   s->raceMode = G_Race_Mode(cl);
   s->raceRuns = cl->persistent.raceRuns;
 
-  const GameRaceRecord *record = G_Race_Record(cl->persistent.guid, g_level.movement);
+  const GameRaceRecord *record = G_Race_Record(cl->persistent.guid, gLevel.movement);
   if (record) {
     size_t count;
     s->raceBest = record->time;

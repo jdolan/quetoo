@@ -26,11 +26,11 @@
 #include "portal.h"
 #include "qbsp.h"
 
-static SDL_AtomicInt c_tjunctions;
+static SDL_AtomicInt cTjunctions;
 static Vector *faces;
-static HashTable *faces_set;
-static SDL_SpinLock *faces_locks;
-static int32_t largest_winding = 0;
+static HashTable *facesSet;
+static SDL_SpinLock *facesLocks;
+static int32_t largestWinding = 0;
 
 /**
  * @brief Processes a single face, inserting vertices from all other coplanar faces that lie on its edges to eliminate T-junctions.
@@ -39,13 +39,13 @@ static void FixTJunctions_(int32_t faceNum) {
   static _Thread_local CmWinding *face_winding, *f_winding;
 
   if (!face_winding) {
-    face_winding = Cm_AllocWinding(largest_winding);
-    f_winding = Cm_AllocWinding(largest_winding);
+    face_winding = Cm_AllocWinding(largestWinding);
+    f_winding = Cm_AllocWinding(largestWinding);
   }
 
   Face *face = VectorValue(faces, Face *, faceNum);
 
-  SDL_SpinLock *faceLock = &faces_locks[faceNum];
+  SDL_SpinLock *faceLock = &facesLocks[faceNum];
 
   const Plane *plane = &planes[face->brushSide->plane];
 
@@ -61,7 +61,7 @@ static void FixTJunctions_(int32_t faceNum) {
       continue;
     }
     
-    SDL_SpinLock *fLock = &faces_locks[s];
+    SDL_SpinLock *fLock = &facesLocks[s];
 
     SDL_LockSpinlock(fLock);
     memcpy(f_winding, f->w, sizeof(CmWinding) + (f->w->numPoints * sizeof(Vec3)));
@@ -120,7 +120,7 @@ static void FixTJunctions_(int32_t faceNum) {
 
         SDL_UnlockSpinlock(faceLock);
 
-        SDL_AddAtomicInt(&c_tjunctions, 1);
+        SDL_AddAtomicInt(&cTjunctions, 1);
         break;
       }
     }
@@ -143,14 +143,14 @@ static void FixTJunctions_r(Node *node) {
       continue;
     }
     
-    if ($(faces_set, get, face) != NULL) {
+    if ($(facesSet, get, face) != NULL) {
       continue;
     }
     
     $(faces, add, &face);
-    $(faces_set, set, face, face);
+    $(facesSet, set, face, face);
 
-    largest_winding = Maxi(largest_winding, face->w->numPoints);
+    largestWinding = Maxi(largestWinding, face->w->numPoints);
   }
 }
 
@@ -160,22 +160,22 @@ static void FixTJunctions_r(Node *node) {
 void FixTJunctions(Tree *tree) {
 
   Com_Verbose("--- FixTJunctions ---\n");
-  SDL_SetAtomicInt(&c_tjunctions, 0);
+  SDL_SetAtomicInt(&cTjunctions, 0);
 
   faces = $(alloc(Vector), initWithSize, sizeof(Face *));
-  faces_set = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
+  facesSet = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
   FixTJunctions_r(tree->headNode);
-  faces_set = release(faces_set);
+  facesSet = release(facesSet);
 
-  const int32_t largestPointCount = largest_winding;
-  largest_winding = sizeof(CmWinding) + (sizeof(Vec3) * largestPointCount);
+  const int32_t largestPointCount = largestWinding;
+  largestWinding = sizeof(CmWinding) + (sizeof(Vec3) * largestPointCount);
 
-  faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->count);
+  facesLocks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->count);
 
   Work("Fixing t-junctions", FixTJunctions_, (int32_t) faces->count);
 
-  Com_Verbose("%5i fixed tjunctions\n", SDL_GetAtomicInt(&c_tjunctions));
+  Com_Verbose("%5i fixed tjunctions\n", SDL_GetAtomicInt(&cTjunctions));
 
-  Mem_Free(faces_locks);
+  Mem_Free(facesLocks);
   release(faces);
 }

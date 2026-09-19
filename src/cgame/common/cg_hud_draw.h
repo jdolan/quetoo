@@ -76,16 +76,16 @@ typedef struct {
   uint32_t clearTime;
 } ClientGameHudState;
 
-extern ClientGameHudState cg_hud_state;
+extern ClientGameHudState cgHudState;
 
-extern Cvar *cg_chat_lines;
-extern Cvar *cg_chat_time;
-extern Cvar *cg_notify_lines;
-extern Cvar *cg_notify_time;
-extern Cvar *cg_select_weapon_alpha;
-extern Cvar *cg_select_weapon_delay;
-extern Cvar *cg_select_weapon_fade;
-extern Cvar *cg_select_weapon_interval;
+extern Cvar *cg_chatLines;
+extern Cvar *cg_chatTime;
+extern Cvar *cg_notifyLines;
+extern Cvar *cg_notifyTime;
+extern Cvar *cg_selectWeaponAlpha;
+extern Cvar *cg_selectWeaponDelay;
+extern Cvar *cg_selectWeaponFade;
+extern Cvar *cg_selectWeaponInterval;
 
 bool Cg_UpdateSelectWeapon(const PlayerState *ps, float *alpha);
 bool Cg_AttemptSelectWeapon(const PlayerState *ps);

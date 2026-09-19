@@ -39,7 +39,7 @@ typedef enum {
 } GameItemType;
 
 /**
- * @brief Global item tags. Each tag is the item's index in `g_items[]`.
+ * @brief Global item tags. Each tag is the item's index in `gItems[]`.
  */
 typedef enum {
   ITEM_NONE = 0,
@@ -190,7 +190,7 @@ typedef struct {
   GameItemTag ammo;
 
   /**
-   * @brief Global item tag; equals the item's index in `g_items[]`.
+   * @brief Global item tag; equals the item's index in `gItems[]`.
    */
   GameItemTag tag;
 
@@ -235,9 +235,9 @@ typedef struct {
 /**
  * @brief The complete list of item definitions, shared between game and cgame.
  */
-extern const GameItemDef bg_item_defs[];
+extern const GameItemDef bgItemDefs[];
 
 /**
- * @brief The count of `bg_item_defs`.
+ * @brief The count of `bgItemDefs`.
  */
-extern size_t bg_num_items;
+extern size_t bgNumItems;

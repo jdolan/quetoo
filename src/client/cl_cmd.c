@@ -94,8 +94,8 @@ static void Cl_WriteMovementCommand(MemBuf *buf) {
  */
 static void Cl_WriteUserInfoCommand(void) {
 
-  if (cvar_user_info_modified) {
-    cvar_user_info_modified = false;
+  if (cvarUserInfoModified) {
+    cvarUserInfoModified = false;
 
     Net_WriteByte(&cls.netChan.message, CL_CMD_USER_INFO);
     Net_WriteString(&cls.netChan.message, Cvar_UserInfo());

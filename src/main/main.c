@@ -148,7 +148,7 @@ static void Debug(const DebugFlags debug, const char *msg) {
   Print(va("^%d%s", color, msg));
 }
 
-static bool jmp_set = false;
+static bool jmpSet = false;
 
 /**
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
@@ -162,7 +162,7 @@ static void Error(Err err, const char *msg) {
 
   Print(va("^1%s\n", msg));
 
-  if (err == ERROR_DROP && !jmp_set) {
+  if (err == ERROR_DROP && !jmpSet) {
     err = ERROR_FATAL;
   }
 
@@ -187,7 +187,7 @@ static void Error(Err err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-  if (console_state.lock) {
+  if (consoleState.lock) {
     Con_Append(PRINT_HIGH, msg);
   } else {
     printf("%s", msg);
@@ -306,7 +306,7 @@ static void Quit_f(void) {
   Com_Shutdown("Server quit\n");
 }
 
-static const char *mem_tag_names[MEM_TAG_TOTAL] = {
+static const char *memTagNames[MEM_TAG_TOTAL] = {
   "default",
   "server",
   "ai",
@@ -347,7 +347,7 @@ static void MemStats_f(void) {
       reportedTotal = statI->size;
       continue;
     } else if (statI->tag < MEM_TAG_TOTAL) {
-      tagName = mem_tag_names[statI->tag];
+      tagName = memTagNames[statI->tag];
     } else {
       tagName = va("#%d", statI->tag);
     }
@@ -360,7 +360,7 @@ static void MemStats_f(void) {
     Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reportedTotal);
   }
 
-  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %zu blocks\n", console_state.size, (size_t) console_state.strings->count);
+  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %zu blocks\n", consoleState.size, (size_t) consoleState.strings->count);
 
   release(stats);
 }
@@ -589,7 +589,7 @@ int32_t main(int32_t argc, char *argv[]) {
   Sys_InstallLocalBin();
 #endif
 
-  jmp_set = true;
+  jmpSet = true;
 
   while (true) { // this is our main loop
 

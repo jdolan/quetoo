@@ -73,12 +73,12 @@
  * unacknowledged reliable
  */
 
-static Cvar *net_show_packets;
-static Cvar *net_show_drop;
+static Cvar *net_showPackets;
+static Cvar *net_showDrop;
 
-NetAddr net_from;
-MemBuf net_message;
-static byte net_message_buffer[MAX_MSG_SIZE];
+NetAddr netFrom;
+MemBuf netMessage;
+static byte netMessageBuffer[MAX_MSG_SIZE];
 
 /**
  * @brief Sends an out-of-band datagram
@@ -201,7 +201,7 @@ void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
   // send the datagram
   Net_SendDatagram(chan->source, &chan->remoteAddress, send.data, send.size);
 
-  if (net_show_packets->value) {
+  if (net_showPackets->value) {
     if (sendReliable)
       Com_Print("Send %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) send.size,
                 chan->outgoingSequence - 1, chan->reliableSequence, chan->incomingSequence,
@@ -213,8 +213,8 @@ void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
 }
 
 /**
- * @brief Called when the current `net_message` is from `remote_address`
- * modifies `net_message` so that it points to the packet payload
+ * @brief Called when the current `netMessage` is from `remote_address`
+ * modifies `netMessage` so that it points to the packet payload
  */
 bool Netchan_Process(NetChan *chan, MemBuf *msg) {
   uint32_t sequence, sequenceAck;
@@ -237,7 +237,7 @@ bool Netchan_Process(NetChan *chan, MemBuf *msg) {
   sequence &= ~(1u << 31);
   sequenceAck &= ~(1u << 31);
 
-  if (net_show_packets->value) {
+  if (net_showPackets->value) {
     if (reliableMessage)
       Com_Print("Recv %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) msg->size,
                 sequence, chan->reliableIncoming ^ 1, sequenceAck, reliableAck);
@@ -248,7 +248,7 @@ bool Netchan_Process(NetChan *chan, MemBuf *msg) {
 
   // discard stale or duplicated packets
   if (sequence <= chan->incomingSequence) {
-    if (net_show_drop->value)
+    if (net_showDrop->value)
       Com_Print("%s:Out of order packet %i at %i\n",
                 Net_NetaddrToString(&chan->remoteAddress), sequence, chan->incomingSequence);
     return false;
@@ -257,7 +257,7 @@ bool Netchan_Process(NetChan *chan, MemBuf *msg) {
   // dropped packets don't keep the message from being used
   chan->dropped = sequence - (chan->incomingSequence + 1);
   if (chan->dropped > 0) {
-    if (net_show_drop->value)
+    if (net_showDrop->value)
       Com_Print("%s:Dropped %i packets at %i\n", Net_NetaddrToString(&chan->remoteAddress),
                 chan->dropped, sequence);
   }
@@ -289,10 +289,10 @@ void Netchan_Init(void) {
 
   Net_Init();
 
-  net_show_packets = Cvar_Add("net_show_packets", "0", 0, NULL);
-  net_show_drop = Cvar_Add("net_show_drop", "0", 0, NULL);
+  net_showPackets = Cvar_Add("net_show_packets", "0", 0, NULL);
+  net_showDrop = Cvar_Add("net_show_drop", "0", 0, NULL);
 
-  Mem_InitBuffer(&net_message, net_message_buffer, sizeof(net_message_buffer));
+  Mem_InitBuffer(&netMessage, netMessageBuffer, sizeof(netMessageBuffer));
 }
 
 /**

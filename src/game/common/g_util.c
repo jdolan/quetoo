@@ -70,7 +70,7 @@ void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns) {
  */
 Box3 G_PlayerBounds(void) {
 
-  const PlayerMovementInfo *movement = Pm_Movement(g_level.movement);
+  const PlayerMovementInfo *movement = Pm_Movement(gLevel.movement);
 
   return movement->params ? movement->params->bounds : PM_BOUNDS;
 }
@@ -153,7 +153,7 @@ void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *
  */
 GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match) {
   
-  for (int32_t i = from ? from->s.number + 1 : 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = from ? from->s.number + 1 : 0; i < sv_maxEntities->integer; i++) {
 
     GameEntity *ent = ge.entities[i];
     if (!ent->inUse) {
@@ -228,7 +228,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
   if (ent->delay) {
     // create a temp entity to fire at a later time
     GameEntity *temp = G_AllocEntity(__func__);
-    temp->nextThink = g_level.time + ent->delay * 1000;
+    temp->nextThink = gLevel.time + ent->delay * 1000;
     temp->Think = G_UseTargets_Delay;
     temp->activator = activator;
     if (!activator) {
@@ -248,7 +248,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
     gi.Unicast(activator->client, true);
 
     G_UnicastSound(&(const GamePlaySound) {
-      .index = ent->sound ?: g_media.sounds.chat,
+      .index = ent->sound ?: gMedia.sounds.chat,
     }, activator->client, true);
   }
 
@@ -313,8 +313,8 @@ void G_SetMoveDir(GameEntity *ent) {
 GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   static uint8_t g_spawn_id;
 
-  if (number < 0 || number >= sv_max_entities->integer) {
-    G_Error("Entity %d out of range (sv_max_entities=%d)\n", number, sv_max_entities->integer);
+  if (number < 0 || number >= sv_maxEntities->integer) {
+    G_Error("Entity %d out of range (sv_max_entities=%d)\n", number, sv_maxEntities->integer);
   }
 
   GameEntity *e = ge.entities[number];
@@ -326,7 +326,7 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   e->classname = classname;
   e->inUse = true;
   e->waterLevel = WATER_UNKNOWN;
-  e->timestamp = g_level.time;
+  e->timestamp = gLevel.time;
   e->s.number = number;
   e->s.spawnId = g_spawn_id++;
 
@@ -338,7 +338,7 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
  */
 GameEntity *G_AllocEntity(const char *classname) {
 
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
 
     if (!ge.entities[i]->inUse) {
       return G_AllocEntityAt(i, classname);
@@ -504,7 +504,7 @@ void G_Gib(GameEntity *ent) {
 }
 
 /**
- * @brief Returns the `g_gameplay_modes` entry whose `->name` matches the given
+ * @brief Returns the `gGameplayModes` entry whose `->name` matches the given
  * cvar string, case-insensitively. Anything that doesn't match - including
  * empty strings, garbage, and "default" itself - falls back to the table's
  * first entry (plain deathmatch, no teams). "default" is deliberately not a
@@ -525,9 +525,9 @@ const Gameplay *G_GameplayByName(const char *c) {
       *p = (char) tolower((unsigned char) *p);
     }
 
-    for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
-      if (!q_strcmp(lower, g_gameplay_modes[i].name)) {
-        return &g_gameplay_modes[i];
+    for (size_t i = 0; i < lengthof(gGameplayModes); i++) {
+      if (!q_strcmp(lower, gGameplayModes[i].name)) {
+        return &gGameplayModes[i];
       }
     }
 
@@ -548,27 +548,27 @@ const Gameplay *G_GameplayByName(const char *c) {
     return G_GameplayById((GameplayId) id);
   }
 
-  return &g_gameplay_modes[0];
+  return &gGameplayModes[0];
 }
 
 /**
- * @brief Returns the `g_gameplay_modes` entry for the given mode id. Used
+ * @brief Returns the `gGameplayModes` entry for the given mode id. Used
  * after `G_ClampGameplay`, which operates on the scalar id, to recover the
  * `->name` and `->label` for the id it decided on.
  * @details A module's `ClampGameplay` MUST only ever return an id that is
- * actually one of the six rows in `g_gameplay_modes`, so this should never
+ * actually one of the six rows in `gGameplayModes`, so this should never
  * miss; it falls back to the first entry rather than asserting, matching
  * `G_GameplayByName`'s own fallback.
  */
 const Gameplay *G_GameplayById(GameplayId id) {
 
-  for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
-    if (g_gameplay_modes[i].id == id) {
-      return &g_gameplay_modes[i];
+  for (size_t i = 0; i < lengthof(gGameplayModes); i++) {
+    if (gGameplayModes[i].id == id) {
+      return &gGameplayModes[i];
     }
   }
 
-  return &g_gameplay_modes[0];
+  return &gGameplayModes[0];
 }
 
 /**
@@ -581,10 +581,10 @@ GameTeam *G_TeamByName(const char *c) {
     return NULL;
   }
 
-  for (int32_t i = 0; i < g_level.numTeams; i++) {
+  for (int32_t i = 0; i < gLevel.numTeams; i++) {
 
-    if (!q_strcolorcmp(g_team_list[i].name, c)) {
-      return &g_team_list[i];
+    if (!q_strcolorcmp(gTeamList[i].name, c)) {
+      return &gTeamList[i];
     }
   }
 
@@ -615,8 +615,8 @@ GameTeam *G_SmallestTeam(void) {
   GameTeam *smallest = NULL;
   size_t size = SIZE_MAX;
 
-  GameTeam *team = g_team_list;
-  for (int32_t i = 0; i < g_level.numTeams; i++, team++) {
+  GameTeam *team = gTeamList;
+  for (int32_t i = 0; i < gLevel.numTeams; i++, team++) {
     const size_t s = G_TeamSize(team);
     if (s < size) {
       smallest = team;
@@ -742,14 +742,14 @@ void G_SetAnimation(GameClient *cl, EntityAnimation anim, bool restart) {
   // while most go to one or the other, and are throttled
 
   if (anim < ANIM_LEGS_WALKCR) {
-    if (restart || cl->animation1Time <= g_level.time) {
+    if (restart || cl->animation1Time <= gLevel.time) {
       G_SetAnimation_(&cl->entity->s.animation1, anim, restart);
-      cl->animation1Time = g_level.time + 50;
+      cl->animation1Time = gLevel.time + 50;
     }
   } else {
-    if (restart || cl->animation2Time <= g_level.time) {
+    if (restart || cl->animation2Time <= gLevel.time) {
       G_SetAnimation_(&cl->entity->s.animation2, anim, restart);
-      cl->animation2Time = g_level.time + 50;
+      cl->animation2Time = gLevel.time + 50;
     }
   }
 }

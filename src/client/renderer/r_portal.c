@@ -52,13 +52,13 @@ static struct {
    * BSP fragment stage declares the sampler whether or not any face reads it.
    */
   Texture *nullTexture;
-} r_portal;
+} module;
 
 /**
  * @brief Allocates the placeholder portal texture.
  */
 void R_InitPortals(void) {
-  r_portal.nullTexture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
+  module.nullTexture = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
 }
 
 /**
@@ -66,13 +66,13 @@ void R_InitPortals(void) {
  */
 void R_ShutdownPortals(void) {
 
-  if (r_portal.framebuffer) {
-    R_DestroyFramebuffer(r_portal.framebuffer);
-    r_portal.framebuffer = NULL;
-    r_portal.size = MakeSize(0, 0);
+  if (module.framebuffer) {
+    R_DestroyFramebuffer(module.framebuffer);
+    module.framebuffer = NULL;
+    module.size = MakeSize(0, 0);
   }
 
-  r_portal.nullTexture = release(r_portal.nullTexture);
+  module.nullTexture = release(module.nullTexture);
 }
 
 /**
@@ -83,11 +83,11 @@ void R_ShutdownPortals(void) {
  */
 SDL_GPUTexture *R_PortalTexture(const RenderView *view) {
 
-  if (r_portal.framebuffer && view->type != VIEW_PORTAL) {
-    return $(r_portal.framebuffer, resolveColorTexture, 0)->texture;
+  if (module.framebuffer && view->type != VIEW_PORTAL) {
+    return $(module.framebuffer, resolveColorTexture, 0)->texture;
   }
 
-  return r_portal.nullTexture->texture;
+  return module.nullTexture->texture;
 }
 
 /**
@@ -176,7 +176,7 @@ void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
   } else {
     // an eviction is always followed by the insertion that caused it, so a view that is not full
     // has never evicted, and holds exactly the first `num_portals` views of the pool
-    pooled = &r_portal.views[view->numPortals];
+    pooled = &module.views[view->numPortals];
   }
 
   for (int32_t j = view->numPortals; j > i; j--) {
@@ -230,19 +230,19 @@ void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
  */
 static void R_UpdatePortalFramebuffer(void) {
 
-  const SDL_Size window = MakeSize(r_context.windowBounds.w, r_context.windowBounds.h);
+  const SDL_Size window = MakeSize(rContext.windowBounds.w, rContext.windowBounds.h);
 
-  if (r_portal.framebuffer) {
-    if (r_portal.size.w == window.w && r_portal.size.h == window.h) {
+  if (module.framebuffer) {
+    if (module.size.w == window.w && module.size.h == window.h) {
       return;
     }
 
-    R_DestroyFramebuffer(r_portal.framebuffer);
+    R_DestroyFramebuffer(module.framebuffer);
   }
 
-  r_portal.size = window;
+  module.size = window;
 
-  r_portal.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
+  module.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
     .size = MakeSize(window.w / PORTAL_FRAMEBUFFER_DIVISOR, window.h / PORTAL_FRAMEBUFFER_DIVISOR),
     .colorAttachments = {
       {
@@ -276,7 +276,7 @@ static void R_UpdatePortalFramebuffer(void) {
  */
 static SDL_Rect R_PortalScissor(const Mat4 vp, const RenderBspPortal *portal) {
 
-  const SDL_Size size = r_portal.framebuffer->size;
+  const SDL_Size size = module.framebuffer->size;
   const SDL_Rect framebuffer = { 0, 0, size.w, size.h };
 
   Vec3 points[8];
@@ -322,11 +322,11 @@ static SDL_Rect R_PortalScissor(const Mat4 vp, const RenderBspPortal *portal) {
  */
 static void R_DrawPortal(const RenderBspPortal *portal, const SDL_Rect *scissor) {
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
 
   RenderView *view = portal->view;
 
-  view->framebuffer = r_portal.framebuffer;
+  view->framebuffer = module.framebuffer;
 
   R_UpdateFrustum(view);
 
@@ -345,12 +345,12 @@ static void R_DrawPortal(const RenderBspPortal *portal, const SDL_Rect *scissor)
   }
 
   const SDL_GPUColorTargetInfo color[] = {
-    $(r_portal.framebuffer, colorTargetInfoForLayer, 0, (Uint32) portal->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
-    $(r_portal.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(module.framebuffer, colorTargetInfoForLayer, 0, (Uint32) portal->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(module.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
   const SDL_GPUDepthStencilTargetInfo depth =
-    $(r_portal.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
+    $(module.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
@@ -359,7 +359,7 @@ static void R_DrawPortal(const RenderBspPortal *portal, const SDL_Rect *scissor)
   // same viewport again for themselves
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
-    .w = (float) r_portal.framebuffer->size.w, .h = (float) r_portal.framebuffer->size.h,
+    .w = (float) module.framebuffer->size.w, .h = (float) module.framebuffer->size.h,
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
@@ -429,14 +429,14 @@ static void R_UpdatePortalView(const RenderView *view, RenderView *out) {
  */
 void R_DrawPortals(const RenderView *view) {
 
-  if (r_models.world) {
-    RenderBspPortal *p = r_models.world->bsp->portals;
-    for (int32_t i = 0; i < r_models.world->bsp->numPortals; i++, p++) {
+  if (rModels.world) {
+    RenderBspPortal *p = rModels.world->bsp->portals;
+    for (int32_t i = 0; i < rModels.world->bsp->numPortals; i++, p++) {
       p->layer = -1;
     }
   }
 
-  if (!view->numPortals || !r_context.device->commands) {
+  if (!view->numPortals || !rContext.device->commands) {
     return;
   }
 
@@ -444,9 +444,9 @@ void R_DrawPortals(const RenderView *view) {
 
   // captured before any portal is drawn, since drawing one replaces the uniform block with its
   // own view
-  const Mat4 vp = Mat4_Concat(r_uniforms.block.projection3D, r_uniforms.block.view);
+  const Mat4 vp = Mat4_Concat(rUniforms.block.projection3D, rUniforms.block.view);
 
-  RenderViewStats *stats = r_stats;
+  RenderViewStats *stats = rStats;
 
   int32_t layer = 0;
   for (int32_t i = 0; i < view->numPortals; i++) {
@@ -470,15 +470,15 @@ void R_DrawPortals(const RenderView *view) {
 
     R_UpdatePortalView(view, portal->view);
 
-    r_stats = &portal->view->stats;
+    rStats = &portal->view->stats;
     R_DrawPortal(portal, &scissor);
 
     stats->portalsTriangles += portal->view->stats.bspTriangles + portal->view->stats.meshTriangles;
   }
 
-  $(r_portal.framebuffer, swap);
+  $(module.framebuffer, swap);
 
-  r_stats = stats;
+  rStats = stats;
 
   R_UpdateUniforms(view);
 }

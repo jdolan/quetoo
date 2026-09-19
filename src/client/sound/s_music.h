@@ -21,7 +21,7 @@
 
 #pragma once
 
-extern Cvar *s_music_volume;
+extern Cvar *s_musicVolume;
 
 SoundMusic *S_LoadMusic(const char *name);
 SoundMusic *S_CurrentMusic(void);

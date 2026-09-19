@@ -305,7 +305,7 @@ void Cg_LoadClient(ClientGameClientInfo *ci, const char *s) {
     // resolve the team
     const GameTeamId teamId = atoi(info[0]);
     if (teamId != TEAM_NONE) {
-      ci->team = cg_state.teams + teamId;
+      ci->team = cgState.teams + teamId;
     } else {
       ci->team = NULL;
     }
@@ -386,10 +386,10 @@ void Cg_LoadClient(ClientGameClientInfo *ci, const char *s) {
  */
 void Cg_LoadClients(void) {
 
-  memset(cg_state.clients, 0, sizeof(cg_state.clients));
+  memset(cgState.clients, 0, sizeof(cgState.clients));
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    ClientGameClientInfo *ci = &cg_state.clients[i];
+    ClientGameClientInfo *ci = &cgState.clients[i];
     const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
     if (!*s) {
@@ -403,10 +403,10 @@ void Cg_LoadClients(void) {
     }
   }
 
-  memset(&cg_state.forceSkin, 0, sizeof(cg_state.forceSkin));
+  memset(&cgState.forceSkin, 0, sizeof(cgState.forceSkin));
 
-  if (*cg_force_skin->string) {
-    Cg_LoadClient(&cg_state.forceSkin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_force_skin->string));
+  if (*cg_forceSkin->string) {
+    Cg_LoadClient(&cgState.forceSkin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_forceSkin->string));
   }
 }
 
@@ -747,10 +747,10 @@ static ClientGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
   // not repainted by its owner changing skin and does not fall back to the default model when
   // they disconnect and their entry is cleared. The mask is what the slot was assigned with.
   if (ent->current.effects & EF_CORPSE) {
-    return &cg_state.corpses[ent->current.client & (MAX_CORPSES - 1)];
+    return &cgState.corpses[ent->current.client & (MAX_CORPSES - 1)];
   }
 
-  return &cg_state.clients[ent->current.client];
+  return &cgState.clients[ent->current.client];
 }
 
 ClientInfo Cg_ClientInfo = Cg_ClientInfo_Common;
@@ -815,8 +815,8 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
   ClientGameClientInfo *skin = ci;
 
   // force the preferred skin on all _other_ players, not on ourselves
-  if (cg_state.forceSkin.torso && ent != cgi.client->entity) {
-    skin = &cg_state.forceSkin;
+  if (cgState.forceSkin.torso && ent != cgi.client->entity) {
+    skin = &cgState.forceSkin;
   }
 
   legs.model = skin->legs;

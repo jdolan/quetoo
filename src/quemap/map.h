@@ -175,21 +175,21 @@ typedef enum {
     MAP_FORMAT_VALVE // Valve / Source style map (optional)
 } MapFormat;
 
-extern MapFormat map_format;
+extern MapFormat mapFormat;
 
-extern int32_t num_entities;
+extern int32_t numEntities;
 extern Entity entities[MAX_BSP_ENTITIES];
 
 extern Plane planes[MAX_BSP_PLANES];
-extern int32_t num_planes;
+extern int32_t numPlanes;
 
-extern int32_t num_brushes;
+extern int32_t numBrushes;
 extern Brush brushes[MAX_BSP_BRUSHES];
 
-extern int32_t num_brush_sides;
-extern BrushSide brush_sides[MAX_BSP_BRUSH_SIDES];
+extern int32_t numBrushSides;
+extern BrushSide brushSides[MAX_BSP_BRUSH_SIDES];
 
-extern Box3 map_bounds;
+extern Box3 mapBounds;
 
 int32_t FindPlane(const Vec3 normal, double dist);
 void MakeBrushWindings(Brush *brush);

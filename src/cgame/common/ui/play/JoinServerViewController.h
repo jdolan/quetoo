@@ -94,7 +94,7 @@ struct JoinServerViewController {
   /**
    * @brief The max ping slider, which doubles as the ping colour threshold.
    * @remarks Typed as its Slider superclass: the JSON declares a CvarSlider,
-   * which writes `cg_quick_join_max_ping` itself, and `CvarSlider.h` is not
+   * which writes `cg_quickJoinMaxPing` itself, and `CvarSlider.h` is not
    * part of the umbrella ObjectivelyMVC header this one includes.
    */
   Slider *maxPingSlider;

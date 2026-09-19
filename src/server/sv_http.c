@@ -22,12 +22,12 @@
 #include "sv_local.h"
 #include "net/net_http_server.h"
 
-static int32_t sv_http_socket = -1;
+static int32_t svHttpSocket = -1;
 
 /**
  * @brief Allowed download patterns, matching the former UDP download allowlist.
  */
-static const char *sv_http_allowed_patterns[] = {
+static const char *svHttpAllowedPatterns[] = {
 	"*.pk3",
 	"docs/*",
 	"maps/*",
@@ -44,7 +44,7 @@ static const char *sv_http_allowed_patterns[] = {
  */
 static bool Sv_HttpIsAllowed(const char *filename) {
 
-	const char **pattern = sv_http_allowed_patterns;
+	const char **pattern = svHttpAllowedPatterns;
 	while (*pattern) {
 		if (GlobMatch(*pattern, filename, GLOB_FLAGS_NONE)) {
 			return true;
@@ -131,14 +131,14 @@ static void Sv_HttpHandleRequest(ServerHttpClient *http) {
 static void Sv_HttpAccept(void) {
 
 	NetAddr from;
-	const int32_t sock = Net_Accept(sv_http_socket, &from);
+	const int32_t sock = Net_Accept(svHttpSocket, &from);
 	if (sock == -1) {
 		return;
 	}
 
 	// match the source IP to a connected client
 	ServerClient *cl = svs.clients;
-	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+	for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
 		if (cl->state == SV_CLIENT_FREE) {
 			continue;
@@ -226,14 +226,14 @@ static void Sv_HttpClientThink(ServerHttpClient *http) {
  */
 void Sv_HttpThink(void) {
 
-	if (sv_http_socket == -1 || svs.clients == NULL) {
+	if (svHttpSocket == -1 || svs.clients == NULL) {
 		return;
 	}
 
 	Sv_HttpAccept();
 
 	ServerClient *cl = svs.clients;
-	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+	for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
 		if (cl->http.socket <= 0) {
 			continue;
@@ -268,8 +268,8 @@ void Sv_InitHttp(void) {
 
 	const in_port_t port = netPort->integer;
 
-	sv_http_socket = Net_SocketListen(NULL, port, 8);
-	if (sv_http_socket == -1) {
+	svHttpSocket = Net_SocketListen(NULL, port, 8);
+	if (svHttpSocket == -1) {
 		Com_Warn("HTTP: Failed to create listen socket on port %d\n", port);
 		return;
 	}
@@ -282,18 +282,18 @@ void Sv_InitHttp(void) {
  */
 void Sv_ShutdownHttp(void) {
 
-	if (sv_http_socket == -1) {
+	if (svHttpSocket == -1) {
 		return;
 	}
 
 	// close all active client HTTP connections
 	ServerClient *cl = svs.clients;
-	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+	for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 		Sv_HttpClientDisconnect(&cl->http);
 	}
 
-	Net_CloseSocket(sv_http_socket);
-	sv_http_socket = -1;
+	Net_CloseSocket(svHttpSocket);
+	svHttpSocket = -1;
 
 	Com_Print("HTTP server stopped\n");
 }

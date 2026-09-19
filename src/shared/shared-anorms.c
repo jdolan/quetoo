@@ -24,7 +24,7 @@
 /**
  * @brief Directional vectors for over-the-wire approximations.
  */
-const Vec3 approximate_normals[NUM_APPROXIMATE_NORMALS] = {
+const Vec3 approximateNormals[NUM_APPROXIMATE_NORMALS] = {
   { { -0.525731f, 0.000000f, 0.850651f } },
   { { -0.442863f, 0.238856f, 0.864188f } },
   { { -0.295242f, 0.000000f, 0.955423f } },

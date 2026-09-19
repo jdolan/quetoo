@@ -224,7 +224,7 @@ static void viewWillAppear(ViewController *self) {
 
   MainViewController *this = (MainViewController *) self;
 
-  if (cg_state.numTeams > 0) {
+  if (cgState.numTeams > 0) {
     const int16_t team = cgi.client->frame.ps.stats[STAT_TEAM];
     if (team == TEAM_NONE) {
       $(this, navigateToViewController, _TeamsViewController());

@@ -81,7 +81,7 @@ static int32_t Sv_CreateBaseline(void) {
 
   int32_t count = 0;
 
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
 
     GameEntity *ent = sv.entities[i].gent;
 
@@ -115,24 +115,24 @@ static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
     return;
   }
 
-  Mem_ClearBuffer(&net_message);
+  Mem_ClearBuffer(&netMessage);
 
   if (msg) { // send message
-    Net_WriteByte(&net_message, SV_CMD_PRINT);
-    Net_WriteByte(&net_message, PRINT_HIGH);
-    Net_WriteString(&net_message, msg);
+    Net_WriteByte(&netMessage, SV_CMD_PRINT);
+    Net_WriteByte(&netMessage, PRINT_HIGH);
+    Net_WriteString(&netMessage, msg);
   }
 
   if (reconnect) { // send reconnect
-    Net_WriteByte(&net_message, SV_CMD_RECONNECT);
+    Net_WriteByte(&netMessage, SV_CMD_RECONNECT);
   } else { // or just disconnect
-    Net_WriteByte(&net_message, SV_CMD_DISCONNECT);
+    Net_WriteByte(&netMessage, SV_CMD_DISCONNECT);
   }
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++)
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++)
     if (cl->state >= SV_CLIENT_CONNECTED) {
-      Netchan_Transmit(&cl->netChan, net_message.data, net_message.size);
+      Netchan_Transmit(&cl->netChan, netMessage.data, netMessage.size);
     }
 }
 
@@ -160,8 +160,8 @@ static void Sv_UpdateLatchedVars(void) {
 
   Cvar_UpdateLatched();
 
-  sv_max_clients->integer = Clampf(sv_max_clients->integer, 1, MAX_CLIENTS);
-  sv_max_entities->integer = Clampf(sv_max_entities->integer, MAX_CLIENTS + 1, MAX_ENTITIES);
+  sv_maxClients->integer = Clampf(sv_maxClients->integer, 1, MAX_CLIENTS);
+  sv_maxEntities->integer = Clampf(sv_maxEntities->integer, MAX_CLIENTS + 1, MAX_ENTITIES);
 }
 
 /**
@@ -169,9 +169,9 @@ static void Sv_UpdateLatchedVars(void) {
  */
 static void Sv_InitClients(void) {
 
-  svs.clients = Mem_TagMalloc(sizeof(ServerClient) * sv_max_clients->integer, MEM_TAG_SERVER);
+  svs.clients = Mem_TagMalloc(sizeof(ServerClient) * sv_maxClients->integer, MEM_TAG_SERVER);
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) {
     svs.clients[i].gclient = svs.game->clients[i];
   }
 }
@@ -194,7 +194,7 @@ static void Sv_ShutdownClients(void) {
   }
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
     Sv_HttpClientDisconnect(&cl->http);
   }
 
@@ -210,7 +210,7 @@ static void Sv_ShutdownClients(void) {
  */
 static void Sv_ReconnectClients(void) {
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) {
 
     // re-bind the game client pointer (may have been cleared on bot disconnect)
     svs.clients[i].gclient = svs.game->clients[i];

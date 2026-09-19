@@ -170,7 +170,7 @@ struct ServerGameEntity {
   GameEntity *owner;
 
   /**
-   * @brief Non-null for client entities 1..`sv_max_clients`.
+   * @brief Non-null for client entities 1..`sv_maxClients`.
    */
   GameClient *client;
 };
@@ -575,10 +575,10 @@ typedef struct GameImport {
   void (*FreeEntity)(CmEntity *entity);
 
   /**
-   * @brief Returns the server's map rotation, as configured by `sv_map_list`.
+   * @brief Returns the server's map rotation, as configured by `sv_mapList`.
    * @return A list of `CmEntity *`, each to be freed with `FreeEntity`, or `NULL`
    * if no rotation is configured.
-   * @remarks The list is a copy, so a `sv_map_list` edit can not free entries from
+   * @remarks The list is a copy, so a `sv_mapList` edit can not free entries from
    * underneath the caller.
    */
   List *(*MapList)(void);
@@ -758,12 +758,12 @@ typedef struct GameExport {
   const char *cgame;
 
   /**
-   * @brief Client array, `sv_max_clients` in length; allocated by the game.
+   * @brief Client array, `sv_maxClients` in length; allocated by the game.
    */
   GameClient *clients[MAX_CLIENTS];
 
   /**
-   * @brief Entity array, `sv_max_entities` in length; allocated by the game.
+   * @brief Entity array, `sv_maxEntities` in length; allocated by the game.
    */
   GameEntity *entities[MAX_ENTITIES];
 

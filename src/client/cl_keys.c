@@ -23,7 +23,7 @@
 
 #include "cl_local.h"
 
-static char **cl_key_names;
+static char **clKeyNames;
 
 /**
  * @brief  Sets the key state destination.
@@ -32,7 +32,7 @@ void Cl_SetKeyDest(ClientKeyDest dest) {
 
   if (dest == cls.keyState.dest) {
     if (dest == KEY_CONSOLE || dest == KEY_CHAT) {
-      SDL_StartTextInput(r_context.window);
+      SDL_StartTextInput(rContext.window);
     }
     return;
   }
@@ -51,25 +51,25 @@ void Cl_SetKeyDest(ClientKeyDest dest) {
       }
     }
 
-    SDL_SetWindowRelativeMouseMode(r_context.window, false);
+    SDL_SetWindowRelativeMouseMode(rContext.window, false);
 
-    const int32_t cx = r_context.windowBounds.w * 0.5;
-    const int32_t cy = r_context.windowBounds.h * 0.5;
+    const int32_t cx = rContext.windowBounds.w * 0.5;
+    const int32_t cy = rContext.windowBounds.h * 0.5;
 
-    SDL_WarpMouseInWindow(r_context.window, cx, cy);
+    SDL_WarpMouseInWindow(rContext.window, cx, cy);
   }
 
   switch (dest) {
     case KEY_CONSOLE:
     case KEY_CHAT:
-      SDL_StartTextInput(r_context.window);
+      SDL_StartTextInput(rContext.window);
       break;
     case KEY_UI:
-      SDL_StopTextInput(r_context.window);
+      SDL_StopTextInput(rContext.window);
       break;
     case KEY_GAME:
-      SDL_StopTextInput(r_context.window);
-      SDL_SetWindowRelativeMouseMode(r_context.window, true);
+      SDL_StopTextInput(rContext.window);
+      SDL_SetWindowRelativeMouseMode(rContext.window, true);
       break;
   }
 
@@ -98,19 +98,19 @@ static void Cl_KeyConsole(const SDL_Event *event) {
     return;
   }
 
-  ConsoleInput *in = &cl_console.input;
+  ConsoleInput *in = &clConsole.input;
 
   const SDL_Keycode key = event->key.key;
   switch (key) {
 
     case SDLK_RETURN:
     case SDLK_KP_ENTER:
-      Con_SubmitInput(&cl_console);
+      Con_SubmitInput(&clConsole);
       break;
 
     case SDLK_TAB:
     case SDLK_KP_TAB:
-      Con_CompleteInput(&cl_console);
+      Con_CompleteInput(&clConsole);
       break;
 
     case SDLK_BACKSPACE:
@@ -136,11 +136,11 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_UP:
-      Con_NavigateHistory(&cl_console, CON_HISTORY_PREV);
+      Con_NavigateHistory(&clConsole, CON_HISTORY_PREV);
       break;
 
     case SDLK_DOWN:
-      Con_NavigateHistory(&cl_console, CON_HISTORY_NEXT);
+      Con_NavigateHistory(&clConsole, CON_HISTORY_NEXT);
       break;
 
     case SDLK_LEFT:
@@ -174,18 +174,18 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_PAGEUP:
-      if (cl_console.scroll + cl_console.height < console_state.strings->count) {
-        cl_console.scroll += cl_console.height;
+      if (clConsole.scroll + clConsole.height < consoleState.strings->count) {
+        clConsole.scroll += clConsole.height;
       } else {
-        cl_console.scroll = console_state.strings->count;
+        clConsole.scroll = consoleState.strings->count;
       }
       break;
 
     case SDLK_PAGEDOWN:
-      if (cl_console.scroll > cl_console.height) {
-        cl_console.scroll -= cl_console.height;
+      if (clConsole.scroll > clConsole.height) {
+        clConsole.scroll -= clConsole.height;
       } else {
-        cl_console.scroll = 0;
+        clConsole.scroll = 0;
       }
       break;
 
@@ -298,7 +298,7 @@ const char *Cl_KeyName(SDL_Scancode key) {
     return va("<unknown %d>", key);
   }
 
-  return cl_key_names[key];
+  return clKeyNames[key];
 }
 
 /**
@@ -311,8 +311,8 @@ SDL_Scancode Cl_KeyForName(const char *name) {
   }
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (cl_key_names[k]) {
-      if (!q_strcasecmp(name, cl_key_names[k])) {
+    if (clKeyNames[k]) {
+      if (!q_strcasecmp(name, clKeyNames[k])) {
         return k;
       }
     }
@@ -404,8 +404,8 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("%s*", Cmd_Argv(argi));
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (cl_key_names[k]) {
-      const char *keyName = cl_key_names[k];
+    if (clKeyNames[k]) {
+      const char *keyName = clKeyNames[k];
 
       if (GlobMatch(pattern, keyName, GLOB_CASE_INSENSITIVE)) {
         Con_AutocompleteMatch(matches, keyName, NULL);
@@ -491,23 +491,23 @@ static void Cl_BindList_f(void) {
  */
 void Cl_InitKeys(void) {
 
-  cl_key_names = Mem_TagMalloc(SDL_SCANCODE_COUNT * sizeof(char *), MEM_TAG_CLIENT);
+  clKeyNames = Mem_TagMalloc(SDL_SCANCODE_COUNT * sizeof(char *), MEM_TAG_CLIENT);
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     const char *name = SDL_GetScancodeName(k);
     if (q_strlen(name)) {
-      cl_key_names[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), cl_key_names);
+      clKeyNames[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), clKeyNames);
     }
   }
 
   for (SDL_Buttoncode b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE15; b++) {
 
     const char *name = va("Mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
-    cl_key_names[b] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), cl_key_names);
+    clKeyNames[b] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), clKeyNames);
   }
 
-  cl_key_names[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), cl_key_names);
-  cl_key_names[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), cl_key_names);
+  clKeyNames[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), clKeyNames);
+  clKeyNames[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), clKeyNames);
 
   memset(&cls.keyState, 0, sizeof(ClientKeyState));
 
@@ -530,7 +530,7 @@ void Cl_InitKeys(void) {
  */
 void Cl_ShutdownKeys(void) {
 
-  Mem_Free(cl_key_names);
+  Mem_Free(clKeyNames);
 }
 
 /**

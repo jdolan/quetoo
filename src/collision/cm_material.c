@@ -42,7 +42,7 @@ typedef struct {
 /**
  * @brief Content flags
  */
-static CmDictionary cm_contents_dict[] = {
+static CmDictionary cmContentsDict[] = {
   { .keyword = "solid", .flag = CONTENTS_SOLID },
   { .keyword = "window", .flag = CONTENTS_WINDOW },
   { .keyword = "decoration", .flag = CONTENTS_DECORATION },
@@ -61,7 +61,7 @@ static int32_t Cm_ParseContents(const char *c) {
 
   int32_t contents = 0;
 
-  for (CmDictionary *dict = cm_contents_dict; dict < cm_contents_dict + lengthof(cm_contents_dict); dict++) {
+  for (CmDictionary *dict = cmContentsDict; dict < cmContentsDict + lengthof(cmContentsDict); dict++) {
     if (q_strstr(c, dict->keyword)) {
       contents |= dict->flag;
     }
@@ -77,7 +77,7 @@ static char *Cm_UnparseContents(int32_t contents) {
   static char s[MAX_STRING_CHARS];
   *s = '\0';
 
-  for (CmDictionary *dict = cm_contents_dict; dict < cm_contents_dict + lengthof(cm_contents_dict); dict++) {
+  for (CmDictionary *dict = cmContentsDict; dict < cmContentsDict + lengthof(cmContentsDict); dict++) {
     if (contents & dict->flag) {
       q_strlcat(s, va("%s ", dict->keyword), sizeof(s));
     }

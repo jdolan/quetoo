@@ -42,7 +42,7 @@ static void updateBindings(View *self, ident data) {
 
   FpsView *this = (FpsView *) self;
 
-  $(self, setVisibility, cg_draw_fps->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $(self, setVisibility, cg_drawFps->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     this->frames++;

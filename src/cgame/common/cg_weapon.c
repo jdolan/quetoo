@@ -27,8 +27,8 @@
 static void Cg_WeaponBob(const PlayerState *ps, Vec3 *offset, Vec3 *angles) {
   const Vec3 bob = MakeVec3(0.2f, 0.4f, 0.2f);
 
-  *offset = Vec3_Fmaf(*offset, cg_view.bob, bob);
-  *angles = Vec3_Add(*angles, MakeVec3(0.f, 1.5f * cg_view.bob, 0.f));
+  *offset = Vec3_Fmaf(*offset, cgView.bob, bob);
+  *angles = Vec3_Add(*angles, MakeVec3(0.f, 1.5f * cgView.bob, 0.f));
 }
 
 /**
@@ -59,7 +59,7 @@ static void Cg_WeaponOffset(ClientEntity *ent, Vec3 *offset, Vec3 *angles) {
   *offset = Vec3_Scale(*offset, cg_bob->value);
   *angles = Vec3_Scale(*angles, cg_bob->value);
 
-  *offset = Vec3_Add(*offset, MakeVec3(cg_draw_weapon_x->value, cg_draw_weapon_y->value, cg_draw_weapon_z->value));
+  *offset = Vec3_Add(*offset, MakeVec3(cg_drawWeaponX->value, cg_drawWeaponY->value, cg_drawWeaponZ->value));
 }
 
 /**
@@ -98,12 +98,12 @@ static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
     time = cgi.client->unclampedTime;
   }
 
-  if (cg_draw_weapon_bob->modified) {
-    cg_draw_weapon_bob->value = Clampf(cg_draw_weapon_bob->value, 0.0, 2.0);
-    cg_draw_weapon_bob->modified = false;
+  if (cg_drawWeaponBob->modified) {
+    cg_drawWeaponBob->value = Clampf(cg_drawWeaponBob->value, 0.0, 2.0);
+    cg_drawWeaponBob->modified = false;
   }
 
-  *offset = Vec3_Scale(speed, cg_draw_weapon_bob->value);
+  *offset = Vec3_Scale(speed, cg_drawWeaponBob->value);
 }
 
 /**
@@ -116,7 +116,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   const PlayerState *ps = &cgi.client->frame.ps;
 
-  if (!cg_draw_weapon->value) {
+  if (!cg_drawWeapon->value) {
     return;
   }
 
@@ -132,7 +132,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
     return; // spectating
   }
 
-  if (cgi.client->demoServer && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cgState.spectate.detached) {
     return; // the camera has left the recorded player behind, and their weapon with it
   }
 
@@ -152,9 +152,9 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   w.origin = Vec3_Add(w.origin, velocity);
 
-  w.model = cg_weapons[active].model;
+  w.model = cgWeapons[active].model;
 
-  if (cg_weapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
+  if (cgWeapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
     switch (cg_hand->integer) {
       case HAND_LEFT:
         offset.y -= 5.f;
@@ -177,9 +177,9 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   w.color = MakeVec4(1.0, 1.0, 1.0, 1.0);
 
-  if (cg_draw_weapon_alpha->value < 1.0) {
+  if (cg_drawWeaponAlpha->value < 1.0) {
     w.effects |= EF_BLEND;
-    w.color.w = cg_draw_weapon_alpha->value;
+    w.color.w = cg_drawWeaponAlpha->value;
   }
 
   w.effects |= self->effects & EF_SHELL;
@@ -196,7 +196,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   RenderEntity *weapon = cgi.AddEntity(cgi.view, &w);
 
-  ClientGameClientInfo *ci = &cg_state.clients[cgi.client->frame.ps.client];
+  ClientGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
 
   Vec3 weaponOrigin;
   Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weaponOrigin);

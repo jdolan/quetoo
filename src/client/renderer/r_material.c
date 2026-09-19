@@ -321,7 +321,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
       const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
 
-      material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
         .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
         .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
         .width = w,
@@ -333,7 +333,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
       free(data);
 
-      CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+      CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
       $(commands, generateMipmaps, material->texture->texture->texture);
       $(commands, submit);
       release(commands);
@@ -345,7 +345,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
       break;
 
     default:
-      material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
         .type = SDL_GPU_TEXTURETYPE_2D,
         .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
         .width = w,
@@ -378,12 +378,12 @@ void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderM
   memset(out, 0, sizeof(*out));
 
   out->surface = surface;
-  out->alphaTest = cm->alphaTest * r_alpha_test->value;
+  out->alphaTest = cm->alphaTest * r_alphaTest->value;
   out->roughness = cm->roughness * r_roughness->value;
   out->hardness = cm->hardness * r_hardness->value;
   out->specularity = cm->specularity * r_specularity->value;
   out->parallax = cm->parallax * r_parallax->value;
-  out->shadow = cm->shadow * r_parallax_shadow->value;
+  out->shadow = cm->shadow * r_parallaxShadow->value;
 }
 
 /**

@@ -36,7 +36,7 @@ bool G_OnSameTeam(const GameClient *a, const GameClient *b) {
     return true;
   }
 
-  if (!g_level.teams) {
+  if (!gLevel.teams) {
     return false;
   }
 
@@ -365,7 +365,7 @@ void G_Damage(const GameDamage *dmg) {
   }
 
   if (target->client) { // respawn protection
-    if (target->client->respawnProtectionTime > g_level.time) {
+    if (target->client->respawnProtectionTime > gLevel.time) {
       return;
     }
   }
@@ -377,7 +377,7 @@ void G_Damage(const GameDamage *dmg) {
   if (target->client && !(dflags & DMG_NO_GOD)) { // invulnerability
     if (target->client->inventory[POWERUP_INVULNERABILITY]) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.invulnerabilityProtect,
+        .index = gMedia.sounds.invulnerabilityProtect,
         .entity = target,
       }, MULTICAST_PHS);
       damage = 0;
@@ -386,14 +386,14 @@ void G_Damage(const GameDamage *dmg) {
   }
 
   // friendly fire avoidance
-  if (target != attacker && g_level.teams) {
+  if (target != attacker && gLevel.teams) {
     if (G_OnSameTeam(target->client, attacker->client)) {
 
       if (mod == MOD_TELEFRAG) { // telefrags can not be avoided
         mod |= MOD_FRIENDLY_FIRE;
       } else {
-        if (g_friendly_fire->value) {
-          damage *= g_friendly_fire->value;
+        if (g_friendlyFire->value) {
+          damage *= g_friendlyFire->value;
           mod |= MOD_FRIENDLY_FIRE;
         } else {
           damage = 0;
@@ -404,13 +404,13 @@ void G_Damage(const GameDamage *dmg) {
 
   // there is no self damage in instagib or arena, but there is knockback
   if (target == attacker) {
-    switch (g_level.gameplay & ~GAMEPLAY_TEAMS) {
+    switch (gLevel.gameplay & ~GAMEPLAY_TEAMS) {
       case GAMEPLAY_INSTAGIB:
       case GAMEPLAY_ARENA:
         damage = 0;
         break;
       default:
-        damage *= g_self_damage->value;
+        damage *= g_selfDamage->value;
         break;
     }
   }
@@ -434,7 +434,7 @@ void G_Damage(const GameDamage *dmg) {
     const float mass = Clampf(target->mass, 1.0, 1000.0);
 
     if (target == attacker) { // self knockback (rocket jump / grenade jump / plasma climb)
-      knockback *= g_self_knockback->value;
+      knockback *= g_selfKnockback->value;
     }
 
     knockbackVel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
@@ -508,7 +508,7 @@ void G_Damage(const GameDamage *dmg) {
             .attackerAi = attackerAi,
             .targetAi = targetAi,
           };
-          q_strlcpy(frag.level, g_level.name, sizeof(frag.level));
+          q_strlcpy(frag.level, gLevel.name, sizeof(frag.level));
           q_strlcpy(frag.attacker, attacker->client->persistent.netName, sizeof(frag.attacker));
           q_strlcpy(frag.attackerGuid, attacker->client->persistent.guid, sizeof(frag.attackerGuid));
           q_strlcpy(frag.target, target->client->persistent.netName, sizeof(frag.target));
@@ -516,7 +516,7 @@ void G_Damage(const GameDamage *dmg) {
           q_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
           if (frag.attackerGuid[0] && frag.targetGuid[0]) {
-            $(g_level.frags, add, &frag);
+            $(gLevel.frags, add, &frag);
           }
         }
       }

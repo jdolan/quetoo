@@ -59,7 +59,7 @@ typedef struct Face {
   BspFace *out;
 } Face;
 
-extern int32_t num_welds;
+extern int32_t numWelds;
 
 Face *AllocFace(void);
 void FreeFace(Face *f);

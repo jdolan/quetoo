@@ -26,8 +26,8 @@
 #include "bsp.h"
 #include "qzip.h"
 
-bool include_shared = false;
-bool update_zip = false;
+bool includeShared = false;
+bool updateZip = false;
 
 static bool HasSuffix(const char *str, const char *suffix) {
   const size_t len = q_strlen(str);
@@ -49,13 +49,13 @@ int32_t ZIP_Main(void) {
   char path[MAX_OS_PATH];
 
   Com_Print("\n------------------------------------------\n");
-  Com_Print("\nCreating archive for %s\n\n", bsp_name);
+  Com_Print("\nCreating archive for %s\n\n", bspName);
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
   // read the manifest
   char mfPath[MAX_OS_PATH];
-  q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", map_base);
+  q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
   HashTable *manifest = Cm_ReadManifest(mfPath);
   if (!manifest) {
@@ -76,7 +76,7 @@ int32_t ZIP_Main(void) {
   memset(&zip, 0, sizeof(zip));
 
   // write to a "temporary" archive name
-  q_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
+  q_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), mapBase, getpid());
 
   if (mz_zip_writer_init_file(&zip, path, 0)) {
     Com_Print("Compressing %zu resources to %s...\n", assets->count, path);
@@ -89,7 +89,7 @@ int32_t ZIP_Main(void) {
         continue;
       }
 
-      if (include_shared == false) {
+      if (includeShared == false) {
         const char *dir = Fs_RealDir(filename);
 
         if (GlobMatch("sky-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
@@ -143,8 +143,8 @@ int32_t ZIP_Main(void) {
   const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nWrote %s in %d ms\n", path, end - start);
 
-  if (update_zip) {
-    const char *existing = va("map-%s.pk3", map_base);
+  if (updateZip) {
+    const char *existing = va("map-%s.pk3", mapBase);
 
     if (Fs_Exists(existing)) {
       const char *dir = Fs_RealDir(existing);

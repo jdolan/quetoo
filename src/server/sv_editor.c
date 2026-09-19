@@ -117,7 +117,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
     Cm_FreeEntity(ent);
   } else {
-    for (int32_t i = Cm_Bsp()->numEntities; i < sv_max_entities->integer; i++) {
+    for (int32_t i = Cm_Bsp()->numEntities; i < sv_maxEntities->integer; i++) {
       if (sv.entities[i].gent->inUse == false) {
         number = i;
         break;
@@ -201,7 +201,7 @@ void Sv_SaveEditorMap_f(void) {
   Fs_Print(file, "// Format: Valve220\n");
 
   int32_t entityNum = 0;
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
 
     if (!sv.configStrings[CS_ENTITIES + i][0]) {
       continue;

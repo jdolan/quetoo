@@ -42,7 +42,7 @@ static void dealloc(Object *self) {
 #pragma mark - Health
 
 /**
- * @brief Applies the `cg_draw_crosshair_health` scheme to the RGB of `color`.
+ * @brief Applies the `cg_drawCrosshairHealth` scheme to the RGB of `color`.
  */
 static void applyHealth(Vec4 *color, int16_t health) {
 
@@ -51,7 +51,7 @@ static void applyHealth(Vec4 *color, int16_t health) {
   const float low = Clampf01((health - 15) / 50.f);
   const float medium = Clampf01((health - 65) / 35.f);
 
-  switch (cg_draw_crosshair_health->integer) {
+  switch (cg_drawCrosshairHealth->integer) {
     case CROSSHAIR_HEALTH_RED_WHITE:
       color->x = 1.f;
       color->y = frac;
@@ -149,7 +149,7 @@ static bool visible(const PlayerState *ps) {
     return true;
   }
 
-  if (!cg_draw_crosshair->value) {
+  if (!cg_drawCrosshair->value) {
     return false;
   }
 
@@ -173,7 +173,7 @@ static bool visible(const PlayerState *ps) {
     return false;
   }
 
-  if (cg_state.centerPrint.time > cgi.client->unclampedTime) {
+  if (cgState.centerPrint.time > cgi.client->unclampedTime) {
     return false;
   }
 
@@ -190,42 +190,42 @@ static void updateBindings(View *self, ident data) {
   CrosshairView *this = (CrosshairView *) self;
 
   if (data == NULL) {
-    cg_draw_crosshair->modified = true;
-    cg_draw_crosshair_scale->modified = true;
-    cg_draw_crosshair_color->modified = true;
+    cg_drawCrosshair->modified = true;
+    cg_drawCrosshairScale->modified = true;
+    cg_drawCrosshairColor->modified = true;
     return;
   }
 
   const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
-  if (cg_draw_crosshair->modified || cg_draw_crosshair_scale->modified) {
-    cg_draw_crosshair->modified = false;
-    cg_draw_crosshair_scale->modified = false;
+  if (cg_drawCrosshair->modified || cg_drawCrosshairScale->modified) {
+    cg_drawCrosshair->modified = false;
+    cg_drawCrosshairScale->modified = false;
 
-    cg_draw_crosshair->value = Clampf(cg_draw_crosshair->value, 0.f, 100.f);
-    cg_draw_crosshair_scale->value = Clampf(cg_draw_crosshair_scale->value, 0.f, 4.f);
+    cg_drawCrosshair->value = Clampf(cg_drawCrosshair->value, 0.f, 100.f);
+    cg_drawCrosshairScale->value = Clampf(cg_drawCrosshairScale->value, 0.f, 4.f);
 
     $(this->imageView, setImage, NULL);
 
-    if (cg_draw_crosshair->integer) {
-      const float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
+    if (cg_drawCrosshair->integer) {
+      const float scale = cg_drawCrosshairScale->value * CROSSHAIR_SCALE;
 
-      Image *image = Cg_LoadImageScaled(va("pics/ch%d", cg_draw_crosshair->integer), scale);
+      Image *image = Cg_LoadImageScaled(va("pics/ch%d", cg_drawCrosshair->integer), scale);
       if (image) {
         $(this->imageView, setImage, image);
         release(image);
       } else {
-        Cg_Warn("Couldn't load pics/ch%d\n", cg_draw_crosshair->integer);
+        Cg_Warn("Couldn't load pics/ch%d\n", cg_drawCrosshair->integer);
       }
     }
   }
 
-  if (cg_draw_crosshair_color->modified) {
-    cg_draw_crosshair_color->modified = false;
+  if (cg_drawCrosshairColor->modified) {
+    cg_drawCrosshairColor->modified = false;
 
     Color color = color_white;
-    if (q_strcmp(cg_draw_crosshair_color->string, "default")) {
-      if (!Color_Parse(cg_draw_crosshair_color->string, &color)) {
+    if (q_strcmp(cg_drawCrosshairColor->string, "default")) {
+      if (!Color_Parse(cg_drawCrosshairColor->string, &color)) {
         color = color_white;
       }
     }
@@ -245,18 +245,18 @@ static void updateBindings(View *self, ident data) {
 
   applyHealth(&color, ps->stats[STAT_HEALTH]);
 
-  float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
+  float scale = cg_drawCrosshairScale->value * CROSSHAIR_SCALE;
 
-  if (cg_draw_crosshair_pulse->value) {
+  if (cg_drawCrosshairPulse->value) {
 
     const int16_t p = ps->stats[STAT_PICKUP];
-    if (p && p != cg_hud_state.pulse.pickup) {
-      cg_hud_state.pulse.time = cgi.client->unclampedTime;
+    if (p && p != cgHudState.pulse.pickup) {
+      cgHudState.pulse.time = cgi.client->unclampedTime;
     }
 
-    cg_hud_state.pulse.pickup = p;
+    cgHudState.pulse.pickup = p;
 
-    const uint32_t delta = cgi.client->unclampedTime - cg_hud_state.pulse.time;
+    const uint32_t delta = cgi.client->unclampedTime - cgHudState.pulse.time;
     if (delta < 300) {
       const float frac = delta / 300.f;
       scale += sinf(frac * M_PI) * CROSSHAIR_SCALE;
@@ -264,7 +264,7 @@ static void updateBindings(View *self, ident data) {
     }
   }
 
-  color.w *= cg_draw_crosshair_alpha->value;
+  color.w *= cg_drawCrosshairAlpha->value;
 
   if (editor->value) {
     color = Vec4_One();

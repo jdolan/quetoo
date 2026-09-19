@@ -29,10 +29,10 @@ static void G_ClientDamage(GameClient *cl) {
 
   if (cl->damageHealth || cl->damageArmor) {
     // play an appropriate pain sound
-    if (g_level.time > cl->painTime) {
+    if (gLevel.time > cl->painTime) {
       int32_t pain;
 
-      cl->painTime = g_level.time + 700;
+      cl->painTime = gLevel.time + 700;
 
       if (cl->entity->health < 25) {
         pain = 0;
@@ -47,7 +47,7 @@ static void G_ClientDamage(GameClient *cl) {
       const Vec3 org = Vec3_Add(cl->ps.pmState.origin, cl->ps.pmState.viewOffset);
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.pain[pain],
+        .index = gMedia.sounds.pain[pain],
         .entity = cl->entity,
         .origin = &org,
       }, MULTICAST_PHS);
@@ -68,7 +68,7 @@ static void G_ClientWaterInteraction(GameClient *cl) {
   GameEntity *ent = cl->entity;
 
   if (ent->moveType == MOVE_TYPE_NO_CLIP) {
-    cl->drownTime = g_level.time + 12000; // don't need air
+    cl->drownTime = gLevel.time + 12000; // don't need air
     return;
   }
 
@@ -78,7 +78,7 @@ static void G_ClientWaterInteraction(GameClient *cl) {
   // if just entered a water volume, play a sound
   if (oldWaterLevel <= WATER_NONE && waterLevel >= WATER_FEET) {
     G_MulticastSound(&(const GamePlaySound) {
-      .index = g_media.sounds.waterIn,
+      .index = gMedia.sounds.waterIn,
       .entity = ent,
     }, MULTICAST_PHS);
   }
@@ -86,7 +86,7 @@ static void G_ClientWaterInteraction(GameClient *cl) {
   // completely exited the water
   if (oldWaterLevel >= WATER_FEET && waterLevel == WATER_NONE) {
     G_MulticastSound(&(const GamePlaySound) {
-      .index = g_media.sounds.waterOut,
+      .index = gMedia.sounds.waterOut,
       .entity = ent,
     }, MULTICAST_PHS);
   }
@@ -101,11 +101,11 @@ static void G_ClientWaterInteraction(GameClient *cl) {
   if (ent->dead == false) { // if we're alive, we can drown
 
     // head just coming out of water, play a gasp if we were down for a while
-    if (oldWaterLevel == WATER_UNDER && waterLevel != WATER_UNDER && (cl->drownTime - g_level.time) < 8000) {
+    if (oldWaterLevel == WATER_UNDER && waterLevel != WATER_UNDER && (cl->drownTime - gLevel.time) < 8000) {
       const Vec3 org = Vec3_Add(cl->ps.pmState.origin, cl->ps.pmState.viewOffset);
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.gasp,
+        .index = gMedia.sounds.gasp,
         .entity = ent,
         .origin = &org,
       }, MULTICAST_PHS);
@@ -113,11 +113,11 @@ static void G_ClientWaterInteraction(GameClient *cl) {
 
     // check for drowning
     if (waterLevel != WATER_UNDER) { // take some air, push out drown time
-      cl->drownTime = g_level.time + 12000;
+      cl->drownTime = gLevel.time + 12000;
       ent->damage = 0;
     } else { // we're under water
-      if (cl->drownTime < g_level.time && ent->health > 0) {
-        cl->drownTime = g_level.time + 1000;
+      if (cl->drownTime < gLevel.time && ent->health > 0) {
+        cl->drownTime = gLevel.time + 1000;
 
         // take more damage the longer under water
         ent->damage += 2;
@@ -134,7 +134,7 @@ static void G_ClientWaterInteraction(GameClient *cl) {
         }
 
         // suppress normal pain sound
-        cl->painTime = g_level.time;
+        cl->painTime = gLevel.time;
 
         // and apply the damage
         G_Damage(&(GameDamage) {
@@ -155,16 +155,16 @@ static void G_ClientWaterInteraction(GameClient *cl) {
 
   // check for sizzle damage
   if (waterLevel && (ent->waterType & (CONTENTS_LAVA | CONTENTS_SLIME))) {
-    if (cl->sizzleTime <= g_level.time) {
-      cl->sizzleTime = g_level.time + 300;
+    if (cl->sizzleTime <= gLevel.time) {
+      cl->sizzleTime = gLevel.time + 300;
 
-      if (!ent->dead && (ent->waterType & CONTENTS_LAVA) && cl->painTime <= g_level.time) {
+      if (!ent->dead && (ent->waterType & CONTENTS_LAVA) && cl->painTime <= gLevel.time) {
 
         // play a sizzle sound instead of a normal pain sound
         ent->s.event = EV_CLIENT_SIZZLE;
 
         // suppress normal pain sound
-        cl->painTime = g_level.time + 800;
+        cl->painTime = gLevel.time + 800;
       }
 
       if (ent->waterType & CONTENTS_LAVA) {
@@ -226,8 +226,8 @@ static void G_ClientWorldAngles(GameClient *cl) {
   // check for footsteps
   if (ent->ground.ent && ent->moveType == MOVE_TYPE_WALK && !ent->s.event) {
 
-    if (cl->speed > 250.0 && cl->footstepTime < g_level.time) {
-      cl->footstepTime = g_level.time + 275;
+    if (cl->speed > 250.0 && cl->footstepTime < gLevel.time) {
+      cl->footstepTime = gLevel.time + 275;
       ent->s.event = EV_CLIENT_FOOTSTEP;
     }
   }
@@ -257,9 +257,9 @@ static void G_ClientDeathCam(GameClient *cl) {
   const Vec3 eyes = Vec3_Add(ent->s.origin,
                                MakeVec3(0.f, 0.f, (cl->ps.pmState.flags & PMF_GIBLET) ? 0.f : -16.f));
 
-  const float duration = Maxf(g_death_cam_time->value, QUETOO_TICK_MILLIS);
+  const float duration = Maxf(g_deathCamTime->value, QUETOO_TICK_MILLIS);
 
-  const float elapsed = g_level.time - cl->deathCamTime;
+  const float elapsed = gLevel.time - cl->deathCamTime;
 
   const float frac = Clampf01(elapsed / duration);
   const float prev = Clampf01((elapsed - QUETOO_TICK_MILLIS) / duration);
@@ -386,7 +386,7 @@ static void G_ClientAnimation(GameClient *cl) {
 
   if (ent->solid == SOLID_DEAD) {
 
-    if (g_level.time >= cl->deathTime + DEATH_ANIM_SETTLE_TIME) {
+    if (gLevel.time >= cl->deathTime + DEATH_ANIM_SETTLE_TIME) {
       switch (ent->s.animation1 & ANIM_MASK_VALUE) {
         case ANIM_BOTH_DEATH1:
         case ANIM_BOTH_DEATH2:
@@ -412,7 +412,7 @@ static void G_ClientAnimation(GameClient *cl) {
 
   if (!ent->ground.ent) { // not on the ground
 
-    if (g_level.time - cl->jumpTime > 400) {
+    if (gLevel.time - cl->jumpTime > 400) {
       if (ent->waterLevel == WATER_UNDER && cl->speed > 10.0) { // swimming
         G_SetAnimation(cl, ANIM_LEGS_SWIM, false);
         return;
@@ -435,7 +435,7 @@ static void G_ClientAnimation(GameClient *cl) {
 
   // duck, walk or run after landing
 
-  if (g_level.time - 400 > cl->landTime && g_level.time - 50 > cl->groundTime) {
+  if (gLevel.time - 400 > cl->landTime && gLevel.time - 50 > cl->groundTime) {
 
     Vec3 forward;
     
@@ -500,7 +500,7 @@ void G_ClientEndFrame(GameClient *cl) {
   cl->ps.pmState.velocity = cl->entity->velocity;
 
   // If in intermission, just set stats and scores and return
-  if (g_level.intermissionTime) {
+  if (gLevel.intermissionTime) {
     G_ClientStats(cl);
     G_ClientScores(cl);
     return;

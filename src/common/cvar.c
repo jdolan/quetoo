@@ -25,9 +25,9 @@
 #include "console.h"
 #include "filesystem.h"
 
-static HashTable *cvar_vars;
+static HashTable *cvarVars;
 
-bool cvar_user_info_modified;
+bool cvarUserInfoModified;
 
 /**
  * @return True if the specified string appears to be a valid "info" string.
@@ -53,8 +53,8 @@ static bool Cvar_InfoValidate(const char *s) {
  */
 Cvar *Cvar_Get(const char *name) {
 
-  if (cvar_vars) {
-    const List *list = $(cvar_vars, get, (void *) name);
+  if (cvarVars) {
+    const List *list = $(cvarVars, get, (void *) name);
     if (list) {
       if (list->count == 1) { // only 1 entry, return it
         return list->head->element;
@@ -191,7 +191,7 @@ void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
     .vars = $(alloc(PointerArray), init),
   };
 
-  $(cvar_vars, enumerate, Cvar_Enumerate_collect, &ctx);
+  $(cvarVars, enumerate, Cvar_Enumerate_collect, &ctx);
   $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.vars->count; i++) {
@@ -201,7 +201,7 @@ void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
   release(ctx.vars);
 }
 
-static char cvar_complete_pattern[MAX_STRING_CHARS];
+static char cvarCompletePattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for `Cvar_CompleteVar`.
@@ -209,7 +209,7 @@ static char cvar_complete_pattern[MAX_STRING_CHARS];
 static void Cvar_CompleteVar_enumerate(Cvar *var, void *data) {
   List *matches = data;
 
-  if (GlobMatch(cvar_complete_pattern, var->name, GLOB_CASE_INSENSITIVE)) {
+  if (GlobMatch(cvarCompletePattern, var->name, GLOB_CASE_INSENSITIVE)) {
     Con_AutocompleteMatch(matches, var->name, Cvar_Stringify(var));
   }
 }
@@ -218,7 +218,7 @@ static void Cvar_CompleteVar_enumerate(Cvar *var, void *data) {
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, List *matches) {
-  q_strlcpy(cvar_complete_pattern, pattern, sizeof(cvar_complete_pattern));
+  q_strlcpy(cvarCompletePattern, pattern, sizeof(cvarCompletePattern));
   Cvar_Enumerate(Cvar_CompleteVar_enumerate, matches);
 }
 
@@ -280,12 +280,12 @@ Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *
   }
 
   void *key = (void *) var->name;
-  List *list = $(cvar_vars, get, key);
+  List *list = $(cvarVars, get, key);
 
   if (!list) {
     list = $(alloc(List), init);
     list->destroy = Mem_Free;
-    $(cvar_vars, set, key, list);
+    $(cvarVars, set, key, list);
   }
 
   $(list, prepend, var);
@@ -384,7 +384,7 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
   }
 
   if (var->flags & CVAR_USER_INFO) {
-    cvar_user_info_modified = true; // transmit at next opportunity
+    cvarUserInfoModified = true; // transmit at next opportunity
   }
 
   Mem_Free(var->string);
@@ -530,7 +530,7 @@ void Cvar_UpdateLatched(void) {
   Cvar_Enumerate(Cvar_UpdateLatched_enumerate, NULL);
 }
 
-static bool cvar_pending;
+static bool cvarPending;
 
 /**
  * @brief Enumeration helper for `Cvar_Pending`.
@@ -539,7 +539,7 @@ static void Cvar_Pending_enumerate(Cvar *var, void *data) {
   uint32_t flags = *((uint32_t *) data);
 
   if ((var->flags & flags) && var->modified) {
-    cvar_pending = true;
+    cvarPending = true;
   }
 }
 
@@ -547,11 +547,11 @@ static void Cvar_Pending_enumerate(Cvar *var, void *data) {
  * @brief Returns true if any variables whose flags match the specified mask are pending.
  */
 bool Cvar_Pending(uint32_t flags) {
-  cvar_pending = false;
+  cvarPending = false;
 
   Cvar_Enumerate(Cvar_Pending_enumerate, (void *) &flags);
 
-  return cvar_pending;
+  return cvarPending;
 }
 
 /**
@@ -750,7 +750,7 @@ static void Cvar_FreeAll(void) {
     .lists = $(alloc(PointerArray), init),
   };
 
-  $(cvar_vars, enumerate, Cvar_Shutdown_collect, ctx.lists);
+  $(cvarVars, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
     release((List *) $(ctx.lists, get, i));
@@ -767,7 +767,7 @@ static void Cvar_FreeAll(void) {
  */
 void Cvar_Init(void) {
 
-  cvar_vars = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
+  cvarVars = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
   Cmd *setCmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
   Cmd *setaCmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
@@ -809,8 +809,8 @@ void Cvar_Init(void) {
 void Cvar_Shutdown(void) {
 
   Cvar_FreeAll();
-  release(cvar_vars);
-  cvar_vars = NULL;
+  release(cvarVars);
+  cvarVars = NULL;
 
   Cmd_Remove("set");
   Cmd_Remove("seta");

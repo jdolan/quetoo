@@ -85,7 +85,7 @@ typedef struct {
 
 } ClientGameEditor;
 
-extern ClientGameEditor cg_editor;
+extern ClientGameEditor cgEditor;
 
 /**
  * @brief The result of a combined editor trace against all BSP models and `CONTENTS_EDITOR` entities.
@@ -93,8 +93,8 @@ extern ClientGameEditor cg_editor;
 typedef struct {
 
   /**
-   * @brief Pointer into `cg_editor.entities[]` for the resolved entity. Always valid; defaults to
-   *   worldspawn (`&cg_editor.entities[0]`) when no more-specific entity was hit.
+   * @brief Pointer into `cgEditor.entities[]` for the resolved entity. Always valid; defaults to
+   *   worldspawn (`&cgEditor.entities[0]`) when no more-specific entity was hit.
    */
   ClientGameEditorEntity *ent;
 

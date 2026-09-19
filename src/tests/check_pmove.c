@@ -44,7 +44,7 @@ Quetoo quetoo;
 // the upward speed above which Quake stops considering a player grounded
 #define PM_QUAKE_UP_SPEED_FOR_TEST 180.f
 
-static void *test_ground_ent = (void *) (intptr_t) 1;
+static void *testGroundEnt = (void *) (intptr_t) 1;
 
 /**
  * @brief A world that is nothing but a floor at z = 0.
@@ -62,7 +62,7 @@ static CmTrace Test_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
     trace.fraction = 0.f;
     trace.end = start;
     trace.plane.normal = Vec3_Up();
-    trace.ent = test_ground_ent;
+    trace.ent = testGroundEnt;
     return trace;
   }
 
@@ -70,7 +70,7 @@ static CmTrace Test_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
     trace.fraction = (from - TEST_FLOOR) / (from - to);
     trace.end = Vec3_Mix(start, end, trace.fraction);
     trace.plane.normal = Vec3_Up();
-    trace.ent = test_ground_ent;
+    trace.ent = testGroundEnt;
   }
 
   return trace;

@@ -301,9 +301,9 @@ void Ui_Init(void) {
   MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
   // MVC asset lookups resolve through the renderer's R_ResourceProvider, which
-  // is registered for the lifetime of the device (see r_context.c); the old
+  // is registered for the lifetime of the device (see rContext.c); the old
   // Ui_Data provider was a redundant second bridge to Fs_Load.
-  windowController = $(alloc(WindowController), initWithDevice, r_context.device);
+  windowController = $(alloc(WindowController), initWithDevice, rContext.device);
 
   rootViewController = $(alloc(ViewController), init);
   $(windowController, setViewController, rootViewController);

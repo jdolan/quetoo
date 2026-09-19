@@ -25,7 +25,7 @@
 #include "filesystem.h"
 #include <Objectively/List.h>
 
-extern bool cvar_user_info_modified;
+extern bool cvarUserInfoModified;
 
 typedef void (*Cvar_Enumerator)(Cvar *var, void *data);
 

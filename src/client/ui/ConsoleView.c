@@ -194,14 +194,14 @@ static void update(ConsoleView *self, int32_t height) {
     return;
   }
 
-  cl_console.width = Maxi(frame.w / ch.w, 2);
-  cl_console.height = Maxi(height / ch.h - 1, 0);
+  clConsole.width = Maxi(frame.w / ch.w, 2);
+  clConsole.height = Maxi(height / ch.h - 1, 0);
 
   if (view->frame.h != height) {
     $(view, resize, &MakeSize(view->frame.w, height));
   }
 
-  const Uint8 alpha = (Uint8) (Clampf01(cl_draw_console_background_alpha->value) * 255);
+  const Uint8 alpha = (Uint8) (Clampf01(cl_drawConsoleBackgroundAlpha->value) * 255);
 
   // the image is named rather than loaded, so it is absent until this View is in a window, and
   // stays absent if the asset is missing; either way the plain background colour stands in
@@ -228,8 +228,8 @@ static void update(ConsoleView *self, int32_t height) {
     $(view, invalidateStyle);
   }
 
-  tail(&cl_console, cl_console.height, self->buffer);
-  inputLine(&cl_console, ESC_COLOR_GREEN, self->input);
+  tail(&clConsole, clConsole.height, self->buffer);
+  inputLine(&clConsole, ESC_COLOR_GREEN, self->input);
 
   self->input->view.frame.x = 1;
   self->input->view.frame.y = height - ch.h;

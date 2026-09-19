@@ -21,120 +21,120 @@
 
 #include "cg_local.h"
 
-SoundSample *cg_sample_blaster_fire;
-SoundSample *cg_sample_blaster_hit;
-SoundSample *cg_sample_shotgun_fire;
-SoundSample *cg_sample_supershotgun_fire;
-SoundSample *cg_sample_machinegun_fire[3];
-SoundSample *cg_sample_machinegun_hit[3];
-SoundSample *cg_sample_grenadelauncher_fire;
-SoundSample *cg_sample_rocketlauncher_fire;
-SoundSample *cg_sample_hyperblaster_fire;
-SoundSample *cg_sample_hyperblaster_hit;
-SoundSample *cg_sample_lightning_fire;
-SoundSample *cg_sample_laser_fire;
-SoundSample *cg_sample_lightning_discharge;
-SoundSample *cg_sample_railgun_fire;
-SoundSample *cg_sample_bfg_fire;
-SoundSample *cg_sample_bfg_hit;
+SoundSample *cgSampleBlasterFire;
+SoundSample *cgSampleBlasterHit;
+SoundSample *cgSampleShotgunFire;
+SoundSample *cgSampleSupershotgunFire;
+SoundSample *cgSampleMachinegunFire[3];
+SoundSample *cgSampleMachinegunHit[3];
+SoundSample *cgSampleGrenadelauncherFire;
+SoundSample *cgSampleRocketlauncherFire;
+SoundSample *cgSampleHyperblasterFire;
+SoundSample *cgSampleHyperblasterHit;
+SoundSample *cgSampleLightningFire;
+SoundSample *cgSampleLaserFire;
+SoundSample *cgSampleLightningDischarge;
+SoundSample *cgSampleRailgunFire;
+SoundSample *cgSampleBfgFire;
+SoundSample *cgSampleBfgHit;
 #if defined(G_HOOK)
-SoundSample *cg_sample_hook_hit;
+SoundSample *cgSampleHookHit;
 #endif
 
-SoundSample *cg_sample_quake_shotgun_fire;
-SoundSample *cg_sample_quake_supershotgun_fire;
-SoundSample *cg_sample_quake_nailgun_fire;
-SoundSample *cg_sample_quake_supernailgun_fire;
-SoundSample *cg_sample_quake_nail_hit;
-SoundSample *cg_sample_quake_grenadelauncher_fire;
-SoundSample *cg_sample_quake_rocketlauncher_fire;
+SoundSample *cgSampleQuakeShotgunFire;
+SoundSample *cgSampleQuakeSupershotgunFire;
+SoundSample *cgSampleQuakeNailgunFire;
+SoundSample *cgSampleQuakeSupernailgunFire;
+SoundSample *cgSampleQuakeNailHit;
+SoundSample *cgSampleQuakeGrenadelauncherFire;
+SoundSample *cgSampleQuakeRocketlauncherFire;
 
-SoundSample *cg_sample_explosion;
-SoundSample *cg_sample_teleport;
-SoundSample *cg_sample_respawn;
-SoundSample *cg_sample_sparks;
-SoundSample *cg_sample_fire;
-SoundSample *cg_sample_steam;
+SoundSample *cgSampleExplosion;
+SoundSample *cgSampleTeleport;
+SoundSample *cgSampleRespawn;
+SoundSample *cgSampleSparks;
+SoundSample *cgSampleFire;
+SoundSample *cgSampleSteam;
 
-SoundSample *cg_sample_rain;
-SoundSample *cg_sample_snow;
-SoundSample* cg_sample_ash;
-SoundSample *cg_sample_underwater;
-SoundSample *cg_sample_hits[2];
-SoundSample *cg_sample_gib;
+SoundSample *cgSampleRain;
+SoundSample *cgSampleSnow;
+SoundSample* cgSampleAsh;
+SoundSample *cgSampleUnderwater;
+SoundSample *cgSampleHits[2];
+SoundSample *cgSampleGib;
 
-static RenderAtlas *cg_sprite_atlas;
+static RenderAtlas *cgSpriteAtlas;
 
-RenderAtlasImage *cg_sprite_particle;
-RenderAtlasImage *cg_sprite_particle2;
-RenderAtlasImage *cg_sprite_particle3;
-RenderAtlasImage *cg_sprite_flash;
-RenderAtlasImage *cg_sprite_ring;
-RenderAtlasImage *cg_sprite_blaster_flash;
-RenderAtlasImage *cg_sprite_aniso_flare_01;
-RenderAtlasImage *cg_sprite_rain;
-RenderAtlasImage *cg_sprite_snow;
-RenderAtlasImage* cg_sprite_ash;
-RenderAtlasImage *cg_sprite_bubble;
-RenderAtlasImage *cg_sprite_teleport;
-RenderAtlasImage *cg_sprite_teleport_core;
-RenderAtlasImage *cg_sprite_smoke;
-RenderAtlasImage *cg_sprite_flame;
-RenderAtlasImage *cg_sprite_explosion_glow;
-RenderAtlasImage *cg_sprite_explosion_flash;
-RenderAtlasImage *cg_sprite_spark;
-RenderAtlasImage *cg_sprite_steam;
-RenderAtlasImage *cg_sprite_inactive;
-RenderAtlasImage *cg_sprite_plasma_var01;
-RenderAtlasImage *cg_sprite_plasma_var02;
-RenderAtlasImage *cg_sprite_plasma_var03;
-RenderAtlasImage *cg_sprite_blob_01;
-RenderAtlasImage *cg_sprite_electro_02;
-RenderAtlasImage *cg_sprite_splash_02_03;
-RenderAtlasImage *cg_sprite_impact_spark_01_dot;
-RenderAtlasImage *cg_sprite_puff_cloud;
-RenderAtlasImage *cg_sprite_water_circle;
-RenderAtlasImage *cg_sprite_water_ring;
-RenderAtlasImage *cg_sprite_water_ring2;
-RenderAtlasImage *cg_sprite_abstract_01;
-RenderAtlasImage *cg_sprite_node_wait;
-RenderAtlasImage *cg_sprite_node_slow;
+RenderAtlasImage *cgSpriteParticle;
+RenderAtlasImage *cgSpriteParticle2;
+RenderAtlasImage *cgSpriteParticle3;
+RenderAtlasImage *cgSpriteFlash;
+RenderAtlasImage *cgSpriteRing;
+RenderAtlasImage *cgSpriteBlasterFlash;
+RenderAtlasImage *cgSpriteAnisoFlare01;
+RenderAtlasImage *cgSpriteRain;
+RenderAtlasImage *cgSpriteSnow;
+RenderAtlasImage* cgSpriteAsh;
+RenderAtlasImage *cgSpriteBubble;
+RenderAtlasImage *cgSpriteTeleport;
+RenderAtlasImage *cgSpriteTeleportCore;
+RenderAtlasImage *cgSpriteSmoke;
+RenderAtlasImage *cgSpriteFlame;
+RenderAtlasImage *cgSpriteExplosionGlow;
+RenderAtlasImage *cgSpriteExplosionFlash;
+RenderAtlasImage *cgSpriteSpark;
+RenderAtlasImage *cgSpriteSteam;
+RenderAtlasImage *cgSpriteInactive;
+RenderAtlasImage *cgSpritePlasmaVar01;
+RenderAtlasImage *cgSpritePlasmaVar02;
+RenderAtlasImage *cgSpritePlasmaVar03;
+RenderAtlasImage *cgSpriteBlob01;
+RenderAtlasImage *cgSpriteElectro02;
+RenderAtlasImage *cgSpriteSplash0203;
+RenderAtlasImage *cgSpriteImpactSpark01Dot;
+RenderAtlasImage *cgSpritePuffCloud;
+RenderAtlasImage *cgSpriteWaterCircle;
+RenderAtlasImage *cgSpriteWaterRing;
+RenderAtlasImage *cgSpriteWaterRing2;
+RenderAtlasImage *cgSpriteAbstract01;
+RenderAtlasImage *cgSpriteNodeWait;
+RenderAtlasImage *cgSpriteNodeSlow;
 
-RenderImage *cg_beam_hook;
-RenderImage *cg_beam_arrow;
-RenderImage *cg_beam_line;
-RenderImage *cg_beam_rail;
-RenderImage *cg_beam_lightning;
-RenderImage *cg_beam_tracer;
-RenderImage *cg_beam_tail;
+RenderImage *cgBeamHook;
+RenderImage *cgBeamArrow;
+RenderImage *cgBeamLine;
+RenderImage *cgBeamRail;
+RenderImage *cgBeamLightning;
+RenderImage *cgBeamTracer;
+RenderImage *cgBeamTail;
 
-RenderAnimation *cg_sprite_explosion;
-RenderAnimation *cg_sprite_explosion_ring_02;
-RenderAnimation *cg_sprite_rocket_flame;
-RenderAnimation *cg_sprite_blaster_flame;
-RenderAnimation *cg_sprite_smoke_04;
-RenderAnimation *cg_sprite_smoke_05;
-RenderAnimation *cg_sprite_blaster_ring;
-RenderAnimation *cg_bfg_explosion_1;
-RenderAnimation *cg_sprite_bfg_explosion_2;
-RenderAnimation *cg_sprite_bfg_explosion_3;
-RenderAnimation *cg_sprite_poof_01;
-RenderAnimation *cg_sprite_poof_02;
-RenderAnimation *cg_sprite_blood_01;
-RenderAnimation *cg_sprite_electro_01;
-RenderAnimation *cg_sprite_fireball_01;
-RenderAnimation *cg_sprite_impact_spark_01;
-RenderAnimation *cg_sprite_hyperball_01;
-RenderAnimation *cg_sprite_fizz_01;
+RenderAnimation *cgSpriteExplosion;
+RenderAnimation *cgSpriteExplosionRing02;
+RenderAnimation *cgSpriteRocketFlame;
+RenderAnimation *cgSpriteBlasterFlame;
+RenderAnimation *cgSpriteSmoke04;
+RenderAnimation *cgSpriteSmoke05;
+RenderAnimation *cgSpriteBlasterRing;
+RenderAnimation *cgBfgExplosion1;
+RenderAnimation *cgSpriteBfgExplosion2;
+RenderAnimation *cgSpriteBfgExplosion3;
+RenderAnimation *cgSpritePoof01;
+RenderAnimation *cgSpritePoof02;
+RenderAnimation *cgSpriteBlood01;
+RenderAnimation *cgSpriteElectro01;
+RenderAnimation *cgSpriteFireball01;
+RenderAnimation *cgSpriteImpactSpark01;
+RenderAnimation *cgSpriteHyperball01;
+RenderAnimation *cgSpriteFizz01;
 
-static RenderAtlas *cg_decal_atlas;
+static RenderAtlas *cgDecalAtlas;
 
-RenderAtlasImage *cg_decal_bullet[3];
-RenderAtlasImage *cg_decal_blood[4];
-RenderAtlasImage *cg_decal_burn[4];
-RenderAtlasImage *cg_decal_slug[4];
+RenderAtlasImage *cgDecalBullet[3];
+RenderAtlasImage *cgDecalBlood[4];
+RenderAtlasImage *cgDecalBurn[4];
+RenderAtlasImage *cgDecalSlug[4];
 
-Framebuffer *cg_framebuffer;
+Framebuffer *cgFramebuffer;
 
 /**
  * @brief Creates the client game framebuffer sized to the current window dimensions.
@@ -149,7 +149,7 @@ void Cg_CreateFramebuffer(void) {
   // (gl_FragCoord.z) the sprite pass samples for soft particles -- double
   // buffered so sprites can sample *last* frame's copy in the same pass that
   // writes this frame's, avoiding a same-frame write-then-read hazard.
-  cg_framebuffer = cgi.CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
+  cgFramebuffer = cgi.CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
     .size = MakeSize(rect.w, rect.h),
     .colorAttachments = {
       { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .clearColor = { 0.f, 0.f, 0.f, 1.f } },
@@ -165,9 +165,9 @@ void Cg_CreateFramebuffer(void) {
  */
 void Cg_DestroyFramebuffer(void) {
   
-  if (cg_framebuffer) {
-    cgi.DestroyFramebuffer(cg_framebuffer);
-    cg_framebuffer = NULL;
+  if (cgFramebuffer) {
+    cgi.DestroyFramebuffer(cgFramebuffer);
+    cgFramebuffer = NULL;
   }
 }
 
@@ -202,157 +202,157 @@ void Cg_LoadMedia(void) {
   
   cgi.LoadingProgress(-1, "sounds");
 
-  cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit", ASSET_CONTEXT_SOUNDS);
-  cg_sample_shotgun_fire = cgi.LoadSample("weapons/shotgun/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_supershotgun_fire = cgi.LoadSample("weapons/supershotgun/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_grenadelauncher_fire = cgi.LoadSample("weapons/grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_rocketlauncher_fire = cgi.LoadSample("weapons/rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_hyperblaster_fire = cgi.LoadSample("weapons/hyperblaster/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_hyperblaster_hit = cgi.LoadSample("weapons/hyperblaster/hit", ASSET_CONTEXT_SOUNDS);
-  cg_sample_lightning_fire = cgi.LoadSample("weapons/lightning/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_laser_fire = cgi.LoadSample("trigger/laser/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_lightning_discharge = cgi.LoadSample("weapons/lightning/discharge", ASSET_CONTEXT_SOUNDS);
-  cg_sample_railgun_fire = cgi.LoadSample("weapons/railgun/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_bfg_fire = cgi.LoadSample("weapons/bfg/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_bfg_hit = cgi.LoadSample("weapons/bfg/hit", ASSET_CONTEXT_SOUNDS);
+  cgSampleBlasterFire = cgi.LoadSample("weapons/blaster/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleBlasterHit = cgi.LoadSample("weapons/blaster/hit", ASSET_CONTEXT_SOUNDS);
+  cgSampleShotgunFire = cgi.LoadSample("weapons/shotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleSupershotgunFire = cgi.LoadSample("weapons/supershotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleGrenadelauncherFire = cgi.LoadSample("weapons/grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleRocketlauncherFire = cgi.LoadSample("weapons/rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleHyperblasterFire = cgi.LoadSample("weapons/hyperblaster/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleHyperblasterHit = cgi.LoadSample("weapons/hyperblaster/hit", ASSET_CONTEXT_SOUNDS);
+  cgSampleLightningFire = cgi.LoadSample("weapons/lightning/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleLaserFire = cgi.LoadSample("trigger/laser/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleLightningDischarge = cgi.LoadSample("weapons/lightning/discharge", ASSET_CONTEXT_SOUNDS);
+  cgSampleRailgunFire = cgi.LoadSample("weapons/railgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleBfgFire = cgi.LoadSample("weapons/bfg/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleBfgHit = cgi.LoadSample("weapons/bfg/hit", ASSET_CONTEXT_SOUNDS);
 
 #if defined(G_HOOK)
-  cg_sample_hook_hit = cgi.LoadSample("grapplehook/hit", ASSET_CONTEXT_SOUNDS);
+  cgSampleHookHit = cgi.LoadSample("grapplehook/hit", ASSET_CONTEXT_SOUNDS);
 #endif
 
-  cg_sample_quake_shotgun_fire = cgi.LoadSample("weapons/quake_shotgun/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_quake_supershotgun_fire = cgi.LoadSample("weapons/quake_supershotgun/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_quake_nailgun_fire = cgi.LoadSample("weapons/quake_nailgun/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_quake_supernailgun_fire = cgi.LoadSample("weapons/quake_supernailgun/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_quake_nail_hit = cgi.LoadSample("projectiles/quake_nail/hit", ASSET_CONTEXT_SOUNDS);
-  cg_sample_quake_grenadelauncher_fire = cgi.LoadSample("weapons/quake_grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
-  cg_sample_quake_rocketlauncher_fire = cgi.LoadSample("weapons/quake_rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleQuakeShotgunFire = cgi.LoadSample("weapons/quake_shotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleQuakeSupershotgunFire = cgi.LoadSample("weapons/quake_supershotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleQuakeNailgunFire = cgi.LoadSample("weapons/quake_nailgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleQuakeSupernailgunFire = cgi.LoadSample("weapons/quake_supernailgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleQuakeNailHit = cgi.LoadSample("projectiles/quake_nail/hit", ASSET_CONTEXT_SOUNDS);
+  cgSampleQuakeGrenadelauncherFire = cgi.LoadSample("weapons/quake_grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cgSampleQuakeRocketlauncherFire = cgi.LoadSample("weapons/quake_rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
 
-  cg_sample_explosion = cgi.LoadSample("weapons/common/explosion", ASSET_CONTEXT_SOUNDS);
-  cg_sample_teleport = cgi.LoadSample("misc/teleport", ASSET_CONTEXT_SOUNDS);
-  cg_sample_respawn = cgi.LoadSample("misc/respawn", ASSET_CONTEXT_SOUNDS);
-  cg_sample_sparks = cgi.LoadSample("ambient/sparks", ASSET_CONTEXT_SOUNDS);
-  cg_sample_fire = cgi.LoadSample("ambient/fire_1", ASSET_CONTEXT_SOUNDS);
-  cg_sample_steam = cgi.LoadSample("ambient/steam_1", ASSET_CONTEXT_SOUNDS);
-  cg_sample_rain = cgi.LoadSample("ambient/rain", ASSET_CONTEXT_SOUNDS);
-  cg_sample_snow = cgi.LoadSample("ambient/snow", ASSET_CONTEXT_SOUNDS);
-  cg_sample_ash = cgi.LoadSample("ambient/ash", ASSET_CONTEXT_SOUNDS);
-  cg_sample_underwater = cgi.LoadSample("ambient/underwater", ASSET_CONTEXT_SOUNDS);
-  cg_sample_gib = cgi.LoadSample("gibs/common/gib", ASSET_CONTEXT_SOUNDS);
+  cgSampleExplosion = cgi.LoadSample("weapons/common/explosion", ASSET_CONTEXT_SOUNDS);
+  cgSampleTeleport = cgi.LoadSample("misc/teleport", ASSET_CONTEXT_SOUNDS);
+  cgSampleRespawn = cgi.LoadSample("misc/respawn", ASSET_CONTEXT_SOUNDS);
+  cgSampleSparks = cgi.LoadSample("ambient/sparks", ASSET_CONTEXT_SOUNDS);
+  cgSampleFire = cgi.LoadSample("ambient/fire_1", ASSET_CONTEXT_SOUNDS);
+  cgSampleSteam = cgi.LoadSample("ambient/steam_1", ASSET_CONTEXT_SOUNDS);
+  cgSampleRain = cgi.LoadSample("ambient/rain", ASSET_CONTEXT_SOUNDS);
+  cgSampleSnow = cgi.LoadSample("ambient/snow", ASSET_CONTEXT_SOUNDS);
+  cgSampleAsh = cgi.LoadSample("ambient/ash", ASSET_CONTEXT_SOUNDS);
+  cgSampleUnderwater = cgi.LoadSample("ambient/underwater", ASSET_CONTEXT_SOUNDS);
+  cgSampleGib = cgi.LoadSample("gibs/common/gib", ASSET_CONTEXT_SOUNDS);
 
-  for (uint32_t i = 0; i < lengthof(cg_sample_hits); i++) {
+  for (uint32_t i = 0; i < lengthof(cgSampleHits); i++) {
     q_snprintf(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
-    cg_sample_hits[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
+    cgSampleHits[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
-  for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_fire); i++) {
+  for (uint32_t i = 0; i < lengthof(cgSampleMachinegunFire); i++) {
     q_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
-    cg_sample_machinegun_fire[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
+    cgSampleMachinegunFire[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
-  for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_hit); i++) {
+  for (uint32_t i = 0; i < lengthof(cgSampleMachinegunHit); i++) {
     q_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIu32, i + 1);
-    cg_sample_machinegun_hit[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
+    cgSampleMachinegunHit[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
   cgi.LoadingProgress(-1, "sprites");
 
   Cg_FreeSprites();
 
-  cg_beam_hook = cgi.LoadImage("sprites/rope", IMG_SPRITE);
-  cg_beam_arrow = cgi.LoadImage("sprites/arrow", IMG_SPRITE);
-  cg_beam_line = cgi.LoadImage("sprites/line", IMG_SPRITE);
-  cg_beam_rail = cgi.LoadImage("sprites/beam", IMG_SPRITE);
-  cg_beam_lightning = cgi.LoadImage("sprites/lightning", IMG_SPRITE);
-  cg_beam_tracer = cgi.LoadImage("sprites/tracer", IMG_SPRITE);
-  cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IMG_SPRITE);
+  cgBeamHook = cgi.LoadImage("sprites/rope", IMG_SPRITE);
+  cgBeamArrow = cgi.LoadImage("sprites/arrow", IMG_SPRITE);
+  cgBeamLine = cgi.LoadImage("sprites/line", IMG_SPRITE);
+  cgBeamRail = cgi.LoadImage("sprites/beam", IMG_SPRITE);
+  cgBeamLightning = cgi.LoadImage("sprites/lightning", IMG_SPRITE);
+  cgBeamTracer = cgi.LoadImage("sprites/tracer", IMG_SPRITE);
+  cgBeamTail = cgi.LoadImage("sprites/particle_tail", IMG_SPRITE);
 
-  cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
-  cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IMG_SPRITE);
-  cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IMG_SPRITE);
-  cg_sprite_particle3 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle3", IMG_SPRITE);
-  cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IMG_SPRITE);
-  cg_sprite_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ring", IMG_SPRITE);
-  cg_sprite_blaster_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blast_01/blast_01_flash", IMG_SPRITE);
-  cg_sprite_aniso_flare_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/aniso_flare_01", IMG_SPRITE);
-  cg_sprite_smoke = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IMG_SPRITE);
-  cg_sprite_flame = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flame", IMG_SPRITE);
-  cg_sprite_explosion_glow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_glow", IMG_SPRITE);
-  cg_sprite_explosion_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_flash", IMG_SPRITE);
-  cg_sprite_spark = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/spark", IMG_SPRITE);
-  cg_sprite_rain = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/rain", IMG_SPRITE);
-  cg_sprite_snow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/snow", IMG_SPRITE);
-  cg_sprite_ash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ash", IMG_SPRITE);
-  cg_sprite_steam = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/steam", IMG_SPRITE);
-  cg_sprite_bubble = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/bubble", IMG_SPRITE);
-  cg_sprite_inactive = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/inactive", IMG_SPRITE);
-  cg_sprite_plasma_var01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var01", IMG_SPRITE);
-  cg_sprite_plasma_var02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var02", IMG_SPRITE);
-  cg_sprite_plasma_var03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var03", IMG_SPRITE);
-  cg_sprite_blob_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blob_01", IMG_SPRITE);
-  cg_sprite_electro_02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/electro_02/electro_02", IMG_SPRITE);
-  cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport", IMG_SPRITE);
-  cg_sprite_teleport_core = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport_core", IMG_SPRITE);
-  cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IMG_SPRITE);
-  cg_sprite_impact_spark_01_dot = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01_dot", IMG_SPRITE);
-  cg_sprite_puff_cloud = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/puff_cloud", IMG_SPRITE);
-  cg_sprite_water_circle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_circle", IMG_SPRITE);
-  cg_sprite_water_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring", IMG_SPRITE);
-  cg_sprite_water_ring2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring2", IMG_SPRITE);
-  cg_sprite_abstract_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/abstract/abstract_01", IMG_SPRITE);
-  cg_sprite_node_wait = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/teamkill", IMG_SPRITE);
-  cg_sprite_node_slow = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/crush", IMG_SPRITE);
+  cgSpriteAtlas = cgi.LoadAtlas("cg_sprite_atlas");
+  cgSpriteParticle = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/particle", IMG_SPRITE);
+  cgSpriteParticle2 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/particle2", IMG_SPRITE);
+  cgSpriteParticle3 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/particle3", IMG_SPRITE);
+  cgSpriteFlash = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/flash", IMG_SPRITE);
+  cgSpriteRing = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/ring", IMG_SPRITE);
+  cgSpriteBlasterFlash = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/blast_01/blast_01_flash", IMG_SPRITE);
+  cgSpriteAnisoFlare01 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/aniso_flare_01", IMG_SPRITE);
+  cgSpriteSmoke = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/smoke", IMG_SPRITE);
+  cgSpriteFlame = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/flame", IMG_SPRITE);
+  cgSpriteExplosionGlow = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/explosion_glow", IMG_SPRITE);
+  cgSpriteExplosionFlash = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/explosion_flash", IMG_SPRITE);
+  cgSpriteSpark = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/spark", IMG_SPRITE);
+  cgSpriteRain = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/rain", IMG_SPRITE);
+  cgSpriteSnow = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/snow", IMG_SPRITE);
+  cgSpriteAsh = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/ash", IMG_SPRITE);
+  cgSpriteSteam = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/steam", IMG_SPRITE);
+  cgSpriteBubble = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/bubble", IMG_SPRITE);
+  cgSpriteInactive = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/inactive", IMG_SPRITE);
+  cgSpritePlasmaVar01 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/plasma/plasma_var01", IMG_SPRITE);
+  cgSpritePlasmaVar02 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/plasma/plasma_var02", IMG_SPRITE);
+  cgSpritePlasmaVar03 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/plasma/plasma_var03", IMG_SPRITE);
+  cgSpriteBlob01 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/blob_01", IMG_SPRITE);
+  cgSpriteElectro02 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/electro_02/electro_02", IMG_SPRITE);
+  cgSpriteTeleport = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/teleport", IMG_SPRITE);
+  cgSpriteTeleportCore = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/teleport_core", IMG_SPRITE);
+  cgSpriteSplash0203 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/splash_02/splash_02_03", IMG_SPRITE);
+  cgSpriteImpactSpark01Dot = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/impact_spark_01/impact_spark_01_dot", IMG_SPRITE);
+  cgSpritePuffCloud = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/puff_cloud", IMG_SPRITE);
+  cgSpriteWaterCircle = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/water/splash_01_circle", IMG_SPRITE);
+  cgSpriteWaterRing = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/water/splash_01_ring", IMG_SPRITE);
+  cgSpriteWaterRing2 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/water/splash_01_ring2", IMG_SPRITE);
+  cgSpriteAbstract01 = cgi.LoadAtlasImage(cgSpriteAtlas, "sprites/abstract/abstract_01", IMG_SPRITE);
+  cgSpriteNodeWait = cgi.LoadAtlasImage(cgSpriteAtlas, "pics/emoji/teamkill", IMG_SPRITE);
+  cgSpriteNodeSlow = cgi.LoadAtlasImage(cgSpriteAtlas, "pics/emoji/crush", IMG_SPRITE);
 
-  cg_sprite_blaster_ring = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
-  cg_sprite_explosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
-  cg_sprite_explosion_ring_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_ring_02/explosion_ring_02", "_%02" PRIu32, 1, 7);
-  cg_sprite_rocket_flame = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_03/flame_03", "_%02" PRIu32, 1, 29);
-  cg_sprite_blaster_flame = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
-  cg_sprite_smoke_04 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
-  cg_sprite_smoke_05 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
-  cg_sprite_bfg_explosion_2 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
-  cg_sprite_bfg_explosion_3 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
-  cg_sprite_poof_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 34);
-  cg_sprite_poof_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
-  cg_sprite_blood_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
-  cg_sprite_electro_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
-  cg_sprite_fireball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
-  cg_sprite_impact_spark_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
-  cg_sprite_hyperball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
-  cg_sprite_fizz_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/fizz_01/fizz_01", "_%02" PRIu32, 1, 24);
+  cgSpriteBlasterRing = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
+  cgSpriteExplosion = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
+  cgSpriteExplosionRing02 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/explosion_ring_02/explosion_ring_02", "_%02" PRIu32, 1, 7);
+  cgSpriteRocketFlame = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/flame_03/flame_03", "_%02" PRIu32, 1, 29);
+  cgSpriteBlasterFlame = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
+  cgSpriteSmoke04 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
+  cgSpriteSmoke05 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
+  cgSpriteBfgExplosion2 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
+  cgSpriteBfgExplosion3 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
+  cgSpritePoof01 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 34);
+  cgSpritePoof02 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
+  cgSpriteBlood01 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
+  cgSpriteElectro01 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
+  cgSpriteFireball01 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
+  cgSpriteImpactSpark01 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
+  cgSpriteHyperball01 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
+  cgSpriteFizz01 = Cg_LoadAnimatedSprite(cgSpriteAtlas, "sprites/fizz_01/fizz_01", "_%02" PRIu32, 1, 24);
 
   cgi.LoadingProgress(-1, "compiling sprite atlas");
 
-  cgi.CompileAtlas(cg_sprite_atlas);
+  cgi.CompileAtlas(cgSpriteAtlas);
 
   cgi.LoadingProgress(-1, "decals");
 
-  cg_decal_atlas = cgi.LoadAtlas("cg_decal_atlas");
+  cgDecalAtlas = cgi.LoadAtlas("cg_decal_atlas");
 
-  for (size_t i = 0; i < lengthof(cg_decal_bullet); i++) {
+  for (size_t i = 0; i < lengthof(cgDecalBullet); i++) {
     q_snprintf(name, sizeof(name), "decals/bullet_%zd", i);
-    cg_decal_bullet[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
+    cgDecalBullet[i] = cgi.LoadAtlasImage(cgDecalAtlas, name, IMG_SPRITE);
   }
 
-  for (size_t i = 0; i < lengthof(cg_decal_blood); i++) {
+  for (size_t i = 0; i < lengthof(cgDecalBlood); i++) {
     q_snprintf(name, sizeof(name), "decals/blood_%zd", i);
-    cg_decal_blood[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
+    cgDecalBlood[i] = cgi.LoadAtlasImage(cgDecalAtlas, name, IMG_SPRITE);
   }
 
-  for (size_t i = 0; i < lengthof(cg_decal_burn); i++) {
+  for (size_t i = 0; i < lengthof(cgDecalBurn); i++) {
     q_snprintf(name, sizeof(name), "decals/burn_%zd", i);
-    cg_decal_burn[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
+    cgDecalBurn[i] = cgi.LoadAtlasImage(cgDecalAtlas, name, IMG_SPRITE);
   }
 
-  for (size_t i = 0; i < lengthof(cg_decal_slug); i++) {
+  for (size_t i = 0; i < lengthof(cgDecalSlug); i++) {
       q_snprintf(name, sizeof(name), "decals/slug_%zd", i);
-      cg_decal_slug[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
+      cgDecalSlug[i] = cgi.LoadAtlasImage(cgDecalAtlas, name, IMG_SPRITE);
   }
 
   cgi.LoadingProgress(-1, "compiling decal atlas");
 
-  cgi.CompileAtlas(cg_decal_atlas);
+  cgi.CompileAtlas(cgDecalAtlas);
 
   Cg_LoadFlares();
 
@@ -370,8 +370,8 @@ void Cg_LoadMedia(void) {
 
   cgi.LoadingProgress(-1, "hud");
 
-  cg_draw_crosshair->modified = true;
-  cg_draw_crosshair_color->modified = true;
+  cg_drawCrosshair->modified = true;
+  cg_drawCrosshairColor->modified = true;
 
   Cg_LoadHudMedia();
   

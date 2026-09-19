@@ -99,7 +99,7 @@ typedef struct {
   TransferBuffer *transfer;
 } RenderOcclusion;
 
-extern RenderOcclusion r_occlusion;
+extern RenderOcclusion rOcclusion;
 
 RenderOcclusionQuery *R_AllocOcclusionQuery(const Box3 bounds);
 void R_AppendOcclusionQueryBox(RenderOcclusionQuery *query, Box3 bounds);

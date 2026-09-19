@@ -47,8 +47,8 @@ void setup(void) {
 
   Mem_Init();
 
-  r_context.device = &device;
-  r_occlusion.boxes = $(alloc(Vector), initWithSize, sizeof(Box3));
+  rContext.device = &device;
+  rOcclusion.boxes = $(alloc(Vector), initWithSize, sizeof(Box3));
 
   R_InitMedia();
 }
@@ -60,8 +60,8 @@ void teardown(void) {
 
   R_ShutdownMedia();
 
-  r_occlusion.boxes = release(r_occlusion.boxes);
-  r_context.device = NULL;
+  rOcclusion.boxes = release(rOcclusion.boxes);
+  rContext.device = NULL;
 
   Mem_Shutdown();
 }

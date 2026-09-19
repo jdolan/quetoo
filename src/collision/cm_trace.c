@@ -268,7 +268,7 @@ static void Cm_TestBoxInBrush(CmTraceData *data, const CmBspBrush *brush) {
  */
 static void Cm_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
 
-  const CmBspLeaf *leaf = &cm_bsp.leafs[leafNum];
+  const CmBspLeaf *leaf = &cmBsp.leafs[leafNum];
 
   if (!(leaf->contents & data->contents)) {
     return;
@@ -276,13 +276,13 @@ static void Cm_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
 
   // trace line against all brushes in the leaf
   for (int32_t i = 0; i < leaf->numLeafBrushes; i++) {
-    const int32_t brushNum = cm_bsp.leafBrushes[leaf->firstLeafBrush + i];
+    const int32_t brushNum = cmBsp.leafBrushes[leaf->firstLeafBrush + i];
 
     if (Cm_BrushAlreadyTested(data, brushNum)) {
       continue; // already checked this brush in another leaf
     }
 
-    const CmBspBrush *b = &cm_bsp.brushes[brushNum];
+    const CmBspBrush *b = &cmBsp.brushes[brushNum];
 
     if (!(b->contents & data->contents)) {
       continue;
@@ -301,7 +301,7 @@ static void Cm_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
  */
 static void Cm_TestInLeaf(CmTraceData *data, int32_t leafNum) {
 
-  const CmBspLeaf *leaf = &cm_bsp.leafs[leafNum];
+  const CmBspLeaf *leaf = &cmBsp.leafs[leafNum];
 
   if (!(leaf->contents & data->contents)) {
     return;
@@ -309,13 +309,13 @@ static void Cm_TestInLeaf(CmTraceData *data, int32_t leafNum) {
 
   // trace line against all brushes in the leaf
   for (int32_t i = 0; i < leaf->numLeafBrushes; i++) {
-    const int32_t brushNum = cm_bsp.leafBrushes[leaf->firstLeafBrush + i];
+    const int32_t brushNum = cmBsp.leafBrushes[leaf->firstLeafBrush + i];
 
     if (Cm_BrushAlreadyTested(data, brushNum)) {
       continue; // already checked this brush in another leaf
     }
 
-    const CmBspBrush *b = &cm_bsp.brushes[brushNum];
+    const CmBspBrush *b = &cmBsp.brushes[brushNum];
 
     if (!(b->contents & data->contents)) {
       continue;
@@ -348,7 +348,7 @@ static void Cm_TraceToNode(CmTraceData *data, int32_t num, float p1f, float p2f,
 next:;
   // find the point distances to the separating plane
   // and the offset for the size of the box
-  const CmBspNode *node = cm_bsp.nodes + num;
+  const CmBspNode *node = cmBsp.nodes + num;
   const CmBspPlane plane = *node->plane;
 
   float d1, d2, offset;
@@ -463,7 +463,7 @@ next:;
  */
 static inline CmTrace Cm_BoxTrace_(CmTraceData *data) {
 
-  if (!cm_bsp.numNodes) { // map not loaded
+  if (!cmBsp.numNodes) { // map not loaded
     return data->trace;
   }
 

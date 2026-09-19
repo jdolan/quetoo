@@ -28,7 +28,7 @@ static void Cg_AddUnderwater(void) {
 
   if (cgi.view->contents & CONTENTS_MASK_LIQUID) {
     Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-      .sample = cg_sample_underwater,
+      .sample = cgSampleUnderwater,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
       .entity = Cg_Self()
     });

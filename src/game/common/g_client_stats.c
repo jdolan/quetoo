@@ -30,11 +30,11 @@ void G_ClientToIntermission(GameClient *cl) {
     return;
   }
 
-  cl->entity->s.origin = g_level.intermissionOrigin;
-  cl->ps.pmState.origin = g_level.intermissionOrigin;
+  cl->entity->s.origin = gLevel.intermissionOrigin;
+  cl->ps.pmState.origin = gLevel.intermissionOrigin;
 
   cl->ps.pmState.viewAngles = Vec3_Zero();
-  cl->ps.pmState.deltaAngles = g_level.intermissionAngle;
+  cl->ps.pmState.deltaAngles = gLevel.intermissionAngle;
 
   cl->ps.pmState.viewOffset = Vec3_Zero();
   cl->ps.pmState.stepOffset = 0.f;
@@ -127,11 +127,11 @@ static size_t G_UpdateScores(GameScore *scores) {
   });
 
   // and optionally concatenate the team scores
-  if (g_level.teams) {
+  if (gLevel.teams) {
     memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
     for (i = 0; i < MAX_TEAMS; i++) {
-      GameTeam *team = &g_team_list[i];
+      GameTeam *team = &gTeamList[i];
 
       s->client = MAX_CLIENTS;
       s->score = team->score;
@@ -154,16 +154,16 @@ void G_ClientScores(GameClient *cl) {
   static GameScore scores[MAX_CLIENTS + MAX_TEAMS];
   static size_t count;
 
-  if (!cl->showScores || (cl->scoresTime > g_level.time)) {
+  if (!cl->showScores || (cl->scoresTime > gLevel.time)) {
     return;
   }
 
-  cl->scoresTime = g_level.time + 500;
+  cl->scoresTime = gLevel.time + 500;
 
   // update the scoreboard if it's stale; this is shared to all clients
-  if (g_level.scoresTime <= g_level.time) {
+  if (gLevel.scoresTime <= gLevel.time) {
     count = G_UpdateScores(scores);
-    g_level.scoresTime = g_level.time + 500;
+    gLevel.scoresTime = gLevel.time + 500;
   }
 
   // send the scores over in chunks
@@ -236,7 +236,7 @@ void G_ClientStats(GameClient *cl) {
   }
 
   // pickup message
-  if (g_level.time > cl->pickupMsgTime) {
+  if (gLevel.time > cl->pickupMsgTime) {
     cl->ps.stats[STAT_PICKUP] = 0;
   }
 
@@ -245,7 +245,7 @@ void G_ClientStats(GameClient *cl) {
 
   // scores
   cl->ps.stats[STAT_SCORES] = 0;
-  if (g_level.intermissionTime || cl->showScores) {
+  if (gLevel.intermissionTime || cl->showScores) {
     cl->ps.stats[STAT_SCORES] |= 1;
   }
 
@@ -256,7 +256,7 @@ void G_ClientStats(GameClient *cl) {
   }
 
   // time
-  if (g_level.intermissionTime) {
+  if (gLevel.intermissionTime) {
     cl->ps.stats[STAT_TIME] = 0;
   } else {
     cl->ps.stats[STAT_TIME] = CS_TIME;
@@ -275,20 +275,20 @@ void G_ClientStats(GameClient *cl) {
     cl->ps.stats[STAT_WEAPON] |= (cl->nextWeapon->def.tag << 8);
   }
 
-  if (g_level.time <= cl->quadDamageTime) {
-    cl->ps.stats[STAT_QUAD_TIME] = ceil((cl->quadDamageTime - g_level.time) / 1000.0);
+  if (gLevel.time <= cl->quadDamageTime) {
+    cl->ps.stats[STAT_QUAD_TIME] = ceil((cl->quadDamageTime - gLevel.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_QUAD_TIME] = 0;
   }
 
-  if (g_level.time <= cl->invisibilityTime) {
-    cl->ps.stats[STAT_INVISIBILITY_TIME] = ceil((cl->invisibilityTime - g_level.time) / 1000.0);
+  if (gLevel.time <= cl->invisibilityTime) {
+    cl->ps.stats[STAT_INVISIBILITY_TIME] = ceil((cl->invisibilityTime - gLevel.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_INVISIBILITY_TIME] = 0;
   }
 
-  if (g_level.time <= cl->invulnerabilityTime) {
-    cl->ps.stats[STAT_INVULNERABILITY_TIME] = ceil((cl->invulnerabilityTime - g_level.time) / 1000.0);
+  if (gLevel.time <= cl->invulnerabilityTime) {
+    cl->ps.stats[STAT_INVULNERABILITY_TIME] = ceil((cl->invulnerabilityTime - gLevel.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_INVULNERABILITY_TIME] = 0;
   }
@@ -315,7 +315,7 @@ void G_ClientSpectatorStats(GameClient *cl) {
     cl->ps.stats[STAT_CHASE] = cl->chaseTarget->entity->s.number;
 
     // scores are independent of chase camera target
-    if (g_level.intermissionTime || cl->showScores) {
+    if (gLevel.intermissionTime || cl->showScores) {
       cl->ps.stats[STAT_SCORES] = 1;
     } else {
       cl->ps.stats[STAT_SCORES] = 0;

@@ -25,7 +25,7 @@
 
 #if defined(__SV_LOCAL_H__)
 extern Cvar *sv_voice;
-extern Cvar *sv_voice_rate;
+extern Cvar *sv_voiceRate;
 
 void Sv_InitVoice(void);
 void Sv_ParseVoice(ServerClient *cl);

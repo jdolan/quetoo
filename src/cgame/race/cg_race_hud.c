@@ -55,7 +55,7 @@ static struct {
   uint32_t time;
   int32_t vsBest, vsRecord;
   uint32_t shown; // when it went up, in unclamped client time; 0 for none
-} cg_race_milestone;
+} module;
 
 /**
  * @see cg_race.h
@@ -63,16 +63,16 @@ static struct {
 void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vsBest, int32_t vsRecord) {
 
   if (label && *label) {
-    q_strlcpy(cg_race_milestone.name, label, sizeof(cg_race_milestone.name));
+    q_strlcpy(module.name, label, sizeof(module.name));
   } else {
     const char *kinds[] = { "Checkpoint", "Split", "Stage" };
-    q_snprintf(cg_race_milestone.name, sizeof(cg_race_milestone.name), "%s %u", kinds[kind % 3], number);
+    q_snprintf(module.name, sizeof(module.name), "%s %u", kinds[kind % 3], number);
   }
 
-  cg_race_milestone.time = time;
-  cg_race_milestone.vsBest = vsBest;
-  cg_race_milestone.vsRecord = vsRecord;
-  cg_race_milestone.shown = cgi.client->unclampedTime;
+  module.time = time;
+  module.vsBest = vsBest;
+  module.vsRecord = vsRecord;
+  module.shown = cgi.client->unclampedTime;
 }
 
 #pragma mark - RaceRunView
@@ -115,7 +115,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   const GameRaceRunState state = ps->stats[STAT_RACE_RUN];
   if (state == RACE_RUN_IDLE) {
-    cg_race_milestone.shown = 0;
+    module.shown = 0;
     return NULL;
   }
 
@@ -138,17 +138,17 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
     q_strlcat(text, va("\n^7%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), sizeof(text));
   }
 
-  if (cg_race_milestone.shown && cgi.client->unclampedTime - cg_race_milestone.shown < RACE_HUD_MILESTONE_MILLIS) {
+  if (module.shown && cgi.client->unclampedTime - module.shown < RACE_HUD_MILESTONE_MILLIS) {
 
-    q_strlcat(text, va("\n^7%s  %s", cg_race_milestone.name, Cg_Race_FormatTime(cg_race_milestone.time)), sizeof(text));
+    q_strlcat(text, va("\n^7%s  %s", module.name, Cg_Race_FormatTime(module.time)), sizeof(text));
 
-    if (cg_race_milestone.vsBest != RACE_MILESTONE_NO_DELTA &&
-        cg_race_milestone.vsBest != cg_race_milestone.vsRecord) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vsBest, "best")), sizeof(text));
+    if (module.vsBest != RACE_MILESTONE_NO_DELTA &&
+        module.vsBest != module.vsRecord) {
+      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(module.vsBest, "best")), sizeof(text));
     }
 
-    if (cg_race_milestone.vsRecord != RACE_MILESTONE_NO_DELTA) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vsRecord, "record")), sizeof(text));
+    if (module.vsRecord != RACE_MILESTONE_NO_DELTA) {
+      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(module.vsRecord, "record")), sizeof(text));
     }
   }
 

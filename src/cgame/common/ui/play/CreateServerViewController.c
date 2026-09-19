@@ -30,7 +30,7 @@
 
 /**
  * @brief TextViewDelegate for the Bots field.
- * Stores (entered value + 1) into sv_min_clients, accounting for the
+ * Stores (entered value + 1) into sv_minClients, accounting for the
  * player themselves occupying one client slot.
  */
 static void botsDidEndEditing(TextView *textView) {

@@ -33,15 +33,15 @@
 
 bool leaked = false;
 
-float micro_volume = 0.125;
+float microVolume = 0.125;
 
-bool no_csg = false;
-bool no_detail = false;
-bool no_liquid = false;
-bool no_merge = false;
-bool no_phong = false;
-bool no_tjunc = false;
-bool no_weld = false;
+bool noCsg = false;
+bool noDetail = false;
+bool noLiquid = false;
+bool noMerge = false;
+bool noPhong = false;
+bool noTjunc = false;
+bool noWeld = false;
 
 /**
  * @brief Compiles the world model entity, performing CSG, BSP, portal, and face generation.
@@ -50,7 +50,7 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
 
   CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
 
-  if (!no_csg) {
+  if (!noCsg) {
     brushes = SubtractBrushes(brushes);
   }
 
@@ -61,7 +61,7 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
   if (FloodEntities(tree)) {
     FillOutside(tree);
   } else {
-    Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
+    Com_Warn("Map leaked, writing maps/%s.lin\n", mapBase);
     leaked = true;
 
     WriteLeakFile(tree);
@@ -71,11 +71,11 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
 
   MakeTreeFaces(tree);
 
-  if (!no_merge) {
+  if (!noMerge) {
     MergeTreeFaces(tree);
   }
 
-  if (!no_tjunc) {
+  if (!noTjunc) {
     FixTJunctions(tree);
   }
 
@@ -94,7 +94,7 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
 static void ProcessInlineModel(const Entity *e, BspModel *out) {
 
   CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
-  if (!no_csg) {
+  if (!noCsg) {
     brushes = SubtractBrushes(brushes);
   }
 
@@ -106,11 +106,11 @@ static void ProcessInlineModel(const Entity *e, BspModel *out) {
 
   MakeTreeFaces(tree);
 
-  if (!no_merge) {
+  if (!noMerge) {
     MergeTreeFaces(tree);
   }
 
-  if (!no_tjunc) {
+  if (!noTjunc) {
     FixTJunctions(tree);
   }
 
@@ -128,7 +128,7 @@ static void ProcessInlineModel(const Entity *e, BspModel *out) {
  */
 static void ProcessModels(void) {
 
-  for (int32_t i = 0; i < num_entities; i++) {
+  for (int32_t i = 0; i < numEntities; i++) {
     const Entity *e = entities + i;
 
     if (!e->numBrushSides) {
@@ -157,18 +157,18 @@ static void ProcessModels(void) {
 int32_t BSP_Main(void) {
 
   Com_Print("\n------------------------------------------\n");
-  Com_Print("\nCompiling %s from %s\n\n", bsp_name, map_name);
+  Com_Print("\nCompiling %s from %s\n\n", bspName, mapName);
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  Fs_Delete(va("maps/%s.prt", map_base));
-  Fs_Delete(va("maps/%s.lin", map_base));
+  Fs_Delete(va("maps/%s.prt", mapBase));
+  Fs_Delete(va("maps/%s.lin", mapBase));
 
   BeginBSPFile();
 
-  map_format = LoadMapFile(map_name);
+  mapFormat = LoadMapFile(mapName);
 
-  Com_Verbose("Map format: %s\n", map_format == MAP_FORMAT_VALVE ? "Quake3 (Valve)" : "Quake3");
+  Com_Verbose("Map format: %s\n", mapFormat == MAP_FORMAT_VALVE ? "Quake3 (Valve)" : "Quake3");
 
   EmitPlanes();
   EmitMaterials();
@@ -181,7 +181,7 @@ int32_t BSP_Main(void) {
 
   TangentVectors();
 
-  WriteBSPFile(bsp_name);
+  WriteBSPFile(bspName);
 
   FreeWindings();
 
@@ -190,7 +190,7 @@ int32_t BSP_Main(void) {
   }
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
-  Com_Print("\nCompiled %s in %d ms\n", bsp_name, (end - start));
+  Com_Print("\nCompiled %s in %d ms\n", bspName, (end - start));
 
   return 0;
 }

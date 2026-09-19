@@ -36,7 +36,7 @@
 
 #include "net_sock.h"
 
-in_addr_t net_lo;
+in_addr_t netLo;
 
 int32_t Net_GetError(void) {
 #if defined(_WIN32)
@@ -356,7 +356,7 @@ void Net_Init(void) {
   WSAStartup(v, &d);
 #endif
 
-  net_lo = inet_addr("127.0.0.1");
+  netLo = inet_addr("127.0.0.1");
 }
 
 /**

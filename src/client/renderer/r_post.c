@@ -79,25 +79,25 @@ static struct {
    * @brief Sampler for scene and bloom textures.
    */
   Sampler *sampler;
-} r_post;
+} module;
 
 /**
  * @brief Creates the bloom ping-pong framebuffers.
  */
 static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 
-  r_post.bloomWidth  = width  / 2;
-  r_post.bloomHeight = height / 2;
+  module.bloomWidth  = width  / 2;
+  module.bloomHeight = height / 2;
 
-  if (r_post.bloomWidth  < 1) { r_post.bloomWidth  = 1; }
-  if (r_post.bloomHeight < 1) { r_post.bloomHeight = 1; }
+  if (module.bloomWidth  < 1) { module.bloomWidth  = 1; }
+  if (module.bloomHeight < 1) { module.bloomHeight = 1; }
 
   for (int32_t i = 0; i < 2; i++) {
 
-    r_post.bloomFramebuffers[i] = release(r_post.bloomFramebuffers[i]);
+    module.bloomFramebuffers[i] = release(module.bloomFramebuffers[i]);
 
-    r_post.bloomFramebuffers[i] = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
-      .size = MakeSize(r_post.bloomWidth, r_post.bloomHeight),
+    module.bloomFramebuffers[i] = $(rContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+      .size = MakeSize(module.bloomWidth, module.bloomHeight),
       .colorAttachments = { { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT } },
       .numColorTargets = 1,
       .sampleCount = SDL_GPU_SAMPLECOUNT_1,
@@ -112,7 +112,7 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
                        Texture *color, Texture *bloom,
                        int32_t width, int32_t height, const RenderPostLocals *locals) {
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
 
   const SDL_GPUColorTargetInfo colorTarget =
       $(target, colorTargetInfo, 0, SDL_GPU_LOADOP_DONT_CARE, SDL_GPU_STOREOP_STORE);
@@ -126,11 +126,11 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
   });
 
   $(pass, bindPipeline, pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_post.vertexBuffer->buffer }, 1);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = module.vertexBuffer->buffer }, 1);
 
   $(pass, bindFragmentSamplers, 0, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = color->texture, .sampler = r_post.sampler->sampler },
-    { .texture = bloom->texture, .sampler = r_post.sampler->sampler },
+    { .texture = color->texture, .sampler = module.sampler->sampler },
+    { .texture = bloom->texture, .sampler = module.sampler->sampler },
   }, 2);
 
   $(commands, pushFragmentUniformData, 0, locals, sizeof(*locals));
@@ -145,21 +145,21 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
  */
 void R_DrawPost(const RenderView *view) {
 
-  if (!r_models.world) {
+  if (!rModels.world) {
     return;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
   if (!commands) {
     return;
   }
 
   Framebuffer *scene = view->framebuffer;
-  Framebuffer *present = r_context.device->framebuffer;
+  Framebuffer *present = rContext.device->framebuffer;
 
   Texture *sceneColor = $(scene, resolveColorTexture, 0);
 
-  if (scene->size.w != r_post.bloomWidth * 2 || scene->size.h != r_post.bloomHeight * 2) {
+  if (scene->size.w != module.bloomWidth * 2 || scene->size.h != module.bloomHeight * 2) {
     R_CreateBloomFramebuffers((int32_t) scene->size.w, (int32_t) scene->size.h);
   }
 
@@ -167,34 +167,34 @@ void R_DrawPost(const RenderView *view) {
 
   if (bloom) {
 
-    R_PostPass(r_post.bloomFramebuffers[0], r_post.bloomPipeline,
+    R_PostPass(module.bloomFramebuffers[0], module.bloomPipeline,
                sceneColor, sceneColor,
-               r_post.bloomWidth, r_post.bloomHeight,
+               module.bloomWidth, module.bloomHeight,
                &(RenderPostLocals) {
                  .postStage = R_POST_BLOOM_EXTRACT,
-                 .bloomThreshold = r_bloom_threshold->value,
+                 .bloomThreshold = r_bloomThreshold->value,
                });
 
-    const int32_t iterations = Clampf(r_bloom_iterations->integer, 1, 8);
+    const int32_t iterations = Clampf(r_bloomIterations->integer, 1, 8);
     for (int32_t i = 0; i < iterations; i++) {
 
-      R_PostPass(r_post.bloomFramebuffers[1], r_post.bloomPipeline,
-                 r_post.bloomFramebuffers[0]->colorAttachments[0].textures[0],
-                 r_post.bloomFramebuffers[0]->colorAttachments[0].textures[0],
-                 r_post.bloomWidth, r_post.bloomHeight,
+      R_PostPass(module.bloomFramebuffers[1], module.bloomPipeline,
+                 module.bloomFramebuffers[0]->colorAttachments[0].textures[0],
+                 module.bloomFramebuffers[0]->colorAttachments[0].textures[0],
+                 module.bloomWidth, module.bloomHeight,
                  &(RenderPostLocals) { .postStage = R_POST_BLOOM_BLUR_X });
 
-      R_PostPass(r_post.bloomFramebuffers[0], r_post.bloomPipeline,
-                 r_post.bloomFramebuffers[1]->colorAttachments[0].textures[0],
-                 r_post.bloomFramebuffers[1]->colorAttachments[0].textures[0],
-                 r_post.bloomWidth, r_post.bloomHeight,
+      R_PostPass(module.bloomFramebuffers[0], module.bloomPipeline,
+                 module.bloomFramebuffers[1]->colorAttachments[0].textures[0],
+                 module.bloomFramebuffers[1]->colorAttachments[0].textures[0],
+                 module.bloomWidth, module.bloomHeight,
                  &(RenderPostLocals) { .postStage = R_POST_BLOOM_BLUR_Y });
     }
   }
 
-  R_PostPass(present, r_post.compositePipeline,
+  R_PostPass(present, module.compositePipeline,
              sceneColor,
-             bloom ? r_post.bloomFramebuffers[0]->colorAttachments[0].textures[0] : sceneColor,
+             bloom ? module.bloomFramebuffers[0]->colorAttachments[0].textures[0] : sceneColor,
              (int32_t) present->size.w, (int32_t) present->size.h,
              &(RenderPostLocals) {
                .postStage = R_POST_TONEMAP,
@@ -246,7 +246,7 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
     },
   };
 
-  return $(r_context.device, loadGraphicsPipeline,
+  return $(rContext.device, loadGraphicsPipeline,
     "shaders/post_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     },
@@ -263,7 +263,7 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
  */
 void R_InitPost(void) {
 
-  memset(&r_post, 0, sizeof(r_post));
+  memset(&module, 0, sizeof(module));
 
   const RenderPostVertex vertexes[] = {
     { .position = MakeVec2(-1.f, -1.f), .texcoord = MakeVec2(0.f, 1.f) },
@@ -274,12 +274,12 @@ void R_InitPost(void) {
     { .position = MakeVec2(-1.f,  1.f), .texcoord = MakeVec2(0.f, 0.f) },
   };
 
-  r_post.vertexBuffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
+  module.vertexBuffer = $(rContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
 
-  r_post.bloomPipeline = R_CreatePostPipeline(SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT);
-  r_post.compositePipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorAttachments[0].format);
+  module.bloomPipeline = R_CreatePostPipeline(SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT);
+  module.compositePipeline = R_CreatePostPipeline(rContext.device->framebuffer->colorAttachments[0].format);
 
-  r_post.sampler = $(r_context.device, createSamplerLinearClamp);
+  module.sampler = $(rContext.device, createSamplerLinearClamp);
 }
 
 /**
@@ -287,15 +287,15 @@ void R_InitPost(void) {
  */
 void R_ShutdownPost(void) {
 
-  r_post.vertexBuffer = release(r_post.vertexBuffer);
+  module.vertexBuffer = release(module.vertexBuffer);
 
   for (int32_t i = 0; i < 2; i++) {
-    r_post.bloomFramebuffers[i] = release(r_post.bloomFramebuffers[i]);
+    module.bloomFramebuffers[i] = release(module.bloomFramebuffers[i]);
   }
 
-  r_post.bloomPipeline = release(r_post.bloomPipeline);
-  r_post.compositePipeline = release(r_post.compositePipeline);
-  r_post.sampler = release(r_post.sampler);
+  module.bloomPipeline = release(module.bloomPipeline);
+  module.compositePipeline = release(module.compositePipeline);
+  module.sampler = release(module.sampler);
 }
 
 /**

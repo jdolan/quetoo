@@ -22,7 +22,7 @@
 #include "sv_local.h"
 
 Cvar *sv_voice;
-Cvar *sv_voice_rate;
+Cvar *sv_voiceRate;
 
 /**
  * @brief Mutes or unmutes a speaker for one listener.
@@ -56,7 +56,7 @@ void Sv_ClearVoiceMutes(const ServerClient *client) {
   const uint64_t bit = (uint64_t) 1 << num;
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
     cl->voiceMutes &= ~bit;
   }
 
@@ -66,12 +66,12 @@ void Sv_ClearVoiceMutes(const ServerClient *client) {
 /**
  * @brief Charges a client's voice budget, returning false once it is spent.
  * @details A client on a poor connection bursting is not an attacker, so an exhausted budget
- * discards the frame rather than dropping the client. The bucket refills at sv_voice_rate and is
+ * discards the frame rather than dropping the client. The bucket refills at sv_voiceRate and is
  * never allowed to bank more than a second of it.
  */
 static bool Sv_ChargeVoice(ServerClient *cl, int32_t bytes) {
 
-  const int32_t rate = Maxi(sv_voice_rate->integer, 0);
+  const int32_t rate = Maxi(sv_voiceRate->integer, 0);
 
   if (!rate) {
     return false;
@@ -118,7 +118,7 @@ static void Sv_RelayVoice(const ServerClient *from, uint8_t channel, uint8_t seq
   Net_WriteData(&buf, data, len);
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl == from || cl->state != SV_CLIENT_ACTIVE) {
       continue;
@@ -145,10 +145,10 @@ static void Sv_RelayVoice(const ServerClient *from, uint8_t channel, uint8_t seq
  */
 void Sv_ParseVoice(ServerClient *cl) {
 
-  const uint8_t channel = Net_ReadByte(&net_message);
-  const uint8_t seq = Net_ReadByte(&net_message);
-  const uint8_t flags = Net_ReadByte(&net_message);
-  const int32_t len = Net_ReadByte(&net_message);
+  const uint8_t channel = Net_ReadByte(&netMessage);
+  const uint8_t seq = Net_ReadByte(&netMessage);
+  const uint8_t flags = Net_ReadByte(&netMessage);
+  const int32_t len = Net_ReadByte(&netMessage);
 
   if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
     Com_Warn("Bad voice frame of %d bytes from %s\n", len, Sv_NetaddrToString(cl));
@@ -156,14 +156,14 @@ void Sv_ParseVoice(ServerClient *cl) {
     return;
   }
 
-  if (net_message.read + (size_t) len > net_message.size) {
+  if (netMessage.read + (size_t) len > netMessage.size) {
     Com_Warn("Truncated voice frame from %s\n", Sv_NetaddrToString(cl));
     Sv_DropClient(cl);
     return;
   }
 
   byte data[VOICE_MAX_PAYLOAD];
-  Net_ReadData(&net_message, data, len);
+  Net_ReadData(&netMessage, data, len);
 
   if (!sv_voice->integer || cl->state != SV_CLIENT_ACTIVE) {
     return;
@@ -183,5 +183,5 @@ void Sv_ParseVoice(ServerClient *cl) {
 void Sv_InitVoice(void) {
 
   sv_voice = Cvar_Add("sv_voice", "1", CVAR_SERVER_INFO, "Enables voice chat relaying on this server");
-  sv_voice_rate = Cvar_Add("sv_voice_rate", "4000", 0, "The per-client voice chat budget, in bytes per second");
+  sv_voiceRate = Cvar_Add("sv_voice_rate", "4000", 0, "The per-client voice chat budget, in bytes per second");
 }

@@ -24,8 +24,8 @@
 #include "net_udp.h"
 #include "net_message.h"
 
-extern NetAddr net_from;
-extern MemBuf net_message;
+extern NetAddr netFrom;
+extern MemBuf netMessage;
 
 void Netchan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport);
 void Netchan_Transmit(NetChan *chan, byte *data, size_t len);

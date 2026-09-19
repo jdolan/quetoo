@@ -29,21 +29,21 @@
 ServerStatic svs; // persistent server info
 Server sv; // per-level server info
 
-ServerClient *sv_client; // current client
+ServerClient *svClient; // current client
 
-Cvar *sv_demo_list;
-Cvar *sv_enforce_time;
+Cvar *sv_demoList;
+Cvar *sv_enforceTime;
 Cvar *sv_guid;
 Cvar *sv_hostname;
 Cvar *sv_map;
-Cvar *sv_map_list;
-Cvar *sv_map_list_shuffle;
-Cvar *sv_max_clients;
-Cvar *sv_max_entities;
-Cvar *sv_min_clients;
+Cvar *sv_mapList;
+Cvar *sv_mapListShuffle;
+Cvar *sv_maxClients;
+Cvar *sv_maxEntities;
+Cvar *sv_minClients;
 Cvar *sv_master;
 Cvar *sv_public;
-Cvar *sv_stats_url;
+Cvar *sv_statsUrl;
 Cvar *sv_timeout;
 
 /**
@@ -93,7 +93,7 @@ const char *Sv_StatusString(void) {
   q_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
   size_t statusLen = q_strlen(status);
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) {
 
     const ServerClient *cl = &svs.clients[i];
 
@@ -132,7 +132,7 @@ const char *Sv_StatusString(void) {
  * @brief Responds with all the info that qplug or qspy can see.
  */
 static void Sv_Status_f(void) {
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "status\n%s", Sv_StatusString());
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "status\n%s", Sv_StatusString());
 }
 
 /**
@@ -152,7 +152,7 @@ static void Sv_GetChallenge_f(void) {
   // see if we already have a challenge for this ip
   for (i = 0; i < MAX_CHALLENGES; i++) {
 
-    if (Net_CompareClientNetaddr(&net_from, &svs.challenges[i].addr)) {
+    if (Net_CompareClientNetaddr(&netFrom, &svs.challenges[i].addr)) {
       break;
     }
 
@@ -164,13 +164,13 @@ static void Sv_GetChallenge_f(void) {
 
   if (i == MAX_CHALLENGES) { // overwrite the oldest
     svs.challenges[oldest].challenge = Randomu();
-    svs.challenges[oldest].addr = net_from;
+    svs.challenges[oldest].addr = netFrom;
     svs.challenges[oldest].time = quetoo.ticks;
     i = oldest;
   }
 
   // send it back
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "challenge %i", svs.challenges[i].challenge);
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "challenge %i", svs.challenges[i].challenge);
 }
 
 /**
@@ -180,7 +180,7 @@ static void Sv_Connect_f(void) {
 
   Com_Debug(DEBUG_SERVER, "Sv_Connect_f()\n");
 
-  NetAddr *addr = &net_from;
+  NetAddr *addr = &netFrom;
 
   const int32_t version = (int32_t) strtol(Cmd_Argv(1), NULL, 0);
 
@@ -247,7 +247,7 @@ static void Sv_Connect_f(void) {
 
   // first check for an ungraceful reconnect (client crashed, perhaps)
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) { // not in use, not interested
       continue;
@@ -267,7 +267,7 @@ static void Sv_Connect_f(void) {
   // otherwise, treat as a fresh connect to a new slot
   if (!client) {
     ServerClient *cl = svs.clients;
-    for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+    for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
       if (cl->state == SV_CLIENT_FREE) { // we have a free one
         client = cl;
         break;
@@ -278,7 +278,7 @@ static void Sv_Connect_f(void) {
   // no free slots, see if there's an AI slot ready to go and boot them.
   if (!client) {
     ServerClient *cl = svs.clients;
-    for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+    for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
       if (cl->gclient->ai) {
         client = cl;
         svs.game->ClientDisconnect(cl->gclient);
@@ -347,14 +347,14 @@ static bool Sv_RconAuthenticate(void) {
   return true;
 }
 
-static char sv_rcon_buffer[MAX_PRINT_MSG];
+static char svRconBuffer[MAX_PRINT_MSG];
 
 /**
  * @brief Console appender for remote console.
  */
 static void Sv_Rcon_Print(const ConsoleString *str) {
 
-  q_strlcat(sv_rcon_buffer, str->chars, sizeof(sv_rcon_buffer));
+  q_strlcat(svRconBuffer, str->chars, sizeof(svRconBuffer));
 }
 
 /**
@@ -365,19 +365,19 @@ static void Sv_Rcon_f(void) {
 
   const bool auth = Sv_RconAuthenticate();
 
-  const char *addr = Net_NetaddrToString(&net_from);
+  const char *addr = Net_NetaddrToString(&netFrom);
 
   // first print to the server console
   if (auth) {
-    Com_Print("Rcon from %s:\n%s\n", addr, net_message.data + 4);
+    Com_Print("Rcon from %s:\n%s\n", addr, netMessage.data + 4);
   } else {
-    Com_Print("Bad rcon from %s:\n%s\n", addr, net_message.data + 4);
+    Com_Print("Bad rcon from %s:\n%s\n", addr, netMessage.data + 4);
   }
 
   // then redirect the remaining output back to the client
 
   Console rcon = { .Append = Sv_Rcon_Print };
-  sv_rcon_buffer[0] = '\0';
+  svRconBuffer[0] = '\0';
 
   Con_AddConsole(&rcon);
 
@@ -395,7 +395,7 @@ static void Sv_Rcon_f(void) {
     Com_Print("Bad rcon_password\n");
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", sv_rcon_buffer);
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", svRconBuffer);
 
   Con_RemoveConsole(&rcon);
 }
@@ -407,20 +407,20 @@ static void Sv_Rcon_f(void) {
  */
 static void Sv_ConnectionlessPacket(void) {
 
-  Net_BeginReading(&net_message);
-  Net_ReadLong(&net_message); // skip the -1 marker
+  Net_BeginReading(&netMessage);
+  Net_ReadLong(&netMessage); // skip the -1 marker
 
-  const char *s = Net_ReadStringLine(&net_message);
+  const char *s = Net_ReadStringLine(&netMessage);
 
   Cmd_TokenizeString(s);
 
   const char *c = Cmd_Argv(0);
-  const char *a = Net_NetaddrToString(&net_from);
+  const char *a = Net_NetaddrToString(&netFrom);
 
   Com_Debug(DEBUG_SERVER, "Packet from %s: %s\n", a, c);
 
   if (!q_strcmp(c, "challenge")) {
-    Sv_Challenge(&net_from, (uint32_t) strtoul(Cmd_Argv(1), NULL, 10));
+    Sv_Challenge(&netFrom, (uint32_t) strtoul(Cmd_Argv(1), NULL, 10));
   } else if (!q_strcmp(c, "status")) {
     Sv_Status_f();
   } else if (!q_strcmp(c, "get_challenge")) {
@@ -450,7 +450,7 @@ static void Sv_UpdatePings(void) {
 
   last_update_time = quetoo.ticks;
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) {
 
     ServerClient *cl = &svs.clients[i];
 
@@ -490,21 +490,21 @@ static void Sv_CheckCommandTimes(void) {
   last_check_time = quetoo.ticks;
 
   // inspect each client, ensuring they are reasonably in sync with us
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) {
     ServerClient *cl = &svs.clients[i];
 
     if (cl->state < SV_CLIENT_ACTIVE) {
       continue;
     }
 
-    if (sv_enforce_time->value) { // check them
+    if (sv_enforceTime->value) { // check them
 
       if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
         cl->cmdMsecErrors++;
 
         Com_Debug(DEBUG_SERVER, "%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmdMsec);
 
-        if (cl->cmdMsecErrors >= sv_enforce_time->value) {
+        if (cl->cmdMsecErrors >= sv_enforceTime->value) {
           Com_Warn("Too many errors from %s\n", Sv_NetaddrToString(cl));
           Sv_KickClient(cl, "Irregular movement");
           continue;
@@ -526,32 +526,32 @@ static void Sv_CheckCommandTimes(void) {
  */
 static void Sv_ReadPackets(void) {
 
-  while (Net_ReceiveDatagram(NS_UDP_SERVER, &net_from, &net_message)) {
+  while (Net_ReceiveDatagram(NS_UDP_SERVER, &netFrom, &netMessage)) {
 
     // check for connectionless packet (0xffffffff) first
-    if (*(uint32_t *) net_message.data == 0xffffffff) {
+    if (*(uint32_t *) netMessage.data == 0xffffffff) {
       Sv_ConnectionlessPacket();
       continue;
     }
 
     // read the qport out of the message so we can fix up
     // stupid address translating routers
-    Net_BeginReading(&net_message);
+    Net_BeginReading(&netMessage);
 
-    Net_ReadLong(&net_message); // sequence number
-    Net_ReadLong(&net_message); // sequence number
+    Net_ReadLong(&netMessage); // sequence number
+    Net_ReadLong(&netMessage); // sequence number
 
-    const byte qport = Net_ReadByte(&net_message) & 0xff;
+    const byte qport = Net_ReadByte(&netMessage) & 0xff;
 
     // check for packets from connected clients
     ServerClient *cl = svs.clients;
-    for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+    for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
       if (cl->state == SV_CLIENT_FREE) {
         continue;
       }
 
-      if (!Net_CompareClientNetaddr(&net_from, &cl->netChan.remoteAddress)) {
+      if (!Net_CompareClientNetaddr(&netFrom, &cl->netChan.remoteAddress)) {
         continue;
       }
 
@@ -559,13 +559,13 @@ static void Sv_ReadPackets(void) {
         continue;
       }
 
-      if (cl->netChan.remoteAddress.port != net_from.port) {
-        cl->netChan.remoteAddress.port = net_from.port;
-        Com_Warn("Fixed translated port for %s\n", Net_NetaddrToString(&net_from));
+      if (cl->netChan.remoteAddress.port != netFrom.port) {
+        cl->netChan.remoteAddress.port = netFrom.port;
+        Com_Warn("Fixed translated port for %s\n", Net_NetaddrToString(&netFrom));
       }
 
       // this is a valid, sequenced packet, so process it
-      if (Netchan_Process(&cl->netChan, &net_message)) {
+      if (Netchan_Process(&cl->netChan, &netMessage)) {
         cl->lastMessage = quetoo.ticks; // nudge timeout
         Sv_ParseClientMessage(cl);
       }
@@ -588,7 +588,7 @@ static void Sv_CheckTimeouts(void) {
   }
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
       continue;
@@ -621,7 +621,7 @@ static void Sv_ResetEntities(void) {
     return;
   }
 
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
     GameEntity *ent = sv.entities[i].gent;
     if (ent) {
       ent->s.event = 0;
@@ -636,7 +636,7 @@ static void Sv_ResetEntities(void) {
  */
 static void Sv_SyncGameClients(void) {
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++) {
     ServerClient *client = &svs.clients[i];
     const GameClient *cl = client->gclient;
 
@@ -963,18 +963,18 @@ void Sv_Frame(const uint32_t msec) {
  */
 static void Sv_InitLocal(void) {
 
-  sv_demo_list = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
-  sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
+  sv_demoList = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
+  sv_enforceTime = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
   sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
   sv_map = Cvar_Add("sv_map", "", CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
-  sv_map_list = Cvar_Add("sv_map_list", "maps.lst", 0, "The map list filename.");
-  sv_map_list_shuffle = Cvar_Add("sv_map_list_shuffle", "0", 0, "Enables map shuffling.");
+  sv_mapList = Cvar_Add("sv_map_list", "maps.lst", 0, "The map list filename.");
+  sv_mapListShuffle = Cvar_Add("sv_map_list_shuffle", "0", 0, "Enables map shuffling.");
   sv_master = Cvar_Add("sv_master", HOST_MASTER, CVAR_NO_SET, "The master server to advertise on, or \"\" to advertise nowhere");
-  sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
-  sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
-  sv_min_clients = Cvar_Add("sv_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
+  sv_maxClients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
+  sv_maxEntities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
+  sv_minClients = Cvar_Add("sv_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
-  sv_stats_url = Cvar_Add("sv_stats_url", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to \"\" to disable.");
+  sv_statsUrl = Cvar_Add("sv_stats_url", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to \"\" to disable.");
   char uuid[37];
   Com_Uuid(uuid, sizeof(uuid));
   sv_guid = Cvar_Add("sv_guid", uuid, CVAR_SERVER_INFO | CVAR_NO_SET,
@@ -983,8 +983,8 @@ static void Sv_InitLocal(void) {
 
   sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
 
-  sv_max_clients->integer = Mini(sv_max_clients->integer, MAX_CLIENTS);
-  sv_max_entities->integer = Mini(sv_max_entities->integer, MAX_ENTITIES);
+  sv_maxClients->integer = Mini(sv_maxClients->integer, MAX_CLIENTS);
+  sv_maxEntities->integer = Mini(sv_maxEntities->integer, MAX_ENTITIES);
 
   if (dedicated->value) {
     Cvar_SetInteger(sv_public->name, 1);

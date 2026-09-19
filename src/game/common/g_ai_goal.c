@@ -53,7 +53,7 @@ void G_Ai_SetPositionGoal(const GameClient *cl, AiGoal *goal, float priority, co
 #if AI_GOAL_HARDENING
 const GameEntity *G_Ai_ResolveGoalEntity(int32_t number) {
 
-  if (number < 0 || number >= sv_max_entities->integer) {
+  if (number < 0 || number >= sv_maxEntities->integer) {
     return NULL;
   }
 
@@ -127,7 +127,7 @@ void G_Ai_CopyGoal(const AiGoal *from, AiGoal *to) {
 
   to->type = from->type;
   to->priority = from->priority;
-  to->time = g_level.time;
+  to->time = gLevel.time;
   to->lastDistance = FLT_MAX;
 
   switch (from->type) {
@@ -173,6 +173,6 @@ void G_Ai_ClearGoal(AiGoal *goal) {
   }
 
   memset(goal, 0, sizeof(AiGoal));
-  goal->time = g_level.time;
+  goal->time = gLevel.time;
   goal->lastDistance = FLT_MAX;
 }

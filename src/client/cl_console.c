@@ -21,10 +21,10 @@
 
 #include "cl_local.h"
 
-Console cl_console;
+Console clConsole;
 
-Cvar *cl_console_height;
-Cvar *cl_draw_console_background_alpha;
+Cvar *cl_consoleHeight;
+Cvar *cl_drawConsoleBackgroundAlpha;
 
 /**
  * @brief Outputs a stripped (color-code-free) console string to stdout.
@@ -55,7 +55,7 @@ void Cl_ToggleConsole_f(void) {
     Cl_SetKeyDest(KEY_CONSOLE);
   }
 
-  memset(&cl_console.input, 0, sizeof(cl_console.input));
+  memset(&clConsole.input, 0, sizeof(clConsole.input));
 }
 
 /**
@@ -86,24 +86,24 @@ static void Cl_Error_f(void) {
  */
 void Cl_InitConsole(void) {
 
-  memset(&cl_console, 0, sizeof(cl_console));
+  memset(&clConsole, 0, sizeof(clConsole));
 
-  cl_console.echo = true;
+  clConsole.echo = true;
 
-  cl_console.Append = Cl_Print;
+  clConsole.Append = Cl_Print;
 
-  Con_AddConsole(&cl_console);
+  Con_AddConsole(&clConsole);
 
   File *file = Fs_OpenRead("history");
   if (file) {
-    Con_ReadHistory(&cl_console, file);
+    Con_ReadHistory(&clConsole, file);
     Fs_Close(file);
   } else {
     Com_Debug(DEBUG_CLIENT, "Couldn't read history");
   }
 
-  cl_console_height = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
-  cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, "The opacity of the console background, from 0 to 1.");
+  cl_consoleHeight = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
+  cl_drawConsoleBackgroundAlpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, "The opacity of the console background, from 0 to 1.");
 
   Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
 
@@ -118,11 +118,11 @@ void Cl_InitConsole(void) {
  */
 void Cl_ShutdownConsole(void) {
 
-  Con_RemoveConsole(&cl_console);
+  Con_RemoveConsole(&clConsole);
 
   File *file = Fs_OpenWrite("history");
   if (file) {
-    Con_WriteHistory(&cl_console, file);
+    Con_WriteHistory(&clConsole, file);
     Fs_Close(file);
   } else {
     Com_Warn("Couldn't write history\n");

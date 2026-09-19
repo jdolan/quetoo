@@ -43,18 +43,18 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   const PlayerState *ps = &frame->ps;
 
-  if (ps->stats[STAT_SCORES] || cg_state.centerPrint.time < cgi.client->unclampedTime) {
+  if (ps->stats[STAT_SCORES] || cgState.centerPrint.time < cgi.client->unclampedTime) {
     return NULL;
   }
 
   static char string[CG_CENTER_PRINT_LINES * MAX_STRING_CHARS];
   string[0] = 0;
 
-  for (int32_t i = 0; i < cg_state.centerPrint.numLines; i++) {
+  for (int32_t i = 0; i < cgState.centerPrint.numLines; i++) {
     if (i) {
       q_strlcat(string, "\n", sizeof(string));
     }
-    q_strlcat(string, cg_state.centerPrint.lines[i], sizeof(string));
+    q_strlcat(string, cgState.centerPrint.lines[i], sizeof(string));
   }
 
   return string;

@@ -209,7 +209,7 @@ typedef struct {
   CmBspLeaf *leaf;
 } CmBox;
 
-static CmBox cm_box;
+static CmBox cmBox;
 
 /**
  * @brief Appends a brush (6 nodes, 12 planes) opaquely to the primary BSP
@@ -244,36 +244,36 @@ void Cm_InitBoxHull(CmBsp *bsp) {
   }
 
   // head node
-  cm_box.headNode = bsp->numNodes;
+  cmBox.headNode = bsp->numNodes;
 
   // planes
-  cm_box.planes = &bsp->planes[bsp->numPlanes];
+  cmBox.planes = &bsp->planes[bsp->numPlanes];
 
   // leaf
-  cm_box.leaf = &bsp->leafs[bsp->numLeafs];
-  cm_box.leaf->contents = CONTENTS_MONSTER;
-  cm_box.leaf->firstLeafBrush = bsp->numLeafBrushes;
-  cm_box.leaf->numLeafBrushes = 1;
+  cmBox.leaf = &bsp->leafs[bsp->numLeafs];
+  cmBox.leaf->contents = CONTENTS_MONSTER;
+  cmBox.leaf->firstLeafBrush = bsp->numLeafBrushes;
+  cmBox.leaf->numLeafBrushes = 1;
 
   // leaf brush
   bsp->leafBrushes[bsp->numLeafBrushes] = bsp->numBrushes;
 
   // brush
-  cm_box.brush = &bsp->brushes[bsp->numBrushes];
-  cm_box.brush->numBrushSides = 6;
-  cm_box.brush->brushSides = bsp->brushSides + bsp->numBrushSides;
-  cm_box.brush->contents = CONTENTS_MONSTER;
+  cmBox.brush = &bsp->brushes[bsp->numBrushes];
+  cmBox.brush->numBrushSides = 6;
+  cmBox.brush->brushSides = bsp->brushSides + bsp->numBrushSides;
+  cmBox.brush->contents = CONTENTS_MONSTER;
 
   for (int32_t i = 0; i < 6; i++) {
 
     // fill in planes, two per side
-    CmBspPlane *plane = &cm_box.planes[i * 2];
+    CmBspPlane *plane = &cmBox.planes[i * 2];
     plane->normal = Vec3_Zero();
     plane->normal.xyz[i >> 1] = 1.f;
     plane->signBits = Cm_SignBitsForNormal(plane->normal);
     plane->type = Cm_PlaneTypeForNormal(plane->normal);
 
-    plane = &cm_box.planes[i * 2 + 1];
+    plane = &cmBox.planes[i * 2 + 1];
     plane->normal = Vec3_Zero();
     plane->normal.xyz[i >> 1] = -1.f;
     plane->signBits = Cm_SignBitsForNormal(plane->normal);
@@ -282,11 +282,11 @@ void Cm_InitBoxHull(CmBsp *bsp) {
     const int32_t s = i & 1;
 
     // fill in nodes, one per side
-    CmBspNode *node = &bsp->nodes[cm_box.headNode + i];
+    CmBspNode *node = &bsp->nodes[cmBox.headNode + i];
     node->plane = bsp->planes + (bsp->numPlanes + i * 2);
     node->children[s] = -1 - bsp->numLeafs;
     if (i != 5) {
-      node->children[s ^ 1] = cm_box.headNode + i + 1;
+      node->children[s ^ 1] = cmBox.headNode + i + 1;
     } else {
       node->children[s ^ 1] = -1 - bsp->numLeafs;
     }
@@ -303,24 +303,24 @@ void Cm_InitBoxHull(CmBsp *bsp) {
  */
 int32_t Cm_SetBoxHull(const Box3 bounds, const int32_t contents) {
 
-  cm_box.brush->bounds = bounds;
+  cmBox.brush->bounds = bounds;
 
-  cm_box.planes[0].dist = bounds.maxs.x;
-  cm_box.planes[1].dist = -bounds.maxs.x;
-  cm_box.planes[2].dist = bounds.mins.x;
-  cm_box.planes[3].dist = -bounds.mins.x;
-  cm_box.planes[4].dist = bounds.maxs.y;
-  cm_box.planes[5].dist = -bounds.maxs.y;
-  cm_box.planes[6].dist = bounds.mins.y;
-  cm_box.planes[7].dist = -bounds.mins.y;
-  cm_box.planes[8].dist = bounds.maxs.z;
-  cm_box.planes[9].dist = -bounds.maxs.z;
-  cm_box.planes[10].dist = bounds.mins.z;
-  cm_box.planes[11].dist = -bounds.mins.z;
+  cmBox.planes[0].dist = bounds.maxs.x;
+  cmBox.planes[1].dist = -bounds.maxs.x;
+  cmBox.planes[2].dist = bounds.mins.x;
+  cmBox.planes[3].dist = -bounds.mins.x;
+  cmBox.planes[4].dist = bounds.maxs.y;
+  cmBox.planes[5].dist = -bounds.maxs.y;
+  cmBox.planes[6].dist = bounds.mins.y;
+  cmBox.planes[7].dist = -bounds.mins.y;
+  cmBox.planes[8].dist = bounds.maxs.z;
+  cmBox.planes[9].dist = -bounds.maxs.z;
+  cmBox.planes[10].dist = bounds.mins.z;
+  cmBox.planes[11].dist = -bounds.mins.z;
 
-  cm_box.leaf->contents = cm_box.brush->contents = contents;
+  cmBox.leaf->contents = cmBox.brush->contents = contents;
 
-  return cm_box.headNode;
+  return cmBox.headNode;
 }
 
 /**
@@ -328,13 +328,13 @@ int32_t Cm_SetBoxHull(const Box3 bounds, const int32_t contents) {
  */
 int32_t Cm_PointLeafnum(const Vec3 p, int32_t headNode) {
 
-  if (!cm_bsp.numNodes) {
+  if (!cmBsp.numNodes) {
     return 0;
   }
 
   int32_t num = headNode;
   while (num >= 0) {
-    const CmBspNode *node = cm_bsp.nodes + num;
+    const CmBspNode *node = cmBsp.nodes + num;
     const float dist = Cm_DistanceToPlane(p, node->plane);
     if (dist < 0.f) {
       num = node->children[1];
@@ -359,7 +359,7 @@ int32_t Cm_PointLeafnum(const Vec3 p, int32_t headNode) {
  */
 int32_t Cm_PointContents(const Vec3 p, int32_t headNode, const Mat4 inverseMatrix) {
 
-  if (!cm_bsp.numNodes) {
+  if (!cmBsp.numNodes) {
     return 0;
   }
 
@@ -371,7 +371,7 @@ int32_t Cm_PointContents(const Vec3 p, int32_t headNode, const Mat4 inverseMatri
 
   const int32_t leafNum = Cm_PointLeafnum(p0, headNode);
 
-  return cm_bsp.leafs[leafNum].contents;
+  return cmBsp.leafs[leafNum].contents;
 }
 
 /**
@@ -414,7 +414,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t nodeNum) {
   while (true) {
     if (nodeNum < 0) {
       const int32_t leafNum = -1 - nodeNum;
-      data->contents |= cm_bsp.leafs[leafNum].contents;
+      data->contents |= cmBsp.leafs[leafNum].contents;
 
       if (data->count < data->length) {
         data->list[data->count++] = leafNum;
@@ -423,7 +423,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t nodeNum) {
       return;
     }
 
-    const CmBspNode *node = &cm_bsp.nodes[nodeNum];
+    const CmBspNode *node = &cmBsp.nodes[nodeNum];
     const CmBspPlane plane = *node->plane;
     const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);
 
@@ -465,7 +465,7 @@ size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *
     .topNode = -1
   };
 
-  if (cm_bsp.numNodes) {
+  if (cmBsp.numNodes) {
     Cm_BoxLeafnums_r(&data, headNode);
   }
 

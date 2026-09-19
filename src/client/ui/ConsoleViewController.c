@@ -76,7 +76,7 @@ static void update(ConsoleViewController *self) {
 
   if (console) {
     const int32_t height = self->viewController.view->frame.h;
-    const float fraction = cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f;
+    const float fraction = cls.state == CL_ACTIVE ? Clampf01(cl_consoleHeight->value) : 1.f;
 
     $(self->console, update, height * fraction);
   }

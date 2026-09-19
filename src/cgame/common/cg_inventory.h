@@ -30,7 +30,7 @@
 #define WEAPON_SELECT_OFF (-1)
 
 /**
- * @brief Cached per-item data derived from `bg_item_defs` at load time.
+ * @brief Cached per-item data derived from `bgItemDefs` at load time.
  */
 typedef struct {
 
@@ -45,10 +45,10 @@ typedef struct {
 /**
  * @brief Per-item cache, indexed by `GameItemTag`. Populated at load time.
  */
-extern ClientGameItem cg_items[ITEM_TOTAL];
+extern ClientGameItem cgItems[ITEM_TOTAL];
 
 /**
- * @brief Cached per-weapon data derived from `bg_item_defs` at load time.
+ * @brief Cached per-weapon data derived from `bgItemDefs` at load time.
  */
 typedef struct {
 
@@ -73,7 +73,7 @@ typedef struct {
 /**
  * @brief Per-weapon cache, indexed by (tag - `WEAPON_FIRST`). Populated at load time.
  */
-extern ClientGameWeapon cg_weapons[WEAPON_TOTAL];
+extern ClientGameWeapon cgWeapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache (item models, weapon ammo tags).
@@ -87,7 +87,7 @@ void Cg_InitInventory(void);
 bool Cg_HasWeapon(const PlayerState *ps);
 
 /**
- * @brief Returns the active weapon index into `cg_weapons[]`, or `WEAPON_SELECT_OFF`.
+ * @brief Returns the active weapon index into `cgWeapons[]`, or `WEAPON_SELECT_OFF`.
  * Prefers the weapon being switched to over the one currently equipped.
  */
 int16_t Cg_ActiveWeapon(const PlayerState *ps);

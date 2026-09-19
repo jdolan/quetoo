@@ -35,8 +35,8 @@
 #include "g_ai_node.h"
 #include "g_ai_types.h"
 
-extern Cvar *g_ai_no_target;
-extern Cvar *g_ai_node_dev;
+extern Cvar *g_aiNoTarget;
+extern Cvar *g_aiNodeDev;
 
 void G_Ai_Disconnect(GameClient *cl);
 void G_Ai_InvalidateReferences(Ai *ai, const GameEntity *ent);

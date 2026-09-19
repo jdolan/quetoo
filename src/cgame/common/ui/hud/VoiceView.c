@@ -85,7 +85,7 @@ static void updateBindings(View *self, ident data) {
       q_strlcat(names, ", ", sizeof(names));
     }
 
-    q_strlcat(names, cg_state.clients[i].name, sizeof(names));
+    q_strlcat(names, cgState.clients[i].name, sizeof(names));
   }
 
   if (names[0]) {

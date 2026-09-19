@@ -23,7 +23,7 @@
 
 #include "quemap.h"
 
-extern BspFile bsp_file;
+extern BspFile bspFile;
 
 void LoadBSPFile(const char *filename, const BspLumpId lumps);
 void WriteBSPFile(const char *filename);

@@ -24,7 +24,7 @@
 #include "g_local.h"
 #include "bg_intermission.h"
 
-Cvar *g_vote_next_map;
+Cvar *g_voteNextMap;
 
 #define BALLOT_NONE -1
 
@@ -36,7 +36,7 @@ static struct {
   int32_t numMaps;
   int32_t ballots[MAX_CLIENTS];
   int32_t published[MAX_NEXT_MAPS];
-} g_intermission_state;
+} module;
 
 static struct {
   HandleClientCommand HandleClientCommand;
@@ -53,8 +53,8 @@ static bool installed;
  */
 static bool G_Intermission_Offers(const char *name) {
 
-  for (int32_t i = 0; i < g_intermission_state.numMaps; i++) {
-    if (!q_strcmp(g_intermission_state.maps[i], name)) {
+  for (int32_t i = 0; i < module.numMaps; i++) {
+    if (!q_strcmp(module.maps[i], name)) {
       return true;
     }
   }
@@ -69,13 +69,13 @@ static bool G_Intermission_Offers(const char *name) {
  */
 static void G_Intermission_Offer(const char *name, int32_t index) {
 
-  if (g_intermission_state.numMaps == MAX_NEXT_MAPS) {
+  if (module.numMaps == MAX_NEXT_MAPS) {
     return;
   }
 
   // by name rather than by position, since a rotation may list either the map we are
   // on or a candidate more than once, and neither is a second thing to vote for
-  if (!name || !*name || !q_strcmp(name, g_level.name) || G_Intermission_Offers(name)) {
+  if (!name || !*name || !q_strcmp(name, gLevel.name) || G_Intermission_Offers(name)) {
     return;
   }
 
@@ -84,8 +84,8 @@ static void G_Intermission_Offer(const char *name, int32_t index) {
     return;
   }
 
-  g_intermission_state.indices[g_intermission_state.numMaps] = index;
-  q_strlcpy(g_intermission_state.maps[g_intermission_state.numMaps++], name, MAX_QPATH);
+  module.indices[module.numMaps] = index;
+  q_strlcpy(module.maps[module.numMaps++], name, MAX_QPATH);
 }
 
 /**
@@ -113,9 +113,9 @@ static const char *G_Intermission_MapAt(const List *list, int32_t index) {
  */
 static void G_Intermission_SelectMaps(void) {
 
-  g_intermission_state.numMaps = 0;
+  module.numMaps = 0;
 
-  const int32_t wanted = g_intermission_state.voting ? MAX_NEXT_MAPS : 1;
+  const int32_t wanted = module.voting ? MAX_NEXT_MAPS : 1;
 
   List *list = gi.MapList();
   if (list && list->count) {
@@ -127,14 +127,14 @@ static void G_Intermission_SelectMaps(void) {
     if (gi.GetCvarInteger("sv_map_list_shuffle")) {
       // a shuffled rotation has no next, so offer a sample of it instead; the ordered
       // pass below tops up whatever the draws duplicated
-      for (int32_t i = 0; i < length && g_intermission_state.numMaps < wanted; i++) {
+      for (int32_t i = 0; i < length && module.numMaps < wanted; i++) {
         const int32_t index = (int32_t) RandomRangeu(0, (uint32_t) length);
         G_Intermission_Offer(G_Intermission_MapAt(list, index), index);
       }
     }
 
     // in order from wherever we are, which is what the rotation would have played
-    for (int32_t i = 1; i <= length && g_intermission_state.numMaps < wanted; i++) {
+    for (int32_t i = 1; i <= length && module.numMaps < wanted; i++) {
       const int32_t index = (current + i) % length;
       G_Intermission_Offer(G_Intermission_MapAt(list, index), index);
     }
@@ -146,16 +146,16 @@ static void G_Intermission_SelectMaps(void) {
     release(list);
   }
 
-  if (g_intermission_state.numMaps == 0) {
+  if (module.numMaps == 0) {
     // no rotation, or nothing in it we can serve: the server replays this map, which
     // is what `next_map` falls back to on its own, so we leave it to do that
-    g_intermission_state.indices[0] = -1;
-    q_strlcpy(g_intermission_state.maps[0], g_level.name, MAX_QPATH);
-    g_intermission_state.numMaps = 1;
+    module.indices[0] = -1;
+    q_strlcpy(module.maps[0], gLevel.name, MAX_QPATH);
+    module.numMaps = 1;
   }
 
   // one candidate is not a choice
-  g_intermission_state.voting &= g_intermission_state.numMaps > 1;
+  module.voting &= module.numMaps > 1;
 }
 
 /**
@@ -166,9 +166,9 @@ static void G_Intermission_Count(int32_t *votes) {
   memset(votes, 0, sizeof(int32_t) * MAX_NEXT_MAPS);
 
   G_ForEachClient(cl, {
-    const int32_t ballot = g_intermission_state.ballots[cl->ps.client];
+    const int32_t ballot = module.ballots[cl->ps.client];
 
-    if (ballot != BALLOT_NONE && ballot < g_intermission_state.numMaps && G_Vote_Eligible(cl)) {
+    if (ballot != BALLOT_NONE && ballot < module.numMaps && G_Vote_Eligible(cl)) {
       votes[ballot]++;
     }
   });
@@ -179,7 +179,7 @@ static void G_Intermission_Count(int32_t *votes) {
  */
 static void G_Intermission_Publish(void) {
 
-  if (!g_intermission_state.active) {
+  if (!module.active) {
     gi.SetConfigString(CS_NEXT_MAP, "");
     return;
   }
@@ -187,13 +187,13 @@ static void G_Intermission_Publish(void) {
   int32_t votes[MAX_NEXT_MAPS];
   G_Intermission_Count(votes);
 
-  memcpy(g_intermission_state.published, votes, sizeof(votes));
+  memcpy(module.published, votes, sizeof(votes));
 
   char string[MAX_STRING_CHARS];
-  q_snprintf(string, sizeof(string), "%d", g_intermission_state.voting ? 1 : 0);
+  q_snprintf(string, sizeof(string), "%d", module.voting ? 1 : 0);
 
-  for (int32_t i = 0; i < g_intermission_state.numMaps; i++) {
-    q_strlcat(string, va("\\%s\\%d", g_intermission_state.maps[i], votes[i]), sizeof(string));
+  for (int32_t i = 0; i < module.numMaps; i++) {
+    q_strlcat(string, va("\\%s\\%d", module.maps[i], votes[i]), sizeof(string));
   }
 
   G_Debug("%s\n", string);
@@ -208,9 +208,9 @@ static void G_Intermission_Publish(void) {
  */
 static void G_Intermission_PublishTime(void) {
 
-  const uint32_t end = g_level.intermissionTime + INTERMISSION;
+  const uint32_t end = gLevel.intermissionTime + INTERMISSION;
 
-  gi.SetConfigString(CS_TIME, G_FormatTime(end > g_level.time ? end - g_level.time : 0));
+  gi.SetConfigString(CS_TIME, G_FormatTime(end > gLevel.time ? end - gLevel.time : 0));
 }
 
 /**
@@ -218,11 +218,11 @@ static void G_Intermission_PublishTime(void) {
  */
 static void G_Intermission_Begin(void) {
 
-  g_intermission_state.active = true;
-  g_intermission_state.voting = g_vote_next_map->integer;
+  module.active = true;
+  module.voting = g_voteNextMap->integer;
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    g_intermission_state.ballots[i] = BALLOT_NONE;
+    module.ballots[i] = BALLOT_NONE;
   }
 
   G_Intermission_SelectMaps();
@@ -233,9 +233,9 @@ static void G_Intermission_Begin(void) {
 
   G_Intermission_Publish();
 
-  if (g_intermission_state.voting) {
+  if (module.voting) {
     gi.BroadcastPrint(PRINT_HIGH, "Press 1 - %d to vote for the next map\n",
-                      g_intermission_state.numMaps);
+                      module.numMaps);
   }
 }
 
@@ -251,7 +251,7 @@ static void G_Intermission_End(void) {
   G_Intermission_Count(votes);
 
   int32_t winner = 0, cast = votes[0];
-  for (int32_t i = 1; i < g_intermission_state.numMaps; i++) {
+  for (int32_t i = 1; i < module.numMaps; i++) {
     cast += votes[i];
 
     if (votes[i] > votes[winner]) {
@@ -259,18 +259,18 @@ static void G_Intermission_End(void) {
     }
   }
 
-  if (g_intermission_state.voting) {
+  if (module.voting) {
     gi.BroadcastPrint(PRINT_HIGH, "%s wins the vote with %d of %d\n",
-                      g_intermission_state.maps[winner], votes[winner], cast);
+                      module.maps[winner], votes[winner], cast);
   }
 
-  if (g_intermission_state.indices[winner] >= 0) {
-    gi.SetNextMap(g_intermission_state.indices[winner]);
+  if (module.indices[winner] >= 0) {
+    gi.SetNextMap(module.indices[winner]);
   }
 
-  g_intermission_state.active = false;
-  g_intermission_state.voting = false;
-  g_intermission_state.numMaps = 0;
+  module.active = false;
+  module.voting = false;
+  module.numMaps = 0;
 
   G_Intermission_Publish();
 }
@@ -280,13 +280,13 @@ static void G_Intermission_End(void) {
  */
 static void G_Intermission_Cast(GameClient *cl, int32_t map) {
 
-  if (!g_intermission_state.active || !g_intermission_state.voting) {
+  if (!module.active || !module.voting) {
     gi.ClientPrint(cl, PRINT_HIGH, "No map vote is in progress\n");
     return;
   }
 
-  if (map < 0 || map >= g_intermission_state.numMaps) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Usage: vote_map 1 - %d\n", g_intermission_state.numMaps);
+  if (map < 0 || map >= module.numMaps) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Usage: vote_map 1 - %d\n", module.numMaps);
     return;
   }
 
@@ -294,13 +294,13 @@ static void G_Intermission_Cast(GameClient *cl, int32_t map) {
     return;
   }
 
-  if (g_intermission_state.ballots[cl->ps.client] == map) {
+  if (module.ballots[cl->ps.client] == map) {
     return;
   }
 
-  g_intermission_state.ballots[cl->ps.client] = map;
+  module.ballots[cl->ps.client] = map;
 
-  gi.ClientPrint(cl, PRINT_HIGH, "You voted for %s\n", g_intermission_state.maps[map]);
+  gi.ClientPrint(cl, PRINT_HIGH, "You voted for %s\n", module.maps[map]);
 
   G_Intermission_Publish();
 }
@@ -330,24 +330,24 @@ static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) 
  */
 static void G_FrameDidEnd_Intermission(void) {
 
-  if (g_level.intermissionTime) {
+  if (gLevel.intermissionTime) {
 
-    if (!g_intermission_state.active) {
+    if (!module.active) {
       G_Intermission_Begin();
     }
 
-    if (g_level.frameNum % QUETOO_TICK_RATE == 0) {
+    if (gLevel.frameNum % QUETOO_TICK_RATE == 0) {
       G_Intermission_PublishTime();
     }
 
     int32_t votes[MAX_NEXT_MAPS];
     G_Intermission_Count(votes);
 
-    if (memcmp(votes, g_intermission_state.published, sizeof(votes))) {
+    if (memcmp(votes, module.published, sizeof(votes))) {
       G_Intermission_Publish();
     }
 
-  } else if (g_intermission_state.active) {
+  } else if (module.active) {
     G_Intermission_End();
   }
 
@@ -360,8 +360,8 @@ static void G_FrameDidEnd_Intermission(void) {
  */
 static void G_ClientWillDisconnect_Intermission(GameClient *cl) {
 
-  if (g_intermission_state.ballots[cl->ps.client] != BALLOT_NONE) {
-    g_intermission_state.ballots[cl->ps.client] = BALLOT_NONE;
+  if (module.ballots[cl->ps.client] != BALLOT_NONE) {
+    module.ballots[cl->ps.client] = BALLOT_NONE;
 
     G_Intermission_Publish();
   }
@@ -374,9 +374,9 @@ static void G_ClientWillDisconnect_Intermission(GameClient *cl) {
  */
 static void G_ConfigureLevel_Intermission(void) {
 
-  g_intermission_state.active = false;
-  g_intermission_state.voting = false;
-  g_intermission_state.numMaps = 0;
+  module.active = false;
+  module.voting = false;
+  module.numMaps = 0;
 
   G_Intermission_Publish();
 
@@ -388,7 +388,7 @@ static void G_ConfigureLevel_Intermission(void) {
  */
 void G_Intermission_Init(void) {
 
-  g_vote_next_map = gi.AddCvar("g_vote_next_map", "1", CVAR_SERVER_INFO,
+  g_voteNextMap = gi.AddCvar("g_vote_next_map", "1", CVAR_SERVER_INFO,
                                "Whether clients vote for the next map during the intermission.");
 
   if (!installed) {

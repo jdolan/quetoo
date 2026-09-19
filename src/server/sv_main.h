@@ -29,19 +29,19 @@ int32_t Sv_InstallerFrame(const InstallerStatus *s);
 void Sv_Frame(const uint32_t msec);
 
 #if defined(__SV_LOCAL_H__)
-extern Cvar *sv_demo_list;
-extern Cvar *sv_enforce_time;
+extern Cvar *sv_demoList;
+extern Cvar *sv_enforceTime;
 extern Cvar *sv_guid;
 extern Cvar *sv_hostname;
 extern Cvar *sv_map;
-extern Cvar *sv_map_list;
-extern Cvar *sv_map_list_shuffle;
+extern Cvar *sv_mapList;
+extern Cvar *sv_mapListShuffle;
 extern Cvar *sv_master;
-extern Cvar *sv_max_clients;
-extern Cvar *sv_max_entities;
-extern Cvar *sv_min_clients;
+extern Cvar *sv_maxClients;
+extern Cvar *sv_maxEntities;
+extern Cvar *sv_minClients;
 extern Cvar *sv_public;
-extern Cvar *sv_stats_url;
+extern Cvar *sv_statsUrl;
 extern Cvar *sv_timeout;
 
 // per-level and static server structures
@@ -49,8 +49,8 @@ extern Server sv;
 extern ServerStatic svs;
 
 // current client / player edict
-extern ServerClient *sv_client;
-extern GameEntity *sv_player;
+extern ServerClient *svClient;
+extern GameEntity *svPlayer;
 
 const char *Sv_StatusString(void);
 const char *Sv_NetaddrToString(const ServerClient *cl);

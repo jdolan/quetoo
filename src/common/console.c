@@ -23,7 +23,7 @@
 
 #include "console.h"
 
-ConsoleState console_state;
+ConsoleState consoleState;
 
 /**
  * @brief Allocates a new `ConsoleString`.
@@ -87,9 +87,9 @@ static void Con_FreeString(ConsoleString *str) {
  */
 static void Con_FreeStrings(void) {
 
-  $(console_state.strings, removeAll);
+  $(consoleState.strings, removeAll);
 
-  console_state.size = 0;
+  consoleState.size = 0;
 }
 
 /**
@@ -115,9 +115,9 @@ static void Con_Dump_f(void) {
   if (!(file = Fs_OpenWrite(path))) {
     Com_Warn("Couldn't open %s\n", path);
   } else {
-    SDL_LockMutex(console_state.lock);
+    SDL_LockMutex(consoleState.lock);
 
-    const ListNode *list = console_state.strings->head;
+    const ListNode *list = consoleState.strings->head;
     while (list) {
       const char *c = ((ConsoleString *) list->element)->chars;
       while (*c) {
@@ -134,7 +134,7 @@ static void Con_Dump_f(void) {
       list = list->next;
     }
 
-    SDL_UnlockMutex(console_state.lock);
+    SDL_UnlockMutex(consoleState.lock);
 
     Fs_Close(file);
     Com_Print("Dumped console to %s.\n", path);
@@ -162,26 +162,26 @@ void Con_Append(int32_t level, const char *string) {
 
   ConsoleString *str = Con_AllocString(level, string);
 
-  SDL_LockMutex(console_state.lock);
+  SDL_LockMutex(consoleState.lock);
 
-  $(console_state.strings, append, str);
-  console_state.size += str->size;
+  $(consoleState.strings, append, str);
+  consoleState.size += str->size;
 
-  while (console_state.size > CON_MAX_SIZE) {
-    ListNode *first = console_state.strings->head;
+  while (consoleState.size > CON_MAX_SIZE) {
+    ListNode *first = consoleState.strings->head;
     ConsoleString *old = first->element;
 
-    console_state.size -= old->size;
-    $(console_state.strings, removeNode, first);
+    consoleState.size -= old->size;
+    $(consoleState.strings, removeNode, first);
   }
 
-  SDL_UnlockMutex(console_state.lock);
+  SDL_UnlockMutex(consoleState.lock);
 
-  if (console_state.consoles) {
+  if (consoleState.consoles) {
 
     // iterate the configured consoles and append the new string
 
-    for (ListNode *node = console_state.consoles->head; node; node = node->next) {
+    for (ListNode *node = consoleState.consoles->head; node; node = node->next) {
       const Console *console = node->element;
 
       if (console->Append) {
@@ -287,7 +287,7 @@ size_t Con_Tail(const Console *console, char **lines, size_t maxLines) {
   ssize_t back = console->scroll + maxLines;
 
   ListNode *start = NULL;
-  ListNode *list = console_state.strings->tail;
+  ListNode *list = consoleState.strings->tail;
   while (list) {
     const ConsoleString *str = list->element;
 
@@ -735,11 +735,11 @@ void Con_SubmitInput(Console *console) {
  */
 void Con_AddConsole(const Console *console) {
 
-  SDL_LockMutex(console_state.lock);
+  SDL_LockMutex(consoleState.lock);
 
-  $(console_state.consoles, append, (void *) console);
+  $(consoleState.consoles, append, (void *) console);
 
-  SDL_UnlockMutex(console_state.lock);
+  SDL_UnlockMutex(consoleState.lock);
 }
 
 /**
@@ -747,14 +747,14 @@ void Con_AddConsole(const Console *console) {
  */
 void Con_RemoveConsole(const Console *console) {
 
-  SDL_LockMutex(console_state.lock);
+  SDL_LockMutex(consoleState.lock);
 
-  ListNode *node = $(console_state.consoles, nodeForElement, (void *) console);
+  ListNode *node = $(consoleState.consoles, nodeForElement, (void *) console);
   if (node) {
-    $(console_state.consoles, removeNode, node);
+    $(consoleState.consoles, removeNode, node);
   }
 
-  SDL_UnlockMutex(console_state.lock);
+  SDL_UnlockMutex(consoleState.lock);
 }
 
 /**
@@ -763,14 +763,14 @@ void Con_RemoveConsole(const Console *console) {
  */
 void Con_Init(void) {
 
-  memset(&console_state, 0, sizeof(console_state));
+  memset(&consoleState, 0, sizeof(consoleState));
 
-  console_state.strings = $(alloc(List), init);
-  console_state.strings->destroy = (Consumer) Con_FreeString;
+  consoleState.strings = $(alloc(List), init);
+  consoleState.strings->destroy = (Consumer) Con_FreeString;
 
-  console_state.consoles = $(alloc(List), init);
+  consoleState.consoles = $(alloc(List), init);
 
-  console_state.lock = SDL_CreateMutex();
+  consoleState.lock = SDL_CreateMutex();
 
   Cmd_Add("clear", Con_Clear_f, 0, NULL);
   Cmd_Add("dump", Con_Dump_f, 0, NULL);
@@ -786,9 +786,9 @@ void Con_Shutdown(void) {
 
   Con_FreeStrings();
 
-  console_state.strings = release(console_state.strings);
-  console_state.consoles = release(console_state.consoles);
+  consoleState.strings = release(consoleState.strings);
+  consoleState.consoles = release(consoleState.consoles);
 
-  SDL_DestroyMutex(console_state.lock);
-  console_state.lock = NULL;
+  SDL_DestroyMutex(consoleState.lock);
+  consoleState.lock = NULL;
 }

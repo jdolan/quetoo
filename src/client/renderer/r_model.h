@@ -28,7 +28,7 @@ RenderModel *R_WorldModel(void);
 
 #if defined(__R_LOCAL_H__)
 
-extern RenderModels r_models;
+extern RenderModels rModels;
 
 void R_InitModels(void);
 void R_ShutdownModels(void);

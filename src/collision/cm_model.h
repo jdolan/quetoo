@@ -63,6 +63,6 @@ const CmBsp *Cm_Bsp(void);
 
 #if defined(__CM_LOCAL_H__)
 
-extern CmBsp cm_bsp;
+extern CmBsp cmBsp;
 
 #endif

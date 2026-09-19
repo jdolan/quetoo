@@ -29,9 +29,9 @@ static void Cl_ParsePlayerState(const ClientFrame *deltaFrame, ClientFrame *fram
   static PlayerState null_state;
 
   if (deltaFrame && deltaFrame->valid) {
-    Net_ReadDeltaPlayerState(&net_message, &deltaFrame->ps, &frame->ps);
+    Net_ReadDeltaPlayerState(&netMessage, &deltaFrame->ps, &frame->ps);
   } else {
-    Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
+    Net_ReadDeltaPlayerState(&netMessage, &null_state, &frame->ps);
   }
 
   if (cl.demoServer) { // if playing a demo, force freeze
@@ -95,7 +95,7 @@ static void Cl_ReadDeltaEntity(ClientFrame *frame, const EntityState *from, int1
 
   frame->numEntities++;
 
-  Net_ReadDeltaEntity(&net_message, from, to, number, bits);
+  Net_ReadDeltaEntity(&netMessage, from, to, number, bits);
 
   // check to see if the delta was successful and valid
   if (!Cl_ValidDeltaEntity(ent, from, to)) {
@@ -148,7 +148,7 @@ static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) 
   
   while (true) {
 
-    const int16_t number = Net_ReadShort(&net_message);
+    const int16_t number = Net_ReadShort(&netMessage);
 
     if (number == -1) {
       break;
@@ -158,14 +158,14 @@ static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) 
       Com_Error(ERROR_DROP, "Bad number: %i\n", number);
     }
 
-    if (net_message.read > net_message.size) {
+    if (netMessage.read > netMessage.size) {
       Com_Error(ERROR_DROP, "End of message\n");
     }
 
     // before dealing with new entities, copy unchanged entities into the frame
     while (fromNumber < number) {
 
-      if (cl_draw_net_messages->integer == 3) {
+      if (cl_drawNetMessages->integer == 3) {
         Com_Print("   unchanged: %i\n", fromNumber);
       }
 
@@ -182,11 +182,11 @@ static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) 
     }
 
     // now deal with the new entity
-    const uint16_t bits = Net_ReadShort(&net_message);
+    const uint16_t bits = Net_ReadShort(&netMessage);
 
     if (bits & U_REMOVE) { // remove it, no delta
 
-      if (cl_draw_net_messages->integer == 3) {
+      if (cl_drawNetMessages->integer == 3) {
         Com_Print("   remove: %i\n", number);
       }
 
@@ -208,7 +208,7 @@ static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) 
 
     if (fromNumber == number) { // delta from previous state
 
-      if (cl_draw_net_messages->integer == 3) {
+      if (cl_drawNetMessages->integer == 3) {
         Com_Print("   delta: %i\n", number);
       }
 
@@ -228,7 +228,7 @@ static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) 
 
     if (fromNumber > number) { // delta from baseline
 
-      if (cl_draw_net_messages->integer == 3) {
+      if (cl_drawNetMessages->integer == 3) {
         Com_Print("   baseline: %i\n", number);
       }
 
@@ -241,7 +241,7 @@ static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) 
   // any remaining entities in the old frame are copied over
   while (fromNumber != INT16_MAX) { // one or more entities from the old packet are unchanged
 
-    if (cl_draw_net_messages->integer == 3) {
+    if (cl_drawNetMessages->integer == 3) {
       Com_Print("   unchanged: %i\n", fromNumber);
     }
 
@@ -271,10 +271,10 @@ void Cl_ParseFrame(void) {
 
   memset(&cl.frame, 0, sizeof(cl.frame));
 
-  cl.frame.frameNum = Net_ReadLong(&net_message);
-  cl.frame.deltaFrameNum = Net_ReadLong(&net_message);
+  cl.frame.frameNum = Net_ReadLong(&netMessage);
+  cl.frame.deltaFrameNum = Net_ReadLong(&netMessage);
 
-  if (cl_draw_net_messages->integer == 3) {
+  if (cl_drawNetMessages->integer == 3) {
     Com_Print("   frame:%i  delta:%i\n", cl.frame.frameNum, cl.frame.deltaFrameNum);
   }
 
@@ -353,7 +353,7 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-  bool noLerp = cl.previousFrame == NULL || cl_no_lerp->value || time_demo->value;
+  bool noLerp = cl.previousFrame == NULL || cl_noLerp->value || time_demo->value;
 
   if (cl.previousFrame) {
     const float dist = Vec3_Distance(cl.frame.ps.pmState.origin, cl.previousFrame->ps.pmState.origin);

@@ -34,7 +34,7 @@ typedef struct CrosshairViewInterface CrosshairViewInterface;
 
 /**
  * @brief The crosshair, coloured by health and pulsed by pickups.
- * @details Reads the `cg_draw_crosshair*` cvars as the settings preview does, and adds what
+ * @details Reads the `cg_drawCrosshair*` cvars as the settings preview does, and adds what
  * only play knows: the `ClientGameCrosshairHealth` schemes and the pickup pulse. Hidden when
  * dead, spectating, in third person, behind the scoreboard or a center print, or when there
  * is no weapon. In the editor it shows regardless, in white.
@@ -54,7 +54,7 @@ struct CrosshairView {
   CrosshairViewInterface *interface[0];
 
   /**
-   * @brief The colour from `cg_draw_crosshair_color`, before health and pulse apply.
+   * @brief The colour from `cg_drawCrosshairColor`, before health and pulse apply.
    */
   Vec4 color;
 

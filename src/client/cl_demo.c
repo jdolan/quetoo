@@ -332,7 +332,7 @@ void Cl_Record_f(void) {
  * `ui/hud/DemoControlsView.json`, and MUST stay within the `time_scale` bounds enforced
  * by `main.c`.
  */
-static const float demo_playback_speeds[] = { 0.25f, 0.5f, 0.75f, 1.f, 2.f, 3.f };
+static const float demoPlaybackSpeeds[] = { 0.25f, 0.5f, 0.75f, 1.f, 2.f, 3.f };
 
 /**
  * @brief
@@ -343,23 +343,23 @@ static void Cl_SetDemoPlaybackSpeed(ssize_t index) {
     return;
   }
 
-  index = SDL_clamp(index, 0, (ssize_t) lengthof(demo_playback_speeds) - 1);
+  index = SDL_clamp(index, 0, (ssize_t) lengthof(demoPlaybackSpeeds) - 1);
 
-  Cvar_ForceSetValue(time_scale->name, demo_playback_speeds[index]);
+  Cvar_ForceSetValue(time_scale->name, demoPlaybackSpeeds[index]);
 
   Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }
 
 /**
- * @return The index in `demo_playback_speeds` nearest the current `time_scale`.
+ * @return The index in `demoPlaybackSpeeds` nearest the current `time_scale`.
  */
 static size_t Cl_DemoPlaybackSpeedIndex(void) {
 
   size_t index = 0;
   float nearest = FLT_MAX;
 
-  for (size_t i = 0; i < lengthof(demo_playback_speeds); i++) {
-    const float delta = fabsf(demo_playback_speeds[i] - time_scale->value);
+  for (size_t i = 0; i < lengthof(demoPlaybackSpeeds); i++) {
+    const float delta = fabsf(demoPlaybackSpeeds[i] - time_scale->value);
     if (delta < nearest) {
       nearest = delta;
       index = i;
@@ -377,7 +377,7 @@ void Cl_SetDemoPlaybackSpeed_f(void) {
   const char *arg = Cmd_Argv(1);
 
   if (Cmd_Argc() != 2 || !SDL_isdigit(*arg)) {
-    Com_Print("Usage: %s [0-%d]\n", Cmd_Argv(0), (int32_t) lengthof(demo_playback_speeds) - 1);
+    Com_Print("Usage: %s [0-%d]\n", Cmd_Argv(0), (int32_t) lengthof(demoPlaybackSpeeds) - 1);
     return;
   }
 

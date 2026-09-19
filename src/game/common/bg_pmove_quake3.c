@@ -111,7 +111,7 @@
   .maxs = { {  15.f,  15.f,  -8.f } }  /* PM_CheckDuck's corpse, against Quetoo's -4 */ \
 }
 
-const PlayerMoveParams pm_quake3_params = {
+const PlayerMoveParams pmQuake3Params = {
   .gravity = 800,
   .accelGround = 10.f,         // pm_accelerate
   .accelGroundSlick = 1.f,    // pm_airaccelerate, which is what slick ground gets
@@ -173,7 +173,7 @@ const PlayerMoveParams pm_quake3_params = {
  * `Pm_Quake3GroundTrace`, and reset at the top of every move, so nothing
  * survives one.
  */
-static bool pm_quake3_ground_plane;
+static bool pmQuake3GroundPlane;
 
 /**
  * @brief Slides `in` along `normal`. Unlike Quake II, a move already leaving the
@@ -215,26 +215,26 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
 
   if (gravity) {
     endVelocity = pm->s.velocity;
-    endVelocity.z -= pm->s.params.gravity * pm_locals.time;
+    endVelocity.z -= pm->s.params.gravity * pmLocals.time;
 
     pm->s.velocity.z = (pm->s.velocity.z + endVelocity.z) * .5f;
     primalVelocity.z = endVelocity.z;
 
-    if (pm_quake3_ground_plane) {
-      pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pm_locals.ground.plane.normal);
+    if (pmQuake3GroundPlane) {
+      pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pmLocals.ground.plane.normal);
     }
   }
 
   Vec3 planes[PM_QUAKE3_CLIP_PLANES];
   int32_t numPlanes = 0;
 
-  if (pm_quake3_ground_plane) { // never turn against the ground plane
-    planes[numPlanes++] = pm_locals.ground.plane.normal;
+  if (pmQuake3GroundPlane) { // never turn against the ground plane
+    planes[numPlanes++] = pmLocals.ground.plane.normal;
   }
 
   planes[numPlanes++] = Vec3_Normalize(pm->s.velocity); // nor against the velocity
 
-  float timeLeft = pm_locals.time;
+  float timeLeft = pmLocals.time;
 
   int32_t bump;
   for (bump = 0; bump < PM_QUAKE3_BUMPS; bump++) {
@@ -431,16 +431,16 @@ static void Pm_Quake3Friction(void) {
   float drop = 0.f;
 
   if (pm->waterLevel <= WATER_FEET) {
-    if ((pm->s.flags & PMF_ON_GROUND) && !(pm_locals.ground.surface & SURF_SLICK)) {
+    if ((pm->s.flags & PMF_ON_GROUND) && !(pmLocals.ground.surface & SURF_SLICK)) {
       if (!(pm->s.flags & PMF_TIME_PUSHED)) {
         const float control = Maxf(speed, pm->s.params.speedStop);
-        drop += control * pm->s.params.frictionGround * pm_locals.time;
+        drop += control * pm->s.params.frictionGround * pmLocals.time;
       }
     }
   }
 
   if (pm->waterLevel) { // even if only wading
-    drop += speed * pm->s.params.frictionWater * (float) pm->waterLevel * pm_locals.time;
+    drop += speed * pm->s.params.frictionWater * (float) pm->waterLevel * pmLocals.time;
   }
 
   pm->s.velocity = Vec3_Scale(pm->s.velocity, Maxf(0.f, speed - drop) / speed);
@@ -457,7 +457,7 @@ static void Pm_Quake3Accelerate(const Vec3 dir, float speed, float accel) {
     return;
   }
 
-  const float accelSpeed = Minf(accel * pm_locals.time * speed, addSpeed);
+  const float accelSpeed = Minf(accel * pmLocals.time * speed, addSpeed);
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accelSpeed, dir);
 }
@@ -477,7 +477,7 @@ static bool Pm_Quake3CheckJump(void) {
     return false;
   }
 
-  pm_quake3_ground_plane = false; // jumping away
+  pmQuake3GroundPlane = false; // jumping away
   pm->s.flags &= ~PMF_ON_GROUND;
   memset(&pm->ground, 0, sizeof(pm->ground));
 
@@ -501,7 +501,7 @@ static bool Pm_Quake3CheckWaterJump(void) {
     return false;
   }
 
-  const Vec3 forward = Vec3_Normalize(MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f));
+  const Vec3 forward = Vec3_Normalize(MakeVec3(pmLocals.forward.x, pmLocals.forward.y, 0.f));
 
   Vec3 spot = Vec3_Fmaf(pm->s.origin, PM_QUAKE3_WATER_JUMP_DIST, forward);
   spot.z += PM_QUAKE3_WATER_JUMP_UP;
@@ -517,7 +517,7 @@ static bool Pm_Quake3CheckWaterJump(void) {
   }
 
   // and this is the whole view vector, not the flattened one
-  pm->s.velocity = Vec3_Scale(pm_locals.forward, PM_QUAKE3_WATER_JUMP_PUSH);
+  pm->s.velocity = Vec3_Scale(pmLocals.forward, PM_QUAKE3_WATER_JUMP_PUSH);
   pm->s.velocity.z = pm->s.params.speedWaterJump;
 
   pm->s.flags |= PMF_TIME_WATER_JUMP;
@@ -537,7 +537,7 @@ static void Pm_Quake3WaterJumpMove(void) {
 
   Pm_Quake3StepSlideMove(true);
 
-  pm->s.velocity.z -= pm->s.params.gravity * pm_locals.time;
+  pm->s.velocity.z -= pm->s.params.gravity * pmLocals.time;
 
   if (pm->s.velocity.z < 0.f) { // cancel as soon as we fall again
     // the whole mask, which is what upstream's PMF_ALL_TIMES is. Quetoo's timed
@@ -570,8 +570,8 @@ static void Pm_Quake3WaterMove(void) {
   if (!pm->cmd.forward && !pm->cmd.right && !pm->cmd.up) {
     wish.z = -PM_QUAKE3_WATER_SINK; // drift toward the bottom
   } else {
-    wish = Vec3_Fmaf(wish, pm->cmd.forward, pm_locals.forward);
-    wish = Vec3_Fmaf(wish, pm->cmd.right, pm_locals.right);
+    wish = Vec3_Fmaf(wish, pm->cmd.forward, pmLocals.forward);
+    wish = Vec3_Fmaf(wish, pm->cmd.right, pmLocals.right);
     wish.z += pm->cmd.up;
   }
 
@@ -582,12 +582,12 @@ static void Pm_Quake3WaterMove(void) {
   Pm_Quake3Accelerate(dir, speed, pm->s.params.accelWater);
 
   // make sure we can go up slopes easily under water
-  if (pm_quake3_ground_plane &&
-      Vec3_Dot(pm->s.velocity, pm_locals.ground.plane.normal) < 0.f) {
+  if (pmQuake3GroundPlane &&
+      Vec3_Dot(pm->s.velocity, pmLocals.ground.plane.normal) < 0.f) {
 
     const float length = Vec3_Length(pm->s.velocity);
 
-    pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pm_locals.ground.plane.normal);
+    pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pmLocals.ground.plane.normal);
     pm->s.velocity = Vec3_Scale(Vec3_Normalize(pm->s.velocity), length);
   }
 
@@ -604,8 +604,8 @@ static void Pm_Quake3AirMove(void) {
   Pm_Quake3Friction();
 
   // the wish is flat, whatever the view is doing
-  const Vec3 forward = Vec3_Normalize(MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f));
-  const Vec3 right = Vec3_Normalize(MakeVec3(pm_locals.right.x, pm_locals.right.y, 0.f));
+  const Vec3 forward = Vec3_Normalize(MakeVec3(pmLocals.forward.x, pmLocals.forward.y, 0.f));
+  const Vec3 right = Vec3_Normalize(MakeVec3(pmLocals.right.x, pmLocals.right.y, 0.f));
 
   Vec3 wish = Vec3_Zero();
   wish = Vec3_Fmaf(wish, pm->cmd.forward, forward);
@@ -622,8 +622,8 @@ static void Pm_Quake3AirMove(void) {
 
   // there may be a plane beneath us too steep to have stood on, and it is slid
   // along even though we are airborne
-  if (pm_quake3_ground_plane) {
-    pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pm_locals.ground.plane.normal);
+  if (pmQuake3GroundPlane) {
+    pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pmLocals.ground.plane.normal);
   }
 
   Pm_Quake3StepSlideMove(true);
@@ -639,9 +639,9 @@ static void Pm_Quake3WalkMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
-  const Vec3 normal = pm_locals.ground.plane.normal;
+  const Vec3 normal = pmLocals.ground.plane.normal;
 
-  if (pm->waterLevel > WATER_WAIST && Vec3_Dot(pm_locals.forward, normal) > 0.f) {
+  if (pm->waterLevel > WATER_WAIST && Vec3_Dot(pmLocals.forward, normal) > 0.f) {
     Pm_Quake3WaterMove(); // begin swimming
     return;
   }
@@ -657,8 +657,8 @@ static void Pm_Quake3WalkMove(void) {
 
   Pm_Quake3Friction();
 
-  Vec3 forward = MakeVec3(pm_locals.forward.x, pm_locals.forward.y, 0.f);
-  Vec3 right = MakeVec3(pm_locals.right.x, pm_locals.right.y, 0.f);
+  Vec3 forward = MakeVec3(pmLocals.forward.x, pmLocals.forward.y, 0.f);
+  Vec3 right = MakeVec3(pmLocals.right.x, pmLocals.right.y, 0.f);
 
   // project the forward and right directions onto the ground plane, which is
   // what leaves the wish a vertical component to climb the slope with
@@ -684,7 +684,7 @@ static void Pm_Quake3WalkMove(void) {
 
   // a player who has just been hit, or who is on ice, has air control rather
   // than ground control, which is what lets them be moved
-  const bool slipping = (pm_locals.ground.surface & SURF_SLICK) ||
+  const bool slipping = (pmLocals.ground.surface & SURF_SLICK) ||
                         (pm->s.flags & PMF_TIME_PUSHED);
 
   Pm_Quake3Accelerate(dir, speed,
@@ -692,7 +692,7 @@ static void Pm_Quake3WalkMove(void) {
                                : pm->s.params.accelGround);
 
   if (slipping) {
-    pm->s.velocity.z -= pm->s.params.gravity * pm_locals.time;
+    pm->s.velocity.z -= pm->s.params.gravity * pmLocals.time;
   } // and otherwise the vertical speed is left alone, for slopes
 
   const float length = Vec3_Length(pm->s.velocity);
@@ -744,18 +744,18 @@ static void Pm_Quake3GroundTrace(void) {
   // Pm_Trace is itself Quake III's PM_CorrectAllSolid, so the corrective case
   // upstream spells out here is already taken
   const CmTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
-  pm_locals.ground = trace;
+  pmLocals.ground = trace;
 
   pm->s.flags &= ~PMF_ON_GROUND;
   memset(&pm->ground, 0, sizeof(pm->ground));
 
   if (trace.allSolid) { // nowhere to be, so nothing to stand on
-    pm_quake3_ground_plane = false;
+    pmQuake3GroundPlane = false;
     return;
   }
 
   if (trace.fraction == 1.f) { // in free fall
-    pm_quake3_ground_plane = false;
+    pmQuake3GroundPlane = false;
     return;
   }
 
@@ -765,17 +765,17 @@ static void Pm_Quake3GroundTrace(void) {
   if (pm->s.velocity.z > 0.f &&
       Vec3_Dot(pm->s.velocity, trace.plane.normal) > PM_QUAKE3_KICKOFF) {
     Pm_Debug("kickoff\n");
-    pm_quake3_ground_plane = false;
+    pmQuake3GroundPlane = false;
     return;
   }
 
   if (trace.plane.normal.z < PM_QUAKE3_WALK_NORMAL) { // too steep to stand on
     Pm_Debug("steep\n");
-    pm_quake3_ground_plane = true; // but there is still a plane to slide along
+    pmQuake3GroundPlane = true; // but there is still a plane to slide along
     return;
   }
 
-  pm_quake3_ground_plane = true;
+  pmQuake3GroundPlane = true;
 
   // unconditionally, because Pm_Init cleared it
   pm->s.flags |= PMF_ON_GROUND;
@@ -796,7 +796,7 @@ static void Pm_Quake3GroundTrace(void) {
     // nothing tests the flag: what the timer actually does is hold the velocity
     // through the slide and refuse a water jump. Quake III lets a player jump
     // the instant they land, which is what chaining strafe jumps depends on
-    if (pm_locals.previousVelocity.z < PM_QUAKE3_LAND_SPEED) {
+    if (pmLocals.previousVelocity.z < PM_QUAKE3_LAND_SPEED) {
       pm->s.flags |= PMF_TIME_LAND;
       pm->s.time = PM_QUAKE3_LAND_TIME;
     }
@@ -896,7 +896,7 @@ static void Pm_Quake3SnapVelocity(void) {
  */
 void Pm_Quake3Move(void) {
 
-  pm_quake3_ground_plane = false;
+  pmQuake3GroundPlane = false;
 
   // upstream samples the water before it sizes the box, so these samples are
   // taken against the eye height the last move left. The pass at the end of the

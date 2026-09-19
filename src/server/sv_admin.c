@@ -33,7 +33,7 @@ static void Sv_Heartbeat_f(void) {
 }
 
 /**
- * @brief Sets `sv_client` and `sv_player` to the player identified by `Cmd_Argv(1)`.
+ * @brief Sets `svClient` and `svPlayer` to the player identified by `Cmd_Argv(1)`.
  */
 static bool Sv_SetPlayer(void) {
   ServerClient *cl;
@@ -48,13 +48,13 @@ static bool Sv_SetPlayer(void) {
   // numeric values are just slot numbers
   if (s[0] >= '0' && s[0] <= '9') {
     const int32_t num = atoi(Cmd_Argv(1));
-    if (num < 0 || num >= sv_max_clients->integer) {
+    if (num < 0 || num >= sv_maxClients->integer) {
       Com_Print("Bad client slot: %i\n", num);
       return false;
     }
 
-    sv_client = &svs.clients[num];
-    if (!sv_client->state) {
+    svClient = &svs.clients[num];
+    if (!svClient->state) {
       Com_Print("Client %i is not active\n", num);
       return false;
     }
@@ -62,14 +62,14 @@ static bool Sv_SetPlayer(void) {
   }
 
   // check for a name match
-  for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+  for (i = 0, cl = svs.clients; i < sv_maxClients->integer; i++, cl++) {
 
     if (!cl->state) {
       continue;
     }
 
     if (!q_strcmp(cl->name, s)) {
-      sv_client = cl;
+      svClient = cl;
       return true;
     }
   }
@@ -133,7 +133,7 @@ static void Sv_Map_f(void) {
 }
 
 /**
- * @brief Advances the server to the next map in `sv_map_list`.
+ * @brief Advances the server to the next map in `sv_mapList`.
  */
 void Sv_NextMap_f(void) {
 
@@ -167,7 +167,7 @@ static void Sv_Kick_f(void) {
     return;
   }
 
-  Sv_KickClient(sv_client, NULL);
+  Sv_KickClient(svClient, NULL);
 }
 
 /**
@@ -185,7 +185,7 @@ static void Sv_Status_f(void) {
   Com_Print("--- ---- ---------------- ------- --------------------- -----\n");
 
   ServerClient *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
       continue;
@@ -216,7 +216,7 @@ static void Sv_ListEntities_f(void) {
     return;
   }
 
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
     const GameEntity *e = sv.entities[i].gent;
 
     if (Cmd_Argc() > 1) {
@@ -253,7 +253,7 @@ static void Sv_Say_f(void) {
   }
 
   const ServerClient *client = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, client++) {
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, client++) {
 
     if (client->state != SV_CLIENT_ACTIVE) {
       continue;
@@ -294,11 +294,11 @@ static void Sv_Tell_f(void) {
     s++;
   }
 
-  if (sv_client->state != SV_CLIENT_ACTIVE) {
+  if (svClient->state != SV_CLIENT_ACTIVE) {
     return;
   }
 
-  const GameClient *cl = sv_client->gclient;
+  const GameClient *cl = svClient->gclient;
   Sv_ClientPrint(cl, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
   Com_Print("^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
 }
@@ -336,7 +336,7 @@ static void Sv_UserInfo_f(void) {
     return;
   }
 
-  Com_PrintInfo(sv_client->userInfo);
+  Com_PrintInfo(svClient->userInfo);
 }
 
 /**
@@ -355,7 +355,7 @@ static void Sv_Stuff_f(void) {
     return;
   }
 
-  if (sv_client->state != SV_CLIENT_ACTIVE) {
+  if (svClient->state != SV_CLIENT_ACTIVE) {
     return;
   }
 
@@ -365,8 +365,8 @@ static void Sv_Stuff_f(void) {
     q_strlcat(text, Cmd_Argv(i), sizeof(text));
   }
 
-  Net_WriteByte(&sv_client->netChan.message, SV_CMD_CBUF_TEXT);
-  Net_WriteString(&sv_client->netChan.message, va("%s\n", text));
+  Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
+  Net_WriteString(&svClient->netChan.message, va("%s\n", text));
 }
 
 /**

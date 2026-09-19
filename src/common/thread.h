@@ -62,5 +62,5 @@ int32_t Thread_Count(void);
 void Thread_Init(ssize_t numThreads);
 void Thread_Shutdown(void);
 
-extern SDL_ThreadID thread_main;
-extern _Thread_local SDL_ThreadID thread_id;
+extern SDL_ThreadID threadMain;
+extern _Thread_local SDL_ThreadID threadId;

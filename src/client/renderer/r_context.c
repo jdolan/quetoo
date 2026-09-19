@@ -23,7 +23,7 @@
 
 #include <Objectively/Resource.h>
 
-RenderContext r_context;
+RenderContext rContext;
 
 /**
  * @brief Loads Objectively resources from the Quetoo VFS.
@@ -54,7 +54,7 @@ static void R_SetWindowIcon(void) {
     return;
   }
 
-  SDL_SetWindowIcon(r_context.window, surf);
+  SDL_SetWindowIcon(rContext.window, surf);
 
   SDL_DestroySurface(surf);
 }
@@ -64,22 +64,22 @@ static void R_SetWindowIcon(void) {
  */
 void R_UpdateContext(void) {
 
-  assert(r_context.window);
+  assert(rContext.window);
 
-  r_context.windowFlags = SDL_GetWindowFlags(r_context.window);
+  rContext.windowFlags = SDL_GetWindowFlags(rContext.window);
 
-  SDL_GetWindowPosition(r_context.window, &r_context.windowBounds.x, &r_context.windowBounds.y);
-  SDL_GetWindowSize(r_context.window, &r_context.windowBounds.w, &r_context.windowBounds.h);
+  SDL_GetWindowPosition(rContext.window, &rContext.windowBounds.x, &rContext.windowBounds.y);
+  SDL_GetWindowSize(rContext.window, &rContext.windowBounds.w, &rContext.windowBounds.h);
 
-  if (!(r_context.windowFlags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
-    Cvar_ForceSetInteger("r_window_width", r_context.windowBounds.w);
-    Cvar_ForceSetInteger("r_window_height", r_context.windowBounds.h);
-    r_window_width->modified = false;
-    r_window_height->modified = false;
+  if (!(rContext.windowFlags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
+    Cvar_ForceSetInteger("r_window_width", rContext.windowBounds.w);
+    Cvar_ForceSetInteger("r_window_height", rContext.windowBounds.h);
+    r_windowWidth->modified = false;
+    r_windowHeight->modified = false;
   }
 
-  r_context.display = SDL_GetDisplayForWindow(r_context.window);
-  r_context.displayMode = SDL_GetCurrentDisplayMode(r_context.display);
+  rContext.display = SDL_GetDisplayForWindow(rContext.window);
+  rContext.displayMode = SDL_GetCurrentDisplayMode(rContext.display);
 
   R_UpdateUniforms(NULL);
 }
@@ -89,7 +89,7 @@ void R_UpdateContext(void) {
  */
 void R_InitContext(void) {
   
-  memset(&r_context, 0, sizeof(r_context));
+  memset(&rContext, 0, sizeof(rContext));
 
   if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
@@ -97,10 +97,10 @@ void R_InitContext(void) {
     }
   }
 
-  r_context.display = SDL_GetPrimaryDisplay();
+  rContext.display = SDL_GetPrimaryDisplay();
 
   SDL_Rect bounds;
-  SDL_GetDisplayUsableBounds(r_context.display, &bounds);
+  SDL_GetDisplayUsableBounds(rContext.display, &bounds);
 
   int32_t w = bounds.w;
   int32_t h = bounds.h;
@@ -110,37 +110,37 @@ void R_InitContext(void) {
   switch (r_fullscreen->integer) {
     case 0:
       windowFlags |= SDL_WINDOW_RESIZABLE;
-      w = r_window_width->integer ?: w;
-      h = r_window_height->integer ?: h;
+      w = r_windowWidth->integer ?: w;
+      h = r_windowHeight->integer ?: h;
       break;
     case 1:
       windowFlags |= SDL_WINDOW_BORDERLESS;
       break;
     case 2:
       windowFlags |= SDL_WINDOW_FULLSCREEN;
-      w = r_fullscreen_width->integer ?: w;
-      h = r_fullscreen_height->integer ?: h;
+      w = r_fullscreenWidth->integer ?: w;
+      h = r_fullscreenHeight->integer ?: h;
       break;
   }
 
-  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, windowFlags)) == NULL) {
+  if ((rContext.window = SDL_CreateWindow(PACKAGE_STRING, w, h, windowFlags)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create window: %s\n", SDL_GetError());
   }
 
   R_SetWindowIcon();
 
-  SDL_SyncWindow(r_context.window);
+  SDL_SyncWindow(rContext.window);
 
-  if (SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN) {
+  if (SDL_GetWindowFlags(rContext.window) & SDL_WINDOW_FULLSCREEN) {
 
-    if (r_fullscreen_width->integer > 0 && r_fullscreen_height->integer > 0) {
+    if (r_fullscreenWidth->integer > 0 && r_fullscreenHeight->integer > 0) {
 
       SDL_DisplayMode mode;
-      if (SDL_GetClosestFullscreenDisplayMode(r_context.display, w, h, 0.f, false, &mode)) {
+      if (SDL_GetClosestFullscreenDisplayMode(rContext.display, w, h, 0.f, false, &mode)) {
         Com_Print("  Setting fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
 
-        if (SDL_SetWindowFullscreenMode(r_context.window, &mode)) {
-          SDL_SyncWindow(r_context.window);
+        if (SDL_SetWindowFullscreenMode(rContext.window, &mode)) {
+          SDL_SyncWindow(rContext.window);
           Com_Print("  Set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
         } else {
           Com_Warn("Failed to set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
@@ -152,9 +152,9 @@ void R_InitContext(void) {
   }
 
   const char *driver = NULL;
-  if (r_gpu_driver->string[0]) {
-    Com_Print("  Forcing GPU driver \"%s\"..\n", r_gpu_driver->string);
-    driver = r_gpu_driver->string;
+  if (r_gpuDriver->string[0]) {
+    Com_Print("  Forcing GPU driver \"%s\"..\n", r_gpuDriver->string);
+    driver = r_gpuDriver->string;
   } else {
 #if defined (_WIN32)
     driver = "vulkan";
@@ -163,30 +163,30 @@ void R_InitContext(void) {
 
   Com_Print("  Creating GPU render device..\n");
 
-  r_context.device = $(alloc(RenderDevice), initWithWindow, r_context.window, driver);
-  if (r_context.device == NULL) {
+  rContext.device = $(alloc(RenderDevice), initWithWindow, rContext.window, driver);
+  if (rContext.device == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create GPU render device: %s\n", SDL_GetError());
   }
 
-  r_context.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
+  rContext.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
 
   $$(Resource, addResourceProvider, R_ResourceProvider);
 
   R_UpdateContext();
 
-  const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
+  const SDL_GPUTextureFormat format = $(rContext.device, getSwapchainTextureFormat);
 
-  Framebuffer *framebuffer = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
-    .size = MakeSize(r_context.windowBounds.w, r_context.windowBounds.h),
+  Framebuffer *framebuffer = $(rContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+    .size = MakeSize(rContext.windowBounds.w, rContext.windowBounds.h),
     .colorAttachments = { { .format = format, .clearColor = { 0.f, 0.f, 0.f, 1.f } } },
     .numColorTargets = 1,
     .sampleCount = SDL_GPU_SAMPLECOUNT_1,
   });
 
-  $(r_context.device, setFramebuffer, framebuffer);
+  $(rContext.device, setFramebuffer, framebuffer);
   release(framebuffer);
 
-  r_context.nullTexture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D, 1, 0xffffffff);
+  rContext.nullTexture = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D, 1, 0xffffffff);
 }
 
 /**
@@ -197,14 +197,14 @@ void R_InitContext(void) {
  */
 void R_ShutdownContext(void) {
 
-  $(r_context.device, waitForIdle);
+  $(rContext.device, waitForIdle);
 
-  r_context.nullTexture = release(r_context.nullTexture);
-  r_context.device = release(r_context.device);
+  rContext.nullTexture = release(rContext.nullTexture);
+  rContext.device = release(rContext.device);
 
-  if (r_context.window) {
-    SDL_DestroyWindow(r_context.window);
-    r_context.window = NULL;
+  if (rContext.window) {
+    SDL_DestroyWindow(rContext.window);
+    rContext.window = NULL;
   }
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -215,7 +215,7 @@ void R_ShutdownContext(void) {
  */
 Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
 
-  const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f) * r_context.displayMode->pixel_density;
+  const float scale = Clampf(r_framebufferScale->value, .125f, 4.f) * rContext.displayMode->pixel_density;
 
   GPU_FramebufferCreateInfo create = *info;
 
@@ -224,9 +224,9 @@ Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
     Maxi((int32_t) (info->size.h * scale), 1)
   );
 
-  create.sampleCount = r_scene_samples;
+  create.sampleCount = rSceneSamples;
 
-  return $(r_context.device, createFramebuffer, &create);
+  return $(rContext.device, createFramebuffer, &create);
 }
 
 /**

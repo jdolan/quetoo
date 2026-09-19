@@ -82,7 +82,7 @@ static struct {
    * sources.
    */
   TransferBuffer *transferBuffer;
-} r_draw_3d;
+} module;
 
 /**
  * @brief 3D debug pipelines keyed by primitive mode and depth testing.
@@ -92,7 +92,7 @@ static struct {
   GraphicsPipeline *lineListNoDepth;
   GraphicsPipeline *lineStrip;
   GraphicsPipeline *lineStripNoDepth;
-} r_draw_3d_pipeline;
+} draw3dPipeline;
 
 /**
  * @brief Returns the pipeline for the requested primitive mode and depth test.
@@ -101,9 +101,9 @@ static GraphicsPipeline *R_Draw3DPipeline(SDL_GPUPrimitiveType mode, bool depthT
 
   switch (mode) {
     case SDL_GPU_PRIMITIVETYPE_LINELIST:
-      return depthTest ? r_draw_3d_pipeline.lineList : r_draw_3d_pipeline.lineListNoDepth;
+      return depthTest ? draw3dPipeline.lineList : draw3dPipeline.lineListNoDepth;
     case SDL_GPU_PRIMITIVETYPE_LINESTRIP:
-      return depthTest ? r_draw_3d_pipeline.lineStrip : r_draw_3d_pipeline.lineStripNoDepth;
+      return depthTest ? draw3dPipeline.lineStrip : draw3dPipeline.lineStripNoDepth;
     default:
       GPU_Assert(false, "unsupported 3D debug primitive mode %d", mode);
       return NULL;
@@ -115,7 +115,7 @@ static GraphicsPipeline *R_Draw3DPipeline(SDL_GPUPrimitiveType mode, bool depthT
  */
 static void R_AddDraw3DArrays(const RenderDraw3dArrays *draw) {
 
-  if (r_draw_3d.numDrawArrays == MAX_DRAW_3D_ARRAYS) {
+  if (module.numDrawArrays == MAX_DRAW_3D_ARRAYS) {
     Com_Warn("MAX_DRAW_3D_ARRAYS\n");
     return;
   }
@@ -124,8 +124,8 @@ static void R_AddDraw3DArrays(const RenderDraw3dArrays *draw) {
     return;
   }
 
-  r_draw_3d.drawArrays[r_draw_3d.numDrawArrays] = *draw;
-  r_draw_3d.numDrawArrays++;
+  module.drawArrays[module.numDrawArrays] = *draw;
+  module.numDrawArrays++;
 }
 
 /**
@@ -133,13 +133,13 @@ static void R_AddDraw3DArrays(const RenderDraw3dArrays *draw) {
  */
 static void R_AddDraw3DVertex(const RenderDraw3dVertex *v) {
 
-  if (r_draw_3d.numVertexes == MAX_DRAW_3D_VERTEXES) {
+  if (module.numVertexes == MAX_DRAW_3D_VERTEXES) {
     Com_Warn("MAX_DRAW_3D_VERTEXES\n");
     return;
   }
 
-  r_draw_3d.vertexes[r_draw_3d.numVertexes] = *v;
-  r_draw_3d.numVertexes++;
+  module.vertexes[module.numVertexes] = *v;
+  module.numVertexes++;
 }
 
 /**
@@ -150,7 +150,7 @@ void R_Draw3DLines(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, 
   const RenderDraw3dArrays draw = {
     .mode = mode,
     .depthTest = depthTest,
-    .firstVertex = (uint32_t) r_draw_3d.numVertexes,
+    .firstVertex = (uint32_t) module.numVertexes,
     .numVertexes = (uint32_t) count,
   };
 
@@ -212,15 +212,15 @@ void R_Draw3DBox(const Box3 bounds, const Color color, bool depthTest) {
 
 /**
  * @brief Accumulates per-vertex normal, tangent, and bitangent debug lines for
- * nearby world BSP vertices when `r_draw_bsp_normals` is enabled.
+ * nearby world BSP vertices when `r_drawBspNormals` is enabled.
  */
 static void R_UpdateBspNormals(const RenderView *view) {
 
-  if (!r_draw_bsp_normals->value || !r_models.world) {
+  if (!r_drawBspNormals->value || !rModels.world) {
     return;
   }
 
-  const RenderBspModel *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = rModels.world->bsp;
 
   const RenderBspVertex *v = bsp->vertexes;
   for (int32_t i = 0; i < bsp->numVertexes; i++, v++) {
@@ -236,10 +236,10 @@ static void R_UpdateBspNormals(const RenderView *view) {
 
     R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
 
-    if (r_draw_bsp_normals->integer > 1) {
+    if (r_drawBspNormals->integer > 1) {
       R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, color_green, true);
 
-      if (r_draw_bsp_normals->integer > 2) {
+      if (r_drawBspNormals->integer > 2) {
         R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, color_blue, true);
       }
     }
@@ -248,11 +248,11 @@ static void R_UpdateBspNormals(const RenderView *view) {
 
 /**
  * @brief Accumulates debug bounding boxes for all entities in the view when
- * `r_draw_entity_bounds` is enabled.
+ * `r_drawEntityBounds` is enabled.
  */
 static void R_UpdateEntityBounds(const RenderView *view) {
 
-  if (!r_draw_entity_bounds->value) {
+  if (!r_drawEntityBounds->value) {
     return;
   }
 
@@ -275,7 +275,7 @@ static void R_UpdateEntityBounds(const RenderView *view) {
       continue;
     }
 
-    if (r_draw_entity_bounds->integer == 2) {
+    if (r_drawEntityBounds->integer == 2) {
       R_Draw3DBox(e->absModelBounds, Color4fv(e->color), true);
     } else {
       R_Draw3DBox(e->absBounds, Color4fv(e->color), true);
@@ -285,11 +285,11 @@ static void R_UpdateEntityBounds(const RenderView *view) {
 
 /**
  * @brief Accumulates debug bounding boxes for lights near the view's forward
- * trace when `r_draw_light_bounds` is enabled.
+ * trace when `r_drawLightBounds` is enabled.
  */
 static void R_UpdateLightBounds(const RenderView *view) {
 
-  if (!r_draw_light_bounds->value) {
+  if (!r_drawLightBounds->value) {
     return;
   }
 
@@ -309,9 +309,9 @@ static void R_UpdateLightBounds(const RenderView *view) {
  */
 static void R_UpdateOcclusionBounds(const RenderView *view) {
 
-  if (r_draw_occlusion_queries->value) {
-    const RenderOcclusionQuery *q = r_occlusion.queries;
-    for (int32_t i = 0; i < r_occlusion.numQueries; i++, q++) {
+  if (r_drawOcclusionQueries->value) {
+    const RenderOcclusionQuery *q = rOcclusion.queries;
+    for (int32_t i = 0; i < rOcclusion.numQueries; i++, q++) {
       const float dist = Vec3_Distance(Box3_Center(q->bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (!q->result) {
@@ -322,9 +322,9 @@ static void R_UpdateOcclusionBounds(const RenderView *view) {
     }
   }
 
-  if (r_draw_bsp_blocks->value && r_models.world) {
-    RenderBspBlock *b = r_models.world->bsp->inlineModels->blocks;
-    for (int32_t i = 0; i < r_models.world->bsp->inlineModels->numBlocks; i++, b++) {
+  if (r_drawBspBlocks->value && rModels.world) {
+    RenderBspBlock *b = rModels.world->bsp->inlineModels->blocks;
+    for (int32_t i = 0; i < rModels.world->bsp->inlineModels->numBlocks; i++, b++) {
       const float dist = Vec3_Distance(Box3_Center(b->visibleBounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (!b->query->result) {
@@ -347,34 +347,34 @@ void R_UpdateDraw3D(const RenderView *view, CopyPass *copyPass) {
   R_UpdateLightBounds(view);
   R_UpdateOcclusionBounds(view);
 
-  if (r_draw_3d.numDrawArrays == 0) {
+  if (module.numDrawArrays == 0) {
     return;
   }
 
-  const uint32_t count = (uint32_t) r_draw_3d.numVertexes;
+  const uint32_t count = (uint32_t) module.numVertexes;
 
-  if ((int32_t) count > r_draw_3d.vertexBufferCapacity) {
-    r_draw_3d.vertexBuffer = release(r_draw_3d.vertexBuffer);
-    r_draw_3d.vertexBuffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  if ((int32_t) count > module.vertexBufferCapacity) {
+    module.vertexBuffer = release(module.vertexBuffer);
+    module.vertexBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = count * sizeof(RenderDraw3dVertex),
     });
-    r_draw_3d.transferBuffer = release(r_draw_3d.transferBuffer);
-    r_draw_3d.transferBuffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    module.transferBuffer = release(module.transferBuffer);
+    module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
       .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
       .size = count * sizeof(RenderDraw3dVertex),
     });
 
-    r_draw_3d.vertexBufferCapacity = (int32_t) count;
+    module.vertexBufferCapacity = (int32_t) count;
   }
 
   const uint32_t size = count * sizeof(RenderDraw3dVertex);
 
-  $(r_draw_3d.transferBuffer, write, r_draw_3d.vertexes, size, true);
+  $(module.transferBuffer, write, module.vertexes, size, true);
 
   $(copyPass, uploadBuffer,
-    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_draw_3d.transferBuffer->buffer },
-    &(SDL_GPUBufferRegion) { .buffer = r_draw_3d.vertexBuffer->buffer, .size = size },
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = module.transferBuffer->buffer },
+    &(SDL_GPUBufferRegion) { .buffer = module.vertexBuffer->buffer, .size = size },
     true);
 }
 
@@ -384,11 +384,11 @@ void R_UpdateDraw3D(const RenderView *view, CopyPass *copyPass) {
  */
 void R_Draw3D(const RenderView *view, RenderPass *pass) {
 
-  if (r_draw_3d.numDrawArrays == 0) {
+  if (module.numDrawArrays == 0) {
     return;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -398,25 +398,25 @@ void R_Draw3D(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
 
   GraphicsPipeline *pipeline = NULL;
 
-  const RenderDraw3dArrays *draw = r_draw_3d.drawArrays;
-  for (int32_t i = 0; i < r_draw_3d.numDrawArrays; i++, draw++) {
+  const RenderDraw3dArrays *draw = module.drawArrays;
+  for (int32_t i = 0; i < module.numDrawArrays; i++, draw++) {
 
     GraphicsPipeline *next = R_Draw3DPipeline(draw->mode, draw->depthTest);
     if (next != pipeline) {
       pipeline = next;
       $(pass, bindPipeline, pipeline);
-      $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_draw_3d.vertexBuffer->buffer }, 1);
+      $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = module.vertexBuffer->buffer }, 1);
     }
 
     $(pass, drawPrimitives, draw->numVertexes, 1, draw->firstVertex, 0);
   }
 
-  r_draw_3d.numDrawArrays = 0;
-  r_draw_3d.numVertexes = 0;
+  module.numDrawArrays = 0;
+  module.numVertexes = 0;
 }
 
 /**
@@ -426,7 +426,7 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
                                                Shader *vertexShader, Shader *fragmentShader) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
+  info.multisample_state.sample_count = rSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -477,7 +477,7 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
     .has_depth_stencil_target = true,
   };
 
-  return $(r_context.device, createGraphicsPipeline, &info);
+  return $(rContext.device, createGraphicsPipeline, &info);
 }
 
 /**
@@ -485,21 +485,21 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
  */
 void R_InitDraw3D(void) {
 
-  memset(&r_draw_3d, 0, sizeof(r_draw_3d));
+  memset(&module, 0, sizeof(module));
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/draw_3d_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(rContext.device, loadShader, "shaders/draw_3d_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 1,
   });
 
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/draw_3d_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/draw_3d_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 
-  r_draw_3d_pipeline.lineList = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINELIST, true, vertexShader, fragmentShader);
-  r_draw_3d_pipeline.lineListNoDepth = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINELIST, false, vertexShader, fragmentShader);
-  r_draw_3d_pipeline.lineStrip = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINESTRIP, true, vertexShader, fragmentShader);
-  r_draw_3d_pipeline.lineStripNoDepth = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINESTRIP, false, vertexShader, fragmentShader);
+  draw3dPipeline.lineList = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINELIST, true, vertexShader, fragmentShader);
+  draw3dPipeline.lineListNoDepth = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINELIST, false, vertexShader, fragmentShader);
+  draw3dPipeline.lineStrip = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINESTRIP, true, vertexShader, fragmentShader);
+  draw3dPipeline.lineStripNoDepth = R_InitDraw3DPipeline(SDL_GPU_PRIMITIVETYPE_LINESTRIP, false, vertexShader, fragmentShader);
 
   release(vertexShader);
   release(fragmentShader);
@@ -510,13 +510,13 @@ void R_InitDraw3D(void) {
  */
 void R_ShutdownDraw3D(void) {
 
-  r_draw_3d_pipeline.lineList = release(r_draw_3d_pipeline.lineList);
-  r_draw_3d_pipeline.lineListNoDepth = release(r_draw_3d_pipeline.lineListNoDepth);
-  r_draw_3d_pipeline.lineStrip = release(r_draw_3d_pipeline.lineStrip);
-  r_draw_3d_pipeline.lineStripNoDepth = release(r_draw_3d_pipeline.lineStripNoDepth);
+  draw3dPipeline.lineList = release(draw3dPipeline.lineList);
+  draw3dPipeline.lineListNoDepth = release(draw3dPipeline.lineListNoDepth);
+  draw3dPipeline.lineStrip = release(draw3dPipeline.lineStrip);
+  draw3dPipeline.lineStripNoDepth = release(draw3dPipeline.lineStripNoDepth);
 
-  r_draw_3d.vertexBuffer = release(r_draw_3d.vertexBuffer);
-  r_draw_3d.transferBuffer = release(r_draw_3d.transferBuffer);
+  module.vertexBuffer = release(module.vertexBuffer);
+  module.transferBuffer = release(module.transferBuffer);
 }
 
 /**

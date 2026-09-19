@@ -21,10 +21,10 @@
 
 #include "cm_local.h"
 
-CmBsp cm_bsp = {};
+CmBsp cmBsp = {};
 
 /**
- * @brief Loads and parses the entity string lump into `cm_bsp`.entities`.
+ * @brief Loads and parses the entity string lump into `cmBsp`.entities`.
  */
 static void Cm_LoadBspEntities(CmBsp *bsp) {
 
@@ -42,7 +42,7 @@ static void Cm_LoadBspEntities(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads and converts the planes lump into `cm_bsp`.planes`.
+ * @brief Loads and converts the planes lump into `cmBsp`.planes`.
  */
 static void Cm_LoadBspPlanes(CmBsp *bsp) {
 
@@ -57,7 +57,7 @@ static void Cm_LoadBspPlanes(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads and converts the nodes lump into `cm_bsp`.nodes`.
+ * @brief Loads and converts the nodes lump into `cmBsp`.nodes`.
  */
 static void Cm_LoadBspNodes(CmBsp *bsp) {
 
@@ -78,7 +78,7 @@ static void Cm_LoadBspNodes(CmBsp *bsp) {
 
 
 /**
- * @brief Loads and converts the leafs lump into `cm_bsp`.leafs`.
+ * @brief Loads and converts the leafs lump into `cmBsp`.leafs`.
  */
 static void Cm_LoadBspLeafs(CmBsp *bsp) {
 
@@ -95,7 +95,7 @@ static void Cm_LoadBspLeafs(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads the leaf-brush index lump into `cm_bsp`.`leaf_brushes`.
+ * @brief Loads the leaf-brush index lump into `cmBsp`.`leaf_brushes`.
  */
 static void Cm_LoadBspLeafBrushes(CmBsp *bsp) {
 
@@ -110,7 +110,7 @@ static void Cm_LoadBspLeafBrushes(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads and converts the brush sides lump into `cm_bsp`.`brush_sides`.
+ * @brief Loads and converts the brush sides lump into `cmBsp`.`brushSides`.
  */
 static void Cm_LoadBspBrushSides(CmBsp *bsp) {
 
@@ -145,7 +145,7 @@ static void Cm_LoadBspBrushSides(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads and converts the brushes lump into `cm_bsp`.brushes`.
+ * @brief Loads and converts the brushes lump into `cmBsp`.brushes`.
  */
 static void Cm_LoadBspBrushes(CmBsp *bsp) {
 
@@ -170,7 +170,7 @@ static void Cm_LoadBspBrushes(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads and converts the inline models lump into `cm_bsp`.models`.
+ * @brief Loads and converts the inline models lump into `cmBsp`.models`.
  */
 static void Cm_LoadBspInlineModels(CmBsp *bsp) {
 
@@ -193,7 +193,7 @@ static void Cm_LoadBspInlineModels(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads and resolves materials referenced by the BSP into `cm_bsp`.materials`.
+ * @brief Loads and resolves materials referenced by the BSP into `cmBsp`.materials`.
  */
 static void Cm_LoadBspMaterials(CmBsp *bsp) {
 
@@ -279,26 +279,26 @@ CmBspModel *Cm_LoadBspModel(const char *name, int64_t *size) {
   Bsp_UnloadLumps(&file, BSP_LUMPS_ALL);
 
   // free dynamic memory
-  Mem_Free(cm_bsp.planes);
-  Mem_Free(cm_bsp.nodes);
-  Mem_Free(cm_bsp.leafs);
-  Mem_Free(cm_bsp.leafBrushes);
-  Mem_Free(cm_bsp.brushes);
-  Mem_Free(cm_bsp.brushSides);
-  Mem_Free(cm_bsp.models);
-  Mem_Free(cm_bsp.entities);
-  Mem_Free(cm_bsp.materials);
-  Mem_Free(cm_bsp.voxels);
+  Mem_Free(cmBsp.planes);
+  Mem_Free(cmBsp.nodes);
+  Mem_Free(cmBsp.leafs);
+  Mem_Free(cmBsp.leafBrushes);
+  Mem_Free(cmBsp.brushes);
+  Mem_Free(cmBsp.brushSides);
+  Mem_Free(cmBsp.models);
+  Mem_Free(cmBsp.entities);
+  Mem_Free(cmBsp.materials);
+  Mem_Free(cmBsp.voxels);
 
-  memset(&cm_bsp, 0, sizeof(cm_bsp));
-  cm_bsp.file = &file;
+  memset(&cmBsp, 0, sizeof(cmBsp));
+  cmBsp.file = &file;
 
   // clean up and return
   if (!name) {
     if (size) {
       *size = 0;
     }
-    return &cm_bsp.models[0];
+    return &cmBsp.models[0];
   }
 
   // load the common BSP structure and the lumps we need
@@ -321,28 +321,28 @@ CmBspModel *Cm_LoadBspModel(const char *name, int64_t *size) {
   // in theory, by this point the BSP is valid - now we have to create the cm_
   // structures out of the raw file data
   if (size) {
-    cm_bsp.size = *size = Bsp_Size(header);
-    cm_bsp.modTime = Fs_LastModTime(name);
+    cmBsp.size = *size = Bsp_Size(header);
+    cmBsp.modTime = Fs_LastModTime(name);
   }
 
-  q_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
+  q_strlcpy(cmBsp.name, name, sizeof(cmBsp.name));
 
   Fs_Free(header);
 
-  Cm_LoadBspMaterials(&cm_bsp);
-  Cm_LoadBspEntities(&cm_bsp);
-  Cm_LoadBspPlanes(&cm_bsp);
-  Cm_LoadBspNodes(&cm_bsp);
-  Cm_LoadBspLeafs(&cm_bsp);
-  Cm_LoadBspLeafBrushes(&cm_bsp);
-  Cm_LoadBspBrushSides(&cm_bsp);
-  Cm_LoadBspBrushes(&cm_bsp);
-  Cm_LoadBspInlineModels(&cm_bsp);
-  Cm_LoadBspVoxels(&cm_bsp);
+  Cm_LoadBspMaterials(&cmBsp);
+  Cm_LoadBspEntities(&cmBsp);
+  Cm_LoadBspPlanes(&cmBsp);
+  Cm_LoadBspNodes(&cmBsp);
+  Cm_LoadBspLeafs(&cmBsp);
+  Cm_LoadBspLeafBrushes(&cmBsp);
+  Cm_LoadBspBrushSides(&cmBsp);
+  Cm_LoadBspBrushes(&cmBsp);
+  Cm_LoadBspInlineModels(&cmBsp);
+  Cm_LoadBspVoxels(&cmBsp);
 
-  Cm_InitBoxHull(&cm_bsp);
+  Cm_InitBoxHull(&cmBsp);
 
-  return &cm_bsp.models[0];
+  return &cmBsp.models[0];
 }
 
 /**
@@ -356,32 +356,32 @@ CmBspModel *Cm_Model(const char *name) {
 
   const int32_t num = atoi(name + 1);
 
-  if (num < 0 || num >= cm_bsp.numModels) {
+  if (num < 0 || num >= cmBsp.numModels) {
     Com_Error(ERROR_DROP, "Bad number: %d\n", num);
   }
 
-  return &cm_bsp.models[num];
+  return &cmBsp.models[num];
 }
 
 /**
  * @brief Returns the number of inline BSP models in the loaded BSP file.
  */
 int32_t Cm_NumModels(void) {
-  return cm_bsp.file->numModels;
+  return cmBsp.file->numModels;
 }
 
 /**
  * @brief Returns the raw entity string from the loaded BSP file.
  */
 const char *Cm_EntityString(void) {
-  return cm_bsp.file->entityString;
+  return cmBsp.file->entityString;
 }
 
 /**
  * @brief Returns the worldspawn entity (first entity in the loaded BSP).
  */
 const CmEntity *Cm_Worldspawn(void) {
-  return *cm_bsp.entities;
+  return *cmBsp.entities;
 }
 
 /**
@@ -389,16 +389,16 @@ const CmEntity *Cm_Worldspawn(void) {
  */
 int32_t Cm_LeafContents(const int32_t leafNum) {
 
-  if (leafNum < 0 || leafNum >= cm_bsp.numLeafs) {
+  if (leafNum < 0 || leafNum >= cmBsp.numLeafs) {
     Com_Error(ERROR_DROP, "Bad number: %d\n", leafNum);
   }
 
-  return cm_bsp.leafs[leafNum].contents;
+  return cmBsp.leafs[leafNum].contents;
 }
 
 /**
  * @brief Returns a const pointer to the global BSP collision model.
  */
 const CmBsp *Cm_Bsp(void) {
-  return &cm_bsp;
+  return &cmBsp;
 }

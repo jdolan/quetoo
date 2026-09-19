@@ -23,14 +23,14 @@
 
 #include "cm_local.h"
 
-static SDL_AtomicInt c_windings;
+static SDL_AtomicInt cWindings;
 
 /**
  * @brief Allocates a winding for the given number of points.
  */
 CmWinding *Cm_AllocWinding(int32_t numPoints) {
 
-  SDL_AddAtomicInt(&c_windings, 1);
+  SDL_AddAtomicInt(&cWindings, 1);
 
   return Mem_TagMalloc(sizeof(int32_t) + sizeof(Vec3) * numPoints, MEM_TAG_POLYLIB);
 }
@@ -40,7 +40,7 @@ CmWinding *Cm_AllocWinding(int32_t numPoints) {
  */
 void Cm_FreeWinding(CmWinding *w) {
 
-  SDL_AddAtomicInt(&c_windings, -1);
+  SDL_AddAtomicInt(&cWindings, -1);
 
   Mem_Free(w);
 }

@@ -80,7 +80,7 @@ static Image *thumbnail(const char *map) {
  */
 static void addMap(IntermissionView *self, int32_t index) {
 
-  const ClientGameNextMapState *nextMap = &cg_state.nextMap;
+  const ClientGameNextMapState *nextMap = &cgState.nextMap;
 
   StackView *tile = $(alloc(StackView), initWithFrame, NULL);
   assert(tile);
@@ -134,7 +134,7 @@ static void rebuild(IntermissionView *self) {
 
   memset(self->votes, 0, sizeof(self->votes));
 
-  for (int32_t i = 0; i < cg_state.nextMap.numMaps; i++) {
+  for (int32_t i = 0; i < cgState.nextMap.numMaps; i++) {
     addMap(self, i);
   }
 }
@@ -173,7 +173,7 @@ static void updateBindings(View *self, ident data) {
 
   IntermissionView *this = (IntermissionView *) self;
 
-  const ClientGameNextMapState *nextMap = &cg_state.nextMap;
+  const ClientGameNextMapState *nextMap = &cgState.nextMap;
 
   if (data) {
 

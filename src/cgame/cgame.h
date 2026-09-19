@@ -827,7 +827,7 @@ typedef struct ClientGameImport {
    * scale and forced to the shared scene sample count.
    * @param info Framebuffer creation parameters. @p info->size is a logical
    *   (point) size; it's scaled internally by the display's pixel density and
-   *   by r_framebuffer_scale. @p info->sampleCount is overridden to match the
+   *   by r_framebufferScale. @p info->sampleCount is overridden to match the
    *   main scene's, since the shared mesh/bsp pipelines are built with that
    *   exact sample count baked in. All other fields (attachments, formats,
    *   clear values) are used as given.

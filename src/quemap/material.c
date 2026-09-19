@@ -25,7 +25,7 @@
 /**
  * @brief The global material count and array used by the map compiler.
  */
-int32_t num_materials;
+int32_t numMaterials;
 Material materials[MAX_BSP_MATERIALS];
 
 /**
@@ -34,18 +34,18 @@ Material materials[MAX_BSP_MATERIALS];
 int32_t LoadMaterial(const char *name) {
 
   Material *m = materials;
-  for (int32_t i = 0; i < num_materials; i++, m++) {
+  for (int32_t i = 0; i < numMaterials; i++, m++) {
     if (!q_strcmp(name, m->cm->name)) {
       return i;
     }
   }
 
-  if (num_materials == MAX_BSP_MATERIALS) {
+  if (numMaterials == MAX_BSP_MATERIALS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_MATERIALS\n");
   }
 
-  m = materials + num_materials;
-  num_materials++;
+  m = materials + numMaterials;
+  numMaterials++;
 
   m->cm = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
 
@@ -66,11 +66,11 @@ int32_t LoadMaterial(const char *name) {
 void FreeMaterials(void) {
 
   Material *m = materials;
-  for (int32_t i = 0; i < num_materials; i++, m++) {
+  for (int32_t i = 0; i < numMaterials; i++, m++) {
     Cm_FreeMaterial(m->cm);
     SDL_DestroySurface(m->diffusemap);
   }
 
-  num_materials = 0;
+  numMaterials = 0;
   memset(materials, 0, sizeof(materials));
 }
