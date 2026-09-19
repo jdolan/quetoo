@@ -504,6 +504,11 @@ r_material_t *R_FindMaterial(const char *name, asset_context_t context) {
  */
 r_material_t *R_LoadMaterial(const char *name, asset_context_t context) {
 
+  if (name == NULL || *name == '\0') {
+    Com_Warn("Empty material name\n");
+    return NULL;
+  }
+
   r_material_t *material = R_FindMaterial(name, context);
   if (material == NULL) {
 
@@ -511,6 +516,8 @@ r_material_t *R_LoadMaterial(const char *name, asset_context_t context) {
 
     material = R_ResolveMaterial(cm);
   }
+
+  assert(material->cm);
 
   return material;
 }

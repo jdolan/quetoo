@@ -389,7 +389,11 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
       const byte *surface_base = (byte *) in;
 
-      out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_PLAYERS);
+      if (*out->name) {
+        out->material = R_LoadMaterial(out->name, ASSET_CONTEXT_PLAYERS);
+      } else {
+        Com_Warn("%s: surface %d has no name, it will not be drawn\n", mod->media.name, i);
+      }
 
       {
         out->num_vertexes = surface.num_vertexes;
