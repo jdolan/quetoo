@@ -306,3 +306,30 @@ DemoControlsView .speed {
   pointer-events: auto;
 }
 
+/* The camera announcement, shown briefly while spectating (live or demo) */
+
+CameraControlsView {
+  alignment: middle-left;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  background-color: #08151aa8;
+  border-color: #9fb8c433;
+  border-radius: 10;
+  border-width: 1;
+  padding: 6 20 6 12;
+  spacing: 12;
+}
+
+CameraControlsView > ImageView {
+  autoresizing-mask: none;
+  height: 32;
+  width: 32;
+}
+
+CameraControlsView > Text {
+  alignment: middle;
+  color: #dedededb;
+  font-size: 20;
+  text-transform: uppercase;
+}
+

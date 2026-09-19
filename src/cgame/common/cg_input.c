@@ -24,6 +24,10 @@
 
 button_t cg_buttons[4];
 
+#define CG_FOLLOW_ZOOM_SPEED 400.f
+#define CG_FOLLOW_DISTANCE_MIN 40.f
+#define CG_FOLLOW_DISTANCE_MAX 800.f
+
 static cvar_t *cg_run;
 
 typedef struct {
@@ -35,8 +39,54 @@ typedef struct {
 static cg_kick_t cg_kick;
 
 /**
- * @brief Handles SDL events, recreating the framebuffer on window resize or expose, and
- *   forwarding the mouse wheel to the editor's entity selection.
+ * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
+ * @remarks Asking rather than naming the shipped default, which a player may well have moved -
+ * on macOS a right click arrives as mouse 3, so `+hook` does not sit where the defaults put it.
+ */
+const char *Cg_KeyBind(const char *bind) {
+
+  const SDL_Scancode key = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
+
+  if (key == SDL_SCANCODE_UNKNOWN) {
+    return "^1UNBOUND^7";
+  }
+
+  return va("^2%s^7", cgi.KeyName(key));
+}
+
+/**
+ * @brief Accumulates raw mouse motion into the follow camera's yaw and pitch.
+ * @remarks The client applies mouse motion to `cgi.client->angles`, but `Cg_UpdateAngles`
+ * overwrites that with the view angles whenever `pm_state.type` is `PM_FREEZE` - which is
+ * exactly the state the game module puts a chasing spectator in. The raw event is therefore
+ * the only place the viewer's own mouse input survives, so follow reads it here rather than
+ * diffing angles that are reset out from under it every frame.
+ */
+static void Cg_UpdateFollowLook(const SDL_Event *event) {
+
+  if (cgi.GetKeyDest() != KEY_GAME) {
+    return;
+  }
+
+  if (!Cg_FollowEligible(&cgi.client->frame.ps)) {
+    return;
+  }
+
+  const float sensitivity = cgi.GetCvarValue("m_sensitivity");
+  const float invert = cgi.GetCvarValue("m_invert") ? -1.f : 1.f;
+
+  cg_state.follow.yaw -= cgi.GetCvarValue("m_yaw") * event->motion.xrel * sensitivity;
+
+  cg_state.follow.pitch = Clampf(
+    cg_state.follow.pitch + invert * cgi.GetCvarValue("m_pitch") * event->motion.yrel * sensitivity,
+    -89.f, 89.f
+  );
+}
+
+/**
+ * @brief Handles SDL events, recreating the framebuffer on window resize or expose, driving the
+ *   follow camera from mouse motion, and forwarding the mouse wheel to the editor's entity
+ *   selection.
  */
 void Cg_HandleEvent(const SDL_Event *event) {
 
@@ -49,6 +99,10 @@ void Cg_HandleEvent(const SDL_Event *event) {
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       Cg_CreateFramebuffer();
+      break;
+
+    case SDL_EVENT_MOUSE_MOTION:
+      Cg_UpdateFollowLook(event);
       break;
 
     case SDL_EVENT_MOUSE_WHEEL:
@@ -220,6 +274,10 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
  */
 void Cg_Look(pm_cmd_t *cmd) {
 
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
+    return; // a camera that has left the recorded player behind does not take their recoil
+  }
+
   Cg_ViewKick(cmd);
 
   Cg_WeaponKick(cmd);
@@ -230,7 +288,17 @@ void Cg_Look(pm_cmd_t *cmd) {
  */
 static void Cg_Move_Common(pm_cmd_t *cmd) {
 
-  if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
+  if (cgi.client->demo_server) {
+
+    // attack leaves the recorded player behind, and picks them back up. Live, the game module
+    // already does exactly this with the attack button, so only playback needs it here
+    if (in_attack.state & BUTTON_STATE_DOWN) {
+      cg_state.spectate.detached = !cg_state.spectate.detached;
+      cg_state.spectate.initialized = false;
+    }
+
+    in_attack.state &= ~BUTTON_STATE_DOWN;
+  } else if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
     if (!((in_attack.state & BUTTON_STATE_DOWN) && Cg_AttemptSelectWeapon(&cgi.client->frame.ps))) {
       cmd->buttons |= BUTTON_ATTACK;
 
@@ -241,6 +309,14 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
         cmd->muzzle = Vec3_Subtract(ci->weapon_muzzle, cgi.client->entity->current.origin);
       }
     }
+  }
+
+  // The hook is dead weight while watching someone else - there is no body to swing on - so it
+  // cycles how they are framed instead. Attack keeps doing what it always has, leaving a player
+  // behind and picking one back up, which is the press you least want happening by reflex
+  if ((in_hook.state & BUTTON_STATE_DOWN) && Cg_CameraSubject(&cgi.client->frame.ps)) {
+    cgi.Cbuf("camera\n");
+    in_hook.state &= ~BUTTON_STATE_DOWN;
   }
 
   if (in_hook.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
@@ -263,19 +339,26 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     }
   }
 
-  if (cgi.client->frame.ps.stats[STAT_CHASE]) {
-    if (cmd->up) {
-      static uint32_t time;
+  if (Cg_FollowEligible(&cgi.client->frame.ps)) {
+    // +forward/+back are otherwise idle whenever the follow camera is active - a chasing
+    // spectator's movement
+    // is never applied, and demo playback sends no commands at all - so they pan the camera in
+    // and out instead. cmd->forward arrives as cl_forward_speed * msec * key fraction, so it is
+    // divided back down to the milliseconds held before being scaled to a per-second rate
+    const float forward_speed = cgi.GetCvarValue("cl_forward_speed");
 
-      if (time > cgi.client->unclamped_time) {
-        time = 0;
-      }
+    if (forward_speed > 0.f) {
+      const float millis = cmd->forward / forward_speed;
 
-      if (cgi.client->unclamped_time - time > 200) {
-        cgi.ToggleCvar(cg_third_person_chasecam->name);
-        time = cgi.client->unclamped_time;
-      }
+      cg_state.follow.distance = Clampf(
+        cg_state.follow.distance - millis * (CG_FOLLOW_ZOOM_SPEED / 1000.f),
+        CG_FOLLOW_DISTANCE_MIN, CG_FOLLOW_DISTANCE_MAX
+      );
     }
+  }
+
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
+    Cg_UpdateSpectate(cmd);
   }
 }
 

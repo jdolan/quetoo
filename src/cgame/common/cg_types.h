@@ -200,6 +200,62 @@ typedef struct {
 #define WEATHER_ASH  0x4
 
 /**
+ * @brief How the camera frames whatever it is watching, in demo playback and while spectating a
+ * live game alike. Whether it is watching anything at all is a separate question - free flight
+ * is the absence of a subject, not a way of framing one - which the server answers live, and
+ * `cg_spectate_state_t::detached` answers during playback.
+ */
+typedef enum {
+  /**
+   * @brief Through the subject's own eyes.
+   */
+  CAMERA_FIRST_PERSON,
+
+  /**
+   * @brief Behind the subject, at the `cg_third_person_*` offset, riding their facing.
+   */
+  CAMERA_THIRD_PERSON,
+
+  /**
+   * @brief Anchored on the subject, but aimed by the viewer: the mouse swings the camera around
+   * them and `+forward`/`+back` changes its distance.
+   */
+  CAMERA_FOLLOW,
+
+  CAMERA_MODE_TOTAL
+} cg_camera_mode_t;
+
+/**
+ * @brief Follow camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance,
+ * held in world space so the camera keeps its place while the subject turns.
+ */
+typedef struct {
+  float yaw, pitch, distance;
+
+  /**
+   * @brief Whether the camera was following last frame, so that entering the mode seeds the
+   * accumulator. This lives here rather than in a static so that it is cleared with the rest of
+   * the follow state, which a reconnect would otherwise leave disagreeing.
+   */
+  bool following;
+} cg_follow_state_t;
+
+/**
+ * @brief Free-flight camera state for demo playback: a locally-owned `PM_SPECTATOR` movement
+ * state driven directly by `Pm_Move`, independent of the recorded `player_state_t`.
+ */
+typedef struct {
+  pm_state_t state;
+  bool initialized;
+
+  /**
+   * @brief Whether the demo camera has left the recorded player behind. Live, the equivalent
+   * question is whether the server has given us a chase target, which `STAT_CHASE` answers.
+   */
+  bool detached;
+} cg_spectate_state_t;
+
+/**
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
  */
 typedef struct {
@@ -285,6 +341,26 @@ typedef struct {
    * @brief The intermission's map candidates, from `CS_NEXT_MAP`.
    */
   cg_next_map_state_t next_map;
+
+  /**
+   * @brief The camera mode, cycled by `camera`.
+   */
+  cg_camera_mode_t camera_mode;
+
+  /**
+   * @brief Whether the transport and camera controls have been printed for this connection.
+   */
+  bool printed_controls;
+
+  /**
+   * @brief Follow camera state, shared by live spectating and demo playback.
+   */
+  cg_follow_state_t follow;
+
+  /**
+   * @brief Free-flight camera state, used during demo playback only.
+   */
+  cg_spectate_state_t spectate;
 } cg_state_t;
 
 extern cg_state_t cg_state;

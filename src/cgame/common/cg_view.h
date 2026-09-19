@@ -39,4 +39,7 @@ typedef struct {
 extern cg_view_t cg_view;
 
 void Cg_PrepareView(const cl_frame_t *frame);
+void Cg_CameraModeCycle_f(void);
+bool Cg_FollowEligible(const player_state_t *ps);
+bool Cg_CameraSubject(const player_state_t *ps);
 #endif

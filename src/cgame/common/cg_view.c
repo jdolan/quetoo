@@ -107,8 +107,109 @@ static void Cg_UpdateFov(void) {
 }
 
 /**
+ * @brief Returns true if the camera has a subject to frame: the recorded player during demo
+ * playback, or a chase target while spectating a live game. Without one there is nothing to
+ * frame, and the camera is flying free.
+ */
+bool Cg_CameraSubject(const player_state_t *ps) {
+
+  if (cgi.client->demo_server) {
+    return !cg_state.spectate.detached;
+  }
+
+  return ps->stats[STAT_CHASE];
+}
+
+/**
+ * @brief Returns true if the third-person offset should be driven by the viewer's mouse and
+ * `+forward`/`+back` (`cg_state.follow`) rather than the static `cg_third_person_*` cvars.
+ * @details That input is free to take in exactly these states: a chasing spectator's aim is
+ * never read by the game module (`G_ClientChaseThink` overwrites their view entirely), and demo
+ * playback sends no commands to anything. A player forcing `cg_third_person` while actually
+ * playing is excluded, since their mouse and movement keys are busy.
+ */
+bool Cg_FollowEligible(const player_state_t *ps) {
+  return cg_state.camera_mode == CAMERA_FOLLOW && Cg_CameraSubject(ps);
+}
+
+/**
+ * @brief Publishes the mode to `cg_camera_mode` so the console reflects what the camera is
+ * doing. This is a statement, not a request: it clears `modified` so that what is written here
+ * does not come back as one.
+ */
+static void Cg_PublishCameraMode(void) {
+
+  if (cg_camera_mode->integer != (int32_t) cg_state.camera_mode) {
+    cgi.SetCvarValue(cg_camera_mode->name, cg_state.camera_mode);
+  }
+
+  cg_camera_mode->modified = false;
+}
+
+/**
+ * @brief Takes any mode the player has set on `cg_camera_mode`.
+ * @details Nothing has to be reconciled with the server here: the mode says only how a subject
+ * is framed, and whether there is a subject at all is asked separately, so changing the camera
+ * can never cost a chase target.
+ */
+static void Cg_UpdateCameraMode(void) {
+
+  if (cg_camera_mode->modified) {
+    cg_state.camera_mode = Mini(Maxi(cg_camera_mode->integer, 0), CAMERA_MODE_TOTAL - 1);
+  }
+
+  Cg_PublishCameraMode();
+}
+
+/**
+ * @brief Prints the camera controls once per connection, the first time the viewer has a camera
+ * of their own to steer - spectating a live game, or playing a demo back. The transport controls
+ * a demo also gets are printed by `Cl_ParseServerData`, which knows a demo is starting.
+ * @remarks The keys named are the shipped defaults, which is all this can honestly claim: they
+ * are bindings, and a player may have moved them.
+ */
+static void Cg_PrintControls(const player_state_t *ps) {
+
+  if (cg_state.printed_controls) {
+    return;
+  }
+
+  const bool demo = cgi.client->demo_server;
+
+  if (!demo && !ps->stats[STAT_SPECTATOR]) {
+    return;
+  }
+
+  cg_state.printed_controls = true;
+
+  cgi.Print("^3Camera controls:^7\n");
+  cgi.Print("  Cycle camera:  %s\n", Cg_KeyBind("+hook"));
+  cgi.Print("  Watch/free:    %s\n", Cg_KeyBind("+attack"));
+
+  if (!demo) {
+    cgi.Print("  Change target: %s / %s\n",
+              Cg_KeyBind("cg_weapon_previous"), Cg_KeyBind("cg_weapon_next"));
+  }
+
+  cgi.Print("  Aim camera:    ^2MOUSE^7\n");
+  cgi.Print("  Camera dist:   %s / %s\n", Cg_KeyBind("+forward"), Cg_KeyBind("+back"));
+}
+
+/**
+ * @brief Console command: advances to the next camera mode, wrapping around.
+ * @details Cycling is a command rather than a `toggle` of `cg_camera_mode` because `toggle`
+ * here is strictly boolean; setting the cvar outright still works, and lands in the same place.
+ */
+void Cg_CameraModeCycle_f(void) {
+
+  cg_state.camera_mode = (cg_state.camera_mode + 1) % CAMERA_MODE_TOTAL;
+
+  Cg_PublishCameraMode();
+}
+
+/**
  * @brief Update the third person offset, if any. This is used as a client-side
- * option, or as the default chase camera view.
+ * option, as the default chase camera view, and as the follow camera.
  */
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
   vec3_t forward, right, up, origin, point;
@@ -121,26 +222,50 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
+  const bool follow = Cg_FollowEligible(ps);
+
+  if (follow && !cg_state.follow.following) {
+    // entering follow: seed from where the view already is, so the camera takes over from the
+    // subject's own orientation without a jump
+    cg_state.follow.yaw = cgi.view->angles.y + cg_third_person_yaw->value;
+    cg_state.follow.pitch = cgi.view->angles.x + cg_third_person_pitch->value;
+    cg_state.follow.distance = -cg_third_person_x->value;
+  }
+  cg_state.follow.following = follow;
+
+  const bool third_person = cg_state.camera_mode == CAMERA_THIRD_PERSON && Cg_CameraSubject(ps);
+
   if (cg_third_person->value && Cg_Self()->current.model1) {
     cgi.client->third_person = true;
-  } else if (cg_third_person_chasecam->value && ps->stats[STAT_CHASE]) {
+  } else if (follow || third_person) {
     cgi.client->third_person = true;
   } else {
     cgi.client->third_person = false;
     return;
   }
 
-  const vec3_t offset = Vec3(
-    cg_third_person_x->value,
-    cg_third_person_y->value,
-    cg_third_person_z->value
-  );
+  vec3_t offset;
+  vec3_t angles;
 
-  const vec3_t angles = Vec3_ClampEuler(Vec3(
-    cgi.view->angles.x + cg_third_person_pitch->value,
-    cgi.view->angles.y + cg_third_person_yaw->value,
-    cgi.view->angles.z
-  ));
+  if (follow) {
+    offset = Vec3(-cg_state.follow.distance, cg_third_person_y->value, cg_third_person_z->value);
+
+    // absolute, not relative to the subject: the camera holds its place in the world while the
+    // player being watched turns, which is what makes it usable for reviewing a fight
+    angles = Vec3_ClampEuler(Vec3(cg_state.follow.pitch, cg_state.follow.yaw, 0.f));
+  } else {
+    offset = Vec3(
+      cg_third_person_x->value,
+      cg_third_person_y->value,
+      cg_third_person_z->value
+    );
+
+    angles = Vec3_ClampEuler(Vec3(
+      cgi.view->angles.x + cg_third_person_pitch->value,
+      cgi.view->angles.y + cg_third_person_yaw->value,
+      cgi.view->angles.z
+    ));
+  }
 
   const float yaw = angles.y;
 
@@ -216,6 +341,10 @@ static void Cg_UpdateBob(const player_state_t *ps) {
     return;
   }
 
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
+    return; // a free camera does not walk, least of all to the gait of the player it left
+  }
+
   if (ps->pm_state.type >= PM_SPECTATOR) {
 
     // if we're frozen and not chasing, don't bob
@@ -260,6 +389,11 @@ static void Cg_UpdateBob(const player_state_t *ps) {
  */
 static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1) {
 
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
+    cgi.view->origin = cg_state.spectate.state.origin;
+    return;
+  }
+
   if (Cg_UsePrediction()) {
     cl_predicted_state_t *pr = &cgi.client->predicted_state;
     cgi.view->origin = Vec3_Add(pr->view.origin, pr->view.offset);
@@ -286,6 +420,12 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
  */
 static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
   vec3_t angles, angles0, angles1;
+
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
+    cgi.view->angles = cg_state.spectate.state.view_angles;
+    Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+    return;
+  }
 
   if (cg_state.snap_angles) {
     // Server requests an immediate snap to the authoritative view angles.
@@ -381,6 +521,10 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   }
 
   const player_state_t *ps1 = &frame->ps;
+
+  Cg_PrintControls(ps1);
+
+  Cg_UpdateCameraMode();
 
   Cg_UpdateOrigin(ps0, ps1);
 

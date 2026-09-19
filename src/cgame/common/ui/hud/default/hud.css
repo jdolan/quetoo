@@ -317,10 +317,17 @@ ChatView TextView > Text {
   padding-top: 32;
 }
 
-#hud #chase {
+/* Text discards padding - Text::sizeThatFits returns the glyph size, overriding View's - so the
+   offset has to live on a container that does honor it */
+
+#hud #chaseAnchor {
   alignment: bottom-center;
+  autoresizing-mask: contain;
+  padding-bottom: 176;
+}
+
+#hud #chase {
   color: #00ff00;
-  padding-bottom: 48;
 }
 
 #hud .heldFlag {

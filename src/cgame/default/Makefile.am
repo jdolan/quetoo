@@ -107,6 +107,7 @@ cguihuddir = \
 	@PKGLIBDIR@/default/ui/hud
 
 cguihud_DATA = \
+	$(CGUI_DIR)/hud/CameraControlsView.json \
 	$(CGUI_DIR)/hud/ChatView.json \
 	$(CGUI_DIR)/hud/VoiceView.json \
 	$(CGUI_DIR)/hud/CounterView.json \
@@ -263,6 +264,7 @@ cgame_la_SOURCES = \
 	ui/home/HomeViewController.c \
 	ui/home/LeaderboardViewController.c \
 	ui/home/StatsViewController.c \
+	ui/hud/CameraControlsView.c \
 	ui/hud/BlendView.c \
 	ui/hud/CenterPrintView.c \
 	ui/hud/ChatView.c \

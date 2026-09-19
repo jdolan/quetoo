@@ -68,15 +68,19 @@ void Cg_ParseCenterPrint(void) {
 static void Cg_SelectWeapon(const int8_t dir) {
   const player_state_t *ps = &cgi.client->frame.ps;
 
+  if (cgi.client->demo_server) {
+    return; // a demo holds one player: there is nobody to scan to, and the weapon they had
+            // selected is theirs rather than the viewer's to change
+  }
+
   if (ps->stats[STAT_SPECTATOR] || ps->pm_state.type == PM_DEAD) {
 
-    if (ps->stats[STAT_CHASE]) {
-
-      if (dir == 1) {
-        cgi.Cbuf("chase_next");
-      } else {
-        cgi.Cbuf("chase_previous");
-      }
+    // not gated on STAT_CHASE: stepping to another target while detached acquires one, which is
+    // how a free-flying spectator lands back on a player
+    if (dir == 1) {
+      cgi.Cbuf("chase_next");
+    } else {
+      cgi.Cbuf("chase_previous");
     }
 
     return;
