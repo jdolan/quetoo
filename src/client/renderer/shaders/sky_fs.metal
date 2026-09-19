@@ -90,7 +90,7 @@ struct uniforms_block
     float2 depth_range;
     int view_type;
     int ticks;
-    float ambient;
+    packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
@@ -98,6 +98,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float2 padding;
 };
 
 constant spvUnsafeArray<float, 8> _268 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });

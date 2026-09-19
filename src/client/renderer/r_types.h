@@ -2258,9 +2258,9 @@ typedef struct r_view_s {
   uint32_t ticks;
 
   /**
-   * @brief The ambient scalar.
+   * @brief The ambient modulation, per channel.
    */
-  float ambient;
+  vec3_t ambient;
 
   /**
    * @brief The entities to render for the current frame.

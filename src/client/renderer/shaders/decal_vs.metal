@@ -49,7 +49,7 @@ struct uniforms_block
     float2 depth_range;
     int view_type;
     int ticks;
-    float ambient;
+    packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
@@ -57,6 +57,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float2 padding;
 };
 
 struct locals_block
@@ -79,7 +80,7 @@ struct main0_in
     uint in_instance [[attribute(1)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _58 [[buffer(0)]], constant locals_block& _86 [[buffer(1)]], const device decal_instances_block& _17 [[buffer(2)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _59 [[buffer(0)]], constant locals_block& _86 [[buffer(1)]], const device decal_instances_block& _17 [[buffer(2)]])
 {
     main0_out out = {};
     uint _24 = in.in_instance & 16777215u;
@@ -91,7 +92,7 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _58 [[
     instance.texcoords = _17.decal_instances[_24].texcoords;
     instance.color = _17.decal_instances[_24].color;
     instance.params = _17.decal_instances[_24].params;
-    uint age = uint(_58.ticks) - instance.params.x;
+    uint age = uint(_59.ticks) - instance.params.x;
     uint lifetime = instance.params.y;
     float4 position = float4(in.in_position, 1.0);
     out.out_model_position = float3((_86.model * position).xyz);
@@ -101,7 +102,7 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _58 [[
     out.out_texcoord = mix(instance.texcoords.xy, instance.texcoords.zw, st);
     out.out_color = instance.color;
     out.out_color.w *= (1.0 - fast::clamp(float(age) / float(lifetime), 0.0, 1.0));
-    float4x4 _177 = _58.projection3D * _58.view;
+    float4x4 _177 = _59.projection3D * _59.view;
     float4x4 _180 = _177 * _86.model;
     float4 _182 = _180 * position;
     out.gl_Position = _182;

@@ -22,7 +22,7 @@ struct uniforms_block
     float2 depth_range;
     int view_type;
     int ticks;
-    float ambient;
+    packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
@@ -30,6 +30,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float2 padding;
 };
 
 struct vertex_data
@@ -49,11 +50,11 @@ struct main0_in
     float4 in_color [[attribute(1)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _22 [[buffer(0)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _23 [[buffer(0)]])
 {
     main0_out out = {};
     vertex_data vertex0 = {};
-    out.gl_Position = (_22.projection3D * _22.view) * float4(in.in_position, 1.0);
+    out.gl_Position = (_23.projection3D * _23.view) * float4(in.in_position, 1.0);
     vertex0.color = in.in_color;
     out.vertex0_color = vertex0.color;
     return out;

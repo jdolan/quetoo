@@ -121,7 +121,7 @@ struct uniforms_block
     float2 depth_range;
     int view_type;
     int ticks;
-    float ambient;
+    packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
@@ -129,6 +129,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float2 padding;
 };
 
 struct voxel_light_data_block
@@ -349,7 +350,7 @@ float3 ambient_light(thread const common_vertex_t& v, constant uniforms_block& _
     float3 param_1 = v.voxel;
     float exposure = voxel_exposure(param_1, texture_voxel_occlusion, texture_voxel_occlusionSmplr);
     float3 sky = texture_sky.sample(texture_skySmplr, fast::normalize(v.model_normal), level(6.0)).xyz;
-    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _161.ambient_occlusion))) * _161.ambient;
+    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _161.ambient_occlusion))) * float3(_161.ambient);
 }
 
 static inline __attribute__((always_inline))
@@ -394,16 +395,16 @@ float3 vertex_light(thread const common_vertex_t& v, thread const light_t& light
     }
     light_dir = fast::normalize(light_dir);
     float lambert = dot(v.model_normal, light_dir);
-    float _788;
+    float _789;
     if ((material.surface & 120) != int(0u))
     {
-        _788 = abs(lambert);
+        _789 = abs(lambert);
     }
     else
     {
-        _788 = fast::max(0.0, lambert);
+        _789 = fast::max(0.0, lambert);
     }
-    lambert = _788;
+    lambert = _789;
     light_t param = light;
     return (light_color(param, _161) * atten) * lambert;
 }
@@ -429,7 +430,7 @@ void vertex_caustics(thread common_vertex_t& v, constant uniforms_block& _161, t
 }
 
 static inline __attribute__((always_inline))
-void vertex_lighting(thread common_vertex_t& v, constant material_block& material, constant uniforms_block& _161, const device voxel_light_data_block& _608, const device voxel_light_indices_block& _625, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, texturecube<float> texture_sky, sampler texture_skySmplr, const device bsp_lights_block& _853, const device dynamic_lights_block& _884, constant locals_block& _891)
+void vertex_lighting(thread common_vertex_t& v, constant material_block& material, constant uniforms_block& _161, const device voxel_light_data_block& _608, const device voxel_light_indices_block& _625, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, texturecube<float> texture_sky, sampler texture_skySmplr, const device bsp_lights_block& _854, const device dynamic_lights_block& _885, constant locals_block& _892)
 {
     common_vertex_t param = v;
     v.ambient = ambient_light(param, _161, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_sky, texture_skySmplr);
@@ -446,27 +447,27 @@ void vertex_lighting(thread common_vertex_t& v, constant material_block& materia
             int param_3 = data.x + i;
             int index = voxel_light_index(param_3, _625);
             common_vertex_t param_4 = v;
-            param_5.origin = _853.bsp_lights[index].origin;
-            param_5.color = _853.bsp_lights[index].color;
-            param_5.tile = _853.bsp_lights[index].tile;
+            param_5.origin = _854.bsp_lights[index].origin;
+            param_5.color = _854.bsp_lights[index].color;
+            param_5.tile = _854.bsp_lights[index].tile;
             v.diffuse += vertex_light(param_4, param_5, material, _161);
         }
     }
     spvUnsafeArray<uint4, 4> param_6;
     light_t param_9;
-    for (int j = 0; j < _884.num_dynamic_lights; j++)
+    for (int j = 0; j < _885.num_dynamic_lights; j++)
     {
-        param_6[0] = _891.active_dynamic_lights[0];
-        param_6[1] = _891.active_dynamic_lights[1];
-        param_6[2] = _891.active_dynamic_lights[2];
-        param_6[3] = _891.active_dynamic_lights[3];
+        param_6[0] = _892.active_dynamic_lights[0];
+        param_6[1] = _892.active_dynamic_lights[1];
+        param_6[2] = _892.active_dynamic_lights[2];
+        param_6[3] = _892.active_dynamic_lights[3];
         int param_7 = j;
         if (dynamic_light_active(param_6, param_7))
         {
             common_vertex_t param_8 = v;
-            param_9.origin = _884.dynamic_lights[j].origin;
-            param_9.color = _884.dynamic_lights[j].color;
-            param_9.tile = _884.dynamic_lights[j].tile;
+            param_9.origin = _885.dynamic_lights[j].origin;
+            param_9.color = _885.dynamic_lights[j].color;
+            param_9.tile = _885.dynamic_lights[j].tile;
             v.diffuse += vertex_light(param_8, param_9, material, _161);
         }
     }
@@ -475,15 +476,15 @@ void vertex_lighting(thread common_vertex_t& v, constant material_block& materia
     v = param_10;
 }
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _161 [[buffer(0)]], constant locals_block& _891 [[buffer(1)]], constant material_block& material [[buffer(2)]], const device bsp_lights_block& _853 [[buffer(3)]], const device dynamic_lights_block& _884 [[buffer(4)]], const device voxel_light_data_block& _608 [[buffer(5)]], const device voxel_light_indices_block& _625 [[buffer(6)]], texture3d<float> texture_voxel_caustics [[texture(0)]], texture3d<float> texture_voxel_occlusion [[texture(1)]], texturecube<float> texture_sky [[texture(2)]], sampler texture_voxel_causticsSmplr [[sampler(0)]], sampler texture_voxel_occlusionSmplr [[sampler(1)]], sampler texture_skySmplr [[sampler(2)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _161 [[buffer(0)]], constant locals_block& _892 [[buffer(1)]], constant material_block& material [[buffer(2)]], const device bsp_lights_block& _854 [[buffer(3)]], const device dynamic_lights_block& _885 [[buffer(4)]], const device voxel_light_data_block& _608 [[buffer(5)]], const device voxel_light_indices_block& _625 [[buffer(6)]], texture3d<float> texture_voxel_caustics [[texture(0)]], texture3d<float> texture_voxel_occlusion [[texture(1)]], texturecube<float> texture_sky [[texture(2)]], sampler texture_voxel_causticsSmplr [[sampler(0)]], sampler texture_voxel_occlusionSmplr [[sampler(1)]], sampler texture_skySmplr [[sampler(2)]])
 {
     main0_out out = {};
     common_vertex_t vertex0 = {};
-    float4x4 view_model = _161.view * _891.model;
-    float4 position = float4(mix(in.in_position, in.in_next_position, float3(_891.lerp)), 1.0);
-    float4 normal = float4(mix(in.in_normal, in.in_next_normal, float3(_891.lerp)), 0.0);
-    float4 tangent = float4(mix(in.in_tangent, in.in_next_tangent, float3(_891.lerp)), 0.0);
-    float4 bitangent = float4(mix(in.in_bitangent, in.in_next_bitangent, float3(_891.lerp)), 0.0);
+    float4x4 view_model = _161.view * _892.model;
+    float4 position = float4(mix(in.in_position, in.in_next_position, float3(_892.lerp)), 1.0);
+    float4 normal = float4(mix(in.in_normal, in.in_next_normal, float3(_892.lerp)), 0.0);
+    float4 tangent = float4(mix(in.in_tangent, in.in_next_tangent, float3(_892.lerp)), 0.0);
+    float4 bitangent = float4(mix(in.in_bitangent, in.in_next_bitangent, float3(_892.lerp)), 0.0);
     float3 param = position.xyz;
     float3 param_1 = normal.xyz;
     float3 param_2 = tangent.xyz;
@@ -501,26 +502,26 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _161 [
     bitangent.x = param_3.x;
     bitangent.y = param_3.y;
     bitangent.z = param_3.z;
-    vertex0.model_position = float3((_891.model * position).xyz);
-    vertex0.model_normal = fast::normalize(float3((_891.model * normal).xyz));
+    vertex0.model_position = float3((_892.model * position).xyz);
+    vertex0.model_normal = fast::normalize(float3((_892.model * normal).xyz));
     vertex0.position = float3((view_model * position).xyz);
     vertex0.normal = fast::normalize(float3((view_model * normal).xyz));
     vertex0.tangent = fast::normalize(float3((view_model * tangent).xyz));
     vertex0.bitangent = fast::normalize(float3((view_model * bitangent).xyz));
     vertex0.diffusemap = in.in_diffusemap;
-    float3 param_4 = float3((_891.model * position).xyz);
+    float3 param_4 = float3((_892.model * position).xyz);
     vertex0.voxel = voxel_uvw(param_4, _161);
-    vertex0.color = _891.color;
+    vertex0.color = _892.color;
     float3 param_5 = in.in_position;
     common_vertex_t param_6 = vertex0;
     stage_vertex(param_5, param_6, material, _161);
     vertex0 = param_6;
     common_vertex_t param_7 = vertex0;
-    vertex_lighting(param_7, material, _161, _608, _625, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_sky, texture_skySmplr, _853, _884, _891);
+    vertex_lighting(param_7, material, _161, _608, _625, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_sky, texture_skySmplr, _854, _885, _892);
     vertex0 = param_7;
-    float4x4 _1129 = _161.projection3D * view_model;
-    float4 _1131 = _1129 * position;
-    out.gl_Position = _1131;
+    float4x4 _1130 = _161.projection3D * view_model;
+    float4 _1132 = _1130 * position;
+    out.gl_Position = _1132;
     out.vertex0_model_position = vertex0.model_position;
     out.vertex0_model_normal = vertex0.model_normal;
     out.vertex0_position = vertex0.position;

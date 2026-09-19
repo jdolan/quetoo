@@ -103,7 +103,7 @@ void main(void) {
 
   const vec3 normal = normalize(in_model_normal);
 
-  vec3 light = vec3(ambient);
+  vec3 light = ambient;
 
   const ivec3 voxel = decal_voxel_xyz(in_model_position);
   const int voxel_index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;

@@ -741,7 +741,7 @@ static void G_worldspawn_Music(void) {
  -------- KEYS --------
  message : The map title.
  sky : The sky environment map (default unit1_).
- ambient : The ambient light level (e.g. 0.14 0.11 0.12).
+ ambient : The ambient light level, as one scalar or as three to tint it (e.g. 0.14 0.11 0.12).
  gravity : Gravity for the level; unset, the movement's applies, 800 for most.
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
  hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."

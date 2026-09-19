@@ -487,6 +487,8 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 
 /**
  * @brief Updates the view ambient light level from the worldspawn entity definition.
+ * @remarks The key takes either one scalar, which modulates the sky evenly, or three, which
+ * modulate it per channel and so tint the ambient light the sky casts.
  */
 static void Cg_UpdateAmbient(void) {
 
@@ -495,7 +497,12 @@ static void Cg_UpdateAmbient(void) {
   : cgi.WorldModel()->bsp->cm->entities[0];
 
   const cm_entity_t *ambient = cgi.EntityValue(worldspawn, "ambient");
-  cgi.view->ambient = ambient->value;
+
+  if (ambient->parsed & ENTITY_VEC3) {
+    cgi.view->ambient = ambient->vec3;
+  } else {
+    cgi.view->ambient = Vec3(ambient->value, ambient->value, ambient->value);
+  }
 }
 
 /**

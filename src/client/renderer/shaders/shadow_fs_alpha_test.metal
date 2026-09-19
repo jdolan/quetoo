@@ -27,7 +27,7 @@ struct uniforms_block
     float2 depth_range;
     int view_type;
     int ticks;
-    float ambient;
+    float3 ambient;
     float modulate;
     float saturation;
     float caustics;
@@ -35,6 +35,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float2 padding;
 };
 
 struct main0_out

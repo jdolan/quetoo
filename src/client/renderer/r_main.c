@@ -122,7 +122,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->depth_range.y = MAX_WORLD_DIST;
     out->view_type = view->type;
     out->ticks = view->ticks;
-    out->ambient = r_ambient->value * view->ambient;
+    out->ambient = Vec3_Scale(view->ambient, r_ambient->value);
     out->modulate = r_modulate->value;
     out->saturation = r_saturation->value;
     out->caustics = r_caustics->value;

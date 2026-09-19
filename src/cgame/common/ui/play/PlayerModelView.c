@@ -72,7 +72,7 @@ static void render(View *self, Renderer *renderer) {
 
     this->view.type = VIEW_PLAYER_MODEL;
     this->view.ticks = cgi.client->ticks;
-    this->view.ambient = 1.f;
+    this->view.ambient = Vec3_One();
 
     this->view.fov.x = 30.f / 2.f;
 

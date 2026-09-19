@@ -24,7 +24,7 @@ struct uniforms_block
     float2 depth_range;
     int view_type;
     int ticks;
-    float ambient;
+    packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
@@ -32,6 +32,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float2 padding;
 };
 
 struct main0_out
@@ -50,21 +51,21 @@ struct main0_in
 };
 
 static inline __attribute__((always_inline))
-float calc_depth(thread const float& z, constant uniforms_block& _24)
+float calc_depth(thread const float& z, constant uniforms_block& _25)
 {
-    return (2.0 * _24.depth_range.x) / ((_24.depth_range.y + _24.depth_range.x) - (z * (_24.depth_range.y - _24.depth_range.x)));
+    return (2.0 * _25.depth_range.x) / ((_25.depth_range.y + _25.depth_range.x) - (z * (_25.depth_range.y - _25.depth_range.x)));
 }
 
 static inline __attribute__((always_inline))
-float soften(constant uniforms_block& _24, texture2d<float> texture_depth_attachment, sampler texture_depth_attachmentSmplr, thread float4& gl_FragCoord)
+float soften(constant uniforms_block& _25, texture2d<float> texture_depth_attachment, sampler texture_depth_attachmentSmplr, thread float4& gl_FragCoord)
 {
-    float4 depth_sample = texture_depth_attachment.sample(texture_depth_attachmentSmplr, (gl_FragCoord.xy / float2(_24.viewport.zw)));
+    float4 depth_sample = texture_depth_attachment.sample(texture_depth_attachmentSmplr, (gl_FragCoord.xy / float2(_25.viewport.zw)));
     float param = depth_sample.x;
     float param_1 = gl_FragCoord.z;
-    return smoothstep(0.0, 0.001599999959580600261688232421875, fast::clamp(calc_depth(param, _24) - calc_depth(param_1, _24), 0.0, 1.0));
+    return smoothstep(0.0, 0.001599999959580600261688232421875, fast::clamp(calc_depth(param, _25) - calc_depth(param_1, _25), 0.0, 1.0));
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _24 [[buffer(0)]], texture2d<float> texture_diffusemap [[texture(0)]], texture2d<float> texture_next_diffusemap [[texture(1)]], texture2d<float> texture_depth_attachment [[texture(2)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_next_diffusemapSmplr [[sampler(1)]], sampler texture_depth_attachmentSmplr [[sampler(2)]], float4 gl_FragCoord [[position]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _25 [[buffer(0)]], texture2d<float> texture_diffusemap [[texture(0)]], texture2d<float> texture_next_diffusemap [[texture(1)]], texture2d<float> texture_depth_attachment [[texture(2)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_next_diffusemapSmplr [[sampler(1)]], sampler texture_depth_attachmentSmplr [[sampler(2)]], float4 gl_FragCoord [[position]])
 {
     main0_out out = {};
     float3 texture_color = mix(texture_diffusemap.sample(texture_diffusemapSmplr, in.in_diffusemap).xyz, texture_next_diffusemap.sample(texture_next_diffusemapSmplr, in.in_next_diffusemap).xyz, float3(in.in_lerp));
@@ -74,13 +75,13 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _24 
         color = mix(color, color * in.in_diffuse, float3(in.in_lighting));
     }
     float _132;
-    if (_24.view_type == 3)
+    if (_25.view_type == 3)
     {
         _132 = 1.0;
     }
     else
     {
-        _132 = soften(_24, texture_depth_attachment, texture_depth_attachmentSmplr, gl_FragCoord);
+        _132 = soften(_25, texture_depth_attachment, texture_depth_attachmentSmplr, gl_FragCoord);
     }
     float softness = _132;
     out.out_color = float4((texture_color * color) * softness, 1.0);

@@ -194,9 +194,9 @@ typedef struct {
     int32_t ticks;
 
     /**
-     * @brief The ambient scalar.
+     * @brief The ambient modulation, per channel.
      */
-    float ambient;
+    vec3_t ambient;
 
     /**
      * @brief The light modulation scalar.
@@ -232,6 +232,11 @@ typedef struct {
      * @brief Non-zero when developer mode is enabled.
      */
     int developer;
+
+    /**
+     * @brief Pads the block to a multiple of vec4, as std140 requires.
+     */
+    vec2_t padding;
   } block;
 
 } r_uniforms_t;

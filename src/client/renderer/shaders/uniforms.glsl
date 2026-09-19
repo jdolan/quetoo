@@ -138,9 +138,9 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
   int ticks;
 
   /**
-   * @brief Ambient lighting scalar.
+   * @brief Ambient lighting modulation, per channel.
    */
-  float ambient;
+  vec3 ambient;
 
   /**
    * @brief Modulation scalar.
@@ -176,6 +176,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    * @brief Developer debug flags.
    */
   int developer;
+
+  /**
+   * @brief Pads the block to a multiple of vec4, as std140 requires.
+   */
+  vec2 padding;
 };
 
 #endif // _UNIFORMS_GLSL_
