@@ -41,6 +41,7 @@ src/main/quetoo
 src/main/quetoo-dedicated
 src/tests/*.log
 src/tests/*.trs
+src/tests/check_archive
 src/tests/check_atlas
 src/tests/check_box
 src/tests/check_cm_entity
