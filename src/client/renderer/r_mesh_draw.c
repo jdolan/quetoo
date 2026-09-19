@@ -299,6 +299,7 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, const r_entity_t *
 
   const r_stage_t default_shell = {
     .cm = &cm,
+    .flags = cm.flags,
     .media = (r_media_t *) r_mesh_draw.shell,
   };
 
