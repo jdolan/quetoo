@@ -504,6 +504,11 @@ RenderMaterial *R_FindMaterial(const char *name, AssetContext context) {
  */
 RenderMaterial *R_LoadMaterial(const char *name, AssetContext context) {
 
+  if (name == NULL || *name == '\0') {
+    Com_Warn("Empty material name\n");
+    return NULL;
+  }
+
   RenderMaterial *material = R_FindMaterial(name, context);
   if (material == NULL) {
 
@@ -511,6 +516,8 @@ RenderMaterial *R_LoadMaterial(const char *name, AssetContext context) {
 
     material = R_ResolveMaterial(cm);
   }
+
+  assert(material->cm);
 
   return material;
 }

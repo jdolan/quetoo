@@ -246,6 +246,12 @@ static bool Cg_LoadClientModel(ClientGameClientInfo *ci, const char *model, cons
     return false;
   }
 
+  // a face this skin does not map must be left unresolved, so that it is not
+  // drawn; without this, an optional face keeps the previous skin's material
+  memset(ci->headSkins, 0, sizeof(ci->headSkins));
+  memset(ci->torsoSkins, 0, sizeof(ci->torsoSkins));
+  memset(ci->legsSkins, 0, sizeof(ci->legsSkins));
+
   if (!Cg_LoadClientSkins(ci, ci->skin)) {
     Cg_Debug("Could not load client skins %s/%s\n", model, skin);
     return false;
