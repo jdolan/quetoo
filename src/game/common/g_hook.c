@@ -624,7 +624,10 @@ void G_SetClientHookStyle(GameClient *cl) {
 
   // respect userInfo on default
   if (!q_strcmp(g_hookStyle->string, "default")) {
-    hookStyle = Hook_StyleByName(InfoString_Get(cl->persistent.userInfo, "hookStyle"));
+    char style[MAX_INFO_STRING_VALUE];
+    InfoString_Get(cl->persistent.userInfo, "hookStyle", style, sizeof(style));
+
+    hookStyle = Hook_StyleByName(style);
   } else {
     hookStyle = Hook_StyleByName(g_hookStyle->string);
   }

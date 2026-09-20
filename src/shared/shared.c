@@ -347,51 +347,53 @@ char *vtos(const Vec3 v) {
   return s;
 }
 
-/**
- * @brief Returns the value for the given key, or an empty string.
- */
-char *InfoString_Get(const char *s, const char *key) {
-  char pkey[512];
-  static char value[2][512]; // use two buffers so compares work without stomping on each other
-  static int32_t valueIndex;
-  char *o;
+ssize_t InfoString_Get(const char *s, const char *key, char *out, size_t outSize) {
 
-  valueIndex ^= 1;
+  assert(s);
+  assert(key);
+  assert(out);
+  assert(outSize);
+
+  out[0] = '\0';
+
+  const size_t keyLen = q_strlen(key);
+
   if (*s == '\\') {
     s++;
   }
-  while (true) {
-    o = pkey;
-    while (*s != '\\') {
-      if (!*s) {
-        return "";
-      }
-      *o++ = *s++;
-    }
-    *o = '\0';
-    s++;
 
-    o = value[valueIndex];
+  while (*s) {
 
-    while (*s != '\\' && *s) {
-      if (!*s) {
-        return "";
-      }
-      *o++ = *s++;
-    }
-    *o = '\0';
-
-    if (!q_strcmp(key, pkey)) {
-      return value[valueIndex];
+    const char *k = s;
+    while (*s && *s != '\\') {
+      s++;
     }
 
-    if (!*s) {
+    if (*s != '\\') { // a key with no value ends the string
       break;
     }
+
+    const size_t len = (size_t) (s - k);
     s++;
+
+    const char *v = s;
+    while (*s && *s != '\\') {
+      s++;
+    }
+
+    if (len == keyLen && !q_strncmp(k, key, len)) {
+      const size_t copy = Minz((size_t) (s - v), outSize - 1);
+      memcpy(out, v, copy);
+      out[copy] = '\0';
+      return (ssize_t) copy;
+    }
+
+    if (*s == '\\') {
+      s++;
+    }
   }
 
-  return "";
+  return -1;
 }
 
 /**

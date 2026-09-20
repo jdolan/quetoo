@@ -149,20 +149,22 @@ void Cl_ParseServerInfo(void) {
   char movement[sizeof(server->movement)];
   char guid[sizeof(server->guid)];
 
-  // InfoString_Get returns one of two rotating static buffers, so a returned
-  // pointer survives only one more call. Each value is copied before the next
-  // lookup rather than held.
-  q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
-  q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  q_strlcpy(guid, InfoString_Get(string, "sv_guid"), sizeof(guid));
+  InfoString_Get(string, "sv_hostname", hostname, sizeof(hostname));
+  InfoString_Get(string, "sv_map", name, sizeof(name));
+  InfoString_Get(string, "sv_guid", guid, sizeof(guid));
 
-  const char *mode = InfoString_Get(string, "g_gameplayMode");
-  q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  // the mode keys are what the level resolved to, and fall back to what was asked for
+  if (InfoString_Get(string, "g_gameplayMode", gameplay, sizeof(gameplay)) <= 0) {
+    InfoString_Get(string, "g_gameplay", gameplay, sizeof(gameplay));
+  }
 
-  const char *move = InfoString_Get(string, "g_movementMode");
-  q_strlcpy(movement, *move ? move : InfoString_Get(string, "g_movement"), sizeof(movement));
+  if (InfoString_Get(string, "g_movementMode", movement, sizeof(movement)) <= 0) {
+    InfoString_Get(string, "g_movement", movement, sizeof(movement));
+  }
 
-  const int32_t maxClients = atoi(InfoString_Get(string, "sv_maxClients"));
+  char val[MAX_INFO_STRING_VALUE];
+  InfoString_Get(string, "sv_maxClients", val, sizeof(val));
+  const int32_t maxClients = atoi(val);
 
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
@@ -187,7 +189,8 @@ void Cl_ParseServerInfo(void) {
 
       if (player[0]) {
         server->clients++;
-        if (atoi(InfoString_Get(player, "ai"))) {
+        InfoString_Get(player, "ai", val, sizeof(val));
+        if (atoi(val)) {
           server->bots++;
         }
       }

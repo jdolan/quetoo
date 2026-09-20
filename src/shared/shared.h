@@ -575,12 +575,13 @@ char *vtos(const Vec3 v);
 const char *InfoString_Next(const char *s, char *key, char *value);
 
 /**
- * @return The value for `key` in the info string `s`, or the empty string.
- * @remarks The result points into one of two rotating static buffers, so that
- * two values can be compared. A third call invalidates the first result.
- * Copy the value before the next lookup rather than holding the pointer.
+ * @brief Copies the value for `key` in the info string `s` into `out`.
+ * @param out The buffer to copy the value into, always terminated.
+ * @param outSize The size of `out`, which the value is truncated to.
+ * @return The length copied, or `-1` if `key` is not in `s`. A key present
+ * with an empty value returns `0`, which `-1` is distinct from.
  */
-char *InfoString_Get(const char *s, const char *key);
+ssize_t InfoString_Get(const char *s, const char *key, char *out, size_t outSize);
 bool InfoString_Delete(char *s, const char *key);
 bool InfoString_Set(char *s, const char *key, const char *value);
 bool InfoString_Validate(const char *s);

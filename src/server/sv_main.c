@@ -209,7 +209,9 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  if (q_strlen(InfoString_Get(userInfo, "ip"))) { // catch spoofed ips
+  char val[MAX_INFO_STRING_VALUE];
+
+  if (InfoString_Get(userInfo, "ip", val, sizeof(val)) > 0) { // catch spoofed ips
     Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
@@ -295,9 +297,9 @@ static void Sv_Connect_f(void) {
 
   // give the game a chance to reject this connection or modify the userInfo
   if (!(svs.game->ClientConnect(client->gclient, userInfo))) {
-    const char *rejmsg = InfoString_Get(userInfo, "rejmsg");
+    char rejmsg[MAX_INFO_STRING_VALUE];
 
-    if (q_strlen(rejmsg)) {
+    if (InfoString_Get(userInfo, "rejmsg", rejmsg, sizeof(rejmsg)) > 0) {
       Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
     } else {
       Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
@@ -720,7 +722,7 @@ const char *Sv_NetaddrToString(const ServerClient *cl) {
  * again and the caller MUST NOT touch it further.
  */
 bool Sv_UserInfoChanged(ServerClient *cl) {
-  char *val;
+  char val[MAX_INFO_STRING_VALUE];
   size_t i;
 
   if (*cl->userInfo == '\0') { // catch empty userInfo
@@ -741,7 +743,7 @@ bool Sv_UserInfoChanged(ServerClient *cl) {
     return false;
   }
 
-  if (q_strlen(InfoString_Get(cl->userInfo, "ip"))) { // catch spoofed ips, as the connect does
+  if (InfoString_Get(cl->userInfo, "ip", val, sizeof(val)) > 0) { // catch spoofed ips, as the connect does
     Com_Print("Illegal user_info contained ip from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return false;
@@ -755,14 +757,13 @@ bool Sv_UserInfoChanged(ServerClient *cl) {
   svs.game->ClientUserInfoChanged(cl->gclient, cl->userInfo);
 
   // name for C code, mask off high bit
-  q_strlcpy(cl->name, InfoString_Get(cl->userInfo, "name"), sizeof(cl->name));
+  InfoString_Get(cl->userInfo, "name", cl->name, sizeof(cl->name));
   for (i = 0; i < sizeof(cl->name); i++) {
     cl->name[i] &= 127;
   }
 
   // limit the print messages the client receives
-  val = InfoString_Get(cl->userInfo, "messageLevel");
-  if (*val != '\0') {
+  if (InfoString_Get(cl->userInfo, "messageLevel", val, sizeof(val)) > 0) {
     cl->messageLevel = (int32_t) strtol(val, NULL, 10);
   }
 

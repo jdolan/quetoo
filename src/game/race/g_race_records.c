@@ -411,7 +411,7 @@ bool G_Race_SubmitRecord(GameClient *cl) {
 
   q_strlcpy(record->guid, cl->persistent.guid, sizeof(record->guid));
   q_strlcpy(record->name, cl->persistent.netName, sizeof(record->name));
-  q_strlcpy(record->ip, InfoString_Get(cl->persistent.userInfo, "ip"), sizeof(record->ip));
+  InfoString_Get(cl->persistent.userInfo, "ip", record->ip, sizeof(record->ip));
 
   const time_t now = time(NULL);
   strftime(record->date, sizeof(record->date), "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));

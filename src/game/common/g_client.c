@@ -1659,7 +1659,8 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   G_Debug("%s\n", userInfo);
 
   // set name, use a temp buffer to compute length and crutch up bad names
-  const char *s = InfoString_Get(userInfo, "name");
+  char s[MAX_INFO_STRING_VALUE];
+  InfoString_Get(userInfo, "name", s, sizeof(s));
 
   q_strlcpy(name, s, sizeof(name));
 
@@ -1706,17 +1707,17 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 
   // set skin
   if (team) { // players must use teamSkin to change
-    s = InfoString_Get(userInfo, "skin");
+    InfoString_Get(userInfo, "skin", s, sizeof(s));
 
     char *p;
-    if (q_strlen(s) && (p = q_strchr(s, '/'))) {
-      *p = 0;
-      s = va("%s/%s", s, DEFAULT_TEAM_SKIN);
+    if (s[0] && (p = q_strchr(s, '/'))) {
+      *p = '\0';
+      q_strlcpy(s, va("%s/%s", s, DEFAULT_TEAM_SKIN), sizeof(s));
     } else {
-      s = va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_TEAM_SKIN);
+      q_strlcpy(s, va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_TEAM_SKIN), sizeof(s));
     }
   } else {
-    s = InfoString_Get(userInfo, "skin");
+    InfoString_Get(userInfo, "skin", s, sizeof(s));
   }
 
   if (q_strlen(s) && !q_strstr(s, "..")) { // something valid-ish was provided
@@ -1729,7 +1730,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   if (team) { // players must use teamSkin to change
     cl->persistent.color = team->color;
   } else {
-    s = InfoString_Get(userInfo, "color");
+    InfoString_Get(userInfo, "color", s, sizeof(s));
 
     cl->persistent.color = -1;
 
@@ -1755,17 +1756,17 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 
   } else {
 
-    s = InfoString_Get(userInfo, "shirt");
+    InfoString_Get(userInfo, "shirt", s, sizeof(s));
     if (!Color_Parse(s, &cl->persistent.shirt)) {
       cl->persistent.shirt = color_white;
     }
 
-    s = InfoString_Get(userInfo, "pants");
+    InfoString_Get(userInfo, "pants", s, sizeof(s));
     if (!Color_Parse(s, &cl->persistent.pants)) {
       cl->persistent.pants = color_white;
     }
 
-    s = InfoString_Get(userInfo, "helmet");
+    InfoString_Get(userInfo, "helmet", s, sizeof(s));
     if (!Color_Parse(s, &cl->persistent.helmet)) {
       cl->persistent.helmet = color_white;
     }
@@ -1804,10 +1805,11 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, clientInfo);
 
   // set hand, if anything should go wrong, it defaults to 0 (centered)
-  cl->persistent.hand = (GameHand) strtol(InfoString_Get(userInfo, "hand"), NULL, 10);
+  InfoString_Get(userInfo, "hand", s, sizeof(s));
+  cl->persistent.hand = (GameHand) strtol(s, NULL, 10);
 
   if (cl->entity) {
-    s = InfoString_Get(userInfo, "active");
+    InfoString_Get(userInfo, "active", s, sizeof(s));
     if (q_strcmp(s, "0") == 0) {
       cl->entity->s.effects |= EF_INACTIVE;
     } else {
@@ -1816,7 +1818,8 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   }
 
   // auto-switch
-  uint16_t autoSwitch = strtoul(InfoString_Get(userInfo, "autoSwitch"), NULL, 10);
+  InfoString_Get(userInfo, "autoSwitch", s, sizeof(s));
+  uint16_t autoSwitch = strtoul(s, NULL, 10);
   cl->persistent.autoSwitch = autoSwitch;
 
 #if defined(G_HOOK)
@@ -1825,7 +1828,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 #endif
 
   // stats guid
-  q_strlcpy(cl->persistent.guid, InfoString_Get(userInfo, "guid"), sizeof(cl->persistent.guid));
+  InfoString_Get(userInfo, "guid", cl->persistent.guid, sizeof(cl->persistent.guid));
 
   G_ClientDidChangeUserInfo(cl);
 }
@@ -1841,7 +1844,10 @@ bool G_ClientConnect(GameClient *cl, char *userInfo) {
 
   // check password
   if (q_strlen(g_password->string) && !cl->ai) {
-    if (q_strcmp(g_password->string, InfoString_Get(userInfo, "password"))) {
+    char password[MAX_INFO_STRING_VALUE];
+    InfoString_Get(userInfo, "password", password, sizeof(password));
+
+    if (q_strcmp(g_password->string, password)) {
       InfoString_Set(userInfo, "rejmsg", "Password required or incorrect.");
       return false;
     }

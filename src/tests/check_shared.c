@@ -56,6 +56,45 @@ START_TEST(check_q_str_ident_equal) {
   ck_assert(!q_str_ident_equal(NULL, "r_swapInterval"));
 } END_TEST
 
+START_TEST(check_InfoString_Get) {
+  const char *info =
+    "\\g_gameplayMode\\deathmatch"
+    "\\g_movementMode\\quetoo"
+    "\\sv_guid\\57491bc7-1480-41e0-836d-31bc08e1b2d5"
+    "\\sv_map\\pits"
+    "\\sv_maxClients\\16"
+    "\\g_motd\\";
+
+  char value[MAX_INFO_STRING_VALUE];
+
+  ck_assert_int_eq(InfoString_Get(info, "sv_map", value, sizeof(value)), 4);
+  ck_assert_str_eq(value, "pits");
+
+  // a key whose name is a prefix of another must not match it
+  ck_assert_int_eq(InfoString_Get(info, "sv_maxClients", value, sizeof(value)), 2);
+  ck_assert_str_eq(value, "16");
+
+  // a key present with an empty value is distinct from a key that is absent
+  ck_assert_int_eq(InfoString_Get(info, "g_motd", value, sizeof(value)), 0);
+  ck_assert_str_eq(value, "");
+
+  ck_assert_int_eq(InfoString_Get(info, "sv_hostname", value, sizeof(value)), -1);
+  ck_assert_str_eq(value, "");
+
+  // the result is not invalidated by any number of later lookups
+  char guid[MAX_INFO_STRING_VALUE];
+  ck_assert_int_eq(InfoString_Get(info, "sv_guid", guid, sizeof(guid)), 36);
+  InfoString_Get(info, "g_gameplayMode", value, sizeof(value));
+  InfoString_Get(info, "g_movementMode", value, sizeof(value));
+  InfoString_Get(info, "sv_maxClients", value, sizeof(value));
+  ck_assert_str_eq(guid, "57491bc7-1480-41e0-836d-31bc08e1b2d5");
+
+  // the value is truncated to the buffer, and always terminated
+  char small[5];
+  ck_assert_int_eq(InfoString_Get(info, "sv_guid", small, sizeof(small)), 4);
+  ck_assert_str_eq(small, "5749");
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -64,6 +103,7 @@ int32_t main(int32_t argc, char **argv) {
   TCase *tcase = tcase_create("check_shared");
   tcase_add_test(tcase, check_q_str_has_token);
   tcase_add_test(tcase, check_q_str_ident_equal);
+  tcase_add_test(tcase, check_InfoString_Get);
 
   Suite *suite = suite_create("check_shared");
   suite_add_tcase(suite, tcase);

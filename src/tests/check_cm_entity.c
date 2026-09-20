@@ -55,9 +55,19 @@ START_TEST(check_Cm_EntityToInfoString) {
 
   char *str = Cm_EntityToInfoString(&entity);
 
-  ck_assert_str_eq(InfoString_Get(str, "classname"), "light");
-  ck_assert_str_eq(InfoString_Get(str, "color"), "1 1 0");
-  ck_assert_str_eq(InfoString_Get(str, "origin"), "128 256 512");
+  char value[MAX_INFO_STRING_VALUE];
+
+  ck_assert_int_eq(InfoString_Get(str, "classname", value, sizeof(value)), 5);
+  ck_assert_str_eq(value, "light");
+
+  ck_assert_int_eq(InfoString_Get(str, "color", value, sizeof(value)), 5);
+  ck_assert_str_eq(value, "1 1 0");
+
+  ck_assert_int_eq(InfoString_Get(str, "origin", value, sizeof(value)), 11);
+  ck_assert_str_eq(value, "128 256 512");
+
+  ck_assert_int_eq(InfoString_Get(str, "nope", value, sizeof(value)), -1);
+  ck_assert_str_eq(value, "");
 
 } END_TEST
 
