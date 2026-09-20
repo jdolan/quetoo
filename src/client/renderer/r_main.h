@@ -80,6 +80,11 @@ typedef struct {
   const char *renderer;
 
   /**
+   * @brief GPU device name, e.g. `Apple M3 Max`.
+   */
+  const char *device;
+
+  /**
    * @brief Vendor name.
    */
   const char *vendor;

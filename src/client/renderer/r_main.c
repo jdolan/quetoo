@@ -465,8 +465,15 @@ static void R_InitConfig(void) {
   memset(&rConfig, 0, sizeof(rConfig));
 
   rConfig.renderer = SDL_GetGPUDeviceDriver(rContext.device->device);
-  rConfig.vendor = "SDL_gpu";
-  rConfig.version = SDL_GetGPUDeviceDriver(rContext.device->device);
+
+  const SDL_PropertiesID properties = SDL_GetGPUDeviceProperties(rContext.device->device);
+  if (properties == 0) {
+    Com_Warn("Failed to query GPU device properties: %s\n", SDL_GetError());
+  }
+
+  rConfig.device = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_NAME_STRING, "unknown");
+  rConfig.vendor = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING, "unknown");
+  rConfig.version = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, "unknown");
 
   rConfig.maxTexunits = 16;
   rConfig.maxTextureSize = 16384;
@@ -474,6 +481,7 @@ static void R_InitConfig(void) {
   rConfig.maxUniformBlockSize = 65536;
 
   Com_Print(  "  Renderer:   ^2%s^7\n", rConfig.renderer);
+  Com_Print(  "  Device:     ^2%s^7\n", rConfig.device);
   Com_Print(  "  Vendor:     ^2%s^7\n", rConfig.vendor);
   Com_Print(  "  Version:    ^2%s^7\n", rConfig.version);
 }
