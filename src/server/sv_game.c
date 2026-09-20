@@ -219,7 +219,11 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *userData) {
 
 /**
  * @brief Serializes frag events from the game module to JSON and POSTs them
- * asynchronously to `sv_statsUrl`. Gated on `sv_public` and a non-empty URL.
+ * asynchronously to `sv_statsUrl`. Gated on `sv_public` and on the URL naming an endpoint.
+ *
+ * @remarks `0` disables stats, and so does the empty string. The empty string cannot actually be
+ * typed: `Cvar_Set_f` wants three tokens and an empty quoted argument does not produce one, so
+ * `set sv_statsUrl ""` silently does nothing. `0` is what the cvar description documents.
  *
  * Each request also carries `X-Quetoo-Port` and `X-Quetoo-Hostname` headers so
  * that the stats service can disambiguate multiple server instances sharing a
@@ -228,7 +232,7 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *userData) {
  */
 static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCapture *captures, size_t capturesLen) {
 
-  if (!sv_statsUrl->string[0] || sv_public->integer <= 0) {
+  if (!sv_statsUrl->string[0] || !q_strcmp(sv_statsUrl->string, "0") || sv_public->integer <= 0) {
     return;
   }
 
