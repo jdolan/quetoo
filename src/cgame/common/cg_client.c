@@ -780,7 +780,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
 
   // deal with our own player model
   if (ent == cgi.client->entity) {
-    if (!cgi.client->thirdPerson) {
+    if (Cg_ViewIsSelf()) {
       e->effects |= EF_SELF | EF_NO_DRAW;
 
       // keep our shadow underneath us using the predicted origin

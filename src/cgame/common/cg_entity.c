@@ -286,7 +286,7 @@ static void Cg_AddEntity_Common(ClientEntity *ent) {
     Cg_AddClientEntity(ent, &e);
 
     // add our view weapon, if it's our view entity and we're in first-person
-    if (ent == Cg_Self() && !cgi.client->thirdPerson) {
+    if (ent == Cg_Self() && Cg_ViewIsSelf()) {
       Cg_AddWeapon(ent, &e);
     }
 
@@ -294,7 +294,7 @@ static void Cg_AddEntity_Common(ClientEntity *ent) {
   }
 
   // don't draw our own giblet, since the view is inside it
-  if (ent == cgi.client->entity && !cgi.client->thirdPerson) {
+  if (ent == cgi.client->entity && Cg_ViewIsSelf()) {
     e.effects |= EF_NO_DRAW;
   }
 
