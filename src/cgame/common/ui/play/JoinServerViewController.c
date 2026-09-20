@@ -26,6 +26,7 @@
 #include "CvarSlider.h"
 
 static const char *_server = "Server";
+static const char *_game = "Game";
 static const char *_map = "Map";
 static const char *_players = "Players";
 static const char *_ping = "Ping";
@@ -402,6 +403,8 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   if (q_strcmp(column->identifier, _server) == 0) {
     $(cell->text, setText, server->hostname);
+  } else if (q_strcmp(column->identifier, _game) == 0) {
+    $(cell->text, setText, server->game[0] ? server->game : _unset);
   } else if (q_strcmp(column->identifier, _map) == 0) {
     $(cell->text, setText, server->name);
   } else if (q_strcmp(column->identifier, _players) == 0) {
@@ -507,6 +510,7 @@ static void loadView(ViewController *self) {
   assert(self->view->stylesheet);
 
   $(this->serversTableView, addColumnWithIdentifier, _server);
+  $(this->serversTableView, addColumnWithIdentifier, _game);
   $(this->serversTableView, addColumnWithIdentifier, _map);
   $(this->serversTableView, addColumnWithIdentifier, _players);
   $(this->serversTableView, addColumnWithIdentifier, _ping);
@@ -604,6 +608,8 @@ static Order comparator(const ident a, const ident b) {
 
     if (q_strcmp(sortColumn->identifier, _server) == 0) {
       cmp = q_strcmp(s0->hostname, s1->hostname);
+    } else if (q_strcmp(sortColumn->identifier, _game) == 0) {
+      cmp = q_strcmp(s0->game, s1->game);
     } else if (q_strcmp(sortColumn->identifier, _map) == 0) {
       cmp = q_strcmp(s0->name, s1->name);
     } else if (q_strcmp(sortColumn->identifier, _players) == 0) {

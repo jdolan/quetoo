@@ -5,15 +5,19 @@
 }
 
 #Server {
-  min-width: 380;
+  min-width: 320;
+}
+
+#Game {
+  min-width: 120;
 }
 
 #Map {
-  min-width: 180;
+  min-width: 150;
 }
 
 #Players {
-  min-width: 140;
+  min-width: 110;
 }
 
 #Ping {

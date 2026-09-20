@@ -621,6 +621,11 @@ typedef struct {
   char movement[32];
 
   /**
+   * @brief The game module name, such as `default` or `ctf`.
+   */
+  char game[32];
+
+  /**
    * @brief Error string if the server could not be queried.
    */
   char error[128];
