@@ -65,10 +65,6 @@ void R_DrawPlayerModelView(RenderView *view);
 void R_EndFrame(void);
 void R_UpdateUniforms(const RenderView *view);
 
-#if defined(__R_LOCAL_H__)
-
-extern RenderViewStats *rStats;
-
 /**
  * @brief Renderer driver information.
  */
@@ -116,6 +112,10 @@ typedef struct {
 } RenderConfig;
 
 extern RenderConfig rConfig;
+
+#if defined(__R_LOCAL_H__)
+
+extern RenderViewStats *rStats;
 
 /**
  * @brief Vec4-aligned voxel uniforms.
