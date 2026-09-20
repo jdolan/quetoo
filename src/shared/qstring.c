@@ -166,7 +166,7 @@ char *q_strndup(const char *s, size_t n) {
  */
 char *q_strtok_r(char *s, const char *delim, char **savePtr) {
 #if defined(_MSC_VER)
-	return strtok_s(s, delim, save_ptr);
+	return strtok_s(s, delim, savePtr);
 #else
 	return strtok_r(s, delim, savePtr);
 #endif

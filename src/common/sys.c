@@ -477,29 +477,29 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
 
   free(strings);
 #elif defined(_WIN32)
-  static bool symbols_initialized = false;
+  static bool symbolsInitialized = false;
   void *symbols[32];
-  const int name_length = 256;
+  const int nameLength = 256;
   
     HANDLE process = GetCurrentProcess();
 
-  if (!symbols_initialized) {
+  if (!symbolsInitialized) {
     SymSetOptions(SYMOPT_LOAD_LINES);
     SymInitialize(process, NULL, TRUE);
-    symbols_initialized = true;
+    symbolsInitialized = true;
   }
 
-  const int16_t symbol_count = RtlCaptureStackBackTrace(1, lengthof(symbols), symbols, NULL);
+  const int16_t symbolCount = RtlCaptureStackBackTrace(1, lengthof(symbols), symbols, NULL);
 
-  PSYMBOL_INFO symbol = calloc(sizeof(*symbol) + name_length, 1);
-  symbol->MaxNameLen = name_length - 1;
+  PSYMBOL_INFO symbol = calloc(sizeof(*symbol) + nameLength, 1);
+  symbol->MaxNameLen = nameLength - 1;
   symbol->SizeOfStruct = sizeof(*symbol);
   
   IMAGEHLP_LINE line;
   line.SizeOfStruct = sizeof(line);
   DWORD dwDisplacement;
   
-  for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
+  for (uint32_t i = start, s = 0; s < maxCount && i < (uint32_t) symbolCount; i++, s++) {
     BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
 
     if (!result) {

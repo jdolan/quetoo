@@ -1010,11 +1010,11 @@ void Fs_Init(const uint32_t flags) {
       *c = '\0';
       q_strlcpy(fsState.baseDir, path, sizeof(fsState.baseDir));
 
-      char bin_dir[MAX_OS_PATH];
-      q_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fsState.baseDir);
+      char binDir[MAX_OS_PATH];
+      q_snprintf(binDir, MAX_OS_PATH, "%s/bin", fsState.baseDir);
 
-      if (q_strcmp(bin_dir, fsState.bin_dir) != 0) {
-        q_strlcpy(fsState.bin_dir, bin_dir, MAX_OS_PATH);
+      if (q_strcmp(binDir, fsState.binDir) != 0) {
+        q_strlcpy(fsState.binDir, binDir, MAX_OS_PATH);
         q_snprintf(fsState.libDir, MAX_OS_PATH, "%s/lib/quetoo", fsState.baseDir);
         q_snprintf(fsState.dataDir, MAX_OS_PATH, "%s/share/quetoo", fsState.baseDir);
       }
@@ -1024,7 +1024,7 @@ void Fs_Init(const uint32_t flags) {
       *c = '\0';
       q_strlcpy(fsState.baseDir, path, sizeof(fsState.baseDir));
 
-      q_snprintf(fsState.bin_dir, MAX_OS_PATH, "%s\\bin", fsState.baseDir);
+      q_snprintf(fsState.binDir, MAX_OS_PATH, "%s\\bin", fsState.baseDir);
       q_snprintf(fsState.libDir, MAX_OS_PATH, "%s\\lib", fsState.baseDir);
       q_snprintf(fsState.dataDir, MAX_OS_PATH, "%s\\share", fsState.baseDir);
     }
