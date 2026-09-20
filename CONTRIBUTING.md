@@ -189,7 +189,8 @@ src/
 └── tools/       # Map compiler (quemap) and other tools
 ```
 
-Detailed documentation for each subsystem lives in [`.github/subsystems/`](.github/subsystems/README.md).
+Conventions, build rules and the constraints that are not obvious from the code live in
+[`AGENTS.md`](AGENTS.md).
 
 ---
 

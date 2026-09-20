@@ -35,8 +35,6 @@ find src/<subsystem>/ -name "*.c" -o -name "*.h" | head -20
 # Search for a symbol or concept
 grep -r "<keyword>" src/ --include="*.c" --include="*.h" -l
 
-# Read the subsystem overview doc
-cat .github/subsystems/<subsystem>.md
 ```
 
 Read any relevant docs in `doc/copilot/` before touching renderer, shadow, or
