@@ -78,7 +78,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("specularity", &this->specularity),
     MakeOutlet("parallax", &this->parallax),
     MakeOutlet("shadow", &this->shadow),
-    MakeOutlet("alpha_test", &this->alphaTest)
+    MakeOutlet("alphaTest", &this->alphaTest)
   );
 
   $(self->view, awakeWithResourceName, "ui/editor/MaterialViewController.json");
