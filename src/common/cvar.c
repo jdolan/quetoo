@@ -413,14 +413,6 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
       }
     }
 
-    // developer variables can not be modified when in multiplayer mode
-    if (var->flags & CVAR_DEVELOPER) {
-      if (!Com_WasInit(QUETOO_SERVER)) {
-        Com_Print("%s is only available offline.\n", name);
-        return var;
-      }
-    }
-
     // write-protected variables can never be modified
     if (var->flags & CVAR_NO_SET) {
       Com_Print("%s is write protected.\n", name);
@@ -554,28 +546,6 @@ Cvar *Cvar_Toggle(const char *name) {
     return Cvar_SetInteger(name, 0);
   } else {
     return Cvar_SetInteger(name, 1);
-  }
-}
-
-/**
- * @brief Enumeration helper for `Cvar_ResetDeveloper`.
- */
-static void Cvar_ResetDeveloper_enumerate(Cvar *var, void *data) {
-
-  if (var->flags & CVAR_DEVELOPER) {
-    if (var->defaultString) {
-      Cvar_ForceSetString(var->name, var->defaultString);
-    }
-  }
-}
-
-/**
- * @brief Reset `CVAR_DEVELOPER` to their default values.
- */
-void Cvar_ResetDeveloper(void) {
-
-  if (!Com_WasInit(QUETOO_SERVER)) {
-    Cvar_Enumerate(Cvar_ResetDeveloper_enumerate, NULL);
   }
 }
 

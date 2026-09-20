@@ -44,7 +44,6 @@ Cvar *Cvar_ForceSetValue(const char *name, float value);
 Cvar *Cvar_Toggle(const char *name);
 void Cvar_Enumerate(Cvar_Enumerator func, void *data);
 void Cvar_CompleteVar(const char *pattern, List *matches);
-void Cvar_ResetDeveloper(void);
 bool Cvar_PendingLatched(void);
 void Cvar_UpdateLatched(void);
 bool Cvar_Pending(uint32_t flags);

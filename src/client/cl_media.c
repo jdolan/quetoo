@@ -83,10 +83,6 @@ void Cl_RequestNextDownload(void) {
     }
   }
 
-  // we're good to go, lock and load (literally)
-
-  Cvar_ResetDeveloper();
-
   Cl_LoadMedia();
 
   Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
