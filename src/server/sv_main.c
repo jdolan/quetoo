@@ -797,6 +797,7 @@ int32_t Sv_InstallerFrame(const InstallerStatus *in) {
         break;
       case INSTALLER_BIN_STAGED:
         Com_Print("Update staged; it will be applied when this server exits.\n");
+        Installer_Consent(false);
         break;
       case INSTALLER_INSTALLING_DATA:
         Com_Print("Installing game data\u2026\n");

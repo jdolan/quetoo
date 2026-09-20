@@ -231,7 +231,7 @@ static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
     }
       break;
     case INSTALLER_BIN_STAGED:
-      $(self->progressBar, setLabelFormat, "Update ready; it will be applied when you quit.");
+      $(self->progressBar, setLabelFormat, "Update downloaded.");
       $(self->progressBar, setValue, 100.0);
       break;
 		case INSTALLER_CHECKING_DATA:

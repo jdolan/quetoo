@@ -443,6 +443,10 @@ static void Init(void) {
   // block until the data installer finishes before executing user commands
   Installer_Init(dedicated->value ? Sv_InstallerFrame : Cl_InstallerFrame);
 
+  if (Installer_ShouldRelaunch()) {
+    Com_Shutdown("Restarting to apply the update\n");
+  }
+
   // Re-add data search paths in case the installer just created them
   Fs_AddToSearchPathv(Fs_DataDir(), NULL);
   Fs_AddToSearchPathv(Fs_DataDir(), Com_Game(), NULL);
@@ -498,6 +502,10 @@ static void Shutdown(const char *msg) {
   Mem_Shutdown();
 
   SDL_Quit();
+
+  if (Installer_ShouldRelaunch()) {
+    Sys_Relaunch();
+  }
 }
 
 /**

@@ -27,6 +27,11 @@ ClientStatic cls;
  * @brief Null client stub: returns whether the installer is complete.
  */
 int32_t Cl_InstallerFrame(const InstallerStatus *in) {
+
+  if (in->state == INSTALLER_BIN_AVAILABLE || in->state == INSTALLER_BIN_STAGED) {
+    Installer_Consent(false);
+  }
+
   return in->state >= INSTALLER_DONE;
 }
 

@@ -62,9 +62,16 @@
 
 /**
  * @return The current executable path (argv[0]).
+ * @remarks Resolved once and cached. An update applied on the way out renames
+ * this file, and the Linux resolver follows the inode rather than the name, so
+ * a later call would otherwise answer with the displaced copy.
  */
 const char *Sys_ExecutablePath(void) {
   static char path[MAX_OS_PATH];
+
+  if (*path) {
+    return path;
+  }
 
 #if defined(__APPLE__)
   uint32_t i = sizeof(path);
@@ -90,6 +97,47 @@ const char *Sys_ExecutablePath(void) {
 
   Com_Warn("Failed to resolve executable path\n");
   return NULL;
+}
+
+void Sys_Relaunch(void) {
+
+  const char *exe = Sys_ExecutablePath();
+  if (exe == NULL) {
+    return;
+  }
+
+#if defined(_WIN32)
+
+  char cmd[MAX_STRING_CHARS] = { '\0' };
+  size_t length = 0;
+
+  for (int32_t i = 0; i < Com_Argc(); i++) {
+    const int32_t n = q_snprintf(cmd + length, sizeof(cmd) - length, "%s\"%s\"",
+                                 i ? " " : "", Com_Argv(i));
+    if (n < 0 || (size_t) n >= sizeof(cmd) - length) {
+      Com_Warn("Failed to build the relaunch command line\n");
+      return;
+    }
+    length += n;
+  }
+
+  STARTUPINFO si = { .cb = sizeof(si) };
+  PROCESS_INFORMATION pi = { 0 };
+
+  if (CreateProcess(exe, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+  } else {
+    Com_Warn("Failed to relaunch %s: %lu\n", exe, GetLastError());
+  }
+
+#else
+
+  execv(exe, quetoo.argv);
+
+  Com_Warn("Failed to relaunch %s: %s\n", exe, strerror(errno));
+
+#endif
 }
 
 /**

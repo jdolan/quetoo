@@ -211,11 +211,13 @@ void Cg_UpdateLoading(const ClientLoading loading) {
 }
 
 /**
- * @brief Manages the UpdateViewController lifecycle and routes installer progress to it.
- * Pushes UpdateViewController when updating, pops it on completion.
+ * @brief Whether the player has answered each of the installer's questions, so that a Dialog
+ * is presented once rather than every frame the installer spends waiting for the answer.
  */
+static bool askedToInstall, askedToRestart, acceptedRestart;
+
 /**
- * @brief Dialog callbacks answering whether to install an available update.
+ * @brief Dialog callbacks answering the installer.
  */
 static void Cg_AcceptUpdate(ident data) {
   cgi.ConsentToUpdate(true);
@@ -225,6 +227,32 @@ static void Cg_DeclineUpdate(ident data) {
   cgi.ConsentToUpdate(false);
 }
 
+static void Cg_AcceptRestart(ident data) {
+  acceptedRestart = true;
+  cgi.ConsentToUpdate(true);
+}
+
+/**
+ * @brief Presents a Dialog over the update screen.
+ */
+static void Cg_AskAboutUpdate(const char *message, const char *ok, void (*okFunction)(ident data)) {
+
+  ViewController *dialog = (ViewController *) $(alloc(DialogViewController), initWithDialog, &(const Dialog) {
+    .message = message,
+    .ok = ok,
+    .cancel = "Not now",
+    .okFunction = okFunction,
+    .cancelFunction = Cg_DeclineUpdate
+  });
+
+  $((ViewController *) updateViewController, addChildViewController, dialog);
+  release(dialog);
+}
+
+/**
+ * @brief Manages the UpdateViewController lifecycle and routes installer progress to it.
+ * Pushes UpdateViewController when updating, pops it on completion.
+ */
 int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
 
   if (updateViewController == NULL) {
@@ -236,25 +264,25 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
 
   if (in->state == INSTALLER_BIN_AVAILABLE) {
 
-    ViewController *this = (ViewController *) updateViewController;
+    if (!askedToInstall) {
+      askedToInstall = true;
 
-    const Array *children = (Array *) this->childViewControllers;
-    for (size_t i = 0; i < children->count; i++) {
-      if ($((Object *) children->elements[i], isKindOfClass, _DialogViewController())) {
-        return 0;
-      }
+      static char message[MAX_STRING_CHARS];
+      q_snprintf(message, sizeof(message), "Quetoo %s is available. Install it?", in->currentFile);
+
+      Cg_AskAboutUpdate(message, "Install", Cg_AcceptUpdate);
     }
 
-    ViewController *dialog = (ViewController *) $(alloc(DialogViewController), initWithDialog, &(const Dialog) {
-      .message = va("Quetoo %s is available. Install it?", in->currentFile),
-      .ok = "Install",
-      .cancel = "Not now",
-      .okFunction = Cg_AcceptUpdate,
-      .cancelFunction = Cg_DeclineUpdate
-    });
+    return 0;
+  }
 
-    $(this, addChildViewController, dialog);
-    release(dialog);
+  if (in->state == INSTALLER_BIN_STAGED) {
+
+    if (!askedToRestart) {
+      askedToRestart = true;
+      Cg_AskAboutUpdate("The update has been downloaded. Restart to apply it now?",
+                        "Restart", Cg_AcceptRestart);
+    }
 
     return 0;
   }
@@ -264,7 +292,7 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
     if (done_at == 0) {
       done_at = SDL_GetTicks();
     }
-    if (SDL_GetTicks() - done_at > 2000) {
+    if (acceptedRestart || SDL_GetTicks() - done_at > 2000) {
       cgi.PopViewController();
       release(updateViewController);
       updateViewController = NULL;

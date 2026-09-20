@@ -109,10 +109,16 @@ static struct {
   bool installedData;
 
   /**
-   * @brief Whether the player has agreed to install an available update.
-   * @details Zero until answered, then 1 to accept or -1 to decline.
+   * @brief The answer to the question the current state is asking.
+   * @details Zero until answered, then 1 to accept or -1 to decline. Cleared
+   * once a state consumes it, so that the next question starts unanswered.
    */
   int32_t consent;
+
+  /**
+   * @brief Whether the player asked to restart at once to apply a staged update.
+   */
+  bool relaunch;
 
   /**
    * @brief The module status, used to expose progress via `Installer_FrameFunction`.
@@ -1021,6 +1027,7 @@ static int Installer_Thread(void *unused) {
         }
 
         SDL_LockMutex(module.mutex);
+        module.consent = 0;
         if (in->state != INSTALLER_CANCELLED) {
           if (consent > 0) {
             in->state = INSTALLER_DOWNLOADING_BIN;
@@ -1090,10 +1097,29 @@ static int Installer_Thread(void *unused) {
       }
         break;
 
-      case INSTALLER_BIN_STAGED:
+      case INSTALLER_BIN_STAGED: {
+
         SDL_LockMutex(module.mutex);
-        in->state = INSTALLER_CHECKING_DATA;
+        const int32_t consent = module.consent;
         SDL_UnlockMutex(module.mutex);
+
+        if (consent == 0) {
+          SDL_Delay(QUETOO_TICK_MILLIS);
+          break;
+        }
+
+        SDL_LockMutex(module.mutex);
+        module.consent = 0;
+        if (in->state != INSTALLER_CANCELLED) {
+          if (consent > 0) {
+            module.relaunch = true;
+            in->state = INSTALLER_DONE;
+          } else {
+            in->state = INSTALLER_CHECKING_DATA;
+          }
+        }
+        SDL_UnlockMutex(module.mutex);
+      }
         break;
 
       case INSTALLER_INSTALLING_DATA:
@@ -1356,6 +1382,10 @@ void Installer_Consent(bool accept) {
   }
 }
 
+bool Installer_ShouldRelaunch(void) {
+  return module.relaunch;
+}
+
 void Installer_ApplyPending(void) {
 
   if (*Fs_BaseDir() == '\0') {
@@ -1443,6 +1473,7 @@ void Installer_ApplyPending(void) {
   } else {
     Com_Warn("Could not apply the staged update; the previous version is intact "
              "and it will be retried on the next exit.\n");
+    module.relaunch = false;
   }
 }
 

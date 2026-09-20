@@ -72,9 +72,10 @@ typedef struct {
 
 /**
  * @brief Frame callback type for `Installer_Wait`.
- * @remarks On `INSTALLER_BIN_AVAILABLE` the installer waits for
- * `Installer_Consent`, so the frame function is responsible for asking the
- * player, or for answering on their behalf where there is nobody to ask.
+ * @remarks On `INSTALLER_BIN_AVAILABLE` and `INSTALLER_BIN_STAGED` the
+ * installer waits for `Installer_Consent`, so the frame function is
+ * responsible for asking the player, or for answering on their behalf where
+ * there is nobody to ask.
  * @details Returning non-zero will terminate the installer process and resume startup.
  */
 typedef int32_t (*Installer_FrameFunction)(const InstallerStatus *status);
@@ -91,12 +92,23 @@ void Installer_Init(Installer_FrameFunction frame);
  * leaves the staged update for the next clean exit.
  */
 /**
- * @brief Answers the question posed by `INSTALLER_BIN_AVAILABLE`.
- * @details The installer does not act on an available update until this is
- * called. Declining skips the engine update for this run only; the next launch
- * asks again, so nobody is quietly opted in or out.
+ * @brief Answers the question posed by the current state.
+ * @details `INSTALLER_BIN_AVAILABLE` asks whether to install an available
+ * update. Declining skips the engine update for this run only, so nobody is
+ * quietly opted in or out. `INSTALLER_BIN_STAGED` then asks whether to restart
+ * at once to apply what was staged. Declining there falls through to the game
+ * data, and the update applies whenever the player next quits.
  */
 void Installer_Consent(bool accept);
+
+/**
+ * @brief Whether the player accepted the restart offered by
+ * `INSTALLER_BIN_STAGED`.
+ * @details Read after `Installer_Init` returns, and again at the end of
+ * shutdown. `Installer_ApplyPending` clears it if the apply rolled back, so
+ * that a restart never lands the player back in the version they just left.
+ */
+bool Installer_ShouldRelaunch(void);
 
 void Installer_ApplyPending(void);
 

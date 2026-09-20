@@ -26,6 +26,15 @@
 #include "quetoo.h"
 
 const char *Sys_ExecutablePath(void);
+
+/**
+ * @brief Starts a fresh copy of this executable with the arguments this one
+ * received, and does not return on success.
+ * @details Called at the very end of shutdown, after a staged update has been
+ * moved into place, so that the new process is the updated one.
+ */
+void Sys_Relaunch(void);
+
 const char *Sys_Username(void);
 const char *Sys_UserDir(void);
 
