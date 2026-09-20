@@ -145,7 +145,7 @@ dnl --------------------------
 dnl Check for SDL3, SDL3_image
 dnl --------------------------
 
-PKG_CHECK_MODULES([SDL3], [sdl3 >= 3.2.0 sdl3-image sdl3-ttf])
+PKG_CHECK_MODULES([SDL3], [sdl3 >= 3.4.12 sdl3-image sdl3-ttf])
 
 dnl Homebrew's sdl3.pc carries its own -Wl,-rpath for the Homebrew prefix,
 dnl which HOST_LDFLAGS already embeds on macOS; drop it to keep ld quiet.
