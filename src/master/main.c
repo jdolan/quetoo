@@ -748,7 +748,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
     Ms_Heartbeat(from, cmd, line);
   } else if (!q_strncasecmp(cmd, "shutdown", 8)) {
     Ms_RemoveServer(from, cmd);
-  } else if (!q_strncasecmp(cmd, "getservers", 10) || !q_strncasecmp(cmd, "y", 1)) {
+  } else if (!q_strncasecmp(cmd, "getservers", 10)) {
     Ms_GetServers(from, cmd);
   } else {
     Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
