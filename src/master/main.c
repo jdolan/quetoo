@@ -113,15 +113,19 @@ static bool debug;
 static const char *msDiscordWebhook;
 
 /**
- * @brief Extracts the value for the given key from a Quake infostring.
+ * @brief Extracts the value for the given key from a Quake infostring. Only the
+ * first line is searched, so that a player name on a later line of a status
+ * response cannot pose as a server cvar.
  * @return True if the key was found and the value copied, false otherwise.
  */
 static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bufSize) {
   char search[256];
   q_snprintf(search, sizeof(search), "\\%s\\", key);
 
+  const char *newline = q_strchr(info, '\n');
+
   const char *p = q_strstr(info, search);
-  if (!p) {
+  if (!p || (newline && p >= newline)) {
     return false;
   }
 
