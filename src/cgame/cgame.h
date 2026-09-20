@@ -123,7 +123,7 @@ typedef struct ClientGameImport {
   /**
    * @brief Captures a backtrace of the calling thread's stack, for diagnostic logging.
    * @param start How many innermost frames to skip (e.g. `1` to skip this call itself).
-   * @param max_count The maximum number of frames to include.
+   * @param maxCount The maximum number of frames to include.
    * @return A heap-allocated string describing the stack; caller must `free()` it.
    */
   char *(*Backtrace)(uint32_t start, uint32_t maxCount);
@@ -416,7 +416,7 @@ typedef struct ClientGameImport {
    * `whence` and `scroll`, wrapped to its `width`.
    * @param console The console filter.
    * @param lines The array to receive the lines, which the caller MUST free with `Free`.
-   * @param max_lines The capacity of `lines`.
+   * @param maxLines The capacity of `lines`.
    * @return The count of lines collected.
    */
   size_t (*Tail)(const Console *console, char **lines, size_t maxLines);
@@ -696,8 +696,8 @@ typedef struct ClientGameImport {
    * @param bounds The bounds in world space.
    * @param list The list of leaf numbers to populate.
    * @param length The maximum number of leafs to return.
-   * @param top_node If not null, this will contain the top node for the box.
-   * @param head_node The head node to recurse from.
+   * @param topNode If not null, this will contain the top node for the box.
+   * @param headNode The head node to recurse from.
    * @param matrix The matrix by which to transform planes.
    * @return The number of leafs accumulated to the list.
    */
@@ -728,14 +728,14 @@ typedef struct ClientGameImport {
    * @param start The trace start point.
    * @param end The trace end point.
    * @param brush The brush to test.
-   * @return A trace result. Check `start_solid` to detect the view origin being inside the brush.
+   * @return A trace result. Check `startSolid` to detect the view origin being inside the brush.
    */
   CmTrace (*TraceToBrush)(const Vec3 start, const Vec3 end, const CmBspBrush *brush);
 
   /**
    * @brief Returns the leaf number containing the specified point.
    * @param p The point.
-   * @param head_node The head node to recurse from, or 0 for the world.
+   * @param headNode The head node to recurse from, or 0 for the world.
    * @return The leaf number, or -1 if outside.
    */
   int32_t (*PointLeafnum)(const Vec3 p, int32_t headNode);
@@ -804,7 +804,7 @@ typedef struct ClientGameImport {
   /**
    * @brief Loads a sound sample for the given player model and name.
    * @param model The player model name (e.g. `"enforcer"`).
-   * @param sound_set The player model's sound set (e.g. `"male"`, `"female"`, `"cyborg"`).
+   * @param soundSet The player model's sound set (e.g. `"male"`, `"female"`, `"cyborg"`).
    * @param name The sample name (e.g. `"*gurp"`).
    * @return The loaded sample, which may be an aliased common sample.
    */
@@ -896,7 +896,7 @@ typedef struct ClientGameImport {
   /**
    * @brief Creates an animation.
    * @param name The name to give to the animation, e.g. `"cg_flame_1"`
-   * @param num_images The number of images in the image pointer list.
+   * @param numImages The number of images in the image pointer list.
    * @param images The image pointer list.
    * @return The animation that has been created.
    */
@@ -987,7 +987,7 @@ typedef struct ClientGameImport {
    * @param points The points array, in pairs.
    * @param count The length of points.
    * @param color Color.
-   * @param depth_test Depth test.
+   * @param depthTest Depth test.
   */
   void (*Draw3DLines)(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, const Color color, bool depthTest);
 
@@ -995,7 +995,7 @@ typedef struct ClientGameImport {
    * @brief Draw a 3D bbox at the given coordinates.
    * @param bounds Box.
    * @param color Color.
-   * @param depth_test Depth test.
+   * @param depthTest Depth test.
   */
   void (*Draw3DBox)(const Box3 bounds, const Color color, bool depthTest);
 

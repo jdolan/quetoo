@@ -61,7 +61,7 @@ typedef struct {
 } CmClipPoint;
 
 /**
- * @brief Allocates a winding with space for `num_points` points.
+ * @brief Allocates a winding with space for `numPoints` points.
  */
 CmWinding *Cm_AllocWinding(int32_t numPoints);
 

@@ -253,7 +253,7 @@ void *Sys_CloseLibrary(void *handle) {
 
 /**
  * @brief Opens and loads the specified shared library. The function identified by
- * `entry_point` is resolved and invoked with the specified parameters, its
+ * `entryPoint` is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
 void *Sys_LoadLibrary(void *handle, const char *entryPoint, void *params) {

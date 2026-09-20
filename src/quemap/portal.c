@@ -421,7 +421,7 @@ static void FloodPortals_r(Node *node, int32_t occupied) {
 }
 
 /**
- * @return True if the entity can be placed in a valid leaf beneath `head_node`, false otherwise.
+ * @return True if the entity can be placed in a valid leaf beneath `headNode`, false otherwise.
  */
 static bool PlaceOccupant(Node *headNode, const Vec3 origin, const Entity *occupant) {
 

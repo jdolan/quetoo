@@ -194,7 +194,7 @@ static int32_t EmitLeaf(Node *node) {
   out->contents = node->contents;
   out->bounds = node->bounds;
 
-  // write the leaf_brushes
+  // write the leafBrushes
   out->firstLeafBrush = bspFile.numLeafBrushes;
 
   for (const CsgBrush *brush = node->brushes; brush; brush = brush->next) {
@@ -272,7 +272,7 @@ static int32_t EmitNode(const Node *node) {
 }
 
 /**
- * @brief Emits the entire BSP tree rooted at `tree->`head_node` into the BSP file.
+ * @brief Emits the entire BSP tree rooted at `tree->`headNode` into the BSP file.
  * @return The index of the head node in `bspFile`.nodes`.
  */
 int32_t EmitNodes(const Tree *tree) {
@@ -443,7 +443,7 @@ void BeginBSPFile(void) {
  * @brief Called after all BSP data has been emitted; reserved for any final BSP file finalization.
  */
 /**
- * @return The index of the entity that defined @p brush_side, or `-1`.
+ * @return The index of the entity that defined @p brushSide, or `-1`.
  */
 static int32_t BrushSideEntity(const int32_t brushSide) {
 
@@ -884,7 +884,7 @@ void EndModel(BspModel *mod) {
   EmitDepthPassElements(mod);
 
   // Captured here (not in BeginModel) since EmitDepthPassElements above also appends entries
-  // to the shared draw_elements pool; this must exclude those from the block range below.
+  // to the shared drawElements pool; this must exclude those from the block range below.
   mod->firstDrawElements = bspFile.numDrawElements;
 
   EmitBlocks(mod);

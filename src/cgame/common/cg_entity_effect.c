@@ -39,7 +39,7 @@ Vec3 Cg_EffectColor(float *hue, const float defaultHue) {
 /**
  * @brief Returns the effect color for the given client, using their team or personal hue.
  * @param client A client number, or any value `>= MAX_CLIENTS` for effects owned by the world,
- * which resolve to `default_hue`.
+ * which resolve to `defaultHue`.
  */
 Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultHue) {
 

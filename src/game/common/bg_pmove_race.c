@@ -777,7 +777,7 @@ static void Pm_RaceCheckDuck(void) {
     }
 
     // Quake II has no corpse box of its own: a dead player is simply ducked,
-    // so its bounds_dead is the ducked box. Setting the flag and stopping here
+    // so its boundsDead is the ducked box. Setting the flag and stopping here
     // leaves the box Pm_Init took from the parameters, which is the same box and
     // is the one a ruleset can actually change
     pm->s.flags |= PMF_DUCKED;

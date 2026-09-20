@@ -266,11 +266,11 @@ static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t 
   Vec3 textCenter = center;
   textCenter.z += 8.f;
 
-  //Cg_DrawFloatingStringLine(text_center, va("%.1f", Vec3_Distance(start, end)), 1.f, MakeVec3(0.f, 0.f, 1.f));
+  //Cg_DrawFloatingStringLine(textCenter, va("%.1f", Vec3_Distance(start, end)), 1.f, MakeVec3(0.f, 0.f, 1.f));
 
   if (bits & 16) {
     textCenter.z -= 2;
-  //  Cg_DrawFloatingStringLine(text_center, "Slow-drop", 1.f, MakeVec3(0.f, 0.f, 1.f));
+  //  Cg_DrawFloatingStringLine(textCenter, "Slow-drop", 1.f, MakeVec3(0.f, 0.f, 1.f));
     Cg_AddSprite(&(ClientGameSprite) {
       .atlasImage = cgSpriteNodeSlow,
       .origin = textCenter,

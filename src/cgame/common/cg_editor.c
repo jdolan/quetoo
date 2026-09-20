@@ -33,7 +33,7 @@ ClientGameEditor cgEditor = {
 };
 
 /**
- * @brief Finds the `team_master` entity for the given classname and team.
+ * @brief Finds the `teamMaster` entity for the given classname and team.
  */
 int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
 

@@ -903,7 +903,7 @@ typedef struct {
   RenderOcclusionQuery *query;
 
   /**
-   * @brief The draw elements of this light's shadow geometry, into `bsp->draw_elements`.
+   * @brief The draw elements of this light's shadow geometry, into `bsp->drawElements`.
    * @details One draw elements is emitted for all opaque faces lumped together, plus one per
    * unique alpha-test material visible to the light, so alpha-tested faces (foliage, fences,
    * grates) cast pixel-correct shadows.
@@ -993,7 +993,7 @@ typedef struct {
   RenderImage *occlusion;
 
   /**
-   * @brief Media placeholder for the per-voxel light data (see `light_data_buffer`).
+   * @brief Media placeholder for the per-voxel light data (see `lightDataBuffer`).
    */
   RenderImage *lightData;
 
@@ -1013,7 +1013,7 @@ typedef struct {
   Buffer *lightIndicesBuffer;
 
   /**
-   * @brief The length of `light_indices_buffer`.
+   * @brief The length of `lightIndicesBuffer`.
    */
   int32_t numLightIndices;
 
@@ -1940,7 +1940,7 @@ typedef struct RenderEntity {
   /**
    * @brief Mesh model skins, up to one per face.
    *
-   * Only meaningful when `has_skins` is `true` (see below). In that case, a
+   * Only meaningful when `hasSkins` is `true` (see below). In that case, a
    * `NULL` entry means the face has no skin and should not be drawn at all,
    * rather than falling back to the mesh's baked-in default material.
    */

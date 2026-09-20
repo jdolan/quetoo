@@ -215,7 +215,7 @@ typedef struct {
   const char *precaches;
 
   /**
-   * @brief RGB color for `EF_LIGHT` emission. Ignored if `light_radius` is 0.
+   * @brief RGB color for `EF_LIGHT` emission. Ignored if `lightRadius` is 0.
    */
   Vec3 lightColor;
 

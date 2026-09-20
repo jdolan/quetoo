@@ -32,7 +32,7 @@ void R_UpdateMeshPipeline(void);
 /**
  * @brief Resolves the material to draw for the given face of a mesh entity.
  * @return The material to draw, or `NULL` if the entity has an explicit
- * per-face skins array (`has_skins` is `true`) and this face has no skin
+ * per-face skins array (`hasSkins` is `true`) and this face has no skin
  * assigned, meaning it should not be drawn at all.
  */
 static inline const RenderMaterial *R_MeshEntityFaceMaterial(const RenderEntity *e,

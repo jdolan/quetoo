@@ -215,7 +215,7 @@ struct GameBallisticsType {
   /**
    * @brief The interval an entity fires at when it does not ask for one, taken from the weapon's
    * own refire so that a turret behaves exactly like the weapon it mounts. Mappers tune from
-   * there, down to `min_wait`.
+   * there, down to `minWait`.
    */
   Cvar **refire;
 

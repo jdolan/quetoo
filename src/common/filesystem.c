@@ -89,7 +89,7 @@ typedef struct {
    * @brief An explicit write directory given on the command line with
    * `-w` or `--wpath`, overriding the per-game user directory that
    * `Fs_SetGame` would otherwise select. Empty if none was given.
-   * @remarks Deliberately not one of `command_line_paths`: a root resolves
+   * @remarks Deliberately not one of `commandLinePaths`: a root resolves
    * modules, and this is where server-named downloads are written.
    */
   char writeDirOverride[MAX_OS_PATH];
@@ -984,7 +984,7 @@ void Fs_Init(const uint32_t flags) {
        * they launch the game. But this copy is immutable, signed, and must never be updated by the
        * in-game installer, or Gatekeeper would hassle the user when they relaunch the game.
        *
-       * So, we set `data_dir` to `Sys_UserDir()/share`. This writes updated official game content to
+       * So, we set `dataDir` to `Sys_UserDir()/share`. This writes updated official game content to
        * the user's home, without conflating it with true user-owned data like screenshots, configs,
        * custom maps etc. Then, we append `Contents/Resources` to the search path, allowing the
        * game to fall back on the read-only copy of quetoo-data that it originally came with.
@@ -994,7 +994,7 @@ void Fs_Init(const uint32_t flags) {
       q_snprintf(fsState.libDir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fsState.baseDir);
       q_snprintf(fsState.dataDir, MAX_OS_PATH, "%s/share", Sys_UserDir());
 
-      // Ensure data_dir/default exists so PhysFS will mount it. On first launch
+      // Ensure dataDir/default exists so PhysFS will mount it. On first launch
       // this directory tree doesn't exist yet, and Fs_AddToSearchPath silently
       // skips non-existent paths, leaving the installer with nowhere to write.
       char dataDefault[MAX_OS_PATH];
@@ -1008,25 +1008,25 @@ void Fs_Init(const uint32_t flags) {
 #elif defined(__linux__)
     if ((c = q_strstr(path, "/bin/"))) {
       *c = '\0';
-      q_strlcpy(fsState.base_dir, path, sizeof(fsState.base_dir));
+      q_strlcpy(fsState.baseDir, path, sizeof(fsState.baseDir));
 
       char bin_dir[MAX_OS_PATH];
-      q_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fsState.base_dir);
+      q_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fsState.baseDir);
 
       if (q_strcmp(bin_dir, fsState.bin_dir) != 0) {
         q_strlcpy(fsState.bin_dir, bin_dir, MAX_OS_PATH);
-        q_snprintf(fsState.lib_dir, MAX_OS_PATH, "%s/lib/quetoo", fsState.base_dir);
-        q_snprintf(fsState.data_dir, MAX_OS_PATH, "%s/share/quetoo", fsState.base_dir);
+        q_snprintf(fsState.libDir, MAX_OS_PATH, "%s/lib/quetoo", fsState.baseDir);
+        q_snprintf(fsState.dataDir, MAX_OS_PATH, "%s/share/quetoo", fsState.baseDir);
       }
     }
 #elif defined(_WIN32)
     if ((c = q_strstr(path, "\\bin\\"))) {
       *c = '\0';
-      q_strlcpy(fsState.base_dir, path, sizeof(fsState.base_dir));
+      q_strlcpy(fsState.baseDir, path, sizeof(fsState.baseDir));
 
-      q_snprintf(fsState.bin_dir, MAX_OS_PATH, "%s\\bin", fsState.base_dir);
-      q_snprintf(fsState.lib_dir, MAX_OS_PATH, "%s\\lib", fsState.base_dir);
-      q_snprintf(fsState.data_dir, MAX_OS_PATH, "%s\\share", fsState.base_dir);
+      q_snprintf(fsState.bin_dir, MAX_OS_PATH, "%s\\bin", fsState.baseDir);
+      q_snprintf(fsState.libDir, MAX_OS_PATH, "%s\\lib", fsState.baseDir);
+      q_snprintf(fsState.dataDir, MAX_OS_PATH, "%s\\share", fsState.baseDir);
     }
 #endif
   }

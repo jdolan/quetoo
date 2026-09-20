@@ -289,3 +289,34 @@ int32_t q_strrcolor(const char *s) {
 
 	return ESC_COLOR_DEFAULT;
 }
+
+/**
+ * @see qstring.h
+ */
+bool q_str_ident_equal(const char *a, const char *b) {
+
+	if (a == NULL || b == NULL) {
+		return a == b;
+	}
+
+	while (true) {
+
+		while (*a == '_') {
+			a++;
+		}
+
+		while (*b == '_') {
+			b++;
+		}
+
+		if (tolower((unsigned char) *a) != tolower((unsigned char) *b)) {
+			return false;
+		}
+
+		if (*a == '\0') {
+			return true;
+		}
+
+		a++, b++;
+	}
+}

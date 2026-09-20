@@ -131,7 +131,7 @@ static void Cg_LoadClientSkin(ClientGameClientInfo *ci, char *line) {
 /**
  * @brief Parses a .skin file, resolving skins for each face across all three
  * mesh models (head, torso, legs). A face left unresolved is intentionally
- * omitted from that skin variant and is not drawn at all (see `has_skins`
+ * omitted from that skin variant and is not drawn at all (see `hasSkins`
  * and `skins` in RenderEntity, and the checks in r_mesh_draw.c / r_shadow.c);
  * some third-party skins genuinely don't texture certain optional accessory
  * faces (e.g. straps, wrist rockets), and the modeler never intended them to

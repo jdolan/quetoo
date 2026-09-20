@@ -311,7 +311,7 @@ START_TEST(check_G_Race_Line_RoundTrip) {
 
   G_Race_KeepLine(&testClient);
 
-  // G_Race_KeepLine reloaded gLevel.race_line from disk, since the movement matches
+  // G_Race_KeepLine reloaded gLevel.raceLine from disk, since the movement matches
   ck_assert_uint_eq(gLevel.raceLine.count, 3);
   ck_assert_str_eq(gLevel.raceLineHolder, "Carol");
   ck_assert_uint_eq(gLevel.raceLineTime, 200);

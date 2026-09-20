@@ -43,7 +43,7 @@ static void FreeLight(Light *light) {
 }
 
 /**
- * @brief Finds the `team_master` light entity for the given team.
+ * @brief Finds the `teamMaster` light entity for the given team.
  */
 static const CmEntity *FindTeamMaster(const char *team) {
 

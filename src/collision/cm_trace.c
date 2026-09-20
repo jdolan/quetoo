@@ -47,7 +47,7 @@ typedef struct {
   Box3 absBounds;
 
   /**
-   * @brief abs_bounds in model space; equals abs_bounds for non-transformed traces.
+   * @brief absBounds in model space; equals absBounds for non-transformed traces.
    * Pre-computed once to avoid per-brush Mat4_TransformBounds calls.
    */
   Box3 modelAbsBounds;
@@ -121,7 +121,7 @@ static inline bool Cm_BrushAlreadyTested(CmTraceData *data, int32_t brushNum) {
  *  - Track the latest "enter" fraction (where we cross from front to back of a plane)
  *  - Track the earliest "leave" fraction (where we cross from back to front)
  *  - If start is in front of any plane and stays there, no collision
- *  - If start is behind all planes: inside the brush (`start_solid`)
+ *  - If start is behind all planes: inside the brush (`startSolid`)
  *  - If enter < leave: pierced the brush, record the impact at enter fraction
  * The offsets[] array provides the box corner in the direction of each plane normal,
  * effectively expanding each plane outward by the box's radius in that direction.
@@ -453,7 +453,7 @@ next:;
  * @param start The starting point.
  * @param end The desired end point.
  * @param bounds The bounding box, in model space.
- * @param head_node The BSP head node to recurse down. For inline BSP models,
+ * @param headNode The BSP head node to recurse down. For inline BSP models,
  * the head node is the root of the model's subtree. For mesh models, a
  * special reserved box hull and head node are used.
  * @param contents The contents mask to clip to.
@@ -526,12 +526,12 @@ static inline CmTrace Cm_BoxTrace_(CmTraceData *data) {
  * @param start The starting point.
  * @param end The desired end point.
  * @param bounds The bounding box, in model space.
- * @param head_node The BSP head node to recurse down. For inline BSP models,
+ * @param headNode The BSP head node to recurse down. For inline BSP models,
  * the head node is the root of the model's subtree. For mesh models, a
  * special reserved box hull and head node are used.
  * @param contents The contents mask to clip to.
  * @param matrix The matrix to adjust tested planes by.
- * @param inverse_matrix The inverse matrix to adjust the inputs by.
+ * @param inverseMatrix The inverse matrix to adjust the inputs by.
  *
  * @return The trace.
  */
@@ -563,7 +563,7 @@ CmTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 boun
  * @param start The starting point.
  * @param end The desired end point.
  * @param bounds The bounding box, in model space.
- * @param head_node The BSP head node to recurse down. For inline BSP models,
+ * @param headNode The BSP head node to recurse down. For inline BSP models,
  * the head node is the root of the model's subtree. For mesh models, a
  * special reserved box hull and head node are used.
  * @param contents The contents mask to clip to.
@@ -592,8 +592,8 @@ CmTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t
  * @param start The trace start point.
  * @param end The trace end point.
  * @param brush The brush to test.
- * @return The trace result. `start_solid` is set if the origin is inside the brush; callers
- *   should skip `start_solid` results when selecting entities to avoid selecting brushes
+ * @return The trace result. `startSolid` is set if the origin is inside the brush; callers
+ *   should skip `startSolid` results when selecting entities to avoid selecting brushes
  *   that geometrically contain the view origin.
  */
 CmTrace Cm_TraceToBrush(const Vec3 start, const Vec3 end, const CmBspBrush *brush) {

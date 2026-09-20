@@ -304,7 +304,7 @@ typedef struct {
 
 /**
  * @brief This layout is the wire format. `Net_WriteDeltaPlayerState` sends
- * `gravity` and `movement` on their own bits, and everything from `accel_ground`
+ * `gravity` and `movement` on their own bits, and everything from `accelGround`
  * on as one block of `PM_PARAMS_FLOATS` floats, compared with one `memcmp` and
  * written in a loop. So `movement` must keep sitting in the padding `gravity`
  * leaves, or the block moves; and the block must hold nothing but floats, or

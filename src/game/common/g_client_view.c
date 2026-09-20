@@ -364,7 +364,7 @@ static void G_ClientKickAngles(GameClient *cl) {
  * permitted to play before we force it into its terminal BOTH_DEADx frame. This must be
  * long enough to accommodate the longest death animation among all bundled player
  * models (custom models may author far longer death sequences than the stock ones), or
- * their animations will be truncated. It is intentionally decoupled from respawn_time,
+ * their animations will be truncated. It is intentionally decoupled from respawnTime,
  * which governs actual respawn eligibility and must not be tied to animation length.
  */
 #define DEATH_ANIM_SETTLE_TIME 8000

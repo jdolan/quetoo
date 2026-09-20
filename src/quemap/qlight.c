@@ -306,7 +306,7 @@ static inline void Light_TraceToNode(CmTraceData *data, int32_t num, float p1f, 
  * @param start The starting point.
  * @param end The desired end point.
  * @param bounds The bounding box, in model space.
- * @param head_node The BSP head node to recurse down. For inline BSP models,
+ * @param headNode The BSP head node to recurse down. For inline BSP models,
  * the head node is the root of the model's subtree. For mesh models, a
  * special reserved box hull and head node are used.
  * @param contents The contents mask to clip to.

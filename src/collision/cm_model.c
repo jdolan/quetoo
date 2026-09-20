@@ -95,7 +95,7 @@ static void Cm_LoadBspLeafs(CmBsp *bsp) {
 }
 
 /**
- * @brief Loads the leaf-brush index lump into `cmBsp`.`leaf_brushes`.
+ * @brief Loads the leaf-brush index lump into `cmBsp`.`leafBrushes`.
  */
 static void Cm_LoadBspLeafBrushes(CmBsp *bsp) {
 

@@ -116,7 +116,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
     Com_Error(ERROR_FATAL, "Expected '(' for patch control points, got '%s'\n", token);
   }
 
-  // read rows of control points (num_rows outer lines, num_cols inner points)
+  // read rows of control points (numRows outer lines, numCols inner points)
   for (int32_t row = 0; row < numRows; row++) {
 
     // read "(" to begin row
@@ -229,7 +229,7 @@ static void EmitPatchCollisionBrush(Entity *entity,
   const double backDist = -frontDist + PATCH_COLLISION_THICKNESS;
 
   // Side planes: for each edge, the outward normal is edge × front_normal.
-  // When we flipped front_normal, we must also flip edges to keep side normals outward.
+  // When we flipped frontNormal, we must also flip edges to keep side normals outward.
   const float ws = flip ? -1.f : 1.f;
   const Vec3 edges[3] = {
     Vec3_Scale(Vec3_Subtract(v[1], v[0]), ws),

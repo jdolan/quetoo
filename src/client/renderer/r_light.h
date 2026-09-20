@@ -84,9 +84,8 @@ typedef struct {
  * @brief Per-frame light storage buffers and mirrored uniform blocks.
  */
 typedef struct {
-
   /**
-   * @brief GPU buffer for `bsp_block`.
+   * @brief GPU buffer for `bspBlock`.
    */
   Buffer *bspBuffer;
 
@@ -96,7 +95,7 @@ typedef struct {
   RenderBspLightsUniformBlock bspBlock;
 
   /**
-   * @brief GPU buffer for `dynamic_block`.
+   * @brief GPU buffer for `dynamicBlock`.
    */
   Buffer *dynamicBuffer;
 

@@ -200,7 +200,7 @@ void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
   PlayerMove pm = {};
   pm.s = cgState.spectate.state;
 
-  // Pm_SpectatorMove reads speed_spectator, accel_spectator and friction_spectator from the
+  // Pm_SpectatorMove reads speedSpectator, accelSpectator and frictionSpectator from the
   // movement parameters, which the recording carries; without them the camera holds still
   pm.s.params = cgi.client->frame.ps.pmState.params;
 

@@ -121,7 +121,7 @@
 
 /**
  * @brief The default player bounding boxes: what `PlayerMoveParams.bounds`,
- * `.bounds_ducked` and `.boundsDead` default to, and what code with no
+ * `.boundsDucked` and `.boundsDead` default to, and what code with no
  * parameters to hand may use. `Pm_Bounds` gives the live box for a set of
  * parameters; the dead box is read straight from them, by `Pm_Init`.
  */
@@ -265,7 +265,7 @@ typedef struct {
 
   /**
    * @brief Whether this movement implements the `PM_HOOK_*` types and honours
-   * `hook_length`, so that the grapple has something to swing on. A movement
+   * `hookLength`, so that the grapple has something to swing on. A movement
    * ported from another game does not, and the hook feature stays out of it.
    */
   bool hook;

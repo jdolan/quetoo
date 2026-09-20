@@ -238,7 +238,7 @@ static void DebugVoxels(void) {
   }
 
   Voxel *v = voxels.voxels;
-  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+  for (size_t i = 0; i < voxels.numVoxels; i++, v++) {
 
     Fs_Print(file, "{\n");
     Fs_Print(file, "  \"classname\" \"info_voxel\"\n");

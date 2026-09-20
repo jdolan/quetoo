@@ -102,7 +102,7 @@ void G_Ai_SetPathGoal(const GameClient *cl, AiGoal *goal, float priority, Vector
   }
 #else
   if (path_target) {
-    goal->path.path_target_spawn_id = path_target->s.spawn_id;
+    goal->path.pathTargetSpawnId = path_target->s.spawnId;
   }
 #endif
 

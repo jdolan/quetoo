@@ -593,7 +593,7 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
                 "  scale.t: %.1f\n"
                 "  terrain.floor: %.1f\n"
                 "  terrain.ceil: %.1f\n"
-                "  anim.num_frames: %d\n"
+                "  anim.numFrames: %d\n"
                 "  anim.fps: %.1f drift: %.1f\n",
                 s->flags,
                 (*s->asset.name ? s->asset.name : "NULL"),

@@ -564,7 +564,7 @@ typedef struct {
   int32_t numDrawElements;
 
   /**
-   * @brief AABB of all draw elements within this block; larger than the node's own `visible_bounds`.
+   * @brief AABB of all draw elements within this block; larger than the node's own `visibleBounds`.
    */
   Box3 visibleBounds;
 
@@ -940,7 +940,7 @@ typedef struct BspFile {
   int32_t numLightVoxels;
 
   /**
-   * @brief Light voxel index array, sliced per-light via `BspLight.first_voxel`/`num_voxels`.
+   * @brief Light voxel index array, sliced per-light via `BspLight.firstVoxel`/`numVoxels`.
    */
   int32_t *lightVoxels;
 
@@ -950,7 +950,7 @@ typedef struct BspFile {
   int32_t numBlockVoxels;
 
   /**
-   * @brief Block voxel index array, sliced per-block via `BspBlock.first_voxel`/`num_voxels`.
+   * @brief Block voxel index array, sliced per-block via `BspBlock.firstVoxel`/`numVoxels`.
    */
   int32_t *blockVoxels;
 

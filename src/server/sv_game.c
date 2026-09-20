@@ -98,7 +98,7 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
     return;
   }
 
-  // change the string in sv.config_strings
+  // change the string in sv.configStrings
   q_strlcpy(sv.configStrings[index], val, sizeof(sv.configStrings[0]));
 
   if (svs.state >= SV_ACTIVE_GAME) { // send the update to everyone

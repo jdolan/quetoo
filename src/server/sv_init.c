@@ -22,7 +22,7 @@
 #include "sv_local.h"
 
 /**
- * @brief Searches `sv.`config_strings` from the specified start, searching for the
+ * @brief Searches `sv.`configStrings` from the specified start, searching for the
  * desired name. If not found, the name can be optionally created and sent to
  * all connected clients. This allows the game to lazily load assets.
  */

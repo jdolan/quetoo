@@ -448,7 +448,7 @@ void Cm_SplitWinding(const CmWinding *in, const Vec3 normal, double dist, double
 
 /**
  * @brief Classifies each point of the winding against the given plane.
- * @param clip_points Receives one entry per point of `in`.
+ * @param clipPoints Receives one entry per point of `in`.
  */
 static void Cm_ClassifyWindingPoints(const CmWinding *in, const Vec3 normal, double dist,
                                      double epsilon, CmClipPoint *clipPoints,
@@ -609,7 +609,7 @@ CmWinding *Cm_ClipWindingToWinding(const CmWinding *in, const CmWinding *clip, c
  * @param a Scratch winding with capacity for `capacity` points.
  * @param b Scratch winding with capacity for `capacity` points.
  * @param capacity The number of points `a` and `b` can each hold, which MUST be
- * at least `in->num_points + 4 * clip->num_points`.
+ * at least `in->numPoints + 4 * clip->numPoints`.
  * @return `in` if no edge clipped it, otherwise `a` or `b`, or `NULL` if it was
  * clipped away entirely.
  * @remarks Nothing is allocated or freed. Prefer this over
@@ -770,7 +770,7 @@ CmWinding *Cm_MergeWindings(const CmWinding *a, const CmWinding *b, const Vec3 n
  * @details This function uses an ear-clipping algorithm to clip triangles from
  * the given winding. Invalid triangles due to colinear points are skipped over.
  * @param w The winding.
- * @param elements The output array, which must be `>= (w->num_points - 2) * 3` in length.
+ * @param elements The output array, which must be `>= (w->numPoints - 2) * 3` in length.
  * @return The number of vertex elements written to tris.
  */
 int32_t Cm_ElementsForWinding(const CmWinding *w, int32_t *elements) {
@@ -875,7 +875,7 @@ float Cm_TriangleArea(const Vec3 a, const Vec3 b, const Vec3 c) {
 
 /**
 * @brief Calculates barycentric coordinates for p in the triangle defined by a, b and c.
-* @remarks The `max_area` checks ensure that p is (approximately) inside the triangle abc.
+* @remarks The `maxArea` checks ensure that p is (approximately) inside the triangle abc.
 * @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
 */
 float Cm_Barycentric(const Vec3 a, const Vec3 b, const Vec3 c, const Vec3 p, Vec3 *out) {

@@ -100,7 +100,7 @@ static _Thread_local struct {
 
 /**
  * @brief Grows the per-thread scratch windings to accommodate a face of
- * `face_points` points.
+ * `facePoints` points.
  */
 static void R_ReserveDecalWindings(int32_t facePoints) {
 

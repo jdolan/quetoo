@@ -1124,7 +1124,7 @@ GameEntity *G_FindBeamProjectile(const GameEntity *emitter) {
  * @remarks This runs every tick, rather than only when the emitter refreshes the beam. An
  * operator holding a turret aims continuously, and a trigger_multiple only re-uses the turret as
  * often as its own wait allows, so a beam that took its direction from the refresh would lag the
- * operator's view badly. `touch_time` holds the deadline the emitter keeps pushing forward; the
+ * operator's view badly. `touchTime` holds the deadline the emitter keeps pushing forward; the
  * beam frees itself once the emitter stops asking.
  */
 static void G_BeamProjectile_Think(GameEntity *ent) {

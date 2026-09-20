@@ -56,7 +56,7 @@ static void Sv_New_f(void) {
   // send level title
   Net_WriteString(&svClient->netChan.message, sv.configStrings[CS_MESSAGE]);
 
-  // begin fetching config_strings
+  // begin fetching configStrings
   Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
   Net_WriteString(&svClient->netChan.message, va("config_strings %i 0\n", svs.spawnCount));
 }
@@ -381,7 +381,7 @@ void Sv_ParseClientMessage(ServerClient *cl) {
           cl->lastFrame = lastFrame;
 
           // the frame number is the client's to choose, so believe it only if we really sent
-          // that frame and still hold it; otherwise sent_time is zero and the latency comes
+          // that frame and still hold it; otherwise sentTime is zero and the latency comes
           // out as the server's entire uptime, poisoning the average it feeds
           if (lastFrame > -1 && (uint32_t) lastFrame <= sv.frameNum &&
               sv.frameNum - (uint32_t) lastFrame < PACKET_BACKUP) {

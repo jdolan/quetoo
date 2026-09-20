@@ -40,8 +40,8 @@ static void Sv_WriteEntities(ServerClientFrame *from, ServerClientFrame *to, Mem
    * Merge-sort the old and new entity lists, writing delta updates to the message.
    * Both lists are sorted by entity number, so we walk through them in parallel:
    *  - If entity numbers match: send delta from old to new state
-   *  - If new_num < old_num: entity is new, send from baseline
-   *  - If new_num > old_num: entity was removed, send removal notice
+   *  - If newNum < oldNum: entity is new, send from baseline
+   *  - If newNum > oldNum: entity was removed, send removal notice
    * Using INT16_MAX as sentinel when we reach the end of either list.
    */
   

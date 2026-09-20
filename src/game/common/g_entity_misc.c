@@ -75,7 +75,7 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
     other->client->ps.pmState.time = 20;
 
     // snap view angles directly to the destination; the client will snap
-    // cl.angles to match, so no delta_angles compensation is needed
+    // cl.angles to match, so no deltaAngles compensation is needed
     other->client->ps.pmState.viewAngles = dest->s.angles;
     other->client->ps.pmState.deltaAngles = Vec3_Zero();
     other->client->angles = dest->s.angles;

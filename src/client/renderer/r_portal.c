@@ -175,7 +175,7 @@ void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
     evicted->view = NULL;
   } else {
     // an eviction is always followed by the insertion that caused it, so a view that is not full
-    // has never evicted, and holds exactly the first `num_portals` views of the pool
+    // has never evicted, and holds exactly the first `numPortals` views of the pool
     pooled = &module.views[view->numPortals];
   }
 

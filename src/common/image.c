@@ -228,7 +228,7 @@ memcpy(SDL_PIXEL_AT(to, dst_x, dst_y), SDL_PIXEL_AT(from, src_x, src_y), SDL_BYT
 /**
  * @brief Rotate an SDL surface counter-clockwise by the number of rotations specified.
  * @param surf Surface to rotate. It is not modified.
- * @param num_rotations Number of 90-degree rotations to rotate by.
+ * @param numRotations Number of 90-degree rotations to rotate by.
  * @return Either a reference to "surf" if the surface was not rotated, or a new surface.
  */
 SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t numRotations) {

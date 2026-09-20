@@ -114,7 +114,7 @@ struct ClientGameEntity {
   uint32_t nextThink;
 
   /**
-   * @brief Randomization of `next_think`.
+   * @brief Randomization of `nextThink`.
    */
   float hz, drift;
 

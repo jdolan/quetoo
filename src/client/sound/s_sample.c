@@ -226,7 +226,7 @@ SoundSample *S_LoadSample(const char *name, AssetContext context) {
 /**
  * @brief Loads or returns a cached player-model sound sample from the given model and name.
  * @param model The player model name, e.g. `"nitro"`.
- * @param sound_set The model's sound set, e.g. `"male"`, `"female"`, `"cyborg"` (see `RenderMeshModel.sounds`).
+ * @param soundSet The model's sound set, e.g. `"male"`, `"female"`, `"cyborg"` (see `RenderMeshModel.sounds`).
  * @param name The sample name, e.g. `"*death_1"`.
  */
 SoundSample *S_LoadClientModelSample(const char *model, const char *soundSet, const char *name) {

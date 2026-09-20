@@ -159,7 +159,7 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
         move->constFrames = remaining > 0.f ? (int32_t)floorf(remaining / (peakSpeed * QUETOO_TICK_SECONDS)) : 0;
       }
     } else {
-      // accel_frames (truncated above) reaches a "peak_speed" slightly below the
+      // accelFrames (truncated above) reaches a "peakSpeed" slightly below the
       // nominal move->speed. Deriving the cruise/decel phases from the nominal
       // speed instead of the speed the discrete ramp actually reaches leaves the
       // plan short of `distance`, forcing a long near-stationary crawl through
@@ -170,10 +170,10 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
         move->accelFrames = 1;
       }
 
-      // accel_frames may have just been floored to 1 for a very punchy accel value whose
+      // accelFrames may have just been floored to 1 for a very punchy accel value whose
       // 1-tick ramp would overshoot move->speed; the runtime accel loop below clamps
-      // current_speed to move->speed in that case, so the plan must match that clamp or
-      // decel/const_frames will be sized for a peak the entity never actually reaches.
+      // currentSpeed to move->speed in that case, so the plan must match that clamp or
+      // decel/constFrames will be sized for a peak the entity never actually reaches.
       const float peakSpeed = Minf((float)move->accelFrames * move->accel * QUETOO_TICK_SECONDS, move->speed);
 
       move->decelFrames = (int32_t)(peakSpeed / move->decel * QUETOO_TICK_RATE);
@@ -198,7 +198,7 @@ static void G_MoveInfo_Linear_Accelerate(GameEntity *ent) {
     move->accelFrames--;
   }
 
-  // maintain speed — current_speed carries forward from the accel phase:
+  // maintain speed — currentSpeed carries forward from the accel phase:
   // move->speed for the non-clamped path, or peak speed for the clamped path.
   else if (move->constFrames) {
     move->constFrames--;
@@ -246,7 +246,7 @@ static Vec3 G_MoveInfo_Angular_Delta(const Vec3 a, const Vec3 b) {
 }
 
 /**
- * @brief Solves the angular velocity that lands the entity on `move_info.end_angles` exactly as it
+ * @brief Solves the angular velocity that lands the entity on `move_info.endAngles` exactly as it
  * covers the remaining `distance` of its move at `speed`. Because this is derived from the speed the
  * entity is travelling *right now*, it is safe to call each tick of a ramped move, whose duration is
  * not simply distance over speed.
@@ -283,7 +283,7 @@ static void G_MoveInfo_Linear_Setup(GameEntity *ent, const Vec3 dest, void (*don
 }
 
 /**
- * @brief Mixes speed from `move_info.start_speed` to `move_info.speed` as a function of the
+ * @brief Mixes speed from `move_info.startSpeed` to `move_info.speed` as a function of the
  * distance covered, which is what a mapper means by a mover that speeds up over its run.
  */
 static void G_MoveInfo_Linear_Ramp(GameEntity *ent) {
@@ -310,8 +310,8 @@ static void G_MoveInfo_Linear_Ramp(GameEntity *ent) {
 }
 
 /**
- * @brief Sets up a move that ramps linearly from `speed_start` to `speed_end` over its length. The
- * caller must have set `move_info.start_origin` and `end_origin`, from which the ramp resolves how
+ * @brief Sets up a move that ramps linearly from `speedStart` to `speedEnd` over its length. The
+ * caller must have set `move_info.startOrigin` and `endOrigin`, from which the ramp resolves how
  * far along the move the entity is.
  */
 static void G_MoveInfo_Linear_Init_Ramp(GameEntity *ent, const Vec3 dest, float speedStart,
@@ -413,7 +413,7 @@ static void G_MoveInfo_Angular_Begin(GameEntity *ent) {
   // scale the move vector by the time spent traveling to get velocity
   ent->avelocity = Vec3_Scale(delta, 1.0 / time);
 
-  // set next_think to trigger a think when dest is reached
+  // set nextThink to trigger a think when dest is reached
   ent->nextThink = gLevel.time + frames * QUETOO_TICK_MILLIS;
   ent->Think = G_MoveInfo_Angular_Final;
 }
@@ -959,7 +959,7 @@ void G_func_bob(GameEntity *ent) {
     G_Warn("%s @ %s has no \"velocity\" and will not move\n", ent->classname, vtos(ent->s.origin));
   }
 
-  // Average speed of a half-sine leg is (2/pi) * peak, giving leg_time = distance * pi / (2 * speed).
+  // Average speed of a half-sine leg is (2/pi) * peak, giving legTime = distance * pi / (2 * speed).
   const float legTime = totalDistance > 0.f ? (totalDistance * (float) M_PI) / (2.f * ent->speed) : 0.f;
 
   // reuse the generic `random` field to cache the "compression" exponent, read once here rather
@@ -967,7 +967,7 @@ void G_func_bob(GameEntity *ent) {
   // defaulting to a flat 1 (pure sine): a full sine only reads right for a leg lasting roughly a
   // second. Shorter legs (too few ticks to render the ease smoothly) and longer legs (the sine's
   // slow "wings" become a disproportionate chunk of real time, e.g. a multi-second crawl before a
-  // platform gets moving) both want a flatter curve; a continuous falloff in log(leg_time) treats
+  // platform gets moving) both want a flatter curve; a continuous falloff in log(legTime) treats
   // "half as long" and "twice as long" symmetrically, tapering toward a floor the farther the leg
   // is from that ~1s sweet spot in either direction. Calibrated against two tested legs: ~1s
   // (wants ~1.0) and ~7s (wants ~0.5) - solving for the width that fits both against a 0.35 floor.
@@ -2504,7 +2504,7 @@ again:
 /**
  * @brief Resumes train movement toward the current target `path_corner` after a stop. A ramped leg
  * picks up where it left off: the ramp is a function of how far along the leg we are, so retaining
- * the leg's original `start_origin` is all it takes to resume at the speed we stopped at.
+ * the leg's original `startOrigin` is all it takes to resume at the speed we stopped at.
  */
 static void G_func_train_Resume(GameEntity *ent) {
   GameEntity *target;

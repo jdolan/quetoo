@@ -438,7 +438,7 @@ static void Pm_QuakeAirMove(void) {
   wishVelocity.z = 0.f;
 
   // the ground speed bounds the wish in the air as well, because upstream bounds
-  // both with `movevars.maxspeed`; `speed_air` is deliberately unread here
+  // both with `movevars.maxspeed`; `speedAir` is deliberately unread here
   float speed;
   const Vec3 dir = Vec3_NormalizeLength(wishVelocity, &speed);
   speed = Minf(speed, pm->s.params.speedGround);

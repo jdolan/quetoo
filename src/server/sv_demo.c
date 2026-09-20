@@ -23,7 +23,7 @@
 
 /**
  * @brief Reads the keyframe index appended to the demo file.
- * @remarks `num_keyframes` is read straight off disk and sizes an allocation, so it is bounded
+ * @remarks `numKeyframes` is read straight off disk and sizes an allocation, so it is bounded
  * by what the file can actually hold before it is trusted. Anything else amiss - a header that
  * fails that bound, a table that cannot be seeked to, a short read - leaves the index empty
  * rather than rejecting the demo, which still plays perfectly well forward without one.
@@ -74,7 +74,7 @@ static void Sv_LoadDemoKeyframes(void) {
  * and leaving the file positioned at the first recorded frame - not the setup chunks (server
  * data, config strings, baselines) ahead of it, which `Sv_SendDemoSetup` sends to each
  * connecting client individually rather than through the shared playback cursor. A demo that
- * fails to open or validate leaves `sv.demo_file` NULL, which `Sv_SendDemoPacket` treats as an
+ * fails to open or validate leaves `sv.demoFile` NULL, which `Sv_SendDemoPacket` treats as an
  * immediate end.
  */
 void Sv_LoadDemo(void) {
@@ -268,7 +268,7 @@ static void Sv_DemoEnded(void) {
 /**
  * @brief Reads the next frame from the current demo file into the specified buffer,
  * returning the size of the frame in bytes. Each demo message is prefixed by its length
- * and the frame number it was recorded at; `frame_num`, if non-NULL, receives the latter.
+ * and the frame number it was recorded at; `frameNum`, if non-NULL, receives the latter.
  */
 static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frameNum) {
   int32_t size;
@@ -334,7 +334,7 @@ static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frameNum) {
  * @details Every recorded frame is fully self-contained - delta-encoded against the demo's
  * baselines and a null player state, never against another frame (see `Cl_WriteDemoMessage`) -
  * so any indexed offset is always a safe, independent jump target: there is no baseline chain or
- * prior-frame dependency to reconstruct. This binary-searches `sv.demo_keyframes` (one entry per
+ * prior-frame dependency to reconstruct. This binary-searches `sv.demoKeyframes` (one entry per
  * recorded frame) and seeks the file there; normal per-tick sending in `Sv_SendDemoPacket`
  * picks up again from that point with no special catch-up pacing required.
  */

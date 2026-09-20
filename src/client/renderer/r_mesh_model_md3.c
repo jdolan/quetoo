@@ -242,16 +242,16 @@ static Md3Surface R_SwapMd3Surface(const Md3Surface *in) {
   out.id = LittleLong(out.id);
   out.flags = LittleLong(out.flags);
 
-  out.num_frames = LittleLong(out.num_frames);
-  out.num_shaders = LittleLong(out.num_shaders);
-  out.num_vertexes = LittleLong(out.num_vertexes);
-  out.num_triangles = LittleLong(out.num_triangles);
+  out.numFrames = LittleLong(out.numFrames);
+  out.numShaders = LittleLong(out.numShaders);
+  out.numVertexes = LittleLong(out.numVertexes);
+  out.numTriangles = LittleLong(out.numTriangles);
 
-  out.ofs_triangles = LittleLong(out.ofs_triangles);
-  out.ofs_shaders = LittleLong(out.ofs_shaders);
-  out.ofs_texcoords = LittleLong(out.ofs_texcoords);
-  out.ofs_vertexes = LittleLong(out.ofs_vertexes);
-  out.ofs_end = LittleLong(out.ofs_end);
+  out.ofsTriangles = LittleLong(out.ofsTriangles);
+  out.ofsShaders = LittleLong(out.ofsShaders);
+  out.ofsTexcoords = LittleLong(out.ofsTexcoords);
+  out.ofsVertexes = LittleLong(out.ofsVertexes);
+  out.ofsEnd = LittleLong(out.ofsEnd);
 #endif
 
   return out;
@@ -269,15 +269,15 @@ static Md3 R_SwapMd3(const Md3 *in) {
   out.version = LittleLong(out.version);
   out.flags = LittleLong(out.flags);
 
-  out.num_frames = LittleLong(out.num_frames);
-  out.num_tags = LittleLong(out.num_tags);
+  out.numFrames = LittleLong(out.numFrames);
+  out.numTags = LittleLong(out.numTags);
   out.num_meshes = LittleLong(out.num_meshes);
-  out.num_shaders = LittleLong(out.num_shaders);
+  out.numShaders = LittleLong(out.numShaders);
 
-  out.ofs_frames = LittleLong(out.ofs_frames);
-  out.ofs_tags = LittleLong(out.ofs_tags);
+  out.ofsFrames = LittleLong(out.ofsFrames);
+  out.ofsTags = LittleLong(out.ofsTags);
   out.ofs_meshes = LittleLong(out.ofs_meshes);
-  out.ofs_end = LittleLong(out.ofs_end);
+  out.ofsEnd = LittleLong(out.ofsEnd);
 #endif
 
   return out;

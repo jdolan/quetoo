@@ -329,7 +329,7 @@ void G_SpawnEditorEntity(int32_t number, CmEntity *def) {
  * @brief Chain together all entities with a matching team field.
  *
  * All but the first will have the `FL_TEAM_SLAVE` flag set.
- * All but the last will have the `team_next` field set to the next one.
+ * All but the last will have the `teamNext` field set to the next one.
  */
 static void G_InitEntityTeams(void) {
 
@@ -746,7 +746,7 @@ static void G_worldspawn_Music(void) {
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
  hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
- num_teams : Enforces number of teams (disabled = -1, must be between 2 and 4)
+ numTeams : Enforces number of teams (disabled = -1, must be between 2 and 4)
  ctf : Enables CTF play (enabled = 1, auto-balance = 2).
  fraglimit : The frag limit (default 20).
  roundlimit : The round limit (default 20).
@@ -847,7 +847,7 @@ static void G_worldspawn(GameEntity *ent) {
   }
 
   const CmEntity *fragLimitMap = G_MapValue("frag_limit");
-  if (fragLimitMap && (fragLimitMap->parsed & ENTITY_INTEGER) && fragLimitMap->integer > -1) { // prefer map metadata frag_limit
+  if (fragLimitMap && (fragLimitMap->parsed & ENTITY_INTEGER) && fragLimitMap->integer > -1) { // prefer map metadata fragLimit
     gLevel.fragLimit = fragLimitMap->integer;
   } else { // or fall back on worldspawn
     const CmEntity *fragLimit = gi.EntityValue(ent->def, "frag_limit");
@@ -860,7 +860,7 @@ static void G_worldspawn(GameEntity *ent) {
 
 #if defined(G_CTF)
   const CmEntity *captureLimitMap = G_MapValue("capture_limit");
-  if (captureLimitMap && (captureLimitMap->parsed & ENTITY_INTEGER) && captureLimitMap->integer > -1) { // prefer map metadata capture_limit
+  if (captureLimitMap && (captureLimitMap->parsed & ENTITY_INTEGER) && captureLimitMap->integer > -1) { // prefer map metadata captureLimit
     gLevel.captureLimit = captureLimitMap->integer;
   } else { // or fall back on worldspawn
     const CmEntity *captureLimit = gi.EntityValue(ent->def, "capture_limit");
@@ -874,7 +874,7 @@ static void G_worldspawn(GameEntity *ent) {
 
   float minutes;
   const CmEntity *timeLimitMap = G_MapValue("time_limit");
-  if (timeLimitMap && (timeLimitMap->parsed & ENTITY_FLOAT) && timeLimitMap->value > -1.f) { // prefer map metadata time_limit
+  if (timeLimitMap && (timeLimitMap->parsed & ENTITY_FLOAT) && timeLimitMap->value > -1.f) { // prefer map metadata timeLimit
     minutes = timeLimitMap->value;
   } else { // or fall back on worldspawn
     const CmEntity *timeLimit = gi.EntityValue(ent->def, "time_limit");

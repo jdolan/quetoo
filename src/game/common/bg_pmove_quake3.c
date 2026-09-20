@@ -89,12 +89,12 @@
 /**
  * @brief The parameters that make this Quake III, from `bg_pmove.c`'s movement
  * variables and `bg_public.h`'s player box.
- * @details `speed_ground` is `g_speed`, which Quake III hands the movement as
+ * @details `speedGround` is `g_speed`, which Quake III hands the movement as
  * `ps->speed` and which bounds the wish everywhere. The wade scale is applied
- * in the kernel against `speed_ground`, as upstream applies it against
- * `ps->speed`; the duck scale is not, because `speed_ducked` is a parameter of
+ * in the kernel against `speedGround`, as upstream applies it against
+ * `ps->speed`; the duck scale is not, because `speedDucked` is a parameter of
  * its own here. Upstream derives the ducked speed from `ps->speed`, so a
- * ruleset that moves `speed_ground` must move `speed_ducked` with it.
+ * ruleset that moves `speedGround` must move `speedDucked` with it.
  */
 #define PM_QUAKE3_BOUNDS { \
   .mins = { { -15.f, -15.f, -24.f } }, /* MINS_Z, and 30 across where the others */ \

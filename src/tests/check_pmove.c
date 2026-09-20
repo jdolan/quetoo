@@ -679,7 +679,7 @@ START_TEST(check_Movement_BoxWidth) {
 } END_TEST
 
 /**
- * @brief A corpse stands in `bounds_dead` under every movement, which is what
+ * @brief A corpse stands in `boundsDead` under every movement, which is what
  * lets a ruleset change it. Quake II and racing have no corpse box of their own
  * - a dead player there is simply ducked - so theirs is the ducked box, and this
  * pins the sizes so that routing them through the parameter cannot have moved

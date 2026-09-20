@@ -210,14 +210,14 @@ typedef struct {
 
 #if AI_GOAL_HARDENING
       /**
-       * @brief Entity slot number of `path_target` at goal-set time; see
+       * @brief Entity slot number of `pathTarget` at goal-set time; see
        * `entity.number` above.
        */
       int32_t pathTargetNumber;
 #endif
 
       /**
-       * @brief Spawn ID of `path_target` at goal-set time.
+       * @brief Spawn ID of `pathTarget` at goal-set time.
        */
       uint32_t pathTargetSpawnId;
     } path;
@@ -363,7 +363,7 @@ typedef struct Ai {
 
   /**
    * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead.
-   * Valid only when lookahead_frame == gLevel.frame_num.
+   * Valid only when lookaheadFrame == gLevel.frameNum.
    */
   bool lookaheadNoGround;
 } Ai;

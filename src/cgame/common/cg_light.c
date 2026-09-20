@@ -139,7 +139,7 @@ static int32_t Cg_ResolveBspModel(const char *model) {
 
 /**
  * @brief Adds all BSP light sources to the view.
- * @details For lights with a `target_entity`, resolves the current world position of the
+ * @details For lights with a `targetEntity`, resolves the current world position of the
  * attached inline model entity each frame and adds the light as a dynamic (unshadowed) light.
  * @remarks A `common/origin` brush compiles the target's brushwork relative to that origin, and
  * leaves it on the entity as its `origin` key, so the light is carried as an offset from it. A

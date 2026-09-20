@@ -33,7 +33,7 @@ typedef struct NavEditViewInterface NavEditViewInterface;
 
 /**
  * @brief The navigation edit mode instructions, shown in place of the HUD while editing.
- * @details Shown while `cgState.nav_edit` is on; the key names it quotes follow the binds.
+ * @details Shown while `cgState.navEdit` is on; the key names it quotes follow the binds.
  * @extends View
  */
 struct NavEditView {

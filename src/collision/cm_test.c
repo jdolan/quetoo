@@ -350,8 +350,8 @@ int32_t Cm_PointLeafnum(const Vec3 p, int32_t headNode) {
  * @brief Point contents check.
  *
  * @param p The point to check.
- * @param head_node The BSP head node to recurse down.
- * @param inverse_matrix The inverse matrix of the entity to be tested.
+ * @param headNode The BSP head node to recurse down.
+ * @param inverseMatrix The inverse matrix of the entity to be tested.
  *
  * @return The contents mask at the specified point.
  *
@@ -443,14 +443,14 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t nodeNum) {
 
 /**
  * @brief Populates the list of leafs the specified bounding box touches. If
- * `top_node` is not `NULL`, it will contain the top node of the BSP tree that
+ * `topNode` is not `NULL`, it will contain the top node of the BSP tree that
  * fully contains the box.
  *
  * @param bounds The bounds in world space.
  * @param list The list of leaf numbers to populate.
  * @param length The maximum number of leafs to return.
- * @param top_node If not null, this will contain the top node for the box.
- * @param head_node The head node to recurse from.
+ * @param topNode If not null, this will contain the top node for the box.
+ * @param headNode The head node to recurse from.
  * @param matrix The matrix by which to transform planes.
  *
  * @return The number of leafs accumulated to the list.
@@ -483,7 +483,7 @@ size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *
 /**
  * @brief Contents check for a bounded box.
  * @param bounds The bounding box to check for contents.
- * @param head_node The BSP head node to recurse down.
+ * @param headNode The BSP head node to recurse down.
  * @param matrix The matrix to transform the bounds by.
  * @return The contents mask of all leafs within the transformed bounds.
  */

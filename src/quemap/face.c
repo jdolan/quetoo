@@ -380,7 +380,7 @@ BspFace *EmitFace(const Face *face) {
 static const BspModel *phongModel;
 static float phongCosine;
 
-// Pre-built for PhongShading: position -> Vector*(BspFace*) and brush_side* -> winding*
+// Pre-built for PhongShading: position -> Vector*(BspFace*) and brushSide* -> winding*
 static HashTable *phongVertexFaces;
 static HashTable *phongBrushSideWindings;
 

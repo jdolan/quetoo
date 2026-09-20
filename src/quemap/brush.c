@@ -233,7 +233,7 @@ int32_t BrushOnPlaneSide(const CsgBrush *brush, int32_t plane) {
 }
 
 /**
- * @brief Returns the plane-side classification of the brush and sets `num_split_sides` to the count of sides straddling the plane.
+ * @brief Returns the plane-side classification of the brush and sets `numSplitSides` to the count of sides straddling the plane.
  */
 int32_t BrushOnPlaneSideSplits(const CsgBrush *brush, int32_t plane, int32_t *numSplitSides) {
 

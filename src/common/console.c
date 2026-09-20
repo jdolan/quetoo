@@ -202,9 +202,9 @@ void Con_Append(int32_t level, const char *string) {
  * @brief Wraps the specified string for the given line width.
  *
  * @param chars The null-terminated C string.
- * @param line_width The desired line width.
+ * @param lineWidth The desired line width.
  * @param lines The output to store the line offsets.
- * @param max_lines The maximum number of line offsets to store.
+ * @param maxLines The maximum number of line offsets to store.
  *
  * @return The number of line offsets.
  *
@@ -272,11 +272,11 @@ size_t Con_Wrap(const char *chars, size_t lineWidth, char **lines, size_t maxLin
 }
 
 /**
- * @brief Tails the console, returning as many as `max_lines` in `lines`.
+ * @brief Tails the console, returning as many as `maxLines` in `lines`.
  *
  * @param console The console to tail.
  * @param lines The output to store line offsets.
- * @param max_lines The maximum number of line offsets to store.
+ * @param maxLines The maximum number of line offsets to store.
  *
  * @return The number of line offsets.
  */

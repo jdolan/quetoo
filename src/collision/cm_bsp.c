@@ -681,7 +681,7 @@ bool Bsp_LoadLumps(const BspHeader *file, BspFile *bsp, const BspLumpId lumpBits
  * @brief Allocates data for the specified lump in the BSP. If the lump is already loaded,
  * the data will either be expanded or truncated to the specified count. Note that `count`
  * is not in bytes, but rather the number of components to allocate - this depends on the
- * `lump_id` (for instance, the `VERTEXES` lump will allocate `count * BspVertex`). This
+ * `lumpId` (for instance, the `VERTEXES` lump will allocate `count * BspVertex`). This
  * will count as loading a lump as well. Since realloc is used here, be careful that you
  * aren't storing a pointer to the old lump data. The lump size pointer (as in, `num_x` or
  * `x_size`) won't be modified by this function call, so be careful!
@@ -716,7 +716,7 @@ void Bsp_AllocLump(BspFile *bsp, const BspLumpId lumpId, const size_t count) {
   // allocation (which uses calloc). Zero it explicitly so that callers who grow a
   // lump after populating it (e.g. quemap's -light stage growing the draw elements
   // lump after loading it from the -bsp/-vis stage) don't read garbage for fields
-  // that are accumulated in place (e.g. `num_elements += ...`).
+  // that are accumulated in place (e.g. `numElements += ...`).
   if (count > oldCount) {
     uint8_t *data = (uint8_t *) *lumpData;
     memset(data + oldCount * lumpTypeSize, 0, (count - oldCount) * lumpTypeSize);
