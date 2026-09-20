@@ -72,7 +72,7 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
  * @brief Defines the shared sampler bindings for the lit-material shader family.
  * @remarks Fragment stages declare and sample the full family (material,
  * shadow atlas, voxel/sky, stage). Vertex stages only ever sample the voxel
- * caustics/occlusion and sky textures (see ambient_light(), vertex_caustics()
+ * caustics/occlusion and sky textures (see ambientLight(), vertexCaustics()
  * in light.glsl) -- they get their own compact 0..2 numbering here so their
  * descriptor set's bindings stay contiguous from zero, satisfying both
  * Vulkan's descriptor-type consistency and SDL_shadercross's contiguous-
@@ -111,36 +111,36 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
 #define BINDING_STORAGE_VOXEL_LIGHT_INDICES  (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 3)
 
 #if defined(FRAGMENT_SHADER)
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray texture_material;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray textureMaterial;
 
 /**
  * @brief Declares the six shadow atlas face samplers.
  */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow texture_shadow_atlas_0;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow texture_shadow_atlas_1;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sampler2DShadow texture_shadow_atlas_2;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow textureShadowAtlas0;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow textureShadowAtlas1;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sampler2DShadow textureShadowAtlas2;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow textureShadowAtlas3;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow textureShadowAtlas4;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow textureShadowAtlas5;
 
 #endif
 
 /**
  * @brief Declares the voxel caustics and occlusion volumes.
  */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_CAUSTICS)  uniform sampler3D texture_voxel_caustics;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_OCCLUSION) uniform sampler3D texture_voxel_occlusion;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_CAUSTICS)  uniform sampler3D textureVoxelCaustics;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_OCCLUSION) uniform sampler3D textureVoxelOcclusion;
 
 /**
  * @brief Declares the sky cubemap sampler.
  */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube texture_sky;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube textureSky;
 
 /**
  * @brief Declares the shared material and stage uniform block.
- * @remarks Field order must stay std140-compatible with r_material_uniforms_t.
+ * @remarks Field order must stay std140-compatible with RenderMaterialUniforms.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform material_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform materialBlock {
 
   /**
    * @brief The stage color.
@@ -150,7 +150,7 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
   /**
    * @brief The stage texture coordinate origin for rotations and stretches.
    */
-  vec2 st_origin;
+  vec2 stOrigin;
 
   /**
    * @brief The stage stretch amplitude and frequency.
@@ -185,7 +185,7 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
   /**
    * @brief The material alpha test threshold.
    */
-  float alpha_test;
+  float alphaTest;
 
   /**
    * @brief The material roughness.
@@ -261,7 +261,7 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
   /**
    * @brief Per-entity tint colors for player-skin colorization (mesh only).
    */
-  vec4 tint_colors[3];
+  vec4 tintColors[3];
 #endif
 } material;
 
@@ -269,14 +269,14 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
 /**
  * @brief The material stage texture, and its next animation frame.
  */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE)      uniform sampler2D texture_stage;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE_NEXT) uniform sampler2D texture_stage_next;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE)      uniform sampler2D textureStage;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE_NEXT) uniform sampler2D textureStageNext;
 #endif
 
 /**
  * @brief Applies vertex-position adjustments for shell stages.
  */
-void stage_transform(inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
+void stageTransform(inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
   if ((material.flags & STAGE_SHELL) == STAGE_SHELL) {
 	  position += normal * material.shell;
@@ -286,13 +286,13 @@ void stage_transform(inout vec3 position, inout vec3 normal, inout vec3 tangent,
 /**
  * @brief Applies per-stage vertex color and texture coordinate transforms.
  */
-void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
+void stageVertex(in vec3 inPosition, inout CommonVertex vertex) {
   int envmap = material.flags & STAGE_ENVMAP;
 
   if (envmap != 0) {
-    vec3 view_dir = normalize(vertex.position);
-    vec3 reflect_dir = reflect(view_dir, normalize(vertex.normal));
-    vertex.diffusemap = vec2(0.5 + reflect_dir.y * 0.5, 0.5 - reflect_dir.z * 0.5);
+    vec3 viewDir = normalize(vertex.position);
+    vec3 reflectDir = reflect(viewDir, normalize(vertex.normal));
+    vertex.diffusemap = vec2(0.5 + reflectDir.y * 0.5, 0.5 - reflectDir.z * 0.5);
   }
 
   if ((material.flags & STAGE_STRETCH) == STAGE_STRETCH) {
@@ -302,11 +302,11 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
 	  vec2 translate;
 	  matrix[0][0] = p;
 	  matrix[1][0] = 0;
-	  translate[0] = material.st_origin.x - material.st_origin.x * p;
+	  translate[0] = material.stOrigin.x - material.stOrigin.x * p;
 
 	  matrix[0][1] = 0;
 	  matrix[1][1] = p;
-	  translate[1] = material.st_origin.y - material.st_origin.y * p;
+	  translate[1] = material.stOrigin.y - material.stOrigin.y * p;
 
 	  vertex.diffusemap[0] = vertex.diffusemap[0] * matrix[0][0] + vertex.diffusemap[1] * matrix[1][0] + translate[0];
 	  vertex.diffusemap[1] = vertex.diffusemap[0] * matrix[0][1] + vertex.diffusemap[1] * matrix[1][1] + translate[1];
@@ -314,14 +314,14 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
 
   if ((material.flags & STAGE_ROTATE) == STAGE_ROTATE) {
 	  float theta = ticks * 0.001 * material.rotate * TWO_PI;
-    vec2 st_origin = material.st_origin;
+    vec2 stOrigin = material.stOrigin;
     if (envmap != 0) {
-      st_origin = vec2(0.5);
+      stOrigin = vec2(0.5);
     }
 
-	  vertex.diffusemap = vertex.diffusemap - st_origin;
+	  vertex.diffusemap = vertex.diffusemap - stOrigin;
 	  vertex.diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * vertex.diffusemap;
-	  vertex.diffusemap = vertex.diffusemap + st_origin;
+	  vertex.diffusemap = vertex.diffusemap + stOrigin;
   }
 
   if (envmap != 0) {
@@ -369,12 +369,12 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   }
 
   if ((material.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
-	  float z = clamp(in_position.z, material.terrain.x, material.terrain.y);
+	  float z = clamp(inPosition.z, material.terrain.x, material.terrain.y);
 	  vertex.color.a *= (z - material.terrain.x) / (material.terrain.y - material.terrain.x);
   }
 
   if ((material.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
-	  int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
+	  int index = int(inPosition.x) + int(inPosition.y) + int(inPosition.z);
 	  vertex.color.a *= DIRTMAP[index % DIRTMAP.length()] * material.dirtmap;
   }
 }
@@ -383,15 +383,15 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
 /**
  * @brief Samples the diffuse material layer.
  */
-vec4 sample_material_diffuse(in vec2 texcoord) {
-  return texture(texture_material, vec3(texcoord, 0));
+vec4 sampleMaterialDiffuse(in vec2 texcoord) {
+  return texture(textureMaterial, vec3(texcoord, 0));
 }
 
 /**
  * @brief Samples and transforms the material normal map.
  */
-vec3 sample_material_normal(in vec2 texcoord, in mat3 tbn) {
-  vec3 normalmap = texture(texture_material, vec3(texcoord, 1)).xyz * 2.0 - 1.0;
+vec3 sampleMaterialNormal(in vec2 texcoord, in mat3 tbn) {
+  vec3 normalmap = texture(textureMaterial, vec3(texcoord, 1)).xyz * 2.0 - 1.0;
   vec3 roughness = vec3(vec2(material.roughness), 1.0);
   return normalize(tbn * (normalmap * roughness));
 }
@@ -399,16 +399,16 @@ vec3 sample_material_normal(in vec2 texcoord, in mat3 tbn) {
 /**
  * @brief Samples the specular map with Toksvig filtering.
  */
-vec4 sample_material_specular(in vec2 texcoord) {
+vec4 sampleMaterialSpecular(in vec2 texcoord) {
   vec4 specularmap;
-  specularmap.rgb = texture(texture_material, vec3(texcoord, 2)).rgb * material.hardness;
+  specularmap.rgb = texture(textureMaterial, vec3(texcoord, 2)).rgb * material.hardness;
 
   vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  vec3 normalmap0 = (textureLod(texture_material, vec3(texcoord, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
-  vec3 normalmap1 = (textureLod(texture_material, vec3(texcoord, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+  vec3 normalmap0 = (textureLod(textureMaterial, vec3(texcoord, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+  vec3 normalmap1 = (textureLod(textureMaterial, vec3(texcoord, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
 
   float power = pow(1.0 + material.specularity, 4.0);
-  specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+  specularmap.w = power * min(toksvigGloss(normalmap0, power), toksvigGloss(normalmap1, power));
 
   return specularmap;
 }
@@ -416,31 +416,31 @@ vec4 sample_material_specular(in vec2 texcoord) {
 /**
  * @brief Samples the material heightmap.
  */
-float sample_material_heightmap(in vec2 texcoord, in float lod) {
-  return textureLod(texture_material, vec3(texcoord, 1), lod).w;
+float sampleMaterialHeightmap(in vec2 texcoord, in float lod) {
+  return textureLod(textureMaterial, vec3(texcoord, 1), lod).w;
 }
 
 /**
  * @brief Samples the material displacement map.
  */
-float sample_material_displacement(in vec2 texcoord, in float lod) {
-  return 1.0 - sample_material_heightmap(texcoord, lod);
+float sampleMaterialDisplacement(in vec2 texcoord, in float lod) {
+  return 1.0 - sampleMaterialHeightmap(texcoord, lod);
 }
 
 /**
  * @brief Samples the active material stage texture.
  */
-vec4 sample_material_stage(in vec2 texcoord) {
+vec4 sampleMaterialStage(in vec2 texcoord) {
   if ((material.flags & STAGE_ANIM_LERP) == STAGE_ANIM_LERP) {
-    return mix(texture(texture_stage, texcoord), texture(texture_stage_next, texcoord), material.lerp);
+    return mix(texture(textureStage, texcoord), texture(textureStageNext, texcoord), material.lerp);
   }
-  return texture(texture_stage, texcoord);
+  return texture(textureStage, texcoord);
 }
 
 /**
  * @brief Samples the material tint map.
  */
-vec4 sample_material_tint(in vec2 texcoord) {
-  return texture(texture_material, vec3(texcoord, 3));
+vec4 sampleMaterialTint(in vec2 texcoord) {
+  return texture(textureMaterial, vec3(texcoord, 3));
 }
 #endif

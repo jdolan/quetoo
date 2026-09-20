@@ -37,7 +37,7 @@ typedef struct {
   /**
    * @brief Team ID.
    */
-  g_team_id_t id;
+  GameTeamId id;
 
   /**
    * @brief Team name.
@@ -47,14 +47,14 @@ typedef struct {
   /**
    * @brief Shirt color.
    */
-  color_t color;
+  Color color;
 
   /**
    * @brief Effects color, transmitted as a hue for efficiency.
    */
   float hue;
 
-} cg_team_info_t;
+} ClientGameTeamInfo;
 
 /**
  * @brief The vote in progress, as `CS_VOTE` describes it.
@@ -86,7 +86,7 @@ typedef struct {
    * @brief When it closes, in client time.
    */
   uint32_t deadline;
-} cg_vote_state_t;
+} ClientGameVoteState;
 
 /**
  * @brief The intermission's map candidates, as `CS_NEXT_MAP` describes them.
@@ -109,14 +109,14 @@ typedef struct {
    */
   char maps[MAX_NEXT_MAPS][MAX_QPATH];
   int32_t votes[MAX_NEXT_MAPS];
-  int32_t num_maps;
+  int32_t numMaps;
 
   /**
    * @brief Bumped whenever the candidates change, so that a view redraws the thumbnails
    * only when it must; resolving one enumerates the filesystem.
    */
   uint32_t generation;
-} cg_next_map_state_t;
+} ClientGameNextMapState;
 
 /**
  * @brief The client game representation of clients (players).
@@ -146,7 +146,7 @@ typedef struct {
   /**
    * @brief Shirt, pants and helmet color.
    */
-  color_t shirt, pants, helmet;
+  Color shirt, pants, helmet;
 
   /**
    * @brief Effects color, transmitted as a hue for efficiency.
@@ -157,42 +157,42 @@ typedef struct {
    * @brief The floor and ceiling of the client's standing box, which their model
    * is scaled and seated to.
    */
-  float standing_floor, standing_ceiling;
+  float standingFloor, standingCeiling;
 
   /**
    * @brief The head model and materials.
    */
-  r_model_t *head;
-  r_material_t *head_skins[MAX_MESH_FACES];
+  RenderModel *head;
+  RenderMaterial *headSkins[MAX_MESH_FACES];
 
   /**
    * @brief The torso model and materials.
    */
-  r_model_t *torso;
-  r_material_t *torso_skins[MAX_MESH_FACES];
+  RenderModel *torso;
+  RenderMaterial *torsoSkins[MAX_MESH_FACES];
 
   /**
    * @brief The legs model and materials.
    */
-  r_model_t *legs;
-  r_material_t *legs_skins[MAX_MESH_FACES];
+  RenderModel *legs;
+  RenderMaterial *legsSkins[MAX_MESH_FACES];
 
   /**
    * @brief The skin icon for the scoreboard.
    */
-  r_image_t *icon;
+  RenderImage *icon;
 
   /**
    * @brief The team identifier.
    */
-  cg_team_info_t *team;
+  ClientGameTeamInfo *team;
 
   /**
    * @brief The cached weapon muzzle position in world space, transformed from
    * the model-space muzzle defined in `link.cfg` / `view.cfg`.
    */
-  vec3_t weapon_muzzle;
-} cg_client_info_t;
+  Vec3 weaponMuzzle;
+} ClientGameClientInfo;
 
 #define WEATHER_NONE 0x0
 #define WEATHER_RAIN 0x1
@@ -203,7 +203,7 @@ typedef struct {
  * @brief How the camera frames whatever it is watching, in demo playback and while spectating a
  * live game alike. Whether it is watching anything at all is a separate question - free flight
  * is the absence of a subject, not a way of framing one - which the server answers live, and
- * `cg_spectate_state_t::detached` answers during playback.
+ * `ClientGameSpectateState::detached` answers during playback.
  */
 typedef enum {
   /**
@@ -223,7 +223,7 @@ typedef enum {
   CAMERA_FOLLOW,
 
   CAMERA_MODE_TOTAL
-} cg_camera_mode_t;
+} ClientGameCameraMode;
 
 /**
  * @brief Follow camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance,
@@ -238,14 +238,14 @@ typedef struct {
    * the follow state, which a reconnect would otherwise leave disagreeing.
    */
   bool following;
-} cg_follow_state_t;
+} ClientGameFollowState;
 
 /**
  * @brief Free-flight camera state for demo playback: a locally-owned `PM_SPECTATOR` movement
- * state driven directly by `Pm_Move`, independent of the recorded `player_state_t`.
+ * state driven directly by `Pm_Move`, independent of the recorded `PlayerState`.
  */
 typedef struct {
-  pm_state_t state;
+  PlayerMoveState state;
   bool initialized;
 
   /**
@@ -253,7 +253,7 @@ typedef struct {
    * question is whether the server has given us a chase target, which `STAT_CHASE` answers.
    */
   bool detached;
-} cg_spectate_state_t;
+} ClientGameSpectateState;
 
 /**
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
@@ -263,106 +263,106 @@ typedef struct {
   /**
    * @brief The clients (players).
    */
-  cg_client_info_t clients[MAX_CLIENTS];
+  ClientGameClientInfo clients[MAX_CLIENTS];
 
   /**
    * @brief The client info each standing corpse died wearing, by CS_CORPSES slot.
    */
-  cg_client_info_t corpses[MAX_CORPSES];
+  ClientGameClientInfo corpses[MAX_CORPSES];
 
   /**
    * @brief The forced skin (foreskin?) client info.
    */
-  cg_client_info_t force_skin;
+  ClientGameClientInfo forceSkin;
 
   /**
    * @brief The teams.
    */
-  cg_team_info_t teams[MAX_TEAMS];
+  ClientGameTeamInfo teams[MAX_TEAMS];
 
   /**
    * @brief The gameplay mode.
    */
-  g_gameplay_id_t gameplay;
+  GameplayId gameplay;
 
   /**
    * @brief Active item set.
    */
-  g_items_t items;
+  GameItems items;
 
   /**
    * @brief Non-zero if teams play is enabled.
    */
-  int32_t num_teams;
+  int32_t numTeams;
 
   #if defined(G_HOOK)
 /**
    * @brief Grapple hook speed, for client side prediction.
    */
-  float hook_pull_speed;
+  float hookPullSpeed;
 #endif
 
   
   /**
    * @brief The current number of clients connected to the server.
    */
-  int32_t num_clients;
+  int32_t numClients;
 
   /**
    * @brief Bot navitation node editor.
    */
-  int32_t nav_edit;
+  int32_t navEdit;
 
   /**
    * @brief Center print message state from `SV_CMD_CENTER_PRINT`.
    */
   struct {
     char lines[CG_CENTER_PRINT_LINES][MAX_STRING_CHARS];
-    int32_t num_lines;
+    int32_t numLines;
     uint32_t time;
-  } center_print;
+  } centerPrint;
 
   /**
    * @brief Pending view angle snap from a reliable `SV_CMD_SNAP_ANGLES` message.
    */
-  bool snap_angles;
+  bool snapAngles;
 
   /**
    * @brief The view angles to snap to.
    */
-  vec3_t snap_view_angles;
+  Vec3 snapViewAngles;
 
   /**
    * @brief The vote in progress, from `CS_VOTE`.
    */
-  cg_vote_state_t vote;
+  ClientGameVoteState vote;
 
   /**
    * @brief The intermission's map candidates, from `CS_NEXT_MAP`.
    */
-  cg_next_map_state_t next_map;
+  ClientGameNextMapState nextMap;
 
   /**
    * @brief The camera mode, cycled by `camera`.
    */
-  cg_camera_mode_t camera_mode;
+  ClientGameCameraMode cameraMode;
 
   /**
    * @brief Whether the transport and camera controls have been printed for this connection.
    */
-  bool printed_controls;
+  bool printedControls;
 
   /**
    * @brief Follow camera state, shared by live spectating and demo playback.
    */
-  cg_follow_state_t follow;
+  ClientGameFollowState follow;
 
   /**
    * @brief Free-flight camera state, used during demo playback only.
    */
-  cg_spectate_state_t spectate;
-} cg_state_t;
+  ClientGameSpectateState spectate;
+} ClientGameState;
 
-extern cg_state_t cg_state;
+extern ClientGameState cgState;
 
 #endif

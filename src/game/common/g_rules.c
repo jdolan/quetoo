@@ -41,18 +41,18 @@ CheckCvars G_CheckCvars = G_CheckCvars_Common;
  */
 static bool G_CheckWinner_Common(void) {
 
-  if (g_level.frag_limit) {
+  if (gLevel.fragLimit) {
 
-    if (g_level.teams) { // check team scores
-      for (int32_t i = 0; i < g_level.num_teams; i++) {
-        if (g_team_list[i].score >= g_level.frag_limit) {
+    if (gLevel.teams) { // check team scores
+      for (int32_t i = 0; i < gLevel.numTeams; i++) {
+        if (gTeamList[i].score >= gLevel.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }
       }
     } else { // or individual scores
       G_ForEachClient(cl, {
-        if (cl->persistent.score >= g_level.frag_limit) {
+        if (cl->persistent.score >= gLevel.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }
@@ -75,10 +75,10 @@ static bool G_AllowNextMap_Common(void) {
 AllowNextMap G_AllowNextMap = G_AllowNextMap_Common;
 
 /**
- * @brief The tail of the `G_ClampGameplay` hook: every mode `g_gameplay_id_t`
+ * @brief The tail of the `G_ClampGameplay` hook: every mode `GameplayId`
  * defines is one this module supports, so there is nothing to coerce.
  */
-static g_gameplay_id_t G_ClampGameplay_Common(g_gameplay_id_t gameplay) {
+static GameplayId G_ClampGameplay_Common(GameplayId gameplay) {
   return gameplay;
 }
 
@@ -86,7 +86,7 @@ ClampGameplay G_ClampGameplay = G_ClampGameplay_Common;
 
 /**
  * @brief The tail of the `G_FormatGameName` chain. The label looked up from
- * `g_gameplay_modes` already qualifies the name with team play via the
+ * `gGameplayModes` already qualifies the name with team play via the
  * `GAMEPLAY_TEAMS` bit, so this has nothing to add; a feature can still hook this
  * chain to name its own mode.
  */

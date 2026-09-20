@@ -36,7 +36,7 @@
 
 #include "net_sock.h"
 
-in_addr_t net_lo;
+in_addr_t netLo;
 
 int32_t Net_GetError(void) {
 #if defined(_WIN32)
@@ -65,9 +65,9 @@ const char *Net_GetErrorString(void) {
 }
 
 /**
- * @brief Initializes the specified `sockaddr_in` according to the `net_addr_t`.
+ * @brief Initializes the specified `sockaddr_in` according to the `NetAddr`.
  */
-void Net_NetAddrToSockaddr(const net_addr_t *a, net_sockaddr *s) {
+void Net_NetAddrToSockaddr(const NetAddr *a, net_sockaddr *s) {
 
   memset(s, 0, sizeof(*s));
   s->sin_family = AF_INET;
@@ -84,22 +84,22 @@ void Net_NetAddrToSockaddr(const net_addr_t *a, net_sockaddr *s) {
 /**
  * @return True if the addresses share the same base and port.
  */
-bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b) {
+bool Net_CompareNetaddr(const NetAddr *a, const NetAddr *b) {
   return a->addr == b->addr && a->port == b->port;
 }
 
 /**
  * @return True if the addresses share the same type and base.
  */
-bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
+bool Net_CompareClientNetaddr(const NetAddr *a, const NetAddr *b) {
   return a->type == b->type && a->addr == b->addr;
 }
 
 /**
- * @brief Converts a `net_addr_t` to a "host:port" string.
+ * @brief Converts a `NetAddr` to a "host:port" string.
  * @remarks Uses a static buffer; not reentrant.
  */
-const char *Net_NetaddrToString(const net_addr_t *a) {
+const char *Net_NetaddrToString(const NetAddr *a) {
   static char s[64];
 
   q_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
@@ -108,10 +108,10 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
 }
 
 /**
- * @brief Returns the IP address of a `net_addr_t` as a string, without port.
+ * @brief Returns the IP address of a `NetAddr` as a string, without port.
  * @remarks Uses a static buffer; not reentrant.
  */
-const char *Net_NetaddrToIpString(const net_addr_t *a) {
+const char *Net_NetaddrToIpString(const NetAddr *a) {
   static char s[INET_ADDRSTRLEN];
 
   q_strlcpy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
@@ -160,9 +160,9 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 }
 
 /**
- * @brief Parses the hostname and port into the specified `net_addr_t`.
+ * @brief Parses the hostname and port into the specified `NetAddr`.
  */
-bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
+bool Net_StringToNetaddr(const char *s, NetAddr *a) {
   net_sockaddr saddr;
 
   if (!Net_StringToSockaddr(s, &saddr)) {
@@ -185,7 +185,7 @@ bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 /**
  * @brief Creates and binds a new network socket for the specified protocol.
  */
-int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
+int32_t Net_Socket(NetAddrType type, const char *iface, in_port_t port) {
   int32_t sock, i = 1;
 
   switch (type) {
@@ -285,11 +285,11 @@ int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog) {
  * @param from If non-`NULL`, receives the remote address.
  * @return The accepted socket descriptor, or -1 if none pending.
  */
-int32_t Net_Accept(int32_t sock, net_addr_t *from) {
+int32_t Net_Accept(int32_t sock, NetAddr *from) {
   net_sockaddr addr;
-  socklen_t addr_len = sizeof(addr);
+  socklen_t addrLen = sizeof(addr);
 
-  const int32_t client = (int32_t) accept(sock, (struct sockaddr *) &addr, &addr_len);
+  const int32_t client = (int32_t) accept(sock, (struct sockaddr *) &addr, &addrLen);
   if (client == -1) {
     return -1;
   }
@@ -324,8 +324,8 @@ ssize_t Net_Recv(int32_t sock, void *data, size_t len) {
 /**
  * @brief Make the specified socket non-blocking.
  */
-void Net_SetNonBlocking(int32_t sock, bool non_blocking) {
-  int32_t i = non_blocking;
+void Net_SetNonBlocking(int32_t sock, bool nonBlocking) {
+  int32_t i = nonBlocking;
 
   if (ioctl(sock, FIONBIO, (void *) &i) == -1) {
     Com_Error(ERROR_DROP, "ioctl: %s\n", Net_GetErrorString());
@@ -356,7 +356,7 @@ void Net_Init(void) {
   WSAStartup(v, &d);
 #endif
 
-  net_lo = inet_addr("127.0.0.1");
+  netLo = inet_addr("127.0.0.1");
 }
 
 /**

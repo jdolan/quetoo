@@ -23,51 +23,51 @@
 
 #include "r_types.h"
 
-extern cvar_t *r_ambient;
-extern cvar_t *r_ambient_occlusion;
-extern cvar_t *r_anisotropy;
-extern cvar_t *r_antialias;
-extern cvar_t *r_bloom;
-extern cvar_t *r_bloom_iterations;
-extern cvar_t *r_bloom_threshold;
-extern cvar_t *r_caustics;
-extern cvar_t *r_framebuffer_scale;
-extern cvar_t *r_fullscreen;
-extern cvar_t *r_fullscreen_width;
-extern cvar_t *r_fullscreen_height;
-extern cvar_t *r_gpu_driver;
-extern cvar_t *r_hardness;
-extern cvar_t *r_lighting_distance;
-extern cvar_t *r_modulate;
-extern cvar_t *r_modulate_mesh;
-extern cvar_t *r_saturation;
-extern cvar_t *r_parallax;
-extern cvar_t *r_parallax_shadow;
-extern cvar_t *r_roughness;
-extern cvar_t *r_screenshot_format;
-extern cvar_t *r_shadows;
-extern cvar_t *r_shadow_tile_size;
-extern cvar_t *r_specularity;
-extern cvar_t *r_swap_interval;
-extern cvar_t *r_window_height;
-extern cvar_t *r_window_width;
+extern Cvar *r_ambient;
+extern Cvar *r_ambientOcclusion;
+extern Cvar *r_anisotropy;
+extern Cvar *r_antialias;
+extern Cvar *r_bloom;
+extern Cvar *r_bloomIterations;
+extern Cvar *r_bloomThreshold;
+extern Cvar *r_caustics;
+extern Cvar *r_framebufferScale;
+extern Cvar *r_fullscreen;
+extern Cvar *r_fullscreenWidth;
+extern Cvar *r_fullscreenHeight;
+extern Cvar *r_gpuDriver;
+extern Cvar *r_hardness;
+extern Cvar *r_lightingDistance;
+extern Cvar *r_modulate;
+extern Cvar *r_modulateMesh;
+extern Cvar *r_saturation;
+extern Cvar *r_parallax;
+extern Cvar *r_parallaxShadow;
+extern Cvar *r_roughness;
+extern Cvar *r_screenshotFormat;
+extern Cvar *r_shadows;
+extern Cvar *r_shadowTileSize;
+extern Cvar *r_specularity;
+extern Cvar *r_swapInterval;
+extern Cvar *r_windowHeight;
+extern Cvar *r_windowWidth;
 
-extern SDL_GPUSampleCount r_scene_samples;
+extern SDL_GPUSampleCount rSceneSamples;
 SDL_GPUSampleCount R_SampleCount(void);
 
 void R_Init(void);
 void R_Shutdown(void);
 void R_BeginFrame(void);
-void R_InitView(r_view_t *view);
-void R_DrawViewDepth(r_view_t *view);
-void R_DrawMainView(r_view_t *view);
-void R_DrawPlayerModelView(r_view_t *view);
+void R_InitView(RenderView *view);
+void R_DrawViewDepth(RenderView *view);
+void R_DrawMainView(RenderView *view);
+void R_DrawPlayerModelView(RenderView *view);
 void R_EndFrame(void);
-void R_UpdateUniforms(const r_view_t *view);
+void R_UpdateUniforms(const RenderView *view);
 
 #if defined(__R_LOCAL_H__)
 
-extern r_view_stats_t *r_stats;
+extern RenderViewStats *rStats;
 
 /**
  * @brief Renderer driver information.
@@ -92,25 +92,25 @@ typedef struct {
   /**
    * @brief Maximum texture unit count.
    */
-  int32_t max_texunits;
+  int32_t maxTexunits;
 
   /**
    * @brief Maximum 2D texture size.
    */
-  int32_t max_texture_size;
+  int32_t maxTextureSize;
 
   /**
    * @brief Maximum 3D texture size.
    */
-  int32_t max_3d_texture_size;
+  int32_t max3dTextureSize;
 
   /**
    * @brief Maximum uniform block size.
    */
-  int32_t max_uniform_block_size;
-} r_config_t;
+  int32_t maxUniformBlockSize;
+} RenderConfig;
 
-extern r_config_t r_config;
+extern RenderConfig rConfig;
 
 /**
  * @brief Vec4-aligned voxel uniforms.
@@ -120,23 +120,23 @@ typedef struct {
   /**
    * @brief Voxel grid minimum corner.
    */
-  vec4_t mins;
+  Vec4 mins;
 
   /**
    * @brief Voxel grid maximum corner.
    */
-  vec4_t maxs;
+  Vec4 maxs;
 
   /**
    * @brief View origin in voxel-space coordinates.
    */
-  vec4_t view_coordinate;
+  Vec4 viewCoordinate;
 
   /**
    * @brief Voxel grid dimensions.
    */
-  vec4_t size;
-} r_voxels_t;
+  Vec4 size;
+} RenderVoxels;
 
 /**
  * @brief The uniforms block type.
@@ -146,47 +146,47 @@ typedef struct {
   /**
    * @brief Vec4-aligned global uniform block.
    */
-  struct r_uniform_block_t {
+  struct RenderUniformBlock {
 
     /**
      * @brief The viewport (x, y, w, h) in device pixels.
      */
-    vec4i_t viewport;
+    Vec4i viewport;
 
     /**
      * @brief The 3D projection matrix.
      */
-    mat4_t projection3D;
+    Mat4 projection3D;
 
     /**
      * @brief The view matrix.
      */
-    mat4_t view;
+    Mat4 view;
 
     /**
      * @brief The projection matrix for environment cubemaps.
      */
-    mat4_t sky_projection;
+    Mat4 skyProjection;
 
     /**
      * @brief The projection matrix for point light shadow passes.
      */
-    mat4_t light_projection;
+    Mat4 lightProjection;
 
     /**
      * @brief The voxel uniforms.
      */
-    r_voxels_t voxels;
+    RenderVoxels voxels;
 
     /**
      * @brief The depth range (near, far) in world units.
      */
-    vec2_t depth_range;
+    Vec2 depthRange;
 
     /**
      * @brief The view type, e.g. `VIEW_MAIN`.
      */
-    int32_t view_type;
+    int32_t viewType;
 
     /**
      * @brief The renderer time in milliseconds.
@@ -196,7 +196,7 @@ typedef struct {
     /**
      * @brief The ambient modulation, per channel.
      */
-    vec3_t ambient;
+    Vec3 ambient;
 
     /**
      * @brief The light modulation scalar.
@@ -216,12 +216,12 @@ typedef struct {
     /**
      * @brief Ambient occlusion scalar.
      */
-    float ambient_occlusion;
+    float ambientOcclusion;
 
     /**
      * @brief Vertex-lighting distance threshold.
      */
-    float lighting_distance;
+    float lightingDistance;
 
     /**
      * @brief Non-zero when the in-game editor is active.
@@ -236,26 +236,26 @@ typedef struct {
     /**
      * @brief Pads the block to a multiple of vec4, as std140 requires.
      */
-    vec2_t padding;
+    Vec2 padding;
   } block;
 
-} r_uniforms_t;
+} RenderUniforms;
 
 /**
  * @brief Per-frame global uniforms.
  */
-extern r_uniforms_t r_uniforms;
-extern cvar_t *r_alpha_test;
-extern cvar_t *r_cull;
-extern cvar_t *r_depth_pass;
-extern cvar_t *r_draw_bsp_blocks;
-extern cvar_t *r_draw_occlusion_queries;
-extern cvar_t *r_draw_bsp_normals;
-extern cvar_t *r_draw_bsp_voxels;
-extern cvar_t *r_draw_entity_bounds;
-extern cvar_t *r_draw_light_bounds;
-extern cvar_t *r_draw_material_stages;
-extern cvar_t *r_occlude;
-extern cvar_t *r_portals;
+extern RenderUniforms rUniforms;
+extern Cvar *r_alphaTest;
+extern Cvar *r_cull;
+extern Cvar *r_depthPass;
+extern Cvar *r_drawBspBlocks;
+extern Cvar *r_drawOcclusionQueries;
+extern Cvar *r_drawBspNormals;
+extern Cvar *r_drawBspVoxels;
+extern Cvar *r_drawEntityBounds;
+extern Cvar *r_drawLightBounds;
+extern Cvar *r_drawMaterialStages;
+extern Cvar *r_occlude;
+extern Cvar *r_portals;
 
 #endif

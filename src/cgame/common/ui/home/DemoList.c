@@ -41,13 +41,13 @@ static void freeDemoListItemInfo(void *p) {
  */
 static bool containsCaseInsensitive(const char *haystack, const char *needle) {
 
-  const size_t needle_len = strlen(needle);
-  if (!needle_len) {
+  const size_t needleLen = strlen(needle);
+  if (!needleLen) {
     return true;
   }
 
   for (const char *h = haystack; *h; h++) {
-    if (!q_strncasecmp(h, needle, needle_len)) {
+    if (!q_strncasecmp(h, needle, needleLen)) {
       return true;
     }
   }

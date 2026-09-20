@@ -23,5 +23,5 @@
 
 #if defined(__G_LOCAL_H__)
 
-bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other);
+bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other);
 #endif

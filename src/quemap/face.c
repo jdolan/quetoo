@@ -32,14 +32,14 @@
 /**
  * @brief Allocates a new face.
  */
-face_t *AllocFace(void) {
-  return Mem_TagMalloc(sizeof(face_t), (mem_tag_t) MEM_TAG_FACE);
+Face *AllocFace(void) {
+  return Mem_TagMalloc(sizeof(Face), (MemTag) MEM_TAG_FACE);
 }
 
 /**
  * @brief Frees the face and its winding.
  */
-void FreeFace(face_t *f) {
+void FreeFace(Face *f) {
 
   if (f->w) {
     Cm_FreeWinding(f->w);
@@ -54,9 +54,9 @@ void FreeFace(face_t *f) {
  * @return `NULL` if the faces couldn't be merged, or the new face.
  * @remark The originals will NOT be freed.
  */
-face_t *MergeFaces(face_t *a, face_t *b) {
+Face *MergeFaces(Face *a, Face *b) {
 
-  if (a->brush_side != b->brush_side) {
+  if (a->brushSide != b->brushSide) {
     return NULL;
   }
 
@@ -64,14 +64,14 @@ face_t *MergeFaces(face_t *a, face_t *b) {
     return NULL;
   }
 
-  const plane_t *plane = &planes[a->plane];
-  cm_winding_t *w = Cm_MergeWindings(a->w, b->w, plane->normal);
+  const Plane *plane = &planes[a->plane];
+  CmWinding *w = Cm_MergeWindings(a->w, b->w, plane->normal);
   if (!w) {
     return NULL;
   }
 
-  face_t *merged = AllocFace();
-  merged->brush_side = a->brush_side;
+  Face *merged = AllocFace();
+  merged->brushSide = a->brushSide;
   merged->plane = a->plane;
   merged->w = w;
 
@@ -87,7 +87,7 @@ face_t *MergeFaces(face_t *a, face_t *b) {
   return merged;
 }
 
-static HashTable *welding_spatial_hash;
+static HashTable *weldingSpatialHash;
 
 /**
  * @brief Destroys a Vector stored as a value in the welding spatial hash.
@@ -99,15 +99,15 @@ static void WeldingSpatialHashValueDestroyFunc(ident ptr) {
 /**
  * @brief Rounds a floating-point position to the nearest integer grid cell for spatial hashing.
  */
-static vec3i_t GetWeldingPoint(const vec3_t p) {
-  return Vec3i(roundf(p.x), roundf(p.y), roundf(p.z));
+static Vec3i GetWeldingPoint(const Vec3 p) {
+  return MakeVec3i(roundf(p.x), roundf(p.y), roundf(p.z));
 }
 
 /**
  * @brief Hash function for integer grid-cell keys used by the welding spatial hash.
  */
 static size_t WeldingSpatialHashFunc(const ident ptr_) {
-  const vec3i_t *ptr = ptr_;
+  const Vec3i *ptr = ptr_;
   const uint32_t x = (uint32_t) roundf((MAX_WORLD_COORD + ptr->x) * .5f);
   const uint32_t y = (uint32_t) roundf((MAX_WORLD_COORD + ptr->y) * .5f);
   const uint32_t z = (uint32_t) roundf((MAX_WORLD_COORD + ptr->z) * .25f);
@@ -119,8 +119,8 @@ static size_t WeldingSpatialHashFunc(const ident ptr_) {
  * @brief Equality function for integer grid-cell keys used by the welding spatial hash.
  */
 static bool WeldingSpatialHashEqualFunc(const ident a_, const ident b_) {
-  const vec3i_t *a = a_;
-  const vec3i_t *b = b_;
+  const Vec3i *a = a_;
+  const Vec3i *b = b_;
   return a->x == b->x && a->y == b->y && a->z == b->z;
 }
 
@@ -129,17 +129,17 @@ static bool WeldingSpatialHashEqualFunc(const ident a_, const ident b_) {
  */
 void ClearWeldingSpatialHash(void) {
 
-  if (welding_spatial_hash) {
-    welding_spatial_hash = release(welding_spatial_hash);
+  if (weldingSpatialHash) {
+    weldingSpatialHash = release(weldingSpatialHash);
   }
 
-  welding_spatial_hash = $(alloc(HashTable), initWithCapacity,
+  weldingSpatialHash = $(alloc(HashTable), initWithCapacity,
                            WeldingSpatialHashFunc,
                            WeldingSpatialHashEqualFunc,
                            8192);
 
-  welding_spatial_hash->destroyKey = Mem_Free;
-  welding_spatial_hash->destroyValue = WeldingSpatialHashValueDestroyFunc;
+  weldingSpatialHash->destroyKey = Mem_Free;
+  weldingSpatialHash->destroyValue = WeldingSpatialHashValueDestroyFunc;
 }
 
 /**
@@ -152,7 +152,7 @@ static bool WeldingBucketContainsIndex(const Vector *array, int32_t index) {
       return true;
     }
 
-    if (Vec3_Equal(bsp_file.vertexes[existing].position, bsp_file.vertexes[index].position)) {
+    if (Vec3_Equal(bspFile.vertexes[existing].position, bspFile.vertexes[index].position)) {
       return true;
     }
   }
@@ -163,17 +163,17 @@ static bool WeldingBucketContainsIndex(const Vector *array, int32_t index) {
 /**
  * @brief Inserts a vertex position and its BSP index into the welding spatial hash.
  */
-static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
-  const vec3i_t spatial = GetWeldingPoint(v);
-  Vector *array = $(welding_spatial_hash, get, (ident) &spatial);
+static void AddVertexToWeldingSpatialHash(const Vec3 v, const int32_t index) {
+  const Vec3i spatial = GetWeldingPoint(v);
+  Vector *array = $(weldingSpatialHash, get, (ident) &spatial);
 
   if (!array) {
     array = $(alloc(Vector), initWithSize, sizeof(int32_t));
 
-    vec3i_t *key_copy = Mem_Malloc(sizeof(*key_copy));
-    *key_copy = spatial;
+    Vec3i *keyCopy = Mem_Malloc(sizeof(*keyCopy));
+    *keyCopy = spatial;
 
-    $(welding_spatial_hash, set, key_copy, array);
+    $(weldingSpatialHash, set, keyCopy, array);
   }
 
   if (!WeldingBucketContainsIndex(array, index)) {
@@ -182,22 +182,22 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
   }
 }
 
-int32_t num_welds = 0;
+int32_t numWelds = 0;
 
 /**
  * @brief Searches the welding spatial hash for an existing vertex within `VERTEX_EPSILON` of the input, returning it in out.
  */
-static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
+static void FindWeldingSpatialHashPoint(const Vec3 in, Vec3 *out) {
   static const int32_t offsets[] = { 0, 1, -1 };
 
-  float best_dist = VERTEX_EPSILON * VERTEX_EPSILON;
-  int32_t best_index = -1;
+  float bestDist = VERTEX_EPSILON * VERTEX_EPSILON;
+  int32_t bestIndex = -1;
 
   for (int32_t z = 0; z < (int32_t) lengthof(offsets); z++) {
     for (int32_t y = 0; y < (int32_t) lengthof(offsets); y++) {
       for (int32_t x = 0; x < (int32_t) lengthof(offsets); x++) {
-        const vec3i_t key = GetWeldingPoint(Vec3(in.x + offsets[x], in.y + offsets[y], in.z + offsets[z]));
-        Vector *array = $(welding_spatial_hash, get, (ident) &key);
+        const Vec3i key = GetWeldingPoint(MakeVec3(in.x + offsets[x], in.y + offsets[y], in.z + offsets[z]));
+        Vector *array = $(weldingSpatialHash, get, (ident) &key);
 
         if (!array) {
           continue;
@@ -205,21 +205,21 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
 
         for (size_t i = 0; i < array->count; i++) {
           const int32_t idx = VectorValue(array, int32_t, i);
-          const vec3_t pos = bsp_file.vertexes[idx].position;
+          const Vec3 pos = bspFile.vertexes[idx].position;
           const float dist = Vec3_DistanceSquared(pos, in);
 
-          if (dist < best_dist || (dist == best_dist && idx < best_index)) {
-            best_dist = dist;
-            best_index = idx;
+          if (dist < bestDist || (dist == bestDist && idx < bestIndex)) {
+            bestDist = dist;
+            bestIndex = idx;
           }
         }
       }
     }
   }
 
-  if (best_index >= 0) {
-    *out = bsp_file.vertexes[best_index].position;
-    num_welds++;
+  if (bestIndex >= 0) {
+    *out = bspFile.vertexes[bestIndex].position;
+    numWelds++;
   } else {
     *out = in;
   }
@@ -233,156 +233,156 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
  * be welded to other geometry. We do not weld the points to each other; only to those
  * of other brushes.
  */
-static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
-  vec3_t *out = points;
+static int32_t WeldWinding(const CmWinding *w, Vec3 *points) {
+  Vec3 *out = points;
   
-  for (int32_t i = 0; i < w->num_points; i++, out++) {
+  for (int32_t i = 0; i < w->numPoints; i++, out++) {
     FindWeldingSpatialHashPoint(w->points[i], out);
   }
 
-  return w->num_points;
+  return w->numPoints;
 }
 
 /**
  * @brief Emits a vertex array for the given face.
  */
-static int32_t EmitFaceVertexes(const face_t *face) {
-  const brush_side_t *brush_side = face->brush_side;
+static int32_t EmitFaceVertexes(const Face *face) {
+  const BrushSide *brushSide = face->brushSide;
 
-  const vec3_t sdir = brush_side->axis[0].xyz;
-  const vec3_t tdir = brush_side->axis[1].xyz;
+  const Vec3 sdir = brushSide->axis[0].xyz;
+  const Vec3 tdir = brushSide->axis[1].xyz;
 
-  const SDL_Surface *diffusemap = materials[brush_side->material].diffusemap;
+  const SDL_Surface *diffusemap = materials[brushSide->material].diffusemap;
   
-  vec3_t points[face->w->num_points];
-  int32_t num_points = face->w->num_points;
+  Vec3 points[face->w->numPoints];
+  int32_t numPoints = face->w->numPoints;
 
-  if (no_weld) {
-    memcpy(points, face->w->points, face->w->num_points * sizeof(face->w->points[0]));
+  if (noWeld) {
+    memcpy(points, face->w->points, face->w->numPoints * sizeof(face->w->points[0]));
   } else {
-    num_points = WeldWinding(face->w, points);
-    if (num_points < 3) {
-      const material_t *mat = &materials[face->brush_side->material];
-      const vec3_t center = Cm_WindingCenter(face->w);
+    numPoints = WeldWinding(face->w, points);
+    if (numPoints < 3) {
+      const Material *mat = &materials[face->brushSide->material];
+      const Vec3 center = Cm_WindingCenter(face->w);
       Com_Warn("Malformed face %s @ %s after welding\n", mat->cm->name, vtos(center));
       return 0;
     }
   }
 
-  for (int32_t i = 0; i < num_points; i++) {
+  for (int32_t i = 0; i < numPoints; i++) {
 
-    if (bsp_file.num_vertexes == MAX_BSP_VERTEXES) {
+    if (bspFile.numVertexes == MAX_BSP_VERTEXES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
     }
 
-    bsp_vertex_t out = {
+    BspVertex out = {
       .position = points[i],
       .normal = planes[face->plane].normal
     };
 
-    const float s = Vec3_Dot(points[i], sdir) + brush_side->axis[0].w;
-    const float t = Vec3_Dot(points[i], tdir) + brush_side->axis[1].w;
+    const float s = Vec3_Dot(points[i], sdir) + brushSide->axis[0].w;
+    const float t = Vec3_Dot(points[i], tdir) + brushSide->axis[1].w;
 
     out.diffusemap.x = s / (diffusemap ? diffusemap->w : 1.f);
     out.diffusemap.y = t / (diffusemap ? diffusemap->h : 1.f);
 
-    switch (brush_side->surface & SURF_MASK_BLEND) {
+    switch (brushSide->surface & SURF_MASK_BLEND) {
       case SURF_BLEND_33:
-        out.color = Color32(255, 255, 255, 255 * .33f);
+        out.color = MakeColor32(255, 255, 255, 255 * .33f);
         break;
       case SURF_BLEND_66:
-        out.color = Color32(255, 255, 255, 255 * .66f);
+        out.color = MakeColor32(255, 255, 255, 255 * .66f);
         break;
       default:
-        out.color = Color32(255, 255, 255, 255);
+        out.color = MakeColor32(255, 255, 255, 255);
         break;
     }
 
-    bsp_file.vertexes[bsp_file.num_vertexes] = out;
-    AddVertexToWeldingSpatialHash(out.position, bsp_file.num_vertexes);
-    bsp_file.num_vertexes++;
+    bspFile.vertexes[bspFile.numVertexes] = out;
+    AddVertexToWeldingSpatialHash(out.position, bspFile.numVertexes);
+    bspFile.numVertexes++;
   }
 
-  return num_points;
+  return numPoints;
 }
 
 /**
  * @brief Emits a vertex elements array of triangles for the given face.
  */
-static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
+static int32_t EmitFaceElements(const Face *face, int32_t firstVertex) {
 
-  const int32_t num_triangles = (face->w->num_points - 2);
-  const int32_t num_elements = num_triangles * 3;
+  const int32_t numTriangles = (face->w->numPoints - 2);
+  const int32_t numElements = numTriangles * 3;
 
-  int32_t elements[num_elements];
+  int32_t elements[numElements];
   const int32_t count = Cm_ElementsForWinding(face->w, elements);
 
-  if (num_elements != count) {
-    const material_t *mat = &materials[face->brush_side->material];
-    const vec3_t center = Cm_WindingCenter(face->w);
+  if (numElements != count) {
+    const Material *mat = &materials[face->brushSide->material];
+    const Vec3 center = Cm_WindingCenter(face->w);
     Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(center));
   }
 
   for (int32_t i = 0; i < count; i++) {
 
-    if (bsp_file.num_elements == MAX_BSP_ELEMENTS) {
+    if (bspFile.numElements == MAX_BSP_ELEMENTS) {
       Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
     }
 
-    bsp_file.elements[bsp_file.num_elements] = first_vertex + elements[i];
-    bsp_file.num_elements++;
+    bspFile.elements[bspFile.numElements] = firstVertex + elements[i];
+    bspFile.numElements++;
   }
 
-  return num_elements;
+  return numElements;
 }
 
 /**
  * @brief Emits the given face into the BSP file, writing its vertex array and element indices.
  */
-bsp_face_t *EmitFace(const face_t *face) {
+BspFace *EmitFace(const Face *face) {
 
-  assert(face->w->num_points > 2);
-  assert(face->brush_side->material >= 0);
-  assert(face->brush_side->out);
+  assert(face->w->numPoints > 2);
+  assert(face->brushSide->material >= 0);
+  assert(face->brushSide->out);
 
-  if (bsp_file.num_faces == MAX_BSP_FACES) {
+  if (bspFile.numFaces == MAX_BSP_FACES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
   }
 
-  bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
-  bsp_file.num_faces++;
+  BspFace *out = &bspFile.faces[bspFile.numFaces];
+  bspFile.numFaces++;
 
-  out->brush_side = (int32_t) (ptrdiff_t) (face->brush_side->out - bsp_file.brush_sides);
+  out->brushSide = (int32_t) (ptrdiff_t) (face->brushSide->out - bspFile.brushSides);
   out->patch = -1;
   out->plane = face->plane;
   out->block = -1;
   
   out->bounds = Box3_Null();
 
-  out->first_vertex = bsp_file.num_vertexes;
-  out->num_vertexes = EmitFaceVertexes(face);
+  out->firstVertex = bspFile.numVertexes;
+  out->numVertexes = EmitFaceVertexes(face);
 
-  assert(out->num_vertexes);
+  assert(out->numVertexes);
 
-  const bsp_vertex_t *v = bsp_file.vertexes + out->first_vertex;
-  for (int32_t i = 0; i < out->num_vertexes; i++, v++) {
+  const BspVertex *v = bspFile.vertexes + out->firstVertex;
+  for (int32_t i = 0; i < out->numVertexes; i++, v++) {
     out->bounds = Box3_Append(out->bounds, v->position);
   }
 
-  out->first_element = bsp_file.num_elements;
-  out->num_elements = EmitFaceElements(face, out->first_vertex);
+  out->firstElement = bspFile.numElements;
+  out->numElements = EmitFaceElements(face, out->firstVertex);
 
   return out;
 }
 
 #define MAX_VERTEX_FACES 64
 
-static const bsp_model_t *phong_model;
-static float phong_cosine;
+static const BspModel *phongModel;
+static float phongCosine;
 
-// Pre-built for PhongShading: position -> Vector*(bsp_face_t*) and brush_side* -> winding*
-static HashTable *phong_vertex_faces;
-static HashTable *phong_brush_side_windings;
+// Pre-built for PhongShading: position -> Vector*(BspFace*) and brushSide* -> winding*
+static HashTable *phongVertexFaces;
+static HashTable *phongBrushSideWindings;
 
 static void ReleaseObject(ident object) {
   release(object);
@@ -391,61 +391,61 @@ static void ReleaseObject(ident object) {
 /**
  * @brief Builds lookup tables used by Phong shading for O(1) vertex-to-face and brush-side-to-winding queries.
  */
-static void BuildPhongMaps(const bsp_model_t *mod) {
+static void BuildPhongMaps(const BspModel *mod) {
 
-  phong_vertex_faces = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
-  phong_vertex_faces->destroyKey = Mem_Free;
-  phong_vertex_faces->destroyValue = ReleaseObject;
+  phongVertexFaces = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
+  phongVertexFaces->destroyKey = Mem_Free;
+  phongVertexFaces->destroyValue = ReleaseObject;
 
-  const bsp_face_t *f = &bsp_file.faces[mod->first_face];
-  for (int32_t i = 0; i < mod->num_faces; i++, f++) {
+  const BspFace *f = &bspFile.faces[mod->firstFace];
+  for (int32_t i = 0; i < mod->numFaces; i++, f++) {
     if (f->plane == -1) {
       continue;
     }
-    const bsp_vertex_t *v = &bsp_file.vertexes[f->first_vertex];
-    for (int32_t j = 0; j < f->num_vertexes; j++, v++) {
-      const vec3i_t key = GetWeldingPoint(v->position);
-      Vector *arr = $(phong_vertex_faces, get, (ident) &key);
+    const BspVertex *v = &bspFile.vertexes[f->firstVertex];
+    for (int32_t j = 0; j < f->numVertexes; j++, v++) {
+      const Vec3i key = GetWeldingPoint(v->position);
+      Vector *arr = $(phongVertexFaces, get, (ident) &key);
       if (!arr) {
-        arr = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
-        vec3i_t *key_copy = Mem_Malloc(sizeof(*key_copy));
-        *key_copy = key;
-        $(phong_vertex_faces, set, key_copy, arr);
+        arr = $(alloc(Vector), initWithSize, sizeof(BspFace *));
+        Vec3i *keyCopy = Mem_Malloc(sizeof(*keyCopy));
+        *keyCopy = key;
+        $(phongVertexFaces, set, keyCopy, arr);
       }
-      const bsp_face_t *face = f;
+      const BspFace *face = f;
       $(arr, add, &face);
     }
   }
 
-  phong_brush_side_windings = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
-  const brush_side_t *map_side = brush_sides;
-  for (int32_t j = 0; j < num_brush_sides; j++, map_side++) {
-    if (map_side->out && map_side->winding) {
-      $(phong_brush_side_windings, set, (void *) map_side->out, map_side->winding);
+  phongBrushSideWindings = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
+  const BrushSide *mapSide = brushSides;
+  for (int32_t j = 0; j < numBrushSides; j++, mapSide++) {
+    if (mapSide->out && mapSide->winding) {
+      $(phongBrushSideWindings, set, (void *) mapSide->out, mapSide->winding);
     }
   }
 }
 
 static void FreePhongMaps(void) {
-  phong_vertex_faces = release(phong_vertex_faces);
-  phong_brush_side_windings = release(phong_brush_side_windings);
+  phongVertexFaces = release(phongVertexFaces);
+  phongBrushSideWindings = release(phongBrushSideWindings);
 }
 
 /**
  * @brief Populates faces with pointers to all those referencing the vertex.
  * @return The count of faces referencing the vertex.
  */
-static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex, const bsp_face_t **faces) {
+static size_t FacesForVertex(const BspFace *face, const BspVertex *vertex, const BspFace **faces) {
 
-  const vec3i_t key = GetWeldingPoint(vertex->position);
-  const Vector *arr = $(phong_vertex_faces, get, (ident) &key);
+  const Vec3i key = GetWeldingPoint(vertex->position);
+  const Vector *arr = $(phongVertexFaces, get, (ident) &key);
   if (!arr) {
     return 0;
   }
 
   size_t count = 0;
   for (size_t i = 0; i < arr->count; i++) {
-    faces[count++] = VectorValue((Vector *) arr, const bsp_face_t *, i);
+    faces[count++] = VectorValue((Vector *) arr, const BspFace *, i);
     if (count == MAX_VERTEX_FACES) {
       Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));
       break;
@@ -459,23 +459,23 @@ static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex,
  * @brief Calculate per-vertex (instead of per-plane) normal vectors. This is done by finding all of
  * the faces which share a given vertex, and calculating a weighted average of their normals.
  */
-static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cosine) {
-  const bsp_face_t *faces[MAX_VERTEX_FACES];
+static void PhongVertex(const BspFace *face, BspVertex *v, float phongCosine) {
+  const BspFace *faces[MAX_VERTEX_FACES];
 
-  const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
-  const bsp_plane_t *plane = &bsp_file.planes[face->plane];
+  const BspBrushSide *side = &bspFile.brushSides[face->brushSide];
+  const BspPlane *plane = &bspFile.planes[face->plane];
 
   const size_t count = FacesForVertex(face, v, faces);
   if (count > 1) {
 
     v->normal = Vec3_Zero();
 
-    const bsp_face_t **f = faces;
+    const BspFace **f = faces;
     for (size_t i = 0; i < count; i++, f++) {
 
       size_t j;
       for (j = 0; j < i; j++) {
-        if (faces[j]->brush_side == (*f)->brush_side && faces[j]->plane == (*f)->plane) {
+        if (faces[j]->brushSide == (*f)->brushSide && faces[j]->plane == (*f)->plane) {
           break;
         }
       }
@@ -484,8 +484,8 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
         continue;
       }
 
-      const bsp_brush_side_t *s = &bsp_file.brush_sides[(*f)->brush_side];
-      const bsp_plane_t *p = &bsp_file.planes[(*f)->plane];
+      const BspBrushSide *s = &bspFile.brushSides[(*f)->brushSide];
+      const BspPlane *p = &bspFile.planes[(*f)->plane];
 
       const float dot = Vec3_Dot(plane->normal, p->normal);
       if (dot <= 0.f) {
@@ -499,7 +499,7 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
           continue;
         }
       } else {
-        if (phong_cosine > 0.f && dot > phong_cosine) {
+        if (phongCosine > 0.f && dot > phongCosine) {
           // phong enabled via entity key and dot product
         } else {
           continue;
@@ -513,7 +513,7 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
        * are more reliable.
        */
 
-      cm_winding_t *w = $(phong_brush_side_windings, get, (ident) s);
+      CmWinding *w = $(phongBrushSideWindings, get, (ident) s);
       if (!w) {
         continue;
       }
@@ -535,33 +535,33 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
  * and not from BSP splits or T-junctions. That is, it only applies to corners of faces, not to
  * vertexes with colinear neighbors.
  */
-static void PhongFace(int32_t model_face_num) {
+static void PhongFace(int32_t modelFaceNum) {
 
-  const int32_t face_num = phong_model->first_face + model_face_num;
-  const bsp_face_t *face = bsp_file.faces + face_num;
+  const int32_t faceNum = phongModel->firstFace + modelFaceNum;
+  const BspFace *face = bspFile.faces + faceNum;
 
   // Skip patch faces (they have correct normals from Bézier evaluation)
   if (face->plane == -1) {
     return;
   }
 
-  bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
+  BspVertex *v = bspFile.vertexes + face->firstVertex;
 
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
+  for (int32_t i = 0; i < face->numVertexes; i++) {
 
-    bsp_vertex_t *a = v + ((i + 0) % face->num_vertexes);
-    bsp_vertex_t *b = v + ((i + 1) % face->num_vertexes);
-    bsp_vertex_t *c = v + ((i + 2) % face->num_vertexes);
+    BspVertex *a = v + ((i + 0) % face->numVertexes);
+    BspVertex *b = v + ((i + 1) % face->numVertexes);
+    BspVertex *c = v + ((i + 2) % face->numVertexes);
 
-    const vec3_t ba = Vec3_Direction(b->position, a->position);
-    const vec3_t cb = Vec3_Direction(c->position, b->position);
+    const Vec3 ba = Vec3_Direction(b->position, a->position);
+    const Vec3 cb = Vec3_Direction(c->position, b->position);
 
     const float dot = Vec3_Dot(ba, cb);
     if (dot > 1.f - COLINEAR_EPSILON) {
       continue;
     }
 
-    PhongVertex(face, b, phong_cosine);
+    PhongVertex(face, b, phongCosine);
   }
 
   // FIXME: There is a corner case here (get it?) where multiple colinear vertexes on a Phong
@@ -570,80 +570,80 @@ static void PhongFace(int32_t model_face_num) {
   // FIXME: linear interpolate all non-corner vertex normals in this loop between their two
   // FIXME: bounding corners.
 
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
+  for (int32_t i = 0; i < face->numVertexes; i++) {
 
-    bsp_vertex_t *a = v + ((i + 0) % face->num_vertexes);
-    bsp_vertex_t *b = v + ((i + 1) % face->num_vertexes);
-    bsp_vertex_t *c = v + ((i + 2) % face->num_vertexes);
+    BspVertex *a = v + ((i + 0) % face->numVertexes);
+    BspVertex *b = v + ((i + 1) % face->numVertexes);
+    BspVertex *c = v + ((i + 2) % face->numVertexes);
 
-    vec3_t ba, cb;
+    Vec3 ba, cb;
 
-    const float ba_dist = fabsf(Vec3_DistanceDir(b->position, a->position, &ba));
-    const float cb_dist = fabsf(Vec3_DistanceDir(c->position, b->position, &cb));
+    const float baDist = fabsf(Vec3_DistanceDir(b->position, a->position, &ba));
+    const float cbDist = fabsf(Vec3_DistanceDir(c->position, b->position, &cb));
 
     const float dot = Vec3_Dot(ba, cb);
     if (dot <= 1.f - COLINEAR_EPSILON) {
       continue;
     }
 
-    b->normal = Vec3_Normalize(Vec3_Mix(a->normal, c->normal, ba_dist / (ba_dist + cb_dist)));
+    b->normal = Vec3_Normalize(Vec3_Mix(a->normal, c->normal, baDist / (baDist + cbDist)));
   }
 }
 
 /**
  * @brief Calculates Phong shading for the brush faces of the given model.
  */
-void PhongShading(const bsp_model_t *mod) {
+void PhongShading(const BspModel *mod) {
 
-  if (no_phong) {
+  if (noPhong) {
     return;
   }
 
-  if (mod->num_faces == 0) {
+  if (mod->numFaces == 0) {
     return;
   }
 
-  phong_model = mod;
+  phongModel = mod;
 
-  const entity_t *entity = &entities[mod->entity];
-  const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
+  const Entity *entity = &entities[mod->entity];
+  const float phongAngle = atof(ValueForKey(entity, "phong", "60"));
 
-  phong_cosine = cosf(Radians(phong_angle));
+  phongCosine = cosf(Radians(phongAngle));
 
   BuildPhongMaps(mod);
-  Work("Phong shading", PhongFace, mod->num_faces);
+  Work("Phong shading", PhongFace, mod->numFaces);
   FreePhongMaps();
 
-  phong_model = NULL;
-  phong_cosine = 0.f;
+  phongModel = NULL;
+  phongCosine = 0.f;
 }
 
 /**
  * @brief Computes per-vertex tangent and bitangent vectors for all faces in the BSP file.
  */
-static void TangentVectors_(bsp_model_t *model) {
+static void TangentVectors_(BspModel *model) {
 
-  if (model->num_faces == 0) {
+  if (model->numFaces == 0) {
     return;
   }
 
-  bsp_face_t *face = bsp_file.faces + model->first_face;
-  int32_t base_vertex = face->first_vertex;
+  BspFace *face = bspFile.faces + model->firstFace;
+  int32_t baseVertex = face->firstVertex;
 
-  bsp_vertex_t *vertexes = bsp_file.vertexes + base_vertex;
-  int32_t *elements = bsp_file.elements + face->first_element;
+  BspVertex *vertexes = bspFile.vertexes + baseVertex;
+  int32_t *elements = bspFile.elements + face->firstElement;
 
-  int32_t num_vertexes = 0, num_elements = 0;
-  for (int32_t i = 0; i < model->num_faces; i++, face++) {
-    num_vertexes += face->num_vertexes;
-    num_elements += face->num_elements;
+  int32_t numVertexes = 0, numElements = 0;
+  for (int32_t i = 0; i < model->numFaces; i++, face++) {
+    numVertexes += face->numVertexes;
+    numElements += face->numElements;
   }
 
-  cm_vertex_t *cm = Mem_Malloc(sizeof(cm_vertex_t) * num_vertexes);
+  CmVertex *cm = Mem_Malloc(sizeof(CmVertex) * numVertexes);
 
-  bsp_vertex_t *v = vertexes;
-  for (int32_t i = 0; i < num_vertexes; i++, v++) {
-    cm[i] = (cm_vertex_t) {
+  BspVertex *v = vertexes;
+  for (int32_t i = 0; i < numVertexes; i++, v++) {
+    cm[i] = (CmVertex) {
       .position = &v->position,
       .normal = &v->normal,
       .tangent = &v->tangent,
@@ -652,24 +652,24 @@ static void TangentVectors_(bsp_model_t *model) {
     };
   }
 
-  Cm_Tangents(cm, base_vertex, num_vertexes, elements, num_elements);
+  Cm_Tangents(cm, baseVertex, numVertexes, elements, numElements);
 
-  int32_t num_bad_vertexes = 0;
+  int32_t numBadVertexes = 0;
 
   v = vertexes;
-  for (int32_t i = 0; i < num_vertexes; i++, v++) {
+  for (int32_t i = 0; i < numVertexes; i++, v++) {
 
-    if (cm[i].num_tris == 0) {
+    if (cm[i].numTris == 0) {
       continue;
     }
 
     if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
       Com_Warn("Vertex at %s has invalid tangents\n", vtos(v->position));
-      num_bad_vertexes++;
+      numBadVertexes++;
     }
   }
 
-  Com_Debug(DEBUG_ALL, "%d bad vertexes\n", num_bad_vertexes);
+  Com_Debug(DEBUG_ALL, "%d bad vertexes\n", numBadVertexes);
 
   Mem_Free(cm);
 }
@@ -679,8 +679,8 @@ static void TangentVectors_(bsp_model_t *model) {
  */
 void TangentVectors(void) {
 
-  bsp_model_t *model = bsp_file.models;
-  for (int32_t i = 0; i < bsp_file.num_models; i++, model++) {
+  BspModel *model = bspFile.models;
+  for (int32_t i = 0; i < bspFile.numModels; i++, model++) {
     TangentVectors_(model);
   }
 }

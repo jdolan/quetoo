@@ -26,7 +26,7 @@
 /**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
-static bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
+static bool GlobMatchStar(const char *pattern, const char *text, const GlobFlags flags) {
   const char *p = pattern, *t = text;
   register char c, c1;
 
@@ -75,7 +75,7 @@ static bool GlobMatchStar(const char *pattern, const char *text, const glob_flag
  * To suppress the special syntactic significance of any of []`*?!-\`,
  * and match the character exactly, precede it with a `\`.
  */
-bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags) {
+bool GlobMatch(const char *pattern, const char *text, const GlobFlags flags) {
   const char *p = pattern, *t = text;
   register char c;
 
@@ -257,9 +257,9 @@ bool StrIsEmoji(const char *c) {
 }
 
 /**
- * @return A `color_t` for the color specified escape sequence.
+ * @return A `Color` for the color specified escape sequence.
  */
-color_t ColorEsc(int32_t esc) {
+Color ColorEsc(int32_t esc) {
   switch (esc) {
     case ESC_COLOR_BLACK:
       return color_white;
@@ -290,13 +290,13 @@ color_t ColorEsc(int32_t esc) {
  * @brief Extracts the emoji sequence at `in` to `out`, returning a pointer to the next character
  * after the emoji sequence.
  */
-const char *EmojiEsc(const char *in, char *out, size_t out_size) {
+const char *EmojiEsc(const char *in, char *out, size_t outSize) {
 
   assert(*in == ESC_EMOJI);
 
   in++;
 
-  for (size_t i = 0; i < out_size - 1; i++) {
+  for (size_t i = 0; i < outSize - 1; i++) {
     if (isalnum(*in) || q_strchr("_", *in)) {
       if (out) {
         *out++ = *in++;
@@ -337,7 +337,7 @@ char *va(const char *format, ...) {
 /**
  * @brief A convenience function for printing vectors.
  */
-char *vtos(const vec3_t v) {
+char *vtos(const Vec3 v) {
   static uint32_t index;
   static char str[8][MAX_QPATH];
 

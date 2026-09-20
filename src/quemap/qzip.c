@@ -26,18 +26,18 @@
 #include "bsp.h"
 #include "qzip.h"
 
-bool include_shared = false;
-bool update_zip = false;
+bool includeShared = false;
+bool updateZip = false;
 
 static bool HasSuffix(const char *str, const char *suffix) {
   const size_t len = q_strlen(str);
-  const size_t suffix_len = q_strlen(suffix);
-  return len >= suffix_len && !q_strcmp(str + len - suffix_len, suffix);
+  const size_t suffixLen = q_strlen(suffix);
+  return len >= suffixLen && !q_strcmp(str + len - suffixLen, suffix);
 }
 
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
   List *assets = data;
-  const cm_manifest_entry_t *entry = value;
+  const CmManifestEntry *entry = value;
   $(assets, append, q_strdup(entry->path));
 }
 
@@ -49,17 +49,17 @@ int32_t ZIP_Main(void) {
   char path[MAX_OS_PATH];
 
   Com_Print("\n------------------------------------------\n");
-  Com_Print("\nCreating archive for %s\n\n", bsp_name);
+  Com_Print("\nCreating archive for %s\n\n", bspName);
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
   // read the manifest
-  char mf_path[MAX_OS_PATH];
-  q_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+  char mfPath[MAX_OS_PATH];
+  q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
-  HashTable *manifest = Cm_ReadManifest(mf_path);
+  HashTable *manifest = Cm_ReadManifest(mfPath);
   if (!manifest) {
-    Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mf_path);
+    Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mfPath);
   }
 
   // the manifest includes the bsp and all referenced assets
@@ -67,7 +67,7 @@ int32_t ZIP_Main(void) {
   assets->destroy = free;
 
   // include the manifest itself so the pk3 is self-contained
-  $(assets, append, q_strdup(mf_path));
+  $(assets, append, q_strdup(mfPath));
   $(manifest, enumerate, CollectManifestAsset, assets);
 
   Cm_FreeManifest(manifest);
@@ -76,7 +76,7 @@ int32_t ZIP_Main(void) {
   memset(&zip, 0, sizeof(zip));
 
   // write to a "temporary" archive name
-  q_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
+  q_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), mapBase, getpid());
 
   if (mz_zip_writer_init_file(&zip, path, 0)) {
     Com_Print("Compressing %zu resources to %s...\n", assets->count, path);
@@ -89,7 +89,7 @@ int32_t ZIP_Main(void) {
         continue;
       }
 
-      if (include_shared == false) {
+      if (includeShared == false) {
         const char *dir = Fs_RealDir(filename);
 
         if (GlobMatch("sky-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
@@ -143,18 +143,18 @@ int32_t ZIP_Main(void) {
   const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nWrote %s in %d ms\n", path, end - start);
 
-  if (update_zip) {
-    const char *existing = va("map-%s.pk3", map_base);
+  if (updateZip) {
+    const char *existing = va("map-%s.pk3", mapBase);
 
     if (Fs_Exists(existing)) {
       const char *dir = Fs_RealDir(existing);
 
       if (dir) {
-        char to_update[MAX_OS_PATH];
-        q_snprintf(to_update, sizeof(to_update), "%s/%s", dir, existing);
+        char toUpdate[MAX_OS_PATH];
+        q_snprintf(toUpdate, sizeof(toUpdate), "%s/%s", dir, existing);
 
-        rename(path, to_update);
-        Com_Print("Renamed %s to %s\n", path, to_update);
+        rename(path, toUpdate);
+        Com_Print("Renamed %s to %s\n", path, toUpdate);
       } else {
         Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
       }

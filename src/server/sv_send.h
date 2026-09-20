@@ -25,10 +25,10 @@
 
 #if defined(__SV_LOCAL_H__)
 void Sv_SendClientPackets(void);
-void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len);
-void Sv_Unicast(const g_client_t *cl, const bool reliable);
-void Sv_Multicast(const vec3_t origin, multicast_t to);
-void Sv_ClientPrint(const g_client_t *cl, int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Sv_ClientDatagramMessage(ServerClient *cl, byte *data, size_t len);
+void Sv_Unicast(const GameClient *cl, const bool reliable);
+void Sv_Multicast(const Vec3 origin, Multicast to);
+void Sv_ClientPrint(const GameClient *cl, int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void Sv_BroadcastCommand(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 #endif

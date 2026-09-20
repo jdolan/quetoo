@@ -38,7 +38,7 @@
 /**
  * @brief What a racer is doing, as the board says it.
  */
-static const char *Cg_Race_ModeName(g_race_mode_t mode) {
+static const char *Cg_Race_ModeName(GameRaceMode mode) {
 
   switch (mode) {
     case RACE_MODE_RACE:
@@ -70,9 +70,9 @@ struct RecordsViewInterface {
 };
 
 /**
- * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   static char text[MAX_STRING_CHARS * 2];
   char string[MAX_STRING_CHARS];
@@ -215,37 +215,37 @@ static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
 }
 
 /**
- * @see ScoreboardView::valueForField(const ScoreboardView *, const g_score_t *, size_t)
+ * @see ScoreboardView::valueForField(const ScoreboardView *, const GameScore *, size_t)
  */
-static const char *valueForField(const ScoreboardView *self, const g_score_t *score, size_t field) {
+static const char *valueForField(const ScoreboardView *self, const GameScore *score, size_t field) {
 
   switch (field) {
     case 0:
-      return Cg_Race_ModeName(score->race_mode);
+      return Cg_Race_ModeName(score->raceMode);
     case 1:
-      if (score->race_mode == RACE_MODE_SPECTATOR) {
+      if (score->raceMode == RACE_MODE_SPECTATOR) {
         return "";
       }
-      return score->race_best ? Cg_Race_FormatTime(score->race_best) : "no time";
+      return score->raceBest ? Cg_Race_FormatTime(score->raceBest) : "no time";
     case 2:
-      return score->race_mode == RACE_MODE_SPECTATOR ? "" : va("%u", score->race_runs);
+      return score->raceMode == RACE_MODE_SPECTATOR ? "" : va("%u", score->raceRuns);
     default:
       return "";
   }
 }
 
 /**
- * @see ScoreboardView::describe(const ScoreboardView *, const g_score_t *, const char **, const char **)
+ * @see ScoreboardView::describe(const ScoreboardView *, const GameScore *, const char **, const char **)
  */
-static void describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside) {
+static void describe(const ScoreboardView *self, const GameScore *score, const char **detail, const char **aside) {
 
   // the racer's mode leads, with their best and their runs opposite it
-  *detail = Cg_Race_ModeName(score->race_mode);
+  *detail = Cg_Race_ModeName(score->raceMode);
   *aside = NULL;
 
-  if (score->race_mode != RACE_MODE_SPECTATOR) {
-    const char *best = score->race_best ? Cg_Race_FormatTime(score->race_best) : "no time";
-    *aside = va("%s  %u run%s", best, score->race_runs, score->race_runs == 1 ? "" : "s");
+  if (score->raceMode != RACE_MODE_SPECTATOR) {
+    const char *best = score->raceBest ? Cg_Race_FormatTime(score->raceBest) : "no time";
+    *aside = va("%s  %u run%s", best, score->raceRuns, score->raceRuns == 1 ? "" : "s");
   }
 }
 

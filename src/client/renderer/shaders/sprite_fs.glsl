@@ -34,35 +34,35 @@
 
 #include "soften.glsl"
 
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_DIFFUSE)      uniform sampler2D texture_diffusemap;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_NEXT_DIFFUSE) uniform sampler2D texture_next_diffusemap;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_DIFFUSE)      uniform sampler2D textureDiffusemap;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_NEXT_DIFFUSE) uniform sampler2D textureNextDiffusemap;
 
-layout (location = 0) in vec2 in_diffusemap;
-layout (location = 1) in vec2 in_next_diffusemap;
-layout (location = 2) in vec3 in_color;
-layout (location = 3) in float in_lerp;
-layout (location = 4) in float in_lighting;
-layout (location = 5) in vec3 in_diffuse;
+layout (location = 0) in vec2 inDiffusemap;
+layout (location = 1) in vec2 inNextDiffusemap;
+layout (location = 2) in vec3 inColor;
+layout (location = 3) in float inLerp;
+layout (location = 4) in float inLighting;
+layout (location = 5) in vec3 inDiffuse;
 
-layout (location = 0) out vec4 out_color;
+layout (location = 0) out vec4 outColor;
 
 /**
  * @brief Shades sprites with optional lighting and soft-particle fading.
  */
 void main(void) {
 
-  const vec3 texture_color = mix(
-      texture(texture_diffusemap, in_diffusemap).rgb,
-      texture(texture_next_diffusemap, in_next_diffusemap).rgb,
-      in_lerp);
+  const vec3 textureColor = mix(
+      texture(textureDiffusemap, inDiffusemap).rgb,
+      texture(textureNextDiffusemap, inNextDiffusemap).rgb,
+      inLerp);
 
-  vec3 color = in_color;
-  if (in_lighting > 0.0) {
-    color = mix(color, color * in_diffuse, in_lighting);
+  vec3 color = inColor;
+  if (inLighting > 0.0) {
+    color = mix(color, color * inDiffuse, inLighting);
   }
 
   // portals do not have their own depth buffer copy, so don't soften
-  float softness = view_type == VIEW_PORTAL ? 1.0 : soften();
+  float softness = viewType == VIEW_PORTAL ? 1.0 : soften();
 
-  out_color = vec4(texture_color * color * softness, 1.0);
+  outColor = vec4(textureColor * color * softness, 1.0);
 }

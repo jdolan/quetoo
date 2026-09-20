@@ -23,19 +23,19 @@
 
 #include "s_types.h"
 
-void S_InitStage(s_stage_t *stage);
-void S_RenderStage(s_stage_t *stage);
+void S_InitStage(SoundStage *stage);
+void S_RenderStage(SoundStage *stage);
 void S_Init(void);
 void S_Shutdown(void);
 void S_Stop(void);
 
 #if defined(__S_LOCAL_H__)
-extern cvar_t *s_get_error;
+extern Cvar *s_getError;
 
 void S_GetError_(const char *function, const char *msg);
 
 #define S_GetError(msg) { \
-  if (s_get_error->integer) { \
+  if (s_getError->integer) { \
     S_GetError_(__func__, msg); \
   } \
 }

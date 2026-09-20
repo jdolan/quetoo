@@ -24,14 +24,14 @@
 /**
  * @brief Updates the sound stage from the interpolated frame.
  */
-void Cg_PrepareStage(const cl_frame_t *frame) {
+void Cg_PrepareStage(const ClientFrame *frame) {
 
   cgi.stage->origin = cgi.view->origin;
   cgi.stage->angles = cgi.view->angles;
   cgi.stage->forward = cgi.view->forward;
   cgi.stage->right = cgi.view->right;
   cgi.stage->up = cgi.view->up;
-  cgi.stage->velocity = frame->ps.pm_state.velocity;
+  cgi.stage->velocity = frame->ps.pmState.velocity;
   cgi.stage->contents = cgi.view->contents;
 }
 
@@ -46,22 +46,22 @@ void Cg_ParseSound(void) {
 
   const byte flags = cgi.ReadByte();
 
-  const uint8_t sample_index = cgi.ReadByte();
-  s_play_sample_t play = {
-    .sample = cgi.client->sounds[sample_index]
+  const uint8_t sampleIndex = cgi.ReadByte();
+  SoundPlaySample play = {
+    .sample = cgi.client->sounds[sampleIndex]
   };
 
   if (!play.sample) {
-    Cg_Warn("NULL sample for sound index %u\n", sample_index);
+    Cg_Warn("NULL sample for sound index %u\n", sampleIndex);
   }
 
   if (flags & SOUND_ENTITY) {
     const int16_t number = cgi.ReadShort();
     assert(number < MAX_ENTITIES);
-    const cl_entity_t *ent = &cgi.client->entities[number];
+    const ClientEntity *ent = &cgi.client->entities[number];
     play.entity = ent;
     if (ent->current.solid == SOLID_BSP) {
-      play.origin = Box3_Center(ent->abs_bounds);
+      play.origin = Box3_Center(ent->absBounds);
     } else {
       play.origin = ent->current.origin;
       if (play.sample && play.sample->media.name[0] == '*') {
@@ -69,7 +69,7 @@ void Cg_ParseSound(void) {
           Cg_Warn("Bad client %u for entity %d\n", ent->current.client, number);
           play.sample = NULL;
         } else {
-          const cg_client_info_t *info = Cg_ClientInfo(ent);
+          const ClientGameClientInfo *info = Cg_ClientInfo(ent);
           play.sample = cgi.LoadClientModelSample(info->model, info->torso->mesh->sounds, play.sample->media.name);
         }
       }
@@ -103,14 +103,14 @@ void Cg_ParseSound(void) {
 /**
  * @brief `S_PlaySampleThink` implementation.
  */
-static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
+static void Cg_PlaySampleThink(const SoundStage *stage, SoundPlaySample *play) {
   
   if (play->entity) {
-    const cl_entity_t *ent = play->entity;
+    const ClientEntity *ent = play->entity;
     if (ent == Cg_Self()) {
       play->flags |= S_PLAY_RELATIVE;
     } else if (ent->current.solid == SOLID_BSP) {
-      play->origin = Box3_ClampPoint(ent->abs_bounds, stage->origin);
+      play->origin = Box3_ClampPoint(ent->absBounds, stage->origin);
       play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
     } else {
       play->origin = ent->origin;
@@ -127,7 +127,7 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
       play->flags &= ~S_PLAY_UNDERWATER;
     }
 
-    const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Box3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+    const CmTrace tr = cgi.Trace(stage->origin, play->origin, Box3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
     if (tr.fraction < 1.f) {
       play->flags |= S_PLAY_OCCLUDED;
     } else {
@@ -139,9 +139,9 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 /**
  * @brief Wraps `cgi.AddSample`, installing the default PlaySampleThink function.
  */
-void Cg_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
+void Cg_AddSample(SoundStage *stage, const SoundPlaySample *play) {
 
-  s_play_sample_t s = *play;
+  SoundPlaySample s = *play;
 
   if (s.Think == NULL) {
     s.Think = Cg_PlaySampleThink;

@@ -26,51 +26,51 @@ typedef struct {
   uint32_t vt;
   uint32_t vn;
   uint32_t el;
-} r_obj_face_vertex_t;
+} RenderObjFaceVertex;
 
 typedef struct {
-  r_obj_face_vertex_t fv[4];
-} r_obj_face_t;
+  RenderObjFaceVertex fv[4];
+} RenderObjFace;
 
 typedef struct {
   char name[MAX_QPATH];
   Vector *f;
-} r_obj_group_t;
+} RenderObjGroup;
 
 typedef struct {
   Vector *v;
   Vector *vt;
   Vector *vn;
   Vector *g;
-} r_obj_t;
+} RenderObj;
 
 /**
  * @brief Finds or appends a face vertex and returns its index.
  */
-static uint32_t R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t *v) {
+static uint32_t R_FindOrAppendObjVertex(RenderMeshFace *face, const RenderMeshVertex *v) {
 
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
+  for (int32_t i = 0; i < face->numVertexes; i++) {
     if (!memcmp(v, face->vertexes + i, sizeof(*v))) {
       return i;
     }
   }
 
-  face->num_vertexes++;
-  face->vertexes = Mem_Realloc(face->vertexes, face->num_vertexes * sizeof(r_mesh_vertex_t));
+  face->numVertexes++;
+  face->vertexes = Mem_Realloc(face->vertexes, face->numVertexes * sizeof(RenderMeshVertex));
 
-  face->vertexes[face->num_vertexes - 1] = *v;
-  return face->num_vertexes - 1;
+  face->vertexes[face->numVertexes - 1] = *v;
+  return face->numVertexes - 1;
 }
 
 /**
  * @brief Appends one triangle to a face's element list.
  */
-static void R_AppendObjElements(r_mesh_face_t *face, uint32_t a, uint32_t b, uint32_t c) {
+static void R_AppendObjElements(RenderMeshFace *face, uint32_t a, uint32_t b, uint32_t c) {
 
-  face->num_elements += 3;
-  face->elements = Mem_Realloc(face->elements, face->num_elements * sizeof(uint32_t));
+  face->numElements += 3;
+  face->elements = Mem_Realloc(face->elements, face->numElements * sizeof(uint32_t));
 
-  uint32_t *elements = ((uint32_t *) face->elements) + face->num_elements - 3;
+  uint32_t *elements = ((uint32_t *) face->elements) + face->numElements - 3;
 
   elements[0] = a;
   elements[1] = b;
@@ -80,32 +80,32 @@ static void R_AppendObjElements(r_mesh_face_t *face, uint32_t a, uint32_t b, uin
 /**
  * @brief Loads an OBJ model into the mesh renderer format.
  */
-static void R_LoadObjModel(r_model_t *mod, void *buffer) {
-  r_mesh_model_t *out;
+static void R_LoadObjModel(RenderModel *mod, void *buffer) {
+  RenderMeshModel *out;
 
-  mod->mesh = out = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
-  out->num_frames = 1;
+  mod->mesh = out = Mem_LinkMalloc(sizeof(RenderMeshModel), mod);
+  out->numFrames = 1;
 
-  r_obj_t obj = {
-    .v = $(alloc(Vector), initWithSize, sizeof(vec3_t)),
-    .vt = $(alloc(Vector), initWithSize, sizeof(vec2_t)),
-    .vn = $(alloc(Vector), initWithSize, sizeof(vec3_t)),
-    .g = $(alloc(Vector), initWithSize, sizeof(r_obj_group_t)),
+  RenderObj obj = {
+    .v = $(alloc(Vector), initWithSize, sizeof(Vec3)),
+    .vt = $(alloc(Vector), initWithSize, sizeof(Vec2)),
+    .vn = $(alloc(Vector), initWithSize, sizeof(Vec3)),
+    .g = $(alloc(Vector), initWithSize, sizeof(RenderObjGroup)),
   };
 
-  r_obj_group_t group = {
+  RenderObjGroup group = {
     .name = "default",
-    .f = $(alloc(Vector), initWithSize, sizeof(r_obj_face_t))
+    .f = $(alloc(Vector), initWithSize, sizeof(RenderObjFace))
   };
 
   char *file = buffer;
 
   for (char *line = strtok(file, "\r\n"); line; line = strtok(NULL, "\r\n")) {
 
-    vec3_t vec;
+    Vec3 vec;
     if (q_strncmp("v ", line, q_strlen("v ")) == 0) {
       if (Parse_QuickPrimitive(line + q_strlen("v "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
-        vec = Vec3(vec.x, vec.z, vec.y);
+        vec = MakeVec3(vec.x, vec.z, vec.y);
         mod->bounds = Box3_Append(mod->bounds, vec);
         $(obj.v, add, &vec);
       }
@@ -116,7 +116,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
       }
     } else if (q_strncmp("vn ", line, q_strlen("vn ")) == 0) {
       if (Parse_QuickPrimitive(line + q_strlen("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
-        vec = Vec3_Normalize(Vec3(vec.x, vec.z, vec.y));
+        vec = Vec3_Normalize(MakeVec3(vec.x, vec.z, vec.y));
         $(obj.vn, add, &vec);
       }
     } else if (q_strncmp("usemtl ", line, q_strlen("usemtl ")) == 0) {
@@ -126,7 +126,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
         release(group.f);
       }
       q_strlcpy(group.name, line + q_strlen("usemtl "), sizeof(group.name));
-      group.f = $(alloc(Vector), initWithSize, sizeof(r_obj_face_t));
+      group.f = $(alloc(Vector), initWithSize, sizeof(RenderObjFace));
     } else if (q_strncmp("g ", line, q_strlen("g ")) == 0) {
       if (group.f->count) {
         $(obj.g, add, &group);
@@ -134,10 +134,10 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
         release(group.f);
       }
       q_strlcpy(group.name, line + q_strlen("g "), sizeof(group.name));
-      group.f = $(alloc(Vector), initWithSize, sizeof(r_obj_face_t));
+      group.f = $(alloc(Vector), initWithSize, sizeof(RenderObjFace));
     } else if (q_strncmp("f ", line, q_strlen("f ")) == 0) {
 
-      r_obj_face_t face;
+      RenderObjFace face;
       memset(&face, 0, sizeof(face));
 
       int32_t i = 0;
@@ -149,7 +149,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
           Com_Error(ERROR_DROP, "%s uses complex faces, try triangles\n", mod->media.name);
         }
 
-        r_obj_face_vertex_t *fv = &face.fv[i++];
+        RenderObjFaceVertex *fv = &face.fv[i++];
         fv->v = (uint32_t) strtoul(token + 1, &token, 10);
         if (*token == '/') {
           fv->vt = (uint32_t) strtoul(token + 1, &token, 10);
@@ -171,24 +171,24 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
     release(group.f);
   }
 
-  out->num_faces = (int32_t) obj.g->count;
-  assert(out->num_faces <= MAX_MESH_FACES);
+  out->numFaces = (int32_t) obj.g->count;
+  assert(out->numFaces <= MAX_MESH_FACES);
 
-  out->faces = Mem_LinkMalloc(out->num_faces * sizeof(r_mesh_face_t), out);
+  out->faces = Mem_LinkMalloc(out->numFaces * sizeof(RenderMeshFace), out);
 
-  for (int32_t i = 0; i < out->num_faces; i++) {
-    const r_obj_group_t *group = VectorElement(obj.g, r_obj_group_t, i);
-    r_mesh_face_t *face = out->faces + i;
+  for (int32_t i = 0; i < out->numFaces; i++) {
+    const RenderObjGroup *group = VectorElement(obj.g, RenderObjGroup, i);
+    RenderMeshFace *face = out->faces + i;
 
     q_strlcpy(face->name, group->name, sizeof(face->name));
     face->material = R_LoadMaterial(face->name, ASSET_CONTEXT_MODELS);
-    R_RegisterDependency((r_media_t *) mod, (r_media_t *) face->material);
+    R_RegisterDependency((RenderMedia *) mod, (RenderMedia *) face->material);
 
     for (size_t j = 0; j < group->f->count; j++) {
-      r_obj_face_t *f = VectorElement(group->f, r_obj_face_t, j);
+      RenderObjFace *f = VectorElement(group->f, RenderObjFace, j);
 
       for (size_t k = 0; k < lengthof(f->fv); k++) {
-        r_obj_face_vertex_t *fv = f->fv + k;
+        RenderObjFaceVertex *fv = f->fv + k;
 
         if (fv->v == 0) {
           break;
@@ -206,10 +206,10 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
           Com_Error(ERROR_DROP, "%s is missing vertex normals\n", mod->media.name);
         }
 
-        const r_mesh_vertex_t v = {
-          .position = VectorValue(obj.v, vec3_t, fv->v - 1),
-          .diffusemap = fv->vt ? VectorValue(obj.vt, vec2_t, fv->vt - 1) : Vec2_Zero(),
-          .normal = VectorValue(obj.vn, vec3_t, fv->vn - 1),
+        const RenderMeshVertex v = {
+          .position = VectorValue(obj.v, Vec3, fv->v - 1),
+          .diffusemap = fv->vt ? VectorValue(obj.vt, Vec2, fv->vt - 1) : Vec2_Zero(),
+          .normal = VectorValue(obj.vn, Vec3, fv->vn - 1),
         };
 
         fv->el = R_FindOrAppendObjVertex(face, &v);
@@ -217,9 +217,9 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
       for (size_t k = 2; k < lengthof(f->fv); k++) {
 
-        const r_obj_face_vertex_t *a = &f->fv[0];
-        const r_obj_face_vertex_t *b = &f->fv[k - 1];
-        const r_obj_face_vertex_t *c = &f->fv[k];
+        const RenderObjFaceVertex *a = &f->fv[0];
+        const RenderObjFaceVertex *b = &f->fv[k - 1];
+        const RenderObjFaceVertex *c = &f->fv[k];
 
         if (c->v == 0) {
           break;
@@ -243,19 +243,19 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");
   Com_Debug(DEBUG_RENDERER, "!R_LoadObjModel:   %s\n", mod->media.name);
-  Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->mesh->num_vertexes);
-  Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->mesh->num_elements);
-  Com_Debug(DEBUG_RENDERER, "!  Frames:         %d\n", mod->mesh->num_frames);
-  Com_Debug(DEBUG_RENDERER, "!  Tags:           %d\n", mod->mesh->num_tags);
-  Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->mesh->num_faces);
-  Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->num_animations);
+  Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->mesh->numVertexes);
+  Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->mesh->numElements);
+  Com_Debug(DEBUG_RENDERER, "!  Frames:         %d\n", mod->mesh->numFrames);
+  Com_Debug(DEBUG_RENDERER, "!  Tags:           %d\n", mod->mesh->numTags);
+  Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->mesh->numFaces);
+  Com_Debug(DEBUG_RENDERER, "!  Animations:     %d\n", mod->mesh->numAnimations);
   Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 
 /**
  * @brief The OBJ model format descriptor.
  */
-const r_model_format_t r_obj_model_format = {
+const RenderModelFormat rObjModelFormat = {
   .extension = "obj",
   .type = MODEL_MESH,
   .Load = R_LoadObjModel,

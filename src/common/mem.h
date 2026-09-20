@@ -26,14 +26,14 @@
 #include "quetoo.h"
 
 void Mem_Free(void *p);
-void Mem_FreeTag(mem_tag_t tag);
-void *Mem_TagMalloc(size_t size, mem_tag_t tag);
+void Mem_FreeTag(MemTag tag);
+void *Mem_TagMalloc(size_t size, MemTag tag);
 void *Mem_LinkMalloc(size_t size, void *parent);
 void *Mem_Malloc(size_t size);
 void *Mem_Realloc(void *p, size_t size);
 void *Mem_Link(void *child, void *parent);
 size_t Mem_Size(void);
-char *Mem_TagCopyString(const char *in, mem_tag_t tag);
+char *Mem_TagCopyString(const char *in, MemTag tag);
 char *Mem_CopyString(const char *in);
 void Mem_Check(void *p);
 
@@ -41,10 +41,10 @@ void Mem_Check(void *p);
  * @brief Struct used for return values of `Mem_Stats`
  */
 typedef struct {
-  mem_tag_t  tag; // tag
+  MemTag  tag; // tag
   size_t    size; // total size in bytes
   size_t    count; // number of blocks
-} mem_stat_t;
+} MemStat;
 
 Vector *Mem_Stats(void);
 

@@ -31,7 +31,7 @@
 /**
  * @brief The default node comparator.
  */
-static int32_t Atlas_DefaultComparator(const atlas_node_t *a, const atlas_node_t *b) {
+static int32_t Atlas_DefaultComparator(const AtlasNode *a, const AtlasNode *b) {
 
   return b->surfaces[0]->h - a->surfaces[0]->h;
 }
@@ -46,7 +46,7 @@ static int32_t Atlas_DefaultBlit(const SDL_Surface *src, SDL_Surface *dest, cons
 /**
  * @brief Destroys an atlas node.
  */
-static void Atlas_FreeNode(atlas_node_t *node) {
+static void Atlas_FreeNode(AtlasNode *node) {
 
   free(node->surfaces);
   free(node);
@@ -55,14 +55,14 @@ static void Atlas_FreeNode(atlas_node_t *node) {
 /**
  * @brief Creates a new layered atlas.
  */
-atlas_t *Atlas_Create(int32_t layers) {
+Atlas *Atlas_Create(int32_t layers) {
 
-  atlas_t *atlas = calloc(1, sizeof(*atlas));
+  Atlas *atlas = calloc(1, sizeof(*atlas));
   if (atlas) {
     atlas->layers = layers;
     assert(atlas->layers);
 
-    atlas->nodes = $(alloc(Vector), initWithSize, sizeof(atlas_node_t *));
+    atlas->nodes = $(alloc(Vector), initWithSize, sizeof(AtlasNode *));
     assert(atlas->nodes);
 
     atlas->comparator = Atlas_DefaultComparator;
@@ -79,11 +79,11 @@ atlas_t *Atlas_Create(int32_t layers) {
  * @param ... A list of layered surfaces to insert. This list must be `atlas->layers` in length.
  * @return The atlas node for the inserted surfaces.
  */
-atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
+AtlasNode *Atlas_Insert(Atlas *atlas, ...) {
 
   assert(atlas);
 
-  atlas_node_t *node = calloc(1, sizeof(*node));
+  AtlasNode *node = calloc(1, sizeof(*node));
   if (node) {
     node->surfaces = calloc(atlas->layers, sizeof(SDL_Surface *));
     assert(node->surfaces);
@@ -111,13 +111,13 @@ atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
 /**
  * @return The node for `surface` or `NULL`.
  */
-atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
+AtlasNode *Atlas_Find(Atlas *atlas, int32_t layer, SDL_Surface *surface) {
 
   assert(atlas);
   assert(atlas->layers > layer);
 
   for (size_t i = 0; i < atlas->nodes->count; i++) {
-    atlas_node_t *node = VectorValue(atlas->nodes, atlas_node_t *, i);
+    AtlasNode *node = VectorValue(atlas->nodes, AtlasNode *, i);
     if (node->surfaces[layer] == surface) {
       return node;
     }
@@ -129,14 +129,14 @@ atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
 /**
  * @brief Thread-local atlas context for node sort.
  */
-static const atlas_t *_sort_atlas;
+static const Atlas *_sort_atlas;
 
 /**
- * @brief Comparator for node sorting; receives atlas_node_t* values.
+ * @brief Comparator for node sorting; receives AtlasNode* values.
  */
 static int Atlas_NodeComparator(const ident a, const ident b) {
 
-  return _sort_atlas->comparator(*(const atlas_node_t **) a, *(const atlas_node_t **) b);
+  return _sort_atlas->comparator(*(const AtlasNode **) a, *(const AtlasNode **) b);
 }
 
 /**
@@ -149,7 +149,7 @@ static int Atlas_NodeComparator(const ident a, const ident b) {
  * @param ... The layered surfaces list to blit nodes to, which must be `atlas->layers` in length.
  * @return `0` on success, or the index of the next `start` node. `-1` on error.
  */
-int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
+int32_t Atlas_Compile(Atlas *atlas, int32_t start, ...) {
 
   assert(atlas);
   assert(atlas->comparator);
@@ -177,7 +177,7 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
   int32_t x = 0, y = 0, row = 0;
 
   for (int32_t i = start; i < (int32_t) atlas->nodes->count; i++) {
-    atlas_node_t *node = VectorValue(atlas->nodes, atlas_node_t *, i);
+    AtlasNode *node = VectorValue(atlas->nodes, AtlasNode *, i);
 
     if (node->w + 2 * p > surfaces[0]->w ||
       node->h + 2 * p > surfaces[0]->h) {
@@ -242,11 +242,11 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 /**
  * @brief Destroys `atlas`, freeing its memory.
  */
-void Atlas_Destroy(atlas_t *atlas) {
+void Atlas_Destroy(Atlas *atlas) {
 
   if (atlas) {
     for (size_t i = 0; i < atlas->nodes->count; i++) {
-      Atlas_FreeNode(VectorValue(atlas->nodes, atlas_node_t *, i));
+      Atlas_FreeNode(VectorValue(atlas->nodes, AtlasNode *, i));
     }
     release(atlas->nodes);
     free(atlas);

@@ -116,7 +116,7 @@
  */
 #define CVAR_CLI         0x1 // will retain value through initialization
 #define CVAR_ARCHIVE     0x2 // saved to quetoo.cfg
-#define CVAR_USER_INFO   0x4 // added to user_info when changed
+#define CVAR_USER_INFO   0x4 // added to userInfo when changed
 #define CVAR_SERVER_INFO 0x8 // added to server_info when changed
 #define CVAR_DEVELOPER   0x10 // don't allow change when connected
 #define CVAR_NO_SET      0x20 // don't allow change from console at all
@@ -153,7 +153,7 @@ typedef enum {
 
   MEM_TAG_TOTAL,
   MEM_TAG_ALL = -1
-} mem_tag_t;
+} MemTag;
 
 /**
  * @brief The server, game and player movement frame rate.

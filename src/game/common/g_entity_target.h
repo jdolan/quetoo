@@ -24,8 +24,8 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-bool G_ballistics(g_entity_t *ent);
-void G_target_light(g_entity_t *ent);
-void G_target_speaker(g_entity_t *ent);
-void G_target_string(g_entity_t *ent);
+bool G_ballistics(GameEntity *ent);
+void G_target_light(GameEntity *ent);
+void G_target_speaker(GameEntity *ent);
+void G_target_string(GameEntity *ent);
 #endif

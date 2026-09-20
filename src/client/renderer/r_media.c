@@ -24,22 +24,22 @@
 typedef struct {
   HashTable *media;
   int32_t seed;
-} r_media_state_t;
+} RenderMediaState;
 
-static r_media_state_t r_media_state;
+static RenderMediaState rMediaState;
 
 static Order R_EnumerateMedia_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcmp((*(const r_media_t *const *) a)->name, (*(const r_media_t *const *) b)->name);
+  const int32_t cmp = q_strcmp((*(const RenderMedia *const *) a)->name, (*(const RenderMedia *const *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 typedef struct {
   Vector *media;
-} R_EnumerateMedia_ctx_t;
+} REnumerateMediaCtx;
 
 static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident value, ident data) {
-  R_EnumerateMedia_ctx_t *ctx = data;
-  r_media_t *media = value;
+  REnumerateMediaCtx *ctx = data;
+  RenderMedia *media = value;
   $(ctx->media, add, &media);
 }
 
@@ -47,15 +47,15 @@ static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident va
  * @brief Enumerates media in key order.
  */
 void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
-  R_EnumerateMedia_ctx_t ctx = {
-    .media = $(alloc(Vector), initWithSize, sizeof(r_media_t *)),
+  REnumerateMediaCtx ctx = {
+    .media = $(alloc(Vector), initWithSize, sizeof(RenderMedia *)),
   };
 
-  $(r_media_state.media, enumerate, R_EnumerateMedia_collect, &ctx);
+  $(rMediaState.media, enumerate, R_EnumerateMedia_collect, &ctx);
   $(ctx.media, sort, R_EnumerateMedia_comparator);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
-    const r_media_t *media = VectorValue(ctx.media, r_media_t *, i);
+    const RenderMedia *media = VectorValue(ctx.media, RenderMedia *, i);
     if (enumerator) {
       enumerator(media, data);
     }
@@ -67,7 +67,7 @@ void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
 /**
  * @brief Prints one media name for `R_ListMedia_f`.
  */
-static void R_ListMedia_enumerator(const r_media_t *media, void *data) {
+static void R_ListMedia_enumerator(const RenderMedia *media, void *data) {
   Com_Print("%s\n", media->name);
 }
 
@@ -81,7 +81,7 @@ void R_ListMedia_f(void) {
 /**
  * @brief Registers a dependency for a media object.
  */
-r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
+RenderMedia *R_RegisterDependency(RenderMedia *dependent, RenderMedia *dependency) {
 
   assert(dependent);
   assert(dependency);
@@ -100,23 +100,23 @@ r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 /**
  * @brief Registers a media object and its dependencies.
  */
-r_media_t *R_RegisterMedia(r_media_t *media) {
+RenderMedia *R_RegisterMedia(RenderMedia *media) {
 
   assert(media);
 
-  if (media->seed != r_media_state.seed) {
-    r_media_t *other = $(r_media_state.media, get, media);
+  if (media->seed != rMediaState.seed) {
+    RenderMedia *other = $(rMediaState.media, get, media);
 
     if (other) {
       if (other != media) {
         R_FreeMedia(other);
-        $(r_media_state.media, set, media, media);
+        $(rMediaState.media, set, media, media);
       }
     } else {
-      $(r_media_state.media, set, media, media);
+      $(rMediaState.media, set, media, media);
     }
 
-    media->seed = r_media_state.seed;
+    media->seed = rMediaState.seed;
   }
 
   if (media->Register) {
@@ -124,7 +124,7 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
   }
 
   for (const ListNode *node = media->dependencies ? media->dependencies->head : NULL; node; node = node->next) {
-    R_RegisterMedia((r_media_t *) node->element);
+    R_RegisterMedia((RenderMedia *) node->element);
   }
 
   return media;
@@ -133,15 +133,15 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
 /**
  * @brief Finds and re-registers a named media object.
  */
-r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
+RenderMedia *R_FindMedia(const char *name, RenderMediaType type) {
 
-  r_media_t lookup = {
+  RenderMedia lookup = {
     .type = type
   };
   
   q_strlcpy(lookup.name, name, sizeof(lookup.name));
 
-  r_media_t *media = $(r_media_state.media, get, &lookup);
+  RenderMedia *media = $(rMediaState.media, get, &lookup);
   if (media) {
     R_RegisterMedia(media);
   }
@@ -152,13 +152,13 @@ r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
 /**
  * @brief Allocates a media object with the specified name.
  */
-r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
+RenderMedia *R_AllocMedia(const char *name, size_t size, RenderMediaType type) {
 
   if (!name || !*name) {
     Com_Error(ERROR_DROP, "NULL name\n");
   }
 
-  r_media_t *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
+  RenderMedia *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
 
   q_strlcpy(media->name, name, sizeof(media->name));
   media->type = type;
@@ -169,10 +169,10 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 /**
  * @brief Frees media when forced or when it is stale and unretained.
  */
-static bool R_FreeMedia_(r_media_t *media, void *data) {
+static bool R_FreeMedia_(RenderMedia *media, void *data) {
 
   if (!data) {
-    if (media->seed == r_media_state.seed) {
+    if (media->seed == rMediaState.seed) {
       return false;
     }
 
@@ -193,11 +193,11 @@ static bool R_FreeMedia_(r_media_t *media, void *data) {
 typedef struct {
   Vector *media;
   void *data;
-} R_FreeMedia_ctx_t;
+} RFreeMediaCtx;
 
 static void R_FreeMedia_collect(const HashTable *table, ident key, ident value, ident data) {
-  R_FreeMedia_ctx_t *ctx = data;
-  r_media_t *media = value;
+  RFreeMediaCtx *ctx = data;
+  RenderMedia *media = value;
 
   if (R_FreeMedia_(media, ctx->data)) {
     $(ctx->media, add, &media);
@@ -205,16 +205,16 @@ static void R_FreeMedia_collect(const HashTable *table, ident key, ident value, 
 }
 
 static void R_FreeMediaEntries(void *data) {
-  R_FreeMedia_ctx_t ctx = {
-    .media = $(alloc(Vector), initWithSize, sizeof(r_media_t *)),
+  RFreeMediaCtx ctx = {
+    .media = $(alloc(Vector), initWithSize, sizeof(RenderMedia *)),
     .data = data,
   };
 
-  $(r_media_state.media, enumerate, R_FreeMedia_collect, &ctx);
+  $(rMediaState.media, enumerate, R_FreeMedia_collect, &ctx);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
-    r_media_t *media = VectorValue(ctx.media, r_media_t *, i);
-    $(r_media_state.media, remove, media);
+    RenderMedia *media = VectorValue(ctx.media, RenderMedia *, i);
+    $(rMediaState.media, remove, media);
   }
 
   release(ctx.media);
@@ -223,11 +223,11 @@ static void R_FreeMediaEntries(void *data) {
 /**
  * @brief Frees the specified media immediately.
  */
-void R_FreeMedia(r_media_t *media) {
+void R_FreeMedia(RenderMedia *media) {
 
   R_FreeMedia_(media, (void *) 1);
 
-  $(r_media_state.media, remove, media);
+  $(rMediaState.media, remove, media);
 }
 
 /**
@@ -238,9 +238,9 @@ void R_BeginLoading(void) {
 
   do {
     s = Randomi();
-  } while (s == r_media_state.seed);
+  } while (s == rMediaState.seed);
 
-  r_media_state.seed = s;
+  rMediaState.seed = s;
 }
 
 /**
@@ -253,7 +253,7 @@ void R_EndLoading(void) {
 
   R_FreeMediaEntries(NULL);
 
-  $(r_context.device, waitForIdle);
+  $(rContext.device, waitForIdle);
 
   R_LoadOcclusionQueries();
 
@@ -264,7 +264,7 @@ void R_EndLoading(void) {
  * @brief Computes the hash value for a media entry by name and type.
  */
 static size_t R_MediaHash(const void * key) {
-  const r_media_t *media = key;
+  const RenderMedia *media = key;
   uint32_t hash = 5381;
 
   for (const char *c = media->name; *c; c++) {
@@ -278,7 +278,7 @@ static size_t R_MediaHash(const void * key) {
  * @brief Tests whether two media entries are equal by type and name.
  */
 static bool R_MediaEqual(const void * a, const void * b) {
-  const r_media_t *_a = a, *_b = b;
+  const RenderMedia *_a = a, *_b = b;
 
   if (_a->type == _b->type) {
     return !q_strcmp(_a->name, _b->name);
@@ -292,10 +292,10 @@ static bool R_MediaEqual(const void * a, const void * b) {
  */
 void R_InitMedia(void) {
 
-  memset(&r_media_state, 0, sizeof(r_media_state));
+  memset(&rMediaState, 0, sizeof(rMediaState));
 
-  r_media_state.media = $(alloc(HashTable), init, (HashTableHashFunc) R_MediaHash, (HashTableEqualFunc) R_MediaEqual);
-  r_media_state.media->destroyValue = Mem_Free;
+  rMediaState.media = $(alloc(HashTable), init, (HashTableHashFunc) R_MediaHash, (HashTableEqualFunc) R_MediaEqual);
+  rMediaState.media->destroyValue = Mem_Free;
 
   R_BeginLoading();
 }
@@ -307,5 +307,5 @@ void R_ShutdownMedia(void) {
 
   R_FreeMediaEntries((void *) 1);
 
-  r_media_state.media = release(r_media_state.media);
+  rMediaState.media = release(rMediaState.media);
 }

@@ -101,7 +101,7 @@ static View *init(View *self) {
  * @brief Joins the tail of `console` into `text`. Con_Wrap opens each line in its own color, so
  * nothing carries between them.
  */
-static void tail(const console_t *console, size_t height, Text *text) {
+static void tail(const Console *console, size_t height, Text *text) {
 
   if (height == 0) {
     $(text, setText, NULL);
@@ -155,7 +155,7 @@ static size_t escapeCarets(const char *s, size_t count, char *out, size_t size) 
  * @brief The input line: the prompt in `esc`, the buffer scrolled to keep the cursor in view,
  * and the cursor at the insertion point. Typed carets are literal, not color escapes.
  */
-static void inputLine(const console_t *console, int32_t esc, Text *text) {
+static void inputLine(const Console *console, int32_t esc, Text *text) {
 
   const char *s = console->input.buffer;
   size_t pos = console->input.pos;
@@ -194,14 +194,14 @@ static void update(ConsoleView *self, int32_t height) {
     return;
   }
 
-  cl_console.width = Maxi(frame.w / ch.w, 2);
-  cl_console.height = Maxi(height / ch.h - 1, 0);
+  clConsole.width = Maxi(frame.w / ch.w, 2);
+  clConsole.height = Maxi(height / ch.h - 1, 0);
 
   if (view->frame.h != height) {
     $(view, resize, &MakeSize(view->frame.w, height));
   }
 
-  const Uint8 alpha = (Uint8) (Clampf01(cl_draw_console_background_alpha->value) * 255);
+  const Uint8 alpha = (Uint8) (Clampf01(cl_drawConsoleBackgroundAlpha->value) * 255);
 
   // the image is named rather than loaded, so it is absent until this View is in a window, and
   // stays absent if the asset is missing; either way the plain background colour stands in
@@ -228,8 +228,8 @@ static void update(ConsoleView *self, int32_t height) {
     $(view, invalidateStyle);
   }
 
-  tail(&cl_console, cl_console.height, self->buffer);
-  inputLine(&cl_console, ESC_COLOR_GREEN, self->input);
+  tail(&clConsole, clConsole.height, self->buffer);
+  inputLine(&clConsole, ESC_COLOR_GREEN, self->input);
 
   self->input->view.frame.x = 1;
   self->input->view.frame.y = height - ch.h;

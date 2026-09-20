@@ -34,7 +34,7 @@ typedef enum {
   ASSET_CONTEXT_SPRITES,
   ASSET_CONTEXT_SOUNDS,
   ASSET_CONTEXT_UI
-} asset_context_t;
+} AssetContext;
 
 /**
  * @brief A named asset with a resolved file path.
@@ -50,9 +50,9 @@ typedef struct {
    * @brief The resolved filesystem path, or empty if unresolved.
    */
   char path[MAX_QPATH];
-} asset_t;
+} Asset;
 
 /**
  * @brief Prepends the context prefix to a name if not already present.
  */
-void Asset_Path(const char *name, char *out, size_t len, asset_context_t context);
+void Asset_Path(const char *name, char *out, size_t len, AssetContext context);

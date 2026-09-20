@@ -104,7 +104,7 @@ typedef enum {
    * @brief Restarts the current animation sequence.
    */
   ANIM_TOGGLE_BIT = (1 << 7)
-} entity_animation_t;
+} EntityAnimation;
 
 /**
  * @brief Entity events are instantaneous, transpiring at an entity's origin
@@ -114,7 +114,7 @@ typedef enum {
 typedef enum {
   EV_NONE,
   EV_GAME, // the game may extend from here
-} entity_event_t;
+} EntityEvent;
 
 /**
  * @brief Entity state effects are a bit mask used to combine common effects
@@ -132,11 +132,11 @@ typedef enum {
 typedef enum {
   TRAIL_NONE,
   TRAIL_GAME, // the game may extend from here
-} entity_trail_t;
+} EntityTrail;
 
 /**
  * @brief Entity bounds are to be handled by the protocol based on
- * `entity_state_t`.solid`. Box entities encode their bounds into a 16 bit
+ * `EntityState`.solid`. Box entities encode their bounds into a 16 bit
  * integer. The rest simply send their respective constant.
  */
 typedef enum {
@@ -147,7 +147,7 @@ typedef enum {
   SOLID_BOX, // boxes collide with the world and other boxes
   SOLID_BSP, // inline models interact just like the static world
   SOLID_EDITOR, // entity is a placeholder for the in-game editor
-} solid_t;
+} Solid;
 
 /**
  * @brief Entity states are transmitted by the server to the client using delta
@@ -164,22 +164,22 @@ typedef struct {
   /**
    * @brief Spawn identifier; changes when an entity slot is reused for a new entity.
    */
-  uint8_t spawn_id;
+  uint8_t spawnId;
 
   /**
    * @brief World-space position of the entity.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief Far end of a beam entity.
    */
-  vec3_t termination;
+  Vec3 termination;
 
   /**
    * @brief Euler orientation angles.
    */
-  vec3_t angles;
+  Vec3 angles;
 
   /**
    * @brief Primary and secondary animation sequence identifiers.
@@ -187,14 +187,14 @@ typedef struct {
   uint8_t animation1, animation2;
 
   /**
-   * @brief Instantaneous entity event (`entity_event_t`) for this frame.
+   * @brief Instantaneous entity event (`EntityEvent`) for this frame.
    */
   uint8_t event;
 
   /**
    * @brief Optional event payload byte (event-specific semantics).
    */
-  uint8_t event_data;
+  uint8_t eventData;
 
   /**
    * @brief Bit mask of active visual effects (`EF_ROTATE`, `EF_BOB`, etc.).
@@ -202,7 +202,7 @@ typedef struct {
   uint32_t effects;
 
   /**
-   * @brief Trail effect identifier (`entity_trail_t`).
+   * @brief Trail effect identifier (`EntityTrail`).
    */
   uint8_t trail;
 
@@ -214,7 +214,7 @@ typedef struct {
   /**
    * @brief Entity tint color.
    */
-  color32_t color;
+  Color32 color;
 
   /**
    * @brief Client info index, used to look up player skins and names.
@@ -234,13 +234,13 @@ typedef struct {
   /**
    * @brief Bounding box for mesh entities, enabling client-side collision prediction.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief Vertical position offset from stair-step interpolation.
    */
-  int8_t step_offset;
-} entity_state_t;
+  int8_t stepOffset;
+} EntityState;
 
 /**
  * @brief Some constants for the hook movement
@@ -258,7 +258,7 @@ typedef enum {
   WATER_FEET,
   WATER_WAIST,
   WATER_UNDER
-} pm_water_level_t;
+} PlayerMoveWaterLevel;
 
 /**
  * @brief General player movement and capabilities classification.
@@ -271,7 +271,7 @@ typedef enum {
   PM_SPECTATOR, // free-flying movement with acceleration and friction
   PM_DEAD, // no movement, but the ability to rotate in place
   PM_FREEZE // no movement at all
-} pm_type_t;
+} PlayerMoveType;
 
 /**
  * @brief Player movement flags. The game is free to define up to 16 bits.
@@ -280,7 +280,7 @@ typedef enum {
 
 /**
  * @brief Server-tunable player-movement parameters, networked per-player
- * inside `pm_state_t` so that client-side prediction matches the server.
+ * inside `PlayerMoveState` so that client-side prediction matches the server.
  * Each field defaults to the `PM_*` constant it replaces (see bg_pmove.h).
  * @details Being per-player is the point: a class-based mod gives each class
  * its own movement, and a mod with several rulesets gives each player the one
@@ -288,37 +288,37 @@ typedef enum {
  */
 typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
-  uint8_t movement;    // which movement Pm_Move runs; a pm_movement_t, see bg_pmove.h
+  uint8_t movement;    // which movement Pm_Move runs; a PlayerMovement, see bg_pmove.h
 
-  float accel_ground, accel_ground_slick, accel_air, accel_water,
-        accel_spectator, accel_ladder;
+  float accelGround, accelGroundSlick, accelAir, accelWater,
+        accelSpectator, accelLadder;
 
-  float friction_ground, friction_ground_slick, friction_air, friction_water,
-        friction_spectator, friction_ladder;
+  float frictionGround, frictionGroundSlick, frictionAir, frictionWater,
+        frictionSpectator, frictionLadder;
 
-  float speed_ground, speed_air, speed_water, speed_ladder, speed_spectator,
-        speed_stop, speed_jump, speed_ducked, speed_duck_stand, speed_water_jump;
+  float speedGround, speedAir, speedWater, speedLadder, speedSpectator,
+        speedStop, speedJump, speedDucked, speedDuckStand, speedWaterJump;
 
-  box3_t bounds, bounds_ducked, bounds_dead;
-} pm_params_t;
+  Box3 bounds, boundsDucked, boundsDead;
+} PlayerMoveParams;
 
 /**
  * @brief This layout is the wire format. `Net_WriteDeltaPlayerState` sends
- * `gravity` and `movement` on their own bits, and everything from `accel_ground`
+ * `gravity` and `movement` on their own bits, and everything from `accelGround`
  * on as one block of `PM_PARAMS_FLOATS` floats, compared with one `memcmp` and
  * written in a loop. So `movement` must keep sitting in the padding `gravity`
  * leaves, or the block moves; and the block must hold nothing but floats, or
  * the loop sends padding as a parameter. Add a float at the end and the count
- * follows; the boxes qualify only because a `box3_t` is six plain floats.
+ * follows; the boxes qualify only because a `Box3` is six plain floats.
  */
-#define PM_PARAMS_FLOATS ((sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground)) / sizeof(float))
+#define PM_PARAMS_FLOATS ((sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) / sizeof(float))
 
-_Static_assert(offsetof(pm_params_t, accel_ground) == sizeof(float),
-               "pm_params_t.movement must fit in the padding after gravity");
-_Static_assert(offsetof(pm_params_t, bounds_dead) + sizeof(box3_t) == sizeof(pm_params_t),
-               "pm_params_t must not end in padding, which the block would carry");
-_Static_assert(sizeof(box3_t) == 6 * sizeof(float),
-               "box3_t must be six floats for pm_params_t to travel");
+_Static_assert(offsetof(PlayerMoveParams, accelGround) == sizeof(float),
+               "PlayerMoveParams.movement must fit in the padding after gravity");
+_Static_assert(offsetof(PlayerMoveParams, boundsDead) + sizeof(Box3) == sizeof(PlayerMoveParams),
+               "PlayerMoveParams must not end in padding, which the block would carry");
+_Static_assert(sizeof(Box3) == 6 * sizeof(float),
+               "Box3 must be six floats for PlayerMoveParams to travel");
 
 /**
  * @brief The player movement state contains quantized snapshots of player
@@ -326,19 +326,19 @@ _Static_assert(sizeof(box3_t) == 6 * sizeof(float),
  * be modified only through invoking `Pm_Move`.
  */
 typedef struct {
-  pm_type_t type;
-  vec3_t origin;
-  vec3_t velocity;
+  PlayerMoveType type;
+  Vec3 origin;
+  Vec3 velocity;
   uint16_t flags; // game-specific state flags
   uint16_t time; // duration for temporal state flags
-  pm_params_t params; // server-tunable movement parameters (incl. gravity)
-  vec3_t view_offset; // add to origin to resolve eyes
-  float step_offset; // add to final origin to resolve step interpolation
-  vec3_t view_angles; // base view angles
-  vec3_t delta_angles; // offset for spawns, pushers, etc.
-  vec3_t hook_position; // position we're hooking to
-  uint16_t hook_length; // length of the hook, for swing hook
-} pm_state_t;
+  PlayerMoveParams params; // server-tunable movement parameters (incl. gravity)
+  Vec3 viewOffset; // add to origin to resolve eyes
+  float stepOffset; // add to final origin to resolve step interpolation
+  Vec3 viewAngles; // base view angles
+  Vec3 deltaAngles; // offset for spawns, pushers, etc.
+  Vec3 hookPosition; // position we're hooking to
+  uint16_t hookLength; // length of the hook, for swing hook
+} PlayerMoveState;
 
 /**
  * @brief The max number of generic stats the server can communicate to a client.
@@ -351,7 +351,7 @@ typedef struct {
 #define MAX_STAT_BITS 32
 
 /**
- * @brief The number of inventory slots in `player_state_t`. Must match `ITEM_TOTAL` in `bg_item`.h`.
+ * @brief The number of inventory slots in `PlayerState`. Must match `ITEM_TOTAL` in `bg_item`.h`.
  */
 #define MAX_INVENTORY 64
 
@@ -361,7 +361,7 @@ typedef struct {
  * etc.). The game module is free to define what the stats array actually
  * contains.
  */
-typedef struct player_state_s {
+typedef struct PlayerState {
 
   /**
    * @brief Client index for this player.
@@ -376,7 +376,7 @@ typedef struct player_state_s {
   /**
    * @brief Quantized player movement state snapshot.
    */
-  pm_state_t pm_state;
+  PlayerMoveState pmState;
 
   /**
    * @brief Game-defined statistics array (health, ammo, scores, etc.).
@@ -384,11 +384,11 @@ typedef struct player_state_s {
   int16_t stats[MAX_STATS];
 
   /**
-   * @brief Tag-indexed inventory counts. Index by `g_item_tag_t`; 0 = not carried.
+   * @brief Tag-indexed inventory counts. Index by `GameItemTag`; 0 = not carried.
    * Health items are not stored here (they modify entity health directly).
    */
   int16_t inventory[MAX_INVENTORY];
-} player_state_t;
+} PlayerState;
 
 /*
  * KEY BUTTONS
@@ -407,25 +407,25 @@ typedef enum {
   BUTTON_STATE_HELD = (1 << 0),
   BUTTON_STATE_DOWN = (1 << 1),
   BUTTON_STATE_UP   = (1 << 2)
-} button_state_t;
+} InputButtonState;
 
 typedef struct {
   uint32_t keys[2]; // keys holding it down
-  uint32_t down_time; // msec timestamp
+  uint32_t downTime; // msec timestamp
   uint32_t msec; // msec down this frame
-  button_state_t state;
-} button_t;
+  InputButtonState state;
+} InputButton;
 
 /**
  * @brief Player movement commands, sent to the server at each client frame.
  */
 typedef struct {
   uint8_t msec; // duration of the command, in milliseconds
-  vec3_t angles; // the final view angles for this command
+  Vec3 angles; // the final view angles for this command
   int16_t forward, right, up; // directional intentions
   uint8_t buttons; // bit mask of buttons down
-  vec3_t muzzle; // player-relative muzzle offset, sent with +attack commands
-} pm_cmd_t;
+  Vec3 muzzle; // player-relative muzzle offset, sent with +attack commands
+} PlayerMoveCmd;
 
 /**
  * @brief Autocomplete function definition. You must fill "matches"
@@ -442,32 +442,32 @@ typedef void (*AutocompleteFunc)(const uint32_t argi, List *matches);
 /**
  * @brief Console variables hold mutable scalars and strings.
  */
-typedef struct cvar_s {
+typedef struct Cvar {
   const char *name;
-  const char *default_string;
+  const char *defaultString;
   char *string;
-  char *latched_string; // for CVAR_LATCH vars
+  char *latchedString; // for CVAR_LATCH vars
   float value;
   int32_t integer;
   uint32_t flags;
   const char *description;
   bool modified; // set each time the cvar is changed
   AutocompleteFunc Autocomplete;
-} cvar_t;
+} Cvar;
 
 typedef void (*CmdExecuteFunc)(void);
 
 /**
  * @brief Console commands provide a scripting environment for users.
  */
-typedef struct cmd_s {
+typedef struct Cmd {
   const char *name;
   const char *description;
   CmdExecuteFunc Execute;
   AutocompleteFunc Autocomplete;
   const char *commands; // for alias commands
   uint32_t flags;
-} cmd_t;
+} Cmd;
 
 /**
  * @brief Server multicast scope for entities and events.
@@ -479,7 +479,7 @@ typedef enum {
   MULTICAST_ALL_R,
   MULTICAST_PHS_R,
   MULTICAST_PVS_R
-} multicast_t;
+} Multicast;
 
 /**
  * @brief Server protocol commands. The game and client game module are free
@@ -500,7 +500,7 @@ typedef enum {
   SV_CMD_CHAT, // [byte] speaker [byte] flags [string] message; flags are the game's
   SV_CMD_VOICE, // [byte] speaker [byte] seq [byte] flags [pos] origin [byte] len [data]
   SV_CMD_CGAME, // the game may extend from here
-} sv_packet_cmd_t;
+} ServerPacketCmd;
 
 /**
  * @brief The largest Opus payload accepted for one voice frame. Generous for 20ms of speech at any
@@ -525,14 +525,14 @@ typedef enum {
   CL_CMD_ENTITY_INFO, // [short] number [entity_info_string]
   CL_CMD_VOICE, // [byte] channel [byte] seq [byte] flags [byte] len [data]; the channel is the game's
   CL_CMD_CGAME, // the game may extend from here
-} cl_packet_cmd_t;
+} ClientPacketCmd;
 
 /**
  * @brief A table of approximate normal vectors is used to save bandwidth when
  * transmitting entity angles, which would otherwise require 12 bytes.
  */
 #define NUM_APPROXIMATE_NORMALS 162
-extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
+extern const Vec3 approximateNormals[NUM_APPROXIMATE_NORMALS];
 
 /**
  * @brief String manipulation functions.
@@ -540,9 +540,9 @@ extern const vec3_t approximate_normals[NUM_APPROXIMATE_NORMALS];
 typedef enum {
   GLOB_FLAGS_NONE = 0,
   GLOB_CASE_INSENSITIVE = (1 << 0)
-} glob_flags_t;
+} GlobFlags;
 
-bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
+bool GlobMatch(const char *pattern, const char *text, const GlobFlags flags);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripExtension(const char *in, char *out);
@@ -553,14 +553,14 @@ void StripExtension(const char *in, char *out);
 #define ESC_EMOJI           ':'
 
 bool StrIsEmoji(const char *s);
-color_t ColorEsc(int32_t esc);
-const char *EmojiEsc(const char *in, char *out, size_t out_size);
+Color ColorEsc(int32_t esc);
+const char *EmojiEsc(const char *in, char *out, size_t outSize);
 
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
-char *vtos(const vec3_t v);
+char *vtos(const Vec3 v);
 
 /**
- * @brief A convenience macro for printing `g_entity_t` pointers in debug messages.
+ * @brief A convenience macro for printing `GameEntity` pointers in debug messages.
  */
 #define etos(e) ((e) ? va("%u: %s @ %s", (e)->s.number, (e)->classname, vtos((e)->s.origin)) : "null")
 
@@ -581,7 +581,7 @@ bool InfoString_Validate(const char *s);
 /**
  * @brief The type of an AI node.
  */
-typedef uint16_t ai_node_id_t;
+typedef uint16_t AiNodeId;
 
 /**
  * @brief Default filesystem initialization flags.
@@ -597,7 +597,7 @@ typedef uint16_t ai_node_id_t;
 
 typedef struct {
   void *opaque;
-} file_t;
+} File;
 
 typedef void (*Fs_Enumerator)(const char *path, void *data);
 
@@ -626,4 +626,4 @@ typedef enum {
 
   DEBUG_BREAKPOINT = (int32_t) (1u << 31),
   DEBUG_ALL        = (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),
-} debug_t;
+} DebugFlags;

@@ -24,11 +24,11 @@
 #include "common/asset.h"
 #include "r_types.h"
 
-r_material_t *R_LoadMaterial(const char *name, asset_context_t context);
+RenderMaterial *R_LoadMaterial(const char *name, AssetContext context);
 
 #if defined(__R_LOCAL_H__)
 
-r_material_t *R_FindMaterial(const char *name, asset_context_t context);
+RenderMaterial *R_FindMaterial(const char *name, AssetContext context);
 void R_SaveMaterials_f(void);
 
 /**
@@ -48,7 +48,7 @@ typedef enum {
   R_SAMPLER_STAGE,
   R_SAMPLER_STAGE_NEXT,
   R_SAMPLER_MATERIAL_TOTAL,
-} r_material_sampler_t;
+} RenderMaterialSampler;
 
 /**
  * @brief Shared material storage buffer binding slots.
@@ -59,21 +59,21 @@ typedef enum {
   R_STORAGE_VOXEL_LIGHT_DATA,
   R_STORAGE_VOXEL_LIGHT_INDICES,
   R_STORAGE_MATERIAL_TOTAL,
-} r_material_storage_t;
+} RenderMaterialStorage;
 
 /**
  * @brief Per-draw material and stage uniforms.
  */
 typedef struct {
-  alignas(16) vec4_t color;
-  vec2_t st_origin;
-  vec2_t stretch;
-  vec2_t scroll;
-  vec2_t scale;
-  vec2_t terrain;
-  vec2_t warp;
+  alignas(16) Vec4 color;
+  Vec2 stOrigin;
+  Vec2 stretch;
+  Vec2 scroll;
+  Vec2 scale;
+  Vec2 terrain;
+  Vec2 warp;
   int32_t surface;
-  float alpha_test;
+  float alphaTest;
   float roughness;
   float hardness;
   float specularity;
@@ -88,20 +88,20 @@ typedef struct {
   float emissive;
   float lerp;
   float shell;
-} r_material_uniforms_t;
+} RenderMaterialUniforms;
 
-void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out);
+void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out);
 
-bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
-                     const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
-                     r_material_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next);
+bool R_StageUniforms(const RenderView *view, const RenderEntity *entity,
+                     const RenderBspDrawElements *draw, const RenderStage *stage,
+                     RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **textureNext);
 
 /**
  * @brief Mesh material uniforms, including tint colors.
  */
 typedef struct {
-  r_material_uniforms_t material;
-  vec4_t tint_colors[TINT_TOTAL];
-} r_mesh_material_uniforms_t;
+  RenderMaterialUniforms material;
+  Vec4 tintColors[TINT_TOTAL];
+} RenderMeshMaterialUniforms;
 
 #endif

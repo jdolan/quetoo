@@ -24,5 +24,5 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self);
+void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self);
 #endif

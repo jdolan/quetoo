@@ -104,14 +104,14 @@ extern ConfigureLevel G_ConfigureLevel;
 /**
  * @brief Indexes the models and sounds the module needs for the level ahead.
  * @details The whole of the deathmatch media is the default; a feature indexes
- * its own on top, and keeps the indices itself rather than growing `g_media`.
+ * its own on top, and keeps the indices itself rather than growing `gMedia`.
  */
 typedef void (*InitMedia)(void);
 
 extern InitMedia G_InitMedia;
 
 /**
- * @brief The level is about to be spawned: `g_level` is reset and named, the
+ * @brief The level is about to be spawned: `gLevel` is reset and named, the
  * previous level's entities are about to be freed, and nothing of the new one,
  * not even the worldspawn, exists yet. A feature that layers per-level
  * settings over cvars the worldspawn reads does so here.
@@ -130,7 +130,7 @@ extern LevelWillSpawn G_LevelWillSpawn;
  * without consulting the chain.
  * @return True if the entity was initialized.
  */
-typedef bool (*InitEntity)(g_entity_t *ent);
+typedef bool (*InitEntity)(GameEntity *ent);
 
 extern InitEntity G_InitEntity;
 
@@ -147,7 +147,7 @@ extern InitEntity G_InitEntity;
  * @details Arena and instagib withhold everything by default. A feature whose
  * items are the point of the level, such as the flags, exempts its own.
  */
-typedef bool (*InhibitItem)(const g_entity_t *ent);
+typedef bool (*InhibitItem)(const GameEntity *ent);
 
 extern InhibitItem G_InhibitItem;
 
@@ -158,7 +158,7 @@ extern InhibitItem G_InhibitItem;
  * type it does not recognise, so a feature bringing its own item type MUST
  * install ahead of it and answer for that type rather than deferring.
  */
-typedef void (*InitItem)(g_item_t *it);
+typedef void (*InitItem)(GameItem *it);
 
 extern InitItem G_InitItem;
 
@@ -168,7 +168,7 @@ extern InitItem G_InitItem;
  * @details A plain deathmatch module frees it. A module with flags returns them
  * to their base instead, and one with techs respawns them.
  */
-typedef void (*ResetDroppedItem)(g_entity_t *ent);
+typedef void (*ResetDroppedItem)(GameEntity *ent);
 
 extern ResetDroppedItem G_ResetDroppedItem;
 
@@ -179,7 +179,7 @@ extern ResetDroppedItem G_ResetDroppedItem;
  * that has more to say about its own items installs over the top. Anything it
  * changes after deferring to previous MUST be linked again, because previous links.
  */
-typedef void (*ResetItem)(g_entity_t *ent);
+typedef void (*ResetItem)(GameEntity *ent);
 
 extern ResetItem G_ResetItem;
 
@@ -198,7 +198,7 @@ extern ResetItem G_ResetItem;
  * then gives; a mode with no weapons at all does not defer to previous. The
  * tail lives in g_client.c, beside the spawn.
  */
-typedef void (*InitInventory)(g_client_t *cl);
+typedef void (*InitInventory)(GameClient *cl);
 
 extern InitInventory G_InitInventory;
 
@@ -214,7 +214,7 @@ extern InitInventory G_InitInventory;
  * handing a name back to the item list finds the first of them and not the one
  * being carried.
  */
-typedef const g_item_t *(*ResolveInventoryItem)(g_client_t *cl, const char *name);
+typedef const GameItem *(*ResolveInventoryItem)(GameClient *cl, const char *name);
 
 extern ResolveInventoryItem G_ResolveInventoryItem;
 
@@ -225,7 +225,7 @@ extern ResolveInventoryItem G_ResolveInventoryItem;
  * each add their own, which is why this is a chain rather than a list of calls
  * in whichever command happens to need it.
  */
-typedef void (*TossInventory)(g_client_t *cl);
+typedef void (*TossInventory)(GameClient *cl);
 
 extern TossInventory G_TossInventory;
 
@@ -254,7 +254,7 @@ extern TossInventory G_TossInventory;
  * is the world entity when the attack had none.
  * @return False to abort the attack.
  */
-typedef bool (*ModifyDamage)(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback);
+typedef bool (*ModifyDamage)(GameEntity *target, GameEntity *attacker, int32_t *damage, int32_t *knockback);
 
 extern ModifyDamage G_ModifyDamage;
 
@@ -272,7 +272,7 @@ extern ModifyDamage G_ModifyDamage;
  * takes the movement over, as the grapple does while pulling, sets the move type
  * and the velocity it wants and does not defer to previous.
  */
-typedef void (*PrepareMove)(g_client_t *cl, pm_move_t *pm);
+typedef void (*PrepareMove)(GameClient *cl, PlayerMove *pm);
 
 extern PrepareMove G_PrepareMove;
 
@@ -288,7 +288,7 @@ extern PrepareMove G_PrepareMove;
  * `Sv_Trace` and `Cl_Trace`, and speculative traces such as the bots' lookahead
  * run it many times for a move that never happens.
  */
-typedef bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent);
+typedef bool (*ClipEntity)(const GameEntity *mover, const GameEntity *ent);
 
 extern ClipEntity G_ClipEntity;
 
@@ -301,7 +301,7 @@ extern ClipEntity G_ClipEntity;
  * for its cases and defers to previous.
  * @return True if the client may hook.
  */
-typedef bool (*AllowHook)(const g_client_t *cl);
+typedef bool (*AllowHook)(const GameClient *cl);
 
 extern AllowHook G_AllowHook;
 #endif
@@ -357,7 +357,7 @@ extern AllowNextMap G_AllowNextMap;
  * owns and defers to previous for the rest.
  * @return True if the vote may be called.
  */
-typedef bool (*PrepareVote)(const g_client_t *cl, const char *type, const char *arg, char *canonical, size_t size);
+typedef bool (*PrepareVote)(const GameClient *cl, const char *type, const char *arg, char *canonical, size_t size);
 
 extern PrepareVote G_PrepareVote;
 
@@ -380,7 +380,7 @@ extern ApplyVote G_ApplyVote;
  * @details A single owner, like `CheckWinner`: a module that plays exactly one
  * mode replaces this outright rather than qualifying whatever it was handed.
  */
-typedef g_gameplay_id_t (*ClampGameplay)(g_gameplay_id_t gameplay);
+typedef GameplayId (*ClampGameplay)(GameplayId gameplay);
 
 extern ClampGameplay G_ClampGameplay;
 
@@ -417,18 +417,18 @@ typedef struct {
    * origin is the floor, as a spawn point's is; `PM_STEP_HEIGHT` is added once
    * the chain has run.
    */
-  vec3_t origin, angles;
+  Vec3 origin, angles;
 
   /**
    * @brief The clip mask the client's entity moves with.
    */
-  int32_t clip_mask;
+  int32_t clipMask;
 
   /**
    * @brief Whether whatever occupies the spawn is telefragged.
    */
-  bool kill_box;
-} g_client_spawn_t;
+  bool killBox;
+} GameClientSpawn;
 
 /**
  * @brief Adjusts where and how a client spawns, after the spawn point has been
@@ -436,7 +436,7 @@ typedef struct {
  * @details Chainable. A feature that spawns players somewhere of its own, or
  * lets them pass through each other, edits `spawn` and calls previous.
  */
-typedef void (*PrepareSpawn)(g_client_t *cl, g_client_spawn_t *spawn);
+typedef void (*PrepareSpawn)(GameClient *cl, GameClientSpawn *spawn);
 
 extern PrepareSpawn G_PrepareSpawn;
 
@@ -444,7 +444,7 @@ extern PrepareSpawn G_PrepareSpawn;
  * @brief The client is about to enter the game: nothing of their entity exists yet.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillBegin)(g_client_t *cl);
+typedef void (*ClientWillBegin)(GameClient *cl);
 
 extern ClientWillBegin G_ClientWillBegin;
 
@@ -452,16 +452,16 @@ extern ClientWillBegin G_ClientWillBegin;
  * @brief The client has entered the game: their entity exists and is placed.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidBegin)(g_client_t *cl);
+typedef void (*ClientDidBegin)(GameClient *cl);
 
 extern ClientDidBegin G_ClientDidBegin;
 
 /**
  * @brief The client's user info is about to be applied: `cl->persistent` still
- * holds what it held, and `user_info` what they sent, unvalidated.
+ * holds what it held, and `userInfo` what they sent, unvalidated.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillChangeUserInfo)(g_client_t *cl, const char *user_info);
+typedef void (*ClientWillChangeUserInfo)(GameClient *cl, const char *userInfo);
 
 extern ClientWillChangeUserInfo G_ClientWillChangeUserInfo;
 
@@ -470,7 +470,7 @@ extern ClientWillChangeUserInfo G_ClientWillChangeUserInfo;
  * are current on `cl->persistent`.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidChangeUserInfo)(g_client_t *cl);
+typedef void (*ClientDidChangeUserInfo)(GameClient *cl);
 
 extern ClientDidChangeUserInfo G_ClientDidChangeUserInfo;
 
@@ -480,7 +480,7 @@ extern ClientDidChangeUserInfo G_ClientDidChangeUserInfo;
  * `cl->entity` is `NULL` for a client that connected and left without spawning.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillDisconnect)(g_client_t *cl);
+typedef void (*ClientWillDisconnect)(GameClient *cl);
 
 extern ClientWillDisconnect G_ClientWillDisconnect;
 
@@ -489,7 +489,7 @@ extern ClientWillDisconnect G_ClientWillDisconnect;
  * be forgotten.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidDisconnect)(g_client_t *cl);
+typedef void (*ClientDidDisconnect)(GameClient *cl);
 
 extern ClientDidDisconnect G_ClientDidDisconnect;
 
@@ -499,7 +499,7 @@ extern ClientDidDisconnect G_ClientDidDisconnect;
  * are ignored.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillThink)(g_client_t *cl, const pm_cmd_t *cmd);
+typedef void (*ClientWillThink)(GameClient *cl, const PlayerMoveCmd *cmd);
 
 extern ClientWillThink G_ClientWillThink;
 
@@ -508,7 +508,7 @@ extern ClientWillThink G_ClientWillThink;
  * weapons are handled. Not called for a client chasing another.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidMove)(g_client_t *cl, const pm_cmd_t *cmd);
+typedef void (*ClientDidMove)(GameClient *cl, const PlayerMoveCmd *cmd);
 
 extern ClientDidMove G_ClientDidMove;
 
@@ -519,13 +519,13 @@ extern ClientDidMove G_ClientDidMove;
  * command answers true for that name and the built-in never sees it. The tail
  * handles nothing, so an unclaimed command falls through to the built-in table
  * and, failing that, to chat. While the level is ending the built-in table
- * ignores everything but chat; `g_level.intermission_time` says so. `cmd` is
+ * ignores everything but chat; `gLevel.intermissionTime` says so. `cmd` is
  * `gi.Argv(0)`;
  * an implementation MUST NOT call `gi.TokenizeString`, which would replace it
  * under the built-in table that runs next.
  * @return True if the command was handled.
  */
-typedef bool (*HandleClientCommand)(g_client_t *cl, const char *cmd);
+typedef bool (*HandleClientCommand)(GameClient *cl, const char *cmd);
 
 extern HandleClientCommand G_HandleClientCommand;
 
@@ -539,7 +539,7 @@ extern HandleClientCommand G_HandleClientCommand;
  * does. The tail says yes.
  * @return True to deliver the message.
  */
-typedef bool (*ClientWillChat)(g_client_t *cl, char *text, size_t size, bool team);
+typedef bool (*ClientWillChat)(GameClient *cl, char *text, size_t size, bool team);
 
 extern ClientWillChat G_ClientWillChat;
 
@@ -550,7 +550,7 @@ extern ClientWillChat G_ClientWillChat;
  * A muted, empty or flood-limited message is not delivered and not reported.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidChat)(g_client_t *cl, const char *text, bool team);
+typedef void (*ClientDidChat)(GameClient *cl, const char *text, bool team);
 
 extern ClientDidChat G_ClientDidChat;
 
@@ -561,17 +561,17 @@ extern ClientDidChat G_ClientDidChat;
  * that client's stats wholesale and does not run the chain.
  * @details Chainable; call previous, then write.
  */
-typedef void (*WriteStats)(g_client_t *cl);
+typedef void (*WriteStats)(GameClient *cl);
 
 extern WriteStats G_WriteStats;
 
 /**
  * @brief Writes a client's scoreboard entry, after the built-in fields. A
- * feature with its own columns fills the fields its module's `g_score_t`
+ * feature with its own columns fills the fields its module's `GameScore`
  * carries.
  * @details Chainable; call previous, then write.
  */
-typedef void (*WriteScore)(const g_client_t *cl, g_score_t *s);
+typedef void (*WriteScore)(const GameClient *cl, GameScore *s);
 
 extern WriteScore G_WriteScore;
 

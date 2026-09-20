@@ -26,8 +26,8 @@
 /**
  * @brief Selects the best-fitting axis-aligned texture projection axes for the given plane.
  */
-static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
-  static const vec3_t base_axis[18] = {
+static void TextureAxisForPlane(const Plane *plane, Vec3 *xv, Vec3 *yv) {
+  static const Vec3 base_axis[18] = {
     { {  0,  0,  1 } },
     { {  1,  0,  0 } },
     { {  0, -1,  0 } }, // floor
@@ -48,31 +48,31 @@ static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
     { {  0,  0, -1 } }, // north wall
   };
 
-  int32_t best_axis = 0;
+  int32_t bestAxis = 0;
   float best = 0.0;
 
   for (int32_t i = 0; i < 6; i++) {
     const float dot = Vec3_Dot(plane->normal, base_axis[i * 3]);
     if (dot > best) {
       best = dot;
-      best_axis = i;
+      bestAxis = i;
     }
   }
 
-  *xv = base_axis[best_axis * 3 + 1];
-  *yv = base_axis[best_axis * 3 + 2];
+  *xv = base_axis[bestAxis * 3 + 1];
+  *yv = base_axis[bestAxis * 3 + 2];
 }
 
 /**
  * @brief Computes the world-space texture projection vectors for a brush side, accounting for shift, scale, and rotation.
  */
-void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
+void TextureVectorsForBrushSide(BrushSide *side, const Vec3 origin) {
 
-  if (map_format == MAP_FORMAT_VALVE) {
+  if (mapFormat == MAP_FORMAT_VALVE) {
     // Valve-220: axes are already stored in side->axis as (direction, shift).
     // Note that this function is called once during parsing (origin = 0) and may be called
     // a second time when applying entity origin offsets.
-    const vec2_t scale = {
+    const Vec2 scale = {
       .x = side->scale.x ?: 1.f,
       .y = side->scale.y ?: 1.f,
     };
@@ -94,14 +94,14 @@ void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
     return;
   }
 
-  vec3_t axis[2];
+  Vec3 axis[2];
   TextureAxisForPlane(&planes[side->plane], &axis[0], &axis[1]);
 
-  vec2_t offset;
+  Vec2 offset;
   offset.x = Vec3_Dot(origin, axis[0]);
   offset.y = Vec3_Dot(origin, axis[1]);
 
-  vec2_t scale;
+  Vec2 scale;
   scale.x = side->scale.x ?: 1.f;
   scale.y = side->scale.y ?: 1.f;
 

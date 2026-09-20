@@ -23,12 +23,12 @@
 
 /**
  * @brief The techs own their own configuration, media and enabled state so that
- * a module adopting them needs only `g_client_tech_t`, the ITEM_TYPE_TECH item
+ * a module adopting them needs only `GameClientTech`, the ITEM_TYPE_TECH item
  * type, the TECH_FIRST..TECH_LAST tags with their item definitions, and the
  * STAT_TECH wire value.
  */
 
-cvar_t *g_techs;
+Cvar *g_techs;
 
 /**
  * @brief `g_module.h` function pointers.
@@ -46,30 +46,30 @@ static struct {
 
 static bool installed;
 
-static void G_ResetDroppedTech(g_entity_t *ent);
-static g_entity_t *G_TossTech(g_client_t *cl);
+static void G_ResetDroppedTech(GameEntity *ent);
+static GameEntity *G_TossTech(GameClient *cl);
 
 static struct {
   uint16_t sounds[TECH_TOTAL];
-} g_tech_media;
+} module;
 
 
 /**
  * @brief True when techs are available this level.
  */
-static bool g_tech_enabled;
+static bool gTechEnabled;
 
 /**
  * @return True if techs are enabled for this level.
  */
 static bool G_Tech_Enabled(void) {
-  return g_tech_enabled;
+  return gTechEnabled;
 }
 
 /**
  * @brief Respawns a dropped tech, deferring anything else.
  */
-static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
+static void G_ResetDroppedItem_Tech(GameEntity *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_TECH) {
     G_ResetDroppedTech(ent);
@@ -82,10 +82,10 @@ static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
 /**
  * @brief Resolves "tech" to whichever tech the client is carrying.
  */
-static const g_item_t *G_ResolveInventoryItem_Tech(g_client_t *cl, const char *name) {
+static const GameItem *G_ResolveInventoryItem_Tech(GameClient *cl, const char *name) {
 
   if (!q_strcasecmp(name, "tech")) {
-    const g_item_t *tech = G_GetTech(cl);
+    const GameItem *tech = G_GetTech(cl);
     if (tech) {
       return tech;
     }
@@ -99,7 +99,7 @@ static const g_item_t *G_ResolveInventoryItem_Tech(g_client_t *cl, const char *n
  * previous so that the three keep the order they had before resist and strength
  * were a hook.
  */
-static bool G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
+static bool G_ModifyDamage_Tech(GameEntity *target, GameEntity *attacker, int32_t *damage, int32_t *knockback) {
 
   if (target->client && G_HasTech(target->client, TECH_RESIST)) {
     *damage *= TECH_RESIST_DAMAGE_FACTOR;
@@ -129,11 +129,11 @@ static void G_InitMedia_Tech(void) {
 
   previous.InitMedia();
 
-  g_tech_media.sounds[TECH_HASTE    - TECH_FIRST] = gi.SoundIndex("techs/haste/haste");
-  g_tech_media.sounds[TECH_REGEN    - TECH_FIRST] = gi.SoundIndex("techs/regen/regen");
-  g_tech_media.sounds[TECH_RESIST   - TECH_FIRST] = gi.SoundIndex("techs/resist/resist");
-  g_tech_media.sounds[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
-  g_tech_media.sounds[TECH_VAMPIRE  - TECH_FIRST] = gi.SoundIndex("techs/vampire/vampire");
+  module.sounds[TECH_HASTE    - TECH_FIRST] = gi.SoundIndex("techs/haste/haste");
+  module.sounds[TECH_REGEN    - TECH_FIRST] = gi.SoundIndex("techs/regen/regen");
+  module.sounds[TECH_RESIST   - TECH_FIRST] = gi.SoundIndex("techs/resist/resist");
+  module.sounds[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
+  module.sounds[TECH_VAMPIRE  - TECH_FIRST] = gi.SoundIndex("techs/vampire/vampire");
 }
 
 /**
@@ -168,7 +168,7 @@ static bool G_CheckCvars_Tech(void) {
 /**
  * @brief Answers for the tech item type.
  */
-static void G_InitItem_Tech(g_item_t *it) {
+static void G_InitItem_Tech(GameItem *it) {
 
   if (it->def.type == ITEM_TYPE_TECH) {
     it->Pickup = G_PickupTech;
@@ -182,7 +182,7 @@ static void G_InitItem_Tech(g_item_t *it) {
 /**
  * @brief Tosses the tech a client leaving play is holding.
  */
-static void G_TossInventory_Tech(g_client_t *cl) {
+static void G_TossInventory_Tech(GameClient *cl) {
 
   G_TossTech(cl);
 
@@ -235,24 +235,24 @@ void G_Tech_Init(void) {
 void G_Tech_CheckState(void) {
 
   if (q_strcmp(g_techs->string, "default")) {
-    g_tech_enabled = !!g_techs->integer;
+    gTechEnabled = !!g_techs->integer;
   } else {
-    g_tech_enabled = true;
+    gTechEnabled = true;
   }
 }
 
 /**
  * @brief Returns the distance to the nearest tech from the given spot.
  */
-static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
-  float best_dist = FLT_MAX;
+static float G_TechRangeFromSpawn(const GameEntity *spawn) {
+  float bestDist = FLT_MAX;
   bool any = false;
 
-  for (g_item_tag_t tech = TECH_FIRST; tech < TECH_LAST; tech++) {
+  for (GameItemTag tech = TECH_FIRST; tech < TECH_LAST; tech++) {
 
-    g_entity_t *ent = NULL;
+    GameEntity *ent = NULL;
     G_ForEachEntity(e, {
-      if (e->item == &g_items[tech]) {
+      if (e->item == &gItems[tech]) {
         ent = e;
         break;
       }
@@ -262,11 +262,11 @@ static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
       continue;
     }
 
-    const vec3_t v = Vec3_Subtract(spawn->s.origin, ent->s.origin);
+    const Vec3 v = Vec3_Subtract(spawn->s.origin, ent->s.origin);
     const float dist = Vec3_Length(v);
 
-    if (dist < best_dist) {
-      best_dist = dist;
+    if (dist < bestDist) {
+      bestDist = dist;
     }
 
     any = true;
@@ -276,21 +276,21 @@ static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
     return Randomf() * MAX_WORLD_DIST;
   }
 
-  return best_dist;
+  return bestDist;
 }
 
 /**
  * @brief Finds the spawn point farthest from all existing tech items within the given set.
  */
-static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points, g_entity_t **point, float *point_dist) {
+static void G_SelectFarthestTechSpawnPoint(const GameSpawnPoints *spawnPoints, GameEntity **point, float *pointDist) {
 
-  for (size_t i = 0; i < spawn_points->count; i++) {
-    g_entity_t *spot = spawn_points->spots[i];
+  for (size_t i = 0; i < spawnPoints->count; i++) {
+    GameEntity *spot = spawnPoints->spots[i];
     float dist = G_TechRangeFromSpawn(spot);
 
-    if (dist > *point_dist) {
+    if (dist > *pointDist) {
       *point = spot;
-      *point_dist = dist;
+      *pointDist = dist;
     }
   }
 }
@@ -298,20 +298,20 @@ static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points,
 /**
  * @brief Selects the optimal spawn point for a tech item by maximizing distance from all other techs.
  */
-static g_entity_t *G_SelectTechSpawnPoint(void) {
-  float point_dist = -FLT_MAX;
-  g_entity_t *point = NULL;
+static GameEntity *G_SelectTechSpawnPoint(void) {
+  float pointDist = -FLT_MAX;
+  GameEntity *point = NULL;
 
-  if (g_level.teams) {
-    for (int32_t i = 0; i < g_level.num_teams; i++) {
-      G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawn_points, &point, &point_dist);
+  if (gLevel.teams) {
+    for (int32_t i = 0; i < gLevel.numTeams; i++) {
+      G_SelectFarthestTechSpawnPoint(&gTeamList[i].spawnPoints, &point, &pointDist);
     }
   } else {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
+    G_SelectFarthestTechSpawnPoint(&gLevel.spawnPoints, &point, &pointDist);
   }
 
   if (!point) {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
+    G_SelectFarthestTechSpawnPoint(&gLevel.spawnPoints, &point, &pointDist);
   }
 
   return point;
@@ -320,17 +320,17 @@ static g_entity_t *G_SelectTechSpawnPoint(void) {
 /**
  * @brief Spawns a single tech item at a randomly selected spawn point with a random initial velocity.
  */
-static void G_SpawnTech(const g_item_t *item) {
+static void G_SpawnTech(const GameItem *item) {
 
-  g_entity_t *spawn = G_SelectTechSpawnPoint();
+  GameEntity *spawn = G_SelectTechSpawnPoint();
 
-  vec3_t angles = spawn->s.angles;
+  Vec3 angles = spawn->s.angles;
   angles.y += RandomRangef(-45.f, 45.f);
 
-  vec3_t forward;
+  Vec3 forward;
   Vec3_Vectors(angles, &forward, NULL, NULL);
 
-  g_entity_t *ent = G_AllocEntity(item->def.classname);
+  GameEntity *ent = G_AllocEntity(item->def.classname);
 
   // Techs spawn from the player spawn points, so start clear of the point
   // itself, along the way the tech is about to be thrown. A client spawning in
@@ -339,14 +339,14 @@ static void G_SpawnTech(const g_item_t *item) {
   ent->s.origin = Vec3_Fmaf(spawn->s.origin, 32.f, forward);
 
   G_SpawnItem(ent, item);
-  ent->next_think = 0;
+  ent->nextThink = 0;
   ent->Think = NULL;
 
   // Treat spawned techs like dropped items so they can land near spawn points
   // instead of forcing immediate pickup on spawn.
-  ent->spawn_flags |= SF_ITEM_DROPPED;
-  ent->move_type = MOVE_TYPE_BOUNCE;
-  ent->touch_time = g_level.time + 1000;
+  ent->spawnFlags |= SF_ITEM_DROPPED;
+  ent->moveType = MOVE_TYPE_BOUNCE;
+  ent->touchTime = gLevel.time + 1000;
 
   ent->velocity = Vec3_Scale(forward, 100.f);
   ent->velocity.z = 300.f + (Randomf() * 50.f);
@@ -359,19 +359,19 @@ static void G_SpawnTech(const g_item_t *item) {
  */
 void G_Tech_SpawnAll(void) {
 
-  if (!g_tech_enabled) {
+  if (!gTechEnabled) {
     return;
   }
 
-  for (g_item_tag_t i = TECH_FIRST; i < TECH_LAST; i++) {
-    G_SpawnTech(&g_items[i]);
+  for (GameItemTag i = TECH_FIRST; i < TECH_LAST; i++) {
+    G_SpawnTech(&gItems[i]);
   }
 }
 
 /**
  * @brief Respawns a tech item at a new spawn point and frees the dropped entity.
  */
-static void G_ResetDroppedTech(g_entity_t *ent) {
+static void G_ResetDroppedTech(GameEntity *ent) {
 
   G_SpawnTech(ent->item);
 
@@ -381,16 +381,16 @@ static void G_ResetDroppedTech(g_entity_t *ent) {
 /**
  * @brief Check if a player has the specified tech.
  */
-bool G_HasTech(const g_client_t *cl, g_item_tag_t tech) {
+bool G_HasTech(const GameClient *cl, GameItemTag tech) {
   return !!cl->inventory[tech];
 }
 
 /**
  * @brief Pickup function for techs. Can only hold one tech at a time.
  */
-bool G_PickupTech(g_client_t *cl, g_entity_t *ent) {
+bool G_PickupTech(GameClient *cl, GameEntity *ent) {
 
-  for (g_item_tag_t tech = TECH_FIRST; tech < TECH_LAST; tech++) {
+  for (GameItemTag tech = TECH_FIRST; tech < TECH_LAST; tech++) {
 
     if (G_HasTech(cl, tech)) {
       return false;
@@ -406,12 +406,12 @@ bool G_PickupTech(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief Returns the tech item currently held by the client, or `NULL` if none.
  */
-const g_item_t *G_GetTech(const g_client_t *cl) {
+const GameItem *G_GetTech(const GameClient *cl) {
 
-  for (g_item_tag_t i = TECH_FIRST; i < TECH_LAST; i++) {
+  for (GameItemTag i = TECH_FIRST; i < TECH_LAST; i++) {
 
     if (G_HasTech(cl, i)) {
-      return &g_items[i];
+      return &gItems[i];
     }
   }
 
@@ -421,8 +421,8 @@ const g_item_t *G_GetTech(const g_client_t *cl) {
 /**
  * @brief Drops the tech item currently carried by the client as a world entity.
  */
-static g_entity_t *G_TossTech(g_client_t *cl) {
-  const g_item_t *tech = G_GetTech(cl);
+static GameEntity *G_TossTech(GameClient *cl) {
+  const GameItem *tech = G_GetTech(cl);
 
   if (!tech) {
     return NULL;
@@ -436,39 +436,39 @@ static g_entity_t *G_TossTech(g_client_t *cl) {
 /**
  * @brief Plays the activation or ambient sound for the client's currently held tech powerup.
  */
-void G_PlayTechSound(g_client_t *cl) {
+void G_PlayTechSound(GameClient *cl) {
 
-  const g_item_t *tech = G_GetTech(cl);
+  const GameItem *tech = G_GetTech(cl);
 
   if (!tech) {
     return;
   }
 
-  if (cl->tech.sound_time < g_level.time) {
-    G_MulticastSound(&(const g_play_sound_t) {
-      .index = g_tech_media.sounds[tech->def.tag - TECH_FIRST],
+  if (cl->tech.soundTime < gLevel.time) {
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = module.sounds[tech->def.tag - TECH_FIRST],
       .entity = cl->entity,
     }, MULTICAST_PHS);
-    cl->tech.sound_time = g_level.time + 500;
+    cl->tech.soundTime = gLevel.time + 500;
   }
 }
 
 /**
  * @brief Applies the regeneration tech's periodic healing.
  */
-void G_Tech_ClientThink(g_entity_t *ent) {
+void G_Tech_ClientThink(GameEntity *ent) {
 
-  g_client_t *cl = ent->client;
+  GameClient *cl = ent->client;
 
   if (!G_HasTech(cl, TECH_REGEN)) {
     return;
   }
 
-  if (cl->tech.regen_time < g_level.time) {
-    cl->tech.regen_time = g_level.time + TECH_REGEN_TICK_TIME;
+  if (cl->tech.regenTime < gLevel.time) {
+    cl->tech.regenTime = gLevel.time + TECH_REGEN_TICK_TIME;
 
-    if (ent->health < ent->max_health) {
-      ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->max_health);
+    if (ent->health < ent->maxHealth) {
+      ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->maxHealth);
       G_PlayTechSound(cl);
     }
   }

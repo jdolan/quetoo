@@ -25,11 +25,11 @@
 
 #if defined(__CG_LOCAL_H__)
 
-typedef struct cg_entity_s cg_entity_t;
+typedef struct ClientGameEntity ClientGameEntity;
 
-typedef void (*EntityInit)(cg_entity_t *self);
-typedef void (*EntityFree)(cg_entity_t *self);
-typedef void (*EntityThink)(cg_entity_t *self);
+typedef void (*EntityInit)(ClientGameEntity *self);
+typedef void (*EntityFree)(ClientGameEntity *self);
+typedef void (*EntityThink)(ClientGameEntity *self);
 
 /**
  * @brief The client game entity class type.
@@ -61,16 +61,16 @@ typedef struct {
   /**
    * @brief The size of the opaque data.
    */
-  size_t data_size;
+  size_t dataSize;
 
-} cg_entity_class_t;
+} ClientGameEntityClass;
 
 /**
  * @brief The client game entity instance type. Client game entities are local to the client,
  * and are used for non-critical and atmospheric effects such as sparks, steam, particle
  * fields, etc.
  */
-struct cg_entity_s {
+struct ClientGameEntity {
 
   /**
    * @brief The entity identifier, for persistent effects such as sounds.
@@ -80,41 +80,41 @@ struct cg_entity_s {
   /**
    * @brief The entity class.
    */
-  const cg_entity_class_t *clazz;
+  const ClientGameEntityClass *clazz;
 
   /**
    * @brief The backing entity definition.
    */
-  const cm_entity_t *def;
+  const CmEntity *def;
 
   /**
    * @brief The entity origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The entity bounds.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The entity's target, if any.
    */
-  const cm_entity_t *target;
+  const CmEntity *target;
 
   /**
    * @brief The entity's teammate, if any.
    */
-  const cm_entity_t *team;
+  const CmEntity *team;
 
   /**
    * @brief Timestamp for next emission.
    * @details Client game entities will Think() each frame, unless deferred.
    */
-  uint32_t next_think;
+  uint32_t nextThink;
 
   /**
-   * @brief Randomization of `next_think`.
+   * @brief Randomization of `nextThink`.
    */
   float hz, drift;
 
@@ -124,19 +124,19 @@ struct cg_entity_s {
   void *data;
 };
 
-extern const cg_entity_class_t *cg_entity_classes[];
-extern const size_t cg_num_entity_classes;
+extern const ClientGameEntityClass *cgEntityClasses[];
+extern const size_t cgNumEntityClasses;
 
-extern Vector *cg_entities;
+extern Vector *cgEntities;
 
-cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e);
+ClientGameEntity *Cg_EntityForDefinition(const CmEntity *e);
 void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
 
-cl_entity_t *Cg_Self(void);
-bool Cg_IsDucking(const cl_entity_t *ent);
-box3_t Cg_PlayerBounds(bool ducked);
-void Cg_Interpolate(const cl_frame_t *frame);
-void Cg_AddEntities(const cl_frame_t *frame);
+ClientEntity *Cg_Self(void);
+bool Cg_IsDucking(const ClientEntity *ent);
+Box3 Cg_PlayerBounds(bool ducked);
+void Cg_Interpolate(const ClientFrame *frame);
+void Cg_AddEntities(const ClientFrame *frame);
 
 #endif

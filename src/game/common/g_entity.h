@@ -24,7 +24,7 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
-void G_SpawnEditorEntity(int32_t number, cm_entity_t *def);
+void G_SpawnEntities(const char *name, const CmEntity *props, CmEntity *const *entities, size_t numEntities);
+void G_SpawnEditorEntity(int32_t number, CmEntity *def);
 void G_FreeEditorEntity(int32_t number);
 #endif

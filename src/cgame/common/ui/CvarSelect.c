@@ -108,11 +108,11 @@ static void selectOption(Select *self, Option *option) {
 #pragma mark - CvarSelect
 
 /**
- * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
+ * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, Cvar *var)
  *
  * @memberof CvarSelect
  */
-static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
+static CvarSelect *initWithVariable(CvarSelect *self, Cvar *var) {
 
   self = (CvarSelect *) super(Select, self, initWithFrame, NULL);
   if (self) {

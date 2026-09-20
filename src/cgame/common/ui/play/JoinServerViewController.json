@@ -36,7 +36,7 @@
                       },
                       {
                         "class": "Label",
-                        "identifier": "servers_empty",
+                        "identifier": "serversEmpty",
                         "classNames": [
                           "joinEmptyState"
                         ],
@@ -63,7 +63,7 @@
                       "control": {
                         "class": "CvarCheckbox",
                         "identifier": "hideEmpty",
-                        "var": "cg_join_server_hide_empty"
+                        "var": "cg_joinServerHideEmpty"
                       }
                     },
                     {
@@ -76,7 +76,7 @@
                       "control": {
                         "class": "CvarCheckbox",
                         "identifier": "hideBots",
-                        "var": "cg_join_server_hide_bots"
+                        "var": "cg_joinServerHideBots"
                       }
                     },
                     {
@@ -89,7 +89,7 @@
                       "control": {
                         "class": "CvarSlider",
                         "identifier": "maxPing",
-                        "var": "cg_quick_join_max_ping",
+                        "var": "cg_quickJoinMaxPing",
                         "min": 30,
                         "max": 300,
                         "step": 10
@@ -131,7 +131,7 @@
                     "subviews": [
                       {
                         "class": "Label",
-                        "identifier": "server_hostname",
+                        "identifier": "serverHostname",
                         "classNames": [
                           "joinDetailTitle"
                         ],
@@ -141,7 +141,7 @@
                       },
                       {
                         "class": "Label",
-                        "identifier": "server_address",
+                        "identifier": "serverAddress",
                         "classNames": [
                           "joinDetailAddress"
                         ],
@@ -149,7 +149,7 @@
                       },
                       {
                         "class": "Label",
-                        "identifier": "server_hint",
+                        "identifier": "serverHint",
                         "classNames": [
                           "joinDetailHint"
                         ],
@@ -159,14 +159,14 @@
                       },
                       {
                         "class": "ImageView",
-                        "identifier": "server_mapshot",
+                        "identifier": "serverMapshot",
                         "classNames": [
                           "joinDetailMapshot"
                         ]
                       },
                       {
                         "class": "StackView",
-                        "identifier": "server_grid",
+                        "identifier": "serverGrid",
                         "classNames": [
                           "joinDetailGrid"
                         ],
@@ -188,7 +188,7 @@
                               },
                               {
                                 "class": "Label",
-                                "identifier": "server_source",
+                                "identifier": "serverSource",
                                 "classNames": [
                                   "joinDetailValue"
                                 ],
@@ -213,7 +213,7 @@
                               },
                               {
                                 "class": "Label",
-                                "identifier": "server_map",
+                                "identifier": "serverMap",
                                 "classNames": [
                                   "joinDetailValue"
                                 ],
@@ -238,7 +238,7 @@
                               },
                               {
                                 "class": "Label",
-                                "identifier": "server_gameplay",
+                                "identifier": "serverGameplay",
                                 "classNames": [
                                   "joinDetailValue"
                                 ],
@@ -263,7 +263,7 @@
                               },
                               {
                                 "class": "Label",
-                                "identifier": "server_movement",
+                                "identifier": "serverMovement",
                                 "classNames": [
                                   "joinDetailValue"
                                 ],
@@ -288,7 +288,7 @@
                               },
                               {
                                 "class": "Label",
-                                "identifier": "server_players",
+                                "identifier": "serverPlayers",
                                 "classNames": [
                                   "joinDetailValue"
                                 ],
@@ -313,7 +313,7 @@
                               },
                               {
                                 "class": "Label",
-                                "identifier": "server_ping",
+                                "identifier": "serverPing",
                                 "classNames": [
                                   "joinDetailValue"
                                 ],

@@ -22,20 +22,20 @@
 #include "cl_local.h"
 
 /**
- * @brief Parse the `player_state_t` for the current frame from the server, using delta
+ * @brief Parse the `PlayerState` for the current frame from the server, using delta
  * compression for all fields where possible.
  */
-static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
-  static player_state_t null_state;
+static void Cl_ParsePlayerState(const ClientFrame *deltaFrame, ClientFrame *frame) {
+  static PlayerState null_state;
 
-  if (delta_frame && delta_frame->valid) {
-    Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
+  if (deltaFrame && deltaFrame->valid) {
+    Net_ReadDeltaPlayerState(&netMessage, &deltaFrame->ps, &frame->ps);
   } else {
-    Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
+    Net_ReadDeltaPlayerState(&netMessage, &null_state, &frame->ps);
   }
 
-  if (cl.demo_server) { // if playing a demo, force freeze
-    frame->ps.pm_state.type = PM_FREEZE;
+  if (cl.demoServer) { // if playing a demo, force freeze
+    frame->ps.pmState.type = PM_FREEZE;
   }
 }
 
@@ -43,18 +43,18 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  * @return True if the delta is valid and the entity should be interpolated, false
  * if the delta is invalid and the entity should be snapped to `to`.
  */
-static bool Cl_ValidDeltaEntity(const cl_entity_t *ent,
-                                 const entity_state_t *from, const entity_state_t *to) {
+static bool Cl_ValidDeltaEntity(const ClientEntity *ent,
+                                 const EntityState *from, const EntityState *to) {
 
-  if (!cl.previous_frame) {
+  if (!cl.previousFrame) {
     return false; // no continuous predecessor to interpolate from
   }
 
-  if (ent->frame_num != cl.previous_frame->frame_num) {
+  if (ent->frameNum != cl.previousFrame->frameNum) {
     return false;
   }
 
-  if (ent->current.spawn_id != to->spawn_id) {
+  if (ent->current.spawnId != to->spawnId) {
     return false;
   }
 
@@ -73,12 +73,12 @@ static bool Cl_ValidDeltaEntity(const cl_entity_t *ent,
  * @brief Resets all trails to initial values
  * @param ent Entity to reset trails for
  */
-static void Cl_ResetTrails(cl_entity_t *ent) {
+static void Cl_ResetTrails(ClientEntity *ent) {
 
-  for (vec3_t *trail = ent->trail_origins;
-       trail < ent->trail_origins + lengthof(ent->trail_origins);
+  for (Vec3 *trail = ent->trailOrigins;
+       trail < ent->trailOrigins + lengthof(ent->trailOrigins);
        trail++) {
-    *trail = ent->previous_origin;
+    *trail = ent->previousOrigin;
   }
 }
 
@@ -86,50 +86,50 @@ static void Cl_ResetTrails(cl_entity_t *ent) {
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
-static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, int16_t number, uint16_t bits) {
+static void Cl_ReadDeltaEntity(ClientFrame *frame, const EntityState *from, int16_t number, uint16_t bits) {
 
-  cl_entity_t *ent = &cl.entities[number];
+  ClientEntity *ent = &cl.entities[number];
 
-  entity_state_t *to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
-  cl.entity_state++;
+  EntityState *to = &cl.entityStates[cl.entityState & ENTITY_STATE_MASK];
+  cl.entityState++;
 
-  frame->num_entities++;
+  frame->numEntities++;
 
-  Net_ReadDeltaEntity(&net_message, from, to, number, bits);
+  Net_ReadDeltaEntity(&netMessage, from, to, number, bits);
 
   // check to see if the delta was successful and valid
   if (!Cl_ValidDeltaEntity(ent, from, to)) {
     ent->prev = *to; // copy the current state to the previous
     ent->animation1.time = ent->animation2.time = 0;
     ent->animation1.frame = ent->animation2.frame = -1;
-    ent->previous_origin = to->origin;
+    ent->previousOrigin = to->origin;
     Cl_ResetTrails(ent);
-    ent->legs_current_yaw = to->angles.y;
+    ent->legsCurrentYaw = to->angles.y;
   } else { // shuffle the last state to previous
     ent->prev = ent->current;
   }
 
   // set the current frame number and entity state
-  ent->frame_num = cl.frame.frame_num;
+  ent->frameNum = cl.frame.frameNum;
   ent->current = *to;
 }
 
 /**
  * @brief An `svc_packetentities` has just been parsed, deal with the rest of the data stream.
  */
-static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
+static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) {
 
-  frame->entity_state = cl.entity_state;
-  frame->num_entities = 0;
+  frame->entityState = cl.entityState;
+  frame->numEntities = 0;
 
-  entity_state_t *from = NULL;
-  int16_t from_number;
+  EntityState *from = NULL;
+  int16_t fromNumber;
 
-  if (delta_frame == NULL || delta_frame->num_entities == 0) {
-    from_number = INT16_MAX;
+  if (deltaFrame == NULL || deltaFrame->numEntities == 0) {
+    fromNumber = INT16_MAX;
   } else {
-    from = &cl.entity_states[delta_frame->entity_state & ENTITY_STATE_MASK];
-    from_number = from->number;
+    from = &cl.entityStates[deltaFrame->entityState & ENTITY_STATE_MASK];
+    fromNumber = from->number;
   }
 
   int32_t index = 0;
@@ -138,9 +138,9 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
    * Parse entity updates from the server message, merging with the previous frame.
    * The server sends a sorted list of entity numbers with delta updates. We walk through
    * both the new message and the old frame in parallel by entity number:
-   *  - If from_number < number: unchanged entity from old frame, copy it forward
-   *  - If from_number == number: delta update, apply changes
-   *  - If from_number > number: new entity, delta from baseline
+   *  - If fromNumber < number: unchanged entity from old frame, copy it forward
+   *  - If fromNumber == number: delta update, apply changes
+   *  - If fromNumber > number: new entity, delta from baseline
    *  - If bits has U_REMOVE: entity removed, don't copy forward
    * The server terminates the list with -1. Using INT16_MAX as sentinel when the
    * old frame list is exhausted.
@@ -148,7 +148,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
   
   while (true) {
 
-    const int16_t number = Net_ReadShort(&net_message);
+    const int16_t number = Net_ReadShort(&netMessage);
 
     if (number == -1) {
       break;
@@ -158,57 +158,57 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
       Com_Error(ERROR_DROP, "Bad number: %i\n", number);
     }
 
-    if (net_message.read > net_message.size) {
+    if (netMessage.read > netMessage.size) {
       Com_Error(ERROR_DROP, "End of message\n");
     }
 
     // before dealing with new entities, copy unchanged entities into the frame
-    while (from_number < number) {
+    while (fromNumber < number) {
 
-      if (cl_draw_net_messages->integer == 3) {
-        Com_Print("   unchanged: %i\n", from_number);
+      if (cl_drawNetMessages->integer == 3) {
+        Com_Print("   unchanged: %i\n", fromNumber);
       }
 
-      Cl_ReadDeltaEntity(frame, from, from_number, 0);
+      Cl_ReadDeltaEntity(frame, from, fromNumber, 0);
 
       index++;
 
-      if (index >= delta_frame->num_entities) {
-        from_number = INT16_MAX;
+      if (index >= deltaFrame->numEntities) {
+        fromNumber = INT16_MAX;
       } else {
-        from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-        from_number = from->number;
+        from = &cl.entityStates[(deltaFrame->entityState + index) & ENTITY_STATE_MASK];
+        fromNumber = from->number;
       }
     }
 
     // now deal with the new entity
-    const uint16_t bits = Net_ReadShort(&net_message);
+    const uint16_t bits = Net_ReadShort(&netMessage);
 
     if (bits & U_REMOVE) { // remove it, no delta
 
-      if (cl_draw_net_messages->integer == 3) {
+      if (cl_drawNetMessages->integer == 3) {
         Com_Print("   remove: %i\n", number);
       }
 
-      if (from_number != number) {
-        Com_Debug(DEBUG_CLIENT, "U_REMOVE: %u != %u\n", from_number, number);
+      if (fromNumber != number) {
+        Com_Debug(DEBUG_CLIENT, "U_REMOVE: %u != %u\n", fromNumber, number);
       }
 
       index++;
 
-      if (index >= delta_frame->num_entities) {
-        from_number = INT16_MAX;
+      if (index >= deltaFrame->numEntities) {
+        fromNumber = INT16_MAX;
       } else {
-        from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-        from_number = from->number;
+        from = &cl.entityStates[(deltaFrame->entityState + index) & ENTITY_STATE_MASK];
+        fromNumber = from->number;
       }
 
       continue;
     }
 
-    if (from_number == number) { // delta from previous state
+    if (fromNumber == number) { // delta from previous state
 
-      if (cl_draw_net_messages->integer == 3) {
+      if (cl_drawNetMessages->integer == 3) {
         Com_Print("   delta: %i\n", number);
       }
 
@@ -216,19 +216,19 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
       index++;
 
-      if (index >= delta_frame->num_entities) {
-        from_number = INT16_MAX;
+      if (index >= deltaFrame->numEntities) {
+        fromNumber = INT16_MAX;
       } else {
-        from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-        from_number = from->number;
+        from = &cl.entityStates[(deltaFrame->entityState + index) & ENTITY_STATE_MASK];
+        fromNumber = from->number;
       }
 
       continue;
     }
 
-    if (from_number > number) { // delta from baseline
+    if (fromNumber > number) { // delta from baseline
 
-      if (cl_draw_net_messages->integer == 3) {
+      if (cl_drawNetMessages->integer == 3) {
         Com_Print("   baseline: %i\n", number);
       }
 
@@ -239,21 +239,21 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
   }
 
   // any remaining entities in the old frame are copied over
-  while (from_number != INT16_MAX) { // one or more entities from the old packet are unchanged
+  while (fromNumber != INT16_MAX) { // one or more entities from the old packet are unchanged
 
-    if (cl_draw_net_messages->integer == 3) {
-      Com_Print("   unchanged: %i\n", from_number);
+    if (cl_drawNetMessages->integer == 3) {
+      Com_Print("   unchanged: %i\n", fromNumber);
     }
 
-    Cl_ReadDeltaEntity(frame, from, from_number, 0);
+    Cl_ReadDeltaEntity(frame, from, fromNumber, 0);
 
     index++;
 
-    if (index >= delta_frame->num_entities) {
-      from_number = INT16_MAX;
+    if (index >= deltaFrame->numEntities) {
+      fromNumber = INT16_MAX;
     } else {
-      from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-      from_number = from->number;
+      from = &cl.entityStates[(deltaFrame->entityState + index) & ENTITY_STATE_MASK];
+      fromNumber = from->number;
     }
   }
 }
@@ -271,52 +271,52 @@ void Cl_ParseFrame(void) {
 
   memset(&cl.frame, 0, sizeof(cl.frame));
 
-  cl.frame.frame_num = Net_ReadLong(&net_message);
-  cl.frame.delta_frame_num = Net_ReadLong(&net_message);
+  cl.frame.frameNum = Net_ReadLong(&netMessage);
+  cl.frame.deltaFrameNum = Net_ReadLong(&netMessage);
 
-  if (cl_draw_net_messages->integer == 3) {
-    Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
+  if (cl_drawNetMessages->integer == 3) {
+    Com_Print("   frame:%i  delta:%i\n", cl.frame.frameNum, cl.frame.deltaFrameNum);
   }
 
-  if (cl.frame.delta_frame_num <= 0) { // uncompressed frame: entities decode from baseline
-    cl.delta_frame = NULL;
-  } else { // delta compressed frame: entities decode from cl.delta_frame
-    cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
+  if (cl.frame.deltaFrameNum <= 0) { // uncompressed frame: entities decode from baseline
+    cl.deltaFrame = NULL;
+  } else { // delta compressed frame: entities decode from cl.deltaFrame
+    cl.deltaFrame = &cl.frames[cl.frame.deltaFrameNum & PACKET_MASK];
 
-    if (!cl.delta_frame->valid) {
+    if (!cl.deltaFrame->valid) {
       Com_Error(ERROR_DROP, "Delta from invalid frame\n");
-    } else if (cl.delta_frame->frame_num != cl.frame.delta_frame_num) {
+    } else if (cl.deltaFrame->frameNum != cl.frame.deltaFrameNum) {
       Com_Error(ERROR_DROP, "Delta frame too old\n");
-    } else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
+    } else if (cl.entityState - cl.deltaFrame->entityState > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
       Com_Error(ERROR_DROP, "Delta entity state too old\n");
     }
   }
 
-  // cl.previous_frame tracks simple sequential continuity for interpolation purposes, independent
+  // cl.previousFrame tracks simple sequential continuity for interpolation purposes, independent
   // of whether this frame's entities were delta- or baseline-encoded: a demo's recorded frames are
   // always baseline-encoded (see Cl_WriteDemoMessage) but are still sequential and interpolatable,
-  // so this must not be tied to cl.delta_frame the way it once was.
-  cl.previous_frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
+  // so this must not be tied to cl.deltaFrame the way it once was.
+  cl.previousFrame = &cl.frames[(cl.frame.frameNum - 1) & PACKET_MASK];
 
-  if (cl.previous_frame->frame_num != (cl.frame.frame_num - 1)) {
+  if (cl.previousFrame->frameNum != (cl.frame.frameNum - 1)) {
     Com_Debug(DEBUG_CLIENT, "Previous frame too old\n");
-    cl.previous_frame = NULL;
-  } else if (!cl.previous_frame->valid) {
+    cl.previousFrame = NULL;
+  } else if (!cl.previousFrame->valid) {
     Com_Debug(DEBUG_CLIENT, "Previous frame invalid\n");
-    cl.previous_frame = NULL;
+    cl.previousFrame = NULL;
   }
 
   cl.frame.valid = true;
 
-  Cl_ParsePlayerState(cl.delta_frame, &cl.frame);
+  Cl_ParsePlayerState(cl.deltaFrame, &cl.frame);
 
-  Cl_ParseEntities(cl.delta_frame, &cl.frame);
+  Cl_ParseEntities(cl.deltaFrame, &cl.frame);
 
   // set the simulation time for the frame
-  cl.frame.time = cl.frame.frame_num * QUETOO_TICK_MILLIS;
+  cl.frame.time = cl.frame.frameNum * QUETOO_TICK_MILLIS;
 
   // save the frame off in the backup array for later delta comparisons
-  cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
+  cl.frames[cl.frame.frameNum & PACKET_MASK] = cl.frame;
 
   if (cl.frame.valid) {
 
@@ -328,10 +328,10 @@ void Cl_ParseFrame(void) {
       Cl_SetKeyDest(KEY_GAME);
 
       // a demo we are hosting comes up paused on this, its opening frame, with the transport
-      // controls showing. Keyed on going active rather than on frame_num, which is 0 again after
+      // controls showing. Keyed on going active rather than on frameNum, which is 0 again after
       // a scrub back to the start, and confined to a local demo, because pause is server state
       // that a spectator has no business taking from everyone else on a demo server
-      if (cl.demo_server && cls.net_chan.remote_address.type == NA_LOOP) {
+      if (cl.demoServer && cls.netChan.remoteAddress.type == NA_LOOP) {
         Cbuf_AddText("demo_pause\n");
       }
     }
@@ -353,17 +353,17 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-  bool no_lerp = cl.previous_frame == NULL || cl_no_lerp->value || time_demo->value;
+  bool noLerp = cl.previousFrame == NULL || cl_noLerp->value || timeDemo->value;
 
-  if (cl.previous_frame) {
-    const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
+  if (cl.previousFrame) {
+    const float dist = Vec3_Distance(cl.frame.ps.pmState.origin, cl.previousFrame->ps.pmState.origin);
     if (dist > MAX_DELTA_ORIGIN) {
       Com_Debug(DEBUG_CLIENT, "MAX_ORIGIN_DELTA: %.2f\n", dist);
-      no_lerp = true;
+      noLerp = true;
     }
   }
 
-  if (no_lerp) {
+  if (noLerp) {
     cl.time = cl.frame.time;
     cl.lerp = 1.0;
   } else {
@@ -399,13 +399,13 @@ void Cl_Interpolate(void) {
 
   Cl_UpdateLerp();
 
-  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.numEntities; i++) {
 
-    const uint32_t s = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    cl_entity_t *ent = &cl.entities[cl.entity_states[s].number];
+    const uint32_t s = (cl.frame.entityState + i) & ENTITY_STATE_MASK;
+    ClientEntity *ent = &cl.entities[cl.entityStates[s].number];
 
     if (!Vec3_Equal(ent->prev.origin, ent->current.origin)) {
-      ent->previous_origin = ent->origin;
+      ent->previousOrigin = ent->origin;
       ent->origin = Vec3_Mix(ent->prev.origin, ent->current.origin, cl.lerp);
     } else {
       ent->origin = ent->current.origin;
@@ -425,32 +425,32 @@ void Cl_Interpolate(void) {
 
     if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
       ent->animation1.animation = ent->current.animation1 & ANIM_MASK_VALUE;
-      ent->animation1.time = cl.unclamped_time;
+      ent->animation1.time = cl.unclampedTime;
       ent->animation1.reverse = ent->current.animation1 & ANIM_REVERSE_BIT;
     }
 
     if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
       ent->animation2.animation = ent->current.animation2 & ANIM_MASK_VALUE;
-      ent->animation2.time = cl.unclamped_time;
+      ent->animation2.time = cl.unclampedTime;
       ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
     }
 
-    if (ent->prev.step_offset != ent->current.step_offset) {
-      ent->step_offset = Mixf(ent->prev.step_offset, ent->current.step_offset, cl.lerp);
+    if (ent->prev.stepOffset != ent->current.stepOffset) {
+      ent->stepOffset = Mixf(ent->prev.stepOffset, ent->current.stepOffset, cl.lerp);
     } else {
-      ent->step_offset = ent->current.step_offset;
+      ent->stepOffset = ent->current.stepOffset;
     }
 
-    vec3_t angles;
+    Vec3 angles;
     if (ent->current.solid == SOLID_BSP) {
       angles = ent->current.angles;
 
-      const r_model_t *mod = cl.models[ent->current.model1];
+      const RenderModel *mod = cl.models[ent->current.model1];
 
       assert(mod);
-      assert(mod->bsp_inline);
+      assert(mod->bspInline);
 
-      ent->bounds = mod->bsp_inline->visible_bounds;
+      ent->bounds = mod->bspInline->visibleBounds;
     } else {
       angles = Vec3_Zero();
       ent->bounds = ent->current.bounds;
@@ -464,9 +464,9 @@ void Cl_Interpolate(void) {
 
     ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
 
-    ent->inverse_matrix = Mat4_Inverse(ent->matrix);
+    ent->inverseMatrix = Mat4_Inverse(ent->matrix);
 
-    ent->abs_bounds = Cm_EntityBounds(ent->current.solid, ent->matrix, ent->bounds);
+    ent->absBounds = Cm_EntityBounds(ent->current.solid, ent->matrix, ent->bounds);
   }
 
   cls.cgame->Interpolate(&cl.frame);

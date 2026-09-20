@@ -26,8 +26,8 @@
  */
 void Cl_UpdateScreen(void) {
 
-  static cl_key_dest_t previous_key_dest = KEY_UI;
-  if (cls.key_state.dest == KEY_UI) {
+  static ClientKeyDest previous_key_dest = KEY_UI;
+  if (cls.keyState.dest == KEY_UI) {
     if (previous_key_dest != KEY_UI) {
       Ui_ViewWillAppear();
     }
@@ -36,14 +36,14 @@ void Cl_UpdateScreen(void) {
       Ui_ViewWillDisappear();
     }
   }
-  previous_key_dest = cls.key_state.dest;
+  previous_key_dest = cls.keyState.dest;
 
   switch (cls.state) {
     case CL_UNINITIALIZED:
     case CL_DISCONNECTED:
     case CL_CONNECTING:
     case CL_CONNECTED:
-      if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE) {
+      if (cls.keyState.dest == KEY_UI || cls.keyState.dest == KEY_CONSOLE) {
         Ui_Draw();
       }
       break;
@@ -53,7 +53,7 @@ void Cl_UpdateScreen(void) {
       break;
 
     case CL_ACTIVE:
-      if (cls.key_state.dest != KEY_UI) {
+      if (cls.keyState.dest != KEY_UI) {
         cls.cgame->UpdateScreen(&cl.frame);
       }
 

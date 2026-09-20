@@ -24,8 +24,8 @@
 
 #include "ConsoleViewController.h"
 
-extern cl_static_t cls;
-extern cl_client_t cl;
+extern ClientStatic cls;
+extern Client cl;
 
 static WindowController *windowController;
 
@@ -45,16 +45,16 @@ static NavigationViewController *navigationViewController;
 /**
  * @brief Retain callback for Ui sounds.
  */
-static bool Ui_RetainSample(s_media_t *media) {
+static bool Ui_RetainSample(SoundMedia *media) {
   return true;
 }
 
 /**
  * @brief Loads a sample for the Ui.
  */
-static s_sample_t *Ui_LoadSample(const char *name) {
+static SoundSample *Ui_LoadSample(const char *name) {
 
-  s_sample_t *sample = S_LoadSample(name, ASSET_CONTEXT_UI);
+  SoundSample *sample = S_LoadSample(name, ASSET_CONTEXT_UI);
 
   if (sample) {
     sample->media.Retain = Ui_RetainSample;
@@ -114,18 +114,18 @@ void Ui_HandleEvent(const SDL_Event *event) {
 
     // paused demo playback frees the mouse for the transport controls while staying in KEY_GAME,
     // so pointer events have to reach the UI even though the menus aren't up
-    const bool demo_paused = cls.demo.paused;
+    const bool demoPaused = cls.demo.paused;
 
-    if (cls.key_state.dest != KEY_UI && !demo_paused) {
+    if (cls.keyState.dest != KEY_UI && !demoPaused) {
       switch (event->type) {
         case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
           break;
         case SDL_EVENT_KEY_DOWN:
-          if (editor->value && cls.key_state.dest == KEY_GAME) {
+          if (editor->value && cls.keyState.dest == KEY_GAME) {
             break;
           }
           // demo transport keys are owned by HudViewController, not the bind table
-          if (cl.demo_server) {
+          if (cl.demoServer) {
             break;
           }
           if (event->key.key == SDLK_TAB || event->key.key == SDLK_KP_TAB) {
@@ -133,7 +133,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
           }
         case SDL_EVENT_KEY_UP:
         case SDL_EVENT_TEXT_INPUT:
-          if (cls.key_state.dest == KEY_CHAT) {
+          if (cls.keyState.dest == KEY_CHAT) {
             break;
           }
         default:
@@ -194,7 +194,7 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  const cl_key_dest_t dest = cls.key_state.dest;
+  const ClientKeyDest dest = cls.keyState.dest;
 
   const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
   const bool menus = dest == KEY_UI || cls.state == CL_LOADING || (cls.state != CL_ACTIVE && dest != KEY_CONSOLE);
@@ -301,9 +301,9 @@ void Ui_Init(void) {
   MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
   // MVC asset lookups resolve through the renderer's R_ResourceProvider, which
-  // is registered for the lifetime of the device (see r_context.c); the old
+  // is registered for the lifetime of the device (see rContext.c); the old
   // Ui_Data provider was a redundant second bridge to Fs_Load.
-  windowController = $(alloc(WindowController), initWithDevice, r_context.device);
+  windowController = $(alloc(WindowController), initWithDevice, rContext.device);
 
   rootViewController = $(alloc(ViewController), init);
   $(windowController, setViewController, rootViewController);
@@ -320,7 +320,7 @@ void Ui_Init(void) {
   $(rootViewController, addChildViewController, (ViewController *) consoleViewController);
 
   for (int32_t i = 0; i < 10; i++) {
-    const color32_t c = Color_Color32(ColorEsc(i));
+    const Color32 c = Color_Color32(ColorEsc(i));
     TextEscapeColors[i] = (SDL_Color) { c.r, c.g, c.b, c.a };
   }
 

@@ -21,75 +21,75 @@
 
 #include "cg_local.h"
 
-cg_state_t cg_state;
+ClientGameState cgState;
 
-cvar_t *cg_add_atmospheric;
-cvar_t *cg_add_decals;
-cvar_t *cg_add_entities;
-cvar_t *cg_add_flares;
-cvar_t *cg_add_lights;
-cvar_t *cg_add_sprites;
-cvar_t *cg_add_weather;
-cvar_t *cg_bob;
-cvar_t *cg_draw_blend;
-cvar_t *cg_draw_blend_damage;
-cvar_t *cg_draw_blend_liquid;
-cvar_t *cg_draw_blend_pickup;
-cvar_t *cg_draw_blend_powerup;
-cvar_t *cg_draw_crosshair;
-cvar_t *cg_draw_crosshair_alpha;
-cvar_t *cg_draw_crosshair_color;
-cvar_t *cg_draw_crosshair_health;
-cvar_t *cg_draw_crosshair_pulse;
-cvar_t *cg_draw_crosshair_scale;
-cvar_t *cg_draw_diagnostics;
-cvar_t *cg_draw_fps;
-cvar_t *cg_draw_hud;
-cvar_t *cg_draw_ping;
-cvar_t *cg_draw_ping_warn;
-cvar_t *cg_hud;
-cvar_t *cg_draw_target_name;
-cvar_t *cg_draw_weapon;
-cvar_t *cg_draw_weapon_alpha;
-cvar_t *cg_draw_weapon_bob;
-cvar_t *cg_draw_weapon_x;
-cvar_t *cg_draw_weapon_y;
-cvar_t *cg_draw_weapon_z;
-cvar_t *cg_draw_vitals_pulse;
-cvar_t *cg_entity_bob;
-cvar_t *cg_entity_rotate;
-cvar_t *cg_force_skin;
-cvar_t *cg_fov;
-cvar_t *cg_fov_zoom;
-cvar_t *cg_fov_interpolate;
-cvar_t *cg_hit_sound;
-cvar_t *cg_predict;
-cvar_t *cg_quick_join_max_ping;
-cvar_t *cg_quick_join_min_clients;
-cvar_t *cg_sprite_physics;
-cvar_t *cg_camera_mode;
-cvar_t *cg_third_person;
-cvar_t *cg_third_person_x;
-cvar_t *cg_third_person_y;
-cvar_t *cg_third_person_z;
-cvar_t *cg_third_person_pitch;
-cvar_t *cg_third_person_yaw;
+Cvar *cg_addAtmospheric;
+Cvar *cg_addDecals;
+Cvar *cg_addEntities;
+Cvar *cg_addFlares;
+Cvar *cg_addLights;
+Cvar *cg_addSprites;
+Cvar *cg_addWeather;
+Cvar *cg_bob;
+Cvar *cg_drawBlend;
+Cvar *cg_drawBlendDamage;
+Cvar *cg_drawBlendLiquid;
+Cvar *cg_drawBlendPickup;
+Cvar *cg_drawBlendPowerup;
+Cvar *cg_drawCrosshair;
+Cvar *cg_drawCrosshairAlpha;
+Cvar *cg_drawCrosshairColor;
+Cvar *cg_drawCrosshairHealth;
+Cvar *cg_drawCrosshairPulse;
+Cvar *cg_drawCrosshairScale;
+Cvar *cg_drawDiagnostics;
+Cvar *cg_drawFps;
+Cvar *cg_drawHud;
+Cvar *cg_drawPing;
+Cvar *cg_drawPingWarn;
+Cvar *cg_hud;
+Cvar *cg_drawTargetName;
+Cvar *cg_drawWeapon;
+Cvar *cg_drawWeaponAlpha;
+Cvar *cg_drawWeaponBob;
+Cvar *cg_drawWeaponX;
+Cvar *cg_drawWeaponY;
+Cvar *cg_drawWeaponZ;
+Cvar *cg_drawVitalsPulse;
+Cvar *cg_entityBob;
+Cvar *cg_entityRotate;
+Cvar *cg_forceSkin;
+Cvar *cg_fov;
+Cvar *cg_fovZoom;
+Cvar *cg_fovInterpolate;
+Cvar *cg_hitSound;
+Cvar *cg_predict;
+Cvar *cg_quickJoinMaxPing;
+Cvar *cg_quickJoinMinClients;
+Cvar *cg_spritePhysics;
+Cvar *cg_cameraMode;
+Cvar *cg_thirdPerson;
+Cvar *cg_thirdPersonX;
+Cvar *cg_thirdPersonY;
+Cvar *cg_thirdPersonZ;
+Cvar *cg_thirdPersonPitch;
+Cvar *cg_thirdPersonYaw;
 
-cvar_t *cg_auto_switch;
-cvar_t *cg_color;
-cvar_t *cg_hand;
-cvar_t *cg_helmet;
+Cvar *cg_autoSwitch;
+Cvar *cg_color;
+Cvar *cg_hand;
+Cvar *cg_helmet;
 #if defined(G_HOOK)
-cvar_t *cg_hook_style;
+Cvar *cg_hookStyle;
 #endif
-cvar_t *cg_pants;
-cvar_t *cg_shirt;
-cvar_t *cg_skin;
+Cvar *cg_pants;
+Cvar *cg_shirt;
+Cvar *cg_skin;
 
-cvar_t *editor;
+Cvar *editor;
 
-cg_import_t cgi;
-static cg_export_t cge;
+ClientGameImport cgi;
+static ClientGameExport cge;
 
 /**
  * @brief Called when the client first comes up or switches game directories. Client
@@ -100,75 +100,75 @@ static void Cg_Init(void) {
   cgi.Print("Client game module initialization...\n");
 
   const char *s = va("%s %s", VERSION, BUILD);
-  cvar_t *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
+  Cvar *cgameVersion = cgi.AddCvar("cgameVersion", s, CVAR_NO_SET, NULL);
 
-  cgi.Print("  Version:    ^2%s^7\n", cgame_version->string);
+  cgi.Print("  Version:    ^2%s^7\n", cgameVersion->string);
 
   Cg_InitInput();
 
-  cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
-  cg_add_decals = cgi.AddCvar("cg_add_decals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
-  cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
-  cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
-  cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
-  cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
-  cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
+  cg_addAtmospheric = cgi.AddCvar("cg_addAtmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
+  cg_addDecals = cgi.AddCvar("cg_addDecals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
+  cg_addEntities = cgi.AddCvar("cg_addEntities", "1", 0, "Toggles adding entities to the scene.");
+  cg_addFlares = cgi.AddCvar("cg_addFlares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
+  cg_addLights = cgi.AddCvar("cg_addLights", "1", 0, "Toggles adding dynamic lights to the scene.");
+  cg_addSprites = cgi.AddCvar("cg_addSprites", "1", 0, "Toggles adding sprites to the scene.");
+  cg_addWeather = cgi.AddCvar("cg_addWeather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
   cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
-  cg_draw_blend = cgi.AddCvar("cg_draw_blend", "1", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending.");
-  cg_draw_blend_damage = cgi.AddCvar("cg_draw_blend_damage", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when taking damage.");
-  cg_draw_blend_liquid = cgi.AddCvar("cg_draw_blend_liquid", "1", CVAR_ARCHIVE, "Controls the intensity of the blend effect while in a liquid.");
-  cg_draw_blend_pickup = cgi.AddCvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when picking up items.");
-  cg_draw_blend_powerup = cgi.AddCvar("cg_draw_blend_powerup", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when holding a powerup.");
-  cg_draw_crosshair = cgi.AddCvar("cg_draw_crosshair", "1", CVAR_ARCHIVE, "Which crosshair image to use, 0 disables (Default is 1)");
-  cg_draw_crosshair_alpha = cgi.AddCvar("cg_draw_crosshair_alpha", "1.0", CVAR_ARCHIVE, "Opacity of the crosshair");
-  cg_draw_crosshair_color = cgi.AddCvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE, "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
-  cg_draw_crosshair_health = cgi.AddCvar("cg_draw_crosshair_health", "0", CVAR_ARCHIVE, "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
-  cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE, "Pulse the crosshair when picking up items");
-  cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE, "Controls the crosshair scale (size)");
-  cg_draw_diagnostics = cgi.AddCvar("cg_draw_diagnostics", "0", CVAR_ARCHIVE, "Draw the client, renderer and sound counters on the HUD");
-  cg_draw_fps = cgi.AddCvar("cg_draw_fps", "1", CVAR_ARCHIVE, "Draw the frame rate on the HUD");
-  cg_draw_hud = cgi.AddCvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
-  cg_draw_ping = cgi.AddCvar("cg_draw_ping", "1", CVAR_ARCHIVE, "Draw the round trip time to the server on the HUD");
-  cg_draw_ping_warn = cgi.AddCvar("cg_draw_ping_warn", "200", CVAR_ARCHIVE, "The round trip time, in milliseconds, above which the ping is drawn as lagging");
+  cg_drawBlend = cgi.AddCvar("cg_drawBlend", "1", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending.");
+  cg_drawBlendDamage = cgi.AddCvar("cg_drawBlendDamage", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when taking damage.");
+  cg_drawBlendLiquid = cgi.AddCvar("cg_drawBlendLiquid", "1", CVAR_ARCHIVE, "Controls the intensity of the blend effect while in a liquid.");
+  cg_drawBlendPickup = cgi.AddCvar("cg_drawBlendPickup", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when picking up items.");
+  cg_drawBlendPowerup = cgi.AddCvar("cg_drawBlendPowerup", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when holding a powerup.");
+  cg_drawCrosshair = cgi.AddCvar("cg_drawCrosshair", "1", CVAR_ARCHIVE, "Which crosshair image to use, 0 disables (Default is 1)");
+  cg_drawCrosshairAlpha = cgi.AddCvar("cg_drawCrosshairAlpha", "1.0", CVAR_ARCHIVE, "Opacity of the crosshair");
+  cg_drawCrosshairColor = cgi.AddCvar("cg_drawCrosshairColor", "default", CVAR_ARCHIVE, "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
+  cg_drawCrosshairHealth = cgi.AddCvar("cg_drawCrosshairHealth", "0", CVAR_ARCHIVE, "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
+  cg_drawCrosshairPulse = cgi.AddCvar("cg_drawCrosshairPulse", "1", CVAR_ARCHIVE, "Pulse the crosshair when picking up items");
+  cg_drawCrosshairScale = cgi.AddCvar("cg_drawCrosshairScale", "1", CVAR_ARCHIVE, "Controls the crosshair scale (size)");
+  cg_drawDiagnostics = cgi.AddCvar("cg_drawDiagnostics", "0", CVAR_ARCHIVE, "Draw the client, renderer and sound counters on the HUD");
+  cg_drawFps = cgi.AddCvar("cg_drawFps", "1", CVAR_ARCHIVE, "Draw the frame rate on the HUD");
+  cg_drawHud = cgi.AddCvar("cg_drawHud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+  cg_drawPing = cgi.AddCvar("cg_drawPing", "1", CVAR_ARCHIVE, "Draw the round trip time to the server on the HUD");
+  cg_drawPingWarn = cgi.AddCvar("cg_drawPingWarn", "200", CVAR_ARCHIVE, "The round trip time, in milliseconds, above which the ping is drawn as lagging");
   cg_hud = cgi.AddCvar("cg_hud", "default", CVAR_ARCHIVE, "The HUD variant: the ui/hud/<name> directory its layout and style are read from (Default is default)");
-  cg_draw_target_name = cgi.AddCvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
-  cg_draw_weapon = cgi.AddCvar("cg_draw_weapon", "1", CVAR_ARCHIVE, "Toggle drawing of the weapon model.");
-  cg_draw_weapon_alpha = cgi.AddCvar("cg_draw_weapon_alpha", "1", CVAR_ARCHIVE, "The alpha transparency for drawing the weapon model.");
-  cg_draw_weapon_bob = cgi.AddCvar("cg_draw_weapon_bob", "1", CVAR_ARCHIVE, "If the weapon model bobs while moving.");
-  cg_draw_weapon_x = cgi.AddCvar("cg_draw_weapon_x", "0", CVAR_ARCHIVE, "The x offset for drawing the weapon model.");
-  cg_draw_weapon_y = cgi.AddCvar("cg_draw_weapon_y", "0", CVAR_ARCHIVE, "The y offset for drawing the weapon model.");
-  cg_draw_weapon_z = cgi.AddCvar("cg_draw_weapon_z", "0", CVAR_ARCHIVE, "The z offset for drawing the weapon model.");
-  cg_draw_vitals_pulse = cgi.AddCvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE, "Pulse the vitals when low");
-  cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
-  cg_entity_rotate = cgi.AddCvar("cg_entity_rotate", "1", CVAR_ARCHIVE, "Controls the rotation of items");
-  cg_force_skin = cgi.AddCvar("cg_force_skin", "", CVAR_ARCHIVE | CVAR_R_MEDIA, "Force all other players to use this model/skin (e.g. \"enforcer/default\").");
+  cg_drawTargetName = cgi.AddCvar("cg_drawTargetName", "1", CVAR_ARCHIVE, "Draw the target's name");
+  cg_drawWeapon = cgi.AddCvar("cg_drawWeapon", "1", CVAR_ARCHIVE, "Toggle drawing of the weapon model.");
+  cg_drawWeaponAlpha = cgi.AddCvar("cg_drawWeaponAlpha", "1", CVAR_ARCHIVE, "The alpha transparency for drawing the weapon model.");
+  cg_drawWeaponBob = cgi.AddCvar("cg_drawWeaponBob", "1", CVAR_ARCHIVE, "If the weapon model bobs while moving.");
+  cg_drawWeaponX = cgi.AddCvar("cg_drawWeaponX", "0", CVAR_ARCHIVE, "The x offset for drawing the weapon model.");
+  cg_drawWeaponY = cgi.AddCvar("cg_drawWeaponY", "0", CVAR_ARCHIVE, "The y offset for drawing the weapon model.");
+  cg_drawWeaponZ = cgi.AddCvar("cg_drawWeaponZ", "0", CVAR_ARCHIVE, "The z offset for drawing the weapon model.");
+  cg_drawVitalsPulse = cgi.AddCvar("cg_drawVitalsPulse", "1", CVAR_ARCHIVE, "Pulse the vitals when low");
+  cg_entityBob = cgi.AddCvar("cg_entityBob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
+  cg_entityRotate = cgi.AddCvar("cg_entityRotate", "1", CVAR_ARCHIVE, "Controls the rotation of items");
+  cg_forceSkin = cgi.AddCvar("cg_forceSkin", "", CVAR_ARCHIVE | CVAR_R_MEDIA, "Force all other players to use this model/skin (e.g. \"enforcer/default\").");
   cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees, at a 16:9 reference aspect ratio. Automatically scaled for your display's actual aspect ratio.");
-  cg_fov_zoom = cgi.AddCvar("cg_fov_zoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
-  cg_fov_interpolate = cgi.AddCvar("cg_fov_interpolate", "1", CVAR_ARCHIVE, "Interpolate between field of view changes (default 1.0).");
-  cg_hit_sound = cgi.AddCvar("cg_hit_sound", "1", CVAR_ARCHIVE, "If a hit sound is played when damaging an enemy.");
+  cg_fovZoom = cgi.AddCvar("cg_fovZoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
+  cg_fovInterpolate = cgi.AddCvar("cg_fovInterpolate", "1", CVAR_ARCHIVE, "Interpolate between field of view changes (default 1.0).");
+  cg_hitSound = cgi.AddCvar("cg_hitSound", "1", CVAR_ARCHIVE, "If a hit sound is played when damaging an enemy.");
   cg_predict = cgi.AddCvar("cg_predict", "1", 0, "Use client side movement prediction");
-  cg_quick_join_max_ping = cgi.AddCvar("cg_quick_join_max_ping", "200", CVAR_ARCHIVE, "Maximum ping allowed for quick join");
-  cg_quick_join_min_clients = cgi.AddCvar("cg_quick_join_min_clients", "1", CVAR_ARCHIVE, "Minimum clients allowed for quick join");
-  cg_sprite_physics = cgi.AddCvar("cg_sprite_physics", "1", CVAR_ARCHIVE, "Whether to enable sprite physics or not.");
+  cg_quickJoinMaxPing = cgi.AddCvar("cg_quickJoinMaxPing", "200", CVAR_ARCHIVE, "Maximum ping allowed for quick join");
+  cg_quickJoinMinClients = cgi.AddCvar("cg_quickJoinMinClients", "1", CVAR_ARCHIVE, "Minimum clients allowed for quick join");
+  cg_spritePhysics = cgi.AddCvar("cg_spritePhysics", "1", CVAR_ARCHIVE, "Whether to enable sprite physics or not.");
   // deliberately not archived: the server overrules this whenever it decides what, if anything,
   // is being watched, so a persisted value would be one the player never chose
-  cg_camera_mode = cgi.AddCvar("cg_camera_mode", "0", 0,
+  cg_cameraMode = cgi.AddCvar("cg_cameraMode", "0", 0,
                                "How the spectator and demo playback camera frames its subject: "
                                "0 first person, 1 third person, 2 follow.");
 
-  cg_third_person = cgi.AddCvar("cg_third_person", "0", CVAR_ARCHIVE | CVAR_DEVELOPER, "Activate third person perspective.");
-  cg_third_person_x = cgi.AddCvar("cg_third_person_x", "-200", CVAR_ARCHIVE, "The x offset for third person perspective.");
-  cg_third_person_y = cgi.AddCvar("cg_third_person_y", "0", CVAR_ARCHIVE, "The y offset for third person perspective.");
-  cg_third_person_z = cgi.AddCvar("cg_third_person_z", "40", CVAR_ARCHIVE, "The z offset for third person perspective.");
-  cg_third_person_pitch = cgi.AddCvar("cg_third_person_pitch", "0", CVAR_ARCHIVE, "The pitch offset for third person perspective.");
-  cg_third_person_yaw = cgi.AddCvar("cg_third_person_yaw", "0", CVAR_ARCHIVE, "The yaw offset for third person perspective.");
+  cg_thirdPerson = cgi.AddCvar("cg_thirdPerson", "0", CVAR_ARCHIVE | CVAR_DEVELOPER, "Activate third person perspective.");
+  cg_thirdPersonX = cgi.AddCvar("cg_thirdPersonX", "-200", CVAR_ARCHIVE, "The x offset for third person perspective.");
+  cg_thirdPersonY = cgi.AddCvar("cg_thirdPersonY", "0", CVAR_ARCHIVE, "The y offset for third person perspective.");
+  cg_thirdPersonZ = cgi.AddCvar("cg_thirdPersonZ", "40", CVAR_ARCHIVE, "The z offset for third person perspective.");
+  cg_thirdPersonPitch = cgi.AddCvar("cg_thirdPersonPitch", "0", CVAR_ARCHIVE, "The pitch offset for third person perspective.");
+  cg_thirdPersonYaw = cgi.AddCvar("cg_thirdPersonYaw", "0", CVAR_ARCHIVE, "The yaw offset for third person perspective.");
 
-  cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE, "The weapon auto-switch mode. 0 disables, 1 switches from Blaster only, 2 always switches, 3 switches to new weapons.");
+  cg_autoSwitch = cgi.AddCvar("autoSwitch", "1", CVAR_USER_INFO | CVAR_ARCHIVE, "The weapon auto-switch mode. 0 disables, 1 switches from Blaster only, 2 always switches, 3 switches to new weapons.");
   cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies the effect color for your own weapon trails.");
   cg_hand = cgi.AddCvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO, "Controls weapon handedness (center: 0, right: 1, left: 2).");
   cg_helmet = cgi.AddCvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 #if defined(G_HOOK)
-  cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE, "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
+  cg_hookStyle = cgi.AddCvar("hookStyle", "pull", CVAR_USER_INFO | CVAR_ARCHIVE, "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
 #endif
   cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_shirt = cgi.AddCvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
@@ -184,21 +184,21 @@ static void Cg_Init(void) {
   cgi.AddCmd("use", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("drop", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("say", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("say_team", NULL, CMD_CGAME, NULL);
+  cgi.AddCmd("sayTeam", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("info", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("give", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("god", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("no_clip", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("weapon_last", NULL, CMD_CGAME, NULL);
+  cgi.AddCmd("noClip", NULL, CMD_CGAME, NULL);
+  cgi.AddCmd("weaponLast", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("team", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("team_name", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("team_skin", NULL, CMD_CGAME, NULL);
+  cgi.AddCmd("teamName", NULL, CMD_CGAME, NULL);
+  cgi.AddCmd("teamSkin", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("spectate", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("join", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("ready", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("unready", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("player_list", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("chase_stop", NULL, CMD_CGAME, "Stop chasing and return to free spectator flight.");
+  cgi.AddCmd("playerList", NULL, CMD_CGAME, NULL);
+  cgi.AddCmd("chaseStop", NULL, CMD_CGAME, "Stop chasing and return to free spectator flight.");
 
   cgi.AddCmd("camera", Cg_CameraModeCycle_f, CMD_CGAME,
              "Cycle the first-person, third-person and follow cameras "
@@ -264,12 +264,12 @@ static void Cg_ParseTeamInfo(const char *s) {
 
   const size_t count = info->count;
 
-  if (count != lengthof(cg_state.teams) * 4) {
+  if (count != lengthof(cgState.teams) * 4) {
     release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }
 
-  cg_team_info_t *team = cg_state.teams;
+  ClientGameTeamInfo *team = cgState.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
     team->id = atoi((char *) $(info, get, i + 0));
@@ -309,48 +309,48 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   switch (i) {
     case CS_GAMEPLAY:
-      cg_state.gameplay = (g_gameplay_id_t) strtol(s, NULL, 10);
+      cgState.gameplay = (GameplayId) strtol(s, NULL, 10);
       return;
     case CS_NUM_TEAMS:
-      cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
+      cgState.numTeams = Clampf(atoi(s), 0, MAX_TEAMS);
       return;
     case CS_TEAM_INFO:
       Cg_ParseTeamInfo(s);
       return;
     case CS_ITEM_SET:
-      cg_state.items = (g_items_t) strtol(s, NULL, 10);
+      cgState.items = (GameItems) strtol(s, NULL, 10);
       return;
 #if defined(G_HOOK)
     case CS_HOOK_PULL_SPEED: {
       char *end;
-      cg_state.hook_pull_speed = strtof(s, &end);
-      if (end == s || *end || !isfinite(cg_state.hook_pull_speed) || cg_state.hook_pull_speed <= 0.f) {
+      cgState.hookPullSpeed = strtof(s, &end);
+      if (end == s || *end || !isfinite(cgState.hookPullSpeed) || cgState.hookPullSpeed <= 0.f) {
         Cg_Warn("Invalid hook pull speed \"%s\"\n", s);
-        cg_state.hook_pull_speed = PM_SPEED_HOOK_PULL;
+        cgState.hookPullSpeed = PM_SPEED_HOOK_PULL;
       }
       return;
     }
 #endif
     case CS_NAV_EDIT:
-      cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);
+      cgState.navEdit = (int32_t) strtol(s, NULL, 10);
       return;
   }
 
   if (i >= CS_CORPSES && i < CS_CORPSES + MAX_CORPSES) {
-    Cg_LoadClient(&cg_state.corpses[i - CS_CORPSES], s);
+    Cg_LoadClient(&cgState.corpses[i - CS_CORPSES], s);
     return;
   }
 
   if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
-    cg_client_info_t *ci = &cg_state.clients[i - CS_CLIENTS];
+    ClientGameClientInfo *ci = &cgState.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
 
     // the server does not count connected clients for us: the entries it sends are the count
-    cg_state.num_clients = 0;
+    cgState.numClients = 0;
     for (int32_t j = 0; j < MAX_CLIENTS; j++) {
       if (*cgi.ConfigString(CS_CLIENTS + j)) {
-        cg_state.num_clients++;
+        cgState.numClients++;
       }
     }
 
@@ -359,15 +359,15 @@ static void Cg_UpdateConfigString(int32_t i) {
     // excepted: it is not its owner, and it keeps the animation it died in however they go on
     // to dress. Without that, a client info sent for any reason at all -- and respawning is
     // one -- played a corpse's death over again where it lay.
-    const int32_t client_num = i - CS_CLIENTS;
+    const int32_t clientNum = i - CS_CLIENTS;
     for (int32_t j = 0; j < MAX_ENTITIES; j++) {
-      cl_entity_t *ent = &cgi.client->entities[j];
+      ClientEntity *ent = &cgi.client->entities[j];
 
       if (ent->current.effects & EF_CORPSE) {
         continue;
       }
 
-      if ((ent->current.effects & EF_CLIENT) && ent->current.client == (uint8_t) client_num) {
+      if ((ent->current.effects & EF_CLIENT) && ent->current.client == (uint8_t) clientNum) {
         ent->animation1.time = ent->animation2.time = 0;
         ent->animation1.frame = ent->animation2.frame = -1;
       }
@@ -389,13 +389,13 @@ static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
 
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
 
-  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cg_state.clients[client].name, color, message);
+  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cgState.clients[client].name, color, message);
 
   // the sound is the module's to choose, because only it knows which kind of message this is
-  const char *sample = cgi.GetCvarString(team ? "cl_team_chat_sound" : "cl_chat_sound");
+  const char *sample = cgi.GetCvarString(team ? "cl_teamChatSound" : "cl_chatSound");
 
   if (sample && *sample) {
-    Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+    Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
       .sample = cgi.LoadSample(sample, ASSET_CONTEXT_SOUNDS),
       .flags = S_PLAY_UI
     });
@@ -456,8 +456,8 @@ static bool Cg_ParseMessage(int32_t cmd) {
       return true;
 
     case SV_CMD_SNAP_ANGLES:
-      cg_state.snap_view_angles = cgi.ReadAngles();
-      cg_state.snap_angles = true;
+      cgState.snapViewAngles = cgi.ReadAngles();
+      cgState.snapAngles = true;
       return true;
 
     case SV_CMD_CENTER_PRINT:
@@ -481,21 +481,21 @@ static bool Cg_ParseMessage(int32_t cmd) {
  */
 float Cg_GetHookPullSpeed(void) {
 
-  return cg_state.hook_pull_speed;
+  return cgState.hookPullSpeed;
 }
 #endif
 
 /**
  * @brief The tail of the `Cg_ListGameplayModes` hook, offering every mode in
- * `g_gameplay_modes` - the same table `g_gameplay` is parsed against on the
+ * `gGameplayModes` - the same table `g_gameplay` is parsed against on the
  * game side, so the name and label a module offers can never drift from what
  * the server will actually coerce it to.
  */
-static const g_gameplay_t *Cg_ListGameplayModes_Common(size_t *count) {
+static const Gameplay *Cg_ListGameplayModes_Common(size_t *count) {
 
-  *count = lengthof(g_gameplay_modes);
+  *count = lengthof(gGameplayModes);
 
-  return g_gameplay_modes;
+  return gGameplayModes;
 }
 
 ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
@@ -505,7 +505,7 @@ ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
  */
 static void Cg_ClearState(void) {
 
-  memset(&cg_state, 0, sizeof(cg_state));
+  memset(&cgState, 0, sizeof(cgState));
 
   Cg_ClearInput();
 
@@ -533,7 +533,7 @@ StateDidClear Cg_StateDidClear = Cg_StateDidClear_Common;
 /**
  * @brief Prepares the scene so that early rendering operations may begin.
  */
-static void Cg_PrepareScene(const cl_frame_t *frame) {
+static void Cg_PrepareScene(const ClientFrame *frame) {
 
   Cg_PrepareView(frame);
 
@@ -543,7 +543,7 @@ static void Cg_PrepareScene(const cl_frame_t *frame) {
 /**
  * @brief Populates the scene with entities, sprites, samples, etc.. for the interpolated frame.
  */
-static void Cg_PopulateScene(const cl_frame_t *frame) {
+static void Cg_PopulateScene(const ClientFrame *frame) {
 
   Cg_AddPortals(frame);
 
@@ -563,7 +563,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 /**
  * @brief The tail of the `Cg_SceneDidPopulate` chain: a notification, so it does nothing.
  */
-static void Cg_SceneDidPopulate_Common(const cl_frame_t *frame) {
+static void Cg_SceneDidPopulate_Common(const ClientFrame *frame) {
 }
 
 SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
@@ -571,12 +571,12 @@ SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
 /**
  * @brief Hands the frame to the HUD, and to what the HUD still does outside its View hierarchy.
  */
-static void Cg_UpdateScreen(const cl_frame_t *frame) {
+static void Cg_UpdateScreen(const ClientFrame *frame) {
 
   Cg_UpdateHud(frame);
 
   // The HUD hides itself in nav edit and shows the instructions instead
-  if (!cg_state.nav_edit) {
+  if (!cgState.navEdit) {
     Cg_DrawHud(frame);
   }
 
@@ -588,7 +588,7 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 /**
  * @brief The tail of the `Cg_ScreenDidUpdate` chain: a notification, so it does nothing.
  */
-static void Cg_ScreenDidUpdate_Common(const cl_frame_t *frame) {
+static void Cg_ScreenDidUpdate_Common(const ClientFrame *frame) {
 }
 
 ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
@@ -596,11 +596,11 @@ ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
 /**
  * @brief Entry point that populates and returns the cgame export table with all function pointers.
  */
-cg_export_t *Cg_LoadCgame(cg_import_t *import) {
+ClientGameExport *Cg_LoadCgame(ClientGameImport *import) {
 
   cgi = *import;
 
-  cge.api_version = CGAME_API_VERSION;
+  cge.apiVersion = CGAME_API_VERSION;
   cge.protocol = PROTOCOL_MINOR;
   cge.name = GAME_NAME;
 

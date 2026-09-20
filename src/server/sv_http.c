@@ -22,12 +22,12 @@
 #include "sv_local.h"
 #include "net/net_http_server.h"
 
-static int32_t sv_http_socket = -1;
+static int32_t svHttpSocket = -1;
 
 /**
  * @brief Allowed download patterns, matching the former UDP download allowlist.
  */
-static const char *sv_http_allowed_patterns[] = {
+static const char *svHttpAllowedPatterns[] = {
 	"*.pk3",
 	"docs/*",
 	"maps/*",
@@ -44,7 +44,7 @@ static const char *sv_http_allowed_patterns[] = {
  */
 static bool Sv_HttpIsAllowed(const char *filename) {
 
-	const char **pattern = sv_http_allowed_patterns;
+	const char **pattern = svHttpAllowedPatterns;
 	while (*pattern) {
 		if (GlobMatch(*pattern, filename, GLOB_FLAGS_NONE)) {
 			return true;
@@ -58,7 +58,7 @@ static bool Sv_HttpIsAllowed(const char *filename) {
 /**
  * @brief Send an HTTP error response and close the connection.
  */
-static void Sv_HttpSendError(sv_http_client_t *http, int32_t code, const char *reason) {
+static void Sv_HttpSendError(ServerHttpClient *http, int32_t code, const char *reason) {
 
 	Net_HttpSendError(http->socket, code, reason);
 
@@ -69,10 +69,10 @@ static void Sv_HttpSendError(sv_http_client_t *http, int32_t code, const char *r
 /**
  * @brief Parse the completed HTTP request and begin the response.
  */
-static void Sv_HttpHandleRequest(sv_http_client_t *http) {
+static void Sv_HttpHandleRequest(ServerHttpClient *http) {
 
 	// null-terminate the request
-	http->request[http->request_len] = '\0';
+	http->request[http->requestLen] = '\0';
 
 	// parse the request line
 	char method[16], filename[MAX_OS_PATH];
@@ -100,9 +100,9 @@ static void Sv_HttpHandleRequest(sv_http_client_t *http) {
 	}
 
 	// load the file
-	void *file_data = NULL;
-	const int64_t file_size = Fs_Load(filename, &file_data);
-	if (file_size == -1 || !file_data) {
+	void *fileData = NULL;
+	const int64_t fileSize = Fs_Load(filename, &fileData);
+	if (fileSize == -1 || !fileData) {
 		Com_Debug(DEBUG_SERVER, "HTTP: File not found: %s\n", filename);
 		Sv_HttpSendError(http, 404, "Not Found");
 		return;
@@ -110,19 +110,19 @@ static void Sv_HttpHandleRequest(sv_http_client_t *http) {
 
 	// build the response header
 	char header[256];
-	const int32_t header_len = Net_HttpFormatResponse(200, "OK",
-		"application/octet-stream", file_size, header, sizeof(header));
+	const int32_t headerLen = Net_HttpFormatResponse(200, "OK",
+		"application/octet-stream", fileSize, header, sizeof(header));
 
 	// allocate a single buffer for header + file data
-	http->size = header_len + (int32_t) file_size;
+	http->size = headerLen + (int32_t) fileSize;
 	http->data = Mem_Malloc(http->size);
-	memcpy(http->data, header, header_len);
-	memcpy(http->data + header_len, file_data, file_size);
+	memcpy(http->data, header, headerLen);
+	memcpy(http->data + headerLen, fileData, fileSize);
 	http->count = 0;
 
-	Fs_Free(file_data);
+	Fs_Free(fileData);
 
-	Com_Debug(DEBUG_SERVER, "HTTP: Serving %s (%" PRId64 " bytes)\n", filename, file_size);
+	Com_Debug(DEBUG_SERVER, "HTTP: Serving %s (%" PRId64 " bytes)\n", filename, fileSize);
 }
 
 /**
@@ -130,21 +130,21 @@ static void Sv_HttpHandleRequest(sv_http_client_t *http) {
  */
 static void Sv_HttpAccept(void) {
 
-	net_addr_t from;
-	const int32_t sock = Net_Accept(sv_http_socket, &from);
+	NetAddr from;
+	const int32_t sock = Net_Accept(svHttpSocket, &from);
 	if (sock == -1) {
 		return;
 	}
 
 	// match the source IP to a connected client
-	sv_client_t *cl = svs.clients;
-	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+	ServerClient *cl = svs.clients;
+	for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
 		if (cl->state == SV_CLIENT_FREE) {
 			continue;
 		}
 
-		if (cl->net_chan.remote_address.addr != from.addr) {
+		if (cl->netChan.remoteAddress.addr != from.addr) {
 			continue;
 		}
 
@@ -169,21 +169,21 @@ static void Sv_HttpAccept(void) {
 /**
  * @brief Process a single client's HTTP connection.
  */
-static void Sv_HttpClientThink(sv_http_client_t *http) {
+static void Sv_HttpClientThink(ServerHttpClient *http) {
 
 	// still reading the request
 	if (!http->data) {
 		const ssize_t received = Net_Recv(http->socket,
-			http->request + http->request_len,
-			sizeof(http->request) - 1 - http->request_len);
+			http->request + http->requestLen,
+			sizeof(http->request) - 1 - http->requestLen);
 
 		if (received > 0) {
-			http->request_len += (int32_t) received;
+			http->requestLen += (int32_t) received;
 
 			// check for end of HTTP request
 			if (q_strstr(http->request, "\r\n\r\n")) {
 				Sv_HttpHandleRequest(http);
-			} else if (http->request_len >= (int32_t) sizeof(http->request) - 1) {
+			} else if (http->requestLen >= (int32_t) sizeof(http->request) - 1) {
 				Sv_HttpSendError(http, 400, "Bad Request");
 			}
 		} else if (received == 0) {
@@ -226,14 +226,14 @@ static void Sv_HttpClientThink(sv_http_client_t *http) {
  */
 void Sv_HttpThink(void) {
 
-	if (sv_http_socket == -1 || svs.clients == NULL) {
+	if (svHttpSocket == -1 || svs.clients == NULL) {
 		return;
 	}
 
 	Sv_HttpAccept();
 
-	sv_client_t *cl = svs.clients;
-	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+	ServerClient *cl = svs.clients;
+	for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
 		if (cl->http.socket <= 0) {
 			continue;
@@ -246,7 +246,7 @@ void Sv_HttpThink(void) {
 /**
  * @brief Close a client's active HTTP connection. Called when the client disconnects.
  */
-void Sv_HttpClientDisconnect(sv_http_client_t *http) {
+void Sv_HttpClientDisconnect(ServerHttpClient *http) {
 
 	if (http->socket > 0) {
 		Net_CloseSocket(http->socket);
@@ -264,12 +264,12 @@ void Sv_HttpClientDisconnect(sv_http_client_t *http) {
  */
 void Sv_InitHttp(void) {
 
-	const cvar_t *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
+	const Cvar *netPort = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
-	const in_port_t port = net_port->integer;
+	const in_port_t port = netPort->integer;
 
-	sv_http_socket = Net_SocketListen(NULL, port, 8);
-	if (sv_http_socket == -1) {
+	svHttpSocket = Net_SocketListen(NULL, port, 8);
+	if (svHttpSocket == -1) {
 		Com_Warn("HTTP: Failed to create listen socket on port %d\n", port);
 		return;
 	}
@@ -282,18 +282,18 @@ void Sv_InitHttp(void) {
  */
 void Sv_ShutdownHttp(void) {
 
-	if (sv_http_socket == -1) {
+	if (svHttpSocket == -1) {
 		return;
 	}
 
 	// close all active client HTTP connections
-	sv_client_t *cl = svs.clients;
-	for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+	ServerClient *cl = svs.clients;
+	for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 		Sv_HttpClientDisconnect(&cl->http);
 	}
 
-	Net_CloseSocket(sv_http_socket);
-	sv_http_socket = -1;
+	Net_CloseSocket(svHttpSocket);
+	svHttpSocket = -1;
 
 	Com_Print("HTTP server stopped\n");
 }

@@ -45,33 +45,33 @@ static struct {
   /**
    * @brief Repeating linear sampler, for tiled stage textures.
    */
-  Sampler *repeat_sampler;
+  Sampler *repeatSampler;
 
   /**
    * @brief Clamped linear sampler, for the sky cubemap and voxel textures.
    */
-  Sampler *clamp_sampler;
+  Sampler *clampSampler;
 
   /**
    * @brief Cached material-stage pipelines.
    */
-  r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
-  int32_t num_stage_pipelines;
-} r_sky_draw;
+  RenderStagePipeline stagePipelines[MAX_STAGE_PIPELINES];
+  int32_t numStagePipelines;
+} module;
 
 /**
  * @brief Returns the cached sky stage pipeline for the given blend mode.
  */
-static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
+static GraphicsPipeline *R_SkyStagePipeline(CmBlend src, CmBlend dest) {
 
-  r_stage_pipeline_t *p = r_sky_draw.stage_pipelines;
-  for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++, p++) {
+  RenderStagePipeline *p = module.stagePipelines;
+  for (int32_t i = 0; i < module.numStagePipelines; i++, p++) {
     if (p->src == src && p->dest == dest) {
       return p->pipeline;
     }
   }
 
-  if (r_sky_draw.num_stage_pipelines == MAX_STAGE_PIPELINES) {
+  if (module.numStagePipelines == MAX_STAGE_PIPELINES) {
     return NULL;
   }
 
@@ -79,7 +79,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
+  info.multisample_state.sample_count = rSceneSamples;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
@@ -89,7 +89,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -97,7 +97,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
       .location = 0,
       .buffer_slot = 0,
       .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = offsetof(r_bsp_vertex_t, position),
+      .offset = offsetof(RenderBspVertex, position),
     },
     .num_vertex_attributes = 1,
   };
@@ -126,7 +126,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     .has_depth_stencil_target = true,
   };
 
-  GraphicsPipeline *pipeline = $(r_context.device, loadGraphicsPipeline,
+  GraphicsPipeline *pipeline = $(rContext.device, loadGraphicsPipeline,
     "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_uniform_buffers = SKY_NUM_UNIFORMS,
@@ -138,8 +138,8 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     },
     &info);
 
-  r_sky_draw.stage_pipelines[r_sky_draw.num_stage_pipelines++] = (typeof(r_sky_draw.stage_pipelines[0])) {
-    .src = src, .dest = dest, .depth_write = false, .pipeline = pipeline,
+  module.stagePipelines[module.numStagePipelines++] = (typeof(module.stagePipelines[0])) {
+    .src = src, .dest = dest, .depthWrite = false, .pipeline = pipeline,
   };
 
   return pipeline;
@@ -148,16 +148,16 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 /**
  * @brief Draws one sky material stage.
  */
-static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
-                                               const r_bsp_draw_elements_t *draw,
-                                               const r_stage_t *stage,
+static void R_DrawSkyDrawElementsMaterialStage(const RenderView *view,
+                                               const RenderBspDrawElements *draw,
+                                               const RenderStage *stage,
                                                RenderPass *pass) {
 
-  r_material_uniforms_t uniforms;
+  RenderMaterialUniforms uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
 
-  SDL_GPUTexture *texture, *texture_next;
-  if (!R_StageUniforms(view, NULL, draw, stage, &uniforms, &texture, &texture_next)) {
+  SDL_GPUTexture *texture, *textureNext;
+  if (!R_StageUniforms(view, NULL, draw, stage, &uniforms, &texture, &textureNext)) {
     return;
   }
 
@@ -169,31 +169,31 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = texture, .sampler = r_sky_draw.repeat_sampler->sampler },
-    { .texture = texture_next, .sampler = r_sky_draw.repeat_sampler->sampler },
+    { .texture = texture, .sampler = module.repeatSampler->sampler },
+    { .texture = textureNext, .sampler = module.repeatSampler->sampler },
   }, 2);
 
   $(pass->commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-  $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+  $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
 
-  r_stats->bsp_triangles += draw->num_elements / 3;
+  rStats->bspTriangles += draw->numElements / 3;
 }
 
 /**
  * @brief Draws all active material stages for a sky draw-elements batch.
  */
-static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
-                                                const r_bsp_draw_elements_t *draw,
+static void R_DrawSkyDrawElementsMaterialStages(const RenderView *view,
+                                                const RenderBspDrawElements *draw,
                                                 RenderPass *pass) {
 
-  const r_material_t *material = draw->material;
-  if (!(material->cm->stage_flags & STAGE_DRAW)) {
+  const RenderMaterial *material = draw->material;
+  if (!(material->cm->stageFlags & STAGE_DRAW)) {
     return;
   }
 
-  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
+  for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
 
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
@@ -206,11 +206,11 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
 /**
  * @brief Draws world sky surfaces with the active sky cubemap.
  */
-void R_DrawSky(const r_view_t *view, RenderPass *pass) {
+void R_DrawSky(const RenderView *view, RenderPass *pass) {
 
-  assert(r_models.world);
+  assert(rModels.world);
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = rModels.world->bsp;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -220,44 +220,44 @@ void R_DrawSky(const r_view_t *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
 
-  $(pass, bindPipeline, r_sky_draw.pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
-  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+  $(pass, bindPipeline, module.pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertexBuffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.repeat_sampler->sampler },
-    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_sky_draw.clamp_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_sky_draw.clamp_sampler->sampler },
+    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = rShadowAtlas.textures[0]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = rShadowAtlas.textures[1]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = rShadowAtlas.textures[2]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = rShadowAtlas.textures[3]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = rShadowAtlas.textures[4]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = rShadowAtlas.textures[5]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = module.clampSampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = module.clampSampler->sampler },
   }, 9);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->sky->texture->texture,
-    .sampler = r_sky_draw.clamp_sampler->sampler,
+    .sampler = module.clampSampler->sampler,
   }, 1);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.repeat_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.repeat_sampler->sampler },
+    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
   }, 2);
 
-  const r_bsp_inline_model_t *world = bsp->inline_models;
-  const r_bsp_block_t *block = world->blocks;
-  for (int32_t i = 0; i < world->num_blocks; i++, block++) {
+  const RenderBspInlineModel *world = bsp->inlineModels;
+  const RenderBspBlock *block = world->blocks;
+  for (int32_t i = 0; i < world->numBlocks; i++, block++) {
 
     if (!(block->surface & SURF_SKY)) {
       continue;
     }
 
-    const r_bsp_draw_elements_t *draw = block->draw_elements;
-    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+    const RenderBspDrawElements *draw = block->drawElements;
+    for (int32_t j = 0; j < block->numDrawElements; j++, draw++) {
 
       if (!(draw->surface & SURF_SKY)) {
         continue;
@@ -267,20 +267,20 @@ void R_DrawSky(const r_view_t *view, RenderPass *pass) {
         continue;
       }
 
-      $(pass, bindPipeline, r_sky_draw.pipeline);
+      $(pass, bindPipeline, module.pipeline);
 
-      r_material_uniforms_t material;
+      RenderMaterialUniforms material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
       $(pass->commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
 
       const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
-      $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+      $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
 
-      r_stats->bsp_triangles += draw->num_elements / 3;
-      r_stats->bsp_draw_elements++;
+      rStats->bspTriangles += draw->numElements / 3;
+      rStats->bspDrawElements++;
 
-      if (r_draw_material_stages->integer) {
+      if (r_drawMaterialStages->integer) {
         R_DrawSkyDrawElementsMaterialStages(view, draw, pass);
       }
     }
@@ -293,7 +293,7 @@ void R_DrawSky(const r_view_t *view, RenderPass *pass) {
 static void R_InitSkyPipeline(void) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
+  info.multisample_state.sample_count = rSceneSamples;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
@@ -301,7 +301,7 @@ static void R_InitSkyPipeline(void) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -309,7 +309,7 @@ static void R_InitSkyPipeline(void) {
       .location = 0,
       .buffer_slot = 0,
       .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = offsetof(r_bsp_vertex_t, position),
+      .offset = offsetof(RenderBspVertex, position),
     },
     .num_vertex_attributes = 1,
   };
@@ -330,7 +330,7 @@ static void R_InitSkyPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sky_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
+  module.pipeline = $(rContext.device, loadGraphicsPipeline,
     "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_uniform_buffers = SKY_NUM_UNIFORMS,
@@ -342,8 +342,8 @@ static void R_InitSkyPipeline(void) {
     },
     &info);
 
-  r_sky_draw.clamp_sampler = $(r_context.device, createSamplerLinearClamp);
-  r_sky_draw.repeat_sampler = $(r_context.device, createSamplerLinearRepeat);
+  module.clampSampler = $(rContext.device, createSamplerLinearClamp);
+  module.repeatSampler = $(rContext.device, createSamplerLinearRepeat);
 }
 
 /**
@@ -351,7 +351,7 @@ static void R_InitSkyPipeline(void) {
  */
 void R_InitSky(void) {
 
-  memset(&r_sky_draw, 0, sizeof(r_sky_draw));
+  memset(&module, 0, sizeof(module));
 
   R_InitSkyPipeline();
 }
@@ -361,15 +361,15 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-  r_sky_draw.pipeline = release(r_sky_draw.pipeline);
-  r_sky_draw.clamp_sampler = release(r_sky_draw.clamp_sampler);
-  r_sky_draw.repeat_sampler = release(r_sky_draw.repeat_sampler);
+  module.pipeline = release(module.pipeline);
+  module.clampSampler = release(module.clampSampler);
+  module.repeatSampler = release(module.repeatSampler);
 
-  for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++) {
-    r_sky_draw.stage_pipelines[i].pipeline = release(r_sky_draw.stage_pipelines[i].pipeline);
+  for (int32_t i = 0; i < module.numStagePipelines; i++) {
+    module.stagePipelines[i].pipeline = release(module.stagePipelines[i].pipeline);
   }
 
-  r_sky_draw.num_stage_pipelines = 0;
+  module.numStagePipelines = 0;
 }
 
 /**

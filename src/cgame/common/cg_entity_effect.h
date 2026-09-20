@@ -24,6 +24,6 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-vec3_t Cg_EffectColor(float *hue, const float default_hue);
-vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue);
+Vec3 Cg_EffectColor(float *hue, const float defaultHue);
+Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultHue);
 #endif

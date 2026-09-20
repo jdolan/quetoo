@@ -40,11 +40,11 @@ static void fetchHeroImages(void *data) {
 
 	UpdateViewController *this = data;
 
-	Data *list_data = NULL, *image_data = NULL;
+	Data *listData = NULL, *imageData = NULL;
 
-	if ($(cgi.restClient, get, QUETOO_HERO_LIST_URL, NULL, &list_data) != 200 || !list_data) {
+	if ($(cgi.restClient, get, QUETOO_HERO_LIST_URL, NULL, &listData) != 200 || !listData) {
 		Cg_Warn("Failed to fetch hero image list");
-		release(list_data);
+		release(listData);
 		return;
 	}
 
@@ -53,7 +53,7 @@ static void fetchHeroImages(void *data) {
 
 	PointerArray *urls = $(alloc(PointerArray), initWithDestroy, free);
 
-	char *p = (char *) list_data->bytes;
+	char *p = (char *) listData->bytes;
 	while ((p = q_strstr(p, prefix)) != NULL) {
 
 		p += q_strlen(prefix);
@@ -67,8 +67,8 @@ static void fetchHeroImages(void *data) {
 		}
 
 		char url[MAX_STRING_CHARS];
-		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
-		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
+		const int urlLen = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		if (urlLen < 0 || (size_t) urlLen >= sizeof(url)) {
 			Cg_Warn("Failed to build hero image URL: %s", p);
 			p = s + q_strlen(suffix);
 			continue;
@@ -78,7 +78,7 @@ static void fetchHeroImages(void *data) {
 		p = s + q_strlen(suffix);
 	}
 
-	release(list_data);
+	release(listData);
 
 	if (urls->count > 1) {
 		for (size_t i = urls->count - 1; i > 0; i--) {
@@ -90,12 +90,12 @@ static void fetchHeroImages(void *data) {
 	}
 
 	for (size_t i = 0; i < urls->count; i++) {
-		image_data = NULL;
-		const char *url_str = urls->elements[i];
-		if ($(cgi.restClient, get, url_str, NULL, &image_data) == 200 && image_data) {
+		imageData = NULL;
+		const char *urlStr = urls->elements[i];
+		if ($(cgi.restClient, get, urlStr, NULL, &imageData) == 200 && imageData) {
 			Image *image = NULL;
 
-      SDL_Surface *surf = cgi.LoadSurfaceFromData(image_data->bytes, image_data->length);
+      SDL_Surface *surf = cgi.LoadSurfaceFromData(imageData->bytes, imageData->length);
       if (surf) {
         cgi.BlurSurface(surf, 3);
         image = $$(Image, imageWithSurface, surf);
@@ -103,7 +103,7 @@ static void fetchHeroImages(void *data) {
       }
 
 			if (image == NULL) {
-				image = $$(Image, imageWithBytes, image_data->bytes, image_data->length, 1.f);
+				image = $$(Image, imageWithBytes, imageData->bytes, imageData->length, 1.f);
 			}
 
 			if (image) {
@@ -113,9 +113,9 @@ static void fetchHeroImages(void *data) {
 			}
 			release(image);
 		} else {
-			Cg_Warn("Failed to fetch hero image: %s", url_str);
+			Cg_Warn("Failed to fetch hero image: %s", urlStr);
 		}
-		release(image_data);
+		release(imageData);
 	}
 
 	urls = release(urls);
@@ -183,10 +183,10 @@ static UpdateViewController *init(UpdateViewController *self) {
 }
 
 /**
- * @fn void UpdateViewController::setStatus(UpdateViewController *self, const installer_state_t status)
+ * @fn void UpdateViewController::setStatus(UpdateViewController *self, const InstallerState status)
  * @memberof UpdateViewController
  */
-static void setStatus(UpdateViewController *self, const installer_status_t *in) {
+static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
 
 	SDL_LockMutex(self->pendingImagesLock);
 	const Array *pending = (Array *) self->pendingImages;
@@ -210,10 +210,10 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
       break;
     case INSTALLER_DOWNLOADING_UPDATE: {
       double pct = 0.0;
-      if (in->kbytes_total > 0) {
-        pct = 100.0 * in->kbytes_done / in->kbytes_total;
+      if (in->kbytesTotal > 0) {
+        pct = 100.0 * in->kbytesDone / in->kbytesTotal;
       }
-      $(self->progressBar, setLabelFormat, va("Downloading %s \u2026", in->current_file));
+      $(self->progressBar, setLabelFormat, va("Downloading %s \u2026", in->currentFile));
       $(self->progressBar, setValue, pct);
     }
       break;
@@ -223,8 +223,8 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
       break;
     case INSTALLER_INSTALLING_DATA: {
       double pct = 0.0;
-      if (in->kbytes_total > 0) {
-        pct = 100.0 * in->kbytes_done / in->kbytes_total;
+      if (in->kbytesTotal > 0) {
+        pct = 100.0 * in->kbytesDone / in->kbytesTotal;
       }
       $(self->progressBar, setLabelFormat, "Installing game data\u2026");
       $(self->progressBar, setValue, pct);
@@ -252,12 +252,12 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
 			break;
 		case INSTALLER_DOWNLOADING: {
 			double pct = 0.0;
-			if (in->kbytes_total > 0) {
-				pct = 100.0 * in->kbytes_done / in->kbytes_total;
-			} else if (in->files_total > 0) {
-				pct = 100.0 * in->files_done / in->files_total;
+			if (in->kbytesTotal > 0) {
+				pct = 100.0 * in->kbytesDone / in->kbytesTotal;
+			} else if (in->filesTotal > 0) {
+				pct = 100.0 * in->filesDone / in->filesTotal;
 			}
-			const char *label = va("Downloading (%d / %d) %s \u2026", in->files_done, in->files_total, in->current_file);
+			const char *label = va("Downloading (%d / %d) %s \u2026", in->filesDone, in->filesTotal, in->currentFile);
 			$(self->progressBar, setLabelFormat, label);
 			$(self->progressBar, setValue, pct);
 		}

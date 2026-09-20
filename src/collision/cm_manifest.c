@@ -25,7 +25,7 @@
 /**
  * @brief Computes the `MD5` hex digest of the given data.
  */
-static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) {
+static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hexSize) {
 
 	md5_ctx ctx;
 	uint8_t digest[16];
@@ -34,7 +34,7 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
 	md5_update(&ctx, data, len);
 	md5_finalize(&ctx, digest);
 
-	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hex_size; i++) {
+	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hexSize; i++) {
 		q_snprintf(hex + i * 2, 3, "%02x", digest[i]);
 	}
 }
@@ -45,7 +45,7 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
  * @details Both sides of the wire hash the same way, so that the server can
  * advertise what it loaded and the client can prove it loaded the same thing.
  */
-bool Cm_HashFile(const char *path, char *hex, size_t hex_size) {
+bool Cm_HashFile(const char *path, char *hex, size_t hexSize) {
 
 	void *data = NULL;
 	const int64_t len = Fs_Load(path, &data);
@@ -56,7 +56,7 @@ bool Cm_HashFile(const char *path, char *hex, size_t hex_size) {
 		return false;
 	}
 
-	Cm_Md5Hex(data, len, hex, hex_size);
+	Cm_Md5Hex(data, len, hex, hexSize);
 	Fs_Free(data);
 
 	return true;
@@ -81,7 +81,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
 	assert(data);
 	assert(len > 0);
 
-	cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
+	CmManifestEntry *entry = Mem_Malloc(sizeof(*entry));
 	q_strlcpy(entry->path, path, sizeof(entry->path));
 	entry->size = (int64_t) len;
 	Cm_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
@@ -92,7 +92,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
 /**
  * @brief Verifies a manifest entry against the local file on disk.
  */
-bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry) {
+bool Cm_CheckManifestEntry(const CmManifestEntry *entry) {
 
 	assert(entry);
 
@@ -122,13 +122,13 @@ static int Cm_ManifestKeyCmp(const void *a, const void *b) {
 typedef struct {
 	const char **keys;
 	size_t count;
-} cm_manifest_keys_t;
+} CmManifestKeys;
 
 /**
  * @brief HashTableEnumerator callback that collects keys.
  */
 static void Cm_CollectKey(const HashTable *table, ident key, ident value, ident data) {
-	cm_manifest_keys_t *collector = data;
+	CmManifestKeys *collector = data;
 	collector->keys[collector->count++] = key;
 }
 
@@ -137,7 +137,7 @@ static void Cm_CollectKey(const HashTable *table, ident key, ident value, ident 
  */
 int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
 
-	file_t *file = Fs_OpenWrite(path);
+	File *file = Fs_OpenWrite(path);
 	if (!file) {
 		Com_Warn("Failed to open %s for writing\n", path);
 		return -1;
@@ -145,13 +145,13 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
 
 	const size_t count = manifest->count;
 	const char **keys = Mem_Malloc(count * sizeof(char *));
-	cm_manifest_keys_t collector = { .keys = keys };
+	CmManifestKeys collector = { .keys = keys };
 
 	$(manifest, enumerate, Cm_CollectKey, &collector);
 	qsort(keys, count, sizeof(char *), Cm_ManifestKeyCmp);
 
 	for (size_t k = 0; k < count; k++) {
-		const cm_manifest_entry_t *entry = $(manifest, get, (void *) keys[k]);
+		const CmManifestEntry *entry = $(manifest, get, (void *) keys[k]);
 		Fs_Print(file, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
 	}
 
@@ -210,7 +210,7 @@ HashTable *Cm_ParseManifest(const char *data, size_t len) {
 		}
 		*space2 = '\0';
 
-		cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
+		CmManifestEntry *entry = Mem_Malloc(sizeof(*entry));
 		q_strlcpy(entry->hash, line, sizeof(entry->hash));
 		entry->size = (int64_t) strtoll(space1 + 1, NULL, 10);
 		q_strlcpy(entry->path, space2 + 1, sizeof(entry->path));

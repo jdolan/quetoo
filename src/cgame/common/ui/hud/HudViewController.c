@@ -31,12 +31,12 @@
 
 #define HUD_DEFAULT "default"
 
-HudViewController *cg_hud_view_controller;
+HudViewController *cgHudViewController;
 
 AtlasImage *Cg_HudImage(const char *name) {
 
-  if (cg_hud_view_controller) {
-    return $(cg_hud_view_controller, image, name);
+  if (cgHudViewController) {
+    return $(cgHudViewController, image, name);
   }
 
   return NULL;
@@ -51,8 +51,8 @@ static void dealloc(Object *self) {
 
   HudViewController *this = (HudViewController *) self;
 
-  if (cg_hud_view_controller == this) {
-    cg_hud_view_controller = NULL;
+  if (cgHudViewController == this) {
+    cgHudViewController = NULL;
   }
 
   release(this->hud);
@@ -102,7 +102,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   HudViewController *this = (HudViewController *) self;
 
   if (event->type == SDL_EVENT_KEY_DOWN) {
-    if (cgi.client->demo_server && cgi.GetKeyDest() == KEY_GAME) {
+    if (cgi.client->demoServer && cgi.GetKeyDest() == KEY_GAME) {
       $((View *) this->demoControls, respondToEvent, event);
     }
   }
@@ -399,9 +399,9 @@ static void hideForEditor(View *view, ident data) {
  */
 static void warm(HudViewController *self) {
 
-  for (g_item_tag_t t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bg_item_defs[t].icon) {
-      $(self, image, bg_item_defs[t].icon);
+  for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
+    if (bgItemDefs[t].icon) {
+      $(self, image, bgItemDefs[t].icon);
     }
   }
 
@@ -424,10 +424,10 @@ static void warm(HudViewController *self) {
 }
 
 /**
- * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
+ * @fn void HudViewController::updateWithFrame(HudViewController *self, const ClientFrame *frame)
  * @memberof HudViewController
  */
-static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
+static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   assert(frame);
 
@@ -436,7 +436,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
     $(self, reload);
   }
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
   $((View *) self->navEdit, updateBindings, (ident) frame);
   $((View *) self->notify, updateBindings, (ident) frame);
@@ -445,7 +445,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
-  const bool scores = ps->stats[STAT_SCORES] && !cg_state.nav_edit;
+  const bool scores = ps->stats[STAT_SCORES] && !cgState.navEdit;
 
   $((View *) self->scoreboard, setVisibility,
     scores ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -456,7 +456,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   // The maps are published only during the intermission, so their presence is what says
   // there is one; like the scoreboard, this shows when the hud does not
-  const bool intermission = cg_state.next_map.active && !cg_state.nav_edit;
+  const bool intermission = cgState.nextMap.active && !cgState.navEdit;
 
   $((View *) self->intermission, setVisibility,
     intermission ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -467,7 +467,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   // demo transport controls: only while paused, never during active playback, so they never
   // intrude on a video capture the way an always-on overlay would
-  const bool demoControls = cgi.client->demo_server && cgi.demo->paused;
+  const bool demoControls = cgi.client->demoServer && cgi.demo->paused;
 
   $((View *) self->demoControls, setVisibility,
     demoControls ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -478,13 +478,13 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   // the camera announcement shows itself only while spectating or watching a demo, and only
   // just after the camera changes, which it decides for itself in updateBindings
-  if (cgi.client->demo_server || ps->stats[STAT_SPECTATOR]) {
+  if (cgi.client->demoServer || ps->stats[STAT_SPECTATOR]) {
     $((View *) self->cameraControls, updateBindings, (ident) frame);
   } else {
     $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
-  const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
+  const bool hidden = !cg_drawHud->integer || !ps->stats[STAT_TIME] || cgState.navEdit;
 
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);

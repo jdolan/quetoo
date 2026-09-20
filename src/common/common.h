@@ -75,7 +75,7 @@
 
 /**
  * @brief Both the client and the server retain multiple snapshots of each
- * `g_entity_t`'s state (`entity_state_t`) in order to calculate delta compression.
+ * `GameEntity`'s state (`EntityState`) in order to calculate delta compression.
  */
 #define PACKET_BACKUP 128
 #define PACKET_MASK   (PACKET_BACKUP - 1)
@@ -86,7 +86,7 @@
 typedef enum {
   ERROR_DROP, // don't fully shit pants, but drop to console
   ERROR_FATAL, // program must exit
-} err_t;
+} Err;
 
 int32_t Com_Argc(void);
 char *Com_Argv(int32_t arg);
@@ -95,7 +95,7 @@ void Com_PrintInfo(const char *s);
 
 extern const char *DEBUG_CATEGORIES[DEBUG_TOTAL];
 
-bool Com_IsDebug(const debug_t debug);
+bool Com_IsDebug(const DebugFlags debug);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 const char *Com_Game(void);
@@ -107,11 +107,11 @@ bool Com_SetGame(const char *game, const char *cgame);
 
 void Com_LogString(const char *str);
 
-void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
+void Com_Debug_(const DebugFlags debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void Com_Debugv_(const DebugFlags debug, const char *func, const char *fmt, va_list args) __attribute__((format(printf, 3, 0)));
 
-void Com_Error_(err_t error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
-void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
+void Com_Error_(Err error, const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 3, 4)));
+void Com_Errorv_(Err error, const char *func, const char *fmt, va_list args) __attribute__((noreturn, format(printf, 3, 0)));
 
 void Com_Print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void Com_Printv(const char *fmt, va_list args) __attribute__((format(printf, 1, 0)));
@@ -184,49 +184,49 @@ typedef struct {
   /**
    * @brief The enabled debug categories.
    */
-  debug_t debug_mask;
+  DebugFlags debugMask;
 
   /**
    * @brief Used by `Com_Error` to detect a cyclical error condition.
    * @remarks If your Error function doesn't exit, make sure to set this to false.
    */
-  bool recursive_error;
+  bool recursiveError;
 
   /**
    * @brief Used by the common printing functions to spit out a file that we can
    * use to diagnose startup errors.
    */
-  FILE *log_file;
+  FILE *logFile;
 
   /**
    * @brief Optional log file name override within the selected game dir.
    */
-  const char *log_file_name;
+  const char *logFileName;
 
-  void (*Debug)(const debug_t debug, const char *msg);
-  void (*Error)(err_t error, const char *msg) __attribute__((noreturn));
+  void (*Debug)(const DebugFlags debug, const char *msg);
+  void (*Error)(Err error, const char *msg) __attribute__((noreturn));
   void (*Print)(const char *msg);
   void (*Verbose)(const char *msg);
   void (*Warn)(const char *msg);
 
   void (*Init)(void);
   void (*Shutdown)(const char *msg);
-} quetoo_t;
+} Quetoo;
 
-extern quetoo_t quetoo;
+extern Quetoo quetoo;
 
 uint32_t Com_WasInit(uint32_t s);
 void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
-extern cvar_t *version;
-extern cvar_t *build_number;
-extern cvar_t *build;
-extern cvar_t *dedicated;
-extern cvar_t *developer;
-extern cvar_t *editor;
-extern cvar_t *rcon_address;
-extern cvar_t *rcon_password;
-extern cvar_t *threads;
-extern cvar_t *time_demo;
-extern cvar_t *time_scale;
+extern Cvar *version;
+extern Cvar *buildNumber;
+extern Cvar *build;
+extern Cvar *dedicated;
+extern Cvar *developer;
+extern Cvar *editor;
+extern Cvar *rconAddress;
+extern Cvar *rconPassword;
+extern Cvar *threads;
+extern Cvar *timeDemo;
+extern Cvar *timeScale;

@@ -33,7 +33,7 @@ typedef struct {
   /**
    * @brief The light origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The light radius.
@@ -43,7 +43,7 @@ typedef struct {
   /**
    * @brief The light color.
    */
-  vec3_t color;
+  Vec3 color;
 
   /**
    * @brief The light intensity.
@@ -74,10 +74,10 @@ typedef struct {
    * @brief The light flags (R_LIGHT_*).
    */
   int32_t flags;
-} cg_light_t;
+} ClientGameLight;
 
 float Cg_AnimateLight(float intensity, const char *style, float drift);
-void Cg_AddLight(const cg_light_t *s);
+void Cg_AddLight(const ClientGameLight *s);
 void Cg_AddDynamicLights(void);
 void Cg_AddLights(void);
 void Cg_InitLights(void);

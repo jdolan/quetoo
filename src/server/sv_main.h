@@ -25,37 +25,37 @@
 
 void Sv_Init(void);
 void Sv_Shutdown(const char *msg);
-int32_t Sv_InstallerFrame(const installer_status_t *s);
+int32_t Sv_InstallerFrame(const InstallerStatus *s);
 void Sv_Frame(const uint32_t msec);
 
 #if defined(__SV_LOCAL_H__)
-extern cvar_t *sv_demo_list;
-extern cvar_t *sv_enforce_time;
-extern cvar_t *sv_guid;
-extern cvar_t *sv_hostname;
-extern cvar_t *sv_map;
-extern cvar_t *sv_map_list;
-extern cvar_t *sv_map_list_shuffle;
-extern cvar_t *sv_master;
-extern cvar_t *sv_max_clients;
-extern cvar_t *sv_max_entities;
-extern cvar_t *sv_min_clients;
-extern cvar_t *sv_public;
-extern cvar_t *sv_stats_url;
-extern cvar_t *sv_timeout;
+extern Cvar *sv_demoList;
+extern Cvar *sv_enforceTime;
+extern Cvar *sv_guid;
+extern Cvar *sv_hostname;
+extern Cvar *sv_map;
+extern Cvar *sv_mapList;
+extern Cvar *sv_mapListShuffle;
+extern Cvar *sv_master;
+extern Cvar *sv_maxClients;
+extern Cvar *sv_maxEntities;
+extern Cvar *sv_minClients;
+extern Cvar *sv_public;
+extern Cvar *sv_statsUrl;
+extern Cvar *sv_timeout;
 
 // per-level and static server structures
-extern sv_server_t sv;
-extern sv_static_t svs;
+extern Server sv;
+extern ServerStatic svs;
 
 // current client / player edict
-extern sv_client_t *sv_client;
-extern g_entity_t *sv_player;
+extern ServerClient *svClient;
+extern GameEntity *svPlayer;
 
 const char *Sv_StatusString(void);
-const char *Sv_NetaddrToString(const sv_client_t *cl);
-void Sv_KickClient(sv_client_t *cl, const char *msg);
-void Sv_DropClient(sv_client_t *cl);
-bool Sv_UserInfoChanged(sv_client_t *cl);
+const char *Sv_NetaddrToString(const ServerClient *cl);
+void Sv_KickClient(ServerClient *cl, const char *msg);
+void Sv_DropClient(ServerClient *cl);
+bool Sv_UserInfoChanged(ServerClient *cl);
 
 #endif

@@ -29,10 +29,10 @@
 #pragma mark - ScoreView
 
 /**
- * @fn ScoreView *ScoreView::initWithScore(ScoreView *self, const g_score_t *score, int32_t width)
+ * @fn ScoreView *ScoreView::initWithScore(ScoreView *self, const GameScore *score, int32_t width)
  * @memberof ScoreView
  */
-static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t width) {
+static ScoreView *initWithScore(ScoreView *self, const GameScore *score, int32_t width) {
 
   self = (ScoreView *) super(View, self, initWithFrame, &MakeRect(0, 0, width, SCORES_ROW_HEIGHT));
   if (self) {
@@ -56,7 +56,7 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
     // placed, so a size derived from the children alone falls short of the columns
     $(self->view.style, addIntegerAttribute, "min-width", width);
 
-    const cg_client_info_t *info = &cg_state.clients[score->client];
+    const ClientGameClientInfo *info = &cgState.clients[score->client];
 
     if (score->client == cgi.client->frame.ps.client) {
       $(this, addClassName, "self");
@@ -74,10 +74,10 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
     self->fill->frame = MakeRect(x, 0, fw, SCORES_ROW_HEIGHT - 1);
 
     if (score->color >= 0) {
-      color_t c = ColorHSV(score->color, 1.f, 1.f);
+      Color c = ColorHSV(score->color, 1.f, 1.f);
       c.a = score->client == cgi.client->frame.ps.client ? .3f : .15f;
 
-      const color32_t rgba = Color_Color32(c);
+      const Color32 rgba = Color_Color32(c);
       const SDL_Color fill = { rgba.r, rgba.g, rgba.b, rgba.a };
 
       $(self->fill->style, addColorAttribute, "background-color", &fill);

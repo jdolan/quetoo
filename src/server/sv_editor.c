@@ -30,9 +30,9 @@
  */
 void Sv_ConfigureEditorEntity(int32_t number) {
 
-  g_entity_t *ent = sv.entities[number].gent;
+  GameEntity *ent = sv.entities[number].gent;
 
-  if (!ent->in_use) {
+  if (!ent->inUse) {
     return;
   }
 
@@ -57,7 +57,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
 
     if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
-      ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
+      ent->bounds = MakeBox3(MakeVec3(-16.f, -16.f, -24.f), MakeVec3(16.f, 16.f, 36.f));
     } else if (!q_strncmp(ent->classname, "light", q_strlen("light"))) {
       ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
     }
@@ -65,17 +65,17 @@ void Sv_ConfigureEditorEntity(int32_t number) {
     // use the BSP inline model to set bounds
     const char *model = Cm_EntityValue(ent->def, "model")->string;
     if (*model == '*') {
-      const cm_bsp_model_t *mod = Cm_Model(model);
+      const CmBspModel *mod = Cm_Model(model);
       ent->bounds = mod->bounds;
     } else {
       // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
       // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
-      const cm_entity_t *bsp_def = number < Cm_Bsp()->num_entities ? Cm_Bsp()->entities[number] : ent->def;
-      Vector *brushes = Cm_EntityBrushes(bsp_def);
+      const CmEntity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
+      Vector *brushes = Cm_EntityBrushes(bspDef);
       if (brushes->count) {
         ent->bounds = Box3_Null();
         for (uint32_t j = 0; j < brushes->count; j++) {
-          const cm_bsp_brush_t *brush = VectorValue(brushes, cm_bsp_brush_t *, j);
+          const CmBspBrush *brush = VectorValue(brushes, CmBspBrush *, j);
           ent->bounds = Box3_Union(ent->bounds, brush->bounds);
         }
       }
@@ -97,7 +97,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
  */
 void Sv_EditEditorEntity(int32_t number, const char *info) {
 
-  cm_entity_t *def = Cm_EntityFromInfoString(info);
+  CmEntity *def = Cm_EntityFromInfoString(info);
 
   if (!def) {
     Com_Warn("Invalid entity info string for %d\n", number);
@@ -105,8 +105,8 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
   }
 
   if (number > -1) {
-    g_entity_t *entity = sv.entities[number].gent;
-    cm_entity_t *ent = (cm_entity_t *) entity->def;
+    GameEntity *entity = sv.entities[number].gent;
+    CmEntity *ent = (CmEntity *) entity->def;
 
     if (ent) {
       def->brushes = ent->brushes;
@@ -117,8 +117,8 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
     Cm_FreeEntity(ent);
   } else {
-    for (int32_t i = Cm_Bsp()->num_entities; i < sv_max_entities->integer; i++) {
-      if (sv.entities[i].gent->in_use == false) {
+    for (int32_t i = Cm_Bsp()->numEntities; i < sv_maxEntities->integer; i++) {
+      if (sv.entities[i].gent->inUse == false) {
         number = i;
         break;
       }
@@ -143,7 +143,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
  */
 void Sv_FreeEditorEntity(int32_t number) {
 
-  cm_entity_t *def = (cm_entity_t *) sv.entities[number].gent->def;
+  CmEntity *def = (CmEntity *) sv.entities[number].gent->def;
 
   svs.game->FreeEditorEntity(number);
 
@@ -167,7 +167,7 @@ void Sv_LoadEditorMap(void) {
     return;
   }
 
-  Cm_ParseMapBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
+  Cm_ParseMapBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->numEntities);
 
   Fs_Free(buffer);
 }
@@ -191,7 +191,7 @@ void Sv_SaveEditorMap_f(void) {
   StripExtension(Cm_Bsp()->name, path);
   q_strlcat(path, ".map", sizeof(path));
 
-  file_t *file = Fs_OpenWrite(path);
+  File *file = Fs_OpenWrite(path);
   if (!file) {
     Com_Warn("Failed to save %s\n", path);
     return;
@@ -200,27 +200,27 @@ void Sv_SaveEditorMap_f(void) {
   Fs_Print(file, "// Game: Quetoo\n");
   Fs_Print(file, "// Format: Valve220\n");
 
-  int32_t entity_num = 0;
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  int32_t entityNum = 0;
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
 
-    if (!sv.config_strings[CS_ENTITIES + i][0]) {
+    if (!sv.configStrings[CS_ENTITIES + i][0]) {
       continue;
     }
 
-    const g_entity_t *ent = sv.entities[i].gent;
+    const GameEntity *ent = sv.entities[i].gent;
     if (!ent->def) {
       continue;
     }
 
-    Fs_Print(file, "// entity %d\n", entity_num++);
+    Fs_Print(file, "// entity %d\n", entityNum++);
     Fs_Print(file, "{\n");
 
-    for (const cm_entity_t *e = ent->def; e; e = e->next) {
+    for (const CmEntity *e = ent->def; e; e = e->next) {
       Fs_Print(file, "\"%s\" \"%s\"\n", e->key, e->string);
     }
 
     const char *brushes = "";
-    for (const cm_entity_t *e = ent->def; e; e = e->next) {
+    for (const CmEntity *e = ent->def; e; e = e->next) {
       if (e->brushes) {
         brushes = e->brushes;
         break;
@@ -233,5 +233,5 @@ void Sv_SaveEditorMap_f(void) {
 
   Fs_Close(file);
 
-  Com_Print("Wrote %d entities to %s\n", entity_num, path);
+  Com_Print("Wrote %d entities to %s\n", entityNum, path);
 }

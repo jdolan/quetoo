@@ -56,7 +56,7 @@ static void layoutSubviews(View *self) {
   CrosshairPreviewView *this = (CrosshairPreviewView *) self;
   if (this->imageView->image) {
 
-    const float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
+    const float scale = cg_drawCrosshairScale->value * CROSSHAIR_SCALE;
 
     const SDL_Size imageSize = $(this->imageView->image, size);
     const SDL_Size size = MakeSize(imageSize.w * scale, imageSize.h * scale);
@@ -79,17 +79,17 @@ static void updateBindings(View *self, ident data) {
 
   $(this->imageView, setImage, NULL);
 
-  const int32_t ch = cg_draw_crosshair->value;
+  const int32_t ch = cg_drawCrosshair->value;
   if (ch) {
-    Image *image = Cg_LoadImageScaled(va("pics/ch%d", ch), cg_draw_crosshair_scale->value * CROSSHAIR_SCALE);
+    Image *image = Cg_LoadImageScaled(va("pics/ch%d", ch), cg_drawCrosshairScale->value * CROSSHAIR_SCALE);
     if (image) {
 
       $(this->imageView, setImage, image);
       release(image);
 
       SDL_Color color = Colors.White;
-      if (q_strcmp(cg_draw_crosshair_color->string, "default")) {
-        color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
+      if (q_strcmp(cg_drawCrosshairColor->string, "default")) {
+        color = MVC_HexToRGBA(cg_drawCrosshairColor->string);
         if (color.r == 0 && color.g == 0 && color.b == 0) {
           color = Colors.White;
         }
@@ -98,7 +98,7 @@ static void updateBindings(View *self, ident data) {
       this->imageView->color.r = color.r;
       this->imageView->color.g = color.g;
       this->imageView->color.b = color.b;
-      this->imageView->color.a = Clampf(cg_draw_crosshair_alpha->value * 255, 0, 255);
+      this->imageView->color.a = Clampf(cg_drawCrosshairAlpha->value * 255, 0, 255);
     }
   }
 

@@ -38,17 +38,17 @@ typedef struct {
   /**
    * @brief The owned entity definition, parsed from configstrings.
    */
-  cm_entity_t *def;
+  CmEntity *def;
 
   /**
    * @brief The client entity.
    */
-  const cl_entity_t *ent;
+  const ClientEntity *ent;
 
   /**
    * @brief The model, or `NULL`.
    */
-  const r_model_t *model;
+  const RenderModel *model;
 
   /**
    * @brief The brushes pointer array for BSP model entities, or `NULL`.
@@ -58,9 +58,9 @@ typedef struct {
   /**
    * @brief The client-side entity state for `misc_*` (class, origin, think, etc.).
    */
-  cg_entity_t misc;
+  ClientGameEntity misc;
 
-} cg_editor_entity_t;
+} ClientGameEditorEntity;
 
 /**
  * @brief Encapsulates all mutable editor state.
@@ -70,22 +70,22 @@ typedef struct {
   /**
    * @brief Editor entity array, indexed by entity number.
    */
-  cg_editor_entity_t entities[MAX_ENTITIES];
+  ClientGameEditorEntity entities[MAX_ENTITIES];
 
   /**
    * @brief When false, `func_group` entities are excluded from editor traces and scene drawing.
    * @details Toggled via the 'G' key in the EntityViewController.
    */
-  bool show_func_groups;
+  bool showFuncGroups;
 
   /**
    * @brief The entity number of the currently selected entity, or 0 if none.
    */
   int16_t selected;
 
-} cg_editor_t;
+} ClientGameEditor;
 
-extern cg_editor_t cg_editor;
+extern ClientGameEditor cgEditor;
 
 /**
  * @brief The result of a combined editor trace against all BSP models and `CONTENTS_EDITOR` entities.
@@ -93,18 +93,18 @@ extern cg_editor_t cg_editor;
 typedef struct {
 
   /**
-   * @brief Pointer into `cg_editor.entities[]` for the resolved entity. Always valid; defaults to
-   *   worldspawn (`&cg_editor.entities[0]`) when no more-specific entity was hit.
+   * @brief Pointer into `cgEditor.entities[]` for the resolved entity. Always valid; defaults to
+   *   worldspawn (`&cgEditor.entities[0]`) when no more-specific entity was hit.
    */
-  cg_editor_entity_t *ent;
+  ClientGameEditorEntity *ent;
 
   /**
    * @brief The raw BSP trace result. Check `.fraction < 1.f` for a hit; `.material`, `.brush`,
    *   and `.plane` are set on a BSP brush hit.
    */
-  cm_trace_t trace;
+  CmTrace trace;
 
-} cg_editor_trace_t;
+} ClientGameEditorTrace;
 
 /**
  * @brief The maximum number of entities collected along the entity selection ray.
@@ -115,8 +115,8 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team);
 void Cg_ParseEditorEntity(int16_t number, const char *info);
 void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
-void Cg_PopulateEditorScene(const cl_frame_t *frame);
-size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_t out[CG_EDITOR_MAX_CANDIDATES]);
-cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end);
+void Cg_PopulateEditorScene(const ClientFrame *frame);
+size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t out[CG_EDITOR_MAX_CANDIDATES]);
+ClientGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end);
 void Cg_CycleEditorSelection(int32_t dir);
 void Cg_CheckEditor(void);

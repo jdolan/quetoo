@@ -25,7 +25,7 @@
 
 #if defined(__G_LOCAL_H__)
 
-extern cvar_t *g_techs;
+extern Cvar *g_techs;
 
 /**
  * @brief Haste scaling factor.
@@ -58,11 +58,11 @@ extern cvar_t *g_techs;
 void G_Tech_Init(void);
 void G_Tech_CheckState(void);
 void G_Tech_SpawnAll(void);
-void G_Tech_ClientThink(g_entity_t *ent);
+void G_Tech_ClientThink(GameEntity *ent);
 
-bool G_HasTech(const g_client_t *cl, g_item_tag_t tech);
-const g_item_t *G_GetTech(const g_client_t *cl);
-bool G_PickupTech(g_client_t *cl, g_entity_t *ent);
-void G_PlayTechSound(g_client_t *cl);
+bool G_HasTech(const GameClient *cl, GameItemTag tech);
+const GameItem *G_GetTech(const GameClient *cl);
+bool G_PickupTech(GameClient *cl, GameEntity *ent);
+void G_PlayTechSound(GameClient *cl);
 
 #endif

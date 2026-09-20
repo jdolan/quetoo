@@ -22,10 +22,10 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-#define AI_NODE(vector, index) VectorElement((vector), ai_node_t, (index))
-#define AI_LINK(vector, index) VectorElement((vector), ai_link_t, (index))
-#define AI_NODE_ID(vector, index) (VectorValue((vector), ai_node_id_t, (index)))
-#define AI_PLATFORM(vector, index) (VectorValue((vector), g_entity_t *, (index)))
+#define AI_NODE(vector, index) VectorElement((vector), AiNode, (index))
+#define AI_LINK(vector, index) VectorElement((vector), AiLink, (index))
+#define AI_NODE_ID(vector, index) (VectorValue((vector), AiNodeId, (index)))
+#define AI_PLATFORM(vector, index) (VectorValue((vector), GameEntity *, (index)))
 
 /**
  * @brief Cached spatial acceleration structures for the navigation graph.
@@ -34,66 +34,66 @@
  * the previous O(n) linear scan), and is rebuilt lazily after any mutation
  * of the global node array.
  */
-static struct gridkdtree_s *g_ai_nodes_kdtree = NULL;
-static vec3_t *g_ai_nodes_kdtree_positions = NULL;
-static size_t g_ai_nodes_kdtree_count = 0;
+static struct GridKdTree *g_ai_nodes_kdtree = NULL;
+static Vec3 *gAiNodesKdtreePositions = NULL;
+static size_t gAiNodesKdtreeCount = 0;
 
 /**
  * @brief Invalidates the cached kd-tree. Must be called whenever the
- * underlying `g_ai_nodes` array is mutated (add/remove/move/reload).
+ * underlying `gAiNodes` array is mutated (add/remove/move/reload).
  */
 static void G_Ai_Node_InvalidateSpatialIndex(void) {
   if (g_ai_nodes_kdtree) {
     gridkdtree_free(&g_ai_nodes_kdtree);
   }
-  if (g_ai_nodes_kdtree_positions) {
-    free(g_ai_nodes_kdtree_positions);
-    g_ai_nodes_kdtree_positions = NULL;
+  if (gAiNodesKdtreePositions) {
+    free(gAiNodesKdtreePositions);
+    gAiNodesKdtreePositions = NULL;
   }
-  g_ai_nodes_kdtree_count = 0;
+  gAiNodesKdtreeCount = 0;
 }
 
 /**
  * @brief State used during player roam recording for AI node development.
  */
 static struct {
-  vec3_t position;
+  Vec3 position;
 
-  vec3_t floor_position;
+  Vec3 floorPosition;
 
-  ai_node_id_t last_nodes[2];
+  AiNodeId lastNodes[2];
 
-  bool await_landing, is_jumping, is_water_jump, on_mover;
+  bool awaitLanding, isJumping, isWaterJump, onMover;
 
-  button_state_t latched_buttons, old_buttons, buttons;
+  InputButtonState latchedButtons, oldButtons, buttons;
 
-  Vector *test_path;
+  Vector *testPath;
 
-  uint32_t file_nodes, file_links;
+  uint32_t fileNodes, fileLinks;
 
-  bool do_noding, drop_nodes;
-} g_ai_player_roam;
+  bool doNoding, dropNodes;
+} module;
 
 /**
  * @brief Returns a test path between the last two recorded nodes for visualization.
  */
 Vector *G_Ai_Node_TestPath(void) {
 
-  if (!g_ai_node_dev->integer) {
+  if (!g_aiNodeDev->integer) {
     return NULL;
   }
 
-  if (g_ai_player_roam.test_path) {
-    release(g_ai_player_roam.test_path);
-    g_ai_player_roam.test_path = NULL;
+  if (module.testPath) {
+    release(module.testPath);
+    module.testPath = NULL;
   }
 
-  if (g_ai_player_roam.last_nodes[0] == AI_NODE_INVALID ||
-    g_ai_player_roam.last_nodes[1] == AI_NODE_INVALID) {
+  if (module.lastNodes[0] == AI_NODE_INVALID ||
+    module.lastNodes[1] == AI_NODE_INVALID) {
     return NULL;
   }
 
-  return g_ai_player_roam.test_path = G_Ai_Node_FindPath(NULL, g_ai_player_roam.last_nodes[1], g_ai_player_roam.last_nodes[0], G_Ai_Node_Heuristic, NULL);
+  return module.testPath = G_Ai_Node_FindPath(NULL, module.lastNodes[1], module.lastNodes[0], G_Ai_Node_Heuristic, NULL);
 }
 
 /**
@@ -102,30 +102,30 @@ Vector *G_Ai_Node_TestPath(void) {
 typedef struct {
   // persisted to disk
 
-  vec3_t position;
+  Vec3 position;
   Vector *links;
 
   // only used for nav purposes
 
   float cost;
-  ai_node_id_t came_from;
-} ai_node_t;
+  AiNodeId cameFrom;
+} AiNode;
 
 /**
  * @brief The global array of navigation nodes for the current map.
  */
-static Vector *g_ai_nodes;
+static Vector *gAiNodes;
 
 /**
  * @brief The global array of platforms for the current map.
  */
-static Vector *g_ai_platforms;
+static Vector *gAiPlatforms;
 
 /**
  * @brief Returns the index of a node pointer within the global node array.
  */
-static inline ai_node_id_t G_Ai_Node_Index(const ai_node_t *node) {
-  return node - (ai_node_t *) g_ai_nodes->elements;
+static inline AiNodeId G_Ai_Node_Index(const AiNode *node) {
+  return node - (AiNode *) gAiNodes->elements;
 }
 
 static void G_Ai_Node_FreePathPool(void);
@@ -133,7 +133,7 @@ static void G_Ai_Node_FreePathPool(void);
 /**
  * @brief Returns true if the given node is visible (unobstructed) from the specified position.
  */
-static bool G_Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
+static bool G_Ai_Node_Visible(const Vec3 position, const AiNodeId node) {
 
   return gi.Trace(position, G_Ai_Node_GetPosition(node), Box3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
 }
@@ -142,116 +142,116 @@ static bool G_Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
  * @brief Returns the total number of navigation nodes currently loaded.
  */
 uint32_t G_Ai_Node_Count(void) {
-  return g_ai_nodes ? (uint32_t) g_ai_nodes->count : 0;
+  return gAiNodes ? (uint32_t) gAiNodes->count : 0;
 }
 
 /**
- * @brief Lazily (re)builds the kd-tree spatial index over g_ai_nodes.
+ * @brief Lazily (re)builds the kd-tree spatial index over gAiNodes.
  * Returns true on success. The index is invalidated whenever the node
  * array is mutated (see G_Ai_Node_InvalidateSpatialIndex callers).
  */
 static bool G_Ai_Node_EnsureSpatialIndex(void) {
 
-  if (!g_ai_nodes || g_ai_nodes->count == 0) {
+  if (!gAiNodes || gAiNodes->count == 0) {
     return false;
   }
 
-  if (g_ai_nodes_kdtree && g_ai_nodes_kdtree_count == g_ai_nodes->count) {
+  if (g_ai_nodes_kdtree && gAiNodesKdtreeCount == gAiNodes->count) {
     return true;
   }
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  const size_t n = g_ai_nodes->count;
-  g_ai_nodes_kdtree_positions = malloc(sizeof(vec3_t) * n);
-  if (!g_ai_nodes_kdtree_positions) {
+  const size_t n = gAiNodes->count;
+  gAiNodesKdtreePositions = malloc(sizeof(Vec3) * n);
+  if (!gAiNodesKdtreePositions) {
     return false;
   }
 
   for (size_t i = 0; i < n; i++) {
-    g_ai_nodes_kdtree_positions[i] = AI_NODE(g_ai_nodes, i)->position;
+    gAiNodesKdtreePositions[i] = AI_NODE(gAiNodes, i)->position;
   }
 
-  g_ai_nodes_kdtree = gridkdtree_create(g_ai_nodes_kdtree_positions, n);
+  g_ai_nodes_kdtree = gridkdtree_create(gAiNodesKdtreePositions, n);
   if (!g_ai_nodes_kdtree) {
-    free(g_ai_nodes_kdtree_positions);
-    g_ai_nodes_kdtree_positions = NULL;
+    free(gAiNodesKdtreePositions);
+    gAiNodesKdtreePositions = NULL;
     return false;
   }
 
-  g_ai_nodes_kdtree_count = n;
+  gAiNodesKdtreeCount = n;
   return true;
 }
 
 typedef struct {
-  vec3_t position;
-  bool only_visible;
-  bool prefer_level;
-} ai_node_query_filter_t;
+  Vec3 position;
+  bool onlyVisible;
+  bool preferLevel;
+} AiNodeQueryFilter;
 
 /**
  * @brief Whether a node qualifies for `G_Ai_Node_FindClosest`, and at what distance.
  */
 static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float *distance) {
-  const ai_node_query_filter_t *filter = data;
-  const ai_node_t *node = AI_NODE(g_ai_nodes, nodenum);
+  const AiNodeQueryFilter *filter = data;
+  const AiNode *node = AI_NODE(gAiNodes, nodenum);
 
-  vec3_t dir = Vec3_Subtract(filter->position, node->position);
+  Vec3 dir = Vec3_Subtract(filter->position, node->position);
 
-  if (filter->prefer_level && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
+  if (filter->preferLevel && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
     dir.z *= 4.0f;
   }
 
   *distance = Vec3_LengthSquared(dir);
 
-  return !filter->only_visible || G_Ai_Node_Visible(filter->position, nodenum);
+  return !filter->onlyVisible || G_Ai_Node_Visible(filter->position, nodenum);
 }
 
 /**
  * @brief Finds the closest navigation node to the given position within the specified distance.
  *
  * Uses the cached kd-tree spatial index (built lazily) to gather candidate
- * nodes within `max_distance` and selects the best one that passes the
- * `only_visible` / `prefer_level` filters. Falls back to a linear scan if
+ * nodes within `maxDistance` and selects the best one that passes the
+ * `onlyVisible` / `preferLevel` filters. Falls back to a linear scan if
  * the spatial index is unavailable.
  */
-ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level) {
+AiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel) {
 
-  if (!g_ai_nodes || g_ai_nodes->count == 0) {
+  if (!gAiNodes || gAiNodes->count == 0) {
     return AI_NODE_INVALID;
   }
 
-  ai_node_id_t closest = AI_NODE_INVALID;
-  float closest_dist = 0;
-  const float dist_squared = max_distance * max_distance;
+  AiNodeId closest = AI_NODE_INVALID;
+  float closestDist = 0;
+  const float distSquared = maxDistance * maxDistance;
 
   if (G_Ai_Node_EnsureSpatialIndex()) {
-    ai_node_query_filter_t filter = {
+    AiNodeQueryFilter filter = {
       .position = position,
-      .only_visible = only_visible,
-      .prefer_level = prefer_level
+      .onlyVisible = onlyVisible,
+      .preferLevel = preferLevel
     };
 
-    const size_t node = gridkdtree_query_filter(g_ai_nodes_kdtree, position, max_distance, G_Ai_Node_FindClosestFilter, &filter);
+    const size_t node = gridkdtree_query_filter(g_ai_nodes_kdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
 
-    return node == SIZE_MAX ? AI_NODE_INVALID : (ai_node_id_t) node;
+    return node == SIZE_MAX ? AI_NODE_INVALID : (AiNodeId) node;
   }
 
   // Fallback: linear scan (kd-tree build failed).
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
 
-    vec3_t dir = Vec3_Subtract(position, node->position);
-    if (prefer_level && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
+    Vec3 dir = Vec3_Subtract(position, node->position);
+    if (preferLevel && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
       dir.z *= 4.0f;
     }
     const float dist = Vec3_LengthSquared(dir);
 
-    if (dist < dist_squared
-        && (closest == AI_NODE_INVALID || dist < closest_dist)
-        && (!only_visible || G_Ai_Node_Visible(position, i))) {
+    if (dist < distSquared
+        && (closest == AI_NODE_INVALID || dist < closestDist)
+        && (!onlyVisible || G_Ai_Node_Visible(position, i))) {
       closest = i;
-      closest_dist = dist;
+      closestDist = dist;
     }
   }
 
@@ -261,38 +261,38 @@ ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distan
 /**
  * @brief Creates and appends a new navigation node at the specified world position.
  */
-ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
+AiNodeId G_Ai_Node_Create(const Vec3 position) {
 
   if (gi.PointContents(position) & CONTENTS_MASK_SOLID) {
     G_Ai_Debug("Rejected node at %s (inside solid)\n", vtos(position));
     return AI_NODE_INVALID;
   }
 
-  if (!g_ai_nodes) {
-    g_ai_nodes = $(alloc(Vector), initWithSize, sizeof(ai_node_t));
+  if (!gAiNodes) {
+    gAiNodes = $(alloc(Vector), initWithSize, sizeof(AiNode));
   }
 
-  ai_node_t node = (ai_node_t) {
+  AiNode node = (AiNode) {
     .position = position
   };
-  $(g_ai_nodes, add, &node);
+  $(gAiNodes, add, &node);
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  G_Ai_Debug("Dropped new node %zu\n", g_ai_nodes->count - 1);
+  G_Ai_Debug("Dropped new node %zu\n", gAiNodes->count - 1);
 
-  return g_ai_nodes->count - 1;
+  return gAiNodes->count - 1;
 }
 
 /**
  * @brief Returns true if node a has a directed link to node b.
  */
-bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
-  const ai_node_t *node_a = AI_NODE(g_ai_nodes, a);
+bool G_Ai_Node_IsLinked(const AiNodeId a, const AiNodeId b) {
+  const AiNode *nodeA = AI_NODE(gAiNodes, a);
 
-  if (node_a->links) {
-    for (size_t i = 0; i < node_a->links->count; i++) {
-      const ai_link_t *link = AI_LINK(node_a->links, i);
+  if (nodeA->links) {
+    for (size_t i = 0; i < nodeA->links->count; i++) {
+      const AiLink *link = AI_LINK(nodeA->links, i);
 
       if (link->id == b) {
         return true;
@@ -306,17 +306,17 @@ bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
 /**
  * @brief Returns the array of outgoing links for the specified node.
  */
-const Vector *G_Ai_Node_GetLinks(const ai_node_id_t a) {
-  const ai_node_t *node_a = AI_NODE(g_ai_nodes, a);
-  return node_a->links;
+const Vector *G_Ai_Node_GetLinks(const AiNodeId a) {
+  const AiNode *nodeA = AI_NODE(gAiNodes, a);
+  return nodeA->links;
 }
 
 /**
  * @brief Creates a directed link from node a to node b with the given traversal cost.
  */
-void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost) {
+void G_Ai_Node_Link(const AiNodeId a, const AiNodeId b, const float cost) {
 
-  if (!g_ai_nodes || a >= g_ai_nodes->count || b >= g_ai_nodes->count) {
+  if (!gAiNodes || a >= gAiNodes->count || b >= gAiNodes->count) {
     return;
   }
 
@@ -324,17 +324,17 @@ void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost
     return;
   }
 
-  ai_node_t *node_a = AI_NODE(g_ai_nodes, a);
+  AiNode *nodeA = AI_NODE(gAiNodes, a);
 
-  if (!node_a->links) {
-    node_a->links = $(alloc(Vector), initWithSize, sizeof(ai_link_t));
+  if (!nodeA->links) {
+    nodeA->links = $(alloc(Vector), initWithSize, sizeof(AiLink));
   }
 
-  ai_link_t link = (ai_link_t) {
+  AiLink link = (AiLink) {
     .id = b,
     .cost = cost
   };
-  $(node_a->links, add, &link);
+  $(nodeA->links, add, &link);
 
   G_Ai_Debug("Connected %d -> %d\n", a, b);
 }
@@ -342,7 +342,7 @@ void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost
 /**
  * @brief Creates a link between two nodes using their Euclidean distance as the cost.
  */
-static inline void G_Ai_Node_LinkDefault(const ai_node_id_t a, const ai_node_id_t b, const bool bidirectional) {
+static inline void G_Ai_Node_LinkDefault(const AiNodeId a, const AiNodeId b, const bool bidirectional) {
 
   if (a == b) {
     return;
@@ -358,20 +358,20 @@ static inline void G_Ai_Node_LinkDefault(const ai_node_id_t a, const ai_node_id_
 /**
  * @brief Removes the bidirectional link between two nodes.
  */
-static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
+static void G_Ai_Node_Unlink(const AiNodeId a, const AiNodeId b) {
   {
-    ai_node_t *node_a = AI_NODE(g_ai_nodes, a);
+    AiNode *nodeA = AI_NODE(gAiNodes, a);
 
-    if (node_a->links) {
-      for (size_t i = 0; i < node_a->links->count; i++) {
-        const ai_link_t *link = AI_LINK(node_a->links, i);
+    if (nodeA->links) {
+      for (size_t i = 0; i < nodeA->links->count; i++) {
+        const AiLink *link = AI_LINK(nodeA->links, i);
 
         if (link->id == b) {
-          $(node_a->links, removeAt, i);
+          $(nodeA->links, removeAt, i);
 
-          if (!node_a->links->count) {
-            release(node_a->links);
-            node_a->links = NULL;
+          if (!nodeA->links->count) {
+            release(nodeA->links);
+            nodeA->links = NULL;
           }
           break;
         }
@@ -380,18 +380,18 @@ static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
   }
 
   {
-    ai_node_t *node_b = AI_NODE(g_ai_nodes, b);
+    AiNode *nodeB = AI_NODE(gAiNodes, b);
   
-    if (node_b->links) {
-      for (size_t i = 0; i < node_b->links->count; i++) {
-        const ai_link_t *link = AI_LINK(node_b->links, i);
+    if (nodeB->links) {
+      for (size_t i = 0; i < nodeB->links->count; i++) {
+        const AiLink *link = AI_LINK(nodeB->links, i);
 
         if (link->id == a) {
-          $(node_b->links, removeAt, i);
+          $(nodeB->links, removeAt, i);
 
-          if (!node_b->links->count) {
-            release(node_b->links);
-            node_b->links = NULL;
+          if (!nodeB->links->count) {
+            release(nodeB->links);
+            nodeB->links = NULL;
           }
           break;
         }
@@ -403,8 +403,8 @@ static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
 /**
  * @brief Removes all links connected to the specified node.
  */
-static void G_Ai_Node_UnlinkAll(const ai_node_id_t id) {
-  const ai_node_t *node = AI_NODE(g_ai_nodes, id);
+static void G_Ai_Node_UnlinkAll(const AiNodeId id) {
+  const AiNode *node = AI_NODE(gAiNodes, id);
 
   if (!node->links) {
     return;
@@ -423,17 +423,17 @@ static void G_Ai_Node_UnlinkAll(const ai_node_id_t id) {
  * @brief Node `id` has been removed, so we need to fix up connection IDs
  * so that they don't shift.
 */
-static void G_Ai_Node_Adjust(const ai_node_id_t id) {
+static void G_Ai_Node_Adjust(const AiNodeId id) {
 
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
 
     if (!node->links) {
       continue;
     }
 
     for (size_t l = 0; l < node->links->count; l++) {
-      ai_link_t *link = AI_LINK(node->links, l);
+      AiLink *link = AI_LINK(node->links, l);
 
       if (link->id >= id) {
         link->id--;
@@ -445,21 +445,21 @@ static void G_Ai_Node_Adjust(const ai_node_id_t id) {
 /**
  * @brief Destroys a navigation node, removing all of its links and freeing its slot.
  */
-void G_Ai_Node_Destroy(const ai_node_id_t id) {
+void G_Ai_Node_Destroy(const AiNodeId id) {
 
-  if (!g_ai_nodes || id >= g_ai_nodes->count) {
+  if (!gAiNodes || id >= gAiNodes->count) {
     G_Warn("Invalid node id %u\n", id);
     return;
   }
 
   G_Ai_Node_UnlinkAll(id);
-  $(g_ai_nodes, removeAt, id);
+  $(gAiNodes, removeAt, id);
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  if (!g_ai_nodes->count) {
-    release(g_ai_nodes);
-    g_ai_nodes = NULL;
+  if (!gAiNodes->count) {
+    release(gAiNodes);
+    gAiNodes = NULL;
   } else {
     G_Ai_Node_Adjust(id);
   }
@@ -468,9 +468,9 @@ void G_Ai_Node_Destroy(const ai_node_id_t id) {
 /**
  * @brief Returns true if the client entity is currently standing on solid ground.
  */
-static bool G_Ai_Node_OnGround(const g_client_t *cl) {
-  const cm_trace_t tr = gi.Trace(cl->entity->s.origin,
-                                 Vec3_Add(cl->entity->s.origin, Vec3(0, 0, -PM_GROUND_DIST)),
+static bool G_Ai_Node_OnGround(const GameClient *cl) {
+  const CmTrace tr = gi.Trace(cl->entity->s.origin,
+                                 Vec3_Add(cl->entity->s.origin, MakeVec3(0, 0, -PM_GROUND_DIST)),
                                  cl->entity->s.bounds,
                                  NULL,
                                  CONTENTS_MASK_CLIP_CORPSE);
@@ -481,25 +481,25 @@ static bool G_Ai_Node_OnGround(const g_client_t *cl) {
 /**
  * @brief Returns the world position of the specified navigation node.
  */
-vec3_t G_Ai_Node_GetPosition(const ai_node_id_t node) {
+Vec3 G_Ai_Node_GetPosition(const AiNodeId node) {
 
-  return AI_NODE(g_ai_nodes, node)->position;
+  return AI_NODE(gAiNodes, node)->position;
 }
 
 /**
  * @brief Recalculates the traversal costs for all links incident to the given node.
  */
-static void G_Ai_Node_UpdateCosts(const ai_node_id_t id) {
+static void G_Ai_Node_UpdateCosts(const AiNodeId id) {
 
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
 
     if (!node->links || !node->links->count) {
       continue;
     }
 
     for (size_t l = 0; l < node->links->count; l++) {
-      ai_link_t *link = AI_LINK(node->links, l);
+      AiLink *link = AI_LINK(node->links, l);
 
       if (id == i || link->id == id) {
         link->cost = G_Ai_Node_Cost(i, link->id);
@@ -512,20 +512,20 @@ static void G_Ai_Node_UpdateCosts(const ai_node_id_t id) {
  * @brief Returns false if any `func_plat` covering position is not at its bottom (accessible) state.
  * Bots should not attempt to path to nodes on an elevated platform.
  */
-static bool G_Ai_PlatformAccessible(const vec3_t position) {
+static bool G_Ai_PlatformAccessible(const Vec3 position) {
 
   G_ForEachEntity(ent, {
     if (!ent->classname || q_strcmp(ent->classname, "func_plat") != 0) {
       continue;
     }
 
-    if (position.x < ent->abs_bounds.mins.x || position.x > ent->abs_bounds.maxs.x ||
-        position.y < ent->abs_bounds.mins.y || position.y > ent->abs_bounds.maxs.y) {
+    if (position.x < ent->absBounds.mins.x || position.x > ent->absBounds.maxs.x ||
+        position.y < ent->absBounds.mins.y || position.y > ent->absBounds.maxs.y) {
       continue;
     }
 
     // Platform surface (abs_bounds.maxs.z) must be within reach of the node's Z.
-    if (ent->abs_bounds.maxs.z > position.z + 32.f) {
+    if (ent->absBounds.maxs.z > position.z + 32.f) {
       return false;
     }
   });
@@ -536,19 +536,19 @@ static bool G_Ai_PlatformAccessible(const vec3_t position) {
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-bool G_Ai_Node_CanPathTo(const vec3_t position) {
+bool G_Ai_Node_CanPathTo(const Vec3 position) {
 
   // if we're heading onto a mover node, only allow us to go forth
   // if the mover is there
-  const vec3_t end = Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f));
+  const Vec3 end = Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f));
 
   // check if the destination has ground
-  cm_trace_t tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+  CmTrace tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), MakeVec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
   // bad ground
-  bool stuck_in_mover = tr.ent
-      && (tr.start_solid || tr.all_solid)
-      && (((g_entity_t *) tr.ent)->s.number != 0
+  bool stuckInMover = tr.ent
+      && (tr.startSolid || tr.allSolid)
+      && (((GameEntity *) tr.ent)->s.number != 0
       && !(tr.contents & CONTENTS_MASK_LIQUID));
 
   if (tr.fraction == 1.0f) {
@@ -557,21 +557,21 @@ bool G_Ai_Node_CanPathTo(const vec3_t position) {
     return true;
   }
 
-  if (stuck_in_mover) {
+  if (stuckInMover) {
 
     // check with a thinner box; it might be a button press or rotating thing
-    const box3_t bounds = G_PlayerBounds();
+    const Box3 bounds = G_PlayerBounds();
     tr = gi.Trace(position,
-               Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)),
-               Box3(Vec3(-4.f, -4.f, bounds.mins.z), Vec3(4.f, 4.f, bounds.maxs.z)),
+               Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f)),
+               MakeBox3(MakeVec3(-4.f, -4.f, bounds.mins.z), MakeVec3(4.f, 4.f, bounds.maxs.z)),
                NULL,
                CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
-    stuck_in_mover = tr.ent
-        && (tr.start_solid || tr.all_solid)
-        && (((g_entity_t *) tr.ent)->s.number != 0
+    stuckInMover = tr.ent
+        && (tr.startSolid || tr.allSolid)
+        && (((GameEntity *) tr.ent)->s.number != 0
         && !(tr.contents & CONTENTS_MASK_LIQUID));
 
-    if (!stuck_in_mover) {
+    if (!stuckInMover) {
       return true;
     }
 
@@ -593,7 +593,7 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
 
   // if we're heading onto a mover node, only allow us to go forth
   // if the mover is there
-  return G_Ai_Node_CanPathTo(AI_NODE(g_ai_nodes, AI_NODE_ID(path, index))->position);
+  return G_Ai_Node_CanPathTo(AI_NODE(gAiNodes, AI_NODE_ID(path, index))->position);
 }
 
 /**
@@ -609,245 +609,245 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
 /**
  * @brief Handles automatic node placement as the player moves through the map during development.
  */
-void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
+void G_Ai_Node_PlayerRoam(GameClient *cl, const PlayerMoveCmd *cmd) {
 
-  if (!g_ai_node_dev->integer) {
+  if (!g_aiNodeDev->integer) {
     return;
   }
 
-  g_entity_t *ent = cl->entity;
+  GameEntity *ent = cl->entity;
 
-  g_ai_player_roam.old_buttons = g_ai_player_roam.buttons;
-  g_ai_player_roam.buttons = cmd->buttons;
-  g_ai_player_roam.latched_buttons |= g_ai_player_roam.buttons & ~g_ai_player_roam.old_buttons;
+  module.oldButtons = module.buttons;
+  module.buttons = cmd->buttons;
+  module.latchedButtons |= module.buttons & ~module.oldButtons;
   
-  const bool allow_adjustments = g_ai_node_dev->integer == 1;
-  const bool do_noding = allow_adjustments && g_ai_player_roam.drop_nodes && cl->ps.pm_state.type == PM_NORMAL;
+  const bool allowAdjustments = g_aiNodeDev->integer == 1;
+  const bool doNoding = allowAdjustments && module.dropNodes && cl->ps.pmState.type == PM_NORMAL;
 
   // we just switched between noclip/not noclip, clear some stuff
   // so we don't accidentally drop nodes
-  if (g_ai_player_roam.do_noding != do_noding) {
-    g_ai_player_roam.do_noding = do_noding;
+  if (module.doNoding != doNoding) {
+    module.doNoding = doNoding;
 
-    g_ai_player_roam.position = ent->s.origin;
-    g_ai_player_roam.last_nodes[0] = g_ai_player_roam.last_nodes[1] = AI_NODE_INVALID;
-    g_ai_player_roam.await_landing = true;
+    module.position = ent->s.origin;
+    module.lastNodes[0] = module.lastNodes[1] = AI_NODE_INVALID;
+    module.awaitLanding = true;
   }
 
-  const bool in_water = gi.PointContents(ent->s.origin) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA);
-  const float last_node_distance_compare = g_ai_player_roam.last_nodes[0] == AI_NODE_INVALID ? FLT_MAX : Vec3_Distance(ent->s.origin, G_Ai_Node_GetPosition(g_ai_player_roam.last_nodes[0]));
-  const float player_distance_compare = Vec3_Distance(ent->s.origin, g_ai_player_roam.position);
+  const bool inWater = gi.PointContents(ent->s.origin) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA);
+  const float lastNodeDistanceCompare = module.lastNodes[0] == AI_NODE_INVALID ? FLT_MAX : Vec3_Distance(ent->s.origin, G_Ai_Node_GetPosition(module.lastNodes[0]));
+  const float playerDistanceCompare = Vec3_Distance(ent->s.origin, module.position);
 
   if (G_Ai_Node_OnGround(cl)) {
-    g_ai_player_roam.floor_position = ent->s.origin;
+    module.floorPosition = ent->s.origin;
   }
 
-  if (do_noding) {
+  if (doNoding) {
     // we're waiting to land to drop a node; we jumped, fell, got sent by a jump pad, something like that.
-    if (g_ai_player_roam.await_landing) {
+    if (module.awaitLanding) {
 
-      if (G_Ai_Node_OnGround(cl) || in_water) {
+      if (G_Ai_Node_OnGround(cl) || inWater) {
 
         // we landed!
-        g_ai_player_roam.await_landing = false;
-        g_ai_player_roam.position = ent->s.origin;
+        module.awaitLanding = false;
+        module.position = ent->s.origin;
 
-        ai_node_id_t landed_near_node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, true);
+        AiNodeId landedNearNode = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, true);
 
-        if (landed_near_node == AI_NODE_INVALID) {
+        if (landedNearNode == AI_NODE_INVALID) {
 
-          landed_near_node = G_Ai_Node_Create(ent->s.origin);
+          landedNearNode = G_Ai_Node_Create(ent->s.origin);
         }
 
         // one-way node from where we were to here
-        if (g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
+        if (module.lastNodes[0] != AI_NODE_INVALID) {
           bool bidirectional = false;
 
-          if (g_ai_player_roam.is_water_jump) {
+          if (module.isWaterJump) {
             bidirectional = true;
             G_Ai_Debug("Most likely waterjump; connecting both ends\n");
-          } else if (g_ai_player_roam.is_jumping || in_water) {
-            const float z_diff = fabsf(G_Ai_Node_GetPosition(g_ai_player_roam.last_nodes[0]).z - G_Ai_Node_GetPosition(landed_near_node).z);
+          } else if (module.isJumping || inWater) {
+            const float zDiff = fabsf(G_Ai_Node_GetPosition(module.lastNodes[0]).z - G_Ai_Node_GetPosition(landedNearNode).z);
 
-            if (z_diff < PM_STEP_HEIGHT || (in_water && z_diff < PM_STEP_HEIGHT * 3.f)) {
+            if (zDiff < PM_STEP_HEIGHT || (inWater && zDiff < PM_STEP_HEIGHT * 3.f)) {
               bidirectional = true;
               G_Ai_Debug("Most likely jump or drop-into-water link; connecting both ends\n");
             }
           }
 
-          G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[0], landed_near_node, bidirectional);
+          G_Ai_Node_LinkDefault(module.lastNodes[0], landedNearNode, bidirectional);
         }
 
-        g_ai_player_roam.last_nodes[1] = g_ai_player_roam.last_nodes[0];
-        g_ai_player_roam.last_nodes[0] = landed_near_node;
-        g_ai_player_roam.is_water_jump = false;
+        module.lastNodes[1] = module.lastNodes[0];
+        module.lastNodes[0] = landedNearNode;
+        module.isWaterJump = false;
       }
 
       return;
     }
 
     // we probably teleported; no node, just start dropping here when we land
-    if (player_distance_compare > TELEPORT_DISTANCE) {
+    if (playerDistanceCompare > TELEPORT_DISTANCE) {
 
-      g_ai_player_roam.last_nodes[0] = g_ai_player_roam.last_nodes[1] = AI_NODE_INVALID;
-      g_ai_player_roam.position = ent->s.origin;
-      g_ai_player_roam.await_landing = true;
+      module.lastNodes[0] = module.lastNodes[1] = AI_NODE_INVALID;
+      module.position = ent->s.origin;
+      module.awaitLanding = true;
 
       G_Ai_Debug("Teleport detected; awaiting landing...\n");
       return;
     }
 
     // we just left the floor (or water); drop a node here
-    if (!G_Ai_Node_OnGround(cl) && !in_water) {
+    if (!G_Ai_Node_OnGround(cl) && !inWater) {
       // for water leavings, we want to drop where we are, not where we went into the water from
-      const vec3_t where = g_ai_player_roam.is_water_jump ? ent->s.origin : g_ai_player_roam.floor_position;
-      const ai_node_id_t jumped_near_node = G_Ai_Node_FindClosest(where, WALKING_DISTANCE / 2, true, false);
-      const bool is_jump = cl->ps.pm_state.velocity.z > 0;
+      const Vec3 where = module.isWaterJump ? ent->s.origin : module.floorPosition;
+      const AiNodeId jumpedNearNode = G_Ai_Node_FindClosest(where, WALKING_DISTANCE / 2, true, false);
+      const bool isJump = cl->ps.pmState.velocity.z > 0;
 
-      if (jumped_near_node == AI_NODE_INVALID) {
-        const ai_node_id_t id = G_Ai_Node_Create(where);
+      if (jumpedNearNode == AI_NODE_INVALID) {
+        const AiNodeId id = G_Ai_Node_Create(where);
 
-        if (g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
+        if (module.lastNodes[0] != AI_NODE_INVALID) {
 
-          G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[0], id, true);
+          G_Ai_Node_LinkDefault(module.lastNodes[0], id, true);
         }
       
-        g_ai_player_roam.last_nodes[1] = g_ai_player_roam.last_nodes[0];
-        g_ai_player_roam.last_nodes[0] = id;
+        module.lastNodes[1] = module.lastNodes[0];
+        module.lastNodes[0] = id;
       } else {
         
-        if (g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
+        if (module.lastNodes[0] != AI_NODE_INVALID) {
 
-          G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[0], jumped_near_node, true);
+          G_Ai_Node_LinkDefault(module.lastNodes[0], jumpedNearNode, true);
         }
       
-        g_ai_player_roam.last_nodes[1] = g_ai_player_roam.last_nodes[0];
-        g_ai_player_roam.last_nodes[0] = jumped_near_node;
+        module.lastNodes[1] = module.lastNodes[0];
+        module.lastNodes[0] = jumpedNearNode;
       }
 
-      g_ai_player_roam.await_landing = true;
-      g_ai_player_roam.is_jumping = is_jump;
+      module.awaitLanding = true;
+      module.isJumping = isJump;
 
       // we didn't leave from water jump, so turn this off.
-      if (!is_jump) {
-        g_ai_player_roam.is_water_jump = false;
+      if (!isJump) {
+        module.isWaterJump = false;
       }
 
-      G_Ai_Debug("Left ground; jumping? %s\n", is_jump ? "yes" : "nop");
+      G_Ai_Debug("Left ground; jumping? %s\n", isJump ? "yes" : "nop");
       return;
     }
   }
 
   // we're walkin'
 
-  const ai_node_id_t closest_node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 4, true, false);
-  const bool on_mover = ent->ground.ent && ((g_entity_t *) ent->ground.ent)->s.number != 0;
+  const AiNodeId closestNode = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 4, true, false);
+  const bool onMover = ent->ground.ent && ((GameEntity *) ent->ground.ent)->s.number != 0;
 
   // attack button enables/disables placement
-  if (allow_adjustments && (g_ai_player_roam.latched_buttons & BUTTON_ATTACK)) {
-    g_ai_player_roam.drop_nodes = !g_ai_player_roam.drop_nodes;
+  if (allowAdjustments && (module.latchedButtons & BUTTON_ATTACK)) {
+    module.dropNodes = !module.dropNodes;
 
-    g_ai_player_roam.latched_buttons &= ~BUTTON_ATTACK;
+    module.latchedButtons &= ~BUTTON_ATTACK;
   // "use" moves node
-  } else if (allow_adjustments && ent->move_node) {
-    if (g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
-      ai_node_t *node = AI_NODE(g_ai_nodes, g_ai_player_roam.last_nodes[0]);
+  } else if (allowAdjustments && ent->moveNode) {
+    if (module.lastNodes[0] != AI_NODE_INVALID) {
+      AiNode *node = AI_NODE(gAiNodes, module.lastNodes[0]);
       node->position = ent->s.origin;
 
       if (cmd->up < 0) {
-        const cm_trace_t tr = gi.Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), Pm_Bounds(&ent->client->ps.pm_state.params, false), ent, CONTENTS_MASK_SOLID);
+        const CmTrace tr = gi.Trace(node->position, Vec3_Subtract(node->position, MakeVec3(0.f, 0.f, MAX_WORLD_COORD)), Pm_Bounds(&ent->client->ps.pmState.params, false), ent, CONTENTS_MASK_SOLID);
         node->position = tr.end;
       }
 
       // recalculate links
-      G_Ai_Node_UpdateCosts(g_ai_player_roam.last_nodes[0]);
+      G_Ai_Node_UpdateCosts(module.lastNodes[0]);
     }
 
-    ent->move_node = false;
+    ent->moveNode = false;
   // hook destroys node
-  } else if (allow_adjustments && (g_ai_player_roam.latched_buttons & BUTTON_HOOK)) {
-    if (g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
-      G_Ai_Node_Destroy(g_ai_player_roam.last_nodes[0]);
-      g_ai_player_roam.position = ent->s.origin;
-      g_ai_player_roam.last_nodes[0] = g_ai_player_roam.last_nodes[1] = AI_NODE_INVALID;
-      g_ai_player_roam.last_nodes[0] = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
+  } else if (allowAdjustments && (module.latchedButtons & BUTTON_HOOK)) {
+    if (module.lastNodes[0] != AI_NODE_INVALID) {
+      G_Ai_Node_Destroy(module.lastNodes[0]);
+      module.position = ent->s.origin;
+      module.lastNodes[0] = module.lastNodes[1] = AI_NODE_INVALID;
+      module.lastNodes[0] = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
     }
-    g_ai_player_roam.latched_buttons &= ~BUTTON_HOOK;
+    module.latchedButtons &= ~BUTTON_HOOK;
   // score adjusts link connections
-  } else if (allow_adjustments && (g_ai_player_roam.latched_buttons & BUTTON_SCORE)) {
+  } else if (allowAdjustments && (module.latchedButtons & BUTTON_SCORE)) {
 
-    if (g_ai_player_roam.last_nodes[1] != AI_NODE_INVALID && g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
+    if (module.lastNodes[1] != AI_NODE_INVALID && module.lastNodes[0] != AI_NODE_INVALID) {
       uint8_t bits = 0;
 
-      if (G_Ai_Node_IsLinked(g_ai_player_roam.last_nodes[0], g_ai_player_roam.last_nodes[1])) {
+      if (G_Ai_Node_IsLinked(module.lastNodes[0], module.lastNodes[1])) {
         bits |= 1;
       }
-      if (G_Ai_Node_IsLinked(g_ai_player_roam.last_nodes[1], g_ai_player_roam.last_nodes[0])) {
+      if (G_Ai_Node_IsLinked(module.lastNodes[1], module.lastNodes[0])) {
         bits |= 2;
       }
 
       bits = (bits + 1) % 4;
 
-      G_Ai_Node_Unlink(g_ai_player_roam.last_nodes[0], g_ai_player_roam.last_nodes[1]);
-      G_Ai_Node_Unlink(g_ai_player_roam.last_nodes[1], g_ai_player_roam.last_nodes[0]);
+      G_Ai_Node_Unlink(module.lastNodes[0], module.lastNodes[1]);
+      G_Ai_Node_Unlink(module.lastNodes[1], module.lastNodes[0]);
       
       if (bits & 1) {
-        G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[0], g_ai_player_roam.last_nodes[1], false);
+        G_Ai_Node_LinkDefault(module.lastNodes[0], module.lastNodes[1], false);
       }
       if (bits & 2) {
-        G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[1], g_ai_player_roam.last_nodes[0], false);
+        G_Ai_Node_LinkDefault(module.lastNodes[1], module.lastNodes[0], false);
       }
     }
     
-    g_ai_player_roam.latched_buttons &= ~BUTTON_SCORE;
+    module.latchedButtons &= ~BUTTON_SCORE;
   // we're stepping on/off a mover; connect us one-way
-  } else if (on_mover != g_ai_player_roam.on_mover) {
+  } else if (onMover != module.onMover) {
 
-    g_ai_player_roam.on_mover = on_mover;
+    module.onMover = onMover;
 
-    if (do_noding) {
-      ai_node_id_t id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 8, true, false);
+    if (doNoding) {
+      AiNodeId id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 8, true, false);
       
       if (id == AI_NODE_INVALID) {
         id = G_Ai_Node_Create(ent->s.origin);
       }
 
-      if (g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
+      if (module.lastNodes[0] != AI_NODE_INVALID) {
 
-        G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[0], id, false);
+        G_Ai_Node_LinkDefault(module.lastNodes[0], id, false);
       }
     
-      g_ai_player_roam.last_nodes[1] = g_ai_player_roam.last_nodes[0];
-      g_ai_player_roam.last_nodes[0] = id;
+      module.lastNodes[1] = module.lastNodes[0];
+      module.lastNodes[0] = id;
     }
 
   // if we touched another node and had another node lit up; connect us if we aren't already
-  } else if (closest_node != AI_NODE_INVALID && closest_node != g_ai_player_roam.last_nodes[0] && G_Ai_Node_Visible(ent->s.origin, closest_node)) {
+  } else if (closestNode != AI_NODE_INVALID && closestNode != module.lastNodes[0] && G_Ai_Node_Visible(ent->s.origin, closestNode)) {
 
-    if (do_noding && g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
+    if (doNoding && module.lastNodes[0] != AI_NODE_INVALID) {
 
-      G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[0], closest_node, !g_ai_player_roam.on_mover);
+      G_Ai_Node_LinkDefault(module.lastNodes[0], closestNode, !module.onMover);
     }
     
-    g_ai_player_roam.last_nodes[1] = g_ai_player_roam.last_nodes[0];
-    g_ai_player_roam.last_nodes[0] = closest_node;
+    module.lastNodes[1] = module.lastNodes[0];
+    module.lastNodes[0] = closestNode;
   // we got far enough from the last node, so drop a new node
-  } else if (last_node_distance_compare > WALKING_DISTANCE) {
+  } else if (lastNodeDistanceCompare > WALKING_DISTANCE) {
 
-    if (do_noding) {
-      ai_node_id_t id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, !in_water);
+    if (doNoding) {
+      AiNodeId id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, !inWater);
       
       if (id == AI_NODE_INVALID) {
         id = G_Ai_Node_Create(ent->s.origin);
       }
 
-      if (g_ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
+      if (module.lastNodes[0] != AI_NODE_INVALID) {
 
-        G_Ai_Node_LinkDefault(g_ai_player_roam.last_nodes[0], id, !g_ai_player_roam.on_mover);
+        G_Ai_Node_LinkDefault(module.lastNodes[0], id, !module.onMover);
       }
     
-      g_ai_player_roam.last_nodes[1] = g_ai_player_roam.last_nodes[0];
-      g_ai_player_roam.last_nodes[0] = id;
+      module.lastNodes[1] = module.lastNodes[0];
+      module.lastNodes[0] = id;
     }
   }
 
@@ -855,11 +855,11 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
   // is by waterjumping, having something take us out of the water,
   // a ladder or walking straight out of water. mark waterjump as true,
   // we'll figure it out when we actually leave water what the intentions are.
-  if (in_water) {
-    g_ai_player_roam.is_water_jump = true;
+  if (inWater) {
+    module.isWaterJump = true;
   }
 
-  g_ai_player_roam.position = ent->s.origin;
+  module.position = ent->s.origin;
 }
 
 /**
@@ -868,26 +868,26 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
 typedef struct {
   union {
     struct {
-      ai_node_id_t a, b;
+      AiNodeId a, b;
     };
     int32_t v;
   };
-} ai_unique_link_t;
+} AiUniqueLink;
 
 typedef struct {
-  ai_unique_link_t link;
+  AiUniqueLink link;
   int32_t bits;
-} ai_render_link_t;
+} AiRenderLink;
 
 /**
  * @brief Renders a single node link line for developer visualization.
  */
-static void G_Ai_Node_RenderLink(const ai_unique_link_t ulink, const int32_t bits) {
+static void G_Ai_Node_RenderLink(const AiUniqueLink ulink, const int32_t bits) {
   
-  const ai_node_t *node_a = AI_NODE(g_ai_nodes, ulink.a);
-  const ai_node_t *node_b = AI_NODE(g_ai_nodes, ulink.b);
+  const AiNode *nodeA = AI_NODE(gAiNodes, ulink.a);
+  const AiNode *nodeB = AI_NODE(gAiNodes, ulink.b);
 
-  g_client_t *client = NULL;
+  GameClient *client = NULL;
   G_ForEachClient(cl, {
     if (!cl->ai) {
       client = cl;
@@ -896,25 +896,25 @@ static void G_Ai_Node_RenderLink(const ai_unique_link_t ulink, const int32_t bit
   });
 
   assert(client);
-  g_entity_t *ent = client->entity;
+  GameEntity *ent = client->entity;
 
-  if (!G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pm_state.view_offset), ulink.a)
-      && !G_Ai_Node_Visible(Vec3_Add(ent->s.origin,client->ps.pm_state.view_offset), ulink.b)) {
+  if (!G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pmState.viewOffset), ulink.a)
+      && !G_Ai_Node_Visible(Vec3_Add(ent->s.origin,client->ps.pmState.viewOffset), ulink.b)) {
     return;
   }
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_AI_NODE_LINK);
-  gi.WritePosition(node_a->position);
-  gi.WritePosition(node_b->position);
+  gi.WritePosition(nodeA->position);
+  gi.WritePosition(nodeB->position);
   gi.WriteByte(bits);
-  gi.Multicast(node_a->position, MULTICAST_PVS);
+  gi.Multicast(nodeA->position, MULTICAST_PVS);
 }
 
 /**
  * @brief Returns true if the specified node ID is present in the given path array.
  */
-static bool G_Ai_NodeInPath(Vector *path, ai_node_id_t node) {
+static bool G_Ai_NodeInPath(Vector *path, AiNodeId node) {
 
   if (!path) {
     return false;
@@ -934,15 +934,15 @@ static bool G_Ai_NodeInPath(Vector *path, ai_node_id_t node) {
  */
 void G_Ai_Node_Render(void) {
 
-  if (!g_ai_node_dev->integer) {
+  if (!g_aiNodeDev->integer) {
     return;
   }
 
-  if (!g_ai_nodes) {
+  if (!gAiNodes) {
     return;
   }
 
-  g_client_t *client = NULL;
+  GameClient *client = NULL;
   G_ForEachClient(cl, {
     if (cl->entity && !cl->ai) {
       client = cl;
@@ -954,15 +954,15 @@ void G_Ai_Node_Render(void) {
     return;
   }
 
-  g_entity_t *ent = client->entity;
+  GameEntity *ent = client->entity;
 
-  Vector *unique_links = $(alloc(Vector), initWithSize, sizeof(ai_render_link_t));
+  Vector *uniqueLinks = $(alloc(Vector), initWithSize, sizeof(AiRenderLink));
 
-  for (uint32_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
-    const bool in_path = G_Ai_NodeInPath(g_ai_player_roam.test_path, i);
+  for (uint32_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
+    const bool inPath = G_Ai_NodeInPath(module.testPath, i);
 
-    if (G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pm_state.view_offset), i)) {
+    if (G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pmState.viewOffset), i)) {
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(TE_AI_NODE);
@@ -971,11 +971,11 @@ void G_Ai_Node_Render(void) {
 
       byte bits = 0;
 
-      if (in_path) {
+      if (inPath) {
         bits = 3;
-      } else if (g_ai_player_roam.last_nodes[0] == i) {
+      } else if (module.lastNodes[0] == i) {
         bits = 1;
-      } else if (g_ai_player_roam.last_nodes[1] == i) {
+      } else if (module.lastNodes[1] == i) {
         bits = 2;
       }
 
@@ -990,8 +990,8 @@ void G_Ai_Node_Render(void) {
     if (node->links) {
 
       for (size_t l = 0; l < node->links->count; l++) {
-        const ai_link_t *link = AI_LINK(node->links, l);
-        ai_unique_link_t ulink;
+        const AiLink *link = AI_LINK(node->links, l);
+        AiUniqueLink ulink;
         int32_t bit;
 
         if (link->id > i) {
@@ -1004,7 +1004,7 @@ void G_Ai_Node_Render(void) {
           bit = 2;
         }
 
-        if (!in_path) {
+        if (!inPath) {
           bit |= 4;
         }
 
@@ -1014,32 +1014,32 @@ void G_Ai_Node_Render(void) {
 
         bool found = false;
 
-        for (uint32_t u = 0; u < unique_links->count; u++) {
-          ai_render_link_t *render_link = VectorElement(unique_links, ai_render_link_t, u);
-          if (render_link->link.v == ulink.v) {
-            render_link->bits |= bit;
+        for (uint32_t u = 0; u < uniqueLinks->count; u++) {
+          AiRenderLink *renderLink = VectorElement(uniqueLinks, AiRenderLink, u);
+          if (renderLink->link.v == ulink.v) {
+            renderLink->bits |= bit;
             found = true;
             break;
           }
         }
 
         if (!found) {
-          ai_render_link_t render_link = {
+          AiRenderLink renderLink = {
             .link = ulink,
             .bits = bit
           };
-          $(unique_links, add, &render_link);
+          $(uniqueLinks, add, &renderLink);
         }
       }
     }
   }
 
-  for (size_t i = 0; i < unique_links->count; i++) {
-    const ai_render_link_t *render_link = VectorElement(unique_links, ai_render_link_t, i);
-    G_Ai_Node_RenderLink(render_link->link, render_link->bits);
+  for (size_t i = 0; i < uniqueLinks->count; i++) {
+    const AiRenderLink *renderLink = VectorElement(uniqueLinks, AiRenderLink, i);
+    G_Ai_Node_RenderLink(renderLink->link, renderLink->bits);
   }
 
-  release(unique_links);
+  release(uniqueLinks);
 
   // draw the bots' targets
   G_ForEachClient(cl, {
@@ -1049,14 +1049,14 @@ void G_Ai_Node_Render(void) {
     }
 
 
-    if (cl->ai->move_target.type != AI_GOAL_PATH) {
+    if (cl->ai->moveTarget.type != AI_GOAL_PATH) {
       continue;
     }
 
     gi.WriteByte(SV_CMD_TEMP_ENTITY);
     gi.WriteByte(TE_AI_NODE_LINK);
     gi.WritePosition(cl->entity->s.origin);
-    gi.WritePosition(cl->ai->move_target.path.path_position);
+    gi.WritePosition(cl->ai->moveTarget.path.pathPosition);
     gi.WriteByte(8);
     gi.Multicast(cl->entity->s.origin, MULTICAST_PVS);
   });
@@ -1065,14 +1065,14 @@ void G_Ai_Node_Render(void) {
 #define AI_NODE_MAGIC ('Q' | '2' << 8 | 'N' << 16 | 'S' << 24)
 #define AI_NODE_VERSION 2
 
-_Static_assert(sizeof(ai_link_t) == 8, "ai_link_t is the on-disk link record; changing it requires a new AI_NODE_VERSION");
+_Static_assert(sizeof(AiLink) == 8, "AiLink is the on-disk link record; changing it requires a new AI_NODE_VERSION");
 
 /**
- * @brief Reads the nodes and links from an open .nav file into `g_ai_nodes`.
+ * @brief Reads the nodes and links from an open .nav file into `gAiNodes`.
  * @return False if the file is malformed, in which case the nodes read so far
  * must be discarded.
  */
-static bool G_Ai_ReadNodes(file_t *file) {
+static bool G_Ai_ReadNodes(File *file) {
   int32_t magic, version;
 
   if (gi.ReadFile(file, &magic, sizeof(magic), 1) != 1 || magic != AI_NODE_MAGIC) {
@@ -1085,49 +1085,49 @@ static bool G_Ai_ReadNodes(file_t *file) {
     return false;
   }
 
-  uint32_t num_nodes;
-  if (gi.ReadFile(file, &num_nodes, sizeof(num_nodes), 1) != 1 || num_nodes >= AI_NODE_INVALID) {
+  uint32_t numNodes;
+  if (gi.ReadFile(file, &numNodes, sizeof(numNodes), 1) != 1 || numNodes >= AI_NODE_INVALID) {
     G_Warn("Nav file has an invalid node count\n");
     return false;
   }
 
-  g_ai_nodes = $(alloc(Vector), initWithSize, sizeof(ai_node_t));
+  gAiNodes = $(alloc(Vector), initWithSize, sizeof(AiNode));
 
-  for (size_t i = 0; i < num_nodes; i++) {
-    ai_node_t node = { 0 };
-    $(g_ai_nodes, add, &node);
+  for (size_t i = 0; i < numNodes; i++) {
+    AiNode node = { 0 };
+    $(gAiNodes, add, &node);
   }
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  size_t total_links = 0;
+  size_t totalLinks = 0;
 
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    AiNode *node = AI_NODE(gAiNodes, i);
 
     if (gi.ReadFile(file, &node->position, sizeof(node->position), 1) != 1) {
       G_Warn("Nav file is truncated at node %zu\n", i);
       return false;
     }
 
-    uint32_t num_links;
-    if (gi.ReadFile(file, &num_links, sizeof(num_links), 1) != 1 || num_links > num_nodes) {
+    uint32_t numLinks;
+    if (gi.ReadFile(file, &numLinks, sizeof(numLinks), 1) != 1 || numLinks > numNodes) {
       G_Warn("Nav file has an invalid link count at node %zu\n", i);
       return false;
     }
 
-    if (num_links) {
-      node->links = $(alloc(Vector), initWithSize, sizeof(ai_link_t));
+    if (numLinks) {
+      node->links = $(alloc(Vector), initWithSize, sizeof(AiLink));
 
-      for (size_t l = 0; l < num_links; l++) {
-        ai_link_t link;
+      for (size_t l = 0; l < numLinks; l++) {
+        AiLink link;
 
         if (gi.ReadFile(file, &link, sizeof(link), 1) != 1) {
           G_Warn("Nav file is truncated at node %zu\n", i);
           return false;
         }
 
-        if (link.id >= num_nodes) {
+        if (link.id >= numNodes) {
           G_Warn("Nav file links node %zu to nonexistent node %u\n", i, link.id);
           return false;
         }
@@ -1135,7 +1135,7 @@ static bool G_Ai_ReadNodes(file_t *file) {
         $(node->links, add, &link);
       }
 
-      total_links += num_links;
+      totalLinks += numLinks;
 
       G_Ai_Node_Unlink(i, i);
     } else {
@@ -1143,7 +1143,7 @@ static bool G_Ai_ReadNodes(file_t *file) {
     }
   }
 
-  gi.Print("  Loaded %u nodes with %zu total links.\n", num_nodes, total_links);
+  gi.Print("  Loaded %u nodes with %zu total links.\n", numNodes, totalLinks);
 
   return true;
 }
@@ -1155,20 +1155,20 @@ void G_Ai_InitNodes(void) {
 
   G_Ai_ShutdownNodes();
 
-  g_ai_player_roam.position = Vec3(MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST);
-  g_ai_player_roam.last_nodes[0] = g_ai_player_roam.last_nodes[1] = AI_NODE_INVALID;
-  g_ai_player_roam.await_landing = true;
+  module.position = MakeVec3(MAX_WORLD_DIST, MAX_WORLD_DIST, MAX_WORLD_DIST);
+  module.lastNodes[0] = module.lastNodes[1] = AI_NODE_INVALID;
+  module.awaitLanding = true;
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
+  q_snprintf(filename, sizeof(filename), "maps/%s.nav", gLevel.name);
 
   if (!gi.FileExists(filename)) {
-    G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_ai_node_dev` to set up nodes.\n");
+    G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_aiNodeDev` to set up nodes.\n");
     return;
   }
 
-  file_t *file = gi.OpenFile(filename);
+  File *file = gi.OpenFile(filename);
   if (!file) {
     G_Warn("Failed to open %s\n", filename);
     return;
@@ -1183,14 +1183,14 @@ void G_Ai_InitNodes(void) {
     return;
   }
 
-  g_ai_player_roam.file_nodes = (uint32_t) g_ai_nodes->count;
-  g_ai_player_roam.file_links = 0;
+  module.fileNodes = (uint32_t) gAiNodes->count;
+  module.fileLinks = 0;
 
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
 
     if (node->links) {
-      g_ai_player_roam.file_links += (uint32_t) node->links->count;
+      module.fileLinks += (uint32_t) node->links->count;
     }
   }
 }
@@ -1200,7 +1200,7 @@ void G_Ai_InitNodes(void) {
  */
 static void G_Ai_CheckNodes(void) {
 
-  if (g_ai_node_dev->integer) {
+  if (g_aiNodeDev->integer) {
     G_ForEachEntity(ent, {
 
       // only warn for item nodes
@@ -1208,7 +1208,7 @@ static void G_Ai_CheckNodes(void) {
         continue;
       }
 
-      ai_node_id_t node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
+      AiNodeId node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 
       if (node == AI_NODE_INVALID) {
         G_Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
@@ -1216,8 +1216,8 @@ static void G_Ai_CheckNodes(void) {
     });
   }
 
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
     
     if (gi.PointContents(node->position) & CONTENTS_MASK_SOLID) {
       G_Warn("Node %zu @ %s is inside of solid\n", i, vtos(node->position));
@@ -1231,34 +1231,34 @@ static void G_Ai_CheckNodes(void) {
  */
 void G_Ai_NodesReady(void) {
 
-  if (!g_ai_nodes) {
+  if (!gAiNodes) {
     return;
   }
 
-  const size_t added_nodes = g_ai_nodes->count - g_ai_player_roam.file_nodes;
-  size_t added_links = 0;
+  const size_t addedNodes = gAiNodes->count - module.fileNodes;
+  size_t addedLinks = 0;
 
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
 
     if (node->links) {
-      added_links += node->links->count;
+      addedLinks += node->links->count;
     }
   }
 
-  added_links -= g_ai_player_roam.file_links;
-  gi.Print("  Game loaded %zu additional nodes with %zu new links.\n", added_nodes, added_links);
+  addedLinks -= module.fileLinks;
+  gi.Print("  Game loaded %zu additional nodes with %zu new links.\n", addedNodes, addedLinks);
 
   G_ForEachEntity(ent, {
     if (ent->classname && q_strcmp(ent->classname, "func_plat") == 0) {
-      if (!g_ai_platforms) {
-        g_ai_platforms = $(alloc(Vector), initWithSize, sizeof(g_entity_t *));
+      if (!gAiPlatforms) {
+        gAiPlatforms = $(alloc(Vector), initWithSize, sizeof(GameEntity *));
       }
-      $(g_ai_platforms, add, &ent);
+      $(gAiPlatforms, add, &ent);
     }
   });
 
-  /*if (g_ai_node_dev->integer != 1) {
+  /*if (g_aiNodeDev->integer != 1) {
     const uint32_t optimized = Ai_OptimizeNodes();
     gi.Print("  %u nodes optimized\n", optimized);
   }*/
@@ -1271,39 +1271,39 @@ void G_Ai_NodesReady(void) {
  */
 void G_Ai_SaveNodes(void) {
 
-  if (g_ai_node_dev->integer != 1) {
-    G_Warn("This command only works with `g_ai_node_dev` set to 1.\n");
+  if (g_aiNodeDev->integer != 1) {
+    G_Warn("This command only works with `g_aiNodeDev` set to 1.\n");
     return;
   }
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
+  q_snprintf(filename, sizeof(filename), "maps/%s.nav", gLevel.name);
 
-  if (!g_ai_nodes) {
+  if (!gAiNodes) {
     G_Warn("No nodes to write.\n");
     return;
   }
 
-  file_t *file = gi.OpenFileWrite(filename);
+  File *file = gi.OpenFileWrite(filename);
   int32_t magic = AI_NODE_MAGIC;
   int32_t version = AI_NODE_VERSION;
   
   gi.WriteFile(file, &magic, sizeof(magic), 1);
   gi.WriteFile(file, &version, sizeof(version), 1);
 
-  const uint32_t num_nodes = (uint32_t) g_ai_nodes->count;
-  gi.WriteFile(file, &num_nodes, sizeof(num_nodes), 1);
+  const uint32_t numNodes = (uint32_t) gAiNodes->count;
+  gi.WriteFile(file, &numNodes, sizeof(numNodes), 1);
 
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    const ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (size_t i = 0; i < gAiNodes->count; i++) {
+    const AiNode *node = AI_NODE(gAiNodes, i);
 
     gi.WriteFile(file, &node->position, sizeof(node->position), 1);
 
     if (node->links) {
-      const uint32_t num_links = (uint32_t) node->links->count;
-      gi.WriteFile(file, &num_links, sizeof(num_links), 1);
-      gi.WriteFile(file, node->links->elements, sizeof(ai_link_t), node->links->count);
+      const uint32_t numLinks = (uint32_t) node->links->count;
+      gi.WriteFile(file, &numLinks, sizeof(numLinks), 1);
+      gi.WriteFile(file, node->links->elements, sizeof(AiLink), node->links->count);
     } else {
       uint32_t len = 0;
       gi.WriteFile(file, &len, sizeof(len), 1);
@@ -1322,19 +1322,19 @@ void G_Ai_SaveNodes(void) {
  */
 void G_Ai_DeleteNodes(void) {
 
-  if (g_ai_nodes) {
-    for (uint32_t i = 0; i < g_ai_nodes->count; i++) {
-      ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  if (gAiNodes) {
+    for (uint32_t i = 0; i < gAiNodes->count; i++) {
+      AiNode *node = AI_NODE(gAiNodes, i);
 
       if (node->links) {
         release(node->links);
       }
     }
 
-    $(g_ai_nodes, removeAll);
+    $(gAiNodes, removeAll);
   }
 
-  g_ai_platforms = release(g_ai_platforms);
+  gAiPlatforms = release(gAiPlatforms);
 
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
@@ -1345,33 +1345,33 @@ void G_Ai_DeleteNodes(void) {
  */
 void G_Ai_ShutdownNodes(void) {
 
-  if (g_ai_nodes) {
-    for (size_t i = 0; i < g_ai_nodes->count; i++) {
-      ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  if (gAiNodes) {
+    for (size_t i = 0; i < gAiNodes->count; i++) {
+      AiNode *node = AI_NODE(gAiNodes, i);
 
       if (node->links) {
         release(node->links);
       }
     }
 
-    g_ai_nodes = release(g_ai_nodes);
+    gAiNodes = release(gAiNodes);
   }
 
-  g_ai_platforms = release(g_ai_platforms);
+  gAiPlatforms = release(gAiPlatforms);
 
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
 }
 
 typedef struct {
-  ai_node_id_t id;
+  AiNodeId id;
   float priority;
-} ai_node_priority_t;
+} AiNodePriority;
 
-static struct gheap_s *g_ai_node_path_queue;
-static ai_node_priority_t *g_ai_node_path_entries;
-static size_t g_ai_node_path_capacity;
-static size_t g_ai_node_path_count;
+static struct GHeap *g_ai_node_path_queue;
+static AiNodePriority *gAiNodePathEntries;
+static size_t gAiNodePathCapacity;
+static size_t gAiNodePathCount;
 
 /**
  * @brief Releases the pathfinding queue and its entries.
@@ -1379,10 +1379,10 @@ static size_t g_ai_node_path_count;
 static void G_Ai_Node_FreePathPool(void) {
 
   gheap_free(&g_ai_node_path_queue);
-  free(g_ai_node_path_entries);
-  g_ai_node_path_entries = NULL;
-  g_ai_node_path_capacity = 0;
-  g_ai_node_path_count = 0;
+  free(gAiNodePathEntries);
+  gAiNodePathEntries = NULL;
+  gAiNodePathCapacity = 0;
+  gAiNodePathCount = 0;
 }
 
 /**
@@ -1390,36 +1390,36 @@ static void G_Ai_Node_FreePathPool(void) {
  */
 static bool G_Ai_Node_EnsurePathPool(const size_t capacity) {
 
-  if (g_ai_node_path_queue && g_ai_node_path_capacity >= capacity) {
+  if (g_ai_node_path_queue && gAiNodePathCapacity >= capacity) {
     gheap_reset(g_ai_node_path_queue);
-    g_ai_node_path_count = 0;
+    gAiNodePathCount = 0;
     return true;
   }
 
   G_Ai_Node_FreePathPool();
 
   g_ai_node_path_queue = gheap_create(capacity);
-  g_ai_node_path_entries = malloc(sizeof(ai_node_priority_t) * capacity);
+  gAiNodePathEntries = malloc(sizeof(AiNodePriority) * capacity);
 
-  if (!g_ai_node_path_queue || !g_ai_node_path_entries) {
+  if (!g_ai_node_path_queue || !gAiNodePathEntries) {
     G_Ai_Node_FreePathPool();
     return false;
   }
 
-  g_ai_node_path_capacity = capacity;
+  gAiNodePathCapacity = capacity;
   return true;
 }
 
 /**
  * @brief The next free pathfinding entry, or `NULL` when the pool is spent.
  */
-static ai_node_priority_t *G_Ai_Node_AllocPathEntry(void) {
+static AiNodePriority *G_Ai_Node_AllocPathEntry(void) {
 
-  if (g_ai_node_path_count == g_ai_node_path_capacity) {
+  if (gAiNodePathCount == gAiNodePathCapacity) {
     return NULL;
   }
 
-  return &g_ai_node_path_entries[g_ai_node_path_count++];
+  return &gAiNodePathEntries[gAiNodePathCount++];
 }
 
 #define AI_MAX_DROP_HEIGHT 512.f
@@ -1431,13 +1431,13 @@ static ai_node_priority_t *G_Ai_Node_AllocPathEntry(void) {
 /**
  * @brief The stored cost of the link from `a` to `b`.
  */
-static inline float G_Ai_LinkCost(const ai_node_id_t a, const ai_node_id_t b) {
-  const ai_node_t *node = AI_NODE(g_ai_nodes, a);
+static inline float G_Ai_LinkCost(const AiNodeId a, const AiNodeId b) {
+  const AiNode *node = AI_NODE(gAiNodes, a);
 
   assert(node->links);
 
   for (uint32_t i = 0; i < node->links->count; i++) {
-    const ai_link_t *link = AI_LINK(node->links, i);
+    const AiLink *link = AI_LINK(node->links, i);
 
     if (link->id == b) {
       return link->cost;
@@ -1451,21 +1451,21 @@ static inline float G_Ai_LinkCost(const ai_node_id_t a, const ai_node_id_t b) {
 /**
  * @brief Returns true if the segment between two nodes intersects lava or slime.
  */
-static bool G_Ai_LinkPassesHazard(const vec3_t from, const vec3_t to) {
-  const vec3_t delta = Vec3_Subtract(to, from);
+static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to) {
+  const Vec3 delta = Vec3_Subtract(to, from);
   const float length = Vec3_Length(delta);
 
   if (length <= 0.f) {
     return (gi.PointContents(from) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
   }
 
-  const vec3_t dir = Vec3_Scale(delta, 1.f / length);
+  const Vec3 dir = Vec3_Scale(delta, 1.f / length);
   const float step = 24.f;
   const int32_t samples = Maxi(1, (int32_t) ceilf(length / step));
 
   for (int32_t i = 0; i <= samples; i++) {
     const float dist = Minf(length, i * step);
-    const vec3_t point = Vec3_Fmaf(from, dist, dir);
+    const Vec3 point = Vec3_Fmaf(from, dist, dir);
 
     if (gi.PointContents(point) & (CONTENTS_LAVA | CONTENTS_SLIME)) {
       return true;
@@ -1478,21 +1478,21 @@ static bool G_Ai_LinkPassesHazard(const vec3_t from, const vec3_t to) {
 /**
  * @brief Finds the shortest path between two nodes using the A* algorithm.
  */
-static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, const int32_t water_level) {
+static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, const int32_t waterLevel) {
 
   if (drop <= 0.f || gravity <= 0) {
     return 0.f;
   }
 
-  const float impact_velocity = -sqrtf(2.f * gravity * drop);
-  if (impact_velocity > PM_SPEED_FALL) {
+  const float impactVelocity = -sqrtf(2.f * gravity * drop);
+  if (impactVelocity > PM_SPEED_FALL) {
     return 0.f;
   }
 
-  float damage = -((impact_velocity - PM_SPEED_FALL) * 0.05f);
+  float damage = -((impactVelocity - PM_SPEED_FALL) * 0.05f);
 
-  if (water_level > 0) {
-    damage /= (float) (1u << Mini(water_level, 3));
+  if (waterLevel > 0) {
+    damage /= (float) (1u << Mini(waterLevel, 3));
   }
 
   return Maxf(0.f, damage);
@@ -1501,7 +1501,7 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
 /**
  * @see g_ai_node.h
  */
-Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const ai_node_id_t end, const G_Ai_NodeCostFunc heuristic, float *length) {
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiNodeId end, const G_Ai_NodeCostFunc heuristic, float *length) {
   
   if (length) {
     *length = 0;
@@ -1516,9 +1516,9 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   // call G_ForEachEntity for every link expansion inside the A* loop.
 
   // size on 64k nodes is, say, 8kb.
-  const size_t costs_started_words = ((size_t) g_ai_nodes->count + 31u) / 32u;
-  uint32_t *costs_started = calloc(costs_started_words, sizeof(*costs_started));
-  if (!costs_started) {
+  const size_t costsStartedWords = ((size_t) gAiNodes->count + 31u) / 32u;
+  uint32_t *costsStarted = calloc(costsStartedWords, sizeof(*costsStarted));
+  if (!costsStarted) {
     return NULL;
   }
   uint32_t visited = 0;
@@ -1526,29 +1526,29 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   // queue (O(n) insertion) with an O(log n) binary heap from g_ai_grid.c.
   // Capacity is bounded by the node count plus headroom for re-insertions
   // (A* may push a better-cost duplicate before popping the stale one).
-  const size_t heap_capacity = (size_t) g_ai_nodes->count * 4 + 16;
-  if (!G_Ai_Node_EnsurePathPool(heap_capacity)) {
-    free(costs_started);
+  const size_t heapCapacity = (size_t) gAiNodes->count * 4 + 16;
+  if (!G_Ai_Node_EnsurePathPool(heapCapacity)) {
+    free(costsStarted);
     return NULL;
   }
 
-  struct gheap_s *queue = g_ai_node_path_queue;
+  struct GHeap *queue = g_ai_node_path_queue;
   bool finished = false;
 
   {
-    ai_node_priority_t *e = G_Ai_Node_AllocPathEntry();
+    AiNodePriority *e = G_Ai_Node_AllocPathEntry();
     e->id = start;
     e->priority = 0;
     gheap_push(queue, e->priority, e);
   }
 
-  ai_node_t *start_node = AI_NODE(g_ai_nodes, start);
-  start_node->cost = 0;
-  costs_started[start / 32] |= (uint32_t)1 << (start % 32);
+  AiNode *startNode = AI_NODE(gAiNodes, start);
+  startNode->cost = 0;
+  costsStarted[start / 32] |= (uint32_t)1 << (start % 32);
   visited++;
 
   for (;;) {
-    ai_node_priority_t *current = (ai_node_priority_t *) gheap_pop(queue);
+    AiNodePriority *current = (AiNodePriority *) gheap_pop(queue);
     if (!current) {
       break;
     }
@@ -1558,7 +1558,7 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       break;
     }
 
-    ai_node_t *node = AI_NODE(g_ai_nodes, current->id);
+    AiNode *node = AI_NODE(gAiNodes, current->id);
 
     // Stale entry guard: if this entry's priority is worse than the node's
     // best-known f-cost approximation (cost + 0 heuristic lower bound), the
@@ -1572,26 +1572,26 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     }
 
     // Compute once per expanded node rather than once per link.
-    const int32_t node_contents = gi.PointContents(node->position);
-    const bool from_hazard = (node_contents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+    const int32_t nodeContents = gi.PointContents(node->position);
+    const bool fromHazard = (nodeContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
     for (size_t i = 0; i < node->links->count; i++) {
-      const ai_link_t *link = AI_LINK(node->links, i);
-      ai_node_t *link_node = AI_NODE(g_ai_nodes, link->id);
-      const float drop = node->position.z - link_node->position.z;
-      const int32_t link_contents = gi.PointContents(link_node->position);
-      const bool to_hazard = (link_contents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+      const AiLink *link = AI_LINK(node->links, i);
+      AiNode *linkNode = AI_NODE(gAiNodes, link->id);
+      const float drop = node->position.z - linkNode->position.z;
+      const int32_t linkContents = gi.PointContents(linkNode->position);
+      const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
       // Check platform accessibility using the pre-collected list.
-      if (g_ai_platforms) {
+      if (gAiPlatforms) {
         bool blocked = false;
-        for (size_t p = 0; p < g_ai_platforms->count; p++) {
-          const g_entity_t *plat = AI_PLATFORM(g_ai_platforms, p);
-          if (link_node->position.x < plat->abs_bounds.mins.x || link_node->position.x > plat->abs_bounds.maxs.x ||
-              link_node->position.y < plat->abs_bounds.mins.y || link_node->position.y > plat->abs_bounds.maxs.y) {
+        for (size_t p = 0; p < gAiPlatforms->count; p++) {
+          const GameEntity *plat = AI_PLATFORM(gAiPlatforms, p);
+          if (linkNode->position.x < plat->absBounds.mins.x || linkNode->position.x > plat->absBounds.maxs.x ||
+              linkNode->position.y < plat->absBounds.mins.y || linkNode->position.y > plat->absBounds.maxs.y) {
             continue;
           }
-          if (plat->abs_bounds.maxs.z > link_node->position.z + 32.f) {
+          if (plat->absBounds.maxs.z > linkNode->position.z + 32.f) {
             blocked = true;
             break;
           }
@@ -1601,11 +1601,11 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
         }
       }
 
-      if (from_hazard && to_hazard) {
+      if (fromHazard && toHazard) {
         continue;
       }
 
-      if (!from_hazard && G_Ai_LinkPassesHazard(node->position, link_node->position)) {
+      if (!fromHazard && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
         continue;
       }
 
@@ -1613,42 +1613,42 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
         continue;
       }
 
-      if (drop > 0.f && (link_contents & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+      if (drop > 0.f && (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME))) {
         continue;
       }
 
-      float drop_penalty = 0.f;
+      float dropPenalty = 0.f;
       if (drop > AI_DROP_PENALTY_START) {
-        drop_penalty = (drop - AI_DROP_PENALTY_START) * AI_DROP_PENALTY_SCALE;
+        dropPenalty = (drop - AI_DROP_PENALTY_START) * AI_DROP_PENALTY_SCALE;
       }
 
       if (cl && cl->entity) {
-        const int32_t water_level = (link_contents & CONTENTS_WATER) ? 1 : 0;
-        const float estimated_damage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), water_level);
+        const int32_t waterLevel = (linkContents & CONTENTS_WATER) ? 1 : 0;
+        const float estimatedDamage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), waterLevel);
 
-        if (estimated_damage + AI_DROP_HEALTH_MARGIN >= cl->entity->health) {
+        if (estimatedDamage + AI_DROP_HEALTH_MARGIN >= cl->entity->health) {
           continue;
         }
 
-        drop_penalty += estimated_damage * AI_DROP_DAMAGE_PENALTY_SCALE;
+        dropPenalty += estimatedDamage * AI_DROP_DAMAGE_PENALTY_SCALE;
       }
 
-      const float new_cost = node->cost + link->cost + drop_penalty;
+      const float newCost = node->cost + link->cost + dropPenalty;
 
-      ai_node_id_t link_index = G_Ai_Node_Index(link_node);
-      const bool found = (costs_started[link_index / 32] & ((uint32_t) 1u << (link_index % 32))) != 0;
+      AiNodeId linkIndex = G_Ai_Node_Index(linkNode);
+      const bool found = (costsStarted[linkIndex / 32] & ((uint32_t) 1u << (linkIndex % 32))) != 0;
       if (!found) {
-        costs_started[link_index / 32] |= (uint32_t) 1u << (link_index % 32);
+        costsStarted[linkIndex / 32] |= (uint32_t) 1u << (linkIndex % 32);
         visited++;
       }
-      if (!found || new_cost < link_node->cost) {
+      if (!found || newCost < linkNode->cost) {
 
-        link_node->cost = new_cost;
-        const float priority = new_cost + heuristic(link->id, end);
+        linkNode->cost = newCost;
+        const float priority = newCost + heuristic(link->id, end);
 
-        ai_node_priority_t *e = G_Ai_Node_AllocPathEntry();
+        AiNodePriority *e = G_Ai_Node_AllocPathEntry();
         if (!e) {
-          G_Warn("A* open-set entry pool exhausted (capacity %zu)\n", heap_capacity);
+          G_Warn("A* open-set entry pool exhausted (capacity %zu)\n", heapCapacity);
           break;
         }
 
@@ -1659,30 +1659,30 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
         // log and stop expanding from this node. The capacity heuristic
         // above (4 * N + 16) is generous for typical Quetoo maps.
         if (!gheap_push(queue, priority, e)) {
-          G_Warn("A* open-set heap exhausted (capacity %zu)\n", heap_capacity);
+          G_Warn("A* open-set heap exhausted (capacity %zu)\n", heapCapacity);
           break;
         }
 
-        link_node->came_from = G_Ai_Node_Index(node);
+        linkNode->cameFrom = G_Ai_Node_Index(node);
       }
     }
   }
 
-  Vector *return_path = NULL;
+  Vector *returnPath = NULL;
 
   if (finished) {
     G_Ai_Debug("Found path from %u -> %u with %u nodes visited\n", start, end, visited);
 
-    return_path = $(alloc(Vector), initWithSize, sizeof(ai_node_id_t));
-    $(return_path, insert, (void *) &end, 0);
+    returnPath = $(alloc(Vector), initWithSize, sizeof(AiNodeId));
+    $(returnPath, insert, (void *) &end, 0);
 
     if (start != end) {
-      ai_node_id_t from = end;
+      AiNodeId from = end;
 
       for (;;) {
-        const ai_node_t *from_node = AI_NODE(g_ai_nodes, from);
-        from = from_node->came_from;
-        $(return_path, insert, &from, 0);
+        const AiNode *fromNode = AI_NODE(gAiNodes, from);
+        from = fromNode->cameFrom;
+        $(returnPath, insert, &from, 0);
 
         if (from == start) {
           break;
@@ -1690,9 +1690,9 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       }
 
       if (length) {
-        for (size_t i = 0; i < return_path->count - 1; i++) {
-          const ai_node_id_t a = AI_NODE_ID(return_path, i);
-          const ai_node_id_t b = AI_NODE_ID(return_path, i + 1);
+        for (size_t i = 0; i < returnPath->count - 1; i++) {
+          const AiNodeId a = AI_NODE_ID(returnPath, i);
+          const AiNodeId b = AI_NODE_ID(returnPath, i + 1);
 
           *length += G_Ai_LinkCost(a, b);
         }
@@ -1702,8 +1702,8 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
   }
 
-  free(costs_started);
-  return return_path;
+  free(costsStarted);
+  return returnPath;
 }
 
 /**
@@ -1711,16 +1711,16 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
  */
 void G_Ai_OffsetNodes_f(void) {
 
-  vec3_t translate;
+  Vec3 translate;
 
   if (gi.Argc() <= 1) {
-    if (g_ai_player_roam.last_nodes[0] == AI_NODE_INVALID) {
+    if (module.lastNodes[0] == AI_NODE_INVALID) {
       return;
     }
 
-    const vec3_t node = G_Ai_Node_GetPosition(g_ai_player_roam.last_nodes[0]);
-    const vec3_t player_position = g_ai_player_roam.position;
-    translate = Vec3_Subtract(player_position, node);
+    const Vec3 node = G_Ai_Node_GetPosition(module.lastNodes[0]);
+    const Vec3 playerPosition = module.position;
+    translate = Vec3_Subtract(playerPosition, node);
   } else {
     const char *offset = gi.Argv(1);
 
@@ -1729,8 +1729,8 @@ void G_Ai_OffsetNodes_f(void) {
     }
   }
 
-  for (uint32_t i = 0; i < g_ai_nodes->count; i++) {
-    ai_node_t *node = AI_NODE(g_ai_nodes, i);
+  for (uint32_t i = 0; i < gAiNodes->count; i++) {
+    AiNode *node = AI_NODE(gAiNodes, i);
     node->position = Vec3_Add(node->position, translate);
   }
 
@@ -1741,66 +1741,66 @@ void G_Ai_OffsetNodes_f(void) {
  * @brief Drops a node on top of this object and connects it to any nearby
  * nodes.
  */
-bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
+bool G_Ai_DropItemLikeNode(GameEntity *ent) {
 
   if (G_Ai_InDeveloperMode()) {
     return false;
   }
 
   // find node closest to us
-  const ai_node_id_t src_node = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+  const AiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
 
-  if (src_node == AI_NODE_INVALID) {
+  if (srcNode == AI_NODE_INVALID) {
     return false;
   }
 
   // make a new node on the item
-  cm_trace_t down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, Vec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
-  vec3_t pos;
+  CmTrace down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, MakeVec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
+  Vec3 pos;
 
   if (down.fraction == 1.0) {
     pos = ent->s.origin;
   } else {
-    pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, G_PlayerBounds().mins.z));
+    pos = Vec3_Subtract(down.end, MakeVec3(0.f, 0.f, G_PlayerBounds().mins.z));
   }
 
   // grab all the links of the node that brought us here
-  const Vector *src_links = G_Ai_Node_GetLinks(src_node);
+  const Vector *srcLinks = G_Ai_Node_GetLinks(srcNode);
 
-  const ai_node_id_t new_node = G_Ai_Node_Create(pos);
-  const float dist = Vec3_Distance(G_Ai_Node_GetPosition(src_node), ent->s.origin);
+  const AiNodeId newNode = G_Ai_Node_Create(pos);
+  const float dist = Vec3_Distance(G_Ai_Node_GetPosition(srcNode), ent->s.origin);
 
   // bidirectionally connect us to source
-  G_Ai_Node_Link(src_node, new_node, dist);
-  G_Ai_Node_Link(new_node, src_node, dist);
+  G_Ai_Node_Link(srcNode, newNode, dist);
+  G_Ai_Node_Link(newNode, srcNode, dist);
 
   // if we had source links, link any connected bi-directional nodes
   // to the item as well
-  if (src_links) {
+  if (srcLinks) {
 
-    for (size_t i = 0; i < src_links->count; i++) {
-      const ai_link_t *link = AI_LINK(src_links, i);
+    for (size_t i = 0; i < srcLinks->count; i++) {
+      const AiLink *link = AI_LINK(srcLinks, i);
 
       // not bidirectional
-      if (!G_Ai_Node_IsLinked(link->id, src_node)) {
+      if (!G_Ai_Node_IsLinked(link->id, srcNode)) {
         continue;
       }
 
-      const vec3_t link_pos = G_Ai_Node_GetPosition(link->id);
+      const Vec3 linkPos = G_Ai_Node_GetPosition(link->id);
 
       // can't see
-      if (gi.Trace(ent->s.origin, link_pos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
+      if (gi.Trace(ent->s.origin, linkPos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
         continue;
       }
 
-      const float dist = Vec3_Distance(link_pos, ent->s.origin);
+      const float dist = Vec3_Distance(linkPos, ent->s.origin);
 
       // bidirectionally connect us to source
-      G_Ai_Node_Link(link->id, new_node, dist);
-      G_Ai_Node_Link(new_node, link->id, dist);
+      G_Ai_Node_Link(link->id, newNode, dist);
+      G_Ai_Node_Link(newNode, link->id, dist);
     }
   }
 
-  ent->node = new_node;
+  ent->node = newNode;
   return true;
 }

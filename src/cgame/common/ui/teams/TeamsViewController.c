@@ -32,7 +32,7 @@
  * @see CollectionViewDataSource::numberOfItems(const CollectionView *)
  */
 static size_t numberOfItems(const CollectionView *collectionView) {
-  return cg_state.num_teams ?: 1;
+  return cgState.numTeams ?: 1;
 }
 
 /**
@@ -40,12 +40,12 @@ static size_t numberOfItems(const CollectionView *collectionView) {
  */
 static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-  if (cg_state.num_teams == 0) {
+  if (cgState.numTeams == 0) {
     return NULL;
   }
 
   const size_t index = $(indexPath, indexAtPosition, 0);
-  return &cg_state.teams[index];
+  return &cgState.teams[index];
 }
 
 #pragma mark - CollectionViewDelegate
@@ -55,7 +55,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
  */
 static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-  const cg_team_info_t *team = objectForItemAtIndexPath(collectionView, indexPath);
+  const ClientGameTeamInfo *team = objectForItemAtIndexPath(collectionView, indexPath);
 
   TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
   $(teamView, setTeam, team);
@@ -90,7 +90,7 @@ static void didClickJoin(Button *button) {
   IndexPath *path = $(paths, firstObject);
 
   if (path) {
-    const cg_team_info_t *team = objectForItemAtIndexPath(this->teamsCollectionView, path);
+    const ClientGameTeamInfo *team = objectForItemAtIndexPath(this->teamsCollectionView, path);
     if (team) {
       cgi.Cbuf(va("team %s\n", team->name));
     } else {

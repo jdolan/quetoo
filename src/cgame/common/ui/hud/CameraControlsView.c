@@ -27,7 +27,7 @@
 #define _Class _CameraControlsView
 
 /**
- * @brief The icon and name for each camera, indexed by `cg_camera_mode_t`, with the detached
+ * @brief The icon and name for each camera, indexed by `ClientGameCameraMode`, with the detached
  * camera last: it is the absence of a subject rather than a way of framing one.
  */
 static const struct {
@@ -67,7 +67,7 @@ static View *init(View *self) {
 /**
  * @see View::updateBindings(View *, ident)
  * @remarks The camera is announced rather than displayed: it appears when it changes and hides
- * itself again after `cg_select_weapon_interval`, which is what the weapon bar lingers for.
+ * itself again after `cg_selectWeaponInterval`, which is what the weapon bar lingers for.
  */
 static void updateBindings(View *self, ident data) {
 
@@ -79,24 +79,24 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   const bool detached = !Cg_CameraSubject(ps);
 
-  if (detached != this->detached || cg_state.camera_mode != this->mode) {
+  if (detached != this->detached || cgState.cameraMode != this->mode) {
 
     this->detached = detached;
-    this->mode = cg_state.camera_mode;
+    this->mode = cgState.cameraMode;
 
     const size_t camera = detached ? CAMERA_MODE_TOTAL : this->mode;
 
     $(this->icon, setImage, (Image *) Cg_HudImage(cg_cameras[camera].icon));
     $(this->name, setText, cg_cameras[camera].name);
 
-    this->time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+    this->time = cgi.client->unclampedTime + cg_selectWeaponInterval->integer;
   }
 
-  const bool visible = cgi.client->unclamped_time < this->time;
+  const bool visible = cgi.client->unclampedTime < this->time;
 
   $(self, setVisibility, visible ? ViewVisibilityVisible : ViewVisibilityHidden);
 }

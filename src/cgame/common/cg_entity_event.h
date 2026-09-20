@@ -24,6 +24,6 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-void Cg_TeleporterEffect(const vec3_t org);
-void Cg_EntityEvent(cl_entity_t *e);
+void Cg_TeleporterEffect(const Vec3 org);
+void Cg_EntityEvent(ClientEntity *e);
 #endif

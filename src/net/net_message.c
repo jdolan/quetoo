@@ -29,14 +29,14 @@ typedef union {
 /**
  * @brief Appends raw bytes to a network message buffer.
  */
-void Net_WriteData(mem_buf_t *msg, const void *data, size_t len) {
+void Net_WriteData(MemBuf *msg, const void *data, size_t len) {
   Mem_WriteBuffer(msg, data, len);
 }
 
 /**
  * @brief Writes a signed 8-bit integer to a network message buffer.
  */
-void Net_WriteChar(mem_buf_t *msg, int32_t c) {
+void Net_WriteChar(MemBuf *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(char));
@@ -46,7 +46,7 @@ void Net_WriteChar(mem_buf_t *msg, int32_t c) {
 /**
  * @brief Writes an unsigned 8-bit integer to a network message buffer.
  */
-void Net_WriteByte(mem_buf_t *msg, int32_t c) {
+void Net_WriteByte(MemBuf *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(byte));
@@ -56,7 +56,7 @@ void Net_WriteByte(mem_buf_t *msg, int32_t c) {
 /**
  * @brief Writes a 16-bit little-endian integer to a network message buffer.
  */
-void Net_WriteShort(mem_buf_t *msg, int32_t c) {
+void Net_WriteShort(MemBuf *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(int16_t));
@@ -67,7 +67,7 @@ void Net_WriteShort(mem_buf_t *msg, int32_t c) {
 /**
  * @brief Writes a 32-bit little-endian integer to a network message buffer.
  */
-void Net_WriteLong(mem_buf_t *msg, int32_t c) {
+void Net_WriteLong(MemBuf *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(int32_t));
@@ -80,7 +80,7 @@ void Net_WriteLong(mem_buf_t *msg, int32_t c) {
 /**
  * @brief Writes a null-terminated string to a network message buffer.
  */
-void Net_WriteString(mem_buf_t *msg, const char *s) {
+void Net_WriteString(MemBuf *msg, const char *s) {
   if (!s) {
     Mem_WriteBuffer(msg, "", 1);
   } else {
@@ -91,7 +91,7 @@ void Net_WriteString(mem_buf_t *msg, const char *s) {
 /**
  * @brief Writes a 32-bit float (as its raw integer bit pattern) to a network message buffer.
  */
-void Net_WriteFloat(mem_buf_t *msg, float v) {
+void Net_WriteFloat(MemBuf *msg, float v) {
 
   const net_float vec = {
     .v = v
@@ -103,7 +103,7 @@ void Net_WriteFloat(mem_buf_t *msg, float v) {
 /**
  * @brief Writes a 3D world-space position as three consecutive floats to a network message buffer.
  */
-void Net_WritePosition(mem_buf_t *msg, const vec3_t pos) {
+void Net_WritePosition(MemBuf *msg, const Vec3 pos) {
   Net_WriteFloat(msg, pos.x);
   Net_WriteFloat(msg, pos.y);
   Net_WriteFloat(msg, pos.z);
@@ -112,7 +112,7 @@ void Net_WritePosition(mem_buf_t *msg, const vec3_t pos) {
 /**
  * @brief Encodes an angle in degrees as a 16-bit integer and writes it to a network message buffer.
  */
-void Net_WriteAngle(mem_buf_t *msg, float angle) {
+void Net_WriteAngle(MemBuf *msg, float angle) {
 
   while (angle < 0.f) {
     angle += 360.f;
@@ -128,7 +128,7 @@ void Net_WriteAngle(mem_buf_t *msg, float angle) {
 /**
  * @brief Writes three Euler angles (pitch, yaw, roll) to a network message buffer.
  */
-void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
+void Net_WriteAngles(MemBuf *msg, const Vec3 angles) {
   Net_WriteAngle(msg, angles.x);
   Net_WriteAngle(msg, angles.y);
   Net_WriteAngle(msg, angles.z);
@@ -137,14 +137,14 @@ void Net_WriteAngles(mem_buf_t *msg, const vec3_t angles) {
 /**
  * @brief Encodes a direction vector as the index of the closest approximate normal and writes it to a network message buffer.
  */
-void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
+void Net_WriteDir(MemBuf *msg, const Vec3 dir) {
   int32_t i, best = 0;
-  float best_d = 0.0;
+  float bestD = 0.0;
 
   for (i = 0; i < NUM_APPROXIMATE_NORMALS; i++) {
-    const float d = Vec3_Dot(dir, approximate_normals[i]);
-    if (d > best_d) {
-      best_d = d;
+    const float d = Vec3_Dot(dir, approximateNormals[i]);
+    if (d > bestD) {
+      bestD = d;
       best = i;
     }
   }
@@ -155,15 +155,15 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir) {
 /**
  * @brief Writes an axis-aligned bounding box as six 16-bit integers (mins then maxs) to a network message buffer.
  */
-void Net_WriteBounds(mem_buf_t *msg, const box3_t bounds) {
+void Net_WriteBounds(MemBuf *msg, const Box3 bounds) {
 
-  const vec3s_t _mins = Vec3_CastVec3s(bounds.mins);
+  const Vec3s _mins = Vec3_CastVec3s(bounds.mins);
 
   Net_WriteShort(msg, _mins.x);
   Net_WriteShort(msg, _mins.y);
   Net_WriteShort(msg, _mins.z);
 
-  const vec3s_t _maxs = Vec3_CastVec3s(bounds.maxs);
+  const Vec3s _maxs = Vec3_CastVec3s(bounds.maxs);
 
   Net_WriteShort(msg, _maxs.x);
   Net_WriteShort(msg, _maxs.y);
@@ -173,7 +173,7 @@ void Net_WriteBounds(mem_buf_t *msg, const box3_t bounds) {
 /**
  * @brief Writes only the changed fields of a movement command as a delta from `from` to `to`.
  */
-void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to) {
+void Net_WriteDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, const PlayerMoveCmd *to) {
 
   byte bits = 0;
 
@@ -243,7 +243,7 @@ void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t 
 /**
  * @brief Writes only the changed fields of a player state as a delta from `from` to `to`.
  */
-void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to) {
+void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const PlayerState *to) {
 
   uint32_t bits = 0;
 
@@ -255,60 +255,60 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
     bits |= PS_PM_ENTITY;
   }
 
-  if (to->pm_state.type != from->pm_state.type) {
+  if (to->pmState.type != from->pmState.type) {
     bits |= PS_PM_TYPE;
   }
 
-  if (!Vec3_Equal(to->pm_state.origin, from->pm_state.origin)) {
+  if (!Vec3_Equal(to->pmState.origin, from->pmState.origin)) {
     bits |= PS_PM_ORIGIN;
   }
 
-  if (!Vec3_Equal(to->pm_state.velocity, from->pm_state.velocity)) {
+  if (!Vec3_Equal(to->pmState.velocity, from->pmState.velocity)) {
     bits |= PS_PM_VELOCITY;
   }
 
-  if (to->pm_state.flags != from->pm_state.flags) {
+  if (to->pmState.flags != from->pmState.flags) {
     bits |= PS_PM_FLAGS;
   }
 
-  if (to->pm_state.time != from->pm_state.time) {
+  if (to->pmState.time != from->pmState.time) {
     bits |= PS_PM_TIME;
   }
 
-  if (to->pm_state.params.gravity != from->pm_state.params.gravity) {
+  if (to->pmState.params.gravity != from->pmState.params.gravity) {
     bits |= PS_PM_GRAVITY;
   }
 
-  if (to->pm_state.params.movement != from->pm_state.params.movement) {
+  if (to->pmState.params.movement != from->pmState.params.movement) {
     bits |= PS_PM_MOVEMENT;
   }
 
-  if (!Vec3_Equal(to->pm_state.view_offset, from->pm_state.view_offset)) {
+  if (!Vec3_Equal(to->pmState.viewOffset, from->pmState.viewOffset)) {
     bits |= PS_PM_VIEW_OFFSET;
   }
 
-  if (!Vec3_Equal(to->pm_state.view_angles, from->pm_state.view_angles)) {
+  if (!Vec3_Equal(to->pmState.viewAngles, from->pmState.viewAngles)) {
     bits |= PS_PM_VIEW_ANGLES;
   }
 
-  if (!Vec3_Equal(to->pm_state.delta_angles, from->pm_state.delta_angles)) {
+  if (!Vec3_Equal(to->pmState.deltaAngles, from->pmState.deltaAngles)) {
     bits |= PS_PM_DELTA_ANGLES;
   }
 
-  if (!Vec3_Equal(to->pm_state.hook_position, from->pm_state.hook_position)) {
+  if (!Vec3_Equal(to->pmState.hookPosition, from->pmState.hookPosition)) {
     bits |= PS_PM_HOOK_POSITION;
   }
 
-  if (to->pm_state.hook_length != from->pm_state.hook_length) {
+  if (to->pmState.hookLength != from->pmState.hookLength) {
     bits |= PS_PM_HOOK_LENGTH;
   }
 
-  if (to->pm_state.step_offset != from->pm_state.step_offset) {
+  if (to->pmState.stepOffset != from->pmState.stepOffset) {
     bits |= PS_PM_STEP_OFFSET;
   }
 
-  if (memcmp(&to->pm_state.params.accel_ground, &from->pm_state.params.accel_ground,
-             sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground)) != 0) {
+  if (memcmp(&to->pmState.params.accelGround, &from->pmState.params.accelGround,
+             sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) != 0) {
     bits |= PS_PM_PARAMS;
   }
 
@@ -323,95 +323,95 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
   }
 
   if (bits & PS_PM_TYPE) {
-    Net_WriteByte(msg, to->pm_state.type);
+    Net_WriteByte(msg, to->pmState.type);
   }
 
   if (bits & PS_PM_ORIGIN) {
-    Net_WritePosition(msg, to->pm_state.origin);
+    Net_WritePosition(msg, to->pmState.origin);
   }
 
   if (bits & PS_PM_VELOCITY) {
-    Net_WritePosition(msg, to->pm_state.velocity);
+    Net_WritePosition(msg, to->pmState.velocity);
   }
 
   if (bits & PS_PM_FLAGS) {
-    Net_WriteShort(msg, to->pm_state.flags);
+    Net_WriteShort(msg, to->pmState.flags);
   }
 
   if (bits & PS_PM_TIME) {
-    Net_WriteShort(msg, to->pm_state.time);
+    Net_WriteShort(msg, to->pmState.time);
   }
 
   if (bits & PS_PM_GRAVITY) {
-    Net_WriteShort(msg, to->pm_state.params.gravity);
+    Net_WriteShort(msg, to->pmState.params.gravity);
   }
 
   if (bits & PS_PM_MOVEMENT) {
-    Net_WriteByte(msg, to->pm_state.params.movement);
+    Net_WriteByte(msg, to->pmState.params.movement);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {
-    Net_WritePosition(msg, to->pm_state.view_offset);
+    Net_WritePosition(msg, to->pmState.viewOffset);
   }
 
   if (bits & PS_PM_VIEW_ANGLES) {
-    Net_WriteAngles(msg, to->pm_state.view_angles);
+    Net_WriteAngles(msg, to->pmState.viewAngles);
   }
 
   if (bits & PS_PM_DELTA_ANGLES) {
-    Net_WriteAngles(msg, to->pm_state.delta_angles);
+    Net_WriteAngles(msg, to->pmState.deltaAngles);
   }
 
   if (bits & PS_PM_HOOK_POSITION) {
-    Net_WritePosition(msg, to->pm_state.hook_position);
+    Net_WritePosition(msg, to->pmState.hookPosition);
   }
 
   if (bits & PS_PM_HOOK_LENGTH) {
-    Net_WriteShort(msg, to->pm_state.hook_length);
+    Net_WriteShort(msg, to->pmState.hookLength);
   }
 
   if (bits & PS_PM_STEP_OFFSET) {
-    Net_WriteFloat(msg, to->pm_state.step_offset);
+    Net_WriteFloat(msg, to->pmState.stepOffset);
   }
 
   if (bits & PS_PM_PARAMS) {
     float params[PM_PARAMS_FLOATS];
-    memcpy(params, &to->pm_state.params.accel_ground, sizeof(params));
+    memcpy(params, &to->pmState.params.accelGround, sizeof(params));
 
     for (size_t i = 0; i < PM_PARAMS_FLOATS; i++) {
       Net_WriteFloat(msg, params[i]);
     }
   }
 
-  uint32_t stat_bits = 0;
+  uint32_t statBits = 0;
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
     if (to->stats[i] != from->stats[i]) {
-      stat_bits |= 1 << i;
+      statBits |= 1 << i;
     }
   }
 
-  Net_WriteLong(msg, stat_bits);
+  Net_WriteLong(msg, statBits);
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
-    if (stat_bits & (1U << i)) {
+    if (statBits & (1U << i)) {
       Net_WriteShort(msg, to->stats[i]);
     }
   }
 
-  uint64_t inv_bits = 0;
+  uint64_t invBits = 0;
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
     if (to->inventory[i] != from->inventory[i]) {
-      inv_bits |= (uint64_t) 1 << i;
+      invBits |= (uint64_t) 1 << i;
     }
   }
 
-  Net_WriteLong(msg, (int32_t) (inv_bits & 0xFFFFFFFF));
-  Net_WriteLong(msg, (int32_t) (inv_bits >> 32));
+  Net_WriteLong(msg, (int32_t) (invBits & 0xFFFFFFFF));
+  Net_WriteLong(msg, (int32_t) (invBits >> 32));
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
-    if (inv_bits & ((uint64_t) 1 << i)) {
+    if (invBits & ((uint64_t) 1 << i)) {
       Net_WriteShort(msg, to->inventory[i]);
     }
   }
@@ -420,7 +420,7 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 /**
  * @brief Writes an entity's state changes to a net message. Can delta from a baseline or a previous state.
  */
-void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, bool force) {
+void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityState *to, bool force) {
 
   uint16_t bits = 0;
 
@@ -428,11 +428,11 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
     Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
   }
 
-  if (to->step_offset != from->step_offset) {
+  if (to->stepOffset != from->stepOffset) {
     bits |= U_STEP_OFFSET;
   }
 
-  if (to->spawn_id != from->spawn_id) {
+  if (to->spawnId != from->spawnId) {
     bits |= U_SPAWN_ID;
   }
 
@@ -499,11 +499,11 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
   Net_WriteShort(msg, bits);
 
   if (bits & U_STEP_OFFSET) {
-    Net_WriteByte(msg, to->step_offset);
+    Net_WriteByte(msg, to->stepOffset);
   }
 
   if (bits & U_SPAWN_ID) {
-    Net_WriteByte(msg, to->spawn_id);
+    Net_WriteByte(msg, to->spawnId);
   }
 
   if (bits & U_ORIGIN) {
@@ -525,7 +525,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
   if (bits & U_EVENT) {
     Net_WriteByte(msg, to->event);
-    Net_WriteByte(msg, to->event_data);
+    Net_WriteByte(msg, to->eventData);
   }
 
   if (bits & U_EFFECTS) {
@@ -570,14 +570,14 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 /**
  * @brief Resets the read cursor of a message buffer to the beginning.
  */
-void Net_BeginReading(mem_buf_t *msg) {
+void Net_BeginReading(MemBuf *msg) {
   msg->read = 0;
 }
 
 /**
  * @brief Reads `len` raw bytes from the network message buffer into `data`.
  */
-void Net_ReadData(mem_buf_t *msg, void *data, size_t len) {
+void Net_ReadData(MemBuf *msg, void *data, size_t len) {
   size_t i;
 
   for (i = 0; i < len; i++) {
@@ -588,7 +588,7 @@ void Net_ReadData(mem_buf_t *msg, void *data, size_t len) {
 /**
  * @brief Returns -1 if no more characters are available.
  */
-int32_t Net_ReadChar(mem_buf_t *msg) {
+int32_t Net_ReadChar(MemBuf *msg) {
   int32_t c;
 
   if (msg->read + 1 > msg->size) {
@@ -604,7 +604,7 @@ int32_t Net_ReadChar(mem_buf_t *msg) {
 /**
  * @brief Reads an unsigned byte from a network message buffer; returns -1 on underflow.
  */
-int32_t Net_ReadByte(mem_buf_t *msg) {
+int32_t Net_ReadByte(MemBuf *msg) {
   int32_t c;
 
   if (msg->read + 1 > msg->size) {
@@ -620,7 +620,7 @@ int32_t Net_ReadByte(mem_buf_t *msg) {
 /**
  * @brief Reads a 16-bit little-endian signed integer from a network message buffer; returns -1 on underflow.
  */
-int32_t Net_ReadShort(mem_buf_t *msg) {
+int32_t Net_ReadShort(MemBuf *msg) {
   int32_t c;
 
   if (msg->read + 2 > msg->size) {
@@ -637,7 +637,7 @@ int32_t Net_ReadShort(mem_buf_t *msg) {
 /**
  * @brief Reads a 32-bit little-endian integer from a network message buffer; returns -1 on underflow.
  */
-int32_t Net_ReadLong(mem_buf_t *msg) {
+int32_t Net_ReadLong(MemBuf *msg) {
   uint32_t c;
 
   if (msg->read + 4 > msg->size) {
@@ -657,7 +657,7 @@ int32_t Net_ReadLong(mem_buf_t *msg) {
  * @brief Reads a null-terminated string from a network message buffer into a static buffer.
  * @remarks Uses a static buffer; not reentrant.
  */
-char *Net_ReadString(mem_buf_t *msg) {
+char *Net_ReadString(MemBuf *msg) {
   static char string[MAX_STRING_CHARS];
 
   size_t l = 0;
@@ -679,7 +679,7 @@ char *Net_ReadString(mem_buf_t *msg) {
  * @brief Reads a newline- or null-terminated string from a network message buffer into a static buffer.
  * @remarks Uses a static buffer; not reentrant.
  */
-char *Net_ReadStringLine(mem_buf_t *msg) {
+char *Net_ReadStringLine(MemBuf *msg) {
   static char string[MAX_STRING_CHARS];
 
   size_t l = 0;
@@ -700,7 +700,7 @@ char *Net_ReadStringLine(mem_buf_t *msg) {
 /**
  * @brief Reads a 32-bit float (stored as a raw integer bit pattern) from a network message buffer.
  */
-float Net_ReadFloat(mem_buf_t *msg) {
+float Net_ReadFloat(MemBuf *msg) {
 
   const net_float vec = {
     .i = Net_ReadLong(msg)
@@ -712,8 +712,8 @@ float Net_ReadFloat(mem_buf_t *msg) {
 /**
  * @brief Reads a 3D world-space position from three consecutive floats in a network message buffer.
  */
-vec3_t Net_ReadPosition(mem_buf_t *msg) {
-  return (vec3_t) {
+Vec3 Net_ReadPosition(MemBuf *msg) {
+  return (Vec3) {
     .x = Net_ReadFloat(msg),
     .y = Net_ReadFloat(msg),
     .z = Net_ReadFloat(msg)
@@ -723,15 +723,15 @@ vec3_t Net_ReadPosition(mem_buf_t *msg) {
 /**
  * @brief Reads a 16-bit encoded angle and converts it to degrees.
  */
-float Net_ReadAngle(mem_buf_t *msg) {
+float Net_ReadAngle(MemBuf *msg) {
   return Net_ReadShort(msg) * 360.f / UINT16_MAX;
 }
 
 /**
  * @brief Reads three Euler angles (pitch, yaw, roll) from a network message buffer.
  */
-vec3_t Net_ReadAngles(mem_buf_t *msg) {
-  return (vec3_t) {
+Vec3 Net_ReadAngles(MemBuf *msg) {
+  return (Vec3) {
     .x = Net_ReadAngle(msg),
     .y = Net_ReadAngle(msg),
     .z = Net_ReadAngle(msg)
@@ -741,7 +741,7 @@ vec3_t Net_ReadAngles(mem_buf_t *msg) {
 /**
  * @brief Reads a direction byte index and returns the corresponding approximate normal vector.
  */
-vec3_t Net_ReadDir(mem_buf_t *msg) {
+Vec3 Net_ReadDir(MemBuf *msg) {
 
   const int32_t b = Net_ReadByte(msg);
 
@@ -749,14 +749,14 @@ vec3_t Net_ReadDir(mem_buf_t *msg) {
     Com_Error(ERROR_DROP, "%d out of range\n", b);
   }
 
-  return approximate_normals[b];
+  return approximateNormals[b];
 }
 
 /**
  * @brief Reads an axis-aligned bounding box (mins then maxs) from a network message buffer.
  */
-box3_t Net_ReadBounds(mem_buf_t *msg) {
-  box3_t b;
+Box3 Net_ReadBounds(MemBuf *msg) {
+  Box3 b;
 
   b.mins.x = Net_ReadShort(msg);
   b.mins.y = Net_ReadShort(msg);
@@ -771,7 +771,7 @@ box3_t Net_ReadBounds(mem_buf_t *msg) {
 /**
  * @brief Reads delta-compressed movement command fields into `to`, starting from the baseline in `from`.
  */
-void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to) {
+void Net_ReadDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, PlayerMoveCmd *to) {
 
   *to = *from;
 
@@ -813,7 +813,7 @@ void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to) {
 /**
  * @brief Reads delta-compressed player state fields into `to`, starting from the baseline in `from`.
  */
-void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to) {
+void Net_ReadDeltaPlayerState(MemBuf *msg, const PlayerState *from, PlayerState *to) {
 
   *to = *from;
 
@@ -828,55 +828,55 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
   }
 
   if (bits & PS_PM_TYPE) {
-    to->pm_state.type = Net_ReadByte(msg);
+    to->pmState.type = Net_ReadByte(msg);
   }
 
   if (bits & PS_PM_ORIGIN) {
-    to->pm_state.origin = Net_ReadPosition(msg);
+    to->pmState.origin = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_VELOCITY) {
-    to->pm_state.velocity = Net_ReadPosition(msg);
+    to->pmState.velocity = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_FLAGS) {
-    to->pm_state.flags = Net_ReadShort(msg);
+    to->pmState.flags = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_TIME) {
-    to->pm_state.time = Net_ReadShort(msg);
+    to->pmState.time = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_GRAVITY) {
-    to->pm_state.params.gravity = Net_ReadShort(msg);
+    to->pmState.params.gravity = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_MOVEMENT) {
-    to->pm_state.params.movement = Net_ReadByte(msg);
+    to->pmState.params.movement = Net_ReadByte(msg);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {
-    to->pm_state.view_offset = Net_ReadPosition(msg);
+    to->pmState.viewOffset = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_VIEW_ANGLES) {
-    to->pm_state.view_angles = Net_ReadAngles(msg);
+    to->pmState.viewAngles = Net_ReadAngles(msg);
   }
 
   if (bits & PS_PM_DELTA_ANGLES) {
-    to->pm_state.delta_angles = Net_ReadAngles(msg);
+    to->pmState.deltaAngles = Net_ReadAngles(msg);
   }
 
   if (bits & PS_PM_HOOK_POSITION) {
-    to->pm_state.hook_position = Net_ReadPosition(msg);
+    to->pmState.hookPosition = Net_ReadPosition(msg);
   }
 
   if (bits & PS_PM_HOOK_LENGTH) {
-    to->pm_state.hook_length = Net_ReadShort(msg);
+    to->pmState.hookLength = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_STEP_OFFSET) {
-    to->pm_state.step_offset = Net_ReadFloat(msg);
+    to->pmState.stepOffset = Net_ReadFloat(msg);
   }
 
   if (bits & PS_PM_PARAMS) {
@@ -886,22 +886,22 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
       params[i] = Net_ReadFloat(msg);
     }
 
-    memcpy(&to->pm_state.params.accel_ground, params, sizeof(params));
+    memcpy(&to->pmState.params.accelGround, params, sizeof(params));
   }
 
-  const int32_t stat_bits = Net_ReadLong(msg);
+  const int32_t statBits = Net_ReadLong(msg);
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
-    if (stat_bits & (1U << i)) {
+    if (statBits & (1U << i)) {
       to->stats[i] = Net_ReadShort(msg);
     }
   }
 
-  const uint64_t inv_bits = (uint64_t) (uint32_t) Net_ReadLong(msg) |
+  const uint64_t invBits = (uint64_t) (uint32_t) Net_ReadLong(msg) |
                             ((uint64_t) (uint32_t) Net_ReadLong(msg) << 32);
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
-    if (inv_bits & ((uint64_t) 1 << i)) {
+    if (invBits & ((uint64_t) 1 << i)) {
       to->inventory[i] = Net_ReadShort(msg);
     }
   }
@@ -910,7 +910,7 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 /**
  * @brief Reads delta-compressed entity state fields into `to`, starting from the baseline in `from`.
  */
-void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,
+void Net_ReadDeltaEntity(MemBuf *msg, const EntityState *from, EntityState *to,
                          int16_t number, uint16_t bits) {
 
   *to = *from;
@@ -918,11 +918,11 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
   to->number = number;
 
   if (bits & U_STEP_OFFSET) {
-    to->step_offset = Net_ReadByte(msg);
+    to->stepOffset = Net_ReadByte(msg);
   }
 
   if (bits & U_SPAWN_ID) {
-    to->spawn_id = Net_ReadByte(msg);
+    to->spawnId = Net_ReadByte(msg);
   }
 
   if (bits & U_ORIGIN) {
@@ -944,10 +944,10 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 
   if (bits & U_EVENT) {
     to->event = Net_ReadByte(msg);
-    to->event_data = Net_ReadByte(msg);
+    to->eventData = Net_ReadByte(msg);
   } else {
     to->event = 0;
-    to->event_data = 0;
+    to->eventData = 0;
   }
 
   if (bits & U_EFFECTS) {

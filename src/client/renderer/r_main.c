@@ -21,56 +21,56 @@
 
 #include "r_local.h"
 
-r_config_t r_config;
-r_uniforms_t r_uniforms;
-r_view_stats_t *r_stats;
+RenderConfig rConfig;
+RenderUniforms rUniforms;
+RenderViewStats *rStats;
 
-cvar_t *r_alpha_test;
-cvar_t *r_cull;
-cvar_t *r_depth_pass;
-cvar_t *r_draw_bsp_blocks;
-cvar_t *r_draw_occlusion_queries;
-cvar_t *r_draw_bsp_normals;
-cvar_t *r_draw_bsp_voxels;
-cvar_t *r_draw_entity_bounds;
-cvar_t *r_draw_light_bounds;
-cvar_t *r_draw_material_stages;
-cvar_t *r_occlude;
-cvar_t *r_portals;
+Cvar *r_alphaTest;
+Cvar *r_cull;
+Cvar *r_depthPass;
+Cvar *r_drawBspBlocks;
+Cvar *r_drawOcclusionQueries;
+Cvar *r_drawBspNormals;
+Cvar *r_drawBspVoxels;
+Cvar *r_drawEntityBounds;
+Cvar *r_drawLightBounds;
+Cvar *r_drawMaterialStages;
+Cvar *r_occlude;
+Cvar *r_portals;
 
-cvar_t *r_ambient;
-cvar_t *r_ambient_occlusion;
-cvar_t *r_anisotropy;
-cvar_t *r_antialias;
-cvar_t *r_bloom;
-cvar_t *r_bloom_iterations;
-cvar_t *r_bloom_threshold;
-cvar_t *r_caustics;
-cvar_t *r_framebuffer_scale;
-cvar_t *r_fullscreen;
-cvar_t *r_fullscreen_width;
-cvar_t *r_fullscreen_height;
-cvar_t *r_gpu_driver;
-cvar_t *r_hardness;
-cvar_t *r_lighting_distance;
-cvar_t *r_modulate;
-cvar_t *r_modulate_mesh;
-cvar_t *r_saturation;
-cvar_t *r_parallax;
-cvar_t *r_parallax_shadow;
-cvar_t *r_roughness;
-cvar_t *r_screenshot_format;
-cvar_t *r_shadows;
-cvar_t *r_shadow_tile_size;
-cvar_t *r_specularity;
-cvar_t *r_swap_interval;
-cvar_t *r_window_height;
-cvar_t *r_window_width;
+Cvar *r_ambient;
+Cvar *r_ambientOcclusion;
+Cvar *r_anisotropy;
+Cvar *r_antialias;
+Cvar *r_bloom;
+Cvar *r_bloomIterations;
+Cvar *r_bloomThreshold;
+Cvar *r_caustics;
+Cvar *r_framebufferScale;
+Cvar *r_fullscreen;
+Cvar *r_fullscreenWidth;
+Cvar *r_fullscreenHeight;
+Cvar *r_gpuDriver;
+Cvar *r_hardness;
+Cvar *r_lightingDistance;
+Cvar *r_modulate;
+Cvar *r_modulateMesh;
+Cvar *r_saturation;
+Cvar *r_parallax;
+Cvar *r_parallaxShadow;
+Cvar *r_roughness;
+Cvar *r_screenshotFormat;
+Cvar *r_shadows;
+Cvar *r_shadowTileSize;
+Cvar *r_specularity;
+Cvar *r_swapInterval;
+Cvar *r_windowHeight;
+Cvar *r_windowWidth;
 
 /**
  * @brief MSAA sample count for the 3D scene.
  */
-SDL_GPUSampleCount r_scene_samples = SDL_GPU_SAMPLECOUNT_1;
+SDL_GPUSampleCount rSceneSamples = SDL_GPU_SAMPLECOUNT_1;
 
 /**
  * @brief Maps the r_antialias cvar to an SDL_gpu sample count.
@@ -87,9 +87,9 @@ SDL_GPUSampleCount R_SampleCount(void) {
 /**
  * @brief Updates the global uniform buffer object with view and projection matrices for the current frame.
  */
-void R_UpdateUniforms(const r_view_t *view) {
+void R_UpdateUniforms(const RenderView *view) {
 
-  struct r_uniform_block_t *out = &r_uniforms.block;
+  struct RenderUniformBlock *out = &rUniforms.block;
   memset(out, 0, sizeof(*out));
 
   if (view) {
@@ -103,7 +103,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     const float xmin = ymin * aspect;
     const float xmax = ymax * aspect;
 
-    const mat4_t clip = Mat4((const float[]) {
+    const Mat4 clip = MakeMat4((const float[]) {
       1.f, 0.f, 0.f, 0.f,
       0.f, 1.f, 0.f, 0.f,
       0.f, 0.f, .5f, 0.f,
@@ -113,21 +113,21 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
-    out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f));
-    out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
+    out->skyProjection = Mat4_FromScale3(MakeVec3(-1.f, 1.f, 1.f));
+    out->skyProjection = Mat4_ConcatTranslation(out->skyProjection, Vec3_Negate(view->origin));
 
-    out->light_projection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
+    out->lightProjection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
 
-    out->depth_range.x = NEAR_DIST;
-    out->depth_range.y = MAX_WORLD_DIST;
-    out->view_type = view->type;
+    out->depthRange.x = NEAR_DIST;
+    out->depthRange.y = MAX_WORLD_DIST;
+    out->viewType = view->type;
     out->ticks = view->ticks;
     out->ambient = Vec3_Scale(view->ambient, r_ambient->value);
     out->modulate = r_modulate->value;
     out->saturation = r_saturation->value;
     out->caustics = r_caustics->value;
-    out->ambient_occlusion = r_ambient_occlusion->value;
-    out->lighting_distance = r_lighting_distance->value;
+    out->ambientOcclusion = r_ambientOcclusion->value;
+    out->lightingDistance = r_lightingDistance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
 
@@ -136,43 +136,43 @@ void R_UpdateUniforms(const r_view_t *view) {
     // its high bound is undefined, and a zero-sized box would not either, since voxel_uvw
     // divides by it
     if (view->type == VIEW_PLAYER_MODEL) {
-      out->voxels.mins = Vec4(0.f, 0.f, 0.f, 0.f);
-      out->voxels.maxs = Vec4(1.f, 1.f, 1.f, 0.f);
-      out->voxels.size = Vec4(1.f, 1.f, 1.f, 0.f);
+      out->voxels.mins = MakeVec4(0.f, 0.f, 0.f, 0.f);
+      out->voxels.maxs = MakeVec4(1.f, 1.f, 1.f, 0.f);
+      out->voxels.size = MakeVec4(1.f, 1.f, 1.f, 0.f);
     } else {
-      const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
+      const RenderBspVoxels *voxels = &rModels.world->bsp->voxels;
 
       out->voxels.mins = Vec3_ToVec4(voxels->bounds.mins, 0.f);
       out->voxels.maxs = Vec3_ToVec4(voxels->bounds.maxs, 0.f);
 
-      const vec3_t pos = Vec3_Subtract(view->origin, voxels->bounds.mins);
-      const vec3_t extents = Box3_Size(voxels->bounds);
+      const Vec3 pos = Vec3_Subtract(view->origin, voxels->bounds.mins);
+      const Vec3 extents = Box3_Size(voxels->bounds);
 
-      out->voxels.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
+      out->voxels.viewCoordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
       out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
     }
   }
 }
 
 /**
- * @brief Applies @c r_swap_interval to the device's swapchain present mode.
+ * @brief Applies @c r_swapInterval to the device's swapchain present mode.
  */
 static void R_UpdateSwapInterval(void) {
 
   SDL_GPUPresentMode mode;
-  switch (r_swap_interval->integer) {
+  switch (r_swapInterval->integer) {
     case -1: mode = SDL_GPU_PRESENTMODE_MAILBOX;   break;
     case  0: mode = SDL_GPU_PRESENTMODE_IMMEDIATE; break;
     default: mode = SDL_GPU_PRESENTMODE_VSYNC;     break;
   }
 
-  if (mode != SDL_GPU_PRESENTMODE_VSYNC && !$(r_context.device, supportsPresentMode, mode)) {
+  if (mode != SDL_GPU_PRESENTMODE_VSYNC && !$(rContext.device, supportsPresentMode, mode)) {
     Com_Warn("Present mode %d unsupported by this device, falling back to VSYNC\n", mode);
-    $(r_context.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
+    $(rContext.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
     return;
   }
 
-  if (!$(r_context.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode)) {
+  if (!$(rContext.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode)) {
     Com_Warn("Failed to set present mode %d: %s\n", mode, SDL_GetError());
   }
 }
@@ -205,17 +205,17 @@ static void R_UpdatePipelines(void) {
  */
 void R_BeginFrame(void) {
 
-  if (r_framebuffer_scale->modified) {
+  if (r_framebufferScale->modified) {
     SDL_PushEvent(&(SDL_Event) {
       .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
     });
-    r_framebuffer_scale->modified = false;
+    r_framebufferScale->modified = false;
   }
 
   if (r_antialias->modified) {
     const SDL_GPUSampleCount samples = R_SampleCount();
-    if (samples != r_scene_samples) {
-      r_scene_samples = samples;
+    if (samples != rSceneSamples) {
+      rSceneSamples = samples;
       R_UpdatePipelines();
       SDL_PushEvent(&(SDL_Event) {
         .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
@@ -226,20 +226,20 @@ void R_BeginFrame(void) {
 
   if (r_anisotropy->modified) {
     r_anisotropy->value = Clampf(r_anisotropy->value, 0.f, 16.f);
-    r_context.device->maxAnisotropy = r_anisotropy->value;
+    rContext.device->maxAnisotropy = r_anisotropy->value;
     R_UpdatePipelines();
     r_anisotropy->modified = false;
   }
 
-  if (r_swap_interval->modified) {
-    r_swap_interval->value = Clampf(r_swap_interval->value, -1.f, 1.f);
+  if (r_swapInterval->modified) {
+    r_swapInterval->value = Clampf(r_swapInterval->value, -1.f, 1.f);
     R_UpdateSwapInterval();
-    r_swap_interval->modified = false;
+    r_swapInterval->modified = false;
   }
 
-  CommandBuffer *commands = $(r_context.device, beginFrame);
+  CommandBuffer *commands = $(rContext.device, beginFrame);
   if (commands) {
-    const Framebuffer *fb = r_context.device->framebuffer;
+    const Framebuffer *fb = rContext.device->framebuffer;
     RenderPass *pass = $(commands, beginRenderPassWithFramebuffer, fb, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
     pass = release(pass);
   }
@@ -248,16 +248,16 @@ void R_BeginFrame(void) {
 /**
  * @brief Initializes the view, preparing it for a new frame.
  */
-void R_InitView(r_view_t *view) {
+void R_InitView(RenderView *view) {
 
   view->ticks = (uint32_t) SDL_GetTicks();
-  view->num_beams = 0;
-  view->num_portals = 0;
-  view->num_entities = 0;
-  view->num_lights = 0;
-  view->num_sprites = 0;
-  view->num_sprite_instances = 0;
-  view->num_decals = 0;
+  view->numBeams = 0;
+  view->numPortals = 0;
+  view->numEntities = 0;
+  view->numLights = 0;
+  view->numSprites = 0;
+  view->numSpriteInstances = 0;
+  view->numDecals = 0;
 
   memset(&view->stats, 0, sizeof(view->stats));
 }
@@ -265,24 +265,24 @@ void R_InitView(r_view_t *view) {
 /**
  * @brief Renders the depth pre-pass and occlusion queries for the view.
  */
-void R_DrawViewDepth(r_view_t *view) {
+void R_DrawViewDepth(RenderView *view) {
 
-  r_stats = &view->stats;
+  rStats = &view->stats;
 
   R_UpdateFrustum(view);
 
   R_UpdateUniforms(view);
 
-  CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+  CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
 
   R_DrawDepthPass(view, commands);
 
   R_DrawOcclusionQueries(view, commands);
 
-  if (r_depth_pipeline.fence) {
+  if (rDepthPipeline.fence) {
     $(commands, submit);
   } else {
-    r_depth_pipeline.fence = $(commands, submitAndFence);
+    rDepthPipeline.fence = $(commands, submitAndFence);
   }
 
   release(commands);
@@ -291,13 +291,13 @@ void R_DrawViewDepth(r_view_t *view) {
 /**
  * @brief Draws the main view.
  */
-void R_DrawMainView(r_view_t *view) {
+void R_DrawMainView(RenderView *view) {
 
   assert(view);
 
-  r_stats = &view->stats;
+  rStats = &view->stats;
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
   if (!commands) {
     return;
   }
@@ -327,8 +327,8 @@ void R_DrawMainView(r_view_t *view) {
     $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
-  const SDL_GPULoadOp depth_loadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
-  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depth_loadop, SDL_GPU_STOREOP_STORE);
+  const SDL_GPULoadOp depthLoadop = r_depthPass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
+  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depthLoadop, SDL_GPU_STOREOP_STORE);
 
   {
     RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
@@ -348,13 +348,13 @@ void R_DrawMainView(r_view_t *view) {
 /**
  * @brief Draws the player-model preview view.
  */
-void R_DrawPlayerModelView(r_view_t *view) {
+void R_DrawPlayerModelView(RenderView *view) {
 
   assert(view);
 
-  r_stats = &view->stats;
+  rStats = &view->stats;
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
   if (!commands) {
     return;
   }
@@ -396,8 +396,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-  if (r_context.device->commands) {
-    $(r_context.device, endFrame);
+  if (rContext.device->commands) {
+    $(rContext.device, endFrame);
   }
 }
 
@@ -406,54 +406,54 @@ void R_EndFrame(void) {
  */
 static void R_InitLocal(void) {
 
-  r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
+  r_alphaTest = Cvar_Add("r_alphaTest", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool).");
-  r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
-  r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
-  r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
-  r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
-  r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
-  r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
-  r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
-  r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
+  r_drawBspBlocks = Cvar_Add("r_drawBspBlocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
+  r_drawOcclusionQueries = Cvar_Add("r_drawOcclusionQueries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
+  r_drawBspNormals = Cvar_Add("r_drawBspNormals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
+  r_drawBspVoxels = Cvar_Add("r_drawBspVoxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
+  r_drawEntityBounds = Cvar_Add("r_drawEntityBounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
+  r_drawLightBounds = Cvar_Add("r_drawLightBounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
+  r_drawMaterialStages = Cvar_Add("r_drawMaterialStages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
+  r_depthPass = Cvar_Add("r_depthPass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
-  r_ambient_occlusion = Cvar_Add("r_ambient_occlusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
+  r_ambientOcclusion = Cvar_Add("r_ambientOcclusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering.");
   r_antialias = Cvar_Add("r_antialias", "0", CVAR_ARCHIVE, "MSAA sample count (0 = disabled, 2, 4, 8).");
   r_bloom = Cvar_Add("r_bloom", "4", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
-  r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
-  r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
+  r_bloomIterations = Cvar_Add("r_bloomIterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
+  r_bloomThreshold = Cvar_Add("r_bloomThreshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
-  r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
+  r_framebufferScale = Cvar_Add("r_framebufferScale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
-  r_fullscreen_width = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
-  r_fullscreen_height = Cvar_Add("r_fullscreen_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
-  r_gpu_driver = Cvar_Add("r_gpu_driver", "", CVAR_NO_SET, "Forces the SDL_gpu backend driver: \"vulkan\", \"direct3d12\" or \"metal\". Empty lets SDL choose. Set via +set at the command line.");
+  r_fullscreenWidth = Cvar_Add("r_fullscreenWidth", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
+  r_fullscreenHeight = Cvar_Add("r_fullscreenHeight", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
+  r_gpuDriver = Cvar_Add("r_gpuDriver", "", CVAR_NO_SET, "Forces the SDL_gpu backend driver: \"vulkan\", \"direct3d12\" or \"metal\". Empty lets SDL choose. Set via +set at the command line.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");
-  r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
+  r_lightingDistance = Cvar_Add("r_lightingDistance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting.");
-  r_modulate_mesh = Cvar_Add("r_modulate_mesh", "1", CVAR_ARCHIVE, "Controls the brightness of players and items, to increase their visibility.");
+  r_modulateMesh = Cvar_Add("r_modulateMesh", "1", CVAR_ARCHIVE, "Controls the brightness of players and items, to increase their visibility.");
   r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls the color saturation of the rendered scene. 0 = grayscale, 1 = normal, 2 = vivid.");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
-  r_parallax_shadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
+  r_parallaxShadow = Cvar_Add("r_parallaxShadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
-  r_screenshot_format = Cvar_Add("r_screenshot_format", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
+  r_screenshotFormat = Cvar_Add("r_screenshotFormat", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
-  r_shadow_tile_size = Cvar_Add("r_shadow_tile_size", "256", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadow atlas tile resolution (128-512).");
+  r_shadowTileSize = Cvar_Add("r_shadowTileSize", "256", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadow atlas tile resolution (128-512).");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables mailbox (low latency, no tearing).");
-  r_window_height = Cvar_Add("r_window_height", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window height for windowed mode.");
-  r_window_width = Cvar_Add("r_window_width", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window width for windowed mode.");
+  r_swapInterval = Cvar_Add("r_swapInterval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables mailbox (low latency, no tearing).");
+  r_windowHeight = Cvar_Add("r_windowHeight", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window height for windowed mode.");
+  r_windowWidth = Cvar_Add("r_windowWidth", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window width for windowed mode.");
 
   Cvar_ClearAll(CVAR_R_MASK);
 
-  Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool).");
-  Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool).");
-  Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
-  Cmd_Add("r_save_mesh_configs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the mesh configs for the named model to disk (developer tool).");
+  Cmd_Add("r_dumpImages", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool).");
+  Cmd_Add("r_listMedia", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool).");
+  Cmd_Add("r_saveMaterials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
+  Cmd_Add("r_saveMeshConfigs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the mesh configs for the named model to disk (developer tool).");
   Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot.");
 }
 
@@ -462,20 +462,20 @@ static void R_InitLocal(void) {
  */
 static void R_InitConfig(void) {
 
-  memset(&r_config, 0, sizeof(r_config));
+  memset(&rConfig, 0, sizeof(rConfig));
 
-  r_config.renderer = SDL_GetGPUDeviceDriver(r_context.device->device);
-  r_config.vendor = "SDL_gpu";
-  r_config.version = SDL_GetGPUDeviceDriver(r_context.device->device);
+  rConfig.renderer = SDL_GetGPUDeviceDriver(rContext.device->device);
+  rConfig.vendor = "SDL_gpu";
+  rConfig.version = SDL_GetGPUDeviceDriver(rContext.device->device);
 
-  r_config.max_texunits = 16;
-  r_config.max_texture_size = 16384;
-  r_config.max_3d_texture_size = 2048;
-  r_config.max_uniform_block_size = 65536;
+  rConfig.maxTexunits = 16;
+  rConfig.maxTextureSize = 16384;
+  rConfig.max3dTextureSize = 2048;
+  rConfig.maxUniformBlockSize = 65536;
 
-  Com_Print(  "  Renderer:   ^2%s^7\n", r_config.renderer);
-  Com_Print(  "  Vendor:     ^2%s^7\n", r_config.vendor);
-  Com_Print(  "  Version:    ^2%s^7\n", r_config.version);
+  Com_Print(  "  Renderer:   ^2%s^7\n", rConfig.renderer);
+  Com_Print(  "  Vendor:     ^2%s^7\n", rConfig.vendor);
+  Com_Print(  "  Version:    ^2%s^7\n", rConfig.version);
 }
 
 /**
@@ -490,9 +490,9 @@ void R_Init(void) {
   R_InitContext();
 
   R_UpdateSwapInterval();
-  r_swap_interval->modified = false;
+  r_swapInterval->modified = false;
 
-  r_scene_samples = R_SampleCount();
+  rSceneSamples = R_SampleCount();
 
   R_InitConfig();
   
@@ -524,8 +524,8 @@ void R_Init(void) {
 
   R_InitPost();
 
-  const SDL_Rect bounds = r_context.window_bounds;
-  const float density = r_context.display_mode->pixel_density;
+  const SDL_Rect bounds = rContext.windowBounds;
+  const float density = rContext.displayMode->pixel_density;
 
   Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h,
             (int32_t) (bounds.w * density), (int32_t) (bounds.h * density));

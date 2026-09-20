@@ -28,7 +28,7 @@
 #include "light_types.glsl"
 
 /**
- * @brief Blends full fragment lighting down to vertex lighting beyond lighting_distance.
+ * @brief Blends full fragment lighting down to vertex lighting beyond lightingDistance.
  */
 #define LIGHTING_LOD_BLEND_DIST 128.0
 
@@ -36,7 +36,7 @@
 /**
  * @brief 2D Poisson disk samples for PCF soft shadows.
  */
-const vec2 poisson_disk[16] = vec2[](
+const vec2 poissonDisk[16] = vec2[](
   vec2( 0.2770745,  0.6951455),
   vec2(-0.5932785, -0.1203284),
   vec2( 0.4494750,  0.2469098),
@@ -58,7 +58,7 @@ const vec2 poisson_disk[16] = vec2[](
 /**
  * @brief Simple pseudo-random function for per-pixel rotation.
  */
-float random_angle(vec3 seed) {
+float randomAngle(vec3 seed) {
   return fract(sin(dot(seed, vec3(12.9898, 78.233, 45.164))) * 43758.5453) * 6.283185;
 }
 
@@ -66,7 +66,7 @@ float random_angle(vec3 seed) {
  * @brief Determine cubemap face index and compute face UV from direction vector.
  * @brief Computes the cubemap face and face UV for a light-to-fragment direction.
  */
-void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) {
+void cubemapFaceUv(in vec3 dir, out int face, out vec2 faceUv, out float ma) {
 
   vec3 ad = abs(dir);
   float sc, tc;
@@ -94,133 +94,133 @@ void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) 
     }
   }
 
-  face_uv = vec2(sc, tc) / (2.0 * ma) + 0.5;
+  faceUv = vec2(sc, tc) / (2.0 * ma) + 0.5;
 }
 
 /**
  * @brief Samples the shadow atlas face texture selected by face.
  */
-float sample_shadow_face(in int face, in vec3 uvw) {
+float sampleShadowFace(in int face, in vec3 uvw) {
   if (face == 0) {
-    return texture(texture_shadow_atlas_0, uvw);
+    return texture(textureShadowAtlas0, uvw);
   } else if (face == 1) {
-    return texture(texture_shadow_atlas_1, uvw);
+    return texture(textureShadowAtlas1, uvw);
   } else if (face == 2) {
-    return texture(texture_shadow_atlas_2, uvw);
+    return texture(textureShadowAtlas2, uvw);
   } else if (face == 3) {
-    return texture(texture_shadow_atlas_3, uvw);
+    return texture(textureShadowAtlas3, uvw);
   } else if (face == 4) {
-    return texture(texture_shadow_atlas_4, uvw);
+    return texture(textureShadowAtlas4, uvw);
   } else {
-    return texture(texture_shadow_atlas_5, uvw);
+    return texture(textureShadowAtlas5, uvw);
   }
 }
 
 /**
  * @brief Samples the shadow atlas for a light with PCF filtering.
  */
-float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_fragment_t f, in float atten) {
+float sampleShadowAtlas(in Light light, in CommonVertex v, in CommonFragment f, in float atten) {
 
   if (light.tile.x < 0.0) {
     return 1.0;
   }
 
-  vec2 texture_size = vec2(textureSize(texture_shadow_atlas_0, 0).xy);
-  float tile_px = texture_size.x / float(SHADOW_ATLAS_LIGHTS_PER_ROW);
-  vec2 tile_origin = light.tile.xy / texture_size;
-  float tile_uv = tile_px / texture_size.x;
+  vec2 texSize = vec2(textureSize(textureShadowAtlas0, 0).xy);
+  float tilePx = texSize.x / float(SHADOW_ATLAS_LIGHTS_PER_ROW);
+  vec2 tileOrigin = light.tile.xy / texSize;
+  float tileUv = tilePx / texSize.x;
 
-  vec3 light_to_frag = v.model_position - light.origin.xyz;
-  float dist_to_light = length(light_to_frag);
+  vec3 lightToFrag = v.modelPosition - light.origin.xyz;
+  float distToLight = length(lightToFrag);
 
-  float light_size = light.origin.w * 3.0;
-  float filter_radius = light_size * (dist_to_light / light.origin.w) * 0.005;
+  float lightSize = light.origin.w * 3.0;
+  float filterRadius = lightSize * (distToLight / light.origin.w) * 0.005;
 
   // Offset the receiver along its normal to combat acne. Every PCF tap
   // below is compared against a single reference depth computed here, so
   // the offset must cover the worst-case depth variation across the
-  // *entire* filter footprint (filter_radius), not just one texel --
+  // *entire* filter footprint (filterRadius), not just one texel --
   // otherwise grazing/curved surfaces alias against their neighboring taps.
-  // Note: v.normal is view-space; v.model_normal is the world/model-space
-  // normal that actually matches v.model_position and light.origin here.
-  float n_dot_l = max(dot(v.model_normal, normalize(-light_to_frag)), 0.0);
-  vec3 offset_position = v.model_position + v.model_normal * filter_radius * (1.0 - n_dot_l);
+  // Note: v.normal is view-space; v.modelNormal is the world/model-space
+  // normal that actually matches v.modelPosition and light.origin here.
+  float nDotL = max(dot(v.modelNormal, normalize(-lightToFrag)), 0.0);
+  vec3 offsetPosition = v.modelPosition + v.modelNormal * filterRadius * (1.0 - nDotL);
 
-  light_to_frag = offset_position - light.origin.xyz;
-  dist_to_light = length(light_to_frag);
-  float current_depth = dist_to_light / light.origin.w;
+  lightToFrag = offsetPosition - light.origin.xyz;
+  distToLight = length(lightToFrag);
+  float currentDepth = distToLight / light.origin.w;
 
   int face;
   vec2 fuv;
   float ma;
-  cubemap_face_uv(light_to_frag, face, fuv, ma);
+  cubemapFaceUv(lightToFrag, face, fuv, ma);
 
   fuv.y = 1.0 - fuv.y;
 
-  vec2 half_texel = 0.5 / texture_size;
-  vec2 tile_min = tile_origin + half_texel;
-  vec2 tile_max = tile_origin + vec2(tile_uv) - half_texel;
+  vec2 halfTexel = 0.5 / texSize;
+  vec2 tileMin = tileOrigin + halfTexel;
+  vec2 tileMax = tileOrigin + vec2(tileUv) - halfTexel;
 
-  float filter_uv = filter_radius / (2.0 * max(ma, 0.001));
+  float filterUv = filterRadius / (2.0 * max(ma, 0.001));
 
-  float importance = atten * clamp(1.0 - f.view_dist / 2048.0, 0.0, 1.0);
-  int num_samples = importance > 0.3 ? 8 : (importance > 0.1 ? 4 : 2);
+  float importance = atten * clamp(1.0 - f.viewDist / 2048.0, 0.0, 1.0);
+  int numSamples = importance > 0.3 ? 8 : (importance > 0.1 ? 4 : 2);
 
-  float s = f.shadow_sin_cos.x;
-  float c = f.shadow_sin_cos.y;
+  float s = f.shadowSinCos.x;
+  float c = f.shadowSinCos.y;
 
   float shadow = 0.0;
 
-  for (int i = 0; i < num_samples; i++) {
-    vec2 rotated = vec2(c * poisson_disk[i].x - s * poisson_disk[i].y,
-                        s * poisson_disk[i].x + c * poisson_disk[i].y);
+  for (int i = 0; i < numSamples; i++) {
+    vec2 rotated = vec2(c * poissonDisk[i].x - s * poissonDisk[i].y,
+                        s * poissonDisk[i].x + c * poissonDisk[i].y);
 
-    vec2 sample_fuv = fuv + rotated * filter_uv;
+    vec2 sampleFuv = fuv + rotated * filterUv;
 
-    vec2 atlas_uv = tile_origin + sample_fuv * vec2(tile_uv);
+    vec2 atlasUv = tileOrigin + sampleFuv * vec2(tileUv);
 
-    atlas_uv = clamp(atlas_uv, tile_min, tile_max);
+    atlasUv = clamp(atlasUv, tileMin, tileMax);
 
-    shadow += sample_shadow_face(face, vec3(atlas_uv, current_depth));
+    shadow += sampleShadowFace(face, vec3(atlasUv, currentDepth));
   }
 
-  return shadow / float(num_samples);
+  return shadow / float(numSamples);
 }
 
 /**
  * @brief Evaluates the Blinn specular term.
  */
-float blinn(in vec3 light_dir, in common_fragment_t f) {
-  return pow(max(0.0, dot(normalize(light_dir + f.view_dir), f.normal_sample)), f.specular_sample.w);
+float blinn(in vec3 lightDir, in CommonFragment f) {
+  return pow(max(0.0, dot(normalize(lightDir + f.viewDir), f.normalSample)), f.specularSample.w);
 }
 
 /**
  * @brief Evaluates the Blinn-Phong specular contribution for a light.
  */
-vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f) {
-  return light_color * f.specular_sample.rgb * blinn(light_dir, f);
+vec3 blinnPhong(in vec3 lightColor, in vec3 lightDir, in CommonFragment f) {
+  return lightColor * f.specularSample.rgb * blinn(lightDir, f);
 }
 #endif
 
 /**
  * @brief Computes ambient lighting from the sky cubemap and voxel data.
  */
-vec3 ambient_light(in common_vertex_t v) {
+vec3 ambientLight(in CommonVertex v) {
 
-  float occlusion = voxel_occlusion(v.voxel);
-  float exposure = voxel_exposure(v.voxel);
+  float occlusion = voxelOcclusion(v.voxel);
+  float exposure = voxelExposure(v.voxel);
 
-  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
-  return pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
+  vec3 sky = textureLod(textureSky, normalize(v.modelNormal), 6).rgb;
+  return pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambientOcclusion) * ambient;
 }
 
 /**
  * @brief Computes unshadowed diffuse vertex lighting from one light.
  */
-vec3 vertex_light(in common_vertex_t v, in light_t light) {
+vec3 vertexLight(in CommonVertex v, in Light light) {
 
-  vec3 light_dir = light.origin.xyz - v.model_position;
-  float dist = length(light_dir);
+  vec3 lightDir = light.origin.xyz - v.modelPosition;
+  float dist = length(lightDir);
   float radius = light.origin.w;
   float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
@@ -228,69 +228,69 @@ vec3 vertex_light(in common_vertex_t v, in light_t light) {
     return vec3(0.0);
   }
 
-  light_dir = normalize(light_dir);
-  float lambert = dot(v.model_normal, light_dir);
+  lightDir = normalize(lightDir);
+  float lambert = dot(v.modelNormal, lightDir);
   lambert = bool(material.surface & (SURF_MASK_BLEND | SURF_LIQUID)) ? abs(lambert) : max(0.0, lambert);
-  return light_color(light) * atten * lambert;
+  return lightColor(light) * atten * lambert;
 }
 
 /**
  * @brief Caches the vertex caustics strength.
  */
-void vertex_caustics(inout common_vertex_t v) {
-  v.caustics = length(voxel_caustics(v.voxel));
+void vertexCaustics(inout CommonVertex v) {
+  v.caustics = length(voxelCaustics(v.voxel));
 }
 
 /**
  * @brief Accumulates the vertex lighting fallback for a draw.
  */
-void vertex_lighting(inout common_vertex_t v) {
+void vertexLighting(inout CommonVertex v) {
 
-  v.ambient = ambient_light(v);
+  v.ambient = ambientLight(v);
   v.diffuse = vec3(0.0);
 
   if (editor == 0) {
-    ivec3 voxel_coord = voxel_xyz(v.model_position);
-    ivec2 data = voxel_light_data(voxel_coord);
+    ivec3 voxelCoord = voxelXyz(v.modelPosition);
+    ivec2 data = voxelLightData(voxelCoord);
 
     for (int i = 0; i < data.y; i++) {
-      int index = voxel_light_index(data.x + i);
-      v.diffuse += vertex_light(v, bsp_lights[index]);
+      int index = voxelLightIndex(data.x + i);
+      v.diffuse += vertexLight(v, bspLights[index]);
     }
   }
 
-  for (int j = 0; j < num_dynamic_lights; j++) {
-    if (dynamic_light_active(active_dynamic_lights, j)) {
-      v.diffuse += vertex_light(v, dynamic_lights[j]);
+  for (int j = 0; j < numDynamicLights; j++) {
+    if (dynamicLightActive(activeDynamicLights, j)) {
+      v.diffuse += vertexLight(v, dynamicLights[j]);
     }
   }
 
-  vertex_caustics(v);
+  vertexCaustics(v);
 }
 
 #if defined(FRAGMENT_SHADER)
 /**
  * @brief Applies animated caustics to the fragment diffuse lighting.
  */
-void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
+void fragmentCaustics(in CommonVertex v, inout CommonFragment f) {
 
-  vec3 caustics_sample = voxel_caustics(v.voxel);
+  vec3 causticsSample = voxelCaustics(v.voxel);
 
-  float caustics_strength = length(caustics_sample);
-  if (caustics_strength == 0.0) {
+  float causticsStrength = length(causticsSample);
+  if (causticsStrength == 0.0) {
     return;
   }
 
-  vec3 caustics_dir = normalize(mat3(view) * caustics_sample);
-  float facing = dot(v.normal, caustics_dir);
+  vec3 causticsDir = normalize(mat3(view) * causticsSample);
+  float facing = dot(v.normal, causticsDir);
   float backface = facing < -0.25 ? 0.25 : 1.0;
-  f.caustics = caustics_strength * backface;
+  f.caustics = causticsStrength * backface;
 
   if (f.caustics == 0.0) {
     return;
   }
 
-  float noise = noise3d(v.model_position * .05 + (ticks / 1000.0) * 0.5);
+  float noise = noise3d(v.modelPosition * .05 + (ticks / 1000.0) * 0.5);
 
   float thickness = 0.02;
   float glow = 5.0;
@@ -305,24 +305,24 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
  * @brief Raymarches parallax self-shadowing along the light direction.
  */
 #if defined(PARALLAX_SELF_SHADOW)
-float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
+float parallaxSelfShadow(in vec3 lightDir, in CommonVertex v, in CommonFragment f) {
 
-  int max_steps = int(mix(12.0, 2.0, min(f.texture_lod * 0.5, 1.0)));
+  int maxSteps = int(mix(12.0, 2.0, min(f.texLod * 0.5, 1.0)));
 
-  float step_scale = mix(1.0, 4.0, min(f.texture_lod * 0.5, 1.0));
+  float stepScale = mix(1.0, 4.0, min(f.texLod * 0.5, 1.0));
 
-  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(vec3(dot(light_dir, v.tangent), dot(light_dir, v.bitangent), dot(light_dir, v.normal)));
-  vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
-  vec3 texcoord = vec3(f.parallax, sample_material_heightmap(f.parallax, f.texture_lod));
+  vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
+  vec3 dir = normalize(vec3(dot(lightDir, v.tangent), dot(lightDir, v.bitangent), dot(lightDir, v.normal)));
+  vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * stepScale;
+  vec3 texcoord = vec3(f.parallax, sampleMaterialHeightmap(f.parallax, f.texLod));
 
-  float max_height = texcoord.z;
-  for (int i = 0; i < max_steps && texcoord.z < 1.0 && max_height < 1.0; i++) {
+  float maxHeight = texcoord.z;
+  for (int i = 0; i < maxSteps && texcoord.z < 1.0 && maxHeight < 1.0; i++) {
     texcoord += delta;
-    max_height = max(max_height, sample_material_heightmap(texcoord.xy, f.texture_lod));
+    maxHeight = max(maxHeight, sampleMaterialHeightmap(texcoord.xy, f.texLod));
   }
 
-  float shadow = 1.0 - (max_height - texcoord.z) * material.shadow;
+  float shadow = 1.0 - (maxHeight - texcoord.z) * material.shadow;
   return clamp(shadow, 0.0, 1.0);
 }
 #endif
@@ -330,9 +330,9 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
 /**
  * @brief Accumulates diffuse, specular, and shadowing from one light.
  */
-void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t light) {
+void fragmentLight(in CommonVertex v, inout CommonFragment f, in Light light) {
 
-  vec3 dir = light.origin.xyz - v.model_position;
+  vec3 dir = light.origin.xyz - v.modelPosition;
   float dist = length(dir);
   float radius = light.origin.w;
   float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
@@ -342,24 +342,24 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
 
   dir = normalize(view * vec4(dir, 0.0)).xyz;
 
-  bool is_blend = bool(material.surface & SURF_MASK_BLEND);
-  bool is_liquid = bool(material.surface & SURF_LIQUID);
-  bool is_stage = bool(material.flags != STAGE_NONE);
+  bool isBlend = bool(material.surface & SURF_MASK_BLEND);
+  bool isLiquid = bool(material.surface & SURF_LIQUID);
+  bool isStage = bool(material.flags != STAGE_NONE);
 
-  float lambert = dot(dir, f.normal_sample);
-  lambert = is_blend || is_liquid || is_stage ? abs(lambert) : max(0.0, lambert);
+  float lambert = dot(dir, f.normalSample);
+  lambert = isBlend || isLiquid || isStage ? abs(lambert) : max(0.0, lambert);
 
   if (atten * lambert <= 0.0) {
     return;
   }
 
-  vec3 color = light_color(light) * atten;
+  vec3 color = lightColor(light) * atten;
 
-  float shadow = sample_shadow_atlas(light, v, f, atten);
+  float shadow = sampleShadowAtlas(light, v, f, atten);
 
 #if defined(PARALLAX_SELF_SHADOW)
-  if (!is_stage && material.shadow > 0.0 && f.texture_lod < 2.0) {
-    shadow *= parallax_self_shadow(dir, v, f);
+  if (!isStage && material.shadow > 0.0 && f.texLod < 2.0) {
+    shadow *= parallaxSelfShadow(dir, v, f);
   }
 #endif
 
@@ -368,46 +368,46 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
   }
 
   f.diffuse += color * lambert * shadow;
-  f.specular += blinn_phong(color * shadow, dir, f);
+  f.specular += blinnPhong(color * shadow, dir, f);
 }
 
 /**
  * @brief Accumulates full fragment lighting for the active BSP and dynamic lights.
  */
-void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
+void fragmentLighting(in CommonVertex v, inout CommonFragment f) {
 
-  f.ambient = ambient_light(v);
+  f.ambient = ambientLight(v);
   f.diffuse = vec3(0.0);
   f.specular = vec3(0.0);
 
   if (editor == 0) {
-    ivec3 voxel_coord = voxel_xyz(v.model_position);
-    ivec2 data = voxel_light_data(voxel_coord);
+    ivec3 voxelCoord = voxelXyz(v.modelPosition);
+    ivec2 data = voxelLightData(voxelCoord);
 
     for (int i = 0; i < data.y; i++) {
-      int index = voxel_light_index(data.x + i);
-      fragment_light(v, f, bsp_lights[index]);
+      int index = voxelLightIndex(data.x + i);
+      fragmentLight(v, f, bspLights[index]);
     }
   }
 
-  for (int j = 0; j < num_dynamic_lights; j++) {
-    if (dynamic_light_active(active_dynamic_lights, j)) {
-      fragment_light(v, f, dynamic_lights[j]);
+  for (int j = 0; j < numDynamicLights; j++) {
+    if (dynamicLightActive(activeDynamicLights, j)) {
+      fragmentLight(v, f, dynamicLights[j]);
     }
   }
 
-  fragment_caustics(v, f);
+  fragmentCaustics(v, f);
 }
 
 /**
  * @brief Computes full fragment lighting, blending down to vertex lighting as
- * fragment.view_dist approaches lighting_distance.
+ * fragment.viewDist approaches lightingDistance.
  */
-void fragment_lighting_lod(in common_vertex_t v, inout common_fragment_t f) {
+void fragmentLightingLod(in CommonVertex v, inout CommonFragment f) {
 
-  const float lighting_lod = clamp((f.view_dist - lighting_distance) / LIGHTING_LOD_BLEND_DIST, 0.0, 1.0);
+  const float lightingLod = clamp((f.viewDist - lightingDistance) / LIGHTING_LOD_BLEND_DIST, 0.0, 1.0);
 
-  if (lighting_lod >= 1.0) {
+  if (lightingLod >= 1.0) {
     f.ambient = v.ambient;
     f.diffuse = v.diffuse;
     f.specular = vec3(0.0);
@@ -415,20 +415,20 @@ void fragment_lighting_lod(in common_vertex_t v, inout common_fragment_t f) {
   }
 
   if ((material.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
-    f.normal_sample = normalize(v.normal);
-    f.specular_sample = vec4(f.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
+    f.normalSample = normalize(v.normal);
+    f.specularSample = vec4(f.diffuseSample.rgb, pow(1.0 + material.specularity, 4.0));
   } else {
-    f.normal_sample = sample_material_normal(f.parallax, mat3(v.tangent, v.bitangent, v.normal));
-    f.specular_sample = sample_material_specular(f.parallax);
+    f.normalSample = sampleMaterialNormal(f.parallax, mat3(v.tangent, v.bitangent, v.normal));
+    f.specularSample = sampleMaterialSpecular(f.parallax);
   }
 
-  float angle = random_angle(v.model_position);
-  f.shadow_sin_cos = vec2(sin(angle), cos(angle));
+  float angle = randomAngle(v.modelPosition);
+  f.shadowSinCos = vec2(sin(angle), cos(angle));
 
-  fragment_lighting(v, f);
+  fragmentLighting(v, f);
 
-  f.ambient = mix(f.ambient, v.ambient, lighting_lod);
-  f.diffuse = mix(f.diffuse, v.diffuse, lighting_lod);
-  f.specular *= 1.0 - lighting_lod;
+  f.ambient = mix(f.ambient, v.ambient, lightingLod);
+  f.diffuse = mix(f.diffuse, v.diffuse, lightingLod);
+  f.specular *= 1.0 - lightingLod;
 }
 #endif

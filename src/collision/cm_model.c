@@ -21,19 +21,19 @@
 
 #include "cm_local.h"
 
-cm_bsp_t cm_bsp = {};
+CmBsp cmBsp = {};
 
 /**
- * @brief Loads and parses the entity string lump into `cm_bsp`.entities`.
+ * @brief Loads and parses the entity string lump into `cmBsp`.entities`.
  */
-static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
+static void Cm_LoadBspEntities(CmBsp *bsp) {
 
-  List *entities = Cm_LoadEntities(bsp->file->entity_string);
+  List *entities = Cm_LoadEntities(bsp->file->entityString);
 
-  bsp->num_entities = (int32_t) entities->count;
-  bsp->entities = Mem_TagMalloc(sizeof(cm_entity_t *) * bsp->num_entities, MEM_TAG_COLLISION);
+  bsp->numEntities = (int32_t) entities->count;
+  bsp->entities = Mem_TagMalloc(sizeof(CmEntity *) * bsp->numEntities, MEM_TAG_COLLISION);
 
-  cm_entity_t **out = bsp->entities;
+  CmEntity **out = bsp->entities;
   for (const ListNode *node = entities->head; node; node = node->next, out++) {
     *out = node->element;
   }
@@ -42,31 +42,31 @@ static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and converts the planes lump into `cm_bsp`.planes`.
+ * @brief Loads and converts the planes lump into `cmBsp`.planes`.
  */
-static void Cm_LoadBspPlanes(cm_bsp_t *bsp) {
+static void Cm_LoadBspPlanes(CmBsp *bsp) {
 
-  bsp->num_planes = bsp->file->num_planes;
-  const bsp_plane_t *in = bsp->file->planes;
+  bsp->numPlanes = bsp->file->numPlanes;
+  const BspPlane *in = bsp->file->planes;
 
-  cm_bsp_plane_t *out = bsp->planes = Mem_TagMalloc(sizeof(cm_bsp_plane_t) * (bsp->num_planes + 12), MEM_TAG_COLLISION); // extra for box hull
+  CmBspPlane *out = bsp->planes = Mem_TagMalloc(sizeof(CmBspPlane) * (bsp->numPlanes + 12), MEM_TAG_COLLISION); // extra for box hull
 
-  for (int32_t i = 0; i < bsp->num_planes; i++, in++, out++) {
+  for (int32_t i = 0; i < bsp->numPlanes; i++, in++, out++) {
     *out = Cm_Plane(in->normal, in->dist);
   }
 }
 
 /**
- * @brief Loads and converts the nodes lump into `cm_bsp`.nodes`.
+ * @brief Loads and converts the nodes lump into `cmBsp`.nodes`.
  */
-static void Cm_LoadBspNodes(cm_bsp_t *bsp) {
+static void Cm_LoadBspNodes(CmBsp *bsp) {
 
-  bsp->num_nodes = bsp->file->num_nodes;
-  const bsp_node_t *in = bsp->file->nodes;
+  bsp->numNodes = bsp->file->numNodes;
+  const BspNode *in = bsp->file->nodes;
 
-  cm_bsp_node_t *out = bsp->nodes = Mem_TagMalloc(sizeof(cm_bsp_node_t) * (bsp->num_nodes + 6), MEM_TAG_COLLISION); // extra for box hull
+  CmBspNode *out = bsp->nodes = Mem_TagMalloc(sizeof(CmBspNode) * (bsp->numNodes + 6), MEM_TAG_COLLISION); // extra for box hull
 
-  for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
+  for (int32_t i = 0; i < bsp->numNodes; i++, in++, out++) {
 
     out->plane = bsp->planes + in->plane;
 
@@ -78,60 +78,60 @@ static void Cm_LoadBspNodes(cm_bsp_t *bsp) {
 
 
 /**
- * @brief Loads and converts the leafs lump into `cm_bsp`.leafs`.
+ * @brief Loads and converts the leafs lump into `cmBsp`.leafs`.
  */
-static void Cm_LoadBspLeafs(cm_bsp_t *bsp) {
+static void Cm_LoadBspLeafs(CmBsp *bsp) {
 
-  bsp->num_leafs = bsp->file->num_leafs;
-  const bsp_leaf_t *in = bsp->file->leafs;
+  bsp->numLeafs = bsp->file->numLeafs;
+  const BspLeaf *in = bsp->file->leafs;
 
-  cm_bsp_leaf_t *out = bsp->leafs = Mem_TagMalloc(sizeof(cm_bsp_leaf_t) * (bsp->num_leafs + 1), MEM_TAG_COLLISION); // extra for box hull
+  CmBspLeaf *out = bsp->leafs = Mem_TagMalloc(sizeof(CmBspLeaf) * (bsp->numLeafs + 1), MEM_TAG_COLLISION); // extra for box hull
 
-  for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
+  for (int32_t i = 0; i < bsp->numLeafs; i++, in++, out++) {
     out->contents = in->contents;
-    out->first_leaf_brush = in->first_leaf_brush;
-    out->num_leaf_brushes = in->num_leaf_brushes;
+    out->firstLeafBrush = in->firstLeafBrush;
+    out->numLeafBrushes = in->numLeafBrushes;
   }
 }
 
 /**
- * @brief Loads the leaf-brush index lump into `cm_bsp`.`leaf_brushes`.
+ * @brief Loads the leaf-brush index lump into `cmBsp`.`leafBrushes`.
  */
-static void Cm_LoadBspLeafBrushes(cm_bsp_t *bsp) {
+static void Cm_LoadBspLeafBrushes(CmBsp *bsp) {
 
-  bsp->num_leaf_brushes = bsp->file->num_leaf_brushes;
-  const int32_t *in = bsp->file->leaf_brushes;
+  bsp->numLeafBrushes = bsp->file->numLeafBrushes;
+  const int32_t *in = bsp->file->leafBrushes;
 
-  int32_t *out = bsp->leaf_brushes = Mem_TagMalloc(sizeof(int32_t) * (bsp->num_leaf_brushes + 1), MEM_TAG_COLLISION); // extra for box hull
+  int32_t *out = bsp->leafBrushes = Mem_TagMalloc(sizeof(int32_t) * (bsp->numLeafBrushes + 1), MEM_TAG_COLLISION); // extra for box hull
 
-  for (int32_t i = 0; i < bsp->num_leaf_brushes; i++, in++, out++) {
+  for (int32_t i = 0; i < bsp->numLeafBrushes; i++, in++, out++) {
     *out = *in;
   }
 }
 
 /**
- * @brief Loads and converts the brush sides lump into `cm_bsp`.`brush_sides`.
+ * @brief Loads and converts the brush sides lump into `cmBsp`.`brushSides`.
  */
-static void Cm_LoadBspBrushSides(cm_bsp_t *bsp) {
+static void Cm_LoadBspBrushSides(CmBsp *bsp) {
 
-  bsp->num_brush_sides = bsp->file->num_brush_sides;
-  const bsp_brush_side_t *in = bsp->file->brush_sides;
+  bsp->numBrushSides = bsp->file->numBrushSides;
+  const BspBrushSide *in = bsp->file->brushSides;
 
-  cm_bsp_brush_side_t *out = bsp->brush_sides = Mem_TagMalloc(sizeof(cm_bsp_brush_side_t) *
-        (bsp->num_brush_sides + 6), MEM_TAG_COLLISION); // extra for box hull
+  CmBspBrushSide *out = bsp->brushSides = Mem_TagMalloc(sizeof(CmBspBrushSide) *
+        (bsp->numBrushSides + 6), MEM_TAG_COLLISION); // extra for box hull
 
-  for (int32_t i = 0; i < bsp->num_brush_sides; i++, in++, out++) {
+  for (int32_t i = 0; i < bsp->numBrushSides; i++, in++, out++) {
 
     const int32_t p = in->plane;
 
-    if (p >= bsp->num_planes) {
+    if (p >= bsp->numPlanes) {
       Com_Error(ERROR_DROP, "Brush side %d has invalid plane %d\n", i, p);
     }
 
     out->plane = &bsp->planes[p];
 
     if (in->material > -1) {
-      if (in->material >= bsp->num_materials) {
+      if (in->material >= bsp->numMaterials) {
         Com_Error(ERROR_DROP, "Brush side %d has invalid material %d\n", i, in->material);
       }
 
@@ -145,64 +145,64 @@ static void Cm_LoadBspBrushSides(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and converts the brushes lump into `cm_bsp`.brushes`.
+ * @brief Loads and converts the brushes lump into `cmBsp`.brushes`.
  */
-static void Cm_LoadBspBrushes(cm_bsp_t *bsp) {
+static void Cm_LoadBspBrushes(CmBsp *bsp) {
 
-  bsp->num_brushes = bsp->file->num_brushes;
-  const bsp_brush_t *in = bsp->file->brushes;
+  bsp->numBrushes = bsp->file->numBrushes;
+  const BspBrush *in = bsp->file->brushes;
 
-  cm_bsp_brush_t *out = bsp->brushes = Mem_TagMalloc(sizeof(cm_bsp_brush_t) * (bsp->num_brushes + 1), MEM_TAG_COLLISION); // extra for box hull
+  CmBspBrush *out = bsp->brushes = Mem_TagMalloc(sizeof(CmBspBrush) * (bsp->numBrushes + 1), MEM_TAG_COLLISION); // extra for box hull
 
-  for (int32_t i = 0; i < bsp->num_brushes; i++, in++, out++) {
+  for (int32_t i = 0; i < bsp->numBrushes; i++, in++, out++) {
 
-    if (in->entity < 0 || in->entity >= bsp->num_entities) {
+    if (in->entity < 0 || in->entity >= bsp->numEntities) {
       Com_Warn("Brush %d: invalid entity index %d\n", i, in->entity);
       out->entity = NULL;
     } else {
       out->entity = bsp->entities[in->entity];
     }
     out->contents = in->contents;
-    out->brush_sides = bsp->brush_sides + in->first_brush_side;
-    out->num_brush_sides = in->num_brush_sides;
+    out->brushSides = bsp->brushSides + in->firstBrushSide;
+    out->numBrushSides = in->numBrushSides;
     out->bounds = in->bounds;
   }
 }
 
 /**
- * @brief Loads and converts the inline models lump into `cm_bsp`.models`.
+ * @brief Loads and converts the inline models lump into `cmBsp`.models`.
  */
-static void Cm_LoadBspInlineModels(cm_bsp_t *bsp) {
+static void Cm_LoadBspInlineModels(CmBsp *bsp) {
 
-  bsp->num_models = bsp->file->num_models;
-  const bsp_model_t *in = bsp->file->models;
+  bsp->numModels = bsp->file->numModels;
+  const BspModel *in = bsp->file->models;
 
-  cm_bsp_model_t *out = bsp->models = Mem_TagMalloc(sizeof(cm_bsp_model_t) * bsp->num_models, MEM_TAG_COLLISION);
+  CmBspModel *out = bsp->models = Mem_TagMalloc(sizeof(CmBspModel) * bsp->numModels, MEM_TAG_COLLISION);
 
-  for (int32_t i = 0; i < bsp->num_models; i++, in++, out++) {
+  for (int32_t i = 0; i < bsp->numModels; i++, in++, out++) {
     
-    if (in->entity < 0 || in->entity >= bsp->num_entities) {
+    if (in->entity < 0 || in->entity >= bsp->numEntities) {
       Com_Warn("Model %d: invalid entity index %d\n", i, in->entity);
       out->entity = NULL;
     } else {
       out->entity = bsp->entities[in->entity];
     }
-    out->head_node = in->head_node;
+    out->headNode = in->headNode;
     out->bounds = in->bounds;
   }
 }
 
 /**
- * @brief Loads and resolves materials referenced by the BSP into `cm_bsp`.materials`.
+ * @brief Loads and resolves materials referenced by the BSP into `cmBsp`.materials`.
  */
-static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
+static void Cm_LoadBspMaterials(CmBsp *bsp) {
 
-  bsp->num_materials = bsp->file->num_materials;
+  bsp->numMaterials = bsp->file->numMaterials;
 
-  cm_material_t **out = bsp->materials = Mem_TagMalloc(sizeof(cm_material_t *) * bsp->num_materials, MEM_TAG_COLLISION);
+  CmMaterial **out = bsp->materials = Mem_TagMalloc(sizeof(CmMaterial *) * bsp->numMaterials, MEM_TAG_COLLISION);
 
-  const bsp_material_t *in = bsp->file->materials;
-  for (int32_t i = 0; i < bsp->num_materials; i++, in++, out++) {
+  const BspMaterial *in = bsp->file->materials;
+  for (int32_t i = 0; i < bsp->numMaterials; i++, in++, out++) {
 
     *out = Cm_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
 
@@ -211,36 +211,36 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Decodes the voxel lump into a flat cm_voxel_t array on the cm_bsp_t.
+ * @brief Decodes the voxel lump into a flat CmVoxel array on the CmBsp.
  */
-static void Cm_LoadBspVoxels(cm_bsp_t *bsp) {
+static void Cm_LoadBspVoxels(CmBsp *bsp) {
 
   if (!bsp->file->voxels) {
     return;
   }
 
-  const bsp_voxels_t *v = bsp->file->voxels;
+  const BspVoxels *v = bsp->file->voxels;
 
-  bsp->voxel_size = v->size;
-  bsp->voxel_bounds = v->bounds;
-  bsp->num_voxels = v->size.x * v->size.y * v->size.z;
+  bsp->voxelSize = v->size;
+  bsp->voxelBounds = v->bounds;
+  bsp->numVoxels = v->size.x * v->size.y * v->size.z;
 
-  cm_voxel_t *out = bsp->voxels = Mem_TagMalloc(sizeof(cm_voxel_t) * bsp->num_voxels, MEM_TAG_COLLISION);
+  CmVoxel *out = bsp->voxels = Mem_TagMalloc(sizeof(CmVoxel) * bsp->numVoxels, MEM_TAG_COLLISION);
 
   const byte *rgb = (const byte *) (v + 1);
   const byte *occlusion = rgb +
-    bsp->num_voxels * 3 +
-    bsp->num_voxels * (int32_t) sizeof(int32_t) * 2 +
-    (size_t) v->num_light_indices * sizeof(int32_t);
+    bsp->numVoxels * 3 +
+    bsp->numVoxels * (int32_t) sizeof(int32_t) * 2 +
+    (size_t) v->numLightIndices * sizeof(int32_t);
 
   for (int32_t z = 0; z < v->size.z; z++) {
     for (int32_t y = 0; y < v->size.y; y++) {
       for (int32_t x = 0; x < v->size.x; x++, out++, rgb += 3, occlusion += 2) {
 
         out->origin = Vec3_Add(v->bounds.mins,
-          Vec3_Scale(Vec3((float) x + 0.5f, (float) y + 0.5f, (float) z + 0.5f), BSP_VOXEL_SIZE));
+          Vec3_Scale(MakeVec3((float) x + 0.5f, (float) y + 0.5f, (float) z + 0.5f), BSP_VOXEL_SIZE));
 
-        out->caustics = Vec3(
+        out->caustics = MakeVec3(
           (rgb[0] / 255.f) * 2.f - 1.f,
           (rgb[1] / 255.f) * 2.f - 1.f,
           (rgb[2] / 255.f) * 2.f - 1.f
@@ -273,36 +273,36 @@ static void Cm_LoadBspVoxels(cm_bsp_t *bsp) {
  * function can also be used to initialize or clean up the collision model by
  * invoking with `NULL`.
  */
-cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
-  static bsp_file_t file;
+CmBspModel *Cm_LoadBspModel(const char *name, int64_t *size) {
+  static BspFile file;
 
   Bsp_UnloadLumps(&file, BSP_LUMPS_ALL);
 
   // free dynamic memory
-  Mem_Free(cm_bsp.planes);
-  Mem_Free(cm_bsp.nodes);
-  Mem_Free(cm_bsp.leafs);
-  Mem_Free(cm_bsp.leaf_brushes);
-  Mem_Free(cm_bsp.brushes);
-  Mem_Free(cm_bsp.brush_sides);
-  Mem_Free(cm_bsp.models);
-  Mem_Free(cm_bsp.entities);
-  Mem_Free(cm_bsp.materials);
-  Mem_Free(cm_bsp.voxels);
+  Mem_Free(cmBsp.planes);
+  Mem_Free(cmBsp.nodes);
+  Mem_Free(cmBsp.leafs);
+  Mem_Free(cmBsp.leafBrushes);
+  Mem_Free(cmBsp.brushes);
+  Mem_Free(cmBsp.brushSides);
+  Mem_Free(cmBsp.models);
+  Mem_Free(cmBsp.entities);
+  Mem_Free(cmBsp.materials);
+  Mem_Free(cmBsp.voxels);
 
-  memset(&cm_bsp, 0, sizeof(cm_bsp));
-  cm_bsp.file = &file;
+  memset(&cmBsp, 0, sizeof(cmBsp));
+  cmBsp.file = &file;
 
   // clean up and return
   if (!name) {
     if (size) {
       *size = 0;
     }
-    return &cm_bsp.models[0];
+    return &cmBsp.models[0];
   }
 
   // load the common BSP structure and the lumps we need
-  bsp_header_t *header;
+  BspHeader *header;
 
   if (Fs_Load(name, (void **) &header) == -1) {
     Com_Error(ERROR_DROP, "Failed to load %s\n", name);
@@ -321,34 +321,34 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
   // in theory, by this point the BSP is valid - now we have to create the cm_
   // structures out of the raw file data
   if (size) {
-    cm_bsp.size = *size = Bsp_Size(header);
-    cm_bsp.mod_time = Fs_LastModTime(name);
+    cmBsp.size = *size = Bsp_Size(header);
+    cmBsp.modTime = Fs_LastModTime(name);
   }
 
-  q_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
+  q_strlcpy(cmBsp.name, name, sizeof(cmBsp.name));
 
   Fs_Free(header);
 
-  Cm_LoadBspMaterials(&cm_bsp);
-  Cm_LoadBspEntities(&cm_bsp);
-  Cm_LoadBspPlanes(&cm_bsp);
-  Cm_LoadBspNodes(&cm_bsp);
-  Cm_LoadBspLeafs(&cm_bsp);
-  Cm_LoadBspLeafBrushes(&cm_bsp);
-  Cm_LoadBspBrushSides(&cm_bsp);
-  Cm_LoadBspBrushes(&cm_bsp);
-  Cm_LoadBspInlineModels(&cm_bsp);
-  Cm_LoadBspVoxels(&cm_bsp);
+  Cm_LoadBspMaterials(&cmBsp);
+  Cm_LoadBspEntities(&cmBsp);
+  Cm_LoadBspPlanes(&cmBsp);
+  Cm_LoadBspNodes(&cmBsp);
+  Cm_LoadBspLeafs(&cmBsp);
+  Cm_LoadBspLeafBrushes(&cmBsp);
+  Cm_LoadBspBrushSides(&cmBsp);
+  Cm_LoadBspBrushes(&cmBsp);
+  Cm_LoadBspInlineModels(&cmBsp);
+  Cm_LoadBspVoxels(&cmBsp);
 
-  Cm_InitBoxHull(&cm_bsp);
+  Cm_InitBoxHull(&cmBsp);
 
-  return &cm_bsp.models[0];
+  return &cmBsp.models[0];
 }
 
 /**
  * @brief Returns the inline BSP model with the given name (e.g. "*1").
  */
-cm_bsp_model_t *Cm_Model(const char *name) {
+CmBspModel *Cm_Model(const char *name) {
 
   if (!name || name[0] != '*') {
     Com_Error(ERROR_DROP, "Bad name\n");
@@ -356,49 +356,49 @@ cm_bsp_model_t *Cm_Model(const char *name) {
 
   const int32_t num = atoi(name + 1);
 
-  if (num < 0 || num >= cm_bsp.num_models) {
+  if (num < 0 || num >= cmBsp.numModels) {
     Com_Error(ERROR_DROP, "Bad number: %d\n", num);
   }
 
-  return &cm_bsp.models[num];
+  return &cmBsp.models[num];
 }
 
 /**
  * @brief Returns the number of inline BSP models in the loaded BSP file.
  */
 int32_t Cm_NumModels(void) {
-  return cm_bsp.file->num_models;
+  return cmBsp.file->numModels;
 }
 
 /**
  * @brief Returns the raw entity string from the loaded BSP file.
  */
 const char *Cm_EntityString(void) {
-  return cm_bsp.file->entity_string;
+  return cmBsp.file->entityString;
 }
 
 /**
  * @brief Returns the worldspawn entity (first entity in the loaded BSP).
  */
-const cm_entity_t *Cm_Worldspawn(void) {
-  return *cm_bsp.entities;
+const CmEntity *Cm_Worldspawn(void) {
+  return *cmBsp.entities;
 }
 
 /**
  * @brief Returns the contents mask for the given leaf number.
  */
-int32_t Cm_LeafContents(const int32_t leaf_num) {
+int32_t Cm_LeafContents(const int32_t leafNum) {
 
-  if (leaf_num < 0 || leaf_num >= cm_bsp.num_leafs) {
-    Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
+  if (leafNum < 0 || leafNum >= cmBsp.numLeafs) {
+    Com_Error(ERROR_DROP, "Bad number: %d\n", leafNum);
   }
 
-  return cm_bsp.leafs[leaf_num].contents;
+  return cmBsp.leafs[leafNum].contents;
 }
 
 /**
  * @brief Returns a const pointer to the global BSP collision model.
  */
-const cm_bsp_t *Cm_Bsp(void) {
-  return &cm_bsp;
+const CmBsp *Cm_Bsp(void) {
+  return &cmBsp;
 }

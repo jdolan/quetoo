@@ -27,6 +27,6 @@
 void R_InitBspPipeline(void);
 void R_ShutdownBspPipeline(void);
 void R_UpdateBspPipeline(void);
-void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass);
-void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass);
+void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass);
+void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass);
 #endif

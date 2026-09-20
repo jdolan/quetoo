@@ -25,9 +25,9 @@
  * @brief Prepares the collision model to clip to the specified entity. For
  * mesh models, the box hull must be set to reflect the bounds of the entity.
  */
-static int32_t Cl_HullForEntity(const entity_state_t *s) {
+static int32_t Cl_HullForEntity(const EntityState *s) {
 
-  const cl_entity_t *ent = &cl.entities[s->number];
+  const ClientEntity *ent = &cl.entities[s->number];
 
   switch (s->solid) {
 
@@ -40,11 +40,11 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
     }
 
     case SOLID_BSP: {
-      const cm_bsp_model_t *mod = cl.cm_models[s->model1];
+      const CmBspModel *mod = cl.cmModels[s->model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
-      return mod->head_node;
+      return mod->headNode;
     }
 
     case SOLID_EDITOR: {
@@ -64,28 +64,28 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
  * @brief Yields the contents mask (bitwise OR) for the specified point. The
  * world model and all solids are checked.
  */
-int32_t Cl_PointContents(const vec3_t point) {
+int32_t Cl_PointContents(const Vec3 point) {
 
   int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
 
-  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.numEntities; i++) {
 
-    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const uint32_t snum = (cl.frame.entityState + i) & ENTITY_STATE_MASK;
+    const EntityState *s = &cl.entityStates[snum];
 
     if (s->solid < SOLID_BOX) {
       continue;
     }
 
-    const cl_entity_t *ent = &cl.entities[s->number];
+    const ClientEntity *ent = &cl.entities[s->number];
 
     if (ent == cl.entity) {
       continue;
     }
 
-    const int32_t head_node = Cl_HullForEntity(s);
+    const int32_t headNode = Cl_HullForEntity(s);
 
-    contents |= Cm_PointContents(point, head_node, ent->inverse_matrix);
+    contents |= Cm_PointContents(point, headNode, ent->inverseMatrix);
   }
 
   return contents;
@@ -94,32 +94,32 @@ int32_t Cl_PointContents(const vec3_t point) {
 /**
  * @return The contents mask of all leafs that span the specified bounds.
  */
-int32_t Cl_BoxContents(const box3_t bounds) {
+int32_t Cl_BoxContents(const Box3 bounds) {
 
   int32_t contents = Cm_BoxContents(bounds, 0);
 
-  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.numEntities; i++) {
 
-    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const uint32_t snum = (cl.frame.entityState + i) & ENTITY_STATE_MASK;
+    const EntityState *s = &cl.entityStates[snum];
 
     if (s->solid < SOLID_BOX) {
       continue;
     }
 
-    const cl_entity_t *ent = &cl.entities[s->number];
+    const ClientEntity *ent = &cl.entities[s->number];
 
     if (ent == cl.entity) {
       continue;
     }
 
-    if (!Box3_Intersects(bounds, ent->abs_bounds)) {
+    if (!Box3_Intersects(bounds, ent->absBounds)) {
       continue;
     }
 
-    const int32_t head_node = Cl_HullForEntity(s);
+    const int32_t headNode = Cl_HullForEntity(s);
 
-    contents |= Cm_BoxContents(Mat4_TransformBounds(ent->inverse_matrix, bounds), head_node);
+    contents |= Cm_BoxContents(Mat4_TransformBounds(ent->inverseMatrix, bounds), headNode);
   }
 
   return contents;
@@ -129,20 +129,20 @@ int32_t Cl_BoxContents(const box3_t bounds) {
  * @brief A structure facilitating clipping to `SOLID_BOX` entities.
  */
 typedef struct {
-  vec3_t start, end;
-  box3_t bounds;
-  box3_t abs_bounds;
-  cm_trace_t trace;
-  const cl_entity_t *skip;
+  Vec3 start, end;
+  Box3 bounds;
+  Box3 absBounds;
+  CmTrace trace;
+  const ClientEntity *skip;
   int32_t contents;
-} cl_trace_t;
+} ClientTrace;
 
 /**
  * @brief Clips the specified trace to the specified entity.
  * @return True if the trace began in solid, so that the caller may stop.
  */
-static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
-  const entity_state_t *s = &ent->current;
+static bool Cl_ClipTraceToEntity(ClientTrace *trace, ClientEntity *ent) {
+  const EntityState *s = &ent->current;
 
   if (s->solid < SOLID_BOX) {
     return false;
@@ -156,7 +156,7 @@ static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
     return false;
   }
 
-  if (!Box3_Intersects(ent->abs_bounds, trace->abs_bounds)) {
+  if (!Box3_Intersects(ent->absBounds, trace->absBounds)) {
     return false;
   }
 
@@ -164,33 +164,33 @@ static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
     return false;
   }
 
-  const int32_t head_node = Cl_HullForEntity(s);
+  const int32_t headNode = Cl_HullForEntity(s);
 
-  cm_trace_t tr;
+  CmTrace tr;
 
   if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
-    tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
+    tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, headNode, trace->contents);
   } else {
-    tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
+    tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, headNode, trace->contents, ent->matrix, ent->inverseMatrix);
   }
 
-  if (tr.start_solid || tr.fraction < trace->trace.fraction) {
+  if (tr.startSolid || tr.fraction < trace->trace.fraction) {
     trace->trace = tr;
     trace->trace.ent = ent;
   }
 
-  return tr.start_solid;
+  return tr.startSolid;
 }
 
 /**
  * @brief Clips the specified trace to other solid entities in the frame.
  */
-static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
+static void Cl_ClipTraceToEntities(ClientTrace *trace) {
 
-  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.numEntities; i++) {
 
-    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const uint32_t snum = (cl.frame.entityState + i) & ENTITY_STATE_MASK;
+    const EntityState *s = &cl.entityStates[snum];
 
     if (Cl_ClipTraceToEntity(trace, &cl.entities[s->number])) {
       return;
@@ -204,13 +204,13 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  *
  * @param skip An optional entity to skip.
  */
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents) {
+CmTrace Cl_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents) {
 
-  cl_trace_t trace = {
+  ClientTrace trace = {
     .start = start,
     .end = end,
     .bounds = bounds,
-    .abs_bounds = Cm_TraceBounds(start, end, bounds),
+    .absBounds = Cm_TraceBounds(start, end, bounds),
     .skip = skip,
     .contents = contents,
     .trace = {
@@ -239,8 +239,8 @@ void Cl_PredictMovement(void) {
     return;
   }
 
-  const uint32_t last = cls.net_chan.outgoing_sequence;
-  uint32_t ack = cls.net_chan.incoming_acknowledged;
+  const uint32_t last = cls.netChan.outgoingSequence;
+  uint32_t ack = cls.netChan.incomingAcknowledged;
 
   // if we are too far out of date, just freeze in place
   if (last - ack >= CMD_BACKUP) {
@@ -248,10 +248,10 @@ void Cl_PredictMovement(void) {
     return;
   }
 
-  Vector *cmds = $(alloc(Vector), initWithSize, sizeof(cl_cmd_t *));
+  Vector *cmds = $(alloc(Vector), initWithSize, sizeof(ClientCmd *));
 
   while (++ack <= last) {
-    cl_cmd_t *cmd = &cl.cmds[ack & CMD_MASK];
+    ClientCmd *cmd = &cl.cmds[ack & CMD_MASK];
     $(cmds, add, &cmd);
   }
 
@@ -268,20 +268,20 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-  const pm_state_t *in = &cl.frame.ps.pm_state;
+  const PlayerMoveState *in = &cl.frame.ps.pmState;
 
-  cl_predicted_state_t *out = &cl.predicted_state;
+  ClientPredictedState *out = &cl.predictedState;
 
-  // calculate the last cl_cmd_t we sent that the server has processed
-  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.incoming_acknowledged & CMD_MASK];
+  // calculate the last ClientCmd we sent that the server has processed
+  ClientCmd *cmd = &cl.cmds[cls.netChan.incomingAcknowledged & CMD_MASK];
 
   // if prediction was not run (just spawned), don't sweat it
   if (cmd->prediction.time == 0) {
 
     out->view.origin = in->origin;
-    out->view.offset = in->view_offset;
-    out->view.angles = in->view_angles;
-    out->view.step_offset = 0.f;
+    out->view.offset = in->viewOffset;
+    out->view.angles = in->viewAngles;
+    out->view.stepOffset = 0.f;
 
     out->error = Vec3_Zero();
     return;
@@ -297,9 +297,9 @@ void Cl_CheckPredictionError(void) {
       Com_Debug(DEBUG_CLIENT, "MAX_DELTA_ORIGIN: %s\n", vtos(out->error));
 
       out->view.origin = in->origin;
-      out->view.offset = in->view_offset;
-      out->view.angles = in->view_angles;
-      out->view.step_offset = 0.f;
+      out->view.offset = in->viewOffset;
+      out->view.angles = in->viewAngles;
+      out->view.stepOffset = 0.f;
 
       out->error = Vec3_Zero();
     } else {
@@ -315,24 +315,24 @@ void Cl_CheckPredictionError(void) {
 void Cl_UpdatePrediction(void) {
 
   // ensure the world model is loaded
-  if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
+  if (!Com_WasInit(QUETOO_SERVER) || cl.demoServer || !Cm_NumModels()) {
 
-    Cm_LoadBspModel(cl.config_strings[CS_BSP], NULL);
+    Cm_LoadBspModel(cl.configStrings[CS_BSP], NULL);
 
     // prove it is the bsp the server loaded. The manifest can not answer this:
     // maps/<name>.mf is read from our own filesystem, so a locally consistent but
     // stale pair passes it. Only a hash the server computed is authoritative
-    const char *expected = cl.config_strings[CS_BSP_HASH];
+    const char *expected = cl.configStrings[CS_BSP_HASH];
     if (*expected) {
 
       char hash[MAX_QPATH];
-      if (!Cm_HashFile(cl.config_strings[CS_BSP], hash, sizeof(hash))) {
-        Com_Error(ERROR_DROP, "Failed to hash %s\n", cl.config_strings[CS_BSP]);
+      if (!Cm_HashFile(cl.configStrings[CS_BSP], hash, sizeof(hash))) {
+        Com_Error(ERROR_DROP, "Failed to hash %s\n", cl.configStrings[CS_BSP]);
       }
 
       if (q_strcmp(hash, expected)) {
         Com_Error(ERROR_DROP, "%s differs from server (%s, expected %s)\n",
-                  cl.config_strings[CS_BSP], hash, expected);
+                  cl.configStrings[CS_BSP], hash, expected);
       }
     }
   }
@@ -340,11 +340,11 @@ void Cl_UpdatePrediction(void) {
   // load the BSP models for prediction as well
   for (int32_t i = 0; i < MAX_MODELS; i++) {
 
-    const char *s = cl.config_strings[CS_MODELS + i];
+    const char *s = cl.configStrings[CS_MODELS + i];
     if (*s == '*') {
-      cl.cm_models[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
+      cl.cmModels[i] = Cm_Model(cl.configStrings[CS_MODELS + i]);
     } else {
-      cl.cm_models[i] = NULL;
+      cl.cmModels[i] = NULL;
     }
   }
 }

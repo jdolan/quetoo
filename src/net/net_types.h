@@ -66,18 +66,18 @@ typedef enum {
   NA_BROADCAST,
   NA_DATAGRAM,
   NA_STREAM
-} net_addr_type_t;
+} NetAddrType;
 
 typedef struct {
-  net_addr_type_t type;
+  NetAddrType type;
   in_addr_t addr;
   in_port_t port;
-} net_addr_t;
+} NetAddr;
 
 typedef enum {
   NS_UDP_CLIENT,
   NS_UDP_SERVER
-} net_src_t;
+} NetSrc;
 
 /**
  * @brief The network channel provides a conduit for packet sequencing and
@@ -85,31 +85,31 @@ typedef enum {
  * through this interface.
  */
 typedef struct {
-  net_src_t source;
+  NetSrc source;
 
   uint32_t dropped; // between last packet and previous
 
-  uint32_t last_received; // for timeouts
-  uint32_t last_sent; // for retransmits
+  uint32_t lastReceived; // for timeouts
+  uint32_t lastSent; // for retransmits
 
-  net_addr_t remote_address;
+  NetAddr remoteAddress;
 
   uint8_t qport; // to differentiate multiple clients behind NAT
 
   // sequencing variables
-  uint32_t incoming_sequence;
-  uint32_t incoming_acknowledged;
-  uint32_t outgoing_sequence;
+  uint32_t incomingSequence;
+  uint32_t incomingAcknowledged;
+  uint32_t outgoingSequence;
 
-  uint32_t reliable_sequence; // single bit
-  uint32_t reliable_acknowledged; // single bit
-  uint32_t reliable_incoming; // single bit
-  uint32_t reliable_outgoing; // outgoing sequence number of last reliable
+  uint32_t reliableSequence; // single bit
+  uint32_t reliableAcknowledged; // single bit
+  uint32_t reliableIncoming; // single bit
+  uint32_t reliableOutgoing; // outgoing sequence number of last reliable
 
-  mem_buf_t message; // writing buffer to send to server
-  byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
+  MemBuf message; // writing buffer to send to server
+  byte messageBuffer[MAX_MSG_SIZE - 10]; // leave space for header
 
   // message is copied to this buffer when it is first transfered
-  size_t reliable_size;
-  byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
-} net_chan_t;
+  size_t reliableSize;
+  byte reliableBuffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
+} NetChan;

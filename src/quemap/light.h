@@ -25,14 +25,14 @@
 
 #include "bsp.h"
 
-#define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
+#define LIGHT_COLOR MakeVec3(1.f, 1.f, 1.f)
 #define LIGHT_RADIUS 300.f
 #define LIGHT_INTENSITY 1.f
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
-typedef struct light_s {
+typedef struct Light {
 
   /**
    * @brief The entity number.
@@ -42,12 +42,12 @@ typedef struct light_s {
   /**
    * @brief The origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The color.
    */
-  vec3_t color;
+  Vec3 color;
 
   /**
    * @brief The light radius in units.
@@ -62,12 +62,12 @@ typedef struct light_s {
   /**
    * @brief The unclipped light bounds.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The visible light bounds.
    */
-  box3_t visible_bounds;
+  Box3 visibleBounds;
 
   /**
    * @brief The light style.
@@ -82,13 +82,13 @@ typedef struct light_s {
   /**
    * @brief The output light in the BSP, so that voxels may reference them.
    */
-  bsp_light_t *out;
+  BspLight *out;
 
   /**
    * @brief The entity number of the inline model entity this light is attached to, or 0.
    */
-  int32_t target_entity;
-} light_t;
+  int32_t targetEntity;
+} Light;
 
 extern Vector *lights;
 

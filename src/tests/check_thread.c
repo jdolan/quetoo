@@ -21,13 +21,13 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 typedef struct {
   bool ready;
-} critical_section_t;
+} CriticalSection;
 
-static critical_section_t cs;
+static CriticalSection cs;
 
 /**
  * @brief Setup fixture.
@@ -63,7 +63,7 @@ static void produce(void *data) {
  */
 static void consume(void *data) {
 
-  Thread_Wait((thread_t *) data); // wait for the producer
+  Thread_Wait((WorkerThread *) data); // wait for the producer
 
   ck_assert(cs.ready); // ensure the CS was made ready
 
@@ -71,9 +71,9 @@ static void consume(void *data) {
 }
 
 START_TEST(check_Thread_Wait) {
-  thread_t *p = Thread_Create(produce, NULL, 0);
+  WorkerThread *p = Thread_Create(produce, NULL, 0);
 
-  thread_t *c = Thread_Create(consume, p, 0);
+  WorkerThread *c = Thread_Create(consume, p, 0);
 
   Thread_Wait(c);
 

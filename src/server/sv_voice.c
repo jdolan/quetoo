@@ -21,27 +21,27 @@
 
 #include "sv_local.h"
 
-cvar_t *sv_voice;
-cvar_t *sv_voice_rate;
+Cvar *sv_voice;
+Cvar *sv_voiceRate;
 
 /**
  * @brief Mutes or unmutes a speaker for one listener.
  * @details Filtering at the source means a muted player's audio is never relayed, so muting saves
  * the listener the bandwidth rather than merely the annoyance.
  */
-void Sv_MuteVoice(const g_client_t *listener, const g_client_t *speaker, bool mute) {
+void Sv_MuteVoice(const GameClient *listener, const GameClient *speaker, bool mute) {
 
   if (!listener || !speaker) {
     return;
   }
 
-  sv_client_t *cl = svs.clients + listener->ps.client;
+  ServerClient *cl = svs.clients + listener->ps.client;
   const uint64_t bit = (uint64_t) 1 << speaker->ps.client;
 
   if (mute) {
-    cl->voice_mutes |= bit;
+    cl->voiceMutes |= bit;
   } else {
-    cl->voice_mutes &= ~bit;
+    cl->voiceMutes &= ~bit;
   }
 }
 
@@ -50,47 +50,47 @@ void Sv_MuteVoice(const g_client_t *listener, const g_client_t *speaker, bool mu
  * @details Client numbers are reused, so a mute left behind would silence whoever takes the slot
  * next, and would follow the muted player back in when they reconnect.
  */
-void Sv_ClearVoiceMutes(const sv_client_t *client) {
+void Sv_ClearVoiceMutes(const ServerClient *client) {
 
   const int32_t num = (int32_t) (client - svs.clients);
   const uint64_t bit = (uint64_t) 1 << num;
 
-  sv_client_t *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
-    cl->voice_mutes &= ~bit;
+  ServerClient *cl = svs.clients;
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
+    cl->voiceMutes &= ~bit;
   }
 
-  svs.clients[num].voice_mutes = 0;
+  svs.clients[num].voiceMutes = 0;
 }
 
 /**
  * @brief Charges a client's voice budget, returning false once it is spent.
  * @details A client on a poor connection bursting is not an attacker, so an exhausted budget
- * discards the frame rather than dropping the client. The bucket refills at sv_voice_rate and is
+ * discards the frame rather than dropping the client. The bucket refills at sv_voiceRate and is
  * never allowed to bank more than a second of it.
  */
-static bool Sv_ChargeVoice(sv_client_t *cl, int32_t bytes) {
+static bool Sv_ChargeVoice(ServerClient *cl, int32_t bytes) {
 
-  const int32_t rate = Maxi(sv_voice_rate->integer, 0);
+  const int32_t rate = Maxi(sv_voiceRate->integer, 0);
 
   if (!rate) {
     return false;
   }
 
-  if (cl->voice_time) {
-    cl->voice_bytes += (int32_t) ((quetoo.ticks - cl->voice_time) * rate / 1000);
-    cl->voice_bytes = Mini(cl->voice_bytes, rate);
+  if (cl->voiceTime) {
+    cl->voiceBytes += (int32_t) ((quetoo.ticks - cl->voiceTime) * rate / 1000);
+    cl->voiceBytes = Mini(cl->voiceBytes, rate);
   } else {
-    cl->voice_bytes = rate;
+    cl->voiceBytes = rate;
   }
 
-  cl->voice_time = quetoo.ticks;
+  cl->voiceTime = quetoo.ticks;
 
-  if (cl->voice_bytes < bytes) {
+  if (cl->voiceBytes < bytes) {
     return false;
   }
 
-  cl->voice_bytes -= bytes;
+  cl->voiceBytes -= bytes;
   return true;
 }
 
@@ -100,12 +100,12 @@ static bool Sv_ChargeVoice(sv_client_t *cl, int32_t bytes) {
  * out of the dedicated server keeps it dependency-light. Who may hear a channel is the game's to
  * say, beside the rules that already govern chat, rather than a client's to propose.
  */
-static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq, uint8_t flags,
+static void Sv_RelayVoice(const ServerClient *from, uint8_t channel, uint8_t seq, uint8_t flags,
                           const byte *data, int32_t len) {
 
   const int32_t speaker = (int32_t) (from - svs.clients);
 
-  mem_buf_t buf;
+  MemBuf buf;
   byte bytes[VOICE_MAX_PAYLOAD + 32]; // command, speaker, seq, flags, length
 
   Mem_InitBuffer(&buf, bytes, sizeof(bytes));
@@ -117,8 +117,8 @@ static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq,
   Net_WriteByte(&buf, len);
   Net_WriteData(&buf, data, len);
 
-  sv_client_t *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  ServerClient *cl = svs.clients;
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl == from || cl->state != SV_CLIENT_ACTIVE) {
       continue;
@@ -128,7 +128,7 @@ static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq,
       continue;
     }
 
-    if (cl->voice_mutes & ((uint64_t) 1 << speaker)) {
+    if (cl->voiceMutes & ((uint64_t) 1 << speaker)) {
       continue;
     }
 
@@ -143,12 +143,12 @@ static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq,
 /**
  * @brief Parses a voice frame from a client, validating and relaying it.
  */
-void Sv_ParseVoice(sv_client_t *cl) {
+void Sv_ParseVoice(ServerClient *cl) {
 
-  const uint8_t channel = Net_ReadByte(&net_message);
-  const uint8_t seq = Net_ReadByte(&net_message);
-  const uint8_t flags = Net_ReadByte(&net_message);
-  const int32_t len = Net_ReadByte(&net_message);
+  const uint8_t channel = Net_ReadByte(&netMessage);
+  const uint8_t seq = Net_ReadByte(&netMessage);
+  const uint8_t flags = Net_ReadByte(&netMessage);
+  const int32_t len = Net_ReadByte(&netMessage);
 
   if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
     Com_Warn("Bad voice frame of %d bytes from %s\n", len, Sv_NetaddrToString(cl));
@@ -156,14 +156,14 @@ void Sv_ParseVoice(sv_client_t *cl) {
     return;
   }
 
-  if (net_message.read + (size_t) len > net_message.size) {
+  if (netMessage.read + (size_t) len > netMessage.size) {
     Com_Warn("Truncated voice frame from %s\n", Sv_NetaddrToString(cl));
     Sv_DropClient(cl);
     return;
   }
 
   byte data[VOICE_MAX_PAYLOAD];
-  Net_ReadData(&net_message, data, len);
+  Net_ReadData(&netMessage, data, len);
 
   if (!sv_voice->integer || cl->state != SV_CLIENT_ACTIVE) {
     return;
@@ -183,5 +183,5 @@ void Sv_ParseVoice(sv_client_t *cl) {
 void Sv_InitVoice(void) {
 
   sv_voice = Cvar_Add("sv_voice", "1", CVAR_SERVER_INFO, "Enables voice chat relaying on this server");
-  sv_voice_rate = Cvar_Add("sv_voice_rate", "4000", 0, "The per-client voice chat budget, in bytes per second");
+  sv_voiceRate = Cvar_Add("sv_voiceRate", "4000", 0, "The per-client voice chat budget, in bytes per second");
 }

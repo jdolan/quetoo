@@ -28,10 +28,10 @@
 /**
  * @brief Allocates and prepends a new server info entry for the given network address.
  */
-static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
-  cl_server_info_t *s;
+static ClientServerInfo *Cl_AddServer(const NetAddr *addr) {
+  ClientServerInfo *s;
 
-  s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
+  s = (ClientServerInfo *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
 
   s->addr = *addr;
   q_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
@@ -48,9 +48,9 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 /**
  * @brief Finds the server info entry matching the given network address.
  */
-static net_addr_t Cl_ServerNetaddr(const net_addr_t *addr) {
+static NetAddr Cl_ServerNetaddr(const NetAddr *addr) {
 
-  net_addr_t a = *addr;
+  NetAddr a = *addr;
 
   // every loopback datagram is received stamped with no port, so a listen server has to be
   // keyed that way too, or the entry that asked can never be matched to its own answer
@@ -64,10 +64,10 @@ static net_addr_t Cl_ServerNetaddr(const net_addr_t *addr) {
 /**
  * @brief Returns the known server for the given address, or `NULL`.
  */
-static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
+static ClientServerInfo *Cl_ServerForNetaddr(const NetAddr *addr) {
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    cl_server_info_t *s = (cl_server_info_t *) $(cls.servers, get, i);
+    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (Net_CompareNetaddr(addr, &s->addr)) {
       return s;
@@ -95,10 +95,10 @@ void Cl_FreeServers(void) {
  * @remarks Matching is on the identity the server reports, not on how it looks. A server
  * that reports none is left alone rather than guessed at.
  */
-static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
+static void Cl_MergeDuplicateServers(const ClientServerInfo *server) {
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    const cl_server_info_t *other = (cl_server_info_t *) $(cls.servers, get, i);
+    const ClientServerInfo *other = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (other == server || Net_CompareNetaddr(&other->addr, &server->addr)) {
       continue;
@@ -119,28 +119,28 @@ static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
 void Cl_ParseServerInfo(void) {
   char string[MAX_MSG_SIZE];
 
-  cl_server_info_t *server = Cl_ServerForNetaddr(&net_from);
+  ClientServerInfo *server = Cl_ServerForNetaddr(&netFrom);
   if (!server) { // unknown server, assumed response to broadcast
 
-    server = Cl_AddServer(&net_from);
+    server = Cl_AddServer(&netFrom);
 
     server->source = SERVER_SOURCE_BCAST;
-    server->ping_time = cls.broadcast_time;
+    server->pingTime = cls.broadcastTime;
   }
 
-  const size_t length = net_message.read < net_message.size
-                        ? Minz(net_message.size - net_message.read, sizeof(string) - 1)
+  const size_t length = netMessage.read < netMessage.size
+                        ? Minz(netMessage.size - netMessage.read, sizeof(string) - 1)
                         : 0;
-  Net_ReadData(&net_message, string, length);
+  Net_ReadData(&netMessage, string, length);
   string[length] = '\0';
 
   Com_Debug(DEBUG_CLIENT, "Status from %s: %" PRIuPTR " bytes\n",
-            Net_NetaddrToString(&net_from), (uintptr_t) length);
+            Net_NetaddrToString(&netFrom), (uintptr_t) length);
 
   // First line is the server infostring; subsequent lines are player entries.
-  char *player_start = q_strchr(string, '\n');
-  if (player_start) {
-    *player_start++ = '\0';
+  char *playerStart = q_strchr(string, '\n');
+  if (playerStart) {
+    *playerStart++ = '\0';
   }
 
   char hostname[sizeof(server->hostname)];
@@ -150,25 +150,25 @@ void Cl_ParseServerInfo(void) {
 
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  const char *server_guid = InfoString_Get(string, "sv_guid");
-  const char *mode = InfoString_Get(string, "g_gameplay_mode");
+  const char *serverGuid = InfoString_Get(string, "sv_guid");
+  const char *mode = InfoString_Get(string, "g_gameplayMode");
   q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
-  const char *move = InfoString_Get(string, "g_movement_mode");
+  const char *move = InfoString_Get(string, "g_movementMode");
   q_strlcpy(movement, *move ? move : InfoString_Get(string, "g_movement"), sizeof(movement));
-  const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
+  const int32_t maxClients = atoi(InfoString_Get(string, "sv_maxClients"));
 
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
     q_strlcpy(server->name, name, sizeof(server->name));
-    q_strlcpy(server->guid, server_guid, sizeof(server->guid));
+    q_strlcpy(server->guid, serverGuid, sizeof(server->guid));
     q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
     q_strlcpy(server->movement, movement, sizeof(server->movement));
-    server->max_clients = max_clients;
+    server->maxClients = maxClients;
 
     server->clients = 0;
     server->bots = 0;
 
-    const char *line = player_start;
+    const char *line = playerStart;
     while (line && *line) {
       const char *end = q_strchr(line, '\n');
       if (!end) {
@@ -188,22 +188,22 @@ void Cl_ParseServerInfo(void) {
       line = end + 1;
     }
 
-    const int32_t sample = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
+    const int32_t sample = Clampf(quetoo.ticks - server->pingTime, 1u, 999u);
 
     // smooth across refreshes so the displayed ping converges instead of
     // bouncing on each request's one-shot round-trip measurement
-    if (server->ping_smoothed == 0) {
-      server->ping_smoothed = sample;
+    if (server->pingSmoothed == 0) {
+      server->pingSmoothed = sample;
     } else {
-      server->ping_smoothed = (server->ping_smoothed * 3 + sample) / 4;
+      server->pingSmoothed = (server->pingSmoothed * 3 + sample) / 4;
     }
 
-    server->ping = server->ping_smoothed;
+    server->ping = server->pingSmoothed;
     server->error[0] = '\0';
 
     Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, gameplay %s, %d/%d clients (%d bots), %dms\n",
-              Net_NetaddrToString(&net_from), server->hostname, server->name, server->gameplay,
-              server->clients, server->max_clients, server->bots, server->ping);
+              Net_NetaddrToString(&netFrom), server->hostname, server->name, server->gameplay,
+              server->clients, server->maxClients, server->bots, server->ping);
 
     Cl_MergeDuplicateServers(server);
 
@@ -214,13 +214,13 @@ void Cl_ParseServerInfo(void) {
     server->movement[0] = '\0';
 
     server->clients = 0;
-    server->max_clients = 0;
+    server->maxClients = 0;
     server->bots = 0;
 
     q_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
 
     Com_Debug(DEBUG_CLIENT, "Status from %s rejected: sv_hostname %s, sv_map %s\n",
-              Net_NetaddrToString(&net_from),
+              Net_NetaddrToString(&netFrom),
               hostname[0] ? "present" : "MISSING", name[0] ? "present" : "MISSING");
   }
 
@@ -235,8 +235,8 @@ void Cl_ParseServerInfo(void) {
  * @brief Handles the `ping` console command, pinging a specific server address.
  */
 void Cl_Ping_f(void) {
-  net_addr_t addr;
-  cl_server_info_t *server;
+  NetAddr addr;
+  ClientServerInfo *server;
 
   if (Cmd_Argc() != 2) {
     Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
@@ -261,7 +261,7 @@ void Cl_Ping_f(void) {
     server->source = SERVER_SOURCE_USER;
   }
 
-  server->ping_time = quetoo.ticks;
+  server->pingTime = quetoo.ticks;
   server->ping = 999;
 
   Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
@@ -273,18 +273,18 @@ void Cl_Ping_f(void) {
  * @brief Queries the status of the server at `addr`, adding it to the list if it is unknown, so
  * that its hostname is at hand for the connection in progress. A local server is not listed.
  */
-void Cl_QueryServer(const net_addr_t *addr) {
+void Cl_QueryServer(const NetAddr *addr) {
 
-  const net_addr_t to = Cl_ServerNetaddr(addr);
+  const NetAddr to = Cl_ServerNetaddr(addr);
 
-  cl_server_info_t *server = Cl_ServerForNetaddr(&to);
+  ClientServerInfo *server = Cl_ServerForNetaddr(&to);
 
   if (!server) {
     server = Cl_AddServer(&to);
     server->source = SERVER_SOURCE_USER;
   }
 
-  server->ping_time = quetoo.ticks;
+  server->pingTime = quetoo.ticks;
 
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
 }
@@ -293,13 +293,13 @@ void Cl_QueryServer(const net_addr_t *addr) {
  * @brief Returns the known status of the server being connected to or played on, or `NULL` if
  * there is none or it has never been queried.
  */
-const cl_server_info_t *Cl_ServerInfo(void) {
+const ClientServerInfo *Cl_ServerInfo(void) {
 
   if (cls.server.address[0] == '\0') {
     return NULL;
   }
 
-  const net_addr_t addr = Cl_ServerNetaddr(&cls.server.addr);
+  const NetAddr addr = Cl_ServerNetaddr(&cls.server.addr);
 
   return Cl_ServerForNetaddr(&addr);
 }
@@ -309,15 +309,15 @@ const cl_server_info_t *Cl_ServerInfo(void) {
  */
 static void Cl_SendBroadcast(void) {
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) { // update old ping times
-    cl_server_info_t *s = (cl_server_info_t *) $(cls.servers, get, i);
+    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (s->source == SERVER_SOURCE_BCAST) {
-      s->ping_time = quetoo.ticks;
+      s->pingTime = quetoo.ticks;
       s->ping = 999;
     }
   }
 
-  net_addr_t addr;
+  NetAddr addr;
   memset(&addr, 0, sizeof(addr));
 
   addr.type = NA_BROADCAST;
@@ -327,14 +327,14 @@ static void Cl_SendBroadcast(void) {
 
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
 
-  cls.broadcast_time = quetoo.ticks;
+  cls.broadcastTime = quetoo.ticks;
 }
 
 /**
  * @brief Handles the `servers` console command, querying the master server and sending a LAN broadcast.
  */
 void Cl_Servers_f(void) {
-  net_addr_t addr;
+  NetAddr addr;
 
   if (!Net_StringToNetaddr(HOST_MASTER, &addr)) {
     Com_Print("Failed to resolve %s\n", HOST_MASTER);
@@ -358,25 +358,25 @@ void Cl_Servers_f(void) {
  * @brief Parses the server list from a master server response and pings each entry.
  */
 void Cl_ParseServers(void) {
-  cl_server_info_t *server;
+  ClientServerInfo *server;
 
   Com_Debug(DEBUG_CLIENT, "Servers list from %s: %" PRIuPTR " bytes\n",
-            Net_NetaddrToString(&net_from), (uintptr_t) net_message.size);
+            Net_NetaddrToString(&netFrom), (uintptr_t) netMessage.size);
 
-  if (net_message.size <= 12) {
+  if (netMessage.size <= 12) {
     Com_Debug(DEBUG_CLIENT, "Servers list is empty (the master knows of no servers "
               "for protocol %d)\n", PROTOCOL_MAJOR);
     return;
   }
 
-  byte *buffptr = net_message.data + 12;
-  byte *buffend = buffptr + net_message.size - 12;
+  byte *buffptr = netMessage.data + 12;
+  byte *buffend = buffptr + netMessage.size - 12;
 
   uint32_t parsed = 0;
 
   // parse the list
   while (buffptr + 1 < buffend) {
-    net_addr_t addr;
+    NetAddr addr;
     byte ip[4];
 
     ip[0] = *buffptr++; // parse the address
@@ -412,17 +412,17 @@ void Cl_ParseServers(void) {
     parsed++;
   }
 
-  net_message.read = net_message.size;
+  netMessage.read = netMessage.size;
 
   // then ping them
 
   uint32_t queried = 0;
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    server = (cl_server_info_t *) $(cls.servers, get, i);
+    server = (ClientServerInfo *) $(cls.servers, get, i);
 
     if (server->source == SERVER_SOURCE_INTERNET) {
-      server->ping_time = quetoo.ticks;
+      server->pingTime = quetoo.ticks;
       server->ping = 0;
 
       Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
@@ -441,17 +441,17 @@ void Cl_ParseServers(void) {
 }
 
 /**
- * @brief Handles the `servers_list` console command, printing all known servers to the console.
+ * @brief Handles the `serversList` console command, printing all known servers to the console.
  */
 void Cl_Servers_List_f(void) {
   char string[256];
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    const cl_server_info_t *s = (const cl_server_info_t *) $(cls.servers, get, i);
+    const ClientServerInfo *s = (const ClientServerInfo *) $(cls.servers, get, i);
 
     q_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
-               s->max_clients, s->ping);
+               s->maxClients, s->ping);
     Com_Print("%s\n", string);
   }
 }

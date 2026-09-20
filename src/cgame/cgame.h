@@ -38,49 +38,49 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 58
+#define CGAME_API_VERSION 59
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
  */
-typedef struct cg_import_s {
+typedef struct ClientGameImport {
 
   /**
    * @brief The client structure.
    */
-  cl_client_t *client;
+  Client *client;
 
   /**
    * @brief The client state.
    */
-  const cl_state_t *state;
+  const ClientState *state;
 
   /**
    * @brief The server we're connecting/connected to.
    */
-  const cl_server_t *server;
+  const ClientServer *server;
 
   /**
    * @brief Demo recording and playback state, including `duration` for the demo currently being
    * played back (0 if none). Lives on the client-static struct rather than `client`, so it
    * survives a level load's Cl_ClearState.
    */
-  const cl_demo_t *demo;
+  const ClientDemo *demo;
 
   /**
    * @brief The renderer context.
    */
-  const r_context_t *context;
+  const RenderContext *context;
 
   /**
    * @brief The renderer view definition.
    */
-  r_view_t *view;
+  RenderView *view;
 
   /**
    * @brief The sound stage.
    */
-  s_stage_t *stage;
+  SoundStage *stage;
 
   /**
    * @defgroup console-appending Console appending
@@ -102,13 +102,13 @@ typedef struct cg_import_s {
   /**
    * @return The active debug mask.
    */
-  debug_t (*DebugMask)(void);
+  DebugFlags (*DebugMask)(void);
 
   /**
    * @brief Prints a formatted debug message to the configured consoles.
    * @details If the proivided `debug` mask is inactive, the message will not be printed.
    */
-  void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+  void (*Debug)(const DebugFlags debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
    * @brief Prints a formatted warning message to the configured consoles.
@@ -123,10 +123,10 @@ typedef struct cg_import_s {
   /**
    * @brief Captures a backtrace of the calling thread's stack, for diagnostic logging.
    * @param start How many innermost frames to skip (e.g. `1` to skip this call itself).
-   * @param max_count The maximum number of frames to include.
+   * @param maxCount The maximum number of frames to include.
    * @return A heap-allocated string describing the stack; caller must `free()` it.
    */
-  char *(*Backtrace)(uint32_t start, uint32_t max_count);
+  char *(*Backtrace)(uint32_t start, uint32_t maxCount);
 
   /**
    * @}
@@ -138,7 +138,7 @@ typedef struct cg_import_s {
    * @param tag The tag to associate the managed block with (e.g. `MEM_TAG_CGAME_LEVEL`).
    * @return A newly allocated block of managed memory under the given `tag`.
    */
-  void *(*Malloc)(size_t size, mem_tag_t tag);
+  void *(*Malloc)(size_t size, MemTag tag);
 
   /**
    * @return A newly allocated block of managed memory, linked to `parent`.
@@ -160,7 +160,7 @@ typedef struct cg_import_s {
   /**
    * @brief Frees all managed memory allocated with the given `tag`.
    */
-  void (*FreeTag)(mem_tag_t tag);
+  void (*FreeTag)(MemTag tag);
 
   /**
    * @}
@@ -177,13 +177,13 @@ typedef struct cg_import_s {
    * @remarks Unless `THREAD_NO_WAIT` is passed via `options`, the caller must also
    * call `Wait` on the returned thread in order to relinquish it to the thread pool.
    */
-  thread_t *(*Thread)(const char *name, ThreadRunFunc run, void *data, thread_options_t options);
+  WorkerThread *(*Thread)(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options);
 
   /**
    * @brief Waits for the previously started thread, blocking the calling thread.
    * @param thread The thread.
    */
-  void (*Wait)(thread_t *thread);
+  void (*Wait)(WorkerThread *thread);
 
   /**
    * @}
@@ -210,13 +210,13 @@ typedef struct cg_import_s {
    * @param out The return value. Pass @c NULL to simply check if the file exists.
    * @return True if the @c stat was successful, false otherwise.
    */
-  bool (*StatFile)(const char *path, fs_stat_t *out);
+  bool (*StatFile)(const char *path, FsStat *out);
 
   /**
    * @brief Opens the specified file for reading.
    * @param path The file path (e.g. `"maps/torn.bsp"`).
    */
-  file_t *(*OpenFile)(const char *path);
+  File *(*OpenFile)(const char *path);
 
   /**
    * @brief Seeks to the specified offset.
@@ -224,7 +224,7 @@ typedef struct cg_import_s {
    * @param offset The offset.
    * @return True on success, false on error.
    */
-  bool (*SeekFile)(file_t *file, int64_t offset);
+  bool (*SeekFile)(File *file, int64_t offset);
 
   /**
    * @brief Reads from the specified file.
@@ -234,13 +234,13 @@ typedef struct cg_import_s {
    * @param count The count of the objects to read.
    * @return The number of objects read, or -1 on failure.
    */
-  int64_t (*ReadFile)(file_t *file, void *buffer, size_t size, size_t count);
+  int64_t (*ReadFile)(File *file, void *buffer, size_t size, size_t count);
 
   /**
    * @brief Opens the specified file for writing.
    * @param path The file path (e.g. `"maps.ui.list"`).
    */
-  file_t *(*OpenFileWrite)(const char *path);
+  File *(*OpenFileWrite)(const char *path);
 
   /**
    * @brief Overwrites `size` bytes at `offset` within `path`, in the write directory, without
@@ -261,14 +261,14 @@ typedef struct cg_import_s {
    * @param count The count of the objecst to write.
    * @return The number of objects written, or `-1` on error.
    */
-  int64_t (*WriteFile)(file_t *file, const void *buffer, size_t size, size_t count);
+  int64_t (*WriteFile)(File *file, const void *buffer, size_t size, size_t count);
 
   /**
    * @brief Closes the specified file.
    * @param file The file.
    * @return True on success, false on error.
    */
-  bool (*CloseFile)(file_t *file);
+  bool (*CloseFile)(File *file);
 
   /**
    * @brief Deletes the specified file from the write directory.
@@ -313,13 +313,13 @@ typedef struct cg_import_s {
    * @param desc The variable description for builtin console help.
    * @return The console variable.
    */
-  cvar_t *(*AddCvar)(const char *name, const char *value, uint32_t flags, const char *desc);
+  Cvar *(*AddCvar)(const char *name, const char *value, uint32_t flags, const char *desc);
 
   /**
    * @brief Resolves a console variable that is expected to be defined by the engine.
    * @return The predefined console variable.
    */
-  cvar_t *(*GetCvar)(const char *name);
+  Cvar *(*GetCvar)(const char *name);
 
   /**
    * @return The integer value of the console variable with the given name.
@@ -339,17 +339,17 @@ typedef struct cg_import_s {
   /**
    * @brief Sets the console variable by `name` to `value`.
    */
-  cvar_t *(*SetCvarInteger)(const char *name, int32_t value);
+  Cvar *(*SetCvarInteger)(const char *name, int32_t value);
 
   /**
    * @brief Sets the console variable by `name` to `string`.
    */
-  cvar_t *(*SetCvarString)(const char *name, const char *string);
+  Cvar *(*SetCvarString)(const char *name, const char *string);
 
   /**
    * @brief Sets the console variable by `name` to `value`.
    */
-  cvar_t *(*SetCvarValue)(const char *name, float value);
+  Cvar *(*SetCvarValue)(const char *name, float value);
 
   /**
    * @brief Forces the console variable to take the value of the string immediately.
@@ -357,7 +357,7 @@ typedef struct cg_import_s {
    * @param string The variable string.
    * @return The modified variable.
    */
-  cvar_t *(*ForceSetCvarString)(const char *name, const char *string);
+  Cvar *(*ForceSetCvarString)(const char *name, const char *string);
 
   /**
    * @brief Forces the console variable to take the given value immediately.
@@ -365,12 +365,12 @@ typedef struct cg_import_s {
    * @param value The variable value.
    * @return The modified variable.
    */
-  cvar_t *(*ForceSetCvarValue)(const char *name, float value);
+  Cvar *(*ForceSetCvarValue)(const char *name, float value);
 
   /**
    * @brief Toggles the console variable by `name`.
    */
-  cvar_t *(*ToggleCvar)(const char *name);
+  Cvar *(*ToggleCvar)(const char *name);
 
   /**
    * @brief Answers the question posed by `INSTALLER_UPDATE_AVAILABLE`.
@@ -387,7 +387,7 @@ typedef struct cg_import_s {
    * @param desc The command description for builtin console help.
    * @return The console command.
    */
-  cmd_t *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
+  Cmd *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
 
   /**
    * @brief Returns the tokenized argument at the given index, as set by the most recent
@@ -416,10 +416,10 @@ typedef struct cg_import_s {
    * `whence` and `scroll`, wrapped to its `width`.
    * @param console The console filter.
    * @param lines The array to receive the lines, which the caller MUST free with `Free`.
-   * @param max_lines The capacity of `lines`.
+   * @param maxLines The capacity of `lines`.
    * @return The count of lines collected.
    */
-  size_t (*Tail)(const console_t *console, char **lines, size_t max_lines);
+  size_t (*Tail)(const Console *console, char **lines, size_t maxLines);
 
   /**
    * @}
@@ -490,7 +490,7 @@ typedef struct cg_import_s {
   void (*BindKey)(SDL_Scancode key, const char *bind);
 
   /**
-   * @return The list of known servers (`cl_server_info_t`).
+   * @return The list of known servers (`ClientServerInfo`).
    */
   PointerArray *(*Servers)(void);
 
@@ -505,13 +505,13 @@ typedef struct cg_import_s {
    * answered yet: `name` is set once it has. The entry belongs to the server list and MUST NOT be
    * held across frames.
    */
-  const cl_server_info_t *(*ServerInfo)(void);
+  const ClientServerInfo *(*ServerInfo)(void);
 
   /**
    * @brief Initiates the connection sequence to the specified server address.
    * @param addr The network server address.
    */
-  void (*Connect)(const net_addr_t *addr);
+  void (*Connect)(const NetAddr *addr);
 
   /**
    * @return The list of mapshots (char *) for the given map.
@@ -573,12 +573,12 @@ typedef struct cg_import_s {
   /**
    * @brief Reads a positional vector from the last received network message.
    */
-  vec3_t (*ReadPosition)(void);
+  Vec3 (*ReadPosition)(void);
 
   /**
    * @brief Reads a 32 bit precision directional vector from the last received network message.
    */
-  vec3_t (*ReadDir)(void);
+  Vec3 (*ReadDir)(void);
 
   /**
    * @brief Reads a 16 bit precision angle from the last received network message.
@@ -588,7 +588,7 @@ typedef struct cg_import_s {
   /**
    * @brief Reads a 16 bit precision angle triplet from the last received network message.
    */
-  vec3_t (*ReadAngles)(void);
+  Vec3 (*ReadAngles)(void);
 
   /**
    * @}
@@ -599,13 +599,13 @@ typedef struct cg_import_s {
   /**
    * @return The BSP model for the currrently loaded map.
    */
-  const cm_bsp_t *(*Bsp)(void);
+  const CmBsp *(*Bsp)(void);
 
   /**
    * @brief Returns the worldspawn entity definition.
    * @return The worldspawn entity definition.
    */
-  const cm_entity_t *(*Worldspawn)(void);
+  const CmEntity *(*Worldspawn)(void);
 
   /**
    * @brief Finds the entity pair for `key` within the specifed entity.
@@ -615,7 +615,7 @@ typedef struct cg_import_s {
    * @remarks This function will always return non-`NULL` for convenience. Check the
    * parsed types on the returned pair to differentiate "not present" from "0."
    */
-  const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
+  const CmEntity *(*EntityValue)(const CmEntity *entity, const char *key);
 
   /**
    * @brief Returns a new entity list with keys from src assigned into a copy of dst.
@@ -623,7 +623,7 @@ typedef struct cg_import_s {
    *   Analogous to JavaScript's `Object.assign(dst, src)`.
    * @return A newly allocated entity list; the caller must free with `Cm_FreeEntity`.
    */
-  cm_entity_t *(*EntityAssign)(const cm_entity_t *dst, const cm_entity_t *src);
+  CmEntity *(*EntityAssign)(const CmEntity *dst, const CmEntity *src);
 
   /**
    * @brief Finds all brushes within the specified entity.
@@ -633,25 +633,25 @@ typedef struct cg_import_s {
    * in the source .map file. Even `func_group` and other entities which have their
    * brushes merged into `worldspawn` during the compilation step are fully supported.
    */
-  Vector *(*EntityBrushes)(const cm_entity_t *entity);
+  Vector *(*EntityBrushes)(const CmEntity *entity);
 
   /**
    * @brief Allocates a new entity definition. Used primarily by the editor.
    * @return A new entity definition.
    */
-  cm_entity_t *(*AllocEntity)(void);
+  CmEntity *(*AllocEntity)(void);
 
   /**
    * @brief Frees an entity definition. Used primarily by the editor.
    * @param entity The entity definition to free.
    */
-  void (*FreeEntity)(cm_entity_t *entity);
+  void (*FreeEntity)(CmEntity *entity);
 
   /**
    * @brief Parses the key/value pairs of the specified entity.
    * @param entity The entity to parse.
    */
-  void (*ParseEntity)(cm_entity_t *entity);
+  void (*ParseEntity)(CmEntity *entity);
 
   /**
    * @brief Sets a key/value pair on the specified entity.
@@ -661,47 +661,47 @@ typedef struct cg_import_s {
    * @param value The value.
    * @return The entity.
    */
-  cm_entity_t *(*SetEntityKeyValue)(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value);
+  CmEntity *(*SetEntityKeyValue)(CmEntity *entity, const char *key, CmEntityParsed field, const void *value);
 
   /**
    * @brief Serializes the entity to an info string.
    * @param entity The entity.
    * @return The info string. The caller must free this.
    */
-  char *(*EntityToInfoString)(const cm_entity_t *entity);
+  char *(*EntityToInfoString)(const CmEntity *entity);
 
   /**
    * @brief Deserializes an entity from an info string.
    * @param str The info string.
    * @return A newly allocated entity. The caller must free this with FreeEntity.
    */
-  cm_entity_t *(*EntityFromInfoString)(const char *str);
+  CmEntity *(*EntityFromInfoString)(const char *str);
 
   /**
    * @return The contents mask at the specified point.
    * @param point The point to test.
    * @remarks This checks the world model and all known solid entities.
    */
-  int32_t (*PointContents)(const vec3_t point);
+  int32_t (*PointContents)(const Vec3 point);
 
   /**
    * @return The contents mask of all leafs within the specified box.
    * @param bounds The bounding box to test.
    * @remarks This checks the world model and all known solid entities.
    */
-  int32_t (*BoxContents)(const box3_t bounds);
+  int32_t (*BoxContents)(const Box3 bounds);
 
   /**
    * @brief Populates the list of leafs the specified bounding box touches.
    * @param bounds The bounds in world space.
    * @param list The list of leaf numbers to populate.
    * @param length The maximum number of leafs to return.
-   * @param top_node If not null, this will contain the top node for the box.
-   * @param head_node The head node to recurse from.
+   * @param topNode If not null, this will contain the top node for the box.
+   * @param headNode The head node to recurse from.
    * @param matrix The matrix by which to transform planes.
    * @return The number of leafs accumulated to the list.
    */
-  size_t (*BoxLeafnums)(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node);
+  size_t (*BoxLeafnums)(const Box3 bounds, int32_t *list, size_t length, int32_t *topNode, int32_t headNode);
 
   /**
    * @return True if `point` resides inside `brush`, falses otherwise.
@@ -710,7 +710,7 @@ typedef struct cg_import_s {
    * @remarks This function is useful for testing points against non-solid brushes
    * from brush entities. For general purpose collision detection, use PointContents.
    */
-  bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+  bool (*PointInsideBrush)(const Vec3 point, const CmBspBrush *brush);
 
   /**
    * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
@@ -721,24 +721,24 @@ typedef struct cg_import_s {
    * @param contents Solids matching this mask will clip the returned trace.
    * @return A trace result.
    */
-  cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents);
+  CmTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents);
 
   /**
    * @brief Traces a point ray from `start` to `end` against a single brush.
    * @param start The trace start point.
    * @param end The trace end point.
    * @param brush The brush to test.
-   * @return A trace result. Check `start_solid` to detect the view origin being inside the brush.
+   * @return A trace result. Check `startSolid` to detect the view origin being inside the brush.
    */
-  cm_trace_t (*TraceToBrush)(const vec3_t start, const vec3_t end, const cm_bsp_brush_t *brush);
+  CmTrace (*TraceToBrush)(const Vec3 start, const Vec3 end, const CmBspBrush *brush);
 
   /**
    * @brief Returns the leaf number containing the specified point.
    * @param p The point.
-   * @param head_node The head node to recurse from, or 0 for the world.
+   * @param headNode The head node to recurse from, or 0 for the world.
    * @return The leaf number, or -1 if outside.
    */
-  int32_t (*PointLeafnum)(const vec3_t p, int32_t head_node);
+  int32_t (*PointLeafnum)(const Vec3 p, int32_t headNode);
 
   /**
    * @}
@@ -747,34 +747,34 @@ typedef struct cg_import_s {
   /**
    * @brief Set the keyboard input destination.
    */
-  void (*SetKeyDest)(cl_key_dest_t dest);
+  void (*SetKeyDest)(ClientKeyDest dest);
 
   /**
    * @brief Returns the current keyboard input destination.
    */
-  cl_key_dest_t (*GetKeyDest)(void);
+  ClientKeyDest (*GetKeyDest)(void);
 
   /**
    * @brief Sends an entity info string to the server, creating, updating, or deleting an entity.
    * @param number The entity number, or -1 to create a new entity.
    * @param entity The entity definition, or `NULL` to delete the entity.
    */
-  void (*WriteEntityInfoCommand)(int16_t number, const cm_entity_t *entity);
+  void (*WriteEntityInfoCommand)(int16_t number, const CmEntity *entity);
 
   /**
    * @brief Register a button as being held down.
    */
-  void (*KeyDown)(button_t *b);
+  void (*KeyDown)(InputButton *b);
 
   /**
    * @brief Register a button as being released.
    */
-  void (*KeyUp)(button_t *b);
+  void (*KeyUp)(InputButton *b);
 
   /**
    * @brief Returns the fraction of the command interval for which the key was down.
    */
-  float (*KeyState)(button_t *key, uint32_t cmd_msec);
+  float (*KeyState)(InputButton *key, uint32_t cmdMsec);
 
   /**
    * @brief Update the loading progress during media loading.
@@ -799,35 +799,35 @@ typedef struct cg_import_s {
    */
   void (*StopVoice)(void);
 
-  s_sample_t *(*LoadSample)(const char *name, asset_context_t context);
+  SoundSample *(*LoadSample)(const char *name, AssetContext context);
 
   /**
    * @brief Loads a sound sample for the given player model and name.
    * @param model The player model name (e.g. `"enforcer"`).
-   * @param sound_set The player model's sound set (e.g. `"male"`, `"female"`, `"cyborg"`).
+   * @param soundSet The player model's sound set (e.g. `"male"`, `"female"`, `"cyborg"`).
    * @param name The sample name (e.g. `"*gurp"`).
    * @return The loaded sample, which may be an aliased common sample.
    */
-  s_sample_t *(*LoadClientModelSample)(const char *model, const char *sound_set, const char *name);
+  SoundSample *(*LoadClientModelSample)(const char *model, const char *soundSet, const char *name);
 
   /**
    * @brief Precache all sound samples for a given player model.
    */
-  void (*LoadClientModelSamples)(const char *model, const char *sound_set);
+  void (*LoadClientModelSamples)(const char *model, const char *soundSet);
 
   /**
    * @brief Adds a sound sample to the playback queue.
    * @param stage The sound stage.
    * @param play The play sample.
    */
-  void (*AddSample)(s_stage_t *stage, const s_play_sample_t *play);
+  void (*AddSample)(SoundStage *stage, const SoundPlaySample *play);
 
   /**
    * @brief Creates a Framebuffer from @p info, scaled to the current render
    * scale and forced to the shared scene sample count.
    * @param info Framebuffer creation parameters. @p info->size is a logical
    *   (point) size; it's scaled internally by the display's pixel density and
-   *   by r_framebuffer_scale. @p info->sampleCount is overridden to match the
+   *   by r_framebufferScale. @p info->sampleCount is overridden to match the
    *   main scene's, since the shared mesh/bsp pipelines are built with that
    *   exact sample count baked in. All other fields (attachments, formats,
    *   clear values) are used as given.
@@ -870,14 +870,14 @@ typedef struct cg_import_s {
    * @return The image.
    * @remarks This function never returns `NULL`, but instead will return the null texture.
    */
-  r_image_t *(*LoadImage)(const char *name, r_image_type_t type);
+  RenderImage *(*LoadImage)(const char *name, RenderImageType type);
 
   /**
    * @brief Loads or creates an image atlas.
    * @param name The name to give to the atlas, e.g. `"cg_particle_atlas"`
    * @return The atlas that has been created.
    */
-  r_atlas_t *(*LoadAtlas)(const char *name);
+  RenderAtlas *(*LoadAtlas)(const char *name);
 
   /**
    * @brief Load an image into an atlas. The atlas must be [re]compiled.
@@ -885,22 +885,22 @@ typedef struct cg_import_s {
    * @param image The image to add to the atlas.
    * @return The atlas image, or a placeholder if the image could not be loaded.
    */
-  r_atlas_image_t *(*LoadAtlasImage)(r_atlas_t *atlas, const char *name, r_image_type_t type);
+  RenderAtlasImage *(*LoadAtlasImage)(RenderAtlas *atlas, const char *name, RenderImageType type);
 
   /**
    * @brief Compiles the specified atlas, preparing all atlas images it contains for rendering.
    * @param atlas The atlas to stitch together and produce the image for.
    */
-  void (*CompileAtlas)(r_atlas_t *atlas);
+  void (*CompileAtlas)(RenderAtlas *atlas);
 
   /**
    * @brief Creates an animation.
    * @param name The name to give to the animation, e.g. `"cg_flame_1"`
-   * @param num_images The number of images in the image pointer list.
+   * @param numImages The number of images in the image pointer list.
    * @param images The image pointer list.
    * @return The animation that has been created.
    */
-  r_animation_t *(*CreateAnimation)(const char *name, int32_t num_images, const r_image_t **images);
+  RenderAnimation *(*CreateAnimation)(const char *name, int32_t numImages, const RenderImage **images);
 
   /**
    * @brief Loads the material with the given name.
@@ -908,19 +908,19 @@ typedef struct cg_import_s {
    * @param context The asset context, e.g. `ASSET_CONTEXT_PLAYERS`.
    * @return The material.
    */
-  r_material_t *(*LoadMaterial)(const char *name, asset_context_t context);
+  RenderMaterial *(*LoadMaterial)(const char *name, AssetContext context);
 
   /**
    * @brief Loads the model with the given name.
    * @param name The model name (e.g. `"models/rocket/tris"`).
    * @return The model.
    */
-  r_model_t *(*LoadModel)(const char *name);
+  RenderModel *(*LoadModel)(const char *name);
 
   /**
    * @return The world model for the currently loaded level.
    */
-  r_model_t *(*WorldModel)(void);
+  RenderModel *(*WorldModel)(void);
 
   /**
    * @defgroup scene Scene management
@@ -930,33 +930,33 @@ typedef struct cg_import_s {
   /**
    * @brief Initializes the view, preparing it for a new frae.
    */
-  void (*InitView)(r_view_t *view);
+  void (*InitView)(RenderView *view);
 
   /**
    * @brief Adds an entity to the scene for the current frame.
    * @return The added entity.
    */
-  r_entity_t *(*AddEntity)(r_view_t *view, const r_entity_t *e);
+  RenderEntity *(*AddEntity)(RenderView *view, const RenderEntity *e);
 
   /**
    * @brief Adds an instantaneous light to the scene for the current frame.
    */
-  void (*AddLight)(r_view_t *view, const r_light_t *l);
+  void (*AddLight)(RenderView *view, const RenderLight *l);
   
   /**
    * @brief Adds a sprite to the scene for the current frame.
    */
-  r_sprite_t *(*AddSprite)(r_view_t *view, const r_sprite_t *p);
+  RenderSprite *(*AddSprite)(RenderView *view, const RenderSprite *p);
   
   /**
    * @brief Adds a beam to the scene for the current frame.
    */
-  r_beam_t *(*AddBeam)(r_view_t *view, const r_beam_t *p);
+  RenderBeam *(*AddBeam)(RenderView *view, const RenderBeam *p);
 
   /**
    * @brief Adds a decal to the scene.
    */
-  void (*AddDecal)(r_view_t *view, const r_decal_t *decal);
+  void (*AddDecal)(RenderView *view, const RenderDecal *decal);
 
   /**
    * @brief Adds a portal to the scene.
@@ -968,12 +968,12 @@ typedef struct cg_import_s {
    * one on worldspawn or on anything else that does not move. A portal face's frame is baked in
    * the space of the model that draws it, so this is what carries it into the world.
    */
-  void (*AddPortal)(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix);
+  void (*AddPortal)(RenderView *view, RenderBspPortal *portal, const Mat4 matrix);
 
   /**
    * @brief Draws the player model view.
    */
-  void (*DrawPlayerModelView)(r_view_t *view);
+  void (*DrawPlayerModelView)(RenderView *view);
 
   /**
    * @}
@@ -987,30 +987,30 @@ typedef struct cg_import_s {
    * @param points The points array, in pairs.
    * @param count The length of points.
    * @param color Color.
-   * @param depth_test Depth test.
+   * @param depthTest Depth test.
   */
-  void (*Draw3DLines)(SDL_GPUPrimitiveType mode, const vec3_t *points, size_t count, const color_t color, bool depth_test);
+  void (*Draw3DLines)(SDL_GPUPrimitiveType mode, const Vec3 *points, size_t count, const Color color, bool depthTest);
 
   /**
    * @brief Draw a 3D bbox at the given coordinates.
    * @param bounds Box.
    * @param color Color.
-   * @param depth_test Depth test.
+   * @param depthTest Depth test.
   */
-  void (*Draw3DBox)(const box3_t bounds, const color_t color, bool depth_test);
+  void (*Draw3DBox)(const Box3 bounds, const Color color, bool depthTest);
 
   /**
    * @}
    */
 
-} cg_import_t;
+} ClientGameImport;
 
 /**
  * @brief The client game export struct exports client game functionality to the engine.
  */
-typedef struct cg_export_s {
+typedef struct ClientGameExport {
 
-  int32_t api_version;
+  int32_t apiVersion;
   int32_t protocol;
 
   /**
@@ -1084,13 +1084,13 @@ typedef struct cg_export_s {
    * @brief Called each frame to update the current movement command angles.
    * @param cmd The current movement command.
    */
-  void (*Look)(pm_cmd_t *cmd);
+  void (*Look)(PlayerMoveCmd *cmd);
 
   /**
    * @brief Called each frame to updarte the current movement command movement.
    * @param cmd The current movement command.
    */
-  void (*Move)(pm_cmd_t *cmd);
+  void (*Move)(PlayerMoveCmd *cmd);
 
   /**
    * @brief Called on incoming chat messages, which the module may render.
@@ -1115,7 +1115,7 @@ typedef struct cg_export_s {
    * @details This does not populate the view with frame entities. Rather, this advances the
    * simulation for each entity within the frame.
    */
-  void (*Interpolate)(const cl_frame_t *frame);
+  void (*Interpolate)(const ClientFrame *frame);
 
   /**
    * @brief Called to determine if client side prediction should be used for the current frame.
@@ -1134,38 +1134,38 @@ typedef struct cg_export_s {
    * @brief Called during the loading process to allow the client game to update the loading
    * screen.
    */
-  void (*UpdateLoading)(const cl_loading_t loading);
+  void (*UpdateLoading)(const ClientLoading loading);
 
   /**
    * @brief Called each frame to update the view definition and sound stage.
    * @details This function should perform the minimal amount of work required to dispatch
    * the depth pre-pass render. The scene should not be populated with entities, samples, etc.
    */
-  void (*PrepareScene)(const cl_frame_t *frame);
+  void (*PrepareScene)(const ClientFrame *frame);
 
   /**
    * @brief Called each frame to populate the view definition and sound stage.
    * @details This function should add entities, sprites, lights, samples, etc. to the view
    * definition and sound stage.
    */
-  void (*PopulateScene)(const cl_frame_t *frame);
+  void (*PopulateScene)(const ClientFrame *frame);
 
   /**
    * @brief Called each frame to populate the view definition and sound stage for the in-game editor.
    * @details This function should add editor entities (lights, models, etc.) and think client-side
    * entities such as `misc_sound` and `misc_flame` so they are live in editor mode.
    */
-  void (*PopulateEditorScene)(const cl_frame_t *frame);
+  void (*PopulateEditorScene)(const ClientFrame *frame);
 
   /**
    * @brief Called each frame to draw any non-view visual elements, such as the HUD.
    */
-  void (*UpdateScreen)(const cl_frame_t *frame);
+  void (*UpdateScreen)(const ClientFrame *frame);
 
   /**
    * @brief Called each client frame when the in-game installer is active.
    */
-  int32_t (*UpdateInstaller)(const installer_status_t *in);
+  int32_t (*UpdateInstaller)(const InstallerStatus *in);
 
   /**
    * @brief Called each frame to update Discord status.
@@ -1178,7 +1178,7 @@ typedef struct cg_export_s {
    * that prediction clips exactly what the server does.
    * @param mover The entity the trace is on behalf of, or `NULL`.
    */
-  bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent);
-} cg_export_t;
+  bool (*ClipEntity)(const ClientEntity *mover, const ClientEntity *ent);
+} ClientGameExport;
 
 #endif

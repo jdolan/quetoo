@@ -59,14 +59,14 @@ struct OverlayTextInterface {
   TextInterface textInterface;
 
   /**
-   * @fn const char *OverlayText::textForFrame(OverlayText *self, const cl_frame_t *frame)
+   * @fn const char *OverlayText::textForFrame(OverlayText *self, const ClientFrame *frame)
    * @brief Resolves the text to show for the given frame.
    * @param self The OverlayText.
    * @param frame The frame.
    * @return The text, or `NULL` to hide this view.
    * @memberof OverlayText
    */
-  const char *(*textForFrame)(OverlayText *self, const cl_frame_t *frame);
+  const char *(*textForFrame)(OverlayText *self, const ClientFrame *frame);
 };
 
 CGAME_EXPORT Class *_OverlayText(void);

@@ -33,7 +33,7 @@ static struct {
    * whole scene, so they are pooled and handed out to the portals a view offers rather than
    * allocated per portal of the world.
    */
-  r_view_t views[MAX_PORTALS];
+  RenderView views[MAX_PORTALS];
 
   /**
    * @brief The framebuffer all portals render into, its color attachment holding one layer
@@ -51,14 +51,14 @@ static struct {
    * @brief A single-layer placeholder, bound when there is no portal framebuffer, since the
    * BSP fragment stage declares the sampler whether or not any face reads it.
    */
-  Texture *null_texture;
-} r_portal;
+  Texture *nullTexture;
+} module;
 
 /**
  * @brief Allocates the placeholder portal texture.
  */
 void R_InitPortals(void) {
-  r_portal.null_texture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
+  module.nullTexture = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
 }
 
 /**
@@ -66,13 +66,13 @@ void R_InitPortals(void) {
  */
 void R_ShutdownPortals(void) {
 
-  if (r_portal.framebuffer) {
-    R_DestroyFramebuffer(r_portal.framebuffer);
-    r_portal.framebuffer = NULL;
-    r_portal.size = MakeSize(0, 0);
+  if (module.framebuffer) {
+    R_DestroyFramebuffer(module.framebuffer);
+    module.framebuffer = NULL;
+    module.size = MakeSize(0, 0);
   }
 
-  r_portal.null_texture = release(r_portal.null_texture);
+  module.nullTexture = release(module.nullTexture);
 }
 
 /**
@@ -81,13 +81,13 @@ void R_ShutdownPortals(void) {
  * sampler in the pass writing it is undefined, whether or not any fragment reads it. Portal
  * views sample nothing, so they are given the placeholder.
  */
-SDL_GPUTexture *R_PortalTexture(const r_view_t *view) {
+SDL_GPUTexture *R_PortalTexture(const RenderView *view) {
 
-  if (r_portal.framebuffer && view->type != VIEW_PORTAL) {
-    return $(r_portal.framebuffer, resolveColorTexture, 0)->texture;
+  if (module.framebuffer && view->type != VIEW_PORTAL) {
+    return $(module.framebuffer, resolveColorTexture, 0)->texture;
   }
 
-  return r_portal.null_texture->texture;
+  return module.nullTexture->texture;
 }
 
 /**
@@ -96,17 +96,17 @@ SDL_GPUTexture *R_PortalTexture(const r_view_t *view) {
  * @details A portal face's frame is baked in the space of the model that draws it, since the
  * compiler offsets a brush entity's geometry by its origin brush.
  */
-static void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
+static void R_UpdatePortal(RenderBspPortal *portal, const Mat4 matrix) {
 
-  portal->abs_origin = Mat4_Transform(matrix, portal->origin);
-  portal->abs_bounds = Mat4_TransformBounds(matrix, portal->bounds);
-  const vec3_t normal = Mat4_RotateVector(matrix, portal->normal);
+  portal->absOrigin = Mat4_Transform(matrix, portal->origin);
+  portal->absBounds = Mat4_TransformBounds(matrix, portal->bounds);
+  const Vec3 normal = Mat4_RotateVector(matrix, portal->normal);
 
-  portal->abs_plane = (cm_bsp_plane_t) {
+  portal->absPlane = (CmBspPlane) {
     .normal = normal,
-    .dist = Vec3_Dot(portal->abs_origin, normal),
+    .dist = Vec3_Dot(portal->absOrigin, normal),
     .type = Cm_PlaneTypeForNormal(normal),
-    .sign_bits = Cm_SignBitsForNormal(normal),
+    .signBits = Cm_SignBitsForNormal(normal),
   };
 
   portal->matrix = Mat4_Concat(portal->exit, Mat4_Inverse(Mat4_Concat(matrix, portal->entry)));
@@ -128,7 +128,7 @@ static void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
  * portal on worldspawn or on anything else that does not move. A portal face's frame is baked in
  * the space of the model that draws it, so this is what carries it into the world.
  */
-void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
+void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
 
   assert(view);
   assert(portal);
@@ -143,7 +143,7 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
     return;
   }
 
-  view->stats.portals_offered++;
+  view->stats.portalsOffered++;
 
   R_UpdatePortal(portal, matrix);
 
@@ -152,14 +152,14 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
   // that no fragment goes on to sample. Tested against the camera's position rather than where
   // it happens to be looking: a portal off to the side is still plainly visible, so the view's
   // forward vector says nothing about whether this one can be seen
-  if (Cm_DistanceToPlane(view->origin, &portal->abs_plane) <= 0.f) {
+  if (Cm_DistanceToPlane(view->origin, &portal->absPlane) <= 0.f) {
     return;
   }
 
-  const float dist = Vec3_DistanceSquared(portal->abs_origin, view->origin);
+  const float dist = Vec3_DistanceSquared(portal->absOrigin, view->origin);
 
-  int32_t i = view->num_portals;
-  while (i > 0 && Vec3_DistanceSquared(view->portals[i - 1]->abs_origin, view->origin) > dist) {
+  int32_t i = view->numPortals;
+  while (i > 0 && Vec3_DistanceSquared(view->portals[i - 1]->absOrigin, view->origin) > dist) {
     i--;
   }
 
@@ -167,24 +167,24 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
     return;
   }
 
-  r_view_t *pooled;
+  RenderView *pooled;
 
-  if (view->num_portals == MAX_PORTALS) {
-    r_bsp_portal_t *evicted = view->portals[--view->num_portals];
+  if (view->numPortals == MAX_PORTALS) {
+    RenderBspPortal *evicted = view->portals[--view->numPortals];
     pooled = evicted->view;
     evicted->view = NULL;
   } else {
     // an eviction is always followed by the insertion that caused it, so a view that is not full
-    // has never evicted, and holds exactly the first `num_portals` views of the pool
-    pooled = &r_portal.views[view->num_portals];
+    // has never evicted, and holds exactly the first `numPortals` views of the pool
+    pooled = &module.views[view->numPortals];
   }
 
-  for (int32_t j = view->num_portals; j > i; j--) {
+  for (int32_t j = view->numPortals; j > i; j--) {
     view->portals[j] = view->portals[j - 1];
   }
 
   view->portals[i] = portal;
-  view->num_portals++;
+  view->numPortals++;
 
   // emptied here rather than left to the caller, since `R_UpdatePortalView` fills these arrays by
   // copy and relies on there being room for the whole scene
@@ -195,15 +195,15 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
   pooled->type = VIEW_PORTAL;
   pooled->viewport = view->viewport;
   pooled->fov = view->fov;
-  pooled->depth_range = view->depth_range;
+  pooled->depthRange = view->depthRange;
   pooled->ticks = view->ticks;
   pooled->ambient = view->ambient;
 
   // project the camera onto the portal's plane, clamped to the portal's bounds
-  vec3_t origin = Box3_ClampPoint(portal->abs_bounds, view->origin);
+  Vec3 origin = Box3_ClampPoint(portal->absBounds, view->origin);
 
-  origin = Vec3_Subtract(origin, Vec3_Scale(portal->abs_plane.normal,
-                                            Cm_DistanceToPlane(origin, &portal->abs_plane)));
+  origin = Vec3_Subtract(origin, Vec3_Scale(portal->absPlane.normal,
+                                            Cm_DistanceToPlane(origin, &portal->absPlane)));
 
   pooled->origin = Mat4_Transform(portal->matrix, origin);
   pooled->forward = Mat4_RotateVector(portal->matrix, view->forward);
@@ -211,7 +211,7 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
   pooled->up = Mat4_RotateVector(portal->matrix, view->up);
   pooled->angles = Vec3_Euler(pooled->forward);
 
-  vec3_t right, up;
+  Vec3 right, up;
   Vec3_Vectors(pooled->angles, NULL, &right, &up);
   pooled->angles.z = Degrees(atan2f(Vec3_Dot(pooled->up, right), Vec3_Dot(pooled->up, up)));
 
@@ -230,19 +230,19 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
  */
 static void R_UpdatePortalFramebuffer(void) {
 
-  const SDL_Size window = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h);
+  const SDL_Size window = MakeSize(rContext.windowBounds.w, rContext.windowBounds.h);
 
-  if (r_portal.framebuffer) {
-    if (r_portal.size.w == window.w && r_portal.size.h == window.h) {
+  if (module.framebuffer) {
+    if (module.size.w == window.w && module.size.h == window.h) {
       return;
     }
 
-    R_DestroyFramebuffer(r_portal.framebuffer);
+    R_DestroyFramebuffer(module.framebuffer);
   }
 
-  r_portal.size = window;
+  module.size = window;
 
-  r_portal.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
+  module.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
     .size = MakeSize(window.w / PORTAL_FRAMEBUFFER_DIVISOR, window.h / PORTAL_FRAMEBUFFER_DIVISOR),
     .colorAttachments = {
       {
@@ -274,30 +274,30 @@ static void R_UpdatePortalFramebuffer(void) {
  * the face will be sampled at. Taken as an argument rather than read from the uniform block,
  * which each portal drawn before this one has already replaced with its own.
  */
-static SDL_Rect R_PortalScissor(const mat4_t vp, const r_bsp_portal_t *portal) {
+static SDL_Rect R_PortalScissor(const Mat4 vp, const RenderBspPortal *portal) {
 
-  const SDL_Size size = r_portal.framebuffer->size;
+  const SDL_Size size = module.framebuffer->size;
   const SDL_Rect framebuffer = { 0, 0, size.w, size.h };
 
-  vec3_t points[8];
-  Box3_ToPoints(portal->abs_bounds, points);
+  Vec3 points[8];
+  Box3_ToPoints(portal->absBounds, points);
 
-  vec2_t mins = Vec2(FLT_MAX, FLT_MAX);
-  vec2_t maxs = Vec2(-FLT_MAX, -FLT_MAX);
+  Vec2 mins = MakeVec2(FLT_MAX, FLT_MAX);
+  Vec2 maxs = MakeVec2(-FLT_MAX, -FLT_MAX);
 
   for (int32_t i = 0; i < 8; i++) {
 
-    const vec3_t p = points[i];
+    const Vec3 p = points[i];
 
     const float w = p.x * vp.m[0][3] + p.y * vp.m[1][3] + p.z * vp.m[2][3] + vp.m[3][3];
     if (w <= FLT_EPSILON) {
       return framebuffer;
     }
 
-    const vec3_t clip = Mat4_Transform(vp, p);
+    const Vec3 clip = Mat4_Transform(vp, p);
 
-    mins = Vec2_Minf(mins, Vec2(clip.x / w, clip.y / w));
-    maxs = Vec2_Maxf(maxs, Vec2(clip.x / w, clip.y / w));
+    mins = Vec2_Minf(mins, MakeVec2(clip.x / w, clip.y / w));
+    maxs = Vec2_Maxf(maxs, MakeVec2(clip.x / w, clip.y / w));
   }
 
   // NDC to pixels, rounded outward, so that a face is never scissored short of its own edge
@@ -320,13 +320,13 @@ static SDL_Rect R_PortalScissor(const mat4_t vp, const r_bsp_portal_t *portal) {
 /**
  * @brief Draws one portal's view into its own layer of the portal framebuffer.
  */
-static void R_DrawPortal(const r_bsp_portal_t *portal, const SDL_Rect *scissor) {
+static void R_DrawPortal(const RenderBspPortal *portal, const SDL_Rect *scissor) {
 
-  CommandBuffer *commands = r_context.device->commands;
+  CommandBuffer *commands = rContext.device->commands;
 
-  r_view_t *view = portal->view;
+  RenderView *view = portal->view;
 
-  view->framebuffer = r_portal.framebuffer;
+  view->framebuffer = module.framebuffer;
 
   R_UpdateFrustum(view);
 
@@ -345,12 +345,12 @@ static void R_DrawPortal(const r_bsp_portal_t *portal, const SDL_Rect *scissor) 
   }
 
   const SDL_GPUColorTargetInfo color[] = {
-    $(r_portal.framebuffer, colorTargetInfoForLayer, 0, (Uint32) portal->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
-    $(r_portal.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(module.framebuffer, colorTargetInfoForLayer, 0, (Uint32) portal->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(module.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
   const SDL_GPUDepthStencilTargetInfo depth =
-    $(r_portal.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
+    $(module.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
@@ -359,7 +359,7 @@ static void R_DrawPortal(const r_bsp_portal_t *portal, const SDL_Rect *scissor) 
   // same viewport again for themselves
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
-    .w = (float) r_portal.framebuffer->size.w, .h = (float) r_portal.framebuffer->size.h,
+    .w = (float) module.framebuffer->size.w, .h = (float) module.framebuffer->size.h,
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
@@ -387,12 +387,12 @@ static void R_DrawPortal(const r_bsp_portal_t *portal, const SDL_Rect *scissor) 
  * geometry of the blocks they land on, rather than into anything the view owns, so repeating
  * them would clip each decal once per portal and draw it that many times over.
  */
-static void R_UpdatePortalView(const r_view_t *view, r_view_t *out) {
+static void R_UpdatePortalView(const RenderView *view, RenderView *out) {
 
-  assert(out->num_entities == 0);
+  assert(out->numEntities == 0);
 
-  const r_entity_t *e = view->entities;
-  for (int32_t j = 0; j < view->num_entities; j++, e++) {
+  const RenderEntity *e = view->entities;
+  for (int32_t j = 0; j < view->numEntities; j++, e++) {
 
     // the view weapon is placed relative to the camera it was added for, so it would appear
     // adrift in the world of any other view
@@ -400,17 +400,17 @@ static void R_UpdatePortalView(const r_view_t *view, r_view_t *out) {
       continue;
     }
 
-    out->entities[out->num_entities++] = *e;
+    out->entities[out->numEntities++] = *e;
   }
 
-  memcpy(out->lights, view->lights, view->num_lights * sizeof(out->lights[0]));
-  out->num_lights = view->num_lights;
+  memcpy(out->lights, view->lights, view->numLights * sizeof(out->lights[0]));
+  out->numLights = view->numLights;
 
-  memcpy(out->sprites, view->sprites, view->num_sprites * sizeof(out->sprites[0]));
-  out->num_sprites = view->num_sprites;
+  memcpy(out->sprites, view->sprites, view->numSprites * sizeof(out->sprites[0]));
+  out->numSprites = view->numSprites;
 
-  memcpy(out->beams, view->beams, view->num_beams * sizeof(out->beams[0]));
-  out->num_beams = view->num_beams;
+  memcpy(out->beams, view->beams, view->numBeams * sizeof(out->beams[0]));
+  out->numBeams = view->numBeams;
 }
 
 /**
@@ -427,16 +427,16 @@ static void R_UpdatePortalView(const r_view_t *view, r_view_t *out) {
  * @param view The view being drawn around these, whose uniforms are restored before
  * returning, since `R_DrawMainView` relies on the ones `R_DrawViewDepth` wrote for it.
  */
-void R_DrawPortals(const r_view_t *view) {
+void R_DrawPortals(const RenderView *view) {
 
-  if (r_models.world) {
-    r_bsp_portal_t *p = r_models.world->bsp->portals;
-    for (int32_t i = 0; i < r_models.world->bsp->num_portals; i++, p++) {
+  if (rModels.world) {
+    RenderBspPortal *p = rModels.world->bsp->portals;
+    for (int32_t i = 0; i < rModels.world->bsp->numPortals; i++, p++) {
       p->layer = -1;
     }
   }
 
-  if (!view->num_portals || !r_context.device->commands) {
+  if (!view->numPortals || !rContext.device->commands) {
     return;
   }
 
@@ -444,18 +444,18 @@ void R_DrawPortals(const r_view_t *view) {
 
   // captured before any portal is drawn, since drawing one replaces the uniform block with its
   // own view
-  const mat4_t vp = Mat4_Concat(r_uniforms.block.projection3D, r_uniforms.block.view);
+  const Mat4 vp = Mat4_Concat(rUniforms.block.projection3D, rUniforms.block.view);
 
-  r_view_stats_t *stats = r_stats;
+  RenderViewStats *stats = rStats;
 
   int32_t layer = 0;
-  for (int32_t i = 0; i < view->num_portals; i++) {
+  for (int32_t i = 0; i < view->numPortals; i++) {
 
-    r_bsp_portal_t *portal = view->portals[i];
+    RenderBspPortal *portal = view->portals[i];
 
     // the scene was populated before any of it was culled, so a portal may well have been
     // offered a view it turns out not to need
-    if (R_CulludeBox(view, portal->abs_bounds)) {
+    if (R_CulludeBox(view, portal->absBounds)) {
       continue;
     }
 
@@ -466,19 +466,19 @@ void R_DrawPortals(const r_view_t *view) {
       continue;
     }
 
-    stats->portals_drawn++;
+    stats->portalsDrawn++;
 
     R_UpdatePortalView(view, portal->view);
 
-    r_stats = &portal->view->stats;
+    rStats = &portal->view->stats;
     R_DrawPortal(portal, &scissor);
 
-    stats->portals_triangles += portal->view->stats.bsp_triangles + portal->view->stats.mesh_triangles;
+    stats->portalsTriangles += portal->view->stats.bspTriangles + portal->view->stats.meshTriangles;
   }
 
-  $(r_portal.framebuffer, swap);
+  $(module.framebuffer, swap);
 
-  r_stats = stats;
+  rStats = stats;
 
   R_UpdateUniforms(view);
 }

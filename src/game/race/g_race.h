@@ -42,12 +42,12 @@ void G_Race_Init(void);
  * @brief What the run has to say to its racer goes to the screen, not the
  * console: a racer runs the course a hundred times an hour.
  */
-void G_Race_CenterPrint(const g_client_t *cl, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void G_Race_CenterPrint(const GameClient *cl, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 /**
  * @brief How `cl` is taking part right now.
  */
-g_race_mode_t G_Race_Mode(const g_client_t *cl);
+GameRaceMode G_Race_Mode(const GameClient *cl);
 
 /**
  * @brief The course, as the triggers spawn. Each records itself here, and
@@ -63,30 +63,30 @@ void G_Race_AddFinish(void);
  * @brief The run, as the client crosses the course. Each returns true if the
  * touch counted, which is when a trigger fires its targets.
  */
-bool G_Race_Start(g_client_t *cl);
-bool G_Race_Checkpoint(g_client_t *cl, uint16_t checkpoint);
-bool G_Race_Split(g_client_t *cl, uint16_t split, const char *label);
-bool G_Race_Stage(g_client_t *cl, uint16_t stage, const char *label, const g_entity_t *anchor);
-bool G_Race_Finish(g_client_t *cl);
+bool G_Race_Start(GameClient *cl);
+bool G_Race_Checkpoint(GameClient *cl, uint16_t checkpoint);
+bool G_Race_Split(GameClient *cl, uint16_t split, const char *label);
+bool G_Race_Stage(GameClient *cl, uint16_t stage, const char *label, const GameEntity *anchor);
+bool G_Race_Finish(GameClient *cl);
 
 /**
  * @brief Arms a start zone that begins the run on the way out, or on a jump
  * from inside it, rather than on the way in.
  */
-void G_Race_ArmStart(g_client_t *cl, const g_entity_t *start);
+void G_Race_ArmStart(GameClient *cl, const GameEntity *start);
 
 /**
  * @brief Whether `cl` touched `ent` within `wait` seconds of last touching it.
  * A trigger stood in reports a touch every frame, and this is what stops each
  * of them counting.
  */
-bool G_Race_Debounced(g_client_t *cl, const g_entity_t *ent, float wait);
+bool G_Race_Debounced(GameClient *cl, const GameEntity *ent, float wait);
 
 /**
  * @brief Initializes the race triggers and barriers by class name, or returns
  * false for a class that is not one. Chained under `InitEntity` by `G_Race_Init`.
  */
-bool G_Race_InitEntity(g_entity_t *ent);
+bool G_Race_InitEntity(GameEntity *ent);
 
 /**
  * @brief The records for this map, read from `records/<map>.rec` when the
@@ -99,7 +99,7 @@ void G_Race_LoadRecords(void);
  * tells the racer how it went; a course record is said to everyone.
  * @return True if the run is the new course record.
  */
-bool G_Race_SubmitRecord(g_client_t *cl);
+bool G_Race_SubmitRecord(GameClient *cl);
 
 /**
  * @brief The course record's raceline for this level, read from
@@ -116,34 +116,34 @@ void G_Race_Shutdown(void);
  * @brief The run in progress as it is raced: begun with the run, sampled every
  * move, and either kept as the course record or dropped with the run.
  */
-void G_Race_BeginLine(g_client_t *cl);
-void G_Race_SampleLine(g_client_t *cl);
-void G_Race_KeepLine(g_client_t *cl);
-void G_Race_DropLine(g_client_t *cl);
+void G_Race_BeginLine(GameClient *cl);
+void G_Race_SampleLine(GameClient *cl);
+void G_Race_KeepLine(GameClient *cl);
+void G_Race_DropLine(GameClient *cl);
 
 /**
  * @brief The course record's ghost: runs alongside `cl` from the start of a run
  * if they asked for it, and is removed with the run.
  */
-void G_Race_SpawnGhost(g_client_t *cl);
-void G_Race_RemoveGhost(g_client_t *cl);
-void G_Race_Ghost_f(g_client_t *cl);
+void G_Race_SpawnGhost(GameClient *cl);
+void G_Race_RemoveGhost(GameClient *cl);
+void G_Race_Ghost_f(GameClient *cl);
 
 /**
  * @brief The record `guid` holds under `movement`, or NULL.
  */
-const g_race_record_t *G_Race_Record(const char *guid, pm_movement_t movement);
+const GameRaceRecord *G_Race_Record(const char *guid, PlayerMovement movement);
 
 /**
  * @brief Where `record` stands among the records under its movement, from 1,
  * and how many there are.
  */
-size_t G_Race_Rank(const g_race_record_t *record, size_t *count);
+size_t G_Race_Rank(const GameRaceRecord *record, size_t *count);
 
 /**
  * @brief The course record under `movement`, or `NULL` for none yet.
  */
-const g_race_record_t *G_Race_BestRecord(pm_movement_t movement);
+const GameRaceRecord *G_Race_BestRecord(PlayerMovement movement);
 
 /**
  * @brief Finds each stage's `restart_target` once every entity has spawned,
@@ -156,11 +156,11 @@ void G_Race_ResolveStages(void);
  * for `G_Race_ClipEntity`, and sends it to them as `SV_CMD_RACE_BARRIERS`.
  * Called for every client at the end of every frame, so nothing goes stale.
  */
-void G_Race_UpdateBarriers(g_client_t *cl);
+void G_Race_UpdateBarriers(GameClient *cl);
 
 /**
  * @brief Whether `ent` clips `mover`: a barrier does unless the last
  * `G_Race_UpdateBarriers` let the mover pass it. Chained under `ClipEntity` by
  * `G_Race_Init`.
  */
-bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent);
+bool G_Race_ClipEntity(const GameEntity *mover, const GameEntity *ent);

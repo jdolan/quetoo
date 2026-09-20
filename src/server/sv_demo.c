@@ -23,7 +23,7 @@
 
 /**
  * @brief Reads the keyframe index appended to the demo file.
- * @remarks `num_keyframes` is read straight off disk and sizes an allocation, so it is bounded
+ * @remarks `numKeyframes` is read straight off disk and sizes an allocation, so it is bounded
  * by what the file can actually hold before it is trusted. Anything else amiss - a header that
  * fails that bound, a table that cannot be seeked to, a short read - leaves the index empty
  * rather than rejecting the demo, which still plays perfectly well forward without one.
@@ -32,40 +32,40 @@
  */
 static void Sv_LoadDemoKeyframes(void) {
 
-  sv.num_demo_keyframes = 0;
+  sv.numDemoKeyframes = 0;
 
-  const int64_t file_length = Fs_FileLength(sv.demo_file);
-  const int64_t ofs = sv.demo_header.ofs_keyframes;
+  const int64_t fileLength = Fs_FileLength(sv.demoFile);
+  const int64_t ofs = sv.demoHeader.ofsKeyframes;
 
-  int64_t max_keyframes = 0;
-  if (ofs >= 0 && file_length > ofs) {
-    max_keyframes = (file_length - ofs) / (int64_t) sizeof(demo_keyframe_t);
+  int64_t maxKeyframes = 0;
+  if (ofs >= 0 && fileLength > ofs) {
+    maxKeyframes = (fileLength - ofs) / (int64_t) sizeof(DemoKeyframe);
   }
 
-  if (sv.demo_header.num_keyframes < 0 || sv.demo_header.num_keyframes > max_keyframes) {
-    Com_Warn("%s: invalid num_keyframes %d\n", sv.name, sv.demo_header.num_keyframes);
+  if (sv.demoHeader.numKeyframes < 0 || sv.demoHeader.numKeyframes > maxKeyframes) {
+    Com_Warn("%s: invalid num_keyframes %d\n", sv.name, sv.demoHeader.numKeyframes);
     return;
   }
 
-  if (sv.demo_header.num_keyframes == 0 || !Fs_Seek(sv.demo_file, ofs)) {
+  if (sv.demoHeader.numKeyframes == 0 || !Fs_Seek(sv.demoFile, ofs)) {
     return;
   }
 
-  sv.num_demo_keyframes = sv.demo_header.num_keyframes;
-  sv.demo_keyframes = Mem_TagMalloc(sv.num_demo_keyframes * sizeof(demo_keyframe_t), MEM_TAG_SERVER);
+  sv.numDemoKeyframes = sv.demoHeader.numKeyframes;
+  sv.demoKeyframes = Mem_TagMalloc(sv.numDemoKeyframes * sizeof(DemoKeyframe), MEM_TAG_SERVER);
 
-  for (int32_t i = 0; i < sv.num_demo_keyframes; i++) {
+  for (int32_t i = 0; i < sv.numDemoKeyframes; i++) {
 
-    demo_keyframe_t entry;
-    if (Fs_Read(sv.demo_file, &entry, sizeof(entry), 1) != 1) {
-      sv.num_demo_keyframes = i;
+    DemoKeyframe entry;
+    if (Fs_Read(sv.demoFile, &entry, sizeof(entry), 1) != 1) {
+      sv.numDemoKeyframes = i;
       break;
     }
 
-    entry.frame_num = LittleLong(entry.frame_num);
+    entry.frameNum = LittleLong(entry.frameNum);
     entry.offset = LittleLong(entry.offset);
 
-    sv.demo_keyframes[i] = entry;
+    sv.demoKeyframes[i] = entry;
   }
 }
 
@@ -74,41 +74,41 @@ static void Sv_LoadDemoKeyframes(void) {
  * and leaving the file positioned at the first recorded frame - not the setup chunks (server
  * data, config strings, baselines) ahead of it, which `Sv_SendDemoSetup` sends to each
  * connecting client individually rather than through the shared playback cursor. A demo that
- * fails to open or validate leaves `sv.demo_file` NULL, which `Sv_SendDemoPacket` treats as an
+ * fails to open or validate leaves `sv.demoFile` NULL, which `Sv_SendDemoPacket` treats as an
  * immediate end.
  */
 void Sv_LoadDemo(void) {
 
-  sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
+  sv.demoFile = Fs_OpenRead(va("demos/%s.demo", sv.name));
 
-  sv.demo_paused = false;
+  sv.demoPaused = false;
 
-  if (!sv.demo_file) {
+  if (!sv.demoFile) {
     return;
   }
 
-  if (Fs_Read(sv.demo_file, &sv.demo_header, sizeof(sv.demo_header), 1) != 1 ||
-      memcmp(sv.demo_header.magic, DEMO_MAGIC, sizeof(sv.demo_header.magic)) ||
-      LittleLong(sv.demo_header.version) != DEMO_VERSION) {
+  if (Fs_Read(sv.demoFile, &sv.demoHeader, sizeof(sv.demoHeader), 1) != 1 ||
+      memcmp(sv.demoHeader.magic, DEMO_MAGIC, sizeof(sv.demoHeader.magic)) ||
+      LittleLong(sv.demoHeader.version) != DEMO_VERSION) {
 
     Com_Warn("%s is not a valid demo file\n", sv.name);
-    Fs_Close(sv.demo_file);
-    sv.demo_file = NULL;
+    Fs_Close(sv.demoFile);
+    sv.demoFile = NULL;
     return;
   }
 
-  sv.demo_header.duration = LittleLong(sv.demo_header.duration);
-  sv.demo_header.num_keyframes = LittleLong(sv.demo_header.num_keyframes);
-  sv.demo_header.ofs_keyframes = LittleLong(sv.demo_header.ofs_keyframes);
+  sv.demoHeader.duration = LittleLong(sv.demoHeader.duration);
+  sv.demoHeader.numKeyframes = LittleLong(sv.demoHeader.numKeyframes);
+  sv.demoHeader.ofsKeyframes = LittleLong(sv.demoHeader.ofsKeyframes);
 
   Sv_LoadDemoKeyframes();
 
   // a demo recorded with no frames at all has no keyframe to skip to; playback of it is moot
   // either way, since the very next read hits the terminator right behind the setup chunks
-  if (sv.num_demo_keyframes > 0) {
-    Fs_Seek(sv.demo_file, sv.demo_keyframes[0].offset);
+  if (sv.numDemoKeyframes > 0) {
+    Fs_Seek(sv.demoFile, sv.demoKeyframes[0].offset);
   } else {
-    Fs_Seek(sv.demo_file, sizeof(sv.demo_header));
+    Fs_Seek(sv.demoFile, sizeof(sv.demoHeader));
   }
 }
 
@@ -120,27 +120,27 @@ void Sv_LoadDemo(void) {
  * needs before it can start receiving whatever frame is currently being broadcast to everyone
  * else, no matter how far into the recording that already is.
  */
-void Sv_SendDemoSetup(sv_client_t *cl) {
+void Sv_SendDemoSetup(ServerClient *cl) {
 
-  if (!sv.demo_file || sv.num_demo_keyframes == 0) {
+  if (!sv.demoFile || sv.numDemoKeyframes == 0) {
     return;
   }
 
-  const int64_t pos = Fs_Tell(sv.demo_file);
-  const int64_t end = sv.demo_keyframes[0].offset;
+  const int64_t pos = Fs_Tell(sv.demoFile);
+  const int64_t end = sv.demoKeyframes[0].offset;
 
-  if (!Fs_Seek(sv.demo_file, sizeof(sv.demo_header))) {
+  if (!Fs_Seek(sv.demoFile, sizeof(sv.demoHeader))) {
     Com_Warn("Failed to seek demo file\n");
-    Fs_Seek(sv.demo_file, pos);
+    Fs_Seek(sv.demoFile, pos);
     return;
   }
 
   byte buffer[MAX_MSG_SIZE];
 
-  while (Fs_Tell(sv.demo_file) < end) {
+  while (Fs_Tell(sv.demoFile) < end) {
 
     int32_t size;
-    if (Fs_Read(sv.demo_file, &size, sizeof(size), 1) != 1) {
+    if (Fs_Read(sv.demoFile, &size, sizeof(size), 1) != 1) {
       Com_Warn("Failed to read demo file\n");
       break;
     }
@@ -151,23 +151,23 @@ void Sv_SendDemoSetup(sv_client_t *cl) {
       break;
     }
 
-    int32_t frame_num;
-    if (Fs_Read(sv.demo_file, &frame_num, sizeof(frame_num), 1) != 1) {
+    int32_t frameNum;
+    if (Fs_Read(sv.demoFile, &frameNum, sizeof(frameNum), 1) != 1) {
       Com_Warn("Incomplete or corrupt demo file\n");
       break;
     }
 
-    if (Fs_Read(sv.demo_file, buffer, size, 1) != 1) {
+    if (Fs_Read(sv.demoFile, buffer, size, 1) != 1) {
       Com_Warn("Incomplete or corrupt demo file\n");
       break;
     }
 
-    Netchan_Transmit(&cl->net_chan, buffer, size);
+    Netchan_Transmit(&cl->netChan, buffer, size);
   }
 
   // restore the shared playback cursor regardless of how the loop above ended, so a setup-read
   // failure can never leave every other client's ongoing broadcast reading from the wrong offset
-  if (!Fs_Seek(sv.demo_file, pos)) {
+  if (!Fs_Seek(sv.demoFile, pos)) {
     Com_Warn("Failed to restore demo file position\n");
   }
 }
@@ -177,11 +177,11 @@ void Sv_SendDemoSetup(sv_client_t *cl) {
  */
 void Sv_FreeDemo(void) {
 
-  if (sv.demo_file) {
-    Fs_Close(sv.demo_file);
+  if (sv.demoFile) {
+    Fs_Close(sv.demoFile);
   }
 
-  Mem_Free(sv.demo_keyframes);
+  Mem_Free(sv.demoKeyframes);
 }
 
 /**
@@ -196,16 +196,16 @@ void Sv_SendDemoInfo(void) {
     return;
   }
 
-  sv_client_t *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  ServerClient *cl = svs.clients;
+  for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
       continue;
     }
 
-    Net_WriteByte(&cl->net_chan.message, SV_CMD_DEMO_INFO);
-    Net_WriteLong(&cl->net_chan.message, sv.demo_header.duration);
-    Net_WriteByte(&cl->net_chan.message, sv.demo_paused);
+    Net_WriteByte(&cl->netChan.message, SV_CMD_DEMO_INFO);
+    Net_WriteLong(&cl->netChan.message, sv.demoHeader.duration);
+    Net_WriteByte(&cl->netChan.message, sv.demoPaused);
   }
 }
 
@@ -214,33 +214,33 @@ void Sv_SendDemoInfo(void) {
  */
 static void Sv_DemoCompleted(void) {
 
-  if (sv_demo_list->string[0]) {
+  if (sv_demoList->string[0]) {
 
-    const char *current_demo = sv.name;
-    const char *next_demo = q_strstr(sv_demo_list->string, current_demo);
-    char demo_token[MAX_QPATH];
+    const char *currentDemo = sv.name;
+    const char *nextDemo = q_strstr(sv_demoList->string, currentDemo);
+    char demoToken[MAX_QPATH];
 
-    if (!next_demo) {
+    if (!nextDemo) {
 
-      next_demo = sv_demo_list->string;
+      nextDemo = sv_demoList->string;
     } else {
 
-      next_demo += q_strlen(current_demo);
+      nextDemo += q_strlen(currentDemo);
 
-      if (next_demo[0] == ' ') {
-        next_demo++;
-      } else if (!next_demo[0]) {
-        next_demo = sv_demo_list->string;
+      if (nextDemo[0] == ' ') {
+        nextDemo++;
+      } else if (!nextDemo[0]) {
+        nextDemo = sv_demoList->string;
       }
     }
 
-    const char *space = q_strchr(next_demo, ' ') ? : (next_demo + q_strlen(next_demo));
-    size_t len = space - next_demo;
+    const char *space = q_strchr(nextDemo, ' ') ? : (nextDemo + q_strlen(nextDemo));
+    size_t len = space - nextDemo;
 
-    q_strlcpy(demo_token, next_demo, len + 1);
+    q_strlcpy(demoToken, nextDemo, len + 1);
 
-    if (demo_token[0]) {
-      Sv_InitServer(demo_token, NULL, SV_ACTIVE_DEMO);
+    if (demoToken[0]) {
+      Sv_InitServer(demoToken, NULL, SV_ACTIVE_DEMO);
     } else {
       Sv_ShutdownServer("Demo complete\n");
     }
@@ -256,31 +256,31 @@ static void Sv_DemoCompleted(void) {
  */
 static void Sv_DemoEnded(void) {
 
-  if (sv_demo_list->string[0]) {
+  if (sv_demoList->string[0]) {
     Sv_DemoCompleted();
     return;
   }
 
-  sv.demo_paused = true;
+  sv.demoPaused = true;
   Sv_SendDemoInfo();
 }
 
 /**
  * @brief Reads the next frame from the current demo file into the specified buffer,
  * returning the size of the frame in bytes. Each demo message is prefixed by its length
- * and the frame number it was recorded at; `frame_num`, if non-NULL, receives the latter.
+ * and the frame number it was recorded at; `frameNum`, if non-NULL, receives the latter.
  */
-static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frame_num) {
+static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frameNum) {
   int32_t size;
   int32_t num;
   int64_t r;
 
-  if (!sv.demo_file) { // failed to open, or failed header validation
+  if (!sv.demoFile) { // failed to open, or failed header validation
     Sv_DemoCompleted();
     return 0;
   }
 
-  r = Fs_Read(sv.demo_file, &size, sizeof(size), 1);
+  r = Fs_Read(sv.demoFile, &size, sizeof(size), 1);
 
   if (r != 1) { // improperly terminated demo file; treat a truncated recording as an end
     Com_Warn("Failed to read demo file\n");
@@ -304,7 +304,7 @@ static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frame_num) {
     return 0;
   }
 
-  r = Fs_Read(sv.demo_file, &num, sizeof(num), 1);
+  r = Fs_Read(sv.demoFile, &num, sizeof(num), 1);
 
   if (r != 1) {
     Com_Warn("Incomplete or corrupt demo file\n");
@@ -313,12 +313,12 @@ static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frame_num) {
   }
 
   num = LittleLong(num);
-  sv.demo_frame_num = num;
-  if (frame_num) {
-    *frame_num = num;
+  sv.demoFrameNum = num;
+  if (frameNum) {
+    *frameNum = num;
   }
 
-  r = Fs_Read(sv.demo_file, buffer, size, 1);
+  r = Fs_Read(sv.demoFile, buffer, size, 1);
 
   if (r != 1) {
     Com_Warn("Incomplete or corrupt demo file\n");
@@ -334,22 +334,22 @@ static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frame_num) {
  * @details Every recorded frame is fully self-contained - delta-encoded against the demo's
  * baselines and a null player state, never against another frame (see `Cl_WriteDemoMessage`) -
  * so any indexed offset is always a safe, independent jump target: there is no baseline chain or
- * prior-frame dependency to reconstruct. This binary-searches `sv.demo_keyframes` (one entry per
+ * prior-frame dependency to reconstruct. This binary-searches `sv.demoKeyframes` (one entry per
  * recorded frame) and seeks the file there; normal per-tick sending in `Sv_SendDemoPacket`
  * picks up again from that point with no special catch-up pacing required.
  */
 void Sv_SeekDemo(int32_t millis) {
 
-  if (svs.state != SV_ACTIVE_DEMO || !sv.demo_file || sv.num_demo_keyframes == 0) {
+  if (svs.state != SV_ACTIVE_DEMO || !sv.demoFile || sv.numDemoKeyframes == 0) {
     return;
   }
 
-  const int32_t target_frame = millis / QUETOO_TICK_MILLIS;
+  const int32_t targetFrame = millis / QUETOO_TICK_MILLIS;
 
-  int32_t lo = 0, hi = sv.num_demo_keyframes - 1, best = 0;
+  int32_t lo = 0, hi = sv.numDemoKeyframes - 1, best = 0;
   while (lo <= hi) {
     const int32_t mid = (lo + hi) / 2;
-    if (sv.demo_keyframes[mid].frame_num <= target_frame) {
+    if (sv.demoKeyframes[mid].frameNum <= targetFrame) {
       best = mid;
       lo = mid + 1;
     } else {
@@ -357,14 +357,14 @@ void Sv_SeekDemo(int32_t millis) {
     }
   }
 
-  if (!Fs_Seek(sv.demo_file, sv.demo_keyframes[best].offset)) {
+  if (!Fs_Seek(sv.demoFile, sv.demoKeyframes[best].offset)) {
     Com_Warn("Failed to seek demo file\n");
     return;
   }
 
   // only while paused: playback that is running reaches the seek destination by itself, and an
   // unconsumed flag would release an extra frame at whatever point it is next paused
-  sv.demo_step = sv.demo_paused;
+  sv.demoStep = sv.demoPaused;
 }
 
 /**
@@ -375,16 +375,16 @@ void Sv_SeekDemo(int32_t millis) {
  */
 size_t Sv_GetDemoFrame(byte *buffer) {
 
-  if (sv.demo_paused) {
+  if (sv.demoPaused) {
 
     // a seek taken while paused still has to show where it landed, or the transport controls
     // appear dead: scrubbing and the rewind/forward buttons would move the read position
     // silently, and playback would later resume from somewhere the viewer never chose
-    if (!sv.demo_step) {
+    if (!sv.demoStep) {
       return 0;
     }
 
-    sv.demo_step = false;
+    sv.demoStep = false;
   }
 
   return Sv_GetDemoMessage(buffer, NULL);
@@ -395,12 +395,12 @@ size_t Sv_GetDemoFrame(byte *buffer) {
  * client, to the given client.
  * @return False once the recording is exhausted, ending the send loop for this tick.
  */
-bool Sv_SendDemoPacket(sv_client_t *cl, byte *buffer, size_t size) {
+bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
 
-  if (sv.demo_paused) {
+  if (sv.demoPaused) {
 
     if (size) {
-      Netchan_Transmit(&cl->net_chan, buffer, size);
+      Netchan_Transmit(&cl->netChan, buffer, size);
       return true;
     }
 
@@ -408,8 +408,8 @@ bool Sv_SendDemoPacket(sv_client_t *cl, byte *buffer, size_t size) {
     // state, which the transport controls are waiting on) and keep the netchan alive: the client
     // applies its normal timeout check regardless of demo state, and would otherwise disconnect
     // a spectator who paused playback for longer than cl_timeout
-    if (cl->net_chan.message.size || quetoo.ticks - cl->net_chan.last_sent > 1000) {
-      Netchan_Transmit(&cl->net_chan, NULL, 0);
+    if (cl->netChan.message.size || quetoo.ticks - cl->netChan.lastSent > 1000) {
+      Netchan_Transmit(&cl->netChan, NULL, 0);
     }
 
     return true;
@@ -419,7 +419,7 @@ bool Sv_SendDemoPacket(sv_client_t *cl, byte *buffer, size_t size) {
     return false;
   }
 
-  Netchan_Transmit(&cl->net_chan, buffer, size);
+  Netchan_Transmit(&cl->netChan, buffer, size);
 
   return true;
 }
@@ -456,7 +456,7 @@ void Sv_DemoSeekRelative_f(void) {
   }
 
   const int32_t delta = (int32_t) strtol(Cmd_Argv(1), NULL, 10);
-  const int32_t current = sv.demo_frame_num * QUETOO_TICK_MILLIS;
+  const int32_t current = sv.demoFrameNum * QUETOO_TICK_MILLIS;
 
   Sv_SeekDemo(Maxi(0, current + delta));
 }
@@ -470,7 +470,7 @@ void Sv_DemoPause_f(void) {
     return;
   }
 
-  sv.demo_paused = !sv.demo_paused;
+  sv.demoPaused = !sv.demoPaused;
 
   Sv_SendDemoInfo();
 }

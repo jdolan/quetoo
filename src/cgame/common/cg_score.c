@@ -22,23 +22,23 @@
 #include "cg_local.h"
 
 typedef struct {
-  g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
-  size_t num_scores;
+  GameScore scores[MAX_CLIENTS + MAX_TEAMS];
+  size_t numScores;
 
-  g_score_t pending[MAX_CLIENTS + MAX_TEAMS];
-  size_t num_pending;
+  GameScore pending[MAX_CLIENTS + MAX_TEAMS];
+  size_t numPending;
 
   uint32_t generation;
-} cg_score_state_t;
+} ClientGameScoreState;
 
-static cg_score_state_t cg_score_state;
+static ClientGameScoreState cgScoreState;
 
 /**
- * @brief A comparator for sorting `g_score_t`.
+ * @brief A comparator for sorting `GameScore`.
  */
 static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
-  const g_score_t *sa = (g_score_t *) a;
-  const g_score_t *sb = (g_score_t *) b;
+  const GameScore *sa = (GameScore *) a;
+  const GameScore *sb = (GameScore *) b;
 
   // push spectators to the bottom of the board
   const int16_t s1 = (sa->flags & SCORE_SPECTATOR ? -9999 : sa->score);
@@ -62,47 +62,47 @@ void Cg_ParseScores(void) {
   }
 
   if (index == 0) {
-    cg_score_state.num_pending = 0;
-  } else if ((size_t) index != cg_score_state.num_pending) {
-    Cg_Warn("Score packet %d arrived with %zu pending\n", index, cg_score_state.num_pending);
-    cg_score_state.num_pending = 0;
+    cgScoreState.numPending = 0;
+  } else if ((size_t) index != cgScoreState.numPending) {
+    Cg_Warn("Score packet %d arrived with %zu pending\n", index, cgScoreState.numPending);
+    cgScoreState.numPending = 0;
     return;
   }
 
-  cgi.ReadData(cg_score_state.pending + index, count * sizeof(g_score_t));
-  cg_score_state.num_pending = index + count;
+  cgi.ReadData(cgScoreState.pending + index, count * sizeof(GameScore));
+  cgScoreState.numPending = index + count;
 
   if (cgi.ReadByte()) { // last packet in sequence
 
-    cg_score_state.num_scores = cg_score_state.num_pending;
-    cg_score_state.num_pending = 0;
+    cgScoreState.numScores = cgScoreState.numPending;
+    cgScoreState.numPending = 0;
 
     // the aggregate scores are the last set in the array
-    if (cg_state.num_teams) {
-      cg_score_state.num_scores -= MAX_TEAMS;
+    if (cgState.numTeams) {
+      cgScoreState.numScores -= MAX_TEAMS;
     }
 
-    memcpy(cg_score_state.scores, cg_score_state.pending, sizeof(cg_score_state.scores));
+    memcpy(cgScoreState.scores, cgScoreState.pending, sizeof(cgScoreState.scores));
 
-    qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t), Cg_ParseScores_Compare);
+    qsort(cgScoreState.scores, cgScoreState.numScores, sizeof(GameScore), Cg_ParseScores_Compare);
 
-    cg_score_state.generation++;
+    cgScoreState.generation++;
   }
 }
 
 /**
  * @see cg_score.h
  */
-const g_score_t *Cg_Scores(size_t *count) {
-  *count = cg_score_state.num_scores;
-  return cg_score_state.scores;
+const GameScore *Cg_Scores(size_t *count) {
+  *count = cgScoreState.numScores;
+  return cgScoreState.scores;
 }
 
 /**
  * @see cg_score.h
  */
 uint32_t Cg_ScoresGeneration(void) {
-  return cg_score_state.generation;
+  return cgScoreState.generation;
 }
 
 /**
@@ -110,9 +110,9 @@ uint32_t Cg_ScoresGeneration(void) {
  */
 void Cg_ClearScores(void) {
 
-  const uint32_t generation = cg_score_state.generation;
+  const uint32_t generation = cgScoreState.generation;
 
-  memset(&cg_score_state, 0, sizeof(cg_score_state));
+  memset(&cgScoreState, 0, sizeof(cgScoreState));
 
-  cg_score_state.generation = generation + 1;
+  cgScoreState.generation = generation + 1;
 }

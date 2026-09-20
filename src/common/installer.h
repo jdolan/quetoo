@@ -55,20 +55,20 @@ typedef enum {
   INSTALLER_CANCELLED,
   INSTALLER_DONE,
   INSTALLER_ERROR,
-} installer_state_t;
+} InstallerState;
 
 /**
  * @brief The installer status snapshot.
  */
 typedef struct {
-	installer_state_t state;
-	int32_t files_done;
-	int32_t files_total;
-	int32_t kbytes_done;
-	int32_t kbytes_total;
-	char current_file[MAX_OS_PATH];
+	InstallerState state;
+	int32_t filesDone;
+	int32_t filesTotal;
+	int32_t kbytesDone;
+	int32_t kbytesTotal;
+	char currentFile[MAX_OS_PATH];
   char error[MAX_STRING_CHARS];
-} installer_status_t;
+} InstallerStatus;
 
 /**
  * @brief Frame callback type for `Installer_Wait`.
@@ -77,7 +77,7 @@ typedef struct {
  * player, or for answering on their behalf where there is nobody to ask.
  * @details Returning non-zero will terminate the installer process and resume startup.
  */
-typedef int32_t (*Installer_FrameFunction)(const installer_status_t *status);
+typedef int32_t (*Installer_FrameFunction)(const InstallerStatus *status);
 
 void Installer_Init(Installer_FrameFunction frame);
 

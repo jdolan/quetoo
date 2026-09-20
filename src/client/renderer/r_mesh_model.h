@@ -24,9 +24,9 @@
 #include "r_types.h"
 
 #if defined(__R_LOCAL_H__)
-void R_LoadMeshConfigs(r_model_t *mod);
+void R_LoadMeshConfigs(RenderModel *mod);
 void R_SaveMeshConfigs_f(void);
-void R_LoadMeshVertexArray(r_model_t *mod);
-void R_RegisterMeshModel(r_media_t *self);
-void R_FreeMeshModel(r_media_t *self);
+void R_LoadMeshVertexArray(RenderModel *mod);
+void R_RegisterMeshModel(RenderMedia *self);
+void R_FreeMeshModel(RenderMedia *self);
 #endif

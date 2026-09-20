@@ -23,38 +23,38 @@
 
 #include "cl_types.h"
 
-extern cvar_t *cl_chat_sound;
-extern cvar_t *cl_max_fps;
-extern cvar_t *cl_no_lerp;
-extern cvar_t *cl_team_chat_sound;
-extern cvar_t *cl_timeout;
+extern Cvar *cl_chatSound;
+extern Cvar *cl_maxFps;
+extern Cvar *cl_noLerp;
+extern Cvar *cl_teamChatSound;
+extern Cvar *cl_timeout;
 
-extern cvar_t *guid;
-extern cvar_t *name;
-extern cvar_t *active;
-extern cvar_t *message_level;
-extern cvar_t *password;
-extern cvar_t *rate;
+extern Cvar *guid;
+extern Cvar *name;
+extern Cvar *active;
+extern Cvar *messageLevel;
+extern Cvar *password;
+extern Cvar *rate;
 
-void Cl_Connect(const net_addr_t *addr);
+void Cl_Connect(const NetAddr *addr);
 void Cl_Disconnect(void);
 void Cl_Drop(const char *text);
-int32_t Cl_InstallerFrame(const installer_status_t *in);
+int32_t Cl_InstallerFrame(const InstallerStatus *in);
 void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);
 
-extern r_view_t cl_view;
-extern s_stage_t cl_stage;
+extern RenderView clView;
+extern SoundStage clStage;
 
 #if defined(__CL_LOCAL_H__)
 
-extern cvar_t *qport;
+extern Cvar *qport;
 
-extern cvar_t *cl_draw_net_messages;
+extern Cvar *cl_drawNetMessages;
 
-extern cl_client_t cl;
-extern cl_static_t cls;
+extern Client cl;
+extern ClientStatic cls;
 
 void Cl_SendDisconnect(void);
 void Cl_Reconnect_f(void);

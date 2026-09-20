@@ -23,5 +23,5 @@
 
 #include "g_types.h"
 
-void G_MulticastSound(const g_play_sound_t *play, multicast_t to);
-void G_UnicastSound(const g_play_sound_t *play, const g_client_t *to, bool reliable);
+void G_MulticastSound(const GamePlaySound *play, Multicast to);
+void G_UnicastSound(const GamePlaySound *play, const GameClient *to, bool reliable);

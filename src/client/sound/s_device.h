@@ -21,8 +21,8 @@
 
 #pragma once
 
-extern cvar_t *s_buffer_frames;
-extern cvar_t *s_capture_device;
+extern Cvar *s_bufferFrames;
+extern Cvar *s_captureDevice;
 
 #if defined(__S_LOCAL_H__)
 bool S_InitPlayback(void);

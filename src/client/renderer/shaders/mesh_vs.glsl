@@ -38,62 +38,62 @@
 #include "material.glsl"
 #include "voxel.glsl"
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec3 in_tangent;
-layout (location = 3) in vec3 in_bitangent;
-layout (location = 4) in vec2 in_diffusemap;
+layout (location = 0) in vec3 inPosition;
+layout (location = 1) in vec3 inNormal;
+layout (location = 2) in vec3 inTangent;
+layout (location = 3) in vec3 inBitangent;
+layout (location = 4) in vec2 inDiffusemap;
 
-layout (location = 5) in vec3 in_next_position;
-layout (location = 6) in vec3 in_next_normal;
-layout (location = 7) in vec3 in_next_tangent;
-layout (location = 8) in vec3 in_next_bitangent;
+layout (location = 5) in vec3 inNextPosition;
+layout (location = 6) in vec3 inNextNormal;
+layout (location = 7) in vec3 inNextTangent;
+layout (location = 8) in vec3 inNextBitangent;
 
 /**
  * @brief Declares the per-entity mesh locals block.
- * @remarks Uses scalar padding to stay std140-compatible with r_mesh_locals_t.
+ * @remarks Uses scalar padding to stay std140-compatible with RenderMeshLocals.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform localsBlock {
   mat4 model;
   float lerp;
   float padding0, padding1, padding2;
   vec4 color;
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
+  uvec4 activeDynamicLights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 #include "light.glsl"
 
-layout (location = 0) out common_vertex_t vertex;
+layout (location = 0) out CommonVertex vertex;
 
 invariant gl_Position;
 
 /**
- * @brief Lerps the two animation frames and emits the shared common_vertex_t.
+ * @brief Lerps the two animation frames and emits the shared CommonVertex.
  */
 void main(void) {
 
-  mat4 view_model = view * model;
+  mat4 viewModel = view * model;
 
-  vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
-  vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
-  vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
-  vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
+  vec4 position = vec4(mix(inPosition, inNextPosition, lerp), 1.0);
+  vec4 normal = vec4(mix(inNormal, inNextNormal, lerp), 0.0);
+  vec4 tangent = vec4(mix(inTangent, inNextTangent, lerp), 0.0);
+  vec4 bitangent = vec4(mix(inBitangent, inNextBitangent, lerp), 0.0);
 
-  stage_transform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+  stageTransform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-  vertex.model_position = vec3(model * position);
-  vertex.model_normal = normalize(vec3(model * normal));
-  vertex.position = vec3(view_model * position);
-  vertex.normal = normalize(vec3(view_model * normal));
-  vertex.tangent = normalize(vec3(view_model * tangent));
-  vertex.bitangent = normalize(vec3(view_model * bitangent));
-  vertex.diffusemap = in_diffusemap;
-  vertex.voxel = voxel_uvw(vec3(model * position));
+  vertex.modelPosition = vec3(model * position);
+  vertex.modelNormal = normalize(vec3(model * normal));
+  vertex.position = vec3(viewModel * position);
+  vertex.normal = normalize(vec3(viewModel * normal));
+  vertex.tangent = normalize(vec3(viewModel * tangent));
+  vertex.bitangent = normalize(vec3(viewModel * bitangent));
+  vertex.diffusemap = inDiffusemap;
+  vertex.voxel = voxelUvw(vec3(model * position));
   vertex.color = color;
 
-  stage_vertex(in_position, vertex);
+  stageVertex(inPosition, vertex);
 
-  vertex_lighting(vertex);
+  vertexLighting(vertex);
 
-  gl_Position = projection3D * view_model * position;
+  gl_Position = projection3D * viewModel * position;
 }

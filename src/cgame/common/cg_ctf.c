@@ -34,7 +34,7 @@ typedef struct HeldFlagViewInterface HeldFlagViewInterface;
 typedef struct {
   ImageView imageView;
   HeldFlagViewInterface *interface[0];
-  g_item_tag_t flag;
+  GameItemTag flag;
 } HeldFlagView;
 
 struct HeldFlagViewInterface {
@@ -53,10 +53,10 @@ static void updateBindings(View *self, ident data) {
   }
 
   HeldFlagView *this = (HeldFlagView *) self;
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
-  g_item_tag_t flag = ITEM_NONE;
-  for (g_item_tag_t i = FLAG_FIRST; i < FLAG_LAST; i++) {
+  GameItemTag flag = ITEM_NONE;
+  for (GameItemTag i = FLAG_FIRST; i < FLAG_LAST; i++) {
     if (ps->inventory[i]) {
       flag = i;
       break;
@@ -71,10 +71,10 @@ static void updateBindings(View *self, ident data) {
 
   if (flag != this->flag) {
     this->flag = flag;
-    $((ImageView *) self, setImage, (Image *) Cg_HudImage(bg_item_defs[flag].icon));
+    $((ImageView *) self, setImage, (Image *) Cg_HudImage(bgItemDefs[flag].icon));
   }
 
-  ((ImageView *) self)->color.a = (Uint8) (Clampf(sinf(cgi.client->unclamped_time / 150.f), 0.75f, 1.f) * 255);
+  ((ImageView *) self)->color.a = (Uint8) (Clampf(sinf(cgi.client->unclampedTime / 150.f), 0.75f, 1.f) * 255);
 }
 
 /**
@@ -117,21 +117,21 @@ Class *_HeldFlagView(void) {
  * and teams are not optional. A single owner, like the game side's
  * `G_ClampGameplay_Ctf`, so it does not add to what `previous` offers.
  * @details Points directly at the `GAMEPLAY_TEAM_DEATHMATCH` row of the shared
- * `g_gameplay_modes` table rather than copying its `name`/`label` into a
+ * `gGameplayModes` table rather than copying its `name`/`label` into a
  * duplicate row - there is nothing here to drift out of sync with the game
  * side, since it is the same static data.
  */
-static const g_gameplay_t *Cg_ListGameplayModes_Ctf(size_t *count) {
+static const Gameplay *Cg_ListGameplayModes_Ctf(size_t *count) {
 
   *count = 1;
 
-  for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
-    if (g_gameplay_modes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
-      return &g_gameplay_modes[i];
+  for (size_t i = 0; i < lengthof(gGameplayModes); i++) {
+    if (gGameplayModes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
+      return &gGameplayModes[i];
     }
   }
 
-  return g_gameplay_modes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
+  return gGameplayModes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
 }
 
 /**

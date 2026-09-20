@@ -26,32 +26,32 @@
 /**
  * @brief Entity pairs.
  */
-typedef struct entity_key_value_s {
-  struct entity_key_value_s *next;
+typedef struct EntityKeyValue {
+  struct EntityKeyValue *next;
   char key[MAX_BSP_ENTITY_KEY];
   char value[MAX_BSP_ENTITY_VALUE];
-} entity_key_value_t;
+} EntityKeyValue;
 
 /**
  * @brief The map file representation of an entity.
  */
 typedef struct {
 
-  entity_key_value_t *values;
+  EntityKeyValue *values;
 
-  int32_t first_brush;
-  int32_t num_brushes;
+  int32_t firstBrush;
+  int32_t numBrushes;
 
-  int32_t first_brush_side;
-  int32_t num_brush_sides;
+  int32_t firstBrushSide;
+  int32_t numBrushSides;
 
-  int32_t first_patch;
-  int32_t num_patches;
+  int32_t firstPatch;
+  int32_t numPatches;
 
-  box3_t bounds;
+  Box3 bounds;
 
-} entity_t;
+} Entity;
 
-void SetValueForKey(entity_t *ent, const char *key, const char *value);
-const char *ValueForKey(const entity_t *ent, const char *key, const char *def);
-vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def);
+void SetValueForKey(Entity *ent, const char *key, const char *value);
+const char *ValueForKey(const Entity *ent, const char *key, const char *def);
+Vec3 VectorForKey(const Entity *ent, const char *key, const Vec3 def);

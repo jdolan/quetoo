@@ -24,8 +24,8 @@
 /**
  * @return True if the bot entity can pick up the item entity.
  */
-bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
-  const g_item_t *item = other->item;
+bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
+  const GameItem *item = other->item;
 
   if (!item) {
     return false;
@@ -41,7 +41,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
         return true;
       }
 
-      return cl->entity->health < cl->entity->max_health;
+      return cl->entity->health < cl->entity->maxHealth;
     case ITEM_TYPE_ARMOR:
       if (item->def.tag == ARMOR_SHARD ||
         inventory[item->def.tag] < item->def.max) {
@@ -54,7 +54,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
     case ITEM_TYPE_WEAPON:
       if (inventory[item->def.tag]) {
         if (item->def.ammo) {
-          return inventory[item->def.ammo] < g_items[item->def.ammo].def.max;
+          return inventory[item->def.ammo] < gItems[item->def.ammo].def.max;
         }
 
         return false;
@@ -63,7 +63,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       return true;
 #if defined(G_TECH)
     case ITEM_TYPE_TECH:
-      for (g_item_tag_t tag = TECH_FIRST; tag < TECH_LAST; tag++) {
+      for (GameItemTag tag = TECH_FIRST; tag < TECH_LAST; tag++) {
         if (inventory[tag]) {
           return false;
         }
@@ -73,9 +73,9 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
 #endif
 #if defined(G_CTF)
     case ITEM_TYPE_FLAG: {
-      const g_team_id_t team = cl->persistent.team->id;
-      const g_team_id_t flag_team = (item->def.tag - FLAG_FIRST);
-      if (flag_team == team && other->owner == NULL) {
+      const GameTeamId team = cl->persistent.team->id;
+      const GameTeamId flagTeam = (item->def.tag - FLAG_FIRST);
+      if (flagTeam == team && other->owner == NULL) {
         return false;
       }
 

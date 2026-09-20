@@ -29,17 +29,17 @@
 /**
  * @brief Frees the entity and all subsequent pairs in its linked list.
  */
-void Cm_FreeEntity(cm_entity_t *entity);
+void Cm_FreeEntity(CmEntity *entity);
 
 /**
  * @brief Allocates and returns a new zeroed entity key-value pair.
  */
-cm_entity_t *Cm_AllocEntity(void);
+CmEntity *Cm_AllocEntity(void);
 
 /**
  * @brief Returns a deep copy of the entity linked list.
  */
-cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity);
+CmEntity *Cm_CopyEntity(const CmEntity *entity);
 
 /**
  * @brief Returns a new entity list with keys from src assigned into a copy of dst.
@@ -47,59 +47,59 @@ cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity);
  *   Analogous to JavaScript's `Object.assign(dst, src)`.
  * @return A newly allocated entity list; the caller must free with `Cm_FreeEntity`.
  */
-cm_entity_t *Cm_EntityAssign(const cm_entity_t *dst, const cm_entity_t *src);
+CmEntity *Cm_EntityAssign(const CmEntity *dst, const CmEntity *src);
 
 /**
  * @brief Parses the string field of an entity pair into its typed fields.
  */
-void Cm_ParseEntity(cm_entity_t *pair);
+void Cm_ParseEntity(CmEntity *pair);
 
 /**
  * @brief Sorts the entity key-value pairs, placing classname first.
  */
-cm_entity_t *Cm_SortEntity(cm_entity_t *entity);
+CmEntity *Cm_SortEntity(CmEntity *entity);
 
 /**
  * @brief Parses an entity string into a List of entity linked lists.
- * @return A List of `cm_entity_t`* head pointers (one per entity).
+ * @return A List of `CmEntity`* head pointers (one per entity).
  */
-List *Cm_LoadEntities(const char *entity_string);
+List *Cm_LoadEntities(const char *entityString);
 
 /**
  * @brief Returns the index of the entity in the BSP entities array, or -1 if not found.
  */
-int32_t Cm_EntityNumber(const cm_entity_t *entity);
+int32_t Cm_EntityNumber(const CmEntity *entity);
 
 /**
  * @brief Returns the entity pair matching key, or a null entity if not found.
  */
-const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key);
+const CmEntity *Cm_EntityValue(const CmEntity *entity, const char *key);
 
 /**
  * @brief Sets or adds the key-value pair on the entity.
  * @return The updated or newly created entity pair.
  */
-cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value);
+CmEntity *Cm_EntitySetKeyValue(CmEntity *entity, const char *key, CmEntityParsed field, const void *value);
 
 /**
  * @brief Returns a Vector of brushes belonging to the given entity.
  */
-Vector *Cm_EntityBrushes(const cm_entity_t *entity);
+Vector *Cm_EntityBrushes(const CmEntity *entity);
 
 /**
  * @brief Serializes the entity linked list to a Quake info string.
  */
-char *Cm_EntityToInfoString(const cm_entity_t *entity);
+char *Cm_EntityToInfoString(const CmEntity *entity);
 
 /**
  * @brief Parses a Quake info string into an entity linked list.
  */
-cm_entity_t *Cm_EntityFromInfoString(const char *str);
+CmEntity *Cm_EntityFromInfoString(const char *str);
 
 /**
  * @brief Parses brushes from .map text and attaches them to the corresponding entities.
  */
-void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t num_entities);
+void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEntities);
 
 #if defined(__CM_LOCAL_H__)
 #endif

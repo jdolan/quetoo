@@ -64,7 +64,7 @@ static void didClickFavorite(Button *button) {
 
   const int32_t favorite = LittleLong(info->favorite ? 0 : 1);
 
-  if (cgi.WriteFileAt(info->filename, &favorite, sizeof(favorite), offsetof(demo_header_t, favorite))) {
+  if (cgi.WriteFileAt(info->filename, &favorite, sizeof(favorite), offsetof(DemoHeader, favorite))) {
     info->favorite = !info->favorite;
     $((View *) self->collectionView, setNeedsLayout);
     $((DemosCollectionItemView *) self, setDemoListItemInfo, info);
@@ -118,7 +118,7 @@ static void didEndEditingTitle(TextView *textView) {
     return;
   }
 
-  if (cgi.WriteFileAt(info->filename, title, sizeof(title), offsetof(demo_header_t, title))) {
+  if (cgi.WriteFileAt(info->filename, title, sizeof(title), offsetof(DemoHeader, title))) {
     q_strlcpy(info->title, title, sizeof(info->title));
   } else {
     Cg_Warn("Failed to update %s\n", info->filename);

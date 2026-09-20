@@ -22,8 +22,8 @@
 #include "cg_local.h"
 #include "bg_item.h"
 
-cg_item_t cg_items[ITEM_TOTAL];
-cg_weapon_t cg_weapons[WEAPON_TOTAL];
+ClientGameItem cgItems[ITEM_TOTAL];
+ClientGameWeapon cgWeapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache: item icons and models, weapon and ammo tags.
@@ -31,29 +31,29 @@ cg_weapon_t cg_weapons[WEAPON_TOTAL];
  */
 void Cg_InitInventory(void) {
 
-  memset(cg_items, 0, sizeof(cg_items));
-  memset(cg_weapons, 0, sizeof(cg_weapons));
+  memset(cgItems, 0, sizeof(cgItems));
+  memset(cgWeapons, 0, sizeof(cgWeapons));
 
-  for (g_item_tag_t t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bg_item_defs[t].model) {
-      cg_items[t].model = cgi.LoadModel(bg_item_defs[t].model);
+  for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
+    if (bgItemDefs[t].model) {
+      cgItems[t].model = cgi.LoadModel(bgItemDefs[t].model);
     }
   }
 
-  for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    cg_weapon_t *w = &cg_weapons[t - WEAPON_FIRST];
+  for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
+    ClientGameWeapon *w = &cgWeapons[t - WEAPON_FIRST];
     w->tag = t;
-    w->ammo_tag = bg_item_defs[t].ammo;
-    w->model = cg_items[t].model;
+    w->ammoTag = bgItemDefs[t].ammo;
+    w->model = cgItems[t].model;
   }
 }
 
 /**
  * @brief Returns true if the player has at least one weapon in inventory.
  */
-bool Cg_HasWeapon(const player_state_t *ps) {
+bool Cg_HasWeapon(const PlayerState *ps) {
 
-  for (g_item_tag_t i = WEAPON_FIRST; i < WEAPON_LAST; i++) {
+  for (GameItemTag i = WEAPON_FIRST; i < WEAPON_LAST; i++) {
     if (ps->inventory[i]) {
       return true;
     }
@@ -62,10 +62,10 @@ bool Cg_HasWeapon(const player_state_t *ps) {
 }
 
 /**
- * @brief Returns the active weapon index into `cg_weapons[]`, or `WEAPON_SELECT_OFF`.
+ * @brief Returns the active weapon index into `cgWeapons[]`, or `WEAPON_SELECT_OFF`.
  * Prefers the weapon being switched to over the one currently equipped.
  */
-int16_t Cg_ActiveWeapon(const player_state_t *ps) {
+int16_t Cg_ActiveWeapon(const PlayerState *ps) {
 
   const int16_t weapon    = (ps->stats[STAT_WEAPON] >> 0) & 0xff;
   const int16_t switching = (ps->stats[STAT_WEAPON] >> 8) & 0xff;
@@ -84,17 +84,17 @@ int16_t Cg_ActiveWeapon(const player_state_t *ps) {
 /**
  * @brief Returns the ammo count for the active weapon, or 0 if none.
  */
-int16_t Cg_ActiveAmmo(const player_state_t *ps) {
+int16_t Cg_ActiveAmmo(const PlayerState *ps) {
 
   const int16_t active = Cg_ActiveWeapon(ps);
   if (active == WEAPON_SELECT_OFF) {
     return 0;
   }
 
-  const g_item_tag_t ammo_tag = cg_weapons[active].ammo_tag;
-  if (!ammo_tag) {
+  const GameItemTag ammoTag = cgWeapons[active].ammoTag;
+  if (!ammoTag) {
     return 0;
   }
 
-  return ps->inventory[ammo_tag];
+  return ps->inventory[ammoTag];
 }

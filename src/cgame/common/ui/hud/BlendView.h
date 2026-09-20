@@ -45,7 +45,7 @@ typedef struct BlendViewInterface BlendViewInterface;
  * @brief The full-screen blends: liquid tint, pickup and damage flashes, powerup glow.
  * @details The liquid tint is this View's background colour, resolved from the material the
  * view origin is in; each flash is a full-screen ImageView whose alpha follows its timer.
- * Governed by the `cg_draw_blend*` cvars. Fills the HUD, so it SHOULD be the first element of
+ * Governed by the `cg_drawBlend*` cvars. Fills the HUD, so it SHOULD be the first element of
  * a variant.
  * @extends View
  */

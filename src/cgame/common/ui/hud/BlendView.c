@@ -59,9 +59,9 @@ static void dealloc(Object *self) {
  */
 static float decayingAlpha(uint32_t start, uint32_t decay, float alpha) {
 
-  const uint32_t elapsed = cgi.client->unclamped_time - start;
+  const uint32_t elapsed = cgi.client->unclampedTime - start;
   if (start && elapsed <= decay) {
-    return cg_draw_blend->value * alpha * (1.f - elapsed / (float) decay);
+    return cg_drawBlend->value * alpha * (1.f - elapsed / (float) decay);
   }
 
   return 0.f;
@@ -71,7 +71,7 @@ static float decayingAlpha(uint32_t start, uint32_t decay, float alpha) {
  * @brief The alpha of a powerup glow, pulsing.
  */
 static float pulsingAlpha(void) {
-  return fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value;
+  return fabsf(sinf(Radians(cgi.client->unclampedTime * 0.2))) * cg_drawBlendPowerup->value;
 }
 
 /**
@@ -81,15 +81,15 @@ static SDL_Color liquidTint(void) {
 
   const int32_t contents = cgi.view->contents;
 
-  if (!(contents & CONTENTS_MASK_LIQUID) || !cg_draw_blend_liquid->value) {
+  if (!(contents & CONTENTS_MASK_LIQUID) || !cg_drawBlendLiquid->value) {
     return Colors.Transparent;
   }
 
-  color_t color;
+  Color color;
 
-  const cm_trace_t tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
+  const CmTrace tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
   if (tr.brush) {
-    const char *name = tr.brush->brush_sides[0].material->name;
+    const char *name = tr.brush->brushSides[0].material->name;
     color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
     const float f = Maxf(color.r, Maxf(color.g, color.b));
     if (f > 0.f) {
@@ -103,9 +103,9 @@ static SDL_Color liquidTint(void) {
     color = Color4f(.4f, .5f, .6f, 1.f);
   }
 
-  color.a = Clampf(cg_draw_blend_liquid->value * 0.4f, 0.f, 0.4f);
+  color.a = Clampf(cg_drawBlendLiquid->value * 0.4f, 0.f, 0.4f);
 
-  const color32_t rgba = Color_Color32(color);
+  const Color32 rgba = Color_Color32(color);
   return (SDL_Color) { rgba.r, rgba.g, rgba.b, rgba.a };
 }
 
@@ -153,11 +153,11 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
-  $(self, setVisibility, cg_draw_blend->value ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $(self, setVisibility, cg_drawBlend->value ? ViewVisibilityVisible : ViewVisibilityHidden);
 
-  if (!cg_draw_blend->value) {
+  if (!cg_drawBlend->value) {
     return;
   }
 
@@ -169,21 +169,21 @@ static void updateBindings(View *self, ident data) {
   }
 
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
-  if (pickup && pickup != cg_hud_state.blend.pickup) {
-    cg_hud_state.blend.pickup_time = cgi.client->unclamped_time;
+  if (pickup && pickup != cgHudState.blend.pickup) {
+    cgHudState.blend.pickupTime = cgi.client->unclampedTime;
   }
-  cg_hud_state.blend.pickup = pickup;
+  cgHudState.blend.pickup = pickup;
 
   if (ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH]) {
-    cg_hud_state.blend.damage_time = cgi.client->unclamped_time;
+    cgHudState.blend.damageTime = cgi.client->unclampedTime;
   }
 
   float alphas[BlendViewTotal] = {
-    [BlendViewPickup] = cg_draw_blend_pickup->value ? decayingAlpha(cg_hud_state.blend.pickup_time, BLEND_PICKUP_TIME, cg_draw_blend_pickup->value) : 0.f,
+    [BlendViewPickup] = cg_drawBlendPickup->value ? decayingAlpha(cgHudState.blend.pickupTime, BLEND_PICKUP_TIME, cg_drawBlendPickup->value) : 0.f,
     [BlendViewQuad] = ps->stats[STAT_QUAD_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvisibility] = ps->stats[STAT_INVISIBILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvulnerability] = ps->stats[STAT_INVULNERABILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
-    [BlendViewDamage] = cg_draw_blend_damage->value ? decayingAlpha(cg_hud_state.blend.damage_time, BLEND_DAMAGE_TIME, cg_draw_blend_damage->value) : 0.f,
+    [BlendViewDamage] = cg_drawBlendDamage->value ? decayingAlpha(cgHudState.blend.damageTime, BLEND_DAMAGE_TIME, cg_drawBlendDamage->value) : 0.f,
   };
 
   for (size_t i = 0; i < BlendViewTotal; i++) {

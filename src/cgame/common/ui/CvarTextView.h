@@ -28,7 +28,7 @@
 /**
  * @file
  *
- * @brief A TextView bound to a cvar_t.
+ * @brief A TextView bound to a Cvar.
  */
 
 typedef struct CvarTextView CvarTextView;
@@ -55,7 +55,7 @@ struct CvarTextView {
   /**
    * @brief The variable.
    */
-  cvar_t *var;
+  Cvar *var;
 };
 
 /**
@@ -69,13 +69,13 @@ struct CvarTextViewInterface {
   TextViewInterface textViewInterface;
 
   /**
-   * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, cvar_t *var)
+   * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, Cvar *var)
    * @brief Initializes this TextView with the given variable.
    * @param var The variable.
    * @return The initialized CvarTextView, or `NULL` on error.
    * @memberof CvarTextView
    */
-  CvarTextView *(*initWithVariable)(CvarTextView *self, cvar_t *var);
+  CvarTextView *(*initWithVariable)(CvarTextView *self, Cvar *var);
 };
 
 /**

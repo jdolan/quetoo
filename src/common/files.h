@@ -39,13 +39,13 @@ typedef struct {
   /**
    * @brief The frame number this entry was recorded at.
    */
-  int32_t frame_num;
+  int32_t frameNum;
 
   /**
    * @brief The byte offset of this frame's message within the demo file.
    */
   int32_t offset;
-} demo_keyframe_t;
+} DemoKeyframe;
 
 /**
  * @brief Format identifier for demo files; rejects files that are not Quetoo demos.
@@ -103,13 +103,13 @@ typedef struct {
   /**
    * @brief The number of entries in the keyframe table. Written when recording stops.
    */
-  int32_t num_keyframes;
+  int32_t numKeyframes;
 
   /**
    * @brief The byte offset of the keyframe table. Written when recording stops.
    */
-  int32_t ofs_keyframes;
-} demo_header_t;
+  int32_t ofsKeyframes;
+} DemoHeader;
 
 /**
  * @brief MD3 file identification.
@@ -129,39 +129,39 @@ typedef struct {
 #define MD3_MAX_SURFACES   0x40 // per model
 #define MD3_MAX_TAGS       0x10 // per frame
 #define MD3_MAX_PATH       0x40 // relative file references
-#define MD3_MAX_ANIMATIONS 0x20 // see entity_animation_t
+#define MD3_MAX_ANIMATIONS 0x20 // see EntityAnimation
 #define MD3_XYZ_SCALE      (1.f / 64.f)
 
 typedef struct {
-  vec2_t st;
-} d_md3_texcoord_t;
+  Vec2 st;
+} Md3Texcoord;
 
 typedef struct {
-  vec3s_t point;
+  Vec3s point;
   int16_t norm;
-} d_md3_vertex_t;
+} Md3Vertex;
 
 typedef struct {
   uint32_t indexes[3];
-} d_md3_triangle_t;
+} Md3Triangle;
 
 typedef struct {
-  box3_t bounds;
-  vec3_t translate;
+  Box3 bounds;
+  Vec3 translate;
   float radius;
   char name[16];
-} d_md3_frame_t;
+} Md3Frame;
 
 typedef struct {
   char name[MD3_MAX_PATH];
-  vec3_t origin;
-  vec3_t axis[3];
-} d_md3_tag_t;
+  Vec3 origin;
+  Vec3 axis[3];
+} Md3Tag;
 
 typedef struct {
   char name[MD3_MAX_PATH];
   int32_t index;
-} d_md3_shader_t;
+} Md3Shader;
 
 typedef struct {
   int32_t id;
@@ -170,17 +170,17 @@ typedef struct {
 
   int32_t flags;
 
-  int32_t num_frames;
-  int32_t num_shaders;
-  int32_t num_vertexes;
-  int32_t num_triangles;
+  int32_t numFrames;
+  int32_t numShaders;
+  int32_t numVertexes;
+  int32_t numTriangles;
 
-  int32_t ofs_triangles;
-  int32_t ofs_shaders;
-  int32_t ofs_texcoords;
-  int32_t ofs_vertexes;
-  int32_t ofs_end;
-} d_md3_surface_t;
+  int32_t ofsTriangles;
+  int32_t ofsShaders;
+  int32_t ofsTexcoords;
+  int32_t ofsVertexes;
+  int32_t ofsEnd;
+} Md3Surface;
 
 typedef struct {
   int32_t id;
@@ -190,13 +190,13 @@ typedef struct {
 
   int32_t flags;
 
-  int32_t num_frames;
-  int32_t num_tags;
-  int32_t num_surfaces;
-  int32_t num_shaders;
+  int32_t numFrames;
+  int32_t numTags;
+  int32_t numSurfaces;
+  int32_t numShaders;
 
-  int32_t ofs_frames;
-  int32_t ofs_tags;
-  int32_t ofs_surfaces;
-  int32_t ofs_end;
-} d_md3_t;
+  int32_t ofsFrames;
+  int32_t ofsTags;
+  int32_t ofsSurfaces;
+  int32_t ofsEnd;
+} Md3;

@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-void R_AddLight(r_view_t *view, const r_light_t *l);
+void R_AddLight(RenderView *view, const RenderLight *l);
 
 #if defined(__R_LOCAL_H__)
 
@@ -35,18 +35,18 @@ typedef struct {
   /**
    * @brief Light origin and radius.
    */
-  alignas(16) vec4_t origin;
+  alignas(16) Vec4 origin;
 
   /**
    * @brief Light color and intensity.
    */
-  vec4_t color;
+  Vec4 color;
 
   /**
    * @brief Shadow atlas tile origin, or (-1, -1) if the light has no shadow.
    */
-  vec2_t tile;
-} r_light_uniform_t;
+  Vec2 tile;
+} RenderLightUniform;
 
 /**
  * @brief Static BSP light uniform block.
@@ -56,13 +56,13 @@ typedef struct {
   /**
    * @brief Number of BSP lights.
    */
-  int32_t num_lights;
+  int32_t numLights;
 
   /**
    * @brief BSP lights indexed by BSP lump index.
    */
-  alignas(16) r_light_uniform_t lights[MAX_BSP_LIGHTS];
-} r_bsp_lights_uniform_block_t;
+  alignas(16) RenderLightUniform lights[MAX_BSP_LIGHTS];
+} RenderBspLightsUniformBlock;
 
 /**
  * @brief Per-frame dynamic light uniform block.
@@ -72,59 +72,58 @@ typedef struct {
   /**
    * @brief Number of dynamic lights.
    */
-  int32_t num_lights;
+  int32_t numLights;
 
   /**
    * @brief Dynamic lights in view order.
    */
-  alignas(16) r_light_uniform_t lights[MAX_DYNAMIC_LIGHTS];
-} r_dynamic_lights_uniform_block_t;
+  alignas(16) RenderLightUniform lights[MAX_DYNAMIC_LIGHTS];
+} RenderDynamicLightsUniformBlock;
 
 /**
  * @brief Per-frame light storage buffers and mirrored uniform blocks.
  */
 typedef struct {
-
   /**
-   * @brief GPU buffer for `bsp_block`.
+   * @brief GPU buffer for `bspBlock`.
    */
-  Buffer *bsp_buffer;
+  Buffer *bspBuffer;
 
   /**
    * @brief CPU copy of the BSP light block.
    */
-  r_bsp_lights_uniform_block_t bsp_block;
+  RenderBspLightsUniformBlock bspBlock;
 
   /**
-   * @brief GPU buffer for `dynamic_block`.
+   * @brief GPU buffer for `dynamicBlock`.
    */
-  Buffer *dynamic_buffer;
+  Buffer *dynamicBuffer;
 
   /**
    * @brief CPU copy of the dynamic light block.
    */
-  r_dynamic_lights_uniform_block_t dynamic_block;
+  RenderDynamicLightsUniformBlock dynamicBlock;
 
   /**
    * @brief The transfer buffer sourcing both blocks' uploads, held for the renderer's
    * lifetime because they are uploaded every frame.
    */
-  TransferBuffer *transfer_buffer;
+  TransferBuffer *transferBuffer;
 
   /**
    * @brief One voxel with no lights, bound where a level has no clustered light
    * data, or a view has no level.
    */
-  Buffer *voxel_fallback_buffer;
-} r_lights_t;
+  Buffer *voxelFallbackBuffer;
+} RenderLights;
 
 /**
  * @brief Per-frame light storage.
  */
-extern r_lights_t r_lights;
+extern RenderLights rLights;
 
-void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, r_active_dynamic_lights_t *out);
-void R_UpdateLights(r_view_t *view, CopyPass *copyPass);
+void R_ActiveDynamicLights(const RenderView *view, const Box3 bounds, RenderActiveDynamicLights *out);
+void R_UpdateLights(RenderView *view, CopyPass *copyPass);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

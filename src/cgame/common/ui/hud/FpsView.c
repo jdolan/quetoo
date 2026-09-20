@@ -42,7 +42,7 @@ static void updateBindings(View *self, ident data) {
 
   FpsView *this = (FpsView *) self;
 
-  $(self, setVisibility, cg_draw_fps->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $(self, setVisibility, cg_drawFps->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     this->frames++;
@@ -61,16 +61,16 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - CounterView
 
 /**
- * @see CounterView::valueForFrame(CounterView *, const cl_frame_t *)
+ * @see CounterView::valueForFrame(CounterView *, const ClientFrame *)
  */
-static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
+static int32_t valueForFrame(CounterView *self, const ClientFrame *frame) {
   return ((FpsView *) self)->fps;
 }
 
 /**
- * @see CounterView::textForFrame(CounterView *, const cl_frame_t *)
+ * @see CounterView::textForFrame(CounterView *, const ClientFrame *)
  */
-static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
+static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
   snprintf(self->text, sizeof(self->text), "%3d", $(self, valueForFrame, frame));
 

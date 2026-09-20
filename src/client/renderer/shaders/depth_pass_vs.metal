@@ -3,37 +3,37 @@
 
 using namespace metal;
 
-struct voxels_t
+struct Voxels
 {
     float4 mins;
     float4 maxs;
-    float4 view_coordinate;
+    float4 viewCoordinate;
     float4 size;
 };
 
-struct uniforms_block
+struct uniformsBlock
 {
     int4 viewport;
     float4x4 projection3D;
     float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
+    float4x4 skyProjection;
+    float4x4 lightProjection;
+    Voxels voxels;
+    float2 depthRange;
+    int viewType;
     int ticks;
     packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
+    float ambientOcclusion;
+    float lightingDistance;
     int editor;
     int developer;
     float2 padding;
 };
 
-struct locals_block
+struct localsBlock
 {
     float4x4 model;
 };
@@ -45,15 +45,15 @@ struct main0_out
 
 struct main0_in
 {
-    float3 in_position [[attribute(0)]];
+    float3 inPosition [[attribute(0)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _18 [[buffer(0)]], constant locals_block& _25 [[buffer(1)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _18 [[buffer(0)]], constant localsBlock& _25 [[buffer(1)]])
 {
     main0_out out = {};
-    float4x4 view_model = _18.view * _25.model;
-    float4x4 _40 = _18.projection3D * view_model;
-    float4 _48 = float4(in.in_position, 1.0);
+    float4x4 viewModel = _18.view * _25.model;
+    float4x4 _40 = _18.projection3D * viewModel;
+    float4 _48 = float4(in.inPosition, 1.0);
     float4 _49 = _40 * _48;
     out.gl_Position = _49;
     return out;

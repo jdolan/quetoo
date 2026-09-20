@@ -23,7 +23,7 @@
 
 /**
  * @brief The hook owns its own configuration, media and enabled state so that a
- * module adopting it needs only `g_client_hook_t`, a `g_hook_style_t` in its
+ * module adopting it needs only `GameClientHook`, a `GameHookStyle` in its
  * persistent client state, and the MOD_HOOK, TE_HOOK_IMPACT and TRAIL_HOOK wire
  * values.
  */
@@ -41,14 +41,14 @@ static struct {
 
 static bool installed;
 
-cvar_t *g_hook;
-cvar_t *g_hook_auto_refire;
-cvar_t *g_hook_distance;
-cvar_t *g_hook_pull_speed;
-cvar_t *g_hook_refire;
-cvar_t *g_hook_sky;
-cvar_t *g_hook_speed;
-cvar_t *g_hook_style;
+Cvar *g_hook;
+Cvar *g_hookAutoRefire;
+Cvar *g_hookDistance;
+Cvar *g_hookPullSpeed;
+Cvar *g_hookRefire;
+Cvar *g_hookSky;
+Cvar *g_hookSpeed;
+Cvar *g_hookStyle;
 
 static struct {
   uint16_t model;
@@ -58,32 +58,32 @@ static struct {
   uint16_t pull;
   uint16_t detach;
   uint16_t gibhit;
-} g_hook_media;
+} module;
 
 /**
  * @brief True when the hook is available this level.
  */
-static bool g_hook_enabled;
+static bool gHookEnabled;
 
 /**
  * @return True if the hook is enabled for this level.
  */
 static bool G_Hook_Enabled(void) {
-  return g_hook_enabled;
+  return gHookEnabled;
 }
 
 /**
  * @brief Takes the client's movement over while they are pulling on the hook,
  * and otherwise defers to previous.
  */
-static void G_PrepareMove_Hook(g_client_t *cl, pm_move_t *pm) {
+static void G_PrepareMove_Hook(GameClient *cl, PlayerMove *pm) {
 
   if (!cl->hook.pull) {
     previous.PrepareMove(cl, pm);
     return;
   }
 
-  switch (cl->persistent.hook_style) {
+  switch (cl->persistent.hookStyle) {
     case HOOK_SWING_MANUAL:
       pm->s.type = PM_HOOK_SWING_MANUAL;
       break;
@@ -95,7 +95,7 @@ static void G_PrepareMove_Hook(g_client_t *cl, pm_move_t *pm) {
       break;
   }
 
-  pm->hook_pull_speed = g_hook_pull_speed->value;
+  pm->hookPullSpeed = g_hookPullSpeed->value;
 }
 
 /**
@@ -105,14 +105,14 @@ static void G_InitMedia_Hook(void) {
 
   previous.InitMedia();
 
-  g_hook_media.model = gi.ModelIndex("models/grapplehook/tris");
+  module.model = gi.ModelIndex("models/grapplehook/tris");
 
-  g_hook_media.fire = gi.SoundIndex("grapplehook/fire");
-  g_hook_media.fly = gi.SoundIndex("grapplehook/fly");
-  g_hook_media.hit = gi.SoundIndex("grapplehook/hit");
-  g_hook_media.pull = gi.SoundIndex("grapplehook/pull");
-  g_hook_media.detach = gi.SoundIndex("grapplehook/detach");
-  g_hook_media.gibhit = gi.SoundIndex("grapplehook/gibhit");
+  module.fire = gi.SoundIndex("grapplehook/fire");
+  module.fly = gi.SoundIndex("grapplehook/fly");
+  module.hit = gi.SoundIndex("grapplehook/hit");
+  module.pull = gi.SoundIndex("grapplehook/pull");
+  module.detach = gi.SoundIndex("grapplehook/detach");
+  module.gibhit = gi.SoundIndex("grapplehook/gibhit");
 }
 
 /**
@@ -122,13 +122,13 @@ static void G_InitMedia_Hook(void) {
  */
 static void G_Hook_PublishPullSpeed(void) {
 
-  if (!isfinite(g_hook_pull_speed->value) || g_hook_pull_speed->value <= 0.f) {
-    G_Warn("Invalid g_hook_pull_speed \"%s\", resetting to %g\n", g_hook_pull_speed->string, PM_SPEED_HOOK_PULL);
-    gi.SetCvarValue("g_hook_pull_speed", PM_SPEED_HOOK_PULL);
-    g_hook_pull_speed->modified = false;
+  if (!isfinite(g_hookPullSpeed->value) || g_hookPullSpeed->value <= 0.f) {
+    G_Warn("Invalid g_hookPullSpeed \"%s\", resetting to %g\n", g_hookPullSpeed->string, PM_SPEED_HOOK_PULL);
+    gi.SetCvarValue("g_hookPullSpeed", PM_SPEED_HOOK_PULL);
+    g_hookPullSpeed->modified = false;
   }
 
-  gi.SetConfigString(CS_HOOK_PULL_SPEED, va("%.9g", g_hook_pull_speed->value));
+  gi.SetConfigString(CS_HOOK_PULL_SPEED, va("%.9g", g_hookPullSpeed->value));
 }
 
 /**
@@ -160,29 +160,29 @@ static bool G_CheckCvars_Hook(void) {
     restart = true;
   }
 
-  if (g_hook_speed->modified) {
-    g_hook_speed->modified = false;
+  if (g_hookSpeed->modified) {
+    g_hookSpeed->modified = false;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %g\n", g_hook_speed->value);
+    gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %g\n", g_hookSpeed->value);
   }
 
-  if (g_hook_pull_speed->modified) {
-    g_hook_pull_speed->modified = false;
+  if (g_hookPullSpeed->modified) {
+    g_hookPullSpeed->modified = false;
 
     G_Hook_PublishPullSpeed();
 
-    gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n", g_hook_pull_speed->value);
+    gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n", g_hookPullSpeed->value);
   }
 
-  if (g_hook_style->modified) {
-    g_hook_style->modified = false;
+  if (g_hookStyle->modified) {
+    g_hookStyle->modified = false;
 
     // reset all the hook styles on the players
     G_ForEachClient(cl, {
       G_SetClientHookStyle(cl);
     });
 
-    gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hook_style->string);
+    gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hookStyle->string);
   }
 
   return previous.CheckCvars() || restart;
@@ -191,7 +191,7 @@ static bool G_CheckCvars_Hook(void) {
 /**
  * @brief Tosses the grapple a client leaving play is holding.
  */
-static void G_TossInventory_Hook(g_client_t *cl) {
+static void G_TossInventory_Hook(GameClient *cl) {
 
   G_HookDetach(cl);
 
@@ -224,24 +224,24 @@ void G_Hook_Init(void) {
   }
 
   g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-  g_hook_style = gi.AddCvar("g_hook_style", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
-  g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", 0, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
-  g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), 0, "The maximum distance the hook will travel.");
-  g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", va("%g", PM_SPEED_HOOK_PULL), 0, "The speed that you get pulled towards the hook.");
-  g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", 0, "The refire delay on the grapple hook in seconds.");
-  g_hook_sky = gi.AddCvar("g_hook_sky", "0", CVAR_SERVER_INFO, "If enabled, the grapple hook attaches to sky surfaces rather than detaching.");
-  g_hook_speed = gi.AddCvar("g_hook_speed", "1200", 0, "The speed that the hook will fly at.");
+  g_hookStyle = gi.AddCvar("g_hookStyle", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
+  g_hookAutoRefire = gi.AddCvar("g_hookAutoRefire", "0", 0, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
+  g_hookDistance = gi.AddCvar("g_hookDistance", va("%.1f", PM_HOOK_DEF_DIST), 0, "The maximum distance the hook will travel.");
+  g_hookPullSpeed = gi.AddCvar("g_hookPullSpeed", va("%g", PM_SPEED_HOOK_PULL), 0, "The speed that you get pulled towards the hook.");
+  g_hookRefire = gi.AddCvar("g_hookRefire", "0.25", 0, "The refire delay on the grapple hook in seconds.");
+  g_hookSky = gi.AddCvar("g_hookSky", "0", CVAR_SERVER_INFO, "If enabled, the grapple hook attaches to sky surfaces rather than detaching.");
+  g_hookSpeed = gi.AddCvar("g_hookSpeed", "1200", 0, "The speed that the hook will fly at.");
 
-  g_hook_pull_speed->modified =
-      g_hook_speed->modified =
-      g_hook_style->modified =
+  g_hookPullSpeed->modified =
+      g_hookSpeed->modified =
+      g_hookStyle->modified =
       g_hook->modified = false;
 }
 
 /**
  * @brief Touch callback for the hook projectile; attaches to structural surfaces or deals damage and detaches on hitting enemies.
  */
-static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_HookProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (other == ent->owner) {
     return;
@@ -259,28 +259,28 @@ static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
 
   const bool sky = G_IsSky(trace);
 
-  if (!sky || g_hook_sky->integer) {
+  if (!sky || g_hookSky->integer) {
 
-    if (G_IsStructural(trace) || (sky && g_hook_sky->integer) || (G_IsMeat(other) && G_OnSameTeam(other->client, ent->owner->client))) {
+    if (G_IsStructural(trace) || (sky && g_hookSky->integer) || (G_IsMeat(other) && G_OnSameTeam(other->client, ent->owner->client))) {
 
       ent->velocity = Vec3_Zero();
       ent->avelocity = Vec3_Zero();
 
       ent->owner->client->hook.pull = true;
 
-      ent->move_type = MOVE_TYPE_THINK;
+      ent->moveType = MOVE_TYPE_THINK;
       ent->solid = SOLID_NOT;
       ent->bounds = Box3_Zero();
       ent->enemy = other;
 
       gi.LinkEntity(ent);
 
-      ent->owner->client->ps.pm_state.hook_position = ent->s.origin;
+      ent->owner->client->ps.pmState.hookPosition = ent->s.origin;
 
-      if (ent->owner->client->persistent.hook_style != HOOK_PULL) {
+      if (ent->owner->client->persistent.hookStyle != HOOK_PULL) {
         const float distance = Vec3_Distance(ent->owner->s.origin, ent->s.origin);
 
-        ent->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
+        ent->owner->client->ps.pmState.hookLength = Clampf(distance, PM_HOOK_MIN_DIST, g_hookDistance->value);
       }
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
@@ -290,19 +290,19 @@ static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
       gi.Multicast(ent->s.origin, MULTICAST_PHS);
     } else {
 
-      G_MulticastSound(&(const g_play_sound_t) {
-        .index = g_hook_media.gibhit,
+      G_MulticastSound(&(const GamePlaySound) {
+        .index = module.gibhit,
         .entity = ent,
         .pitch = RandomRangei(-4, 5)
       }, MULTICAST_PHS);
 
       /*
-      if (g_hook_auto_refire->integer) {
+      if (g_hookAutoRefire->integer) {
         G_HookThink(ent->owner, true);
       } else {*/
         ent->velocity = Vec3_Normalize(ent->velocity);
 
-        G_Damage(&(g_damage_t) {
+        G_Damage(&(GameDamage) {
           .target = other,
           .inflictor = ent,
           .attacker = ent->owner,
@@ -320,7 +320,7 @@ static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
     }
   } else {
     /* Currently disabled due to bugs
-    if (g_hook_auto_refire->integer) {
+    if (g_hookAutoRefire->integer) {
       G_HookThink(ent->owner, true);
     } else {
     */
@@ -332,47 +332,47 @@ static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
 /**
  * @brief Think callback for the hook cable trail; updates beam endpoints and detaches if the hook exceeds maximum range.
  */
-static void G_HookTrail_Think(g_entity_t *ent) {
+static void G_HookTrail_Think(GameEntity *ent) {
 
-  const g_entity_t *hook = ent->target_ent;
-  g_client_t *cl = ent->owner->client;
+  const GameEntity *hook = ent->targetEnt;
+  GameClient *cl = ent->owner->client;
 
-  vec3_t forward, right, up, org;
+  Vec3 forward, right, up, org;
 
   G_ClientProjectile(cl, &forward, &right, &up, &org, -1.0);
 
   ent->s.origin = org;
   ent->s.termination = hook->s.origin;
 
-  vec3_t distance;
+  Vec3 distance;
   distance = Vec3_Subtract(org, hook->s.origin);
 
-  if (Vec3_Length(distance) > g_hook_distance->value) {
+  if (Vec3_Length(distance) > g_hookDistance->value) {
 
     G_HookDetach(cl);
     return;
   }
 
-  ent->next_think = g_level.time + 1;
+  ent->nextThink = gLevel.time + 1;
   gi.LinkEntity(ent);
 }
 
 /**
  * @brief Think callback for the hook projectile; tracks attached movers and updates the hook position each tick.
  */
-static void G_HookProjectile_Think(g_entity_t *ent) {
+static void G_HookProjectile_Think(GameEntity *ent) {
 
   // if we're attached to something, copy velocities
   if (ent->enemy) {
-    g_entity_t *mover = ent->enemy;
-    vec3_t move, amove, inverse_amove, forward, right, up, rotate, translate, delta;
+    GameEntity *mover = ent->enemy;
+    Vec3 move, amove, inverseAmove, forward, right, up, rotate, translate, delta;
 
     move = Vec3_Scale(mover->velocity, QUETOO_TICK_SECONDS);
     amove = Vec3_Scale(mover->avelocity, QUETOO_TICK_SECONDS);
 
     if (!Vec3_Equal(move, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
-      inverse_amove = Vec3_Negate(amove);
-      Vec3_Vectors(inverse_amove, &forward, &right, &up);
+      inverseAmove = Vec3_Negate(amove);
+      Vec3_Vectors(inverseAmove, &forward, &right, &up);
 
       // translate the pushed entity
       ent->s.origin = Vec3_Add(ent->s.origin, move);
@@ -390,66 +390,66 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 
       // FIXME: any way we can have the hook move on all axis?
       ent->s.angles.y += amove.y;
-      ent->target_ent->s.angles.y += amove.y;
+      ent->targetEnt->s.angles.y += amove.y;
 
       gi.LinkEntity(ent);
 
-      ent->owner->client->ps.pm_state.hook_position = ent->s.origin;
+      ent->owner->client->ps.pmState.hookPosition = ent->s.origin;
     }
 
-    if ((ent->owner->client->persistent.hook_style == HOOK_PULL && Vec3_LengthSquared(ent->owner->velocity) > 128.0) ||
-      ent->knockback != ent->owner->client->ps.pm_state.hook_length) {
-      ent->s.sound = g_hook_media.pull;
-      ent->knockback = ent->owner->client->ps.pm_state.hook_length;
+    if ((ent->owner->client->persistent.hookStyle == HOOK_PULL && Vec3_LengthSquared(ent->owner->velocity) > 128.0) ||
+      ent->knockback != ent->owner->client->ps.pmState.hookLength) {
+      ent->s.sound = module.pull;
+      ent->knockback = ent->owner->client->ps.pmState.hookLength;
     } else {
       ent->s.sound = 0;
     }
   }
 
-  ent->next_think = g_level.time + 1;
+  ent->nextThink = gLevel.time + 1;
 }
 
 /**
  * @brief Fires a grappling hook projectile from the specified entity in the given direction.
  */
-g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir) {
-  g_entity_t *projectile = G_AllocEntity(__func__);
+GameEntity *G_HookProjectile(GameEntity *ent, const Vec3 start, const Vec3 dir) {
+  GameEntity *projectile = G_AllocEntity(__func__);
   projectile->owner = ent;
 
   projectile->s.origin = start;
   projectile->s.angles = Vec3_Euler(dir);
-  projectile->velocity = Vec3_Scale(dir, g_hook_speed->value);
-  projectile->avelocity = Vec3(0, 0, 500);
+  projectile->velocity = Vec3_Scale(dir, g_hookSpeed->value);
+  projectile->avelocity = MakeVec3(0, 0, 500);
 
   if (G_ImmediateWall(ent, projectile)) {
     projectile->s.origin = ent->s.origin;
   }
 
   projectile->solid = SOLID_PROJECTILE;
-  projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-  projectile->move_type = MOVE_TYPE_FLY;
+  projectile->clipMask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->moveType = MOVE_TYPE_FLY;
   projectile->Touch = G_HookProjectile_Touch;
-  projectile->s.model1 = g_hook_media.model;
+  projectile->s.model1 = module.model;
   projectile->Think = G_HookProjectile_Think;
-  projectile->next_think = g_level.time + 1;
-  projectile->s.sound = g_hook_media.fly;
+  projectile->nextThink = gLevel.time + 1;
+  projectile->s.sound = module.fly;
 
   gi.LinkEntity(projectile);
 
-  g_entity_t *trail = G_AllocEntity(__func__);
+  GameEntity *trail = G_AllocEntity(__func__);
 
-  projectile->target_ent = trail;
-  trail->target_ent = projectile;
+  projectile->targetEnt = trail;
+  trail->targetEnt = projectile;
 
   trail->owner = ent;
   trail->solid = SOLID_NOT;
-  trail->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-  trail->move_type = MOVE_TYPE_THINK;
+  trail->clipMask = CONTENTS_MASK_CLIP_PROJECTILE;
+  trail->moveType = MOVE_TYPE_THINK;
   trail->s.client = ent->s.client;
   trail->s.effects = EF_BEAM;
   trail->s.trail = TRAIL_HOOK;
   trail->Think = G_HookTrail_Think;
-  trail->next_think = g_level.time + 1;
+  trail->nextThink = gLevel.time + 1;
 
   G_HookTrail_Think(trail);
 
@@ -463,9 +463,9 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 /**
  * @brief Detach the player's hook if it's still attached.
  */
-void G_HookDetach(g_client_t *cl) {
+void G_HookDetach(GameClient *cl) {
 
-  if (!g_hook_enabled) {
+  if (!gHookEnabled) {
     return;
   }
 
@@ -474,8 +474,8 @@ void G_HookDetach(g_client_t *cl) {
   }
 
   // free entity
-  if (cl->hook.entity->target_ent) {
-    G_FreeEntity(cl->hook.entity->target_ent);
+  if (cl->hook.entity->targetEnt) {
+    G_FreeEntity(cl->hook.entity->targetEnt);
   }
   G_FreeEntity(cl->hook.entity);
 
@@ -483,27 +483,27 @@ void G_HookDetach(g_client_t *cl) {
 
   // prevent hook spam
   if (!cl->hook.pull) {
-    cl->hook.fire_time = g_level.time + SECONDS_TO_MILLIS(g_hook_refire->value);
+    cl->hook.fireTime = gLevel.time + SECONDS_TO_MILLIS(g_hookRefire->value);
   } else {
     // don't get hurt from sweet-ass hooking
-    cl->land_time = g_level.time;
+    cl->landTime = gLevel.time;
   }
 
   cl->hook.pull = false;
 
-  G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_hook_media.detach,
+  G_MulticastSound(&(const GamePlaySound) {
+    .index = module.detach,
     .entity = cl->entity,
     .pitch = RandomRangei(-4, 5)
   }, MULTICAST_PHS);
 
   // see if we can backflip for style points
-  if (cl->entity->in_use && cl->entity->health > 0) {
+  if (cl->entity->inUse && cl->entity->health > 0) {
 
-    const vec3_t velocity = Vec3(cl->entity->velocity.x, cl->entity->velocity.y, 0.0);
-    const float fwd_speed = Vec3_Length(velocity) / 1.75;
+    const Vec3 velocity = MakeVec3(cl->entity->velocity.x, cl->entity->velocity.y, 0.0);
+    const float fwdSpeed = Vec3_Length(velocity) / 1.75;
 
-    if (cl->entity->velocity.z > 50 && cl->entity->velocity.z > fwd_speed) {
+    if (cl->entity->velocity.z > 50 && cl->entity->velocity.z > fwdSpeed) {
       G_SetAnimation(cl, ANIM_LEGS_JUMP2, true);
     }
   }
@@ -512,40 +512,40 @@ void G_HookDetach(g_client_t *cl) {
 /**
  * @brief Handles the firing of the hook.
  */
-static void G_HookCheckFire(g_client_t *cl, const bool refire) {
+static void G_HookCheckFire(GameClient *cl, const bool refire) {
 
   // hook can fire, see if we should
-  if (!refire && !(cl->latched_buttons & BUTTON_HOOK)) {
+  if (!refire && !(cl->latchedButtons & BUTTON_HOOK)) {
     return;
   }
 
   if (!refire) {
 
     // use small epsilon for low server frame rates
-    if (cl->hook.fire_time > g_level.time + 1) {
+    if (cl->hook.fireTime > gLevel.time + 1) {
       return;
     }
 
-    cl->latched_buttons &= ~BUTTON_HOOK;
+    cl->latchedButtons &= ~BUTTON_HOOK;
   } else {
 
     G_HookDetach(cl);
   }
 
   // fire away!
-  vec3_t forward, right, up, org;
+  Vec3 forward, right, up, org;
   G_ClientProjectile(cl, &forward, &right, &up, &org, -1.0);
 
   cl->hook.pull = false;
   cl->hook.entity = G_HookProjectile(cl->entity, org, forward);
 
-  G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_hook_media.fire,
+  G_MulticastSound(&(const GamePlaySound) {
+    .index = module.fire,
     .entity = cl->entity,
     .pitch = RandomRangei(-4, 5)
   }, MULTICAST_PHS);
 
-  cl->hook.think_time = g_level.time;
+  cl->hook.thinkTime = gLevel.time;
 }
 
 /**
@@ -554,8 +554,8 @@ static void G_HookCheckFire(g_client_t *cl, const bool refire) {
  * feature stays out of a ruleset that cannot carry it, rather than the ruleset
  * having to know the feature exists.
  */
-static bool G_AllowHook_Common(const g_client_t *cl) {
-  return Pm_Movement(g_level.movement)->hook;
+static bool G_AllowHook_Common(const GameClient *cl) {
+  return Pm_Movement(gLevel.movement)->hook;
 }
 
 AllowHook G_AllowHook = G_AllowHook_Common;
@@ -563,10 +563,10 @@ AllowHook G_AllowHook = G_AllowHook_Common;
 /**
  * @brief Handles management of the hook for a given player.
  */
-void G_HookThink(g_client_t *cl, const bool refire) {
+void G_HookThink(GameClient *cl, const bool refire) {
 
   // sanity checks
-  if (!g_hook_enabled) {
+  if (!gHookEnabled) {
     return;
   }
 
@@ -582,7 +582,7 @@ void G_HookThink(g_client_t *cl, const bool refire) {
     if (cl->hook.entity) {
       G_HookDetach(cl);
     }
-    cl->latched_buttons &= ~BUTTON_HOOK;
+    cl->latchedButtons &= ~BUTTON_HOOK;
     return;
   }
 
@@ -595,16 +595,16 @@ void G_HookThink(g_client_t *cl, const bool refire) {
 
   if (cl->hook.entity) {
 
-    const bool is_manual_hook_swing = cl->persistent.hook_style == HOOK_SWING_MANUAL;
-    const bool is_holding_hook = (cl->buttons & BUTTON_HOOK);
-    const bool is_pressing_hook = (cl->latched_buttons & BUTTON_HOOK);
+    const bool isManualHookSwing = cl->persistent.hookStyle == HOOK_SWING_MANUAL;
+    const bool isHoldingHook = (cl->buttons & BUTTON_HOOK);
+    const bool isPressingHook = (cl->latchedButtons & BUTTON_HOOK);
 
-    if ((!is_manual_hook_swing && !is_holding_hook) || (is_manual_hook_swing && is_pressing_hook)) {
+    if ((!isManualHookSwing && !isHoldingHook) || (isManualHookSwing && isPressingHook)) {
 
       G_HookDetach(cl);
 
-      cl->latched_buttons &= ~BUTTON_HOOK;
-      cl->hook.think_time = g_level.time;
+      cl->latchedButtons &= ~BUTTON_HOOK;
+      cl->hook.thinkTime = gLevel.time;
     }
   } else {
     G_HookCheckFire(cl, false);
@@ -614,22 +614,22 @@ void G_HookThink(g_client_t *cl, const bool refire) {
 /**
  * @brief Set the hook style of the player, respecting server properties.
  */
-void G_SetClientHookStyle(g_client_t *cl) {
+void G_SetClientHookStyle(GameClient *cl) {
 
-  if (!cl->in_use) {
+  if (!cl->inUse) {
     return;
   }
 
-  g_hook_style_t hook_style;
+  GameHookStyle hookStyle;
 
-  // respect user_info on default
-  if (!q_strcmp(g_hook_style->string, "default")) {
-    hook_style = Hook_StyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
+  // respect userInfo on default
+  if (!q_strcmp(g_hookStyle->string, "default")) {
+    hookStyle = Hook_StyleByName(InfoString_Get(cl->persistent.userInfo, "hookStyle"));
   } else {
-    hook_style = Hook_StyleByName(g_hook_style->string);
+    hookStyle = Hook_StyleByName(g_hookStyle->string);
   }
 
-  cl->persistent.hook_style = hook_style;
+  cl->persistent.hookStyle = hookStyle;
 }
 
 /**
@@ -640,13 +640,13 @@ void G_SetClientHookStyle(g_client_t *cl) {
 void G_Hook_CheckState(void) {
 
   if (q_strcmp(g_hook->string, "default")) { // the cvar, else compiled in means on
-    g_hook_enabled = !!g_hook->integer;
+    gHookEnabled = !!g_hook->integer;
   } else {
-    g_hook_enabled = true;
+    gHookEnabled = true;
   }
 
-  if (g_hook_distance->modified) {
-    g_hook_distance->value = Clampf(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
-    g_hook_distance->modified = false;
+  if (g_hookDistance->modified) {
+    g_hookDistance->value = Clampf(g_hookDistance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
+    g_hookDistance->modified = false;
   }
 }

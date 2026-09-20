@@ -30,7 +30,7 @@
 
 #include <SDL3/SDL_thread.h>
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -56,7 +56,7 @@ void teardown(void) {
 
 START_TEST(check_Net_HttpUrl) {
 
-	net_addr_t addr;
+	NetAddr addr;
 	ck_assert(Net_StringToNetaddr("192.168.1.100:1998", &addr));
 
 	char buf[256];
@@ -69,7 +69,7 @@ START_TEST(check_Net_HttpUrl) {
 
 START_TEST(check_Net_HttpUrl_empty_path) {
 
-	net_addr_t addr;
+	NetAddr addr;
 	ck_assert(Net_StringToNetaddr("10.0.0.1:8080", &addr));
 
 	char buf[256];
@@ -82,7 +82,7 @@ START_TEST(check_Net_HttpUrl_empty_path) {
 
 START_TEST(check_Net_HttpUrl_small_buffer) {
 
-	net_addr_t addr;
+	NetAddr addr;
 	ck_assert(Net_StringToNetaddr("127.0.0.1:1998", &addr));
 
 	char buf[16];
@@ -206,9 +206,9 @@ START_TEST(check_Net_HttpFormatResponse_200) {
 	ck_assert(strstr(buf, "Content-Type: application/octet-stream\r\n") != NULL);
 	ck_assert(strstr(buf, "Connection: close\r\n") != NULL);
 	// must end with blank line
-	const size_t buf_len = strlen(buf);
-	ck_assert(buf_len >= 4);
-	ck_assert_str_eq(buf + buf_len - 4, "\r\n\r\n");
+	const size_t bufLen = strlen(buf);
+	ck_assert(bufLen >= 4);
+	ck_assert_str_eq(buf + bufLen - 4, "\r\n\r\n");
 
 } END_TEST
 
@@ -242,9 +242,9 @@ START_TEST(check_Net_HttpFormatResponse_large_content) {
 
 	char buf[512];
 
-	const int64_t large_size = 1073741824LL; // 1 GiB
+	const int64_t largeSize = 1073741824LL; // 1 GiB
 	const int32_t len = Net_HttpFormatResponse(200, "OK",
-	                                           "application/octet-stream", large_size,
+	                                           "application/octet-stream", largeSize,
 	                                           buf, sizeof(buf));
 	ck_assert_int_gt(len, 0);
 	ck_assert(strstr(buf, "Content-Length: 1073741824\r\n") != NULL);
@@ -254,23 +254,23 @@ START_TEST(check_Net_HttpFormatResponse_large_content) {
 // -- End-to-end round-trip test --
 
 typedef struct {
-	int32_t listen_sock;
+	int32_t listenSock;
 	in_port_t port;
 	const void *payload;
-	size_t payload_len;
-	char parsed_method[16];
-	char parsed_path[256];
+	size_t payloadLen;
+	char parsedMethod[16];
+	char parsedPath[256];
 	bool ok;
-} http_server_t;
+} HttpServer;
 
 static int SDLCALL http_server_thread(void *data) {
-	http_server_t *ctx = data;
+	HttpServer *ctx = data;
 
 	// Make listen socket blocking so accept() waits for the client
-	Net_SetNonBlocking(ctx->listen_sock, false);
+	Net_SetNonBlocking(ctx->listenSock, false);
 
-	net_addr_t from;
-	const int32_t client = Net_Accept(ctx->listen_sock, &from);
+	NetAddr from;
+	const int32_t client = Net_Accept(ctx->listenSock, &from);
 	if (client < 0) {
 		ctx->ok = false;
 		return 1;
@@ -290,8 +290,8 @@ static int SDLCALL http_server_thread(void *data) {
 	request[n] = '\0';
 
 	// Parse request line
-	if (!Net_HttpParseRequestLine(request, ctx->parsed_method, sizeof(ctx->parsed_method),
-	                              ctx->parsed_path, sizeof(ctx->parsed_path))) {
+	if (!Net_HttpParseRequestLine(request, ctx->parsedMethod, sizeof(ctx->parsedMethod),
+	                              ctx->parsedPath, sizeof(ctx->parsedPath))) {
 		Net_HttpSendError(client, 400, "Bad Request");
 		Net_CloseSocket(client);
 		ctx->ok = false;
@@ -301,10 +301,10 @@ static int SDLCALL http_server_thread(void *data) {
 	// Send HTTP response with the payload
 	char header[512];
 	const int32_t hlen = Net_HttpFormatResponse(200, "OK", "application/octet-stream",
-	                                            (int64_t) ctx->payload_len,
+	                                            (int64_t) ctx->payloadLen,
 	                                            header, sizeof(header));
 	Net_Send(client, header, hlen);
-	Net_Send(client, ctx->payload, ctx->payload_len);
+	Net_Send(client, ctx->payload, ctx->payloadLen);
 
 	Net_CloseSocket(client);
 	ctx->ok = true;
@@ -317,16 +317,16 @@ START_TEST(check_Net_Http_roundtrip) {
 
 	const in_port_t port = 39981;
 
-	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
-	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
+	const int32_t listenSock = Net_SocketListen(NULL, port, 1);
+	ck_assert_msg(listenSock >= 0, "Net_SocketListen failed on port %d", port);
 
 	const char payload[] = "Hello, Quetoo!\nThis is a test file download.\n";
 
-	http_server_t server = {
-		.listen_sock = listen_sock,
+	HttpServer server = {
+		.listenSock = listenSock,
 		.port = port,
 		.payload = payload,
-		.payload_len = sizeof(payload) - 1,
+		.payloadLen = sizeof(payload) - 1,
 		.ok = false,
 	};
 
@@ -348,14 +348,14 @@ START_TEST(check_Net_Http_roundtrip) {
 	release(data);
 
 	// Join server thread and verify it parsed the request correctly
-	int thread_status;
-	SDL_WaitThread(thread, &thread_status);
-	ck_assert_int_eq(thread_status, 0);
+	int threadStatus;
+	SDL_WaitThread(thread, &threadStatus);
+	ck_assert_int_eq(threadStatus, 0);
 	ck_assert(server.ok);
-	ck_assert_str_eq(server.parsed_method, "GET");
-	ck_assert_str_eq(server.parsed_path, "test.txt");
+	ck_assert_str_eq(server.parsedMethod, "GET");
+	ck_assert_str_eq(server.parsedPath, "test.txt");
 
-	Net_CloseSocket(listen_sock);
+	Net_CloseSocket(listenSock);
 	Net_Shutdown();
 
 } END_TEST

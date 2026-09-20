@@ -30,15 +30,15 @@
  */
 #define  PORTALFILE  "PRT1"
 
-extern char map_base[MAX_QPATH];
+extern char mapBase[MAX_QPATH];
 
-extern char map_name[MAX_OS_PATH];
-extern char bsp_name[MAX_OS_PATH];
+extern char mapName[MAX_OS_PATH];
+extern char bspName[MAX_OS_PATH];
 
 extern bool verbose;
 extern bool debug;
-extern bool do_bsp;
-extern bool do_zip;
+extern bool doBsp;
+extern bool doZip;
 
 enum {
   MEM_TAG_QBSP = 1000,

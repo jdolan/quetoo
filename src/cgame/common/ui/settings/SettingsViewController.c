@@ -107,13 +107,13 @@ static const QualityPreset qualityPresets[] = {
  */
 static void applyQualityPreset(const QualityPreset *p) {
   cgi.SetCvarInteger("r_shadows",           p->shadows);
-  cgi.SetCvarInteger("r_shadow_tile_size",  p->shadowTileSize);
-  cgi.SetCvarInteger("r_lighting_distance", p->lightingDistance);
+  cgi.SetCvarInteger("r_shadowTileSize",  p->shadowTileSize);
+  cgi.SetCvarInteger("r_lightingDistance", p->lightingDistance);
   cgi.SetCvarInteger("r_parallax",          p->parallax);
-  cgi.SetCvarInteger("r_parallax_shadow",   p->parallaxShadow);
+  cgi.SetCvarInteger("r_parallaxShadow",   p->parallaxShadow);
   cgi.SetCvarInteger("r_caustics",          p->caustics);
-  cgi.SetCvarInteger("cg_add_weather",      p->addWeather);
-  cgi.SetCvarInteger("cg_add_atmospheric",  p->addAtmospheric);
+  cgi.SetCvarInteger("cg_addWeather",      p->addWeather);
+  cgi.SetCvarInteger("cg_addAtmospheric",  p->addAtmospheric);
 }
 
 /**
@@ -122,13 +122,13 @@ static void applyQualityPreset(const QualityPreset *p) {
 static intptr_t detectQualityPreset(void) {
   const QualityPreset current = {
     .shadows          = cgi.GetCvarInteger("r_shadows"),
-    .shadowTileSize   = cgi.GetCvarInteger("r_shadow_tile_size"),
-    .lightingDistance = cgi.GetCvarInteger("r_lighting_distance"),
+    .shadowTileSize   = cgi.GetCvarInteger("r_shadowTileSize"),
+    .lightingDistance = cgi.GetCvarInteger("r_lightingDistance"),
     .parallax         = cgi.GetCvarInteger("r_parallax"),
-    .parallaxShadow   = cgi.GetCvarInteger("r_parallax_shadow"),
+    .parallaxShadow   = cgi.GetCvarInteger("r_parallaxShadow"),
     .caustics         = cgi.GetCvarInteger("r_caustics"),
-    .addWeather       = cgi.GetCvarInteger("cg_add_weather"),
-    .addAtmospheric   = cgi.GetCvarInteger("cg_add_atmospheric"),
+    .addWeather       = cgi.GetCvarInteger("cg_addWeather"),
+    .addAtmospheric   = cgi.GetCvarInteger("cg_addAtmospheric"),
   };
 
   for (size_t i = 0; i < lengthof(qualityPresets); i++) {
@@ -175,8 +175,8 @@ static void didSelectResolution(Select *select, Option *option) {
   const int32_t w  = (value >> 16) & 0xFFFF;
   const int32_t h =  (value >>  0) & 0xFFFF;
 
-  cgi.SetCvarInteger("r_fullscreen_width", w);
-  cgi.SetCvarInteger("r_fullscreen_height", h);
+  cgi.SetCvarInteger("r_fullscreenWidth", w);
+  cgi.SetCvarInteger("r_fullscreenHeight", h);
 }
 
 #pragma mark - ViewController
@@ -215,11 +215,11 @@ static void loadView(ViewController *self) {
 
   $(resolution, addOption, "Desktop", (ident) 0);
 
-  int32_t num_modes;
-  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(cgi.context->display, &num_modes);
+  int32_t numModes;
+  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(cgi.context->display, &numModes);
   if (modes) {
-    int32_t last_w = 0, last_h = 0;
-    for (int32_t i = 0; i < num_modes; i++) {
+    int32_t lastW = 0, lastH = 0;
+    for (int32_t i = 0; i < numModes; i++) {
 
       const SDL_DisplayMode *mode = modes[i];
       if (mode->pixel_density > 1.f) {
@@ -227,12 +227,12 @@ static void loadView(ViewController *self) {
       }
 
       const int32_t w = mode->w, h = mode->h;
-      if (w == last_w && h == last_h) {
+      if (w == lastW && h == lastH) {
         continue;
       }
 
-      last_w = w;
-      last_h = h;
+      lastW = w;
+      lastH = h;
 
       char label[MAX_QPATH];
       q_snprintf(label, sizeof(label), "%dx%d", w, h);
@@ -241,8 +241,8 @@ static void loadView(ViewController *self) {
     SDL_free(modes);
   }
 
-  const int32_t w = cgi.GetCvarInteger("r_fullscreen_width");
-  const int32_t h = cgi.GetCvarInteger("r_fullscreen_height");
+  const int32_t w = cgi.GetCvarInteger("r_fullscreenWidth");
+  const int32_t h = cgi.GetCvarInteger("r_fullscreenHeight");
 
   $(resolution, selectOptionWithValue, (ident) (intptr_t) ((w << 16) | h));
 

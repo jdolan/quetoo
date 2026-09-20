@@ -24,20 +24,20 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/URLCache.h>
 
-static void *cgame_handle;
+static void *cgameHandle;
 
 /**
  * @brief Fetch the active debug mask.
  */
-static debug_t Cl_CgameDebugMask(void) {
-  return quetoo.debug_mask;
+static DebugFlags Cl_CgameDebugMask(void) {
+  return quetoo.debugMask;
 }
 
 /**
  * @brief Forwards a debug message from the client game module to the engine console.
  */
-static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
-static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
+static void Cl_CgameDebug(const DebugFlags debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void Cl_CgameDebug(const DebugFlags debug, const char *func, const char *fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
@@ -80,47 +80,47 @@ static void Cl_CgameError(const char *func, const char *fmt, ...) {
  */
 
 static void Cl_ReadData(void *data, size_t len) {
-  Net_ReadData(&net_message, data, len);
+  Net_ReadData(&netMessage, data, len);
 }
 
 static int32_t Cl_ReadChar(void) {
-  return Net_ReadChar(&net_message);
+  return Net_ReadChar(&netMessage);
 }
 
 static int32_t Cl_ReadByte(void) {
-  return Net_ReadByte(&net_message);
+  return Net_ReadByte(&netMessage);
 }
 
 static int32_t Cl_ReadShort(void) {
-  return Net_ReadShort(&net_message);
+  return Net_ReadShort(&netMessage);
 }
 
 static int32_t Cl_ReadLong(void) {
-  return Net_ReadLong(&net_message);
+  return Net_ReadLong(&netMessage);
 }
 
 static char *Cl_ReadString(void) {
-  return Net_ReadString(&net_message);
+  return Net_ReadString(&netMessage);
 }
 
 static float Cl_ReadFloat(void) {
-  return Net_ReadFloat(&net_message);
+  return Net_ReadFloat(&netMessage);
 }
 
-static vec3_t Cl_ReadPosition(void) {
-  return Net_ReadPosition(&net_message);
+static Vec3 Cl_ReadPosition(void) {
+  return Net_ReadPosition(&netMessage);
 }
 
-static vec3_t Cl_ReadDir(void) {
-  return Net_ReadDir(&net_message);
+static Vec3 Cl_ReadDir(void) {
+  return Net_ReadDir(&netMessage);
 }
 
 static float Cl_ReadAngle(void) {
-  return Net_ReadAngle(&net_message);
+  return Net_ReadAngle(&netMessage);
 }
 
-static vec3_t Cl_ReadAngles(void) {
-  return Net_ReadAngles(&net_message);
+static Vec3 Cl_ReadAngles(void) {
+  return Net_ReadAngles(&netMessage);
 }
 
 /**
@@ -140,7 +140,7 @@ static char *Cl_ConfigString(int32_t index) {
     return "";
   }
 
-  return cl.config_strings[index];
+  return cl.configStrings[index];
 }
 
 /**
@@ -162,7 +162,7 @@ static void Cl_CgamePrintLevel(int32_t level, const char *fmt, ...) {
  * `Com_Cgame` names.
  */
 void Cl_InitCgame(void) {
-  cg_import_t import;
+  ClientGameImport import;
 
   const char *dir = Com_Cgame();
 
@@ -184,10 +184,10 @@ void Cl_InitCgame(void) {
   import.server = &cls.server;
   import.demo = &cls.demo;
 
-  import.context = &r_context;
+  import.context = &rContext;
 
-  import.view = &cl_view;
-  import.stage = &cl_stage;
+  import.view = &clView;
+  import.stage = &clStage;
 
   import.Print = Com_Print;
   import.PrintLevel = Cl_CgamePrintLevel;
@@ -347,18 +347,18 @@ void Cl_InitCgame(void) {
   // teardown. Nothing below may fail without leaving us no client game at all
   Cl_ShutdownCgame();
 
-  cgame_handle = handle;
+  cgameHandle = handle;
 
-  cg_export_t *cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
+  ClientGameExport *cgame = Sys_LoadLibrary(cgameHandle, "Cg_LoadCgame", &import);
 
   if (!cgame) {
-    cgame_handle = Sys_CloseLibrary(cgame_handle);
+    cgameHandle = Sys_CloseLibrary(cgameHandle);
     Com_Error(ERROR_FATAL, "Failed to load %s's client game\n", dir);
   }
 
-  if (cgame->api_version != CGAME_API_VERSION) {
-    const int32_t version = cgame->api_version;
-    cgame_handle = Sys_CloseLibrary(cgame_handle);
+  if (cgame->apiVersion != CGAME_API_VERSION) {
+    const int32_t version = cgame->apiVersion;
+    cgameHandle = Sys_CloseLibrary(cgameHandle);
     Com_Error(ERROR_FATAL, "%s's client game is version %i, not %i\n", dir, version, CGAME_API_VERSION);
   }
 
@@ -368,7 +368,7 @@ void Cl_InitCgame(void) {
   // otherwise search, and Windows has no such namespace at all. The export
   // table is a static within the module, which is the address Objectively
   // resolves the module by, so that it can drop its Classes when it comes down.
-  addClassImage(cgame_handle, cgame);
+  addClassImage(cgameHandle, cgame);
 
   cls.cgame = cgame;
   cls.cgame->Init();
@@ -401,7 +401,7 @@ void Cl_ShutdownCgame(void) {
 
   // last, and while the handle is still open: the menus are gone by now, and
   // the Classes this image declared must not outlive it
-  removeClassImage(cgame_handle);
+  removeClassImage(cgameHandle);
 
-  cgame_handle = Sys_CloseLibrary(cgame_handle);
+  cgameHandle = Sys_CloseLibrary(cgameHandle);
 }

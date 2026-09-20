@@ -21,12 +21,12 @@
 
 #include "r_local.h"
 
-r_models_t r_models;
+RenderModels rModels;
 
 /**
  * @brief Loads the model by the specified name.
  */
-r_model_t *R_LoadModel(const char *name) {
+RenderModel *R_LoadModel(const char *name) {
   char key[MAX_QPATH];
 
   if (!name || !name[0]) {
@@ -34,21 +34,21 @@ r_model_t *R_LoadModel(const char *name) {
   }
 
   if (*name == '*') {
-    q_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
+    q_snprintf(key, sizeof(key), "%s#%s", rModels.world->media.name, name + 1);
   } else {
     StripExtension(name, key);
   }
 
-  r_model_t *mod = (r_model_t *) R_FindMedia(key, R_MEDIA_MODEL);
+  RenderModel *mod = (RenderModel *) R_FindMedia(key, R_MEDIA_MODEL);
   if (mod == NULL) {
 
-    const r_model_format_t formats[] = {
-      r_obj_model_format,
-      r_md3_model_format,
-      r_bsp_model_format
+    const RenderModelFormat formats[] = {
+      rObjModelFormat,
+      rMd3ModelFormat,
+      rBspModelFormat
     };
 
-    const r_model_format_t *format = formats;
+    const RenderModelFormat *format = formats;
     char path[MAX_QPATH];
 
     size_t i;
@@ -68,8 +68,8 @@ r_model_t *R_LoadModel(const char *name) {
         warned->destroyKey = free;
       }
       if ($(warned, get, (void *) key) == NULL) {
-        char *warned_key = q_strdup(key);
-        $(warned, set, warned_key, warned_key);
+        char *warnedKey = q_strdup(key);
+        $(warned, set, warnedKey, warnedKey);
         if (q_strstr(name, "players/")) {
           Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
         } else {
@@ -79,7 +79,7 @@ r_model_t *R_LoadModel(const char *name) {
       return NULL;
     }
 
-    mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t), R_MEDIA_MODEL);
+    mod = (RenderModel *) R_AllocMedia(key, sizeof(RenderModel), R_MEDIA_MODEL);
 
     mod->media.Register = format->Register;
     mod->media.Free = format->Free;
@@ -98,7 +98,7 @@ r_model_t *R_LoadModel(const char *name) {
 
     mod->radius = Box3_Radius(mod->bounds);
 
-    R_RegisterMedia((r_media_t *) mod);
+    R_RegisterMedia((RenderMedia *) mod);
   }
 
   return mod;
@@ -107,8 +107,8 @@ r_model_t *R_LoadModel(const char *name) {
 /**
  * @brief Returns the currently loaded world model (BSP).
  */
-r_model_t *R_WorldModel(void) {
-  return r_models.world;
+RenderModel *R_WorldModel(void) {
+  return rModels.world;
 }
 
 /**
@@ -116,7 +116,7 @@ r_model_t *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 
-  memset(&r_models, 0, sizeof(r_models));
+  memset(&rModels, 0, sizeof(rModels));
 
   R_InitMeshPipeline();
 }
@@ -126,7 +126,7 @@ void R_InitModels(void) {
  */
 void R_ShutdownModels(void) {
 
-  memset(&r_models, 0, sizeof(r_models));
+  memset(&rModels, 0, sizeof(rModels));
 
   R_ShutdownMeshPipeline();
 }

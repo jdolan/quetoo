@@ -43,26 +43,26 @@
 #include "material.glsl"
 #include "voxel.glsl"
 
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform mesh_locals_block {
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform meshLocalsBlock {
+  uvec4 activeDynamicLights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 #include "light.glsl"
 
-layout (location = 0) in common_vertex_t vertex;
+layout (location = 0) in CommonVertex vertex;
 
-layout (location = 0) out vec4 out_color;
+layout (location = 0) out vec4 outColor;
 
-layout (location = 1) out float out_depth;
+layout (location = 1) out float outDepth;
 
-common_fragment_t fragment;
+CommonFragment fragment;
 
 /**
  * @brief Computes per-fragment mesh lighting, blending down to vertex
- * lighting as distance from the camera increases (see fragment_lighting_lod).
+ * lighting as distance from the camera increases (see fragmentLightingLod).
  */
-void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
-  fragment_lighting_lod(vertex, fragment);
+void meshFragmentLighting(in CommonVertex vertex, inout CommonFragment fragment) {
+  fragmentLightingLod(vertex, fragment);
 }
 
 /**
@@ -70,52 +70,52 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
  */
 void main(void) {
 
-  out_depth = gl_FragCoord.z;
+  outDepth = gl_FragCoord.z;
 
-  fragment.view_dir = normalize(-vertex.position);
-  fragment.view_dist = length(vertex.position);
+  fragment.viewDir = normalize(-vertex.position);
+  fragment.viewDist = length(vertex.position);
 
   fragment.parallax = vertex.diffusemap;
 
   if (material.flags == STAGE_NONE) {
 
-    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
+    fragment.diffuseSample = sampleMaterialDiffuse(fragment.parallax);
 
 #ifdef ALPHA_TEST
     if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
-      if (fragment.diffuse_sample.a < material.alpha_test) {
+      if (fragment.diffuseSample.a < material.alphaTest) {
         discard;
       }
     }
 #endif
 
-    vec4 tintmap = sample_material_tint(fragment.parallax);
-    fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
-    fragment.diffuse_sample.rgb += (material.tint_colors[0] * tintmap.r).rgb * tintmap.a;
-    fragment.diffuse_sample.rgb += (material.tint_colors[1] * tintmap.g).rgb * tintmap.a;
-    fragment.diffuse_sample.rgb += (material.tint_colors[2] * tintmap.b).rgb * tintmap.a;
+    vec4 tintmap = sampleMaterialTint(fragment.parallax);
+    fragment.diffuseSample.rgb *= 1.0 - tintmap.a;
+    fragment.diffuseSample.rgb += (material.tintColors[0] * tintmap.r).rgb * tintmap.a;
+    fragment.diffuseSample.rgb += (material.tintColors[1] * tintmap.g).rgb * tintmap.a;
+    fragment.diffuseSample.rgb += (material.tintColors[2] * tintmap.b).rgb * tintmap.a;
 
-    out_color = fragment.diffuse_sample * vertex.color;
+    outColor = fragment.diffuseSample * vertex.color;
 
-    mesh_fragment_lighting(vertex, fragment);
+    meshFragmentLighting(vertex, fragment);
 
-    out_color.rgb *= (fragment.ambient + fragment.diffuse);
-    out_color.rgb += fragment.specular;
+    outColor.rgb *= (fragment.ambient + fragment.diffuse);
+    outColor.rgb += fragment.specular;
 
   } else {
 
-    fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
+    fragment.diffuseSample = sampleMaterialStage(fragment.parallax) * vertex.color;
 
-    out_color = fragment.diffuse_sample;
+    outColor = fragment.diffuseSample;
 
     if ((material.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
-      mesh_fragment_lighting(vertex, fragment);
-      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, material.lighting);
-      out_color.rgb += fragment.specular * material.lighting;
+      meshFragmentLighting(vertex, fragment);
+      outColor.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, material.lighting);
+      outColor.rgb += fragment.specular * material.lighting;
     }
 
     if ((material.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-      out_color.rgb += fragment.diffuse_sample.rgb * material.emissive;
+      outColor.rgb += fragment.diffuseSample.rgb * material.emissive;
     }
   }
 }

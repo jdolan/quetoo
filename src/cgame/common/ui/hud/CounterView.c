@@ -79,7 +79,7 @@ static void updateBindings(View *self, ident data) {
 
   CounterView *this = (CounterView *) self;
 
-  const char *text = $(this, textForFrame, (const cl_frame_t *) data);
+  const char *text = $(this, textForFrame, (const ClientFrame *) data);
   $(this->value, setText, text);
 }
 
@@ -113,10 +113,10 @@ static CounterView *initWithCaption(CounterView *self, const char *caption, int3
 }
 
 /**
- * @fn int32_t CounterView::valueForFrame(CounterView *self, const cl_frame_t *frame)
+ * @fn int32_t CounterView::valueForFrame(CounterView *self, const ClientFrame *frame)
  * @memberof CounterView
  */
-static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
+static int32_t valueForFrame(CounterView *self, const ClientFrame *frame) {
 
   if (self->stat == COUNTER_VIEW_NO_STAT) {
     return 0;
@@ -126,12 +126,12 @@ static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
 }
 
 /**
- * @fn const char *CounterView::textForFrame(CounterView *self, const cl_frame_t *frame)
+ * @fn const char *CounterView::textForFrame(CounterView *self, const ClientFrame *frame)
  * @memberof CounterView
  */
-static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
+static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
   if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
     return " ";

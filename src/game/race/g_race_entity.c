@@ -38,16 +38,16 @@
 /**
  * @brief The common half of every race trigger's setup.
  */
-static void G_trigger_race_Init(g_entity_t *ent, void (*Touch)(g_entity_t *, g_entity_t *, const cm_trace_t *)) {
+static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, GameEntity *, const CmTrace *)) {
 
   if (ent->wait == 0.f) {
     ent->wait = RACE_TRIGGER_WAIT;
   }
 
   ent->solid = SOLID_TRIGGER;
-  ent->move_type = MOVE_TYPE_NONE;
-  ent->sv_flags |= SVF_NO_CLIENT;
-  ent->Touch = Touch;
+  ent->moveType = MOVE_TYPE_NONE;
+  ent->svFlags |= SVF_NO_CLIENT;
+  ent->Touch = touch;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
@@ -56,7 +56,7 @@ static void G_trigger_race_Init(g_entity_t *ent, void (*Touch)(g_entity_t *, g_e
 /**
  * @brief Whether `other` is a client this trigger should hear from right now.
  */
-static bool G_trigger_race_Accepts(g_entity_t *ent, g_entity_t *other) {
+static bool G_trigger_race_Accepts(GameEntity *ent, GameEntity *other) {
 
   if (!other->client) {
     return false;
@@ -68,7 +68,7 @@ static bool G_trigger_race_Accepts(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief Arms, starts or restarts a run, as the start's mode asks.
  */
-static void G_trigger_race_start_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_race_start_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (!G_trigger_race_Accepts(ent, other)) {
     return;
@@ -94,9 +94,9 @@ static void G_trigger_race_start_Touch(g_entity_t *ent, g_entity_t *other, const
  message : An optional string to display when the run begins.
  target : The name of the entity or team to use when the run begins.
  */
-static void G_trigger_race_start(g_entity_t *ent) {
+static void G_trigger_race_start(GameEntity *ent) {
 
-  const char *mode = gi.EntityValue(ent->def, "start_mode")->nullable_string;
+  const char *mode = gi.EntityValue(ent->def, "start_mode")->nullableString;
 
   if (!mode || !*mode || !q_strcasecmp(mode, "touch")) {
     ent->count = RACE_START_TOUCH;
@@ -117,7 +117,7 @@ static void G_trigger_race_start(g_entity_t *ent) {
 /**
  * @brief Counts the checkpoint when it is the next one in sequence.
  */
-static void G_trigger_race_checkpoint_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_race_checkpoint_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Checkpoint(other->client, ent->count)) {
     G_UseTargets(ent, other);
@@ -134,9 +134,9 @@ static void G_trigger_race_checkpoint_Touch(g_entity_t *ent, g_entity_t *other, 
  message : An optional string to display when the checkpoint is reached.
  target : The name of the entity or team to use when the checkpoint is reached.
  */
-static void G_trigger_race_checkpoint(g_entity_t *ent) {
+static void G_trigger_race_checkpoint(GameEntity *ent) {
 
-  const cm_entity_t *cp = gi.EntityValue(ent->def, "cp");
+  const CmEntity *cp = gi.EntityValue(ent->def, "cp");
 
   // an unreadable number is recorded as an impossible one, so that the course
   // is spoiled rather than validated around the trigger this frees
@@ -154,14 +154,14 @@ static void G_trigger_race_checkpoint(g_entity_t *ent) {
 /**
  * @brief The trigger's number as its milestones are announced.
  */
-static const char *G_trigger_race_Label(const g_entity_t *ent) {
-  return gi.EntityValue(ent->def, "label")->nullable_string;
+static const char *G_trigger_race_Label(const GameEntity *ent) {
+  return gi.EntityValue(ent->def, "label")->nullableString;
 }
 
 /**
  * @brief Records the split and tells the racer how it compares.
  */
-static void G_trigger_race_split_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_race_split_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Split(other->client, ent->count, G_trigger_race_Label(ent))) {
     G_UseTargets(ent, other);
@@ -180,9 +180,9 @@ static void G_trigger_race_split_Touch(g_entity_t *ent, g_entity_t *other, const
  message : An optional string to display when the split is reached.
  target : The name of the entity or team to use when the split is reached.
  */
-static void G_trigger_race_split(g_entity_t *ent) {
+static void G_trigger_race_split(GameEntity *ent) {
 
-  const cm_entity_t *split = gi.EntityValue(ent->def, "split");
+  const CmEntity *split = gi.EntityValue(ent->def, "split");
 
   if (!G_Race_AddSplit(split->parsed & ENTITY_INTEGER ? split->integer : 0)) {
     G_Warn("%s needs split, an integer from 1 through %d\n", etos(ent), RACE_MAX_CHECKPOINTS);
@@ -198,10 +198,10 @@ static void G_trigger_race_split(g_entity_t *ent) {
 /**
  * @brief Advances the run to the stage and remembers where it restarts.
  */
-static void G_trigger_race_stage_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) &&
-      G_Race_Stage(other->client, ent->count, G_trigger_race_Label(ent), ent->target_ent)) {
+      G_Race_Stage(other->client, ent->count, G_trigger_race_Label(ent), ent->targetEnt)) {
     G_UseTargets(ent, other);
   }
 }
@@ -220,10 +220,10 @@ static void G_trigger_race_stage_Touch(g_entity_t *ent, g_entity_t *other, const
  message : An optional string to display when the stage is reached.
  target : The name of the entity or team to use when the stage is reached.
  */
-static void G_trigger_race_stage(g_entity_t *ent) {
+static void G_trigger_race_stage(GameEntity *ent) {
 
-  const cm_entity_t *stage = gi.EntityValue(ent->def, "stage");
-  const char *restart = gi.EntityValue(ent->def, "restart_target")->nullable_string;
+  const CmEntity *stage = gi.EntityValue(ent->def, "stage");
+  const char *restart = gi.EntityValue(ent->def, "restart_target")->nullableString;
 
   const bool complete = (stage->parsed & ENTITY_INTEGER) && restart && *restart;
 
@@ -243,27 +243,27 @@ static void G_trigger_race_stage(g_entity_t *ent) {
  */
 void G_Race_ResolveStages(void) {
 
-  g_entity_t *stage = NULL;
+  GameEntity *stage = NULL;
   while ((stage = G_Find(stage, EOFS(classname), "trigger_race_stage"))) {
 
-    const char *name = gi.EntityValue(stage->def, "restart_target")->nullable_string;
+    const char *name = gi.EntityValue(stage->def, "restart_target")->nullableString;
 
-    g_entity_t *anchor = G_Find(NULL, EOFS(target_name), name);
+    GameEntity *anchor = G_Find(NULL, EOFS(targetName), name);
 
-    if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(target_name), name)) {
+    if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
       G_Warn("%s needs restart_target to name one info_notnull, and \"%s\" does not\n", etos(stage), name);
-      g_level.race_course.stages_valid = false;
+      gLevel.raceCourse.stagesValid = false;
       continue;
     }
 
-    stage->target_ent = anchor;
+    stage->targetEnt = anchor;
   }
 }
 
 /**
  * @brief Ends the run, submits the record, and says how it went.
  */
-static void G_trigger_race_finish_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_race_finish_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Finish(other->client)) {
     G_UseTargets(ent, other);
@@ -279,7 +279,7 @@ static void G_trigger_race_finish_Touch(g_entity_t *ent, g_entity_t *other, cons
  message : An optional string to display when the run ends.
  target : The name of the entity or team to use when the run ends.
  */
-static void G_trigger_race_finish(g_entity_t *ent) {
+static void G_trigger_race_finish(GameEntity *ent) {
 
   G_trigger_race_Init(ent, G_trigger_race_finish_Touch);
   G_Race_AddFinish();
@@ -289,7 +289,7 @@ static void G_trigger_race_finish(g_entity_t *ent) {
  * @brief The common half of every barrier's setup: an inline brush, solid,
  * listed with the course so that `G_Race_UpdateBarriers` can decide it.
  */
-static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
+static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
 
   if (!ent->model || ent->model[0] != '*') {
     G_Warn("%s needs a brush\n", etos(ent));
@@ -297,21 +297,21 @@ static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
     return;
   }
 
-  if (g_level.race_course.barrier_count == RACE_MAX_BARRIERS) {
+  if (gLevel.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
     G_Warn("%s is one func_race_* too many; the level may have %d\n", etos(ent), RACE_MAX_BARRIERS);
     G_FreeEntity(ent);
     return;
   }
 
-  ent->race_barrier = barrier;
-  ent->race_barrier_slot = g_level.race_course.barrier_count;
+  ent->raceBarrier = barrier;
+  ent->raceBarrierSlot = gLevel.raceCourse.barrierCount;
   ent->solid = SOLID_BSP;
-  ent->move_type = MOVE_TYPE_NONE;
+  ent->moveType = MOVE_TYPE_NONE;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
 
-  g_level.race_course.barriers[g_level.race_course.barrier_count++] = ent;
+  gLevel.raceCourse.barriers[gLevel.raceCourse.barrierCount++] = ent;
 }
 
 /*QUAKED func_race_checkpoint_gate (0 .5 .8) ?
@@ -325,10 +325,10 @@ static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
  mode : atleast (default) opens the gate once checkpoint cp has been reached; exact opens it only while cp is the last one reached.
  invert : 1 to close the gate under the condition instead of opening it.
  */
-static void G_func_race_checkpoint_gate(g_entity_t *ent) {
+static void G_func_race_checkpoint_gate(GameEntity *ent) {
 
-  const cm_entity_t *cp = gi.EntityValue(ent->def, "cp");
-  const char *mode = gi.EntityValue(ent->def, "mode")->nullable_string;
+  const CmEntity *cp = gi.EntityValue(ent->def, "cp");
+  const char *mode = gi.EntityValue(ent->def, "mode")->nullableString;
 
   if (!(cp->parsed & ENTITY_INTEGER) || cp->integer < 1 || cp->integer > RACE_MAX_CHECKPOINTS) {
     G_Warn("%s needs cp, an integer from 1 through %d\n", etos(ent), RACE_MAX_CHECKPOINTS);
@@ -336,7 +336,7 @@ static void G_func_race_checkpoint_gate(g_entity_t *ent) {
     return;
   }
 
-  g_race_gate_t gate = {
+  GameRaceGate gate = {
     .checkpoint = cp->integer,
     .invert = gi.EntityValue(ent->def, "invert")->integer != 0,
   };
@@ -351,7 +351,7 @@ static void G_func_race_checkpoint_gate(g_entity_t *ent) {
     return;
   }
 
-  ent->race_gate = gate;
+  ent->raceGate = gate;
 
   G_func_race_Init(ent, RACE_BARRIER_GATE);
 }
@@ -366,12 +366,12 @@ static void G_func_race_checkpoint_gate(g_entity_t *ent) {
  -------- Keys --------
  angle : The direction of travel that passes, in the horizontal plane.
  */
-static void G_func_race_oneway_wall(g_entity_t *ent) {
+static void G_func_race_oneway_wall(GameEntity *ent) {
 
   G_SetMoveDir(ent);
-  ent->move_dir.z = 0.f;
+  ent->moveDir.z = 0.f;
 
-  if (Vec3_Equal(ent->move_dir, Vec3_Zero())) {
+  if (Vec3_Equal(ent->moveDir, Vec3_Zero())) {
     G_Warn("%s needs angle, a direction of travel in the horizontal plane\n", etos(ent));
     G_FreeEntity(ent);
     return;
@@ -388,50 +388,50 @@ static void G_func_race_oneway_wall(g_entity_t *ent) {
  * direction it allows without anyone measuring a direction: a client who is
  * inside came in the way it permits, and one who has crossed is behind it.
  */
-static bool G_Race_Passes(const g_client_t *cl, const g_entity_t *ent) {
+static bool G_Race_Passes(const GameClient *cl, const GameEntity *ent) {
 
-  if (ent->race_barrier == RACE_BARRIER_GATE) {
-    const g_race_run_t *run = &cl->race_run;
+  if (ent->raceBarrier == RACE_BARRIER_GATE) {
+    const GameRaceRun *run = &cl->raceRun;
 
     if (run->state != RACE_RUN_ACTIVE) {
       return true;
     }
 
-    const g_race_gate_t *gate = &ent->race_gate;
+    const GameRaceGate *gate = &ent->raceGate;
     const bool open = gate->mode == RACE_GATE_EXACT
-                      ? run->checkpoint_count == gate->checkpoint
-                      : run->checkpoint_count >= gate->checkpoint;
+                      ? run->checkpointCount == gate->checkpoint
+                      : run->checkpointCount >= gate->checkpoint;
 
     return open != gate->invert;
   }
 
-  const g_entity_t *self = cl->entity;
+  const GameEntity *self = cl->entity;
 
-  if (gi.Clip(self->s.origin, self->s.origin, self->bounds, ent, CONTENTS_MASK_CLIP_PLAYER).start_solid) {
+  if (gi.Clip(self->s.origin, self->s.origin, self->bounds, ent, CONTENTS_MASK_CLIP_PLAYER).startSolid) {
     return true;
   }
 
-  const vec3_t offset = Vec3_Subtract(self->s.origin, Box3_Center(ent->abs_bounds));
+  const Vec3 offset = Vec3_Subtract(self->s.origin, Box3_Center(ent->absBounds));
 
-  return offset.x * ent->move_dir.x + offset.y * ent->move_dir.y < 0.f;
+  return offset.x * ent->moveDir.x + offset.y * ent->moveDir.y < 0.f;
 }
 
 /**
  * @see g_race.h
  */
-void G_Race_UpdateBarriers(g_client_t *cl) {
-  const g_race_course_t *course = &g_level.race_course;
+void G_Race_UpdateBarriers(GameClient *cl) {
+  const GameRaceCourse *course = &gLevel.raceCourse;
 
-  if (!course->barrier_count) {
+  if (!course->barrierCount) {
     return;
   }
 
-  cl->race_passable = 0;
+  cl->racePassable = 0;
   int32_t count = 0;
 
-  for (uint16_t i = 0; i < course->barrier_count; i++) {
+  for (uint16_t i = 0; i < course->barrierCount; i++) {
     if (G_Race_Passes(cl, course->barriers[i])) {
-      cl->race_passable |= 1u << i;
+      cl->racePassable |= 1u << i;
       count++;
     }
   }
@@ -439,8 +439,8 @@ void G_Race_UpdateBarriers(g_client_t *cl) {
   gi.WriteByte(SV_CMD_RACE_BARRIERS);
   gi.WriteByte(count);
 
-  for (uint16_t i = 0; i < course->barrier_count; i++) {
-    if (cl->race_passable & (1u << i)) {
+  for (uint16_t i = 0; i < course->barrierCount; i++) {
+    if (cl->racePassable & (1u << i)) {
       gi.WriteShort(course->barriers[i]->s.number);
     }
   }
@@ -454,18 +454,18 @@ void G_Race_UpdateBarriers(g_client_t *cl) {
  * answer is the one `G_Race_UpdateBarriers` settled and sent at the end of the
  * last frame, so that the client predicts against the same set.
  */
-bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent) {
+bool G_Race_ClipEntity(const GameEntity *mover, const GameEntity *ent) {
 
-  if (ent->race_barrier == RACE_BARRIER_NONE || !mover || !mover->client) {
+  if (ent->raceBarrier == RACE_BARRIER_NONE || !mover || !mover->client) {
     return true;
   }
 
-  return !(mover->client->race_passable & (1u << ent->race_barrier_slot));
+  return !(mover->client->racePassable & (1u << ent->raceBarrierSlot));
 }
 
 static const struct {
   const char *classname;
-  void (*Init)(g_entity_t *ent);
+  void (*Init)(GameEntity *ent);
 } g_race_entity_classes[] = {
   { "trigger_race_start", G_trigger_race_start },
   { "trigger_race_checkpoint", G_trigger_race_checkpoint },
@@ -479,7 +479,7 @@ static const struct {
 /**
  * @see g_race.h
  */
-bool G_Race_InitEntity(g_entity_t *ent) {
+bool G_Race_InitEntity(GameEntity *ent) {
 
   for (size_t i = 0; i < lengthof(g_race_entity_classes); i++) {
     if (!q_strcmp(g_race_entity_classes[i].classname, ent->classname)) {

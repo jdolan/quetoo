@@ -22,21 +22,21 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-button_t cg_buttons[4];
+InputButton cgButtons[4];
 
 #define CG_FOLLOW_ZOOM_SPEED 400.f
 #define CG_FOLLOW_DISTANCE_MIN 40.f
 #define CG_FOLLOW_DISTANCE_MAX 800.f
 
-static cvar_t *cg_run;
+static Cvar *cg_run;
 
 typedef struct {
-  vec3_t prev, next, kick;
+  Vec3 prev, next, kick;
   uint32_t timestamp;
   uint32_t interval;
-} cg_kick_t;
+} ClientGameKick;
 
-static cg_kick_t cg_kick;
+static ClientGameKick cgKick;
 
 /**
  * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
@@ -72,13 +72,13 @@ static void Cg_UpdateFollowLook(const SDL_Event *event) {
     return;
   }
 
-  const float sensitivity = cgi.GetCvarValue("m_sensitivity");
-  const float invert = cgi.GetCvarValue("m_invert") ? -1.f : 1.f;
+  const float sensitivity = cgi.GetCvarValue("mSensitivity");
+  const float invert = cgi.GetCvarValue("mInvert") ? -1.f : 1.f;
 
-  cg_state.follow.yaw -= cgi.GetCvarValue("m_yaw") * event->motion.xrel * sensitivity;
+  cgState.follow.yaw -= cgi.GetCvarValue("mYaw") * event->motion.xrel * sensitivity;
 
-  cg_state.follow.pitch = Clampf(
-    cg_state.follow.pitch + invert * cgi.GetCvarValue("m_pitch") * event->motion.yrel * sensitivity,
+  cgState.follow.pitch = Clampf(
+    cgState.follow.pitch + invert * cgi.GetCvarValue("mPitch") * event->motion.yrel * sensitivity,
     -89.f, 89.f
   );
 }
@@ -121,74 +121,74 @@ void Cg_HandleEvent(const SDL_Event *event) {
  */
 void Cg_ParseViewKick(void) {
 
-  const vec3_t kick = Vec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
+  const Vec3 kick = MakeVec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
 
-  cg_kick.prev = cg_kick.kick;
-  cg_kick.next = Vec3_Add(cg_kick.prev, kick);
+  cgKick.prev = cgKick.kick;
+  cgKick.next = Vec3_Add(cgKick.prev, kick);
 
-  cg_kick.timestamp = cgi.client->unclamped_time;
-  cg_kick.interval = 64;
+  cgKick.timestamp = cgi.client->unclampedTime;
+  cgKick.interval = 64;
 }
 
 /**
  * @brief Applies damage kick for the current command, ensuring that kick affects the player's aim.
  */
-static void Cg_ViewKick(const pm_cmd_t *cmd) {
+static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
 
-  if (cg_kick.timestamp > cgi.client->unclamped_time) {
-    memset(&cg_kick, 0, sizeof(cg_kick));
+  if (cgKick.timestamp > cgi.client->unclampedTime) {
+    memset(&cgKick, 0, sizeof(cgKick));
   }
 
-  const player_state_t *ps1 = &cgi.client->frame.ps;
+  const PlayerState *ps1 = &cgi.client->frame.ps;
 
-  if (cg_state.snap_angles) {
+  if (cgState.snapAngles) {
     // Snap is handled authoritatively in Cg_UpdateAngles; just clear kick state here.
-    memset(&cg_kick, 0, sizeof(cg_kick));
-  } else if (cgi.client->previous_frame) {
-      const player_state_t *ps0 = &cgi.client->previous_frame->ps;
-      vec3_t delta0 = ps0->pm_state.delta_angles;
-      vec3_t delta1 = ps1->pm_state.delta_angles;
+    memset(&cgKick, 0, sizeof(cgKick));
+  } else if (cgi.client->previousFrame) {
+      const PlayerState *ps0 = &cgi.client->previousFrame->ps;
+      Vec3 delta0 = ps0->pmState.deltaAngles;
+      Vec3 delta1 = ps1->pmState.deltaAngles;
 
       if (!Vec3_Equal(delta0, delta1)) {
         static int32_t frame;
 
-        if (cgi.client->frame.frame_num != frame) {
-          Cg_Debug("Delta kick %s\n", vtos(cg_kick.kick));
-          memset(&cg_kick, 0, sizeof(cg_kick));
+        if (cgi.client->frame.frameNum != frame) {
+          Cg_Debug("Delta kick %s\n", vtos(cgKick.kick));
+          memset(&cgKick, 0, sizeof(cgKick));
 
-          frame = cgi.client->frame.frame_num;
+          frame = cgi.client->frame.frameNum;
         }
       }
   }
 
-  const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
-  if (delta < cg_kick.interval) {
-    const float frac = Minf(delta, cmd->msec) / (float) cg_kick.interval;
+  const uint32_t delta = cgi.client->unclampedTime - cgKick.timestamp;
+  if (delta < cgKick.interval) {
+    const float frac = Minf(delta, cmd->msec) / (float) cgKick.interval;
 
-    vec3_t kick;
-    kick = Vec3_Subtract(cg_kick.next, cg_kick.prev);
+    Vec3 kick;
+    kick = Vec3_Subtract(cgKick.next, cgKick.prev);
     kick = Vec3_Scale(kick, frac);
 
-    cg_kick.kick = Vec3_Add(cg_kick.kick, kick);
+    cgKick.kick = Vec3_Add(cgKick.kick, kick);
     cgi.client->angles = Vec3_Add(cgi.client->angles, kick);
 
-  } else if (!Vec3_Equal(cg_kick.kick, Vec3_Zero())) {
+  } else if (!Vec3_Equal(cgKick.kick, Vec3_Zero())) {
 
-    if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+    if (cgi.client->frame.ps.pmState.type == PM_DEAD) {
       return;
     }
 
-    const float len = Vec3_Length(cg_kick.kick);
+    const float len = Vec3_Length(cgKick.kick);
     if (len < 0.1) {
-      cgi.client->angles = Vec3_Subtract(cgi.client->angles, cg_kick.kick);
-      memset(&cg_kick, 0, sizeof(cg_kick));
+      cgi.client->angles = Vec3_Subtract(cgi.client->angles, cgKick.kick);
+      memset(&cgKick, 0, sizeof(cgKick));
     } else {
 
-      cg_kick.prev = cg_kick.kick;
-      cg_kick.next = Vec3_Zero();
+      cgKick.prev = cgKick.kick;
+      cgKick.next = Vec3_Zero();
 
-      cg_kick.timestamp = cgi.client->unclamped_time;
-      cg_kick.interval = 240;
+      cgKick.timestamp = cgi.client->unclampedTime;
+      cgKick.interval = 240;
     }
   }
 }
@@ -196,14 +196,14 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 /**
  * @brief Applies weapon fire recoil animation to the view model.
  */
-static void Cg_WeaponKick(const pm_cmd_t *cmd) {
+static void Cg_WeaponKick(const PlayerMoveCmd *cmd) {
   static float kick;
 
-  if (cgi.client->third_person) {
+  if (cgi.client->thirdPerson) {
     return;
   }
 
-  const cl_entity_t *ent = Cg_Self();
+  const ClientEntity *ent = Cg_Self();
 
   if (!ent) {
     return;
@@ -213,7 +213,7 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 
   if (ent->animation1.animation == ANIM_TORSO_ATTACK1 && ent->animation1.fraction <= 0.33) {
 
-    const player_state_t *ps = &cgi.client->frame.ps;
+    const PlayerState *ps = &cgi.client->frame.ps;
 
     float degrees, interval = 64.0;
 
@@ -270,11 +270,11 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 
 /**
  * @brief Augments the view offset and angles for the specified command.
- * @see Cl_Look(pm_cmd_t)
+ * @see Cl_Look(PlayerMoveCmd)
  */
-void Cg_Look(pm_cmd_t *cmd) {
+void Cg_Look(PlayerMoveCmd *cmd) {
 
-  if (cgi.client->demo_server && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cgState.spectate.detached) {
     return; // a camera that has left the recorded player behind does not take their recoil
   }
 
@@ -286,15 +286,15 @@ void Cg_Look(pm_cmd_t *cmd) {
 /**
  * @brief Accumulate movement and button interactions for the specified command.
  */
-static void Cg_Move_Common(pm_cmd_t *cmd) {
+static void Cg_Move_Common(PlayerMoveCmd *cmd) {
 
-  if (cgi.client->demo_server) {
+  if (cgi.client->demoServer) {
 
     // attack leaves the recorded player behind, and picks them back up. Live, the game module
     // already does exactly this with the attack button, so only playback needs it here
     if (in_attack.state & BUTTON_STATE_DOWN) {
-      cg_state.spectate.detached = !cg_state.spectate.detached;
-      cg_state.spectate.initialized = false;
+      cgState.spectate.detached = !cgState.spectate.detached;
+      cgState.spectate.initialized = false;
     }
 
     in_attack.state &= ~BUTTON_STATE_DOWN;
@@ -304,9 +304,9 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
 
       // Encode the pixel-accurate muzzle position as a player-relative offset
       // so the server can use it instead of its hardcoded approximation.
-      const cg_client_info_t *ci = &cg_state.clients[cgi.client->frame.ps.client];
-      if (!Vec3_Equal(ci->weapon_muzzle, Vec3_Zero())) {
-        cmd->muzzle = Vec3_Subtract(ci->weapon_muzzle, cgi.client->entity->current.origin);
+      const ClientGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
+      if (!Vec3_Equal(ci->weaponMuzzle, Vec3_Zero())) {
+        cmd->muzzle = Vec3_Subtract(ci->weaponMuzzle, cgi.client->entity->current.origin);
       }
     }
   }
@@ -343,21 +343,21 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     // +forward/+back are otherwise idle whenever the follow camera is active - a chasing
     // spectator's movement
     // is never applied, and demo playback sends no commands at all - so they pan the camera in
-    // and out instead. cmd->forward arrives as cl_forward_speed * msec * key fraction, so it is
+    // and out instead. cmd->forward arrives as cl_forwardSpeed * msec * key fraction, so it is
     // divided back down to the milliseconds held before being scaled to a per-second rate
-    const float forward_speed = cgi.GetCvarValue("cl_forward_speed");
+    const float forwardSpeed = cgi.GetCvarValue("cl_forwardSpeed");
 
-    if (forward_speed > 0.f) {
-      const float millis = cmd->forward / forward_speed;
+    if (forwardSpeed > 0.f) {
+      const float millis = cmd->forward / forwardSpeed;
 
-      cg_state.follow.distance = Clampf(
-        cg_state.follow.distance - millis * (CG_FOLLOW_ZOOM_SPEED / 1000.f),
+      cgState.follow.distance = Clampf(
+        cgState.follow.distance - millis * (CG_FOLLOW_ZOOM_SPEED / 1000.f),
         CG_FOLLOW_DISTANCE_MIN, CG_FOLLOW_DISTANCE_MAX
       );
     }
   }
 
-  if (cgi.client->demo_server && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cgState.spectate.detached) {
     Cg_UpdateSpectate(cmd);
   }
 }
@@ -369,7 +369,7 @@ Move Cg_Move = Cg_Move_Common;
  * that the chain a module installs from `Cg_Module_Init` is the one that gets
  * called.
  */
-void Cg_ExportMove(pm_cmd_t *cmd) {
+void Cg_ExportMove(PlayerMoveCmd *cmd) {
   Cg_Move(cmd);
 }
 
@@ -377,8 +377,8 @@ void Cg_ExportMove(pm_cmd_t *cmd) {
  * @brief Clear button states.
  */
 void Cg_ClearInput(void) {
-  memset(&cg_kick, 0, sizeof(cg_kick));
-  memset(cg_buttons, 0, sizeof(cg_buttons));
+  memset(&cgKick, 0, sizeof(cgKick));
+  memset(cgButtons, 0, sizeof(cgButtons));
 }
 
 static void Cg_Speed_down_f(void) {
@@ -416,7 +416,7 @@ static void Cg_Score_up_f(void) {
 /**
  * @brief Begins a push to talk voice transmission.
  * @details Takes an optional channel name, so that a module's own channels can be bound. Without
- * one, holding shift promotes it to the team channel, the way shift sends a chat line as say_team:
+ * one, holding shift promotes it to the team channel, the way shift sends a chat line as sayTeam:
  * key binds carry no modifier of their own, so one bind has to serve both.
  */
 static void Cg_Voice_down_f(void) {
@@ -467,8 +467,8 @@ void Cg_InitInput(void) {
   cgi.AddCmd("-score", Cg_Score_up_f, CMD_CGAME, NULL);
   cgi.AddCmd("+voice", Cg_Voice_down_f, CMD_CGAME, "Transmit voice chat while held; hold shift for your team.");
   cgi.AddCmd("-voice", Cg_Voice_up_f, CMD_CGAME, NULL);
-  cgi.AddCmd("+voice_team", Cg_VoiceTeam_down_f, CMD_CGAME, "Transmit voice chat to your team while held.");
-  cgi.AddCmd("-voice_team", Cg_Voice_up_f, CMD_CGAME, NULL);
+  cgi.AddCmd("+voiceTeam", Cg_VoiceTeam_down_f, CMD_CGAME, "Transmit voice chat to your team while held.");
+  cgi.AddCmd("-voiceTeam", Cg_Voice_up_f, CMD_CGAME, NULL);
 
   Cg_ClearInput();
 }

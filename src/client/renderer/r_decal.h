@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-void R_AddDecal(r_view_t *view, const r_decal_t *decal);
+void R_AddDecal(RenderView *view, const RenderDecal *decal);
 
 #if defined(__R_LOCAL_H__)
 
@@ -44,39 +44,39 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal);
  * face, holding everything it contributes to that face's triangles which does
  * not vary per vertex.
  * @remarks Written once when the decal is clipped and never modified. Must
- * match `decal_instance_t` in decal_vs.glsl.
+ * match `DecalInstance` in decal_vs.glsl.
  */
 typedef struct {
 
   /**
    * @brief The origin projected onto the face, and the projected radius in `w`.
    */
-  alignas(16) vec4_t origin;
+  alignas(16) Vec4 origin;
 
   /**
    * @brief The face normal.
    */
-  vec4_t normal;
+  Vec4 normal;
 
   /**
    * @brief The rotated face tangent.
    */
-  vec4_t tangent;
+  Vec4 tangent;
 
   /**
    * @brief The rotated face bitangent.
    */
-  vec4_t bitangent;
+  Vec4 bitangent;
 
   /**
    * @brief The atlas rect of the decal image: `xy` min, `zw` max.
    */
-  vec4_t texcoords;
+  Vec4 texcoords;
 
   /**
    * @brief The decal color.
    */
-  vec4_t color;
+  Vec4 color;
 
   /**
    * @brief Decal creation time.
@@ -94,9 +94,9 @@ typedef struct {
    * decal reused the slot.
    */
   uint32_t generation;
-} r_decal_instance_t;
+} RenderDecalInstance;
 
-static_assert(sizeof(r_decal_instance_t) == 112, "r_decal_instance_t must match decal_instance_t in decal_vs.glsl");
+static_assert(sizeof(RenderDecalInstance) == 112, "RenderDecalInstance must match DecalInstance in decal_vs.glsl");
 static_assert(MAX_DECAL_INSTANCES <= 0x1000000, "MAX_DECAL_INSTANCES exceeds the 24 bit instance index");
 
 /**
@@ -107,14 +107,14 @@ typedef struct {
   /**
    * @brief Vertex position.
    */
-  vec3_t position;
+  Vec3 position;
 
   /**
    * @brief The instance this vertex draws its decal from: generation in the
    * high 8 bits, instance index in the low 24.
    */
   uint32_t instance;
-} r_decal_vertex_t;
+} RenderDecalVertex;
 
 /**
  * @brief Decal triangle.
@@ -124,11 +124,11 @@ typedef struct {
   /**
    * @brief Triangle vertices.
    */
-  r_decal_vertex_t vertexes[3];
-} r_decal_triangle_t;
+  RenderDecalVertex vertexes[3];
+} RenderDecalTriangle;
 
-void R_UpdateDecals(const r_view_t *view, CopyPass *pass);
-void R_DrawDecals(const r_view_t *view, RenderPass *pass);
+void R_UpdateDecals(const RenderView *view, CopyPass *pass);
+void R_DrawDecals(const RenderView *view, RenderPass *pass);
 void R_InitDecals(void);
 void R_ShutdownDecals(void);
 void R_UpdateDecalPipeline(void);

@@ -44,92 +44,92 @@ struct spvUnsafeArray
     }
 };
 
-struct light_t
+struct Light
 {
     float4 origin;
     float4 color;
     float2 tile;
 };
 
-struct voxels_t
+struct Voxels
 {
     float4 mins;
     float4 maxs;
-    float4 view_coordinate;
+    float4 viewCoordinate;
     float4 size;
 };
 
-struct uniforms_block
+struct uniformsBlock
 {
     int4 viewport;
     float4x4 projection3D;
     float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
+    float4x4 skyProjection;
+    float4x4 lightProjection;
+    Voxels voxels;
+    float2 depthRange;
+    int viewType;
     int ticks;
     packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
+    float ambientOcclusion;
+    float lightingDistance;
     int editor;
     int developer;
     float2 padding;
 };
 
-struct voxel_light_data_block
+struct voxelLightDataBlock
 {
-    int voxel_light_data_elements[1];
+    int voxelLightDataElements[1];
 };
 
-struct voxel_light_indices_block
+struct voxelLightIndicesBlock
 {
-    int voxel_light_indices[1];
+    int voxelLightIndices[1];
 };
 
-struct light_t_1
+struct Light_1
 {
     float4 origin;
     float4 color;
     float2 tile;
 };
 
-struct bsp_lights_block
+struct bspLightsBlock
 {
-    int num_bsp_lights;
-    light_t_1 bsp_lights[1];
+    int numBspLights;
+    Light_1 bspLights[1];
 };
 
-struct dynamic_lights_block
+struct dynamicLightsBlock
 {
-    int num_dynamic_lights;
-    light_t_1 dynamic_lights[1];
+    int numDynamicLights;
+    Light_1 dynamicLights[1];
 };
 
-struct decal_locals_block
+struct decalLocalsBlock
 {
-    uint4 active_dynamic_lights[4];
+    uint4 activeDynamicLights[4];
 };
 
 struct main0_out
 {
-    float4 out_color [[color(0)]];
+    float4 outColor [[color(0)]];
 };
 
 struct main0_in
 {
-    float3 in_model_position [[user(locn0)]];
-    float3 in_model_normal [[user(locn1)]];
-    float2 in_texcoord [[user(locn2)]];
-    float4 in_color [[user(locn3)]];
+    float3 inModelPosition [[user(locn0)]];
+    float3 inModelNormal [[user(locn1)]];
+    float2 inTexcoord [[user(locn2)]];
+    float4 inColor [[user(locn3)]];
 };
 
 static inline __attribute__((always_inline))
-int3 decal_voxel_xyz(thread const float3& position, constant uniforms_block& _56)
+int3 decalVoxelXyz(thread const float3& position, constant uniformsBlock& _56)
 {
     float3 pos = position - _56.voxels.mins.xyz;
     int3 voxel = int3(floor(pos / float3(32.0)));
@@ -137,7 +137,7 @@ int3 decal_voxel_xyz(thread const float3& position, constant uniforms_block& _56
 }
 
 static inline __attribute__((always_inline))
-float3 light_color(thread const light_t& l, constant uniforms_block& _56)
+float3 lightColor(thread const Light& l, constant uniformsBlock& _56)
 {
     float3 color = (l.color.xyz * l.color.w) * _56.modulate;
     float luma = dot(color, float3(0.2125999927520751953125, 0.715200006961822509765625, 0.072200000286102294921875));
@@ -145,9 +145,9 @@ float3 light_color(thread const light_t& l, constant uniforms_block& _56)
 }
 
 static inline __attribute__((always_inline))
-float3 decal_light(thread const light_t& light, thread const float3& normal, constant uniforms_block& _56, thread float3& in_model_position)
+float3 decalLight(thread const Light& light, thread const float3& normal, constant uniformsBlock& _56, thread float3& inModelPosition)
 {
-    float3 dir = light.origin.xyz - in_model_position;
+    float3 dir = light.origin.xyz - inModelPosition;
     float dist = length(dir);
     float radius = light.origin.w;
     float atten = fast::clamp(1.0 - (dist / radius), 0.0, 1.0);
@@ -156,60 +156,60 @@ float3 decal_light(thread const light_t& light, thread const float3& normal, con
         return float3(0.0);
     }
     float lambert = fast::max(0.0, dot(normal, dir / float3(dist)));
-    light_t param = light;
-    return (light_color(param, _56) * atten) * lambert;
+    Light param = light;
+    return (lightColor(param, _56) * atten) * lambert;
 }
 
 static inline __attribute__((always_inline))
-bool dynamic_light_active(thread const spvUnsafeArray<uint4, 4>& mask, thread const int& j)
+bool dynamicLightActive(thread const spvUnsafeArray<uint4, 4>& mask, thread const int& j)
 {
     return (mask[j >> 7][(j >> 5) & 3] & (1u << uint(j & 31))) != 0u;
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _56 [[buffer(0)]], constant decal_locals_block& _295 [[buffer(1)]], const device bsp_lights_block& _258 [[buffer(2)]], const device dynamic_lights_block& _288 [[buffer(3)]], const device voxel_light_data_block& _219 [[buffer(4)]], const device voxel_light_indices_block& _247 [[buffer(5)]], texture2d<float> texture_diffusemap [[texture(0)]], sampler texture_diffusemapSmplr [[sampler(0)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _56 [[buffer(0)]], constant decalLocalsBlock& _295 [[buffer(1)]], const device bspLightsBlock& _258 [[buffer(2)]], const device dynamicLightsBlock& _288 [[buffer(3)]], const device voxelLightDataBlock& _219 [[buffer(4)]], const device voxelLightIndicesBlock& _247 [[buffer(5)]], texture2d<float> textureDiffusemap [[texture(0)]], sampler textureDiffusemapSmplr [[sampler(0)]])
 {
     main0_out out = {};
-    float4 diffuse = texture_diffusemap.sample(texture_diffusemapSmplr, in.in_texcoord);
-    float3 normal = fast::normalize(in.in_model_normal);
+    float4 diffuse = textureDiffusemap.sample(textureDiffusemapSmplr, in.inTexcoord);
+    float3 normal = fast::normalize(in.inModelNormal);
     float3 light = float3(_56.ambient);
-    float3 param = in.in_model_position;
-    int3 voxel = decal_voxel_xyz(param, _56);
-    int voxel_index = (((voxel.z * int(_56.voxels.size.y)) + voxel.y) * int(_56.voxels.size.x)) + voxel.x;
-    int2 data = int2(_219.voxel_light_data_elements[(voxel_index * 2) + 0], _219.voxel_light_data_elements[(voxel_index * 2) + 1]);
-    light_t param_1;
+    float3 param = in.inModelPosition;
+    int3 voxel = decalVoxelXyz(param, _56);
+    int voxelIndex = (((voxel.z * int(_56.voxels.size.y)) + voxel.y) * int(_56.voxels.size.x)) + voxel.x;
+    int2 data = int2(_219.voxelLightDataElements[(voxelIndex * 2) + 0], _219.voxelLightDataElements[(voxelIndex * 2) + 1]);
+    Light param_1;
     for (int i = 0; i < data.y; i++)
     {
-        int index = _247.voxel_light_indices[data.x + i];
-        param_1.origin = _258.bsp_lights[index].origin;
-        param_1.color = _258.bsp_lights[index].color;
-        param_1.tile = _258.bsp_lights[index].tile;
+        int index = _247.voxelLightIndices[data.x + i];
+        param_1.origin = _258.bspLights[index].origin;
+        param_1.color = _258.bspLights[index].color;
+        param_1.tile = _258.bspLights[index].tile;
         float3 param_2 = normal;
-        light += decal_light(param_1, param_2, _56, in.in_model_position);
+        light += decalLight(param_1, param_2, _56, in.inModelPosition);
     }
     spvUnsafeArray<uint4, 4> param_3;
-    light_t param_5;
-    for (int j = 0; j < _288.num_dynamic_lights; j++)
+    Light param_5;
+    for (int j = 0; j < _288.numDynamicLights; j++)
     {
-        param_3[0] = _295.active_dynamic_lights[0];
-        param_3[1] = _295.active_dynamic_lights[1];
-        param_3[2] = _295.active_dynamic_lights[2];
-        param_3[3] = _295.active_dynamic_lights[3];
+        param_3[0] = _295.activeDynamicLights[0];
+        param_3[1] = _295.activeDynamicLights[1];
+        param_3[2] = _295.activeDynamicLights[2];
+        param_3[3] = _295.activeDynamicLights[3];
         int param_4 = j;
-        if (dynamic_light_active(param_3, param_4))
+        if (dynamicLightActive(param_3, param_4))
         {
-            param_5.origin = _288.dynamic_lights[j].origin;
-            param_5.color = _288.dynamic_lights[j].color;
-            param_5.tile = _288.dynamic_lights[j].tile;
+            param_5.origin = _288.dynamicLights[j].origin;
+            param_5.color = _288.dynamicLights[j].color;
+            param_5.tile = _288.dynamicLights[j].tile;
             float3 param_6 = normal;
-            light += decal_light(param_5, param_6, _56, in.in_model_position);
+            light += decalLight(param_5, param_6, _56, in.inModelPosition);
         }
     }
-    out.out_color = diffuse * in.in_color;
-    float4 _339 = out.out_color;
+    out.outColor = diffuse * in.inColor;
+    float4 _339 = out.outColor;
     float3 _341 = _339.xyz * light;
-    out.out_color.x = _341.x;
-    out.out_color.y = _341.y;
-    out.out_color.z = _341.z;
+    out.outColor.x = _341.x;
+    out.outColor.y = _341.y;
+    out.outColor.z = _341.z;
     return out;
 }
 

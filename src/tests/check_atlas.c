@@ -42,15 +42,15 @@ START_TEST(check_atlas) {
   SDL_Surface *blue = CreateSurface(512, 512, 0x0000ff);
   SDL_Surface *purple = CreateSurface(512, 512, 0xff00ff);
 
-  atlas_t *atlas = Atlas_Create(1);
+  Atlas *atlas = Atlas_Create(1);
 
-  atlas_node_t *a = Atlas_Insert(atlas, red);
+  AtlasNode *a = Atlas_Insert(atlas, red);
   ck_assert_ptr_ne(NULL, a);
 
-  atlas_node_t *b = Atlas_Insert(atlas, green);
+  AtlasNode *b = Atlas_Insert(atlas, green);
   ck_assert_ptr_ne(NULL, b);
 
-  atlas_node_t *c = Atlas_Insert(atlas, blue);
+  AtlasNode *c = Atlas_Insert(atlas, blue);
   ck_assert_ptr_ne(NULL, c);
 
   SDL_Surface *surface = CreateSurface(1024, 1024, 0x000000);
@@ -67,7 +67,7 @@ START_TEST(check_atlas) {
   ck_assert_int_eq(768, a->x);
   ck_assert_int_eq(0, a->y);
 
-  atlas_node_t *d = Atlas_Insert(atlas, purple);
+  AtlasNode *d = Atlas_Insert(atlas, purple);
   ck_assert_ptr_ne(NULL, d);
 
   res = Atlas_Compile(atlas, 0, surface);
@@ -102,7 +102,7 @@ START_TEST(check_atlas_random) {
 
   srand(getpid());
 
-  atlas_t *atlas = Atlas_Create(1);
+  Atlas *atlas = Atlas_Create(1);
 
   SDL_Surface *surfaces[100];
 
@@ -137,7 +137,7 @@ START_TEST(check_atlas_random) {
 /**
  * @brief This custom comparator should actually produce the worst possible packing.
  */
-static int32_t comparator(const atlas_node_t *a, const atlas_node_t *b) {
+static int32_t comparator(const AtlasNode *a, const AtlasNode *b) {
   return a->surfaces[0]->h - b->surfaces[0]->h;
 }
 
@@ -145,7 +145,7 @@ START_TEST(check_atlas_custom_comparator) {
 
   srand(getpid());
 
-  atlas_t *atlas = Atlas_Create(1);
+  Atlas *atlas = Atlas_Create(1);
   atlas->comparator = comparator;
 
   SDL_Surface *surfaces[100];
@@ -182,18 +182,18 @@ START_TEST(check_atlas_custom_comparator) {
  */
 static int32_t blit(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
 
-  const color32_t *in = (color32_t *) src->pixels;
-  color32_t *out = (color32_t *) dest->pixels;
+  const Color32 *in = (Color32 *) src->pixels;
+  Color32 *out = (Color32 *) dest->pixels;
 
   out += rect->y * dest->w + rect->x;
 
   for (int32_t x = 0; x < src->w; x++) {
     for (int32_t y = 0; y < src->h; y++) {
 
-      const color32_t *in_color = in + y * src->w + x;
-      color32_t *out_color = out + y * dest->w + x;
+      const Color32 *inColor = in + y * src->w + x;
+      Color32 *outColor = out + y * dest->w + x;
 
-      *out_color = *in_color;
+      *outColor = *inColor;
     }
   }
 
@@ -204,7 +204,7 @@ START_TEST(check_atlas_custom_blit) {
 
   srand(getpid());
 
-  atlas_t *atlas = Atlas_Create(1);
+  Atlas *atlas = Atlas_Create(1);
   atlas->blit = blit;
 
   SDL_Surface *surfaces[100];

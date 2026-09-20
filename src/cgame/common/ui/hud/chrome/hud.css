@@ -151,7 +151,7 @@
 
 /*
  * Powerups, top left: a stack of cards leaning off the left edge. They start below the
- * notify lines, which draw from 32 down at whatever cg_notify_lines is set to; the inset
+ * notify lines, which draw from 32 down at whatever cg_notifyLines is set to; the inset
  * clears the default three with room to spare.
  */
 

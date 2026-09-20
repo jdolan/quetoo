@@ -92,11 +92,11 @@ static void setValue(Slider *self, double value) {
 #pragma mark - CvarSlider
 
 /**
- * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step)
+ * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, Cvar *var, double min, double max, double step)
  *
  * @memberof CvarSlider
  */
-static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step) {
+static CvarSlider *initWithVariable(CvarSlider *self, Cvar *var, double min, double max, double step) {
 
   self = (CvarSlider *) super(Slider, self, initWithFrame, NULL);
   if (self) {

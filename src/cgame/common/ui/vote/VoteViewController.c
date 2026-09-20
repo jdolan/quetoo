@@ -44,7 +44,7 @@ static void didClickNo(Button *button) {
 static void didSelectType(Select *select, Option *option) {
 
   VoteViewController *this = select->delegate.self;
-  const vote_type_t *type = option->value;
+  const VoteType *type = option->value;
 
   $(((View *) this->map)->superview, setVisibility,
     type->arg != VOTE_ARG_MAP ? ViewVisibilityHidden : ViewVisibilityVisible);
@@ -70,7 +70,7 @@ static void didClickCall(Button *button) {
     return;
   }
 
-  const vote_type_t *type = selected->value;
+  const VoteType *type = selected->value;
   const char *arg = "";
 
   switch (type->arg) {
@@ -121,7 +121,7 @@ static void refreshClients(VoteViewController *this) {
   $(this->client, removeAllOptions);
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    const cg_client_info_t *ci = &cg_state.clients[i];
+    const ClientGameClientInfo *ci = &cgState.clients[i];
     if (*ci->name) {
       $(this->client, addOption, ci->name, NULL);
     }
@@ -130,13 +130,13 @@ static void refreshClients(VoteViewController *this) {
 
 static void refreshStatus(VoteViewController *this) {
 
-  const bool active = cg_state.vote.active;
+  const bool active = cgState.vote.active;
 
   if (active) {
     $(this->status->text, setText, va("%s called a vote: %s%s%s  (Yes %d  No %d of %d)",
-                                      cg_state.vote.initiator, cg_state.vote.type,
-                                      *cg_state.vote.arg ? " " : "", cg_state.vote.arg,
-                                      cg_state.vote.yes, cg_state.vote.no, cg_state.vote.eligible));
+                                      cgState.vote.initiator, cgState.vote.type,
+                                      *cgState.vote.arg ? " " : "", cgState.vote.arg,
+                                      cgState.vote.yes, cgState.vote.no, cgState.vote.eligible));
   } else {
     $(this->status->text, setText, "No vote is in progress");
   }
@@ -180,7 +180,7 @@ static void loadView(ViewController *self) {
   this->type->delegate.self = self;
 
   size_t count;
-  const vote_type_t *types = Cg_ListVoteTypes(&count);
+  const VoteType *types = Cg_ListVoteTypes(&count);
   for (size_t i = 0; i < count; i++) {
     $(this->type, addOption, types[i].title, (ident) &types[i]);
   }

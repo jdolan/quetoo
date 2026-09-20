@@ -35,16 +35,16 @@ static struct {
    * @brief The free lights.
    */
   List *free;
-} cg_lights;
+} module;
 
-static cg_light_t *Cg_PopLight(List *lights) {
+static ClientGameLight *Cg_PopLight(List *lights) {
 
   if (lights == NULL || lights->head == NULL) {
     return NULL;
   }
 
   ListNode *node = lights->head;
-  cg_light_t *light = node->element;
+  ClientGameLight *light = node->element;
 
   $(lights, removeNode, node);
 
@@ -54,41 +54,41 @@ static cg_light_t *Cg_PopLight(List *lights) {
 /**
  * @brief Allocates a dynamic light source.
  */
-static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
+static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
 
-  cg_light_t *light = Cg_PopLight(cg_lights.free);
+  ClientGameLight *light = Cg_PopLight(module.free);
   if (light == NULL) {
-    light = cgi.Malloc(sizeof(cg_light_t), MEM_TAG_CGAME_LEVEL);
+    light = cgi.Malloc(sizeof(ClientGameLight), MEM_TAG_CGAME_LEVEL);
   }
 
   *light = *in;
 
   light->intensity = light->intensity ?: 1.f;
 
-  light->time = cgi.client->unclamped_time;
+  light->time = cgi.client->unclampedTime;
 
-  $(cg_lights.allocated, prepend, light);
+  $(module.allocated, prepend, light);
   return light;
 }
 
 /**
  * @brief Frees the specified light source.
  */
-static void Cg_FreeLight(cg_light_t *light) {
+static void Cg_FreeLight(ClientGameLight *light) {
 
-  ListNode *node = $(cg_lights.allocated, nodeForElement, light);
+  ListNode *node = $(module.allocated, nodeForElement, light);
   assert(node);
 
-  $(cg_lights.allocated, removeNode, node);
-  $(cg_lights.free, prepend, light);
+  $(module.allocated, removeNode, node);
+  $(module.free, prepend, light);
 }
 
 /**
  * @brief Adds a dynamic light source to the current view if dynamic lights are enabled.
  */
-void Cg_AddLight(const cg_light_t *in) {
+void Cg_AddLight(const ClientGameLight *in) {
 
-  if (!cg_add_lights->value) {
+  if (!cg_addLights->value) {
     return;
   }
 
@@ -106,15 +106,15 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 
   if (style && *style) {
     const size_t len = q_strlen(style);
-    const uint32_t phase_offset = (uint32_t)(drift * len * 100);
-    const uint32_t time = cgi.client->unclamped_time + phase_offset;
-    const uint32_t style_index = (time / 100) % len;
-    const uint32_t style_time = (time / 100) * 100;
+    const uint32_t phaseOffset = (uint32_t)(drift * len * 100);
+    const uint32_t time = cgi.client->unclampedTime + phaseOffset;
+    const uint32_t styleIndex = (time / 100) % len;
+    const uint32_t styleTime = (time / 100) * 100;
 
-    const float lerp = (time - style_time) / 100.f;
+    const float lerp = (time - styleTime) / 100.f;
 
-    const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-    const float u = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+    const float s = (style[(styleIndex + 0) % len] - 'a') / (float) ('z' - 'a');
+    const float u = (style[(styleIndex + 1) % len] - 'a') / (float) ('z' - 'a');
 
     intensity *= Clampf(Mixf(s, u, lerp), FLT_EPSILON, 1.f);
   }
@@ -129,7 +129,7 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 static int32_t Cg_ResolveBspModel(const char *model) {
 
   for (int32_t i = 1; i < MAX_MODELS; i++) {
-    if (!q_strcmp(cgi.client->config_strings[CS_MODELS + i], model)) {
+    if (!q_strcmp(cgi.client->configStrings[CS_MODELS + i], model)) {
       return i;
     }
   }
@@ -139,7 +139,7 @@ static int32_t Cg_ResolveBspModel(const char *model) {
 
 /**
  * @brief Adds all BSP light sources to the view.
- * @details For lights with a `target_entity`, resolves the current world position of the
+ * @details For lights with a `targetEntity`, resolves the current world position of the
  * attached inline model entity each frame and adds the light as a dynamic (unshadowed) light.
  * @remarks A `common/origin` brush compiles the target's brushwork relative to that origin, and
  * leaves it on the entity as its `origin` key, so the light is carried as an offset from it. A
@@ -149,14 +149,14 @@ static int32_t Cg_ResolveBspModel(const char *model) {
  */
 static void Cg_AddBspLights(void) {
 
-  r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
-  for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
+  RenderBspLight *l = cgi.WorldModel()->bsp->lights;
+  for (int32_t i = 0; i < cgi.WorldModel()->bsp->numLights; i++, l++) {
 
     const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
-    if (l->target_entity) {
+    if (l->targetEntity) {
 
-      const char *model = cgi.EntityValue(l->target_entity, "model")->nullable_string;
+      const char *model = cgi.EntityValue(l->targetEntity, "model")->nullableString;
       if (!model) {
         continue;
       }
@@ -166,19 +166,19 @@ static void Cg_AddBspLights(void) {
         continue;
       }
 
-      const vec3_t compiled_origin = cgi.EntityValue(l->target_entity, "origin")->vec3;
-      const vec3_t offset = Vec3_Subtract(l->origin, compiled_origin);
+      const Vec3 compiledOrigin = cgi.EntityValue(l->targetEntity, "origin")->vec3;
+      const Vec3 offset = Vec3_Subtract(l->origin, compiledOrigin);
 
-      vec3_t origin = l->origin;
+      Vec3 origin = l->origin;
       for (int32_t j = 0; j < MAX_ENTITIES; j++) {
-        const cl_entity_t *ent = &cgi.client->entities[j];
+        const ClientEntity *ent = &cgi.client->entities[j];
         if (ent->current.model1 == model1) {
           origin = Mat4_Transform(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f), offset);
           break;
         }
       }
 
-      cgi.AddLight(cgi.view, &(const r_light_t) {
+      cgi.AddLight(cgi.view, &(const RenderLight) {
         .origin = origin,
         .color = l->color,
         .radius = l->radius,
@@ -186,13 +186,13 @@ static void Cg_AddBspLights(void) {
         .bounds = Box3_FromCenterRadius(origin, l->radius),
       });
     } else {
-      cgi.AddLight(cgi.view, &(const r_light_t) {
+      cgi.AddLight(cgi.view, &(const RenderLight) {
         .origin = l->origin,
         .color = l->color,
         .radius = l->radius,
         .intensity = intensity,
         .bounds = l->bounds,
-        .bsp_light = l,
+        .bspLight = l,
       });
     }
   }
@@ -203,19 +203,19 @@ static void Cg_AddBspLights(void) {
  */
 void Cg_AddDynamicLights(void) {
 
-  for (ListNode *node = cg_lights.allocated->head; node; ) {
+  for (ListNode *node = module.allocated->head; node; ) {
     ListNode *next = node->next;
 
-    cg_light_t *light = node->element;
+    ClientGameLight *light = node->element;
 
-    const uint32_t age = cgi.client->unclamped_time - light->time;
+    const uint32_t age = cgi.client->unclampedTime - light->time;
     float intensity = light->intensity;
     if (light->decay) {
       intensity = Mixf(intensity, 0.f, age / (float) light->decay);
     }
 
-    if (cg_add_lights->value) {
-      cgi.AddLight(cgi.view, &(const r_light_t) {
+    if (cg_addLights->value) {
+      cgi.AddLight(cgi.view, &(const RenderLight) {
         .origin = light->origin,
         .color = light->color,
         .radius = light->radius,
@@ -249,10 +249,10 @@ void Cg_AddLights(void) {
  */
 void Cg_InitLights(void) {
 
-  memset(&cg_lights, 0, sizeof(cg_lights));
+  memset(&module, 0, sizeof(module));
 
-  cg_lights.allocated = $(alloc(List), init);
-  cg_lights.free = $(alloc(List), init);
+  module.allocated = $(alloc(List), init);
+  module.free = $(alloc(List), init);
 }
 
 /**
@@ -260,13 +260,13 @@ void Cg_InitLights(void) {
  */
 void Cg_FreeLights(void) {
 
-  if (cg_lights.allocated) {
-    cg_lights.allocated->destroy = cgi.Free;
-    cg_lights.allocated = release(cg_lights.allocated);
+  if (module.allocated) {
+    module.allocated->destroy = cgi.Free;
+    module.allocated = release(module.allocated);
   }
 
-  if (cg_lights.free) {
-    cg_lights.free->destroy = cgi.Free;
-    cg_lights.free = release(cg_lights.free);
+  if (module.free) {
+    module.free->destroy = cgi.Free;
+    module.free = release(module.free);
   }
 }

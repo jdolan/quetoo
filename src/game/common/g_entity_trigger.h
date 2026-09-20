@@ -24,11 +24,11 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_trigger_always(g_entity_t *ent);
-void G_trigger_exec(g_entity_t *ent);
-void G_trigger_hurt(g_entity_t *ent);
-void G_trigger_multiple(g_entity_t *ent);
-void G_trigger_once(g_entity_t *ent);
-void G_trigger_push(g_entity_t *ent);
-void G_trigger_relay(g_entity_t *ent);
+void G_trigger_always(GameEntity *ent);
+void G_trigger_exec(GameEntity *ent);
+void G_trigger_hurt(GameEntity *ent);
+void G_trigger_multiple(GameEntity *ent);
+void G_trigger_once(GameEntity *ent);
+void G_trigger_push(GameEntity *ent);
+void G_trigger_relay(GameEntity *ent);
 #endif

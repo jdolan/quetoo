@@ -31,40 +31,40 @@
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
 
-cvar_t *cl_chat_sound;
-cvar_t *cl_max_fps;
-cvar_t *cl_no_lerp;
-cvar_t *cl_team_chat_sound;
-cvar_t *cl_timeout;
+Cvar *cl_chatSound;
+Cvar *cl_maxFps;
+Cvar *cl_noLerp;
+Cvar *cl_teamChatSound;
+Cvar *cl_timeout;
 
-cvar_t *guid;
-cvar_t *name;
-cvar_t *active;
-cvar_t *message_level;
-cvar_t *password;
-cvar_t *rate;
+Cvar *guid;
+Cvar *name;
+Cvar *active;
+Cvar *messageLevel;
+Cvar *password;
+Cvar *rate;
 
-cvar_t *qport;
+Cvar *qport;
 
-cvar_t *cl_draw_net_messages;
+Cvar *cl_drawNetMessages;
 
-cl_static_t cls;
-cl_client_t cl;
+ClientStatic cls;
+Client cl;
 
-r_view_t cl_view;
-s_stage_t cl_stage;
+RenderView clView;
+SoundStage clStage;
 
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
  */
 static void Cl_SendConnect(void) {
-  net_addr_t addr;
+  NetAddr addr;
 
   memset(&addr, 0, sizeof(addr));
 
   if (!Net_StringToNetaddr(cls.server.address, &addr)) {
     Com_Print("Bad server address\n");
-    cls.server.connect_time = 0;
+    cls.server.connectTime = 0;
     return;
   }
 
@@ -75,7 +75,7 @@ static void Cl_SendConnect(void) {
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
                          qport->integer, cls.server.challenge, Cvar_UserInfo());
 
-  cvar_user_info_modified = false;
+  cvarUserInfoModified = false;
 }
 
 /**
@@ -93,7 +93,7 @@ static void Cl_AttemptConnect(void) {
     q_strlcpy(cls.server.address, "localhost", sizeof(cls.server.address));
 
     cls.state = CL_CONNECTING;
-    cls.server.connect_time = 0;
+    cls.server.connectTime = 0;
   }
 
   // re-send if we haven't received a reply yet
@@ -102,11 +102,11 @@ static void Cl_AttemptConnect(void) {
   }
 
   // don't flood connection packets
-  if (cls.server.connect_time && (quetoo.ticks - cls.server.connect_time < 1000)) {
+  if (cls.server.connectTime && (quetoo.ticks - cls.server.connectTime < 1000)) {
     return;
   }
 
-  net_addr_t addr;
+  NetAddr addr;
 
   if (!Net_StringToNetaddr(cls.server.address, &addr)) {
     Com_Warn("Bad server address: %s\n", cls.server.address);
@@ -118,7 +118,7 @@ static void Cl_AttemptConnect(void) {
     addr.port = htons(PORT_SERVER);
   }
 
-  cls.server.connect_time = quetoo.ticks;
+  cls.server.connectTime = quetoo.ticks;
   cls.server.addr = addr;
 
   Cl_QueryServer(&addr);
@@ -136,7 +136,7 @@ static void Cl_AttemptConnect(void) {
 /**
  * @brief Initiates the connection process to the specified server.
  */
-void Cl_Connect(const net_addr_t *addr) {
+void Cl_Connect(const NetAddr *addr) {
 
   if (Com_WasInit(QUETOO_SERVER)) { // if running a local server, kill it
     Sv_ShutdownServer("Server quit\n");
@@ -147,14 +147,14 @@ void Cl_Connect(const net_addr_t *addr) {
   q_strlcpy(cls.server.address, Net_NetaddrToString(addr), sizeof(cls.server.address));
 
   cls.state = CL_CONNECTING;
-  cls.server.connect_time = 0;
+  cls.server.connectTime = 0;
 }
 
 /**
  * @brief Handles the `connect` console command, connecting to the specified server address.
  */
 static void Cl_Connect_f(void) {
-  net_addr_t addr;
+  NetAddr addr;
 
   if (Cmd_Argc() != 2) {
     Com_Print("Usage: %s <address>\n", Cmd_Argv(0));
@@ -174,10 +174,10 @@ static void Cl_Connect_f(void) {
 static void Cl_Rcon_f(void) {
   char message[1024];
   int32_t i;
-  net_addr_t to;
+  NetAddr to;
 
-  if (!rcon_password->string) {
-    Com_Print("No rcon_password set\n");
+  if (!rconPassword->string) {
+    Com_Print("No rconPassword set\n");
     return;
   }
 
@@ -190,7 +190,7 @@ static void Cl_Rcon_f(void) {
   message[4] = 0;
 
   strcat(message, "rcon ");
-  strcat(message, rcon_password->string);
+  strcat(message, rconPassword->string);
   strcat(message, " ");
 
   for (i = 1; i < Cmd_Argc(); i++) {
@@ -199,15 +199,15 @@ static void Cl_Rcon_f(void) {
   }
 
   if (cls.state >= CL_CONNECTED) {
-    to = cls.net_chan.remote_address;
+    to = cls.netChan.remoteAddress;
   } else {
-    if (*rcon_address->string == '\0') {
-      Com_Print("Not connected and no rcon_address set\n");
+    if (*rconAddress->string == '\0') {
+      Com_Print("Not connected and no rconAddress set\n");
       return;
     }
 
-    if (!Net_StringToNetaddr(rcon_address->string, &to)) {
-      Com_Warn("Invalid rcon_address: %s\n", rcon_address->string);
+    if (!Net_StringToNetaddr(rconAddress->string, &to)) {
+      Com_Warn("Invalid rconAddress: %s\n", rconAddress->string);
       return;
     }
 
@@ -234,8 +234,8 @@ void Cl_ForwardCmdToServer(void) {
   const char *cmd = Cmd_Argv(0);
   const char *args = Cmd_Args();
 
-  Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-  Net_WriteString(&cls.net_chan.message, va("%s %s", cmd, args));
+  Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
+  Net_WriteString(&cls.netChan.message, va("%s %s", cmd, args));
 
   //Com_Debug("Forwarding '%s %s'\n", cmd, args);
 }
@@ -275,7 +275,7 @@ void Cl_ClearState(void) {
   // be cleared here: SV_CMD_DEMO_INFO arrives just ahead of the SV_CMD_SERVER_DATA that calls us
   cls.demo.paused = false;
 
-  Mem_ClearBuffer(&cls.net_chan.message);
+  Mem_ClearBuffer(&cls.netChan.message);
 }
 
 /**
@@ -287,7 +287,7 @@ void Cl_SendDisconnect(void) {
   cmd[0] = CL_CMD_STRING;
   strcpy((char *) cmd + 1, "disconnect");
 
-  Netchan_Transmit(&cls.net_chan, cmd, q_strlen((char *) cmd));
+  Netchan_Transmit(&cls.netChan, cmd, q_strlen((char *) cmd));
 }
 
 /**
@@ -315,20 +315,20 @@ void Cl_Disconnect(void) {
   memset(cls.server.address, 0, sizeof(cls.server.address));
   memset(&cls.server.addr, 0, sizeof(cls.server.addr));
 
-  cls.server.connect_time = 0;
+  cls.server.connectTime = 0;
   cls.state = CL_DISCONNECTED;
 
-  if (time_demo->value) {
-    const float s = (quetoo.ticks - cl.time_demo_start) / 1000.0;
-    Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.time_demo_frames, s,
-          cl.time_demo_frames / s);
+  if (timeDemo->value) {
+    const float s = (quetoo.ticks - cl.timeDemoStart) / 1000.0;
+    Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.timeDemoFrames, s,
+          cl.timeDemoFrames / s);
 
-    cl.time_demo_frames = cl.time_demo_start = 0;
+    cl.timeDemoFrames = cl.timeDemoStart = 0;
   }
 
   Cl_SetKeyDest(KEY_UI);
 
-  cls.broadcast_time = 0;
+  cls.broadcastTime = 0;
 }
 
 /**
@@ -358,7 +358,7 @@ void Cl_Reconnect_f(void) {
       Cl_Disconnect();
     }
 
-    cls.server.connect_time = 0; // fire immediately
+    cls.server.connectTime = 0; // fire immediately
     cls.state = CL_CONNECTING;
   } else {
     Com_Print("No server to reconnect to\n");
@@ -377,29 +377,29 @@ void Cl_Drop(const char *text) {
  */
 static void Cl_ConnectionlessPacket(void) {
 
-  Net_BeginReading(&net_message);
-  Net_ReadLong(&net_message); // skip the -1
+  Net_BeginReading(&netMessage);
+  Net_ReadLong(&netMessage); // skip the -1
 
-  const char *s = Net_ReadStringLine(&net_message);
+  const char *s = Net_ReadStringLine(&netMessage);
 
   Cmd_TokenizeString(s);
 
   const char *c = Cmd_Argv(0);
 
-  Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&net_from), c);
+  Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&netFrom), c);
 
   // server connection
   if (!q_strcmp(c, "client_connect")) {
 
     if (cls.state == CL_CONNECTED) {
-      Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&net_from));
+      Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&netFrom));
       return;
     }
 
-    Netchan_Setup(NS_UDP_CLIENT, &cls.net_chan, &net_from, qport->integer);
+    Netchan_Setup(NS_UDP_CLIENT, &cls.netChan, &netFrom, qport->integer);
 
-    Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-    Net_WriteString(&cls.net_chan.message, "new");
+    Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
+    Net_WriteString(&cls.netChan.message, "new");
 
     cls.state = CL_CONNECTED;
 
@@ -414,14 +414,14 @@ static void Cl_ConnectionlessPacket(void) {
 
   // print command from somewhere
   if (!q_strcmp(c, "print")) {
-    s = Net_ReadString(&net_message);
+    s = Net_ReadString(&netMessage);
     Com_Print("%s", s);
     return;
   }
 
   // ping from somewhere
   if (!q_strcmp(c, "ping")) {
-    Netchan_OutOfBandPrint(NS_UDP_CLIENT, &net_from, "ack");
+    Netchan_OutOfBandPrint(NS_UDP_CLIENT, &netFrom, "ack");
     return;
   }
 
@@ -434,7 +434,7 @@ static void Cl_ConnectionlessPacket(void) {
   // challenge from the server we are connecting to
   if (!q_strcmp(c, "challenge")) {
     if (cls.state != CL_CONNECTING) {
-      Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
+      Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&netFrom));
       return;
     }
     cls.server.challenge = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
@@ -442,7 +442,7 @@ static void Cl_ConnectionlessPacket(void) {
     return;
   }
 
-  Com_Warn("Unknown command: %s from %s\n", c, Net_NetaddrToString(&net_from));
+  Com_Warn("Unknown command: %s from %s\n", c, Net_NetaddrToString(&netFrom));
 }
 
 /**
@@ -450,35 +450,35 @@ static void Cl_ConnectionlessPacket(void) {
  */
 static void Cl_ReadPackets(void) {
 
-  memset(&net_from, 0, sizeof(net_from));
+  memset(&netFrom, 0, sizeof(netFrom));
 
-  while (Net_ReceiveDatagram(NS_UDP_CLIENT, &net_from, &net_message)) {
+  while (Net_ReceiveDatagram(NS_UDP_CLIENT, &netFrom, &netMessage)) {
 
     // remote command packet
-    if (*(int32_t *) net_message.data == -1) {
+    if (*(int32_t *) netMessage.data == -1) {
       Cl_ConnectionlessPacket();
       continue;
     }
 
     // dump it if not connected
     if (cls.state <= CL_CONNECTING) {
-      Com_Debug(DEBUG_CLIENT, "%s: Unsolicited packet\n", Net_NetaddrToString(&net_from));
+      Com_Debug(DEBUG_CLIENT, "%s: Unsolicited packet\n", Net_NetaddrToString(&netFrom));
       continue;
     }
 
     // check for runt packets
-    if (net_message.size < 8) {
-      Com_Debug(DEBUG_CLIENT, "%s: Runt packet\n", Net_NetaddrToString(&net_from));
+    if (netMessage.size < 8) {
+      Com_Debug(DEBUG_CLIENT, "%s: Runt packet\n", Net_NetaddrToString(&netFrom));
       continue;
     }
 
     // packet from server
-    if (!Net_CompareNetaddr(&net_from, &cls.net_chan.remote_address)) {
-      Com_Debug(DEBUG_CLIENT, "%s: Sequenced packet without connection\n", Net_NetaddrToString(&net_from));
+    if (!Net_CompareNetaddr(&netFrom, &cls.netChan.remoteAddress)) {
+      Com_Debug(DEBUG_CLIENT, "%s: Sequenced packet without connection\n", Net_NetaddrToString(&netFrom));
       continue;
     }
 
-    if (!Netchan_Process(&cls.net_chan, &net_message)) {
+    if (!Netchan_Process(&cls.netChan, &netMessage)) {
       continue; // wasn't accepted for some reason
     }
 
@@ -488,9 +488,9 @@ static void Cl_ReadPackets(void) {
   // check timeout
   if (cls.state >= CL_CONNECTED) {
 
-    const uint32_t delta = quetoo.ticks - cls.net_chan.last_received;
+    const uint32_t delta = quetoo.ticks - cls.netChan.lastReceived;
     if (delta > cl_timeout->value * 1000) {
-      Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&net_from));
+      Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&netFrom));
       Cl_Disconnect();
     }
   }
@@ -513,7 +513,7 @@ static const char *Cl_Username(void) {
  * @brief Writes key bindings and archived cvars to `quetoo.cfg`.
  */
 static void Cl_WriteConfiguration(void) {
-  file_t *f;
+  File *f;
 
   if (cls.state == CL_UNINITIALIZED) {
     return;
@@ -536,10 +536,10 @@ static void Cl_WriteConfiguration(void) {
 static void Cl_InitLocal(void) {
 
   // register our variables
-  cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
-  cl_max_fps = Cvar_Add("cl_max_fps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
-  cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
-  cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
+  cl_chatSound = Cvar_Add("cl_chatSound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
+  cl_maxFps = Cvar_Add("cl_maxFps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
+  cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
+  cl_teamChatSound = Cvar_Add("cl_teamChatSound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
   cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
 
   // user info
@@ -547,22 +547,22 @@ static void Cl_InitLocal(void) {
   guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
   name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
-  message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
+  messageLevel = Cvar_Add("messageLevel", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
   password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
   rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
 
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
-  cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
+  cl_drawNetMessages = Cvar_Add("cl_drawNetMessages", "0", CVAR_DEVELOPER, NULL);
 
   // register our commands
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
   Cmd_Add("servers", Cl_Servers_f, CMD_CLIENT, NULL);
   Cmd_Add("record", Cl_Record_f, CMD_CLIENT, NULL);
-  Cmd_Add("servers_list", Cl_Servers_List_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playback_faster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playback_slower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playback_speed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
+  Cmd_Add("serversList", Cl_Servers_List_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playbackFaster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playbackSlower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playbackSpeed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
   Cmd_Add("demo_pause", Cl_DemoPause_f, CMD_CLIENT, NULL);
   Cmd_Add("stop", Cl_Stop_f, CMD_CLIENT, NULL);
   Cmd_Add("connect", Cl_Connect_f, CMD_CLIENT, NULL);
@@ -571,10 +571,10 @@ static void Cl_InitLocal(void) {
   Cmd_Add("rcon", Cl_Rcon_f, CMD_CLIENT, NULL);
   Cmd_Add("precache", Cl_Precache_f, CMD_CLIENT, NULL);
   Cmd_Add("download", Cl_Download_f, CMD_CLIENT, NULL);
-  Cmd_Add("save_config", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk");
+  Cmd_Add("saveConfig", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk");
 
   Cmd_Add("r_restart", Cl_R_Restart_f, CMD_CLIENT, "Restart the rendering subsystem");
-  Cmd_Add("r_toggle_fullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen");
+  Cmd_Add("r_toggleFullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen");
 
   Cmd_Add("s_restart", Cl_S_Restart_f, CMD_CLIENT, "Restart the sound subsystem");
 
@@ -586,7 +586,7 @@ static void Cl_InitLocal(void) {
  * @brief Populates the renderer scene and issues main draw calls for the current frame.
  */
 static void Cl_UpdateScene(void) {
-  thread_t *thread;
+  WorkerThread *thread;
 
   cls.cgame->PrepareScene(&cl.frame);
 
@@ -596,17 +596,17 @@ static void Cl_UpdateScene(void) {
     thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }
 
-  R_DrawViewDepth(&cl_view);
+  R_DrawViewDepth(&clView);
 
   Thread_Wait(thread);
 
-  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
+  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &clStage, THREAD_NONE);
 
-  R_DrawPortals(&cl_view);
+  R_DrawPortals(&clView);
 
-  R_DrawMainView(&cl_view);
+  R_DrawMainView(&clView);
 
-  R_DrawPost(&cl_view);
+  R_DrawPost(&clView);
 
   Thread_Wait(thread);
 }
@@ -614,11 +614,11 @@ static void Cl_UpdateScene(void) {
 /**
  * @brief InstallerFrame callback.
  */
-int32_t Cl_InstallerFrame(const installer_status_t *in) {
+int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
-  R_InitView(&cl_view);
+  R_InitView(&clView);
 
-  S_InitStage(&cl_stage);
+  S_InitStage(&clStage);
 
   Cl_HandleEvents();
 
@@ -630,9 +630,9 @@ int32_t Cl_InstallerFrame(const installer_status_t *in) {
 
   R_EndFrame();
 
-  S_RenderStage(&cl_stage);
+  S_RenderStage(&clStage);
 
-  R_Screenshot(&cl_view);
+  R_Screenshot(&clView);
 
   return res;
 }
@@ -651,36 +651,36 @@ void Cl_Frame(const uint32_t msec) {
   cl.time += msec;
 
   // and the unclamped simulation time
-  cl.unclamped_time += msec;
+  cl.unclampedTime += msec;
 
   // and the pending command duration
-  cl.frame_msec += msec;
+  cl.frameMsec += msec;
 
   // and the total ticks
   cl.ticks = quetoo.ticks;
 
-  if (time_demo->value) { // accumulate timed demo statistics
-    if (!cl.time_demo_start) {
-      cl.time_demo_start = quetoo.ticks;
+  if (timeDemo->value) { // accumulate timed demo statistics
+    if (!cl.timeDemoStart) {
+      cl.timeDemoStart = quetoo.ticks;
     }
-    cl.time_demo_frames++;
+    cl.timeDemoFrames++;
   } else {
-    float target_fps = cl_max_fps->value;
-    if (target_fps == 0.f) {
-      if (r_context.display_mode) {
-        target_fps = r_context.display_mode->refresh_rate;
+    float targetFps = cl_maxFps->value;
+    if (targetFps == 0.f) {
+      if (rContext.displayMode) {
+        targetFps = rContext.displayMode->refresh_rate;
       }
     }
-    if (target_fps > 0.f) { // cap render frame rate
-      if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / target_fps) {
+    if (targetFps > 0.f) { // cap render frame rate
+      if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / targetFps) {
         return;
       }
     }
   }
 
-  R_InitView(&cl_view);
+  R_InitView(&clView);
 
-  S_InitStage(&cl_stage);
+  S_InitStage(&clStage);
 
   Cl_AttemptConnect();
 
@@ -692,7 +692,7 @@ void Cl_Frame(const uint32_t msec) {
 
   if (cls.state == CL_ACTIVE) {
 
-    Cl_UpdateMovementCommand(cl.frame_msec);
+    Cl_UpdateMovementCommand(cl.frameMsec);
 
     Cl_SendCommands();
 
@@ -704,23 +704,23 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     Cl_SendCommands();
 
-    S_RenderStage(&cl_stage);
+    S_RenderStage(&clStage);
   }
 
   Cl_UpdateScreen();
 
   R_EndFrame();
 
-  R_Screenshot(&cl_view);
+  R_Screenshot(&clView);
 
   cls.cgame->UpdateDiscord();
 
   frame_timestamp = quetoo.ticks;
-  cl.frame_msec = 0;
+  cl.frameMsec = 0;
 }
 
 /**
- * @brief Synchronously fetches the server-side GUID hash and stores it in `guid_hash` cvar.
+ * @brief Synchronously fetches the server-side GUID hash and stores it in `guidHash` cvar.
  */
 static void Cl_InitGuid(void) {
 
@@ -730,7 +730,7 @@ static void Cl_InitGuid(void) {
     Cvar_ForceSetString("guid", uuid);
   }
 
-  Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
+  Cvar_Add("guidHash", "", CVAR_NO_SET, NULL);
 
   char url[256];
   q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
@@ -743,7 +743,7 @@ static void Cl_InitGuid(void) {
     Dictionary *dictionary = $(ctx, objectFromData, data, 0);
     if ($(dictionary, containsKeyPath, "guid")) {
       String *hash = $(dictionary, objectForKeyPathWithClass, "guid", _String());
-      Cvar_ForceSetString("guid_hash", hash->chars);
+      Cvar_ForceSetString("guidHash", hash->chars);
     } else {
       Com_Warn("Malformed GUID response from %s\n", url);
     }
@@ -792,6 +792,10 @@ void Cl_Init(void) {
   Cl_ClearState();
 
   Cl_InitCgame();
+
+  // every command is registered by now, so binds written with an older name
+  // can be resolved and rewritten, once
+  Cl_CanonicalizeBinds();
 
   Cl_SetKeyDest(KEY_UI);
 

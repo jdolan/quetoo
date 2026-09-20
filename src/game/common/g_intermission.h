@@ -24,7 +24,7 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-extern cvar_t *g_vote_next_map;
+extern Cvar *g_voteNextMap;
 
 void G_Intermission_Init(void);
 #endif

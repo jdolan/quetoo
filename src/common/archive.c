@@ -38,7 +38,7 @@
  * @brief Windows reserves these names in every directory, with or without an
  * extension. Creating one from archive content is never legitimate.
  */
-static const char *archive_reserved_names[] = {
+static const char *archiveReservedNames[] = {
   "CON", "PRN", "AUX", "NUL",
   "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
   "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
@@ -54,8 +54,8 @@ static bool Archive_IsReservedName(const char *component, size_t len) {
     stem++;
   }
 
-  for (size_t i = 0; i < lengthof(archive_reserved_names); i++) {
-    const char *reserved = archive_reserved_names[i];
+  for (size_t i = 0; i < lengthof(archiveReservedNames); i++) {
+    const char *reserved = archiveReservedNames[i];
     if (stem == q_strlen(reserved) && q_strncasecmp(component, reserved, stem) == 0) {
       return true;
     }
@@ -150,16 +150,16 @@ static bool Archive_Spawn(const char * const *args) {
     return false;
   }
 
-  int exit_code = -1;
+  int exitCode = -1;
   size_t length = 0;
-  void *output = SDL_ReadProcess(process, &length, &exit_code);
+  void *output = SDL_ReadProcess(process, &length, &exitCode);
 
   if (output == NULL) {
-    SDL_WaitProcess(process, true, &exit_code);
+    SDL_WaitProcess(process, true, &exitCode);
   }
 
-  if (exit_code != 0) {
-    Com_Warn("%s exited %d\n", args[0], exit_code);
+  if (exitCode != 0) {
+    Com_Warn("%s exited %d\n", args[0], exitCode);
     if (output && length) {
       Com_Warn("%s: %.*s\n", args[0], (int32_t) length, (const char *) output);
     }
@@ -168,7 +168,7 @@ static bool Archive_Spawn(const char * const *args) {
   SDL_free(output);
   SDL_DestroyProcess(process);
 
-  return exit_code == 0;
+  return exitCode == 0;
 }
 
 /**

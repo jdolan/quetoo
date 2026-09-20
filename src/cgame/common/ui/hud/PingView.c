@@ -44,20 +44,20 @@ static void updateBindings(View *self, ident data) {
 
   PingView *this = (PingView *) self;
 
-  $(self, setVisibility, cg_draw_ping->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $(self, setVisibility, cg_drawPing->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
-    const cl_client_t *cl = cgi.client;
-    const cl_frame_t *frame = (const cl_frame_t *) data;
+    const Client *cl = cgi.client;
+    const ClientFrame *frame = (const ClientFrame *) data;
     const uint32_t now = (uint32_t) SDL_GetTicks();
 
     if (cl->dropped != this->dropped) {
       this->dropped = cl->dropped;
-      this->dropped_time = now;
+      this->droppedTime = now;
     }
 
-    const bool dropping = this->dropped_time && now - this->dropped_time < PING_DROPPED_INTERVAL;
-    const bool lagging = dropping || frame->ps.stats[STAT_PING] > cg_draw_ping_warn->integer;
+    const bool dropping = this->droppedTime && now - this->droppedTime < PING_DROPPED_INTERVAL;
+    const bool lagging = dropping || frame->ps.stats[STAT_PING] > cg_drawPingWarn->integer;
 
     View *value = (View *) this->counterView.value;
 
@@ -74,10 +74,10 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - CounterView
 
 /**
- * @see CounterView::textForFrame(CounterView *, const cl_frame_t *)
+ * @see CounterView::textForFrame(CounterView *, const ClientFrame *)
  * @remarks Unlike the base implementation, the ping is shown while spectating.
  */
-static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
+static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
   snprintf(self->text, sizeof(self->text), "%d", $(self, valueForFrame, frame));
 

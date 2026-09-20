@@ -25,20 +25,20 @@
 
 #if defined(__CL_LOCAL_H__)
 
-extern cvar_t *m_sensitivity;
-extern cvar_t *m_sensitivity_zoom;
-extern cvar_t *m_interpolate;
-extern cvar_t *m_invert;
-extern cvar_t *m_pitch;
-extern cvar_t *m_yaw;
+extern Cvar *mSensitivity;
+extern Cvar *m_sensitivityZoom;
+extern Cvar *mInterpolate;
+extern Cvar *mInvert;
+extern Cvar *mPitch;
+extern Cvar *mYaw;
 
 void Cl_ClearInput(void);
 void Cl_InitInput(void);
 void Cl_HandleEvents(void);
-void Cl_Look(pm_cmd_t *cmd);
-void Cl_Move(pm_cmd_t *cmd);
-void Cl_KeyDown(button_t *b);
-void Cl_KeyUp(button_t *b);
-float Cl_KeyState(button_t *key, uint32_t cmd_msec);
+void Cl_Look(PlayerMoveCmd *cmd);
+void Cl_Move(PlayerMoveCmd *cmd);
+void Cl_KeyDown(InputButton *b);
+void Cl_KeyUp(InputButton *b);
+float Cl_KeyState(InputButton *key, uint32_t cmdMsec);
 
 #endif

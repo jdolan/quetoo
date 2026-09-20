@@ -21,11 +21,11 @@
 
 #pragma once
 
-extern cvar_t *s_music_volume;
+extern Cvar *s_musicVolume;
 
-s_music_t *S_LoadMusic(const char *name);
-s_music_t *S_CurrentMusic(void);
-bool S_PlaylistContains(const s_music_t *music);
+SoundMusic *S_LoadMusic(const char *name);
+SoundMusic *S_CurrentMusic(void);
+bool S_PlaylistContains(const SoundMusic *music);
 void S_StopMusic(void);
 void S_ClearPlaylist(void);
 void S_NextTrack_f(void);
@@ -33,7 +33,7 @@ void S_PrevTrack_f(void);
 void S_PauseMusic_f(void);
 
 #if defined(__S_LOCAL_H__)
-void S_RenderMusic(const s_stage_t *stage);
+void S_RenderMusic(const SoundStage *stage);
 void S_InitMusic(void);
 void S_ShutdownMusic(void);
 

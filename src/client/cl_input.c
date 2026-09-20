@@ -21,36 +21,36 @@
 
 #include "cl_local.h"
 
-static cvar_t *cl_forward_speed;
-static cvar_t *cl_pitch_speed;
-static cvar_t *cl_right_speed;
-static cvar_t *cl_up_speed;
-static cvar_t *cl_yaw_speed;
-static cvar_t *cl_capture_media_keys;
+static Cvar *cl_forwardSpeed;
+static Cvar *cl_pitchSpeed;
+static Cvar *cl_rightSpeed;
+static Cvar *cl_upSpeed;
+static Cvar *cl_yawSpeed;
+static Cvar *cl_captureMediaKeys;
 
-cvar_t *m_interpolate;
-cvar_t *m_invert;
-cvar_t *m_sensitivity;
-cvar_t *m_sensitivity_zoom;
-cvar_t *m_pitch;
-cvar_t *m_yaw;
+Cvar *mInterpolate;
+Cvar *mInvert;
+Cvar *mSensitivity;
+Cvar *m_sensitivityZoom;
+Cvar *mPitch;
+Cvar *mYaw;
 
-static button_t cl_buttons[10];
-#define in_left cl_buttons[0]
-#define in_right cl_buttons[1]
-#define in_forward cl_buttons[2]
-#define in_back cl_buttons[3]
-#define in_look_up cl_buttons[4]
-#define in_look_down cl_buttons[5]
-#define in_move_left cl_buttons[6]
-#define in_move_right cl_buttons[7]
-#define in_up cl_buttons[8]
-#define in_down cl_buttons[9]
+static InputButton clButtons[10];
+#define in_left clButtons[0]
+#define in_right clButtons[1]
+#define in_forward clButtons[2]
+#define in_back clButtons[3]
+#define in_look_up clButtons[4]
+#define in_look_down clButtons[5]
+#define in_move_left clButtons[6]
+#define in_move_right clButtons[7]
+#define in_up clButtons[8]
+#define in_down clButtons[9]
 
 /**
  * @brief Registers a key-down event for the given button, tracking which keys hold it.
  */
-void Cl_KeyDown(button_t *b) {
+void Cl_KeyDown(InputButton *b) {
   SDL_Scancode k;
 
   const char *c = Cmd_Argv(1);
@@ -78,7 +78,7 @@ void Cl_KeyDown(button_t *b) {
   }
 
   // save the down time so that we can calculate fractional time later
-  b->down_time = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclamped_time;
+  b->downTime = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0) ? : cl.unclampedTime;
 
   // and indicate that the key is down
   b->state |= (BUTTON_STATE_HELD | BUTTON_STATE_DOWN);
@@ -87,7 +87,7 @@ void Cl_KeyDown(button_t *b) {
 /**
  * @brief Registers a key-up event for the given button, releasing it when all keys are up.
  */
-void Cl_KeyUp(button_t *b) {
+void Cl_KeyUp(InputButton *b) {
 
   if (Cmd_Argc() < 2) { // typed manually at the console, assume for un-sticking, so clear all
     b->keys[0] = b->keys[1] = 0;
@@ -114,9 +114,9 @@ void Cl_KeyUp(button_t *b) {
 
   // save timestamp
   const char *t = Cmd_Argv(2);
-  const uint32_t up_time = atoi(t);
-  if (up_time) {
-    b->msec += up_time - b->down_time;
+  const uint32_t upTime = atoi(t);
+  if (upTime) {
+    b->msec += upTime - b->downTime;
   } else {
     b->msec += 10;
   }
@@ -211,17 +211,17 @@ static void Cl_CenterView_f(void) {
 /**
  * @brief Returns the fraction of the command interval for which the key was down.
  */
-float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
+float Cl_KeyState(InputButton *key, uint32_t cmdMsec) {
 
   uint32_t msec = key->msec;
   key->msec = 0;
 
   if (key->state) { // still down, reset downtime for next frame
-    msec += cl.unclamped_time - key->down_time;
-    key->down_time = cl.unclamped_time;
+    msec += cl.unclampedTime - key->downTime;
+    key->downTime = cl.unclampedTime;
   }
 
-  const float frac = (msec * 1000.0) / (cmd_msec * 1000.0);
+  const float frac = (msec * 1000.0) / (cmdMsec * 1000.0);
 
   return Clampf01(frac);
 }
@@ -231,24 +231,24 @@ float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
  */
 static void Cl_UpdateMouseState(void) {
 
-  const SDL_WindowFlags flags = SDL_GetWindowFlags(r_context.window);
+  const SDL_WindowFlags flags = SDL_GetWindowFlags(rContext.window);
 
   // paused demo playback stays in KEY_GAME so the HUD (and its transport controls) keep
   // drawing, but wants a visible, ungrabbed cursor to drive those controls with
-  if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE || cls.demo.paused ||
+  if (cls.keyState.dest == KEY_UI || cls.keyState.dest == KEY_CONSOLE || cls.demo.paused ||
       (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
     SDL_ShowCursor();
-    SDL_SetWindowMouseGrab(r_context.window, false);
+    SDL_SetWindowMouseGrab(rContext.window, false);
   } else {
     SDL_HideCursor();
-    SDL_SetWindowMouseGrab(r_context.window, true);
+    SDL_SetWindowMouseGrab(rContext.window, true);
   }
 
   // Cl_SetKeyDest owns relative mouse mode for key destination changes, but pausing a demo
   // doesn't change destination, so the pause state is reconciled here each frame instead - and
   // so it survives a trip through the menus and back
-  if (cls.key_state.dest == KEY_GAME) {
-    SDL_SetWindowRelativeMouseMode(r_context.window, !cls.demo.paused);
+  if (cls.keyState.dest == KEY_GAME) {
+    SDL_SetWindowRelativeMouseMode(rContext.window, !cls.demo.paused);
   }
 }
 
@@ -279,11 +279,11 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
  */
 static void Cl_TextEvent(const SDL_Event *event) {
 
-  if (cls.key_state.dest != KEY_CONSOLE) {
+  if (cls.keyState.dest != KEY_CONSOLE) {
     return;
   }
 
-  console_input_t *in = &cl_console.input;
+  ConsoleInput *in = &clConsole.input;
 
   const char *src = event->text.text;
 
@@ -313,7 +313,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       return true;
 
     case SDL_EVENT_WINDOW_FOCUS_LOST:
-      if (cls.key_state.dest == KEY_GAME) {
+      if (cls.keyState.dest == KEY_GAME) {
         Cl_SetKeyDest(KEY_UI);
       }
       return false;
@@ -336,7 +336,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
         switch (cls.state) {
           case CL_DISCONNECTED:
-            if (cls.key_state.dest == KEY_CONSOLE) {
+            if (cls.keyState.dest == KEY_CONSOLE) {
               Cl_ToggleConsole_f();
               return true;
             }
@@ -346,7 +346,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
           case CL_LOADING:
             Com_Error(ERROR_DROP, "Connection aborted by user\n");
           case CL_ACTIVE:
-            switch (cls.key_state.dest) {
+            switch (cls.keyState.dest) {
               case KEY_CHAT:
               case KEY_UI:
                 Cl_SetKeyDest(KEY_GAME);
@@ -363,23 +363,23 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
         }
       }
 
-      if (cl_capture_media_keys->integer) {
+      if (cl_captureMediaKeys->integer) {
         switch (event->key.scancode) {
           case SDL_SCANCODE_MEDIA_PLAY:
           case SDL_SCANCODE_MEDIA_PLAY_PAUSE:
-            Cbuf_AddText("s_pause_music\n");
+            Cbuf_AddText("s_pauseMusic\n");
             Cbuf_Execute();
             return true;
           case SDL_SCANCODE_MEDIA_NEXT_TRACK:
-            Cbuf_AddText("s_next_track\n");
+            Cbuf_AddText("s_nextTrack\n");
             Cbuf_Execute();
             return true;
           case SDL_SCANCODE_MEDIA_PREVIOUS_TRACK:
-            Cbuf_AddText("s_prev_track\n");
+            Cbuf_AddText("s_prevTrack\n");
             Cbuf_Execute();
             return true;
           case SDL_SCANCODE_MUTE:
-            Cbuf_AddText("toggle s_music_volume 0 0.15\n");
+            Cbuf_AddText("toggle s_musicVolume 0 0.15\n");
             Cbuf_Execute();
             return true;
           default:
@@ -390,13 +390,13 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       // for everything other than ESC, check for system-level command binds
 
       SDL_Scancode key = event->key.scancode;
-      if (cls.key_state.binds[key]) {
-        cmd_t *cmd;
+      if (cls.keyState.binds[key]) {
+        Cmd *cmd;
 
-        Cmd_TokenizeString(cls.key_state.binds[key]);
+        Cmd_TokenizeString(cls.keyState.binds[key]);
         if ((cmd = Cmd_Get(Cmd_Argv(0)))) {
           if (cmd->flags & CMD_SYSTEM) {
-            Cbuf_AddText(cls.key_state.binds[key]);
+            Cbuf_AddText(cls.keyState.binds[key]);
             Cbuf_Execute();
             return true;
           }
@@ -473,10 +473,10 @@ void Cl_HandleEvents(void) {
 /**
  * @brief Clamps the player pitch angle to prevent looking too far up or down.
  */
-static void Cl_ClampPitch(const player_state_t *ps) {
+static void Cl_ClampPitch(const PlayerState *ps) {
 
   // ensure our pitch is valid
-  float pitch = ps->pm_state.delta_angles.x;
+  float pitch = ps->pmState.deltaAngles.x;
 
   if (cl.angles.x + pitch < -360.0) {
     cl.angles.x += 360.0; // wrapped
@@ -497,16 +497,16 @@ static void Cl_ClampPitch(const player_state_t *ps) {
  * @brief Accumulate view offset and angle modifications for the specified command.
  * @details The resulting view offset and angles are used as early as possible for prediction.
  */
-void Cl_Look(pm_cmd_t *cmd) {
+void Cl_Look(PlayerMoveCmd *cmd) {
 
-  cmd->up += cl_up_speed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
-  cmd->up -= cl_up_speed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
+  cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
+  cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
 
-  cl.angles.y -= cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
-  cl.angles.y += cl_yaw_speed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
+  cl.angles.y -= cl_yawSpeed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
+  cl.angles.y += cl_yawSpeed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
 
-  cl.angles.x -= cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
-  cl.angles.x += cl_pitch_speed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
+  cl.angles.x -= cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
+  cl.angles.x += cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
 
   cls.cgame->Look(cmd);
 
@@ -520,13 +520,13 @@ void Cl_Look(pm_cmd_t *cmd) {
  * @details This is called at ~60hz regardless of the client's framerate. This is to avoid micro-
  * commands, which introduce prediction errors (screen jitter).
  */
-void Cl_Move(pm_cmd_t *cmd) {
+void Cl_Move(PlayerMoveCmd *cmd) {
 
-  cmd->forward += cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
-  cmd->forward -= cl_forward_speed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);
+  cmd->forward += cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
+  cmd->forward -= cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);
 
-  cmd->right += cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
-  cmd->right -= cl_right_speed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
+  cmd->right += cl_rightSpeed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
+  cmd->right -= cl_rightSpeed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
 
   // pass to cgame
   cls.cgame->Move(cmd);
@@ -541,7 +541,7 @@ void Cl_Move(pm_cmd_t *cmd) {
  */
 void Cl_ClearInput(void) {
 
-  memset(cl_buttons, 0, sizeof(cl_buttons));
+  memset(clButtons, 0, sizeof(clButtons));
 
   S_StopVoice();
 }
@@ -551,11 +551,11 @@ void Cl_ClearInput(void) {
  */
 void Cl_InitInput(void) {
 
-  Cmd_Add("center_view", Cl_CenterView_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_up", Cl_Up_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_up", Cl_Up_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_down", Cl_Down_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_down", Cl_Down_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("centerView", Cl_CenterView_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveUp", Cl_Up_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveUp", Cl_Up_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveDown", Cl_Down_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveDown", Cl_Down_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+left", Cl_Left_down_f, CMD_CLIENT, NULL);
   Cmd_Add("-left", Cl_Left_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+right", Cl_Right_down_f, CMD_CLIENT, NULL);
@@ -564,28 +564,28 @@ void Cl_InitInput(void) {
   Cmd_Add("-forward", Cl_Forward_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+back", Cl_Back_down_f, CMD_CLIENT, NULL);
   Cmd_Add("-back", Cl_Back_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+look_up", Cl_LookUp_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-look_up", Cl_LookUp_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+look_down", Cl_LookDown_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-look_down", Cl_LookDown_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_left", Cl_MoveLeft_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_left", Cl_MoveLeft_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_right", Cl_MoveRight_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_right", Cl_MoveRight_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+lookUp", Cl_LookUp_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-lookUp", Cl_LookUp_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+lookDown", Cl_LookDown_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-lookDown", Cl_LookDown_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveLeft", Cl_MoveLeft_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveLeft", Cl_MoveLeft_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveRight", Cl_MoveRight_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveRight", Cl_MoveRight_up_f, CMD_CLIENT, NULL);
 
-  cl_forward_speed = Cvar_Add("cl_forward_speed", "300.0", 0, NULL);
-  cl_pitch_speed = Cvar_Add("cl_pitch_speed", "0.15", 0, NULL);
-  cl_right_speed = Cvar_Add("cl_right_speed", "300.0", 0, NULL);
-  cl_up_speed = Cvar_Add("cl_up_speed", "300.0", 0, NULL);
-  cl_yaw_speed = Cvar_Add("cl_yaw_speed", "0.15", 0, NULL);
-  cl_capture_media_keys = Cvar_Add("cl_capture_media_keys", "1", CVAR_ARCHIVE, "Handle media keys (play/pause, next, previous, mute) for in-game music.");
+  cl_forwardSpeed = Cvar_Add("cl_forwardSpeed", "300.0", 0, NULL);
+  cl_pitchSpeed = Cvar_Add("cl_pitchSpeed", "0.15", 0, NULL);
+  cl_rightSpeed = Cvar_Add("cl_rightSpeed", "300.0", 0, NULL);
+  cl_upSpeed = Cvar_Add("cl_upSpeed", "300.0", 0, NULL);
+  cl_yawSpeed = Cvar_Add("cl_yawSpeed", "0.15", 0, NULL);
+  cl_captureMediaKeys = Cvar_Add("cl_captureMediaKeys", "1", CVAR_ARCHIVE, "Handle media keys (play/pause, next, previous, mute) for in-game music.");
 
-  m_sensitivity = Cvar_Add("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
-  m_sensitivity_zoom = Cvar_Add("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
-  m_interpolate = Cvar_Add("m_interpolate", "0", CVAR_ARCHIVE, NULL);
-  m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
-  m_pitch = Cvar_Add("m_pitch", "0.022", 0, NULL);
-  m_yaw = Cvar_Add("m_yaw", "0.022", 0, NULL);
+  mSensitivity = Cvar_Add("mSensitivity", "3.0", CVAR_ARCHIVE, NULL);
+  m_sensitivityZoom = Cvar_Add("mSensitivityZoom", "1.0", CVAR_ARCHIVE, NULL);
+  mInterpolate = Cvar_Add("mInterpolate", "0", CVAR_ARCHIVE, NULL);
+  mInvert = Cvar_Add("mInvert", "0", CVAR_ARCHIVE, "Invert the mouse");
+  mPitch = Cvar_Add("mPitch", "0.022", 0, NULL);
+  mYaw = Cvar_Add("mYaw", "0.022", 0, NULL);
 
   Cl_ClearInput();
 }

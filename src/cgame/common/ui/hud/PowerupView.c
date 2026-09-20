@@ -70,9 +70,9 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
-  g_item_tag_t item = ITEM_NONE;
+  GameItemTag item = ITEM_NONE;
   int16_t value = 0;
 
   switch (this->powerup) {
@@ -98,10 +98,10 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - PowerupView
 
 /**
- * @fn void PowerupView::update(PowerupView *self, g_item_tag_t item, int16_t value)
+ * @fn void PowerupView::update(PowerupView *self, GameItemTag item, int16_t value)
  * @memberof PowerupView
  */
-static void update(PowerupView *self, g_item_tag_t item, int16_t value) {
+static void update(PowerupView *self, GameItemTag item, int16_t value) {
 
   const bool valid = item > ITEM_NONE && item < ITEM_TOTAL;
 
@@ -115,7 +115,7 @@ static void update(PowerupView *self, g_item_tag_t item, int16_t value) {
   if (item != self->item) {
     self->item = item;
 
-    const char *icon = bg_item_defs[item].icon;
+    const char *icon = bgItemDefs[item].icon;
     $(self->icon, setImage, icon ? (Image *) Cg_HudImage(icon) : NULL);
   }
 

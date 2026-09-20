@@ -30,13 +30,13 @@ START_TEST(_Box3_Equal) {
   ck_assert(!Box3_Equal(Box3_Zero(), Box3_Null()));
   ck_assert(!Box3_Equal(Box3_Zero(), Box3fv(Vec3_One())));
   ck_assert(Box3_Equal(Box3_Null(), Box3_Null()));
-  ck_assert(Box3_Equal(Box3_Null(), Box3(Vec3_Mins(), Vec3_Maxs())));
+  ck_assert(Box3_Equal(Box3_Null(), MakeBox3(Vec3_Mins(), Vec3_Maxs())));
 
 } END_TEST
 
 START_TEST(_Box3_IsNull) {
   ck_assert(Box3_IsNull(Box3_Null()));
-  ck_assert(Box3_IsNull(Box3(Vec3_Mins(), Vec3_Maxs())));
+  ck_assert(Box3_IsNull(MakeBox3(Vec3_Mins(), Vec3_Maxs())));
   ck_assert(!Box3_IsNull(Box3_Zero()));
   ck_assert(!Box3_IsNull(Box3fv(Vec3_One())));
   ck_assert(Box3_IsNull(Box3_Union(Box3_Null(), Box3_Null())));
@@ -47,9 +47,9 @@ START_TEST(_Box3_Union) {
   ck_assert(Box3_IsNull(Box3_Union(Box3_Null(), Box3_Null())));
   ck_assert(!Box3_IsNull(Box3_Union(Box3_Zero(), Box3_Null())));
 
-  box3_t a = Box3(Vec3(-1.f, -1.f, -1.f), Vec3(0.f, 0.f, 0.f));
-  box3_t b = Box3(Vec3( 0.f,  0.f,  0.f), Vec3(1.f, 1.f, 1.f));
-  box3_t c = Box3(Vec3(-1.f, -1.f, -1.f), Vec3(1.f, 1.f, 1.f));
+  Box3 a = MakeBox3(MakeVec3(-1.f, -1.f, -1.f), MakeVec3(0.f, 0.f, 0.f));
+  Box3 b = MakeBox3(MakeVec3( 0.f,  0.f,  0.f), MakeVec3(1.f, 1.f, 1.f));
+  Box3 c = MakeBox3(MakeVec3(-1.f, -1.f, -1.f), MakeVec3(1.f, 1.f, 1.f));
 
   ck_assert(Box3_Equal(Box3_Union(a, b), c));
 } END_TEST
@@ -58,33 +58,33 @@ START_TEST(_Box3_Intersection) {
   ck_assert(Box3_IsNull(Box3_Intersection(Box3_Null(), Box3_Null())));
   ck_assert(Box3_IsNull(Box3_Intersection(Box3_Zero(), Box3_Null())));
 
-  box3_t a = Box3(Vec3(-1.f, -1.f, -1.f), Vec3(0.f, 0.f, 0.f));
-  box3_t b = Box3(Vec3( 0.f,  0.f,  0.f), Vec3(1.f, 1.f, 1.f));
+  Box3 a = MakeBox3(MakeVec3(-1.f, -1.f, -1.f), MakeVec3(0.f, 0.f, 0.f));
+  Box3 b = MakeBox3(MakeVec3( 0.f,  0.f,  0.f), MakeVec3(1.f, 1.f, 1.f));
 
   ck_assert(Box3_Equal(Box3_Zero(), Box3_Intersection(a, b)));
 } END_TEST
 
 START_TEST(_Box3_Merge) {
-  box3_t *out;
+  Box3 *out;
 
   ck_assert_int_eq(Box3_Merge(NULL, 0, &out), 0);
   ck_assert_ptr_eq(out, NULL);
 
   // Two abutting unit boxes along X should merge into one.
-  const box3_t contiguous[] = {
-    Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)),
-    Box3(Vec3(1.f, 0.f, 0.f), Vec3(2.f, 1.f, 1.f)),
+  const Box3 contiguous[] = {
+    MakeBox3(MakeVec3(0.f, 0.f, 0.f), MakeVec3(1.f, 1.f, 1.f)),
+    MakeBox3(MakeVec3(1.f, 0.f, 0.f), MakeVec3(2.f, 1.f, 1.f)),
   };
 
   size_t count = Box3_Merge(contiguous, 2, &out);
   ck_assert_int_eq(count, 1);
-  ck_assert(Box3_Equal(out[0], Box3(Vec3(0.f, 0.f, 0.f), Vec3(2.f, 1.f, 1.f))));
+  ck_assert(Box3_Equal(out[0], MakeBox3(MakeVec3(0.f, 0.f, 0.f), MakeVec3(2.f, 1.f, 1.f))));
   free(out);
 
   // Two disjoint unit boxes should not merge.
-  const box3_t disjoint[] = {
-    Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)),
-    Box3(Vec3(5.f, 0.f, 0.f), Vec3(6.f, 1.f, 1.f)),
+  const Box3 disjoint[] = {
+    MakeBox3(MakeVec3(0.f, 0.f, 0.f), MakeVec3(1.f, 1.f, 1.f)),
+    MakeBox3(MakeVec3(5.f, 0.f, 0.f), MakeVec3(6.f, 1.f, 1.f)),
   };
 
   count = Box3_Merge(disjoint, 2, &out);

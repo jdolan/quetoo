@@ -24,5 +24,5 @@
 #if defined(__G_LOCAL_H__)
 void G_Ai_InitSkins(void);
 void G_Ai_ShutdownSkins(void);
-const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info);
+const AiRoster *G_Ai_GetRoster(const GameClient *cl, char *info);
 #endif

@@ -34,16 +34,16 @@
 static struct {
   WINDOW *window;
   bool dirty;
-} sv_console_curses;
+} module;
 
-static console_t sv_console;
+static Console svConsole;
 
 /**
  * @brief Console append callback.
  */
-static void Sv_Print(const console_string_t *str) {
+static void Sv_Print(const ConsoleString *str) {
 
-  sv_console_curses.dirty = true;
+  module.dirty = true;
 }
 
 /**
@@ -51,23 +51,23 @@ static void Sv_Print(const console_string_t *str) {
  */
 static void Sv_HandleEvents(void) {
 
-  console_input_t *in = &sv_console.input;
+  ConsoleInput *in = &svConsole.input;
 
   int32_t key;
-  while ((key = wgetch(sv_console_curses.window)) != ERR) {
+  while ((key = wgetch(module.window)) != ERR) {
 
-    sv_console_curses.dirty = true;
+    module.dirty = true;
 
     switch (key) {
 
       case '\n':
       case KEY_ENTER:
-        Con_SubmitInput(&sv_console);
+        Con_SubmitInput(&svConsole);
         break;
 
       case '\t':
       case KEY_STAB:
-        Con_CompleteInput(&sv_console);
+        Con_CompleteInput(&svConsole);
         break;
 
       case '\b':   // Windows backspace
@@ -94,11 +94,11 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_UP:
-        Con_NavigateHistory(&sv_console, CON_HISTORY_PREV);
+        Con_NavigateHistory(&svConsole, CON_HISTORY_PREV);
         break;
 
       case KEY_DOWN:
-        Con_NavigateHistory(&sv_console, CON_HISTORY_NEXT);
+        Con_NavigateHistory(&svConsole, CON_HISTORY_NEXT);
         break;
 
       case KEY_LEFT:
@@ -114,18 +114,18 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_PPAGE:
-        if (sv_console.scroll < console_state.strings->count) {
-          sv_console.scroll++;
+        if (svConsole.scroll < consoleState.strings->count) {
+          svConsole.scroll++;
         } else {
-          sv_console.scroll = console_state.strings->count;
+          svConsole.scroll = consoleState.strings->count;
         }
         break;
 
       case KEY_NPAGE:
-        if (sv_console.scroll > 0) {
-          sv_console.scroll--;
+        if (svConsole.scroll > 0) {
+          svConsole.scroll--;
         } else {
-          sv_console.scroll = 0;
+          svConsole.scroll = 0;
         }
         break;
 
@@ -191,10 +191,10 @@ static void Sv_DrawConsole_Background(void) {
  */
 static void Sv_DrawConsole_Buffer(void) {
 
-  char *lines[sv_console.height];
-  const size_t count = Con_Tail(&sv_console, lines, sv_console.height);
+  char *lines[svConsole.height];
+  const size_t count = Con_Tail(&svConsole, lines, svConsole.height);
 
-  size_t row = sv_console.height;
+  size_t row = svConsole.height;
 
   for (size_t i = 0; i < count; i++) {
     const size_t j = count - i - 1;
@@ -228,9 +228,9 @@ static void Sv_DrawConsole_Input(void) {
 
   Sv_DrawConsole_Color(ESC_COLOR_ALT);
 
-  const console_input_t *in = &sv_console.input;
+  const ConsoleInput *in = &svConsole.input;
 
-  const char *s = &in->buffer[(in->pos / sv_console.width) * sv_console.width];
+  const char *s = &in->buffer[(in->pos / svConsole.width) * svConsole.width];
 
   const size_t len = q_strlen(s);
   const size_t pos = in->pos - (s - in->buffer);
@@ -240,7 +240,7 @@ static void Sv_DrawConsole_Input(void) {
     mvaddch(LINES - 1, col++, *s++);
   }
 
-  wmove(sv_console_curses.window, LINES - 1, (int32_t) pos + 2);
+  wmove(module.window, LINES - 1, (int32_t) pos + 2);
 }
 
 /**
@@ -248,16 +248,16 @@ static void Sv_DrawConsole_Input(void) {
  */
 void Sv_DrawConsole(void) {
 
-  if (!sv_console_curses.window) {
+  if (!module.window) {
     return;
   }
 
   Sv_HandleEvents();
 
-  if (sv_console_curses.dirty) {
+  if (module.dirty) {
 
-    sv_console.width = COLS - 2;
-    sv_console.height = LINES - 2;
+    svConsole.width = COLS - 2;
+    svConsole.height = LINES - 2;
 
     Sv_DrawConsole_Background();
     Sv_DrawConsole_Buffer();
@@ -265,7 +265,7 @@ void Sv_DrawConsole(void) {
 
     refresh();
 
-    sv_console_curses.dirty = false;
+    module.dirty = false;
   }
 }
 
@@ -278,7 +278,7 @@ static void Sv_ResizeConsole(int32_t sig) {
 
   endwin();
 
-  sv_console_curses.dirty = true;
+  module.dirty = true;
 
   Sv_DrawConsole();
 }
@@ -308,17 +308,17 @@ void Sv_InitConsole(void) {
   }
 #endif
 
-  memset(&sv_console_curses, 0, sizeof(sv_console_curses));
+  memset(&module, 0, sizeof(module));
 
-  sv_console_curses.window = initscr();
-  sv_console_curses.dirty = true;
+  module.window = initscr();
+  module.dirty = true;
 
   atexit((void (*)(void)) endwin);
 
   cbreak();
   noecho();
-  keypad(sv_console_curses.window, TRUE);
-  nodelay(sv_console_curses.window, TRUE);
+  keypad(module.window, TRUE);
+  nodelay(module.window, TRUE);
   curs_set(1);
 
   if (has_colors() == TRUE) {
@@ -346,15 +346,15 @@ void Sv_InitConsole(void) {
   signal(SIGWINCH, Sv_ResizeConsole);
 #endif
 
-  memset(&sv_console, 0, sizeof(sv_console));
+  memset(&svConsole, 0, sizeof(svConsole));
 
-  sv_console.Append = Sv_Print;
+  svConsole.Append = Sv_Print;
 
-  Con_AddConsole(&sv_console);
+  Con_AddConsole(&svConsole);
 
-  file_t *file = Fs_OpenRead("history");
+  File *file = Fs_OpenRead("history");
   if (file) {
-    Con_ReadHistory(&sv_console, file);
+    Con_ReadHistory(&svConsole, file);
     Fs_Close(file);
   } else {
     Com_Debug(DEBUG_SERVER, "Couldn't read history");
@@ -372,17 +372,17 @@ void Sv_ShutdownConsole(void) {
     return;
   }
 
-  if (!sv_console_curses.window) {
+  if (!module.window) {
     return;
   }
 
   endwin();
 
-  Con_RemoveConsole(&sv_console);
+  Con_RemoveConsole(&svConsole);
 
-  file_t *file = Fs_OpenWrite("history");
+  File *file = Fs_OpenWrite("history");
   if (file) {
-    Con_WriteHistory(&sv_console, file);
+    Con_WriteHistory(&svConsole, file);
     Fs_Close(file);
   } else {
     Com_Warn("Couldn't write history\n");

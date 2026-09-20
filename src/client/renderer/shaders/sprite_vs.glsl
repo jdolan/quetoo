@@ -35,20 +35,20 @@
 
 #include "light_types.glsl"
 
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxel_light_data_block {
-  int voxel_light_data_elements[];
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxelLightDataBlock {
+  int voxelLightDataElements[];
 };
 
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
-  int voxel_light_indices[];
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxelLightIndicesBlock {
+  int voxelLightIndices[];
 };
 
 
 /**
  * @brief Per-batch dynamic light mask for sprite draws.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform sprite_locals_block {
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform spriteLocalsBlock {
+  uvec4 activeDynamicLights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 /*
@@ -59,19 +59,19 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform sprite_loca
  */
 
 /**
- * @brief One sprite or beam quad. Must match `r_sprite_instance_t`.
+ * @brief One sprite or beam quad. Must match `RenderSpriteInstance`.
  */
-struct sprite_instance_t {
+struct SpriteInstance {
   vec4 center;
   vec4 a;
   vec4 b;
   vec4 texcoords;
-  vec4 next_texcoords;
+  vec4 nextTexcoords;
   vec4 color;
 };
 
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_SPRITE_INSTANCES) readonly buffer sprite_instances_block {
-  sprite_instance_t sprite_instances[];
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_SPRITE_INSTANCES) readonly buffer spriteInstancesBlock {
+  SpriteInstance spriteInstances[];
 };
 
 /**
@@ -80,19 +80,19 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_SPRITE_INSTANCES) r
 const vec2 SPRITE_SIGNS[4] = { vec2(1.0, -1.0), vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0) };
 const vec2 SPRITE_CORNERS[4] = { vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0), vec2(0.0, 1.0) };
 
-layout (location = 0) out vec2 out_diffusemap;
-layout (location = 1) out vec2 out_next_diffusemap;
-layout (location = 2) out vec3 out_color;
-layout (location = 3) out float out_lerp;
-layout (location = 4) out float out_lighting;
-layout (location = 5) out vec3 out_diffuse;
+layout (location = 0) out vec2 outDiffusemap;
+layout (location = 1) out vec2 outNextDiffusemap;
+layout (location = 2) out vec3 outColor;
+layout (location = 3) out float outLerp;
+layout (location = 4) out float outLighting;
+layout (location = 5) out vec3 outDiffuse;
 
 invariant gl_Position;
 
 /**
  * @brief Resolves the integer voxel coordinate for a sprite vertex.
  */
-ivec3 sprite_voxel_xyz(in vec3 position) {
+ivec3 spriteVoxelXyz(in vec3 position) {
   const vec3 pos = position - voxels.mins.xyz;
   const ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
   return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
@@ -101,30 +101,30 @@ ivec3 sprite_voxel_xyz(in vec3 position) {
 /**
  * @brief Computes distance-attenuated sprite lighting from one light.
  */
-vec3 sprite_light(in light_t light, in vec3 position) {
+vec3 spriteLight(in Light light, in vec3 position) {
   const float dist = distance(light.origin.xyz, position);
   const float atten = clamp(1.0 - dist / light.origin.w, 0.0, 1.0);
-  return light_color(light) * atten;
+  return lightColor(light) * atten;
 }
 
 /**
  * @brief Accumulates voxel and dynamic sprite lighting at a position.
  */
-vec3 sprite_lighting(in vec3 position) {
+vec3 spriteLighting(in vec3 position) {
 
   vec3 diffuse = vec3(0.0);
 
-  const ivec3 voxel = sprite_voxel_xyz(position);
+  const ivec3 voxel = spriteVoxelXyz(position);
   const int index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;
-  const ivec2 data = ivec2(voxel_light_data_elements[index * 2 + 0], voxel_light_data_elements[index * 2 + 1]);
+  const ivec2 data = ivec2(voxelLightDataElements[index * 2 + 0], voxelLightDataElements[index * 2 + 1]);
 
   for (int i = 0; i < data.y; i++) {
-    diffuse += sprite_light(bsp_lights[voxel_light_indices[data.x + i]], position);
+    diffuse += spriteLight(bspLights[voxelLightIndices[data.x + i]], position);
   }
 
-  for (int j = 0; j < num_dynamic_lights; j++) {
-    if (dynamic_light_active(active_dynamic_lights, j)) {
-      diffuse += sprite_light(dynamic_lights[j], position);
+  for (int j = 0; j < numDynamicLights; j++) {
+    if (dynamicLightActive(activeDynamicLights, j)) {
+      diffuse += spriteLight(dynamicLights[j], position);
     }
   }
 
@@ -138,17 +138,17 @@ void main(void) {
 
   const uint corner = uint(gl_VertexIndex) & 3u;
 
-  const sprite_instance_t instance = sprite_instances[uint(gl_VertexIndex) >> 2];
+  const SpriteInstance instance = spriteInstances[uint(gl_VertexIndex) >> 2];
 
   const vec2 signs = SPRITE_SIGNS[corner];
   const vec3 position = instance.center.xyz + instance.a.xyz * signs.x + instance.b.xyz * signs.y;
 
-  out_diffusemap = mix(instance.texcoords.xy, instance.texcoords.zw, SPRITE_CORNERS[corner]);
-  out_next_diffusemap = mix(instance.next_texcoords.xy, instance.next_texcoords.zw, SPRITE_CORNERS[corner]);
-  out_color = instance.color.rgb;
-  out_lerp = instance.center.w;
-  out_lighting = instance.a.w;
-  out_diffuse = sprite_lighting(position);
+  outDiffusemap = mix(instance.texcoords.xy, instance.texcoords.zw, SPRITE_CORNERS[corner]);
+  outNextDiffusemap = mix(instance.nextTexcoords.xy, instance.nextTexcoords.zw, SPRITE_CORNERS[corner]);
+  outColor = instance.color.rgb;
+  outLerp = instance.center.w;
+  outLighting = instance.a.w;
+  outDiffuse = spriteLighting(position);
 
   gl_Position = projection3D * view * vec4(position, 1.0);
 }

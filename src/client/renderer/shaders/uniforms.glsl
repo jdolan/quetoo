@@ -66,7 +66,7 @@
 /**
  * @brief Voxel grid bounds and dimensions.
  */
-struct voxels_t {
+struct Voxels {
   /**
    * @brief World-space voxel minimums.
    */
@@ -80,7 +80,7 @@ struct voxels_t {
   /**
    * @brief View origin in voxel space.
    */
-  vec4 view_coordinate;
+  vec4 viewCoordinate;
 
   /**
    * @brief Voxel grid size.
@@ -91,7 +91,7 @@ struct voxels_t {
 /**
  * @brief Per-frame renderer uniforms shared by all shaders.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniformsBlock {
   /**
    * @brief Viewport rectangle in device pixels.
    */
@@ -110,27 +110,27 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
   /**
    * @brief Sky projection matrix.
    */
-  mat4 sky_projection;
+  mat4 skyProjection;
 
   /**
    * @brief Light projection matrix.
    */
-  mat4 light_projection;
+  mat4 lightProjection;
 
   /**
    * @brief Voxel grid parameters.
    */
-  voxels_t voxels;
+  Voxels voxels;
 
   /**
    * @brief View depth range in world units.
    */
-  vec2 depth_range;
+  vec2 depthRange;
 
   /**
    * @brief Active view identifier.
    */
-  int view_type;
+  int viewType;
 
   /**
    * @brief Renderer time in milliseconds.
@@ -160,12 +160,12 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
   /**
    * @brief Ambient occlusion scalar.
    */
-  float ambient_occlusion;
+  float ambientOcclusion;
 
   /**
    * @brief Vertex-lighting distance threshold.
    */
-  float lighting_distance;
+  float lightingDistance;
 
   /**
    * @brief Editor debug flags.

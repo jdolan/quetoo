@@ -29,30 +29,30 @@ typedef struct {
   /**
    * @brief The face this flare is anchored to.
    */
-  const r_bsp_face_t *face;
+  const RenderBspFace *face;
 
   /**
    * @brief The material stage defining this flare.
    */
-  const r_stage_t *stage;
+  const RenderStage *stage;
 
   /**
    * @brief The bounds of all faces represented by this flare.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The sprite input and output instances.
    */
-  r_sprite_t in, out;
+  RenderSprite in, out;
 
   /**
    * @brief The entity referencing the model containin this flare, if any.
    */
-  const cl_entity_t *entity;
-} cg_flare_t;
+  const ClientEntity *entity;
+} ClientGameFlare;
 
-static Vector *cg_flares;
+static Vector *cgFlares;
 
 #define FLARE_ALPHA_RAMP 0.01
 
@@ -61,21 +61,21 @@ static Vector *cg_flares;
  */
 void Cg_AddFlares(void) {
 
-  if (!cg_add_flares->value) {
+  if (!cg_addFlares->value) {
     return;
   }
 
-  for (size_t i = 0; i < cg_flares->count; i++) {
-    cg_flare_t *flare = VectorValue(cg_flares, cg_flare_t *, i);
+  for (size_t i = 0; i < cgFlares->count; i++) {
+    ClientGameFlare *flare = VectorValue(cgFlares, ClientGameFlare *, i);
 
-    mat4_t matrix = Mat4_Identity();
+    Mat4 matrix = Mat4_Identity();
     flare->entity = NULL;
 
-    const r_bsp_inline_model_t *in = flare->face->node->model;
+    const RenderBspInlineModel *in = flare->face->node->model;
 
-    if (in != cgi.WorldModel()->bsp->inline_models && !editor->value) {
+    if (in != cgi.WorldModel()->bsp->inlineModels && !editor->value) {
 
-      const cl_entity_t *e = cgi.client->entities;
+      const ClientEntity *e = cgi.client->entities;
       for (int32_t j = 0; j < MAX_ENTITIES; j++, e++) {
 
         if (!e->current.model1) {
@@ -86,10 +86,10 @@ void Cg_AddFlares(void) {
           continue;
         }
 
-        const r_model_t *mod = cgi.client->models[e->current.model1];
+        const RenderModel *mod = cgi.client->models[e->current.model1];
 
         if (mod && mod->type == MODEL_BSP_INLINE) {
-          if (in == mod->bsp_inline) {
+          if (in == mod->bspInline) {
             matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
             flare->entity = e;
             break;
@@ -100,12 +100,12 @@ void Cg_AddFlares(void) {
       assert(flare->entity);
     }
 
-    cm_bsp_plane_t plane = *(flare->face->plane->cm);
+    CmBspPlane plane = *(flare->face->plane->cm);
 
     if (flare->entity) {
       flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
 
-      const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
+      const Vec4 out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
 
       plane.normal = out.xyz;
       plane.dist = out.w;
@@ -114,7 +114,7 @@ void Cg_AddFlares(void) {
     // Dot product gives us facing: positive=front, negative=back
     const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
     // Use absolute value to allow sprites from behind, but abs(dot) reduces visibility for grazing angles
-    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_add_flares->value);
+    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_addFlares->value);
 
     if (alpha == 0.f) {
       continue;
@@ -129,15 +129,15 @@ void Cg_AddFlares(void) {
 /**
  * @brief Creates a flare from the specified face and stage.
  */
-cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
+ClientGameFlare *Cg_LoadFlare(const RenderBspFace *face, const RenderStage *stage) {
 
-  cg_flare_t *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
+  ClientGameFlare *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
 
   flare->face = face;
   flare->stage = stage;
 
   flare->bounds = Box3_Null();
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
+  for (int32_t i = 0; i < face->numVertexes; i++) {
     flare->bounds = Box3_Append(flare->bounds, face->vertexes[i].position);
   }
 
@@ -159,12 +159,12 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 /**
  * @brief Returns true if two faces share a vertex position, indicating geometric adjacency.
  */
-static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
+static _Bool Cg_FacesShareVertex(const RenderBspFace *a, const RenderBspFace *b) {
 
   const float epsilon = 1.f;
 
-  for (int32_t i = 0; i < a->num_vertexes; i++) {
-    for (int32_t j = 0; j < b->num_vertexes; j++) {
+  for (int32_t i = 0; i < a->numVertexes; i++) {
+    for (int32_t j = 0; j < b->numVertexes; j++) {
       if (Vec3_Distance(a->vertexes[i].position, b->vertexes[j].position) < epsilon) {
         return true;
       }
@@ -179,17 +179,17 @@ static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
  */
 static void Cg_MergeFlares(void) {
 
-  for (size_t i = 0; i < cg_flares->count; i++) {
-    cg_flare_t *a = VectorValue(cg_flares, cg_flare_t *, i);
+  for (size_t i = 0; i < cgFlares->count; i++) {
+    ClientGameFlare *a = VectorValue(cgFlares, ClientGameFlare *, i);
 
-    for (size_t j = i + 1; j < cg_flares->count; j++) {
-      cg_flare_t *b = VectorValue(cg_flares, cg_flare_t *, j);
+    for (size_t j = i + 1; j < cgFlares->count; j++) {
+      ClientGameFlare *b = VectorValue(cgFlares, ClientGameFlare *, j);
 
-      if (a->face->brush_side == b->face->brush_side &&
+      if (a->face->brushSide == b->face->brushSide &&
           Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
-        $(cg_flares, removeAt, j);
+        $(cgFlares, removeAt, j);
         cgi.Free(b);
 
         j--;
@@ -212,21 +212,21 @@ static void Cg_MergeFlares(void) {
  */
 void Cg_LoadFlares(void) {
 
-  cg_flares = $(alloc(Vector), initWithSize, sizeof(cg_flare_t *));
+  cgFlares = $(alloc(Vector), initWithSize, sizeof(ClientGameFlare *));
 
-  const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+  const RenderBspModel *bsp = cgi.WorldModel()->bsp;
 
-  const r_bsp_face_t *face = bsp->faces;
-  for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
+  const RenderBspFace *face = bsp->faces;
+  for (int32_t i = 0; i < bsp->numFaces; i++, face++) {
 
-    if (!face->brush_side) {
+    if (!face->brushSide) {
       continue;
     }
 
-    const r_material_t *material = face->brush_side->material;
-    if (material->cm->stage_flags & STAGE_FLARE) {
+    const RenderMaterial *material = face->brushSide->material;
+    if (material->cm->stageFlags & STAGE_FLARE) {
 
-      const r_stage_t *stage = material->stages;
+      const RenderStage *stage = material->stages;
       while (stage) {
         if (stage->cm->flags & STAGE_FLARE) {
           break;
@@ -239,14 +239,14 @@ void Cg_LoadFlares(void) {
         continue;
       }
 
-      cg_flare_t *flare = Cg_LoadFlare(face, stage);
-      $(cg_flares, add, &flare);
+      ClientGameFlare *flare = Cg_LoadFlare(face, stage);
+      $(cgFlares, add, &flare);
     }
   }
 
   Cg_MergeFlares();
 
-  Cg_Debug("Loaded %zu flares\n", cg_flares->count);
+  Cg_Debug("Loaded %zu flares\n", cgFlares->count);
 }
 
 /**
@@ -254,8 +254,8 @@ void Cg_LoadFlares(void) {
  */
 void Cg_FreeFlares(void) {
 
-  if (cg_flares) {
-    release(cg_flares);
-    cg_flares = NULL;
+  if (cgFlares) {
+    release(cgFlares);
+    cgFlares = NULL;
   }
 }

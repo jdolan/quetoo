@@ -118,7 +118,7 @@ struct ScoreboardViewInterface {
   StackView *(*addColumn)(ScoreboardView *self);
 
   /**
-   * @fn void ScoreboardView::describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside)
+   * @fn void ScoreboardView::describe(const ScoreboardView *self, const GameScore *score, const char **detail, const char **aside)
    * @brief The prose the cards layout writes beneath a player's name.
    * @details Composed from the fields by default, as `12 frags`; a module whose board reads
    * differently overrides this and leaves its fields to the table layout.
@@ -128,7 +128,7 @@ struct ScoreboardViewInterface {
    * @param aside Out; the right text, or `NULL`.
    * @memberof ScoreboardView
    */
-  void (*describe)(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside);
+  void (*describe)(const ScoreboardView *self, const GameScore *score, const char **detail, const char **aside);
 
   /**
    * @fn size_t ScoreboardView::fields(const ScoreboardView *self, const ScoreField **fields)
@@ -149,17 +149,17 @@ struct ScoreboardViewInterface {
   void (*rebuild)(ScoreboardView *self);
 
   /**
-   * @fn ScoreView *ScoreboardView::scoreView(ScoreboardView *self, const g_score_t *score)
+   * @fn ScoreView *ScoreboardView::scoreView(ScoreboardView *self, const GameScore *score)
    * @brief Creates the ScoreView for the given score: the stock frags and deaths, or spectating.
    * @param self The ScoreboardView.
    * @param score The score.
    * @return The ScoreView, retained. The caller owns the returned ScoreView, and MUST release it.
    * @memberof ScoreboardView
    */
-  ScoreView *(*scoreView)(ScoreboardView *self, const g_score_t *score);
+  ScoreView *(*scoreView)(ScoreboardView *self, const GameScore *score);
 
   /**
-   * @fn const char *ScoreboardView::valueForField(const ScoreboardView *self, const g_score_t *score, size_t field)
+   * @fn const char *ScoreboardView::valueForField(const ScoreboardView *self, const GameScore *score, size_t field)
    * @brief The value of the field at `field` for `score`.
    * @param self The ScoreboardView.
    * @param score The score.
@@ -167,7 +167,7 @@ struct ScoreboardViewInterface {
    * @return The value, which MUST remain valid until the row is built.
    * @memberof ScoreboardView
    */
-  const char *(*valueForField)(const ScoreboardView *self, const g_score_t *score, size_t field);
+  const char *(*valueForField)(const ScoreboardView *self, const GameScore *score, size_t field);
 
 };
 

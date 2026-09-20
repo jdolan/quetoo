@@ -63,7 +63,7 @@ struct UpdateViewController {
 	/**
 	 * @brief The background thread fetching hero images.
 	 */
-	thread_t *fetchThread;
+	WorkerThread *fetchThread;
 
 	/**
 	 * @brief Pending hero images fetched by the background thread, then added to slideShow on the main thread.
@@ -105,11 +105,11 @@ struct UpdateViewControllerInterface {
 	UpdateViewController *(*init)(UpdateViewController *self);
 
 	/**
-	 * @fn void UpdateViewController::setStatus(UpdateViewController *self, const installer_status_t *in*)
+	 * @fn void UpdateViewController::setStatus(UpdateViewController *self, const InstallerStatus *in*)
 	 * @brief Updates progress display with the current installer status.
 	 * @memberof UpdateViewController
 	 */
-	void (*setStatus)(UpdateViewController *self, const installer_status_t *in);
+	void (*setStatus)(UpdateViewController *self, const InstallerStatus *in);
 };
 
 /**

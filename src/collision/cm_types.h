@@ -85,7 +85,7 @@ typedef struct {
   /**
    * @brief Plane normal vector.
    */
-  vec3_t normal;
+  Vec3 normal;
 
   /**
    * @brief Plane distance from origin.
@@ -100,8 +100,8 @@ typedef struct {
   /**
    * @brief Sign bit mask of normal components, used for fast plane side tests.
    */
-  int32_t sign_bits;
-} cm_bsp_plane_t;
+  int32_t signBits;
+} CmBspPlane;
 
 /**
  * @brief Returns true if the specified plane is axially aligned.
@@ -117,18 +117,18 @@ typedef struct {
   /**
    * @brief The entity definition of this inline model.
    */
-  struct cm_entity_s *entity;
+  struct CmEntity *entity;
 
   /**
    * @brief The index of the head node in the BSP file.
    */
-  int32_t head_node;
+  int32_t headNode;
 
   /**
    * @brief The model bounds.
    */
-  box3_t bounds;
-} cm_bsp_model_t;
+  Box3 bounds;
+} CmBspModel;
 
 /**
  * @brief The maximum length of an entity pair key, in characters.
@@ -151,17 +151,17 @@ typedef enum {
     ENTITY_VEC3 = 0x10,
     ENTITY_COLOR = ENTITY_VEC3,
     ENTITY_VEC4 = 0x20,
-} cm_entity_parsed_t;
+} CmEntityParsed;
 
 /**
  * @brief Entities are, essentially, linked lists of key-value pairs.
  */
-typedef struct cm_entity_s {
+typedef struct CmEntity {
 
   /**
    * @brief A bitmask of entity pair parsed types.
    */
-  cm_entity_parsed_t parsed;
+  CmEntityParsed parsed;
 
   /**
    * @brief The entity pair key.
@@ -178,7 +178,7 @@ typedef struct cm_entity_s {
    * @brief The entity pair value, as a nullable string pointer.
    * @remarks This will be `NULL` if no string was present.
    */
-  char *nullable_string;
+  char *nullableString;
 
   /**
    * @brief The entity pair value, as an integer.
@@ -198,22 +198,22 @@ typedef struct cm_entity_s {
     /**
      * @brief The entity pair value, as a two component vector.
      */
-    vec2_t vec2;
+    Vec2 vec2;
 
     /**
      * @brief The entity pair value, as a three component vector.
      */
-    vec3_t vec3;
+    Vec3 vec3;
 
     /**
      * @brief The entity pair value, as a four component vector.
      */
-    vec4_t vec4;
+    Vec4 vec4;
 
     /**
      * @brief The entity pair value, as a four component color.
      */
-    color_t color;
+    Color color;
   };
 
   /**
@@ -225,13 +225,13 @@ typedef struct cm_entity_s {
   /**
    * @brief The previous entity pair in this entity, or `NULL`.
    */
-  struct cm_entity_s *prev;
+  struct CmEntity *prev;
 
   /**
    * @brief The next entity pair in this entity, or `NULL`.
    */
-  struct cm_entity_s *next;
-} cm_entity_t;
+  struct CmEntity *next;
+} CmEntity;
 
 /**
  * @brief Brush sides are represented as unbounded planes, and the materials covering those planes.
@@ -240,17 +240,17 @@ typedef struct cm_entity_s {
  * other to produce their windings (ordered vertices). Visible windings are then onto portals,
  * and portals in turn generate faces (rendered geometry).
  */
-typedef struct cm_bsp_brush_side_s {
+typedef struct CmBspBrushSide {
 
   /**
    * @brief The plane.
    */
-  cm_bsp_plane_t *plane;
+  CmBspPlane *plane;
 
   /**
    * @brief The material definition.
    */
-  struct cm_material_s *material;
+  struct CmMaterial *material;
 
   /**
    * @brief The contents mask (`CONTENTS_`*).
@@ -266,19 +266,19 @@ typedef struct cm_bsp_brush_side_s {
    * @brief The surface value (e.g. light radius).
    */
   int32_t value;
-} cm_bsp_brush_side_t;
+} CmBspBrushSide;
 
 /**
  * @brief Brushes are convex volumes defined by the clipping planes of their sides.
  */
-typedef struct cm_bsp_brush_s {
+typedef struct CmBspBrush {
 
   /**
    * @brief The entity this brush belongs to.
    * @remarks Brushes may reside within the world model's BSP tree, but may have been
    * defined in a different entity (`func_group`, `misc_dust`, etc).
    */
-  cm_entity_t *entity;
+  CmEntity *entity;
 
   /**
    * @brief The contents mask (`CONTENTS_*`).
@@ -288,18 +288,18 @@ typedef struct cm_bsp_brush_s {
   /**
    * @brief The brush sides.
    */
-  cm_bsp_brush_side_t *brush_sides;
+  CmBspBrushSide *brushSides;
 
   /**
    * @brief The number of brush sides.
    */
-  int32_t num_brush_sides;
+  int32_t numBrushSides;
 
   /**
    * @brief The brush bounds.
    */
-  box3_t bounds;
-} cm_bsp_brush_t;
+  Box3 bounds;
+} CmBspBrush;
 
 /**
  * @brief Leafs are the terminating nodes of the BSP tree.
@@ -317,13 +317,13 @@ typedef struct {
   /**
    * @brief The index of the first leaf-brush reference.
    */
-  int32_t first_leaf_brush;
+  int32_t firstLeafBrush;
 
   /**
    * @brief The number of leaf-brush references for this leaf.
    */
-  int32_t num_leaf_brushes;
-} cm_bsp_leaf_t;
+  int32_t numLeafBrushes;
+} CmBspLeaf;
 
 /**
  * @brief The BSP node structure.
@@ -333,30 +333,30 @@ typedef struct {
   /**
    * @brief The positive plane that separates this node's children.
    */
-  cm_bsp_plane_t *plane;
+  CmBspPlane *plane;
 
   /**
    * @brief The child node indexes, where positive values are nodes, and negative are leafs.
    * @remarks Because 0 can not be negated, the BSP is padded with an empty first leaf.
    */
   int32_t children[2];
-} cm_bsp_node_t;
+} CmBspNode;
 
 /**
  * @brief Per-voxel data decoded from the BSP voxel lump.
  */
-typedef struct cm_voxel_s {
+typedef struct CmVoxel {
 
   /**
    * @brief World-space center of the voxel cell.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief Caustics direction and strength, encoded as a normalized direction
    * scaled by intensity in [-1, 1] per component.
    */
-  vec3_t caustics;
+  Vec3 caustics;
 
   /**
    * @brief Sky exposure in [0, 1]; 1 means fully open to sky.
@@ -368,7 +368,7 @@ typedef struct cm_voxel_s {
    * audio reverb and renderer ambient occlusion.
    */
   float occlusion;
-} cm_voxel_t;
+} CmVoxel;
 
 /**
  * @brief The BSP model structure.
@@ -383,7 +383,7 @@ typedef struct {
   /**
    * @brief A pointer to the backing file on disk.
    */
-  struct bsp_file_s *file;
+  struct BspFile *file;
 
   /**
    * @brief File size, for compatibility checking.
@@ -393,119 +393,119 @@ typedef struct {
   /**
    * @brief File modification time, for compatibility checking.
    */
-  int64_t mod_time;
+  int64_t modTime;
 
   /**
    * @brief Number of planes.
    */
-  int32_t num_planes;
+  int32_t numPlanes;
 
   /**
    * @brief Plane array.
    */
-  cm_bsp_plane_t *planes;
+  CmBspPlane *planes;
 
   /**
    * @brief Number of BSP nodes.
    */
-  int32_t num_nodes;
+  int32_t numNodes;
 
   /**
    * @brief Node array.
    */
-  cm_bsp_node_t *nodes;
+  CmBspNode *nodes;
 
   /**
    * @brief Number of BSP leafs.
    */
-  int32_t num_leafs;
+  int32_t numLeafs;
 
   /**
    * @brief Leaf array.
    */
-  cm_bsp_leaf_t *leafs;
+  CmBspLeaf *leafs;
 
   /**
    * @brief Number of brushes.
    */
-  int32_t num_brushes;
+  int32_t numBrushes;
 
   /**
    * @brief Brush array.
    */
-  cm_bsp_brush_t *brushes;
+  CmBspBrush *brushes;
 
   /**
    * @brief Number of brush sides.
    */
-  int32_t num_brush_sides;
+  int32_t numBrushSides;
 
   /**
    * @brief Brush side array.
    */
-  cm_bsp_brush_side_t *brush_sides;
+  CmBspBrushSide *brushSides;
 
   /**
    * @brief Number of leaf-brush references.
    */
-  int32_t num_leaf_brushes;
+  int32_t numLeafBrushes;
 
   /**
    * @brief Leaf-brush reference array.
    */
-  int32_t *leaf_brushes;
+  int32_t *leafBrushes;
 
   /**
    * @brief Number of inline models.
    */
-  int32_t num_models;
+  int32_t numModels;
 
   /**
    * @brief Inline model array.
    */
-  cm_bsp_model_t *models;
+  CmBspModel *models;
 
   /**
    * @brief Number of parsed entities.
    */
-  int32_t num_entities;
+  int32_t numEntities;
 
   /**
    * @brief Parsed entity array.
    */
-  cm_entity_t **entities;
+  CmEntity **entities;
 
   /**
    * @brief Number of materials referenced by brush sides.
    */
-  int32_t num_materials;
+  int32_t numMaterials;
 
   /**
    * @brief Material pointer array.
    */
-  cm_material_t **materials;
+  CmMaterial **materials;
 
   /**
    * @brief Voxel grid dimensions.
    */
-  vec3i_t voxel_size;
+  Vec3i voxelSize;
 
   /**
    * @brief Voxel grid world bounds.
    */
-  box3_t voxel_bounds;
+  Box3 voxelBounds;
 
   /**
    * @brief Number of voxels (voxel_size.x * y * z).
    */
-  int32_t num_voxels;
+  int32_t numVoxels;
 
   /**
    * @brief Decoded voxel array, indexed by (z*size.y + y)*size.x + x.
    */
-  cm_voxel_t *voxels;
+  CmVoxel *voxels;
 
-} cm_bsp_t;
+} CmBsp;
 
 /**
  * @brief Traces are discrete movements through world space, clipped to the
@@ -517,12 +517,12 @@ typedef struct {
   /**
    * @brief True if the trace started and ended within the same solid.
    */
-  bool all_solid;
+  bool allSolid;
 
   /**
    * @brief True if the trace started within a solid but exited it.
    */
-  bool start_solid;
+  bool startSolid;
 
   /**
    * @brief The fraction of the desired distance traveled (0.0 - 1.0).
@@ -532,22 +532,22 @@ typedef struct {
   /**
    * @brief The destination position.
    */
-  vec3_t end;
+  Vec3 end;
 
   /**
    * @brief The impacted or enclosing brush; prefer derived fields.
    */
-  const struct cm_bsp_brush_s *brush;
+  const struct CmBspBrush *brush;
 
   /**
    * @brief The impacted brush side; prefer derived fields.
    */
-  const struct cm_bsp_brush_side_s *brush_side;
+  const struct CmBspBrushSide *brushSide;
 
   /**
    * @brief The impacted plane, transformed by the matrix provided to `Cm_BoxTrace`.
    */
-  cm_bsp_plane_t plane;
+  CmBspPlane plane;
 
   /**
    * @brief The contents mask of the impacted brush side.
@@ -562,10 +562,10 @@ typedef struct {
   /**
    * @brief The material of the impacted brush side.
    */
-  const struct cm_material_s *material;
+  const struct CmMaterial *material;
 
   /**
    * @brief The impacted entity, or `NULL`; set by `Sv_Trace` / `Cl_Trace`, not by `Cm_BoxTrace`.
    */
   void *ent;
-} cm_trace_t;
+} CmTrace;

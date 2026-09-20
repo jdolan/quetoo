@@ -23,14 +23,14 @@
 
 #include "r_types.h"
 
-r_image_t *R_LoadImage(const char *name, r_image_type_t type);
-void R_Screenshot(r_view_t *view);
+RenderImage *R_LoadImage(const char *name, RenderImageType type);
+void R_Screenshot(RenderView *view);
 
 #if defined(__R_LOCAL_H__)
 void R_Screenshot_f(void);
 void R_DumpImages_f(void);
 void R_InitImages(void);
-void R_FreeImage(r_media_t *media);
-bool R_RetainImage(r_media_t *self);
+void R_FreeImage(RenderMedia *media);
+bool R_RetainImage(RenderMedia *self);
 
 #endif

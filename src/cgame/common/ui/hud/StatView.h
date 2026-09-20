@@ -44,7 +44,7 @@ typedef struct StatViewInterface StatViewInterface;
  * @details Configured in JSON by `stat`: `health`, `armor` or `ammo`, and optionally by
  * `caption`, a label above the value. Hidden when the value is zero, and for ammo in
  * instagib, which is why the caption belongs to the view rather than sitting beside it. The
- * icon pulses when the value is low and `cg_draw_vitals_pulse` is set.
+ * icon pulses when the value is low and `cg_drawVitalsPulse` is set.
  * @extends StackView
  */
 struct StatView {

@@ -24,7 +24,7 @@
 /**
  * @brief Loads a mesh config from a file.
  */
-static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
+static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
   void *buf;
   char token[MAX_STRING_CHARS];
 
@@ -37,7 +37,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
     return;
   }
 
-  parser_t parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
+  Parser parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
 
   while (true) {
 
@@ -47,7 +47,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 
     if (!q_strcmp(token, "translate")) {
 
-      vec3_t v;
+      Vec3 v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
         break;
       }
@@ -59,7 +59,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 
     if (!q_strcmp(token, "rotate")) {
 
-      vec3_t v;
+      Vec3 v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
         break;
       }
@@ -83,7 +83,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 
     if (!q_strcmp(token, "muzzle")) {
 
-      vec3_t v;
+      Vec3 v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
         break;
       }
@@ -99,7 +99,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 /**
  * @brief Loads the mesh configs for a model.
  */
-void R_LoadMeshConfigs(r_model_t *mod) {
+void R_LoadMeshConfigs(RenderModel *mod) {
   char path[MAX_QPATH];
 
   Dirname(mod->media.name, path);
@@ -112,7 +112,7 @@ void R_LoadMeshConfigs(r_model_t *mod) {
 /**
  * @brief Returns true if the mesh config is identity (all defaults).
  */
-static bool R_MeshConfigIsIdentity(const r_mesh_config_t *config) {
+static bool R_MeshConfigIsIdentity(const RenderMeshConfig *config) {
   return Vec3_Equal(config->translate, Vec3_Zero()) &&
          Vec3_Equal(config->rotate, Vec3_Zero()) &&
          config->scale == 1.f &&
@@ -122,7 +122,7 @@ static bool R_MeshConfigIsIdentity(const r_mesh_config_t *config) {
 /**
  * @brief Saves a mesh config to a file, deleting the file if the config is identity.
  */
-static void R_SaveMeshConfig(const r_mesh_config_t *cfg, const char *path) {
+static void R_SaveMeshConfig(const RenderMeshConfig *cfg, const char *path) {
 
   if (R_MeshConfigIsIdentity(cfg)) {
     if (Fs_Exists(path)) {
@@ -135,7 +135,7 @@ static void R_SaveMeshConfig(const r_mesh_config_t *cfg, const char *path) {
     return;
   }
 
-  file_t *file = Fs_OpenWrite(path);
+  File *file = Fs_OpenWrite(path);
   if (!file) {
     Com_Warn("Failed to write %s\n", path);
     return;
@@ -169,9 +169,9 @@ static void R_SaveMeshConfig(const r_mesh_config_t *cfg, const char *path) {
 }
 
 /**
- * @brief Saves all `r_mesh_config_t` for the specified `r_model_t`.
+ * @brief Saves all `RenderMeshConfig` for the specified `RenderModel`.
  */
-static void R_SaveMeshConfigs(const r_model_t *mod) {
+static void R_SaveMeshConfigs(const RenderModel *mod) {
   char path[MAX_QPATH];
 
   Dirname(mod->media.name, path);
@@ -186,7 +186,7 @@ static void R_SaveMeshConfigs(const r_model_t *mod) {
  */
 void R_SaveMeshConfigs_f(void) {
 
-  const r_model_t *mod = (r_model_t *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);
+  const RenderModel *mod = (RenderModel *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);
   if (!mod) {
     Com_Warn("Model not found: %s\n", Cmd_Argv(1));
     return;
@@ -203,20 +203,20 @@ void R_SaveMeshConfigs_f(void) {
 /**
  * @brief Calculates tangents for each mesh vertex.
  */
-static void R_LoadMeshTangents(r_model_t *mod) {
+static void R_LoadMeshTangents(RenderModel *mod) {
 
   assert(mod->mesh);
 
-  const r_mesh_face_t *face = mod->mesh->faces;
-  for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+  const RenderMeshFace *face = mod->mesh->faces;
+  for (int32_t i = 0; i < mod->mesh->numFaces; i++, face++) {
 
-    cm_vertex_t *vertexes = Mem_Malloc(sizeof(cm_vertex_t) * face->num_vertexes);
+    CmVertex *vertexes = Mem_Malloc(sizeof(CmVertex) * face->numVertexes);
 
-    for (int32_t j = 0; j < mod->mesh->num_frames; j++) {
+    for (int32_t j = 0; j < mod->mesh->numFrames; j++) {
 
-      r_mesh_vertex_t *v = face->vertexes + face->num_vertexes * j;
-      for (int32_t k = 0; k < face->num_vertexes; k++, v++) {
-        vertexes[k] = (cm_vertex_t) {
+      RenderMeshVertex *v = face->vertexes + face->numVertexes * j;
+      for (int32_t k = 0; k < face->numVertexes; k++, v++) {
+        vertexes[k] = (CmVertex) {
           .position = &v->position,
           .normal = &v->normal,
           .tangent = &v->tangent,
@@ -225,7 +225,7 @@ static void R_LoadMeshTangents(r_model_t *mod) {
         };
       }
 
-      Cm_Tangents(vertexes, 0, face->num_vertexes, (int32_t *) face->elements, face->num_elements);
+      Cm_Tangents(vertexes, 0, face->numVertexes, (int32_t *) face->elements, face->numElements);
     }
 
     Mem_Free(vertexes);
@@ -235,82 +235,82 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 /**
  * @brief Consolidates a mesh model's vertex and element data into GPU buffers.
  */
-void R_LoadMeshVertexArray(r_model_t *mod) {
+void R_LoadMeshVertexArray(RenderModel *mod) {
 
   assert(mod->mesh);
 
-  r_mesh_model_t *mesh = mod->mesh;
+  RenderMeshModel *mesh = mod->mesh;
 
-  if (!mesh->num_faces) {
+  if (!mesh->numFaces) {
     return;
   }
 
   {
-    const r_mesh_face_t *face = mesh->faces;
-    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
-      mesh->num_vertexes += face->num_vertexes;
-      mesh->num_elements += face->num_elements;
+    const RenderMeshFace *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->numFaces; i++, face++) {
+      mesh->numVertexes += face->numVertexes;
+      mesh->numElements += face->numElements;
     }
   }
 
-  assert(mesh->num_vertexes);
-  assert(mesh->num_elements);
+  assert(mesh->numVertexes);
+  assert(mesh->numElements);
 
-  mesh->vertexes = Mem_LinkMalloc(mesh->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t), mesh);
-  mesh->elements = Mem_LinkMalloc(mesh->num_elements * sizeof(uint32_t), mesh);
+  mesh->vertexes = Mem_LinkMalloc(mesh->numVertexes * mesh->numFrames * sizeof(RenderMeshVertex), mesh);
+  mesh->elements = Mem_LinkMalloc(mesh->numElements * sizeof(uint32_t), mesh);
 
-  r_mesh_vertex_t *vertex = mesh->vertexes;
+  RenderMeshVertex *vertex = mesh->vertexes;
   uint32_t *elements = mesh->elements;
 
   {
-    r_mesh_face_t *face = mesh->faces;
-    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+    RenderMeshFace *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->numFaces; i++, face++) {
 
-      memcpy(vertex, face->vertexes, face->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t));
+      memcpy(vertex, face->vertexes, face->numVertexes * mesh->numFrames * sizeof(RenderMeshVertex));
       Mem_Free(face->vertexes);
 
       face->vertexes = vertex;
-      vertex += face->num_vertexes * mesh->num_frames;
+      vertex += face->numVertexes * mesh->numFrames;
 
-      memcpy(elements, face->elements, face->num_elements * sizeof(uint32_t));
+      memcpy(elements, face->elements, face->numElements * sizeof(uint32_t));
       Mem_Free(face->elements);
 
       face->elements = elements;
-      elements += face->num_elements;
+      elements += face->numElements;
     }
   }
 
   R_LoadMeshTangents(mod);
 
   {
-    r_mesh_face_t *face = mesh->faces;
-    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
-      face->base_vertex = (int32_t) (face->vertexes - mesh->vertexes);
+    RenderMeshFace *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->numFaces; i++, face++) {
+      face->baseVertex = (int32_t) (face->vertexes - mesh->vertexes);
       face->indices = (void *) ((face->elements - mesh->elements) * sizeof(uint32_t));
     }
   }
 
-  mesh->vertex_buffer = $(r_context.device, createBufferWithConstMem,
+  mesh->vertexBuffer = $(rContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_VERTEX,
       mesh->vertexes,
-      mesh->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t));
+      mesh->numVertexes * mesh->numFrames * sizeof(RenderMeshVertex));
 
-  mesh->elements_buffer = $(r_context.device, createBufferWithConstMem,
+  mesh->elementsBuffer = $(rContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX,
       mesh->elements,
-      mesh->num_elements * sizeof(uint32_t));
+      mesh->numElements * sizeof(uint32_t));
 }
 
 /**
  * @brief Registers the mesh model's material dependencies with the media system.
  */
-void R_RegisterMeshModel(r_media_t *self) {
-  r_model_t *mod = (r_model_t *) self;
+void R_RegisterMeshModel(RenderMedia *self) {
+  RenderModel *mod = (RenderModel *) self;
 
-  const r_mesh_face_t *face = mod->mesh->faces;
-  for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+  const RenderMeshFace *face = mod->mesh->faces;
+  for (int32_t i = 0; i < mod->mesh->numFaces; i++, face++) {
     if (face->material) {
-      R_RegisterDependency(self, (r_media_t *) face->material);
+      R_RegisterDependency(self, (RenderMedia *) face->material);
     }
   }
 }
@@ -318,11 +318,11 @@ void R_RegisterMeshModel(r_media_t *self) {
 /**
  * @brief Releases the mesh model's GPU buffers.
  */
-void R_FreeMeshModel(r_media_t *self) {
-  r_model_t *mod = (r_model_t *) self;
+void R_FreeMeshModel(RenderMedia *self) {
+  RenderModel *mod = (RenderModel *) self;
 
   if (mod->mesh) {
-    mod->mesh->vertex_buffer = release(mod->mesh->vertex_buffer);
-    mod->mesh->elements_buffer = release(mod->mesh->elements_buffer);
+    mod->mesh->vertexBuffer = release(mod->mesh->vertexBuffer);
+    mod->mesh->elementsBuffer = release(mod->mesh->elementsBuffer);
   }
 }

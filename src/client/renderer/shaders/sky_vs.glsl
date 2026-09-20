@@ -33,10 +33,10 @@
 #include "common.glsl"
 #include "material.glsl"
 
-layout (location = 0) in vec3 in_position;
+layout (location = 0) in vec3 inPosition;
 
-layout (location = 0) out vec3 cubemap_coord;
-layout (location = 1) out vec4 stage_color;
+layout (location = 0) out vec3 cubemapCoord;
+layout (location = 1) out vec4 stageColor;
 
 invariant gl_Position;
 
@@ -45,16 +45,16 @@ invariant gl_Position;
  */
 void main(void) {
 
-  vec4 position = vec4(in_position, 1.0);
+  vec4 position = vec4(inPosition, 1.0);
 
-  cubemap_coord = vec3(sky_projection * position);
+  cubemapCoord = vec3(skyProjection * position);
 
-  stage_color = vec4(1.0);
+  stageColor = vec4(1.0);
   if ((material.flags & STAGE_COLOR) == STAGE_COLOR) {
-    stage_color = material.color;
+    stageColor = material.color;
   }
   if ((material.flags & STAGE_PULSE) == STAGE_PULSE) {
-    stage_color.a *= (sin((ticks * .001 + material.drift) * material.pulse * PI) + 1.0) * .5;
+    stageColor.a *= (sin((ticks * .001 + material.drift) * material.pulse * PI) + 1.0) * .5;
   }
 
   gl_Position = projection3D * view * position;

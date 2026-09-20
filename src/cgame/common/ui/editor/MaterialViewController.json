@@ -139,7 +139,7 @@
           },
           "control": {
             "class": "Slider",
-            "identifier": "alpha_test",
+            "identifier": "alphaTest",
             "min": 0,
             "max": 1,
             "step": 0.05

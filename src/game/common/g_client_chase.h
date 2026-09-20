@@ -24,10 +24,10 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_ClientChaseThink(g_client_t *cl);
-void G_ClientChaseNext(g_client_t *cl);
-void G_ClientChasePrevious(g_client_t *cl);
-void G_ClientChaseTarget(g_client_t *cl);
-void G_ClientChaseStop(g_client_t *cl);
-void G_ClientChaseStart(g_client_t *cl);
+void G_ClientChaseThink(GameClient *cl);
+void G_ClientChaseNext(GameClient *cl);
+void G_ClientChasePrevious(GameClient *cl);
+void G_ClientChaseTarget(GameClient *cl);
+void G_ClientChaseStop(GameClient *cl);
+void G_ClientChaseStart(GameClient *cl);
 #endif

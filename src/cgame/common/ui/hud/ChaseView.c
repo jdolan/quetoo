@@ -37,19 +37,19 @@ static View *init(View *self) {
 #pragma mark - OverlayText
 
 /**
- * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
   const int32_t e = ps->stats[STAT_CHASE];
   if (e <= 0 || e >= MAX_ENTITIES) {
     return NULL;
   }
 
-  const cl_entity_t *ent = cgi.client->entities + e;
-  const cg_client_info_t *ci = &cg_state.clients[ent->current.client];
+  const ClientEntity *ent = cgi.client->entities + e;
+  const ClientGameClientInfo *ci = &cgState.clients[ent->current.client];
 
   static char string[MAX_INFO_STRING_VALUE * 2];
   q_snprintf(string, sizeof(string), "Chasing ^7%s", ci->name);

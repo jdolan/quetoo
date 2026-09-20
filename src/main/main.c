@@ -36,24 +36,24 @@
 
 static jmp_buf env;
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
-static cvar_t *verbose;
+static Cvar *verbose;
 
-cvar_t *build;
-cvar_t *build_number;
-cvar_t *dedicated;
-cvar_t *developer;
-cvar_t *editor;
-cvar_t *rcon_address;
-cvar_t *rcon_password;
-cvar_t *threads;
-cvar_t *time_demo;
-cvar_t *time_scale;
-cvar_t *version;
+Cvar *build;
+Cvar *buildNumber;
+Cvar *dedicated;
+Cvar *developer;
+Cvar *editor;
+Cvar *rconAddress;
+Cvar *rconPassword;
+Cvar *threads;
+Cvar *timeDemo;
+Cvar *timeScale;
+Cvar *version;
 
-static void Debug(const debug_t debug, const char *msg);
-static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Debug(const DebugFlags debug, const char *msg);
+static void Error(Err err, const char *msg) __attribute__((noreturn));
 static void Frame(const uint32_t msec);
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
@@ -115,7 +115,7 @@ static void Debug_f(void) {
 /**
  * @brief Prints debug output using colored escapes based on the debug category.
  */
-static void Debug(const debug_t debug, const char *msg) {
+static void Debug(const DebugFlags debug, const char *msg) {
 
   int32_t color = ESC_COLOR_WHITE;
   switch (debug) {
@@ -148,21 +148,21 @@ static void Debug(const debug_t debug, const char *msg) {
   Print(va("^%d%s", color, msg));
 }
 
-static bool jmp_set = false;
+static bool jmpSet = false;
 
 /**
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
-static void Error(err_t err, const char *msg) {
+static void Error(Err err, const char *msg) {
 
-  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+  if (quetoo.debugMask & DEBUG_BREAKPOINT) {
     SDL_TriggerBreakpoint();
   }
 
   Print(va("^1%s\n", msg));
 
-  if (err == ERROR_DROP && !jmp_set) {
+  if (err == ERROR_DROP && !jmpSet) {
     err = ERROR_FATAL;
   }
 
@@ -171,7 +171,7 @@ static void Error(err_t err, const char *msg) {
       Sv_ShutdownServer(msg);
       Cl_Disconnect();
       Cl_Drop(msg);
-      quetoo.recursive_error = false;
+      quetoo.recursiveError = false;
       longjmp(env, err);
 
     case ERROR_FATAL:
@@ -187,7 +187,7 @@ static void Error(err_t err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-  if (console_state.lock) {
+  if (consoleState.lock) {
     Con_Append(PRINT_HIGH, msg);
   } else {
     printf("%s", msg);
@@ -209,7 +209,7 @@ static void Verbose(const char *msg) {
  */
 static void Warn(const char *msg) {
 
-  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+  if (quetoo.debugMask & DEBUG_BREAKPOINT) {
     SDL_TriggerBreakpoint();
   }
 
@@ -306,7 +306,7 @@ static void Quit_f(void) {
   Com_Shutdown("Server quit\n");
 }
 
-static const char *mem_tag_names[MEM_TAG_TOTAL] = {
+static const char *memTagNames[MEM_TAG_TOTAL] = {
   "default",
   "server",
   "ai",
@@ -335,32 +335,32 @@ static void MemStats_f(void) {
 
   Com_Print("Memory stats:\n");
 
-  size_t sum = 0, reported_total = 0;
+  size_t sum = 0, reportedTotal = 0;
 
   for (size_t i = 0; i < stats->count; i++) {
 
-    mem_stat_t *stat_i = VectorElement(stats, mem_stat_t, i);
-    const char *tag_name;
+    MemStat *statI = VectorElement(stats, MemStat, i);
+    const char *tagName;
 
-    if (stat_i->tag == -1) {
-      Com_Print("total: %" PRIuPTR " bytes\n", stat_i->size);
-      reported_total = stat_i->size;
+    if (statI->tag == -1) {
+      Com_Print("total: %" PRIuPTR " bytes\n", statI->size);
+      reportedTotal = statI->size;
       continue;
-    } else if (stat_i->tag < MEM_TAG_TOTAL) {
-      tag_name = mem_tag_names[stat_i->tag];
+    } else if (statI->tag < MEM_TAG_TOTAL) {
+      tagName = memTagNames[statI->tag];
     } else {
-      tag_name = va("#%d", stat_i->tag);
+      tagName = va("#%d", statI->tag);
     }
 
-    Com_Print(" [%s] %" PRIuPTR " bytes - %" PRIuPTR " blocks\n", tag_name, stat_i->size, stat_i->count);
-    sum += stat_i->size;
+    Com_Print(" [%s] %" PRIuPTR " bytes - %" PRIuPTR " blocks\n", tagName, statI->size, statI->count);
+    sum += statI->size;
   }
 
-  if (sum != reported_total) {
-    Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
+  if (sum != reportedTotal) {
+    Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reportedTotal);
   }
 
-  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %zu blocks\n", console_state.size, (size_t) console_state.strings->count);
+  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %zu blocks\n", consoleState.size, (size_t) consoleState.strings->count);
 
   release(stats);
 }
@@ -376,12 +376,12 @@ static void Init(void) {
 
   Cmd_Init();
 
-  Cmd_Add("com_error", Com_Error_f, 0, "Trigger a test error: com_error [drop|fatal]");
+  Cmd_Add("comError", Com_Error_f, 0, "Trigger a test error: comError [drop|fatal]");
 
   Cvar_Init();
 
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-  build_number = Cvar_Add("build_number", BUILD_NUMBER, CVAR_NO_SET, NULL);
+  buildNumber = Cvar_Add("buildNumber", BUILD_NUMBER, CVAR_NO_SET, NULL);
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
 
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
@@ -392,16 +392,16 @@ static void Init(void) {
   developer = Cvar_Add("developer", "0", CVAR_DEVELOPER, "Enables shader debugging tools (developer tool)");
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
-  rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
-  rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
+  rconAddress = Cvar_Add("rconAddress", "", 0, "The remote console server address (defaults to current server)");
+  rconPassword = Cvar_Add("rconPassword", "", CVAR_ARCHIVE, "The remote console password. "
                            "Set this on your server to enable remote administration via the in-game console. "
                            "Set this on your client to authenticate with your server.");
 
   threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
   threads->modified = false;
 
-  time_demo = Cvar_Add("time_demo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
-  time_scale = Cvar_Add("time_scale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
+  timeDemo = Cvar_Add("timeDemo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
+  timeScale = Cvar_Add("timeScale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
@@ -423,9 +423,9 @@ static void Init(void) {
 
   Con_Init();
 
-  cmd_t *game_cmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
-  Cmd_SetAutocomplete(game_cmd, Game_Autocomplete_f);
-  Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
+  Cmd *gameCmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  Cmd_SetAutocomplete(gameCmd, Game_Autocomplete_f);
+  Cmd_Add("memStats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
   Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
@@ -459,7 +459,7 @@ static void Init(void) {
 
   // dedicated server, but no explicit +map specified, begin maps.lst
   if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
-    Cbuf_AddText("next_map\n");
+    Cbuf_AddText("nextMap\n");
     Cbuf_Execute();
   }
 }
@@ -528,11 +528,11 @@ int32_t main(int32_t argc, char *argv[]) {
 
   printf("Quetoo %s %s\n", VERSION, BUILD);
 
-  const int sdl_linked = SDL_GetVersion();
+  const int sdlLinked = SDL_GetVersion();
   printf("SDL %d.%d.%d (compiled %d.%d.%d)\n",
-         SDL_VERSIONNUM_MAJOR(sdl_linked),
-         SDL_VERSIONNUM_MINOR(sdl_linked),
-         SDL_VERSIONNUM_MICRO(sdl_linked),
+         SDL_VERSIONNUM_MAJOR(sdlLinked),
+         SDL_VERSIONNUM_MINOR(sdlLinked),
+         SDL_VERSIONNUM_MICRO(sdlLinked),
          SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
 
   memset(&quetoo, 0, sizeof(quetoo));
@@ -589,7 +589,7 @@ int32_t main(int32_t argc, char *argv[]) {
   Sys_InstallLocalBin();
 #endif
 
-  jmp_set = true;
+  jmpSet = true;
 
   while (true) { // this is our main loop
 
@@ -602,14 +602,14 @@ int32_t main(int32_t argc, char *argv[]) {
       continue;
     }
 
-    if (time_scale->modified) {
-      time_scale->modified = false;
-      time_scale->value = Clampf(time_scale->value, 0.25, 3.0);
+    if (timeScale->modified) {
+      timeScale->modified = false;
+      timeScale->value = Clampf(timeScale->value, 0.25, 3.0);
     }
 
     do {
       quetoo.ticks = (uint32_t) SDL_GetTicks();
-      msec = (quetoo.ticks - old_time) * time_scale->value;
+      msec = (quetoo.ticks - old_time) * timeScale->value;
     } while (msec < 1);
 
     Frame(msec);

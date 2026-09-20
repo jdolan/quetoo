@@ -33,12 +33,12 @@ typedef enum {
   SCREENSHOT_NONE,
   SCREENSHOT_DEFAULT,
   SCREENSHOT_VIEW,
-} r_screenshot_type_t;
+} RenderScreenshotType;
 
 /**
  * @brief Pending screenshot type.
  */
-static r_screenshot_type_t r_pending_screenshot;
+static RenderScreenshotType rPendingScreenshot;
 
 /**
  * @brief Initializes image output directories.
@@ -94,10 +94,10 @@ static void R_Screenshot_encode(void *data) {
   q_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
 
   bool res;
-  if (!q_strcmp(r_screenshot_format->string, "tga")) {
+  if (!q_strcmp(r_screenshotFormat->string, "tga")) {
     q_strlcat(path, ".tga", sizeof(path));
     res = Img_WriteTGA(path, surface->pixels, surface->w, surface->h);
-  } else if (!q_strcmp(r_screenshot_format->string, "jpg")) {
+  } else if (!q_strcmp(r_screenshotFormat->string, "jpg")) {
     q_strlcat(path, ".jpg", sizeof(path));
     res = Img_WriteJPG(path, surface->pixels, surface->w, surface->h, 95);
   } else {
@@ -153,20 +153,20 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 /**
  * @brief Captures the resolved color buffer if a screenshot is pending.
  */
-void R_Screenshot(r_view_t *view) {
+void R_Screenshot(RenderView *view) {
 
-  if (r_pending_screenshot == SCREENSHOT_NONE) {
+  if (rPendingScreenshot == SCREENSHOT_NONE) {
     return;
   }
 
-  const Texture *texture = $(r_context.device->framebuffer, resolveColorTexture, 0);
+  const Texture *texture = $(rContext.device->framebuffer, resolveColorTexture, 0);
 
   SDL_Surface *surface = texture ? R_ReadTexture(texture) : NULL;
   if (surface) {
     Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
   }
 
-  r_pending_screenshot = SCREENSHOT_NONE;
+  rPendingScreenshot = SCREENSHOT_NONE;
 }
 
 /**
@@ -175,18 +175,18 @@ void R_Screenshot(r_view_t *view) {
 void R_Screenshot_f(void) {
 
   if (!q_strcmp(Cmd_Argv(1), "view")) {
-    r_pending_screenshot = SCREENSHOT_VIEW;
+    rPendingScreenshot = SCREENSHOT_VIEW;
   } else {
-    r_pending_screenshot = SCREENSHOT_DEFAULT;
+    rPendingScreenshot = SCREENSHOT_DEFAULT;
   }
 }
 
 /**
  * @brief Retains persistent image media.
  */
-bool R_RetainImage(r_media_t *self) {
+bool R_RetainImage(RenderMedia *self) {
 
-  switch (((r_image_t *) self)->type) {
+  switch (((RenderImage *) self)->type) {
     case IMG_PROGRAM:
       return true;
     default:
@@ -197,9 +197,9 @@ bool R_RetainImage(r_media_t *self) {
 /**
  * @brief Frees an image texture.
  */
-void R_FreeImage(r_media_t *media) {
+void R_FreeImage(RenderMedia *media) {
 
-  r_image_t *image = (r_image_t *) media;
+  RenderImage *image = (RenderImage *) media;
 
   image->texture = release(image->texture);
 }
@@ -207,9 +207,9 @@ void R_FreeImage(r_media_t *media) {
 /**
  * @brief Loads an image by name.
  */
-r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
+RenderImage *R_LoadImage(const char *name, RenderImageType type) {
   char key[MAX_QPATH];
-  r_image_t *image;
+  RenderImage *image;
 
   if (!name || !name[0]) {
     Com_Error(ERROR_DROP, "NULL name\n");
@@ -217,12 +217,12 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
   StripExtension(name, key);
 
-  image = (r_image_t *) R_FindMedia(key, R_MEDIA_IMAGE);
+  image = (RenderImage *) R_FindMedia(key, R_MEDIA_IMAGE);
   if (image) {
     return image;
   }
 
-  image = (r_image_t *) R_FindMedia(key, R_MEDIA_ATLAS_IMAGE);
+  image = (RenderImage *) R_FindMedia(key, R_MEDIA_ATLAS_IMAGE);
   if (image) {
     return image;
   }
@@ -234,7 +234,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     return NULL;
   }
 
-  image = (r_image_t *) R_AllocMedia(key, sizeof(r_image_t), R_MEDIA_IMAGE);
+  image = (RenderImage *) R_AllocMedia(key, sizeof(RenderImage), R_MEDIA_IMAGE);
 
   image->media.Retain = R_RetainImage;
   image->media.Free = R_FreeImage;
@@ -246,13 +246,13 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->width = surface->w / 4;
     image->height = surface->h / 3;
 
-    const vec2s_t offsets[] = {
-      Vec2s(2, 1),
-      Vec2s(0, 1),
-      Vec2s(3, 1),
-      Vec2s(1, 1),
-      Vec2s(1, 0),
-      Vec2s(1, 2)
+    const Vec2s offsets[] = {
+      MakeVec2s(2, 1),
+      MakeVec2s(0, 1),
+      MakeVec2s(3, 1),
+      MakeVec2s(1, 1),
+      MakeVec2s(1, 0),
+      MakeVec2s(1, 2)
     };
 
     const int32_t rotations[] = {
@@ -266,8 +266,8 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     image->depth = 6;
 
-    const size_t face_size = image->width * image->height * 4;
-    byte *data = malloc(face_size * 6);
+    const size_t faceSize = image->width * image->height * 4;
+    byte *data = malloc(faceSize * 6);
 
     for (size_t i = 0; i < 6; i++) {
 
@@ -298,7 +298,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
       SDL_Surface *rgba = SDL_ConvertSurface(side, SDL_PIXELFORMAT_RGBA32);
       for (int32_t y = 0; y < image->height; y++) {
-        memcpy(data + i * face_size + y * image->width * 4,
+        memcpy(data + i * faceSize + y * image->width * 4,
                (const byte *) rgba->pixels + y * rgba->pitch,
                image->width * 4);
       }
@@ -310,7 +310,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     const int32_t levels = Mini(IMG_CUBEMAP_LEVELS,
                                 (int32_t) floorf(log2f((float) Mini(image->width, image->height))) + 1);
 
-    image->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    image->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_CUBE,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = image->width,
@@ -322,7 +322,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     free(data);
 
-    CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+    CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
     $(commands, generateMipmaps, image->texture->texture);
     $(commands, submit);
     release(commands);
@@ -330,12 +330,12 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->width = surface->w;
     image->height = surface->h;
 
-    image->texture = $(r_context.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
+    image->texture = $(rContext.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
   }
 
   $(image->texture, setName, image->media.name);
 
-  R_RegisterMedia((r_media_t *) image);
+  R_RegisterMedia((RenderMedia *) image);
 
   SDL_DestroySurface(surface);
 
@@ -345,16 +345,16 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 /**
  * @brief Dump the image to the specified output file.
  */
-static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap, bool raw) {
+static void R_DumpImage(const RenderImage *image, const char *output, bool mipmap, bool raw) {
 }
 
 /**
  * @brief Enumerates loaded images for dumping.
  */
-static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
+static void R_DumpImages_enumerator(const RenderMedia *media, void *data) {
 
   if (media->type == R_MEDIA_IMAGE) {
-    const r_image_t *image = (const r_image_t *) media;
+    const RenderImage *image = (const RenderImage *) media;
     char path[MAX_OS_PATH];
 
     q_snprintf(path, sizeof(path), "imgdmp/%s", image->media.name);

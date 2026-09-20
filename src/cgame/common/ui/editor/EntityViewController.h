@@ -74,12 +74,12 @@ struct EntityViewController {
   /**
    * @brief The entity being edited.
    */
-  cg_editor_entity_t *entity;
+  ClientGameEditorEntity *entity;
 
   /**
    * @brief The team entity being edited.
    */
-  cg_editor_entity_t *teamEntity;
+  ClientGameEditorEntity *teamEntity;
 
   /**
    * @brief The info string of the most recently created entity. When this entity returns to us
@@ -91,7 +91,7 @@ struct EntityViewController {
    * @brief When false, func_group entities are hidden and excluded from traces.
    * @details Toggled via the 'G' key.
    */
-  bool show_func_groups;
+  bool showFuncGroups;
 
   /**
    * @brief The entity numbers intersected by the selection ray, nearest first.
@@ -146,13 +146,13 @@ struct EntityViewControllerInterface {
   EntityViewController *(*init)(EntityViewController *self);
 
   /**
-   * @fn void EntityViewController::setEntity(EntityViewController *self, cg_editor_entity_t *entity)
+   * @fn void EntityViewController::setEntity(EntityViewController *self, ClientGameEditorEntity *entity)
    * @brief Sets the entity to edit.
    * @param self The EntityViewController.
    * @param entity The editor entity to edit, or `NULL` to clear.
    * @memberof EntityViewController
    */
-  void (*setEntity)(EntityViewController *self, cg_editor_entity_t *entity);
+  void (*setEntity)(EntityViewController *self, ClientGameEditorEntity *entity);
 };
 
 /**

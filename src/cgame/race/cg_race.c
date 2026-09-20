@@ -48,16 +48,16 @@ static struct {
   ClipClientEntity ClipEntity;
 } previous;
 
-static cg_client_info_t cg_race_ghost;
+static ClientGameClientInfo cgRaceGhost;
 
 // the entity numbers of the barriers that pass this client, as the server last said
-static int32_t cg_race_passable[RACE_MAX_BARRIERS];
-static size_t cg_race_passable_count;
+static int32_t cgRacePassable[RACE_MAX_BARRIERS];
+static size_t cgRacePassableCount;
 
 /**
  * @see cg_race.h
  */
-uint32_t Cg_Race_Time(const player_state_t *ps) {
+uint32_t Cg_Race_Time(const PlayerState *ps) {
   return (uint16_t) ps->stats[STAT_RACE_TIME_LOW] | ((uint32_t) (uint16_t) ps->stats[STAT_RACE_TIME_HIGH] << 16);
 }
 
@@ -66,13 +66,13 @@ uint32_t Cg_Race_Time(const player_state_t *ps) {
  * record, which `Cg_LoadClient` reads as the default.
  */
 static void Cg_Race_LoadGhost(void) {
-  Cg_LoadClient(&cg_race_ghost, cgi.ConfigString(CS_RACE_GHOST));
+  Cg_LoadClient(&cgRaceGhost, cgi.ConfigString(CS_RACE_GHOST));
 }
 
 /**
  * @brief Whether `ent` is the course record's ghost, which the server marks.
  */
-static bool Cg_Race_IsGhost(const cl_entity_t *ent) {
+static bool Cg_Race_IsGhost(const ClientEntity *ent) {
   return ent->current.effects & EF_RACE_GHOST;
 }
 
@@ -101,29 +101,29 @@ static bool Cg_ParseServerCommand_Race(int32_t cmd) {
   }
 
   if (cmd == SV_CMD_RACE_MILESTONE) {
-    const g_race_milestone_t kind = cgi.ReadByte();
+    const GameRaceMilestone kind = cgi.ReadByte();
     const uint16_t number = cgi.ReadByte();
 
     char label[MAX_QPATH];
     q_strlcpy(label, cgi.ReadString(), sizeof(label));
 
     const uint32_t time = cgi.ReadLong();
-    const int32_t vs_best = cgi.ReadLong();
-    const int32_t vs_record = cgi.ReadLong();
+    const int32_t vsBest = cgi.ReadLong();
+    const int32_t vsRecord = cgi.ReadLong();
 
-    Cg_Race_Milestone(kind, number, label, time, vs_best, vs_record);
+    Cg_Race_Milestone(kind, number, label, time, vsBest, vsRecord);
     return true;
   }
 
   const int32_t count = cgi.ReadByte();
 
-  cg_race_passable_count = 0;
+  cgRacePassableCount = 0;
 
   for (int32_t i = 0; i < count; i++) {
     const int32_t entity = cgi.ReadShort();
 
-    if (cg_race_passable_count < RACE_MAX_BARRIERS) {
-      cg_race_passable[cg_race_passable_count++] = entity;
+    if (cgRacePassableCount < RACE_MAX_BARRIERS) {
+      cgRacePassable[cgRacePassableCount++] = entity;
     }
   }
 
@@ -139,7 +139,7 @@ static void Cg_MediaDidLoad_Race(void) {
   previous.MediaDidLoad();
 
   Cg_Race_LoadGhost();
-  cg_race_passable_count = 0;
+  cgRacePassableCount = 0;
 }
 
 /**
@@ -147,10 +147,10 @@ static void Cg_MediaDidLoad_Race(void) {
  * server let this client pass does not clip this client's own moves; it clips
  * everything else, as it does on the server.
  */
-static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent) {
+static bool Cg_ClipEntity_Race(const ClientEntity *mover, const ClientEntity *ent) {
 
-  for (size_t i = 0; mover == cgi.client->entity && i < cg_race_passable_count; i++) {
-    if (cg_race_passable[i] == ent->current.number) {
+  for (size_t i = 0; mover == cgi.client->entity && i < cgRacePassableCount; i++) {
+    if (cgRacePassable[i] == ent->current.number) {
       return false;
     }
   }
@@ -161,7 +161,7 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent)
 /**
  * @brief Another player's ghost is theirs to see and not ours.
  */
-static void Cg_AddEntity_Race(cl_entity_t *ent) {
+static void Cg_AddEntity_Race(ClientEntity *ent) {
 
   if (Cg_Race_IsGhost(ent) && ent->current.client != cgi.client->frame.ps.client) {
     return;
@@ -173,10 +173,10 @@ static void Cg_AddEntity_Race(cl_entity_t *ent) {
 /**
  * @brief The ghost wears the record holder's client info, not the slot it names.
  */
-static cg_client_info_t *Cg_ClientInfo_Race(const cl_entity_t *ent) {
+static ClientGameClientInfo *Cg_ClientInfo_Race(const ClientEntity *ent) {
 
   if (Cg_Race_IsGhost(ent)) {
-    return &cg_race_ghost;
+    return &cgRaceGhost;
   }
 
   return previous.ClientInfo(ent);
@@ -185,7 +185,7 @@ static cg_client_info_t *Cg_ClientInfo_Race(const cl_entity_t *ent) {
 /**
  * @brief The ghost is drawn translucent, and casts no shadow.
  */
-static void Cg_EntityEffects_Race(cl_entity_t *ent, r_entity_t *e) {
+static void Cg_EntityEffects_Race(ClientEntity *ent, RenderEntity *e) {
 
   previous.EntityEffects(ent, e);
 

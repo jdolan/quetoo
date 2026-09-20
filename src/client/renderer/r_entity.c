@@ -24,18 +24,18 @@
 /**
  * @brief Updates the entity's world-space bounds.
  */
-static void R_SetEntityBounds(r_entity_t *e) {
+static void R_SetEntityBounds(RenderEntity *e) {
   if (e->model && !Box3_IsNull(e->model->bounds)) {
-    e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+    e->absModelBounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
   } else {
-    e->abs_model_bounds = e->abs_bounds;
+    e->absModelBounds = e->absBounds;
   }
 }
 
 /**
  * @brief Tests whether the entity should be culled.
  */
-bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
+bool R_CullEntity(const RenderView *view, const RenderEntity *e) {
 
   if (view->type == VIEW_PLAYER_MODEL) {
     return false;
@@ -49,11 +49,11 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
     return false;
   }
 
-  if (Box3_IsNull(e->abs_model_bounds)) {
+  if (Box3_IsNull(e->absModelBounds)) {
     return true;
   }
 
-  if (R_CulludeBox(view, e->abs_model_bounds)) {
+  if (R_CulludeBox(view, e->absModelBounds)) {
     return true;
   }
 
@@ -63,17 +63,17 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 /**
  * @brief Adds an entity to the view and returns the copied entry.
  */
-r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
+RenderEntity *R_AddEntity(RenderView *view, const RenderEntity *ent) {
 
   assert(view);
   assert(ent);
 
-  if (view->num_entities == MAX_ENTITIES) {
+  if (view->numEntities == MAX_ENTITIES) {
     Com_Warn("MAX_ENTITIES\n");
     return NULL;
   }
 
-  r_entity_t *e = &view->entities[view->num_entities];
+  RenderEntity *e = &view->entities[view->numEntities];
   *e = *ent;
 
   e->matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, e->scale);
@@ -87,11 +87,11 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
     R_ApplyMeshConfig(e);
   }
 
-  e->inverse_matrix = Mat4_Inverse(e->matrix);
+  e->inverseMatrix = Mat4_Inverse(e->matrix);
 
   R_SetEntityBounds(e);
 
-  view->num_entities++;
+  view->numEntities++;
 
   return e;
 }
@@ -99,23 +99,23 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 /**
  * @brief Updates entity state for the frame.
  */
-void R_UpdateEntities(r_view_t *view, CopyPass *pass) {
+void R_UpdateEntities(RenderView *view, CopyPass *pass) {
 
-  r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+  RenderEntity *e = view->entities;
+  for (int32_t i = 0; i < view->numEntities; i++, e++) {
 
     if (e->model == NULL) {
       continue;
     }
 
-    R_ActiveDynamicLights(view, e->abs_model_bounds, &e->active_dynamic_lights);
+    R_ActiveDynamicLights(view, e->absModelBounds, &e->activeDynamicLights);
   }
 }
 
 /**
  * @brief Draws the view's entities.
  */
-void R_DrawEntities(const r_view_t *view, RenderPass *pass) {
+void R_DrawEntities(const RenderView *view, RenderPass *pass) {
 
   R_DrawOpaqueBspEntities(view, pass);
 

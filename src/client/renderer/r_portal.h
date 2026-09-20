@@ -23,12 +23,12 @@
 
 #include "r_types.h"
 
-void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix);
-void R_DrawPortals(const r_view_t *view);
+void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix);
+void R_DrawPortals(const RenderView *view);
 
 #if defined(__R_LOCAL_H__)
 
-SDL_GPUTexture *R_PortalTexture(const r_view_t *view);
+SDL_GPUTexture *R_PortalTexture(const RenderView *view);
 void R_InitPortals(void);
 void R_ShutdownPortals(void);
 

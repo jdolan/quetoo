@@ -30,13 +30,13 @@
 
 /**
  * @brief TextViewDelegate for the Bots field.
- * Stores (entered value + 1) into sv_min_clients, accounting for the
+ * Stores (entered value + 1) into sv_minClients, accounting for the
  * player themselves occupying one client slot.
  */
 static void botsDidEndEditing(TextView *textView) {
 
   const String *string = (String *) textView->attributedText;
-  cgi.SetCvarInteger("sv_min_clients", atoi(string->chars) + 1);
+  cgi.SetCvarInteger("sv_minClients", atoi(string->chars) + 1);
 }
 
 /**
@@ -49,7 +49,7 @@ static void createServer(Button *button) {
   PointerArray *selectedMaps = $(this->mapList, selectedMaps);
   if (selectedMaps->count) {
 
-    file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
+    File *file = cgi.OpenFileWrite(MAP_LIST_UI);
     if (file) {
 
       String *string = str("");
@@ -76,8 +76,8 @@ static void createServer(Button *button) {
 
       cgi.CloseFile(file);
 
-      cgi.SetCvarString("sv_map_list", MAP_LIST_UI);
-      cgi.Cbuf("next_map");
+      cgi.SetCvarString("sv_mapList", MAP_LIST_UI);
+      cgi.Cbuf("nextMap");
     } else {
       Cg_Warn("Failed to create %s\n", MAP_LIST_UI);
     }
@@ -127,20 +127,20 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
 
-  const cvar_t *sv_min_clients = cgi.GetCvar("sv_min_clients");
-  const int32_t bots = sv_min_clients ? Maxi(0, sv_min_clients->integer - 1) : 0;
+  const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
+  const int32_t bots = svMinClients ? Maxi(0, svMinClients->integer - 1) : 0;
   $(this->bots, setDefaultText, va("%d", bots));
 
   this->bots->delegate.didEndEditing = botsDidEndEditing;
 
   $(this->gameplay, addOption, "Default", "default");
 
-  size_t num_modes;
-  const g_gameplay_t *modes = Cg_ListGameplayModes(&num_modes);
-  if (num_modes <= 1) {
+  size_t numModes;
+  const Gameplay *modes = Cg_ListGameplayModes(&numModes);
+  if (numModes <= 1) {
     $(gameplayInput, removeFromSuperview);
   } else {
-    for (size_t i = 0; i < num_modes; i++) {
+    for (size_t i = 0; i < numModes; i++) {
       $(this->gameplay, addOption, modes[i].label, (ident) modes[i].name);
     }
   }
@@ -149,7 +149,7 @@ static void loadView(ViewController *self) {
   $(this->movement, addOption, "Default", "default");
 
   for (size_t i = 0; i < Pm_MovementCount(); i++) {
-    const pm_movement_info_t *movement = Pm_Movement((pm_movement_t) i);
+    const PlayerMovementInfo *movement = Pm_Movement((PlayerMovement) i);
     $(this->movement, addOption, movement->label, (ident) movement->name);
   }
 

@@ -23,9 +23,9 @@
 
 #include "r_types.h"
 
-bool R_CullBox(const r_view_t *view, const box3_t bounds);
-bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
+bool R_CullBox(const RenderView *view, const Box3 bounds);
+bool R_CullSphere(const RenderView *view, const Vec3 point, const float radius);
 
 #if defined(__R_LOCAL_H__)
-void R_UpdateFrustum(r_view_t *view);
+void R_UpdateFrustum(RenderView *view);
 #endif

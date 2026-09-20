@@ -66,7 +66,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
   const bool valid = pickup > ITEM_NONE && pickup < ITEM_TOTAL;
@@ -76,9 +76,9 @@ static void updateBindings(View *self, ident data) {
   if (valid && pickup != (int16_t) this->item) {
     this->item = pickup;
 
-    const char *icon = bg_item_defs[pickup].icon;
+    const char *icon = bgItemDefs[pickup].icon;
     $(this->icon, setImage, icon ? (Image *) Cg_HudImage(icon) : NULL);
-    $(this->name, setText, bg_item_defs[pickup].name);
+    $(this->name, setText, bgItemDefs[pickup].name);
   }
 }
 

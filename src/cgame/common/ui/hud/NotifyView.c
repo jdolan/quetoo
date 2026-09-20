@@ -49,18 +49,18 @@ static void updateBindings(View *self, ident data) {
 
   ConsoleText *this = (ConsoleText *) self;
 
-  const size_t lines = Clampf(cg_notify_lines->integer, 0, NOTIFY_MAX_LINES);
+  const size_t lines = Clampf(cg_notifyLines->integer, 0, NOTIFY_MAX_LINES);
   const bool hidden = lines == 0 || cgi.GetKeyDest() != KEY_GAME;
 
   $(self, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (data && !hidden && self->superview) {
     const uint32_t now = (uint32_t) SDL_GetTicks();
-    const uint32_t millis = cg_notify_time->value * 1000;
+    const uint32_t millis = cg_notifyTime->value * 1000;
 
     const uint32_t since = now > millis ? now - millis : 0;
 
-    this->console.whence = since > cg_hud_state.clear_time ? since : cg_hud_state.clear_time;
+    this->console.whence = since > cgHudState.clearTime ? since : cgHudState.clearTime;
 
     $(this, tail, self->superview->frame.w, lines);
   }

@@ -24,29 +24,29 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-bool G_PickupWeapon(g_client_t *cl, g_entity_t *other);
-void G_UseBestWeapon(g_client_t *cl);
-void G_UseWeapon(g_client_t *cl, const g_item_t *item);
-g_entity_t *G_DropWeapon(g_client_t *cl, const g_item_t *item);
-g_entity_t *G_TossWeapon(g_client_t *cl);
-void G_FireBlaster(g_client_t *cl);
-void G_FireShotgun(g_client_t *cl);
-void G_FireSuperShotgun(g_client_t *cl);
-void G_FireMachinegun(g_client_t *cl);
-void G_FireHyperblaster(g_client_t *cl);
-void G_FireRocketLauncher(g_client_t *cl);
-void G_FireHandGrenade(g_client_t *cl);
-void G_FireGrenadeLauncher(g_client_t *cl);
-void G_FireLightning(g_client_t *cl);
-void G_FireRailgun(g_client_t *cl);
-void G_FireBfg(g_client_t *cl);
-void G_FireQuakeShotgun(g_client_t *cl);
-void G_FireQuakeSuperShotgun(g_client_t *cl);
-void G_FireQuakeNailgun(g_client_t *cl);
-void G_FireQuakeSuperNailgun(g_client_t *cl);
-void G_FireQuakeGrenadeLauncher(g_client_t *cl);
-void G_FireQuakeRocketLauncher(g_client_t *cl);
-void G_FireQuakeThunderbolt(g_client_t *cl);
-void G_WorldMuzzleFlash(const vec3_t org, const vec3_t dir, g_muzzle_flash_t flash, uint8_t client);
-void G_ClientWeaponThink(g_client_t *cl);
+bool G_PickupWeapon(GameClient *cl, GameEntity *other);
+void G_UseBestWeapon(GameClient *cl);
+void G_UseWeapon(GameClient *cl, const GameItem *item);
+GameEntity *G_DropWeapon(GameClient *cl, const GameItem *item);
+GameEntity *G_TossWeapon(GameClient *cl);
+void G_FireBlaster(GameClient *cl);
+void G_FireShotgun(GameClient *cl);
+void G_FireSuperShotgun(GameClient *cl);
+void G_FireMachinegun(GameClient *cl);
+void G_FireHyperblaster(GameClient *cl);
+void G_FireRocketLauncher(GameClient *cl);
+void G_FireHandGrenade(GameClient *cl);
+void G_FireGrenadeLauncher(GameClient *cl);
+void G_FireLightning(GameClient *cl);
+void G_FireRailgun(GameClient *cl);
+void G_FireBfg(GameClient *cl);
+void G_FireQuakeShotgun(GameClient *cl);
+void G_FireQuakeSuperShotgun(GameClient *cl);
+void G_FireQuakeNailgun(GameClient *cl);
+void G_FireQuakeSuperNailgun(GameClient *cl);
+void G_FireQuakeGrenadeLauncher(GameClient *cl);
+void G_FireQuakeRocketLauncher(GameClient *cl);
+void G_FireQuakeThunderbolt(GameClient *cl);
+void G_WorldMuzzleFlash(const Vec3 org, const Vec3 dir, GameMuzzleFlash flash, uint8_t client);
+void G_ClientWeaponThink(GameClient *cl);
 #endif

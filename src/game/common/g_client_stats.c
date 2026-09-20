@@ -24,23 +24,23 @@
 /**
  * @brief Moves a client to the intermission position and freezes their input.
  */
-void G_ClientToIntermission(g_client_t *cl) {
+void G_ClientToIntermission(GameClient *cl) {
 
   if (!cl->entity) {
     return;
   }
 
-  cl->entity->s.origin = g_level.intermission_origin;
-  cl->ps.pm_state.origin = g_level.intermission_origin;
+  cl->entity->s.origin = gLevel.intermissionOrigin;
+  cl->ps.pmState.origin = gLevel.intermissionOrigin;
 
-  cl->ps.pm_state.view_angles = Vec3_Zero();
-  cl->ps.pm_state.delta_angles = g_level.intermission_angle;
+  cl->ps.pmState.viewAngles = Vec3_Zero();
+  cl->ps.pmState.deltaAngles = gLevel.intermissionAngle;
 
-  cl->ps.pm_state.view_offset = Vec3_Zero();
-  cl->ps.pm_state.step_offset = 0.f;
+  cl->ps.pmState.viewOffset = Vec3_Zero();
+  cl->ps.pmState.stepOffset = 0.f;
 
-  cl->ps.pm_state.flags &= ~PMF_DEATH_CAM;
-  cl->ps.pm_state.type = PM_FREEZE;
+  cl->ps.pmState.flags &= ~PMF_DEATH_CAM;
+  cl->ps.pmState.type = PM_FREEZE;
 
   cl->entity->s.model1 = 0;
   cl->entity->s.model2 = 0;
@@ -52,20 +52,20 @@ void G_ClientToIntermission(g_client_t *cl) {
   cl->entity->dead = true;
 
   // show scores
-  cl->show_scores = true;
+  cl->showScores = true;
 
   // hide the HUD
   memset(cl->inventory, 0, sizeof(cl->inventory));
   cl->weapon = NULL;
 
-  cl->ammo_index = 0;
-  cl->pickup_msg_time = 0;
+  cl->ammoIndex = 0;
+  cl->pickupMsgTime = 0;
 }
 
 /**
  * @brief Write the scores information for the specified client.
  */
-static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
+static void G_UpdateScore(const GameClient *cl, GameScore *s) {
 
   memset(s, 0, sizeof(*s));
 
@@ -101,7 +101,7 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
 /**
  * @brief The tail of the `G_WriteScore` chain: a notification, so it does nothing.
  */
-static void G_WriteScore_Common(const g_client_t *cl, g_score_t *s) {
+static void G_WriteScore_Common(const GameClient *cl, GameScore *s) {
 }
 
 WriteScore G_WriteScore = G_WriteScore_Common;
@@ -109,7 +109,7 @@ WriteScore G_WriteScore = G_WriteScore_Common;
 /**
  * @brief The tail of the `G_WriteStats` chain: a notification, so it does nothing.
  */
-static void G_WriteStats_Common(g_client_t *cl) {
+static void G_WriteStats_Common(GameClient *cl) {
 }
 
 WriteStats G_WriteStats = G_WriteStats_Common;
@@ -117,8 +117,8 @@ WriteStats G_WriteStats = G_WriteStats_Common;
 /**
  * @brief Returns the number of scores written to the buffer.
  */
-static size_t G_UpdateScores(g_score_t *scores) {
-  g_score_t *s = scores;
+static size_t G_UpdateScores(GameScore *scores) {
+  GameScore *s = scores;
   int32_t i;
 
   // assemble the client scores
@@ -127,11 +127,11 @@ static size_t G_UpdateScores(g_score_t *scores) {
   });
 
   // and optionally concatenate the team scores
-  if (g_level.teams) {
+  if (gLevel.teams) {
     memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
     for (i = 0; i < MAX_TEAMS; i++) {
-      g_team_t *team = &g_team_list[i];
+      GameTeam *team = &gTeamList[i];
 
       s->client = MAX_CLIENTS;
       s->score = team->score;
@@ -150,26 +150,26 @@ static size_t G_UpdateScores(g_score_t *scores) {
  * @brief Assemble the binary scores data for the client. Scores are sent in
  * chunks to overcome the 1400 byte UDP packet limitation.
  */
-void G_ClientScores(g_client_t *cl) {
-  static g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
+void G_ClientScores(GameClient *cl) {
+  static GameScore scores[MAX_CLIENTS + MAX_TEAMS];
   static size_t count;
 
-  if (!cl->show_scores || (cl->scores_time > g_level.time)) {
+  if (!cl->showScores || (cl->scoresTime > gLevel.time)) {
     return;
   }
 
-  cl->scores_time = g_level.time + 500;
+  cl->scoresTime = gLevel.time + 500;
 
   // update the scoreboard if it's stale; this is shared to all clients
-  if (g_level.scores_time <= g_level.time) {
+  if (gLevel.scoresTime <= gLevel.time) {
     count = G_UpdateScores(scores);
-    g_level.scores_time = g_level.time + 500;
+    gLevel.scoresTime = gLevel.time + 500;
   }
 
   // send the scores over in chunks
   size_t i = 0, j = 0;
   while (++i < count) {
-    const size_t len = (i - j) * sizeof(g_score_t);
+    const size_t len = (i - j) * sizeof(GameScore);
     if (len > 512) {
       gi.WriteByte(SV_CMD_SCORES);
       gi.WriteShort((int32_t) j);
@@ -183,7 +183,7 @@ void G_ClientScores(g_client_t *cl) {
   }
 
   // send any remaining scores, and indicate that the sequence is complete
-  const size_t len = (i - j) * sizeof(g_score_t);
+  const size_t len = (i - j) * sizeof(GameScore);
 
   gi.WriteByte(SV_CMD_SCORES);
   gi.WriteShort((int32_t) j);
@@ -197,10 +197,10 @@ void G_ClientScores(g_client_t *cl) {
  * @brief Writes the stats array of the player state structure. The client's HUD is
  * largely derived from this information.
  */
-void G_ClientStats(g_client_t *cl) {
+void G_ClientStats(GameClient *cl) {
 
   // armor
-  const g_item_t *armor = G_ClientArmor(cl);
+  const GameItem *armor = G_ClientArmor(cl);
   if (armor) {
     cl->ps.stats[STAT_ARMOR] = cl->inventory[armor->def.tag];
   } else {
@@ -209,7 +209,7 @@ void G_ClientStats(g_client_t *cl) {
 
 #if defined(G_TECH)
   // tech
-  const g_item_t *tech = G_GetTech(cl);
+  const GameItem *tech = G_GetTech(cl);
   cl->ps.stats[STAT_TECH] = tech ? tech->def.tag : 0;
 #endif
 
@@ -219,9 +219,9 @@ void G_ClientStats(g_client_t *cl) {
 #endif
 
   // damage received and inflicted
-  cl->ps.stats[STAT_DAMAGE_ARMOR] = cl->damage_armor;
-  cl->ps.stats[STAT_DAMAGE_HEALTH] = cl->damage_health;
-  cl->ps.stats[STAT_DAMAGE_INFLICT] = cl->damage_inflicted;
+  cl->ps.stats[STAT_DAMAGE_ARMOR] = cl->damageArmor;
+  cl->ps.stats[STAT_DAMAGE_HEALTH] = cl->damageHealth;
+  cl->ps.stats[STAT_DAMAGE_INFLICT] = cl->damageInflicted;
 
   // frags
   cl->ps.stats[STAT_FRAGS] = cl->persistent.score;
@@ -236,7 +236,7 @@ void G_ClientStats(g_client_t *cl) {
   }
 
   // pickup message
-  if (g_level.time > cl->pickup_msg_time) {
+  if (gLevel.time > cl->pickupMsgTime) {
     cl->ps.stats[STAT_PICKUP] = 0;
   }
 
@@ -245,7 +245,7 @@ void G_ClientStats(g_client_t *cl) {
 
   // scores
   cl->ps.stats[STAT_SCORES] = 0;
-  if (g_level.intermission_time || cl->show_scores) {
+  if (gLevel.intermissionTime || cl->showScores) {
     cl->ps.stats[STAT_SCORES] |= 1;
   }
 
@@ -256,14 +256,14 @@ void G_ClientStats(g_client_t *cl) {
   }
 
   // time
-  if (g_level.intermission_time) {
+  if (gLevel.intermissionTime) {
     cl->ps.stats[STAT_TIME] = 0;
   } else {
     cl->ps.stats[STAT_TIME] = CS_TIME;
   }
 
   // weapon: lower byte = current tag, upper byte = switching-to tag
-  const g_item_t *weapon = cl->weapon;
+  const GameItem *weapon = cl->weapon;
 
   if (weapon) {
     cl->ps.stats[STAT_WEAPON] = weapon->def.tag;
@@ -271,24 +271,24 @@ void G_ClientStats(g_client_t *cl) {
     cl->ps.stats[STAT_WEAPON] = 0;
   }
 
-  if (cl->next_weapon) {
-    cl->ps.stats[STAT_WEAPON] |= (cl->next_weapon->def.tag << 8);
+  if (cl->nextWeapon) {
+    cl->ps.stats[STAT_WEAPON] |= (cl->nextWeapon->def.tag << 8);
   }
 
-  if (g_level.time <= cl->quad_damage_time) {
-    cl->ps.stats[STAT_QUAD_TIME] = ceil((cl->quad_damage_time - g_level.time) / 1000.0);
+  if (gLevel.time <= cl->quadDamageTime) {
+    cl->ps.stats[STAT_QUAD_TIME] = ceil((cl->quadDamageTime - gLevel.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_QUAD_TIME] = 0;
   }
 
-  if (g_level.time <= cl->invisibility_time) {
-    cl->ps.stats[STAT_INVISIBILITY_TIME] = ceil((cl->invisibility_time - g_level.time) / 1000.0);
+  if (gLevel.time <= cl->invisibilityTime) {
+    cl->ps.stats[STAT_INVISIBILITY_TIME] = ceil((cl->invisibilityTime - gLevel.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_INVISIBILITY_TIME] = 0;
   }
 
-  if (g_level.time <= cl->invulnerability_time) {
-    cl->ps.stats[STAT_INVULNERABILITY_TIME] = ceil((cl->invulnerability_time - g_level.time) / 1000.0);
+  if (gLevel.time <= cl->invulnerabilityTime) {
+    cl->ps.stats[STAT_INVULNERABILITY_TIME] = ceil((cl->invulnerabilityTime - gLevel.time) / 1000.0);
   } else {
     cl->ps.stats[STAT_INVULNERABILITY_TIME] = 0;
   }
@@ -302,20 +302,20 @@ void G_ClientStats(g_client_t *cl) {
 /**
  * @brief Updates the player stats HUD for a spectating client.
  */
-void G_ClientSpectatorStats(g_client_t *cl) {
+void G_ClientSpectatorStats(GameClient *cl) {
 
   cl->ps.stats[STAT_SPECTATOR] = 1;
 
   // chase camera inherits stats from their chase target
-  if (cl->chase_target && G_IsMeat(cl->chase_target->entity)) {
+  if (cl->chaseTarget && G_IsMeat(cl->chaseTarget->entity)) {
 
-    memcpy(cl->ps.stats, cl->chase_target->ps.stats, sizeof(cl->ps.stats));
+    memcpy(cl->ps.stats, cl->chaseTarget->ps.stats, sizeof(cl->ps.stats));
 
     cl->ps.stats[STAT_SPECTATOR] = 1;
-    cl->ps.stats[STAT_CHASE] = cl->chase_target->entity->s.number;
+    cl->ps.stats[STAT_CHASE] = cl->chaseTarget->entity->s.number;
 
     // scores are independent of chase camera target
-    if (g_level.intermission_time || cl->show_scores) {
+    if (gLevel.intermissionTime || cl->showScores) {
       cl->ps.stats[STAT_SCORES] = 1;
     } else {
       cl->ps.stats[STAT_SCORES] = 0;

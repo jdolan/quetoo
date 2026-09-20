@@ -21,18 +21,18 @@
 
 #include "r_local.h"
 
-r_depth_pipeline_t r_depth_pipeline;
+RenderDepthPipeline rDepthPipeline;
 
 /**
  * @brief Draws world geometry into the view depth buffer.
  */
-void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
+void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
 
-  if (!r_depth_pass->integer) {
+  if (!r_depthPass->integer) {
     return;
   }
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const RenderBspModel *bsp = rModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
@@ -45,26 +45,26 @@ void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  const mat4_t model = Mat4_Identity();
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  const Mat4 model = Mat4_Identity();
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
-  $(pass, bindPipeline, r_depth_pipeline.pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
-  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+  $(pass, bindPipeline, rDepthPipeline.pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertexBuffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   // The Z pre-pass has no sampler bindings, so only draw the lumped opaque entry (entry with
   // no material); alpha-tested faces are left to the color pass, same as before this refactor.
-  const r_bsp_inline_model_t *world = bsp->inline_models;
-  const r_bsp_draw_elements_t *draw = world->depth_pass_elements;
-  for (int32_t i = 0; i < world->num_depth_pass_elements; i++, draw++) {
+  const RenderBspInlineModel *world = bsp->inlineModels;
+  const RenderBspDrawElements *draw = world->depthPassElements;
+  for (int32_t i = 0; i < world->numDepthPassElements; i++, draw++) {
 
     if (draw->material) {
       continue;
     }
 
     const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-    $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+    $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
   }
 
   pass = release(pass);
@@ -75,17 +75,17 @@ void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
  */
 void R_InitDepthPass(void) {
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(rContext.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2,
   });
 
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
+  info.multisample_state.sample_count = rSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -98,7 +98,7 @@ void R_InitDepthPass(void) {
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
+      .pitch = sizeof(RenderBspVertex),
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
@@ -106,7 +106,7 @@ void R_InitDepthPass(void) {
       .location = 0,
       .buffer_slot = 0,
       .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = offsetof(r_bsp_vertex_t, position),
+      .offset = offsetof(RenderBspVertex, position),
     },
     .num_vertex_attributes = 1,
   };
@@ -117,7 +117,7 @@ void R_InitDepthPass(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_depth_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  rDepthPipeline.pipeline = $(rContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -127,8 +127,8 @@ void R_InitDepthPass(void) {
  * @brief Releases the depth pre-pass pipeline.
  */
 void R_ShutdownDepthPass(void) {
-  r_depth_pipeline.pipeline = release(r_depth_pipeline.pipeline);
-  r_depth_pipeline.fence = release(r_depth_pipeline.fence);
+  rDepthPipeline.pipeline = release(rDepthPipeline.pipeline);
+  rDepthPipeline.fence = release(rDepthPipeline.fence);
 }
 
 /**

@@ -54,8 +54,8 @@ void Cg_InitUi(void);
 void Cg_InitHudUi(void);
 void Cg_ShutdownUi(void);
 void Cg_ClearUi(void);
-void Cg_UpdateLoading(const cl_loading_t loading);
-int32_t Cg_UpdateInstaller(const installer_status_t *status);
+void Cg_UpdateLoading(const ClientLoading loading);
+int32_t Cg_UpdateInstaller(const InstallerStatus *status);
 
 #if defined(__CG_LOCAL_H__)
 void Cg_BindCvar(const Inlet *inlet, ident obj);

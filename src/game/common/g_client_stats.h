@@ -24,9 +24,9 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-void G_ClientScores(g_client_t *cl);
-void G_ClientSpectatorStats(g_client_t *cl);
-void G_ClientStats(g_client_t *cl);
-void G_ClientTeamsScoreboard(g_client_t *cl);
-void G_ClientToIntermission(g_client_t *cl);
+void G_ClientScores(GameClient *cl);
+void G_ClientSpectatorStats(GameClient *cl);
+void G_ClientStats(GameClient *cl);
+void G_ClientTeamsScoreboard(GameClient *cl);
+void G_ClientToIntermission(GameClient *cl);
 #endif

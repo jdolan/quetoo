@@ -57,7 +57,7 @@
 #include "common/common.h"
 #include <Objectively/RESTClient.h>
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief A server must heartbeat within this window or be probed with pings.
@@ -85,38 +85,38 @@ quetoo_t quetoo;
  */
 #define MAX_PENDING_SERVERS 256
 
-typedef struct ms_server_s {
+typedef struct MasterServer {
   struct sockaddr_in addr;
   time_t registered;
-  time_t last_heartbeat;
+  time_t lastHeartbeat;
   uint32_t challenge;
-  time_t last_challenge;
+  time_t lastChallenge;
   bool validated;
   char hostname[256];
   char map[64];
   int32_t protocol;
-  int32_t num_clients;
-  int32_t max_clients;
+  int32_t numClients;
+  int32_t maxClients;
   char players[MAX_CLIENTS][64];
-} ms_server_t;
+} MasterServer;
 
-static List *ms_servers;
-static int32_t ms_sock;
+static List *msServers;
+static int32_t msSock;
 
 #if !defined(_WIN32)
-static int32_t ms_urandom = -1;
+static int32_t msUrandom = -1;
 #endif
 
 static bool verbose;
 static bool debug;
 
-static const char *ms_discord_webhook;
+static const char *msDiscordWebhook;
 
 /**
  * @brief Extracts the value for the given key from a Quake infostring.
  * @return True if the key was found and the value copied, false otherwise.
  */
-static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t buf_size) {
+static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bufSize) {
   char search[256];
   q_snprintf(search, sizeof(search), "\\%s\\", key);
 
@@ -134,7 +134,7 @@ static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bu
   } else {
     len = q_strlen(p);
   }
-  len = Minui64(len, buf_size - 1);
+  len = Minui64(len, bufSize - 1);
 
   memcpy(buf, p, len);
   buf[len] = '\0';
@@ -144,11 +144,11 @@ static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bu
 /**
  * @brief JSON-escapes `src` into `buf`.
  */
-static void Ms_JsonEscape(const char *src, char *buf, size_t buf_size) {
+static void Ms_JsonEscape(const char *src, char *buf, size_t bufSize) {
   size_t out = 0;
-  for (const char *s = src; *s && out + 2 < buf_size; s++) {
+  for (const char *s = src; *s && out + 2 < bufSize; s++) {
     if (*s == '"' || *s == '\\') {
-      if (out + 3 < buf_size) {
+      if (out + 3 < bufSize) {
         buf[out++] = '\\';
       }
     }
@@ -160,17 +160,17 @@ static void Ms_JsonEscape(const char *src, char *buf, size_t buf_size) {
 /**
  * @brief Posts a Discord webhook notification for a player joining a server.
  */
-static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name, int32_t num_clients) {
-  if (!ms_discord_webhook) {
+static void Ms_DiscordNotify(const MasterServer *server, const char *playerName, int32_t numClients) {
+  if (!msDiscordWebhook) {
     return;
   }
 
-  char escaped_player[128];
-  char escaped_host[256];
-  char escaped_map[128];
-  Ms_JsonEscape(player_name, escaped_player, sizeof(escaped_player));
-  Ms_JsonEscape(server->hostname, escaped_host, sizeof(escaped_host));
-  Ms_JsonEscape(server->map, escaped_map, sizeof(escaped_map));
+  char escapedPlayer[128];
+  char escapedHost[256];
+  char escapedMap[128];
+  Ms_JsonEscape(playerName, escapedPlayer, sizeof(escapedPlayer));
+  Ms_JsonEscape(server->hostname, escapedHost, sizeof(escapedHost));
+  Ms_JsonEscape(server->map, escapedMap, sizeof(escapedMap));
 
   const char *ip = inet_ntoa(server->addr.sin_addr);
   const int32_t port = ntohs(server->addr.sin_port);
@@ -178,21 +178,21 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name,
   char json[1024];
   q_snprintf(json, sizeof(json),
     "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
-    escaped_player, escaped_host, escaped_map,
-    num_clients, server->max_clients,
+    escapedPlayer, escapedHost, escapedMap,
+    numClients, server->maxClients,
     ip, port);
 
   Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
-  $($$(RESTClient, sharedInstance), postAsync, ms_discord_webhook, body, NULL, NULL, NULL);
+  $($$(RESTClient, sharedInstance), postAsync, msDiscordWebhook, body, NULL, NULL, NULL);
   release(body);
 }
 
 /**
  * @brief Parses a status string from a server heartbeat, updates the server's
  * player list, and fires Discord notifications for any new players detected.
- * On first call (num_clients == -1), records current state without notifying.
+ * On first call (numClients == -1), records current state without notifying.
  */
-static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
+static void Ms_ParseStatusString(MasterServer *server, const char *status) {
 
   char val[256];
 
@@ -204,74 +204,74 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     server->protocol = atoi(val);
   }
 
-  server->max_clients = 0;
-  if (Ms_InfoValue(status, "sv_max_clients", val, sizeof(val))) {
-    server->max_clients = atoi(val);
+  server->maxClients = 0;
+  if (Ms_InfoValue(status, "sv_maxClients", val, sizeof(val))) {
+    server->maxClients = atoi(val);
   }
 
-  bool map_changed = false;
+  bool mapChanged = false;
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
-    map_changed = q_strcmp(server->map, val) != 0;
+    mapChanged = q_strcmp(server->map, val) != 0;
     q_strlcpy(server->map, val, sizeof(server->map));
   }
 
-  char new_players[MAX_CLIENTS][64];
-  int32_t new_count = 0;
+  char newPlayers[MAX_CLIENTS][64];
+  int32_t newCount = 0;
 
   // player lines begin after the infostring's trailing newline
   const char *line = q_strchr(status, '\n');
-  while (line && new_count < MAX_CLIENTS) {
+  while (line && newCount < MAX_CLIENTS) {
     line++; // skip the newline
     if (*line == '\0') {
       break;
     }
 
     // isolate the current player line to prevent cross-line key lookups
-    const char *line_end = q_strchr(line, '\n');
-    char cur_line[256];
-    if (line_end) {
-      q_strlcpy(cur_line, line, (size_t) (line_end - line) + 1 < sizeof(cur_line) ? (size_t)(line_end - line) + 1 : sizeof(cur_line));
+    const char *lineEnd = q_strchr(line, '\n');
+    char curLine[256];
+    if (lineEnd) {
+      q_strlcpy(curLine, line, (size_t) (lineEnd - line) + 1 < sizeof(curLine) ? (size_t)(lineEnd - line) + 1 : sizeof(curLine));
     } else {
-      q_strlcpy(cur_line, line, sizeof(cur_line));
+      q_strlcpy(curLine, line, sizeof(curLine));
     }
 
     char name[64] = { 0 };
-    char ai_val[4] = { 0 };
-    if (Ms_InfoValue(cur_line, "name", name, sizeof(name)) && name[0]) {
+    char aiVal[4] = { 0 };
+    if (Ms_InfoValue(curLine, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
       q_strcolorstrip(name, stripped);
-      Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
-      Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
-      if (!atoi(ai_val)) {
-        q_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
-        new_count++;
+      Ms_InfoValue(curLine, "ai", aiVal, sizeof(aiVal));
+      Com_Verbose("Player: %s ai=%s\n", stripped, aiVal[0] ? aiVal : "(none)");
+      if (!atoi(aiVal)) {
+        q_strlcpy(newPlayers[newCount], stripped, sizeof(newPlayers[newCount]));
+        newCount++;
       }
     }
 
-    line = line_end;
+    line = lineEnd;
   }
 
-  const int32_t old_count = server->num_clients;
-  const bool initialized = (old_count >= 0);
+  const int32_t oldCount = server->numClients;
+  const bool initialized = (oldCount >= 0);
 
-  if (initialized && !map_changed) {
-    for (int32_t i = 0; i < new_count; i++) {
+  if (initialized && !mapChanged) {
+    for (int32_t i = 0; i < newCount; i++) {
       bool found = false;
-      for (int32_t j = 0; j < old_count; j++) {
-        if (!q_strcmp(new_players[i], server->players[j])) {
+      for (int32_t j = 0; j < oldCount; j++) {
+        if (!q_strcmp(newPlayers[i], server->players[j])) {
           found = true;
           break;
         }
       }
       if (!found) {
-        Ms_DiscordNotify(server, new_players[i], new_count);
+        Ms_DiscordNotify(server, newPlayers[i], newCount);
       }
     }
   }
 
-  server->num_clients = new_count;
-  for (int32_t i = 0; i < new_count; i++) {
-    q_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
+  server->numClients = newCount;
+  for (int32_t i = 0; i < newCount; i++) {
+    q_strlcpy(server->players[i], newPlayers[i], sizeof(server->players[i]));
   }
 }
 
@@ -287,10 +287,10 @@ static const char *atos(const struct sockaddr_in *addr) {
 /**
  * @brief Returns the server for the specified address, or `NULL`.
  */
-static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
+static MasterServer *Ms_GetServer(struct sockaddr_in *from) {
 
-  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    ms_server_t *server = (ms_server_t *) s->element;
+  for (const ListNode *s = msServers ? msServers->head : NULL; s; s = s->next) {
+    MasterServer *server = (MasterServer *) s->element;
 
     const struct sockaddr_in *addr = &server->addr;
     if (addr->sin_addr.s_addr == from->sin_addr.s_addr && addr->sin_port == from->sin_port) {
@@ -304,12 +304,12 @@ static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
 /**
  * @brief Removes the specified server.
  */
-static void Ms_DropServer(ms_server_t *server) {
+static void Ms_DropServer(MasterServer *server) {
 
-  if (ms_servers) {
-    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+  if (msServers) {
+    for (const ListNode *s = msServers->head; s; s = s->next) {
       if (s->element == server) {
-        $(ms_servers, removeNode, (ListNode *) s);
+        $(msServers, removeNode, (ListNode *) s);
         break;
       }
     }
@@ -380,7 +380,7 @@ static uint32_t Ms_Challenge(void) {
       Com_Error(ERROR_FATAL, "Failed to generate a challenge\n");
     }
 #else
-    if (read(ms_urandom, &challenge, sizeof(challenge)) != (ssize_t) sizeof(challenge)) {
+    if (read(msUrandom, &challenge, sizeof(challenge)) != (ssize_t) sizeof(challenge)) {
       Com_Error(ERROR_FATAL, "Failed to read /dev/urandom: %s\n", strerror(errno));
     }
 #endif
@@ -393,9 +393,9 @@ static uint32_t Ms_Challenge(void) {
  * @brief Issues the specified server's challenge, which it must echo in a
  * subsequent heartbeat to be listed.
  */
-static void Ms_SendChallenge(ms_server_t *server, time_t now) {
+static void Ms_SendChallenge(MasterServer *server, time_t now) {
 
-  if (server->last_challenge && now - server->last_challenge < CHALLENGE_INTERVAL_SECONDS) {
+  if (server->lastChallenge && now - server->lastChallenge < CHALLENGE_INTERVAL_SECONDS) {
     return; // do not let a heartbeat flood become a challenge flood
   }
 
@@ -403,7 +403,7 @@ static void Ms_SendChallenge(ms_server_t *server, time_t now) {
     server->challenge = Ms_Challenge();
   }
 
-  server->last_challenge = now;
+  server->lastChallenge = now;
 
   char buffer[32];
   memcpy(buffer, "\xFF\xFF\xFF\xFF", 4);
@@ -412,7 +412,7 @@ static void Ms_SendChallenge(ms_server_t *server, time_t now) {
 
   Com_Verbose("Challenging %s\n", stos(server));
 
-  sendto(ms_sock, buffer, 4 + len, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
+  sendto(msSock, buffer, 4 + len, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
 }
 
 /**
@@ -433,7 +433,7 @@ static uint32_t Ms_ParseChallenge(const char *cmd, const char *name) {
  * @brief Adds the specified server to the master.
  * @return The newly registered server, or `NULL` if it was rejected.
  */
-static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
+static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
 
   if (Ms_GetServer(from)) {
     Com_Warn("Duplicate registration from %s\n", atos(from));
@@ -441,14 +441,14 @@ static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
   }
 
   // bound the list before touching the filesystem for the blacklist
-  if (ms_servers && ms_servers->count >= MAX_SERVERS) {
+  if (msServers && msServers->count >= MAX_SERVERS) {
     Com_Warn("Server list is full, rejecting %s\n", atos(from));
     return NULL;
   }
 
   size_t pending = 0;
-  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    if (!((const ms_server_t *) s->element)->validated) {
+  for (const ListNode *s = msServers ? msServers->head : NULL; s; s = s->next) {
+    if (!((const MasterServer *) s->element)->validated) {
       pending++;
     }
   }
@@ -463,17 +463,17 @@ static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
     return NULL;
   }
 
-  ms_server_t *server = Mem_Malloc(sizeof(ms_server_t));
+  MasterServer *server = Mem_Malloc(sizeof(MasterServer));
 
   server->addr = *from;
   server->registered = time(NULL);
-  server->last_heartbeat = server->registered;
-  server->num_clients = -1;
+  server->lastHeartbeat = server->registered;
+  server->numClients = -1;
 
-  if (!ms_servers) {
-    ms_servers = $(alloc(List), init);
+  if (!msServers) {
+    msServers = $(alloc(List), init);
   }
-  $(ms_servers, append, server);
+  $(msServers, append, server);
   Com_Print("Server %s registered, awaiting validation\n", stos(server));
 
   return server;
@@ -483,7 +483,7 @@ static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
  * @brief Removes the specified server.
  */
 static void Ms_RemoveServer(struct sockaddr_in *from, const char *cmd) {
-  ms_server_t *server = Ms_GetServer(from);
+  MasterServer *server = Ms_GetServer(from);
 
   if (!server) {
     Com_Warn("Shutdown from unregistered server %s\n", atos(from));
@@ -509,11 +509,11 @@ static void Ms_RemoveServer(struct sockaddr_in *from, const char *cmd) {
 static void Ms_Frame(void) {
   const time_t now = time(NULL);
 
-  for (ListNode *s = ms_servers ? ms_servers->head : NULL; s; ) {
+  for (ListNode *s = msServers ? msServers->head : NULL; s; ) {
     ListNode *next = s->next;
-    ms_server_t *server = (ms_server_t *) s->element;
+    MasterServer *server = (MasterServer *) s->element;
 
-    if (now - server->last_heartbeat > SERVER_TIMEOUT_SECONDS) {
+    if (now - server->lastHeartbeat > SERVER_TIMEOUT_SECONDS) {
       Com_Print("Server %s timed out\n", stos(server));
       Ms_DropServer(server);
     } else if (!server->validated && now - server->registered > VALIDATION_TIMEOUT_SECONDS) {
@@ -529,7 +529,7 @@ static void Ms_Frame(void) {
  * @brief Send the servers list to the specified client address.
  */
 static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
-  mem_buf_t buf;
+  MemBuf buf;
   byte buffer[0xffff];
 
   // parse optional protocol version from command (e.g. "getservers 2026"), zero for all
@@ -549,8 +549,8 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   Mem_WriteBuffer(&buf, servers, q_strlen(servers));
 
   uint32_t i = 0;
-  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    const ms_server_t *server = (ms_server_t *) s->element;
+  for (const ListNode *s = msServers ? msServers->head : NULL; s; s = s->next) {
+    const MasterServer *server = (MasterServer *) s->element;
     if (server->validated && (protocol == 0 || server->protocol == protocol)) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
@@ -558,7 +558,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
     }
   }
 
-  if ((sendto(ms_sock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
+  if ((sendto(msSock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
     Com_Warn("%s: %s\n", atos(from), strerror(errno));
   } else {
     Com_Verbose("Sent %d servers (protocol %d) to %s\n", i, protocol, atos(from));
@@ -575,7 +575,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *
 
   const uint32_t challenge = Ms_ParseChallenge(cmd, "heartbeat");
 
-  ms_server_t *server = Ms_GetServer(from);
+  MasterServer *server = Ms_GetServer(from);
 
   if (!server) {
     if (!(server = Ms_AddServer(from))) {
@@ -592,7 +592,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *
     return;
   }
 
-  server->last_heartbeat = now;
+  server->lastHeartbeat = now;
 
   if (!server->validated) {
     server->validated = true;
@@ -639,7 +639,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 /**
  * @brief `Com_Debug` implementation.
  */
-static void Debug(const debug_t debug, const char *msg) {
+static void Debug(const DebugFlags debug, const char *msg) {
 
   if (debug) {
     fputs(msg, stdout);
@@ -675,11 +675,11 @@ static void Shutdown(const char *msg) {
     fputs(msg, stdout);
   }
 
-  if (ms_servers) {
-    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+  if (msServers) {
+    for (const ListNode *s = msServers->head; s; s = s->next) {
       Mem_Free(s->element);
     }
-    release(ms_servers);
+    release(msServers);
   }
 
   Fs_Shutdown();
@@ -703,7 +703,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
   quetoo.Init = Init;
   quetoo.Shutdown = Shutdown;
-  quetoo.log_file_name = "quetoo-master.log";
+  quetoo.logFileName = "quetoo-master.log";
 
   signal(SIGINT, Sys_Signal);
   signal(SIGTERM, Sys_Signal);
@@ -729,18 +729,18 @@ int32_t quetoo_main(int32_t argc, char **argv) {
     }
   }
 
-  ms_discord_webhook = getenv("QUETOO_DISCORD_WEBHOOK");
-  if (ms_discord_webhook) {
+  msDiscordWebhook = getenv("QUETOO_DISCORD_WEBHOOK");
+  if (msDiscordWebhook) {
     Com_Print("Discord webhook configured\n");
   }
 
 #if !defined(_WIN32)
-  if ((ms_urandom = open("/dev/urandom", O_RDONLY)) == -1) {
+  if ((msUrandom = open("/dev/urandom", O_RDONLY)) == -1) {
     Com_Error(ERROR_FATAL, "Failed to open /dev/urandom: %s\n", strerror(errno));
   }
 #endif
 
-  ms_sock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  msSock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   struct sockaddr_in address;
   memset(&address, 0, sizeof(address));
@@ -749,7 +749,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   address.sin_port = htons(PORT_MASTER);
   address.sin_addr.s_addr = INADDR_ANY;
 
-  if ((bind(ms_sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
+  if ((bind(msSock, (struct sockaddr *) &address, sizeof(address))) == -1) {
     Com_Error(ERROR_FATAL, "Failed to bind port %i\n", PORT_MASTER);
   }
 
@@ -760,18 +760,18 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
     FD_ZERO(&set);
 #if defined(_WIN32)
-    FD_SET((SOCKET) ms_sock, &set);
+    FD_SET((SOCKET) msSock, &set);
 #else
-    FD_SET(ms_sock, &set);
+    FD_SET(msSock, &set);
 #endif
 
     struct timeval delay;
     delay.tv_sec = 1;
     delay.tv_usec = 0;
 
-    if (select(ms_sock + 1, &set, NULL, NULL, &delay) > 0) {
+    if (select(msSock + 1, &set, NULL, NULL, &delay) > 0) {
 
-      if (FD_ISSET(ms_sock, &set)) {
+      if (FD_ISSET(msSock, &set)) {
 
         char buffer[0xffff];
         memset(buffer, 0, sizeof(buffer));
@@ -779,10 +779,10 @@ int32_t quetoo_main(int32_t argc, char **argv) {
         struct sockaddr_in from;
         memset(&from, 0, sizeof(from));
 
-        socklen_t from_len = sizeof(from);
+        socklen_t fromLen = sizeof(from);
 
-        const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer) - 1, 0,
-                                     (struct sockaddr *) &from, &from_len);
+        const ssize_t len = recvfrom(msSock, buffer, sizeof(buffer) - 1, 0,
+                                     (struct sockaddr *) &from, &fromLen);
 
         if (len > 0) {
           buffer[len] = '\0';

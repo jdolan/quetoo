@@ -33,35 +33,35 @@
 
 bool leaked = false;
 
-float micro_volume = 0.125;
+float microVolume = 0.125;
 
-bool no_csg = false;
-bool no_detail = false;
-bool no_liquid = false;
-bool no_merge = false;
-bool no_phong = false;
-bool no_tjunc = false;
-bool no_weld = false;
+bool noCsg = false;
+bool noDetail = false;
+bool noLiquid = false;
+bool noMerge = false;
+bool noPhong = false;
+bool noTjunc = false;
+bool noWeld = false;
 
 /**
  * @brief Compiles the world model entity, performing CSG, BSP, portal, and face generation.
  */
-static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
+static void ProcessWorldModel(const Entity *e, BspModel *out) {
 
-  csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+  CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
 
-  if (!no_csg) {
+  if (!noCsg) {
     brushes = SubtractBrushes(brushes);
   }
 
-  tree_t *tree = BuildTree(brushes);
+  Tree *tree = BuildTree(brushes);
 
   MakeTreePortals(tree);
 
   if (FloodEntities(tree)) {
     FillOutside(tree);
   } else {
-    Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
+    Com_Warn("Map leaked, writing maps/%s.lin\n", mapBase);
     leaked = true;
 
     WriteLeakFile(tree);
@@ -71,19 +71,19 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
   MakeTreeFaces(tree);
 
-  if (!no_merge) {
+  if (!noMerge) {
     MergeTreeFaces(tree);
   }
 
-  if (!no_tjunc) {
+  if (!noTjunc) {
     FixTJunctions(tree);
   }
 
   TessellatePatches(out->entity);
 
-  AssignPatchFacesToNodes(tree->head_node, out->entity);
+  AssignPatchFacesToNodes(tree->headNode, out->entity);
 
-  out->head_node = EmitNodes(tree);
+  out->headNode = EmitNodes(tree);
 
   FreeTree(tree);
 }
@@ -91,14 +91,14 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 /**
  * @brief Compiles a brush entity as an inline BSP model (e.g. `func_door`, `func_plat`).
  */
-static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
+static void ProcessInlineModel(const Entity *e, BspModel *out) {
 
-  csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
-  if (!no_csg) {
+  CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
+  if (!noCsg) {
     brushes = SubtractBrushes(brushes);
   }
 
-  tree_t *tree = BuildTree(brushes);
+  Tree *tree = BuildTree(brushes);
 
   MakeTreePortals(tree);
 
@@ -106,19 +106,19 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
   MakeTreeFaces(tree);
 
-  if (!no_merge) {
+  if (!noMerge) {
     MergeTreeFaces(tree);
   }
 
-  if (!no_tjunc) {
+  if (!noTjunc) {
     FixTJunctions(tree);
   }
 
   TessellatePatches(out->entity);
 
-  AssignPatchFacesToNodes(tree->head_node, out->entity);
+  AssignPatchFacesToNodes(tree->headNode, out->entity);
 
-  out->head_node = EmitNodes(tree);
+  out->headNode = EmitNodes(tree);
 
   FreeTree(tree);
 }
@@ -128,17 +128,17 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
  */
 static void ProcessModels(void) {
 
-  for (int32_t i = 0; i < num_entities; i++) {
-    const entity_t *e = entities + i;
+  for (int32_t i = 0; i < numEntities; i++) {
+    const Entity *e = entities + i;
 
-    if (!e->num_brush_sides) {
+    if (!e->numBrushSides) {
       continue;
     }
 
-    const vec3_t origin = VectorForKey(e, "origin", Vec3_Zero());
+    const Vec3 origin = VectorForKey(e, "origin", Vec3_Zero());
     Com_Print("%s @ %s\n", ValueForKey(e, "classname", "Unknown"), vtos(origin));
 
-    bsp_model_t *mod = BeginModel(e);
+    BspModel *mod = BeginModel(e);
     if (i == 0) {
       ProcessWorldModel(e, mod);
     } else {
@@ -157,18 +157,18 @@ static void ProcessModels(void) {
 int32_t BSP_Main(void) {
 
   Com_Print("\n------------------------------------------\n");
-  Com_Print("\nCompiling %s from %s\n\n", bsp_name, map_name);
+  Com_Print("\nCompiling %s from %s\n\n", bspName, mapName);
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  Fs_Delete(va("maps/%s.prt", map_base));
-  Fs_Delete(va("maps/%s.lin", map_base));
+  Fs_Delete(va("maps/%s.prt", mapBase));
+  Fs_Delete(va("maps/%s.lin", mapBase));
 
   BeginBSPFile();
 
-  map_format = LoadMapFile(map_name);
+  mapFormat = LoadMapFile(mapName);
 
-  Com_Verbose("Map format: %s\n", map_format == MAP_FORMAT_VALVE ? "Quake3 (Valve)" : "Quake3");
+  Com_Verbose("Map format: %s\n", mapFormat == MAP_FORMAT_VALVE ? "Quake3 (Valve)" : "Quake3");
 
   EmitPlanes();
   EmitMaterials();
@@ -181,7 +181,7 @@ int32_t BSP_Main(void) {
 
   TangentVectors();
 
-  WriteBSPFile(bsp_name);
+  WriteBSPFile(bspName);
 
   FreeWindings();
 
@@ -190,7 +190,7 @@ int32_t BSP_Main(void) {
   }
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
-  Com_Print("\nCompiled %s in %d ms\n", bsp_name, (end - start));
+  Com_Print("\nCompiled %s in %d ms\n", bspName, (end - start));
 
   return 0;
 }

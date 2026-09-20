@@ -26,12 +26,12 @@
 /**
  * @brief The map file representation of a plane.
  */
-typedef struct plane_s {
+typedef struct Plane {
 
   /**
    * @brief The plane normal vector.
    */
-  vec3_t normal;
+  Vec3 normal;
 
   /**
    * @brief The plane distance, with full double precision.
@@ -46,8 +46,8 @@ typedef struct plane_s {
   /**
    * @brief The plane hash chain, for fast plane lookups.
    */
-  struct plane_s *hash_chain;
-} plane_t;
+  struct Plane *hashChain;
+} Plane;
 
 /**
  * @brief The map file reprensetation of a brush side.
@@ -56,7 +56,7 @@ typedef struct plane_s {
  * bevels. Bevels should not be used for BSP splitting and face generation. They are
  * only used for collision detection.
  */
-typedef struct brush_side_s {
+typedef struct BrushSide {
 
   /**
    * @brief The texture name.
@@ -66,7 +66,7 @@ typedef struct brush_side_s {
   /**
    * @brief The texture shift, in pixels.
    */
-  vec2_t shift;
+  Vec2 shift;
 
   /**
    * @brief The texture rotation, in Euler degrees.
@@ -76,12 +76,12 @@ typedef struct brush_side_s {
   /**
    * @brief The texture scale.
    */
-  vec2_t scale;
+  Vec2 scale;
 
   /**
    * @brief The texture axis for S and T, in xyz + offset notation.
    */
-  vec4_t axis[2];
+  Vec4 axis[2];
 
   /**
    * @brief The `CONTENTS_`* mask.
@@ -111,23 +111,23 @@ typedef struct brush_side_s {
   /**
    * @brief All brush sides will have a valid winding.
    */
-  cm_winding_t *winding;
+  CmWinding *winding;
 
   /**
    * @brief Points to the original side from which this split side was derived.
    */
-  const struct brush_side_s *original;
+  const struct BrushSide *original;
 
   /**
    * @brief The BSP brush side emitted from this map brush side.
    */
-  bsp_brush_side_t *out;
-} brush_side_t;
+  BspBrushSide *out;
+} BrushSide;
 
 /**
  * @brief The map file representation of a brush.
  */
-typedef struct brush_s {
+typedef struct Brush {
 
   /**
    * @brief The entity number within the map.
@@ -147,23 +147,23 @@ typedef struct brush_s {
   /**
    * @brief The brush bounds, calculated by clipping all side planes against each other.
    */
-  box3_t bounds;
+  Box3 bounds;
 
   /**
    * @brief The brush sides (pointer to a statically allocated global array).
    */
-  brush_side_t *brush_sides;
+  BrushSide *brushSides;
 
   /**
    * @brief The number of brush sides.
    */
-  int32_t num_brush_sides;
+  int32_t numBrushSides;
 
   /**
    * @brief The BSP brush emitted from this map brush.
    */
-  bsp_brush_t *out;
-} brush_t;
+  BspBrush *out;
+} Brush;
 
 /**
  * @brief Map file format.
@@ -173,25 +173,25 @@ typedef enum {
     MAP_FORMAT_Q2,   // Quake II style map/bsp
     MAP_FORMAT_Q3,   // Quake III / Radiant style map
     MAP_FORMAT_VALVE // Valve / Source style map (optional)
-} map_format_t;
+} MapFormat;
 
-extern map_format_t map_format;
+extern MapFormat mapFormat;
 
-extern int32_t num_entities;
-extern entity_t entities[MAX_BSP_ENTITIES];
+extern int32_t numEntities;
+extern Entity entities[MAX_BSP_ENTITIES];
 
-extern plane_t planes[MAX_BSP_PLANES];
-extern int32_t num_planes;
+extern Plane planes[MAX_BSP_PLANES];
+extern int32_t numPlanes;
 
-extern int32_t num_brushes;
-extern brush_t brushes[MAX_BSP_BRUSHES];
+extern int32_t numBrushes;
+extern Brush brushes[MAX_BSP_BRUSHES];
 
-extern int32_t num_brush_sides;
-extern brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
+extern int32_t numBrushSides;
+extern BrushSide brushSides[MAX_BSP_BRUSH_SIDES];
 
-extern box3_t map_bounds;
+extern Box3 mapBounds;
 
-int32_t FindPlane(const vec3_t normal, double dist);
-void MakeBrushWindings(brush_t *brush);
-void AddBrushBevels(brush_t *b);
-map_format_t LoadMapFile(const char *filename);
+int32_t FindPlane(const Vec3 normal, double dist);
+void MakeBrushWindings(Brush *brush);
+void AddBrushBevels(Brush *b);
+MapFormat LoadMapFile(const char *filename);

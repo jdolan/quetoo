@@ -24,7 +24,7 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-bool G_AddClientToTeam(g_client_t *cl, const char *team_name);
-void G_ClientCommand(g_client_t *cl);
+bool G_AddClientToTeam(GameClient *cl, const char *teamName);
+void G_ClientCommand(GameClient *cl);
 void G_Mute_f(void);
 #endif

@@ -33,7 +33,7 @@ CGAME_EXPORT void cvarCheckboxDidToggle(Checkbox *checkbox);
 
 /**
  * @file
- * @brief A Checkbox bound to a cvar_t.
+ * @brief A Checkbox bound to a Cvar.
  */
 
 typedef struct CvarCheckbox CvarCheckbox;
@@ -60,7 +60,7 @@ struct CvarCheckbox {
   /**
    * @brief The variable.
    */
-  cvar_t *var;
+  Cvar *var;
 };
 
 /**
@@ -74,13 +74,13 @@ struct CvarCheckboxInterface {
   CheckboxInterface checkboxInterface;
 
   /**
-   * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, cvar_t *var)
+   * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, Cvar *var)
    * @brief Initializes this Checkbox with the given variable.
    * @param var The variable.
    * @return The initialized CvarCheckbox, or `NULL` on error.
    * @memberof CvarCheckbox
    */
-  CvarCheckbox *(*initWithVariable)(CvarCheckbox *self, cvar_t *var);
+  CvarCheckbox *(*initWithVariable)(CvarCheckbox *self, Cvar *var);
 };
 
 /**

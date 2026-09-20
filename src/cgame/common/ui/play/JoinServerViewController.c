@@ -43,14 +43,14 @@ static const char *_unset = "—";
  */
 #define JOIN_PING_UNANSWERED 999
 
-static cvar_t *cg_join_server_hide_empty;
-static cvar_t *cg_join_server_hide_bots;
+static Cvar *cg_joinServerHideEmpty;
+static Cvar *cg_joinServerHideBots;
 
 static JoinServerViewController *sortingJoinServerViewController;
 
 #define _Class _JoinServerViewController
 
-static const cl_server_info_t *serverAtIndex(const PointerArray *servers, size_t index) {
+static const ClientServerInfo *serverAtIndex(const PointerArray *servers, size_t index) {
 
   if (servers == NULL || index >= servers->count) {
     return NULL;
@@ -63,7 +63,7 @@ static const cl_server_info_t *serverAtIndex(const PointerArray *servers, size_t
  * @brief Whether `addr` names a selected server, as opposed to the zeroed
  * address that stands for no selection.
  */
-static bool isSelectable(const net_addr_t *addr) {
+static bool isSelectable(const NetAddr *addr) {
   return addr->addr || addr->port;
 }
 
@@ -72,7 +72,7 @@ static bool isSelectable(const net_addr_t *addr) {
  * @remarks `Net_CompareNetaddr` lives in the engine's socket layer, which the
  * modules do not link, so the fields are compared directly.
  */
-static bool sameAddr(const net_addr_t *a, const net_addr_t *b) {
+static bool sameAddr(const NetAddr *a, const NetAddr *b) {
   return a->addr == b->addr && a->port == b->port;
 }
 
@@ -80,14 +80,14 @@ static bool sameAddr(const net_addr_t *a, const net_addr_t *b) {
  * @brief Returns the selected server, by address rather than by row index, so
  * that the selection survives a re-sort and a refresh.
  */
-static const cl_server_info_t *selectedServer(const JoinServerViewController *self) {
+static const ClientServerInfo *selectedServer(const JoinServerViewController *self) {
 
   if (self->servers == NULL || !isSelectable(&self->selectedAddr)) {
     return NULL;
   }
 
   for (size_t i = 0; i < self->servers->count; i++) {
-    const cl_server_info_t *server = $(self->servers, get, i);
+    const ClientServerInfo *server = $(self->servers, get, i);
     if (sameAddr(&server->addr, &self->selectedAddr)) {
       return server;
     }
@@ -105,13 +105,13 @@ static void setLabelText(Label *label, const char *text) {
  * number, so that moving the slider visibly splits the list.
  */
 static int32_t maxPing(void) {
-  return Clampf(cg_quick_join_max_ping->integer, 1, 999);
+  return Clampf(cg_quickJoinMaxPing->integer, 1, 999);
 }
 
 /**
  * @brief True when the client never got an answer from this server.
  */
-static bool pingUnanswered(const cl_server_info_t *server) {
+static bool pingUnanswered(const ClientServerInfo *server) {
   return server->ping <= 0 || server->ping >= JOIN_PING_UNANSWERED;
 }
 
@@ -122,7 +122,7 @@ static bool pingUnanswered(const cl_server_info_t *server) {
  * network byte order the address is stored in - no host byte order
  * assumption.
  */
-static const char *addressLabel(const net_addr_t *addr) {
+static const char *addressLabel(const NetAddr *addr) {
 
   const uint8_t *ip = (const uint8_t *) &addr->addr;
   const uint8_t *port = (const uint8_t *) &addr->port;
@@ -131,7 +131,7 @@ static const char *addressLabel(const net_addr_t *addr) {
             (uint32_t) port[0] << 8 | port[1]);
 }
 
-static const char *sourceLabel(const cl_server_info_t *server) {
+static const char *sourceLabel(const ClientServerInfo *server) {
 
   switch (server->source) {
     case SERVER_SOURCE_INTERNET:
@@ -161,7 +161,7 @@ static void setDetailsPopulated(JoinServerViewController *self, const bool popul
 /**
  * @brief Shows the selected server's mapshot, when its map is installed locally.
  */
-static void refreshMapshot(JoinServerViewController *self, const cl_server_info_t *server) {
+static void refreshMapshot(JoinServerViewController *self, const ClientServerInfo *server) {
 
   SDL_Surface *surface = NULL;
 
@@ -189,7 +189,7 @@ static void refreshMapshot(JoinServerViewController *self, const cl_server_info_
  */
 static void refreshDetails(JoinServerViewController *self) {
 
-  const cl_server_info_t *server = selectedServer(self);
+  const ClientServerInfo *server = selectedServer(self);
 
   setDetailsPopulated(self, server != NULL);
   refreshMapshot(self, server);
@@ -208,7 +208,7 @@ static void refreshDetails(JoinServerViewController *self) {
   setLabelText(self->mapLabel, *server->name ? server->name : _unset);
   setLabelText(self->gameplayLabel, *server->gameplay ? server->gameplay : _unset);
   setLabelText(self->movementLabel, *server->movement ? server->movement : _unset);
-  setLabelText(self->playersLabel, va("%d / %d", server->clients, server->max_clients));
+  setLabelText(self->playersLabel, va("%d / %d", server->clients, server->maxClients));
   setLabelText(self->pingLabel, pingUnanswered(server) ? _unset : va("%d ms", server->ping));
 
   $((View *) self->connectButton, setVisibility, ViewVisibilityVisible);
@@ -227,7 +227,7 @@ static void restoreSelection(JoinServerViewController *self) {
   ssize_t index = -1;
   const size_t count = self->servers ? self->servers->count : 0;
   for (size_t row = 0; row < count; row++) {
-    const cl_server_info_t *server = $(self->servers, get, row);
+    const ClientServerInfo *server = $(self->servers, get, row);
     if (sameAddr(&server->addr, &self->selectedAddr)) {
       index = (ssize_t) row;
       break;
@@ -289,61 +289,61 @@ static void didClickQuickJoin(Button *button) {
 
   JoinServerViewController *this = button->delegate.self;
 
-  const int32_t max_ping = maxPing();
-  const int32_t min_clients = Clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
+  const int32_t maxPingValue = maxPing();
+  const int32_t minClients = Clampf(cg_quickJoinMinClients->integer, 0, MAX_CLIENTS);
 
-  uint32_t total_weight = 0;
+  uint32_t totalWeight = 0;
 
   const size_t count = this->servers ? this->servers->count : 0;
 
   for (size_t i = 0; i < count; i++) {
-    const cl_server_info_t *server = $(this->servers, get, i);
+    const ClientServerInfo *server = $(this->servers, get, i);
 
     int32_t weight = 1;
 
-    if (!(server->clients < min_clients || server->clients >= server->max_clients)) {
+    if (!(server->clients < minClients || server->clients >= server->maxClients)) {
       // more weight for more populated servers
-      weight += (server->clients - min_clients) * 5;
+      weight += (server->clients - minClients) * 5;
 
       // more weight for lower ping servers
-      weight += (max_ping - server->ping) / 10;
+      weight += (maxPingValue - server->ping) / 10;
 
-      if (server->ping > max_ping) { // one third weight for high ping servers
+      if (server->ping > maxPingValue) { // one third weight for high ping servers
         weight /= 3;
       }
     }
 
-    total_weight += max(weight, 1);
+    totalWeight += max(weight, 1);
   }
 
-  if (total_weight == 0) {
+  if (totalWeight == 0) {
     return;
   }
 
-  const uint32_t random_weight = RandomRangeu(0, total_weight);
-  uint32_t current_weight = 0;
+  const uint32_t randomWeight = RandomRangeu(0, totalWeight);
+  uint32_t currentWeight = 0;
 
   for (size_t i = 0; i < count; i++) {
-    const cl_server_info_t *server = $(this->servers, get, i);
+    const ClientServerInfo *server = $(this->servers, get, i);
 
     int32_t weight = 1;
 
-    if (server->ping > max_ping ||
-      server->clients < min_clients ||
-      server->clients >= server->max_clients) {
+    if (server->ping > maxPingValue ||
+      server->clients < minClients ||
+      server->clients >= server->maxClients) {
 
       weight = 0;
     } else {
       // more weight for more populated servers
-      weight += server->clients - min_clients;
+      weight += server->clients - minClients;
 
       // more weight for lower ping servers
-      weight += (max_ping - server->ping) / 20;
+      weight += (maxPingValue - server->ping) / 20;
     }
 
-    current_weight += weight;
+    currentWeight += weight;
 
-    if (current_weight > random_weight) {
+    if (currentWeight > randomWeight) {
       cgi.Connect(&server->addr);
       break;
     }
@@ -366,7 +366,7 @@ static void didClickConnect(Button *button) {
 
   JoinServerViewController *this = button->delegate.self;
 
-  const cl_server_info_t *server = selectedServer(this);
+  const ClientServerInfo *server = selectedServer(this);
   if (server) {
     cgi.Connect(&server->addr);
   }
@@ -387,7 +387,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   const JoinServerViewController *this = tableView->dataSource.self;
 
-  cl_server_info_t *server = (cl_server_info_t *) serverAtIndex(this->servers, row);
+  ClientServerInfo *server = (ClientServerInfo *) serverAtIndex(this->servers, row);
   assert(server);
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
@@ -405,7 +405,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   } else if (q_strcmp(column->identifier, _map) == 0) {
     $(cell->text, setText, server->name);
   } else if (q_strcmp(column->identifier, _players) == 0) {
-    $(cell->text, setText, va("%d / %d", server->clients, server->max_clients));
+    $(cell->text, setText, va("%d / %d", server->clients, server->maxClients));
   } else if (q_strcmp(column->identifier, _ping) == 0) {
 
     if (pingUnanswered(server)) {
@@ -438,7 +438,7 @@ static void didSelectRowsAtIndexes(TableView *tableView, const IndexSet *indexes
     return;
   }
 
-  const cl_server_info_t *server = serverAtIndex(this->servers, indexes->indexes[0]);
+  const ClientServerInfo *server = serverAtIndex(this->servers, indexes->indexes[0]);
   if (server == NULL) {
     return;
   }
@@ -480,18 +480,18 @@ static void loadView(ViewController *self) {
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("servers", &this->serversTableView),
-    MakeOutlet("servers_empty", &this->emptyLabel),
-    MakeOutlet("server_hostname", &this->hostnameLabel),
-    MakeOutlet("server_address", &this->addressLabel),
-    MakeOutlet("server_hint", &this->hintLabel),
-    MakeOutlet("server_grid", &this->detailGrid),
-    MakeOutlet("server_source", &this->sourceLabel),
-    MakeOutlet("server_map", &this->mapLabel),
-    MakeOutlet("server_gameplay", &this->gameplayLabel),
-    MakeOutlet("server_movement", &this->movementLabel),
-    MakeOutlet("server_mapshot", &this->mapshotView),
-    MakeOutlet("server_players", &this->playersLabel),
-    MakeOutlet("server_ping", &this->pingLabel),
+    MakeOutlet("serversEmpty", &this->emptyLabel),
+    MakeOutlet("serverHostname", &this->hostnameLabel),
+    MakeOutlet("serverAddress", &this->addressLabel),
+    MakeOutlet("serverHint", &this->hintLabel),
+    MakeOutlet("serverGrid", &this->detailGrid),
+    MakeOutlet("serverSource", &this->sourceLabel),
+    MakeOutlet("serverMap", &this->mapLabel),
+    MakeOutlet("serverGameplay", &this->gameplayLabel),
+    MakeOutlet("serverMovement", &this->movementLabel),
+    MakeOutlet("serverMapshot", &this->mapshotView),
+    MakeOutlet("serverPlayers", &this->playersLabel),
+    MakeOutlet("serverPing", &this->pingLabel),
     MakeOutlet("connect", &this->connectButton),
     MakeOutlet("quickJoin", &quickJoin),
     MakeOutlet("refresh", &refresh),
@@ -579,15 +579,15 @@ static Order comparator(const ident a, const ident b) {
 
   // an unanswered server goes last, whichever way the ping column points
   if (sortColumn && q_strcmp(sortColumn->identifier, _ping) == 0) {
-    const bool leftUnanswered = pingUnanswered((const cl_server_info_t *) a);
-    const bool rightUnanswered = pingUnanswered((const cl_server_info_t *) b);
+    const bool leftUnanswered = pingUnanswered((const ClientServerInfo *) a);
+    const bool rightUnanswered = pingUnanswered((const ClientServerInfo *) b);
     if (leftUnanswered != rightUnanswered) {
       return leftUnanswered ? OrderDescending : OrderAscending;
     }
   }
 
   if (sortColumn) {
-    const cl_server_info_t *s0, *s1;
+    const ClientServerInfo *s0, *s1;
 
     switch (sortColumn->order) {
       case OrderAscending:
@@ -638,14 +638,14 @@ static void reloadServers(JoinServerViewController *self) {
   uint32_t hidden = 0;
 
   for (size_t i = 0; i < count; i++) {
-    cl_server_info_t *server = $(servers, get, i);
+    ClientServerInfo *server = $(servers, get, i);
 
-    const int32_t clients = cg_join_server_hide_bots->value ? server->clients - server->bots : server->clients;
+    const int32_t clients = cg_joinServerHideBots->value ? server->clients - server->bots : server->clients;
 
-    if (clients == 0 && (cg_join_server_hide_empty->value || cg_join_server_hide_bots->value)) {
+    if (clients == 0 && (cg_joinServerHideEmpty->value || cg_joinServerHideBots->value)) {
       Cg_Debug("Hiding %s: %d clients, %d bots, hide_empty %d, hide_bots %d\n",
                server->hostname, server->clients, server->bots,
-               cg_join_server_hide_empty->integer, cg_join_server_hide_bots->integer);
+               cg_joinServerHideEmpty->integer, cg_joinServerHideBots->integer);
 
       hidden++;
       continue;
@@ -685,8 +685,8 @@ static void initialize(Class *clazz) {
 
   ((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;
 
-  cg_join_server_hide_empty = cgi.AddCvar("cg_join_server_hide_empty", "0", CVAR_ARCHIVE, NULL);
-  cg_join_server_hide_bots = cgi.AddCvar("cg_join_server_hide_bots", "0", CVAR_ARCHIVE, NULL);
+  cg_joinServerHideEmpty = cgi.AddCvar("cg_joinServerHideEmpty", "0", CVAR_ARCHIVE, NULL);
+  cg_joinServerHideBots = cgi.AddCvar("cg_joinServerHideBots", "0", CVAR_ARCHIVE, NULL);
 }
 
 /**

@@ -25,23 +25,23 @@
 #include "filesystem.h"
 #include <Objectively/List.h>
 
-extern bool cvar_user_info_modified;
+extern bool cvarUserInfoModified;
 
-typedef void (*Cvar_Enumerator)(cvar_t *var, void *data);
+typedef void (*Cvar_Enumerator)(Cvar *var, void *data);
 
-cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *description);
-cvar_t *Cvar_Get(const char *name);
+Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *description);
+Cvar *Cvar_Get(const char *name);
 int32_t Cvar_GetInteger(const char *name);
 const char *Cvar_GetString(const char *name);
 float Cvar_GetValue(const char *name);
-cvar_t *Cvar_SetInteger(const char *name, int32_t value);
-cvar_t *Cvar_SetString(const char *name, const char *value);
-cvar_t *Cvar_SetValue(const char *name, float value);
-cvar_t *Cvar_SetFlags(const char *name, uint32_t flags);
-cvar_t *Cvar_ForceSetInteger(const char *name, int32_t value);
-cvar_t *Cvar_ForceSetString(const char *name, const char *value);
-cvar_t *Cvar_ForceSetValue(const char *name, float value);
-cvar_t *Cvar_Toggle(const char *name);
+Cvar *Cvar_SetInteger(const char *name, int32_t value);
+Cvar *Cvar_SetString(const char *name, const char *value);
+Cvar *Cvar_SetValue(const char *name, float value);
+Cvar *Cvar_SetFlags(const char *name, uint32_t flags);
+Cvar *Cvar_ForceSetInteger(const char *name, int32_t value);
+Cvar *Cvar_ForceSetString(const char *name, const char *value);
+Cvar *Cvar_ForceSetValue(const char *name, float value);
+Cvar *Cvar_Toggle(const char *name);
 void Cvar_Enumerate(Cvar_Enumerator func, void *data);
 void Cvar_CompleteVar(const char *pattern, List *matches);
 void Cvar_ResetDeveloper(void);
@@ -52,6 +52,6 @@ void Cvar_ClearAll(uint32_t flags);
 bool Cvar_Command(void);
 char *Cvar_UserInfo(void);
 char *Cvar_ServerInfo(void);
-void Cvar_WriteAll(file_t *f);
+void Cvar_WriteAll(File *f);
 void Cvar_Init(void);
 void Cvar_Shutdown(void);

@@ -29,22 +29,22 @@
 /**
  * @brief Per-voxel clustered light offsets and counts.
  */
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxel_light_data_block {
-  int voxel_light_data_elements[];
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxelLightDataBlock {
+  int voxelLightDataElements[];
 };
 
 /**
  * @brief Clustered light indices for voxel lookups.
  */
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
-  int voxel_light_indices[];
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxelLightIndicesBlock {
+  int voxelLightIndices[];
 };
 #endif
 
 /**
  * @brief Resolves normalized voxel coordinates for a world position.
  */
-vec3 voxel_uvw(in vec3 position) {
+vec3 voxelUvw(in vec3 position) {
   return (position - voxels.mins.xyz) / (voxels.maxs.xyz - voxels.mins.xyz);
 }
 
@@ -52,7 +52,7 @@ vec3 voxel_uvw(in vec3 position) {
  * @brief Resolves the integer voxel coordinate for a world position.
  * @remarks Applies a small bias to stabilize boundary rounding.
  */
-ivec3 voxel_xyz(in vec3 position) {
+ivec3 voxelXyz(in vec3 position) {
   vec3 pos = position - voxels.mins.xyz;
   ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE + 0.001));
   return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
@@ -62,37 +62,37 @@ ivec3 voxel_xyz(in vec3 position) {
 /**
  * @brief Returns the clustered light offset and count for a voxel.
  */
-ivec2 voxel_light_data(in ivec3 voxel) {
+ivec2 voxelLightData(in ivec3 voxel) {
   const int index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;
-  return ivec2(voxel_light_data_elements[index * 2 + 0], voxel_light_data_elements[index * 2 + 1]);
+  return ivec2(voxelLightDataElements[index * 2 + 0], voxelLightDataElements[index * 2 + 1]);
 }
 
 /**
  * @brief Returns a clustered light index by buffer position.
  */
-int voxel_light_index(in int index) {
-  return voxel_light_indices[index];
+int voxelLightIndex(in int index) {
+  return voxelLightIndices[index];
 }
 #endif
 
 /**
  * @brief Samples the voxel caustics vector.
  */
-vec3 voxel_caustics(in vec3 texcoord) {
-  vec3 encoded = texture(texture_voxel_caustics, texcoord).rgb;
+vec3 voxelCaustics(in vec3 texcoord) {
+  vec3 encoded = texture(textureVoxelCaustics, texcoord).rgb;
   return ((encoded * 2.0) - 1.0) * caustics;
 }
 
 /**
  * @brief Samples voxel occlusion.
  */
-float voxel_occlusion(in vec3 texcoord) {
-  return texture(texture_voxel_occlusion, texcoord).r;
+float voxelOcclusion(in vec3 texcoord) {
+  return texture(textureVoxelOcclusion, texcoord).r;
 }
 
 /**
  * @brief Samples voxel sky exposure.
  */
-float voxel_exposure(in vec3 texcoord) {
-  return max(0.25, texture(texture_voxel_occlusion, texcoord).g);
+float voxelExposure(in vec3 texcoord) {
+  return max(0.25, texture(textureVoxelOcclusion, texcoord).g);
 }

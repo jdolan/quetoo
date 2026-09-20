@@ -98,13 +98,13 @@ struct LoadingViewControllerInterface {
   LoadingViewController *(*init)(LoadingViewController *self);
 
   /**
-   * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
+   * @fn void LoadingViewController::setProgress(LoadingViewController *self, const ClientLoading loading)
    * @brief Sets the visual progress of the loading screen.
    * @param percent The percent loaded.
    * @param status The currently loading media item.
    * @memberof LoadingViewController
    */
-  void (*setProgress)(LoadingViewController *self, const cl_loading_t loading);
+  void (*setProgress)(LoadingViewController *self, const ClientLoading loading);
 };
 
 /**

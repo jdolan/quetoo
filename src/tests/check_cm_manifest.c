@@ -22,7 +22,7 @@
 #include "tests.h"
 #include "collision/cm_manifest.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -45,7 +45,7 @@ void teardown(void) {
  * @brief Helper to write raw text to a file.
  */
 static void write_file(const char *path, const char *content) {
-	file_t *file = Fs_OpenWrite(path);
+	File *file = Fs_OpenWrite(path);
 	ck_assert_msg(file != NULL, "Failed to open %s for writing", path);
 	Fs_Print(file, "%s", content);
 	Fs_Close(file);
@@ -62,13 +62,13 @@ START_TEST(check_Cm_ReadManifest) {
 	ck_assert_msg(manifest != NULL, "Cm_ReadManifest returned NULL");
 	ck_assert_int_eq((manifest)->count, 2);
 
-	const cm_manifest_entry_t *e0 = $(manifest, get, (void *) "textures/edge/floor01_d.tga");
+	const CmManifestEntry *e0 = $(manifest, get, (void *) "textures/edge/floor01_d.tga");
 	ck_assert_msg(e0 != NULL, "Missing textures/edge/floor01_d.tga");
 	ck_assert_str_eq(e0->hash, "d41d8cd98f00b204e9800998ecf8427e");
 	ck_assert_int_eq(e0->size, 1234);
 	ck_assert_str_eq(e0->path, "textures/edge/floor01_d.tga");
 
-	const cm_manifest_entry_t *e1 = $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg");
+	const CmManifestEntry *e1 = $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg");
 	ck_assert_msg(e1 != NULL, "Missing sounds/weapons/rg_fire.ogg");
 	ck_assert_str_eq(e1->hash, "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
 	ck_assert_int_eq(e1->size, 5678);
@@ -171,9 +171,9 @@ START_TEST(check_Cm_Manifest_roundtrip) {
 	Cm_AddManifestEntry(manifest, "maps/edge.nav", content3, strlen(content3));
 
 	// save original entries for comparison
-	const cm_manifest_entry_t orig_tex  = *((cm_manifest_entry_t *) $(manifest, get, (void *) "textures/edge/floor01_d.tga"));
-	const cm_manifest_entry_t orig_snd  = *((cm_manifest_entry_t *) $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg"));
-	const cm_manifest_entry_t orig_nav  = *((cm_manifest_entry_t *) $(manifest, get, (void *) "maps/edge.nav"));
+	const CmManifestEntry origTex  = *((CmManifestEntry *) $(manifest, get, (void *) "textures/edge/floor01_d.tga"));
+	const CmManifestEntry origSnd  = *((CmManifestEntry *) $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg"));
+	const CmManifestEntry origNav  = *((CmManifestEntry *) $(manifest, get, (void *) "maps/edge.nav"));
 
 	Cm_WriteManifest("test_roundtrip.mf", manifest);
 	Cm_FreeManifest(manifest);
@@ -182,22 +182,22 @@ START_TEST(check_Cm_Manifest_roundtrip) {
 	ck_assert_msg(loaded != NULL, "Cm_ReadManifest returned NULL after write");
 	ck_assert_int_eq((loaded)->count, 3);
 
-	const cm_manifest_entry_t *e;
+	const CmManifestEntry *e;
 
 	e = $(loaded, get, (void *) "textures/edge/floor01_d.tga");
 	ck_assert_msg(e != NULL, "Missing textures/edge/floor01_d.tga after roundtrip");
-	ck_assert_str_eq(e->hash, orig_tex.hash);
-	ck_assert_int_eq(e->size, orig_tex.size);
+	ck_assert_str_eq(e->hash, origTex.hash);
+	ck_assert_int_eq(e->size, origTex.size);
 
 	e = $(loaded, get, (void *) "sounds/weapons/rg_fire.ogg");
 	ck_assert_msg(e != NULL, "Missing sounds/weapons/rg_fire.ogg after roundtrip");
-	ck_assert_str_eq(e->hash, orig_snd.hash);
-	ck_assert_int_eq(e->size, orig_snd.size);
+	ck_assert_str_eq(e->hash, origSnd.hash);
+	ck_assert_int_eq(e->size, origSnd.size);
 
 	e = $(loaded, get, (void *) "maps/edge.nav");
 	ck_assert_msg(e != NULL, "Missing maps/edge.nav after roundtrip");
-	ck_assert_str_eq(e->hash, orig_nav.hash);
-	ck_assert_int_eq(e->size, orig_nav.size);
+	ck_assert_str_eq(e->hash, origNav.hash);
+	ck_assert_int_eq(e->size, origNav.size);
 
 	Cm_FreeManifest(loaded);
 
@@ -212,7 +212,7 @@ START_TEST(check_Cm_CheckManifestEntry) {
 	HashTable *manifest = Cm_AllocManifest();
 	Cm_AddManifestEntry(manifest, "test_asset.tga", content, strlen(content));
 
-	const cm_manifest_entry_t *entry = $(manifest, get, (void *) "test_asset.tga");
+	const CmManifestEntry *entry = $(manifest, get, (void *) "test_asset.tga");
 
 	// local file matches — should return true
 	ck_assert(Cm_CheckManifestEntry(entry));

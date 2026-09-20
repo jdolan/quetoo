@@ -35,19 +35,19 @@
 #include "g_ai_node.h"
 #include "g_ai_types.h"
 
-extern cvar_t *g_ai_no_target;
-extern cvar_t *g_ai_node_dev;
+extern Cvar *g_aiNoTarget;
+extern Cvar *g_aiNodeDev;
 
-void G_Ai_Disconnect(g_client_t *cl);
-void G_Ai_InvalidateReferences(ai_t *ai, const g_entity_t *ent);
-void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd);
-void G_Ai_Respawn(g_client_t *cl);
-void G_Ai_Begin(g_client_t *cl);
+void G_Ai_Disconnect(GameClient *cl);
+void G_Ai_InvalidateReferences(Ai *ai, const GameEntity *ent);
+void G_Ai_Think(GameClient *cl, PlayerMoveCmd *cmd);
+void G_Ai_Respawn(GameClient *cl);
+void G_Ai_Begin(GameClient *cl);
 void G_Ai_Init(void);
 void G_Ai_Frame(void);
 void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
 bool G_Ai_InDeveloperMode(void);
-bool G_Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
+bool G_Ai_ShouldSlowDrop(const AiNodeId fromNode, const AiNodeId toNode);
 
 #endif

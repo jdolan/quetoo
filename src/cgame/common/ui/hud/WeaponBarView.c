@@ -83,7 +83,7 @@ static void rebuild(WeaponBarView *self) {
       ImageView *icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
       assert(icon);
 
-      const char *name = bg_item_defs[cg_weapons[i].tag].icon;
+      const char *name = bgItemDefs[cgWeapons[i].tag].icon;
       $(icon, setImage, name ? (Image *) Cg_HudImage(name) : NULL);
 
       $(slot, addSubview, (View *) icon);
@@ -135,7 +135,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   float alpha;
   const bool visible = Cg_UpdateSelectWeapon(ps, &alpha);
@@ -146,13 +146,13 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  if (memcmp(this->has, cg_hud_state.weapon.has, sizeof(this->has))) {
-    memcpy(this->has, cg_hud_state.weapon.has, sizeof(this->has));
+  if (memcmp(this->has, cgHudState.weapon.has, sizeof(this->has))) {
+    memcpy(this->has, cgHudState.weapon.has, sizeof(this->has));
     rebuild(this);
   }
 
   const Uint8 selected = (Uint8) (alpha * 255);
-  const Uint8 unselected = (Uint8) (alpha * cg_select_weapon_alpha->value * 255);
+  const Uint8 unselected = (Uint8) (alpha * cg_selectWeaponAlpha->value * 255);
 
   const Array *slots = (Array *) this->slots->view.subviews;
 
@@ -166,12 +166,12 @@ static void updateBindings(View *self, ident data) {
     const View *slot = $(slots, objectAtIndex, k);
     ImageView *icon = $((Array *) slot->subviews, firstObject);
 
-    if (i == cg_hud_state.weapon.bit) {
+    if (i == cgHudState.weapon.bit) {
       icon->color.a = selected;
 
       index = k;
 
-      $(this->name, setText, bg_item_defs[cg_weapons[i].tag].name);
+      $(this->name, setText, bgItemDefs[cgWeapons[i].tag].name);
     } else {
       icon->color.a = unselected;
     }

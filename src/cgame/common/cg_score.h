@@ -40,7 +40,7 @@ void Cg_ClearScores(void);
 /**
  * @brief The scores as last parsed, sorted, for a module drawing its own board.
  */
-const g_score_t *Cg_Scores(size_t *count);
+const GameScore *Cg_Scores(size_t *count);
 
 /**
  * @brief Incremented whenever the scores change, so a view knows to rebuild.

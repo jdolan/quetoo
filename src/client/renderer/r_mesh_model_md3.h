@@ -24,5 +24,5 @@
 #include "r_types.h"
 
 #if defined(__R_LOCAL_H__)
-extern const r_model_format_t r_md3_model_format;
+extern const RenderModelFormat rMd3ModelFormat;
 #endif

@@ -245,7 +245,7 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
 
   PlayerSetupViewController *this = hsvColorPicker->delegate.self;
 
-  cvar_t *var = NULL;
+  Cvar *var = NULL;
   if (hsvColorPicker == this->helmetColorPicker) {
     var = cg_helmet;
   } else if (hsvColorPicker == this->pantsColorPicker) {

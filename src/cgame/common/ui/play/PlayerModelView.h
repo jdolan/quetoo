@@ -28,7 +28,7 @@
 
 /**
  * @file
- * @brief A Control capable of rendering an r_mesh_model_t.
+ * @brief A Control capable of rendering an RenderMeshModel.
  */
 
 typedef struct PlayerModelView PlayerModelView;
@@ -55,7 +55,7 @@ struct PlayerModelView {
   /**
    * @brief The client information.
    */
-  cg_client_info_t client;
+  ClientGameClientInfo client;
 
   /**
    * @brief The framebuffer to which the view is rendered.
@@ -65,17 +65,17 @@ struct PlayerModelView {
   /**
    * @brief The view to populate and pass to DrawPlayerModelView.
    */
-  r_view_t view;
+  RenderView view;
 
   /**
    * @brief The entity stubs.
    */
-  r_entity_t head, torso, legs, weapon, platformBase, platformCenter;
+  RenderEntity head, torso, legs, weapon, platformBase, platformCenter;
 
   /**
    * @brief The entity animations.
    */
-  cl_entity_animation_t animation1, animation2;
+  ClientEntityAnimation animation1, animation2;
 
   /**
    * @brief The ImageView presenting the rendered model preview.

@@ -120,17 +120,17 @@
 #define PM_SNAP_DISTANCE PM_GROUND_DIST
 
 /**
- * @brief The default player bounding boxes: what `pm_params_t.bounds`,
- * `.bounds_ducked` and `.bounds_dead` default to, and what code with no
+ * @brief The default player bounding boxes: what `PlayerMoveParams.bounds`,
+ * `.boundsDucked` and `.boundsDead` default to, and what code with no
  * parameters to hand may use. `Pm_Bounds` gives the live box for a set of
  * parameters; the dead box is read straight from them, by `Pm_Init`.
  */
-extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS, PM_DEAD_BOUNDS;
+extern const Box3 PM_BOUNDS, PM_CROUCHED_BOUNDS, PM_DEAD_BOUNDS;
 
 /**
  * @brief Resolves the player bounding box for the given movement parameters.
  */
-box3_t Pm_Bounds(const pm_params_t *params, bool ducked);
+Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked);
 
 /**
  * @brief Game-specific button hits.
@@ -141,7 +141,7 @@ box3_t Pm_Bounds(const pm_params_t *params, bool ducked);
 #define BUTTON_SCORE  (1 << 3)
 
 /**
- * @brief Game-specific flags for `pm_state_t`.flags`.
+ * @brief Game-specific flags for `PlayerMoveState`.flags`.
  */
 #define PMF_DUCKED           (PMF_GAME << 0) // player is ducked
 #define PMF_JUMPED           (PMF_GAME << 1) // player jumped
@@ -160,7 +160,7 @@ box3_t Pm_Bounds(const pm_params_t *params, bool ducked);
 #define PMF_DEATH_CAM        (PMF_GAME << 14) // view is detached, watching the corpse
 
 /**
- * @brief The mask of `pm_state_t`.flags` affecting `pm_state_t`.time`.
+ * @brief The mask of `PlayerMoveState`.flags` affecting `PlayerMoveState`.time`.
  */
 #define PMF_TIME_MASK ( \
   PMF_TIME_PUSHED | \
@@ -180,42 +180,42 @@ box3_t Pm_Bounds(const pm_params_t *params, bool ducked);
  * @brief The player movement structure provides context management between the
  * game modules and the player movement code.
  */
-typedef struct pm_move_s {
-  pm_cmd_t cmd; // movement command (in)
+typedef struct PlayerMove {
+  PlayerMoveCmd cmd; // movement command (in)
 
-  pm_state_t s; // movement state (in / out)
+  PlayerMoveState s; // movement state (in / out)
 
-  float hook_pull_speed; // hook pull speed (in)
+  float hookPullSpeed; // hook pull speed (in)
 
-  cm_trace_t touched[PM_MAX_TOUCHS]; // entities touched (out)
-  int32_t num_touched;
+  CmTrace touched[PM_MAX_TOUCHS]; // entities touched (out)
+  int32_t numTouched;
 
-  vec3_t angles; // clamped, and including kick and delta (out)
-  box3_t bounds; // bounding box size (out)
+  Vec3 angles; // clamped, and including kick and delta (out)
+  Box3 bounds; // bounding box size (out)
 
-  cm_trace_t ground; // (in / out)
+  CmTrace ground; // (in / out)
 
-  int32_t water_type; // water type and level (out)
-  pm_water_level_t water_level;
+  int32_t waterType; // water type and level (out)
+  PlayerMoveWaterLevel waterLevel;
 
   float step; // traversed step height (out)
 
   // contents checks with the world
-  int32_t (*PointContents)(const vec3_t point);
-  int32_t (*BoxContents)(const box3_t box);
+  int32_t (*PointContents)(const Vec3 point);
+  int32_t (*BoxContents)(const Box3 box);
 
   // collision with the world and solid entities
-  cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds);
+  CmTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds);
 
   // print debug messages for development
-  debug_t (*DebugMask)(void);
-  void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...);
-  debug_t debug_mask;
-} pm_move_t;
+  DebugFlags (*DebugMask)(void);
+  void (*Debug)(const DebugFlags debug, const char *func, const char *fmt, ...);
+  DebugFlags debugMask;
+} PlayerMove;
 
 /**
  * @brief The movements `Pm_Move` can run, selected per-player through
- * `pm_params_t.movement`, which carries one of these as a byte.
+ * `PlayerMoveParams.movement`, which carries one of these as a byte.
  * @details One of these owns everything about how a player moves once the move
  * is initialized: the ground, water and duck checks, the slide and the step, and
  * the parameters it moves by. Each lives in its own `bg_pmove_*.c` and is
@@ -236,7 +236,7 @@ typedef enum {
   PM_MOVEMENT_QUAKE,
   PM_MOVEMENT_QUAKE2,
   PM_MOVEMENT_QUAKE3,
-} pm_movement_t;
+} PlayerMovement;
 
 /**
  * @brief One movement: the name it answers to, and the parameters that define
@@ -261,21 +261,21 @@ typedef struct {
    * that follows the server's own movement cvars. A movement that let a cvar
    * move it would not be a movement anyone could set a record under.
    */
-  const pm_params_t *params;
+  const PlayerMoveParams *params;
 
   /**
    * @brief Whether this movement implements the `PM_HOOK_*` types and honours
-   * `hook_length`, so that the grapple has something to swing on. A movement
+   * `hookLength`, so that the grapple has something to swing on. A movement
    * ported from another game does not, and the hook feature stays out of it.
    */
   bool hook;
-} pm_movement_info_t;
+} PlayerMovementInfo;
 
 /**
  * @brief Resolves a movement by id.
  * @return `NULL` if `movement` names none.
  */
-const pm_movement_info_t *Pm_Movement(pm_movement_t movement);
+const PlayerMovementInfo *Pm_Movement(PlayerMovement movement);
 
 /**
  * @brief The number of movements, for offering them all.
@@ -286,13 +286,13 @@ size_t Pm_MovementCount(void);
  * @brief Resolves a movement by name.
  * @return False if nothing answers to `name`, leaving `movement` alone.
  */
-bool Pm_MovementByName(const char *name, pm_movement_t *movement);
+bool Pm_MovementByName(const char *name, PlayerMovement *movement);
 
 /**
  * @brief Performs one discrete movement of the player through the world.
  * @details Initializes the move, clamps the angles, handles the frozen,
  * spectator and dead cases, and hands the rest to the kernel that
- * `pm_params_t.kernel` names. The parameters travel with the player, so the
+ * `PlayerMoveParams.kernel` names. The parameters travel with the player, so the
  * server and the client run the same kernel over the same numbers.
  */
-void Pm_Move(pm_move_t *pm_move);
+void Pm_Move(PlayerMove *pmMove);

@@ -24,7 +24,7 @@
 /**
  * @brief Setup base entity goal for the specified target.
  */
-static inline void G_Ai_InitGoal(const g_client_t *cl, ai_goal_t *goal, ai_goal_type_t type, float priority) {
+static inline void G_Ai_InitGoal(const GameClient *cl, AiGoal *goal, AiGoalType type, float priority) {
 
   G_Ai_ClearGoal(goal);
 
@@ -35,7 +35,7 @@ static inline void G_Ai_InitGoal(const g_client_t *cl, ai_goal_t *goal, ai_goal_
 /**
  * @brief Setup entity goal for the specified target.
  */
-void G_Ai_SetPositionGoal(const g_client_t *cl, ai_goal_t *goal, float priority, const vec3_t pos) {
+void G_Ai_SetPositionGoal(const GameClient *cl, AiGoal *goal, float priority, const Vec3 pos) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_POSITION, priority);
 
@@ -46,14 +46,14 @@ void G_Ai_SetPositionGoal(const g_client_t *cl, ai_goal_t *goal, float priority,
 
 /**
  * @brief Resolves the entity at the given slot number against the canonical,
- * always-valid `ge.entities` table, rather than trusting a cached `g_entity_t *`
+ * always-valid `ge.entities` table, rather than trusting a cached `GameEntity *`
  * that may have gone stale or been corrupted. Returns `NULL` if `number` is out
  * of range.
  */
 #if AI_GOAL_HARDENING
-const g_entity_t *G_Ai_ResolveGoalEntity(int32_t number) {
+const GameEntity *G_Ai_ResolveGoalEntity(int32_t number) {
 
-  if (number < 0 || number >= sv_max_entities->integer) {
+  if (number < 0 || number >= sv_maxEntities->integer) {
     return NULL;
   }
 
@@ -64,7 +64,7 @@ const g_entity_t *G_Ai_ResolveGoalEntity(int32_t number) {
 /**
  * @brief Setup entity goal for the specified target.
  */
-void G_Ai_SetEntityGoal(const g_client_t *cl, ai_goal_t *goal, float priority, const g_entity_t *entity) {
+void G_Ai_SetEntityGoal(const GameClient *cl, AiGoal *goal, float priority, const GameEntity *entity) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_ENTITY, priority);
   
@@ -72,7 +72,7 @@ void G_Ai_SetEntityGoal(const g_client_t *cl, ai_goal_t *goal, float priority, c
 #if AI_GOAL_HARDENING
   goal->entity.number = entity->s.number;
 #endif
-  goal->entity.spawn_id = entity->s.spawn_id;
+  goal->entity.spawnId = entity->s.spawnId;
 
   G_Ai_Debug("New goal: %s (%f priority)\n", etos(entity), priority);
 }
@@ -80,55 +80,55 @@ void G_Ai_SetEntityGoal(const g_client_t *cl, ai_goal_t *goal, float priority, c
 /**
  * @brief Setup entity goal for the specified target.
  */
-void G_Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, Vector *path, const g_entity_t *path_target) {
+void G_Ai_SetPathGoal(const GameClient *cl, AiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_PATH, priority);
   
   goal->path.path = retain(path);
-  goal->path.path_index = 0;
+  goal->path.pathIndex = 0;
 
-  const ai_node_id_t node = VectorValue(path, ai_node_id_t, 0);
-  const ai_node_id_t next = VectorValue(path, ai_node_id_t, Minz(path->count - 1, 1));
-  goal->path.path_position = G_Ai_Node_GetPosition(node);
-  goal->path.next_path_position = G_Ai_Node_GetPosition(next);
-  goal->path.path_target = path_target;
+  const AiNodeId node = VectorValue(path, AiNodeId, 0);
+  const AiNodeId next = VectorValue(path, AiNodeId, Minz(path->count - 1, 1));
+  goal->path.pathPosition = G_Ai_Node_GetPosition(node);
+  goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
+  goal->path.pathTarget = pathTarget;
 
 #if AI_GOAL_HARDENING
-  if (path_target) {
-    goal->path.path_target_number = path_target->s.number;
-    goal->path.path_target_spawn_id = path_target->s.spawn_id;
+  if (pathTarget) {
+    goal->path.pathTargetNumber = pathTarget->s.number;
+    goal->path.pathTargetSpawnId = pathTarget->s.spawnId;
   } else {
-    goal->path.path_target_number = -1;
+    goal->path.pathTargetNumber = -1;
   }
 #else
   if (path_target) {
-    goal->path.path_target_spawn_id = path_target->s.spawn_id;
+    goal->path.pathTargetSpawnId = path_target->s.spawnId;
   }
 #endif
 
-  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, ai_node_id_t, 0), VectorValue(path, ai_node_id_t, path->count - 1), priority, etos(path_target));
+  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, AiNodeId, 0), VectorValue(path, AiNodeId, path->count - 1), priority, etos(pathTarget));
 }
 
 /**
  * @brief Check if the goal references the same entity still
  */
-bool G_Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
+bool G_Ai_GoalHasEntity(const AiGoal *goal, const GameEntity *ent) {
 
-  return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawn_id == ent->s.spawn_id) ||
-    (goal->type == AI_GOAL_PATH && goal->path.path_target == ent && goal->path.path_target_spawn_id == ent->s.spawn_id);
+  return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawnId == ent->s.spawnId) ||
+    (goal->type == AI_GOAL_PATH && goal->path.pathTarget == ent && goal->path.pathTargetSpawnId == ent->s.spawnId);
 }
 
 /**
  * @brief Copy a goal from one target to another, resetting time-dependent state.
  */
-void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
+void G_Ai_CopyGoal(const AiGoal *from, AiGoal *to) {
 
   G_Ai_ClearGoal(to);
 
   to->type = from->type;
   to->priority = from->priority;
-  to->time = g_level.time;
-  to->last_distance = FLT_MAX;
+  to->time = gLevel.time;
+  to->lastDistance = FLT_MAX;
 
   switch (from->type) {
     case AI_GOAL_NONE:
@@ -142,23 +142,23 @@ void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 #if AI_GOAL_HARDENING
       to->entity.number = from->entity.number;
 #endif
-      to->entity.spawn_id = from->entity.spawn_id;
-      to->entity.combat_type = from->entity.combat_type;
-      to->entity.lock_on_time = from->entity.lock_on_time;
-      to->entity.flank_angle = from->entity.flank_angle;
+      to->entity.spawnId = from->entity.spawnId;
+      to->entity.combatType = from->entity.combatType;
+      to->entity.lockOnTime = from->entity.lockOnTime;
+      to->entity.flankAngle = from->entity.flankAngle;
       break;
     case AI_GOAL_PATH:
       to->path.path = retain(from->path.path);
-      to->path.path_index = from->path.path_index;
-      to->path.path_position = from->path.path_position;
-      to->path.next_path_position = from->path.next_path_position;
-      to->path.trick_jump = from->path.trick_jump;
-      to->path.trick_position = from->path.trick_position;
-      to->path.path_target = from->path.path_target;
+      to->path.pathIndex = from->path.pathIndex;
+      to->path.pathPosition = from->path.pathPosition;
+      to->path.nextPathPosition = from->path.nextPathPosition;
+      to->path.trickJump = from->path.trickJump;
+      to->path.trickPosition = from->path.trickPosition;
+      to->path.pathTarget = from->path.pathTarget;
 #if AI_GOAL_HARDENING
-      to->path.path_target_number = from->path.path_target_number;
+      to->path.pathTargetNumber = from->path.pathTargetNumber;
 #endif
-      to->path.path_target_spawn_id = from->path.path_target_spawn_id;
+      to->path.pathTargetSpawnId = from->path.pathTargetSpawnId;
       break;
   }
 }
@@ -166,13 +166,13 @@ void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 /**
  * @brief Clear a goal
  */
-void G_Ai_ClearGoal(ai_goal_t *goal) {
+void G_Ai_ClearGoal(AiGoal *goal) {
   
   if (goal->type == AI_GOAL_PATH) {
     release(goal->path.path);
   }
 
-  memset(goal, 0, sizeof(ai_goal_t));
-  goal->time = g_level.time;
-  goal->last_distance = FLT_MAX;
+  memset(goal, 0, sizeof(AiGoal));
+  goal->time = gLevel.time;
+  goal->lastDistance = FLT_MAX;
 }

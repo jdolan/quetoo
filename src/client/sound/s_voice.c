@@ -86,15 +86,15 @@ typedef struct {
   uint8_t seq;
   bool started;
   bool playing;
-} s_voice_speaker_t;
+} SoundVoiceSpeaker;
 
 static struct {
   bool transmitting;
   bool enabled;
 
-  bool capture_silent;
-  int32_t silent_frames;
-  float capture_peak;
+  bool captureSilent;
+  int32_t silentFrames;
+  float capturePeak;
 
   OpusEncoder *encoder;
 
@@ -109,35 +109,35 @@ static struct {
     uint8_t channel;
   } out[VOICE_OUT_FRAMES];
 
-  int32_t out_head;
-  int32_t out_tail;
+  int32_t outHead;
+  int32_t outTail;
   // deliberately never reset: a listener measures the gap between sequence numbers to conceal
   // losses, and restarting at zero would read as a jump backwards whenever the final frame of the
   // previous transmission went missing, concealing frames that were never sent
-  uint8_t out_seq;
+  uint8_t outSeq;
   bool ending;
 
   uint8_t channel;
 
-  s_voice_speaker_t speakers[MAX_CLIENTS + 1];
+  SoundVoiceSpeaker speakers[MAX_CLIENTS + 1];
 
   SDL_Thread *thread;
   SDL_Mutex *mutex;
   bool shutdown;
-} s_voice_state;
+} module;
 
-cvar_t *s_voice;
-cvar_t *s_voice_bitrate;
-cvar_t *s_capture_gain;
-cvar_t *s_capture_normalize;
-cvar_t *s_voice_loopback;
-cvar_t *s_voice_volume;
+Cvar *s_voice;
+Cvar *s_voiceBitrate;
+Cvar *s_captureGain;
+Cvar *s_captureNormalize;
+Cvar *s_voiceLoopback;
+Cvar *s_voiceVolume;
 
 /**
  * @brief Returns the effective playback gain for voice.
  */
 static float S_VoiceGain(void) {
-  return Clampf01(s_volume->value) * Clampf01(s_voice_volume->value);
+  return Clampf01(s_volume->value) * Clampf01(s_voiceVolume->value);
 }
 
 /**
@@ -148,23 +148,23 @@ static float S_VoiceGain(void) {
  */
 static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
 
-  if (s_voice_state.capture_silent) {
+  if (module.captureSilent) {
     return;
   }
 
   for (size_t i = 0; i < count; i++) {
     if (samples[i]) {
-      s_voice_state.silent_frames = 0;
+      module.silentFrames = 0;
       return;
     }
   }
 
-  if (++s_voice_state.silent_frames == (1000 / VOICE_FRAME_MILLIS) * 3) {
+  if (++module.silentFrames == (1000 / VOICE_FRAME_MILLIS) * 3) {
     Com_Warn("Capture device yielded only silence for 3 seconds.\n"
              "Check that microphone access is granted, and that the device is not muted.\n"
-             "Run s_capture_device_list and set s_capture_device to choose another.\n");
+             "Run s_captureDeviceList and set s_captureDevice to choose another.\n");
 
-    s_voice_state.capture_silent = true;
+    module.captureSilent = true;
   }
 }
 
@@ -179,7 +179,7 @@ static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
  */
 static float S_CaptureNormalize(const int16_t *samples, size_t count) {
 
-  if (!s_capture_normalize->integer) {
+  if (!s_captureNormalize->integer) {
     return 1.f;
   }
 
@@ -192,17 +192,17 @@ static float S_CaptureNormalize(const int16_t *samples, size_t count) {
     }
   }
 
-  if (peak > s_voice_state.capture_peak) {
-    s_voice_state.capture_peak = peak;
+  if (peak > module.capturePeak) {
+    module.capturePeak = peak;
   } else {
-    s_voice_state.capture_peak += (peak - s_voice_state.capture_peak) * 0.05f;
+    module.capturePeak += (peak - module.capturePeak) * 0.05f;
   }
 
-  if (s_voice_state.capture_peak < 64.f) {
+  if (module.capturePeak < 64.f) {
     return 1.f;
   }
 
-  return Clampf((INT16_MAX * 0.6f) / s_voice_state.capture_peak, 1.f, 16.f);
+  return Clampf((INT16_MAX * 0.6f) / module.capturePeak, 1.f, 16.f);
 }
 
 /**
@@ -210,7 +210,7 @@ static float S_CaptureNormalize(const int16_t *samples, size_t count) {
  */
 static void S_ApplyCaptureGain(int16_t *samples, size_t count) {
 
-  const float gain = S_CaptureNormalize(samples, count) * Clampf(s_capture_gain->value, 0.f, 32.f);
+  const float gain = S_CaptureNormalize(samples, count) * Clampf(s_captureGain->value, 0.f, 32.f);
 
   if (gain == 1.f) {
     return;
@@ -224,7 +224,7 @@ static void S_ApplyCaptureGain(int16_t *samples, size_t count) {
 /**
  * @brief Releases a speaker's source back to the pool, stopping and unqueueing it.
  */
-static void S_ReleaseSpeaker(s_voice_speaker_t *speaker) {
+static void S_ReleaseSpeaker(SoundVoiceSpeaker *speaker) {
 
   if (speaker->source) {
     alSourceStop(speaker->source);
@@ -246,17 +246,17 @@ static void S_ReleaseSpeaker(s_voice_speaker_t *speaker) {
 /**
  * @brief Prepares a speaker to be heard, displacing the least recently heard if the pool is full.
  */
-static bool S_AcquireSpeaker(s_voice_speaker_t *speaker) {
+static bool S_AcquireSpeaker(SoundVoiceSpeaker *speaker) {
 
   if (speaker->source) {
     return true;
   }
 
   int32_t sources = 0;
-  s_voice_speaker_t *oldest = NULL;
+  SoundVoiceSpeaker *oldest = NULL;
 
-  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
-    s_voice_speaker_t *s = s_voice_state.speakers + i;
+  for (size_t i = 0; i < lengthof(module.speakers); i++) {
+    SoundVoiceSpeaker *s = module.speakers + i;
 
     if (s->source) {
       sources++;
@@ -309,7 +309,7 @@ static bool S_AcquireSpeaker(s_voice_speaker_t *speaker) {
  * are banked, so an irregular arrival does not start and immediately starve, and alSourcePlay is
  * re-issued whenever the source has fallen out of AL_PLAYING, which speech does routinely.
  */
-static void S_QueueSpeakerFrame(s_voice_speaker_t *speaker, const int16_t *samples) {
+static void S_QueueSpeakerFrame(SoundVoiceSpeaker *speaker, const int16_t *samples) {
 
   ALint processed = 0, queued = 0;
   alGetSourcei(speaker->source, AL_BUFFERS_PROCESSED, &processed);
@@ -349,9 +349,9 @@ static void S_QueueSpeakerFrame(s_voice_speaker_t *speaker, const int16_t *sampl
 /**
  * @brief Decodes one payload for a speaker and queues it, concealing any frames lost before it.
  */
-static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, int32_t len) {
+static void S_DecodeSpeakerFrame(SoundVoiceSpeaker *speaker, const byte *data, int32_t len) {
 
-  int32_t decoded = opus_decode(speaker->decoder, data, len, s_voice_state.frame,
+  int32_t decoded = opus_decode(speaker->decoder, data, len, module.frame,
                                 VOICE_FRAME_SAMPLES, 0);
 
   if (decoded != VOICE_FRAME_SAMPLES) {
@@ -360,11 +360,11 @@ static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, i
     return;
   }
 
-  S_QueueSpeakerFrame(speaker, s_voice_state.frame);
+  S_QueueSpeakerFrame(speaker, module.frame);
 }
 
 /**
- * @brief Accepts one voice frame, with s_voice_state.mutex already held.
+ * @brief Accepts one voice frame, with module.mutex already held.
  * @details Decoding happens on the caller's thread rather than being handed to the voice thread:
  * an Opus frame decodes in tens of microseconds, so even a full server talking at once costs a
  * fraction of a tick, and a second ring would add its own latency for nothing.
@@ -373,7 +373,7 @@ static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, i
  */
 static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const byte *data, int32_t len) {
 
-  s_voice_speaker_t *speaker = s_voice_state.speakers + client;
+  SoundVoiceSpeaker *speaker = module.speakers + client;
 
   if (S_AcquireSpeaker(speaker)) {
 
@@ -381,9 +381,9 @@ static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const byte *
       const uint8_t lost = (uint8_t) (seq - speaker->seq);
 
       for (uint8_t i = 0; i < lost && i < VOICE_MAX_CONCEAL; i++) {
-        if (opus_decode(speaker->decoder, NULL, 0, s_voice_state.frame, VOICE_FRAME_SAMPLES, 0) ==
+        if (opus_decode(speaker->decoder, NULL, 0, module.frame, VOICE_FRAME_SAMPLES, 0) ==
             VOICE_FRAME_SAMPLES) {
-          S_QueueSpeakerFrame(speaker, s_voice_state.frame);
+          S_QueueSpeakerFrame(speaker, module.frame);
         }
       }
     }
@@ -405,7 +405,7 @@ static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const byte *
  */
 void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const byte *data, int32_t len) {
 
-  if (!s_voice_state.enabled || !s_voice->integer) {
+  if (!module.enabled || !s_voice->integer) {
     return;
   }
 
@@ -419,11 +419,11 @@ void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const byte *data, in
     return;
   }
 
-  SDL_LockMutex(s_voice_state.mutex);
+  SDL_LockMutex(module.mutex);
 
   S_AddVoice_(client, seq, flags, data, len);
 
-  SDL_UnlockMutex(s_voice_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 }
 
 /**
@@ -431,8 +431,8 @@ void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const byte *data, in
  */
 static void S_ExpireSpeakers(void) {
 
-  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
-    s_voice_speaker_t *speaker = s_voice_state.speakers + i;
+  for (size_t i = 0; i < lengthof(module.speakers); i++) {
+    SoundVoiceSpeaker *speaker = module.speakers + i;
 
     if (!speaker->source) {
       continue;
@@ -460,17 +460,17 @@ static void S_ExpireSpeakers(void) {
  */
 static void S_EnqueueVoiceFrame(const byte *data, int32_t len, uint8_t flags) {
 
-  if (s_voice_state.out_head - s_voice_state.out_tail == VOICE_OUT_FRAMES) {
-    s_voice_state.out_tail++;
+  if (module.outHead - module.outTail == VOICE_OUT_FRAMES) {
+    module.outTail++;
   }
 
-  const int32_t i = s_voice_state.out_head++ % VOICE_OUT_FRAMES;
+  const int32_t i = module.outHead++ % VOICE_OUT_FRAMES;
 
-  memcpy(s_voice_state.out[i].data, data, len);
-  s_voice_state.out[i].len = (uint8_t) len;
-  s_voice_state.out[i].seq = s_voice_state.out_seq++;
-  s_voice_state.out[i].flags = flags;
-  s_voice_state.out[i].channel = s_voice_state.channel;
+  memcpy(module.out[i].data, data, len);
+  module.out[i].len = (uint8_t) len;
+  module.out[i].seq = module.outSeq++;
+  module.out[i].flags = flags;
+  module.out[i].channel = module.channel;
 }
 
 /**
@@ -481,27 +481,27 @@ static void S_EnqueueVoiceFrame(const byte *data, int32_t len, uint8_t flags) {
  */
 int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel) {
 
-  if (!s_voice_state.enabled) {
+  if (!module.enabled) {
     return 0;
   }
 
   int32_t len = 0;
 
-  SDL_LockMutex(s_voice_state.mutex);
+  SDL_LockMutex(module.mutex);
 
-  if (s_voice_state.out_head != s_voice_state.out_tail) {
+  if (module.outHead != module.outTail) {
 
-    const int32_t i = s_voice_state.out_tail++ % VOICE_OUT_FRAMES;
+    const int32_t i = module.outTail++ % VOICE_OUT_FRAMES;
 
-    len = s_voice_state.out[i].len;
+    len = module.out[i].len;
 
-    memcpy(data, s_voice_state.out[i].data, len);
-    *seq = s_voice_state.out[i].seq;
-    *flags = s_voice_state.out[i].flags;
-    *channel = s_voice_state.out[i].channel;
+    memcpy(data, module.out[i].data, len);
+    *seq = module.out[i].seq;
+    *flags = module.out[i].flags;
+    *channel = module.out[i].channel;
   }
 
-  SDL_UnlockMutex(s_voice_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 
   return len;
 }
@@ -511,7 +511,7 @@ int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel) 
  */
 static int32_t S_EncodeVoiceFrame(const int16_t *samples, byte *payload) {
 
-  const int32_t len = opus_encode(s_voice_state.encoder, samples, VOICE_FRAME_SAMPLES,
+  const int32_t len = opus_encode(module.encoder, samples, VOICE_FRAME_SAMPLES,
                                   payload, VOICE_MAX_PAYLOAD);
 
   if (len < 0) {
@@ -524,36 +524,36 @@ static int32_t S_EncodeVoiceFrame(const int16_t *samples, byte *payload) {
 
 /**
  * @brief Drains the capture device into whole frames, one voice thread tick's worth.
- * @remarks Never opens the device. S_OpenCapture resolves s_capture_device, and cvar strings are
+ * @remarks Never opens the device. S_OpenCapture resolves s_captureDevice, and cvar strings are
  * freed and replaced by the main thread, so it runs only from S_StartVoice.
  */
 static void S_PumpVoice(void) {
 
-  if (!s_voice_state.transmitting || !S_Capturing()) {
+  if (!module.transmitting || !S_Capturing()) {
     return;
   }
 
-  if (s_voice_bitrate->modified) {
-    s_voice_bitrate->modified = false;
+  if (s_voiceBitrate->modified) {
+    s_voiceBitrate->modified = false;
 
-    const int32_t bitrate = Clampf(s_voice_bitrate->integer, 6000, 64000);
-    opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_BITRATE(bitrate));
+    const int32_t bitrate = Clampf(s_voiceBitrate->integer, 6000, 64000);
+    opus_encoder_ctl(module.encoder, OPUS_SET_BITRATE(bitrate));
   }
 
-  while (S_ReadCapture(s_voice_state.frame, sizeof(s_voice_state.frame)) ==
-         (int32_t) sizeof(s_voice_state.frame)) {
+  while (S_ReadCapture(module.frame, sizeof(module.frame)) ==
+         (int32_t) sizeof(module.frame)) {
 
-    S_CheckCaptureSilence(s_voice_state.frame, VOICE_FRAME_SAMPLES);
+    S_CheckCaptureSilence(module.frame, VOICE_FRAME_SAMPLES);
 
-    S_ApplyCaptureGain(s_voice_state.frame, VOICE_FRAME_SAMPLES);
+    S_ApplyCaptureGain(module.frame, VOICE_FRAME_SAMPLES);
 
-    const int32_t len = S_EncodeVoiceFrame(s_voice_state.frame, s_voice_state.payload);
+    const int32_t len = S_EncodeVoiceFrame(module.frame, module.payload);
 
     if (len) {
-      S_EnqueueVoiceFrame(s_voice_state.payload, len, 0);
+      S_EnqueueVoiceFrame(module.payload, len, 0);
 
-      if (s_voice_loopback->integer) {
-        S_AddVoice_(VOICE_SELF, s_voice_state.out_seq - 1, 0, s_voice_state.payload, len);
+      if (s_voiceLoopback->integer) {
+        S_AddVoice_(VOICE_SELF, module.outSeq - 1, 0, module.payload, len);
       }
     }
   }
@@ -568,10 +568,10 @@ static int32_t S_VoiceThread(void *data) {
 
   while (true) {
 
-    SDL_LockMutex(s_voice_state.mutex);
+    SDL_LockMutex(module.mutex);
 
-    if (s_voice_state.shutdown) {
-      SDL_UnlockMutex(s_voice_state.mutex);
+    if (module.shutdown) {
+      SDL_UnlockMutex(module.mutex);
       return 0;
     }
 
@@ -579,7 +579,7 @@ static int32_t S_VoiceThread(void *data) {
 
     S_ExpireSpeakers();
 
-    SDL_UnlockMutex(s_voice_state.mutex);
+    SDL_UnlockMutex(module.mutex);
 
     SDL_Delay(VOICE_PUMP_MILLIS);
   }
@@ -592,11 +592,11 @@ static int32_t S_VoiceThread(void *data) {
  */
 void S_StartVoice(uint8_t channel) {
 
-  if (!s_voice_state.enabled || !s_voice->integer) {
+  if (!module.enabled || !s_voice->integer) {
     return;
   }
 
-  if (s_capture_device->modified) {
+  if (s_captureDevice->modified) {
     S_CloseCapture();
   }
 
@@ -604,23 +604,23 @@ void S_StartVoice(uint8_t channel) {
     return;
   }
 
-  SDL_LockMutex(s_voice_state.mutex);
+  SDL_LockMutex(module.mutex);
 
-  if (!s_voice_state.transmitting) {
-    s_voice_state.transmitting = true;
-    s_voice_state.channel = channel;
-    s_voice_state.ending = false;
+  if (!module.transmitting) {
+    module.transmitting = true;
+    module.channel = channel;
+    module.ending = false;
 
-    s_voice_state.capture_silent = false;
-    s_voice_state.silent_frames = 0;
-    s_voice_state.capture_peak = 0.f;
+    module.captureSilent = false;
+    module.silentFrames = 0;
+    module.capturePeak = 0.f;
 
     S_ResumeCapture();
 
-    opus_encoder_ctl(s_voice_state.encoder, OPUS_RESET_STATE);
+    opus_encoder_ctl(module.encoder, OPUS_RESET_STATE);
   }
 
-  SDL_UnlockMutex(s_voice_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 }
 
 /**
@@ -632,25 +632,25 @@ void S_StartVoice(uint8_t channel) {
  */
 void S_StopVoice(void) {
 
-  if (!s_voice_state.enabled) {
+  if (!module.enabled) {
     return;
   }
 
-  SDL_LockMutex(s_voice_state.mutex);
+  SDL_LockMutex(module.mutex);
 
-  if (s_voice_state.transmitting) {
-    s_voice_state.transmitting = false;
+  if (module.transmitting) {
+    module.transmitting = false;
 
-    const int32_t len = S_EncodeVoiceFrame(s_voice_state.frame, s_voice_state.payload);
+    const int32_t len = S_EncodeVoiceFrame(module.frame, module.payload);
 
     if (len) {
-      S_EnqueueVoiceFrame(s_voice_state.payload, len, VOICE_END);
+      S_EnqueueVoiceFrame(module.payload, len, VOICE_END);
     }
   }
 
   S_PauseCapture();
 
-  SDL_UnlockMutex(s_voice_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 }
 
 /**
@@ -658,25 +658,25 @@ void S_StopVoice(void) {
  */
 void S_InitVoice(void) {
 
-  memset(&s_voice_state, 0, sizeof(s_voice_state));
+  memset(&module, 0, sizeof(module));
 
   s_voice = Cvar_Add("s_voice", "1", CVAR_ARCHIVE, "Enables voice chat.");
-  s_voice_bitrate = Cvar_Add("s_voice_bitrate", "16000", CVAR_ARCHIVE, "Voice chat bitrate, in bits per second.");
-  s_capture_gain = Cvar_Add("s_capture_gain", "1", CVAR_ARCHIVE, "Microphone input gain.");
-  s_capture_normalize = Cvar_Add("s_capture_normalize", "1", CVAR_ARCHIVE, "Automatically raise a quiet microphone to a usable level.");
-  s_voice_loopback = Cvar_Add("s_voice_loopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
-  s_voice_volume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
+  s_voiceBitrate = Cvar_Add("s_voiceBitrate", "16000", CVAR_ARCHIVE, "Voice chat bitrate, in bits per second.");
+  s_captureGain = Cvar_Add("s_captureGain", "1", CVAR_ARCHIVE, "Microphone input gain.");
+  s_captureNormalize = Cvar_Add("s_captureNormalize", "1", CVAR_ARCHIVE, "Automatically raise a quiet microphone to a usable level.");
+  s_voiceLoopback = Cvar_Add("s_voiceLoopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
+  s_voiceVolume = Cvar_Add("s_voiceVolume", "1", CVAR_ARCHIVE, "Voice chat volume.");
 
-  s_voice_state.mutex = SDL_CreateMutex();
+  module.mutex = SDL_CreateMutex();
 
-  if (!s_voice_state.mutex) {
+  if (!module.mutex) {
     Com_Warn("Couldn't create mutex: %s\n", SDL_GetError());
     return;
   }
 
   int32_t err;
 
-  s_voice_state.encoder = opus_encoder_create(VOICE_RATE, 1, OPUS_APPLICATION_VOIP, &err);
+  module.encoder = opus_encoder_create(VOICE_RATE, 1, OPUS_APPLICATION_VOIP, &err);
 
   if (err != OPUS_OK) {
     Com_Warn("Couldn't create encoder: %s\n", opus_strerror(err));
@@ -684,21 +684,21 @@ void S_InitVoice(void) {
     return;
   }
 
-  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_BITRATE(Clampf(s_voice_bitrate->integer, 6000, 64000)));
-  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_COMPLEXITY(5));
-  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_INBAND_FEC(1));
-  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_PACKET_LOSS_PERC(10));
-  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_DTX(0));
+  opus_encoder_ctl(module.encoder, OPUS_SET_BITRATE(Clampf(s_voiceBitrate->integer, 6000, 64000)));
+  opus_encoder_ctl(module.encoder, OPUS_SET_COMPLEXITY(5));
+  opus_encoder_ctl(module.encoder, OPUS_SET_INBAND_FEC(1));
+  opus_encoder_ctl(module.encoder, OPUS_SET_PACKET_LOSS_PERC(10));
+  opus_encoder_ctl(module.encoder, OPUS_SET_DTX(0));
 
-  s_voice_state.thread = SDL_CreateThread(S_VoiceThread, __func__, NULL);
+  module.thread = SDL_CreateThread(S_VoiceThread, __func__, NULL);
 
-  if (!s_voice_state.thread) {
+  if (!module.thread) {
     Com_Warn("Couldn't create thread: %s\n", SDL_GetError());
     S_ShutdownVoice();
     return;
   }
 
-  s_voice_state.enabled = true;
+  module.enabled = true;
 
   Com_Print("Voice initialized (%s)\n", opus_get_version_string());
 }
@@ -708,19 +708,19 @@ void S_InitVoice(void) {
  */
 void S_StopVoices(void) {
 
-  if (!s_voice_state.enabled) {
+  if (!module.enabled) {
     return;
   }
 
-  SDL_LockMutex(s_voice_state.mutex);
+  SDL_LockMutex(module.mutex);
 
-  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
-    S_ReleaseSpeaker(s_voice_state.speakers + i);
+  for (size_t i = 0; i < lengthof(module.speakers); i++) {
+    S_ReleaseSpeaker(module.speakers + i);
   }
 
-  s_voice_state.out_head = s_voice_state.out_tail = 0;
+  module.outHead = module.outTail = 0;
 
-  SDL_UnlockMutex(s_voice_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 }
 
 /**
@@ -728,29 +728,29 @@ void S_StopVoices(void) {
  */
 void S_ShutdownVoice(void) {
 
-  s_voice_state.enabled = false;
+  module.enabled = false;
 
-  if (s_voice_state.thread) {
-    SDL_LockMutex(s_voice_state.mutex);
-    s_voice_state.shutdown = true;
-    SDL_UnlockMutex(s_voice_state.mutex);
+  if (module.thread) {
+    SDL_LockMutex(module.mutex);
+    module.shutdown = true;
+    SDL_UnlockMutex(module.mutex);
 
-    SDL_WaitThread(s_voice_state.thread, NULL);
+    SDL_WaitThread(module.thread, NULL);
   }
 
   S_CloseCapture();
 
-  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
-    S_ReleaseSpeaker(s_voice_state.speakers + i);
+  for (size_t i = 0; i < lengthof(module.speakers); i++) {
+    S_ReleaseSpeaker(module.speakers + i);
   }
 
-  if (s_voice_state.encoder) {
-    opus_encoder_destroy(s_voice_state.encoder);
+  if (module.encoder) {
+    opus_encoder_destroy(module.encoder);
   }
 
-  if (s_voice_state.mutex) {
-    SDL_DestroyMutex(s_voice_state.mutex);
+  if (module.mutex) {
+    SDL_DestroyMutex(module.mutex);
   }
 
-  memset(&s_voice_state, 0, sizeof(s_voice_state));
+  memset(&module, 0, sizeof(module));
 }

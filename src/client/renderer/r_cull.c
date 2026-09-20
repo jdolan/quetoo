@@ -24,7 +24,7 @@
 /**
  * @brief Tests whether a box is outside the view frustum.
  */
-bool R_CullBox(const r_view_t *view, const box3_t bounds) {
+bool R_CullBox(const RenderView *view, const Box3 bounds) {
 
   if (!r_cull->value) {
     return false;
@@ -34,11 +34,11 @@ bool R_CullBox(const r_view_t *view, const box3_t bounds) {
     return false;
   }
 
-  vec3_t points[8];
+  Vec3 points[8];
 
   Box3_ToPoints(bounds, points);
 
-  const cm_bsp_plane_t *plane = view->frustum;
+  const CmBspPlane *plane = view->frustum;
   for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
 
     size_t j;
@@ -60,7 +60,7 @@ bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 /**
  * @brief Tests whether a sphere is outside the view frustum.
  */
-bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
+bool R_CullSphere(const RenderView *view, const Vec3 point, const float radius) {
 
   if (!r_cull->value) {
     return false;
@@ -70,7 +70,7 @@ bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) 
     return false;
   }
 
-  const cm_bsp_plane_t *plane = view->frustum;
+  const CmBspPlane *plane = view->frustum;
   for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
     const float dist = Cm_DistanceToPlane(point, plane);
     if (dist < -radius) {
@@ -84,13 +84,13 @@ bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) 
 /**
  * @brief Updates the view frustum planes.
  */
-void R_UpdateFrustum(r_view_t *view) {
+void R_UpdateFrustum(RenderView *view) {
 
   if (!r_cull->value) {
     return;
   }
 
-  cm_bsp_plane_t *p = view->frustum;
+  CmBspPlane *p = view->frustum;
 
   float hs = sinf(Radians(view->fov.x));
   float hc = cosf(Radians(view->fov.x));
@@ -114,6 +114,6 @@ void R_UpdateFrustum(r_view_t *view) {
     p[i].normal = Vec3_Normalize(p[i].normal);
     p[i].dist = Vec3_Dot(view->origin, p[i].normal);
     p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
-    p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
+    p[i].signBits = Cm_SignBitsForNormal(p[i].normal);
   }
 }

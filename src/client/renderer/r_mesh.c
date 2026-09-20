@@ -24,11 +24,11 @@
 /**
  * @brief Applies the mesh configuration transform to the entity's matrix.
  */
-void R_ApplyMeshConfig(r_entity_t *e) {
+void R_ApplyMeshConfig(RenderEntity *e) {
 
   assert(IS_MESH_MODEL(e->model));
 
-  const r_mesh_config_t *c;
+  const RenderMeshConfig *c;
   
   if (e->parent) {
     c = &e->model->mesh->config.link;
@@ -44,17 +44,17 @@ void R_ApplyMeshConfig(r_entity_t *e) {
 /**
  * @brief Returns the named mesh tag for the specified frame.
  */
-static const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame) {
+static const RenderMeshTag *R_MeshTag(const RenderModel *mod, const char *name, const int32_t frame) {
 
-  if (frame >= mod->mesh->num_frames) {
+  if (frame >= mod->mesh->numFrames) {
     Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
     return NULL;
   }
 
-  const r_mesh_model_t *model = mod->mesh;
-  const r_mesh_tag_t *tag = &model->tags[frame * model->num_tags];
+  const RenderMeshModel *model = mod->mesh;
+  const RenderMeshTag *tag = &model->tags[frame * model->numTags];
 
-  for (int32_t i = 0; i < model->num_tags; i++, tag++) {
+  for (int32_t i = 0; i < model->numTags; i++, tag++) {
     if (!q_strcmp(name, tag->name)) {
       return tag;
     }
@@ -67,23 +67,23 @@ static const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, con
 /**
  * @brief Applies a parent mesh tag transform to a linked entity.
  */
-void R_ApplyMeshTag(r_entity_t *e) {
+void R_ApplyMeshTag(RenderEntity *e) {
 
-  const r_mesh_tag_t *t1 = R_MeshTag(e->parent->model, e->tag, e->parent->old_frame);
-  const r_mesh_tag_t *t2 = R_MeshTag(e->parent->model, e->tag, e->parent->frame);
+  const RenderMeshTag *t1 = R_MeshTag(e->parent->model, e->tag, e->parent->oldFrame);
+  const RenderMeshTag *t2 = R_MeshTag(e->parent->model, e->tag, e->parent->frame);
 
   if (!t1 || !t2) {
     Com_Warn("Invalid tag %s\n", e->tag);
     return;
   }
 
-  mat4_t tag_transform = Mat4_Mix(t2->matrix, t1->matrix, e->parent->back_lerp);
-  tag_transform = Mat4_Concat(tag_transform, e->matrix);
-  e->matrix = Mat4_Concat(e->parent->matrix, tag_transform);
-  vec3_t forward;
+  Mat4 tagTransform = Mat4_Mix(t2->matrix, t1->matrix, e->parent->backLerp);
+  tagTransform = Mat4_Concat(tagTransform, e->matrix);
+  e->matrix = Mat4_Concat(e->parent->matrix, tagTransform);
+  Vec3 forward;
   Mat4_Vectors(e->matrix, &forward, NULL, NULL, &e->origin);
 
   e->angles = Vec3_Euler(forward);
   e->scale = Mat4_ToScale(e->matrix);
-  e->abs_bounds = Mat4_TransformBounds(e->matrix, e->bounds);
+  e->absBounds = Mat4_TransformBounds(e->matrix, e->bounds);
 }

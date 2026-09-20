@@ -33,16 +33,16 @@ typedef struct {
   /**
    * @brief The collision material backing this material.
    */
-  cm_material_t *cm;
+  CmMaterial *cm;
 
   /**
    * @brief The diffusemap texture.
    */
   SDL_Surface *diffusemap;
-} material_t;
+} Material;
 
-extern int32_t num_materials;
-extern material_t materials[MAX_BSP_MATERIALS];
+extern int32_t numMaterials;
+extern Material materials[MAX_BSP_MATERIALS];
 
 int32_t LoadMaterial(const char *name);
 void FreeMaterials(void);

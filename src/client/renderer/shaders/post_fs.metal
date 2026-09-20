@@ -44,16 +44,16 @@ struct spvUnsafeArray
     }
 };
 
-struct vertex_data
+struct vertexData
 {
     float2 texcoord;
 };
 
-struct locals_block
+struct localsBlock
 {
-    int post_stage;
+    int postStage;
     float bloom;
-    float bloom_threshold;
+    float bloomThreshold;
 };
 
 constant spvUnsafeArray<float, 3> _96 = spvUnsafeArray<float, 3>({ 0.0, 1.384615421295166015625, 3.23076915740966796875 });
@@ -61,7 +61,7 @@ constant spvUnsafeArray<float, 3> _108 = spvUnsafeArray<float, 3>({ 0.2270270287
 
 struct main0_out
 {
-    float4 out_color [[color(0)]];
+    float4 outColor [[color(0)]];
 };
 
 struct main0_in
@@ -70,60 +70,60 @@ struct main0_in
 };
 
 static inline __attribute__((always_inline))
-void bloom_extract(thread float4& out_color, texture2d<float> texture_color_attachment, sampler texture_color_attachmentSmplr, thread vertex_data& vertex0, constant locals_block& _35)
+void bloomExtract(thread float4& outColor, texture2d<float> textureColorAttachment, sampler textureColorAttachmentSmplr, thread vertexData& vertex0, constant localsBlock& _35)
 {
-    out_color = float4(fast::max(texture_color_attachment.sample(texture_color_attachmentSmplr, vertex0.texcoord).xyz - float3(_35.bloom_threshold), float3(0.0)), 1.0);
+    outColor = float4(fast::max(textureColorAttachment.sample(textureColorAttachmentSmplr, vertex0.texcoord).xyz - float3(_35.bloomThreshold), float3(0.0)), 1.0);
 }
 
 static inline __attribute__((always_inline))
-void bloom_blur(thread float4& out_color, thread vertex_data& vertex0, constant locals_block& _35, texture2d<float> texture_bloom_attachment, sampler texture_bloom_attachmentSmplr)
+void bloomBlur(thread float4& outColor, thread vertexData& vertex0, constant localsBlock& _35, texture2d<float> textureBloomAttachment, sampler textureBloomAttachmentSmplr)
 {
-    float2 texel = float2(1.0) / float2(int2(texture_bloom_attachment.get_width(), texture_bloom_attachment.get_height()));
-    out_color = texture_bloom_attachment.sample(texture_bloom_attachmentSmplr, vertex0.texcoord) * 0.2270270287990570068359375;
-    if (_35.post_stage == 1)
+    float2 texel = float2(1.0) / float2(int2(textureBloomAttachment.get_width(), textureBloomAttachment.get_height()));
+    outColor = textureBloomAttachment.sample(textureBloomAttachmentSmplr, vertex0.texcoord) * 0.2270270287990570068359375;
+    if (_35.postStage == 1)
     {
         for (int i = 1; i < 3; i++)
         {
-            out_color += (texture_bloom_attachment.sample(texture_bloom_attachmentSmplr, (vertex0.texcoord + float2(texel.x * _96[i], 0.0))) * _108[i]);
-            out_color += (texture_bloom_attachment.sample(texture_bloom_attachmentSmplr, (vertex0.texcoord - float2(texel.x * _96[i], 0.0))) * _108[i]);
+            outColor += (textureBloomAttachment.sample(textureBloomAttachmentSmplr, (vertex0.texcoord + float2(texel.x * _96[i], 0.0))) * _108[i]);
+            outColor += (textureBloomAttachment.sample(textureBloomAttachmentSmplr, (vertex0.texcoord - float2(texel.x * _96[i], 0.0))) * _108[i]);
         }
     }
     else
     {
         for (int i_1 = 1; i_1 < 3; i_1++)
         {
-            out_color += (texture_bloom_attachment.sample(texture_bloom_attachmentSmplr, (vertex0.texcoord + float2(0.0, texel.y * _96[i_1]))) * _108[i_1]);
-            out_color += (texture_bloom_attachment.sample(texture_bloom_attachmentSmplr, (vertex0.texcoord - float2(0.0, texel.y * _96[i_1]))) * _108[i_1]);
+            outColor += (textureBloomAttachment.sample(textureBloomAttachmentSmplr, (vertex0.texcoord + float2(0.0, texel.y * _96[i_1]))) * _108[i_1]);
+            outColor += (textureBloomAttachment.sample(textureBloomAttachmentSmplr, (vertex0.texcoord - float2(0.0, texel.y * _96[i_1]))) * _108[i_1]);
         }
     }
-    out_color.w = 1.0;
+    outColor.w = 1.0;
 }
 
 static inline __attribute__((always_inline))
-void tonemap(thread float4& out_color, texture2d<float> texture_color_attachment, sampler texture_color_attachmentSmplr, thread vertex_data& vertex0, constant locals_block& _35, texture2d<float> texture_bloom_attachment, sampler texture_bloom_attachmentSmplr)
+void tonemap(thread float4& outColor, texture2d<float> textureColorAttachment, sampler textureColorAttachmentSmplr, thread vertexData& vertex0, constant localsBlock& _35, texture2d<float> textureBloomAttachment, sampler textureBloomAttachmentSmplr)
 {
-    float3 color = texture_color_attachment.sample(texture_color_attachmentSmplr, vertex0.texcoord).xyz;
-    float3 glow = texture_bloom_attachment.sample(texture_bloom_attachmentSmplr, vertex0.texcoord).xyz;
+    float3 color = textureColorAttachment.sample(textureColorAttachmentSmplr, vertex0.texcoord).xyz;
+    float3 glow = textureBloomAttachment.sample(textureBloomAttachmentSmplr, vertex0.texcoord).xyz;
     color += (glow * _35.bloom);
-    out_color = float4(fast::clamp(color, float3(0.0), float3(1.0)), 1.0);
+    outColor = float4(fast::clamp(color, float3(0.0), float3(1.0)), 1.0);
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant locals_block& _35 [[buffer(0)]], texture2d<float> texture_color_attachment [[texture(0)]], texture2d<float> texture_bloom_attachment [[texture(1)]], sampler texture_color_attachmentSmplr [[sampler(0)]], sampler texture_bloom_attachmentSmplr [[sampler(1)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant localsBlock& _35 [[buffer(0)]], texture2d<float> textureColorAttachment [[texture(0)]], texture2d<float> textureBloomAttachment [[texture(1)]], sampler textureColorAttachmentSmplr [[sampler(0)]], sampler textureBloomAttachmentSmplr [[sampler(1)]])
 {
     main0_out out = {};
-    vertex_data vertex0 = {};
+    vertexData vertex0 = {};
     vertex0.texcoord = in.vertex0_texcoord;
-    if (_35.post_stage == 0)
+    if (_35.postStage == 0)
     {
-        bloom_extract(out.out_color, texture_color_attachment, texture_color_attachmentSmplr, vertex0, _35);
+        bloomExtract(out.outColor, textureColorAttachment, textureColorAttachmentSmplr, vertex0, _35);
     }
     else
     {
-        bool _228 = _35.post_stage == 1;
+        bool _228 = _35.postStage == 1;
         bool _235;
         if (!_228)
         {
-            _235 = _35.post_stage == 2;
+            _235 = _35.postStage == 2;
         }
         else
         {
@@ -131,11 +131,11 @@ fragment main0_out main0(main0_in in [[stage_in]], constant locals_block& _35 [[
         }
         if (_235)
         {
-            bloom_blur(out.out_color, vertex0, _35, texture_bloom_attachment, texture_bloom_attachmentSmplr);
+            bloomBlur(out.outColor, vertex0, _35, textureBloomAttachment, textureBloomAttachmentSmplr);
         }
         else
         {
-            tonemap(out.out_color, texture_color_attachment, texture_color_attachmentSmplr, vertex0, _35, texture_bloom_attachment, texture_bloom_attachmentSmplr);
+            tonemap(out.outColor, textureColorAttachment, textureColorAttachmentSmplr, vertex0, _35, textureBloomAttachment, textureBloomAttachmentSmplr);
         }
     }
     return out;

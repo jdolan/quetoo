@@ -53,11 +53,11 @@ static const char *healthIconName(int16_t health) {
 /**
  * @brief The icon of the best armor carried, or `NULL`.
  */
-static const char *armorIconName(const player_state_t *ps) {
+static const char *armorIconName(const PlayerState *ps) {
 
-  for (g_item_tag_t t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
+  for (GameItemTag t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
     if (ps->inventory[t]) {
-      return bg_item_defs[t].icon;
+      return bgItemDefs[t].icon;
     }
   }
 
@@ -117,7 +117,7 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+  const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   int16_t value = 0, med = -1, low = -1;
   const char *iconName = NULL;
@@ -130,7 +130,7 @@ static void updateBindings(View *self, ident data) {
       iconName = healthIconName(value);
       break;
     case StatViewArmor:
-      if ((cg_state.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+      if ((cgState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
         value = ps->stats[STAT_ARMOR];
         med = HUD_ARMOR_MED;
         low = HUD_ARMOR_LOW;
@@ -138,13 +138,13 @@ static void updateBindings(View *self, ident data) {
       }
       break;
     case StatViewAmmo:
-      if ((cg_state.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+      if ((cgState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
         value = Cg_ActiveAmmo(ps);
 
         const int16_t active = Cg_ActiveWeapon(ps);
         if (active != WEAPON_SELECT_OFF) {
-          low = (int16_t) bg_item_defs[cg_weapons[active].ammo_tag].quantity;
-          iconName = bg_item_defs[cg_weapons[active].tag].icon;
+          low = (int16_t) bgItemDefs[cgWeapons[active].ammoTag].quantity;
+          iconName = bgItemDefs[cgWeapons[active].tag].icon;
         }
       }
       break;
@@ -161,8 +161,8 @@ static void updateBindings(View *self, ident data) {
 
   if (value < low) {
     color = Colors.Red;
-    if (cg_draw_vitals_pulse->integer) {
-      pulse = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f);
+    if (cg_drawVitalsPulse->integer) {
+      pulse = Clampf(sinf(cgi.client->unclampedTime / 250.f), 0.75f, 1.f);
     }
   } else if (value < med) {
     color = Colors.Yellow;

@@ -25,14 +25,14 @@
 
 extern bool leaked;
 
-extern float micro_volume;
+extern float microVolume;
 
-extern bool no_csg;
-extern bool no_detail;
-extern bool no_liquid;
-extern bool no_merge;
-extern bool no_phong;
-extern bool no_tjunc;
-extern bool no_weld;
+extern bool noCsg;
+extern bool noDetail;
+extern bool noLiquid;
+extern bool noMerge;
+extern bool noPhong;
+extern bool noTjunc;
+extern bool noWeld;
 
 int32_t BSP_Main(void);

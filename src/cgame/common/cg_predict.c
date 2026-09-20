@@ -31,23 +31,23 @@ static bool Cg_UsePrediction_Common(void) {
     return false;
   }
 
-  if (cgi.client->demo_server) {
+  if (cgi.client->demoServer) {
     return false;
   }
 
-  if (cgi.client->third_person) {
+  if (cgi.client->thirdPerson) {
     return false;
   }
 
-  if (cgi.client->delta_frame == NULL) {
+  if (cgi.client->deltaFrame == NULL) {
     return false;
   }
 
-  if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+  if (cgi.client->frame.ps.pmState.type == PM_DEAD) {
     return false;
   }
 
-  if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
+  if (cgi.client->frame.ps.pmState.type == PM_FREEZE) {
     return false;
   }
 
@@ -68,7 +68,7 @@ bool Cg_ExportUsePrediction(void) {
 /**
  * @brief The tail of the `Cg_MoveCommandWillRun` chain: a notification, so it does nothing.
  */
-static void Cg_MoveCommandWillRun_Common(pm_move_t *pm, const cl_cmd_t *cmd) {
+static void Cg_MoveCommandWillRun_Common(PlayerMove *pm, const ClientCmd *cmd) {
 }
 
 MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
@@ -76,7 +76,7 @@ MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 /**
  * @brief The tail of the `Cg_MoveCommandDidRun` chain: a notification, so it does nothing.
  */
-static void Cg_MoveCommandDidRun_Common(const pm_move_t *pm, const cl_cmd_t *cmd) {
+static void Cg_MoveCommandDidRun_Common(const PlayerMove *pm, const ClientCmd *cmd) {
 }
 
 MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
@@ -84,7 +84,7 @@ MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 /**
  * @brief The tail of the `Cg_PredictionDidComplete` chain: a notification, so it does nothing.
  */
-static void Cg_PredictionDidComplete_Common(const pm_move_t *pm) {
+static void Cg_PredictionDidComplete_Common(const PlayerMove *pm) {
 }
 
 PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
@@ -92,7 +92,7 @@ PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common
 /**
  * @brief Trace wrapper for `Pm_Move`.
  */
-static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
+static CmTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
   return cgi.Trace(start, end, bounds, cgi.client->entity, CONTENTS_MASK_CLIP_PLAYER);
 }
 
@@ -112,15 +112,15 @@ void Cg_PredictMovement(const Vector *cmds) {
   assert(cmds);
   assert(cmds->count);
 
-  cl_predicted_state_t *pr = &cgi.client->predicted_state;
+  ClientPredictedState *pr = &cgi.client->predictedState;
 
   // copy current state to into the move
-  pm_move_t pm = {};
-  pm.s = cgi.client->frame.ps.pm_state;
+  PlayerMove pm = {};
+  pm.s = cgi.client->frame.ps.pmState;
 
   pm.ground = pr->ground;
 #if defined(G_HOOK)
-  pm.hook_pull_speed = cg_state.hook_pull_speed;
+  pm.hookPullSpeed = cgState.hookPullSpeed;
 #endif
 
   pm.PointContents = cgi.PointContents;
@@ -130,11 +130,11 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   pm.Debug = cgi.Debug;
   pm.DebugMask = cgi.DebugMask;
-  pm.debug_mask = DEBUG_PMOVE_CLIENT;
+  pm.debugMask = DEBUG_PMOVE_CLIENT;
 
   // run the commands
   for (uint32_t i = 0; i < cmds->count; i++) {
-    cl_cmd_t *cmd = VectorValue(cmds, cl_cmd_t *, i);
+    ClientCmd *cmd = VectorValue(cmds, ClientCmd *, i);
 
     if (cmd->cmd.msec) { // if the command has time, run it
 
@@ -161,13 +161,13 @@ void Cg_PredictMovement(const Vector *cmds) {
   if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {
     pr->view.origin = pm.s.origin;
   }
-  pr->view.offset = pm.s.view_offset;
-  pr->view.step_offset = pm.s.step_offset;
+  pr->view.offset = pm.s.viewOffset;
+  pr->view.stepOffset = pm.s.stepOffset;
 
   // If the server is requesting a snap, use the authoritative angles rather than
   // the last cmd angles, which may be stale (pre-snap) pending commands.
-  if (cg_state.snap_angles) {
-    pr->view.angles = cg_state.snap_view_angles;
+  if (cgState.snapAngles) {
+    pr->view.angles = cgState.snapViewAngles;
   } else {
     pr->view.angles = pm.cmd.angles;
   }
@@ -177,32 +177,32 @@ void Cg_PredictMovement(const Vector *cmds) {
 
 /**
  * @brief Drives demo playback's free-flight camera directly through `Pm_Move`, independent of
- * the recorded `player_state_t` and of the network command backlog `Cg_PredictMovement` relies
+ * the recorded `PlayerState` and of the network command backlog `Cg_PredictMovement` relies
  * on (which never resolves during demo playback: no server ever acknowledges a demo's locally
  * numbered outgoing commands, so `Cl_PredictMovement` always exceeds `CMD_BACKUP` and never
  * calls in). Called every movement command cycle from `Cg_Move`, the same cadence prediction
  * would otherwise run at, using the `cmd` that cycle already built for us.
  */
-void Cg_UpdateSpectate(pm_cmd_t *cmd) {
+void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
 
-  if (!cg_state.spectate.initialized) {
-    cg_state.spectate.state.type = PM_SPECTATOR;
-    cg_state.spectate.state.origin = cgi.view->origin;
+  if (!cgState.spectate.initialized) {
+    cgState.spectate.state.type = PM_SPECTATOR;
+    cgState.spectate.state.origin = cgi.view->origin;
 
     // take over the look angles from wherever the camera is pointing, rather than from the
     // recorded player's aim, which is what cgi.client->angles still holds: Cg_UpdateAngles stops
     // syncing it once this mode resolves the view, and every move from here reads it back
     cgi.client->angles = cgi.view->angles;
 
-    cg_state.spectate.initialized = true;
+    cgState.spectate.initialized = true;
   }
 
-  pm_move_t pm = {};
-  pm.s = cg_state.spectate.state;
+  PlayerMove pm = {};
+  pm.s = cgState.spectate.state;
 
-  // Pm_SpectatorMove reads speed_spectator, accel_spectator and friction_spectator from the
+  // Pm_SpectatorMove reads speedSpectator, accelSpectator and frictionSpectator from the
   // movement parameters, which the recording carries; without them the camera holds still
-  pm.s.params = cgi.client->frame.ps.pm_state.params;
+  pm.s.params = cgi.client->frame.ps.pmState.params;
 
   pm.cmd = *cmd;
   pm.cmd.angles = cgi.client->angles;
@@ -213,9 +213,9 @@ void Cg_UpdateSpectate(pm_cmd_t *cmd) {
 
   pm.Debug = cgi.Debug;
   pm.DebugMask = cgi.DebugMask;
-  pm.debug_mask = DEBUG_PMOVE_CLIENT;
+  pm.debugMask = DEBUG_PMOVE_CLIENT;
 
   Pm_Move(&pm);
 
-  cg_state.spectate.state = pm.s;
+  cgState.spectate.state = pm.s;
 }

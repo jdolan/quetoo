@@ -30,11 +30,11 @@
 #define DEMO_ENTITY_MARGIN 128
 
 /**
- * @brief Writes a length + frame_num prefixed chunk to the demo file.
+ * @brief Writes a length + frameNum prefixed chunk to the demo file.
  */
-static void Cl_WriteDemoChunk(const void *data, size_t size, int32_t frame_num) {
+static void Cl_WriteDemoChunk(const void *data, size_t size, int32_t frameNum) {
   const int32_t len = LittleLong((int32_t) size);
-  const int32_t num = LittleLong(frame_num);
+  const int32_t num = LittleLong(frameNum);
 
   Fs_Write(cls.demo.file, &len, sizeof(len), 1);
   Fs_Write(cls.demo.file, &num, sizeof(num), 1);
@@ -44,42 +44,42 @@ static void Cl_WriteDemoChunk(const void *data, size_t size, int32_t frame_num) 
 /**
  * @brief Appends a frame's location to the in-memory index accumulated while recording.
  */
-static void Cl_AddDemoKeyframe(int32_t frame_num, int32_t offset) {
+static void Cl_AddDemoKeyframe(int32_t frameNum, int32_t offset) {
 
-  if (cls.demo.num_keyframes == cls.demo.max_keyframes) {
-    cls.demo.max_keyframes = cls.demo.max_keyframes ? cls.demo.max_keyframes * 2 : 64;
+  if (cls.demo.numKeyframes == cls.demo.maxKeyframes) {
+    cls.demo.maxKeyframes = cls.demo.maxKeyframes ? cls.demo.maxKeyframes * 2 : 64;
     cls.demo.keyframes = Mem_Realloc(cls.demo.keyframes,
-                                      cls.demo.max_keyframes * sizeof(demo_keyframe_t));
+                                      cls.demo.maxKeyframes * sizeof(DemoKeyframe));
   }
 
-  cls.demo.keyframes[cls.demo.num_keyframes].frame_num = frame_num;
-  cls.demo.keyframes[cls.demo.num_keyframes].offset = offset;
-  cls.demo.num_keyframes++;
+  cls.demo.keyframes[cls.demo.numKeyframes].frameNum = frameNum;
+  cls.demo.keyframes[cls.demo.numKeyframes].offset = offset;
+  cls.demo.numKeyframes++;
 }
 
 /**
- * @brief Writes the fixed-size header, `server_data`, `config_strings`, and baselines. Called
+ * @brief Writes the fixed-size header, `server_data`, `configStrings`, and baselines. Called
  * once, lazily, from the first `Cl_WriteDemoMessage` call after `record`: baselines are already
  * fully populated by then, since reaching `CL_ACTIVE` (a precondition for `record`) requires
  * having received them at connect time.
  */
 static void Cl_WriteDemoHeader(void) {
-  static entity_state_t null_state;
-  mem_buf_t msg;
+  static EntityState null_state;
+  MemBuf msg;
   byte buffer[MAX_MSG_SIZE];
 
-  demo_header_t *header = &cls.demo.header;
+  DemoHeader *header = &cls.demo.header;
   memset(header, 0, sizeof(*header));
 
   memcpy(header->magic, DEMO_MAGIC, sizeof(header->magic));
   header->version = LittleLong(DEMO_VERSION);
-  q_strlcpy(header->map, cl.config_strings[CS_BSP], sizeof(header->map));
-  q_strlcpy(header->message, cl.config_strings[CS_MESSAGE], sizeof(header->message));
+  q_strlcpy(header->map, cl.configStrings[CS_BSP], sizeof(header->map));
+  q_strlcpy(header->message, cl.configStrings[CS_MESSAGE], sizeof(header->message));
   header->title[0] = '\0';
   header->favorite = 0;
   header->duration = 0;
-  header->num_keyframes = 0;
-  header->ofs_keyframes = 0;
+  header->numKeyframes = 0;
+  header->ofsKeyframes = 0;
 
   Fs_Write(cls.demo.file, header, sizeof(*header), 1);
 
@@ -90,33 +90,33 @@ static void Cl_WriteDemoHeader(void) {
   Net_WriteByte(&msg, SV_CMD_SERVER_DATA);
   Net_WriteLong(&msg, PROTOCOL_MAJOR);
   Net_WriteLong(&msg, cls.cgame->protocol);
-  Net_WriteByte(&msg, 1); // demo_server byte
+  Net_WriteByte(&msg, 1); // demoServer byte
   Net_WriteString(&msg, Com_Game());
   Net_WriteString(&msg, Com_Cgame());
-  Net_WriteString(&msg, cl.config_strings[CS_MESSAGE]);
+  Net_WriteString(&msg, cl.configStrings[CS_MESSAGE]);
 
-  // and config_strings
+  // and configStrings
   for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
-    if (*cl.config_strings[i] != '\0') {
-      if (msg.size + q_strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
+    if (*cl.configStrings[i] != '\0') {
+      if (msg.size + q_strlen(cl.configStrings[i]) + 32 > msg.maxSize) { // write it out
         Cl_WriteDemoChunk(msg.data, msg.size, 0);
         msg.size = 0;
       }
 
       Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
       Net_WriteShort(&msg, i);
-      Net_WriteString(&msg, cl.config_strings[i]);
+      Net_WriteString(&msg, cl.configStrings[i]);
     }
   }
 
   // and baselines
   for (size_t i = 0; i < lengthof(cl.entities); i++) {
-    entity_state_t *ent = &cl.entities[i].baseline;
+    EntityState *ent = &cl.entities[i].baseline;
     if (i != 0 && !ent->number) { // entity 0 is worldspawn; never skip it
       continue;
     }
 
-    if (msg.size + 64 > msg.max_size) { // write it out
+    if (msg.size + 64 > msg.maxSize) { // write it out
       Cl_WriteDemoChunk(msg.data, msg.size, 0);
       msg.size = 0;
     }
@@ -154,74 +154,74 @@ void Cl_WriteDemoMessage(void) {
 
   if (Fs_Tell(cls.demo.file) == 0) {
     Cl_WriteDemoHeader();
-    cls.demo.last_frame_num = -1;
+    cls.demo.lastFrameNum = -1;
   }
 
-  if (!cl.frame.valid || cl.frame.frame_num == cls.demo.last_frame_num) {
+  if (!cl.frame.valid || cl.frame.frameNum == cls.demo.lastFrameNum) {
     return; // this packet carried no new frame to record
   }
 
-  if (cls.demo.start_frame_num < 0) {
-    cls.demo.start_frame_num = cl.frame.frame_num;
+  if (cls.demo.startFrameNum < 0) {
+    cls.demo.startFrameNum = cl.frame.frameNum;
   }
 
-  // every frame_num persisted to the file is relative to start_frame_num, so the file's own
-  // numbering always starts at 0 - duration and Sv_SeekDemo's millis-to-frame_num conversion
+  // every frameNum persisted to the file is relative to startFrameNum, so the file's own
+  // numbering always starts at 0 - duration and Sv_SeekDemo's millis-to-frameNum conversion
   // both assume this
-  const int32_t frame_num = cl.frame.frame_num - cls.demo.start_frame_num;
+  const int32_t frameNum = cl.frame.frameNum - cls.demo.startFrameNum;
 
-  cls.demo.last_frame_num = cl.frame.frame_num;
+  cls.demo.lastFrameNum = cl.frame.frameNum;
 
-  Cl_AddDemoKeyframe(frame_num, (int32_t) Fs_Tell(cls.demo.file));
+  Cl_AddDemoKeyframe(frameNum, (int32_t) Fs_Tell(cls.demo.file));
 
-  static player_state_t null_ps;
+  static PlayerState null_ps;
 
   // bounded by MAX_MSG_SIZE to match what Sv_GetDemoMessage accepts as a valid chunk on
   // playback, and what the server's own relay buffers and Netchan_Transmit can actually carry in
   // one message - unlike a plain on-disk record size, this isn't a purely local concern.
-  mem_buf_t msg;
+  MemBuf msg;
   byte buffer[MAX_MSG_SIZE];
   Mem_InitBuffer(&msg, buffer, sizeof(buffer));
 
   Net_WriteByte(&msg, SV_CMD_FRAME);
-  Net_WriteLong(&msg, frame_num);
+  Net_WriteLong(&msg, frameNum);
 
   // -1: every recorded frame is an "uncompressed" frame, matching the server's own convention, so
   // entities always decode from baseline rather than chaining to another recorded frame. This no
-  // longer disables interpolation: cl.previous_frame (sequential frame_num continuity) drives
-  // that independently of cl.delta_frame now, so sequential playback still blends smoothly, while
+  // longer disables interpolation: cl.previousFrame (sequential frameNum continuity) drives
+  // that independently of cl.deltaFrame now, so sequential playback still blends smoothly, while
   // a real discontinuity (a seek) is still correctly detected and snapped.
   Net_WriteLong(&msg, -1);
 
   Net_WriteDeltaPlayerState(&msg, &null_ps, &cl.frame.ps);
 
-  int32_t entities_dropped = 0;
-  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
-    if (msg.max_size - msg.size < DEMO_ENTITY_MARGIN) {
-      entities_dropped = cl.frame.num_entities - i;
+  int32_t entitiesDropped = 0;
+  for (int32_t i = 0; i < cl.frame.numEntities; i++) {
+    if (msg.maxSize - msg.size < DEMO_ENTITY_MARGIN) {
+      entitiesDropped = cl.frame.numEntities - i;
       break;
     }
-    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
+    const uint32_t snum = (cl.frame.entityState + i) & ENTITY_STATE_MASK;
+    const EntityState *s = &cl.entityStates[snum];
     Net_WriteDeltaEntity(&msg, &cl.entities[s->number].baseline, s, true);
   }
   Net_WriteShort(&msg, -1);
 
-  if (entities_dropped) {
+  if (entitiesDropped) {
     Com_Warn("Demo frame %d too large: dropped %d of %d entities\n",
-              frame_num, entities_dropped, cl.frame.num_entities);
+              frameNum, entitiesDropped, cl.frame.numEntities);
   }
 
-  if (cls.demo.event_size) {
-    if (msg.size + cls.demo.event_size <= msg.max_size) {
-      Mem_WriteBuffer(&msg, cls.demo.event_buffer, cls.demo.event_size);
+  if (cls.demo.eventSize) {
+    if (msg.size + cls.demo.eventSize <= msg.maxSize) {
+      Mem_WriteBuffer(&msg, cls.demo.eventBuffer, cls.demo.eventSize);
     } else {
-      Com_Warn("Demo frame %d too large: dropped %zu bytes of events\n", frame_num, cls.demo.event_size);
+      Com_Warn("Demo frame %d too large: dropped %zu bytes of events\n", frameNum, cls.demo.eventSize);
     }
-    cls.demo.event_size = 0;
+    cls.demo.eventSize = 0;
   }
 
-  Cl_WriteDemoChunk(msg.data, msg.size, frame_num);
+  Cl_WriteDemoChunk(msg.data, msg.size, frameNum);
 }
 
 /**
@@ -240,26 +240,26 @@ void Cl_Stop_f(void) {
 
   if (!memcmp(cls.demo.header.magic, DEMO_MAGIC, sizeof(cls.demo.header.magic))) { // a header was actually written
 
-    const int32_t ofs_keyframes = (int32_t) Fs_Tell(cls.demo.file);
+    const int32_t ofsKeyframes = (int32_t) Fs_Tell(cls.demo.file);
 
-    for (size_t i = 0; i < cls.demo.num_keyframes; i++) {
-      demo_keyframe_t entry = cls.demo.keyframes[i];
-      entry.frame_num = LittleLong(entry.frame_num);
+    for (size_t i = 0; i < cls.demo.numKeyframes; i++) {
+      DemoKeyframe entry = cls.demo.keyframes[i];
+      entry.frameNum = LittleLong(entry.frameNum);
       entry.offset = LittleLong(entry.offset);
       Fs_Write(cls.demo.file, &entry, sizeof(entry), 1);
     }
 
-    // duration is relative to start_frame_num, matching every frame_num persisted to the file
-    // (see Cl_WriteDemoMessage) - cl.frame.frame_num alone is the absolute server tick count
+    // duration is relative to startFrameNum, matching every frameNum persisted to the file
+    // (see Cl_WriteDemoMessage) - cl.frame.frameNum alone is the absolute server tick count
     // since map load, not since recording started
-    const int32_t frames_recorded = cls.demo.start_frame_num < 0 ? 0 :
-        cl.frame.frame_num - cls.demo.start_frame_num;
+    const int32_t framesRecorded = cls.demo.startFrameNum < 0 ? 0 :
+        cl.frame.frameNum - cls.demo.startFrameNum;
 
     // patch the in-memory copy of the header rather than reading it back: cls.demo.file is
     // opened write-only, so Fs_Read on it would silently fail and leave the header stack garbage
-    cls.demo.header.duration = LittleLong((int32_t) (frames_recorded * QUETOO_TICK_MILLIS));
-    cls.demo.header.num_keyframes = LittleLong((int32_t) cls.demo.num_keyframes);
-    cls.demo.header.ofs_keyframes = LittleLong(ofs_keyframes);
+    cls.demo.header.duration = LittleLong((int32_t) (framesRecorded * QUETOO_TICK_MILLIS));
+    cls.demo.header.numKeyframes = LittleLong((int32_t) cls.demo.numKeyframes);
+    cls.demo.header.ofsKeyframes = LittleLong(ofsKeyframes);
 
     Fs_Seek(cls.demo.file, 0);
     Fs_Write(cls.demo.file, &cls.demo.header, sizeof(cls.demo.header), 1);
@@ -270,8 +270,8 @@ void Cl_Stop_f(void) {
   cls.demo.file = NULL;
   Mem_Free(cls.demo.keyframes);
   cls.demo.keyframes = NULL;
-  cls.demo.num_keyframes = cls.demo.max_keyframes = 0;
-  cls.demo.start_frame_num = -1;
+  cls.demo.numKeyframes = cls.demo.maxKeyframes = 0;
+  cls.demo.startFrameNum = -1;
 
   Com_Print("Stopped demo\n");
 }
@@ -317,10 +317,10 @@ void Cl_Record_f(void) {
 
   Mem_Free(cls.demo.keyframes);
   cls.demo.keyframes = NULL;
-  cls.demo.num_keyframes = cls.demo.max_keyframes = 0;
-  cls.demo.last_frame_num = -1;
-  cls.demo.start_frame_num = -1;
-  cls.demo.event_size = 0;
+  cls.demo.numKeyframes = cls.demo.maxKeyframes = 0;
+  cls.demo.lastFrameNum = -1;
+  cls.demo.startFrameNum = -1;
+  cls.demo.eventSize = 0;
   memset(&cls.demo.header, 0, sizeof(cls.demo.header));
 
   Com_Print("Recording to %s. Type ^2stop^7 to stop.\n", cls.demo.filename);
@@ -329,37 +329,37 @@ void Cl_Record_f(void) {
 /**
  * @brief The demo playback rates, ascending.
  * @remarks This table MUST be kept in step with the `values` of the speed slider in
- * `ui/hud/DemoControlsView.json`, and MUST stay within the `time_scale` bounds enforced
+ * `ui/hud/DemoControlsView.json`, and MUST stay within the `timeScale` bounds enforced
  * by `main.c`.
  */
-static const float demo_playback_speeds[] = { 0.25f, 0.5f, 0.75f, 1.f, 2.f, 3.f };
+static const float demoPlaybackSpeeds[] = { 0.25f, 0.5f, 0.75f, 1.f, 2.f, 3.f };
 
 /**
  * @brief
  */
 static void Cl_SetDemoPlaybackSpeed(ssize_t index) {
 
-  if (!cl.demo_server) {
+  if (!cl.demoServer) {
     return;
   }
 
-  index = SDL_clamp(index, 0, (ssize_t) lengthof(demo_playback_speeds) - 1);
+  index = SDL_clamp(index, 0, (ssize_t) lengthof(demoPlaybackSpeeds) - 1);
 
-  Cvar_ForceSetValue(time_scale->name, demo_playback_speeds[index]);
+  Cvar_ForceSetValue(timeScale->name, demoPlaybackSpeeds[index]);
 
-  Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
+  Com_Print("Demo playback rate %d%%\n", (int32_t) (timeScale->value * 100));
 }
 
 /**
- * @return The index in `demo_playback_speeds` nearest the current `time_scale`.
+ * @return The index in `demoPlaybackSpeeds` nearest the current `timeScale`.
  */
 static size_t Cl_DemoPlaybackSpeedIndex(void) {
 
   size_t index = 0;
   float nearest = FLT_MAX;
 
-  for (size_t i = 0; i < lengthof(demo_playback_speeds); i++) {
-    const float delta = fabsf(demo_playback_speeds[i] - time_scale->value);
+  for (size_t i = 0; i < lengthof(demoPlaybackSpeeds); i++) {
+    const float delta = fabsf(demoPlaybackSpeeds[i] - timeScale->value);
     if (delta < nearest) {
       nearest = delta;
       index = i;
@@ -377,7 +377,7 @@ void Cl_SetDemoPlaybackSpeed_f(void) {
   const char *arg = Cmd_Argv(1);
 
   if (Cmd_Argc() != 2 || !SDL_isdigit(*arg)) {
-    Com_Print("Usage: %s [0-%d]\n", Cmd_Argv(0), (int32_t) lengthof(demo_playback_speeds) - 1);
+    Com_Print("Usage: %s [0-%d]\n", Cmd_Argv(0), (int32_t) lengthof(demoPlaybackSpeeds) - 1);
     return;
   }
 
@@ -389,7 +389,7 @@ void Cl_SetDemoPlaybackSpeed_f(void) {
  */
 static void Cl_SetDemoPlaybackSpeedRelative(int32_t increment) {
 
-  if (!cl.demo_server) {
+  if (!cl.demoServer) {
     return;
   }
 
@@ -397,14 +397,14 @@ static void Cl_SetDemoPlaybackSpeedRelative(int32_t increment) {
 }
 
 /**
- * @brief Handles the `demo_playback_faster` command, increasing demo playback speed.
+ * @brief Handles the `demo_playbackFaster` command, increasing demo playback speed.
  */
 void Cl_DemoPlaybackFaster_f(void) {
   Cl_SetDemoPlaybackSpeedRelative(+1);
 }
 
 /**
- * @brief Handles the `demo_playback_slower` command, decreasing demo playback speed.
+ * @brief Handles the `demo_playbackSlower` command, decreasing demo playback speed.
  */
 void Cl_DemoPlaybackSlower_f(void) {
   Cl_SetDemoPlaybackSpeedRelative(-1);
@@ -419,7 +419,7 @@ void Cl_DemoPlaybackSlower_f(void) {
  */
 void Cl_DemoPause_f(void) {
 
-  if (!cl.demo_server) {
+  if (!cl.demoServer) {
     return;
   }
 

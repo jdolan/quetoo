@@ -34,12 +34,12 @@
  */
 void Com_LogString(const char *str) {
 
-  if (!str || !*str || !quetoo.log_file) {
+  if (!str || !*str || !quetoo.logFile) {
     return;
   }
 
-  fputs(str, quetoo.log_file);
-  fflush(quetoo.log_file);
+  fputs(str, quetoo.logFile);
+  fflush(quetoo.logFile);
 }
 
 /**
@@ -50,7 +50,7 @@ void Com_LogString(const char *str) {
 static void Com_InitLog(int32_t argc, char *argv[]) {
 
   const char *game = DEFAULT_GAME;
-  const char *log_name = quetoo.log_file_name ? : "quetoo.log";
+  const char *logName = quetoo.logFileName ? : "quetoo.log";
   for (int32_t i = 1; i < argc - 2; i++) {
     if (!q_strcmp(argv[i], "+set") && !q_strcmp(argv[i + 1], "game")) {
       game = argv[i + 2];
@@ -59,7 +59,7 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   }
 
   char path[MAX_QPATH * 3];
-  q_snprintf(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, log_name);
+  q_snprintf(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, logName);
 
   char dir[MAX_QPATH * 2];
   q_strlcpy(dir, path, sizeof(dir));
@@ -68,7 +68,7 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   if (sep) { *sep = '\0'; }
   SDL_CreateDirectory(dir);
 
-  quetoo.log_file = fopen(path, "w");
+  quetoo.logFile = fopen(path, "w");
 
   Com_LogString(va("Quetoo %s %s\n", VERSION, BUILD));
 
@@ -222,8 +222,8 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
 /**
  * @return True if the specified debug flag(s) are enabled.
  */
-bool Com_IsDebug(const debug_t debug) {
-  return (quetoo.debug_mask & debug) != 0;
+bool Com_IsDebug(const DebugFlags debug) {
+  return (quetoo.debugMask & debug) != 0;
 }
 
 /**
@@ -235,7 +235,7 @@ const char *Com_GetDebug(void) {
   debug[0] = '\0';
 
   for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-    if (quetoo.debug_mask & (1 << i)) {
+    if (quetoo.debugMask & (1 << i)) {
       if (q_strlen(debug)) {
         q_strlcat(debug, " ", sizeof(debug));
       }
@@ -243,7 +243,7 @@ const char *Com_GetDebug(void) {
     }
   }
 
-  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+  if (quetoo.debugMask & DEBUG_BREAKPOINT) {
     q_strlcat(debug, " breakpoint", sizeof(debug));
   }
 
@@ -257,7 +257,7 @@ void Com_SetDebug(const char *debug) {
 
   static char token[DEBUG_CATEGORY_MAX_LEN];
 
-  parser_t parser = Parse_Init(debug, PARSER_NO_COMMENTS);
+  Parser parser = Parse_Init(debug, PARSER_NO_COMMENTS);
 
   while (true) {
 
@@ -266,15 +266,15 @@ void Com_SetDebug(const char *debug) {
     }
 
     if (!q_strcmp(token, "none") || !q_strcmp(token, "0")) {
-      quetoo.debug_mask = 0;
+      quetoo.debugMask = 0;
     } else if (!q_strcmp(token, "breakpoint") || !q_strcmp(token, "bp")) {
-      quetoo.debug_mask ^= DEBUG_BREAKPOINT;
+      quetoo.debugMask ^= DEBUG_BREAKPOINT;
     } else if (!q_strcmp(token, "any") || !q_strcmp(token, "all")) {
-      quetoo.debug_mask ^= DEBUG_ALL;
+      quetoo.debugMask ^= DEBUG_ALL;
     } else {
       for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
         if (!q_strcmp(token, DEBUG_CATEGORIES[i])) {
-          quetoo.debug_mask ^= (1 << i);
+          quetoo.debugMask ^= (1 << i);
         }
       }
     }
@@ -324,7 +324,7 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
 /**
  * @brief Print a debug statement. If the format begins with '!', the function name is omitted.
  */
-void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
+void Com_Debug_(const DebugFlags debug, const char *func, const char *fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
@@ -337,9 +337,9 @@ void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
 /**
  * @brief Print a debug statement. If the format begins with '!', the function name is omitted.
  */
-void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) {
+void Com_Debugv_(const DebugFlags debug, const char *func, const char *fmt, va_list args) {
 
-  if ((quetoo.debug_mask & debug) == 0) {
+  if ((quetoo.debugMask & debug) == 0) {
     return;
   }
 
@@ -359,7 +359,7 @@ void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
+void Com_Error_(Err error, const char *func, const char *fmt, ...) {
 
   va_list args;
   va_start(args, fmt);
@@ -374,9 +374,9 @@ void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 /**
  * @brief An error condition has occurred. This function does not return.
  */
-void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
+void Com_Errorv_(Err error, const char *func, const char *fmt, va_list args) {
 
-  if (quetoo.recursive_error) {
+  if (quetoo.recursiveError) {
     if (quetoo.Error) {
       quetoo.Error(ERROR_FATAL, "Recursive error\n");
     } else {
@@ -385,7 +385,7 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
       exit(error);
     }
   } else {
-    quetoo.recursive_error = true;
+    quetoo.recursiveError = true;
   }
 
   char msg[MAX_PRINT_MSG];
@@ -401,15 +401,15 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
     exit(error);
   }
 
-  quetoo.recursive_error = false;
+  quetoo.recursiveError = false;
 }
 
 /**
- * @brief Console command to trigger a test error. Usage: `com_error [drop|fatal]`
+ * @brief Console command to trigger a test error. Usage: `comError [drop|fatal]`
  */
 void Com_Error_f(void) {
 
-  const err_t err = !q_strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
+  const Err err = !q_strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
   Com_Error(err, "Test error (%s)\n", err == ERROR_FATAL ? "fatal" : "drop");
 }
 
@@ -558,8 +558,8 @@ void Com_Shutdown(const char *fmt, ...) {
   }
 
   // close log file
-  if (quetoo.log_file) {
-    fclose(quetoo.log_file);
+  if (quetoo.logFile) {
+    fclose(quetoo.logFile);
   }
 
   exit(0);

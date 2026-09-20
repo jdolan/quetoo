@@ -36,21 +36,21 @@ static const char *_deaths = "Deaths";
 static const char *_kd = "KD";
 static const char *_time_played = "Time";
 
-static const JSONProperty leaderboard_entry_fields[] = {
+static const JSONProperty leaderboardEntryFields[] = {
   MakeJSONProperty(LeaderboardEntry, rank, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, name, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(LeaderboardEntry, guid, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(LeaderboardEntry, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, deaths, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, captures, NULL, JSONDeserializeInt32, NULL),
-  MakeJSONProperty(LeaderboardEntry, time_played, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, timePlayed, NULL, JSONDeserializeInt32, NULL),
   { .key = NULL }
 };
 
-static const JSONProperties leaderboard_entry_properties = {
+static const JSONProperties leaderboardEntryProperties = {
   .name = "LeaderboardEntry",
   .size = sizeof(LeaderboardEntry),
-  .properties = leaderboard_entry_fields
+  .properties = leaderboardEntryFields
 };
 
 /**
@@ -93,14 +93,14 @@ static LeaderboardResponse pendingLeaderboardResponse;
  * @brief `RESTClientCompletion` for `fetchLeaderboard`. Runs on the HTTP session thread;
  * hydrates `leaderboard_pending` and dispatches `NOTIFICATION_LEADERBOARD_FETCHED` as the signal.
  */
-static void fetchLeaderboardComplete(int32_t status, Data *data, void *user_data) {
+static void fetchLeaderboardComplete(int32_t status, Data *data, void *userData) {
 
   memset(&pendingLeaderboardResponse, 0, sizeof(pendingLeaderboardResponse));
 
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
-    pendingLeaderboardResponse.num_entries = $(ctx, structsFromData,
-                                               &leaderboard_entry_properties,
+    pendingLeaderboardResponse.numEntries = $(ctx, structsFromData,
+                                               &leaderboardEntryProperties,
                                                data,
                                                pendingLeaderboardResponse.entries,
                                                LEADERBOARD_MAX_ENTRIES);
@@ -137,13 +137,13 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
  */
 static void selectOwnRow(LeaderboardViewController *this) {
 
-  const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (q_strlen(guid_hash) == 0) {
+  const char *guidHash = cgi.GetCvarString("guidHash");
+  if (q_strlen(guidHash) == 0) {
     return;
   }
 
-  for (size_t i = 0; i < this->leaderboardResponse.num_entries; i++) {
-    if (q_strcmp(this->leaderboardResponse.entries[i].guid, guid_hash) == 0) {
+  for (size_t i = 0; i < this->leaderboardResponse.numEntries; i++) {
+    if (q_strcmp(this->leaderboardResponse.entries[i].guid, guidHash) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -159,7 +159,7 @@ static size_t numberOfRows(const TableView *tableView) {
 
   LeaderboardViewController *this = tableView->dataSource.self;
 
-  return this->leaderboardResponse.num_entries;
+  return this->leaderboardResponse.numEntries;
 }
 
 #pragma mark - TableViewDelegate
@@ -183,8 +183,8 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $((View *) cell, addClassName, "bronze");
   }
 
-  const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (q_strcmp(entry->guid, guid_hash) == 0) {
+  const char *guidHash = cgi.GetCvarString("guidHash");
+  if (q_strcmp(entry->guid, guidHash) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
@@ -200,7 +200,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     const float kd = entry->deaths > 0 ? (float) entry->frags / entry->deaths : (float) entry->frags;
     $(cell->text, setText, va("%.2f", kd));
   } else if (q_strcmp(column->identifier, _time_played) == 0) {
-    $(cell->text, setText, formatTime(entry->time_played));
+    $(cell->text, setText, formatTime(entry->timePlayed));
   }
 
   return cell;

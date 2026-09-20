@@ -25,10 +25,10 @@
 /**
  * @brief Appends a spawn point to `spawns`, allocating the vector on first use.
  */
-void G_AddSpawn(Vector **spawns, g_entity_t *spot) {
+void G_AddSpawn(Vector **spawns, GameEntity *spot) {
 
   if (!*spawns) {
-    *spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *));
+    *spawns = $(alloc(Vector), initWithSize, sizeof(GameEntity *));
   }
 
   $(*spawns, add, &spot);
@@ -37,11 +37,11 @@ void G_AddSpawn(Vector **spawns, g_entity_t *spot) {
 /**
  * @brief Appends every entity of the given class to `spawns`.
  */
-void G_CollectSpawns(const char *class_name, Vector **spawns) {
+void G_CollectSpawns(const char *className, Vector **spawns) {
 
-  g_entity_t *spot = NULL;
+  GameEntity *spot = NULL;
 
-  while ((spot = G_Find(spot, EOFS(classname), class_name)) != NULL) {
+  while ((spot = G_Find(spot, EOFS(classname), className)) != NULL) {
     G_AddSpawn(spawns, spot);
   }
 }
@@ -49,15 +49,15 @@ void G_CollectSpawns(const char *class_name, Vector **spawns) {
 /**
  * @brief Copies collected spawn points into an array that lives for the level.
  */
-void G_SetSpawnPoints(g_spawn_points_t *points, const Vector *spawns) {
+void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns) {
 
   points->count = spawns ? (int32_t) spawns->count : 0;
 
   if (points->count) {
-    points->spots = gi.Malloc(sizeof(g_entity_t *) * points->count, MEM_TAG_GAME_LEVEL);
+    points->spots = gi.Malloc(sizeof(GameEntity *) * points->count, MEM_TAG_GAME_LEVEL);
 
     for (uint32_t i = 0; i < (uint32_t) points->count; i++) {
-      points->spots[i] = VectorValue(spawns, g_entity_t *, i);
+      points->spots[i] = VectorValue(spawns, GameEntity *, i);
     }
   } else {
     points->spots = NULL;
@@ -66,11 +66,11 @@ void G_SetSpawnPoints(g_spawn_points_t *points, const Vector *spawns) {
 
 /**
  * @brief The standing player box under the level's movement. A client in hand
- * has its own in `ps.pm_state.params`; this is for when there is none.
+ * has its own in `ps.pmState.params`; this is for when there is none.
  */
-box3_t G_PlayerBounds(void) {
+Box3 G_PlayerBounds(void) {
 
-  const pm_movement_info_t *movement = Pm_Movement(g_level.movement);
+  const PlayerMovementInfo *movement = Pm_Movement(gLevel.movement);
 
   return movement->params ? movement->params->bounds : PM_BOUNDS;
 }
@@ -82,7 +82,7 @@ box3_t G_PlayerBounds(void) {
  * nudges were scaled by a global box scale that was always 1, so both were
  * `ceilf(0)` and neither moved anything.
  */
-void G_InitPlayerSpawn(g_entity_t *ent) {
+void G_InitPlayerSpawn(GameEntity *ent) {
 
   if (!q_strcmp(ent->classname, "info_player_intermission")) {
     G_Ai_DropItemLikeNode(ent);
@@ -92,40 +92,40 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
+void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *up, Vec3 *org, float hand) {
 
   // resolve the projectile destination
-  const vec3_t start = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl->forward);
-  const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const Vec3 start = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl->forward);
+  const CmTrace tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   // resolve the projectile origin
-  vec3_t ent_forward, ent_right, ent_up;
-  Vec3_Vectors(cl->angles, &ent_forward, &ent_right, &ent_up);
+  Vec3 entForward, entRight, entUp;
+  Vec3_Vectors(cl->angles, &entForward, &entRight, &entUp);
 
   // use the client-supplied muzzle offset if valid
-  const vec3_t muzzle = cl->cmd.muzzle;
-  const float muzzle_len = Vec3_Length(muzzle);
-  if ((cl->cmd.buttons & BUTTON_ATTACK) && muzzle_len > 0.f && muzzle_len <= 64.f) {
+  const Vec3 muzzle = cl->cmd.muzzle;
+  const float muzzleLen = Vec3_Length(muzzle);
+  if ((cl->cmd.buttons & BUTTON_ATTACK) && muzzleLen > 0.f && muzzleLen <= 64.f) {
     *org = Vec3_Add(cl->entity->s.origin, muzzle);
   } else {
-    *org = Vec3_Fmaf(start, 24.f, ent_forward);
+    *org = Vec3_Fmaf(start, 24.f, entForward);
 
     switch (cl->persistent.hand) {
       case HAND_RIGHT:
-        *org = Vec3_Fmaf(*org, +6.f * hand, ent_right);
+        *org = Vec3_Fmaf(*org, +6.f * hand, entRight);
         break;
       case HAND_LEFT:
-        *org = Vec3_Fmaf(*org, -6.f * hand, ent_right);
+        *org = Vec3_Fmaf(*org, -6.f * hand, entRight);
         break;
       default:
         break;
     }
 
-    *org = Vec3_Fmaf(*org, -12.f, ent_up);
+    *org = Vec3_Fmaf(*org, -12.f, entUp);
   }
 
-  const cm_trace_t check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CmTrace check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
   if (Vec3_Distance(tr.end, check.end) > 16.f) {
     *org = start;
   }
@@ -135,7 +135,7 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
     *forward = Vec3_Subtract(tr.end, *org);
     *forward = Vec3_Normalize(*forward);
 
-    const vec3_t euler = Vec3_Euler(*forward);
+    const Vec3 euler = Vec3_Euler(*forward);
     Vec3_Vectors(euler, NULL, right, up);
   }
 }
@@ -151,12 +151,12 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
  *   `G_Find(NULL, EOFS(classname), "info_player_deathmatch")`
  *
  */
-g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
+GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match) {
   
-  for (int32_t i = from ? from->s.number + 1 : 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = from ? from->s.number + 1 : 0; i < sv_maxEntities->integer; i++) {
 
-    g_entity_t *ent = ge.entities[i];
-    if (!ent->in_use) {
+    GameEntity *ent = ge.entities[i];
+    if (!ent->inUse) {
       continue;
     }
     char *s = *(char **) ((byte *) ent + field);
@@ -176,43 +176,43 @@ g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
 /**
  * @brief Searches all active entities for the next targeted one.
  */
-g_entity_t *G_PickTarget(const char *target_name) {
-  g_entity_t *choice[MAX_TARGETS];
-  int32_t num_choices = 0;
+GameEntity *G_PickTarget(const char *targetName) {
+  GameEntity *choice[MAX_TARGETS];
+  int32_t numChoices = 0;
 
-  if (!target_name) {
+  if (!targetName) {
     G_Debug("NULL target_name\n");
     return NULL;
   }
 
-  g_entity_t *ent = NULL;
+  GameEntity *ent = NULL;
   while (true) {
 
-    ent = G_Find(ent, EOFS(target_name), target_name);
+    ent = G_Find(ent, EOFS(targetName), targetName);
 
     if (!ent) {
       break;
     }
 
-    choice[num_choices++] = ent;
+    choice[numChoices++] = ent;
 
-    if (num_choices == MAX_TARGETS) {
+    if (numChoices == MAX_TARGETS) {
       break;
     }
   }
 
-  if (!num_choices) {
-    G_Debug("Target %s not found\n", target_name);
+  if (!numChoices) {
+    G_Debug("Target %s not found\n", targetName);
     return NULL;
   }
 
-  return choice[RandomRangeu(0, num_choices)];
+  return choice[RandomRangeu(0, numChoices)];
 }
 
 /**
  * @brief Fires targets on behalf of an entity after a delay.
  */
-static void G_UseTargets_Delay(g_entity_t *ent) {
+static void G_UseTargets_Delay(GameEntity *ent) {
   G_UseTargets(ent, ent->activator);
   G_FreeEntity(ent);
 }
@@ -222,13 +222,13 @@ static void G_UseTargets_Delay(g_entity_t *ent) {
  * use functions. Set their activator to our activator. Print our message,
  * if set, to the activator.
  */
-void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
+void G_UseTargets(GameEntity *ent, GameEntity *activator) {
 
   // check for a delay
   if (ent->delay) {
     // create a temp entity to fire at a later time
-    g_entity_t *temp = G_AllocEntity(__func__);
-    temp->next_think = g_level.time + ent->delay * 1000;
+    GameEntity *temp = G_AllocEntity(__func__);
+    temp->nextThink = gLevel.time + ent->delay * 1000;
     temp->Think = G_UseTargets_Delay;
     temp->activator = activator;
     if (!activator) {
@@ -247,18 +247,18 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
     gi.WriteString(ent->message);
     gi.Unicast(activator->client, true);
 
-    G_UnicastSound(&(const g_play_sound_t) {
-      .index = ent->sound ?: g_media.sounds.chat,
+    G_UnicastSound(&(const GamePlaySound) {
+      .index = ent->sound ?: gMedia.sounds.chat,
     }, activator->client, true);
   }
 
   // kill kill_targets
-  const char *kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
-  if (kill_target) {
-    g_entity_t *target = NULL;
-    while ((target = G_Find(target, EOFS(target_name), kill_target))) {
+  const char *killTarget = gi.EntityValue(ent->def, "killtarget")->nullableString;
+  if (killTarget) {
+    GameEntity *target = NULL;
+    while ((target = G_Find(target, EOFS(targetName), killTarget))) {
       G_FreeEntity(target);
-      if (!ent->in_use) {
+      if (!ent->inUse) {
         G_Debug("%s was removed while using kill_targets\n", etos(ent));
         return;
       }
@@ -267,8 +267,8 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
   // fire targets
   if (ent->target) {
-    g_entity_t *target = NULL;
-    while ((target = G_Find(target, EOFS(target_name), ent->target))) {
+    GameEntity *target = NULL;
+    while ((target = G_Find(target, EOFS(targetName), ent->target))) {
 
       if (target == ent) {
         G_Debug("%s tried to use itself\n", etos(ent));
@@ -277,7 +277,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
       if (target->Use) {
         target->Use(target, ent, activator);
-        if (!ent->in_use) { // see if our target freed us
+        if (!ent->inUse) { // see if our target freed us
           G_Debug("%s was removed while using targets\n", etos(ent));
           break;
         }
@@ -289,19 +289,19 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 /**
  * @brief Derives and sets a movement direction from the entity's angles, then clears the angles.
  */
-void G_SetMoveDir(g_entity_t *ent) {
+void G_SetMoveDir(GameEntity *ent) {
 
-  const vec3_t angles_up = Vec3(0.0, -1.0, 0.0);
-  const vec3_t dir_up = Vec3(0.0, 0.0, 1.0 );
-  const vec3_t angles_down = Vec3(0.0, -2.0, 0.0);
-  const vec3_t dir_down = Vec3(0.0, 0.0, -1.0);
+  const Vec3 anglesUp = MakeVec3(0.0, -1.0, 0.0);
+  const Vec3 dirUp = MakeVec3(0.0, 0.0, 1.0 );
+  const Vec3 anglesDown = MakeVec3(0.0, -2.0, 0.0);
+  const Vec3 dirDown = MakeVec3(0.0, 0.0, -1.0);
 
-  if (Vec3_Equal(ent->s.angles, angles_up)) {
-    ent->move_dir = dir_up;
-  } else if (Vec3_Equal(ent->s.angles, angles_down)) {
-    ent->move_dir = dir_down;
+  if (Vec3_Equal(ent->s.angles, anglesUp)) {
+    ent->moveDir = dirUp;
+  } else if (Vec3_Equal(ent->s.angles, anglesDown)) {
+    ent->moveDir = dirDown;
   } else {
-    Vec3_Vectors(ent->s.angles, &ent->move_dir, NULL, NULL);
+    Vec3_Vectors(ent->s.angles, &ent->moveDir, NULL, NULL);
   }
 
   ent->s.angles = Vec3_Zero();
@@ -310,25 +310,25 @@ void G_SetMoveDir(g_entity_t *ent) {
 /**
  * @brief Allocates the entity at the specified index, which must be free.
  */
-g_entity_t *G_AllocEntityAt(int32_t number, const char *classname) {
+GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   static uint8_t g_spawn_id;
 
-  if (number < 0 || number >= sv_max_entities->integer) {
-    G_Error("Entity %d out of range (sv_max_entities=%d)\n", number, sv_max_entities->integer);
+  if (number < 0 || number >= sv_maxEntities->integer) {
+    G_Error("Entity %d out of range (sv_maxEntities=%d)\n", number, sv_maxEntities->integer);
   }
 
-  g_entity_t *e = ge.entities[number];
+  GameEntity *e = ge.entities[number];
 
-  if (e->in_use) {
+  if (e->inUse) {
     G_Error("Entity %d is already in use: %s\n", number, etos(e));
   }
 
   e->classname = classname;
-  e->in_use = true;
-  e->water_level = WATER_UNKNOWN;
-  e->timestamp = g_level.time;
+  e->inUse = true;
+  e->waterLevel = WATER_UNKNOWN;
+  e->timestamp = gLevel.time;
   e->s.number = number;
-  e->s.spawn_id = g_spawn_id++;
+  e->s.spawnId = g_spawn_id++;
 
   return e;
 }
@@ -336,11 +336,11 @@ g_entity_t *G_AllocEntityAt(int32_t number, const char *classname) {
 /**
  * @brief Allocates an entity for use.
  */
-g_entity_t *G_AllocEntity(const char *classname) {
+GameEntity *G_AllocEntity(const char *classname) {
 
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
 
-    if (!ge.entities[i]->in_use) {
+    if (!ge.entities[i]->inUse) {
       return G_AllocEntityAt(i, classname);
     }
   }
@@ -355,7 +355,7 @@ g_entity_t *G_AllocEntity(const char *classname) {
  * enemy, an entity it's standing on, etc.) would otherwise dangle or silently
  * come to mean something else entirely.
  */
-void G_InvalidateEntityReferences(const g_entity_t *ent) {
+void G_InvalidateEntityReferences(const GameEntity *ent) {
 
   G_ForEachEntity(other, {
 
@@ -372,16 +372,16 @@ void G_InvalidateEntityReferences(const g_entity_t *ent) {
     if (other->activator == ent) {
       other->activator = NULL;
     }
-    if (other->target_ent == ent) {
-      other->target_ent = NULL;
+    if (other->targetEnt == ent) {
+      other->targetEnt = NULL;
     }
     if (other->ground.ent == ent) {
       other->ground.ent = NULL;
     }
 
     if (other->client) {
-      if (other->client->held_grenade == ent) {
-        other->client->held_grenade = NULL;
+      if (other->client->heldGrenade == ent) {
+        other->client->heldGrenade = NULL;
       }
       if (other->client->ai) {
         G_Ai_InvalidateReferences(other->client->ai, ent);
@@ -393,7 +393,7 @@ void G_InvalidateEntityReferences(const g_entity_t *ent) {
 /**
  * @brief Frees the specified entity.
  */
-void G_FreeEntity(g_entity_t *ent) {
+void G_FreeEntity(GameEntity *ent) {
 
   if (ent->classname) {
     G_Debug("%s\n", etos(ent));
@@ -411,10 +411,10 @@ void G_FreeEntity(g_entity_t *ent) {
  * FIXME gibs randomly, need to fix this
  * @remarks This doesn't work correctly for rotating BSP entities.
  */
-void G_KillBox(g_entity_t *ent) {
-  g_entity_t *ents[MAX_ENTITIES];
+void G_KillBox(GameEntity *ent) {
+  GameEntity *ents[MAX_ENTITIES];
 
-  const box3_t bounds = Box3_Translate(ent->bounds, ent->s.origin);
+  const Box3 bounds = Box3_Translate(ent->bounds, ent->s.origin);
 
   size_t i, len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_COLLIDE);
   for (i = 0; i < len; i++) {
@@ -429,7 +429,7 @@ void G_KillBox(g_entity_t *ent) {
 
     if (G_IsMeat(ents[i])) {
 
-      G_Damage(&(g_damage_t) {
+      G_Damage(&(GameDamage) {
         .target = ents[i],
         .inflictor = NULL,
         .attacker = ent,
@@ -442,7 +442,7 @@ void G_KillBox(g_entity_t *ent) {
         .mod = MOD_TELEFRAG
       });
 
-      if (ents[i]->in_use && !ents[i]->dead) {
+      if (ents[i]->inUse && !ents[i]->dead) {
         break;
       }
     } else {
@@ -452,7 +452,7 @@ void G_KillBox(g_entity_t *ent) {
 
   if (i < len && ents[i] != ent) {
     if (G_IsMeat(ent)) {
-      G_Damage(&(g_damage_t) {
+      G_Damage(&(GameDamage) {
         .target = ent,
         .inflictor = NULL,
         .attacker = ents[i],
@@ -472,7 +472,7 @@ void G_KillBox(g_entity_t *ent) {
  * @brief Kills the specified entity via explosion, potentially taking nearby
  * entities with it. Certain pickup items are reset after exploding.
  */
-void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod) {
+void G_Explode(GameEntity *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod) {
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_EXPLOSION);
@@ -482,7 +482,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
 
   G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ?: MOD_EXPLOSIVE);
 
-  const g_item_t *item = ent->item;
+  const GameItem *item = ent->item;
   if (item) {
     G_ResetDroppedItem(ent);
   } else {
@@ -493,7 +493,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
 /**
  * @brief Kills the specified entity via gib effect.
  */
-void G_Gib(g_entity_t *ent) {
+void G_Gib(GameEntity *ent) {
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_GIB);
@@ -504,7 +504,7 @@ void G_Gib(g_entity_t *ent) {
 }
 
 /**
- * @brief Returns the `g_gameplay_modes` entry whose `->name` matches the given
+ * @brief Returns the `gGameplayModes` entry whose `->name` matches the given
  * cvar string, case-insensitively. Anything that doesn't match - including
  * empty strings, garbage, and "default" itself - falls back to the table's
  * first entry (plain deathmatch, no teams). "default" is deliberately not a
@@ -516,7 +516,7 @@ void G_Gib(g_entity_t *ent) {
  * predate this table (and are shorter than the canonical "instagib") still
  * resolve, exactly as the original hand-rolled parser accepted them.
  */
-const g_gameplay_t *G_GameplayByName(const char *c) {
+const Gameplay *G_GameplayByName(const char *c) {
 
   if (c && *c) {
     char lower[64];
@@ -525,9 +525,9 @@ const g_gameplay_t *G_GameplayByName(const char *c) {
       *p = (char) tolower((unsigned char) *p);
     }
 
-    for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
-      if (!q_strcmp(lower, g_gameplay_modes[i].name)) {
-        return &g_gameplay_modes[i];
+    for (size_t i = 0; i < lengthof(gGameplayModes); i++) {
+      if (!q_strcmp(lower, gGameplayModes[i].name)) {
+        return &gGameplayModes[i];
       }
     }
 
@@ -545,46 +545,46 @@ const g_gameplay_t *G_GameplayByName(const char *c) {
       id |= GAMEPLAY_ARENA;
     }
 
-    return G_GameplayById((g_gameplay_id_t) id);
+    return G_GameplayById((GameplayId) id);
   }
 
-  return &g_gameplay_modes[0];
+  return &gGameplayModes[0];
 }
 
 /**
- * @brief Returns the `g_gameplay_modes` entry for the given mode id. Used
+ * @brief Returns the `gGameplayModes` entry for the given mode id. Used
  * after `G_ClampGameplay`, which operates on the scalar id, to recover the
  * `->name` and `->label` for the id it decided on.
  * @details A module's `ClampGameplay` MUST only ever return an id that is
- * actually one of the six rows in `g_gameplay_modes`, so this should never
+ * actually one of the six rows in `gGameplayModes`, so this should never
  * miss; it falls back to the first entry rather than asserting, matching
  * `G_GameplayByName`'s own fallback.
  */
-const g_gameplay_t *G_GameplayById(g_gameplay_id_t id) {
+const Gameplay *G_GameplayById(GameplayId id) {
 
-  for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
-    if (g_gameplay_modes[i].id == id) {
-      return &g_gameplay_modes[i];
+  for (size_t i = 0; i < lengthof(gGameplayModes); i++) {
+    if (gGameplayModes[i].id == id) {
+      return &gGameplayModes[i];
     }
   }
 
-  return &g_gameplay_modes[0];
+  return &gGameplayModes[0];
 }
 
 /**
  * @brief Finds a team by name, performing a case-insensitive strip-compare.
  * @return The matching team, or `NULL` if not found.
  */
-g_team_t *G_TeamByName(const char *c) {
+GameTeam *G_TeamByName(const char *c) {
 
   if (!c || !*c) {
     return NULL;
   }
 
-  for (int32_t i = 0; i < g_level.num_teams; i++) {
+  for (int32_t i = 0; i < gLevel.numTeams; i++) {
 
-    if (!q_strcolorcmp(g_team_list[i].name, c)) {
-      return &g_team_list[i];
+    if (!q_strcolorcmp(gTeamList[i].name, c)) {
+      return &gTeamList[i];
     }
   }
 
@@ -594,7 +594,7 @@ g_team_t *G_TeamByName(const char *c) {
 /**
  * @brief Returns the number of players currently assigned to the given team.
  */
-size_t G_TeamSize(const g_team_t *team) {
+size_t G_TeamSize(const GameTeam *team) {
   size_t count = 0;
 
   G_ForEachClient(cl, {
@@ -610,13 +610,13 @@ size_t G_TeamSize(const g_team_t *team) {
  * @brief Returns the team with the fewest players, used for auto-assignment.
  * @return The smallest team, or `NULL` if no teams are active.
  */
-g_team_t *G_SmallestTeam(void) {
+GameTeam *G_SmallestTeam(void) {
 
-  g_team_t *smallest = NULL;
+  GameTeam *smallest = NULL;
   size_t size = SIZE_MAX;
 
-  g_team_t *team = g_team_list;
-  for (int32_t i = 0; i < g_level.num_teams; i++, team++) {
+  GameTeam *team = gTeamList;
+  for (int32_t i = 0; i < gLevel.numTeams; i++, team++) {
     const size_t s = G_TeamSize(team);
     if (s < size) {
       smallest = team;
@@ -631,13 +631,13 @@ g_team_t *G_SmallestTeam(void) {
  * @brief Finds a client by name using a case-insensitive strip-compare.
  * @return The best-matching client, or `NULL` if not found.
  */
-g_client_t *G_ClientByName(char *name) {
+GameClient *G_ClientByName(char *name) {
 
-  g_client_t *client = NULL;
+  GameClient *client = NULL;
   int32_t match = INT32_MAX;
 
   G_ForEachClient(cl, {
-    const int32_t m = q_strcmp(name, cl->persistent.net_name);
+    const int32_t m = q_strcmp(name, cl->persistent.netName);
     if (m < match) {
       client = cl;
       match = m;
@@ -650,9 +650,9 @@ g_client_t *G_ClientByName(char *name) {
 /**
  * @return True if the specified entity should bleed when damaged.
  */
-bool G_IsMeat(const g_entity_t *ent) {
+bool G_IsMeat(const GameEntity *ent) {
 
-  if (!ent || !ent->in_use) {
+  if (!ent || !ent->inUse) {
     return false;
   }
 
@@ -670,13 +670,13 @@ bool G_IsMeat(const g_entity_t *ent) {
 /**
  * @return True if the specified entity is likely stationary.
  */
-bool G_IsStationary(const g_entity_t *ent) {
+bool G_IsStationary(const GameEntity *ent) {
 
-  if (!ent || !ent->in_use) {
+  if (!ent || !ent->inUse) {
     return false;
   }
 
-  if (ent->move_type) {
+  if (ent->moveType) {
     return false;
   }
 
@@ -694,7 +694,7 @@ bool G_IsStationary(const g_entity_t *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-bool G_IsStructural(const cm_trace_t *trace) {
+bool G_IsStructural(const CmTrace *trace) {
 
   if ((trace->contents & CONTENTS_MASK_SOLID) && !G_IsSky(trace)) {
     return true;
@@ -706,7 +706,7 @@ bool G_IsStructural(const cm_trace_t *trace) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-bool G_IsSky(const cm_trace_t *trace) {
+bool G_IsSky(const CmTrace *trace) {
   return trace->surface & SURF_SKY;
 }
 
@@ -714,7 +714,7 @@ bool G_IsSky(const cm_trace_t *trace) {
  * @brief Writes the specified animation byte, toggling the high bit to restart the
  * sequence if desired and necessary.
  */
-static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
+static void G_SetAnimation_(byte *dest, EntityAnimation anim, bool restart) {
 
   if (restart) {
     if (*dest == anim) {
@@ -729,7 +729,7 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
  * @brief Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(g_client_t *cl, entity_animation_t anim, bool restart) {
+void G_SetAnimation(GameClient *cl, EntityAnimation anim, bool restart) {
 
   // certain sequences go to both torso and leg animations
 
@@ -742,14 +742,14 @@ void G_SetAnimation(g_client_t *cl, entity_animation_t anim, bool restart) {
   // while most go to one or the other, and are throttled
 
   if (anim < ANIM_LEGS_WALKCR) {
-    if (restart || cl->animation1_time <= g_level.time) {
+    if (restart || cl->animation1Time <= gLevel.time) {
       G_SetAnimation_(&cl->entity->s.animation1, anim, restart);
-      cl->animation1_time = g_level.time + 50;
+      cl->animation1Time = gLevel.time + 50;
     }
   } else {
-    if (restart || cl->animation2_time <= g_level.time) {
+    if (restart || cl->animation2Time <= gLevel.time) {
       G_SetAnimation_(&cl->entity->s.animation2, anim, restart);
-      cl->animation2_time = g_level.time + 50;
+      cl->animation2Time = gLevel.time + 50;
     }
   }
 }
@@ -757,7 +757,7 @@ void G_SetAnimation(g_client_t *cl, entity_animation_t anim, bool restart) {
 /**
  * @brief Returns true if the entity is currently using the specified animation.
  */
-bool G_IsAnimation(g_client_t *cl, entity_animation_t anim) {
+bool G_IsAnimation(GameClient *cl, EntityAnimation anim) {
   byte a;
 
   if (anim < ANIM_LEGS_WALK) {
@@ -772,7 +772,7 @@ bool G_IsAnimation(g_client_t *cl, entity_animation_t anim) {
 /**
  * @brief Send a centerprint to everyone on the supplied team
  */
-void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) {
+void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) {
   char string[MAX_STRING_CHARS];
   va_list args;
 

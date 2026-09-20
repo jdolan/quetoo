@@ -24,16 +24,16 @@
 #include "g_local.h"
 #include "bg_vote.h"
 
-cvar_t *g_vote;
-cvar_t *g_vote_time;
-cvar_t *g_vote_threshold;
-cvar_t *g_vote_cooldown;
+Cvar *g_vote;
+Cvar *g_voteTime;
+Cvar *g_voteThreshold;
+Cvar *g_voteCooldown;
 
 typedef enum {
   BALLOT_NONE,
   BALLOT_YES,
   BALLOT_NO
-} g_ballot_t;
+} GameBallot;
 
 static struct {
   bool active;
@@ -41,10 +41,10 @@ static struct {
   char arg[MAX_QPATH];
   char initiator[MAX_NET_NAME];
   uint32_t deadline;
-  g_ballot_t ballots[MAX_CLIENTS];
+  GameBallot ballots[MAX_CLIENTS];
   uint32_t cooldown[MAX_CLIENTS];
   int32_t published[3]; // yes, no and eligible as last published
-} g_vote_state;
+} module;
 
 static struct {
   HandleClientCommand HandleClientCommand;
@@ -58,8 +58,8 @@ static bool installed;
 /**
  * @brief Connected human players and spectators may vote; bots may not.
  */
-bool G_Vote_Eligible(const g_client_t *cl) {
-  return cl->in_use && !cl->ai;
+bool G_Vote_Eligible(const GameClient *cl) {
+  return cl->inUse && !cl->ai;
 }
 
 /**
@@ -84,10 +84,10 @@ static bool G_Vote_ValidMapName(const char *name) {
  * @brief The eligible client with exactly this name, or `NULL`. A vote that
  * could land on the nearest name would be a vote on somebody else.
  */
-static g_client_t *G_Vote_ClientByName(const char *name) {
+static GameClient *G_Vote_ClientByName(const char *name) {
 
   G_ForEachClient(cl, {
-    if (G_Vote_Eligible(cl) && !q_strcasecmp(cl->persistent.net_name, name)) {
+    if (G_Vote_Eligible(cl) && !q_strcasecmp(cl->persistent.netName, name)) {
       return cl;
     }
   });
@@ -98,11 +98,11 @@ static g_client_t *G_Vote_ClientByName(const char *name) {
 /**
  * @brief The common vote type `name` names, or `NULL`.
  */
-static const vote_type_t *G_Vote_Type(const char *name) {
+static const VoteType *G_Vote_Type(const char *name) {
 
-  for (size_t i = 0; i < lengthof(vote_types_common); i++) {
-    if (!q_strcmp(vote_types_common[i].name, name)) {
-      return &vote_types_common[i];
+  for (size_t i = 0; i < lengthof(voteTypesCommon); i++) {
+    if (!q_strcmp(voteTypesCommon[i].name, name)) {
+      return &voteTypesCommon[i];
     }
   }
 
@@ -112,9 +112,9 @@ static const vote_type_t *G_Vote_Type(const char *name) {
 /**
  * @brief The tail of the `G_PrepareVote` chain: the common votes.
  */
-static bool G_PrepareVote_Common(const g_client_t *cl, const char *type, const char *arg, char *canonical, size_t size) {
+static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const char *arg, char *canonical, size_t size) {
 
-  const vote_type_t *vote = G_Vote_Type(type);
+  const VoteType *vote = G_Vote_Type(type);
   if (!vote) {
     return false;
   }
@@ -136,16 +136,16 @@ static bool G_PrepareVote_Common(const g_client_t *cl, const char *type, const c
       return true;
 
     case VOTE_ARG_CLIENT: {
-      const g_client_t *target = G_Vote_ClientByName(arg);
+      const GameClient *target = G_Vote_ClientByName(arg);
       if (!target) {
         return false;
       }
-      q_strlcpy(canonical, target->persistent.net_name, size);
+      q_strlcpy(canonical, target->persistent.netName, size);
       return true;
     }
 
     case VOTE_ARG_INTEGER: {
-      if (!q_strcmp(type, "bots") && g_level.min_clients_map > -1) {
+      if (!q_strcmp(type, "bots") && gLevel.minClientsMap > -1) {
         return false;
       }
 
@@ -169,14 +169,14 @@ PrepareVote G_PrepareVote = G_PrepareVote_Common;
  */
 static bool G_ApplyVote_Common(const char *type, const char *arg) {
 
-  const vote_type_t *vote = G_Vote_Type(type);
+  const VoteType *vote = G_Vote_Type(type);
   if (!vote) {
     return false;
   }
 
   if (!q_strcmp(type, "map")) {
     if (!q_strcmp(arg, "next")) {
-      gi.Cbuf("next_map\n");
+      gi.Cbuf("nextMap\n");
     } else {
       gi.Cbuf(va("map %s\n", arg));
     }
@@ -184,12 +184,12 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
   }
 
   if (!q_strcmp(type, "bots")) {
-    gi.SetCvarInteger("sv_min_clients", (int32_t) strtol(arg, NULL, 10));
+    gi.SetCvarInteger("sv_minClients", (int32_t) strtol(arg, NULL, 10));
     return true;
   }
 
   if (!q_strcmp(type, "spectate")) {
-    g_client_t *target = G_Vote_ClientByName(arg);
+    GameClient *target = G_Vote_ClientByName(arg);
     if (target && !target->persistent.spectator) {
       G_TossInventory(target);
       target->persistent.spectator = true;
@@ -199,12 +199,12 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
   }
 
   if (!q_strcmp(type, "mute")) {
-    g_client_t *target = G_Vote_ClientByName(arg);
+    GameClient *target = G_Vote_ClientByName(arg);
     if (target) {
       // mute the client the vote resolved, not one G_ClientByName might match a second time
       G_SetClientMuted(target, !target->persistent.muted);
 
-      gi.BroadcastPrint(PRINT_HIGH, "%s is now %smuted\n", target->persistent.net_name,
+      gi.BroadcastPrint(PRINT_HIGH, "%s is now %smuted\n", target->persistent.netName,
                         target->persistent.muted ? "" : "un");
     }
     return true;
@@ -231,7 +231,7 @@ static void G_Vote_Count(int32_t *yes, int32_t *no, int32_t *eligible) {
     if (G_Vote_Eligible(cl)) {
       (*eligible)++;
 
-      switch (g_vote_state.ballots[cl->ps.client]) {
+      switch (module.ballots[cl->ps.client]) {
         case BALLOT_YES:
           (*yes)++;
           break;
@@ -250,7 +250,7 @@ static void G_Vote_Count(int32_t *yes, int32_t *no, int32_t *eligible) {
  */
 static void G_Vote_Publish(void) {
 
-  if (!g_vote_state.active) {
+  if (!module.active) {
     gi.SetConfigString(CS_VOTE, "");
     return;
   }
@@ -258,13 +258,13 @@ static void G_Vote_Publish(void) {
   int32_t yes, no, eligible;
   G_Vote_Count(&yes, &no, &eligible);
 
-  g_vote_state.published[0] = yes;
-  g_vote_state.published[1] = no;
-  g_vote_state.published[2] = eligible;
+  module.published[0] = yes;
+  module.published[1] = no;
+  module.published[2] = eligible;
 
   gi.SetConfigString(CS_VOTE, va("%s\\%s\\%d\\%d\\%d\\%u\\%s",
-                                 g_vote_state.type, g_vote_state.arg, yes, no, eligible,
-                                 g_vote_state.deadline, g_vote_state.initiator));
+                                 module.type, module.arg, yes, no, eligible,
+                                 module.deadline, module.initiator));
 }
 
 /**
@@ -272,15 +272,15 @@ static void G_Vote_Publish(void) {
  */
 static void G_Vote_End(bool passed) {
 
-  gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s %s\n", g_vote_state.type,
-                    *g_vote_state.arg ? " " : "", g_vote_state.arg, passed ? "passed" : "failed");
+  gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s %s\n", module.type,
+                    *module.arg ? " " : "", module.arg, passed ? "passed" : "failed");
 
-  g_vote_state.active = false;
+  module.active = false;
   G_Vote_Publish();
 
   if (passed) {
-    if (!G_ApplyVote(g_vote_state.type, g_vote_state.arg)) {
-      G_Warn("Nobody applied vote %s %s\n", g_vote_state.type, g_vote_state.arg);
+    if (!G_ApplyVote(module.type, module.arg)) {
+      G_Warn("Nobody applied vote %s %s\n", module.type, module.arg);
     }
   }
 }
@@ -290,14 +290,14 @@ static void G_Vote_End(bool passed) {
  */
 static void G_Vote_Check(void) {
 
-  if (!g_vote_state.active) {
+  if (!module.active) {
     return;
   }
 
-  if (g_level.intermission_time) { // the level is ending; a vote does not decide it
-    gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s cancelled\n", g_vote_state.type,
-                      *g_vote_state.arg ? " " : "", g_vote_state.arg);
-    g_vote_state.active = false;
+  if (gLevel.intermissionTime) { // the level is ending; a vote does not decide it
+    gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s cancelled\n", module.type,
+                      *module.arg ? " " : "", module.arg);
+    module.active = false;
     G_Vote_Publish();
     return;
   }
@@ -305,13 +305,13 @@ static void G_Vote_Check(void) {
   int32_t yes, no, eligible;
   G_Vote_Count(&yes, &no, &eligible);
 
-  const int32_t needed = (int32_t) floorf(eligible * Clampf(g_vote_threshold->value, 0.f, 1.f)) + 1;
+  const int32_t needed = (int32_t) floorf(eligible * Clampf(g_voteThreshold->value, 0.f, 1.f)) + 1;
 
   if (yes >= needed) {
     G_Vote_End(true);
-  } else if (eligible - no < needed || g_level.time >= g_vote_state.deadline) {
+  } else if (eligible - no < needed || gLevel.time >= module.deadline) {
     G_Vote_End(false);
-  } else if (yes != g_vote_state.published[0] || no != g_vote_state.published[1] || eligible != g_vote_state.published[2]) {
+  } else if (yes != module.published[0] || no != module.published[1] || eligible != module.published[2]) {
     G_Vote_Publish();
   }
 }
@@ -319,9 +319,9 @@ static void G_Vote_Check(void) {
 /**
  * @brief Records a ballot, once per client per vote.
  */
-static void G_Vote_Cast(g_client_t *cl, g_ballot_t ballot) {
+static void G_Vote_Cast(GameClient *cl, GameBallot ballot) {
 
-  if (!g_vote_state.active) {
+  if (!module.active) {
     gi.ClientPrint(cl, PRINT_HIGH, "No vote is in progress\n");
     return;
   }
@@ -330,7 +330,7 @@ static void G_Vote_Cast(g_client_t *cl, g_ballot_t ballot) {
     return;
   }
 
-  g_vote_state.ballots[cl->ps.client] = ballot;
+  module.ballots[cl->ps.client] = ballot;
 
   G_Vote_Publish();
   G_Vote_Check();
@@ -339,14 +339,14 @@ static void G_Vote_Cast(g_client_t *cl, g_ballot_t ballot) {
 /**
  * @brief Opens a vote, if voting is enabled and nothing else is in progress.
  */
-static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
+static void G_Vote_Call(GameClient *cl, const char *type, const char *arg) {
 
   if (!g_vote->integer) {
     gi.ClientPrint(cl, PRINT_HIGH, "Voting is disabled\n");
     return;
   }
 
-  if (g_vote_state.active) {
+  if (module.active) {
     gi.ClientPrint(cl, PRINT_HIGH, "A vote is already in progress\n");
     return;
   }
@@ -355,9 +355,9 @@ static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
     return;
   }
 
-  const uint32_t cooldown = g_vote_state.cooldown[cl->ps.client];
-  if (cooldown && g_level.time < cooldown) {
-    gi.ClientPrint(cl, PRINT_HIGH, "You may call another vote in %u seconds\n", (cooldown - g_level.time) / 1000);
+  const uint32_t cooldown = module.cooldown[cl->ps.client];
+  if (cooldown && gLevel.time < cooldown) {
+    gi.ClientPrint(cl, PRINT_HIGH, "You may call another vote in %u seconds\n", (cooldown - gLevel.time) / 1000);
     return;
   }
 
@@ -367,17 +367,17 @@ static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
     return;
   }
 
-  memset(g_vote_state.ballots, 0, sizeof(g_vote_state.ballots));
+  memset(module.ballots, 0, sizeof(module.ballots));
 
-  g_vote_state.active = true;
-  q_strlcpy(g_vote_state.type, type, sizeof(g_vote_state.type));
-  q_strlcpy(g_vote_state.arg, canonical, sizeof(g_vote_state.arg));
-  q_strlcpy(g_vote_state.initiator, cl->persistent.net_name, sizeof(g_vote_state.initiator));
-  g_vote_state.deadline = g_level.time + Maxf(1.f, g_vote_time->value) * 1000;
-  g_vote_state.ballots[cl->ps.client] = BALLOT_YES;
-  g_vote_state.cooldown[cl->ps.client] = g_level.time + Maxf(0.f, g_vote_cooldown->value) * 1000;
+  module.active = true;
+  q_strlcpy(module.type, type, sizeof(module.type));
+  q_strlcpy(module.arg, canonical, sizeof(module.arg));
+  q_strlcpy(module.initiator, cl->persistent.netName, sizeof(module.initiator));
+  module.deadline = gLevel.time + Maxf(1.f, g_voteTime->value) * 1000;
+  module.ballots[cl->ps.client] = BALLOT_YES;
+  module.cooldown[cl->ps.client] = gLevel.time + Maxf(0.f, g_voteCooldown->value) * 1000;
 
-  gi.BroadcastPrint(PRINT_HIGH, "%s called a vote: %s%s%s\n", cl->persistent.net_name, type,
+  gi.BroadcastPrint(PRINT_HIGH, "%s called a vote: %s%s%s\n", cl->persistent.netName, type,
                     *canonical ? " " : "", canonical);
 
   G_Vote_Publish();
@@ -387,7 +387,7 @@ static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
 /**
  * @brief `vote yes`, `vote no`, or `vote <type> [argument]`.
  */
-static bool G_HandleClientCommand_Vote(g_client_t *cl, const char *cmd) {
+static bool G_HandleClientCommand_Vote(GameClient *cl, const char *cmd) {
 
   if (q_strcmp(cmd, "vote")) {
     return previous.HandleClientCommand(cl, cmd);
@@ -404,7 +404,7 @@ static bool G_HandleClientCommand_Vote(g_client_t *cl, const char *cmd) {
     G_Vote_Cast(cl, BALLOT_YES);
   } else if (!q_strcasecmp(what, "no")) {
     G_Vote_Cast(cl, BALLOT_NO);
-  } else if (g_level.intermission_time) {
+  } else if (gLevel.intermissionTime) {
     gi.ClientPrint(cl, PRINT_HIGH, "The level is ending\n");
   } else {
     G_Vote_Call(cl, what, gi.Argc() > 2 ? gi.Argv(2) : "");
@@ -427,10 +427,10 @@ static void G_FrameDidEnd_Vote(void) {
  * @brief A leaving client's ballot no longer counts, and their cooldown ends
  * with them so that a reconnecting client is not held to it.
  */
-static void G_ClientWillDisconnect_Vote(g_client_t *cl) {
+static void G_ClientWillDisconnect_Vote(GameClient *cl) {
 
-  g_vote_state.ballots[cl->ps.client] = BALLOT_NONE;
-  g_vote_state.cooldown[cl->ps.client] = 0;
+  module.ballots[cl->ps.client] = BALLOT_NONE;
+  module.cooldown[cl->ps.client] = 0;
 
   previous.ClientWillDisconnect(cl);
 }
@@ -440,8 +440,8 @@ static void G_ClientWillDisconnect_Vote(g_client_t *cl) {
  */
 static void G_ConfigureLevel_Vote(void) {
 
-  g_vote_state.active = false;
-  memset(g_vote_state.cooldown, 0, sizeof(g_vote_state.cooldown));
+  module.active = false;
+  memset(module.cooldown, 0, sizeof(module.cooldown));
 
   G_Vote_Publish();
 
@@ -454,9 +454,9 @@ static void G_ConfigureLevel_Vote(void) {
 void G_Vote_Init(void) {
 
   g_vote = gi.AddCvar("g_vote", "1", CVAR_SERVER_INFO, "Whether clients may call votes.");
-  g_vote_time = gi.AddCvar("g_vote_time", "30", 0, "How long a vote runs, in seconds.");
-  g_vote_threshold = gi.AddCvar("g_vote_threshold", "0.5", 0, "The fraction of eligible clients whose yes a vote must exceed to pass; 1 lets nothing pass.");
-  g_vote_cooldown = gi.AddCvar("g_vote_cooldown", "60", 0, "How long a client waits between calling votes, in seconds.");
+  g_voteTime = gi.AddCvar("g_voteTime", "30", 0, "How long a vote runs, in seconds.");
+  g_voteThreshold = gi.AddCvar("g_voteThreshold", "0.5", 0, "The fraction of eligible clients whose yes a vote must exceed to pass; 1 lets nothing pass.");
+  g_voteCooldown = gi.AddCvar("g_voteCooldown", "60", 0, "How long a client waits between calling votes, in seconds.");
 
   if (!installed) {
     installed = true;

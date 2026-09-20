@@ -39,11 +39,11 @@ typedef struct {
    * @brief Fence used to query depth-pass completion.
    */
   Fence *fence;
-} r_depth_pipeline_t;
+} RenderDepthPipeline;
 
-extern r_depth_pipeline_t r_depth_pipeline;
+extern RenderDepthPipeline rDepthPipeline;
 
-void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands);
+void R_DrawDepthPass(RenderView *view, CommandBuffer *commands);
 void R_InitDepthPass(void);
 void R_ShutdownDepthPass(void);
 void R_UpdateDepthPass(void);

@@ -37,24 +37,24 @@ static View *init(View *self) {
 #pragma mark - OverlayText
 
 /**
- * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
-  const player_state_t *ps = &frame->ps;
+  const PlayerState *ps = &frame->ps;
 
-  if (ps->stats[STAT_SCORES] || cg_state.center_print.time < cgi.client->unclamped_time) {
+  if (ps->stats[STAT_SCORES] || cgState.centerPrint.time < cgi.client->unclampedTime) {
     return NULL;
   }
 
   static char string[CG_CENTER_PRINT_LINES * MAX_STRING_CHARS];
   string[0] = 0;
 
-  for (int32_t i = 0; i < cg_state.center_print.num_lines; i++) {
+  for (int32_t i = 0; i < cgState.centerPrint.numLines; i++) {
     if (i) {
       q_strlcat(string, "\n", sizeof(string));
     }
-    q_strlcat(string, cg_state.center_print.lines[i], sizeof(string));
+    q_strlcat(string, cgState.centerPrint.lines[i], sizeof(string));
   }
 
   return string;

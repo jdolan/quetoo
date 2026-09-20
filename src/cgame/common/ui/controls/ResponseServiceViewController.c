@@ -71,7 +71,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
   ResponseServiceViewController *this = (ResponseServiceViewController *) hueColorPicker->delegate.self;
 
   if (hue < 1.0) {
-    cgi.SetCvarString(cg_draw_crosshair_color->name, "default");
+    cgi.SetCvarString(cg_drawCrosshairColor->name, "default");
 
     $(hueColorPicker->colorView->style, addColorAttribute, "background-color", &Colors.Charcoal);
     $(hueColorPicker->colorView, invalidateStyle);
@@ -79,7 +79,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
     $(hueColorPicker->hueSlider->label, setText, "");
   } else {
     const SDL_Color color = $(hueColorPicker, rgbColor);
-    cgi.SetCvarString(cg_draw_crosshair_color->name, MVC_RGBToHex(&color));
+    cgi.SetCvarString(cg_drawCrosshairColor->name, MVC_RGBToHex(&color));
   }
 
   $((View *) this->crosshairView, updateBindings, NULL);
@@ -143,7 +143,7 @@ static void enumerateHuds(const char *path, void *data) {
 
   Select *select = data;
 
-  fs_stat_t stat;
+  FsStat stat;
   if (cgi.StatFile(path, &stat)) {
 
     if (stat.type == FS_DIRECTORY) {
@@ -236,15 +236,15 @@ static void viewWillAppear(ViewController *self) {
 
   ResponseServiceViewController *this = (ResponseServiceViewController *) self;
 
-  const SDL_Color color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
+  const SDL_Color color = MVC_HexToRGBA(cg_drawCrosshairColor->string);
   if (color.r || color.g || color.b) {
     $(this->crosshairColorPicker, setRGBColor, &color);
   } else {
     $(this->crosshairColorPicker, setColor, 0.0, 1.0, 1.0);
   }
 
-  $(this->crosshair, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair->integer));
-  $(this->crosshairHealth, selectOptionWithValue, (ident) ((size_t) cg_draw_crosshair_health->integer));
+  $(this->crosshair, selectOptionWithValue, (ident) ((size_t) cg_drawCrosshair->integer));
+  $(this->crosshairHealth, selectOptionWithValue, (ident) ((size_t) cg_drawCrosshairHealth->integer));
 }
 
 #pragma mark - Class lifecycle

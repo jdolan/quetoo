@@ -39,12 +39,12 @@ SDL_Surface *Img_LoadSurfaceFromData(const void *data, size_t len);
 /**
  * @brief Resolves the average color of the texels which exceed the highpass filter.
  */
-color_t Img_ColorHighPass(const SDL_Surface *surf, float filter);
+Color Img_ColorHighPass(const SDL_Surface *surf, float filter);
 
 /**
  * @brief Resolves the average color of the specified surface.
  */
-color_t Img_Color(const SDL_Surface *surf);
+Color Img_Color(const SDL_Surface *surf);
 
 /**
  * @brief Applies a Gaussian blur to the specified surface, in-place.
@@ -54,7 +54,7 @@ void Img_BlurSurface(SDL_Surface *surf, int32_t radius);
 /**
  * @brief Rotates the specified surface clockwise by the number of rotations.
  */
-SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
+SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t numRotations);
 
 /**
 * @brief Write pixel data to a PNG file.

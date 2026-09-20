@@ -83,7 +83,7 @@ struct DemoControlsView {
   Slider *scrubber;
 
   /**
-   * @brief Adjusts `time_scale`.
+   * @brief Adjusts `timeScale`.
    */
   Slider *speedSlider;
 };

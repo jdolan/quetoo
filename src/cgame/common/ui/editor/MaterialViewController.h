@@ -54,7 +54,7 @@ struct MaterialViewController {
   /**
    * @brief The material being edited.
    */
-  r_material_t *material;
+  RenderMaterial *material;
 
   /**
    * @brief The material name text field.
@@ -127,13 +127,13 @@ struct MaterialViewControllerInterface {
   MaterialViewController *(*init)(MaterialViewController *self);
 
   /**
-   * @fn void MaterialViewController::setMaterial(MaterialViewController *self, r_material_t *material)
+   * @fn void MaterialViewController::setMaterial(MaterialViewController *self, RenderMaterial *material)
    * @brief Sets the material to edit.
    * @param self The MaterialViewController.
    * @param material The material to edit.
    * @memberof MaterialViewController
    */
-  void (*setMaterial)(MaterialViewController *self, r_material_t *material);
+  void (*setMaterial)(MaterialViewController *self, RenderMaterial *material);
 };
 
 /**

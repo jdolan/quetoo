@@ -40,12 +40,12 @@ typedef enum {
   S_MEDIA_SAMPLE,
   S_MEDIA_MUSIC,
   S_MEDIA_TOTAL
-} s_media_type_t;
+} SoundMediaType;
 
 /**
  * @brief Samples, musics, etc. are all managed as media.
  */
-typedef struct s_media_s {
+typedef struct SoundMedia {
 
   /**
    * @brief The media name.
@@ -55,7 +55,7 @@ typedef struct s_media_s {
   /**
    * @brief The media type.
    */
-  s_media_type_t type;
+  SoundMediaType type;
 
   /**
    * @brief The media on which this media depends.
@@ -65,18 +65,18 @@ typedef struct s_media_s {
   /**
    * @brief The media retain callback, to avoid being freed.
    */
-  bool (*Retain)(struct s_media_s *self);
+  bool (*Retain)(struct SoundMedia *self);
 
   /**
    * @brief The free callback, to release any system resources.
    */
-  void (*Free)(struct s_media_s *self);
+  void (*Free)(struct SoundMedia *self);
 
   /**
    * @brief The media seed, to determine if this media is current.
    */
   int32_t seed;
-} s_media_t;
+} SoundMedia;
 
 /**
  * @brief A sound sample.
@@ -86,7 +86,7 @@ typedef struct {
   /**
    * @brief The media.
    */
-  s_media_t media;
+  SoundMedia media;
 
   /**
    * @brief The OpenAL buffer object.
@@ -96,13 +96,13 @@ typedef struct {
   /**
    * @brief The number of samples.
    */
-  size_t num_samples;
+  size_t numSamples;
 
   /**
    * @brief True for stereo sounds, which will not be spatialized.
    */
   bool stereo;
-} s_sample_t;
+} SoundSample;
 
 #define S_PLAY_AMBIENT      0x1 // this is an ambient sound and may be culled by the user
 #define S_PLAY_LOOP         0x2 // loop the sound continuously
@@ -114,33 +114,33 @@ typedef struct {
 
 #define TONES_PER_OCTAVE  48
 
-struct s_play_sample_s;
-struct s_stage_s;
+struct SoundPlaySample;
+struct SoundStage;
 
 /**
  * @brief Think function for sound samples to update effects, pitch, etc.. per frame.
  */
-typedef void (*PlaySampleThink)(const struct s_stage_s *stage, struct s_play_sample_s *play);
+typedef void (*PlaySampleThink)(const struct SoundStage *stage, struct SoundPlaySample *play);
 
 /**
  * @brief The sample instance type, used to dispatch playback of a sample.
  */
-typedef struct s_play_sample_s {
+typedef struct SoundPlaySample {
 
   /**
    * @brief The sample to play.
    */
-  const s_sample_t *sample;
+  const SoundSample *sample;
 
   /**
    * @brief The sample origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The sample velocity, for Doppler effects.
    */
-  vec3_t velocity;
+  Vec3 velocity;
 
   /**
    * @brief The sample flags.
@@ -171,7 +171,7 @@ typedef struct s_play_sample_s {
    * @brief An optional think function run once per frame.
    */
   PlaySampleThink Think;
-} s_play_sample_t;
+} SoundPlaySample;
 
 /**
  * @brief Samples are collected into channels that are spatialized and played back.
@@ -181,12 +181,12 @@ typedef struct {
   /**
    * @brief The play sample.
    */
-  s_play_sample_t play;
+  SoundPlaySample play;
 
   /**
    * @brief The time when this channel was last started.
    */
-  uint32_t start_time;
+  uint32_t startTime;
 
   /**
    * @brief The stage frame number this channel was last added in.
@@ -217,7 +217,7 @@ typedef struct {
    * @brief Underwater mix fraction, smoothly interpolated [0, 1].
    */
   float underwater;
-} s_channel_t;
+} SoundChannel;
 
 #define MAX_CHANNELS 128
 
@@ -229,7 +229,7 @@ typedef struct {
   /**
    * @brief The media.
    */
-  s_media_t media;
+  SoundMedia media;
 
   /**
    * @brief The libsndfile stream info.
@@ -244,13 +244,13 @@ typedef struct {
   /**
    * @brief The backing file.
    */
-  file_t *file;
+  File *file;
 
   /**
    * @brief True when the end of the file has been reached.
    */
   bool eof;
-} s_music_t;
+} SoundMusic;
 
 /**
  * @brief Filters and effects used by the sound system if `s_effects` is enabled & supported.
@@ -265,13 +265,13 @@ typedef struct {
   /**
    * @brief Auxiliary effect slot the reverb effect is attached to.
    */
-  ALuint reverb_slot;
+  ALuint reverbSlot;
 
   /**
    * @brief True if the filters above are currently loaded.
    */
   bool loaded;
-} s_effects_t;
+} SoundEffects;
 
 /**
  * @brief The sound environment.
@@ -311,42 +311,42 @@ typedef struct {
   /**
    * @brief The size in bytes of the raw sample buffer.
    */
-  size_t raw_sample_buffer_size;
+  size_t rawSampleBufferSize;
 
   /**
    * @brief Scratch buffer for raw float sample data before conversion.
    */
-  float *raw_sample_buffer;
+  float *rawSampleBuffer;
 
   /**
    * @brief The size in bytes of the converted sample buffer.
    */
-  size_t converted_sample_buffer_size;
+  size_t convertedSampleBufferSize;
 
   /**
    * @brief Converted raw sample buffer (float → int16).
    */
-  int16_t *converted_sample_buffer;
+  int16_t *convertedSampleBuffer;
 
   /**
    * @brief The size in bytes of the resampling scratch buffer.
    */
-  size_t resample_buffer_size;
+  size_t resampleBufferSize;
 
   /**
    * @brief Scratch buffer for resampled audio data.
    */
-  int16_t *resample_buffer;
+  int16_t *resampleBuffer;
 
   /**
    * @brief The mixed channels.
    */
-  s_channel_t channels[MAX_CHANNELS];
+  SoundChannel channels[MAX_CHANNELS];
 
   /**
    * @brief The number of channels currently playing.
    */
-  int32_t num_active_channels;
+  int32_t numActiveChannels;
 
   /**
    * @brief The OpenAL sound sources.
@@ -356,7 +356,7 @@ typedef struct {
   /**
    * @brief Effect IDs.
    */
-  s_effects_t effects;
+  SoundEffects effects;
 
   /**
    * @brief The current listener reverb level (0=open, 1=fully enclosed).
@@ -366,8 +366,8 @@ typedef struct {
   /**
    * @brief Stage ticks at last mix, used to compute per-frame dt for filter interpolation.
    */
-  uint32_t prev_ticks;
-} s_context_t;
+  uint32_t prevTicks;
+} SoundContext;
 
 /**
  * @brief Sound statistics, written by the sound module for each rendered stage.
@@ -377,18 +377,18 @@ typedef struct {
   /**
    * @brief The count of channels playing after the stage was mixed.
    */
-  int32_t num_channels;
+  int32_t numChannels;
 
   /**
    * @brief The reverb intensity at the listener origin.
    */
   float reverb;
-} s_stage_stats_t;
+} SoundStageStats;
 
 /**
  * @brief The sound stage type.
  */
-typedef struct s_stage_s {
+typedef struct SoundStage {
 
   /**
    * @brief Unclamped simulation time, in milliseconds.
@@ -398,32 +398,32 @@ typedef struct s_stage_s {
   /**
    * @brief The listener origin.
    */
-  vec3_t origin;
+  Vec3 origin;
 
   /**
    * @brief The listener angles.
    */
-  vec3_t angles;
+  Vec3 angles;
 
   /**
    * @brief The forward vector, derived from angles.
    */
-  vec3_t forward;
+  Vec3 forward;
 
   /**
    * @brief The right vector, derived from angles.
    */
-  vec3_t right;
+  Vec3 right;
 
   /**
    * @brief The up vector, derived from angles.
    */
-  vec3_t up;
+  Vec3 up;
 
   /**
    * @brief The listener velocity.
    */
-  vec3_t velocity;
+  Vec3 velocity;
 
   /**
    * @brief The contents mask at the listener origin.
@@ -433,22 +433,22 @@ typedef struct s_stage_s {
   /**
    * @brief The samples to render for the current frame.
    */
-  s_play_sample_t samples[MAX_SOUNDS];
+  SoundPlaySample samples[MAX_SOUNDS];
 
   /**
    * @brief The count of samples.
    */
-  int32_t num_samples;
+  int32_t numSamples;
 
   /**
    * @brief Statistics for the most recent render of this stage.
    */
-  s_stage_stats_t stats;
-} s_stage_t;
+  SoundStageStats stats;
+} SoundStage;
 
 #if defined(__S_LOCAL_H__)
 
-extern SF_VIRTUAL_IO s_rwops_io;
-extern SF_VIRTUAL_IO s_physfs_io;
+extern SF_VIRTUAL_IO sRwopsIo;
+extern SF_VIRTUAL_IO sPhysfsIo;
 
 #endif

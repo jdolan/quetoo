@@ -24,5 +24,5 @@
 #include "sv_types.h"
 
 #if defined(__SV_LOCAL_H__)
-void Sv_ParseClientMessage(sv_client_t *cl);
+void Sv_ParseClientMessage(ServerClient *cl);
 #endif

@@ -44,19 +44,19 @@
 #include "material.glsl"
 #include "voxel.glsl"
 
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bspLocalsBlock {
 
   /**
    * @brief The model matrix. Unused here, but both stages take the same block at the same slot.
    */
   mat4 model;
 
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
+  uvec4 activeDynamicLights[MAX_DYNAMIC_LIGHTS / 128];
 
   /**
-   * @brief The layer of texture_portal this draw's SURF_PORTAL faces sample, or -1 for none.
+   * @brief The layer of texturePortal this draw's SURF_PORTAL faces sample, or -1 for none.
    */
-  int portal_layer;
+  int portalLayer;
 };
 
 #include "light.glsl"
@@ -64,60 +64,60 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_
 /**
  * @brief Warp texture for STAGE_WARP liquid surfaces.
  */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D texture_warp;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D textureWarp;
 
 /**
  * @brief The views rendered through SURF_PORTAL faces, one layer per portal.
  */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_PORTAL) uniform sampler2DArray texture_portal;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_PORTAL) uniform sampler2DArray texturePortal;
 
-layout (location = 0) in common_vertex_t vertex;
+layout (location = 0) in CommonVertex vertex;
 
-layout (location = 0) out vec4 out_color;
+layout (location = 0) out vec4 outColor;
 
 // A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
-layout (location = 1) out float out_depth;
+layout (location = 1) out float outDepth;
 
-common_fragment_t fragment;
+CommonFragment fragment;
 
 /**
  * @brief Applies parallax occlusion mapping to the fragment texcoord.
  */
-void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment_t fragment) {
+void parallaxOcclusionMapping(in CommonVertex vertex, inout CommonFragment fragment) {
 
   fragment.parallax = vertex.diffusemap;
 
-  if (material.parallax == 0.0 || fragment.texture_lod > 2.0 ||
-      fragment.view_dist >= lighting_distance + LIGHTING_LOD_BLEND_DIST) {
+  if (material.parallax == 0.0 || fragment.texLod > 2.0 ||
+      fragment.viewDist >= lightingDistance + LIGHTING_LOD_BLEND_DIST) {
     return;
   }
 
-  float num_samples = mix(32.0, 8.0, min(fragment.texture_lod * 0.25, 1.0));
+  float numSamples = mix(32.0, 8.0, min(fragment.texLod * 0.25, 1.0));
 
-  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
+  vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
+  vec3 dir = normalize(fragment.viewDir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
   dir.z = max(dir.z, 0.1);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
-  vec2 delta = p / num_samples;
+  vec2 delta = p / numSamples;
 
   vec2 texcoord = vertex.diffusemap;
-  vec2 prev_texcoord = vertex.diffusemap;
+  vec2 prevTexcoord = vertex.diffusemap;
 
   float depth = 0.0;
-  float layer = 1.0 / num_samples;
-  float displacement = sample_material_displacement(texcoord, fragment.texture_lod);
+  float layer = 1.0 / numSamples;
+  float displacement = sampleMaterialDisplacement(texcoord, fragment.texLod);
 
-  for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
+  for (int i = 0; i < int(numSamples) && depth < displacement; i++) {
     depth += layer;
-    prev_texcoord = texcoord;
+    prevTexcoord = texcoord;
     texcoord -= delta;
-    displacement = sample_material_displacement(texcoord, fragment.texture_lod);
+    displacement = sampleMaterialDisplacement(texcoord, fragment.texLod);
   }
 
   float a = displacement - depth;
-  float b = sample_material_displacement(prev_texcoord, fragment.texture_lod) - depth + layer;
+  float b = sampleMaterialDisplacement(prevTexcoord, fragment.texLod) - depth + layer;
 
-  fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
+  fragment.parallax = mix(prevTexcoord, texcoord, a / (a - b));
 }
 
 /**
@@ -125,7 +125,7 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
  */
 void main(void) {
 
-  out_depth = gl_FragCoord.z;
+  outDepth = gl_FragCoord.z;
 
   // a portal face shows the view rendered from the point it targets. That view uses this one's
   // projection, so the two images coincide in screen space and the fragment reads straight
@@ -134,38 +134,38 @@ void main(void) {
   // This is the base pass only: a material whose stages draw the portal suppresses it with
   // SURF_MATERIAL, and each of those stages samples the portal for itself, through whatever
   // transforms it carries
-  if (material.flags == STAGE_NONE && (material.surface & SURF_PORTAL) == SURF_PORTAL && portal_layer >= 0) {
+  if (material.flags == STAGE_NONE && (material.surface & SURF_PORTAL) == SURF_PORTAL && portalLayer >= 0) {
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
-    out_color = vec4(texture(texture_portal, vec3(st, portal_layer)).rgb, 1.0);
+    outColor = vec4(texture(texturePortal, vec3(st, portalLayer)).rgb, 1.0);
     return;
   }
 
-  fragment.view_dir = normalize(-vertex.position);
-  fragment.view_dist = length(vertex.position);
-  fragment.texture_lod = textureQueryLod(texture_material, vertex.diffusemap).x;
+  fragment.viewDir = normalize(-vertex.position);
+  fragment.viewDist = length(vertex.position);
+  fragment.texLod = textureQueryLod(textureMaterial, vertex.diffusemap).x;
 
-  parallax_occlusion_mapping(vertex, fragment);
+  parallaxOcclusionMapping(vertex, fragment);
 
   if (material.flags == STAGE_NONE) {
 
-    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
+    fragment.diffuseSample = sampleMaterialDiffuse(fragment.parallax);
 
 #ifdef ALPHA_TEST
     if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
-      if (fragment.diffuse_sample.a < material.alpha_test) {
+      if (fragment.diffuseSample.a < material.alphaTest) {
         discard;
       }
     }
 #endif
 
-    out_color = fragment.diffuse_sample;
+    outColor = fragment.diffuseSample;
 
-    out_color *= vertex.color;
+    outColor *= vertex.color;
 
-    fragment_lighting_lod(vertex, fragment);
+    fragmentLightingLod(vertex, fragment);
 
-    out_color.rgb *= (fragment.ambient + fragment.diffuse);
-    out_color.rgb += fragment.specular;
+    outColor.rgb *= (fragment.ambient + fragment.diffuse);
+    outColor.rgb += fragment.specular;
 
   } else {
 
@@ -173,7 +173,7 @@ void main(void) {
     // for a portal face is the portal. Its coordinates are then the screen's, since that is
     // where the portal's image lives, and every transform the stage carries -- warp, scroll,
     // rotate -- disturbs the view through the portal rather than a texture drawn over it
-    bool portal = (material.flags & STAGE_PORTAL) == STAGE_PORTAL && portal_layer >= 0;
+    bool portal = (material.flags & STAGE_PORTAL) == STAGE_PORTAL && portalLayer >= 0;
 
     vec2 st = portal ? gl_FragCoord.xy / vec2(viewport.zw) : fragment.parallax;
 
@@ -186,7 +186,7 @@ void main(void) {
       // portal further away warps less of the screen, as it should
       vec2 texcoord = portal ? vertex.diffusemap : st;
 
-      vec2 offset = (texture(texture_warp, texcoord + vec2(ticks * material.warp.x * 0.000125)).xy - 0.5) * material.warp.y;
+      vec2 offset = (texture(textureWarp, texcoord + vec2(ticks * material.warp.x * 0.000125)).xy - 0.5) * material.warp.y;
 
       if (portal) {
         vec2 dx = dFdx(vertex.diffusemap);
@@ -206,23 +206,23 @@ void main(void) {
     }
 
     if (portal) {
-      fragment.diffuse_sample = vec4(texture(texture_portal, vec3(st, portal_layer)).rgb, 1.0);
+      fragment.diffuseSample = vec4(texture(texturePortal, vec3(st, portalLayer)).rgb, 1.0);
     } else {
-      fragment.diffuse_sample = sample_material_stage(st);
+      fragment.diffuseSample = sampleMaterialStage(st);
     }
 
-    fragment.diffuse_sample *= vertex.color;
+    fragment.diffuseSample *= vertex.color;
 
-    out_color = fragment.diffuse_sample;
+    outColor = fragment.diffuseSample;
 
     if ((material.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
-      fragment_lighting_lod(vertex, fragment);
-      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, material.lighting);
-      out_color.rgb += fragment.specular * material.lighting;
+      fragmentLightingLod(vertex, fragment);
+      outColor.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, material.lighting);
+      outColor.rgb += fragment.specular * material.lighting;
     }
 
     if ((material.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-      out_color.rgb += fragment.diffuse_sample.rgb * material.emissive;
+      outColor.rgb += fragment.diffuseSample.rgb * material.emissive;
     }
   }
 }

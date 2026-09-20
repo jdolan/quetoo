@@ -42,10 +42,10 @@ static void didEndEditing(TextView *textView) {
   const char *line = textView->attributedText->chars;
   if (*line) {
     const SDL_Keymod mods = SDL_GetModState();
-    const bool team = cg_hud_state.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
+    const bool team = cgHudState.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
 
     char command[MAX_PRINT_MSG];
-    q_snprintf(command, sizeof(command), "%s %.*s^7\n", team ? "say_team" : "say", MAX_PRINT_MSG - 32, line);
+    q_snprintf(command, sizeof(command), "%s %.*s^7\n", team ? "sayTeam" : "say", MAX_PRINT_MSG - 32, line);
 
     cgi.Cbuf(command);
   }
@@ -94,9 +94,9 @@ static void beginTyping(ChatView *self) {
   $(input, setAttributedText, "");
   input->position = 0;
 
-  if (cg_hud_state.chat.team) {
+  if (cgHudState.chat.team) {
     $(view, addClassName, "team");
-    $(input, setDefaultText, "say_team");
+    $(input, setDefaultText, "sayTeam");
   } else {
     $(view, removeClassName, "team");
     $(input, setDefaultText, "say");
@@ -126,18 +126,18 @@ static void updateBindings(View *self, ident data) {
 
   $((View *) this->input, setVisibility, typing ? ViewVisibilityVisible : ViewVisibilityHidden);
 
-  const size_t lines = Clampf(cg_chat_lines->integer, 0, CHAT_MAX_LINES);
+  const size_t lines = Clampf(cg_chatLines->integer, 0, CHAT_MAX_LINES);
 
   $((View *) this->history, setVisibility,
     lines == 0 ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (data && lines && self->superview) {
     const uint32_t now = (uint32_t) SDL_GetTicks();
-    const uint32_t millis = cg_chat_time->value * 1000;
+    const uint32_t millis = cg_chatTime->value * 1000;
 
     const uint32_t since = typing || now < millis ? 0 : now - millis;
 
-    this->history->console.whence = since > cg_hud_state.clear_time ? since : cg_hud_state.clear_time;
+    this->history->console.whence = since > cgHudState.clearTime ? since : cgHudState.clearTime;
 
     $(this->history, tail, self->superview->frame.w / 3, lines);
   }

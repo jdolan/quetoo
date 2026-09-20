@@ -31,10 +31,10 @@ static struct {
  * @brief Bumped whenever the candidates change, never reset, so that a view comparing
  * against it sees a change even across a level.
  */
-static uint32_t cg_next_map_generation;
+static uint32_t cgNextMapGeneration;
 
 /**
- * @brief Reads `CS_NEXT_MAP` into `cg_state.next_map`.
+ * @brief Reads `CS_NEXT_MAP` into `cgState.nextMap`.
  */
 static bool Cg_ParseConfigString_Intermission(int32_t index) {
 
@@ -42,18 +42,18 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     return previous.ParseConfigString(index);
   }
 
-  cg_next_map_state_t *next_map = &cg_state.next_map;
+  ClientGameNextMapState *nextMap = &cgState.nextMap;
 
   char was[MAX_NEXT_MAPS][MAX_QPATH];
-  memcpy(was, next_map->maps, sizeof(was));
-  const int32_t num_was = next_map->num_maps;
+  memcpy(was, nextMap->maps, sizeof(was));
+  const int32_t numWas = nextMap->numMaps;
 
   const char *s = cgi.ConfigString(index);
 
-  memset(next_map, 0, sizeof(*next_map));
+  memset(nextMap, 0, sizeof(*nextMap));
 
   if (!*s) {
-    next_map->generation = num_was ? ++cg_next_map_generation : cg_next_map_generation;
+    nextMap->generation = numWas ? ++cgNextMapGeneration : cgNextMapGeneration;
     return true;
   }
 
@@ -80,21 +80,21 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     return true;
   }
 
-  next_map->active = true;
-  next_map->voting = *fields[NEXT_MAP_CS_VOTING] == '1';
-  next_map->num_maps = (int32_t) (count - NEXT_MAP_CS_MAPS) / 2;
+  nextMap->active = true;
+  nextMap->voting = *fields[NEXT_MAP_CS_VOTING] == '1';
+  nextMap->numMaps = (int32_t) (count - NEXT_MAP_CS_MAPS) / 2;
 
-  for (int32_t i = 0; i < next_map->num_maps; i++) {
-    q_strlcpy(next_map->maps[i], fields[NEXT_MAP_CS_MAPS + i * 2], MAX_QPATH);
-    next_map->votes[i] = (int32_t) strtol(fields[NEXT_MAP_CS_MAPS + i * 2 + 1], NULL, 10);
+  for (int32_t i = 0; i < nextMap->numMaps; i++) {
+    q_strlcpy(nextMap->maps[i], fields[NEXT_MAP_CS_MAPS + i * 2], MAX_QPATH);
+    nextMap->votes[i] = (int32_t) strtol(fields[NEXT_MAP_CS_MAPS + i * 2 + 1], NULL, 10);
   }
 
   // only the names cost anything to show, so the tally moving is not a redraw
-  if (next_map->num_maps != num_was || memcmp(was, next_map->maps, sizeof(was))) {
-    cg_next_map_generation++;
+  if (nextMap->numMaps != numWas || memcmp(was, nextMap->maps, sizeof(was))) {
+    cgNextMapGeneration++;
   }
 
-  next_map->generation = cg_next_map_generation;
+  nextMap->generation = cgNextMapGeneration;
 
   return true;
 }
@@ -103,7 +103,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
  * @see cg_intermission.h
  */
 void Cg_Intermission_Vote(int32_t map) {
-  cgi.Cbuf(va("vote_map %d\n", map + 1));
+  cgi.Cbuf(va("voteMap %d\n", map + 1));
 }
 
 /**
@@ -115,7 +115,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
     return false;
   }
 
-  if (!cg_state.next_map.active || !cg_state.next_map.voting) {
+  if (!cgState.nextMap.active || !cgState.nextMap.voting) {
     return false;
   }
 
@@ -127,7 +127,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
 
   const int32_t map = (int32_t) (event->key.key - SDLK_1);
 
-  if (map < 0 || map >= cg_state.next_map.num_maps) {
+  if (map < 0 || map >= cgState.nextMap.numMaps) {
     return false;
   }
 
@@ -141,7 +141,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
  */
 static void Cg_StateDidClear_Intermission(void) {
 
-  memset(&cg_state.next_map, 0, sizeof(cg_state.next_map));
+  memset(&cgState.nextMap, 0, sizeof(cgState.nextMap));
 
   previous.StateDidClear();
 }
@@ -152,7 +152,7 @@ static void Cg_StateDidClear_Intermission(void) {
 void Cg_Intermission_Init(void) {
   static bool installed;
 
-  cgi.AddCmd("vote_map", NULL, CMD_CGAME, "Vote for a map during the intermission: vote_map <number>");
+  cgi.AddCmd("voteMap", NULL, CMD_CGAME, "Vote for a map during the intermission: voteMap <number>");
 
   if (installed) {
     return;

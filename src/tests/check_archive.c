@@ -25,7 +25,7 @@
 
 #include "common/archive.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 #define DEST "/tmp/quetoo-archive"
 

@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -55,7 +55,7 @@ void teardown(void) {
 
 START_TEST(check_Cvar_Get) {
   // check that we can create a variable and that its fields are populated correctly
-  cvar_t *var = Cvar_Add("var", "3.2", CVAR_ARCHIVE, __func__);
+  Cvar *var = Cvar_Add("var", "3.2", CVAR_ARCHIVE, __func__);
 
   ck_assert(var != NULL);
   ck_assert_str_eq(var->name, "var");
@@ -67,9 +67,9 @@ START_TEST(check_Cvar_Get) {
 
   // check that a subsequent call for the same variable does not modify the value
   // but does modify all meta-data
-  cvar_t *var_copy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
+  Cvar *varCopy = Cvar_Add("var", "0.5", CVAR_USER_INFO, "Some other description");
 
-  ck_assert(var_copy == var);
+  ck_assert(varCopy == var);
   ck_assert_str_eq(var->string, "3.2");
   ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
   ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
@@ -87,8 +87,8 @@ START_TEST(check_Cvar_Get) {
 } END_TEST
 
 START_TEST(check_Cvar_WriteAll) {
-  cvar_t *vars[32];
-  file_t *file;
+  Cvar *vars[32];
+  File *file;
 
   // create a whole mess of variables
   for (uint32_t i = 0; i < lengthof(vars); i++) {
@@ -126,6 +126,31 @@ START_TEST(check_Cvar_WriteAll) {
 
 } END_TEST
 
+START_TEST(check_Cvar_Get_legacy) {
+  Cvar *var = Cvar_Add("r_swapInterval", "1", 0, NULL);
+  ck_assert(var != NULL);
+
+  ck_assert_ptr_eq(Cvar_Get("r_swapInterval"), var);
+  ck_assert_ptr_eq(Cvar_Get("r_swap_interval"), var);
+  ck_assert_ptr_eq(Cvar_Get("r_swap_intervals"), NULL);
+} END_TEST
+
+START_TEST(check_Cvar_Add_rekeys_legacy) {
+
+  // a config sets this before the owning subsystem registers it
+  Cvar *set = Cvar_Add("cg_add_decals", "0", 0, NULL);
+  ck_assert(set != NULL);
+
+  Cvar *var = Cvar_Add("cg_addDecals", "1", CVAR_ARCHIVE, NULL);
+  ck_assert_ptr_eq(var, set);
+
+  // the value survives, and it is now known by the name it registered under,
+  // so that it is written back that way
+  ck_assert_str_eq(var->name, "cg_addDecals");
+  ck_assert_str_eq(var->string, "0");
+  ck_assert_ptr_eq(Cvar_Get("cg_addDecals"), var);
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -138,6 +163,8 @@ int32_t main(int32_t argc, char **argv) {
 
   tcase_add_test(tcase, check_Cvar_Get);
   tcase_add_test(tcase, check_Cvar_WriteAll);
+  tcase_add_test(tcase, check_Cvar_Get_legacy);
+  tcase_add_test(tcase, check_Cvar_Add_rekeys_legacy);
 
   Suite *suite = suite_create("check_cvar");
   suite_add_tcase(suite, tcase);

@@ -92,7 +92,7 @@ struct HudViewController {
 
   /**
    * @brief The diagnostics table, added to each hud's layout and shown while
-   * `cg_draw_diagnostics` is set.
+   * `cg_drawDiagnostics` is set.
    */
   DiagnosticsView *diagnostics;
 
@@ -162,14 +162,14 @@ struct HudViewControllerInterface {
   void (*reload)(HudViewController *self);
 
   /**
-   * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
+   * @fn void HudViewController::updateWithFrame(HudViewController *self, const ClientFrame *frame)
    * @brief Resolves visibility, hands `frame` to the View hierarchy, and compiles the Theme's
    * icon atlas if a hud added to it. Called once per frame, before the client draws.
    * @param self The HudViewController.
    * @param frame The frame.
    * @memberof HudViewController
    */
-  void (*updateWithFrame)(HudViewController *self, const cl_frame_t *frame);
+  void (*updateWithFrame)(HudViewController *self, const ClientFrame *frame);
 
   /**
    * @fn void HudViewController::warm(HudViewController *self)
@@ -186,7 +186,7 @@ CGAME_EXPORT Class *_HudViewController(void);
 /**
  * @brief The HudViewController, or `NULL` when the HUD is not loaded.
  */
-extern HudViewController *cg_hud_view_controller;
+extern HudViewController *cgHudViewController;
 
 /**
  * @return The AtlasImage for the given resource name from the Theme's icon atlas, or `NULL`.

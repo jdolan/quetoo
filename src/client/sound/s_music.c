@@ -23,49 +23,49 @@
 
 #include "s_local.h"
 
-cvar_t *s_music_volume;
+Cvar *s_musicVolume;
 
 #define MUSIC_BUFFERS 8
 #define MUSIC_BUFFER_SIZE 16384
 
 static struct {
   ALuint source;
-  ALuint music_buffers[MUSIC_BUFFERS];
-  float *raw_frame_buffer;
-  int16_t *frame_buffer;
-  size_t resample_frame_buffer_size;
-  int16_t *resample_frame_buffer;
-  uint32_t next_buffer;
-  s_music_t *default_music;
-  s_music_t *current_music;
+  ALuint musicBuffers[MUSIC_BUFFERS];
+  float *rawFrameBuffer;
+  int16_t *frameBuffer;
+  size_t resampleFrameBufferSize;
+  int16_t *resampleFrameBuffer;
+  uint32_t nextBuffer;
+  SoundMusic *defaultMusic;
+  SoundMusic *currentMusic;
   List *playlist;
 
   SDL_Thread *thread; // thread sound system runs on
   SDL_Mutex *mutex; // mutex for music state
   bool shutdown;
-} s_music_state;
+} module;
 
 /**
  * @brief Returns effective music gain with master volume applied.
  */
 static float S_MusicGain(void) {
-  return Clampf01(s_volume->value) * Clampf01(s_music_volume->value);
+  return Clampf01(s_volume->value) * Clampf01(s_musicVolume->value);
 }
 
 /**
- * @brief Retain event listener for `s_music_t`.
+ * @brief Retain event listener for `SoundMusic`.
  */
-static bool S_RetainMusic(s_media_t *self) {
+static bool S_RetainMusic(SoundMedia *self) {
   (void) self;
 
   return true;
 }
 
 /**
- * @brief Free event listener for `s_music_t`.
+ * @brief Free event listener for `SoundMusic`.
  */
-static void S_FreeMusic(s_media_t *self) {
-  s_music_t *music = (s_music_t *) self;
+static void S_FreeMusic(SoundMedia *self) {
+  SoundMusic *music = (SoundMusic *) self;
 
   if (music->snd) {
     sf_close(music->snd);
@@ -79,7 +79,7 @@ static void S_FreeMusic(s_media_t *self) {
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file_t **file) {
+static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, File **file) {
   char path[MAX_QPATH];
 
   *snd = NULL;
@@ -91,7 +91,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file
   
     memset(info, 0, sizeof(*info));
 
-    *snd = sf_open_virtual(&s_physfs_io, SFM_READ, info, *file);
+    *snd = sf_open_virtual(&sPhysfsIo, SFM_READ, info, *file);
 
     if (!*snd || sf_error(*snd)) {
       Com_Warn("%s: %s\n", path, sf_strerror(*snd));
@@ -114,22 +114,22 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file
  */
 void S_ClearPlaylist(void) {
 
-    s_music_state.playlist = release(s_music_state.playlist);
+    module.playlist = release(module.playlist);
 }
 
 /**
  * @brief Returns the currently playing music track, or `NULL` if none.
  */
-s_music_t *S_CurrentMusic(void) {
-  return s_music_state.current_music;
+SoundMusic *S_CurrentMusic(void) {
+  return module.currentMusic;
 }
 
 /**
  * @brief Returns true if @p music is in the current playlist.
  */
-bool S_PlaylistContains(const s_music_t *music) {
-  if (!s_music_state.playlist) { return false; }
-  for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
+bool S_PlaylistContains(const SoundMusic *music) {
+  if (!module.playlist) { return false; }
+  for (const ListNode *n = module.playlist->head; n; n = n->next) {
     if (n->element == music) { return true; }
   }
   return false;
@@ -138,20 +138,20 @@ bool S_PlaylistContains(const s_music_t *music) {
 /**
  * @brief Loads the music by the specified name.
  */
-s_music_t *S_LoadMusic(const char *name) {
+SoundMusic *S_LoadMusic(const char *name) {
   char key[MAX_QPATH];
-  s_music_t *music = NULL;
+  SoundMusic *music = NULL;
 
   StripExtension(name, key);
 
-  if (!(music = (s_music_t *) S_FindMedia(key, S_MEDIA_MUSIC))) {
+  if (!(music = (SoundMusic *) S_FindMedia(key, S_MEDIA_MUSIC))) {
     SF_INFO info;
     SNDFILE *snd;
-    file_t *file;
+    File *file;
 
     if (S_LoadMusicFile(key, &info, &snd, &file)) {
 
-      music = (s_music_t *) S_AllocMedia(key, sizeof(s_music_t), S_MEDIA_MUSIC);
+      music = (SoundMusic *) S_AllocMedia(key, sizeof(SoundMusic), S_MEDIA_MUSIC);
 
       music->media.type = S_MEDIA_MUSIC;
 
@@ -162,7 +162,7 @@ s_music_t *S_LoadMusic(const char *name) {
       music->snd = snd;
       music->file = file;
 
-      S_RegisterMedia((s_media_t *) music);
+      S_RegisterMedia((SoundMedia *) music);
     } else {
       Com_Debug(DEBUG_SOUND, "S_LoadMusic: Couldn't load %s\n", key);
       music = NULL;
@@ -170,10 +170,10 @@ s_music_t *S_LoadMusic(const char *name) {
   }
 
   if (music) {
-    if (!s_music_state.playlist) {
-      s_music_state.playlist = $(alloc(List), init);
+    if (!module.playlist) {
+      module.playlist = $(alloc(List), init);
     }
-    $(s_music_state.playlist, append, music);
+    $(module.playlist, append, music);
   }
 
   return music;
@@ -184,165 +184,165 @@ s_music_t *S_LoadMusic(const char *name) {
  */
 void S_StopMusic(void) {
 
-  if (s_music_state.current_music == NULL) {
+  if (module.currentMusic == NULL) {
     return;
   }
   
   Com_Debug(DEBUG_SOUND, "Stopping\n");
 
-  alSourceStop(s_music_state.source);
+  alSourceStop(module.source);
   S_GetError(NULL);
 
-  s_music_state.current_music = NULL;
+  module.currentMusic = NULL;
 }
 
 /**
  * @brief Handles music buffering for the specified music
- * @param setup_buffers If the buffers should be pulled directly from the buffer list instead of
+ * @param setupBuffers If the buffers should be pulled directly from the buffer list instead of
  * from the consumed buffer list. Use this on first call of Play only.
  */
-static void S_BufferMusic(s_music_t *music, bool setup_buffers) {
+static void S_BufferMusic(SoundMusic *music, bool setupBuffers) {
 
   if (!music->snd) {
     return;
   }
 
-  int32_t buffers_processed = MUSIC_BUFFERS;
+  int32_t buffersProcessed = MUSIC_BUFFERS;
 
-  if (!setup_buffers) {
+  if (!setupBuffers) {
     // if we're EOF, we can quit here and just let the source expire buffers
     if (music->eof) {
       return;
     }
 
-    alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+    alGetSourcei(module.source, AL_BUFFERS_PROCESSED, &buffersProcessed);
   } else {
     music->eof = false;
     sf_seek(music->snd, 0, SEEK_SET);
   }
 
-  if (!buffers_processed) {
+  if (!buffersProcessed) {
     return;
   }
 
   int32_t i;
 
   // go through the buffers we have left to add and start decoding
-  for (i = 0; i < buffers_processed; i++) {
+  for (i = 0; i < buffersProcessed; i++) {
 
-    const sf_count_t wanted_frames = (MUSIC_BUFFER_SIZE / sizeof(*s_music_state.frame_buffer)) / music->info.channels;
-    sf_count_t frames = sf_readf_float(music->snd, s_music_state.raw_frame_buffer, wanted_frames) * music->info.channels;
+    const sf_count_t wantedFrames = (MUSIC_BUFFER_SIZE / sizeof(*module.frameBuffer)) / music->info.channels;
+    sf_count_t frames = sf_readf_float(music->snd, module.rawFrameBuffer, wantedFrames) * music->info.channels;
 
     if (!frames) {
       break;
     }
     
-    S_ConvertSamples(s_music_state.raw_frame_buffer, frames, &s_music_state.frame_buffer, NULL);
+    S_ConvertSamples(module.rawFrameBuffer, frames, &module.frameBuffer, NULL);
 
-    const int16_t *frame_buffer = s_music_state.frame_buffer;
+    const int16_t *frameBuffer = module.frameBuffer;
 
     if (music->info.samplerate != s_rate->integer) {
       frames = S_Resample(music->info.channels,
                           music->info.samplerate,
                           s_rate->integer,
                           frames,
-                          s_music_state.frame_buffer,
-                          &s_music_state.resample_frame_buffer,
-                          &s_music_state.resample_frame_buffer_size);
-      frame_buffer = s_music_state.resample_frame_buffer;
+                          module.frameBuffer,
+                          &module.resampleFrameBuffer,
+                          &module.resampleFrameBufferSize);
+      frameBuffer = module.resampleFrameBuffer;
     }
 
     ALuint buffer;
 
-    if (setup_buffers) {
-      buffer = s_music_state.music_buffers[s_music_state.next_buffer];
-      s_music_state.next_buffer = (s_music_state.next_buffer + 1) % MUSIC_BUFFERS;
+    if (setupBuffers) {
+      buffer = module.musicBuffers[module.nextBuffer];
+      module.nextBuffer = (module.nextBuffer + 1) % MUSIC_BUFFERS;
     } else {
-      alSourceUnqueueBuffers(s_music_state.source, 1, &buffer);
+      alSourceUnqueueBuffers(module.source, 1, &buffer);
     }
 
     const ALsizei size = (ALsizei) frames * sizeof(int16_t);
-    alBufferData(buffer, AL_FORMAT_STEREO16, frame_buffer, size, s_rate->integer);
+    alBufferData(buffer, AL_FORMAT_STEREO16, frameBuffer, size, s_rate->integer);
 
-    alSourceQueueBuffers(s_music_state.source, 1, &buffer);
+    alSourceQueueBuffers(module.source, 1, &buffer);
     S_GetError(NULL);
   }
 }
 
 /**
- * @brief Begins playback of the specified `s_music_t`.
+ * @brief Begins playback of the specified `SoundMusic`.
  */
-static void S_PlayMusic(s_music_t *music) {
+static void S_PlayMusic(SoundMusic *music) {
 
   Com_Debug(DEBUG_SOUND, "Playing %s\n", music->media.name);
 
-  SDL_LockMutex(s_music_state.mutex);
+  SDL_LockMutex(module.mutex);
 
   S_StopMusic();
 
-  int32_t buffers_processed;
-  alGetSourcei(s_music_state.source, AL_BUFFERS_PROCESSED, &buffers_processed);
+  int32_t buffersProcessed;
+  alGetSourcei(module.source, AL_BUFFERS_PROCESSED, &buffersProcessed);
 
-  if (buffers_processed) {
-    ALuint buffers_list[buffers_processed];
-    alSourceUnqueueBuffers(s_music_state.source, buffers_processed, buffers_list);
+  if (buffersProcessed) {
+    ALuint buffersList[buffersProcessed];
+    alSourceUnqueueBuffers(module.source, buffersProcessed, buffersList);
   }
 
-  s_music_state.next_buffer = 0;
+  module.nextBuffer = 0;
 
-  s_music_state.current_music = music;
+  module.currentMusic = music;
 
   S_BufferMusic(music, true);
 
-  alSourcePlay(s_music_state.source);
+  alSourcePlay(module.source);
 
   S_GetError(NULL);
 
-  SDL_UnlockMutex(s_music_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 }
 
 /**
  * @brief Returns the previous track in the configured playlist.
  */
-static s_music_t *S_PrevMusic(void) {
+static SoundMusic *S_PrevMusic(void) {
 
-  if (s_music_state.playlist && s_music_state.playlist->count) {
+  if (module.playlist && module.playlist->count) {
 
-    for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
-      if (n->element == s_music_state.current_music) {
+    for (const ListNode *n = module.playlist->head; n; n = n->next) {
+      if (n->element == module.currentMusic) {
         if (n->prev) {
-          return (s_music_t *) n->prev->element;
+          return (SoundMusic *) n->prev->element;
         }
         break;
       }
     }
 
-    return (s_music_t *) s_music_state.playlist->tail->element;
+    return (SoundMusic *) module.playlist->tail->element;
   }
 
-  return s_music_state.default_music;
+  return module.defaultMusic;
 }
 
 /**
  * @brief Returns the next track in the configured playlist.
  */
-static s_music_t *S_NextMusic(void) {
+static SoundMusic *S_NextMusic(void) {
 
-  if (s_music_state.playlist && s_music_state.playlist->count) {
+  if (module.playlist && module.playlist->count) {
 
-    for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
-      if (n->element == s_music_state.current_music) {
+    for (const ListNode *n = module.playlist->head; n; n = n->next) {
+      if (n->element == module.currentMusic) {
         if (n->next) {
-          return (s_music_t *) n->next->element;
+          return (SoundMusic *) n->next->element;
         }
         break;
       }
     }
 
-    return (s_music_t *) s_music_state.playlist->head->element;
+    return (SoundMusic *) module.playlist->head->element;
   }
 
-  return s_music_state.default_music;
+  return module.defaultMusic;
 }
 
 /**
@@ -350,8 +350,8 @@ static s_music_t *S_NextMusic(void) {
  */
 static void S_MusicThreadTick(void) {
 
-  if (s_music_state.current_music) {
-    S_BufferMusic(s_music_state.current_music, false);
+  if (module.currentMusic) {
+    S_BufferMusic(module.currentMusic, false);
   }
 }
 
@@ -362,16 +362,16 @@ static int S_MusicThread(void *data) {
 
   while (true) {
     
-    SDL_LockMutex(s_music_state.mutex);
+    SDL_LockMutex(module.mutex);
   
-    if (s_music_state.shutdown) {
-      SDL_UnlockMutex(s_music_state.mutex);
+    if (module.shutdown) {
+      SDL_UnlockMutex(module.mutex);
       return 1;
     }
 
     S_MusicThreadTick();
 
-    SDL_UnlockMutex(s_music_state.mutex);
+    SDL_UnlockMutex(module.mutex);
 
     // sleep a bit, so music thread doesn't eat cycles
     SDL_Delay(QUETOO_TICK_MILLIS);
@@ -382,35 +382,35 @@ static int S_MusicThread(void *data) {
  * @brief Ensures music playback continues by selecting a new track when one
  * completes.
  */
-void S_RenderMusic(const s_stage_t *stage) {
+void S_RenderMusic(const SoundStage *stage) {
 
-  SDL_LockMutex(s_music_state.mutex);
+  SDL_LockMutex(module.mutex);
 
-  if (s_music_volume->modified || s_volume->modified) {
+  if (s_musicVolume->modified || s_volume->modified) {
     const float volume = S_MusicGain();
 
     if (volume) {
-      alSourcef(s_music_state.source, AL_GAIN, volume);
+      alSourcef(module.source, AL_GAIN, volume);
     } else {
       S_StopMusic();
     }
 
-    s_music_volume->modified = false;
+    s_musicVolume->modified = false;
   }
 
   // if music is enabled but not playing, play that funky music
   ALenum state;
-  alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
+  alGetSourcei(module.source, AL_SOURCE_STATE, &state);
 
   S_GetError(NULL);
 
-  SDL_UnlockMutex(s_music_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 
   if (S_MusicGain() && (state == AL_STOPPED || state == AL_INITIAL)) {
     S_NextTrack_f();
   }
 
-  if (!s_music_state.thread) {
+  if (!module.thread) {
     S_MusicThreadTick();
   }
 }
@@ -421,11 +421,11 @@ void S_RenderMusic(const s_stage_t *stage) {
 void S_NextTrack_f(void) {
 
   if (S_MusicGain()) {
-    s_music_t *current = S_CurrentMusic();
-    s_music_t *music = S_NextMusic();
+    SoundMusic *current = S_CurrentMusic();
+    SoundMusic *music = S_NextMusic();
 
     if (music) {
-      if (music == s_music_state.default_music && current == s_music_state.default_music) {
+      if (music == module.defaultMusic && current == module.defaultMusic) {
         Com_Debug(DEBUG_SOUND, "Default music already playing\n");
       } else {
         S_PlayMusic(music);
@@ -444,7 +444,7 @@ void S_NextTrack_f(void) {
 void S_PrevTrack_f(void) {
 
   if (S_MusicGain()) {
-    s_music_t *music = S_PrevMusic();
+    SoundMusic *music = S_PrevMusic();
 
     if (music) {
       S_PlayMusic(music);
@@ -461,20 +461,20 @@ void S_PrevTrack_f(void) {
  */
 void S_PauseMusic_f(void) {
 
-  SDL_LockMutex(s_music_state.mutex);
+  SDL_LockMutex(module.mutex);
 
   ALenum state;
-  alGetSourcei(s_music_state.source, AL_SOURCE_STATE, &state);
+  alGetSourcei(module.source, AL_SOURCE_STATE, &state);
 
   if (state == AL_PLAYING) {
-    alSourcePause(s_music_state.source);
+    alSourcePause(module.source);
   } else if (state == AL_PAUSED) {
-    alSourcePlay(s_music_state.source);
+    alSourcePlay(module.source);
   }
 
   S_GetError(NULL);
 
-  SDL_UnlockMutex(s_music_state.mutex);
+  SDL_UnlockMutex(module.mutex);
 }
 
 /**
@@ -482,47 +482,47 @@ void S_PauseMusic_f(void) {
  */
 void S_InitMusic(void) {
 
-  memset(&s_music_state, 0, sizeof(s_music_state));
+  memset(&module, 0, sizeof(module));
   
-  s_music_volume = Cvar_Add("s_music_volume", "0.5", CVAR_ARCHIVE, "Music volume level.");
+  s_musicVolume = Cvar_Add("s_musicVolume", "0.5", CVAR_ARCHIVE, "Music volume level.");
 
-  s_music_state.raw_frame_buffer = Mem_TagMalloc(sizeof(float) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
-  s_music_state.frame_buffer = Mem_TagMalloc(sizeof(int16_t) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
-  s_music_state.resample_frame_buffer = NULL;
+  module.rawFrameBuffer = Mem_TagMalloc(sizeof(float) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
+  module.frameBuffer = Mem_TagMalloc(sizeof(int16_t) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
+  module.resampleFrameBuffer = NULL;
 
-  Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
-  Cmd_Add("s_prev_track", S_PrevTrack_f, CMD_SOUND, "Play the previous music track.");
-  Cmd_Add("s_pause_music", S_PauseMusic_f, CMD_SOUND, "Pause or resume music playback.");
+  Cmd_Add("s_nextTrack", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
+  Cmd_Add("s_prevTrack", S_PrevTrack_f, CMD_SOUND, "Play the previous music track.");
+  Cmd_Add("s_pauseMusic", S_PauseMusic_f, CMD_SOUND, "Pause or resume music playback.");
 
-  alGenSources(1, &s_music_state.source);
+  alGenSources(1, &module.source);
   
-  if (!s_music_state.source) {
+  if (!module.source) {
     Com_Warn("Couldn't allocate source: %s\n", alGetString(alGetError()));
     return;
   }
 
-  alSourcef(s_music_state.source, AL_GAIN, S_MusicGain());
-  alSourcei(s_music_state.source, AL_SOURCE_RELATIVE, AL_TRUE);
-  alSourcef(s_music_state.source, AL_ROLLOFF_FACTOR, 0.f);
+  alSourcef(module.source, AL_GAIN, S_MusicGain());
+  alSourcei(module.source, AL_SOURCE_RELATIVE, AL_TRUE);
+  alSourcef(module.source, AL_ROLLOFF_FACTOR, 0.f);
 
   // Bypass spatialization and HRTF for the stereo music stream
   if (alIsExtensionPresent("AL_SOFT_direct_channels")) {
-    alSourcei(s_music_state.source, AL_DIRECT_CHANNELS_SOFT, AL_TRUE);
+    alSourcei(module.source, AL_DIRECT_CHANNELS_SOFT, AL_TRUE);
   }
 
-  alGenBuffers(MUSIC_BUFFERS, s_music_state.music_buffers);
+  alGenBuffers(MUSIC_BUFFERS, module.musicBuffers);
 
-  if (!*s_music_state.music_buffers) {
+  if (!*module.musicBuffers) {
     Com_Warn("Couldn't allocate buffers: %s\n", alGetString(alGetError()));
     return;
   }
 
-  s_music_state.default_music = S_LoadMusic("gtdstudio-explore");
+  module.defaultMusic = S_LoadMusic("gtdstudio-explore");
   S_ClearPlaylist();
 
-  s_music_state.mutex = SDL_CreateMutex();
+  module.mutex = SDL_CreateMutex();
 
-  s_music_state.thread = SDL_CreateThread(S_MusicThread, __func__, NULL);
+  module.thread = SDL_CreateThread(S_MusicThread, __func__, NULL);
 }
 
 /**
@@ -530,32 +530,32 @@ void S_InitMusic(void) {
  */
 void S_ShutdownMusic(void) {
   
-  SDL_LockMutex(s_music_state.mutex);
+  SDL_LockMutex(module.mutex);
   S_StopMusic();
 
-  if (s_music_state.source) {
-    alDeleteSources(1, &s_music_state.source);
-    alDeleteBuffers(MUSIC_BUFFERS, s_music_state.music_buffers);
+  if (module.source) {
+    alDeleteSources(1, &module.source);
+    alDeleteBuffers(MUSIC_BUFFERS, module.musicBuffers);
 
     S_GetError(NULL);
   }
 
-  if (s_music_state.thread) {
-    s_music_state.shutdown = true;
+  if (module.thread) {
+    module.shutdown = true;
   
-    SDL_UnlockMutex(s_music_state.mutex);
-    SDL_WaitThread(s_music_state.thread, NULL); // wait for thread to end
+    SDL_UnlockMutex(module.mutex);
+    SDL_WaitThread(module.thread, NULL); // wait for thread to end
   } else {
-    SDL_UnlockMutex(s_music_state.mutex);
+    SDL_UnlockMutex(module.mutex);
   }
 
   // kill mutex
-  SDL_DestroyMutex(s_music_state.mutex);
+  SDL_DestroyMutex(module.mutex);
   
-  Mem_Free(s_music_state.raw_frame_buffer);
-  Mem_Free(s_music_state.frame_buffer);
+  Mem_Free(module.rawFrameBuffer);
+  Mem_Free(module.frameBuffer);
 
-  if (s_music_state.resample_frame_buffer) {
-    Mem_Free(s_music_state.resample_frame_buffer);
+  if (module.resampleFrameBuffer) {
+    Mem_Free(module.resampleFrameBuffer);
   }
 }

@@ -100,12 +100,12 @@ static void respondToEvent(View *self, const SDL_Event *event) {
       break;
     case SDL_SCANCODE_COMMA:
       if (!event->key.repeat) {
-        cgi.Cbuf("demo_playback_slower\n");
+        cgi.Cbuf("demo_playbackSlower\n");
       }
       break;
     case SDL_SCANCODE_PERIOD:
       if (!event->key.repeat) {
-        cgi.Cbuf("demo_playback_faster\n");
+        cgi.Cbuf("demo_playbackFaster\n");
       }
       break;
 
@@ -176,7 +176,7 @@ static void update(DemoControlsView *self, int32_t time, int32_t duration) {
     $((Slider *) self->scrubber, setValue, time);
   }
 
-  // the slider owns time_scale, so only pull from the cvar when the user isn't dragging
+  // the slider owns timeScale, so only pull from the cvar when the user isn't dragging
   if (!(self->speedSlider->control.state & ControlStateHighlighted)) {
     $((View *) self->speedSlider, updateBindings, NULL);
   }

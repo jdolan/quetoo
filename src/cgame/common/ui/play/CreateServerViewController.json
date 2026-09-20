@@ -52,7 +52,7 @@
                         },
                         "control": {
                           "class": "CvarTextView",
-                          "var": "sv_max_clients"
+                          "var": "sv_maxClients"
                         }
                       },
                       {
@@ -154,7 +154,7 @@
                         },
                         "control": {
                           "class": "CvarTextView",
-                          "var": "g_time_limit"
+                          "var": "g_timeLimit"
                         }
                       },
                       {
@@ -166,7 +166,7 @@
                         },
                         "control": {
                           "class": "CvarTextView",
-                          "var": "g_frag_limit"
+                          "var": "g_fragLimit"
                         }
                       },
                       {
@@ -178,7 +178,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "g_weapon_stay"
+                          "var": "g_weaponStay"
                         }
                       },
                       {
@@ -190,7 +190,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "g_spawn_farthest"
+                          "var": "g_spawnFarthest"
                         }
                       },
                       {

@@ -24,40 +24,40 @@
 #include "net_sock.h"
 
 /**
- * @brief Construct an HTTP URL from a `net_addr_t` and path.
+ * @brief Construct an HTTP URL from a `NetAddr` and path.
  * @param addr The server address.
  * @param path The URL path (e.g. "maps/`foo.bsp`").
  * @param buf The output buffer.
- * @param buf_size The size of the output buffer.
+ * @param bufSize The size of the output buffer.
  * @return The number of characters written, or -1 on error.
  */
-int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t buf_size);
+int32_t Net_HttpUrl(const NetAddr *addr, const char *path, char *buf, size_t bufSize);
 
 /**
  * @brief Parse the request line of an HTTP request.
  * @param request The raw HTTP request buffer (must be null-terminated).
  * @param method The parsed method (e.g. "`GET`").
- * @param method_size The size of the method buffer.
+ * @param methodSize The size of the method buffer.
  * @param path The parsed path (e.g. "maps/`foo.bsp`"), without leading slash.
- * @param path_size The size of the path buffer.
+ * @param pathSize The size of the path buffer.
  * @return True if the request line was successfully parsed.
  */
-bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_size,
-                              char *path, size_t path_size);
+bool Net_HttpParseRequestLine(const char *request, char *method, size_t methodSize,
+                              char *path, size_t pathSize);
 
 /**
  * @brief Format an HTTP/1.0 response header into a buffer.
  * @param status The HTTP status code.
  * @param reason The HTTP reason phrase.
- * @param content_type The Content-Type header value, or `NULL` for none.
- * @param content_length The Content-Length value.
+ * @param contentType The Content-Type header value, or `NULL` for none.
+ * @param contentLength The Content-Length value.
  * @param buf The output buffer.
- * @param buf_size The size of the output buffer.
+ * @param bufSize The size of the output buffer.
  * @return The number of characters written.
  */
 int32_t Net_HttpFormatResponse(int32_t status, const char *reason,
-                               const char *content_type, int64_t content_length,
-                               char *buf, size_t buf_size);
+                               const char *contentType, int64_t contentLength,
+                               char *buf, size_t bufSize);
 
 /**
  * @brief Send an HTTP error response on a socket.

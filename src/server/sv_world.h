@@ -24,13 +24,13 @@
 #include "sv_types.h"
 
 #if defined(__SV_LOCAL_H__)
-void Sv_SpawnEntities(const char *name, const cm_entity_t *props);
-void Sv_LinkEntity(g_entity_t *ent);
-void Sv_UnlinkEntity(g_entity_t *ent);
-size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, size_t len, uint32_t type);
-int32_t Sv_PointContents(const vec3_t p);
-int32_t Sv_BoxContents(const box3_t bounds);
-cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *skip, int32_t contents);
-cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *test, int32_t contents);
+void Sv_SpawnEntities(const char *name, const CmEntity *props);
+void Sv_LinkEntity(GameEntity *ent);
+void Sv_UnlinkEntity(GameEntity *ent);
+size_t Sv_BoxEntities(const Box3 bounds, GameEntity **list, size_t len, uint32_t type);
+int32_t Sv_PointContents(const Vec3 p);
+int32_t Sv_BoxContents(const Box3 bounds);
+CmTrace Sv_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *skip, int32_t contents);
+CmTrace Sv_Clip(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *test, int32_t contents);
 
 #endif

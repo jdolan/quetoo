@@ -27,7 +27,7 @@
  -------- Keys --------
  targetname : The target name of this entity.
 */
-void G_info_notnull(g_entity_t *ent) {
+void G_info_notnull(GameEntity *ent) {
   gi.LinkEntity(ent);
 }
 
@@ -37,7 +37,7 @@ void G_info_notnull(g_entity_t *ent) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_start(g_entity_t *ent) {
+void G_info_player_start(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }
 
@@ -48,7 +48,7 @@ void G_info_player_start(g_entity_t *ent) {
  angles : The "pitch yaw roll" angles for the camera (e.g. 20 270 0).
  target : The target name of an info_notnull as an alternate way to set the camera angles.
 */
-void G_info_player_intermission(g_entity_t *ent) {
+void G_info_player_intermission(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }
 
@@ -58,7 +58,7 @@ void G_info_player_intermission(g_entity_t *ent) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_deathmatch(g_entity_t *ent) {
+void G_info_player_deathmatch(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }
 
@@ -68,7 +68,7 @@ void G_info_player_deathmatch(g_entity_t *ent) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_team1(g_entity_t *ent) {
+void G_info_player_team1(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }
 
@@ -78,7 +78,7 @@ void G_info_player_team1(g_entity_t *ent) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_team2(g_entity_t *ent) {
+void G_info_player_team2(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }
 
@@ -88,7 +88,7 @@ void G_info_player_team2(g_entity_t *ent) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_team3(g_entity_t *ent) {
+void G_info_player_team3(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }
 
@@ -98,7 +98,7 @@ void G_info_player_team3(g_entity_t *ent) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_team4(g_entity_t *ent) {
+void G_info_player_team4(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }
 
@@ -108,6 +108,6 @@ void G_info_player_team4(g_entity_t *ent) {
  -------- Keys --------
  angle : The angle at which the player will face when spawned.
 */
-void G_info_player_team_any(g_entity_t *ent) {
+void G_info_player_team_any(GameEntity *ent) {
   G_InitPlayerSpawn(ent);
 }

@@ -70,13 +70,13 @@ static void update(ConsoleViewController *self) {
 
   View *view = (View *) self->console;
 
-  const bool console = cls.key_state.dest == KEY_CONSOLE && cls.state != CL_LOADING;
+  const bool console = cls.keyState.dest == KEY_CONSOLE && cls.state != CL_LOADING;
 
   $(view, setVisibility, console ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (console) {
     const int32_t height = self->viewController.view->frame.h;
-    const float fraction = cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f;
+    const float fraction = cls.state == CL_ACTIVE ? Clampf01(cl_consoleHeight->value) : 1.f;
 
     $(self->console, update, height * fraction);
   }

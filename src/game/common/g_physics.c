@@ -25,29 +25,29 @@
 /**
  * @see Pm_CheckGround
  */
-static void G_CheckGround(g_entity_t *ent) {
-  vec3_t pos;
+static void G_CheckGround(GameEntity *ent) {
+  Vec3 pos;
 
-  if (ent->move_type == MOVE_TYPE_WALK) {
+  if (ent->moveType == MOVE_TYPE_WALK) {
     return;
   }
 
   // check for ground interaction
-  if (ent->move_type == MOVE_TYPE_BOUNCE) {
+  if (ent->moveType == MOVE_TYPE_BOUNCE) {
 
     pos = ent->s.origin;
     pos.z -= PM_GROUND_DIST;
 
-    cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->clip_mask ? : CONTENTS_MASK_SOLID);
+    CmTrace trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->clipMask ? : CONTENTS_MASK_SOLID);
 
     if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
       if (ent->ground.ent == NULL) {
-        G_Debug("%s meeting ground %s\n", etos(ent), etos((g_entity_t *) trace.ent));
+        G_Debug("%s meeting ground %s\n", etos(ent), etos((GameEntity *) trace.ent));
       }
       ent->ground = trace;
     } else {
       if (ent->ground.ent) {
-        G_Debug("%s leaving ground %s\n", etos(ent), etos((g_entity_t *) ent->ground.ent));
+        G_Debug("%s leaving ground %s\n", etos(ent), etos((GameEntity *) ent->ground.ent));
       }
       memset(&ent->ground, 0, sizeof(ent->ground));
     }
@@ -59,10 +59,10 @@ static void G_CheckGround(g_entity_t *ent) {
 /**
  * @brief Checks and updates the entity's water level, dispatching entry and exit sound effects.
  */
-static void G_CheckWater(g_entity_t *ent) {
-  vec3_t pos;
+static void G_CheckWater(GameEntity *ent) {
+  Vec3 pos;
 
-  if (ent->move_type == MOVE_TYPE_WALK) {
+  if (ent->moveType == MOVE_TYPE_WALK) {
     return;
   }
 
@@ -71,66 +71,66 @@ static void G_CheckWater(g_entity_t *ent) {
   }
 
   // check for water interaction
-  const pm_water_level_t old_water_level = ent->water_level;
-  const int32_t old_water_type = ent->water_type;
+  const PlayerMoveWaterLevel oldWaterLevel = ent->waterLevel;
+  const int32_t oldWaterType = ent->waterType;
 
-  const int32_t water = gi.BoxContents(ent->abs_bounds) & CONTENTS_MASK_LIQUID;
+  const int32_t water = gi.BoxContents(ent->absBounds) & CONTENTS_MASK_LIQUID;
 
-  ent->water_type = water;
-  ent->water_level = ent->water_type ? WATER_UNDER : WATER_NONE;
+  ent->waterType = water;
+  ent->waterLevel = ent->waterType ? WATER_UNDER : WATER_NONE;
 
   if (ent->solid == SOLID_BSP) {
-    pos = Box3_Center(ent->abs_bounds);
+    pos = Box3_Center(ent->absBounds);
   } else {
     pos = ent->s.origin;
   }
 
-  const vec3_t top = Vec3(pos.x, pos.y, ent->abs_bounds.maxs.z);
-  const vec3_t bot = Vec3(pos.x, pos.y, ent->abs_bounds.mins.z);
+  const Vec3 top = MakeVec3(pos.x, pos.y, ent->absBounds.maxs.z);
+  const Vec3 bot = MakeVec3(pos.x, pos.y, ent->absBounds.mins.z);
 
-  if (old_water_level == WATER_NONE && ent->water_level == WATER_UNDER) {
+  if (oldWaterLevel == WATER_NONE && ent->waterLevel == WATER_UNDER) {
 
-    if (ent->move_type == MOVE_TYPE_BOUNCE) {
+    if (ent->moveType == MOVE_TYPE_BOUNCE) {
       ent->velocity = Vec3_Scale(ent->velocity, 0.66);
     }
 
-    if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-      const int8_t pitch = ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
+    if (!(ent->svFlags & SVF_NO_CLIENT)) {
+      const int8_t pitch = ent->waterType & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
-      G_MulticastSound(&(const g_play_sound_t) {
-        .index = g_media.sounds.water_in,
+      G_MulticastSound(&(const GamePlaySound) {
+        .index = gMedia.sounds.waterIn,
         .origin = &pos,
         .pitch = pitch,
         .gain = gain
       }, MULTICAST_PHS);
 
-      if (ent->move_type != MOVE_TYPE_NO_CLIP) {
+      if (ent->moveType != MOVE_TYPE_NO_CLIP) {
 
-        const vec3_t pos1 = Vec3_Fmaf(top, -QUETOO_TICK_SECONDS, ent->velocity);
-        const vec3_t pos2 = Vec3_Fmaf(bot,  QUETOO_TICK_SECONDS, ent->velocity);
+        const Vec3 pos1 = Vec3_Fmaf(top, -QUETOO_TICK_SECONDS, ent->velocity);
+        const Vec3 pos2 = Vec3_Fmaf(bot,  QUETOO_TICK_SECONDS, ent->velocity);
 
         G_Ripple(ent, pos1, pos2, 0.f, Vec3_Length(ent->velocity) > 100.f);
       }
     }
 
-  } else if (old_water_level == WATER_UNDER && ent->water_level == WATER_NONE) {
+  } else if (oldWaterLevel == WATER_UNDER && ent->waterLevel == WATER_NONE) {
 
-    if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-      const int8_t pitch = old_water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
+    if (!(ent->svFlags & SVF_NO_CLIENT)) {
+      const int8_t pitch = oldWaterType & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
-      G_MulticastSound(&(const g_play_sound_t) {
-        .index = g_media.sounds.water_out,
+      G_MulticastSound(&(const GamePlaySound) {
+        .index = gMedia.sounds.waterOut,
         .origin = &pos,
         .pitch = pitch,
         .gain = gain
       }, MULTICAST_PHS);
 
-      if (ent->move_type != MOVE_TYPE_NO_CLIP) {
+      if (ent->moveType != MOVE_TYPE_NO_CLIP) {
 
-        const vec3_t pos1 = Vec3_Fmaf(top,  QUETOO_TICK_SECONDS, ent->velocity);
-        const vec3_t pos2 = Vec3_Fmaf(bot, -QUETOO_TICK_SECONDS, ent->velocity);
+        const Vec3 pos1 = Vec3_Fmaf(top,  QUETOO_TICK_SECONDS, ent->velocity);
+        const Vec3 pos2 = Vec3_Fmaf(bot, -QUETOO_TICK_SECONDS, ent->velocity);
 
         G_Ripple(ent, pos1, pos2, 0.f, false);
       }
@@ -143,17 +143,17 @@ static void G_CheckWater(g_entity_t *ent) {
 /**
  * @brief Runs thinking code for this frame if necessary
  */
-void G_RunThink(g_entity_t *ent) {
+void G_RunThink(GameEntity *ent) {
 
-  if (ent->next_think == 0) {
+  if (ent->nextThink == 0) {
     return;
   }
 
-  if (ent->next_think > g_level.time + 1) {
+  if (ent->nextThink > gLevel.time + 1) {
     return;
   }
 
-  ent->next_think = 0;
+  ent->nextThink = 0;
 
   if (!ent->Think) {
     G_Error("%s has no Think function\n", etos(ent));
@@ -165,29 +165,29 @@ void G_RunThink(g_entity_t *ent) {
 /**
  * @return True if the entity is in a valid position, false otherwise.
  */
-static bool G_GoodPosition(const g_entity_t *ent) {
+static bool G_GoodPosition(const GameEntity *ent) {
 
-  const int32_t mask = ent->clip_mask ? : CONTENTS_MASK_SOLID;
+  const int32_t mask = ent->clipMask ? : CONTENTS_MASK_SOLID;
 
-  const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, mask);
+  const CmTrace tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, mask);
 
-  return tr.start_solid == false && tr.all_solid == false;
+  return tr.startSolid == false && tr.allSolid == false;
 }
 
 /**
  * @return True if the entity is in, or could be moved to, a valid position, false otherwise.
  */
-static bool G_CorrectPosition(g_entity_t *ent) {
+static bool G_CorrectPosition(GameEntity *ent) {
 
   const int32_t offsets[] = { 0, 1, -1 };
 
-  vec3_t pos = ent->s.origin;
+  Vec3 pos = ent->s.origin;
 
   for (size_t i = 0; i < lengthof(offsets); i++) {
     for (size_t j = 0; j < lengthof(offsets); j++) {
       for (size_t k = 0; k < lengthof(offsets); k++) {
 
-        ent->s.origin = Vec3_Add(pos, Vec3(offsets[i], offsets[j], offsets[k]));
+        ent->s.origin = Vec3_Add(pos, MakeVec3(offsets[i], offsets[j], offsets[k]));
         gi.LinkEntity(ent);
 
         if (G_GoodPosition(ent)) {
@@ -210,7 +210,7 @@ static bool G_CorrectPosition(g_entity_t *ent) {
 /**
  * @brief Clamps entity velocity to `MAX_SPEED`, or zeroes it when below `STOP_EPSILON`.
  */
-static void G_ClampVelocity(g_entity_t *ent) {
+static void G_ClampVelocity(GameEntity *ent) {
 
   const float speed = Vec3_Length(ent->velocity);
 
@@ -224,7 +224,7 @@ static void G_ClampVelocity(g_entity_t *ent) {
 /**
  * @brief Slide off of the impacted plane.
  */
-static vec3_t G_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce) {
+static Vec3 G_ClipVelocity(const Vec3 in, const Vec3 normal, float bounce) {
 
   float backoff = Vec3_Dot(in, normal);
 
@@ -242,9 +242,9 @@ static vec3_t G_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce)
 /**
  * @see Pm_Friction
  */
-static void G_Friction(g_entity_t *ent) {
+static void G_Friction(GameEntity *ent) {
 
-  vec3_t vel = ent->velocity;
+  Vec3 vel = ent->velocity;
 
   if (ent->ground.contents & CONTENTS_MASK_SOLID) {
     vel.z = 0.0;
@@ -271,7 +271,7 @@ static void G_Friction(g_entity_t *ent) {
     friction = PM_FRICT_AIR;
   }
 
-  if (ent->water_type) {
+  if (ent->waterType) {
     friction += PM_FRICT_WATER;
   }
 
@@ -284,33 +284,33 @@ static void G_Friction(g_entity_t *ent) {
 /**
  * @see Pm_Accelerate
  */
-static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float accel) {
+static void G_Accelerate(GameEntity *ent, const Vec3 dir, float speed, float accel) {
 
-  const float current_speed = Vec3_Dot(ent->velocity, dir);
-  const float add_speed = speed - current_speed;
+  const float currentSpeed = Vec3_Dot(ent->velocity, dir);
+  const float addSpeed = speed - currentSpeed;
 
-  if (add_speed <= 0.0) {
+  if (addSpeed <= 0.0) {
     return;
   }
 
-  float accel_speed = accel * QUETOO_TICK_SECONDS * speed;
+  float accelSpeed = accel * QUETOO_TICK_SECONDS * speed;
 
-  if (accel_speed > add_speed) {
-    accel_speed = add_speed;
+  if (accelSpeed > addSpeed) {
+    accelSpeed = addSpeed;
   }
 
-  ent->velocity = Vec3_Fmaf(ent->velocity, accel_speed, dir);
+  ent->velocity = Vec3_Fmaf(ent->velocity, accelSpeed, dir);
 }
 
 /**
  * @see Pm_Gravity
  */
-static void G_Gravity(g_entity_t *ent) {
+static void G_Gravity(GameEntity *ent) {
 
   if (ent->ground.ent == NULL) {
     float gravity = G_LevelGravity();
 
-    if (ent->water_level) {
+    if (ent->waterLevel) {
       gravity *= PM_GRAVITY_WATER;
     }
 
@@ -321,27 +321,27 @@ static void G_Gravity(g_entity_t *ent) {
 /**
  * @see Pm_Currents
  */
-static void G_Currents(g_entity_t *ent) {
-  vec3_t current = Vec3_Zero();
+static void G_Currents(GameEntity *ent) {
+  Vec3 current = Vec3_Zero();
 
-  if (ent->water_level) {
+  if (ent->waterLevel) {
 
-    if (ent->water_type & CONTENTS_CURRENT_0) {
+    if (ent->waterType & CONTENTS_CURRENT_0) {
       current.x += 1.0;
     }
-    if (ent->water_type & CONTENTS_CURRENT_90) {
+    if (ent->waterType & CONTENTS_CURRENT_90) {
       current.y += 1.0;
     }
-    if (ent->water_type & CONTENTS_CURRENT_180) {
+    if (ent->waterType & CONTENTS_CURRENT_180) {
       current.x -= 1.0;
     }
-    if (ent->water_type & CONTENTS_CURRENT_270) {
+    if (ent->waterType & CONTENTS_CURRENT_270) {
       current.y -= 1.0;
     }
-    if (ent->water_type & CONTENTS_CURRENT_UP) {
+    if (ent->waterType & CONTENTS_CURRENT_UP) {
       current.z += 1.0;
     }
-    if (ent->water_type & CONTENTS_CURRENT_DOWN) {
+    if (ent->waterType & CONTENTS_CURRENT_DOWN) {
       current.z -= 1.0;
     }
   }
@@ -384,8 +384,8 @@ static void G_Currents(g_entity_t *ent) {
 /**
  * @brief Interact with `BOX_OCCUPY` objects after moving.
  */
-void G_TouchOccupy(g_entity_t *ent) {
-  g_entity_t *ents[MAX_ENTITIES];
+void G_TouchOccupy(GameEntity *ent) {
+  GameEntity *ents[MAX_ENTITIES];
 
   switch (ent->solid) {
     case SOLID_PROJECTILE:
@@ -396,10 +396,10 @@ void G_TouchOccupy(g_entity_t *ent) {
       return;
   }
 
-  const size_t len = gi.BoxEntities(ent->abs_bounds, ents, lengthof(ents), BOX_OCCUPY);
+  const size_t len = gi.BoxEntities(ent->absBounds, ents, lengthof(ents), BOX_OCCUPY);
   for (size_t i = 0; i < len; i++) {
 
-    g_entity_t *occupied = ents[i];
+    GameEntity *occupied = ents[i];
 
     if (occupied == ent) {
       continue;
@@ -419,7 +419,7 @@ void G_TouchOccupy(g_entity_t *ent) {
       occupied->Touch(occupied, ent, NULL);
     }
 
-    if (!ent->in_use) {
+    if (!ent->inUse) {
       break;
     }
   }
@@ -428,7 +428,7 @@ void G_TouchOccupy(g_entity_t *ent) {
 /**
  * @brief A moving object that doesn't obey physics
  */
-static void G_Physics_NoClip(g_entity_t *ent) {
+static void G_Physics_NoClip(GameEntity *ent) {
 
   ent->s.angles = Vec3_Fmaf(ent->s.angles, QUETOO_TICK_SECONDS, ent->avelocity);
   ent->s.origin = Vec3_Fmaf(ent->s.origin, QUETOO_TICK_SECONDS, ent->velocity);
@@ -441,19 +441,19 @@ static void G_Physics_NoClip(g_entity_t *ent) {
  * move needs to be reverted.
  */
 typedef struct {
-  g_entity_t *ent;
-  vec3_t origin;
-  vec3_t angles;
-  int16_t delta_yaw;
-} g_push_t;
+  GameEntity *ent;
+  Vec3 origin;
+  Vec3 angles;
+  int16_t deltaYaw;
+} GamePush;
 
-static g_push_t g_pushes[MAX_ENTITIES], *g_push_p;
+static GamePush g_pushes[MAX_ENTITIES], *g_push_p;
 
 /**
  * @brief Records the current origin, angles, and client delta-yaw of the entity
  * on the push stack to allow the move to be reverted if blocked.
  */
-static void G_Physics_Push_Impact(g_entity_t *ent) {
+static void G_Physics_Push_Impact(GameEntity *ent) {
 
   if (g_push_p - g_pushes == MAX_ENTITIES) {
     G_Error("MAX_ENTITIES\n");
@@ -465,9 +465,9 @@ static void G_Physics_Push_Impact(g_entity_t *ent) {
   g_push_p->angles = ent->s.angles;
 
   if (ent->client) {
-    g_push_p->delta_yaw = ent->client->ps.pm_state.delta_angles.y;
+    g_push_p->deltaYaw = ent->client->ps.pmState.deltaAngles.y;
   } else {
-    g_push_p->delta_yaw = 0;
+    g_push_p->deltaYaw = 0;
   }
 
   g_push_p++;
@@ -476,9 +476,9 @@ static void G_Physics_Push_Impact(g_entity_t *ent) {
 /**
  * @brief Reverts an entity to its saved origin and angles from the push stack entry.
  */
-static void G_Physics_Push_Revert(const g_push_t *p) {
+static void G_Physics_Push_Revert(const GamePush *p) {
 
-  if (!p->ent->in_use) {
+  if (!p->ent->inUse) {
     return;
   }
 
@@ -486,7 +486,7 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
   p->ent->s.angles = p->angles;
 
   if (p->ent->client) {
-    p->ent->client->ps.pm_state.delta_angles.y = p->delta_yaw;
+    p->ent->client->ps.pmState.deltaAngles.y = p->deltaYaw;
   }
 
   gi.LinkEntity(p->ent);
@@ -496,11 +496,11 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
  * @brief When items ride pushers, they rotate along with them. For clients,
  * this requires incrementing their delta angles.
  */
-static void G_Physics_Push_Rotate_Entity(g_entity_t *self, g_entity_t *ent, float yaw) {
+static void G_Physics_Push_Rotate_Entity(GameEntity *self, GameEntity *ent, float yaw) {
 
   if (ent->ground.ent == self) {
     if (ent->client) {
-      ent->client->ps.pm_state.delta_angles.y += yaw;
+      ent->client->ps.pmState.deltaAngles.y += yaw;
     } else {
       ent->s.angles.y += yaw;
     }
@@ -511,35 +511,35 @@ static void G_Physics_Push_Rotate_Entity(g_entity_t *self, g_entity_t *ent, floa
  * @brief Translates a BSP pusher entity by @p move, pushing or carrying any entities in its path.
  * @return The first entity that blocked the move, or `NULL` if the move succeeded.
  */
-static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) {
-  g_entity_t *ents[MAX_ENTITIES];
+static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
+  GameEntity *ents[MAX_ENTITIES];
 
   G_Physics_Push_Impact(ent);
 
   // calculate bounds for the entire move
-  box3_t total_bounds = ent->abs_bounds;
+  Box3 totalBounds = ent->absBounds;
 
   // unlink the pusher so we don't get it in the entity list
   gi.UnlinkEntity(ent);
 
   // store original position
-  const vec3_t original_position = ent->s.origin;
+  const Vec3 originalPosition = ent->s.origin;
 
   // move the pusher to it's intended position
-  const vec3_t final_position = Vec3_Add(original_position, move);
+  const Vec3 finalPosition = Vec3_Add(originalPosition, move);
 
-  ent->s.origin = final_position;
+  ent->s.origin = finalPosition;
 
   gi.LinkEntity(ent);
 
-  total_bounds = Box3_Union(total_bounds, ent->abs_bounds);
+  totalBounds = Box3_Union(totalBounds, ent->absBounds);
 
-  const size_t len = gi.BoxEntities(total_bounds, ents, lengthof(ents), BOX_ALL);
+  const size_t len = gi.BoxEntities(totalBounds, ents, lengthof(ents), BOX_ALL);
 
   // see if any solid entities are inside the final position
   for (size_t i = 0; i < len; i++) {
 
-    g_entity_t *other = ents[i];
+    GameEntity *other = ents[i];
 
     if (other->solid == SOLID_BSP) {
       continue;
@@ -553,7 +553,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
       continue;
     }
 
-    if (other->move_type < MOVE_TYPE_WALK) {
+    if (other->moveType < MOVE_TYPE_WALK) {
       continue;
     }
 
@@ -563,7 +563,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
     }
 
     // if we are a pusher, or someone is riding us, try to move them
-    if ((ent->move_type == MOVE_TYPE_PUSH) || (other->ground.ent == ent)) {
+    if ((ent->moveType == MOVE_TYPE_PUSH) || (other->ground.ent == ent)) {
 
       G_Physics_Push_Impact(other);
 
@@ -576,7 +576,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
         // and clip us to where we end up.
         gi.UnlinkEntity(ent);
 
-        const cm_trace_t tr = gi.Trace(other->s.origin, Vec3_Add(other->s.origin, move), other->bounds, other, other->clip_mask ? : CONTENTS_MASK_SOLID);
+        const CmTrace tr = gi.Trace(other->s.origin, Vec3_Add(other->s.origin, move), other->bounds, other, other->clipMask ? : CONTENTS_MASK_SOLID);
 
         gi.LinkEntity(ent);
 
@@ -602,14 +602,14 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
         gi.UnlinkEntity(other);
 
         // restore original position to calculate our hit with it
-        ent->s.origin = original_position;
+        ent->s.origin = originalPosition;
 
         gi.LinkEntity(ent);
 
-        cm_trace_t tr = gi.Clip(other->s.origin, Vec3_Subtract(other->s.origin, move), other->bounds, ent, other->clip_mask ? : CONTENTS_MASK_SOLID);
+        CmTrace tr = gi.Clip(other->s.origin, Vec3_Subtract(other->s.origin, move), other->bounds, ent, other->clipMask ? : CONTENTS_MASK_SOLID);
 
         // move back to final position
-        ent->s.origin = final_position;
+        ent->s.origin = finalPosition;
 
         gi.LinkEntity(ent);
 
@@ -623,11 +623,11 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
         if (tr.ent == ent) {
           // we did; clip us against the world with the full movement that
           // we need to do
-          const float remaining_dist = 1.0f - tr.fraction;
+          const float remainingDist = 1.0f - tr.fraction;
 
-          const vec3_t new_position = Vec3_Fmaf(other->s.origin, remaining_dist, Vec3_Multiply(move, Vec3_Fabsf(tr.plane.normal)));
+          const Vec3 newPosition = Vec3_Fmaf(other->s.origin, remainingDist, Vec3_Multiply(move, Vec3_Fabsf(tr.plane.normal)));
 
-          tr = gi.Trace(other->s.origin, new_position, other->s.bounds, ent, other->clip_mask ? : CONTENTS_MASK_SOLID);
+          tr = gi.Trace(other->s.origin, newPosition, other->s.bounds, ent, other->clipMask ? : CONTENTS_MASK_SOLID);
         
           other->s.origin = tr.end;
 
@@ -648,7 +648,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
 
     if (ent->Blocked) {
       ent->Blocked(ent, other);
-      if (!other->in_use || other->dead) {
+      if (!other->inUse || other->dead) {
         continue;
       }
     }
@@ -666,11 +666,11 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
   }
 
   // set us in the new position
-  ent->s.origin = final_position;
+  ent->s.origin = finalPosition;
 
   // the move was successful, so re-link all pushed entities
-  for (g_push_t *p = g_push_p - 1; p >= g_pushes; p--) {
-    if (p->ent->in_use) {
+  for (GamePush *p = g_push_p - 1; p >= g_pushes; p--) {
+    if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
 
@@ -688,12 +688,12 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
 /**
  * @brief Rotates the mover to `angles` and clips `ent` against it there.
  */
-static cm_trace_t G_Physics_Push_Rotate_And_Trace(g_entity_t *ent, g_entity_t *mover, const vec3_t angles) {
+static CmTrace G_Physics_Push_Rotate_And_Trace(GameEntity *ent, GameEntity *mover, const Vec3 angles) {
   mover->s.angles = angles;
   
   gi.LinkEntity(mover);
 
-  return gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, mover, ent->clip_mask);
+  return gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, mover, ent->clipMask);
 }
 
 /**
@@ -705,31 +705,31 @@ static cm_trace_t G_Physics_Push_Rotate_And_Trace(g_entity_t *ent, g_entity_t *m
 /**
  * @return The time-of-impact fraction in [0, 1] for the entity against the rotating mover.
  */
-static float G_Physics_Push_Calculate_Rotational_TOI(g_entity_t *ent, g_entity_t *mover, const vec3_t original_angles, const vec3_t final_angles, const float left, const float right) {
-  const cm_trace_t left_tr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(original_angles, final_angles, left));
+static float G_Physics_Push_Calculate_Rotational_TOI(GameEntity *ent, GameEntity *mover, const Vec3 originalAngles, const Vec3 finalAngles, const float left, const float right) {
+  const CmTrace leftTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, left));
   
   const float half = Mixf(left, right, 0.5f);
 
-  const cm_trace_t half_tr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(original_angles, final_angles, half));
+  const CmTrace halfTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, half));
 
-  if (left_tr.fraction == 1.f && half_tr.fraction < 1.f) {
+  if (leftTr.fraction == 1.f && halfTr.fraction < 1.f) {
 
     if (half - left < TOI_MIN_FRACTION) {
       return left;
     }
 
-    return G_Physics_Push_Calculate_Rotational_TOI(ent, mover, original_angles, final_angles, left, half);
+    return G_Physics_Push_Calculate_Rotational_TOI(ent, mover, originalAngles, finalAngles, left, half);
   }
 
-  const cm_trace_t right_tr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(original_angles, final_angles, right));
+  const CmTrace rightTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, right));
 
-  if (half_tr.fraction == 1.f && right_tr.fraction < 1.f) {
+  if (halfTr.fraction == 1.f && rightTr.fraction < 1.f) {
 
     if (half - left < TOI_MIN_FRACTION) {
       return half;
     }
 
-    return G_Physics_Push_Calculate_Rotational_TOI(ent, mover, original_angles, final_angles, half, right);
+    return G_Physics_Push_Calculate_Rotational_TOI(ent, mover, originalAngles, finalAngles, half, right);
   }
 
   // this is an edge case where both positions are occupied by the mover.
@@ -741,34 +741,34 @@ static float G_Physics_Push_Calculate_Rotational_TOI(g_entity_t *ent, g_entity_t
  * @brief Rotates a BSP pusher entity by @p amove, pushing or carrying any entities in its path.
  * @return The first entity that blocked the move, or `NULL` if the move succeeded.
  */
-static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
-  g_entity_t *ents[MAX_ENTITIES];
+static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
+  GameEntity *ents[MAX_ENTITIES];
 
   G_Physics_Push_Impact(self);
 
   // calculate bounds for the entire move
-  box3_t total_bounds = self->abs_bounds;
+  Box3 totalBounds = self->absBounds;
 
   // unlink the pusher so we don't get it in the entity list
   gi.UnlinkEntity(self);
 
-  const vec3_t original_angles = self->s.angles;
+  const Vec3 originalAngles = self->s.angles;
 
-  const vec3_t final_angles = Vec3_Add(original_angles, amove);
+  const Vec3 finalAngles = Vec3_Add(originalAngles, amove);
 
   // move the pusher to it's intended position
-  self->s.angles = final_angles;
+  self->s.angles = finalAngles;
 
   gi.LinkEntity(self);
 
-  total_bounds = Box3_Union(total_bounds, self->abs_bounds);
+  totalBounds = Box3_Union(totalBounds, self->absBounds);
 
-  const size_t len = gi.BoxEntities(total_bounds, ents, lengthof(ents), BOX_ALL);
+  const size_t len = gi.BoxEntities(totalBounds, ents, lengthof(ents), BOX_ALL);
 
   // see if any solid entities are inside the final position
   for (size_t i = 0; i < len; i++) {
 
-    g_entity_t *ent = ents[i];
+    GameEntity *ent = ents[i];
 
     if (ent->solid == SOLID_BSP) {
       continue;
@@ -782,7 +782,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       continue;
     }
 
-    if (ent->move_type < MOVE_TYPE_WALK) {
+    if (ent->moveType < MOVE_TYPE_WALK) {
       continue;
     }
 
@@ -792,7 +792,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
     }
 
     // if we are a pusher, or someone is riding us, try to move them
-    if ((self->move_type == MOVE_TYPE_PUSH) || (ent->ground.ent == self)) {
+    if ((self->moveType == MOVE_TYPE_PUSH) || (ent->ground.ent == self)) {
 
       G_Physics_Push_Impact(ent);
 
@@ -800,54 +800,54 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       // put us to final angles and check for intersection.
       // FIXME: this won't work for larger rotations of thin objects
       // that rotate beyond the bounds of an object.
-      self->s.angles = final_angles;
+      self->s.angles = finalAngles;
 
       gi.LinkEntity(self);
 
-      cm_trace_t tr = gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clip_mask ? : CONTENTS_MASK_SOLID);
-      float remaining_move = 1.0f;
+      CmTrace tr = gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clipMask ? : CONTENTS_MASK_SOLID);
+      float remainingMove = 1.0f;
 
       if (tr.fraction < 1.f) {
         // we intersect with the final position, so we're gonna be
         // pushed by the rotator. calculate approximate TOI
-        remaining_move = 1.0f - G_Physics_Push_Calculate_Rotational_TOI(ent, self, original_angles, final_angles, 0.f, 1.f);
+        remainingMove = 1.0f - G_Physics_Push_Calculate_Rotational_TOI(ent, self, originalAngles, finalAngles, 0.f, 1.f);
 
         // put us back to final position
-        self->s.angles = final_angles;
+        self->s.angles = finalAngles;
 
         gi.LinkEntity(self);
       }
 
       // calculate the rotational matrix for the rotation around the origin
-      vec3_t original_ent_position = ent->s.origin;
+      Vec3 originalEntPosition = ent->s.origin;
 
       // try a few movements, taking the one that doesn't clip with the mover.
-      const int32_t total_movements = 55;
+      const int32_t totalMovements = 55;
       int32_t k;
 
-      for (k = 0; k < total_movements; k++) {
+      for (k = 0; k < totalMovements; k++) {
         int32_t offset = (int32_t) ceilf(k * 0.5f);
         if (k & 1) {
           offset = -offset;
         }
-        mat4_t m = Mat4_FromTranslation(self->s.origin);
-        m = Mat4_ConcatRotation3(m, Vec3_Scale(Vec3(amove.z, amove.x, amove.y), remaining_move + (remaining_move * offset * 0.5f)));
+        Mat4 m = Mat4_FromTranslation(self->s.origin);
+        m = Mat4_ConcatRotation3(m, Vec3_Scale(MakeVec3(amove.z, amove.x, amove.y), remainingMove + (remainingMove * offset * 0.5f)));
         m = Mat4_ConcatTranslation(m, Vec3_Negate(self->s.origin));
 
-        ent->s.origin = Mat4_Transform(m, original_ent_position);
+        ent->s.origin = Mat4_Transform(m, originalEntPosition);
 
-        if (gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clip_mask ? : CONTENTS_MASK_SOLID).fraction == 1.0f) {
+        if (gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clipMask ? : CONTENTS_MASK_SOLID).fraction == 1.0f) {
           G_Debug("%s rotated %s @ %i, good position\n", etos(self), etos(ent), k);
           break;
         }
       }
 
-      if (k == total_movements) {
-        G_Debug("%s rotated %s, rotational fit failed; %f remaining, trying positional correction\n", etos(self), etos(ent), remaining_move);
+      if (k == totalMovements) {
+        G_Debug("%s rotated %s, rotational fit failed; %f remaining, trying positional correction\n", etos(self), etos(ent), remainingMove);
       }
 
       // clip rest of the movement.
-      tr = gi.Trace(original_ent_position, ent->s.origin, ent->bounds, ent, ent->clip_mask ? : CONTENTS_MASK_SOLID);
+      tr = gi.Trace(originalEntPosition, ent->s.origin, ent->bounds, ent, ent->clipMask ? : CONTENTS_MASK_SOLID);
 
       ent->s.origin = tr.end;
 
@@ -870,12 +870,12 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
         }
       }
 
-      G_Debug("%s rotated %s, but couldn't fit after positional correction; %f was remaining\n", etos(self), etos(ent), remaining_move);
+      G_Debug("%s rotated %s, but couldn't fit after positional correction; %f was remaining\n", etos(self), etos(ent), remainingMove);
 
       // Entity is completely stuck inside the pusher; apply lethal crush damage
       // immediately rather than waiting for the throttled G_MoveType_Push_Blocked path.
-      if (ent->take_damage) {
-        G_Damage(&(g_damage_t) {
+      if (ent->takeDamage) {
+        G_Damage(&(GameDamage) {
           .target = ent,
           .inflictor = self,
           .attacker = self,
@@ -893,7 +893,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 
     if (self->Blocked) {
       self->Blocked(self, ent);
-      if (!ent->in_use || ent->dead) {
+      if (!ent->inUse || ent->dead) {
         continue;
       }
     }
@@ -911,8 +911,8 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
   }
 
   // the move was successful, so re-link all pushed entities
-  for (g_push_t *p = g_push_p - 1; p >= g_pushes; p--) {
-    if (p->ent->in_use) {
+  for (GamePush *p = g_push_p - 1; p >= g_pushes; p--) {
+    if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
 
@@ -931,8 +931,8 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
  * @brief For `G_MOVE_TYPE_PUSH`, push all box entities intersected while moving.
  * Generally speaking, only inline BSP models are pushers.
  */
-static void G_Physics_Push(g_entity_t *ent) {
-  g_entity_t *obstacle = NULL;
+static void G_Physics_Push(GameEntity *ent) {
+  GameEntity *obstacle = NULL;
 
   // for teamed entities, the master must initiate all moves
   if (ent->flags & FL_TEAM_SLAVE) {
@@ -943,9 +943,9 @@ static void G_Physics_Push(g_entity_t *ent) {
   g_push_p = g_pushes;
 
   // make sure all team slaves can move before committing any moves
-  for (g_entity_t *part = ent; part; part = part->team_next) {
+  for (GameEntity *part = ent; part; part = part->teamNext) {
     if (!Vec3_Equal(part->velocity, Vec3_Zero())) { // object is translating
-      const vec3_t move = Vec3_Scale(part->velocity, QUETOO_TICK_SECONDS);
+      const Vec3 move = Vec3_Scale(part->velocity, QUETOO_TICK_SECONDS);
 
       if ((obstacle = G_Physics_Push_Translate(part, move))) {
         break; // move was blocked
@@ -953,7 +953,7 @@ static void G_Physics_Push(g_entity_t *ent) {
     }
 
     if (!Vec3_Equal(part->avelocity, Vec3_Zero())) { // object is rotating
-      const vec3_t amove = Vec3_Scale(part->avelocity, QUETOO_TICK_SECONDS);
+      const Vec3 amove = Vec3_Scale(part->avelocity, QUETOO_TICK_SECONDS);
 
       if ((obstacle = G_Physics_Push_Rotate(part, amove))) {
         break; // move was blocked
@@ -962,7 +962,7 @@ static void G_Physics_Push(g_entity_t *ent) {
   }
 
   if (!obstacle) { // the move succeeded, so call all think functions
-    for (g_entity_t *part = ent; part; part = part->team_next) {
+    for (GameEntity *part = ent; part; part = part->teamNext) {
       G_RunThink(part);
     }
   }
@@ -971,36 +971,36 @@ static void G_Physics_Push(g_entity_t *ent) {
 #define MAX_CLIP_PLANES 4
 
 typedef struct {
-  g_entity_t *entities[MAX_CLIP_PLANES];
-  int32_t num_entities;
-} g_touch_t;
+  GameEntity *entities[MAX_CLIP_PLANES];
+  int32_t numEntities;
+} GameTouch;
 
-static g_touch_t g_touch;
+static GameTouch gTouch;
 
 /**
  * @brief Runs the `Touch` functions of each object.
  */
-static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
+static void G_TouchEntity(GameEntity *ent, const CmTrace *trace) {
 
   // ensure that we only impact an entity once per frame
 
-  for (int32_t i = 0; i < g_touch.num_entities; i++) {
-    if (g_touch.entities[i] == trace->ent) {
+  for (int32_t i = 0; i < gTouch.numEntities; i++) {
+    if (gTouch.entities[i] == trace->ent) {
       return;
     }
   }
 
-  g_touch.entities[g_touch.num_entities++] = trace->ent;
+  gTouch.entities[gTouch.numEntities++] = trace->ent;
 
   // run the interaction
 
-  g_entity_t *other = trace->ent;
+  GameEntity *other = trace->ent;
   if (ent->Touch) {
     G_Debug("%s touching %s\n", etos(ent), etos(other));
     ent->Touch(ent, other, trace);
   }
 
-  if (ent->in_use && other->in_use) {
+  if (ent->inUse && other->inUse) {
 
     if (other->Touch) {
       G_Debug("%s touching %s\n", etos(other), etos(ent));
@@ -1012,76 +1012,76 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 /**
  * @see Pm_SlideMove
  */
-static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
-  vec3_t planes[MAX_CLIP_PLANES];
-  vec3_t origin, angles;
+static bool G_Physics_Fly_Move(GameEntity *ent, const float bounce) {
+  Vec3 planes[MAX_CLIP_PLANES];
+  Vec3 origin, angles;
 
-  memset(&g_touch, 0, sizeof(g_touch));
+  memset(&gTouch, 0, sizeof(gTouch));
 
   origin = ent->s.origin;
   angles = ent->s.angles;
 
-  const int32_t mask = ent->clip_mask ? : CONTENTS_MASK_SOLID;
+  const int32_t mask = ent->clipMask ? : CONTENTS_MASK_SOLID;
 
-  float time_remaining = QUETOO_TICK_SECONDS;
-  int32_t num_planes = 0;
+  float timeRemaining = QUETOO_TICK_SECONDS;
+  int32_t numPlanes = 0;
 
   for (int32_t bump = 0; bump < MAX_CLIP_PLANES; bump++) {
-    vec3_t pos;
+    Vec3 pos;
 
-    if (time_remaining <= 0.0) {
+    if (timeRemaining <= 0.0) {
       break;
     }
 
     // project desired destination
-    pos = Vec3_Fmaf(ent->s.origin, time_remaining, ent->velocity);
+    pos = Vec3_Fmaf(ent->s.origin, timeRemaining, ent->velocity);
 
     // trace to it
-    const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, mask);
+    const CmTrace trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, mask);
 
     // if the entity is trapped in a solid, don't build up Z
-    if (trace.all_solid) {
+    if (trace.allSolid) {
       ent->velocity.z = 0;
       return true;
     }
 
-    const float time = trace.fraction * time_remaining;
+    const float time = trace.fraction * timeRemaining;
 
     ent->s.origin = Vec3_Fmaf(ent->s.origin, time, ent->velocity);
     ent->s.angles = Vec3_Fmaf(ent->s.angles, time, ent->avelocity);
 
-    time_remaining -= time;
+    timeRemaining -= time;
 
-    g_entity_t *other = trace.ent;
+    GameEntity *other = trace.ent;
     if (other && other->solid > SOLID_TRIGGER) {
 
       G_TouchEntity(ent, &trace);
 
-      if (!ent->in_use) {
+      if (!ent->inUse) {
         return true;
       }
 
-      if (!other->in_use) {
+      if (!other->inUse) {
         continue;
       }
 
       // if both entities remain, clip this entity to the trace entity
 
-      planes[num_planes] = trace.plane.normal;
-      num_planes++;
+      planes[numPlanes] = trace.plane.normal;
+      numPlanes++;
 
-      for (int32_t i = 0; i < num_planes; i++) {
+      for (int32_t i = 0; i < numPlanes; i++) {
 
         if (Vec3_Dot(ent->velocity, planes[i]) >= 0.0) {
           continue;
         }
 
         // slide along the plane
-        vec3_t vel = G_ClipVelocity(ent->velocity, planes[i], bounce);
+        Vec3 vel = G_ClipVelocity(ent->velocity, planes[i], bounce);
 
         // see if there is a second plane that the new move enters
-        for (int32_t j = 0; j < num_planes; j++) {
-          vec3_t cross;
+        for (int32_t j = 0; j < numPlanes; j++) {
+          Vec3 cross;
 
           if (j == i) {
             continue;
@@ -1107,7 +1107,7 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
           vel = Vec3_Scale(cross, scale);
 
           // see if there is a third plane the the new move enters
-          for (int32_t k = 0; k < num_planes; k++) {
+          for (int32_t k = 0; k < numPlanes; k++) {
 
             if (k == i || k == j) {
               continue;
@@ -1142,13 +1142,13 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 
   gi.LinkEntity(ent);
 
-  return num_planes == 0;
+  return numPlanes == 0;
 }
 
 /**
  * @brief Fly through the world, interacting with other solids.
  */
-static void G_Physics_Fly(g_entity_t *ent) {
+static void G_Physics_Fly(GameEntity *ent) {
 
   G_Physics_Fly_Move(ent, 1.0);
 
@@ -1162,7 +1162,7 @@ static void G_Physics_Fly(g_entity_t *ent) {
 /**
  * @brief Bounce movement. When on ground, do nothing.
  */
-static void G_Physics_Bounce(g_entity_t *ent) {
+static void G_Physics_Bounce(GameEntity *ent) {
 
   if (ent->ground.ent == NULL || !Vec3_Equal(ent->velocity, Vec3_Zero())) {
 
@@ -1185,13 +1185,13 @@ static void G_Physics_Bounce(g_entity_t *ent) {
 /**
  * @brief Dispatches thinking and physics routines for the specified entity.
  */
-void G_RunEntity(g_entity_t *ent) {
+void G_RunEntity(GameEntity *ent) {
 
   G_ClampVelocity(ent);
 
   G_RunThink(ent);
 
-  switch (ent->move_type) {
+  switch (ent->moveType) {
     case MOVE_TYPE_NONE:
       break;
     case MOVE_TYPE_NO_CLIP:
@@ -1208,11 +1208,11 @@ void G_RunEntity(g_entity_t *ent) {
       G_Physics_Bounce(ent);
       break;
     default:
-      G_Error("Bad move type %i\n", ent->move_type);
+      G_Error("Bad move type %i\n", ent->moveType);
   }
 
   // update BSP sub-model animations based on move state
   if (ent->solid == SOLID_BSP) {
-    ent->s.animation1 = ent->move_info.state;
+    ent->s.animation1 = ent->moveInfo.state;
   }
 }

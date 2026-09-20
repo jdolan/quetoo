@@ -88,11 +88,11 @@ static void stateDidChange(Control *self) {
 #pragma mark - CvarTextView
 
 /**
- * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, cvar_t *var)
+ * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, Cvar *var)
  *
  * @memberof CvarTextView
  */
-static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
+static CvarTextView *initWithVariable(CvarTextView *self, Cvar *var) {
 
   self = (CvarTextView *) super(TextView, self, initWithFrame, NULL);
   if (self) {

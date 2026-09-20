@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-quetoo_t quetoo;
+Quetoo quetoo;
 
 /**
  * @brief Setup fixture.
@@ -54,8 +54,8 @@ static void Cmd2(void) {
 }
 
 START_TEST(check_Cmd_RemoveAll) {
-  cmd_t *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
-  cmd_t *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
+  Cmd *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
+  Cmd *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
 
   ck_assert(cmd1 != NULL);
   ck_assert(cmd2 != NULL);
@@ -70,6 +70,19 @@ START_TEST(check_Cmd_RemoveAll) {
 
 } END_TEST
 
+START_TEST(check_Cmd_Get_legacy) {
+  Cmd *cmd = Cmd_Add("cg_messageMode", Cmd1, CMD_CLIENT, NULL);
+  ck_assert(cmd != NULL);
+
+  // the current name, and the older snake_case spelling, both resolve
+  ck_assert_ptr_eq(Cmd_Get("cg_messageMode"), cmd);
+  ck_assert_ptr_eq(Cmd_Get("cg_message_mode"), cmd);
+  ck_assert_ptr_eq(Cmd_Get("CG_MESSAGE_MODE"), cmd);
+
+  ck_assert_ptr_eq(Cmd_Get("cg_messageModes"), NULL);
+  ck_assert_ptr_eq(Cmd_Get("cl_message_mode"), NULL);
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -81,6 +94,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_checked_fixture(tcase, setup, teardown);
 
   tcase_add_test(tcase, check_Cmd_RemoveAll);
+  tcase_add_test(tcase, check_Cmd_Get_legacy);
 
   Suite *suite = suite_create("check_cmd");
   suite_add_tcase(suite, tcase);

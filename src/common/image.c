@@ -102,9 +102,9 @@ SDL_Surface *Img_LoadSurfaceFromData(const void *data, size_t len) {
 /**
  * @brief Resolves the average color of the pixels which exceed the highpass filter.
  */
-color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
+Color Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 
-  color_t out = color_white;
+  Color out = color_white;
 
   if (surf) {
     float max = 0.f;
@@ -112,7 +112,7 @@ color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
     // first find the brightest sample
     const int32_t *pixel = surf->pixels;
     for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
-      const color_t c = Color4bv(*pixel);
+      const Color c = Color4bv(*pixel);
       const float f = Vec3_Hmaxf(c.vec3);
       if (f > max) {
         max = f;
@@ -121,12 +121,12 @@ color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 
     // now accumulate the ones that pass the filter
 
-    vec3_t accumulator = Vec3_Zero();
+    Vec3 accumulator = Vec3_Zero();
     int32_t passed = 0;
 
     pixel = surf->pixels;
     for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
-      const color_t c = Color4bv(*pixel);
+      const Color c = Color4bv(*pixel);
 
       if (Vec3_Hmaxf(c.vec3) >= filter * max) {
         accumulator = Vec3_Add(accumulator, c.vec3);
@@ -145,7 +145,7 @@ color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 /**
  * @brief Resolves the average color of the specified surface.
  */
-color_t Img_Color(const SDL_Surface *surf) {
+Color Img_Color(const SDL_Surface *surf) {
   return Img_ColorHighPass(surf, 0.f);
 }
 
@@ -228,14 +228,14 @@ memcpy(SDL_PIXEL_AT(to, dst_x, dst_y), SDL_PIXEL_AT(from, src_x, src_y), SDL_BYT
 /**
  * @brief Rotate an SDL surface counter-clockwise by the number of rotations specified.
  * @param surf Surface to rotate. It is not modified.
- * @param num_rotations Number of 90-degree rotations to rotate by.
+ * @param numRotations Number of 90-degree rotations to rotate by.
  * @return Either a reference to "surf" if the surface was not rotated, or a new surface.
  */
-SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
+SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t numRotations) {
 
-  num_rotations %= 4;
+  numRotations %= 4;
 
-  if (!num_rotations) {
+  if (!numRotations) {
     return surf;
   }
 
@@ -249,7 +249,7 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 
   SDL_LockSurface(output);
 
-  switch (num_rotations) {
+  switch (numRotations) {
     case 1:
       for (int32_t y = 0; y < surf->h; y++) {
         for (int32_t x = 0; x < surf->w; x++) {
@@ -285,10 +285,10 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
  */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
   SDL_IOStream *f;
-  const char *real_path = Fs_RealPath(path);
+  const char *realPath = Fs_RealPath(path);
 
-  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
-    Com_Warn("Failed to open to %s\n", real_path);
+  if (!(f = SDL_IOFromFile(realPath, "wb"))) {
+    Com_Warn("Failed to open to %s\n", realPath);
     return false;
   }
 
@@ -313,10 +313,10 @@ bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height)
  */
 bool Img_WriteJPG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {
   SDL_IOStream *f;
-  const char *real_path = Fs_RealPath(path);
+  const char *realPath = Fs_RealPath(path);
 
-  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
-    Com_Warn("Failed to open to %s\n", real_path);
+  if (!(f = SDL_IOFromFile(realPath, "wb"))) {
+    Com_Warn("Failed to open to %s\n", realPath);
     return false;
   }
 
@@ -351,21 +351,21 @@ typedef struct {
   uint16_t Height;         /* 0Eh  Height of image */
   uint8_t PixelDepth;      /* 10h  Image pixel size */
   uint8_t ImageDescriptor; /* 11h  Image descriptor byte */
-} r_tga_header_t;
+} RenderTgaHeader;
 
 /**
  * @brief Write pixel data to a TGA file.
  */
 bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
   SDL_IOStream *f;
-  const char *real_path = Fs_RealPath(path);
+  const char *realPath = Fs_RealPath(path);
 
-  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
-    Com_Warn("Failed to open to %s\n", real_path);
+  if (!(f = SDL_IOFromFile(realPath, "wb"))) {
+    Com_Warn("Failed to open to %s\n", realPath);
     return false;
   }
 
-  const r_tga_header_t header = {
+  const RenderTgaHeader header = {
     0, // no image data
     0, // no colormap
     2, // truecolor, no colormap, no encoding
@@ -395,10 +395,10 @@ bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height)
  */
 bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
   SDL_IOStream *f;
-  const char *real_path = Fs_RealPath(path);
+  const char *realPath = Fs_RealPath(path);
 
-  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
-    Com_Warn("Failed to open to %s\n", real_path);
+  if (!(f = SDL_IOFromFile(realPath, "wb"))) {
+    Com_Warn("Failed to open to %s\n", realPath);
     return false;
   }
 
@@ -419,33 +419,33 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
   memcpy(buffer, data, width * height * 3 * bpp);
 
   // possible input/output buffers in needed formats
-  const uint8_t *buffer_uint8_in = data;
-  uint8_t *buffer_uint8_out = buffer;
+  const uint8_t *bufferUint8In = data;
+  uint8_t *bufferUint8Out = buffer;
 
-  const uint16_t *buffer_uint16_in = (uint16_t *)data;
-  uint16_t *buffer_uint16_out = (uint16_t *)buffer;
+  const uint16_t *bufferUint16In = (uint16_t *)data;
+  uint16_t *bufferUint16Out = (uint16_t *)buffer;
 
-  const float *buffer_float_in = (float *)data;
-  float *buffer_float_out = (float *)buffer;
+  const float *bufferFloatIn = (float *)data;
+  float *bufferFloatOut = (float *)buffer;
 
   const uint8_t *chunk = NULL;
 
   // swap to big endian and flip pixels vertically (if needed)
   for (size_t i = 0; i < height; i++) {
     for (size_t j = 0; j < width * 3; j++) {
-      size_t index_in = i * width * 3 + j;
-      size_t index_out = (height - i - 1) * width * 3 + j;
+      size_t indexIn = i * width * 3 + j;
+      size_t indexOut = (height - i - 1) * width * 3 + j;
 
       switch (bpp) {
         case 1:
-          buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
+          bufferUint8Out[indexOut] = bufferUint8In[indexIn];
           break;
         case 2:
-          chunk = (const uint8_t *)(&buffer_uint16_in[index_in]);
-          buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
+          chunk = (const uint8_t *)(&bufferUint16In[indexIn]);
+          bufferUint16Out[indexOut] = (chunk[1] << 0) | (chunk[0] << 8);
           break;
         case 4:
-          buffer_float_out[index_out] = buffer_float_in[index_in];
+          bufferFloatOut[indexOut] = bufferFloatIn[indexIn];
           break;
       }
     }

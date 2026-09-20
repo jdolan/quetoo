@@ -26,21 +26,21 @@
 /**
  * @brief Map brushes are carved via CSG before being sorted into the tree.
  */
-typedef struct csg_brush_s {
-  const struct brush_s *original;
-  struct brush_side_s *brush_sides;
-  int32_t num_brush_sides;
-  box3_t bounds;
-  struct csg_brush_s *next;
-} csg_brush_t;
+typedef struct CsgBrush {
+  const struct Brush *original;
+  struct BrushSide *brushSides;
+  int32_t numBrushSides;
+  Box3 bounds;
+  struct CsgBrush *next;
+} CsgBrush;
 
-csg_brush_t *AllocBrush(int32_t num_sides);
-void FreeBrush(csg_brush_t *brush);
-void FreeBrushes(csg_brush_t *brushes);
-size_t CountBrushes(const csg_brush_t *brushes);
-csg_brush_t *CopyBrush(const csg_brush_t *brush);
-float BrushVolume(csg_brush_t *brush);
-csg_brush_t *BrushFromBounds(const box3_t bounds);
-int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane);
-int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane, int32_t *num_splits);
-void SplitBrush(const csg_brush_t *brush, int32_t plane, csg_brush_t **front, csg_brush_t **back);
+CsgBrush *AllocBrush(int32_t numSides);
+void FreeBrush(CsgBrush *brush);
+void FreeBrushes(CsgBrush *brushes);
+size_t CountBrushes(const CsgBrush *brushes);
+CsgBrush *CopyBrush(const CsgBrush *brush);
+float BrushVolume(CsgBrush *brush);
+CsgBrush *BrushFromBounds(const Box3 bounds);
+int32_t BrushOnPlaneSide(const CsgBrush *brush, int32_t plane);
+int32_t BrushOnPlaneSideSplits(const CsgBrush *brush, int32_t plane, int32_t *numSplits);
+void SplitBrush(const CsgBrush *brush, int32_t plane, CsgBrush **front, CsgBrush **back);
