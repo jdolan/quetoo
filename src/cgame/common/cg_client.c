@@ -370,14 +370,19 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
 
     // ensure we were able to load everything; a skin with no '/' never reached
     // Cg_LoadClientModel at all
-    if (!v || !Cg_ValidateSkin(ci)) {
+    const bool models = v && IS_MESH_MODEL(ci->head) && IS_MESH_MODEL(ci->torso) && IS_MESH_MODEL(ci->legs);
 
+    if (!models || !Cg_ValidateSkin(ci)) {
       if (!q_strcmp(s, DEFAULT_CLIENT_INFO)) {
         Cg_Error("Failed to load default client info\n");
       }
+    }
 
-      Cg_Warn("Invalid client info \"%s\", using default\n", s);
-
+    // only the models decide whether the client info can be worn at all. What Cg_ValidateSkin
+    // reports about the skin's coverage is advisory: faces are routinely left unmapped on
+    // purpose (see Cg_LoadClientSkins), and stock player models do it on their first face
+    if (!models) {
+      Cg_Warn("No client model for \"%s\", using default\n", s);
       Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
       return;
     }
