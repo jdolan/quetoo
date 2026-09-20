@@ -291,8 +291,10 @@ static void Cg_Move_Common(PMoveCmd *cmd) {
   if (cgi.client->demoServer) {
 
     // attack leaves the recorded player behind, and picks them back up. Live, the game module
-    // already does exactly this with the attack button, so only playback needs it here
-    if (in_attack.state & BUTTON_STATE_DOWN) {
+    // already does exactly this with the attack button, so only playback needs it here.
+    // While paused the mouse is a cursor for the transport controls rather than a weapon, so
+    // attack is dropped: clicking Play would otherwise detach the camera at the same time
+    if ((in_attack.state & BUTTON_STATE_DOWN) && !cgi.demo->paused) {
       cgState.spectate.detached = !cgState.spectate.detached;
       cgState.spectate.initialized = false;
     }
