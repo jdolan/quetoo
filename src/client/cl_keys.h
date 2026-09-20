@@ -34,6 +34,7 @@ void Cl_SetKeyDest(ClientKeyDest dest);
 ClientKeyDest Cl_GetKeyDest(void);
 void Cl_KeyEvent(const SDL_Event *event);
 void Cl_WriteBindings(File *f);
+void Cl_CanonicalizeBinds(void);
 void Cl_InitKeys(void);
 void Cl_ShutdownKeys(void);
 

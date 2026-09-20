@@ -793,6 +793,10 @@ void Cl_Init(void) {
 
   Cl_InitCgame();
 
+  // every command is registered by now, so binds written with an older name
+  // can be resolved and rewritten, once
+  Cl_CanonicalizeBinds();
+
   Cl_SetKeyDest(KEY_UI);
 
   Com_Print("Client initialized\n");

@@ -336,6 +336,31 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 }
 
 /**
+ * @brief Rewrites `bind` so that its command is spelled the way the command is
+ * registered now, leaving any arguments alone.
+ * @remarks A bind is opaque text that no lookup resolves, so one written with
+ * an older command name would otherwise keep it, and resolve by the legacy
+ * path on every key event.
+ */
+static void Cl_CanonicalizeBind(char *bind, size_t size) {
+
+  char *args = q_strchr(bind, ' ');
+  if (args) {
+    *args = '\0';
+  }
+
+  const Cmd *cmd = Cmd_Get(bind);
+  if (cmd) {
+    q_strlcpy(bind, cmd->name, size);
+  }
+
+  if (args) {
+    q_strlcat(bind, " ", size);
+    q_strlcat(bind, args + 1, size);
+  }
+}
+
+/**
  * @brief Binds the specified key to the given command.
  */
 void Cl_Bind(SDL_Scancode key, const char *bind) {
@@ -457,22 +482,7 @@ static void Cl_Bind_f(void) {
     return;
   }
 
-  // store the command under its current name, so that a bind written with an
-  // older one is migrated the next time the configuration is saved
-  char *args = q_strchr(cmd, ' ');
-  if (args) {
-    *args = '\0';
-  }
-
-  const Cmd *bound = Cmd_Get(cmd);
-  if (bound) {
-    q_strlcpy(cmd, bound->name, sizeof(cmd));
-  }
-
-  if (args) {
-    q_strlcat(cmd, " ", sizeof(cmd));
-    q_strlcat(cmd, args + 1, sizeof(cmd));
-  }
+  Cl_CanonicalizeBind(cmd, sizeof(cmd));
 
   Cl_Bind(k, cmd);
 }
@@ -540,6 +550,29 @@ void Cl_InitKeys(void) {
 
   Cbuf_AddText(DEFAULT_BINDS);
   Cbuf_Execute();
+}
+
+/**
+ * @brief Rewrites every bind to the command names registered now.
+ * @remarks The default binds and quetoo.cfg are executed from Cl_InitKeys,
+ * before the rest of the client registers its commands, so a bind naming a
+ * command that does not exist yet cannot be resolved as it is set.
+ */
+void Cl_CanonicalizeBinds(void) {
+  char bind[MAX_STRING_CHARS];
+
+  for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
+    if (cls.keyState.binds[k] == NULL || *cls.keyState.binds[k] == '\0') {
+      continue;
+    }
+
+    q_strlcpy(bind, cls.keyState.binds[k], sizeof(bind));
+    Cl_CanonicalizeBind(bind, sizeof(bind));
+
+    if (q_strcmp(bind, cls.keyState.binds[k])) {
+      Cl_Bind(k, bind);
+    }
+  }
 }
 
 /**
