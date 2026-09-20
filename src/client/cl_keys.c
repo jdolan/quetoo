@@ -336,6 +336,28 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 }
 
 /**
+ * @brief Detects a bind whose arguments were eaten by the defect in #1068.
+ * @details Quetoo v1.0.106 through v1.0.108 rebuilt a bind over a pointer into
+ * the buffer they were rebuilding, so `use blaster` became `use ` and was then
+ * written back to the config. The weapon is not recoverable, but the shape is
+ * unmistakable: nothing else leaves a bind ending in whitespace. Discarding
+ * such a line leaves the default bind, which `DEFAULT_BINDS` has already run.
+ */
+static bool Cl_IsTruncatedBind(const char *bind) {
+
+  const size_t length = q_strlen(bind);
+  if (length == 0 || bind[length - 1] != ' ') {
+    return false;
+  }
+
+  char name[MAX_STRING_CHARS];
+  q_strlcpy(name, bind, sizeof(name));
+  name[length - 1] = '\0';
+
+  return q_strchr(name, ' ') == NULL && Cmd_Get(name) != NULL;
+}
+
+/**
  * @brief Rewrites `bind` so that its command is spelled the way the command is
  * registered now, leaving any arguments alone.
  * @remarks A bind is opaque text that no lookup resolves, so one written with
@@ -344,19 +366,23 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
  */
 static void Cl_CanonicalizeBind(char *bind, size_t size) {
 
-  char *args = q_strchr(bind, ' ');
+  char name[MAX_STRING_CHARS];
+  q_strlcpy(name, bind, sizeof(name));
+
+  char *args = q_strchr(name, ' ');
   if (args) {
-    *args = '\0';
+    *args++ = '\0';
   }
 
-  const Cmd *cmd = Cmd_Get(bind);
-  if (cmd) {
+  const Cmd *cmd = Cmd_Get(name);
+  if (cmd == NULL) {
+    return;
+  }
+
+  if (args) {
+    q_snprintf(bind, size, "%s %s", cmd->name, args);
+  } else {
     q_strlcpy(bind, cmd->name, size);
-  }
-
-  if (args) {
-    q_strlcat(bind, " ", size);
-    q_strlcat(bind, args + 1, size);
   }
 }
 
@@ -479,6 +505,11 @@ static void Cl_Bind_f(void) {
   // check for compound bindings
   if (q_strchr(cmd, ';')) {
     Com_Print("Complex bind \"%s\" ignored; use 'alias' instead\n", cmd);
+    return;
+  }
+
+  if (Cl_IsTruncatedBind(cmd)) {
+    Com_Warn("Discarding \"%s %s\", which lost its arguments to #1068\n", Cmd_Argv(0), cmd);
     return;
   }
 
