@@ -382,7 +382,7 @@ size_t Sv_GetDemoFrame(byte *buffer) {
 
   // the recording is over, and the keyframe index sits where the next chunk would be. Reading
   // it would report the file as corrupt, so the viewer has to seek back to see anything more
-  if (sv.demoEnded && !sv.demoStep) {
+  if (sv.demoEnded) {
     return 0;
   }
 
@@ -478,6 +478,13 @@ void Sv_DemoSeekRelative_f(void) {
 void Sv_DemoPause_f(void) {
 
   if (svs.state != SV_ACTIVE_DEMO) {
+    return;
+  }
+
+  // nothing is left to send, and unpausing would starve the send loop, which takes the netchan
+  // keep-alive with it and times the viewer out. Staying paused keeps the transport controls up,
+  // so they can seek back to somewhere there is still a recording
+  if (sv.demoEnded) {
     return;
   }
 

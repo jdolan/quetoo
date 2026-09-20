@@ -188,8 +188,14 @@ static void update(DemoControlsView *self, int32_t time, int32_t duration) {
   // mouse motion, so send the latest destination at the server's own rate and drop the rest:
   // seeking more finely than the server ticks would buy nothing anyway
   if (self->pendingSeek >= 0) {
+
+    // the throttle applies only while the drag is still running. Once it ends, the destination
+    // goes out at once: this View stops updating the moment playback resumes, and a held back
+    // seek would be lost, then fire at wherever the viewer paused next
+    const bool dragging = self->scrubber->control.state & ControlStateHighlighted;
+
     const uint64_t now = SDL_GetTicks();
-    if (now - self->lastSeek >= QUETOO_TICK_MILLIS) {
+    if (!dragging || now - self->lastSeek >= QUETOO_TICK_MILLIS) {
       cgi.Cbuf(va("demo_seek %d\n", self->pendingSeek));
       self->pendingSeek = -1;
       self->lastSeek = now;

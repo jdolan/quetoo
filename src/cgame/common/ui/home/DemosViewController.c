@@ -177,10 +177,6 @@ static void viewWillAppear(ViewController *self) {
 
   $(this->demosList, reloadDemos);
 
-  // a reload drops the selection without telling the delegate, so a demo deleted from under us
-  // would otherwise leave Play enabled with nothing to play
-  updatePlay(this, $(this->demosList, selectedDemo) != NULL);
-
   super(ViewController, self, viewWillAppear);
 }
 
