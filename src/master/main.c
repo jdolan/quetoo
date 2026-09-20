@@ -642,19 +642,24 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   MemBuf buf;
   byte buffer[0xffff];
 
-  // parse optional protocol version from command (e.g. "getservers 2026"). A query
+  // parse optional protocol version from command (e.g. "getservers 2035"). A query
   // that names no protocol gets the current one, so that a stale server is never
-  // offered to a client that could not join it. The legacy "y" alias carries no
-  // arguments, and must not be read past.
+  // offered to a client that could not join it. Anything less than one means every
+  // protocol, for enumerating the registry. An argument we cannot parse falls back
+  // to the current protocol rather than dumping the whole list.
   int32_t protocol = PROTOCOL_MAJOR;
-  if (!q_strncasecmp(cmd, "getservers", 10)) {
-    const char *p = cmd + q_strlen("getservers");
-    while (*p == ' ') p++;
-    if (*p) {
-      const int32_t requested = atoi(p);
-      if (requested > 0) {
-        protocol = requested;
-      }
+  const char *p = cmd + q_strlen("getservers");
+  while (isspace((unsigned char) *p)) p++;
+  if (*p) {
+    char *end;
+    errno = 0;
+    const long requested = strtol(p, &end, 10);
+    const bool parsed = end != p;
+    while (isspace((unsigned char) *end)) end++;
+    if (!parsed || *end || errno == ERANGE || requested > INT32_MAX || requested < INT32_MIN) {
+      Com_Warn("Invalid protocol '%.32s' from %s\n", p, atos(from));
+    } else {
+      protocol = requested > 0 ? (int32_t) requested : 0;
     }
   }
 
@@ -666,7 +671,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   uint32_t i = 0;
   for (const ListNode *s = msServers ? msServers->head : NULL; s; s = s->next) {
     const MasterServer *server = (MasterServer *) s->element;
-    if (server->validated && server->protocol == protocol) {
+    if (server->validated && (protocol == 0 || server->protocol == protocol)) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
       i++;
