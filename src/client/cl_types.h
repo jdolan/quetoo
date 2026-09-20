@@ -396,7 +396,8 @@ typedef struct {
   uint32_t unclampedTime;
 
   /**
-   * @brief Wall time in milliseconds since launch, for input rather than for the world.
+   * @brief Time in milliseconds since launch, for input rather than for the world. Affected by
+   * `timeScale`, exactly as `unclampedTime` is.
    * @details The same as `unclampedTime` except while demo playback is paused, where the world
    * stops but the viewer does not: a key is still held for as long as they hold it, and the free
    * camera still has to fly. Anything measuring how long the user did something MUST use this,
@@ -415,9 +416,19 @@ typedef struct {
   uint32_t ticks;
 
   /**
-   * @brief The duration of the current frame, in milliseconds.
+   * @brief The duration of the current frame, in milliseconds. Input, so it runs on while demo
+   * playback is paused: it is the span the pending movement command covers.
    */
   uint32_t frameMsec;
+
+  /**
+   * @brief The duration of the current frame as the world sees it, in milliseconds.
+   * @details The same as `frameMsec` except while demo playback is paused, where it is zero.
+   * Anything integrating the world by a per-frame delta -- sprite physics, the lerp of a
+   * client's legs, the rate an effect emits at -- MUST use this, or it keeps running over a
+   * scene that has stopped.
+   */
+  uint32_t worldMsec;
 
   /**
    * @brief The interpolation fraction for the current frame.

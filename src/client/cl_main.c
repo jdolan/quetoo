@@ -666,6 +666,9 @@ void Cl_Frame(const uint32_t msec) {
   // and the pending command duration
   cl.frameMsec += msec;
 
+  // and the same span as the world sees it
+  cl.worldMsec += simulated;
+
   // and the total ticks
   cl.ticks = quetoo.ticks;
 
@@ -727,6 +730,7 @@ void Cl_Frame(const uint32_t msec) {
 
   frameTimestamp = quetoo.ticks;
   cl.frameMsec = 0;
+  cl.worldMsec = 0;
 }
 
 /**

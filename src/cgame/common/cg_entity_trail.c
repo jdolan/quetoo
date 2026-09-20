@@ -918,7 +918,7 @@ static void Cg_TeleporterTrail(ClientEntity *ent) {
   }
 
   // Rising rings
-  if ((cgi.client->unclampedTime % 200) < cgi.client->frameMsec) {
+  if ((cgi.client->unclampedTime % 200) < cgi.client->worldMsec) {
     Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteRing,
       .dir = Vec3_Up(),

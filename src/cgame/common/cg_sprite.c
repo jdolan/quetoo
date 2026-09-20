@@ -156,7 +156,7 @@ void Cg_AddSprites(void) {
     return;
   }
 
-  const float delta = MILLIS_TO_SECONDS(cgi.client->frameMsec);
+  const float delta = MILLIS_TO_SECONDS(cgi.client->worldMsec);
   const uint32_t clientTime = cgi.client->unclampedTime, serverTime = cgi.client->frame.time;
 
   CGameSprite *s = cgActiveSprites;

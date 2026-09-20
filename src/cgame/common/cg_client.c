@@ -725,7 +725,7 @@ static void Cg_RotateClientLegs(const CGameClientInfo *ci, ClientEntity *ent, Re
     }
   }
 
-  ent->legsCurrentYaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frameMsec), ent->legsCurrentYaw, ent->legsYaw);
+  ent->legsCurrentYaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->worldMsec), ent->legsCurrentYaw, ent->legsYaw);
 
   const float angleDelta = AngleMod(ent->legsCurrentYaw - ent->legsYaw + 180.0f) - 180.0f;
 
