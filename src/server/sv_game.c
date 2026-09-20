@@ -245,11 +245,11 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     const JSONProperties svFragProperties = MakeJSONProperties(GameFrag,
       MakeJSONProperty(GameFrag, level,         JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameFrag, attacker,      JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, attackerGuid,  JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, attackerAi,    JSONSerializeBoole,      NULL, NULL),
+      MakeJSONPropertyWithKey(GameFrag, attackerGuid, "attacker_guid", JSONSerializeCharacters, NULL, NULL),
+      MakeJSONPropertyWithKey(GameFrag, attackerAi,   "attacker_ai",   JSONSerializeBoole,      NULL, NULL),
       MakeJSONProperty(GameFrag, target,        JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, targetGuid,    JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameFrag, targetAi,      JSONSerializeBoole,      NULL, NULL),
+      MakeJSONPropertyWithKey(GameFrag, targetGuid,   "target_guid",   JSONSerializeCharacters, NULL, NULL),
+      MakeJSONPropertyWithKey(GameFrag, targetAi,     "target_ai",     JSONSerializeBoole,      NULL, NULL),
       MakeJSONProperty(GameFrag, weapon,        JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameFrag, mod,           JSONSerializeInt32,      NULL, NULL),
       MakeJSONProperty(GameFrag, time,          JSONSerializeInt32,      NULL, NULL)
@@ -274,8 +274,8 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     const JSONProperties svCaptureProperties = MakeJSONProperties(GameCapture,
       MakeJSONProperty(GameCapture, level,       JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameCapture, player,      JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameCapture, playerGuid,  JSONSerializeCharacters, NULL, NULL),
-      MakeJSONProperty(GameCapture, playerAi,    JSONSerializeBoole,      NULL, NULL),
+      MakeJSONPropertyWithKey(GameCapture, playerGuid, "player_guid", JSONSerializeCharacters, NULL, NULL),
+      MakeJSONPropertyWithKey(GameCapture, playerAi,   "player_ai",   JSONSerializeBoole,      NULL, NULL),
       MakeJSONProperty(GameCapture, team,        JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameCapture, time,        JSONSerializeInt32,      NULL, NULL)
     );
