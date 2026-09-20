@@ -43,15 +43,15 @@
  * @brief The installer lifecycle.
  */
 typedef enum {
-  INSTALLER_CHECKING,
-  INSTALLER_UPDATE_AVAILABLE,
-  INSTALLER_DOWNLOADING_UPDATE,
-  INSTALLER_STAGING_UPDATE,
-  INSTALLER_UPDATE_STAGED,
+  INSTALLER_CHECKING_BIN,
+  INSTALLER_BIN_AVAILABLE,
+  INSTALLER_DOWNLOADING_BIN,
+  INSTALLER_STAGING_BIN,
+  INSTALLER_BIN_STAGED,
   INSTALLER_INSTALLING_DATA,
-  INSTALLER_COMPARING,
-  INSTALLER_DOWNLOADING,
-  INSTALLER_COMMITTING,
+  INSTALLER_CHECKING_DATA,
+  INSTALLER_DOWNLOADING_DATA,
+  INSTALLER_COMMITTING_DATA,
   INSTALLER_CANCELLED,
   INSTALLER_DONE,
   INSTALLER_ERROR,
@@ -72,7 +72,7 @@ typedef struct {
 
 /**
  * @brief Frame callback type for `Installer_Wait`.
- * @remarks On `INSTALLER_UPDATE_AVAILABLE` the installer waits for
+ * @remarks On `INSTALLER_BIN_AVAILABLE` the installer waits for
  * `Installer_Consent`, so the frame function is responsible for asking the
  * player, or for answering on their behalf where there is nobody to ask.
  * @details Returning non-zero will terminate the installer process and resume startup.
@@ -91,7 +91,7 @@ void Installer_Init(Installer_FrameFunction frame);
  * leaves the staged update for the next clean exit.
  */
 /**
- * @brief Answers the question posed by `INSTALLER_UPDATE_AVAILABLE`.
+ * @brief Answers the question posed by `INSTALLER_BIN_AVAILABLE`.
  * @details The installer does not act on an available update until this is
  * called. Declining skips the engine update for this run only; the next launch
  * asks again, so nobody is quietly opted in or out.

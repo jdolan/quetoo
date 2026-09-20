@@ -200,24 +200,24 @@ static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
 	SDL_UnlockMutex(self->pendingImagesLock);
 
 	switch (in->state) {
-    case INSTALLER_CHECKING:
-      $(self->progressBar, setLabelFormat, "Checking for binary updates\u2026");
+    case INSTALLER_CHECKING_BIN:
+      $(self->progressBar, setLabelFormat, "Checking for updates\u2026");
       $(self->progressBar, setValue, 0.0);
       break;
-    case INSTALLER_UPDATE_AVAILABLE:
+    case INSTALLER_BIN_AVAILABLE:
       $(self->progressBar, setLabelFormat, "Update available.");
       $(self->progressBar, setValue, 0.0);
       break;
-    case INSTALLER_DOWNLOADING_UPDATE: {
+    case INSTALLER_DOWNLOADING_BIN: {
       double pct = 0.0;
       if (in->kbytesTotal > 0) {
         pct = 100.0 * in->kbytesDone / in->kbytesTotal;
       }
-      $(self->progressBar, setLabelFormat, va("Downloading %s \u2026", in->currentFile));
+      $(self->progressBar, setLabelFormat, va("Downloading update %s\u2026", in->currentFile));
       $(self->progressBar, setValue, pct);
     }
       break;
-    case INSTALLER_STAGING_UPDATE:
+    case INSTALLER_STAGING_BIN:
       $(self->progressBar, setLabelFormat, "Unpacking update\u2026");
       $(self->progressBar, setValue, 100.0);
       break;
@@ -230,34 +230,34 @@ static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
       $(self->progressBar, setValue, pct);
     }
       break;
-    case INSTALLER_UPDATE_STAGED:
+    case INSTALLER_BIN_STAGED:
       $(self->progressBar, setLabelFormat, "Update ready; it will be applied when you quit.");
       $(self->progressBar, setValue, 100.0);
       break;
-		case INSTALLER_COMPARING:
-			$(self->progressBar, setLabelFormat, "Comparing data files\u2026");
+		case INSTALLER_CHECKING_DATA:
+			$(self->progressBar, setLabelFormat, "Checking game data\u2026");
 			$(self->progressBar, setValue, 0.0);
 			break;
-		case INSTALLER_COMMITTING:
-			$(self->progressBar, setLabelFormat, "Committing update\u2026");
+		case INSTALLER_COMMITTING_DATA:
+			$(self->progressBar, setLabelFormat, "Committing game data\u2026");
 			$(self->progressBar, setValue, 99.0);
 			break;
 		case INSTALLER_DONE:
-			$(self->progressBar, setLabelFormat, "Data is up to date.");
+			$(self->progressBar, setLabelFormat, "Game data is up to date.");
 			$(self->progressBar, setValue, 100.0);
 			break;
 		case INSTALLER_ERROR:
 			$(self->progressBar, setLabelFormat, in->error);
 			$(self->progressBar, setValue, 0.0);
 			break;
-		case INSTALLER_DOWNLOADING: {
+		case INSTALLER_DOWNLOADING_DATA: {
 			double pct = 0.0;
 			if (in->kbytesTotal > 0) {
 				pct = 100.0 * in->kbytesDone / in->kbytesTotal;
 			} else if (in->filesTotal > 0) {
 				pct = 100.0 * in->filesDone / in->filesTotal;
 			}
-			const char *label = va("Downloading (%d / %d) %s \u2026", in->filesDone, in->filesTotal, in->currentFile);
+			const char *label = va("Downloading game data (%d / %d) %s\u2026", in->filesDone, in->filesTotal, in->currentFile);
 			$(self->progressBar, setLabelFormat, label);
 			$(self->progressBar, setValue, pct);
 		}

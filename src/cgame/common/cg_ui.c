@@ -234,7 +234,7 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
 
   $(updateViewController, setStatus, in);
 
-  if (in->state == INSTALLER_UPDATE_AVAILABLE) {
+  if (in->state == INSTALLER_BIN_AVAILABLE) {
 
     ViewController *this = (ViewController *) updateViewController;
 

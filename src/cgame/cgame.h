@@ -373,7 +373,7 @@ typedef struct {
   Cvar *(*ToggleCvar)(const char *name);
 
   /**
-   * @brief Answers the question posed by `INSTALLER_UPDATE_AVAILABLE`.
+   * @brief Answers the question posed by `INSTALLER_BIN_AVAILABLE`.
    * @details The installer waits for this before acting on an available
    * update. Declining applies to this run only; the next launch asks again.
    */

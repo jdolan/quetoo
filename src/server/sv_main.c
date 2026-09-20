@@ -779,42 +779,42 @@ int32_t Sv_InstallerFrame(const InstallerStatus *in) {
 
   if (in->state != last.state || q_strcmp(in->currentFile, last.currentFile)) {
     switch (in->state) {
-      case INSTALLER_CHECKING:
-        Com_Print("Checking binary version\u2026\n");
+      case INSTALLER_CHECKING_BIN:
+        Com_Print("Checking for updates\u2026\n");
         break;
-      case INSTALLER_UPDATE_AVAILABLE:
+      case INSTALLER_BIN_AVAILABLE:
         Com_Warn("A new version of Quetoo is available.\n"
                  "Run quetoo-update to install it.\n"
                  "Your server will not be public until you do.\n");
         Cvar_ForceSetInteger("sv_public", 0);
         Installer_Consent(false);
         break;
-      case INSTALLER_DOWNLOADING_UPDATE:
-        Com_Print("Downloading %s\u2026\n", in->currentFile);
+      case INSTALLER_DOWNLOADING_BIN:
+        Com_Print("Downloading update %s\u2026\n", in->currentFile);
         break;
-      case INSTALLER_STAGING_UPDATE:
+      case INSTALLER_STAGING_BIN:
         Com_Print("Unpacking update\u2026\n");
         break;
-      case INSTALLER_UPDATE_STAGED:
+      case INSTALLER_BIN_STAGED:
         Com_Print("Update staged; it will be applied when this server exits.\n");
         break;
       case INSTALLER_INSTALLING_DATA:
         Com_Print("Installing game data\u2026\n");
         break;
-      case INSTALLER_COMPARING:
-        Com_Print("Comparing data with remote\u2026\n");
+      case INSTALLER_CHECKING_DATA:
+        Com_Print("Checking game data\u2026\n");
         break;
-      case INSTALLER_DOWNLOADING:
-        Com_Print("Downloading %s\u2026\n", in->currentFile);
+      case INSTALLER_DOWNLOADING_DATA:
+        Com_Print("Downloading game data %s\u2026\n", in->currentFile);
         break;
-      case INSTALLER_COMMITTING:
-        Com_Print("Committing update\u2026\n");
+      case INSTALLER_COMMITTING_DATA:
+        Com_Print("Committing game data\u2026\n");
         break;
       case INSTALLER_CANCELLED:
         Com_Print("Update cancelled.\n");
         break;
       case INSTALLER_DONE:
-        Com_Print("Update complete.\n");
+        Com_Print("Game data is up to date.\n");
         break;
       case INSTALLER_ERROR:
         Com_Warn("Update failed: %s\n", in->error);

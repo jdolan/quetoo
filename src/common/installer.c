@@ -98,7 +98,7 @@ static struct {
   HashTable *localManifest;
 
   /**
-   * @brief The latest release, populated by `INSTALLER_CHECKING`.
+   * @brief The latest release, populated by `INSTALLER_CHECKING_BIN`.
    */
   InstallerRelease release;
 
@@ -807,7 +807,7 @@ static bool Installer_InstallData(void) {
 
   SDL_LockMutex(module.mutex);
   if (in->state == INSTALLER_INSTALLING_DATA) {
-    in->state = INSTALLER_COMPARING;
+    in->state = INSTALLER_CHECKING_DATA;
   }
   SDL_UnlockMutex(module.mutex);
 
@@ -826,7 +826,7 @@ static int Installer_DownloadThread(void *unused) {
 
     SDL_LockMutex(module.mutex);
 
-    if (in->state != INSTALLER_DOWNLOADING) {
+    if (in->state != INSTALLER_DOWNLOADING_DATA) {
       SDL_UnlockMutex(module.mutex);
       break;
     }
@@ -855,7 +855,7 @@ static int Installer_DownloadThread(void *unused) {
       in->filesDone++;
       in->kbytesDone += (int32_t) ((entry->size + 1023) / 1024);
       ((CmManifestEntry *) entry)->status = ENTRY_CURRENT;
-    } else if (in->state == INSTALLER_DOWNLOADING) {
+    } else if (in->state == INSTALLER_DOWNLOADING_DATA) {
       in->state = INSTALLER_ERROR;
       q_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
     }
@@ -882,11 +882,11 @@ static int Installer_Thread(void *unused) {
 
     switch (state) {
 
-      case INSTALLER_CHECKING: {
+      case INSTALLER_CHECKING_BIN: {
 
         if (INSTALLER_ASSET == NULL) {
           SDL_LockMutex(module.mutex);
-          in->state = INSTALLER_COMPARING;
+          in->state = INSTALLER_CHECKING_DATA;
           SDL_UnlockMutex(module.mutex);
           break;
         }
@@ -909,10 +909,10 @@ static int Installer_Thread(void *unused) {
           q_snprintf(in->error, sizeof(in->error), "Failed to check for updates");
         } else if (Installer_CompareVersions(module.release.tag, version->string) > 0) {
           if (writable) {
-            in->state = INSTALLER_UPDATE_AVAILABLE;
+            in->state = INSTALLER_BIN_AVAILABLE;
             q_strlcpy(in->currentFile, module.release.asset, sizeof(in->currentFile));
           } else {
-            in->state = INSTALLER_COMPARING;
+            in->state = INSTALLER_CHECKING_DATA;
             if (!managed) {
               Com_Warn("Quetoo %s is available, but %s is not writable.\n"
                        "Download it from %s\n", module.release.tag,
@@ -920,13 +920,13 @@ static int Installer_Thread(void *unused) {
             }
           }
         } else {
-          in->state = INSTALLER_COMPARING;
+          in->state = INSTALLER_CHECKING_DATA;
         }
         SDL_UnlockMutex(module.mutex);
       }
         break;
 
-      case INSTALLER_COMPARING: {
+      case INSTALLER_CHECKING_DATA: {
 
         if (!module.installedData && !Installer_HasManifest()) {
           module.installedData = true;
@@ -974,9 +974,9 @@ static int Installer_Thread(void *unused) {
 
         SDL_LockMutex(module.mutex);
         if (filesTotal == 0) {
-          in->state = INSTALLER_COMMITTING;
+          in->state = INSTALLER_COMMITTING_DATA;
         } else {
-          in->state = INSTALLER_DOWNLOADING;
+          in->state = INSTALLER_DOWNLOADING_DATA;
           in->filesTotal = filesTotal;
           in->kbytesTotal = kbytesTotal;
           in->filesDone = 0;
@@ -986,7 +986,7 @@ static int Installer_Thread(void *unused) {
       }
         break;
 
-      case INSTALLER_DOWNLOADING: {
+      case INSTALLER_DOWNLOADING_DATA: {
         SDL_Thread *threads[8];
         for (size_t i = 0; i < lengthof(threads); i++) {
           threads[i] = SDL_CreateThread(Installer_DownloadThread, "Installer_DownloadThread", NULL);
@@ -995,21 +995,21 @@ static int Installer_Thread(void *unused) {
           SDL_WaitThread(threads[i], NULL);
         }
         SDL_LockMutex(module.mutex);
-        if (in->state == INSTALLER_DOWNLOADING) {
-          in->state = INSTALLER_COMMITTING;
+        if (in->state == INSTALLER_DOWNLOADING_DATA) {
+          in->state = INSTALLER_COMMITTING_DATA;
         }
         SDL_UnlockMutex(module.mutex);
       }
         break;
 
-      case INSTALLER_COMMITTING:
+      case INSTALLER_COMMITTING_DATA:
         Installer_Commit();
         SDL_LockMutex(module.mutex);
         in->state = INSTALLER_DONE;
         SDL_UnlockMutex(module.mutex);
         break;
 
-      case INSTALLER_UPDATE_AVAILABLE: {
+      case INSTALLER_BIN_AVAILABLE: {
 
         SDL_LockMutex(module.mutex);
         const int32_t consent = module.consent;
@@ -1023,19 +1023,19 @@ static int Installer_Thread(void *unused) {
         SDL_LockMutex(module.mutex);
         if (in->state != INSTALLER_CANCELLED) {
           if (consent > 0) {
-            in->state = INSTALLER_DOWNLOADING_UPDATE;
+            in->state = INSTALLER_DOWNLOADING_BIN;
             in->kbytesDone = 0;
             in->kbytesTotal = (int32_t) (module.release.size / 1024);
           } else {
             Com_Print("Skipping the update to Quetoo %s.\n", module.release.tag);
-            in->state = INSTALLER_COMPARING;
+            in->state = INSTALLER_CHECKING_DATA;
           }
         }
         SDL_UnlockMutex(module.mutex);
       }
         break;
 
-      case INSTALLER_DOWNLOADING_UPDATE: {
+      case INSTALLER_DOWNLOADING_BIN: {
         char pending[MAX_OS_PATH], archive[MAX_OS_PATH];
         Installer_PendingDir(pending, sizeof(pending));
 
@@ -1043,7 +1043,7 @@ static int Installer_Thread(void *unused) {
 
         if (!SDL_CreateDirectory(pending)) {
           SDL_LockMutex(module.mutex);
-          in->state = INSTALLER_COMPARING;
+          in->state = INSTALLER_CHECKING_DATA;
           SDL_UnlockMutex(module.mutex);
           Com_Warn("Failed to create %s: %s\n", pending, SDL_GetError());
           break;
@@ -1058,7 +1058,7 @@ static int Installer_Thread(void *unused) {
           SDL_UnlockMutex(module.mutex);
           break;
         }
-        in->state = ok ? INSTALLER_STAGING_UPDATE : INSTALLER_COMPARING;
+        in->state = ok ? INSTALLER_STAGING_BIN : INSTALLER_CHECKING_DATA;
         SDL_UnlockMutex(module.mutex);
 
         if (!ok) {
@@ -1067,7 +1067,7 @@ static int Installer_Thread(void *unused) {
       }
         break;
 
-      case INSTALLER_STAGING_UPDATE: {
+      case INSTALLER_STAGING_BIN: {
         char pending[MAX_OS_PATH], archive[MAX_OS_PATH];
         Installer_PendingDir(pending, sizeof(pending));
         q_snprintf(archive, sizeof(archive), "%s/%s", pending, module.release.asset);
@@ -1084,15 +1084,15 @@ static int Installer_Thread(void *unused) {
 
         SDL_LockMutex(module.mutex);
         if (in->state != INSTALLER_CANCELLED) {
-          in->state = ok ? INSTALLER_UPDATE_STAGED : INSTALLER_COMPARING;
+          in->state = ok ? INSTALLER_BIN_STAGED : INSTALLER_CHECKING_DATA;
         }
         SDL_UnlockMutex(module.mutex);
       }
         break;
 
-      case INSTALLER_UPDATE_STAGED:
+      case INSTALLER_BIN_STAGED:
         SDL_LockMutex(module.mutex);
-        in->state = INSTALLER_COMPARING;
+        in->state = INSTALLER_CHECKING_DATA;
         SDL_UnlockMutex(module.mutex);
         break;
 
@@ -1468,7 +1468,7 @@ void Installer_Init(Installer_FrameFunction frame) {
 #endif
 
   memset(&module, 0, sizeof(module));
-  module.status.state = INSTALLER_CHECKING;
+  module.status.state = INSTALLER_CHECKING_BIN;
 
   module.mutex = SDL_CreateMutex();
   assert(module.mutex);
