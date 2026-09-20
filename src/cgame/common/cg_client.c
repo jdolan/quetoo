@@ -114,7 +114,7 @@ static void Cg_LoadClientSkin(CGameClientInfo *ci, char *line) {
   };
 
   for (size_t m = 0; m < 3; m++) {
-    if (!meshes[m].model) {
+    if (!IS_MESH_MODEL(meshes[m].model)) {
       continue;
     }
 
@@ -178,7 +178,7 @@ static bool Cg_LoadClientSkins(CGameClientInfo *ci, const char *skin) {
   };
 
   for (size_t m = 0; m < 3; m++) {
-    if (!meshes[m].model) {
+    if (!IS_MESH_MODEL(meshes[m].model)) {
       continue;
     }
 
@@ -198,7 +198,7 @@ static bool Cg_LoadClientSkins(CGameClientInfo *ci, const char *skin) {
  */
 static bool Cg_ValidateSkin(CGameClientInfo *ci) {
 
-  if (!ci->head || !ci->torso || !ci->legs) {
+  if (!IS_MESH_MODEL(ci->head) || !IS_MESH_MODEL(ci->torso) || !IS_MESH_MODEL(ci->legs)) {
     return false;
   }
 
@@ -368,12 +368,18 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
       }
     }
 
-    // ensure we were able to load everything
+    // ensure we were able to load everything. A skin with no '/' never reached
+    // Cg_LoadClientModel at all, so this is also what catches a malformed one
     if (!Cg_ValidateSkin(ci)) {
 
       if (!q_strcmp(s, DEFAULT_CLIENT_INFO)) {
         Cg_Error("Failed to load default client info\n");
       }
+
+      Cg_Warn("Invalid client info \"%s\", using default\n", s);
+
+      Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
+      return;
     }
 
     ci->legs->bounds = PM_BOUNDS;
@@ -786,7 +792,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
   const EntityState *s = &ent->current;
   CGameClientInfo *ci = Cg_ClientInfo(ent);
 
-  if (!ci->head || !ci->torso || !ci->legs) {
+  if (!IS_MESH_MODEL(ci->head) || !IS_MESH_MODEL(ci->torso) || !IS_MESH_MODEL(ci->legs)) {
     const int32_t cs = (s->effects & EF_CORPSE) ? CS_CORPSES : CS_CLIENTS;
     if (*cgi.ConfigString(cs + s->client)) {
       Cg_Warn("Invalid client info: %d\n", s->client);
@@ -837,7 +843,8 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
   CGameClientInfo *skin = ci;
 
   // force the preferred skin on all _other_ players, not on ourselves
-  if (cgState.forceSkin.torso && ent != cgi.client->entity) {
+  if (IS_MESH_MODEL(cgState.forceSkin.head) && IS_MESH_MODEL(cgState.forceSkin.torso) &&
+      IS_MESH_MODEL(cgState.forceSkin.legs) && ent != cgi.client->entity) {
     skin = &cgState.forceSkin;
   }
 
