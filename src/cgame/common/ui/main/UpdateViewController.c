@@ -221,6 +221,28 @@ static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
       $(self->progressBar, setLabelFormat, "Unpacking update\u2026");
       $(self->progressBar, setValue, 100.0);
       break;
+    case INSTALLER_BIN_STAGED:
+      $(self->progressBar, setLabelFormat, "Update downloaded.");
+      $(self->progressBar, setValue, 100.0);
+      break;
+
+
+		case INSTALLER_CHECKING_DATA:
+			$(self->progressBar, setLabelFormat, "Checking game data\u2026");
+			$(self->progressBar, setValue, 0.0);
+			break;
+    case INSTALLER_DOWNLOADING_DATA: {
+      double pct = 0.0;
+      if (in->kbytesTotal > 0) {
+        pct = 100.0 * in->kbytesDone / in->kbytesTotal;
+      } else if (in->filesTotal > 0) {
+        pct = 100.0 * in->filesDone / in->filesTotal;
+      }
+      const char *label = va("Downloading game data (%d / %d) %s\u2026", in->filesDone, in->filesTotal, in->currentFile);
+      $(self->progressBar, setLabelFormat, label);
+      $(self->progressBar, setValue, pct);
+    }
+      break;
     case INSTALLER_INSTALLING_DATA: {
       double pct = 0.0;
       if (in->kbytesTotal > 0) {
@@ -230,18 +252,11 @@ static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
       $(self->progressBar, setValue, pct);
     }
       break;
-    case INSTALLER_BIN_STAGED:
-      $(self->progressBar, setLabelFormat, "Update downloaded.");
-      $(self->progressBar, setValue, 100.0);
-      break;
-		case INSTALLER_CHECKING_DATA:
-			$(self->progressBar, setLabelFormat, "Checking game data\u2026");
-			$(self->progressBar, setValue, 0.0);
-			break;
 		case INSTALLER_COMMITTING_DATA:
 			$(self->progressBar, setLabelFormat, "Committing game data\u2026");
 			$(self->progressBar, setValue, 99.0);
 			break;
+
 		case INSTALLER_DONE:
 			$(self->progressBar, setLabelFormat, "Game data is up to date.");
 			$(self->progressBar, setValue, 100.0);
@@ -250,18 +265,7 @@ static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
 			$(self->progressBar, setLabelFormat, in->error);
 			$(self->progressBar, setValue, 0.0);
 			break;
-		case INSTALLER_DOWNLOADING_DATA: {
-			double pct = 0.0;
-			if (in->kbytesTotal > 0) {
-				pct = 100.0 * in->kbytesDone / in->kbytesTotal;
-			} else if (in->filesTotal > 0) {
-				pct = 100.0 * in->filesDone / in->filesTotal;
-			}
-			const char *label = va("Downloading game data (%d / %d) %s\u2026", in->filesDone, in->filesTotal, in->currentFile);
-			$(self->progressBar, setLabelFormat, label);
-			$(self->progressBar, setValue, pct);
-		}
-      break;
+
     default:
       break;
 	}
