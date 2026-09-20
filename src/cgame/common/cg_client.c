@@ -370,11 +370,9 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
 
     // ensure we were able to load everything; a skin with no '/' never reached
     // Cg_LoadClientModel at all
-    const bool models = v && IS_MESH_MODEL(ci->head) && IS_MESH_MODEL(ci->torso) &&
-                        IS_MESH_MODEL(ci->legs);
+    const bool models = v && IS_MESH_MODEL(ci->head) && IS_MESH_MODEL(ci->torso) && IS_MESH_MODEL(ci->legs);
 
     if (!models || !Cg_ValidateSkin(ci)) {
-
       if (!q_strcmp(s, DEFAULT_CLIENT_INFO)) {
         Cg_Error("Failed to load default client info\n");
       }
@@ -385,7 +383,6 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
     // purpose (see Cg_LoadClientSkins), and stock player models do it on their first face
     if (!models) {
       Cg_Warn("No client model for \"%s\", using default\n", s);
-
       Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
       return;
     }
