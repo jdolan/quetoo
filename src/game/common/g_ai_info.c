@@ -150,7 +150,7 @@ const GameAiRoster *G_Ai_GetUserInfo(const GameClient *cl, char *info) {
  * @brief Initializes the AI name prefix console variable.
  */
 void G_Ai_InitSkins(void) {
-  g_aiNamePrefix = gi.AddCvar("g_ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+  g_aiNamePrefix = gi.AddCvar("g_aiNamePrefix", "^0[^1BOT^0] ^7", 0, NULL);
   G_Ai_ShuffleRoster();
 }
 

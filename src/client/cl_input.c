@@ -28,12 +28,12 @@ static Cvar *cl_upSpeed;
 static Cvar *cl_yawSpeed;
 static Cvar *cl_captureMediaKeys;
 
-Cvar *m_interpolate;
-Cvar *m_invert;
-Cvar *m_sensitivity;
+Cvar *mInterpolate;
+Cvar *mInvert;
+Cvar *mSensitivity;
 Cvar *m_sensitivityZoom;
-Cvar *m_pitch;
-Cvar *m_yaw;
+Cvar *mPitch;
+Cvar *mYaw;
 
 static InputButton clButtons[10];
 #define in_left clButtons[0]
@@ -367,19 +367,19 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
         switch (event->key.scancode) {
           case SDL_SCANCODE_MEDIA_PLAY:
           case SDL_SCANCODE_MEDIA_PLAY_PAUSE:
-            Cbuf_AddText("s_pause_music\n");
+            Cbuf_AddText("s_pauseMusic\n");
             Cbuf_Execute();
             return true;
           case SDL_SCANCODE_MEDIA_NEXT_TRACK:
-            Cbuf_AddText("s_next_track\n");
+            Cbuf_AddText("s_nextTrack\n");
             Cbuf_Execute();
             return true;
           case SDL_SCANCODE_MEDIA_PREVIOUS_TRACK:
-            Cbuf_AddText("s_prev_track\n");
+            Cbuf_AddText("s_prevTrack\n");
             Cbuf_Execute();
             return true;
           case SDL_SCANCODE_MUTE:
-            Cbuf_AddText("toggle s_music_volume 0 0.15\n");
+            Cbuf_AddText("toggle s_musicVolume 0 0.15\n");
             Cbuf_Execute();
             return true;
           default:
@@ -551,11 +551,11 @@ void Cl_ClearInput(void) {
  */
 void Cl_InitInput(void) {
 
-  Cmd_Add("center_view", Cl_CenterView_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_up", Cl_Up_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_up", Cl_Up_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_down", Cl_Down_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_down", Cl_Down_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("centerView", Cl_CenterView_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveUp", Cl_Up_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveUp", Cl_Up_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveDown", Cl_Down_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveDown", Cl_Down_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+left", Cl_Left_down_f, CMD_CLIENT, NULL);
   Cmd_Add("-left", Cl_Left_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+right", Cl_Right_down_f, CMD_CLIENT, NULL);
@@ -564,28 +564,28 @@ void Cl_InitInput(void) {
   Cmd_Add("-forward", Cl_Forward_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+back", Cl_Back_down_f, CMD_CLIENT, NULL);
   Cmd_Add("-back", Cl_Back_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+look_up", Cl_LookUp_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-look_up", Cl_LookUp_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+look_down", Cl_LookDown_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-look_down", Cl_LookDown_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_left", Cl_MoveLeft_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_left", Cl_MoveLeft_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+move_right", Cl_MoveRight_down_f, CMD_CLIENT, NULL);
-  Cmd_Add("-move_right", Cl_MoveRight_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+lookUp", Cl_LookUp_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-lookUp", Cl_LookUp_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+lookDown", Cl_LookDown_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-lookDown", Cl_LookDown_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveLeft", Cl_MoveLeft_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveLeft", Cl_MoveLeft_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+moveRight", Cl_MoveRight_down_f, CMD_CLIENT, NULL);
+  Cmd_Add("-moveRight", Cl_MoveRight_up_f, CMD_CLIENT, NULL);
 
-  cl_forwardSpeed = Cvar_Add("cl_forward_speed", "300.0", 0, NULL);
-  cl_pitchSpeed = Cvar_Add("cl_pitch_speed", "0.15", 0, NULL);
-  cl_rightSpeed = Cvar_Add("cl_right_speed", "300.0", 0, NULL);
-  cl_upSpeed = Cvar_Add("cl_up_speed", "300.0", 0, NULL);
-  cl_yawSpeed = Cvar_Add("cl_yaw_speed", "0.15", 0, NULL);
-  cl_captureMediaKeys = Cvar_Add("cl_capture_media_keys", "1", CVAR_ARCHIVE, "Handle media keys (play/pause, next, previous, mute) for in-game music.");
+  cl_forwardSpeed = Cvar_Add("cl_forwardSpeed", "300.0", 0, NULL);
+  cl_pitchSpeed = Cvar_Add("cl_pitchSpeed", "0.15", 0, NULL);
+  cl_rightSpeed = Cvar_Add("cl_rightSpeed", "300.0", 0, NULL);
+  cl_upSpeed = Cvar_Add("cl_upSpeed", "300.0", 0, NULL);
+  cl_yawSpeed = Cvar_Add("cl_yawSpeed", "0.15", 0, NULL);
+  cl_captureMediaKeys = Cvar_Add("cl_captureMediaKeys", "1", CVAR_ARCHIVE, "Handle media keys (play/pause, next, previous, mute) for in-game music.");
 
-  m_sensitivity = Cvar_Add("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
-  m_sensitivityZoom = Cvar_Add("m_sensitivity_zoom", "1.0", CVAR_ARCHIVE, NULL);
-  m_interpolate = Cvar_Add("m_interpolate", "0", CVAR_ARCHIVE, NULL);
-  m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
-  m_pitch = Cvar_Add("m_pitch", "0.022", 0, NULL);
-  m_yaw = Cvar_Add("m_yaw", "0.022", 0, NULL);
+  mSensitivity = Cvar_Add("mSensitivity", "3.0", CVAR_ARCHIVE, NULL);
+  m_sensitivityZoom = Cvar_Add("mSensitivityZoom", "1.0", CVAR_ARCHIVE, NULL);
+  mInterpolate = Cvar_Add("mInterpolate", "0", CVAR_ARCHIVE, NULL);
+  mInvert = Cvar_Add("mInvert", "0", CVAR_ARCHIVE, "Invert the mouse");
+  mPitch = Cvar_Add("mPitch", "0.022", 0, NULL);
+  mYaw = Cvar_Add("mYaw", "0.022", 0, NULL);
 
   Cl_ClearInput();
 }

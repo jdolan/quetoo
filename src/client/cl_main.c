@@ -40,7 +40,7 @@ Cvar *cl_timeout;
 Cvar *guid;
 Cvar *name;
 Cvar *active;
-Cvar *message_level;
+Cvar *messageLevel;
 Cvar *password;
 Cvar *rate;
 
@@ -176,8 +176,8 @@ static void Cl_Rcon_f(void) {
   int32_t i;
   NetAddr to;
 
-  if (!rcon_password->string) {
-    Com_Print("No rcon_password set\n");
+  if (!rconPassword->string) {
+    Com_Print("No rconPassword set\n");
     return;
   }
 
@@ -190,7 +190,7 @@ static void Cl_Rcon_f(void) {
   message[4] = 0;
 
   strcat(message, "rcon ");
-  strcat(message, rcon_password->string);
+  strcat(message, rconPassword->string);
   strcat(message, " ");
 
   for (i = 1; i < Cmd_Argc(); i++) {
@@ -201,13 +201,13 @@ static void Cl_Rcon_f(void) {
   if (cls.state >= CL_CONNECTED) {
     to = cls.netChan.remoteAddress;
   } else {
-    if (*rcon_address->string == '\0') {
-      Com_Print("Not connected and no rcon_address set\n");
+    if (*rconAddress->string == '\0') {
+      Com_Print("Not connected and no rconAddress set\n");
       return;
     }
 
-    if (!Net_StringToNetaddr(rcon_address->string, &to)) {
-      Com_Warn("Invalid rcon_address: %s\n", rcon_address->string);
+    if (!Net_StringToNetaddr(rconAddress->string, &to)) {
+      Com_Warn("Invalid rconAddress: %s\n", rconAddress->string);
       return;
     }
 
@@ -318,7 +318,7 @@ void Cl_Disconnect(void) {
   cls.server.connectTime = 0;
   cls.state = CL_DISCONNECTED;
 
-  if (time_demo->value) {
+  if (timeDemo->value) {
     const float s = (quetoo.ticks - cl.timeDemoStart) / 1000.0;
     Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.timeDemoFrames, s,
           cl.timeDemoFrames / s);
@@ -536,10 +536,10 @@ static void Cl_WriteConfiguration(void) {
 static void Cl_InitLocal(void) {
 
   // register our variables
-  cl_chatSound = Cvar_Add("cl_chat_sound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
-  cl_maxFps = Cvar_Add("cl_max_fps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
-  cl_noLerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
-  cl_teamChatSound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
+  cl_chatSound = Cvar_Add("cl_chatSound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
+  cl_maxFps = Cvar_Add("cl_maxFps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
+  cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
+  cl_teamChatSound = Cvar_Add("cl_teamChatSound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
   cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
 
   // user info
@@ -547,22 +547,22 @@ static void Cl_InitLocal(void) {
   guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
   name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
-  message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
+  messageLevel = Cvar_Add("messageLevel", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
   password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
   rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
 
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
-  cl_drawNetMessages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
+  cl_drawNetMessages = Cvar_Add("cl_drawNetMessages", "0", CVAR_DEVELOPER, NULL);
 
   // register our commands
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
   Cmd_Add("servers", Cl_Servers_f, CMD_CLIENT, NULL);
   Cmd_Add("record", Cl_Record_f, CMD_CLIENT, NULL);
-  Cmd_Add("servers_list", Cl_Servers_List_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playback_faster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playback_slower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playback_speed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
+  Cmd_Add("serversList", Cl_Servers_List_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playbackFaster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playbackSlower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playbackSpeed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
   Cmd_Add("demo_pause", Cl_DemoPause_f, CMD_CLIENT, NULL);
   Cmd_Add("stop", Cl_Stop_f, CMD_CLIENT, NULL);
   Cmd_Add("connect", Cl_Connect_f, CMD_CLIENT, NULL);
@@ -571,10 +571,10 @@ static void Cl_InitLocal(void) {
   Cmd_Add("rcon", Cl_Rcon_f, CMD_CLIENT, NULL);
   Cmd_Add("precache", Cl_Precache_f, CMD_CLIENT, NULL);
   Cmd_Add("download", Cl_Download_f, CMD_CLIENT, NULL);
-  Cmd_Add("save_config", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk");
+  Cmd_Add("saveConfig", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk");
 
   Cmd_Add("r_restart", Cl_R_Restart_f, CMD_CLIENT, "Restart the rendering subsystem");
-  Cmd_Add("r_toggle_fullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen");
+  Cmd_Add("r_toggleFullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen");
 
   Cmd_Add("s_restart", Cl_S_Restart_f, CMD_CLIENT, "Restart the sound subsystem");
 
@@ -659,7 +659,7 @@ void Cl_Frame(const uint32_t msec) {
   // and the total ticks
   cl.ticks = quetoo.ticks;
 
-  if (time_demo->value) { // accumulate timed demo statistics
+  if (timeDemo->value) { // accumulate timed demo statistics
     if (!cl.timeDemoStart) {
       cl.timeDemoStart = quetoo.ticks;
     }
@@ -720,7 +720,7 @@ void Cl_Frame(const uint32_t msec) {
 }
 
 /**
- * @brief Synchronously fetches the server-side GUID hash and stores it in `guid_hash` cvar.
+ * @brief Synchronously fetches the server-side GUID hash and stores it in `guidHash` cvar.
  */
 static void Cl_InitGuid(void) {
 
@@ -730,7 +730,7 @@ static void Cl_InitGuid(void) {
     Cvar_ForceSetString("guid", uuid);
   }
 
-  Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
+  Cvar_Add("guidHash", "", CVAR_NO_SET, NULL);
 
   char url[256];
   q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
@@ -743,7 +743,7 @@ static void Cl_InitGuid(void) {
     Dictionary *dictionary = $(ctx, objectFromData, data, 0);
     if ($(dictionary, containsKeyPath, "guid")) {
       String *hash = $(dictionary, objectForKeyPathWithClass, "guid", _String());
-      Cvar_ForceSetString("guid_hash", hash->chars);
+      Cvar_ForceSetString("guidHash", hash->chars);
     } else {
       Com_Warn("Malformed GUID response from %s\n", url);
     }

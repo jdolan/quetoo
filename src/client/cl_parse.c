@@ -405,7 +405,7 @@ static void Cl_ParsePrint(void) {
   const char *string = Net_ReadString(&netMessage);
 
   // the server shouldn't have sent us anything below our level anyway
-  if (level >= message_level->integer) {
+  if (level >= messageLevel->integer) {
 
     // chat from a player arrives as SV_CMD_CHAT and is sounded by the client game, which is the
     // only side that knows what kind of message it is; this remains for console originated chat

@@ -213,7 +213,7 @@ void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
 }
 
 /**
- * @brief Called when the current `netMessage` is from `remote_address`
+ * @brief Called when the current `netMessage` is from `remoteAddress`
  * modifies `netMessage` so that it points to the packet payload
  */
 bool Netchan_Process(NetChan *chan, MemBuf *msg) {
@@ -268,7 +268,7 @@ bool Netchan_Process(NetChan *chan, MemBuf *msg) {
     chan->reliableSize = 0;    // it has been received
   }
 
-  // if this message contains a reliable message, bump reliable_incoming
+  // if this message contains a reliable message, bump reliableIncoming
   chan->incomingSequence = sequence;
   chan->incomingAcknowledged = sequenceAck;
   chan->reliableAcknowledged = reliableAck;
@@ -289,8 +289,8 @@ void Netchan_Init(void) {
 
   Net_Init();
 
-  net_showPackets = Cvar_Add("net_show_packets", "0", 0, NULL);
-  net_showDrop = Cvar_Add("net_show_drop", "0", 0, NULL);
+  net_showPackets = Cvar_Add("net_showPackets", "0", 0, NULL);
+  net_showDrop = Cvar_Add("net_showDrop", "0", 0, NULL);
 
   Mem_InitBuffer(&netMessage, netMessageBuffer, sizeof(netMessageBuffer));
 }

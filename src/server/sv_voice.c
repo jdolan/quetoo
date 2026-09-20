@@ -183,5 +183,5 @@ void Sv_ParseVoice(ServerClient *cl) {
 void Sv_InitVoice(void) {
 
   sv_voice = Cvar_Add("sv_voice", "1", CVAR_SERVER_INFO, "Enables voice chat relaying on this server");
-  sv_voiceRate = Cvar_Add("sv_voice_rate", "4000", 0, "The per-client voice chat budget, in bytes per second");
+  sv_voiceRate = Cvar_Add("sv_voiceRate", "4000", 0, "The per-client voice chat budget, in bytes per second");
 }

@@ -308,25 +308,25 @@ static void Cg_Weapon_Next_f(void) {
  * @brief Registers HUD console commands and initializes HUD-related console variables.
  */
 void Cg_InitHud(void) {
-  cgi.AddCmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME,
+  cgi.AddCmd("cg_weaponNext", Cg_Weapon_Next_f, CMD_CGAME,
          "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
-  cgi.AddCmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME,
+  cgi.AddCmd("cg_weaponPrevious", Cg_Weapon_Prev_f, CMD_CGAME,
          "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
-  cgi.AddCmd("cg_message_mode", Cg_MessageMode_f, CMD_CGAME, "Open the chat input");
-  cgi.AddCmd("cg_message_mode_2", Cg_MessageMode2_f, CMD_CGAME, "Open the team chat input");
+  cgi.AddCmd("cg_messageMode", Cg_MessageMode_f, CMD_CGAME, "Open the chat input");
+  cgi.AddCmd("cg_messageMode2", Cg_MessageMode2_f, CMD_CGAME, "Open the team chat input");
 
-  cg_chatLines = cgi.AddCvar("cg_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show on the HUD, 0 disables");
-  cg_chatTime = cgi.AddCvar("cg_chat_time", "10.0", CVAR_ARCHIVE, "How long, in seconds, chat lines stay on the HUD");
-  cg_notifyLines = cgi.AddCvar("cg_notify_lines", "3", CVAR_ARCHIVE, "How many console lines to show on the HUD, 0 disables");
-  cg_notifyTime = cgi.AddCvar("cg_notify_time", "3.0", CVAR_ARCHIVE, "How long, in seconds, console lines stay on the HUD");
+  cg_chatLines = cgi.AddCvar("cg_chatLines", "4", CVAR_ARCHIVE, "How many chat lines to show on the HUD, 0 disables");
+  cg_chatTime = cgi.AddCvar("cg_chatTime", "10.0", CVAR_ARCHIVE, "How long, in seconds, chat lines stay on the HUD");
+  cg_notifyLines = cgi.AddCvar("cg_notifyLines", "3", CVAR_ARCHIVE, "How many console lines to show on the HUD, 0 disables");
+  cg_notifyTime = cgi.AddCvar("cg_notifyTime", "3.0", CVAR_ARCHIVE, "How long, in seconds, console lines stay on the HUD");
 
-  cg_selectWeaponAlpha = cgi.AddCvar("cg_select_weapon_alpha", "0.5", CVAR_ARCHIVE,
+  cg_selectWeaponAlpha = cgi.AddCvar("cg_selectWeaponAlpha", "0.5", CVAR_ARCHIVE,
                      "The opacity of unselected weapons in the weapon bar.");
-  cg_selectWeaponDelay = cgi.AddCvar("cg_select_weapon_delay", "250", CVAR_ARCHIVE,
+  cg_selectWeaponDelay = cgi.AddCvar("cg_selectWeaponDelay", "250", CVAR_ARCHIVE,
                      "The amount of time, in milliseconds, to wait between changing weapons in the scroll view.");
-  cg_selectWeaponFade = cgi.AddCvar("cg_select_weapon_fade", "200", CVAR_ARCHIVE,
+  cg_selectWeaponFade = cgi.AddCvar("cg_selectWeaponFade", "200", CVAR_ARCHIVE,
                      "The amount of time, in milliseconds, for the weapon bar to fade in or out.");
-  cg_selectWeaponInterval = cgi.AddCvar("cg_select_weapon_interval", "750", CVAR_ARCHIVE,
+  cg_selectWeaponInterval = cgi.AddCvar("cg_selectWeaponInterval", "750", CVAR_ARCHIVE,
                       "The amount of time, in milliseconds, to show the weapon bar after changing weapons.");
 }
 

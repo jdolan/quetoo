@@ -72,13 +72,13 @@ static void Cg_UpdateFollowLook(const SDL_Event *event) {
     return;
   }
 
-  const float sensitivity = cgi.GetCvarValue("m_sensitivity");
-  const float invert = cgi.GetCvarValue("m_invert") ? -1.f : 1.f;
+  const float sensitivity = cgi.GetCvarValue("mSensitivity");
+  const float invert = cgi.GetCvarValue("mInvert") ? -1.f : 1.f;
 
-  cgState.follow.yaw -= cgi.GetCvarValue("m_yaw") * event->motion.xrel * sensitivity;
+  cgState.follow.yaw -= cgi.GetCvarValue("mYaw") * event->motion.xrel * sensitivity;
 
   cgState.follow.pitch = Clampf(
-    cgState.follow.pitch + invert * cgi.GetCvarValue("m_pitch") * event->motion.yrel * sensitivity,
+    cgState.follow.pitch + invert * cgi.GetCvarValue("mPitch") * event->motion.yrel * sensitivity,
     -89.f, 89.f
   );
 }
@@ -345,7 +345,7 @@ static void Cg_Move_Common(PlayerMoveCmd *cmd) {
     // is never applied, and demo playback sends no commands at all - so they pan the camera in
     // and out instead. cmd->forward arrives as cl_forwardSpeed * msec * key fraction, so it is
     // divided back down to the milliseconds held before being scaled to a per-second rate
-    const float forwardSpeed = cgi.GetCvarValue("cl_forward_speed");
+    const float forwardSpeed = cgi.GetCvarValue("cl_forwardSpeed");
 
     if (forwardSpeed > 0.f) {
       const float millis = cmd->forward / forwardSpeed;
@@ -416,7 +416,7 @@ static void Cg_Score_up_f(void) {
 /**
  * @brief Begins a push to talk voice transmission.
  * @details Takes an optional channel name, so that a module's own channels can be bound. Without
- * one, holding shift promotes it to the team channel, the way shift sends a chat line as say_team:
+ * one, holding shift promotes it to the team channel, the way shift sends a chat line as sayTeam:
  * key binds carry no modifier of their own, so one bind has to serve both.
  */
 static void Cg_Voice_down_f(void) {
@@ -467,8 +467,8 @@ void Cg_InitInput(void) {
   cgi.AddCmd("-score", Cg_Score_up_f, CMD_CGAME, NULL);
   cgi.AddCmd("+voice", Cg_Voice_down_f, CMD_CGAME, "Transmit voice chat while held; hold shift for your team.");
   cgi.AddCmd("-voice", Cg_Voice_up_f, CMD_CGAME, NULL);
-  cgi.AddCmd("+voice_team", Cg_VoiceTeam_down_f, CMD_CGAME, "Transmit voice chat to your team while held.");
-  cgi.AddCmd("-voice_team", Cg_Voice_up_f, CMD_CGAME, NULL);
+  cgi.AddCmd("+voiceTeam", Cg_VoiceTeam_down_f, CMD_CGAME, "Transmit voice chat to your team while held.");
+  cgi.AddCmd("-voiceTeam", Cg_Voice_up_f, CMD_CGAME, NULL);
 
   Cg_ClearInput();
 }

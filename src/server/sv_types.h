@@ -75,7 +75,7 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief Simulation time in ms; always `frame_num` * 1000 / `QUETOO_TICK_RATE`.
+   * @brief Simulation time in ms; always `frameNum` * 1000 / `QUETOO_TICK_RATE`.
    */
   uint32_t time;
 
@@ -120,17 +120,17 @@ typedef struct {
   File *demoFile;
 
   /**
-   * @brief The fixed-size header read from `demo_file`, for demo playback.
+   * @brief The fixed-size header read from `demoFile`, for demo playback.
    */
   DemoHeader demoHeader;
 
   /**
-   * @brief The keyframe table read from `demo_file`, for demo playback seeking.
+   * @brief The keyframe table read from `demoFile`, for demo playback seeking.
    */
   DemoKeyframe *demoKeyframes;
 
   /**
-   * @brief The number of entries in `demo_keyframes`.
+   * @brief The number of entries in `demoKeyframes`.
    */
   int32_t numDemoKeyframes;
 
@@ -305,7 +305,7 @@ typedef struct {
   char userInfo[MAX_INFO_STRING_STRING];
 
   /**
-   * @brief Player name extracted from `user_info`, stripped of color codes.
+   * @brief Player name extracted from `userInfo`, stripped of color codes.
    */
   char name[32];
 
@@ -325,7 +325,7 @@ typedef struct {
   uint32_t cmdMsec;
 
   /**
-   * @brief Consecutive anti-cheat violation count for `cmd_msec` drift.
+   * @brief Consecutive anti-cheat violation count for `cmdMsec` drift.
    */
   uint16_t cmdMsecErrors;
 
@@ -338,12 +338,12 @@ typedef struct {
   uint32_t frameLatency[SV_CLIENT_LATENCY_COUNT];
 
   /**
-   * @brief The next slot of `frame_latency` to write.
+   * @brief The next slot of `frameLatency` to write.
    */
   uint32_t frameLatencyIndex;
 
   /**
-   * @brief How many slots of `frame_latency` have been written, saturating at the ring size.
+   * @brief How many slots of `frameLatency` have been written, saturating at the ring size.
    * @remarks A latency of zero is a legitimate sample on a loopback or local network, so the
    * count says which slots are populated rather than testing the samples themselves.
    */
@@ -472,12 +472,12 @@ typedef struct {
   EntityState *entityStates;
 
   /**
-   * @brief Length of `entity_states`; always `PACKET_BACKUP` * `MAX_ENTITIES`.
+   * @brief Length of `entityStates`; always `PACKET_BACKUP` * `MAX_ENTITIES`.
    */
   uint32_t numEntityStates;
 
   /**
-   * @brief Next free index in `entity_states` for newly spawned entities.
+   * @brief Next free index in `entityStates` for newly spawned entities.
    */
   uint32_t nextEntityState;
 

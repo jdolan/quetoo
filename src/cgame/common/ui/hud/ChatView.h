@@ -38,8 +38,8 @@ typedef struct ChatViewInterface ChatViewInterface;
  * @brief Recent chat above the chat input.
  * @details The history shows `cg_chatLines` lines for `cg_chatTime` seconds, or all of them
  * while typing. Typing begins when the key destination becomes `KEY_CHAT`, from
- * `cg_message_mode` or `cg_message_mode_2`, and ends when it leaves: Enter sends the line as
- * `say`, or `say_team` for team chat or with Shift or Ctrl held, and Escape discards it.
+ * `cg_messageMode` or `cg_messageMode2`, and ends when it leaves: Enter sends the line as
+ * `say`, or `sayTeam` for team chat or with Shift or Ctrl held, and Escape discards it.
  * @extends StackView
  */
 struct ChatView {

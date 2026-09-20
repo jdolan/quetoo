@@ -138,9 +138,9 @@ static void Cl_ParseEntities(const ClientFrame *deltaFrame, ClientFrame *frame) 
    * Parse entity updates from the server message, merging with the previous frame.
    * The server sends a sorted list of entity numbers with delta updates. We walk through
    * both the new message and the old frame in parallel by entity number:
-   *  - If from_number < number: unchanged entity from old frame, copy it forward
-   *  - If from_number == number: delta update, apply changes
-   *  - If from_number > number: new entity, delta from baseline
+   *  - If fromNumber < number: unchanged entity from old frame, copy it forward
+   *  - If fromNumber == number: delta update, apply changes
+   *  - If fromNumber > number: new entity, delta from baseline
    *  - If bits has U_REMOVE: entity removed, don't copy forward
    * The server terminates the list with -1. Using INT16_MAX as sentinel when the
    * old frame list is exhausted.
@@ -280,7 +280,7 @@ void Cl_ParseFrame(void) {
 
   if (cl.frame.deltaFrameNum <= 0) { // uncompressed frame: entities decode from baseline
     cl.deltaFrame = NULL;
-  } else { // delta compressed frame: entities decode from cl.delta_frame
+  } else { // delta compressed frame: entities decode from cl.deltaFrame
     cl.deltaFrame = &cl.frames[cl.frame.deltaFrameNum & PACKET_MASK];
 
     if (!cl.deltaFrame->valid) {
@@ -292,10 +292,10 @@ void Cl_ParseFrame(void) {
     }
   }
 
-  // cl.previous_frame tracks simple sequential continuity for interpolation purposes, independent
+  // cl.previousFrame tracks simple sequential continuity for interpolation purposes, independent
   // of whether this frame's entities were delta- or baseline-encoded: a demo's recorded frames are
   // always baseline-encoded (see Cl_WriteDemoMessage) but are still sequential and interpolatable,
-  // so this must not be tied to cl.delta_frame the way it once was.
+  // so this must not be tied to cl.deltaFrame the way it once was.
   cl.previousFrame = &cl.frames[(cl.frame.frameNum - 1) & PACKET_MASK];
 
   if (cl.previousFrame->frameNum != (cl.frame.frameNum - 1)) {
@@ -328,7 +328,7 @@ void Cl_ParseFrame(void) {
       Cl_SetKeyDest(KEY_GAME);
 
       // a demo we are hosting comes up paused on this, its opening frame, with the transport
-      // controls showing. Keyed on going active rather than on frame_num, which is 0 again after
+      // controls showing. Keyed on going active rather than on frameNum, which is 0 again after
       // a scrub back to the start, and confined to a local demo, because pause is server state
       // that a spectator has no business taking from everyone else on a demo server
       if (cl.demoServer && cls.netChan.remoteAddress.type == NA_LOOP) {
@@ -353,7 +353,7 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-  bool noLerp = cl.previousFrame == NULL || cl_noLerp->value || time_demo->value;
+  bool noLerp = cl.previousFrame == NULL || cl_noLerp->value || timeDemo->value;
 
   if (cl.previousFrame) {
     const float dist = Vec3_Distance(cl.frame.ps.pmState.origin, cl.previousFrame->ps.pmState.origin);

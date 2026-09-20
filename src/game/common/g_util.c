@@ -66,7 +66,7 @@ void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns) {
 
 /**
  * @brief The standing player box under the level's movement. A client in hand
- * has its own in `ps.pm_state.params`; this is for when there is none.
+ * has its own in `ps.pmState.params`; this is for when there is none.
  */
 Box3 G_PlayerBounds(void) {
 
@@ -314,7 +314,7 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   static uint8_t g_spawn_id;
 
   if (number < 0 || number >= sv_maxEntities->integer) {
-    G_Error("Entity %d out of range (sv_max_entities=%d)\n", number, sv_maxEntities->integer);
+    G_Error("Entity %d out of range (sv_maxEntities=%d)\n", number, sv_maxEntities->integer);
   }
 
   GameEntity *e = ge.entities[number];

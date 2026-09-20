@@ -32,7 +32,7 @@ extern Cvar *cl_timeout;
 extern Cvar *guid;
 extern Cvar *name;
 extern Cvar *active;
-extern Cvar *message_level;
+extern Cvar *messageLevel;
 extern Cvar *password;
 extern Cvar *rate;
 

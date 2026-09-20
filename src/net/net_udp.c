@@ -271,13 +271,13 @@ void Net_Config(NetSrc source, bool up) {
 
   if (up) {
 
-    net_loopLatency = Cvar_Add("net_loop_latency", "0", CVAR_DEVELOPER,
+    net_loopLatency = Cvar_Add("net_loopLatency", "0", CVAR_DEVELOPER,
         "Simulate network latency, in milliseconds, on localhost (developer tool)");
 
-    net_loopJitter = Cvar_Add("net_loop_jitter", "0", CVAR_DEVELOPER,
+    net_loopJitter = Cvar_Add("net_loopJitter", "0", CVAR_DEVELOPER,
         "Simulate network jitter, in milliseconds, on localhost (developer tool)");
 
-    net_loopLoss = Cvar_Add("net_loop_loss", "0.0", CVAR_DEVELOPER,
+    net_loopLoss = Cvar_Add("net_loopLoss", "0.0", CVAR_DEVELOPER,
         "Simulate network packet loss, as a fraction, on localhost (developer tool)");
 
     const Cvar *netInterface = Cvar_Add("net_interface", "", CVAR_NO_SET, NULL);

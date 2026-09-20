@@ -55,8 +55,8 @@ static void didClickSave(Button *button) {
 
   EditorViewController *this = button->delegate.self;
 
-  cgi.Cbuf("save_editor_map\n");
-  cgi.Cbuf("r_save_materials\n");
+  cgi.Cbuf("saveEditorMap\n");
+  cgi.Cbuf("r_saveMaterials\n");
 
   $(this->meshViewController, save);
 }

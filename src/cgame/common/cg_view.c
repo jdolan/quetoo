@@ -188,7 +188,7 @@ static void Cg_PrintControls(const PlayerState *ps) {
 
   if (!demo) {
     cgi.Print("  Change target: %s / %s\n",
-              Cg_KeyBind("cg_weapon_previous"), Cg_KeyBind("cg_weapon_next"));
+              Cg_KeyBind("cg_weaponPrevious"), Cg_KeyBind("cg_weaponNext"));
   }
 
   cgi.Print("  Aim camera:    ^2MOUSE^7\n");

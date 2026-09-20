@@ -123,8 +123,8 @@ static void G_InitMedia_Hook(void) {
 static void G_Hook_PublishPullSpeed(void) {
 
   if (!isfinite(g_hookPullSpeed->value) || g_hookPullSpeed->value <= 0.f) {
-    G_Warn("Invalid g_hook_pull_speed \"%s\", resetting to %g\n", g_hookPullSpeed->string, PM_SPEED_HOOK_PULL);
-    gi.SetCvarValue("g_hook_pull_speed", PM_SPEED_HOOK_PULL);
+    G_Warn("Invalid g_hookPullSpeed \"%s\", resetting to %g\n", g_hookPullSpeed->string, PM_SPEED_HOOK_PULL);
+    gi.SetCvarValue("g_hookPullSpeed", PM_SPEED_HOOK_PULL);
     g_hookPullSpeed->modified = false;
   }
 
@@ -224,13 +224,13 @@ void G_Hook_Init(void) {
   }
 
   g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-  g_hookStyle = gi.AddCvar("g_hook_style", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
-  g_hookAutoRefire = gi.AddCvar("g_hook_auto_refire", "0", 0, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
-  g_hookDistance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), 0, "The maximum distance the hook will travel.");
-  g_hookPullSpeed = gi.AddCvar("g_hook_pull_speed", va("%g", PM_SPEED_HOOK_PULL), 0, "The speed that you get pulled towards the hook.");
-  g_hookRefire = gi.AddCvar("g_hook_refire", "0.25", 0, "The refire delay on the grapple hook in seconds.");
-  g_hookSky = gi.AddCvar("g_hook_sky", "0", CVAR_SERVER_INFO, "If enabled, the grapple hook attaches to sky surfaces rather than detaching.");
-  g_hookSpeed = gi.AddCvar("g_hook_speed", "1200", 0, "The speed that the hook will fly at.");
+  g_hookStyle = gi.AddCvar("g_hookStyle", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
+  g_hookAutoRefire = gi.AddCvar("g_hookAutoRefire", "0", 0, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
+  g_hookDistance = gi.AddCvar("g_hookDistance", va("%.1f", PM_HOOK_DEF_DIST), 0, "The maximum distance the hook will travel.");
+  g_hookPullSpeed = gi.AddCvar("g_hookPullSpeed", va("%g", PM_SPEED_HOOK_PULL), 0, "The speed that you get pulled towards the hook.");
+  g_hookRefire = gi.AddCvar("g_hookRefire", "0.25", 0, "The refire delay on the grapple hook in seconds.");
+  g_hookSky = gi.AddCvar("g_hookSky", "0", CVAR_SERVER_INFO, "If enabled, the grapple hook attaches to sky surfaces rather than detaching.");
+  g_hookSpeed = gi.AddCvar("g_hookSpeed", "1200", 0, "The speed that the hook will fly at.");
 
   g_hookPullSpeed->modified =
       g_hookSpeed->modified =
@@ -622,9 +622,9 @@ void G_SetClientHookStyle(GameClient *cl) {
 
   GameHookStyle hookStyle;
 
-  // respect user_info on default
+  // respect userInfo on default
   if (!q_strcmp(g_hookStyle->string, "default")) {
-    hookStyle = Hook_StyleByName(InfoString_Get(cl->persistent.userInfo, "hook_style"));
+    hookStyle = Hook_StyleByName(InfoString_Get(cl->persistent.userInfo, "hookStyle"));
   } else {
     hookStyle = Hook_StyleByName(g_hookStyle->string);
   }

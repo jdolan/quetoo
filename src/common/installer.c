@@ -1456,7 +1456,7 @@ void Installer_Init(Installer_FrameFunction frame) {
   Installer_SweepDisplaced();
 #endif
 
-  if (build_number->integer == -1 || version->integer == -1) {
+  if (buildNumber->integer == -1 || version->integer == -1) {
     return;
   }
 

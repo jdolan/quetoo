@@ -52,7 +52,7 @@ static void CollectAssetPath(const HashTable *table, ident key, ident value, ide
 
 /**
  * @brief Forbidden extensions that must never appear in a manifest.
- * A malicious map could reference `server.cfg` to expose `rcon_password`, etc.
+ * A malicious map could reference `server.cfg` to expose `rconPassword`, etc.
  */
 static const char *forbiddenExtensions[] = { ".cfg", ".rc", NULL };
 

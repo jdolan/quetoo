@@ -72,8 +72,8 @@ void R_UpdateContext(void) {
   SDL_GetWindowSize(rContext.window, &rContext.windowBounds.w, &rContext.windowBounds.h);
 
   if (!(rContext.windowFlags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
-    Cvar_ForceSetInteger("r_window_width", rContext.windowBounds.w);
-    Cvar_ForceSetInteger("r_window_height", rContext.windowBounds.h);
+    Cvar_ForceSetInteger("r_windowWidth", rContext.windowBounds.w);
+    Cvar_ForceSetInteger("r_windowHeight", rContext.windowBounds.h);
     r_windowWidth->modified = false;
     r_windowHeight->modified = false;
   }

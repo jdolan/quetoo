@@ -66,7 +66,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "+move_left"
+                          "bind": "+moveLeft"
                         }
                       },
                       {
@@ -78,7 +78,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "+move_right"
+                          "bind": "+moveRight"
                         }
                       },
                       {
@@ -90,7 +90,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "+move_up"
+                          "bind": "+moveUp"
                         }
                       },
                       {
@@ -102,7 +102,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "+move_down"
+                          "bind": "+moveDown"
                         }
                       },
                       {
@@ -138,7 +138,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "center_view"
+                          "bind": "centerView"
                         }
                       },
                       {
@@ -207,7 +207,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "cg_weapon_next"
+                          "bind": "cg_weaponNext"
                         }
                       },
                       {
@@ -219,7 +219,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "cg_weapon_previous"
+                          "bind": "cg_weaponPrevious"
                         }
                       },
                       {
@@ -282,7 +282,7 @@
                           "class": "CvarSelect",
                           "identifier": "hookStyle",
                           "expectsStringValue": true,
-                          "var": "hook_style"
+                          "var": "hookStyle"
                         }
                       }
                     ]

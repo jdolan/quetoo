@@ -406,54 +406,54 @@ void R_EndFrame(void) {
  */
 static void R_InitLocal(void) {
 
-  r_alphaTest = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
+  r_alphaTest = Cvar_Add("r_alphaTest", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool).");
-  r_drawBspBlocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
-  r_drawOcclusionQueries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
-  r_drawBspNormals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
-  r_drawBspVoxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
-  r_drawEntityBounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
-  r_drawLightBounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
-  r_drawMaterialStages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
-  r_depthPass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
+  r_drawBspBlocks = Cvar_Add("r_drawBspBlocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
+  r_drawOcclusionQueries = Cvar_Add("r_drawOcclusionQueries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
+  r_drawBspNormals = Cvar_Add("r_drawBspNormals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
+  r_drawBspVoxels = Cvar_Add("r_drawBspVoxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
+  r_drawEntityBounds = Cvar_Add("r_drawEntityBounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
+  r_drawLightBounds = Cvar_Add("r_drawLightBounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
+  r_drawMaterialStages = Cvar_Add("r_drawMaterialStages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
+  r_depthPass = Cvar_Add("r_depthPass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
-  r_ambientOcclusion = Cvar_Add("r_ambient_occlusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
+  r_ambientOcclusion = Cvar_Add("r_ambientOcclusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering.");
   r_antialias = Cvar_Add("r_antialias", "0", CVAR_ARCHIVE, "MSAA sample count (0 = disabled, 2, 4, 8).");
   r_bloom = Cvar_Add("r_bloom", "4", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
-  r_bloomIterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
-  r_bloomThreshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
+  r_bloomIterations = Cvar_Add("r_bloomIterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
+  r_bloomThreshold = Cvar_Add("r_bloomThreshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
-  r_framebufferScale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
+  r_framebufferScale = Cvar_Add("r_framebufferScale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
-  r_fullscreenWidth = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
-  r_fullscreenHeight = Cvar_Add("r_fullscreen_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
-  r_gpuDriver = Cvar_Add("r_gpu_driver", "", CVAR_NO_SET, "Forces the SDL_gpu backend driver: \"vulkan\", \"direct3d12\" or \"metal\". Empty lets SDL choose. Set via +set at the command line.");
+  r_fullscreenWidth = Cvar_Add("r_fullscreenWidth", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
+  r_fullscreenHeight = Cvar_Add("r_fullscreenHeight", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
+  r_gpuDriver = Cvar_Add("r_gpuDriver", "", CVAR_NO_SET, "Forces the SDL_gpu backend driver: \"vulkan\", \"direct3d12\" or \"metal\". Empty lets SDL choose. Set via +set at the command line.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");
-  r_lightingDistance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
+  r_lightingDistance = Cvar_Add("r_lightingDistance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting.");
-  r_modulateMesh = Cvar_Add("r_modulate_mesh", "1", CVAR_ARCHIVE, "Controls the brightness of players and items, to increase their visibility.");
+  r_modulateMesh = Cvar_Add("r_modulateMesh", "1", CVAR_ARCHIVE, "Controls the brightness of players and items, to increase their visibility.");
   r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls the color saturation of the rendered scene. 0 = grayscale, 1 = normal, 2 = vivid.");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
-  r_parallaxShadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
+  r_parallaxShadow = Cvar_Add("r_parallaxShadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
-  r_screenshotFormat = Cvar_Add("r_screenshot_format", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
+  r_screenshotFormat = Cvar_Add("r_screenshotFormat", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
-  r_shadowTileSize = Cvar_Add("r_shadow_tile_size", "256", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadow atlas tile resolution (128-512).");
+  r_shadowTileSize = Cvar_Add("r_shadowTileSize", "256", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadow atlas tile resolution (128-512).");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_swapInterval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables mailbox (low latency, no tearing).");
-  r_windowHeight = Cvar_Add("r_window_height", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window height for windowed mode.");
-  r_windowWidth = Cvar_Add("r_window_width", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window width for windowed mode.");
+  r_swapInterval = Cvar_Add("r_swapInterval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables mailbox (low latency, no tearing).");
+  r_windowHeight = Cvar_Add("r_windowHeight", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window height for windowed mode.");
+  r_windowWidth = Cvar_Add("r_windowWidth", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window width for windowed mode.");
 
   Cvar_ClearAll(CVAR_R_MASK);
 
-  Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool).");
-  Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool).");
-  Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
-  Cmd_Add("r_save_mesh_configs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the mesh configs for the named model to disk (developer tool).");
+  Cmd_Add("r_dumpImages", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool).");
+  Cmd_Add("r_listMedia", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool).");
+  Cmd_Add("r_saveMaterials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
+  Cmd_Add("r_saveMeshConfigs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the mesh configs for the named model to disk (developer tool).");
   Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot.");
 }
 

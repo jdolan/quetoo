@@ -193,11 +193,11 @@ static void Sv_Connect_f(void) {
   const uint8_t qport = (uint8_t) strtoul(Cmd_Argv(2), NULL, 0);
   const uint32_t challenge = (uint32_t) strtoul(Cmd_Argv(3), NULL, 0);
 
-  // copy user_info, leave room for ip stuffing
+  // copy userInfo, leave room for ip stuffing
   char userInfo[MAX_INFO_STRING_STRING];
   q_strlcpy(userInfo, Cmd_Argv(4), sizeof(userInfo) - 25);
 
-  if (*userInfo == '\0') { // catch empty user_info
+  if (*userInfo == '\0') { // catch empty userInfo
     Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
@@ -215,7 +215,7 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  if (!InfoString_Validate(userInfo)) { // catch otherwise invalid user_info
+  if (!InfoString_Validate(userInfo)) { // catch otherwise invalid userInfo
     Com_Print("Invalid user_info from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
@@ -293,7 +293,7 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  // give the game a chance to reject this connection or modify the user_info
+  // give the game a chance to reject this connection or modify the userInfo
   if (!(svs.game->ClientConnect(client->gclient, userInfo))) {
     const char *rejmsg = InfoString_Get(userInfo, "rejmsg");
 
@@ -335,12 +335,12 @@ static void Sv_Connect_f(void) {
 static bool Sv_RconAuthenticate(void) {
 
   // a password must be set for rcon to be available
-  if (*rcon_password->string == '\0') {
+  if (*rconPassword->string == '\0') {
     return false;
   }
 
   // and of course the passwords must match
-  if (q_strcmp(Cmd_Argv(1), rcon_password->string)) {
+  if (q_strcmp(Cmd_Argv(1), rconPassword->string)) {
     return false;
   }
 
@@ -392,7 +392,7 @@ static void Sv_Rcon_f(void) {
 
     Cmd_ExecuteString(cmd);
   } else {
-    Com_Print("Bad rcon_password\n");
+    Com_Print("Bad rconPassword\n");
   }
 
   Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", svRconBuffer);
@@ -715,15 +715,15 @@ const char *Sv_NetaddrToString(const ServerClient *cl) {
 }
 
 /**
- * @brief Enforces safe `user_info` data before passing onto game module.
- * @return False if the client was kicked for its `user_info`, in which case the slot is free
+ * @brief Enforces safe `userInfo` data before passing onto game module.
+ * @return False if the client was kicked for its `userInfo`, in which case the slot is free
  * again and the caller MUST NOT touch it further.
  */
 bool Sv_UserInfoChanged(ServerClient *cl) {
   char *val;
   size_t i;
 
-  if (*cl->userInfo == '\0') { // catch empty user_info
+  if (*cl->userInfo == '\0') { // catch empty userInfo
     Com_Print("Empty user_info from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return false;
@@ -735,7 +735,7 @@ bool Sv_UserInfoChanged(ServerClient *cl) {
     return false;
   }
 
-  if (!InfoString_Validate(cl->userInfo)) { // catch otherwise invalid user_info
+  if (!InfoString_Validate(cl->userInfo)) { // catch otherwise invalid userInfo
     Com_Print("Invalid user_info from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return false;
@@ -761,7 +761,7 @@ bool Sv_UserInfoChanged(ServerClient *cl) {
   }
 
   // limit the print messages the client receives
-  val = InfoString_Get(cl->userInfo, "message_level");
+  val = InfoString_Get(cl->userInfo, "messageLevel");
   if (*val != '\0') {
     cl->messageLevel = (int32_t) strtol(val, NULL, 10);
   }
@@ -882,7 +882,7 @@ void Sv_Frame(const uint32_t msec) {
     return;
   }
 
-  if (time_demo->value) { // always run a frame
+  if (timeDemo->value) { // always run a frame
     frame_delta = QUETOO_TICK_MILLIS;
   } else { // keep simulation time in sync with reality
 
@@ -963,18 +963,18 @@ void Sv_Frame(const uint32_t msec) {
  */
 static void Sv_InitLocal(void) {
 
-  sv_demoList = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
-  sv_enforceTime = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
+  sv_demoList = Cvar_Add("sv_demoList", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
+  sv_enforceTime = Cvar_Add("sv_enforceTime", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
   sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
   sv_map = Cvar_Add("sv_map", "", CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
-  sv_mapList = Cvar_Add("sv_map_list", "maps.lst", 0, "The map list filename.");
-  sv_mapListShuffle = Cvar_Add("sv_map_list_shuffle", "0", 0, "Enables map shuffling.");
+  sv_mapList = Cvar_Add("sv_mapList", "maps.lst", 0, "The map list filename.");
+  sv_mapListShuffle = Cvar_Add("sv_mapListShuffle", "0", 0, "Enables map shuffling.");
   sv_master = Cvar_Add("sv_master", HOST_MASTER, CVAR_NO_SET, "The master server to advertise on, or \"\" to advertise nowhere");
-  sv_maxClients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
-  sv_maxEntities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
-  sv_minClients = Cvar_Add("sv_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
+  sv_maxClients = Cvar_Add("sv_maxClients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
+  sv_maxEntities = Cvar_Add("sv_maxEntities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
+  sv_minClients = Cvar_Add("sv_minClients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
-  sv_statsUrl = Cvar_Add("sv_stats_url", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to \"\" to disable.");
+  sv_statsUrl = Cvar_Add("sv_statsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to \"\" to disable.");
   char uuid[37];
   Com_Uuid(uuid, sizeof(uuid));
   sv_guid = Cvar_Add("sv_guid", uuid, CVAR_SERVER_INFO | CVAR_NO_SET,

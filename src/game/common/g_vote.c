@@ -176,7 +176,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
 
   if (!q_strcmp(type, "map")) {
     if (!q_strcmp(arg, "next")) {
-      gi.Cbuf("next_map\n");
+      gi.Cbuf("nextMap\n");
     } else {
       gi.Cbuf(va("map %s\n", arg));
     }
@@ -184,7 +184,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
   }
 
   if (!q_strcmp(type, "bots")) {
-    gi.SetCvarInteger("sv_min_clients", (int32_t) strtol(arg, NULL, 10));
+    gi.SetCvarInteger("sv_minClients", (int32_t) strtol(arg, NULL, 10));
     return true;
   }
 
@@ -454,9 +454,9 @@ static void G_ConfigureLevel_Vote(void) {
 void G_Vote_Init(void) {
 
   g_vote = gi.AddCvar("g_vote", "1", CVAR_SERVER_INFO, "Whether clients may call votes.");
-  g_voteTime = gi.AddCvar("g_vote_time", "30", 0, "How long a vote runs, in seconds.");
-  g_voteThreshold = gi.AddCvar("g_vote_threshold", "0.5", 0, "The fraction of eligible clients whose yes a vote must exceed to pass; 1 lets nothing pass.");
-  g_voteCooldown = gi.AddCvar("g_vote_cooldown", "60", 0, "How long a client waits between calling votes, in seconds.");
+  g_voteTime = gi.AddCvar("g_voteTime", "30", 0, "How long a vote runs, in seconds.");
+  g_voteThreshold = gi.AddCvar("g_voteThreshold", "0.5", 0, "The fraction of eligible clients whose yes a vote must exceed to pass; 1 lets nothing pass.");
+  g_voteCooldown = gi.AddCvar("g_voteCooldown", "60", 0, "How long a client waits between calling votes, in seconds.");
 
   if (!installed) {
     installed = true;

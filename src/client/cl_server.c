@@ -151,11 +151,11 @@ void Cl_ParseServerInfo(void) {
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
   const char *serverGuid = InfoString_Get(string, "sv_guid");
-  const char *mode = InfoString_Get(string, "g_gameplay_mode");
+  const char *mode = InfoString_Get(string, "g_gameplayMode");
   q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
-  const char *move = InfoString_Get(string, "g_movement_mode");
+  const char *move = InfoString_Get(string, "g_movementMode");
   q_strlcpy(movement, *move ? move : InfoString_Get(string, "g_movement"), sizeof(movement));
-  const int32_t maxClients = atoi(InfoString_Get(string, "sv_max_clients"));
+  const int32_t maxClients = atoi(InfoString_Get(string, "sv_maxClients"));
 
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
@@ -441,7 +441,7 @@ void Cl_ParseServers(void) {
 }
 
 /**
- * @brief Handles the `servers_list` console command, printing all known servers to the console.
+ * @brief Handles the `serversList` console command, printing all known servers to the console.
  */
 void Cl_Servers_List_f(void) {
   char string[256];

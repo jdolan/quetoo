@@ -376,9 +376,9 @@ void Sv_InitAdmin(void) {
 
   Cmd_Add("kick", Sv_Kick_f, CMD_SERVER, "Kick a specific user.");
   Cmd_Add("status", Sv_Status_f, CMD_SERVER, "Print server status information.");
-  Cmd_Add("list_entities", Sv_ListEntities_f, CMD_SERVER, "List all entities in use.");
-  Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings.");
-  Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user.");
+  Cmd_Add("listEntities", Sv_ListEntities_f, CMD_SERVER, "List all entities in use.");
+  Cmd_Add("serverInfo", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings.");
+  Cmd_Add("userInfo", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user.");
 
   Cmd *demoCmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
   Cmd_SetAutocomplete(demoCmd, Sv_Demo_Autocomplete_f);
@@ -386,11 +386,11 @@ void Sv_InitAdmin(void) {
   Cmd *mapCmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
   Cmd_SetAutocomplete(mapCmd, Sv_Map_Autocomplete_f);
 
-  Cmd_Add("next_map", Sv_NextMap_f, CMD_SERVER, "Advance to the next map in sv_map_list.");
+  Cmd_Add("nextMap", Sv_NextMap_f, CMD_SERVER, "Advance to the next map in sv_mapList.");
 
   Cmd_Add("heartbeat", Sv_Heartbeat_f, CMD_SERVER, "Send a heartbeat to the master server.");
 
-  Cmd_Add("save_editor_map", Sv_SaveEditorMap_f, CMD_SERVER, "Saves editor changes to the .map file.");
+  Cmd_Add("saveEditorMap", Sv_SaveEditorMap_f, CMD_SERVER, "Saves editor changes to the .map file.");
 
   if (dedicated->value) {
     Cmd_Add("say", Sv_Say_f, CMD_SERVER, "Send a global chat message");

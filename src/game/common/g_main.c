@@ -675,7 +675,7 @@ static PlayerMovement G_CoerceMovement(void) {
     gi.SetCvarString(g_movement->name, Pm_Movement(movement)->name);
   }
 
-  gi.ForceSetCvarString("g_movement_mode", Pm_Movement(movement)->name);
+  gi.ForceSetCvarString("g_movementMode", Pm_Movement(movement)->name);
 
   return movement;
 }
@@ -717,7 +717,7 @@ static GameplayId G_CoerceGameplay(void) {
 
   // g_gameplay holds what the admin asked for, which may be an alias, or "default";
   // publish what it resolved to as well, since that is what a server browser shows
-  gi.ForceSetCvarString("g_gameplay_mode", G_GameplayById(gameplay)->name);
+  gi.ForceSetCvarString("g_gameplayMode", G_GameplayById(gameplay)->name);
 
   return gameplay;
 }
@@ -940,7 +940,7 @@ static void G_Frame(void) {
     if (gLevel.time > gLevel.intermissionTime + INTERMISSION && G_AllowNextMap()) {
       gLevel.intermissionTime = 0;
 
-      gi.Cbuf("next_map\n");
+      gi.Cbuf("nextMap\n");
 
       G_EndClientFrames();
       return;
@@ -1051,117 +1051,117 @@ void G_Init(void) {
   gi.Print("Game module initialization...\n");
 
   const char *s = va("%s %s", BUILD, VERSION);
-  Cvar *gameVersion = gi.AddCvar("game_version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+  Cvar *gameVersion = gi.AddCvar("gameVersion", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   gi.Print("  Version:    ^2%s^7\n", gameVersion->string);
 
-  gi.AddCvar("game_name", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-  gi.AddCvar("game_date", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+  gi.AddCvar("gameName", GAME_NAME, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+  gi.AddCvar("gameDate", __DATE__, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-  g_adminPassword = gi.AddCvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin.");
-  g_ammoRespawnTime = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
-  g_autoJoin = gi.AddCvar("g_auto_join", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams.");
-  g_balanceArmorShardRespawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", 0, NULL);
-  g_balanceArmorJacketRespawn = gi.AddCvar("g_balance_armor_jacket_respawn", "25", 0, NULL);
-  g_balanceArmorCombatRespawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", 0, NULL);
-  g_balanceArmorBodyRespawn = gi.AddCvar("g_balance_armor_body_respawn", "30", 0, NULL);
-  g_balanceBfgDamage = gi.AddCvar("g_balance_bfg_damage", "180", 0, NULL);
-  g_balanceBfgKnockback = gi.AddCvar("g_balance_bfg_knockback", "140", 0, NULL);
-  g_balanceBfgPrefire = gi.AddCvar("g_balance_bfg_prefire", "1", 0, "The prefire warmup delay for the BFG10K in seconds.");
-  g_balanceBfgRadius = gi.AddCvar("g_balance_bfg_radius", "512", 0, NULL);
-  g_balanceBfgRefire = gi.AddCvar("g_balance_bfg_refire", "2", 0, NULL);
-  g_balanceBfgSpeed = gi.AddCvar("g_balance_bfg_speed", "720", 0, NULL);
-  g_balanceBlasterDamage = gi.AddCvar("g_balance_blaster_damage", "15", 0, NULL);
-  g_balanceBlasterKnockback = gi.AddCvar("g_balance_blaster_knockback", "2", 0, NULL);
-  g_balanceBlasterRefire = gi.AddCvar("g_balance_blaster_refire", "0.45", 0, NULL);
-  g_balanceBlasterSpeed = gi.AddCvar("g_balance_blaster_speed", "2000", 0, NULL);
-  g_balanceHandgrenadeRefire = gi.AddCvar("g_balance_handgrenade_refire", "2", 0, NULL);
-  g_balanceHealthSmallRespawn = gi.AddCvar("g_balance_health_small_respawn", "15", 0, NULL);
-  g_balanceHealthMediumRespawn = gi.AddCvar("g_balance_health_medium_respawn", "20", 0, NULL);
-  g_balanceHealthLargeRespawn = gi.AddCvar("g_balance_health_large_respawn", "30", 0, NULL);
-  g_balanceHealthMegaRespawn = gi.AddCvar("g_balance_health_mega_respawn", "60", 0, NULL);
-  g_balanceHyperblasterClimbDamage = gi.AddCvar("g_balance_hyperblaster_climb_damage", "3", 0, NULL);
-  g_balanceHyperblasterClimbKnockback = gi.AddCvar("g_balance_hyperblaster_climb_knockback", "68", 0, NULL);
-  g_balanceHyperblasterDamage = gi.AddCvar("g_balance_hyperblaster_damage", "16", 0, NULL);
-  g_balanceHyperblasterKnockback = gi.AddCvar("g_balance_hyperblaster_knockback", "4", 0, NULL);
-  g_balanceHyperblasterRefire = gi.AddCvar("g_balance_hyperblaster_refire", "0.1", 0, NULL);
-  g_balanceHyperblasterSpeed = gi.AddCvar("g_balance_hyperblaster_speed", "1800", 0, NULL);
-  g_balanceLightningDamage = gi.AddCvar("g_balance_lightning_damage", "12", 0, NULL);
-  g_balanceLightningKnockback = gi.AddCvar("g_balance_lightning_knockback", "6", 0, NULL);
-  g_balanceLightningLength = gi.AddCvar("g_balance_lightning_length", "600", 0, NULL);
-  g_balanceLightningRefire = gi.AddCvar("g_balance_lightning_refire", "0.1", 0, NULL);
-  g_balanceMachinegunDamage = gi.AddCvar("g_balance_machinegun_damage", "8", 0, NULL);
-  g_balanceMachinegunKnockback = gi.AddCvar("g_balance_machinegun_knockback", "2", 0, NULL);
-  g_balanceMachinegunRefire = gi.AddCvar("g_balance_machinegun_refire", "0.1", 0, NULL);
-  g_balanceMachinegunSpreadX = gi.AddCvar("g_balance_machinegun_spread_x", "20", 0, NULL);
-  g_balanceMachinegunSpreadY = gi.AddCvar("g_balance_machinegun_spread_y", "200", 0, NULL);
-  g_balanceGrenadelauncherDamage = gi.AddCvar("g_balance_grenadelauncher_damage", "120", 0, NULL);
-  g_balanceGrenadelauncherKnockback = gi.AddCvar("g_balance_grenadelauncher_knockback", "120", 0, NULL);
-  g_balanceGrenadelauncherRadius = gi.AddCvar("g_balance_grenadelauncher_radius", "185", 0, NULL);
-  g_balanceGrenadelauncherRefire = gi.AddCvar("g_balance_grenadelauncher_refire", "1", 0, NULL);
-  g_balanceGrenadelauncherSpeed = gi.AddCvar("g_balance_grenadelauncher_speed", "800", 0, NULL);
-  g_balanceGrenadelauncherTimer = gi.AddCvar("g_balance_grenadelauncher_timer", "2.5", 0, NULL);
-  g_balanceQuadDamageRespawnTime = gi.AddCvar("g_balance_quad_damage_respawn_time", "60", 0, NULL);
-  g_balanceQuadDamageTime = gi.AddCvar("g_balance_quad_damage_time", "30", 0, NULL);
-  g_balanceQuakeShotgunDamage = gi.AddCvar("g_balance_quake_shotgun_damage", "4", 0, NULL);
-  g_balanceQuakeShotgunKnockback = gi.AddCvar("g_balance_quake_shotgun_knockback", "2", 0, NULL);
-  g_balanceQuakeShotgunPellets = gi.AddCvar("g_balance_quake_shotgun_pellets", "6", 0, NULL);
-  g_balanceQuakeShotgunRefire = gi.AddCvar("g_balance_quake_shotgun_refire", "0.5", 0, NULL);
-  g_balanceQuakeShotgunSpreadX = gi.AddCvar("g_balance_quake_shotgun_spread_x", "500", 0, NULL);
-  g_balanceQuakeShotgunSpreadY = gi.AddCvar("g_balance_quake_shotgun_spread_y", "400", 0, NULL);
-  g_balanceQuakeSupershotgunDamage = gi.AddCvar("g_balance_quake_supershotgun_damage", "4", 0, NULL);
-  g_balanceQuakeSupershotgunKnockback = gi.AddCvar("g_balance_quake_supershotgun_knockback", "2", 0, NULL);
-  g_balanceQuakeSupershotgunPellets = gi.AddCvar("g_balance_quake_supershotgun_pellets", "14", 0, NULL);
-  g_balanceQuakeSupershotgunRefire = gi.AddCvar("g_balance_quake_supershotgun_refire", "0.7", 0, NULL);
-  g_balanceQuakeSupershotgunSpreadX = gi.AddCvar("g_balance_quake_supershotgun_spread_x", "1000", 0, NULL);
-  g_balanceQuakeSupershotgunSpreadY = gi.AddCvar("g_balance_quake_supershotgun_spread_y", "800", 0, NULL);
-  g_balanceQuakeNailgunDamage = gi.AddCvar("g_balance_quake_nailgun_damage", "9", 0, NULL);
-  g_balanceQuakeNailgunKnockback = gi.AddCvar("g_balance_quake_nailgun_knockback", "4", 0, NULL);
-  g_balanceQuakeNailgunRefire = gi.AddCvar("g_balance_quake_nailgun_refire", "0.1", 0, NULL);
-  g_balanceQuakeNailgunSpeed = gi.AddCvar("g_balance_quake_nailgun_speed", "1400", 0, NULL);
-  g_balanceQuakeSupernailgunDamage = gi.AddCvar("g_balance_quake_supernailgun_damage", "18", 0, NULL);
-  g_balanceQuakeSupernailgunKnockback = gi.AddCvar("g_balance_quake_supernailgun_knockback", "8", 0, NULL);
-  g_balanceQuakeSupernailgunRefire = gi.AddCvar("g_balance_quake_supernailgun_refire", "0.1", 0, NULL);
-  g_balanceQuakeSupernailgunSpeed = gi.AddCvar("g_balance_quake_supernailgun_speed", "2000", 0, NULL);
-  g_balanceQuakeGrenadelauncherDamage = gi.AddCvar("g_balance_quake_grenadelauncher_damage", "120", 0, NULL);
-  g_balanceQuakeGrenadelauncherKnockback = gi.AddCvar("g_balance_quake_grenadelauncher_knockback", "120", 0, NULL);
-  g_balanceQuakeGrenadelauncherRadius = gi.AddCvar("g_balance_quake_grenadelauncher_radius", "185", 0, NULL);
-  g_balanceQuakeGrenadelauncherRefire = gi.AddCvar("g_balance_quake_grenadelauncher_refire", "0.8", 0, NULL);
-  g_balanceQuakeGrenadelauncherSpeed = gi.AddCvar("g_balance_quake_grenadelauncher_speed", "700", 0, NULL);
-  g_balanceQuakeGrenadelauncherTimer = gi.AddCvar("g_balance_quake_grenadelauncher_timer", "2.5", 0, NULL);
-  g_balanceQuakeRocketlauncherDamage = gi.AddCvar("g_balance_quake_rocketlauncher_damage", "100", 0, NULL);
-  g_balanceQuakeRocketlauncherKnockback = gi.AddCvar("g_balance_quake_rocketlauncher_knockback", "75", 0, NULL);
-  g_balanceQuakeRocketlauncherRadius = gi.AddCvar("g_balance_quake_rocketlauncher_radius", "150", 0, NULL);
-  g_balanceQuakeRocketlauncherRefire = gi.AddCvar("g_balance_quake_rocketlauncher_refire", "0.8", 0, NULL);
-  g_balanceQuakeRocketlauncherSpeed = gi.AddCvar("g_balance_quake_rocketlauncher_speed", "1000", 0, NULL);
-  g_balanceQuakeThunderboltDamage = gi.AddCvar("g_balance_quake_thunderbolt_damage", "14", 0, NULL);
-  g_balanceQuakeThunderboltKnockback = gi.AddCvar("g_balance_quake_thunderbolt_knockback", "8", 0, NULL);
-  g_balanceQuakeThunderboltLength = gi.AddCvar("g_balance_quake_thunderbolt_length", "768", 0, NULL);
-  g_balanceQuakeThunderboltRefire = gi.AddCvar("g_balance_quake_thunderbolt_refire", "0.05", 0, NULL);
-  g_balanceInvisibilityRespawnTime = gi.AddCvar("g_balance_invisibility_respawn_time", "60", 0, NULL);
-  g_balanceInvisibilityTime = gi.AddCvar("g_balance_invisibility_time", "30", 0, NULL);
-  g_balanceInvulnerabilityRespawnTime = gi.AddCvar("g_balance_invulnerability_respawn_time", "60", 0, NULL);
-  g_balanceInvulnerabilityTime = gi.AddCvar("g_balance_invulnerability_time", "30", 0, NULL);
-  g_balanceRailgunDamage = gi.AddCvar("g_balance_railgun_damage", "100", 0, NULL);
-  g_balanceRailgunKnockback = gi.AddCvar("g_balance_railgun_knockback", "80", 0, NULL);
-  g_balanceRailgunRefire = gi.AddCvar("g_balance_railgun_refire", "1.4", 0, NULL);
-  g_balanceRocketlauncherDamage = gi.AddCvar("g_balance_rocketlauncher_damage", "100", 0, NULL);
-  g_balanceRocketlauncherKnockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "75", 0, NULL);
-  g_balanceRocketlauncherRadius = gi.AddCvar("g_balance_rocketlauncher_radius", "150", 0, NULL);
-  g_balanceRocketlauncherRefire = gi.AddCvar("g_balance_rocketlauncher_refire", "1", 0, NULL);
-  g_balanceRocketlauncherSpeed = gi.AddCvar("g_balance_rocketlauncher_speed", "1000", 0, NULL);
-  g_balanceShotgunDamage = gi.AddCvar("g_balance_shotgun_damage", "4", 0, NULL);
-  g_balanceShotgunKnockback = gi.AddCvar("g_balance_shotgun_knockback", "2", 0, NULL);
-  g_balanceShotgunPellets = gi.AddCvar("g_balance_shotgun_pellets", "12", 0, NULL);
-  g_balanceShotgunRefire = gi.AddCvar("g_balance_shotgun_refire", "0.6", 0, NULL);
-  g_balanceShotgunSpreadX = gi.AddCvar("g_balance_shotgun_spread_x", "700", 0, NULL);
-  g_balanceShotgunSpreadY = gi.AddCvar("g_balance_shotgun_spread_y", "300", 0, NULL);
-  g_balanceSupershotgunDamage = gi.AddCvar("g_balance_supershotgun_damage", "4", 0, NULL);
-  g_balanceSupershotgunKnockback = gi.AddCvar("g_balance_supershotgun_knockback", "2", 0, NULL);
-  g_balanceSupershotgunPellets = gi.AddCvar("g_balance_supershotgun_pellets", "24", 0, NULL);
-  g_balanceSupershotgunRefire = gi.AddCvar("g_balance_supershotgun_refire", "0.8", 0, NULL);
-  g_balanceSupershotgunSpreadX = gi.AddCvar("g_balance_supershotgun_spread_x", "1600", 0, NULL);
-  g_balanceSupershotgunSpreadY = gi.AddCvar("g_balance_supershotgun_spread_y", "500", 0, NULL);
+  g_adminPassword = gi.AddCvar("g_adminPassword", "", CVAR_LATCH, "Password to authenticate as an admin.");
+  g_ammoRespawnTime = gi.AddCvar("g_ammoRespawnTime", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
+  g_autoJoin = gi.AddCvar("g_autoJoin", "1", CVAR_SERVER_INFO, "Automatically assigns players to teams.");
+  g_balanceArmorShardRespawn = gi.AddCvar("g_balanceArmorShardRespawn", "15", 0, NULL);
+  g_balanceArmorJacketRespawn = gi.AddCvar("g_balanceArmorJacketRespawn", "25", 0, NULL);
+  g_balanceArmorCombatRespawn = gi.AddCvar("g_balanceArmorCombatRespawn", "25", 0, NULL);
+  g_balanceArmorBodyRespawn = gi.AddCvar("g_balanceArmorBodyRespawn", "30", 0, NULL);
+  g_balanceBfgDamage = gi.AddCvar("g_balanceBfgDamage", "180", 0, NULL);
+  g_balanceBfgKnockback = gi.AddCvar("g_balanceBfgKnockback", "140", 0, NULL);
+  g_balanceBfgPrefire = gi.AddCvar("g_balanceBfgPrefire", "1", 0, "The prefire warmup delay for the BFG10K in seconds.");
+  g_balanceBfgRadius = gi.AddCvar("g_balanceBfgRadius", "512", 0, NULL);
+  g_balanceBfgRefire = gi.AddCvar("g_balanceBfgRefire", "2", 0, NULL);
+  g_balanceBfgSpeed = gi.AddCvar("g_balanceBfgSpeed", "720", 0, NULL);
+  g_balanceBlasterDamage = gi.AddCvar("g_balanceBlasterDamage", "15", 0, NULL);
+  g_balanceBlasterKnockback = gi.AddCvar("g_balanceBlasterKnockback", "2", 0, NULL);
+  g_balanceBlasterRefire = gi.AddCvar("g_balanceBlasterRefire", "0.45", 0, NULL);
+  g_balanceBlasterSpeed = gi.AddCvar("g_balanceBlasterSpeed", "2000", 0, NULL);
+  g_balanceHandgrenadeRefire = gi.AddCvar("g_balanceHandgrenadeRefire", "2", 0, NULL);
+  g_balanceHealthSmallRespawn = gi.AddCvar("g_balanceHealthSmallRespawn", "15", 0, NULL);
+  g_balanceHealthMediumRespawn = gi.AddCvar("g_balanceHealthMediumRespawn", "20", 0, NULL);
+  g_balanceHealthLargeRespawn = gi.AddCvar("g_balanceHealthLargeRespawn", "30", 0, NULL);
+  g_balanceHealthMegaRespawn = gi.AddCvar("g_balanceHealthMegaRespawn", "60", 0, NULL);
+  g_balanceHyperblasterClimbDamage = gi.AddCvar("g_balanceHyperblasterClimbDamage", "3", 0, NULL);
+  g_balanceHyperblasterClimbKnockback = gi.AddCvar("g_balanceHyperblasterClimbKnockback", "68", 0, NULL);
+  g_balanceHyperblasterDamage = gi.AddCvar("g_balanceHyperblasterDamage", "16", 0, NULL);
+  g_balanceHyperblasterKnockback = gi.AddCvar("g_balanceHyperblasterKnockback", "4", 0, NULL);
+  g_balanceHyperblasterRefire = gi.AddCvar("g_balanceHyperblasterRefire", "0.1", 0, NULL);
+  g_balanceHyperblasterSpeed = gi.AddCvar("g_balanceHyperblasterSpeed", "1800", 0, NULL);
+  g_balanceLightningDamage = gi.AddCvar("g_balanceLightningDamage", "12", 0, NULL);
+  g_balanceLightningKnockback = gi.AddCvar("g_balanceLightningKnockback", "6", 0, NULL);
+  g_balanceLightningLength = gi.AddCvar("g_balanceLightningLength", "600", 0, NULL);
+  g_balanceLightningRefire = gi.AddCvar("g_balanceLightningRefire", "0.1", 0, NULL);
+  g_balanceMachinegunDamage = gi.AddCvar("g_balanceMachinegunDamage", "8", 0, NULL);
+  g_balanceMachinegunKnockback = gi.AddCvar("g_balanceMachinegunKnockback", "2", 0, NULL);
+  g_balanceMachinegunRefire = gi.AddCvar("g_balanceMachinegunRefire", "0.1", 0, NULL);
+  g_balanceMachinegunSpreadX = gi.AddCvar("g_balanceMachinegunSpreadX", "20", 0, NULL);
+  g_balanceMachinegunSpreadY = gi.AddCvar("g_balanceMachinegunSpreadY", "200", 0, NULL);
+  g_balanceGrenadelauncherDamage = gi.AddCvar("g_balanceGrenadelauncherDamage", "120", 0, NULL);
+  g_balanceGrenadelauncherKnockback = gi.AddCvar("g_balanceGrenadelauncherKnockback", "120", 0, NULL);
+  g_balanceGrenadelauncherRadius = gi.AddCvar("g_balanceGrenadelauncherRadius", "185", 0, NULL);
+  g_balanceGrenadelauncherRefire = gi.AddCvar("g_balanceGrenadelauncherRefire", "1", 0, NULL);
+  g_balanceGrenadelauncherSpeed = gi.AddCvar("g_balanceGrenadelauncherSpeed", "800", 0, NULL);
+  g_balanceGrenadelauncherTimer = gi.AddCvar("g_balanceGrenadelauncherTimer", "2.5", 0, NULL);
+  g_balanceQuadDamageRespawnTime = gi.AddCvar("g_balanceQuadDamageRespawnTime", "60", 0, NULL);
+  g_balanceQuadDamageTime = gi.AddCvar("g_balanceQuadDamageTime", "30", 0, NULL);
+  g_balanceQuakeShotgunDamage = gi.AddCvar("g_balanceQuakeShotgunDamage", "4", 0, NULL);
+  g_balanceQuakeShotgunKnockback = gi.AddCvar("g_balanceQuakeShotgunKnockback", "2", 0, NULL);
+  g_balanceQuakeShotgunPellets = gi.AddCvar("g_balanceQuakeShotgunPellets", "6", 0, NULL);
+  g_balanceQuakeShotgunRefire = gi.AddCvar("g_balanceQuakeShotgunRefire", "0.5", 0, NULL);
+  g_balanceQuakeShotgunSpreadX = gi.AddCvar("g_balanceQuakeShotgunSpreadX", "500", 0, NULL);
+  g_balanceQuakeShotgunSpreadY = gi.AddCvar("g_balanceQuakeShotgunSpreadY", "400", 0, NULL);
+  g_balanceQuakeSupershotgunDamage = gi.AddCvar("g_balanceQuakeSupershotgunDamage", "4", 0, NULL);
+  g_balanceQuakeSupershotgunKnockback = gi.AddCvar("g_balanceQuakeSupershotgunKnockback", "2", 0, NULL);
+  g_balanceQuakeSupershotgunPellets = gi.AddCvar("g_balanceQuakeSupershotgunPellets", "14", 0, NULL);
+  g_balanceQuakeSupershotgunRefire = gi.AddCvar("g_balanceQuakeSupershotgunRefire", "0.7", 0, NULL);
+  g_balanceQuakeSupershotgunSpreadX = gi.AddCvar("g_balanceQuakeSupershotgunSpreadX", "1000", 0, NULL);
+  g_balanceQuakeSupershotgunSpreadY = gi.AddCvar("g_balanceQuakeSupershotgunSpreadY", "800", 0, NULL);
+  g_balanceQuakeNailgunDamage = gi.AddCvar("g_balanceQuakeNailgunDamage", "9", 0, NULL);
+  g_balanceQuakeNailgunKnockback = gi.AddCvar("g_balanceQuakeNailgunKnockback", "4", 0, NULL);
+  g_balanceQuakeNailgunRefire = gi.AddCvar("g_balanceQuakeNailgunRefire", "0.1", 0, NULL);
+  g_balanceQuakeNailgunSpeed = gi.AddCvar("g_balanceQuakeNailgunSpeed", "1400", 0, NULL);
+  g_balanceQuakeSupernailgunDamage = gi.AddCvar("g_balanceQuakeSupernailgunDamage", "18", 0, NULL);
+  g_balanceQuakeSupernailgunKnockback = gi.AddCvar("g_balanceQuakeSupernailgunKnockback", "8", 0, NULL);
+  g_balanceQuakeSupernailgunRefire = gi.AddCvar("g_balanceQuakeSupernailgunRefire", "0.1", 0, NULL);
+  g_balanceQuakeSupernailgunSpeed = gi.AddCvar("g_balanceQuakeSupernailgunSpeed", "2000", 0, NULL);
+  g_balanceQuakeGrenadelauncherDamage = gi.AddCvar("g_balanceQuakeGrenadelauncherDamage", "120", 0, NULL);
+  g_balanceQuakeGrenadelauncherKnockback = gi.AddCvar("g_balanceQuakeGrenadelauncherKnockback", "120", 0, NULL);
+  g_balanceQuakeGrenadelauncherRadius = gi.AddCvar("g_balanceQuakeGrenadelauncherRadius", "185", 0, NULL);
+  g_balanceQuakeGrenadelauncherRefire = gi.AddCvar("g_balanceQuakeGrenadelauncherRefire", "0.8", 0, NULL);
+  g_balanceQuakeGrenadelauncherSpeed = gi.AddCvar("g_balanceQuakeGrenadelauncherSpeed", "700", 0, NULL);
+  g_balanceQuakeGrenadelauncherTimer = gi.AddCvar("g_balanceQuakeGrenadelauncherTimer", "2.5", 0, NULL);
+  g_balanceQuakeRocketlauncherDamage = gi.AddCvar("g_balanceQuakeRocketlauncherDamage", "100", 0, NULL);
+  g_balanceQuakeRocketlauncherKnockback = gi.AddCvar("g_balanceQuakeRocketlauncherKnockback", "75", 0, NULL);
+  g_balanceQuakeRocketlauncherRadius = gi.AddCvar("g_balanceQuakeRocketlauncherRadius", "150", 0, NULL);
+  g_balanceQuakeRocketlauncherRefire = gi.AddCvar("g_balanceQuakeRocketlauncherRefire", "0.8", 0, NULL);
+  g_balanceQuakeRocketlauncherSpeed = gi.AddCvar("g_balanceQuakeRocketlauncherSpeed", "1000", 0, NULL);
+  g_balanceQuakeThunderboltDamage = gi.AddCvar("g_balanceQuakeThunderboltDamage", "14", 0, NULL);
+  g_balanceQuakeThunderboltKnockback = gi.AddCvar("g_balanceQuakeThunderboltKnockback", "8", 0, NULL);
+  g_balanceQuakeThunderboltLength = gi.AddCvar("g_balanceQuakeThunderboltLength", "768", 0, NULL);
+  g_balanceQuakeThunderboltRefire = gi.AddCvar("g_balanceQuakeThunderboltRefire", "0.05", 0, NULL);
+  g_balanceInvisibilityRespawnTime = gi.AddCvar("g_balanceInvisibilityRespawnTime", "60", 0, NULL);
+  g_balanceInvisibilityTime = gi.AddCvar("g_balanceInvisibilityTime", "30", 0, NULL);
+  g_balanceInvulnerabilityRespawnTime = gi.AddCvar("g_balanceInvulnerabilityRespawnTime", "60", 0, NULL);
+  g_balanceInvulnerabilityTime = gi.AddCvar("g_balanceInvulnerabilityTime", "30", 0, NULL);
+  g_balanceRailgunDamage = gi.AddCvar("g_balanceRailgunDamage", "100", 0, NULL);
+  g_balanceRailgunKnockback = gi.AddCvar("g_balanceRailgunKnockback", "80", 0, NULL);
+  g_balanceRailgunRefire = gi.AddCvar("g_balanceRailgunRefire", "1.4", 0, NULL);
+  g_balanceRocketlauncherDamage = gi.AddCvar("g_balanceRocketlauncherDamage", "100", 0, NULL);
+  g_balanceRocketlauncherKnockback = gi.AddCvar("g_balanceRocketlauncherKnockback", "75", 0, NULL);
+  g_balanceRocketlauncherRadius = gi.AddCvar("g_balanceRocketlauncherRadius", "150", 0, NULL);
+  g_balanceRocketlauncherRefire = gi.AddCvar("g_balanceRocketlauncherRefire", "1", 0, NULL);
+  g_balanceRocketlauncherSpeed = gi.AddCvar("g_balanceRocketlauncherSpeed", "1000", 0, NULL);
+  g_balanceShotgunDamage = gi.AddCvar("g_balanceShotgunDamage", "4", 0, NULL);
+  g_balanceShotgunKnockback = gi.AddCvar("g_balanceShotgunKnockback", "2", 0, NULL);
+  g_balanceShotgunPellets = gi.AddCvar("g_balanceShotgunPellets", "12", 0, NULL);
+  g_balanceShotgunRefire = gi.AddCvar("g_balanceShotgunRefire", "0.6", 0, NULL);
+  g_balanceShotgunSpreadX = gi.AddCvar("g_balanceShotgunSpreadX", "700", 0, NULL);
+  g_balanceShotgunSpreadY = gi.AddCvar("g_balanceShotgunSpreadY", "300", 0, NULL);
+  g_balanceSupershotgunDamage = gi.AddCvar("g_balanceSupershotgunDamage", "4", 0, NULL);
+  g_balanceSupershotgunKnockback = gi.AddCvar("g_balanceSupershotgunKnockback", "2", 0, NULL);
+  g_balanceSupershotgunPellets = gi.AddCvar("g_balanceSupershotgunPellets", "24", 0, NULL);
+  g_balanceSupershotgunRefire = gi.AddCvar("g_balanceSupershotgunRefire", "0.8", 0, NULL);
+  g_balanceSupershotgunSpreadX = gi.AddCvar("g_balanceSupershotgunSpreadX", "1600", 0, NULL);
+  g_balanceSupershotgunSpreadY = gi.AddCvar("g_balanceSupershotgunSpreadY", "500", 0, NULL);
   g_cheats = gi.AddCvar("g_cheats",
 #if _DEBUG
     "1"
@@ -1169,64 +1169,64 @@ void G_Init(void) {
     "0"
 #endif
     , CVAR_SERVER_INFO, NULL);
-  g_fragLimit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
-  g_friendlyFire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
+  g_fragLimit = gi.AddCvar("g_fragLimit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
+  g_friendlyFire = gi.AddCvar("g_friendlyFire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
     "Selects deathmatch, instagib or arena combat. Prefix with team_ for team play, "
     "e.g. team_deathmatch, team_instagib or team_arena.");
-  gi.AddCvar("g_gameplay_mode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
+  gi.AddCvar("g_gameplayMode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
     "The gameplay mode this level actually resolved to, published for the server browser. "
     "Read g_gameplay for what was requested.");
-  gi.AddCvar("g_movement_mode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
+  gi.AddCvar("g_movementMode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
     "The player movement this level actually resolved to, published for the server browser. "
     "Read g_movement for what was requested.");
 
   // player movement parameters (hydrated into PlayerMoveParams by G_MovementParams)
-  g_airAcceleration = gi.AddCvar("g_air_acceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
-  g_airFriction = gi.AddCvar("g_air_friction", "0.125", 0, "Friction applied while airborne. Default 0.125; set 0 to remove air drag.");
-  g_airSpeed = gi.AddCvar("g_air_speed", "350", 0, "Wish-speed cap while airborne. Default 350.");
-  g_duckSpeed = gi.AddCvar("g_duck_speed", "140.0", 0, "Maximum ground speed while ducked. Default 140.0.");
-  g_duckStandSpeed = gi.AddCvar("g_duck_stand_speed", "200.0", 0, "Rate the view rises/falls when standing/ducking. Default 200.0.");
+  g_airAcceleration = gi.AddCvar("g_airAcceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
+  g_airFriction = gi.AddCvar("g_airFriction", "0.125", 0, "Friction applied while airborne. Default 0.125; set 0 to remove air drag.");
+  g_airSpeed = gi.AddCvar("g_airSpeed", "350", 0, "Wish-speed cap while airborne. Default 350.");
+  g_duckSpeed = gi.AddCvar("g_duckSpeed", "140.0", 0, "Maximum ground speed while ducked. Default 140.0.");
+  g_duckStandSpeed = gi.AddCvar("g_duckStandSpeed", "200.0", 0, "Rate the view rises/falls when standing/ducking. Default 200.0.");
   g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
   g_movement = gi.AddCvar("g_movement", "default", CVAR_SERVER_INFO, "The player movement to run: \"default\" defers to the level, otherwise a movement name such as \"quetoo\" or \"quake\".");
-  g_groundAcceleration = gi.AddCvar("g_ground_acceleration", "10.0", 0, "Ground acceleration. Default 10.0.");
-  g_groundAccelerationSlick = gi.AddCvar("g_ground_acceleration_slick", "4.375", 0, "Ground acceleration on slick surfaces. Default 4.375.");
-  g_groundFriction = gi.AddCvar("g_ground_friction", "6.0", 0, "Ground friction. Default 6.0.");
-  g_groundFrictionSlick = gi.AddCvar("g_ground_friction_slick", "2.0", 0, "Ground friction on slick surfaces. Default 2.0.");
-  g_groundSpeed = gi.AddCvar("g_ground_speed", "300.0", 0, "Maximum ground running speed. Default 300.0.");
-  g_jumpSpeed = gi.AddCvar("g_jump_speed", "270.0", 0, "Upward velocity imparted by a jump. Default 270.0.");
-  g_ladderAcceleration = gi.AddCvar("g_ladder_acceleration", "16.0", 0, "Acceleration while on ladders. Default 16.0.");
-  g_ladderFriction = gi.AddCvar("g_ladder_friction", "5.0", 0, "Friction while on ladders. Default 5.0.");
-  g_ladderSpeed = gi.AddCvar("g_ladder_speed", "125.0", 0, "Maximum ladder-climbing speed. Default 125.0.");
-  g_spectatorAcceleration = gi.AddCvar("g_spectator_acceleration", "2.5", 0, "Spectator free-fly acceleration. Default 2.5.");
-  g_spectatorFriction = gi.AddCvar("g_spectator_friction", "2.5", 0, "Spectator free-fly friction. Default 2.5.");
-  g_spectatorSpeed = gi.AddCvar("g_spectator_speed", "500.0", 0, "Maximum spectator free-fly speed. Default 500.0.");
-  g_stopSpeed = gi.AddCvar("g_stop_speed", "100.0", 0, "Speed below which friction is amplified to stop the player. Default 100.0.");
-  g_waterAcceleration = gi.AddCvar("g_water_acceleration", "3.0", 0, "Acceleration applied underwater. Default 3.0.");
-  g_waterFriction = gi.AddCvar("g_water_friction", "2.0", 0, "Friction applied underwater. Default 2.0.");
-  g_waterJumpSpeed = gi.AddCvar("g_water_jump_speed", "420.0", 0, "Upward velocity when jumping out of water. Default 420.0.");
-  g_waterSpeed = gi.AddCvar("g_water_speed", "140.0", 0, "Maximum swimming speed. Default 140.0.");
+  g_groundAcceleration = gi.AddCvar("g_groundAcceleration", "10.0", 0, "Ground acceleration. Default 10.0.");
+  g_groundAccelerationSlick = gi.AddCvar("g_groundAccelerationSlick", "4.375", 0, "Ground acceleration on slick surfaces. Default 4.375.");
+  g_groundFriction = gi.AddCvar("g_groundFriction", "6.0", 0, "Ground friction. Default 6.0.");
+  g_groundFrictionSlick = gi.AddCvar("g_groundFrictionSlick", "2.0", 0, "Ground friction on slick surfaces. Default 2.0.");
+  g_groundSpeed = gi.AddCvar("g_groundSpeed", "300.0", 0, "Maximum ground running speed. Default 300.0.");
+  g_jumpSpeed = gi.AddCvar("g_jumpSpeed", "270.0", 0, "Upward velocity imparted by a jump. Default 270.0.");
+  g_ladderAcceleration = gi.AddCvar("g_ladderAcceleration", "16.0", 0, "Acceleration while on ladders. Default 16.0.");
+  g_ladderFriction = gi.AddCvar("g_ladderFriction", "5.0", 0, "Friction while on ladders. Default 5.0.");
+  g_ladderSpeed = gi.AddCvar("g_ladderSpeed", "125.0", 0, "Maximum ladder-climbing speed. Default 125.0.");
+  g_spectatorAcceleration = gi.AddCvar("g_spectatorAcceleration", "2.5", 0, "Spectator free-fly acceleration. Default 2.5.");
+  g_spectatorFriction = gi.AddCvar("g_spectatorFriction", "2.5", 0, "Spectator free-fly friction. Default 2.5.");
+  g_spectatorSpeed = gi.AddCvar("g_spectatorSpeed", "500.0", 0, "Maximum spectator free-fly speed. Default 500.0.");
+  g_stopSpeed = gi.AddCvar("g_stopSpeed", "100.0", 0, "Speed below which friction is amplified to stop the player. Default 100.0.");
+  g_waterAcceleration = gi.AddCvar("g_waterAcceleration", "3.0", 0, "Acceleration applied underwater. Default 3.0.");
+  g_waterFriction = gi.AddCvar("g_waterFriction", "2.0", 0, "Friction applied underwater. Default 2.0.");
+  g_waterJumpSpeed = gi.AddCvar("g_waterJumpSpeed", "420.0", 0, "Upward velocity when jumping out of water. Default 420.0.");
+  g_waterSpeed = gi.AddCvar("g_waterSpeed", "140.0", 0, "Maximum swimming speed. Default 140.0.");
 
-  g_deathCam = gi.AddCvar("g_death_cam", "1", CVAR_SERVER_INFO, "Detach the view and watch your corpse after certain deaths (0 off, 1 selected MODs, 2 always).");
-  g_deathCamDistance = gi.AddCvar("g_death_cam_distance", "120", 0, "Distance the death camera settles behind the point of death.");
-  g_deathCamHeight = gi.AddCvar("g_death_cam_height", "80", 0, "Height the death camera settles above the point of death.");
-  g_deathCamRise = gi.AddCvar("g_death_cam_rise", "90", 0, "Initial upward speed of the death camera, in units per second.");
-  g_deathCamTime = gi.AddCvar("g_death_cam_time", "800", 0, "Time in milliseconds for the death camera to settle.");
-  g_deathCamVelocity = gi.AddCvar("g_death_cam_velocity", "0.25", 0, "Fraction of the player's velocity inherited by the death camera.");
-  g_numTeams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
+  g_deathCam = gi.AddCvar("g_deathCam", "1", CVAR_SERVER_INFO, "Detach the view and watch your corpse after certain deaths (0 off, 1 selected MODs, 2 always).");
+  g_deathCamDistance = gi.AddCvar("g_deathCamDistance", "120", 0, "Distance the death camera settles behind the point of death.");
+  g_deathCamHeight = gi.AddCvar("g_deathCamHeight", "80", 0, "Height the death camera settles above the point of death.");
+  g_deathCamRise = gi.AddCvar("g_deathCamRise", "90", 0, "Initial upward speed of the death camera, in units per second.");
+  g_deathCamTime = gi.AddCvar("g_deathCamTime", "800", 0, "Time in milliseconds for the death camera to settle.");
+  g_deathCamVelocity = gi.AddCvar("g_deathCamVelocity", "0.25", 0, "Fraction of the player's velocity inherited by the death camera.");
+  g_numTeams = gi.AddCvar("g_numTeams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
-  g_playerProjectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
-  g_respawnProtection = gi.AddCvar("g_respawn_protection", "0", 0, "Respawn protection in seconds.");
-  g_fallDamage = gi.AddCvar("g_fall_damage", "1", CVAR_SERVER_INFO, "Scales fall damage. 0 disables fall damage entirely (cf. Quake2 DF_NO_FALLING).");
-  g_selfDamage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
-  g_selfKnockback = gi.AddCvar("g_self_knockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
-  g_showAttackerStats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO, "Allows can see their attackers' health and armor when they die.");
-  g_spawnFarthest = gi.AddCvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
-  g_spectatorChat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
-  g_timeLimit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
-  g_weaponRespawnTime = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
-  g_weaponStay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
+  g_playerProjectile = gi.AddCvar("g_playerProjectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
+  g_respawnProtection = gi.AddCvar("g_respawnProtection", "0", 0, "Respawn protection in seconds.");
+  g_fallDamage = gi.AddCvar("g_fallDamage", "1", CVAR_SERVER_INFO, "Scales fall damage. 0 disables fall damage entirely (cf. Quake2 DF_NO_FALLING).");
+  g_selfDamage = gi.AddCvar("g_selfDamage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
+  g_selfKnockback = gi.AddCvar("g_selfKnockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
+  g_showAttackerStats = gi.AddCvar("g_showAttackerStats", "0", CVAR_SERVER_INFO, "Allows can see their attackers' health and armor when they die.");
+  g_spawnFarthest = gi.AddCvar("g_spawnFarthest", "1", CVAR_SERVER_INFO, NULL);
+  g_spectatorChat = gi.AddCvar("g_spectatorChat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
+  g_timeLimit = gi.AddCvar("g_timeLimit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
+  g_weaponRespawnTime = gi.AddCvar("g_weaponRespawnTime", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
+  g_weaponStay = gi.AddCvar("g_weaponStay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
 
   G_Ai_Init();
 
@@ -1283,7 +1283,7 @@ void G_Shutdown(void) {
 void G_RunTimers(void) {
   uint32_t time = gLevel.time;
 
-  if (gLevel.timeLimit) { // check time_limit
+  if (gLevel.timeLimit) { // check timeLimit
     if (time >= (uint32_t) gLevel.timeLimit) {
       gi.BroadcastPrint(PRINT_HIGH, "Time limit hit\n");
       G_EndLevel();
@@ -1308,9 +1308,9 @@ GameExport *G_LoadGame(GameImport *import) {
 
   gi = *import;
 
-  sv_minClients = gi.GetCvar("sv_min_clients");
-  sv_maxClients = gi.GetCvar("sv_max_clients");
-  sv_maxEntities = gi.GetCvar("sv_max_entities");
+  sv_minClients = gi.GetCvar("sv_minClients");
+  sv_maxClients = gi.GetCvar("sv_maxClients");
+  sv_maxEntities = gi.GetCvar("sv_maxEntities");
   sv_hostname = gi.GetCvar("sv_hostname");
 
   dedicated = gi.GetCvar("dedicated");

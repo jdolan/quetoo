@@ -199,10 +199,10 @@ static void G_NoClip_f(GameClient *cl) {
     gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
   } else if (cl->entity->moveType == MOVE_TYPE_NO_CLIP) {
     cl->entity->moveType = MOVE_TYPE_WALK;
-    gi.ClientPrint(cl, PRINT_HIGH, "no_clip disabled\n");
+    gi.ClientPrint(cl, PRINT_HIGH, "noClip disabled\n");
   } else {
     cl->entity->moveType = MOVE_TYPE_NO_CLIP;
-    gi.ClientPrint(cl, PRINT_HIGH, "no_clip enabled\n");
+    gi.ClientPrint(cl, PRINT_HIGH, "noClip enabled\n");
   }
 }
 
@@ -425,7 +425,7 @@ static char *G_ExpandVariables(GameClient *cl, const char *text) {
 }
 
 /**
- * @brief Handles the say and `say_team` chat commands, broadcasting text to other clients.
+ * @brief Handles the say and `sayTeam` chat commands, broadcasting text to other clients.
  */
 static void G_Say_f(GameClient *cl) {
   char text[MAX_STRING_CHARS];
@@ -441,10 +441,10 @@ static void G_Say_f(GameClient *cl) {
   bool team = false; // whether or not we're dealing with team chat
   bool arg0 = true; // whether or not we need to print arg0
 
-  if (!q_strcmp(gi.Argv(0), "say") || !q_strcmp(gi.Argv(0), "say_team")) {
+  if (!q_strcmp(gi.Argv(0), "say") || !q_strcmp(gi.Argv(0), "sayTeam")) {
     arg0 = false;
 
-    if (!q_strcmp(gi.Argv(0), "say_team") && gLevel.teams) {
+    if (!q_strcmp(gi.Argv(0), "sayTeam") && gLevel.teams) {
       team = true;
     }
   }
@@ -456,9 +456,9 @@ static void G_Say_f(GameClient *cl) {
   }
 
   char *s;
-  if (arg0) { // not say or say_team, just arbitrary chat from the console
+  if (arg0) { // not say or sayTeam, just arbitrary chat from the console
     s = G_ExpandVariables(cl, va("%s %s", gi.Argv(0), gi.Args()));
-  } else { // say or say_team
+  } else { // say or sayTeam
     s = G_ExpandVariables(cl, va("%s", gi.Args()));
   }
 
@@ -808,7 +808,7 @@ void G_ClientCommand(GameClient *cl) {
     G_Say_f(cl);
     return;
   }
-  if (q_strcmp(cmd, "say_team") == 0) {
+  if (q_strcmp(cmd, "sayTeam") == 0) {
     G_Say_f(cl);
     return;
   }
@@ -837,21 +837,21 @@ void G_ClientCommand(GameClient *cl) {
     G_Give_f(cl);
   } else if (q_strcmp(cmd, "god") == 0) {
     G_God_f(cl);
-  } else if (q_strcmp(cmd, "no_clip") == 0) {
+  } else if (q_strcmp(cmd, "noClip") == 0) {
     G_NoClip_f(cl);
   } else if (q_strcmp(cmd, "wave") == 0) {
     G_Wave_f(cl);
-  } else if (q_strcmp(cmd, "weapon_last") == 0) {
+  } else if (q_strcmp(cmd, "weaponLast") == 0) {
     G_WeaponLast_f(cl);
   } else if (q_strcmp(cmd, "kill") == 0) {
     G_Kill_f(cl);
-  } else if (q_strcmp(cmd, "player_list") == 0) {
+  } else if (q_strcmp(cmd, "playerList") == 0) {
     G_PlayerList_f(cl);
   } else if (q_strcmp(cmd, "chase_previous") == 0) {
     G_ClientChasePrevious(cl);
   } else if (q_strcmp(cmd, "chase_next") == 0) {
     G_ClientChaseNext(cl);
-  } else if (q_strcmp(cmd, "chase_stop") == 0) {
+  } else if (q_strcmp(cmd, "chaseStop") == 0) {
     if (cl->persistent.spectator) {
       G_ClientChaseStop(cl);
     }

@@ -97,28 +97,28 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
     return;
   }
 
-  if (m_sensitivity->modified) {
-    m_sensitivity->value = Clampf(m_sensitivity->value, 0.1, 20.0);
-    m_sensitivity->modified = false;
+  if (mSensitivity->modified) {
+    mSensitivity->value = Clampf(mSensitivity->value, 0.1, 20.0);
+    mSensitivity->modified = false;
   }
 
   cls.mouseState.oldX = cls.mouseState.x;
   cls.mouseState.oldY = cls.mouseState.y;
 
-  cls.mouseState.x = event->motion.xrel * m_sensitivity->value;
-  cls.mouseState.y = event->motion.yrel * m_sensitivity->value;
+  cls.mouseState.x = event->motion.xrel * mSensitivity->value;
+  cls.mouseState.y = event->motion.yrel * mSensitivity->value;
 
-  if (m_interpolate->value) {
+  if (mInterpolate->value) {
     cls.mouseState.x = (cls.mouseState.x + cls.mouseState.oldX) * 0.5f;
     cls.mouseState.y = (cls.mouseState.y + cls.mouseState.oldY) * 0.5f;
   }
 
   if (cls.state == CL_ACTIVE) {
-    if (m_invert->value) {
+    if (mInvert->value) {
       cls.mouseState.y = -cls.mouseState.y;
     }
 
-    cl.angles.y -= m_yaw->value * cls.mouseState.x;
-    cl.angles.x += m_pitch->value * cls.mouseState.y;
+    cl.angles.y -= mYaw->value * cls.mouseState.x;
+    cl.angles.x += mPitch->value * cls.mouseState.y;
   }
 }

@@ -211,8 +211,8 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
  * @brief Finds the closest navigation node to the given position within the specified distance.
  *
  * Uses the cached kd-tree spatial index (built lazily) to gather candidate
- * nodes within `max_distance` and selects the best one that passes the
- * `only_visible` / `prefer_level` filters. Falls back to a linear scan if
+ * nodes within `maxDistance` and selects the best one that passes the
+ * `onlyVisible` / `preferLevel` filters. Falls back to a linear scan if
  * the spatial index is unavailable.
  */
 AiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel) {
@@ -1164,7 +1164,7 @@ void G_Ai_InitNodes(void) {
   q_snprintf(filename, sizeof(filename), "maps/%s.nav", gLevel.name);
 
   if (!gi.FileExists(filename)) {
-    G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_ai_node_dev` to set up nodes.\n");
+    G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_aiNodeDev` to set up nodes.\n");
     return;
   }
 
@@ -1272,7 +1272,7 @@ void G_Ai_NodesReady(void) {
 void G_Ai_SaveNodes(void) {
 
   if (g_aiNodeDev->integer != 1) {
-    G_Warn("This command only works with `g_ai_node_dev` set to 1.\n");
+    G_Warn("This command only works with `g_aiNodeDev` set to 1.\n");
     return;
   }
 

@@ -220,13 +220,13 @@ void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
 extern Cvar *version;
-extern Cvar *build_number;
+extern Cvar *buildNumber;
 extern Cvar *build;
 extern Cvar *dedicated;
 extern Cvar *developer;
 extern Cvar *editor;
-extern Cvar *rcon_address;
-extern Cvar *rcon_password;
+extern Cvar *rconAddress;
+extern Cvar *rconPassword;
 extern Cvar *threads;
-extern Cvar *time_demo;
-extern Cvar *time_scale;
+extern Cvar *timeDemo;
+extern Cvar *timeScale;

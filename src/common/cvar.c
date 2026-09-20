@@ -51,26 +51,110 @@ static bool Cvar_InfoValidate(const char *s) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-Cvar *Cvar_Get(const char *name) {
+typedef struct {
+  const char *name;
+  Cvar *var;
+} CvarLegacyCtx;
 
-  if (cvarVars) {
-    const List *list = $(cvarVars, get, (void *) name);
-    if (list) {
-      if (list->count == 1) { // only 1 entry, return it
-        return list->head->element;
-      } else {
-        // only return the exact match
-        for (const ListNode *node = list->head; node; node = node->next) {
-          Cvar *cvar = node->element;
-          if (!q_strcmp(cvar->name, name)) {
-            return cvar;
-          }
+/**
+ * @brief Finds a variable whose name matches but for case and underscores.
+ */
+static void Cvar_Legacy_enumerate(const HashTable *table, ident key, ident value, ident data) {
+  CvarLegacyCtx *ctx = data;
+
+  if (ctx->var) {
+    return;
+  }
+
+  const List *list = value;
+  for (const ListNode *node = list->head; node; node = node->next) {
+    Cvar *cvar = node->element;
+    if (q_str_ident_equal(cvar->name, ctx->name)) {
+      ctx->var = cvar;
+      return;
+    }
+  }
+}
+
+/**
+ * @brief Resolves a variable, falling back to its older snake_case spelling.
+ * @param legacy Set to true if `name` matched only by that fallback.
+ */
+static Cvar *Cvar_Get_(const char *name, bool *legacy) {
+
+  *legacy = false;
+
+  if (cvarVars == NULL) {
+    return NULL;
+  }
+
+  const List *list = $(cvarVars, get, (void *) name);
+  if (list) {
+    if (list->count == 1) { // only 1 entry, return it
+      return list->head->element;
+    } else {
+      // only return the exact match
+      for (const ListNode *node = list->head; node; node = node->next) {
+        Cvar *cvar = node->element;
+        if (!q_strcmp(cvar->name, name)) {
+          return cvar;
         }
       }
     }
   }
 
-  return NULL;
+  CvarLegacyCtx ctx = { .name = name };
+  $(cvarVars, enumerate, Cvar_Legacy_enumerate, &ctx);
+
+  *legacy = ctx.var != NULL;
+  return ctx.var;
+}
+
+/**
+ * @brief Re-keys `var` under `name`, so that it is written back under the
+ * name the owning subsystem registers rather than the one a config used.
+ */
+static void Cvar_Rename_(Cvar *var, const char *name) {
+
+  List *list = $(cvarVars, get, (void *) var->name);
+  if (list) {
+
+    // the list owns its elements, and we are moving this one, not freeing it
+    Consumer destroy = list->destroy;
+    list->destroy = NULL;
+    $(list, remove, var);
+    list->destroy = destroy;
+
+    if (list->count == 0) {
+      $(cvarVars, remove, (void *) var->name);
+    }
+  }
+
+  Mem_Free((void *) var->name);
+  var->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CVAR), var);
+
+  void *key = (void *) var->name;
+  list = $(cvarVars, get, key);
+
+  if (!list) {
+    list = $(alloc(List), init);
+    list->destroy = Mem_Free;
+    $(cvarVars, set, key, list);
+  }
+
+  $(list, prepend, var);
+}
+
+Cvar *Cvar_Get(const char *name) {
+  bool legacy;
+
+  Cvar *var = Cvar_Get_(name, &legacy);
+
+  if (legacy) {
+    Com_Warn("%s is now %s\n", name, var->name);
+  }
+
+  return var;
 }
 
 /**
@@ -245,8 +329,17 @@ Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *
   }
 
   // update existing variables with meta data from owning subsystem
-  Cvar *var = Cvar_Get(name);
+  bool legacy;
+  Cvar *var = Cvar_Get_(name, &legacy);
   if (var) {
+
+    // a config set this under its older name before we registered it; adopt
+    // the value but re-key it, so that it is written back under this name
+    if (legacy) {
+      Com_Warn("%s is now %s\n", var->name, name);
+      Cvar_Rename_(var, name);
+    }
+
     if (value) {
       if (var->defaultString) {
         Mem_Free((void *) var->defaultString);
@@ -783,7 +876,7 @@ void Cvar_Init(void) {
 
   Cmd_SetAutocomplete(toggleCmd, Cvar_Set_Autocomplete_f);
 
-  Cmd_Add("cvar_list", Cvar_List_f, 0, NULL);
+  Cmd_Add("cvarList", Cvar_List_f, 0, NULL);
 
   for (int32_t i = 1; i < Com_Argc(); i++) {
     const char *s = Com_Argv(i);
@@ -817,5 +910,5 @@ void Cvar_Shutdown(void) {
   Cmd_Remove("sets");
   Cmd_Remove("setu");
   Cmd_Remove("toggle");
-  Cmd_Remove("cvar_list");
+  Cmd_Remove("cvarList");
 }

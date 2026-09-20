@@ -41,15 +41,15 @@ Quetoo quetoo;
 static Cvar *verbose;
 
 Cvar *build;
-Cvar *build_number;
+Cvar *buildNumber;
 Cvar *dedicated;
 Cvar *developer;
 Cvar *editor;
-Cvar *rcon_address;
-Cvar *rcon_password;
+Cvar *rconAddress;
+Cvar *rconPassword;
 Cvar *threads;
-Cvar *time_demo;
-Cvar *time_scale;
+Cvar *timeDemo;
+Cvar *timeScale;
 Cvar *version;
 
 static void Debug(const DebugFlags debug, const char *msg);
@@ -376,12 +376,12 @@ static void Init(void) {
 
   Cmd_Init();
 
-  Cmd_Add("com_error", Com_Error_f, 0, "Trigger a test error: com_error [drop|fatal]");
+  Cmd_Add("comError", Com_Error_f, 0, "Trigger a test error: comError [drop|fatal]");
 
   Cvar_Init();
 
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-  build_number = Cvar_Add("build_number", BUILD_NUMBER, CVAR_NO_SET, NULL);
+  buildNumber = Cvar_Add("buildNumber", BUILD_NUMBER, CVAR_NO_SET, NULL);
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
 
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
@@ -392,16 +392,16 @@ static void Init(void) {
   developer = Cvar_Add("developer", "0", CVAR_DEVELOPER, "Enables shader debugging tools (developer tool)");
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
-  rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
-  rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
+  rconAddress = Cvar_Add("rconAddress", "", 0, "The remote console server address (defaults to current server)");
+  rconPassword = Cvar_Add("rconPassword", "", CVAR_ARCHIVE, "The remote console password. "
                            "Set this on your server to enable remote administration via the in-game console. "
                            "Set this on your client to authenticate with your server.");
 
   threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
   threads->modified = false;
 
-  time_demo = Cvar_Add("time_demo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
-  time_scale = Cvar_Add("time_scale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
+  timeDemo = Cvar_Add("timeDemo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
+  timeScale = Cvar_Add("timeScale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
@@ -425,7 +425,7 @@ static void Init(void) {
 
   Cmd *gameCmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
   Cmd_SetAutocomplete(gameCmd, Game_Autocomplete_f);
-  Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
+  Cmd_Add("memStats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
   Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
@@ -459,7 +459,7 @@ static void Init(void) {
 
   // dedicated server, but no explicit +map specified, begin maps.lst
   if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
-    Cbuf_AddText("next_map\n");
+    Cbuf_AddText("nextMap\n");
     Cbuf_Execute();
   }
 }
@@ -602,14 +602,14 @@ int32_t main(int32_t argc, char *argv[]) {
       continue;
     }
 
-    if (time_scale->modified) {
-      time_scale->modified = false;
-      time_scale->value = Clampf(time_scale->value, 0.25, 3.0);
+    if (timeScale->modified) {
+      timeScale->modified = false;
+      timeScale->value = Clampf(timeScale->value, 0.25, 3.0);
     }
 
     do {
       quetoo.ticks = (uint32_t) SDL_GetTicks();
-      msec = (quetoo.ticks - old_time) * time_scale->value;
+      msec = (quetoo.ticks - old_time) * timeScale->value;
     } while (msec < 1);
 
     Frame(msec);

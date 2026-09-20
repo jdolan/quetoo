@@ -83,7 +83,7 @@ typedef struct {
 
 /**
  * @return The name of the given hook style, as the `g_hookStyle` cvar and a
- * client's `hook_style` user info spell it.
+ * client's `hookStyle` user info spell it.
  * @details The game parses these and the client game offers them, so they are
  * declared once here rather than spelled out in a menu and a parser that must
  * agree by inspection.

@@ -64,7 +64,7 @@ static bool G_Intermission_Offers(const char *name) {
 
 /**
  * @brief Offers `name`, if it is a map this server can actually serve and is not already
- * offered. A rotation may name maps that were never installed; `next_map` does not check,
+ * offered. A rotation may name maps that were never installed; `nextMap` does not check,
  * but a vote would let clients elect one.
  */
 static void G_Intermission_Offer(const char *name, int32_t index) {
@@ -124,7 +124,7 @@ static void G_Intermission_SelectMaps(void) {
     // -1 when this level did not come from the rotation, which starts us at its head
     const int32_t current = gi.MapIndex();
 
-    if (gi.GetCvarInteger("sv_map_list_shuffle")) {
+    if (gi.GetCvarInteger("sv_mapListShuffle")) {
       // a shuffled rotation has no next, so offer a sample of it instead; the ordered
       // pass below tops up whatever the draws duplicated
       for (int32_t i = 0; i < length && module.numMaps < wanted; i++) {
@@ -148,7 +148,7 @@ static void G_Intermission_SelectMaps(void) {
 
   if (module.numMaps == 0) {
     // no rotation, or nothing in it we can serve: the server replays this map, which
-    // is what `next_map` falls back to on its own, so we leave it to do that
+    // is what `nextMap` falls back to on its own, so we leave it to do that
     module.indices[0] = -1;
     q_strlcpy(module.maps[0], gLevel.name, MAX_QPATH);
     module.numMaps = 1;
@@ -243,7 +243,7 @@ static void G_Intermission_Begin(void) {
  * @brief Closes the intermission, naming the map the server should serve next.
  * @details The winner is the candidate with the most ballots, ties going to the one the
  * rotation would have played anyway. This runs in the frame that ends the intermission,
- * before the queued `next_map` is executed.
+ * before the queued `nextMap` is executed.
  */
 static void G_Intermission_End(void) {
 
@@ -286,7 +286,7 @@ static void G_Intermission_Cast(GameClient *cl, int32_t map) {
   }
 
   if (map < 0 || map >= module.numMaps) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Usage: vote_map 1 - %d\n", module.numMaps);
+    gi.ClientPrint(cl, PRINT_HIGH, "Usage: voteMap 1 - %d\n", module.numMaps);
     return;
   }
 
@@ -306,16 +306,16 @@ static void G_Intermission_Cast(GameClient *cl, int32_t map) {
 }
 
 /**
- * @brief `vote_map <n>`, where `n` is the candidate as the client game numbers them.
+ * @brief `voteMap <n>`, where `n` is the candidate as the client game numbers them.
  */
 static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) {
 
-  if (q_strcmp(cmd, "vote_map")) {
+  if (q_strcmp(cmd, "voteMap")) {
     return previous.HandleClientCommand(cl, cmd);
   }
 
   if (gi.Argc() < 2) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Usage: vote_map <number>\n");
+    gi.ClientPrint(cl, PRINT_HIGH, "Usage: voteMap <number>\n");
     return true;
   }
 
@@ -388,7 +388,7 @@ static void G_ConfigureLevel_Intermission(void) {
  */
 void G_Intermission_Init(void) {
 
-  g_voteNextMap = gi.AddCvar("g_vote_next_map", "1", CVAR_SERVER_INFO,
+  g_voteNextMap = gi.AddCvar("g_voteNextMap", "1", CVAR_SERVER_INFO,
                                "Whether clients vote for the next map during the intermission.");
 
   if (!installed) {

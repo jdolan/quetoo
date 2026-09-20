@@ -137,7 +137,7 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
  */
 static void selectOwnRow(LeaderboardViewController *this) {
 
-  const char *guidHash = cgi.GetCvarString("guid_hash");
+  const char *guidHash = cgi.GetCvarString("guidHash");
   if (q_strlen(guidHash) == 0) {
     return;
   }
@@ -183,7 +183,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $((View *) cell, addClassName, "bronze");
   }
 
-  const char *guidHash = cgi.GetCvarString("guid_hash");
+  const char *guidHash = cgi.GetCvarString("guidHash");
   if (q_strcmp(entry->guid, guidHash) == 0) {
     $((View *) cell, addClassName, "me");
   }

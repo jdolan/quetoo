@@ -162,7 +162,7 @@ static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
   if (++module.silentFrames == (1000 / VOICE_FRAME_MILLIS) * 3) {
     Com_Warn("Capture device yielded only silence for 3 seconds.\n"
              "Check that microphone access is granted, and that the device is not muted.\n"
-             "Run s_capture_device_list and set s_capture_device to choose another.\n");
+             "Run s_captureDeviceList and set s_captureDevice to choose another.\n");
 
     module.captureSilent = true;
   }
@@ -661,11 +661,11 @@ void S_InitVoice(void) {
   memset(&module, 0, sizeof(module));
 
   s_voice = Cvar_Add("s_voice", "1", CVAR_ARCHIVE, "Enables voice chat.");
-  s_voiceBitrate = Cvar_Add("s_voice_bitrate", "16000", CVAR_ARCHIVE, "Voice chat bitrate, in bits per second.");
-  s_captureGain = Cvar_Add("s_capture_gain", "1", CVAR_ARCHIVE, "Microphone input gain.");
-  s_captureNormalize = Cvar_Add("s_capture_normalize", "1", CVAR_ARCHIVE, "Automatically raise a quiet microphone to a usable level.");
-  s_voiceLoopback = Cvar_Add("s_voice_loopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
-  s_voiceVolume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
+  s_voiceBitrate = Cvar_Add("s_voiceBitrate", "16000", CVAR_ARCHIVE, "Voice chat bitrate, in bits per second.");
+  s_captureGain = Cvar_Add("s_captureGain", "1", CVAR_ARCHIVE, "Microphone input gain.");
+  s_captureNormalize = Cvar_Add("s_captureNormalize", "1", CVAR_ARCHIVE, "Automatically raise a quiet microphone to a usable level.");
+  s_voiceLoopback = Cvar_Add("s_voiceLoopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
+  s_voiceVolume = Cvar_Add("s_voiceVolume", "1", CVAR_ARCHIVE, "Voice chat volume.");
 
   module.mutex = SDL_CreateMutex();
 

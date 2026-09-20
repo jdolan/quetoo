@@ -45,7 +45,7 @@ static void didEndEditing(TextView *textView) {
     const bool team = cgHudState.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
 
     char command[MAX_PRINT_MSG];
-    q_snprintf(command, sizeof(command), "%s %.*s^7\n", team ? "say_team" : "say", MAX_PRINT_MSG - 32, line);
+    q_snprintf(command, sizeof(command), "%s %.*s^7\n", team ? "sayTeam" : "say", MAX_PRINT_MSG - 32, line);
 
     cgi.Cbuf(command);
   }
@@ -96,7 +96,7 @@ static void beginTyping(ChatView *self) {
 
   if (cgHudState.chat.team) {
     $(view, addClassName, "team");
-    $(input, setDefaultText, "say_team");
+    $(input, setDefaultText, "sayTeam");
   } else {
     $(view, removeClassName, "team");
     $(input, setDefaultText, "say");

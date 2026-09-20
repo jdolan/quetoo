@@ -190,7 +190,7 @@ static void Ms_DiscordNotify(const MasterServer *server, const char *playerName,
 /**
  * @brief Parses a status string from a server heartbeat, updates the server's
  * player list, and fires Discord notifications for any new players detected.
- * On first call (num_clients == -1), records current state without notifying.
+ * On first call (numClients == -1), records current state without notifying.
  */
 static void Ms_ParseStatusString(MasterServer *server, const char *status) {
 
@@ -205,7 +205,7 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
   }
 
   server->maxClients = 0;
-  if (Ms_InfoValue(status, "sv_max_clients", val, sizeof(val))) {
+  if (Ms_InfoValue(status, "sv_maxClients", val, sizeof(val))) {
     server->maxClients = atoi(val);
   }
 

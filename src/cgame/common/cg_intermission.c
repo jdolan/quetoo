@@ -34,7 +34,7 @@ static struct {
 static uint32_t cgNextMapGeneration;
 
 /**
- * @brief Reads `CS_NEXT_MAP` into `cgState.next_map`.
+ * @brief Reads `CS_NEXT_MAP` into `cgState.nextMap`.
  */
 static bool Cg_ParseConfigString_Intermission(int32_t index) {
 
@@ -103,7 +103,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
  * @see cg_intermission.h
  */
 void Cg_Intermission_Vote(int32_t map) {
-  cgi.Cbuf(va("vote_map %d\n", map + 1));
+  cgi.Cbuf(va("voteMap %d\n", map + 1));
 }
 
 /**
@@ -152,7 +152,7 @@ static void Cg_StateDidClear_Intermission(void) {
 void Cg_Intermission_Init(void) {
   static bool installed;
 
-  cgi.AddCmd("vote_map", NULL, CMD_CGAME, "Vote for a map during the intermission: vote_map <number>");
+  cgi.AddCmd("voteMap", NULL, CMD_CGAME, "Vote for a map during the intermission: voteMap <number>");
 
   if (installed) {
     return;

@@ -33,7 +33,7 @@
 
 /**
  * @brief The name this module answers to: its directory under lib/quetoo, and
- * the game_name it advertises.
+ * the gameName it advertises.
  */
 #define GAME_NAME "lithium"
 
@@ -317,7 +317,7 @@ typedef enum {
 #define EF_ROTATE          (EF_GAME << 0) // rotate on z
 #define EF_BOB             (EF_GAME << 1) // bob on z
 #define EF_INACTIVE        (EF_GAME << 2) // inactive icon for when input is not going to game
-#define EF_BEAM            (EF_GAME << 3) // overloads old_origin for endpoint
+#define EF_BEAM            (EF_GAME << 3) // overloads oldOrigin for endpoint
 #define EF_CORPSE          (EF_GAME << 4) // to differentiate own corpse from self
 #define EF_RESPAWN         (EF_GAME << 5) // yellow shell
 #define EF_QUAD            (EF_GAME << 6) // blue-green shell

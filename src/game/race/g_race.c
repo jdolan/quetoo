@@ -630,11 +630,11 @@ static void G_Race_NoClip_f(GameClient *cl) {
 
   if (cl->entity->moveType == MOVE_TYPE_NO_CLIP) {
     cl->entity->moveType = MOVE_TYPE_WALK;
-    gi.ClientPrint(cl, PRINT_HIGH, "no_clip disabled\n");
+    gi.ClientPrint(cl, PRINT_HIGH, "noClip disabled\n");
   } else {
     cl->entity->moveType = MOVE_TYPE_NO_CLIP;
     cl->raceRun.invalid |= RACE_INVALID_NOCLIP;
-    gi.ClientPrint(cl, PRINT_HIGH, "no_clip enabled\n");
+    gi.ClientPrint(cl, PRINT_HIGH, "noClip enabled\n");
   }
 }
 
@@ -821,7 +821,7 @@ static bool G_HandleClientCommand_Race(GameClient *cl, const char *cmd) {
     G_Race_Store_f(cl);
   } else if (!q_strcmp(cmd, "kill")) {
     G_Race_Kill_f(cl);
-  } else if (!q_strcmp(cmd, "no_clip")) {
+  } else if (!q_strcmp(cmd, "noClip")) {
     G_Race_NoClip_f(cl);
   } else if (!q_strcmp(cmd, "ghost")) {
     G_Race_Ghost_f(cl);

@@ -133,7 +133,7 @@ static void fetchStatsComplete(int32_t status, Data *data, void *userData) {
  */
 static void fetchStats(StatsViewController *this) {
 
-  const char *guidHash = cgi.GetCvarString("guid_hash");
+  const char *guidHash = cgi.GetCvarString("guidHash");
   if (q_strlen(guidHash) == 0) {
     return;
   }

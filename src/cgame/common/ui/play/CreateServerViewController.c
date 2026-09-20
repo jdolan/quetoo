@@ -36,7 +36,7 @@
 static void botsDidEndEditing(TextView *textView) {
 
   const String *string = (String *) textView->attributedText;
-  cgi.SetCvarInteger("sv_min_clients", atoi(string->chars) + 1);
+  cgi.SetCvarInteger("sv_minClients", atoi(string->chars) + 1);
 }
 
 /**
@@ -76,8 +76,8 @@ static void createServer(Button *button) {
 
       cgi.CloseFile(file);
 
-      cgi.SetCvarString("sv_map_list", MAP_LIST_UI);
-      cgi.Cbuf("next_map");
+      cgi.SetCvarString("sv_mapList", MAP_LIST_UI);
+      cgi.Cbuf("nextMap");
     } else {
       Cg_Warn("Failed to create %s\n", MAP_LIST_UI);
     }
@@ -127,7 +127,7 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
 
-  const Cvar *svMinClients = cgi.GetCvar("sv_min_clients");
+  const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
   const int32_t bots = svMinClients ? Maxi(0, svMinClients->integer - 1) : 0;
   $(this->bots, setDefaultText, va("%d", bots));
 

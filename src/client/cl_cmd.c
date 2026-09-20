@@ -121,7 +121,7 @@ void Cl_WriteEntityInfoCommand(int16_t number, const CmEntity *entity) {
 /**
  * @brief Writes one pending voice frame, if any, to the outgoing packet.
  * @details The channel is carried opaquely: the server asks the game who may hear it, exactly as
- * the game decides who receives a say or a say_team.
+ * the game decides who receives a say or a sayTeam.
  */
 static void Cl_WriteVoiceCommand(MemBuf *buf) {
 

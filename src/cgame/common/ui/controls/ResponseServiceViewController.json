@@ -44,7 +44,7 @@
                           "class": "CvarSlider",
                           "min": 0.125,
                           "max": 6,
-                          "var": "m_sensitivity"
+                          "var": "mSensitivity"
                         }
                       },
                       {
@@ -56,7 +56,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "m_invert"
+                          "var": "mInvert"
                         }
                       },
                       {
@@ -68,7 +68,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "m_interpolate"
+                          "var": "mInterpolate"
                         }
                       }
                     ]
@@ -107,7 +107,7 @@
                           "min": 30,
                           "max": 80,
                           "step": 1,
-                          "var": "cg_fov_zoom"
+                          "var": "cg_fovZoom"
                         }
                       },
                       {
@@ -122,7 +122,7 @@
                           "min": 0,
                           "max": 2,
                           "step": 0.1,
-                          "var": "cg_fov_interpolate"
+                          "var": "cg_fovInterpolate"
                         }
                       },
                       {
@@ -136,7 +136,7 @@
                           "class": "CvarSlider",
                           "min": 0.125,
                           "max": 6,
-                          "var": "m_sensitivity_zoom"
+                          "var": "mSensitivityZoom"
                         }
                       }
                     ]
@@ -170,7 +170,7 @@
                         "control": {
                           "class": "CvarSelect",
                           "identifier": "crosshairSelect",
-                          "var": "cg_draw_crosshair"
+                          "var": "cg_drawCrosshair"
                         }
                       },
                       {
@@ -198,7 +198,7 @@
                           "min": 0.1,
                           "max": 1,
                           "step": 0.05,
-                          "var": "cg_draw_crosshair_alpha"
+                          "var": "cg_drawCrosshairAlpha"
                         }
                       },
                       {
@@ -214,7 +214,7 @@
                           "min": 0.1,
                           "max": 3,
                           "step": 0.05,
-                          "var": "cg_draw_crosshair_scale"
+                          "var": "cg_drawCrosshairScale"
                         }
                       },
                       {
@@ -229,7 +229,7 @@
                           "min": 0,
                           "max": 1,
                           "step": 0.1,
-                          "var": "cg_draw_crosshair_pulse"
+                          "var": "cg_drawCrosshairPulse"
                         }
                       },
                       {
@@ -242,7 +242,7 @@
                         "control": {
                           "class": "CvarSelect",
                           "identifier": "crosshairHealth",
-                          "var": "cg_draw_crosshair_health"
+                          "var": "cg_drawCrosshairHealth"
                         }
                       }
                     ]
@@ -305,7 +305,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "cg_message_mode"
+                          "bind": "cg_messageMode"
                         }
                       },
                       {
@@ -317,7 +317,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "cg_message_mode_2"
+                          "bind": "cg_messageMode2"
                         }
                       },
                       {

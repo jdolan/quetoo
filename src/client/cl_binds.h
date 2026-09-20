@@ -35,28 +35,28 @@ static const char *DEFAULT_BINDS =
     "bind g use hand grenades\n"
 
     "bind w +forward\n"
-    "bind a +move_left\n"
+    "bind a +moveLeft\n"
     "bind s +back\n"
-    "bind d +move_right\n"
-    "bind space +move_up\n"
-    "bind c +move_down\n"
+    "bind d +moveRight\n"
+    "bind space +moveUp\n"
+    "bind c +moveDown\n"
     "bind left +left\n"
     "bind right +right\n"
-    "bind home center_view\n"
+    "bind home centerView\n"
     "bind \"left shift\" +speed\n"
     "bind e use\n"
 
     "bind v +voice\n"
 
-    "bind t cg_message_mode\n"
-    "bind return cg_message_mode\n"
-    "bind y cg_message_mode_2\n"
+    "bind t cg_messageMode\n"
+    "bind return cg_messageMode\n"
+    "bind y cg_messageMode2\n"
 
     "bind \"mouse 1\" +attack\n"
     "bind \"mouse 2\" +hook\n"
-    "bind \"mouse 3\" +move_up\n"
-    "bind \"mouse wheel up\" cg_weapon_previous\n"
-    "bind \"mouse wheel down\" cg_weapon_next\n"
+    "bind \"mouse 3\" +moveUp\n"
+    "bind \"mouse wheel up\" cg_weaponPrevious\n"
+    "bind \"mouse wheel down\" cg_weaponNext\n"
 
     // score
     "bind tab +score\n"
@@ -64,14 +64,14 @@ static const char *DEFAULT_BINDS =
     // zoom alias for nubs
     "alias +ZOOM \""
     "set f $cg_fov;"
-    "set cg_fov $cg_fov_zoom;"
-    "set s $m_sensitivity;"
-    "set m_sensitivity $m_sensitivity_zoom;"
+    "set cg_fov $cg_fovZoom;"
+    "set s $mSensitivity;"
+    "set mSensitivity $mSensitivityZoom;"
     "\"\n"
 
     "alias -ZOOM \""
     "set cg_fov $f;"
-    "set m_sensitivity $s;"
+    "set mSensitivity $s;"
     "\"\n"
 
     "bind \"left alt\" +ZOOM\n"
@@ -83,5 +83,5 @@ static const char *DEFAULT_BINDS =
     "exec quetoo.cfg\n"
 
     // bind these last in case somebody is using a Quake 2 config
-    "bind ` cl_toggle_console\n"
-    "bind f8 cl_toggle_console\n";
+    "bind ` cl_toggleConsole\n"
+    "bind f8 cl_toggleConsole\n";

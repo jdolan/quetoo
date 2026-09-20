@@ -120,7 +120,7 @@ void Sv_SpawnEntities(const char *name, const CmEntity *props) {
     const int32_t numEntities = Cm_Bsp()->numEntities;
 
     if (numEntities > sv_maxEntities->integer) {
-      Com_Error(ERROR_DROP, "Map has %d entities but sv_max_entities is %d\n",
+      Com_Error(ERROR_DROP, "Map has %d entities but sv_maxEntities is %d\n",
         numEntities, sv_maxEntities->integer);
     }
 

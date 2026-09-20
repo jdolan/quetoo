@@ -1708,7 +1708,7 @@ static const G_Ai_GoalFunc gAiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
  * @brief Validates an `AI_GOAL_ENTITY` goal's cached `entity.ent` pointer
  * against the canonical `ge.entities` table, re-resolving by slot number
  * rather than trusting the cached pointer directly. Clears the goal if the
- * target has been freed, reused (spawn_id mismatch), or if the cached pointer
+ * target has been freed, reused (spawnId mismatch), or if the cached pointer
  * no longer matches the canonical entity (which would indicate corruption);
  * otherwise refreshes `entity.ent` from the canonical table.
  * @details When the goal is found to be invalid, logs a warning and a
@@ -2025,8 +2025,8 @@ void G_Ai_OffsetNodes_f(void);
  */
 void G_Ai_Init(void) {
 
-  g_aiNoTarget = gi.AddCvar("g_ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
-  g_aiNodeDev = gi.AddCvar("g_ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
+  g_aiNoTarget = gi.AddCvar("g_aiNoTarget", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
+  g_aiNodeDev = gi.AddCvar("g_aiNodeDev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
   
   if (g_aiNodeDev->integer) {
     gi.SetCvarInteger("g_cheats", 1);
@@ -2034,11 +2034,11 @@ void G_Ai_Init(void) {
 
   gi.SetConfigString(CS_NAV_EDIT, g_aiNodeDev->string);
 
-  gi.AddCmd("g_ai_save_nodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
-  gi.AddCmd("g_ai_delete_node", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
-  gi.AddCmd("g_ai_delete_nodes", G_Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");
-  gi.AddCmd("g_ai_test_path", G_Ai_TestPath_f, CMD_AI, "Save current node data");
-  gi.AddCmd("g_ai_offset_nodes", G_Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
+  gi.AddCmd("g_aiSaveNodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
+  gi.AddCmd("g_aiDeleteNode", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
+  gi.AddCmd("g_aiDeleteNodes", G_Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");
+  gi.AddCmd("g_aiTestPath", G_Ai_TestPath_f, CMD_AI, "Save current node data");
+  gi.AddCmd("g_aiOffsetNodes", G_Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
 
   G_Ai_InitSkins();
 }

@@ -228,7 +228,7 @@ static void save(MeshViewController *self) {
     return;
   }
 
-  cgi.Cbuf(va("r_save_mesh_configs %s", self->model->media.name));
+  cgi.Cbuf(va("r_saveMeshConfigs %s", self->model->media.name));
 }
 
 #pragma mark - Class lifecycle

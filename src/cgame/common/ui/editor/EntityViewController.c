@@ -535,8 +535,8 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
-  editor_gridSize = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
-  editor_selectDist = cgi.AddCvar("editor_select_dist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
+  editor_gridSize = cgi.AddCvar("editorGridSize", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_selectDist = cgi.AddCvar("editorSelectDist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
 }
 
 /**

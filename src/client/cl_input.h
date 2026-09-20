@@ -25,12 +25,12 @@
 
 #if defined(__CL_LOCAL_H__)
 
-extern Cvar *m_sensitivity;
+extern Cvar *mSensitivity;
 extern Cvar *m_sensitivityZoom;
-extern Cvar *m_interpolate;
-extern Cvar *m_invert;
-extern Cvar *m_pitch;
-extern Cvar *m_yaw;
+extern Cvar *mInterpolate;
+extern Cvar *mInvert;
+extern Cvar *mPitch;
+extern Cvar *mYaw;
 
 void Cl_ClearInput(void);
 void Cl_InitInput(void);

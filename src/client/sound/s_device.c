@@ -163,7 +163,7 @@ static void S_CheckSharedDevice(const char *capture) {
   if (playback && capture && !q_strcmp(playback, capture)) {
     Com_Warn("Microphone and speakers are both \"%s\".\n"
              "If this is a Bluetooth headset, audio quality will drop while you transmit.\n"
-             "Run s_capture_device_list and set s_capture_device to a separate microphone to avoid it.\n",
+             "Run s_captureDeviceList and set s_captureDevice to a separate microphone to avoid it.\n",
              capture);
 
     module.warnedSharedDevice = true;
@@ -303,9 +303,9 @@ int32_t S_ReadCapture(void *data, int32_t len) {
  */
 void S_InitDevices(void) {
 
-  s_bufferFrames = Cvar_Add("s_buffer_frames", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Playback buffer size in sample frames, or 0 to let SDL choose. Raise this if audio crackles.");
-  s_captureDevice = Cvar_Add("s_capture_device", "", CVAR_ARCHIVE, "The microphone to capture from, or empty for the system default.");
+  s_bufferFrames = Cvar_Add("s_bufferFrames", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Playback buffer size in sample frames, or 0 to let SDL choose. Raise this if audio crackles.");
+  s_captureDevice = Cvar_Add("s_captureDevice", "", CVAR_ARCHIVE, "The microphone to capture from, or empty for the system default.");
 
-  Cmd_Add("s_capture_device_list", S_CaptureDeviceList_f, CMD_SOUND, "List the available microphones.");
-  Cmd_Add("s_playback_device_list", S_PlaybackDeviceList_f, CMD_SOUND, "List the available speakers.");
+  Cmd_Add("s_captureDeviceList", S_CaptureDeviceList_f, CMD_SOUND, "List the available microphones.");
+  Cmd_Add("s_playbackDeviceList", S_PlaybackDeviceList_f, CMD_SOUND, "List the available speakers.");
 }

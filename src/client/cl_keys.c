@@ -249,7 +249,7 @@ static void Cl_KeyGame(const SDL_Event *event) {
 
   // A demo no longer merely steers itself: the camera modes drive themselves from movement
   // input, so button commands are let through. The transport keys are the exception, because
-  // they collide with movement binds outright - space is bound to +move_up, left and right to
+  // they collide with movement binds outright - space is bound to +moveUp, left and right to
   // +left and +right, so stepping a frame would also turn the view
   if (cl.demoServer && bind[0] == '+') {
     switch (key) {
@@ -381,7 +381,7 @@ static void Cl_Unbind_f(void) {
 }
 
 /**
- * @brief Handles the `unbind_all` console command, clearing all key bindings.
+ * @brief Handles the `unbindAll` console command, clearing all key bindings.
  */
 static void Cl_UnbindAll_f(void) {
 
@@ -457,6 +457,23 @@ static void Cl_Bind_f(void) {
     return;
   }
 
+  // store the command under its current name, so that a bind written with an
+  // older one is migrated the next time the configuration is saved
+  char *args = q_strchr(cmd, ' ');
+  if (args) {
+    *args = '\0';
+  }
+
+  const Cmd *bound = Cmd_Get(cmd);
+  if (bound) {
+    q_strlcpy(cmd, bound->name, sizeof(cmd));
+  }
+
+  if (args) {
+    q_strlcat(cmd, " ", sizeof(cmd));
+    q_strlcat(cmd, args + 1, sizeof(cmd));
+  }
+
   Cl_Bind(k, cmd);
 }
 
@@ -473,7 +490,7 @@ void Cl_WriteBindings(File *f) {
 }
 
 /**
- * @brief Handles the `bind_list` console command, printing all active key bindings.
+ * @brief Handles the `bindList` console command, printing all active key bindings.
  */
 static void Cl_BindList_f(void) {
 
@@ -518,8 +535,8 @@ void Cl_InitKeys(void) {
   Cmd_SetAutocomplete(bindCmd, Cl_Bind_Autocomplete_f);
   Cmd_SetAutocomplete(unbindCmd, Cl_Bind_Autocomplete_f);
 
-  Cmd_Add("unbind_all", Cl_UnbindAll_f, CMD_CLIENT, NULL);
-  Cmd_Add("bind_list", Cl_BindList_f, CMD_CLIENT, NULL);
+  Cmd_Add("unbindAll", Cl_UnbindAll_f, CMD_CLIENT, NULL);
+  Cmd_Add("bindList", Cl_BindList_f, CMD_CLIENT, NULL);
 
   Cbuf_AddText(DEFAULT_BINDS);
   Cbuf_Execute();

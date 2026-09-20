@@ -243,7 +243,7 @@ typedef struct GameImport {
   /**
    * @brief Captures a backtrace of the calling thread's stack, for diagnostic logging.
    * @param start How many innermost frames to skip (e.g. `1` to skip this call itself).
-   * @param max_count The maximum number of frames to include.
+   * @param maxCount The maximum number of frames to include.
    * @return A heap-allocated string describing the stack; caller must `free()` it.
    */
   char *(*Backtrace)(uint32_t start, uint32_t maxCount);
@@ -592,7 +592,7 @@ typedef struct GameImport {
   int32_t (*MapIndex)(void);
 
   /**
-   * @brief Chooses the entry of `MapList` that the next `next_map` serves, in place of
+   * @brief Chooses the entry of `MapList` that the next `nextMap` serves, in place of
    * the rotation's own pick.
    * @param index The index in `MapList`.
    * @remarks An index rather than a name, so that a rotation naming the same map twice

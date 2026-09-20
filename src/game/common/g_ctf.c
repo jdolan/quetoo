@@ -486,7 +486,7 @@ void G_Ctf_Init(void) {
     G_InitMedia = G_InitMedia_Ctf;
   }
 
-  g_captureLimit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
+  g_captureLimit = gi.AddCvar("g_captureLimit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
 
   g_captureLimit->modified = false;
 }

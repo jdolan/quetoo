@@ -685,8 +685,8 @@ static void initialize(Class *clazz) {
 
   ((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;
 
-  cg_joinServerHideEmpty = cgi.AddCvar("cg_join_server_hide_empty", "0", CVAR_ARCHIVE, NULL);
-  cg_joinServerHideBots = cgi.AddCvar("cg_join_server_hide_bots", "0", CVAR_ARCHIVE, NULL);
+  cg_joinServerHideEmpty = cgi.AddCvar("cg_joinServerHideEmpty", "0", CVAR_ARCHIVE, NULL);
+  cg_joinServerHideBots = cgi.AddCvar("cg_joinServerHideBots", "0", CVAR_ARCHIVE, NULL);
 }
 
 /**

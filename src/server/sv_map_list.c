@@ -88,7 +88,7 @@ int32_t Sv_MapIndex(void) {
 }
 
 /**
- * @brief Chooses the rotation index the next `next_map` serves, in place of the
+ * @brief Chooses the rotation index the next `nextMap` serves, in place of the
  * rotation's own pick.
  * @remarks An index rather than a name, so that a list naming the same map twice
  * serves, and resumes from, the occurrence that was actually chosen. The override is

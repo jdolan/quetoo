@@ -86,7 +86,7 @@ typedef struct {
   int32_t numEntities;
 
   /**
-   * @brief Non-masked index into `cl.entity_states`.
+   * @brief Non-masked index into `cl.entityStates`.
    */
   uint32_t entityState;
 
@@ -129,7 +129,7 @@ typedef struct {
   int32_t oldFrame;
 
   /**
-   * @brief The interpolation fraction between `old_frame` and frame.
+   * @brief The interpolation fraction between `oldFrame` and frame.
    */
   float lerp;
 
@@ -391,7 +391,7 @@ typedef struct {
   uint32_t time;
 
   /**
-   * @brief Unclamped time in milliseconds since launch. Affected by `time_scale`; useful for effect durations.
+   * @brief Unclamped time in milliseconds since launch. Affected by `timeScale`; useful for effect durations.
    */
   uint32_t unclampedTime;
 
@@ -401,7 +401,7 @@ typedef struct {
   uint32_t voiceTime[MAX_CLIENTS];
 
   /**
-   * @brief Unclamped time in milliseconds since the player connected. Not affected by `time_scale`.
+   * @brief Unclamped time in milliseconds since the player connected. Not affected by `timeScale`.
    */
   uint32_t ticks;
 
@@ -442,22 +442,22 @@ typedef struct {
   CmBspModel *cmModels[MAX_MODELS];
 
   /**
-   * @brief Renderer models resolved from `config_strings`.
+   * @brief Renderer models resolved from `configStrings`.
    */
   RenderModel *models[MAX_MODELS];
 
   /**
-   * @brief Sound samples resolved from `config_strings`.
+   * @brief Sound samples resolved from `configStrings`.
    */
   SoundSample *sounds[MAX_SOUNDS];
 
   /**
-   * @brief Music tracks resolved from `config_strings`.
+   * @brief Music tracks resolved from `configStrings`.
    */
   SoundMusic *musics[MAX_MUSICS];
 
   /**
-   * @brief Index into `config_strings` used to verify file presence or initiate downloads.
+   * @brief Index into `configStrings` used to verify file presence or initiate downloads.
    */
   int32_t precacheCheck;
 } Client;
@@ -716,10 +716,10 @@ typedef struct {
 
   /**
    * @brief The (absolute, server-since-map-load) frame number of the first frame written this
-   * recording, or `-1` before it's known. Every frame_num persisted to the file - the per-message
+   * recording, or `-1` before it's known. Every frameNum persisted to the file - the per-message
    * prefix, the synthesized SV_CMD_FRAME's own field, and the keyframe index - is written
    * relative to this, so the file's numbering always starts at 0 regardless of when in the map's
-   * lifetime `record` was issued. Without this, duration and Sv_SeekDemo's millis-to-frame_num
+   * lifetime `record` was issued. Without this, duration and Sv_SeekDemo's millis-to-frameNum
    * conversion would be measured against the wrong origin whenever recording didn't start at
    * frame 0 (i.e. always, in practice).
    */
@@ -728,7 +728,7 @@ typedef struct {
   /**
    * @brief Raw bytes of any non-`SV_CMD_FRAME` commands (chat, centerprint, temp entities,
    * sounds, etc.) captured verbatim by `Cl_ParseServerMessage` so they ride along with the next
-   * recorded frame, persisting across packets until a frame flushes them (see `event_size`'s
+   * recorded frame, persisting across packets until a frame flushes them (see `eventSize`'s
    * comment in `Cl_ParseServerMessage`). Sized to `MAX_MSG_SIZE * 4`, matching the server's own
    * `MAX_DATAGRAM_SIZE`: a single busy tick's queued messages can be fragmented across that many
    * packets before any of them carries a new frame, and this must not lose data to its own
@@ -737,14 +737,14 @@ typedef struct {
   byte eventBuffer[MAX_MSG_SIZE * 4];
 
   /**
-   * @brief The number of valid bytes in `event_buffer`.
+   * @brief The number of valid bytes in `eventBuffer`.
    */
   size_t eventSize;
 
   /**
    * @brief The total duration of the demo currently being played back, in milliseconds, or `0`
    * if not viewing a demo. Received once via `SV_CMD_DEMO_INFO` when connecting to a demo relay.
-   * Lives here (on `cls`, not `cl`) rather than alongside `cl.demo_server` because it arrives in
+   * Lives here (on `cls`, not `cl`) rather than alongside `cl.demoServer` because it arrives in
    * the same packet as, and just ahead of, the relayed `SV_CMD_SERVER_DATA` that triggers
    * Cl_ClearState's memset of `cl` - storing it there would have it wiped out immediately after
    * being set.

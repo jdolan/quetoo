@@ -271,21 +271,21 @@ static void S_Stop_f(void) {
  */
 static void S_InitLocal(void) {
 
-  s_getError = Cvar_Add("s_get_error", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
+  s_getError = Cvar_Add("s_getError", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
 
   S_InitDevices();
 
-  s_ambientVolume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
+  s_ambientVolume = Cvar_Add("s_ambientVolume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
   s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
   s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
-  s_effectsVolume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
+  s_effectsVolume = Cvar_Add("s_effectsVolume", "1", CVAR_ARCHIVE, "Effects sound volume.");
   s_hrtf = Cvar_Add("s_hrtf", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables HRTF sound spatialization. Recommended for headphones.");
   s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
   s_volume = Cvar_Add("s_volume", "1", CVAR_ARCHIVE, "Master sound volume level.");
 
   Cvar_ClearAll(CVAR_S_MASK);
 
-  Cmd_Add("s_list_media", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
+  Cmd_Add("s_listMedia", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
   Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
 }
 

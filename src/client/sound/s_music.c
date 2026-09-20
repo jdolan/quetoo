@@ -198,7 +198,7 @@ void S_StopMusic(void) {
 
 /**
  * @brief Handles music buffering for the specified music
- * @param setup_buffers If the buffers should be pulled directly from the buffer list instead of
+ * @param setupBuffers If the buffers should be pulled directly from the buffer list instead of
  * from the consumed buffer list. Use this on first call of Play only.
  */
 static void S_BufferMusic(SoundMusic *music, bool setupBuffers) {
@@ -484,15 +484,15 @@ void S_InitMusic(void) {
 
   memset(&module, 0, sizeof(module));
   
-  s_musicVolume = Cvar_Add("s_music_volume", "0.5", CVAR_ARCHIVE, "Music volume level.");
+  s_musicVolume = Cvar_Add("s_musicVolume", "0.5", CVAR_ARCHIVE, "Music volume level.");
 
   module.rawFrameBuffer = Mem_TagMalloc(sizeof(float) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
   module.frameBuffer = Mem_TagMalloc(sizeof(int16_t) * MUSIC_BUFFER_SIZE, MEM_TAG_SOUND);
   module.resampleFrameBuffer = NULL;
 
-  Cmd_Add("s_next_track", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
-  Cmd_Add("s_prev_track", S_PrevTrack_f, CMD_SOUND, "Play the previous music track.");
-  Cmd_Add("s_pause_music", S_PauseMusic_f, CMD_SOUND, "Pause or resume music playback.");
+  Cmd_Add("s_nextTrack", S_NextTrack_f, CMD_SOUND, "Play the next music track.");
+  Cmd_Add("s_prevTrack", S_PrevTrack_f, CMD_SOUND, "Play the previous music track.");
+  Cmd_Add("s_pauseMusic", S_PauseMusic_f, CMD_SOUND, "Pause or resume music playback.");
 
   alGenSources(1, &module.source);
   

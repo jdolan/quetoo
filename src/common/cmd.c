@@ -258,6 +258,31 @@ void Cmd_TokenizeString(const char *text) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
+typedef struct {
+  const char *name;
+  Cmd *cmd;
+} CmdLegacyCtx;
+
+/**
+ * @brief Finds a command whose name matches but for case and underscores.
+ */
+static void Cmd_Legacy_enumerate(const HashTable *table, ident key, ident value, ident data) {
+  CmdLegacyCtx *ctx = data;
+
+  if (ctx->cmd) {
+    return;
+  }
+
+  const List *list = value;
+  for (const ListNode *node = list->head; node; node = node->next) {
+    Cmd *cmd = node->element;
+    if (q_str_ident_equal(cmd->name, ctx->name)) {
+      ctx->cmd = cmd;
+      return;
+    }
+  }
+}
+
 static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
 
   if (cmdState.commands) {
@@ -283,7 +308,14 @@ static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
     }
   }
 
-  return NULL;
+  CmdLegacyCtx ctx = { .name = name };
+  $(cmdState.commands, enumerate, Cmd_Legacy_enumerate, &ctx);
+
+  if (ctx.cmd) {
+    Com_Warn("%s is now %s\n", name, ctx.cmd->name);
+  }
+
+  return ctx.cmd;
 }
 
 /**
@@ -727,7 +759,7 @@ void Cmd_Init(void) {
 
   Mem_InitBuffer(&cmdState.buf, (byte *) cmdState.buffers[0], sizeof(cmdState.buffers[0]));
 
-  Cmd_Add("cmd_list", Cmd_List_f, 0, NULL);
+  Cmd_Add("cmdList", Cmd_List_f, 0, NULL);
   Cmd *execCmd = Cmd_Add("exec", Cmd_Exec_f, CMD_SYSTEM, NULL);
   Cmd_SetAutocomplete(execCmd, Cmd_Exec_Autocomplete_f);
   Cmd_Add("echo", Cmd_Echo_f, 0, NULL);

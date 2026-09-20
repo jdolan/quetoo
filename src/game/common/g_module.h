@@ -458,7 +458,7 @@ extern ClientDidBegin G_ClientDidBegin;
 
 /**
  * @brief The client's user info is about to be applied: `cl->persistent` still
- * holds what it held, and `user_info` what they sent, unvalidated.
+ * holds what it held, and `userInfo` what they sent, unvalidated.
  * @details Notification; the tail does nothing.
  */
 typedef void (*ClientWillChangeUserInfo)(GameClient *cl, const char *userInfo);
@@ -519,7 +519,7 @@ extern ClientDidMove G_ClientDidMove;
  * command answers true for that name and the built-in never sees it. The tail
  * handles nothing, so an unclaimed command falls through to the built-in table
  * and, failing that, to chat. While the level is ending the built-in table
- * ignores everything but chat; `gLevel.intermission_time` says so. `cmd` is
+ * ignores everything but chat; `gLevel.intermissionTime` says so. `cmd` is
  * `gi.Argv(0)`;
  * an implementation MUST NOT call `gi.TokenizeString`, which would replace it
  * under the built-in table that runs next.

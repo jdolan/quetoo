@@ -1420,7 +1420,7 @@ static void G_ClientRespawn_(GameClient *cl) {
   ent->s.origin.z += PM_STEP_HEIGHT;
 
   // snap view angles directly to the spawn point; the client will snap
-  // cl.angles to match, so no delta_angles compensation is needed
+  // cl.angles to match, so no deltaAngles compensation is needed
   ent->s.angles = Vec3_Zero();
   cl->angles = place.angles;
 
@@ -1430,7 +1430,7 @@ static void G_ClientRespawn_(GameClient *cl) {
   cl->ps.pmState.deltaAngles = Vec3_Zero();
   cl->ps.entity = ent->s.number;
 
-  // signal the client to snap to view_angles; only for player spawns, not spectators
+  // signal the client to snap to viewAngles; only for player spawns, not spectators
   if (!cl->persistent.spectator && !editor->value) {
     gi.WriteByte(SV_CMD_SNAP_ANGLES);
     gi.WriteAngles(place.angles);
@@ -1651,7 +1651,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
     userInfo = DEFAULT_USER_INFO;
   }
 
-  // save off the user_info in case we want to check something later
+  // save off the userInfo in case we want to check something later
   const size_t len = q_strlen(userInfo);
   memmove(cl->userInfo, userInfo, len + 1);
   memmove(cl->persistent.userInfo, userInfo, len + 1);
@@ -1705,7 +1705,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   const GameTeam *team = cl->persistent.team;
 
   // set skin
-  if (team) { // players must use team_skin to change
+  if (team) { // players must use teamSkin to change
     s = InfoString_Get(userInfo, "skin");
 
     char *p;
@@ -1726,7 +1726,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   }
 
   // set effect color
-  if (team) { // players must use team_skin to change
+  if (team) { // players must use teamSkin to change
     cl->persistent.color = team->color;
   } else {
     s = InfoString_Get(userInfo, "color");
@@ -1816,7 +1816,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   }
 
   // auto-switch
-  uint16_t autoSwitch = strtoul(InfoString_Get(userInfo, "auto_switch"), NULL, 10);
+  uint16_t autoSwitch = strtoul(InfoString_Get(userInfo, "autoSwitch"), NULL, 10);
   cl->persistent.autoSwitch = autoSwitch;
 
 #if defined(G_HOOK)
