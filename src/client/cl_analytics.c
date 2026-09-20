@@ -219,15 +219,22 @@ void Cl_InitAnalytics(void) {
     return;
   }
 
-  module.enabled = true;
   module.startTicks = quetoo.ticks;
 
   char base[MAX_STRING_CHARS];
   q_strlcpy(base, cl_analyticsUrl->string, sizeof(base));
 
-  for (char *c = base + q_strlen(base) - 1; c >= base && *c == '/'; c--) {
-    *c = '\0';
+  size_t length = q_strlen(base);
+  while (length && base[length - 1] == '/') {
+    base[--length] = '\0';
   }
+
+  if (q_strncasecmp(base, "http://", 7) && q_strncasecmp(base, "https://", 8)) {
+    Com_Warn("cl_analyticsUrl must be an http:// or https:// URL, or 0 to disable\n");
+    return;
+  }
+
+  module.enabled = true;
 
   q_snprintf(module.url, sizeof(module.url), "%s/api/sessions", base);
 
