@@ -250,7 +250,7 @@ Bots execute console commands:
 ```c
 Ai_Command(bot, "kill");           // Suicide
 Ai_Command(bot, "team red");       // Join team
-Ai_Command(bot, "say_team Help!"); // Team chat
+Ai_Command(bot, "sayTeam Help!"); // Team chat
 ```
 
 ## Node Development

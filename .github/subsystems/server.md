@@ -216,7 +216,7 @@ typedef struct {
 ### Performance
 ```
 sv_hz 60              # Server tickrate (60 Hz standard)
-sv_max_clients 16     # Maximum player count
+sv_maxClients 16     # Maximum player count
 sv_timeout 15         # Disconnect timeout (seconds)
 net_max_rate 0        # Per-client bandwidth cap (0=unlimited)
 ```
@@ -225,15 +225,15 @@ net_max_rate 0        # Per-client bandwidth cap (0=unlimited)
 ```
 g_gameplay deathmatch # deathmatch, instagib or arena; prefix team_ for team play
 g_match 0             # Match mode (warmup, ready-up)
-g_frag_limit 30       # Score limit
-g_time_limit 20       # Time limit (minutes)
+g_fragLimit 30       # Score limit
+g_timeLimit 20       # Time limit (minutes)
 g_cheats 0            # Enable cheat commands
 ```
 
 ### Server Info
 ```
 sv_hostname "My Server"   # Server name
-sv_max_clients 16         # Player slots
+sv_maxClients 16         # Player slots
 sv_public 1               # Advertise to master server
 ```
 
@@ -303,7 +303,7 @@ sv_no_vis 1        # Disable PVS culling (send all entities)
 
 ### Network Debugging
 ```
-net_show_packets 2 # Show all network traffic
+net_showPackets 2 # Show all network traffic
 sv_rcon_password "debug"  # Set rcon password
 ```
 

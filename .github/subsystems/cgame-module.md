@@ -243,7 +243,7 @@ typedef struct {
 
 ## Frame Flow
 
-**Every client frame (60-300 Hz depending on `cl_max_fps`)**:
+**Every client frame (60-300 Hz depending on `cl_maxFps`)**:
 
 1. Client receives frame from server (entity snapshots at 60 Hz)
 2. `Cg_Interpolate()` - Lerp entities between last 2 server frames
@@ -385,16 +385,16 @@ typedef struct {
 ## Console Variables
 
 ```
-cg_draw_crosshair 1      # Show crosshair
-cg_draw_fps 0            # Show FPS counter
+cg_drawCrosshair 1      # Show crosshair
+cg_drawFps 0            # Show FPS counter
 cg_draw_speed 0          # Show movement speed
 cg_fov 110               # Field of view
 cg_bob 1.0               # View bobbing amount
 cg_predict 1             # Client prediction
 cg_max_particles 4096    # Max particle count
 cg_add_particles 1       # Enable particles
-cg_add_entities 1        # Render entities
-cg_add_lights 1          # Dynamic lights
+cg_addEntities 1        # Render entities
+cg_addLights 1          # Dynamic lights
 ```
 
 ## Performance
@@ -466,7 +466,7 @@ cgi.AddSample(cgi.stage, rocket_fire_sound,
 ```
 cg_draw_bbox 1        # Show entity bounding boxes
 cg_draw_velocity 1    # Show velocity vectors
-cg_third_person 1     # Third-person camera
+cg_thirdPerson 1     # Third-person camera
 developer 1           # Debug output
 ```
 

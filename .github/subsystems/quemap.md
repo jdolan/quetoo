@@ -350,7 +350,7 @@ quemap -light -bounce 16 -brightness 1.5 maps/mymap.bsp
 
 ### Show BSP Tree
 ```
-r_draw_bsp_normals 1     # Show face normals
+r_drawBspNormals 1     # Show face normals
 r_draw_wireframe 1       # Wireframe mode
 ```
 

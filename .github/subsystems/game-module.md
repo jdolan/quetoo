@@ -200,8 +200,8 @@ Game sound system:
 
 ### Map rotation
 Map rotation is now owned by the server:
-- `sv_map_list` configures the map list filename
-- `next_map` advances to the next entry
+- `sv_mapList` configures the map list filename
+- `nextMap` advances to the next entry
 - The game module only reads per-map metadata from the passed map record
 
 ## Game Module API
@@ -510,12 +510,12 @@ GameItem g_items[] = {
 
 ```
 g_gameplay deathmatch # deathmatch, instagib or arena; prefix team_ for team play
-g_friendly_fire 1     # Team damage enabled
-g_frag_limit 30       # Score to win
-g_time_limit 20       # Minutes per map
-g_spawn_farthest 1    # Spawn far from enemies
+g_friendlyFire 1     # Team damage enabled
+g_fragLimit 30       # Score to win
+g_timeLimit 20       # Minutes per map
+g_spawnFarthest 1    # Spawn far from enemies
 g_cheats 0            # Enable cheat commands
-g_weapon_stay 0       # Weapons don't disappear after pickup
+g_weaponStay 0       # Weapons don't disappear after pickup
 g_quad_damage_time 10 # Quad powerup duration (seconds)
 ```
 

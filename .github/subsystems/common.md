@@ -367,7 +367,7 @@ set <var> <val>   # Set cvar value
 ### Memory Leaks
 - Always free allocated memory
 - Use `Mem_Link()` for auto-cleanup
-- Check `mem_stats` command for leak detection
+- Check `memStats` command for leak detection
 
 ### Command Not Found
 - Command not registered (check `cmdlist`)

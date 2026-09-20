@@ -227,7 +227,7 @@ Client → server is much lower:
 ### Server
 ```
 sv_hz 60              # Server frame rate (default 60)
-sv_max_clients 16     # Maximum client connections
+sv_maxClients 16     # Maximum client connections
 sv_timeout 15         # Client timeout in seconds
 net_max_rate 0        # Max bytes/sec per client (0=unlimited)
 ```
@@ -235,14 +235,14 @@ net_max_rate 0        # Max bytes/sec per client (0=unlimited)
 ### Client
 ```
 cl_max_rate 0         # Max bytes/sec from server (0=unlimited)
-net_show_packets 0    # Debug: show packet traffic (1=basic, 2=verbose)
+net_showPackets 0    # Debug: show packet traffic (1=basic, 2=verbose)
 ```
 
 ## Common Patterns
 
 ### Server: Broadcasting to All Clients
 ```c
-for (int i = 0; i < sv_max_clients->integer; i++) {
+for (int i = 0; i < sv_maxClients->integer; i++) {
     ServerClient *cl = &svs.clients[i];
     if (cl->state != SV_CLIENT_ACTIVE)
         continue;
@@ -307,7 +307,7 @@ See `src/server/sv_master.c` and `src/client/cl_main.c` for implementation.
 
 ### Enable Packet Debugging
 ```
-net_show_packets 2    # Show all packet I/O
+net_showPackets 2    # Show all packet I/O
 developer 1           # Enable debug output
 ```
 

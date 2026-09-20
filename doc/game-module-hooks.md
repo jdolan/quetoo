@@ -718,14 +718,14 @@ The cost is that each differing module carries a copy of `classic.json` to keep 
 step with default's. That is the modding story working as intended - a modder does
 exactly this - and the copies are data, not code.
 
-The framing is still not part of the arrangement: `cg_draw_hud`, the intermission,
+The framing is still not part of the arrangement: `cg_drawHud`, the intermission,
 the editor and nav edit decide visibility in `HudViewController`, and the scoreboard is
 a sibling of the variant tree so that it shows through the intermission when the HUD
 does not.
 
 Everything drawn during play is a HUD View, including what used to be the engine's:
 `NotifyView` and `ChatView` tail the console through `cgi.Tail`, `ChatView` also owns the
-chat input (`cg_message_mode`, `cg_message_mode_2`), `PingView` shows the round trip the
+chat input (`cg_messageMode`, `cg_messageMode2`), `PingView` shows the round trip the
 client records on `Client`, and `DiagnosticsView` tables the counters the renderer
 keeps on `RenderView` and the mixer on `SoundStage`. A variant MAY place, restyle or omit
 any of them. Only the drop-down console stays in the client, because it MUST outlive a
@@ -748,7 +748,7 @@ In descending order of how much guard they retire:
 `cg_types.h`'s `hook_pull_speed` in `ClientGameState`, `cg_predict.c`'s single
 prediction branch, and the menu outlets in `MovementCombatViewController.c`, which
 are driven by a JSON resource rather than by code. `cg_main.{c,h}`'s are wiring -
-the `hook_style` cvar, the config string, the accessor - and the two in
+the `hookStyle` cvar, the config string, the accessor - and the two in
 `cg_local.h` are the feature includes, which are guards like any other.
 
 `cg_team_mode.c` no longer exists: team play is now the `GAME_TEAMS` bit on
@@ -796,7 +796,7 @@ a dedicated server holding the same port:
 
     printf 'wait\n%.0s' {1..1400} > "$WRITE_DIR/probe.cfg"
     echo 'r_screenshot' >> "$WRITE_DIR/probe.cfg" && echo quit >> "$WRITE_DIR/probe.cfg"
-    quetoo +game lithium +set sv_min_clients 4 +map edge +exec probe.cfg
+    quetoo +game lithium +set sv_minClients 4 +map edge +exec probe.cfg
 
 then read `$WRITE_DIR/screenshots/`. Enough `wait` lines to get past the map load,
 or the screenshot is of the console. What the three modules should show, and did:
@@ -946,7 +946,7 @@ exists. Only the two project files need editing.
   `Quetoo.app` in the executable path.
 - `edge` spawns 80 entities for default and 85 for ctf — a quick read on which
   module actually loaded, and on whether the five techs spawned.
-- Bots: `+set sv_min_clients 6`. They fight and die, which tosses flags and
+- Bots: `+set sv_minClients 6`. They fight and die, which tosses flags and
   techs, whose expiration is what walks the `ResetDroppedItem` chain.
 
 ### Observability traps
