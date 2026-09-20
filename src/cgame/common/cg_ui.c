@@ -220,22 +220,22 @@ static bool askedToInstall, askedToRestart, acceptedRestart;
  * @brief Dialog callbacks answering the installer.
  */
 static void Cg_AcceptUpdate(ident data) {
-  cgi.ConsentToUpdate(true);
+  cgi.InstallerConsent(true);
 }
 
 static void Cg_DeclineUpdate(ident data) {
-  cgi.ConsentToUpdate(false);
+  cgi.InstallerConsent(false);
 }
 
 static void Cg_AcceptRestart(ident data) {
   acceptedRestart = true;
-  cgi.ConsentToUpdate(true);
+  cgi.InstallerConsent(true);
 }
 
 /**
  * @brief Presents a Dialog over the update screen.
  */
-static void Cg_AskAboutUpdate(const char *message, const char *ok, void (*okFunction)(ident data)) {
+static void Cg_InstallerDialog(const char *message, const char *ok, void (*okFunction)(ident data)) {
 
   ViewController *dialog = (ViewController *) $(alloc(DialogViewController), initWithDialog, &(const Dialog) {
     .message = message,
@@ -270,7 +270,7 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
       static char message[MAX_STRING_CHARS];
       q_snprintf(message, sizeof(message), "Quetoo %s is available. Install it?", in->currentFile);
 
-      Cg_AskAboutUpdate(message, "Install", Cg_AcceptUpdate);
+      Cg_InstallerDialog(message, "Install", Cg_AcceptUpdate);
     }
 
     return 0;
@@ -280,7 +280,7 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
 
     if (!askedToRestart) {
       askedToRestart = true;
-      Cg_AskAboutUpdate("The update has been downloaded. Restart to apply it now?",
+      Cg_InstallerDialog("The update has been downloaded. Restart to apply it now?",
                         "Restart", Cg_AcceptRestart);
     }
 

@@ -183,9 +183,7 @@ void Cl_InitCgame(void) {
   import.state = &cls.state;
   import.server = &cls.server;
   import.demo = &cls.demo;
-
   import.context = &rContext;
-
   import.view = &clView;
   import.stage = &clStage;
 
@@ -196,6 +194,7 @@ void Cl_InitCgame(void) {
   import.Warn = Cl_CgameWarn;
   import.Error = Cl_CgameError;
   import.Backtrace = Sys_Backtrace;
+  import.Tail = Con_Tail;
 
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;
@@ -238,13 +237,12 @@ void Cl_InitCgame(void) {
   import.ForceSetCvarString = Cvar_ForceSetString;
   import.ForceSetCvarValue = Cvar_ForceSetValue;
   import.ToggleCvar = Cvar_Toggle;
-
-  import.ConsentToUpdate = Installer_Consent;
   import.AddCmd = Cmd_Add;
   import.Argv = Cmd_Argv;
   import.AutocompleteMatch = Con_AutocompleteMatch;
   import.Cbuf = Cbuf_AddText;
-  import.Tail = Con_Tail;
+
+  import.InstallerConsent = Installer_Consent;
 
   import.Theme = Ui_Theme;
   import.TopViewController = Ui_TopViewController;
@@ -253,20 +251,24 @@ void Cl_InitCgame(void) {
   import.PopViewController = Ui_PopViewController;
   import.PopAllViewControllers = Ui_PopAllViewControllers;
   import.SetHudViewController = Ui_SetHudViewController;
+  import.LoadingProgress = Cl_LoadingProgress;
 
-  import.BindKey = Cl_Bind;
   import.KeyForBind = Cl_KeyForBind;
   import.KeyName = Cl_KeyName;
+  import.BindKey = Cl_Bind;
+  import.SetKeyDest = Cl_SetKeyDest;
+  import.GetKeyDest = Cl_GetKeyDest;
+  import.KeyDown = Cl_KeyDown;
+  import.KeyUp = Cl_KeyUp;
+  import.KeyState = Cl_KeyState;
 
   import.Servers = Cl_Servers;
   import.GetServers = Cl_Servers_f;
   import.ServerInfo = Cl_ServerInfo;
   import.Connect = Cl_Connect;
-
   import.Mapshots = Cl_Mapshots;
 
   import.ConfigString = Cl_ConfigString;
-
   import.ReadData = Cl_ReadData;
   import.ReadChar = Cl_ReadChar;
   import.ReadByte = Cl_ReadByte;
@@ -278,6 +280,7 @@ void Cl_InitCgame(void) {
   import.ReadDir = Cl_ReadDir;
   import.ReadAngle = Cl_ReadAngle;
   import.ReadAngles = Cl_ReadAngles;
+  import.WriteEntityInfoCommand = Cl_WriteEntityInfoCommand;
 
   import.Bsp = Cm_Bsp;
   import.Worldspawn = Cm_Worldspawn;
@@ -295,24 +298,15 @@ void Cl_InitCgame(void) {
   import.BoxLeafnums = Cm_BoxLeafnums;
   import.PointInsideBrush = Cm_PointInsideBrush;
   import.Trace = Cl_Trace;
-  import.PointLeafnum = Cm_PointLeafnum;
   import.TraceToBrush = Cm_TraceToBrush;
+  import.PointLeafnum = Cm_PointLeafnum;
 
-  import.SetKeyDest = Cl_SetKeyDest;
-  import.GetKeyDest = Cl_GetKeyDest;
-  import.WriteEntityInfoCommand = Cl_WriteEntityInfoCommand;
-  import.KeyDown = Cl_KeyDown;
-  import.KeyUp = Cl_KeyUp;
-  import.KeyState = Cl_KeyState;
-
-  import.LoadingProgress = Cl_LoadingProgress;
-  
-  import.StartVoice = S_StartVoice;
-  import.StopVoice = S_StopVoice;
   import.LoadSample = S_LoadSample;
   import.LoadClientModelSample = S_LoadClientModelSample;
   import.LoadClientModelSamples = S_LoadClientModelSamples;
   import.AddSample = S_AddSample;
+  import.StartVoice = S_StartVoice;
+  import.StopVoice = S_StopVoice;
 
   import.CreateFramebuffer = R_CreateFramebuffer;
   import.DestroyFramebuffer = R_DestroyFramebuffer;
@@ -336,9 +330,7 @@ void Cl_InitCgame(void) {
   import.AddBeam = R_AddBeam;
   import.AddDecal = R_AddDecal;
   import.AddPortal = R_AddPortal;
-
   import.DrawPlayerModelView = R_DrawPlayerModelView;
-
   import.Draw3DLines = R_Draw3DLines;
   import.Draw3DBox = R_Draw3DBox;
 

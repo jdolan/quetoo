@@ -607,23 +607,28 @@ CGameExport *Cg_LoadCgame(CGameImport *import) {
   cge.Init = Cg_Init;
   cge.Shutdown = Cg_Shutdown;
   cge.ClearState = Cg_ClearState;
+
+  cge.LoadMedia = Cg_LoadMedia;
+  cge.FreeMedia = Cg_FreeMedia;
+
+  cge.ParsedMessage = Cg_ParsedMessage;
+  cge.ParseMessage = Cg_ParseMessage;
+  cge.ParseEditorEntity = Cg_ParseEditorEntity;
+  cge.Chat = Cg_Chat;
+  cge.Voice = Cg_Voice;
+
   cge.HandleEvent = Cg_HandleEvent;
   cge.Look = Cg_Look;
   cge.Move = Cg_ExportMove;
-  cge.Chat = Cg_Chat;
-  cge.Voice = Cg_Voice;
-  cge.LoadMedia = Cg_LoadMedia;
-  cge.FreeMedia = Cg_FreeMedia;
-  cge.ParsedMessage = Cg_ParsedMessage;
-  cge.ParseMessage = Cg_ParseMessage;
+
   cge.Interpolate = Cg_Interpolate;
   cge.UsePrediction = Cg_ExportUsePrediction;
   cge.PredictMovement = Cg_PredictMovement;
+
   cge.UpdateLoading = Cg_UpdateLoading;
   cge.PrepareScene = Cg_PrepareScene;
   cge.PopulateScene = Cg_PopulateScene;
   cge.PopulateEditorScene = Cg_PopulateEditorScene;
-  cge.ParseEditorEntity = Cg_ParseEditorEntity;
   cge.UpdateScreen = Cg_UpdateScreen;
   cge.UpdateInstaller = Cg_UpdateInstaller;
   cge.UpdateDiscord = Cg_UpdateDiscord;

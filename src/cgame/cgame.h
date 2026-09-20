@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 60
+#define CGAME_API_VERSION 61
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -83,7 +83,7 @@ typedef struct {
   SoundStage *stage;
 
   /**
-   * @defgroup console-appending Console appending
+   * @defgroup console Console
    * @{
    */
 
@@ -127,6 +127,16 @@ typedef struct {
    * @return A heap-allocated string describing the stack; caller must `free()` it.
    */
   char *(*Backtrace)(uint32_t start, uint32_t maxCount);
+
+  /**
+   * @brief Collects the most recent console lines matching the given console's `level`,
+   * `whence` and `scroll`, wrapped to its `width`.
+   * @param console The console filter.
+   * @param lines The array to receive the lines, which the caller MUST free with `Free`.
+   * @param maxLines The capacity of `lines`.
+   * @return The count of lines collected.
+   */
+  size_t (*Tail)(const Console *console, char **lines, size_t maxLines);
 
   /**
    * @}
@@ -373,13 +383,6 @@ typedef struct {
   Cvar *(*ToggleCvar)(const char *name);
 
   /**
-   * @brief Answers the question posed by `INSTALLER_BIN_AVAILABLE`.
-   * @details The installer waits for this before acting on an available
-   * update. Declining applies to this run only; the next launch asks again.
-   */
-  void (*ConsentToUpdate)(bool accept);
-
-  /**
    * @brief Registers and returns a console command.
    * @param name The command name (e.g. `"wave"`).
    * @param function The command function.
@@ -412,14 +415,20 @@ typedef struct {
   void (*Cbuf)(const char *s);
 
   /**
-   * @brief Collects the most recent console lines matching the given console's `level`,
-   * `whence` and `scroll`, wrapped to its `width`.
-   * @param console The console filter.
-   * @param lines The array to receive the lines, which the caller MUST free with `Free`.
-   * @param maxLines The capacity of `lines`.
-   * @return The count of lines collected.
+   * @}
+   * @defgroup installer Installer
+   * @{
    */
-  size_t (*Tail)(const Console *console, char **lines, size_t maxLines);
+
+  /**
+   * @brief Answers the question the installer is asking, as posed by
+   * `CGameExport::UpdateInstaller`.
+   * @details `INSTALLER_BIN_AVAILABLE` asks whether to install an available
+   * update, and `INSTALLER_BIN_STAGED` then asks whether to restart at once to
+   * apply it. The installer blocks on each until this is called. Declining
+   * either applies to this run only, so nobody is quietly opted in or out.
+   */
+  void (*InstallerConsent)(bool accept);
 
   /**
    * @}
@@ -466,7 +475,16 @@ typedef struct {
   void (*SetHudViewController)(ViewController *viewController);
 
   /**
+   * @brief Update the loading progress during media loading.
+   * @param percent The percent. Positive values for absolute, negaitve for relative increment.
+   * @param status The status message.
+   */
+  void (*LoadingProgress)(int32_t percent, const char *status);
+
+  /**
    * @}
+   * @defgroup input Input
+   * @{
    */
 
   /**
@@ -488,6 +506,37 @@ typedef struct {
    * @param bind The binding, or `NULL` to unbind.
    */
   void (*BindKey)(SDL_Scancode key, const char *bind);
+
+  /**
+   * @brief Set the keyboard input destination.
+   */
+  void (*SetKeyDest)(ClientKeyDest dest);
+
+  /**
+   * @brief Returns the current keyboard input destination.
+   */
+  ClientKeyDest (*GetKeyDest)(void);
+
+  /**
+   * @brief Register a button as being held down.
+   */
+  void (*KeyDown)(InputButton *b);
+
+  /**
+   * @brief Register a button as being released.
+   */
+  void (*KeyUp)(InputButton *b);
+
+  /**
+   * @brief Returns the fraction of the command interval for which the key was down.
+   */
+  float (*KeyState)(InputButton *key, uint32_t cmdMsec);
+
+  /**
+   * @}
+   * @defgroup servers Server browser
+   * @{
+   */
 
   /**
    * @return The list of known servers (`ClientServerInfo`).
@@ -519,14 +568,15 @@ typedef struct {
   List *(*Mapshots)(const char *map);
 
   /**
-   * @return The configuration string at `index`.
-   */
-  char *(*ConfigString)(int32_t index);
-
-  /**
+   * @}
    * @defgroup network Network messaging
    * @{
    */
+
+  /**
+   * @return The configuration string at `index`.
+   */
+  char *(*ConfigString)(int32_t index);
 
   /**
    * @brief Reads up to `len` bytes of data from the last received network message into `buf`.
@@ -591,11 +641,18 @@ typedef struct {
   Vec3 (*ReadAngles)(void);
 
   /**
+   * @brief Sends an entity info string to the server, creating, updating, or deleting an entity.
+   * @param number The entity number, or -1 to create a new entity.
+   * @param entity The entity definition, or `NULL` to delete the entity.
+   */
+  void (*WriteEntityInfoCommand)(int16_t number, const CmEntity *entity);
+
+  /**
    * @}
    * @defgroup collision Collision model
    * @{
    */
-  
+
   /**
    * @return The BSP model for the currrently loaded map.
    */
@@ -742,46 +799,9 @@ typedef struct {
 
   /**
    * @}
+   * @defgroup sound Sound
+   * @{
    */
-
-  /**
-   * @brief Set the keyboard input destination.
-   */
-  void (*SetKeyDest)(ClientKeyDest dest);
-
-  /**
-   * @brief Returns the current keyboard input destination.
-   */
-  ClientKeyDest (*GetKeyDest)(void);
-
-  /**
-   * @brief Sends an entity info string to the server, creating, updating, or deleting an entity.
-   * @param number The entity number, or -1 to create a new entity.
-   * @param entity The entity definition, or `NULL` to delete the entity.
-   */
-  void (*WriteEntityInfoCommand)(int16_t number, const CmEntity *entity);
-
-  /**
-   * @brief Register a button as being held down.
-   */
-  void (*KeyDown)(InputButton *b);
-
-  /**
-   * @brief Register a button as being released.
-   */
-  void (*KeyUp)(InputButton *b);
-
-  /**
-   * @brief Returns the fraction of the command interval for which the key was down.
-   */
-  float (*KeyState)(InputButton *key, uint32_t cmdMsec);
-
-  /**
-   * @brief Update the loading progress during media loading.
-   * @param percent The percent. Positive values for absolute, negaitve for relative increment.
-   * @param status The status message.
-   */
-  void (*LoadingProgress)(int32_t percent, const char *status);
 
   /**
    * @brief Loads a sound sample by the given name.
@@ -789,16 +809,6 @@ typedef struct {
    * @param context The asset context, e.g. `ASSET_CONTEXT_SOUNDS`, `ASSET_CONTEXT_PLAYERS`.
    * @return The loaded sample.
    */
-  /**
-   * @brief Begins a voice transmission on `channel`, which the game defines.
-   */
-  void (*StartVoice)(uint8_t channel);
-
-  /**
-   * @brief Ends a voice transmission.
-   */
-  void (*StopVoice)(void);
-
   SoundSample *(*LoadSample)(const char *name, AssetContext context);
 
   /**
@@ -823,6 +833,22 @@ typedef struct {
   void (*AddSample)(SoundStage *stage, const SoundPlaySample *play);
 
   /**
+   * @brief Begins a voice transmission on `channel`, which the game defines.
+   */
+  void (*StartVoice)(uint8_t channel);
+
+  /**
+   * @brief Ends a voice transmission.
+   */
+  void (*StopVoice)(void);
+
+  /**
+   * @}
+   * @defgroup video Video
+   * @{
+   */
+
+  /**
    * @brief Creates a Framebuffer from @p info, scaled to the current render
    * scale and forced to the shared scene sample count.
    * @param info Framebuffer creation parameters. @p info->size is a logical
@@ -840,6 +866,12 @@ typedef struct {
    * @param framebuffer The framebuffer to destroy.
    */
   void (*DestroyFramebuffer)(Framebuffer *framebuffer);
+
+  /**
+   * @}
+   * @defgroup media Renderer media
+   * @{
+   */
 
   /**
    * @brief Loads a surface by `name` into the `SDL_Surface` `surface`.
@@ -923,6 +955,7 @@ typedef struct {
   RenderModel *(*WorldModel)(void);
 
   /**
+   * @}
    * @defgroup scene Scene management
    * @{
    */
@@ -942,12 +975,12 @@ typedef struct {
    * @brief Adds an instantaneous light to the scene for the current frame.
    */
   void (*AddLight)(RenderView *view, const RenderLight *l);
-  
+
   /**
    * @brief Adds a sprite to the scene for the current frame.
    */
   RenderSprite *(*AddSprite)(RenderView *view, const RenderSprite *p);
-  
+
   /**
    * @brief Adds a beam to the scene for the current frame.
    */
@@ -976,12 +1009,6 @@ typedef struct {
   void (*DrawPlayerModelView)(RenderView *view);
 
   /**
-   * @}
-   * @defgroup draw-2d 2D drawing
-   * @{
-   */
-
-  /**
    * @brief Draw 3D lines between the given point pairs.
    * @param mode The mode, e.g. `SDL_GPU_PRIMITIVETYPE_LINESTRIP`, `SDL_GPU_PRIMITIVETYPE_LINELIST`, ..
    * @param points The points array, in pairs.
@@ -1002,7 +1029,6 @@ typedef struct {
   /**
    * @}
    */
-
 } CGameImport;
 
 /**
@@ -1010,7 +1036,19 @@ typedef struct {
  */
 typedef struct CGameExport {
 
+  /**
+   * @brief The `CGAME_API_VERSION` this module was built against.
+   * @details The client refuses a module whose version does not match its own,
+   * because every field below moves when the import or export struct changes.
+   */
   int32_t apiVersion;
+
+  /**
+   * @brief The `PROTOCOL_MINOR` this module speaks.
+   * @details Minor protocol is game module behaviour rather than engine wire
+   * format, so a server and a client running different modules are told apart
+   * here rather than by the major protocol.
+   */
   int32_t protocol;
 
   /**
@@ -1023,6 +1061,11 @@ typedef struct CGameExport {
    * server's stats against the wrong layout.
    */
   const char *name;
+
+  /**
+   * @defgroup cg-lifecycle Lifecycle
+   * @{
+   */
 
   /**
    * @brief Initializes the client game.
@@ -1042,6 +1085,12 @@ typedef struct CGameExport {
   void (*ClearState)(void);
 
   /**
+   * @}
+   * @defgroup cg-media Media
+   * @{
+   */
+
+  /**
    * @brief Loads client game media on level load or subsystem restarts.
    */
   void (*LoadMedia)(void);
@@ -1050,6 +1099,12 @@ typedef struct CGameExport {
    * @brief Frees client game media on shutdown or subsystem restarts.
    */
   void (*FreeMedia)(void);
+
+  /**
+   * @}
+   * @defgroup cg-messages Server messages
+   * @{
+   */
 
   /**
    * @brief Called when a server message known to the client is received.
@@ -1064,14 +1119,6 @@ typedef struct CGameExport {
    * @details This allows the game and client game to define their own custom message types.
    */
   bool (*ParseMessage)(int32_t cmd);
-  
-  /**
-   * @brief Called multiple times per frame for each system or user event.
-   * @param event The event.
-   * @details Most events such as mouse movement and key input are handled by the client, but this
-   * function allows the client game to augment them, or handle custom event types.
-   */
-  void (*HandleEvent)(const SDL_Event *event);
 
   /**
    * @brief Called when a configstring update is received for an editor entity slot.
@@ -1079,18 +1126,6 @@ typedef struct CGameExport {
    * @param info The raw info string from the configstring, or empty to clear the slot.
    */
   void (*ParseEditorEntity)(int16_t number, const char *info);
-
-  /**
-   * @brief Called each frame to update the current movement command angles.
-   * @param cmd The current movement command.
-   */
-  void (*Look)(PMoveCmd *cmd);
-
-  /**
-   * @brief Called each frame to updarte the current movement command movement.
-   * @param cmd The current movement command.
-   */
-  void (*Move)(PMoveCmd *cmd);
 
   /**
    * @brief Called on incoming chat messages, which the module may render.
@@ -1111,6 +1146,38 @@ typedef struct CGameExport {
   bool (*Voice)(int32_t client, uint8_t flags);
 
   /**
+   * @}
+   * @defgroup cg-input Input
+   * @{
+   */
+
+  /**
+   * @brief Called multiple times per frame for each system or user event.
+   * @param event The event.
+   * @details Most events such as mouse movement and key input are handled by the client, but this
+   * function allows the client game to augment them, or handle custom event types.
+   */
+  void (*HandleEvent)(const SDL_Event *event);
+
+  /**
+   * @brief Called each frame to update the current movement command angles.
+   * @param cmd The current movement command.
+   */
+  void (*Look)(PMoveCmd *cmd);
+
+  /**
+   * @brief Called each frame to updarte the current movement command movement.
+   * @param cmd The current movement command.
+   */
+  void (*Move)(PMoveCmd *cmd);
+
+  /**
+   * @}
+   * @defgroup cg-prediction Prediction
+   * @{
+   */
+
+  /**
    * @brief Called each client frame to interpolate the most recently received server frames.
    * @details This does not populate the view with frame entities. Rather, this advances the
    * simulation for each entity within the frame.
@@ -1129,6 +1196,20 @@ typedef struct CGameExport {
    * predicted state.
    */
   void (*PredictMovement)(const Vector *cmds);
+
+  /**
+   * @brief Called by `Cl_Trace` for each solid entity a trace could clip, after
+   * the client's own skip rules. The reciprocal of the game's `ClipEntity`, so
+   * that prediction clips exactly what the server does.
+   * @param mover The entity the trace is on behalf of, or `NULL`.
+   */
+  bool (*ClipEntity)(const ClientEntity *mover, const ClientEntity *ent);
+
+  /**
+   * @}
+   * @defgroup cg-frame Frame
+   * @{
+   */
 
   /**
    * @brief Called during the loading process to allow the client game to update the loading
@@ -1173,12 +1254,8 @@ typedef struct CGameExport {
   void (*UpdateDiscord)(void);
 
   /**
-   * @brief Called by `Cl_Trace` for each solid entity a trace could clip, after
-   * the client's own skip rules. The reciprocal of the game's `ClipEntity`, so
-   * that prediction clips exactly what the server does.
-   * @param mover The entity the trace is on behalf of, or `NULL`.
+   * @}
    */
-  bool (*ClipEntity)(const ClientEntity *mover, const ClientEntity *ent);
 } CGameExport;
 
 #endif
