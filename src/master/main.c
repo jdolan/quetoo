@@ -335,7 +335,9 @@ static struct {
   char rules[MAX_BLACKLIST_RULES][64];
   size_t count;
   int64_t modified;
-} msBlacklist = { .modified = -1 };
+  int64_t size;
+  bool loaded;
+} msBlacklist;
 
 /**
  * @brief Parses the contents of the blacklist file into the rule cache.
@@ -366,6 +368,11 @@ static void Ms_ParseBlacklist(const char *buffer, int64_t length) {
       continue;
     }
 
+    if (lineEnd[-1] == ':') {
+      Com_Warn("Blacklist rule names no port after its ':', ignoring: %.*s\n", (int32_t) size, lineStart);
+      continue;
+    }
+
     if (size >= sizeof(msBlacklist.rules[0])) {
       Com_Warn("Blacklist rule is too long, ignoring: %.*s\n", (int32_t) size, lineStart);
       continue;
@@ -392,27 +399,34 @@ static void Ms_LoadBlacklist(void) {
   FsStat stat;
   if (!Fs_Stat(BLACKLIST_FILE, &stat)) {
     msBlacklist.count = 0;
-    msBlacklist.modified = -1;
+    msBlacklist.loaded = false;
     return;
   }
 
-  if (stat.modified == msBlacklist.modified) {
+  // the size joins the modification time, which PhysFS reports to the second,
+  // so that an edit landing in the same second as the last read is still seen
+  if (msBlacklist.loaded && stat.modified == msBlacklist.modified && stat.size == msBlacklist.size) {
     return;
   }
 
+  msBlacklist.loaded = true;
   msBlacklist.modified = stat.modified;
+  msBlacklist.size = stat.size;
 
   char *buffer;
   const int64_t length = Fs_Load(BLACKLIST_FILE, (void *) &buffer);
 
   if (length == -1) {
-    Com_Warn("Failed to load %s: %s\n", BLACKLIST_FILE, Fs_LastError());
-    msBlacklist.count = 0;
-    msBlacklist.modified = -1;
+    Com_Warn("Failed to load %s, keeping %u rules: %s\n", BLACKLIST_FILE,
+             (uint32_t) msBlacklist.count, Fs_LastError());
     return;
   }
 
-  Ms_ParseBlacklist(buffer, length);
+  if (length) {
+    Ms_ParseBlacklist(buffer, length);
+  } else {
+    msBlacklist.count = 0;
+  }
 
   Fs_Free((void *) buffer);
 

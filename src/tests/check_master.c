@@ -90,15 +90,21 @@ START_TEST(check_Ms_AddServer) {
 
 } END_TEST
 
-START_TEST(check_Ms_BlacklistServer) {
+/**
+ * @brief Replaces the blacklist file with the specified rules.
+ */
+static void write_blacklist(const char *rules) {
   File *f = Fs_OpenWrite("servers-blacklist");
   ck_assert_msg(f != NULL, "Failed to open servers-blacklist");
 
-  const char *test = "192.168.0.*\n// a comment\n\n10.0.0.1:27910\n";
-  int64_t len = Fs_Write(f, (void *) test, 1, strlen(test));
+  const int64_t len = Fs_Write(f, (void *) rules, 1, strlen(rules));
 
-  ck_assert_msg((size_t) len == strlen(test), "Failed to write servers-blacklist");
+  ck_assert_msg((size_t) len == strlen(rules), "Failed to write servers-blacklist");
   ck_assert_msg(Fs_Close(f), "Failed to close servers-blacklist");
+}
+
+START_TEST(check_Ms_BlacklistServer) {
+  write_blacklist("192.168.0.*\n// a comment\n\n10.0.0.1:27910\n");
 
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
@@ -121,6 +127,15 @@ START_TEST(check_Ms_BlacklistServer) {
   addr.sin_port = htons(27911);
 
   ck_assert_msg(!Ms_BlacklistServer(&addr), "False positive for %s", inet_ntoa(addr.sin_addr));
+
+  // a rewrite within the same second must still be picked up
+  write_blacklist("10.0.0.*\n");
+
+  ck_assert_msg(Ms_BlacklistServer(&addr), "Missed %s after reload", inet_ntoa(addr.sin_addr));
+
+  *(in_addr_t *) &addr.sin_addr = inet_addr("192.168.0.1");
+
+  ck_assert_msg(!Ms_BlacklistServer(&addr), "Stale rule matched %s", inet_ntoa(addr.sin_addr));
 
 } END_TEST
 
