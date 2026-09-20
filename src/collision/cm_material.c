@@ -37,12 +37,12 @@ typedef struct {
     const int32_t flag;
     const int32_t enumVal;
   };
-} CmDictionary;
+} CmMaterialHint;
 
 /**
  * @brief Content flags
  */
-static CmDictionary cmContentsDict[] = {
+static CmMaterialHint cmContentsHints[] = {
   { .keyword = "solid", .flag = CONTENTS_SOLID },
   { .keyword = "window", .flag = CONTENTS_WINDOW },
   { .keyword = "decoration", .flag = CONTENTS_DECORATION },
@@ -61,9 +61,9 @@ static int32_t Cm_ParseContents(const char *c) {
 
   int32_t contents = 0;
 
-  for (CmDictionary *dict = cmContentsDict; dict < cmContentsDict + lengthof(cmContentsDict); dict++) {
-    if (q_strstr(c, dict->keyword)) {
-      contents |= dict->flag;
+  for (CmMaterialHint *hint = cmContentsHints; hint < cmContentsHints + lengthof(cmContentsHints); hint++) {
+    if (q_strstr(c, hint->keyword)) {
+      contents |= hint->flag;
     }
   }
 
@@ -77,9 +77,9 @@ static char *Cm_UnparseContents(int32_t contents) {
   static char s[MAX_STRING_CHARS];
   *s = '\0';
 
-  for (CmDictionary *dict = cmContentsDict; dict < cmContentsDict + lengthof(cmContentsDict); dict++) {
-    if (contents & dict->flag) {
-      q_strlcat(s, va("%s ", dict->keyword), sizeof(s));
+  for (CmMaterialHint *hint = cmContentsHints; hint < cmContentsHints + lengthof(cmContentsHints); hint++) {
+    if (contents & hint->flag) {
+      q_strlcat(s, va("%s ", hint->keyword), sizeof(s));
     }
   }
 
@@ -89,7 +89,7 @@ static char *Cm_UnparseContents(int32_t contents) {
 /**
  * @brief Surface flags
  */
-static CmDictionary cm_surfaceList[] = {
+static CmMaterialHint cm_surfaceHints[] = {
   { .keyword = "slick", .flag = SURF_SLICK },
   { .keyword = "sky", .flag = SURF_SKY },
   { .keyword = "liquid", .flag = SURF_LIQUID },
@@ -112,9 +112,9 @@ static int32_t Cm_ParseSurface(const char *c) {
 
   int32_t surface = 0;
 
-  for (CmDictionary *list = cm_surfaceList; list < cm_surfaceList + lengthof(cm_surfaceList); list++) {
-    if (q_strstr(c, list->keyword)) {
-      surface |= list->flag;
+  for (CmMaterialHint *hint = cm_surfaceHints; hint < cm_surfaceHints + lengthof(cm_surfaceHints); hint++) {
+    if (q_strstr(c, hint->keyword)) {
+      surface |= hint->flag;
     }
   }
 
@@ -128,7 +128,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
   static char s[MAX_STRING_CHARS];
   *s = '\0';
 
-  for (CmDictionary *list = cm_surfaceList; list < cm_surfaceList + lengthof(cm_surfaceList); list++) {
+  for (CmMaterialHint *list = cm_surfaceHints; list < cm_surfaceHints + lengthof(cm_surfaceHints); list++) {
     if (surface & list->flag) {
       q_strlcat(s, va("%s ", list->keyword), sizeof(s));
     }
@@ -140,7 +140,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
 /**
  * @brief Blend consts
  */
-static CmDictionary cm_blendConstList[] = {
+static CmMaterialHint cm_blendConstList[] = {
   { .keyword = "one", .enumVal = BLEND_ONE },
   { .keyword = "zero", .enumVal = BLEND_ZERO },
   { .keyword = "src_alpha", .enumVal = BLEND_SRC_ALPHA },
@@ -155,7 +155,7 @@ static CmDictionary cm_blendConstList[] = {
  */
 static inline CmBlend Cm_BlendConstByName(const char *c) {
 
-  for (CmDictionary *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
+  for (CmMaterialHint *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
     if (!q_strcmp(c, list->keyword)) {
       return (CmBlend) list->enumVal;
     }
@@ -170,7 +170,7 @@ static inline CmBlend Cm_BlendConstByName(const char *c) {
  */
 static inline const char *Cm_BlendNameByConst(const CmBlend c) {
 
-  for (CmDictionary *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
+  for (CmMaterialHint *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
     if (c == (CmBlend) list->enumVal) {
       return list->keyword;
     }
