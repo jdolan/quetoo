@@ -107,18 +107,30 @@ static bool readDemoString(File *file, char *out, size_t len) {
 
 /**
  * @brief Reads which protocol, and which client game, an open demo was recorded under.
- * @details Read from the stream rather than the header, because only the stream names the
- * module: each chunk is a size and a frame number, and the first message of any recording is
+ * @details The stream is read whatever the version, because only the stream names the module:
+ * each chunk is a size and a frame number, and the first message of any recording is
  * `SV_CMD_SERVER_DATA`, carrying the major, the minor, the demo flag, the game and the client
- * game. `Sv_ReadDemoStreamProtocol` reads the same bytes across the module boundary. A version
- * 3 header states the two protocols as well, which is what spares playback this seek.
+ * game. `Sv_ReadDemoStreamProtocol` reads the same bytes across the module boundary. Where the
+ * header states the protocol, that is what is returned, so this agrees with playback.
  * @return False if the demo is too short or too strange to say, which is not the same as saying
  * something this build disagrees with.
  */
 static bool readDemoProtocol(File *file, int32_t version, int32_t *major, int32_t *minor,
                              char *cgame, size_t len) {
 
-  if (!cgi.SeekFile(file, (int64_t) DemoHeaderSize(version))) {
+  int32_t header[2];
+
+  // a version 3 header states the protocol, and it is what playback reads, so read it from the
+  // same place: a file whose header and stream disagreed would otherwise be listed by one and
+  // refused by the other. The caller left the position at the end of the older header, so this
+  // read lands exactly where the stream begins
+  const bool stated = version >= 3;
+
+  if (stated) {
+    if (cgi.ReadFile(file, header, sizeof(header), 1) != 1) {
+      return false;
+    }
+  } else if (!cgi.SeekFile(file, (int64_t) DemoHeaderSize(version))) {
     return false;
   }
 
@@ -137,8 +149,8 @@ static bool readDemoProtocol(File *file, int32_t version, int32_t *major, int32_
     return false;
   }
 
-  *major = LittleLong(fields[0]);
-  *minor = LittleLong(fields[1]);
+  *major = LittleLong(stated ? header[0] : fields[0]);
+  *minor = LittleLong(stated ? header[1] : fields[1]);
   return true;
 }
 
