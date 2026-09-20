@@ -30,7 +30,7 @@ Cvar *cg_selectWeaponDelay;
 Cvar *cg_selectWeaponFade;
 Cvar *cg_selectWeaponInterval;
 
-ClientGameHudState cgHudState;
+CGameHudState cgHudState;
 
 /**
  * @brief Parses a center print message from the server into the center print state.

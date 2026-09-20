@@ -118,7 +118,7 @@ static void viewWillAppear(ViewController *self) {
 
   RenderMaterial *material = NULL;
 
-  const ClientGameEditorTrace tr = Cg_MaterialSelectionTrace(start, end);
+  const CGameEditorTrace tr = Cg_MaterialSelectionTrace(start, end);
   if (tr.trace.fraction < 1.f && tr.trace.material) {
     material = cgi.LoadMaterial(tr.trace.material->name, tr.trace.material->context);
   }

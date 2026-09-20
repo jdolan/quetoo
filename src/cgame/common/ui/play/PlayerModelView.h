@@ -55,7 +55,7 @@ struct PlayerModelView {
   /**
    * @brief The client information.
    */
-  ClientGameClientInfo client;
+  CGameClientInfo client;
 
   /**
    * @brief The framebuffer to which the view is rendered.

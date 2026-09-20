@@ -58,9 +58,9 @@ typedef struct {
   /**
    * @brief The client-side entity state for `misc_*` (class, origin, think, etc.).
    */
-  ClientGameEntity misc;
+  CGameEntity misc;
 
-} ClientGameEditorEntity;
+} CGameEditorEntity;
 
 /**
  * @brief Encapsulates all mutable editor state.
@@ -70,7 +70,7 @@ typedef struct {
   /**
    * @brief Editor entity array, indexed by entity number.
    */
-  ClientGameEditorEntity entities[MAX_ENTITIES];
+  CGameEditorEntity entities[MAX_ENTITIES];
 
   /**
    * @brief When false, `func_group` entities are excluded from editor traces and scene drawing.
@@ -83,9 +83,9 @@ typedef struct {
    */
   int16_t selected;
 
-} ClientGameEditor;
+} CGameEditor;
 
-extern ClientGameEditor cgEditor;
+extern CGameEditor cgEditor;
 
 /**
  * @brief The result of a combined editor trace against all BSP models and `CONTENTS_EDITOR` entities.
@@ -96,7 +96,7 @@ typedef struct {
    * @brief Pointer into `cgEditor.entities[]` for the resolved entity. Always valid; defaults to
    *   worldspawn (`&cgEditor.entities[0]`) when no more-specific entity was hit.
    */
-  ClientGameEditorEntity *ent;
+  CGameEditorEntity *ent;
 
   /**
    * @brief The raw BSP trace result. Check `.fraction < 1.f` for a hit; `.material`, `.brush`,
@@ -104,7 +104,7 @@ typedef struct {
    */
   CmTrace trace;
 
-} ClientGameEditorTrace;
+} CGameEditorTrace;
 
 /**
  * @brief The maximum number of entities collected along the entity selection ray.
@@ -117,6 +117,6 @@ void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const ClientFrame *frame);
 size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t out[CG_EDITOR_MAX_CANDIDATES]);
-ClientGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end);
+CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end);
 void Cg_CycleEditorSelection(int32_t dir);
 void Cg_CheckEditor(void);

@@ -27,7 +27,7 @@
 /**
  * @brief Global editor state.
  */
-ClientGameEditor cgEditor = {
+CGameEditor cgEditor = {
   .showFuncGroups = true,
   .selected = -1
 };
@@ -63,7 +63,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
  * @brief Adds a dynamic light for the given editor light entity.
  * @return The resolved light color, for use in the selection overlay.
  */
-static Vec4 Cg_AddEditorEntity_Light(ClientGameEditorEntity *edit) {
+static Vec4 Cg_AddEditorEntity_Light(CGameEditorEntity *edit) {
 
   RenderLight light = { 0 };
 
@@ -103,7 +103,7 @@ static Vec4 Cg_AddEditorEntity_Light(ClientGameEditorEntity *edit) {
  * @brief Resolves the transform from world space to the entity's model space, in which
  * the BSP brushes of an entity with an origin are stored.
  */
-static Mat4 Cg_EditorEntityInverseMatrix(const ClientGameEditorEntity *edit) {
+static Mat4 Cg_EditorEntityInverseMatrix(const CGameEditorEntity *edit) {
 
   const ClientEntity *ent = edit->ent;
   const float scale = cgi.EntityValue(edit->def, "scale")->value ?: 1.f;
@@ -155,7 +155,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
     did_print_help = true;
   }
 
-  ClientGameEditorEntity *edit = cgEditor.entities;
+  CGameEditorEntity *edit = cgEditor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (!edit->def) {
@@ -179,7 +179,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
 
       // check for a client-side entity like misc_flame
 
-      ClientGameEntity *misc = &cgEditor.entities[i].misc;
+      CGameEntity *misc = &cgEditor.entities[i].misc;
       if (misc->clazz) {
         if (misc->nextThink <= cgi.client->unclampedTime) {
           misc->clazz->Think(misc);
@@ -233,7 +233,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
           const RenderMeshConfig *view = &edit->model->mesh->config.view;
           if (!Vec3_Equal(Vec3_Zero(), view->muzzle)) {
             const Vec3 muzzle = Mat4_Transform(e->matrix, view->muzzle);
-            Cg_AddSprite(&(ClientGameSprite) {
+            Cg_AddSprite(&(CGameSprite) {
               .animation = cgSpriteImpactSpark01,
               .origin = muzzle,
               .size = 30.f,
@@ -268,12 +268,12 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
 }
 
 /**
- * @brief Initializes the `ClientGameEditorEntity` for the given entity number.
+ * @brief Initializes the `CGameEditorEntity` for the given entity number.
  * @details The slot must be zeroed before calling this function.
  */
 static void Cg_InitEditorEntity(int16_t number) {
 
-  ClientGameEditorEntity *edit = &cgEditor.entities[number];
+  CGameEditorEntity *edit = &cgEditor.entities[number];
 
   edit->number = number;
   edit->ent = &cgi.client->entities[number];
@@ -303,7 +303,7 @@ static void Cg_InitEditorEntity(int16_t number) {
 
   const char *classname = cgi.EntityValue(edit->def, "classname")->string;
 
-  const ClientGameEntityClass *clazz = NULL;
+  const CGameEntityClass *clazz = NULL;
   for (size_t j = 0; j < cgNumEntityClasses; j++) {
     if (!q_strcmp(classname, cgEntityClasses[j]->classname)) {
       clazz = cgEntityClasses[j];
@@ -315,7 +315,7 @@ static void Cg_InitEditorEntity(int16_t number) {
     return;
   }
 
-  ClientGameEntity *misc = &edit->misc;
+  CGameEntity *misc = &edit->misc;
   misc->id = number;
   misc->clazz = clazz;
   misc->def = edit->def;
@@ -337,7 +337,7 @@ static void Cg_FreeEditorEntity(int16_t number) {
     cgEditor.selected = -1;
   }
 
-  ClientGameEditorEntity *edit = &cgEditor.entities[number];
+  CGameEditorEntity *edit = &cgEditor.entities[number];
 
   cgi.FreeEntity(edit->def);
 
@@ -417,7 +417,7 @@ size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t ou
   float fractions[CG_EDITOR_MAX_CANDIDATES];
   size_t count = 0;
 
-  ClientGameEditorEntity *edit = cgEditor.entities + 1;
+  CGameEditorEntity *edit = cgEditor.entities + 1;
   for (int32_t i = 1; i < MAX_ENTITIES; i++, edit++) {
 
     if (edit->def == NULL) {
@@ -482,16 +482,16 @@ size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t ou
 /**
  * @brief Traces the view ray for material selection.
  */
-ClientGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
+CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
 
-  ClientGameEditorTrace out = {
+  CGameEditorTrace out = {
     .ent = NULL,
     .trace = {
       .fraction = 1.f
     }
   };
 
-  ClientGameEditorEntity *edit = cgEditor.entities;
+  CGameEditorEntity *edit = cgEditor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (edit->def == NULL) {

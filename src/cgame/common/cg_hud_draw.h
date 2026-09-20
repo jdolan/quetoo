@@ -74,9 +74,9 @@ typedef struct {
    * @brief When the state was last cleared; prints from before it are not shown.
    */
   uint32_t clearTime;
-} ClientGameHudState;
+} CGameHudState;
 
-extern ClientGameHudState cgHudState;
+extern CGameHudState cgHudState;
 
 extern Cvar *cg_chatLines;
 extern Cvar *cg_chatTime;

@@ -22,8 +22,8 @@
 #include "cg_local.h"
 #include "bg_item.h"
 
-ClientGameItem cgItems[ITEM_TOTAL];
-ClientGameWeapon cgWeapons[WEAPON_TOTAL];
+CGameItem cgItems[ITEM_TOTAL];
+CGameWeapon cgWeapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache: item icons and models, weapon and ammo tags.
@@ -41,7 +41,7 @@ void Cg_InitInventory(void) {
   }
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    ClientGameWeapon *w = &cgWeapons[t - WEAPON_FIRST];
+    CGameWeapon *w = &cgWeapons[t - WEAPON_FIRST];
     w->tag = t;
     w->ammoTag = bgItemDefs[t].ammo;
     w->model = cgItems[t].model;

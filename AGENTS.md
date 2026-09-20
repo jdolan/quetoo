@@ -14,7 +14,7 @@ anything else, read the code. It is never out of date.
 
 | Category | Convention | Example |
 |---|---|---|
-| Types | `PascalCase`, subsystem prefix spelled out | `RenderEntity`, `ClientGameSprite`, `PlayerMoveParams` |
+| Types | `PascalCase`, subsystem prefix spelled out | `RenderEntity`, `CGameSprite`, `PlayerMoveParams` |
 | Functions | `Prefix_PascalCase`, unchanged | `R_DrawMaterialStages`, `G_Damage` |
 | Function-pointer members | `PascalCase` | `cgi.AddEntity`, `gi.Multicast` |
 | Variables, parameters, data members | `camelCase` | `numElements`, `oldOrigin` |

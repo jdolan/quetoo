@@ -25,11 +25,11 @@
 
 #if defined(__CG_LOCAL_H__)
 
-typedef struct ClientGameEntity ClientGameEntity;
+typedef struct CGameEntity CGameEntity;
 
-typedef void (*EntityInit)(ClientGameEntity *self);
-typedef void (*EntityFree)(ClientGameEntity *self);
-typedef void (*EntityThink)(ClientGameEntity *self);
+typedef void (*CGameEntityInit)(CGameEntity *self);
+typedef void (*CGameEntityFree)(CGameEntity *self);
+typedef void (*CGameEntityThink)(CGameEntity *self);
 
 /**
  * @brief The client game entity class type.
@@ -44,33 +44,33 @@ typedef struct {
   /**
    * @brief The initialization function, called once per level.
    */
-  EntityInit Init;
+  CGameEntityInit Init;
 
   /**
    * @brief The free function, called before re-initializing after an in-editor modification.
    * @details Implementations should release any resources (sprites, sounds, etc.) that
    *   reference the entity's @c data, as @c data is freed and reallocated immediately after.
    */
-  EntityFree Free;
+  CGameEntityFree Free;
 
   /**
    * @brief The think function, called once per client frame.
    */
-  EntityThink Think;
+  CGameEntityThink Think;
 
   /**
    * @brief The size of the opaque data.
    */
   size_t dataSize;
 
-} ClientGameEntityClass;
+} CGameEntityClass;
 
 /**
  * @brief The client game entity instance type. Client game entities are local to the client,
  * and are used for non-critical and atmospheric effects such as sparks, steam, particle
  * fields, etc.
  */
-struct ClientGameEntity {
+struct CGameEntity {
 
   /**
    * @brief The entity identifier, for persistent effects such as sounds.
@@ -80,7 +80,7 @@ struct ClientGameEntity {
   /**
    * @brief The entity class.
    */
-  const ClientGameEntityClass *clazz;
+  const CGameEntityClass *clazz;
 
   /**
    * @brief The backing entity definition.
@@ -124,12 +124,12 @@ struct ClientGameEntity {
   void *data;
 };
 
-extern const ClientGameEntityClass *cgEntityClasses[];
+extern const CGameEntityClass *cgEntityClasses[];
 extern const size_t cgNumEntityClasses;
 
 extern Vector *cgEntities;
 
-ClientGameEntity *Cg_EntityForDefinition(const CmEntity *e);
+CGameEntity *Cg_EntityForDefinition(const CmEntity *e);
 void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
 

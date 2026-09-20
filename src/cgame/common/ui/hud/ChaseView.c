@@ -49,7 +49,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
   }
 
   const ClientEntity *ent = cgi.client->entities + e;
-  const ClientGameClientInfo *ci = &cgState.clients[ent->current.client];
+  const CGameClientInfo *ci = &cgState.clients[ent->current.client];
 
   static char string[MAX_INFO_STRING_VALUE * 2];
   q_snprintf(string, sizeof(string), "Chasing ^7%s", ci->name);

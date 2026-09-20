@@ -868,7 +868,7 @@ typedef struct {
   /**
    * @brief The loaded client game module exports.
    */
-  struct ClientGameExport *cgame;
+  struct CGameExport *cgame;
 } ClientStatic;
 
 #if defined(__CL_LOCAL_H__)

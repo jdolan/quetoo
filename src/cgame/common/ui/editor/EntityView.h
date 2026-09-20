@@ -74,7 +74,7 @@ struct EntityView {
   /**
    * @brief The editor entity. Pointer into the stable `cgEditor.entities[]` array.
    */
-  ClientGameEditorEntity *edit;
+  CGameEditorEntity *edit;
 
   /**
    * @brief The specific key-value pair being edited by this view, or `NULL` for a new pair.
@@ -103,7 +103,7 @@ struct EntityViewInterface {
   StackViewInterface stackViewInterface;
 
   /**
-   * @fn EntityView *EntityView::initWithEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair)
+   * @fn EntityView *EntityView::initWithEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair)
    * @brief Initializes this EntityView.
    * @param self The EntityView.
    * @param edit The editor entity (pointer into `cgEditor.entities[]`).
@@ -111,17 +111,17 @@ struct EntityViewInterface {
    * @return The initialized EntityView, or `NULL` on error.
    * @memberof EntityView
    */
-  EntityView *(*initWithEntity)(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair);
+  EntityView *(*initWithEntity)(EntityView *self, CGameEditorEntity *edit, CmEntity *pair);
 
   /**
-   * @fn void EntityView::setEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair)
+   * @fn void EntityView::setEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair)
    * @brief Sets the entity and key-value pair to be edited.
    * @param self The EntityView.
    * @param edit The editor entity (pointer into `cgEditor.entities[]`).
    * @param pair The key-value pair being edited, or `NULL` for a new pair.
    * @memberof EntityView
    */
-  void (*setEntity)(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair);
+  void (*setEntity)(EntityView *self, CGameEditorEntity *edit, CmEntity *pair);
 };
 
 /**

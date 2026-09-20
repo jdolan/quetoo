@@ -40,12 +40,12 @@ typedef struct {
    */
   const RenderModel *model;
 
-} ClientGameItem;
+} CGameItem;
 
 /**
  * @brief Per-item cache, indexed by `GameItemTag`. Populated at load time.
  */
-extern ClientGameItem cgItems[ITEM_TOTAL];
+extern CGameItem cgItems[ITEM_TOTAL];
 
 /**
  * @brief Cached per-weapon data derived from `bgItemDefs` at load time.
@@ -68,12 +68,12 @@ typedef struct {
    */
   const RenderModel *model;
 
-} ClientGameWeapon;
+} CGameWeapon;
 
 /**
  * @brief Per-weapon cache, indexed by (tag - `WEAPON_FIRST`). Populated at load time.
  */
-extern ClientGameWeapon cgWeapons[WEAPON_TOTAL];
+extern CGameWeapon cgWeapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache (item models, weapon ammo tags).

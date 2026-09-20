@@ -76,7 +76,7 @@ static void configureBadge(ScoreView *row, const GameScore *score) {
 /**
  * @brief The stock team total.
  */
-static const char *teamTotal(const ClientGameTeamInfo *team, const GameScore *score) {
+static const char *teamTotal(const CGameTeamInfo *team, const GameScore *score) {
 #if defined(G_CTF)
   return va("%s^7 %d captures", team->name, score->captures);
 #else

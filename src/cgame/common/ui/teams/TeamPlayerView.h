@@ -51,7 +51,7 @@ struct TeamPlayerView {
   /**
    * @brief The player to render.
    */
-  const ClientGameClientInfo *client;
+  const CGameClientInfo *client;
 
   /**
    * The player icon image.
@@ -86,13 +86,13 @@ struct TeamPlayerViewInterface {
 
 
   /**
-   * @fn void TeamPlayerView::setTeam(TeamPlayerView *self, const ClientGameClientInfo *client)
+   * @fn void TeamPlayerView::setTeam(TeamPlayerView *self, const CGameClientInfo *client)
    * @brief Sets the client info to render.
    * @param self The TeamPlayerView.
    * @param client The client info.
    * @memberof TeamPlayerView
    */
-  void (*setPlayer)(TeamPlayerView *self, const ClientGameClientInfo *client);
+  void (*setPlayer)(TeamPlayerView *self, const CGameClientInfo *client);
 };
 
 /**

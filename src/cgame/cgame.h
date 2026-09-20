@@ -43,7 +43,7 @@
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
  */
-typedef struct ClientGameImport {
+typedef struct CGameImport {
 
   /**
    * @brief The client structure.
@@ -1003,12 +1003,12 @@ typedef struct ClientGameImport {
    * @}
    */
 
-} ClientGameImport;
+} CGameImport;
 
 /**
  * @brief The client game export struct exports client game functionality to the engine.
  */
-typedef struct ClientGameExport {
+typedef struct CGameExport {
 
   int32_t apiVersion;
   int32_t protocol;
@@ -1179,6 +1179,6 @@ typedef struct ClientGameExport {
    * @param mover The entity the trace is on behalf of, or `NULL`.
    */
   bool (*ClipEntity)(const ClientEntity *mover, const ClientEntity *ent);
-} ClientGameExport;
+} CGameExport;
 
 #endif

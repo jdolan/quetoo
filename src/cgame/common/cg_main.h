@@ -91,8 +91,8 @@ extern Cvar *cg_pants;
 extern Cvar *cg_shirt;
 extern Cvar *cg_skin;
 
-extern ClientGameImport cgi;
+extern CGameImport cgi;
 
-CGAME_EXPORT ClientGameExport *Cg_LoadCgame(ClientGameImport *import);
+CGAME_EXPORT CGameExport *Cg_LoadCgame(CGameImport *import);
 
 #endif

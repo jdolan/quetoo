@@ -48,7 +48,7 @@ static struct {
   ClipClientEntity ClipEntity;
 } previous;
 
-static ClientGameClientInfo cgRaceGhost;
+static CGameClientInfo cgRaceGhost;
 
 // the entity numbers of the barriers that pass this client, as the server last said
 static int32_t cgRacePassable[RACE_MAX_BARRIERS];
@@ -173,7 +173,7 @@ static void Cg_AddEntity_Race(ClientEntity *ent) {
 /**
  * @brief The ghost wears the record holder's client info, not the slot it names.
  */
-static ClientGameClientInfo *Cg_ClientInfo_Race(const ClientEntity *ent) {
+static CGameClientInfo *Cg_ClientInfo_Race(const ClientEntity *ent) {
 
   if (Cg_Race_IsGhost(ent)) {
     return &cgRaceGhost;

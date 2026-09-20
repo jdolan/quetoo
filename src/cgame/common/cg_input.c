@@ -34,9 +34,9 @@ typedef struct {
   Vec3 prev, next, kick;
   uint32_t timestamp;
   uint32_t interval;
-} ClientGameKick;
+} CGameKick;
 
-static ClientGameKick cgKick;
+static CGameKick cgKick;
 
 /**
  * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
@@ -304,7 +304,7 @@ static void Cg_Move_Common(PlayerMoveCmd *cmd) {
 
       // Encode the pixel-accurate muzzle position as a player-relative offset
       // so the server can use it instead of its hardcoded approximation.
-      const ClientGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
+      const CGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
       if (!Vec3_Equal(ci->weaponMuzzle, Vec3_Zero())) {
         cmd->muzzle = Vec3_Subtract(ci->weaponMuzzle, cgi.client->entity->current.origin);
       }

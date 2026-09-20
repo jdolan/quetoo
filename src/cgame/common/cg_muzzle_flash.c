@@ -30,7 +30,7 @@ static void Cg_BlasterFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
 
   Vec3 org = muzzle;
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 120.0,
     .color = color,
@@ -51,7 +51,7 @@ static void Cg_BlasterFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
 
   for (int32_t i = 0; i < np; i++) {
 
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .animation = cgSpriteBlasterFlame,
       .lifetime = Cg_AnimationLifetime(cgSpriteBlasterFlame, 70) + (i / flashlen * 20.f),
       .origin = Vec3_Fmaf(org, 3.f * (i / flashlen), forward),
@@ -61,7 +61,7 @@ static void Cg_BlasterFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
     });
   }
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .image = (RenderImage *) cgSpriteBlasterFlash,
     .lifetime = 200,
     .origin = Vec3_Fmaf(org, 3.f, forward),
@@ -81,7 +81,7 @@ static void Cg_ShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 120.f,
     .color = MakeVec3(.9f, .7f, .4f),
@@ -95,7 +95,7 @@ static void Cg_ShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
   }
 
   // flash burst
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .animation = cgSpriteImpactSpark01,
     .origin = Vec3_Fmaf(org, 4.f, forward),
     .rotation = RandomRadian(),
@@ -105,7 +105,7 @@ static void Cg_ShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
   });
 
   // flame lick
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteFlame,
     .origin = Vec3_Fmaf(org, 6.f, forward),
     .velocity = Vec3_Scale(forward, 60.f),
@@ -118,7 +118,7 @@ static void Cg_ShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
 
   // spark dots
   for (int32_t i = 0; i < 4; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 4.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .5f), RandomRangef(60.f, 120.f)),
@@ -130,7 +130,7 @@ static void Cg_ShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
   }
 
   // smoke
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteSmoke,
     .origin = org,
     .velocity = Vec3_Scale(forward, 20.f),
@@ -154,7 +154,7 @@ static void Cg_QuakeShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 120.f,
     .color = MakeVec3(.9f, .7f, .4f),
@@ -168,7 +168,7 @@ static void Cg_QuakeShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   }
 
   // flash burst
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .animation = cgSpriteImpactSpark01,
     .origin = Vec3_Fmaf(org, 4.f, forward),
     .rotation = RandomRadian(),
@@ -178,7 +178,7 @@ static void Cg_QuakeShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   });
 
   // flame lick
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteFlame,
     .origin = Vec3_Fmaf(org, 6.f, forward),
     .velocity = Vec3_Scale(forward, 60.f),
@@ -191,7 +191,7 @@ static void Cg_QuakeShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
 
   // spark dots
   for (int32_t i = 0; i < 4; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 4.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .5f), RandomRangef(60.f, 120.f)),
@@ -203,7 +203,7 @@ static void Cg_QuakeShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   }
 
   // smoke
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteSmoke,
     .origin = org,
     .velocity = Vec3_Scale(forward, 20.f),
@@ -227,7 +227,7 @@ static void Cg_SuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 160.f,
     .color = MakeVec3(.9f, .7f, .4f),
@@ -241,7 +241,7 @@ static void Cg_SuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   }
 
   // flash burst (double barrel = bigger)
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .animation = cgSpriteImpactSpark01,
     .origin = Vec3_Fmaf(org, 4.f, forward),
     .rotation = RandomRadian(),
@@ -252,7 +252,7 @@ static void Cg_SuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
 
   // flame burst
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteFlame,
       .origin = Vec3_Fmaf(org, 4.f + i * 4.f, forward),
       .velocity = Vec3_Scale(forward, RandomRangef(60.f, 100.f)),
@@ -266,7 +266,7 @@ static void Cg_SuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
 
   // spark dots (more than single shotgun)
   for (int32_t i = 0; i < 8; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 4.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .4f), RandomRangef(80.f, 160.f)),
@@ -279,7 +279,7 @@ static void Cg_SuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
 
   // smoke (heavier for double barrel)
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteSmoke,
       .origin = Vec3_Fmaf(org, i * 4.f, forward),
       .velocity = Vec3_Add(Vec3_Scale(forward, 25.f), Vec3_RandomRange(-5.f, 5.f)),
@@ -304,7 +304,7 @@ static void Cg_QuakeSuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, cons
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 160.f,
     .color = MakeVec3(.9f, .7f, .4f),
@@ -317,7 +317,7 @@ static void Cg_QuakeSuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, cons
     return;
   }
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .animation = cgSpriteImpactSpark01,
     .origin = Vec3_Fmaf(org, 4.f, forward),
     .rotation = RandomRadian(),
@@ -327,7 +327,7 @@ static void Cg_QuakeSuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, cons
   });
 
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteFlame,
       .origin = Vec3_Fmaf(org, 4.f + i * 4.f, forward),
       .velocity = Vec3_Scale(forward, RandomRangef(60.f, 100.f)),
@@ -340,7 +340,7 @@ static void Cg_QuakeSuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, cons
   }
 
   for (int32_t i = 0; i < 8; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 4.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .4f), RandomRangef(80.f, 160.f)),
@@ -352,7 +352,7 @@ static void Cg_QuakeSuperShotgunFlash(const Vec3 muzzle, const Vec3 origin, cons
   }
 
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteSmoke,
       .origin = Vec3_Fmaf(org, i * 4.f, forward),
       .velocity = Vec3_Add(Vec3_Scale(forward, 25.f), Vec3_RandomRange(-5.f, 5.f)),
@@ -377,7 +377,7 @@ static void Cg_MachinegunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 80.f,
     .color = MakeVec3(.9f, .8f, .5f),
@@ -391,7 +391,7 @@ static void Cg_MachinegunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 
   }
 
   // quick flash burst
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .animation = cgSpriteImpactSpark01,
     .origin = Vec3_Fmaf(org, 4.f, forward),
     .rotation = RandomRadian(),
@@ -402,7 +402,7 @@ static void Cg_MachinegunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 
 
   // spark dots
   for (int32_t i = 0; i < 3; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 4.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .5f), RandomRangef(50.f, 100.f)),
@@ -415,7 +415,7 @@ static void Cg_MachinegunFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 
 
   // occasional smoke wisp
   if (Randomb()) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteSmoke,
       .origin = org,
       .velocity = Vec3_Scale(forward, 15.f),
@@ -440,7 +440,7 @@ static void Cg_GrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 120.f,
     .color = MakeVec3(.9f, .6f, .3f),
@@ -454,7 +454,7 @@ static void Cg_GrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
   }
 
   // muzzle glow
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteExplosionGlow,
     .origin = Vec3_Fmaf(org, 6.f, forward),
     .lifetime = 250,
@@ -463,7 +463,7 @@ static void Cg_GrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
   });
 
   // flame
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteFlame,
     .origin = Vec3_Fmaf(org, 4.f, forward),
     .velocity = Vec3_Scale(forward, 40.f),
@@ -476,7 +476,7 @@ static void Cg_GrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 ang
 
   // heavy smoke (grenade launchers are smoky)
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteSmoke,
       .origin = Vec3_Fmaf(org, i * 3.f, forward),
       .velocity = Vec3_Add(Vec3_Scale(forward, RandomRangef(10.f, 25.f)),
@@ -502,7 +502,7 @@ static void Cg_QuakeGrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 120.f,
     .color = MakeVec3(.9f, .6f, .3f),
@@ -515,7 +515,7 @@ static void Cg_QuakeGrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec
     return;
   }
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteExplosionGlow,
     .origin = Vec3_Fmaf(org, 6.f, forward),
     .lifetime = 250,
@@ -523,7 +523,7 @@ static void Cg_QuakeGrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec
     .color = MakeVec3(.9f, .6f, .3f),
   });
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteFlame,
     .origin = Vec3_Fmaf(org, 4.f, forward),
     .velocity = Vec3_Scale(forward, 40.f),
@@ -535,7 +535,7 @@ static void Cg_QuakeGrenadeFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   });
 
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteSmoke,
       .origin = Vec3_Fmaf(org, i * 3.f, forward),
       .velocity = Vec3_Add(Vec3_Scale(forward, RandomRangef(10.f, 25.f)),
@@ -561,7 +561,7 @@ static void Cg_RocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angl
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 200.f,
     .color = MakeVec3(.9f, .6f, .3f),
@@ -576,7 +576,7 @@ static void Cg_RocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angl
   }
 
   // muzzle flash glow
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteExplosionGlow,
     .origin = Vec3_Fmaf(org, 8.f, forward),
     .lifetime = 300,
@@ -586,7 +586,7 @@ static void Cg_RocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angl
 
   // muzzle flame burst
   for (int32_t i = 0; i < 3; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteFlame,
       .origin = Vec3_Fmaf(org, 4.f + i * 4.f, forward),
       .velocity = Vec3_Scale(forward, RandomRangef(40.f, 80.f)),
@@ -599,7 +599,7 @@ static void Cg_RocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angl
   }
 
   // smoke puff
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteSmoke,
     .origin = org,
     .velocity = Vec3_Scale(forward, RandomRangef(15.f, 30.f)),
@@ -614,7 +614,7 @@ static void Cg_RocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angl
 
   // embers
   for (int32_t i = 0; i < 24; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteParticle2,
       .origin = Vec3_Fmaf(org, 6.f, forward),
       .velocity = Vec3_Add(Vec3_Scale(forward, RandomRangef(100.f, 250.f)),
@@ -637,7 +637,7 @@ static void Cg_QuakeRocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3
   Vec3 forward, right;
   Vec3_Vectors(angles, &forward, &right, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 200.f,
     .color = MakeVec3(.9f, .6f, .3f),
@@ -651,7 +651,7 @@ static void Cg_QuakeRocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3
     return;
   }
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteExplosionGlow,
     .origin = Vec3_Fmaf(org, 8.f, forward),
     .lifetime = 300,
@@ -660,7 +660,7 @@ static void Cg_QuakeRocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3
   });
 
   for (int32_t i = 0; i < 3; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteFlame,
       .origin = Vec3_Fmaf(org, 4.f + i * 4.f, forward),
       .velocity = Vec3_Scale(forward, RandomRangef(40.f, 80.f)),
@@ -672,7 +672,7 @@ static void Cg_QuakeRocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3
     });
   }
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteSmoke,
     .origin = org,
     .velocity = Vec3_Scale(forward, RandomRangef(15.f, 30.f)),
@@ -686,7 +686,7 @@ static void Cg_QuakeRocketFlash(const Vec3 muzzle, const Vec3 origin, const Vec3
   });
 
   for (int32_t i = 0; i < 24; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteParticle2,
       .origin = Vec3_Fmaf(org, 6.f, forward),
       .velocity = Vec3_Add(Vec3_Scale(forward, RandomRangef(100.f, 250.f)),
@@ -711,7 +711,7 @@ static void Cg_HyperblasterFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   Vec3 forward;
   Vec3_Vectors(angles, &forward, NULL, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 120.f,
     .color = color,
@@ -719,7 +719,7 @@ static void Cg_HyperblasterFlash(const Vec3 muzzle, const Vec3 origin, const Vec
     .decay = 300,
   });
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteImpactSpark01Dot,
     .origin = Vec3_Fmaf(org, 2.f, forward),
     .rotation = RandomRadian(),
@@ -730,7 +730,7 @@ static void Cg_HyperblasterFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   });
 
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 2.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .7f), RandomRangef(60.f, 120.f)),
@@ -751,7 +751,7 @@ static void Cg_BfgFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angles,
 
   const Vec3 color = ColorHSV(85.f, .9f, 1.f).vec3;
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 320.f,
     .color = color,
@@ -767,7 +767,7 @@ static void Cg_BfgFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angles,
   }
 
   // big energy glow
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteExplosionGlow,
     .origin = org,
     .lifetime = 400,
@@ -777,7 +777,7 @@ static void Cg_BfgFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angles,
   });
 
   // BFG plasma burst
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .animation = cgSpriteBfgExplosion2,
     .origin = org,
     .lifetime = Cg_AnimationLifetime(cgSpriteBfgExplosion2, 60),
@@ -788,7 +788,7 @@ static void Cg_BfgFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angles,
 
   // electric tendrils
   for (int32_t i = 0; i < 6; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteElectro02,
       .origin = org,
       .velocity = Vec3_Scale(Vec3_RandomDir(), RandomRangef(40.f, 100.f)),
@@ -803,7 +803,7 @@ static void Cg_BfgFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angles,
   // plasma sparks
   RenderAtlasImage *plasmaSprites[] = { cgSpritePlasmaVar01, cgSpritePlasmaVar02, cgSpritePlasmaVar03 };
   for (int32_t i = 0; i < 8; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = plasmaSprites[i % 3],
       .origin = org,
       .velocity = Vec3_Scale(Vec3_RandomDir(), RandomRangef(60.f, 140.f)),
@@ -825,7 +825,7 @@ static void Cg_QuakeNailgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   Vec3 forward;
   Vec3_Vectors(angles, &forward, NULL, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 60.f,
     .color = MakeVec3(.9f, .7f, .3f),
@@ -838,7 +838,7 @@ static void Cg_QuakeNailgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
     return;
   }
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteImpactSpark01Dot,
     .origin = Vec3_Fmaf(org, 2.f, forward),
     .rotation = RandomRadian(),
@@ -849,7 +849,7 @@ static void Cg_QuakeNailgunFlash(const Vec3 muzzle, const Vec3 origin, const Vec
   });
 
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 2.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .6f), RandomRangef(40.f, 80.f)),
@@ -871,7 +871,7 @@ static void Cg_QuakeSuperNailgunFlash(const Vec3 muzzle, const Vec3 origin, cons
   Vec3 forward;
   Vec3_Vectors(angles, &forward, NULL, NULL);
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 60.f,
     .color = MakeVec3(.9f, .7f, .3f),
@@ -884,7 +884,7 @@ static void Cg_QuakeSuperNailgunFlash(const Vec3 muzzle, const Vec3 origin, cons
     return;
   }
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteImpactSpark01Dot,
     .origin = Vec3_Fmaf(org, 2.f, forward),
     .rotation = RandomRadian(),
@@ -895,7 +895,7 @@ static void Cg_QuakeSuperNailgunFlash(const Vec3 muzzle, const Vec3 origin, cons
   });
 
   for (int32_t i = 0; i < 2; i++) {
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteImpactSpark01Dot,
       .origin = Vec3_Fmaf(org, 2.f, forward),
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), forward, .6f), RandomRangef(40.f, 80.f)),

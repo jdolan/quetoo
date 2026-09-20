@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-ClientGameView cgView;
+CGameView cgView;
 
 #define CG_FOV_REFERENCE_ASPECT (16.f / 9.f)
 

@@ -27,7 +27,7 @@
 #define _Class _CameraControlsView
 
 /**
- * @brief The icon and name for each camera, indexed by `ClientGameCameraMode`, with the detached
+ * @brief The icon and name for each camera, indexed by `CGameCameraMode`, with the detached
  * camera last: it is the absence of a subject rather than a way of framing one.
  */
 static const struct {

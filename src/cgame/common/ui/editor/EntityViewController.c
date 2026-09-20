@@ -34,7 +34,7 @@ static Cvar *editor_selectDist;
 /**
  * @brief Returns true if this editor entity has BSP brushes.
  */
-static bool isBrushEntity(const ClientGameEditorEntity *entity) {
+static bool isBrushEntity(const CGameEditorEntity *entity) {
   return entity && entity->brushes != NULL;
 }
 
@@ -182,7 +182,7 @@ static void cycleCandidate(EntityViewController *self, int32_t dir) {
 
   self->candidate = candidate;
 
-  ClientGameEditorEntity *entity = &cgEditor.entities[self->candidates[candidate]];
+  CGameEditorEntity *entity = &cgEditor.entities[self->candidates[candidate]];
 
   $(self, setEntity, entity);
 
@@ -349,7 +349,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
         const char *info = cgi.client->configStrings[CS_ENTITIES + number];
 
-        ClientGameEditorEntity *entity = &cgEditor.entities[number];
+        CGameEditorEntity *entity = &cgEditor.entities[number];
 
         if (this->entity && number == this->entity->number) {
           $(this, setEntity, entity);
@@ -435,10 +435,10 @@ static EntityViewController *init(EntityViewController *self) {
 }
 
 /**
- * @fn void EntityViewController::setEntity(EntityViewController *, ClientGameEditorEntity *)
+ * @fn void EntityViewController::setEntity(EntityViewController *, CGameEditorEntity *)
  * @memberof EntityViewController
  */
-static void setEntity(EntityViewController *self, ClientGameEditorEntity *entity) {
+static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
 
   $((View *) self->pairs, removeAllSubviews);
   $((View *) self->teamPairs, removeAllSubviews);

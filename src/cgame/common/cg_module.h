@@ -328,7 +328,7 @@ extern EntityEffects Cg_EntityEffects;
  * a ghost, a dummy - answers its own info for it and defers to previous for
  * the rest.
  */
-typedef ClientGameClientInfo *(*ClientInfo)(const ClientEntity *ent);
+typedef CGameClientInfo *(*ClientInfo)(const ClientEntity *ent);
 
 extern ClientInfo Cg_ClientInfo;
 

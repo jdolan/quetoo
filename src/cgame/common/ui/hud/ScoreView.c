@@ -56,7 +56,7 @@ static ScoreView *initWithScore(ScoreView *self, const GameScore *score, int32_t
     // placed, so a size derived from the children alone falls short of the columns
     $(self->view.style, addIntegerAttribute, "min-width", width);
 
-    const ClientGameClientInfo *info = &cgState.clients[score->client];
+    const CGameClientInfo *info = &cgState.clients[score->client];
 
     if (score->client == cgi.client->frame.ps.client) {
       $(this, addClassName, "self");

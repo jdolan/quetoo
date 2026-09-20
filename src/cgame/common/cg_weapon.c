@@ -196,7 +196,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   RenderEntity *weapon = cgi.AddEntity(cgi.view, &w);
 
-  ClientGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
+  CGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
 
   Vec3 weaponOrigin;
   Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weaponOrigin);

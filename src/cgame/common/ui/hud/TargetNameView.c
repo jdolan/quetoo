@@ -63,7 +63,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
     // purpose, and naming it reads as though they were still standing where they fell
     if (ent->current.model1 == MODEL_CLIENT && !(ent->current.effects & EF_CORPSE)) {
 
-      const ClientGameClientInfo *client = Cg_ClientInfo(ent);
+      const CGameClientInfo *client = Cg_ClientInfo(ent);
 
       q_strlcpy(name, client->name, sizeof(name));
       time = cgi.client->unclampedTime;

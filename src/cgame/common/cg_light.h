@@ -74,10 +74,10 @@ typedef struct {
    * @brief The light flags (R_LIGHT_*).
    */
   int32_t flags;
-} ClientGameLight;
+} CGameLight;
 
 float Cg_AnimateLight(float intensity, const char *style, float drift);
-void Cg_AddLight(const ClientGameLight *s);
+void Cg_AddLight(const CGameLight *s);
 void Cg_AddDynamicLights(void);
 void Cg_AddLights(void);
 void Cg_InitLights(void);

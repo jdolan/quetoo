@@ -55,7 +55,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
  */
 static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-  const ClientGameTeamInfo *team = objectForItemAtIndexPath(collectionView, indexPath);
+  const CGameTeamInfo *team = objectForItemAtIndexPath(collectionView, indexPath);
 
   TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
   $(teamView, setTeam, team);
@@ -90,7 +90,7 @@ static void didClickJoin(Button *button) {
   IndexPath *path = $(paths, firstObject);
 
   if (path) {
-    const ClientGameTeamInfo *team = objectForItemAtIndexPath(this->teamsCollectionView, path);
+    const CGameTeamInfo *team = objectForItemAtIndexPath(this->teamsCollectionView, path);
     if (team) {
       cgi.Cbuf(va("team %s\n", team->name));
     } else {

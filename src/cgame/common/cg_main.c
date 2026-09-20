@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-ClientGameState cgState;
+CGameState cgState;
 
 Cvar *cg_addAtmospheric;
 Cvar *cg_addDecals;
@@ -88,8 +88,8 @@ Cvar *cg_skin;
 
 Cvar *editor;
 
-ClientGameImport cgi;
-static ClientGameExport cge;
+CGameImport cgi;
+static CGameExport cge;
 
 /**
  * @brief Called when the client first comes up or switches game directories. Client
@@ -269,7 +269,7 @@ static void Cg_ParseTeamInfo(const char *s) {
     Cg_Error("Invalid team data: %s\n", s);
   }
 
-  ClientGameTeamInfo *team = cgState.teams;
+  CGameTeamInfo *team = cgState.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
     team->id = atoi((char *) $(info, get, i + 0));
@@ -343,7 +343,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
-    ClientGameClientInfo *ci = &cgState.clients[i - CS_CLIENTS];
+    CGameClientInfo *ci = &cgState.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
 
     // the server does not count connected clients for us: the entries it sends are the count
@@ -596,7 +596,7 @@ ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
 /**
  * @brief Entry point that populates and returns the cgame export table with all function pointers.
  */
-ClientGameExport *Cg_LoadCgame(ClientGameImport *import) {
+CGameExport *Cg_LoadCgame(CGameImport *import) {
 
   cgi = *import;
 

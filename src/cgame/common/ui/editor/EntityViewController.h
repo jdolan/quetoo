@@ -74,12 +74,12 @@ struct EntityViewController {
   /**
    * @brief The entity being edited.
    */
-  ClientGameEditorEntity *entity;
+  CGameEditorEntity *entity;
 
   /**
    * @brief The team entity being edited.
    */
-  ClientGameEditorEntity *teamEntity;
+  CGameEditorEntity *teamEntity;
 
   /**
    * @brief The info string of the most recently created entity. When this entity returns to us
@@ -146,13 +146,13 @@ struct EntityViewControllerInterface {
   EntityViewController *(*init)(EntityViewController *self);
 
   /**
-   * @fn void EntityViewController::setEntity(EntityViewController *self, ClientGameEditorEntity *entity)
+   * @fn void EntityViewController::setEntity(EntityViewController *self, CGameEditorEntity *entity)
    * @brief Sets the entity to edit.
    * @param self The EntityViewController.
    * @param entity The editor entity to edit, or `NULL` to clear.
    * @memberof EntityViewController
    */
-  void (*setEntity)(EntityViewController *self, ClientGameEditorEntity *entity);
+  void (*setEntity)(EntityViewController *self, CGameEditorEntity *entity);
 };
 
 /**

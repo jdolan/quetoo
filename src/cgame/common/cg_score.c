@@ -29,9 +29,9 @@ typedef struct {
   size_t numPending;
 
   uint32_t generation;
-} ClientGameScoreState;
+} CGameScoreState;
 
-static ClientGameScoreState cgScoreState;
+static CGameScoreState cgScoreState;
 
 /**
  * @brief A comparator for sorting `GameScore`.

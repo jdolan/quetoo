@@ -86,7 +86,7 @@ static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
  * @brief Resolves a single skin line, matching the surface name against
  * all three mesh models and storing the material in the appropriate skins array.
  */
-static void Cg_LoadClientSkin(ClientGameClientInfo *ci, char *line) {
+static void Cg_LoadClientSkin(CGameClientInfo *ci, char *line) {
 
   char *skinName, *faceName = line;
 
@@ -138,7 +138,7 @@ static void Cg_LoadClientSkin(ClientGameClientInfo *ci, char *line) {
  * render for that variant. Returns false only if the .skin file itself could
  * not be found/read.
  */
-static bool Cg_LoadClientSkins(ClientGameClientInfo *ci, const char *skin) {
+static bool Cg_LoadClientSkins(CGameClientInfo *ci, const char *skin) {
   char path[MAX_QPATH], line[MAX_STRING_CHARS];
   char *buffer;
   int64_t len;
@@ -196,7 +196,7 @@ static bool Cg_LoadClientSkins(ClientGameClientInfo *ci, const char *skin) {
 /**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static bool Cg_ValidateSkin(ClientGameClientInfo *ci) {
+static bool Cg_ValidateSkin(CGameClientInfo *ci) {
 
   if (!ci->head || !ci->torso || !ci->legs) {
     return false;
@@ -225,7 +225,7 @@ static bool Cg_ValidateSkin(ClientGameClientInfo *ci) {
 /**
  * @brief Resolve and load the specified model/skin for the player.
  */
-static bool Cg_LoadClientModel(ClientGameClientInfo *ci, const char *model, const char *skin) {
+static bool Cg_LoadClientModel(CGameClientInfo *ci, const char *model, const char *skin) {
 
   q_strlcpy(ci->model, model, sizeof(ci->model));
   q_strlcpy(ci->skin, skin, sizeof(ci->skin));
@@ -272,7 +272,7 @@ static bool Cg_LoadClientModel(ClientGameClientInfo *ci, const char *model, cons
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the `DEFAULT_CLIENT_INFO` constant.
  */
-void Cg_LoadClient(ClientGameClientInfo *ci, const char *s) {
+void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
   const char *t;
   char *v = NULL;
   int32_t i;
@@ -395,7 +395,7 @@ void Cg_LoadClients(void) {
   memset(cgState.clients, 0, sizeof(cgState.clients));
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    ClientGameClientInfo *ci = &cgState.clients[i];
+    CGameClientInfo *ci = &cgState.clients[i];
     const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
     if (!*s) {
@@ -422,7 +422,7 @@ void Cg_LoadClients(void) {
 typedef struct {
   const char *partial;
   List *matches;
-} ClientGameSkinAutocomplete;
+} CGameSkinAutocomplete;
 
 /**
  * @brief Fs_Enumerator for `Cg_SkinAutocomplete_ModelEnumerate`, appending a `model/skin`
@@ -430,7 +430,7 @@ typedef struct {
  */
 static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
 
-  const ClientGameSkinAutocomplete *autocomplete = (ClientGameSkinAutocomplete *) data;
+  const CGameSkinAutocomplete *autocomplete = (CGameSkinAutocomplete *) data;
 
   char name[MAX_QPATH];
   StripExtension(path + strlen("players/"), name);
@@ -454,7 +454,7 @@ static void Cg_SkinAutocomplete_ModelEnumerate(const char *path, void *data) {
  */
 void Cg_SkinAutocomplete_f(const uint32_t argi, List *matches) {
 
-  const ClientGameSkinAutocomplete autocomplete = {
+  const CGameSkinAutocomplete autocomplete = {
     .partial = cgi.Argv(argi),
     .matches = matches
   };
@@ -514,7 +514,7 @@ void Cg_ClientRagdoll(ClientEntity *ent) {
       return;
   }
 
-  const ClientGameClientInfo *ci = Cg_ClientInfo(ent);
+  const CGameClientInfo *ci = Cg_ClientInfo(ent);
   if (!ci->torso) {
     return;
   }
@@ -682,7 +682,7 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
  * Models flagged `fixedlegs` in their `animation.cfg` opt out of this entirely: their legs
  * always face the same direction as the torso, with no independent yaw or turn animation.
  */
-static void Cg_RotateClientLegs(const ClientGameClientInfo *ci, ClientEntity *ent, RenderEntity *legs) {
+static void Cg_RotateClientLegs(const CGameClientInfo *ci, ClientEntity *ent, RenderEntity *legs) {
 
   if (ci->legs->mesh->flags & MESH_MODEL_FIXED_LEGS) {
     ent->legsYaw = ent->legsCurrentYaw = ent->angles.y;
@@ -747,7 +747,7 @@ static void Cg_RotateClientLegs(const ClientGameClientInfo *ci, ClientEntity *en
 /**
  * @brief The tail of the `Cg_ClientInfo` chain: the slot the entity names.
  */
-static ClientGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
+static CGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
 
   // a corpse names a slot of its own, holding the client info it died wearing, so that it is
   // not repainted by its owner changing skin and does not fall back to the default model when
@@ -768,7 +768,7 @@ ClientInfo Cg_ClientInfo = Cg_ClientInfo_Common;
 void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
 
   const EntityState *s = &ent->current;
-  ClientGameClientInfo *ci = Cg_ClientInfo(ent);
+  CGameClientInfo *ci = Cg_ClientInfo(ent);
 
   if (!ci->head || !ci->torso || !ci->legs) {
     const int32_t cs = (s->effects & EF_CORPSE) ? CS_CORPSES : CS_CLIENTS;
@@ -818,7 +818,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
     Cg_RotateClientLegs(ci, ent, &legs);
   }
 
-  ClientGameClientInfo *skin = ci;
+  CGameClientInfo *skin = ci;
 
   // force the preferred skin on all _other_ players, not on ourselves
   if (cgState.forceSkin.torso && ent != cgi.client->entity) {

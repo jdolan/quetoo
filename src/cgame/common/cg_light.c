@@ -37,14 +37,14 @@ static struct {
   List *free;
 } module;
 
-static ClientGameLight *Cg_PopLight(List *lights) {
+static CGameLight *Cg_PopLight(List *lights) {
 
   if (lights == NULL || lights->head == NULL) {
     return NULL;
   }
 
   ListNode *node = lights->head;
-  ClientGameLight *light = node->element;
+  CGameLight *light = node->element;
 
   $(lights, removeNode, node);
 
@@ -54,11 +54,11 @@ static ClientGameLight *Cg_PopLight(List *lights) {
 /**
  * @brief Allocates a dynamic light source.
  */
-static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
+static CGameLight *Cg_AllocLight(const CGameLight *in) {
 
-  ClientGameLight *light = Cg_PopLight(module.free);
+  CGameLight *light = Cg_PopLight(module.free);
   if (light == NULL) {
-    light = cgi.Malloc(sizeof(ClientGameLight), MEM_TAG_CGAME_LEVEL);
+    light = cgi.Malloc(sizeof(CGameLight), MEM_TAG_CGAME_LEVEL);
   }
 
   *light = *in;
@@ -74,7 +74,7 @@ static ClientGameLight *Cg_AllocLight(const ClientGameLight *in) {
 /**
  * @brief Frees the specified light source.
  */
-static void Cg_FreeLight(ClientGameLight *light) {
+static void Cg_FreeLight(CGameLight *light) {
 
   ListNode *node = $(module.allocated, nodeForElement, light);
   assert(node);
@@ -86,7 +86,7 @@ static void Cg_FreeLight(ClientGameLight *light) {
 /**
  * @brief Adds a dynamic light source to the current view if dynamic lights are enabled.
  */
-void Cg_AddLight(const ClientGameLight *in) {
+void Cg_AddLight(const CGameLight *in) {
 
   if (!cg_addLights->value) {
     return;
@@ -206,7 +206,7 @@ void Cg_AddDynamicLights(void) {
   for (ListNode *node = module.allocated->head; node; ) {
     ListNode *next = node->next;
 
-    ClientGameLight *light = node->element;
+    CGameLight *light = node->element;
 
     const uint32_t age = cgi.client->unclampedTime - light->time;
     float intensity = light->intensity;

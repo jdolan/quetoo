@@ -50,7 +50,7 @@ typedef struct {
    * @brief The entity referencing the model containin this flare, if any.
    */
   const ClientEntity *entity;
-} ClientGameFlare;
+} CGameFlare;
 
 static Vector *cgFlares;
 
@@ -66,7 +66,7 @@ void Cg_AddFlares(void) {
   }
 
   for (size_t i = 0; i < cgFlares->count; i++) {
-    ClientGameFlare *flare = VectorValue(cgFlares, ClientGameFlare *, i);
+    CGameFlare *flare = VectorValue(cgFlares, CGameFlare *, i);
 
     Mat4 matrix = Mat4_Identity();
     flare->entity = NULL;
@@ -129,9 +129,9 @@ void Cg_AddFlares(void) {
 /**
  * @brief Creates a flare from the specified face and stage.
  */
-ClientGameFlare *Cg_LoadFlare(const RenderBspFace *face, const RenderStage *stage) {
+CGameFlare *Cg_LoadFlare(const RenderBspFace *face, const RenderStage *stage) {
 
-  ClientGameFlare *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
+  CGameFlare *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
 
   flare->face = face;
   flare->stage = stage;
@@ -180,10 +180,10 @@ static _Bool Cg_FacesShareVertex(const RenderBspFace *a, const RenderBspFace *b)
 static void Cg_MergeFlares(void) {
 
   for (size_t i = 0; i < cgFlares->count; i++) {
-    ClientGameFlare *a = VectorValue(cgFlares, ClientGameFlare *, i);
+    CGameFlare *a = VectorValue(cgFlares, CGameFlare *, i);
 
     for (size_t j = i + 1; j < cgFlares->count; j++) {
-      ClientGameFlare *b = VectorValue(cgFlares, ClientGameFlare *, j);
+      CGameFlare *b = VectorValue(cgFlares, CGameFlare *, j);
 
       if (a->face->brushSide == b->face->brushSide &&
           Cg_FacesShareVertex(a->face, b->face)) {
@@ -212,7 +212,7 @@ static void Cg_MergeFlares(void) {
  */
 void Cg_LoadFlares(void) {
 
-  cgFlares = $(alloc(Vector), initWithSize, sizeof(ClientGameFlare *));
+  cgFlares = $(alloc(Vector), initWithSize, sizeof(CGameFlare *));
 
   const RenderBspModel *bsp = cgi.WorldModel()->bsp;
 
@@ -239,7 +239,7 @@ void Cg_LoadFlares(void) {
         continue;
       }
 
-      ClientGameFlare *flare = Cg_LoadFlare(face, stage);
+      CGameFlare *flare = Cg_LoadFlare(face, stage);
       $(cgFlares, add, &flare);
     }
   }

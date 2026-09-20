@@ -34,9 +34,9 @@ typedef struct {
    * @brief View bob.
    */
   float bob;
-} ClientGameView;
+} CGameView;
 
-extern ClientGameView cgView;
+extern CGameView cgView;
 
 void Cg_PrepareView(const ClientFrame *frame);
 void Cg_CameraModeCycle_f(void);

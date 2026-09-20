@@ -28,7 +28,7 @@ typedef struct {
   float peak;
   float end;
   float peakLife;
-} ClientGameItemRespawnIntensity;
+} CGameItemRespawnIntensity;
 
 typedef struct {
   float radius;
@@ -36,21 +36,21 @@ typedef struct {
   float z;
   float drop;
   Vec3 color;
-  ClientGameItemRespawnIntensity intensity;
-} ClientGameItemRespawnHelix;
+  CGameItemRespawnIntensity intensity;
+} CGameItemRespawnHelix;
 
 typedef struct {
   float size;
   float z;
   float drop;
   Vec3 color;
-  ClientGameItemRespawnIntensity intensity;
-} ClientGameItemRespawnRing;
+  CGameItemRespawnIntensity intensity;
+} CGameItemRespawnRing;
 
 /**
  * @brief Returns envelope intensity for item respawn effects.
  */
-static float Cg_ItemRespawnIntensity(const float life, const ClientGameItemRespawnIntensity *intensity) {
+static float Cg_ItemRespawnIntensity(const float life, const CGameItemRespawnIntensity *intensity) {
 
   const float clampedLife = Clampf01(life);
 
@@ -66,9 +66,9 @@ static float Cg_ItemRespawnIntensity(const float life, const ClientGameItemRespa
 /**
  * @brief Think callback for item respawn helix sprites.
  */
-static void Cg_ItemRespawn_Think(ClientGameSprite *sprite, float life, float delta) {
+static void Cg_ItemRespawn_Think(CGameSprite *sprite, float life, float delta) {
 
-  const ClientGameItemRespawnHelix *helix = sprite->data;
+  const CGameItemRespawnHelix *helix = sprite->data;
   if (!helix) {
     return;
   }
@@ -92,10 +92,10 @@ static void Cg_ItemRespawn_Think(ClientGameSprite *sprite, float life, float del
 /**
  * @brief Think callback for a face-up ring that descends with item respawn helix.
  */
-static void Cg_ItemRespawnRing_Think(ClientGameSprite *sprite, float life, float delta) {
+static void Cg_ItemRespawnRing_Think(CGameSprite *sprite, float life, float delta) {
   (void) delta;
 
-  const ClientGameItemRespawnRing *ring = sprite->data;
+  const CGameItemRespawnRing *ring = sprite->data;
   if (!ring) {
     return;
   }
@@ -130,7 +130,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
 
     for (int32_t strand = 0; strand < strands; strand++) {
 
-      ClientGameItemRespawnHelix *helix = cgi.Malloc(sizeof(*helix), MEM_TAG_CGAME_LEVEL);
+      CGameItemRespawnHelix *helix = cgi.Malloc(sizeof(*helix), MEM_TAG_CGAME_LEVEL);
 
       helix->radius = radius * RandomRangef(0.9f, 1.1f);
       helix->turns = turns * RandomRangef(0.5f, 1.15f) * (Randomf() < 0.5f ? -1.f : 1.f);
@@ -144,7 +144,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
 
       const float angle = phase + strand * M_PI;
 
-      Cg_AddSprite(&(ClientGameSprite) {
+      Cg_AddSprite(&(CGameSprite) {
         .atlasImage = cgSpriteParticle3,
         .origin = org,
         .termination = org,
@@ -157,7 +157,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
     }
   }
 
-  ClientGameItemRespawnRing *ring = cgi.Malloc(sizeof(*ring), MEM_TAG_CGAME_LEVEL);
+  CGameItemRespawnRing *ring = cgi.Malloc(sizeof(*ring), MEM_TAG_CGAME_LEVEL);
   ring->size = 48.f;
   ring->z = height;
   ring->drop = height * 1.35f;
@@ -167,7 +167,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
   ring->intensity.end = RandomRangef(0.0f, 0.15f);
   ring->intensity.peakLife = RandomRangef(0.2f, 0.4f);
 
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .atlasImage = cgSpriteRing,
     .origin = Vec3_Fmaf(org, height, Vec3_Up()),
     .termination = org,
@@ -179,7 +179,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
   });
 
   // glow
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .origin = Vec3_Fmaf(org, 20.f, Vec3_Up()),
     .lifetime = 1000,
     .size = 150.f,
@@ -187,7 +187,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
     .color = color.vec3,
   });
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 160.f,
     .color = color.vec3,
@@ -201,10 +201,10 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
  */
 static void Cg_ItemPickupEffect(const Vec3 org, const Color color) {
 
-  ClientGameSprite *s;
+  CGameSprite *s;
 
   // ring
-  if ((s = Cg_AddSprite(&(ClientGameSprite) {
+  if ((s = Cg_AddSprite(&(CGameSprite) {
       .origin = org,
       .lifetime = 400,
       .size = 10.f,
@@ -216,7 +216,7 @@ static void Cg_ItemPickupEffect(const Vec3 org, const Color color) {
   }
 
   // glow
-  Cg_AddSprite(&(ClientGameSprite) {
+  Cg_AddSprite(&(CGameSprite) {
     .origin = org,
     .lifetime = 1000,
     .size = 150,
@@ -224,7 +224,7 @@ static void Cg_ItemPickupEffect(const Vec3 org, const Color color) {
     .color = color.vec3,
   });
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 160.f,
     .color = color.vec3,
@@ -240,7 +240,7 @@ void Cg_TeleporterEffect(const Vec3 org) {
 
   for (int32_t i = 0; i < 64; i++) {
 
-    Cg_AddSprite(&(ClientGameSprite) {
+    Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteParticle,
       .size = 8.f,
       .origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)), MakeVec3(0.f, 0.f, RandomRangef(8.f, 32.f))),
@@ -251,7 +251,7 @@ void Cg_TeleporterEffect(const Vec3 org) {
     });
   }
 
-  Cg_AddLight(&(ClientGameLight) {
+  Cg_AddLight(&(CGameLight) {
     .origin = org,
     .radius = 120.f,
     .color = MakeVec3(.9f, .9f, .9f),
@@ -294,7 +294,7 @@ static void Cg_DrownEffect(ClientEntity *ent) {
 static SoundSample *Cg_ClientModelSample(const ClientEntity *ent, const char *name) {
 
   const int32_t client = ent->current.client;
-  const ClientGameClientInfo *info = &cgState.clients[client];
+  const CGameClientInfo *info = &cgState.clients[client];
 
   if (!*info->model) {
     return NULL;

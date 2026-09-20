@@ -73,13 +73,13 @@ static bool Cg_EntityTeam_Predicate(const CmEntity *e, void *data) {
 }
 
 /**
- * @return The `ClientGameEntity *` for the specified `CmEntity *`, if any.
+ * @return The `CGameEntity *` for the specified `CmEntity *`, if any.
  */
-ClientGameEntity *Cg_EntityForDefinition(const CmEntity *e) {
+CGameEntity *Cg_EntityForDefinition(const CmEntity *e) {
 
   if (e) {
     for (uint32_t i = 0; i < cgEntities->count; i++) {
-      ClientGameEntity *ent = VectorElement(cgEntities, ClientGameEntity, i);
+      CGameEntity *ent = VectorElement(cgEntities, CGameEntity, i);
       if (ent->def == e) {
         return ent;
       }
@@ -89,7 +89,7 @@ ClientGameEntity *Cg_EntityForDefinition(const CmEntity *e) {
   return NULL;
 }
 
-const ClientGameEntityClass *cgEntityClasses[] = {
+const CGameEntityClass *cgEntityClasses[] = {
   &cgMiscDust,
   &cgMiscFlame,
   &cgMiscModel,
@@ -110,7 +110,7 @@ void Cg_LoadEntities(void) {
 
   Cg_FreeEntities();
 
-  cgEntities = $(alloc(Vector), initWithSize, sizeof(ClientGameEntity));
+  cgEntities = $(alloc(Vector), initWithSize, sizeof(CGameEntity));
 
   const CmBsp *bsp = cgi.WorldModel()->bsp->cm;
   for (int32_t i = 0; i < bsp->numEntities; i++) {
@@ -118,12 +118,12 @@ void Cg_LoadEntities(void) {
     const CmEntity *def = bsp->entities[i];
     const char *classname = cgi.EntityValue(def, "classname")->string;
 
-    const ClientGameEntityClass **clazz = cgEntityClasses;
+    const CGameEntityClass **clazz = cgEntityClasses;
     for (size_t j = 0; j < cgNumEntityClasses; j++, clazz++) {
 
       if (!q_strcmp(classname, (*clazz)->classname)) {
 
-        ClientGameEntity e = {
+        CGameEntity e = {
           .id = MAX_ENTITIES + (int32_t) cgEntities->count,
           .clazz = *clazz,
           .def = def
@@ -202,7 +202,7 @@ bool Cg_IsDucking(const ClientEntity *ent) {
 
   const float height = Box3_Size(ent->current.bounds).z;
 
-  const ClientGameClientInfo *ci = Cg_ClientInfo(ent);
+  const CGameClientInfo *ci = Cg_ClientInfo(ent);
 
   return (ci->standingCeiling - ci->standingFloor) - height > PM_STOP_EPSILON;
 }
@@ -343,7 +343,7 @@ void Cg_AddEntities(const ClientFrame *frame) {
   }
 
   // and client side entities too
-  ClientGameEntity *e = cgEntities->elements;
+  CGameEntity *e = cgEntities->elements;
   for (uint32_t i = 0; i < cgEntities->count; i++, e++) {
 
     if (e->nextThink > cgi.client->unclampedTime) {

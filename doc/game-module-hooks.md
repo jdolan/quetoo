@@ -745,7 +745,7 @@ In descending order of how much guard they retire:
 
 ### What stays a guard
 
-`cg_types.h`'s `hook_pull_speed` in `ClientGameState`, `cg_predict.c`'s single
+`cg_types.h`'s `hook_pull_speed` in `CGameState`, `cg_predict.c`'s single
 prediction branch, and the menu outlets in `MovementCombatViewController.c`, which
 are driven by a JSON resource rather than by code. `cg_main.{c,h}`'s are wiring -
 the `hookStyle` cvar, the config string, the accessor - and the two in
@@ -835,7 +835,7 @@ out and no warning.
   generic path called them they silently dropped nothing. Any implementation
   behind a hook must use what it is handed.
 - **Layout, not logic, is the usual failure.** `G_HOOK` adds `hook_pull_speed` to
-  `ClientGameState`, shifting every field after it. A module compiled with a different
+  `CGameState`, shifting every field after it. A module compiled with a different
   define set than the objects it links reads those at the wrong offsets and
   presents as a network fault. This is why every common source is compiled once
   per module rather than shared, in all three build systems.

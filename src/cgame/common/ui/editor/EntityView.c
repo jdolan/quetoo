@@ -108,10 +108,10 @@ static View *init(View *self) {
 #pragma mark - EntityView
 
 /**
- * @fn EntityView *EntityView::initWithEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair)
+ * @fn EntityView *EntityView::initWithEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair)
  * @memberof EntityView
  */
-static EntityView *initWithEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair) {
+static EntityView *initWithEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair) {
 
   self = (EntityView *) super(StackView, self, initWithFrame, NULL);
   if (self) {
@@ -134,10 +134,10 @@ static EntityView *initWithEntity(EntityView *self, ClientGameEditorEntity *edit
 }
 
 /**
- * @fn void EntityView::setEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair)
+ * @fn void EntityView::setEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair)
  * @memberof EntityView
  */
-static void setEntity(EntityView *self, ClientGameEditorEntity *edit, CmEntity *pair) {
+static void setEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair) {
 
   self->edit = edit;
   self->pair = pair;

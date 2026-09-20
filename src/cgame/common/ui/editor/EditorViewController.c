@@ -158,7 +158,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
         RenderModel *model = NULL;
         if (number > 0) {
-          const ClientGameEditorEntity *edit = &cgEditor.entities[number];
+          const CGameEditorEntity *edit = &cgEditor.entities[number];
           if (edit->model && IS_MESH_MODEL(edit->model)) {
             model = (RenderModel *) edit->model;
           }

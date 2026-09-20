@@ -54,7 +54,7 @@ typedef struct {
    */
   float hue;
 
-} ClientGameTeamInfo;
+} CGameTeamInfo;
 
 /**
  * @brief The vote in progress, as `CS_VOTE` describes it.
@@ -86,7 +86,7 @@ typedef struct {
    * @brief When it closes, in client time.
    */
   uint32_t deadline;
-} ClientGameVoteState;
+} CGameVoteState;
 
 /**
  * @brief The intermission's map candidates, as `CS_NEXT_MAP` describes them.
@@ -116,7 +116,7 @@ typedef struct {
    * only when it must; resolving one enumerates the filesystem.
    */
   uint32_t generation;
-} ClientGameNextMapState;
+} CGameNextMapState;
 
 /**
  * @brief The client game representation of clients (players).
@@ -185,14 +185,14 @@ typedef struct {
   /**
    * @brief The team identifier.
    */
-  ClientGameTeamInfo *team;
+  CGameTeamInfo *team;
 
   /**
    * @brief The cached weapon muzzle position in world space, transformed from
    * the model-space muzzle defined in `link.cfg` / `view.cfg`.
    */
   Vec3 weaponMuzzle;
-} ClientGameClientInfo;
+} CGameClientInfo;
 
 #define WEATHER_NONE 0x0
 #define WEATHER_RAIN 0x1
@@ -203,7 +203,7 @@ typedef struct {
  * @brief How the camera frames whatever it is watching, in demo playback and while spectating a
  * live game alike. Whether it is watching anything at all is a separate question - free flight
  * is the absence of a subject, not a way of framing one - which the server answers live, and
- * `ClientGameSpectateState::detached` answers during playback.
+ * `CGameSpectateState::detached` answers during playback.
  */
 typedef enum {
   /**
@@ -223,7 +223,7 @@ typedef enum {
   CAMERA_FOLLOW,
 
   CAMERA_MODE_TOTAL
-} ClientGameCameraMode;
+} CGameCameraMode;
 
 /**
  * @brief Follow camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance,
@@ -238,7 +238,7 @@ typedef struct {
    * the follow state, which a reconnect would otherwise leave disagreeing.
    */
   bool following;
-} ClientGameFollowState;
+} CGameFollowState;
 
 /**
  * @brief Free-flight camera state for demo playback: a locally-owned `PM_SPECTATOR` movement
@@ -253,7 +253,7 @@ typedef struct {
    * question is whether the server has given us a chase target, which `STAT_CHASE` answers.
    */
   bool detached;
-} ClientGameSpectateState;
+} CGameSpectateState;
 
 /**
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
@@ -263,22 +263,22 @@ typedef struct {
   /**
    * @brief The clients (players).
    */
-  ClientGameClientInfo clients[MAX_CLIENTS];
+  CGameClientInfo clients[MAX_CLIENTS];
 
   /**
    * @brief The client info each standing corpse died wearing, by CS_CORPSES slot.
    */
-  ClientGameClientInfo corpses[MAX_CORPSES];
+  CGameClientInfo corpses[MAX_CORPSES];
 
   /**
    * @brief The forced skin (foreskin?) client info.
    */
-  ClientGameClientInfo forceSkin;
+  CGameClientInfo forceSkin;
 
   /**
    * @brief The teams.
    */
-  ClientGameTeamInfo teams[MAX_TEAMS];
+  CGameTeamInfo teams[MAX_TEAMS];
 
   /**
    * @brief The gameplay mode.
@@ -335,17 +335,17 @@ typedef struct {
   /**
    * @brief The vote in progress, from `CS_VOTE`.
    */
-  ClientGameVoteState vote;
+  CGameVoteState vote;
 
   /**
    * @brief The intermission's map candidates, from `CS_NEXT_MAP`.
    */
-  ClientGameNextMapState nextMap;
+  CGameNextMapState nextMap;
 
   /**
    * @brief The camera mode, cycled by `camera`.
    */
-  ClientGameCameraMode cameraMode;
+  CGameCameraMode cameraMode;
 
   /**
    * @brief Whether the transport and camera controls have been printed for this connection.
@@ -355,14 +355,14 @@ typedef struct {
   /**
    * @brief Follow camera state, shared by live spectating and demo playback.
    */
-  ClientGameFollowState follow;
+  CGameFollowState follow;
 
   /**
    * @brief Free-flight camera state, used during demo playback only.
    */
-  ClientGameSpectateState spectate;
-} ClientGameState;
+  CGameSpectateState spectate;
+} CGameState;
 
-extern ClientGameState cgState;
+extern CGameState cgState;
 
 #endif

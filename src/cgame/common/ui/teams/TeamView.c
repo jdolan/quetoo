@@ -49,7 +49,7 @@ static void updateBindings(View *self, ident data) {
 
   $((View *) this->players, removeAllSubviews);
 
-  const ClientGameClientInfo *client = cgState.clients;
+  const CGameClientInfo *client = cgState.clients;
   for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
 
     if (*client->info && client->team == this->team) {
@@ -88,10 +88,10 @@ static TeamView *initWithFrame(TeamView *self, const SDL_Rect *frame) {
 }
 
 /**
- * @fn void TeamView::setTeam(TeamView *, const ClientGameTeamInfo *)
+ * @fn void TeamView::setTeam(TeamView *, const CGameTeamInfo *)
  * @memberof TeamView
  */
-static void setTeam(TeamView *self, const ClientGameTeamInfo *team) {
+static void setTeam(TeamView *self, const CGameTeamInfo *team) {
 
   self->team = team;
 

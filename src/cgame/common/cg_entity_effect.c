@@ -48,7 +48,7 @@ Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultH
   float clientHue = -1.f;
 
   if (client < MAX_CLIENTS) {
-    const ClientGameClientInfo *ci = &cgState.clients[client];
+    const CGameClientInfo *ci = &cgState.clients[client];
     clientHue = ci->team ? ci->team->hue : ci->hue;
   }
 
@@ -109,7 +109,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
 
   if (e->effects & EF_QUAD) {
     const float pulse = 4.f + sinf(cgi.client->unclampedTime * 0.006f) * .75f;
-    const ClientGameLight l = {
+    const CGameLight l = {
       .origin = e->origin,
       .radius = 350.f,
       .color = MakeVec3(.2f, .4f, 1.f),
@@ -125,7 +125,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
 
   if (e->effects & EF_INVULNERABILITY) {
     const float pulse = 4.f + sinf(cgi.client->unclampedTime * 0.006f) * .75f;
-    const ClientGameLight l = {
+    const CGameLight l = {
       .origin = e->origin,
       .radius = 350.f,
       .color = MakeVec3(1.f, 0.f, 0.f),
@@ -147,7 +147,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
         const Vec3 color = Cg_EffectColor(&cgState.teams[team].hue, 0.f);
         const float pulse = 2.5f + sinf(cgi.client->unclampedTime * 0.005f) * .5f;
 
-        const ClientGameLight l = {
+        const CGameLight l = {
           .origin = e->origin,
           .radius = 250.0,
           .color = color,
@@ -196,7 +196,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 
   if (e->effects & EF_LIGHT) {
-    Cg_AddLight(&(const ClientGameLight) {
+    Cg_AddLight(&(const CGameLight) {
       .origin = e->origin,
       .radius = ent->current.termination.x,
       .color = Color32_Color(ent->current.color).vec3,
@@ -207,7 +207,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
 
   if (e->effects & EF_LIGHT_PULSE) {
     const float pulse = .25f + .75f * (1.f + sinf(cgi.client->unclampedTime * .003f)) * .5f;
-    Cg_AddLight(&(const ClientGameLight) {
+    Cg_AddLight(&(const CGameLight) {
       .origin = Vec3_Fmaf(e->origin, 32.f, Vec3_Up()),
       .radius = ent->current.termination.x * pulse,
       .color = Color32_Color(ent->current.color).vec3,
@@ -218,7 +218,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   if (e->effects & EF_TEAM_TINT) {
     assert(ent->current.animation1 < MAX_TEAMS);
 
-    const ClientGameTeamInfo *team = cgState.teams + ent->current.animation1;
+    const CGameTeamInfo *team = cgState.teams + ent->current.animation1;
     e->tints[0] = MakeVec4(team->color.r, team->color.g, team->color.b, 1.f);
 
     for (int32_t i = 1; i < 3; i++) {

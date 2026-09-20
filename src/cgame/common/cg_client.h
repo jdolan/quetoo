@@ -24,7 +24,7 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-void Cg_LoadClient(ClientGameClientInfo *ci, const char *s);
+void Cg_LoadClient(CGameClientInfo *ci, const char *s);
 void Cg_LoadClients(void);
 void Cg_SkinAutocomplete_f(const uint32_t argi, List *matches);
 void Cg_ClientRagdoll(ClientEntity *ent);

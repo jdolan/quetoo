@@ -67,7 +67,7 @@ struct CameraControlsView {
   /**
    * @brief What was last announced, so that the view shows itself only when this changes.
    */
-  ClientGameCameraMode mode;
+  CGameCameraMode mode;
   bool detached;
 
   /**

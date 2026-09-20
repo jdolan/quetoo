@@ -21,15 +21,15 @@
 
 #include "cg_local.h"
 
-static ClientGameSprite *cgFreeSprites;
-static ClientGameSprite *cgActiveSprites;
+static CGameSprite *cgFreeSprites;
+static CGameSprite *cgActiveSprites;
 
-static ClientGameSprite cgSprites[MAX_SPRITES];
+static CGameSprite cgSprites[MAX_SPRITES];
 
 /**
  * @brief Pushes the sprite onto the head of specified list.
  */
-static void Cg_PushSprite(ClientGameSprite *s, ClientGameSprite **list) {
+static void Cg_PushSprite(CGameSprite *s, CGameSprite **list) {
 
   s->prev = NULL;
 
@@ -45,7 +45,7 @@ static void Cg_PushSprite(ClientGameSprite *s, ClientGameSprite **list) {
  * @brief Pops the sprite from the specified list, repairing the list if it
  * becomes broken.
  */
-static void Cg_PopSprite(ClientGameSprite *s, ClientGameSprite **list) {
+static void Cg_PopSprite(CGameSprite *s, CGameSprite **list) {
 
   if (s->prev) {
     s->prev->next = s->next;
@@ -65,7 +65,7 @@ static void Cg_PopSprite(ClientGameSprite *s, ClientGameSprite **list) {
 /**
  * @brief Allocates a free sprite.
  */
-ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS) {
+CGameSprite *Cg_AddSprite(const CGameSprite *inS) {
 
   if (!cg_addSprites->integer) {
     return NULL;
@@ -78,7 +78,7 @@ ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS) {
 
   assert(inS->media);
 
-  ClientGameSprite *s = cgFreeSprites;
+  CGameSprite *s = cgFreeSprites;
 
   Cg_PopSprite(s, &cgFreeSprites);
 
@@ -99,8 +99,8 @@ ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS) {
  * @brief Frees the specified sprite, returning the sprite it was pointing
  * to as a convenience for continued iteration.
  */
-ClientGameSprite *Cg_FreeSprite(ClientGameSprite *s) {
-  ClientGameSprite *next = s->next;
+CGameSprite *Cg_FreeSprite(CGameSprite *s) {
+  CGameSprite *next = s->next;
 
   Cg_PopSprite(s, &cgActiveSprites);
 
@@ -121,7 +121,7 @@ ClientGameSprite *Cg_FreeSprite(ClientGameSprite *s) {
  */
 void Cg_FreeSpritesByData(const void *data) {
 
-  ClientGameSprite *s = cgActiveSprites;
+  CGameSprite *s = cgActiveSprites;
   while (s) {
     if (s->data == data) {
       s->flags |= SPRITE_DATA_NOFREE;
@@ -159,7 +159,7 @@ void Cg_AddSprites(void) {
   const float delta = MILLIS_TO_SECONDS(cgi.client->frameMsec);
   const uint32_t clientTime = cgi.client->unclampedTime, serverTime = cgi.client->frame.time;
 
-  ClientGameSprite *s = cgActiveSprites;
+  CGameSprite *s = cgActiveSprites;
   while (s) {
 
     assert(s->media);

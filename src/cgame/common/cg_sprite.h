@@ -25,7 +25,7 @@
 
 #define SPRITE_GRAVITY 180.f
 
-typedef struct ClientGameSprite ClientGameSprite;
+typedef struct CGameSprite CGameSprite;
 
 /**
  * @brief Sprite types.
@@ -42,12 +42,12 @@ typedef enum {
    */
   SPRITE_BEAM    = 1,
 
-} ClientGameSpriteType;
+} CGameSpriteType;
 
 /**
  * @brief Sprite think function type.
  */
-typedef void (*Cg_SpriteThink)(ClientGameSprite *sprite, float life, float delta);
+typedef void (*Cg_SpriteThink)(CGameSprite *sprite, float life, float delta);
 
 /**
  * @brief CGame-specific sprite flags.
@@ -86,15 +86,15 @@ enum {
 typedef struct {
   int16_t entityId;
   uint8_t spawnId;
-} ClientGameSpriteEntity;
+} CGameSpriteEntity;
 
 /**
- * @brief Convenience function to get a `ClientGameSpriteEntity` from a `ClientEntity`
+ * @brief Convenience function to get a `CGameSpriteEntity` from a `ClientEntity`
  * @param ent The entity to get a sprite entity for
  * @return The sprite entity
  */
-static inline ClientGameSpriteEntity Cg_GetSpriteEntity(const ClientEntity *ent) {
-  return (ClientGameSpriteEntity) {
+static inline CGameSpriteEntity Cg_GetSpriteEntity(const ClientEntity *ent) {
+  return (CGameSpriteEntity) {
     .entityId = ent->current.number,
     .spawnId = ent->current.spawnId
   };
@@ -103,12 +103,12 @@ static inline ClientGameSpriteEntity Cg_GetSpriteEntity(const ClientEntity *ent)
 /**
  * @brief Client game sprites can persist over multiple frames.
  */
-struct ClientGameSprite {
+struct CGameSprite {
 
   /**
    * @brief Type of sprite.
    */
-  ClientGameSpriteType type;
+  CGameSpriteType type;
 
   /**
    * @brief The sprite origin.
@@ -245,10 +245,10 @@ struct ClientGameSprite {
   /**
    * @brief Entity to follow, for `SPRITE_FOLLOW_ENTITY`. Use `Cg_GetSpriteEntity`.
    */
-  ClientGameSpriteEntity entity;
+  CGameSpriteEntity entity;
 
-  ClientGameSprite *prev;
-  ClientGameSprite *next;
+  CGameSprite *prev;
+  CGameSprite *next;
 };
 
 /**
@@ -258,8 +258,8 @@ static inline uint32_t Cg_AnimationLifetime(const RenderAnimation *animation, co
   return animation->numFrames * FRAMES_TO_SECONDS(fps);
 }
 
-ClientGameSprite *Cg_AddSprite(const ClientGameSprite *inS);
-ClientGameSprite *Cg_FreeSprite(ClientGameSprite *p);
+CGameSprite *Cg_AddSprite(const CGameSprite *inS);
+CGameSprite *Cg_FreeSprite(CGameSprite *p);
 void Cg_FreeSpritesByData(const void *data);
 void Cg_FreeSprites(void);
 void Cg_AddSprites(void);

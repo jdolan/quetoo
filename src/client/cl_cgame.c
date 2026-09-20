@@ -162,7 +162,7 @@ static void Cl_CgamePrintLevel(int32_t level, const char *fmt, ...) {
  * `Com_Cgame` names.
  */
 void Cl_InitCgame(void) {
-  ClientGameImport import;
+  CGameImport import;
 
   const char *dir = Com_Cgame();
 
@@ -349,7 +349,7 @@ void Cl_InitCgame(void) {
 
   cgameHandle = handle;
 
-  ClientGameExport *cgame = Sys_LoadLibrary(cgameHandle, "Cg_LoadCgame", &import);
+  CGameExport *cgame = Sys_LoadLibrary(cgameHandle, "Cg_LoadCgame", &import);
 
   if (!cgame) {
     cgameHandle = Sys_CloseLibrary(cgameHandle);

@@ -152,7 +152,7 @@ static void viewWillAppear(ViewController *self) {
   RenderModel *model = NULL;
 
   if (cgEditor.selected > 0) {
-    const ClientGameEditorEntity *edit = &cgEditor.entities[cgEditor.selected];
+    const CGameEditorEntity *edit = &cgEditor.entities[cgEditor.selected];
     if (edit->model && IS_MESH_MODEL(edit->model)) {
       model = (RenderModel *) edit->model;
     }

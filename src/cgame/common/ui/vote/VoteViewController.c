@@ -121,7 +121,7 @@ static void refreshClients(VoteViewController *this) {
   $(this->client, removeAllOptions);
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    const ClientGameClientInfo *ci = &cgState.clients[i];
+    const CGameClientInfo *ci = &cgState.clients[i];
     if (*ci->name) {
       $(this->client, addOption, ci->name, NULL);
     }
