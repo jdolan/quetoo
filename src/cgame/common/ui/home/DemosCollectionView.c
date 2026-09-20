@@ -91,10 +91,20 @@ static void enumerateDemos(const char *path, void *data) {
     return;
   }
 
+  // only what every version of the header has. The browser needs none of the fields later
+  // versions added, and reading for them would fail on a demo recorded before they existed
   DemoHeader header;
-  if (cgi.ReadFile(file, &header, sizeof(header), 1) != 1 ||
-      memcmp(header.magic, DEMO_MAGIC, sizeof(header.magic)) ||
-      LittleLong(header.version) != DEMO_VERSION) {
+  memset(&header, 0, sizeof(header));
+
+  if (cgi.ReadFile(file, &header, DemoHeaderSize(DEMO_VERSION_MIN), 1) != 1 ||
+      memcmp(header.magic, DEMO_MAGIC, sizeof(header.magic))) {
+    cgi.CloseFile(file);
+    return;
+  }
+
+  const int32_t version = LittleLong(header.version);
+
+  if (version < DEMO_VERSION_MIN || version > DEMO_VERSION) {
     cgi.CloseFile(file);
     return;
   }

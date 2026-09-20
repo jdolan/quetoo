@@ -55,7 +55,13 @@ typedef struct {
 /**
  * @brief Format version for demo files; rejects demos recorded by an incompatible version.
  */
-#define DEMO_VERSION 2
+#define DEMO_VERSION 3
+
+/**
+ * @brief The oldest demo format this build still reads. Version 2 has no protocol fields, so a
+ * demo of that vintage is played on trust: it predates the check, not the protocol.
+ */
+#define DEMO_VERSION_MIN 2
 
 /**
  * @brief The fixed-size header written at offset 0 of every recorded demo file.
@@ -109,7 +115,30 @@ typedef struct {
    * @brief The byte offset of the keyframe table. Written when recording stops.
    */
   int32_t ofsKeyframes;
+
+  /**
+   * @brief The `PROTOCOL_MAJOR` the recording was made under. Added in version 3.
+   * @details The engine wire format the whole stream is written in. A build that speaks a
+   * different one cannot parse a single message, so playback refuses rather than serving
+   * nonsense to a client that will drop itself part way through the setup.
+   */
+  int32_t protocolMajor;
+
+  /**
+   * @brief The `PROTOCOL_MINOR` the recording was made under. Added in version 3.
+   * @details Game module behaviour, so the server cannot judge it: the module that has to
+   * agree is the viewer's cgame. Recorded for that check and for the demo browser.
+   */
+  int32_t protocolMinor;
 } DemoHeader;
+
+/**
+ * @brief The on-disk size of a demo header of the given format `version`, which is where that
+ * demo's recorded stream begins.
+ * @details Version 3 only appends, so the older size is the offset of the first field it added.
+ */
+#define DemoHeaderSize(version) \
+  ((version) < 3 ? offsetof(DemoHeader, protocolMajor) : sizeof(DemoHeader))
 
 /**
  * @brief MD3 file identification.
