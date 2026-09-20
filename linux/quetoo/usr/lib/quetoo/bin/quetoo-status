@@ -87,7 +87,7 @@ def main():
     # Default: human-readable summary
     print(f"hostname : {info.get('sv_hostname', '?')}")
     print(f"map      : {info.get('sv_map', '?')}")
-    print(f"players  : {len(players)} / {info.get('sv_max_clients', '?')}")
+    print(f"players  : {len(players)} / {info.get('sv_maxClients', info.get('sv_max_clients', '?'))}")
 
     if players:
         print()
