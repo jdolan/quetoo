@@ -77,12 +77,11 @@ Follow these conventions:
 
 | Convention | Rule |
 |------------|------|
-| Types | `snake_case` with `_t` suffix (`Vec3`, `EntityState`) |
+| Types | `PascalCase` (`Vec3`, `EntityState`) |
 | Functions/vars | `Xyz_TitleCase` with subsystem prefix |
 | Memory | `Mem_Malloc` / `Mem_Free`; use plain `malloc`/`free` only for function-scope allocations |
 | Vector math | `VectorCopy` / `VectorAdd` macros or `Vec3_*` functions |
 | CVars | `cgi.AddCvar("r_name", "default", CVAR_ARCHIVE, "Description")` |
-| OpenGL | OpenGL 4.1 Core Profile (macOS ceiling) |
 | Comments | Only when clarification is needed; avoid obvious comments |
 | Tests | For unit-testable changes, add or create tests in src/test using Check. Follow existing patterns and add .gitignore entries for test executables |
 
