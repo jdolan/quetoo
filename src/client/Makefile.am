@@ -4,6 +4,7 @@ SUBDIRS = \
 	ui
 
 noinst_HEADERS = \
+	cl_analytics.h \
 	cl_binds.h \
 	cl_cgame.h \
 	cl_cmd.h \
@@ -30,6 +31,7 @@ noinst_LTLIBRARIES = \
 	libclient_null.la
 
 libclient_la_SOURCES = \
+	cl_analytics.c \
 	cl_cgame.c \
 	cl_cmd.c \
 	cl_console.c \

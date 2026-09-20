@@ -237,6 +237,10 @@ static void Cl_LoadMusics(void) {
  */
 void Cl_LoadMedia(void) {
 
+  if (cls.state != CL_ACTIVE) {
+    Cl_AnalyticsMap();
+  }
+
   cls.cgame->FreeMedia();
 
   cls.state = CL_LOADING;
