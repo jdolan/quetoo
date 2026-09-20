@@ -84,8 +84,8 @@ Quetoo is written in C. Please follow these conventions when contributing code.
 
 | Category | Convention | Example |
 |---|---|---|
-| Types/structs | `Snake_Case` with `_t` suffix | `EntityState`, `Vec3` |
-| Functions | `camelCase` | `G_Damage()`, `R_DrawBspModel()` |
+| Types/structs | `PascalCase` | `EntityState`, `Vec3` |
+| Functions | `Prefix_TitleCase` | `G_Damage()`, `R_DrawBspModel()` |
 | Variables | `camelCase` | `numEntities`, `frameTime` |
 | Constants/macros | `ALL_CAPS` | `MAX_CLIENTS`, `CVAR_ARCHIVE` |
 | Enum values | `ALL_CAPS` | `PHYSICS_TOSS`, `ERROR_DROP` |
