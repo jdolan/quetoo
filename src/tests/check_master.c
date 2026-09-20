@@ -91,10 +91,10 @@ START_TEST(check_Ms_AddServer) {
 } END_TEST
 
 START_TEST(check_Ms_BlacklistServer) {
-  File *f = Fs_OpenAppend("servers-blacklist");
+  File *f = Fs_OpenWrite("servers-blacklist");
   ck_assert_msg(f != NULL, "Failed to open servers-blacklist");
 
-  const char *test = "192.168.0.*\n";
+  const char *test = "192.168.0.*\n// a comment\n\n10.0.0.1:27910\n";
   int64_t len = Fs_Write(f, (void *) test, 1, strlen(test));
 
   ck_assert_msg((size_t) len == strlen(test), "Failed to write servers-blacklist");
@@ -110,6 +110,15 @@ START_TEST(check_Ms_BlacklistServer) {
   ck_assert_msg(Ms_BlacklistServer(&addr), "Missed %s", inet_ntoa(addr.sin_addr));
 
   *(in_addr_t *) &addr.sin_addr = inet_addr("127.0.0.1");
+
+  ck_assert_msg(!Ms_BlacklistServer(&addr), "False positive for %s", inet_ntoa(addr.sin_addr));
+
+  *(in_addr_t *) &addr.sin_addr = inet_addr("10.0.0.1");
+  addr.sin_port = htons(27910);
+
+  ck_assert_msg(Ms_BlacklistServer(&addr), "Missed %s", inet_ntoa(addr.sin_addr));
+
+  addr.sin_port = htons(27911);
 
   ck_assert_msg(!Ms_BlacklistServer(&addr), "False positive for %s", inet_ntoa(addr.sin_addr));
 

@@ -319,51 +319,137 @@ static void Ms_DropServer(MasterServer *server) {
 }
 
 /**
- * @brief Returns true if the specified server has been blacklisted, false otherwise.
- * The format of the blacklist file is one-IP-per-line, with wildcards. Ex:
- *
- * // This guy is a joker
- * 66.182.58.*
- *
- * Ensure that the file is new-line terminated for all rules to be evaluated.
+ * @brief The blacklist file, relative to any filesystem search path root.
  */
-static bool Ms_BlacklistServer(struct sockaddr_in *from) {
-  char *buffer;
-  int64_t len;
+#define BLACKLIST_FILE "servers-blacklist"
 
-  if ((len = Fs_Load("servers-blacklist", (void *) &buffer)) == -1) {
-    return false;
-  }
+/**
+ * @brief Upper bound on the number of blacklist rules.
+ */
+#define MAX_BLACKLIST_RULES 256
 
-  char *c = buffer;
-  char *ip = inet_ntoa(from->sin_addr);
+/**
+ * @brief The parsed blacklist, reloaded when the file changes on disk.
+ */
+static struct {
+  char rules[MAX_BLACKLIST_RULES][64];
+  size_t count;
+  int64_t modified;
+} msBlacklist = { .modified = -1 };
 
-  bool blacklisted = false;
+/**
+ * @brief Parses the contents of the blacklist file into the rule cache.
+ */
+static void Ms_ParseBlacklist(const char *buffer, int64_t length) {
 
-  while ((c - buffer) < len) {
-    char line[256];
+  msBlacklist.count = 0;
 
-    sscanf(c, "%255s\n", line);
-    c += q_strlen(line) + 1;
+  const char *c = buffer, *end = buffer + length;
 
-    const char *l = line;
-    while (isspace((unsigned char) *l)) { l++; }
-    char *_lend = (char *) l + q_strlen(l) - 1;
-    while (_lend >= l && isspace((unsigned char) *_lend)) { *_lend-- = '\0'; }
+  while (c < end) {
+    const char *newline = memchr(c, '\n', (size_t) (end - c));
+    const char *lineStart = c, *lineEnd = newline ? newline : end;
 
-    if (!q_strlen(l) || !q_strncmp(l, "//", 2) || l[0] == '#') {
+    c = newline ? newline + 1 : end;
+
+    while (lineStart < lineEnd && isspace((unsigned char) *lineStart)) {
+      lineStart++;
+    }
+
+    while (lineEnd > lineStart && isspace((unsigned char) *(lineEnd - 1))) {
+      lineEnd--;
+    }
+
+    const size_t size = (size_t) (lineEnd - lineStart);
+
+    if (!size || *lineStart == '#' || (size >= 2 && !q_strncmp(lineStart, "//", 2))) {
       continue;
     }
 
-    if (GlobMatch(l, ip, GLOB_FLAGS_NONE)) {
-      blacklisted = true;
+    if (size >= sizeof(msBlacklist.rules[0])) {
+      Com_Warn("Blacklist rule is too long, ignoring: %.*s\n", (int32_t) size, lineStart);
+      continue;
+    }
+
+    if (msBlacklist.count == MAX_BLACKLIST_RULES) {
+      Com_Warn("Blacklist is full, ignoring %.*s and all that follow\n", (int32_t) size, lineStart);
       break;
     }
+
+    memcpy(msBlacklist.rules[msBlacklist.count], lineStart, size);
+    msBlacklist.rules[msBlacklist.count][size] = '\0';
+    msBlacklist.count++;
   }
+}
+
+/**
+ * @brief Reloads the blacklist if the file has changed since the last read.
+ * @remarks This runs on every heartbeat, so the file is stat'ed, not re-read,
+ * unless its modification time has moved.
+ */
+static void Ms_LoadBlacklist(void) {
+
+  FsStat stat;
+  if (!Fs_Stat(BLACKLIST_FILE, &stat)) {
+    msBlacklist.count = 0;
+    msBlacklist.modified = -1;
+    return;
+  }
+
+  if (stat.modified == msBlacklist.modified) {
+    return;
+  }
+
+  msBlacklist.modified = stat.modified;
+
+  char *buffer;
+  const int64_t length = Fs_Load(BLACKLIST_FILE, (void *) &buffer);
+
+  if (length == -1) {
+    Com_Warn("Failed to load %s: %s\n", BLACKLIST_FILE, Fs_LastError());
+    msBlacklist.count = 0;
+    msBlacklist.modified = -1;
+    return;
+  }
+
+  Ms_ParseBlacklist(buffer, length);
 
   Fs_Free((void *) buffer);
 
-  return blacklisted;
+  Com_Print("Loaded %u blacklist rules\n", (uint32_t) msBlacklist.count);
+}
+
+/**
+ * @brief Returns true if the specified server has been blacklisted, false otherwise.
+ * The format of the blacklist file is one rule per line, with wildcards. A rule
+ * may qualify the address with a port, and matches any port if it does not. Ex:
+ *
+ * // This guy is a joker
+ * 66.182.58.*
+ * 203.0.113.7:27910
+ */
+static bool Ms_BlacklistServer(const struct sockaddr_in *from) {
+
+  Ms_LoadBlacklist();
+
+  if (!msBlacklist.count) {
+    return false;
+  }
+
+  const char *ip = inet_ntoa(from->sin_addr);
+
+  char ipPort[64];
+  q_snprintf(ipPort, sizeof(ipPort), "%s:%d", ip, ntohs(from->sin_port));
+
+  for (size_t i = 0; i < msBlacklist.count; i++) {
+    const char *rule = msBlacklist.rules[i];
+
+    if (GlobMatch(rule, q_strchr(rule, ':') ? ipPort : ip, GLOB_FLAGS_NONE)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -581,6 +667,10 @@ static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *
     if (!(server = Ms_AddServer(from))) {
       return;
     }
+  } else if (Ms_BlacklistServer(from)) {
+    Com_Print("Server %s has been blacklisted\n", stos(server));
+    Ms_DropServer(server);
+    return;
   }
 
   // every heartbeat carries the challenge, not just the one that validates, so
