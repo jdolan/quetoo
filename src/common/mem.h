@@ -41,9 +41,9 @@ void Mem_Check(void *p);
  * @brief Struct used for return values of `Mem_Stats`
  */
 typedef struct {
-  MemTag  tag; // tag
-  size_t    size; // total size in bytes
-  size_t    count; // number of blocks
+  MemTag tag; // tag
+  size_t size; // total size in bytes
+  size_t count; // number of blocks
 } MemStat;
 
 Vector *Mem_Stats(void);

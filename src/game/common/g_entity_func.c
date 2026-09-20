@@ -501,7 +501,7 @@ static void G_MoveType_Push_Blocked(GameEntity *ent, GameEntity *other) {
   }
 }
 
-#define PLAT_LOW_TRIGGER  1
+#define PLAT_LOW_TRIGGER 1
 
 static void G_func_plat_GoingDown(GameEntity *ent);
 
@@ -1836,7 +1836,7 @@ void G_func_door_rotating(GameEntity *ent) {
   }
 }
 
-#define SECRET_ALWAYS_SHOOT    1
+#define SECRET_ALWAYS_SHOOT  1
 #define SECRET_FIRST_LEFT    2
 #define SECRET_FIRST_DOWN    4
 

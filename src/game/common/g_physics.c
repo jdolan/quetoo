@@ -700,7 +700,7 @@ static CmTrace G_Physics_Push_Rotate_And_Trace(GameEntity *ent, GameEntity *move
  * @brief The smallest fraction we care about in rotational
  * TOI precision checking
  */
-#define TOI_MIN_FRACTION  0.06f
+#define TOI_MIN_FRACTION 0.06f
 
 /**
  * @return The time-of-impact fraction in [0, 1] for the entity against the rotating mover.

@@ -29,40 +29,40 @@
  * @brief Plane side epsilon. Because plane side tests scrutinize values around
  * and across zero, `FLT_EPSILON` is appropriate and accurate.
  */
-#define SIDE_EPSILON      FLT_EPSILON
+#define SIDE_EPSILON     FLT_EPSILON
 
 /**
  * @brief Colinear points dot product epsilon.
  */
-#define COLINEAR_EPSILON    .00001f
+#define COLINEAR_EPSILON .00001f
 
 /**
  * @brief Point equality epsilon.
  */
-#define ON_EPSILON        .1f
+#define ON_EPSILON       .1f
 
 /**
  * @brief Vertex equality epsilon.
  */
-#define VERTEX_EPSILON     .875f
+#define VERTEX_EPSILON   .875f
 
 /**
  * @brief Bounding box epsilon.
  */
-#define BOX_EPSILON        1.f
+#define BOX_EPSILON      1.f
 
 /**
  * @brief Trace collision epsilon.
  */
-#define TRACE_EPSILON      .125f
+#define TRACE_EPSILON    .125f
 
 /**
  * @brief Plane side constants used for BSP recursion.
  */
-#define  SIDE_FRONT        1
-#define  SIDE_BACK        2
-#define  SIDE_BOTH        3
-#define  SIDE_ON          4
+#define SIDE_FRONT       1
+#define SIDE_BACK        2
+#define SIDE_BOTH        3
+#define SIDE_ON          4
 
 /**
  * @brief Plane type constants for axial plane optimizations.
@@ -70,9 +70,9 @@
 #define PLANE_X          0
 #define PLANE_Y          1
 #define PLANE_Z          2
-#define PLANE_ANY_X        3
-#define PLANE_ANY_Y        4
-#define PLANE_ANY_Z        5
+#define PLANE_ANY_X      3
+#define PLANE_ANY_Y      4
+#define PLANE_ANY_Z      5
 
 /**
  * @brief BSP planes are essential to collision detection as well as rendering.

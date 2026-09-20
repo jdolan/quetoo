@@ -26,7 +26,7 @@
 static char **clKeyNames;
 
 /**
- * @brief  Sets the key state destination.
+ * @brief Sets the key state destination.
  */
 void Cl_SetKeyDest(ClientKeyDest dest) {
 

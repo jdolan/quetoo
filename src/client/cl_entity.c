@@ -275,7 +275,7 @@ void Cl_ParseFrame(void) {
   cl.frame.deltaFrameNum = Net_ReadLong(&netMessage);
 
   if (cl_drawNetMessages->integer == 3) {
-    Com_Print("   frame:%i  delta:%i\n", cl.frame.frameNum, cl.frame.deltaFrameNum);
+    Com_Print("   frame:%i delta:%i\n", cl.frame.frameNum, cl.frame.deltaFrameNum);
   }
 
   if (cl.frame.deltaFrameNum <= 0) { // uncompressed frame: entities decode from baseline

@@ -70,7 +70,7 @@ void Cbuf_AddText(const char *text) {
  */
 void Cbuf_InsertText(const char *text) {
 
-  if (text  && q_strlen(text)) {
+  if (text && q_strlen(text)) {
     void *temp;
 
     // copy off any commands still remaining in the exec buffer

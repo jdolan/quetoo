@@ -788,7 +788,7 @@ static void Cg_HookTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
 }
 #endif
 
-#define BFG_BALLS_SPEED  400.f
+#define BFG_BALLS_SPEED 400.f
 
 /**
  * @brief Think callback that applies centripetal acceleration to orbiting BFG ball sprites.

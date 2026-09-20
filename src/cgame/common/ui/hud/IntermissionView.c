@@ -100,9 +100,9 @@ static void addMap(IntermissionView *self, int32_t index) {
 
   // the key that picks it, which is the only way to pick one: the HUD layer is drawn
   // beneath the menus and never sees the mouse
-  Text *name = $(alloc(Text), initWithText,
-                 nextMap->voting ? va("%d  %s", index + 1, nextMap->maps[index])
-                                  : nextMap->maps[index], NULL);
+  Text *name = $(alloc(Text), initWithText, nextMap->voting
+                 ? va("%d  %s", index + 1, nextMap->maps[index])
+                 : nextMap->maps[index], NULL);
   assert(name);
 
   $((View *) name, addClassName, "name");

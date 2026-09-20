@@ -24,7 +24,7 @@
 #include "deps/discord-rpc/include/discord_register.h"
 #include "deps/discord-rpc/include/discord_rpc.h"
 
-#define DISCORD_APP_ID        378347526203637760
+#define DISCORD_APP_ID 378347526203637760
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
 

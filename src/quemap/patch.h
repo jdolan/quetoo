@@ -28,6 +28,7 @@ struct Node;
 #define MAX_PATCH_WIDTH   15
 #define MAX_PATCH_HEIGHT  15
 #define MAX_PATCHES       0x4000
+
 #define PATCH_SUBDIVISIONS 8
 
 /**

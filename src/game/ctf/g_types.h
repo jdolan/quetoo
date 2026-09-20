@@ -343,7 +343,7 @@ typedef enum {
 #define EF_INVULNERABILITY (EF_GAME << 16) // invulnerability shell
 #define EF_MODULATE        (EF_GAME << 17) // boost mesh brightness; mirrored in r_types.h
 
-#define EF_CTF_MASK   (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_GREEN)
+#define EF_CTF_MASK        (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_GREEN)
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what
@@ -505,9 +505,9 @@ typedef struct GameEntity GameEntity;
 /**
  * @brief Spawn flags for `GameEntity` are set in the level editor.
  */
-#define SF_ITEM_TRIGGER  0x00000001
-#define SF_ITEM_NO_TOUCH 0x00000002
-#define SF_ITEM_HOVER    0x00000004
+#define SF_ITEM_TRIGGER        0x00000001
+#define SF_ITEM_NO_TOUCH       0x00000002
+#define SF_ITEM_HOVER          0x00000004
 #define SF_ITEM_HAZARD_RESPAWN 0x00000008
 
 /**

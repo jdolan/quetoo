@@ -59,9 +59,9 @@
 #define STAGE_FLARE         (1 << 19)
 #define STAGE_SHELL         (1 << 20)
 
-#define STAGE_PORTAL    (1 << 21)
+#define STAGE_PORTAL        (1 << 21)
 
-#define STAGE_DRAW      (1 << 30)
+#define STAGE_DRAW          (1 << 30)
 
 const float PI = 3.141592653589793115997963468544185161590576171875;
 const float TWO_PI = PI * 2.0;
