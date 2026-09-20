@@ -80,41 +80,60 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous demo loading
 
 /**
- * @brief Reads the protocol an open demo was recorded under, leaving the read position wherever
- * it ends up.
- * @details A version 3 header states it. Version 2 does not, but its stream does: each chunk is
- * a size and a frame number, and the first message of any recording is `SV_CMD_SERVER_DATA`,
- * whose first two longs are the major and the minor. `Sv_ReadDemoStreamProtocol` reads the same
- * bytes on the other side of the module boundary.
+ * @brief What one enumeration pass carries: the list it fills, and a count of what it left out.
+ */
+typedef struct {
+  DemoList *demos;
+  int32_t skipped;
+} DemoEnumeration;
+
+/**
+ * @brief Reads one NUL-terminated string from an open demo, as `Net_WriteString` wrote it.
+ * @return False if it does not end within `len`, which means the recording is not what it says.
+ */
+static bool readDemoString(File *file, char *out, size_t len) {
+
+  for (size_t i = 0; i < len; i++) {
+    if (cgi.ReadFile(file, out + i, 1, 1) != 1) {
+      return false;
+    }
+    if (out[i] == '\0') {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Reads which protocol, and which client game, an open demo was recorded under.
+ * @details Read from the stream rather than the header, because only the stream names the
+ * module: each chunk is a size and a frame number, and the first message of any recording is
+ * `SV_CMD_SERVER_DATA`, carrying the major, the minor, the demo flag, the game and the client
+ * game. `Sv_ReadDemoStreamProtocol` reads the same bytes across the module boundary. A version
+ * 3 header states the two protocols as well, which is what spares playback this seek.
  * @return False if the demo is too short or too strange to say, which is not the same as saying
  * something this build disagrees with.
  */
-static bool readDemoProtocol(File *file, int32_t version, int32_t *major, int32_t *minor) {
-
-  if (version >= 3) {
-
-    int32_t fields[2];
-    if (cgi.ReadFile(file, fields, sizeof(fields), 1) != 1) {
-      return false;
-    }
-
-    *major = LittleLong(fields[0]);
-    *minor = LittleLong(fields[1]);
-    return true;
-  }
+static bool readDemoProtocol(File *file, int32_t version, int32_t *major, int32_t *minor,
+                             char *cgame, size_t len) {
 
   if (!cgi.SeekFile(file, (int64_t) DemoHeaderSize(version))) {
     return false;
   }
 
   int32_t size, frameNum, fields[2];
-  byte cmd;
+  byte cmd, demoServer;
+  char game[MAX_QPATH];
 
   if (cgi.ReadFile(file, &size, sizeof(size), 1) != 1 ||
       cgi.ReadFile(file, &frameNum, sizeof(frameNum), 1) != 1 ||
       cgi.ReadFile(file, &cmd, sizeof(cmd), 1) != 1 ||
       cmd != SV_CMD_SERVER_DATA ||
-      cgi.ReadFile(file, fields, sizeof(fields), 1) != 1) {
+      cgi.ReadFile(file, fields, sizeof(fields), 1) != 1 ||
+      cgi.ReadFile(file, &demoServer, sizeof(demoServer), 1) != 1 ||
+      !readDemoString(file, game, sizeof(game)) ||
+      !readDemoString(file, cgame, len)) {
     return false;
   }
 
@@ -128,7 +147,8 @@ static bool readDemoProtocol(File *file, int32_t version, int32_t *major, int32_
  */
 static void enumerateDemos(const char *path, void *data) {
 
-  DemoList *demos = data;
+  DemoEnumeration *enumeration = data;
+  DemoList *demos = enumeration->demos;
 
   File *file = cgi.OpenFile(path);
   if (!file) {
@@ -149,24 +169,34 @@ static void enumerateDemos(const char *path, void *data) {
   const int32_t version = LittleLong(header.version);
 
   if (version < DEMO_VERSION_MIN || version > DEMO_VERSION) {
-    Cg_Warn("Skipping %s: demo version %d, this build reads %d through %d\n",
-            path, version, DEMO_VERSION_MIN, DEMO_VERSION);
+    Cg_Debug("Skipping %s: demo version %d, this build reads %d through %d\n",
+             path, version, DEMO_VERSION_MIN, DEMO_VERSION);
+    enumeration->skipped++;
     cgi.CloseFile(file);
     return;
   }
 
-  // listing a demo nothing can play only leads the player to a dead Play button, so say why
-  // once and leave it out. A recording that cannot say which protocol it is gets the benefit
-  // of the doubt, exactly as playback gives it
+  // listing a demo nothing can play only leads the player to a dead Play button, so leave it
+  // out. A recording that cannot say which protocol it is gets the benefit of the doubt,
+  // exactly as playback gives it
   int32_t major = 0, minor = 0;
+  char cgame[MAX_QPATH];
 
-  if (readDemoProtocol(file, version, &major, &minor) &&
-      (major != PROTOCOL_MAJOR || minor != PROTOCOL_MINOR)) {
+  if (readDemoProtocol(file, version, &major, &minor, cgame, sizeof(cgame)) && major) {
 
-    Cg_Warn("Skipping %s: recorded with protocol %d.%d, this is %d.%d\n",
-            path, major, minor, PROTOCOL_MAJOR, PROTOCOL_MINOR);
-    cgi.CloseFile(file);
-    return;
+    // the minor is the client game's, so it is only ours to judge when the recording names the
+    // module we are running. Another module's demo plays under that module, which will have
+    // its own answer, and hiding it here would hide something playable
+    const bool ours = !q_strcmp(cgame, GAME_NAME);
+
+    if (major != PROTOCOL_MAJOR || (ours && minor != PROTOCOL_MINOR)) {
+
+      Cg_Debug("Skipping %s: %s protocol %d.%d, this is %d.%d\n",
+               path, cgame, major, minor, PROTOCOL_MAJOR, PROTOCOL_MINOR);
+      enumeration->skipped++;
+      cgi.CloseFile(file);
+      return;
+    }
   }
 
   header.duration = LittleLong(header.duration);
@@ -224,7 +254,16 @@ static void loadDemos(void *data) {
 
   DemoList *demos = data;
 
-  cgi.EnumerateFiles("demos/*.demo", enumerateDemos, demos);
+  DemoEnumeration enumeration = { .demos = demos };
+
+  cgi.EnumerateFiles("demos/*.demo", enumerateDemos, &enumeration);
+
+  // one line, not one per file: this runs on every visit to the Demos screen, and twice on the
+  // first, so naming each of them would bury whatever else is in the console
+  if (enumeration.skipped) {
+    Cg_Warn("Left out %d demo(s) this build cannot play; `debug cgame` names them\n",
+            enumeration.skipped);
+  }
 
   release(demos);
 }
