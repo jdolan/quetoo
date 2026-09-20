@@ -396,6 +396,15 @@ typedef struct {
   uint32_t unclampedTime;
 
   /**
+   * @brief Wall time in milliseconds since launch, for input rather than for the world.
+   * @details The same as `unclampedTime` except while demo playback is paused, where the world
+   * stops but the viewer does not: a key is still held for as long as they hold it, and the free
+   * camera still has to fly. Anything measuring how long the user did something MUST use this,
+   * and anything drawing the world MUST NOT.
+   */
+  uint32_t inputTime;
+
+  /**
    * @brief The time each client was last heard speaking, for the voice indicator.
    */
   uint32_t voiceTime[MAX_CLIENTS];

@@ -648,11 +648,20 @@ void Cl_Frame(const uint32_t msec) {
     return;
   }
 
+  // paused demo playback is a stopped world, so the clocks the world is drawn from stop with
+  // it, and animations, trails and every other effect keyed on them hold their pose. Input is
+  // not part of the world: the viewer still holds keys and still flies the free camera, so
+  // cl.inputTime runs on regardless
+  const uint32_t simulated = cls.demo.paused ? 0 : msec;
+
   // update the simulation time
-  cl.time += msec;
+  cl.time += simulated;
 
   // and the unclamped simulation time
-  cl.unclampedTime += msec;
+  cl.unclampedTime += simulated;
+
+  // and the input time
+  cl.inputTime += msec;
 
   // and the pending command duration
   cl.frameMsec += msec;
