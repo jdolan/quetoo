@@ -536,6 +536,7 @@ static void Cl_WriteConfiguration(void) {
 static void Cl_InitLocal(void) {
 
   // register our variables
+  cl_analyticsUrl = Cvar_Add("cl_analyticsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST anonymous session analytics to. Set to 0 to disable.");
   cl_chatSound = Cvar_Add("cl_chatSound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
   cl_maxFps = Cvar_Add("cl_maxFps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
   cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
@@ -785,6 +786,8 @@ void Cl_Init(void) {
 
   Cl_InitGuid();
 
+  Cl_InitAnalytics();
+
   Ui_Init();
 
   Cl_InitInput();
@@ -815,6 +818,8 @@ void Cl_Shutdown(void) {
   Com_Print("Client shutdown...\n");
 
   Cl_Disconnect();
+
+  Cl_ShutdownAnalytics();
 
   Cl_ShutdownCgame();
 

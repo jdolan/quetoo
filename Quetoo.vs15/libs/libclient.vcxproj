@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\client\client.h" />
     <ClInclude Include="..\..\src\client\cl_binds.h" />
+    <ClInclude Include="..\..\src\client\cl_analytics.h" />
     <ClInclude Include="..\..\src\client\cl_cgame.h" />
     <ClInclude Include="..\..\src\client\cl_cmd.h" />
     <ClInclude Include="..\..\src\client\cl_console.h" />
@@ -41,6 +42,7 @@
     <ClInclude Include="..\..\src\client\cl_types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\client\cl_analytics.c" />
     <ClCompile Include="..\..\src\client\cl_cgame.c" />
     <ClCompile Include="..\..\src\client\cl_cmd.c" />
     <ClCompile Include="..\..\src\client\cl_console.c" />

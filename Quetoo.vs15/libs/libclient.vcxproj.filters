@@ -9,6 +9,9 @@
     <ClInclude Include="..\..\src\client\cl_binds.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\cl_analytics.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\client\cl_cgame.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -68,6 +71,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\client\cl_analytics.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\client\cl_cgame.c">
       <Filter>src</Filter>
     </ClCompile>

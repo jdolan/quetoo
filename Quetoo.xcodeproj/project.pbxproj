@@ -700,6 +700,7 @@
 		CE80FEA51C5E445500A21A51 /* cg_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57D1C5C58C300CD0B13 /* cg_types.h */; };
 		CE80FEA61C5E445500A21A51 /* cg_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57F1C5C58C300CD0B13 /* cg_view.h */; };
 		CE80FEA71C5E445D00A21A51 /* cgame.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D55C1C5C58C300CD0B13 /* cgame.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B4BEE8A9F5DA5D6E42A56454 /* cl_analytics.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B5E2E164CF77588FE00447F /* cl_analytics.c */; };
 		CE80FF311C5E473500A21A51 /* cl_cgame.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5861C5C58C300CD0B13 /* cl_cgame.c */; };
 		CE80FF321C5E473500A21A51 /* cl_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5881C5C58C300CD0B13 /* cl_cmd.c */; };
 		CE80FF331C5E473500A21A51 /* cl_console.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D58A1C5C58C300CD0B13 /* cl_console.c */; };
@@ -715,6 +716,7 @@
 		CE80FF401C5E473500A21A51 /* cl_server.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5A41C5C58C300CD0B13 /* cl_server.c */; };
 		CE80FF6C1C5E499000A21A51 /* cl_null.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D59D1C5C58C300CD0B13 /* cl_null.c */; };
 		CE80FF801C5E49E700A21A51 /* cl_binds.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5851C5C58C300CD0B13 /* cl_binds.h */; };
+		6D7DB99594CACA60C5C42A98 /* cl_analytics.h in Headers */ = {isa = PBXBuildFile; fileRef = 24281E30C5869DF85EACFC22 /* cl_analytics.h */; };
 		CE80FF811C5E49E700A21A51 /* cl_cgame.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5871C5C58C300CD0B13 /* cl_cgame.h */; };
 		CE80FF821C5E49E700A21A51 /* cl_cmd.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5891C5C58C300CD0B13 /* cl_cmd.h */; };
 		CE80FF831C5E49E700A21A51 /* cl_console.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D58B1C5C58C300CD0B13 /* cl_console.h */; };
@@ -2346,7 +2348,9 @@
 		CE12D5801C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D5821C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D5851C5C58C300CD0B13 /* cl_binds.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_binds.h; sourceTree = "<group>"; };
+		3B5E2E164CF77588FE00447F /* cl_analytics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cl_analytics.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5861C5C58C300CD0B13 /* cl_cgame.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cl_cgame.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
+		24281E30C5869DF85EACFC22 /* cl_analytics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_analytics.h; sourceTree = "<group>"; };
 		CE12D5871C5C58C300CD0B13 /* cl_cgame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_cgame.h; sourceTree = "<group>"; };
 		CE12D5881C5C58C300CD0B13 /* cl_cmd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cl_cmd.c; sourceTree = "<group>"; };
 		CE12D5891C5C58C300CD0B13 /* cl_cmd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_cmd.h; sourceTree = "<group>"; };
@@ -3976,6 +3980,8 @@
 				CE12D5FE1C5C58C300CD0B13 /* sound */,
 				CE5CDB931D9F45090034757D /* ui */,
 				CE12D5851C5C58C300CD0B13 /* cl_binds.h */,
+				3B5E2E164CF77588FE00447F /* cl_analytics.c */,
+				24281E30C5869DF85EACFC22 /* cl_analytics.h */,
 				CE12D5861C5C58C300CD0B13 /* cl_cgame.c */,
 				CE12D5871C5C58C300CD0B13 /* cl_cgame.h */,
 				CE12D5881C5C58C300CD0B13 /* cl_cmd.c */,
@@ -5427,6 +5433,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE80FF801C5E49E700A21A51 /* cl_binds.h in Headers */,
+				6D7DB99594CACA60C5C42A98 /* cl_analytics.h in Headers */,
 				CE80FF811C5E49E700A21A51 /* cl_cgame.h in Headers */,
 				CE80FF821C5E49E700A21A51 /* cl_cmd.h in Headers */,
 				CE80FF831C5E49E700A21A51 /* cl_console.h in Headers */,
@@ -7246,6 +7253,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4BEE8A9F5DA5D6E42A56454 /* cl_analytics.c in Sources */,
 				CE80FF311C5E473500A21A51 /* cl_cgame.c in Sources */,
 				CE80FF321C5E473500A21A51 /* cl_cmd.c in Sources */,
 				CE80FF331C5E473500A21A51 /* cl_console.c in Sources */,
