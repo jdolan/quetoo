@@ -28,24 +28,24 @@ static Cvar *cl_upSpeed;
 static Cvar *cl_yawSpeed;
 static Cvar *cl_captureMediaKeys;
 
-Cvar *mInterpolate;
-Cvar *mInvert;
-Cvar *mSensitivity;
+Cvar *m_interpolate;
+Cvar *m_invert;
+Cvar *m_sensitivity;
 Cvar *m_sensitivityZoom;
-Cvar *mPitch;
-Cvar *mYaw;
+Cvar *m_pitch;
+Cvar *m_yaw;
 
-static InputButton clButtons[10];
-#define in_left clButtons[0]
-#define in_right clButtons[1]
-#define in_forward clButtons[2]
-#define in_back clButtons[3]
-#define in_look_up clButtons[4]
-#define in_look_down clButtons[5]
-#define in_move_left clButtons[6]
-#define in_move_right clButtons[7]
-#define in_up clButtons[8]
-#define in_down clButtons[9]
+static InputButton cl_buttons[10];
+#define in_left cl_buttons[0]
+#define in_right cl_buttons[1]
+#define in_forward cl_buttons[2]
+#define in_back cl_buttons[3]
+#define in_look_up cl_buttons[4]
+#define in_look_down cl_buttons[5]
+#define in_move_left cl_buttons[6]
+#define in_move_right cl_buttons[7]
+#define in_up cl_buttons[8]
+#define in_down cl_buttons[9]
 
 /**
  * @brief Registers a key-down event for the given button, tracking which keys hold it.
@@ -541,7 +541,7 @@ void Cl_Move(PMoveCmd *cmd) {
  */
 void Cl_ClearInput(void) {
 
-  memset(clButtons, 0, sizeof(clButtons));
+  memset(cl_buttons, 0, sizeof(cl_buttons));
 
   S_StopVoice();
 }
@@ -580,12 +580,12 @@ void Cl_InitInput(void) {
   cl_yawSpeed = Cvar_Add("cl_yawSpeed", "0.15", 0, NULL);
   cl_captureMediaKeys = Cvar_Add("cl_captureMediaKeys", "1", CVAR_ARCHIVE, "Handle media keys (play/pause, next, previous, mute) for in-game music.");
 
-  mSensitivity = Cvar_Add("mSensitivity", "3.0", CVAR_ARCHIVE, NULL);
-  m_sensitivityZoom = Cvar_Add("mSensitivityZoom", "1.0", CVAR_ARCHIVE, NULL);
-  mInterpolate = Cvar_Add("mInterpolate", "0", CVAR_ARCHIVE, NULL);
-  mInvert = Cvar_Add("mInvert", "0", CVAR_ARCHIVE, "Invert the mouse");
-  mPitch = Cvar_Add("mPitch", "0.022", 0, NULL);
-  mYaw = Cvar_Add("mYaw", "0.022", 0, NULL);
+  m_sensitivity = Cvar_Add("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
+  m_sensitivityZoom = Cvar_Add("m_sensitivityZoom", "1.0", CVAR_ARCHIVE, NULL);
+  m_interpolate = Cvar_Add("m_interpolate", "0", CVAR_ARCHIVE, NULL);
+  m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
+  m_pitch = Cvar_Add("m_pitch", "0.022", 0, NULL);
+  m_yaw = Cvar_Add("m_yaw", "0.022", 0, NULL);
 
   Cl_ClearInput();
 }
