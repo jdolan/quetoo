@@ -39,6 +39,11 @@ static void Voxel_CollectLightIndex(const HashTable *table, ident key, ident val
   }
 }
 
+/**
+ * @brief The mean lights per lit voxel above which the renderer struggles.
+ */
+#define VOXEL_LIGHT_DENSITY_WARN 4.f
+
 Voxels voxels;
 
 /**
@@ -784,26 +789,33 @@ void EmitVoxels(void) {
   voxels.numLightIndices = 0;
 
   Voxel *v = voxels.voxels;
-  int32_t minLights = INT32_MAX, maxLights = 0;
-  size_t totalLights = 0;
-  
+  int32_t maxLights = 0;
+  size_t totalLights = 0, litVoxels = 0;
+
   for (size_t i = 0; i < voxels.numVoxels; i++, v++) {
     v->lightsOffset = (int32_t) voxels.numLightIndices;
     v->lightsCount = (int32_t) v->lights->count;
 
     voxels.numLightIndices += v->lightsCount;
-    
+
     totalLights += v->lightsCount;
-    if (v->lightsCount < minLights) {
-      minLights = v->lightsCount;
+    if (v->lightsCount) {
+      litVoxels++;
     }
     if (v->lightsCount > maxLights) {
       maxLights = v->lightsCount;
     }
   }
-  
-  Com_Verbose("Voxel light stats: min=%d max=%d avg=%.1f total=%zd\n",
-              minLights, maxLights, (float)totalLights / voxels.numVoxels, totalLights);
+
+  const float density = litVoxels ? (float) totalLights / litVoxels : 0.f;
+
+  Com_Print("\r%-24s %.2f avg, %d max, %zu of %zu voxels lit\n",
+            "Voxel light density", density, maxLights, litVoxels, voxels.numVoxels);
+
+  if (density > VOXEL_LIGHT_DENSITY_WARN) {
+    Com_Warn("Voxel light density is %.2f, above %.2f. Reduce light radius or light count\n",
+             density, VOXEL_LIGHT_DENSITY_WARN);
+  }
 
   bspFile.voxelsSize = sizeof(BspVoxels);
   bspFile.voxelsSize += voxels.numVoxels * sizeof(byte) * 3; // caustics xyz (RGB)
