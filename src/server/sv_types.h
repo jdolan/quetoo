@@ -150,6 +150,13 @@ typedef struct {
    * nothing, leaving the viewer on the old frame until playback resumed somewhere unexpected.
    */
   bool demoStep;
+
+  /**
+   * @brief Set once playback has read the recording's terminator, and cleared by a seek. The
+   * keyframe index is appended after the stream, so reading on past the end walks into it and
+   * reads an index entry as a chunk size.
+   */
+  bool demoEnded;
 } Server;
 
 /**

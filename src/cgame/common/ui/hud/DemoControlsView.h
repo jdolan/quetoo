@@ -86,6 +86,16 @@ struct DemoControlsView {
    * @brief Adjusts `timeScale`.
    */
   Slider *speedSlider;
+
+  /**
+   * @brief Where the scrubber wants to seek to, in milliseconds, or -1 for nowhere.
+   */
+  int32_t pendingSeek;
+
+  /**
+   * @brief When the last seek was sent, so that a drag cannot outrun the server's own tick.
+   */
+  uint64_t lastSeek;
 };
 
 struct DemoControlsViewInterface {

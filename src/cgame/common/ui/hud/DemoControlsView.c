@@ -63,10 +63,15 @@ static void didClickFastForward(Button *button) {
 }
 
 /**
- * @brief SliderDelegate for the scrubber: seeks to an absolute position.
+ * @brief SliderDelegate for the scrubber: records where to seek to.
+ * @remarks Recorded rather than sent, because a drag fires this on every mouse motion. See
+ * `DemoControlsView::update`, which is what actually sends it.
  */
 static void didSetScrubber(Slider *slider, double value) {
-  cgi.Cbuf(va("demo_seek %d\n", (int32_t) value));
+
+  DemoControlsView *this = slider->delegate.self;
+
+  this->pendingSeek = (int32_t) value;
 }
 
 #pragma mark - View
@@ -158,6 +163,7 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
     self->scrubber->delegate.self = self;
     self->scrubber->delegate.didSetValue = didSetScrubber;
 
+    self->pendingSeek = -1;
   }
 
   return self;
@@ -171,9 +177,29 @@ static void update(DemoControlsView *self, int32_t time, int32_t duration) {
 
   self->scrubber->max = duration;
 
-  // don't fight the user's own drag with a stale server-reported position
-  if (!(self->scrubber->control.state & ControlStateHighlighted)) {
+  // don't fight the user's own drag, nor a seek that has not landed yet, with a stale
+  // server-reported position
+  if (!(self->scrubber->control.state & ControlStateHighlighted) && self->pendingSeek < 0) {
     $((Slider *) self->scrubber, setValue, time);
+  }
+
+  // every seek is a console command the client forwards to the server, which drops a client
+  // that issues more than CMD_MAX_STRINGS of them in one server frame. A drag produces one per
+  // mouse motion, so send the latest destination at the server's own rate and drop the rest:
+  // seeking more finely than the server ticks would buy nothing anyway
+  if (self->pendingSeek >= 0) {
+
+    // the throttle applies only while the drag is still running. Once it ends, the destination
+    // goes out at once: this View stops updating the moment playback resumes, and a held back
+    // seek would be lost, then fire at wherever the viewer paused next
+    const bool dragging = self->scrubber->control.state & ControlStateHighlighted;
+
+    const uint64_t now = SDL_GetTicks();
+    if (!dragging || now - self->lastSeek >= QUETOO_TICK_MILLIS) {
+      cgi.Cbuf(va("demo_seek %d\n", self->pendingSeek));
+      self->pendingSeek = -1;
+      self->lastSeek = now;
+    }
   }
 
   // the slider owns timeScale, so only pull from the cvar when the user isn't dragging

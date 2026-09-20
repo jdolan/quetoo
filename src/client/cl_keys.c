@@ -269,12 +269,12 @@ static void Cl_KeyGame(const SDL_Event *event) {
   if (bind[0] == '+') { // button commands add key and time as a param
     if (event->type == SDL_EVENT_KEY_DOWN) {
       if (cls.keyState.down[key] == false) {
-        q_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.unclampedTime);
+        q_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.inputTime);
         cls.keyState.latched[key] = true;
       }
     } else {
       if (cls.keyState.down[key] == true && cls.keyState.latched[key] == true) {
-        q_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.unclampedTime);
+        q_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.inputTime);
         cls.keyState.latched[key] = false;
       }
     }

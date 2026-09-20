@@ -725,7 +725,7 @@ static void Cg_RotateClientLegs(const CGameClientInfo *ci, ClientEntity *ent, Re
     }
   }
 
-  ent->legsCurrentYaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frameMsec), ent->legsCurrentYaw, ent->legsYaw);
+  ent->legsCurrentYaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->worldMsec), ent->legsCurrentYaw, ent->legsYaw);
 
   const float angleDelta = AngleMod(ent->legsCurrentYaw - ent->legsYaw + 180.0f) - 180.0f;
 
@@ -780,7 +780,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
 
   // deal with our own player model
   if (ent == cgi.client->entity) {
-    if (!cgi.client->thirdPerson) {
+    if (Cg_ViewIsSelf()) {
       e->effects |= EF_SELF | EF_NO_DRAW;
 
       // keep our shadow underneath us using the predicted origin

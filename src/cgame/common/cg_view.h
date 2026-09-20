@@ -42,4 +42,5 @@ void Cg_PrepareView(const ClientFrame *frame);
 void Cg_CameraModeCycle_f(void);
 bool Cg_FollowEligible(const PlayerState *ps);
 bool Cg_CameraSubject(const PlayerState *ps);
+bool Cg_ViewIsSelf(void);
 #endif

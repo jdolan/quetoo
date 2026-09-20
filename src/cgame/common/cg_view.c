@@ -121,6 +121,26 @@ bool Cg_CameraSubject(const PlayerState *ps) {
 }
 
 /**
+ * @brief Returns true if the view sits inside the client entity, so that the entity itself, its
+ * view weapon and its first-person-only effects MUST be suppressed.
+ * @details Being in first person is not the same as not being in third person. A detached demo
+ * camera has left the recorded player behind, and has to see them exactly as it sees any other
+ * client, model and trails and all.
+ */
+bool Cg_ViewIsSelf(void) {
+
+  if (cgi.client->thirdPerson) {
+    return false;
+  }
+
+  if (cgi.client->demoServer && cgState.spectate.detached) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * @brief Returns true if the third-person offset should be driven by the viewer's mouse and
  * `+forward`/`+back` (`cgState.follow`) rather than the static `cg_third_person_*` cvars.
  * @details That input is free to take in exactly these states: a chasing spectator's aim is

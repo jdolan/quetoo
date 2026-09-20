@@ -80,6 +80,9 @@ static void Cl_WriteDemoHeader(void) {
   header->duration = 0;
   header->numKeyframes = 0;
   header->ofsKeyframes = 0;
+  header->protocolMajor = LittleLong(PROTOCOL_MAJOR);
+  header->protocolMinor = LittleLong(cls.cgame->protocol);
+  q_strlcpy(header->cgame, cls.cgame->name, sizeof(header->cgame));
 
   Fs_Write(cls.demo.file, header, sizeof(*header), 1);
 

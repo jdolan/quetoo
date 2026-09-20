@@ -80,11 +80,20 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous demo loading
 
 /**
+ * @brief What one enumeration pass carries: the list it fills, and a count of what it left out.
+ */
+typedef struct {
+  DemoList *demos;
+  int32_t skipped;
+} DemoEnumeration;
+
+/**
  * @brief Fs_Enumerator for demo discovery.
  */
 static void enumerateDemos(const char *path, void *data) {
 
-  DemoList *demos = data;
+  DemoEnumeration *enumeration = data;
+  DemoList *demos = enumeration->demos;
 
   File *file = cgi.OpenFile(path);
   if (!file) {
@@ -92,6 +101,7 @@ static void enumerateDemos(const char *path, void *data) {
   }
 
   DemoHeader header;
+
   if (cgi.ReadFile(file, &header, sizeof(header), 1) != 1 ||
       memcmp(header.magic, DEMO_MAGIC, sizeof(header.magic)) ||
       LittleLong(header.version) != DEMO_VERSION) {
@@ -99,15 +109,34 @@ static void enumerateDemos(const char *path, void *data) {
     return;
   }
 
-  header.duration = LittleLong(header.duration);
-  header.favorite = LittleLong(header.favorite);
-
   // these are read verbatim from disk with no guarantee of NUL-termination; a corrupt or
   // malicious file that fills a whole field could otherwise send q_strlcpy's strlen scanning
   // past it into whatever follows on the stack
   header.map[sizeof(header.map) - 1] = '\0';
   header.message[sizeof(header.message) - 1] = '\0';
   header.title[sizeof(header.title) - 1] = '\0';
+  header.cgame[sizeof(header.cgame) - 1] = '\0';
+
+  header.duration = LittleLong(header.duration);
+  header.favorite = LittleLong(header.favorite);
+  header.protocolMajor = LittleLong(header.protocolMajor);
+  header.protocolMinor = LittleLong(header.protocolMinor);
+
+  // listing a demo nothing can play only leads the player to a dead Play button, so leave it
+  // out. The minor is the client game's, so it is only ours to judge when the recording names
+  // the module we are running: another module's demo plays under that module, which has its
+  // own answer, and hiding it here would hide something playable
+  const bool ours = !q_strcmp(header.cgame, GAME_NAME);
+
+  if (header.protocolMajor != PROTOCOL_MAJOR ||
+      (ours && header.protocolMinor != PROTOCOL_MINOR)) {
+
+    Cg_Debug("Skipping %s: %s protocol %d.%d, this is %d.%d\n", path, header.cgame,
+             header.protocolMajor, header.protocolMinor, PROTOCOL_MAJOR, PROTOCOL_MINOR);
+    enumeration->skipped++;
+    cgi.CloseFile(file);
+    return;
+  }
 
   DemoListItemInfo *info = calloc(1, sizeof(*info));
 
@@ -154,7 +183,16 @@ static void loadDemos(void *data) {
 
   DemoList *demos = data;
 
-  cgi.EnumerateFiles("demos/*.demo", enumerateDemos, demos);
+  DemoEnumeration enumeration = { .demos = demos };
+
+  cgi.EnumerateFiles("demos/*.demo", enumerateDemos, &enumeration);
+
+  // one line, not one per file: this runs on every visit to the Demos screen, and twice on the
+  // first, so naming each of them would bury whatever else is in the console
+  if (enumeration.skipped) {
+    Cg_Warn("Left out %d demo(s) this build cannot play; `debug cgame` names them\n",
+            enumeration.skipped);
+  }
 
   release(demos);
 }

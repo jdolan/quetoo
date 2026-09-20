@@ -66,7 +66,7 @@ Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultH
  */
 static void Cg_InactiveEffect(ClientEntity *ent, const Vec3 org) {
 
-  if (ent == cgi.client->entity && !cgi.client->thirdPerson) {
+  if (ent == cgi.client->entity && Cg_ViewIsSelf()) {
     return;
   }
 

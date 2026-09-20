@@ -363,7 +363,10 @@ static void Cl_UpdateLerp(void) {
     }
   }
 
-  if (noLerp) {
+  // the world's clock does not run while a demo is paused, so it can never climb into a frame
+  // the transport controls step to. Show that frame outright: stepping asks for a specific
+  // tick, and interpolating towards it from the one before is the opposite of what was asked
+  if (noLerp || cls.demo.paused) {
     cl.time = cl.frame.time;
     cl.lerp = 1.0;
   } else {

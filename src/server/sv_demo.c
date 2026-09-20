@@ -82,6 +82,7 @@ void Sv_LoadDemo(void) {
   sv.demoFile = Fs_OpenRead(va("demos/%s.demo", sv.name));
 
   sv.demoPaused = false;
+  sv.demoEnded = false;
 
   if (!sv.demoFile) {
     return;
@@ -92,6 +93,20 @@ void Sv_LoadDemo(void) {
       LittleLong(sv.demoHeader.version) != DEMO_VERSION) {
 
     Com_Warn("%s is not a valid demo file\n", sv.name);
+    Fs_Close(sv.demoFile);
+    sv.demoFile = NULL;
+    return;
+  }
+
+  sv.demoHeader.protocolMajor = LittleLong(sv.demoHeader.protocolMajor);
+  sv.demoHeader.protocolMinor = LittleLong(sv.demoHeader.protocolMinor);
+
+  // the stream is written in the engine's wire format, so a build that speaks a different one
+  // cannot read a single message of it. Refusing here is the difference between one clear line
+  // and a client that drops itself part way through the setup
+  if (sv.demoHeader.protocolMajor != PROTOCOL_MAJOR) {
+    Com_Warn("%s was recorded with protocol %d; this is Quetoo protocol %d\n",
+             sv.name, sv.demoHeader.protocolMajor, PROTOCOL_MAJOR);
     Fs_Close(sv.demoFile);
     sv.demoFile = NULL;
     return;
@@ -261,6 +276,7 @@ static void Sv_DemoEnded(void) {
     return;
   }
 
+  sv.demoEnded = true;
   sv.demoPaused = true;
   Sv_SendDemoInfo();
 }
@@ -362,6 +378,9 @@ void Sv_SeekDemo(int32_t millis) {
     return;
   }
 
+  // the read position is back inside the stream, so the end no longer bars further reads
+  sv.demoEnded = false;
+
   // only while paused: playback that is running reaches the seek destination by itself, and an
   // unconsumed flag would release an extra frame at whatever point it is next paused
   sv.demoStep = sv.demoPaused;
@@ -374,6 +393,12 @@ void Sv_SeekDemo(int32_t millis) {
  * with no pending seek, or the recording just ended.
  */
 size_t Sv_GetDemoFrame(byte *buffer) {
+
+  // the recording is over, and the keyframe index sits where the next chunk would be. Reading
+  // it would report the file as corrupt, so the viewer has to seek back to see anything more
+  if (sv.demoEnded) {
+    return 0;
+  }
 
   if (sv.demoPaused) {
 
@@ -467,6 +492,13 @@ void Sv_DemoSeekRelative_f(void) {
 void Sv_DemoPause_f(void) {
 
   if (svs.state != SV_ACTIVE_DEMO) {
+    return;
+  }
+
+  // nothing is left to send, and unpausing would starve the send loop, which takes the netchan
+  // keep-alive with it and times the viewer out. Staying paused keeps the transport controls up,
+  // so they can seek back to somewhere there is still a recording
+  if (sv.demoEnded) {
     return;
   }
 

@@ -337,7 +337,7 @@ static void Cg_misc_dust_Think(CGameEntity *self) {
   uint32_t hiddenMsec = 0;
   if (dust->lastVisible) {
     const uint32_t elapsed = now - dust->lastVisible;
-    const uint32_t gapThreshold = (uint32_t) Maxui64(cgi.client->frameMsec * 2u, 64u);
+    const uint32_t gapThreshold = (uint32_t) Maxui64(cgi.client->worldMsec * 2u, 64u);
     if (elapsed > gapThreshold) {
       hiddenMsec = elapsed;
     }
@@ -1160,7 +1160,7 @@ static void Cg_misc_weather_Think(CGameEntity *self) {
   uint32_t hiddenMsec = 0;
   if (weather->lastVisible) {
     const uint32_t elapsed = now - weather->lastVisible;
-    const uint32_t gapThreshold = (uint32_t) Maxui64(cgi.client->frameMsec * 2u, 64u);
+    const uint32_t gapThreshold = (uint32_t) Maxui64(cgi.client->worldMsec * 2u, 64u);
     if (elapsed > gapThreshold) {
       hiddenMsec = elapsed;
     }

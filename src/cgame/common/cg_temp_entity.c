@@ -1514,7 +1514,7 @@ void Cg_ParseTempEntity(void) {
       const int32_t client = cgi.ReadByte();
       float hue;
       Cg_ClientEffectColor(client, &hue, color_hue_cyan);
-      if (client == cgi.client->frame.ps.client && !cgi.client->thirdPerson) {
+      if (client == cgi.client->frame.ps.client && Cg_ViewIsSelf()) {
         pos = cgState.clients[client].weaponMuzzle;
       }
       Cg_RailEffect(pos, pos2, dir, flags, hue);

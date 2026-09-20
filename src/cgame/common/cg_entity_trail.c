@@ -918,7 +918,7 @@ static void Cg_TeleporterTrail(ClientEntity *ent) {
   }
 
   // Rising rings
-  if ((cgi.client->unclampedTime % 200) < cgi.client->frameMsec) {
+  if ((cgi.client->unclampedTime % 200) < cgi.client->worldMsec) {
     Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgSpriteRing,
       .dir = Vec3_Up(),
@@ -1255,7 +1255,7 @@ void Cg_EntityTrail(ClientEntity *ent) {
     end = ent->termination;
 
     // client is overridden to specify owner of the beam
-    if (ent->current.client == cgi.client->frame.ps.client && !cgi.client->thirdPerson) {
+    if (ent->current.client == cgi.client->frame.ps.client && Cg_ViewIsSelf()) {
 
       // we own this beam (lightning, grapple, etc..)
       // anchor start to the client-side muzzle; keep end as the server-authoritative termination
