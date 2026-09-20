@@ -80,6 +80,50 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous demo loading
 
 /**
+ * @brief Reads the protocol an open demo was recorded under, leaving the read position wherever
+ * it ends up.
+ * @details A version 3 header states it. Version 2 does not, but its stream does: each chunk is
+ * a size and a frame number, and the first message of any recording is `SV_CMD_SERVER_DATA`,
+ * whose first two longs are the major and the minor. `Sv_ReadDemoStreamProtocol` reads the same
+ * bytes on the other side of the module boundary.
+ * @return False if the demo is too short or too strange to say, which is not the same as saying
+ * something this build disagrees with.
+ */
+static bool readDemoProtocol(File *file, int32_t version, int32_t *major, int32_t *minor) {
+
+  if (version >= 3) {
+
+    int32_t fields[2];
+    if (cgi.ReadFile(file, fields, sizeof(fields), 1) != 1) {
+      return false;
+    }
+
+    *major = LittleLong(fields[0]);
+    *minor = LittleLong(fields[1]);
+    return true;
+  }
+
+  if (!cgi.SeekFile(file, (int64_t) DemoHeaderSize(version))) {
+    return false;
+  }
+
+  int32_t size, frameNum, fields[2];
+  byte cmd;
+
+  if (cgi.ReadFile(file, &size, sizeof(size), 1) != 1 ||
+      cgi.ReadFile(file, &frameNum, sizeof(frameNum), 1) != 1 ||
+      cgi.ReadFile(file, &cmd, sizeof(cmd), 1) != 1 ||
+      cmd != SV_CMD_SERVER_DATA ||
+      cgi.ReadFile(file, fields, sizeof(fields), 1) != 1) {
+    return false;
+  }
+
+  *major = LittleLong(fields[0]);
+  *minor = LittleLong(fields[1]);
+  return true;
+}
+
+/**
  * @brief Fs_Enumerator for demo discovery.
  */
 static void enumerateDemos(const char *path, void *data) {
@@ -105,6 +149,22 @@ static void enumerateDemos(const char *path, void *data) {
   const int32_t version = LittleLong(header.version);
 
   if (version < DEMO_VERSION_MIN || version > DEMO_VERSION) {
+    Cg_Warn("Skipping %s: demo version %d, this build reads %d through %d\n",
+            path, version, DEMO_VERSION_MIN, DEMO_VERSION);
+    cgi.CloseFile(file);
+    return;
+  }
+
+  // listing a demo nothing can play only leads the player to a dead Play button, so say why
+  // once and leave it out. A recording that cannot say which protocol it is gets the benefit
+  // of the doubt, exactly as playback gives it
+  int32_t major = 0, minor = 0;
+
+  if (readDemoProtocol(file, version, &major, &minor) &&
+      (major != PROTOCOL_MAJOR || minor != PROTOCOL_MINOR)) {
+
+    Cg_Warn("Skipping %s: recorded with protocol %d.%d, this is %d.%d\n",
+            path, major, minor, PROTOCOL_MAJOR, PROTOCOL_MINOR);
     cgi.CloseFile(file);
     return;
   }

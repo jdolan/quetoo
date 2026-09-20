@@ -387,6 +387,13 @@ static void Cl_ParseServerData(void) {
 
   // ensure protocol minor matches
   if (minor != cls.cgame->protocol) {
+    if (cl.demoServer) {
+      // the demo browser leaves these out of its list, so this is the console `demo` command,
+      // which hands the file straight to the server. Only the client game knows the minor, and
+      // only once the recording says what it is, so this is the first point anything can tell
+      Com_Error(ERROR_DROP, "This demo was recorded with protocol minor %d, you have %d\n",
+                minor, cls.cgame->protocol);
+    }
     Com_Error(ERROR_DROP, "Server is using protocol minor %d, you have %d\n", minor, cls.cgame->protocol);
   }
 
