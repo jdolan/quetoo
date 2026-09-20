@@ -87,9 +87,9 @@ static const JSONProperty statsResponseFields[] = {
   MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, captures, NULL, JSONDeserializeInt32, NULL),
-  MakeJSONProperty(StatsResponse, timePlayed, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONPropertyWithKey(StatsResponse, timePlayed, "time_played", NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, nemesis, NULL, JSONDeserializeStruct, (ident) &nemesisProperties),
-  MakeJSONProperty(StatsResponse, killsByWeapon, NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties),
+  MakeJSONPropertyWithKey(StatsResponse, killsByWeapon, "kills_by_weapon", NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties),
   { .key = NULL }
 };
 

@@ -43,7 +43,7 @@ static const JSONProperty leaderboardEntryFields[] = {
   MakeJSONProperty(LeaderboardEntry, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, deaths, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, captures, NULL, JSONDeserializeInt32, NULL),
-  MakeJSONProperty(LeaderboardEntry, timePlayed, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONPropertyWithKey(LeaderboardEntry, timePlayed, "time_played", NULL, JSONDeserializeInt32, NULL),
   { .key = NULL }
 };
 
