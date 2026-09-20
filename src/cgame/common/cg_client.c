@@ -409,6 +409,22 @@ void Cg_LoadClients(void) {
     }
   }
 
+  // corpses resolve through their own slots, which the configstring burst may have filled
+  // before the media reload; without reloading them here their models are freed out from
+  // under them by R_EndLoading, and the bodies still standing are drawn through dangling
+  // pointers
+  memset(cgState.corpses, 0, sizeof(cgState.corpses));
+
+  for (int32_t i = 0; i < MAX_CORPSES; i++) {
+    const char *s = cgi.ConfigString(CS_CORPSES + i);
+
+    if (!*s) {
+      continue;
+    }
+
+    Cg_LoadClient(&cgState.corpses[i], s);
+  }
+
   memset(&cgState.forceSkin, 0, sizeof(cgState.forceSkin));
 
   if (*cg_forceSkin->string) {
