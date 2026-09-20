@@ -317,6 +317,7 @@ bool q_str_ident_equal(const char *a, const char *b) {
 			return true;
 		}
 
-		a++, b++;
+    a++;
+    b++;
 	}
 }
