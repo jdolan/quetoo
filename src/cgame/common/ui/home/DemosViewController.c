@@ -89,11 +89,22 @@ static void didClickPlay(Button *button) {
  */
 static void updatePlay(DemosViewController *self, bool selected) {
 
-  if (selected) {
-    self->play->control.state &= ~ControlStateDisabled;
-  } else {
-    self->play->control.state |= ControlStateDisabled;
+  Control *control = (Control *) self->play;
+
+  const ControlState state = selected
+    ? control->state & ~ControlStateDisabled
+    : control->state | ControlStateDisabled;
+
+  if (state == control->state) {
+    return;
   }
+
+  control->state = state;
+
+  // the style carries the disabled appearance, and only stateDidChange asks for it to be
+  // recomputed. Without this the button keeps the look it had until a pointer event over it
+  // happens to drive the same path
+  $(control, stateDidChange);
 }
 
 /**
@@ -165,6 +176,10 @@ static void viewWillAppear(ViewController *self) {
   DemosViewController *this = (DemosViewController *) self;
 
   $(this->demosList, reloadDemos);
+
+  // a reload drops the selection without telling the delegate, so a demo deleted from under us
+  // would otherwise leave Play enabled with nothing to play
+  updatePlay(this, $(this->demosList, selectedDemo) != NULL);
 
   super(ViewController, self, viewWillAppear);
 }
