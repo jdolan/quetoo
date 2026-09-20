@@ -308,6 +308,10 @@ static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
     }
   }
 
+  if (!cmdState.commands) {
+    return NULL;
+  }
+
   CmdLegacyCtx ctx = { .name = name };
   $(cmdState.commands, enumerate, Cmd_Legacy_enumerate, &ctx);
 

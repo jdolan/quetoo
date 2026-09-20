@@ -178,7 +178,7 @@ int32_t __attribute__ ((warn_unused_result)) q_strncasecmp(const char *a, const 
 
 /**
  * @brief Compares two identifiers, ignoring case and underscores, so that
- * `r_swapInterval` and `r_swapInterval` compare equal. NULL-safe.
+ * `r_swap_interval` and `r_swapInterval` compare equal. NULL-safe.
  * @remarks This is how cvar and console command names written in the older
  * snake_case form are resolved to their current names.
  */
