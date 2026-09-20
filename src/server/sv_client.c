@@ -230,7 +230,7 @@ static void Sv_Info_f(void) {
   Cvar_Enumerate(Sv_Info_f_enumerate, (void *) svClient);
 }
 
-typedef struct ServerUserStringCmd {
+typedef struct {
   char *name;
   void (*func)(void);
 } ServerUserStringCmd;

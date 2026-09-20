@@ -37,7 +37,7 @@ typedef struct EntityViewInterface EntityViewInterface;
 /**
  * @brief The EntityViewDelegate type.
  */
-typedef struct EntityViewDelegate {
+typedef struct {
 
   /**
    * @brief The delegate self-reference.

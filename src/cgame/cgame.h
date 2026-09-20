@@ -43,7 +43,7 @@
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
  */
-typedef struct CGameImport {
+typedef struct {
 
   /**
    * @brief The client structure.

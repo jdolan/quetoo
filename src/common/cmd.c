@@ -25,7 +25,7 @@
 #include "console.h"
 #include "filesystem.h"
 
-typedef struct CmdArgs {
+typedef struct {
   int32_t argc;
   char argv[MAX_STRING_TOKENS][MAX_TOKEN_CHARS];
   char args[MAX_STRING_CHARS];
@@ -33,7 +33,7 @@ typedef struct CmdArgs {
 
 #define CBUF_CHARS 65536
 
-typedef struct CmdState {
+typedef struct {
   HashTable *commands;
 
   MemBuf buf;

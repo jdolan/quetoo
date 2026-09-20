@@ -85,7 +85,7 @@ Quetoo quetoo;
  */
 #define MAX_PENDING_SERVERS 256
 
-typedef struct MasterServer {
+typedef struct {
   struct sockaddr_in addr;
   time_t registered;
   time_t lastHeartbeat;

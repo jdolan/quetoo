@@ -345,7 +345,7 @@ typedef struct {
 /**
  * @brief Per-voxel data decoded from the BSP voxel lump.
  */
-typedef struct CmVoxel {
+typedef struct {
 
   /**
    * @brief World-space center of the voxel cell.

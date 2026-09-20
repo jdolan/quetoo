@@ -78,7 +78,7 @@ typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SD
  * two separate surfaces, where each input node occupies the same coordinates in both
  * surfaces. All layers in a given node must be of the same size.
  */
-typedef struct Atlas {
+typedef struct {
 
   /**
    * @brief Number of surface layers in the atlas.

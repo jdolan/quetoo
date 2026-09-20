@@ -234,7 +234,7 @@ typedef struct RenderStage {
 /**
  * @brief Materials define texture, animation and lighting properties for BSP and mesh models.
  */
-typedef struct RenderMaterial {
+typedef struct {
 
   /**
    * @brief Materials are media.
@@ -270,7 +270,7 @@ typedef struct RenderMaterial {
 /**
  * @brief Decals are projected textures that conform to BSP geometry.
  */
-typedef struct RenderDecal {
+typedef struct {
 
   /**
    * @brief The decal origin.
@@ -313,7 +313,7 @@ typedef struct RenderDecal {
 /**
  * @brief Hardware occlusion queries.
  */
-typedef struct RenderOcclusionQuery {
+typedef struct {
 
   /**
    * @brief The query bounds used for CPU-side culling.
@@ -443,7 +443,7 @@ typedef struct {
 /**
  * @brief BSP faces, which may reside on the front or back of their node.
  */
-typedef struct RenderBspFace {
+typedef struct {
 
   /**
    * @brief The brush side which generated this face, or `NULL` for patch faces.

@@ -361,7 +361,7 @@ typedef struct {
  * etc.). The game module is free to define what the stats array actually
  * contains.
  */
-typedef struct PlayerState {
+typedef struct {
 
   /**
    * @brief Client index for this player.
@@ -442,7 +442,7 @@ typedef void (*AutocompleteFunc)(const uint32_t argi, List *matches);
 /**
  * @brief Console variables hold mutable scalars and strings.
  */
-typedef struct Cvar {
+typedef struct {
   const char *name;
   const char *defaultString;
   char *string;
@@ -460,7 +460,7 @@ typedef void (*CmdExecuteFunc)(void);
 /**
  * @brief Console commands provide a scripting environment for users.
  */
-typedef struct Cmd {
+typedef struct {
   const char *name;
   const char *description;
   CmdExecuteFunc Execute;

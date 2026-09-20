@@ -207,7 +207,7 @@ typedef struct {
  * @brief The game import provides engine functionality and core configuration
  * such as frame intervals to the game module.
  */
-typedef struct GameImport {
+typedef struct {
 
   /**
    * @defgroup console-appending Console appending
@@ -731,7 +731,7 @@ typedef struct GameImport {
  * @brief The game export structure exposes core game module entry points to
  * the server. The game must populate this structure as part of `G_Init`.
  */
-typedef struct GameExport {
+typedef struct {
 
   /**
    * @brief Game API version; validated by the server on load.

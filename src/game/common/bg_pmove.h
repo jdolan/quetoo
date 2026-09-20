@@ -180,7 +180,7 @@ Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked);
  * @brief The player movement structure provides context management between the
  * game modules and the player movement code.
  */
-typedef struct PlayerMove {
+typedef struct {
   PlayerMoveCmd cmd; // movement command (in)
 
   PlayerMoveState s; // movement state (in / out)
