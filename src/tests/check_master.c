@@ -104,7 +104,7 @@ static void write_blacklist(const char *rules) {
 }
 
 START_TEST(check_Ms_BlacklistServer) {
-  write_blacklist("192.168.0.*\n// a comment\n\n10.0.0.1:27910\n");
+  write_blacklist("192.168.0.*\n// a comment\n\n10.0.0.1:27910 # a trailing comment\n");
 
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));

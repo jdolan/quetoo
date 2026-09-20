@@ -358,13 +358,22 @@ static void Ms_ParseBlacklist(const char *buffer, int64_t length) {
       lineStart++;
     }
 
+    // a comment may follow a rule on the same line, so that an operator can
+    // say what each address is without giving it a line of its own
+    for (const char *comment = lineStart; comment < lineEnd; comment++) {
+      if (*comment == '#' || (comment + 1 < lineEnd && *comment == '/' && comment[1] == '/')) {
+        lineEnd = comment;
+        break;
+      }
+    }
+
     while (lineEnd > lineStart && isspace((unsigned char) *(lineEnd - 1))) {
       lineEnd--;
     }
 
     const size_t size = (size_t) (lineEnd - lineStart);
 
-    if (!size || *lineStart == '#' || (size >= 2 && !q_strncmp(lineStart, "//", 2))) {
+    if (!size) {
       continue;
     }
 
@@ -436,11 +445,12 @@ static void Ms_LoadBlacklist(void) {
 /**
  * @brief Returns true if the specified server has been blacklisted, false otherwise.
  * The format of the blacklist file is one rule per line, with wildcards. A rule
- * may qualify the address with a port, and matches any port if it does not. Ex:
+ * may qualify the address with a port, and matches any port if it does not.
+ * `#` or `//` begins a comment, which may follow a rule on the same line. Ex:
  *
  * // This guy is a joker
  * 66.182.58.*
- * 203.0.113.7:27910
+ * 203.0.113.7:27910 # and only on that port
  */
 static bool Ms_BlacklistServer(const struct sockaddr_in *from) {
 
