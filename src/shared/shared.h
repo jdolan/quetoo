@@ -573,6 +573,13 @@ char *vtos(const Vec3 v);
 #define MAX_TEAM_NAME 32
 
 const char *InfoString_Next(const char *s, char *key, char *value);
+
+/**
+ * @return The value for `key` in the info string `s`, or the empty string.
+ * @remarks The result points into one of two rotating static buffers, so that
+ * two values can be compared. A third call invalidates the first result.
+ * Copy the value before the next lookup rather than holding the pointer.
+ */
 char *InfoString_Get(const char *s, const char *key);
 bool InfoString_Delete(char *s, const char *key);
 bool InfoString_Set(char *s, const char *key, const char *value);

@@ -147,20 +147,27 @@ void Cl_ParseServerInfo(void) {
   char name[sizeof(server->name)];
   char gameplay[sizeof(server->gameplay)];
   char movement[sizeof(server->movement)];
+  char guid[sizeof(server->guid)];
 
+  // InfoString_Get returns one of two rotating static buffers, so a returned
+  // pointer survives only one more call. Each value is copied before the next
+  // lookup rather than held.
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  const char *serverGuid = InfoString_Get(string, "sv_guid");
+  q_strlcpy(guid, InfoString_Get(string, "sv_guid"), sizeof(guid));
+
   const char *mode = InfoString_Get(string, "g_gameplayMode");
   q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+
   const char *move = InfoString_Get(string, "g_movementMode");
   q_strlcpy(movement, *move ? move : InfoString_Get(string, "g_movement"), sizeof(movement));
+
   const int32_t maxClients = atoi(InfoString_Get(string, "sv_maxClients"));
 
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
     q_strlcpy(server->name, name, sizeof(server->name));
-    q_strlcpy(server->guid, serverGuid, sizeof(server->guid));
+    q_strlcpy(server->guid, guid, sizeof(server->guid));
     q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
     q_strlcpy(server->movement, movement, sizeof(server->movement));
     server->maxClients = maxClients;
