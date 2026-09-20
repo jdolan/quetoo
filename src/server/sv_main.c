@@ -442,13 +442,13 @@ static void Sv_ConnectionlessPacket(void) {
  * unsmoothed one would both read as jitter and defeat the delta compression of the player state.
  */
 static void Sv_UpdatePings(void) {
-  static uint32_t last_update_time;
+  static uint32_t lastUpdateTime;
 
-  if (quetoo.ticks - last_update_time < SV_CLIENT_PING_INTERVAL) {
+  if (quetoo.ticks - lastUpdateTime < SV_CLIENT_PING_INTERVAL) {
     return;
   }
 
-  last_update_time = quetoo.ticks;
+  lastUpdateTime = quetoo.ticks;
 
   for (int32_t i = 0; i < sv_maxClients->integer; i++) {
 
@@ -480,14 +480,14 @@ static void Sv_UpdatePings(void) {
  * over the next interval, assume they are trying to cheat.
  */
 static void Sv_CheckCommandTimes(void) {
-  static uint32_t last_check_time;
+  static uint32_t lastCheckTime;
 
   // see if its time to check the movements
-  if (quetoo.ticks - last_check_time < CMD_MSEC_CHECK_INTERVAL) {
+  if (quetoo.ticks - lastCheckTime < CMD_MSEC_CHECK_INTERVAL) {
     return;
   }
 
-  last_check_time = quetoo.ticks;
+  lastCheckTime = quetoo.ticks;
 
   // inspect each client, ensuring they are reasonably in sync with us
   for (int32_t i = 0; i < sv_maxClients->integer; i++) {
@@ -872,7 +872,7 @@ static void Sv_WaitForPackets(const uint32_t msec) {
  * @brief Main server frame entry point; advances the simulation and services all clients.
  */
 void Sv_Frame(const uint32_t msec) {
-  static uint32_t frame_delta;
+  static uint32_t frameDelta;
 
   if (svs.state == SV_UNINITIALIZED) {
     Sv_DrawConsole();
@@ -883,14 +883,14 @@ void Sv_Frame(const uint32_t msec) {
   }
 
   if (timeDemo->value) { // always run a frame
-    frame_delta = QUETOO_TICK_MILLIS;
+    frameDelta = QUETOO_TICK_MILLIS;
   } else { // keep simulation time in sync with reality
 
-    frame_delta += msec;
+    frameDelta += msec;
 
-    if (frame_delta < QUETOO_TICK_MILLIS) {
+    if (frameDelta < QUETOO_TICK_MILLIS) {
       if (dedicated->value) {
-        Sv_WaitForPackets(QUETOO_TICK_MILLIS - frame_delta);
+        Sv_WaitForPackets(QUETOO_TICK_MILLIS - frameDelta);
       } else {
         // a listen server is already called once per rendered frame, with the clock freshly
         // read, so it has only to look at the socket rather than block on it
@@ -902,7 +902,7 @@ void Sv_Frame(const uint32_t msec) {
   }
 
   // clamp the frame interval to 4 ticks to prevent physics tunneling under heavy load
-  frame_delta = Minf(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * 4));
+  frameDelta = Minf(frameDelta, (uint32_t) (QUETOO_TICK_MILLIS * 4));
 
   // read any pending packets from clients
   Sv_ReadPackets();
@@ -923,7 +923,7 @@ void Sv_Frame(const uint32_t msec) {
   const uint64_t simStart = SDL_GetTicks();
   int32_t ticksRun = 0;
 
-  while (frame_delta >= QUETOO_TICK_MILLIS) {
+  while (frameDelta >= QUETOO_TICK_MILLIS) {
 
     const uint64_t tickStart = SDL_GetTicks();
 
@@ -934,7 +934,7 @@ void Sv_Frame(const uint32_t msec) {
     Sv_SendClientPackets();
 
     // decrement the simulation time
-    frame_delta -= QUETOO_TICK_MILLIS;
+    frameDelta -= QUETOO_TICK_MILLIS;
     ticksRun++;
 
     const uint32_t tickMs = (uint32_t) (SDL_GetTicks() - tickStart);

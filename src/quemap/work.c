@@ -127,15 +127,15 @@ void Work(const char *name, WorkFunc func, int32_t count) {
 void Progress(const char *progress, int32_t percent) {
   static char *string = "-\\|/-|";
   static int32_t index = 0;
-  static int32_t last_percent;
+  static int32_t lastPercent;
 
   if (percent == -1) {
     Com_Print("\r%-24s [%c]", progress, string[index]);
     index = (index + 1) % q_strlen(string);
   } else {
-    if (percent != last_percent) {
+    if (percent != lastPercent) {
       Com_Print("\r%-24s [%3d%%]", progress, percent);
-      last_percent = percent;
+      lastPercent = percent;
     }
   }
 }

@@ -1387,12 +1387,12 @@ void Installer_ApplyPending(void) {
 
   FILE *cleanup = NULL;
 #if defined(_WIN32)
-  char cleanup_path[MAX_OS_PATH];
-  q_snprintf(cleanup_path, sizeof(cleanup_path), "%s/.cleanup", Fs_BaseDir());
-  cleanup = fopen(cleanup_path, "ab");
+  char cleanupPath[MAX_OS_PATH];
+  q_snprintf(cleanupPath, sizeof(cleanupPath), "%s/.cleanup", Fs_BaseDir());
+  cleanup = fopen(cleanupPath, "ab");
   if (!cleanup) {
     Com_Warn("Failed to open %s for writing; displaced files will be swept synchronously\n",
-             cleanup_path);
+             cleanupPath);
   }
 #endif
 

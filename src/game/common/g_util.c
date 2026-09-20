@@ -311,7 +311,7 @@ void G_SetMoveDir(GameEntity *ent) {
  * @brief Allocates the entity at the specified index, which must be free.
  */
 GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
-  static uint8_t g_spawn_id;
+  static uint8_t nextSpawnId;
 
   if (number < 0 || number >= sv_maxEntities->integer) {
     G_Error("Entity %d out of range (sv_maxEntities=%d)\n", number, sv_maxEntities->integer);
@@ -328,7 +328,7 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   e->waterLevel = WATER_UNKNOWN;
   e->timestamp = gLevel.time;
   e->s.number = number;
-  e->s.spawnId = g_spawn_id++;
+  e->s.spawnId = nextSpawnId++;
 
   return e;
 }

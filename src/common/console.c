@@ -534,15 +534,15 @@ static void Con_PrintMatches(const Console *console, List *matches) {
  * @brief Returns the longest common prefix the specified words share.
  */
 static char *Con_CommonPrefix(List *matches) {
-  static char common_prefix[MAX_TOKEN_CHARS];
+  static char commonPrefix[MAX_TOKEN_CHARS];
 
-  memset(common_prefix, 0, sizeof(common_prefix));
+  memset(commonPrefix, 0, sizeof(commonPrefix));
 
   if (!matches || !matches->count) {
-    return common_prefix;
+    return commonPrefix;
   }
 
-  for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
+  for (size_t i = 0; i < sizeof(commonPrefix) - 1; i++) {
     ListNode *e = matches->head;
     const ConAutocompleteMatch *m = e->element;
     const char c = m->name[i];
@@ -554,16 +554,16 @@ static char *Con_CommonPrefix(List *matches) {
       const char *w = m->name;
 
       if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
-        return common_prefix;
+        return commonPrefix;
       }
 
       e = e->next;
     }
 
-    common_prefix[i] = c;
+    commonPrefix[i] = c;
   }
 
-  return common_prefix;
+  return commonPrefix;
 }
 
 /**

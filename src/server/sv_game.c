@@ -255,16 +255,16 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
       MakeJSONProperty(GameFrag, time,          JSONSerializeInt32,      NULL, NULL)
     );
 
-    static char frags_url[MAX_STRING_CHARS];
-    q_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_statsUrl->string);
+    static char fragsUrl[MAX_STRING_CHARS];
+    q_snprintf(fragsUrl, sizeof(fragsUrl), "%s/api/frags", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &svFragProperties, (ident) frags, fragsLen);
     release(ctx);
     assert(data);
 
-    Com_Print("POSTing %zd frags to %s\n", fragsLen, frags_url);
-    $($$(RESTClient, sharedInstance), postAsync, frags_url, data, headers, Sv_PostStatsCallback, frags_url);
+    Com_Print("POSTing %zd frags to %s\n", fragsLen, fragsUrl);
+    $($$(RESTClient, sharedInstance), postAsync, fragsUrl, data, headers, Sv_PostStatsCallback, fragsUrl);
 
     release(data);
   }
@@ -280,16 +280,16 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
       MakeJSONProperty(GameCapture, time,        JSONSerializeInt32,      NULL, NULL)
     );
 
-    static char captures_url[MAX_STRING_CHARS];
-    q_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_statsUrl->string);
+    static char capturesUrl[MAX_STRING_CHARS];
+    q_snprintf(capturesUrl, sizeof(capturesUrl), "%s/api/captures", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &svCaptureProperties, (ident) captures, capturesLen);
     release(ctx);
     assert(data);
 
-    Com_Print("POSTing %zd captures to %s\n", capturesLen, captures_url);
-    $($$(RESTClient, sharedInstance), postAsync, captures_url, data, headers, Sv_PostStatsCallback, captures_url);
+    Com_Print("POSTing %zd captures to %s\n", capturesLen, capturesUrl);
+    $($$(RESTClient, sharedInstance), postAsync, capturesUrl, data, headers, Sv_PostStatsCallback, capturesUrl);
 
     release(data);
   }

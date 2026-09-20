@@ -8,22 +8,22 @@ typedef struct {
   /**
    * @brief Offset into `BspFile` to the lump element count.
    */
-  size_t count_ofs;
+  size_t countOffset;
 
   /**
    * @brief Offset into `BspFile` to the lump data pointer.
    */
-  size_t data_ofs;
+  size_t dataOffset;
 
   /**
    * @brief Size in bytes of each lump element.
    */
-  size_t type_size;
+  size_t typeSize;
 
   /**
    * @brief Maximum allowed element count for this lump.
    */
-  size_t max_count;
+  size_t maxCount;
 } BspLumpMeta;
 
 #if !defined(BSP_SIZEOF)
@@ -32,17 +32,17 @@ sizeof(*((T *) 0)->F)
 #endif
 
 #define BSP_LUMP_NUM_STRUCT(c, n, m) { \
-.count_ofs = offsetof(BspFile, c), \
-.data_ofs = offsetof(BspFile, n), \
-.type_size = BSP_SIZEOF(BspFile, n), \
-.max_count = m \
+.countOffset = offsetof(BspFile, c), \
+.dataOffset = offsetof(BspFile, n), \
+.typeSize = BSP_SIZEOF(BspFile, n), \
+.maxCount = m \
 }
 
 #define BSP_LUMP_SIZE_STRUCT(c, n, m) { \
-.count_ofs = offsetof(BspFile, c), \
-.data_ofs = offsetof(BspFile, n),\
-.type_size = sizeof(byte), \
-.max_count = m \
+.countOffset = offsetof(BspFile, c), \
+.dataOffset = offsetof(BspFile, n),\
+.typeSize = sizeof(byte), \
+.maxCount = m \
 }
 
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
@@ -526,7 +526,7 @@ static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lumpId, int32
 
   BspLumpMeta *meta = &bspLumpMeta[lumpId];
 
-  if (!meta->type_size) {
+  if (!meta->typeSize) {
 
     if (count) {
       *count = LUMP_SKIPPED;
@@ -535,11 +535,11 @@ static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lumpId, int32
   } else {
 
     if (count) {
-      *count = (int32_t *) BSP_BYTE_OFFSET(bsp, meta->count_ofs);
+      *count = (int32_t *) BSP_BYTE_OFFSET(bsp, meta->countOffset);
     }
 
     if (data) {
-      *data = (void **) BSP_BYTE_OFFSET(bsp, meta->data_ofs);
+      *data = (void **) BSP_BYTE_OFFSET(bsp, meta->dataOffset);
     }
   }
 
@@ -623,7 +623,7 @@ bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lumpId) {
   BspLump lump;
   Bsp_GetLumpPosition(file, lumpId, &lump);
 
-  const size_t lumpTypeSize = bspLumpMeta[lumpId].type_size;
+  const size_t lumpTypeSize = bspLumpMeta[lumpId].typeSize;
 
   if (lump.fileLen < 0 || lump.fileOfs < 0) {
     Com_Error(ERROR_DROP, "Lump (%i) has invalid offset (%i) or size (%i)\n",
@@ -637,9 +637,9 @@ bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lumpId) {
 
   *lumpCount = lump.fileLen / lumpTypeSize;
 
-  if (*lumpCount >= (int32_t) bspLumpMeta[lumpId].max_count) {
+  if (*lumpCount >= (int32_t) bspLumpMeta[lumpId].maxCount) {
     Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lumpId, *lumpCount,
-              bspLumpMeta[lumpId].max_count);
+              bspLumpMeta[lumpId].maxCount);
   }
 
   if (*lumpCount) {
@@ -706,7 +706,7 @@ void Bsp_AllocLump(BspFile *bsp, const BspLumpId lumpId, const size_t count) {
   }
 
   // calculate size
-  const size_t lumpTypeSize = bspLumpMeta[lumpId].type_size;
+  const size_t lumpTypeSize = bspLumpMeta[lumpId].typeSize;
 
   const size_t oldCount = (size_t) *lumpCount;
 
@@ -749,7 +749,7 @@ void Bsp_Write(File *file, const BspFile *bsp) {
     int32_t *lumpCount;
     void **lumpData;
 
-    const size_t size = bspLumpMeta[lump].type_size;
+    const size_t size = bspLumpMeta[lump].typeSize;
 
     Bsp_GetLumpOffsets(bsp, lump, &lumpCount, &lumpData);
 

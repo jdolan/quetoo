@@ -112,9 +112,9 @@ const char *Sys_Username(void) {
  *   - Linux:   `$XDG_DATA_HOME/WickedOldGames/Quetoo` (or `~/.local/share/WickedOldGames/Quetoo`)
  */
 const char *Sys_UserDir(void) {
-  static char user_dir[MAX_OS_PATH];
+  static char userDir[MAX_OS_PATH];
 
-  if (*user_dir == '\0') {
+  if (*userDir == '\0') {
     char *pref = SDL_GetPrefPath("WickedOldGames", "Quetoo");
     if (pref == NULL) {
       Com_Error(ERROR_FATAL, "SDL_GetPrefPath failed: %s\n", SDL_GetError());
@@ -127,11 +127,11 @@ const char *Sys_UserDir(void) {
       }
     }
 
-    q_strlcpy(user_dir, pref, sizeof(user_dir));
+    q_strlcpy(userDir, pref, sizeof(userDir));
     SDL_free(pref);
   }
 
-  return user_dir;
+  return userDir;
 }
 
 /**
@@ -310,41 +310,41 @@ void Sys_InstallDesktopEntry(void) {
   }
   *bin = '\0';
 
-  char icon_path[MAX_OS_PATH];
-  q_snprintf(icon_path, sizeof(icon_path),
+  char iconPath[MAX_OS_PATH];
+  q_snprintf(iconPath, sizeof(iconPath),
     "%s/share/icons/hicolor/256x256/apps/quetoo.png", prefix);
 
   // Destination: ~/.local/share/applications/quetoo.desktop
-  char desktop_dest[MAX_OS_PATH];
+  char desktopDest[MAX_OS_PATH];
   {
     const char *xdg = getenv("XDG_DATA_HOME");
-    char data_home[MAX_OS_PATH];
+    char dataHome[MAX_OS_PATH];
     if (xdg && *xdg) {
-      q_strlcpy(data_home, xdg, sizeof(data_home));
+      q_strlcpy(dataHome, xdg, sizeof(dataHome));
     } else {
-      q_snprintf(data_home, sizeof(data_home), "%s/.local/share", getenv("HOME") ? getenv("HOME") : "");
+      q_snprintf(dataHome, sizeof(dataHome), "%s/.local/share", getenv("HOME") ? getenv("HOME") : "");
     }
-    q_snprintf(desktop_dest, sizeof(desktop_dest), "%s/applications/quetoo.desktop", data_home);
+    q_snprintf(desktopDest, sizeof(desktopDest), "%s/applications/quetoo.desktop", dataHome);
   }
 
   // Skip writing if Exec= already points at this binary (no change needed).
-  char expected_exec[MAX_OS_PATH];
-  q_snprintf(expected_exec, sizeof(expected_exec), "Exec=%s", exe);
-  if (SDL_GetPathInfo(desktop_dest, NULL)) {
-    FILE *f = fopen(desktop_dest, "r");
+  char expectedExec[MAX_OS_PATH];
+  q_snprintf(expectedExec, sizeof(expectedExec), "Exec=%s", exe);
+  if (SDL_GetPathInfo(desktopDest, NULL)) {
+    FILE *f = fopen(desktopDest, "r");
     if (f) {
       char contents[4096] = "";
       fread(contents, 1, sizeof(contents) - 1, f);
       fclose(f);
-      const bool up_to_date = q_strstr(contents, expected_exec) != NULL;
-      if (up_to_date) {
+      const bool upToDate = q_strstr(contents, expectedExec) != NULL;
+      if (upToDate) {
         return;
       }
     }
   }
 
   char dir[MAX_OS_PATH];
-  q_strlcpy(dir, desktop_dest, sizeof(dir));
+  q_strlcpy(dir, desktopDest, sizeof(dir));
   {
     char *slash = q_strrchr(dir, '/');
     if (slash) { *slash = '\0'; }
@@ -363,14 +363,14 @@ void Sys_InstallDesktopEntry(void) {
     "Categories=Game;ActionGame;\n"
     "MimeType=x-scheme-handler/quetoo;\n"
     "StartupNotify=true\n",
-    exe, icon_path);
+    exe, iconPath);
 
-  FILE *df = fopen(desktop_dest, "w");
+  FILE *df = fopen(desktopDest, "w");
   if (df) {
     fputs(content, df);
     fclose(df);
   } else {
-    Com_Warn("Failed to install desktop entry: %s\n", desktop_dest);
+    Com_Warn("Failed to install desktop entry: %s\n", desktopDest);
   }
 
   free(content);
@@ -420,12 +420,12 @@ void Sys_InstallLocalBin(void) {
   }
   *bin = '\0';
 
-  char local_bin[MAX_OS_PATH];
+  char localBin[MAX_OS_PATH];
   {
     const char *home = getenv("HOME");
-    q_snprintf(local_bin, sizeof(local_bin), "%s/.local/bin", home ? home : "");
+    q_snprintf(localBin, sizeof(localBin), "%s/.local/bin", home ? home : "");
   }
-  SDL_CreateDirectory(local_bin);
+  SDL_CreateDirectory(localBin);
 
   for (const char * const *name = names; *name; name++) {
     char src[MAX_OS_PATH];
@@ -436,7 +436,7 @@ void Sys_InstallLocalBin(void) {
     }
 
     char dest[MAX_OS_PATH];
-    q_snprintf(dest, sizeof(dest), "%s/%s", local_bin, *name);
+    q_snprintf(dest, sizeof(dest), "%s/%s", localBin, *name);
 
     char current[MAX_OS_PATH] = { 0 };
     const ssize_t rlen = readlink(dest, current, sizeof(current) - 1);
@@ -829,10 +829,10 @@ void Sys_InitCrashSignals(void) {
 
   Sys_EnsureCrashLogPath();
 
-  static char sig_stack[SIGSTKSZ * 4];
+  static char sigStack[SIGSTKSZ * 4];
   const stack_t ss = {
-    .ss_sp   = sig_stack,
-    .ss_size = sizeof(sig_stack),
+    .ss_sp   = sigStack,
+    .ss_size = sizeof(sigStack),
   };
   sigaltstack(&ss, NULL);
 

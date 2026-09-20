@@ -523,7 +523,7 @@ static void Frame(const uint32_t msec) {
  * @brief The entry point of the program.
  */
 int32_t main(int32_t argc, char *argv[]) {
-  static uint32_t old_time;
+  static uint32_t oldTime;
   uint32_t msec;
 
   printf("Quetoo %s %s\n", VERSION, BUILD);
@@ -553,8 +553,8 @@ int32_t main(int32_t argc, char *argv[]) {
 #if defined(_WIN32)
   {
     // Register quetoo:// URI scheme in HKCU so no elevation is needed.
-    char exe_path[MAX_PATH];
-    GetModuleFileName(NULL, exe_path, sizeof(exe_path));
+    char exePath[MAX_PATH];
+    GetModuleFileName(NULL, exePath, sizeof(exePath));
 
     HKEY key;
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo", 0, NULL,
@@ -569,7 +569,7 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
-      q_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
+      q_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exePath);
       RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) q_strlen(cmd) + 1);
       RegCloseKey(cmd_key);
     }
@@ -609,11 +609,11 @@ int32_t main(int32_t argc, char *argv[]) {
 
     do {
       quetoo.ticks = (uint32_t) SDL_GetTicks();
-      msec = (quetoo.ticks - old_time) * timeScale->value;
+      msec = (quetoo.ticks - oldTime) * timeScale->value;
     } while (msec < 1);
 
     Frame(msec);
 
-    old_time = quetoo.ticks;
+    oldTime = quetoo.ticks;
   }
 }

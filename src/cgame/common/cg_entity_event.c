@@ -321,14 +321,14 @@ static SoundSample *Cg_Footstep(ClientEntity *ent) {
     const CmFootsteps *footsteps = &cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES)->cm->footsteps;
 
     if (footsteps->numSamples) {
-      static uint32_t last_index = -1;
+      static uint32_t lastIndex = -1;
       uint32_t index = RandomRangeu(0, footsteps->numSamples);
 
-      if (last_index == index) {
+      if (lastIndex == index) {
         index = (index ^ 1) % footsteps->numSamples;
       }
 
-      last_index = index;
+      lastIndex = index;
 
       return cgi.LoadSample(footsteps->samples[index].name, ASSET_CONTEXT_NONE);
     }

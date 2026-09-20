@@ -292,12 +292,12 @@ static void Cg_UpdateThirdPerson(const PlayerState *ps) {
  * over a small interval to smooth out rapid changes in velocity.
  */
 static float Cg_BobSpeedModulus(const PlayerState *ps) {
-  static float old_speed, new_speed;
+  static float oldSpeed, newSpeed;
   static uint32_t time;
 
   if (cgi.client->unclampedTime < time) {
     time = 0;
-    old_speed = new_speed = 0.f;
+    oldSpeed = newSpeed = 0.f;
   }
 
   float speed;
@@ -305,7 +305,7 @@ static float Cg_BobSpeedModulus(const PlayerState *ps) {
   const uint32_t delta = cgi.client->unclampedTime - time;
   if (delta < 200) {
     const float lerp = delta / (float) 200;
-    speed = old_speed + lerp * (new_speed - old_speed);
+    speed = oldSpeed + lerp * (newSpeed - oldSpeed);
   } else {
     const bool ducked = ps->pmState.flags & PMF_DUCKED;
     const float maxSpeed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
@@ -313,10 +313,10 @@ static float Cg_BobSpeedModulus(const PlayerState *ps) {
     Vec3 velocity = ps->pmState.velocity;
     velocity.z = 0.0;
 
-    old_speed = new_speed;
-    new_speed = Vec3_Length(velocity) / maxSpeed;
-    new_speed = Clampf01(new_speed);
-    speed = old_speed;
+    oldSpeed = newSpeed;
+    newSpeed = Vec3_Length(velocity) / maxSpeed;
+    newSpeed = Clampf01(newSpeed);
+    speed = oldSpeed;
 
     time = cgi.client->unclampedTime;
   }

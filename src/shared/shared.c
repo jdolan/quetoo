@@ -353,10 +353,10 @@ char *vtos(const Vec3 v) {
 char *InfoString_Get(const char *s, const char *key) {
   char pkey[512];
   static char value[2][512]; // use two buffers so compares work without stomping on each other
-  static int32_t value_index;
+  static int32_t valueIndex;
   char *o;
 
-  value_index ^= 1;
+  valueIndex ^= 1;
   if (*s == '\\') {
     s++;
   }
@@ -371,7 +371,7 @@ char *InfoString_Get(const char *s, const char *key) {
     *o = '\0';
     s++;
 
-    o = value[value_index];
+    o = value[valueIndex];
 
     while (*s != '\\' && *s) {
       if (!*s) {
@@ -382,7 +382,7 @@ char *InfoString_Get(const char *s, const char *key) {
     *o = '\0';
 
     if (!q_strcmp(key, pkey)) {
-      return value[value_index];
+      return value[valueIndex];
     }
 
     if (!*s) {

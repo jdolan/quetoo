@@ -641,7 +641,7 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
  * @brief Executes one client frame tick: networking, input, prediction, and rendering.
  */
 void Cl_Frame(const uint32_t msec) {
-  static uint32_t frame_timestamp;
+  static uint32_t frameTimestamp;
 
   if (dedicated->value) {
     return;
@@ -672,7 +672,7 @@ void Cl_Frame(const uint32_t msec) {
       }
     }
     if (targetFps > 0.f) { // cap render frame rate
-      if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / targetFps) {
+      if (MILLIS_TO_SECONDS(quetoo.ticks - frameTimestamp) < 1.f / targetFps) {
         return;
       }
     }
@@ -715,7 +715,7 @@ void Cl_Frame(const uint32_t msec) {
 
   cls.cgame->UpdateDiscord();
 
-  frame_timestamp = quetoo.ticks;
+  frameTimestamp = quetoo.ticks;
   cl.frameMsec = 0;
 }
 

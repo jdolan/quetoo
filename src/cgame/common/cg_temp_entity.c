@@ -324,7 +324,7 @@ static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t 
  * @brief Spawns bullet impact sparks, smoke, a decal, and plays a ricochet sound.
  */
 static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
-  static uint32_t last_ric_time;
+  static uint32_t lastRicTime;
 
   if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
     Cg_BubbleTrail(NULL, org, Vec3_Fmaf(org, 8.f, dir), 2.f);
@@ -418,12 +418,12 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
     .rotation = RandomRadian()
   });
 
-  if (cgi.client->unclampedTime < last_ric_time) {
-    last_ric_time = 0;
+  if (cgi.client->unclampedTime < lastRicTime) {
+    lastRicTime = 0;
   }
 
-  if (cgi.client->unclampedTime - last_ric_time > 300) {
-    last_ric_time = cgi.client->unclampedTime;
+  if (cgi.client->unclampedTime - lastRicTime > 300) {
+    lastRicTime = cgi.client->unclampedTime;
 
     Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
       .sample = cgSampleMachinegunHit[RandomRangeu(0, 3)],

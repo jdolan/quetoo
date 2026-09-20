@@ -58,10 +58,10 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
       break;
 
     case KEY_GAME: {
-        static uint32_t last_up, last_down;
+        static uint32_t lastUp, lastDown;
 
         const SDL_Buttoncode scancode = event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN;
-        uint32_t *last = scancode == SDL_SCANCODE_MWHEELUP ? &last_up : &last_down;
+        uint32_t *last = scancode == SDL_SCANCODE_MWHEELUP ? &lastUp : &lastDown;
 
         if (*last == cl.unclampedTime) {
           break; // already fired this direction this frame

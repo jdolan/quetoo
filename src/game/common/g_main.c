@@ -558,24 +558,24 @@ static void G_EndLevel(void) {
  * @return A static formatted time string.
  */
 char *G_FormatTime(uint32_t time) {
-  static char formatted_time[MAX_QPATH];
-  static uint32_t last_time = 0xffffffff;
+  static char formattedTime[MAX_QPATH];
+  static uint32_t lastTime = 0xffffffff;
   const uint32_t m = (time / 1000) / 60;
   const uint32_t s = (time / 1000) % 60;
   char *c;
 
   // highlight for countdowns
-  if (time < (30 * 1000) && time < last_time && (s & 1)) {
+  if (time < (30 * 1000) && time < lastTime && (s & 1)) {
     c = "^2";
   } else {
     c = "^7";
   }
 
-  q_snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
+  q_snprintf(formattedTime, sizeof(formattedTime), "%s%2u:%02u", c, m, s);
 
-  last_time = time;
+  lastTime = time;
 
-  return formatted_time;
+  return formattedTime;
 }
 
 /**

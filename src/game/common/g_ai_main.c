@@ -1052,8 +1052,8 @@ static bool G_Ai_FacingTarget(const GameClient *cl, const Vec3 target) {
  * but far vertically.
  */
 bool G_Ai_ShouldSlowDrop(const AiNodeId fromNode, const AiNodeId toNode) {
-  static const float min_drop = 128.f;
-  static const float max_drop = 512.f;
+  static const float minDrop = 128.f;
+  static const float maxDrop = 512.f;
 
   if (fromNode <= 0 || toNode <= 0) {
     return false;
@@ -1067,7 +1067,7 @@ bool G_Ai_ShouldSlowDrop(const AiNodeId fromNode, const AiNodeId toNode) {
   const Vec3 to = G_Ai_Node_GetPosition(toNode);
   const float drop = from.z - to.z;
 
-  return drop >= min_drop && drop <= max_drop &&
+  return drop >= minDrop && drop <= maxDrop &&
     Vec2_Distance(Vec3_XY(to), Vec3_XY(from)) < PM_STEP_HEIGHT * 8.f;
 }
 

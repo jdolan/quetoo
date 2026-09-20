@@ -138,9 +138,9 @@ static void Cg_DrawEditorBrush(const Box3 bounds, const Mat4 matrix, const Color
  * @brief Populates the view and sound stage for the given editor frame.
  */
 void Cg_PopulateEditorScene(const ClientFrame *frame) {
-  static bool did_print_help = false;
+  static bool didPrintHelp = false;
 
-  if (!did_print_help) {
+  if (!didPrintHelp) {
     cgi.Print("^5In-game editor enabled\n");
     cgi.Print("^5To select an entity, place your crosshair over it and press ESC\n");
     cgi.Print("^5To cycle through the entities behind your crosshair, use the mouse wheel\n");
@@ -152,7 +152,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
     cgi.Print("^5relocate to its first path_corner, as it does in game\n");
     cgi.Print("^6To select a material, place your crosshair over it and press ESC\n");
 
-    did_print_help = true;
+    didPrintHelp = true;
   }
 
   CGameEditorEntity *edit = cgEditor.entities;

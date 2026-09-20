@@ -888,14 +888,14 @@ const char *Fs_RealDir(const char *filename) {
  * @return The real path name of the specified file or directory.
  */
 const char *Fs_RealPath(const char *path) {
-  static char real_path[MAX_OS_PATH];
+  static char realPath[MAX_OS_PATH];
 
-  q_snprintf(real_path, sizeof(real_path), "%s/", Fs_WriteDir());
+  q_snprintf(realPath, sizeof(realPath), "%s/", Fs_WriteDir());
 
   const char *in = path;
-  char *out = real_path + q_strlen(real_path);
+  char *out = realPath + q_strlen(realPath);
 
-  while (*in && (size_t) (out - real_path) < (sizeof(real_path) - 1)) {
+  while (*in && (size_t) (out - realPath) < (sizeof(realPath) - 1)) {
     if (*in == '/') {
       *out = '/';
     } else {
@@ -906,7 +906,7 @@ const char *Fs_RealPath(const char *path) {
   }
   *out = '\0';
 
-  return real_path;
+  return realPath;
 }
 
 /**
