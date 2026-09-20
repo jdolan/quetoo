@@ -976,7 +976,7 @@ static void Sv_InitLocal(void) {
   sv_maxEntities = Cvar_Add("sv_maxEntities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
   sv_minClients = Cvar_Add("sv_minClients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
-  sv_statsUrl = Cvar_Add("sv_statsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to \"\" to disable.");
+  sv_statsUrl = Cvar_Add("sv_statsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to 0 to disable.");
   char uuid[37];
   Com_Uuid(uuid, sizeof(uuid));
   sv_guid = Cvar_Add("sv_guid", uuid, CVAR_SERVER_INFO | CVAR_NO_SET,
