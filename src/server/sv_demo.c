@@ -82,6 +82,7 @@ void Sv_LoadDemo(void) {
   sv.demoFile = Fs_OpenRead(va("demos/%s.demo", sv.name));
 
   sv.demoPaused = false;
+  sv.demoEnded = false;
 
   if (!sv.demoFile) {
     return;
@@ -261,6 +262,7 @@ static void Sv_DemoEnded(void) {
     return;
   }
 
+  sv.demoEnded = true;
   sv.demoPaused = true;
   Sv_SendDemoInfo();
 }
@@ -362,6 +364,9 @@ void Sv_SeekDemo(int32_t millis) {
     return;
   }
 
+  // the read position is back inside the stream, so the end no longer bars further reads
+  sv.demoEnded = false;
+
   // only while paused: playback that is running reaches the seek destination by itself, and an
   // unconsumed flag would release an extra frame at whatever point it is next paused
   sv.demoStep = sv.demoPaused;
@@ -374,6 +379,12 @@ void Sv_SeekDemo(int32_t millis) {
  * with no pending seek, or the recording just ended.
  */
 size_t Sv_GetDemoFrame(byte *buffer) {
+
+  // the recording is over, and the keyframe index sits where the next chunk would be. Reading
+  // it would report the file as corrupt, so the viewer has to seek back to see anything more
+  if (sv.demoEnded && !sv.demoStep) {
+    return 0;
+  }
 
   if (sv.demoPaused) {
 
