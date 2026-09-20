@@ -58,12 +58,6 @@ typedef struct {
 #define DEMO_VERSION 3
 
 /**
- * @brief The oldest demo format this build still reads. Version 2 has no protocol fields, so a
- * demo of that vintage is played on trust: it predates the check, not the protocol.
- */
-#define DEMO_VERSION_MIN 2
-
-/**
  * @brief The fixed-size header written at offset 0 of every recorded demo file.
  */
 typedef struct {
@@ -117,7 +111,7 @@ typedef struct {
   int32_t ofsKeyframes;
 
   /**
-   * @brief The `PROTOCOL_MAJOR` the recording was made under. Added in version 3.
+   * @brief The `PROTOCOL_MAJOR` the recording was made under.
    * @details The engine wire format the whole stream is written in. A build that speaks a
    * different one cannot parse a single message, so playback refuses rather than serving
    * nonsense to a client that will drop itself part way through the setup.
@@ -125,20 +119,19 @@ typedef struct {
   int32_t protocolMajor;
 
   /**
-   * @brief The `PROTOCOL_MINOR` the recording was made under. Added in version 3.
-   * @details Game module behaviour, so the server cannot judge it: the module that has to
-   * agree is the viewer's cgame. Recorded for that check and for the demo browser.
+   * @brief The `PROTOCOL_MINOR` the recording was made under.
+   * @details Game module behaviour, so the server cannot judge it: the module that has to agree
+   * is the viewer's client game, which compares it on parsing the server data.
    */
   int32_t protocolMinor;
-} DemoHeader;
 
-/**
- * @brief The on-disk size of a demo header of the given format `version`, which is where that
- * demo's recorded stream begins.
- * @details Version 3 only appends, so the older size is the offset of the first field it added.
- */
-#define DemoHeaderSize(version) \
-  ((version) < 3 ? offsetof(DemoHeader, protocolMajor) : sizeof(DemoHeader))
+  /**
+   * @brief The client game that recorded this demo, e.g. `ctf`.
+   * @details `protocolMinor` means nothing without it, because each module keeps its own. A
+   * demo of another module is played by that module, which has its own answer.
+   */
+  char cgame[MAX_QPATH];
+} DemoHeader;
 
 /**
  * @brief MD3 file identification.

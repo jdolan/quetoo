@@ -70,42 +70,6 @@ static void Sv_LoadDemoKeyframes(void) {
 }
 
 /**
- * @brief Recovers the protocol a version 2 demo was recorded under from the head of its stream.
- * @details Every demo written before this build is version 2, and its header has no protocol
- * fields, so waving those through would leave the check covering nothing that exists. The
- * stream says it anyway: each chunk is a size and a frame number, and the first message of any
- * recording is `SV_CMD_SERVER_DATA`, whose first two longs are the major and the minor.
- * @remarks Leaves the read position where it found it. A recording too short or too strange to
- * read this from keeps a protocol of zero, and is played on trust rather than refused.
- */
-static void Sv_ReadDemoStreamProtocol(void) {
-
-  sv.demoHeader.protocolMajor = 0;
-  sv.demoHeader.protocolMinor = 0;
-
-  const int64_t pos = Fs_Tell(sv.demoFile);
-
-  if (Fs_Seek(sv.demoFile, sv.demoStreamOffset)) {
-
-    int32_t size, frameNum, major, minor;
-    byte cmd;
-
-    if (Fs_Read(sv.demoFile, &size, sizeof(size), 1) == 1 &&
-        Fs_Read(sv.demoFile, &frameNum, sizeof(frameNum), 1) == 1 &&
-        Fs_Read(sv.demoFile, &cmd, sizeof(cmd), 1) == 1 &&
-        cmd == SV_CMD_SERVER_DATA &&
-        Fs_Read(sv.demoFile, &major, sizeof(major), 1) == 1 &&
-        Fs_Read(sv.demoFile, &minor, sizeof(minor), 1) == 1) {
-
-      sv.demoHeader.protocolMajor = LittleLong(major);
-      sv.demoHeader.protocolMinor = LittleLong(minor);
-    }
-  }
-
-  Fs_Seek(sv.demoFile, pos);
-}
-
-/**
  * @brief Opens the demo named by `sv.name` for playback, reading its header and keyframe index
  * and leaving the file positioned at the first recorded frame - not the setup chunks (server
  * data, config strings, baselines) ahead of it, which `Sv_SendDemoSetup` sends to each
@@ -124,10 +88,9 @@ void Sv_LoadDemo(void) {
     return;
   }
 
-  // a version 2 header is shorter, so the tail of this read is the first bytes of that demo's
-  // stream. The version says which, and the file is rewound to the right place below
   if (Fs_Read(sv.demoFile, &sv.demoHeader, sizeof(sv.demoHeader), 1) != 1 ||
-      memcmp(sv.demoHeader.magic, DEMO_MAGIC, sizeof(sv.demoHeader.magic))) {
+      memcmp(sv.demoHeader.magic, DEMO_MAGIC, sizeof(sv.demoHeader.magic)) ||
+      LittleLong(sv.demoHeader.version) != DEMO_VERSION) {
 
     Com_Warn("%s is not a valid demo file\n", sv.name);
     Fs_Close(sv.demoFile);
@@ -135,31 +98,13 @@ void Sv_LoadDemo(void) {
     return;
   }
 
-  sv.demoHeader.version = LittleLong(sv.demoHeader.version);
-
-  const int32_t version = sv.demoHeader.version;
-
-  if (version < DEMO_VERSION_MIN || version > DEMO_VERSION) {
-    Com_Warn("%s is a version %d demo; this build reads versions %d through %d\n",
-             sv.name, version, DEMO_VERSION_MIN, DEMO_VERSION);
-    Fs_Close(sv.demoFile);
-    sv.demoFile = NULL;
-    return;
-  }
-
-  sv.demoStreamOffset = (int64_t) DemoHeaderSize(version);
-
-  if (version < 3) {
-    Sv_ReadDemoStreamProtocol();
-  } else {
-    sv.demoHeader.protocolMajor = LittleLong(sv.demoHeader.protocolMajor);
-    sv.demoHeader.protocolMinor = LittleLong(sv.demoHeader.protocolMinor);
-  }
+  sv.demoHeader.protocolMajor = LittleLong(sv.demoHeader.protocolMajor);
+  sv.demoHeader.protocolMinor = LittleLong(sv.demoHeader.protocolMinor);
 
   // the stream is written in the engine's wire format, so a build that speaks a different one
   // cannot read a single message of it. Refusing here is the difference between one clear line
   // and a client that drops itself part way through the setup
-  if (sv.demoHeader.protocolMajor && sv.demoHeader.protocolMajor != PROTOCOL_MAJOR) {
+  if (sv.demoHeader.protocolMajor != PROTOCOL_MAJOR) {
     Com_Warn("%s was recorded with protocol %d; this is Quetoo protocol %d\n",
              sv.name, sv.demoHeader.protocolMajor, PROTOCOL_MAJOR);
     Fs_Close(sv.demoFile);
@@ -178,7 +123,7 @@ void Sv_LoadDemo(void) {
   if (sv.numDemoKeyframes > 0) {
     Fs_Seek(sv.demoFile, sv.demoKeyframes[0].offset);
   } else {
-    Fs_Seek(sv.demoFile, sv.demoStreamOffset);
+    Fs_Seek(sv.demoFile, sizeof(sv.demoHeader));
   }
 }
 
@@ -199,7 +144,7 @@ void Sv_SendDemoSetup(ServerClient *cl) {
   const int64_t pos = Fs_Tell(sv.demoFile);
   const int64_t end = sv.demoKeyframes[0].offset;
 
-  if (!Fs_Seek(sv.demoFile, sv.demoStreamOffset)) {
+  if (!Fs_Seek(sv.demoFile, sizeof(sv.demoHeader))) {
     Com_Warn("Failed to seek demo file\n");
     Fs_Seek(sv.demoFile, pos);
     return;

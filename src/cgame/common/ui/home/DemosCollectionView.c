@@ -88,73 +88,6 @@ typedef struct {
 } DemoEnumeration;
 
 /**
- * @brief Reads one NUL-terminated string from an open demo, as `Net_WriteString` wrote it.
- * @return False if it does not end within `len`, which means the recording is not what it says.
- */
-static bool readDemoString(File *file, char *out, size_t len) {
-
-  for (size_t i = 0; i < len; i++) {
-    if (cgi.ReadFile(file, out + i, 1, 1) != 1) {
-      return false;
-    }
-    if (out[i] == '\0') {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * @brief Reads which protocol, and which client game, an open demo was recorded under.
- * @details The stream is read whatever the version, because only the stream names the module:
- * each chunk is a size and a frame number, and the first message of any recording is
- * `SV_CMD_SERVER_DATA`, carrying the major, the minor, the demo flag, the game and the client
- * game. `Sv_ReadDemoStreamProtocol` reads the same bytes across the module boundary. Where the
- * header states the protocol, that is what is returned, so this agrees with playback.
- * @return False if the demo is too short or too strange to say, which is not the same as saying
- * something this build disagrees with.
- */
-static bool readDemoProtocol(File *file, int32_t version, int32_t *major, int32_t *minor,
-                             char *cgame, size_t len) {
-
-  int32_t header[2];
-
-  // a version 3 header states the protocol, and it is what playback reads, so read it from the
-  // same place: a file whose header and stream disagreed would otherwise be listed by one and
-  // refused by the other. The caller left the position at the end of the older header, so this
-  // read lands exactly where the stream begins
-  const bool stated = version >= 3;
-
-  if (stated) {
-    if (cgi.ReadFile(file, header, sizeof(header), 1) != 1) {
-      return false;
-    }
-  } else if (!cgi.SeekFile(file, (int64_t) DemoHeaderSize(version))) {
-    return false;
-  }
-
-  int32_t size, frameNum, fields[2];
-  byte cmd, demoServer;
-  char game[MAX_QPATH];
-
-  if (cgi.ReadFile(file, &size, sizeof(size), 1) != 1 ||
-      cgi.ReadFile(file, &frameNum, sizeof(frameNum), 1) != 1 ||
-      cgi.ReadFile(file, &cmd, sizeof(cmd), 1) != 1 ||
-      cmd != SV_CMD_SERVER_DATA ||
-      cgi.ReadFile(file, fields, sizeof(fields), 1) != 1 ||
-      cgi.ReadFile(file, &demoServer, sizeof(demoServer), 1) != 1 ||
-      !readDemoString(file, game, sizeof(game)) ||
-      !readDemoString(file, cgame, len)) {
-    return false;
-  }
-
-  *major = LittleLong(stated ? header[0] : fields[0]);
-  *minor = LittleLong(stated ? header[1] : fields[1]);
-  return true;
-}
-
-/**
  * @brief Fs_Enumerator for demo discovery.
  */
 static void enumerateDemos(const char *path, void *data) {
@@ -167,52 +100,14 @@ static void enumerateDemos(const char *path, void *data) {
     return;
   }
 
-  // only what every version of the header has. The browser needs none of the fields later
-  // versions added, and reading for them would fail on a demo recorded before they existed
   DemoHeader header;
-  memset(&header, 0, sizeof(header));
 
-  if (cgi.ReadFile(file, &header, DemoHeaderSize(DEMO_VERSION_MIN), 1) != 1 ||
-      memcmp(header.magic, DEMO_MAGIC, sizeof(header.magic))) {
+  if (cgi.ReadFile(file, &header, sizeof(header), 1) != 1 ||
+      memcmp(header.magic, DEMO_MAGIC, sizeof(header.magic)) ||
+      LittleLong(header.version) != DEMO_VERSION) {
     cgi.CloseFile(file);
     return;
   }
-
-  const int32_t version = LittleLong(header.version);
-
-  if (version < DEMO_VERSION_MIN || version > DEMO_VERSION) {
-    Cg_Debug("Skipping %s: demo version %d, this build reads %d through %d\n",
-             path, version, DEMO_VERSION_MIN, DEMO_VERSION);
-    enumeration->skipped++;
-    cgi.CloseFile(file);
-    return;
-  }
-
-  // listing a demo nothing can play only leads the player to a dead Play button, so leave it
-  // out. A recording that cannot say which protocol it is gets the benefit of the doubt,
-  // exactly as playback gives it
-  int32_t major = 0, minor = 0;
-  char cgame[MAX_QPATH];
-
-  if (readDemoProtocol(file, version, &major, &minor, cgame, sizeof(cgame)) && major) {
-
-    // the minor is the client game's, so it is only ours to judge when the recording names the
-    // module we are running. Another module's demo plays under that module, which will have
-    // its own answer, and hiding it here would hide something playable
-    const bool ours = !q_strcmp(cgame, GAME_NAME);
-
-    if (major != PROTOCOL_MAJOR || (ours && minor != PROTOCOL_MINOR)) {
-
-      Cg_Debug("Skipping %s: %s protocol %d.%d, this is %d.%d\n",
-               path, cgame, major, minor, PROTOCOL_MAJOR, PROTOCOL_MINOR);
-      enumeration->skipped++;
-      cgi.CloseFile(file);
-      return;
-    }
-  }
-
-  header.duration = LittleLong(header.duration);
-  header.favorite = LittleLong(header.favorite);
 
   // these are read verbatim from disk with no guarantee of NUL-termination; a corrupt or
   // malicious file that fills a whole field could otherwise send q_strlcpy's strlen scanning
@@ -220,6 +115,28 @@ static void enumerateDemos(const char *path, void *data) {
   header.map[sizeof(header.map) - 1] = '\0';
   header.message[sizeof(header.message) - 1] = '\0';
   header.title[sizeof(header.title) - 1] = '\0';
+  header.cgame[sizeof(header.cgame) - 1] = '\0';
+
+  header.duration = LittleLong(header.duration);
+  header.favorite = LittleLong(header.favorite);
+  header.protocolMajor = LittleLong(header.protocolMajor);
+  header.protocolMinor = LittleLong(header.protocolMinor);
+
+  // listing a demo nothing can play only leads the player to a dead Play button, so leave it
+  // out. The minor is the client game's, so it is only ours to judge when the recording names
+  // the module we are running: another module's demo plays under that module, which has its
+  // own answer, and hiding it here would hide something playable
+  const bool ours = !q_strcmp(header.cgame, GAME_NAME);
+
+  if (header.protocolMajor != PROTOCOL_MAJOR ||
+      (ours && header.protocolMinor != PROTOCOL_MINOR)) {
+
+    Cg_Debug("Skipping %s: %s protocol %d.%d, this is %d.%d\n", path, header.cgame,
+             header.protocolMajor, header.protocolMinor, PROTOCOL_MAJOR, PROTOCOL_MINOR);
+    enumeration->skipped++;
+    cgi.CloseFile(file);
+    return;
+  }
 
   DemoListItemInfo *info = calloc(1, sizeof(*info));
 

@@ -157,12 +157,6 @@ typedef struct {
    * reads an index entry as a chunk size.
    */
   bool demoEnded;
-
-  /**
-   * @brief Where the recorded stream begins, which is the size of the header the demo was
-   * written with. Held rather than recomputed, because a version 2 header is shorter.
-   */
-  int64_t demoStreamOffset;
 } Server;
 
 /**
