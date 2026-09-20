@@ -368,9 +368,9 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
       }
     }
 
-    // ensure we were able to load everything. A skin with no '/' never reached
-    // Cg_LoadClientModel at all, so this is also what catches a malformed one
-    if (!Cg_ValidateSkin(ci)) {
+    // ensure we were able to load everything; a skin with no '/' never reached
+    // Cg_LoadClientModel at all
+    if (!v || !Cg_ValidateSkin(ci)) {
 
       if (!q_strcmp(s, DEFAULT_CLIENT_INFO)) {
         Cg_Error("Failed to load default client info\n");
