@@ -133,7 +133,7 @@ void Cg_ParseViewKick(void) {
 /**
  * @brief Applies damage kick for the current command, ensuring that kick affects the player's aim.
  */
-static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
+static void Cg_ViewKick(const PMoveCmd *cmd) {
 
   if (cgKick.timestamp > cgi.client->unclampedTime) {
     memset(&cgKick, 0, sizeof(cgKick));
@@ -196,7 +196,7 @@ static void Cg_ViewKick(const PlayerMoveCmd *cmd) {
 /**
  * @brief Applies weapon fire recoil animation to the view model.
  */
-static void Cg_WeaponKick(const PlayerMoveCmd *cmd) {
+static void Cg_WeaponKick(const PMoveCmd *cmd) {
   static float kick;
 
   if (cgi.client->thirdPerson) {
@@ -270,9 +270,9 @@ static void Cg_WeaponKick(const PlayerMoveCmd *cmd) {
 
 /**
  * @brief Augments the view offset and angles for the specified command.
- * @see Cl_Look(PlayerMoveCmd)
+ * @see Cl_Look(PMoveCmd)
  */
-void Cg_Look(PlayerMoveCmd *cmd) {
+void Cg_Look(PMoveCmd *cmd) {
 
   if (cgi.client->demoServer && cgState.spectate.detached) {
     return; // a camera that has left the recorded player behind does not take their recoil
@@ -286,7 +286,7 @@ void Cg_Look(PlayerMoveCmd *cmd) {
 /**
  * @brief Accumulate movement and button interactions for the specified command.
  */
-static void Cg_Move_Common(PlayerMoveCmd *cmd) {
+static void Cg_Move_Common(PMoveCmd *cmd) {
 
   if (cgi.client->demoServer) {
 
@@ -369,7 +369,7 @@ Move Cg_Move = Cg_Move_Common;
  * that the chain a module installs from `Cg_Module_Init` is the one that gets
  * called.
  */
-void Cg_ExportMove(PlayerMoveCmd *cmd) {
+void Cg_ExportMove(PMoveCmd *cmd) {
   Cg_Move(cmd);
 }
 

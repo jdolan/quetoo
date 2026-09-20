@@ -1084,13 +1084,13 @@ typedef struct CGameExport {
    * @brief Called each frame to update the current movement command angles.
    * @param cmd The current movement command.
    */
-  void (*Look)(PlayerMoveCmd *cmd);
+  void (*Look)(PMoveCmd *cmd);
 
   /**
    * @brief Called each frame to updarte the current movement command movement.
    * @param cmd The current movement command.
    */
-  void (*Move)(PlayerMoveCmd *cmd);
+  void (*Move)(PMoveCmd *cmd);
 
   /**
    * @brief Called on incoming chat messages, which the module may render.

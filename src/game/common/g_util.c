@@ -70,7 +70,7 @@ void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns) {
  */
 Box3 G_PlayerBounds(void) {
 
-  const PlayerMovementInfo *movement = Pm_Movement(gLevel.movement);
+  const PMovementInfo *movement = Pm_Movement(gLevel.movement);
 
   return movement->params ? movement->params->bounds : PM_BOUNDS;
 }

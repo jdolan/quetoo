@@ -609,7 +609,7 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
 /**
  * @brief Handles automatic node placement as the player moves through the map during development.
  */
-void G_Ai_Node_PlayerRoam(GameClient *cl, const PlayerMoveCmd *cmd) {
+void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
 
   if (!g_aiNodeDev->integer) {
     return;

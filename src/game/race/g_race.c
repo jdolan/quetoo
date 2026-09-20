@@ -343,7 +343,7 @@ static int32_t G_Race_Delta(const GameRaceRecord *record, GameRaceMilestone kind
  */
 static void G_Race_Milestone(GameClient *cl, GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time) {
 
-  const PlayerMovement movement = cl->raceRun.movement;
+  const PMovement movement = cl->raceRun.movement;
 
   gi.WriteByte(SV_CMD_RACE_MILESTONE);
   gi.WriteByte(kind);
@@ -847,7 +847,7 @@ static bool G_Race_Inside(const GameClient *cl, const GameEntity *ent) {
  * first movement when the course has no start zone at all. `cl->cmd` is still
  * the previous command here, which is what makes the jump an edge.
  */
-static void G_ClientWillThink_Race(GameClient *cl, const PlayerMoveCmd *cmd) {
+static void G_ClientWillThink_Race(GameClient *cl, const PMoveCmd *cmd) {
 
   previous.ClientWillThink(cl, cmd);
 
@@ -891,7 +891,7 @@ static void G_FrameDidEnd_Race(void) {
  * @brief Samples the speed for the finish report, and starts the run for a
  * client who has just left an exit-mode start zone.
  */
-static void G_ClientDidMove_Race(GameClient *cl, const PlayerMoveCmd *cmd) {
+static void G_ClientDidMove_Race(GameClient *cl, const PMoveCmd *cmd) {
 
   previous.ClientDidMove(cl, cmd);
 

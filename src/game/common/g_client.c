@@ -1357,7 +1357,7 @@ ClientDidDisconnect G_ClientDidDisconnect = G_ClientDidDisconnect_Common;
 /**
  * @brief The tail of the `G_ClientWillThink` chain: a notification, so it does nothing.
  */
-static void G_ClientWillThink_Common(GameClient *cl, const PlayerMoveCmd *cmd) {
+static void G_ClientWillThink_Common(GameClient *cl, const PMoveCmd *cmd) {
 }
 
 ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
@@ -1365,7 +1365,7 @@ ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
 /**
  * @brief The tail of the `G_ClientDidMove` chain: a notification, so it does nothing.
  */
-static void G_ClientDidMove_Common(GameClient *cl, const PlayerMoveCmd *cmd) {
+static void G_ClientDidMove_Common(GameClient *cl, const PMoveCmd *cmd) {
 }
 
 ClientDidMove G_ClientDidMove = G_ClientDidMove_Common;
@@ -1965,13 +1965,13 @@ void G_PlayPmove(void) {
   }
 
   gPlayPmove = true;
-  pmoveFrames = gi.LoadFile("pmove.deboog", NULL) / sizeof(PlayerMove);
+  pmoveFrames = gi.LoadFile("pmove.deboog", NULL) / sizeof(PMove);
   gPmoveFile = gi.OpenFile("pmove.deboog");
   gi.Print("Starting pmove playback\n");
 
   if (gi.Argc() > 1) {
     pmoveFrame = strtoull(gi.Argv(1), NULL, 10);
-    gi.SeekFile(gPmoveFile, sizeof(PlayerMove) * pmoveFrame);
+    gi.SeekFile(gPmoveFile, sizeof(PMove) * pmoveFrame);
   } else {
     pmoveFrame = 0;
   }
@@ -1982,7 +1982,7 @@ void G_PlayPmove(void) {
  * @brief The tail of the `G_PrepareMove` chain, handing the move the entity's
  * own velocity.
  */
-static void G_PrepareMove_Common(GameClient *cl, PlayerMove *pm) {
+static void G_PrepareMove_Common(GameClient *cl, PMove *pm) {
 
   pm->s.velocity = cl->entity->velocity;
 }
@@ -1999,7 +1999,7 @@ ClipEntity G_ClipEntity = NULL;
 /**
  * @brief Process the movement command, call `Pm_Move` and act on the result.
  */
-static void G_ClientMove(GameClient *cl, PlayerMoveCmd *cmd) {
+static void G_ClientMove(GameClient *cl, PMoveCmd *cmd) {
   Vec3 oldVelocity, velocity;
 
   GameEntity *ent = cl->entity;
@@ -2020,7 +2020,7 @@ static void G_ClientMove(GameClient *cl, PlayerMoveCmd *cmd) {
   // a class-based mod could override fields here for per-player physics
   cl->ps.pmState.params = G_MovementParams();
 
-  PlayerMove pm;
+  PMove pm;
   memset(&pm, 0, sizeof(pm));
 
 #if defined(_DEBUG)
@@ -2301,7 +2301,7 @@ static void G_ClientInventoryThink(GameClient *cl) {
  * @brief This will be called once for each client frame, which will usually be a
  * couple times for each server frame.
  */
-void G_ClientThink(GameClient *cl, PlayerMoveCmd *cmd) {
+void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
 
   if (gLevel.intermissionTime) {
     return;

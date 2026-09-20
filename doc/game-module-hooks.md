@@ -426,7 +426,7 @@ in conflict.
 
 ### The movement kernel is a selection, not a hook
 
-How a player moves is the one variation point that is not a hook. `PlayerMoveParams`
+How a player moves is the one variation point that is not a hook. `PMoveParams`
 carries a `kernel`, `Pm_Move` dispatches on it, and each kernel is a whole
 `bg_pmove_*.c` that owns everything after the move is initialized: the ground,
 water, ladder and duck checks, the slide, the step. `bg_pmove.c` keeps only what
@@ -437,8 +437,8 @@ and `bg_pmove_local.h` is the contract between the two.
 Three things drove that shape rather than a `Move` function pointer, which is
 what this started as:
 
-1. **A kernel cannot be networked, but a selection can.** `PlayerMoveParams` already
-   travels per-player inside `PlayerMoveState`, delta-compressed as a unit, so the
+1. **A kernel cannot be networked, but a selection can.** `PMoveParams` already
+   travels per-player inside `PMoveState`, delta-compressed as a unit, so the
    id reaches the client with the parameters it belongs to and prediction
    cannot disagree about which physics is running. A function pointer has to
    be installed on both sides separately, by two modules that might not.
@@ -449,7 +449,7 @@ what this started as:
    another record set under the same movement, and shared code that everyone
    edits can never offer that. A kernel in its own file is finished once it
    matches what it is imitating. Changing what one does is a new id appended to
-   `PlayerMovement`, never an edit; the exception is `bg_pmove.c` itself, where a
+   `PMovement`, never an edit; the exception is `bg_pmove.c` itself, where a
    fault is a fault in every ruleset.
 
 The cost is duplication between kernels, accepted deliberately: two kernels that
@@ -457,7 +457,7 @@ differ are meant to differ, and a shared "fix" between them would be a change in
 behaviour rather than a repair. What a kernel MUST NOT do is read a cvar, keep
 state between moves, look at the clock, or use a random number - the server and
 the client both run it. Anything a ruleset needs in order to vary travels in
-`PlayerMoveParams` or is a constant in the kernel's own file.
+`PMoveParams` or is a constant in the kernel's own file.
 
 Because the parameters are per-player rather than per-server, this is also what a
 class-based mod uses: each class gets its movement, and a mod with several

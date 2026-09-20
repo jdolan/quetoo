@@ -50,7 +50,7 @@ static GameRaceLine *G_Race_ClientLine(const GameClient *cl) {
   return &gRaceLines[cl->ps.client];
 }
 
-static const char *G_Race_LinePath(PlayerMovement movement) {
+static const char *G_Race_LinePath(PMovement movement) {
   return va("records/%s-%s.ghost", gLevel.name, Pm_Movement(movement)->name);
 }
 

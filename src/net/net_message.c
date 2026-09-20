@@ -173,7 +173,7 @@ void Net_WriteBounds(MemBuf *msg, const Box3 bounds) {
 /**
  * @brief Writes only the changed fields of a movement command as a delta from `from` to `to`.
  */
-void Net_WriteDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, const PlayerMoveCmd *to) {
+void Net_WriteDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, const PMoveCmd *to) {
 
   byte bits = 0;
 
@@ -308,7 +308,7 @@ void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const Playe
   }
 
   if (memcmp(&to->pmState.params.accelGround, &from->pmState.params.accelGround,
-             sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) != 0) {
+             sizeof(PMoveParams) - offsetof(PMoveParams, accelGround)) != 0) {
     bits |= PS_PM_PARAMS;
   }
 
@@ -771,7 +771,7 @@ Box3 Net_ReadBounds(MemBuf *msg) {
 /**
  * @brief Reads delta-compressed movement command fields into `to`, starting from the baseline in `from`.
  */
-void Net_ReadDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, PlayerMoveCmd *to) {
+void Net_ReadDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, PMoveCmd *to) {
 
   *to = *from;
 

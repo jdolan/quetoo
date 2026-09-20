@@ -228,7 +228,7 @@ typedef struct {
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*G_Ai_GoalFunc)(GameClient *cl, PlayerMoveCmd *cmd);
+typedef uint32_t (*G_Ai_GoalFunc)(GameClient *cl, PMoveCmd *cmd);
 
 /**
  * @brief Functional AI goal slot IDs, one per periodic decision function.

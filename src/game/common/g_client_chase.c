@@ -50,7 +50,7 @@ void G_ClientChaseThink(GameClient *cl) {
     cl->angles = target->angles;
 
     // and player state
-    memcpy(&cl->ps.pmState, &target->ps.pmState, sizeof(PlayerMoveState));
+    memcpy(&cl->ps.pmState, &target->ps.pmState, sizeof(PMoveState));
 
     // add in delta angles in case we've switched targets
     if (!Vec3_Equal(newDelta, Vec3_Zero())) {

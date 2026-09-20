@@ -33,7 +33,7 @@ typedef struct {
   /**
    * @brief The movement command.
    */
-  PlayerMoveCmd cmd;
+  PMoveCmd cmd;
 
   /**
    * @brief Simulation time when the command was sent.

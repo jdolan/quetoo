@@ -24,7 +24,7 @@
 #include "net_types.h"
 
 /**
- * @brief Delta compression flags for `PlayerMoveState`.
+ * @brief Delta compression flags for `PMoveState`.
  */
 #define PS_PM_CLIENT        (1 << 0)
 #define PS_PM_ENTITY        (1 << 1)
@@ -91,7 +91,7 @@ void Net_WriteAngle(MemBuf *msg, float f);
 void Net_WriteAngles(MemBuf *msg, const Vec3 angles);
 void Net_WriteDir(MemBuf *msg, const Vec3 dir);
 void Net_WriteBounds(MemBuf *msg, const Box3 bounds);
-void Net_WriteDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, const PlayerMoveCmd *to);
+void Net_WriteDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, const PMoveCmd *to);
 void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const PlayerState *to);
 void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityState *to, bool force);
 
@@ -109,6 +109,6 @@ float Net_ReadAngle(MemBuf *msg);
 Vec3 Net_ReadAngles(MemBuf *msg);
 Vec3 Net_ReadDir(MemBuf *msg);
 Box3 Net_ReadBounds(MemBuf *msg);
-void Net_ReadDeltaMoveCmd(MemBuf *msg, const PlayerMoveCmd *from, PlayerMoveCmd *to);
+void Net_ReadDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, PMoveCmd *to);
 void Net_ReadDeltaPlayerState(MemBuf *msg, const PlayerState *from, PlayerState *to);
 void Net_ReadDeltaEntity(MemBuf *msg, const EntityState *from, EntityState *to, int16_t number, uint16_t bits);

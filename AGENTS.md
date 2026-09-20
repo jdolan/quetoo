@@ -14,7 +14,7 @@ anything else, read the code. It is never out of date.
 
 | Category | Convention | Example |
 |---|---|---|
-| Types | `PascalCase`, subsystem prefix spelled out | `RenderEntity`, `CGameSprite`, `PlayerMoveParams` |
+| Types | `PascalCase`, with the subsystem prefix | `RenderEntity`, `CGameSprite`, `PMoveParams` |
 | Functions | `Prefix_PascalCase`, unchanged | `R_DrawMaterialStages`, `G_Damage` |
 | Function-pointer members | `PascalCase` | `cgi.AddEntity`, `gi.Multicast` |
 | Variables, parameters, data members | `camelCase` | `numElements`, `oldOrigin` |
@@ -25,8 +25,9 @@ The rule is not "everything camelCases". **Case encodes a category.** A callable
 is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirroring the
 `Cl_AddEntity` it wraps.
 
-- `Cm` stays short, because `src/collision` owns materials, manifests and entities, not only
-  collision.
+- The type prefix is the subsystem name, not the function prefix. It is spelled out where the
+  subsystem is one word (`Render`, `Client`, `Server`, `Game`, `Sound`) and abbreviated where it is
+  not (`CGame` for the client game, `PMove` for player movement, `Cm` for collision).
 - A cvar or command with no subsystem prefix camelCases whole: `numPlanes`, `nextMap`.
 - Where only one word follows the prefix, nothing moves: `r_gamma`, `m_pitch`.
 - The file-static struct a module uses to collect its file globals is named `module`. A file holding

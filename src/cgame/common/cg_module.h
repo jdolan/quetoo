@@ -177,7 +177,7 @@ extern UsePrediction Cg_UsePrediction;
  * @details Chainable. A feature adding an input reads its own key, sets what it
  * sets on `cmd` and defers to previous.
  */
-typedef void (*Move)(PlayerMoveCmd *cmd);
+typedef void (*Move)(PMoveCmd *cmd);
 
 extern Move Cg_Move;
 
@@ -188,7 +188,7 @@ extern Move Cg_Move;
  * set for the commands that follow.
  * @details Notification; the tail does nothing.
  */
-typedef void (*MoveCommandWillRun)(PlayerMove *pm, const ClientCmd *cmd);
+typedef void (*MoveCommandWillRun)(PMove *pm, const ClientCmd *cmd);
 
 extern MoveCommandWillRun Cg_MoveCommandWillRun;
 
@@ -197,7 +197,7 @@ extern MoveCommandWillRun Cg_MoveCommandWillRun;
  * prediction.
  * @details Notification; the tail does nothing.
  */
-typedef void (*MoveCommandDidRun)(const PlayerMove *pm, const ClientCmd *cmd);
+typedef void (*MoveCommandDidRun)(const PMove *pm, const ClientCmd *cmd);
 
 extern MoveCommandDidRun Cg_MoveCommandDidRun;
 
@@ -206,7 +206,7 @@ extern MoveCommandDidRun Cg_MoveCommandDidRun;
  * the view will be rendered from.
  * @details Notification; the tail does nothing.
  */
-typedef void (*PredictionDidComplete)(const PlayerMove *pm);
+typedef void (*PredictionDidComplete)(const PMove *pm);
 
 extern PredictionDidComplete Cg_PredictionDidComplete;
 

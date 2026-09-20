@@ -804,7 +804,7 @@ typedef struct {
 
   /**
    * @brief Resolved world gravity (maps.lst / worldspawn / g_gravity). Seeded at
-   * spawn and on cvar change; hydrated into PlayerMoveParams by G_MovementParams().
+   * spawn and on cvar change; hydrated into PMoveParams by G_MovementParams().
    */
   int16_t gravity;
 
@@ -821,7 +821,7 @@ typedef struct {
   /**
    * @brief The player movement this level runs.
    */
-  PlayerMovement movement;
+  PMovement movement;
 
   /**
    * @brief True if team play is active.
@@ -1294,7 +1294,7 @@ struct GameClient {
   /**
    * @brief Most recently received movement command.
    */
-  PlayerMoveCmd cmd;
+  PMoveCmd cmd;
 
   /**
    * @brief Item inventory counts indexed by item index.
@@ -1359,7 +1359,7 @@ struct GameClient {
   /**
    * @brief Water level from the previous frame.
    */
-  PlayerMoveWaterLevel oldWaterLevel;
+  PMoveWaterLevel oldWaterLevel;
 
           /**
    * @brief Alternating barrel index for the Quake nailgun.
@@ -1861,7 +1861,7 @@ struct GameEntity {
   /**
    * @brief Current water immersion level.
    */
-  PlayerMoveWaterLevel waterLevel;
+  PMoveWaterLevel waterLevel;
 
   /**
    * @brief Item definition for bonus item entities.

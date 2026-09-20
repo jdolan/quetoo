@@ -68,7 +68,7 @@
   .maxs = { {  16.f,  16.f,   4.f } }  /* against Quetoo's 6 */ \
 }
 
-const PlayerMoveParams pmQuake2Params = {
+const PMoveParams pmQuake2Params = {
   .gravity = 800,
   .accelGround = 10.f,         // pm_accelerate
   .accelGroundSlick = 10.f,   // Quake II does not accelerate differently on slick

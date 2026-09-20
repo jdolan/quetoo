@@ -53,7 +53,7 @@
  * @brief The parameters that make this QuakeWorld rather than merely
  * QuakeWorld-shaped, from `sv_main.c`'s movement variables and `pmove.c`'s
  * player box. A server selecting this movement takes these rather than its own
- * movement cvars; they reach the client inside `PlayerMoveState`, like any others.
+ * movement cvars; they reach the client inside `PMoveState`, like any others.
  */
 #define PM_QUAKE_BOUNDS { \
   .mins = { { -16.f, -16.f, -24.f } }, /* player_mins */ \
@@ -65,7 +65,7 @@
   .maxs = { {  16.f,  16.f,  -4.f } }  /* Quetoo's corpse: QuakeWorld resized nothing on death */ \
 }
 
-const PlayerMoveParams pmQuakeParams = {
+const PMoveParams pmQuakeParams = {
   .gravity = 800,               // sv_gravity
   .accelGround = 10.f,         // sv_accelerate
   .accelGroundSlick = 10.f,   // unused: Quake has no slick surfaces
@@ -658,7 +658,7 @@ static void Pm_QuakeViewOffset(void) {
 }
 
 /**
- * @brief QuakeWorld's movement, in the order `PlayerMove` ran it.
+ * @brief QuakeWorld's movement, in the order `PMove` ran it.
  */
 void Pm_QuakeMove(void) {
 

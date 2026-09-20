@@ -76,7 +76,7 @@ static bool G_Hook_Enabled(void) {
  * @brief Takes the client's movement over while they are pulling on the hook,
  * and otherwise defers to previous.
  */
-static void G_PrepareMove_Hook(GameClient *cl, PlayerMove *pm) {
+static void G_PrepareMove_Hook(GameClient *cl, PMove *pm) {
 
   if (!cl->hook.pull) {
     previous.PrepareMove(cl, pm);

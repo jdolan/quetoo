@@ -31,8 +31,8 @@ extern InputButton cgButtons[4];
 const char *Cg_KeyBind(const char *bind);
 void Cg_HandleEvent(const SDL_Event *event);
 void Cg_ParseViewKick(void);
-void Cg_Look(PlayerMoveCmd *cmd);
-void Cg_ExportMove(PlayerMoveCmd *cmd);
+void Cg_Look(PMoveCmd *cmd);
+void Cg_ExportMove(PMoveCmd *cmd);
 void Cg_ClearInput(void);
 void Cg_InitInput(void);
 #endif

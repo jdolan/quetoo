@@ -497,7 +497,7 @@ static void Cl_ClampPitch(const PlayerState *ps) {
  * @brief Accumulate view offset and angle modifications for the specified command.
  * @details The resulting view offset and angles are used as early as possible for prediction.
  */
-void Cl_Look(PlayerMoveCmd *cmd) {
+void Cl_Look(PMoveCmd *cmd) {
 
   cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
   cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
@@ -520,7 +520,7 @@ void Cl_Look(PlayerMoveCmd *cmd) {
  * @details This is called at ~60hz regardless of the client's framerate. This is to avoid micro-
  * commands, which introduce prediction errors (screen jitter).
  */
-void Cl_Move(PlayerMoveCmd *cmd) {
+void Cl_Move(PMoveCmd *cmd) {
 
   cmd->forward += cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
   cmd->forward -= cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);

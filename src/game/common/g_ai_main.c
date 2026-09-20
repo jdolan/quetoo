@@ -237,7 +237,7 @@ static inline void G_Ai_RestorePath(const GameClient *cl, Ai *ai) {
 /**
  * @brief Seek for items if we're not doing anything better.
  */
-static uint32_t G_Ai_FindItems(GameClient *cl, PlayerMoveCmd *cmd) {
+static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
   if (cl->entity->solid == SOLID_DEAD) {
     return 1;
@@ -602,7 +602,7 @@ static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 /**
  * @brief Funcgoal that controls the AI's lust for blood
  */
-static uint32_t G_Ai_Hunt(GameClient *cl, PlayerMoveCmd *cmd) {
+static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
   if (cl->entity->solid == SOLID_DEAD) {
     return 1;
@@ -767,7 +767,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PlayerMoveCmd *cmd) {
 /**
  * @brief Funcgoal that controls the AI's weaponry.
  */
-static uint32_t G_Ai_Weaponry(GameClient *cl, PlayerMoveCmd *cmd) {
+static uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 
   // if we're dead, just keep clicking so we respawn.
   if (cl->entity->dead) {
@@ -812,7 +812,7 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PlayerMoveCmd *cmd) {
 /**
  * @brief Funcgoal that controls the AI's crouch/jumping while hunting.
  */
-static uint32_t G_Ai_Acrobatics(GameClient *cl, PlayerMoveCmd *cmd) {
+static uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 
   if (cl->entity->solid == SOLID_DEAD) {
     return 1;
@@ -855,7 +855,7 @@ static uint32_t G_Ai_Acrobatics(GameClient *cl, PlayerMoveCmd *cmd) {
 /**
  * @brief Wander aimlessly, hoping to find something to love.
  */
-static inline float G_Ai_Wander(GameClient *cl, PlayerMoveCmd *cmd) {
+static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
 
@@ -1074,7 +1074,7 @@ bool G_Ai_ShouldSlowDrop(const AiNodeId fromNode, const AiNodeId toNode) {
 /**
  * @brief Move towards our current target
  */
-static uint32_t G_Ai_Move(GameClient *cl, PlayerMoveCmd *cmd) {
+static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
 
@@ -1085,7 +1085,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PlayerMoveCmd *cmd) {
 
   // Resolve the move goal iteratively. The original code used tail-recursive calls
   // when the path check or distress check failed, which could overflow the stack since
-  // G_Ai_Move has a large frame (~6.5 KB for two PlayerMove locals). Three tries matches
+  // G_Ai_Move has a large frame (~6.5 KB for two PMove locals). Three tries matches
   // the maximum depth of the original recursion.
   bool goalReady = false;
   for (int32_t tries = 0; tries < 3 && !goalReady; tries++) {
@@ -1234,7 +1234,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PlayerMoveCmd *cmd) {
   gAiCurrentEntity = ent;
 
   // predict ahead
-  PlayerMove pm;
+  PMove pm;
 
   memset(&pm, 0, sizeof(pm));
   pm.s = cl->ps.pmState;
@@ -1263,7 +1263,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PlayerMoveCmd *cmd) {
   // predict a few frames ahead for timely edge/mover stoppage; cache result per
   // tick so the three sub-passes of G_Ai_ClientThink share one expensive Pm_Move
   if (cl->ai->lookaheadFrame != gLevel.frameNum) {
-    PlayerMove pmAhead = pm;
+    PMove pmAhead = pm;
     pmAhead.cmd.msec = 100;
     Pm_Move(&pmAhead);
     cl->ai->lookaheadFrame = gLevel.frameNum;
@@ -1446,7 +1446,7 @@ static float G_Ai_CalcAngle(GameClient *cl, const float speed, float current, fl
 /**
  * @brief Turn/look towards our current target
  */
-static uint32_t G_Ai_Turn(GameClient *cl, PlayerMoveCmd *cmd) {
+static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
   AiGoal *combatTarget = &cl->ai->combatTarget;
 
@@ -1593,7 +1593,7 @@ void G_Ai_Disconnect(GameClient *cl) {
 /**
  * @brief Long range goal picking
  */
-static uint32_t G_Ai_LongRange(GameClient *cl, PlayerMoveCmd *cmd) {
+static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
 
   // if we already have a long range goal, try again later.
   // TODO: we know what entity we're heading towards, so we can
@@ -1745,7 +1745,7 @@ static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, AiG
 /**
  * @brief Called every frame for every AI.
  */
-void G_Ai_Think(GameClient *cl, PlayerMoveCmd *cmd) {
+void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
 
   if (cl->entity->solid == SOLID_DEAD) {
     G_Ai_ClearGoal(&cl->ai->combatTarget);
@@ -1847,7 +1847,7 @@ static void G_Ai_ClientThink(GameEntity *ent) {
       break;
     }
 
-    PlayerMoveCmd cmd = { 0 };
+    PMoveCmd cmd = { 0 };
 
     cmd.msec = (i == numRuns - 1) ? msecLeft : ceilf(1000.f / QUETOO_TICK_RATE / numRuns);
 

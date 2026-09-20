@@ -67,7 +67,7 @@
   .maxs = { {  16.f,  16.f,   4.f } } \
 }
 
-const PlayerMoveParams pmRaceParams = {
+const PMoveParams pmRaceParams = {
   .gravity = 800,
   .accelGround = 10.f,
   .accelGroundSlick = 10.f,

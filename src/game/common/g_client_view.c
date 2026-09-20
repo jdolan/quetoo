@@ -72,8 +72,8 @@ static void G_ClientWaterInteraction(GameClient *cl) {
     return;
   }
 
-  const PlayerMoveWaterLevel waterLevel = ent->waterLevel;
-  const PlayerMoveWaterLevel oldWaterLevel = cl->oldWaterLevel;
+  const PMoveWaterLevel waterLevel = ent->waterLevel;
+  const PMoveWaterLevel oldWaterLevel = cl->oldWaterLevel;
 
   // if just entered a water volume, play a sound
   if (oldWaterLevel <= WATER_NONE && waterLevel >= WATER_FEET) {
@@ -491,7 +491,7 @@ static void G_ClientAnimation(GameClient *cl) {
 void G_ClientEndFrame(GameClient *cl) {
 
   // If the origin or velocity have changed since G_ClientThink(),
-  // update the PlayerMoveState values. This will happen when the client
+  // update the PMoveState values. This will happen when the client
   // is pushed by another entity or kicked by an explosion.
   //
   // If it wasn't updated here, the view position would lag a frame

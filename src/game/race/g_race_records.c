@@ -76,14 +76,14 @@ static uint32_t G_Race_HashBytes(uint32_t hash, const void *data, size_t length)
 /**
  * @brief An FNV-1a hash of the fields, not the struct: there is padding after movement.
  */
-static uint32_t G_Race_HashParams(const PlayerMoveParams *params) {
+static uint32_t G_Race_HashParams(const PMoveParams *params) {
 
   uint32_t hash = 2166136261u;
 
   // the fields, not the struct: there is padding after movement
   hash = G_Race_HashBytes(hash, &params->gravity, sizeof(params->gravity));
   hash = G_Race_HashBytes(hash, &params->movement, sizeof(params->movement));
-  hash = G_Race_HashBytes(hash, &params->accelGround, sizeof(*params) - offsetof(PlayerMoveParams, accelGround));
+  hash = G_Race_HashBytes(hash, &params->accelGround, sizeof(*params) - offsetof(PMoveParams, accelGround));
 
   return hash;
 }
@@ -155,7 +155,7 @@ static GameRaceRecord *G_Race_AddRecord(void) {
 /**
  * @brief The client's record under `movement`, or `NULL` for none yet.
  */
-static GameRaceRecord *G_Race_FindRecord(const char *guid, PlayerMovement movement) {
+static GameRaceRecord *G_Race_FindRecord(const char *guid, PMovement movement) {
 
   for (size_t i = 0; i < gLevel.raceRecordCount; i++) {
     GameRaceRecord *record = &gLevel.raceRecords[i];
@@ -171,7 +171,7 @@ static GameRaceRecord *G_Race_FindRecord(const char *guid, PlayerMovement moveme
 /**
  * @see g_race.h
  */
-const GameRaceRecord *G_Race_BestRecord(PlayerMovement movement) {
+const GameRaceRecord *G_Race_BestRecord(PMovement movement) {
 
   for (size_t i = 0; i < gLevel.raceRecordCount; i++) {
     if (gLevel.raceRecords[i].movement == movement) {
@@ -185,7 +185,7 @@ const GameRaceRecord *G_Race_BestRecord(PlayerMovement movement) {
 /**
  * @see g_race.h
  */
-const GameRaceRecord *G_Race_Record(const char *guid, PlayerMovement movement) {
+const GameRaceRecord *G_Race_Record(const char *guid, PMovement movement) {
   return G_Race_FindRecord(guid, movement);
 }
 
@@ -249,7 +249,7 @@ static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
   const char *movementName = gi.EntityValue(def, "movement")->nullableString;
   const CmEntity *time = gi.EntityValue(def, "time");
 
-  PlayerMovement movement;
+  PMovement movement;
 
   if (!guid || !*guid) {
     G_Warn("Record %d in %s has no guid\n", index, G_Race_RecordsPath());

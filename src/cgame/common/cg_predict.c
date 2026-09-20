@@ -68,7 +68,7 @@ bool Cg_ExportUsePrediction(void) {
 /**
  * @brief The tail of the `Cg_MoveCommandWillRun` chain: a notification, so it does nothing.
  */
-static void Cg_MoveCommandWillRun_Common(PlayerMove *pm, const ClientCmd *cmd) {
+static void Cg_MoveCommandWillRun_Common(PMove *pm, const ClientCmd *cmd) {
 }
 
 MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
@@ -76,7 +76,7 @@ MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 /**
  * @brief The tail of the `Cg_MoveCommandDidRun` chain: a notification, so it does nothing.
  */
-static void Cg_MoveCommandDidRun_Common(const PlayerMove *pm, const ClientCmd *cmd) {
+static void Cg_MoveCommandDidRun_Common(const PMove *pm, const ClientCmd *cmd) {
 }
 
 MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
@@ -84,7 +84,7 @@ MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 /**
  * @brief The tail of the `Cg_PredictionDidComplete` chain: a notification, so it does nothing.
  */
-static void Cg_PredictionDidComplete_Common(const PlayerMove *pm) {
+static void Cg_PredictionDidComplete_Common(const PMove *pm) {
 }
 
 PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
@@ -115,7 +115,7 @@ void Cg_PredictMovement(const Vector *cmds) {
   ClientPredictedState *pr = &cgi.client->predictedState;
 
   // copy current state to into the move
-  PlayerMove pm = {};
+  PMove pm = {};
   pm.s = cgi.client->frame.ps.pmState;
 
   pm.ground = pr->ground;
@@ -183,7 +183,7 @@ void Cg_PredictMovement(const Vector *cmds) {
  * calls in). Called every movement command cycle from `Cg_Move`, the same cadence prediction
  * would otherwise run at, using the `cmd` that cycle already built for us.
  */
-void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
+void Cg_UpdateSpectate(PMoveCmd *cmd) {
 
   if (!cgState.spectate.initialized) {
     cgState.spectate.state.type = PM_SPECTATOR;
@@ -197,7 +197,7 @@ void Cg_UpdateSpectate(PlayerMoveCmd *cmd) {
     cgState.spectate.initialized = true;
   }
 
-  PlayerMove pm = {};
+  PMove pm = {};
   pm.s = cgState.spectate.state;
 
   // Pm_SpectatorMove reads speedSpectator, accelSpectator and frictionSpectator from the

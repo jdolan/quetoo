@@ -40,7 +40,7 @@ extern Cvar *g_aiNodeDev;
 
 void G_Ai_Disconnect(GameClient *cl);
 void G_Ai_InvalidateReferences(Ai *ai, const GameEntity *ent);
-void G_Ai_Think(GameClient *cl, PlayerMoveCmd *cmd);
+void G_Ai_Think(GameClient *cl, PMoveCmd *cmd);
 void G_Ai_Respawn(GameClient *cl);
 void G_Ai_Begin(GameClient *cl);
 void G_Ai_Init(void);

@@ -41,12 +41,12 @@ void teardown(void) {
 }
 
 /**
- * @brief Helper: populate every PlayerMoveParams field with a distinct non-default
+ * @brief Helper: populate every PMoveParams field with a distinct non-default
  * value so a round-trip can detect any dropped or mis-ordered field.
  */
-static void Fill_TestParams(PlayerMoveParams *p) {
+static void Fill_TestParams(PMoveParams *p) {
   p->gravity = 750;
-  // a byte no `PlayerMovement` owns: what is under test is that the field reaches
+  // a byte no `PMovement` owns: what is under test is that the field reaches
   // the other side intact, not what it selects once it arrives
   p->movement = 200;
   p->accelGround = 11.f;       p->accelGroundSlick = 4.5f;
@@ -98,8 +98,8 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
   ck_assert_int_eq(result.pmState.params.movement, to.pmState.params.movement);
 
   ck_assert_msg(memcmp(&result.pmState.params.accelGround, &to.pmState.params.accelGround,
-                       sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) == 0,
-                "PlayerMoveParams (non-gravity) did not survive the round-trip");
+                       sizeof(PMoveParams) - offsetof(PMoveParams, accelGround)) == 0,
+                "PMoveParams (non-gravity) did not survive the round-trip");
 } END_TEST
 
 /**

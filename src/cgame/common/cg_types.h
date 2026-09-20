@@ -245,7 +245,7 @@ typedef struct {
  * state driven directly by `Pm_Move`, independent of the recorded `PlayerState`.
  */
 typedef struct {
-  PlayerMoveState state;
+  PMoveState state;
   bool initialized;
 
   /**

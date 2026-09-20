@@ -141,10 +141,10 @@ Cvar *g_movement;
  * @brief What this level asked for, remembered so that setting `g_movement`
  * back to "default" returns to it rather than to Quetoo's.
  */
-static PlayerMovement gMovementLevel;
+static PMovement gMovementLevel;
 static GameplayId gGameplayLevel;
 
-// player movement parameters (hydrated into PlayerMoveParams by G_MovementParams)
+// player movement parameters (hydrated into PMoveParams by G_MovementParams)
 Cvar *g_airAcceleration;
 Cvar *g_airFriction;
 Cvar *g_airSpeed;
@@ -579,7 +579,7 @@ char *G_FormatTime(uint32_t time) {
 }
 
 /**
- * @brief Factory for `PlayerMoveParams`, hydrated fresh from the g_* movement cvars at
+ * @brief Factory for `PMoveParams`, hydrated fresh from the g_* movement cvars at
  * each `Pm_Move` call site. Values are passed through verbatim; `Pm_Move`
  * performs all sanitization (clamping, divide-by-zero guards).
  *
@@ -588,15 +588,15 @@ char *G_FormatTime(uint32_t time) {
  * anyone could set a comparable record under. Gravity is the exception, as the
  * level's when the level sets one; see `G_LevelGravity`.
  */
-PlayerMoveParams G_MovementParams(void) {
+PMoveParams G_MovementParams(void) {
 
-  const PlayerMovementInfo *movement = Pm_Movement(gLevel.movement);
-  PlayerMoveParams params;
+  const PMovementInfo *movement = Pm_Movement(gLevel.movement);
+  PMoveParams params;
 
   if (movement->params) {
     params = *movement->params;
   } else {
-    params = (PlayerMoveParams) {
+    params = (PMoveParams) {
       .gravity = DEFAULT_GRAVITY,
 
       .accelGround = g_groundAcceleration->value,
@@ -649,7 +649,7 @@ float G_LevelGravity(void) {
     return gLevel.gravity;
   }
 
-  const PlayerMovementInfo *movement = Pm_Movement(gLevel.movement);
+  const PMovementInfo *movement = Pm_Movement(gLevel.movement);
 
   return movement->params ? movement->params->gravity : DEFAULT_GRAVITY;
 }
@@ -662,9 +662,9 @@ float G_LevelGravity(void) {
  * unknown movement that quietly behaved like Quetoo's would be indistinguishable
  * from a working one.
  */
-static PlayerMovement G_CoerceMovement(void) {
+static PMovement G_CoerceMovement(void) {
 
-  PlayerMovement movement = gMovementLevel;
+  PMovement movement = gMovementLevel;
 
   if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
     if (!Pm_MovementByName(g_movement->string, &movement)) {
@@ -684,7 +684,7 @@ static PlayerMovement G_CoerceMovement(void) {
  * @brief Resolves the movement for a level that asks for `name`, which may be
  * empty. `g_movement` still wins if the admin named one.
  */
-PlayerMovement G_ResolveMovement(const char *name) {
+PMovement G_ResolveMovement(const char *name) {
 
   gMovementLevel = G_MOVEMENT_DEFAULT;
 
@@ -783,7 +783,7 @@ static void G_CheckRules(void) {
 
   if (g_movement->modified) { // change how players move, with no restart
 
-    const PlayerMovement movement = G_CoerceMovement();
+    const PMovement movement = G_CoerceMovement();
 
     // as above, the coercion re-marks modified whenever it changed the string
     g_movement->modified = false;
@@ -1181,7 +1181,7 @@ void G_Init(void) {
     "The player movement this level actually resolved to, published for the server browser. "
     "Read g_movement for what was requested.");
 
-  // player movement parameters (hydrated into PlayerMoveParams by G_MovementParams)
+  // player movement parameters (hydrated into PMoveParams by G_MovementParams)
   g_airAcceleration = gi.AddCvar("g_airAcceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
   g_airFriction = gi.AddCvar("g_airFriction", "0.125", 0, "Friction applied while airborne. Default 0.125; set 0 to remove air drag.");
   g_airSpeed = gi.AddCvar("g_airSpeed", "350", 0, "Wish-speed cap while airborne. Default 350.");

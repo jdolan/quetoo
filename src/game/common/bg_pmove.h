@@ -120,7 +120,7 @@
 #define PM_SNAP_DISTANCE PM_GROUND_DIST
 
 /**
- * @brief The default player bounding boxes: what `PlayerMoveParams.bounds`,
+ * @brief The default player bounding boxes: what `PMoveParams.bounds`,
  * `.boundsDucked` and `.boundsDead` default to, and what code with no
  * parameters to hand may use. `Pm_Bounds` gives the live box for a set of
  * parameters; the dead box is read straight from them, by `Pm_Init`.
@@ -130,7 +130,7 @@ extern const Box3 PM_BOUNDS, PM_CROUCHED_BOUNDS, PM_DEAD_BOUNDS;
 /**
  * @brief Resolves the player bounding box for the given movement parameters.
  */
-Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked);
+Box3 Pm_Bounds(const PMoveParams *params, bool ducked);
 
 /**
  * @brief Game-specific button hits.
@@ -141,7 +141,7 @@ Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked);
 #define BUTTON_SCORE  (1 << 3)
 
 /**
- * @brief Game-specific flags for `PlayerMoveState`.flags`.
+ * @brief Game-specific flags for `PMoveState`.flags`.
  */
 #define PMF_DUCKED           (PMF_GAME << 0) // player is ducked
 #define PMF_JUMPED           (PMF_GAME << 1) // player jumped
@@ -160,7 +160,7 @@ Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked);
 #define PMF_DEATH_CAM        (PMF_GAME << 14) // view is detached, watching the corpse
 
 /**
- * @brief The mask of `PlayerMoveState`.flags` affecting `PlayerMoveState`.time`.
+ * @brief The mask of `PMoveState`.flags` affecting `PMoveState`.time`.
  */
 #define PMF_TIME_MASK ( \
   PMF_TIME_PUSHED | \
@@ -181,9 +181,9 @@ Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked);
  * game modules and the player movement code.
  */
 typedef struct {
-  PlayerMoveCmd cmd; // movement command (in)
+  PMoveCmd cmd; // movement command (in)
 
-  PlayerMoveState s; // movement state (in / out)
+  PMoveState s; // movement state (in / out)
 
   float hookPullSpeed; // hook pull speed (in)
 
@@ -196,7 +196,7 @@ typedef struct {
   CmTrace ground; // (in / out)
 
   int32_t waterType; // water type and level (out)
-  PlayerMoveWaterLevel waterLevel;
+  PMoveWaterLevel waterLevel;
 
   float step; // traversed step height (out)
 
@@ -211,11 +211,11 @@ typedef struct {
   DebugFlags (*DebugMask)(void);
   void (*Debug)(const DebugFlags debug, const char *func, const char *fmt, ...);
   DebugFlags debugMask;
-} PlayerMove;
+} PMove;
 
 /**
  * @brief The movements `Pm_Move` can run, selected per-player through
- * `PlayerMoveParams.movement`, which carries one of these as a byte.
+ * `PMoveParams.movement`, which carries one of these as a byte.
  * @details One of these owns everything about how a player moves once the move
  * is initialized: the ground, water and duck checks, the slide and the step, and
  * the parameters it moves by. Each lives in its own `bg_pmove_*.c` and is
@@ -236,7 +236,7 @@ typedef enum {
   PM_MOVEMENT_QUAKE,
   PM_MOVEMENT_QUAKE2,
   PM_MOVEMENT_QUAKE3,
-} PlayerMovement;
+} PMovement;
 
 /**
  * @brief One movement: the name it answers to, and the parameters that define
@@ -261,7 +261,7 @@ typedef struct {
    * that follows the server's own movement cvars. A movement that let a cvar
    * move it would not be a movement anyone could set a record under.
    */
-  const PlayerMoveParams *params;
+  const PMoveParams *params;
 
   /**
    * @brief Whether this movement implements the `PM_HOOK_*` types and honours
@@ -269,13 +269,13 @@ typedef struct {
    * ported from another game does not, and the hook feature stays out of it.
    */
   bool hook;
-} PlayerMovementInfo;
+} PMovementInfo;
 
 /**
  * @brief Resolves a movement by id.
  * @return `NULL` if `movement` names none.
  */
-const PlayerMovementInfo *Pm_Movement(PlayerMovement movement);
+const PMovementInfo *Pm_Movement(PMovement movement);
 
 /**
  * @brief The number of movements, for offering them all.
@@ -286,13 +286,13 @@ size_t Pm_MovementCount(void);
  * @brief Resolves a movement by name.
  * @return False if nothing answers to `name`, leaving `movement` alone.
  */
-bool Pm_MovementByName(const char *name, PlayerMovement *movement);
+bool Pm_MovementByName(const char *name, PMovement *movement);
 
 /**
  * @brief Performs one discrete movement of the player through the world.
  * @details Initializes the move, clamps the angles, handles the frozen,
  * spectator and dead cases, and hands the rest to the kernel that
- * `PlayerMoveParams.kernel` names. The parameters travel with the player, so the
+ * `PMoveParams.kernel` names. The parameters travel with the player, so the
  * server and the client run the same kernel over the same numbers.
  */
-void Pm_Move(PlayerMove *pmMove);
+void Pm_Move(PMove *pmMove);

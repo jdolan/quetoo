@@ -831,7 +831,7 @@ typedef struct {
   /**
    * @brief Called each frame with the client's movement command.
    */
-  void (*ClientThink)(GameClient *cl, PlayerMoveCmd *cmd);
+  void (*ClientThink)(GameClient *cl, PMoveCmd *cmd);
 
   /**
    * @brief Called every `QUETOO_TICK_SECONDS` to advance game logic.

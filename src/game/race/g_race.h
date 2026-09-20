@@ -132,7 +132,7 @@ void G_Race_Ghost_f(GameClient *cl);
 /**
  * @brief The record `guid` holds under `movement`, or NULL.
  */
-const GameRaceRecord *G_Race_Record(const char *guid, PlayerMovement movement);
+const GameRaceRecord *G_Race_Record(const char *guid, PMovement movement);
 
 /**
  * @brief Where `record` stands among the records under its movement, from 1,
@@ -143,7 +143,7 @@ size_t G_Race_Rank(const GameRaceRecord *record, size_t *count);
 /**
  * @brief The course record under `movement`, or `NULL` for none yet.
  */
-const GameRaceRecord *G_Race_BestRecord(PlayerMovement movement);
+const GameRaceRecord *G_Race_BestRecord(PMovement movement);
 
 /**
  * @brief Finds each stage's `restart_target` once every entity has spawned,

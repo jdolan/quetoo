@@ -42,9 +42,9 @@ extern GameMedia gMedia;
 #define INTERMISSION (10.0 * 1000)
 
 char *G_FormatTime(uint32_t time);
-PlayerMoveParams G_MovementParams(void);
+PMoveParams G_MovementParams(void);
 float G_LevelGravity(void);
-PlayerMovement G_ResolveMovement(const char *name);
+PMovement G_ResolveMovement(const char *name);
 GameplayId G_ResolveGameplay(const char *name);
 
 extern GameImport gi;
@@ -170,7 +170,7 @@ extern Cvar *g_fragLimit;
 extern Cvar *g_friendlyFire;
 extern Cvar *g_gameplay;
 
-// player movement parameters (hydrated into PlayerMoveParams by G_MovementParams)
+// player movement parameters (hydrated into PMoveParams by G_MovementParams)
 extern Cvar *g_airAcceleration;
 extern Cvar *g_airFriction;
 extern Cvar *g_airSpeed;

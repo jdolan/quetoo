@@ -50,7 +50,7 @@ static const Box3 PM_GIBLET_BOUNDS = {
 /**
  * @see bg_pmove.h
  */
-Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked) {
+Box3 Pm_Bounds(const PMoveParams *params, bool ducked) {
 
   // the box arrives whole, so the parameters are the only thing that decides it.
   // A movement that wants a bigger player declares a bigger box
@@ -58,11 +58,11 @@ Box3 Pm_Bounds(const PlayerMoveParams *params, bool ducked) {
 }
 
 /**
- * @brief Keyed by `PlayerMovement` so that the ids and this table cannot drift
+ * @brief Keyed by `PMovement` so that the ids and this table cannot drift
  * apart. Quetoo's carries no parameters of its own: it is the one that follows
  * the server's movement cvars, which is what makes it the default.
  */
-static const PlayerMovementInfo pmMovements[] = {
+static const PMovementInfo pmMovements[] = {
   [PM_MOVEMENT_QUETOO] = { .name = "quetoo", .label = "Quetoo",      .params = NULL, .hook = true },
   [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Quetoo Race", .params = &pmRaceParams },
   [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "Quake",       .params = &pmQuakeParams },
@@ -73,7 +73,7 @@ static const PlayerMovementInfo pmMovements[] = {
 /**
  * @see bg_pmove.h
  */
-const PlayerMovementInfo *Pm_Movement(PlayerMovement movement) {
+const PMovementInfo *Pm_Movement(PMovement movement) {
 
   if ((size_t) movement >= lengthof(pmMovements)) {
     return NULL;
@@ -92,7 +92,7 @@ size_t Pm_MovementCount(void) {
 /**
  * @see bg_pmove.h
  */
-bool Pm_MovementByName(const char *name, PlayerMovement *movement) {
+bool Pm_MovementByName(const char *name, PMovement *movement) {
 
   assert(movement);
 
@@ -102,7 +102,7 @@ bool Pm_MovementByName(const char *name, PlayerMovement *movement) {
 
   for (size_t i = 0; i < lengthof(pmMovements); i++) {
     if (!q_strcasecmp(pmMovements[i].name, name)) {
-      *movement = (PlayerMovement) i;
+      *movement = (PMovement) i;
       return true;
     }
   }
@@ -110,9 +110,9 @@ bool Pm_MovementByName(const char *name, PlayerMovement *movement) {
   return false;
 }
 
-PlayerMove *pm;
+PMove *pm;
 
-PlayerMoveLocals pmLocals;
+PMoveLocals pmLocals;
 
 /**
  * @brief Mark the specified entity as touched. This enables the game module to
@@ -400,7 +400,7 @@ void Pm_CheckViewStep(void) {
  * @brief Called by the game and the client game to update the player's
  * authoritative or predicted movement state, respectively.
  */
-void Pm_Move(PlayerMove *pmMove) {
+void Pm_Move(PMove *pmMove) {
   pm = pmMove;
 
   Pm_Init();

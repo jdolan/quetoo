@@ -71,7 +71,7 @@ static void G_CheckWater(GameEntity *ent) {
   }
 
   // check for water interaction
-  const PlayerMoveWaterLevel oldWaterLevel = ent->waterLevel;
+  const PMoveWaterLevel oldWaterLevel = ent->waterLevel;
   const int32_t oldWaterType = ent->waterType;
 
   const int32_t water = gi.BoxContents(ent->absBounds) & CONTENTS_MASK_LIQUID;

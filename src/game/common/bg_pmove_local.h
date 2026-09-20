@@ -30,23 +30,23 @@
  *
  * `Pm_Move` initializes the move, clamps the angles, handles the frozen,
  * spectator and dead cases, and then hands everything else to the kernel named
- * by `PlayerMoveParams.kernel`. A kernel owns the ground, water, ladder and duck
+ * by `PMoveParams.kernel`. A kernel owns the ground, water, ladder and duck
  * checks, the move itself, and `Pm_CheckViewStep` if it wants step smoothing.
  *
  * `pm` and `pmLocals` are set before the dispatch, and every step here reads
  * them rather than taking the move as a parameter, so a kernel is written the
  * way Quetoo's is.
  *
- * A kernel MUST be a pure function of `PlayerMove` and `PlayerMoveParams`. It MUST
+ * A kernel MUST be a pure function of `PMove` and `PMoveParams`. It MUST
  * NOT read a cvar, keep state between moves, consult the clock, or use a random
  * number: the server and the client both run it, and anything else desynchronizes
  * prediction. Whatever a ruleset needs in order to vary MUST travel in
- * `PlayerMoveParams`, which is networked per-player, or be a constant in the kernel's
+ * `PMoveParams`, which is networked per-player, or be a constant in the kernel's
  * own file.
  *
  * A kernel SHOULD be finished rather than maintained. A record is only
  * comparable to another record set under the same movement, so changing what a
- * kernel does is a new kernel, appended to `PlayerMovement`, not an edit to an
+ * kernel does is a new kernel, appended to `PMovement`, not an edit to an
  * existing one. Fixes to this file are the exception: it is shared, and a fault
  * in the plumbing is a fault in every ruleset.
  */
@@ -100,10 +100,10 @@ typedef struct {
    */
   int32_t numClipPlanes;
 
-} PlayerMoveLocals;
+} PMoveLocals;
 
-extern PlayerMove *pm;
-extern PlayerMoveLocals pmLocals;
+extern PMove *pm;
+extern PMoveLocals pmLocals;
 
 /**
  * @brief Unlike the game and the client game, this keeps its own mask test: it is
@@ -126,7 +126,7 @@ void Pm_Gravity(void);
 void Pm_CheckViewStep(void);
 
 /**
- * @brief The kernels, one per `PlayerMovement`. `Pm_Move` calls exactly one.
+ * @brief The kernels, one per `PMovement`. `Pm_Move` calls exactly one.
  */
 void Pm_QuetooMove(void);
 void Pm_QuakeMove(void);
@@ -138,7 +138,7 @@ void Pm_Quake3Move(void);
  * @brief The parameters each movement that has its own is defined by, exported
  * by the kernel that implements it.
  */
-extern const PlayerMoveParams pmQuakeParams;
-extern const PlayerMoveParams pmQuake2Params;
-extern const PlayerMoveParams pmRaceParams;
-extern const PlayerMoveParams pmQuake3Params;
+extern const PMoveParams pmQuakeParams;
+extern const PMoveParams pmQuake2Params;
+extern const PMoveParams pmRaceParams;
+extern const PMoveParams pmQuake3Params;

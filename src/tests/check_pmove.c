@@ -94,12 +94,12 @@ static void Test_Debug(const DebugFlags debug, const char *func, const char *fmt
 /**
  * @brief A player standing on the floor, moving by `movement`.
  */
-static PlayerMove Test_Move(PlayerMovement movement) {
+static PMove Test_Move(PMovement movement) {
 
-  const PlayerMovementInfo *info = Pm_Movement(movement);
+  const PMovementInfo *info = Pm_Movement(movement);
   ck_assert_msg(info, "no such movement");
 
-  PlayerMove pm = {
+  PMove pm = {
     .PointContents = Test_PointContents,
     .BoxContents = Test_BoxContents,
     .Trace = Test_Trace,
@@ -110,7 +110,7 @@ static PlayerMove Test_Move(PlayerMovement movement) {
   if (info->params) {
     pm.s.params = *info->params;
   } else { // Quetoo's follows the server's cvars, which a test has none of
-    pm.s.params = (PlayerMoveParams) {
+    pm.s.params = (PMoveParams) {
       .gravity = 800,
       .accelGround = PM_ACCEL_GROUND,
       .accelAir = PM_ACCEL_AIR,
@@ -140,9 +140,9 @@ static PlayerMove Test_Move(PlayerMovement movement) {
 /**
  * @brief Runs one 100ms command.
  */
-static void Test_Command(PlayerMove *pm, int16_t forward, int16_t right, int16_t up) {
+static void Test_Command(PMove *pm, int16_t forward, int16_t right, int16_t up) {
 
-  pm->cmd = (PlayerMoveCmd) {
+  pm->cmd = (PMoveCmd) {
     .msec = 100,
     .forward = forward,
     .right = right,
@@ -157,7 +157,7 @@ static void Test_Command(PlayerMove *pm, int16_t forward, int16_t right, int16_t
  */
 START_TEST(check_Quake_GroundSpeed) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE);
 
   for (int32_t i = 0; i < 60; i++) {
     Test_Command(&pm, TEST_INTENT, 0, 0);
@@ -176,7 +176,7 @@ START_TEST(check_Quake_GroundSpeed) {
  */
 START_TEST(check_Quake_Jump) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE);
 
   Test_Command(&pm, 0, 0, 0);
   ck_assert_msg(pm.s.flags & PMF_ON_GROUND, "did not start on the ground");
@@ -205,7 +205,7 @@ START_TEST(check_Quake_Jump) {
  */
 START_TEST(check_Quake_DoesNotDuck) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE);
 
   for (int32_t i = 0; i < 10; i++) {
     Test_Command(&pm, 0, 0, -1);
@@ -221,7 +221,7 @@ START_TEST(check_Quake_DoesNotDuck) {
  */
 START_TEST(check_Quake_NoAirFriction) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE);
 
   pm.s.origin.z = 256.f;
   pm.s.velocity = MakeVec3(300.f, 0.f, 0.f);
@@ -250,7 +250,7 @@ START_TEST(check_Quake_NoAirFriction) {
  */
 START_TEST(check_Quake_BunnyHop) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE);
 
   pm.s.origin.z = 8192.f; // far enough to stay airborne for the whole run
   pm.s.velocity = MakeVec3(320.f, 0.f, 0.f);
@@ -263,7 +263,7 @@ START_TEST(check_Quake_BunnyHop) {
     // is then square to the velocity, whichever way it points
     const float yaw = Degrees(atan2f(pm.s.velocity.y, pm.s.velocity.x));
 
-    pm.cmd = (PlayerMoveCmd) {
+    pm.cmd = (PMoveCmd) {
       .msec = 100,
       .angles = MakeVec3(0.f, yaw, 0.f),
       .right = TEST_INTENT,
@@ -284,7 +284,7 @@ START_TEST(check_Quake_BunnyHop) {
  */
 START_TEST(check_Quake2_GroundSpeed) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
 
   for (int32_t i = 0; i < 60; i++) {
     Test_Command(&pm, TEST_INTENT, 0, 0);
@@ -303,7 +303,7 @@ START_TEST(check_Quake2_GroundSpeed) {
  */
 START_TEST(check_Quake2_JumpFloors) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
   Test_Command(&pm, 0, 0, 0);
 
   // rising: the addition shows
@@ -315,7 +315,7 @@ START_TEST(check_Quake2_JumpFloors) {
                 "jumped to %g while rising, expected %g", rising, 100.f + 270.f - 80.f);
 
   // falling: the floor shows, and the jump is not weakened
-  PlayerMove falling = Test_Move(PM_MOVEMENT_QUAKE2);
+  PMove falling = Test_Move(PM_MOVEMENT_QUAKE2);
   Test_Command(&falling, 0, 0, 0);
   falling.s.velocity.z = -150.f;
   Test_Command(&falling, 0, 0, TEST_INTENT);
@@ -336,10 +336,10 @@ START_TEST(check_Air_ControlAngles) {
 
   float gained[2];
 
-  const PlayerMovement movements[] = { PM_MOVEMENT_QUAKE, PM_MOVEMENT_QUAKE2 };
+  const PMovement movements[] = { PM_MOVEMENT_QUAKE, PM_MOVEMENT_QUAKE2 };
 
   for (size_t i = 0; i < lengthof(movements); i++) {
-    PlayerMove pm = Test_Move(movements[i]);
+    PMove pm = Test_Move(movements[i]);
 
     pm.s.origin.z = 8192.f;
     pm.s.velocity = MakeVec3(pm.s.params.speedGround, 0.f, 0.f);
@@ -351,7 +351,7 @@ START_TEST(check_Air_ControlAngles) {
       // hold the wish 45 degrees off the way we are already going
       const float yaw = Degrees(atan2f(pm.s.velocity.y, pm.s.velocity.x)) + 45.f;
 
-      pm.cmd = (PlayerMoveCmd) {
+      pm.cmd = (PMoveCmd) {
         .msec = 100,
         .angles = MakeVec3(0.f, yaw, 0.f),
         .forward = TEST_INTENT,
@@ -379,7 +379,7 @@ START_TEST(check_Air_ControlAngles) {
  */
 START_TEST(check_Quake2_LandingLocksJump) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
 
   // on the floor and still moving down hard, which is the moment Quake II calls
   // a landing
@@ -401,7 +401,7 @@ START_TEST(check_Quake2_LandingLocksJump) {
  */
 START_TEST(check_Quake2_Ducks) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE2);
   Test_Command(&pm, 0, 0, 0);
 
   Test_Command(&pm, 0, 0, -1);
@@ -429,7 +429,7 @@ START_TEST(check_Quake2_Ducks) {
  */
 START_TEST(check_Race_JumpStacks) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_RACE);
+  PMove pm = Test_Move(PM_MOVEMENT_RACE);
   Test_Command(&pm, 0, 0, 0);
 
   // rising, and below the ceiling: the jump is clamped to reach it exactly
@@ -441,13 +441,13 @@ START_TEST(check_Race_JumpStacks) {
                 "stacked to %g, expected the ceiling of %g", pm.s.velocity.z, expected);
 
   // already above the ceiling: nothing is added, and nothing is announced
-  PlayerMove topped = Test_Move(PM_MOVEMENT_RACE);
+  PMove topped = Test_Move(PM_MOVEMENT_RACE);
   Test_Command(&topped, 0, 0, 0);
 
   // travelling, so that the slide holds and the climb is not given up for
   // reasons unrelated to the jump
   topped.s.velocity = MakeVec3(200.f, 0.f, 500.f);
-  topped.cmd = (PlayerMoveCmd) { .msec = 100, .forward = TEST_INTENT, .up = TEST_INTENT };
+  topped.cmd = (PMoveCmd) { .msec = 100, .forward = TEST_INTENT, .up = TEST_INTENT };
   Pm_Move(&topped);
 
   // it must be untouched but for gravity: asserting merely "less than 500" also
@@ -466,7 +466,7 @@ START_TEST(check_Race_JumpStacks) {
  */
 START_TEST(check_Quake3_GroundSpeed) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
 
   for (int32_t i = 0; i < 60; i++) {
     Test_Command(&pm, TEST_INTENT, 0, 0);
@@ -486,7 +486,7 @@ START_TEST(check_Quake3_GroundSpeed) {
  */
 START_TEST(check_Quake3_JumpAssigns) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
   Test_Command(&pm, 0, 0, 0);
   ck_assert_msg(pm.s.flags & PMF_ON_GROUND, "did not start on the ground");
 
@@ -514,7 +514,7 @@ START_TEST(check_Quake3_JumpAssigns) {
  */
 START_TEST(check_Quake3_LandingDoesNotLockJump) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
 
   // dropped, and left to fall until the floor stops it. The state has to be
   // arrived at rather than assigned: this movement never zeroes the vertical
@@ -544,7 +544,7 @@ START_TEST(check_Quake3_LandingDoesNotLockJump) {
  */
 START_TEST(check_Quake3_DucksInAir) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
   Test_Command(&pm, 0, 0, 0);
 
   Test_Command(&pm, 0, 0, -1);
@@ -561,7 +561,7 @@ START_TEST(check_Quake3_DucksInAir) {
                 "the standing eye was at %g, expected 26", pm.s.viewOffset.z);
 
   // and airborne, where Quake II refuses
-  PlayerMove air = Test_Move(PM_MOVEMENT_QUAKE3);
+  PMove air = Test_Move(PM_MOVEMENT_QUAKE3);
   air.s.origin.z = 256.f;
   Test_Command(&air, 0, 0, -1);
 
@@ -575,7 +575,7 @@ START_TEST(check_Quake3_DucksInAir) {
  */
 START_TEST(check_Quake3_SnapsVelocity) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
+  PMove pm = Test_Move(PM_MOVEMENT_QUAKE3);
 
   pm.s.origin.z = 8192.f;
   pm.s.velocity = MakeVec3(123.456f, -78.9f, 0.f);
@@ -593,7 +593,7 @@ START_TEST(check_Quake3_SnapsVelocity) {
  */
 START_TEST(check_Quetoo_GroundSpeed) {
 
-  PlayerMove pm = Test_Move(PM_MOVEMENT_QUETOO);
+  PMove pm = Test_Move(PM_MOVEMENT_QUETOO);
 
   for (int32_t i = 0; i < 60; i++) {
     Test_Command(&pm, TEST_INTENT, 0, 0);
@@ -612,10 +612,10 @@ START_TEST(check_Quetoo_GroundSpeed) {
  */
 START_TEST(check_Movement_BoxAndEye) {
 
-  PlayerMove quake = Test_Move(PM_MOVEMENT_QUAKE);
+  PMove quake = Test_Move(PM_MOVEMENT_QUAKE);
   Test_Command(&quake, 0, 0, 0);
 
-  PlayerMove quetoo = Test_Move(PM_MOVEMENT_QUETOO);
+  PMove quetoo = Test_Move(PM_MOVEMENT_QUETOO);
   for (int32_t i = 0; i < 20; i++) { // Quetoo lerps its eye, so let it settle
     Test_Command(&quetoo, 0, 0, 0);
   }
@@ -628,7 +628,7 @@ START_TEST(check_Movement_BoxAndEye) {
   ck_assert_msg(quake.s.viewOffset.z == 22.f,
                 "Quake's eye was at %g, expected 22", quake.s.viewOffset.z);
 
-  PlayerMove race = Test_Move(PM_MOVEMENT_RACE);
+  PMove race = Test_Move(PM_MOVEMENT_RACE);
   Test_Command(&race, 0, 0, 0);
 
   ck_assert_msg(race.bounds.maxs.z == 32.f,
@@ -646,19 +646,19 @@ START_TEST(check_Movement_BoxAndEye) {
  */
 START_TEST(check_Movement_BoxWidth) {
 
-  PlayerMove quake3 = Test_Move(PM_MOVEMENT_QUAKE3);
+  PMove quake3 = Test_Move(PM_MOVEMENT_QUAKE3);
   Test_Command(&quake3, 0, 0, 0);
 
   ck_assert_msg(quake3.bounds.mins.x == -15.f && quake3.bounds.maxs.x == 15.f,
                 "Quake III stood %g wide, expected id's 30",
                 quake3.bounds.maxs.x - quake3.bounds.mins.x);
 
-  const PlayerMovement others[] = {
+  const PMovement others[] = {
     PM_MOVEMENT_QUETOO, PM_MOVEMENT_QUAKE, PM_MOVEMENT_QUAKE2, PM_MOVEMENT_RACE
   };
 
   for (size_t i = 0; i < lengthof(others); i++) {
-    PlayerMove pm = Test_Move(others[i]);
+    PMove pm = Test_Move(others[i]);
     Test_Command(&pm, 0, 0, 0);
 
     ck_assert_msg(pm.bounds.mins.x == -16.f && pm.bounds.maxs.x == 16.f,
@@ -670,11 +670,11 @@ START_TEST(check_Movement_BoxWidth) {
   // box is the same everywhere, which the view offset, the
   // step height and spawn placement all assume
   for (size_t i = 0; i < Pm_MovementCount(); i++) {
-    PlayerMove pm = Test_Move((PlayerMovement) i);
+    PMove pm = Test_Move((PMovement) i);
     Test_Command(&pm, 0, 0, 0);
 
     ck_assert_msg(pm.bounds.mins.z == -24.f, "%s stood on %g, expected -24",
-                  Pm_Movement((PlayerMovement) i)->name, pm.bounds.mins.z);
+                  Pm_Movement((PMovement) i)->name, pm.bounds.mins.z);
   }
 } END_TEST
 
@@ -688,7 +688,7 @@ START_TEST(check_Movement_BoxWidth) {
 START_TEST(check_Movement_CorpseBox) {
 
   const struct {
-    PlayerMovement movement;
+    PMovement movement;
     float maxsZ, eyeZ;
   } expected[] = {
     { PM_MOVEMENT_QUETOO, -4.f, -16.f }, // Quetoo's own corpse
@@ -699,7 +699,7 @@ START_TEST(check_Movement_CorpseBox) {
   };
 
   for (size_t i = 0; i < lengthof(expected); i++) {
-    PlayerMove pm = Test_Move(expected[i].movement);
+    PMove pm = Test_Move(expected[i].movement);
     pm.s.type = PM_DEAD;
     Test_Command(&pm, 0, 0, 0);
 
@@ -723,18 +723,18 @@ START_TEST(check_Movement_CorpseBox) {
 START_TEST(check_Movement_Names) {
 
   for (size_t i = 0; i < Pm_MovementCount(); i++) {
-    const PlayerMovementInfo *info = Pm_Movement((PlayerMovement) i);
+    const PMovementInfo *info = Pm_Movement((PMovement) i);
 
     ck_assert_msg(info && info->name && *info->name, "movement %zu has no name", i);
     ck_assert_msg(q_strcasecmp(info->name, "default"),
                   "movement %zu is named \"default\", which is reserved", i);
 
-    PlayerMovement resolved = (PlayerMovement) -1;
+    PMovement resolved = (PMovement) -1;
     ck_assert_msg(Pm_MovementByName(info->name, &resolved), "%s did not resolve", info->name);
-    ck_assert_int_eq(resolved, (PlayerMovement) i);
+    ck_assert_int_eq(resolved, (PMovement) i);
   }
 
-  PlayerMovement unused = PM_MOVEMENT_QUETOO;
+  PMovement unused = PM_MOVEMENT_QUETOO;
   ck_assert_msg(!Pm_MovementByName("default", &unused), "\"default\" resolved to a movement");
   ck_assert_msg(!Pm_MovementByName("nonesuch", &unused), "a garbage name resolved");
 } END_TEST

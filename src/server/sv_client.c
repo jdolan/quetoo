@@ -281,7 +281,7 @@ static void Sv_UserStringCommand(const char *s) {
 /**
  * @brief Account for command time and pass the command to game module.
  */
-static void Sv_ClientThink(ServerClient *cl, PlayerMoveCmd *cmd) {
+static void Sv_ClientThink(ServerClient *cl, PMoveCmd *cmd) {
 
   cl->cmdMsec += cmd->msec;
 
@@ -405,8 +405,8 @@ void Sv_ParseClientMessage(ServerClient *cl) {
         }
 
         // the client sends their 3 most recent movement commands every frame to combat packet loss
-        static PlayerMoveCmd null_cmd;
-        PlayerMoveCmd cmd[3];
+        static PMoveCmd null_cmd;
+        PMoveCmd cmd[3];
         Net_ReadDeltaMoveCmd(&netMessage, &null_cmd, &cmd[0]);
         Net_ReadDeltaMoveCmd(&netMessage, &cmd[0], &cmd[1]);
         Net_ReadDeltaMoveCmd(&netMessage, &cmd[1], &cmd[2]);

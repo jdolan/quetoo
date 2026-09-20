@@ -149,7 +149,7 @@ static void loadView(ViewController *self) {
   $(this->movement, addOption, "Default", "default");
 
   for (size_t i = 0; i < Pm_MovementCount(); i++) {
-    const PlayerMovementInfo *movement = Pm_Movement((PlayerMovement) i);
+    const PMovementInfo *movement = Pm_Movement((PMovement) i);
     $(this->movement, addOption, movement->label, (ident) movement->name);
   }
 

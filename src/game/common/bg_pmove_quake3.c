@@ -59,7 +59,7 @@
  *
  * `PM_CmdScale` is not ported. It normalizes an axial +/-127 command so that a
  * diagonal is not `sqrt(2)` faster, scaling the wish by
- * `speed * max / (127 * total)`; Quetoo's `PlayerMoveCmd` carries the intended speed
+ * `speed * max / (127 * total)`; Quetoo's `PMoveCmd` carries the intended speed
  * instead, so the equivalent is the wish-speed clamp the other kernels use. For
  * a command that fills its axes the two agree exactly, and they differ only for
  * partial input. Upstream's `PM_CheckJump` clearing `cmd.upmove` so that
@@ -79,7 +79,7 @@
  * is what this uses. And `pml.impactSpeed`, which `PM_SlideMove` tracks, is
  * written and never read anywhere in id's tree, so it is not tracked here.
  *
- * The corpse is id's too, box and eye height both, since `PlayerMoveParams` carries
+ * The corpse is id's too, box and eye height both, since `PMoveParams` carries
  * the dead box as well. What stays Quetoo's is the giblet: no Quake has one.
  *
  * Being finished is the point: this file matches what it imitates and should
@@ -111,7 +111,7 @@
   .maxs = { {  15.f,  15.f,  -8.f } }  /* PM_CheckDuck's corpse, against Quetoo's -4 */ \
 }
 
-const PlayerMoveParams pmQuake3Params = {
+const PMoveParams pmQuake3Params = {
   .gravity = 800,
   .accelGround = 10.f,         // pm_accelerate
   .accelGroundSlick = 1.f,    // pm_airaccelerate, which is what slick ground gets

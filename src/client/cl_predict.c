@@ -268,7 +268,7 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-  const PlayerMoveState *in = &cl.frame.ps.pmState;
+  const PMoveState *in = &cl.frame.ps.pmState;
 
   ClientPredictedState *out = &cl.predictedState;
 

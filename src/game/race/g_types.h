@@ -266,7 +266,7 @@ typedef struct {
 typedef struct {
   GameRaceRunState state;
   GameRaceMode mode; // the mode the run was started in, which is what decides whether it counts
-  PlayerMovement movement; // the movement it was started under, which is what a record is comparable within
+  PMovement movement; // the movement it was started under, which is what a record is comparable within
   uint16_t checkpointCount;
   uint16_t splitCount;
   uint16_t stage; // the one under way, from 1
@@ -292,8 +292,8 @@ typedef struct {
   char name[MAX_QPATH];
   char ip[64];
   char date[32]; // ISO 8601, UTC
-  PlayerMovement movement;
-  uint32_t params; // a hash of the PlayerMoveParams the run was made under, for information
+  PMovement movement;
+  uint32_t params; // a hash of the PMoveParams the run was made under, for information
   uint32_t time;
   uint16_t checkpointCount, splitCount, stageCount;
   uint32_t checkpointTimes[RACE_MAX_CHECKPOINTS];
@@ -1016,7 +1016,7 @@ typedef struct {
 
   /**
    * @brief Resolved world gravity (maps.lst / worldspawn / g_gravity). Seeded at
-   * spawn and on cvar change; hydrated into PlayerMoveParams by G_MovementParams().
+   * spawn and on cvar change; hydrated into PMoveParams by G_MovementParams().
    */
   int16_t gravity;
 
@@ -1033,7 +1033,7 @@ typedef struct {
   /**
    * @brief The player movement this level runs.
    */
-  PlayerMovement movement;
+  PMovement movement;
 
   /**
    * @brief True if team play is active.
@@ -1558,7 +1558,7 @@ struct GameClient {
   /**
    * @brief Most recently received movement command.
    */
-  PlayerMoveCmd cmd;
+  PMoveCmd cmd;
 
   /**
    * @brief The run in progress, cleared with the rest of this structure on respawn.
@@ -1652,7 +1652,7 @@ struct GameClient {
   /**
    * @brief Water level from the previous frame.
    */
-  PlayerMoveWaterLevel oldWaterLevel;
+  PMoveWaterLevel oldWaterLevel;
 
           /**
    * @brief Alternating barrel index for the Quake nailgun.
@@ -2154,7 +2154,7 @@ struct GameEntity {
   /**
    * @brief Current water immersion level.
    */
-  PlayerMoveWaterLevel waterLevel;
+  PMoveWaterLevel waterLevel;
 
   /**
    * @brief Item definition for bonus item entities.

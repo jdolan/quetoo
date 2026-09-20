@@ -272,7 +272,7 @@ extern ModifyDamage G_ModifyDamage;
  * takes the movement over, as the grapple does while pulling, sets the move type
  * and the velocity it wants and does not defer to previous.
  */
-typedef void (*PrepareMove)(GameClient *cl, PlayerMove *pm);
+typedef void (*PrepareMove)(GameClient *cl, PMove *pm);
 
 extern PrepareMove G_PrepareMove;
 
@@ -499,7 +499,7 @@ extern ClientDidDisconnect G_ClientDidDisconnect;
  * are ignored.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillThink)(GameClient *cl, const PlayerMoveCmd *cmd);
+typedef void (*ClientWillThink)(GameClient *cl, const PMoveCmd *cmd);
 
 extern ClientWillThink G_ClientWillThink;
 
@@ -508,7 +508,7 @@ extern ClientWillThink G_ClientWillThink;
  * weapons are handled. Not called for a client chasing another.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidMove)(GameClient *cl, const PlayerMoveCmd *cmd);
+typedef void (*ClientDidMove)(GameClient *cl, const PMoveCmd *cmd);
 
 extern ClientDidMove G_ClientDidMove;
 

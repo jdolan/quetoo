@@ -258,7 +258,7 @@ typedef enum {
   WATER_FEET,
   WATER_WAIST,
   WATER_UNDER
-} PlayerMoveWaterLevel;
+} PMoveWaterLevel;
 
 /**
  * @brief General player movement and capabilities classification.
@@ -271,7 +271,7 @@ typedef enum {
   PM_SPECTATOR, // free-flying movement with acceleration and friction
   PM_DEAD, // no movement, but the ability to rotate in place
   PM_FREEZE // no movement at all
-} PlayerMoveType;
+} PMoveType;
 
 /**
  * @brief Player movement flags. The game is free to define up to 16 bits.
@@ -280,7 +280,7 @@ typedef enum {
 
 /**
  * @brief Server-tunable player-movement parameters, networked per-player
- * inside `PlayerMoveState` so that client-side prediction matches the server.
+ * inside `PMoveState` so that client-side prediction matches the server.
  * Each field defaults to the `PM_*` constant it replaces (see bg_pmove.h).
  * @details Being per-player is the point: a class-based mod gives each class
  * its own movement, and a mod with several rulesets gives each player the one
@@ -288,7 +288,7 @@ typedef enum {
  */
 typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
-  uint8_t movement;    // which movement Pm_Move runs; a PlayerMovement, see bg_pmove.h
+  uint8_t movement;    // which movement Pm_Move runs; a PMovement, see bg_pmove.h
 
   float accelGround, accelGroundSlick, accelAir, accelWater,
         accelSpectator, accelLadder;
@@ -300,7 +300,7 @@ typedef struct {
         speedStop, speedJump, speedDucked, speedDuckStand, speedWaterJump;
 
   Box3 bounds, boundsDucked, boundsDead;
-} PlayerMoveParams;
+} PMoveParams;
 
 /**
  * @brief This layout is the wire format. `Net_WriteDeltaPlayerState` sends
@@ -311,14 +311,14 @@ typedef struct {
  * the loop sends padding as a parameter. Add a float at the end and the count
  * follows; the boxes qualify only because a `Box3` is six plain floats.
  */
-#define PM_PARAMS_FLOATS ((sizeof(PlayerMoveParams) - offsetof(PlayerMoveParams, accelGround)) / sizeof(float))
+#define PM_PARAMS_FLOATS ((sizeof(PMoveParams) - offsetof(PMoveParams, accelGround)) / sizeof(float))
 
-_Static_assert(offsetof(PlayerMoveParams, accelGround) == sizeof(float),
-               "PlayerMoveParams.movement must fit in the padding after gravity");
-_Static_assert(offsetof(PlayerMoveParams, boundsDead) + sizeof(Box3) == sizeof(PlayerMoveParams),
-               "PlayerMoveParams must not end in padding, which the block would carry");
+_Static_assert(offsetof(PMoveParams, accelGround) == sizeof(float),
+               "PMoveParams.movement must fit in the padding after gravity");
+_Static_assert(offsetof(PMoveParams, boundsDead) + sizeof(Box3) == sizeof(PMoveParams),
+               "PMoveParams must not end in padding, which the block would carry");
 _Static_assert(sizeof(Box3) == 6 * sizeof(float),
-               "Box3 must be six floats for PlayerMoveParams to travel");
+               "Box3 must be six floats for PMoveParams to travel");
 
 /**
  * @brief The player movement state contains quantized snapshots of player
@@ -326,19 +326,19 @@ _Static_assert(sizeof(Box3) == 6 * sizeof(float),
  * be modified only through invoking `Pm_Move`.
  */
 typedef struct {
-  PlayerMoveType type;
+  PMoveType type;
   Vec3 origin;
   Vec3 velocity;
   uint16_t flags; // game-specific state flags
   uint16_t time; // duration for temporal state flags
-  PlayerMoveParams params; // server-tunable movement parameters (incl. gravity)
+  PMoveParams params; // server-tunable movement parameters (incl. gravity)
   Vec3 viewOffset; // add to origin to resolve eyes
   float stepOffset; // add to final origin to resolve step interpolation
   Vec3 viewAngles; // base view angles
   Vec3 deltaAngles; // offset for spawns, pushers, etc.
   Vec3 hookPosition; // position we're hooking to
   uint16_t hookLength; // length of the hook, for swing hook
-} PlayerMoveState;
+} PMoveState;
 
 /**
  * @brief The max number of generic stats the server can communicate to a client.
@@ -376,7 +376,7 @@ typedef struct {
   /**
    * @brief Quantized player movement state snapshot.
    */
-  PlayerMoveState pmState;
+  PMoveState pmState;
 
   /**
    * @brief Game-defined statistics array (health, ammo, scores, etc.).
@@ -425,7 +425,7 @@ typedef struct {
   int16_t forward, right, up; // directional intentions
   uint8_t buttons; // bit mask of buttons down
   Vec3 muzzle; // player-relative muzzle offset, sent with +attack commands
-} PlayerMoveCmd;
+} PMoveCmd;
 
 /**
  * @brief Autocomplete function definition. You must fill "matches"
