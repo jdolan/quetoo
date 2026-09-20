@@ -57,14 +57,14 @@ typedef struct g_ai_s {
     GameClient *client;          // The bot's client
     
     // Perception
-    Vec3 eye_origin;           // View position
+    Vec3 eyeOrigin;           // View position
     Vec3 aim_forward;          // Aim direction
     
     // Navigation
     AiNode *current_node;     // Current nav node
     AiNode *goal_node;        // Target nav node
     AiNode *path[MAX_NODES];  // Path to goal
-    int32_t path_index;
+    int32_t pathIndex;
     
     // Combat
     GameEntity *enemy;           // Current target
@@ -78,7 +78,7 @@ typedef struct g_ai_s {
     const GameItem *weapon;      // Preferred weapon
     
     // Timing
-    uint32_t think_time;         // Next think time
+    uint32_t thinkTime;         // Next think time
     uint32_t reaction_time;      // Reaction delay
 } g_ai_t;
 ```

@@ -1818,7 +1818,7 @@ void G_Ai_Respawn(GameClient *cl) {
  */
 void G_Ai_Begin(GameClient *cl) {
 
-  const GameAiRoster *r = cl->ai->roster;
+  const AiRoster *r = cl->ai->roster;
 
   cl->ai->personality = (AiPersonality) {
     .skill      = r->skill,
@@ -1889,7 +1889,7 @@ static void G_Ai_ClientBegin(GameClient *cl) {
 static void G_Ai_Connect(GameClient *cl) {
 
   char userInfo[MAX_INFO_STRING_STRING];
-  const GameAiRoster *roster = G_Ai_GetUserInfo(cl, userInfo);
+  const AiRoster *roster = G_Ai_GetRoster(cl, userInfo);
 
   cl->ai = gi.Malloc(sizeof(Ai), MEM_TAG_AI);
   cl->ai->roster = roster;

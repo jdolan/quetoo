@@ -38,7 +38,7 @@ Cmd_Execute("mycommand hello");
 typedef struct Cvar {
     char *name;
     char *string;             // String value
-    char *default_string;     // Default value
+    char *defaultString;     // Default value
     int32_t integer;          // Integer value
     float value;              // Float value
     uint32_t flags;           // CVAR_ARCHIVE, CVAR_USER_INFO, etc.
@@ -228,7 +228,7 @@ DEBUG_CGAME       = (1 << 5),
 // ...
 ```
 
-Set with: `developer 1` and `debug_mask 4` (renderer debug only)
+Set with: `developer 1` and `debugMask 4` (renderer debug only)
 
 ### Assertions
 ```c

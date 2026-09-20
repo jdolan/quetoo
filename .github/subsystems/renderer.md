@@ -152,8 +152,8 @@ uniform float time;              // Game time (animations)
 ivec3 voxel = GetVoxel(fragment.position);
 int light_count = GetVoxelLightCount(voxel);
 for (int i = 0; i < light_count; i++) {
-    int light_index = GetVoxelLight(voxel, i);
-    Light light = lights[light_index];
+    int lightIndex = GetVoxelLight(voxel, i);
+    Light light = lights[lightIndex];
     // ... apply lighting
 }
 ```

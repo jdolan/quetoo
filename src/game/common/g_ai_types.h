@@ -278,7 +278,7 @@ typedef struct {
    * @brief 0.0 (oblivious) to 1.0 (perceptive): item range, weapon choice.
    */
   float awareness;
-} GameAiRoster;
+} AiRoster;
 
 /**
  * @brief Per-bot runtime personality, initialized from the roster entry on spawn.
@@ -314,7 +314,7 @@ typedef struct Ai {
   /**
    * @brief Pointer to this bot's static roster definition.
    */
-  const GameAiRoster *roster;
+  const AiRoster *roster;
 
   /**
    * @brief Runtime personality derived from the roster.

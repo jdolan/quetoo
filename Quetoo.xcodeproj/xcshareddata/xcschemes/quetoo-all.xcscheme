@@ -89,7 +89,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set net_interface 192.168.1.177"
+            argument = "+set netInterface 192.168.1.177"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -101,7 +101,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_window_width 1920 +set r_window_height 1080"
+            argument = "+set r_windowWidth 1920 +set r_windowHeight 1080"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -113,7 +113,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_voxels 1"
+            argument = "+set r_drawBspVoxels 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -133,7 +133,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_ai_node_dev 1"
+            argument = "+set g_aiNodeDev 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -153,7 +153,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_map_list maps-jdolan.lst"
+            argument = "+set sv_mapList maps-jdolan.lst"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -169,7 +169,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+no_clip"
+            argument = "+noClip"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

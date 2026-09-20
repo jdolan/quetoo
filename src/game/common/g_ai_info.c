@@ -26,7 +26,7 @@ static Cvar *g_aiNamePrefix;
 /**
  * @brief The static roster of bot definitions.
  */
-static const GameAiRoster gAiRoster[] = {
+static const AiRoster gAiRoster[] = {
   // name          skin                  guid                                    skill  aggr   aware
   { "Enforcer",    "enforcer/default",    "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .50f,  .50f,  .50f },
   { "Guard",       "guard/default",       "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
@@ -115,13 +115,13 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
  * already taken by another connected client, appends " 1", " 2", etc. until a
  * unique name is found.
  */
-const GameAiRoster *G_Ai_GetUserInfo(const GameClient *cl, char *info) {
+const AiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
   if (gAiRosterIndex == gAiRosterCount) {
     G_Ai_ShuffleRoster();
   }
 
-  const GameAiRoster *entry = &gAiRoster[gAiRosterOrder[gAiRosterIndex]];
+  const AiRoster *entry = &gAiRoster[gAiRosterOrder[gAiRosterIndex]];
 
   gAiRosterIndex++;
 

@@ -40,7 +40,7 @@ Entity lifecycle management:
 - `G_InitEntity()` - Initialize entity from BSP entity definition
 - Entity slot management (MAX_ENTITIES = 1024)
 
-**Entity slot reuse**: Entities have `spawn_id` that increments on reuse to detect stale references.
+**Entity slot reuse**: Entities have `spawnId` that increments on reuse to detect stale references.
 
 ### g_physics.c / g_physics.h
 Physics simulation:
@@ -268,14 +268,14 @@ Server calls these game functions:
 
 ```c
 typedef struct {
-    uint16_t api_version;
+    uint16_t apiVersion;
     
     // Lifecycle
     void (*Init)(void);
     void (*Shutdown)(void);
     
     // Level spawning
-    void (*SpawnEntities)(const char *name, const CmEntity *props, CmEntity *const *entities, size_t num_entities);
+    void (*SpawnEntities)(const char *name, const CmEntity *props, CmEntity *const *entities, size_t numEntities);
     
     // Main game loop
     void (*Frame)(void);
@@ -310,14 +310,14 @@ struct GameEntity {
     Vec3 avelocity;             // Angular velocity
     int32_t mass;                 // For physics
     
-    float next_think;             // Time of next Think() call
+    float nextThink;             // Time of next Think() call
     
     GameEntity *ground_entity;    // What we're standing on
     GameEntity *owner;            // Who created this (projectiles)
     GameEntity *enemy;            // Current target (AI)
     
     int32_t health;               // Hit points
-    int32_t max_health;
+    int32_t maxHealth;
     int32_t damage;               // Damage dealt by this entity
     
     const char *target;           // Targetname to activate
@@ -338,7 +338,7 @@ struct GameEntity {
 
 1. `G_Frame()` called by server
 2. For each active entity:
-   - Process think function if `next_think` time reached
+   - Process think function if `nextThink` time reached
    - Run physics based on `physics` type
    - Check triggers/touches
 3. Run AI for bots
@@ -532,14 +532,14 @@ g_show_traces 1       # Visualize collision traces
 ```c
 void DelayedFunction(GameEntity *self) {
     // Do something later
-    gi.PositionedSound(self->s.origin, NULL, sound_index, ATTEN_NORM);
+    gi.PositionedSound(self->s.origin, NULL, soundIndex, ATTEN_NORM);
     G_FreeEntity(self);
 }
 
 // Set up delayed call
 GameEntity *timer = G_Spawn();
 timer->think = DelayedFunction;
-timer->next_think = g_level.time + 3.0;  // 3 seconds later
+timer->nextThink = g_level.time + 3.0;  // 3 seconds later
 ```
 
 ### Finding Entities

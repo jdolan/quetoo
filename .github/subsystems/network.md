@@ -91,7 +91,7 @@ Provides efficient binary serialization with bit precision:
 Entity states are sent as deltas from previous frame:
 ```c
 // Only changed fields are sent
-Net_WriteDeltaEntity(&msg, &old_state, &new_state, false);
+Net_WriteDeltaEntity(&msg, &oldState, &newState, false);
 ```
 
 Huge bandwidth savings - typical entity update is 10-20 bytes instead of 100+.
@@ -142,13 +142,13 @@ Server sends frame snapshots at `sv_hz` rate (default 60 Hz):
 ```c
 // Server frame message
 Net_WriteByte(&msg, SV_CMD_FRAME);
-Net_WriteLong(&msg, frame_num);
-Net_WriteLong(&msg, delta_frame_num); // Frame to delta from
-Net_WriteByte(&msg, num_entities);
+Net_WriteLong(&msg, frameNum);
+Net_WriteLong(&msg, deltaFrameNum); // Frame to delta from
+Net_WriteByte(&msg, numEntities);
 
 // Write each entity as delta from client's last acknowledged frame
 for (each entity) {
-    Net_WriteDeltaEntity(&msg, &old_state, &new_state, false);
+    Net_WriteDeltaEntity(&msg, &oldState, &newState, false);
 }
 ```
 
@@ -257,7 +257,7 @@ for (int i = 0; i < sv_maxClients->integer; i++) {
 ```c
 // Client movement is sent every frame
 Net_WriteByte(&cls.netchan.message, CL_CMD_USER);
-Net_WriteDeltaUserCmd(&cls.netchan.message, &old_cmd, &cmd);
+Net_WriteDeltaUserCmd(&cls.netchan.message, &oldCmd, &cmd);
 ```
 
 ### Reading Messages
@@ -285,7 +285,7 @@ Master server (http://quetoo.org/servers) tracks active game servers:
 **Server → Master** (heartbeat every 5 minutes):
 ```
 POST /servers
-hostname=My Server&max_clients=16&current_clients=4&...
+hostname=My Server&maxClients=16&current_clients=4&...
 ```
 
 **Client → Master** (get server list):
@@ -314,8 +314,8 @@ developer 1           # Enable debug output
 ### Check Connection State
 ```c
 Com_Print("Netchan: out=%d, in=%d, dropped=%d\n",
-          chan->outgoing_sequence,
-          chan->incoming_sequence, 
+          chan->outgoingSequence,
+          chan->incomingSequence, 
           chan->dropped);
 ```
 

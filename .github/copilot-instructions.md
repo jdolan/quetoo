@@ -1,6 +1,6 @@
 # Quetoo Game Engine - Copilot Instructions
 
-Quetoo is a free first-person shooter game engine and game derived from id Software's Quake II. It's written in C with OpenGL rendering, supporting macOS, Linux, BSD, and Windows.
+Quetoo is a free first-person shooter game engine and game derived from id Software's Quake II. It's written in C and renders through SDL_GPU, supporting macOS, Linux, BSD, and Windows.
 
 ## Build System
 
@@ -158,9 +158,24 @@ See `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` for detailed implementati
 
 ### Code Style
 
-- **Naming**: `Snake_case` for types, `camelCase` for functions/variables
-- **Structs**: Typedef'd with `_t` suffix (e.g., `Vec3`, `EntityState`)
-- **OpenGL**: Modern OpenGL 4.1 Core Profile (macOS compatibility)
+- **Types**: `PascalCase`, with the subsystem prefix spelled out
+  (`RenderEntity`, `ClientGameSprite`, `PlayerMoveParams`). `CmTrace` keeps `Cm`
+  short, because `src/collision` owns more than collision.
+- **Functions**: `Prefix_PascalCase`, unchanged (`R_DrawMaterialStages`). A
+  function-pointer member is a callable and stays `PascalCase`, so `cgi.AddEntity`
+  still mirrors the `Cl_AddEntity` it wraps.
+- **Variables, parameters and data members**: `camelCase` (`numElements`,
+  `oldOrigin`). The file-static struct a module uses to collect its file globals
+  is named `module`.
+- **Cvars and console commands**: a subsystem prefix is kept and the rest
+  camelCases (`r_swapInterval`, `cg_addDecals`, `+moveForward`). One with no
+  prefix camelCases whole (`numPlanes`, `nextMap`). `Cvar_Get` and `Cmd_Get`
+  still resolve the older snake_case spelling, and warn when they do.
+- **Enum constants and macros**: `UPPER_CASE`, unchanged.
+- **File names**: `snake_case` for a plain C module, `PascalCase` for a file
+  that declares one Objectively class and is named after it (`ChatView.c`).
+- **Renderer**: SDL_GPU, with shaders written in GLSL and transpiled to SPIR-V
+  and Metal at build time.
 - **Prefixes**: 
   - `r_` = renderer
   - `cg_` = client game
@@ -187,12 +202,12 @@ See `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` for detailed implementati
 **Critical pattern**: Entity slots are reused. Always validate state consistency:
 
 ```c
-if (ent->current.spawn_id != s->spawn_id) {
-    ent->current = *s;  // Reset entity on spawn_id change
+if (ent->current.spawnId != s->spawnId) {
+    ent->current = *s;  // Reset entity on spawnId change
 }
 ```
 
-`spawn_id` increments on entity reuse to detect stale data. See `doc/copilot/ENTITY_STATE_BUG_FIX.md`.
+`spawnId` increments on entity reuse to detect stale data. See `doc/copilot/ENTITY_STATE_BUG_FIX.md`.
 
 ### Shader Conventions
 
@@ -240,7 +255,7 @@ See `doc/copilot/SHADOWMAP_OPTIMIZATION.md`.
 **Critical**: Use half FOV, not full FOV:
 
 ```c
-const float fov_y = Radians(cgi.view->fov_y * 0.5);  // HALF FOV
+const float fovY = Radians(cgi.view->fovY * 0.5);  // HALF FOV
 ```
 
 See `doc/copilot/FRUSTUM_BUG_FIX.md`.

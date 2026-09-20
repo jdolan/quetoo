@@ -42,7 +42,7 @@ Entity state management:
 - Entity interpolation (lerp between old and new state)
 - Bounding box visualization (`cg_draw_bbox`)
 
-**Entity slot consistency**: Validates `spawn_id` to detect entity reuse (see `doc/copilot/ENTITY_STATE_BUG_FIX.md`).
+**Entity slot consistency**: Validates `spawnId` to detect entity reuse (see `doc/copilot/ENTITY_STATE_BUG_FIX.md`).
 
 ### cg_predict.c / cg_predict.h
 **Client-side prediction** (most important for feel):
@@ -226,7 +226,7 @@ typedef struct {
 
 ```c
 typedef struct {
-    uint16_t api_version;
+    uint16_t apiVersion;
     
     void (*Init)(void);
     void (*Shutdown)(void);

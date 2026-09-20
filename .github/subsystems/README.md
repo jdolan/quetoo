@@ -111,7 +111,7 @@ Extensive documentation from prior Copilot optimization sessions (Nov-Dec 2024):
 
 **Critical Bug Fixes**:
 - Frustum culling (half FOV fix)
-- Entity state management (spawn_id validation)
+- Entity state management (spawnId validation)
 - Voxel boundary lighting artifacts
 
 ## Documentation by Task

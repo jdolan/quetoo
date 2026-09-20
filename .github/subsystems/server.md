@@ -142,9 +142,9 @@ Both use same server code, only difference is initialization.
 Server maintains circular buffer of world state snapshots:
 ```c
 typedef struct {
-    int32_t frame_num;              // Unique frame number
+    int32_t frameNum;              // Unique frame number
     EntityState entities[MAX];   // All entity states this frame
-    int32_t num_entities;
+    int32_t numEntities;
 } sv_frame_t;
 
 sv_frame_t frames[UPDATE_BACKUP];   // Circular buffer
@@ -196,7 +196,7 @@ typedef struct {
     netchan_t netchan;              // Network channel
     
     user_cmd_t last_cmd;            // Last movement command
-    int32_t last_frame;             // Last frame client acknowledged
+    int32_t lastFrame;             // Last frame client acknowledged
     
     int32_t message_size;           // Bandwidth tracking
     int32_t rate;                   // Rate limiting
@@ -247,7 +247,7 @@ gi.PositionedSound(origin, entity, entity->s.event, ATTEN_NORM);
 // Implemented as:
 Net_WriteByte(&sv.multicast, SV_CMD_SOUND);
 Net_WritePosition(&sv.multicast, origin);
-Net_WriteShort(&sv.multicast, sound_index);
+Net_WriteShort(&sv.multicast, soundIndex);
 SV_Multicast(origin, MULTICAST_PHS);  // Send to hearable set
 ```
 
@@ -265,7 +265,7 @@ gi.LinkEntity(ent);
 
 ### Kicking Players
 ```c
-ServerClient *cl = &svs.clients[client_num];
+ServerClient *cl = &svs.clients[clientNum];
 SV_DropClient(cl, "Kicked by admin");
 SV_BroadcastPrint("%s was kicked\n", cl->name);
 ```
