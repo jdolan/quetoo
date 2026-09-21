@@ -89,16 +89,16 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set netInterface 192.168.1.177"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set threads -1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set build_number -1"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set cl_analyticsUrl 0"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_windowWidth 1920 +set r_windowHeight 1080"
@@ -109,16 +109,8 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_antialias 0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_drawBspVoxels 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set s_volume 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug sound"
@@ -150,10 +142,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map edge"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set sv_mapList maps-jdolan.lst"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
