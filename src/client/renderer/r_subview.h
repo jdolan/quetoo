@@ -24,7 +24,7 @@
 #include "r_types.h"
 
 void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix);
-void R_DrawSubviews(const RenderView *view);
+void R_DrawSubviews(RenderView *view);
 
 #if defined(__R_LOCAL_H__)
 

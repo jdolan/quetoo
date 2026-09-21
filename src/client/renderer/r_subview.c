@@ -91,25 +91,213 @@ SDL_GPUTexture *R_SubviewTexture(const RenderView *view) {
 }
 
 /**
- * @brief Resolves @p portal into world space for the frame, through the model matrix of the
- * entity drawing its face.
- * @details A portal face's frame is baked in the space of the model that draws it, since the
- * compiler offsets a brush entity's geometry by its origin brush.
+ * @brief Resolves @p subview's face into world space for the frame, through the model matrix of
+ * the entity drawing it.
+ * @details A face's frame is baked in the space of the model that draws it, since the compiler
+ * offsets a brush entity's geometry by its origin brush.
  */
-static void R_UpdatePortal(RenderSubview *portal, const Mat4 matrix) {
+static void R_UpdateSubview(RenderSubview *subview, const Mat4 matrix) {
 
-  portal->absOrigin = Mat4_Transform(matrix, portal->origin);
-  portal->absBounds = Mat4_TransformBounds(matrix, portal->bounds);
-  const Vec3 normal = Mat4_RotateVector(matrix, portal->normal);
+  subview->absOrigin = Mat4_Transform(matrix, subview->origin);
+  subview->absBounds = Mat4_TransformBounds(matrix, subview->bounds);
+  const Vec3 normal = Mat4_RotateVector(matrix, subview->normal);
 
-  portal->absPlane = (CmBspPlane) {
+  subview->absPlane = (CmBspPlane) {
     .normal = normal,
-    .dist = Vec3_Dot(portal->absOrigin, normal),
+    .dist = Vec3_Dot(subview->absOrigin, normal),
     .type = Cm_PlaneTypeForNormal(normal),
     .signBits = Cm_SignBitsForNormal(normal),
   };
+}
+
+/**
+ * @brief Resolves @p portal into world space, and composes the transform that carries a camera
+ * from its face to the point it views the world from.
+ */
+static void R_UpdatePortal(RenderSubview *portal, const Mat4 matrix) {
+
+  R_UpdateSubview(portal, matrix);
 
   portal->matrix = Mat4_Concat(portal->exit, Mat4_Inverse(Mat4_Concat(matrix, portal->entry)));
+}
+
+/**
+ * @return The squared distance from @p view's camera to the nearest point of @p subview's face.
+ * @remarks The nearest point rather than the center, so that a lake the camera stands in does not
+ * lose the pool to a portal across the map on the strength of where its middle happens to be.
+ */
+static float R_SubviewDistance(const RenderView *view, const RenderSubview *subview) {
+  return Vec3_DistanceSquared(Box3_ClampPoint(subview->absBounds, view->origin), view->origin);
+}
+
+/**
+ * @brief Takes @p subview into @p view's pool, and places the camera it is drawn with.
+ * @details A view holds far fewer subviews than a map may contain, and the scene is populated
+ * before any of it is culled, so there is no knowing here which are actually visible. The nearest
+ * are kept instead: subviews are held in order of distance, and offering one farther than a full
+ * view's last evicts nothing, while offering a nearer one drops that last subview and takes its
+ * pooled view. Ordering is the renderer's business rather than the caller's, so that one too far
+ * to matter cannot crowd out one in front of the player.
+ *
+ * Portals and reflections share this pool. Both are a whole scene rendered into a layer, so there
+ * is no reason to reserve layers for either, and the distance sort arbitrates between them.
+ * @param origin The point in world space whose image the camera shows, carried by @p matrix. A
+ * portal passes its face, flattened onto its own plane; a reflection passes the eye itself.
+ * @param matrix The transform that carries a point or direction from the world into the frame the
+ * camera is placed in.
+ * @param mirrored Whether @p matrix reverses handedness, which the projection and the pipelines
+ * both need to know. Passed rather than derived, since `Mat4` has no determinant.
+ * @return `true` if @p subview was taken into the pool.
+ */
+static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 origin,
+                         const Mat4 matrix, bool mirrored) {
+
+  view->stats.subviewsOffered++;
+
+  // a subview face is single sided, and the BSP pipeline culls back faces, so from behind its
+  // plane there is nothing of it to draw -- and a whole scene would be rendered into a layer
+  // that no fragment goes on to sample. Tested against the camera's position rather than where
+  // it happens to be looking: a face off to the side is still plainly visible, so the view's
+  // forward vector says nothing about whether this one can be seen
+  if (Cm_DistanceToPlane(view->origin, &subview->absPlane) <= 0.f) {
+    return false;
+  }
+
+  const float dist = R_SubviewDistance(view, subview);
+
+  int32_t i = view->numSubviews;
+  while (i > 0 && R_SubviewDistance(view, view->subviews[i - 1]) > dist) {
+    i--;
+  }
+
+  if (i == MAX_SUBVIEWS) {
+    return false;
+  }
+
+  RenderView *pooled;
+
+  if (view->numSubviews == MAX_SUBVIEWS) {
+    RenderSubview *evicted = view->subviews[--view->numSubviews];
+    pooled = evicted->view;
+    evicted->view = NULL;
+  } else {
+    // an eviction is always followed by the insertion that caused it, so a view that is not full
+    // has never evicted, and holds exactly the first `numSubviews` views of the pool
+    pooled = &module.views[view->numSubviews];
+  }
+
+  for (int32_t j = view->numSubviews; j > i; j--) {
+    view->subviews[j] = view->subviews[j - 1];
+  }
+
+  view->subviews[i] = subview;
+  view->numSubviews++;
+
+  // emptied here rather than left to the caller, since `R_UpdateSubviewScene` fills these
+  // arrays by copy and relies on there being room for the whole scene
+  R_InitView(pooled);
+
+  // the projection must be the outer view's to the last bit: the face samples its subview at its
+  // own screen coordinates, and the two images only register because both were drawn with it
+  pooled->type = VIEW_SUBVIEW;
+  pooled->mirrored = mirrored;
+  pooled->viewport = view->viewport;
+  pooled->fov = view->fov;
+  pooled->depthRange = view->depthRange;
+  pooled->ticks = view->ticks;
+  pooled->ambient = view->ambient;
+
+  pooled->origin = Mat4_Transform(matrix, origin);
+  pooled->forward = Mat4_RotateVector(matrix, view->forward);
+  pooled->right = Mat4_RotateVector(matrix, view->right);
+  pooled->up = Mat4_RotateVector(matrix, view->up);
+
+  // `R_UpdateFrustum` reads `right` symmetrically, so a mirrored basis still bounds the volume
+  // the image is drawn from. The Euler angles cannot describe a mirrored frame at all, and
+  // nothing reads a subview's angles
+  pooled->angles = Vec3_Euler(pooled->forward);
+
+  Vec3 right, up;
+  Vec3_Vectors(pooled->angles, NULL, &right, &up);
+  pooled->angles.z = Degrees(atan2f(Vec3_Dot(pooled->up, right), Vec3_Dot(pooled->up, up)));
+
+  subview->view = pooled;
+
+  return true;
+}
+
+/**
+ * @return The matrix that mirrors a point or a direction about @p plane.
+ * @remarks A Householder reflection: the linear part is `I - 2nn'`, and the translation is `2dn`.
+ * `Mat4` takes a row-vector convention, so the translation is the last literal row, as it is in
+ * `Mat4_FromFrustum`.
+ */
+static Mat4 R_ReflectionMatrix(const CmBspPlane *plane) {
+
+  const Vec3 n = plane->normal;
+  const float d = plane->dist;
+
+  return MakeMat4((const float[]) {
+    1.f - 2.f * n.x * n.x,      -2.f * n.y * n.x,      -2.f * n.z * n.x, 0.f,
+         -2.f * n.x * n.y, 1.f - 2.f * n.y * n.y,      -2.f * n.z * n.y, 0.f,
+         -2.f * n.x * n.z,      -2.f * n.y * n.z, 1.f - 2.f * n.z * n.z, 0.f,
+          2.f * d * n.x,         2.f * d * n.y,         2.f * d * n.z,   1.f,
+  });
+}
+
+/**
+ * @brief Offers a reflection for @p view to sample.
+ * @details Where a portal carries the camera through a pair of frames a mapper set up, a
+ * reflection mirrors the camera about the face's own plane, which the face supplies. There is
+ * nothing to pair and nothing to place, so unlike `R_AddPortal` this is not offered by the client
+ * game: the renderer walks the scene's inline models for itself.
+ * @param matrix The model matrix of the entity drawing @p reflection's faces.
+ */
+static void R_AddReflection(RenderView *view, RenderSubview *reflection, const Mat4 matrix) {
+
+  assert(view);
+  assert(reflection);
+
+  if (!r_reflections->integer) {
+    return;
+  }
+
+  R_UpdateSubview(reflection, matrix);
+
+  R_AddSubview(view, reflection, view->origin, R_ReflectionMatrix(&reflection->absPlane), true);
+}
+
+/**
+ * @brief Offers the reflections of every BSP inline model drawn in @p view.
+ * @details Done here rather than by the client game because everything it needs is already in the
+ * scene: the model matrix of each inline model entity is the one the client game would otherwise
+ * have to find by scanning the frame's entity states for it.
+ */
+static void R_AddReflections(RenderView *view) {
+
+  if (!rModels.world || !rModels.world->bsp->numReflections) {
+    return;
+  }
+
+  const RenderEntity *e = view->entities;
+  for (int32_t i = 0; i < view->numEntities; i++, e++) {
+
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
+    }
+
+    if (e->effects & EF_NO_DRAW) {
+      continue;
+    }
+
+    RenderSubview *r = rModels.world->bsp->reflections;
+    for (int32_t j = 0; j < rModels.world->bsp->numReflections; j++, r++) {
+
+      if (r->model == e->model) {
+        R_AddReflection(view, r, e->matrix);
+      }
+    }
+  }
 }
 
 /**
@@ -143,79 +331,16 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
     return;
   }
 
-  view->stats.subviewsOffered++;
-
   R_UpdatePortal(portal, matrix);
 
-  // a portal face is single sided, and the BSP pipeline culls back faces, so from behind its
-  // plane there is nothing of it to draw -- and a whole scene would be rendered into a layer
-  // that no fragment goes on to sample. Tested against the camera's position rather than where
-  // it happens to be looking: a portal off to the side is still plainly visible, so the view's
-  // forward vector says nothing about whether this one can be seen
-  if (Cm_DistanceToPlane(view->origin, &portal->absPlane) <= 0.f) {
-    return;
-  }
-
-  const float dist = Vec3_DistanceSquared(portal->absOrigin, view->origin);
-
-  int32_t i = view->numSubviews;
-  while (i > 0 && Vec3_DistanceSquared(view->subviews[i - 1]->absOrigin, view->origin) > dist) {
-    i--;
-  }
-
-  if (i == MAX_SUBVIEWS) {
-    return;
-  }
-
-  RenderView *pooled;
-
-  if (view->numSubviews == MAX_SUBVIEWS) {
-    RenderSubview *evicted = view->subviews[--view->numSubviews];
-    pooled = evicted->view;
-    evicted->view = NULL;
-  } else {
-    // an eviction is always followed by the insertion that caused it, so a view that is not full
-    // has never evicted, and holds exactly the first `numSubviews` views of the pool
-    pooled = &module.views[view->numSubviews];
-  }
-
-  for (int32_t j = view->numSubviews; j > i; j--) {
-    view->subviews[j] = view->subviews[j - 1];
-  }
-
-  view->subviews[i] = portal;
-  view->numSubviews++;
-
-  // emptied here rather than left to the caller, since `R_UpdateSubviewScene` fills these
-  // arrays by copy and relies on there being room for the whole scene
-  R_InitView(pooled);
-
-  // the projection must be the outer view's to the last bit: the face samples the portal at its
-  // own screen coordinates, and the two images only register because both were drawn with it
-  pooled->type = VIEW_SUBVIEW;
-  pooled->viewport = view->viewport;
-  pooled->fov = view->fov;
-  pooled->depthRange = view->depthRange;
-  pooled->ticks = view->ticks;
-  pooled->ambient = view->ambient;
-
-  // project the camera onto the portal's plane, clamped to the portal's bounds
+  // project the camera onto the portal's plane, clamped to the portal's bounds. The carry is a
+  // rigid motion, so it preserves handedness and a portal's view is never mirrored
   Vec3 origin = Box3_ClampPoint(portal->absBounds, view->origin);
 
   origin = Vec3_Subtract(origin, Vec3_Scale(portal->absPlane.normal,
                                             Cm_DistanceToPlane(origin, &portal->absPlane)));
 
-  pooled->origin = Mat4_Transform(portal->matrix, origin);
-  pooled->forward = Mat4_RotateVector(portal->matrix, view->forward);
-  pooled->right = Mat4_RotateVector(portal->matrix, view->right);
-  pooled->up = Mat4_RotateVector(portal->matrix, view->up);
-  pooled->angles = Vec3_Euler(pooled->forward);
-
-  Vec3 right, up;
-  Vec3_Vectors(pooled->angles, NULL, &right, &up);
-  pooled->angles.z = Degrees(atan2f(Vec3_Dot(pooled->up, right), Vec3_Dot(pooled->up, up)));
-
-  portal->view = pooled;
+  R_AddSubview(view, portal, origin, portal->matrix, false);
 }
 
 /**
@@ -426,14 +551,27 @@ static void R_UpdateSubviewScene(const RenderView *view, RenderView *out) {
  * @param view The view being drawn around these, whose uniforms are restored before
  * returning, since `R_DrawMainView` relies on the ones `R_DrawViewDepth` wrote for it.
  */
-void R_DrawSubviews(const RenderView *view) {
+void R_DrawSubviews(RenderView *view) {
 
+  // cleared before anything is offered, so that a subview that was not offered, or was offered
+  // and culled, leaves its face on its own material rather than sampling a stale layer
   if (rModels.world) {
+
     RenderSubview *p = rModels.world->bsp->portals;
     for (int32_t i = 0; i < rModels.world->bsp->numPortals; i++, p++) {
       p->layer = -1;
     }
+
+    RenderSubview *r = rModels.world->bsp->reflections;
+    for (int32_t i = 0; i < rModels.world->bsp->numReflections; i++, r++) {
+      r->layer = -1;
+    }
   }
+
+  // the client game offers the portals during scene population, since only it can resolve the
+  // entity drawing each portal's face. Reflections need no such help, and the scene is complete
+  // by now, so they are offered here and sort against the portals already held
+  R_AddReflections(view);
 
   if (!view->numSubviews || !rContext.device->commands) {
     return;

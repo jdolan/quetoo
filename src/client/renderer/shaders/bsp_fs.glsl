@@ -127,14 +127,15 @@ void main(void) {
 
   outDepth = gl_FragCoord.z;
 
-  // a portal face shows the view rendered from the point it targets. That view uses this one's
-  // projection, so the two images coincide in screen space and the fragment reads straight
-  // across. A portal view itself is given a layer of -1, so portals never recurse.
+  // a subview face shows a second view of the world: through the point a portal targets, or
+  // mirrored about the face's own plane. That view uses this one's projection, so the two images
+  // coincide in screen space and the fragment reads straight across. A subview is itself given a
+  // layer of -1, so subviews never recurse.
   //
-  // This is the base pass only: a material whose stages draw the portal suppresses it with
-  // SURF_MATERIAL, and each of those stages samples the portal for itself, through whatever
-  // transforms it carries
-  if (material.flags == STAGE_NONE && (material.surface & SURF_PORTAL) == SURF_PORTAL && subviewLayer >= 0) {
+  // This is the base pass only: a material whose stages draw the subview suppresses it with
+  // SURF_MATERIAL, and each of those stages samples it for itself, through whatever transforms
+  // it carries
+  if (material.flags == STAGE_NONE && (material.surface & SURF_MASK_SUBVIEW) != 0 && subviewLayer >= 0) {
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
     outColor = vec4(texture(textureSubviews, vec3(st, subviewLayer)).rgb, 1.0);
     return;

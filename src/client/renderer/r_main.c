@@ -37,6 +37,7 @@ Cvar *r_drawLightBounds;
 Cvar *r_drawMaterialStages;
 Cvar *r_occlude;
 Cvar *r_portals;
+Cvar *r_reflections;
 
 Cvar *r_ambient;
 Cvar *r_ambientOcclusion;
@@ -110,7 +111,16 @@ void R_UpdateUniforms(const RenderView *view) {
       0.f, 0.f, .5f, 1.f
     });
 
-    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
+    // a mirrored view swaps its horizontal frustum bounds, which negates the projection's x
+    // column. `Mat4_LookAt` below never reads `view->right`: it derives its own x axis from
+    // `cross(up, forward)`, and for a reflected basis that cross product comes back negated,
+    // so the image it would otherwise draw is the mirror flipped left to right. Flipping clip
+    // space in x undoes that -- and reverses the winding, which is why a mirrored view is drawn
+    // with front faces culled
+    const float left = view->mirrored ? xmax : xmin;
+    const float right = view->mirrored ? xmin : xmax;
+
+    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(left, right, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
     out->skyProjection = Mat4_FromScale3(MakeVec3(-1.f, 1.f, 1.f));
@@ -418,6 +428,7 @@ static void R_InitLocal(void) {
   r_depthPass = Cvar_Add("r_depthPass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
+  r_reflections = Cvar_Add("r_reflections", "1", CVAR_ARCHIVE, "Controls rendering reflections in reflective surfaces.");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambientOcclusion = Cvar_Add("r_ambientOcclusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");

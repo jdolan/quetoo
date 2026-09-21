@@ -893,7 +893,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
     CommonFragment fragment0;
     if (_1952)
     {
-        _1960 = (material.surface & 8192) == 8192;
+        _1960 = (material.surface & 24576) != 0;
     }
     else
     {

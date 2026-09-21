@@ -224,7 +224,7 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
     stage->cm = cs;
     stage->flags = cs->flags;
 
-    if (cm->surface & SURF_PORTAL) {
+    if (cm->surface & SURF_MASK_SUBVIEW) {
       if (!q_strcmp(cs->asset.name, cm->diffusemap.name)) {
         stage->flags |= STAGE_SUBVIEW;
       }
