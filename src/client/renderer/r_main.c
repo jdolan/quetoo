@@ -252,7 +252,7 @@ void R_InitView(RenderView *view) {
 
   view->ticks = (uint32_t) SDL_GetTicks();
   view->numBeams = 0;
-  view->numPortals = 0;
+  view->numSubviews = 0;
   view->numEntities = 0;
   view->numLights = 0;
   view->numSprites = 0;
@@ -528,7 +528,7 @@ void R_Init(void) {
   
   R_InitSky();
 
-  R_InitPortals();
+  R_InitSubviews();
 
   R_InitPost();
 
@@ -556,7 +556,7 @@ void R_Shutdown(void) {
 
   R_ShutdownSky();
 
-  R_ShutdownPortals();
+  R_ShutdownSubviews();
 
   R_ShutdownSprites();
 

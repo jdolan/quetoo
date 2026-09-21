@@ -177,7 +177,7 @@ struct bspLocalsBlock
 {
     float4x4 model;
     uint4 activeDynamicLights[4];
-    int portalLayer;
+    int subviewLayer;
 };
 
 constant spvUnsafeArray<float2, 16> _1064 = spvUnsafeArray<float2, 16>({ float2(0.2770744860172271728515625, 0.69514548778533935546875), float2(-0.59327852725982666015625, -0.1203283965587615966796875), float2(0.449474990367889404296875, 0.246909797191619873046875), float2(-0.1460638940334320068359375, -0.5679666996002197265625), float2(0.64004981517791748046875, -0.407194793224334716796875), float2(-0.3631913959980010986328125, 0.79357779026031494140625), float2(0.124885700643062591552734375, -0.897523820400238037109375), float2(-0.7720317840576171875, 0.443845808506011962890625), float2(0.88518059253692626953125, 0.1653372943401336669921875), float2(-0.52380120754241943359375, -0.726029574871063232421875), float2(0.3642682135105133056640625, 0.596805393695831298828125), float2(-0.833170115947723388671875, -0.33283460140228271484375), float2(0.552725970745086669921875, -0.698580920696258544921875), float2(-0.24071229994297027587890625, 0.3153156936168670654296875), float2(0.72694051265716552734375, -0.14306400716304779052734375), float2(-0.64446747303009033203125, 0.64446747303009033203125) });
@@ -871,7 +871,7 @@ float4 sampleMaterialStage(thread const float2& texcoord, constant materialBlock
     return textureStage.sample(textureStageSmplr, texcoord);
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 [[buffer(0)]], constant bspLocalsBlock& _1625 [[buffer(1)]], constant materialBlock& material [[buffer(2)]], const device bspLightsBlock& _1588 [[buffer(3)]], const device dynamicLightsBlock& _1618 [[buffer(4)]], const device voxelLightDataBlock& _573 [[buffer(5)]], const device voxelLightIndicesBlock& _591 [[buffer(6)]], texture2d_array<float> textureMaterial [[texture(0)]], depth2d<float> textureShadowAtlas0 [[texture(1)]], depth2d<float> textureShadowAtlas1 [[texture(2)]], depth2d<float> textureShadowAtlas2 [[texture(3)]], depth2d<float> textureShadowAtlas3 [[texture(4)]], depth2d<float> textureShadowAtlas4 [[texture(5)]], depth2d<float> textureShadowAtlas5 [[texture(6)]], texture3d<float> textureVoxelCaustics [[texture(7)]], texture3d<float> textureVoxelOcclusion [[texture(8)]], texturecube<float> textureSky [[texture(9)]], texture2d<float> textureStage [[texture(10)]], texture2d<float> textureStageNext [[texture(11)]], texture2d<float> textureWarp [[texture(12)]], texture2d_array<float> texturePortal [[texture(13)]], sampler textureMaterialSmplr [[sampler(0)]], sampler textureShadowAtlas0Smplr [[sampler(1)]], sampler textureShadowAtlas1Smplr [[sampler(2)]], sampler textureShadowAtlas2Smplr [[sampler(3)]], sampler textureShadowAtlas3Smplr [[sampler(4)]], sampler textureShadowAtlas4Smplr [[sampler(5)]], sampler textureShadowAtlas5Smplr [[sampler(6)]], sampler textureVoxelCausticsSmplr [[sampler(7)]], sampler textureVoxelOcclusionSmplr [[sampler(8)]], sampler textureSkySmplr [[sampler(9)]], sampler textureStageSmplr [[sampler(10)]], sampler textureStageNextSmplr [[sampler(11)]], sampler textureWarpSmplr [[sampler(12)]], sampler texturePortalSmplr [[sampler(13)]], float4 gl_FragCoord [[position]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 [[buffer(0)]], constant bspLocalsBlock& _1625 [[buffer(1)]], constant materialBlock& material [[buffer(2)]], const device bspLightsBlock& _1588 [[buffer(3)]], const device dynamicLightsBlock& _1618 [[buffer(4)]], const device voxelLightDataBlock& _573 [[buffer(5)]], const device voxelLightIndicesBlock& _591 [[buffer(6)]], texture2d_array<float> textureMaterial [[texture(0)]], depth2d<float> textureShadowAtlas0 [[texture(1)]], depth2d<float> textureShadowAtlas1 [[texture(2)]], depth2d<float> textureShadowAtlas2 [[texture(3)]], depth2d<float> textureShadowAtlas3 [[texture(4)]], depth2d<float> textureShadowAtlas4 [[texture(5)]], depth2d<float> textureShadowAtlas5 [[texture(6)]], texture3d<float> textureVoxelCaustics [[texture(7)]], texture3d<float> textureVoxelOcclusion [[texture(8)]], texturecube<float> textureSky [[texture(9)]], texture2d<float> textureStage [[texture(10)]], texture2d<float> textureStageNext [[texture(11)]], texture2d<float> textureWarp [[texture(12)]], texture2d_array<float> textureSubviews [[texture(13)]], sampler textureMaterialSmplr [[sampler(0)]], sampler textureShadowAtlas0Smplr [[sampler(1)]], sampler textureShadowAtlas1Smplr [[sampler(2)]], sampler textureShadowAtlas2Smplr [[sampler(3)]], sampler textureShadowAtlas3Smplr [[sampler(4)]], sampler textureShadowAtlas4Smplr [[sampler(5)]], sampler textureShadowAtlas5Smplr [[sampler(6)]], sampler textureVoxelCausticsSmplr [[sampler(7)]], sampler textureVoxelOcclusionSmplr [[sampler(8)]], sampler textureSkySmplr [[sampler(9)]], sampler textureStageSmplr [[sampler(10)]], sampler textureStageNextSmplr [[sampler(11)]], sampler textureWarpSmplr [[sampler(12)]], sampler textureSubviewsSmplr [[sampler(13)]], float4 gl_FragCoord [[position]])
 {
     main0_out out = {};
     CommonVertex vertex0 = {};
@@ -902,7 +902,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
     bool _1966;
     if (_1960)
     {
-        _1966 = _1625.portalLayer >= 0;
+        _1966 = _1625.subviewLayer >= 0;
     }
     else
     {
@@ -911,8 +911,8 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
     if (_1966)
     {
         float2 st = gl_FragCoord.xy / float2(_522.viewport.zw);
-        float3 _1988 = float3(st, float(_1625.portalLayer));
-        out.outColor = float4(texturePortal.sample(texturePortalSmplr, _1988.xy, uint(rint(_1988.z))).xyz, 1.0);
+        float3 _1988 = float3(st, float(_1625.subviewLayer));
+        out.outColor = float4(textureSubviews.sample(textureSubviewsSmplr, _1988.xy, uint(rint(_1988.z))).xyz, 1.0);
         return out;
     }
     fragment0.viewDir = fast::normalize(-vertex0.position);
@@ -952,15 +952,15 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
         bool _2086;
         if (_2080)
         {
-            _2086 = _1625.portalLayer >= 0;
+            _2086 = _1625.subviewLayer >= 0;
         }
         else
         {
             _2086 = _2080;
         }
-        bool portal = _2086;
+        bool subview = _2086;
         float2 _2089;
-        if (portal)
+        if (subview)
         {
             _2089 = gl_FragCoord.xy / float2(_522.viewport.zw);
         }
@@ -972,7 +972,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
         if ((material.flags & 32768) == 32768)
         {
             float2 _2112;
-            if (portal)
+            if (subview)
             {
                 _2112 = vertex0.diffusemap;
             }
@@ -982,7 +982,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
             }
             float2 texcoord = _2112;
             float2 offset = (textureWarp.sample(textureWarpSmplr, (texcoord + float2((float(_522.ticks) * material.warp.x) * 0.00012500000593718141317367553710938))).xy - float2(0.5)) * material.warp.y;
-            if (portal)
+            if (subview)
             {
                 float2 dx = dfdx(vertex0.diffusemap);
                 float2 dy = dfdy(vertex0.diffusemap);
@@ -998,10 +998,10 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
                 st_1 += offset;
             }
         }
-        if (portal)
+        if (subview)
         {
-            float3 _2219 = float3(st_1, float(_1625.portalLayer));
-            fragment0.diffuseSample = float4(texturePortal.sample(texturePortalSmplr, _2219.xy, uint(rint(_2219.z))).xyz, 1.0);
+            float3 _2219 = float3(st_1, float(_1625.subviewLayer));
+            fragment0.diffuseSample = float4(textureSubviews.sample(textureSubviewsSmplr, _2219.xy, uint(rint(_2219.z))).xyz, 1.0);
         }
         else
         {

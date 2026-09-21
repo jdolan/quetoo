@@ -603,7 +603,7 @@ static void Cl_UpdateScene(void) {
 
   thread = Thread_Create((ThreadRunFunc) S_RenderStage, &clStage, THREAD_NONE);
 
-  R_DrawPortals(&clView);
+  R_DrawSubviews(&clView);
 
   R_DrawMainView(&clView);
 

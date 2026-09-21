@@ -113,9 +113,9 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
-    // a portal view cannot occlude at all: the queries were resolved for another camera, so it
+    // a subview cannot occlude at all: the queries were resolved for another camera, so it
     // culls its own frustum and nothing more
-    if (view->type == VIEW_PORTAL) {
+    if (view->type == VIEW_SUBVIEW) {
       l->occluded = R_CullBox(view, l->bounds);
     } else if (l->bspLight) {
       l->occluded = !l->bspLight->query->result;
@@ -157,8 +157,8 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
     RenderBspBlock *block = in->blocks;
     for (int32_t i = 0; i < in->numBlocks; i++, block++) {
 
-      // a portal view cannot use occlusion queries resolved for another camera
-      const bool culled = view->type == VIEW_PORTAL
+      // a subview cannot use occlusion queries resolved for another camera
+      const bool culled = view->type == VIEW_SUBVIEW
         ? R_CullBox(view, block->visibleBounds)
         : block->query->result == 0;
 

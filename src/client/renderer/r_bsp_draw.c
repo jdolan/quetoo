@@ -26,7 +26,7 @@
  */
 enum {
   BSP_SAMPLER_WARP = R_SAMPLER_MATERIAL_TOTAL,
-  BSP_SAMPLER_PORTAL,
+  BSP_SAMPLER_SUBVIEW,
   BSP_NUM_SAMPLERS,
 };
 
@@ -57,9 +57,9 @@ typedef struct {
   RenderActiveDynamicLights activeDynamicLights;
 
   /**
-   * @brief The layer of texture_portal this draw's faces sample, or `-1` for none.
+   * @brief The layer of textureSubviews this draw's faces sample, or `-1` for none.
    */
-  int32_t portalLayer;
+  int32_t subviewLayer;
 } RenderBspUniformLocals;
 
 #define MAX_STAGE_PIPELINES 16
@@ -106,7 +106,7 @@ static struct {
   int32_t surface;
 
   /**
-   * @brief The locals as last pushed, so that the portal layer can be updated alone.
+   * @brief The locals as last pushed, so that the subview layer can be updated alone.
    */
   RenderBspUniformLocals locals;
 
@@ -119,47 +119,47 @@ static struct {
 
 /**
  * @brief Pushes the per-model uniforms.
- * @details The portal layer resets to `-1` here, so a model holding no portal face never pushes
- * one; `R_PushBspPortalLayer` sets it for the draws that do.
+ * @details The subview layer resets to `-1` here, so a model holding no subview face never pushes
+ * one; `R_PushBspSubviewLayer` sets it for the draws that do.
  */
 static inline void R_PushBspUniformLocals(const RenderBspUniformLocals *locals, RenderPass *pass) {
 
   module.locals = *locals;
-  module.locals.portalLayer = -1;
+  module.locals.subviewLayer = -1;
 
   $(pass->commands, pushUniformData, SLOT_UNIFORMS_LOCALS, &module.locals, sizeof(module.locals));
 }
 
 /**
- * @brief Pushes the portal layer @p draw samples for @p view, if it differs from the one already
+ * @brief Pushes the subview layer @p draw samples for @p view, if it differs from the one already
  * pushed.
  * @details The layer belongs to the draw elements rather than to the model, since a model may
- * hold several portal faces, so it is pushed only when it changes -- which for the overwhelming
- * majority of draws, none of which are portals, is never.
+ * hold several subview faces, so it is pushed only when it changes -- which for the overwhelming
+ * majority of draws, none of which show a subview, is never.
  *
- * A portal view always pushes `-1`, which is what keeps portals from recursing: seen through one,
- * a portal face falls back to its plain material. The layer belongs to the world's portal rather
- * than to the view being drawn, so a portal already drawn this frame would otherwise report its
- * layer here -- and portal views are bound the placeholder texture, not the portal texture they
- * are being drawn into, so the face would come out solid black rather than portalled.
+ * A subview always pushes `-1`, which is what keeps subviews from recursing: seen inside one, a
+ * subview face falls back to its plain material. The layer belongs to the world's subview rather
+ * than to the view being drawn, so one already drawn this frame would otherwise report its layer
+ * here -- and subviews are bound the placeholder texture, not the subview texture they are being
+ * drawn into, so the face would come out solid black rather than sampled.
  */
-static inline void R_PushBspPortalLayer(const RenderView *view, const RenderBspDrawElements *draw, RenderPass *pass) {
+static inline void R_PushBspSubviewLayer(const RenderView *view, const RenderBspDrawElements *draw, RenderPass *pass) {
 
-  const int32_t layer = draw->portal && view->type != VIEW_PORTAL ? draw->portal->layer : -1;
+  const int32_t layer = draw->subview && view->type != VIEW_SUBVIEW ? draw->subview->layer : -1;
 
-  if (layer != module.locals.portalLayer) {
-    module.locals.portalLayer = layer;
+  if (layer != module.locals.subviewLayer) {
+    module.locals.subviewLayer = layer;
 
     $(pass->commands, pushUniformData, SLOT_UNIFORMS_LOCALS, &module.locals, sizeof(module.locals));
   }
 }
 
 /**
- * @brief Binds the state @p draw is drawn with: its pipeline, material and portal layer.
+ * @brief Binds the state @p draw is drawn with: its pipeline, material and subview layer.
  * @param pipeline The pipeline to bind, or `NULL` to leave the bound one in place.
  * @details Material state is bound only when it changes, since draw elements arrive sorted by
- * material and surface. The portal layer keeps its own cache, because draw elements sharing a
- * material need not share a portal -- two portal faces cut from the same brush do not.
+ * material and surface. The subview layer keeps its own cache, because draw elements sharing a
+ * material need not share a subview -- two portal faces cut from the same brush do not.
  */
 static inline void R_BindBspDrawElements(const RenderView *view,
                                          const RenderBspDrawElements *draw,
@@ -184,7 +184,7 @@ static inline void R_BindBspDrawElements(const RenderView *view,
     $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
   }
 
-  R_PushBspPortalLayer(view, draw, pass);
+  R_PushBspSubviewLayer(view, draw, pass);
 }
 
 /**
@@ -290,12 +290,12 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend des
 /**
  * @return True if @p block should be skipped when drawing @p view.
  * @details The main view has hardware occlusion queries, which subsume frustum culling. A
- * portal view cannot use them at all -- they were resolved for a camera somewhere else
+ * subview cannot use them at all -- they were resolved for a camera somewhere else
  * entirely -- so it culls its own frustum and nothing more.
  */
 static inline bool R_CullBspBlock(const RenderView *view, const RenderBspBlock *block) {
 
-  if (view->type == VIEW_PORTAL) {
+  if (view->type == VIEW_SUBVIEW) {
     return R_CullBox(view, block->visibleBounds);
   }
 
@@ -360,7 +360,7 @@ static void R_DrawBspDrawElementsMaterialStages(const RenderView *view,
     }, 1);
   }
 
-  R_PushBspPortalLayer(view, draw, pass);
+  R_PushBspSubviewLayer(view, draw, pass);
 
   for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
 
@@ -592,8 +592,8 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
     .sampler = module.repeatSampler->sampler,
   }, 1);
 
-  $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
-    .texture = R_PortalTexture(view),
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_SUBVIEW, &(SDL_GPUTextureSamplerBinding) {
+    .texture = R_SubviewTexture(view),
     .sampler = module.clampSampler->sampler,
   }, 1);
 
@@ -792,8 +792,8 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
     .sampler = module.repeatSampler->sampler,
   }, 1);
 
-  $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
-    .texture = R_PortalTexture(view),
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_SUBVIEW, &(SDL_GPUTextureSamplerBinding) {
+    .texture = R_SubviewTexture(view),
     .sampler = module.clampSampler->sampler,
   }, 1);
 

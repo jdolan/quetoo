@@ -22,23 +22,23 @@
 #include "r_local.h"
 
 /**
- * @brief The factor by which portal framebuffers are smaller than the window, per axis.
+ * @brief The factor by which subview framebuffers are smaller than the window, per axis.
  */
-#define PORTAL_FRAMEBUFFER_DIVISOR 2
+#define SUBVIEW_FRAMEBUFFER_DIVISOR 2
 
 static struct {
   /**
-   * @brief The views the portals of a frame are drawn with, one per layer of the framebuffer.
-   * @details A map may hold far more portals than can be drawn, and each of these carries the
-   * whole scene, so they are pooled and handed out to the portals a view offers rather than
-   * allocated per portal of the world.
+   * @brief The views the subviews of a frame are drawn with, one per layer of the framebuffer.
+   * @details A map may hold far more subviews than can be drawn, and each of these carries the
+   * whole scene, so they are pooled and handed out to the subviews a view offers rather than
+   * allocated per subview of the world.
    */
-  RenderView views[MAX_PORTALS];
+  RenderView views[MAX_SUBVIEWS];
 
   /**
-   * @brief The framebuffer all portals render into, its color attachment holding one layer
-   * per portal of the loaded world. Its depth and depth copy are scratch, reused by each
-   * portal in turn, since portals are drawn one after another and nothing reads them after.
+   * @brief The framebuffer all subviews render into, its color attachment holding one layer
+   * per subview of the loaded world. Its depth and depth copy are scratch, reused by each
+   * subview in turn, since subviews are drawn one after another and nothing reads them after.
    */
   Framebuffer *framebuffer;
 
@@ -48,23 +48,23 @@ static struct {
   SDL_Size size;
 
   /**
-   * @brief A single-layer placeholder, bound when there is no portal framebuffer, since the
+   * @brief A single-layer placeholder, bound when there is no subview framebuffer, since the
    * BSP fragment stage declares the sampler whether or not any face reads it.
    */
   Texture *nullTexture;
 } module;
 
 /**
- * @brief Allocates the placeholder portal texture.
+ * @brief Allocates the placeholder subview texture.
  */
-void R_InitPortals(void) {
+void R_InitSubviews(void) {
   module.nullTexture = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
 }
 
 /**
- * @brief Releases the portal framebuffer and placeholder texture.
+ * @brief Releases the subview framebuffer and placeholder texture.
  */
-void R_ShutdownPortals(void) {
+void R_ShutdownSubviews(void) {
 
   if (module.framebuffer) {
     R_DestroyFramebuffer(module.framebuffer);
@@ -76,14 +76,14 @@ void R_ShutdownPortals(void) {
 }
 
 /**
- * @return The array texture to bind to @p view's BSP portal sampler, never `NULL`.
- * @remarks A portal view is drawn into that very texture, and binding a color attachment as a
- * sampler in the pass writing it is undefined, whether or not any fragment reads it. Portal
- * views sample nothing, so they are given the placeholder.
+ * @return The array texture to bind to @p view's BSP subview sampler, never `NULL`.
+ * @remarks A subview is drawn into that very texture, and binding a color attachment as a
+ * sampler in the pass writing it is undefined, whether or not any fragment reads it. Subviews
+ * sample nothing, so they are given the placeholder.
  */
-SDL_GPUTexture *R_PortalTexture(const RenderView *view) {
+SDL_GPUTexture *R_SubviewTexture(const RenderView *view) {
 
-  if (module.framebuffer && view->type != VIEW_PORTAL) {
+  if (module.framebuffer && view->type != VIEW_SUBVIEW) {
     return $(module.framebuffer, resolveColorTexture, 0)->texture;
   }
 
@@ -96,7 +96,7 @@ SDL_GPUTexture *R_PortalTexture(const RenderView *view) {
  * @details A portal face's frame is baked in the space of the model that draws it, since the
  * compiler offsets a brush entity's geometry by its origin brush.
  */
-static void R_UpdatePortal(RenderBspPortal *portal, const Mat4 matrix) {
+static void R_UpdatePortal(RenderSubview *portal, const Mat4 matrix) {
 
   portal->absOrigin = Mat4_Transform(matrix, portal->origin);
   portal->absBounds = Mat4_TransformBounds(matrix, portal->bounds);
@@ -128,7 +128,7 @@ static void R_UpdatePortal(RenderBspPortal *portal, const Mat4 matrix) {
  * portal on worldspawn or on anything else that does not move. A portal face's frame is baked in
  * the space of the model that draws it, so this is what carries it into the world.
  */
-void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
+void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
 
   assert(view);
   assert(portal);
@@ -143,7 +143,7 @@ void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
     return;
   }
 
-  view->stats.portalsOffered++;
+  view->stats.subviewsOffered++;
 
   R_UpdatePortal(portal, matrix);
 
@@ -158,41 +158,41 @@ void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
 
   const float dist = Vec3_DistanceSquared(portal->absOrigin, view->origin);
 
-  int32_t i = view->numPortals;
-  while (i > 0 && Vec3_DistanceSquared(view->portals[i - 1]->absOrigin, view->origin) > dist) {
+  int32_t i = view->numSubviews;
+  while (i > 0 && Vec3_DistanceSquared(view->subviews[i - 1]->absOrigin, view->origin) > dist) {
     i--;
   }
 
-  if (i == MAX_PORTALS) {
+  if (i == MAX_SUBVIEWS) {
     return;
   }
 
   RenderView *pooled;
 
-  if (view->numPortals == MAX_PORTALS) {
-    RenderBspPortal *evicted = view->portals[--view->numPortals];
+  if (view->numSubviews == MAX_SUBVIEWS) {
+    RenderSubview *evicted = view->subviews[--view->numSubviews];
     pooled = evicted->view;
     evicted->view = NULL;
   } else {
     // an eviction is always followed by the insertion that caused it, so a view that is not full
-    // has never evicted, and holds exactly the first `numPortals` views of the pool
-    pooled = &module.views[view->numPortals];
+    // has never evicted, and holds exactly the first `numSubviews` views of the pool
+    pooled = &module.views[view->numSubviews];
   }
 
-  for (int32_t j = view->numPortals; j > i; j--) {
-    view->portals[j] = view->portals[j - 1];
+  for (int32_t j = view->numSubviews; j > i; j--) {
+    view->subviews[j] = view->subviews[j - 1];
   }
 
-  view->portals[i] = portal;
-  view->numPortals++;
+  view->subviews[i] = portal;
+  view->numSubviews++;
 
-  // emptied here rather than left to the caller, since `R_UpdatePortalView` fills these arrays by
-  // copy and relies on there being room for the whole scene
+  // emptied here rather than left to the caller, since `R_UpdateSubviewScene` fills these
+  // arrays by copy and relies on there being room for the whole scene
   R_InitView(pooled);
 
   // the projection must be the outer view's to the last bit: the face samples the portal at its
   // own screen coordinates, and the two images only register because both were drawn with it
-  pooled->type = VIEW_PORTAL;
+  pooled->type = VIEW_SUBVIEW;
   pooled->viewport = view->viewport;
   pooled->fov = view->fov;
   pooled->depthRange = view->depthRange;
@@ -219,16 +219,16 @@ void R_AddPortal(RenderView *view, RenderBspPortal *portal, const Mat4 matrix) {
 }
 
 /**
- * @brief Creates or resizes the portal framebuffer for the loaded world.
- * @remarks The color attachment is layered, one layer per portal, so that the BSP fragment
- * stage samples every portal from a single binding.
- * @details Portals render at half the window's resolution. A portal is sampled through a warping
- * material with further stages over it, so a full size layer per portal buys nothing that can be
- * seen, and costs a whole scene's fill rate each. The projection is unaffected: it comes from the
- * view's own viewport rather than from this size, so the image still registers with the face, and
- * only the rasterization is coarser.
+ * @brief Creates or resizes the subview framebuffer for the loaded world.
+ * @remarks The color attachment is layered, one layer per subview, so that the BSP fragment
+ * stage samples every subview from a single binding.
+ * @details Subviews render at half the window's resolution. A subview is sampled through a
+ * warping material with further stages over it, so a full size layer per subview buys nothing
+ * that can be seen, and costs a whole scene's fill rate each. The projection is unaffected: it
+ * comes from the view's own viewport rather than from this size, so the image still registers
+ * with the face, and only the rasterization is coarser.
  */
-static void R_UpdatePortalFramebuffer(void) {
+static void R_UpdateSubviewFramebuffer(void) {
 
   const SDL_Size window = MakeSize(rContext.windowBounds.w, rContext.windowBounds.h);
 
@@ -243,12 +243,12 @@ static void R_UpdatePortalFramebuffer(void) {
   module.size = window;
 
   module.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
-    .size = MakeSize(window.w / PORTAL_FRAMEBUFFER_DIVISOR, window.h / PORTAL_FRAMEBUFFER_DIVISOR),
+    .size = MakeSize(window.w / SUBVIEW_FRAMEBUFFER_DIVISOR, window.h / SUBVIEW_FRAMEBUFFER_DIVISOR),
     .colorAttachments = {
       {
         .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .clearColor = { 0.f, 0.f, 0.f, 1.f },
-        .layerCount = MAX_PORTALS,
+        .layerCount = MAX_SUBVIEWS,
       },
       {
         .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
@@ -262,25 +262,25 @@ static void R_UpdatePortalFramebuffer(void) {
 }
 
 /**
- * @return The rect of @p portal's face on screen, in the portal framebuffer's pixels.
- * @details A portal face samples the portal texture at its own screen coordinates, so the only
- * texels ever read are the ones beneath the face. Scissoring the portal's pass to them discards
- * nothing that could be sampled, and the further off a portal is the less of its layer it needs
- * -- the saving scales with distance without any of the resolution stepping, and its pop, that
- * choosing a size per portal would bring.
+ * @return The rect of @p subview's face on screen, in the subview framebuffer's pixels.
+ * @details A face samples its subview at its own screen coordinates, so the only texels ever
+ * read are the ones beneath the face. Scissoring the subview's pass to them discards nothing
+ * that could be sampled, and the further off a subview is the less of its layer it needs -- the
+ * saving scales with distance without any of the resolution stepping, and its pop, that
+ * choosing a size per subview would bring.
  * @remarks The whole framebuffer is returned for a face straddling the camera plane, which has
  * no finite rect to project onto.
  * @param vp The view-projection of the view being drawn around these, whose screen coordinates
  * the face will be sampled at. Taken as an argument rather than read from the uniform block,
- * which each portal drawn before this one has already replaced with its own.
+ * which each subview drawn before this one has already replaced with its own.
  */
-static SDL_Rect R_PortalScissor(const Mat4 vp, const RenderBspPortal *portal) {
+static SDL_Rect R_SubviewScissor(const Mat4 vp, const RenderSubview *subview) {
 
   const SDL_Size size = module.framebuffer->size;
   const SDL_Rect framebuffer = { 0, 0, size.w, size.h };
 
   Vec3 points[8];
-  Box3_ToPoints(portal->absBounds, points);
+  Box3_ToPoints(subview->absBounds, points);
 
   Vec2 mins = MakeVec2(FLT_MAX, FLT_MAX);
   Vec2 maxs = MakeVec2(-FLT_MAX, -FLT_MAX);
@@ -318,13 +318,13 @@ static SDL_Rect R_PortalScissor(const Mat4 vp, const RenderBspPortal *portal) {
 }
 
 /**
- * @brief Draws one portal's view into its own layer of the portal framebuffer.
+ * @brief Draws one subview into its own layer of the subview framebuffer.
  */
-static void R_DrawPortal(const RenderBspPortal *portal, const SDL_Rect *scissor) {
+static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor) {
 
   CommandBuffer *commands = rContext.device->commands;
 
-  RenderView *view = portal->view;
+  RenderView *view = subview->view;
 
   view->framebuffer = module.framebuffer;
 
@@ -345,7 +345,7 @@ static void R_DrawPortal(const RenderBspPortal *portal, const SDL_Rect *scissor)
   }
 
   const SDL_GPUColorTargetInfo color[] = {
-    $(module.framebuffer, colorTargetInfoForLayer, 0, (Uint32) portal->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(module.framebuffer, colorTargetInfoForLayer, 0, (Uint32) subview->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
     $(module.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
@@ -375,19 +375,19 @@ static void R_DrawPortal(const RenderBspPortal *portal, const SDL_Rect *scissor)
 }
 
 /**
- * @brief Repeats @p view's scene into @p out, the view of one of its portals, which culls it for
- * itself.
+ * @brief Repeats @p view's scene into @p out, the view of one of its subviews, which culls it
+ * for itself.
  * @details Done once the scene is complete rather than as each addition is made, so that nothing
- * depends on portals having been offered before the rest of the scene was populated, and only
- * for a portal that survived culling, so that one drawn nowhere is copied nowhere. This is the
+ * depends on subviews having been offered before the rest of the scene was populated, and only
+ * for a subview that survived culling, so that one drawn nowhere is copied nowhere. This is the
  * same shape as `R_UpdateLights`, which likewise resolves per-light state only once every entity
  * that could cast a shadow is known.
  *
  * Decals are deliberately not repeated. `R_UpdateDecals` clips them into the shared, persistent
  * geometry of the blocks they land on, rather than into anything the view owns, so repeating
- * them would clip each decal once per portal and draw it that many times over.
+ * them would clip each decal once per subview and draw it that many times over.
  */
-static void R_UpdatePortalView(const RenderView *view, RenderView *out) {
+static void R_UpdateSubviewScene(const RenderView *view, RenderView *out) {
 
   assert(out->numEntities == 0);
 
@@ -414,66 +414,65 @@ static void R_UpdatePortalView(const RenderView *view, RenderView *out) {
 }
 
 /**
- * @brief Draws the views of all portals added this frame, for @p view to sample.
- * @details Portal views draw no shadows of their own: they copy the light list of the view
- * they are drawn for, so the atlas it rendered lines up. They draw portal faces on their plain
- * material rather than portalled, which is what keeps this from recursing; see
- * `R_PushBspPortalLayer`.
+ * @brief Draws every subview added this frame, for @p view to sample.
+ * @details Subviews draw no shadows of their own: they copy the light list of the view they are
+ * drawn for, so the atlas it rendered lines up. They draw subview faces on their plain material
+ * rather than sampled, which is what keeps this from recursing; see `R_PushBspSubviewLayer`.
  *
  * Their particles are not softened. Softening blends against a double buffered copy of the
- * view's own depth, and one copy cannot serve several portals in a frame -- nor can each have
+ * view's own depth, and one copy cannot serve several subviews in a frame -- nor can each have
  * its own, since a render pass has four color targets -- so `sprite_fs` draws them hard rather
- * than against whichever portal was drawn last.
+ * than against whichever subview was drawn last.
  * @param view The view being drawn around these, whose uniforms are restored before
  * returning, since `R_DrawMainView` relies on the ones `R_DrawViewDepth` wrote for it.
  */
-void R_DrawPortals(const RenderView *view) {
+void R_DrawSubviews(const RenderView *view) {
 
   if (rModels.world) {
-    RenderBspPortal *p = rModels.world->bsp->portals;
+    RenderSubview *p = rModels.world->bsp->portals;
     for (int32_t i = 0; i < rModels.world->bsp->numPortals; i++, p++) {
       p->layer = -1;
     }
   }
 
-  if (!view->numPortals || !rContext.device->commands) {
+  if (!view->numSubviews || !rContext.device->commands) {
     return;
   }
 
-  R_UpdatePortalFramebuffer();
+  R_UpdateSubviewFramebuffer();
 
-  // captured before any portal is drawn, since drawing one replaces the uniform block with its
-  // own view
+  // captured before any subview is drawn, since drawing one replaces the uniform block with
+  // its own view
   const Mat4 vp = Mat4_Concat(rUniforms.block.projection3D, rUniforms.block.view);
 
   RenderViewStats *stats = rStats;
 
   int32_t layer = 0;
-  for (int32_t i = 0; i < view->numPortals; i++) {
+  for (int32_t i = 0; i < view->numSubviews; i++) {
 
-    RenderBspPortal *portal = view->portals[i];
+    RenderSubview *subview = view->subviews[i];
 
-    // the scene was populated before any of it was culled, so a portal may well have been
+    // the scene was populated before any of it was culled, so a subview may well have been
     // offered a view it turns out not to need
-    if (R_CulludeBox(view, portal->absBounds)) {
+    if (R_CulludeBox(view, subview->absBounds)) {
       continue;
     }
 
-    portal->layer = layer++;
+    subview->layer = layer++;
 
-    const SDL_Rect scissor = R_PortalScissor(vp, portal);
+    const SDL_Rect scissor = R_SubviewScissor(vp, subview);
     if (scissor.w == 0 || scissor.h == 0) {
       continue;
     }
 
-    stats->portalsDrawn++;
+    stats->subviewsDrawn++;
 
-    R_UpdatePortalView(view, portal->view);
+    R_UpdateSubviewScene(view, subview->view);
 
-    rStats = &portal->view->stats;
-    R_DrawPortal(portal, &scissor);
+    rStats = &subview->view->stats;
+    R_DrawSubview(subview, &scissor);
 
-    stats->portalsTriangles += portal->view->stats.bspTriangles + portal->view->stats.meshTriangles;
+    stats->subviewsTriangles += subview->view->stats.bspTriangles + subview->view->stats.meshTriangles;
   }
 
   $(module.framebuffer, swap);

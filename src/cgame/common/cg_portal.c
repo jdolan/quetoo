@@ -28,7 +28,7 @@
  * current transform.
  * @return `false` if the entity that contains @c portal is not in the current frame (@c SVF_NO_CLIENT, etc.).
  */
-static bool Cg_PortalMatrix(const ClientFrame *frame, const RenderBspPortal *portal, Mat4 *matrix) {
+static bool Cg_PortalMatrix(const ClientFrame *frame, const RenderSubview *portal, Mat4 *matrix) {
 
   assert(portal->model);
 
@@ -63,7 +63,7 @@ void Cg_AddPortals(const ClientFrame *frame) {
 
   for (int32_t i = 0; i < world->bsp->numPortals; i++) {
 
-    RenderBspPortal *p = &world->bsp->portals[i];
+    RenderSubview *p = &world->bsp->portals[i];
 
     Mat4 matrix;
     if (Cg_PortalMatrix(frame, p, &matrix)) {

@@ -365,7 +365,7 @@ static void R_LoadBspPortals(RenderModel *mod) {
     return;
   }
 
-  RenderBspPortal *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->numPortals, bsp);
+  RenderSubview *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->numPortals, bsp);
 
   const BspPortal *in = bsp->cm->file->portals;
   for (int32_t i = 0; i < bsp->numPortals; i++, in++, out++) {
@@ -389,7 +389,7 @@ static void R_LoadBspPortals(RenderModel *mod) {
                                  in->exitUp,
                                  in->exitOrigin);
 
-    bsp->drawElements[in->drawElements].portal = out;
+    bsp->drawElements[in->drawElements].subview = out;
 
     for (int32_t j = 0; j < bsp->numInlineModels; j++) {
 

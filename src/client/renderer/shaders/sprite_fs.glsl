@@ -61,8 +61,8 @@ void main(void) {
     color = mix(color, color * inDiffuse, inLighting);
   }
 
-  // portals do not have their own depth buffer copy, so don't soften
-  float softness = viewType == VIEW_PORTAL ? 1.0 : soften();
+  // subviews do not have their own depth buffer copy, so don't soften
+  float softness = viewType == VIEW_SUBVIEW ? 1.0 : soften();
 
   outColor = vec4(textureColor * color * softness, 1.0);
 }

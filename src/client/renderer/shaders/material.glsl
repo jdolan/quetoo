@@ -59,7 +59,7 @@
 #define STAGE_FLARE         (1 << 19)
 #define STAGE_SHELL         (1 << 20)
 
-#define STAGE_PORTAL        (1 << 21)
+#define STAGE_SUBVIEW        (1 << 21)
 
 #define STAGE_DRAW          (1 << 30)
 
