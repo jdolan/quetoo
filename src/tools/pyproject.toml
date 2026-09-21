@@ -15,6 +15,7 @@ mdl2obj = "mdl2obj:main"
 md22obj = "md22obj:main"
 md32obj = "md32obj:main"
 md3fu = "md3fu:main"
+tintfu = "tintfu:main"
 objfu = "objfu:main"
 playerfu = "playerfu:main"
 skyfu = "skyfu:main"
@@ -22,4 +23,4 @@ symbolicate-dmp = "symbolicate_dmp:main"
 verify-projects = "verify_projects:main"
 
 [tool.setuptools]
-py-modules = ["matfu", "unpak", "mdl2obj", "md22obj", "md32obj", "md3fu", "objfu", "playerfu", "skyfu", "symbolicate_dmp", "verify_projects"]
+py-modules = ["matfu", "unpak", "mdl2obj", "md22obj", "md32obj", "md3", "md3fu", "tintfu", "objfu", "playerfu", "skyfu", "symbolicate_dmp", "verify_projects"]

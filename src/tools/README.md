@@ -23,6 +23,7 @@ Run any of the installed commands:
 - `md22obj`
 - `md32obj`
 - `md3fu`
+- `tintfu`
 - `objfu`
 - `skyfu`
 - `symbolicate-dmp`
@@ -35,7 +36,9 @@ Run any of the installed commands:
 - `mdl2obj.py`: Quake MDL v6 to OBJ
 - `md22obj.py`: Quake II MD2 to OBJ
 - `md32obj.py`: Quake III MD3 to OBJ
+- `md3.py`: MD3 reader shared by the player model tools
 - `md3fu.py`: MD3 player model animation viewer
+- `tintfu.py`: build player skin tintmaps from mesh coverage and a region recipe
 - `playerfu.py`: normalize a third-party Quake III player model into Quetoo's
   `players/<name>/` layout
 - `objfu.py`: OBJ viewer / muzzle helper
