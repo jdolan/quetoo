@@ -15,8 +15,9 @@ tool supplies both from the model:
            an untinted player looks like the original skin, and renders preview
            strips.
   wire     draws the UV wireframe of every mesh on a transparent image the size
-           of its diffuse map, one `<texture>_tris.png` per texture, to drop in
-           as a layer when a skin or tintmap is edited by hand.
+           of its diffuse map, one `<texture>_tris.png` per texture, each face
+           filled with its own color, to drop in as a layer when a skin or
+           tintmap is edited by hand. Takes a player model, or any OBJ.
 
 Recipe format (JSON):
 
@@ -44,6 +45,7 @@ define the region exactly. A texture absent from the recipe gets no tintmap.
 """
 
 import argparse
+import colorsys
 import json
 import re
 import sys
@@ -57,7 +59,7 @@ from skimage import color as skcolor
 from skimage import graph as skgraph
 from skimage import segmentation
 
-from md3 import Md3Surface, parse_skin, read_md3, resolve_texture
+from md3 import Md3Surface, Vec3, parse_skin, read_md3, resolve_texture
 
 CHANNELS = {"shirt": 0, "pants": 1, "helmet": 2}
 SURFACE_PREFIXES = ("l_", "u_", "h_")
@@ -113,6 +115,41 @@ def gather_jobs(data_root: Path, model: str, skin: str) -> list[TextureJob]:
     jobs[rel_path].surfaces.append(surfaces[name])
 
   return list(jobs.values())
+
+
+def read_obj(path: Path) -> list[Md3Surface]:
+  """Reads an OBJ into one surface per `usemtl`, named after the material, with
+  polygons fanned into triangles. Only texture coordinates and the vertex
+  positions are kept; positions follow the engine's (x, z, y) axis swap."""
+  positions: list[Vec3] = []
+  texcoords: list[tuple[float, float]] = []
+  surfaces: dict[str, Md3Surface] = {}
+  material = ""
+  for raw in path.read_text(errors="replace").splitlines():
+    line = raw.strip()
+    if line.startswith("v "):
+      x, y, z = (float(v) for v in line.split()[1:4])
+      positions.append((x, z, y))
+    elif line.startswith("vt "):
+      parts = line.split()
+      texcoords.append((float(parts[1]), 1.0 - float(parts[2])))
+    elif line.startswith("usemtl "):
+      material = line[7:].strip()
+    elif line.startswith("f "):
+      corners = []
+      for token in line.split()[1:]:
+        parts = token.split("/")
+        if len(parts) < 2 or not parts[1]:
+          raise SystemExit(f"{path}: face without texture coordinates: {line}")
+        corners.append((int(parts[0]) - 1, int(parts[1]) - 1))
+      surface = surfaces.setdefault(material, Md3Surface(material, [], [[]], []))
+      base = len(surface.texcoords)
+      for vi, ti in corners:
+        surface.texcoords.append(texcoords[ti])
+        surface.frames[0].append(positions[vi])
+      for i in range(1, len(corners) - 1):
+        surface.triangles.append((base, base + i, base + i + 1))
+  return list(surfaces.values())
 
 
 def uv_islands(surface: Md3Surface) -> list[int]:
@@ -278,15 +315,26 @@ def draw_surfaces(rgb: np.ndarray, raster: Rasterized) -> Image.Image:
   return Image.fromarray((image * 255).astype(np.uint8))
 
 
+def face_color(index: int) -> tuple[int, int, int, int]:
+  """A distinct, repeatable color per face: golden-angle hue, three value steps."""
+  hue = (index * 0.618033988749895) % 1.0
+  value = 0.55 + 0.2 * (index % 3)
+  r, g, b = colorsys.hsv_to_rgb(hue, 0.85, value)
+  return int(r * 255), int(g * 255), int(b * 255), 160
+
+
 def draw_wireframe(size: tuple[int, int], job: TextureJob) -> Image.Image:
-  """Every UV triangle outlined in white on transparency, surface borders in cyan."""
+  """Every UV triangle filled with its own color and outlined in white on
+  transparency, surface borders in cyan."""
   width, height = size
   image = Image.new("RGBA", size, (0, 0, 0, 0))
   draw = ImageDraw.Draw(image)
+  index = 0
   for surface in job.surfaces:
     for tri in surface.triangles:
       points = [((surface.texcoords[i][0] % 1.0) * width, (surface.texcoords[i][1] % 1.0) * height) for i in tri]
-      draw.polygon(points, outline=(255, 255, 255, 255))
+      draw.polygon(points, fill=face_color(index), outline=(255, 255, 255, 255))
+      index += 1
   raster = rasterize(job, width, height)
   borders = segmentation.find_boundaries(raster.surface_ids, mode="thick") & raster.coverage
   pixels = np.asarray(image).copy()
@@ -294,12 +342,36 @@ def draw_wireframe(size: tuple[int, int], job: TextureJob) -> Image.Image:
   return Image.fromarray(pixels, "RGBA")
 
 
+def obj_jobs(data_root: Path, obj_path: Path) -> list[tuple[TextureJob, tuple[int, int] | None]]:
+  """One job per OBJ material. The material name is tried as a data-root
+  texture path (Quetoo's `models/<name>/skin` convention, or a world texture
+  for map objects) to learn the size."""
+  jobs = []
+  for surface in read_obj(obj_path):
+    name = re.sub(r"\.\d{3}$", "", surface.name) or obj_path.stem
+    image_path = (resolve_texture(data_root, name) or resolve_texture(data_root, f"models/{name}")
+                  or resolve_texture(data_root, f"textures/{name}"))
+    size = Image.open(image_path).size if image_path else None
+    jobs.append((TextureJob(name, image_path, [surface]), size))
+  return jobs
+
+
 def wire(args):
   data_root = Path(args.data).expanduser()
   out_dir = Path(args.out).expanduser()
   out_dir.mkdir(parents=True, exist_ok=True)
-  for job in gather_jobs(data_root, args.model, args.skin):
-    size = Image.open(job.image_path).size
+
+  if args.obj:
+    jobs = obj_jobs(data_root, Path(args.obj).expanduser())
+  elif args.model:
+    jobs = [(job, Image.open(job.image_path).size) for job in gather_jobs(data_root, args.model, args.skin)]
+  else:
+    raise SystemExit("wire needs --model or --obj")
+
+  for job, size in jobs:
+    if size is None:
+      size = (args.size, args.size)
+      print(f"{job.rel_path}: no texture found under {data_root}, using {args.size}x{args.size}")
     path = out_dir / f"{texture_name(job)}_tris.png"
     draw_wireframe(size, job).save(path)
     print(f"{job.rel_path}: {sum(len(s.triangles) for s in job.surfaces)} triangles -> {path}")
@@ -320,6 +392,8 @@ def segmentation_params(recipe: dict | None, texture: str | None = None) -> dict
 
 
 def propose(args):
+  if not args.model:
+    raise SystemExit("propose needs --model")
   data_root = Path(args.data).expanduser()
   jobs = gather_jobs(data_root, args.model, args.skin)
   out_dir = Path(args.out).expanduser() / args.model
@@ -578,6 +652,8 @@ def draw_preview(rgb: np.ndarray, tint: np.ndarray, defaults: list, size: int) -
 
 
 def build(args):
+  if not args.model:
+    raise SystemExit("build needs --model")
   data_root = Path(args.data).expanduser()
   recipe = json.loads(Path(args.recipe).read_text())
   jobs = gather_jobs(data_root, args.model, args.skin)
@@ -629,7 +705,7 @@ def main():
   parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument("--data", default="/usr/local/share/quetoo/default",
                       help="game data root containing players/ (default: %(default)s)")
-  parser.add_argument("--model", required=True, help="player model directory name, e.g. bloodseeker")
+  parser.add_argument("--model", help="player model directory name, e.g. bloodseeker")
   parser.add_argument("--skin", default="default", help="skin name (default: %(default)s)")
   sub = parser.add_subparsers(dest="command", required=True)
 
@@ -649,6 +725,8 @@ def main():
   b.set_defaults(func=build)
 
   w = sub.add_parser("wire", help="draw the UV wireframe of each texture on a transparent image")
+  w.add_argument("--obj", help="an OBJ model instead of --model; one image per usemtl")
+  w.add_argument("--size", type=int, default=1024, help="image size when the OBJ's texture is not found (default: %(default)s)")
   w.add_argument("--out", required=True, help="directory for the <texture>_tris.png files")
   w.set_defaults(func=wire)
 
