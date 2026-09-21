@@ -7,11 +7,13 @@ EXTRA_DIST = \
 	mdl2obj.py \
 	md22obj.py \
 	md32obj.py \
+	md3.py \
 	md3fu.py \
 	objfu.py \
 	playerfu.py \
  	pyproject.toml \
 	skyfu.py \
+	tintfu.py \
 	symbolicate_dmp.py \
 	verify_projects.py
 
