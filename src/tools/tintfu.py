@@ -141,8 +141,8 @@ def read_obj(path: Path) -> list[Md3Surface]:
         parts = token.split("/")
         if len(parts) < 2 or not parts[1]:
           raise SystemExit(f"{path}: face without texture coordinates: {line}")
-      corners.append((int(parts[0]) - 1 if int(parts[0]) > 0 else len(positions) + int(parts[0]),
-                      int(parts[1]) - 1 if int(parts[1]) > 0 else len(texcoords) + int(parts[1])))
+        corners.append((int(parts[0]) - 1 if int(parts[0]) > 0 else len(positions) + int(parts[0]),
+                        int(parts[1]) - 1 if int(parts[1]) > 0 else len(texcoords) + int(parts[1])))
       surface = surfaces.setdefault(material, Md3Surface(material, [], [[]], []))
       base = len(surface.texcoords)
       for vi, ti in corners:
