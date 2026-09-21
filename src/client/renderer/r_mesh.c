@@ -46,8 +46,10 @@ void R_ApplyMeshConfig(RenderEntity *e) {
  */
 static const RenderMeshTag *R_MeshTag(const RenderModel *mod, const char *name, const int32_t frame) {
 
-  if (frame >= mod->mesh->numFrames) {
-    Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
+  // a negative frame is not merely out of range: it indexes behind the tags, so the scan below
+  // finds no match and blames the tag, on a model that has it
+  if (frame < 0 || frame >= mod->mesh->numFrames) {
+    Com_Warn("%s: Invalid frame: %d of %d\n", mod->media.name, frame, mod->mesh->numFrames);
     return NULL;
   }
 
@@ -60,7 +62,8 @@ static const RenderMeshTag *R_MeshTag(const RenderModel *mod, const char *name, 
     }
   }
 
-  Com_Warn("%s: Tag not found: %s\n", mod->media.name, name);
+  Com_Warn("%s: Tag not found: %s (frame %d of %d, %d tags)\n", mod->media.name, name, frame,
+           model->numFrames, model->numTags);
   return NULL;
 }
 
@@ -73,7 +76,8 @@ void R_ApplyMeshTag(RenderEntity *e) {
   const RenderMeshTag *t2 = R_MeshTag(e->parent->model, e->tag, e->parent->frame);
 
   if (!t1 || !t2) {
-    Com_Warn("Invalid tag %s\n", e->tag);
+    Com_Warn("%s: Invalid tag %s: frames %d, %d\n", e->parent->model->media.name, e->tag,
+             e->parent->oldFrame, e->parent->frame);
     return;
   }
 
