@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT             (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION           82
+#define BSP_VERSION           83
 
 /**
  * @brief BSP file format limits.
@@ -49,6 +49,7 @@
 #define MAX_BSP_MODELS        0x100
 #define MAX_BSP_LIGHTS        0x200
 #define MAX_BSP_PORTALS       0x40
+#define MAX_BSP_REFLECTIONS   0x40
 #define MAX_BSP_PATCHES       0x400
 #define MAX_BSP_VOXELS_SIZE   0x4000000
 #define MAX_BSP_LIGHT_VOXELS  0x800000
@@ -99,6 +100,7 @@ typedef enum {
   BSP_LUMP_LIGHT_VOXELS,
   BSP_LUMP_BLOCK_VOXELS,
   BSP_LUMP_PORTALS,
+  BSP_LUMP_REFLECTIONS,
   BSP_LUMP_LAST
 } BspLumpId;
 
@@ -499,6 +501,13 @@ typedef struct {
    * @brief The count of elements.
    */
   int32_t numElements;
+
+  /**
+   * @brief The index of the reflection these elements show, or `-1` for none.
+   * @details A portal is found the other way about, from `BspPortal::drawElements`, because a
+   * portal owns exactly one draw elements while a reflection owns as many as it has blocks.
+   */
+  int32_t reflection;
 } BspDrawElements;
 
 /**
@@ -541,6 +550,41 @@ typedef struct {
    */
   Vec3 exitForward, exitUp;
 } BspPortal;
+
+/**
+ * @brief A reflection: the plane of one or more `SURF_REFLECT` faces of an inline model, which
+ * the renderer mirrors the camera about to fill them.
+ * @details One per plane per model rather than one per face. Draw elements are emitted per BSP
+ * block, so a pool spanning several blocks is several of them, and a subview each would spend the
+ * renderer's whole budget on one pond. The plane is resolved here because the compiler holds it
+ * exactly: deriving it from a winding would have to guess the facing from a vertex normal that
+ * Phong shading may have smoothed away from the face.
+ *
+ * `dist` is not stored. It is `origin` dotted with `normal`, and `origin` lies on the plane, so
+ * it cannot be baked inconsistently with them.
+ */
+typedef struct {
+
+  /**
+   * @brief The index of the inline model whose faces show this reflection.
+   */
+  int32_t model;
+
+  /**
+   * @brief A point on the plane, in the model's space, being the centroid of the faces.
+   */
+  Vec3 origin;
+
+  /**
+   * @brief The outward normal of the plane, in the model's space.
+   */
+  Vec3 normal;
+
+  /**
+   * @brief The bounds of the faces showing this reflection, in the model's space.
+   */
+  Box3 bounds;
+} BspReflection;
 
 /**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate
@@ -916,6 +960,16 @@ typedef struct BspFile {
    * @brief The portals.
    */
   BspPortal *portals;
+
+  /**
+   * @brief Number of reflections.
+   */
+  int32_t numReflections;
+
+  /**
+   * @brief The reflections.
+   */
+  BspReflection *reflections;
 
   int32_t numLights;
 

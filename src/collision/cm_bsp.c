@@ -68,6 +68,7 @@ static BspLumpMeta bspLumpMeta[BSP_LUMP_LAST] = {
   BSP_LUMP_NUM_STRUCT(numLightVoxels, lightVoxels, MAX_BSP_LIGHT_VOXELS),
   BSP_LUMP_NUM_STRUCT(numBlockVoxels, blockVoxels, MAX_BSP_BLOCK_VOXELS),
   BSP_LUMP_NUM_STRUCT(numPortals, portals, MAX_BSP_PORTALS),
+  BSP_LUMP_NUM_STRUCT(numReflections, reflections, MAX_BSP_REFLECTIONS),
 };
 
 /**

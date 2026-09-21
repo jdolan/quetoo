@@ -43,6 +43,31 @@ static struct {
 static int32_t numPortalFaces;
 
 /**
+ * @brief The most reflective draw elements one model may emit, before they are grouped by plane.
+ * @remarks Far above `MAX_BSP_REFLECTIONS`, which bounds the planes rather than the blocks they
+ * are cut into.
+ */
+#define MAX_BSP_REFLECT_ELEMENTS 0x400
+
+/**
+ * @brief The reflective draw elements of the model being emitted.
+ * @remarks Resolved into the reflections lump by `EmitReflections`, once all of the model's
+ * blocks are known, since a plane spanning several of them is one reflection.
+ */
+static struct {
+  int32_t plane;
+  int32_t drawElements;
+} reflect_elements[MAX_BSP_REFLECT_ELEMENTS];
+
+static int32_t numReflectElements;
+
+/**
+ * @brief The plane of each reflection emitted so far, which the lump does not store: it bakes the
+ * normal, and the distance follows from an origin that lies on the plane.
+ */
+static int32_t reflect_planes[MAX_BSP_REFLECTIONS];
+
+/**
  * @brief Writes all compiler planes to the BSP planes lump.
  */
 void EmitPlanes(void) {
@@ -426,6 +451,7 @@ void BeginBSPFile(void) {
   Bsp_AllocLump(&bspFile, BSP_LUMP_BLOCKS, MAX_BSP_BLOCKS);
   Bsp_AllocLump(&bspFile, BSP_LUMP_MODELS, MAX_BSP_MODELS);
   Bsp_AllocLump(&bspFile, BSP_LUMP_PATCHES, MAX_BSP_PATCHES);
+  Bsp_AllocLump(&bspFile, BSP_LUMP_REFLECTIONS, MAX_BSP_REFLECTIONS);
 
   /*
    * jdolan 2019-01-01
@@ -625,6 +651,7 @@ static void EmitDepthPassElements(BspModel *mod) {
 
   BspDrawElements *opaque = bspFile.drawElements + bspFile.numDrawElements;
   opaque->material = -1;
+  opaque->reflection = -1;
   opaque->bounds = Box3_Null();
   opaque->firstElement = bspFile.numElements;
 
@@ -684,9 +711,57 @@ static void EmitDepthPassElements(BspModel *mod) {
 }
 
 /**
+ * @return `true` if @p face should show a reflection.
+ * @details Two kinds of face carry `SURF_REFLECT` without wanting a mirror of their own.
+ *
+ * A translucent brush emits its surfaces twice, once with the brush side's plane and once with
+ * that plane's opposing twin, so that a liquid is visible from under it as well as over it. Only
+ * the side as the brush defines it reflects: the twin faces the other way, so it would be a
+ * second reflection of one surface, and mirroring the room from under the water is not what a
+ * mapper asks for by painting the top of a pool.
+ *
+ * A face must also lie on the plane it names. Cistern has three-vertex slivers whose vertexes
+ * miss their own plane by hundreds of units, and a mirror plane that far from the geometry it
+ * belongs to reflects nothing that face can show.
+ */
+static bool ReflectiveFace(const BspFace *face) {
+
+  // a patch has no brush side and no plane, so its faces sort equal across the whole curve and
+  // cannot be coplanar
+  if (face->plane == -1 || face->brushSide == -1) {
+    Com_Warn("Patch %s @ %s cannot reflect; a reflection needs a brush side\n",
+             bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)));
+    return false;
+  }
+
+  if (face->plane != bspFile.brushSides[face->brushSide].plane) {
+    return false;
+  }
+
+  const BspPlane *plane = &bspFile.planes[face->plane];
+
+  const BspVertex *v = &bspFile.vertexes[face->firstVertex];
+  for (int32_t i = 0; i < face->numVertexes; i++, v++) {
+
+    const float d = Vec3_Dot(v->position, plane->normal) - plane->dist;
+    if (fabsf(d) > ON_EPSILON) {
+      Com_Warn("Reflective %s @ %s is %g off its own plane and will not reflect\n",
+               bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)), d);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * @brief Draw elements comparator to sort model faces by material.
  * @details Opaque and blended faces are equal if they share material and contents.
  * @details Material faces equal if they share blend equality and brush side.
+ * @details Subview faces are likewise unique per brush side, which is what makes each of them
+ * planar: the renderer reads a reflective face's mirror plane off its own geometry, and a brush's
+ * top and sides sharing a material would otherwise merge into one draw element spanning several
+ * planes, with no way to say which of them is the one to reflect about.
  */
 static int32_t FaceCmp(const void * a, const void * b) {
 
@@ -705,9 +780,9 @@ static int32_t FaceCmp(const void * a, const void * b) {
     order = aSurface - bSurface;
     if (order == 0) {
 
-      if (aSurface & (SURF_MATERIAL | SURF_PORTAL)) {
-        // Brush side faces with SURF_MATERIAL are unique per brush side, and each SURF_PORTAL
-        // face is its own portal, drawn with its own view
+      if (aSurface & (SURF_MATERIAL | SURF_MASK_SUBVIEW)) {
+        // Brush side faces with SURF_MATERIAL are unique per brush side, and each subview face
+        // is drawn with a view of its own, placed from the plane of the side that cut it
         return aFace->brushSide - bFace->brushSide;
       }
     }
@@ -754,6 +829,24 @@ int32_t EmitDrawElements(Vector *faces) {
 
     out->material = FaceMaterial(a);
     out->surface = aSurface & SURF_MASK_DRAW_ELEMENTS_CMP;
+    out->reflection = -1;
+
+    if (out->surface & SURF_REFLECT) {
+      out->surface &= ~SURF_REFLECT;
+
+      if (ReflectiveFace(a)) {
+
+        if (numReflectElements == MAX_BSP_REFLECT_ELEMENTS) {
+          Com_Error(ERROR_FATAL, "MAX_BSP_REFLECT_ELEMENTS\n");
+        }
+
+        reflect_elements[numReflectElements].plane = a->plane;
+        reflect_elements[numReflectElements].drawElements = (int32_t) (out - bspFile.drawElements);
+        numReflectElements++;
+
+        out->surface |= SURF_REFLECT;
+      }
+    }
 
     if (aSurface & SURF_PORTAL) {
       if (numPortalFaces == MAX_BSP_PORTALS) {
@@ -854,6 +947,74 @@ static void EmitBlocks_r(BspModel *mod, BspNode *node) {
 }
 
 /**
+ * @brief Groups the reflective draw elements of @p mod by plane, and emits one reflection each.
+ * @details Draw elements are cut per BSP block, so a pool spanning four of them arrives here as
+ * four entries sharing one plane. A reflection is a whole scene rendered into a layer and the
+ * renderer holds only a handful of layers, so they are grouped: one reflection per plane per
+ * model, culled and scissored by the union of its faces.
+ *
+ * Grouped per model rather than per world, since two models holding the same plane part company
+ * as soon as either moves.
+ */
+static void EmitReflections(BspModel *mod) {
+
+  const int32_t firstReflection = bspFile.numReflections;
+
+  for (int32_t i = 0; i < numReflectElements; i++) {
+
+    BspDrawElements *draw = &bspFile.drawElements[reflect_elements[i].drawElements];
+
+    BspReflection *out = NULL;
+
+    for (int32_t j = firstReflection; j < bspFile.numReflections && out == NULL; j++) {
+      if (reflect_planes[j] == reflect_elements[i].plane) {
+        out = &bspFile.reflections[j];
+      }
+    }
+
+    if (out == NULL) {
+
+      if (bspFile.numReflections == MAX_BSP_REFLECTIONS) {
+        Com_Error(ERROR_FATAL, "MAX_BSP_REFLECTIONS\n");
+      }
+
+      out = &bspFile.reflections[bspFile.numReflections];
+
+      reflect_planes[bspFile.numReflections] = reflect_elements[i].plane;
+      bspFile.numReflections++;
+
+      out->model = (int32_t) (mod - bspFile.models);
+      out->normal = bspFile.planes[reflect_elements[i].plane].normal;
+      out->bounds = Box3_Null();
+    }
+
+    out->bounds = Box3_Union(out->bounds, draw->bounds);
+
+    draw->reflection = (int32_t) (out - bspFile.reflections);
+  }
+
+  // the origin must lie on the plane, which the center of the bounds does not for a plane that is
+  // not axis aligned, so it is projected onto it
+  for (int32_t i = firstReflection; i < bspFile.numReflections; i++) {
+
+    BspReflection *out = &bspFile.reflections[i];
+    const BspPlane *plane = &bspFile.planes[reflect_planes[i]];
+
+    const Vec3 center = Box3_Center(out->bounds);
+
+    out->origin = Vec3_Fmaf(center, plane->dist - Vec3_Dot(center, plane->normal), plane->normal);
+  }
+
+  if (bspFile.numReflections > firstReflection) {
+    Com_Verbose("Emitted %d reflections for model %d, from %d draw elements\n",
+                bspFile.numReflections - firstReflection,
+                (int32_t) (mod - bspFile.models), numReflectElements);
+  }
+
+  numReflectElements = 0;
+}
+
+/**
  * @brief Emits all block draw-element groups for the given model.
  */
 static void EmitBlocks(BspModel *mod) {
@@ -888,6 +1049,8 @@ void EndModel(BspModel *mod) {
   mod->firstDrawElements = bspFile.numDrawElements;
 
   EmitBlocks(mod);
+
+  EmitReflections(mod);
 
   const BspFace *face = &bspFile.faces[mod->firstFace];
   for (int32_t i = 0; i < mod->numFaces; i++, face++) {

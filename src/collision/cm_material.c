@@ -103,6 +103,7 @@ static CmMaterialHint cm_surfaceHints[] = {
   { .keyword = "phong", .flag = SURF_PHONG },
   { .keyword = "material", .flag = SURF_MATERIAL },
   { .keyword = "portal", .flag = SURF_PORTAL },
+  { .keyword = "reflect", .flag = SURF_REFLECT },
 };
 
 /**

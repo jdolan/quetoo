@@ -241,6 +241,7 @@ typedef enum {
 #define SURF_PHONG      0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL   0x1000 // skip diffuse pass, draw material stages only
 #define SURF_PORTAL     0x2000 // shows the view through the entity's paired portal
+#define SURF_REFLECT    0x4000 // shows the world mirrored about the face's own plane
 #define SURF_BEVEL      0x20000000 // brush side is a bevel with approximate material
 #define SURF_NODE       0x40000000 // brush side is a node splitter with no material
 
@@ -249,6 +250,12 @@ typedef enum {
  * equal for draw elements merging.
  */
 #define SURF_MASK_DRAW_ELEMENTS_CMP ~(SURF_PHONG)
+
+/**
+ * @brief Faces with these flags show a second view of the world, rendered into a layer of one
+ * array texture and sampled in screen space by the face itself.
+ */
+#define SURF_MASK_SUBVIEW (SURF_PORTAL | SURF_REFLECT)
 
 /**
  * @brief Faces with these flags require transparency.
