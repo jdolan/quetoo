@@ -14,6 +14,9 @@ tool supplies both from the model:
            `<texture>_tint.png` files, updates the `.mat` tint defaults so that
            an untinted player looks like the original skin, and renders preview
            strips.
+  wire     draws the UV wireframe of every mesh on a transparent image the size
+           of its diffuse map, one `<texture>_tris.png` per texture, to drop in
+           as a layer when a skin or tintmap is edited by hand.
 
 Recipe format (JSON):
 
@@ -273,6 +276,33 @@ def draw_surfaces(rgb: np.ndarray, raster: Rasterized) -> Image.Image:
   tint = palette[raster.surface_ids % len(palette)]
   image = np.where(raster.coverage[..., None], rgb * 0.5 + tint * 0.5, rgb * 0.35)
   return Image.fromarray((image * 255).astype(np.uint8))
+
+
+def draw_wireframe(size: tuple[int, int], job: TextureJob) -> Image.Image:
+  """Every UV triangle outlined in white on transparency, surface borders in cyan."""
+  width, height = size
+  image = Image.new("RGBA", size, (0, 0, 0, 0))
+  draw = ImageDraw.Draw(image)
+  for surface in job.surfaces:
+    for tri in surface.triangles:
+      points = [((surface.texcoords[i][0] % 1.0) * width, (surface.texcoords[i][1] % 1.0) * height) for i in tri]
+      draw.polygon(points, outline=(255, 255, 255, 255))
+  raster = rasterize(job, width, height)
+  borders = segmentation.find_boundaries(raster.surface_ids, mode="thick") & raster.coverage
+  pixels = np.asarray(image).copy()
+  pixels[borders] = (0, 255, 255, 255)
+  return Image.fromarray(pixels, "RGBA")
+
+
+def wire(args):
+  data_root = Path(args.data).expanduser()
+  out_dir = Path(args.out).expanduser()
+  out_dir.mkdir(parents=True, exist_ok=True)
+  for job in gather_jobs(data_root, args.model, args.skin):
+    size = Image.open(job.image_path).size
+    path = out_dir / f"{texture_name(job)}_tris.png"
+    draw_wireframe(size, job).save(path)
+    print(f"{job.rel_path}: {sum(len(s.triangles) for s in job.surfaces)} triangles -> {path}")
 
 
 def texture_name(job: TextureJob) -> str:
@@ -617,6 +647,10 @@ def main():
   b.add_argument("--pad", type=int, default=4, help="pixels to pad past UV edges (default: %(default)s)")
   b.add_argument("--dry-run", action="store_true", help="render previews only, write nothing to the data root")
   b.set_defaults(func=build)
+
+  w = sub.add_parser("wire", help="draw the UV wireframe of each texture on a transparent image")
+  w.add_argument("--out", required=True, help="directory for the <texture>_tris.png files")
+  w.set_defaults(func=wire)
 
   args = parser.parse_args()
   args.func(args)
