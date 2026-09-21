@@ -458,12 +458,14 @@ void R_DrawSubviews(const RenderView *view) {
       continue;
     }
 
-    subview->layer = layer++;
-
     const SDL_Rect scissor = R_SubviewScissor(vp, subview);
     if (scissor.w == 0 || scissor.h == 0) {
       continue;
     }
+
+    // assigned only once this subview is certain to be drawn, so that a non-negative layer always
+    // names one rendered this frame
+    subview->layer = layer++;
 
     stats->subviewsDrawn++;
 
