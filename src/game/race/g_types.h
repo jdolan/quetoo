@@ -1336,11 +1336,6 @@ typedef struct {
 } GameGiblets;
 
 /**
- * @brief The name for the CTF skin used in team games.
- */
-#define DEFAULT_TEAM_SKIN "ctf"
-
-/**
  * @brief There are four teams in the default game module.
  */
 typedef struct {
@@ -1354,11 +1349,6 @@ typedef struct {
    * @brief Short team name for HUD display.
    */
   char name[16];
-
-  /**
-   * @brief Team skin name.
-   */
-  char skin[MAX_QPATH];
 
     /**
    * @brief Spawn point classname.

@@ -34,7 +34,7 @@ static const AiRoster gAiRoster[] = {
   { "Gunner",      "guard/mgss",          "42a7c448-4c4a-434a-9274-69f700b2f8b6", .70f,  .45f,  .70f },
   { "Dragoon",     "dragoon/default",     "c4ad0a99-5251-42fc-bc63-2f705ce6f363", .55f,  .70f,  .45f },
   { "Makron",      "dragoon/baron",       "1ba330d3-6ee3-473c-9d18-bd21d29ec262", .85f,  .55f,  .80f },
-  { "Brain",       "gork/ctf",            "82229474-3efc-4872-bd05-a5a997f9a3e6", .75f,  .25f,  .90f },
+  { "Brain",       "gork/default",        "82229474-3efc-4872-bd05-a5a997f9a3e6", .75f,  .25f,  .90f },
   { "Bunker",      "bunker/default",      "c83474c1-422c-44cd-a93b-918390435187", .60f,  .40f,  .65f },
   { "Tank",        "bunker/hax",          "a66cc25d-e234-4f8d-98b5-7cc4d34ea067", .35f,  .80f,  .35f },
   { "Medic",       "guard/sggrd",         "80baa7ff-2ea6-4d8e-b111-caaaf2147e8b", .45f,  .30f,  .75f },
