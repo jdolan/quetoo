@@ -226,6 +226,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend des
   info.fragment_shader = fragmentShader->shader;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.fill_mode = R_FillMode();
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   info.depth_stencil_state.enable_depth_write = depthWrite;
@@ -850,6 +851,7 @@ void R_InitBspPipeline(void) {
   info.fragment_shader = fragmentShader->shader;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.fill_mode = R_FillMode();
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {

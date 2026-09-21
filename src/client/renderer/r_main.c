@@ -35,6 +35,7 @@ Cvar *r_drawBspVoxels;
 Cvar *r_drawEntityBounds;
 Cvar *r_drawLightBounds;
 Cvar *r_drawMaterialStages;
+Cvar *r_drawWireframe;
 Cvar *r_occlude;
 Cvar *r_portals;
 Cvar *r_reflections;
@@ -188,6 +189,17 @@ static void R_UpdateSwapInterval(void) {
 }
 
 /**
+ * @return The fill mode the world is rasterized with.
+ * @details Fill mode is pipeline state under SDL_GPU, so this is read where a pipeline is built
+ * rather than where one is bound, and `r_drawWireframe` rebuilds them all when it changes.
+ * @remarks Vulkan gates line fill behind a device feature. SDL falls back to filled where it is
+ * missing, so the cvar is quietly ignored on such a device rather than failing to build.
+ */
+SDL_GPUFillMode R_FillMode(void) {
+  return r_drawWireframe->integer ? SDL_GPU_FILLMODE_LINE : SDL_GPU_FILLMODE_FILL;
+}
+
+/**
  * @brief Rebuilds every pipeline whose creation info is derived from a
  * pipeline-bound cvar (@c r_antialias, @c r_anisotropy, ...).
  */
@@ -232,6 +244,11 @@ void R_BeginFrame(void) {
       });
     }
     r_antialias->modified = false;
+  }
+
+  if (r_drawWireframe->modified) {
+    R_UpdatePipelines();
+    r_drawWireframe->modified = false;
   }
 
   if (r_anisotropy->modified) {
@@ -427,6 +444,7 @@ static void R_InitLocal(void) {
   r_drawMaterialStages = Cvar_Add("r_drawMaterialStages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
   r_depthPass = Cvar_Add("r_depthPass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
+  r_drawWireframe = Cvar_Add("r_drawWireframe", "0", CVAR_DEVELOPER, "Draws world geometry as wireframe (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
   r_reflections = Cvar_Add("r_reflections", "1", CVAR_ARCHIVE, "Controls rendering reflections in reflective surfaces.");
 

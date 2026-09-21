@@ -54,6 +54,7 @@ extern Cvar *r_windowWidth;
 
 extern SDL_GPUSampleCount rSceneSamples;
 SDL_GPUSampleCount R_SampleCount(void);
+SDL_GPUFillMode R_FillMode(void);
 
 void R_Init(void);
 void R_Shutdown(void);
@@ -260,6 +261,7 @@ extern Cvar *r_drawBspVoxels;
 extern Cvar *r_drawEntityBounds;
 extern Cvar *r_drawLightBounds;
 extern Cvar *r_drawMaterialStages;
+extern Cvar *r_drawWireframe;
 extern Cvar *r_occlude;
 extern Cvar *r_portals;
 extern Cvar *r_reflections;
