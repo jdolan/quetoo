@@ -1638,6 +1638,14 @@ Box3 G_ClientStandingBounds(const GameClient *cl) {
 }
 
 /**
+ * @return The client info token for a tint color: "default" when the color is
+ * unset, so that the client falls back to the skin's tintmap defaults.
+ */
+static const char *G_ClientTintString(const Color color) {
+  return color.a ? Color_Unparse(color) : "default";
+}
+
+/**
  * @brief Applies updates from a client's user info string to their persistent state.
  */
 void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
@@ -1742,7 +1750,8 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
     }
   }
 
-  // set shirt, pants and head colors
+  // set shirt, pants and helmet colors; an unset color keeps alpha zero, and
+  // reaches the client as "default" so that the skin's tintmap defaults apply
 
   cl->persistent.shirt.a = 0;
   cl->persistent.pants.a = 0;
@@ -1758,17 +1767,17 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 
     InfoString_Get(userInfo, "shirt", s, sizeof(s));
     if (!Color_Parse(s, &cl->persistent.shirt)) {
-      cl->persistent.shirt = color_white;
+      cl->persistent.shirt.a = 0;
     }
 
     InfoString_Get(userInfo, "pants", s, sizeof(s));
     if (!Color_Parse(s, &cl->persistent.pants)) {
-      cl->persistent.pants = color_white;
+      cl->persistent.pants.a = 0;
     }
 
     InfoString_Get(userInfo, "helmet", s, sizeof(s));
     if (!Color_Parse(s, &cl->persistent.helmet)) {
-      cl->persistent.helmet = color_white;
+      cl->persistent.helmet.a = 0;
     }
   }
 
@@ -1784,13 +1793,13 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   q_strlcat(clientInfo, cl->persistent.skin, sizeof(clientInfo));
 
   q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, Color_Unparse(cl->persistent.shirt), sizeof(clientInfo));
+  q_strlcat(clientInfo, G_ClientTintString(cl->persistent.shirt), sizeof(clientInfo));
 
   q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, Color_Unparse(cl->persistent.pants), sizeof(clientInfo));
+  q_strlcat(clientInfo, G_ClientTintString(cl->persistent.pants), sizeof(clientInfo));
 
   q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, Color_Unparse(cl->persistent.helmet), sizeof(clientInfo));
+  q_strlcat(clientInfo, G_ClientTintString(cl->persistent.helmet), sizeof(clientInfo));
 
   q_strlcat(clientInfo, "\\", sizeof(clientInfo));
   q_strlcat(clientInfo, va("%i", cl->persistent.color), sizeof(clientInfo));

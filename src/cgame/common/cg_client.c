@@ -24,7 +24,8 @@
 
 // team\name\model/skin\shirt\pants\helmet\hue, and the standing box's floor/ceiling
 // since 1.0.85; fields beyond these are ignored, so that a newer server's string
-// still dresses a player here
+// still dresses a player here. A tint is rrggbb[aa], or "default" for the skin's
+// tintmap defaults
 #define MIN_CLIENT_INFO_ENTRIES 7
 #define MAX_CLIENT_INFO_ENTRIES 8
 
