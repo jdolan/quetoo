@@ -93,7 +93,10 @@ def gather_jobs(data_root: Path, model: str, skin: str) -> list[TextureJob]:
 
   jobs: dict[str, TextureJob] = {}
   for name, rel_path in mapping.items():
-    if not name.startswith(SURFACE_PREFIXES) or EFFECT_TEXTURES.search(rel_path):
+    if not name.startswith(SURFACE_PREFIXES):
+      continue
+    if EFFECT_TEXTURES.search(rel_path):
+      print(f"{rel_path}: effect texture, skipped")
       continue
     if name not in surfaces:
       raise SystemExit(f"{skin}.skin names surface {name}, which no {PARTS} .md3 defines")
@@ -172,9 +175,10 @@ def segment(rgb: np.ndarray, raster: Rasterized, params: dict) -> np.ndarray:
   sp[~mask] = 0
 
   # SLIC leaves masked pixels at 0 where no seed lands; each such component becomes its own superpixel
-  unlabeled, count = ndimage.label(mask & (sp == 0))
+  unlabeled, _ = ndimage.label(mask & (sp == 0))
   sp = np.where(unlabeled > 0, unlabeled + sp.max(), sp)
-  assert not (mask & (sp == 0)).any()
+  if (mask & (sp == 0)).any():
+    raise RuntimeError("superpixel labeling left covered pixels unlabeled")
 
   # a superpixel may straddle two islands; split it so no region ever crosses one
   islands = raster.island_ids - raster.island_ids[mask].min() + 1
@@ -191,13 +195,13 @@ def segment(rgb: np.ndarray, raster: Rasterized, params: dict) -> np.ndarray:
   merged = skgraph.cut_threshold(sp, rag, params["threshold"], in_place=False) + 1
   merged[~mask] = 0
 
-  labels = absorb_small_regions(merged, mask, params["min_area"])
+  labels = absorb_small_regions(merged, mask, raster.island_ids, params["min_area"])
   return segmentation.relabel_sequential(labels)[0].astype(np.int32)
 
 
-def absorb_small_regions(labels: np.ndarray, mask: np.ndarray, min_area: int) -> np.ndarray:
-  """Merges regions under `min_area` pixels into their largest neighbor, so the
-  overlay stays readable and the recipe stays short."""
+def absorb_small_regions(labels: np.ndarray, mask: np.ndarray, island_ids: np.ndarray, min_area: int) -> np.ndarray:
+  """Merges regions under `min_area` pixels into their largest neighbor on the
+  same UV island, so the overlay stays readable and the recipe stays short."""
   labels = labels.copy()
   while True:
     ids, counts = np.unique(labels[mask], return_counts=True)
@@ -207,7 +211,8 @@ def absorb_small_regions(labels: np.ndarray, mask: np.ndarray, min_area: int) ->
     changed = False
     for small_id in small:
       region = labels == small_id
-      ring = ndimage.binary_dilation(region) & mask & ~region
+      island = island_ids == island_ids[region][0]
+      ring = ndimage.binary_dilation(region) & island & ~region
       neighbors = labels[ring]
       if neighbors.size == 0:
         continue
@@ -315,8 +320,12 @@ def propose(args):
 
 def resolve_rule(rule) -> tuple[str | None, float]:
   if isinstance(rule, str):
-    return (None if rule == "none" else rule), 1.0
-  return rule.get("channel"), float(rule.get("alpha", 1.0))
+    name, alpha = rule, 1.0
+  else:
+    name, alpha = rule.get("channel", "none"), float(rule.get("alpha", 1.0))
+  if name != "none" and name not in CHANNELS:
+    raise SystemExit(f"unknown channel {name!r}; use {list(CHANNELS)} or none")
+  return (None if name == "none" else name), alpha
 
 
 def pixel_features(rgb: np.ndarray) -> np.ndarray:
@@ -343,9 +352,11 @@ def classify_by_example(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray,
     if not mask.any():
       raise SystemExit(f"examples for {name} name no existing region")
     x = features[mask]
+    if len(x) < 4 * x.shape[1]:
+      raise SystemExit(f"examples for {name} cover only {len(x)} pixels; add regions")
     mean = x.mean(axis=0)
-    cov = np.cov(x, rowvar=False) + np.eye(x.shape[1]) * 1e-2
-    models.append((mean, np.linalg.inv(cov), np.log(np.linalg.det(cov)), np.log(len(x))))
+    cov = np.cov(x, rowvar=False) + np.eye(x.shape[1])
+    models.append((mean, np.linalg.pinv(cov), np.linalg.slogdet(cov)[1], np.log(len(x))))
 
   x = features[raster.coverage]
   scores = np.empty((len(x), len(classes)), dtype=np.float32)
@@ -355,7 +366,9 @@ def classify_by_example(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray,
   best = np.full(labels.shape, -1, dtype=np.int32)
   best[raster.coverage] = scores.argmax(axis=1)
 
-  best = ndimage.median_filter(best, size=9)
+  # the majority filter must not see off-coverage pixels, or thin UV strips vanish
+  _, (iy, ix) = ndimage.distance_transform_edt(~raster.coverage, return_indices=True)
+  best = ndimage.median_filter(best[iy, ix], size=9)
   best[~raster.coverage] = -1
   for i in range(len(classes)):
     components, count = ndimage.label(best == i)
@@ -364,11 +377,14 @@ def classify_by_example(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray,
       best[components == small] = -2
   holes = best == -2
   if holes.any():
-    _, (iy, ix) = ndimage.distance_transform_edt(holes, return_indices=True)
+    _, (iy, ix) = ndimage.distance_transform_edt(holes | ~raster.coverage, return_indices=True)
     best = best[iy, ix]
   best[~raster.coverage] = -1
 
   channel = np.full(labels.shape, -1, dtype=np.int32)
+  for name in classes:
+    if name not in CHANNELS and name not in ("none", "auto"):
+      raise SystemExit(f"unknown example class {name!r}; use {list(CHANNELS)}, none or auto")
   for i, name in enumerate(classes):
     if name == "auto":
       for index, surface_name in enumerate(raster.surface_names):
@@ -422,19 +438,24 @@ def build_tintmap(rgb: np.ndarray, raster: Rasterized, channel: np.ndarray, alph
     region = channel == index
     if not region.any():
       continue
-    # lift dark skins so that team colors read as bright as on the hand-painted sets
+    # lift dark skins so that team colors read as bright as on the hand-painted sets,
+    # but keep the brightest texels below white so the region keeps its shading
     scale = max(1.0, TARGET_SHADE / max(value[region].mean(), 1e-3))
+    scale = min(scale, 1.0 / max(np.percentile(value[region], 95), 1e-3))
     tint[..., index] = np.where(region, np.clip(value * scale, 0.0, 1.0), 0.0)
   tint[..., 3] = np.where(channel >= 0, alpha, 0.0)
 
-  if pad > 0:
-    _, (iy, ix) = ndimage.distance_transform_edt(~raster.coverage, return_indices=True)
-    padded = tint[iy, ix]
-    near = ndimage.binary_dilation(raster.coverage, iterations=pad)
-    tint = np.where((near & ~raster.coverage)[..., None], padded, tint)
+  # copy shading past the mask border before the alpha blur, or the feathered
+  # texels would subtract diffuse without adding any tint back and read as a dark seam
+  reach = pad + int(np.ceil(3 * feather))
+  if reach > 0:
+    _, (iy, ix) = ndimage.distance_transform_edt(channel < 0, return_indices=True)
+    band = ndimage.binary_dilation(channel >= 0, iterations=reach) & (channel < 0)
+    tint[band, :3] = tint[iy, ix][band, :3]
 
   if feather > 0:
     tint[..., 3] = ndimage.gaussian_filter(tint[..., 3], feather)
+    tint[~raster.coverage & ~ndimage.binary_dilation(raster.coverage, iterations=pad), 3] = 0.0
 
   return tint
 
@@ -445,7 +466,7 @@ def tint_defaults(rgb: np.ndarray, tint: np.ndarray) -> list[list[float] | None]
   defaults = []
   for index in range(3):
     weight = tint[..., index] * tint[..., 3]
-    if weight.sum() < 1.0:
+    if not weight.any():
       defaults.append(None)
       continue
     color = (rgb * weight[..., None]).sum(axis=(0, 1)) / (weight * tint[..., index]).sum()
@@ -516,7 +537,7 @@ def build(args):
 
   for job in jobs:
     name = texture_name(job)
-    texture_recipe = recipe["textures"].get(name)
+    texture_recipe = recipe.get("textures", {}).get(name)
     if texture_recipe is None:
       print(f"{job.rel_path}: not in recipe, no tintmap")
       continue
@@ -527,8 +548,12 @@ def build(args):
     raster = rasterize(job, width, height)
     labels_path = Path(args.proposals).expanduser() / args.model / f"{name}_labels.png" if args.proposals else None
     if labels_path and labels_path.is_file():
+      proposed = json.loads(labels_path.with_name(f"{name}_regions.json").read_text())["segmentation"]
+      if {k: float(v) for k, v in proposed.items()} != {k: float(v) for k, v in params.items()}:
+        raise SystemExit(f"{name}: proposals were made with {proposed}, recipe has {params}; run propose again")
       labels = np.asarray(Image.open(labels_path)).astype(np.int32)
     else:
+      print(f"{job.rel_path}: no proposals, segmenting now; region ids may differ from an earlier overlay")
       labels = segment(rgb, raster, params)
     channel, alpha = assign(rgb, raster, labels, texture_recipe, params["speck_area"])
     tint = build_tintmap(rgb, raster, channel, alpha, args.feather, args.pad)
