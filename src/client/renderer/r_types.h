@@ -1174,6 +1174,16 @@ typedef struct {
   RenderSubview *portals;
 
   /**
+   * @brief The count of reflections.
+   */
+  int32_t numReflections;
+
+  /**
+   * @brief The reflections array, one per reflective plane of each inline model.
+   */
+  RenderSubview *reflections;
+
+  /**
    * @brief The voxel data.
    */
   RenderBspVoxels voxels;
@@ -2295,6 +2305,13 @@ typedef struct RenderView {
    * @brief The count of beams.
    */
   int32_t numBeams;
+
+  /**
+   * @brief Whether this view's camera is a mirror of the one it was placed from.
+   * @details A mirrored view's projection flips clip space in x, which reverses the winding of
+   *   everything it draws, so it is rasterized with front faces culled rather than back.
+   */
+  bool mirrored;
 
   /**
    * @brief The subviews drawn for this view to sample.
