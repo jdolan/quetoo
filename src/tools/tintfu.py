@@ -24,7 +24,8 @@ Recipe format (JSON):
         "segmentation": {"segments": 800, "threshold": 6},
         "examples": {"shirt": [24, 165], "none": [70, 41]},
         "surfaces": {"u_torso": "shirt"},
-        "regions": {"12": "none", "13": {"channel": "pants", "alpha": 0.8}}
+        "regions": {"12": "none", "13": {"channel": "pants", "alpha": 0.8}},
+        "mask": {"hue": 40, "chroma": 25, "spread": 30}
       }
     }
   }
@@ -34,8 +35,9 @@ Examples spread a few regions per class over the whole texture by color and
 local contrast, for skins whose plates and hide are too close in color for the
 segmentation to separate. A class is a channel name, "none", or "auto", which
 takes the channel from the surface prefix (l_ pants, u_ shirt, h_ helmet).
-Surface rules apply next, region rules override both.
-A texture absent from the recipe gets no tintmap.
+Surface rules apply next, region rules override both. A mask then keeps only
+the pixels near a Lab hue (degrees) above a chroma, so a team skin's paint can
+define the region exactly. A texture absent from the recipe gets no tintmap.
 """
 
 import argparse
@@ -394,10 +396,22 @@ def classify_by_example(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray,
   return channel
 
 
+def hue_mask(rgb: np.ndarray, rule: dict) -> np.ndarray:
+  """Pixels whose hue lies within `spread` degrees of `hue` and whose chroma
+  exceeds `chroma`, in Lab. Team skins paint their color on top of the shared
+  metal, so this finds exactly what their artist meant to be team colored."""
+  lab = skcolor.rgb2lab(rgb)
+  chroma = np.hypot(lab[..., 1], lab[..., 2])
+  hue = np.degrees(np.arctan2(lab[..., 2], lab[..., 1])) % 360.0
+  delta = np.abs((hue - float(rule["hue"]) + 180.0) % 360.0 - 180.0)
+  return (chroma > float(rule.get("chroma", 25.0))) & (delta < float(rule.get("spread", 30.0)))
+
+
 def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_recipe: dict,
            speck_area: int) -> tuple[np.ndarray, np.ndarray]:
-  """Applies the recipe: examples first, then surface rules, then region rules.
-  Returns per-pixel channel index (-1 for none) and alpha."""
+  """Applies the recipe: examples first, then surface rules, then region rules,
+  then an optional hue mask that clears every pixel outside it. Returns
+  per-pixel channel index (-1 for none) and alpha."""
   channel = np.full(labels.shape, -1, dtype=np.int32)
   alpha = np.zeros(labels.shape, dtype=np.float32)
 
@@ -420,6 +434,12 @@ def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_reci
     name, a = resolve_rule(rule)
     channel[mask] = CHANNELS[name] if name else -1
     alpha[mask] = a if name else 0.0
+
+  if "mask" in texture_recipe:
+    keep = hue_mask(rgb, texture_recipe["mask"])
+    keep = ndimage.binary_closing(keep, iterations=2)
+    channel[~keep] = -1
+    alpha[~keep] = 0.0
 
   return channel, alpha
 
