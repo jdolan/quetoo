@@ -183,6 +183,24 @@ def uv_islands(surface: Md3Surface) -> list[int]:
   return labels
 
 
+def uv_polygons(surface: Md3Surface, tri: tuple[int, int, int], width: int, height: int) -> list[list[tuple[float, float]]]:
+  """The triangle's texture-space polygon, at every wrap offset that touches
+  the image. Each vertex is first unwrapped to within half a texture of the
+  first, so a triangle that crosses the seam, or pokes just past an edge, is
+  drawn in its true shape on both sides instead of as one polygon spanning
+  the whole texture."""
+  s0, t0 = surface.texcoords[tri[0]]
+  points = []
+  for i in tri:
+    s, t = surface.texcoords[i]
+    points.append((s - round(s - s0), t - round(t - t0)))
+  polygons = []
+  for ds in range(int(np.floor(min(p[0] for p in points))), int(np.ceil(max(p[0] for p in points)))):
+    for dt in range(int(np.floor(min(p[1] for p in points))), int(np.ceil(max(p[1] for p in points)))):
+      polygons.append([((s - ds) * width, (t - dt) * height) for s, t in points])
+  return polygons
+
+
 def rasterize(job: TextureJob, width: int, height: int) -> Rasterized:
   """Draws every UV triangle into a surface-id image and an island-id image."""
   surface_img = Image.new("I", (width, height), -1)
@@ -196,9 +214,9 @@ def rasterize(job: TextureJob, width: int, height: int) -> Rasterized:
     names.append(surface.name)
     islands = uv_islands(surface)
     for tri, island in zip(surface.triangles, islands):
-      points = [((surface.texcoords[i][0] % 1.0) * width, (surface.texcoords[i][1] % 1.0) * height) for i in tri]
-      surface_draw.polygon(points, fill=surface_index)
-      island_draw.polygon(points, fill=island_base + island)
+      for points in uv_polygons(surface, tri, width, height):
+        surface_draw.polygon(points, fill=surface_index)
+        island_draw.polygon(points, fill=island_base + island)
     island_base += max(islands, default=-1) + 1
 
   surface_ids = np.asarray(surface_img, dtype=np.int32)
@@ -333,8 +351,8 @@ def draw_wireframe(size: tuple[int, int], job: TextureJob) -> Image.Image:
   index = 0
   for surface in job.surfaces:
     for tri in surface.triangles:
-      points = [((surface.texcoords[i][0] % 1.0) * width, (surface.texcoords[i][1] % 1.0) * height) for i in tri]
-      draw.polygon(points, fill=face_color(index), outline=(255, 255, 255, 255))
+      for points in uv_polygons(surface, tri, width, height):
+        draw.polygon(points, fill=face_color(index), outline=(255, 255, 255, 255))
       index += 1
   raster = rasterize(job, width, height)
   borders = segmentation.find_boundaries(raster.surface_ids, mode="thick") & raster.coverage
