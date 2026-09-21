@@ -212,9 +212,23 @@ static bool Cg_ValidateSkin(CGameClientInfo *ci) {
   };
 
   // a part with no faces at all (e.g. a head merged into the torso mesh,
-  // leaving head.md3 as an empty placeholder) has nothing to validate here
+  // leaving head.md3 as an empty placeholder) has nothing to validate here.
+  // Any one face is enough: which faces a skin maps is its own business, and
+  // a model is free to lead with an accessory the skin deliberately omits
   for (size_t m = 0; m < lengthof(meshes); m++) {
-    if (meshes[m].model->mesh->numFaces && !meshes[m].skins[0]) {
+    if (!meshes[m].model->mesh->numFaces) {
+      continue;
+    }
+
+    bool resolved = false;
+    for (int32_t f = 0; f < meshes[m].model->mesh->numFaces; f++) {
+      if (meshes[m].skins[f]) {
+        resolved = true;
+        break;
+      }
+    }
+
+    if (!resolved) {
       return false;
     }
   }
@@ -380,7 +394,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
 
     // only the models decide whether the client info can be worn at all. What Cg_ValidateSkin
     // reports about the skin's coverage is advisory: faces are routinely left unmapped on
-    // purpose (see Cg_LoadClientSkins), and stock player models do it on their first face
+    // purpose (see Cg_LoadClientSkins)
     if (!models) {
       Cg_Warn("No client model for \"%s\", using default\n", s);
       Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
