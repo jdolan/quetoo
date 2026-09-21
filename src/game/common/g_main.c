@@ -200,7 +200,6 @@ GameTeam gTeamList[MAX_TEAMS] = {
   [TEAM_RED] = {
     .id = TEAM_RED,
     .name = "Red",
-    .skin = DEFAULT_TEAM_SKIN,
 #if defined(G_CTF)
     .flag = "item_flag_team1",
 #endif
@@ -216,7 +215,6 @@ GameTeam gTeamList[MAX_TEAMS] = {
   [TEAM_BLUE] = {
     .id = TEAM_BLUE,
     .name = "Blue",
-    .skin = DEFAULT_TEAM_SKIN,
 #if defined(G_CTF)
     .flag = "item_flag_team2",
 #endif
@@ -232,7 +230,6 @@ GameTeam gTeamList[MAX_TEAMS] = {
   [TEAM_YELLOW] = {
     .id = TEAM_YELLOW,
     .name = "Yellow",
-    .skin = DEFAULT_TEAM_SKIN,
 #if defined(G_CTF)
     .flag = "item_flag_team3",
 #endif
@@ -248,7 +245,6 @@ GameTeam gTeamList[MAX_TEAMS] = {
   [TEAM_GREEN] = {
     .id = TEAM_GREEN,
     .name = "Green",
-    .skin = DEFAULT_TEAM_SKIN,
 #if defined(G_CTF)
     .flag = "item_flag_team4",
 #endif

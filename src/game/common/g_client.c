@@ -1713,16 +1713,16 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 
   const GameTeam *team = cl->persistent.team;
 
-  // set skin
-  if (team) { // players must use teamSkin to change
+  // set skin; a team wears the model's default skin, and the team colors tint it
+  if (team) {
     InfoString_Get(userInfo, "skin", s, sizeof(s));
 
     char *p;
     if (s[0] && (p = q_strchr(s, '/'))) {
       *p = '\0';
-      q_strlcpy(s, va("%s/%s", s, DEFAULT_TEAM_SKIN), sizeof(s));
+      q_strlcpy(s, va("%s/%s", s, DEFAULT_USER_SKIN), sizeof(s));
     } else {
-      q_strlcpy(s, va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_TEAM_SKIN), sizeof(s));
+      q_strlcpy(s, va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_USER_SKIN), sizeof(s));
     }
   } else {
     InfoString_Get(userInfo, "skin", s, sizeof(s));
