@@ -140,7 +140,14 @@ void main(void) {
   // This is the base pass only: a material whose stages draw the subview suppresses it with
   // SURF_MATERIAL, and each of those stages samples it for itself, through whatever transforms
   // it carries
-  if (material.flags == STAGE_NONE && (material.surface & SURF_MASK_SUBVIEW) != 0 && subviewLayer >= 0) {
+  // only on an unblended face. A blended one is drawn by a path that emits its base primitive
+  // whatever its flags say, so replacing that with the subview would paint it opaque -- the sample
+  // has no alpha of its own -- and leave the stages nothing to sit over. There, the base pass
+  // draws the surface and a stage draws the subview over it, with the blend the stage asks for
+  if (material.flags == STAGE_NONE &&
+      (material.surface & SURF_MASK_SUBVIEW) != 0 &&
+      (material.surface & SURF_MASK_BLEND) == 0 &&
+      subviewLayer >= 0) {
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
 
     // a mirrored layer is drawn by a camera whose x axis is the mirror of this one's, so it is
