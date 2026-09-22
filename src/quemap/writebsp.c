@@ -712,16 +712,19 @@ static void EmitDepthPassElements(BspModel *mod) {
 }
 
 /**
- * @return The plane @p face's winding lies on, in @p normal and @p dist, or `false` if the face
- * cannot carry a mirror.
- * @details Taken from the winding rather than from `face->plane`. A face records the plane of the
- * node that cut it, and for one surface that can be either member of an opposing pair: cistern's
- * pool arrives as eight faces, all wound the same way at the same height, recorded alternately as
- * a plane and its twin. Reading the index would reflect half a pool and leave the rest plain.
+ * @return The plane @p face reflects about, in @p normal and @p dist, or `false` if it cannot
+ * carry a mirror.
+ * @details The facing comes from the brush side, which is the only description of the surface
+ * that every fragment of it agrees on. `face->plane` is the plane of the node that cut the face,
+ * and for one surface that can be either member of an opposing pair -- cistern's pool arrives as
+ * eight faces at one height recorded alternately as a plane and its twin. The winding is no
+ * better: those fragments are not consistently wound either, so a cross product splits the pool
+ * into an upward and a downward reflection, and standing over it only half of them have a camera
+ * in front of them. The rest fall back to plain water along the BSP seams.
  *
- * The winding also catches a face that is not planar, and a face sitting on a plane its own brush
- * side is nowhere near -- cistern has three-vertex slivers, left where terrain cuts the water,
- * whose brush side is a thousand units away.
+ * The distance comes from the vertexes rather than from the brush side, whose plane a face need
+ * not lie on: cistern has three-vertex slivers, left where terrain cuts the water, whose side is
+ * a thousand units away. Every vertex is then checked against the plane that results.
  */
 static bool ReflectiveFacePlane(const BspFace *face, Vec3 *normal, float *dist) {
 
@@ -729,20 +732,16 @@ static bool ReflectiveFacePlane(const BspFace *face, Vec3 *normal, float *dist) 
     return false;
   }
 
-  const BspVertex *v = &bspFile.vertexes[face->firstVertex];
-
-  Vec3 n = Vec3_Cross(Vec3_Subtract(v[1].position, v[0].position),
-                      Vec3_Subtract(v[2].position, v[0].position));
-
-  if (Vec3_Length(n) < COLINEAR_EPSILON) {
+  // a patch has no brush side, so nothing says which way its faces are meant to look
+  if (face->brushSide == -1) {
+    Com_Warn("Patch %s @ %s cannot reflect; a reflection needs a brush side\n",
+             bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)));
     return false;
   }
 
-  // the winding order gives the outward direction directly, and consistently across the fragments
-  // of one surface. The vertex normal does not: Phong shading seeds it from `planes[face->plane]`,
-  // which is the very index that varies between a plane and its twin
-  n = Vec3_Normalize(n);
+  const Vec3 n = bspFile.planes[bspFile.brushSides[face->brushSide].plane].normal;
 
+  const BspVertex *v = &bspFile.vertexes[face->firstVertex];
   const float d = Vec3_Dot(v[0].position, n);
 
   for (int32_t i = 1; i < face->numVertexes; i++) {
