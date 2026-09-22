@@ -99,6 +99,12 @@ typedef struct {
    * they are freed (`Fs_Free`) in all code paths.
    */
   HashTable *loadedFiles;
+
+  /**
+   * @brief Guards `loadedFiles`, which worker threads mutate through `Fs_Load`
+   * and `Fs_Free`.
+   */
+  SDL_SpinLock loadedFilesLock;
 } FsState;
 
 static FsState fsState;
@@ -393,8 +399,10 @@ int64_t Fs_Load(const char *filename, void **buffer) {
             Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
           }
 
+          SDL_LockSpinlock(&fsState.loadedFilesLock);
           $(fsState.loadedFiles, set, *buffer,
                     (void *) Mem_CopyString(filename));
+          SDL_UnlockSpinlock(&fsState.loadedFilesLock);
         } else {
           *buffer = NULL;
         }
@@ -438,8 +446,10 @@ int64_t Fs_Load(const char *filename, void **buffer) {
             e = e->next;
           }
 
+          SDL_LockSpinlock(&fsState.loadedFilesLock);
           $(fsState.loadedFiles, set, *buffer,
                     (void *) Mem_CopyString(filename));
+          SDL_UnlockSpinlock(&fsState.loadedFilesLock);
         } else {
 
           *buffer = NULL;
@@ -468,10 +478,13 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 void Fs_Free(void *buffer) {
 
   if (buffer) {
+    SDL_LockSpinlock(&fsState.loadedFilesLock);
     if (!$(fsState.loadedFiles, get, buffer)) {
+      SDL_UnlockSpinlock(&fsState.loadedFilesLock);
       Com_Warn("Invalid buffer\n");
     } else {
       $(fsState.loadedFiles, remove, buffer);
+      SDL_UnlockSpinlock(&fsState.loadedFilesLock);
     }
     Mem_Free(buffer);
   }
