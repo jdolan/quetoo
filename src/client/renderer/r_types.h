@@ -2308,8 +2308,14 @@ typedef struct RenderView {
 
   /**
    * @brief Whether this view's camera is a mirror of the one it was placed from.
-   * @details A mirrored view's projection flips clip space in x, which reverses the winding of
-   *   everything it draws, so it is rasterized with front faces culled rather than back.
+   * @details `Mat4_LookAt` derives its own x axis from `cross(up, forward)`, and for a reflected
+   *   basis that comes back negated, so the image drawn is the mirror flipped left to right. It
+   *   is left that way and read back flipped, rather than righted here by negating the
+   *   projection's x column, which would reverse the winding of everything drawn and cost a
+   *   front-culling variant of every pipeline the view can reach.
+   *
+   *   So a mirrored view's layer is stored mirrored. Whatever samples it MUST flip x, and the
+   *   scissor that bounds it is mirrored to match.
    */
   bool mirrored;
 

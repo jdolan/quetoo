@@ -395,6 +395,8 @@ static void R_UpdateSubviewFramebuffer(void) {
  * choosing a size per subview would bring.
  * @remarks The whole framebuffer is returned for a face straddling the camera plane, which has
  * no finite rect to project onto.
+ * @remarks A mirrored subview stores its layer flipped in x, so the texels beneath the face are
+ * the mirror of the rect the face projects to.
  * @param vp The view-projection of the view being drawn around these, whose screen coordinates
  * the face will be sampled at. Taken as an argument rather than read from the uniform block,
  * which each subview drawn before this one has already replaced with its own.
@@ -434,11 +436,14 @@ static SDL_Rect R_SubviewScissor(const Mat4 vp, const RenderSubview *subview) {
   const int32_t x = Maxi(x0, 0);
   const int32_t y = Maxi(y0, 0);
 
+  const int32_t w = Maxi(Mini(x1, size.w) - x, 0);
+  const int32_t h = Maxi(Mini(y1, size.h) - y, 0);
+
   return (SDL_Rect) {
-    .x = x,
+    .x = subview->view->mirrored ? size.w - (x + w) : x,
     .y = y,
-    .w = Maxi(Mini(x1, size.w) - x, 0),
-    .h = Maxi(Mini(y1, size.h) - y, 0),
+    .w = w,
+    .h = h,
   };
 }
 
@@ -606,6 +611,7 @@ void R_DrawSubviews(RenderView *view) {
     subview->layer = layer++;
 
     stats->subviewsDrawn++;
+
 
     R_UpdateSubviewScene(view, subview->view);
 

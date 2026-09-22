@@ -137,6 +137,13 @@ void main(void) {
   // it carries
   if (material.flags == STAGE_NONE && (material.surface & SURF_MASK_SUBVIEW) != 0 && subviewLayer >= 0) {
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
+
+    // a reflection's layer is drawn by a camera whose x axis is the mirror of this one's, so it
+    // is stored flipped left to right and read back the same way
+    if ((material.surface & SURF_REFLECT) == SURF_REFLECT) {
+      st.x = 1.0 - st.x;
+    }
+
     outColor = vec4(texture(textureSubviews, vec3(st, subviewLayer)).rgb, 1.0);
     return;
   }
@@ -176,7 +183,14 @@ void main(void) {
     // rotate -- disturbs the view itself rather than a texture drawn over it
     bool subview = (material.flags & STAGE_SUBVIEW) == STAGE_SUBVIEW && subviewLayer >= 0;
 
+    // a reflection's layer is stored flipped left to right; see the base pass above
+    bool mirrored = subview && (material.surface & SURF_REFLECT) == SURF_REFLECT;
+
     vec2 st = subview ? gl_FragCoord.xy / vec2(viewport.zw) : fragment.parallax;
+
+    if (mirrored) {
+      st.x = 1.0 - st.x;
+    }
 
     if ((material.flags & STAGE_WARP) == STAGE_WARP) {
 
@@ -198,6 +212,11 @@ void main(void) {
         if (abs(det) > 1.0e-12) {
           vec2 pixels = vec2(dy.y * offset.x - dy.x * offset.y,
                              dx.x * offset.y - dx.y * offset.x) / det;
+
+          // the offset is in this view's screen pixels, and a mirrored layer runs the other way
+          if (mirrored) {
+            pixels.x = -pixels.x;
+          }
 
           st += pixels / vec2(viewport.zw);
         }

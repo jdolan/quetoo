@@ -112,16 +112,7 @@ void R_UpdateUniforms(const RenderView *view) {
       0.f, 0.f, .5f, 1.f
     });
 
-    // a mirrored view swaps its horizontal frustum bounds, which negates the projection's x
-    // column. `Mat4_LookAt` below never reads `view->right`: it derives its own x axis from
-    // `cross(up, forward)`, and for a reflected basis that cross product comes back negated,
-    // so the image it would otherwise draw is the mirror flipped left to right. Flipping clip
-    // space in x undoes that -- and reverses the winding, which is why a mirrored view is drawn
-    // with front faces culled
-    const float left = view->mirrored ? xmax : xmin;
-    const float right = view->mirrored ? xmin : xmax;
-
-    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(left, right, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
+    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
     out->skyProjection = Mat4_FromScale3(MakeVec3(-1.f, 1.f, 1.f));
