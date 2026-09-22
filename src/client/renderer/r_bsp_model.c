@@ -375,6 +375,7 @@ static void R_LoadBspPortals(RenderModel *mod) {
       continue;
     }
 
+    out->type = SUBVIEW_PORTAL;
     out->origin = in->entryOrigin;
     out->bounds = bsp->drawElements[in->drawElements].bounds;
     out->normal = Vec3_Negate(in->entryForward);
@@ -428,6 +429,7 @@ static void R_LoadBspReflections(RenderModel *mod) {
       continue;
     }
 
+    out->type = SUBVIEW_REFLECTION;
     out->origin = in->origin;
     out->normal = in->normal;
     out->bounds = in->bounds;

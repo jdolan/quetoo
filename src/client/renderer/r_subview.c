@@ -154,6 +154,10 @@ static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 or
 
   view->stats.subviewsOffered++;
 
+  if (subview->type == SUBVIEW_REFLECTION) {
+    view->stats.reflectionsOffered++;
+  }
+
   // a subview face is single sided, and the BSP pipeline culls back faces, so from behind its
   // plane there is nothing of it to draw -- and a whole scene would be rendered into a layer
   // that no fragment goes on to sample. Tested against the camera's position rather than where
@@ -611,6 +615,10 @@ void R_DrawSubviews(RenderView *view) {
     subview->layer = layer++;
 
     stats->subviewsDrawn++;
+
+    if (subview->type == SUBVIEW_REFLECTION) {
+      stats->reflectionsDrawn++;
+    }
 
 
     R_UpdateSubviewScene(view, subview->view);

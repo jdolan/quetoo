@@ -777,6 +777,14 @@ typedef struct RenderBspInlineModel {
 } RenderBspInlineModel;
 
 /**
+ * @brief Subview types.
+ */
+typedef enum {
+  SUBVIEW_PORTAL,
+  SUBVIEW_REFLECTION,
+} RenderSubviewType;
+
+/**
  * @brief A face that shows a second view of the world, drawn into a layer of one array texture
  * and sampled in screen space by the face itself.
  * @details A `SURF_PORTAL` face carries a portal, resolved by the compiler into
@@ -785,6 +793,11 @@ typedef struct RenderBspInlineModel {
  *   same whatever placed that view's camera.
  */
 typedef struct RenderSubview {
+
+  /**
+   * @brief What placed this subview's camera.
+   */
+  RenderSubviewType type;
 
   /**
    * @brief The inline model whose faces show this subview.
@@ -2154,6 +2167,13 @@ typedef struct {
    * @brief The counts of subviews offered, and of those actually drawn.
    */
   int32_t subviewsOffered, subviewsDrawn;
+
+  /**
+   * @brief The counts of those that were reflections, the rest being portals.
+   * @remarks Broken out because the two share one pool of layers, so which of them is spending
+   *   it is the question a map with both raises.
+   */
+  int32_t reflectionsOffered, reflectionsDrawn;
 
   /**
    * @brief The count of triangles drawn into subviews this frame.
