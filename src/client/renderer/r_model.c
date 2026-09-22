@@ -90,7 +90,11 @@ RenderModel *R_LoadModel(const char *name) {
 
     void *buf = NULL;
 
-    Fs_Load(path, &buf);
+    if (Fs_Load(path, &buf) == -1) {
+      Com_Warn("Failed to read %s\n", path);
+      Mem_Free(mod);
+      return NULL;
+    }
 
     format->Load(mod, buf);
 

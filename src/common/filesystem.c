@@ -377,6 +377,10 @@ int64_t Fs_Write(File *file, const void *buffer, size_t size, size_t count) {
  * allocated if non-`NULL`. Returns the file length, or -1 if it is unable to be
  * read. Be sure to free the buffer when finished with `Fs_Free`.
  *
+ * @remarks A short or failed read warns and returns -1, rather than raising
+ * `ERROR_DROP`. This function is called from worker threads, and the drop
+ * handler's `jmp_buf` belongs to the main thread.
+ *
  * @return The file length, or -1 on error.
  */
 int64_t Fs_Load(const char *filename, void **buffer) {
@@ -396,12 +400,19 @@ int64_t Fs_Load(const char *filename, void **buffer) {
           const int64_t read = Fs_Read(file, buf, 1, len);
 
           if (read != len) {
-            Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
+            Com_Warn("%s: %s\n", filename, Fs_LastError());
+
+            Mem_Free(buf);
+            *buffer = NULL;
+
+            Fs_Close(file);
+            return -1;
           }
 
+          char *name = Mem_CopyString(filename);
+
           SDL_LockSpinlock(&fsState.loadedFilesLock);
-          $(fsState.loadedFiles, set, *buffer,
-                    (void *) Mem_CopyString(filename));
+          $(fsState.loadedFiles, set, *buffer, name);
           SDL_UnlockSpinlock(&fsState.loadedFilesLock);
         } else {
           *buffer = NULL;
@@ -425,7 +436,17 @@ int64_t Fs_Load(const char *filename, void **buffer) {
         chunk->len = Fs_Read(file, chunk->data, 1, FS_FILE_BUFFER);
 
         if (chunk->len == -1) {
-          Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
+          Com_Warn("%s: %s\n", filename, Fs_LastError());
+
+          Mem_Free(chunk);
+          release(list);
+
+          if (buffer) {
+            *buffer = NULL;
+          }
+
+          Fs_Close(file);
+          return -1;
         }
 
         $(list, append, chunk);
@@ -446,9 +467,10 @@ int64_t Fs_Load(const char *filename, void **buffer) {
             e = e->next;
           }
 
+          char *name = Mem_CopyString(filename);
+
           SDL_LockSpinlock(&fsState.loadedFilesLock);
-          $(fsState.loadedFiles, set, *buffer,
-                    (void *) Mem_CopyString(filename));
+          $(fsState.loadedFiles, set, *buffer, name);
           SDL_UnlockSpinlock(&fsState.loadedFilesLock);
         } else {
 
