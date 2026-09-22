@@ -90,7 +90,11 @@ RenderModel *R_LoadModel(const char *name) {
 
     void *buf = NULL;
 
-    Fs_Load(path, &buf);
+    if (Fs_Load(path, &buf) == -1) {
+      Com_Warn("Failed to read %s\n", path);
+      Mem_Free(mod);
+      return NULL;
+    }
 
     format->Load(mod, buf);
 
@@ -117,6 +121,8 @@ RenderModel *R_WorldModel(void) {
 void R_InitModels(void) {
 
   memset(&rModels, 0, sizeof(rModels));
+
+  R_InitMd3Normals();
 
   R_InitMeshPipeline();
 }

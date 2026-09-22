@@ -22,6 +22,22 @@
 #include "r_local.h"
 
 /**
+ * @brief Sine and cosine of each of the 256 angles an MD3 normal byte can encode.
+ */
+static Vec2 rMd3Normals[256];
+
+/**
+ * @brief Builds the MD3 normal lookup table.
+ */
+void R_InitMd3Normals(void) {
+
+  for (int32_t i = 0; i < 256; i++) {
+    const float angle = i * (float) M_PI / 128.f;
+    rMd3Normals[i] = MakeVec2(cosf(angle), sinf(angle));
+  }
+}
+
+/**
  * @brief Loads `animation.cfg` for an MD3 model.
  */
 static void R_LoadMd3Animations(RenderModel *mod) {
@@ -414,17 +430,12 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
 
             mod->bounds = Box3_Append(mod->bounds, outVertex->position);
 
-            float lat = (vertex.norm >> 8) & 0xff;
-            float lon = (vertex.norm & 0xff);
+            const Vec2 lat = rMd3Normals[(vertex.norm >> 8) & 0xff];
+            const Vec2 lon = rMd3Normals[vertex.norm & 0xff];
 
-            lat *= M_PI / 128.0;
-            lon *= M_PI / 128.0;
-
-            outVertex->normal.x = cos(lat) * sin(lon);
-            outVertex->normal.y = sin(lat) * sin(lon);
-            outVertex->normal.z = cos(lon);
-
-            outVertex->normal = Vec3_Normalize(outVertex->normal);
+            outVertex->normal.x = lat.x * lon.y;
+            outVertex->normal.y = lat.y * lon.y;
+            outVertex->normal.z = lon.x;
 
             const Md3Texcoord texcoord = R_SwapMd3Texcoord(inTexcoord);
 

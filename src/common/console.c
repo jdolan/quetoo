@@ -155,6 +155,9 @@ static bool Con_Filter(const Console *console, const ConsoleString *str) {
 
 /**
  * @brief Append a message to the console data buffer.
+ * @remarks The configured consoles are dispatched while the lock is held. The
+ * string belongs to the buffer, and the trim another thread performs on its own
+ * append is free to destroy it, so it MUST NOT be dispatched unlocked.
  */
 void Con_Append(int32_t level, const char *string) {
 
@@ -175,8 +178,6 @@ void Con_Append(int32_t level, const char *string) {
     $(consoleState.strings, removeNode, first);
   }
 
-  SDL_UnlockMutex(consoleState.lock);
-
   if (consoleState.consoles) {
 
     // iterate the configured consoles and append the new string
@@ -196,6 +197,8 @@ void Con_Append(int32_t level, const char *string) {
     q_strcolorstrip(string, stripped);
     fputs(stripped, stdout);
   }
+
+  SDL_UnlockMutex(consoleState.lock);
 }
 
 /**
