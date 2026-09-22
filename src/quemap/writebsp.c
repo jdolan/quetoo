@@ -537,7 +537,8 @@ static void EmitPortals(void) {
 
     const int32_t e = BrushSideEntity(face->brushSide);
     if (e == -1) {
-      Com_Warn("Portal @ %s belongs to no brush, skipping\n", vtos(entryOrigin));
+      Com_Warn("Portal %s @ %s belongs to no brush, skipping\n",
+               bspFile.materials[draw->material].name, vtos(entryOrigin));
       continue;
     }
 
@@ -545,7 +546,8 @@ static void EmitPortals(void) {
     // a func_train reads it as the first path_corner of its route, a func_button as what it fires
     const char *target = ValueForKey(&entities[e], "portal", NULL);
     if (!target) {
-      Com_Warn("Portal @ %s has no portal key, skipping\n", vtos(entryOrigin));
+      Com_Warn("Portal %s @ %s has no portal key, skipping\n",
+               bspFile.materials[draw->material].name, vtos(entryOrigin));
       continue;
     }
 
