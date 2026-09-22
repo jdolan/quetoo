@@ -156,7 +156,9 @@ static void Cl_LoadModels(void) {
 
   Cl_LoadingProgress(0, cl.configStrings[CS_BSP]);
 
-  R_LoadModel(cl.configStrings[CS_BSP]);
+  if (R_LoadModel(cl.configStrings[CS_BSP]) == NULL) {
+    Com_Error(ERROR_DROP, "Failed to load %s\n", cl.configStrings[CS_BSP]);
+  }
 
   for (int32_t i = 0; i < MAX_MODELS; i++) {
 
@@ -168,6 +170,10 @@ static void Cl_LoadModels(void) {
     Cl_LoadingProgress(-1, str);
 
     cl.models[i] = R_LoadModel(str);
+
+    if (cl.models[i] == NULL && *str == '*') {
+      Com_Error(ERROR_DROP, "Failed to load inline model %s\n", str);
+    }
   }
 }
 
