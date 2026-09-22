@@ -312,102 +312,97 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
   const size_t layerSize = w * h * 4;
 
-  switch (cm->context) {
-    case ASSET_CONTEXT_TEXTURES:
-    case ASSET_CONTEXT_MODELS:
-    case ASSET_CONTEXT_PLAYERS: {
+  if (layered) {
 
-      if (cm->context == ASSET_CONTEXT_MODELS
-          || cm->context == ASSET_CONTEXT_PLAYERS) {
-        cm->shadow = 0.f;
-      }
-
-      SDL_Surface *normalmap = NULL;
-      if (*cm->normalmap.path) {
-        normalmap = surfaces[1].surface;
-        if (normalmap == NULL) {
-          Com_Warn("Failed to load normalmap %s for %s\n", cm->normalmap.path, cm->basename);
-          normalmap = R_CreateMaterialSurface(w, h, MakeColor32(127, 127, 255, 255));
-        } else {
-          normalmap = R_ResizeMaterialSurface(normalmap, w, h, cm->normalmap.path);
-        }
-      } else {
-        normalmap = R_CreateMaterialSurface(w, h, MakeColor32(127, 127, 255, 255));
-      }
-
-      R_NormalizeMaterialHeightmap(normalmap);
-
-      SDL_Surface *specularmap = NULL;
-      if (*cm->specularmap.path) {
-        specularmap = surfaces[2].surface;
-        if (specularmap == NULL) {
-          Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
-          specularmap = R_CreateSpecularmap(diffusemap);
-        } else {
-          specularmap = R_ResizeMaterialSurface(specularmap, w, h, cm->specularmap.path);
-        }
-      } else {
-        specularmap = R_CreateSpecularmap(diffusemap);
-      }
-
-      SDL_Surface *tintmap = NULL;
-      if (*cm->tintmap.path) {
-        tintmap = surfaces[3].surface;
-        if (tintmap == NULL) {
-          Com_Warn("Failed to load tintmap %s for %s\n", cm->tintmap.path, cm->basename);
-          tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, MakeColor32(0, 0, 0, 0));
-        } else {
-          tintmap = R_ResizeMaterialSurface(tintmap, w, h, cm->tintmap.path);
-        }
-      } else {
-        tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, MakeColor32(0, 0, 0, 0));
-      }
-
-      material->texture->depth = 4;
-
-      byte *data = malloc(layerSize * material->texture->depth);
-
-      memcpy(data + 0 * layerSize, diffusemap->pixels, layerSize);
-      memcpy(data + 1 * layerSize, normalmap->pixels, layerSize);
-      memcpy(data + 2 * layerSize, specularmap->pixels, layerSize);
-      memcpy(data + 3 * layerSize, tintmap->pixels, layerSize);
-
-      const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
-
-      material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-        .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
-        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-        .width = w,
-        .height = h,
-        .layer_count_or_depth = material->texture->depth,
-        .num_levels = levels,
-        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
-      }, data);
-
-      free(data);
-
-      CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
-      $(commands, generateMipmaps, material->texture->texture->texture);
-      $(commands, submit);
-      release(commands);
-
-      SDL_DestroySurface(normalmap);
-      SDL_DestroySurface(specularmap);
-      SDL_DestroySurface(tintmap);
+    if (cm->context == ASSET_CONTEXT_MODELS
+        || cm->context == ASSET_CONTEXT_PLAYERS) {
+      cm->shadow = 0.f;
     }
-      break;
 
-    default:
-      material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-        .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-        .width = w,
-        .height = h,
-        .layer_count_or_depth = 1,
-        .num_levels = 1,
-        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-      }, diffusemap->pixels);
-      break;
+    SDL_Surface *normalmap = NULL;
+    if (*cm->normalmap.path) {
+      normalmap = surfaces[1].surface;
+      if (normalmap == NULL) {
+        Com_Warn("Failed to load normalmap %s for %s\n", cm->normalmap.path, cm->basename);
+        normalmap = R_CreateMaterialSurface(w, h, MakeColor32(127, 127, 255, 255));
+      } else {
+        normalmap = R_ResizeMaterialSurface(normalmap, w, h, cm->normalmap.path);
+      }
+    } else {
+      normalmap = R_CreateMaterialSurface(w, h, MakeColor32(127, 127, 255, 255));
+    }
+
+    R_NormalizeMaterialHeightmap(normalmap);
+
+    SDL_Surface *specularmap = NULL;
+    if (*cm->specularmap.path) {
+      specularmap = surfaces[2].surface;
+      if (specularmap == NULL) {
+        Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
+        specularmap = R_CreateSpecularmap(diffusemap);
+      } else {
+        specularmap = R_ResizeMaterialSurface(specularmap, w, h, cm->specularmap.path);
+      }
+    } else {
+      specularmap = R_CreateSpecularmap(diffusemap);
+    }
+
+    SDL_Surface *tintmap = NULL;
+    if (*cm->tintmap.path) {
+      tintmap = surfaces[3].surface;
+      if (tintmap == NULL) {
+        Com_Warn("Failed to load tintmap %s for %s\n", cm->tintmap.path, cm->basename);
+        tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, MakeColor32(0, 0, 0, 0));
+      } else {
+        tintmap = R_ResizeMaterialSurface(tintmap, w, h, cm->tintmap.path);
+      }
+    } else {
+      tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, MakeColor32(0, 0, 0, 0));
+    }
+
+    material->texture->depth = 4;
+
+    byte *data = malloc(layerSize * material->texture->depth);
+
+    memcpy(data + 0 * layerSize, diffusemap->pixels, layerSize);
+    memcpy(data + 1 * layerSize, normalmap->pixels, layerSize);
+    memcpy(data + 2 * layerSize, specularmap->pixels, layerSize);
+    memcpy(data + 3 * layerSize, tintmap->pixels, layerSize);
+
+    const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
+
+    material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
+      .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+      .width = w,
+      .height = h,
+      .layer_count_or_depth = material->texture->depth,
+      .num_levels = levels,
+      .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+    }, data);
+
+    free(data);
+
+    CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
+    $(commands, generateMipmaps, material->texture->texture->texture);
+    $(commands, submit);
+    release(commands);
+
+    SDL_DestroySurface(normalmap);
+    SDL_DestroySurface(specularmap);
+    SDL_DestroySurface(tintmap);
+
+  } else {
+
+    material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      .type = SDL_GPU_TEXTURETYPE_2D,
+      .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+      .width = w,
+      .height = h,
+      .layer_count_or_depth = 1,
+      .num_levels = 1,
+      .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    }, diffusemap->pixels);
   }
 
   $(material->texture->texture, setName, material->texture->media.name);
