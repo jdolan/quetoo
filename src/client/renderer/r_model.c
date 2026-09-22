@@ -118,6 +118,8 @@ void R_InitModels(void) {
 
   memset(&rModels, 0, sizeof(rModels));
 
+  R_InitMd3Normals();
+
   R_InitMeshPipeline();
 }
 
