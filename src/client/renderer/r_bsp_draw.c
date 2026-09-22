@@ -60,6 +60,13 @@ typedef struct {
    * @brief The layer of textureSubviews this draw's faces sample, or `-1` for none.
    */
   int32_t subviewLayer;
+
+  /**
+   * @brief Whether that layer is stored mirrored in x, and so must be read back flipped.
+   * @details A property of the view that drew the layer, not of the face's surface flags: a
+   *   reflection mirrors its camera, and a refraction through the same face would not.
+   */
+  int32_t subviewMirrored;
 } RenderBspUniformLocals;
 
 #define MAX_STAGE_PIPELINES 16
@@ -126,6 +133,7 @@ static inline void R_PushBspUniformLocals(const RenderBspUniformLocals *locals, 
 
   module.locals = *locals;
   module.locals.subviewLayer = -1;
+  module.locals.subviewMirrored = 0;
 
   $(pass->commands, pushUniformData, SLOT_UNIFORMS_LOCALS, &module.locals, sizeof(module.locals));
 }
@@ -147,8 +155,11 @@ static inline void R_PushBspSubviewLayer(const RenderView *view, const RenderBsp
 
   const int32_t layer = draw->subview && view->type != VIEW_SUBVIEW ? draw->subview->layer : -1;
 
-  if (layer != module.locals.subviewLayer) {
+  const int32_t mirrored = layer >= 0 && draw->subview->view && draw->subview->view->mirrored;
+
+  if (layer != module.locals.subviewLayer || mirrored != module.locals.subviewMirrored) {
     module.locals.subviewLayer = layer;
+    module.locals.subviewMirrored = mirrored;
 
     $(pass->commands, pushUniformData, SLOT_UNIFORMS_LOCALS, &module.locals, sizeof(module.locals));
   }

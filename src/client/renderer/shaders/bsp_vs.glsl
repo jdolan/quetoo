@@ -39,6 +39,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bspLocalsBl
    * but both stages take the same block at the same slot.
    */
   int subviewLayer;
+
+  /**
+   * @brief Unused here, but both stages take the same block at the same slot.
+   */
+  int subviewMirrored;
 };
 
 #include "light.glsl"

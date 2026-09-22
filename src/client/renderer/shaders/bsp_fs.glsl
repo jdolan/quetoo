@@ -57,6 +57,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bspLocalsBl
    * @brief The layer of textureSubviews this draw's faces sample, or -1 for none.
    */
   int subviewLayer;
+
+  /**
+   * @brief Whether that layer is stored mirrored in x, and so is read back flipped.
+   */
+  int subviewMirrored;
 };
 
 #include "light.glsl"
@@ -138,9 +143,9 @@ void main(void) {
   if (material.flags == STAGE_NONE && (material.surface & SURF_MASK_SUBVIEW) != 0 && subviewLayer >= 0) {
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
 
-    // a reflection's layer is drawn by a camera whose x axis is the mirror of this one's, so it
-    // is stored flipped left to right and read back the same way
-    if ((material.surface & SURF_REFLECT) == SURF_REFLECT) {
+    // a mirrored layer is drawn by a camera whose x axis is the mirror of this one's, so it is
+    // stored flipped left to right and read back the same way
+    if (subviewMirrored != 0) {
       st.x = 1.0 - st.x;
     }
 
@@ -183,8 +188,8 @@ void main(void) {
     // rotate -- disturbs the view itself rather than a texture drawn over it
     bool subview = (material.flags & STAGE_SUBVIEW) == STAGE_SUBVIEW && subviewLayer >= 0;
 
-    // a reflection's layer is stored flipped left to right; see the base pass above
-    bool mirrored = subview && (material.surface & SURF_REFLECT) == SURF_REFLECT;
+    // a mirrored layer is stored flipped left to right; see the base pass above
+    bool mirrored = subview && subviewMirrored != 0;
 
     vec2 st = subview ? gl_FragCoord.xy / vec2(viewport.zw) : fragment.parallax;
 
