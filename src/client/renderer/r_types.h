@@ -2327,6 +2327,15 @@ typedef struct RenderView {
   int32_t numBeams;
 
   /**
+   * @brief The plane, as `(normal, dist)` in world space, whose front this view keeps, or zero.
+   * @details A reflection's camera sits under the surface it draws for, so the first thing in
+   *   front of it is that surface, drawn on its plain material by the recursion guard. Opaque,
+   *   that is a picture of the underside of the water where the room above should be. The near
+   *   plane is skewed onto the surface to cut it, and everything below it, away.
+   */
+  Vec4 clipPlane;
+
+  /**
    * @brief Whether this view's camera is a mirror of the one it was placed from.
    * @details `Mat4_LookAt` derives its own x axis from `cross(up, forward)`, and for a reflected
    *   basis that comes back negated, so the image drawn is the mirror flipped left to right. It

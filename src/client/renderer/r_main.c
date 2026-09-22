@@ -39,6 +39,7 @@ Cvar *r_drawWireframe;
 Cvar *r_occlude;
 Cvar *r_portals;
 Cvar *r_reflections;
+Cvar *r_reflectClipOffset;
 
 Cvar *r_ambient;
 Cvar *r_ambientOcclusion;
@@ -87,6 +88,48 @@ SDL_GPUSampleCount R_SampleCount(void) {
 }
 
 /**
+ * @return @p view's clip plane in the space of @p viewMatrix, as a plane whose front is kept.
+ * @remarks Derived through the view matrix rather than from the view's own basis vectors, which
+ * do not all agree with the axes `Mat4_LookAt` derives for it. The matrix is rigid, so the normal
+ * rotates by it and a point on the plane transforms by it.
+ */
+static Vec4 R_ViewClipPlane(const RenderView *view, const Mat4 viewMatrix) {
+
+  const Vec3 normal = view->clipPlane.xyz;
+
+  const Vec3 n = Vec3_Normalize(Mat4_RotateVector(viewMatrix, normal));
+  const Vec3 p = Mat4_Transform(viewMatrix, Vec3_Scale(normal, view->clipPlane.w));
+
+  return Vec3_ToVec4(n, -Vec3_Dot(p, n));
+}
+
+/**
+ * @brief Skews @p projection so that its near plane becomes @p plane, given in view space.
+ * @details Clipping geometrically rather than discarding fragments, which would cost the depth
+ * pre-pass its early-out in every view sharing these shaders. Depth precision is skewed in
+ * exchange, which no subview reads: it runs no depth pre-pass, and nothing samples the depth copy
+ * it writes.
+ * @remarks See Lengyel, "Oblique View Frustum Depth Projection and Clipping".
+ */
+static Mat4 R_ObliqueProjection(Mat4 projection, const Vec4 plane) {
+
+  const Vec4 q = MakeVec4((SignOf(plane.x) + projection.m[2][0]) / projection.m[0][0],
+                          (SignOf(plane.y) + projection.m[2][1]) / projection.m[1][1],
+                          -1.f,
+                          (1.f + projection.m[2][2]) / projection.m[3][2]);
+
+  const float d = plane.x * q.x + plane.y * q.y + plane.z * q.z + plane.w * q.w;
+  const Vec4 c = Vec4_Scale(plane, 2.f / d);
+
+  projection.m[0][2] = c.x;
+  projection.m[1][2] = c.y;
+  projection.m[2][2] = c.z + 1.f;
+  projection.m[3][2] = c.w;
+
+  return projection;
+}
+
+/**
  * @brief Updates the global uniform buffer object with view and projection matrices for the current frame.
  */
 void R_UpdateUniforms(const RenderView *view) {
@@ -112,8 +155,16 @@ void R_UpdateUniforms(const RenderView *view) {
       0.f, 0.f, .5f, 1.f
     });
 
-    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
+
+    Mat4 projection = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+
+    // skewed before the clip matrix, whose depth remap the formula's frustum terms do not survive
+    if (!Vec4_Equal(view->clipPlane, Vec4_Zero())) {
+      projection = R_ObliqueProjection(projection, R_ViewClipPlane(view, out->view));
+    }
+
+    out->projection3D = Mat4_Concat(clip, projection);
 
     out->skyProjection = Mat4_FromScale3(MakeVec3(-1.f, 1.f, 1.f));
     out->skyProjection = Mat4_ConcatTranslation(out->skyProjection, Vec3_Negate(view->origin));
@@ -271,6 +322,7 @@ void R_InitView(RenderView *view) {
   view->ticks = (uint32_t) SDL_GetTicks();
   view->numBeams = 0;
   view->numSubviews = 0;
+  view->clipPlane = Vec4_Zero();
   view->numEntities = 0;
   view->numLights = 0;
   view->numSprites = 0;
@@ -438,6 +490,7 @@ static void R_InitLocal(void) {
   r_drawWireframe = Cvar_Add("r_drawWireframe", "0", CVAR_DEVELOPER, "Draws world geometry as wireframe (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
   r_reflections = Cvar_Add("r_reflections", "1", CVAR_ARCHIVE, "Controls rendering reflections in reflective surfaces.");
+  r_reflectClipOffset = Cvar_Add("r_reflectClipOffset", "1", CVAR_DEVELOPER, "Units to raise a reflection's clip plane above its surface (developer tool).");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambientOcclusion = Cvar_Add("r_ambientOcclusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");

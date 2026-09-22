@@ -145,12 +145,13 @@ static float R_SubviewDistance(const RenderView *view, const RenderSubview *subv
  * portal passes its face, flattened onto its own plane; a reflection passes the eye itself.
  * @param matrix The transform that carries a point or direction from the world into the frame the
  * camera is placed in.
- * @param mirrored Whether @p matrix reverses handedness, which the projection and the pipelines
- * both need to know. Passed rather than derived, since `Mat4` has no determinant.
+ * @param clipPlane The plane, in world space, whose front the camera keeps, or zero for none.
+ * @param mirrored Whether @p matrix reverses handedness. Passed rather than derived, since `Mat4`
+ * has no determinant.
  * @return `true` if @p subview was taken into the pool.
  */
 static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 origin,
-                         const Mat4 matrix, bool mirrored) {
+                         const Mat4 matrix, const Vec4 clipPlane, bool mirrored) {
 
   view->stats.subviewsOffered++;
 
@@ -163,7 +164,9 @@ static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 or
   // that no fragment goes on to sample. Tested against the camera's position rather than where
   // it happens to be looking: a face off to the side is still plainly visible, so the view's
   // forward vector says nothing about whether this one can be seen
-  if (Cm_DistanceToPlane(view->origin, &subview->absPlane) <= 0.f) {
+  // the epsilon matters once the near plane is skewed onto the surface: at the waterline that
+  // divides by a vanishing distance, and an eye exactly there is a routine gameplay state
+  if (Cm_DistanceToPlane(view->origin, &subview->absPlane) <= ON_EPSILON) {
     return false;
   }
 
@@ -205,6 +208,7 @@ static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 or
   // own screen coordinates, and the two images only register because both were drawn with it
   pooled->type = VIEW_SUBVIEW;
   pooled->mirrored = mirrored;
+  pooled->clipPlane = clipPlane;
   pooled->viewport = view->viewport;
   pooled->fov = view->fov;
   pooled->depthRange = view->depthRange;
@@ -268,7 +272,14 @@ static void R_AddReflection(RenderView *view, RenderSubview *reflection, const M
 
   R_UpdateSubview(reflection, matrix);
 
-  R_AddSubview(view, reflection, view->origin, R_ReflectionMatrix(&reflection->absPlane), true);
+  // the camera sits under the surface, where that surface is the nearest thing in front of it.
+  // The plane is raised slightly clear of it: coincident, the surface's own fragments sit on the
+  // boundary and shimmer, and the skewed depth range has no margin at the waterline
+  const Vec4 clipPlane = Vec3_ToVec4(reflection->absPlane.normal,
+                                     reflection->absPlane.dist + r_reflectClipOffset->value);
+
+  R_AddSubview(view, reflection, view->origin,
+               R_ReflectionMatrix(&reflection->absPlane), clipPlane, true);
 }
 
 /**
@@ -344,7 +355,7 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
   origin = Vec3_Subtract(origin, Vec3_Scale(portal->absPlane.normal,
                                             Cm_DistanceToPlane(origin, &portal->absPlane)));
 
-  R_AddSubview(view, portal, origin, portal->matrix, false);
+  R_AddSubview(view, portal, origin, portal->matrix, Vec4_Zero(), false);
 }
 
 /**
