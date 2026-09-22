@@ -84,7 +84,7 @@ static void R_AppendStage(RenderMaterial *m, RenderStage *s) {
  * @brief One of the surfaces a material resolves from disk.
  */
 typedef struct {
-  const char *path;
+  const Asset *asset;
   SDL_Surface *surface;
 } RenderMaterialSurface;
 
@@ -95,7 +95,7 @@ static void R_LoadMaterialSurface(void *data) {
 
   RenderMaterialSurface *surface = data;
 
-  surface->surface = Img_LoadSurface(surface->path);
+  surface->surface = Img_LoadSurface(surface->asset->path);
 }
 
 /**
@@ -109,7 +109,7 @@ static void R_LoadMaterialSurfaces(RenderMaterialSurface *surfaces, size_t count
   WorkerThread *threads[count];
 
   for (size_t i = 0; i < count; i++) {
-    if (*surfaces[i].path) {
+    if (*surfaces[i].asset->path) {
       threads[i] = Thread_Create(R_LoadMaterialSurface, surfaces + i, THREAD_NONE);
     } else {
       threads[i] = NULL;
@@ -277,10 +277,10 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
                        cm->context == ASSET_CONTEXT_PLAYERS;
 
   RenderMaterialSurface surfaces[] = {
-    { .path = cm->diffusemap.path },
-    { .path = cm->normalmap.path },
-    { .path = cm->specularmap.path },
-    { .path = cm->tintmap.path },
+    { .asset = &cm->diffusemap },
+    { .asset = &cm->normalmap },
+    { .asset = &cm->specularmap },
+    { .asset = &cm->tintmap },
   };
 
   R_LoadMaterialSurfaces(surfaces, layered ? lengthof(surfaces) : 1);
