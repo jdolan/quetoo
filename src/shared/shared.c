@@ -315,13 +315,13 @@ const char *EmojiEsc(const char *in, char *out, size_t outSize) {
 }
 
 /**
- * @brief A shorthand `snprintf` into a statically allocated buffer. Several
- * buffers are maintained internally so that nested va()'s are safe within
- * reasonable limits. This function is not thread safe.
+ * @brief A shorthand `snprintf` into a thread local buffer. Several buffers are
+ * maintained per thread so that nested va()'s are safe within reasonable limits.
+ * A returned string belongs to the calling thread and MUST NOT outlive it.
  */
 char *va(const char *format, ...) {
-  static char strings[8][MAX_STRING_CHARS];
-  static int32_t index;
+  static _Thread_local char strings[8][MAX_STRING_CHARS];
+  static _Thread_local int32_t index;
 
   char *string = strings[index++ % 8];
 
