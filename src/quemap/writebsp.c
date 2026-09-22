@@ -55,17 +55,18 @@ static int32_t numPortalFaces;
  * blocks are known, since a plane spanning several of them is one reflection.
  */
 static struct {
-  int32_t plane;
+  Vec3 normal;
+  float dist;
   int32_t drawElements;
 } reflect_elements[MAX_BSP_REFLECT_ELEMENTS];
 
 static int32_t numReflectElements;
 
 /**
- * @brief The plane of each reflection emitted so far, which the lump does not store: it bakes the
+ * @brief The distance of each reflection's plane, which the lump does not store: it bakes the
  * normal, and the distance follows from an origin that lies on the plane.
  */
-static int32_t reflect_planes[MAX_BSP_REFLECTIONS];
+static float reflect_dists[MAX_BSP_REFLECTIONS];
 
 /**
  * @brief Writes all compiler planes to the BSP planes lump.
@@ -711,45 +712,49 @@ static void EmitDepthPassElements(BspModel *mod) {
 }
 
 /**
- * @return `true` if @p face should show a reflection.
- * @details Two kinds of face carry `SURF_REFLECT` without wanting a mirror of their own.
+ * @return The plane @p face's winding lies on, in @p normal and @p dist, or `false` if the face
+ * cannot carry a mirror.
+ * @details Taken from the winding rather than from `face->plane`. A face records the plane of the
+ * node that cut it, and for one surface that can be either member of an opposing pair: cistern's
+ * pool arrives as eight faces, all wound the same way at the same height, recorded alternately as
+ * a plane and its twin. Reading the index would reflect half a pool and leave the rest plain.
  *
- * A translucent brush emits its surfaces twice, once with the brush side's plane and once with
- * that plane's opposing twin, so that a liquid is visible from under it as well as over it. Only
- * the side as the brush defines it reflects: the twin faces the other way, so it would be a
- * second reflection of one surface, and mirroring the room from under the water is not what a
- * mapper asks for by painting the top of a pool.
- *
- * A face must also lie on the plane it names. Cistern has three-vertex slivers whose vertexes
- * miss their own plane by hundreds of units, and a mirror plane that far from the geometry it
- * belongs to reflects nothing that face can show.
+ * The winding also catches a face that is not planar, and a face sitting on a plane its own brush
+ * side is nowhere near -- cistern has three-vertex slivers, left where terrain cuts the water,
+ * whose brush side is a thousand units away.
  */
-static bool ReflectiveFace(const BspFace *face) {
+static bool ReflectiveFacePlane(const BspFace *face, Vec3 *normal, float *dist) {
 
-  // a patch has no brush side and no plane, so its faces sort equal across the whole curve and
-  // cannot be coplanar
-  if (face->plane == -1 || face->brushSide == -1) {
-    Com_Warn("Patch %s @ %s cannot reflect; a reflection needs a brush side\n",
-             bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)));
+  if (face->numVertexes < 3) {
     return false;
   }
-
-  if (face->plane != bspFile.brushSides[face->brushSide].plane) {
-    return false;
-  }
-
-  const BspPlane *plane = &bspFile.planes[face->plane];
 
   const BspVertex *v = &bspFile.vertexes[face->firstVertex];
-  for (int32_t i = 0; i < face->numVertexes; i++, v++) {
 
-    const float d = Vec3_Dot(v->position, plane->normal) - plane->dist;
-    if (fabsf(d) > ON_EPSILON) {
-      Com_Warn("Reflective %s @ %s is %g off its own plane and will not reflect\n",
-               bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)), d);
+  Vec3 n = Vec3_Cross(Vec3_Subtract(v[1].position, v[0].position),
+                      Vec3_Subtract(v[2].position, v[0].position));
+
+  if (Vec3_Length(n) < COLINEAR_EPSILON) {
+    return false;
+  }
+
+  // the winding order gives the outward direction directly, and consistently across the fragments
+  // of one surface. The vertex normal does not: Phong shading seeds it from `planes[face->plane]`,
+  // which is the very index that varies between a plane and its twin
+  n = Vec3_Normalize(n);
+
+  const float d = Vec3_Dot(v[0].position, n);
+
+  for (int32_t i = 1; i < face->numVertexes; i++) {
+    if (fabsf(Vec3_Dot(v[i].position, n) - d) > ON_EPSILON) {
+      Com_Warn("Reflective %s @ %s is not planar and will not reflect\n",
+               bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)));
       return false;
     }
   }
+
+  *normal = n;
+  *dist = d;
 
   return true;
 }
@@ -834,13 +839,17 @@ int32_t EmitDrawElements(Vector *faces) {
     if (out->surface & SURF_REFLECT) {
       out->surface &= ~SURF_REFLECT;
 
-      if (ReflectiveFace(a)) {
+      Vec3 normal;
+      float dist;
+
+      if (ReflectiveFacePlane(a, &normal, &dist)) {
 
         if (numReflectElements == MAX_BSP_REFLECT_ELEMENTS) {
           Com_Error(ERROR_FATAL, "MAX_BSP_REFLECT_ELEMENTS\n");
         }
 
-        reflect_elements[numReflectElements].plane = a->plane;
+        reflect_elements[numReflectElements].normal = normal;
+        reflect_elements[numReflectElements].dist = dist;
         reflect_elements[numReflectElements].drawElements = (int32_t) (out - bspFile.drawElements);
         numReflectElements++;
 
@@ -967,7 +976,8 @@ static void EmitReflections(BspModel *mod) {
     BspReflection *out = NULL;
 
     for (int32_t j = firstReflection; j < bspFile.numReflections && out == NULL; j++) {
-      if (reflect_planes[j] == reflect_elements[i].plane) {
+      if (fabsf(reflect_dists[j] - reflect_elements[i].dist) <= ON_EPSILON &&
+          Vec3_Dot(bspFile.reflections[j].normal, reflect_elements[i].normal) >= 1.f - COLINEAR_EPSILON) {
         out = &bspFile.reflections[j];
       }
     }
@@ -980,11 +990,11 @@ static void EmitReflections(BspModel *mod) {
 
       out = &bspFile.reflections[bspFile.numReflections];
 
-      reflect_planes[bspFile.numReflections] = reflect_elements[i].plane;
+      reflect_dists[bspFile.numReflections] = reflect_elements[i].dist;
       bspFile.numReflections++;
 
       out->model = (int32_t) (mod - bspFile.models);
-      out->normal = bspFile.planes[reflect_elements[i].plane].normal;
+      out->normal = reflect_elements[i].normal;
       out->bounds = Box3_Null();
     }
 
@@ -998,11 +1008,10 @@ static void EmitReflections(BspModel *mod) {
   for (int32_t i = firstReflection; i < bspFile.numReflections; i++) {
 
     BspReflection *out = &bspFile.reflections[i];
-    const BspPlane *plane = &bspFile.planes[reflect_planes[i]];
 
     const Vec3 center = Box3_Center(out->bounds);
 
-    out->origin = Vec3_Fmaf(center, plane->dist - Vec3_Dot(center, plane->normal), plane->normal);
+    out->origin = Vec3_Fmaf(center, reflect_dists[i] - Vec3_Dot(center, out->normal), out->normal);
   }
 
   if (bspFile.numReflections > firstReflection) {
