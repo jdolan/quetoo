@@ -333,7 +333,7 @@ static int32_t EmitFaceElements(const Face *face, int32_t firstVertex) {
     bspFile.numElements++;
   }
 
-  return numElements;
+  return count;
 }
 
 /**

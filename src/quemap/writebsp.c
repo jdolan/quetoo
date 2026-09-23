@@ -653,11 +653,646 @@ BspModel *BeginModel(const Entity *e) {
 }
 
 /**
+ * @brief The triangles that the depth pass and the draw elements of a model are emitted from:
+ * those of one brush side in one block, or those of one patch face.
+ */
+typedef struct {
+
+  /**
+   * @brief A face of the group, which gives its material, surface, reflection plane and portal.
+   */
+  const BspFace *face;
+
+  /**
+   * @brief The `CONTENTS_BLOCK` node that holds the group, or -1.
+   */
+  int32_t blockNode;
+
+  /**
+   * @brief The triangles, as indexes into the vertexes lump.
+   */
+  const int32_t *elements;
+
+  /**
+   * @brief The count of elements.
+   */
+  int32_t numElements;
+
+  /**
+   * @brief The bounds of the faces of the group.
+   */
+  Box3 bounds;
+} DrawFace;
+
+/**
+ * @brief The draw faces of the model being emitted.
+ */
+static DrawFace *drawFaces;
+
+static int32_t numDrawFaces;
+
+/**
+ * @brief For each face of the model being emitted, the `CONTENTS_BLOCK` node that holds it, the
+ * first plane of the pair that it lies on, and whether its winding faces the same way as that
+ * plane.
+ * @details The plane is that of the face and not that of its brush side, since the tree can give
+ * a face to a side that it does not lie on. It is -1 for a patch, and for a face that is not
+ * planar.
+ */
+static struct {
+  int32_t blockNode;
+  int32_t plane;
+  int32_t facing;
+} *faceGroups;
+
+static const BspModel *faceGroupsModel;
+
+static int32_t EmitDrawFaceElements(Vector *drawFaces);
+
+/**
+ * @brief The elements of the hulls of the model being emitted, which draw faces point into.
+ */
+static int32_t *hullElements;
+
+static int32_t numHullElements;
+
+/**
+ * @brief A vertex that a hull is built from, with its position in the plane of the hull.
+ */
+typedef struct {
+  Vec3 position;
+  int32_t vertex;
+  double x, y;
+  bool used;
+} HullPoint;
+
+/**
+ * @brief A vertex that lies on an edge of a hull, and its distance along that edge.
+ */
+typedef struct {
+  double t;
+  int32_t point;
+} HullEdgePoint;
+
+static Vec3 hullNormal;
+
+/**
+ * @brief Assigns each face of @p mod to the first `CONTENTS_BLOCK` node that holds its center.
+ * @details Each face is given to one block only, so that the faces of a brush side in one block
+ * can be joined, and so that no face is drawn twice.
+ */
+static void AssignFaceBlocks_r(const BspModel *mod, const BspNode *node) {
+
+  if (node->contents == CONTENTS_BLOCK) {
+
+    const int32_t nodeNum = (int32_t) (ptrdiff_t) (node - bspFile.nodes);
+
+    const BspFace *face = bspFile.faces + mod->firstFace;
+    for (int32_t i = 0; i < mod->numFaces; i++, face++) {
+      if (faceGroups[i].blockNode == -1 && Box3_ContainsPoint(node->bounds, Box3_Center(face->bounds))) {
+        faceGroups[i].blockNode = nodeNum;
+      }
+    }
+    return;
+  }
+
+  if (node->contents == CONTENTS_NODE) {
+    AssignFaceBlocks_r(mod, bspFile.nodes + node->children[0]);
+    AssignFaceBlocks_r(mod, bspFile.nodes + node->children[1]);
+  }
+}
+
+/**
+ * @return The normal of the winding of @p face, by Newell's method, scaled by twice its area.
+ */
+static Vec3 FaceWindingNormal(const BspFace *face) {
+
+  Vec3 normal = Vec3_Zero();
+
+  const BspVertex *v = bspFile.vertexes + face->firstVertex;
+  for (int32_t i = 0; i < face->numVertexes; i++) {
+
+    const Vec3 a = v[i].position;
+    const Vec3 b = v[(i + 1) % face->numVertexes].position;
+
+    normal.x += (a.y - b.y) * (a.z + b.z);
+    normal.y += (a.z - b.z) * (a.x + b.x);
+    normal.z += (a.x - b.x) * (a.y + b.y);
+  }
+
+  return normal;
+}
+
+/**
+ * @return True if each vertex of @p face lies within `ON_EPSILON` of its plane.
+ * @details The tree leaves some faces with vertexes far off their plane. A hull that took them in
+ * would not be planar, so they are drawn as they are.
+ */
+static bool FaceIsPlanar(const BspFace *face) {
+
+  const BspPlane *plane = bspFile.planes + face->plane;
+
+  const BspVertex *v = bspFile.vertexes + face->firstVertex;
+  for (int32_t i = 0; i < face->numVertexes; i++, v++) {
+    if (fabsf(Vec3_Dot(v->position, plane->normal) - plane->dist) > ON_EPSILON) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @brief Orders the faces of the model by block, brush side, plane and facing, then by index.
+ */
+static int32_t FaceGroupCmp(const void *a, const void *b) {
+
+  const int32_t i = *(const int32_t *) a;
+  const int32_t j = *(const int32_t *) b;
+
+  if (faceGroups[i].blockNode != faceGroups[j].blockNode) {
+    return faceGroups[i].blockNode - faceGroups[j].blockNode;
+  }
+
+  const BspFace *fi = bspFile.faces + faceGroupsModel->firstFace + i;
+  const BspFace *fj = bspFile.faces + faceGroupsModel->firstFace + j;
+
+  if (fi->brushSide != fj->brushSide) {
+    return fi->brushSide - fj->brushSide;
+  }
+
+  if (faceGroups[i].plane != faceGroups[j].plane) {
+    return faceGroups[i].plane - faceGroups[j].plane;
+  }
+
+  if (faceGroups[i].facing != faceGroups[j].facing) {
+    return faceGroups[i].facing - faceGroups[j].facing;
+  }
+
+  return i - j;
+}
+
+/**
+ * @return True if the faces @p i and @p j of the model are drawn as one hull.
+ */
+static bool FaceGroupEqual(int32_t i, int32_t j) {
+
+  const BspFace *fi = bspFile.faces + faceGroupsModel->firstFace + i;
+  const BspFace *fj = bspFile.faces + faceGroupsModel->firstFace + j;
+
+  if (faceGroups[i].plane == -1 || fi->brushSide != fj->brushSide) {
+    return false;
+  }
+
+  return faceGroups[i].blockNode == faceGroups[j].blockNode &&
+         faceGroups[i].plane == faceGroups[j].plane &&
+         faceGroups[i].facing == faceGroups[j].facing;
+}
+
+/**
+ * @brief Orders hull points by position, then those with a normal toward the hull first, then by
+ * vertex, so that one vertex is kept for each position.
+ */
+static int32_t HullPointPositionCmp(const void *a, const void *b) {
+
+  const HullPoint *pa = a;
+  const HullPoint *pb = b;
+
+  for (int32_t i = 0; i < 3; i++) {
+    if (pa->position.xyz[i] != pb->position.xyz[i]) {
+      return pa->position.xyz[i] < pb->position.xyz[i] ? -1 : 1;
+    }
+  }
+
+  const bool aToward = Vec3_Dot(bspFile.vertexes[pa->vertex].normal, hullNormal) > 0.f;
+  const bool bToward = Vec3_Dot(bspFile.vertexes[pb->vertex].normal, hullNormal) > 0.f;
+
+  if (aToward != bToward) {
+    return aToward ? -1 : 1;
+  }
+
+  return pa->vertex - pb->vertex;
+}
+
+/**
+ * @brief Orders hull points by their position in the plane of the hull.
+ */
+static int32_t HullPointPlaneCmp(const void *a, const void *b) {
+
+  const HullPoint *pa = a;
+  const HullPoint *pb = b;
+
+  if (pa->x != pb->x) {
+    return pa->x < pb->x ? -1 : 1;
+  }
+
+  if (pa->y != pb->y) {
+    return pa->y < pb->y ? -1 : 1;
+  }
+
+  return pa->vertex - pb->vertex;
+}
+
+/**
+ * @brief Orders the points on one edge of a hull by their distance along it.
+ */
+static int32_t HullEdgePointCmp(const void *a, const void *b) {
+
+  const HullEdgePoint *pa = a;
+  const HullEdgePoint *pb = b;
+
+  if (pa->t != pb->t) {
+    return pa->t < pb->t ? -1 : 1;
+  }
+
+  return pa->point - pb->point;
+}
+
+/**
+ * @brief Emits the convex hull of the faces of one brush side on one plane in one block, as one
+ * draw face.
+ * @details The tree cuts a brush side into faces along every plane that it splits space with,
+ * and only some of those cuts follow the brushes that hide part of the side. The draw elements do
+ * not need the cuts: the hull of the faces covers each of them, and each part of the hull that no
+ * face covers lies behind a brush that hides it. The faces themselves are kept for decals.
+ *
+ * Vertexes closer than `ON_EPSILON` are one vertex. Vertexes that lie on an edge of the hull are
+ * kept, since the faces of other brush sides may meet them there. Their normals are mixed from
+ * the corners of that edge. Vertexes inside the hull are not kept.
+ *
+ * Brushes that overlap with coplanar sides are a fault in the map: both hulls are drawn, and they
+ * fight in the depth buffer.
+ * @return False if the faces have no hull with three corners.
+ */
+static bool EmitHull(const BspModel *mod, const int32_t *group, int32_t count, DrawFace *out) {
+
+  const BspFace *first = bspFile.faces + mod->firstFace + group[0];
+  const BspBrushSide *side = bspFile.brushSides + first->brushSide;
+
+  hullNormal = bspFile.planes[faceGroups[group[0]].plane].normal;
+  if (!faceGroups[group[0]].facing) {
+    hullNormal = Vec3_Negate(hullNormal);
+  }
+
+  int32_t numPoints = 0;
+  for (int32_t i = 0; i < count; i++) {
+    numPoints += bspFile.faces[mod->firstFace + group[i]].numVertexes;
+  }
+
+  HullPoint *points = Mem_Malloc(numPoints * sizeof(HullPoint));
+
+  numPoints = 0;
+  out->bounds = Box3_Null();
+
+  for (int32_t i = 0; i < count; i++) {
+    const BspFace *face = bspFile.faces + mod->firstFace + group[i];
+    for (int32_t j = 0; j < face->numVertexes; j++) {
+      points[numPoints++] = (HullPoint) {
+        .position = bspFile.vertexes[face->firstVertex + j].position,
+        .vertex = face->firstVertex + j
+      };
+    }
+    out->bounds = Box3_Union(out->bounds, face->bounds);
+  }
+
+  qsort(points, numPoints, sizeof(HullPoint), HullPointPositionCmp);
+
+  int32_t numUnique = 0;
+  for (int32_t i = 0; i < numPoints; i++) {
+
+    int32_t j;
+    for (j = 0; j < numUnique; j++) {
+      if (Vec3_DistanceSquared(points[j].position, points[i].position) < ON_EPSILON * ON_EPSILON) {
+        break;
+      }
+    }
+
+    if (j == numUnique) {
+      points[numUnique++] = points[i];
+    }
+  }
+  numPoints = numUnique;
+
+  const Vec3 n = hullNormal;
+  const Vec3 ref = fabsf(n.x) <= fabsf(n.y) && fabsf(n.x) <= fabsf(n.z) ? MakeVec3(1.f, 0.f, 0.f) :
+                   fabsf(n.y) <= fabsf(n.z) ? MakeVec3(0.f, 1.f, 0.f) : MakeVec3(0.f, 0.f, 1.f);
+
+  const Vec3 u = Vec3_Normalize(Vec3_Cross(ref, n));
+  const Vec3 v = Vec3_Cross(n, u);
+
+  for (int32_t i = 0; i < numPoints; i++) {
+    const Vec3 p = points[i].position;
+    points[i].x = (double) p.x * u.x + (double) p.y * u.y + (double) p.z * u.z;
+    points[i].y = (double) p.x * v.x + (double) p.y * v.y + (double) p.z * v.z;
+  }
+
+  int32_t start = 0;
+  for (int32_t i = 1; i < numPoints; i++) {
+    if (HullPointPlaneCmp(&points[i], &points[start]) < 0) {
+      start = i;
+    }
+  }
+
+  int32_t *corners = Mem_Malloc((numPoints + 1) * sizeof(int32_t));
+  int32_t numCorners = 0;
+
+  int32_t *visit = Mem_Malloc(numPoints * sizeof(int32_t));
+  for (int32_t i = 0; i < numPoints; i++) {
+    visit[i] = -1;
+  }
+
+  for (int32_t p = start; visit[p] == -1;) {
+
+    visit[p] = numCorners;
+    corners[numCorners++] = p;
+
+    int32_t best = -1;
+    for (int32_t q = 0; q < numPoints; q++) {
+
+      if (q == p) {
+        continue;
+      }
+
+      if (best == -1) {
+        best = q;
+        continue;
+      }
+
+      const HullPoint *o = &points[p], *b = &points[best], *c = &points[q];
+
+      const double bx = b->x - o->x, by = b->y - o->y;
+      const double cx = c->x - o->x, cy = c->y - o->y;
+      const double cross = bx * cy - by * cx;
+
+      if (cross < -ON_EPSILON * sqrt(bx * bx + by * by)) {
+        best = q;
+      } else if (cross <= ON_EPSILON * sqrt(bx * bx + by * by) && cx * cx + cy * cy > bx * bx + by * by) {
+        best = q;
+      }
+    }
+
+    if (best == -1) {
+      break;
+    }
+
+    p = best;
+    if (visit[p] != -1) {
+      memmove(corners, corners + visit[p], (numCorners - visit[p]) * sizeof(int32_t));
+      numCorners -= visit[p];
+      break;
+    }
+  }
+
+  Mem_Free(visit);
+
+  corners[numCorners] = corners[0];
+
+  if (numCorners < 3) {
+    Com_Warn("Brush side %s @ %s has no hull, drawing its %d faces\n",
+             bspFile.materials[side->material].name, vtos(Box3_Center(out->bounds)), count);
+    Mem_Free(corners);
+    Mem_Free(points);
+    return false;
+  }
+
+  for (int32_t i = 0; i < numCorners; i++) {
+    points[corners[i]].used = true;
+  }
+
+  CmWinding *w = Cm_AllocWinding(numPoints);
+  int32_t *source = Mem_Malloc(numPoints * sizeof(int32_t));
+  int32_t *edge = Mem_Malloc(numPoints * sizeof(int32_t));
+  double *along = Mem_Malloc(numPoints * sizeof(double));
+  HullEdgePoint *edgePoints = Mem_Malloc(numPoints * sizeof(HullEdgePoint));
+
+  for (int32_t i = 0; i < numCorners; i++) {
+
+    const HullPoint *p = &points[corners[i]];
+    const HullPoint *q = &points[corners[i + 1]];
+
+    edge[w->numPoints] = -1;
+    source[w->numPoints] = p->vertex;
+    w->points[w->numPoints++] = p->position;
+
+    const double dx = q->x - p->x, dy = q->y - p->y;
+    const double length = sqrt(dx * dx + dy * dy);
+
+    int32_t numEdgePoints = 0;
+    for (int32_t j = 0; j < numPoints; j++) {
+
+      if (points[j].used) {
+        continue;
+      }
+
+      const double rx = points[j].x - p->x, ry = points[j].y - p->y;
+      if (fabs(rx * dy - ry * dx) > ON_EPSILON * length) {
+        continue;
+      }
+
+      const double t = (rx * dx + ry * dy) / (length * length);
+      if (t * length <= ON_EPSILON || (1.0 - t) * length <= ON_EPSILON) {
+        continue;
+      }
+
+      edgePoints[numEdgePoints++] = (HullEdgePoint) { .t = t, .point = j };
+    }
+
+    qsort(edgePoints, numEdgePoints, sizeof(HullEdgePoint), HullEdgePointCmp);
+
+    for (int32_t j = 0; j < numEdgePoints; j++) {
+      HullPoint *r = &points[edgePoints[j].point];
+      r->used = true;
+
+      edge[w->numPoints] = i;
+      along[w->numPoints] = edgePoints[j].t;
+      source[w->numPoints] = r->vertex;
+      w->points[w->numPoints++] = r->position;
+    }
+  }
+
+  const int32_t firstVertex = bspFile.numVertexes;
+
+  if (bspFile.numVertexes + w->numPoints > MAX_BSP_VERTEXES) {
+    Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
+  }
+
+  int32_t *cornerPoints = Mem_Malloc(numCorners * sizeof(int32_t));
+
+  for (int32_t i = 0; i < w->numPoints; i++) {
+
+    BspVertex *vertex = &bspFile.vertexes[firstVertex + i];
+
+    *vertex = bspFile.vertexes[source[i]];
+    vertex->tangent = Vec3_Zero();
+    vertex->bitangent = Vec3_Zero();
+  }
+
+  for (int32_t i = 0, c = 0; i < w->numPoints; i++) {
+    if (edge[i] == -1) {
+      cornerPoints[c++] = i;
+    }
+  }
+
+  for (int32_t i = 0; i < w->numPoints; i++) {
+
+    if (edge[i] == -1) {
+      continue;
+    }
+
+    const BspVertex *a = &bspFile.vertexes[firstVertex + cornerPoints[edge[i]]];
+    const BspVertex *b = &bspFile.vertexes[firstVertex + cornerPoints[(edge[i] + 1) % numCorners]];
+
+    BspVertex *vertex = &bspFile.vertexes[firstVertex + i];
+    vertex->normal = Vec3_Normalize(Vec3_Mix(a->normal, b->normal, (float) along[i]));
+  }
+
+  int32_t *elements = hullElements + numHullElements;
+  const int32_t numElements = Cm_ElementsForWinding(w, elements);
+
+  if (numElements) {
+    bspFile.numVertexes += w->numPoints;
+  }
+
+  for (int32_t i = 0; i < numElements; i++) {
+    elements[i] += firstVertex;
+  }
+
+  numHullElements += numElements;
+
+  CmVertex *cm = Mem_Malloc(w->numPoints * sizeof(CmVertex));
+  for (int32_t i = 0; i < w->numPoints; i++) {
+    BspVertex *vertex = &bspFile.vertexes[firstVertex + i];
+    cm[i] = (CmVertex) {
+      .position = &vertex->position,
+      .normal = &vertex->normal,
+      .tangent = &vertex->tangent,
+      .bitangent = &vertex->bitangent,
+      .st = &vertex->diffusemap
+    };
+  }
+
+  Cm_Tangents(cm, firstVertex, w->numPoints, elements, numElements);
+
+  out->face = first;
+  out->blockNode = faceGroups[group[0]].blockNode;
+  out->elements = elements;
+  out->numElements = numElements;
+
+  Mem_Free(cm);
+  Mem_Free(cornerPoints);
+  Mem_Free(edgePoints);
+  Mem_Free(along);
+  Mem_Free(edge);
+  Mem_Free(source);
+  Cm_FreeWinding(w);
+  Mem_Free(corners);
+  Mem_Free(points);
+
+  return numElements > 0;
+}
+
+/**
+ * @brief Builds the draw faces of @p mod: one hull for the faces of each brush side in each
+ * block, and one draw face for each patch face and each face that is not drawn.
+ */
+static void EmitDrawFaces(const BspModel *mod) {
+
+  faceGroupsModel = mod;
+  faceGroups = Mem_Malloc(mod->numFaces * sizeof(*faceGroups));
+
+  drawFaces = Mem_Malloc(mod->numFaces * sizeof(DrawFace));
+  numDrawFaces = 0;
+
+  int32_t numVertexes = 0;
+
+  const BspFace *face = bspFile.faces + mod->firstFace;
+  for (int32_t i = 0; i < mod->numFaces; i++, face++) {
+
+    faceGroups[i].blockNode = -1;
+
+    faceGroups[i].plane = -1;
+
+    if (face->brushSide >= 0 && FaceIsPlanar(face)) {
+      faceGroups[i].plane = face->plane & ~1;
+      faceGroups[i].facing = Vec3_Dot(FaceWindingNormal(face), bspFile.planes[faceGroups[i].plane].normal) > 0.f;
+    }
+
+    numVertexes += face->numVertexes;
+  }
+
+  hullElements = Mem_Malloc(3 * numVertexes * sizeof(int32_t));
+  numHullElements = 0;
+
+  AssignFaceBlocks_r(mod, bspFile.nodes + mod->headNode);
+
+  int32_t *order = Mem_Malloc(mod->numFaces * sizeof(int32_t));
+  for (int32_t i = 0; i < mod->numFaces; i++) {
+    order[i] = i;
+  }
+
+  qsort(order, mod->numFaces, sizeof(int32_t), FaceGroupCmp);
+
+  for (int32_t i = 0; i < mod->numFaces;) {
+
+    int32_t count = 1;
+    while (i + count < mod->numFaces && FaceGroupEqual(order[i], order[i + count])) {
+      count++;
+    }
+
+    const BspFace *first = bspFile.faces + mod->firstFace + order[i];
+
+    if (count > 1 && !(FaceSurface(first) & SURF_MASK_NO_DRAW_ELEMENTS) &&
+        EmitHull(mod, order + i, count, &drawFaces[numDrawFaces])) {
+      numDrawFaces++;
+    } else {
+      for (int32_t j = 0; j < count; j++) {
+        const BspFace *f = bspFile.faces + mod->firstFace + order[i + j];
+        if (f->numElements == 0) {
+          continue;
+        }
+        drawFaces[numDrawFaces++] = (DrawFace) {
+          .face = f,
+          .blockNode = faceGroups[order[i + j]].blockNode,
+          .elements = bspFile.elements + f->firstElement,
+          .numElements = f->numElements,
+          .bounds = f->bounds
+        };
+      }
+    }
+
+    i += count;
+  }
+
+  Mem_Free(order);
+}
+
+/**
+ * @brief Frees the draw faces of the model that was emitted.
+ */
+static void FreeDrawFaces(void) {
+
+  Mem_Free(hullElements);
+  Mem_Free(drawFaces);
+  Mem_Free(faceGroups);
+
+  hullElements = NULL;
+  numHullElements = 0;
+
+  drawFaces = NULL;
+  numDrawFaces = 0;
+
+  faceGroups = NULL;
+  faceGroupsModel = NULL;
+}
+
+/**
  * @brief Emits depth-pass draw elements for the model: all opaque, non-liquid, non-sky faces
  * are lumped into a single draw elements, with a sentinel material of -1, since the shadow
  * pass and Z pre-pass do not sample any texture for them. Alpha-tested faces (foliage, fences,
  * grates) are grouped by material, so their diffuse texture can be sampled and discarded
  * per-pixel, letting them cast per-pixel holes rather than solid silhouettes.
+ * @details These are emitted from the same draw faces as the draw elements, since the Z pre-pass
+ * MUST rasterize the same triangles as the passes that test against it.
  */
 static void EmitDepthPassElements(BspModel *mod) {
 
@@ -673,14 +1308,16 @@ static void EmitDepthPassElements(BspModel *mod) {
   opaque->bounds = Box3_Null();
   opaque->firstElement = bspFile.numElements;
 
-  Vector *alphaTestFaces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
+  Vector *alphaTestFaces = $(alloc(Vector), initWithSize, sizeof(DrawFace *));
 
-  const BspFace *face = &bspFile.faces[mod->firstFace];
-  for (int32_t i = 0; i < mod->numFaces; i++, face++) {
+  const DrawFace *drawFace = drawFaces;
+  for (int32_t i = 0; i < numDrawFaces; i++, drawFace++) {
+
+    const BspFace *face = drawFace->face;
 
     const int32_t surface = FaceSurface(face);
     if (surface & SURF_ALPHA_TEST) {
-      $(alphaTestFaces, add, &face);
+      $(alphaTestFaces, add, &drawFace);
       continue;
     }
 
@@ -701,18 +1338,18 @@ static void EmitDepthPassElements(BspModel *mod) {
       continue;
     }
 
-    if (bspFile.numElements + face->numElements >= MAX_BSP_ELEMENTS) {
+    if (bspFile.numElements + drawFace->numElements >= MAX_BSP_ELEMENTS) {
       Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
     }
 
     memcpy(bspFile.elements + bspFile.numElements,
-           bspFile.elements + face->firstElement,
-           sizeof(int32_t) * face->numElements);
+           drawFace->elements,
+           sizeof(int32_t) * drawFace->numElements);
 
-    bspFile.numElements += face->numElements;
+    bspFile.numElements += drawFace->numElements;
 
-    opaque->numElements += face->numElements;
-    opaque->bounds = Box3_Union(opaque->bounds, face->bounds);
+    opaque->numElements += drawFace->numElements;
+    opaque->bounds = Box3_Union(opaque->bounds, drawFace->bounds);
   }
 
   if (opaque->numElements) {
@@ -720,7 +1357,7 @@ static void EmitDepthPassElements(BspModel *mod) {
   }
 
   if (alphaTestFaces->count) {
-    EmitDrawElements(alphaTestFaces);
+    EmitDrawFaceElements(alphaTestFaces);
   }
 
   release(alphaTestFaces);
@@ -812,34 +1449,34 @@ static int32_t FaceCmp(const void * a, const void * b) {
   return order;
 }
 
-static Order FaceCmpOrder(const ident a, const ident b) {
-  const BspFace *const *aFace = a;
-  const BspFace *const *bFace = b;
-  const int32_t cmp = FaceCmp(*aFace, *bFace);
+static Order DrawFaceCmpOrder(const ident a, const ident b) {
+  const DrawFace *const *aFace = a;
+  const DrawFace *const *bFace = b;
+  const int32_t cmp = FaceCmp((*aFace)->face, (*bFace)->face);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 /**
- * @brief Emits glDrawElements commands for the given face list.
- * @details Sorts opaque and alpha test faces in the given model by material, and emits
- * glDrawElements commands for each unique material. The BSP face ordering is not modified,
- * as this would break the references that the nodes hold to them.
+ * @brief Emits glDrawElements commands for the given draw face list.
+ * @details Sorts opaque and alpha test draw faces by material, and emits glDrawElements commands
+ * for each unique material. The BSP face ordering is not modified, as this would break the
+ * references that the nodes hold to them.
  * @return The number of draw elements commands emitted.
  */
-int32_t EmitDrawElements(Vector *faces) {
+static int32_t EmitDrawFaceElements(Vector *drawFaces) {
 
   const int32_t numDrawElements = bspFile.numDrawElements;
 
-  $(faces, sort, FaceCmpOrder);
+  $(drawFaces, sort, DrawFaceCmpOrder);
 
-  for (size_t i = 0; i < faces->count; i++) {
+  for (size_t i = 0; i < drawFaces->count; i++) {
 
     if (bspFile.numDrawElements == MAX_BSP_DRAW_ELEMENTS) {
       Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
     }
 
-    const BspFace *a = VectorValue(faces, BspFace *, i);
-    const int32_t aSurface = FaceSurface(a);
+    const DrawFace *a = VectorValue(drawFaces, DrawFace *, i);
+    const int32_t aSurface = FaceSurface(a->face);
 
     if (aSurface & SURF_MASK_NO_DRAW_ELEMENTS) {
       continue;
@@ -848,7 +1485,7 @@ int32_t EmitDrawElements(Vector *faces) {
     BspDrawElements *out = bspFile.drawElements + bspFile.numDrawElements;
     bspFile.numDrawElements++;
 
-    out->material = FaceMaterial(a);
+    out->material = FaceMaterial(a->face);
     out->surface = aSurface & SURF_MASK_DRAW_ELEMENTS_CMP;
     out->reflection = -1;
 
@@ -858,7 +1495,7 @@ int32_t EmitDrawElements(Vector *faces) {
       Vec3 normal;
       float dist;
 
-      if (ReflectiveFacePlane(a, &normal, &dist)) {
+      if (ReflectiveFacePlane(a->face, &normal, &dist)) {
 
         if (numReflectElements == MAX_BSP_REFLECT_ELEMENTS) {
           Com_Error(ERROR_FATAL, "MAX_BSP_REFLECT_ELEMENTS\n");
@@ -877,7 +1514,7 @@ int32_t EmitDrawElements(Vector *faces) {
       if (numPortalFaces == MAX_BSP_PORTALS) {
         Com_Error(ERROR_FATAL, "MAX_BSP_PORTALS\n");
       }
-      portal_faces[numPortalFaces].face = a;
+      portal_faces[numPortalFaces].face = a->face;
       portal_faces[numPortalFaces].drawElements = (int32_t) (out - bspFile.drawElements);
       numPortalFaces++;
     }
@@ -886,11 +1523,11 @@ int32_t EmitDrawElements(Vector *faces) {
 
     out->firstElement = bspFile.numElements;
 
-    for (size_t j = i; j < faces->count; j++) {
+    for (size_t j = i; j < drawFaces->count; j++) {
 
-      const BspFace *b = VectorValue(faces, BspFace *, j);
+      const DrawFace *b = VectorValue(drawFaces, DrawFace *, j);
 
-      if (FaceCmp(a, b)) {
+      if (FaceCmp(a->face, b->face)) {
         break;
       }
 
@@ -899,7 +1536,7 @@ int32_t EmitDrawElements(Vector *faces) {
       }
 
       memcpy(bspFile.elements + bspFile.numElements,
-             bspFile.elements + b->firstElement,
+             b->elements,
              sizeof(int32_t) * b->numElements);
 
       bspFile.numElements += b->numElements;
@@ -917,51 +1554,79 @@ int32_t EmitDrawElements(Vector *faces) {
 }
 
 /**
+ * @brief Emits glDrawElements commands for the given face list, one draw face for each face.
+ * @return The number of draw elements commands emitted.
+ */
+int32_t EmitDrawElements(Vector *faces) {
+
+  DrawFace *faceDrawFaces = Mem_Malloc(faces->count * sizeof(DrawFace));
+  Vector *drawFacesVector = $(alloc(Vector), initWithSize, sizeof(DrawFace *));
+
+  for (size_t i = 0; i < faces->count; i++) {
+
+    const BspFace *face = VectorValue(faces, BspFace *, i);
+
+    faceDrawFaces[i] = (DrawFace) {
+      .face = face,
+      .blockNode = -1,
+      .elements = bspFile.elements + face->firstElement,
+      .numElements = face->numElements,
+      .bounds = face->bounds
+    };
+
+    const DrawFace *drawFace = &faceDrawFaces[i];
+    $(drawFacesVector, add, &drawFace);
+  }
+
+  const int32_t count = EmitDrawFaceElements(drawFacesVector);
+
+  release(drawFacesVector);
+  Mem_Free(faceDrawFaces);
+
+  return count;
+}
+
+/**
  * @brief Recursively emits block draw-element groups for all `CONTENTS_BLOCK` nodes in the BSP tree.
  */
 static void EmitBlocks_r(BspModel *mod, BspNode *node) {
 
   if (node->contents == CONTENTS_BLOCK) {
 
-    Vector *faces = $(alloc(Vector), initWithSize, sizeof(BspFace *));
+    const int32_t nodeNum = (int32_t) (ptrdiff_t) (node - bspFile.nodes);
 
-    BspFace *face = bspFile.faces + mod->firstFace;
-    for (int32_t i = 0; i < mod->numFaces; i++, face++) {
+    Vector *blockDrawFaces = $(alloc(Vector), initWithSize, sizeof(DrawFace *));
 
-      const BspBrushSide *side = bspFile.brushSides + face->brushSide;
-      const BspMaterial *material = bspFile.materials + side->material;
-
-      if (Box3_ContainsPoint(node->bounds, Box3_Center(face->bounds))) {
-        if (face->block != -1) {
-          Com_Verbose("Face %s @ %s resides in multiple blocks\n", material->name, vtos(Box3_Center(face->bounds)));
-        }
-        
-        $(faces, add, &face);
+    const DrawFace *drawFace = drawFaces;
+    for (int32_t i = 0; i < numDrawFaces; i++, drawFace++) {
+      if (drawFace->blockNode == nodeNum) {
+        $(blockDrawFaces, add, &drawFace);
       }
     }
 
-    if (faces->count == 0) {
-      release(faces);
+    if (blockDrawFaces->count == 0) {
+      release(blockDrawFaces);
       node->contents = CONTENTS_NODE;
       return;
     }
 
     BspBlock *out = &bspFile.blocks[bspFile.numBlocks++];
-    out->node = (int32_t) (ptrdiff_t) (node - bspFile.nodes);
+    out->node = nodeNum;
 
     out->visibleBounds = Box3_Null();
-    for (size_t i = 0; i < faces->count; i++) {
 
-      BspFace *face = VectorValue(faces, BspFace *, i);
-      face->block = (int32_t) (ptrdiff_t) (out - bspFile.blocks);
-
-      out->visibleBounds = Box3_Union(out->visibleBounds, face->bounds);
+    BspFace *face = bspFile.faces + mod->firstFace;
+    for (int32_t i = 0; i < mod->numFaces; i++, face++) {
+      if (faceGroups[i].blockNode == nodeNum) {
+        face->block = (int32_t) (ptrdiff_t) (out - bspFile.blocks);
+        out->visibleBounds = Box3_Union(out->visibleBounds, face->bounds);
+      }
     }
 
     out->firstDrawElement = bspFile.numDrawElements;
-    out->numDrawElements = EmitDrawElements(faces);
+    out->numDrawElements = EmitDrawFaceElements(blockDrawFaces);
 
-    release(faces);
+    release(blockDrawFaces);
     return;
   }
 
@@ -1067,6 +1732,8 @@ void EndModel(BspModel *mod) {
   // Free pre-tessellated patch face data
   FreePatchFaces(mod->entity);
 
+  EmitDrawFaces(mod);
+
   EmitDepthPassElements(mod);
 
   // Captured here (not in BeginModel) since EmitDepthPassElements above also appends entries
@@ -1084,6 +1751,8 @@ void EndModel(BspModel *mod) {
                mod->entity, i, materials[FaceMaterial(face)].cm->name);
     }
   }
+
+  FreeDrawFaces();
 
   mod->numDrawElements = bspFile.numDrawElements - mod->firstDrawElements;
   mod->numBlocks = bspFile.numBlocks - mod->firstBlock;
