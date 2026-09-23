@@ -307,37 +307,10 @@ static int32_t EmitFaceVertexes(const Face *face) {
 }
 
 /**
- * @brief Emits a vertex elements array of triangles for the given face.
- */
-static int32_t EmitFaceElements(const Face *face, int32_t firstVertex) {
-
-  const int32_t numTriangles = (face->w->numPoints - 2);
-  const int32_t numElements = numTriangles * 3;
-
-  int32_t elements[numElements];
-  const int32_t count = Cm_ElementsForWinding(face->w, elements);
-
-  if (numElements != count) {
-    const Material *mat = &materials[face->brushSide->material];
-    const Vec3 center = Cm_WindingCenter(face->w);
-    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(center));
-  }
-
-  for (int32_t i = 0; i < count; i++) {
-
-    if (bspFile.numElements == MAX_BSP_ELEMENTS) {
-      Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
-    }
-
-    bspFile.elements[bspFile.numElements] = firstVertex + elements[i];
-    bspFile.numElements++;
-  }
-
-  return count;
-}
-
-/**
  * @brief Emits the given face into the BSP file, writing its vertex array and element indices.
+ * @details The winding is triangulated before anything is written, and a face with no triangles
+ * is not emitted: decals and flares have no use for it.
+ * @return The emitted face, or `NULL` if the face has no triangles.
  */
 BspFace *EmitFace(const Face *face) {
 
@@ -345,12 +318,24 @@ BspFace *EmitFace(const Face *face) {
   assert(face->brushSide->material >= 0);
   assert(face->brushSide->out);
 
+  int32_t elements[(face->w->numPoints - 2) * 3];
+  const int32_t numElements = Cm_ElementsForWinding(face->w, elements);
+
+  if (numElements != (int32_t) lengthof(elements)) {
+    const Material *mat = &materials[face->brushSide->material];
+    const Vec3 center = Cm_WindingCenter(face->w);
+    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(center));
+  }
+
+  if (numElements == 0) {
+    return NULL;
+  }
+
   if (bspFile.numFaces == MAX_BSP_FACES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
   }
 
   BspFace *out = &bspFile.faces[bspFile.numFaces];
-  bspFile.numFaces++;
 
   out->brushSide = (int32_t) (ptrdiff_t) (face->brushSide->out - bspFile.brushSides);
   out->patch = -1;
@@ -362,7 +347,11 @@ BspFace *EmitFace(const Face *face) {
   out->firstVertex = bspFile.numVertexes;
   out->numVertexes = EmitFaceVertexes(face);
 
-  assert(out->numVertexes);
+  if (out->numVertexes == 0) {
+    return NULL;
+  }
+
+  bspFile.numFaces++;
 
   const BspVertex *v = bspFile.vertexes + out->firstVertex;
   for (int32_t i = 0; i < out->numVertexes; i++, v++) {
@@ -370,7 +359,15 @@ BspFace *EmitFace(const Face *face) {
   }
 
   out->firstElement = bspFile.numElements;
-  out->numElements = EmitFaceElements(face, out->firstVertex);
+  out->numElements = numElements;
+
+  if (bspFile.numElements + numElements > MAX_BSP_ELEMENTS) {
+    Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+  }
+
+  for (int32_t i = 0; i < numElements; i++) {
+    bspFile.elements[bspFile.numElements++] = out->firstVertex + elements[i];
+  }
 
   return out;
 }

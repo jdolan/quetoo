@@ -153,7 +153,9 @@ static int32_t EmitFaces(const Node *node, int32_t nodeNum) {
     }
 
     face->out = EmitFace(face);
-    face->out->node = nodeNum;
+    if (face->out) {
+      face->out->node = nodeNum;
+    }
   }
 
   // Emit pre-tessellated patch faces assigned to this node
@@ -807,13 +809,13 @@ static bool FaceIsPlanar(const BspFace *face) {
  * hides that area. Two touching see-through brushes, such as a waterfall on a pool, make no face
  * where they touch, and nothing hides that area, so only opaque sides are hulled.
  *
- * The face MUST also have triangles, lie on its plane, and lie on the plane of its brush side. The
+ * The face MUST also lie on its plane, and on the plane of its brush side. The
  * tree gives some faces to a side on another plane, and the hull of those faces would cover the
  * faces of other sides between them.
  */
 static bool FaceIsHulled(const BspFace *face) {
 
-  if (face->brushSide < 0 || face->numElements == 0) {
+  if (face->brushSide < 0) {
     return false;
   }
 
@@ -1279,9 +1281,6 @@ static void EmitDrawFaces(const BspModel *mod) {
     } else {
       for (int32_t j = 0; j < count; j++) {
         const BspFace *f = bspFile.faces + mod->firstFace + order[i + j];
-        if (f->numElements == 0) {
-          continue;
-        }
         drawFaces[numDrawFaces++] = (DrawFace) {
           .face = f,
           .blockNode = faceGroups[order[i + j]].blockNode,
@@ -1597,10 +1596,6 @@ int32_t EmitDrawElements(Vector *faces) {
   for (size_t i = 0; i < faces->count; i++) {
 
     const BspFace *face = VectorValue(faces, BspFace *, i);
-
-    if (face->numElements == 0) {
-      continue;
-    }
 
     faceDrawFaces[i] = (DrawFace) {
       .face = face,
