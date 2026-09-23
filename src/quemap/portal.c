@@ -573,13 +573,12 @@ static void FindPortalBrushSide(Portal *portal) {
         const Plane *p2 = &planes[side->plane & ~1];
 
         const float dot = Vec3_Dot(p1->normal, p2->normal);
-        if (dot > bestDot) {
-          const double dist = fabs(p1->dist - p2->dist);
-          if (dist < bestDist) {
-            bestDot = dot;
-            bestDist = dist;
-            portal->side = side;
-          }
+        const double dist = fabs(p1->dist - p2->dist);
+
+        if (dot > 0.f && (dot > bestDot || (dot == bestDot && dist < bestDist))) {
+          bestDot = dot;
+          bestDist = dist;
+          portal->side = side;
         }
       }
     }
