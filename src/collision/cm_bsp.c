@@ -458,7 +458,7 @@ static void Bsp_SwapLump(const BspLumpId lumpId, void *lump, int32_t count) {
 
   if (swap[lumpId]) {
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
-    swap[lump_id](lump, count);
+    swap[lumpId](lump, count);
 #endif
   }
 }
@@ -761,9 +761,7 @@ void Bsp_Write(File *file, const BspFile *bsp) {
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
     // swap lump to disk endianness
-    if (bsp_swap_funcs[i]) {
-      bsp_swap_funcs[i](*lump_data, *lump_count);
-    }
+    Bsp_SwapLump(lump, *lumpData, *lumpCount);
 #endif
 
     // write and increase position for next lump
@@ -775,9 +773,7 @@ void Bsp_Write(File *file, const BspFile *bsp) {
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
     // swap back to memory endianness
-    if (bsp_swap_funcs[i]) {
-      bsp_swap_funcs[i](*lump_data, *lump_count);
-    }
+    Bsp_SwapLump(lump, *lumpData, *lumpCount);
 #endif
 
     currentPosition += lumpSize;
