@@ -32,7 +32,8 @@ struct uniformsBlock
     float lightingDistance;
     int editor;
     int developer;
-    float2 padding;
+    int wireframe;
+    int padding;
 };
 
 struct main0_out

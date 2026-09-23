@@ -240,9 +240,14 @@ typedef struct {
     int developer;
 
     /**
+     * @brief Non-zero when world geometry is drawn as wireframe, in white, with no sampling.
+     */
+    int wireframe;
+
+    /**
      * @brief Pads the block to a multiple of vec4, as std140 requires.
      */
-    Vec2 padding;
+    int padding;
   } block;
 
 } RenderUniforms;

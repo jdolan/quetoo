@@ -88,6 +88,11 @@ vec2 transformStageUv(in vec2 uv) {
  */
 void main(void) {
 
+  if (wireframe != 0) {
+    outColor = vec4(1.0);
+    return;
+  }
+
   if (material.flags == STAGE_NONE) {
 
     outColor = texture(textureSky, normalize(cubemapCoord));

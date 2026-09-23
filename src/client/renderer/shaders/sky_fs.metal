@@ -98,10 +98,11 @@ struct uniformsBlock
     float lightingDistance;
     int editor;
     int developer;
-    float2 padding;
+    int wireframe;
+    int padding;
 };
 
-constant spvUnsafeArray<float, 8> _268 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
+constant spvUnsafeArray<float, 8> _275 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
@@ -181,6 +182,11 @@ float4 sampleMaterialStage(thread const float2& texcoord, constant materialBlock
 fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _113 [[buffer(0)]], constant materialBlock& material [[buffer(1)]], texturecube<float> textureSky [[texture(9)]], texture2d<float> textureStage [[texture(10)]], texture2d<float> textureStageNext [[texture(11)]], sampler textureSkySmplr [[sampler(9)]], sampler textureStageSmplr [[sampler(10)]], sampler textureStageNextSmplr [[sampler(11)]])
 {
     main0_out out = {};
+    if (_113.wireframe != 0)
+    {
+        out.outColor = float4(1.0);
+        return out;
+    }
     if (material.flags == 0)
     {
         out.outColor = textureSky.sample(textureSkySmplr, fast::normalize(in.cubemapCoord));
@@ -190,8 +196,8 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _113 
         float3 param = fast::normalize(in.cubemapCoord);
         float2 st = directionToAzimuthalEquidistant(param);
         float2 param_1 = st;
-        float2 _252 = transformStageUv(param_1, material, _113);
-        st = _252;
+        float2 _259 = transformStageUv(param_1, material, _113);
+        st = _259;
         float2 param_2 = st;
         out.outColor = sampleMaterialStage(param_2, material, textureStage, textureStageSmplr, textureStageNext, textureStageNextSmplr) * in.stageColor;
     }

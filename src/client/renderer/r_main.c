@@ -182,6 +182,7 @@ void R_UpdateUniforms(const RenderView *view) {
     out->lightingDistance = r_lightingDistance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
+    out->wireframe = r_drawWireframe->integer;
 
     // the player model preview must land all of its lookups on the one voxel of the fallback
     // buffers: clamping to a zero-sized grid would not, since clamp() with a low bound above
