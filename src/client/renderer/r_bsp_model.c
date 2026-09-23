@@ -445,6 +445,11 @@ static void R_LoadBspReflections(RenderModel *mod) {
       continue;
     }
 
+    if (reflection < 0 || reflection >= bsp->numReflections) {
+      Com_Warn("Draw elements %d has invalid reflection %d\n", i, reflection);
+      continue;
+    }
+
     // a face shows one subview, and the layer it samples is one int, so a face that is both a
     // portal and reflective would silently lose one of them
     if (draw->subview) {
