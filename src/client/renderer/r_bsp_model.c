@@ -365,7 +365,7 @@ static void R_LoadBspPortals(RenderModel *mod) {
     return;
   }
 
-  RenderBspPortal *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->numPortals, bsp);
+  RenderSubview *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->numPortals, bsp);
 
   const BspPortal *in = bsp->cm->file->portals;
   for (int32_t i = 0; i < bsp->numPortals; i++, in++, out++) {
@@ -375,6 +375,7 @@ static void R_LoadBspPortals(RenderModel *mod) {
       continue;
     }
 
+    out->type = SUBVIEW_PORTAL;
     out->origin = in->entryOrigin;
     out->bounds = bsp->drawElements[in->drawElements].bounds;
     out->normal = Vec3_Negate(in->entryForward);
@@ -389,7 +390,7 @@ static void R_LoadBspPortals(RenderModel *mod) {
                                  in->exitUp,
                                  in->exitOrigin);
 
-    bsp->drawElements[in->drawElements].portal = out;
+    bsp->drawElements[in->drawElements].subview = out;
 
     for (int32_t j = 0; j < bsp->numInlineModels; j++) {
 
@@ -401,6 +402,62 @@ static void R_LoadBspPortals(RenderModel *mod) {
         break;
       }
     }
+  }
+}
+
+/**
+ * @brief Loads BSP reflections, attaching each to the draw elements of the faces that show it.
+ * @details The compiler resolves the plane and groups the draw elements sharing it, so all that
+ * is left here is to find the inline model each belongs to.
+ */
+static void R_LoadBspReflections(RenderModel *mod) {
+
+  RenderBspModel *bsp = mod->bsp;
+
+  bsp->numReflections = bsp->cm->file->numReflections;
+  if (!bsp->numReflections) {
+    return;
+  }
+
+  RenderSubview *out = bsp->reflections = Mem_LinkMalloc(sizeof(*out) * bsp->numReflections, bsp);
+
+  const BspReflection *in = bsp->cm->file->reflections;
+  for (int32_t i = 0; i < bsp->numReflections; i++, in++, out++) {
+
+    if (in->model < 0 || in->model >= bsp->numInlineModels) {
+      Com_Warn("Reflection @ %s has invalid model %d\n", vtos(in->origin), in->model);
+      continue;
+    }
+
+    out->type = SUBVIEW_REFLECTION;
+    out->origin = in->origin;
+    out->normal = in->normal;
+    out->bounds = in->bounds;
+
+    out->model = (RenderModel *) R_FindMedia(va("%s#%d", mod->media.name, in->model), R_MEDIA_MODEL);
+  }
+
+  RenderBspDrawElements *draw = bsp->drawElements;
+  for (int32_t i = 0; i < bsp->numDrawElements; i++, draw++) {
+
+    const int32_t reflection = bsp->cm->file->drawElements[i].reflection;
+    if (reflection == -1) {
+      continue;
+    }
+
+    if (reflection < 0 || reflection >= bsp->numReflections) {
+      Com_Warn("Draw elements %d has invalid reflection %d\n", i, reflection);
+      continue;
+    }
+
+    // a face shows one subview, and the layer it samples is one int, so a face that is both a
+    // portal and reflective would silently lose one of them
+    if (draw->subview) {
+      Com_Warn("Draw elements %d is both a portal and reflective; ignoring the reflection\n", i);
+      continue;
+    }
+
+    draw->subview = bsp->reflections + reflection;
   }
 }
 
@@ -733,7 +790,8 @@ static void R_LoadBspSky(RenderModel *mod) {
   (1 << BSP_LUMP_VOXELS) | \
   (1 << BSP_LUMP_LIGHT_VOXELS) | \
   (1 << BSP_LUMP_BLOCK_VOXELS) | \
-  (1 << BSP_LUMP_PORTALS) \
+  (1 << BSP_LUMP_PORTALS) | \
+  (1 << BSP_LUMP_REFLECTIONS) \
 )
 
 /**
@@ -764,6 +822,7 @@ static void R_LoadBspModel(RenderModel *mod, void *buffer) {
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
   R_LoadBspPortals(mod);
+  R_LoadBspReflections(mod);
   R_FreeOcclusionQueries();
   R_LoadBspOcclusionQueries(mod->bsp);
   R_LoadBspVoxels(mod);
@@ -786,6 +845,8 @@ static void R_LoadBspModel(RenderModel *mod, void *buffer) {
   Com_Debug(DEBUG_RENDERER, "!  Blocks:        %d\n", mod->bsp->numBlocks);
   Com_Debug(DEBUG_RENDERER, "!  Inline models: %d\n", mod->bsp->numInlineModels);
   Com_Debug(DEBUG_RENDERER, "!  Lights:        %d\n", mod->bsp->numLights);
+  Com_Debug(DEBUG_RENDERER, "!  Portals:       %d\n", mod->bsp->numPortals);
+  Com_Debug(DEBUG_RENDERER, "!  Reflections:   %d\n", mod->bsp->numReflections);
   Com_Debug(DEBUG_RENDERER, "!  Voxels:        %d\n", mod->bsp->voxels.numVoxels);
   Com_Debug(DEBUG_RENDERER, "!================================\n");
 }

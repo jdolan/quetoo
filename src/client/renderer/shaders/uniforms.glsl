@@ -43,7 +43,7 @@
 #define VIEW_UNKNOWN        0
 #define VIEW_MAIN           1
 #define VIEW_PLAYER_MODEL   2
-#define VIEW_PORTAL         3
+#define VIEW_SUBVIEW        3
 
 #define BSP_VOXEL_SIZE      32.0
 

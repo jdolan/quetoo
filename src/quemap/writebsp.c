@@ -43,6 +43,32 @@ static struct {
 static int32_t numPortalFaces;
 
 /**
+ * @brief The most reflective draw elements one model may emit, before they are grouped by plane.
+ * @remarks Far above `MAX_BSP_REFLECTIONS`, which bounds the planes rather than the blocks they
+ * are cut into.
+ */
+#define MAX_BSP_REFLECT_ELEMENTS 0x400
+
+/**
+ * @brief The reflective draw elements of the model being emitted.
+ * @remarks Resolved into the reflections lump by `EmitReflections`, once all of the model's
+ * blocks are known, since a plane spanning several of them is one reflection.
+ */
+static struct {
+  Vec3 normal;
+  float dist;
+  int32_t drawElements;
+} reflect_elements[MAX_BSP_REFLECT_ELEMENTS];
+
+static int32_t numReflectElements;
+
+/**
+ * @brief The distance of each reflection's plane, which the lump does not store: it bakes the
+ * normal, and the distance follows from an origin that lies on the plane.
+ */
+static float reflect_dists[MAX_BSP_REFLECTIONS];
+
+/**
  * @brief Writes all compiler planes to the BSP planes lump.
  */
 void EmitPlanes(void) {
@@ -426,6 +452,7 @@ void BeginBSPFile(void) {
   Bsp_AllocLump(&bspFile, BSP_LUMP_BLOCKS, MAX_BSP_BLOCKS);
   Bsp_AllocLump(&bspFile, BSP_LUMP_MODELS, MAX_BSP_MODELS);
   Bsp_AllocLump(&bspFile, BSP_LUMP_PATCHES, MAX_BSP_PATCHES);
+  Bsp_AllocLump(&bspFile, BSP_LUMP_REFLECTIONS, MAX_BSP_REFLECTIONS);
 
   /*
    * jdolan 2019-01-01
@@ -493,6 +520,13 @@ static void PortalFaceFrame(const BspFace *face, const BspDrawElements *draw,
 }
 
 /**
+ * @brief The height above a `misc_teleporter_dest` at which a portal targeting it is viewed.
+ * @remarks Quetoo's standing eye. The other pmove modules stand at 26 and at 22, and quemap
+ * cannot know which one a server will run.
+ */
+#define PORTAL_DEST_VIEW_HEIGHT 30.f
+
+/**
  * @brief Emits the portals lump, resolving each portal face to the entity it views from.
  * @details A portal that names no target, or names one that does not exist, is dropped with a
  * warning: it has nothing to show, and the renderer would draw a hole in the world.
@@ -510,7 +544,8 @@ static void EmitPortals(void) {
 
     const int32_t e = BrushSideEntity(face->brushSide);
     if (e == -1) {
-      Com_Warn("Portal @ %s belongs to no brush, skipping\n", vtos(entryOrigin));
+      Com_Warn("Portal %s @ %s belongs to no brush, skipping\n",
+               bspFile.materials[draw->material].name, vtos(entryOrigin));
       continue;
     }
 
@@ -518,7 +553,8 @@ static void EmitPortals(void) {
     // a func_train reads it as the first path_corner of its route, a func_button as what it fires
     const char *target = ValueForKey(&entities[e], "portal", NULL);
     if (!target) {
-      Com_Warn("Portal @ %s has no portal key, skipping\n", vtos(entryOrigin));
+      Com_Warn("Portal %s @ %s has no portal key, skipping\n",
+               bspFile.materials[draw->material].name, vtos(entryOrigin));
       continue;
     }
 
@@ -546,7 +582,15 @@ static void EmitPortals(void) {
     Vec3 exitForward, exitUp;
     Vec3_Vectors(angles, &exitForward, NULL, &exitUp);
 
-    const Vec3 exitOrigin = VectorForKey(exit, "origin", Vec3_Zero());
+    Vec3 exitOrigin = VectorForKey(exit, "origin", Vec3_Zero());
+
+    // a misc_teleporter_dest marks where a player arrives, not where a camera belongs, so the
+    // viewpoint is raised to the eye. This is Quetoo's standing eye: a server running another
+    // pmove module sees the portal from a little above or below its own
+    const char *classname = ValueForKey(exit, "classname", NULL);
+    if (classname && !q_strcmp(classname, "misc_teleporter_dest")) {
+      exitOrigin.z += PORTAL_DEST_VIEW_HEIGHT;
+    }
 
     BspPortal *out = &bspFile.portals[bspFile.numPortals];
     bspFile.numPortals++;
@@ -625,6 +669,7 @@ static void EmitDepthPassElements(BspModel *mod) {
 
   BspDrawElements *opaque = bspFile.drawElements + bspFile.numDrawElements;
   opaque->material = -1;
+  opaque->reflection = -1;
   opaque->bounds = Box3_Null();
   opaque->firstElement = bspFile.numElements;
 
@@ -684,9 +729,60 @@ static void EmitDepthPassElements(BspModel *mod) {
 }
 
 /**
+ * @return The plane @p face reflects about, in @p normal and @p dist, or `false` if it cannot
+ * carry a mirror.
+ * @details The facing comes from the brush side, which is the only description of the surface
+ * that every fragment of it agrees on. `face->plane` is the plane of the node that cut the face,
+ * and for one surface that can be either member of an opposing pair -- cistern's pool arrives as
+ * eight faces at one height recorded alternately as a plane and its twin. The winding is no
+ * better: those fragments are not consistently wound either, so a cross product splits the pool
+ * into an upward and a downward reflection, and standing over it only half of them have a camera
+ * in front of them. The rest fall back to plain water along the BSP seams.
+ *
+ * The distance comes from the vertexes rather than from the brush side, whose plane a face need
+ * not lie on: cistern has three-vertex slivers, left where terrain cuts the water, whose side is
+ * a thousand units away. Every vertex is then checked against the plane that results.
+ */
+static bool ReflectiveFacePlane(const BspFace *face, Vec3 *normal, float *dist) {
+
+  if (face->numVertexes < 3) {
+    return false;
+  }
+
+  // a patch has no brush side, so nothing says which way its faces are meant to look
+  if (face->brushSide == -1) {
+    Com_Warn("Patch %s @ %s cannot reflect; a reflection needs a brush side\n",
+             bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)));
+    return false;
+  }
+
+  const Vec3 n = bspFile.planes[bspFile.brushSides[face->brushSide].plane].normal;
+
+  const BspVertex *v = &bspFile.vertexes[face->firstVertex];
+  const float d = Vec3_Dot(v[0].position, n);
+
+  for (int32_t i = 1; i < face->numVertexes; i++) {
+    if (fabsf(Vec3_Dot(v[i].position, n) - d) > ON_EPSILON) {
+      Com_Warn("Reflective %s @ %s is not planar and will not reflect\n",
+               bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)));
+      return false;
+    }
+  }
+
+  *normal = n;
+  *dist = d;
+
+  return true;
+}
+
+/**
  * @brief Draw elements comparator to sort model faces by material.
  * @details Opaque and blended faces are equal if they share material and contents.
  * @details Material faces equal if they share blend equality and brush side.
+ * @details Subview faces are likewise unique per brush side, which is what makes each of them
+ * planar: the renderer reads a reflective face's mirror plane off its own geometry, and a brush's
+ * top and sides sharing a material would otherwise merge into one draw element spanning several
+ * planes, with no way to say which of them is the one to reflect about.
  */
 static int32_t FaceCmp(const void * a, const void * b) {
 
@@ -705,9 +801,9 @@ static int32_t FaceCmp(const void * a, const void * b) {
     order = aSurface - bSurface;
     if (order == 0) {
 
-      if (aSurface & (SURF_MATERIAL | SURF_PORTAL)) {
-        // Brush side faces with SURF_MATERIAL are unique per brush side, and each SURF_PORTAL
-        // face is its own portal, drawn with its own view
+      if (aSurface & (SURF_MATERIAL | SURF_MASK_SUBVIEW)) {
+        // Brush side faces with SURF_MATERIAL are unique per brush side, and each subview face
+        // is drawn with a view of its own, placed from the plane of the side that cut it
         return aFace->brushSide - bFace->brushSide;
       }
     }
@@ -754,6 +850,28 @@ int32_t EmitDrawElements(Vector *faces) {
 
     out->material = FaceMaterial(a);
     out->surface = aSurface & SURF_MASK_DRAW_ELEMENTS_CMP;
+    out->reflection = -1;
+
+    if (out->surface & SURF_REFLECT) {
+      out->surface &= ~SURF_REFLECT;
+
+      Vec3 normal;
+      float dist;
+
+      if (ReflectiveFacePlane(a, &normal, &dist)) {
+
+        if (numReflectElements == MAX_BSP_REFLECT_ELEMENTS) {
+          Com_Error(ERROR_FATAL, "MAX_BSP_REFLECT_ELEMENTS\n");
+        }
+
+        reflect_elements[numReflectElements].normal = normal;
+        reflect_elements[numReflectElements].dist = dist;
+        reflect_elements[numReflectElements].drawElements = (int32_t) (out - bspFile.drawElements);
+        numReflectElements++;
+
+        out->surface |= SURF_REFLECT;
+      }
+    }
 
     if (aSurface & SURF_PORTAL) {
       if (numPortalFaces == MAX_BSP_PORTALS) {
@@ -854,6 +972,74 @@ static void EmitBlocks_r(BspModel *mod, BspNode *node) {
 }
 
 /**
+ * @brief Groups the reflective draw elements of @p mod by plane, and emits one reflection each.
+ * @details Draw elements are cut per BSP block, so a pool spanning four of them arrives here as
+ * four entries sharing one plane. A reflection is a whole scene rendered into a layer and the
+ * renderer holds only a handful of layers, so they are grouped: one reflection per plane per
+ * model, culled and scissored by the union of its faces.
+ *
+ * Grouped per model rather than per world, since two models holding the same plane part company
+ * as soon as either moves.
+ */
+static void EmitReflections(BspModel *mod) {
+
+  const int32_t firstReflection = bspFile.numReflections;
+
+  for (int32_t i = 0; i < numReflectElements; i++) {
+
+    BspDrawElements *draw = &bspFile.drawElements[reflect_elements[i].drawElements];
+
+    BspReflection *out = NULL;
+
+    for (int32_t j = firstReflection; j < bspFile.numReflections && out == NULL; j++) {
+      if (fabsf(reflect_dists[j] - reflect_elements[i].dist) <= ON_EPSILON &&
+          Vec3_Dot(bspFile.reflections[j].normal, reflect_elements[i].normal) >= 1.f - COLINEAR_EPSILON) {
+        out = &bspFile.reflections[j];
+      }
+    }
+
+    if (out == NULL) {
+
+      if (bspFile.numReflections == MAX_BSP_REFLECTIONS) {
+        Com_Error(ERROR_FATAL, "MAX_BSP_REFLECTIONS\n");
+      }
+
+      out = &bspFile.reflections[bspFile.numReflections];
+
+      reflect_dists[bspFile.numReflections] = reflect_elements[i].dist;
+      bspFile.numReflections++;
+
+      out->model = (int32_t) (mod - bspFile.models);
+      out->normal = reflect_elements[i].normal;
+      out->bounds = Box3_Null();
+    }
+
+    out->bounds = Box3_Union(out->bounds, draw->bounds);
+
+    draw->reflection = (int32_t) (out - bspFile.reflections);
+  }
+
+  // the origin must lie on the plane, which the center of the bounds does not for a plane that is
+  // not axis aligned, so it is projected onto it
+  for (int32_t i = firstReflection; i < bspFile.numReflections; i++) {
+
+    BspReflection *out = &bspFile.reflections[i];
+
+    const Vec3 center = Box3_Center(out->bounds);
+
+    out->origin = Vec3_Fmaf(center, reflect_dists[i] - Vec3_Dot(center, out->normal), out->normal);
+  }
+
+  if (bspFile.numReflections > firstReflection) {
+    Com_Verbose("Emitted %d reflections for model %d, from %d draw elements\n",
+                bspFile.numReflections - firstReflection,
+                (int32_t) (mod - bspFile.models), numReflectElements);
+  }
+
+  numReflectElements = 0;
+}
+
+/**
  * @brief Emits all block draw-element groups for the given model.
  */
 static void EmitBlocks(BspModel *mod) {
@@ -888,6 +1074,8 @@ void EndModel(BspModel *mod) {
   mod->firstDrawElements = bspFile.numDrawElements;
 
   EmitBlocks(mod);
+
+  EmitReflections(mod);
 
   const BspFace *face = &bspFile.faces[mod->firstFace];
   for (int32_t i = 0; i < mod->numFaces; i++, face++) {

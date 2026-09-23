@@ -251,6 +251,7 @@ void EmitLights(void) {
       // discarded per-pixel at draw time.
       BspDrawElements *opaque = bspFile.drawElements + bspFile.numDrawElements;
       opaque->material = -1;
+      opaque->reflection = -1;
       opaque->bounds = Box3_Null();
       opaque->firstElement = bspFile.numElements;
 

@@ -103,6 +103,7 @@ static CmMaterialHint cm_surfaceHints[] = {
   { .keyword = "phong", .flag = SURF_PHONG },
   { .keyword = "material", .flag = SURF_MATERIAL },
   { .keyword = "portal", .flag = SURF_PORTAL },
+  { .keyword = "reflect", .flag = SURF_REFLECT },
 };
 
 /**
@@ -211,6 +212,16 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
       }
 
       s->flags |= STAGE_TEXTURE;
+      continue;
+    }
+
+    if (!q_strcmp(token, "portal")) {
+      s->flags |= STAGE_PORTAL;
+      continue;
+    }
+
+    if (!q_strcmp(token, "reflection")) {
+      s->flags |= STAGE_REFLECTION;
       continue;
     }
 
@@ -551,8 +562,8 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
 
     if (*token == '}') {
 
-      // a texture or envmap mean draw it
-      if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL)) {
+      // a texture or envmap mean draw it, and so does a subview, which draws in a texture's place
+      if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL | STAGE_MASK_SUBVIEW)) {
         s->flags |= STAGE_DRAW;
 
         // terrain and dirtmapping use lighting
@@ -957,7 +968,13 @@ static bool Cm_ResolveStageAnimation(CmStage *stage, AssetContext context) {
 static bool Cm_ResolveStageAssets(CmMaterial *material, CmStage *stage, AssetContext context) {
 
   bool res = false;
-  
+
+  // a subview stage draws the layer its face was rendered into, so it names no asset and has
+  // nothing to resolve. Without this it fails the material, rather than only itself
+  if (stage->flags & STAGE_MASK_SUBVIEW) {
+    return true;
+  }
+
   if (*stage->asset.name) {
 
     if (stage->flags & STAGE_ANIMATION) {
@@ -1109,6 +1126,14 @@ static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File
 
   if (stage->flags & STAGE_TEXTURE) {
     Fs_Print(file, "\t\ttexture %s\n", stage->asset.name);
+  }
+
+  if (stage->flags & STAGE_PORTAL) {
+    Fs_Print(file, "\t\tportal\n");
+  }
+
+  if (stage->flags & STAGE_REFLECTION) {
+    Fs_Print(file, "\t\treflection\n");
   }
 
   if (stage->flags & STAGE_BLEND) {

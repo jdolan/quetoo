@@ -35,10 +35,15 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bspLocalsBl
   uvec4 activeDynamicLights[MAX_DYNAMIC_LIGHTS / 128];
 
   /**
-   * @brief The layer of texturePortal this draw's faces sample, or -1 for none. Unused here,
+   * @brief The layer of textureSubviews this draw's faces sample, or -1 for none. Unused here,
    * but both stages take the same block at the same slot.
    */
-  int portalLayer;
+  int subviewLayer;
+
+  /**
+   * @brief Unused here, but both stages take the same block at the same slot.
+   */
+  int subviewMirrored;
 };
 
 #include "light.glsl"

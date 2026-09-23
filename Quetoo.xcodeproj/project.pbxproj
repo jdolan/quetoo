@@ -94,7 +94,7 @@
 		2FAD5FD12BD7CC3AC13E4E10 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
 		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		363A0C94E511346808FE5F3D /* r_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = 96A84939E49450A34A627546 /* r_portal.c */; };
+		363A0C94E511346808FE5F3D /* r_subview.c in Sources */ = {isa = PBXBuildFile; fileRef = 96A84939E49450A34A627546 /* r_subview.c */; };
 		368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* hud.json */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
@@ -176,7 +176,7 @@
 		9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* hud.json */; };
 		9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
-		9FBD809C130636B15E78DFC4 /* r_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5939175D43577D9AF4903198 /* r_portal.h */; };
+		9FBD809C130636B15E78DFC4 /* r_subview.h in Headers */ = {isa = PBXBuildFile; fileRef = 5939175D43577D9AF4903198 /* r_subview.h */; };
 		A1F809FD3D4907D862309E48 /* PickupView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E9A665C836946BF25073235 /* PickupView.json */; };
 		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
 		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
@@ -2219,7 +2219,7 @@
 		5624F1C74F4646918DA71088 /* PingView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PingView.c; sourceTree = "<group>"; };
 		57941D4E858E897A2E3083ED /* manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = manifest.c; sourceTree = "<group>"; };
 		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
-		5939175D43577D9AF4903198 /* r_portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_portal.h; sourceTree = "<group>"; };
+		5939175D43577D9AF4903198 /* r_subview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_subview.h; sourceTree = "<group>"; };
 		5ABD97400D2B37C6E27C8BE0 /* OverlayText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OverlayText.h; sourceTree = "<group>"; };
 		5B027972461629119D87F7A6 /* ScoreView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreView.c; sourceTree = "<group>"; };
 		5B494B9785D852307F27967A /* DemosViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosViewController.c; sourceTree = "<group>"; };
@@ -2251,7 +2251,7 @@
 		9330AABBEB8C4107BA2E49D2 /* ConsoleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConsoleViewController.h; sourceTree = "<group>"; };
 		9352803A21064843A7D64A86 /* ConsoleViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleViewController.c; sourceTree = "<group>"; };
 		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
-		96A84939E49450A34A627546 /* r_portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_portal.c; sourceTree = "<group>"; };
+		96A84939E49450A34A627546 /* r_subview.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_subview.c; sourceTree = "<group>"; };
 		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
 		9C56DC135154CED4C2498031 /* SpectatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpectatorView.h; sourceTree = "<group>"; };
@@ -4071,9 +4071,9 @@
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE12D5DF1C5C58C300CD0B13 /* r_model.c */,
 				CE1643F32FFB571100863996 /* r_occlude.h */,
-				5939175D43577D9AF4903198 /* r_portal.h */,
+				5939175D43577D9AF4903198 /* r_subview.h */,
 				CE1643F42FFB571100863996 /* r_occlude.c */,
-				96A84939E49450A34A627546 /* r_portal.c */,
+				96A84939E49450A34A627546 /* r_subview.c */,
 				B80C92655F5249E48131CB95 /* r_post.h */,
 				26FE8732000C404A8AFA1688 /* r_post.c */,
 				CEE13C14293241970075585D /* r_shadow.h */,
@@ -5601,7 +5601,7 @@
 				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
 				CE1643F62FFB571100863996 /* r_occlude.h in Headers */,
-				9FBD809C130636B15E78DFC4 /* r_portal.h in Headers */,
+				9FBD809C130636B15E78DFC4 /* r_subview.h in Headers */,
 				F8D615462A724ECF9847D4CD /* r_post.h in Headers */,
 				CEE13C16293241970075585D /* r_shadow.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
@@ -7558,7 +7558,7 @@
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE1643F52FFB571100863996 /* r_occlude.c in Sources */,
-				363A0C94E511346808FE5F3D /* r_portal.c in Sources */,
+				363A0C94E511346808FE5F3D /* r_subview.c in Sources */,
 				014684FA691B4EB0944ACDCB /* r_post.c in Sources */,
 				CEE13C15293241970075585D /* r_shadow.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,

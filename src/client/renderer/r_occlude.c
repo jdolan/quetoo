@@ -62,7 +62,7 @@ bool R_OccludeBox(const RenderView *view, const Box3 bounds) {
     return false;
   }
 
-  if (view->type == VIEW_PLAYER_MODEL || view->type == VIEW_PORTAL) {
+  if (view->type == VIEW_PLAYER_MODEL || view->type == VIEW_SUBVIEW) {
     return false;
   }
 

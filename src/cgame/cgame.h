@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 61
+#define CGAME_API_VERSION 62
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -1001,7 +1001,7 @@ typedef struct {
    * one on worldspawn or on anything else that does not move. A portal face's frame is baked in
    * the space of the model that draws it, so this is what carries it into the world.
    */
-  void (*AddPortal)(RenderView *view, RenderBspPortal *portal, const Mat4 matrix);
+  void (*AddPortal)(RenderView *view, RenderSubview *portal, const Mat4 matrix);
 
   /**
    * @brief Draws the player model view.

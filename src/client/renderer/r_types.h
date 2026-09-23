@@ -215,8 +215,8 @@ typedef struct RenderStage {
 
   /**
    * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
-   * @details A stage naming the material's own diffusemap samples the portal its face shows,
-   *   rather than that texture, and so gains `STAGE_PORTAL` here.
+   * @details A `portal` or `reflection` stage on a surface that shows no such subview loses that
+   *   flag here, so that it draws nothing rather than sampling a layer that is not its own.
    */
   int32_t flags;
 
@@ -532,9 +532,9 @@ typedef struct {
   Vec2 stOrigin;
 
   /**
-   * @brief The portal these elements show, or `NULL` if they are not a portal face.
+   * @brief The subview these elements show, or `NULL` if they show none.
    */
-  struct RenderBspPortal *portal;
+  struct RenderSubview *subview;
 } RenderBspDrawElements;
 
 /**
@@ -777,32 +777,49 @@ typedef struct RenderBspInlineModel {
 } RenderBspInlineModel;
 
 /**
- * @brief A BSP portal: a `SURF_PORTAL` face, and the point the world is viewed from to fill it.
- * @details Resolved by the compiler into `BSP_LUMP_PORTALS`; see `BspPortal`.
+ * @brief Subview types.
  */
-typedef struct RenderBspPortal {
+typedef enum {
+  SUBVIEW_PORTAL,
+  SUBVIEW_REFLECTION,
+} RenderSubviewType;
+
+/**
+ * @brief A face that shows a second view of the world, drawn into a layer of one array texture
+ * and sampled in screen space by the face itself.
+ * @details A `SURF_PORTAL` face carries a portal, resolved by the compiler into
+ *   `BSP_LUMP_PORTALS`; see `BspPortal`. The members from `entry` through `matrix` are the
+ *   portal's alone. Everything else describes the face and the view it was given, and is the
+ *   same whatever placed that view's camera.
+ */
+typedef struct RenderSubview {
 
   /**
-   * @brief The inline model whose faces show this portal.
+   * @brief What placed this subview's camera.
+   */
+  RenderSubviewType type;
+
+  /**
+   * @brief The inline model whose faces show this subview.
    */
   struct RenderModel *model;
 
   /**
-   * @brief The center of the portal face, in the model's space.
+   * @brief The center of the face, in the model's space.
    */
   Vec3 origin;
 
   /**
-   * @brief The bounds of the portal face, in the model's space.
+   * @brief The bounds of the face, in the model's space.
    */
   Box3 bounds;
 
   /**
-   * @brief The portal face's outward normal, in the model's space.
-   * @details Every draw element of a portal is a fragment of one brush side, so they are all
-   *   coplanar and this one normal describes the whole portal. It is the negation of the baked
-   *   `entry` forward, which points the way travel through the portal runs rather than the way
-   *   the face is seen from.
+   * @brief The face's outward normal, in the model's space.
+   * @details Every draw element of a subview is a fragment of one brush side, so they are all
+   *   coplanar and this one normal describes the whole face. For a portal it is the negation of
+   *   the baked `entry` forward, which points the way travel through the portal runs rather than
+   *   the way the face is seen from.
    */
   Vec3 normal;
 
@@ -823,17 +840,17 @@ typedef struct RenderBspPortal {
   Mat4 exit;
 
   /**
-   * @brief The center of the portal face this frame, in world space.
+   * @brief The center of the face this frame, in world space.
    */
   Vec3 absOrigin;
 
   /**
-   * @brief The bounds of the portal face this frame, in world space, for culling.
+   * @brief The bounds of the face this frame, in world space, for culling.
    */
   Box3 absBounds;
 
   /**
-   * @brief The portal face's plane this frame, in world space, for culling.
+   * @brief The face's plane this frame, in world space, for culling.
    */
   CmBspPlane absPlane;
 
@@ -848,19 +865,19 @@ typedef struct RenderBspPortal {
   Mat4 matrix;
 
   /**
-   * @brief The view of this portal's destination, from the renderer's pool, or `NULL` if this
-   * portal was not added to a view this frame.
+   * @brief The view this subview is drawn with, from the renderer's pool, or `NULL` if this
+   * subview was not added to a view this frame.
    */
   struct RenderView *view;
 
   /**
-   * @brief The layer of the portal texture this portal was drawn into this frame, or `-1`.
-   * @details Cleared for every portal each frame, so a portal that was not added, or was added
+   * @brief The layer of the subview texture this subview was drawn into this frame, or `-1`.
+   * @details Cleared for every subview each frame, so one that was not added, or was added
    *   but culled, leaves its face on its own material rather than sampling a stale layer.
    */
   int32_t layer;
 
-} RenderBspPortal;
+} RenderSubview;
 
 /**
  * @brief A BSP light source, including shadow, style, and entity data.
@@ -1167,7 +1184,17 @@ typedef struct {
   /**
    * @brief The portals array.
    */
-  RenderBspPortal *portals;
+  RenderSubview *portals;
+
+  /**
+   * @brief The count of reflections.
+   */
+  int32_t numReflections;
+
+  /**
+   * @brief The reflections array, one per reflective plane of each inline model.
+   */
+  RenderSubview *reflections;
 
   /**
    * @brief The voxel data.
@@ -1762,13 +1789,13 @@ typedef struct {
 #define MAX_BEAMS 0x200
 
 /**
- * @brief The maximum number of portals drawn for a single view.
- * @details Each portal is a whole scene, rendered into its own layer of one texture, so this
+ * @brief The maximum number of subviews drawn for a single view.
+ * @details Each subview is a whole scene, rendered into its own layer of one texture, so this
  *   bounds both the per-frame cost and the memory a map can demand. It is deliberately far
  *   below `MAX_BSP_PORTALS`, which bounds only how many a map may contain: the client game
  *   offers the nearest of them, and the renderer draws those it can see.
  */
-#define MAX_PORTALS 8
+#define MAX_SUBVIEWS 8
 
 /**
  * @brief Vec4-aligned instance of a sprite or beam quad, as consumed by sprite_vs.
@@ -2070,7 +2097,7 @@ typedef enum {
   VIEW_UNKNOWN,
   VIEW_MAIN,
   VIEW_PLAYER_MODEL,
-  VIEW_PORTAL,
+  VIEW_SUBVIEW,
 } RenderViewType;
 
 /**
@@ -2137,14 +2164,24 @@ typedef struct {
   int32_t queriesOccluded;
 
   /**
-   * @brief The counts of portals the client game offered, and of those actually drawn.
+   * @brief The counts of subviews offered, and of those actually drawn.
+   */
+  int32_t subviewsOffered, subviewsDrawn;
+
+  /**
+   * @brief The counts portals offered and drawn.
    */
   int32_t portalsOffered, portalsDrawn;
 
   /**
-   * @brief The count of triangles drawn into portal views this frame.
+   * @brief The counts of reflections offered and drawn.
    */
-  int32_t portalsTriangles;
+  int32_t reflectionsOffered, reflectionsDrawn;
+
+  /**
+   * @brief The count of triangles drawn into subviews this frame.
+   */
+  int32_t subviewsTriangles;
 
   /**
    * @brief The count of rendered inline BSP models.
@@ -2293,14 +2330,36 @@ typedef struct RenderView {
   int32_t numBeams;
 
   /**
-   * @brief The portals whose views are drawn for this view to sample.
+   * @brief The plane, as `(normal, dist)` in world space, whose front this view keeps, or zero.
+   * @details A reflection's camera sits under the surface it draws for, so the first thing in
+   *   front of it is that surface, drawn on its plain material by the recursion guard. Opaque,
+   *   that is a picture of the underside of the water where the room above should be. The near
+   *   plane is skewed onto the surface to cut it, and everything below it, away.
    */
-  RenderBspPortal *portals[MAX_PORTALS];
+  Vec4 clipPlane;
 
   /**
-   * @brief The count of portals.
+   * @brief Whether this view's camera is a mirror of the one it was placed from.
+   * @details `Mat4_LookAt` derives its own x axis from `cross(up, forward)`, and for a reflected
+   *   basis that comes back negated, so the image drawn is the mirror flipped left to right. It
+   *   is left that way and read back flipped, rather than righted here by negating the
+   *   projection's x column, which would reverse the winding of everything drawn and cost a
+   *   front-culling variant of every pipeline the view can reach.
+   *
+   *   So a mirrored view's layer is stored mirrored. Whatever samples it MUST flip x, and the
+   *   scissor that bounds it is mirrored to match.
    */
-  int32_t numPortals;
+  bool mirrored;
+
+  /**
+   * @brief The subviews drawn for this view to sample.
+   */
+  RenderSubview *subviews[MAX_SUBVIEWS];
+
+  /**
+   * @brief The count of subviews.
+   */
+  int32_t numSubviews;
 
   /**
    * @brief The batching state for the current frame's sprite instances.

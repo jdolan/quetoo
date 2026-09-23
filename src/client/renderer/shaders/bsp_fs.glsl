@@ -30,13 +30,13 @@
 #include "uniforms.glsl"
 
 // material.glsl declares the canonical BINDING_SAMPLER_MATERIAL..STAGE_NEXT
-// family unconditionally; BSP additionally has its own liquid-warp and portal
-// samplers after them (mesh/sky never set STAGE_WARP, and only BSP faces carry
-// SURF_PORTAL). This stage samples all 12 plus those two (14 total), so storage
+// family unconditionally; BSP additionally has its own liquid-warp and subview
+// samplers after them (mesh/sky never set STAGE_WARP, and only BSP faces show a
+// subview). This stage samples all 12 plus those two (14 total), so storage
 // bindings must follow those 14 -- see material.glsl's
 // BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
 #define BINDING_SAMPLER_WARP                 12
-#define BINDING_SAMPLER_PORTAL               13
+#define BINDING_SAMPLER_SUBVIEW              13
 #define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  14
 #define BINDING_UNIFORMS_MATERIAL            2
 
@@ -54,9 +54,14 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bspLocalsBl
   uvec4 activeDynamicLights[MAX_DYNAMIC_LIGHTS / 128];
 
   /**
-   * @brief The layer of texturePortal this draw's SURF_PORTAL faces sample, or -1 for none.
+   * @brief The layer of textureSubviews this draw's faces sample, or -1 for none.
    */
-  int portalLayer;
+  int subviewLayer;
+
+  /**
+   * @brief Whether that layer is stored mirrored in x, and so is read back flipped.
+   */
+  int subviewMirrored;
 };
 
 #include "light.glsl"
@@ -67,9 +72,9 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bspLocalsBl
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D textureWarp;
 
 /**
- * @brief The views rendered through SURF_PORTAL faces, one layer per portal.
+ * @brief The views rendered for the faces that show them, one layer per subview.
  */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_PORTAL) uniform sampler2DArray texturePortal;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SUBVIEW) uniform sampler2DArray textureSubviews;
 
 layout (location = 0) in CommonVertex vertex;
 
@@ -127,16 +132,31 @@ void main(void) {
 
   outDepth = gl_FragCoord.z;
 
-  // a portal face shows the view rendered from the point it targets. That view uses this one's
-  // projection, so the two images coincide in screen space and the fragment reads straight
-  // across. A portal view itself is given a layer of -1, so portals never recurse.
+  // a subview face shows a second view of the world: through the point a portal targets, or
+  // mirrored about the face's own plane. That view uses this one's projection, so the two images
+  // coincide in screen space and the fragment reads straight across. A subview is itself given a
+  // layer of -1, so subviews never recurse.
   //
-  // This is the base pass only: a material whose stages draw the portal suppresses it with
-  // SURF_MATERIAL, and each of those stages samples the portal for itself, through whatever
-  // transforms it carries
-  if (material.flags == STAGE_NONE && (material.surface & SURF_PORTAL) == SURF_PORTAL && portalLayer >= 0) {
+  // This is the base pass only: a material whose stages draw the subview suppresses it with
+  // SURF_MATERIAL, and each of those stages samples it for itself, through whatever transforms
+  // it carries
+  // only on an unblended face. A blended one is drawn by a path that emits its base primitive
+  // whatever its flags say, so replacing that with the subview would paint it opaque -- the sample
+  // has no alpha of its own -- and leave the stages nothing to sit over. There, the base pass
+  // draws the surface and a stage draws the subview over it, with the blend the stage asks for
+  if (material.flags == STAGE_NONE &&
+      (material.surface & SURF_MASK_SUBVIEW) != 0 &&
+      (material.surface & SURF_MASK_BLEND) == 0 &&
+      subviewLayer >= 0) {
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
-    outColor = vec4(texture(texturePortal, vec3(st, portalLayer)).rgb, 1.0);
+
+    // a mirrored layer is drawn by a camera whose x axis is the mirror of this one's, so it is
+    // stored flipped left to right and read back the same way
+    if (subviewMirrored != 0) {
+      st.x = 1.0 - st.x;
+    }
+
+    outColor = vec4(texture(textureSubviews, vec3(st, subviewLayer)).rgb, 1.0);
     return;
   }
 
@@ -169,26 +189,33 @@ void main(void) {
 
   } else {
 
-    // a stage naming its material's own diffusemap draws what the face would have drawn, which
-    // for a portal face is the portal. Its coordinates are then the screen's, since that is
-    // where the portal's image lives, and every transform the stage carries -- warp, scroll,
-    // rotate -- disturbs the view through the portal rather than a texture drawn over it
-    bool portal = (material.flags & STAGE_PORTAL) == STAGE_PORTAL && portalLayer >= 0;
+    // a `portal` or `reflection` stage draws the subview its face shows, in place of a texture.
+    // Its coordinates are then the screen's, since that is where the subview's image lives, and
+    // every transform the stage carries -- warp, scroll, rotate -- disturbs the view itself
+    // rather than a texture drawn over it
+    bool subview = (material.flags & STAGE_MASK_SUBVIEW) != 0 && subviewLayer >= 0;
 
-    vec2 st = portal ? gl_FragCoord.xy / vec2(viewport.zw) : fragment.parallax;
+    // a mirrored layer is stored flipped left to right; see the base pass above
+    bool mirrored = subview && subviewMirrored != 0;
+
+    vec2 st = subview ? gl_FragCoord.xy / vec2(viewport.zw) : fragment.parallax;
+
+    if (mirrored) {
+      st.x = 1.0 - st.x;
+    }
 
     if ((material.flags & STAGE_WARP) == STAGE_WARP) {
 
       // the ripple is sampled, and its amplitude given, in the face's own texture coordinates,
-      // as it is for any other surface. A portal is read in screen coordinates, so the offset
+      // as it is for any other surface. A subview is read in screen coordinates, so the offset
       // is carried into them through the texcoord's screen derivative: the same material then
       // warps by the same amount of surface whatever the display's shape or resolution, and a
-      // portal further away warps less of the screen, as it should
-      vec2 texcoord = portal ? vertex.diffusemap : st;
+      // subview further away warps less of the screen, as it should
+      vec2 texcoord = subview ? vertex.diffusemap : st;
 
       vec2 offset = (texture(textureWarp, texcoord + vec2(ticks * material.warp.x * 0.000125)).xy - 0.5) * material.warp.y;
 
-      if (portal) {
+      if (subview) {
         vec2 dx = dFdx(vertex.diffusemap);
         vec2 dy = dFdy(vertex.diffusemap);
 
@@ -198,6 +225,11 @@ void main(void) {
           vec2 pixels = vec2(dy.y * offset.x - dy.x * offset.y,
                              dx.x * offset.y - dx.y * offset.x) / det;
 
+          // the offset is in this view's screen pixels, and a mirrored layer runs the other way
+          if (mirrored) {
+            pixels.x = -pixels.x;
+          }
+
           st += pixels / vec2(viewport.zw);
         }
       } else {
@@ -205,8 +237,8 @@ void main(void) {
       }
     }
 
-    if (portal) {
-      fragment.diffuseSample = vec4(texture(texturePortal, vec3(st, portalLayer)).rgb, 1.0);
+    if (subview) {
+      fragment.diffuseSample = vec4(texture(textureSubviews, vec3(st, subviewLayer)).rgb, 1.0);
     } else {
       fragment.diffuseSample = sampleMaterialStage(st);
     }
