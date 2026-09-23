@@ -275,11 +275,9 @@ static void R_AddReflection(RenderView *view, RenderSubview *reflection, const M
   // the camera sits under the surface, where that surface is the nearest thing in front of it.
   // The plane is raised slightly clear of it: coincident, the surface's own fragments sit on the
   // boundary and shimmer, and the skewed depth range has no margin at the waterline
-  const Vec4 clipPlane = Vec3_ToVec4(reflection->absPlane.normal,
-                                     reflection->absPlane.dist + r_reflectClipOffset->value);
+  const Vec4 clipPlane = Vec3_ToVec4(reflection->absPlane.normal, reflection->absPlane.dist + 1.f);
 
-  R_AddSubview(view, reflection, view->origin,
-               R_ReflectionMatrix(&reflection->absPlane), clipPlane, true);
+  R_AddSubview(view, reflection, view->origin, R_ReflectionMatrix(&reflection->absPlane), clipPlane, true);
 }
 
 /**

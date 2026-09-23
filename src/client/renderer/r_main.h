@@ -265,6 +265,5 @@ extern Cvar *r_drawWireframe;
 extern Cvar *r_occlude;
 extern Cvar *r_portals;
 extern Cvar *r_reflections;
-extern Cvar *r_reflectClipOffset;
 
 #endif

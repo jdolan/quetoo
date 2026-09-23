@@ -39,7 +39,6 @@ Cvar *r_drawWireframe;
 Cvar *r_occlude;
 Cvar *r_portals;
 Cvar *r_reflections;
-Cvar *r_reflectClipOffset;
 
 Cvar *r_ambient;
 Cvar *r_ambientOcclusion;
@@ -490,7 +489,6 @@ static void R_InitLocal(void) {
   r_drawWireframe = Cvar_Add("r_drawWireframe", "0", CVAR_DEVELOPER, "Draws world geometry as wireframe (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
   r_reflections = Cvar_Add("r_reflections", "1", CVAR_ARCHIVE, "Controls rendering reflections in reflective surfaces.");
-  r_reflectClipOffset = Cvar_Add("r_reflectClipOffset", "1", CVAR_DEVELOPER, "Units to raise a reflection's clip plane above its surface (developer tool).");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambientOcclusion = Cvar_Add("r_ambientOcclusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
