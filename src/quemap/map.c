@@ -241,6 +241,8 @@ static int32_t SortBrushSides(const void *a, const void *b) {
 /**
  * @brief Adds a bevel side referencing `plane` to the specified brush. The bevel will
  * borrow surface, contents and material from the nearest original brush side.
+ * @details The slot is cleared first, since it can hold a side of a brush that `UnparseBrush`
+ * removed, such as an origin brush.
  */
 static void AddBrushBevel(Brush *b, int32_t plane) {
 
@@ -266,6 +268,8 @@ static void AddBrushBevel(Brush *b, int32_t plane) {
   assert(side);
 
   BrushSide *bevel = &b->brushSides[b->numBrushSides++];
+  memset(bevel, 0, sizeof(*bevel));
+
   bevel->plane = plane;
   bevel->contents = side->contents;
   bevel->surface = side->surface | SURF_BEVEL;
@@ -322,6 +326,7 @@ static void UnparseBrush(Brush *brush, Parser *parser) {
   for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
     if (side->winding) {
       Cm_FreeWinding(side->winding);
+      side->winding = NULL;
     }
   }
 
