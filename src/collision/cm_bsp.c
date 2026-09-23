@@ -293,6 +293,7 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
     draw->bounds = LittleBounds(draw->bounds);
     draw->firstElement = LittleLong(draw->firstElement);
     draw->numElements = LittleLong(draw->numElements);
+    draw->reflection = LittleLong(draw->reflection);
 
     draw++;
   }
@@ -395,6 +396,22 @@ static void Bsp_SwapPortals(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
+static void Bsp_SwapReflections(void *lump, const int32_t num) {
+
+  BspReflection *reflection = (BspReflection *) lump;
+
+  for (int32_t i = 0; i < num; i++) {
+    reflection->model = LittleLong(reflection->model);
+    reflection->origin = LittleVec3(reflection->origin);
+    reflection->normal = LittleVec3(reflection->normal);
+    reflection->bounds = LittleBounds(reflection->bounds);
+    reflection++;
+  }
+}
+
+/**
+ * @brief Swap function.
+ */
 static void Bsp_SwapVoxels(void *lump, const int32_t num) {
 
   BspVoxels *voxel = (BspVoxels *) lump;
@@ -454,6 +471,7 @@ static void Bsp_SwapLump(const BspLumpId lumpId, void *lump, int32_t count) {
     Bsp_SwapLightVoxels,
     Bsp_SwapBlockVoxels,
     Bsp_SwapPortals,
+    Bsp_SwapReflections,
   };
 
   if (swap[lumpId]) {
