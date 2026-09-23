@@ -481,8 +481,21 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
   *textureNext = NULL;
 
   // a subview stage names no asset: it draws the layer its face was rendered into, which the
-  // shader reads from the subview array. The sampler still needs a binding it will not read
+  // shader reads from the subview array. The sampler still needs a binding it will not read.
+  //
+  // Without a layer -- the cvar off, the pool spent, the face culled, or the view itself a
+  // subview -- the stage has nothing to draw, and the shader would paint the placeholder over
+  // the surface. This is the same test `R_PushBspSubviewLayer` makes
   if (stage->flags & STAGE_MASK_SUBVIEW) {
+
+    if (draw == NULL || draw->subview == NULL || view->type == VIEW_SUBVIEW) {
+      return false;
+    }
+
+    if (draw->subview->layer < 0) {
+      return false;
+    }
+
     *texture = *textureNext = rContext.nullTexture->texture;
     return true;
   }
