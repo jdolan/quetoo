@@ -696,8 +696,7 @@ static int32_t numDrawFaces;
  * first plane of the pair that it lies on, and whether its winding faces the same way as that
  * plane.
  * @details The plane is that of the face and not that of its brush side, since the tree can give
- * a face to a side that it does not lie on. It is -1 for a patch, and for a face that is not
- * planar.
+ * a face to a side that it does not lie on. It is -1 for each face that `FaceIsHulled` rejects.
  */
 static struct {
   int32_t blockNode;
@@ -800,6 +799,39 @@ static bool FaceIsPlanar(const BspFace *face) {
   }
 
   return true;
+}
+
+/**
+ * @return True if @p face may be drawn as part of the hull of its brush side.
+ * @details A hull covers area that no face covers, which is correct only where an opaque brush
+ * hides that area. Two touching see-through brushes, such as a waterfall on a pool, make no face
+ * where they touch, and nothing hides that area, so only opaque sides are hulled.
+ *
+ * The face MUST also have triangles, lie on its plane, and lie on the plane of its brush side. The
+ * tree gives some faces to a side on another plane, and the hull of those faces would cover the
+ * faces of other sides between them.
+ */
+static bool FaceIsHulled(const BspFace *face) {
+
+  if (face->brushSide < 0 || face->numElements == 0) {
+    return false;
+  }
+
+  const BspBrushSide *side = bspFile.brushSides + face->brushSide;
+
+  if (!(side->contents & CONTENTS_SOLID)) {
+    return false;
+  }
+
+  if (side->surface & (SURF_LIQUID | SURF_MASK_BLEND | SURF_ALPHA_TEST)) {
+    return false;
+  }
+
+  if ((side->plane & ~1) != (face->plane & ~1)) {
+    return false;
+  }
+
+  return FaceIsPlanar(face);
 }
 
 /**
@@ -1212,7 +1244,7 @@ static void EmitDrawFaces(const BspModel *mod) {
 
     faceGroups[i].plane = -1;
 
-    if (face->brushSide >= 0 && FaceIsPlanar(face)) {
+    if (FaceIsHulled(face)) {
       faceGroups[i].plane = face->plane & ~1;
       faceGroups[i].facing = Vec3_Dot(FaceWindingNormal(face), bspFile.planes[faceGroups[i].plane].normal) > 0.f;
     }
@@ -1565,6 +1597,10 @@ int32_t EmitDrawElements(Vector *faces) {
   for (size_t i = 0; i < faces->count; i++) {
 
     const BspFace *face = VectorValue(faces, BspFace *, i);
+
+    if (face->numElements == 0) {
+      continue;
+    }
 
     faceDrawFaces[i] = (DrawFace) {
       .face = face,
