@@ -915,9 +915,10 @@ static int32_t HullEdgePointCmp(const void *a, const void *b) {
  * not need the cuts: the hull of the faces covers each of them, and each part of the hull that no
  * face covers lies behind a brush that hides it. The faces themselves are kept for decals.
  *
- * Vertexes closer than `ON_EPSILON` are one vertex. Vertexes that lie on an edge of the hull are
- * kept, since the faces of other brush sides may meet them there. Their normals are mixed from
- * the corners of that edge. Vertexes inside the hull are not kept.
+ * The hull emits no vertexes of its own: its triangles point to the vertexes of its faces, which
+ * decals need anyway. Vertexes closer than `ON_EPSILON` are one vertex. Vertexes that lie on an
+ * edge of the hull are kept, since the faces of other brush sides may meet them there. Vertexes
+ * inside the hull are not kept.
  *
  * Brushes that overlap with coplanar sides are a fault in the map: both hulls are drawn, and they
  * fight in the depth buffer.
@@ -1060,8 +1061,6 @@ static bool EmitHull(const BspModel *mod, const int32_t *group, int32_t count, D
 
   CmWinding *w = Cm_AllocWinding(numPoints);
   int32_t *source = Mem_Malloc(numPoints * sizeof(int32_t));
-  int32_t *edge = Mem_Malloc(numPoints * sizeof(int32_t));
-  double *along = Mem_Malloc(numPoints * sizeof(double));
   HullEdgePoint *edgePoints = Mem_Malloc(numPoints * sizeof(HullEdgePoint));
 
   for (int32_t i = 0; i < numCorners; i++) {
@@ -1069,7 +1068,6 @@ static bool EmitHull(const BspModel *mod, const int32_t *group, int32_t count, D
     const HullPoint *p = &points[corners[i]];
     const HullPoint *q = &points[corners[i + 1]];
 
-    edge[w->numPoints] = -1;
     source[w->numPoints] = p->vertex;
     w->points[w->numPoints++] = p->position;
 
@@ -1102,86 +1100,26 @@ static bool EmitHull(const BspModel *mod, const int32_t *group, int32_t count, D
       HullPoint *r = &points[edgePoints[j].point];
       r->used = true;
 
-      edge[w->numPoints] = i;
-      along[w->numPoints] = edgePoints[j].t;
       source[w->numPoints] = r->vertex;
       w->points[w->numPoints++] = r->position;
     }
   }
 
-  const int32_t firstVertex = bspFile.numVertexes;
-
-  if (bspFile.numVertexes + w->numPoints > MAX_BSP_VERTEXES) {
-    Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
-  }
-
-  int32_t *cornerPoints = Mem_Malloc(numCorners * sizeof(int32_t));
-
-  for (int32_t i = 0; i < w->numPoints; i++) {
-
-    BspVertex *vertex = &bspFile.vertexes[firstVertex + i];
-
-    *vertex = bspFile.vertexes[source[i]];
-    vertex->tangent = Vec3_Zero();
-    vertex->bitangent = Vec3_Zero();
-  }
-
-  for (int32_t i = 0, c = 0; i < w->numPoints; i++) {
-    if (edge[i] == -1) {
-      cornerPoints[c++] = i;
-    }
-  }
-
-  for (int32_t i = 0; i < w->numPoints; i++) {
-
-    if (edge[i] == -1) {
-      continue;
-    }
-
-    const BspVertex *a = &bspFile.vertexes[firstVertex + cornerPoints[edge[i]]];
-    const BspVertex *b = &bspFile.vertexes[firstVertex + cornerPoints[(edge[i] + 1) % numCorners]];
-
-    BspVertex *vertex = &bspFile.vertexes[firstVertex + i];
-    vertex->normal = Vec3_Normalize(Vec3_Mix(a->normal, b->normal, (float) along[i]));
-  }
-
   int32_t *elements = hullElements + numHullElements;
   const int32_t numElements = Cm_ElementsForWinding(w, elements);
 
-  if (numElements) {
-    bspFile.numVertexes += w->numPoints;
-  }
-
   for (int32_t i = 0; i < numElements; i++) {
-    elements[i] += firstVertex;
+    elements[i] = source[elements[i]];
   }
 
   numHullElements += numElements;
-
-  CmVertex *cm = Mem_Malloc(w->numPoints * sizeof(CmVertex));
-  for (int32_t i = 0; i < w->numPoints; i++) {
-    BspVertex *vertex = &bspFile.vertexes[firstVertex + i];
-    cm[i] = (CmVertex) {
-      .position = &vertex->position,
-      .normal = &vertex->normal,
-      .tangent = &vertex->tangent,
-      .bitangent = &vertex->bitangent,
-      .st = &vertex->diffusemap
-    };
-  }
-
-  Cm_Tangents(cm, firstVertex, w->numPoints, elements, numElements);
 
   out->face = first;
   out->blockNode = faceGroups[group[0]].blockNode;
   out->elements = elements;
   out->numElements = numElements;
 
-  Mem_Free(cm);
-  Mem_Free(cornerPoints);
   Mem_Free(edgePoints);
-  Mem_Free(along);
-  Mem_Free(edge);
   Mem_Free(source);
   Cm_FreeWinding(w);
   Mem_Free(corners);
