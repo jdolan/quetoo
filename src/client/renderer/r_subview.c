@@ -526,6 +526,9 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor)
  * same shape as `R_UpdateLights`, which likewise resolves per-light state only once every entity
  * that could cast a shadow is known.
  *
+ * The player's own model is drawn here even in first person. It is hidden only because the camera
+ * it was added for sits inside it, and a subview's camera does not.
+ *
  * Decals are deliberately not repeated. `R_UpdateDecals` clips them into the shared, persistent
  * geometry of the blocks they land on, rather than into anything the view owns, so repeating
  * them would clip each decal once per subview and draw it that many times over.
@@ -543,7 +546,12 @@ static void R_UpdateSubviewScene(const RenderView *view, RenderView *out) {
       continue;
     }
 
-    out->entities[out->numEntities++] = *e;
+    RenderEntity *copy = &out->entities[out->numEntities++];
+    *copy = *e;
+
+    if (copy->effects & EF_SELF) {
+      copy->effects &= ~EF_NO_DRAW;
+    }
   }
 
   memcpy(out->lights, view->lights, view->numLights * sizeof(out->lights[0]));
