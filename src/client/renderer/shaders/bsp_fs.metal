@@ -962,7 +962,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
     }
     else
     {
-        bool _2096 = (material.flags & 2097152) == 2097152;
+        bool _2096 = (material.flags & 6291456) != 0;
         bool _2102;
         if (_2096)
         {

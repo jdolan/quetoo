@@ -224,9 +224,13 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
     stage->cm = cs;
     stage->flags = cs->flags;
 
-    if (cm->surface & SURF_MASK_SUBVIEW) {
-      if (!q_strcmp(cs->asset.name, cm->diffusemap.name)) {
-        stage->flags |= STAGE_SUBVIEW;
+    if (stage->flags & STAGE_MASK_SUBVIEW) {
+
+      const int32_t surface = (stage->flags & STAGE_PORTAL) ? SURF_PORTAL : SURF_REFLECT;
+
+      if (!(cm->surface & surface)) {
+        Com_Warn("%s stage %d draws a subview its surface does not show\n", cm->name, numStages);
+        stage->flags &= ~STAGE_MASK_SUBVIEW;
       }
     }
 
@@ -475,6 +479,13 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
 
   *texture = NULL;
   *textureNext = NULL;
+
+  // a subview stage names no asset: it draws the layer its face was rendered into, which the
+  // shader reads from the subview array. The sampler still needs a binding it will not read
+  if (stage->flags & STAGE_MASK_SUBVIEW) {
+    *texture = *textureNext = rContext.nullTexture->texture;
+    return true;
+  }
 
   if (stage->media == NULL) {
     return false;

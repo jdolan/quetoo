@@ -189,11 +189,11 @@ void main(void) {
 
   } else {
 
-    // a stage naming its material's own diffusemap draws what the face would have drawn, which
-    // for such a face is its subview. Its coordinates are then the screen's, since that is
-    // where the subview's image lives, and every transform the stage carries -- warp, scroll,
-    // rotate -- disturbs the view itself rather than a texture drawn over it
-    bool subview = (material.flags & STAGE_SUBVIEW) == STAGE_SUBVIEW && subviewLayer >= 0;
+    // a `portal` or `reflection` stage draws the subview its face shows, in place of a texture.
+    // Its coordinates are then the screen's, since that is where the subview's image lives, and
+    // every transform the stage carries -- warp, scroll, rotate -- disturbs the view itself
+    // rather than a texture drawn over it
+    bool subview = (material.flags & STAGE_MASK_SUBVIEW) != 0 && subviewLayer >= 0;
 
     // a mirrored layer is stored flipped left to right; see the base pass above
     bool mirrored = subview && subviewMirrored != 0;

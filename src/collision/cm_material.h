@@ -254,13 +254,22 @@ typedef enum {
   STAGE_SHELL         = (1 << 20),
 
   /**
-   * @brief Resolved by the renderer for a stage naming its material's own diffusemap, which
-   * samples the subview its face shows rather than that texture.
+   * @brief A stage that draws the portal its face shows, in place of a texture.
    */
-  STAGE_SUBVIEW        = (1 << 21),
+  STAGE_PORTAL        = (1 << 21),
+
+  /**
+   * @brief A stage that draws the reflection its face shows, in place of a texture.
+   */
+  STAGE_REFLECTION    = (1 << 22),
 
   STAGE_DRAW          = (1 << 30),
 } CmStageFlags;
+
+/**
+ * @brief The stage keywords that draw a subview, rather than an asset of their own.
+ */
+#define STAGE_MASK_SUBVIEW (STAGE_PORTAL | STAGE_REFLECTION)
 
 /**
  * @brief Stages are ordered layers of visual effects rendered on top of their material.
