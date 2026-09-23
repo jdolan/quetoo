@@ -141,7 +141,8 @@ struct uniformsBlock
     float lightingDistance;
     int editor;
     int developer;
-    float2 padding;
+    int wireframe;
+    int padding;
 };
 
 struct voxelLightDataBlock
@@ -182,7 +183,7 @@ struct bspLocalsBlock
 };
 
 constant spvUnsafeArray<float2, 16> _1064 = spvUnsafeArray<float2, 16>({ float2(0.2770744860172271728515625, 0.69514548778533935546875), float2(-0.59327852725982666015625, -0.1203283965587615966796875), float2(0.449474990367889404296875, 0.246909797191619873046875), float2(-0.1460638940334320068359375, -0.5679666996002197265625), float2(0.64004981517791748046875, -0.407194793224334716796875), float2(-0.3631913959980010986328125, 0.79357779026031494140625), float2(0.124885700643062591552734375, -0.897523820400238037109375), float2(-0.7720317840576171875, 0.443845808506011962890625), float2(0.88518059253692626953125, 0.1653372943401336669921875), float2(-0.52380120754241943359375, -0.726029574871063232421875), float2(0.3642682135105133056640625, 0.596805393695831298828125), float2(-0.833170115947723388671875, -0.33283460140228271484375), float2(0.552725970745086669921875, -0.698580920696258544921875), float2(-0.24071229994297027587890625, 0.3153156936168670654296875), float2(0.72694051265716552734375, -0.14306400716304779052734375), float2(-0.64446747303009033203125, 0.64446747303009033203125) });
-constant spvUnsafeArray<float, 8> _2371 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
+constant spvUnsafeArray<float, 8> _2379 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
@@ -889,52 +890,57 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
     vertex0.diffuse = in.vertex0_diffuse;
     vertex0.caustics = in.vertex0_caustics;
     out.outDepth = gl_FragCoord.z;
-    bool _1952 = material.flags == 0;
-    bool _1960;
     CommonFragment fragment0;
-    if (_1952)
+    if (_522.wireframe != 0)
     {
-        _1960 = (material.surface & 24576) != 0;
+        out.outColor = float4(1.0);
+        return out;
+    }
+    bool _1962 = material.flags == 0;
+    bool _1970;
+    if (_1962)
+    {
+        _1970 = (material.surface & 24576) != 0;
     }
     else
     {
-        _1960 = _1952;
+        _1970 = _1962;
     }
-    bool _1967;
-    if (_1960)
+    bool _1977;
+    if (_1970)
     {
-        _1967 = (material.surface & 112) == 0;
+        _1977 = (material.surface & 112) == 0;
     }
     else
     {
-        _1967 = _1960;
+        _1977 = _1970;
     }
-    bool _1973;
-    if (_1967)
+    bool _1983;
+    if (_1977)
     {
-        _1973 = _1625.subviewLayer >= 0;
+        _1983 = _1625.subviewLayer >= 0;
     }
     else
     {
-        _1973 = _1967;
+        _1983 = _1977;
     }
-    if (_1973)
+    if (_1983)
     {
         float2 st = gl_FragCoord.xy / float2(_522.viewport.zw);
         if (_1625.subviewMirrored != 0)
         {
             st.x = 1.0 - st.x;
         }
-        float3 _2004 = float3(st, float(_1625.subviewLayer));
-        out.outColor = float4(textureSubviews.sample(textureSubviewsSmplr, _2004.xy, uint(rint(_2004.z))).xyz, 1.0);
+        float3 _2012 = float3(st, float(_1625.subviewLayer));
+        out.outColor = float4(textureSubviews.sample(textureSubviewsSmplr, _2012.xy, uint(rint(_2012.z))).xyz, 1.0);
         return out;
     }
     fragment0.viewDir = fast::normalize(-vertex0.position);
     fragment0.viewDist = length(vertex0.position);
-    float2 _2032;
-    _2032.x = textureMaterial.calculate_clamped_lod(textureMaterialSmplr, vertex0.diffusemap);
-    _2032.y = textureMaterial.calculate_unclamped_lod(textureMaterialSmplr, vertex0.diffusemap);
-    fragment0.texLod = _2032.x;
+    float2 _2040;
+    _2040.x = textureMaterial.calculate_clamped_lod(textureMaterialSmplr, vertex0.diffusemap);
+    _2040.y = textureMaterial.calculate_unclamped_lod(textureMaterialSmplr, vertex0.diffusemap);
+    fragment0.texLod = _2040.x;
     CommonVertex param = vertex0;
     CommonFragment param_1 = fragment0;
     parallaxOcclusionMapping(param, param_1, textureMaterial, textureMaterialSmplr, material, _522);
@@ -956,66 +962,66 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
         CommonFragment param_4 = fragment0;
         fragmentLightingLod(param_3, param_4, textureMaterial, textureMaterialSmplr, material, _522, _573, _591, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1588, _1618, _1625);
         fragment0 = param_4;
-        float4 _2085 = out.outColor;
-        float3 _2087 = _2085.xyz * (fragment0.ambient + fragment0.diffuse);
-        out.outColor.x = _2087.x;
-        out.outColor.y = _2087.y;
-        out.outColor.z = _2087.z;
-        float4 _2096 = out.outColor;
-        float3 _2098 = _2096.xyz + fragment0.specular;
-        out.outColor.x = _2098.x;
-        out.outColor.y = _2098.y;
-        out.outColor.z = _2098.z;
+        float4 _2093 = out.outColor;
+        float3 _2095 = _2093.xyz * (fragment0.ambient + fragment0.diffuse);
+        out.outColor.x = _2095.x;
+        out.outColor.y = _2095.y;
+        out.outColor.z = _2095.z;
+        float4 _2104 = out.outColor;
+        float3 _2106 = _2104.xyz + fragment0.specular;
+        out.outColor.x = _2106.x;
+        out.outColor.y = _2106.y;
+        out.outColor.z = _2106.z;
     }
     else
     {
-        bool _2111 = (material.flags & 6291456) != 0;
-        bool _2117;
-        if (_2111)
-        {
-            _2117 = _1625.subviewLayer >= 0;
-        }
-        else
-        {
-            _2117 = _2111;
-        }
-        bool subview = _2117;
+        bool _2119 = (material.flags & 6291456) != 0;
         bool _2125;
-        if (subview)
+        if (_2119)
         {
-            _2125 = _1625.subviewMirrored != 0;
+            _2125 = _1625.subviewLayer >= 0;
         }
         else
         {
-            _2125 = subview;
+            _2125 = _2119;
         }
-        bool mirrored = _2125;
-        float2 _2128;
+        bool subview = _2125;
+        bool _2133;
         if (subview)
         {
-            _2128 = gl_FragCoord.xy / float2(_522.viewport.zw);
+            _2133 = _1625.subviewMirrored != 0;
         }
         else
         {
-            _2128 = fragment0.parallax;
+            _2133 = subview;
         }
-        float2 st_1 = _2128;
+        bool mirrored = _2133;
+        float2 _2136;
+        if (subview)
+        {
+            _2136 = gl_FragCoord.xy / float2(_522.viewport.zw);
+        }
+        else
+        {
+            _2136 = fragment0.parallax;
+        }
+        float2 st_1 = _2136;
         if (mirrored)
         {
             st_1.x = 1.0 - st_1.x;
         }
         if ((material.flags & 32768) == 32768)
         {
-            float2 _2158;
+            float2 _2166;
             if (subview)
             {
-                _2158 = vertex0.diffusemap;
+                _2166 = vertex0.diffusemap;
             }
             else
             {
-                _2158 = st_1;
+                _2166 = st_1;
             }
-            float2 texcoord = _2158;
+            float2 texcoord = _2166;
             float2 offset = (textureWarp.sample(textureWarpSmplr, (texcoord + float2((float(_522.ticks) * material.warp.x) * 0.00012500000593718141317367553710938))).xy - float2(0.5)) * material.warp.y;
             if (subview)
             {
@@ -1039,8 +1045,8 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
         }
         if (subview)
         {
-            float3 _2272 = float3(st_1, float(_1625.subviewLayer));
-            fragment0.diffuseSample = float4(textureSubviews.sample(textureSubviewsSmplr, _2272.xy, uint(rint(_2272.z))).xyz, 1.0);
+            float3 _2280 = float3(st_1, float(_1625.subviewLayer));
+            fragment0.diffuseSample = float4(textureSubviews.sample(textureSubviewsSmplr, _2280.xy, uint(rint(_2280.z))).xyz, 1.0);
         }
         else
         {
@@ -1055,24 +1061,24 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _522 
             CommonFragment param_7 = fragment0;
             fragmentLightingLod(param_6, param_7, textureMaterial, textureMaterialSmplr, material, _522, _573, _591, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1588, _1618, _1625);
             fragment0 = param_7;
-            float4 _2316 = out.outColor;
-            float3 _2318 = _2316.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
-            out.outColor.x = _2318.x;
-            out.outColor.y = _2318.y;
-            out.outColor.z = _2318.z;
-            float4 _2330 = out.outColor;
-            float3 _2332 = _2330.xyz + (fragment0.specular * material.lighting);
-            out.outColor.x = _2332.x;
-            out.outColor.y = _2332.y;
-            out.outColor.z = _2332.z;
+            float4 _2324 = out.outColor;
+            float3 _2326 = _2324.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
+            out.outColor.x = _2326.x;
+            out.outColor.y = _2326.y;
+            out.outColor.z = _2326.z;
+            float4 _2338 = out.outColor;
+            float3 _2340 = _2338.xyz + (fragment0.specular * material.lighting);
+            out.outColor.x = _2340.x;
+            out.outColor.y = _2340.y;
+            out.outColor.z = _2340.z;
         }
         if ((material.flags & 262144) == 262144)
         {
-            float4 _2353 = out.outColor;
-            float3 _2355 = _2353.xyz + (fragment0.diffuseSample.xyz * material.emissive);
-            out.outColor.x = _2355.x;
-            out.outColor.y = _2355.y;
-            out.outColor.z = _2355.z;
+            float4 _2361 = out.outColor;
+            float3 _2363 = _2361.xyz + (fragment0.diffuseSample.xyz * material.emissive);
+            out.outColor.x = _2363.x;
+            out.outColor.y = _2363.y;
+            out.outColor.z = _2363.z;
         }
     }
     return out;

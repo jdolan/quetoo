@@ -72,6 +72,11 @@ void main(void) {
 
   outDepth = gl_FragCoord.z;
 
+  if (wireframe != 0) {
+    outColor = vec4(1.0);
+    return;
+  }
+
   fragment.viewDir = normalize(-vertex.position);
   fragment.viewDist = length(vertex.position);
 

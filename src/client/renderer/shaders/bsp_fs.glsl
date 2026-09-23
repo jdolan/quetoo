@@ -132,6 +132,11 @@ void main(void) {
 
   outDepth = gl_FragCoord.z;
 
+  if (wireframe != 0) {
+    outColor = vec4(1.0);
+    return;
+  }
+
   // a subview face shows a second view of the world: through the point a portal targets, or
   // mirrored about the face's own plane. That view uses this one's projection, so the two images
   // coincide in screen space and the fragment reads straight across. A subview is itself given a

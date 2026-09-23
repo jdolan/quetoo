@@ -57,7 +57,8 @@ struct uniformsBlock
     float lightingDistance;
     int editor;
     int developer;
-    float2 padding;
+    int wireframe;
+    int padding;
 };
 
 struct localsBlock
