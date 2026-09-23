@@ -92,6 +92,7 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   addRow(self, "entities", "%d visible, %d occluded", r->entitiesVisible, r->entitiesOccluded);
   addRow(self, "blocks", "%d visible, %d occluded", r->blocksVisible, r->blocksOccluded);
   addRow(self, "subviews", "%d offered, %d drawn, %d triangles", r->subviewsOffered, r->subviewsDrawn, r->subviewsTriangles);
+  addRow(self, "  portals", "%d offered, %d drawn", r->portalsOffered, r->portalsDrawn);
   addRow(self, "  reflections", "%d offered, %d drawn", r->reflectionsOffered, r->reflectionsDrawn);
   addRow(self, "bsp", "%d models, %d draws, %d triangles",
          r->bspInlineModels, r->bspDrawElements, r->bspTriangles);

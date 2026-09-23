@@ -155,10 +155,6 @@ static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 or
 
   view->stats.subviewsOffered++;
 
-  if (subview->type == SUBVIEW_REFLECTION) {
-    view->stats.reflectionsOffered++;
-  }
-
   // a subview face is single sided, and the BSP pipeline culls back faces, so from behind its
   // plane there is nothing of it to draw -- and a whole scene would be rendered into a layer
   // that no fragment goes on to sample. Tested against the camera's position rather than where
@@ -278,6 +274,8 @@ static void R_AddReflection(RenderView *view, RenderSubview *reflection, const M
   const Vec4 clipPlane = Vec3_ToVec4(reflection->absPlane.normal, reflection->absPlane.dist + 1.f);
 
   R_AddSubview(view, reflection, view->origin, R_ReflectionMatrix(&reflection->absPlane), clipPlane, true);
+
+  view->stats.reflectionsOffered++;
 }
 
 /**
@@ -354,6 +352,8 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
                                             Cm_DistanceToPlane(origin, &portal->absPlane)));
 
   R_AddSubview(view, portal, origin, portal->matrix, Vec4_Zero(), false);
+
+  view->stats.portalsOffered++;
 }
 
 /**
@@ -625,10 +625,11 @@ void R_DrawSubviews(RenderView *view) {
 
     stats->subviewsDrawn++;
 
-    if (subview->type == SUBVIEW_REFLECTION) {
+    if (subview->type == SUBVIEW_PORTAL) {
+      stats->portalsDrawn++;
+    } else if (subview->type == SUBVIEW_REFLECTION) {
       stats->reflectionsDrawn++;
     }
-
 
     R_UpdateSubviewScene(view, subview->view);
 

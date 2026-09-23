@@ -2169,9 +2169,12 @@ typedef struct {
   int32_t subviewsOffered, subviewsDrawn;
 
   /**
-   * @brief The counts of those that were reflections, the rest being portals.
-   * @remarks Broken out because the two share one pool of layers, so which of them is spending
-   *   it is the question a map with both raises.
+   * @brief The counts portals offered and drawn.
+   */
+  int32_t portalsOffered, portalsDrawn;
+
+  /**
+   * @brief The counts of reflections offered and drawn.
    */
   int32_t reflectionsOffered, reflectionsDrawn;
 
