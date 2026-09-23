@@ -520,6 +520,13 @@ static void PortalFaceFrame(const BspFace *face, const BspDrawElements *draw,
 }
 
 /**
+ * @brief The height above a `misc_teleporter_dest` at which a portal targeting it is viewed.
+ * @remarks Quetoo's standing eye. The other pmove modules stand at 26 and at 22, and quemap
+ * cannot know which one a server will run.
+ */
+#define PORTAL_DEST_VIEW_HEIGHT 30.f
+
+/**
  * @brief Emits the portals lump, resolving each portal face to the entity it views from.
  * @details A portal that names no target, or names one that does not exist, is dropped with a
  * warning: it has nothing to show, and the renderer would draw a hole in the world.
@@ -575,7 +582,15 @@ static void EmitPortals(void) {
     Vec3 exitForward, exitUp;
     Vec3_Vectors(angles, &exitForward, NULL, &exitUp);
 
-    const Vec3 exitOrigin = VectorForKey(exit, "origin", Vec3_Zero());
+    Vec3 exitOrigin = VectorForKey(exit, "origin", Vec3_Zero());
+
+    // a misc_teleporter_dest marks where a player arrives, not where a camera belongs, so the
+    // viewpoint is raised to the eye. This is Quetoo's standing eye: a server running another
+    // pmove module sees the portal from a little above or below its own
+    const char *classname = ValueForKey(exit, "classname", NULL);
+    if (classname && !q_strcmp(classname, "misc_teleporter_dest")) {
+      exitOrigin.z += PORTAL_DEST_VIEW_HEIGHT;
+    }
 
     BspPortal *out = &bspFile.portals[bspFile.numPortals];
     bspFile.numPortals++;
