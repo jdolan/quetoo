@@ -23,12 +23,18 @@
 
 /**
  * @brief This is called at least once per frame, and more often during loading.
+ * @details The menus are told they will appear again when the client enters or leaves a game
+ * beneath them, since what they show depends on whether there is one to return to.
  */
 void Cl_UpdateScreen(void) {
 
   static ClientKeyDest previous_key_dest = KEY_UI;
+  static bool previous_active = false;
+
+  const bool active = cls.state == CL_ACTIVE;
+
   if (cls.keyState.dest == KEY_UI) {
-    if (previous_key_dest != KEY_UI) {
+    if (previous_key_dest != KEY_UI || previous_active != active) {
       Ui_ViewWillAppear();
     }
   } else {
@@ -37,6 +43,7 @@ void Cl_UpdateScreen(void) {
     }
   }
   previous_key_dest = cls.keyState.dest;
+  previous_active = active;
 
   switch (cls.state) {
     case CL_UNINITIALIZED:
