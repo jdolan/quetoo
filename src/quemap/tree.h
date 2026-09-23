@@ -61,6 +61,7 @@ typedef struct {
 Tree *AllocTree(void);
 void FreeTree(Tree *tree);
 void FreeTreePortals(Tree *tree);
+void MakeTreeFaces(Tree *tree, const CsgBrush *brushes);
 void MergeTreeFaces(Tree *tree);
 
 Tree *BuildTree(CsgBrush *brushes);

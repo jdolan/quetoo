@@ -54,6 +54,8 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
     brushes = SubtractBrushes(brushes);
   }
 
+  CsgBrush *faceBrushes = CopyBrushes(brushes);
+
   Tree *tree = BuildTree(brushes);
 
   MakeTreePortals(tree);
@@ -67,9 +69,9 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
     WriteLeakFile(tree);
   }
 
-  FindPortalBrushSides(tree);
+  MakeTreeFaces(tree, faceBrushes);
 
-  MakeTreeFaces(tree);
+  FreeBrushes(faceBrushes);
 
   if (!noMerge) {
     MergeTreeFaces(tree);
@@ -98,13 +100,15 @@ static void ProcessInlineModel(const Entity *e, BspModel *out) {
     brushes = SubtractBrushes(brushes);
   }
 
+  CsgBrush *faceBrushes = CopyBrushes(brushes);
+
   Tree *tree = BuildTree(brushes);
 
   MakeTreePortals(tree);
 
-  FindPortalBrushSides(tree);
+  MakeTreeFaces(tree, faceBrushes);
 
-  MakeTreeFaces(tree);
+  FreeBrushes(faceBrushes);
 
   if (!noMerge) {
     MergeTreeFaces(tree);

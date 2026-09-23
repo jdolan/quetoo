@@ -30,6 +30,8 @@ typedef struct Face {
 
   /**
    * @brief Faces are chained on the node on which they reside (either side may be chained together).
+   * @details A face that reached a leaf without a node on its plane is chained on the parent of
+   * that leaf instead.
    */
   struct Face *next;
 

@@ -22,6 +22,7 @@
 #include <SDL3/SDL_timer.h>
 #include <Objectively/Vector.h>
 
+#include "material.h"
 #include "tree.h"
 #include "portal.h"
 #include "qbsp.h"
@@ -427,6 +428,399 @@ Tree *BuildTree(CsgBrush *brushes) {
   Com_Print("\r%-24s [100%%] %d ms\n", "Building tree", (uint32_t) SDL_GetTicks() - start);
 
   return tree;
+}
+
+/**
+ * @return The single content bit of the strongest visible content present.
+ */
+static int32_t VisibleContents(int32_t contents) {
+
+  for (int32_t i = 1; i <= LAST_VISIBLE_CONTENTS; i <<= 1) {
+    if (contents & i) {
+      return i;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * @return True if every point of @p w lies within `ON_EPSILON` of @p plane.
+ */
+static bool WindingOnPlane(const CmWinding *w, const Plane *plane) {
+
+  for (int32_t i = 0; i < w->numPoints; i++) {
+    if (fabs(Vec3_Dot(w->points[i], plane->normal) - plane->dist) > ON_EPSILON) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @return True if the leaf @p node holds a fragment of @p brush.
+ */
+static bool LeafHoldsBrush(const Node *node, const Brush *brush) {
+
+  for (const CsgBrush *b = node->brushes; b; b = b->next) {
+    if (b->original == brush) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static Node *faceHeadNode;
+
+/**
+ * @return The leaf of the tree being faced that holds @p point.
+ */
+static Node *PointInLeaf(const Vec3 point) {
+
+  Node *node = faceHeadNode;
+  while (node->plane != PLANE_LEAF) {
+    const Plane *plane = &planes[node->plane];
+    node = node->children[Vec3_Dot(point, plane->normal) - plane->dist >= 0.0 ? 0 : 1];
+  }
+
+  return node;
+}
+
+/**
+ * @return True if the piece @p w of @p side is visible from the first leaf in front of it that
+ * does not hold @p brush.
+ * @details The leaf is found at points in front of the center of the piece, up to 4 units away.
+ * If each of them is still in a leaf that holds the brush, the piece is not visible.
+ */
+static bool SideVisibleInFront(const CmWinding *w, const CsgBrush *brush, const BrushSide *side) {
+
+  static const float distances[] = { .5f, 1.f, 2.f, 4.f };
+
+  const Vec3 center = Cm_WindingCenter(w);
+  const Vec3 normal = planes[side->plane].normal;
+  const int32_t contents = brush->original->contents;
+
+  for (size_t i = 0; i < lengthof(distances); i++) {
+
+    const Node *leaf = PointInLeaf(Vec3_Fmaf(center, distances[i], normal));
+    if (LeafHoldsBrush(leaf, brush->original)) {
+      continue;
+    }
+
+    return !(leaf->contents & CONTENTS_SOLID) && (VisibleContents(leaf->contents ^ contents) & contents);
+  }
+
+  return false;
+}
+
+static int32_t cFaces;
+
+/**
+ * @brief Pushes a piece of the brush side @p side of @p brush down the tree, and makes a face of
+ * each piece that ends in a leaf where the side is visible.
+ * @details At a node on the plane of the side, or within `ON_EPSILON` of it everywhere, the piece
+ * goes to the child that the side faces. The last such node on the path holds the faces made from
+ * it. Everywhere else the piece is split. Points within `ON_EPSILON` of a plane are on it, so that
+ * a piece which only touches a plane is not cut into a sliver with no area.
+ *
+ * A piece can reach a leaf without a node on its plane, and the parent of the leaf then holds the
+ * face, since its space holds the piece. This occurs where two brushes nearly meet, and the leaf
+ * between them is bounded by the plane of the other brush. It also occurs where the space in
+ * front of a side is too thin to split, less than a unit of volume, so the tree keeps it in the
+ * leaf of the brush. The piece then ends inside its own brush, and `SideVisibleInFront` decides.
+ * Such a face does not lie on the plane of its node, and the decal walk can miss it.
+
+ *
+ * The side is visible in a leaf that is not solid, if the strongest visible content that differs
+ * between the leaf and the brush belongs to the brush: solid shows in empty and in water, water
+ * shows in empty, and water does not show in water. A brush that is not solid can be seen from
+ * inside, so each visible piece of it also makes a face that looks into the brush: the surface of
+ * water, seen from under it.
+ */
+static void ClipSideIntoTree_r(Node *node, CmWinding *w, const CsgBrush *brush, const BrushSide *side, Node *onNode) {
+
+  if (node->plane == PLANE_LEAF) {
+
+    const int32_t contents = brush->original->contents;
+
+    bool visible = !(node->contents & CONTENTS_SOLID) && (VisibleContents(node->contents ^ contents) & contents);
+
+    if (!visible && !onNode && LeafHoldsBrush(node, brush->original)) {
+      visible = SideVisibleInFront(w, brush, side);
+    }
+
+    if (!visible) {
+      Cm_FreeWinding(w);
+      return;
+    }
+
+    if (!onNode) {
+      Com_Verbose("Brush side %s @ %s is not on a node plane\n",
+                  materials[side->original->material].cm->name, vtos(Cm_WindingCenter(w)));
+      onNode = node->parent;
+    }
+
+    if (!(contents & CONTENTS_SOLID)) {
+
+      Face *inside = AllocFace();
+
+      inside->brushSide = side->original;
+      inside->plane = side->plane ^ 1;
+      inside->w = Cm_ReverseWinding(w);
+
+      inside->next = onNode->faces;
+      onNode->faces = inside;
+
+      cFaces++;
+    }
+
+    Face *face = AllocFace();
+
+    face->brushSide = side->original;
+    face->plane = side->plane;
+    face->w = w;
+
+    face->next = onNode->faces;
+    onNode->faces = face;
+
+    cFaces++;
+    return;
+  }
+
+  if ((side->plane & ~1) == node->plane) {
+    ClipSideIntoTree_r(node->children[side->plane & 1], w, brush, side, node);
+    return;
+  }
+
+  const Plane *plane = &planes[node->plane];
+
+  if (WindingOnPlane(w, plane)) {
+    const bool facing = Vec3_Dot(planes[side->plane].normal, plane->normal) > 0.f;
+    ClipSideIntoTree_r(node->children[facing ? 0 : 1], w, brush, side, node);
+    return;
+  }
+
+  CmWinding *front, *back;
+  Cm_SplitWinding(w, plane->normal, plane->dist, ON_EPSILON, &front, &back);
+  Cm_FreeWinding(w);
+
+  if (front) {
+    ClipSideIntoTree_r(node->children[0], front, brush, side, onNode);
+  }
+
+  if (back) {
+    ClipSideIntoTree_r(node->children[1], back, brush, side, onNode);
+  }
+}
+
+/**
+ * @brief A visible side of a brush that the tree was built from, and its order in the list of
+ * brushes.
+ */
+typedef struct {
+  const CsgBrush *brush;
+  const BrushSide *side;
+  int32_t order;
+} TreeFaceSide;
+
+/**
+ * @brief Orders tree face sides by plane, then by brush, then by their order in the list.
+ */
+static int32_t TreeFaceSideCmp(const void *a, const void *b) {
+
+  const TreeFaceSide *sa = a;
+  const TreeFaceSide *sb = b;
+
+  if (sa->side->plane != sb->side->plane) {
+    return sa->side->plane - sb->side->plane;
+  }
+
+  if (sa->brush->original != sb->brush->original) {
+    return (int32_t) (sa->brush->original - sb->brush->original);
+  }
+
+  return sa->order - sb->order;
+}
+
+/**
+ * @brief Removes the part of each winding in @p pieces that the convex winding @p clip covers.
+ * @details Each piece is split along the edges of @p clip, on the plane with @p normal. The parts
+ * outside an edge are kept, and the part inside every edge is freed. A piece that @p clip does not
+ * cover is kept whole, since the lines of the edges would cut it for nothing.
+ * @return The pieces that remain, which replace @p pieces.
+ */
+static Vector *SubtractWinding(Vector *pieces, const CmWinding *clip, const Vec3 normal) {
+
+  Vector *out = $(alloc(Vector), initWithSize, sizeof(CmWinding *));
+
+  const Vec3 center = Cm_WindingCenter(clip);
+  const Box3 bounds = Box3_Expand(Cm_WindingBounds(clip), ON_EPSILON);
+
+  for (size_t i = 0; i < pieces->count; i++) {
+
+    CmWinding *piece = VectorValue(pieces, CmWinding *, i);
+
+    if (!Box3_Intersects(Cm_WindingBounds(piece), bounds)) {
+      $(out, add, &piece);
+      continue;
+    }
+
+    const size_t count = out->count;
+
+    CmWinding *w = Cm_CopyWinding(piece);
+
+    for (int32_t j = 0; j < clip->numPoints && w; j++) {
+
+      const Vec3 a = clip->points[j];
+      const Vec3 b = clip->points[(j + 1) % clip->numPoints];
+
+      const Vec3 edge = Vec3_Subtract(b, a);
+      if (Vec3_Length(edge) < ON_EPSILON) {
+        continue;
+      }
+
+      Vec3 outward = Vec3_Normalize(Vec3_Cross(edge, normal));
+      if (Vec3_Dot(Vec3_Subtract(center, a), outward) > 0.f) {
+        outward = Vec3_Negate(outward);
+      }
+
+      CmWinding *front, *back;
+      Cm_SplitWinding(w, outward, Vec3_Dot(a, outward), ON_EPSILON, &front, &back);
+      Cm_FreeWinding(w);
+
+      if (front) {
+        $(out, add, &front);
+      }
+
+      w = back;
+    }
+
+    if (w && Cm_WindingArea(w) > ON_EPSILON) {
+      Cm_FreeWinding(w);
+      Cm_FreeWinding(piece);
+      continue;
+    }
+
+    if (w) {
+      Cm_FreeWinding(w);
+    }
+
+    while (out->count > count) {
+      Cm_FreeWinding(VectorValue(out, CmWinding *, out->count - 1));
+      $(out, removeAt, out->count - 1);
+    }
+
+    $(out, add, &piece);
+  }
+
+  release(pieces);
+  return out;
+}
+
+/**
+ * @brief Makes the faces of the tree from the sides of @p brushes, the brushes that the tree was
+ * built from.
+ * @details Each face is made from the brush side that it shows, so that no step has to find the
+ * side of a face again. CSG removes most parts of each side that lie inside a brush that wins over
+ * it, and the tree removes the parts that face into solid or unreachable leafs.
+ *
+ * CSG leaves some brushes overlapping: see-through brushes never cut each other, and two solids
+ * are left alone if cutting either one would split it. Their coplanar sides would both make faces,
+ * which blend twice or fight in the depth buffer. So before a side is clipped into the tree, the
+ * sides of earlier brushes on the same plane, facing the same way, with the same visible contents,
+ * are subtracted from it.
+ */
+void MakeTreeFaces(Tree *tree, const CsgBrush *brushes) {
+
+  Com_Verbose("--- MakeTreeFaces ---\n");
+
+  cFaces = 0;
+  faceHeadNode = tree->headNode;
+
+  int32_t numSides = 0;
+  for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
+    numSides += brush->numBrushSides;
+  }
+
+  TreeFaceSide *sides = Mem_Malloc(numSides * sizeof(TreeFaceSide));
+  numSides = 0;
+
+  for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
+
+    if (!VisibleContents(brush->original->contents)) {
+      continue;
+    }
+
+    const BrushSide *side = brush->brushSides;
+    for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
+
+      if (!side->original || !side->winding) {
+        continue;
+      }
+
+      if (side->surface & (SURF_NODE | SURF_BEVEL)) {
+        continue;
+      }
+
+      if (side->original->surface & (SURF_NO_DRAW | SURF_SKIP)) {
+        continue;
+      }
+
+      sides[numSides] = (TreeFaceSide) {
+        .brush = brush,
+        .side = side,
+        .order = numSides
+      };
+      numSides++;
+    }
+  }
+
+  qsort(sides, numSides, sizeof(TreeFaceSide), TreeFaceSideCmp);
+
+  for (int32_t i = 0; i < numSides; i++) {
+
+    const TreeFaceSide *s = &sides[i];
+    const int32_t contents = VisibleContents(s->brush->original->contents);
+    const Vec3 normal = planes[s->side->plane].normal;
+
+    Vector *pieces = $(alloc(Vector), initWithSize, sizeof(CmWinding *));
+
+    CmWinding *w = Cm_CopyWinding(s->side->winding);
+    $(pieces, add, &w);
+
+    const Box3 bounds = Box3_Expand(Cm_WindingBounds(s->side->winding), ON_EPSILON);
+
+    for (int32_t j = i - 1; j >= 0 && sides[j].side->plane == s->side->plane && pieces->count; j--) {
+
+      const TreeFaceSide *t = &sides[j];
+
+      if (!Box3_Intersects(Cm_WindingBounds(t->side->winding), bounds)) {
+        continue;
+      }
+
+      if (t->brush->original == s->brush->original) {
+        continue;
+      }
+
+      if (VisibleContents(t->brush->original->contents) != contents) {
+        continue;
+      }
+
+      pieces = SubtractWinding(pieces, t->side->winding, normal);
+    }
+
+    for (size_t j = 0; j < pieces->count; j++) {
+      ClipSideIntoTree_r(tree->headNode, VectorValue(pieces, CmWinding *, j), s->brush, s->side, NULL);
+    }
+
+    release(pieces);
+  }
+
+  Mem_Free(sides);
+
+  Com_Verbose("%5i faces\n", cFaces);
 }
 
 static int32_t cMergedFaces;

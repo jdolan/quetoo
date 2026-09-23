@@ -694,15 +694,13 @@ static DrawFace *drawFaces;
 static int32_t numDrawFaces;
 
 /**
- * @brief For each face of the model being emitted, the `CONTENTS_BLOCK` node that holds it, the
- * first plane of the pair that it lies on, and whether its winding faces the same way as that
- * plane.
- * @details The plane is that of the face and not that of its brush side, since the tree can give
- * a face to a side that it does not lie on. It is -1 for each face that `FaceIsHulled` rejects.
+ * @brief For each face of the model being emitted, the `CONTENTS_BLOCK` node that holds it,
+ * whether it is drawn as part of a hull, and whether its winding faces the same way as the plane
+ * of its brush side.
  */
 static struct {
   int32_t blockNode;
-  int32_t plane;
+  bool hulled;
   int32_t facing;
 } *faceGroups;
 
@@ -785,33 +783,10 @@ static Vec3 FaceWindingNormal(const BspFace *face) {
 }
 
 /**
- * @return True if each vertex of @p face lies within `ON_EPSILON` of its plane.
- * @details The tree leaves some faces with vertexes far off their plane. A hull that took them in
- * would not be planar, so they are drawn as they are.
- */
-static bool FaceIsPlanar(const BspFace *face) {
-
-  const BspPlane *plane = bspFile.planes + face->plane;
-
-  const BspVertex *v = bspFile.vertexes + face->firstVertex;
-  for (int32_t i = 0; i < face->numVertexes; i++, v++) {
-    if (fabsf(Vec3_Dot(v->position, plane->normal) - plane->dist) > ON_EPSILON) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
  * @return True if @p face may be drawn as part of the hull of its brush side.
  * @details A hull covers area that no face covers, which is correct only where an opaque brush
  * hides that area. Two touching see-through brushes, such as a waterfall on a pool, make no face
  * where they touch, and nothing hides that area, so only opaque sides are hulled.
- *
- * The face MUST also lie on its plane, and on the plane of its brush side. The
- * tree gives some faces to a side on another plane, and the hull of those faces would cover the
- * faces of other sides between them.
  */
 static bool FaceIsHulled(const BspFace *face) {
 
@@ -829,15 +804,11 @@ static bool FaceIsHulled(const BspFace *face) {
     return false;
   }
 
-  if ((side->plane & ~1) != (face->plane & ~1)) {
-    return false;
-  }
-
-  return FaceIsPlanar(face);
+  return true;
 }
 
 /**
- * @brief Orders the faces of the model by block, brush side, plane and facing, then by index.
+ * @brief Orders the faces of the model by block, brush side and facing, then by index.
  */
 static int32_t FaceGroupCmp(const void *a, const void *b) {
 
@@ -855,10 +826,6 @@ static int32_t FaceGroupCmp(const void *a, const void *b) {
     return fi->brushSide - fj->brushSide;
   }
 
-  if (faceGroups[i].plane != faceGroups[j].plane) {
-    return faceGroups[i].plane - faceGroups[j].plane;
-  }
-
   if (faceGroups[i].facing != faceGroups[j].facing) {
     return faceGroups[i].facing - faceGroups[j].facing;
   }
@@ -874,12 +841,11 @@ static bool FaceGroupEqual(int32_t i, int32_t j) {
   const BspFace *fi = bspFile.faces + faceGroupsModel->firstFace + i;
   const BspFace *fj = bspFile.faces + faceGroupsModel->firstFace + j;
 
-  if (faceGroups[i].plane == -1 || fi->brushSide != fj->brushSide) {
+  if (!faceGroups[i].hulled || !faceGroups[j].hulled || fi->brushSide != fj->brushSide) {
     return false;
   }
 
   return faceGroups[i].blockNode == faceGroups[j].blockNode &&
-         faceGroups[i].plane == faceGroups[j].plane &&
          faceGroups[i].facing == faceGroups[j].facing;
 }
 
@@ -943,8 +909,7 @@ static int32_t HullEdgePointCmp(const void *a, const void *b) {
 }
 
 /**
- * @brief Emits the convex hull of the faces of one brush side on one plane in one block, as one
- * draw face.
+ * @brief Emits the convex hull of the faces of one brush side in one block, as one draw face.
  * @details The tree cuts a brush side into faces along every plane that it splits space with,
  * and only some of those cuts follow the brushes that hide part of the side. The draw elements do
  * not need the cuts: the hull of the faces covers each of them, and each part of the hull that no
@@ -963,7 +928,7 @@ static bool EmitHull(const BspModel *mod, const int32_t *group, int32_t count, D
   const BspFace *first = bspFile.faces + mod->firstFace + group[0];
   const BspBrushSide *side = bspFile.brushSides + first->brushSide;
 
-  hullNormal = bspFile.planes[faceGroups[group[0]].plane].normal;
+  hullNormal = bspFile.planes[side->plane].normal;
   if (!faceGroups[group[0]].facing) {
     hullNormal = Vec3_Negate(hullNormal);
   }
@@ -1244,11 +1209,10 @@ static void EmitDrawFaces(const BspModel *mod) {
 
     faceGroups[i].blockNode = -1;
 
-    faceGroups[i].plane = -1;
-
     if (FaceIsHulled(face)) {
-      faceGroups[i].plane = face->plane & ~1;
-      faceGroups[i].facing = Vec3_Dot(FaceWindingNormal(face), bspFile.planes[faceGroups[i].plane].normal) > 0.f;
+      const BspBrushSide *side = bspFile.brushSides + face->brushSide;
+      faceGroups[i].hulled = true;
+      faceGroups[i].facing = Vec3_Dot(FaceWindingNormal(face), bspFile.planes[side->plane].normal) > 0.f;
     }
 
     numVertexes += face->numVertexes;

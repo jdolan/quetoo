@@ -103,6 +103,29 @@ CsgBrush *CopyBrush(const CsgBrush *brush) {
 }
 
 /**
+ * @brief Duplicates the brush list, in order.
+ */
+CsgBrush *CopyBrushes(const CsgBrush *brushes) {
+
+  CsgBrush *head = NULL, *tail = NULL;
+
+  for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
+
+    CsgBrush *copy = CopyBrush(brush);
+
+    if (tail) {
+      tail->next = copy;
+    } else {
+      head = copy;
+    }
+
+    tail = copy;
+  }
+
+  return head;
+}
+
+/**
  * @brief Sets the mins/maxs based on the windings
  */
 static void SetBrushBounds(CsgBrush *brush) {

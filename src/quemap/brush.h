@@ -39,6 +39,7 @@ void FreeBrush(CsgBrush *brush);
 void FreeBrushes(CsgBrush *brushes);
 size_t CountBrushes(const CsgBrush *brushes);
 CsgBrush *CopyBrush(const CsgBrush *brush);
+CsgBrush *CopyBrushes(const CsgBrush *brushes);
 float BrushVolume(CsgBrush *brush);
 CsgBrush *BrushFromBounds(const Box3 bounds);
 int32_t BrushOnPlaneSide(const CsgBrush *brush, int32_t plane);
