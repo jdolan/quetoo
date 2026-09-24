@@ -319,6 +319,8 @@ void AddBrushBevels(Brush *b) {
 /**
  * @brief Frees the brush sides allocated to `brush`, leaving an "emtpy" brush in place.
  * This is because, for error reporting, we want to preserve the indexes of brushes.
+ * @details The side slots are given back only if they are the last ones allocated. When the
+ * windings of an entity are made again for its origin, later brushes of the entity follow them.
  */
 static void UnparseBrush(Brush *brush, Parser *parser) {
 
@@ -330,7 +332,10 @@ static void UnparseBrush(Brush *brush, Parser *parser) {
     }
   }
 
-  numBrushSides -= brush->numBrushSides;
+  if (brush->brushSides + brush->numBrushSides == brushSides + numBrushSides) {
+    numBrushSides -= brush->numBrushSides;
+  }
+
   brush->numBrushSides = 0;
   brush->bounds = Box3_Null();
 
@@ -361,6 +366,10 @@ void MakeBrushWindings(Brush *brush) {
 
     if (side->surface & SURF_BEVEL) {
       continue;
+    }
+
+    if (side->winding) {
+      Cm_FreeWinding(side->winding);
     }
 
     const Plane *plane = &planes[side->plane];
