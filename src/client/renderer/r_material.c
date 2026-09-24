@@ -421,6 +421,24 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 }
 
 /**
+ * @brief Frees the render stages of the material and resolves them again from its collision
+ * material, after the editor changes its stage list, flags or assets.
+ */
+void R_ReloadMaterialStages(RenderMaterial *material) {
+
+  RenderStage *stage = material->stages;
+  while (stage) {
+    RenderStage *next = stage->next;
+    Mem_Free(stage);
+    stage = next;
+  }
+
+  material->stages = NULL;
+
+  R_ResolveMaterialStages(material);
+}
+
+/**
  * @brief Populates per-draw material uniforms.
  */
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out) {

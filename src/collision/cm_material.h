@@ -575,6 +575,27 @@ void Cm_ResolveStageFlags(CmMaterial *material);
 CmStage *Cm_MaterialLightStage(const CmMaterial *material);
 
 /**
+ * @brief Finalizes the stage after an edit, and resolves its assets and the material stage flags.
+ * @remarks The editor MUST call this after it changes the flags or the asset of a stage. It marks
+ * the material dirty.
+ * @return True if the stage assets were resolved.
+ */
+bool Cm_ResolveStage(CmMaterial *material, CmStage *stage);
+
+/**
+ * @brief Appends a new stage that draws the material diffusemap, and marks the material dirty.
+ * @return The new stage.
+ */
+CmStage *Cm_AddStage(CmMaterial *material);
+
+/**
+ * @brief Removes and frees the stage, and marks the material dirty.
+ * @remarks Any pointer to the stage, such as a `RenderStage`, is invalid after this. The renderer
+ * stages of the material MUST be reloaded.
+ */
+void Cm_RemoveStage(CmMaterial *material, CmStage *stage);
+
+/**
  * @brief Serializes the material to its file path on disk.
  * @return true on success.
  */

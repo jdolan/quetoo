@@ -174,6 +174,75 @@ START_TEST(check_Cm_ResolveStageFlags) {
 
 } END_TEST
 
+START_TEST(check_Cm_LoadMaterial_light_only_stage) {
+
+	write_file("check_only.mat",
+		"{\n"
+		"	{\n"
+		"		light.radius 200\n"
+		"		light.intensity 1.5\n"
+		"	}\n"
+		"	{\n"
+		"		texture check_only\n"
+		"		pulse 1\n"
+		"	}\n"
+		"}\n"
+	);
+
+	CmMaterial *m = Cm_LoadMaterial("check_only", ASSET_CONTEXT_NONE);
+	ck_assert_ptr_nonnull(m);
+
+	const CmStage *s = Cm_MaterialLightStage(m);
+	ck_assert_ptr_eq(s, m->stages);
+	ck_assert(!(s->flags & STAGE_DRAW));
+	ck_assert_float_eq(s->light.radius, 200.f);
+
+	ck_assert_ptr_nonnull(m->stages->next);
+	ck_assert(m->stages->next->flags & STAGE_PULSE);
+
+	Cm_FreeMaterial(m);
+
+} END_TEST
+
+START_TEST(check_Cm_AddStage_RemoveStage) {
+
+	write_file("check_edit.mat",
+		"{\n"
+		"	diffusemap check_edit\n"
+		"	{\n"
+		"		texture check_edit\n"
+		"		pulse 1\n"
+		"	}\n"
+		"}\n"
+	);
+
+	CmMaterial *m = Cm_LoadMaterial("check_edit", ASSET_CONTEXT_NONE);
+	ck_assert_ptr_nonnull(m);
+	ck_assert(!(m->stageFlags & STAGE_LIGHT));
+
+	CmStage *s = Cm_AddStage(m);
+	ck_assert_ptr_nonnull(s);
+	ck_assert_ptr_eq(m->stages->next, s);
+	ck_assert(s->flags & STAGE_TEXTURE);
+	ck_assert_str_eq(s->asset.name, "check_edit");
+	ck_assert(m->dirty);
+
+	s->flags |= STAGE_LIGHT;
+	s->light.intensity = 3.f;
+	Cm_ResolveStage(m, s);
+	ck_assert(m->stageFlags & STAGE_LIGHT);
+	ck_assert_float_eq(s->light.radius, STAGE_LIGHT_RADIUS);
+	ck_assert_ptr_eq(Cm_MaterialLightStage(m), s);
+
+	Cm_RemoveStage(m, s);
+	ck_assert_ptr_null(m->stages->next);
+	ck_assert(!(m->stageFlags & STAGE_LIGHT));
+	ck_assert_ptr_null(Cm_MaterialLightStage(m));
+
+	Cm_FreeMaterial(m);
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -188,6 +257,8 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, check_Cm_SaveMaterial_light);
 	tcase_add_test(tcase, check_Cm_LoadMaterial_pulse_drift_ignored);
 	tcase_add_test(tcase, check_Cm_ResolveStageFlags);
+	tcase_add_test(tcase, check_Cm_LoadMaterial_light_only_stage);
+	tcase_add_test(tcase, check_Cm_AddStage_RemoveStage);
 
 	Suite *suite = suite_create("check_cm_material");
 	suite_add_tcase(suite, tcase);

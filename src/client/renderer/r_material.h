@@ -25,6 +25,7 @@
 #include "r_types.h"
 
 RenderMaterial *R_LoadMaterial(const char *name, AssetContext context);
+void R_ReloadMaterialStages(RenderMaterial *material);
 
 #if defined(__R_LOCAL_H__)
 

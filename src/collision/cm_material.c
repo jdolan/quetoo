@@ -1051,6 +1051,10 @@ static bool Cm_ResolveStageAssets(CmMaterial *material, CmStage *stage, AssetCon
     return true;
   }
 
+  if (!*stage->asset.name && (stage->flags & STAGE_LIGHT)) {
+    return true;
+  }
+
   if (*stage->asset.name) {
 
     if (stage->flags & STAGE_ANIMATION) {
@@ -1160,6 +1164,55 @@ static void Cm_ResolveFootsteps(CmFootsteps *footsteps) {
   } else {
     qsort(footsteps->samples, footsteps->numSamples, sizeof(Asset), Cm_ResolveFootsteps_Compare);
   }
+}
+
+/**
+ * @brief Finalizes the stage after an edit, and resolves its assets and the material stage flags.
+ */
+bool Cm_ResolveStage(CmMaterial *m, CmStage *s) {
+
+  Cm_FinalizeStage(s);
+
+  const bool res = Cm_ResolveStageAssets(m, s, m->context);
+
+  Cm_ResolveStageFlags(m);
+  m->dirty = true;
+
+  return res;
+}
+
+/**
+ * @brief Appends a new stage that draws the material diffusemap.
+ */
+CmStage *Cm_AddStage(CmMaterial *m) {
+
+  CmStage *s = (CmStage *) Mem_LinkMalloc(sizeof(*s), m);
+
+  s->flags = STAGE_TEXTURE;
+  s->color = color_white;
+  Cm_MaterialBasename(m->diffusemap.name, s->asset.name, sizeof(s->asset.name));
+
+  Cm_AppendStage(m, s);
+  Cm_ResolveStage(m, s);
+
+  return s;
+}
+
+/**
+ * @brief Removes and frees the stage.
+ */
+void Cm_RemoveStage(CmMaterial *m, CmStage *s) {
+
+  for (CmStage **ss = &m->stages; *ss; ss = &(*ss)->next) {
+    if (*ss == s) {
+      *ss = s->next;
+      Mem_Free(s);
+      break;
+    }
+  }
+
+  Cm_ResolveStageFlags(m);
+  m->dirty = true;
 }
 
 /**

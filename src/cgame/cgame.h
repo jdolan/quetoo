@@ -969,6 +969,37 @@ typedef struct {
   Vec3 (*MaterialLightColor)(const CmMaterial *material, const CmStage *stage);
 
   /**
+   * @brief Appends a new stage to the material, which draws its diffusemap.
+   * @param material The collision material.
+   * @return The new stage.
+   * @remarks The renderer stages MUST be reloaded with `ReloadMaterialStages` after this.
+   */
+  CmStage *(*AddMaterialStage)(CmMaterial *material);
+
+  /**
+   * @brief Removes and frees the stage of the material.
+   * @param material The collision material.
+   * @param stage The stage.
+   * @remarks The renderer stages MUST be reloaded with `ReloadMaterialStages` after this.
+   */
+  void (*RemoveMaterialStage)(CmMaterial *material, CmStage *stage);
+
+  /**
+   * @brief Finalizes a stage after its flags or asset change, and resolves its assets.
+   * @param material The collision material.
+   * @param stage The stage.
+   * @return True if the stage assets were resolved.
+   */
+  bool (*ResolveMaterialStage)(CmMaterial *material, CmStage *stage);
+
+  /**
+   * @brief Resolves the render stages of the material again from its collision material.
+   * @param material The material.
+   * @remarks Any `RenderStage` pointer to the material, such as a flare, is invalid after this.
+   */
+  void (*ReloadMaterialStages)(RenderMaterial *material);
+
+  /**
    * @brief Loads the model with the given name.
    * @param name The model name (e.g. `"models/rocket/tris"`).
    * @return The model.
