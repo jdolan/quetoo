@@ -24,6 +24,7 @@
 #include "light.h"
 #include "material.h"
 #include "quemap.h"
+#include "drawelements.h"
 #include "writebsp.h"
 #include "voxel.h"
 

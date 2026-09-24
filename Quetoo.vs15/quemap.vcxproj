@@ -22,6 +22,8 @@
     <ClCompile Include="..\src\quemap\brush.c" />
     <ClCompile Include="..\src\quemap\bsp.c" />
     <ClCompile Include="..\src\quemap\csg.c" />
+    <ClCompile Include="..\src\quemap\drawelements.c" />
+    <ClCompile Include="..\src\quemap\drawface.c" />
     <ClCompile Include="..\src\quemap\entity.c" />
     <ClCompile Include="..\src\quemap\face.c" />
     <ClCompile Include="..\src\quemap\leakfile.c" />
@@ -49,6 +51,8 @@
     <ClInclude Include="..\src\quemap\brush.h" />
     <ClInclude Include="..\src\quemap\bsp.h" />
     <ClInclude Include="..\src\quemap\csg.h" />
+    <ClInclude Include="..\src\quemap\drawelements.h" />
+    <ClInclude Include="..\src\quemap\drawface.h" />
     <ClInclude Include="..\src\quemap\entity.h" />
     <ClInclude Include="..\src\quemap\face.h" />
     <ClInclude Include="..\src\quemap\leakfile.h" />

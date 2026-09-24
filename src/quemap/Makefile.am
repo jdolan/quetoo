@@ -5,6 +5,8 @@ noinst_HEADERS = \
 	brush.h \
 	bsp.h \
 	csg.h \
+	drawelements.h \
+	drawface.h \
 	entity.h \
 	face.h \
 	leakfile.h \
@@ -30,6 +32,8 @@ quemap_SOURCES = \
 	brush.c \
 	bsp.c \
 	csg.c \
+	drawelements.c \
+	drawface.c \
 	entity.c \
 	face.c \
 	leakfile.c \

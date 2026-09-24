@@ -30,6 +30,8 @@ typedef struct Face {
 
   /**
    * @brief Faces are chained on the node on which they reside (either side may be chained together).
+   * @details A face that reached a leaf without a node on its plane is chained on the parent of
+   * that leaf instead.
    */
   struct Face *next;
 
@@ -49,7 +51,7 @@ typedef struct Face {
   int32_t plane;
 
   /**
-   * @brief The ordered, welded face winding, used to emit BSP vertexes.
+   * @brief The ordered face winding, used to emit BSP vertexes.
    */
   CmWinding *w;
 
@@ -59,12 +61,9 @@ typedef struct Face {
   BspFace *out;
 } Face;
 
-extern int32_t numWelds;
-
 Face *AllocFace(void);
 void FreeFace(Face *f);
 Face *MergeFaces(Face *a, Face *b);
-void ClearWeldingSpatialHash(void);
 BspFace *EmitFace(const Face *face);
 void PhongShading(const BspModel *mod);
 void TangentVectors(void);

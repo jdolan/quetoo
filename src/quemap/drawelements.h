@@ -21,27 +21,10 @@
 
 #pragma once
 
-#include "polylib.h"
+#include "drawface.h"
 
-/**
- * @brief Map brushes are carved via CSG before being sorted into the tree.
- */
-typedef struct CsgBrush {
-  const struct Brush *original;
-  struct BrushSide *brushSides;
-  int32_t numBrushSides;
-  Box3 bounds;
-  struct CsgBrush *next;
-} CsgBrush;
-
-CsgBrush *AllocBrush(int32_t numSides);
-void FreeBrush(CsgBrush *brush);
-void FreeBrushes(CsgBrush *brushes);
-size_t CountBrushes(const CsgBrush *brushes);
-CsgBrush *CopyBrush(const CsgBrush *brush);
-CsgBrush *CopyBrushes(const CsgBrush *brushes);
-float BrushVolume(CsgBrush *brush);
-CsgBrush *BrushFromBounds(const Box3 bounds);
-int32_t BrushOnPlaneSide(const CsgBrush *brush, int32_t plane);
-int32_t BrushOnPlaneSideSplits(const CsgBrush *brush, int32_t plane, int32_t *numSplits);
-void SplitBrush(const CsgBrush *brush, int32_t plane, CsgBrush **front, CsgBrush **back);
+void EmitDepthPassElements(BspModel *mod);
+int32_t EmitDrawElements(Vector *faces);
+void EmitBlocks(BspModel *mod);
+void EmitReflections(BspModel *mod);
+void EmitPortals(void);

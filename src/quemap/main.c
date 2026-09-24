@@ -174,9 +174,6 @@ static void Check_BSP_Options(int32_t argc) {
     } else if (!q_strcmp(Com_Argv(i), "--no-tjunc")) {
       Com_Verbose("no_tjunc = true\n");
       noTjunc = true;
-    } else if (!q_strcmp(Com_Argv(i), "--no-weld")) {
-      Com_Verbose("no_weld = true\n");
-      noWeld = true;
     } else {
       break;
     }
@@ -232,7 +229,6 @@ static void PrintHelpMessage(void) {
   Com_Print(" --no-liquid - skip liquid brushes\n");
   Com_Print(" --no-phong - don't apply Phong shading\n");
   Com_Print(" --no-tjunc - don't fix T-junctions\n");
-  Com_Print(" --no-weld - don't weld vertices\n");
   Com_Print(" --only-ents - only update the entity string from the .map\n");
   Com_Print("\n");
 

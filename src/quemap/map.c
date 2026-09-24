@@ -241,6 +241,8 @@ static int32_t SortBrushSides(const void *a, const void *b) {
 /**
  * @brief Adds a bevel side referencing `plane` to the specified brush. The bevel will
  * borrow surface, contents and material from the nearest original brush side.
+ * @details The slot is cleared first, since it can hold a side of a brush that `UnparseBrush`
+ * removed, such as an origin brush.
  */
 static void AddBrushBevel(Brush *b, int32_t plane) {
 
@@ -266,6 +268,8 @@ static void AddBrushBevel(Brush *b, int32_t plane) {
   assert(side);
 
   BrushSide *bevel = &b->brushSides[b->numBrushSides++];
+  memset(bevel, 0, sizeof(*bevel));
+
   bevel->plane = plane;
   bevel->contents = side->contents;
   bevel->surface = side->surface | SURF_BEVEL;
@@ -315,6 +319,8 @@ void AddBrushBevels(Brush *b) {
 /**
  * @brief Frees the brush sides allocated to `brush`, leaving an "emtpy" brush in place.
  * This is because, for error reporting, we want to preserve the indexes of brushes.
+ * @details The side slots are given back only if they are the last ones allocated. When the
+ * windings of an entity are made again for its origin, later brushes of the entity follow them.
  */
 static void UnparseBrush(Brush *brush, Parser *parser) {
 
@@ -322,10 +328,14 @@ static void UnparseBrush(Brush *brush, Parser *parser) {
   for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
     if (side->winding) {
       Cm_FreeWinding(side->winding);
+      side->winding = NULL;
     }
   }
 
-  numBrushSides -= brush->numBrushSides;
+  if (brush->brushSides + brush->numBrushSides == brushSides + numBrushSides) {
+    numBrushSides -= brush->numBrushSides;
+  }
+
   brush->numBrushSides = 0;
   brush->bounds = Box3_Null();
 
@@ -356,6 +366,10 @@ void MakeBrushWindings(Brush *brush) {
 
     if (side->surface & SURF_BEVEL) {
       continue;
+    }
+
+    if (side->winding) {
+      Cm_FreeWinding(side->winding);
     }
 
     const Plane *plane = &planes[side->plane];

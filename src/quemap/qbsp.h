@@ -33,6 +33,5 @@ extern bool noLiquid;
 extern bool noMerge;
 extern bool noPhong;
 extern bool noTjunc;
-extern bool noWeld;
 
 int32_t BSP_Main(void);

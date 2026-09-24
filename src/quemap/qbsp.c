@@ -41,7 +41,6 @@ bool noLiquid = false;
 bool noMerge = false;
 bool noPhong = false;
 bool noTjunc = false;
-bool noWeld = false;
 
 /**
  * @brief Compiles the world model entity, performing CSG, BSP, portal, and face generation.
@@ -53,6 +52,8 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
   if (!noCsg) {
     brushes = SubtractBrushes(brushes);
   }
+
+  CsgBrush *faceBrushes = CopyBrushes(brushes);
 
   Tree *tree = BuildTree(brushes);
 
@@ -67,9 +68,9 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
     WriteLeakFile(tree);
   }
 
-  FindPortalBrushSides(tree);
+  MakeTreeFaces(tree, faceBrushes);
 
-  MakeTreeFaces(tree);
+  FreeBrushes(faceBrushes);
 
   if (!noMerge) {
     MergeTreeFaces(tree);
@@ -98,13 +99,15 @@ static void ProcessInlineModel(const Entity *e, BspModel *out) {
     brushes = SubtractBrushes(brushes);
   }
 
+  CsgBrush *faceBrushes = CopyBrushes(brushes);
+
   Tree *tree = BuildTree(brushes);
 
   MakeTreePortals(tree);
 
-  FindPortalBrushSides(tree);
+  MakeTreeFaces(tree, faceBrushes);
 
-  MakeTreeFaces(tree);
+  FreeBrushes(faceBrushes);
 
   if (!noMerge) {
     MergeTreeFaces(tree);

@@ -29,8 +29,6 @@ typedef struct Portal {
   Node *nodes[2]; // [0] = front side of plane
   struct Portal *next[2];
   CmWinding *winding;
-  BrushSide *side; // NULL = non-visible
-  Face *face[2]; // output face in bsp file
 } Portal;
 
 void MakeHeadnodePortals(Tree *tree);
@@ -42,8 +40,6 @@ void RemovePortalFromNode(Portal *portal, Node *l);
 
 bool FloodEntities(Tree *tree);
 void FillOutside(Tree *tree);
-void FindPortalBrushSides(Tree *tree);
 void FreePortal(Portal *p);
 
 void MakeTreePortals(Tree *tree);
-void MakeTreeFaces(Tree *tree);
