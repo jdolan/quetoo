@@ -87,26 +87,17 @@ Face *MergeFaces(Face *a, Face *b) {
   return merged;
 }
 
-static HashTable *weldingSpatialHash;
-
-/**
- * @brief Destroys a Vector stored as a value in the welding spatial hash.
- */
-static void WeldingSpatialHashValueDestroyFunc(ident ptr) {
-  release(ptr);
-}
-
 /**
  * @brief Rounds a floating-point position to the nearest integer grid cell for spatial hashing.
  */
-static Vec3i GetWeldingPoint(const Vec3 p) {
+static Vec3i GetVertexGridPoint(const Vec3 p) {
   return MakeVec3i(roundf(p.x), roundf(p.y), roundf(p.z));
 }
 
 /**
- * @brief Hash function for integer grid-cell keys used by the welding spatial hash.
+ * @brief Hash function for integer grid-cell keys used by the vertex spatial hash.
  */
-static size_t WeldingSpatialHashFunc(const ident ptr_) {
+static size_t VertexGridHashFunc(const ident ptr_) {
   const Vec3i *ptr = ptr_;
   const uint32_t x = (uint32_t) roundf((MAX_WORLD_COORD + ptr->x) * .5f);
   const uint32_t y = (uint32_t) roundf((MAX_WORLD_COORD + ptr->y) * .5f);
@@ -116,131 +107,12 @@ static size_t WeldingSpatialHashFunc(const ident ptr_) {
 }
 
 /**
- * @brief Equality function for integer grid-cell keys used by the welding spatial hash.
+ * @brief Equality function for integer grid-cell keys used by the vertex spatial hash.
  */
-static bool WeldingSpatialHashEqualFunc(const ident a_, const ident b_) {
+static bool VertexGridEqualFunc(const ident a_, const ident b_) {
   const Vec3i *a = a_;
   const Vec3i *b = b_;
   return a->x == b->x && a->y == b->y && a->z == b->z;
-}
-
-/**
- * @brief Clears all entries from the welding spatial hash, or initializes it on first call.
- */
-void ClearWeldingSpatialHash(void) {
-
-  if (weldingSpatialHash) {
-    weldingSpatialHash = release(weldingSpatialHash);
-  }
-
-  weldingSpatialHash = $(alloc(HashTable), initWithCapacity,
-                           WeldingSpatialHashFunc,
-                           WeldingSpatialHashEqualFunc,
-                           8192);
-
-  weldingSpatialHash->destroyKey = Mem_Free;
-  weldingSpatialHash->destroyValue = WeldingSpatialHashValueDestroyFunc;
-}
-
-/**
- * @brief Returns true if the bucket already contains a vertex with the same BSP position.
- */
-static bool WeldingBucketContainsIndex(const Vector *array, int32_t index) {
-  for (size_t i = 0; i < array->count; i++) {
-    const int32_t existing = VectorValue((Vector *) array, int32_t, i);
-    if (existing == index) {
-      return true;
-    }
-
-    if (Vec3_Equal(bspFile.vertexes[existing].position, bspFile.vertexes[index].position)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * @brief Inserts a vertex position and its BSP index into the welding spatial hash.
- */
-static void AddVertexToWeldingSpatialHash(const Vec3 v, const int32_t index) {
-  const Vec3i spatial = GetWeldingPoint(v);
-  Vector *array = $(weldingSpatialHash, get, (ident) &spatial);
-
-  if (!array) {
-    array = $(alloc(Vector), initWithSize, sizeof(int32_t));
-
-    Vec3i *keyCopy = Mem_Malloc(sizeof(*keyCopy));
-    *keyCopy = spatial;
-
-    $(weldingSpatialHash, set, keyCopy, array);
-  }
-
-  if (!WeldingBucketContainsIndex(array, index)) {
-    int32_t element = index;
-    $(array, add, &element);
-  }
-}
-
-int32_t numWelds = 0;
-
-/**
- * @brief Searches the welding spatial hash for an existing vertex within `VERTEX_EPSILON` of the input, returning it in out.
- */
-static void FindWeldingSpatialHashPoint(const Vec3 in, Vec3 *out) {
-  static const int32_t offsets[] = { 0, 1, -1 };
-
-  float bestDist = VERTEX_EPSILON * VERTEX_EPSILON;
-  int32_t bestIndex = -1;
-
-  for (int32_t z = 0; z < (int32_t) lengthof(offsets); z++) {
-    for (int32_t y = 0; y < (int32_t) lengthof(offsets); y++) {
-      for (int32_t x = 0; x < (int32_t) lengthof(offsets); x++) {
-        const Vec3i key = GetWeldingPoint(MakeVec3(in.x + offsets[x], in.y + offsets[y], in.z + offsets[z]));
-        Vector *array = $(weldingSpatialHash, get, (ident) &key);
-
-        if (!array) {
-          continue;
-        }
-
-        for (size_t i = 0; i < array->count; i++) {
-          const int32_t idx = VectorValue(array, int32_t, i);
-          const Vec3 pos = bspFile.vertexes[idx].position;
-          const float dist = Vec3_DistanceSquared(pos, in);
-
-          if (dist < bestDist || (dist == bestDist && idx < bestIndex)) {
-            bestDist = dist;
-            bestIndex = idx;
-          }
-        }
-      }
-    }
-  }
-
-  if (bestIndex >= 0) {
-    *out = bspFile.vertexes[bestIndex].position;
-    numWelds++;
-  } else {
-    *out = in;
-  }
-}
-
-/**
- * @brief Welds the specified winding, writing its welded points to the given array.
- * @remarks This attempts to fix hairline cracks in (usually) intricate brushes. Note
- * that the weld threshold here is significantly larger than that of WindingIsSmall.
- * This allows for small windings that act as "caulk" to not be collapsed, but instead
- * be welded to other geometry. We do not weld the points to each other; only to those
- * of other brushes.
- */
-static int32_t WeldWinding(const CmWinding *w, Vec3 *points) {
-  Vec3 *out = points;
-  
-  for (int32_t i = 0; i < w->numPoints; i++, out++) {
-    FindWeldingSpatialHashPoint(w->points[i], out);
-  }
-
-  return w->numPoints;
 }
 
 /**
@@ -254,20 +126,8 @@ static int32_t EmitFaceVertexes(const Face *face) {
 
   const SDL_Surface *diffusemap = materials[brushSide->material].diffusemap;
   
-  Vec3 points[face->w->numPoints];
-  int32_t numPoints = face->w->numPoints;
-
-  if (noWeld) {
-    memcpy(points, face->w->points, face->w->numPoints * sizeof(face->w->points[0]));
-  } else {
-    numPoints = WeldWinding(face->w, points);
-    if (numPoints < 3) {
-      const Material *mat = &materials[face->brushSide->material];
-      const Vec3 center = Cm_WindingCenter(face->w);
-      Com_Warn("Malformed face %s @ %s after welding\n", mat->cm->name, vtos(center));
-      return 0;
-    }
-  }
+  const Vec3 *points = face->w->points;
+  const int32_t numPoints = face->w->numPoints;
 
   for (int32_t i = 0; i < numPoints; i++) {
 
@@ -299,7 +159,6 @@ static int32_t EmitFaceVertexes(const Face *face) {
     }
 
     bspFile.vertexes[bspFile.numVertexes] = out;
-    AddVertexToWeldingSpatialHash(out.position, bspFile.numVertexes);
     bspFile.numVertexes++;
   }
 
@@ -390,7 +249,7 @@ static void ReleaseObject(ident object) {
  */
 static void BuildPhongMaps(const BspModel *mod) {
 
-  phongVertexFaces = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
+  phongVertexFaces = $(alloc(HashTable), init, VertexGridHashFunc, VertexGridEqualFunc);
   phongVertexFaces->destroyKey = Mem_Free;
   phongVertexFaces->destroyValue = ReleaseObject;
 
@@ -401,7 +260,7 @@ static void BuildPhongMaps(const BspModel *mod) {
     }
     const BspVertex *v = &bspFile.vertexes[f->firstVertex];
     for (int32_t j = 0; j < f->numVertexes; j++, v++) {
-      const Vec3i key = GetWeldingPoint(v->position);
+      const Vec3i key = GetVertexGridPoint(v->position);
       Vector *arr = $(phongVertexFaces, get, (ident) &key);
       if (!arr) {
         arr = $(alloc(Vector), initWithSize, sizeof(BspFace *));
@@ -434,7 +293,7 @@ static void FreePhongMaps(void) {
  */
 static size_t FacesForVertex(const BspFace *face, const BspVertex *vertex, const BspFace **faces) {
 
-  const Vec3i key = GetWeldingPoint(vertex->position);
+  const Vec3i key = GetVertexGridPoint(vertex->position);
   const Vector *arr = $(phongVertexFaces, get, (ident) &key);
   if (!arr) {
     return 0;

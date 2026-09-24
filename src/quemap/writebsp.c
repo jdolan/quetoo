@@ -310,12 +310,7 @@ int32_t EmitNodes(const Tree *tree) {
   // block nodes define additional planes, ensure they make it into the bsp
   EmitPlanes();
 
-  numWelds = 0;
-  ClearWeldingSpatialHash();
-
   const int32_t node = EmitNode(tree->headNode);
-
-  Com_Verbose("%5i welded vertices\n", numWelds);
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Emitting nodes", (uint32_t) SDL_GetTicks() - start);
 
@@ -1309,9 +1304,8 @@ static void EmitDepthPassElements(BspModel *mod) {
  * into an upward and a downward reflection, and standing over it only half of them have a camera
  * in front of them. The rest fall back to plain water along the BSP seams.
  *
- * The distance comes from the vertexes rather than from the brush side, whose plane a face need
- * not lie on: cistern has three-vertex slivers, left where terrain cuts the water, whose side is
- * a thousand units away. Every vertex is then checked against the plane that results.
+ * The distance also comes from the brush side, since each face is made from its side and lies on
+ * its plane.
  */
 static bool ReflectiveFacePlane(const BspFace *face, Vec3 *normal, float *dist) {
 
@@ -1326,21 +1320,10 @@ static bool ReflectiveFacePlane(const BspFace *face, Vec3 *normal, float *dist) 
     return false;
   }
 
-  const Vec3 n = bspFile.planes[bspFile.brushSides[face->brushSide].plane].normal;
+  const BspPlane *plane = &bspFile.planes[bspFile.brushSides[face->brushSide].plane];
 
-  const BspVertex *v = &bspFile.vertexes[face->firstVertex];
-  const float d = Vec3_Dot(v[0].position, n);
-
-  for (int32_t i = 1; i < face->numVertexes; i++) {
-    if (fabsf(Vec3_Dot(v[i].position, n) - d) > ON_EPSILON) {
-      Com_Warn("Reflective %s @ %s is not planar and will not reflect\n",
-               bspFile.materials[FaceMaterial(face)].name, vtos(Box3_Center(face->bounds)));
-      return false;
-    }
-  }
-
-  *normal = n;
-  *dist = d;
+  *normal = plane->normal;
+  *dist = plane->dist;
 
   return true;
 }

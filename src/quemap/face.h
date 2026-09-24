@@ -51,7 +51,7 @@ typedef struct Face {
   int32_t plane;
 
   /**
-   * @brief The ordered, welded face winding, used to emit BSP vertexes.
+   * @brief The ordered face winding, used to emit BSP vertexes.
    */
   CmWinding *w;
 
@@ -61,12 +61,9 @@ typedef struct Face {
   BspFace *out;
 } Face;
 
-extern int32_t numWelds;
-
 Face *AllocFace(void);
 void FreeFace(Face *f);
 Face *MergeFaces(Face *a, Face *b);
-void ClearWeldingSpatialHash(void);
 BspFace *EmitFace(const Face *face);
 void PhongShading(const BspModel *mod);
 void TangentVectors(void);

@@ -41,7 +41,6 @@ bool noLiquid = false;
 bool noMerge = false;
 bool noPhong = false;
 bool noTjunc = false;
-bool noWeld = false;
 
 /**
  * @brief Compiles the world model entity, performing CSG, BSP, portal, and face generation.

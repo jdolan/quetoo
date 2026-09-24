@@ -109,10 +109,6 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--no-weld"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "-zip"
             isEnabled = "NO">
          </CommandLineArgument>
