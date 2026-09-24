@@ -88,6 +88,11 @@ typedef struct Light {
    * @brief The entity number of the inline model entity this light is attached to, or 0.
    */
   int32_t targetEntity;
+
+  /**
+   * @brief The material index of the brush side that emits this light, or `-1`.
+   */
+  int32_t material;
 } Light;
 
 extern Vector *lights;

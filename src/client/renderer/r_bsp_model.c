@@ -486,6 +486,7 @@ static void R_LoadBspLights(RenderBspModel *bsp) {
     out->drawElements = bsp->drawElements + in->firstDrawElements;
     out->numDrawElements = in->numDrawElements;
     out->targetEntity = in->targetEntity > 0 ? bsp->cm->entities[in->targetEntity] : NULL;
+    out->material = in->material >= 0 && in->material < bsp->numMaterials ? bsp->materials[in->material] : NULL;
   }
 }
 

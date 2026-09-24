@@ -367,6 +367,7 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
     light->drift = LittleFloat(light->drift);
     light->firstDrawElements = LittleLong(light->firstDrawElements);
     light->numDrawElements = LittleLong(light->numDrawElements);
+    light->material = LittleLong(light->material);
     light->firstVoxel = LittleLong(light->firstVoxel);
     light->numVoxels = LittleLong(light->numVoxels);
     light++;

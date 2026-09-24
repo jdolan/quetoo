@@ -71,13 +71,13 @@ static size_t Cm_AppendMaterialLight(const Vec3 point, const Vec3 normal, int32_
 /**
  * @brief Places the lights of one brush side on a grid across its winding.
  */
-static size_t Cm_BrushSideLights(const CmBsp *bsp, int32_t brushSide, int32_t model,
+static size_t Cm_BrushSideLights(const BspFile *file, int32_t brushSide, int32_t model,
                                  const CmStage *stage, Vector *lights) {
 
-  const BspBrushSide *side = &bsp->file->brushSides[brushSide];
-  const Vec3 normal = bsp->file->planes[side->plane].normal;
+  const BspBrushSide *side = &file->brushSides[brushSide];
+  const Vec3 normal = file->planes[side->plane].normal;
 
-  CmWinding *w = Cm_WindingForBrushSide(bsp->file, side);
+  CmWinding *w = Cm_WindingForBrushSide(file, side);
   if (w == NULL) {
     return 0;
   }
@@ -138,9 +138,7 @@ static size_t Cm_BrushSideLights(const CmBsp *bsp, int32_t brushSide, int32_t mo
 /**
  * @brief Places the lights for every visible brush side whose material has a `STAGE_LIGHT` stage.
  */
-size_t Cm_MaterialLights(const CmBsp *bsp, CmMaterial *const *materials, int32_t material, Vector *lights) {
-
-  const BspFile *file = bsp->file;
+size_t Cm_MaterialLights(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights) {
 
   int32_t *models = Mem_Malloc(sizeof(int32_t) * Maxi(1, file->numBrushSides));
   for (int32_t i = 0; i < file->numBrushSides; i++) {
@@ -180,7 +178,7 @@ size_t Cm_MaterialLights(const CmBsp *bsp, CmMaterial *const *materials, int32_t
       continue;
     }
 
-    count += Cm_BrushSideLights(bsp, i, models[i], stage, lights);
+    count += Cm_BrushSideLights(file, i, models[i], stage, lights);
   }
 
   Mem_Free(models);

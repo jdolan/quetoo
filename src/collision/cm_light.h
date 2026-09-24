@@ -63,8 +63,8 @@ typedef struct {
 
 /**
  * @brief Places the lights for every visible brush side whose material has a `STAGE_LIGHT` stage.
- * @param bsp The BSP, which MUST be the loaded collision model, because solid points are rejected
- * with `Cm_PointContents`.
+ * @param file The BSP file, which MUST have its face, brush side and plane lumps loaded. It MUST
+ * also be the loaded collision model, because solid points are rejected with `Cm_PointContents`.
  * @param materials The materials to read the stages from, indexed by BSP material. quemap passes the
  * collision materials. The editor passes the materials it edits.
  * @param material The BSP material index to place lights for, or `-1` for all materials.
@@ -74,4 +74,4 @@ typedef struct {
  * radius, with at least one light per brush side. The order is stable (brush side, then grid
  * row, then grid column), so that compiled BSPs are deterministic.
  */
-size_t Cm_MaterialLights(const CmBsp *bsp, CmMaterial *const *materials, int32_t material, Vector *lights);
+size_t Cm_MaterialLights(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights);

@@ -123,6 +123,22 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 }
 
 /**
+ * @brief Returns the intensity of a stage light, scaled by the stage pulse with the same formula
+ * as the material shaders, so that the light and the glow stay in phase.
+ */
+float Cg_AnimateStageLight(const CmStage *stage) {
+
+  float intensity = stage->light.intensity;
+
+  if (stage->flags & STAGE_PULSE) {
+    const float t = cgi.view->ticks * .001f;
+    intensity *= (sinf(t * stage->pulse.hz * (float) M_PI) + 1.f) * .5f;
+  }
+
+  return intensity;
+}
+
+/**
  * @brief Resolves the model index for a BSP inline model string (e.g. `"*3"`).
  * @return The model index, or -1 if not found.
  */
@@ -152,7 +168,12 @@ static void Cg_AddBspLights(void) {
   RenderBspLight *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->numLights; i++, l++) {
 
-    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
+    float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
+
+    const CmStage *stage = l->material ? cgi.MaterialLightStage(l->material->cm) : NULL;
+    if (stage) {
+      intensity = Cg_AnimateStageLight(stage);
+    }
 
     if (l->targetEntity) {
 

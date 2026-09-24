@@ -946,6 +946,13 @@ typedef struct {
    * @brief The target entity for dynamic lights attached to inline model entities, or `NULL`.
    */
   CmEntity *targetEntity;
+
+  /**
+   * @brief The material that emits this light, or `NULL` for a light entity.
+   * @details The intensity of a material light is read from the `STAGE_LIGHT` stage of this
+   * material on each frame, so that edits to the material take effect without a recompile.
+   */
+  RenderMaterial *material;
 } RenderBspLight;
 
 /**

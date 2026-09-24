@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT             (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION           83
+#define BSP_VERSION           84
 
 /**
  * @brief BSP file format limits.
@@ -762,6 +762,13 @@ typedef struct {
    * `origin` key, which a `common/origin` brush makes non-zero.
    */
   int32_t targetEntity;
+
+  /**
+   * @brief The material index of the brush side that emits this light, or `-1` for a light entity.
+   * @details A light with a material is animated at runtime by the `STAGE_LIGHT` stage of that
+   * material: its intensity is read from the stage, and scaled by the stage pulse.
+   */
+  int32_t material;
 
   /**
    * @brief The index of the first voxel touched by this light, within `BSP_LUMP_LIGHT_VOXELS`.

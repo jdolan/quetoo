@@ -32,6 +32,7 @@ Vector *lights = NULL;
 static Light *AllocLight(void) {
   Light *light = Mem_TagMalloc(sizeof(Light), (MemTag) MEM_TAG_LIGHT);
   light->targetEntity = -1;
+  light->material = -1;
   return light;
 }
 
@@ -167,6 +168,62 @@ void FreeLights(void) {
 }
 
 /**
+ * @brief Resolves the default color of a material light from the brightest pixels of its stage
+ * texture, or of the material diffusemap if the stage has no texture.
+ */
+static Vec3 MaterialLightColor(const CmMaterial *material, const CmStage *stage) {
+
+  const char *path = *stage->asset.path ? stage->asset.path : material->diffusemap.path;
+
+  SDL_Surface *surface = Img_LoadSurface(path);
+  if (surface == NULL) {
+    Com_Warn("Failed to load %s for the light color of %s\n", path, material->name);
+    return Vec3_Normalize(LIGHT_COLOR);
+  }
+
+  const Vec3 color = Vec3_Normalize(Img_ColorHighPass(surface, .5f).vec3);
+
+  SDL_DestroySurface(surface);
+  return color;
+}
+
+/**
+ * @brief Returns a new light for the given material light.
+ * @param colors The resolved default colors, indexed by material, and zero until resolved.
+ */
+static Light *LightForMaterial(const CmMaterialLight *in, Vec3 *colors) {
+
+  const CmMaterial *material = Cm_Bsp()->materials[in->material];
+  const CmStage *stage = Cm_MaterialLightStage(material);
+
+  Light *light = AllocLight();
+
+  light->entity = bspFile.models[in->model].entity;
+  light->material = in->material;
+  light->origin = in->origin;
+  light->radius = stage->light.radius;
+  light->intensity = stage->light.intensity;
+
+  if (Vec3_Equal(stage->light.color, Vec3_Zero())) {
+    if (Vec3_Equal(colors[in->material], Vec3_Zero())) {
+      colors[in->material] = MaterialLightColor(material, stage);
+    }
+    light->color = colors[in->material];
+  } else {
+    light->color = stage->light.color;
+  }
+
+  if (in->model) {
+    light->targetEntity = light->entity;
+  }
+
+  light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
+  light->visibleBounds = Box3_Null();
+
+  return light;
+}
+
+/**
  * @brief Parses all light entities from the BSP and populates the lights array.
  */
 void BuildLights(void) {
@@ -185,6 +242,21 @@ void BuildLights(void) {
     }
     Progress("Building lights", i * 100.f / Cm_Bsp()->numEntities);
   }
+
+  Vector *materialLights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
+  Cm_MaterialLights(&bspFile, Cm_Bsp()->materials, -1, materialLights);
+
+  Vec3 *colors = Mem_TagMalloc(sizeof(Vec3) * Maxi(1, Cm_Bsp()->numMaterials), (MemTag) MEM_TAG_LIGHT);
+
+  for (size_t i = 0; i < materialLights->count; i++) {
+    Light *light = LightForMaterial(VectorElement(materialLights, CmMaterialLight, i), colors);
+    $(lights, add, &light);
+  }
+
+  Com_Verbose("Built %zu material lights\n", materialLights->count);
+
+  Mem_Free(colors);
+  release(materialLights);
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", (uint32_t) SDL_GetTicks() - start);
 
@@ -234,6 +306,7 @@ void EmitLights(void) {
     out->intensity = light->intensity;
     out->bounds = light->visibleBounds;
     out->targetEntity = light->targetEntity;
+    out->material = light->material;
     q_strlcpy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 

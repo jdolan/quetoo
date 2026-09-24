@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 62
+#define CGAME_API_VERSION 63
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -941,6 +941,13 @@ typedef struct {
    * @return The material.
    */
   RenderMaterial *(*LoadMaterial)(const char *name, AssetContext context);
+
+  /**
+   * @brief Returns the first `STAGE_LIGHT` stage of the material, or `NULL`.
+   * @param material The material.
+   * @return The light stage, or `NULL`.
+   */
+  CmStage *(*MaterialLightStage)(const CmMaterial *material);
 
   /**
    * @brief Loads the model with the given name.
