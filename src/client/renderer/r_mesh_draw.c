@@ -239,6 +239,10 @@ static void R_DrawMeshEntityMaterialStage(const RenderView *view,
     return;
   }
 
+  if (stage->flags & STAGE_PULSE) {
+    uniforms.material.drift = R_StageDriftHash(e->id, stage) * 2.f / stage->cm->pulse.hz;
+  }
+
   GraphicsPipeline *pipeline = R_MeshStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
   if (!pipeline) {
     return;

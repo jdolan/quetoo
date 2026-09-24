@@ -288,8 +288,10 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
         s->flags |= STAGE_PULSE;
       }
 
-      if (Parse_PeekPrimitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.drift, 1) == 1) {
-        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.drift, 1);
+      float drift;
+      if (Parse_PeekPrimitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &drift, 1) == 1) {
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &drift, 1);
+        Cm_MaterialWarn(m, parser, "Pulse drift is no longer supported and is ignored");
       }
 
       continue;
@@ -595,7 +597,7 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
                 "  texture: %s\n"
                 "  blend: %d %d\n"
                 "  color: %.1f %.1f %.1f %.1f\n"
-                "  pulse: %.1f drift: %.1f\n"
+                "  pulse: %.1f\n"
                 "  stretch: %.1f %.1f\n"
                 "  rotate: %.1f\n"
                 "  scroll.s: %.1f\n"
@@ -610,7 +612,7 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
                 (*s->asset.name ? s->asset.name : "NULL"),
                 s->blend.src, s->blend.dest,
                 s->color.r, s->color.g, s->color.b, s->color.a,
-                s->pulse.hz, s->pulse.drift,
+                s->pulse.hz,
                 s->stretch.amplitude, s->stretch.hz,
                 s->rotate.hz,
                 s->scroll.s, s->scroll.t,
@@ -1145,11 +1147,7 @@ static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File
   }
 
   if (stage->flags & STAGE_PULSE) {
-    if (stage->pulse.drift != 0.f) {
-      Fs_Print(file, "\t\tpulse %0.2f %0.3f\n", stage->pulse.hz, stage->pulse.drift);
-    } else {
-      Fs_Print(file, "\t\tpulse %0.2f\n", stage->pulse.hz);
-    }
+    Fs_Print(file, "\t\tpulse %0.2f\n", stage->pulse.hz);
   }
 
   if (stage->flags & STAGE_STRETCH) {

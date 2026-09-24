@@ -441,7 +441,7 @@ void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderM
 /**
  * @brief Returns a stable drift value for a draw or entity stage.
  */
-static float R_StageDriftHash(const void *a, const void *b) {
+float R_StageDriftHash(const void *a, const void *b) {
   uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
   h ^= h >> 16;
   h *= 0x7feb352dU;
@@ -470,7 +470,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
   out->terrain = MakeVec2(cm->terrain.floor, cm->terrain.ceil);
   out->warp = MakeVec2(cm->warp.hz, cm->warp.amplitude);
   out->pulse = cm->pulse.hz;
-  out->drift = cm->pulse.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
+  out->drift = 0.f;
   out->rotate = cm->rotate.hz;
   out->dirtmap = cm->dirtmap.intensity;
   out->lighting = cm->lighting.intensity;
