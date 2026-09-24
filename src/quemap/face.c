@@ -118,7 +118,7 @@ static bool VertexGridEqualFunc(const ident a_, const ident b_) {
 /**
  * @brief Emits a vertex array for the given face.
  */
-static int32_t EmitFaceVertexes(const Face *face) {
+static int32_t EmitFaceVertexes(const Face *face, const CmWinding *w) {
   const BrushSide *brushSide = face->brushSide;
 
   const Vec3 sdir = brushSide->axis[0].xyz;
@@ -126,8 +126,8 @@ static int32_t EmitFaceVertexes(const Face *face) {
 
   const SDL_Surface *diffusemap = materials[brushSide->material].diffusemap;
   
-  const Vec3 *points = face->w->points;
-  const int32_t numPoints = face->w->numPoints;
+  const Vec3 *points = w->points;
+  const int32_t numPoints = w->numPoints;
 
   for (int32_t i = 0; i < numPoints; i++) {
 
@@ -167,8 +167,10 @@ static int32_t EmitFaceVertexes(const Face *face) {
 
 /**
  * @brief Emits the given face into the BSP file, writing its vertex array and element indices.
- * @details The winding is triangulated before anything is written, and a face with no triangles
- * is not emitted: decals and flares have no use for it.
+ * @details A point closer than `ON_EPSILON` to the point before it is dropped: CSG cuts leave such
+ * points a tiny distance from a corner, and they only make slivers. The winding is then
+ * triangulated before anything is written, and a face with no triangles is not emitted: decals and
+ * flares have no use for it.
  * @return The emitted face, or `NULL` if the face has no triangles.
  */
 BspFace *EmitFace(const Face *face) {
@@ -177,16 +179,38 @@ BspFace *EmitFace(const Face *face) {
   assert(face->brushSide->material >= 0);
   assert(face->brushSide->out);
 
-  int32_t elements[(face->w->numPoints - 2) * 3];
-  const int32_t numElements = Cm_ElementsForWinding(face->w, elements);
+  CmWinding *w = Cm_AllocWinding(face->w->numPoints);
+
+  for (int32_t i = 0; i < face->w->numPoints; i++) {
+    const Vec3 p = face->w->points[i];
+    if (w->numPoints && Vec3_DistanceSquared(p, w->points[w->numPoints - 1]) < ON_EPSILON * ON_EPSILON) {
+      continue;
+    }
+    w->points[w->numPoints++] = p;
+  }
+
+  while (w->numPoints > 1 &&
+         Vec3_DistanceSquared(w->points[w->numPoints - 1], w->points[0]) < ON_EPSILON * ON_EPSILON) {
+    w->numPoints--;
+  }
+
+  if (w->numPoints < 3) {
+    const Material *mat = &materials[face->brushSide->material];
+    Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->cm->name, vtos(Cm_WindingCenter(face->w)));
+    Cm_FreeWinding(w);
+    return NULL;
+  }
+
+  int32_t elements[(w->numPoints - 2) * 3];
+  const int32_t numElements = Cm_ElementsForWinding(w, elements);
 
   if (numElements != (int32_t) lengthof(elements)) {
     const Material *mat = &materials[face->brushSide->material];
-    const Vec3 center = Cm_WindingCenter(face->w);
-    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(center));
+    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(Cm_WindingCenter(w)));
   }
 
   if (numElements == 0) {
+    Cm_FreeWinding(w);
     return NULL;
   }
 
@@ -204,11 +228,9 @@ BspFace *EmitFace(const Face *face) {
   out->bounds = Box3_Null();
 
   out->firstVertex = bspFile.numVertexes;
-  out->numVertexes = EmitFaceVertexes(face);
+  out->numVertexes = EmitFaceVertexes(face, w);
 
-  if (out->numVertexes == 0) {
-    return NULL;
-  }
+  Cm_FreeWinding(w);
 
   bspFile.numFaces++;
 
