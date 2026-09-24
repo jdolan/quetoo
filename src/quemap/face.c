@@ -288,23 +288,67 @@ static void FreePhongMaps(void) {
 }
 
 /**
+ * @return True if @p face has a vertex within `VERTEX_EPSILON` of @p position.
+ * @details The distance is the one that welding used, so that Phong shading still smooths across
+ * a chamfer too narrow to see.
+ */
+static bool FaceHasVertex(const BspFace *face, const Vec3 position) {
+
+  const BspVertex *v = bspFile.vertexes + face->firstVertex;
+  for (int32_t i = 0; i < face->numVertexes; i++, v++) {
+    if (Vec3_DistanceSquared(v->position, position) <= VERTEX_EPSILON * VERTEX_EPSILON) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @brief Populates faces with pointers to all those referencing the vertex.
+ * @details The grid cell of the vertex and its 26 neighbors are searched, and a face counts only
+ * if it has a vertex within `VERTEX_EPSILON` of this one. Two vertexes that are shared can round
+ * to different cells, and two that round to one cell need not be shared.
  * @return The count of faces referencing the vertex.
  */
 static size_t FacesForVertex(const BspFace *face, const BspVertex *vertex, const BspFace **faces) {
 
-  const Vec3i key = GetVertexGridPoint(vertex->position);
-  const Vector *arr = $(phongVertexFaces, get, (ident) &key);
-  if (!arr) {
-    return 0;
-  }
+  const Vec3i cell = GetVertexGridPoint(vertex->position);
 
   size_t count = 0;
-  for (size_t i = 0; i < arr->count; i++) {
-    faces[count++] = VectorValue((Vector *) arr, const BspFace *, i);
-    if (count == MAX_VERTEX_FACES) {
-      Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));
-      break;
+
+  for (int32_t z = -1; z <= 1; z++) {
+    for (int32_t y = -1; y <= 1; y++) {
+      for (int32_t x = -1; x <= 1; x++) {
+
+        const Vec3i key = MakeVec3i(cell.x + x, cell.y + y, cell.z + z);
+        const Vector *arr = $(phongVertexFaces, get, (ident) &key);
+        if (!arr) {
+          continue;
+        }
+
+        for (size_t i = 0; i < arr->count; i++) {
+          const BspFace *f = VectorValue((Vector *) arr, const BspFace *, i);
+
+          size_t j;
+          for (j = 0; j < count; j++) {
+            if (faces[j] == f) {
+              break;
+            }
+          }
+
+          if (j < count || !FaceHasVertex(f, vertex->position)) {
+            continue;
+          }
+
+          if (count == MAX_VERTEX_FACES) {
+            Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));
+            return count;
+          }
+
+          faces[count++] = f;
+        }
+      }
     }
   }
 
