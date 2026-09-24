@@ -321,6 +321,8 @@ void Cl_InitCgame(void) {
   import.CreateAnimation = R_CreateAnimation;
   import.LoadMaterial = R_LoadMaterial;
   import.MaterialLightStage = Cm_MaterialLightStage;
+  import.MaterialLights = Cm_MaterialLights;
+  import.MaterialLightColor = Cm_MaterialLightColor;
   import.LoadModel = R_LoadModel;
   import.WorldModel = R_WorldModel;
 

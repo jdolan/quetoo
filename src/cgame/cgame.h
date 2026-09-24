@@ -950,6 +950,25 @@ typedef struct {
   CmStage *(*MaterialLightStage)(const CmMaterial *material);
 
   /**
+   * @brief Places the lights of the brush sides whose material has a `STAGE_LIGHT` stage, as
+   * quemap places them.
+   * @param file The BSP file.
+   * @param materials The materials to read the light stages from, indexed by BSP material.
+   * @param material The BSP material index to place lights for, or `-1` for all materials.
+   * @param lights The Vector of `CmMaterialLight` to append to.
+   * @return The number of lights appended.
+   */
+  size_t (*MaterialLights)(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights);
+
+  /**
+   * @brief Resolves the default color of a stage light that does not specify `light.color`.
+   * @param material The material.
+   * @param stage The light stage.
+   * @return The color, as quemap resolves it.
+   */
+  Vec3 (*MaterialLightColor)(const CmMaterial *material, const CmStage *stage);
+
+  /**
    * @brief Loads the model with the given name.
    * @param name The model name (e.g. `"models/rocket/tris"`).
    * @return The model.

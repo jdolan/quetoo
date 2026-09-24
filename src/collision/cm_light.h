@@ -36,7 +36,8 @@
 typedef struct {
 
   /**
-   * @brief The light origin, in front of the brush side.
+   * @brief The light origin in world space, in front of the brush side. For a brush entity with
+   * an origin brush, this includes the entity origin.
    */
   Vec3 origin;
 
@@ -62,16 +63,26 @@ typedef struct {
 } CmMaterialLight;
 
 /**
- * @brief Places the lights for every visible brush side whose material has a `STAGE_LIGHT` stage.
- * @param file The BSP file, which MUST have its face, brush side and plane lumps loaded. It MUST
- * also be the loaded collision model, because solid points are rejected with `Cm_PointContents`.
+ * @brief Places the lights for every drawn brush side whose material has a `STAGE_LIGHT` stage.
+ * @param file The BSP file, which MUST have its brush, brush side and plane lumps loaded. It MUST
+ * also be the loaded collision model, because solid points are rejected with `Cm_PointContents`,
+ * and inline models are resolved from its entities.
  * @param materials The materials to read the stages from, indexed by BSP material. quemap passes the
  * collision materials. The editor passes the materials it edits.
  * @param material The BSP material index to place lights for, or `-1` for all materials.
  * @param lights The Vector of `CmMaterialLight` to append to.
  * @return The number of lights appended.
  * @remarks Each brush side gets a grid of lights across its winding, spaced by the stage light
- * radius, with at least one light per brush side. The order is stable (brush side, then grid
- * row, then grid column), so that compiled BSPs are deterministic.
+ * radius, with at least one light per brush side. The order is stable (brush, brush side, grid
+ * row, grid column), so that compiled BSPs are deterministic. Brush sides that face into
+ * solid get no light, because each light is rejected in solid.
  */
 size_t Cm_MaterialLights(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights);
+
+/**
+ * @brief Resolves the default color of a stage light that does not specify `light.color`.
+ * @return The average color of the pixels of the stage texture (or of the material diffusemap,
+ * if the stage has no texture) that are at least half as bright as the brightest pixel,
+ * normalized to length 1.
+ */
+Vec3 Cm_MaterialLightColor(const CmMaterial *material, const CmStage *stage);

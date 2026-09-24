@@ -168,26 +168,6 @@ void FreeLights(void) {
 }
 
 /**
- * @brief Resolves the default color of a material light from the brightest pixels of its stage
- * texture, or of the material diffusemap if the stage has no texture.
- */
-static Vec3 MaterialLightColor(const CmMaterial *material, const CmStage *stage) {
-
-  const char *path = *stage->asset.path ? stage->asset.path : material->diffusemap.path;
-
-  SDL_Surface *surface = Img_LoadSurface(path);
-  if (surface == NULL) {
-    Com_Warn("Failed to load %s for the light color of %s\n", path, material->name);
-    return Vec3_Normalize(LIGHT_COLOR);
-  }
-
-  const Vec3 color = Vec3_Normalize(Img_ColorHighPass(surface, .5f).vec3);
-
-  SDL_DestroySurface(surface);
-  return color;
-}
-
-/**
  * @brief Returns a new light for the given material light.
  * @param colors The resolved default colors, indexed by material, and zero until resolved.
  */
@@ -206,7 +186,7 @@ static Light *LightForMaterial(const CmMaterialLight *in, Vec3 *colors) {
 
   if (Vec3_Equal(stage->light.color, Vec3_Zero())) {
     if (Vec3_Equal(colors[in->material], Vec3_Zero())) {
-      colors[in->material] = MaterialLightColor(material, stage);
+      colors[in->material] = Cm_MaterialLightColor(material, stage);
     }
     light->color = colors[in->material];
   } else {

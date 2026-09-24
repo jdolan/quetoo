@@ -48,10 +48,10 @@ static bool Cm_PointInWinding(const CmWinding *w, const Vec3 normal, const Vec3 
 /**
  * @brief Appends the light at the given point on the brush side, unless it is in solid.
  */
-static size_t Cm_AppendMaterialLight(const Vec3 point, const Vec3 normal, int32_t brushSide,
-                                     int32_t material, int32_t model, Vector *lights) {
+static size_t Cm_AppendMaterialLight(const Vec3 point, const Vec3 normal, const Vec3 offset,
+                                     int32_t brushSide, int32_t material, int32_t model, Vector *lights) {
 
-  const Vec3 origin = Vec3_Fmaf(point, MATERIAL_LIGHT_OFFSET, normal);
+  const Vec3 origin = Vec3_Add(Vec3_Fmaf(point, MATERIAL_LIGHT_OFFSET, normal), offset);
 
   if (Cm_PointContents(origin, 0, Mat4_Identity()) & CONTENTS_SOLID) {
     return 0;
@@ -72,7 +72,7 @@ static size_t Cm_AppendMaterialLight(const Vec3 point, const Vec3 normal, int32_
  * @brief Places the lights of one brush side on a grid across its winding.
  */
 static size_t Cm_BrushSideLights(const BspFile *file, int32_t brushSide, int32_t model,
-                                 const CmStage *stage, Vector *lights) {
+                                 const Vec3 offset, const CmStage *stage, Vector *lights) {
 
   const BspBrushSide *side = &file->brushSides[brushSide];
   const Vec3 normal = file->planes[side->plane].normal;
@@ -123,12 +123,12 @@ static size_t Cm_BrushSideLights(const BspFile *file, int32_t brushSide, int32_t
       }
 
       inside++;
-      count += Cm_AppendMaterialLight(point, normal, brushSide, side->material, model, lights);
+      count += Cm_AppendMaterialLight(point, normal, offset, brushSide, side->material, model, lights);
     }
   }
 
   if (inside == 0) {
-    count += Cm_AppendMaterialLight(Cm_WindingCenter(w), normal, brushSide, side->material, model, lights);
+    count += Cm_AppendMaterialLight(Cm_WindingCenter(w), normal, offset, brushSide, side->material, model, lights);
   }
 
   Cm_FreeWinding(w);
@@ -136,51 +136,83 @@ static size_t Cm_BrushSideLights(const BspFile *file, int32_t brushSide, int32_t
 }
 
 /**
- * @brief Places the lights for every visible brush side whose material has a `STAGE_LIGHT` stage.
+ * @brief Returns the inline model index of the entity, or 0 for an entity merged into the world.
+ */
+static int32_t Cm_MaterialLightModel(int32_t entity) {
+
+  if (entity <= 0 || entity >= Cm_Bsp()->numEntities) {
+    return 0;
+  }
+
+  const char *model = Cm_EntityValue(Cm_Bsp()->entities[entity], "model")->nullableString;
+  if (model && *model == '*') {
+    return (int32_t) strtol(model + 1, NULL, 10);
+  }
+
+  return 0;
+}
+
+/**
+ * @brief Places the lights for every drawn brush side whose material has a `STAGE_LIGHT` stage.
  */
 size_t Cm_MaterialLights(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights) {
 
-  int32_t *models = Mem_Malloc(sizeof(int32_t) * Maxi(1, file->numBrushSides));
-  for (int32_t i = 0; i < file->numBrushSides; i++) {
-    models[i] = -1;
-  }
-
-  const BspModel *mod = file->models;
-  for (int32_t i = 0; i < file->numModels; i++, mod++) {
-
-    const BspFace *face = file->faces + mod->firstFace;
-    for (int32_t j = 0; j < mod->numFaces; j++, face++) {
-      if (face->brushSide >= 0 && models[face->brushSide] == -1) {
-        models[face->brushSide] = i;
-      }
-    }
-  }
-
   size_t count = 0;
 
-  const BspBrushSide *side = file->brushSides;
-  for (int32_t i = 0; i < file->numBrushSides; i++, side++) {
+  const BspBrush *brush = file->brushes;
+  for (int32_t i = 0; i < file->numBrushes; i++, brush++) {
 
-    if (models[i] == -1) {
-      continue;
+    const int32_t model = Cm_MaterialLightModel(brush->entity);
+
+    Vec3 offset = Vec3_Zero();
+    if (model) {
+      offset = Cm_EntityValue(Cm_Bsp()->entities[brush->entity], "origin")->vec3;
     }
 
-    if (material != -1 && side->material != material) {
-      continue;
-    }
+    for (int32_t j = 0; j < brush->numBrushSides; j++) {
 
-    if (side->material < 0 || side->material >= file->numMaterials) {
-      continue;
-    }
+      const int32_t brushSide = brush->firstBrushSide + j;
+      const BspBrushSide *side = &file->brushSides[brushSide];
 
-    const CmStage *stage = Cm_MaterialLightStage(materials[side->material]);
-    if (stage == NULL) {
-      continue;
-    }
+      if (side->surface & (SURF_MASK_NO_DRAW_ELEMENTS | SURF_SKIP | SURF_BEVEL | SURF_NODE)) {
+        continue;
+      }
 
-    count += Cm_BrushSideLights(file, i, models[i], stage, lights);
+      if (side->material < 0 || side->material >= file->numMaterials) {
+        continue;
+      }
+
+      if (material != -1 && side->material != material) {
+        continue;
+      }
+
+      const CmStage *stage = Cm_MaterialLightStage(materials[side->material]);
+      if (stage == NULL) {
+        continue;
+      }
+
+      count += Cm_BrushSideLights(file, brushSide, model, offset, stage, lights);
+    }
   }
 
-  Mem_Free(models);
   return count;
+}
+
+/**
+ * @brief Resolves the default color of a stage light from the brightest pixels of its texture.
+ */
+Vec3 Cm_MaterialLightColor(const CmMaterial *material, const CmStage *stage) {
+
+  const char *path = *stage->asset.path ? stage->asset.path : material->diffusemap.path;
+
+  SDL_Surface *surface = Img_LoadSurface(path);
+  if (surface == NULL) {
+    Com_Warn("Failed to load %s for the light color of %s\n", path, material->name);
+    return Vec3_Normalize(MakeVec3(1.f, 1.f, 1.f));
+  }
+
+  const Vec3 color = Vec3_Normalize(Img_ColorHighPass(surface, .5f).vec3);
+
+  SDL_DestroySurface(surface);
+  return color;
 }

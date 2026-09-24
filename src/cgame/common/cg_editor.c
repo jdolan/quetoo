@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 #include "bg_item.h"
+#include "collision/cm_light.h"
 #include "ui/editor/EditorViewController.h"
 
 /**
@@ -97,6 +98,146 @@ static Vec4 Cg_AddEditorEntity_Light(CGameEditorEntity *edit) {
   cgi.AddLight(cgi.view, &light);
 
   return Vec3_ToVec4(light.color, 1.f);
+}
+
+/**
+ * @brief Resolves the current world position of a material light, which follows its brush entity.
+ */
+static Vec3 Cg_EditorMaterialLightOrigin(const CmMaterialLight *l) {
+
+  if (l->model == 0) {
+    return l->origin;
+  }
+
+  const int32_t entity = cgi.WorldModel()->bsp->cm->file->models[l->model].entity;
+  if (entity <= 0 || entity >= MAX_ENTITIES) {
+    return l->origin;
+  }
+
+  const CGameEditorEntity *edit = &cgEditor.entities[entity];
+  if (!edit->def || !edit->ent) {
+    return l->origin;
+  }
+
+  const Vec3 compiledOrigin = cgi.EntityValue(edit->def, "origin")->vec3;
+  const Vec3 offset = Vec3_Subtract(l->origin, compiledOrigin);
+
+  return Mat4_Transform(Mat4_FromRotationTranslationScale(edit->ent->angles, edit->ent->origin, 1.f), offset);
+}
+
+/**
+ * @brief Resolves the color of a material light, resolving and caching the default color of its
+ * material when the stage does not specify one.
+ */
+static Vec3 Cg_EditorMaterialLightColor(int32_t material, const CmStage *stage) {
+
+  if (!Vec3_Equal(stage->light.color, Vec3_Zero())) {
+    return stage->light.color;
+  }
+
+  Vec3 *color = &cgEditor.materialLightColors[material];
+  if (Vec3_Equal(*color, Vec3_Zero())) {
+    *color = cgi.MaterialLightColor(cgEditor.materials[material], stage);
+  }
+
+  return *color;
+}
+
+/**
+ * @brief Adds a dynamic light for each material light preview, animated by its light stage.
+ */
+static void Cg_AddEditorMaterialLights(void) {
+
+  if (!cgEditor.materialLights) {
+    return;
+  }
+
+  for (size_t i = 0; i < cgEditor.materialLights->count; i++) {
+    const CmMaterialLight *l = VectorElement(cgEditor.materialLights, CmMaterialLight, i);
+
+    const CmStage *stage = cgi.MaterialLightStage(cgEditor.materials[l->material]);
+    if (!stage) {
+      continue;
+    }
+
+    const Vec3 origin = Cg_EditorMaterialLightOrigin(l);
+
+    cgi.AddLight(cgi.view, &(const RenderLight) {
+      .origin = origin,
+      .color = Cg_EditorMaterialLightColor(l->material, stage),
+      .radius = stage->light.radius,
+      .intensity = Cg_AnimateStageLight(stage),
+      .bounds = Box3_FromCenterRadius(origin, stage->light.radius),
+    });
+  }
+}
+
+/**
+ * @brief Places the material light previews for the whole map.
+ */
+static void Cg_LoadEditorMaterialLights(void) {
+
+  const RenderBspModel *bsp = cgi.WorldModel()->bsp;
+  const int32_t numMaterials = Maxi(1, bsp->numMaterials);
+
+  cgEditor.materials = cgi.Malloc(sizeof(CmMaterial *) * numMaterials, MEM_TAG_CGAME_LEVEL);
+  for (int32_t i = 0; i < bsp->numMaterials; i++) {
+    cgEditor.materials[i] = bsp->materials[i]->cm;
+  }
+
+  cgEditor.materialLightColors = cgi.Malloc(sizeof(Vec3) * numMaterials, MEM_TAG_CGAME_LEVEL);
+
+  cgEditor.materialLights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
+  cgi.MaterialLights(bsp->cm->file, cgEditor.materials, -1, cgEditor.materialLights);
+}
+
+/**
+ * @brief Frees the material light previews.
+ */
+static void Cg_FreeEditorMaterialLights(void) {
+
+  cgEditor.materialLights = release(cgEditor.materialLights);
+
+  if (cgEditor.materials) {
+    cgi.Free(cgEditor.materials);
+    cgEditor.materials = NULL;
+  }
+
+  if (cgEditor.materialLightColors) {
+    cgi.Free(cgEditor.materialLightColors);
+    cgEditor.materialLightColors = NULL;
+  }
+}
+
+/**
+ * @brief Places the material light previews of the given material again, after an edit to its
+ * light stage, and resets its default color.
+ */
+void Cg_UpdateEditorMaterialLights(const CmMaterial *material) {
+
+  if (!cgEditor.materialLights) {
+    return;
+  }
+
+  Vector *lights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
+
+  for (size_t i = 0; i < cgEditor.materialLights->count; i++) {
+    const CmMaterialLight *l = VectorElement(cgEditor.materialLights, CmMaterialLight, i);
+    if (cgEditor.materials[l->material] != material) {
+      $(lights, add, (ident) l);
+    }
+  }
+
+  const RenderBspModel *bsp = cgi.WorldModel()->bsp;
+  for (int32_t i = 0; i < bsp->numMaterials; i++) {
+    if (cgEditor.materials[i] == material) {
+      cgEditor.materialLightColors[i] = Vec3_Zero();
+      cgi.MaterialLights(bsp->cm->file, cgEditor.materials, i, lights);
+    }
+  }
+
+  release(cgEditor.materialLights);
+  cgEditor.materialLights = lights;
 }
 
 /**
@@ -260,6 +401,8 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
     }
   }
 
+  Cg_AddEditorMaterialLights();
+
   Cg_AddFlares();
 
   Cg_AddSprites();
@@ -388,6 +531,8 @@ void Cg_LoadEditorEntities(void) {
       Cg_InitEditorEntity(i);
     }
   }
+
+  Cg_LoadEditorMaterialLights();
 }
 
 /**
@@ -402,6 +547,8 @@ void Cg_FreeEditorEntities(void) {
   memset(cgEditor.entities, 0, sizeof(cgEditor.entities));
 
   cgEditor.selected = -1;
+
+  Cg_FreeEditorMaterialLights();
 }
 
 /**
