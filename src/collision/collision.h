@@ -25,6 +25,7 @@
 
 #include "cm_bsp.h"
 #include "cm_entity.h"
+#include "cm_light.h"
 #include "cm_manifest.h"
 #include "cm_material.h"
 #include "cm_model.h"

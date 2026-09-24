@@ -237,6 +237,22 @@ void Cm_ResolveStageFlags(CmMaterial *m) {
 }
 
 /**
+ * @brief Returns the first `STAGE_LIGHT` stage of the material, or `NULL`.
+ */
+CmStage *Cm_MaterialLightStage(const CmMaterial *m) {
+
+  if (m && (m->stageFlags & STAGE_LIGHT)) {
+    for (CmStage *s = m->stages; s; s = s->next) {
+      if (s->flags & STAGE_LIGHT) {
+        return s;
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
  * @brief Parses a stage block from the material parser into the given stage.
  */
 static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {

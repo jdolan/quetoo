@@ -570,6 +570,11 @@ void Cm_FinalizeStage(CmStage *stage);
 void Cm_ResolveStageFlags(CmMaterial *material);
 
 /**
+ * @brief Returns the first `STAGE_LIGHT` stage of the material, or `NULL`.
+ */
+CmStage *Cm_MaterialLightStage(const CmMaterial *material);
+
+/**
  * @brief Serializes the material to its file path on disk.
  * @return true on success.
  */
