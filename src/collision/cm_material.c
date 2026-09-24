@@ -193,6 +193,50 @@ static void Cm_MaterialWarn(const CmMaterial *m, const Parser *parser, const cha
 }
 
 /**
+ * @brief Applies the implied flags and defaults of a stage after its keywords are set.
+ */
+void Cm_FinalizeStage(CmStage *s) {
+
+  if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL | STAGE_MASK_SUBVIEW)) {
+    s->flags |= STAGE_DRAW;
+
+    if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+      s->flags |= STAGE_LIGHTING;
+    }
+
+    if (s->flags & STAGE_ENVMAP) {
+      s->flags |= STAGE_LIGHTING_FLAT;
+      s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
+    }
+  }
+
+  if (s->blend.src == BLEND_INVALID) {
+    s->blend.src = BLEND_SRC_ALPHA;
+  }
+
+  if (s->blend.dest == BLEND_INVALID) {
+    s->blend.dest = BLEND_ONE_MINUS_SRC_ALPHA;
+  }
+
+  if (s->flags & STAGE_LIGHT) {
+    s->light.radius = s->light.radius ?: STAGE_LIGHT_RADIUS;
+    s->light.intensity = s->light.intensity ?: STAGE_LIGHT_INTENSITY;
+  }
+}
+
+/**
+ * @brief Recomputes the material's aggregate stage flags from its stages.
+ */
+void Cm_ResolveStageFlags(CmMaterial *m) {
+
+  m->stageFlags = STAGE_NONE;
+
+  for (const CmStage *s = m->stages; s; s = s->next) {
+    m->stageFlags |= s->flags;
+  }
+}
+
+/**
  * @brief Parses a stage block from the material parser into the given stage.
  */
 static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
@@ -551,6 +595,45 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
       continue;
     }
 
+    if (!q_strcmp(token, "light.radius")) {
+
+      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->light.radius, 1) != 1) {
+        Cm_MaterialWarn(m, parser, "No value provided for light.radius");
+        continue;
+      }
+
+      if (s->light.radius <= 0.f) {
+        Cm_MaterialWarn(m, parser, "light.radius must be positive");
+        s->light.radius = STAGE_LIGHT_RADIUS;
+      }
+
+      s->flags |= STAGE_LIGHT;
+      continue;
+    }
+
+    if (!q_strcmp(token, "light.color")) {
+
+      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, s->light.color.xyz, 3) != 3) {
+        Cm_MaterialWarn(m, parser, "Need 3 values for light.color");
+        s->light.color = Vec3_Zero();
+        continue;
+      }
+
+      s->flags |= STAGE_LIGHT;
+      continue;
+    }
+
+    if (!q_strcmp(token, "light.intensity")) {
+
+      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->light.intensity, 1) != 1) {
+        Cm_MaterialWarn(m, parser, "No value provided for light.intensity");
+        continue;
+      }
+
+      s->flags |= STAGE_LIGHT;
+      continue;
+    }
+
     if (!q_strcmp(token, "flare")) {
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
@@ -564,32 +647,7 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
 
     if (*token == '}') {
 
-      // a texture or envmap mean draw it, and so does a subview, which draws in a texture's place
-      if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL | STAGE_MASK_SUBVIEW)) {
-        s->flags |= STAGE_DRAW;
-
-        // terrain and dirtmapping use lighting
-        if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-          s->flags |= STAGE_LIGHTING;
-        }
-
-        if (s->flags & STAGE_ENVMAP) {
-          s->flags |= STAGE_LIGHTING_FLAT;
-          s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
-        }
-      }
-
-      // ensure appropriate blend function defaults for stages that never
-      // specified a `blend` keyword at all (or gave an invalid factor name).
-      // BLEND_ZERO is a real, explicit choice (e.g. `blend one zero` for an
-      // opaque overwrite stage) and must not be mistaken for "unset".
-      if (s->blend.src == BLEND_INVALID) {
-        s->blend.src = BLEND_SRC_ALPHA;
-      }
-
-      if (s->blend.dest == BLEND_INVALID) {
-        s->blend.dest = BLEND_ONE_MINUS_SRC_ALPHA;
-      }
+      Cm_FinalizeStage(s);
 
       Com_Debug(DEBUG_COLLISION,
                 "Parsed stage\n"
@@ -1220,6 +1278,16 @@ static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File
 
   if (stage->flags & STAGE_SHELL) {
     Fs_Print(file, "\t\tshell %0.2f\n", stage->shell.radius);
+  }
+
+  if (stage->flags & STAGE_LIGHT) {
+    Fs_Print(file, "\t\tlight.radius %0.2f\n", stage->light.radius);
+
+    if (!Vec3_Equal(stage->light.color, Vec3_Zero())) {
+      Fs_Print(file, "\t\tlight.color %0.2f %0.2f %0.2f\n", stage->light.color.x, stage->light.color.y, stage->light.color.z);
+    }
+
+    Fs_Print(file, "\t\tlight.intensity %0.2f\n", stage->light.intensity);
   }
 
   Fs_Print(file, "\t}\n");

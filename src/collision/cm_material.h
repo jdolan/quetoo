@@ -183,6 +183,38 @@ typedef struct {
 } CmStageShell;
 
 /**
+ * @brief The default radius of a stage light.
+ */
+#define STAGE_LIGHT_RADIUS 300.f
+
+/**
+ * @brief The default intensity of a stage light.
+ */
+#define STAGE_LIGHT_INTENSITY 1.f
+
+/**
+ * @brief Stage light parameters. A stage with these emits light from the faces that use it.
+ */
+typedef struct {
+
+  /**
+   * @brief The light radius, compiled into the BSP. This is the maximum radius of the light.
+   */
+  float radius;
+
+  /**
+   * @brief The light color, compiled into the BSP. If zero, the color is resolved from the
+   * brightest pixels of the stage texture.
+   */
+  Vec3 color;
+
+  /**
+   * @brief The light intensity, read at runtime and modulated by the stage pulse, if any.
+   */
+  float intensity;
+} CmStageLight;
+
+/**
  * @brief Frame animation parameters.
  */
 typedef struct {
@@ -257,6 +289,11 @@ typedef enum {
    * @brief A stage that draws the reflection its face shows, in place of a texture.
    */
   STAGE_REFLECTION    = (1 << 22),
+
+  /**
+   * @brief A stage that emits light from the faces that use it.
+   */
+  STAGE_LIGHT         = (1 << 23),
 
   STAGE_DRAW          = (1 << 30),
 } CmStageFlags;
@@ -350,6 +387,11 @@ typedef struct CmStage {
    * @brief The stage emissive intensity [0, 1]. Adds unlit stage color to output.
    */
   float emissive;
+
+  /**
+   * @brief The stage light parameters.
+   */
+  CmStageLight light;
 
   /**
    * @brief The next stage, or `NULL`.
@@ -514,6 +556,18 @@ void Cm_FreeMaterial(CmMaterial *material);
  * @return true if the diffusemap was resolved successfully.
  */
 bool Cm_ResolveMaterial(CmMaterial *material);
+
+/**
+ * @brief Applies the implied flags and defaults of a stage after its keywords are set.
+ * @remarks The parser calls this at the end of each stage. The editor MUST call it after it
+ * changes the flags of a stage.
+ */
+void Cm_FinalizeStage(CmStage *stage);
+
+/**
+ * @brief Recomputes the aggregate stage flags of the material from its stages.
+ */
+void Cm_ResolveStageFlags(CmMaterial *material);
 
 /**
  * @brief Serializes the material to its file path on disk.
