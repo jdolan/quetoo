@@ -105,6 +105,41 @@ struct MaterialViewController {
    * @brief The alpha test threshold slider.
    */
   Slider *alphaTest;
+
+  /**
+   * @brief The stage being edited, or `NULL`.
+   */
+  CmStage *stage;
+
+  /**
+   * @brief The stage selection.
+   */
+  Select *stages;
+
+  /**
+   * @brief The button that appends a stage.
+   */
+  Button *addStage;
+
+  /**
+   * @brief The button that removes the selected stage.
+   */
+  Button *removeStage;
+
+  /**
+   * @brief The stage texture name text field.
+   */
+  TextView *stageTexture;
+
+  /**
+   * @brief The stage blend source factor selection.
+   */
+  Select *stageBlendSrc;
+
+  /**
+   * @brief The stage blend destination factor selection.
+   */
+  Select *stageBlendDest;
 };
 
 /**

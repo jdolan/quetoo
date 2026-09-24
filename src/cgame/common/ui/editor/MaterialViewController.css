@@ -9,3 +9,16 @@
 #material Input Slider {
   width: 250;
 }
+
+#material Input Select {
+  width: 250;
+}
+
+#material .stageButtons {
+  axis: horizontal;
+  spacing: 4;
+}
+
+#material .stageButtons Button {
+  alignment: top-left;
+}
