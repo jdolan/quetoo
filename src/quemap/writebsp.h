@@ -34,4 +34,3 @@ void BeginBSPFile(void);
 void EndBSPFile(void);
 BspModel *BeginModel(const Entity *e);
 void EndModel(BspModel *mod);
-int32_t EmitDrawElements(Vector *faces);

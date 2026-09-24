@@ -84,6 +84,12 @@
     <ClCompile Include="..\src\quemap\csg.c">
       <Filter>src\quemap</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\quemap\drawelements.c">
+      <Filter>src\quemap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\quemap\drawface.c">
+      <Filter>src\quemap</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\quemap\entity.c">
       <Filter>src\quemap</Filter>
     </ClCompile>
@@ -159,6 +165,12 @@
       <Filter>src\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\quemap\csg.h">
+      <Filter>src\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\quemap\drawelements.h">
+      <Filter>src\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\quemap\drawface.h">
       <Filter>src\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\quemap\entity.h">

@@ -21,14 +21,10 @@
 
 #pragma once
 
-#include "light.h"
-#include "material.h"
-#include "quemap.h"
-#include "drawelements.h"
-#include "writebsp.h"
-#include "voxel.h"
+#include "drawface.h"
 
-int32_t Light_PointContents(const Vec3 p, int32_t headNode);
-CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t headNode, int32_t mask);
-
-int32_t LIGHT_Main(void);
+void EmitDepthPassElements(BspModel *mod);
+int32_t EmitDrawElements(Vector *faces);
+void EmitBlocks(BspModel *mod);
+void EmitReflections(BspModel *mod);
+void EmitPortals(void);

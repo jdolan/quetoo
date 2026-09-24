@@ -767,6 +767,8 @@
 		CE80FFE31C5E4D1800A21A51 /* brush.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E61C5C58C300CD0B13 /* brush.c */; };
 		CE80FFE41C5E4D1800A21A51 /* bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E71C5C58C300CD0B13 /* bsp.c */; };
 		CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E91C5C58C300CD0B13 /* csg.c */; };
+		E8C4BDED96CEB68BD78AA055 /* drawelements.c in Sources */ = {isa = PBXBuildFile; fileRef = 798D1D350CCC161F92103924 /* drawelements.c */; };
+		1A738CDBE93FEE02891748C6 /* drawface.c in Sources */ = {isa = PBXBuildFile; fileRef = 63028DABFA92B00587C5A881 /* drawface.c */; };
 		CE80FFE61C5E4D1800A21A51 /* face.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EA1C5C58C300CD0B13 /* face.c */; };
 		CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EC1C5C58C300CD0B13 /* leakfile.c */; };
 		CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EE1C5C58C300CD0B13 /* main.c */; };
@@ -2558,6 +2560,10 @@
 		CE12D6E71C5C58C300CD0B13 /* bsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bsp.c; sourceTree = "<group>"; };
 		CE12D6E81C5C58C300CD0B13 /* bsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bsp.h; sourceTree = "<group>"; };
 		CE12D6E91C5C58C300CD0B13 /* csg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = csg.c; sourceTree = "<group>"; };
+		798D1D350CCC161F92103924 /* drawelements.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = drawelements.c; sourceTree = "<group>"; };
+		E642B6640D82AE6F5A36526A /* drawelements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawelements.h; sourceTree = "<group>"; };
+		63028DABFA92B00587C5A881 /* drawface.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = drawface.c; sourceTree = "<group>"; };
+		EDF1F957220B1D1A54279F71 /* drawface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawface.h; sourceTree = "<group>"; };
 		CE12D6EA1C5C58C300CD0B13 /* face.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = face.c; sourceTree = "<group>"; };
 		CE12D6EC1C5C58C300CD0B13 /* leakfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = leakfile.c; sourceTree = "<group>"; };
 		CE12D6EE1C5C58C300CD0B13 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -4358,6 +4364,10 @@
 				CE12D6E81C5C58C300CD0B13 /* bsp.h */,
 				CE12D6E91C5C58C300CD0B13 /* csg.c */,
 				CE42657621C3EF0500F768DD /* csg.h */,
+				798D1D350CCC161F92103924 /* drawelements.c */,
+				E642B6640D82AE6F5A36526A /* drawelements.h */,
+				63028DABFA92B00587C5A881 /* drawface.c */,
+				EDF1F957220B1D1A54279F71 /* drawface.h */,
 				CE34098F21C2D52500989FC9 /* entity.c */,
 				CE34098E21C2D52500989FC9 /* entity.h */,
 				CE12D6EA1C5C58C300CD0B13 /* face.c */,
@@ -7162,6 +7172,8 @@
 				CE80FFE31C5E4D1800A21A51 /* brush.c in Sources */,
 				CE80FFE41C5E4D1800A21A51 /* bsp.c in Sources */,
 				CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */,
+				E8C4BDED96CEB68BD78AA055 /* drawelements.c in Sources */,
+				1A738CDBE93FEE02891748C6 /* drawface.c in Sources */,
 				CE34099021C2D52500989FC9 /* entity.c in Sources */,
 				CE80FFE61C5E4D1800A21A51 /* face.c in Sources */,
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
