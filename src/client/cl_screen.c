@@ -60,7 +60,7 @@ void Cl_UpdateScreen(void) {
       break;
 
     case CL_ACTIVE:
-      if (cls.keyState.dest != KEY_UI) {
+      if (cls.keyState.dest != KEY_UI || editor->integer) {
         cls.cgame->UpdateScreen(&cl.frame);
       }
 

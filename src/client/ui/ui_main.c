@@ -187,8 +187,9 @@ void Ui_ViewWillDisappear(void) {
 
 /**
  * @brief Shows the layers the client state calls for, updates the console and renders the UI.
- * @details The HUD exists only in play, beneath the menus; the menus show whenever asked for,
- * while loading, and whenever there is no game to show, except beneath the console.
+ * @details The HUD exists only in play, beneath the menus, and stays beneath the editor so that
+ * its crosshair shows what the editor selects; the menus show whenever asked for, while loading,
+ * and whenever there is no game to show, except beneath the console.
  */
 void Ui_Draw(void) {
 
@@ -196,7 +197,7 @@ void Ui_Draw(void) {
 
   const ClientKeyDest dest = cls.keyState.dest;
 
-  const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
+  const bool hud = cls.state == CL_ACTIVE && (dest != KEY_UI || editor->integer);
   const bool menus = dest == KEY_UI || cls.state == CL_LOADING || (cls.state != CL_ACTIVE && dest != KEY_CONSOLE);
 
   $(hudLayer->view, setVisibility, hud ? ViewVisibilityVisible : ViewVisibilityHidden);

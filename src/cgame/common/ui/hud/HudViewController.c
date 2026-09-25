@@ -394,6 +394,22 @@ static void hideForEditor(View *view, ident data) {
 }
 
 /**
+ * @brief ViewEnumerator for updateWithFrame: in the editor, only the crosshair takes the frame,
+ * so that no other element shows itself again. The layout wrapper is looked through.
+ */
+static void updateCrosshair(View *view, ident data) {
+
+  if (view->identifier && strcmp(view->identifier, "layout") == 0) {
+    $(view, enumerateSubviews, updateCrosshair, data);
+    return;
+  }
+
+  if ($((Object *) view, isKindOfClass, _CrosshairView())) {
+    $(view, updateBindings, data);
+  }
+}
+
+/**
  * @fn void HudViewController::warm(HudViewController *self)
  * @memberof HudViewController
  */
@@ -484,14 +500,19 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
     $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
-  const bool hidden = !cg_drawHud->integer || !ps->stats[STAT_TIME] || cgState.navEdit;
+  const bool hidden = cgState.navEdit || (!editor->integer && (!cg_drawHud->integer || !ps->stats[STAT_TIME]));
 
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);
 
     if (!hidden) {
       $(self->hud, enumerateSubviews, hideForEditor, NULL);
-      $(self->hud, updateBindings, (ident) frame);
+
+      if (editor->integer) {
+        $(self->hud, enumerateSubviews, updateCrosshair, (ident) frame);
+      } else {
+        $(self->hud, updateBindings, (ident) frame);
+      }
     }
   }
 
