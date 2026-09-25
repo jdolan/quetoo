@@ -140,6 +140,16 @@ struct MaterialViewController {
    * @brief The stage blend destination factor selection.
    */
   Select *stageBlendDest;
+
+  /**
+   * @brief The texture names that complete the stage texture, cycled by Tab.
+   */
+  Array *completions;
+
+  /**
+   * @brief The index of the completion shown in the stage texture.
+   */
+  size_t completion;
 };
 
 /**

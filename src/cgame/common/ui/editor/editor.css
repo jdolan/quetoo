@@ -1,33 +1,43 @@
 Panel.editor {
   alignment: top-left;
-  autoresizing-mask: contain | height;
+  autoresizing-mask: height;
+  border-radius: 0;
+  border-width: 0;
   draggable: false;
+  padding: 0;
   resizable: false;
+  width: 440;
 }
 
 Panel.editor > StackView {
   autoresizing-mask: fill;
 }
 
-Panel.editor .contentView {
+Panel.editor > StackView > .contentView {
+  autoresizing-mask: contain | width;
+  stretch: true;
+}
+
+Panel.editor > StackView > .contentView > .tabViewController {
+  autoresizing-mask: contain | width;
   stretch: true;
 }
 
 Panel.editor TabView {
-  stretch: true;
+  autoresizing-mask: fill;
 }
 
 Panel.editor .tabPageView {
-  autoresizing-mask: none;
+  autoresizing-mask: contain | width;
   stretch: true;
-  width: 420;
 }
 
 Panel.editor .tabPageView > View {
   autoresizing-mask: fill;
 }
 
-.editor TextView {
+.editor TextView,
+.editor Select {
   bevel: none;
   padding: 1 4 1 4;
 }

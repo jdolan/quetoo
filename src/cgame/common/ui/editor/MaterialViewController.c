@@ -62,6 +62,7 @@ static void didSetValue(Slider *slider, double value) {
  */
 typedef struct {
   const char *identifier;
+  const char *box;
   CmStageFlags flag;
   ptrdiff_t offset;
   float value;
@@ -71,20 +72,18 @@ typedef struct {
  * @brief The stage effects, and the parameter each one defaults when it is enabled at zero.
  */
 static const StageFlag stageFlags[] = {
-  { "stageBlend", STAGE_BLEND, -1, 0.f },
-  { "stageColor", STAGE_COLOR, offsetof(CmStage, color.a), 1.f },
-  { "stagePulse", STAGE_PULSE, offsetof(CmStage, pulse.hz), 1.f },
-  { "stageScrollS", STAGE_SCROLL_S, offsetof(CmStage, scroll.s), .25f },
-  { "stageScrollT", STAGE_SCROLL_T, offsetof(CmStage, scroll.t), .25f },
-  { "stageScaleS", STAGE_SCALE_S, offsetof(CmStage, scale.s), 1.f },
-  { "stageScaleT", STAGE_SCALE_T, offsetof(CmStage, scale.t), 1.f },
-  { "stageRotate", STAGE_ROTATE, offsetof(CmStage, rotate.hz), .25f },
-  { "stageStretch", STAGE_STRETCH, offsetof(CmStage, stretch.hz), 1.f },
-  { "stageWarp", STAGE_WARP, offsetof(CmStage, warp.hz), 1.f },
-  { "stageEmissive", STAGE_EMISSIVE, offsetof(CmStage, emissive), 1.f },
-  { "stageLighting", STAGE_LIGHTING, offsetof(CmStage, lighting.intensity), 1.f },
-  { "stageDirtmap", STAGE_DIRTMAP, offsetof(CmStage, dirtmap.intensity), 1.f },
-  { "stageLight", STAGE_LIGHT, offsetof(CmStage, light.intensity), STAGE_LIGHT_INTENSITY },
+  { "stageBlend", "stageBlendBox", STAGE_BLEND, -1, 0.f },
+  { "stageColor", "stageColorBox", STAGE_COLOR, offsetof(CmStage, color.a), 1.f },
+  { "stagePulse", "stagePulseBox", STAGE_PULSE, offsetof(CmStage, pulse.hz), 1.f },
+  { "stageScroll", "stageScrollBox", STAGE_SCROLL_S | STAGE_SCROLL_T, offsetof(CmStage, scroll.s), .25f },
+  { "stageScale", "stageScaleBox", STAGE_SCALE_S | STAGE_SCALE_T, offsetof(CmStage, scale.s), 1.f },
+  { "stageRotate", "stageRotateBox", STAGE_ROTATE, offsetof(CmStage, rotate.hz), .25f },
+  { "stageStretch", "stageStretchBox", STAGE_STRETCH, offsetof(CmStage, stretch.hz), 1.f },
+  { "stageWarp", "stageWarpBox", STAGE_WARP, offsetof(CmStage, warp.hz), 1.f },
+  { "stageEmissive", "stageEmissiveBox", STAGE_EMISSIVE, offsetof(CmStage, emissive), 1.f },
+  { "stageLighting", "stageLightingBox", STAGE_LIGHTING, offsetof(CmStage, lighting.intensity), 1.f },
+  { "stageDirtmap", "stageDirtmapBox", STAGE_DIRTMAP, offsetof(CmStage, dirtmap.intensity), 1.f },
+  { "stageLight", "stageLightBox", STAGE_LIGHT, offsetof(CmStage, light.intensity), STAGE_LIGHT_INTENSITY },
 };
 
 /**
@@ -105,10 +104,6 @@ static const StageParam stageParams[] = {
   { "stageColorB", offsetof(CmStage, color.b), false },
   { "stageColorA", offsetof(CmStage, color.a), false },
   { "stagePulseHz", offsetof(CmStage, pulse.hz), false },
-  { "stageScrollSValue", offsetof(CmStage, scroll.s), false },
-  { "stageScrollTValue", offsetof(CmStage, scroll.t), false },
-  { "stageScaleSValue", offsetof(CmStage, scale.s), false },
-  { "stageScaleTValue", offsetof(CmStage, scale.t), false },
   { "stageRotateHz", offsetof(CmStage, rotate.hz), false },
   { "stageStretchAmplitude", offsetof(CmStage, stretch.amplitude), false },
   { "stageStretchHz", offsetof(CmStage, stretch.hz), false },
@@ -122,6 +117,26 @@ static const StageParam stageParams[] = {
   { "stageLightR", offsetof(CmStage, light.color.x), false },
   { "stageLightG", offsetof(CmStage, light.color.y), false },
   { "stageLightB", offsetof(CmStage, light.color.z), false },
+};
+
+/**
+ * @brief One axis of a scroll or scale effect, which a TextView edits. The flag of the axis is set
+ * only while its value is not zero, because the material parser rejects a zero value.
+ */
+typedef struct {
+  const char *identifier;
+  ptrdiff_t offset;
+  CmStageFlags flag;
+} StageAxis;
+
+/**
+ * @brief The scroll and scale axes.
+ */
+static const StageAxis stageAxes[] = {
+  { "stageScrollSValue", offsetof(CmStage, scroll.s), STAGE_SCROLL_S },
+  { "stageScrollTValue", offsetof(CmStage, scroll.t), STAGE_SCROLL_T },
+  { "stageScaleSValue", offsetof(CmStage, scale.s), STAGE_SCALE_S },
+  { "stageScaleTValue", offsetof(CmStage, scale.t), STAGE_SCALE_T },
 };
 
 /**
@@ -145,6 +160,22 @@ static const struct {
  */
 static float *stageFloat(CmStage *stage, ptrdiff_t offset) {
   return (float *) ((byte *) stage + offset);
+}
+
+/**
+ * @brief Sets the flag of each axis within the mask from its value: a zero axis is not written.
+ */
+static void resolveStageAxes(CmStage *stage, CmStageFlags mask) {
+
+  for (size_t i = 0; i < lengthof(stageAxes); i++) {
+    if (stageAxes[i].flag & mask) {
+      if (*stageFloat(stage, stageAxes[i].offset) != 0.f) {
+        stage->flags |= stageAxes[i].flag;
+      } else {
+        stage->flags &= ~stageAxes[i].flag;
+      }
+    }
+  }
 }
 
 /**
@@ -178,9 +209,29 @@ static void setStage(MaterialViewController *this, CmStage *stage) {
 
   for (size_t i = 0; i < lengthof(stageFlags); i++) {
     Control *control = (Control *) $(view, descendantWithIdentifier, stageFlags[i].identifier);
+    const bool enabled = stage && (stage->flags & stageFlags[i].flag);
+
     if (control) {
-      control->state = stage && (stage->flags & stageFlags[i].flag) ? ControlStateSelected : ControlStateDefault;
+      if (enabled) {
+        control->state |= ControlStateSelected;
+      } else {
+        control->state &= ~ControlStateSelected;
+      }
+      if (stage) {
+        control->state &= ~ControlStateDisabled;
+      } else {
+        control->state |= ControlStateDisabled;
+      }
       $(control, stateDidChange);
+    }
+
+    View *box = $(view, descendantWithIdentifier, stageFlags[i].box);
+    if (box) {
+      if (enabled && !$(box, hasClassName, "enabled")) {
+        $(box, addClassName, "enabled");
+      } else if (!enabled) {
+        $(box, removeClassName, "enabled");
+      }
     }
   }
 
@@ -188,6 +239,13 @@ static void setStage(MaterialViewController *this, CmStage *stage) {
     Slider *slider = (Slider *) $(view, descendantWithIdentifier, stageParams[i].identifier);
     if (slider) {
       $(slider, setValue, stage ? (double) *stageFloat(stage, stageParams[i].offset) : 0.0);
+    }
+  }
+
+  for (size_t i = 0; i < lengthof(stageAxes); i++) {
+    TextView *textView = (TextView *) $(view, descendantWithIdentifier, stageAxes[i].identifier);
+    if (textView) {
+      $(textView, setAttributedText, stage ? va("%g", *stageFloat(stage, stageAxes[i].offset)) : "");
     }
   }
 
@@ -314,6 +372,115 @@ static void didEndEditingStageTexture(TextView *textView) {
 }
 
 /**
+ * @brief Fs_Enumerator for completeStageTexture: adds a texture once, without its extension, or a
+ * directory with a trailing slash. Normal, specular and tint maps are not stage textures.
+ */
+static void completeStageTexture_enumerate(const char *path, void *data) {
+
+  Array *completions = data;
+
+  const char *name = path + strlen("textures/");
+  const char *ext = strrchr(name, '.');
+
+  char completion[MAX_QPATH];
+
+  if (ext == NULL) {
+    q_snprintf(completion, sizeof(completion), "%s/", name);
+  } else {
+    if (q_strcasecmp(ext, ".png") && q_strcasecmp(ext, ".jpg") && q_strcasecmp(ext, ".tga")) {
+      return;
+    }
+
+    StripExtension(name, completion);
+
+    const char *suffixes[] = { "_norm", "_spec", "_tint" };
+    for (size_t i = 0; i < lengthof(suffixes); i++) {
+      const size_t len = strlen(completion), slen = strlen(suffixes[i]);
+      if (len > slen && !q_strcmp(completion + len - slen, suffixes[i])) {
+        return;
+      }
+    }
+  }
+
+  for (size_t i = 0; i < completions->count; i++) {
+    if (!q_strcmp(((String *) $(completions, objectAtIndex, i))->chars, completion)) {
+      return;
+    }
+  }
+
+  String *string = $$(String, stringWithCharacters, completion);
+  $(completions, addObject, string);
+  release(string);
+}
+
+/**
+ * @brief Comparator for completeStageTexture.
+ */
+static Order completeStageTexture_compare(const ident a, const ident b) {
+  return (Order) Maxi(-1, Mini(1, q_strcmp(((String *) a)->chars, ((String *) b)->chars)));
+}
+
+/**
+ * @brief TextViewDelegate callback for Tab in the stage texture: completes the text to the longest
+ * prefix its matches share, and then cycles through the matches.
+ * @return True if the text was completed, so that Tab does not advance.
+ */
+static bool completeStageTexture(TextView *textView) {
+
+  MaterialViewController *this = (MaterialViewController *) textView->delegate.self;
+
+  if (!this->material || this->material->cm->context != ASSET_CONTEXT_TEXTURES) {
+    return false;
+  }
+
+  const char *text = textView->attributedText->chars ?: "";
+
+  if (this->completions && this->completions->count > 1) {
+    const String *current = $(this->completions, objectAtIndex, this->completion);
+    if (!q_strcmp(current->chars, text)) {
+      this->completion = (this->completion + 1) % this->completions->count;
+      const String *next = $(this->completions, objectAtIndex, this->completion);
+      $(textView, setAttributedText, next->chars);
+      return true;
+    }
+  }
+
+  release(this->completions);
+  this->completions = $$(Array, array);
+  this->completion = 0;
+
+  cgi.EnumerateFiles(va("textures/%s*", text), completeStageTexture_enumerate, this->completions);
+
+  if (this->completions->count == 0) {
+    return false;
+  }
+
+  $(this->completions, sort, completeStageTexture_compare);
+
+  const char *first = ((String *) $(this->completions, objectAtIndex, 0))->chars;
+
+  size_t len = strlen(first);
+  for (size_t i = 1; i < this->completions->count; i++) {
+    const char *other = ((String *) $(this->completions, objectAtIndex, i))->chars;
+    size_t j = 0;
+    while (j < len && first[j] == other[j]) {
+      j++;
+    }
+    len = j;
+  }
+
+  if (len > strlen(text)) {
+    char prefix[MAX_QPATH];
+    q_strlcpy(prefix, first, Mini(len + 1, sizeof(prefix)));
+    $(textView, setAttributedText, prefix);
+  } else {
+    $(textView, setAttributedText, first);
+  }
+
+  return true;
+}
+
+/**
  * @brief CheckboxDelegate callback for the stage effects.
  */
 static void didToggleStageFlag(Checkbox *checkbox) {
@@ -328,9 +495,18 @@ static void didToggleStageFlag(Checkbox *checkbox) {
   if ($((Control *) checkbox, isSelected)) {
     this->stage->flags |= flag->flag;
 
-    if (flag->offset >= 0 && *stageFloat(this->stage, flag->offset) == 0.f) {
+    bool zero = true;
+    for (size_t i = 0; i < lengthof(stageAxes); i++) {
+      if ((stageAxes[i].flag & flag->flag) && *stageFloat(this->stage, stageAxes[i].offset) != 0.f) {
+        zero = false;
+      }
+    }
+
+    if (flag->offset >= 0 && zero && *stageFloat(this->stage, flag->offset) == 0.f) {
       *stageFloat(this->stage, flag->offset) = flag->value;
     }
+
+    resolveStageAxes(this->stage, flag->flag);
 
     if (flag->flag == STAGE_COLOR && this->stage->color.r + this->stage->color.g + this->stage->color.b == 0.f) {
       this->stage->color = color_white;
@@ -338,6 +514,36 @@ static void didToggleStageFlag(Checkbox *checkbox) {
   } else {
     this->stage->flags &= ~flag->flag;
   }
+
+  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  stagesDidChange(this);
+  reloadStages(this, this->stage);
+}
+
+/**
+ * @brief TextViewDelegate callback for the scroll and scale axes.
+ */
+static void didEndEditingStageAxis(TextView *textView) {
+
+  MaterialViewController *this = (MaterialViewController *) textView->delegate.self;
+
+  if (!this->stage) {
+    return;
+  }
+
+  const StageAxis *axis = textView->delegate.data;
+  float *value = stageFloat(this->stage, axis->offset);
+
+  char *end;
+  const float parsed = strtof(textView->attributedText->chars, &end);
+
+  if (end == textView->attributedText->chars || parsed == *value) {
+    $(textView, setAttributedText, va("%g", *value));
+    return;
+  }
+
+  *value = parsed;
+  resolveStageAxes(this->stage, axis->flag);
 
   cgi.ResolveMaterialStage(this->material->cm, this->stage);
   stagesDidChange(this);
@@ -377,6 +583,20 @@ static void didSetStageValue(Slider *slider, double value) {
   }
 
   Cg_Debug("Unknown Slider %s\n", identifier);
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+  MaterialViewController *this = (MaterialViewController *) self;
+
+  release(this->completions);
+
+  super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -444,6 +664,7 @@ static void loadView(ViewController *self) {
 
   this->stageTexture->delegate.self = self;
   this->stageTexture->delegate.didEndEditing = didEndEditingStageTexture;
+  this->stageTexture->delegate.didTab = completeStageTexture;
 
   for (size_t i = 0; i < lengthof(stageBlends); i++) {
     $(this->stageBlendSrc, addOption, stageBlends[i].name, (ident) (intptr_t) stageBlends[i].blend);
@@ -459,10 +680,20 @@ static void loadView(ViewController *self) {
   for (size_t i = 0; i < lengthof(stageFlags); i++) {
     Checkbox *checkbox = (Checkbox *) $(self->view, descendantWithIdentifier, stageFlags[i].identifier);
     assert(checkbox);
+    assert($(self->view, descendantWithIdentifier, stageFlags[i].box));
 
     checkbox->delegate.self = self;
     checkbox->delegate.data = (ident) &stageFlags[i];
     checkbox->delegate.didToggle = didToggleStageFlag;
+  }
+
+  for (size_t i = 0; i < lengthof(stageAxes); i++) {
+    TextView *textView = (TextView *) $(self->view, descendantWithIdentifier, stageAxes[i].identifier);
+    assert(textView);
+
+    textView->delegate.self = self;
+    textView->delegate.data = (ident) &stageAxes[i];
+    textView->delegate.didEndEditing = didEndEditingStageAxis;
   }
 
   for (size_t i = 0; i < lengthof(stageParams); i++) {
@@ -550,6 +781,8 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;

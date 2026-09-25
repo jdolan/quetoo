@@ -26,7 +26,7 @@
         "class": "Button",
         "identifier": "save",
         "title": {
-          "text": "Save"
+          "text": "Save All"
         }
       }
     ]
