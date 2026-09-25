@@ -1416,6 +1416,11 @@ typedef struct {
    * @brief The normalization transform matrix.
    */
   Mat4 transform;
+
+  /**
+   * @brief True if the editor changed this config, and it should be saved.
+   */
+  bool dirty;
 } RenderMeshConfig;
 
 /**

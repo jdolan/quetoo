@@ -110,35 +110,38 @@ void R_LoadMeshConfigs(RenderModel *mod) {
 }
 
 /**
- * @brief Returns true if the mesh config is identity (all defaults).
+ * @brief Returns true if the mesh config has no effect: no translation or rotation, and a scale of
+ * one, or of zero, which a config of only zeros holds.
  */
-static bool R_MeshConfigIsIdentity(const RenderMeshConfig *config) {
+static bool R_MeshConfigIsEmpty(const RenderMeshConfig *config) {
   return Vec3_Equal(config->translate, Vec3_Zero()) &&
          Vec3_Equal(config->rotate, Vec3_Zero()) &&
-         config->scale == 1.f &&
+         (config->scale == 1.f || config->scale == 0.f) &&
          Vec3_Equal(config->muzzle, Vec3_Zero());
 }
 
 /**
- * @brief Saves a mesh config to a file, deleting the file if the config is identity.
+ * @brief Saves a mesh config to a file, deleting the file if the config is empty.
+ * @return True if the file was written or deleted.
  */
-static void R_SaveMeshConfig(const RenderMeshConfig *cfg, const char *path) {
+static bool R_SaveMeshConfig(const RenderMeshConfig *cfg, const char *path) {
 
-  if (R_MeshConfigIsIdentity(cfg)) {
+  if (R_MeshConfigIsEmpty(cfg)) {
     if (Fs_Exists(path)) {
       if (Fs_Delete(path)) {
         Com_Debug(DEBUG_RENDERER, "Deleted %s\n", path);
       } else {
         Com_Warn("Failed to delete %s\n", path);
+        return false;
       }
     }
-    return;
+    return true;
   }
 
   File *file = Fs_OpenWrite(path);
   if (!file) {
     Com_Warn("Failed to write %s\n", path);
-    return;
+    return false;
   }
 
   char line[MAX_STRING_CHARS];
@@ -166,38 +169,43 @@ static void R_SaveMeshConfig(const RenderMeshConfig *cfg, const char *path) {
 
   Fs_Close(file);
   Com_Debug(DEBUG_RENDERER, "Wrote %s\n", path);
+  return true;
 }
 
 /**
- * @brief Saves all `RenderMeshConfig` for the specified `RenderModel`.
+ * @brief Media enumerator for R_SaveMeshConfigs_f: saves the world config of a dirty mesh model.
+ * @remarks The link and view configs are authored by hand, and are never written.
  */
-static void R_SaveMeshConfigs(const RenderModel *mod) {
-  char path[MAX_QPATH];
+static void R_SaveMeshConfigs_enumerator(const RenderMedia *media, void *data) {
 
+  if (media->type != R_MEDIA_MODEL) {
+    return;
+  }
+
+  RenderModel *mod = (RenderModel *) media;
+  if (!IS_MESH_MODEL(mod) || !mod->mesh->config.world.dirty) {
+    return;
+  }
+
+  char path[MAX_QPATH];
   Dirname(mod->media.name, path);
 
-  R_SaveMeshConfig(&mod->mesh->config.world, va("%s/world.cfg", path));
-  R_SaveMeshConfig(&mod->mesh->config.link, va("%s/link.cfg", path));
-  R_SaveMeshConfig(&mod->mesh->config.view, va("%s/view.cfg", path));
+  if (R_SaveMeshConfig(&mod->mesh->config.world, va("%s/world.cfg", path))) {
+    mod->mesh->config.world.dirty = false;
+    (*(int32_t *) data)++;
+  }
 }
 
 /**
- * @brief Saves the mesh configs for the model named by the first command argument.
+ * @brief Saves the world configs of all dirty mesh models.
  */
 void R_SaveMeshConfigs_f(void) {
 
-  const RenderModel *mod = (RenderModel *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);
-  if (!mod) {
-    Com_Warn("Model not found: %s\n", Cmd_Argv(1));
-    return;
-  }
+  int32_t count = 0;
 
-  if (!IS_MESH_MODEL(mod)) {
-    Com_Warn("Not a mesh model: %s\n", Cmd_Argv(1));
-    return;
-  }
+  R_EnumerateMedia(R_SaveMeshConfigs_enumerator, &count);
 
-  R_SaveMeshConfigs(mod);
+  Com_Print("Saved %d mesh config(s)\n", count);
 }
 
 /**
