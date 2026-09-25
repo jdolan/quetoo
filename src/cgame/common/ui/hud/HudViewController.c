@@ -25,7 +25,10 @@
 
 #include "HudViewController.h"
 #include "CrosshairView.h"
+#include "FpsView.h"
+#include "PingView.h"
 #include "ScoreboardView.h"
+#include "SpectatorView.h"
 
 #define _Class _HudViewController
 
@@ -377,9 +380,20 @@ static void reload(HudViewController *self) {
 }
 
 /**
- * @brief ViewEnumerator for updateWithFrame: in the editor, only the crosshair shows. Runs
+ * @return True if the view shows in the editor: the crosshair to select with, the frame rate
+ * and ping that a material edit can change, and the spectator view, which reads "Editing".
+ */
+static bool isEditorView(const View *view) {
+  return $((Object *) view, isKindOfClass, _CrosshairView())
+    || $((Object *) view, isKindOfClass, _FpsView())
+    || $((Object *) view, isKindOfClass, _PingView())
+    || $((Object *) view, isKindOfClass, _SpectatorView());
+}
+
+/**
+ * @brief ViewEnumerator for updateWithFrame: in the editor, only the editor views show. Runs
  * before the hierarchy updates, so an element that hides itself still can. The layout wrapper
- * is looked through, not hidden, since the crosshair lives in it.
+ * is looked through, not hidden, since the editor views live in it.
  */
 static void hideForEditor(View *view, ident data) {
 
@@ -388,23 +402,22 @@ static void hideForEditor(View *view, ident data) {
     return;
   }
 
-  const bool crosshair = $((Object *) view, isKindOfClass, _CrosshairView());
   $(view, setVisibility,
-    editor->value && !crosshair ? ViewVisibilityHidden : ViewVisibilityVisible);
+    editor->value && !isEditorView(view) ? ViewVisibilityHidden : ViewVisibilityVisible);
 }
 
 /**
- * @brief ViewEnumerator for updateWithFrame: in the editor, only the crosshair takes the frame,
- * so that no other element shows itself again. The layout wrapper is looked through.
+ * @brief ViewEnumerator for updateWithFrame: in the editor, only the editor views take the
+ * frame, so that no other element shows itself again. The layout wrapper is looked through.
  */
-static void updateCrosshair(View *view, ident data) {
+static void updateEditorViews(View *view, ident data) {
 
   if (view->identifier && strcmp(view->identifier, "layout") == 0) {
-    $(view, enumerateSubviews, updateCrosshair, data);
+    $(view, enumerateSubviews, updateEditorViews, data);
     return;
   }
 
-  if ($((Object *) view, isKindOfClass, _CrosshairView())) {
+  if (isEditorView(view)) {
     $(view, updateBindings, data);
   }
 }
@@ -509,7 +522,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
       $(self->hud, enumerateSubviews, hideForEditor, NULL);
 
       if (editor->integer) {
-        $(self->hud, enumerateSubviews, updateCrosshair, (ident) frame);
+        $(self->hud, enumerateSubviews, updateEditorViews, (ident) frame);
       } else {
         $(self->hud, updateBindings, (ident) frame);
       }
