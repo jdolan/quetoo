@@ -92,6 +92,8 @@ typedef struct {
 
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out);
 
+float R_StageDriftHash(const void *a, const void *b);
+
 bool R_StageUniforms(const RenderView *view, const RenderEntity *entity,
                      const RenderBspDrawElements *draw, const RenderStage *stage,
                      RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **textureNext);

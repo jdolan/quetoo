@@ -63,11 +63,6 @@ typedef struct {
    * @brief Pulse frequency in Hz.
    */
   float hz;
-
-  /**
-   * @brief Optional random time offset in seconds.
-   */
-  float drift;
 } CmStagePulse;
 
 /**
