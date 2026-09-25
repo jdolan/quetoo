@@ -110,7 +110,7 @@ cgame_la_SOURCES = \
 	ui/editor/EntityView.c \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
-	ui/editor/MeshViewController.c \
+	ui/editor/StageViewController.c \
 	ui/home/DemoList.c \
 	ui/home/DemosCollectionItemView.c \
 	ui/home/DemosCollectionView.c \

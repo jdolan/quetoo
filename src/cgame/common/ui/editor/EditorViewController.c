@@ -24,7 +24,7 @@
 #include "EditorViewController.h"
 #include "EntityViewController.h"
 #include "MaterialViewController.h"
-#include "MeshViewController.h"
+#include "StageViewController.h"
 
 #pragma mark - Delegates
 
@@ -53,12 +53,9 @@ static void didClickDeleteEntity(Button *button) {
  */
 static void didClickSave(Button *button) {
 
-  EditorViewController *this = button->delegate.self;
-
   cgi.Cbuf("saveEditorMap\n");
   cgi.Cbuf("r_saveMaterials\n");
-
-  $(this->meshViewController, save);
+  cgi.Cbuf("r_saveMeshConfigs\n");
 }
 
 #define _Class _EditorViewController
@@ -72,7 +69,7 @@ static void dealloc(Object *self) {
   release(this->tabViewController);
   release(this->entityViewController);
   release(this->materialViewController);
-  release(this->meshViewController);
+  release(this->stageViewController);
 
   super(Object, self, dealloc);
 }
@@ -106,14 +103,14 @@ static void loadView(ViewController *self) {
   this->materialViewController = $(alloc(MaterialViewController), init);
   assert(this->materialViewController);
 
-  this->meshViewController = $(alloc(MeshViewController), init);
-  assert(this->meshViewController);
+  this->stageViewController = $(alloc(StageViewController), init);
+  assert(this->stageViewController);
 
   ViewController *tabViewController = (ViewController *) this->tabViewController;
 
   $(tabViewController, addChildViewController, (ViewController *) this->entityViewController);
   $(tabViewController, addChildViewController, (ViewController *) this->materialViewController);
-  $(tabViewController, addChildViewController, (ViewController *) this->meshViewController);
+  $(tabViewController, addChildViewController, (ViewController *) this->stageViewController);
 
   $(self, addChildViewController, tabViewController);
   $((View *) ((Panel *) self->view)->contentView, addSubview, tabViewController->view);
@@ -155,15 +152,6 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
           deleteEntity->state &= ~ControlStateDisabled;
         }
         $(deleteEntity, stateDidChange);
-
-        RenderModel *model = NULL;
-        if (number > 0) {
-          const CGameEditorEntity *edit = &cgEditor.entities[number];
-          if (edit->model && IS_MESH_MODEL(edit->model)) {
-            model = (RenderModel *) edit->model;
-          }
-        }
-        $(this->meshViewController, setModel, model);
       }
         break;
     }

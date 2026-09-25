@@ -72,6 +72,31 @@ struct EntityViewController {
   EntityView *teamAdd;
 
   /**
+   * @brief The world.cfg Box, shown while the entity has a mesh model.
+   */
+  View *world;
+
+  /**
+   * @brief The world.cfg translate text field ("x y z").
+   */
+  TextView *worldTranslate;
+
+  /**
+   * @brief The world.cfg rotate text field ("x y z").
+   */
+  TextView *worldRotate;
+
+  /**
+   * @brief The world.cfg scale text field ("f").
+   */
+  TextView *worldScale;
+
+  /**
+   * @brief The mesh model of the entity being edited, or `NULL`.
+   */
+  RenderModel *model;
+
+  /**
    * @brief The entity being edited.
    */
   CGameEditorEntity *entity;

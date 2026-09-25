@@ -5,3 +5,11 @@
 #entity TextView.value {
   width: 220;
 }
+
+#entity Box.world {
+  visibility: hidden;
+}
+
+#entity .container Box.enabled {
+  visibility: visible;
+}

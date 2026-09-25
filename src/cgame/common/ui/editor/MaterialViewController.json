@@ -166,57 +166,15 @@
             "class": "Box",
             "label": {
               "text": {
-                "text": "Stage"
+                "text": "Contents"
               }
             },
             "contentView": {
               "subviews": [
                 {
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Stage"
-                    }
-                  },
-                  "control": {
-                    "class": "Select",
-                    "identifier": "stage"
-                  }
-                },
-                {
                   "class": "StackView",
                   "classNames": [
-                    "stageButtons"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Button",
-                      "identifier": "addStage",
-                      "image": "pics/add.svg@16x16"
-                    },
-                    {
-                      "class": "Button",
-                      "identifier": "removeStage",
-                      "image": "pics/trash.svg@16x16"
-                    }
-                  ]
-                },
-                {
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Texture"
-                    }
-                  },
-                  "control": {
-                    "class": "TextView",
-                    "identifier": "stageTexture"
-                  }
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "stageFlags"
+                    "flags"
                   ],
                   "subviews": [
                     {
@@ -233,12 +191,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "blend"
+                              "text": "solid"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageBlend"
+                            "identifier": "contentsSolid"
                           }
                         },
                         {
@@ -249,12 +207,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "color"
+                              "text": "window"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageColor"
+                            "identifier": "contentsWindow"
                           }
                         },
                         {
@@ -265,12 +223,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "pulse"
+                              "text": "decoration"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stagePulse"
+                            "identifier": "contentsDecoration"
                           }
                         }
                       ]
@@ -289,12 +247,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "scroll"
+                              "text": "lava"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageScroll"
+                            "identifier": "contentsLava"
                           }
                         },
                         {
@@ -305,12 +263,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "scale"
+                              "text": "slime"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageScale"
+                            "identifier": "contentsSlime"
                           }
                         },
                         {
@@ -321,12 +279,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "rotate"
+                              "text": "water"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageRotate"
+                            "identifier": "contentsWater"
                           }
                         }
                       ]
@@ -345,12 +303,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "stretch"
+                              "text": "mist"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageStretch"
+                            "identifier": "contentsMist"
                           }
                         },
                         {
@@ -361,12 +319,12 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "warp"
+                              "text": "detail"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageWarp"
+                            "identifier": "contentsDetail"
                           }
                         },
                         {
@@ -377,612 +335,309 @@
                           "orientation": "InputOrientationRight",
                           "label": {
                             "text": {
-                              "text": "emissive"
+                              "text": "ladder"
                             }
                           },
                           "control": {
                             "class": "Checkbox",
-                            "identifier": "stageEmissive"
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "class": "StackView",
-                      "classNames": [
-                        "flagRow"
-                      ],
-                      "subviews": [
-                        {
-                          "class": "Input",
-                          "classNames": [
-                            "flag"
-                          ],
-                          "orientation": "InputOrientationRight",
-                          "label": {
-                            "text": {
-                              "text": "lighting"
-                            }
-                          },
-                          "control": {
-                            "class": "Checkbox",
-                            "identifier": "stageLighting"
-                          }
-                        },
-                        {
-                          "class": "Input",
-                          "classNames": [
-                            "flag"
-                          ],
-                          "orientation": "InputOrientationRight",
-                          "label": {
-                            "text": {
-                              "text": "dirtmap"
-                            }
-                          },
-                          "control": {
-                            "class": "Checkbox",
-                            "identifier": "stageDirtmap"
-                          }
-                        },
-                        {
-                          "class": "Input",
-                          "classNames": [
-                            "flag"
-                          ],
-                          "orientation": "InputOrientationRight",
-                          "label": {
-                            "text": {
-                              "text": "light"
-                            }
-                          },
-                          "control": {
-                            "class": "Checkbox",
-                            "identifier": "stageLight"
+                            "identifier": "contentsLadder"
                           }
                         }
                       ]
                     }
                   ]
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageBlendBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "blend"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Source"
-                          }
-                        },
-                        "control": {
-                          "class": "Select",
-                          "identifier": "stageBlendSrc"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Destination"
-                          }
-                        },
-                        "control": {
-                          "class": "Select",
-                          "identifier": "stageBlendDest"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageColorBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "color"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Red"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageColorR",
-                          "min": 0,
-                          "max": 4,
-                          "step": 0.05
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Green"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageColorG",
-                          "min": 0,
-                          "max": 4,
-                          "step": 0.05
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Blue"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageColorB",
-                          "min": 0,
-                          "max": 4,
-                          "step": 0.05
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Alpha"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageColorA",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stagePulseBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "pulse"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Hz"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stagePulseHz",
-                          "min": 0.05,
-                          "max": 10,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageScrollBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "scroll"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "S"
-                          }
-                        },
-                        "control": {
-                          "class": "TextView",
-                          "identifier": "stageScrollSValue"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "T"
-                          }
-                        },
-                        "control": {
-                          "class": "TextView",
-                          "identifier": "stageScrollTValue"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageScaleBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "scale"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "S"
-                          }
-                        },
-                        "control": {
-                          "class": "TextView",
-                          "identifier": "stageScaleSValue"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "T"
-                          }
-                        },
-                        "control": {
-                          "class": "TextView",
-                          "identifier": "stageScaleTValue"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageRotateBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "rotate"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Hz"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageRotateHz",
-                          "min": -4,
-                          "max": 4,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageStretchBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "stretch"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Amplitude"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageStretchAmplitude",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.01
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Hz"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageStretchHz",
-                          "min": 0,
-                          "max": 4,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageWarpBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "warp"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Hz"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageWarpHz",
-                          "min": 0,
-                          "max": 4,
-                          "step": 0.05
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Amplitude"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageWarpAmplitude",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.01
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageEmissiveBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "emissive"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Intensity"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageEmissiveValue",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageLightingBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "lighting"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Intensity"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageLightingIntensity",
-                          "min": 0,
-                          "max": 2,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageDirtmapBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "dirtmap"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Intensity"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageDirtmapIntensity",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "stageLightBox",
-                  "classNames": [
-                    "effect"
-                  ],
-                  "label": {
-                    "text": {
-                      "text": "light"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Radius"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageLightRadius",
-                          "min": 16,
-                          "max": 2048,
-                          "step": 16
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Intensity"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageLightIntensity",
-                          "min": 0,
-                          "max": 10,
-                          "step": 0.1
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Red"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageLightR",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.05
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Green"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageLightG",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.05
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Blue"
-                          }
-                        },
-                        "control": {
-                          "class": "Slider",
-                          "identifier": "stageLightB",
-                          "min": 0,
-                          "max": 1,
-                          "step": 0.05
-                        }
-                      }
-                    ]
-                  }
                 }
               ]
             },
             "classNames": [
-              "stage"
+              "contents"
+            ]
+          },
+          {
+            "class": "Box",
+            "label": {
+              "text": {
+                "text": "Surface"
+              }
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "StackView",
+                  "classNames": [
+                    "flags"
+                  ],
+                  "subviews": [
+                    {
+                      "class": "StackView",
+                      "classNames": [
+                        "flagRow"
+                      ],
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "slick"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceSlick"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "sky"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceSky"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "liquid"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceLiquid"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "class": "StackView",
+                      "classNames": [
+                        "flagRow"
+                      ],
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "blend_33"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceBlend33"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "blend_66"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceBlend66"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "blend_100"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceBlend100"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "class": "StackView",
+                      "classNames": [
+                        "flagRow"
+                      ],
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "no_draw"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceNoDraw"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "hint"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceHint"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "skip"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceSkip"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "class": "StackView",
+                      "classNames": [
+                        "flagRow"
+                      ],
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "alpha_test"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceAlphaTest"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "phong"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfacePhong"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "material"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceMaterial"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "class": "StackView",
+                      "classNames": [
+                        "flagRow"
+                      ],
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "portal"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfacePortal"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "classNames": [
+                            "flag"
+                          ],
+                          "orientation": "InputOrientationRight",
+                          "label": {
+                            "text": {
+                              "text": "reflect"
+                            }
+                          },
+                          "control": {
+                            "class": "Checkbox",
+                            "identifier": "surfaceReflect"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "classNames": [
+              "surface"
             ]
           }
         ]

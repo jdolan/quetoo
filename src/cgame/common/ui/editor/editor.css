@@ -70,6 +70,58 @@ Panel.editor .tabPageView > View {
   min-width: 210;
 }
 
-#material Input Label {
-  width: 200;
+.editor ScrollView > .contentView {
+  autoresizing-mask: contain | width;
+  padding: 10 14 4 2;
+}
+
+.editor Box {
+  autoresizing-mask: contain | width;
+}
+
+.editor Input > Label {
+  min-width: 100;
+  max-width: 100;
+}
+
+.editor Input > TextView,
+.editor Input > Slider,
+.editor Input > Select {
+  width: 220;
+}
+
+.editor .flags {
+  spacing: 2;
+}
+
+.editor .flagRow {
+  axis: horizontal;
+  spacing: 8;
+}
+
+.editor .flagRow > Input {
+  alignment: top-left;
+}
+
+.editor .flagRow .flag > Label {
+  min-width: 64;
+  max-width: 64;
+}
+
+.editor .flag > Label > Text {
+  font-size: 14;
+}
+
+.editor .flag Checkbox {
+  min-height: 18;
+}
+
+.editor .flag Checkbox > Control {
+  min-height: 18;
+  min-width: 18;
+}
+
+.editor .flag Checkbox ImageView {
+  height: 10;
+  width: 10;
 }

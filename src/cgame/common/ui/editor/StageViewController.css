@@ -1,0 +1,29 @@
+#stages .stageButtons {
+  axis: horizontal;
+  spacing: 4;
+}
+
+#stages .stageButtons Button {
+  alignment: top-left;
+  autoresizing-mask: contain;
+  background-color: #00000000;
+  bevel: none;
+  border-width: 0;
+  min-height: 0;
+  min-width: 0;
+  padding: 2 2 2 2;
+}
+
+#stages .stageButtons Button ImageView {
+  autoresizing-mask: none;
+  height: 16;
+  width: 16;
+}
+
+#stages Box.effect {
+  visibility: hidden;
+}
+
+#stages .stage Box.enabled {
+  visibility: visible;
+}

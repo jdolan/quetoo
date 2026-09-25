@@ -297,7 +297,7 @@
     <ClInclude Include="..\src\cgame\common\ui\editor\MaterialViewController.h">
       <Filter>src\common\ui\editor</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\common\ui\editor\MeshViewController.h">
+    <ClInclude Include="..\src\cgame\common\ui\editor\StageViewController.h">
       <Filter>src\common\ui\editor</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h">
@@ -632,7 +632,7 @@
     <ClCompile Include="..\src\cgame\common\ui\editor\MaterialViewController.c">
       <Filter>src\common\ui\editor</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\common\ui\editor\MeshViewController.c">
+    <ClCompile Include="..\src\cgame\common\ui\editor\StageViewController.c">
       <Filter>src\common\ui\editor</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionItemView.c">

@@ -373,7 +373,7 @@
 		CE05B3F030224900C0DE0031 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CE05B3F030224900C0DE0032 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CE05B3F030224900C0DE0033 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
-		CE05B3F030224900C0DE0034 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
+		CE05B3F030224900C0DE0034 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		CE05B3F030224900C0DE0035 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CE05B3F030224900C0DE0036 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE05B3F030224900C0DE0037 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
@@ -987,7 +987,7 @@
 		CEC0FF002026010300000191 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CEC0FF002026010300000193 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
-		CEC0FF002026010300000194 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
+		CEC0FF002026010300000194 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CEC0FF002026010300000196 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CEC0FF002026010300000197 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
@@ -1188,9 +1188,9 @@
 		CFA000222F9100000000C022 /* MaterialViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000102F9100000000C010 /* MaterialViewController.css */; };
 		CFA000232F9100000000C023 /* MaterialViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000112F9100000000C011 /* MaterialViewController.json */; };
 		CFA000242F9100000000C024 /* editor.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C012 /* editor.css */; };
-		CFA000252F9100000000C025 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
-		CFA000272F9100000000C027 /* MeshViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000142F9100000000C027 /* MeshViewController.css */; };
-		CFA000282F9100000000C028 /* MeshViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000152F9100000000C028 /* MeshViewController.json */; };
+		CFA000252F9100000000C025 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
+		CFA000272F9100000000C027 /* StageViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000142F9100000000C027 /* StageViewController.css */; };
+		CFA000282F9100000000C028 /* StageViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000152F9100000000C028 /* StageViewController.json */; };
 		D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000102 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
@@ -1322,7 +1322,7 @@
 		D2A5C1000000000000000075 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		D2A5C1000000000000000076 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		D2A5C1000000000000000077 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
-		D2A5C1000000000000000078 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
+		D2A5C1000000000000000078 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		D2A5C1000000000000000079 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		D2A5C100000000000000007A /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		D2A5C100000000000000007B /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
@@ -2163,8 +2163,8 @@
 				CFA0001F2F9100000000C01F /* EntityViewController.json in CopyFiles */,
 				CFA000222F9100000000C022 /* MaterialViewController.css in CopyFiles */,
 				CFA000232F9100000000C023 /* MaterialViewController.json in CopyFiles */,
-				CFA000272F9100000000C027 /* MeshViewController.css in CopyFiles */,
-				CFA000282F9100000000C028 /* MeshViewController.json in CopyFiles */,
+				CFA000272F9100000000C027 /* StageViewController.css in CopyFiles */,
+				CFA000282F9100000000C028 /* StageViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3083,10 +3083,10 @@
 		CFA000102F9100000000C010 /* MaterialViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = MaterialViewController.css; sourceTree = "<group>"; };
 		CFA000112F9100000000C011 /* MaterialViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MaterialViewController.json; sourceTree = "<group>"; };
 		CFA000122F9100000000C012 /* editor.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = editor.css; sourceTree = "<group>"; };
-		CFA000122F9100000000C025 /* MeshViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MeshViewController.c; sourceTree = "<group>"; };
-		CFA000132F9100000000C026 /* MeshViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MeshViewController.h; sourceTree = "<group>"; };
-		CFA000142F9100000000C027 /* MeshViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = MeshViewController.css; sourceTree = "<group>"; };
-		CFA000152F9100000000C028 /* MeshViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MeshViewController.json; sourceTree = "<group>"; };
+		CFA000122F9100000000C025 /* StageViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StageViewController.c; sourceTree = "<group>"; };
+		CFA000132F9100000000C026 /* StageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StageViewController.h; sourceTree = "<group>"; };
+		CFA000142F9100000000C027 /* StageViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = StageViewController.css; sourceTree = "<group>"; };
+		CFA000152F9100000000C028 /* StageViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StageViewController.json; sourceTree = "<group>"; };
 		D126FFD46C343DDC86C13E17 /* cm_manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_manifest.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000001 /* bg_pmove_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove_local.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000101 /* g_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_vote.c; sourceTree = "<group>"; };
@@ -5127,10 +5127,10 @@
 				CFA0000E2F9100000000C00E /* MaterialViewController.c */,
 				CFA000102F9100000000C010 /* MaterialViewController.css */,
 				CFA000112F9100000000C011 /* MaterialViewController.json */,
-				CFA000132F9100000000C026 /* MeshViewController.h */,
-				CFA000122F9100000000C025 /* MeshViewController.c */,
-				CFA000142F9100000000C027 /* MeshViewController.css */,
-				CFA000152F9100000000C028 /* MeshViewController.json */,
+				CFA000132F9100000000C026 /* StageViewController.h */,
+				CFA000122F9100000000C025 /* StageViewController.c */,
+				CFA000142F9100000000C027 /* StageViewController.css */,
+				CFA000152F9100000000C028 /* StageViewController.json */,
 			);
 			path = editor;
 			sourceTree = "<group>";
@@ -6901,7 +6901,7 @@
 				CE05B3F030224900C0DE0032 /* MapListCollectionView.c in Sources */,
 				DC271D20167E1DB4265DBB4B /* MapList.c in Sources */,
 				CE05B3F030224900C0DE0033 /* MaterialViewController.c in Sources */,
-				CE05B3F030224900C0DE0034 /* MeshViewController.c in Sources */,
+				CE05B3F030224900C0DE0034 /* StageViewController.c in Sources */,
 				CE05B3F030224900C0DE0035 /* MovementCombatViewController.c in Sources */,
 				CE05B3F030224900C0DE0036 /* PlayerModelView.c in Sources */,
 				CE05B3F030224900C0DE0037 /* PlayerSetupViewController.c in Sources */,
@@ -7067,7 +7067,7 @@
 				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
 				ECD977BEDE394CD17019BC2C /* MapList.c in Sources */,
 				CFA000202F9100000000C020 /* MaterialViewController.c in Sources */,
-				CFA000252F9100000000C025 /* MeshViewController.c in Sources */,
+				CFA000252F9100000000C025 /* StageViewController.c in Sources */,
 				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
 				CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */,
@@ -7556,7 +7556,7 @@
 				CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */,
 				E8E576F4F02CD6018C8D7B7C /* MapList.c in Sources */,
 				CEC0FF002026010300000193 /* MaterialViewController.c in Sources */,
-				CEC0FF002026010300000194 /* MeshViewController.c in Sources */,
+				CEC0FF002026010300000194 /* StageViewController.c in Sources */,
 				CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */,
 				CEC0FF002026010300000197 /* PlayerModelView.c in Sources */,
 				CEC0FF002026010300000198 /* PlayerSetupViewController.c in Sources */,
@@ -7777,7 +7777,7 @@
 				D2A5C1000000000000000076 /* MapListCollectionView.c in Sources */,
 				C8FD8F82018E30E0052179E2 /* MapList.c in Sources */,
 				D2A5C1000000000000000077 /* MaterialViewController.c in Sources */,
-				D2A5C1000000000000000078 /* MeshViewController.c in Sources */,
+				D2A5C1000000000000000078 /* StageViewController.c in Sources */,
 				D2A5C1000000000000000079 /* MovementCombatViewController.c in Sources */,
 				D2A5C100000000000000007A /* PlayerModelView.c in Sources */,
 				D2A5C100000000000000007B /* PlayerSetupViewController.c in Sources */,
