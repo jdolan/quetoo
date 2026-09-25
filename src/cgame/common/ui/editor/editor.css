@@ -1,12 +1,39 @@
 Panel.editor {
-  alignment: middle-right;
-  draggable: true;
+  alignment: top-left;
+  autoresizing-mask: contain | height;
+  draggable: false;
+  resizable: false;
+}
+
+Panel.editor > StackView {
+  autoresizing-mask: fill;
+}
+
+Panel.editor .contentView {
+  stretch: true;
+}
+
+Panel.editor TabView {
+  stretch: true;
 }
 
 Panel.editor .tabPageView {
   autoresizing-mask: none;
+  stretch: true;
   width: 420;
-  height: 720;
+}
+
+Panel.editor .tabPageView > View {
+  autoresizing-mask: fill;
+}
+
+.editor TextView {
+  bevel: none;
+  padding: 1 4 1 4;
+}
+
+.editor Control {
+  min-height: 24;
 }
 
 #entity {

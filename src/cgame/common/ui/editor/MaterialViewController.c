@@ -180,6 +180,7 @@ static void setStage(MaterialViewController *this, CmStage *stage) {
     Control *control = (Control *) $(view, descendantWithIdentifier, stageFlags[i].identifier);
     if (control) {
       control->state = stage && (stage->flags & stageFlags[i].flag) ? ControlStateSelected : ControlStateDefault;
+      $(control, stateDidChange);
     }
   }
 
