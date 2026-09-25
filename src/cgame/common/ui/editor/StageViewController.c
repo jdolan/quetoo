@@ -344,7 +344,7 @@ static void didEndEditingStageTexture(TextView *textView) {
   } else {
     *this->stage->asset.name = '\0';
     *this->stage->asset.path = '\0';
-    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW);
+    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE);
   }
 
   if (!cgi.ResolveMaterialStage(this->material->cm, this->stage)) {
@@ -476,15 +476,15 @@ static void didToggleStageFlag(Checkbox *checkbox) {
     }
 
     if (flag->flag == STAGE_FLARE) {
-      this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW);
+      this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_ANIMATION | STAGE_ENVMAP);
       q_strlcpy(this->stage->asset.name, STAGE_FLARE_SPRITE, sizeof(this->stage->asset.name));
     }
   } else {
     this->stage->flags &= ~flag->flag;
 
     if (flag->flag == STAGE_FLARE) {
-      *this->stage->asset.name = '\0';
-      *this->stage->asset.path = '\0';
+      this->stage->flags |= STAGE_TEXTURE;
+      q_strlcpy(this->stage->asset.name, this->material->cm->basename, sizeof(this->stage->asset.name));
     }
   }
 
