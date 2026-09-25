@@ -797,7 +797,7 @@
                         "control": {
                           "class": "Slider",
                           "identifier": "stageLightIntensity",
-                          "min": 0,
+                          "min": 0.1,
                           "max": 10,
                           "step": 0.1
                         }
