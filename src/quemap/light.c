@@ -228,12 +228,19 @@ void BuildLights(void) {
 
   Vec3 *colors = Mem_TagMalloc(sizeof(Vec3) * Maxi(1, Cm_Bsp()->numMaterials), (MemTag) MEM_TAG_LIGHT);
 
-  for (size_t i = 0; i < materialLights->count; i++) {
+  size_t count = 0;
+  for (size_t i = 0; i < materialLights->count; i++, count++) {
+
+    if ((int32_t) lights->count >= MAX_BSP_LIGHTS - 1) {
+      Com_Warn("MAX_BSP_LIGHTS: dropped %zu of %zu material lights\n", materialLights->count - i, materialLights->count);
+      break;
+    }
+
     Light *light = LightForMaterial(VectorElement(materialLights, CmMaterialLight, i), colors);
     $(lights, add, &light);
   }
 
-  Com_Verbose("Built %zu material lights\n", materialLights->count);
+  Com_Verbose("Built %zu material lights\n", count);
 
   Mem_Free(colors);
   release(materialLights);
