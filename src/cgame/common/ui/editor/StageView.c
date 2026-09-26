@@ -57,6 +57,10 @@ static const StageFlag stageFlags[] = {
   { "stageFlare", NULL, STAGE_FLARE, -1, 0.f },
   { "stageEnvmap", "stageEnvmapBox", STAGE_ENVMAP, offsetof(CmStage, envmap.amount), STAGE_ENVMAP_AMOUNT },
   { "stageShell", "stageShellBox", STAGE_SHELL, offsetof(CmStage, shell.radius), 1.f },
+  { "stageAnimation", "stageAnimationBox", STAGE_ANIMATION, offsetof(CmStage, animation.fps), 10.f },
+  { "stageLerp", NULL, STAGE_ANIM_LERP, -1, 0.f },
+  { "stageTerrain", "stageTerrainBox", STAGE_TERRAIN, -1, 0.f },
+  { "stageFlat", NULL, STAGE_LIGHTING_FLAT, -1, 0.f },
 };
 
 /**
@@ -89,6 +93,7 @@ static const StageParam stageParams[] = {
   { "stageWarpAmplitude", offsetof(CmStage, warp.amplitude), false },
   { "stageEnvmapAmount", offsetof(CmStage, envmap.amount), false },
   { "stageShellRadius", offsetof(CmStage, shell.radius), false },
+  { "stageAnimationFps", offsetof(CmStage, animation.fps), false },
   { "stageEmissiveValue", offsetof(CmStage, emissive), false },
   { "stageLightingIntensity", offsetof(CmStage, lighting.intensity), false },
   { "stageDirtmapIntensity", offsetof(CmStage, dirtmap.intensity), false },
@@ -118,6 +123,30 @@ static const StageAxis stageAxes[] = {
   { "stageScaleSValue", offsetof(CmStage, scale.s), STAGE_SCALE_S },
   { "stageScaleTValue", offsetof(CmStage, scale.t), STAGE_SCALE_T },
 };
+
+/**
+ * @brief A stage value that a TextView edits, and that resolves the stage again when it changes.
+ */
+typedef struct {
+  const char *identifier;
+  ptrdiff_t offset;
+  bool integer;
+} StageField;
+
+/**
+ * @brief The animation frame count and the terrain floor and ceiling.
+ */
+static const StageField stageFields[] = {
+  { "stageAnimationFrames", offsetof(CmStage, animation.numFrames), true },
+  { "stageTerrainFloor", offsetof(CmStage, terrain.floor), false },
+  { "stageTerrainCeil", offsetof(CmStage, terrain.ceil), false },
+};
+
+/**
+ * @brief The default terrain floor and ceiling, for a stage that has none.
+ */
+#define STAGE_TERRAIN_FLOOR 0.f
+#define STAGE_TERRAIN_CEIL 64.f
 
 /**
  * @brief The blend factors, in the order the blend selections list them.
@@ -176,7 +205,8 @@ static const char *stageAssetName(const CmStage *stage) {
 }
 
 /**
- * @return The summary of the stage for its label: its index, its asset and its effects.
+ * @return The summary of the stage for its label: whether it is collapsed, its index, its asset
+ * and its effects.
  */
 static const char *summary(const StageView *this) {
   static char buf[MAX_STRING_CHARS];
@@ -191,7 +221,9 @@ static const char *summary(const StageView *this) {
     name = (this->stage->flags & STAGE_LIGHT) ? "light" : "none";
   }
 
-  q_snprintf(buf, sizeof(buf), "%d: %s", index, name);
+  const bool collapsed = $((View *) this, hasClassName, "collapsed");
+
+  q_snprintf(buf, sizeof(buf), "%s %d: %s", collapsed ? "[+]" : "[-]", index, name);
 
   const char *sep = " (";
   for (size_t i = 0; i < lengthof(stageFlags); i++) {
@@ -256,6 +288,16 @@ static void updateStage(StageView *this) {
     TextView *textView = (TextView *) $(view, descendantWithIdentifier, stageAxes[i].identifier);
     if (textView) {
       $(textView, setAttributedText, va("%g", *stageFloat(stage, stageAxes[i].offset)));
+    }
+  }
+
+  for (size_t i = 0; i < lengthof(stageFields); i++) {
+    TextView *textView = (TextView *) $(view, descendantWithIdentifier, stageFields[i].identifier);
+    const void *value = (byte *) stage + stageFields[i].offset;
+    if (stageFields[i].integer) {
+      $(textView, setAttributedText, va("%d", *(const int32_t *) value));
+    } else {
+      $(textView, setAttributedText, va("%g", *(const float *) value));
     }
   }
 
@@ -471,12 +513,33 @@ static void didToggleStageFlag(Checkbox *checkbox) {
       this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_ANIMATION | STAGE_ENVMAP);
       q_strlcpy(this->stage->asset.name, STAGE_FLARE_SPRITE, sizeof(this->stage->asset.name));
     }
+
+    if (flag->flag == STAGE_ANIMATION) {
+      this->stage->animation.numFrames = Maxi(1, this->stage->animation.numFrames);
+    }
+
+    if (flag->flag == STAGE_TERRAIN && this->stage->terrain.ceil <= this->stage->terrain.floor) {
+      this->stage->terrain.floor = STAGE_TERRAIN_FLOOR;
+      this->stage->terrain.ceil = STAGE_TERRAIN_CEIL;
+    }
+
+    if (flag->flag == STAGE_LIGHTING_FLAT) {
+      this->stage->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
+    }
   } else {
     this->stage->flags &= ~flag->flag;
 
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags |= STAGE_TEXTURE;
       q_strlcpy(this->stage->asset.name, this->material->cm->basename, sizeof(this->stage->asset.name));
+    }
+
+    if (flag->flag == STAGE_ANIMATION) {
+      this->stage->flags &= ~STAGE_ANIM_LERP;
+    }
+
+    if (flag->flag == STAGE_LIGHTING_FLAT) {
+      this->stage->lighting.mode = STAGE_LIGHTING_MODE_MATERIAL;
     }
 
     if (!(this->stage->flags & (STAGE_TEXTURE | STAGE_SHELL | STAGE_MASK_SUBVIEW))) {
@@ -513,6 +576,50 @@ static void didEndEditingStageAxis(TextView *textView) {
 
   *value = parsed;
   resolveStageAxes(this->stage, axis->flag);
+
+  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  Cg_ReloadEditorMaterialStages(this->material);
+  updateStage(this);
+}
+
+/**
+ * @brief TextViewDelegate callback for the animation frame count and the terrain floor and
+ * ceiling. A terrain ceiling must be above its floor, as the material parser requires.
+ */
+static void didEndEditingStageField(TextView *textView) {
+
+  StageView *this = (StageView *) textView->delegate.self;
+  const StageField *field = textView->delegate.data;
+
+  void *value = (byte *) this->stage + field->offset;
+
+  const char *text = textView->attributedText->chars;
+  char *end;
+
+  if (field->integer) {
+    const long parsed = strtol(text, &end, 10);
+    if (end == text || parsed < 1) {
+      updateStage(this);
+      return;
+    }
+    *(int32_t *) value = (int32_t) parsed;
+  } else {
+    const float parsed = strtof(text, &end);
+    if (end == text) {
+      updateStage(this);
+      return;
+    }
+
+    const float previous = *(float *) value;
+    *(float *) value = parsed;
+
+    if (this->stage->terrain.ceil <= this->stage->terrain.floor) {
+      Cg_Warn("Terrain ceiling must be above its floor\n");
+      *(float *) value = previous;
+      updateStage(this);
+      return;
+    }
+  }
 
   cgi.ResolveMaterialStage(this->material->cm, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
@@ -643,6 +750,15 @@ static StageView *initWithStage(StageView *self, RenderMaterial *material, CmSta
       textView->delegate.didEndEditing = didEndEditingStageAxis;
     }
 
+    for (size_t i = 0; i < lengthof(stageFields); i++) {
+      TextView *textView = (TextView *) $((View *) self, descendantWithIdentifier, stageFields[i].identifier);
+      assert(textView);
+
+      textView->delegate.self = self;
+      textView->delegate.data = (ident) &stageFields[i];
+      textView->delegate.didEndEditing = didEndEditingStageField;
+    }
+
     for (size_t i = 0; i < lengthof(stageParams); i++) {
       Slider *slider = (Slider *) $((View *) self, descendantWithIdentifier, stageParams[i].identifier);
       assert(slider);
@@ -670,6 +786,8 @@ static void setCollapsed(StageView *self, bool collapsed) {
   } else if (!collapsed) {
     $(view, removeClassName, "collapsed");
   }
+
+  $(self->box.label->text, setText, summary(self));
 }
 
 /**

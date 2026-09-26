@@ -325,6 +325,46 @@
                     }
                   }
                 ]
+              },
+              {
+                "class": "StackView",
+                "classNames": [
+                  "flagRow"
+                ],
+                "subviews": [
+                  {
+                    "class": "Input",
+                    "classNames": [
+                      "flag"
+                    ],
+                    "orientation": "InputOrientationRight",
+                    "label": {
+                      "text": {
+                        "text": "anim"
+                      }
+                    },
+                    "control": {
+                      "class": "Checkbox",
+                      "identifier": "stageAnimation"
+                    }
+                  },
+                  {
+                    "class": "Input",
+                    "classNames": [
+                      "flag"
+                    ],
+                    "orientation": "InputOrientationRight",
+                    "label": {
+                      "text": {
+                        "text": "terrain"
+                      }
+                    },
+                    "control": {
+                      "class": "Checkbox",
+                      "identifier": "stageTerrain"
+                    }
+                  }
+                ]
               }
             ]
           },
@@ -742,6 +782,105 @@
           },
           {
             "class": "Box",
+            "identifier": "stageAnimationBox",
+            "classNames": [
+              "effect"
+            ],
+            "label": {
+              "text": {
+                "text": "anim"
+              }
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Frames"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "stageAnimationFrames"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "FPS"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "stageAnimationFps",
+                    "min": 0,
+                    "max": 60,
+                    "step": 1
+                  }
+                },
+                {
+                  "class": "Input",
+                  "classNames": [
+                    "flag"
+                  ],
+                  "orientation": "InputOrientationRight",
+                  "label": {
+                    "text": {
+                      "text": "lerp"
+                    }
+                  },
+                  "control": {
+                    "class": "Checkbox",
+                    "identifier": "stageLerp"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "class": "Box",
+            "identifier": "stageTerrainBox",
+            "classNames": [
+              "effect"
+            ],
+            "label": {
+              "text": {
+                "text": "terrain"
+              }
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Floor"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "stageTerrainFloor"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Ceiling"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "stageTerrainCeil"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "class": "Box",
             "identifier": "stageEmissiveBox",
             "classNames": [
               "effect"
@@ -797,6 +936,22 @@
                     "min": 0,
                     "max": 2,
                     "step": 0.05
+                  }
+                },
+                {
+                  "class": "Input",
+                  "classNames": [
+                    "flag"
+                  ],
+                  "orientation": "InputOrientationRight",
+                  "label": {
+                    "text": {
+                      "text": "flat"
+                    }
+                  },
+                  "control": {
+                    "class": "Checkbox",
+                    "identifier": "stageFlat"
                   }
                 }
               ]

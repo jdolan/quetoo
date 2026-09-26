@@ -56,3 +56,7 @@
 #stages .details {
   spacing: 16;
 }
+
+#stages .stage > Label:hover {
+  background-color: #aaaaaa;
+}
