@@ -171,6 +171,23 @@ static void stagesDidChange(StageViewController *this) {
 }
 
 /**
+ * @return The asset name that the stage shows: `portal` or `reflection` for a subview stage, which
+ * has no asset, and otherwise its texture, sprite or envmap.
+ */
+static const char *stageAssetName(const CmStage *stage) {
+
+  if (stage->flags & STAGE_PORTAL) {
+    return "portal";
+  }
+
+  if (stage->flags & STAGE_REFLECTION) {
+    return "reflection";
+  }
+
+  return stage->asset.name;
+}
+
+/**
  * @brief Selects the stage, and shows its values.
  */
 static void setStage(StageViewController *this, CmStage *stage) {
@@ -179,7 +196,7 @@ static void setStage(StageViewController *this, CmStage *stage) {
 
   $(this->stages, selectOptionWithValue, stage);
 
-  $(this->stageTexture, setAttributedText, stage && (stage->flags & (STAGE_TEXTURE | STAGE_FLARE)) ? stage->asset.name : "");
+  $(this->stageTexture, setAttributedText, stage ? stageAssetName(stage) : "");
 
   const View *view = this->viewController.view;
 
@@ -239,7 +256,7 @@ static void reloadStages(StageViewController *this, CmStage *stage) {
   if (this->material) {
     int32_t index = 0;
     for (CmStage *s = this->material->cm->stages; s; s = s->next, index++) {
-      const char *name = *s->asset.name ? s->asset.name : ((s->flags & STAGE_LIGHT) ? "light" : "none");
+      const char *name = *stageAssetName(s) ? stageAssetName(s) : ((s->flags & STAGE_LIGHT) ? "light" : "none");
       if (s->flags & STAGE_FLARE) {
         $(this->stages, addOption, va("%d: flare %s", index + 1, name), s);
       } else {
@@ -323,8 +340,9 @@ static void didClickRemoveStage(Button *button) {
 }
 
 /**
- * @brief TextViewDelegate callback for the stage asset: a sprite for a flare stage, and a texture
- * otherwise.
+ * @brief TextViewDelegate callback for the stage asset: `portal` or `reflection` makes the stage a
+ * subview, and otherwise the asset is a sprite for a flare stage, an envmap for an envmap stage,
+ * and a texture for any other stage.
  */
 static void didEndEditingStageTexture(TextView *textView) {
 
@@ -336,15 +354,25 @@ static void didEndEditingStageTexture(TextView *textView) {
 
   const char *name = textView->attributedText->chars;
 
-  if (*name) {
+  if (!q_strcmp(name, stageAssetName(this->stage))) {
+    return;
+  }
+
+  if (!q_strcmp(name, "portal") || !q_strcmp(name, "reflection")) {
+    *this->stage->asset.name = '\0';
+    *this->stage->asset.path = '\0';
+    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_ANIMATION | STAGE_ENVMAP | STAGE_MASK_SUBVIEW);
+    this->stage->flags |= !q_strcmp(name, "portal") ? STAGE_PORTAL : STAGE_REFLECTION;
+  } else if (*name) {
     q_strlcpy(this->stage->asset.name, name, sizeof(this->stage->asset.name));
-    if (!(this->stage->flags & STAGE_FLARE)) {
+    this->stage->flags &= ~STAGE_MASK_SUBVIEW;
+    if (!(this->stage->flags & (STAGE_FLARE | STAGE_ENVMAP))) {
       this->stage->flags |= STAGE_TEXTURE;
     }
   } else {
     *this->stage->asset.name = '\0';
     *this->stage->asset.path = '\0';
-    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE);
+    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_MASK_SUBVIEW);
   }
 
   if (!cgi.ResolveMaterialStage(this->material->cm, this->stage)) {
