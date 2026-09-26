@@ -1742,6 +1742,13 @@ typedef struct {
    * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
    */
   float lighting;
+
+  /**
+   * @brief The radius of a sphere about `origin` that bounds the sprite however it is oriented.
+   * @remarks Set by `R_AddSprite`, once, so that each view that culls the sprite need not resolve
+   * its image to find it. Anything the caller sets here is overwritten.
+   */
+  float radius;
 } RenderSprite;
 
 #define MAX_SPRITES    0x8000

@@ -400,6 +400,84 @@ static void R_UpdateSubviewFramebuffer(void) {
 }
 
 /**
+ * @brief Projects @p subview's face onto the screen of the view being drawn around it.
+ * @param vp The view-projection of that view, whose screen coordinates the face will be sampled
+ * at. Taken as an argument rather than read from the uniform block, which each subview drawn
+ * before this one has already replaced with its own.
+ * @param mins Receives the lower left corner of the face's rect, in NDC.
+ * @param maxs Receives the upper right corner of the face's rect, in NDC.
+ * @return `false` for a face straddling the camera plane, which has no finite rect to project onto.
+ */
+static bool R_SubviewScreen(const Mat4 vp, const RenderSubview *subview, Vec2 *mins, Vec2 *maxs) {
+
+  Vec3 points[8];
+  Box3_ToPoints(subview->absBounds, points);
+
+  *mins = MakeVec2(FLT_MAX, FLT_MAX);
+  *maxs = MakeVec2(-FLT_MAX, -FLT_MAX);
+
+  for (int32_t i = 0; i < 8; i++) {
+
+    const Vec3 p = points[i];
+
+    const float w = p.x * vp.m[0][3] + p.y * vp.m[1][3] + p.z * vp.m[2][3] + vp.m[3][3];
+    if (w <= FLT_EPSILON) {
+      return false;
+    }
+
+    const Vec3 clip = Mat4_Transform(vp, p);
+
+    *mins = Vec2_Minf(*mins, MakeVec2(clip.x / w, clip.y / w));
+    *maxs = Vec2_Maxf(*maxs, MakeVec2(clip.x / w, clip.y / w));
+  }
+
+  return true;
+}
+
+/**
+ * @brief Narrows @p view's frustum to the rect of the face it is drawn for, so that nothing the
+ * face cannot show is culled in, drawn, or uploaded.
+ * @details A subview shares the outer view's projection, and a face samples it at the outer view's
+ * screen coordinates, so the rect the face covers there is the rect of the subview's own screen
+ * that is ever read. Geometrically that holds for a mirror as much as for a portal: a point on the
+ * mirror's plane is its own reflection, so the reflected camera sees it at the coordinates the
+ * outer camera does. The planes are built from the view's basis vectors, as `R_UpdateFrustum`'s
+ * are, rather than from anything a rasterized layer's own flip would bear on.
+ * @param mins The lower left corner of the face's rect on the outer view's screen, in NDC.
+ * @param maxs The upper right corner of the face's rect on the outer view's screen, in NDC.
+ */
+static void R_UpdateSubviewFrustum(RenderView *view, Vec2 mins, Vec2 maxs) {
+
+  R_UpdateFrustum(view);
+
+  if (!r_cull->value) {
+    return;
+  }
+
+  mins = Vec2_Maxf(mins, MakeVec2(-1.f, -1.f));
+  maxs = Vec2_Minf(maxs, MakeVec2(1.f, 1.f));
+
+  const float tx = tanf(Radians(view->fov.x));
+  const float ty = tanf(Radians(view->fov.y));
+
+  // a point at direction `d` is on the inside of `n` when `dot(n, d) >= 0`. The planes are the
+  // same four of `R_UpdateFrustum`, in the same order, drawn in to the face
+  CmBspPlane *p = view->frustum;
+
+  p[0].normal = Vec3_Fmaf(Vec3_Scale(view->right, -1.f), maxs.x * tx, view->forward);
+  p[1].normal = Vec3_Fmaf(view->right, -mins.x * tx, view->forward);
+  p[2].normal = Vec3_Fmaf(Vec3_Scale(view->up, -1.f), maxs.y * ty, view->forward);
+  p[3].normal = Vec3_Fmaf(view->up, -mins.y * ty, view->forward);
+
+  for (size_t i = 0; i < lengthof(view->frustum); i++) {
+    p[i].normal = Vec3_Normalize(p[i].normal);
+    p[i].dist = Vec3_Dot(view->origin, p[i].normal);
+    p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
+    p[i].signBits = Cm_SignBitsForNormal(p[i].normal);
+  }
+}
+
+/**
  * @return The rect of @p subview's face on screen, in the subview framebuffer's pixels.
  * @details A face samples its subview at its own screen coordinates, so the only texels ever
  * read are the ones beneath the face. Scissoring the subview's pass to them discards nothing
@@ -410,34 +488,16 @@ static void R_UpdateSubviewFramebuffer(void) {
  * no finite rect to project onto.
  * @remarks A mirrored subview stores its layer flipped in x, so the texels beneath the face are
  * the mirror of the rect the face projects to.
- * @param vp The view-projection of the view being drawn around these, whose screen coordinates
- * the face will be sampled at. Taken as an argument rather than read from the uniform block,
- * which each subview drawn before this one has already replaced with its own.
+ * @param mins The lower left corner of the face on screen, from `R_SubviewScreen`, in NDC.
+ * @param maxs The upper right corner of the face on screen, from `R_SubviewScreen`, in NDC.
  */
-static SDL_Rect R_SubviewScissor(const Mat4 vp, const RenderSubview *subview) {
+static SDL_Rect R_SubviewScissor(const RenderSubview *subview, const bool projected, const Vec2 mins, const Vec2 maxs) {
 
   const SDL_Size size = module.framebuffer->size;
   const SDL_Rect framebuffer = { 0, 0, size.w, size.h };
 
-  Vec3 points[8];
-  Box3_ToPoints(subview->absBounds, points);
-
-  Vec2 mins = MakeVec2(FLT_MAX, FLT_MAX);
-  Vec2 maxs = MakeVec2(-FLT_MAX, -FLT_MAX);
-
-  for (int32_t i = 0; i < 8; i++) {
-
-    const Vec3 p = points[i];
-
-    const float w = p.x * vp.m[0][3] + p.y * vp.m[1][3] + p.z * vp.m[2][3] + vp.m[3][3];
-    if (w <= FLT_EPSILON) {
-      return framebuffer;
-    }
-
-    const Vec3 clip = Mat4_Transform(vp, p);
-
-    mins = Vec2_Minf(mins, MakeVec2(clip.x / w, clip.y / w));
-    maxs = Vec2_Maxf(maxs, MakeVec2(clip.x / w, clip.y / w));
+  if (!projected) {
+    return framebuffer;
   }
 
   // NDC to pixels, rounded outward, so that a face is never scissored short of its own edge
@@ -463,7 +523,8 @@ static SDL_Rect R_SubviewScissor(const Mat4 vp, const RenderSubview *subview) {
 /**
  * @brief Draws one subview into its own layer of the subview framebuffer.
  */
-static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor) {
+static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor, const bool projected,
+                          const Vec2 mins, const Vec2 maxs) {
 
   CommandBuffer *commands = rContext.device->commands;
 
@@ -471,7 +532,11 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor)
 
   view->framebuffer = module.framebuffer;
 
-  R_UpdateFrustum(view);
+  if (projected) {
+    R_UpdateSubviewFrustum(view, mins, maxs);
+  } else {
+    R_UpdateFrustum(view);
+  }
 
   R_UpdateUniforms(view);
 
@@ -622,7 +687,10 @@ void R_DrawSubviews(RenderView *view) {
       continue;
     }
 
-    const SDL_Rect scissor = R_SubviewScissor(vp, subview);
+    Vec2 mins, maxs;
+    const bool projected = R_SubviewScreen(vp, subview, &mins, &maxs);
+
+    const SDL_Rect scissor = R_SubviewScissor(subview, projected, mins, maxs);
     if (scissor.w == 0 || scissor.h == 0) {
       continue;
     }
@@ -642,7 +710,7 @@ void R_DrawSubviews(RenderView *view) {
     R_UpdateSubviewScene(view, subview->view);
 
     rStats = &subview->view->stats;
-    R_DrawSubview(subview, &scissor);
+    R_DrawSubview(subview, &scissor, projected, mins, maxs);
 
     stats->subviewsTriangles += subview->view->stats.bspTriangles + subview->view->stats.meshTriangles;
   }

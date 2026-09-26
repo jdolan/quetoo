@@ -38,6 +38,12 @@ typedef struct {
 } RenderSpriteLocals;
 
 /**
+ * @brief The most distinct texture pairs `R_SortSpriteInstances` will group. A view with more
+ * than this draws its sprites in the order they were built, which is slower but correct.
+ */
+#define SPRITE_GROUPS 128
+
+/**
  * @brief Sprite rendering resources.
  */
 static struct {
@@ -47,6 +53,14 @@ static struct {
    */
   RenderSpriteInstance instances[MAX_SPRITE_INSTANCES];
   Buffer *instanceBuffer;
+
+  /**
+   * @brief Scratch for `R_SortSpriteInstances`: the group each instance belongs to, and the
+   * instances and batches as regrouped, which are copied back over the originals.
+   */
+  int32_t sortGroups[MAX_SPRITE_INSTANCES];
+  RenderSpriteInstance sortedInstances[MAX_SPRITE_INSTANCES];
+  RenderSpriteBatch sortedBatches[MAX_SPRITE_INSTANCES];
 
   /**
    * @brief The transfer buffer sourcing the instance upload, held for the subsystem's
@@ -127,6 +141,13 @@ RenderSprite *R_AddSprite(RenderView *view, const RenderSprite *s) {
 
   RenderSprite *out = &view->sprites[view->numSprites++];
   *out = *s;
+
+  const RenderImage *image = R_ResolveSpriteImage(s->media, s->life);
+
+  const float halfWidth = (s->size ?: s->width) * .5f * ((float) image->width / (float) image->height);
+  const float halfHeight = (s->size ?: s->height) * .5f;
+
+  out->radius = sqrtf(halfWidth * halfWidth + halfHeight * halfHeight);
 
   return out;
 }
@@ -213,12 +234,32 @@ static void R_UpdateSpriteQuad(RenderView *view, const RenderSprite *s,
   instance->color = Vec3_ToVec4(Vec3_Maxf(s->color, Vec3_Zero()), 1.f);
 
   batch->bounds = R_SpriteBounds(s->origin, a, b);
+
+  // culled once its bounds are known, giving the slot back, so that a sprite no view can see is
+  // neither uploaded nor drawn. The view's frustum alone: sprites are never occluded, since their
+  // bounds are loose and a query resolved a frame ago would pop them
+  if (R_CullBox(view, batch->bounds)) {
+    view->numSpriteInstances--;
+  }
+}
+
+/**
+ * @return `true` if the sprite @p s is wholly outside @p view's frustum.
+ * @details A sphere about its origin bounds the sprite however it is oriented, and is tested before
+ * anything of the sprite's orientation is resolved, which is the expensive part of most of them.
+ */
+static bool R_CullSprite(const RenderView *view, const RenderSprite *s) {
+  return R_CullSphere(view, s->origin, s->radius);
 }
 
 /**
  * @brief Builds sprite instances for a sprite.
  */
 static void R_UpdateSprite(RenderView *view, const RenderSprite *s) {
+
+  if (R_CullSprite(view, s)) {
+    return;
+  }
 
   if (s->flags & SPRITE_AXIAL) {
     const Vec3 up1 = MakeVec3(0.f, 0.f, 1.f);
@@ -339,6 +380,90 @@ void R_UpdateBeam(RenderView *view, const RenderBeam *b) {
 }
 
 /**
+ * @return The GPU texture @p image is sampled from, or `NULL`. Atlas images share the atlas's, so
+ * this rather than the image itself is what tells whether two sprites can be drawn together.
+ */
+static const Texture *R_SpriteTexture(const RenderImage *image) {
+  return image ? image->texture : NULL;
+}
+
+/**
+ * @brief Brings the view's sprite instances that share textures together, so that `R_DrawSprites`
+ * batches them into one draw rather than one per run of neighbours.
+ * @details A counting pass rather than a comparison sort: a view draws its sprites with a handful of
+ * texture pairs, so each is found in a small hash table, counted, and the instances are then placed
+ * group by group, keeping the order they were built in within each. That is linear in the number of
+ * instances, where a sort would repeat its comparisons in every view that draws sprites.
+ * @remarks Sprites blend additively and write no depth, so the order they are drawn in does not
+ * change the image, and nothing else in the view reads it.
+ */
+static void R_SortSpriteInstances(RenderView *view) {
+
+  const int32_t count = view->numSpriteInstances;
+  if (count < 2) {
+    return;
+  }
+
+  struct {
+    uintptr_t diffuse, nextDiffuse;
+    int32_t count;
+    bool used;
+  } table[SPRITE_GROUPS * 2] = { 0 };
+
+  int32_t numGroups = 0;
+
+  for (int32_t i = 0; i < count; i++) {
+
+    const uintptr_t diffuse = (uintptr_t) R_SpriteTexture(view->spriteBatches[i].diffusemap);
+    const uintptr_t nextDiffuse = (uintptr_t) R_SpriteTexture(view->spriteBatches[i].nextDiffusemap);
+
+    uint64_t hash = (uint64_t) diffuse * 0x9e3779b97f4a7c15ull ^ (uint64_t) nextDiffuse * 0xc2b2ae3d27d4eb4full;
+    hash ^= hash >> 32;
+
+    size_t slot = (size_t) hash & (lengthof(table) - 1);
+    while (table[slot].used && (table[slot].diffuse != diffuse || table[slot].nextDiffuse != nextDiffuse)) {
+      slot = (slot + 1) & (lengthof(table) - 1);
+    }
+
+    if (!table[slot].used) {
+
+      // too many distinct textures to group: draw them as built, which is no worse than before
+      if (numGroups == SPRITE_GROUPS) {
+        return;
+      }
+
+      table[slot].used = true;
+      table[slot].diffuse = diffuse;
+      table[slot].nextDiffuse = nextDiffuse;
+      numGroups++;
+    }
+
+    table[slot].count++;
+    module.sortGroups[i] = (int32_t) slot;
+  }
+
+  // each group's first output slot, then its next free one as instances are placed. `count` is
+  // reused for the running offset, once the group sizes have been turned into starting offsets
+  int32_t offset = 0;
+  for (size_t slot = 0; slot < lengthof(table); slot++) {
+    if (table[slot].used) {
+      const int32_t size = table[slot].count;
+      table[slot].count = offset;
+      offset += size;
+    }
+  }
+
+  for (int32_t i = 0; i < count; i++) {
+    const int32_t dest = table[module.sortGroups[i]].count++;
+    module.sortedInstances[dest] = module.instances[i];
+    module.sortedBatches[dest] = view->spriteBatches[i];
+  }
+
+  memcpy(module.instances, module.sortedInstances, (size_t) count * sizeof(module.instances[0]));
+  memcpy(view->spriteBatches, module.sortedBatches, (size_t) count * sizeof(view->spriteBatches[0]));
+}
+
+/**
  * @brief Builds sprite instances and uploads their vertices.
  */
 void R_UpdateSprites(RenderView *view, CopyPass *copyPass) {
@@ -356,6 +481,8 @@ void R_UpdateSprites(RenderView *view, CopyPass *copyPass) {
   if (view->numSpriteInstances == 0) {
     return;
   }
+
+  R_SortSpriteInstances(view);
 
   const uint32_t size = (uint32_t) view->numSpriteInstances * sizeof(RenderSpriteInstance);
 
@@ -423,7 +550,8 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
     Box3 batchBounds = in->bounds;
     for (int32_t j = i + 1; j < view->numSpriteInstances; j++) {
       const RenderSpriteBatch *batch = view->spriteBatches + j;
-      if (batch->diffusemap != in->diffusemap || batch->nextDiffusemap != in->nextDiffusemap) {
+      if (R_SpriteTexture(batch->diffusemap) != R_SpriteTexture(in->diffusemap) ||
+          R_SpriteTexture(batch->nextDiffusemap) != R_SpriteTexture(in->nextDiffusemap)) {
         break;
       }
       batchBounds = Box3_Union(batchBounds, batch->bounds);

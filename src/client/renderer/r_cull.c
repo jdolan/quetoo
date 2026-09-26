@@ -34,22 +34,16 @@ bool R_CullBox(const RenderView *view, const Box3 bounds) {
     return false;
   }
 
-  Vec3 points[8];
-
-  Box3_ToPoints(bounds, points);
-
+  // a box is behind a plane only if even its corner farthest along the plane's normal is, so that
+  // one corner is tested rather than all eight
   const CmBspPlane *plane = view->frustum;
   for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
 
-    size_t j;
-    for (j = 0; j < lengthof(points); j++) {
-      const float dist = Cm_DistanceToPlane(points[j], plane);
-      if (dist >= 0.f) {
-        break;
-      }
-    }
+    const Vec3 corner = MakeVec3(plane->normal.x >= 0.f ? bounds.maxs.x : bounds.mins.x,
+                                 plane->normal.y >= 0.f ? bounds.maxs.y : bounds.mins.y,
+                                 plane->normal.z >= 0.f ? bounds.maxs.z : bounds.mins.z);
 
-    if (j == lengthof(points)) {
+    if (Cm_DistanceToPlane(corner, plane) < 0.f) {
       return true;
     }
   }
