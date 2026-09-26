@@ -433,7 +433,9 @@
                     "identifier": "stageColorR",
                     "min": 0,
                     "max": 4,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -448,7 +450,9 @@
                     "identifier": "stageColorG",
                     "min": 0,
                     "max": 4,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -463,7 +467,9 @@
                     "identifier": "stageColorB",
                     "min": 0,
                     "max": 4,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -478,7 +484,9 @@
                     "identifier": "stageColorA",
                     "min": 0,
                     "max": 1,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -509,7 +517,9 @@
                     "identifier": "stagePulseHz",
                     "min": 0.05,
                     "max": 10,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -620,7 +630,9 @@
                     "identifier": "stageRotateHz",
                     "min": -4,
                     "max": 4,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -651,7 +663,9 @@
                     "identifier": "stageStretchAmplitude",
                     "min": 0,
                     "max": 1,
-                    "step": 0.01
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -666,7 +680,9 @@
                     "identifier": "stageStretchHz",
                     "min": 0,
                     "max": 4,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -697,7 +713,9 @@
                     "identifier": "stageWarpHz",
                     "min": 0,
                     "max": 4,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -712,7 +730,9 @@
                     "identifier": "stageWarpAmplitude",
                     "min": 0,
                     "max": 1,
-                    "step": 0.01
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -743,7 +763,9 @@
                     "identifier": "stageEnvmapAmount",
                     "min": 0,
                     "max": 0.5,
-                    "step": 0.01
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -774,7 +796,9 @@
                     "identifier": "stageShellRadius",
                     "min": 0,
                     "max": 8,
-                    "step": 0.25
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -817,7 +841,9 @@
                     "identifier": "stageAnimationFps",
                     "min": 0,
                     "max": 60,
-                    "step": 1
+                    "step": 1,
+                    "labelFormat": "%.0f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -904,7 +930,9 @@
                     "identifier": "stageEmissiveValue",
                     "min": 0,
                     "max": 1,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -935,7 +963,9 @@
                     "identifier": "stageLightingIntensity",
                     "min": 0,
                     "max": 2,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -982,7 +1012,9 @@
                     "identifier": "stageDirtmapIntensity",
                     "min": 0,
                     "max": 1,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
@@ -1013,7 +1045,9 @@
                     "identifier": "stageLightRadius",
                     "min": 16,
                     "max": 2048,
-                    "step": 16
+                    "step": 1,
+                    "labelFormat": "%.0f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -1028,7 +1062,9 @@
                     "identifier": "stageLightIntensity",
                     "min": 0.1,
                     "max": 10,
-                    "step": 0.1
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -1043,7 +1079,9 @@
                     "identifier": "stageLightR",
                     "min": 0,
                     "max": 1,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -1058,7 +1096,9 @@
                     "identifier": "stageLightG",
                     "min": 0,
                     "max": 1,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -1073,7 +1113,9 @@
                     "identifier": "stageLightB",
                     "min": 0,
                     "max": 1,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]

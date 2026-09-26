@@ -78,7 +78,9 @@
                     "identifier": "roughness",
                     "min": 0,
                     "max": 8,
-                    "step": 0.125
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -93,7 +95,9 @@
                     "identifier": "parallax",
                     "min": 0,
                     "max": 8,
-                    "step": 0.125
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -108,7 +112,9 @@
                     "identifier": "shadow",
                     "min": 0,
                     "max": 8,
-                    "step": 0.125
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -123,7 +129,9 @@
                     "identifier": "hardness",
                     "min": 0,
                     "max": 8,
-                    "step": 0.125
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -138,7 +146,9 @@
                     "identifier": "specularity",
                     "min": 0,
                     "max": 8,
-                    "step": 0.125
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 },
                 {
@@ -153,7 +163,9 @@
                     "identifier": "alphaTest",
                     "min": 0,
                     "max": 1,
-                    "step": 0.05
+                    "step": 0.01,
+                    "labelFormat": "%.2f",
+                    "snapToStep": true
                   }
                 }
               ]
