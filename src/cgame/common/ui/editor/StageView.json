@@ -307,6 +307,22 @@
                       "class": "Checkbox",
                       "identifier": "stageEnvmap"
                     }
+                  },
+                  {
+                    "class": "Input",
+                    "classNames": [
+                      "flag"
+                    ],
+                    "orientation": "InputOrientationRight",
+                    "label": {
+                      "text": {
+                        "text": "shell"
+                      }
+                    },
+                    "control": {
+                      "class": "Checkbox",
+                      "identifier": "stageShell"
+                    }
                   }
                 ]
               }
@@ -688,6 +704,37 @@
                     "min": 0,
                     "max": 0.5,
                     "step": 0.01
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "class": "Box",
+            "identifier": "stageShellBox",
+            "classNames": [
+              "effect"
+            ],
+            "label": {
+              "text": {
+                "text": "shell"
+              }
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Radius"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "stageShellRadius",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.25
                   }
                 }
               ]

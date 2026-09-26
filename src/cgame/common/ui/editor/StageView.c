@@ -56,6 +56,7 @@ static const StageFlag stageFlags[] = {
   { "stageLight", "stageLightBox", STAGE_LIGHT, offsetof(CmStage, light.intensity), STAGE_LIGHT_INTENSITY },
   { "stageFlare", NULL, STAGE_FLARE, -1, 0.f },
   { "stageEnvmap", "stageEnvmapBox", STAGE_ENVMAP, offsetof(CmStage, envmap.amount), STAGE_ENVMAP_AMOUNT },
+  { "stageShell", "stageShellBox", STAGE_SHELL, offsetof(CmStage, shell.radius), 1.f },
 };
 
 /**
@@ -87,6 +88,7 @@ static const StageParam stageParams[] = {
   { "stageWarpHz", offsetof(CmStage, warp.hz), false },
   { "stageWarpAmplitude", offsetof(CmStage, warp.amplitude), false },
   { "stageEnvmapAmount", offsetof(CmStage, envmap.amount), false },
+  { "stageShellRadius", offsetof(CmStage, shell.radius), false },
   { "stageEmissiveValue", offsetof(CmStage, emissive), false },
   { "stageLightingIntensity", offsetof(CmStage, lighting.intensity), false },
   { "stageDirtmapIntensity", offsetof(CmStage, dirtmap.intensity), false },
@@ -475,6 +477,10 @@ static void didToggleStageFlag(Checkbox *checkbox) {
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags |= STAGE_TEXTURE;
       q_strlcpy(this->stage->asset.name, this->material->cm->basename, sizeof(this->stage->asset.name));
+    }
+
+    if (!(this->stage->flags & (STAGE_TEXTURE | STAGE_SHELL | STAGE_MASK_SUBVIEW))) {
+      this->stage->flags &= ~STAGE_DRAW;
     }
   }
 
