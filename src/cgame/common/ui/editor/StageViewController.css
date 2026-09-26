@@ -1,10 +1,16 @@
-#stages .stageButtons {
+#stages .stagesHeader,
+#stages .assetRow {
   axis: horizontal;
   spacing: 4;
 }
 
-#stages .stageButtons Button {
-  alignment: top-left;
+#stages .stagesHeader > Label {
+  min-width: 100;
+}
+
+#stages .stagesHeader Button,
+#stages .assetRow Button {
+  alignment: middle-left;
   autoresizing-mask: contain;
   background-color: #00000000;
   bevel: none;
@@ -14,10 +20,19 @@
   padding: 2 2 2 2;
 }
 
-#stages .stageButtons Button ImageView {
+#stages .stagesHeader Button ImageView,
+#stages .assetRow Button ImageView {
   autoresizing-mask: none;
   height: 16;
   width: 16;
+}
+
+#stages .assetRow Input > TextView {
+  width: 196;
+}
+
+#stages .stageList {
+  spacing: 8;
 }
 
 #stages Box.effect {
@@ -26,4 +41,8 @@
 
 #stages .stage Box.enabled {
   visibility: visible;
+}
+
+#stages .collapsed > .contentView {
+  visibility: hidden;
 }

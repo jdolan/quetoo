@@ -294,6 +294,9 @@
     <ClInclude Include="..\src\cgame\common\ui\editor\MaterialViewController.h">
       <Filter>src\common\ui\editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\editor\StageView.h">
+      <Filter>src\common\ui\editor</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\editor\StageViewController.h">
       <Filter>src\common\ui\editor</Filter>
     </ClInclude>
@@ -618,6 +621,9 @@
       <Filter>src\common\ui\editor</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\editor\MaterialViewController.c">
+      <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\editor\StageView.c">
       <Filter>src\common\ui\editor</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\editor\StageViewController.c">

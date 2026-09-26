@@ -57,14 +57,9 @@ struct StageViewController {
   RenderMaterial *material;
 
   /**
-   * @brief The stage being edited, or `NULL`.
+   * @brief The label that counts the stages.
    */
-  CmStage *stage;
-
-  /**
-   * @brief The stage selection.
-   */
-  Select *stages;
+  Label *count;
 
   /**
    * @brief The button that appends a stage.
@@ -72,24 +67,15 @@ struct StageViewController {
   Button *addStage;
 
   /**
-   * @brief The button that removes the selected stage.
+   * @brief The StackView of the StageViews, one for each stage.
    */
-  Button *removeStage;
+  StackView *stageList;
 
   /**
-   * @brief The stage texture name text field.
+   * @brief The StageViews that were removed, retained until the next change to the stages, because
+   * a StageView is removed from within the click of its own remove button.
    */
-  TextView *stageTexture;
-
-  /**
-   * @brief The stage blend source factor selection.
-   */
-  Select *stageBlendSrc;
-
-  /**
-   * @brief The stage blend destination factor selection.
-   */
-  Select *stageBlendDest;
+  Array *removedStageViews;
 };
 
 /**

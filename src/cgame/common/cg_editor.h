@@ -135,6 +135,7 @@ void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const ClientFrame *frame);
 void Cg_UpdateEditorMaterialLights(const CmMaterial *material);
+void Cg_ReloadEditorMaterialStages(RenderMaterial *material);
 size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t out[CG_EDITOR_MAX_CANDIDATES]);
 CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end);
 void Cg_CycleEditorSelection(int32_t dir);

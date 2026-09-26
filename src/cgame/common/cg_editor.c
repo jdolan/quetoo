@@ -241,6 +241,22 @@ void Cg_UpdateEditorMaterialLights(const CmMaterial *material) {
 }
 
 /**
+ * @brief Rebuilds the render stages, flares and light previews of the material after the editor
+ * changes its stages, and marks it dirty.
+ */
+void Cg_ReloadEditorMaterialStages(RenderMaterial *material) {
+
+  material->cm->dirty = true;
+
+  cgi.ReloadMaterialStages(material);
+
+  Cg_FreeFlares();
+  Cg_LoadFlares();
+
+  Cg_UpdateEditorMaterialLights(material->cm);
+}
+
+/**
  * @brief Resolves the transform from world space to the entity's model space, in which
  * the BSP brushes of an entity with an origin are stored.
  */

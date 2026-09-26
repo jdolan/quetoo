@@ -99,6 +99,7 @@ cguieditor_DATA = \
 	$(CGUI_DIR)/editor/EntityViewController.json \
 	$(CGUI_DIR)/editor/MaterialViewController.css \
 	$(CGUI_DIR)/editor/MaterialViewController.json \
+	$(CGUI_DIR)/editor/StageView.json \
 	$(CGUI_DIR)/editor/StageViewController.css \
 	$(CGUI_DIR)/editor/StageViewController.json \
 	$(CGUI_DIR)/editor/editor.css
@@ -256,6 +257,7 @@ cgame_la_SOURCES = \
 	ui/editor/EntityView.c \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
+	ui/editor/StageView.c \
 	ui/editor/StageViewController.c \
 	ui/home/DemoList.c \
 	ui/home/DemosCollectionItemView.c \
