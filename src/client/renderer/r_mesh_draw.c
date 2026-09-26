@@ -297,7 +297,7 @@ static void R_DrawMeshEntityShellEffect(const RenderView *view, const RenderEnti
     .color = Color4fv(e->shell),
     .blend = { .src = BLEND_SRC_ALPHA, .dest = BLEND_ONE },
     .scroll = { 1.f, 1.f },
-    .scale = { .5f, .5f },
+    .scale = { 2.f, 2.f },
     .shell = { radius },
     .lighting = { 1.f, STAGE_LIGHTING_MODE_FLAT },
   };
