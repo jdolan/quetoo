@@ -55,6 +55,7 @@ static const StageFlag stageFlags[] = {
   { "stageDirtmap", "stageDirtmapBox", STAGE_DIRTMAP, offsetof(CmStage, dirtmap.intensity), 1.f },
   { "stageLight", "stageLightBox", STAGE_LIGHT, offsetof(CmStage, light.intensity), STAGE_LIGHT_INTENSITY },
   { "stageFlare", NULL, STAGE_FLARE, -1, 0.f },
+  { "stageEnvmap", "stageEnvmapBox", STAGE_ENVMAP, offsetof(CmStage, envmap.amount), STAGE_ENVMAP_AMOUNT },
 };
 
 /**
@@ -85,6 +86,7 @@ static const StageParam stageParams[] = {
   { "stageStretchHz", offsetof(CmStage, stretch.hz), false },
   { "stageWarpHz", offsetof(CmStage, warp.hz), false },
   { "stageWarpAmplitude", offsetof(CmStage, warp.amplitude), false },
+  { "stageEnvmapAmount", offsetof(CmStage, envmap.amount), false },
   { "stageEmissiveValue", offsetof(CmStage, emissive), false },
   { "stageLightingIntensity", offsetof(CmStage, lighting.intensity), false },
   { "stageDirtmapIntensity", offsetof(CmStage, dirtmap.intensity), false },
@@ -156,7 +158,7 @@ static void resolveStageAxes(CmStage *stage, CmStageFlags mask) {
 
 /**
  * @return The asset name that the stage shows: `portal` or `reflect` for a subview stage, which
- * has no asset, and otherwise its texture, sprite or envmap.
+ * has no asset, and otherwise its texture or sprite.
  */
 static const char *stageAssetName(const CmStage *stage) {
 
@@ -301,8 +303,8 @@ static void didClickRemoveStage(Button *button) {
 
 /**
  * @brief TextViewDelegate callback for the stage asset: `portal` or `reflect` makes the stage a
- * subview, and otherwise the asset is a sprite for a flare stage, an envmap for an envmap stage,
- * and a texture for any other stage.
+ * subview, and otherwise the asset is a sprite for a flare stage, and a texture for any other
+ * stage. An envmap applies to any of them but a flare.
  */
 static void didEndEditingStageTexture(TextView *textView) {
 
@@ -321,12 +323,12 @@ static void didEndEditingStageTexture(TextView *textView) {
   if (!q_strcmp(name, "portal") || !q_strcmp(name, "reflect")) {
     *this->stage->asset.name = '\0';
     *this->stage->asset.path = '\0';
-    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_ANIMATION | STAGE_ENVMAP | STAGE_MASK_SUBVIEW);
+    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_ANIMATION | STAGE_MASK_SUBVIEW);
     this->stage->flags |= !q_strcmp(name, "portal") ? STAGE_PORTAL : STAGE_REFLECT;
   } else if (*name) {
     q_strlcpy(this->stage->asset.name, name, sizeof(this->stage->asset.name));
     this->stage->flags &= ~STAGE_MASK_SUBVIEW;
-    if (!(this->stage->flags & (STAGE_FLARE | STAGE_ENVMAP))) {
+    if (!(this->stage->flags & STAGE_FLARE)) {
       this->stage->flags |= STAGE_TEXTURE;
     }
   } else {

@@ -291,6 +291,22 @@
                       "class": "Checkbox",
                       "identifier": "stageFlare"
                     }
+                  },
+                  {
+                    "class": "Input",
+                    "classNames": [
+                      "flag"
+                    ],
+                    "orientation": "InputOrientationRight",
+                    "label": {
+                      "text": {
+                        "text": "envmap"
+                      }
+                    },
+                    "control": {
+                      "class": "Checkbox",
+                      "identifier": "stageEnvmap"
+                    }
                   }
                 ]
               }
@@ -640,6 +656,37 @@
                     "identifier": "stageWarpAmplitude",
                     "min": 0,
                     "max": 1,
+                    "step": 0.01
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "class": "Box",
+            "identifier": "stageEnvmapBox",
+            "classNames": [
+              "effect"
+            ],
+            "label": {
+              "text": {
+                "text": "envmap"
+              }
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Amount"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "stageEnvmapAmount",
+                    "min": 0,
+                    "max": 0.5,
                     "step": 0.01
                   }
                 }
