@@ -280,8 +280,8 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "reflection")) {
-      s->flags |= STAGE_REFLECTION;
+    if (!q_strcmp(token, "reflect")) {
+      s->flags |= STAGE_REFLECT;
       continue;
     }
 
@@ -1261,8 +1261,8 @@ static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File
     Fs_Print(file, "\t\tportal\n");
   }
 
-  if (stage->flags & STAGE_REFLECTION) {
-    Fs_Print(file, "\t\treflection\n");
+  if (stage->flags & STAGE_REFLECT) {
+    Fs_Print(file, "\t\treflect\n");
   }
 
   if (stage->flags & STAGE_BLEND) {

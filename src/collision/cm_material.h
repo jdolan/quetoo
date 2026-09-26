@@ -288,7 +288,7 @@ typedef enum {
   /**
    * @brief A stage that draws the reflection its face shows, in place of a texture.
    */
-  STAGE_REFLECTION    = (1 << 22),
+  STAGE_REFLECT       = (1 << 22),
 
   /**
    * @brief A stage that emits light from the faces that use it.
@@ -301,7 +301,7 @@ typedef enum {
 /**
  * @brief The stage keywords that draw a subview, rather than an asset of their own.
  */
-#define STAGE_MASK_SUBVIEW (STAGE_PORTAL | STAGE_REFLECTION)
+#define STAGE_MASK_SUBVIEW (STAGE_PORTAL | STAGE_REFLECT)
 
 /**
  * @brief Stages are ordered layers of visual effects rendered on top of their material.

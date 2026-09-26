@@ -215,7 +215,7 @@ typedef struct RenderStage {
 
   /**
    * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
-   * @details A `portal` or `reflection` stage on a surface that shows no such subview loses that
+   * @details A `portal` or `reflect` stage on a surface that shows no such subview loses that
    *   flag here, so that it draws nothing rather than sampling a layer that is not its own.
    */
   int32_t flags;

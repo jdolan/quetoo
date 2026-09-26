@@ -194,7 +194,7 @@ void main(void) {
 
   } else {
 
-    // a `portal` or `reflection` stage draws the subview its face shows, in place of a texture.
+    // a `portal` or `reflect` stage draws the subview its face shows, in place of a texture.
     // Its coordinates are then the screen's, since that is where the subview's image lives, and
     // every transform the stage carries -- warp, scroll, rotate -- disturbs the view itself
     // rather than a texture drawn over it

@@ -155,7 +155,7 @@ static void resolveStageAxes(CmStage *stage, CmStageFlags mask) {
 }
 
 /**
- * @return The asset name that the stage shows: `portal` or `reflection` for a subview stage, which
+ * @return The asset name that the stage shows: `portal` or `reflect` for a subview stage, which
  * has no asset, and otherwise its texture, sprite or envmap.
  */
 static const char *stageAssetName(const CmStage *stage) {
@@ -164,8 +164,8 @@ static const char *stageAssetName(const CmStage *stage) {
     return "portal";
   }
 
-  if (stage->flags & STAGE_REFLECTION) {
-    return "reflection";
+  if (stage->flags & STAGE_REFLECT) {
+    return "reflect";
   }
 
   return stage->asset.name;
@@ -300,7 +300,7 @@ static void didClickRemoveStage(Button *button) {
 }
 
 /**
- * @brief TextViewDelegate callback for the stage asset: `portal` or `reflection` makes the stage a
+ * @brief TextViewDelegate callback for the stage asset: `portal` or `reflect` makes the stage a
  * subview, and otherwise the asset is a sprite for a flare stage, an envmap for an envmap stage,
  * and a texture for any other stage.
  */
@@ -318,11 +318,11 @@ static void didEndEditingStageTexture(TextView *textView) {
     return;
   }
 
-  if (!q_strcmp(name, "portal") || !q_strcmp(name, "reflection")) {
+  if (!q_strcmp(name, "portal") || !q_strcmp(name, "reflect")) {
     *this->stage->asset.name = '\0';
     *this->stage->asset.path = '\0';
     this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_ANIMATION | STAGE_ENVMAP | STAGE_MASK_SUBVIEW);
-    this->stage->flags |= !q_strcmp(name, "portal") ? STAGE_PORTAL : STAGE_REFLECTION;
+    this->stage->flags |= !q_strcmp(name, "portal") ? STAGE_PORTAL : STAGE_REFLECT;
   } else if (*name) {
     q_strlcpy(this->stage->asset.name, name, sizeof(this->stage->asset.name));
     this->stage->flags &= ~STAGE_MASK_SUBVIEW;
