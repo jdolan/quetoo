@@ -739,7 +739,7 @@ static void G_worldspawn_Music(void) {
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
 
- The map list's entry for the level, and the server's own settings, take precedence over the gameplay, movement, gravity, limits and music given here.
+The map list's entry for the level takes precedence over the gameplay, movement, gravity, limits and music given here. Explicit server settings take precedence for gameplay, movement and gravity; limits use these values before falling back to server defaults.
  -------- KEYS --------
  message : The map title.
  games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
