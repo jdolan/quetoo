@@ -165,6 +165,21 @@ static const struct {
 };
 
 /**
+ * @return True if the stage parameter at the offset is a channel of the light color.
+ */
+static bool isLightColor(ptrdiff_t offset) {
+  return offset >= (ptrdiff_t) offsetof(CmStage, light.color) &&
+         offset < (ptrdiff_t) (offsetof(CmStage, light.color) + sizeof(Vec3));
+}
+
+/**
+ * @return The mask of the scroll or scale axes within the flag, or none.
+ */
+static CmStageFlags axesOf(CmStageFlags flag) {
+  return flag & (STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T);
+}
+
+/**
  * @return The float parameter of the stage at the given offset.
  */
 static float *stageFloat(CmStage *stage, ptrdiff_t offset) {
@@ -256,7 +271,7 @@ static void updateStage(StageView *this) {
 
   for (size_t i = 0; i < lengthof(stageFlags); i++) {
     Control *control = (Control *) $(view, descendantWithIdentifier, stageFlags[i].identifier);
-    const bool enabled = stage->flags & stageFlags[i].flag;
+    const bool enabled = (stage->flags | this->openAxes) & stageFlags[i].flag;
 
     if (control) {
       if (enabled) {
@@ -277,10 +292,20 @@ static void updateStage(StageView *this) {
     }
   }
 
+  Vec3 lightColor = stage->light.color;
+  if ((stage->flags & STAGE_LIGHT) && Vec3_Equal(lightColor, Vec3_Zero())) {
+    lightColor = cgi.MaterialLightColor(this->material->cm, stage);
+  }
+
   for (size_t i = 0; i < lengthof(stageParams); i++) {
     Slider *slider = (Slider *) $(view, descendantWithIdentifier, stageParams[i].identifier);
     if (slider) {
-      $(slider, setValue, (double) *stageFloat(stage, stageParams[i].offset));
+      const ptrdiff_t offset = stageParams[i].offset;
+      if (isLightColor(offset)) {
+        $(slider, setValue, (double) lightColor.xyz[(offset - offsetof(CmStage, light.color)) / sizeof(float)]);
+      } else {
+        $(slider, setValue, (double) *stageFloat(stage, offset));
+      }
     }
   }
 
@@ -505,6 +530,8 @@ static void didToggleStageFlag(Checkbox *checkbox) {
 
     resolveStageAxes(this->stage, flag->flag);
 
+    this->openAxes |= axesOf(flag->flag);
+
     if (flag->flag == STAGE_COLOR && this->stage->color.r + this->stage->color.g + this->stage->color.b == 0.f) {
       this->stage->color = color_white;
     }
@@ -528,6 +555,8 @@ static void didToggleStageFlag(Checkbox *checkbox) {
     }
   } else {
     this->stage->flags &= ~flag->flag;
+
+    this->openAxes &= ~axesOf(flag->flag);
 
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags |= STAGE_TEXTURE;
@@ -641,6 +670,10 @@ static void didSetStageValue(Slider *slider, double value) {
 
   for (size_t i = 0; i < lengthof(stageParams); i++) {
     if (!q_strcmp(identifier, stageParams[i].identifier)) {
+
+      if (isLightColor(stageParams[i].offset) && Vec3_Equal(this->stage->light.color, Vec3_Zero())) {
+        this->stage->light.color = cgi.MaterialLightColor(this->material->cm, this->stage);
+      }
 
       float *param = stageFloat(this->stage, stageParams[i].offset);
       if (*param == (float) value) {

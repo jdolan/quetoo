@@ -87,6 +87,12 @@ struct StageView {
   CmStage *stage;
 
   /**
+   * @brief The scroll and scale effects that stay checked while both of their axes are zero. The
+   * material cannot hold a zero axis, so it does not save them, but the editor keeps them open.
+   */
+  CmStageFlags openAxes;
+
+  /**
    * @brief The button that removes the stage.
    */
   Button *removeStage;
