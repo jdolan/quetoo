@@ -125,7 +125,7 @@ static void Cg_Init(void) {
   cg_drawCrosshairHealth = cgi.AddCvar("cg_drawCrosshairHealth", "0", CVAR_ARCHIVE, "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
   cg_drawCrosshairPulse = cgi.AddCvar("cg_drawCrosshairPulse", "1", CVAR_ARCHIVE, "Pulse the crosshair when picking up items");
   cg_drawCrosshairScale = cgi.AddCvar("cg_drawCrosshairScale", "1", CVAR_ARCHIVE, "Controls the crosshair scale (size)");
-  cg_drawDiagnostics = cgi.AddCvar("cg_drawDiagnostics", "0", CVAR_ARCHIVE, "Draw the client, renderer and sound counters on the HUD");
+  cg_drawDiagnostics = cgi.AddCvar("cg_drawDiagnostics", "0", CVAR_DEVELOPER, "Draw the client, renderer and sound counters on the HUD");
   cg_drawFps = cgi.AddCvar("cg_drawFps", "1", CVAR_ARCHIVE, "Draw the frame rate on the HUD");
   cg_drawHud = cgi.AddCvar("cg_drawHud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
   cg_drawPing = cgi.AddCvar("cg_drawPing", "1", CVAR_ARCHIVE, "Draw the round trip time to the server on the HUD");
