@@ -42,7 +42,7 @@ static void Voxel_CollectLightIndex(const HashTable *table, ident key, ident val
 /**
  * @brief The mean lights per lit voxel above which the renderer struggles.
  */
-#define VOXEL_LIGHT_DENSITY_WARN 4.f
+#define VOXEL_LIGHT_DENSITY_WARN 5.f
 
 Voxels voxels;
 
@@ -809,11 +809,11 @@ void EmitVoxels(void) {
 
   const float density = litVoxels ? (float) totalLights / litVoxels : 0.f;
 
-  Com_Print("\r%-24s %.2f avg, %d max, %zu of %zu voxels lit\n",
+  Com_Verbose("\r%-24s %.2f avg, %d max, %zu of %zu voxels lit\n",
             "Voxel light density", density, maxLights, litVoxels, voxels.numVoxels);
 
   if (density > VOXEL_LIGHT_DENSITY_WARN) {
-    Com_Warn("Voxel light density is %.2f, above %.2f. Reduce light radius or light count\n",
+    Com_Warn("Voxel light density is %.2f, above %.2f. Reduce light radius or light count for better performance.\n",
              density, VOXEL_LIGHT_DENSITY_WARN);
   }
 
