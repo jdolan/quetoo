@@ -102,11 +102,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_windowWidth 1920 +set r_windowHeight 1080"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0"
-            isEnabled = "YES">
+            argument = "+set r_fullscreen 2"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_volume 0"
@@ -122,7 +122,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_aiNodeDev 1"
@@ -141,8 +141,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
-            isEnabled = "NO">
+            argument = "+map hallways"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"

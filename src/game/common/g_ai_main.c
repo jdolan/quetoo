@@ -900,14 +900,14 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   return *angle;
 }
 
-static GameEntity *gAiCurrentEntity;
+static GameEntity *g_aiCurrentEntity;
 
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static CmTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
-  const GameEntity *ent= gAiCurrentEntity;
+  const GameEntity *ent= g_aiCurrentEntity;
 
   if (ent->solid == SOLID_DEAD) {
     return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_CORPSE);
@@ -1231,7 +1231,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   cmd->forward = dir.x;
   cmd->right = dir.y;
 
-  gAiCurrentEntity = ent;
+  g_aiCurrentEntity = ent;
 
   // predict ahead
   PMove pm;
@@ -1693,7 +1693,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
 /**
  * @brief Static list of func goal functions
  */
-static const G_Ai_GoalFunc gAiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
+static const G_Ai_GoalFunc g_aiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
   [AI_FUNC_GOAL_LONGRANGE] = G_Ai_LongRange,
   [AI_FUNC_GOAL_HUNT] = G_Ai_Hunt,
   [AI_FUNC_GOAL_WEAPONRY] = G_Ai_Weaponry,
@@ -1769,7 +1769,7 @@ void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
 
     if (cl->ai->funcGoalNextThinks[i] <= gLevel.time) {
       const int64_t funcStart = G_Ai_Microseconds();
-      const uint32_t next = gAiGoalfuncs[i](cl, cmd);
+      const uint32_t next = g_aiGoalfuncs[i](cl, cmd);
       const int64_t funcUs = G_Ai_Microseconds() - funcStart;
 
       cl->ai->funcGoalNextThinks[i] = gLevel.time + next;
