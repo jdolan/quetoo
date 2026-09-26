@@ -9,20 +9,6 @@
     },
     "subviews": [
       {
-        "identifier": "createEntity",
-        "class": "Button",
-        "title": {
-          "text": "Create Entity"
-        }
-      },
-      {
-        "identifier": "deleteEntity",
-        "class": "Button",
-        "title": {
-          "text": "Delete Entity"
-        }
-      },
-      {
         "class": "Button",
         "identifier": "save",
         "title": {

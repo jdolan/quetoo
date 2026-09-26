@@ -6,10 +6,16 @@
   width: 220;
 }
 
-#entity Box.world {
+#entity Box.world,
+#entity Box.team {
   visibility: hidden;
 }
 
 #entity .container Box.enabled {
   visibility: visible;
+}
+
+#entity .entityButtons {
+  axis: horizontal;
+  spacing: 4;
 }

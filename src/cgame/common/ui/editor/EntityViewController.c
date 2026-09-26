@@ -58,6 +58,18 @@ static void setEntityOriginFromClientView(CmEntity *entity) {
 }
 
 /**
+ * @brief Adds or removes the class name, once.
+ */
+static void setClassName(View *view, const char *className, bool enabled) {
+
+  if (enabled && !$(view, hasClassName, className)) {
+    $(view, addClassName, className);
+  } else if (!enabled) {
+    $(view, removeClassName, className);
+  }
+}
+
+/**
  * @return The vector as the text of a world.cfg field.
  */
 static char *vs(const Vec3 v) {
@@ -91,16 +103,26 @@ static void setModel(EntityViewController *self, RenderModel *model) {
     $(self->worldTranslate, setAttributedText, vs(world->translate));
     $(self->worldRotate, setAttributedText, vs(world->rotate));
     $(self->worldScale, setAttributedText, va("%g", world->scale));
-
-    if (!$(self->world, hasClassName, "enabled")) {
-      $(self->world, addClassName, "enabled");
-    }
-  } else {
-    $(self->world, removeClassName, "enabled");
   }
+
+  setClassName(self->world, "enabled", self->model != NULL);
 }
 
 #pragma mark - Delegates
+
+/**
+ * @brief ButtonDelegate callback for the Create Entity button.
+ */
+static void didClickCreateEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, createEntity);
+}
+
+/**
+ * @brief ButtonDelegate callback for the Delete Entity button.
+ */
+static void didClickDeleteEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, deleteEntity);
+}
 
 /**
  * @brief TextViewDelegate callback for the world.cfg fields.
@@ -205,6 +227,9 @@ static void loadView(ViewController *self) {
     MakeOutlet("add", &this->add),
     MakeOutlet("teamPairs", &this->teamPairs),
     MakeOutlet("teamAdd", &this->teamAdd),
+    MakeOutlet("teamEntity", &this->teamBox),
+    MakeOutlet("createEntity", &this->createEntity),
+    MakeOutlet("deleteEntity", &this->deleteEntity),
     MakeOutlet("world", &this->world),
     MakeOutlet("worldTranslate", &this->worldTranslate),
     MakeOutlet("worldRotate", &this->worldRotate),
@@ -222,6 +247,12 @@ static void loadView(ViewController *self) {
 
   this->teamAdd->delegate.self = this;
   this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
+
+  this->createEntity->delegate.self = this;
+  this->createEntity->delegate.didClick = didClickCreateEntity;
+
+  this->deleteEntity->delegate.self = this;
+  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
 
   TextView *world[] = { this->worldTranslate, this->worldRotate, this->worldScale };
   for (size_t i = 0; i < lengthof(world); i++) {
@@ -587,6 +618,16 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
   cgEditor.selected = self->entity ? self->entity->number : -1;
 
   setModel(self, self->entity && IS_MESH_MODEL(self->entity->model) ? (RenderModel *) self->entity->model : NULL);
+
+  setClassName(self->teamBox, "enabled", self->teamEntity && self->teamEntity != self->entity);
+
+  Control *deleteEntity = (Control *) self->deleteEntity;
+  if (self->entity && self->entity->number > 0) {
+    deleteEntity->state &= ~ControlStateDisabled;
+  } else {
+    deleteEntity->state |= ControlStateDisabled;
+  }
+  $(deleteEntity, stateDidChange);
 
   $((View *) self->pairs, sizeToFit);
   $((View *) self->teamPairs, sizeToFit);

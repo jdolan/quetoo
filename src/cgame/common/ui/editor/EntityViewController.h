@@ -72,6 +72,21 @@ struct EntityViewController {
   EntityView *teamAdd;
 
   /**
+   * @brief The Create Entity button.
+   */
+  Button *createEntity;
+
+  /**
+   * @brief The Delete Entity button, disabled while no entity is selected.
+   */
+  Button *deleteEntity;
+
+  /**
+   * @brief The Team Master Box, shown while the entity is a light with a team master.
+   */
+  View *teamBox;
+
+  /**
    * @brief The world.cfg Box, shown while the entity has a mesh model.
    */
   View *world;

@@ -73,16 +73,6 @@ struct EditorViewController {
   StageViewController *stageViewController;
 
   /**
-   * @brief The Create Entity button.
-   */
-  Button *createEntity;
-
-  /**
-   * @brief The Delete Entity button.
-   */
-  Button *deleteEntity;
-
-  /**
    * @brief The Save button.
    */
   Button *save;
