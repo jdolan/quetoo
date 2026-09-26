@@ -1,0 +1,44 @@
+{
+  "identifier": "stages",
+  "subviews": [
+    {
+      "class": "ScrollView",
+      "contentView": {
+        "class": "StackView",
+        "classNames": [
+          "container"
+        ],
+        "subviews": [
+          {
+            "class": "StackView",
+            "classNames": [
+              "stagesHeader"
+            ],
+            "subviews": [
+              {
+                "class": "Label",
+                "identifier": "count",
+                "text": {
+                  "text": "0 stages"
+                }
+              },
+              {
+                "class": "Button",
+                "identifier": "addStage",
+                "image": "pics/add.svg@16x16"
+              }
+            ]
+          },
+          {
+            "class": "StackView",
+            "identifier": "stageList",
+            "classNames": [
+              "stageList"
+            ],
+            "subviews": []
+          }
+        ]
+      }
+    }
+  ]
+}

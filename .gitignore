@@ -46,6 +46,7 @@ src/tests/check_atlas
 src/tests/check_box
 src/tests/check_cm_entity
 src/tests/check_cm_manifest
+src/tests/check_cm_material
 src/tests/check_cm_polylib
 src/tests/check_cm_test
 src/tests/check_cmd
@@ -59,7 +60,7 @@ src/tests/check_mem
 src/tests/check_net_message
 src/tests/check_pmove
 src/tests/check_r_media
-src/tests/check_race
+src/tests/check_g_race
 src/tests/check_shared
 src/tests/check_thread
 src/tests/check_vector

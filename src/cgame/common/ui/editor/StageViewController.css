@@ -1,0 +1,62 @@
+#stages .stagesHeader,
+#stages .assetRow {
+  axis: horizontal;
+  spacing: 4;
+}
+
+#stages .stagesHeader > Label {
+  min-width: 100;
+}
+
+#stages .stagesHeader Button,
+#stages .assetRow Button {
+  alignment: middle-left;
+  autoresizing-mask: contain;
+  background-color: #00000000;
+  bevel: none;
+  border-width: 0;
+  min-height: 0;
+  min-width: 0;
+  padding: 2 2 2 2;
+}
+
+#stages .stagesHeader Button ImageView,
+#stages .assetRow Button ImageView {
+  autoresizing-mask: none;
+  height: 16;
+  width: 16;
+}
+
+#stages .assetRow Input > TextView {
+  width: 196;
+}
+
+#stages .stagesHeader,
+#stages .stageList {
+  autoresizing-mask: contain | width;
+}
+
+#stages .stageList {
+  padding-top: 10;
+  spacing: 14;
+}
+
+#stages Box.effect {
+  visibility: hidden;
+}
+
+#stages .stage Box.enabled {
+  visibility: visible;
+}
+
+#stages .collapsed .details {
+  visibility: hidden;
+}
+
+#stages .details {
+  spacing: 16;
+}
+
+#stages .stage > Label:hover {
+  background-color: #aaaaaa;
+}

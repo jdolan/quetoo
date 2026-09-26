@@ -52,6 +52,56 @@ inline Tx spvSMod(Tx x, Ty y)
     return select(Tx(remainder + y), remainder, remainder == 0 || (x >= 0) == (y >= 0));
 }
 
+// Returns the determinant of a 2x2 matrix.
+static inline __attribute__((always_inline))
+float spvDet2x2(float a1, float a2, float b1, float b2)
+{
+    return a1 * b2 - b1 * a2;
+}
+
+// Returns the determinant of a 3x3 matrix.
+static inline __attribute__((always_inline))
+float spvDet3x3(float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3)
+{
+    return a1 * spvDet2x2(b2, b3, c2, c3) - b1 * spvDet2x2(a2, a3, c2, c3) + c1 * spvDet2x2(a2, a3, b2, b3);
+}
+
+// Returns the inverse of a matrix, by using the algorithm of calculating the classical
+// adjoint and dividing by the determinant. The contents of the matrix are changed.
+static inline __attribute__((always_inline))
+float4x4 spvInverse4x4(float4x4 m)
+{
+    float4x4 adj;	// The adjoint matrix (inverse after dividing by determinant)
+
+    // Create the transpose of the cofactors, as the classical adjoint of the matrix.
+    adj[0][0] =  spvDet3x3(m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
+    adj[0][1] = -spvDet3x3(m[0][1], m[0][2], m[0][3], m[2][1], m[2][2], m[2][3], m[3][1], m[3][2], m[3][3]);
+    adj[0][2] =  spvDet3x3(m[0][1], m[0][2], m[0][3], m[1][1], m[1][2], m[1][3], m[3][1], m[3][2], m[3][3]);
+    adj[0][3] = -spvDet3x3(m[0][1], m[0][2], m[0][3], m[1][1], m[1][2], m[1][3], m[2][1], m[2][2], m[2][3]);
+
+    adj[1][0] = -spvDet3x3(m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
+    adj[1][1] =  spvDet3x3(m[0][0], m[0][2], m[0][3], m[2][0], m[2][2], m[2][3], m[3][0], m[3][2], m[3][3]);
+    adj[1][2] = -spvDet3x3(m[0][0], m[0][2], m[0][3], m[1][0], m[1][2], m[1][3], m[3][0], m[3][2], m[3][3]);
+    adj[1][3] =  spvDet3x3(m[0][0], m[0][2], m[0][3], m[1][0], m[1][2], m[1][3], m[2][0], m[2][2], m[2][3]);
+
+    adj[2][0] =  spvDet3x3(m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
+    adj[2][1] = -spvDet3x3(m[0][0], m[0][1], m[0][3], m[2][0], m[2][1], m[2][3], m[3][0], m[3][1], m[3][3]);
+    adj[2][2] =  spvDet3x3(m[0][0], m[0][1], m[0][3], m[1][0], m[1][1], m[1][3], m[3][0], m[3][1], m[3][3]);
+    adj[2][3] = -spvDet3x3(m[0][0], m[0][1], m[0][3], m[1][0], m[1][1], m[1][3], m[2][0], m[2][1], m[2][3]);
+
+    adj[3][0] = -spvDet3x3(m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
+    adj[3][1] =  spvDet3x3(m[0][0], m[0][1], m[0][2], m[2][0], m[2][1], m[2][2], m[3][0], m[3][1], m[3][2]);
+    adj[3][2] = -spvDet3x3(m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[3][0], m[3][1], m[3][2]);
+    adj[3][3] =  spvDet3x3(m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2]);
+
+    // Calculate the determinant as a combination of the cofactors of the first row.
+    float det = (adj[0][0] * m[0][0]) + (adj[0][1] * m[1][0]) + (adj[0][2] * m[2][0]) + (adj[0][3] * m[3][0]);
+
+    // Divide the classical adjoint matrix by the determinant.
+    // If determinant is zero, matrix is not invertable, so leave it unchanged.
+    return (det != 0.0f) ? (adj * (1.0f / det)) : m;
+}
+
 struct CommonVertex
 {
     float3 modelPosition;
@@ -100,6 +150,10 @@ struct materialBlock
     float emissive;
     float lerp;
     float shell;
+    float envmap;
+    float padding0;
+    float padding1;
+    float padding2;
 };
 
 struct Voxels
@@ -170,7 +224,7 @@ struct bspLocalsBlock
     int subviewMirrored;
 };
 
-constant spvUnsafeArray<float, 8> _532 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
+constant spvUnsafeArray<float, 8> _476 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
@@ -209,24 +263,36 @@ void stageTransform(thread float3& position, thread const float3& normal, thread
 }
 
 static inline __attribute__((always_inline))
-float3 voxelUvw(thread const float3& position, constant uniformsBlock& _161)
+float3 voxelUvw(thread const float3& position, constant uniformsBlock& _186)
 {
-    return (position - _161.voxels.mins.xyz) / (_161.voxels.maxs.xyz - _161.voxels.mins.xyz);
+    return (position - _186.voxels.mins.xyz) / (_186.voxels.maxs.xyz - _186.voxels.mins.xyz);
 }
 
 static inline __attribute__((always_inline))
-void stageVertex(thread const float3& inPosition, thread CommonVertex& vertex0, constant materialBlock& material, constant uniformsBlock& _161)
+void stageVertex(thread const float3& inPosition, thread const float3& position, thread const float3& normal, thread const float4x4& viewModel, thread CommonVertex& vertex0, constant materialBlock& material, constant uniformsBlock& _186)
 {
-    int envmap = material.flags & 16384;
-    if (envmap != 0)
+    bool _120 = (material.flags & 16384) == 16384;
+    bool _129;
+    if (_120)
     {
-        float3 viewDir = fast::normalize(vertex0.position);
-        float3 reflectDir = reflect(viewDir, fast::normalize(vertex0.normal));
-        vertex0.diffusemap = float2(0.5 + (reflectDir.y * 0.5), 0.5 - (reflectDir.z * 0.5));
+        _129 = (material.flags & 6291456) == 0;
+    }
+    else
+    {
+        _129 = _120;
+    }
+    bool envmap = _129;
+    if (envmap)
+    {
+        float3 eye = spvInverse4x4(viewModel)[3].xyz;
+        float3 viewer = fast::normalize(eye - position);
+        float3 n = fast::normalize(normal);
+        float3 reflected = ((n * 2.0) * dot(n, viewer)) - viewer;
+        vertex0.diffusemap = float2(0.5 + (reflected.y * 0.5), 0.5 - (reflected.z * 0.5));
     }
     if ((material.flags & 256) == 256)
     {
-        float p = 1.0 + ((sin(((float(_161.ticks) * 0.001000000047497451305389404296875) * material.stretch.y) * 3.1415927410125732421875) * material.stretch.x) * 0.5);
+        float p = 1.0 + ((sin(((float(_186.ticks) * 0.001000000047497451305389404296875) * material.stretch.y) * 3.1415927410125732421875) * material.stretch.x) * 0.5);
         float2x2 matrix;
         matrix[0].x = p;
         matrix[1].x = 0.0;
@@ -240,70 +306,36 @@ void stageVertex(thread const float3& inPosition, thread CommonVertex& vertex0, 
     }
     if ((material.flags & 128) == 128)
     {
-        float theta = ((float(_161.ticks) * 0.001000000047497451305389404296875) * material.rotate) * 6.283185482025146484375;
-        float2 stOrigin = material.stOrigin;
-        if (envmap != 0)
+        float theta = ((float(_186.ticks) * 0.001000000047497451305389404296875) * material.rotate) * 6.283185482025146484375;
+        float2 _284;
+        if (envmap)
         {
-            stOrigin = float2(0.5);
+            _284 = float2(0.5);
         }
+        else
+        {
+            _284 = material.stOrigin;
+        }
+        float2 stOrigin = _284;
         vertex0.diffusemap -= stOrigin;
         vertex0.diffusemap = float2x2(float2(cos(theta), -sin(theta)), float2(sin(theta), cos(theta))) * vertex0.diffusemap;
         vertex0.diffusemap += stOrigin;
     }
-    if (envmap != 0)
+    if ((material.flags & 8) == 8)
     {
-        if ((material.flags & 96) != 0)
-        {
-            float _308;
-            if ((material.flags & 32) == 32)
-            {
-                _308 = material.scale.x;
-            }
-            else
-            {
-                _308 = 1.0;
-            }
-            float _321;
-            if ((material.flags & 64) == 64)
-            {
-                _321 = material.scale.y;
-            }
-            else
-            {
-                _321 = 1.0;
-            }
-            float2 scale = float2(_308, _321);
-            float2 centered = vertex0.diffusemap - float2(0.5);
-            centered /= fast::max(abs(scale), float2(9.9999997473787516355514526367188e-05));
-            vertex0.diffusemap = centered + float2(0.5);
-        }
-        if ((material.flags & 8) == 8)
-        {
-            vertex0.diffusemap.x += ((material.scroll.x * float(_161.ticks)) * 0.001000000047497451305389404296875);
-        }
-        if ((material.flags & 16) == 16)
-        {
-            vertex0.diffusemap.y += ((material.scroll.y * float(_161.ticks)) * 0.001000000047497451305389404296875);
-        }
+        vertex0.diffusemap.x += ((material.scroll.x * float(_186.ticks)) * 0.001000000047497451305389404296875);
     }
-    else
+    if ((material.flags & 16) == 16)
     {
-        if ((material.flags & 8) == 8)
-        {
-            vertex0.diffusemap.x += ((material.scroll.x * float(_161.ticks)) * 0.001000000047497451305389404296875);
-        }
-        if ((material.flags & 16) == 16)
-        {
-            vertex0.diffusemap.y += ((material.scroll.y * float(_161.ticks)) * 0.001000000047497451305389404296875);
-        }
-        if ((material.flags & 32) == 32)
-        {
-            vertex0.diffusemap.x *= material.scale.x;
-        }
-        if ((material.flags & 64) == 64)
-        {
-            vertex0.diffusemap.y *= material.scale.y;
-        }
+        vertex0.diffusemap.y += ((material.scroll.y * float(_186.ticks)) * 0.001000000047497451305389404296875);
+    }
+    if ((material.flags & 32) == 32)
+    {
+        vertex0.diffusemap.x *= material.scale.x;
+    }
+    if ((material.flags & 64) == 64)
+    {
+        vertex0.diffusemap.y *= material.scale.y;
     }
     if ((material.flags & 4) == 4)
     {
@@ -311,7 +343,7 @@ void stageVertex(thread const float3& inPosition, thread CommonVertex& vertex0, 
     }
     if ((material.flags & 512) == 512)
     {
-        vertex0.color.w *= ((sin((((float(_161.ticks) * 0.001000000047497451305389404296875) + material.drift) * material.pulse) * 3.1415927410125732421875) + 1.0) * 0.5);
+        vertex0.color.w *= ((sin((((float(_186.ticks) * 0.001000000047497451305389404296875) + material.drift) * material.pulse) * 3.1415927410125732421875) + 1.0) * 0.5);
     }
     if ((material.flags & 4096) == 4096)
     {
@@ -321,7 +353,7 @@ void stageVertex(thread const float3& inPosition, thread CommonVertex& vertex0, 
     if ((material.flags & 8192) == 8192)
     {
         int index = (int(inPosition.x) + int(inPosition.y)) + int(inPosition.z);
-        vertex0.color.w *= (_532[spvSMod(index, 8)] * material.dirtmap);
+        vertex0.color.w *= (_476[spvSMod(index, 8)] * material.dirtmap);
     }
 }
 
@@ -338,47 +370,47 @@ float voxelExposure(thread const float3& texcoord, texture3d<float> textureVoxel
 }
 
 static inline __attribute__((always_inline))
-float3 ambientLight(thread const CommonVertex& v, constant uniformsBlock& _161, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr)
+float3 ambientLight(thread const CommonVertex& v, constant uniformsBlock& _186, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr)
 {
     float3 param = v.voxel;
     float occlusion = voxelOcclusion(param, textureVoxelOcclusion, textureVoxelOcclusionSmplr);
     float3 param_1 = v.voxel;
     float exposure = voxelExposure(param_1, textureVoxelOcclusion, textureVoxelOcclusionSmplr);
     float3 sky = textureSky.sample(textureSkySmplr, fast::normalize(v.modelNormal), level(6.0)).xyz;
-    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _161.ambientOcclusion))) * float3(_161.ambient);
+    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _186.ambientOcclusion))) * float3(_186.ambient);
 }
 
 static inline __attribute__((always_inline))
-int3 voxelXyz(thread const float3& position, constant uniformsBlock& _161)
+int3 voxelXyz(thread const float3& position, constant uniformsBlock& _186)
 {
-    float3 pos = position - _161.voxels.mins.xyz;
+    float3 pos = position - _186.voxels.mins.xyz;
     int3 voxel = int3(floor((pos / float3(32.0)) + float3(0.001000000047497451305389404296875)));
-    return clamp(voxel, int3(0), int3(_161.voxels.size.xyz) - int3(1));
+    return clamp(voxel, int3(0), int3(_186.voxels.size.xyz) - int3(1));
 }
 
 static inline __attribute__((always_inline))
-int2 voxelLightData(thread const int3& voxel, constant uniformsBlock& _161, const device voxelLightDataBlock& _608)
+int2 voxelLightData(thread const int3& voxel, constant uniformsBlock& _186, const device voxelLightDataBlock& _552)
 {
-    int index = (((voxel.z * int(_161.voxels.size.y)) + voxel.y) * int(_161.voxels.size.x)) + voxel.x;
-    return int2(_608.voxelLightDataElements[(index * 2) + 0], _608.voxelLightDataElements[(index * 2) + 1]);
+    int index = (((voxel.z * int(_186.voxels.size.y)) + voxel.y) * int(_186.voxels.size.x)) + voxel.x;
+    return int2(_552.voxelLightDataElements[(index * 2) + 0], _552.voxelLightDataElements[(index * 2) + 1]);
 }
 
 static inline __attribute__((always_inline))
-int voxelLightIndex(thread const int& index, const device voxelLightIndicesBlock& _625)
+int voxelLightIndex(thread const int& index, const device voxelLightIndicesBlock& _569)
 {
-    return _625.voxelLightIndices[index];
+    return _569.voxelLightIndices[index];
 }
 
 static inline __attribute__((always_inline))
-float3 lightColor(thread const Light& l, constant uniformsBlock& _161)
+float3 lightColor(thread const Light& l, constant uniformsBlock& _186)
 {
-    float3 color = (l.color.xyz * l.color.w) * _161.modulate;
+    float3 color = (l.color.xyz * l.color.w) * _186.modulate;
     float luma = dot(color, float3(0.2125999927520751953125, 0.715200006961822509765625, 0.072200000286102294921875));
-    return mix(float3(luma), color, float3(_161.saturation));
+    return mix(float3(luma), color, float3(_186.saturation));
 }
 
 static inline __attribute__((always_inline))
-float3 vertexLight(thread const CommonVertex& v, thread const Light& light, constant materialBlock& material, constant uniformsBlock& _161)
+float3 vertexLight(thread const CommonVertex& v, thread const Light& light, constant materialBlock& material, constant uniformsBlock& _186)
 {
     float3 lightDir = light.origin.xyz - v.modelPosition;
     float dist = length(lightDir);
@@ -390,18 +422,18 @@ float3 vertexLight(thread const CommonVertex& v, thread const Light& light, cons
     }
     lightDir = fast::normalize(lightDir);
     float lambert = dot(v.modelNormal, lightDir);
-    float _789;
+    float _732;
     if ((material.surface & 120) != int(0u))
     {
-        _789 = abs(lambert);
+        _732 = abs(lambert);
     }
     else
     {
-        _789 = fast::max(0.0, lambert);
+        _732 = fast::max(0.0, lambert);
     }
-    lambert = _789;
+    lambert = _732;
     Light param = light;
-    return (lightColor(param, _161) * atten) * lambert;
+    return (lightColor(param, _186) * atten) * lambert;
 }
 
 static inline __attribute__((always_inline))
@@ -411,71 +443,71 @@ bool dynamicLightActive(thread const spvUnsafeArray<uint4, 4>& mask, thread cons
 }
 
 static inline __attribute__((always_inline))
-float3 voxelCaustics(thread const float3& texcoord, constant uniformsBlock& _161, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
+float3 voxelCaustics(thread const float3& texcoord, constant uniformsBlock& _186, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
 {
     float3 encoded = textureVoxelCaustics.sample(textureVoxelCausticsSmplr, texcoord, level(0.0)).xyz;
-    return ((encoded * 2.0) - float3(1.0)) * _161.caustics;
+    return ((encoded * 2.0) - float3(1.0)) * _186.caustics;
 }
 
 static inline __attribute__((always_inline))
-void vertexCaustics(thread CommonVertex& v, constant uniformsBlock& _161, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
+void vertexCaustics(thread CommonVertex& v, constant uniformsBlock& _186, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
 {
     float3 param = v.voxel;
-    v.caustics = length(voxelCaustics(param, _161, textureVoxelCaustics, textureVoxelCausticsSmplr));
+    v.caustics = length(voxelCaustics(param, _186, textureVoxelCaustics, textureVoxelCausticsSmplr));
 }
 
 static inline __attribute__((always_inline))
-void vertexLighting(thread CommonVertex& v, constant materialBlock& material, constant uniformsBlock& _161, const device voxelLightDataBlock& _608, const device voxelLightIndicesBlock& _625, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr, const device bspLightsBlock& _854, const device dynamicLightsBlock& _885, constant bspLocalsBlock& _892)
+void vertexLighting(thread CommonVertex& v, constant materialBlock& material, constant uniformsBlock& _186, const device voxelLightDataBlock& _552, const device voxelLightIndicesBlock& _569, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr, const device bspLightsBlock& _797, const device dynamicLightsBlock& _828, constant bspLocalsBlock& _835)
 {
     CommonVertex param = v;
-    v.ambient = ambientLight(param, _161, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr);
+    v.ambient = ambientLight(param, _186, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr);
     v.diffuse = float3(0.0);
-    if (_161.editor == 0)
+    if (_186.editor == 0)
     {
         float3 param_1 = v.modelPosition;
-        int3 voxelCoord = voxelXyz(param_1, _161);
+        int3 voxelCoord = voxelXyz(param_1, _186);
         int3 param_2 = voxelCoord;
-        int2 data = voxelLightData(param_2, _161, _608);
+        int2 data = voxelLightData(param_2, _186, _552);
         Light param_5;
         for (int i = 0; i < data.y; i++)
         {
             int param_3 = data.x + i;
-            int index = voxelLightIndex(param_3, _625);
+            int index = voxelLightIndex(param_3, _569);
             CommonVertex param_4 = v;
-            param_5.origin = _854.bspLights[index].origin;
-            param_5.color = _854.bspLights[index].color;
-            param_5.tile = _854.bspLights[index].tile;
-            v.diffuse += vertexLight(param_4, param_5, material, _161);
+            param_5.origin = _797.bspLights[index].origin;
+            param_5.color = _797.bspLights[index].color;
+            param_5.tile = _797.bspLights[index].tile;
+            v.diffuse += vertexLight(param_4, param_5, material, _186);
         }
     }
     spvUnsafeArray<uint4, 4> param_6;
     Light param_9;
-    for (int j = 0; j < _885.numDynamicLights; j++)
+    for (int j = 0; j < _828.numDynamicLights; j++)
     {
-        param_6[0] = _892.activeDynamicLights[0];
-        param_6[1] = _892.activeDynamicLights[1];
-        param_6[2] = _892.activeDynamicLights[2];
-        param_6[3] = _892.activeDynamicLights[3];
+        param_6[0] = _835.activeDynamicLights[0];
+        param_6[1] = _835.activeDynamicLights[1];
+        param_6[2] = _835.activeDynamicLights[2];
+        param_6[3] = _835.activeDynamicLights[3];
         int param_7 = j;
         if (dynamicLightActive(param_6, param_7))
         {
             CommonVertex param_8 = v;
-            param_9.origin = _885.dynamicLights[j].origin;
-            param_9.color = _885.dynamicLights[j].color;
-            param_9.tile = _885.dynamicLights[j].tile;
-            v.diffuse += vertexLight(param_8, param_9, material, _161);
+            param_9.origin = _828.dynamicLights[j].origin;
+            param_9.color = _828.dynamicLights[j].color;
+            param_9.tile = _828.dynamicLights[j].tile;
+            v.diffuse += vertexLight(param_8, param_9, material, _186);
         }
     }
     CommonVertex param_10 = v;
-    vertexCaustics(param_10, _161, textureVoxelCaustics, textureVoxelCausticsSmplr);
+    vertexCaustics(param_10, _186, textureVoxelCaustics, textureVoxelCausticsSmplr);
     v = param_10;
 }
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _161 [[buffer(0)]], constant bspLocalsBlock& _892 [[buffer(1)]], constant materialBlock& material [[buffer(2)]], const device bspLightsBlock& _854 [[buffer(3)]], const device dynamicLightsBlock& _885 [[buffer(4)]], const device voxelLightDataBlock& _608 [[buffer(5)]], const device voxelLightIndicesBlock& _625 [[buffer(6)]], texture3d<float> textureVoxelCaustics [[texture(0)]], texture3d<float> textureVoxelOcclusion [[texture(1)]], texturecube<float> textureSky [[texture(2)]], sampler textureVoxelCausticsSmplr [[sampler(0)]], sampler textureVoxelOcclusionSmplr [[sampler(1)]], sampler textureSkySmplr [[sampler(2)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _186 [[buffer(0)]], constant bspLocalsBlock& _835 [[buffer(1)]], constant materialBlock& material [[buffer(2)]], const device bspLightsBlock& _797 [[buffer(3)]], const device dynamicLightsBlock& _828 [[buffer(4)]], const device voxelLightDataBlock& _552 [[buffer(5)]], const device voxelLightIndicesBlock& _569 [[buffer(6)]], texture3d<float> textureVoxelCaustics [[texture(0)]], texture3d<float> textureVoxelOcclusion [[texture(1)]], texturecube<float> textureSky [[texture(2)]], sampler textureVoxelCausticsSmplr [[sampler(0)]], sampler textureVoxelOcclusionSmplr [[sampler(1)]], sampler textureSkySmplr [[sampler(2)]])
 {
     main0_out out = {};
     CommonVertex vertex0 = {};
-    float4x4 viewModel = _161.view * _892.model;
+    float4x4 viewModel = _186.view * _835.model;
     float4 position = float4(in.inPosition, 1.0);
     float4 normal = float4(in.inNormal, 0.0);
     float4 tangent = float4(in.inTangent, 0.0);
@@ -497,26 +529,29 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _161 [[
     bitangent.x = param_3.x;
     bitangent.y = param_3.y;
     bitangent.z = param_3.z;
-    vertex0.modelPosition = float3((_892.model * position).xyz);
-    vertex0.modelNormal = fast::normalize(float3((_892.model * normal).xyz));
+    vertex0.modelPosition = float3((_835.model * position).xyz);
+    vertex0.modelNormal = fast::normalize(float3((_835.model * normal).xyz));
     vertex0.position = float3((viewModel * position).xyz);
     vertex0.normal = fast::normalize(float3((viewModel * normal).xyz));
     vertex0.tangent = fast::normalize(float3((viewModel * tangent).xyz));
     vertex0.bitangent = fast::normalize(float3((viewModel * bitangent).xyz));
     vertex0.diffusemap = in.inDiffusemap;
-    float3 param_4 = float3((_892.model * position).xyz);
-    vertex0.voxel = voxelUvw(param_4, _161);
+    float3 param_4 = float3((_835.model * position).xyz);
+    vertex0.voxel = voxelUvw(param_4, _186);
     vertex0.color = in.inColor;
     float3 param_5 = in.inPosition;
-    CommonVertex param_6 = vertex0;
-    stageVertex(param_5, param_6, material, _161);
-    vertex0 = param_6;
-    CommonVertex param_7 = vertex0;
-    vertexLighting(param_7, material, _161, _608, _625, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr, _854, _885, _892);
-    vertex0 = param_7;
-    float4x4 _1107 = _161.projection3D * viewModel;
-    float4 _1109 = _1107 * position;
-    out.gl_Position = _1109;
+    float3 param_6 = position.xyz;
+    float3 param_7 = normal.xyz;
+    float4x4 param_8 = viewModel;
+    CommonVertex param_9 = vertex0;
+    stageVertex(param_5, param_6, param_7, param_8, param_9, material, _186);
+    vertex0 = param_9;
+    CommonVertex param_10 = vertex0;
+    vertexLighting(param_10, material, _186, _552, _569, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr, _797, _828, _835);
+    vertex0 = param_10;
+    float4x4 _1057 = _186.projection3D * viewModel;
+    float4 _1059 = _1057 * position;
+    out.gl_Position = _1059;
     out.vertex0_modelPosition = vertex0.modelPosition;
     out.vertex0_modelNormal = vertex0.modelNormal;
     out.vertex0_position = vertex0.position;

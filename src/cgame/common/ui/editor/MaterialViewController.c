@@ -57,6 +57,115 @@ static void didSetValue(Slider *slider, double value) {
   this->material->cm->dirty = true;
 }
 
+/**
+ * @brief A contents or surface flag that a Checkbox toggles.
+ */
+typedef struct {
+  const char *identifier;
+  int32_t flag;
+} MaterialFlag;
+
+/**
+ * @brief The contents flags.
+ */
+static const MaterialFlag contentsFlags[] = {
+  { "contentsSolid", CONTENTS_SOLID },
+  { "contentsWindow", CONTENTS_WINDOW },
+  { "contentsDecoration", CONTENTS_DECORATION },
+  { "contentsLava", CONTENTS_LAVA },
+  { "contentsSlime", CONTENTS_SLIME },
+  { "contentsWater", CONTENTS_WATER },
+  { "contentsMist", CONTENTS_MIST },
+  { "contentsDetail", CONTENTS_DETAIL },
+  { "contentsLadder", CONTENTS_LADDER },
+};
+
+/**
+ * @brief The surface flags.
+ */
+static const MaterialFlag surfaceFlags[] = {
+  { "surfaceSlick", SURF_SLICK },
+  { "surfaceSky", SURF_SKY },
+  { "surfaceLiquid", SURF_LIQUID },
+  { "surfaceBlend33", SURF_BLEND_33 },
+  { "surfaceBlend66", SURF_BLEND_66 },
+  { "surfaceBlend100", SURF_BLEND_100 },
+  { "surfaceNoDraw", SURF_NO_DRAW },
+  { "surfaceHint", SURF_HINT },
+  { "surfaceSkip", SURF_SKIP },
+  { "surfaceAlphaTest", SURF_ALPHA_TEST },
+  { "surfacePhong", SURF_PHONG },
+  { "surfaceMaterial", SURF_MATERIAL },
+  { "surfacePortal", SURF_PORTAL },
+  { "surfaceReflect", SURF_REFLECT },
+};
+
+/**
+ * @brief CheckboxDelegate callback for the contents flags.
+ */
+static void didToggleContentsFlag(Checkbox *checkbox) {
+
+  MaterialViewController *this = (MaterialViewController *) checkbox->delegate.self;
+  const MaterialFlag *flag = checkbox->delegate.data;
+
+  if (!this->material) {
+    return;
+  }
+
+  if ($((Control *) checkbox, isSelected)) {
+    this->material->cm->contents |= flag->flag;
+  } else {
+    this->material->cm->contents &= ~flag->flag;
+  }
+
+  this->material->cm->dirty = true;
+}
+
+/**
+ * @brief CheckboxDelegate callback for the surface flags.
+ */
+static void didToggleSurfaceFlag(Checkbox *checkbox) {
+
+  MaterialViewController *this = (MaterialViewController *) checkbox->delegate.self;
+  const MaterialFlag *flag = checkbox->delegate.data;
+
+  if (!this->material) {
+    return;
+  }
+
+  if ($((Control *) checkbox, isSelected)) {
+    this->material->cm->surface |= flag->flag;
+  } else {
+    this->material->cm->surface &= ~flag->flag;
+  }
+
+  this->material->cm->dirty = true;
+}
+
+/**
+ * @brief Checks each flag Checkbox that the mask sets, and disables them all without a material.
+ */
+static void setFlags(MaterialViewController *this, const MaterialFlag *flags, size_t count, int32_t mask) {
+
+  for (size_t i = 0; i < count; i++) {
+    Control *control = (Control *) $(this->viewController.view, descendantWithIdentifier, flags[i].identifier);
+
+    if (mask & flags[i].flag) {
+      control->state |= ControlStateSelected;
+    } else {
+      control->state &= ~ControlStateSelected;
+    }
+
+    if (this->material) {
+      control->state &= ~ControlStateDisabled;
+    } else {
+      control->state |= ControlStateDisabled;
+    }
+
+    $(control, stateDidChange);
+  }
+}
+
 #pragma mark - ViewController
 
 /**
@@ -69,7 +178,7 @@ static void loadView(ViewController *self) {
   MaterialViewController *this = (MaterialViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("name", &this->name),
+    MakeOutlet("materialBox", &this->materialBox),
     MakeOutlet("diffusemap", &this->diffusemap),
     MakeOutlet("normalmap", &this->normalmap),
     MakeOutlet("specularmap", &this->specularmap),
@@ -104,6 +213,24 @@ static void loadView(ViewController *self) {
 
   this->alphaTest->delegate.self = self;
   this->alphaTest->delegate.didSetValue = didSetValue;
+
+  for (size_t i = 0; i < lengthof(contentsFlags); i++) {
+    Checkbox *checkbox = (Checkbox *) $(self->view, descendantWithIdentifier, contentsFlags[i].identifier);
+    assert(checkbox);
+
+    checkbox->delegate.self = self;
+    checkbox->delegate.data = (ident) &contentsFlags[i];
+    checkbox->delegate.didToggle = didToggleContentsFlag;
+  }
+
+  for (size_t i = 0; i < lengthof(surfaceFlags); i++) {
+    Checkbox *checkbox = (Checkbox *) $(self->view, descendantWithIdentifier, surfaceFlags[i].identifier);
+    assert(checkbox);
+
+    checkbox->delegate.self = self;
+    checkbox->delegate.data = (ident) &surfaceFlags[i];
+    checkbox->delegate.didToggle = didToggleSurfaceFlag;
+  }
 }
 
 /**
@@ -147,7 +274,7 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
   self->material = material;
 
   if (self->material) {
-    $(self->name, setDefaultText, self->material->cm->basename);
+    $(self->materialBox->label->text, setText, va("Material [%s]", self->material->cm->basename));
     $(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
     $(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
     $(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
@@ -160,7 +287,7 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
     $(self->alphaTest, setValue, (double) self->material->cm->alphaTest);
 
   } else {
-    $(self->name, setDefaultText, NULL);
+    $(self->materialBox->label->text, setText, "Material");
     $(self->diffusemap, setDefaultText, NULL);
     $(self->normalmap, setDefaultText, NULL);
     $(self->specularmap, setDefaultText, NULL);
@@ -172,6 +299,9 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
     $(self->shadow, setValue, MATERIAL_SHADOW);
     $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
   }
+
+  setFlags(self, contentsFlags, lengthof(contentsFlags), self->material ? self->material->cm->contents : 0);
+  setFlags(self, surfaceFlags, lengthof(surfaceFlags), self->material ? self->material->cm->surface : 0);
 }
 
 #pragma mark - Class lifecycle

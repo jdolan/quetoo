@@ -57,7 +57,99 @@ static void setEntityOriginFromClientView(CmEntity *entity) {
   cgi.SetEntityKeyValue(entity, "origin", ENTITY_VEC3, &origin);
 }
 
+/**
+ * @brief Adds or removes the class name, once.
+ */
+static void setClassName(View *view, const char *className, bool enabled) {
+
+  if (enabled && !$(view, hasClassName, className)) {
+    $(view, addClassName, className);
+  } else if (!enabled) {
+    $(view, removeClassName, className);
+  }
+}
+
+/**
+ * @return The vector as the text of a world.cfg field.
+ */
+static char *vs(const Vec3 v) {
+  static char buf[MAX_TOKEN_CHARS];
+
+  q_snprintf(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
+  return buf;
+}
+
+/**
+ * @brief Rebuilds the transform of the mesh config from its translate, rotate and scale.
+ */
+static void rebuildMeshConfigTransform(RenderMeshConfig *cfg) {
+
+  cfg->transform = Mat4_Identity();
+  cfg->transform = Mat4_ConcatTranslation(cfg->transform, cfg->translate);
+  cfg->transform = Mat4_ConcatRotation3(cfg->transform, cfg->rotate);
+  cfg->transform = Mat4_ConcatScale(cfg->transform, cfg->scale);
+}
+
+/**
+ * @brief Shows the world.cfg of the model, and shows its Box only for a mesh model.
+ */
+static void setModel(EntityViewController *self, RenderModel *model) {
+
+  self->model = model;
+
+  if (self->model) {
+    const RenderMeshConfig *world = &self->model->mesh->config.world;
+
+    $(self->worldTranslate, setAttributedText, vs(world->translate));
+    $(self->worldRotate, setAttributedText, vs(world->rotate));
+    $(self->worldScale, setAttributedText, va("%g", world->scale));
+  }
+
+  setClassName(self->world, "enabled", self->model != NULL);
+}
+
 #pragma mark - Delegates
+
+/**
+ * @brief ButtonDelegate callback for the Create Entity button.
+ */
+static void didClickCreateEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, createEntity);
+}
+
+/**
+ * @brief ButtonDelegate callback for the Delete Entity button.
+ */
+static void didClickDeleteEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, deleteEntity);
+}
+
+/**
+ * @brief TextViewDelegate callback for the world.cfg fields.
+ */
+static void didEndEditingWorld(TextView *textView) {
+
+  EntityViewController *this = textView->delegate.self;
+
+  if (!this->model) {
+    return;
+  }
+
+  const char *text = textView->attributedText->chars ?: "";
+
+  RenderMeshConfig *world = &this->model->mesh->config.world;
+
+  if (textView == this->worldTranslate) {
+    sscanf(text, "%f %f %f", &world->translate.x, &world->translate.y, &world->translate.z);
+  } else if (textView == this->worldRotate) {
+    sscanf(text, "%f %f %f", &world->rotate.x, &world->rotate.y, &world->rotate.z);
+  } else if (textView == this->worldScale) {
+    sscanf(text, "%f", &world->scale);
+  }
+
+  rebuildMeshConfigTransform(world);
+  world->dirty = true;
+}
 
 /**
  * @brief EntityViewDelegate.
@@ -134,7 +226,14 @@ static void loadView(ViewController *self) {
     MakeOutlet("pairs", &this->pairs),
     MakeOutlet("add", &this->add),
     MakeOutlet("teamPairs", &this->teamPairs),
-    MakeOutlet("teamAdd", &this->teamAdd)
+    MakeOutlet("teamAdd", &this->teamAdd),
+    MakeOutlet("teamEntity", &this->teamBox),
+    MakeOutlet("createEntity", &this->createEntity),
+    MakeOutlet("deleteEntity", &this->deleteEntity),
+    MakeOutlet("world", &this->world),
+    MakeOutlet("worldTranslate", &this->worldTranslate),
+    MakeOutlet("worldRotate", &this->worldRotate),
+    MakeOutlet("worldScale", &this->worldScale)
   );
 
   View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
@@ -148,6 +247,18 @@ static void loadView(ViewController *self) {
 
   this->teamAdd->delegate.self = this;
   this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
+
+  this->createEntity->delegate.self = this;
+  this->createEntity->delegate.didClick = didClickCreateEntity;
+
+  this->deleteEntity->delegate.self = this;
+  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
+
+  TextView *world[] = { this->worldTranslate, this->worldRotate, this->worldScale };
+  for (size_t i = 0; i < lengthof(world); i++) {
+    world[i]->delegate.self = this;
+    world[i]->delegate.didEndEditing = didEndEditingWorld;
+  }
 }
 
 /**
@@ -505,6 +616,18 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
   }
 
   cgEditor.selected = self->entity ? self->entity->number : -1;
+
+  setModel(self, self->entity && IS_MESH_MODEL(self->entity->model) ? (RenderModel *) self->entity->model : NULL);
+
+  setClassName(self->teamBox, "enabled", self->teamEntity && self->teamEntity != self->entity);
+
+  Control *deleteEntity = (Control *) self->deleteEntity;
+  if (self->entity && self->entity->number > 0) {
+    deleteEntity->state &= ~ControlStateDisabled;
+  } else {
+    deleteEntity->state |= ControlStateDisabled;
+  }
+  $(deleteEntity, stateDidChange);
 
   $((View *) self->pairs, sizeToFit);
   $((View *) self->teamPairs, sizeToFit);

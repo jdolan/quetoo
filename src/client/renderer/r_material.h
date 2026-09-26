@@ -25,6 +25,7 @@
 #include "r_types.h"
 
 RenderMaterial *R_LoadMaterial(const char *name, AssetContext context);
+void R_ReloadMaterialStages(RenderMaterial *material);
 
 #if defined(__R_LOCAL_H__)
 
@@ -88,6 +89,8 @@ typedef struct {
   float emissive;
   float lerp;
   float shell;
+  float envmap;
+  float padding0, padding1, padding2;
 } RenderMaterialUniforms;
 
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out);

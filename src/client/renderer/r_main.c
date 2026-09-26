@@ -525,7 +525,7 @@ static void R_InitLocal(void) {
   Cmd_Add("r_dumpImages", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool).");
   Cmd_Add("r_listMedia", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool).");
   Cmd_Add("r_saveMaterials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
-  Cmd_Add("r_saveMeshConfigs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the mesh configs for the named model to disk (developer tool).");
+  Cmd_Add("r_saveMeshConfigs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the world configs of all edited mesh models to disk (developer tool).");
   Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot.");
 }
 

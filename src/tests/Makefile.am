@@ -35,6 +35,7 @@ TESTS = \
 	check_box \
 	check_cm_entity \
 	check_cm_manifest \
+	check_cm_material \
 	check_cm_polylib \
 	check_cm_test \
 	check_cmd \
@@ -42,13 +43,13 @@ TESTS = \
 	check_cvar \
 	check_editor_map \
 	check_filesystem \
+	check_g_race \
 	check_http \
 	check_master \
 	check_mem \
 	check_net_message \
 	check_pmove \
 	check_r_media \
-	check_race \
 	check_shared \
 	check_thread \
 	check_vector
@@ -99,6 +100,14 @@ check_cm_manifest_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la
 
+check_cm_material_SOURCES = \
+	check_cm_material.c
+check_cm_material_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_cm_material_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
+
 check_editor_map_SOURCES = \
 	check_editor_map.c
 check_editor_map_CFLAGS = \
@@ -143,6 +152,28 @@ check_filesystem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_filesystem_LDADD = \
 	$(TESTS_LIBS)
+
+check_g_race_SOURCES = \
+	check_g_race.c \
+	$(top_srcdir)/src/game/common/bg_pmove.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake2.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake3.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quetoo.c \
+	$(top_srcdir)/src/game/common/bg_pmove_race.c \
+	$(top_srcdir)/src/game/race/g_race_records.c \
+	$(top_srcdir)/src/game/race/g_race_replay.c
+check_g_race_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/game/common \
+	-I$(top_srcdir)/src/game/race \
+	-ffp-contract=off \
+	-fms-extensions \
+	-Wno-microsoft-anon-tag \
+	$(TESTS_CFLAGS)
+check_g_race_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_http_SOURCES = \
 	check_http.c
@@ -202,28 +233,6 @@ check_r_media_CFLAGS = \
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/client/renderer/librenderer.la \
-	$(top_builddir)/src/collision/libcollision.la
-
-check_race_SOURCES = \
-	check_race.c \
-	$(top_srcdir)/src/game/common/bg_pmove.c \
-	$(top_srcdir)/src/game/common/bg_pmove_quake.c \
-	$(top_srcdir)/src/game/common/bg_pmove_quake2.c \
-	$(top_srcdir)/src/game/common/bg_pmove_quake3.c \
-	$(top_srcdir)/src/game/common/bg_pmove_quetoo.c \
-	$(top_srcdir)/src/game/common/bg_pmove_race.c \
-	$(top_srcdir)/src/game/race/g_race_records.c \
-	$(top_srcdir)/src/game/race/g_race_replay.c
-check_race_CFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/src/game/common \
-	-I$(top_srcdir)/src/game/race \
-	-ffp-contract=off \
-	-fms-extensions \
-	-Wno-microsoft-anon-tag \
-	$(TESTS_CFLAGS)
-check_race_LDADD = \
-	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la
 
 check_shared_SOURCES = \

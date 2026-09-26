@@ -320,6 +320,13 @@ void Cl_InitCgame(void) {
   import.CompileAtlas = R_CompileAtlas;
   import.CreateAnimation = R_CreateAnimation;
   import.LoadMaterial = R_LoadMaterial;
+  import.MaterialLightStage = Cm_MaterialLightStage;
+  import.MaterialLights = Cm_MaterialLights;
+  import.MaterialLightColor = Cm_MaterialLightColor;
+  import.AddMaterialStage = Cm_AddStage;
+  import.RemoveMaterialStage = Cm_RemoveStage;
+  import.ResolveMaterialStage = Cm_ResolveStage;
+  import.ReloadMaterialStages = R_ReloadMaterialStages;
   import.LoadModel = R_LoadModel;
   import.WorldModel = R_WorldModel;
 

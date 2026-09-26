@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D9A5C10000000000000000B4"
-               BuildableName = "check_race"
-               BlueprintName = "check_race"
+               BuildableName = "check_g_race"
+               BlueprintName = "check_g_race"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,8 +47,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D9A5C10000000000000000B4"
-            BuildableName = "check_race"
-            BlueprintName = "check_race"
+            BuildableName = "check_g_race"
+            BlueprintName = "check_g_race"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -64,8 +64,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D9A5C10000000000000000B4"
-            BuildableName = "check_race"
-            BlueprintName = "check_race"
+            BuildableName = "check_g_race"
+            BlueprintName = "check_g_race"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

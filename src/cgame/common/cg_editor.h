@@ -83,6 +83,24 @@ typedef struct {
    */
   int16_t selected;
 
+  /**
+   * @brief The materials of the map, indexed by BSP material, as the renderer loaded and the
+   * editor edits them.
+   */
+  CmMaterial **materials;
+
+  /**
+   * @brief The `CmMaterialLight` previews of the brush sides with a `STAGE_LIGHT` material.
+   * @details BSP lights are not drawn in editor mode, so these are placed as quemap places them
+   * and added as dynamic lights, so that edits to the light stages show without a recompile.
+   */
+  Vector *materialLights;
+
+  /**
+   * @brief The resolved default light colors, indexed by BSP material, and zero until resolved.
+   */
+  Vec3 *materialLightColors;
+
 } CGameEditor;
 
 extern CGameEditor cgEditor;
@@ -116,6 +134,8 @@ void Cg_ParseEditorEntity(int16_t number, const char *info);
 void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const ClientFrame *frame);
+void Cg_UpdateEditorMaterialLights(const CmMaterial *material);
+void Cg_ReloadEditorMaterialStages(RenderMaterial *material);
 size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t out[CG_EDITOR_MAX_CANDIDATES]);
 CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end);
 void Cg_CycleEditorSelection(int32_t dir);

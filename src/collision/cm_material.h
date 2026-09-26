@@ -153,6 +153,23 @@ typedef struct {
 } CmStageWarp;
 
 /**
+ * @brief The default amount by which the normalmap moves an envmapped subview, as a fraction of
+ * the screen for a normal tilted fully away from the face.
+ */
+#define STAGE_ENVMAP_AMOUNT .05f
+
+/**
+ * @brief Environment map parameters.
+ */
+typedef struct {
+
+  /**
+   * @brief The amount by which the normalmap moves an envmapped subview. A texture ignores it.
+   */
+  float amount;
+} CmStageEnvmap;
+
+/**
  * @brief Stage lighting parameters.
  */
 typedef struct {
@@ -181,6 +198,38 @@ typedef struct {
    */
   float radius;
 } CmStageShell;
+
+/**
+ * @brief The default radius of a stage light.
+ */
+#define STAGE_LIGHT_RADIUS 300.f
+
+/**
+ * @brief The default intensity of a stage light.
+ */
+#define STAGE_LIGHT_INTENSITY 1.f
+
+/**
+ * @brief Stage light parameters. A stage with these emits light from the faces that use it.
+ */
+typedef struct {
+
+  /**
+   * @brief The light radius, compiled into the BSP. This is the maximum radius of the light.
+   */
+  float radius;
+
+  /**
+   * @brief The light color, compiled into the BSP. If zero, the color is resolved from the
+   * brightest pixels of the stage texture.
+   */
+  Vec3 color;
+
+  /**
+   * @brief The light intensity, read at runtime and modulated by the stage pulse, if any.
+   */
+  float intensity;
+} CmStageLight;
 
 /**
  * @brief Frame animation parameters.
@@ -256,7 +305,12 @@ typedef enum {
   /**
    * @brief A stage that draws the reflection its face shows, in place of a texture.
    */
-  STAGE_REFLECTION    = (1 << 22),
+  STAGE_REFLECT       = (1 << 22),
+
+  /**
+   * @brief A stage that emits light from the faces that use it.
+   */
+  STAGE_LIGHT         = (1 << 23),
 
   STAGE_DRAW          = (1 << 30),
 } CmStageFlags;
@@ -264,7 +318,7 @@ typedef enum {
 /**
  * @brief The stage keywords that draw a subview, rather than an asset of their own.
  */
-#define STAGE_MASK_SUBVIEW (STAGE_PORTAL | STAGE_REFLECTION)
+#define STAGE_MASK_SUBVIEW (STAGE_PORTAL | STAGE_REFLECT)
 
 /**
  * @brief Stages are ordered layers of visual effects rendered on top of their material.
@@ -337,6 +391,11 @@ typedef struct CmStage {
   CmStageWarp warp;
 
   /**
+   * @brief The stage environment map parameters.
+   */
+  CmStageEnvmap envmap;
+
+  /**
    * @brief The stage lighting parameters.
    */
   CmStageLighting lighting;
@@ -350,6 +409,11 @@ typedef struct CmStage {
    * @brief The stage emissive intensity [0, 1]. Adds unlit stage color to output.
    */
   float emissive;
+
+  /**
+   * @brief The stage light parameters.
+   */
+  CmStageLight light;
 
   /**
    * @brief The next stage, or `NULL`.
@@ -514,6 +578,44 @@ void Cm_FreeMaterial(CmMaterial *material);
  * @return true if the diffusemap was resolved successfully.
  */
 bool Cm_ResolveMaterial(CmMaterial *material);
+
+/**
+ * @brief Applies the implied flags and defaults of a stage after its keywords are set.
+ * @remarks The parser calls this at the end of each stage. The editor MUST call it after it
+ * changes the flags of a stage.
+ */
+void Cm_FinalizeStage(CmStage *stage);
+
+/**
+ * @brief Recomputes the aggregate stage flags of the material from its stages.
+ */
+void Cm_ResolveStageFlags(CmMaterial *material);
+
+/**
+ * @brief Returns the first `STAGE_LIGHT` stage of the material, or `NULL`.
+ */
+CmStage *Cm_MaterialLightStage(const CmMaterial *material);
+
+/**
+ * @brief Finalizes the stage after an edit, and resolves its assets and the material stage flags.
+ * @remarks The editor MUST call this after it changes the flags or the asset of a stage. It marks
+ * the material dirty.
+ * @return True if the stage assets were resolved.
+ */
+bool Cm_ResolveStage(CmMaterial *material, CmStage *stage);
+
+/**
+ * @brief Appends a new stage that draws the material diffusemap, and marks the material dirty.
+ * @return The new stage.
+ */
+CmStage *Cm_AddStage(CmMaterial *material);
+
+/**
+ * @brief Removes and frees the stage, and marks the material dirty.
+ * @remarks Any pointer to the stage, such as a `RenderStage`, is invalid after this. The renderer
+ * stages of the material MUST be reloaded.
+ */
+void Cm_RemoveStage(CmMaterial *material, CmStage *stage);
 
 /**
  * @brief Serializes the material to its file path on disk.

@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 62
+#define CGAME_API_VERSION 63
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -941,6 +941,63 @@ typedef struct {
    * @return The material.
    */
   RenderMaterial *(*LoadMaterial)(const char *name, AssetContext context);
+
+  /**
+   * @brief Returns the first `STAGE_LIGHT` stage of the material, or `NULL`.
+   * @param material The material.
+   * @return The light stage, or `NULL`.
+   */
+  CmStage *(*MaterialLightStage)(const CmMaterial *material);
+
+  /**
+   * @brief Places the lights of the brush sides whose material has a `STAGE_LIGHT` stage, as
+   * quemap places them.
+   * @param file The BSP file.
+   * @param materials The materials to read the light stages from, indexed by BSP material.
+   * @param material The BSP material index to place lights for, or `-1` for all materials.
+   * @param lights The Vector of `CmMaterialLight` to append to.
+   * @return The number of lights appended.
+   */
+  size_t (*MaterialLights)(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights);
+
+  /**
+   * @brief Resolves the default color of a stage light that does not specify `light.color`.
+   * @param material The material.
+   * @param stage The light stage.
+   * @return The color, as quemap resolves it.
+   */
+  Vec3 (*MaterialLightColor)(const CmMaterial *material, const CmStage *stage);
+
+  /**
+   * @brief Appends a new stage to the material, which draws its diffusemap.
+   * @param material The collision material.
+   * @return The new stage.
+   * @remarks The renderer stages MUST be reloaded with `ReloadMaterialStages` after this.
+   */
+  CmStage *(*AddMaterialStage)(CmMaterial *material);
+
+  /**
+   * @brief Removes and frees the stage of the material.
+   * @param material The collision material.
+   * @param stage The stage.
+   * @remarks The renderer stages MUST be reloaded with `ReloadMaterialStages` after this.
+   */
+  void (*RemoveMaterialStage)(CmMaterial *material, CmStage *stage);
+
+  /**
+   * @brief Finalizes a stage after its flags or asset change, and resolves its assets.
+   * @param material The collision material.
+   * @param stage The stage.
+   * @return True if the stage assets were resolved.
+   */
+  bool (*ResolveMaterialStage)(CmMaterial *material, CmStage *stage);
+
+  /**
+   * @brief Resolves the render stages of the material again from its collision material.
+   * @param material The material.
+   * @remarks Any `RenderStage` pointer to the material, such as a flare, is invalid after this.
+   */
+  void (*ReloadMaterialStages)(RenderMaterial *material);
 
   /**
    * @brief Loads the model with the given name.

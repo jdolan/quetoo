@@ -107,8 +107,10 @@
     <ClInclude Include="..\src\cgame\common\ui\editor\EntityViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\MaterialViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\editor\MaterialViewController.h" />
-    <ClCompile Include="..\src\cgame\common\ui\editor\MeshViewController.c" />
-    <ClInclude Include="..\src\cgame\common\ui\editor\MeshViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\editor\StageView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\editor\StageView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\editor\StageViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\editor\StageViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionItemView.c" />
     <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c" />

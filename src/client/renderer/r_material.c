@@ -421,6 +421,37 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 }
 
 /**
+ * @brief Frees the render stages of the material and resolves them again from its collision
+ * material, after the editor changes its stage list, flags or assets.
+ * @remarks The media of the old stages are released as dependencies of the material, so that media
+ * which no stage uses any more can be freed, and so that a stage animation that the new stages
+ * replace by name is not left in the list after it is freed.
+ */
+void R_ReloadMaterialStages(RenderMaterial *material) {
+
+  List *dependencies = material->media.dependencies;
+
+  RenderStage *stage = material->stages;
+  while (stage) {
+    RenderStage *next = stage->next;
+
+    if (stage->media && dependencies) {
+      ListNode *node = $(dependencies, nodeForElement, stage->media);
+      if (node) {
+        $(dependencies, removeNode, node);
+      }
+    }
+
+    Mem_Free(stage);
+    stage = next;
+  }
+
+  material->stages = NULL;
+
+  R_ResolveMaterialStages(material);
+}
+
+/**
  * @brief Populates per-draw material uniforms.
  */
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out) {
@@ -476,6 +507,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
   out->lighting = cm->lighting.intensity;
   out->emissive = cm->emissive;
   out->shell = cm->shell.radius;
+  out->envmap = cm->envmap.amount;
 
   *texture = NULL;
   *textureNext = NULL;

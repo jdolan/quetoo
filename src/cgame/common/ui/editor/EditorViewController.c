@@ -24,41 +24,18 @@
 #include "EditorViewController.h"
 #include "EntityViewController.h"
 #include "MaterialViewController.h"
-#include "MeshViewController.h"
+#include "StageViewController.h"
 
 #pragma mark - Delegates
-
-/**
- * @brief ButtonDelegate for Create Entity.
- */
-static void didClickCreateEntity(Button *button) {
-
-  EditorViewController *this = button->delegate.self;
-
-  $(this->entityViewController, createEntity);
-}
-
-/**
- * @brief ButtonDelegate for Delete Entity.
- */
-static void didClickDeleteEntity(Button *button) {
-
-  EditorViewController *this = button->delegate.self;
-
-  $(this->entityViewController, deleteEntity);
-}
 
 /**
  * @brief ButtonDelegate for Save .map, .mat, and mesh configs.
  */
 static void didClickSave(Button *button) {
 
-  EditorViewController *this = button->delegate.self;
-
   cgi.Cbuf("saveEditorMap\n");
   cgi.Cbuf("r_saveMaterials\n");
-
-  $(this->meshViewController, save);
+  cgi.Cbuf("r_saveMeshConfigs\n");
 }
 
 #define _Class _EditorViewController
@@ -72,7 +49,7 @@ static void dealloc(Object *self) {
   release(this->tabViewController);
   release(this->entityViewController);
   release(this->materialViewController);
-  release(this->meshViewController);
+  release(this->stageViewController);
 
   super(Object, self, dealloc);
 }
@@ -106,70 +83,26 @@ static void loadView(ViewController *self) {
   this->materialViewController = $(alloc(MaterialViewController), init);
   assert(this->materialViewController);
 
-  this->meshViewController = $(alloc(MeshViewController), init);
-  assert(this->meshViewController);
+  this->stageViewController = $(alloc(StageViewController), init);
+  assert(this->stageViewController);
 
   ViewController *tabViewController = (ViewController *) this->tabViewController;
 
   $(tabViewController, addChildViewController, (ViewController *) this->entityViewController);
   $(tabViewController, addChildViewController, (ViewController *) this->materialViewController);
-  $(tabViewController, addChildViewController, (ViewController *) this->meshViewController);
+  $(tabViewController, addChildViewController, (ViewController *) this->stageViewController);
 
   $(self, addChildViewController, tabViewController);
   $((View *) ((Panel *) self->view)->contentView, addSubview, tabViewController->view);
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("createEntity", &this->createEntity),
-    MakeOutlet("deleteEntity", &this->deleteEntity),
     MakeOutlet("save", &this->save)
   );
 
   $(self->view, resolve, outlets);
 
-  this->createEntity->delegate.self = this;
-  this->createEntity->delegate.didClick = didClickCreateEntity;
-
-  this->deleteEntity->delegate.self = this;
-  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
-
   this->save->delegate.self = this;
   this->save->delegate.didClick = didClickSave;
-}
-
-/**
- * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
- */
-static void respondToEvent(ViewController *self, const SDL_Event *event) {
-
-  EditorViewController *this = (EditorViewController *) self;
-
-  if (event->type == MVC_NOTIFICATION_EVENT) {
-
-    switch (event->user.code) {
-      case NOTIFICATION_ENTITY_SELECTED: {
-        Control *deleteEntity = (Control *) this->deleteEntity;
-        const int16_t number = (int16_t) (intptr_t) event->user.data1;
-        if (number <= 0) {
-          deleteEntity->state |= ControlStateDisabled;
-        } else {
-          deleteEntity->state &= ~ControlStateDisabled;
-        }
-        $(deleteEntity, stateDidChange);
-
-        RenderModel *model = NULL;
-        if (number > 0) {
-          const CGameEditorEntity *edit = &cgEditor.entities[number];
-          if (edit->model && IS_MESH_MODEL(edit->model)) {
-            model = (RenderModel *) edit->model;
-          }
-        }
-        $(this->meshViewController, setModel, model);
-      }
-        break;
-    }
-  }
-
-  super(ViewController, self, respondToEvent, event);
 }
 
 #pragma mark - Class lifecycle
@@ -182,7 +115,6 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
 }
 
 /**

@@ -215,7 +215,7 @@ typedef struct RenderStage {
 
   /**
    * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
-   * @details A `portal` or `reflection` stage on a surface that shows no such subview loses that
+   * @details A `portal` or `reflect` stage on a surface that shows no such subview loses that
    *   flag here, so that it draws nothing rather than sampling a layer that is not its own.
    */
   int32_t flags;
@@ -946,6 +946,13 @@ typedef struct {
    * @brief The target entity for dynamic lights attached to inline model entities, or `NULL`.
    */
   CmEntity *targetEntity;
+
+  /**
+   * @brief The material that emits this light, or `NULL` for a light entity.
+   * @details The intensity of a material light is read from the `STAGE_LIGHT` stage of this
+   * material on each frame, so that edits to the material take effect without a recompile.
+   */
+  RenderMaterial *material;
 } RenderBspLight;
 
 /**
@@ -1409,6 +1416,11 @@ typedef struct {
    * @brief The normalization transform matrix.
    */
   Mat4 transform;
+
+  /**
+   * @brief True if the editor changed this config, and it should be saved.
+   */
+  bool dirty;
 } RenderMeshConfig;
 
 /**

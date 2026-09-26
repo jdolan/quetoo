@@ -41,6 +41,10 @@ static View *init(View *self) {
  */
 static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
+  if (editor->integer) {
+    return "Editing";
+  }
+
   const PlayerState *ps = &frame->ps;
 
   if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {

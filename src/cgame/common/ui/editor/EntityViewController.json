@@ -11,18 +11,90 @@
       ],
       "subviews": [
         {
+          "class": "StackView",
+          "classNames": [
+            "entityButtons"
+          ],
+          "subviews": [
+            {
+              "identifier": "createEntity",
+              "class": "Button",
+              "title": {
+                "text": "Create Entity"
+              }
+            },
+            {
+              "identifier": "deleteEntity",
+              "class": "Button",
+              "title": {
+                "text": "Delete Entity"
+              }
+            }
+          ]
+        },
+        {
           "identifier": "pairs",
           "class": "StackView",
           "classNames": [
             "container"
           ],
-          "subviews": [
-            
-          ]
+          "subviews": []
         },
         {
           "identifier": "add",
           "class": "EntityView"
+        },
+        {
+          "identifier": "world",
+          "class": "Box",
+          "label": {
+            "text": {
+              "text": "World"
+            }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Translate"
+                  }
+                },
+                "control": {
+                  "class": "TextView",
+                  "identifier": "worldTranslate"
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Rotate"
+                  }
+                },
+                "control": {
+                  "class": "TextView",
+                  "identifier": "worldRotate"
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Scale"
+                  }
+                },
+                "control": {
+                  "class": "TextView",
+                  "identifier": "worldScale"
+                }
+              }
+            ]
+          },
+          "classNames": [
+            "world"
+          ]
         },
         {
           "identifier": "teamEntity",
@@ -40,16 +112,17 @@
                 "classNames": [
                   "container"
                 ],
-                "subviews": [
-                  
-                ]
+                "subviews": []
               },
               {
                 "identifier": "teamAdd",
                 "class": "EntityView"
               }
             ]
-          }
+          },
+          "classNames": [
+            "team"
+          ]
         }
       ]
     }
