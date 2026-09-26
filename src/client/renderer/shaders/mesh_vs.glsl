@@ -91,7 +91,7 @@ void main(void) {
   vertex.voxel = voxelUvw(vec3(model * position));
   vertex.color = color;
 
-  stageVertex(inPosition, vertex);
+  stageVertex(inPosition, position.xyz, normal.xyz, viewModel, vertex);
 
   vertexLighting(vertex);
 

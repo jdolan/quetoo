@@ -153,6 +153,23 @@ typedef struct {
 } CmStageWarp;
 
 /**
+ * @brief The default amount by which the normalmap moves an envmapped subview, as a fraction of
+ * the screen for a normal tilted fully away from the face.
+ */
+#define STAGE_ENVMAP_AMOUNT .05f
+
+/**
+ * @brief Environment map parameters.
+ */
+typedef struct {
+
+  /**
+   * @brief The amount by which the normalmap moves an envmapped subview. A texture ignores it.
+   */
+  float amount;
+} CmStageEnvmap;
+
+/**
  * @brief Stage lighting parameters.
  */
 typedef struct {
@@ -372,6 +389,11 @@ typedef struct CmStage {
    * @brief The stage warp parameters.
    */
   CmStageWarp warp;
+
+  /**
+   * @brief The stage environment map parameters.
+   */
+  CmStageEnvmap envmap;
 
   /**
    * @brief The stage lighting parameters.

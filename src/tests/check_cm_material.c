@@ -125,6 +125,60 @@ START_TEST(check_Cm_SaveMaterial_light) {
 
 } END_TEST
 
+START_TEST(check_Cm_LoadMaterial_envmap) {
+
+	write_file("check_envmap.mat",
+		"{\n"
+		"	{\n"
+		"		texture check_envmap\n"
+		"		envmap\n"
+		"	}\n"
+		"	{\n"
+		"		reflect\n"
+		"		envmap 0.2\n"
+		"		color 1 1 1 .5\n"
+		"	}\n"
+		"}\n"
+	);
+
+	CmMaterial *m = Cm_LoadMaterial("check_envmap", ASSET_CONTEXT_NONE);
+	ck_assert_ptr_nonnull(m);
+
+	const CmStage *s = m->stages;
+	ck_assert_ptr_nonnull(s);
+	ck_assert(s->flags & STAGE_ENVMAP);
+	ck_assert(s->flags & STAGE_TEXTURE);
+	ck_assert(s->flags & STAGE_DRAW);
+	ck_assert_str_eq(s->asset.name, "check_envmap");
+	ck_assert_float_eq(s->envmap.amount, STAGE_ENVMAP_AMOUNT);
+
+	s = s->next;
+	ck_assert_ptr_nonnull(s);
+	ck_assert(s->flags & STAGE_ENVMAP);
+	ck_assert(s->flags & STAGE_REFLECT);
+	ck_assert(s->flags & STAGE_COLOR);
+	ck_assert_float_eq(s->envmap.amount, .2f);
+
+	ck_assert(Cm_SaveMaterial(m));
+	Cm_FreeMaterial(m);
+
+	m = Cm_LoadMaterial("check_envmap", ASSET_CONTEXT_NONE);
+	ck_assert_ptr_nonnull(m);
+
+	s = m->stages;
+	ck_assert(s->flags & STAGE_ENVMAP);
+	ck_assert(s->flags & STAGE_TEXTURE);
+	ck_assert_float_eq(s->envmap.amount, STAGE_ENVMAP_AMOUNT);
+
+	s = s->next;
+	ck_assert(s->flags & STAGE_ENVMAP);
+	ck_assert(s->flags & STAGE_REFLECT);
+	ck_assert_float_eq(s->envmap.amount, .2f);
+
+	Cm_FreeMaterial(m);
+
+} END_TEST
+
 START_TEST(check_Cm_LoadMaterial_pulse_drift_ignored) {
 
 	write_file("check_drift.mat",
@@ -255,6 +309,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	tcase_add_test(tcase, check_Cm_LoadMaterial_light);
 	tcase_add_test(tcase, check_Cm_SaveMaterial_light);
+	tcase_add_test(tcase, check_Cm_LoadMaterial_envmap);
 	tcase_add_test(tcase, check_Cm_LoadMaterial_pulse_drift_ignored);
 	tcase_add_test(tcase, check_Cm_ResolveStageFlags);
 	tcase_add_test(tcase, check_Cm_LoadMaterial_light_only_stage);

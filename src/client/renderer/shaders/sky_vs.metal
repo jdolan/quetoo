@@ -100,6 +100,10 @@ struct materialBlock
     float emissive;
     float lerp;
     float shell;
+    float envmap;
+    float padding0;
+    float padding1;
+    float padding2;
 };
 
 constant spvUnsafeArray<float, 8> _118 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });

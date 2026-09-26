@@ -507,6 +507,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
   out->lighting = cm->lighting.intensity;
   out->emissive = cm->emissive;
   out->shell = cm->shell.radius;
+  out->envmap = cm->envmap.amount;
 
   *texture = NULL;
   *textureNext = NULL;

@@ -262,6 +262,17 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
    */
   float shell;
 
+  /**
+   * @brief The amount by which the normalmap moves an envmapped subview.
+   */
+  float envmap;
+
+  /**
+   * @brief Pads the block to a multiple of 16 bytes, so that the tint colors that follow it in
+   * the mesh program align as they do in RenderMaterialUniforms.
+   */
+  float padding0, padding1, padding2;
+
 #if defined(MATERIAL_TINTS)
   /**
    * @brief Per-entity tint colors for player-skin colorization (mesh only).
@@ -290,14 +301,27 @@ void stageTransform(inout vec3 position, inout vec3 normal, inout vec3 tangent, 
 
 /**
  * @brief Applies per-stage vertex color and texture coordinate transforms.
+ * @param inPosition The vertex position as supplied, for terrain blending.
+ * @param position The vertex position in model space, after the stage transform.
+ * @param normal The vertex normal in model space, after the stage transform.
+ * @param viewModel The model to view matrix.
+ * @details An envmapped texture takes its coordinates from the reflection of the eye about the
+ * vertex normal, in model space, as Quake III's `tcGen environment` does: the reflection then
+ * holds still while the view turns, and slides across the surface as the eye moves around it.
+ * Model space is Quake's, so the reflection's left and up axes map to the coordinates. An
+ * envmapped subview keeps the face's coordinates, since it reads the normalmap through them.
  */
-void stageVertex(in vec3 inPosition, inout CommonVertex vertex) {
-  int envmap = material.flags & STAGE_ENVMAP;
+void stageVertex(in vec3 inPosition, in vec3 position, in vec3 normal, in mat4 viewModel, inout CommonVertex vertex) {
 
-  if (envmap != 0) {
-    vec3 viewDir = normalize(vertex.position);
-    vec3 reflectDir = reflect(viewDir, normalize(vertex.normal));
-    vertex.diffusemap = vec2(0.5 + reflectDir.y * 0.5, 0.5 - reflectDir.z * 0.5);
+  bool envmap = (material.flags & STAGE_ENVMAP) == STAGE_ENVMAP &&
+                (material.flags & STAGE_MASK_SUBVIEW) == 0;
+
+  if (envmap) {
+    vec3 eye = inverse(viewModel)[3].xyz;
+    vec3 viewer = normalize(eye - position);
+    vec3 n = normalize(normal);
+    vec3 reflected = n * 2.0 * dot(n, viewer) - viewer;
+    vertex.diffusemap = vec2(0.5 + reflected.y * 0.5, 0.5 - reflected.z * 0.5);
   }
 
   if ((material.flags & STAGE_STRETCH) == STAGE_STRETCH) {
@@ -319,50 +343,27 @@ void stageVertex(in vec3 inPosition, inout CommonVertex vertex) {
 
   if ((material.flags & STAGE_ROTATE) == STAGE_ROTATE) {
 	  float theta = ticks * 0.001 * material.rotate * TWO_PI;
-    vec2 stOrigin = material.stOrigin;
-    if (envmap != 0) {
-      stOrigin = vec2(0.5);
-    }
+    vec2 stOrigin = envmap ? vec2(0.5) : material.stOrigin;
 
 	  vertex.diffusemap = vertex.diffusemap - stOrigin;
 	  vertex.diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * vertex.diffusemap;
 	  vertex.diffusemap = vertex.diffusemap + stOrigin;
   }
 
-  if (envmap != 0) {
-    if ((material.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) != 0) {
-      vec2 scale = vec2(
-        (material.flags & STAGE_SCALE_S) == STAGE_SCALE_S ? material.scale.s : 1.0,
-        (material.flags & STAGE_SCALE_T) == STAGE_SCALE_T ? material.scale.t : 1.0
-      );
-      vec2 centered = vertex.diffusemap - vec2(0.5);
-      centered /= max(abs(scale), vec2(0.0001));
-      vertex.diffusemap = centered + vec2(0.5);
-    }
+  if ((material.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+    vertex.diffusemap.s += material.scroll.s * ticks * 0.001;
+  }
 
-    if ((material.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-      vertex.diffusemap.s += material.scroll.s * ticks * 0.001;
-    }
+  if ((material.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+    vertex.diffusemap.t += material.scroll.t * ticks * 0.001;
+  }
 
-    if ((material.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-      vertex.diffusemap.t += material.scroll.t * ticks * 0.001;
-    }
-  } else {
-    if ((material.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-      vertex.diffusemap.s += material.scroll.s * ticks * 0.001;
-    }
+  if ((material.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
+    vertex.diffusemap.s *= material.scale.s;
+  }
 
-    if ((material.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-      vertex.diffusemap.t += material.scroll.t * ticks * 0.001;
-    }
-
-    if ((material.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
-      vertex.diffusemap.s *= material.scale.s;
-    }
-
-    if ((material.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
-      vertex.diffusemap.t *= material.scale.t;
-    }
+  if ((material.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
+    vertex.diffusemap.t *= material.scale.t;
   }
 
   if ((material.flags & STAGE_COLOR) == STAGE_COLOR) {

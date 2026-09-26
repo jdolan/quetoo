@@ -197,7 +197,7 @@ static void Cm_MaterialWarn(const CmMaterial *m, const Parser *parser, const cha
  */
 void Cm_FinalizeStage(CmStage *s) {
 
-  if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL | STAGE_MASK_SUBVIEW)) {
+  if (s->flags & (STAGE_TEXTURE | STAGE_SHELL | STAGE_MASK_SUBVIEW)) {
     s->flags |= STAGE_DRAW;
 
     if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
@@ -216,6 +216,10 @@ void Cm_FinalizeStage(CmStage *s) {
 
   if (s->blend.dest == BLEND_INVALID) {
     s->blend.dest = BLEND_ONE_MINUS_SRC_ALPHA;
+  }
+
+  if (s->flags & STAGE_ENVMAP) {
+    s->envmap.amount = s->envmap.amount ?: STAGE_ENVMAP_AMOUNT;
   }
 
   if (s->flags & STAGE_LIGHT) {
@@ -500,9 +504,8 @@ static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
 
     if (!q_strcmp(token, "envmap")) {
 
-      if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
-        Cm_MaterialWarn(m, parser, "Missing envmap asset");
-        continue;
+      if (Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token)) && (isdigit((unsigned char) *token) || *token == '.')) {
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->envmap.amount, 1);
       }
 
       s->flags |= STAGE_ENVMAP;
@@ -1040,6 +1043,8 @@ static bool Cm_ResolveStageAnimation(CmStage *stage, AssetContext context) {
 
 /**
  * @brief Resolves all asset references within the given stage.
+ * @details A stage texture resolves in the material's context, and then among the textures, so
+ * that a model material can use a shared texture such as an envmap.
  */
 static bool Cm_ResolveStageAssets(CmMaterial *material, CmStage *stage, AssetContext context) {
 
@@ -1062,10 +1067,11 @@ static bool Cm_ResolveStageAssets(CmMaterial *material, CmStage *stage, AssetCon
     } else {
       if (stage->flags & STAGE_FLARE) {
         res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_SPRITES);
-      } else if (stage->flags & STAGE_ENVMAP) {
-        res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_TEXTURES);
       } else {
         res = Cm_ResolveAsset(&stage->asset, context);
+        if (res == false && context != ASSET_CONTEXT_TEXTURES) {
+          res = Cm_ResolveAsset(&stage->asset, ASSET_CONTEXT_TEXTURES);
+        }
       }
     }
 
@@ -1322,7 +1328,11 @@ static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File
   }
 
   if (stage->flags & STAGE_ENVMAP) {
-    Fs_Print(file, "\t\tenvmap %s\n", stage->asset.name);
+    if (stage->envmap.amount != STAGE_ENVMAP_AMOUNT) {
+      Fs_Print(file, "\t\tenvmap %g\n", stage->envmap.amount);
+    } else {
+      Fs_Print(file, "\t\tenvmap\n");
+    }
   }
 
   if (stage->flags & STAGE_WARP) {

@@ -112,6 +112,10 @@ struct materialBlock
     float emissive;
     float lerp;
     float shell;
+    float envmap;
+    float padding0;
+    float padding1;
+    float padding2;
     float4 tintColors[3];
 };
 

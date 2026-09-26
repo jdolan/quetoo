@@ -209,6 +209,23 @@ void main(void) {
       st.x = 1.0 - st.x;
     }
 
+    // an envmapped subview is moved by the face's normalmap: by how far the relief tilts the
+    // normal from the face's own, in view space, where x runs right and y up the screen. The
+    // screen's coordinates run down, and a mirrored layer runs the other way
+    if (subview && (material.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
+      vec3 normal = normalize(vertex.normal);
+      vec3 relief = sampleMaterialNormal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, normal));
+      vec2 offset = (relief - normal).xy * material.envmap;
+
+      offset.y = -offset.y;
+
+      if (mirrored) {
+        offset.x = -offset.x;
+      }
+
+      st += offset;
+    }
+
     if ((material.flags & STAGE_WARP) == STAGE_WARP) {
 
       // the ripple is sampled, and its amplitude given, in the face's own texture coordinates,
