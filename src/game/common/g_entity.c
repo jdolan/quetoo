@@ -738,22 +738,23 @@ static void G_worldspawn_Music(void) {
 
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
+
+ The map list's entry for the level, and the server's own settings, take precedence over the gameplay, movement, gravity, limits and music given here.
  -------- KEYS --------
  message : The map title.
- sky : The sky environment map (default unit1_).
+ games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
+ sky : The sky environment map (default template).
  ambient : The ambient light level, as one scalar or as three to tint it (e.g. 0.14 0.11 0.12).
  gravity : Gravity for the level; unset, the movement's applies, 800 for most.
- gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
- hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
- teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
- numTeams : Enforces number of teams (disabled = -1, must be between 2 and 4)
- ctf : Enables CTF play (enabled = 1, auto-balance = 2).
- fraglimit : The frag limit (default 20).
- roundlimit : The round limit (default 20).
- capturelimit : The capture limit (default 8).
- timelimit : The time limit in minutes (default 20).
- give : A comma-delimited item string to give each player on spawn.
+ gameplay : The gameplay mode, one of deathmatch, team_deathmatch, instagib, team_instagib, arena, team_arena (default deathmatch).
+ movement : The player movement, one of quetoo, race, quake, quake2, quake3 (default quetoo, or race in the race module).
  items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
+ frag_limit : The frag limit (default g_fragLimit).
+ capture_limit : The capture limit, in CTF (default g_captureLimit).
+ time_limit : The time limit in minutes (default g_timeLimit).
+ music : A comma-delimited list of music tracks; unset, all tracks are shuffled.
+ author : The creator of the map, and any other credits. Metadata only: the game does not read it.
+ version : The version of the map, as major.minor.build. Metadata only: the game does not read it.
  */
 static void G_worldspawn(GameEntity *ent) {
 
