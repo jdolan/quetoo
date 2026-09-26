@@ -178,7 +178,7 @@ static void loadView(ViewController *self) {
   MaterialViewController *this = (MaterialViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("name", &this->name),
+    MakeOutlet("materialBox", &this->materialBox),
     MakeOutlet("diffusemap", &this->diffusemap),
     MakeOutlet("normalmap", &this->normalmap),
     MakeOutlet("specularmap", &this->specularmap),
@@ -274,7 +274,7 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
   self->material = material;
 
   if (self->material) {
-    $(self->name, setDefaultText, self->material->cm->basename);
+    $(self->materialBox->label->text, setText, va("Material [%s]", self->material->cm->basename));
     $(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
     $(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
     $(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
@@ -287,7 +287,7 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
     $(self->alphaTest, setValue, (double) self->material->cm->alphaTest);
 
   } else {
-    $(self->name, setDefaultText, NULL);
+    $(self->materialBox->label->text, setText, "Material");
     $(self->diffusemap, setDefaultText, NULL);
     $(self->normalmap, setDefaultText, NULL);
     $(self->specularmap, setDefaultText, NULL);

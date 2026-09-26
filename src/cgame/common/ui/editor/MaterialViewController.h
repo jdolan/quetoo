@@ -23,6 +23,7 @@
 
 #include "cgame/cgame.h"
 
+#include <ObjectivelyMVC/Box.h>
 #include <ObjectivelyMVC/ViewController.h>
 
 /**
@@ -57,9 +58,9 @@ struct MaterialViewController {
   RenderMaterial *material;
 
   /**
-   * @brief The material name text field.
+   * @brief The Box of the material properties, whose label names the material.
    */
-  TextView *name;
+  Box *materialBox;
 
   /**
    * @brief The diffusemap texture name text field.

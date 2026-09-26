@@ -22,18 +22,6 @@
                   "class": "Input",
                   "label": {
                     "text": {
-                      "text": "Material"
-                    }
-                  },
-                  "control": {
-                    "class": "TextView",
-                    "identifier": "name"
-                  }
-                },
-                {
-                  "class": "Input",
-                  "label": {
-                    "text": {
                       "text": "Diffusemap"
                     }
                   },
@@ -172,7 +160,8 @@
             },
             "classNames": [
               "properties"
-            ]
+            ],
+            "identifier": "materialBox"
           },
           {
             "class": "Box",
