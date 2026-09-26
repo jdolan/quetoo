@@ -31,8 +31,14 @@
   width: 196;
 }
 
+#stages .stagesHeader,
 #stages .stageList {
-  spacing: 8;
+  autoresizing-mask: contain | width;
+}
+
+#stages .stageList {
+  padding-top: 10;
+  spacing: 14;
 }
 
 #stages Box.effect {
@@ -43,6 +49,6 @@
   visibility: visible;
 }
 
-#stages .collapsed > .contentView {
+#stages .collapsed .details {
   visibility: hidden;
 }

@@ -549,8 +549,18 @@ static void didSetStageValue(Slider *slider, double value) {
 #pragma mark - View
 
 /**
+ * @see View::containsPoint(const View *, const SDL_Point *)
+ * @remarks The label straddles the top border of the Box, so it is included, so that a click on
+ * any part of it reaches this StageView.
+ */
+static bool containsPoint(const View *self, const SDL_Point *point) {
+  return super(View, self, containsPoint, point) || $((View *) ((Box *) self)->label, containsPoint, point);
+}
+
+/**
  * @see View::respondToEvent(View *, const SDL_Event *)
- * @remarks A click on the label collapses or shows the contents of the stage.
+ * @remarks A click on the label collapses or shows the details of the stage. Its label and asset
+ * row always show.
  */
 static void respondToEvent(View *self, const SDL_Event *event) {
 
@@ -669,6 +679,7 @@ static void update(StageView *self) {
  */
 static void initialize(Class *clazz) {
 
+  ((ViewInterface *) clazz->interface)->containsPoint = containsPoint;
   ((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
 
   ((StageViewInterface *) clazz->interface)->initWithStage = initWithStage;

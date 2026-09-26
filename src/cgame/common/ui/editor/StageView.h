@@ -130,7 +130,8 @@ struct StageViewInterface {
 
   /**
    * @fn void StageView::setCollapsed(StageView *self, bool collapsed)
-   * @brief Collapses or shows the contents of this StageView.
+   * @brief Collapses or shows the flags and effects of this StageView. Its label and asset row
+   * always show.
    * @param self The StageView.
    * @param collapsed True to collapse the contents.
    * @memberof StageView
