@@ -110,7 +110,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_volume 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug sound"
@@ -122,7 +122,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_aiNodeDev 1"
@@ -142,6 +142,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map hallways"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set timeDemo 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+demo q1perf"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

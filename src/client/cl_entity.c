@@ -327,12 +327,8 @@ void Cl_ParseFrame(void) {
 
       Cl_SetKeyDest(KEY_GAME);
 
-      // a demo we are hosting comes up paused on this, its opening frame, with the transport
-      // controls showing. Keyed on going active rather than on frameNum, which is 0 again after
-      // a scrub back to the start, and confined to a local demo, because pause is server state
-      // that a spectator has no business taking from everyone else on a demo server. A timed
-      // demo plays straight through
-      if (cl.demoServer && cls.netChan.remoteAddress.type == NA_LOOP && !quetoo.timeDemo) {
+      // pause local demo playback on initial load
+      if (cl.demoServer && !timeDemo->value && cls.netChan.remoteAddress.type == NA_LOOP) {
         Cbuf_AddText("demo_pause\n");
       }
     }
@@ -354,7 +350,7 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-  bool noLerp = cl.previousFrame == NULL || cl_noLerp->value || quetoo.timeDemo;
+  bool noLerp = cl.previousFrame == NULL || cl_noLerp->value || timeDemo->value;
 
   if (cl.previousFrame) {
     const float dist = Vec3_Distance(cl.frame.ps.pmState.origin, cl.previousFrame->ps.pmState.origin);

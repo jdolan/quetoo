@@ -304,12 +304,9 @@ void Cl_Disconnect(void) {
 
   Cl_SendDisconnect();
 
-  const bool timeDemo = quetoo.timeDemo;
-  if (timeDemo) {
+  if (timeDemo->value) {
     const float s = (quetoo.ticks - cl.timeDemoStart) / 1000.f;
     Com_Print("%u frames, %3.2f seconds: %4.2f fps\n", cl.timeDemoFrames, s, cl.timeDemoFrames / s);
-
-    quetoo.timeDemo = false;
   }
 
   Cl_ClearState();
@@ -326,7 +323,7 @@ void Cl_Disconnect(void) {
   cls.server.connectTime = 0;
   cls.state = CL_DISCONNECTED;
 
-  Cl_SetKeyDest(timeDemo ? KEY_CONSOLE : KEY_UI);
+  Cl_SetKeyDest(timeDemo->value ? KEY_CONSOLE : KEY_UI);
 
   cls.broadcastTime = 0;
 }
@@ -672,7 +669,7 @@ void Cl_Frame(const uint32_t msec) {
   // and the total ticks
   cl.ticks = quetoo.ticks;
 
-  if (quetoo.timeDemo) { // accumulate timed demo statistics, from the first frame of the demo
+  if (timeDemo->value) { // accumulate timed demo statistics, from the first frame of the demo
     if (cls.state == CL_ACTIVE) {
       if (!cl.timeDemoStart) {
         cl.timeDemoStart = quetoo.ticks;

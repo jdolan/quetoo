@@ -336,7 +336,7 @@ static void Cl_ParseServerData(void) {
   // determine if we're viewing a demo
   cl.demoServer = Net_ReadByte(&netMessage);
 
-  if (cl.demoServer && !quetoo.timeDemo) {
+  if (cl.demoServer && !timeDemo->value) {
     Com_Print("^3Demo playback controls:^7\n"
               "  Pause/resume:  ^2SPACE^7\n"
               "  Prev frame:    ^2LEFT^7\n"

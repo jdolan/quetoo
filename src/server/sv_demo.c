@@ -272,8 +272,8 @@ static void Sv_DemoCompleted(void) {
  */
 static void Sv_DemoEnded(void) {
 
-  if (quetoo.timeDemo) {
-    Sv_ShutdownServer("Demo complete\n");
+  if (timeDemo->value && !dedicated->value) {
+    Sv_ShutdownServer("Time demo benchmark complete\n");
     return;
   }
 

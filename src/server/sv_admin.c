@@ -106,32 +106,6 @@ static void Sv_Demo_f(void) {
 }
 
 /**
- * @brief Plays the specified demo as fast as it can be drawn, one frame per server frame, and
- * reports the frame rate when it completes.
- */
-static void Sv_TimeDemo_f(void) {
-
-  if (dedicated->value) {
-    Com_Warn("%s requires a client\n", Cmd_Argv(0));
-    return;
-  }
-
-  if (Cmd_Argc() != 2) {
-    Com_Print("Usage: %s <demo>\n", Cmd_Argv(0));
-    return;
-  }
-
-  const char *path = va("demos/%s.demo", Cmd_Argv(1));
-
-  if (Fs_Exists(path)) {
-    Sv_InitServer(Cmd_Argv(1), NULL, SV_ACTIVE_DEMO);
-    quetoo.timeDemo = true;
-  } else {
-    Com_Warn("%s does not exist\n", path);
-  }
-}
-
-/**
  * @brief Map command autocompletion.
  */
 static void Sv_Map_Autocomplete_f(const uint32_t argi, List *matches) {
@@ -408,9 +382,6 @@ void Sv_InitAdmin(void) {
 
   Cmd *demoCmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
   Cmd_SetAutocomplete(demoCmd, Sv_Demo_Autocomplete_f);
-
-  Cmd *timeDemoCmd = Cmd_Add("timeDemo", Sv_TimeDemo_f, CMD_SERVER, "Benchmark playback of the specified demo file");
-  Cmd_SetAutocomplete(timeDemoCmd, Sv_Demo_Autocomplete_f);
 
   Cmd *mapCmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
   Cmd_SetAutocomplete(mapCmd, Sv_Map_Autocomplete_f);

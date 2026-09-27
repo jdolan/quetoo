@@ -48,6 +48,7 @@ Cvar *editor;
 Cvar *rconAddress;
 Cvar *rconPassword;
 Cvar *threads;
+Cvar *timeDemo;
 Cvar *timeScale;
 Cvar *version;
 
@@ -399,6 +400,7 @@ static void Init(void) {
   threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
   threads->modified = false;
 
+  timeDemo = Cvar_Add("timeDemo", "0", CVAR_DEVELOPER, "Enables timed benchmark of demo playback");
   timeScale = Cvar_Add("timeScale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");

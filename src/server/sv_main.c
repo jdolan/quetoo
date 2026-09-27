@@ -884,7 +884,7 @@ void Sv_Frame(const uint32_t msec) {
     return;
   }
 
-  if (quetoo.timeDemo) { // always run a frame
+  if (timeDemo->value && !dedicated->value) { // always run a frame
     frameDelta = QUETOO_TICK_MILLIS;
   } else { // keep simulation time in sync with reality
 
