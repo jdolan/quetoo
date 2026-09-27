@@ -267,9 +267,15 @@ static void Sv_DemoCompleted(void) {
 /**
  * @brief Handles reaching the end of the recording. Interactive playback holds on the last frame,
  * paused, so the viewer can scrub back and watch it again rather than being dropped to the menus;
- * a playlist-driven demo server still moves on to the next demo.
+ * a playlist-driven demo server still moves on to the next demo, and a timed one shuts down so
+ * that the client reports the run.
  */
 static void Sv_DemoEnded(void) {
+
+  if (quetoo.timeDemo) {
+    Sv_ShutdownServer("Demo complete\n");
+    return;
+  }
 
   if (sv_demoList->string[0]) {
     Sv_DemoCompleted();

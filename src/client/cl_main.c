@@ -304,6 +304,14 @@ void Cl_Disconnect(void) {
 
   Cl_SendDisconnect();
 
+  const bool timeDemo = quetoo.timeDemo;
+  if (timeDemo) {
+    const float s = (quetoo.ticks - cl.timeDemoStart) / 1000.f;
+    Com_Print("%u frames, %3.2f seconds: %4.2f fps\n", cl.timeDemoFrames, s, cl.timeDemoFrames / s);
+
+    quetoo.timeDemo = false;
+  }
+
   Cl_ClearState();
 
   RESTClient *client = $$(RESTClient, sharedInstance);
@@ -318,15 +326,7 @@ void Cl_Disconnect(void) {
   cls.server.connectTime = 0;
   cls.state = CL_DISCONNECTED;
 
-  if (timeDemo->value) {
-    const float s = (quetoo.ticks - cl.timeDemoStart) / 1000.0;
-    Com_Print("%i frames, %3.2f seconds: %4.2ffps\n", cl.timeDemoFrames, s,
-          cl.timeDemoFrames / s);
-
-    cl.timeDemoFrames = cl.timeDemoStart = 0;
-  }
-
-  Cl_SetKeyDest(KEY_UI);
+  Cl_SetKeyDest(timeDemo ? KEY_CONSOLE : KEY_UI);
 
   cls.broadcastTime = 0;
 }
@@ -672,11 +672,13 @@ void Cl_Frame(const uint32_t msec) {
   // and the total ticks
   cl.ticks = quetoo.ticks;
 
-  if (timeDemo->value) { // accumulate timed demo statistics
-    if (!cl.timeDemoStart) {
-      cl.timeDemoStart = quetoo.ticks;
+  if (quetoo.timeDemo) { // accumulate timed demo statistics, from the first frame of the demo
+    if (cls.state == CL_ACTIVE) {
+      if (!cl.timeDemoStart) {
+        cl.timeDemoStart = quetoo.ticks;
+      }
+      cl.timeDemoFrames++;
     }
-    cl.timeDemoFrames++;
   } else {
     float targetFps = cl_maxFps->value;
     if (targetFps == 0.f) {

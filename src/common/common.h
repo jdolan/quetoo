@@ -182,6 +182,13 @@ typedef struct {
   char cgame[MAX_QPATH];
 
   /**
+   * @brief True while the `timeDemo` command plays a demo as fast as it can be drawn.
+   * @details Set once the demo server is up, and cleared when the client disconnects, which is
+   * when the run is reported.
+   */
+  bool timeDemo;
+
+  /**
    * @brief The enabled debug categories.
    */
   DebugFlags debugMask;
@@ -228,5 +235,4 @@ extern Cvar *editor;
 extern Cvar *rconAddress;
 extern Cvar *rconPassword;
 extern Cvar *threads;
-extern Cvar *timeDemo;
 extern Cvar *timeScale;
