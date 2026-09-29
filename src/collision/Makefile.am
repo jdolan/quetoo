@@ -4,6 +4,7 @@ noinst_HEADERS = \
 	cm_local.h \
 	cm_model.h \
 	cm_test.h \
+	cm_trace.h \
 	cm_types.h \
 	collision.h \
 	entity.h \
