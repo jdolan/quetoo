@@ -1041,25 +1041,25 @@ void Fs_Init(const uint32_t flags) {
 #elif defined(__linux__)
     if ((c = q_strstr(path, "/bin/"))) {
       *c = '\0';
-      q_strlcpy(fsState.baseDir, path, sizeof(fsState.baseDir));
+      q_strlcpy(module.baseDir, path, sizeof(module.baseDir));
 
       char binDir[MAX_OS_PATH];
-      q_snprintf(binDir, MAX_OS_PATH, "%s/bin", fsState.baseDir);
+      q_snprintf(binDir, MAX_OS_PATH, "%s/bin", module.baseDir);
 
-      if (q_strcmp(binDir, fsState.binDir) != 0) {
-        q_strlcpy(fsState.binDir, binDir, MAX_OS_PATH);
-        q_snprintf(fsState.libDir, MAX_OS_PATH, "%s/lib/quetoo", fsState.baseDir);
-        q_snprintf(fsState.dataDir, MAX_OS_PATH, "%s/share/quetoo", fsState.baseDir);
+      if (q_strcmp(binDir, module.binDir) != 0) {
+        q_strlcpy(module.binDir, binDir, MAX_OS_PATH);
+        q_snprintf(module.libDir, MAX_OS_PATH, "%s/lib/quetoo", module.baseDir);
+        q_snprintf(module.dataDir, MAX_OS_PATH, "%s/share/quetoo", module.baseDir);
       }
     }
 #elif defined(_WIN32)
     if ((c = q_strstr(path, "\\bin\\"))) {
       *c = '\0';
-      q_strlcpy(fsState.baseDir, path, sizeof(fsState.baseDir));
+      q_strlcpy(module.baseDir, path, sizeof(module.baseDir));
 
-      q_snprintf(fsState.binDir, MAX_OS_PATH, "%s\\bin", fsState.baseDir);
-      q_snprintf(fsState.libDir, MAX_OS_PATH, "%s\\lib", fsState.baseDir);
-      q_snprintf(fsState.dataDir, MAX_OS_PATH, "%s\\share", fsState.baseDir);
+      q_snprintf(module.binDir, MAX_OS_PATH, "%s\\bin", module.baseDir);
+      q_snprintf(module.libDir, MAX_OS_PATH, "%s\\lib", module.baseDir);
+      q_snprintf(module.dataDir, MAX_OS_PATH, "%s\\share", module.baseDir);
     }
 #endif
   }
