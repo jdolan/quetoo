@@ -74,7 +74,7 @@ const GameItem *G_FindItem(const char *name) {
  *  appropriate weapon when `gameLevel.items == ITEMS_QUAKE`.
  *  `WEAPON_NONE` means no equivalent exists.
  */
-static const GameItemTag gameQuakeWeaponMap[WEAPON_LAST] = {
+static const GameItemTag quakeWeaponMap[WEAPON_LAST] = {
   [WEAPON_BLASTER]          = WEAPON_QUAKE_SHOTGUN,
   [WEAPON_SHOTGUN]          = WEAPON_QUAKE_SHOTGUN,
   [WEAPON_SUPER_SHOTGUN]    = WEAPON_QUAKE_SUPER_SHOTGUN,
@@ -99,7 +99,7 @@ const GameItem *G_MappedWeapon(const GameItem *weapon) {
     return NULL; // already a Quake weapon, or unmapped
   }
 
-  const GameItemTag mapped = gameQuakeWeaponMap[weapon->def.tag];
+  const GameItemTag mapped = quakeWeaponMap[weapon->def.tag];
   if (!mapped) {
     return NULL;
   }

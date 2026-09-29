@@ -31,7 +31,7 @@ static struct {
  * @brief Bumped whenever the candidates change, never reset, so that a view comparing
  * against it sees a change even across a level.
  */
-static uint32_t cgameNextMapGeneration;
+static uint32_t nextMapGeneration;
 
 /**
  * @brief Reads `CS_NEXT_MAP` into `cgameState.nextMap`.
@@ -53,7 +53,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   memset(nextMap, 0, sizeof(*nextMap));
 
   if (!*s) {
-    nextMap->generation = numWas ? ++cgameNextMapGeneration : cgameNextMapGeneration;
+    nextMap->generation = numWas ? ++nextMapGeneration : nextMapGeneration;
     return true;
   }
 
@@ -91,10 +91,10 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
 
   // only the names cost anything to show, so the tally moving is not a redraw
   if (nextMap->numMaps != numWas || memcmp(was, nextMap->maps, sizeof(was))) {
-    cgameNextMapGeneration++;
+    nextMapGeneration++;
   }
 
-  nextMap->generation = cgameNextMapGeneration;
+  nextMap->generation = nextMapGeneration;
 
   return true;
 }

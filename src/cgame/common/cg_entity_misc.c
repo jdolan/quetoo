@@ -80,7 +80,7 @@ typedef struct {
 /**
  * @brief Initializes a `misc_dust` entity by loading its sprite and computing spawn origins from brushes.
  */
-static const char *cgameDustPresetDefault =
+static const char *dustPresetDefault =
   "\\sprite\\particle"
   "\\color\\1 1 1"
   "\\size\\1"
@@ -91,7 +91,7 @@ static const char *cgameDustPresetDefault =
   "\\density\\1"
   "\\hz\\10";
 
-static const char *cgameDustPresetEmbers =
+static const char *dustPresetEmbers =
   "\\sprite\\particle2"
   "\\velocity\\0 0 5"
   "\\acceleration\\8 8 8"
@@ -105,7 +105,7 @@ static const char *cgameDustPresetEmbers =
   "\\density\\.33"
   "\\hz\\10";
 
-static const char *cgameDustPresetBubbles =
+static const char *dustPresetBubbles =
   "\\sprite\\bubble"
   "\\velocity\\0 0 32"
   "\\acceleration\\.33 .33 .33"
@@ -117,7 +117,7 @@ static const char *cgameDustPresetBubbles =
   "\\density\\12"
   "\\hz\\10";
 
-static const char *cgameDustPresetFizz =
+static const char *dustPresetFizz =
   "\\velocity\\0 0 4"
   "\\acceleration_spread\\4 4 2"
   "\\rotation_spread\\1"
@@ -130,7 +130,7 @@ static const char *cgameDustPresetFizz =
   "\\density\\1"
   "\\hz\\10";
 
-static const char *cgameDustPresetFlame =
+static const char *dustPresetFlame =
   "\\velocity\\0 0 5"
   "\\acceleration\\0 0 120"
   "\\acceleration_spread\\4 4 0"
@@ -144,7 +144,7 @@ static const char *cgameDustPresetFlame =
   "\\density\\.5"
   "\\hz\\10";
 
-static const char *cgameDustPresetSteam =
+static const char *dustPresetSteam =
   "\\velocity\\0 0 32"
   "\\acceleration\\0 0 20"
   "\\acceleration_spread\\1 1 0"
@@ -162,17 +162,17 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
 
   const char *type = cgi.EntityValue(self->def, "type")->nullableString;
 
-  const char *presetStr = cgameDustPresetDefault;
+  const char *presetStr = dustPresetDefault;
   if (!q_strcmp(type, "embers")) {
-    presetStr = cgameDustPresetEmbers;
+    presetStr = dustPresetEmbers;
   } else if (!q_strcmp(type, "bubbles")) {
-    presetStr = cgameDustPresetBubbles;
+    presetStr = dustPresetBubbles;
   } else if (!q_strcmp(type, "fizz")) {
-    presetStr = cgameDustPresetFizz;
+    presetStr = dustPresetFizz;
   } else if (!q_strcmp(type, "flame")) {
-    presetStr = cgameDustPresetFlame;
+    presetStr = dustPresetFlame;
   } else if (!q_strcmp(type, "steam")) {
-    presetStr = cgameDustPresetSteam;
+    presetStr = dustPresetSteam;
   }
 
   CmEntity *preset = cgi.EntityFromInfoString(presetStr);

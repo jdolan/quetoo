@@ -21,12 +21,10 @@
 
 #include "r_local.h"
 
-typedef struct {
+static struct {
   HashTable *media;
   int32_t seed;
-} RenderMediaState;
-
-static RenderMediaState renderMediaState;
+} module;
 
 static Order R_EnumerateMedia_comparator(const ident a, const ident b) {
   const int32_t cmp = q_strcmp((*(const RenderMedia *const *) a)->name, (*(const RenderMedia *const *) b)->name);
@@ -51,7 +49,7 @@ void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
     .media = $(alloc(Vector), initWithSize, sizeof(RenderMedia *)),
   };
 
-  $(renderMediaState.media, enumerate, R_EnumerateMedia_collect, &ctx);
+  $(module.media, enumerate, R_EnumerateMedia_collect, &ctx);
   $(ctx.media, sort, R_EnumerateMedia_comparator);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
@@ -104,19 +102,19 @@ RenderMedia *R_RegisterMedia(RenderMedia *media) {
 
   assert(media);
 
-  if (media->seed != renderMediaState.seed) {
-    RenderMedia *other = $(renderMediaState.media, get, media);
+  if (media->seed != module.seed) {
+    RenderMedia *other = $(module.media, get, media);
 
     if (other) {
       if (other != media) {
         R_FreeMedia(other);
-        $(renderMediaState.media, set, media, media);
+        $(module.media, set, media, media);
       }
     } else {
-      $(renderMediaState.media, set, media, media);
+      $(module.media, set, media, media);
     }
 
-    media->seed = renderMediaState.seed;
+    media->seed = module.seed;
   }
 
   if (media->Register) {
@@ -141,7 +139,7 @@ RenderMedia *R_FindMedia(const char *name, RenderMediaType type) {
   
   q_strlcpy(lookup.name, name, sizeof(lookup.name));
 
-  RenderMedia *media = $(renderMediaState.media, get, &lookup);
+  RenderMedia *media = $(module.media, get, &lookup);
   if (media) {
     R_RegisterMedia(media);
   }
@@ -172,7 +170,7 @@ RenderMedia *R_AllocMedia(const char *name, size_t size, RenderMediaType type) {
 static bool R_FreeMedia_(RenderMedia *media, void *data) {
 
   if (!data) {
-    if (media->seed == renderMediaState.seed) {
+    if (media->seed == module.seed) {
       return false;
     }
 
@@ -210,11 +208,11 @@ static void R_FreeMediaEntries(void *data) {
     .data = data,
   };
 
-  $(renderMediaState.media, enumerate, R_FreeMedia_collect, &ctx);
+  $(module.media, enumerate, R_FreeMedia_collect, &ctx);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
     RenderMedia *media = VectorValue(ctx.media, RenderMedia *, i);
-    $(renderMediaState.media, remove, media);
+    $(module.media, remove, media);
   }
 
   release(ctx.media);
@@ -227,7 +225,7 @@ void R_FreeMedia(RenderMedia *media) {
 
   R_FreeMedia_(media, (void *) 1);
 
-  $(renderMediaState.media, remove, media);
+  $(module.media, remove, media);
 }
 
 /**
@@ -238,9 +236,9 @@ void R_BeginLoading(void) {
 
   do {
     s = Randomi();
-  } while (s == renderMediaState.seed);
+  } while (s == module.seed);
 
-  renderMediaState.seed = s;
+  module.seed = s;
 }
 
 /**
@@ -292,10 +290,10 @@ static bool R_MediaEqual(const void * a, const void * b) {
  */
 void R_InitMedia(void) {
 
-  memset(&renderMediaState, 0, sizeof(renderMediaState));
+  memset(&module, 0, sizeof(module));
 
-  renderMediaState.media = $(alloc(HashTable), init, (HashTableHashFunc) R_MediaHash, (HashTableEqualFunc) R_MediaEqual);
-  renderMediaState.media->destroyValue = Mem_Free;
+  module.media = $(alloc(HashTable), init, (HashTableHashFunc) R_MediaHash, (HashTableEqualFunc) R_MediaEqual);
+  module.media->destroyValue = Mem_Free;
 
   R_BeginLoading();
 }
@@ -307,5 +305,5 @@ void R_ShutdownMedia(void) {
 
   R_FreeMediaEntries((void *) 1);
 
-  renderMediaState.media = release(renderMediaState.media);
+  module.media = release(module.media);
 }

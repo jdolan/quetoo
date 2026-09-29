@@ -173,7 +173,7 @@ const PMoveParams pmoveQuake3Params = {
  * `Pm_Quake3GroundTrace`, and reset at the top of every move, so nothing
  * survives one.
  */
-static bool pmoveQuake3GroundPlane;
+static bool quake3GroundPlane;
 
 /**
  * @brief Slides `in` along `normal`. Unlike Quake II, a move already leaving the
@@ -220,7 +220,7 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
     pm->s.velocity.z = (pm->s.velocity.z + endVelocity.z) * .5f;
     primalVelocity.z = endVelocity.z;
 
-    if (pmoveQuake3GroundPlane) {
+    if (quake3GroundPlane) {
       pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pmoveLocals.ground.plane.normal);
     }
   }
@@ -228,7 +228,7 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
   Vec3 planes[PM_QUAKE3_CLIP_PLANES];
   int32_t numPlanes = 0;
 
-  if (pmoveQuake3GroundPlane) { // never turn against the ground plane
+  if (quake3GroundPlane) { // never turn against the ground plane
     planes[numPlanes++] = pmoveLocals.ground.plane.normal;
   }
 
@@ -477,7 +477,7 @@ static bool Pm_Quake3CheckJump(void) {
     return false;
   }
 
-  pmoveQuake3GroundPlane = false; // jumping away
+  quake3GroundPlane = false; // jumping away
   pm->s.flags &= ~PMF_ON_GROUND;
   memset(&pm->ground, 0, sizeof(pm->ground));
 
@@ -582,7 +582,7 @@ static void Pm_Quake3WaterMove(void) {
   Pm_Quake3Accelerate(dir, speed, pm->s.params.accelWater);
 
   // make sure we can go up slopes easily under water
-  if (pmoveQuake3GroundPlane &&
+  if (quake3GroundPlane &&
       Vec3_Dot(pm->s.velocity, pmoveLocals.ground.plane.normal) < 0.f) {
 
     const float length = Vec3_Length(pm->s.velocity);
@@ -622,7 +622,7 @@ static void Pm_Quake3AirMove(void) {
 
   // there may be a plane beneath us too steep to have stood on, and it is slid
   // along even though we are airborne
-  if (pmoveQuake3GroundPlane) {
+  if (quake3GroundPlane) {
     pm->s.velocity = Pm_Quake3ClipVelocity(pm->s.velocity, pmoveLocals.ground.plane.normal);
   }
 
@@ -750,12 +750,12 @@ static void Pm_Quake3GroundTrace(void) {
   memset(&pm->ground, 0, sizeof(pm->ground));
 
   if (trace.allSolid) { // nowhere to be, so nothing to stand on
-    pmoveQuake3GroundPlane = false;
+    quake3GroundPlane = false;
     return;
   }
 
   if (trace.fraction == 1.f) { // in free fall
-    pmoveQuake3GroundPlane = false;
+    quake3GroundPlane = false;
     return;
   }
 
@@ -765,17 +765,17 @@ static void Pm_Quake3GroundTrace(void) {
   if (pm->s.velocity.z > 0.f &&
       Vec3_Dot(pm->s.velocity, trace.plane.normal) > PM_QUAKE3_KICKOFF) {
     Pm_Debug("kickoff\n");
-    pmoveQuake3GroundPlane = false;
+    quake3GroundPlane = false;
     return;
   }
 
   if (trace.plane.normal.z < PM_QUAKE3_WALK_NORMAL) { // too steep to stand on
     Pm_Debug("steep\n");
-    pmoveQuake3GroundPlane = true; // but there is still a plane to slide along
+    quake3GroundPlane = true; // but there is still a plane to slide along
     return;
   }
 
-  pmoveQuake3GroundPlane = true;
+  quake3GroundPlane = true;
 
   // unconditionally, because Pm_Init cleared it
   pm->s.flags |= PMF_ON_GROUND;
@@ -896,7 +896,7 @@ static void Pm_Quake3SnapVelocity(void) {
  */
 void Pm_Quake3Move(void) {
 
-  pmoveQuake3GroundPlane = false;
+  quake3GroundPlane = false;
 
   // upstream samples the water before it sizes the box, so these samples are
   // taken against the eye height the last move left. The pass at the end of the

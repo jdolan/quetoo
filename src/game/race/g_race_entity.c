@@ -466,7 +466,7 @@ bool G_Race_ClipEntity(const GameEntity *mover, const GameEntity *ent) {
 static const struct {
   const char *classname;
   void (*Init)(GameEntity *ent);
-} gameRaceEntityClasses[] = {
+} raceEntityClasses[] = {
   { "trigger_race_start", G_trigger_race_start },
   { "trigger_race_checkpoint", G_trigger_race_checkpoint },
   { "trigger_race_split", G_trigger_race_split },
@@ -481,9 +481,9 @@ static const struct {
  */
 bool G_Race_InitEntity(GameEntity *ent) {
 
-  for (size_t i = 0; i < lengthof(gameRaceEntityClasses); i++) {
-    if (!q_strcmp(gameRaceEntityClasses[i].classname, ent->classname)) {
-      gameRaceEntityClasses[i].Init(ent);
+  for (size_t i = 0; i < lengthof(raceEntityClasses); i++) {
+    if (!q_strcmp(raceEntityClasses[i].classname, ent->classname)) {
+      raceEntityClasses[i].Init(ent);
       return true;
     }
   }

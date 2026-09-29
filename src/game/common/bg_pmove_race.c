@@ -141,7 +141,7 @@ const PMoveParams pmoveRaceParams = {
  * them, decided each move by `Pm_RaceCategorizePosition` and spent by
  * `Pm_RaceAirMove`. Reset at the top of every move, so nothing survives one.
  */
-static bool pmoveRaceSliding;
+static bool raceSliding;
 
 /**
  * @brief Slides `in` along `normal`, giving a little back.
@@ -320,7 +320,7 @@ static void Pm_RaceFriction(void) {
   // not while riding a slope: the whole point of keeping the ground there is to
   // carry speed off it, and ground friction applies to all three axes, so it
   // would scrub the climb as well as the run
-  if (((pm->s.flags & PMF_ON_GROUND) && !slick && !pmoveRaceSliding) ||
+  if (((pm->s.flags & PMF_ON_GROUND) && !slick && !raceSliding) ||
       (pm->s.flags & PMF_ON_LADDER)) {
     const float control = Maxf(speed, pm->s.params.speedStop);
     drop += control * pm->s.params.frictionGround * pmoveLocals.time;
@@ -512,7 +512,7 @@ static void Pm_RaceAirMove(void) {
 
     float accel = pm->s.params.accelGround;
 
-    if (pmoveRaceSliding) {
+    if (raceSliding) {
       Vec3 along = pm->s.velocity;
       along.z = 0.f;
       along = Vec3_Normalize(along);
@@ -523,14 +523,14 @@ static void Pm_RaceAirMove(void) {
       if (Vec3_Dot(along, dir) > PM_RACE_SLIDE_ALIGNMENT) {
         accel = PM_RACE_SLIDE_ACCEL;
       } else {
-        pmoveRaceSliding = false;
+        raceSliding = false;
       }
     }
 
     // gravity applies with the ground under us, which is what lets a rising
     // slope contact arc rather than hold. Sliding keeps the vertical speed it
     // arrived with; not sliding gives it up, as ordinary ground does
-    if (!pmoveRaceSliding) {
+    if (!raceSliding) {
       pm->s.velocity.z = 0.f;
     }
 
@@ -600,7 +600,7 @@ static void Pm_RaceCategorizePosition(void) {
 
       // riding a slope upward, with the ground still under us
       if (pm->s.velocity.z > PM_RACE_UP_SPEED && !(pm->s.flags & PMF_JUMP_HELD)) {
-        pmoveRaceSliding = true;
+        raceSliding = true;
       }
 
       if (!wasGrounded) { // just landed
@@ -886,7 +886,7 @@ static void Pm_RaceSnapPosition(void) {
  */
 void Pm_RaceMove(void) {
 
-  pmoveRaceSliding = false;
+  raceSliding = false;
 
   Pm_RaceCheckDuck();
 

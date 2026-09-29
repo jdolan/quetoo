@@ -57,13 +57,13 @@ static struct {
 /**
  * @brief True when techs are available this level.
  */
-static bool gameTechEnabled;
+static bool techEnabled;
 
 /**
  * @return True if techs are enabled for this level.
  */
 static bool G_Tech_Enabled(void) {
-  return gameTechEnabled;
+  return techEnabled;
 }
 
 /**
@@ -235,9 +235,9 @@ void G_Tech_Init(void) {
 void G_Tech_CheckState(void) {
 
   if (q_strcmp(g_techs->string, "default")) {
-    gameTechEnabled = !!g_techs->integer;
+    techEnabled = !!g_techs->integer;
   } else {
-    gameTechEnabled = true;
+    techEnabled = true;
   }
 }
 
@@ -359,7 +359,7 @@ static void G_SpawnTech(const GameItem *item) {
  */
 void G_Tech_SpawnAll(void) {
 
-  if (!gameTechEnabled) {
+  if (!techEnabled) {
     return;
   }
 

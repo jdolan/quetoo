@@ -43,7 +43,7 @@ static void G_worldspawn(GameEntity *ent);
 /**
  * @brief The entity classes.
  */
-static const GameEntityClass gameEntityClasses[] = {
+static const GameEntityClass entityClasses[] = {
 
   { "func_bob", G_func_bob },
   { "func_button", G_func_button },
@@ -109,13 +109,13 @@ static const GameEntityClass gameEntityClasses[] = {
   { "misc_weather", G_FreeEntity },
 };
 
-static const CmEntity *gameMapListEntry;
+static const CmEntity *currentMapListEntry;
 
 /**
  * @brief The value `key` holds in the map's own metadata, or `NULL` before it is loaded.
  */
 static const CmEntity *G_MapListEntryValue(const char *key) {
-  return gameMapListEntry ? gi.EntityValue(gameMapListEntry, key) : NULL;
+  return currentMapListEntry ? gi.EntityValue(currentMapListEntry, key) : NULL;
 }
 
 /**
@@ -173,8 +173,8 @@ static bool G_InitEntity_Common(GameEntity *ent) {
   }
 
   // check normal spawn functions
-  for (size_t i = 0; i < lengthof(gameEntityClasses); i++) {
-    const GameEntityClass *clazz = gameEntityClasses + i;
+  for (size_t i = 0; i < lengthof(entityClasses); i++) {
+    const GameEntityClass *clazz = entityClasses + i;
 
     if (!q_strcmp(clazz->classname, ent->classname)) {
       clazz->Init(ent);
@@ -224,7 +224,7 @@ static void G_SpawnEntity(CmEntity *def) {
 static const struct {
   const char *classname;
   bool inlineModel;
-} gameEditorEntityClasses[] = {
+} editorEntityClasses[] = {
 
   { "func_bob", true },
   { "func_button", true },
@@ -244,22 +244,22 @@ static const struct {
  */
 static const GameEntityClass *G_EditorEntityClass(const GameEntity *ent) {
 
-  for (size_t i = 0; i < lengthof(gameEditorEntityClasses); i++) {
+  for (size_t i = 0; i < lengthof(editorEntityClasses); i++) {
 
-    if (q_strcmp(gameEditorEntityClasses[i].classname, ent->classname)) {
+    if (q_strcmp(editorEntityClasses[i].classname, ent->classname)) {
       continue;
     }
 
-    if (gameEditorEntityClasses[i].inlineModel) {
+    if (editorEntityClasses[i].inlineModel) {
       if (!ent->model || ent->model[0] != '*') {
         G_Warn("%s has no inline model\n", etos(ent));
         return NULL;
       }
     }
 
-    for (size_t j = 0; j < lengthof(gameEntityClasses); j++) {
-      if (!q_strcmp(gameEntityClasses[j].classname, ent->classname)) {
-        return gameEntityClasses + j;
+    for (size_t j = 0; j < lengthof(entityClasses); j++) {
+      if (!q_strcmp(entityClasses[j].classname, ent->classname)) {
+        return entityClasses + j;
       }
     }
 
@@ -636,7 +636,7 @@ void G_SpawnEntities(const char *name, const CmEntity *mapListEntry, CmEntity *c
     G_FreeEntity(ge.entities[i]);
   }
 
-  gameMapListEntry = mapListEntry;
+  currentMapListEntry = mapListEntry;
 
   G_InitMedia();
 
@@ -666,7 +666,7 @@ void G_SpawnEntities(const char *name, const CmEntity *mapListEntry, CmEntity *c
 
   G_Ai_Load();
 
-  gameMapListEntry = NULL;
+  currentMapListEntry = NULL;
 }
 
 /**

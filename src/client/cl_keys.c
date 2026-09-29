@@ -23,7 +23,7 @@
 
 #include "cl_local.h"
 
-static char **clientKeyNames;
+static char **keyNames;
 
 /**
  * @brief Sets the key state destination.
@@ -298,7 +298,7 @@ const char *Cl_KeyName(SDL_Scancode key) {
     return va("<unknown %d>", key);
   }
 
-  return clientKeyNames[key];
+  return keyNames[key];
 }
 
 /**
@@ -311,8 +311,8 @@ SDL_Scancode Cl_KeyForName(const char *name) {
   }
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (clientKeyNames[k]) {
-      if (!q_strcasecmp(name, clientKeyNames[k])) {
+    if (keyNames[k]) {
+      if (!q_strcasecmp(name, keyNames[k])) {
         return k;
       }
     }
@@ -455,8 +455,8 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("%s*", Cmd_Argv(argi));
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (clientKeyNames[k]) {
-      const char *keyName = clientKeyNames[k];
+    if (keyNames[k]) {
+      const char *keyName = keyNames[k];
 
       if (GlobMatch(pattern, keyName, GLOB_CASE_INSENSITIVE)) {
         Con_AutocompleteMatch(matches, keyName, NULL);
@@ -549,23 +549,23 @@ static void Cl_BindList_f(void) {
  */
 void Cl_InitKeys(void) {
 
-  clientKeyNames = Mem_TagMalloc(SDL_SCANCODE_COUNT * sizeof(char *), MEM_TAG_CLIENT);
+  keyNames = Mem_TagMalloc(SDL_SCANCODE_COUNT * sizeof(char *), MEM_TAG_CLIENT);
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     const char *name = SDL_GetScancodeName(k);
     if (q_strlen(name)) {
-      clientKeyNames[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), clientKeyNames);
+      keyNames[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), keyNames);
     }
   }
 
   for (SDL_Buttoncode b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE15; b++) {
 
     const char *name = va("Mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
-    clientKeyNames[b] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), clientKeyNames);
+    keyNames[b] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), keyNames);
   }
 
-  clientKeyNames[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), clientKeyNames);
-  clientKeyNames[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), clientKeyNames);
+  keyNames[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), keyNames);
+  keyNames[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), keyNames);
 
   memset(&cls.keyState, 0, sizeof(ClientKeyState));
 
@@ -611,7 +611,7 @@ void Cl_CanonicalizeBinds(void) {
  */
 void Cl_ShutdownKeys(void) {
 
-  Mem_Free(clientKeyNames);
+  Mem_Free(keyNames);
 }
 
 /**

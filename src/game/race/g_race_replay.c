@@ -44,10 +44,10 @@
 // since EF_DESPAWN fades from a timestamp a new entity never gets
 #define RACE_GHOST_EFFECTS (EF_CLIENT | EF_RACE_GHOST)
 
-static GameRaceLine gameRaceLines[MAX_CLIENTS];
+static GameRaceLine raceLines[MAX_CLIENTS];
 
 static GameRaceLine *G_Race_ClientLine(const GameClient *cl) {
-  return &gameRaceLines[cl->ps.client];
+  return &raceLines[cl->ps.client];
 }
 
 static const char *G_Race_LinePath(PMovement movement) {
@@ -302,8 +302,8 @@ void G_Race_DropLine(GameClient *cl) {
 
 void G_Race_Shutdown(void) {
 
-  for (size_t i = 0; i < lengthof(gameRaceLines); i++) {
-    G_Race_FreeLine(&gameRaceLines[i]);
+  for (size_t i = 0; i < lengthof(raceLines); i++) {
+    G_Race_FreeLine(&raceLines[i]);
   }
 }
 

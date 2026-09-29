@@ -78,7 +78,7 @@ static Cvar *net_showDrop;
 
 NetAddr netFrom;
 MemBuf netMessage;
-static byte netMessageBuffer[MAX_MSG_SIZE];
+static byte messageData[MAX_MSG_SIZE];
 
 /**
  * @brief Sends an out-of-band datagram
@@ -292,7 +292,7 @@ void Netchan_Init(void) {
   net_showPackets = Cvar_Add("net_showPackets", "0", 0, NULL);
   net_showDrop = Cvar_Add("net_showDrop", "0", 0, NULL);
 
-  Mem_InitBuffer(&netMessage, netMessageBuffer, sizeof(netMessageBuffer));
+  Mem_InitBuffer(&netMessage, messageData, sizeof(messageData));
 }
 
 /**

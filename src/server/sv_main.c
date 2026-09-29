@@ -349,14 +349,14 @@ static bool Sv_RconAuthenticate(void) {
   return true;
 }
 
-static char serverRconBuffer[MAX_PRINT_MSG];
+static char rconBuffer[MAX_PRINT_MSG];
 
 /**
  * @brief Console appender for remote console.
  */
 static void Sv_Rcon_Print(const ConsoleString *str) {
 
-  q_strlcat(serverRconBuffer, str->chars, sizeof(serverRconBuffer));
+  q_strlcat(rconBuffer, str->chars, sizeof(rconBuffer));
 }
 
 /**
@@ -379,7 +379,7 @@ static void Sv_Rcon_f(void) {
   // then redirect the remaining output back to the client
 
   Console rcon = { .Append = Sv_Rcon_Print };
-  serverRconBuffer[0] = '\0';
+  rconBuffer[0] = '\0';
 
   Con_AddConsole(&rcon);
 
@@ -397,7 +397,7 @@ static void Sv_Rcon_f(void) {
     Com_Print("Bad rconPassword\n");
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", serverRconBuffer);
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", rconBuffer);
 
   Con_RemoveConsole(&rcon);
 }

@@ -18,7 +18,8 @@ anything else, read the code. It is never out of date.
 | Functions | `Prefix_PascalCase`, unchanged | `R_DrawMaterialStages`, `G_Damage` |
 | Function-pointer members | `PascalCase` | `cgi.AddEntity`, `gi.Multicast` |
 | Variables, parameters, data members | `camelCase` | `numElements`, `oldOrigin` |
-| Globals | the subsystem prefix, lowercased, then `camelCase` | `renderConfig`, `cgameState`, `gameLevel` |
+| Extern globals | the subsystem prefix, lowercased, then `camelCase` | `renderConfig`, `cgameState`, `gameLevel` |
+| File statics | `camelCase`, no subsystem prefix | `aiNodes`, `gameplayLevel` |
 | Cvars and console commands | keep the prefix, camelCase the rest | `r_swapInterval`, `cg_addDecals`, `+moveForward` |
 | Enum constants and macros | `UPPER_CASE` | `MAX_CLIENTS`, `SURF_ALPHA_TEST` |
 
@@ -29,11 +30,13 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
 - The type prefix is the subsystem name, not the function prefix. It is spelled out where the
   subsystem is one word (`Render`, `Client`, `Server`, `Game`, `Sound`) and abbreviated where it is
   not (`CGame` for the client game, `PMove` for player movement, `Cm` for collision).
-- A global with a subsystem prefix MUST spell it as the type names do: `render`, `client`, `server`,
+- An extern global MUST spell its subsystem prefix as the type names do: `render`, `client`, `server`,
   `sound`, `game`, `cgame`, `pmove`, `cm`, and `master` and `net` for those two libraries. The prefix
   names the subsystem that owns the global, not its type: `clientView` is a `RenderView`. It MUST
   NOT use the function prefix (`rConfig`) or an underscore (`g_level`). An underscore after a short
   prefix marks a cvar, and only a cvar.
+- A file static SHOULD NOT carry a subsystem prefix, because its file is its namespace:
+  `aiNodes`, `gameplayLevel`, `world`. Its name MUST NOT match a local or parameter in that file.
 - Locals and parameters MUST NOT carry a subsystem prefix. Name them for what they hold.
 - A cvar or command with no subsystem prefix camelCases whole: `numPlanes`, `nextMap`.
 - Where only one word follows the prefix, nothing moves: `r_gamma`, `m_pitch`.

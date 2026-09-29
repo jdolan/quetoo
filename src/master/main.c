@@ -100,17 +100,17 @@ typedef struct {
   char players[MAX_CLIENTS][64];
 } MasterServer;
 
-static List *masterServers;
-static int32_t masterSock;
+static List *serverList;
+static int32_t sock;
 
 #if !defined(_WIN32)
-static int32_t masterUrandom = -1;
+static int32_t urandom = -1;
 #endif
 
 static bool verbose;
 static bool debug;
 
-static const char *masterDiscordWebhook;
+static const char *discordWebhook;
 
 /**
  * @brief Extracts the value for the given key from a Quake infostring. Only the
@@ -165,7 +165,7 @@ static void Ms_JsonEscape(const char *src, char *buf, size_t bufSize) {
  * @brief Posts a Discord webhook notification for a player joining a server.
  */
 static void Ms_DiscordNotify(const MasterServer *server, const char *playerName, int32_t numClients) {
-  if (!masterDiscordWebhook) {
+  if (!discordWebhook) {
     return;
   }
 
@@ -187,7 +187,7 @@ static void Ms_DiscordNotify(const MasterServer *server, const char *playerName,
     ip, port);
 
   Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
-  $($$(RESTClient, sharedInstance), postAsync, masterDiscordWebhook, body, NULL, NULL, NULL);
+  $($$(RESTClient, sharedInstance), postAsync, discordWebhook, body, NULL, NULL, NULL);
   release(body);
 }
 
@@ -293,7 +293,7 @@ static const char *atos(const struct sockaddr_in *addr) {
  */
 static MasterServer *Ms_GetServer(struct sockaddr_in *from) {
 
-  for (const ListNode *s = masterServers ? masterServers->head : NULL; s; s = s->next) {
+  for (const ListNode *s = serverList ? serverList->head : NULL; s; s = s->next) {
     MasterServer *server = (MasterServer *) s->element;
 
     const struct sockaddr_in *addr = &server->addr;
@@ -310,10 +310,10 @@ static MasterServer *Ms_GetServer(struct sockaddr_in *from) {
  */
 static void Ms_DropServer(MasterServer *server) {
 
-  if (masterServers) {
-    for (const ListNode *s = masterServers->head; s; s = s->next) {
+  if (serverList) {
+    for (const ListNode *s = serverList->head; s; s = s->next) {
       if (s->element == server) {
-        $(masterServers, removeNode, (ListNode *) s);
+        $(serverList, removeNode, (ListNode *) s);
         break;
       }
     }
@@ -341,14 +341,14 @@ static struct {
   int64_t modified;
   int64_t size;
   bool loaded;
-} masterBlacklist;
+} blacklist;
 
 /**
  * @brief Parses the contents of the blacklist file into the rule cache.
  */
 static void Ms_ParseBlacklist(const char *buffer, int64_t length) {
 
-  masterBlacklist.count = 0;
+  blacklist.count = 0;
 
   const char *c = buffer, *end = buffer + length;
 
@@ -386,19 +386,19 @@ static void Ms_ParseBlacklist(const char *buffer, int64_t length) {
       continue;
     }
 
-    if (size >= sizeof(masterBlacklist.rules[0])) {
+    if (size >= sizeof(blacklist.rules[0])) {
       Com_Warn("Blacklist rule is too long, ignoring: %.*s\n", (int32_t) size, lineStart);
       continue;
     }
 
-    if (masterBlacklist.count == MAX_BLACKLIST_RULES) {
+    if (blacklist.count == MAX_BLACKLIST_RULES) {
       Com_Warn("Blacklist is full, ignoring %.*s and all that follow\n", (int32_t) size, lineStart);
       break;
     }
 
-    memcpy(masterBlacklist.rules[masterBlacklist.count], lineStart, size);
-    masterBlacklist.rules[masterBlacklist.count][size] = '\0';
-    masterBlacklist.count++;
+    memcpy(blacklist.rules[blacklist.count], lineStart, size);
+    blacklist.rules[blacklist.count][size] = '\0';
+    blacklist.count++;
   }
 }
 
@@ -411,39 +411,39 @@ static void Ms_LoadBlacklist(void) {
 
   FsStat stat;
   if (!Fs_Stat(BLACKLIST_FILE, &stat)) {
-    masterBlacklist.count = 0;
-    masterBlacklist.loaded = false;
+    blacklist.count = 0;
+    blacklist.loaded = false;
     return;
   }
 
   // the size joins the modification time, which PhysFS reports to the second,
   // so that an edit landing in the same second as the last read is still seen
-  if (masterBlacklist.loaded && stat.modified == masterBlacklist.modified && stat.size == masterBlacklist.size) {
+  if (blacklist.loaded && stat.modified == blacklist.modified && stat.size == blacklist.size) {
     return;
   }
 
-  masterBlacklist.loaded = true;
-  masterBlacklist.modified = stat.modified;
-  masterBlacklist.size = stat.size;
+  blacklist.loaded = true;
+  blacklist.modified = stat.modified;
+  blacklist.size = stat.size;
 
   char *buffer;
   const int64_t length = Fs_Load(BLACKLIST_FILE, (void *) &buffer);
 
   if (length == -1) {
     Com_Warn("Failed to load %s, keeping %u rules: %s\n", BLACKLIST_FILE,
-             (uint32_t) masterBlacklist.count, Fs_LastError());
+             (uint32_t) blacklist.count, Fs_LastError());
     return;
   }
 
   if (length) {
     Ms_ParseBlacklist(buffer, length);
   } else {
-    masterBlacklist.count = 0;
+    blacklist.count = 0;
   }
 
   Fs_Free((void *) buffer);
 
-  Com_Print("Loaded %u blacklist rules\n", (uint32_t) masterBlacklist.count);
+  Com_Print("Loaded %u blacklist rules\n", (uint32_t) blacklist.count);
 }
 
 /**
@@ -460,7 +460,7 @@ static bool Ms_BlacklistServer(const struct sockaddr_in *from) {
 
   Ms_LoadBlacklist();
 
-  if (!masterBlacklist.count) {
+  if (!blacklist.count) {
     return false;
   }
 
@@ -469,8 +469,8 @@ static bool Ms_BlacklistServer(const struct sockaddr_in *from) {
   char ipPort[64];
   q_snprintf(ipPort, sizeof(ipPort), "%s:%d", ip, ntohs(from->sin_port));
 
-  for (size_t i = 0; i < masterBlacklist.count; i++) {
-    const char *rule = masterBlacklist.rules[i];
+  for (size_t i = 0; i < blacklist.count; i++) {
+    const char *rule = blacklist.rules[i];
 
     if (GlobMatch(rule, q_strchr(rule, ':') ? ipPort : ip, GLOB_FLAGS_NONE)) {
       return true;
@@ -494,7 +494,7 @@ static uint32_t Ms_Challenge(void) {
       Com_Error(ERROR_FATAL, "Failed to generate a challenge\n");
     }
 #else
-    if (read(masterUrandom, &challenge, sizeof(challenge)) != (ssize_t) sizeof(challenge)) {
+    if (read(urandom, &challenge, sizeof(challenge)) != (ssize_t) sizeof(challenge)) {
       Com_Error(ERROR_FATAL, "Failed to read /dev/urandom: %s\n", strerror(errno));
     }
 #endif
@@ -526,7 +526,7 @@ static void Ms_SendChallenge(MasterServer *server, time_t now) {
 
   Com_Verbose("Challenging %s\n", stos(server));
 
-  sendto(masterSock, buffer, 4 + len, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
+  sendto(sock, buffer, 4 + len, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
 }
 
 /**
@@ -555,13 +555,13 @@ static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
   }
 
   // bound the list before touching the filesystem for the blacklist
-  if (masterServers && masterServers->count >= MAX_SERVERS) {
+  if (serverList && serverList->count >= MAX_SERVERS) {
     Com_Warn("Server list is full, rejecting %s\n", atos(from));
     return NULL;
   }
 
   size_t pending = 0;
-  for (const ListNode *s = masterServers ? masterServers->head : NULL; s; s = s->next) {
+  for (const ListNode *s = serverList ? serverList->head : NULL; s; s = s->next) {
     if (!((const MasterServer *) s->element)->validated) {
       pending++;
     }
@@ -584,10 +584,10 @@ static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
   server->lastHeartbeat = server->registered;
   server->numClients = -1;
 
-  if (!masterServers) {
-    masterServers = $(alloc(List), init);
+  if (!serverList) {
+    serverList = $(alloc(List), init);
   }
-  $(masterServers, append, server);
+  $(serverList, append, server);
   Com_Print("Server %s registered, awaiting validation\n", stos(server));
 
   return server;
@@ -623,7 +623,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from, const char *cmd) {
 static void Ms_Frame(void) {
   const time_t now = time(NULL);
 
-  for (ListNode *s = masterServers ? masterServers->head : NULL; s; ) {
+  for (ListNode *s = serverList ? serverList->head : NULL; s; ) {
     ListNode *next = s->next;
     MasterServer *server = (MasterServer *) s->element;
 
@@ -673,7 +673,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   Mem_WriteBuffer(&buf, servers, q_strlen(servers));
 
   uint32_t i = 0;
-  for (const ListNode *s = masterServers ? masterServers->head : NULL; s; s = s->next) {
+  for (const ListNode *s = serverList ? serverList->head : NULL; s; s = s->next) {
     const MasterServer *server = (MasterServer *) s->element;
     if (server->validated && (protocol == 0 || server->protocol == protocol)) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
@@ -682,7 +682,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
     }
   }
 
-  if ((sendto(masterSock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
+  if ((sendto(sock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
     Com_Warn("%s: %s\n", atos(from), strerror(errno));
   } else {
     Com_Verbose("Sent %d servers (protocol %d) to %s\n", i, protocol, atos(from));
@@ -803,11 +803,11 @@ static void Shutdown(const char *msg) {
     fputs(msg, stdout);
   }
 
-  if (masterServers) {
-    for (const ListNode *s = masterServers->head; s; s = s->next) {
+  if (serverList) {
+    for (const ListNode *s = serverList->head; s; s = s->next) {
       Mem_Free(s->element);
     }
-    release(masterServers);
+    release(serverList);
   }
 
   Fs_Shutdown();
@@ -857,18 +857,18 @@ int32_t quetoo_main(int32_t argc, char **argv) {
     }
   }
 
-  masterDiscordWebhook = getenv("QUETOO_DISCORD_WEBHOOK");
-  if (masterDiscordWebhook) {
+  discordWebhook = getenv("QUETOO_DISCORD_WEBHOOK");
+  if (discordWebhook) {
     Com_Print("Discord webhook configured\n");
   }
 
 #if !defined(_WIN32)
-  if ((masterUrandom = open("/dev/urandom", O_RDONLY)) == -1) {
+  if ((urandom = open("/dev/urandom", O_RDONLY)) == -1) {
     Com_Error(ERROR_FATAL, "Failed to open /dev/urandom: %s\n", strerror(errno));
   }
 #endif
 
-  masterSock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  sock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   struct sockaddr_in address;
   memset(&address, 0, sizeof(address));
@@ -877,7 +877,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   address.sin_port = htons(PORT_MASTER);
   address.sin_addr.s_addr = INADDR_ANY;
 
-  if ((bind(masterSock, (struct sockaddr *) &address, sizeof(address))) == -1) {
+  if ((bind(sock, (struct sockaddr *) &address, sizeof(address))) == -1) {
     Com_Error(ERROR_FATAL, "Failed to bind port %i\n", PORT_MASTER);
   }
 
@@ -888,18 +888,18 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
     FD_ZERO(&set);
 #if defined(_WIN32)
-    FD_SET((SOCKET) masterSock, &set);
+    FD_SET((SOCKET) sock, &set);
 #else
-    FD_SET(masterSock, &set);
+    FD_SET(sock, &set);
 #endif
 
     struct timeval delay;
     delay.tv_sec = 1;
     delay.tv_usec = 0;
 
-    if (select(masterSock + 1, &set, NULL, NULL, &delay) > 0) {
+    if (select(sock + 1, &set, NULL, NULL, &delay) > 0) {
 
-      if (FD_ISSET(masterSock, &set)) {
+      if (FD_ISSET(sock, &set)) {
 
         char buffer[0xffff];
         memset(buffer, 0, sizeof(buffer));
@@ -909,7 +909,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
         socklen_t fromLen = sizeof(from);
 
-        const ssize_t len = recvfrom(masterSock, buffer, sizeof(buffer) - 1, 0,
+        const ssize_t len = recvfrom(sock, buffer, sizeof(buffer) - 1, 0,
                                      (struct sockaddr *) &from, &fromLen);
 
         if (len > 0) {

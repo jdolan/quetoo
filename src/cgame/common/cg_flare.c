@@ -52,7 +52,7 @@ typedef struct {
   const ClientEntity *entity;
 } CGameFlare;
 
-static Vector *cgameFlares;
+static Vector *flares;
 
 #define FLARE_ALPHA_RAMP 0.01
 
@@ -65,8 +65,8 @@ void Cg_AddFlares(void) {
     return;
   }
 
-  for (size_t i = 0; i < cgameFlares->count; i++) {
-    CGameFlare *flare = VectorValue(cgameFlares, CGameFlare *, i);
+  for (size_t i = 0; i < flares->count; i++) {
+    CGameFlare *flare = VectorValue(flares, CGameFlare *, i);
 
     Mat4 matrix = Mat4_Identity();
     flare->entity = NULL;
@@ -179,17 +179,17 @@ static _Bool Cg_FacesShareVertex(const RenderBspFace *a, const RenderBspFace *b)
  */
 static void Cg_MergeFlares(void) {
 
-  for (size_t i = 0; i < cgameFlares->count; i++) {
-    CGameFlare *a = VectorValue(cgameFlares, CGameFlare *, i);
+  for (size_t i = 0; i < flares->count; i++) {
+    CGameFlare *a = VectorValue(flares, CGameFlare *, i);
 
-    for (size_t j = i + 1; j < cgameFlares->count; j++) {
-      CGameFlare *b = VectorValue(cgameFlares, CGameFlare *, j);
+    for (size_t j = i + 1; j < flares->count; j++) {
+      CGameFlare *b = VectorValue(flares, CGameFlare *, j);
 
       if (a->face->brushSide == b->face->brushSide &&
           Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
-        $(cgameFlares, removeAt, j);
+        $(flares, removeAt, j);
         cgi.Free(b);
 
         j--;
@@ -212,7 +212,7 @@ static void Cg_MergeFlares(void) {
  */
 void Cg_LoadFlares(void) {
 
-  cgameFlares = $(alloc(Vector), initWithSize, sizeof(CGameFlare *));
+  flares = $(alloc(Vector), initWithSize, sizeof(CGameFlare *));
 
   const RenderBspModel *bsp = cgi.WorldModel()->bsp;
 
@@ -240,13 +240,13 @@ void Cg_LoadFlares(void) {
       }
 
       CGameFlare *flare = Cg_LoadFlare(face, stage);
-      $(cgameFlares, add, &flare);
+      $(flares, add, &flare);
     }
   }
 
   Cg_MergeFlares();
 
-  Cg_Debug("Loaded %zu flares\n", cgameFlares->count);
+  Cg_Debug("Loaded %zu flares\n", flares->count);
 }
 
 /**
@@ -254,8 +254,8 @@ void Cg_LoadFlares(void) {
  */
 void Cg_FreeFlares(void) {
 
-  if (cgameFlares) {
-    release(cgameFlares);
-    cgameFlares = NULL;
+  if (flares) {
+    release(flares);
+    flares = NULL;
   }
 }

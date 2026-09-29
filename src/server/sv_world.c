@@ -54,14 +54,14 @@ typedef struct {
   uint32_t boxType; // BOX_SOLID, BOX_TRIGGER, ..
 } ServerWorld;
 
-static ServerWorld serverWorld;
+static ServerWorld world;
 
 /**
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
 static ServerSector *Sv_CreateSector(int32_t depth, const Box3 bounds) {
-  ServerSector *sector = &serverWorld.sectors[serverWorld.numSectors];
-  serverWorld.numSectors++;
+  ServerSector *sector = &world.sectors[world.numSectors];
+  world.numSectors++;
 
   if (depth == SECTOR_DEPTH) {
     sector->axis = -1;
@@ -94,11 +94,11 @@ static ServerSector *Sv_CreateSector(int32_t depth, const Box3 bounds) {
  */
 static void Sv_InitWorld(void) {
 
-  for (size_t i = 0; i < serverWorld.numSectors; i++) {
-    serverWorld.sectors[i].entities = release(serverWorld.sectors[i].entities);
+  for (size_t i = 0; i < world.numSectors; i++) {
+    world.sectors[i].entities = release(world.sectors[i].entities);
   }
 
-  memset(&serverWorld, 0, sizeof(serverWorld));
+  memset(&world, 0, sizeof(world));
 
   Sv_CreateSector(0, sv.cmModels[0]->bounds);
 }
@@ -220,7 +220,7 @@ void Sv_LinkEntity(GameEntity *ent) {
   }
 
   // find the first sector that the ent's box crosses
-  ServerSector *sector = serverWorld.sectors;
+  ServerSector *sector = world.sectors;
   while (true) {
 
     if (sector->axis == -1) {
@@ -252,7 +252,7 @@ static bool Sv_BoxEntities_Filter(const GameEntity *ent) {
   switch (ent->solid) {
     case SOLID_TRIGGER:
     case SOLID_PROJECTILE:
-      if (serverWorld.boxType & BOX_OCCUPY) {
+      if (world.boxType & BOX_OCCUPY) {
         return true;
       }
       break;
@@ -260,7 +260,7 @@ static bool Sv_BoxEntities_Filter(const GameEntity *ent) {
     case SOLID_DEAD:
     case SOLID_BOX:
     case SOLID_BSP:
-      if (serverWorld.boxType & BOX_COLLIDE) {
+      if (world.boxType & BOX_COLLIDE) {
         return true;
       }
       break;
@@ -284,13 +284,13 @@ static void Sv_BoxEntities_r(ServerSector *sector) {
 
       if (Sv_BoxEntities_Filter(ent)) {
 
-        if (Box3_Intersects(ent->absBounds, serverWorld.box)) {
+        if (Box3_Intersects(ent->absBounds, world.box)) {
 
-          serverWorld.boxEntities[serverWorld.numBoxEntities] = ent;
-          serverWorld.numBoxEntities++;
+          world.boxEntities[world.numBoxEntities] = ent;
+          world.numBoxEntities++;
 
-          if (serverWorld.numBoxEntities == serverWorld.maxBoxEntities) {
-            Com_Warn("serverWorld.maxBoxEntities\n");
+          if (world.numBoxEntities == world.maxBoxEntities) {
+            Com_Warn("world.maxBoxEntities\n");
             return;
           }
         }
@@ -303,11 +303,11 @@ static void Sv_BoxEntities_r(ServerSector *sector) {
   }
 
   // recurse down both sides
-  if (serverWorld.box.maxs.xyz[sector->axis] > sector->dist) {
+  if (world.box.maxs.xyz[sector->axis] > sector->dist) {
     Sv_BoxEntities_r(sector->children[0]);
   }
 
-  if (serverWorld.box.mins.xyz[sector->axis] < sector->dist) {
+  if (world.box.mins.xyz[sector->axis] < sector->dist) {
     Sv_BoxEntities_r(sector->children[1]);
   }
 }
@@ -321,18 +321,18 @@ static void Sv_BoxEntities_r(ServerSector *sector) {
  */
 size_t Sv_BoxEntities(const Box3 bounds, GameEntity **list, const size_t len, uint32_t type) {
 
-  serverWorld.box = bounds;
-  serverWorld.boxEntities = list;
-  serverWorld.numBoxEntities = 0;
-  serverWorld.maxBoxEntities = len;
-  serverWorld.boxType = type;
+  world.box = bounds;
+  world.boxEntities = list;
+  world.numBoxEntities = 0;
+  world.maxBoxEntities = len;
+  world.boxType = type;
 
-  Sv_BoxEntities_r(serverWorld.sectors);
+  Sv_BoxEntities_r(world.sectors);
 
-  serverWorld.box = Box3_Zero();
-  serverWorld.boxEntities = NULL;
+  world.box = Box3_Zero();
+  world.boxEntities = NULL;
 
-  return serverWorld.numBoxEntities;
+  return world.numBoxEntities;
 }
 
 /**

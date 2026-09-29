@@ -63,7 +63,7 @@ SoundSample *cgameSampleUnderwater;
 SoundSample *cgameSampleHits[2];
 SoundSample *cgameSampleGib;
 
-static RenderAtlas *cgameSpriteAtlas;
+static RenderAtlas *spriteAtlas;
 
 RenderAtlasImage *cgameSpriteParticle;
 RenderAtlasImage *cgameSpriteParticle2;
@@ -127,7 +127,7 @@ RenderAnimation *cgameSpriteImpactSpark01;
 RenderAnimation *cgameSpriteHyperball01;
 RenderAnimation *cgameSpriteFizz01;
 
-static RenderAtlas *cgameDecalAtlas;
+static RenderAtlas *decalAtlas;
 
 RenderAtlasImage *cgameDecalBullet[3];
 RenderAtlasImage *cgameDecalBlood[4];
@@ -268,91 +268,91 @@ void Cg_LoadMedia(void) {
   cgameBeamTracer = cgi.LoadImage("sprites/tracer", IMG_SPRITE);
   cgameBeamTail = cgi.LoadImage("sprites/particle_tail", IMG_SPRITE);
 
-  cgameSpriteAtlas = cgi.LoadAtlas("cg_sprite_atlas");
-  cgameSpriteParticle = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/particle", IMG_SPRITE);
-  cgameSpriteParticle2 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/particle2", IMG_SPRITE);
-  cgameSpriteParticle3 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/particle3", IMG_SPRITE);
-  cgameSpriteFlash = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/flash", IMG_SPRITE);
-  cgameSpriteRing = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/ring", IMG_SPRITE);
-  cgameSpriteBlasterFlash = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/blast_01/blast_01_flash", IMG_SPRITE);
-  cgameSpriteAnisoFlare01 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/aniso_flare_01", IMG_SPRITE);
-  cgameSpriteSmoke = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/smoke", IMG_SPRITE);
-  cgameSpriteFlame = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/flame", IMG_SPRITE);
-  cgameSpriteExplosionGlow = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/explosion_glow", IMG_SPRITE);
-  cgameSpriteExplosionFlash = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/explosion_flash", IMG_SPRITE);
-  cgameSpriteSpark = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/spark", IMG_SPRITE);
-  cgameSpriteRain = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/rain", IMG_SPRITE);
-  cgameSpriteSnow = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/snow", IMG_SPRITE);
-  cgameSpriteAsh = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/ash", IMG_SPRITE);
-  cgameSpriteSteam = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/steam", IMG_SPRITE);
-  cgameSpriteBubble = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/bubble", IMG_SPRITE);
-  cgameSpriteInactive = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/inactive", IMG_SPRITE);
-  cgameSpritePlasmaVar01 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/plasma/plasma_var01", IMG_SPRITE);
-  cgameSpritePlasmaVar02 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/plasma/plasma_var02", IMG_SPRITE);
-  cgameSpritePlasmaVar03 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/plasma/plasma_var03", IMG_SPRITE);
-  cgameSpriteBlob01 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/blob_01", IMG_SPRITE);
-  cgameSpriteElectro02 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/electro_02/electro_02", IMG_SPRITE);
-  cgameSpriteTeleport = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/teleport", IMG_SPRITE);
-  cgameSpriteTeleportCore = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/teleport_core", IMG_SPRITE);
-  cgameSpriteSplash0203 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/splash_02/splash_02_03", IMG_SPRITE);
-  cgameSpriteImpactSpark01Dot = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/impact_spark_01/impact_spark_01_dot", IMG_SPRITE);
-  cgameSpritePuffCloud = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/puff_cloud", IMG_SPRITE);
-  cgameSpriteWaterCircle = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/water/splash_01_circle", IMG_SPRITE);
-  cgameSpriteWaterRing = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/water/splash_01_ring", IMG_SPRITE);
-  cgameSpriteWaterRing2 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/water/splash_01_ring2", IMG_SPRITE);
-  cgameSpriteAbstract01 = cgi.LoadAtlasImage(cgameSpriteAtlas, "sprites/abstract/abstract_01", IMG_SPRITE);
-  cgameSpriteNodeWait = cgi.LoadAtlasImage(cgameSpriteAtlas, "pics/emoji/teamkill", IMG_SPRITE);
-  cgameSpriteNodeSlow = cgi.LoadAtlasImage(cgameSpriteAtlas, "pics/emoji/crush", IMG_SPRITE);
+  spriteAtlas = cgi.LoadAtlas("cg_sprite_atlas");
+  cgameSpriteParticle = cgi.LoadAtlasImage(spriteAtlas, "sprites/particle", IMG_SPRITE);
+  cgameSpriteParticle2 = cgi.LoadAtlasImage(spriteAtlas, "sprites/particle2", IMG_SPRITE);
+  cgameSpriteParticle3 = cgi.LoadAtlasImage(spriteAtlas, "sprites/particle3", IMG_SPRITE);
+  cgameSpriteFlash = cgi.LoadAtlasImage(spriteAtlas, "sprites/flash", IMG_SPRITE);
+  cgameSpriteRing = cgi.LoadAtlasImage(spriteAtlas, "sprites/ring", IMG_SPRITE);
+  cgameSpriteBlasterFlash = cgi.LoadAtlasImage(spriteAtlas, "sprites/blast_01/blast_01_flash", IMG_SPRITE);
+  cgameSpriteAnisoFlare01 = cgi.LoadAtlasImage(spriteAtlas, "sprites/aniso_flare_01", IMG_SPRITE);
+  cgameSpriteSmoke = cgi.LoadAtlasImage(spriteAtlas, "sprites/smoke", IMG_SPRITE);
+  cgameSpriteFlame = cgi.LoadAtlasImage(spriteAtlas, "sprites/flame", IMG_SPRITE);
+  cgameSpriteExplosionGlow = cgi.LoadAtlasImage(spriteAtlas, "sprites/explosion_glow", IMG_SPRITE);
+  cgameSpriteExplosionFlash = cgi.LoadAtlasImage(spriteAtlas, "sprites/explosion_flash", IMG_SPRITE);
+  cgameSpriteSpark = cgi.LoadAtlasImage(spriteAtlas, "sprites/spark", IMG_SPRITE);
+  cgameSpriteRain = cgi.LoadAtlasImage(spriteAtlas, "sprites/rain", IMG_SPRITE);
+  cgameSpriteSnow = cgi.LoadAtlasImage(spriteAtlas, "sprites/snow", IMG_SPRITE);
+  cgameSpriteAsh = cgi.LoadAtlasImage(spriteAtlas, "sprites/ash", IMG_SPRITE);
+  cgameSpriteSteam = cgi.LoadAtlasImage(spriteAtlas, "sprites/steam", IMG_SPRITE);
+  cgameSpriteBubble = cgi.LoadAtlasImage(spriteAtlas, "sprites/bubble", IMG_SPRITE);
+  cgameSpriteInactive = cgi.LoadAtlasImage(spriteAtlas, "sprites/inactive", IMG_SPRITE);
+  cgameSpritePlasmaVar01 = cgi.LoadAtlasImage(spriteAtlas, "sprites/plasma/plasma_var01", IMG_SPRITE);
+  cgameSpritePlasmaVar02 = cgi.LoadAtlasImage(spriteAtlas, "sprites/plasma/plasma_var02", IMG_SPRITE);
+  cgameSpritePlasmaVar03 = cgi.LoadAtlasImage(spriteAtlas, "sprites/plasma/plasma_var03", IMG_SPRITE);
+  cgameSpriteBlob01 = cgi.LoadAtlasImage(spriteAtlas, "sprites/blob_01", IMG_SPRITE);
+  cgameSpriteElectro02 = cgi.LoadAtlasImage(spriteAtlas, "sprites/electro_02/electro_02", IMG_SPRITE);
+  cgameSpriteTeleport = cgi.LoadAtlasImage(spriteAtlas, "sprites/teleport", IMG_SPRITE);
+  cgameSpriteTeleportCore = cgi.LoadAtlasImage(spriteAtlas, "sprites/teleport_core", IMG_SPRITE);
+  cgameSpriteSplash0203 = cgi.LoadAtlasImage(spriteAtlas, "sprites/splash_02/splash_02_03", IMG_SPRITE);
+  cgameSpriteImpactSpark01Dot = cgi.LoadAtlasImage(spriteAtlas, "sprites/impact_spark_01/impact_spark_01_dot", IMG_SPRITE);
+  cgameSpritePuffCloud = cgi.LoadAtlasImage(spriteAtlas, "sprites/puff_cloud", IMG_SPRITE);
+  cgameSpriteWaterCircle = cgi.LoadAtlasImage(spriteAtlas, "sprites/water/splash_01_circle", IMG_SPRITE);
+  cgameSpriteWaterRing = cgi.LoadAtlasImage(spriteAtlas, "sprites/water/splash_01_ring", IMG_SPRITE);
+  cgameSpriteWaterRing2 = cgi.LoadAtlasImage(spriteAtlas, "sprites/water/splash_01_ring2", IMG_SPRITE);
+  cgameSpriteAbstract01 = cgi.LoadAtlasImage(spriteAtlas, "sprites/abstract/abstract_01", IMG_SPRITE);
+  cgameSpriteNodeWait = cgi.LoadAtlasImage(spriteAtlas, "pics/emoji/teamkill", IMG_SPRITE);
+  cgameSpriteNodeSlow = cgi.LoadAtlasImage(spriteAtlas, "pics/emoji/crush", IMG_SPRITE);
 
-  cgameSpriteBlasterRing = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
-  cgameSpriteExplosion = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
-  cgameSpriteExplosionRing02 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/explosion_ring_02/explosion_ring_02", "_%02" PRIu32, 1, 7);
-  cgameSpriteRocketFlame = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/flame_03/flame_03", "_%02" PRIu32, 1, 29);
-  cgameSpriteBlasterFlame = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
-  cgameSpriteSmoke04 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
-  cgameSpriteSmoke05 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
-  cgameSpriteBfgExplosion2 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
-  cgameSpriteBfgExplosion3 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
-  cgameSpritePoof01 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 34);
-  cgameSpritePoof02 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
-  cgameSpriteBlood01 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
-  cgameSpriteElectro01 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
-  cgameSpriteFireball01 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
-  cgameSpriteImpactSpark01 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
-  cgameSpriteHyperball01 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
-  cgameSpriteFizz01 = Cg_LoadAnimatedSprite(cgameSpriteAtlas, "sprites/fizz_01/fizz_01", "_%02" PRIu32, 1, 24);
+  cgameSpriteBlasterRing = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
+  cgameSpriteExplosion = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
+  cgameSpriteExplosionRing02 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/explosion_ring_02/explosion_ring_02", "_%02" PRIu32, 1, 7);
+  cgameSpriteRocketFlame = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/flame_03/flame_03", "_%02" PRIu32, 1, 29);
+  cgameSpriteBlasterFlame = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/flame_mono_01/flame_mono_01", "_%02" PRIu32, 1, 21);
+  cgameSpriteSmoke04 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/smoke_04/smoke_04", "_%02" PRIu32, 1, 90);
+  cgameSpriteSmoke05 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/smoke_05/smoke_05", "_%02" PRIu32, 1, 99);
+  cgameSpriteBfgExplosion2 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/bfg_explosion_02/bfg_explosion_02", "_%02" PRIu32, 1, 23);
+  cgameSpriteBfgExplosion3 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/bfg_explosion_03/bfg_explosion_03", "_%02" PRIu32, 1, 21);
+  cgameSpritePoof01 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/poof_01/poof_01", "_%02" PRIu32, 1, 34);
+  cgameSpritePoof02 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/poof_02/poof_02", "_%02" PRIu32, 1, 17);
+  cgameSpriteBlood01 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/blood_01/blood_01", "_%02" PRIu32, 1, 10);
+  cgameSpriteElectro01 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/electro_01/electro_01", "_%02" PRIu32, 1, 5);
+  cgameSpriteFireball01 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/fireball_01/fireball_01", "_%02" PRIu32, 0, 63);
+  cgameSpriteImpactSpark01 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
+  cgameSpriteHyperball01 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
+  cgameSpriteFizz01 = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/fizz_01/fizz_01", "_%02" PRIu32, 1, 24);
 
   cgi.LoadingProgress(-1, "compiling sprite atlas");
 
-  cgi.CompileAtlas(cgameSpriteAtlas);
+  cgi.CompileAtlas(spriteAtlas);
 
   cgi.LoadingProgress(-1, "decals");
 
-  cgameDecalAtlas = cgi.LoadAtlas("cg_decal_atlas");
+  decalAtlas = cgi.LoadAtlas("cg_decal_atlas");
 
   for (size_t i = 0; i < lengthof(cgameDecalBullet); i++) {
     q_snprintf(name, sizeof(name), "decals/bullet_%zd", i);
-    cgameDecalBullet[i] = cgi.LoadAtlasImage(cgameDecalAtlas, name, IMG_SPRITE);
+    cgameDecalBullet[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cgameDecalBlood); i++) {
     q_snprintf(name, sizeof(name), "decals/blood_%zd", i);
-    cgameDecalBlood[i] = cgi.LoadAtlasImage(cgameDecalAtlas, name, IMG_SPRITE);
+    cgameDecalBlood[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cgameDecalBurn); i++) {
     q_snprintf(name, sizeof(name), "decals/burn_%zd", i);
-    cgameDecalBurn[i] = cgi.LoadAtlasImage(cgameDecalAtlas, name, IMG_SPRITE);
+    cgameDecalBurn[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cgameDecalSlug); i++) {
       q_snprintf(name, sizeof(name), "decals/slug_%zd", i);
-      cgameDecalSlug[i] = cgi.LoadAtlasImage(cgameDecalAtlas, name, IMG_SPRITE);
+      cgameDecalSlug[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 
   cgi.LoadingProgress(-1, "compiling decal atlas");
 
-  cgi.CompileAtlas(cgameDecalAtlas);
+  cgi.CompileAtlas(decalAtlas);
 
   Cg_LoadFlares();
 

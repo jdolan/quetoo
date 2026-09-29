@@ -378,7 +378,7 @@ static void G_ballistics_Giblets(const GameBallisticsType *type, GameEntity *ent
   });
 }
 
-static const GameBallisticsType gameBallisticsTypes[] = {
+static const GameBallisticsType ballisticsTypes[] = {
   {
     .name = "blaster",
     .refire = &g_balanceBlasterRefire,
@@ -607,9 +607,9 @@ static const GameBallisticsType gameBallisticsTypes[] = {
  */
 static const GameBallisticsType *G_ballistics_Type(const char *name) {
 
-  for (size_t i = 0; i < lengthof(gameBallisticsTypes); i++) {
-    if (!q_strcmp(gameBallisticsTypes[i].name, name)) {
-      return &gameBallisticsTypes[i];
+  for (size_t i = 0; i < lengthof(ballisticsTypes); i++) {
+    if (!q_strcmp(ballisticsTypes[i].name, name)) {
+      return &ballisticsTypes[i];
     }
   }
 

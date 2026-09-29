@@ -24,7 +24,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/URLCache.h>
 
-static void *cgameHandle;
+static void *handle;
 
 /**
  * @brief Fetch the active debug mask.
@@ -170,8 +170,8 @@ void Cl_InitCgame(void) {
     Com_Error(ERROR_DROP, "Neither %s nor %s provides a client game module\n", Com_Game(), DEFAULT_GAME);
   }
 
-  void *handle = Sys_OpenLibrary(dir, "cgame");
-  if (!handle) {
+  void *library = Sys_OpenLibrary(dir, "cgame");
+  if (!library) {
     Com_Error(ERROR_DROP, "Failed to open %s's client game module\n", dir);
   }
 
@@ -346,18 +346,18 @@ void Cl_InitCgame(void) {
   // teardown. Nothing below may fail without leaving us no client game at all
   Cl_ShutdownCgame();
 
-  cgameHandle = handle;
+  handle = library;
 
-  CGameExport *cgame = Sys_LoadLibrary(cgameHandle, "Cg_LoadCgame", &import);
+  CGameExport *cgame = Sys_LoadLibrary(handle, "Cg_LoadCgame", &import);
 
   if (!cgame) {
-    cgameHandle = Sys_CloseLibrary(cgameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_FATAL, "Failed to load %s's client game\n", dir);
   }
 
   if (cgame->apiVersion != CGAME_API_VERSION) {
     const int32_t version = cgame->apiVersion;
-    cgameHandle = Sys_CloseLibrary(cgameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_FATAL, "%s's client game is version %i, not %i\n", dir, version, CGAME_API_VERSION);
   }
 
@@ -367,7 +367,7 @@ void Cl_InitCgame(void) {
   // otherwise search, and Windows has no such namespace at all. The export
   // table is a static within the module, which is the address Objectively
   // resolves the module by, so that it can drop its Classes when it comes down.
-  addClassImage(cgameHandle, cgame);
+  addClassImage(handle, cgame);
 
   cls.cgame = cgame;
   cls.cgame->Init();
@@ -400,7 +400,7 @@ void Cl_ShutdownCgame(void) {
 
   // last, and while the handle is still open: the menus are gone by now, and
   // the Classes this image declared must not outlive it
-  removeClassImage(cgameHandle);
+  removeClassImage(handle);
 
-  cgameHandle = Sys_CloseLibrary(cgameHandle);
+  handle = Sys_CloseLibrary(handle);
 }

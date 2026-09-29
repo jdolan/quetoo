@@ -148,12 +148,12 @@ typedef struct {
   int32_t partyMax;
 } CGameDiscordState;
 
-static CGameDiscordState cgameDiscordState;
+static CGameDiscordState discordState;
 
 static void Cg_DiscordReady(const DiscordUser *user) {
 
   cgi.Print("Discord Loaded (%s)\n", user->username);
-  cgameDiscordState.initialized = true;
+  discordState.initialized = true;
 }
 
 /**
@@ -191,11 +191,11 @@ DescribeGameMode Cg_DescribeGameMode = Cg_DescribeGameMode_Common;
 
 void Cg_UpdateDiscord(void) {
 
-  if (cgameDiscordState.failed) {
+  if (discordState.failed) {
     return;
   }
 
-  if (cgameDiscordState.initialized) {
+  if (discordState.initialized) {
     DiscordRichPresence presence = { 0 };
     bool needsUpdate = false;
 
@@ -210,7 +210,7 @@ void Cg_UpdateDiscord(void) {
 
       // the status reply that carries the party size arrives on its own schedule, and may
       // land after we are already in game, so publish again when it does
-      if (cgameDiscordState.status != DISCORD_ACTIVE || cgameDiscordState.partyMax != partyMax) {
+      if (discordState.status != DISCORD_ACTIVE || discordState.partyMax != partyMax) {
         needsUpdate = true;
       
         presence.largeImageKey = "default";
@@ -234,18 +234,18 @@ void Cg_UpdateDiscord(void) {
 
         presence.partySize = cgameState.numClients;
         presence.partyMax = partyMax;
-        cgameDiscordState.partyMax = partyMax;
-        cgameDiscordState.status = DISCORD_ACTIVE;
+        discordState.partyMax = partyMax;
+        discordState.status = DISCORD_ACTIVE;
         presence.instance = true;
       }
     } else {
-      if (cgameDiscordState.status != DISCORD_INACTIVE) {
+      if (discordState.status != DISCORD_INACTIVE) {
         needsUpdate = true;
       
         presence.largeImageKey = "default";
         presence.state = "In Main Menu";
 
-        cgameDiscordState.status = DISCORD_INACTIVE;
+        discordState.status = DISCORD_INACTIVE;
       }
     }
 
@@ -299,7 +299,7 @@ void Cg_InitDiscord(void) {
     Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
   } __except(EXCEPTION_EXECUTE_HANDLER) {
     Cg_Warn("Discord RPC initialization crashed, Rich Presence disabled\n");
-    cgameDiscordState.failed = true;
+    discordState.failed = true;
   }
 #else
   Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
@@ -308,9 +308,9 @@ void Cg_InitDiscord(void) {
 
 void Cg_ShutdownDiscord(void) {
 
-  if (!cgameDiscordState.failed) {
+  if (!discordState.failed) {
     Discord_Shutdown();
   }
 
-  memset(&cgameDiscordState, 0, sizeof(cgameDiscordState));
+  memset(&discordState, 0, sizeof(discordState));
 }

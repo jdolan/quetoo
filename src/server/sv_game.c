@@ -201,7 +201,7 @@ static void Sv_WriteAngles(const Vec3 angles) {
   Net_WriteAngles(&sv.multicast, angles);
 }
 
-static void *gameHandle;
+static void *handle;
 
 /**
  * @brief `RESTClientCompletion` for `Sv_PostStats`.
@@ -412,21 +412,21 @@ void Sv_InitGame(void) {
     Com_Error(ERROR_DROP, "Neither %s nor %s provides a game module\n", Com_Game(), DEFAULT_GAME);
   }
 
-  gameHandle = Sys_OpenLibrary(dir, "game");
-  if (!gameHandle) {
+  handle = Sys_OpenLibrary(dir, "game");
+  if (!handle) {
     Com_Error(ERROR_DROP, "Failed to open %s's game module\n", dir);
   }
   
-  GameExport *game = (GameExport *) Sys_LoadLibrary(gameHandle, "G_LoadGame", &import);
+  GameExport *game = (GameExport *) Sys_LoadLibrary(handle, "G_LoadGame", &import);
 
   if (!game) {
-    gameHandle = Sys_CloseLibrary(gameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_DROP, "Failed to load %s's game module\n", dir);
   }
 
   if (game->apiVersion != GAME_API_VERSION) {
     const int32_t version = game->apiVersion;
-    gameHandle = Sys_CloseLibrary(gameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_DROP, "%s's game module is version %i, not %i\n", dir, version, GAME_API_VERSION);
   }
 
@@ -462,5 +462,5 @@ void Sv_ShutdownGame(void) {
   Com_Print("Game down\n");
   Com_QuitSubsystem(QUETOO_GAME);
 
-  gameHandle = Sys_CloseLibrary(gameHandle);
+  handle = Sys_CloseLibrary(handle);
 }

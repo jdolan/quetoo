@@ -36,7 +36,7 @@ typedef struct {
   uint32_t interval;
 } CGameKick;
 
-static CGameKick cgameKick;
+static CGameKick viewKick;
 
 /**
  * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
@@ -123,11 +123,11 @@ void Cg_ParseViewKick(void) {
 
   const Vec3 kick = MakeVec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
 
-  cgameKick.prev = cgameKick.kick;
-  cgameKick.next = Vec3_Add(cgameKick.prev, kick);
+  viewKick.prev = viewKick.kick;
+  viewKick.next = Vec3_Add(viewKick.prev, kick);
 
-  cgameKick.timestamp = cgi.client->unclampedTime;
-  cgameKick.interval = 64;
+  viewKick.timestamp = cgi.client->unclampedTime;
+  viewKick.interval = 64;
 }
 
 /**
@@ -135,15 +135,15 @@ void Cg_ParseViewKick(void) {
  */
 static void Cg_ViewKick(const PMoveCmd *cmd) {
 
-  if (cgameKick.timestamp > cgi.client->unclampedTime) {
-    memset(&cgameKick, 0, sizeof(cgameKick));
+  if (viewKick.timestamp > cgi.client->unclampedTime) {
+    memset(&viewKick, 0, sizeof(viewKick));
   }
 
   const PlayerState *ps1 = &cgi.client->frame.ps;
 
   if (cgameState.snapAngles) {
     // Snap is handled authoritatively in Cg_UpdateAngles; just clear kick state here.
-    memset(&cgameKick, 0, sizeof(cgameKick));
+    memset(&viewKick, 0, sizeof(viewKick));
   } else if (cgi.client->previousFrame) {
       const PlayerState *ps0 = &cgi.client->previousFrame->ps;
       Vec3 delta0 = ps0->pmState.deltaAngles;
@@ -153,42 +153,42 @@ static void Cg_ViewKick(const PMoveCmd *cmd) {
         static int32_t frame;
 
         if (cgi.client->frame.frameNum != frame) {
-          Cg_Debug("Delta kick %s\n", vtos(cgameKick.kick));
-          memset(&cgameKick, 0, sizeof(cgameKick));
+          Cg_Debug("Delta kick %s\n", vtos(viewKick.kick));
+          memset(&viewKick, 0, sizeof(viewKick));
 
           frame = cgi.client->frame.frameNum;
         }
       }
   }
 
-  const uint32_t delta = cgi.client->unclampedTime - cgameKick.timestamp;
-  if (delta < cgameKick.interval) {
-    const float frac = Minf(delta, cmd->msec) / (float) cgameKick.interval;
+  const uint32_t delta = cgi.client->unclampedTime - viewKick.timestamp;
+  if (delta < viewKick.interval) {
+    const float frac = Minf(delta, cmd->msec) / (float) viewKick.interval;
 
     Vec3 kick;
-    kick = Vec3_Subtract(cgameKick.next, cgameKick.prev);
+    kick = Vec3_Subtract(viewKick.next, viewKick.prev);
     kick = Vec3_Scale(kick, frac);
 
-    cgameKick.kick = Vec3_Add(cgameKick.kick, kick);
+    viewKick.kick = Vec3_Add(viewKick.kick, kick);
     cgi.client->angles = Vec3_Add(cgi.client->angles, kick);
 
-  } else if (!Vec3_Equal(cgameKick.kick, Vec3_Zero())) {
+  } else if (!Vec3_Equal(viewKick.kick, Vec3_Zero())) {
 
     if (cgi.client->frame.ps.pmState.type == PM_DEAD) {
       return;
     }
 
-    const float len = Vec3_Length(cgameKick.kick);
+    const float len = Vec3_Length(viewKick.kick);
     if (len < 0.1) {
-      cgi.client->angles = Vec3_Subtract(cgi.client->angles, cgameKick.kick);
-      memset(&cgameKick, 0, sizeof(cgameKick));
+      cgi.client->angles = Vec3_Subtract(cgi.client->angles, viewKick.kick);
+      memset(&viewKick, 0, sizeof(viewKick));
     } else {
 
-      cgameKick.prev = cgameKick.kick;
-      cgameKick.next = Vec3_Zero();
+      viewKick.prev = viewKick.kick;
+      viewKick.next = Vec3_Zero();
 
-      cgameKick.timestamp = cgi.client->unclampedTime;
-      cgameKick.interval = 240;
+      viewKick.timestamp = cgi.client->unclampedTime;
+      viewKick.interval = 240;
     }
   }
 }
@@ -379,7 +379,7 @@ void Cg_ExportMove(PMoveCmd *cmd) {
  * @brief Clear button states.
  */
 void Cg_ClearInput(void) {
-  memset(&cgameKick, 0, sizeof(cgameKick));
+  memset(&viewKick, 0, sizeof(viewKick));
   memset(cgameButtons, 0, sizeof(cgameButtons));
 }
 

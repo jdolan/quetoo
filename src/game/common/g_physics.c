@@ -447,7 +447,7 @@ typedef struct {
   int16_t deltaYaw;
 } GamePush;
 
-static GamePush gamePushes[MAX_ENTITIES], *g_push_p;
+static GamePush pushes[MAX_ENTITIES], *nextPush;
 
 /**
  * @brief Records the current origin, angles, and client delta-yaw of the entity
@@ -455,22 +455,22 @@ static GamePush gamePushes[MAX_ENTITIES], *g_push_p;
  */
 static void G_Physics_Push_Impact(GameEntity *ent) {
 
-  if (g_push_p - gamePushes == MAX_ENTITIES) {
+  if (nextPush - pushes == MAX_ENTITIES) {
     G_Error("MAX_ENTITIES\n");
   }
 
-  g_push_p->ent = ent;
+  nextPush->ent = ent;
 
-  g_push_p->origin = ent->s.origin;
-  g_push_p->angles = ent->s.angles;
+  nextPush->origin = ent->s.origin;
+  nextPush->angles = ent->s.angles;
 
   if (ent->client) {
-    g_push_p->deltaYaw = ent->client->ps.pmState.deltaAngles.y;
+    nextPush->deltaYaw = ent->client->ps.pmState.deltaAngles.y;
   } else {
-    g_push_p->deltaYaw = 0;
+    nextPush->deltaYaw = 0;
   }
 
-  g_push_p++;
+  nextPush++;
 }
 
 /**
@@ -589,7 +589,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
 
         // we intersected with the mover. we may have been pushed off of us by the world,
         // so try it's original position, which may now be valid.
-        G_Physics_Push_Revert(--g_push_p);
+        G_Physics_Push_Revert(--nextPush);
 
         if (G_CorrectPosition(other)) {
           continue;
@@ -658,8 +658,8 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
     // if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
     // blocked: revert any moves we may have made and return our obstacle
 
-    while (g_push_p > gamePushes) {
-      G_Physics_Push_Revert(--g_push_p);
+    while (nextPush > pushes) {
+      G_Physics_Push_Revert(--nextPush);
     }
 
     return other;
@@ -669,7 +669,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
   ent->s.origin = finalPosition;
 
   // the move was successful, so re-link all pushed entities
-  for (GamePush *p = g_push_p - 1; p >= gamePushes; p--) {
+  for (GamePush *p = nextPush - 1; p >= pushes; p--) {
     if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
@@ -862,7 +862,7 @@ static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
         // an entity riding us may have been pushed off of us by the world, so try
         // it's original position, which may now be valid
 
-        G_Physics_Push_Revert(--g_push_p);
+        G_Physics_Push_Revert(--nextPush);
 
         // but in this case, don't rotate
         if (G_CorrectPosition(ent)) {
@@ -903,15 +903,15 @@ static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
     // if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
     // blocked: revert any moves we may have made and return our obstacle
 
-    while (g_push_p > gamePushes) {
-      G_Physics_Push_Revert(--g_push_p);
+    while (nextPush > pushes) {
+      G_Physics_Push_Revert(--nextPush);
     }
 
     return ent;
   }
 
   // the move was successful, so re-link all pushed entities
-  for (GamePush *p = g_push_p - 1; p >= gamePushes; p--) {
+  for (GamePush *p = nextPush - 1; p >= pushes; p--) {
     if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
@@ -940,7 +940,7 @@ static void G_Physics_Push(GameEntity *ent) {
   }
 
   // reset the pushed array
-  g_push_p = gamePushes;
+  nextPush = pushes;
 
   // make sure all team slaves can move before committing any moves
   for (GameEntity *part = ent; part; part = part->teamNext) {
@@ -975,7 +975,7 @@ typedef struct {
   int32_t numEntities;
 } GameTouch;
 
-static GameTouch gameTouch;
+static GameTouch touch;
 
 /**
  * @brief Runs the `Touch` functions of each object.
@@ -984,13 +984,13 @@ static void G_TouchEntity(GameEntity *ent, const CmTrace *trace) {
 
   // ensure that we only impact an entity once per frame
 
-  for (int32_t i = 0; i < gameTouch.numEntities; i++) {
-    if (gameTouch.entities[i] == trace->ent) {
+  for (int32_t i = 0; i < touch.numEntities; i++) {
+    if (touch.entities[i] == trace->ent) {
       return;
     }
   }
 
-  gameTouch.entities[gameTouch.numEntities++] = trace->ent;
+  touch.entities[touch.numEntities++] = trace->ent;
 
   // run the interaction
 
@@ -1016,7 +1016,7 @@ static bool G_Physics_Fly_Move(GameEntity *ent, const float bounce) {
   Vec3 planes[MAX_CLIP_PLANES];
   Vec3 origin, angles;
 
-  memset(&gameTouch, 0, sizeof(gameTouch));
+  memset(&touch, 0, sizeof(touch));
 
   origin = ent->s.origin;
   angles = ent->s.angles;

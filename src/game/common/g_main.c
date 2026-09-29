@@ -141,8 +141,8 @@ Cvar *g_movement;
  * @brief What this level asked for, remembered so that setting `g_movement`
  * back to "default" returns to it rather than to Quetoo's.
  */
-static PMovement gameMovementLevel;
-static GameplayId gameGameplayLevel;
+static PMovement movementLevel;
+static GameplayId gameplayLevel;
 
 // player movement parameters (hydrated into PMoveParams by G_MovementParams)
 Cvar *g_airAcceleration;
@@ -660,7 +660,7 @@ float G_LevelGravity(void) {
  */
 static PMovement G_CoerceMovement(void) {
 
-  PMovement movement = gameMovementLevel;
+  PMovement movement = movementLevel;
 
   if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
     if (!Pm_MovementByName(g_movement->string, &movement)) {
@@ -682,12 +682,12 @@ static PMovement G_CoerceMovement(void) {
  */
 PMovement G_ResolveMovement(const char *name) {
 
-  gameMovementLevel = G_MOVEMENT_DEFAULT;
+  movementLevel = G_MOVEMENT_DEFAULT;
 
   if (name && *name) {
-    if (!Pm_MovementByName(name, &gameMovementLevel)) {
+    if (!Pm_MovementByName(name, &movementLevel)) {
       G_Warn("Unknown movement \"%s\" in this level, using %s\n",
-              name, Pm_Movement(gameMovementLevel)->name);
+              name, Pm_Movement(movementLevel)->name);
     }
   }
 
@@ -701,7 +701,7 @@ PMovement G_ResolveMovement(const char *name) {
  */
 static GameplayId G_CoerceGameplay(void) {
 
-  GameplayId gameplay = gameGameplayLevel;
+  GameplayId gameplay = gameplayLevel;
 
   if (q_strcmp(g_gameplay->string, "default")) { // "default" defers to the level
     gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
@@ -724,7 +724,7 @@ static GameplayId G_CoerceGameplay(void) {
  */
 GameplayId G_ResolveGameplay(const char *name) {
 
-  gameGameplayLevel = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
+  gameplayLevel = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
 
   return G_CoerceGameplay();
 }

@@ -63,13 +63,13 @@ static struct {
 /**
  * @brief True when the hook is available this level.
  */
-static bool gameHookEnabled;
+static bool hookEnabled;
 
 /**
  * @return True if the hook is enabled for this level.
  */
 static bool G_Hook_Enabled(void) {
-  return gameHookEnabled;
+  return hookEnabled;
 }
 
 /**
@@ -465,7 +465,7 @@ GameEntity *G_HookProjectile(GameEntity *ent, const Vec3 start, const Vec3 dir) 
  */
 void G_HookDetach(GameClient *cl) {
 
-  if (!gameHookEnabled) {
+  if (!hookEnabled) {
     return;
   }
 
@@ -566,7 +566,7 @@ AllowHook G_AllowHook = G_AllowHook_Common;
 void G_HookThink(GameClient *cl, const bool refire) {
 
   // sanity checks
-  if (!gameHookEnabled) {
+  if (!hookEnabled) {
     return;
   }
 
@@ -643,9 +643,9 @@ void G_SetClientHookStyle(GameClient *cl) {
 void G_Hook_CheckState(void) {
 
   if (q_strcmp(g_hook->string, "default")) { // the cvar, else compiled in means on
-    gameHookEnabled = !!g_hook->integer;
+    hookEnabled = !!g_hook->integer;
   } else {
-    gameHookEnabled = true;
+    hookEnabled = true;
   }
 
   if (g_hookDistance->modified) {
