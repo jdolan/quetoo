@@ -65,6 +65,7 @@
 		01209575888A584DAE8F7D25 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		014684FA691B4EB0944ACDCB /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = 26FE8732000C404A8AFA1688 /* r_post.c */; };
 		033334174247678F654646CA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		0748101724F775645A77CED3 /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
@@ -84,6 +85,7 @@
 		20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* hud.json */; };
 		21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		24E51E1A6204E83A25D1633D /* StageView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A499587CCAB9D1B603E5A857 /* StageView.json */; };
 		25BC89DD24A937543466EBF8 /* StatView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 023302D99271CCB07B215C6D /* StatView.json */; };
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		2BCE540B4A7DD1811680C1DF /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
@@ -98,6 +100,7 @@
 		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		363A0C94E511346808FE5F3D /* r_subview.c in Sources */ = {isa = PBXBuildFile; fileRef = 96A84939E49450A34A627546 /* r_subview.c */; };
 		368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* hud.json */; };
+		397AF06E0005AF477FB5FC35 /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
@@ -168,6 +171,7 @@
 		8C2222B66C5893E999A00A1D /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		8EF87DE8E42CB34AC627912E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
+		8F85DBADFFE9C53563BB805B /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		91B39671CA4F375D3FEBBDA0 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
 		93E3C4D327C8457BAE598423 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		96C482990EB9434FACFB0B5B /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
@@ -221,6 +225,7 @@
 		CB4A43F954CB0C6DB34F666F /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		CC87D6AEB29F498DB8AA7E1C /* voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* voxel.c */; };
 		CC8A4E1E3C5749B68DBD795C /* cm_light.h in Headers */ = {isa = PBXBuildFile; fileRef = 21090788F7AC4042B84FEE10 /* cm_light.h */; };
+		CCF7D4742DB959FD23C3CC3B /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
 		CE04F06325CADF4D00C31433 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
 		CE04F08825CADF5100C31433 /* cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6261C5C58C300CD0B13 /* cmd.c */; };
@@ -381,7 +386,6 @@
 		CE05B3F030224900C0DE0031 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CE05B3F030224900C0DE0032 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CE05B3F030224900C0DE0033 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
-		8F85DBADFFE9C53563BB805B /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		CE05B3F030224900C0DE0034 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		CE05B3F030224900C0DE0035 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CE05B3F030224900C0DE0036 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
@@ -987,7 +991,6 @@
 		CEC0FF002026010300000191 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CEC0FF002026010300000193 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
-		0748101724F775645A77CED3 /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		CEC0FF002026010300000194 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CEC0FF002026010300000196 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
@@ -1188,9 +1191,7 @@
 		CFA000222F9100000000C022 /* MaterialViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000102F9100000000C010 /* MaterialViewController.css */; };
 		CFA000232F9100000000C023 /* MaterialViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000112F9100000000C011 /* MaterialViewController.json */; };
 		CFA000242F9100000000C024 /* editor.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C012 /* editor.css */; };
-		397AF06E0005AF477FB5FC35 /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		CFA000252F9100000000C025 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
-		24E51E1A6204E83A25D1633D /* StageView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A499587CCAB9D1B603E5A857 /* StageView.json */; };
 		CFA000272F9100000000C027 /* StageViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000142F9100000000C027 /* StageViewController.css */; };
 		CFA000282F9100000000C028 /* StageViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000152F9100000000C028 /* StageViewController.json */; };
 		D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
@@ -1324,7 +1325,6 @@
 		D2A5C1000000000000000075 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		D2A5C1000000000000000076 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		D2A5C1000000000000000077 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
-		CCF7D4742DB959FD23C3CC3B /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		D2A5C1000000000000000078 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		D2A5C1000000000000000079 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		D2A5C100000000000000007A /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
@@ -2290,6 +2290,8 @@
 		9C56DC135154CED4C2498031 /* SpectatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpectatorView.h; sourceTree = "<group>"; };
 		9CA6BC01A9434CCDBF23E8C0 /* StatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatView.c; sourceTree = "<group>"; };
 		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
+		A2AC5066CAE474DC8C332F7E /* StageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StageView.h; sourceTree = "<group>"; };
+		A499587CCAB9D1B603E5A857 /* StageView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StageView.json; sourceTree = "<group>"; };
 		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
 		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
 		A8EE5A964B0C7980A2D249D0 /* DemosCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosCollectionView.h; sourceTree = "<group>"; };
@@ -2308,6 +2310,7 @@
 		C1D5EEC0EEA8441CDCC9D7CA /* CenterPrintView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CenterPrintView.h; sourceTree = "<group>"; };
 		C21FD90BD08D804DE1A792B1 /* HudViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HudViewController.c; sourceTree = "<group>"; };
 		C22C8B9ED966181A40EEE5A3 /* CameraControlsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CameraControlsView.c; sourceTree = "<group>"; };
+		C412F8050FB26E0D40018D29 /* StageView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StageView.c; sourceTree = "<group>"; };
 		C8249BF99F0E4A2D77D37865 /* CrosshairView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
 		C853849AF0A2CC2F7C531245 /* PowerupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerupView.h; sourceTree = "<group>"; };
 		C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TimeView.c; sourceTree = "<group>"; };
@@ -3087,9 +3090,6 @@
 		CFA000102F9100000000C010 /* MaterialViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = MaterialViewController.css; sourceTree = "<group>"; };
 		CFA000112F9100000000C011 /* MaterialViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MaterialViewController.json; sourceTree = "<group>"; };
 		CFA000122F9100000000C012 /* editor.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = editor.css; sourceTree = "<group>"; };
-		C412F8050FB26E0D40018D29 /* StageView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StageView.c; sourceTree = "<group>"; };
-		A2AC5066CAE474DC8C332F7E /* StageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StageView.h; sourceTree = "<group>"; };
-		A499587CCAB9D1B603E5A857 /* StageView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StageView.json; sourceTree = "<group>"; };
 		CFA000122F9100000000C025 /* StageViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StageViewController.c; sourceTree = "<group>"; };
 		CFA000132F9100000000C026 /* StageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StageViewController.h; sourceTree = "<group>"; };
 		CFA000142F9100000000C027 /* StageViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = StageViewController.css; sourceTree = "<group>"; };
@@ -3750,12 +3750,12 @@
 		3F698657FE99AC45EBDFE4C7 /* fonts */ = {
 			isa = PBXGroup;
 			children = (
-				DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */,
-				B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */,
 				B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */,
 				02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */,
-				5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */,
 				B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */,
+				5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */,
+				B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */,
+				DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */,
 			);
 			path = fonts;
 			sourceTree = "<group>";
@@ -3845,6 +3845,10 @@
 				CE12D6771C5C58C300CD0B13 /* image.c */,
 				CEC74B3725C8EE94009C6218 /* installer.h */,
 				CEC74B3825C8EE94009C6218 /* installer.c */,
+				9BEEC6DF7149D25DE326F0A7 /* manifest.h */,
+				D126FFD46C343DDC86C13E17 /* manifest.c */,
+				CEA3B4861E057569004A6CF3 /* material.h */,
+				CEA3B4851E057569004A6CF3 /* material.c */,
 				CE12D68A1C5C58C300CD0B13 /* mem.h */,
 				CE12D6891C5C58C300CD0B13 /* mem.c */,
 				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
@@ -3855,13 +3859,9 @@
 				CE12D6BC1C5C58C300CD0B13 /* sys.c */,
 				CE12D6DF1C5C58C300CD0B13 /* thread.h */,
 				CE12D6DE1C5C58C300CD0B13 /* thread.c */,
-				CE04EF9325CA0EE400C31433 /* Makefile.am */,
-				CEA3B4851E057569004A6CF3 /* material.c */,
-				CEA3B4861E057569004A6CF3 /* material.h */,
-				D126FFD46C343DDC86C13E17 /* manifest.c */,
-				9BEEC6DF7149D25DE326F0A7 /* manifest.h */,
-				CE3C529321E4DF2500FEDBED /* winding.c */,
 				CE3C529221E4DF2500FEDBED /* winding.h */,
+				CE3C529321E4DF2500FEDBED /* winding.c */,
+				CE04EF9325CA0EE400C31433 /* Makefile.am */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -3875,15 +3875,15 @@
 				CE12D6881C5C58C300CD0B13 /* matrix.h */,
 				CE89C2BB2FE5643E000B6244 /* md5.h */,
 				CE89C2B92FE5642D000B6244 /* md5.c */,
+				CE55309B1E5A93C60009A127 /* parse.h */,
+				CE55309A1E5A93C60009A127 /* parse.c */,
 				CE89C2C02FE56453000B6244 /* qstring.h */,
 				CE89C2BF2FE56452000B6244 /* qstring.c */,
-				CE55309A1E5A93C60009A127 /* parse.c */,
-				CE55309B1E5A93C60009A127 /* parse.h */,
-				CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */,
-				CE12D6B81C5C58C300CD0B13 /* shared.c */,
 				CE12D6B91C5C58C300CD0B13 /* shared.h */,
-				CE12D6BA1C5C58C300CD0B13 /* swap.c */,
+				CE12D6B81C5C58C300CD0B13 /* shared.c */,
+				CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */,
 				CE12D6BB1C5C58C300CD0B13 /* swap.h */,
+				CE12D6BA1C5C58C300CD0B13 /* swap.c */,
 				CE9CFC9A23EAFFD00009DA65 /* vector.h */,
 				CE04EFC125CA0F7D00C31433 /* Makefile.am */,
 			);
@@ -3948,8 +3948,8 @@
 			isa = PBXGroup;
 			children = (
 				CE04FE4E25D0D90400C31433 /* LICENSE */,
-				CE69DC9E202D3EE700E5C8B1 /* miniz.c */,
 				CE69DC9D202D3EE600E5C8B1 /* miniz.h */,
+				CE69DC9E202D3EE700E5C8B1 /* miniz.c */,
 				CE12D5041C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = minizip;
@@ -3977,8 +3977,8 @@
 			isa = PBXGroup;
 			children = (
 				CE5751912FD2678B006FAC78 /* usr */,
-				CE12D5161C5C58C300CD0B13 /* Quetoo.desktop */,
 				CE5751852FD2678B006FAC78 /* org.quetoo.Quetoo.metainfo.xml */,
+				CE12D5161C5C58C300CD0B13 /* Quetoo.desktop */,
 			);
 			path = quetoo;
 			sourceTree = "<group>";
@@ -4034,43 +4034,43 @@
 				CE12D5AC1C5C58C300CD0B13 /* renderer */,
 				CE12D5FE1C5C58C300CD0B13 /* sound */,
 				CE5CDB931D9F45090034757D /* ui */,
-				CE12D5851C5C58C300CD0B13 /* cl_binds.h */,
-				3B5E2E164CF77588FE00447F /* cl_analytics.c */,
 				24281E30C5869DF85EACFC22 /* cl_analytics.h */,
-				CE12D5861C5C58C300CD0B13 /* cl_cgame.c */,
+				3B5E2E164CF77588FE00447F /* cl_analytics.c */,
+				CE12D5851C5C58C300CD0B13 /* cl_binds.h */,
 				CE12D5871C5C58C300CD0B13 /* cl_cgame.h */,
-				CE12D5881C5C58C300CD0B13 /* cl_cmd.c */,
+				CE12D5861C5C58C300CD0B13 /* cl_cgame.c */,
 				CE12D5891C5C58C300CD0B13 /* cl_cmd.h */,
-				CE12D58A1C5C58C300CD0B13 /* cl_console.c */,
+				CE12D5881C5C58C300CD0B13 /* cl_cmd.c */,
 				CE12D58B1C5C58C300CD0B13 /* cl_console.h */,
-				CE12D58C1C5C58C300CD0B13 /* cl_demo.c */,
+				CE12D58A1C5C58C300CD0B13 /* cl_console.c */,
 				CE12D58D1C5C58C300CD0B13 /* cl_demo.h */,
-				CE12D58E1C5C58C300CD0B13 /* cl_entity.c */,
+				CE12D58C1C5C58C300CD0B13 /* cl_demo.c */,
 				CE12D58F1C5C58C300CD0B13 /* cl_entity.h */,
-				CE12D5921C5C58C300CD0B13 /* cl_input.c */,
+				CE12D58E1C5C58C300CD0B13 /* cl_entity.c */,
 				CE12D5931C5C58C300CD0B13 /* cl_input.h */,
-				CE12D5941C5C58C300CD0B13 /* cl_keys.c */,
+				CE12D5921C5C58C300CD0B13 /* cl_input.c */,
 				CE12D5951C5C58C300CD0B13 /* cl_keys.h */,
+				CE12D5941C5C58C300CD0B13 /* cl_keys.c */,
 				CE12D5961C5C58C300CD0B13 /* cl_local.h */,
-				CE12D5971C5C58C300CD0B13 /* cl_main.c */,
 				CE12D5981C5C58C300CD0B13 /* cl_main.h */,
-				CE12D5991C5C58C300CD0B13 /* cl_media.c */,
+				CE12D5971C5C58C300CD0B13 /* cl_main.c */,
 				CE12D59A1C5C58C300CD0B13 /* cl_media.h */,
-				CE12D59B1C5C58C300CD0B13 /* cl_mouse.c */,
+				CE12D5991C5C58C300CD0B13 /* cl_media.c */,
 				CE12D59C1C5C58C300CD0B13 /* cl_mouse.h */,
+				CE12D59B1C5C58C300CD0B13 /* cl_mouse.c */,
 				CE12D59D1C5C58C300CD0B13 /* cl_null.c */,
-				CE12D59E1C5C58C300CD0B13 /* cl_parse.c */,
 				CE12D59F1C5C58C300CD0B13 /* cl_parse.h */,
-				CE12D5A01C5C58C300CD0B13 /* cl_predict.c */,
+				CE12D59E1C5C58C300CD0B13 /* cl_parse.c */,
 				CE12D5A11C5C58C300CD0B13 /* cl_predict.h */,
-				CE3CFB6C25A10AAC003D6148 /* cl_renderer.c */,
+				CE12D5A01C5C58C300CD0B13 /* cl_predict.c */,
 				CE3CFB6B25A10AAC003D6148 /* cl_renderer.h */,
-				CE7FCDD52596996500E49A2D /* cl_screen.c */,
+				CE3CFB6C25A10AAC003D6148 /* cl_renderer.c */,
 				CE7FCDD62596996500E49A2D /* cl_screen.h */,
-				CE12D5A41C5C58C300CD0B13 /* cl_server.c */,
+				CE7FCDD52596996500E49A2D /* cl_screen.c */,
 				CE12D5A51C5C58C300CD0B13 /* cl_server.h */,
-				CE3CFBF725A10D9B003D6148 /* cl_sound.c */,
+				CE12D5A41C5C58C300CD0B13 /* cl_server.c */,
 				CE3CFBF625A10D9B003D6148 /* cl_sound.h */,
+				CE3CFBF725A10D9B003D6148 /* cl_sound.c */,
 				CE12D5A61C5C58C300CD0B13 /* cl_types.h */,
 				CE12D5A91C5C58C300CD0B13 /* client.h */,
 				CE12D5AA1C5C58C300CD0B13 /* Makefile.am */,
@@ -4126,9 +4126,7 @@
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE12D5DF1C5C58C300CD0B13 /* r_model.c */,
 				CE1643F32FFB571100863996 /* r_occlude.h */,
-				5939175D43577D9AF4903198 /* r_subview.h */,
 				CE1643F42FFB571100863996 /* r_occlude.c */,
-				96A84939E49450A34A627546 /* r_subview.c */,
 				B80C92655F5249E48131CB95 /* r_post.h */,
 				26FE8732000C404A8AFA1688 /* r_post.c */,
 				CEE13C14293241970075585D /* r_shadow.h */,
@@ -4137,6 +4135,8 @@
 				CE12D5ED1C5C58C300CD0B13 /* r_sky.c */,
 				CEAC32BB24212553007E1253 /* r_sprite.h */,
 				CEAC32BA24212553007E1253 /* r_sprite.c */,
+				5939175D43577D9AF4903198 /* r_subview.h */,
+				96A84939E49450A34A627546 /* r_subview.c */,
 				CE12D5F11C5C58C300CD0B13 /* r_types.h */,
 				CE12D5F21C5C58C300CD0B13 /* renderer.h */,
 				CE12D5AE1C5C58C300CD0B13 /* Makefile.am */,
@@ -4233,23 +4233,23 @@
 		CE12D6281C5C58C300CD0B13 /* collision */ = {
 			isa = PBXGroup;
 			children = (
-				CE6C2D0F1E24902900F55B0A /* cm_bsp.c */,
 				CE6C2D101E24902900F55B0A /* cm_bsp.h */,
-				1EE6A866A93B42938A4E84E6 /* voxel.c */,
-				0CCDA7DD47374DC3BA55D24A /* cm_light.c */,
-				97BDA8A5C8DF41E290656B3D /* voxel.h */,
+				CE6C2D0F1E24902900F55B0A /* cm_bsp.c */,
 				21090788F7AC4042B84FEE10 /* cm_light.h */,
-				CEBDB0C8214A037900A7AC3D /* entity.c */,
-				CEBDB0C7214A037800A7AC3D /* entity.h */,
+				0CCDA7DD47374DC3BA55D24A /* cm_light.c */,
 				CE12D6291C5C58C300CD0B13 /* cm_local.h */,
-				CE12D62A1C5C58C300CD0B13 /* cm_model.c */,
 				CE12D62B1C5C58C300CD0B13 /* cm_model.h */,
-				CE12D62C1C5C58C300CD0B13 /* cm_test.c */,
+				CE12D62A1C5C58C300CD0B13 /* cm_model.c */,
 				CE12D62D1C5C58C300CD0B13 /* cm_test.h */,
-				CE12D62E1C5C58C300CD0B13 /* cm_trace.c */,
+				CE12D62C1C5C58C300CD0B13 /* cm_test.c */,
 				CE12D62F1C5C58C300CD0B13 /* cm_trace.h */,
+				CE12D62E1C5C58C300CD0B13 /* cm_trace.c */,
 				CE12D6301C5C58C300CD0B13 /* cm_types.h */,
 				CE12D6331C5C58C300CD0B13 /* collision.h */,
+				CEBDB0C7214A037800A7AC3D /* entity.h */,
+				CEBDB0C8214A037900A7AC3D /* entity.c */,
+				97BDA8A5C8DF41E290656B3D /* voxel.h */,
+				1EE6A866A93B42938A4E84E6 /* voxel.c */,
 				CE12D6341C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = collision;
@@ -4258,8 +4258,8 @@
 		CE12D63F1C5C58C300CD0B13 /* game */ = {
 			isa = PBXGroup;
 			children = (
-				CEC0FF002026010300000001 /* ctf */,
 				CEC011002026010100000002 /* common */,
+				CEC0FF002026010300000001 /* ctf */,
 				CE12D6401C5C58C300CD0B13 /* default */,
 				CE05B285302248070012862B /* lithium */,
 				D2A5C100000000000000000E /* race */,
@@ -4285,10 +4285,10 @@
 			isa = PBXGroup;
 			children = (
 				CE12D67A1C5C58C300CD0B13 /* main.c */,
-				CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */,
-				CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */,
-				CE12D67D1C5C58C300CD0B13 /* quetoo-icon.rc */,
 				CE12D67E1C5C58C300CD0B13 /* quetoo.ico */,
+				CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */,
+				CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */,
+				CE12D67D1C5C58C300CD0B13 /* quetoo-icon.rc */,
 				CE12D67B1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = main;
@@ -4297,17 +4297,17 @@
 		CE12D68D1C5C58C300CD0B13 /* net */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D6921C5C58C300CD0B13 /* net_chan.c */,
 				CE12D6931C5C58C300CD0B13 /* net_chan.h */,
-				CE04FB1825CEDCD400C31433 /* net_http_server.c */,
+				CE12D6921C5C58C300CD0B13 /* net_chan.c */,
 				CE04FB1725CEDCD400C31433 /* net_http_server.h */,
-				CE12D6941C5C58C300CD0B13 /* net_message.c */,
+				CE04FB1825CEDCD400C31433 /* net_http_server.c */,
 				CE12D6951C5C58C300CD0B13 /* net_message.h */,
-				CE12D6901C5C58C300CD0B13 /* net_sock.c */,
+				CE12D6941C5C58C300CD0B13 /* net_message.c */,
 				CE12D6911C5C58C300CD0B13 /* net_sock.h */,
+				CE12D6901C5C58C300CD0B13 /* net_sock.c */,
 				CE12D6981C5C58C300CD0B13 /* net_types.h */,
-				CE12D6991C5C58C300CD0B13 /* net_udp.c */,
 				CE12D69A1C5C58C300CD0B13 /* net_udp.h */,
+				CE12D6991C5C58C300CD0B13 /* net_udp.c */,
 				CE12D68E1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = net;
@@ -4317,38 +4317,38 @@
 			isa = PBXGroup;
 			children = (
 				CE12D6A01C5C58C300CD0B13 /* server.h */,
-				CE12D6A11C5C58C300CD0B13 /* sv_admin.c */,
 				CE12D6A21C5C58C300CD0B13 /* sv_admin.h */,
-				CE12D6A31C5C58C300CD0B13 /* sv_client.c */,
+				CE12D6A11C5C58C300CD0B13 /* sv_admin.c */,
 				CE12D6A41C5C58C300CD0B13 /* sv_client.h */,
-				CE12D6A51C5C58C300CD0B13 /* sv_console.c */,
+				CE12D6A31C5C58C300CD0B13 /* sv_client.c */,
 				CE12D6A61C5C58C300CD0B13 /* sv_console.h */,
-				DA0011000000000000000001 /* sv_demo.c */,
+				CE12D6A51C5C58C300CD0B13 /* sv_console.c */,
 				DA0011000000000000000002 /* sv_demo.h */,
-				CEF75F402EB996E80026CCA4 /* sv_editor.c */,
+				DA0011000000000000000001 /* sv_demo.c */,
 				CEF75F3F2EB996E80026CCA4 /* sv_editor.h */,
-				CE12D6A71C5C58C300CD0B13 /* sv_entity.c */,
+				CEF75F402EB996E80026CCA4 /* sv_editor.c */,
 				CE12D6A81C5C58C300CD0B13 /* sv_entity.h */,
-				CE12D6A91C5C58C300CD0B13 /* sv_game.c */,
+				CE12D6A71C5C58C300CD0B13 /* sv_entity.c */,
 				CE12D6AA1C5C58C300CD0B13 /* sv_game.h */,
-				CEAB00012EC1A00000000001 /* sv_http.c */,
+				CE12D6A91C5C58C300CD0B13 /* sv_game.c */,
 				CEAB00022EC1A00000000002 /* sv_http.h */,
-				CE12D6AB1C5C58C300CD0B13 /* sv_init.c */,
+				CEAB00012EC1A00000000001 /* sv_http.c */,
 				CE12D6AC1C5C58C300CD0B13 /* sv_init.h */,
+				CE12D6AB1C5C58C300CD0B13 /* sv_init.c */,
 				CE12D6AD1C5C58C300CD0B13 /* sv_local.h */,
-				CE12D6AE1C5C58C300CD0B13 /* sv_main.c */,
 				CE12D6AF1C5C58C300CD0B13 /* sv_main.h */,
-				CEAB00072EC1A00000000007 /* sv_map_list.c */,
+				CE12D6AE1C5C58C300CD0B13 /* sv_main.c */,
 				CEAB00082EC1A00000000008 /* sv_map_list.h */,
-				CE12D6B01C5C58C300CD0B13 /* sv_master.c */,
+				CEAB00072EC1A00000000007 /* sv_map_list.c */,
 				CE12D6B11C5C58C300CD0B13 /* sv_master.h */,
-				CE12D6B21C5C58C300CD0B13 /* sv_send.c */,
-				CEEF01CE0000000000000005 /* sv_voice.c */,
+				CE12D6B01C5C58C300CD0B13 /* sv_master.c */,
 				CE12D6B31C5C58C300CD0B13 /* sv_send.h */,
-				CEEF01CE0000000000000007 /* sv_voice.h */,
+				CE12D6B21C5C58C300CD0B13 /* sv_send.c */,
 				CE12D6B41C5C58C300CD0B13 /* sv_types.h */,
-				CE12D6B51C5C58C300CD0B13 /* sv_world.c */,
+				CEEF01CE0000000000000007 /* sv_voice.h */,
+				CEEF01CE0000000000000005 /* sv_voice.c */,
 				CE12D6B61C5C58C300CD0B13 /* sv_world.h */,
+				CE12D6B51C5C58C300CD0B13 /* sv_world.c */,
 				CE12D69E1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = server;
@@ -4359,25 +4359,25 @@
 			children = (
 				CE354EEE22075054008AE0C2 /* check_atlas.c */,
 				CE9A67092D2588B20068D720 /* check_box.c */,
-				CEA509062EA5D21F00F27205 /* check_entity.c */,
-				CEAD8FA32F8D8DB70087A850 /* check_manifest.c */,
-				02233F4B105F40BD8A258E69 /* check_material.c */,
-				CEE3A0EF21EE2A5E0070FD3E /* check_winding.c */,
 				CE4DCFFA256F0DF500FECAFC /* check_cm_test.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
 				CEB384ED29A3A76C006DEA13 /* check_color.c */,
 				CE12D6CD1C5C58C300CD0B13 /* check_cvar.c */,
+				CEA509062EA5D21F00F27205 /* check_entity.c */,
 				CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */,
 				D9A5C10000000000000000B0 /* check_g_race.c */,
 				CEAD8F8C2F8D76260087A850 /* check_http.c */,
+				CEAD8FA32F8D8DB70087A850 /* check_manifest.c */,
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
+				02233F4B105F40BD8A258E69 /* check_material.c */,
 				CE12D6D31C5C58C300CD0B13 /* check_mem.c */,
 				CE12D6D51C5C58C300CD0B13 /* check_r_media.c */,
 				CE948B0F223564E900D961FA /* check_shared.c */,
 				CE12D6D71C5C58C300CD0B13 /* check_thread.c */,
 				CE9CFC9C23EB3BF50009DA65 /* check_vector.c */,
-				CE12D6DC1C5C58C300CD0B13 /* tests.c */,
+				CEE3A0EF21EE2A5E0070FD3E /* check_winding.c */,
 				CE12D6DD1C5C58C300CD0B13 /* tests.h */,
+				CE12D6DC1C5C58C300CD0B13 /* tests.c */,
 				CE12D6DA1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = tests;
@@ -4392,11 +4392,11 @@
 				CEA400482F9900010087B100 /* md32obj.py */,
 				CEA400452F9900010087B100 /* mdl2obj.py */,
 				CEA4004A2F9900010087B100 /* objfu.py */,
+				CEA4005A2F9900010087B100 /* pyproject.toml */,
+				CEA400592F9900010087B100 /* README.md */,
 				CEA4004C2F9900010087B100 /* skyfu.py */,
 				CEA400432F9900010087B100 /* unpak.py */,
 				CEA716EC2FA796690099B469 /* Makefile.am */,
-				CEA4005A2F9900010087B100 /* pyproject.toml */,
-				CEA400592F9900010087B100 /* README.md */,
 			);
 			path = tools;
 			sourceTree = "<group>";
@@ -4404,59 +4404,59 @@
 		CE12D6E51C5C58C300CD0B13 /* quemap */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D6E61C5C58C300CD0B13 /* brush.c */,
 				CE42657521C3EE3B00F768DD /* brush.h */,
-				CE12D6E71C5C58C300CD0B13 /* bsp.c */,
+				CE12D6E61C5C58C300CD0B13 /* brush.c */,
 				CE12D6E81C5C58C300CD0B13 /* bsp.h */,
-				CE12D6E91C5C58C300CD0B13 /* csg.c */,
+				CE12D6E71C5C58C300CD0B13 /* bsp.c */,
 				CE42657621C3EF0500F768DD /* csg.h */,
-				798D1D350CCC161F92103924 /* drawelements.c */,
+				CE12D6E91C5C58C300CD0B13 /* csg.c */,
 				E642B6640D82AE6F5A36526A /* drawelements.h */,
-				63028DABFA92B00587C5A881 /* drawface.c */,
+				798D1D350CCC161F92103924 /* drawelements.c */,
 				EDF1F957220B1D1A54279F71 /* drawface.h */,
-				CE34098F21C2D52500989FC9 /* entity.c */,
+				63028DABFA92B00587C5A881 /* drawface.c */,
 				CE34098E21C2D52500989FC9 /* entity.h */,
-				CE12D6EA1C5C58C300CD0B13 /* face.c */,
+				CE34098F21C2D52500989FC9 /* entity.c */,
 				CE42657421C3EDB400F768DD /* face.h */,
-				CE12D6EC1C5C58C300CD0B13 /* leakfile.c */,
+				CE12D6EA1C5C58C300CD0B13 /* face.c */,
 				CEBCE0C521CFC6CE00976E76 /* leakfile.h */,
-				CEBDB0C5214A02B500A7AC3D /* light.c */,
+				CE12D6EC1C5C58C300CD0B13 /* leakfile.c */,
 				CEBDB0C4214A02B400A7AC3D /* light.h */,
+				CEBDB0C5214A02B500A7AC3D /* light.c */,
 				CE12D6EE1C5C58C300CD0B13 /* main.c */,
-				CE12D6F11C5C58C300CD0B13 /* map.c */,
+				DF0B9374573E39DECA0D8E4C /* manifest.h */,
+				57941D4E858E897A2E3083ED /* manifest.c */,
 				CE42657321C3CD7D00F768DD /* map.h */,
-				CECA8CAE1E50B5F1005E97E8 /* material.c */,
+				CE12D6F11C5C58C300CD0B13 /* map.c */,
 				CECA8CAF1E50B5F1005E97E8 /* material.h */,
-				CE5ABAE42F6CA9AD00D05D09 /* patch.c */,
+				CECA8CAE1E50B5F1005E97E8 /* material.c */,
 				CE5ABAE32F6CA9AD00D05D09 /* patch.h */,
+				CE5ABAE42F6CA9AD00D05D09 /* patch.c */,
 				CEB3038D2247A59F000FCB07 /* points.h */,
-				CE12D6F51C5C58C300CD0B13 /* polylib.c */,
 				CE12D6F61C5C58C300CD0B13 /* polylib.h */,
-				CE12D6F71C5C58C300CD0B13 /* portal.c */,
+				CE12D6F51C5C58C300CD0B13 /* polylib.c */,
 				CE42657721C3EF7500F768DD /* portal.h */,
-				CE12D6FA1C5C58C300CD0B13 /* qbsp.c */,
+				CE12D6F71C5C58C300CD0B13 /* portal.c */,
 				CE12D6FB1C5C58C300CD0B13 /* qbsp.h */,
-				CE12D6FC1C5C58C300CD0B13 /* qlight.c */,
+				CE12D6FA1C5C58C300CD0B13 /* qbsp.c */,
 				CE12D6FD1C5C58C300CD0B13 /* qlight.h */,
-				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
+				CE12D6FC1C5C58C300CD0B13 /* qlight.c */,
 				CE12D6FF1C5C58C300CD0B13 /* quemap.h */,
 				CE92B3AA1D2FF77800E9153A /* quemap.ico */,
-				57941D4E858E897A2E3083ED /* manifest.c */,
-				DF0B9374573E39DECA0D8E4C /* manifest.h */,
-				CE12D7021C5C58C300CD0B13 /* qzip.c */,
+				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
 				CE6FF29C1E9E6FBA00F3C160 /* qzip.h */,
-				CE12D7051C5C58C300CD0B13 /* texture.c */,
+				CE12D7021C5C58C300CD0B13 /* qzip.c */,
 				CEBCE0C721CFDD1600976E76 /* texture.h */,
-				CE91924C2055731E007AC8FF /* tjunction.c */,
+				CE12D7051C5C58C300CD0B13 /* texture.c */,
 				CE2E374421CABB8C00DB4648 /* tjunction.h */,
-				CE12D7071C5C58C300CD0B13 /* tree.c */,
+				CE91924C2055731E007AC8FF /* tjunction.c */,
 				CE2E374321CAB82800DB4648 /* tree.h */,
-				CEB112AF22544B3900CE65F6 /* voxel.c */,
+				CE12D7071C5C58C300CD0B13 /* tree.c */,
 				CEB112AE22544B3800CE65F6 /* voxel.h */,
-				CE12D7061C5C58C300CD0B13 /* work.c */,
+				CEB112AF22544B3900CE65F6 /* voxel.c */,
 				CEBCE0C621CFD43500976E76 /* work.h */,
-				CE12D7081C5C58C300CD0B13 /* writebsp.c */,
+				CE12D7061C5C58C300CD0B13 /* work.c */,
 				CE2E374621CAC19A00DB4648 /* writebsp.h */,
+				CE12D7081C5C58C300CD0B13 /* writebsp.c */,
 				CE12D6EF1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = quemap;
@@ -4465,8 +4465,8 @@
 		CE12D7291C5C58D800CD0B13 /* apple */ = {
 			isa = PBXGroup;
 			children = (
-				CEAAA50C25C6E75000EE81B3 /* Quetoo.app */,
 				CE12D72B1C5C58D800CD0B13 /* Makefile */,
+				CEAAA50C25C6E75000EE81B3 /* Quetoo.app */,
 			);
 			path = apple;
 			sourceTree = "<group>";
@@ -4476,47 +4476,47 @@
 			children = (
 				CEC0FF0020260103000001D4 /* cgame.so */,
 				CE05B3F030224900C0DE0930 /* cgame.so */,
-				D2A5C1000000000000000061 /* cgame-race.so */,
-				CEC0FF0020260103000000EA /* game-ctf.so */,
-				CE12D7351C5C5B9300CD0B13 /* quetoo */,
-				CE12D7CD1C5C5D5C00CD0B13 /* game-default.so */,
 				CE12D7EB1C5C5DF900CD0B13 /* cgame-default.so */,
-				CE12D8111C5C5EF000CD0B13 /* libminizip.a */,
-				CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */,
-				CE80FD871C5E3B6F00A21A51 /* quemap */,
-				CE80FDD51C5E3D4E00A21A51 /* libshared.a */,
-				CE80FDE31C5E3E1100A21A51 /* libcommon.a */,
-				CE80FE381C5E421900A21A51 /* libcollision.a */,
-				CE80FE661C5E431000A21A51 /* libnet.a */,
+				D2A5C1000000000000000061 /* cgame-race.so */,
+				CE354EFE22075132008AE0C2 /* check_atlas */,
+				CE9A67152D2589020068D720 /* check_box */,
+				CE4DCF9F256F0DAD00FECAFC /* check_cm_test */,
+				CE51FBAF21481DD300ABE14F /* check_cmd */,
+				CEB384EC29A3A73B006DEA13 /* check_color */,
+				CE51FBC421481F2500ABE14F /* check_cvar */,
+				CEE3A10121EE2B3F0070FD3E /* check_entity */,
+				CE51FBDF21481FC100ABE14F /* check_filesystem */,
+				D9A5C10000000000000000B1 /* check_g_race */,
+				CEAD8F9D2F8D765F0087A850 /* check_http */,
+				CEAD8FB42F8D8DE30087A850 /* check_manifest */,
+				CE51FBF72148207700ABE14F /* check_master */,
+				39EBD366CBE94F4CACE5CD03 /* check_material */,
+				CE052A6E214831FE003446C9 /* check_mem */,
+				CE51FB8A214819B000ABE14F /* check_r_media */,
+				CE948B222235652600D961FA /* check_shared */,
+				CE052A8421483255003446C9 /* check_thread */,
+				CE9CFCAF23EB3D020009DA65 /* check_vector */,
+				CEA509052EA5D20A00F27205 /* check_winding */,
+				CEC0FF0020260103000000EA /* game-ctf.so */,
+				CE12D7CD1C5C5D5C00CD0B13 /* game-default.so */,
+				CE05B2D53022486E0012862B /* game-lithium.so */,
+				D2A5C100000000000000000F /* game-race.so */,
 				CE80FEE41C5E45EC00A21A51 /* libclient.a */,
 				CE80FF6A1C5E494E00A21A51 /* libclient-null.a */,
-				CE80FF7F1C5E49C400A21A51 /* libserver.a */,
-				CEA029F41C5E558100341079 /* quetoo-master */,
 				CED438AD1D9D34450052BAFA /* libclient-renderer.a */,
 				CED4393B1D9D344E0052BAFA /* libclient-sound.a */,
 				CE5CDC321D9F51580034757D /* libclient-ui.a */,
-				CE51FB8A214819B000ABE14F /* check_r_media */,
-				CE51FBAF21481DD300ABE14F /* check_cmd */,
-				CE51FBC421481F2500ABE14F /* check_cvar */,
-				CE51FBDF21481FC100ABE14F /* check_filesystem */,
-				CE51FBF72148207700ABE14F /* check_master */,
-				CE052A6E214831FE003446C9 /* check_mem */,
-				CE052A8421483255003446C9 /* check_thread */,
-				CEE3A10121EE2B3F0070FD3E /* check_entity */,
-				CE354EFE22075132008AE0C2 /* check_atlas */,
-				D9A5C10000000000000000B1 /* check_g_race */,
-				CE948B222235652600D961FA /* check_shared */,
-				CE9CFCAF23EB3D020009DA65 /* check_vector */,
-				CE4DCF9F256F0DAD00FECAFC /* check_cm_test */,
+				CE80FE381C5E421900A21A51 /* libcollision.a */,
+				CE80FDE31C5E3E1100A21A51 /* libcommon.a */,
 				CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */,
-				CEB384EC29A3A73B006DEA13 /* check_color */,
-				CE9A67152D2589020068D720 /* check_box */,
-				CEA509052EA5D20A00F27205 /* check_winding */,
-				CEAD8F9D2F8D765F0087A850 /* check_http */,
-				CEAD8FB42F8D8DE30087A850 /* check_manifest */,
-				39EBD366CBE94F4CACE5CD03 /* check_material */,
-				CE05B2D53022486E0012862B /* game-lithium.so */,
-				D2A5C100000000000000000F /* game-race.so */,
+				CE12D8111C5C5EF000CD0B13 /* libminizip.a */,
+				CE80FE661C5E431000A21A51 /* libnet.a */,
+				CE80FF7F1C5E49C400A21A51 /* libserver.a */,
+				CE80FDD51C5E3D4E00A21A51 /* libshared.a */,
+				CE80FD871C5E3B6F00A21A51 /* quemap */,
+				CE12D7351C5C5B9300CD0B13 /* quetoo */,
+				CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */,
+				CEA029F41C5E558100341079 /* quetoo-master */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4533,17 +4533,17 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
+				CE12D8171C5C614600CD0B13 /* GLUT.framework */,
+				CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */,
+				CEF601BA2FE60508005C680C /* Objectively.framework */,
 				CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */,
+				CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */,
+				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
 				CE1643492FF5A12100863996 /* SDL3.xcframework */,
 				CEF601C82FE711C9005C680C /* SDL3.xcframework */,
 				CEF601C42FE711B7005C680C /* SDL3_image.xcframework */,
 				CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */,
-				CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */,
-				CEF601BA2FE60508005C680C /* Objectively.framework */,
-				CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */,
-				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
-				CE12D8171C5C614600CD0B13 /* GLUT.framework */,
-				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -4551,18 +4551,18 @@
 		CE1A28351F75FE70005F62A9 /* controls */ = {
 			isa = PBXGroup;
 			children = (
-				CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */,
 				CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */,
+				CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */,
 				CE7D2C232030A107004BC58E /* ControlsViewController.json */,
-				CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */,
 				CE1A28451F7600AC005F62A9 /* CrosshairPreviewView.h */,
+				CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */,
+				CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */,
 				CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */,
 				CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */,
-				CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */,
 				CE7D2C252030A380004BC58E /* MovementCombatViewController.json */,
+				CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */,
 				CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */,
 				CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */,
-				CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */,
 				CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */,
 			);
 			path = controls;
@@ -4592,13 +4592,13 @@
 			isa = PBXGroup;
 			children = (
 				CE27E0DF27AC1683003D56AC /* backoff.h */,
-				CE27E0DC27AC1683003D56AC /* connection_unix.cpp */,
 				CE27E0D627AC1682003D56AC /* connection.h */,
+				CE27E0DC27AC1683003D56AC /* connection_unix.cpp */,
 				CE27E0E327AC1683003D56AC /* discord_register_osx.m */,
 				CE27E0D827AC1683003D56AC /* discord_rpc.cpp */,
 				CE27E0DB27AC1683003D56AC /* msg_queue.h */,
-				CE27E0D727AC1682003D56AC /* rpc_connection.cpp */,
 				CE27E0E227AC1683003D56AC /* rpc_connection.h */,
+				CE27E0D727AC1682003D56AC /* rpc_connection.cpp */,
 				CE27E0DD27AC1683003D56AC /* serialization.h */,
 				CE27E0E027AC1683003D56AC /* serialization.cpp */,
 				CE27E87327AC9BBA003D56AC /* Makefile.am */,
@@ -4747,14 +4747,19 @@
 				CFA000012F9100000000C001 /* editor */,
 				3F698657FE99AC45EBDFE4C7 /* fonts */,
 				CE7D2C10202F690A004BC58E /* home */,
+				0675B112BA0321E4687BE377 /* hud */,
 				CE5870931F5CE7D2004CAAB2 /* main */,
 				CE58707E1F5CDFE0004CAAB2 /* play */,
 				CE5870861F5CDFE0004CAAB2 /* settings */,
 				CEAA78172775337300EAC853 /* teams */,
-				0675B112BA0321E4687BE377 /* hud */,
 				D1A5B0000000000000000215 /* vote */,
 				CE32529C1F760D3F00512523 /* BindTextView.h */,
 				CE32529B1F760D3F00512523 /* BindTextView.c */,
+				CEAD8FC52F9650560087A850 /* change.wav */,
+				CEAD8FC62F9650560087A850 /* clack.wav */,
+				CEAD8FC72F9650560087A850 /* click.wav */,
+				CE4E07B320264B15000B276C /* common.css */,
+				CEAD8FCB2F9650560087A850 /* conback.png */,
 				CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */,
 				CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */,
 				CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */,
@@ -4767,14 +4772,9 @@
 				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
 				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
 				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
-				CE4E07B320264B15000B276C /* common.css */,
-				CEAD8FCB2F9650560087A850 /* conback.png */,
 				CEAD8FCD2F9650560087A850 /* loading.png */,
 				CEA400012F9800000087B100 /* logo.png */,
 				CEAD8FCF2F9650560087A850 /* progress_bar.png */,
-				CEAD8FC52F9650560087A850 /* change.wav */,
-				CEAD8FC62F9650560087A850 /* clack.wav */,
-				CEAD8FC72F9650560087A850 /* click.wav */,
 			);
 			path = ui;
 			sourceTree = "<group>";
@@ -4812,8 +4812,8 @@
 		CE5870861F5CDFE0004CAAB2 /* settings */ = {
 			isa = PBXGroup;
 			children = (
-				CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */,
 				CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */,
+				CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */,
 				CE7D2C2F20310763004BC58E /* SettingsViewController.json */,
 			);
 			path = settings;
@@ -4843,17 +4843,17 @@
 		CE5CDB931D9F45090034757D /* ui */ = {
 			isa = PBXGroup;
 			children = (
-				7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */,
 				BA1D8B3C499E4542BFE99DD9 /* ConsoleView.h */,
-				9352803A21064843A7D64A86 /* ConsoleViewController.c */,
+				7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */,
 				9330AABBEB8C4107BA2E49D2 /* ConsoleViewController.h */,
+				9352803A21064843A7D64A86 /* ConsoleViewController.c */,
+				CE5CDBAE1D9F45090034757D /* ui.h */,
 				CE4E07E22028B0CB000B276C /* ui_data.h */,
 				CE4E07E32028B0CB000B276C /* ui_data.c */,
 				CE5CDBB11D9F45090034757D /* ui_local.h */,
-				CE5CDBB21D9F45090034757D /* ui_main.c */,
 				CE5CDBB31D9F45090034757D /* ui_main.h */,
+				CE5CDBB21D9F45090034757D /* ui_main.c */,
 				CE5CDBB41D9F45090034757D /* ui_types.h */,
-				CE5CDBAE1D9F45090034757D /* ui.h */,
 				CE5CDBAC1D9F45090034757D /* Makefile.am */,
 			);
 			path = ui;
@@ -4900,9 +4900,9 @@
 		CEA1A0062F9F00000087B100 /* credits */ = {
 			isa = PBXGroup;
 			children = (
-				CEA1A00A2F9F00000087B100 /* CreditsViewController.css */,
-				CEA1A0072F9F00000087B100 /* CreditsViewController.c */,
 				CEA1A0082F9F00000087B100 /* CreditsViewController.h */,
+				CEA1A0072F9F00000087B100 /* CreditsViewController.c */,
+				CEA1A00A2F9F00000087B100 /* CreditsViewController.css */,
 				CEA1A0092F9F00000087B100 /* CreditsViewController.json */,
 			);
 			path = credits;
@@ -4924,15 +4924,15 @@
 		CEAA78172775337300EAC853 /* teams */ = {
 			isa = PBXGroup;
 			children = (
-				CEFF1376277FB721001E1500 /* TeamPlayerView.c */,
 				CEFF1378277FB721001E1500 /* TeamPlayerView.h */,
+				CEFF1376277FB721001E1500 /* TeamPlayerView.c */,
 				CEFF1377277FB721001E1500 /* TeamPlayerView.json */,
+				CEAA77F02775333300EAC853 /* TeamsViewController.h */,
 				CEAA78182775337300EAC853 /* TeamsViewController.c */,
 				CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */,
-				CEAA77F02775333300EAC853 /* TeamsViewController.h */,
 				CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */,
-				CEAA78EB2775388700EAC853 /* TeamView.c */,
 				CEAA78EA2775388700EAC853 /* TeamView.h */,
+				CEAA78EB2775388700EAC853 /* TeamView.c */,
 				CEAA79542775396800EAC853 /* TeamView.json */,
 			);
 			path = teams;
@@ -5173,11 +5173,11 @@
 				D2A5C1000000000000000001 /* bg_item.h */,
 				D2A5C1000000000000000002 /* bg_item.c */,
 				D2A5C1000000000000000003 /* g_module.c */,
+				D8A5C10000000000000000A3 /* g_race.h */,
 				D8A5C10000000000000000A1 /* g_race.c */,
 				D8A5C10000000000000000A2 /* g_race_entity.c */,
 				D8A5C10000000000000000A4 /* g_race_records.c */,
 				D8A5C10000000000000000A5 /* g_race_replay.c */,
-				D8A5C10000000000000000A3 /* g_race.h */,
 				D2A5C1000000000000000004 /* g_types.h */,
 				D2A5C1000000000000000005 /* Makefile.am */,
 			);
@@ -5189,10 +5189,10 @@
 			children = (
 				C023233C4867F860B4702F9D /* ui */,
 				D2A5C1000000000000000056 /* cg_module.c */,
+				D9A5C10000000000000000A3 /* cg_race.h */,
 				D9A5C10000000000000000A1 /* cg_race.c */,
 				D9A5C10000000000000000A2 /* cg_race_hud.c */,
 				D9A5C10000000000000000A4 /* cg_race_score.c */,
-				D9A5C10000000000000000A3 /* cg_race.h */,
 				D2A5C1000000000000000057 /* Makefile.am */,
 			);
 			path = race;
@@ -6611,23 +6611,23 @@
 				CEA029B31C5E545B00341079 /* quetoo-all */,
 				CE354EEF22075132008AE0C2 /* check_atlas */,
 				CE9A670B2D2589020068D720 /* check_box */,
-				CEE3A0F021EE2B3F0070FD3E /* check_entity */,
-				CEAD8FA42F8D8DE30087A850 /* check_manifest */,
-				75D08AE2AF1245A4BCA3DE4B /* check_material */,
-				CEA508F52EA5D20A00F27205 /* check_winding */,
 				CE4DCF8C256F0DAD00FECAFC /* check_cm_test */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEB384DE29A3A73B006DEA13 /* check_color */,
 				CE51FBB321481F2500ABE14F /* check_cvar */,
+				CEE3A0F021EE2B3F0070FD3E /* check_entity */,
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
 				D9A5C10000000000000000B4 /* check_g_race */,
 				CEAD8F8D2F8D765F0087A850 /* check_http */,
+				CEAD8FA42F8D8DE30087A850 /* check_manifest */,
 				CE51FBE42148207700ABE14F /* check_master */,
+				75D08AE2AF1245A4BCA3DE4B /* check_material */,
 				CE052A5B214831FE003446C9 /* check_mem */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
 				CE948B102235652600D961FA /* check_shared */,
 				CE052A7321483255003446C9 /* check_thread */,
 				CE9CFC9E23EB3D020009DA65 /* check_vector */,
+				CEA508F52EA5D20A00F27205 /* check_winding */,
 				CE052A8C2148333C003446C9 /* quetoo-tests */,
 			);
 		};
