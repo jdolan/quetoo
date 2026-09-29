@@ -232,7 +232,7 @@ static void R_DrawMeshEntityMaterialStage(const RenderView *view,
   const RenderMaterial *material = module.material;
 
   RenderMeshMaterialUniforms uniforms = { 0 };
-  R_MaterialUniforms(material, material->cm->surface, &uniforms.material);
+  R_MaterialUniforms(material, material->def->surface, &uniforms.material);
 
   SDL_GPUTexture *texture, *textureNext;
   if (!R_StageUniforms(view, e, NULL, stage, &uniforms.material, &texture, &textureNext)) {
@@ -240,10 +240,10 @@ static void R_DrawMeshEntityMaterialStage(const RenderView *view,
   }
 
   if (stage->flags & STAGE_PULSE) {
-    uniforms.material.drift = R_StageDriftHash(e->id, stage) * 2.f / stage->cm->pulse.hz;
+    uniforms.material.drift = R_StageDriftHash(e->id, stage) * 2.f / stage->def->pulse.hz;
   }
 
-  GraphicsPipeline *pipeline = R_MeshStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
+  GraphicsPipeline *pipeline = R_MeshStagePipeline(stage->def->blend.src, stage->def->blend.dest);
   if (!pipeline) {
     return;
   }
@@ -281,7 +281,7 @@ static void R_DrawMeshEntityShellEffect(const RenderView *view, const RenderEnti
   }
 
   for (const RenderStage *stage = module.material->stages; stage; stage = stage->next) {
-    if (stage->cm->flags & STAGE_SHELL) {
+    if (stage->def->flags & STAGE_SHELL) {
       R_DrawMeshEntityMaterialStage(view, e, face, stage, pass);
       return;
     }
@@ -303,7 +303,7 @@ static void R_DrawMeshEntityShellEffect(const RenderView *view, const RenderEnti
   };
 
   const RenderStage defaultShell = {
-    .cm = &cm,
+    .def = &cm,
     .flags = cm.flags,
     .media = (RenderMedia *) module.shell,
   };
@@ -322,12 +322,12 @@ static void R_DrawMeshEntityMaterialStages(const RenderView *view, const RenderE
     return;
   }
 
-  if (!(material->cm->stageFlags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
+  if (!(material->def->stageFlags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
     return;
   }
 
   for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
-    if (!(stage->cm->flags & STAGE_DRAW)) {
+    if (!(stage->def->flags & STAGE_DRAW)) {
       continue;
     }
     R_DrawMeshEntityMaterialStage(view, e, face, stage, pass);
@@ -353,7 +353,7 @@ static void R_BindMeshEntityFace(const RenderEntity *e, const RenderMeshModel *m
 
   memcpy(&locals.activeDynamicLights, module.activeDynamicLights, sizeof(locals.activeDynamicLights));
 
-  switch (module.material->cm->surface & SURF_MASK_BLEND) {
+  switch (module.material->def->surface & SURF_MASK_BLEND) {
     case SURF_BLEND_33:
       locals.color.w *= .333f;
       break;
@@ -393,12 +393,12 @@ static void R_DrawMeshEntityFace(const RenderView *view,
   }, 1);
 
   RenderMeshMaterialUniforms materialUniforms;
-  R_MaterialUniforms(material, material->cm->surface, &materialUniforms.material);
+  R_MaterialUniforms(material, material->def->surface, &materialUniforms.material);
   memcpy(materialUniforms.tintColors, e->tints, sizeof(materialUniforms.tintColors));
 
   for (size_t i = 0; i < lengthof(materialUniforms.tintColors); i++) {
     if (!e->tints[i].w) {
-      materialUniforms.tintColors[i] = material->cm->tintmapDefaults[i];
+      materialUniforms.tintColors[i] = material->def->tintmapDefaults[i];
     }
   }
   $(pass->commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &materialUniforms.material, sizeof(materialUniforms.material));
@@ -406,7 +406,7 @@ static void R_DrawMeshEntityFace(const RenderView *view,
 
   R_BindMeshEntityFace(e, mesh, face, pass);
 
-  if (!(material->cm->surface & SURF_MATERIAL)) {
+  if (!(material->def->surface & SURF_MATERIAL)) {
 
     const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
 
@@ -480,7 +480,7 @@ static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, Rend
       continue;
     }
 
-    if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+    if ((material->def->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
       continue;
     }
 
@@ -488,7 +488,7 @@ static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, Rend
       continue;
     }
 
-    if (material->cm->surface & SURF_ALPHA_TEST) {
+    if (material->def->surface & SURF_ALPHA_TEST) {
       continue;
     }
 
@@ -507,7 +507,7 @@ static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, Rend
       continue;
     }
 
-    if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+    if ((material->def->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
       continue;
     }
 
@@ -515,7 +515,7 @@ static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, Rend
       continue;
     }
 
-    if (!(material->cm->surface & SURF_ALPHA_TEST)) {
+    if (!(material->def->surface & SURF_ALPHA_TEST)) {
       continue;
     }
 
@@ -536,7 +536,7 @@ static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, Rend
         continue;
       }
 
-      if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+      if ((material->def->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
         continue;
       }
 
@@ -557,7 +557,7 @@ static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, Rend
       continue;
     }
 
-    if (!((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND))) {
+    if (!((material->def->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND))) {
       continue;
     }
 

@@ -196,7 +196,7 @@ BspFace *EmitFace(const Face *face) {
 
   if (w->numPoints < 3) {
     const MapMaterial *mat = &materials[face->brushSide->material];
-    Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->cm->name, vtos(Winding_Center(face->w)));
+    Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->def->name, vtos(Winding_Center(face->w)));
     Winding_Free(w);
     return NULL;
   }
@@ -206,7 +206,7 @@ BspFace *EmitFace(const Face *face) {
 
   if (numElements != (int32_t) lengthof(elements)) {
     const MapMaterial *mat = &materials[face->brushSide->material];
-    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(Winding_Center(w)));
+    Com_Warn("Face %s @ %s has degenerate winding\n", mat->def->name, vtos(Winding_Center(w)));
   }
 
   if (numElements == 0) {

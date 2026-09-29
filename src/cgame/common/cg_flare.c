@@ -143,8 +143,8 @@ CGameFlare *Cg_LoadFlare(const RenderBspFace *face, const RenderStage *stage) {
 
   flare->bounds = Box3_Expand(flare->bounds, Box3_Distance(flare->bounds) * .1f);
 
-  if (stage->cm->flags & STAGE_COLOR) {
-    flare->in.color = stage->cm->color.vec3;
+  if (stage->def->flags & STAGE_COLOR) {
+    flare->in.color = stage->def->color.vec3;
   } else {
     flare->in.color = color_white.vec3;
   }
@@ -199,8 +199,8 @@ static void Cg_MergeFlares(void) {
     a->in.origin = Box3_Center(a->bounds);
     a->in.size = Box3_Distance(a->bounds);
 
-    if (a->stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-      a->in.size *= (a->stage->cm->scale.s ? a->stage->cm->scale.s : a->stage->cm->scale.t);
+    if (a->stage->def->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
+      a->in.size *= (a->stage->def->scale.s ? a->stage->def->scale.s : a->stage->def->scale.t);
     }
 
     a->out = a->in;
@@ -224,11 +224,11 @@ void Cg_LoadFlares(void) {
     }
 
     const RenderMaterial *material = face->brushSide->material;
-    if (material->cm->stageFlags & STAGE_FLARE) {
+    if (material->def->stageFlags & STAGE_FLARE) {
 
       const RenderStage *stage = material->stages;
       while (stage) {
-        if (stage->cm->flags & STAGE_FLARE) {
+        if (stage->def->flags & STAGE_FLARE) {
           break;
         }
         stage = stage->next;

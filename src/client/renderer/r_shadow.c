@@ -243,7 +243,7 @@ static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const Ren
       .sampler = module.repeatSampler->sampler,
     }, 1);
 
-    const float alphaTestValue = draw->material->cm->alphaTest * r_alphaTest->value;
+    const float alphaTestValue = draw->material->def->alphaTest * r_alphaTest->value;
     $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alphaTestValue, sizeof(alphaTestValue));
   }
 
@@ -390,13 +390,13 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
       continue;
     }
 
-    if (material->cm->surface & SURF_MASK_BLEND) {
+    if (material->def->surface & SURF_MASK_BLEND) {
       continue;
     }
 
     GraphicsPipeline *pipeline = module.meshOpaquePipeline;
 
-    if (material->cm->surface & SURF_ALPHA_TEST) {
+    if (material->def->surface & SURF_ALPHA_TEST) {
       pipeline = module.meshAlphaTestPipeline;
 
       $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
@@ -404,7 +404,7 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
         .sampler = module.repeatSampler->sampler,
       }, 1);
 
-      const float alphaTestValue = material->cm->alphaTest * r_alphaTest->value;
+      const float alphaTestValue = material->def->alphaTest * r_alphaTest->value;
       $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alphaTestValue, sizeof(alphaTestValue));
     }
 

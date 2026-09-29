@@ -421,14 +421,14 @@ void MakeBrushWindings(Brush *brush) {
 static void SetMaterialFlags(BrushSide *side) {
 
   const MapMaterial *material = &materials[side->material];
-  if (material->cm->contents) {
+  if (material->def->contents) {
     if (side->contents == 0) {
-      side->contents = material->cm->contents;
+      side->contents = material->def->contents;
     }
   }
-  if (material->cm->surface) {
+  if (material->def->surface) {
     if (side->surface == 0) {
-      side->surface = material->cm->surface;
+      side->surface = material->def->surface;
     }
   }
 

@@ -162,7 +162,7 @@ static void R_DrawSkyDrawElementsMaterialStage(const RenderView *view,
     return;
   }
 
-  GraphicsPipeline *pipeline = R_SkyStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
+  GraphicsPipeline *pipeline = R_SkyStagePipeline(stage->def->blend.src, stage->def->blend.dest);
   if (!pipeline) {
     return;
   }
@@ -190,13 +190,13 @@ static void R_DrawSkyDrawElementsMaterialStages(const RenderView *view,
                                                 RenderPass *pass) {
 
   const RenderMaterial *material = draw->material;
-  if (!(material->cm->stageFlags & STAGE_DRAW)) {
+  if (!(material->def->stageFlags & STAGE_DRAW)) {
     return;
   }
 
   for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
 
-    if (!(stage->cm->flags & STAGE_DRAW)) {
+    if (!(stage->def->flags & STAGE_DRAW)) {
       continue;
     }
 

@@ -182,7 +182,7 @@ static void Cg_LoadEditorMaterialLights(void) {
 
   cgameEditor.materials = cgi.Malloc(sizeof(Material *) * numMaterials, MEM_TAG_CGAME_LEVEL);
   for (int32_t i = 0; i < bsp->numMaterials; i++) {
-    cgameEditor.materials[i] = bsp->materials[i]->cm;
+    cgameEditor.materials[i] = bsp->materials[i]->def;
   }
 
   cgameEditor.materialLightColors = cgi.Malloc(sizeof(Vec3) * numMaterials, MEM_TAG_CGAME_LEVEL);
@@ -246,14 +246,14 @@ void Cg_UpdateEditorMaterialLights(const Material *material) {
  */
 void Cg_ReloadEditorMaterialStages(RenderMaterial *material) {
 
-  material->cm->dirty = true;
+  material->def->dirty = true;
 
   cgi.ReloadMaterialStages(material);
 
   Cg_FreeFlares();
   Cg_LoadFlares();
 
-  Cg_UpdateEditorMaterialLights(material->cm);
+  Cg_UpdateEditorMaterialLights(material->def);
 }
 
 /**
@@ -697,7 +697,7 @@ CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
           out.trace = (CollisionTrace) {
             .fraction = frac,
             .end = Vec3_Mix(start, end, frac),
-            .material = mesh->faces[j].material->cm,
+            .material = mesh->faces[j].material->def,
           };
           break;
         }

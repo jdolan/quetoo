@@ -332,7 +332,7 @@ static void R_DrawBspDrawElementsMaterialStage(const RenderView *view,
     return;
   }
 
-  GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->cm->blend.src, stage->cm->blend.dest, depthWrite);
+  GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->def->blend.src, stage->def->blend.dest, depthWrite);
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
@@ -358,7 +358,7 @@ static void R_DrawBspDrawElementsMaterialStages(const RenderView *view,
                                                 RenderPass *pass) {
 
   const RenderMaterial *material = draw->material;
-  if (!(material->cm->stageFlags & STAGE_DRAW)) {
+  if (!(material->def->stageFlags & STAGE_DRAW)) {
     return;
   }
 
@@ -376,7 +376,7 @@ static void R_DrawBspDrawElementsMaterialStages(const RenderView *view,
 
   for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
 
-    if (!(stage->cm->flags & STAGE_DRAW)) {
+    if (!(stage->def->flags & STAGE_DRAW)) {
       continue;
     }
 

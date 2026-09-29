@@ -60,7 +60,7 @@ void EmitMaterials(void) {
   for (int32_t i = 0; i < numMaterials; i++, m++) {
     BspMaterial *out = &bspFile.materials[bspFile.numMaterials];
 
-    const char *name = m->cm->name;
+    const char *name = m->def->name;
     if (!q_strncmp(name, "textures/", 9)) {
       name += q_strlen("textures/");
     }
@@ -480,7 +480,7 @@ void EndModel(BspModel *mod) {
   for (int32_t i = 0; i < mod->numFaces; i++, face++) {
     if (face->block == -1) {
       Com_Warn("Model %d face %d (%s) was not assigned to a CONTENTS_BLOCK node\n",
-               mod->entity, i, materials[FaceMaterial(face)].cm->name);
+               mod->entity, i, materials[FaceMaterial(face)].def->name);
     }
   }
 

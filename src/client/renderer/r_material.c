@@ -39,7 +39,7 @@ static void R_RegisterMaterial(RenderMedia *self) {
  */
 static void R_FreeMaterial(RenderMedia *self) {
 
-  Material_Free(((RenderMaterial *) self)->cm);
+  Material_Free(((RenderMaterial *) self)->def);
 }
 
 /**
@@ -47,21 +47,21 @@ static void R_FreeMaterial(RenderMedia *self) {
  */
 static RenderAnimation *R_LoadStageAnimation(const RenderMaterial *material, RenderStage *stage, int32_t index) {
 
-  const RenderImage *images[stage->cm->animation.numFrames];
+  const RenderImage *images[stage->def->animation.numFrames];
   const RenderImage **out = images;
 
-  for (int32_t i = 0; i < stage->cm->animation.numFrames; i++, out++) {
+  for (int32_t i = 0; i < stage->def->animation.numFrames; i++, out++) {
 
-    Asset *frame = &stage->cm->animation.frames[i];
+    Asset *frame = &stage->def->animation.frames[i];
     if (*frame->path) {
       *out = R_LoadImage(frame->path, IMG_MATERIAL);
     } else {
       *out = R_LoadImage("textures/common/notex", IMG_MATERIAL);
-      Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
+      Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->def->asset.name);
     }
   }
 
-  return R_CreateAnimation(va("%s_%d_animation", material->media.name, index), stage->cm->animation.numFrames, images);
+  return R_CreateAnimation(va("%s_%d_animation", material->media.name, index), stage->def->animation.numFrames, images);
 }
 
 /**
@@ -217,11 +217,11 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 static void R_ResolveMaterialStages(RenderMaterial *material) {
   int32_t numStages = 0;
 
-  const Material *cm = material->cm;
+  const Material *cm = material->def;
   for (const MaterialStage *cs = cm->stages; cs; cs = cs->next, numStages++) {
 
     RenderStage *stage = (RenderStage *) Mem_LinkMalloc(sizeof(RenderStage), material);
-    stage->cm = cs;
+    stage->def = cs;
     stage->flags = cs->flags;
 
     if (stage->flags & STAGE_MASK_SUBVIEW) {
@@ -234,11 +234,11 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
       }
     }
 
-    if (*stage->cm->asset.path) {
-      if (stage->cm->flags & STAGE_ANIMATION) {
+    if (*stage->def->asset.path) {
+      if (stage->def->flags & STAGE_ANIMATION) {
         stage->media = (RenderMedia *) R_LoadStageAnimation(material, stage, numStages);
       } else {
-        stage->media = (RenderMedia *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
+        stage->media = (RenderMedia *) R_LoadImage(stage->def->asset.path, IMG_MATERIAL);
       }
 
       assert(stage->media);
@@ -249,7 +249,7 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
     R_AppendStage(material, stage);
   }
 
-  Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->cm->name, numStages);
+  Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->def->name, numStages);
 }
 
 /**
@@ -261,7 +261,7 @@ static RenderMaterial *R_ResolveMaterial(Material *cm) {
   Material_Path(cm->name, key, sizeof(key), cm->context);
 
   RenderMaterial *material = (RenderMaterial *) R_AllocMedia(key, sizeof(RenderMaterial), R_MEDIA_MATERIAL);
-  material->cm = cm;
+  material->def = cm;
 
   material->media.Register = R_RegisterMaterial;
   material->media.Free = R_FreeMaterial;
@@ -456,7 +456,7 @@ void R_ReloadMaterialStages(RenderMaterial *material) {
  */
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out) {
 
-  const Material *cm = material->cm;
+  const Material *cm = material->def;
 
   memset(out, 0, sizeof(*out));
 
@@ -488,7 +488,7 @@ float R_StageDriftHash(const void *a, const void *b) {
 bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const RenderBspDrawElements *draw, const RenderStage *stage,
                      RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **textureNext) {
 
-  const MaterialStage *cm = stage->cm;
+  const MaterialStage *cm = stage->def;
 
   out->lerp = 0.f;
 
@@ -621,7 +621,7 @@ RenderMaterial *R_LoadMaterial(const char *name, AssetContext context) {
     material = R_ResolveMaterial(cm);
   }
 
-  assert(material->cm);
+  assert(material->def);
 
   return material;
 }
@@ -633,9 +633,9 @@ static void R_SaveMaterials_enumerator(const RenderMedia *media, void *data) {
 
   if (media->type == R_MEDIA_MATERIAL) {
     RenderMaterial *material = (RenderMaterial *) media;
-    if (material->cm->dirty) {
-      if (Material_Save(material->cm)) {
-        material->cm->dirty = false;
+    if (material->def->dirty) {
+      if (Material_Save(material->def)) {
+        material->def->dirty = false;
         (*(int32_t *) data)++;
       }
     }

@@ -170,7 +170,7 @@ static void Cg_AddBspLights(void) {
 
     float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
-    const MaterialStage *stage = l->material ? cgi.MaterialLightStage(l->material->cm) : NULL;
+    const MaterialStage *stage = l->material ? cgi.MaterialLightStage(l->material->def) : NULL;
     if (stage) {
       intensity = Cg_AnimateStageLight(stage);
     }

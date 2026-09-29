@@ -261,7 +261,7 @@ static void R_LoadBspDrawElements(RenderBspModel *bsp) {
     out->elements = (void *) (in->firstElement * sizeof(uint32_t));
     out->numElements = in->numElements;
 
-    if (out->material && out->material->cm->stageFlags & (STAGE_STRETCH | STAGE_ROTATE)) {
+    if (out->material && out->material->def->stageFlags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
       Vec2 stMins = Vec2_Mins();
       Vec2 stMaxs = Vec2_Maxs();

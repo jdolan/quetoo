@@ -209,12 +209,12 @@ typedef struct {
 typedef struct RenderStage {
 
   /**
-   * @brief The backing collision material stage.
+   * @brief The material stage definition.
    */
-  const MaterialStage *cm;
+  const MaterialStage *def;
 
   /**
-   * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
+   * @brief The stage flags, which are the stage definition's plus what the renderer resolves.
    * @details A `portal` or `reflect` stage on a surface that shows no such subview loses that
    *   flag here, so that it draws nothing rather than sampling a layer that is not its own.
    */
@@ -242,9 +242,9 @@ typedef struct {
   RenderMedia media;
 
   /**
-   * @brief The collision material definition.
+   * @brief The material definition.
    */
-  Material *cm;
+  Material *def;
 
   /**
    * @brief The layered texture containing the diffusemap, normalmap and specularmap.

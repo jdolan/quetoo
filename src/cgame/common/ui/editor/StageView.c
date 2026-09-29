@@ -227,7 +227,7 @@ static const char *summary(const StageView *this) {
   static char buf[MAX_STRING_CHARS];
 
   int32_t index = 1;
-  for (const MaterialStage *s = this->material->cm->stages; s && s != this->stage; s = s->next) {
+  for (const MaterialStage *s = this->material->def->stages; s && s != this->stage; s = s->next) {
     index++;
   }
 
@@ -294,7 +294,7 @@ static void updateStage(StageView *this) {
 
   Vec3 lightColor = stage->light.color;
   if ((stage->flags & STAGE_LIGHT) && Vec3_Equal(lightColor, Vec3_Zero())) {
-    lightColor = cgi.MaterialLightColor(this->material->cm, stage);
+    lightColor = cgi.MaterialLightColor(this->material->def, stage);
   }
 
   for (size_t i = 0; i < lengthof(stageParams); i++) {
@@ -353,7 +353,7 @@ static void didSelectBlend(Select *select, Option *option) {
   *factor = blend;
   this->stage->flags |= STAGE_BLEND;
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -406,7 +406,7 @@ static void didEndEditingStageTexture(TextView *textView) {
     this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_MASK_SUBVIEW);
   }
 
-  if (!cgi.ResolveMaterialStage(this->material->cm, this->stage)) {
+  if (!cgi.ResolveMaterialStage(this->material->def, this->stage)) {
     Cg_Warn("Failed to resolve stage asset %s\n", name);
   }
 
@@ -489,7 +489,7 @@ static Array *completionsForStageTexture(TextView *textView, const char *prefix)
 
   if (this->stage && (this->stage->flags & STAGE_FLARE)) {
     assets.dir = "sprites/";
-  } else if (this->material->cm->context != ASSET_CONTEXT_TEXTURES) {
+  } else if (this->material->def->context != ASSET_CONTEXT_TEXTURES) {
     return NULL;
   }
 
@@ -560,7 +560,7 @@ static void didToggleStageFlag(Checkbox *checkbox) {
 
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags |= STAGE_TEXTURE;
-      q_strlcpy(this->stage->asset.name, this->material->cm->basename, sizeof(this->stage->asset.name));
+      q_strlcpy(this->stage->asset.name, this->material->def->basename, sizeof(this->stage->asset.name));
     }
 
     if (flag->flag == STAGE_ANIMATION) {
@@ -576,7 +576,7 @@ static void didToggleStageFlag(Checkbox *checkbox) {
     }
   }
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -606,7 +606,7 @@ static void didEndEditingStageAxis(TextView *textView) {
   *value = parsed;
   resolveStageAxes(this->stage, axis->flag);
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -650,7 +650,7 @@ static void didEndEditingStageField(TextView *textView) {
     }
   }
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -672,7 +672,7 @@ static void didSetStageValue(Slider *slider, double value) {
     if (!q_strcmp(identifier, stageParams[i].identifier)) {
 
       if (isLightColor(stageParams[i].offset) && Vec3_Equal(this->stage->light.color, Vec3_Zero())) {
-        this->stage->light.color = cgi.MaterialLightColor(this->material->cm, this->stage);
+        this->stage->light.color = cgi.MaterialLightColor(this->material->def, this->stage);
       }
 
       float *param = stageFloat(this->stage, stageParams[i].offset);
@@ -681,10 +681,10 @@ static void didSetStageValue(Slider *slider, double value) {
       }
 
       *param = (float) value;
-      this->material->cm->dirty = true;
+      this->material->def->dirty = true;
 
       if (stageParams[i].placement) {
-        Cg_UpdateEditorMaterialLights(this->material->cm);
+        Cg_UpdateEditorMaterialLights(this->material->def);
       }
 
       return;

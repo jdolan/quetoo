@@ -35,7 +35,7 @@ int32_t LoadMaterial(const char *name) {
 
   MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
-    if (!q_strcmp(name, m->cm->name)) {
+    if (!q_strcmp(name, m->def->name)) {
       return i;
     }
   }
@@ -47,11 +47,11 @@ int32_t LoadMaterial(const char *name) {
   m = materials + numMaterials;
   numMaterials++;
 
-  m->cm = Material_Load(name, ASSET_CONTEXT_TEXTURES);
+  m->def = Material_Load(name, ASSET_CONTEXT_TEXTURES);
 
-  m->diffusemap = Img_LoadSurface(m->cm->diffusemap.path);
+  m->diffusemap = Img_LoadSurface(m->def->diffusemap.path);
   if (m->diffusemap) {
-    Com_Verbose("Loaded %s\n", m->cm->diffusemap.path);
+    Com_Verbose("Loaded %s\n", m->def->diffusemap.path);
   } else {
     Com_Warn("Failed to resolve %s\n", name);
     m->diffusemap = Img_LoadSurface("textures/common/notex");
@@ -67,7 +67,7 @@ void FreeMaterials(void) {
 
   MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
-    Material_Free(m->cm);
+    Material_Free(m->def);
     SDL_DestroySurface(m->diffusemap);
   }
 

@@ -558,7 +558,7 @@ static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, co
 
     if (!onNode) {
       Com_Verbose("Brush side %s @ %s is not on a node plane\n",
-                  materials[side->original->material].cm->name, vtos(Winding_Center(w)));
+                  materials[side->original->material].def->name, vtos(Winding_Center(w)));
       onNode = node->parent;
     }
 

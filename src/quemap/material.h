@@ -31,9 +31,9 @@
 typedef struct {
 
   /**
-   * @brief The collision material backing this material.
+   * @brief The material definition.
    */
-  Material *cm;
+  Material *def;
 
   /**
    * @brief The diffusemap texture.
