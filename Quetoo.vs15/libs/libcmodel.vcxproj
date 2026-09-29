@@ -20,22 +20,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\collision\cm_bsp.h" />
-    <ClInclude Include="..\..\src\collision\cm_entity.h" />
+    <ClInclude Include="..\..\src\collision\entity.h" />
     <ClInclude Include="..\..\src\collision\cm_local.h" />
     <ClInclude Include="..\..\src\collision\cm_model.h" />
     <ClInclude Include="..\..\src\collision\cm_test.h" />
     <ClInclude Include="..\..\src\collision\cm_trace.h" />
     <ClInclude Include="..\..\src\collision\cm_types.h" />
-    <ClInclude Include="..\..\src\collision\cm_voxel.h" />
+    <ClInclude Include="..\..\src\collision\voxel.h" />
     <ClInclude Include="..\..\src\collision\cm_light.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\collision\cm_bsp.c" />
-    <ClCompile Include="..\..\src\collision\cm_entity.c" />
+    <ClCompile Include="..\..\src\collision\entity.c" />
     <ClCompile Include="..\..\src\collision\cm_model.c" />
     <ClCompile Include="..\..\src\collision\cm_test.c" />
     <ClCompile Include="..\..\src\collision\cm_trace.c" />
-    <ClCompile Include="..\..\src\collision\cm_voxel.c" />
+    <ClCompile Include="..\..\src\collision\voxel.c" />
     <ClCompile Include="..\..\src\collision\cm_light.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

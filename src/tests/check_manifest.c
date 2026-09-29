@@ -234,7 +234,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	Test_Init(argc, argv);
 
-	Suite *suite = suite_create("check_cm_manifest");
+	Suite *suite = suite_create("check_manifest");
 
 	{
 		TCase *tcase = tcase_create("Manifest_Read");

@@ -24,7 +24,7 @@
 #include "common/common.h"
 
 #include "cm_bsp.h"
-#include "cm_entity.h"
+#include "entity.h"
 #include "cm_light.h"
 #include "common/manifest.h"
 #include "common/material.h"

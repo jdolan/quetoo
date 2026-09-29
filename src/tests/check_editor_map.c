@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "collision/cm_entity.h"
+#include "collision/entity.h"
 
 Quetoo quetoo;
 

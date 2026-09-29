@@ -27,10 +27,10 @@
     <ClInclude Include="..\..\src\collision\cm_bsp.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_entity.h">
+    <ClInclude Include="..\..\src\collision\entity.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_voxel.h">
+    <ClInclude Include="..\..\src\collision\voxel.h">
       <Filter>src\collision</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\collision\cm_light.h">
@@ -50,10 +50,10 @@
     <ClCompile Include="..\..\src\collision\cm_bsp.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_entity.c">
+    <ClCompile Include="..\..\src\collision\entity.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_voxel.c">
+    <ClCompile Include="..\..\src\collision\voxel.c">
       <Filter>src\collision</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_light.c">

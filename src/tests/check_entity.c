@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "collision/cm_entity.h"
+#include "collision/entity.h"
 
 Quetoo quetoo;
 
@@ -92,7 +92,7 @@ int32_t main(int32_t argc, char **argv) {
 
   Test_Init(argc, argv);
 
-  Suite *suite = suite_create("check_cm_entity");
+  Suite *suite = suite_create("check_entity");
 
   {
     TCase *tcase = tcase_create("Entity_ToInfoString");

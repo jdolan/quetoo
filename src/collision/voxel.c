@@ -20,7 +20,7 @@
  */
 
 #include "cm_local.h"
-#include "cm_voxel.h"
+#include "voxel.h"
 
 /**
  * @brief Returns a pointer to the decoded voxel for the given world position,

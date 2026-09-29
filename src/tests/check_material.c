@@ -304,7 +304,7 @@ int32_t main(int32_t argc, char **argv) {
 
 	Test_Init(argc, argv);
 
-	TCase *tcase = tcase_create("check_cm_material");
+	TCase *tcase = tcase_create("check_material");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
 	tcase_add_test(tcase, check_Material_Load_light);
@@ -315,7 +315,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, check_Material_Load_light_only_stage);
 	tcase_add_test(tcase, check_Material_AddStage_RemoveStage);
 
-	Suite *suite = suite_create("check_cm_material");
+	Suite *suite = suite_create("check_material");
 	suite_add_tcase(suite, tcase);
 
 	int32_t failed = Test_Run(suite);

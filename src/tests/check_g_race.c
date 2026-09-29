@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-#include "collision/cm_entity.h"
+#include "collision/entity.h"
 #include "game/race/g_race.h"
 
 /**

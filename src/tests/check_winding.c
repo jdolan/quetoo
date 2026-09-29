@@ -756,7 +756,7 @@ int32_t main(int32_t argc, char **argv) {
 
   Test_Init(argc, argv);
 
-  Suite *suite = suite_create("check_cm_polylib");
+  Suite *suite = suite_create("check_winding");
 
   {
     TCase *tcase = tcase_create("Winding_Clip");

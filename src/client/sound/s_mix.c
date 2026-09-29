@@ -20,7 +20,7 @@
  */
 
 #include "s_local.h"
-#include "collision/cm_voxel.h"
+#include "collision/voxel.h"
 
 /**
  * @brief Returns effective gain for non-ambient samples.
