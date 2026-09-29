@@ -180,11 +180,11 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
   cgi.FreeEntity(preset);
 
   if (!q_strcmp(type, "fizz")) {
-    dust->sprite.animation = cgameSpriteFizz01;
+    dust->sprite.animation = cgameMedia.sprites.fizz01;
   } else if (!q_strcmp(type, "flame")) {
-    dust->sprite.atlasImage = cgameSpriteFlame;
+    dust->sprite.atlasImage = cgameMedia.sprites.flame;
   } else if (!q_strcmp(type, "steam")) {
-    dust->sprite.atlasImage = cgameSpriteSteam;
+    dust->sprite.atlasImage = cgameMedia.sprites.steam;
   } else {
     const char *name = cgi.EntityValue(def, "sprite")->nullableString ?: "particle";
     dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
@@ -413,7 +413,7 @@ static void Cg_misc_flame_Init(CGameEntity *self) {
       flame->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
-    flame->sample = cgameSampleFire;
+    flame->sample = cgameMedia.sounds.fire;
   }
 }
 
@@ -432,7 +432,7 @@ static void Cg_misc_flame_Think(CGameEntity *self) {
     const float sat = RandomRangef(.7f, 1.f);
 
     if (!Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteFlame,
+        .atlasImage = cgameMedia.sprites.flame,
         .origin = Vec3_Fmaf(self->origin, r, Vec3_RandomRanges(-s, s, -s, s, -.1f, .5f)),
         .velocity = Vec3_Scale(Vec3_RandomRanges(-r, r, -r, r, 0.f, 24.f), s * s),
         .acceleration.z = 150.f * s,
@@ -449,7 +449,7 @@ static void Cg_misc_flame_Think(CGameEntity *self) {
   // Smoke — rises above the flame column, expanding and drifting upward
   const int32_t numSmoke = (int32_t) Maxf(1.f, flame->radius * flame->density * .15f);
   for (int32_t i = 0; i < numSmoke; i++) {
-    RenderAnimation *anim = (i & 1) ? cgameSpriteSmoke05 : cgameSpriteSmoke04;
+    RenderAnimation *anim = (i & 1) ? cgameMedia.sprites.smoke05 : cgameMedia.sprites.smoke04;
     const Vec3 smokeOrigin = {
       .x = self->origin.x + RandomRangef(-r * .3f, r * .3f),
       .y = self->origin.y + RandomRangef(-r * .3f, r * .3f),
@@ -846,7 +846,7 @@ static void Cg_misc_steam_Init(CGameEntity *self) {
       steam->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
-    steam->sample = cgameSampleSteam;
+    steam->sample = cgameMedia.sounds.steam;
   }
 }
 
@@ -866,7 +866,7 @@ static void Cg_misc_steam_Think(CGameEntity *self) {
 
   for (int32_t i = 0; i < steam->count; i++) {
     if (!Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteSteam,
+      .atlasImage = cgameMedia.sprites.steam,
       .origin = self->origin,
       .velocity = Vec3_Add(steam->velocity, Vec3_RandomRange(-2.f, 2.f)),
       .acceleration = Vec3_Add(Vec3_Scale(Vec3_Up(), 20.f), Vec3_RandomDir()),
@@ -974,11 +974,11 @@ static void Cg_misc_weather_Init(CGameEntity *self) {
     }
   } else {
     if (weather->weather & WEATHER_RAIN) {
-      weather->sample = cgameSampleRain;
+      weather->sample = cgameMedia.sounds.rain;
     } else if (weather->weather & WEATHER_SNOW) {
-      weather->sample = cgameSampleSnow;
+      weather->sample = cgameMedia.sounds.snow;
     } else if (weather->weather & WEATHER_ASH) {
-      weather->sample = cgameSampleAsh;
+      weather->sample = cgameMedia.sounds.ash;
     }
   }
 
@@ -1077,7 +1077,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
   };
 
   if (weather->weather & WEATHER_RAIN) {
-    s.atlasImage = cgameSpriteRain;
+    s.atlasImage = cgameMedia.sprites.rain;
     s.color = MakeVec3(1.f, 1.f, 1.f);
     s.size = 32.f;
     s.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), MakeVec3(0.f, 0.f, 800.f));
@@ -1088,7 +1088,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
     // Suppress splash bursts for catch-up sprites; they should appear already in-flight.
     if (!ageMsec && Randomf() > .8f) {
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteWaterRing,
+        .atlasImage = cgameMedia.sprites.waterRing,
         .lifetime = 300,
         .origin = MakeVec3(pos.x, pos.y, pos.z - height + 2.f),
         .size = 4.f,
@@ -1100,7 +1100,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
       });
     }
   } else if (weather->weather & WEATHER_SNOW) {
-    s.atlasImage = cgameSpriteSnow;
+    s.atlasImage = cgameMedia.sprites.snow;
     s.color = MakeVec3(1.f, 1.f, 1.f);
     s.size = 4.f;
     s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), MakeVec3(0.f, 0.f, 120.f));
@@ -1108,7 +1108,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
     s.lifetime = 1000.f * height / 120.f * RandomRangef(.8f, 1.2f);
   } else if (weather->weather & WEATHER_ASH) {
     const float color = RandomRangef(0.25f, 0.75f);
-    s.atlasImage = cgameSpriteAsh;
+    s.atlasImage = cgameMedia.sprites.ash;
     s.color = MakeVec3(color, color, color);
     s.size = RandomRangef(1.f, 3.f);
     s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), MakeVec3(0.f, 0.f, 25.f));

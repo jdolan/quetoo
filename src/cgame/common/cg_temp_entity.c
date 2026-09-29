@@ -44,8 +44,8 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
 
     // surface aligned blast ring sprite
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteBlasterRing,
-      .lifetime = Cg_AnimationLifetime(cgameSpriteBlasterRing, 17.5f),
+      .animation = cgameMedia.sprites.blasterRing,
+      .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.blasterRing, 17.5f),
       .origin = Vec3_Fmaf(org, 3.f, dir),
       .size = 22.5f,
       .sizeVelocity = 75.f,
@@ -60,7 +60,7 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
     const Vec3 velocity = Vec3_RandomizeDir(Vec3_Scale(dir, 125.f), .6666f);
 
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteParticle,
+      .atlasImage = cgameMedia.sprites.particle,
       .origin = Vec3_Fmaf(org, 3.f, dir),
       .velocity = velocity,
       .size = 4.f,
@@ -74,8 +74,8 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
   for (int32_t i = 0; i < 3; i++) {
 
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteBlasterFlame,
-      .lifetime = Cg_AnimationLifetime(cgameSpriteBlasterFlame, 30),
+      .animation = cgameMedia.sprites.blasterFlame,
+      .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.blasterFlame, 30),
       .origin = Vec3_Fmaf(org, 5.f, Vec3_RandomDir()),
       .rotation = RandomRadian(),
       .rotationVelocity = Randomf() * .1f,
@@ -88,8 +88,8 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
   const float flameSat = RandomRangef(.8f, 1.f);
 
   Cg_AddSprite(&(CGameSprite) {
-    .animation = cgameSpriteBlasterFlame,
-    .lifetime = Cg_AnimationLifetime(cgameSpriteBlasterFlame, 30),
+    .animation = cgameMedia.sprites.blasterFlame,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.blasterFlame, 30),
     .origin = Vec3_Fmaf(org, 5.f, Vec3_RandomDir()),
     .rotation = RandomRadian(),
     .rotationVelocity = Randomf() * .1f,
@@ -100,7 +100,7 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
   });
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBurn[Randomi() % lengthof(cgameDecalBurn)],
+    .image = cgameMedia.decals.burn[Randomi() % lengthof(cgameMedia.decals.burn)],
     .origin = org,
     .radius = RandomRangef(6.f, 12.f),
     .color = Color3fv(color),
@@ -117,7 +117,7 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleBlasterHit,
+    .sample = cgameMedia.sounds.blasterHit,
     .origin = org,
   });
 }
@@ -134,7 +134,7 @@ static void Cg_TracerEffect(const Vec3 start, const Vec3 end) {;
 
   Cg_AddSprite(&(CGameSprite) {
     .type = SPRITE_BEAM,
-    .image = cgameBeamTracer,
+    .image = cgameMedia.beams.tracer,
     .origin = start,
     .termination = Vec3_Fmaf(start, tracerLength, velocity),
     .size = 2.5f,
@@ -160,7 +160,7 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
 
   if (color & 16) {
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteNodeWait,
+      .atlasImage = cgameMedia.sprites.nodeWait,
       .origin = Vec3_Add(start, MakeVec3(0, 0, 16.f)),
       .flags = SPRITE_SERVER_TIME,
       .lifetime = 1,
@@ -172,7 +172,7 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
   const Vec3 c = ColorHSV(hue, 1.f, 1.f).vec3;
 
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgameSpriteParticle,
+    .atlasImage = cgameMedia.sprites.particle,
     .origin = start,
     .flags = SPRITE_SERVER_TIME,
     .size = 4.f,
@@ -195,7 +195,7 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
 
   Cg_AddSprite(&(CGameSprite) {
     .type = SPRITE_BEAM,
-    .image = cgameBeamLine,
+    .image = cgameMedia.beams.line,
     .origin = points[0],
     .termination = points[1],
     .size = 1.5f,
@@ -205,7 +205,7 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
 
   Cg_AddSprite(&(CGameSprite) {
     .type = SPRITE_BEAM,
-    .image = cgameBeamLine,
+    .image = cgameMedia.beams.line,
     .origin = points[0],
     .termination = points[2],
     .size = 1.5f,
@@ -215,7 +215,7 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
 
   Cg_AddSprite(&(CGameSprite) {
     .type = SPRITE_BEAM,
-    .image = cgameBeamLine,
+    .image = cgameMedia.beams.line,
     .origin = points[3],
     .termination = points[1],
     .size = 1.5f,
@@ -225,7 +225,7 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
 
   Cg_AddSprite(&(CGameSprite) {
     .type = SPRITE_BEAM,
-    .image = cgameBeamLine,
+    .image = cgameMedia.beams.line,
     .origin = points[3],
     .termination = points[2],
     .size = 1.5f,
@@ -248,7 +248,7 @@ static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t 
   if (bits & 8) {
     Cg_AddSprite(&(CGameSprite) {
       .type = SPRITE_BEAM,
-      .image = cgameBeamHook,
+      .image = cgameMedia.beams.hook,
       .origin = start,
       .termination = end,
       .size = 2.f,
@@ -272,7 +272,7 @@ static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t 
     textCenter.z -= 2;
   //  Cg_DrawFloatingStringLine(textCenter, "Slow-drop", 1.f, MakeVec3(0.f, 0.f, 1.f));
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteNodeSlow,
+      .atlasImage = cgameMedia.sprites.nodeSlow,
       .origin = textCenter,
       .flags = SPRITE_SERVER_TIME,
       .lifetime = 1,
@@ -285,7 +285,7 @@ static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t 
   if ((bits & 3) == 3) {
     Cg_AddSprite(&(CGameSprite) {
       .type = SPRITE_BEAM,
-      .image = cgameBeamLine,
+      .image = cgameMedia.beams.line,
       .origin = start,
       .termination = end,
       .size = 2.f,
@@ -299,7 +299,7 @@ static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t 
     if (bits & 2) {
       Cg_AddSprite(&(CGameSprite) {
         .type = SPRITE_BEAM,
-        .image = cgameBeamArrow,
+        .image = cgameMedia.beams.arrow,
         .origin = end,
         .termination = start,
         .size = 2.f,
@@ -309,7 +309,7 @@ static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t 
     } else {
       Cg_AddSprite(&(CGameSprite) {
         .type = SPRITE_BEAM,
-        .image = cgameBeamArrow,
+        .image = cgameMedia.beams.arrow,
         .origin = start,
         .termination = end,
         .size = 2.f,
@@ -335,7 +335,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
 
     // spark spikes billboard
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteImpactSpark01,
+      .animation = cgameMedia.sprites.impactSpark01,
       .origin = Vec3_Fmaf(org, 2.f, dir),
       .rotation = RandomRadian(),
       .size = sparkSize,
@@ -345,7 +345,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
 
     // spark spikes decal
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteImpactSpark01,
+      .animation = cgameMedia.sprites.impactSpark01,
       .origin = Vec3_Fmaf(org, 2.f, dir),
       .rotation = RandomRadian(),
       .size = sparkSize,
@@ -360,7 +360,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
       float size = RandomRangef(2.f, 6.f);
       float lifetime = RandomRangef(800.f, 1200.f);
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteImpactSpark01Dot,
+        .atlasImage = cgameMedia.sprites.impactSpark01Dot,
         .origin = sparkOrigin,
         .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.5f), 120.f),
         .acceleration.z = -SPRITE_GRAVITY * 2.f,
@@ -376,7 +376,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
 
     // impact smoke
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpritePuffCloud,
+      .atlasImage = cgameMedia.sprites.puffCloud,
       .origin = Vec3_Fmaf(org, 5.f, dir),
       .velocity.z = 10.0f,
       .size = RandomRangef(30.f, 50.f),
@@ -389,7 +389,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
 
     // impact hotness
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteSpark,
+      .atlasImage = cgameMedia.sprites.spark,
       .origin = Vec3_Fmaf(org, 0.5f, dir),
       .rotation = RandomRadian(),
       .dir = dir,
@@ -410,7 +410,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
   }
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBullet[Randomi() % lengthof(cgameDecalBullet)],
+    .image = cgameMedia.decals.bullet[Randomi() % lengthof(cgameMedia.decals.bullet)],
     .origin = org,
     .radius = RandomRangef(1.f, 3.f),
     .color = color_black,
@@ -426,7 +426,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
     lastRicTime = cgi.client->unclampedTime;
 
     Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-      .sample = cgameSampleMachinegunHit[RandomRangeu(0, 3)],
+      .sample = cgameMedia.sounds.machinegunHit[RandomRangeu(0, 3)],
       .origin = org,
       .pitch = RandomRangei(-8, 9)
     });
@@ -446,7 +446,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
 
     // spark spikes billboard
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteImpactSpark01,
+      .animation = cgameMedia.sprites.impactSpark01,
       .origin = Vec3_Fmaf(org, 2.f, dir),
       .rotation = RandomRadian(),
       .size = sparkSize,
@@ -456,7 +456,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
 
     // spark spikes decal
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteImpactSpark01,
+      .animation = cgameMedia.sprites.impactSpark01,
       .origin = Vec3_Fmaf(org, 2.f, dir),
       .rotation = RandomRadian(),
       .size = sparkSize,
@@ -471,7 +471,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
       float size = RandomRangef(2.f, 6.f);
       float lifetime = RandomRangef(800.f, 1200.f);
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteImpactSpark01Dot,
+        .atlasImage = cgameMedia.sprites.impactSpark01Dot,
         .origin = sparkOrigin,
         .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.5f), 120.f),
         .acceleration.z = -SPRITE_GRAVITY * 2.f,
@@ -487,7 +487,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
 
     // impact smoke
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpritePuffCloud,
+      .atlasImage = cgameMedia.sprites.puffCloud,
       .origin = Vec3_Fmaf(org, 5.f, dir),
       .velocity.z = 10.0f,
       .size = RandomRangef(30.f, 50.f),
@@ -500,7 +500,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
 
     // impact hotness
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteSpark,
+      .atlasImage = cgameMedia.sprites.spark,
       .origin = Vec3_Fmaf(org, 0.5f, dir),
       .rotation = RandomRadian(),
       .dir = dir,
@@ -521,7 +521,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
   }
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBullet[Randomi() % lengthof(cgameDecalBullet)],
+    .image = cgameMedia.decals.bullet[Randomi() % lengthof(cgameMedia.decals.bullet)],
     .origin = org,
     .radius = RandomRangef(1.f, 3.f),
     .color = color_black,
@@ -530,7 +530,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleQuakeNailHit,
+    .sample = cgameMedia.sounds.quakeNailHit,
     .origin = org,
     .pitch = RandomRangei(0, 5)
   });
@@ -544,8 +544,8 @@ static void Cg_BloodEffect(const Vec3 org, const Vec3 dir, int32_t count) {
   for (int32_t i = 0; i < count; i += 3) {
 
     if (!Cg_AddSprite(&(CGameSprite) {
-        .animation = cgameSpriteBlood01,
-        .lifetime = Cg_AnimationLifetime(cgameSpriteBlood01, 30) + Randomf() * 500,
+        .animation = cgameMedia.sprites.blood01,
+        .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.blood01, 30) + Randomf() * 500,
         .size = RandomRangef(48.f, 64.f),
         .rotation = RandomRadian(),
         .origin = Vec3_Fmaf(Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f)), RandomRangef(0.f, 32.f), dir),
@@ -562,7 +562,7 @@ static void Cg_BloodEffect(const Vec3 org, const Vec3 dir, int32_t count) {
     }
 
     Cg_AddDecal(&(RenderDecal) {
-      .image = cgameDecalBlood[Randomi() % lengthof(cgameDecalBlood)],
+      .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
       .origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f)),
       .radius = RandomRangef(32.f, 64.f),
       .color = Color3f(.6f, 0.f, 0.f),
@@ -600,8 +600,8 @@ void Cg_GibEffect(const Vec3 org, int32_t count) {
     for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
 
       if (!Cg_AddSprite(&(CGameSprite) {
-          .animation = cgameSpriteBlood01,
-          .lifetime = Cg_AnimationLifetime(cgameSpriteBlood01, 30) + Randomf() * 500,
+          .animation = cgameMedia.sprites.blood01,
+          .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.blood01, 30) + Randomf() * 500,
           .origin = o,
           .velocity = Vec3_Add(Vec3_Add(Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT)), Vec3_RandomRange(-2.f, 2.f)), MakeVec3(0.f, 0.f, 100.f)),
           .acceleration.z = -SPRITE_GRAVITY * 2.0,
@@ -615,7 +615,7 @@ void Cg_GibEffect(const Vec3 org, int32_t count) {
   }
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBlood[Randomi() % lengthof(cgameDecalBlood)],
+    .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
     .origin = org,
     .radius = RandomRangef(64.f, 128.f),
     .color = color_red,
@@ -624,7 +624,7 @@ void Cg_GibEffect(const Vec3 org, int32_t count) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleGib,
+    .sample = cgameMedia.sounds.gib,
     .origin = org,
   });
 }
@@ -638,7 +638,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
 
   // spark flash billboard
   Cg_AddSprite(&(CGameSprite) {
-    .animation = cgameSpriteImpactSpark01,
+    .animation = cgameMedia.sprites.impactSpark01,
     .origin = offsetOrg,
     .rotation = RandomRadian(),
     .size = RandomRangef(30.f, 40.f),
@@ -648,7 +648,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
 
   // spark flash decal
   Cg_AddSprite(&(CGameSprite) {
-    .animation = cgameSpriteImpactSpark01,
+    .animation = cgameMedia.sprites.impactSpark01,
     .origin = offsetOrg,
     .rotation = RandomRadian(),
     .size = RandomRangef(30.f, 40.f),
@@ -660,7 +660,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
   // spark dots
   for (int32_t i = 0; i < 8; i++) {
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteImpactSpark01Dot,
+      .atlasImage = cgameMedia.sprites.impactSpark01Dot,
       .origin = offsetOrg,
       .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, .33f), RandomRangef(40.f, 80.f)),
       .size = RandomRangef(3.f, 6.f),
@@ -672,7 +672,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
 
   // hot spot glow on surface
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgameSpriteSpark,
+    .atlasImage = cgameMedia.sprites.spark,
     .origin = Vec3_Fmaf(org, .5f, dir),
     .rotation = RandomRadian(),
     .dir = dir,
@@ -686,7 +686,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
     const float hue = color_hue_yellow - RandomRangef(4.f, 40.f);
 
     if (!Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteSpark,
+        .atlasImage = cgameMedia.sprites.spark,
         .origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
         .velocity = Vec3_Scale(Vec3_RandomizeDir(dir, .33f), RandomRangef(64.f, 128.f)),
         .acceleration.z = -SPRITE_GRAVITY,
@@ -712,7 +712,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleSparks,
+    .sample = cgameMedia.sounds.sparks,
     .origin = org,
   });
 }
@@ -738,7 +738,7 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
       const float hue = RandomRangef(10.f, 50.f);
 
       if (!Cg_AddSprite(&(CGameSprite) {
-          .atlasImage = cgameSpriteParticle2,
+          .atlasImage = cgameMedia.sprites.particle2,
           .origin = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)),
           .velocity = Vec3_RandomRange(-400.f, 400.f),
           .acceleration.z = -SPRITE_GRAVITY * 2.f,
@@ -757,8 +757,8 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
   // billboard explosion 1
   Cg_AddSprite(&(CGameSprite) {
     .origin = org,
-    .animation = cgameSpriteExplosion,
-    .lifetime = Cg_AnimationLifetime(cgameSpriteExplosion, 40),
+    .animation = cgameMedia.sprites.explosion,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.explosion, 40),
     .size = 150.f,
     .sizeVelocity = 40.f,
     .rotation = RandomRadian(),
@@ -768,8 +768,8 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
   // billboard explosion 2
   Cg_AddSprite(&(CGameSprite) {
     .origin = org,
-    .animation = cgameSpriteExplosion,
-    .lifetime = Cg_AnimationLifetime(cgameSpriteExplosion, 30),
+    .animation = cgameMedia.sprites.explosion,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.explosion, 30),
     .size = 250.f,
     .sizeVelocity = 40.f,
     .rotation = RandomRadian(),
@@ -779,8 +779,8 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
   // decal explosion
   Cg_AddSprite(&(CGameSprite) {
     .origin = org,
-    .animation = cgameSpriteExplosion,
-    .lifetime = Cg_AnimationLifetime(cgameSpriteExplosion, 30),
+    .animation = cgameMedia.sprites.explosion,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.explosion, 30),
     .size = 250.f,
     .sizeVelocity = 40.f,
     .rotation = RandomRadian(),
@@ -791,8 +791,8 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
   // decal blast ring
   Cg_AddSprite(&(CGameSprite) {
     .origin = org,
-    .animation = cgameSpriteExplosionRing02,
-    .lifetime = Cg_AnimationLifetime(cgameSpriteExplosionRing02, 20),
+    .animation = cgameMedia.sprites.explosionRing02,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.explosionRing02, 20),
     .size = 100.f,
     .sizeVelocity = 700.f,
     .sizeAcceleration = -700.f,
@@ -807,13 +807,13 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
     .lifetime = 600,
     .size = 300.f,
     .rotation = RandomRadian(),
-    .atlasImage = cgameSpriteExplosionGlow,
+    .atlasImage = cgameMedia.sprites.explosionGlow,
     .color = MakeVec3(.4f, .4f, .4f),
     .lighting = .55f
   });
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBurn[Randomi() % lengthof(cgameDecalBurn)],
+    .image = cgameMedia.decals.burn[Randomi() % lengthof(cgameMedia.decals.burn)],
     .origin = org,
     .radius = RandomRangef(32.f, 64.f),
     .color = Color4f(0.f, 0.f, 0.f, .5f + Randomf() * .4f),
@@ -827,7 +827,7 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
            .lifetime = 1500,
            .size = 72.f,
            .rotation = RandomRadian(),
-           .atlasImage = cgameSpriteExplosionGlow,
+           .atlasImage = cgameMedia.sprites.explosionGlow,
            .color = MakeVec3(.7f, .45f, .2f),
            .lighting = .45f
   });
@@ -841,7 +841,7 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleExplosion,
+    .sample = cgameMedia.sounds.explosion,
     .origin = org,
   });
 }
@@ -857,8 +857,8 @@ static void Cg_HyperblasterEffect(const Vec3 org, const Vec3 dir) {
   for (uint32_t i = 0; i < 6; i++) {
     Cg_AddSprite(&(CGameSprite) {
       .origin = org,
-      .animation = cgameSpriteElectro01,
-      .lifetime = Cg_AnimationLifetime(cgameSpriteElectro01, 20),
+      .animation = cgameMedia.sprites.electro01,
+      .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.electro01, 20),
       .size = 50.f,
       .sizeVelocity = 400.f,
       .rotation = RandomRadian(),
@@ -870,8 +870,8 @@ static void Cg_HyperblasterEffect(const Vec3 org, const Vec3 dir) {
 
   Cg_AddSprite(&(CGameSprite) {
     .origin = org,
-    .animation = cgameSpriteElectro01,
-    .lifetime = Cg_AnimationLifetime(cgameSpriteElectro01, 8),
+    .animation = cgameMedia.sprites.electro01,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.electro01, 8),
     .size = 100.f,
     .sizeVelocity = 25.f,
     .rotation = RandomRadian(),
@@ -884,7 +884,7 @@ static void Cg_HyperblasterEffect(const Vec3 org, const Vec3 dir) {
   for (uint32_t i = 0; i < 2; i++) {
     Cg_AddSprite(&(CGameSprite) {
       .origin = org,
-      .atlasImage = cgameSpriteFlash,
+      .atlasImage = cgameMedia.sprites.flash,
       .lifetime = 150,
       .size = RandomRangef(75.f, 100.f),
       .rotation = RandomRadian(),
@@ -894,7 +894,7 @@ static void Cg_HyperblasterEffect(const Vec3 org, const Vec3 dir) {
   }
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBurn[Randomi() % lengthof(cgameDecalBurn)],
+    .image = cgameMedia.decals.burn[Randomi() % lengthof(cgameMedia.decals.burn)],
     .origin = org,
     .radius = RandomRangef(12.f, 18.f),
     .color = Color3fv(ColorHSV(225.f, .7f, .8f).vec3),
@@ -911,7 +911,7 @@ static void Cg_HyperblasterEffect(const Vec3 org, const Vec3 dir) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleHyperblasterHit,
+    .sample = cgameMedia.sounds.hyperblasterHit,
     .origin = Vec3_Add(org, dir),
   });
 }
@@ -933,7 +933,7 @@ static void Cg_LightningDischargeEffect(const Vec3 org) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleLightningDischarge,
+    .sample = cgameMedia.sounds.lightningDischarge,
     .origin = org,
   });
 
@@ -993,7 +993,7 @@ static void Cg_RailEffect(const Vec3 start, const Vec3 end, const Vec3 dir, int3
     }
 
     Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteParticle3,
+        .atlasImage = cgameMedia.sprites.particle3,
             .origin = org,
             .velocity = Vec3_Scale(forward, 256.f),
             .acceleration = Vec3_Add(accel, Vec3_Scale(Vec3_RandomDir(), 192.f)),
@@ -1009,7 +1009,7 @@ static void Cg_RailEffect(const Vec3 start, const Vec3 end, const Vec3 dir, int3
       const int32_t h = (int32_t) hue + RandomRangei(10, 20) % 360;
       const Vec3 altColor = ColorHSV(h, 0.f, 1.f).vec3;
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteParticle3,
+        .atlasImage = cgameMedia.sprites.particle3,
         .origin = org,
         .velocity = Vec3_Scale(Vec3_RandomDir(), 64.f),
         .acceleration = MakeVec3(RandomRangef(-64.f, 64.f), RandomRangef(-64.f, 64.f), -SPRITE_GRAVITY),
@@ -1027,7 +1027,7 @@ static void Cg_RailEffect(const Vec3 start, const Vec3 end, const Vec3 dir, int3
     .type = SPRITE_BEAM,
     .origin = start,
     .termination = end,
-    .image = cgameBeamRail,
+    .image = cgameMedia.beams.rail,
     .flags = SPRITE_BEAM_REPEAT,
     .size = 3.f,
     .lifetime = 400,
@@ -1053,7 +1053,7 @@ static void Cg_RailEffect(const Vec3 start, const Vec3 end, const Vec3 dir, int3
   for (int32_t i = 0; i < 2; i++) {
     Cg_AddSprite(&(CGameSprite) {
       .origin = Vec3_Add(end, dir),
-      .atlasImage = cgameSpriteFlash,
+      .atlasImage = cgameMedia.sprites.flash,
       .lifetime = 250,
       .size = 120.f,
       .sizeVelocity = RandomRangef(100.f, 200.f),
@@ -1071,7 +1071,7 @@ static void Cg_RailEffect(const Vec3 start, const Vec3 end, const Vec3 dir, int3
       const float size = 2.f + Randomf();
 
       if (!Cg_AddSprite(&(CGameSprite) {
-          .atlasImage = cgameSpriteParticle2,
+          .atlasImage = cgameMedia.sprites.particle2,
           .origin = Vec3_Add(end, Vec3_RandomRange(-4.f, 4.f)),
           .velocity = Vec3_RandomRange(-200.f, 200.f),
           .acceleration.z = -SPRITE_GRAVITY * 2.f,
@@ -1088,7 +1088,7 @@ static void Cg_RailEffect(const Vec3 start, const Vec3 end, const Vec3 dir, int3
   }
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalSlug[Randomi() % lengthof(cgameDecalBurn)],
+    .image = cgameMedia.decals.slug[Randomi() % lengthof(cgameMedia.decals.burn)],
     .origin = end,
     .radius = RandomRangef(8.f, 12.f),
     .color = Color3fv(color),
@@ -1136,7 +1136,7 @@ static void Cg_BfgLaserDeadEffect(const int16_t orgEntity, const int16_t destEnt
 
   Cg_AddSprite(&(CGameSprite) {
     .type = SPRITE_BEAM,
-    .image = cgameBeamRail,
+    .image = cgameMedia.beams.rail,
     .origin = org,
     .termination = end,
     .size = 1.5f,
@@ -1158,7 +1158,7 @@ static void Cg_BfgLaserEffect(const int16_t orgEntity, const int16_t destEntity)
 
   Cg_AddSprite(&(CGameSprite) {
     .type = SPRITE_BEAM,
-    .image = cgameBeamRail,
+    .image = cgameMedia.beams.rail,
     .origin = org,
     .termination = end,
     .size = 5.f,
@@ -1178,7 +1178,7 @@ static void Cg_BfgLaserEffect(const int16_t orgEntity, const int16_t destEntity)
   });
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBurn[Randomi() % lengthof(cgameDecalBurn)],
+    .image = cgameMedia.decals.burn[Randomi() % lengthof(cgameMedia.decals.burn)],
     .origin = end,
     .radius = RandomRangef(12.f, 24.f),
     .color = ColorHSV(color_hue_green, 1.f, 1.f),
@@ -1195,8 +1195,8 @@ static void Cg_BfgEffect(const Vec3 org) {
   for (int32_t i = 0; i < 4; i++) {
 
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteBfgExplosion2,
-      .lifetime = Cg_AnimationLifetime(cgameSpriteBfgExplosion2, 15),
+      .animation = cgameMedia.sprites.bfgExplosion2,
+      .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.bfgExplosion2, 15),
       .size = RandomRangef(200.f, 300.f),
       .sizeVelocity = 100.f,
       .sizeAcceleration = -10.f,
@@ -1210,8 +1210,8 @@ static void Cg_BfgEffect(const Vec3 org) {
   for (int32_t i = 0; i < 4; i++) {
 
     Cg_AddSprite(&(CGameSprite) {
-      .animation = cgameSpriteBfgExplosion3,
-      .lifetime = Cg_AnimationLifetime(cgameSpriteBfgExplosion3, 15),
+      .animation = cgameMedia.sprites.bfgExplosion3,
+      .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.bfgExplosion3, 15),
       .size = RandomRangef(200.f, 300.f),
       .sizeVelocity = 100.f,
       .sizeAcceleration = -10.f,
@@ -1226,7 +1226,7 @@ static void Cg_BfgEffect(const Vec3 org) {
   for (uint32_t i = 0; i < 4; i++) {
 
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteFlash,
+      .atlasImage = cgameMedia.sprites.flash,
       .origin = org,
       .lifetime = 600,
       .size = RandomRangef(300, 400),
@@ -1239,7 +1239,7 @@ static void Cg_BfgEffect(const Vec3 org) {
 
   // impact flash 2
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgameSpriteFlash,
+    .atlasImage = cgameMedia.sprites.flash,
     .origin = org,
     .lifetime = 600,
     .size = 400.f,
@@ -1250,7 +1250,7 @@ static void Cg_BfgEffect(const Vec3 org) {
 
   // glow
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgameSpriteParticle,
+    .atlasImage = cgameMedia.sprites.particle,
     .origin = org,
     .lifetime = 1000,
     .size = 600.f,
@@ -1260,7 +1260,7 @@ static void Cg_BfgEffect(const Vec3 org) {
   });
 
   Cg_AddDecal(&(RenderDecal) {
-    .image = cgameDecalBurn[Randomi() % lengthof(cgameDecalBurn)],
+    .image = cgameMedia.decals.burn[Randomi() % lengthof(cgameMedia.decals.burn)],
     .origin = org,
     .radius = RandomRangef(96.f, 128.f),
     .color = Color3f(.6f, 1.f, .6f),
@@ -1277,7 +1277,7 @@ static void Cg_BfgEffect(const Vec3 org) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleBfgHit,
+    .sample = cgameMedia.sounds.bfgHit,
     .origin = org,
   });
 }
@@ -1303,7 +1303,7 @@ static void Cg_SplashEffect(const RenderBspBrushSide *side, const Vec3 org, cons
   const uint32_t lifetime = 1800 * scale;
 
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgameSpriteSplash0203,
+    .atlasImage = cgameMedia.sprites.splash0203,
     .lifetime = lifetime,
     .origin = Vec3_Fmaf(org, .5f, MakeVec3(0.f, 0.f, size)),
     .size = size,
@@ -1317,7 +1317,7 @@ static void Cg_SplashEffect(const RenderBspBrushSide *side, const Vec3 org, cons
 
   for (int32_t i = 0; i < 64 * scale; i++) {
     CGameSprite *p = Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgameSpriteParticle,
+      .atlasImage = cgameMedia.sprites.particle,
       .lifetime = RandomRangeu(0, lifetime),
       .origin = org,
       .size = RandomRangef(1.f, 3.f),
@@ -1353,8 +1353,8 @@ static void Cg_RippleEffect(const RenderBspBrushSide *side, const Vec3 org, floa
 
   // center decal
   Cg_AddSprite(&(CGameSprite) {
-    .animation = cgameSpritePoof01,
-    .lifetime = Cg_AnimationLifetime(cgameSpritePoof01, 30.0f) * (viscosity * .1f),
+    .animation = cgameMedia.sprites.poof01,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.poof01, 30.0f) * (viscosity * .1f),
     .origin = org,
     .size = size * 8.f,
     .sizeVelocity = size,
@@ -1366,7 +1366,7 @@ static void Cg_RippleEffect(const RenderBspBrushSide *side, const Vec3 org, floa
 
   // ring decal
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgameSpriteWaterRing,
+    .atlasImage = cgameMedia.sprites.waterRing,
     .lifetime = 1000.f,
     .origin = org,
     .size = size * 4.f,
@@ -1406,7 +1406,7 @@ static void Cg_HookImpactEffect(const Vec3 org, const Vec3 dir) {
   for (int32_t i = 0; i < 32; i++) {
 
     if (!Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgameSpriteParticle,
+        .atlasImage = cgameMedia.sprites.particle,
         .origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
         .velocity = Vec3_Add(Vec3_Scale(dir, 9.f), Vec3_RandomRange(-90.f, 90.f)),
         .acceleration = Vec3_Add(Vec3_RandomRange(-2.f, 2.f), MakeVec3(0.f, 0.f, -0.5f * SPRITE_GRAVITY)),
@@ -1428,7 +1428,7 @@ static void Cg_HookImpactEffect(const Vec3 org, const Vec3 dir) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameSampleHookHit,
+    .sample = cgameMedia.sounds.hookHit,
     .origin = org,
     .pitch = RandomRangei(-4, 5)
   });

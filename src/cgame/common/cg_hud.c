@@ -50,7 +50,7 @@ static void Cg_DrawDamageInflicted(const PlayerState *ps) {
       cgameHudState.damage.hitSoundTime = cgi.client->unclampedTime;
 
       Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-        .sample = dmg >= 25 ? cgameSampleHits[1] : cgameSampleHits[0],
+        .sample = dmg >= 25 ? cgameMedia.sounds.hits[1] : cgameMedia.sounds.hits[0],
         .entity = Cg_Self()
       });
     }

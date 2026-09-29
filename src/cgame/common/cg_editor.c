@@ -391,7 +391,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
           if (!Vec3_Equal(Vec3_Zero(), view->muzzle)) {
             const Vec3 muzzle = Mat4_Transform(e->matrix, view->muzzle);
             Cg_AddSprite(&(CGameSprite) {
-              .animation = cgameSpriteImpactSpark01,
+              .animation = cgameMedia.sprites.impactSpark01,
               .origin = muzzle,
               .size = 30.f,
               .color = MakeVec3(1.f, .9f, .7f),
