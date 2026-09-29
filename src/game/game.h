@@ -780,8 +780,11 @@ typedef struct {
   /**
    * @brief Called at the start of each new level.
    * @param name The map name, e.g. "edge"
+   * @param mapListEntry The @c sv_mapList key-value pairs for the current map, or @c NULL.
+   * @param entities The map-defined entities.
+   * @param numEntities The length of @c entities.
    */
-  void (*SpawnEntities)(const char *name, const CmEntity *props, CmEntity *const *entities, size_t numEntities);
+  void (*SpawnEntities)(const char *name, const CmEntity *mapListEntry, CmEntity *const *entities, size_t numEntities);
 
   /**
    * @brief Called in editor mode to spawn or respawn a single entity at the given

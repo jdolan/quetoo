@@ -25,8 +25,8 @@
 
 #if defined(__G_LOCAL_H__)
 
-extern GameLevel gLevel;
-extern GameMedia gMedia;
+extern GameLevel g_level;
+extern GameMedia g_media;
 
 /**
  * @brief The movement a level falls back to when neither `g_movement`, its
@@ -223,7 +223,7 @@ extern Cvar *sv_hostname;
 extern Cvar *dedicated;
 extern Cvar *editor;
 
-extern GameTeam gTeamList[MAX_TEAMS];
+extern GameTeam g_teamList[MAX_TEAMS];
 
 #define g_team_red (&gTeamList[TEAM_RED])
 #define g_team_blue (&gTeamList[TEAM_BLUE])

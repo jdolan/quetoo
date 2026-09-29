@@ -43,7 +43,7 @@ static void G_worldspawn(GameEntity *ent);
 /**
  * @brief The entity classes.
  */
-static const GameEntityClass gEntityClasses[] = {
+static const GameEntityClass g_entityClasses[] = {
 
   { "func_bob", G_func_bob },
   { "func_button", G_func_button },
@@ -109,13 +109,13 @@ static const GameEntityClass gEntityClasses[] = {
   { "misc_weather", G_FreeEntity },
 };
 
-static const CmEntity *gMap;
+static const CmEntity *g_mapListEntry;
 
 /**
  * @brief The value `key` holds in the map's own metadata, or `NULL` before it is loaded.
  */
-static const CmEntity *G_MapValue(const char *key) {
-  return gMap ? gi.EntityValue(gMap, key) : NULL;
+static const CmEntity *G_MapListEntryValue(const char *key) {
+  return g_mapListEntry ? gi.EntityValue(g_mapListEntry, key) : NULL;
 }
 
 /**
@@ -173,8 +173,8 @@ static bool G_InitEntity_Common(GameEntity *ent) {
   }
 
   // check normal spawn functions
-  for (size_t i = 0; i < lengthof(gEntityClasses); i++) {
-    const GameEntityClass *clazz = gEntityClasses + i;
+  for (size_t i = 0; i < lengthof(g_entityClasses); i++) {
+    const GameEntityClass *clazz = g_entityClasses + i;
 
     if (!q_strcmp(clazz->classname, ent->classname)) {
       clazz->Init(ent);
@@ -257,9 +257,9 @@ static const GameEntityClass *G_EditorEntityClass(const GameEntity *ent) {
       }
     }
 
-    for (size_t j = 0; j < lengthof(gEntityClasses); j++) {
-      if (!q_strcmp(gEntityClasses[j].classname, ent->classname)) {
-        return gEntityClasses + j;
+    for (size_t j = 0; j < lengthof(g_entityClasses); j++) {
+      if (!q_strcmp(g_entityClasses[j].classname, ent->classname)) {
+        return g_entityClasses + j;
       }
     }
 
@@ -387,7 +387,7 @@ static void G_InitEntityTeams(void) {
 static void G_InitMedia_Common(void) {
   uint16_t i;
 
-  memset(&gMedia, 0, sizeof(gMedia));
+  memset(&g_media, 0, sizeof(g_media));
 
   // preload items/set item media ptrs
   G_InitItems();
@@ -412,71 +412,71 @@ static void G_InitMedia_Common(void) {
   gi.SoundIndex("*pain100_1");
   gi.SoundIndex("*sizzle_1");
 
-  gMedia.models.grenade = gi.ModelIndex("models/projectiles/grenade/tris");
-  gMedia.models.quakeGrenade = gi.ModelIndex("models/projectiles/quake_grenade/tris");
-  gMedia.models.quakeNail = gi.ModelIndex("models/projectiles/quake_nail/tris");
-  gMedia.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
-  gMedia.models.quakeRocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
-  gMedia.models.fireball = gi.ModelIndex("models/fireball/tris");
-  gMedia.sounds.bfgHit = gi.SoundIndex("weapons/bfg/hit");
-  gMedia.sounds.bfgPrime = gi.SoundIndex("weapons/bfg/prime");
-  gMedia.sounds.death[0] = gi.SoundIndex("*death_1");
-  gMedia.sounds.death[1] = gi.SoundIndex("*death_2");
-  gMedia.sounds.gasp = gi.SoundIndex("*gasp_1");
-  gMedia.sounds.gurp = gi.SoundIndex("*gurp_1");
-  gMedia.sounds.pain[0] = gi.SoundIndex("*pain25_1");
-  gMedia.sounds.pain[1] = gi.SoundIndex("*pain50_1");
-  gMedia.sounds.pain[2] = gi.SoundIndex("*pain75_1");
-  gMedia.sounds.pain[3] = gi.SoundIndex("*pain100_1");
-  gMedia.sounds.grenadeHit = gi.SoundIndex("projectiles/grenade/hit");
-  gMedia.sounds.grenadeClang = gi.SoundIndex("weapons/handgrenades/hg_clang");
-  gMedia.sounds.grenadeThrow = gi.SoundIndex("weapons/handgrenades/hg_throw");
-  gMedia.sounds.grenadeTick = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
-  gMedia.sounds.quakeGrenadeHit = gi.SoundIndex("projectiles/quake_grenade/hit");
-  gMedia.sounds.quakeNailHit = gi.SoundIndex("projectiles/quake_nail/hit");
-  gMedia.sounds.rocketFly = gi.SoundIndex("projectiles/rocket/fly");
-  gMedia.sounds.lightningFly = gi.SoundIndex("weapons/lightning/fly");
-  gMedia.sounds.laserFly = gi.SoundIndex("trigger/laser/fly");
-  gMedia.sounds.quadAttack = gi.SoundIndex("powerups/quad/attack");
-  gMedia.sounds.quadExpire = gi.SoundIndex("powerups/quad/expire");
-  gMedia.sounds.invulnerabilityPickup = gi.SoundIndex("powerups/invulnerability/pickup");
-  gMedia.sounds.invulnerabilityExpire = gi.SoundIndex("powerups/invulnerability/expire");
-  gMedia.sounds.invulnerabilityProtect = gi.SoundIndex("powerups/invulnerability/protect");
-  gMedia.sounds.invisibilityPickup = gi.SoundIndex("powerups/invisibility/pickup");
-  gMedia.sounds.invisibilityExpire = gi.SoundIndex("powerups/invisibility/expire");
-  gMedia.sounds.teleport = gi.SoundIndex("misc/teleport");
+  g_media.models.grenade = gi.ModelIndex("models/projectiles/grenade/tris");
+  g_media.models.quakeGrenade = gi.ModelIndex("models/projectiles/quake_grenade/tris");
+  g_media.models.quakeNail = gi.ModelIndex("models/projectiles/quake_nail/tris");
+  g_media.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
+  g_media.models.quakeRocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
+  g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
+  g_media.sounds.bfgHit = gi.SoundIndex("weapons/bfg/hit");
+  g_media.sounds.bfgPrime = gi.SoundIndex("weapons/bfg/prime");
+  g_media.sounds.death[0] = gi.SoundIndex("*death_1");
+  g_media.sounds.death[1] = gi.SoundIndex("*death_2");
+  g_media.sounds.gasp = gi.SoundIndex("*gasp_1");
+  g_media.sounds.gurp = gi.SoundIndex("*gurp_1");
+  g_media.sounds.pain[0] = gi.SoundIndex("*pain25_1");
+  g_media.sounds.pain[1] = gi.SoundIndex("*pain50_1");
+  g_media.sounds.pain[2] = gi.SoundIndex("*pain75_1");
+  g_media.sounds.pain[3] = gi.SoundIndex("*pain100_1");
+  g_media.sounds.grenadeHit = gi.SoundIndex("projectiles/grenade/hit");
+  g_media.sounds.grenadeClang = gi.SoundIndex("weapons/handgrenades/hg_clang");
+  g_media.sounds.grenadeThrow = gi.SoundIndex("weapons/handgrenades/hg_throw");
+  g_media.sounds.grenadeTick = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
+  g_media.sounds.quakeGrenadeHit = gi.SoundIndex("projectiles/quake_grenade/hit");
+  g_media.sounds.quakeNailHit = gi.SoundIndex("projectiles/quake_nail/hit");
+  g_media.sounds.rocketFly = gi.SoundIndex("projectiles/rocket/fly");
+  g_media.sounds.lightningFly = gi.SoundIndex("weapons/lightning/fly");
+  g_media.sounds.laserFly = gi.SoundIndex("trigger/laser/fly");
+  g_media.sounds.quadAttack = gi.SoundIndex("powerups/quad/attack");
+  g_media.sounds.quadExpire = gi.SoundIndex("powerups/quad/expire");
+  g_media.sounds.invulnerabilityPickup = gi.SoundIndex("powerups/invulnerability/pickup");
+  g_media.sounds.invulnerabilityExpire = gi.SoundIndex("powerups/invulnerability/expire");
+  g_media.sounds.invulnerabilityProtect = gi.SoundIndex("powerups/invulnerability/protect");
+  g_media.sounds.invisibilityPickup = gi.SoundIndex("powerups/invisibility/pickup");
+  g_media.sounds.invisibilityExpire = gi.SoundIndex("powerups/invisibility/expire");
+  g_media.sounds.teleport = gi.SoundIndex("misc/teleport");
 
-  for (i = 0; i < lengthof(gMedia.sounds.quakeTeleport); i++) {
-    gMedia.sounds.quakeTeleport[i] = gi.SoundIndex(va("misc/quake_teleport%d", i + 1));
+  for (i = 0; i < lengthof(g_media.sounds.quakeTeleport); i++) {
+    g_media.sounds.quakeTeleport[i] = gi.SoundIndex(va("misc/quake_teleport%d", i + 1));
   }
 
-  gMedia.sounds.waterIn = gi.SoundIndex("misc/water_in");
-  gMedia.sounds.waterOut = gi.SoundIndex("misc/water_out");
+  g_media.sounds.waterIn = gi.SoundIndex("misc/water_in");
+  g_media.sounds.waterOut = gi.SoundIndex("misc/water_out");
 
-  gMedia.sounds.weaponNoAmmo = gi.SoundIndex("weapons/common/no_ammo");
-  gMedia.sounds.weaponSwitch = gi.SoundIndex("weapons/common/switch");
+  g_media.sounds.weaponNoAmmo = gi.SoundIndex("weapons/common/no_ammo");
+  g_media.sounds.weaponSwitch = gi.SoundIndex("weapons/common/switch");
 
-  gMedia.sounds.chat = gi.SoundIndex("misc/chat");
+  g_media.sounds.chat = gi.SoundIndex("misc/chat");
 
   for (i = 0; i < NUM_GIB_MODELS; i++) {
-    gMedia.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
+    g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
   }
 
-  for (i = 0; i < lengthof(gMedia.sounds.lava); i++) {
-    gMedia.sounds.lava[i] = gi.SoundIndex(va("ambient/lava_%d", i + 1));
+  for (i = 0; i < lengthof(g_media.sounds.lava); i++) {
+    g_media.sounds.lava[i] = gi.SoundIndex(va("ambient/lava_%d", i + 1));
   }
 
   for (i = 0; i < NUM_GIB_SOUNDS; i++) {
-    gMedia.sounds.gibHits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
+    g_media.sounds.gibHits[i] = gi.SoundIndex(va("gibs/gib_%i/hit", i + 1));
   }
 
-  for (i = 1; i < lengthof(gMedia.sounds.countdown); i++) {
-    gMedia.sounds.countdown[i] = gi.SoundIndex(va("misc/countdown_%d", i));
+  for (i = 1; i < lengthof(g_media.sounds.countdown); i++) {
+    g_media.sounds.countdown[i] = gi.SoundIndex(va("misc/countdown_%d", i));
   }
 
-  gMedia.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
+  g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
 
-  gMedia.images.health = gi.ImageIndex("pics/health");
+  g_media.images.health = gi.ImageIndex("pics/health");
 }
 
 InitMedia G_InitMedia = G_InitMedia_Common;
@@ -508,7 +508,7 @@ static void G_InitTeamSpawns(Vector *teamSpawns[MAX_TEAMS]) {
 
 #if defined(G_CTF)
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    gTeamList[t].flagEntity = G_Find(NULL, EOFS(classname), gTeamList[t].flag);
+    g_teamList[t].flagEntity = G_Find(NULL, EOFS(classname), g_teamList[t].flag);
   }
 #endif
 
@@ -521,7 +521,7 @@ static void G_InitTeamSpawns(Vector *teamSpawns[MAX_TEAMS]) {
   }
 
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    G_CollectSpawns(gTeamList[t].spawn, &teamSpawns[t]);
+    G_CollectSpawns(g_teamList[t].spawn, &teamSpawns[t]);
   }
 }
 
@@ -546,11 +546,11 @@ static void G_ResolveSpawnPoints(Vector *dmSpawns, Vector *teamSpawns[MAX_TEAMS]
     }
   }
 
-  G_SetSpawnPoints(&gLevel.spawnPoints, dmSpawns);
+  G_SetSpawnPoints(&g_level.spawnPoints, dmSpawns);
   release(dmSpawns);
 
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    G_SetSpawnPoints(&gTeamList[t].spawnPoints, teamSpawns[t]);
+    G_SetSpawnPoints(&g_teamList[t].spawnPoints, teamSpawns[t]);
 
     if (teamSpawns[t]) {
       release(teamSpawns[t]);
@@ -587,7 +587,7 @@ ConfigureLevel G_ConfigureLevel = G_ConfigureLevel_Common;
 /**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
-void G_SpawnEntities(const char *name, const CmEntity *props, CmEntity *const *entities, size_t numEntities) {
+void G_SpawnEntities(const char *name, const CmEntity *mapListEntry, CmEntity *const *entities, size_t numEntities) {
 
   // Drop bots, they will reconnect via G_Ai_Frame
   G_ForEachClient(cl, {
@@ -596,24 +596,24 @@ void G_SpawnEntities(const char *name, const CmEntity *props, CmEntity *const *e
     }
   });
 
-  gLevel.frags = release(gLevel.frags);
+  g_level.frags = release(g_level.frags);
 
 #if defined(G_CTF)
-  gLevel.captures = release(gLevel.captures);
+  g_level.captures = release(g_level.captures);
 #endif
 
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
-  memset(&gLevel, 0, sizeof(gLevel));
+  memset(&g_level, 0, sizeof(g_level));
 
-  q_strlcpy(gLevel.name, name, sizeof(gLevel.name));
+  q_strlcpy(g_level.name, name, sizeof(g_level.name));
 
   G_LevelWillSpawn();
 
-  gLevel.frags    = $(alloc(Vector), initWithSize, sizeof(GameFrag));
+  g_level.frags = $(alloc(Vector), initWithSize, sizeof(GameFrag));
 
 #if defined(G_CTF)
-  gLevel.captures = $(alloc(Vector), initWithSize, sizeof(GameCapture));
+  g_level.captures = $(alloc(Vector), initWithSize, sizeof(GameCapture));
 #endif
 
   // Clear real client entity pointers before freeing entities to prevent dangling references
@@ -636,7 +636,7 @@ void G_SpawnEntities(const char *name, const CmEntity *props, CmEntity *const *e
     G_FreeEntity(ge.entities[i]);
   }
 
-  gMap = props;
+  g_mapListEntry = mapListEntry;
 
   G_InitMedia();
 
@@ -666,7 +666,7 @@ void G_SpawnEntities(const char *name, const CmEntity *props, CmEntity *const *e
 
   G_Ai_Load();
 
-  gMap = NULL;
+  g_mapListEntry = NULL;
 }
 
 /**
@@ -694,7 +694,7 @@ static void G_worldspawn_EnumerateMusic(const char *path, void *data) {
  */
 static void G_worldspawn_Music(void) {
 
-  if (*gLevel.music == '\0') {
+  if (*g_level.music == '\0') {
 
     Vector *tracks = $(alloc(Vector), initWithSize, MAX_QPATH);
     gi.EnumerateFiles("music/*.ogg", G_worldspawn_EnumerateMusic, tracks);
@@ -709,7 +709,7 @@ static void G_worldspawn_Music(void) {
   }
 
   char buf[MAX_STRING_CHARS];
-  q_strlcpy(buf, gLevel.music, sizeof(buf));
+  q_strlcpy(buf, g_level.music, sizeof(buf));
 
   int32_t i = 0;
   char *t = strtok(buf, ",");
@@ -772,25 +772,25 @@ static void G_worldspawn(GameEntity *ent) {
   ent->s.bounds = ent->bounds;
 
   if (ent->message && *ent->message) {
-    q_strlcpy(gLevel.message, ent->message, sizeof(gLevel.message));
+    q_strlcpy(g_level.message, ent->message, sizeof(g_level.message));
   } else {
-    q_strlcpy(gLevel.message, gLevel.name, sizeof(gLevel.message));
+    q_strlcpy(g_level.message, g_level.name, sizeof(g_level.message));
   }
 
-  gi.SetConfigString(CS_MESSAGE, gLevel.message);
+  gi.SetConfigString(CS_MESSAGE, g_level.message);
 
-  const CmEntity *gravityMap = G_MapValue("gravity");
+  const CmEntity *gravityMap = G_MapListEntryValue("gravity");
   if (q_strcmp(g_gravity->string, g_gravity->defaultString)) { // prefer an explicit g_gravity override
-    gLevel.gravity = g_gravity->integer;
+    g_level.gravity = g_gravity->integer;
   } else if (gravityMap && (gravityMap->parsed & ENTITY_INTEGER) && gravityMap->integer > 0) { // then map metadata gravity
-    gLevel.gravity = gravityMap->integer;
+    g_level.gravity = gravityMap->integer;
   } else { // or worldspawn; unset, it stays zero, and the movement's gravity applies
     const CmEntity *gravity = gi.EntityValue(ent->def, "gravity");
     if (gravity->parsed & ENTITY_INTEGER) {
       if (gravity->integer) {
-        gLevel.gravity = gravity->integer;
+        g_level.gravity = gravity->integer;
       } else {
-        G_Warn("%s has gravity 0, which is unset: the movement's applies\n", gLevel.name);
+        G_Warn("%s has gravity 0, which is unset: the movement's applies\n", g_level.name);
       }
     }
   }
@@ -801,80 +801,80 @@ static void G_worldspawn(GameEntity *ent) {
 
   // the gameplay is g_gameplay if the admin named one, else this level's
   // metadata, else its worldspawn, else deathmatch, as the movement is below
-  const CmEntity *gameplayMap = G_MapValue("gameplay");
+  const CmEntity *gameplayMap = G_MapListEntryValue("gameplay");
   const char *gameplay = (gameplayMap && (gameplayMap->parsed & ENTITY_INTEGER) && gameplayMap->integer > -1)
                          ? G_GameplayById(gameplayMap->integer)->name
                          : gi.EntityValue(ent->def, "gameplay")->string;
 
-  gLevel.gameplay = G_ResolveGameplay(gameplay);
+  g_level.gameplay = G_ResolveGameplay(gameplay);
 
-  gi.SetConfigString(CS_GAMEPLAY, va("%d", gLevel.gameplay));
+  gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
   const CmEntity *items = gi.EntityValue(ent->def, "items");
   if (q_strcasecmp(items->string, "quake") == 0) {
-    gLevel.items = ITEMS_QUAKE;
+    g_level.items = ITEMS_QUAKE;
   } else {
-    gLevel.items = ITEMS_DEFAULT;
+    g_level.items = ITEMS_DEFAULT;
   }
 
-  gi.SetConfigString(CS_ITEM_SET, va("%d", gLevel.items));
+  gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
   // the movement takes the same precedence gameplay does: what the admin asked
   // for, else this level's metadata, else its worldspawn, else Quetoo's. It needs
   // no config string, because it reaches the client inside the movement
   // parameters, which are networked per-player
-  const CmEntity *movementMap = G_MapValue("movement");
+  const CmEntity *movementMap = G_MapListEntryValue("movement");
   const char *movement = (movementMap && *movementMap->string)
                          ? movementMap->string
                          : gi.EntityValue(ent->def, "movement")->string;
 
-  gLevel.movement = G_ResolveMovement(movement);
+  g_level.movement = G_ResolveMovement(movement);
 
-  gi.Print("  Movement:   ^2%s^7\n", Pm_Movement(gLevel.movement)->name);
+  gi.Print("  Movement:   ^2%s^7\n", Pm_Movement(g_level.movement)->name);
 
-  gLevel.teams = (gLevel.gameplay & GAMEPLAY_TEAMS) != 0;
+  g_level.teams = (g_level.gameplay & GAMEPLAY_TEAMS) != 0;
 
   if (q_strcmp(g_numTeams->string, "default")) {
-    gLevel.numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
+    g_level.numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
   } else {
-    gLevel.numTeams = -1; // G_InitSpawnPoints derives it from the spawn points
+    g_level.numTeams = -1; // G_InitSpawnPoints derives it from the spawn points
   }
 
-  const CmEntity *minClientsMap = G_MapValue("min_clients");
+  const CmEntity *minClientsMap = G_MapListEntryValue("min_clients");
   if (minClientsMap && (minClientsMap->parsed & ENTITY_INTEGER) && minClientsMap->integer > -1) {
-    gLevel.minClientsMap = minClientsMap->integer;
+    g_level.minClientsMap = minClientsMap->integer;
   } else {
-    gLevel.minClientsMap = -1;
+    g_level.minClientsMap = -1;
   }
 
-  const CmEntity *fragLimitMap = G_MapValue("frag_limit");
+  const CmEntity *fragLimitMap = G_MapListEntryValue("frag_limit");
   if (fragLimitMap && (fragLimitMap->parsed & ENTITY_INTEGER) && fragLimitMap->integer > -1) { // prefer map metadata fragLimit
-    gLevel.fragLimit = fragLimitMap->integer;
+    g_level.fragLimit = fragLimitMap->integer;
   } else { // or fall back on worldspawn
     const CmEntity *fragLimit = gi.EntityValue(ent->def, "frag_limit");
     if (fragLimit->parsed & ENTITY_INTEGER) {
-      gLevel.fragLimit = fragLimit->integer;
+      g_level.fragLimit = fragLimit->integer;
     } else {
-      gLevel.fragLimit = g_fragLimit->integer;
+      g_level.fragLimit = g_fragLimit->integer;
     }
   }
 
 #if defined(G_CTF)
-  const CmEntity *captureLimitMap = G_MapValue("capture_limit");
+  const CmEntity *captureLimitMap = G_MapListEntryValue("capture_limit");
   if (captureLimitMap && (captureLimitMap->parsed & ENTITY_INTEGER) && captureLimitMap->integer > -1) { // prefer map metadata captureLimit
-    gLevel.captureLimit = captureLimitMap->integer;
+    g_level.captureLimit = captureLimitMap->integer;
   } else { // or fall back on worldspawn
     const CmEntity *captureLimit = gi.EntityValue(ent->def, "capture_limit");
     if (captureLimit->parsed & ENTITY_INTEGER) {
-      gLevel.captureLimit = captureLimit->integer;
+      g_level.captureLimit = captureLimit->integer;
     } else {
-      gLevel.captureLimit = g_captureLimit->integer;
+      g_level.captureLimit = g_captureLimit->integer;
     }
   }
 #endif
 
   float minutes;
-  const CmEntity *timeLimitMap = G_MapValue("time_limit");
+  const CmEntity *timeLimitMap = G_MapListEntryValue("time_limit");
   if (timeLimitMap && (timeLimitMap->parsed & ENTITY_FLOAT) && timeLimitMap->value > -1.f) { // prefer map metadata timeLimit
     minutes = timeLimitMap->value;
   } else { // or fall back on worldspawn
@@ -885,17 +885,17 @@ static void G_worldspawn(GameEntity *ent) {
       minutes = g_timeLimit->value;
     }
   }
-  gLevel.timeLimit = minutes * 60 * 1000;
+  g_level.timeLimit = minutes * 60 * 1000;
 
-  const CmEntity *musicMap = G_MapValue("music");
+  const CmEntity *musicMap = G_MapListEntryValue("music");
   if (musicMap && *musicMap->string) { // prefer map metadata music
-    q_strlcpy(gLevel.music, musicMap->string, sizeof(gLevel.music));
+    q_strlcpy(g_level.music, musicMap->string, sizeof(g_level.music));
   } else { // or fall back on worldspawn
     const CmEntity *music = gi.EntityValue(ent->def, "music");
     if (*music->string) {
-      q_strlcpy(gLevel.music, music->string, sizeof(gLevel.music));
+      q_strlcpy(g_level.music, music->string, sizeof(g_level.music));
     } else {
-      gLevel.music[0] = '\0';
+      g_level.music[0] = '\0';
     }
   }
 

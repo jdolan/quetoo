@@ -46,16 +46,16 @@ static void G_ChangeWeapon(GameClient *cl, const GameItem *item) {
     return;
   }
 
-  if (cl->weaponChangeTime > gLevel.time) {
+  if (cl->weaponChangeTime > g_level.time) {
     return;
   }
 
-  cl->weaponChangeTime = gLevel.time + 500;
+  cl->weaponChangeTime = g_level.time + 500;
 
   cl->nextWeapon = item;
   cl->prevWeapon = cl->weapon;
 
-  cl->weaponFireTime = gLevel.time + 100; // enable fire
+  cl->weaponFireTime = g_level.time + 100; // enable fire
   cl->grenadeHoldTime = 0; // put the pin back in
 
   if (cl->heldGrenade) {
@@ -66,7 +66,7 @@ static void G_ChangeWeapon(GameClient *cl, const GameItem *item) {
   G_SetAnimation(cl, ANIM_TORSO_DROP, true);
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = gMedia.sounds.weaponSwitch,
+    .index = g_media.sounds.weaponSwitch,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 }
@@ -86,7 +86,7 @@ bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
   // add the weapon to inventory
   cl->inventory[ent->item->def.tag]++;
 
-  const GameItem *ammo = ent->item->def.ammo ? &gItems[ent->item->def.ammo] : NULL;
+  const GameItem *ammo = ent->item->def.ammo ? &g_items[ent->item->def.ammo] : NULL;
   if (ammo) {
     const int16_t *stock = &cl->inventory[ammo->def.tag];
 
@@ -110,11 +110,11 @@ bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
   const uint16_t autoSwitch = cl->persistent.autoSwitch;
   if (autoSwitch == 1) { // switch from starting weapon
 
-    const GameItemTag tag = (gLevel.items == ITEMS_QUAKE)
+    const GameItemTag tag = (g_level.items == ITEMS_QUAKE)
       ? WEAPON_QUAKE_SHOTGUN
       : WEAPON_BLASTER;
 
-    if (cl->weapon == &gItems[tag]) {
+    if (cl->weapon == &g_items[tag]) {
       G_ChangeWeapon(cl, ent->item);
     }
   } else if (autoSwitch == 2) { // switch to all
@@ -152,7 +152,7 @@ void G_UseBestWeapon(GameClient *cl) {
   const GameItem *item = NULL;
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const GameItem *weapon = &gItems[t];
+    const GameItem *weapon = &g_items[t];
 
     if (!weapon) {
       continue;
@@ -204,7 +204,7 @@ GameEntity *G_DropWeapon(GameClient *cl, const GameItem *item) {
     return NULL;
   }
 
-  const GameItem *ammo = &gItems[item->def.ammo];
+  const GameItem *ammo = &g_items[item->def.ammo];
   const uint16_t ammoIndex = item->def.ammo;
 
   GameEntity *dropped = G_DropItem(cl, item);
@@ -268,7 +268,7 @@ static bool G_FireWeapon(GameClient *cl) {
   cl->latchedButtons &= ~BUTTON_ATTACK;
 
   // use small epsilon for low server frame rates
-  if (cl->weaponFireTime > gLevel.time + 1) {
+  if (cl->weaponFireTime > g_level.time + 1) {
     return false;
   }
 
@@ -285,12 +285,12 @@ static bool G_FireWeapon(GameClient *cl) {
   // if the client does not have enough ammo, change weapons
   if (cl->ammoIndex && ammo < ammoNeeded) {
 
-    if (gLevel.time >= cl->painTime) { // play a click sound
+    if (g_level.time >= cl->painTime) { // play a click sound
       G_MulticastSound(&(const GamePlaySound) {
-        .index = gMedia.sounds.weaponNoAmmo,
+        .index = g_media.sounds.weaponNoAmmo,
         .entity = cl->entity,
       }, MULTICAST_PHS);
-      cl->painTime = gLevel.time + 1000;
+      cl->painTime = g_level.time + 1000;
     }
 
     G_UseBestWeapon(cl);
@@ -319,11 +319,11 @@ static void G_WeaponFired(GameClient *cl, uint32_t interval, uint32_t ammoNeeded
 #endif
 
   // push the next fire time out by the interval
-  cl->weaponFireTime = gLevel.time + interval;
-  cl->weaponFiredTime = gLevel.time;
+  cl->weaponFireTime = g_level.time + interval;
+  cl->weaponFiredTime = g_level.time;
 
   // and decrease their inventory
-  if ((gLevel.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+  if ((g_level.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
     if (cl->ammoIndex) {
       cl->inventory[cl->ammoIndex] -= ammoNeeded;
     }
@@ -332,13 +332,13 @@ static void G_WeaponFired(GameClient *cl, uint32_t interval, uint32_t ammoNeeded
   // play a quad damage sound if applicable
   if (cl->inventory[POWERUP_QUAD]) {
 
-    if (cl->quadAttackTime < gLevel.time) {
+    if (cl->quadAttackTime < g_level.time) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = gMedia.sounds.quadAttack,
+        .index = g_media.sounds.quadAttack,
         .entity = cl->entity,
       }, MULTICAST_PHS);
 
-      cl->quadAttackTime = gLevel.time + 500;
+      cl->quadAttackTime = g_level.time + 500;
     }
   }
 }
@@ -356,12 +356,12 @@ void G_ClientWeaponThink(GameClient *cl) {
     return;
   }
 
-  cl->weaponThinkTime = gLevel.time;
+  cl->weaponThinkTime = g_level.time;
 
   // if changing weapons, carry out the change and re-enable firing
-  if (cl->weaponChangeTime > gLevel.time) {
+  if (cl->weaponChangeTime > g_level.time) {
 
-    const uint32_t delta = cl->weaponChangeTime - gLevel.time;
+    const uint32_t delta = cl->weaponChangeTime - g_level.time;
     if (delta <= 250) {
       if (cl->weapon != cl->nextWeapon) {
         cl->weapon = cl->nextWeapon;
@@ -391,7 +391,7 @@ void G_ClientWeaponThink(GameClient *cl) {
 
       // if the attack animation is complete, go back to standing
     } else if (G_IsAnimation(cl, ANIM_TORSO_ATTACK1)) {
-      if (gLevel.time - cl->weaponFiredTime > 400) {
+      if (g_level.time - cl->weaponFiredTime > 400) {
         G_SetAnimation(cl, ANIM_TORSO_STAND1, false);
       }
     }
@@ -541,10 +541,10 @@ static void G_PullGrenadePin(GameClient *cl) {
   nade->nextThink = 0;
   nade->Think = G_HeldGrenadeThink;
   nade->Touch = G_GrenadeProjectile_Touch;
-  nade->touchTime = gLevel.time;
+  nade->touchTime = g_level.time;
   nade->s.trail = TRAIL_GRENADE;
-  nade->s.model1 = gMedia.models.grenade;
-  nade->s.sound = gMedia.sounds.grenadeTick;
+  nade->s.model1 = g_media.models.grenade;
+  nade->s.sound = g_media.sounds.grenadeTick;
   gi.LinkEntity(nade);
 }
 
@@ -558,8 +558,8 @@ static bool G_CheckGrenadeHold(GameClient *cl, uint32_t buttons) {
   // just pulled the pin
   if (!cl->grenadeHoldTime && currentHold) {
     G_PullGrenadePin(cl);
-    cl->grenadeHoldTime = gLevel.time;
-    cl->grenadeHoldFrame = gLevel.frameNum;
+    cl->grenadeHoldTime = g_level.time;
+    cl->grenadeHoldFrame = g_level.frameNum;
     return true;
   }
   // already pulled the pin and holding it
@@ -586,7 +586,7 @@ void G_FireHandGrenade(GameClient *cl) {
   float throwSpeed = 500.0; // minimum
 
   // use small epsilon for low server frame rates
-  if (cl->weaponFireTime > gLevel.time + 1) {
+  if (cl->weaponFireTime > g_level.time + 1) {
     return;
   }
 
@@ -603,13 +603,13 @@ void G_FireHandGrenade(GameClient *cl) {
   // if the client does not have enough ammo, change weapons
   if (cl->ammoIndex && ammo < ammoNeeded) {
 
-    if (gLevel.time >= cl->painTime) { // play a click sound
+    if (g_level.time >= cl->painTime) { // play a click sound
       G_MulticastSound(&(const GamePlaySound) {
-        .index = gMedia.sounds.weaponNoAmmo,
+        .index = g_media.sounds.weaponNoAmmo,
         .entity = cl->entity,
       }, MULTICAST_PHS);
       
-      cl->painTime = gLevel.time + 1000;
+      cl->painTime = g_level.time + 1000;
     }
 
     G_UseBestWeapon(cl);
@@ -620,15 +620,15 @@ void G_FireHandGrenade(GameClient *cl) {
   bool holding = G_CheckGrenadeHold(cl, buttons);
 
   // how long have we been holding it?
-  uint32_t holdTime = gLevel.time - cl->grenadeHoldTime;
+  uint32_t holdTime = g_level.time - cl->grenadeHoldTime;
 
   // continue holding if time allows
   if (holding && (int32_t)(nadeTime - holdTime) > 0) {
 
     // play the timer sound if we're holding once every second
-    if ((gLevel.frameNum - cl->grenadeHoldFrame) % QUETOO_TICK_RATE == 0) {
+    if ((g_level.frameNum - cl->grenadeHoldFrame) % QUETOO_TICK_RATE == 0) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = gMedia.sounds.grenadeClang,
+        .index = g_media.sounds.grenadeClang,
         .entity = cl->entity,
       }, MULTICAST_PHS);
     }
@@ -662,7 +662,7 @@ void G_FireHandGrenade(GameClient *cl) {
 
   // play the sound if we throw it
   G_MulticastSound(&(const GamePlaySound) {
-    .index = gMedia.sounds.grenadeThrow,
+    .index = g_media.sounds.grenadeThrow,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -772,7 +772,7 @@ void G_FireRailgun(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    const int16_t damage = ((gLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) ? 999 : g_balanceRailgunDamage->integer;
+    const int16_t damage = ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) ? 999 : g_balanceRailgunDamage->integer;
 
     G_RailgunProjectile(cl->entity, cl->entity, org, forward, damage, g_balanceRailgunKnockback->integer, MOD_RAILGUN);
 
@@ -956,7 +956,7 @@ static void G_FireBfg_(GameEntity *ent) {
   GameClient *cl = ent->owner->client;
 
   if (ent->owner->dead == false) {
-    if (cl->weapon == &gItems[WEAPON_BFG10K]) {
+    if (cl->weapon == &g_items[WEAPON_BFG10K]) {
       Vec3 forward, right, up, org;
 
       G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
@@ -972,7 +972,7 @@ static void G_FireBfg_(GameEntity *ent) {
   }
 
   ent->Think = G_FreeEntity;
-  ent->nextThink = gLevel.time + 1;
+  ent->nextThink = g_level.time + 1;
 }
 
 /**
@@ -981,17 +981,17 @@ static void G_FireBfg_(GameEntity *ent) {
 void G_FireBfg(GameClient *cl) {
 
   if (G_FireWeapon(cl)) {
-    cl->weaponFireTime = gLevel.time + SECONDS_TO_MILLIS(g_balanceBfgRefire->value + g_balanceBfgPrefire->value);
+    cl->weaponFireTime = g_level.time + SECONDS_TO_MILLIS(g_balanceBfgRefire->value + g_balanceBfgPrefire->value);
 
     GameEntity *timer = G_AllocEntity(__func__);
     timer->owner = cl->entity;
     timer->svFlags = SVF_NO_CLIENT;
 
     timer->Think = G_FireBfg_;
-    timer->nextThink = gLevel.time + SECONDS_TO_MILLIS(g_balanceBfgPrefire->value) - QUETOO_TICK_MILLIS;
+    timer->nextThink = g_level.time + SECONDS_TO_MILLIS(g_balanceBfgPrefire->value) - QUETOO_TICK_MILLIS;
 
     G_MulticastSound(&(const GamePlaySound) {
-      .index = gMedia.sounds.bfgPrime,
+      .index = g_media.sounds.bfgPrime,
       .entity = cl->entity,
     }, MULTICAST_PHS);
   }

@@ -145,7 +145,7 @@ static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const c
     }
 
     case VOTE_ARG_INTEGER: {
-      if (!q_strcmp(type, "bots") && gLevel.minClientsMap > -1) {
+      if (!q_strcmp(type, "bots") && g_level.minClientsMap > -1) {
         return false;
       }
 
@@ -294,7 +294,7 @@ static void G_Vote_Check(void) {
     return;
   }
 
-  if (gLevel.intermissionTime) { // the level is ending; a vote does not decide it
+  if (g_level.intermissionTime) { // the level is ending; a vote does not decide it
     gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s cancelled\n", module.type,
                       *module.arg ? " " : "", module.arg);
     module.active = false;
@@ -309,7 +309,7 @@ static void G_Vote_Check(void) {
 
   if (yes >= needed) {
     G_Vote_End(true);
-  } else if (eligible - no < needed || gLevel.time >= module.deadline) {
+  } else if (eligible - no < needed || g_level.time >= module.deadline) {
     G_Vote_End(false);
   } else if (yes != module.published[0] || no != module.published[1] || eligible != module.published[2]) {
     G_Vote_Publish();
@@ -356,8 +356,8 @@ static void G_Vote_Call(GameClient *cl, const char *type, const char *arg) {
   }
 
   const uint32_t cooldown = module.cooldown[cl->ps.client];
-  if (cooldown && gLevel.time < cooldown) {
-    gi.ClientPrint(cl, PRINT_HIGH, "You may call another vote in %u seconds\n", (cooldown - gLevel.time) / 1000);
+  if (cooldown && g_level.time < cooldown) {
+    gi.ClientPrint(cl, PRINT_HIGH, "You may call another vote in %u seconds\n", (cooldown - g_level.time) / 1000);
     return;
   }
 
@@ -373,9 +373,9 @@ static void G_Vote_Call(GameClient *cl, const char *type, const char *arg) {
   q_strlcpy(module.type, type, sizeof(module.type));
   q_strlcpy(module.arg, canonical, sizeof(module.arg));
   q_strlcpy(module.initiator, cl->persistent.netName, sizeof(module.initiator));
-  module.deadline = gLevel.time + Maxf(1.f, g_voteTime->value) * 1000;
+  module.deadline = g_level.time + Maxf(1.f, g_voteTime->value) * 1000;
   module.ballots[cl->ps.client] = BALLOT_YES;
-  module.cooldown[cl->ps.client] = gLevel.time + Maxf(0.f, g_voteCooldown->value) * 1000;
+  module.cooldown[cl->ps.client] = g_level.time + Maxf(0.f, g_voteCooldown->value) * 1000;
 
   gi.BroadcastPrint(PRINT_HIGH, "%s called a vote: %s%s%s\n", cl->persistent.netName, type,
                     *canonical ? " " : "", canonical);
@@ -404,7 +404,7 @@ static bool G_HandleClientCommand_Vote(GameClient *cl, const char *cmd) {
     G_Vote_Cast(cl, BALLOT_YES);
   } else if (!q_strcasecmp(what, "no")) {
     G_Vote_Cast(cl, BALLOT_NO);
-  } else if (gLevel.intermissionTime) {
+  } else if (g_level.intermissionTime) {
     gi.ClientPrint(cl, PRINT_HIGH, "The level is ending\n");
   } else {
     G_Vote_Call(cl, what, gi.Argc() > 2 ? gi.Argv(2) : "");

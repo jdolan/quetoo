@@ -493,9 +493,9 @@ float Cg_GetHookPullSpeed(void) {
  */
 static const Gameplay *Cg_ListGameplayModes_Common(size_t *count) {
 
-  *count = lengthof(gGameplayModes);
+  *count = lengthof(g_gameplayModes);
 
-  return gGameplayModes;
+  return g_gameplayModes;
 }
 
 ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;

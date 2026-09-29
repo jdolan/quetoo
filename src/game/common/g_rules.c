@@ -41,18 +41,18 @@ CheckCvars G_CheckCvars = G_CheckCvars_Common;
  */
 static bool G_CheckWinner_Common(void) {
 
-  if (gLevel.fragLimit) {
+  if (g_level.fragLimit) {
 
-    if (gLevel.teams) { // check team scores
-      for (int32_t i = 0; i < gLevel.numTeams; i++) {
-        if (gTeamList[i].score >= gLevel.fragLimit) {
+    if (g_level.teams) { // check team scores
+      for (int32_t i = 0; i < g_level.numTeams; i++) {
+        if (g_teamList[i].score >= g_level.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }
       }
     } else { // or individual scores
       G_ForEachClient(cl, {
-        if (cl->persistent.score >= gLevel.fragLimit) {
+        if (cl->persistent.score >= g_level.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }

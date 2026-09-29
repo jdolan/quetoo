@@ -137,10 +137,10 @@ static void Sv_Map_f(void) {
  */
 void Sv_NextMap_f(void) {
 
-  const CmEntity *props = Sv_NextMap();
-  if (props) {
-    const char *name = Cm_EntityValue(props, "name")->string;
-    Sv_InitServer(name, props, SV_ACTIVE_GAME);
+  const CmEntity *mapListEntry = Sv_NextMap();
+  if (mapListEntry) {
+    const char *name = Cm_EntityValue(mapListEntry, "name")->string;
+    Sv_InitServer(name, mapListEntry, SV_ACTIVE_GAME);
   } else if (*sv.name && svs.state == SV_ACTIVE_GAME) {
     Sv_InitServer(sv.name, NULL, SV_ACTIVE_GAME);
   } else {

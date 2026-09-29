@@ -25,7 +25,7 @@
 
 #if defined(__G_LOCAL_H__)
 
-  extern GameItem *gItems;
+  extern GameItem *g_items;
 
   /**
    * @brief Item bounding box scaling.

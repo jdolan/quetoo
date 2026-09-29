@@ -63,13 +63,13 @@ static struct {
 /**
  * @brief True when the hook is available this level.
  */
-static bool gHookEnabled;
+static bool g_hookEnabled;
 
 /**
  * @return True if the hook is enabled for this level.
  */
 static bool G_Hook_Enabled(void) {
-  return gHookEnabled;
+  return g_hookEnabled;
 }
 
 /**
@@ -353,7 +353,7 @@ static void G_HookTrail_Think(GameEntity *ent) {
     return;
   }
 
-  ent->nextThink = gLevel.time + 1;
+  ent->nextThink = g_level.time + 1;
   gi.LinkEntity(ent);
 }
 
@@ -406,7 +406,7 @@ static void G_HookProjectile_Think(GameEntity *ent) {
     }
   }
 
-  ent->nextThink = gLevel.time + 1;
+  ent->nextThink = g_level.time + 1;
 }
 
 /**
@@ -431,7 +431,7 @@ GameEntity *G_HookProjectile(GameEntity *ent, const Vec3 start, const Vec3 dir) 
   projectile->Touch = G_HookProjectile_Touch;
   projectile->s.model1 = module.model;
   projectile->Think = G_HookProjectile_Think;
-  projectile->nextThink = gLevel.time + 1;
+  projectile->nextThink = g_level.time + 1;
   projectile->s.sound = module.fly;
 
   gi.LinkEntity(projectile);
@@ -449,7 +449,7 @@ GameEntity *G_HookProjectile(GameEntity *ent, const Vec3 start, const Vec3 dir) 
   trail->s.effects = EF_BEAM;
   trail->s.trail = TRAIL_HOOK;
   trail->Think = G_HookTrail_Think;
-  trail->nextThink = gLevel.time + 1;
+  trail->nextThink = g_level.time + 1;
 
   G_HookTrail_Think(trail);
 
@@ -465,7 +465,7 @@ GameEntity *G_HookProjectile(GameEntity *ent, const Vec3 start, const Vec3 dir) 
  */
 void G_HookDetach(GameClient *cl) {
 
-  if (!gHookEnabled) {
+  if (!g_hookEnabled) {
     return;
   }
 
@@ -483,10 +483,10 @@ void G_HookDetach(GameClient *cl) {
 
   // prevent hook spam
   if (!cl->hook.pull) {
-    cl->hook.fireTime = gLevel.time + SECONDS_TO_MILLIS(g_hookRefire->value);
+    cl->hook.fireTime = g_level.time + SECONDS_TO_MILLIS(g_hookRefire->value);
   } else {
     // don't get hurt from sweet-ass hooking
-    cl->landTime = gLevel.time;
+    cl->landTime = g_level.time;
   }
 
   cl->hook.pull = false;
@@ -522,7 +522,7 @@ static void G_HookCheckFire(GameClient *cl, const bool refire) {
   if (!refire) {
 
     // use small epsilon for low server frame rates
-    if (cl->hook.fireTime > gLevel.time + 1) {
+    if (cl->hook.fireTime > g_level.time + 1) {
       return;
     }
 
@@ -545,7 +545,7 @@ static void G_HookCheckFire(GameClient *cl, const bool refire) {
     .pitch = RandomRangei(-4, 5)
   }, MULTICAST_PHS);
 
-  cl->hook.thinkTime = gLevel.time;
+  cl->hook.thinkTime = g_level.time;
 }
 
 /**
@@ -555,7 +555,7 @@ static void G_HookCheckFire(GameClient *cl, const bool refire) {
  * having to know the feature exists.
  */
 static bool G_AllowHook_Common(const GameClient *cl) {
-  return Pm_Movement(gLevel.movement)->hook;
+  return Pm_Movement(g_level.movement)->hook;
 }
 
 AllowHook G_AllowHook = G_AllowHook_Common;
@@ -566,7 +566,7 @@ AllowHook G_AllowHook = G_AllowHook_Common;
 void G_HookThink(GameClient *cl, const bool refire) {
 
   // sanity checks
-  if (!gHookEnabled) {
+  if (!g_hookEnabled) {
     return;
   }
 
@@ -604,7 +604,7 @@ void G_HookThink(GameClient *cl, const bool refire) {
       G_HookDetach(cl);
 
       cl->latchedButtons &= ~BUTTON_HOOK;
-      cl->hook.thinkTime = gLevel.time;
+      cl->hook.thinkTime = g_level.time;
     }
   } else {
     G_HookCheckFire(cl, false);
@@ -643,9 +643,9 @@ void G_SetClientHookStyle(GameClient *cl) {
 void G_Hook_CheckState(void) {
 
   if (q_strcmp(g_hook->string, "default")) { // the cvar, else compiled in means on
-    gHookEnabled = !!g_hook->integer;
+    g_hookEnabled = !!g_hook->integer;
   } else {
-    gHookEnabled = true;
+    g_hookEnabled = true;
   }
 
   if (g_hookDistance->modified) {

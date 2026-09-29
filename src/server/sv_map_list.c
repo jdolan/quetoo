@@ -163,14 +163,14 @@ void Sv_InitMapList(void) {
 
   int32_t i = 0;
   for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
-    CmEntity *props = (CmEntity *) node->element;
+    CmEntity *e = (CmEntity *) node->element;
 
-    const CmEntity *name = Cm_EntityValue(props, "name");
+    const CmEntity *name = Cm_EntityValue(e, "name");
     if (q_strlen(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_mapList->string);
-      Cm_FreeEntity(props);
+      Cm_FreeEntity(e);
     } else {
-      $(valid, append, props);
+      $(valid, append, e);
     }
   }
 

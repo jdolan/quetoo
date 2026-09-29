@@ -363,7 +363,7 @@ typedef struct Ai {
 
   /**
    * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead.
-   * Valid only when lookaheadFrame == gLevel.frameNum.
+   * Valid only when `lookaheadFrame == g_level.frameNum`.
    */
   bool lookaheadNoGround;
 } Ai;

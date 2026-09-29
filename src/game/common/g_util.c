@@ -70,7 +70,7 @@ void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns) {
  */
 Box3 G_PlayerBounds(void) {
 
-  const PMovementInfo *movement = Pm_Movement(gLevel.movement);
+  const PMovementInfo *movement = Pm_Movement(g_level.movement);
 
   return movement->params ? movement->params->bounds : PM_BOUNDS;
 }
@@ -228,7 +228,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
   if (ent->delay) {
     // create a temp entity to fire at a later time
     GameEntity *temp = G_AllocEntity(__func__);
-    temp->nextThink = gLevel.time + ent->delay * 1000;
+    temp->nextThink = g_level.time + ent->delay * 1000;
     temp->Think = G_UseTargets_Delay;
     temp->activator = activator;
     if (!activator) {
@@ -248,7 +248,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
     gi.Unicast(activator->client, true);
 
     G_UnicastSound(&(const GamePlaySound) {
-      .index = ent->sound ?: gMedia.sounds.chat,
+      .index = ent->sound ?: g_media.sounds.chat,
     }, activator->client, true);
   }
 
@@ -326,7 +326,7 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   e->classname = classname;
   e->inUse = true;
   e->waterLevel = WATER_UNKNOWN;
-  e->timestamp = gLevel.time;
+  e->timestamp = g_level.time;
   e->s.number = number;
   e->s.spawnId = nextSpawnId++;
 
@@ -525,9 +525,9 @@ const Gameplay *G_GameplayByName(const char *c) {
       *p = (char) tolower((unsigned char) *p);
     }
 
-    for (size_t i = 0; i < lengthof(gGameplayModes); i++) {
-      if (!q_strcmp(lower, gGameplayModes[i].name)) {
-        return &gGameplayModes[i];
+    for (size_t i = 0; i < lengthof(g_gameplayModes); i++) {
+      if (!q_strcmp(lower, g_gameplayModes[i].name)) {
+        return &g_gameplayModes[i];
       }
     }
 
@@ -548,7 +548,7 @@ const Gameplay *G_GameplayByName(const char *c) {
     return G_GameplayById((GameplayId) id);
   }
 
-  return &gGameplayModes[0];
+  return &g_gameplayModes[0];
 }
 
 /**
@@ -562,13 +562,13 @@ const Gameplay *G_GameplayByName(const char *c) {
  */
 const Gameplay *G_GameplayById(GameplayId id) {
 
-  for (size_t i = 0; i < lengthof(gGameplayModes); i++) {
-    if (gGameplayModes[i].id == id) {
-      return &gGameplayModes[i];
+  for (size_t i = 0; i < lengthof(g_gameplayModes); i++) {
+    if (g_gameplayModes[i].id == id) {
+      return &g_gameplayModes[i];
     }
   }
 
-  return &gGameplayModes[0];
+  return &g_gameplayModes[0];
 }
 
 /**
@@ -581,10 +581,10 @@ GameTeam *G_TeamByName(const char *c) {
     return NULL;
   }
 
-  for (int32_t i = 0; i < gLevel.numTeams; i++) {
+  for (int32_t i = 0; i < g_level.numTeams; i++) {
 
-    if (!q_strcolorcmp(gTeamList[i].name, c)) {
-      return &gTeamList[i];
+    if (!q_strcolorcmp(g_teamList[i].name, c)) {
+      return &g_teamList[i];
     }
   }
 
@@ -615,8 +615,8 @@ GameTeam *G_SmallestTeam(void) {
   GameTeam *smallest = NULL;
   size_t size = SIZE_MAX;
 
-  GameTeam *team = gTeamList;
-  for (int32_t i = 0; i < gLevel.numTeams; i++, team++) {
+  GameTeam *team = g_teamList;
+  for (int32_t i = 0; i < g_level.numTeams; i++, team++) {
     const size_t s = G_TeamSize(team);
     if (s < size) {
       smallest = team;
@@ -742,14 +742,14 @@ void G_SetAnimation(GameClient *cl, EntityAnimation anim, bool restart) {
   // while most go to one or the other, and are throttled
 
   if (anim < ANIM_LEGS_WALKCR) {
-    if (restart || cl->animation1Time <= gLevel.time) {
+    if (restart || cl->animation1Time <= g_level.time) {
       G_SetAnimation_(&cl->entity->s.animation1, anim, restart);
-      cl->animation1Time = gLevel.time + 50;
+      cl->animation1Time = g_level.time + 50;
     }
   } else {
-    if (restart || cl->animation2Time <= gLevel.time) {
+    if (restart || cl->animation2Time <= g_level.time) {
       G_SetAnimation_(&cl->entity->s.animation2, anim, restart);
-      cl->animation2Time = gLevel.time + 50;
+      cl->animation2Time = g_level.time + 50;
     }
   }
 }

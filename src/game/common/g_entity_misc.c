@@ -103,10 +103,10 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Cm
   int32_t soundIndex;
   if (customSound) {
     soundIndex = gi.SoundIndex(customSound);
-  } else if (gLevel.items == ITEMS_QUAKE && !q_strcmp(ent->classname, "trigger_teleporter")) {
-    soundIndex = gMedia.sounds.quakeTeleport[RandomRangei(0, 5)];
+  } else if (g_level.items == ITEMS_QUAKE && !q_strcmp(ent->classname, "trigger_teleporter")) {
+    soundIndex = g_media.sounds.quakeTeleport[RandomRangei(0, 5)];
   } else {
-    soundIndex = gMedia.sounds.teleport;
+    soundIndex = g_media.sounds.teleport;
   }
 
   G_MulticastSound(&(const GamePlaySound) {
@@ -218,7 +218,7 @@ void G_misc_teleporter(GameEntity *ent) {
   // create link to destination
   if (!G_Ai_InDeveloperMode()) {
     ent->Think = G_misc_teleporter_Think;
-    ent->nextThink = gLevel.time + 1;
+    ent->nextThink = g_level.time + 1;
   }
 
   gi.LinkEntity(ent);
@@ -273,7 +273,7 @@ static void G_misc_fireball_Think(GameEntity *ent) {
     ent->velocity.z = -8.0;
 
     ent->Think = G_FreeEntity;
-    ent->nextThink = gLevel.time + 3000;
+    ent->nextThink = g_level.time + 3000;
 
     gi.LinkEntity(ent);
   } else {
@@ -286,8 +286,8 @@ static void G_misc_fireball_Think(GameEntity *ent) {
  */
 static void G_misc_fireball_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
 
-  if (gLevel.time - ent->touchTime > 500) {
-    ent->touchTime = gLevel.time;
+  if (g_level.time - ent->touchTime > 500) {
+    ent->touchTime = g_level.time;
 
     G_Damage(&(GameDamage) {
       .target = other,
@@ -330,26 +330,26 @@ static void G_misc_fireball_Fly(GameEntity *ent) {
   fireball->moveType = MOVE_TYPE_BOUNCE;
   fireball->mass = 10.f;
 
-  fireball->s.model1 = gMedia.models.fireball;
+  fireball->s.model1 = g_media.models.fireball;
   fireball->damage = ent->damage;
 
   fireball->Touch = G_misc_fireball_Touch;
 
   fireball->Think = G_misc_fireball_Think;
-  fireball->nextThink = gLevel.time + 3000;
+  fireball->nextThink = g_level.time + 3000;
 
   gi.LinkEntity(fireball);
 
   if (Randomf() < 0.1f) {
     static uint32_t count;
     G_MulticastSound(&(const GamePlaySound) {
-      .index = gMedia.sounds.lava[count++ % lengthof(gMedia.sounds.lava)],
+      .index = g_media.sounds.lava[count++ % lengthof(g_media.sounds.lava)],
       .entity = ent,
       .gain = RandomRangef(0.1f, 0.3f)
     }, MULTICAST_PHS);
   }
 
-  ent->nextThink = gLevel.time + (ent->wait * 1000.0) + (ent->random * 1000 * RandomRangef(-1.f, 1.f));
+  ent->nextThink = g_level.time + (ent->wait * 1000.0) + (ent->random * 1000 * RandomRangef(-1.f, 1.f));
 }
 
 /*QUAKED misc_fireball (1 0.3 0.1) (-6 -6 -6) (6 6 6)
@@ -385,5 +385,5 @@ void G_misc_fireball(GameEntity *ent) {
   }
 
   ent->Think = G_misc_fireball_Fly;
-  ent->nextThink = gLevel.time + (Randomf() * 1000);
+  ent->nextThink = g_level.time + (Randomf() * 1000);
 }

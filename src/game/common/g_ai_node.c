@@ -1161,7 +1161,7 @@ void G_Ai_InitNodes(void) {
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", gLevel.name);
+  q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
   if (!gi.FileExists(filename)) {
     G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_aiNodeDev` to set up nodes.\n");
@@ -1278,7 +1278,7 @@ void G_Ai_SaveNodes(void) {
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", gLevel.name);
+  q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
   if (!g_aiNodes) {
     G_Warn("No nodes to write.\n");

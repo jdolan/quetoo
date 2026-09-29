@@ -53,14 +53,14 @@ static void G_target_light_Use(GameEntity *ent, GameEntity *other, GameEntity *a
 
   if (ent->delay) {
     ent->Think = G_target_light_Cycle;
-    ent->nextThink = gLevel.time + ent->delay * 1000.0;
+    ent->nextThink = g_level.time + ent->delay * 1000.0;
   } else {
     G_target_light_Cycle(ent);
   }
 
   if (ent->wait) {
     ent->Think = G_target_light_Cycle;
-    ent->nextThink = gLevel.time + (ent->delay + ent->wait) * 1000.0;
+    ent->nextThink = g_level.time + (ent->delay + ent->wait) * 1000.0;
   }
 }
 
@@ -347,7 +347,7 @@ static void G_ballistics_Rail(const GameBallisticsType *type, GameEntity *ent, G
  */
 static void G_ballistics_Laser(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LASER,
-    gMedia.sounds.laserFly);
+    g_media.sounds.laserFly);
 }
 
 /**
@@ -355,7 +355,7 @@ static void G_ballistics_Laser(const GameBallisticsType *type, GameEntity *ent, 
  */
 static void G_ballistics_Lightning(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LIGHTNING,
-    gMedia.sounds.lightningFly);
+    g_media.sounds.lightningFly);
 }
 
 /**
@@ -378,7 +378,7 @@ static void G_ballistics_Giblets(const GameBallisticsType *type, GameEntity *ent
   });
 }
 
-static const GameBallisticsType gBallisticsTypes[] = {
+static const GameBallisticsType g_ballisticsTypes[] = {
   {
     .name = "blaster",
     .refire = &g_balanceBlasterRefire,
@@ -607,9 +607,9 @@ static const GameBallisticsType gBallisticsTypes[] = {
  */
 static const GameBallisticsType *G_ballistics_Type(const char *name) {
 
-  for (size_t i = 0; i < lengthof(gBallisticsTypes); i++) {
-    if (!q_strcmp(gBallisticsTypes[i].name, name)) {
-      return &gBallisticsTypes[i];
+  for (size_t i = 0; i < lengthof(g_ballisticsTypes); i++) {
+    if (!q_strcmp(g_ballisticsTypes[i].name, name)) {
+      return &g_ballisticsTypes[i];
     }
   }
 
@@ -659,8 +659,8 @@ static void G_ballistics_Fire(GameEntity *ent, GameEntity *attacker, const Vec3 
     return;
   }
 
-  if (gLevel.time >= ent->flashTime) {
-    ent->flashTime = gLevel.time + type->flashInterval;
+  if (g_level.time >= ent->flashTime) {
+    ent->flashTime = g_level.time + type->flashInterval;
 
     G_WorldMuzzleFlash(start, aim, type->flash, ent->s.client);
   }
@@ -682,7 +682,7 @@ static uint32_t G_ballistics_Prefire(GameEntity *ent) {
 
   if (prefire) {
     G_MulticastSound(&(const GamePlaySound) {
-      .index = gMedia.sounds.bfgPrime,
+      .index = g_media.sounds.bfgPrime,
       .origin = &ent->s.origin,
     }, MULTICAST_PHS);
   }
@@ -709,7 +709,7 @@ static void G_ballistics_Think(GameEntity *ent) {
     const float wait = type->sustained ? 0.f
       : SECONDS_TO_MILLIS(ent->wait) + SECONDS_TO_MILLIS(ent->random) * RandomRangef(-1.f, 1.f);
 
-    ent->nextThink = gLevel.time + (uint32_t) Maxf(wait, QUETOO_TICK_MILLIS);
+    ent->nextThink = g_level.time + (uint32_t) Maxf(wait, QUETOO_TICK_MILLIS);
   } else {
     ent->nextThink = 0;
   }
@@ -726,7 +726,7 @@ static void G_ballistics_Use(GameEntity *ent, GameEntity *other, GameEntity *act
     ent->count = !ent->count;
 
     if (ent->count) {
-      ent->nextThink = gLevel.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(ent->delay), QUETOO_TICK_MILLIS);
+      ent->nextThink = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(ent->delay), QUETOO_TICK_MILLIS);
     } else {
       ent->nextThink = 0;
 
@@ -740,16 +740,16 @@ static void G_ballistics_Use(GameEntity *ent, GameEntity *other, GameEntity *act
     return;
   }
 
-  if (ent->timestamp > gLevel.time) {
+  if (ent->timestamp > g_level.time) {
     return;
   }
 
-  ent->timestamp = gLevel.time + SECONDS_TO_MILLIS(ent->wait);
+  ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
 
   const uint32_t delay = (uint32_t) SECONDS_TO_MILLIS(ent->delay) + G_ballistics_Prefire(ent);
 
   if (delay) {
-    ent->nextThink = gLevel.time + (uint32_t) Maxi((int32_t) delay, QUETOO_TICK_MILLIS);
+    ent->nextThink = g_level.time + (uint32_t) Maxi((int32_t) delay, QUETOO_TICK_MILLIS);
   } else {
     const GameBallisticsType *type = ent->ballistics;
 
@@ -769,11 +769,11 @@ static void G_turret_Use(GameEntity *ent, GameEntity *other, GameEntity *activat
   // expires between uses, and its damage interval is enforced by the beam itself
   if (!type->sustained) {
 
-    if (ent->timestamp > gLevel.time) {
+    if (ent->timestamp > g_level.time) {
       return;
     }
 
-    ent->timestamp = gLevel.time + SECONDS_TO_MILLIS(ent->wait);
+    ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
   }
 
   const uint32_t prefire = G_ballistics_Prefire(ent);
@@ -784,7 +784,7 @@ static void G_turret_Use(GameEntity *ent, GameEntity *other, GameEntity *activat
     if (prefire) {
       // hold the operator, and aim where they are looking when it goes off
       ent->activator = activator;
-      ent->nextThink = gLevel.time + prefire;
+      ent->nextThink = g_level.time + prefire;
     } else {
       G_ballistics_Fire(ent, activator, activator->client->forward, type->turretMod);
     }
@@ -793,7 +793,7 @@ static void G_turret_Use(GameEntity *ent, GameEntity *other, GameEntity *activat
 
     if (prefire) {
       ent->activator = NULL;
-      ent->nextThink = gLevel.time + prefire;
+      ent->nextThink = g_level.time + prefire;
     } else {
       G_ballistics_Fire(ent, ent, ent->moveDir, type->ballisticsMod);
     }
@@ -926,7 +926,7 @@ bool G_ballistics(GameEntity *ent) {
 
     if (ent->spawnFlags & BALLISTICS_START_ON) {
       ent->count = 1;
-      ent->nextThink = gLevel.time + RandomRangeu(1, 1000);
+      ent->nextThink = g_level.time + RandomRangeu(1, 1000);
     }
   }
 
