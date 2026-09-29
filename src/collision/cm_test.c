@@ -403,13 +403,13 @@ typedef struct {
    * @brief Accumulated contents from all touched leafs.
    */
   int32_t contents;
-} cm_box_leafnum_data;
+} CmBoxLeafnumData;
 
 /**
  * @brief Recurse the BSP tree from the specified node, accumulating leafs the
  * given box occupies in the data structure.
  */
-static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t nodeNum) {
+static void Cm_BoxLeafnums_r(CmBoxLeafnumData *data, int32_t nodeNum) {
 
   while (true) {
     if (nodeNum < 0) {
@@ -458,7 +458,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t nodeNum) {
 size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *topNode,
             int32_t headNode) {
 
-  cm_box_leafnum_data data = {
+  CmBoxLeafnumData data = {
     .bounds = bounds,
     .list = list,
     .length = length,
@@ -488,7 +488,7 @@ size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *
  * @return The contents mask of all leafs within the transformed bounds.
  */
 int32_t Cm_BoxContents(const Box3 bounds, int32_t headNode) {
-  cm_box_leafnum_data data = {
+  CmBoxLeafnumData data = {
     .bounds = bounds,
     .list = NULL,
     .length = 0,

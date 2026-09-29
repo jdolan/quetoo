@@ -1209,7 +1209,7 @@ typedef struct {
   MOD_TURRET_LASER,
   MOD_TURRET_GIBLETS,
   MOD_FRIENDLY_FIRE = 0x8000000
-} g_means_of_death;
+} GameMeansOfDeath;
 
 /**
  * @brief Damage flags. These can be and often are combined.
@@ -1273,7 +1273,7 @@ typedef struct {
  /**
   * @brief Means of death identifier.
   */
-	g_means_of_death mod;
+	GameMeansOfDeath mod;
 } GameDamage;
 
 /**

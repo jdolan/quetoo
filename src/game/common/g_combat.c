@@ -46,7 +46,7 @@ bool G_OnSameTeam(const GameClient *a, const GameClient *b) {
 /**
  * @brief Returns a human-readable weapon name for a means of death, for stats recording.
  */
-static const char *G_WeaponNameForMod(g_means_of_death mod) {
+static const char *G_WeaponNameForMod(GameMeansOfDeath mod) {
 
   switch (mod & ~MOD_FRIENDLY_FIRE) {
     case MOD_BLASTER:
@@ -351,7 +351,7 @@ void G_Damage(const GameDamage *dmg) {
 	int32_t damage = dmg->damage;
 	int32_t knockback = dmg->knockback;
 	int32_t dflags = dmg->flags;
-	g_means_of_death mod = dmg->mod;
+	GameMeansOfDeath mod = dmg->mod;
 
   assert(target);
   assert(attacker);
@@ -563,7 +563,7 @@ void G_Damage(const GameDamage *dmg) {
  * @brief Deals damage and knockback to all damageable entities within the specified radius of the inflictor.
  */
 void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ignore, int32_t damage,
-                    int32_t knockback, float radius, g_means_of_death mod) {
+                    int32_t knockback, float radius, GameMeansOfDeath mod) {
 
   G_ForEachEntity(ent, {
     if (ent == ignore) {

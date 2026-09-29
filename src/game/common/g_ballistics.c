@@ -889,7 +889,7 @@ void G_HyperblasterProjectile(GameEntity *emitter, GameEntity *attacker, const V
  * @brief Discharges the lightning gun into water, killing the owner and dealing scaled damage to all nearby entities.
  */
 static void G_LightningProjectile_Discharge(GameEntity *ent) {
-  const g_means_of_death mod = ent->count ? ent->count : MOD_LIGHTNING_DISCHARGE;
+  const GameMeansOfDeath mod = ent->count ? ent->count : MOD_LIGHTNING_DISCHARGE;
 
   // kill ourselves
   G_Damage(&(GameDamage) {
