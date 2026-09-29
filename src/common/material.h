@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "common/asset.h"
+#include "asset.h"
 
 /**
  * @brief Blend factors for material stage blending. Renderer-agnostic; the

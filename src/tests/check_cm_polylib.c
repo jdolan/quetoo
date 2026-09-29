@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "collision/cm_polylib.h"
+#include "common/winding.h"
 
 Quetoo quetoo;
 
@@ -300,19 +300,19 @@ START_TEST(check_Winding_Elements_invalid) {
 
 } END_TEST
 
-START_TEST(check_Cm_TriangleArea) {
+START_TEST(check_Vec3_TriangleArea) {
   Vec3 a, b, c;
 
   a = MakeVec3(0, 0, 0);
   b = MakeVec3(0, 1, 0);
   c = MakeVec3(1, 1, 0);
 
-  const float area = Cm_TriangleArea(a, b, c);
+  const float area = Vec3_TriangleArea(a, b, c);
   ck_assert(area == 0.5);
 
 } END_TEST
 
-START_TEST(check_Cm_Barycentric) {
+START_TEST(check_Vec3_Barycentric) {
   Vec3 a, b, c, p, out;
 
   a = MakeVec3(0, 0, 0);
@@ -321,7 +321,7 @@ START_TEST(check_Cm_Barycentric) {
 
   p = MakeVec3(0, 0, 0);
 
-  Cm_Barycentric(a, b, c, p, &out);
+  Vec3_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
   ck_assert(out.x == 1);
   ck_assert(out.y == 0);
@@ -329,7 +329,7 @@ START_TEST(check_Cm_Barycentric) {
 
   p = MakeVec3(0, 1, 0);
 
-  Cm_Barycentric(a, b, c, p, &out);
+  Vec3_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
   ck_assert(out.x == 0);
   ck_assert(out.y == 1);
@@ -337,7 +337,7 @@ START_TEST(check_Cm_Barycentric) {
 
   p = MakeVec3(1, 1, 0);
 
-  Cm_Barycentric(a, b, c, p, &out);
+  Vec3_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
   ck_assert(out.x == 0);
   ck_assert(out.y == 0);
@@ -345,7 +345,7 @@ START_TEST(check_Cm_Barycentric) {
 
   p = MakeVec3(0.5, 0.5, 0);
 
-  Cm_Barycentric(a, b, c, p, &out);
+  Vec3_Barycentric(a, b, c, p, &out);
 //  puts(vtos(out));
   ck_assert(out.x == 0.5);
   ck_assert(out.y == 0);
@@ -781,16 +781,16 @@ int32_t main(int32_t argc, char **argv) {
   }
 
   {
-    TCase *tcase = tcase_create("Cm_TriangleArea");
+    TCase *tcase = tcase_create("Vec3_TriangleArea");
     tcase_add_checked_fixture(tcase, setup, teardown);
-    tcase_add_test(tcase, check_Cm_TriangleArea);
+    tcase_add_test(tcase, check_Vec3_TriangleArea);
     suite_add_tcase(suite, tcase);
   }
 
   {
-    TCase *tcase = tcase_create("Cm_Barycentric");
+    TCase *tcase = tcase_create("Vec3_Barycentric");
     tcase_add_checked_fixture(tcase, setup, teardown);
-    tcase_add_test(tcase, check_Cm_Barycentric);
+    tcase_add_test(tcase, check_Vec3_Barycentric);
     suite_add_tcase(suite, tcase);
   }
 

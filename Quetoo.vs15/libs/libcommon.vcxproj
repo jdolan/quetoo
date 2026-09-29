@@ -30,6 +30,9 @@
     <ClCompile Include="..\..\src\common\filesystem.c" />
     <ClCompile Include="..\..\src\common\image.c" />
     <ClCompile Include="..\..\src\common\installer.c" />
+    <ClCompile Include="..\..\src\common\winding.c" />
+    <ClCompile Include="..\..\src\common\material.c" />
+    <ClCompile Include="..\..\src\common\manifest.c" />
     <ClCompile Include="..\..\src\common\mem.c" />
     <ClCompile Include="..\..\src\common\mem_buf.c" />
     <ClCompile Include="..\..\src\common\rgb9e5.c" />
@@ -48,6 +51,9 @@
     <ClInclude Include="..\..\src\common\filesystem.h" />
     <ClInclude Include="..\..\src\common\image.h" />
     <ClInclude Include="..\..\src\common\installer.h" />
+    <ClInclude Include="..\..\src\common\winding.h" />
+    <ClInclude Include="..\..\src\common\material.h" />
+    <ClInclude Include="..\..\src\common\manifest.h" />
     <ClInclude Include="..\..\src\common\mem.h" />
     <ClInclude Include="..\..\src\common\mem_buf.h" />
     <ClInclude Include="..\..\src\common\sys.h" />

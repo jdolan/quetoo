@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "collision/cm_material.h"
+#include "common/material.h"
 
 Quetoo quetoo;
 

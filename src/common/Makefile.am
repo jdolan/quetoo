@@ -9,11 +9,14 @@ noinst_HEADERS = \
 	filesystem.h \
 	image.h \
 	installer.h \
+	manifest.h \
+	material.h \
 	mem.h \
 	mem_buf.h \
 	rgb9e5.h \
 	sys.h \
-	thread.h
+	thread.h \
+	winding.h
 
 noinst_LTLIBRARIES = \
 	libcommon.la
@@ -29,11 +32,14 @@ libcommon_la_SOURCES = \
 	filesystem.c \
 	image.c \
 	installer.c \
+	manifest.c \
+	material.c \
 	mem.c \
 	mem_buf.c \
 	rgb9e5.c \
 	sys.c \
-	thread.c
+	thread.c \
+	winding.c
 
 libcommon_la_CFLAGS = \
 	-I$(top_srcdir) \

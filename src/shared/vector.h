@@ -1175,6 +1175,56 @@ static inline void Vec3_Tangents(const Vec3 normal, const Vec3 sdir, const Vec3 
 }
 
 /**
+* @return The area of the triangle defined by a, b and c.
+*/
+static inline float Vec3_TriangleArea(const Vec3 a, const Vec3 b, const Vec3 c) {
+
+   const Vec3 ba = Vec3_Subtract(b, a);
+   const Vec3 ca = Vec3_Subtract(c, a);
+   const Vec3 cross = Vec3_Cross(ba, ca);
+
+   return Vec3_Length(cross) * 0.5f;
+}
+
+/**
+* @brief Calculates barycentric coordinates for p in the triangle defined by a, b and c.
+* @remarks The `maxArea` checks ensure that p is (approximately) inside the triangle abc.
+* @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
+*/
+static inline float Vec3_Barycentric(const Vec3 a, const Vec3 b, const Vec3 c, const Vec3 p, Vec3 *out) {
+
+  const float abc = Vec3_TriangleArea(a, b, c);
+  if (abc) {
+    const float maxArea = abc * 1.f;
+
+    const float bcp = Vec3_TriangleArea(b, c, p);
+    if (bcp > maxArea) {
+      return FLT_MAX;
+    }
+
+    const float cap = Vec3_TriangleArea(c, a, p);
+    if (cap > maxArea) {
+      return FLT_MAX;
+    }
+
+    const float abp = Vec3_TriangleArea(a, b, p);
+    if (abp > maxArea) {
+      return FLT_MAX;
+    }
+
+    out->x = bcp / abc;
+    out->y = cap / abc;
+    out->z = abp / abc;
+
+    return out->x + out->y + out->z;
+  } else {
+     *out = Vec3_Zero();
+  }
+
+  return FLT_MAX;
+}
+
+/**
  * @brief Computes the sine and cosine of `rad` simultaneously.
  */
 static inline void SinCosf(const float rad, float *s, float *c) {

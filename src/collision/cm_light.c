@@ -281,7 +281,7 @@ size_t Material_Lights(const BspFile *file, Material *const *materials, int32_t 
         continue;
       }
 
-      Winding *w = Winding_ForBrushSide(file, side);
+      Winding *w = Cm_WindingForBrushSide(file, side);
       if (w == NULL) {
         continue;
       }

@@ -30,10 +30,10 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
 - The type prefix is the subsystem name, not the function prefix. It is spelled out where the
   subsystem is one word (`Render`, `Client`, `Server`, `Game`, `Sound`, `Collision`) and abbreviated
   where it is not (`CGame` for the client game, `PMove` for player movement).
-- The collision library also holds data that is not collision data. Those types take a bare name:
-  `Material`, `MaterialStage`, `Entity`, `Winding`, `ManifestEntry`, `Voxel`. The compiler's own
-  types for the same concepts take `Map`: `MapMaterial` (which wraps a `Material`), `MapEntity`,
-  `MapVoxel`.
+- Map data that is not collision data takes a bare name: `Material`, `MaterialStage`, `Winding`
+  and `ManifestEntry` in `src/common`, and `Entity` and `Voxel` in the collision library. The
+  compiler's own types for the same concepts take `Map`: `MapMaterial` (which wraps a `Material`),
+  `MapEntity`, `MapVoxel`.
 - An extern global MUST spell its subsystem prefix as the type names do: `render`, `client`,
   `server`, `sound`, `game`, `cgame`, `pmove`, `collision`, and `master` and `net` for those two
   libraries. The prefix names the subsystem that owns the global, not its type: `clientView` is a

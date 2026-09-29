@@ -3,10 +3,7 @@ noinst_HEADERS = \
 	cm_entity.h \
 	cm_light.h \
 	cm_local.h \
-	cm_manifest.h \
-	cm_material.h \
 	cm_model.h \
-	cm_polylib.h \
 	cm_test.h \
 	cm_types.h \
 	cm_voxel.h \
@@ -25,10 +22,7 @@ libcollision_la_SOURCES = \
 	cm_bsp.c \
 	cm_entity.c \
 	cm_light.c \
-	cm_manifest.c \
-	cm_material.c \
 	cm_model.c \
-	cm_polylib.c \
 	cm_test.c \
 	cm_trace.c \
 	cm_voxel.c

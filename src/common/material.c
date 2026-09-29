@@ -19,7 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "cm_local.h"
+#include "common.h"
+#include "material.h"
 
 /**
  * @brief Free the specified material.

@@ -21,7 +21,8 @@
 
 #include <SDL3/SDL_atomic.h>
 
-#include "cm_local.h"
+#include "common.h"
+#include "winding.h"
 
 static SDL_AtomicInt cWindings;
 
@@ -102,7 +103,7 @@ float Winding_Area(const Winding *w) {
   float area = 0.0;
 
   for (int32_t i = 2; i < w->numPoints; i++) {
-    area += Cm_TriangleArea(w->points[0], w->points[i - 1], w->points[i]);
+    area += Vec3_TriangleArea(w->points[0], w->points[i - 1], w->points[i]);
   }
 
   return area;
@@ -232,76 +233,6 @@ Winding *Winding_ForPlane(const Vec3 normal, double dist) {
   w->numPoints = 4;
 
   return w;
-}
-
-/**
- * @brief Creates a winding for the given face, removing any collinear points.
- */
-Winding *Winding_ForFace(const BspFile *file, const BspFace *face) {
-
-  Winding *w = Winding_Alloc(face->numVertexes);
-  const int32_t v = face->firstVertex;
-
-  for (int32_t i = 0; i < face->numVertexes; i++) {
-
-    const BspVertex *v0 = &file->vertexes[(v + (i + 0) % face->numVertexes)];
-    const BspVertex *v1 = &file->vertexes[(v + (i + 1) % face->numVertexes)];
-    const BspVertex *v2 = &file->vertexes[(v + (i + 2) % face->numVertexes)];
-
-    w->points[w->numPoints] = v0->position;
-    w->numPoints++;
-
-    Vec3 a, b;
-    a = Vec3_Subtract(v1->position, v0->position);
-    b = Vec3_Subtract(v2->position, v1->position);
-
-    a = Vec3_Normalize(a);
-    b = Vec3_Normalize(b);
-
-    if (Vec3_Dot(a, b) > 1.0f - COLINEAR_EPSILON) { // skip v1
-      i++;
-    }
-  }
-
-  return w;
-}
-
-/**
- * @brief Creates a winding for the given brush side, clipped to its brush.
- */
-Winding *Winding_ForBrushSide(const BspFile *file, const BspBrushSide *brushSide) {
-
-  const BspPlane *plane = file->planes + brushSide->plane;
-  Winding *winding = Winding_ForPlane(plane->normal, plane->dist);
-
-  const int32_t side = (int32_t) (brushSide - file->brushSides);
-
-  const BspBrush *brush = file->brushes;
-  for (int32_t i = 0; i < file->numBrushes; i++, brush++) {
-
-    if (side >= brush->firstBrushSide
-      && side < brush->firstBrushSide + brush->numBrushSides) {
-      break;
-    }
-  }
-
-  const BspBrushSide *s = file->brushSides + brush->firstBrushSide;
-  for (int32_t i = 0; i < brush->numBrushSides; i++, s++) {
-    if (s == brushSide) {
-      continue;
-    }
-    if (s->surface & SURF_BEVEL) {
-      continue;
-    }
-    const BspPlane *p = &file->planes[s->plane ^ 1];
-    Winding_Clip(&winding, p->normal, p->dist, SIDE_EPSILON);
-
-    if (winding == NULL) {
-      break;
-    }
-  }
-
-  return winding;
 }
 
 /**
@@ -832,7 +763,7 @@ int32_t Winding_Elements(const Winding *w, int32_t *elements) {
         const Point *c = &points[(i + 2) % numPoints];
 
         if (!a->corner && b->corner) {
-          const float area = Cm_TriangleArea(a->position, b->position, c->position);
+          const float area = Vec3_TriangleArea(a->position, b->position, c->position);
           if (area < best) {
             best = area;
             clip = b;
@@ -862,60 +793,10 @@ int32_t Winding_Elements(const Winding *w, int32_t *elements) {
 }
 
 /**
-* @return The area of the triangle defined by a, b and c.
-*/
-float Cm_TriangleArea(const Vec3 a, const Vec3 b, const Vec3 c) {
-
-   const Vec3 ba = Vec3_Subtract(b, a);
-   const Vec3 ca = Vec3_Subtract(c, a);
-   const Vec3 cross = Vec3_Cross(ba, ca);
-
-   return Vec3_Length(cross) * 0.5f;
-}
-
-/**
-* @brief Calculates barycentric coordinates for p in the triangle defined by a, b and c.
-* @remarks The `maxArea` checks ensure that p is (approximately) inside the triangle abc.
-* @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
-*/
-float Cm_Barycentric(const Vec3 a, const Vec3 b, const Vec3 c, const Vec3 p, Vec3 *out) {
-
-  const float abc = Cm_TriangleArea(a, b, c);
-  if (abc) {
-    const float maxArea = abc * 1.f;
-
-    const float bcp = Cm_TriangleArea(b, c, p);
-    if (bcp > maxArea) {
-      return FLT_MAX;
-    }
-
-    const float cap = Cm_TriangleArea(c, a, p);
-    if (cap > maxArea) {
-      return FLT_MAX;
-    }
-
-    const float abp = Cm_TriangleArea(a, b, p);
-    if (abp > maxArea) {
-      return FLT_MAX;
-    }
-
-    out->x = bcp / abc;
-    out->y = cap / abc;
-    out->z = abp / abc;
-
-    return out->x + out->y + out->z;
-  } else {
-     *out = Vec3_Zero();
-  }
-
-  return FLT_MAX;
-}
-
-/**
  * @brief Calculates the tangent vectors for the given vertexes and triangle elements.
  * @see http://foundationsofgameenginedev.com/FGED2-sample.pdf
  */
-void Cm_Tangents(WindingVertex *vertexes, int32_t baseVertex, int32_t numVertexes, const int32_t *elements, int32_t numElements) {
+void Winding_Tangents(WindingVertex *vertexes, int32_t baseVertex, int32_t numVertexes, const int32_t *elements, int32_t numElements) {
 
   for (int32_t i = 0; i < numElements; i += 3) {
 
@@ -966,33 +847,4 @@ void Cm_Tangents(WindingVertex *vertexes, int32_t baseVertex, int32_t numVertexe
 
     Vec3_Tangents(*v->normal, sdir, tdir, v->tangent, v->bitangent);
   }
-}
-
-/**
- * @brief Clips an AABB to the positive half-space of the given plane.
- */
-Box3 Cm_ClipBox(const Box3 in, const Vec4 plane) {
-  Box3 out = Box3_Null();
-
-  Vec3 corners[8];
-  Box3_ToPoints(in, corners);
-
-  // There are 8 corners in the AABB
-  for (size_t i = 0; i < lengthof(corners); i++) {
-    const Vec3 corner = corners[i];
-
-    // If the corner is on the positive side of the plane, include it
-    const float dist = Vec3_Dot(plane.xyz, corner) - plane.w;
-    if (dist >= 0.f) {
-      out.mins = Vec3_Minf(out.mins, corner);
-      out.maxs = Vec3_Maxf(out.maxs, corner);
-    } else {
-      // Otherwise, project the corner onto the plane and include it
-      const Vec3 point = Vec3_Subtract(corner, Vec3_Scale(plane.xyz, dist));
-      out.mins = Vec3_Minf(out.mins, point);
-      out.maxs = Vec3_Maxf(out.maxs, point);
-    }
-  }
-
-  return out;
 }

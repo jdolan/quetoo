@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "collision/cm_manifest.h"
+#include "common/manifest.h"
 
 Quetoo quetoo;
 

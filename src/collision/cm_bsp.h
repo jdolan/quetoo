@@ -22,6 +22,7 @@
 #pragma once
 
 #include "cm_types.h"
+#include "common/winding.h"
 
 /**
  * @brief BSP file identification.
@@ -1067,3 +1068,13 @@ void Bsp_AllocLump(BspFile *bsp, const BspLumpId lumpId, const size_t count);
  * @brief Serializes the BSP to disk.
  */
 void Bsp_Write(File *file, const BspFile *bsp);
+
+/**
+ * @brief Creates a winding from the vertex loop of a BSP face.
+ */
+Winding *Cm_WindingForFace(const BspFile *file, const BspFace *face);
+
+/**
+ * @brief Creates a winding from the vertex loop of a BSP brush side.
+ */
+Winding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSide);

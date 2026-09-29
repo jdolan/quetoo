@@ -23,7 +23,7 @@
 
 #include <Objectively/HashTable.h>
 
-#include "common/common.h"
+#include "common.h"
 
 /**
  * @brief Status of a manifest entry, used by the installer to track update state.

@@ -21,7 +21,31 @@
 
 #pragma once
 
-#include "cm_bsp.h"
+#include "shared/shared.h"
+
+/**
+ * @brief Plane side epsilon. Because plane side tests scrutinize values around
+ * and across zero, `FLT_EPSILON` is appropriate and accurate.
+ */
+#define SIDE_EPSILON     FLT_EPSILON
+
+/**
+ * @brief Colinear points dot product epsilon.
+ */
+#define COLINEAR_EPSILON .00001f
+
+/**
+ * @brief Point equality epsilon.
+ */
+#define ON_EPSILON       .1f
+
+/**
+ * @brief Plane side constants for winding and BSP recursion.
+ */
+#define SIDE_FRONT       1
+#define SIDE_BACK        2
+#define SIDE_BOTH        3
+#define SIDE_ON          4
 
 /**
  * @brief An ordered collection of coplanar points describing a convex volume.
@@ -107,16 +131,6 @@ float Winding_Distance(const Winding *w, const Vec3 p, Vec3 *dir);
 Winding *Winding_ForPlane(const Vec3 normal, double dist);
 
 /**
- * @brief Creates a winding from the vertex loop of a BSP face.
- */
-Winding *Winding_ForFace(const BspFile *file, const BspFace *face);
-
-/**
- * @brief Creates a winding from the vertex loop of a BSP brush side.
- */
-Winding *Winding_ForBrushSide(const BspFile *file, const BspBrushSide *brushSide);
-
-/**
  * @brief Computes the plane normal and distance from a winding's points.
  */
 void Winding_Plane(const Winding *w, Vec3 *normal, double *dist);
@@ -153,23 +167,6 @@ Winding *Winding_Merge(const Winding *a, const Winding *b, const Vec3 normal);
  * @return The number of indices written.
  */
 int32_t Winding_Elements(const Winding *w, int32_t *elements);
-
-/**
- * @brief Returns the area of the triangle formed by the three vertices.
- */
-float Cm_TriangleArea(const Vec3 a, const Vec3 b, const Vec3 c);
-
-/**
- * @brief Computes barycentric coordinates of point p in triangle abc.
- * @param out If non-`NULL`, receives the barycentric weights as a `Vec3`.
- * @return The interpolated scalar value at p.
- */
-float Cm_Barycentric(const Vec3 a, const Vec3 b, const Vec3 c, const Vec3 p, Vec3 *out);
-
-/**
- * @brief Clips the axis-aligned bounding box by the given plane, returning the clipped box.
- */
-Box3 Cm_ClipBox(const Box3 in, const Vec4 plane);
 
 /**
  * @brief A UV mapped vertex primitive.
@@ -210,4 +207,4 @@ typedef struct {
 /**
  * @brief Computes and accumulates tangent and bitangent vectors for the given vertex range.
  */
-void Cm_Tangents(WindingVertex *vertexes, int32_t baseVertex, int32_t numVertexes, const int32_t *elements, int32_t numElements);
+void Winding_Tangents(WindingVertex *vertexes, int32_t baseVertex, int32_t numVertexes, const int32_t *elements, int32_t numElements);

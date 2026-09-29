@@ -438,3 +438,8 @@ static inline float __attribute__ ((warn_unused_result)) Box3_Volume(const Box3 
  * @return The number of boxes written to `*out`.
  */
 size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out);
+
+/**
+ * @brief Clips an AABB to the positive half-space of the given plane.
+ */
+Box3 Box3_Clip(const Box3 in, const Vec4 plane);

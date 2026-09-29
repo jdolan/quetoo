@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "collision/cm_polylib.h"
+#include "common/winding.h"
 
 #include "quemap.h"
 

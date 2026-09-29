@@ -233,7 +233,7 @@ static void R_LoadMeshTangents(RenderModel *mod) {
         };
       }
 
-      Cm_Tangents(vertexes, 0, face->numVertexes, (int32_t *) face->elements, face->numElements);
+      Winding_Tangents(vertexes, 0, face->numVertexes, (int32_t *) face->elements, face->numElements);
     }
 
     Mem_Free(vertexes);

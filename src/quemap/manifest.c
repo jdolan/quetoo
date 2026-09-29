@@ -27,7 +27,7 @@
 #include "manifest.h"
 #include "material.h"
 
-#include "collision/cm_manifest.h"
+#include "common/manifest.h"
 
 static HashTable *paths;
 

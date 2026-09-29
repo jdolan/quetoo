@@ -23,23 +23,8 @@
 
 #include "shared/shared.h"
 
-#include "cm_material.h"
-
-/**
- * @brief Plane side epsilon. Because plane side tests scrutinize values around
- * and across zero, `FLT_EPSILON` is appropriate and accurate.
- */
-#define SIDE_EPSILON     FLT_EPSILON
-
-/**
- * @brief Colinear points dot product epsilon.
- */
-#define COLINEAR_EPSILON .00001f
-
-/**
- * @brief Point equality epsilon.
- */
-#define ON_EPSILON       .1f
+#include "common/material.h"
+#include "common/winding.h"
 
 /**
  * @brief Vertex equality epsilon.
@@ -55,14 +40,6 @@
  * @brief Trace collision epsilon.
  */
 #define TRACE_EPSILON    .125f
-
-/**
- * @brief Plane side constants used for BSP recursion.
- */
-#define SIDE_FRONT       1
-#define SIDE_BACK        2
-#define SIDE_BOTH        3
-#define SIDE_ON          4
 
 /**
  * @brief Plane type constants for axial plane optimizations.

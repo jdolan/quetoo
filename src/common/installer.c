@@ -23,7 +23,7 @@
 #include <SDL3/SDL_mutex.h>
 
 
-#include "collision/cm_manifest.h"
+#include "manifest.h"
 #include "console.h"
 #include "filesystem.h"
 #include "installer.h"

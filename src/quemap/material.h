@@ -20,7 +20,7 @@
  */
 #pragma once
 
-#include "collision/cm_material.h"
+#include "common/material.h"
 #include "common/image.h"
 
 #include "quemap.h"

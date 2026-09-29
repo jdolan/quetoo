@@ -574,7 +574,7 @@ static void TangentVectors_(BspModel *model) {
     };
   }
 
-  Cm_Tangents(cm, baseVertex, numVertexes, elements, numElements);
+  Winding_Tangents(cm, baseVertex, numVertexes, elements, numElements);
 
   int32_t numBadVertexes = 0;
 

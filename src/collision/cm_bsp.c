@@ -805,3 +805,73 @@ void Bsp_Write(File *file, const BspFile *bsp) {
   // return to where we were
   Fs_Seek(file, currentPosition);
 }
+
+/**
+ * @brief Creates a winding for the given face, removing any collinear points.
+ */
+Winding *Cm_WindingForFace(const BspFile *file, const BspFace *face) {
+
+  Winding *w = Winding_Alloc(face->numVertexes);
+  const int32_t v = face->firstVertex;
+
+  for (int32_t i = 0; i < face->numVertexes; i++) {
+
+    const BspVertex *v0 = &file->vertexes[(v + (i + 0) % face->numVertexes)];
+    const BspVertex *v1 = &file->vertexes[(v + (i + 1) % face->numVertexes)];
+    const BspVertex *v2 = &file->vertexes[(v + (i + 2) % face->numVertexes)];
+
+    w->points[w->numPoints] = v0->position;
+    w->numPoints++;
+
+    Vec3 a, b;
+    a = Vec3_Subtract(v1->position, v0->position);
+    b = Vec3_Subtract(v2->position, v1->position);
+
+    a = Vec3_Normalize(a);
+    b = Vec3_Normalize(b);
+
+    if (Vec3_Dot(a, b) > 1.0f - COLINEAR_EPSILON) { // skip v1
+      i++;
+    }
+  }
+
+  return w;
+}
+
+/**
+ * @brief Creates a winding for the given brush side, clipped to its brush.
+ */
+Winding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSide) {
+
+  const BspPlane *plane = file->planes + brushSide->plane;
+  Winding *winding = Winding_ForPlane(plane->normal, plane->dist);
+
+  const int32_t side = (int32_t) (brushSide - file->brushSides);
+
+  const BspBrush *brush = file->brushes;
+  for (int32_t i = 0; i < file->numBrushes; i++, brush++) {
+
+    if (side >= brush->firstBrushSide
+      && side < brush->firstBrushSide + brush->numBrushSides) {
+      break;
+    }
+  }
+
+  const BspBrushSide *s = file->brushSides + brush->firstBrushSide;
+  for (int32_t i = 0; i < brush->numBrushSides; i++, s++) {
+    if (s == brushSide) {
+      continue;
+    }
+    if (s->surface & SURF_BEVEL) {
+      continue;
+    }
+    const BspPlane *p = &file->planes[s->plane ^ 1];
+    Winding_Clip(&winding, p->normal, p->dist, SIDE_EPSILON);
+
+    if (winding == NULL) {
+      break;
+    }
+  }
+
+  return winding;
+}
