@@ -66,6 +66,3 @@ Box3 Cm_EntityBounds(const Solid solid, const Mat4 matrix, const Box3 bounds);
  */
 __attribute__ ((warn_unused_result))
 Box3 Cm_TraceBounds(const Vec3 start, const Vec3 end, const Box3 bounds);
-
-#if defined(__CM_LOCAL_H__)
-#endif

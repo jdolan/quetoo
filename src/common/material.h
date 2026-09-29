@@ -25,10 +25,10 @@
 
 /**
  * @brief Blend factors for material stage blending. Renderer-agnostic; the
- * renderer maps these to its backend equivalents (e.g. SDL_GPUBlendFactor).
- * @remarks BLEND_INVALID is deliberately 0, matching the zero-initialized
- * (never parsed a `blend` keyword) state of a fresh MaterialStage. This lets
- * "ensure appropriate blend function defaults" (Material_ParseStage) distinguish
+ * renderer maps these to its backend equivalents (e.g. @c SDL_GPUBlendFactor).
+ * @remarks @c BLEND_INVALID is deliberately @c 0, matching the zero-initialized
+ * (never parsed a `blend` keyword) state of a fresh @c MaterialStage. This lets
+ * "ensure appropriate blend function defaults" (@c Material_ParseStage) distinguish
  * "never set" from an explicit, meaningful `BLEND_ZERO` factor -- e.g. a
  * stage that explicitly sets `blend one zero` for opaque overwrite rendering.
  */
@@ -47,7 +47,6 @@ typedef enum {
  * @brief Blend function source and destination factors.
  */
 typedef struct {
-
   /**
    * @brief The blend factors (`MaterialBlend`).
    */
@@ -58,7 +57,6 @@ typedef struct {
  * @brief Pulse animation parameters.
  */
 typedef struct {
-
   /**
    * @brief Pulse frequency in Hz.
    */
@@ -69,7 +67,6 @@ typedef struct {
  * @brief Stretch animation parameters.
  */
 typedef struct {
-
   /**
    * @brief Stretch frequency in Hz.
    */
@@ -85,7 +82,6 @@ typedef struct {
  * @brief Rotation animation parameters.
  */
 typedef struct {
-
   /**
    * @brief Rotation frequency in Hz.
    */
@@ -96,7 +92,6 @@ typedef struct {
  * @brief Texture scrolling parameters.
  */
 typedef struct {
-
   /**
    * @brief Scroll speed along S and T axes.
    */
@@ -107,7 +102,6 @@ typedef struct {
  * @brief Texture scale parameters.
  */
 typedef struct {
-
   /**
    * @brief Scale factors along S and T axes.
    */
@@ -118,7 +112,6 @@ typedef struct {
  * @brief Terrain blending parameters.
  */
 typedef struct {
-
   /**
    * @brief World-space Z range for blending.
    */
@@ -129,7 +122,6 @@ typedef struct {
  * @brief Dirtmap effect parameters.
  */
 typedef struct {
-
   /**
    * @brief Dirtmap blend intensity.
    */
@@ -140,7 +132,6 @@ typedef struct {
  * @brief Warp (liquid) animation parameters.
  */
 typedef struct {
-
   /**
    * @brief Warp frequency in Hz.
    */
@@ -162,7 +153,6 @@ typedef struct {
  * @brief Environment map parameters.
  */
 typedef struct {
-
   /**
    * @brief The amount by which the normalmap moves an envmapped subview. A texture ignores it.
    */
@@ -173,7 +163,6 @@ typedef struct {
  * @brief Stage lighting parameters.
  */
 typedef struct {
-
   /**
    * @brief Lighting intensity scalar.
    */
@@ -192,7 +181,6 @@ typedef struct {
  * @brief Shell effect parameters.
  */
 typedef struct {
-
   /**
    * @brief Shell expansion radius.
    */
@@ -213,7 +201,6 @@ typedef struct {
  * @brief Stage light parameters. A stage with these emits light from the faces that use it.
  */
 typedef struct {
-
   /**
    * @brief The light radius, compiled into the BSP. This is the maximum radius of the light.
    */
@@ -235,7 +222,6 @@ typedef struct {
  * @brief Frame animation parameters.
  */
 typedef struct {
-
   /**
    * @brief Total number of animation frames.
    */
@@ -324,7 +310,6 @@ typedef enum {
  * @brief Stages are ordered layers of visual effects rendered on top of their material.
  */
 typedef struct MaterialStage {
-
   /**
    * @brief The stage flags.
    */
@@ -427,7 +412,6 @@ typedef struct MaterialStage {
  * @brief Materials may optionally reference footstep samples.
  */
 typedef struct {
-
   /**
    * @brief The footstep name, e.g. "metal3".
    */
@@ -455,7 +439,6 @@ typedef struct {
  * @brief Materials define the rendering attributes of textures.
  */
 typedef struct Material {
-
   /**
    * @brief The material file path defining this material, if any.
    */
@@ -632,6 +615,3 @@ void Material_Basename(const char *in, char *out, size_t len);
  * @brief Computes the expected .mat file path for the given material name and context.
  */
 void Material_Path(const char *name, char *path, size_t len, AssetContext context);
-
-#if defined(__CM_LOCAL_H__)
-#endif

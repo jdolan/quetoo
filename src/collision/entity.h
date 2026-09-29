@@ -100,6 +100,3 @@ Entity *Entity_FromInfoString(const char *str);
  * @brief Parses brushes from .map text and attaches them to the corresponding entities.
  */
 void Entity_ParseBrushes(const char *mapText, Entity **entities, int32_t numEntities);
-
-#if defined(__CM_LOCAL_H__)
-#endif
