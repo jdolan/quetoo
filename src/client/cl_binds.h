@@ -65,13 +65,13 @@ static const char *DEFAULT_BINDS =
     "alias +ZOOM \""
     "set f $cg_fov;"
     "set cg_fov $cg_fovZoom;"
-    "set s $mSensitivity;"
-    "set mSensitivity $mSensitivityZoom;"
+    "set s $m_sensitivity;"
+    "set m_sensitivity $m_sensitivityZoom;"
     "\"\n"
 
     "alias -ZOOM \""
     "set cg_fov $f;"
-    "set mSensitivity $s;"
+    "set m_sensitivity $s;"
     "\"\n"
 
     "bind \"left alt\" +ZOOM\n"
