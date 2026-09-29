@@ -83,7 +83,7 @@ static void rebuild(WeaponBarView *self) {
       ImageView *icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
       assert(icon);
 
-      const char *name = bgItemDefs[cgWeapons[i].tag].icon;
+      const char *name = bgItemDefs[cg_weapons[i].tag].icon;
       $(icon, setImage, name ? (Image *) Cg_HudImage(name) : NULL);
 
       $(slot, addSubview, (View *) icon);
@@ -146,8 +146,8 @@ static void updateBindings(View *self, ident data) {
     return;
   }
 
-  if (memcmp(this->has, cgHudState.weapon.has, sizeof(this->has))) {
-    memcpy(this->has, cgHudState.weapon.has, sizeof(this->has));
+  if (memcmp(this->has, cg_hudState.weapon.has, sizeof(this->has))) {
+    memcpy(this->has, cg_hudState.weapon.has, sizeof(this->has));
     rebuild(this);
   }
 
@@ -166,12 +166,12 @@ static void updateBindings(View *self, ident data) {
     const View *slot = $(slots, objectAtIndex, k);
     ImageView *icon = $((Array *) slot->subviews, firstObject);
 
-    if (i == cgHudState.weapon.bit) {
+    if (i == cg_hudState.weapon.bit) {
       icon->color.a = selected;
 
       index = k;
 
-      $(this->name, setText, bgItemDefs[cgWeapons[i].tag].name);
+      $(this->name, setText, bgItemDefs[cg_weapons[i].tag].name);
     } else {
       icon->color.a = unselected;
     }

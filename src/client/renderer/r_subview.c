@@ -58,7 +58,7 @@ static struct {
  * @brief Allocates the placeholder subview texture.
  */
 void R_InitSubviews(void) {
-  module.nullTexture = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
+  module.nullTexture = $(renderContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
 }
 
 /**
@@ -368,7 +368,7 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
  */
 static void R_UpdateSubviewFramebuffer(void) {
 
-  const SDL_Size window = MakeSize(rContext.windowBounds.w, rContext.windowBounds.h);
+  const SDL_Size window = MakeSize(renderContext.windowBounds.w, renderContext.windowBounds.h);
 
   if (module.framebuffer) {
     if (module.size.w == window.w && module.size.h == window.h) {
@@ -519,7 +519,7 @@ static SDL_Rect R_SubviewScissor(const RenderSubview *subview, const bool projec
 static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor, const bool projected,
                           const Vec2 mins, const Vec2 maxs) {
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   RenderView *view = subview->view;
 
@@ -657,7 +657,7 @@ void R_DrawSubviews(RenderView *view) {
   // by now, so they are offered here and sort against the portals already held
   R_AddReflections(view);
 
-  if (!view->numSubviews || !rContext.device->commands) {
+  if (!view->numSubviews || !renderContext.device->commands) {
     return;
   }
 

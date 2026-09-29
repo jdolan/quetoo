@@ -23,7 +23,7 @@
 
 #include <Objectively/Resource.h>
 
-RenderContext rContext;
+RenderContext renderContext;
 
 /**
  * @brief Loads Objectively resources from the Quetoo VFS.
@@ -54,7 +54,7 @@ static void R_SetWindowIcon(void) {
     return;
   }
 
-  SDL_SetWindowIcon(rContext.window, surf);
+  SDL_SetWindowIcon(renderContext.window, surf);
 
   SDL_DestroySurface(surf);
 }
@@ -64,22 +64,22 @@ static void R_SetWindowIcon(void) {
  */
 void R_UpdateContext(void) {
 
-  assert(rContext.window);
+  assert(renderContext.window);
 
-  rContext.windowFlags = SDL_GetWindowFlags(rContext.window);
+  renderContext.windowFlags = SDL_GetWindowFlags(renderContext.window);
 
-  SDL_GetWindowPosition(rContext.window, &rContext.windowBounds.x, &rContext.windowBounds.y);
-  SDL_GetWindowSize(rContext.window, &rContext.windowBounds.w, &rContext.windowBounds.h);
+  SDL_GetWindowPosition(renderContext.window, &renderContext.windowBounds.x, &renderContext.windowBounds.y);
+  SDL_GetWindowSize(renderContext.window, &renderContext.windowBounds.w, &renderContext.windowBounds.h);
 
-  if (!(rContext.windowFlags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
-    Cvar_ForceSetInteger("r_windowWidth", rContext.windowBounds.w);
-    Cvar_ForceSetInteger("r_windowHeight", rContext.windowBounds.h);
+  if (!(renderContext.windowFlags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
+    Cvar_ForceSetInteger("r_windowWidth", renderContext.windowBounds.w);
+    Cvar_ForceSetInteger("r_windowHeight", renderContext.windowBounds.h);
     r_windowWidth->modified = false;
     r_windowHeight->modified = false;
   }
 
-  rContext.display = SDL_GetDisplayForWindow(rContext.window);
-  rContext.displayMode = SDL_GetCurrentDisplayMode(rContext.display);
+  renderContext.display = SDL_GetDisplayForWindow(renderContext.window);
+  renderContext.displayMode = SDL_GetCurrentDisplayMode(renderContext.display);
 
   R_UpdateUniforms(NULL);
 }
@@ -89,7 +89,7 @@ void R_UpdateContext(void) {
  */
 void R_InitContext(void) {
   
-  memset(&rContext, 0, sizeof(rContext));
+  memset(&renderContext, 0, sizeof(renderContext));
 
   if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
@@ -97,10 +97,10 @@ void R_InitContext(void) {
     }
   }
 
-  rContext.display = SDL_GetPrimaryDisplay();
+  renderContext.display = SDL_GetPrimaryDisplay();
 
   SDL_Rect bounds;
-  SDL_GetDisplayUsableBounds(rContext.display, &bounds);
+  SDL_GetDisplayUsableBounds(renderContext.display, &bounds);
 
   int32_t w = bounds.w;
   int32_t h = bounds.h;
@@ -123,24 +123,24 @@ void R_InitContext(void) {
       break;
   }
 
-  if ((rContext.window = SDL_CreateWindow(PACKAGE_STRING, w, h, windowFlags)) == NULL) {
+  if ((renderContext.window = SDL_CreateWindow(PACKAGE_STRING, w, h, windowFlags)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create window: %s\n", SDL_GetError());
   }
 
   R_SetWindowIcon();
 
-  SDL_SyncWindow(rContext.window);
+  SDL_SyncWindow(renderContext.window);
 
-  if (SDL_GetWindowFlags(rContext.window) & SDL_WINDOW_FULLSCREEN) {
+  if (SDL_GetWindowFlags(renderContext.window) & SDL_WINDOW_FULLSCREEN) {
 
     if (r_fullscreenWidth->integer > 0 && r_fullscreenHeight->integer > 0) {
 
       SDL_DisplayMode mode;
-      if (SDL_GetClosestFullscreenDisplayMode(rContext.display, w, h, 0.f, false, &mode)) {
+      if (SDL_GetClosestFullscreenDisplayMode(renderContext.display, w, h, 0.f, false, &mode)) {
         Com_Print("  Setting fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
 
-        if (SDL_SetWindowFullscreenMode(rContext.window, &mode)) {
-          SDL_SyncWindow(rContext.window);
+        if (SDL_SetWindowFullscreenMode(renderContext.window, &mode)) {
+          SDL_SyncWindow(renderContext.window);
           Com_Print("  Set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
         } else {
           Com_Warn("Failed to set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
@@ -163,30 +163,30 @@ void R_InitContext(void) {
 
   Com_Print("  Creating GPU render device..\n");
 
-  rContext.device = $(alloc(RenderDevice), initWithWindow, rContext.window, driver);
-  if (rContext.device == NULL) {
+  renderContext.device = $(alloc(RenderDevice), initWithWindow, renderContext.window, driver);
+  if (renderContext.device == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create GPU render device: %s\n", SDL_GetError());
   }
 
-  rContext.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
+  renderContext.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
 
   $$(Resource, addResourceProvider, R_ResourceProvider);
 
   R_UpdateContext();
 
-  const SDL_GPUTextureFormat format = $(rContext.device, getSwapchainTextureFormat);
+  const SDL_GPUTextureFormat format = $(renderContext.device, getSwapchainTextureFormat);
 
-  Framebuffer *framebuffer = $(rContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
-    .size = MakeSize(rContext.windowBounds.w, rContext.windowBounds.h),
+  Framebuffer *framebuffer = $(renderContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+    .size = MakeSize(renderContext.windowBounds.w, renderContext.windowBounds.h),
     .colorAttachments = { { .format = format, .clearColor = { 0.f, 0.f, 0.f, 1.f } } },
     .numColorTargets = 1,
     .sampleCount = SDL_GPU_SAMPLECOUNT_1,
   });
 
-  $(rContext.device, setFramebuffer, framebuffer);
+  $(renderContext.device, setFramebuffer, framebuffer);
   release(framebuffer);
 
-  rContext.nullTexture = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D, 1, 0xffffffff);
+  renderContext.nullTexture = $(renderContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D, 1, 0xffffffff);
 }
 
 /**
@@ -197,14 +197,14 @@ void R_InitContext(void) {
  */
 void R_ShutdownContext(void) {
 
-  $(rContext.device, waitForIdle);
+  $(renderContext.device, waitForIdle);
 
-  rContext.nullTexture = release(rContext.nullTexture);
-  rContext.device = release(rContext.device);
+  renderContext.nullTexture = release(renderContext.nullTexture);
+  renderContext.device = release(renderContext.device);
 
-  if (rContext.window) {
-    SDL_DestroyWindow(rContext.window);
-    rContext.window = NULL;
+  if (renderContext.window) {
+    SDL_DestroyWindow(renderContext.window);
+    renderContext.window = NULL;
   }
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -215,7 +215,7 @@ void R_ShutdownContext(void) {
  */
 Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
 
-  const float scale = Clampf(r_framebufferScale->value, .125f, 4.f) * rContext.displayMode->pixel_density;
+  const float scale = Clampf(r_framebufferScale->value, .125f, 4.f) * renderContext.displayMode->pixel_density;
 
   GPU_FramebufferCreateInfo create = *info;
 
@@ -226,7 +226,7 @@ Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
 
   create.sampleCount = rSceneSamples;
 
-  return $(rContext.device, createFramebuffer, &create);
+  return $(renderContext.device, createFramebuffer, &create);
 }
 
 /**

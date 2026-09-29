@@ -600,7 +600,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
     causticsRgba[i * 4 + 3] = 255;
   }
 
-  out->caustics->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  out->caustics->texture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -623,7 +623,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
   out->lightData->height = out->size.y;
   out->lightData->depth = out->size.z;
 
-  out->lightDataBuffer = $(rContext.device, createBufferWithConstMem,
+  out->lightDataBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
       lightData,
       out->numVoxels * sizeof(int32_t) * 2);
@@ -632,7 +632,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
   data += out->numLightIndices * sizeof(int32_t);
 
   if (out->numLightIndices > 0) {
-    out->lightIndicesBuffer = $(rContext.device, createBufferWithConstMem,
+    out->lightIndicesBuffer = $(renderContext.device, createBufferWithConstMem,
         SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
         lightIndicesData,
         out->numLightIndices * sizeof(int32_t));
@@ -651,7 +651,7 @@ static void R_LoadBspVoxels(RenderModel *mod) {
   out->occlusion->height = out->size.y;
   out->occlusion->depth = out->size.z;
 
-  out->occlusion->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  out->occlusion->texture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -715,10 +715,10 @@ static void R_LoadBspVertexArray(RenderModel *mod) {
 
   RenderBspModel *bsp = mod->bsp;
 
-  bsp->vertexBuffer = $(rContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
+  bsp->vertexBuffer = $(renderContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
                          bsp->vertexes, bsp->numVertexes * sizeof(RenderBspVertex));
 
-  bsp->elementsBuffer = $(rContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
+  bsp->elementsBuffer = $(renderContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
                            bsp->elements, bsp->numElements * sizeof(uint32_t));
 
   $(bsp->vertexBuffer, setName, va("%s vertexes", mod->media.name));

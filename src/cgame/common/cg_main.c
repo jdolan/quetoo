@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-CGameState cgState;
+CGameState cg_state;
 
 Cvar *cg_addAtmospheric;
 Cvar *cg_addDecals;
@@ -264,12 +264,12 @@ static void Cg_ParseTeamInfo(const char *s) {
 
   const size_t count = info->count;
 
-  if (count != lengthof(cgState.teams) * 4) {
+  if (count != lengthof(cg_state.teams) * 4) {
     release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }
 
-  CGameTeamInfo *team = cgState.teams;
+  CGameTeamInfo *team = cg_state.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
     team->id = atoi((char *) $(info, get, i + 0));
@@ -309,48 +309,48 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   switch (i) {
     case CS_GAMEPLAY:
-      cgState.gameplay = (GameplayId) strtol(s, NULL, 10);
+      cg_state.gameplay = (GameplayId) strtol(s, NULL, 10);
       return;
     case CS_NUM_TEAMS:
-      cgState.numTeams = Clampf(atoi(s), 0, MAX_TEAMS);
+      cg_state.numTeams = Clampf(atoi(s), 0, MAX_TEAMS);
       return;
     case CS_TEAM_INFO:
       Cg_ParseTeamInfo(s);
       return;
     case CS_ITEM_SET:
-      cgState.items = (GameItems) strtol(s, NULL, 10);
+      cg_state.items = (GameItems) strtol(s, NULL, 10);
       return;
 #if defined(G_HOOK)
     case CS_HOOK_PULL_SPEED: {
       char *end;
-      cgState.hookPullSpeed = strtof(s, &end);
-      if (end == s || *end || !isfinite(cgState.hookPullSpeed) || cgState.hookPullSpeed <= 0.f) {
+      cg_state.hookPullSpeed = strtof(s, &end);
+      if (end == s || *end || !isfinite(cg_state.hookPullSpeed) || cg_state.hookPullSpeed <= 0.f) {
         Cg_Warn("Invalid hook pull speed \"%s\"\n", s);
-        cgState.hookPullSpeed = PM_SPEED_HOOK_PULL;
+        cg_state.hookPullSpeed = PM_SPEED_HOOK_PULL;
       }
       return;
     }
 #endif
     case CS_NAV_EDIT:
-      cgState.navEdit = (int32_t) strtol(s, NULL, 10);
+      cg_state.navEdit = (int32_t) strtol(s, NULL, 10);
       return;
   }
 
   if (i >= CS_CORPSES && i < CS_CORPSES + MAX_CORPSES) {
-    Cg_LoadClient(&cgState.corpses[i - CS_CORPSES], s);
+    Cg_LoadClient(&cg_state.corpses[i - CS_CORPSES], s);
     return;
   }
 
   if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
-    CGameClientInfo *ci = &cgState.clients[i - CS_CLIENTS];
+    CGameClientInfo *ci = &cg_state.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
 
     // the server does not count connected clients for us: the entries it sends are the count
-    cgState.numClients = 0;
+    cg_state.numClients = 0;
     for (int32_t j = 0; j < MAX_CLIENTS; j++) {
       if (*cgi.ConfigString(CS_CLIENTS + j)) {
-        cgState.numClients++;
+        cg_state.numClients++;
       }
     }
 
@@ -389,7 +389,7 @@ static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
 
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
 
-  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cgState.clients[client].name, color, message);
+  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cg_state.clients[client].name, color, message);
 
   // the sound is the module's to choose, because only it knows which kind of message this is
   const char *sample = cgi.GetCvarString(team ? "cl_teamChatSound" : "cl_chatSound");
@@ -456,8 +456,8 @@ static bool Cg_ParseMessage(int32_t cmd) {
       return true;
 
     case SV_CMD_SNAP_ANGLES:
-      cgState.snapViewAngles = cgi.ReadAngles();
-      cgState.snapAngles = true;
+      cg_state.snapViewAngles = cgi.ReadAngles();
+      cg_state.snapAngles = true;
       return true;
 
     case SV_CMD_CENTER_PRINT:
@@ -481,7 +481,7 @@ static bool Cg_ParseMessage(int32_t cmd) {
  */
 float Cg_GetHookPullSpeed(void) {
 
-  return cgState.hookPullSpeed;
+  return cg_state.hookPullSpeed;
 }
 #endif
 
@@ -505,7 +505,7 @@ ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
  */
 static void Cg_ClearState(void) {
 
-  memset(&cgState, 0, sizeof(cgState));
+  memset(&cg_state, 0, sizeof(cg_state));
 
   Cg_ClearInput();
 
@@ -576,7 +576,7 @@ static void Cg_UpdateScreen(const ClientFrame *frame) {
   Cg_UpdateHud(frame);
 
   // The HUD hides itself in nav edit and shows the instructions instead
-  if (!cgState.navEdit) {
+  if (!cg_state.navEdit) {
     Cg_DrawHud(frame);
   }
 

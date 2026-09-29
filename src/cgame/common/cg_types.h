@@ -363,6 +363,6 @@ typedef struct {
   CGameSpectateState spectate;
 } CGameState;
 
-extern CGameState cgState;
+extern CGameState cg_state;
 
 #endif

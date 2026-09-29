@@ -219,13 +219,13 @@ static void R_UpdateSwapInterval(void) {
     default: mode = SDL_GPU_PRESENTMODE_VSYNC;     break;
   }
 
-  if (mode != SDL_GPU_PRESENTMODE_VSYNC && !$(rContext.device, supportsPresentMode, mode)) {
+  if (mode != SDL_GPU_PRESENTMODE_VSYNC && !$(renderContext.device, supportsPresentMode, mode)) {
     Com_Warn("Present mode %d unsupported by this device, falling back to VSYNC\n", mode);
-    $(rContext.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
+    $(renderContext.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
     return;
   }
 
-  if (!$(rContext.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode)) {
+  if (!$(renderContext.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode)) {
     Com_Warn("Failed to set present mode %d: %s\n", mode, SDL_GetError());
   }
 }
@@ -295,7 +295,7 @@ void R_BeginFrame(void) {
 
   if (r_anisotropy->modified) {
     r_anisotropy->value = Clampf(r_anisotropy->value, 0.f, 16.f);
-    rContext.device->maxAnisotropy = r_anisotropy->value;
+    renderContext.device->maxAnisotropy = r_anisotropy->value;
     R_UpdatePipelines();
     r_anisotropy->modified = false;
   }
@@ -306,9 +306,9 @@ void R_BeginFrame(void) {
     r_swapInterval->modified = false;
   }
 
-  CommandBuffer *commands = $(rContext.device, beginFrame);
+  CommandBuffer *commands = $(renderContext.device, beginFrame);
   if (commands) {
-    const Framebuffer *fb = rContext.device->framebuffer;
+    const Framebuffer *fb = renderContext.device->framebuffer;
     RenderPass *pass = $(commands, beginRenderPassWithFramebuffer, fb, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
     pass = release(pass);
   }
@@ -343,7 +343,7 @@ void R_DrawViewDepth(RenderView *view) {
 
   R_UpdateUniforms(view);
 
-  CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
+  CommandBuffer *commands = $(renderContext.device, acquireCommandBuffer);
 
   R_DrawDepthPass(view, commands);
 
@@ -367,7 +367,7 @@ void R_DrawMainView(RenderView *view) {
 
   rStats = &view->stats;
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
   if (!commands) {
     return;
   }
@@ -424,7 +424,7 @@ void R_DrawPlayerModelView(RenderView *view) {
 
   rStats = &view->stats;
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
   if (!commands) {
     return;
   }
@@ -466,8 +466,8 @@ void R_DrawPlayerModelView(RenderView *view) {
  */
 void R_EndFrame(void) {
 
-  if (rContext.device->commands) {
-    $(rContext.device, endFrame);
+  if (renderContext.device->commands) {
+    $(renderContext.device, endFrame);
   }
 }
 
@@ -536,9 +536,9 @@ static void R_InitConfig(void) {
 
   memset(&rConfig, 0, sizeof(rConfig));
 
-  rConfig.renderer = SDL_GetGPUDeviceDriver(rContext.device->device);
+  rConfig.renderer = SDL_GetGPUDeviceDriver(renderContext.device->device);
 
-  const SDL_PropertiesID properties = SDL_GetGPUDeviceProperties(rContext.device->device);
+  const SDL_PropertiesID properties = SDL_GetGPUDeviceProperties(renderContext.device->device);
   if (properties == 0) {
     Com_Warn("Failed to query GPU device properties: %s\n", SDL_GetError());
   }
@@ -604,8 +604,8 @@ void R_Init(void) {
 
   R_InitPost();
 
-  const SDL_Rect bounds = rContext.windowBounds;
-  const float density = rContext.displayMode->pixel_density;
+  const SDL_Rect bounds = renderContext.windowBounds;
+  const float density = renderContext.displayMode->pixel_density;
 
   Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h,
             (int32_t) (bounds.w * density), (int32_t) (bounds.h * density));

@@ -92,20 +92,20 @@ static int32_t S_LoadSampleBuffer_(SoundSample *sample, char *path) {
     if (snd) {
       const size_t rawSize = sizeof(float) * info.frames * info.channels;
 
-      if (sContext.rawSampleBufferSize < rawSize) {
-        sContext.rawSampleBuffer = Mem_Realloc(sContext.rawSampleBuffer, rawSize);
-        sContext.rawSampleBufferSize = rawSize;
+      if (soundContext.rawSampleBufferSize < rawSize) {
+        soundContext.rawSampleBuffer = Mem_Realloc(soundContext.rawSampleBuffer, rawSize);
+        soundContext.rawSampleBufferSize = rawSize;
       }
 
-      sf_count_t count = sf_readf_float(snd, sContext.rawSampleBuffer, info.frames) * info.channels;
+      sf_count_t count = sf_readf_float(snd, soundContext.rawSampleBuffer, info.frames) * info.channels;
 
-      S_ConvertSamples(sContext.rawSampleBuffer, count, &sContext.convertedSampleBuffer, &sContext.convertedSampleBufferSize);
+      S_ConvertSamples(soundContext.rawSampleBuffer, count, &soundContext.convertedSampleBuffer, &soundContext.convertedSampleBufferSize);
 
-      const int16_t *buffer = sContext.convertedSampleBuffer;
+      const int16_t *buffer = soundContext.convertedSampleBuffer;
 
       if (info.samplerate != s_rate->integer) {
-        count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &sContext.resampleBuffer, &sContext.resampleBufferSize);
-        buffer = sContext.resampleBuffer;
+        count = S_Resample(info.channels, info.samplerate, s_rate->integer, count, buffer, &soundContext.resampleBuffer, &soundContext.resampleBufferSize);
+        buffer = soundContext.resampleBuffer;
       }
 
       sample->stereo = info.channels != 1;
@@ -190,7 +190,7 @@ static void S_FreeAliasedSample(SoundMedia *self) {
  */
 SoundSample *S_LoadSample(const char *name, AssetContext context) {
 
-  if (!sContext.context) {
+  if (!soundContext.context) {
     return NULL;
   }
 
@@ -231,7 +231,7 @@ SoundSample *S_LoadSample(const char *name, AssetContext context) {
  */
 SoundSample *S_LoadClientModelSample(const char *model, const char *soundSet, const char *name) {
 
-  if (!sContext.context) {
+  if (!soundContext.context) {
     return NULL;
   }
 

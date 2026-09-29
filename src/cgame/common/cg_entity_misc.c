@@ -80,7 +80,7 @@ typedef struct {
 /**
  * @brief Initializes a `misc_dust` entity by loading its sprite and computing spawn origins from brushes.
  */
-static const char *cgDustPresetDefault =
+static const char *cg_dustPresetDefault =
   "\\sprite\\particle"
   "\\color\\1 1 1"
   "\\size\\1"
@@ -91,7 +91,7 @@ static const char *cgDustPresetDefault =
   "\\density\\1"
   "\\hz\\10";
 
-static const char *cgDustPresetEmbers =
+static const char *cg_dustPresetEmbers =
   "\\sprite\\particle2"
   "\\velocity\\0 0 5"
   "\\acceleration\\8 8 8"
@@ -105,7 +105,7 @@ static const char *cgDustPresetEmbers =
   "\\density\\.33"
   "\\hz\\10";
 
-static const char *cgDustPresetBubbles =
+static const char *cg_dustPresetBubbles =
   "\\sprite\\bubble"
   "\\velocity\\0 0 32"
   "\\acceleration\\.33 .33 .33"
@@ -117,7 +117,7 @@ static const char *cgDustPresetBubbles =
   "\\density\\12"
   "\\hz\\10";
 
-static const char *cgDustPresetFizz =
+static const char *cg_dustPresetFizz =
   "\\velocity\\0 0 4"
   "\\acceleration_spread\\4 4 2"
   "\\rotation_spread\\1"
@@ -130,7 +130,7 @@ static const char *cgDustPresetFizz =
   "\\density\\1"
   "\\hz\\10";
 
-static const char *cgDustPresetFlame =
+static const char *cg_dustPresetFlame =
   "\\velocity\\0 0 5"
   "\\acceleration\\0 0 120"
   "\\acceleration_spread\\4 4 0"
@@ -144,7 +144,7 @@ static const char *cgDustPresetFlame =
   "\\density\\.5"
   "\\hz\\10";
 
-static const char *cgDustPresetSteam =
+static const char *cg_dustPresetSteam =
   "\\velocity\\0 0 32"
   "\\acceleration\\0 0 20"
   "\\acceleration_spread\\1 1 0"
@@ -162,17 +162,17 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
 
   const char *type = cgi.EntityValue(self->def, "type")->nullableString;
 
-  const char *presetStr = cgDustPresetDefault;
+  const char *presetStr = cg_dustPresetDefault;
   if (!q_strcmp(type, "embers")) {
-    presetStr = cgDustPresetEmbers;
+    presetStr = cg_dustPresetEmbers;
   } else if (!q_strcmp(type, "bubbles")) {
-    presetStr = cgDustPresetBubbles;
+    presetStr = cg_dustPresetBubbles;
   } else if (!q_strcmp(type, "fizz")) {
-    presetStr = cgDustPresetFizz;
+    presetStr = cg_dustPresetFizz;
   } else if (!q_strcmp(type, "flame")) {
-    presetStr = cgDustPresetFlame;
+    presetStr = cg_dustPresetFlame;
   } else if (!q_strcmp(type, "steam")) {
-    presetStr = cgDustPresetSteam;
+    presetStr = cg_dustPresetSteam;
   }
 
   CmEntity *preset = cgi.EntityFromInfoString(presetStr);
@@ -180,11 +180,11 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
   cgi.FreeEntity(preset);
 
   if (!q_strcmp(type, "fizz")) {
-    dust->sprite.animation = cgSpriteFizz01;
+    dust->sprite.animation = cg_spriteFizz01;
   } else if (!q_strcmp(type, "flame")) {
-    dust->sprite.atlasImage = cgSpriteFlame;
+    dust->sprite.atlasImage = cg_spriteFlame;
   } else if (!q_strcmp(type, "steam")) {
-    dust->sprite.atlasImage = cgSpriteSteam;
+    dust->sprite.atlasImage = cg_spriteSteam;
   } else {
     const char *name = cgi.EntityValue(def, "sprite")->nullableString ?: "particle";
     dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
@@ -363,7 +363,7 @@ static void Cg_misc_dust_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_dust` ambient dust emitter.
  */
-const CGameEntityClass cgMiscDust = {
+const CGameEntityClass cg_miscDust = {
   .classname = "misc_dust",
   .Init = Cg_misc_dust_Init,
   .Free = Cg_misc_dust_Free,
@@ -413,7 +413,7 @@ static void Cg_misc_flame_Init(CGameEntity *self) {
       flame->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
-    flame->sample = cgSampleFire;
+    flame->sample = cg_sampleFire;
   }
 }
 
@@ -432,7 +432,7 @@ static void Cg_misc_flame_Think(CGameEntity *self) {
     const float sat = RandomRangef(.7f, 1.f);
 
     if (!Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgSpriteFlame,
+        .atlasImage = cg_spriteFlame,
         .origin = Vec3_Fmaf(self->origin, r, Vec3_RandomRanges(-s, s, -s, s, -.1f, .5f)),
         .velocity = Vec3_Scale(Vec3_RandomRanges(-r, r, -r, r, 0.f, 24.f), s * s),
         .acceleration.z = 150.f * s,
@@ -449,7 +449,7 @@ static void Cg_misc_flame_Think(CGameEntity *self) {
   // Smoke — rises above the flame column, expanding and drifting upward
   const int32_t numSmoke = (int32_t) Maxf(1.f, flame->radius * flame->density * .15f);
   for (int32_t i = 0; i < numSmoke; i++) {
-    RenderAnimation *anim = (i & 1) ? cgSpriteSmoke05 : cgSpriteSmoke04;
+    RenderAnimation *anim = (i & 1) ? cg_spriteSmoke05 : cg_spriteSmoke04;
     const Vec3 smokeOrigin = {
       .x = self->origin.x + RandomRangef(-r * .3f, r * .3f),
       .y = self->origin.y + RandomRangef(-r * .3f, r * .3f),
@@ -488,7 +488,7 @@ static void Cg_misc_flame_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_flame` ambient fire effect.
  */
-const CGameEntityClass cgMiscFlame = {
+const CGameEntityClass cg_miscFlame = {
   .classname = "misc_flame",
   .Init = Cg_misc_flame_Init,
   .Think = Cg_misc_flame_Think,
@@ -540,7 +540,7 @@ static void Cg_misc_model_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_model` static model renderer.
  */
-const CGameEntityClass cgMiscModel = {
+const CGameEntityClass cg_miscModel = {
   .classname = "misc_model",
   .Init = Cg_misc_model_Init,
   .Think = Cg_misc_model_Think,
@@ -599,7 +599,7 @@ static void Cg_misc_sound_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_sound` ambient sound emitter.
  */
-const CGameEntityClass cgMiscSound = {
+const CGameEntityClass cg_miscSound = {
   .classname = "misc_sound",
   .Init = Cg_misc_sound_Init,
   .Think = Cg_misc_sound_Think,
@@ -666,7 +666,7 @@ static void Cg_misc_sparks_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_sparks` spark emitter.
  */
-const CGameEntityClass cgMiscSparks = {
+const CGameEntityClass cg_miscSparks = {
   .classname = "misc_sparks",
   .Init = Cg_misc_sparks_Init,
   .Think = Cg_misc_sparks_Think,
@@ -798,7 +798,7 @@ static void Cg_misc_sprite_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_sprite` configurable sprite emitter.
  */
-const CGameEntityClass cgMiscSprite = {
+const CGameEntityClass cg_miscSprite = {
   .classname = "misc_sprite",
   .Init = Cg_misc_sprite_Init,
   .Think = Cg_misc_sprite_Think,
@@ -846,7 +846,7 @@ static void Cg_misc_steam_Init(CGameEntity *self) {
       steam->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
-    steam->sample = cgSampleSteam;
+    steam->sample = cg_sampleSteam;
   }
 }
 
@@ -866,7 +866,7 @@ static void Cg_misc_steam_Think(CGameEntity *self) {
 
   for (int32_t i = 0; i < steam->count; i++) {
     if (!Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteSteam,
+      .atlasImage = cg_spriteSteam,
       .origin = self->origin,
       .velocity = Vec3_Add(steam->velocity, Vec3_RandomRange(-2.f, 2.f)),
       .acceleration = Vec3_Add(Vec3_Scale(Vec3_Up(), 20.f), Vec3_RandomDir()),
@@ -895,7 +895,7 @@ static void Cg_misc_steam_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_steam` steam vent emitter.
  */
-const CGameEntityClass cgMiscSteam = {
+const CGameEntityClass cg_miscSteam = {
   .classname = "misc_steam",
   .Init = Cg_misc_steam_Init,
   .Think = Cg_misc_steam_Think,
@@ -974,11 +974,11 @@ static void Cg_misc_weather_Init(CGameEntity *self) {
     }
   } else {
     if (weather->weather & WEATHER_RAIN) {
-      weather->sample = cgSampleRain;
+      weather->sample = cg_sampleRain;
     } else if (weather->weather & WEATHER_SNOW) {
-      weather->sample = cgSampleSnow;
+      weather->sample = cg_sampleSnow;
     } else if (weather->weather & WEATHER_ASH) {
-      weather->sample = cgSampleAsh;
+      weather->sample = cg_sampleAsh;
     }
   }
 
@@ -1077,7 +1077,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
   };
 
   if (weather->weather & WEATHER_RAIN) {
-    s.atlasImage = cgSpriteRain;
+    s.atlasImage = cg_spriteRain;
     s.color = MakeVec3(1.f, 1.f, 1.f);
     s.size = 32.f;
     s.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), MakeVec3(0.f, 0.f, 800.f));
@@ -1088,7 +1088,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
     // Suppress splash bursts for catch-up sprites; they should appear already in-flight.
     if (!ageMsec && Randomf() > .8f) {
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgSpriteWaterRing,
+        .atlasImage = cg_spriteWaterRing,
         .lifetime = 300,
         .origin = MakeVec3(pos.x, pos.y, pos.z - height + 2.f),
         .size = 4.f,
@@ -1100,7 +1100,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
       });
     }
   } else if (weather->weather & WEATHER_SNOW) {
-    s.atlasImage = cgSpriteSnow;
+    s.atlasImage = cg_spriteSnow;
     s.color = MakeVec3(1.f, 1.f, 1.f);
     s.size = 4.f;
     s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), MakeVec3(0.f, 0.f, 120.f));
@@ -1108,7 +1108,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
     s.lifetime = 1000.f * height / 120.f * RandomRangef(.8f, 1.2f);
   } else if (weather->weather & WEATHER_ASH) {
     const float color = RandomRangef(0.25f, 0.75f);
-    s.atlasImage = cgSpriteAsh;
+    s.atlasImage = cg_spriteAsh;
     s.color = MakeVec3(color, color, color);
     s.size = RandomRangef(1.f, 3.f);
     s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), MakeVec3(0.f, 0.f, 25.f));
@@ -1185,7 +1185,7 @@ static void Cg_misc_weather_Think(CGameEntity *self) {
 /**
  * @brief The client-side entity class descriptor for the `misc_weather` ambient weather system.
  */
-const CGameEntityClass cgMiscWeather = {
+const CGameEntityClass cg_miscWeather = {
   .classname = "misc_weather",
   .Init = Cg_misc_weather_Init,
   .Free = Cg_misc_weather_Free,

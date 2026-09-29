@@ -173,7 +173,7 @@ static bool visible(const PlayerState *ps) {
     return false;
   }
 
-  if (cgState.centerPrint.time > cgi.client->unclampedTime) {
+  if (cg_state.centerPrint.time > cgi.client->unclampedTime) {
     return false;
   }
 
@@ -250,13 +250,13 @@ static void updateBindings(View *self, ident data) {
   if (cg_drawCrosshairPulse->value) {
 
     const int16_t p = ps->stats[STAT_PICKUP];
-    if (p && p != cgHudState.pulse.pickup) {
-      cgHudState.pulse.time = cgi.client->unclampedTime;
+    if (p && p != cg_hudState.pulse.pickup) {
+      cg_hudState.pulse.time = cgi.client->unclampedTime;
     }
 
-    cgHudState.pulse.pickup = p;
+    cg_hudState.pulse.pickup = p;
 
-    const uint32_t delta = cgi.client->unclampedTime - cgHudState.pulse.time;
+    const uint32_t delta = cgi.client->unclampedTime - cg_hudState.pulse.time;
     if (delta < 300) {
       const float frac = delta / 300.f;
       scale += sinf(frac * M_PI) * CROSSHAIR_SCALE;

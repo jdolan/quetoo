@@ -51,8 +51,8 @@ Cvar *cl_drawNetMessages;
 ClientStatic cls;
 Client cl;
 
-RenderView clView;
-SoundStage clStage;
+RenderView cl_view;
+SoundStage cl_stage;
 
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
@@ -594,17 +594,17 @@ static void Cl_UpdateScene(void) {
     thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }
 
-  R_DrawViewDepth(&clView);
+  R_DrawViewDepth(&cl_view);
 
   Thread_Wait(thread);
 
-  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &clStage, THREAD_NONE);
+  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
 
-  R_DrawSubviews(&clView);
+  R_DrawSubviews(&cl_view);
 
-  R_DrawMainView(&clView);
+  R_DrawMainView(&cl_view);
 
-  R_DrawPost(&clView);
+  R_DrawPost(&cl_view);
 
   Thread_Wait(thread);
 }
@@ -614,9 +614,9 @@ static void Cl_UpdateScene(void) {
  */
 int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
-  R_InitView(&clView);
+  R_InitView(&cl_view);
 
-  S_InitStage(&clStage);
+  S_InitStage(&cl_stage);
 
   Cl_HandleEvents();
 
@@ -628,9 +628,9 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
   R_EndFrame();
 
-  S_RenderStage(&clStage);
+  S_RenderStage(&cl_stage);
 
-  R_Screenshot(&clView);
+  R_Screenshot(&cl_view);
 
   return res;
 }
@@ -679,8 +679,8 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     float targetFps = cl_maxFps->value;
     if (targetFps == 0.f) {
-      if (rContext.displayMode) {
-        targetFps = rContext.displayMode->refresh_rate;
+      if (renderContext.displayMode) {
+        targetFps = renderContext.displayMode->refresh_rate;
       }
     }
     if (targetFps > 0.f) { // cap render frame rate
@@ -690,9 +690,9 @@ void Cl_Frame(const uint32_t msec) {
     }
   }
 
-  R_InitView(&clView);
+  R_InitView(&cl_view);
 
-  S_InitStage(&clStage);
+  S_InitStage(&cl_stage);
 
   Cl_AttemptConnect();
 
@@ -716,14 +716,14 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     Cl_SendCommands();
 
-    S_RenderStage(&clStage);
+    S_RenderStage(&cl_stage);
   }
 
   Cl_UpdateScreen();
 
   R_EndFrame();
 
-  R_Screenshot(&clView);
+  R_Screenshot(&cl_view);
 
   cls.cgame->UpdateDiscord();
 

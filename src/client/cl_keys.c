@@ -32,7 +32,7 @@ void Cl_SetKeyDest(ClientKeyDest dest) {
 
   if (dest == cls.keyState.dest) {
     if (dest == KEY_CONSOLE || dest == KEY_CHAT) {
-      SDL_StartTextInput(rContext.window);
+      SDL_StartTextInput(renderContext.window);
     }
     return;
   }
@@ -51,25 +51,25 @@ void Cl_SetKeyDest(ClientKeyDest dest) {
       }
     }
 
-    SDL_SetWindowRelativeMouseMode(rContext.window, false);
+    SDL_SetWindowRelativeMouseMode(renderContext.window, false);
 
-    const int32_t cx = rContext.windowBounds.w * 0.5;
-    const int32_t cy = rContext.windowBounds.h * 0.5;
+    const int32_t cx = renderContext.windowBounds.w * 0.5;
+    const int32_t cy = renderContext.windowBounds.h * 0.5;
 
-    SDL_WarpMouseInWindow(rContext.window, cx, cy);
+    SDL_WarpMouseInWindow(renderContext.window, cx, cy);
   }
 
   switch (dest) {
     case KEY_CONSOLE:
     case KEY_CHAT:
-      SDL_StartTextInput(rContext.window);
+      SDL_StartTextInput(renderContext.window);
       break;
     case KEY_UI:
-      SDL_StopTextInput(rContext.window);
+      SDL_StopTextInput(renderContext.window);
       break;
     case KEY_GAME:
-      SDL_StopTextInput(rContext.window);
-      SDL_SetWindowRelativeMouseMode(rContext.window, true);
+      SDL_StopTextInput(renderContext.window);
+      SDL_SetWindowRelativeMouseMode(renderContext.window, true);
       break;
   }
 

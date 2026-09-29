@@ -310,7 +310,7 @@ static void R_DrawBspEntityShadows(const RenderLight *l, const RenderEntity *e, 
     return;
   }
 
-  $(rContext.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const RenderShadowLocals) {
+  $(renderContext.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const RenderShadowLocals) {
     .model = e->matrix,
     .lightView = module.lightView[module.face],
     .lightOrigin = Vec3_ToVec4(l->origin, l->radius),
@@ -459,7 +459,7 @@ static void R_DrawMeshEntitiesShadows(const RenderView *view, const RenderLight 
  */
 void R_DrawShadows(const RenderView *view) {
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   const RenderBspModel *bsp = rModels.world ? rModels.world->bsp : NULL;
 
@@ -570,7 +570,7 @@ void R_InitShadows(void) {
   const Uint32 atlasSize = SHADOW_ATLAS_LIGHTS_PER_ROW * rShadowAtlas.tileSize;
 
   for (int32_t face = 0; face < 6; face++) {
-    rShadowAtlas.textures[face] = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    rShadowAtlas.textures[face] = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D,
       .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
       .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -584,14 +584,14 @@ void R_InitShadows(void) {
     $(rShadowAtlas.textures[face], setName, va("shadow atlas %d", face));
   }
 
-  rShadowAtlas.sampler = $(rContext.device, createSamplerShadowCompare);
+  rShadowAtlas.sampler = $(renderContext.device, createSamplerShadowCompare);
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_uniform_buffers = 1,
   });
@@ -630,7 +630,7 @@ void R_InitShadows(void) {
     },
   };
 
-  module.bspOpaquePipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.bspOpaquePipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -645,17 +645,17 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 2,
   };
 
-  module.meshOpaquePipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.meshOpaquePipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  Shader *alphaTestVertexShader = $(rContext.device, loadShader, "shaders/shadow_vs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+  Shader *alphaTestVertexShader = $(renderContext.device, loadShader, "shaders/shadow_vs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2,
   });
 
-  Shader *alphaTestFragmentShader = $(rContext.device, loadShader, "shaders/shadow_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+  Shader *alphaTestFragmentShader = $(renderContext.device, loadShader, "shaders/shadow_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 1,
     .num_uniform_buffers = 2,
@@ -677,7 +677,7 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 3,
   };
 
-  module.meshAlphaTestPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.meshAlphaTestPipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -693,12 +693,12 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 3,
   };
 
-  module.bspAlphaTestPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.bspAlphaTestPipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(alphaTestVertexShader);
   release(alphaTestFragmentShader);
 
-  module.repeatSampler = $(rContext.device, createSamplerLinearRepeat);
+  module.repeatSampler = $(renderContext.device, createSamplerLinearRepeat);
 
   SDL_GPUGraphicsPipelineCreateInfo clearInfo = {
     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
@@ -719,7 +719,7 @@ void R_InitShadows(void) {
     },
   };
 
-  module.clearPipeline = $(rContext.device, loadGraphicsPipeline,
+  module.clearPipeline = $(renderContext.device, loadGraphicsPipeline,
     "shaders/shadow_clear_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     },

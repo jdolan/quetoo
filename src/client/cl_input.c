@@ -231,24 +231,24 @@ float Cl_KeyState(InputButton *key, uint32_t cmdMsec) {
  */
 static void Cl_UpdateMouseState(void) {
 
-  const SDL_WindowFlags flags = SDL_GetWindowFlags(rContext.window);
+  const SDL_WindowFlags flags = SDL_GetWindowFlags(renderContext.window);
 
   // paused demo playback stays in KEY_GAME so the HUD (and its transport controls) keep
   // drawing, but wants a visible, ungrabbed cursor to drive those controls with
   if (cls.keyState.dest == KEY_UI || cls.keyState.dest == KEY_CONSOLE || cls.demo.paused ||
       (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
     SDL_ShowCursor();
-    SDL_SetWindowMouseGrab(rContext.window, false);
+    SDL_SetWindowMouseGrab(renderContext.window, false);
   } else {
     SDL_HideCursor();
-    SDL_SetWindowMouseGrab(rContext.window, true);
+    SDL_SetWindowMouseGrab(renderContext.window, true);
   }
 
   // Cl_SetKeyDest owns relative mouse mode for key destination changes, but pausing a demo
   // doesn't change destination, so the pause state is reconciled here each frame instead - and
   // so it survives a trip through the menus and back
   if (cls.keyState.dest == KEY_GAME) {
-    SDL_SetWindowRelativeMouseMode(rContext.window, !cls.demo.paused);
+    SDL_SetWindowRelativeMouseMode(renderContext.window, !cls.demo.paused);
   }
 }
 

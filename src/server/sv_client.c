@@ -235,7 +235,7 @@ typedef struct {
   void (*func)(void);
 } ServerUserStringCmd;
 
-static ServerUserStringCmd svUserStringCmds[] = { // mapping command names to their functions
+static ServerUserStringCmd sv_userStringCmds[] = { // mapping command names to their functions
   { "new", Sv_New_f },
   { "config_strings", Sv_ConfigStrings_f },
   { "baselines", Sv_Baselines_f },
@@ -263,7 +263,7 @@ static void Sv_UserStringCommand(const char *s) {
     return;
   }
 
-  for (c = svUserStringCmds; c->name; c++) {
+  for (c = sv_userStringCmds; c->name; c++) {
 
     if (!q_strcmp(Cmd_Argv(0), c->name)) {
       c->func();

@@ -422,7 +422,7 @@ static void Cl_ParsePrint(void) {
     }
 
     if (sample) {
-      S_AddSample(&clStage, &(SoundPlaySample) {
+      S_AddSample(&cl_stage, &(SoundPlaySample) {
         .sample = S_LoadSample(sample, ASSET_CONTEXT_SOUNDS),
         .flags = S_PLAY_UI
       });

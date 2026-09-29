@@ -136,14 +136,14 @@ static GraphicsPipeline *R_MeshStagePipeline(CmBlend src, CmBlend dest) {
     return NULL;
   }
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = MESH_NUM_VERTEX_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = MESH_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -208,7 +208,7 @@ static GraphicsPipeline *R_MeshStagePipeline(CmBlend src, CmBlend dest) {
     .has_depth_stencil_target = true,
   };
 
-  GraphicsPipeline *pipeline = $(rContext.device, createGraphicsPipeline, &info);
+  GraphicsPipeline *pipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -634,8 +634,8 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
@@ -673,14 +673,14 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
  */
 void R_InitMeshPipeline(void) {
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = MESH_NUM_VERTEX_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = MESH_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -728,9 +728,9 @@ void R_InitMeshPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  module.opaquePipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.opaquePipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
-  Shader *alphaTestFragmentShader = $(rContext.device, loadShader, "shaders/mesh_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+  Shader *alphaTestFragmentShader = $(renderContext.device, loadShader, "shaders/mesh_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = MESH_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -740,23 +740,23 @@ void R_InitMeshPipeline(void) {
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
   info.fragment_shader = alphaTestFragmentShader->shader;
-  module.alphaTestPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.alphaTestPipeline = $(renderContext.device, createGraphicsPipeline, &info);
   release(alphaTestFragmentShader);
 
   info.fragment_shader = fragmentShader->shader;
 
   colorTargets[0].blend_state = GPU_BlendStateAlpha;
 
-  module.blendPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.blendPipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  module.repeatSampler = $(rContext.device, createSamplerLinearRepeat);
-  module.clampSampler = $(rContext.device, createSamplerLinearClamp);
+  module.repeatSampler = $(renderContext.device, createSamplerLinearRepeat);
+  module.clampSampler = $(renderContext.device, createSamplerLinearClamp);
 
   const Uint8 causticsTexel[4] = { 128, 128, 128, 255 };
-  module.voxelCausticsFallback = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  module.voxelCausticsFallback = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -766,7 +766,7 @@ void R_InitMeshPipeline(void) {
   }, causticsTexel);
 
   const Uint8 occlusionTexel[2] = { 0, 0 };
-  module.voxelOcclusionFallback = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  module.voxelOcclusionFallback = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -775,7 +775,7 @@ void R_InitMeshPipeline(void) {
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
   }, occlusionTexel);
 
-  module.skyFallback = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
+  module.skyFallback = $(renderContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
 }
 
 /**

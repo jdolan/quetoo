@@ -326,7 +326,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
     // resolve the team
     const GameTeamId teamId = atoi(info[0]);
     if (teamId != TEAM_NONE) {
-      ci->team = cgState.teams + teamId;
+      ci->team = cg_state.teams + teamId;
     } else {
       ci->team = NULL;
     }
@@ -418,10 +418,10 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
  */
 void Cg_LoadClients(void) {
 
-  memset(cgState.clients, 0, sizeof(cgState.clients));
+  memset(cg_state.clients, 0, sizeof(cg_state.clients));
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    CGameClientInfo *ci = &cgState.clients[i];
+    CGameClientInfo *ci = &cg_state.clients[i];
     const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
     if (!*s) {
@@ -439,7 +439,7 @@ void Cg_LoadClients(void) {
   // before the media reload; without reloading them here their models are freed out from
   // under them by R_EndLoading, and the bodies still standing are drawn through dangling
   // pointers
-  memset(cgState.corpses, 0, sizeof(cgState.corpses));
+  memset(cg_state.corpses, 0, sizeof(cg_state.corpses));
 
   for (int32_t i = 0; i < MAX_CORPSES; i++) {
     const char *s = cgi.ConfigString(CS_CORPSES + i);
@@ -448,13 +448,13 @@ void Cg_LoadClients(void) {
       continue;
     }
 
-    Cg_LoadClient(&cgState.corpses[i], s);
+    Cg_LoadClient(&cg_state.corpses[i], s);
   }
 
-  memset(&cgState.forceSkin, 0, sizeof(cgState.forceSkin));
+  memset(&cg_state.forceSkin, 0, sizeof(cg_state.forceSkin));
 
   if (*cg_forceSkin->string) {
-    Cg_LoadClient(&cgState.forceSkin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_forceSkin->string));
+    Cg_LoadClient(&cg_state.forceSkin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_forceSkin->string));
   }
 }
 
@@ -795,10 +795,10 @@ static CGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
   // not repainted by its owner changing skin and does not fall back to the default model when
   // they disconnect and their entry is cleared. The mask is what the slot was assigned with.
   if (ent->current.effects & EF_CORPSE) {
-    return &cgState.corpses[ent->current.client & (MAX_CORPSES - 1)];
+    return &cg_state.corpses[ent->current.client & (MAX_CORPSES - 1)];
   }
 
-  return &cgState.clients[ent->current.client];
+  return &cg_state.clients[ent->current.client];
 }
 
 ClientInfo Cg_ClientInfo = Cg_ClientInfo_Common;
@@ -863,9 +863,9 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
   CGameClientInfo *skin = ci;
 
   // force the preferred skin on all _other_ players, not on ourselves
-  if (IS_MESH_MODEL(cgState.forceSkin.head) && IS_MESH_MODEL(cgState.forceSkin.torso) &&
-      IS_MESH_MODEL(cgState.forceSkin.legs) && ent != cgi.client->entity) {
-    skin = &cgState.forceSkin;
+  if (IS_MESH_MODEL(cg_state.forceSkin.head) && IS_MESH_MODEL(cg_state.forceSkin.torso) &&
+      IS_MESH_MODEL(cg_state.forceSkin.legs) && ent != cgi.client->entity) {
+    skin = &cg_state.forceSkin;
   }
 
   legs.model = skin->legs;

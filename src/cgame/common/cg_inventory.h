@@ -45,7 +45,7 @@ typedef struct {
 /**
  * @brief Per-item cache, indexed by `GameItemTag`. Populated at load time.
  */
-extern CGameItem cgItems[ITEM_TOTAL];
+extern CGameItem cg_items[ITEM_TOTAL];
 
 /**
  * @brief Cached per-weapon data derived from `bgItemDefs` at load time.
@@ -73,7 +73,7 @@ typedef struct {
 /**
  * @brief Per-weapon cache, indexed by (tag - `WEAPON_FIRST`). Populated at load time.
  */
-extern CGameWeapon cgWeapons[WEAPON_TOTAL];
+extern CGameWeapon cg_weapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache (item models, weapon ammo tags).

@@ -155,7 +155,7 @@ void R_LoadOcclusionQueries(void) {
 
   const int32_t numBoxes = (int32_t) rOcclusion.boxes->count;
   if (numBoxes) {
-    rOcclusion.instanceBuffer = $(rContext.device, createBufferWithConstMem,
+    rOcclusion.instanceBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_VERTEX, rOcclusion.boxes->elements, (Uint32) (numBoxes * sizeof(Box3)));
   }
 }
@@ -261,7 +261,7 @@ void R_InitOcclusionQueries(void) {
 
   rOcclusion.boxes = $(alloc(Vector), initWithSize, sizeof(Box3));
 
-  rOcclusion.pool = $(rContext.device, createQueryPool, &(SDL_GPUQueryPoolCreateInfo) {
+  rOcclusion.pool = $(renderContext.device, createQueryPool, &(SDL_GPUQueryPoolCreateInfo) {
     .type = SDL_GPU_QUERY_PRECISE_OCCLUSION,
     .query_count = MAX_OCCLUSION_QUERIES,
   });
@@ -269,7 +269,7 @@ void R_InitOcclusionQueries(void) {
   Vec3 cube[8];
   Box3_ToPoints(MakeBox3(MakeVec3(0.f, 0.f, 0.f), MakeVec3(1.f, 1.f, 1.f)), cube);
 
-  rOcclusion.vertexBuffer = $(rContext.device, createBufferWithConstMem,
+  rOcclusion.vertexBuffer = $(renderContext.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
 
   const uint32_t elements[] = {
@@ -281,20 +281,20 @@ void R_InitOcclusionQueries(void) {
     5, 7, 1, 7, 3, 1,
   };
 
-  rOcclusion.elementsBuffer = $(rContext.device, createBufferWithConstMem,
+  rOcclusion.elementsBuffer = $(renderContext.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_INDEX, elements, sizeof(elements));
 
-  rOcclusion.transfer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  rOcclusion.transfer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
     .size = MAX_OCCLUSION_QUERIES * sizeof(Uint64),
   });
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/occlude_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/occlude_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 1,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 
@@ -354,7 +354,7 @@ void R_InitOcclusionQueries(void) {
     .has_depth_stencil_target = true,
   };
 
-  rOcclusion.pipeline = $(rContext.device, createGraphicsPipeline, &info);
+  rOcclusion.pipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);

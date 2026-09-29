@@ -508,7 +508,7 @@ void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
 
       if (numVertexes > decals->vertexBufferCapacity) {
         decals->vertexBuffer = release(decals->vertexBuffer);
-        decals->vertexBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+        decals->vertexBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
           .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
           .size = numVertexes * sizeof(RenderDecalVertex),
         });
@@ -534,7 +534,7 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 
   assert(rModels.world);
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   const RenderBspModel *bsp = rModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
@@ -659,7 +659,7 @@ static void R_InitDecalPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  decalPipeline.pipeline = $(rContext.device, loadGraphicsPipeline,
+  decalPipeline.pipeline = $(renderContext.device, loadGraphicsPipeline,
     "shaders/decal_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_storage_buffers = 1,
@@ -673,7 +673,7 @@ static void R_InitDecalPipeline(void) {
     },
     &info);
 
-  decalPipeline.diffusemapSampler = $(rContext.device, createSamplerLinearClamp);
+  decalPipeline.diffusemapSampler = $(renderContext.device, createSamplerLinearClamp);
 }
 
 /**
@@ -701,12 +701,12 @@ void R_InitDecals(void) {
 
   memset(&module, 0, sizeof(module));
 
-  module.buffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  module.buffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
     .size = sizeof(module.instances),
   });
 
-  module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  module.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
     .size = sizeof(module.instances),
   });

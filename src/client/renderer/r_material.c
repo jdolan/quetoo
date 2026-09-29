@@ -375,7 +375,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
     const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
 
-    material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    material->texture->texture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = w,
@@ -387,7 +387,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
     free(data);
 
-    CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
+    CommandBuffer *commands = $(renderContext.device, acquireCommandBuffer);
     $(commands, generateMipmaps, material->texture->texture->texture);
     $(commands, submit);
     release(commands);
@@ -398,7 +398,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
   } else {
 
-    material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    material->texture->texture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = w,
@@ -528,7 +528,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
       return false;
     }
 
-    *texture = *textureNext = rContext.nullTexture->texture;
+    *texture = *textureNext = renderContext.nullTexture->texture;
     return true;
   }
 

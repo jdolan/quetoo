@@ -127,7 +127,7 @@ static GraphicsPipeline *R_SkyStagePipeline(CmBlend src, CmBlend dest) {
     .has_depth_stencil_target = true,
   };
 
-  GraphicsPipeline *pipeline = $(rContext.device, loadGraphicsPipeline,
+  GraphicsPipeline *pipeline = $(renderContext.device, loadGraphicsPipeline,
     "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_uniform_buffers = SKY_NUM_UNIFORMS,
@@ -228,7 +228,7 @@ void R_DrawSky(const RenderView *view, RenderPass *pass) {
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
     { .texture = rShadowAtlas.textures[0]->texture, .sampler = rShadowAtlas.sampler->sampler },
     { .texture = rShadowAtlas.textures[1]->texture, .sampler = rShadowAtlas.sampler->sampler },
     { .texture = rShadowAtlas.textures[2]->texture, .sampler = rShadowAtlas.sampler->sampler },
@@ -245,8 +245,8 @@ void R_DrawSky(const RenderView *view, RenderPass *pass) {
   }, 1);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
   }, 2);
 
   const RenderBspInlineModel *world = bsp->inlineModels;
@@ -332,7 +332,7 @@ static void R_InitSkyPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  module.pipeline = $(rContext.device, loadGraphicsPipeline,
+  module.pipeline = $(renderContext.device, loadGraphicsPipeline,
     "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_uniform_buffers = SKY_NUM_UNIFORMS,
@@ -344,8 +344,8 @@ static void R_InitSkyPipeline(void) {
     },
     &info);
 
-  module.clampSampler = $(rContext.device, createSamplerLinearClamp);
-  module.repeatSampler = $(rContext.device, createSamplerLinearRepeat);
+  module.clampSampler = $(renderContext.device, createSamplerLinearClamp);
+  module.repeatSampler = $(renderContext.device, createSamplerLinearRepeat);
 }
 
 /**

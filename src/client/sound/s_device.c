@@ -87,7 +87,7 @@ static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additio
     const int32_t bytes = additional < (int32_t) sizeof(buffer) ? additional : (int32_t) sizeof(buffer);
     const int32_t samples = bytes / S_FRAME_SIZE;
 
-    alcRenderSamplesSOFT(sContext.device, buffer, samples);
+    alcRenderSamplesSOFT(soundContext.device, buffer, samples);
     SDL_PutAudioStreamData(stream, buffer, samples * (int32_t) S_FRAME_SIZE);
 
     additional -= samples * (int32_t) S_FRAME_SIZE;

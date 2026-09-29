@@ -83,10 +83,10 @@ static void updateBindings(View *self, ident data) {
 
   const bool detached = !Cg_CameraSubject(ps);
 
-  if (detached != this->detached || cgState.cameraMode != this->mode) {
+  if (detached != this->detached || cg_state.cameraMode != this->mode) {
 
     this->detached = detached;
-    this->mode = cgState.cameraMode;
+    this->mode = cg_state.cameraMode;
 
     const size_t camera = detached ? CAMERA_MODE_TOTAL : this->mode;
 

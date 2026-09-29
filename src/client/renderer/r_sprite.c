@@ -378,7 +378,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
     return;
   }
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   const RenderBspModel *bsp = rModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
@@ -486,7 +486,7 @@ static void R_InitSpritePipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  module.pipeline = $(rContext.device, loadGraphicsPipeline,
+  module.pipeline = $(renderContext.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_storage_buffers = 5,
@@ -499,8 +499,8 @@ static void R_InitSpritePipeline(void) {
     },
     &info);
 
-  module.sampler = $(rContext.device, createSamplerLinearClamp);
-  module.depthSampler = $(rContext.device, createSamplerNearestClamp);
+  module.sampler = $(renderContext.device, createSamplerLinearClamp);
+  module.depthSampler = $(renderContext.device, createSamplerNearestClamp);
 }
 
 /**
@@ -522,17 +522,17 @@ void R_InitSprites(void) {
     elements[e + 5] = v + 3;
   }
 
-  module.elementsBuffer = $(rContext.device, createBufferWithConstMem,
+  module.elementsBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX, elements, (Uint32) (numElements * sizeof(uint32_t)));
 
   free(elements);
 
-  module.instanceBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  module.instanceBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
     .size = sizeof(module.instances),
   });
 
-  module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  module.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
     .size = sizeof(module.instances),
   });

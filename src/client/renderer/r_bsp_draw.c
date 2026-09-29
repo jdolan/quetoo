@@ -214,14 +214,14 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend des
     Com_Error(ERROR_DROP, "MAX_STAGE_PIPELINES\n");
   }
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = BSP_NUM_VERTEX_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -284,7 +284,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend des
     .has_depth_stencil_target = true,
   };
 
-  GraphicsPipeline *pipeline = $(rContext.device, createGraphicsPipeline, &info);
+  GraphicsPipeline *pipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -595,8 +595,8 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
   }, 2);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
@@ -795,8 +795,8 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
   }, 2);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
@@ -842,14 +842,14 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
  */
 void R_InitBspPipeline(void) {
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = BSP_NUM_VERTEX_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -925,9 +925,9 @@ void R_InitBspPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  module.opaquePipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.opaquePipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
-  Shader *alphaTestFragmentShader = $(rContext.device, loadShader, "shaders/bsp_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+  Shader *alphaTestFragmentShader = $(renderContext.device, loadShader, "shaders/bsp_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -935,7 +935,7 @@ void R_InitBspPipeline(void) {
   });
 
   info.fragment_shader = alphaTestFragmentShader->shader;
-  module.alphaTestPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.alphaTestPipeline = $(renderContext.device, createGraphicsPipeline, &info);
   release(alphaTestFragmentShader);
 
   info.fragment_shader = fragmentShader->shader;
@@ -944,13 +944,13 @@ void R_InitBspPipeline(void) {
     .enable_color_write_mask = true, .color_write_mask = 0,
   };
   info.depth_stencil_state.enable_depth_write = false;
-  module.blendPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.blendPipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  module.repeatSampler = $(rContext.device, createSamplerLinearRepeat);
-  module.clampSampler = $(rContext.device, createSamplerLinearClamp);
+  module.repeatSampler = $(renderContext.device, createSamplerLinearRepeat);
+  module.clampSampler = $(renderContext.device, createSamplerLinearClamp);
 
   #define WARP_IMAGE_SIZE 16
   byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
@@ -963,7 +963,7 @@ void R_InitBspPipeline(void) {
     }
   }
 
-  module.warpTexture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  module.warpTexture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_2D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .width = WARP_IMAGE_SIZE,
@@ -974,7 +974,7 @@ void R_InitBspPipeline(void) {
   }, data);
   #undef WARP_IMAGE_SIZE
 
-  CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
+  CommandBuffer *commands = $(renderContext.device, acquireCommandBuffer);
   $(commands, generateMipmaps, module.warpTexture->texture);
   $(commands, submit);
   release(commands);

@@ -47,7 +47,7 @@ sizeof(*((T *) 0)->F)
 
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
 
-static BspLumpMeta bspLumpMeta[BSP_LUMP_LAST] = {
+static BspLumpMeta lumpMeta[BSP_LUMP_LAST] = {
   BSP_LUMP_SIZE_STRUCT(entityStringSize, entityString, MAX_BSP_ENTITIES_SIZE),
   BSP_LUMP_NUM_STRUCT(numMaterials, materials, MAX_BSP_MATERIALS),
   BSP_LUMP_NUM_STRUCT(numPlanes, planes, MAX_BSP_PLANES),
@@ -544,7 +544,7 @@ static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lumpId, int32
     return false;
   }
 
-  BspLumpMeta *meta = &bspLumpMeta[lumpId];
+  BspLumpMeta *meta = &lumpMeta[lumpId];
 
   if (!meta->typeSize) {
 
@@ -643,7 +643,7 @@ bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lumpId) {
   BspLump lump;
   Bsp_GetLumpPosition(file, lumpId, &lump);
 
-  const size_t lumpTypeSize = bspLumpMeta[lumpId].typeSize;
+  const size_t lumpTypeSize = lumpMeta[lumpId].typeSize;
 
   if (lump.fileLen < 0 || lump.fileOfs < 0) {
     Com_Error(ERROR_DROP, "Lump (%i) has invalid offset (%i) or size (%i)\n",
@@ -657,9 +657,9 @@ bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lumpId) {
 
   *lumpCount = lump.fileLen / lumpTypeSize;
 
-  if (*lumpCount >= (int32_t) bspLumpMeta[lumpId].maxCount) {
+  if (*lumpCount >= (int32_t) lumpMeta[lumpId].maxCount) {
     Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lumpId, *lumpCount,
-              bspLumpMeta[lumpId].maxCount);
+              lumpMeta[lumpId].maxCount);
   }
 
   if (*lumpCount) {
@@ -726,7 +726,7 @@ void Bsp_AllocLump(BspFile *bsp, const BspLumpId lumpId, const size_t count) {
   }
 
   // calculate size
-  const size_t lumpTypeSize = bspLumpMeta[lumpId].typeSize;
+  const size_t lumpTypeSize = lumpMeta[lumpId].typeSize;
 
   const size_t oldCount = (size_t) *lumpCount;
 
@@ -769,7 +769,7 @@ void Bsp_Write(File *file, const BspFile *bsp) {
     int32_t *lumpCount;
     void **lumpData;
 
-    const size_t size = bspLumpMeta[lump].typeSize;
+    const size_t size = lumpMeta[lump].typeSize;
 
     Bsp_GetLumpOffsets(bsp, lump, &lumpCount, &lumpData);
 

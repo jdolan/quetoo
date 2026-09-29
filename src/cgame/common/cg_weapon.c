@@ -27,8 +27,8 @@
 static void Cg_WeaponBob(const PlayerState *ps, Vec3 *offset, Vec3 *angles) {
   const Vec3 bob = MakeVec3(0.2f, 0.4f, 0.2f);
 
-  *offset = Vec3_Fmaf(*offset, cgView.bob, bob);
-  *angles = Vec3_Add(*angles, MakeVec3(0.f, 1.5f * cgView.bob, 0.f));
+  *offset = Vec3_Fmaf(*offset, cg_view.bob, bob);
+  *angles = Vec3_Add(*angles, MakeVec3(0.f, 1.5f * cg_view.bob, 0.f));
 }
 
 /**
@@ -132,7 +132,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
     return; // spectating
   }
 
-  if (cgi.client->demoServer && cgState.spectate.detached) {
+  if (cgi.client->demoServer && cg_state.spectate.detached) {
     return; // the camera has left the recorded player behind, and their weapon with it
   }
 
@@ -152,9 +152,9 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   w.origin = Vec3_Add(w.origin, velocity);
 
-  w.model = cgWeapons[active].model;
+  w.model = cg_weapons[active].model;
 
-  if (cgWeapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
+  if (cg_weapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
     switch (cg_hand->integer) {
       case HAND_LEFT:
         offset.y -= 5.f;
@@ -196,7 +196,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   RenderEntity *weapon = cgi.AddEntity(cgi.view, &w);
 
-  CGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
+  CGameClientInfo *ci = &cg_state.clients[cgi.client->frame.ps.client];
 
   Vec3 weaponOrigin;
   Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weaponOrigin);

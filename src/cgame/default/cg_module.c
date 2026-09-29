@@ -32,15 +32,15 @@ static struct {
  * @brief The games this module plays as variants of deathmatch, which the maps name
  * rather than `default`.
  */
-static const char *cgDefaultGames[] = { "dm", "tdm", "duel", "instagib" };
+static const char *cg_defaultGames[] = { "dm", "tdm", "duel", "instagib" };
 
 /**
  * @brief Lists a map made for any of the deathmatch variants.
  */
 static bool Cg_FilterCreateServerMapList_Default(const MapListItemInfo *info) {
 
-  for (size_t i = 0; i < lengthof(cgDefaultGames); i++) {
-    if (q_str_has_token(info->games, cgDefaultGames[i])) {
+  for (size_t i = 0; i < lengthof(cg_defaultGames); i++) {
+    if (q_str_has_token(info->games, cg_defaultGames[i])) {
       return true;
     }
   }

@@ -34,12 +34,12 @@
 
 #define HUD_DEFAULT "default"
 
-HudViewController *cgHudViewController;
+HudViewController *cg_hudViewController;
 
 AtlasImage *Cg_HudImage(const char *name) {
 
-  if (cgHudViewController) {
-    return $(cgHudViewController, image, name);
+  if (cg_hudViewController) {
+    return $(cg_hudViewController, image, name);
   }
 
   return NULL;
@@ -54,8 +54,8 @@ static void dealloc(Object *self) {
 
   HudViewController *this = (HudViewController *) self;
 
-  if (cgHudViewController == this) {
-    cgHudViewController = NULL;
+  if (cg_hudViewController == this) {
+    cg_hudViewController = NULL;
   }
 
   release(this->hud);
@@ -474,7 +474,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
-  const bool scores = ps->stats[STAT_SCORES] && !cgState.navEdit;
+  const bool scores = ps->stats[STAT_SCORES] && !cg_state.navEdit;
 
   $((View *) self->scoreboard, setVisibility,
     scores ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -485,7 +485,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The maps are published only during the intermission, so their presence is what says
   // there is one; like the scoreboard, this shows when the hud does not
-  const bool intermission = cgState.nextMap.active && !cgState.navEdit;
+  const bool intermission = cg_state.nextMap.active && !cg_state.navEdit;
 
   $((View *) self->intermission, setVisibility,
     intermission ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -513,7 +513,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
     $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
-  const bool hidden = cgState.navEdit || (!editor->integer && (!cg_drawHud->integer || !ps->stats[STAT_TIME]));
+  const bool hidden = cg_state.navEdit || (!editor->integer && (!cg_drawHud->integer || !ps->stats[STAT_TIME]));
 
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);

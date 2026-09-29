@@ -298,12 +298,12 @@ void R_LoadMeshVertexArray(RenderModel *mod) {
     }
   }
 
-  mesh->vertexBuffer = $(rContext.device, createBufferWithConstMem,
+  mesh->vertexBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_VERTEX,
       mesh->vertexes,
       mesh->numVertexes * mesh->numFrames * sizeof(RenderMeshVertex));
 
-  mesh->elementsBuffer = $(rContext.device, createBufferWithConstMem,
+  mesh->elementsBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX,
       mesh->elements,
       mesh->numElements * sizeof(uint32_t));

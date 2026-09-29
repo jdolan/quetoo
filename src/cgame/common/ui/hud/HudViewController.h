@@ -186,7 +186,7 @@ CGAME_EXPORT Class *_HudViewController(void);
 /**
  * @brief The HudViewController, or `NULL` when the HUD is not loaded.
  */
-extern HudViewController *cgHudViewController;
+extern HudViewController *cg_hudViewController;
 
 /**
  * @return The AtlasImage for the given resource name from the Theme's icon atlas, or `NULL`.

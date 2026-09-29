@@ -355,12 +355,12 @@ void R_UpdateDraw3D(const RenderView *view, CopyPass *copyPass) {
 
   if ((int32_t) count > module.vertexBufferCapacity) {
     module.vertexBuffer = release(module.vertexBuffer);
-    module.vertexBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    module.vertexBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = count * sizeof(RenderDraw3dVertex),
     });
     module.transferBuffer = release(module.transferBuffer);
-    module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    module.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
       .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
       .size = count * sizeof(RenderDraw3dVertex),
     });
@@ -388,7 +388,7 @@ void R_Draw3D(const RenderView *view, RenderPass *pass) {
     return;
   }
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -477,7 +477,7 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
     .has_depth_stencil_target = true,
   };
 
-  return $(rContext.device, createGraphicsPipeline, &info);
+  return $(renderContext.device, createGraphicsPipeline, &info);
 }
 
 /**
@@ -487,12 +487,12 @@ void R_InitDraw3D(void) {
 
   memset(&module, 0, sizeof(module));
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/draw_3d_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/draw_3d_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 1,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/draw_3d_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/draw_3d_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 

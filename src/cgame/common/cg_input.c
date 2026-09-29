@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-InputButton cgButtons[4];
+InputButton cg_buttons[4];
 
 #define CG_FOLLOW_ZOOM_SPEED 400.f
 #define CG_FOLLOW_DISTANCE_MIN 40.f
@@ -36,7 +36,7 @@ typedef struct {
   uint32_t interval;
 } CGameKick;
 
-static CGameKick cgKick;
+static CGameKick cg_kick;
 
 /**
  * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
@@ -75,10 +75,10 @@ static void Cg_UpdateFollowLook(const SDL_Event *event) {
   const float sensitivity = cgi.GetCvarValue("mSensitivity");
   const float invert = cgi.GetCvarValue("mInvert") ? -1.f : 1.f;
 
-  cgState.follow.yaw -= cgi.GetCvarValue("mYaw") * event->motion.xrel * sensitivity;
+  cg_state.follow.yaw -= cgi.GetCvarValue("mYaw") * event->motion.xrel * sensitivity;
 
-  cgState.follow.pitch = Clampf(
-    cgState.follow.pitch + invert * cgi.GetCvarValue("mPitch") * event->motion.yrel * sensitivity,
+  cg_state.follow.pitch = Clampf(
+    cg_state.follow.pitch + invert * cgi.GetCvarValue("mPitch") * event->motion.yrel * sensitivity,
     -89.f, 89.f
   );
 }
@@ -123,11 +123,11 @@ void Cg_ParseViewKick(void) {
 
   const Vec3 kick = MakeVec3(cgi.ReadAngle(), 0.0, cgi.ReadAngle());
 
-  cgKick.prev = cgKick.kick;
-  cgKick.next = Vec3_Add(cgKick.prev, kick);
+  cg_kick.prev = cg_kick.kick;
+  cg_kick.next = Vec3_Add(cg_kick.prev, kick);
 
-  cgKick.timestamp = cgi.client->unclampedTime;
-  cgKick.interval = 64;
+  cg_kick.timestamp = cgi.client->unclampedTime;
+  cg_kick.interval = 64;
 }
 
 /**
@@ -135,15 +135,15 @@ void Cg_ParseViewKick(void) {
  */
 static void Cg_ViewKick(const PMoveCmd *cmd) {
 
-  if (cgKick.timestamp > cgi.client->unclampedTime) {
-    memset(&cgKick, 0, sizeof(cgKick));
+  if (cg_kick.timestamp > cgi.client->unclampedTime) {
+    memset(&cg_kick, 0, sizeof(cg_kick));
   }
 
   const PlayerState *ps1 = &cgi.client->frame.ps;
 
-  if (cgState.snapAngles) {
+  if (cg_state.snapAngles) {
     // Snap is handled authoritatively in Cg_UpdateAngles; just clear kick state here.
-    memset(&cgKick, 0, sizeof(cgKick));
+    memset(&cg_kick, 0, sizeof(cg_kick));
   } else if (cgi.client->previousFrame) {
       const PlayerState *ps0 = &cgi.client->previousFrame->ps;
       Vec3 delta0 = ps0->pmState.deltaAngles;
@@ -153,42 +153,42 @@ static void Cg_ViewKick(const PMoveCmd *cmd) {
         static int32_t frame;
 
         if (cgi.client->frame.frameNum != frame) {
-          Cg_Debug("Delta kick %s\n", vtos(cgKick.kick));
-          memset(&cgKick, 0, sizeof(cgKick));
+          Cg_Debug("Delta kick %s\n", vtos(cg_kick.kick));
+          memset(&cg_kick, 0, sizeof(cg_kick));
 
           frame = cgi.client->frame.frameNum;
         }
       }
   }
 
-  const uint32_t delta = cgi.client->unclampedTime - cgKick.timestamp;
-  if (delta < cgKick.interval) {
-    const float frac = Minf(delta, cmd->msec) / (float) cgKick.interval;
+  const uint32_t delta = cgi.client->unclampedTime - cg_kick.timestamp;
+  if (delta < cg_kick.interval) {
+    const float frac = Minf(delta, cmd->msec) / (float) cg_kick.interval;
 
     Vec3 kick;
-    kick = Vec3_Subtract(cgKick.next, cgKick.prev);
+    kick = Vec3_Subtract(cg_kick.next, cg_kick.prev);
     kick = Vec3_Scale(kick, frac);
 
-    cgKick.kick = Vec3_Add(cgKick.kick, kick);
+    cg_kick.kick = Vec3_Add(cg_kick.kick, kick);
     cgi.client->angles = Vec3_Add(cgi.client->angles, kick);
 
-  } else if (!Vec3_Equal(cgKick.kick, Vec3_Zero())) {
+  } else if (!Vec3_Equal(cg_kick.kick, Vec3_Zero())) {
 
     if (cgi.client->frame.ps.pmState.type == PM_DEAD) {
       return;
     }
 
-    const float len = Vec3_Length(cgKick.kick);
+    const float len = Vec3_Length(cg_kick.kick);
     if (len < 0.1) {
-      cgi.client->angles = Vec3_Subtract(cgi.client->angles, cgKick.kick);
-      memset(&cgKick, 0, sizeof(cgKick));
+      cgi.client->angles = Vec3_Subtract(cgi.client->angles, cg_kick.kick);
+      memset(&cg_kick, 0, sizeof(cg_kick));
     } else {
 
-      cgKick.prev = cgKick.kick;
-      cgKick.next = Vec3_Zero();
+      cg_kick.prev = cg_kick.kick;
+      cg_kick.next = Vec3_Zero();
 
-      cgKick.timestamp = cgi.client->unclampedTime;
-      cgKick.interval = 240;
+      cg_kick.timestamp = cgi.client->unclampedTime;
+      cg_kick.interval = 240;
     }
   }
 }
@@ -274,7 +274,7 @@ static void Cg_WeaponKick(const PMoveCmd *cmd) {
  */
 void Cg_Look(PMoveCmd *cmd) {
 
-  if (cgi.client->demoServer && cgState.spectate.detached) {
+  if (cgi.client->demoServer && cg_state.spectate.detached) {
     return; // a camera that has left the recorded player behind does not take their recoil
   }
 
@@ -295,8 +295,8 @@ static void Cg_Move_Common(PMoveCmd *cmd) {
     // While paused the mouse is a cursor for the transport controls rather than a weapon, so
     // attack is dropped: clicking Play would otherwise detach the camera at the same time
     if ((in_attack.state & BUTTON_STATE_DOWN) && !cgi.demo->paused) {
-      cgState.spectate.detached = !cgState.spectate.detached;
-      cgState.spectate.initialized = false;
+      cg_state.spectate.detached = !cg_state.spectate.detached;
+      cg_state.spectate.initialized = false;
     }
 
     in_attack.state &= ~BUTTON_STATE_DOWN;
@@ -306,7 +306,7 @@ static void Cg_Move_Common(PMoveCmd *cmd) {
 
       // Encode the pixel-accurate muzzle position as a player-relative offset
       // so the server can use it instead of its hardcoded approximation.
-      const CGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
+      const CGameClientInfo *ci = &cg_state.clients[cgi.client->frame.ps.client];
       if (!Vec3_Equal(ci->weaponMuzzle, Vec3_Zero())) {
         cmd->muzzle = Vec3_Subtract(ci->weaponMuzzle, cgi.client->entity->current.origin);
       }
@@ -352,14 +352,14 @@ static void Cg_Move_Common(PMoveCmd *cmd) {
     if (forwardSpeed > 0.f) {
       const float millis = cmd->forward / forwardSpeed;
 
-      cgState.follow.distance = Clampf(
-        cgState.follow.distance - millis * (CG_FOLLOW_ZOOM_SPEED / 1000.f),
+      cg_state.follow.distance = Clampf(
+        cg_state.follow.distance - millis * (CG_FOLLOW_ZOOM_SPEED / 1000.f),
         CG_FOLLOW_DISTANCE_MIN, CG_FOLLOW_DISTANCE_MAX
       );
     }
   }
 
-  if (cgi.client->demoServer && cgState.spectate.detached) {
+  if (cgi.client->demoServer && cg_state.spectate.detached) {
     Cg_UpdateSpectate(cmd);
   }
 }
@@ -379,8 +379,8 @@ void Cg_ExportMove(PMoveCmd *cmd) {
  * @brief Clear button states.
  */
 void Cg_ClearInput(void) {
-  memset(&cgKick, 0, sizeof(cgKick));
-  memset(cgButtons, 0, sizeof(cgButtons));
+  memset(&cg_kick, 0, sizeof(cg_kick));
+  memset(cg_buttons, 0, sizeof(cg_buttons));
 }
 
 static void Cg_Speed_down_f(void) {

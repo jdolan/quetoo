@@ -178,23 +178,23 @@ void R_InitLights(void) {
 
   memset(&rLights, 0, sizeof(rLights));
 
-  rLights.bspBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  rLights.bspBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
     .size = sizeof(rLights.bspBlock),
   });
 
-  rLights.dynamicBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  rLights.dynamicBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
     .size = sizeof(rLights.dynamicBlock),
   });
 
-  rLights.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  rLights.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
     .size = Maxi(sizeof(rLights.bspBlock), sizeof(rLights.dynamicBlock)),
   });
 
   const int32_t noLights[2] = { 0, 0 };
-  rLights.voxelFallbackBuffer = $(rContext.device, createBufferWithConstMem,
+  rLights.voxelFallbackBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ, noLights, sizeof(noLights));
 }
 

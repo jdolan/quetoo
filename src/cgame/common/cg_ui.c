@@ -157,10 +157,10 @@ void Cg_InitUi(void) {
 
 void Cg_InitHudUi(void) {
 
-  cgHudViewController = (HudViewController *) $((ViewController *) alloc(HudViewController), init);
-  assert(cgHudViewController);
+  cg_hudViewController = (HudViewController *) $((ViewController *) alloc(HudViewController), init);
+  assert(cg_hudViewController);
 
-  cgi.SetHudViewController((ViewController *) cgHudViewController);
+  cgi.SetHudViewController((ViewController *) cg_hudViewController);
 }
 
 /**
@@ -172,7 +172,7 @@ void Cg_ShutdownUi(void) {
   cgi.PopViewController();
 
   cgi.SetHudViewController(NULL);
-  release(cgHudViewController);
+  release(cg_hudViewController);
 
   $(cgi.Theme(), removeStylesheet, stylesheet);
 

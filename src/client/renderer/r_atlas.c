@@ -166,7 +166,7 @@ void R_CompileAtlas(RenderAtlas *atlas) {
       atlas->image->width = width;
       atlas->image->height = width;
 
-      atlas->image->texture = $(rContext.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
+      atlas->image->texture = $(renderContext.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
 
       for (size_t i = 0; i < nodes->count; i++) {
         R_CompileAtlas_Node(VectorValue(nodes, AtlasNode *, i), atlas);
