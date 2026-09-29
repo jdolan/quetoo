@@ -53,7 +53,7 @@ static Cvar *net_loopLoss;
  * @brief Reads a pending message, if available, from the loop buffer.
  * @return True if a message was read, false otherwise.
  */
-static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) {
+static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, NetMessage *msg) {
   NetUdpLoop *loop = &module.loops[source];
 
   if (loop->send - loop->recv > MAX_NET_UDP_LOOPS) {
@@ -65,10 +65,10 @@ static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) 
   }
 
   const uint32_t i = loop->recv & (MAX_NET_UDP_LOOPS - 1);
-  const NetUdpLoopMessage *msg = &loop->messages[i];
+  const NetUdpLoopMessage *out = &loop->messages[i];
 
   // simulate network latency and jitter
-  const uint32_t delta = quetoo.ticks - msg->timestamp;
+  const uint32_t delta = quetoo.ticks - out->timestamp;
   const uint32_t threshold = net_loopLatency->value * 0.5 + net_loopJitter->value * Randomf();
 
   if (delta < threshold) {
@@ -82,8 +82,8 @@ static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) 
     return false;
   }
 
-  memcpy(buf->data, msg->data, msg->size);
-  buf->size = msg->size;
+  memcpy(msg->data, out->data, out->size);
+  msg->size = out->size;
 
   from->type = NA_LOOP;
   from->addr = netLo;
@@ -96,7 +96,7 @@ static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) 
  * @brief Receive a datagram on the specified socket, populating the from
  * address with the sender.
  */
-bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf) {
+bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, NetMessage *buf) {
 
   buf->read = buf->size = 0;
 

@@ -24,7 +24,7 @@
 /**
  * @brief Writes a delta update of an `EntityState` list to the message.
  */
-static void Sv_WriteEntities(ServerClientFrame *from, ServerClientFrame *to, MemBuf *msg) {
+static void Sv_WriteEntities(ServerClientFrame *from, ServerClientFrame *to, NetMessage *msg) {
   EntityState *oldState = NULL, *newState = NULL;
   int32_t oldIndex, newIndex;
   int16_t oldNum, newNum;
@@ -92,7 +92,7 @@ static void Sv_WriteEntities(ServerClientFrame *from, ServerClientFrame *to, Mem
 /**
  * @brief Writes a delta-compressed player state to the message buffer.
  */
-static void Sv_WritePlayerState(ServerClientFrame *from, ServerClientFrame *to, MemBuf *msg) {
+static void Sv_WritePlayerState(ServerClientFrame *from, ServerClientFrame *to, NetMessage *msg) {
   static PlayerState null_state;
 
   if (from) {
@@ -105,7 +105,7 @@ static void Sv_WritePlayerState(ServerClientFrame *from, ServerClientFrame *to, 
 /**
  * @brief Assembles and writes a complete client frame to the message buffer.
  */
-void Sv_WriteClientFrame(ServerClient *client, MemBuf *msg) {
+void Sv_WriteClientFrame(ServerClient *client, NetMessage *msg) {
   ServerClientFrame *frame, *deltaFrame;
   int32_t deltaFrameNum;
 

@@ -25,13 +25,13 @@
 #include "net_message.h"
 
 extern NetAddr netFrom;
-extern MemBuf netMessage;
+extern NetMessage netMessage;
 
 void Netchan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport);
 void Netchan_Transmit(NetChan *chan, byte *data, size_t len);
 void Netchan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size_t len);
 void Netchan_OutOfBandPrint(int32_t sock, const NetAddr *addr, const char *format, ...) __attribute__((format(printf,
         3, 4)));
-bool Netchan_Process(NetChan *chan, MemBuf *msg);
+bool Netchan_Process(NetChan *chan, NetMessage *msg);
 void Netchan_Init(void);
 void Netchan_Shutdown(void);

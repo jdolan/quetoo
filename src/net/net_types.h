@@ -79,6 +79,8 @@ typedef enum {
   NS_UDP_SERVER
 } NetSrc;
 
+typedef MemBuf NetMessage;
+
 /**
  * @brief The network channel provides a conduit for packet sequencing and
  * optional reliable message delivery. The client and server speak explicitly
@@ -106,7 +108,7 @@ typedef struct {
   uint32_t reliableIncoming; // single bit
   uint32_t reliableOutgoing; // outgoing sequence number of last reliable
 
-  MemBuf message; // writing buffer to send to server
+  NetMessage message; // writing buffer to send to server
   byte messageBuffer[MAX_MSG_SIZE - 10]; // leave space for header
 
   // message is copied to this buffer when it is first transfered

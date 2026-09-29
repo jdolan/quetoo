@@ -68,25 +68,25 @@ static void Cl_FinalizeMovementCommand(void) {
 /**
  * @brief Writes the most recent movement command(s) using delta-compression if available.
  */
-static void Cl_WriteMovementCommand(MemBuf *buf) {
+static void Cl_WriteMovementCommand(NetMessage *msg) {
   static ClientCmd null_cmd;
 
-  Net_WriteByte(buf, CL_CMD_MOVE);
+  Net_WriteByte(msg, CL_CMD_MOVE);
 
   if (!cl.frame.valid) {
-    Net_WriteLong(buf, -1);
+    Net_WriteLong(msg, -1);
   } else {
-    Net_WriteLong(buf, cl.frame.frameNum);
+    Net_WriteLong(msg, cl.frame.frameNum);
   }
 
   ClientCmd *from = &null_cmd, *to = &cl.cmds[(cls.netChan.outgoingSequence - 2) & CMD_MASK];
-  Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
+  Net_WriteDeltaMoveCmd(msg, &from->cmd, &to->cmd);
 
   from = to; to = &cl.cmds[(cls.netChan.outgoingSequence - 1) & CMD_MASK];
-  Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
+  Net_WriteDeltaMoveCmd(msg, &from->cmd, &to->cmd);
 
   from = to;  to = &cl.cmds[(cls.netChan.outgoingSequence) & CMD_MASK];
-  Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
+  Net_WriteDeltaMoveCmd(msg, &from->cmd, &to->cmd);
 }
 
 /**
@@ -123,7 +123,7 @@ void Cl_WriteEntityInfoCommand(int16_t number, const CmEntity *entity) {
  * @details The channel is carried opaquely: the server asks the game who may hear it, exactly as
  * the game decides who receives a say or a sayTeam.
  */
-static void Cl_WriteVoiceCommand(MemBuf *buf) {
+static void Cl_WriteVoiceCommand(NetMessage *msg) {
 
   byte voice[VOICE_MAX_PAYLOAD];
   uint8_t seq, flags, channel;
@@ -134,12 +134,12 @@ static void Cl_WriteVoiceCommand(MemBuf *buf) {
     return;
   }
 
-  Net_WriteByte(buf, CL_CMD_VOICE);
-  Net_WriteByte(buf, channel);
-  Net_WriteByte(buf, seq);
-  Net_WriteByte(buf, flags);
-  Net_WriteByte(buf, len);
-  Net_WriteData(buf, voice, len);
+  Net_WriteByte(msg, CL_CMD_VOICE);
+  Net_WriteByte(msg, channel);
+  Net_WriteByte(msg, seq);
+  Net_WriteByte(msg, flags);
+  Net_WriteByte(msg, len);
+  Net_WriteData(msg, voice, len);
 
   // light our own indicator, so holding the key is visible without anyone to hear it
   cl.voiceTime[cl.frame.ps.client] = cl.unclampedTime;
