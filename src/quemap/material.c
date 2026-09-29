@@ -47,7 +47,7 @@ int32_t LoadMaterial(const char *name) {
   m = materials + numMaterials;
   numMaterials++;
 
-  m->cm = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
+  m->cm = Material_Load(name, ASSET_CONTEXT_TEXTURES);
 
   m->diffusemap = Img_LoadSurface(m->cm->diffusemap.path);
   if (m->diffusemap) {
@@ -67,7 +67,7 @@ void FreeMaterials(void) {
 
   MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
-    Cm_FreeMaterial(m->cm);
+    Material_Free(m->cm);
     SDL_DestroySurface(m->diffusemap);
   }
 

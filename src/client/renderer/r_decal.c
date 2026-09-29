@@ -105,21 +105,21 @@ static _Thread_local struct {
 static void R_ReserveDecalWindings(int32_t facePoints) {
 
   if (decalWindings.decal == NULL) {
-    decalWindings.decal = Cm_AllocWinding(4);
+    decalWindings.decal = Winding_Alloc(4);
   }
 
   if (facePoints > decalWindings.maxFacePoints) {
 
     if (decalWindings.face) {
-      Cm_FreeWinding(decalWindings.face);
-      Cm_FreeWinding(decalWindings.a);
-      Cm_FreeWinding(decalWindings.b);
+      Winding_Free(decalWindings.face);
+      Winding_Free(decalWindings.a);
+      Winding_Free(decalWindings.b);
     }
 
     decalWindings.capacity = 4 + 4 * facePoints;
-    decalWindings.face = Cm_AllocWinding(facePoints);
-    decalWindings.a = Cm_AllocWinding(decalWindings.capacity);
-    decalWindings.b = Cm_AllocWinding(decalWindings.capacity);
+    decalWindings.face = Winding_Alloc(facePoints);
+    decalWindings.a = Winding_Alloc(decalWindings.capacity);
+    decalWindings.b = Winding_Alloc(decalWindings.capacity);
     decalWindings.maxFacePoints = facePoints;
   }
 }
@@ -271,7 +271,7 @@ static void R_ClipDecalToFace(const RenderView *view,
     }
   }
 
-  const Winding *w = Cm_ClipWindingToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
+  const Winding *w = Winding_ClipToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
                                                       decalWindings.a, decalWindings.b,
                                                       decalWindings.capacity);
 

@@ -28,7 +28,7 @@
  * renderer maps these to its backend equivalents (e.g. SDL_GPUBlendFactor).
  * @remarks BLEND_INVALID is deliberately 0, matching the zero-initialized
  * (never parsed a `blend` keyword) state of a fresh MaterialStage. This lets
- * "ensure appropriate blend function defaults" (Cm_ParseStage) distinguish
+ * "ensure appropriate blend function defaults" (Material_ParseStage) distinguish
  * "never set" from an explicit, meaningful `BLEND_ZERO` factor -- e.g. a
  * stage that explicitly sets `blend one zero` for opaque overwrite rendering.
  */
@@ -566,35 +566,35 @@ typedef struct Material {
  * @brief Loads the material with the given name in the given asset context.
  * @return The loaded material, or `NULL` on failure.
  */
-Material *Cm_LoadMaterial(const char *name, AssetContext context);
+Material *Material_Load(const char *name, AssetContext context);
 
 /**
  * @brief Frees the material and all its stages.
  */
-void Cm_FreeMaterial(Material *material);
+void Material_Free(Material *material);
 
 /**
  * @brief Resolves all asset paths referenced by the material.
  * @return true if the diffusemap was resolved successfully.
  */
-bool Cm_ResolveMaterial(Material *material);
+bool Material_Resolve(Material *material);
 
 /**
  * @brief Applies the implied flags and defaults of a stage after its keywords are set.
  * @remarks The parser calls this at the end of each stage. The editor MUST call it after it
  * changes the flags of a stage.
  */
-void Cm_FinalizeStage(MaterialStage *stage);
+void Material_FinalizeStage(MaterialStage *stage);
 
 /**
  * @brief Recomputes the aggregate stage flags of the material from its stages.
  */
-void Cm_ResolveStageFlags(Material *material);
+void Material_ResolveStageFlags(Material *material);
 
 /**
  * @brief Returns the first `STAGE_LIGHT` stage of the material, or `NULL`.
  */
-MaterialStage *Cm_MaterialLightStage(const Material *material);
+MaterialStage *Material_LightStage(const Material *material);
 
 /**
  * @brief Finalizes the stage after an edit, and resolves its assets and the material stage flags.
@@ -602,36 +602,36 @@ MaterialStage *Cm_MaterialLightStage(const Material *material);
  * the material dirty.
  * @return True if the stage assets were resolved.
  */
-bool Cm_ResolveStage(Material *material, MaterialStage *stage);
+bool Material_ResolveStage(Material *material, MaterialStage *stage);
 
 /**
  * @brief Appends a new stage that draws the material diffusemap, and marks the material dirty.
  * @return The new stage.
  */
-MaterialStage *Cm_AddStage(Material *material);
+MaterialStage *Material_AddStage(Material *material);
 
 /**
  * @brief Removes and frees the stage, and marks the material dirty.
  * @remarks Any pointer to the stage, such as a `RenderStage`, is invalid after this. The renderer
  * stages of the material MUST be reloaded.
  */
-void Cm_RemoveStage(Material *material, MaterialStage *stage);
+void Material_RemoveStage(Material *material, MaterialStage *stage);
 
 /**
  * @brief Serializes the material to its file path on disk.
  * @return true on success.
  */
-bool Cm_SaveMaterial(const Material *material);
+bool Material_Save(const Material *material);
 
 /**
  * @brief Extracts the base name from a material path, stripping any diffusemap suffix.
  */
-void Cm_MaterialBasename(const char *in, char *out, size_t len);
+void Material_Basename(const char *in, char *out, size_t len);
 
 /**
  * @brief Computes the expected .mat file path for the given material name and context.
  */
-void Cm_MaterialPath(const char *name, char *path, size_t len, AssetContext context);
+void Material_Path(const char *name, char *path, size_t len, AssetContext context);
 
 #if defined(__CM_LOCAL_H__)
 #endif

@@ -167,7 +167,7 @@ def _parse_mat(mat_path: Path) -> dict[str, str]:
 
 def _resolve_mat_value(textures_root: Path, rel: str, key: str) -> Path | None:
   """Resolve a .mat path value (e.g. 'quake/adoor03_norm') to an actual file.
-  Mirrors Cm_ResolveMaterialAsset: try the engine's canonical suffix (_norm
+  Mirrors Material_ResolveSuffixedAsset: try the engine's canonical suffix (_norm
   for normalmap, _spec for specularmap) first, then the literal name."""
   exts = _MAT_RESOLVE_EXTS.get(key, (".png", ".tga", ".jpg"))
   candidates: list[str] = []

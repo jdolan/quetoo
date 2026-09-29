@@ -756,7 +756,7 @@ static void R_SetupBspInlineModels(RenderModel *mod) {
  */
 static void R_LoadBspSky(RenderModel *mod) {
 
-  const char *name = Cm_EntityValue(Cm_Worldspawn(), "sky")->nullableString;
+  const char *name = Entity_Value(Cm_Worldspawn(), "sky")->nullableString;
   if (name) {
     mod->bsp->sky = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
   } else {

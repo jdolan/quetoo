@@ -589,7 +589,7 @@ static void Installer_WriteManifestEntry(const HashTable *table, ident key, iden
 
 /**
  * @brief Writes `manifest` directly to `path` on the real filesystem.
- * @details `Cm_WriteManifest` writes through PhysFS, which resolves relative
+ * @details `Manifest_Write` writes through PhysFS, which resolves relative
  * paths against `Fs_WriteDir()` -- the user's writable game directory -- not
  * `Fs_DataDir()`, where `path` actually lives. Using it here would silently
  * write the manifest to a bogus nested path under the write dir instead of
@@ -633,7 +633,7 @@ static void Installer_Commit(void) {
 
   if (module.localManifest) {
     $(module.localManifest, enumerate, Installer_PruneStaleEntry, NULL);
-    Cm_FreeManifest(module.localManifest);
+    Manifest_Free(module.localManifest);
     module.localManifest = NULL;
   }
 
@@ -641,7 +641,7 @@ static void Installer_Commit(void) {
     char mfPath[MAX_OS_PATH];
     q_snprintf(mfPath, sizeof(mfPath), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
     Installer_WriteManifest(mfPath, module.remoteManifest);
-    Cm_FreeManifest(module.remoteManifest);
+    Manifest_Free(module.remoteManifest);
     module.remoteManifest = NULL;
   }
 }
@@ -728,7 +728,7 @@ static bool Installer_HasManifest(void) {
 
 /**
  * @brief Reads the installed data manifest directly from the filesystem.
- * @details Not `Cm_ReadManifest`, which resolves through PhysFS: the data
+ * @details Not `Manifest_Read`, which resolves through PhysFS: the data
  * directory is only mounted if it existed when `Fs_Init` ran, so a tree this
  * module just created is invisible to it. That would leave every entry
  * pending and re-download the whole data set a file at a time -- exactly what
@@ -754,7 +754,7 @@ static HashTable *Installer_ReadManifest(void) {
   if (length > 0) {
     char *data = Mem_Malloc((size_t) length);
     if (fread(data, 1, (size_t) length, file) == (size_t) length) {
-      manifest = Cm_ParseManifest(data, (size_t) length);
+      manifest = Manifest_Parse(data, (size_t) length);
     }
     Mem_Free(data);
   }
@@ -960,7 +960,7 @@ static int Installer_Thread(void *unused) {
           break;
         }
 
-        HashTable *remote = Cm_ParseManifest((const char *) data->bytes, data->length);
+        HashTable *remote = Manifest_Parse((const char *) data->bytes, data->length);
         release(data);
 
         $(remote, enumerate, Installer_MarkPending, NULL);
@@ -1555,10 +1555,10 @@ void Installer_Shutdown(void) {
     module.mutex = NULL;
   }
 
-  Cm_FreeManifest(module.remoteManifest);
+  Manifest_Free(module.remoteManifest);
   module.remoteManifest = NULL;
 
-  Cm_FreeManifest(module.localManifest);
+  Manifest_Free(module.localManifest);
   module.localManifest = NULL;
 }
 

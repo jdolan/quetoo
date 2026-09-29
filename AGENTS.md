@@ -15,7 +15,7 @@ anything else, read the code. It is never out of date.
 | Category | Convention | Example |
 |---|---|---|
 | Types | `PascalCase`, with the subsystem prefix | `RenderEntity`, `CGameSprite`, `PMoveParams` |
-| Functions | `Prefix_PascalCase`, unchanged | `R_DrawMaterialStages`, `G_Damage` |
+| Functions | `Prefix_PascalCase`: the subsystem's short prefix, or the type name for a type with a bare name | `R_DrawMaterialStages`, `G_Damage`, `Cm_BoxTrace`, `Material_Load`, `Winding_Clip` |
 | Function-pointer members | `PascalCase` | `cgi.AddEntity`, `gi.Multicast` |
 | Variables, parameters, data members | `camelCase` | `numElements`, `oldOrigin` |
 | Extern globals | the subsystem prefix, lowercased, then `camelCase` | `renderConfig`, `cgameState`, `gameLevel` |
@@ -131,7 +131,7 @@ Changing these breaks something this repository cannot see.
   `sv_maxClients` and `sv_map`, and the master is deployed separately. Renaming one requires
   redeploying the master, and servers are missing from listings until they upgrade.
 - **Material keywords are a content format.** `alpha_test`, `no_draw`, `phong` and the rest in
-  `surfaceHints` and the `Cm_LoadMaterial` parser are how every `.mat` file in `quetoo-data` and
+  `surfaceHints` and the `Material_Load` parser are how every `.mat` file in `quetoo-data` and
   in user maps is written. They are not identifiers and MUST NOT be renamed with code.
 - **GLSL has its own namespace.** Shader struct and function names are independent of the C names
   they mirror. A comment naming a C type should track the C name; the shader's own types should not.

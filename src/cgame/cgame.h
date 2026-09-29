@@ -678,7 +678,7 @@ typedef struct {
    * @brief Returns a new entity list with keys from src assigned into a copy of dst.
    * @details Keys already present in dst take priority; keys only in src are appended.
    *   Analogous to JavaScript's `Object.assign(dst, src)`.
-   * @return A newly allocated entity list; the caller must free with `Cm_FreeEntity`.
+   * @return A newly allocated entity list; the caller must free with `Entity_Free`.
    */
   Entity *(*EntityAssign)(const Entity *dst, const Entity *src);
 

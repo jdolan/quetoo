@@ -53,7 +53,7 @@ static const Entity *Sv_MapAt(int32_t index) {
 
 /**
  * @brief Returns a copy of the configured map list, or `NULL` if there is none.
- * @return A list of `Entity *`, each to be freed with `Cm_FreeEntity`.
+ * @return A list of `Entity *`, each to be freed with `Entity_Free`.
  * @remarks The copy is the caller's, so that a `sv_mapList` edit which re-parses the
  * list underneath them does not free entries they still hold.
  */
@@ -68,7 +68,7 @@ List *Sv_MapList(void) {
   List *copy = $(alloc(List), init);
 
   for (const ListNode *node = svs.maps.list->head; node; node = node->next) {
-    $(copy, append, Cm_CopyEntity((const Entity *) node->element));
+    $(copy, append, Entity_Copy((const Entity *) node->element));
   }
 
   return copy;
@@ -156,19 +156,19 @@ void Sv_InitMapList(void) {
 
   svs.maps.modtime = Fs_LastModTime(sv_mapList->string);
 
-  svs.maps.list = Cm_LoadEntities(buffer);
+  svs.maps.list = Entity_LoadAll(buffer);
 
   List *valid = $(alloc(List), init);
-  valid->destroy = (Consumer) Cm_FreeEntity;
+  valid->destroy = (Consumer) Entity_Free;
 
   int32_t i = 0;
   for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
     Entity *e = (Entity *) node->element;
 
-    const Entity *name = Cm_EntityValue(e, "name");
+    const Entity *name = Entity_Value(e, "name");
     if (q_strlen(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_mapList->string);
-      Cm_FreeEntity(e);
+      Entity_Free(e);
     } else {
       $(valid, append, e);
     }

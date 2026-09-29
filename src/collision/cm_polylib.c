@@ -28,7 +28,7 @@ static SDL_AtomicInt cWindings;
 /**
  * @brief Allocates a winding for the given number of points.
  */
-Winding *Cm_AllocWinding(int32_t numPoints) {
+Winding *Winding_Alloc(int32_t numPoints) {
 
   SDL_AddAtomicInt(&cWindings, 1);
 
@@ -38,7 +38,7 @@ Winding *Cm_AllocWinding(int32_t numPoints) {
 /**
  * @brief Frees the given winding.
  */
-void Cm_FreeWinding(Winding *w) {
+void Winding_Free(Winding *w) {
 
   SDL_AddAtomicInt(&cWindings, -1);
 
@@ -48,9 +48,9 @@ void Cm_FreeWinding(Winding *w) {
 /**
  * @brief Returns a copy of the given winding.
  */
-Winding *Cm_CopyWinding(const Winding *w) {
+Winding *Winding_Copy(const Winding *w) {
 
-  Winding *c = Cm_AllocWinding(w->numPoints);
+  Winding *c = Winding_Alloc(w->numPoints);
 
   c->numPoints = w->numPoints;
 
@@ -62,9 +62,9 @@ Winding *Cm_CopyWinding(const Winding *w) {
 /**
  * @brief Returns a new winding with its points in reverse order.
  */
-Winding *Cm_ReverseWinding(const Winding *w) {
+Winding *Winding_Reverse(const Winding *w) {
 
-  Winding *c = Cm_AllocWinding(w->numPoints);
+  Winding *c = Winding_Alloc(w->numPoints);
 
   for (int32_t i = 0; i < w->numPoints; i++) {
     c->points[i] = w->points[w->numPoints - 1 - i];
@@ -77,14 +77,14 @@ Winding *Cm_ReverseWinding(const Winding *w) {
 /**
  * @brief Returns the AABB enclosing all points of the winding.
  */
-Box3 Cm_WindingBounds(const Winding *w) {
+Box3 Winding_Bounds(const Winding *w) {
   return Box3_FromPoints(w->points, w->numPoints);
 }
 
 /**
  * @brief Returns the centroid of the winding.
  */
-Vec3 Cm_WindingCenter(const Winding *w) {
+Vec3 Winding_Center(const Winding *w) {
 
   Vec3 center = Vec3_Zero();
 
@@ -98,7 +98,7 @@ Vec3 Cm_WindingCenter(const Winding *w) {
 /**
  * @brief Returns the surface area of the winding.
  */
-float Cm_WindingArea(const Winding *w) {
+float Winding_Area(const Winding *w) {
   float area = 0.0;
 
   for (int32_t i = 2; i < w->numPoints; i++) {
@@ -112,7 +112,7 @@ float Cm_WindingArea(const Winding *w) {
  * @brief Calculates the distance from `p` to `w`.
  * @see https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
  */
-float Cm_DistanceToWinding(const Winding *w, const Vec3 p, Vec3 *dir) {
+float Winding_Distance(const Winding *w, const Vec3 p, Vec3 *dir) {
 
   float distance = FLT_MAX;
 
@@ -149,7 +149,7 @@ float Cm_DistanceToWinding(const Winding *w, const Vec3 p, Vec3 *dir) {
 /**
  * @brief Computes the plane equation for the given winding's points.
  */
-void Cm_PlaneForWinding(const Winding *w, Vec3 *normal, double *dist) {
+void Winding_Plane(const Winding *w, Vec3 *normal, double *dist) {
 
   const Vec3d a = Vec3_CastVec3d(w->points[0]);
   const Vec3d b = Vec3_CastVec3d(w->points[1]);
@@ -167,7 +167,7 @@ void Cm_PlaneForWinding(const Winding *w, Vec3 *normal, double *dist) {
 /**
  * @brief Create a massive polygon for the specified plane.
  */
-Winding *Cm_WindingForPlane(const Vec3 normal, double dist) {
+Winding *Winding_ForPlane(const Vec3 normal, double dist) {
 
   const Vec3d norm = Vec3d_Normalize(MakeVec3d(normal.x, normal.y, normal.z));
 
@@ -222,7 +222,7 @@ Winding *Cm_WindingForPlane(const Vec3 normal, double dist) {
   points[3] = Vec3d_Subtract(org, r);
   points[3] = Vec3d_Subtract(points[3], u);
 
-  Winding *w = Cm_AllocWinding(4);
+  Winding *w = Winding_Alloc(4);
 
   w->points[0] = Vec3d_CastVec3(points[0]);
   w->points[1] = Vec3d_CastVec3(points[1]);
@@ -237,9 +237,9 @@ Winding *Cm_WindingForPlane(const Vec3 normal, double dist) {
 /**
  * @brief Creates a winding for the given face, removing any collinear points.
  */
-Winding *Cm_WindingForFace(const BspFile *file, const BspFace *face) {
+Winding *Winding_ForFace(const BspFile *file, const BspFace *face) {
 
-  Winding *w = Cm_AllocWinding(face->numVertexes);
+  Winding *w = Winding_Alloc(face->numVertexes);
   const int32_t v = face->firstVertex;
 
   for (int32_t i = 0; i < face->numVertexes; i++) {
@@ -269,10 +269,10 @@ Winding *Cm_WindingForFace(const BspFile *file, const BspFace *face) {
 /**
  * @brief Creates a winding for the given brush side, clipped to its brush.
  */
-Winding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSide) {
+Winding *Winding_ForBrushSide(const BspFile *file, const BspBrushSide *brushSide) {
 
   const BspPlane *plane = file->planes + brushSide->plane;
-  Winding *winding = Cm_WindingForPlane(plane->normal, plane->dist);
+  Winding *winding = Winding_ForPlane(plane->normal, plane->dist);
 
   const int32_t side = (int32_t) (brushSide - file->brushSides);
 
@@ -294,7 +294,7 @@ Winding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSi
       continue;
     }
     const BspPlane *p = &file->planes[s->plane ^ 1];
-    Cm_ClipWinding(&winding, p->normal, p->dist, SIDE_EPSILON);
+    Winding_Clip(&winding, p->normal, p->dist, SIDE_EPSILON);
 
     if (winding == NULL) {
       break;
@@ -308,7 +308,7 @@ Winding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSi
  * @brief Removes duplicate adjacent points from the winding, in place.
  * @return False if fewer than three points remain, leaving `w` degenerate.
  */
-static bool Cm_CompactWinding(Winding *w) {
+static bool Winding_Compact(Winding *w) {
 
   for (int32_t i = 0; i < w->numPoints; i++) {
     const Vec3 a = w->points[(i + 0) % w->numPoints];
@@ -331,10 +331,10 @@ static bool Cm_CompactWinding(Winding *w) {
  * @brief Removes duplicate points from the winding, freeing it if fewer than
  * three points remain.
  */
-static Winding *Cm_FixWinding(Winding *w) {
+static Winding *Winding_Fix(Winding *w) {
 
-  if (!Cm_CompactWinding(w)) {
-    Cm_FreeWinding(w);
+  if (!Winding_Compact(w)) {
+    Winding_Free(w);
     return NULL;
   }
 
@@ -344,7 +344,7 @@ static Winding *Cm_FixWinding(Winding *w) {
 /**
  * @brief Splits the winding by the given plane into front and back components.
  */
-void Cm_SplitWinding(const Winding *in, const Vec3 normal, double dist, double epsilon,
+void Winding_Split(const Winding *in, const Vec3 normal, double dist, double epsilon,
             Winding **front, Winding **back) {
 
   assert(in->numPoints);
@@ -372,18 +372,18 @@ void Cm_SplitWinding(const Winding *in, const Vec3 normal, double dist, double e
 
   if (sideFront == 0) {
     *front = NULL;
-    *back = Cm_CopyWinding(in);
+    *back = Winding_Copy(in);
     return;
   }
 
   if (sideBack == 0) {
-    *front = Cm_CopyWinding(in);
+    *front = Winding_Copy(in);
     *back = NULL;
     return;
   }
 
-  Winding *f = Cm_AllocWinding(maxPoints);
-  Winding *b = Cm_AllocWinding(maxPoints);
+  Winding *f = Winding_Alloc(maxPoints);
+  Winding *b = Winding_Alloc(maxPoints);
 
   for (int32_t i = 0; i < in->numPoints; i++) {
     const WindingClipPoint *c = clipPoints + i;
@@ -442,15 +442,15 @@ void Cm_SplitWinding(const Winding *in, const Vec3 normal, double dist, double e
     }
   }
 
-  *front = Cm_FixWinding(f);
-  *back = Cm_FixWinding(b);
+  *front = Winding_Fix(f);
+  *back = Winding_Fix(b);
 }
 
 /**
  * @brief Classifies each point of the winding against the given plane.
  * @param clipPoints Receives one entry per point of `in`.
  */
-static void Cm_ClassifyWindingPoints(const Winding *in, const Vec3 normal, double dist,
+static void Winding_ClassifyPoints(const Winding *in, const Vec3 normal, double dist,
                                      double epsilon, WindingClipPoint *clipPoints,
                                      int32_t *sideFront, int32_t *sideBack) {
 
@@ -477,7 +477,7 @@ static void Cm_ClassifyWindingPoints(const Winding *in, const Vec3 normal, doubl
  * @param capacity The number of points `out` can hold.
  * @remarks Neither winding is allocated or freed, and they MUST NOT alias.
  */
-static void Cm_EmitClippedWinding(const Winding *in, const WindingClipPoint *clipPoints,
+static void Winding_EmitClipped(const Winding *in, const WindingClipPoint *clipPoints,
                                   const Vec3 normal, double dist, Winding *out,
                                   int32_t capacity) {
 
@@ -532,7 +532,7 @@ static void Cm_EmitClippedWinding(const Winding *in, const WindingClipPoint *cli
 /**
  * @brief Clips the winding against the given plane.
  */
-void Cm_ClipWinding(Winding **inOut, const Vec3 normal, double dist, double epsilon) {
+void Winding_Clip(Winding **inOut, const Vec3 normal, double dist, double epsilon) {
 
   Winding *in = *inOut;
 
@@ -543,10 +543,10 @@ void Cm_ClipWinding(Winding **inOut, const Vec3 normal, double dist, double epsi
   memset(clipPoints, 0, maxPoints * sizeof(WindingClipPoint));
 
   int32_t sideFront, sideBack;
-  Cm_ClassifyWindingPoints(in, normal, dist, epsilon, clipPoints, &sideFront, &sideBack);
+  Winding_ClassifyPoints(in, normal, dist, epsilon, clipPoints, &sideFront, &sideBack);
 
   if (sideFront == 0) {
-    Cm_FreeWinding(in);
+    Winding_Free(in);
     *inOut = NULL;
     return;
   }
@@ -555,12 +555,12 @@ void Cm_ClipWinding(Winding **inOut, const Vec3 normal, double dist, double epsi
     return;
   }
 
-  Winding *out = Cm_AllocWinding(maxPoints);
+  Winding *out = Winding_Alloc(maxPoints);
 
-  Cm_EmitClippedWinding(in, clipPoints, normal, dist, out, maxPoints);
+  Winding_EmitClipped(in, clipPoints, normal, dist, out, maxPoints);
 
-  Cm_FreeWinding(in);
-  *inOut = Cm_FixWinding(out);
+  Winding_Free(in);
+  *inOut = Winding_Fix(out);
 }
 
 /**
@@ -572,14 +572,14 @@ void Cm_ClipWinding(Winding **inOut, const Vec3 normal, double dist, double epsi
  * @return The clipped winding, or `NULL` if fully clipped away.
  * @remarks The input winding is NOT freed. The returned winding must be freed by caller.
  */
-Winding *Cm_ClipWindingToWinding(const Winding *in, const Winding *clip, const Vec3 normal, double epsilon) {
+Winding *Winding_ClipToWinding(const Winding *in, const Winding *clip, const Vec3 normal, double epsilon) {
 
   assert(in);
   assert(clip);
   assert(in->numPoints >= 3);
   assert(clip->numPoints >= 3);
   
-  Winding *current = Cm_CopyWinding(in);
+  Winding *current = Winding_Copy(in);
   
   // Clip against each edge of the clipping winding
   for (int32_t edge = 0; edge < clip->numPoints && current != NULL; edge++) {
@@ -593,7 +593,7 @@ Winding *Cm_ClipWindingToWinding(const Winding *in, const Winding *clip, const V
     const double edgeDist = Vec3_Dot(edgeNormal, edgeStart);
     
     // Clip against this edge plane (keep front side)
-    Cm_ClipWinding(&current, edgeNormal, edgeDist, epsilon);
+    Winding_Clip(&current, edgeNormal, edgeDist, epsilon);
   }
 
   return current;
@@ -613,10 +613,10 @@ Winding *Cm_ClipWindingToWinding(const Winding *in, const Winding *clip, const V
  * @return `in` if no edge clipped it, otherwise `a` or `b`, or `NULL` if it was
  * clipped away entirely.
  * @remarks Nothing is allocated or freed. Prefer this over
- * `Cm_ClipWindingToWinding` on hot paths, and note the result is only valid
+ * `Winding_ClipToWinding` on hot paths, and note the result is only valid
  * until the next call reusing the same scratch windings.
  */
-const Winding *Cm_ClipWindingToWindingInto(const Winding *in, const Winding *clip,
+const Winding *Winding_ClipToWindingInto(const Winding *in, const Winding *clip,
                                                 const Vec3 normal, double epsilon,
                                                 Winding *a, Winding *b,
                                                 int32_t capacity) {
@@ -645,7 +645,7 @@ const Winding *Cm_ClipWindingToWindingInto(const Winding *in, const Winding *cli
     memset(clipPoints, 0, current->numPoints * sizeof(WindingClipPoint));
 
     int32_t sideFront, sideBack;
-    Cm_ClassifyWindingPoints(current, edgeNormal, edgeDist, epsilon, clipPoints,
+    Winding_ClassifyPoints(current, edgeNormal, edgeDist, epsilon, clipPoints,
                              &sideFront, &sideBack);
 
     if (sideFront == 0) {
@@ -656,9 +656,9 @@ const Winding *Cm_ClipWindingToWindingInto(const Winding *in, const Winding *cli
       continue;
     }
 
-    Cm_EmitClippedWinding(current, clipPoints, edgeNormal, edgeDist, spare, capacity);
+    Winding_EmitClipped(current, clipPoints, edgeNormal, edgeDist, spare, capacity);
 
-    if (!Cm_CompactWinding(spare)) {
+    if (!Winding_Compact(spare)) {
       return NULL;
     }
 
@@ -676,7 +676,7 @@ const Winding *Cm_ClipWindingToWindingInto(const Winding *in, const Winding *cli
  * Returns `NULL` if the faces couldn't be merged, or the new face.
  * The originals will NOT be freed.
  */
-Winding *Cm_MergeWindings(const Winding *a, const Winding *b, const Vec3 normal) {
+Winding *Winding_Merge(const Winding *a, const Winding *b, const Vec3 normal) {
   Vec3 p1, p2, back;
   int32_t i, j, k, l;
   Vec3 cross, delta;
@@ -741,7 +741,7 @@ Winding *Cm_MergeWindings(const Winding *a, const Winding *b, const Vec3 normal)
   const bool keep2 = dot < -COLINEAR_EPSILON;
 
   // build the new polygon
-  Winding *merged = Cm_AllocWinding(a->numPoints + b->numPoints);
+  Winding *merged = Winding_Alloc(a->numPoints + b->numPoints);
 
   // copy first polygon
   for (k = (i + 1) % a->numPoints; k != i; k = (k + 1) % a->numPoints) {
@@ -762,7 +762,7 @@ Winding *Cm_MergeWindings(const Winding *a, const Winding *b, const Vec3 normal)
     merged->numPoints++;
   }
 
-  return Cm_FixWinding(merged);
+  return Winding_Fix(merged);
 }
 
 /**
@@ -773,7 +773,7 @@ Winding *Cm_MergeWindings(const Winding *a, const Winding *b, const Vec3 normal)
  * @param elements The output array, which must be `>= (w->numPoints - 2) * 3` in length.
  * @return The number of vertex elements written to tris.
  */
-int32_t Cm_ElementsForWinding(const Winding *w, int32_t *elements) {
+int32_t Winding_Elements(const Winding *w, int32_t *elements) {
 
   int32_t *out = elements;
 

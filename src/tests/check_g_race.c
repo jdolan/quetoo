@@ -141,9 +141,9 @@ void setup(void) {
   gi.LoadFile = Fs_Load;
   gi.FreeFile = Fs_Free;
 
-  gi.EntityValue = Cm_EntityValue;
-  gi.LoadEntities = Cm_LoadEntities;
-  gi.FreeEntity = Cm_FreeEntity;
+  gi.EntityValue = Entity_Value;
+  gi.LoadEntities = Entity_LoadAll;
+  gi.FreeEntity = Entity_Free;
 
   gi.SetConfigString = Test_SetConfigString;
   gi.GetConfigString = Test_GetConfigString;

@@ -498,7 +498,7 @@ static bool SideVisibleInFront(const Winding *w, const CsgBrush *brush, const Br
 
   static const float distances[] = { .5f, 1.f, 2.f, 4.f };
 
-  const Vec3 center = Cm_WindingCenter(w);
+  const Vec3 center = Winding_Center(w);
   const Vec3 normal = planes[side->plane].normal;
   const int32_t contents = brush->original->contents;
 
@@ -552,13 +552,13 @@ static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, co
     }
 
     if (!visible) {
-      Cm_FreeWinding(w);
+      Winding_Free(w);
       return;
     }
 
     if (!onNode) {
       Com_Verbose("Brush side %s @ %s is not on a node plane\n",
-                  materials[side->original->material].cm->name, vtos(Cm_WindingCenter(w)));
+                  materials[side->original->material].cm->name, vtos(Winding_Center(w)));
       onNode = node->parent;
     }
 
@@ -568,7 +568,7 @@ static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, co
 
       inside->brushSide = side->original;
       inside->plane = side->plane ^ 1;
-      inside->w = Cm_ReverseWinding(w);
+      inside->w = Winding_Reverse(w);
 
       inside->next = onNode->faces;
       onNode->faces = inside;
@@ -603,8 +603,8 @@ static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, co
   }
 
   Winding *front, *back;
-  Cm_SplitWinding(w, plane->normal, plane->dist, ON_EPSILON, &front, &back);
-  Cm_FreeWinding(w);
+  Winding_Split(w, plane->normal, plane->dist, ON_EPSILON, &front, &back);
+  Winding_Free(w);
 
   if (front) {
     ClipSideIntoTree_r(node->children[0], front, brush, side, onNode);
@@ -655,21 +655,21 @@ static Vector *SubtractWinding(Vector *pieces, const Winding *clip, const Vec3 n
 
   Vector *out = $(alloc(Vector), initWithSize, sizeof(Winding *));
 
-  const Vec3 center = Cm_WindingCenter(clip);
-  const Box3 bounds = Box3_Expand(Cm_WindingBounds(clip), ON_EPSILON);
+  const Vec3 center = Winding_Center(clip);
+  const Box3 bounds = Box3_Expand(Winding_Bounds(clip), ON_EPSILON);
 
   for (size_t i = 0; i < pieces->count; i++) {
 
     Winding *piece = VectorValue(pieces, Winding *, i);
 
-    if (!Box3_Intersects(Cm_WindingBounds(piece), bounds)) {
+    if (!Box3_Intersects(Winding_Bounds(piece), bounds)) {
       $(out, add, &piece);
       continue;
     }
 
     const size_t count = out->count;
 
-    Winding *w = Cm_CopyWinding(piece);
+    Winding *w = Winding_Copy(piece);
 
     for (int32_t j = 0; j < clip->numPoints && w; j++) {
 
@@ -687,8 +687,8 @@ static Vector *SubtractWinding(Vector *pieces, const Winding *clip, const Vec3 n
       }
 
       Winding *front, *back;
-      Cm_SplitWinding(w, outward, Vec3_Dot(a, outward), ON_EPSILON, &front, &back);
-      Cm_FreeWinding(w);
+      Winding_Split(w, outward, Vec3_Dot(a, outward), ON_EPSILON, &front, &back);
+      Winding_Free(w);
 
       if (front) {
         $(out, add, &front);
@@ -697,18 +697,18 @@ static Vector *SubtractWinding(Vector *pieces, const Winding *clip, const Vec3 n
       w = back;
     }
 
-    if (w && Cm_WindingArea(w) > ON_EPSILON) {
-      Cm_FreeWinding(w);
-      Cm_FreeWinding(piece);
+    if (w && Winding_Area(w) > ON_EPSILON) {
+      Winding_Free(w);
+      Winding_Free(piece);
       continue;
     }
 
     if (w) {
-      Cm_FreeWinding(w);
+      Winding_Free(w);
     }
 
     while (out->count > count) {
-      Cm_FreeWinding(VectorValue(out, Winding *, out->count - 1));
+      Winding_Free(VectorValue(out, Winding *, out->count - 1));
       $(out, removeAt, out->count - 1);
     }
 
@@ -787,16 +787,16 @@ void MakeTreeFaces(Tree *tree, const CsgBrush *brushes) {
 
     Vector *pieces = $(alloc(Vector), initWithSize, sizeof(Winding *));
 
-    Winding *w = Cm_CopyWinding(s->side->winding);
+    Winding *w = Winding_Copy(s->side->winding);
     $(pieces, add, &w);
 
-    const Box3 bounds = Box3_Expand(Cm_WindingBounds(s->side->winding), ON_EPSILON);
+    const Box3 bounds = Box3_Expand(Winding_Bounds(s->side->winding), ON_EPSILON);
 
     for (int32_t j = i - 1; j >= 0 && sides[j].side->plane == s->side->plane && pieces->count; j--) {
 
       const TreeFaceSide *t = &sides[j];
 
-      if (!Box3_Intersects(Cm_WindingBounds(t->side->winding), bounds)) {
+      if (!Box3_Intersects(Winding_Bounds(t->side->winding), bounds)) {
         continue;
       }
 
@@ -888,7 +888,7 @@ static Box3 CalcNodeVisibleBounds_r(Node *node) {
     }
 
     assert(f->w);
-    node->visibleBounds = Box3_Union(node->visibleBounds, Cm_WindingBounds(f->w));
+    node->visibleBounds = Box3_Union(node->visibleBounds, Winding_Bounds(f->w));
   }
 
   return node->visibleBounds;

@@ -39,7 +39,7 @@ static void R_RegisterMaterial(RenderMedia *self) {
  */
 static void R_FreeMaterial(RenderMedia *self) {
 
-  Cm_FreeMaterial(((RenderMaterial *) self)->cm);
+  Material_Free(((RenderMaterial *) self)->cm);
 }
 
 /**
@@ -258,7 +258,7 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
 static RenderMaterial *R_ResolveMaterial(Material *cm) {
   char key[MAX_QPATH];
 
-  Cm_MaterialPath(cm->name, key, sizeof(key), cm->context);
+  Material_Path(cm->name, key, sizeof(key), cm->context);
 
   RenderMaterial *material = (RenderMaterial *) R_AllocMedia(key, sizeof(RenderMaterial), R_MEDIA_MATERIAL);
   material->cm = cm;
@@ -274,7 +274,7 @@ static RenderMaterial *R_ResolveMaterial(Material *cm) {
 
   R_RegisterDependency((RenderMedia *) material, (RenderMedia *) material->texture);
 
-  Cm_ResolveMaterial(cm);
+  Material_Resolve(cm);
 
   const bool layered = cm->context == ASSET_CONTEXT_TEXTURES ||
                        cm->context == ASSET_CONTEXT_MODELS ||
@@ -598,7 +598,7 @@ RenderMaterial *R_FindMaterial(const char *name, AssetContext context) {
   char basename[MAX_QPATH];
   
   StripExtension(name, basename);
-  Cm_MaterialPath(basename, key, sizeof(key), context);
+  Material_Path(basename, key, sizeof(key), context);
 
   return (RenderMaterial *) R_FindMedia(key, R_MEDIA_MATERIAL);
 }
@@ -616,7 +616,7 @@ RenderMaterial *R_LoadMaterial(const char *name, AssetContext context) {
   RenderMaterial *material = R_FindMaterial(name, context);
   if (material == NULL) {
 
-    Material *cm = Cm_LoadMaterial(name, context);
+    Material *cm = Material_Load(name, context);
 
     material = R_ResolveMaterial(cm);
   }
@@ -634,7 +634,7 @@ static void R_SaveMaterials_enumerator(const RenderMedia *media, void *data) {
   if (media->type == R_MEDIA_MATERIAL) {
     RenderMaterial *material = (RenderMaterial *) media;
     if (material->cm->dirty) {
-      if (Cm_SaveMaterial(material->cm)) {
+      if (Material_Save(material->cm)) {
         material->cm->dirty = false;
         (*(int32_t *) data)++;
       }

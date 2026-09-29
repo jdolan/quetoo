@@ -42,7 +42,7 @@ Face *AllocFace(void) {
 void FreeFace(Face *f) {
 
   if (f->w) {
-    Cm_FreeWinding(f->w);
+    Winding_Free(f->w);
   }
 
   Mem_Free(f);
@@ -65,7 +65,7 @@ Face *MergeFaces(Face *a, Face *b) {
   }
 
   const Plane *plane = &planes[a->plane];
-  Winding *w = Cm_MergeWindings(a->w, b->w, plane->normal);
+  Winding *w = Winding_Merge(a->w, b->w, plane->normal);
   if (!w) {
     return NULL;
   }
@@ -78,8 +78,8 @@ Face *MergeFaces(Face *a, Face *b) {
   a->merged = merged;
   b->merged = merged;
 
-  Cm_FreeWinding(a->w);
-  Cm_FreeWinding(b->w);
+  Winding_Free(a->w);
+  Winding_Free(b->w);
 
   a->w = NULL;
   b->w = NULL;
@@ -179,7 +179,7 @@ BspFace *EmitFace(const Face *face) {
   assert(face->brushSide->material >= 0);
   assert(face->brushSide->out);
 
-  Winding *w = Cm_AllocWinding(face->w->numPoints);
+  Winding *w = Winding_Alloc(face->w->numPoints);
 
   for (int32_t i = 0; i < face->w->numPoints; i++) {
     const Vec3 p = face->w->points[i];
@@ -196,21 +196,21 @@ BspFace *EmitFace(const Face *face) {
 
   if (w->numPoints < 3) {
     const MapMaterial *mat = &materials[face->brushSide->material];
-    Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->cm->name, vtos(Cm_WindingCenter(face->w)));
-    Cm_FreeWinding(w);
+    Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->cm->name, vtos(Winding_Center(face->w)));
+    Winding_Free(w);
     return NULL;
   }
 
   int32_t elements[(w->numPoints - 2) * 3];
-  const int32_t numElements = Cm_ElementsForWinding(w, elements);
+  const int32_t numElements = Winding_Elements(w, elements);
 
   if (numElements != (int32_t) lengthof(elements)) {
     const MapMaterial *mat = &materials[face->brushSide->material];
-    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(Cm_WindingCenter(w)));
+    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(Winding_Center(w)));
   }
 
   if (numElements == 0) {
-    Cm_FreeWinding(w);
+    Winding_Free(w);
     return NULL;
   }
 
@@ -230,7 +230,7 @@ BspFace *EmitFace(const Face *face) {
   out->firstVertex = bspFile.numVertexes;
   out->numVertexes = EmitFaceVertexes(face, w);
 
-  Cm_FreeWinding(w);
+  Winding_Free(w);
 
   bspFile.numFaces++;
 
@@ -440,7 +440,7 @@ static void PhongVertex(const BspFace *face, BspVertex *v, float phongCosine) {
         continue;
       }
 
-      v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), p->normal);
+      v->normal = Vec3_Fmaf(v->normal, Winding_Area(w), p->normal);
     }
 
     if (Vec3_LengthSquared(v->normal)) {
@@ -488,7 +488,7 @@ static void PhongFace(int32_t modelFaceNum) {
 
   // FIXME: There is a corner case here (get it?) where multiple colinear vertexes on a Phong
   // FIXME: shaded face will receive bad normals. A complete solution here would be to copy what
-  // FIXME: Cm_ElementsForWinding does, and actually flag the corners of the winding, and then
+  // FIXME: Winding_Elements does, and actually flag the corners of the winding, and then
   // FIXME: linear interpolate all non-corner vertex normals in this loop between their two
   // FIXME: bounding corners.
 

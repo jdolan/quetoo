@@ -31,9 +31,9 @@
  * @brief Returns true if the point, which lies on the plane of the convex winding, is inside it,
  * or within the epsilon of it.
  */
-static bool Cm_PointInWinding(const Winding *w, const Vec3 normal, const Vec3 p, float epsilon) {
+static bool MaterialLight_PointInWinding(const Winding *w, const Vec3 normal, const Vec3 p, float epsilon) {
 
-  const Vec3 center = Cm_WindingCenter(w);
+  const Vec3 center = Winding_Center(w);
 
   for (int32_t i = 0; i < w->numPoints; i++) {
 
@@ -68,7 +68,7 @@ typedef struct {
 /**
  * @return The root of the cluster of the side.
  */
-static int32_t Cm_MaterialLightCluster(MaterialLightSide *sides, int32_t i) {
+static int32_t MaterialLight_ClusterRoot(MaterialLightSide *sides, int32_t i) {
 
   while (sides[i].parent != i) {
     sides[i].parent = sides[sides[i].parent].parent;
@@ -82,7 +82,7 @@ static int32_t Cm_MaterialLightCluster(MaterialLightSide *sides, int32_t i) {
  * @brief Returns true if the two sides emit together: the same material, plane and model, and
  * windings that touch.
  */
-static bool Cm_MaterialLightSidesTouch(const BspFile *file, const MaterialLightSide *a, const MaterialLightSide *b) {
+static bool MaterialLight_SidesTouch(const BspFile *file, const MaterialLightSide *a, const MaterialLightSide *b) {
 
   if (a->material != b->material || a->plane != b->plane || a->model != b->model) {
     return false;
@@ -95,13 +95,13 @@ static bool Cm_MaterialLightSidesTouch(const BspFile *file, const MaterialLightS
   const Vec3 normal = file->planes[a->plane].normal;
 
   for (int32_t i = 0; i < a->winding->numPoints; i++) {
-    if (Cm_PointInWinding(b->winding, normal, a->winding->points[i], MATERIAL_LIGHT_TOUCH_EPSILON)) {
+    if (MaterialLight_PointInWinding(b->winding, normal, a->winding->points[i], MATERIAL_LIGHT_TOUCH_EPSILON)) {
       return true;
     }
   }
 
   for (int32_t i = 0; i < b->winding->numPoints; i++) {
-    if (Cm_PointInWinding(a->winding, normal, b->winding->points[i], MATERIAL_LIGHT_TOUCH_EPSILON)) {
+    if (MaterialLight_PointInWinding(a->winding, normal, b->winding->points[i], MATERIAL_LIGHT_TOUCH_EPSILON)) {
       return true;
     }
   }
@@ -112,7 +112,7 @@ static bool Cm_MaterialLightSidesTouch(const BspFile *file, const MaterialLightS
 /**
  * @brief Appends the light at the given point on the brush side, unless it is in solid.
  */
-static size_t Cm_AppendMaterialLight(const Vec3 point, const Vec3 normal, const MaterialLightSide *side, Vector *lights) {
+static size_t MaterialLight_Append(const Vec3 point, const Vec3 normal, const MaterialLightSide *side, Vector *lights) {
 
   const Vec3 origin = Vec3_Add(Vec3_Fmaf(point, MATERIAL_LIGHT_OFFSET, normal), side->offset);
 
@@ -137,7 +137,7 @@ static size_t Cm_AppendMaterialLight(const Vec3 point, const Vec3 normal, const 
  * @param count The number of sides.
  * @param root The root of the cluster, which is also its first side.
  */
-static size_t Cm_ClusterLights(const BspFile *file, MaterialLightSide *sides, int32_t count,
+static size_t MaterialLight_EmitCluster(const BspFile *file, MaterialLightSide *sides, int32_t count,
                                int32_t root, const MaterialStage *stage, Vector *lights) {
 
   const Vec3 normal = file->planes[sides[root].plane].normal;
@@ -148,7 +148,7 @@ static size_t Cm_ClusterLights(const BspFile *file, MaterialLightSide *sides, in
   float largestArea = -1.f;
 
   for (int32_t i = root; i < count; i++) {
-    if (Cm_MaterialLightCluster(sides, i) != root) {
+    if (MaterialLight_ClusterRoot(sides, i) != root) {
       continue;
     }
 
@@ -160,7 +160,7 @@ static size_t Cm_ClusterLights(const BspFile *file, MaterialLightSide *sides, in
       }
     }
 
-    const float area = Cm_WindingArea(w);
+    const float area = Winding_Area(w);
     if (area > largestArea) {
       largestArea = area;
       largest = i;
@@ -173,7 +173,7 @@ static size_t Cm_ClusterLights(const BspFile *file, MaterialLightSide *sides, in
   float minU = FLT_MAX, maxU = -FLT_MAX, minV = FLT_MAX, maxV = -FLT_MAX;
 
   for (int32_t i = root; i < count; i++) {
-    if (Cm_MaterialLightCluster(sides, i) != root) {
+    if (MaterialLight_ClusterRoot(sides, i) != root) {
       continue;
     }
 
@@ -203,13 +203,13 @@ static size_t Cm_ClusterLights(const BspFile *file, MaterialLightSide *sides, in
       const Vec3 point = Vec3_Fmaf(Vec3_Fmaf(Vec3_Scale(normal, d), pu, u), pv, v);
 
       for (int32_t k = root; k < count; k++) {
-        if (Cm_MaterialLightCluster(sides, k) != root) {
+        if (MaterialLight_ClusterRoot(sides, k) != root) {
           continue;
         }
 
-        if (Cm_PointInWinding(sides[k].winding, normal, point, ON_EPSILON)) {
+        if (MaterialLight_PointInWinding(sides[k].winding, normal, point, ON_EPSILON)) {
           inside++;
-          emitted += Cm_AppendMaterialLight(point, normal, &sides[k], lights);
+          emitted += MaterialLight_Append(point, normal, &sides[k], lights);
           break;
         }
       }
@@ -217,7 +217,7 @@ static size_t Cm_ClusterLights(const BspFile *file, MaterialLightSide *sides, in
   }
 
   if (inside == 0) {
-    emitted += Cm_AppendMaterialLight(Cm_WindingCenter(sides[largest].winding), normal, &sides[largest], lights);
+    emitted += MaterialLight_Append(Winding_Center(sides[largest].winding), normal, &sides[largest], lights);
   }
 
   return emitted;
@@ -226,13 +226,13 @@ static size_t Cm_ClusterLights(const BspFile *file, MaterialLightSide *sides, in
 /**
  * @brief Returns the inline model index of the entity, or 0 for an entity merged into the world.
  */
-static int32_t Cm_MaterialLightModel(int32_t entity) {
+static int32_t MaterialLight_Model(int32_t entity) {
 
   if (entity <= 0 || entity >= Cm_Bsp()->numEntities) {
     return 0;
   }
 
-  const char *model = Cm_EntityValue(Cm_Bsp()->entities[entity], "model")->nullableString;
+  const char *model = Entity_Value(Cm_Bsp()->entities[entity], "model")->nullableString;
   if (model && *model == '*') {
     return (int32_t) strtol(model + 1, NULL, 10);
   }
@@ -246,18 +246,18 @@ static int32_t Cm_MaterialLightModel(int32_t entity) {
  * on one grid, so that a surface split into several brushes places the same lights as one brush.
  * Clusters are placed in the order of their first brush side, so that the output is stable.
  */
-size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_t material, Vector *lights) {
+size_t Material_Lights(const BspFile *file, Material *const *materials, int32_t material, Vector *lights) {
 
   Vector *candidates = $(alloc(Vector), initWithSize, sizeof(MaterialLightSide));
 
   const BspBrush *brush = file->brushes;
   for (int32_t i = 0; i < file->numBrushes; i++, brush++) {
 
-    const int32_t model = Cm_MaterialLightModel(brush->entity);
+    const int32_t model = MaterialLight_Model(brush->entity);
 
     Vec3 offset = Vec3_Zero();
     if (model) {
-      offset = Cm_EntityValue(Cm_Bsp()->entities[brush->entity], "origin")->vec3;
+      offset = Entity_Value(Cm_Bsp()->entities[brush->entity], "origin")->vec3;
     }
 
     for (int32_t j = 0; j < brush->numBrushSides; j++) {
@@ -277,11 +277,11 @@ size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_
         continue;
       }
 
-      if (Cm_MaterialLightStage(materials[side->material]) == NULL) {
+      if (Material_LightStage(materials[side->material]) == NULL) {
         continue;
       }
 
-      Winding *w = Cm_WindingForBrushSide(file, side);
+      Winding *w = Winding_ForBrushSide(file, side);
       if (w == NULL) {
         continue;
       }
@@ -293,7 +293,7 @@ size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_
         .model = model,
         .offset = offset,
         .winding = w,
-        .bounds = Box3_Expand(Cm_WindingBounds(w), MATERIAL_LIGHT_TOUCH_EPSILON),
+        .bounds = Box3_Expand(Winding_Bounds(w), MATERIAL_LIGHT_TOUCH_EPSILON),
         .parent = (int32_t) candidates->count,
       });
     }
@@ -304,9 +304,9 @@ size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_
 
   for (int32_t i = 0; i < count; i++) {
     for (int32_t j = i + 1; j < count; j++) {
-      if (Cm_MaterialLightSidesTouch(file, &sides[i], &sides[j])) {
-        const int32_t a = Cm_MaterialLightCluster(sides, i);
-        const int32_t b = Cm_MaterialLightCluster(sides, j);
+      if (MaterialLight_SidesTouch(file, &sides[i], &sides[j])) {
+        const int32_t a = MaterialLight_ClusterRoot(sides, i);
+        const int32_t b = MaterialLight_ClusterRoot(sides, j);
         if (a != b) {
           sides[Maxi(a, b)].parent = Mini(a, b);
         }
@@ -317,14 +317,14 @@ size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_
   size_t emitted = 0;
 
   for (int32_t i = 0; i < count; i++) {
-    if (Cm_MaterialLightCluster(sides, i) == i) {
-      const MaterialStage *stage = Cm_MaterialLightStage(materials[sides[i].material]);
-      emitted += Cm_ClusterLights(file, sides, count, i, stage, lights);
+    if (MaterialLight_ClusterRoot(sides, i) == i) {
+      const MaterialStage *stage = Material_LightStage(materials[sides[i].material]);
+      emitted += MaterialLight_EmitCluster(file, sides, count, i, stage, lights);
     }
   }
 
   for (int32_t i = 0; i < count; i++) {
-    Cm_FreeWinding(sides[i].winding);
+    Winding_Free(sides[i].winding);
   }
 
   release(candidates);
@@ -334,7 +334,7 @@ size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_
 /**
  * @brief Resolves the default color of a stage light from the brightest pixels of its texture.
  */
-Vec3 Cm_MaterialLightColor(const Material *material, const MaterialStage *stage) {
+Vec3 Material_LightColor(const Material *material, const MaterialStage *stage) {
 
   const char *path = *stage->asset.path ? stage->asset.path : material->diffusemap.path;
 

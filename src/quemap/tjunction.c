@@ -83,7 +83,7 @@ static void FixTJunctions_(int32_t faceNum) {
         }
 
         // v sits between v0 and v1, so add it to the face
-        Winding *w = Cm_AllocWinding(face_winding->numPoints + 1);
+        Winding *w = Winding_Alloc(face_winding->numPoints + 1);
         w->numPoints = face_winding->numPoints + 1;
 
         for (int32_t k = 0; k < w->numPoints; k++) {
@@ -96,7 +96,7 @@ static void FixTJunctions_(int32_t faceNum) {
           }
         }
 
-        Cm_FreeWinding(face->w);
+        Winding_Free(face->w);
         face->w = w;
 
         SDL_AddAtomicInt(&cTjunctions, 1);
@@ -147,7 +147,7 @@ void FixTJunctions(Tree *tree) {
   windings = Mem_Malloc(sizeof(Winding *) * faces->count);
   for (size_t i = 0; i < faces->count; i++) {
     const Face *face = VectorValue(faces, Face *, i);
-    windings[i] = Cm_CopyWinding(face->w);
+    windings[i] = Winding_Copy(face->w);
   }
 
   Work("Fixing t-junctions", FixTJunctions_, (int32_t) faces->count);
@@ -155,7 +155,7 @@ void FixTJunctions(Tree *tree) {
   Com_Verbose("%5i fixed tjunctions\n", SDL_GetAtomicInt(&cTjunctions));
 
   for (size_t i = 0; i < faces->count; i++) {
-    Cm_FreeWinding(windings[i]);
+    Winding_Free(windings[i]);
   }
   Mem_Free(windings);
 

@@ -133,7 +133,7 @@ CsgBrush *MakeBrushes(int32_t index, int32_t count) {
       out->brushSides[j].original = &in->brushSides[j];
 
       if (in->brushSides[j].winding) {
-        out->brushSides[j].winding = Cm_CopyWinding(in->brushSides[j].winding);
+        out->brushSides[j].winding = Winding_Copy(in->brushSides[j].winding);
       }
     }
     

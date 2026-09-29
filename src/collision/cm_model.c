@@ -28,7 +28,7 @@ CollisionBsp collisionBsp = {};
  */
 static void Cm_LoadBspEntities(CollisionBsp *bsp) {
 
-  List *entities = Cm_LoadEntities(bsp->file->entityString);
+  List *entities = Entity_LoadAll(bsp->file->entityString);
 
   bsp->numEntities = (int32_t) entities->count;
   bsp->entities = Mem_TagMalloc(sizeof(Entity *) * bsp->numEntities, MEM_TAG_COLLISION);
@@ -204,7 +204,7 @@ static void Cm_LoadBspMaterials(CollisionBsp *bsp) {
   const BspMaterial *in = bsp->file->materials;
   for (int32_t i = 0; i < bsp->numMaterials; i++, in++, out++) {
 
-    *out = Cm_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
+    *out = Material_Load(in->name, ASSET_CONTEXT_TEXTURES);
 
     *out = Mem_Link(*out, bsp->materials);
   }

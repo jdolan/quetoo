@@ -63,96 +63,96 @@ typedef struct {
 /**
  * @brief Allocates a winding with space for `numPoints` points.
  */
-Winding *Cm_AllocWinding(int32_t numPoints);
+Winding *Winding_Alloc(int32_t numPoints);
 
 /**
  * @brief Frees the winding.
  */
-void Cm_FreeWinding(Winding *w);
+void Winding_Free(Winding *w);
 
 /**
  * @brief Returns a deep copy of the winding.
  */
-Winding *Cm_CopyWinding(const Winding *w);
+Winding *Winding_Copy(const Winding *w);
 
 /**
  * @brief Returns a new winding with points in the reverse order.
  */
-Winding *Cm_ReverseWinding(const Winding *w);
+Winding *Winding_Reverse(const Winding *w);
 
 /**
  * @brief Returns the axis-aligned bounding box enclosing the winding.
  */
-Box3 Cm_WindingBounds(const Winding *w);
+Box3 Winding_Bounds(const Winding *w);
 
 /**
  * @brief Returns the centroid of the winding.
  */
-Vec3 Cm_WindingCenter(const Winding *w);
+Vec3 Winding_Center(const Winding *w);
 
 /**
  * @brief Returns the surface area of the winding.
  */
-float Cm_WindingArea(const Winding *w);
+float Winding_Area(const Winding *w);
 
 /**
  * @brief Returns the minimum distance from point p to the winding boundary.
  * @param dir If non-`NULL`, receives the direction from p to the nearest point.
  */
-float Cm_DistanceToWinding(const Winding *w, const Vec3 p, Vec3 *dir);
+float Winding_Distance(const Winding *w, const Vec3 p, Vec3 *dir);
 
 /**
  * @brief Creates a large axially-aligned winding for the given plane.
  */
-Winding *Cm_WindingForPlane(const Vec3 normal, double dist);
+Winding *Winding_ForPlane(const Vec3 normal, double dist);
 
 /**
  * @brief Creates a winding from the vertex loop of a BSP face.
  */
-Winding *Cm_WindingForFace(const BspFile *file, const BspFace *face);
+Winding *Winding_ForFace(const BspFile *file, const BspFace *face);
 
 /**
  * @brief Creates a winding from the vertex loop of a BSP brush side.
  */
-Winding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSide);
+Winding *Winding_ForBrushSide(const BspFile *file, const BspBrushSide *brushSide);
 
 /**
  * @brief Computes the plane normal and distance from a winding's points.
  */
-void Cm_PlaneForWinding(const Winding *w, Vec3 *normal, double *dist);
+void Winding_Plane(const Winding *w, Vec3 *normal, double *dist);
 
 /**
  * @brief Splits the winding by the plane, producing front and back halves.
  */
-void Cm_SplitWinding(const Winding *w, const Vec3 normal, double dist, double epsilon, Winding **front, Winding **back);
+void Winding_Split(const Winding *w, const Vec3 normal, double dist, double epsilon, Winding **front, Winding **back);
 
 /**
  * @brief Clips the winding to the front half-space of the plane, freeing the back.
  */
-void Cm_ClipWinding(Winding **w, const Vec3 normal, double dist, double epsilon);
+void Winding_Clip(Winding **w, const Vec3 normal, double dist, double epsilon);
 
 /**
  * @brief Clips winding in against the clip winding's plane, returning the front fragment.
  */
-Winding *Cm_ClipWindingToWinding(const Winding *in, const Winding *clip, const Vec3 normal, double epsilon);
+Winding *Winding_ClipToWinding(const Winding *in, const Winding *clip, const Vec3 normal, double epsilon);
 
 /**
  * @brief Clips `in` against every edge of `clip` without allocating, using the
  * caller-supplied scratch windings `a` and `b`.
  */
-const Winding *Cm_ClipWindingToWindingInto(const Winding *in, const Winding *clip, const Vec3 normal, double epsilon, Winding *a, Winding *b, int32_t capacity);
+const Winding *Winding_ClipToWindingInto(const Winding *in, const Winding *clip, const Vec3 normal, double epsilon, Winding *a, Winding *b, int32_t capacity);
 
 /**
  * @brief Merges two coplanar windings into a single winding, if possible.
  * @return The merged winding, or `NULL` if the windings could not be merged.
  */
-Winding *Cm_MergeWindings(const Winding *a, const Winding *b, const Vec3 normal);
+Winding *Winding_Merge(const Winding *a, const Winding *b, const Vec3 normal);
 
 /**
  * @brief Fills elements[] with triangle indices for the winding (fan triangulation).
  * @return The number of indices written.
  */
-int32_t Cm_ElementsForWinding(const Winding *w, int32_t *elements);
+int32_t Winding_Elements(const Winding *w, int32_t *elements);
 
 /**
  * @brief Returns the area of the triangle formed by the three vertices.

@@ -28,7 +28,7 @@
  * @param pos The world-space query position.
  * @return Pointer into collisionBsp.voxels[], clamped to grid bounds. Safe to call from any thread.
  */
-const Voxel *Cm_VoxelForPoint(const Vec3 pos) {
+const Voxel *Voxel_ForPoint(const Vec3 pos) {
 
   if (!collisionBsp.voxels) {
     return NULL;

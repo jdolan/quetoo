@@ -49,7 +49,7 @@ void FreeBrush(CsgBrush *brush) {
   
   for (int32_t i = 0; i < brush->numBrushSides; i++) {
     if (brush->brushSides[i].winding) {
-      Cm_FreeWinding(brush->brushSides[i].winding);
+      Winding_Free(brush->brushSides[i].winding);
     }
   }
 
@@ -95,7 +95,7 @@ CsgBrush *CopyBrush(const CsgBrush *brush) {
 
   for (int32_t i = 0; i < brush->numBrushSides; i++) {
     if (brush->brushSides[i].winding) {
-      copy->brushSides[i].winding = Cm_CopyWinding(brush->brushSides[i].winding);
+      copy->brushSides[i].winding = Winding_Copy(brush->brushSides[i].winding);
     }
   }
 
@@ -135,7 +135,7 @@ static void SetBrushBounds(CsgBrush *brush) {
   for (int32_t i = 0; i < brush->numBrushSides; i++) {
     const Winding *w = brush->brushSides[i].winding;
     if (w) {
-      brush->bounds = Box3_Union(brush->bounds, Cm_WindingBounds(w));
+      brush->bounds = Box3_Union(brush->bounds, Winding_Bounds(w));
     }
   }
 }
@@ -149,7 +149,7 @@ static void MakeCsgBrushWindings(CsgBrush *brush) {
   for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
     const Plane *plane = &planes[side->plane];
-    side->winding = Cm_WindingForPlane(plane->normal, plane->dist);
+    side->winding = Winding_ForPlane(plane->normal, plane->dist);
 
     const BrushSide *s = brush->brushSides;
     for (int32_t j = 0; j < brush->numBrushSides; j++, s++) {
@@ -157,7 +157,7 @@ static void MakeCsgBrushWindings(CsgBrush *brush) {
         continue;
       }
       const Plane *p = &planes[s->plane ^ 1];
-      Cm_ClipWinding(&side->winding, p->normal, p->dist, SIDE_EPSILON);
+      Winding_Clip(&side->winding, p->normal, p->dist, SIDE_EPSILON);
     }
 
     assert(side->winding);
@@ -226,7 +226,7 @@ float BrushVolume(CsgBrush *brush) {
     }
     Plane *plane = &planes[brush->brushSides[i].plane];
     const float d = -(Vec3_Dot(corner, plane->normal) - plane->dist);
-    const float area = Cm_WindingArea(w);
+    const float area = Winding_Area(w);
     volume += d * area;
   }
 
@@ -366,11 +366,11 @@ void SplitBrush(const CsgBrush *brush, int32_t plane, CsgBrush **front, CsgBrush
 
   // create a new winding from the split plane
 
-  Winding *w = Cm_WindingForPlane(split->normal, split->dist);
+  Winding *w = Winding_ForPlane(split->normal, split->dist);
 
   for (int32_t i = 0; i < brush->numBrushSides && w; i++) {
     const Plane *p = &planes[brush->brushSides[i].plane ^ 1];
-    Cm_ClipWinding(&w, p->normal, p->dist, SIDE_EPSILON);
+    Winding_Clip(&w, p->normal, p->dist, SIDE_EPSILON);
   }
 
   if (!w || WindingIsSmall(w)) { // the brush isn't really split
@@ -410,7 +410,7 @@ void SplitBrush(const CsgBrush *brush, int32_t plane, CsgBrush **front, CsgBrush
     if (!w) {
       continue;
     }
-    Cm_SplitWinding(w, split->normal, split->dist, SIDE_EPSILON, &cw[0], &cw[1]);
+    Winding_Split(w, split->normal, split->dist, SIDE_EPSILON, &cw[0], &cw[1]);
     for (int32_t j = 0; j < 2; j++) {
       if (!cw[j]) {
         continue;
@@ -468,7 +468,7 @@ void SplitBrush(const CsgBrush *brush, int32_t plane, CsgBrush **front, CsgBrush
     cs->surface = SURF_NODE;
 
     if (i == 0) {
-      cs->winding = Cm_CopyWinding(midWinding);
+      cs->winding = Winding_Copy(midWinding);
     } else {
       cs->winding = midWinding;
     }

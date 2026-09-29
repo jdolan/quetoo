@@ -183,11 +183,11 @@ static void AddBspMaterials(void) {
 	for (int32_t i = 0; i < bspFile.numMaterials; i++) {
 		const char *name = bspFile.materials[i].name;
 
-		Material *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
+		Material *material = Material_Load(name, ASSET_CONTEXT_TEXTURES);
 
 		AddMaterial(material);
 
-		Cm_FreeMaterial(material);
+		Material_Free(material);
 	}
 }
 
@@ -224,8 +224,8 @@ static void AddModel(const char *model) {
  */
 static void AddEntities(void) {
 
-	List *entities = Cm_LoadEntities(bspFile.entityString);
-  entities->destroy = (Consumer) Cm_FreeEntity;
+	List *entities = Entity_LoadAll(bspFile.entityString);
+  entities->destroy = (Consumer) Entity_Free;
 
 	for (const ListNode *node = entities->head; node; node = node->next) {
 		const Entity *e = node->element;
@@ -316,7 +316,7 @@ int32_t WriteManifest(void) {
 	$(assetPaths, sort, AssetPathCompare);
 
 	// build the manifest entries with checksums
-	HashTable *manifest = Cm_AllocManifest();
+	HashTable *manifest = Manifest_Alloc();
 
 	for (size_t i = 0; i < assetPaths->count; i++) {
 		const char *path = VectorValue(assetPaths, char *, i);
@@ -325,7 +325,7 @@ int32_t WriteManifest(void) {
 		const int64_t len = Fs_Load(path, &data);
 		// zero-length assets are intentionally skipped (no valid game assets are empty)
 		if (len > 0 && data) {
-			Cm_AddManifestEntry(manifest, path, data, len);
+			Manifest_AddEntry(manifest, path, data, len);
 			Com_Verbose("  %s\n", path);
 		} else {
 			Com_Warn("Failed to load %s\n", path);
@@ -342,12 +342,12 @@ int32_t WriteManifest(void) {
 	char mfPath[MAX_OS_PATH];
 	q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
-	const int32_t count = Cm_WriteManifest(mfPath, manifest);
+	const int32_t count = Manifest_Write(mfPath, manifest);
 	if (count < 0) {
 		Com_Error(ERROR_FATAL, "Failed to write %s\n", mfPath);
 	}
 
-	Cm_FreeManifest(manifest);
+	Manifest_Free(manifest);
 
 	Com_Print("Wrote %s (%d assets)\n", mfPath, count);
 

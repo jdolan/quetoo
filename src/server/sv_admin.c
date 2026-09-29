@@ -139,7 +139,7 @@ void Sv_NextMap_f(void) {
 
   const Entity *mapListEntry = Sv_NextMap();
   if (mapListEntry) {
-    const char *name = Cm_EntityValue(mapListEntry, "name")->string;
+    const char *name = Entity_Value(mapListEntry, "name")->string;
     Sv_InitServer(name, mapListEntry, SV_ACTIVE_GAME);
   } else if (*sv.name && svs.state == SV_ACTIVE_GAME) {
     Sv_InitServer(sv.name, NULL, SV_ACTIVE_GAME);

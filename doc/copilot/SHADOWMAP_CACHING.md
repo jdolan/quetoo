@@ -301,7 +301,7 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
 - ✅ **Stable pointer** — `shadow_cached` lives in a static array, never moves
 - ✅ **Automatic invalidation** — when entities are modified or the list is repacked
 - ✅ **Same caching logic** — works identically to gameplay mode
-- ✅ **No per-frame parsing** — all `Cm_EntityValue` calls happen at parse time; only light style animation math runs per-frame
+- ✅ **No per-frame parsing** — all `Entity_Value` calls happen at parse time; only light style animation math runs per-frame
 
 ### Multi-Frame Caching Potential
 

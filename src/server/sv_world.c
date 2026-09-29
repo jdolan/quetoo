@@ -126,7 +126,7 @@ void Sv_SpawnEntities(const char *name, const Entity *mapListEntry) {
 
     Entity **defs = Mem_TagMalloc(sizeof(Entity *) * numEntities, MEM_TAG_SERVER);
     for (int32_t i = 0; i < numEntities; i++) {
-      defs[i] = Cm_CopyEntity(Cm_Bsp()->entities[i]);
+      defs[i] = Entity_Copy(Cm_Bsp()->entities[i]);
     }
 
     svs.game->SpawnEntities(name, mapListEntry, defs, numEntities);

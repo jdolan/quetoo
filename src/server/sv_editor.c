@@ -63,7 +63,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
     }
 
     // use the BSP inline model to set bounds
-    const char *model = Cm_EntityValue(ent->def, "model")->string;
+    const char *model = Entity_Value(ent->def, "model")->string;
     if (*model == '*') {
       const CollisionModel *mod = Cm_Model(model);
       ent->bounds = mod->bounds;
@@ -71,7 +71,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
       // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
       // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
       const Entity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
-      Vector *brushes = Cm_EntityBrushes(bspDef);
+      Vector *brushes = Entity_Brushes(bspDef);
       if (brushes->count) {
         ent->bounds = Box3_Null();
         for (uint32_t j = 0; j < brushes->count; j++) {
@@ -85,7 +85,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
     Sv_LinkEntity(ent);
   }
 
-  char *info = Cm_EntityToInfoString(ent->def);
+  char *info = Entity_ToInfoString(ent->def);
 
   Sv_SetConfigString(CS_ENTITIES + number, info);
 
@@ -97,7 +97,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
  */
 void Sv_EditEditorEntity(int32_t number, const char *info) {
 
-  Entity *def = Cm_EntityFromInfoString(info);
+  Entity *def = Entity_FromInfoString(info);
 
   if (!def) {
     Com_Warn("Invalid entity info string for %d\n", number);
@@ -115,7 +115,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
     svs.game->FreeEditorEntity(number);
 
-    Cm_FreeEntity(ent);
+    Entity_Free(ent);
   } else {
     for (int32_t i = Cm_Bsp()->numEntities; i < sv_maxEntities->integer; i++) {
       if (sv.entities[i].gent->inUse == false) {
@@ -126,7 +126,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
     if (number == -1) {
       Com_Warn("No free entity slots available\n");
-      Cm_FreeEntity(def);
+      Entity_Free(def);
       return;
     }
   }
@@ -147,7 +147,7 @@ void Sv_FreeEditorEntity(int32_t number) {
 
   svs.game->FreeEditorEntity(number);
 
-  Cm_FreeEntity(def);
+  Entity_Free(def);
 
   Sv_SetConfigString(CS_ENTITIES + number, "");
 }
@@ -167,7 +167,7 @@ void Sv_LoadEditorMap(void) {
     return;
   }
 
-  Cm_ParseMapBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->numEntities);
+  Entity_ParseBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->numEntities);
 
   Fs_Free(buffer);
 }

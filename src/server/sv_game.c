@@ -370,10 +370,10 @@ void Sv_InitGame(void) {
 
   import.Bsp = Cm_Bsp;
   import.Worldspawn = Cm_Worldspawn;
-  import.EntityValue = Cm_EntityValue;
-  import.EntityBrushes = Cm_EntityBrushes;
-  import.LoadEntities = Cm_LoadEntities;
-  import.FreeEntity = Cm_FreeEntity;
+  import.EntityValue = Entity_Value;
+  import.EntityBrushes = Entity_Brushes;
+  import.LoadEntities = Entity_LoadAll;
+  import.FreeEntity = Entity_Free;
   import.MapList = Sv_MapList;
   import.MapIndex = Sv_MapIndex;
   import.SetNextMap = Sv_SetNextMap;

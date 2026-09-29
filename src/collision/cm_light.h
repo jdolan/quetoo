@@ -77,7 +77,7 @@ typedef struct {
  * row, grid column), so that compiled BSPs are deterministic. Brush sides that face into
  * solid get no light, because each light is rejected in solid.
  */
-size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_t material, Vector *lights);
+size_t Material_Lights(const BspFile *file, Material *const *materials, int32_t material, Vector *lights);
 
 /**
  * @brief Resolves the default color of a stage light that does not specify `light.color`.
@@ -85,4 +85,4 @@ size_t Cm_MaterialLights(const BspFile *file, Material *const *materials, int32_
  * if the stage has no texture) that are at least half as bright as the brightest pixel,
  * normalized to length 1.
  */
-Vec3 Cm_MaterialLightColor(const Material *material, const MaterialStage *stage);
+Vec3 Material_LightColor(const Material *material, const MaterialStage *stage);

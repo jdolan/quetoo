@@ -292,7 +292,7 @@ static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerSta
     // advertise the bsp we actually loaded, so that a client can prove it loaded
     // the same one. Hashing the file rather than trusting our own manifest: a
     // stale .mf would otherwise have us reject correct clients
-    if (!Cm_HashFile(sv.configStrings[CS_BSP], sv.configStrings[CS_BSP_HASH], MAX_STRING_CHARS)) {
+    if (!Manifest_HashFile(sv.configStrings[CS_BSP], sv.configStrings[CS_BSP_HASH], MAX_STRING_CHARS)) {
       Com_Error(ERROR_DROP, "Failed to hash %s\n", sv.configStrings[CS_BSP]);
     }
 

@@ -159,7 +159,7 @@ void S_MixChannels(SoundStage *stage) {
   }
 
   if (soundContext.effects.loaded) {
-    const Voxel *voxel = Cm_VoxelForPoint(stage->origin);
+    const Voxel *voxel = Voxel_ForPoint(stage->origin);
     const float r = voxel ? voxel->occlusion : 0.f;
     if (r != soundContext.reverb) {
       soundContext.reverb = r;

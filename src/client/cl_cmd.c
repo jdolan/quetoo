@@ -110,7 +110,7 @@ void Cl_WriteEntityInfoCommand(int16_t number, const Entity *entity) {
   Net_WriteByte(&cls.netChan.message, CL_CMD_ENTITY_INFO);
   Net_WriteShort(&cls.netChan.message, number);
 
-  char *info = Cm_EntityToInfoString(entity);
+  char *info = Entity_ToInfoString(entity);
 
   Com_Debug(DEBUG_EDITOR, "%d: %s\n", number, info);
   Net_WriteString(&cls.netChan.message, info);

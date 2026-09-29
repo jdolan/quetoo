@@ -57,7 +57,7 @@ int32_t ZIP_Main(void) {
   char mfPath[MAX_OS_PATH];
   q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
-  HashTable *manifest = Cm_ReadManifest(mfPath);
+  HashTable *manifest = Manifest_Read(mfPath);
   if (!manifest) {
     Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mfPath);
   }
@@ -70,7 +70,7 @@ int32_t ZIP_Main(void) {
   $(assets, append, q_strdup(mfPath));
   $(manifest, enumerate, CollectManifestAsset, assets);
 
-  Cm_FreeManifest(manifest);
+  Manifest_Free(manifest);
 
   mz_zip_archive zip;
   memset(&zip, 0, sizeof(zip));

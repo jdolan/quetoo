@@ -30,7 +30,7 @@ static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val,
   (void) table;
   const ManifestEntry *entry = (const ManifestEntry *) val;
   if (Fs_Exists(entry->path)) {
-    if (!Cm_CheckManifestEntry(entry)) {
+    if (!Manifest_CheckEntry(entry)) {
 
       // the manifest is our own file, so this only says our copy disagrees with
       // what our copy claims. The bsp is proven against the server's hash in
@@ -72,14 +72,14 @@ void Cl_RequestNextDownload(void) {
     if (*cl.configStrings[CS_MANIFEST] != '\0') {
       Cl_CheckOrDownloadFile(cl.configStrings[CS_MANIFEST]);
 
-      HashTable *manifest = Cm_ReadManifest(cl.configStrings[CS_MANIFEST]);
+      HashTable *manifest = Manifest_Read(cl.configStrings[CS_MANIFEST]);
       if (!manifest) {
         Com_Error(ERROR_DROP, "Failed to read %s\n", cl.configStrings[CS_MANIFEST]);
       }
 
       $(manifest, enumerate, Cl_CheckManifestEntry_, NULL);
 
-      Cm_FreeManifest(manifest);
+      Manifest_Free(manifest);
     }
   }
 

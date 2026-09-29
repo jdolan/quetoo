@@ -326,7 +326,7 @@ void Cl_UpdatePrediction(void) {
     if (*expected) {
 
       char hash[MAX_QPATH];
-      if (!Cm_HashFile(cl.configStrings[CS_BSP], hash, sizeof(hash))) {
+      if (!Manifest_HashFile(cl.configStrings[CS_BSP], hash, sizeof(hash))) {
         Com_Error(ERROR_DROP, "Failed to hash %s\n", cl.configStrings[CS_BSP]);
       }
 
