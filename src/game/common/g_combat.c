@@ -36,7 +36,7 @@ bool G_OnSameTeam(const GameClient *a, const GameClient *b) {
     return true;
   }
 
-  if (!g_level.teams) {
+  if (!gameLevel.teams) {
     return false;
   }
 
@@ -365,7 +365,7 @@ void G_Damage(const GameDamage *dmg) {
   }
 
   if (target->client) { // respawn protection
-    if (target->client->respawnProtectionTime > g_level.time) {
+    if (target->client->respawnProtectionTime > gameLevel.time) {
       return;
     }
   }
@@ -377,7 +377,7 @@ void G_Damage(const GameDamage *dmg) {
   if (target->client && !(dflags & DMG_NO_GOD)) { // invulnerability
     if (target->client->inventory[POWERUP_INVULNERABILITY]) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.invulnerabilityProtect,
+        .index = gameMedia.sounds.invulnerabilityProtect,
         .entity = target,
       }, MULTICAST_PHS);
       damage = 0;
@@ -386,7 +386,7 @@ void G_Damage(const GameDamage *dmg) {
   }
 
   // friendly fire avoidance
-  if (target != attacker && g_level.teams) {
+  if (target != attacker && gameLevel.teams) {
     if (G_OnSameTeam(target->client, attacker->client)) {
 
       if (mod == MOD_TELEFRAG) { // telefrags can not be avoided
@@ -404,7 +404,7 @@ void G_Damage(const GameDamage *dmg) {
 
   // there is no self damage in instagib or arena, but there is knockback
   if (target == attacker) {
-    switch (g_level.gameplay & ~GAMEPLAY_TEAMS) {
+    switch (gameLevel.gameplay & ~GAMEPLAY_TEAMS) {
       case GAMEPLAY_INSTAGIB:
       case GAMEPLAY_ARENA:
         damage = 0;
@@ -508,7 +508,7 @@ void G_Damage(const GameDamage *dmg) {
             .attackerAi = attackerAi,
             .targetAi = targetAi,
           };
-          q_strlcpy(frag.level, g_level.name, sizeof(frag.level));
+          q_strlcpy(frag.level, gameLevel.name, sizeof(frag.level));
           q_strlcpy(frag.attacker, attacker->client->persistent.netName, sizeof(frag.attacker));
           q_strlcpy(frag.attackerGuid, attacker->client->persistent.guid, sizeof(frag.attackerGuid));
           q_strlcpy(frag.target, target->client->persistent.netName, sizeof(frag.target));
@@ -516,7 +516,7 @@ void G_Damage(const GameDamage *dmg) {
           q_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
           if (frag.attackerGuid[0] && frag.targetGuid[0]) {
-            $(g_level.frags, add, &frag);
+            $(gameLevel.frags, add, &frag);
           }
         }
       }

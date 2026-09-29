@@ -89,7 +89,7 @@ static char *Cm_UnparseContents(int32_t contents) {
 /**
  * @brief Surface flags
  */
-static CmMaterialHint cm_surfaceHints[] = {
+static CmMaterialHint cmSurfaceHints[] = {
   { .keyword = "slick", .flag = SURF_SLICK },
   { .keyword = "sky", .flag = SURF_SKY },
   { .keyword = "liquid", .flag = SURF_LIQUID },
@@ -113,7 +113,7 @@ static int32_t Cm_ParseSurface(const char *c) {
 
   int32_t surface = 0;
 
-  for (CmMaterialHint *hint = cm_surfaceHints; hint < cm_surfaceHints + lengthof(cm_surfaceHints); hint++) {
+  for (CmMaterialHint *hint = cmSurfaceHints; hint < cmSurfaceHints + lengthof(cmSurfaceHints); hint++) {
     if (q_strstr(c, hint->keyword)) {
       surface |= hint->flag;
     }
@@ -129,7 +129,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
   static char s[MAX_STRING_CHARS];
   *s = '\0';
 
-  for (CmMaterialHint *list = cm_surfaceHints; list < cm_surfaceHints + lengthof(cm_surfaceHints); list++) {
+  for (CmMaterialHint *list = cmSurfaceHints; list < cmSurfaceHints + lengthof(cmSurfaceHints); list++) {
     if (surface & list->flag) {
       q_strlcat(s, va("%s ", list->keyword), sizeof(s));
     }
@@ -141,7 +141,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
 /**
  * @brief Blend consts
  */
-static CmMaterialHint cm_blendConstList[] = {
+static CmMaterialHint cmBlendConstList[] = {
   { .keyword = "one", .enumVal = BLEND_ONE },
   { .keyword = "zero", .enumVal = BLEND_ZERO },
   { .keyword = "src_alpha", .enumVal = BLEND_SRC_ALPHA },
@@ -156,7 +156,7 @@ static CmMaterialHint cm_blendConstList[] = {
  */
 static inline CmBlend Cm_BlendConstByName(const char *c) {
 
-  for (CmMaterialHint *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
+  for (CmMaterialHint *list = cmBlendConstList; list < cmBlendConstList + lengthof(cmBlendConstList); list++) {
     if (!q_strcmp(c, list->keyword)) {
       return (CmBlend) list->enumVal;
     }
@@ -171,7 +171,7 @@ static inline CmBlend Cm_BlendConstByName(const char *c) {
  */
 static inline const char *Cm_BlendNameByConst(const CmBlend c) {
 
-  for (CmMaterialHint *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
+  for (CmMaterialHint *list = cmBlendConstList; list < cmBlendConstList + lengthof(cmBlendConstList); list++) {
     if (c == (CmBlend) list->enumVal) {
       return list->keyword;
     }

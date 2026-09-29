@@ -76,7 +76,7 @@ typedef struct {
   uint32_t clearTime;
 } CGameHudState;
 
-extern CGameHudState cg_hudState;
+extern CGameHudState cgameHudState;
 
 extern Cvar *cg_chatLines;
 extern Cvar *cg_chatTime;

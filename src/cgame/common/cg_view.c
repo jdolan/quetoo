@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-CGameView cg_view;
+CGameView cgameView;
 
 #define CG_FOV_REFERENCE_ASPECT (16.f / 9.f)
 
@@ -114,7 +114,7 @@ static void Cg_UpdateFov(void) {
 bool Cg_CameraSubject(const PlayerState *ps) {
 
   if (cgi.client->demoServer) {
-    return !cg_state.spectate.detached;
+    return !cgameState.spectate.detached;
   }
 
   return ps->stats[STAT_CHASE];
@@ -133,7 +133,7 @@ bool Cg_ViewIsSelf(void) {
     return false;
   }
 
-  if (cgi.client->demoServer && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cgameState.spectate.detached) {
     return false;
   }
 
@@ -142,14 +142,14 @@ bool Cg_ViewIsSelf(void) {
 
 /**
  * @brief Returns true if the third-person offset should be driven by the viewer's mouse and
- * `+forward`/`+back` (`cg_state.follow`) rather than the static `cg_third_person_*` cvars.
+ * `+forward`/`+back` (`cgameState.follow`) rather than the static `cg_third_person_*` cvars.
  * @details That input is free to take in exactly these states: a chasing spectator's aim is
  * never read by the game module (`G_ClientChaseThink` overwrites their view entirely), and demo
  * playback sends no commands to anything. A player forcing `cg_thirdPerson` while actually
  * playing is excluded, since their mouse and movement keys are busy.
  */
 bool Cg_FollowEligible(const PlayerState *ps) {
-  return cg_state.cameraMode == CAMERA_FOLLOW && Cg_CameraSubject(ps);
+  return cgameState.cameraMode == CAMERA_FOLLOW && Cg_CameraSubject(ps);
 }
 
 /**
@@ -159,8 +159,8 @@ bool Cg_FollowEligible(const PlayerState *ps) {
  */
 static void Cg_PublishCameraMode(void) {
 
-  if (cg_cameraMode->integer != (int32_t) cg_state.cameraMode) {
-    cgi.SetCvarValue(cg_cameraMode->name, cg_state.cameraMode);
+  if (cg_cameraMode->integer != (int32_t) cgameState.cameraMode) {
+    cgi.SetCvarValue(cg_cameraMode->name, cgameState.cameraMode);
   }
 
   cg_cameraMode->modified = false;
@@ -175,7 +175,7 @@ static void Cg_PublishCameraMode(void) {
 static void Cg_UpdateCameraMode(void) {
 
   if (cg_cameraMode->modified) {
-    cg_state.cameraMode = Mini(Maxi(cg_cameraMode->integer, 0), CAMERA_MODE_TOTAL - 1);
+    cgameState.cameraMode = Mini(Maxi(cg_cameraMode->integer, 0), CAMERA_MODE_TOTAL - 1);
   }
 
   Cg_PublishCameraMode();
@@ -190,7 +190,7 @@ static void Cg_UpdateCameraMode(void) {
  */
 static void Cg_PrintControls(const PlayerState *ps) {
 
-  if (cg_state.printedControls) {
+  if (cgameState.printedControls) {
     return;
   }
 
@@ -200,7 +200,7 @@ static void Cg_PrintControls(const PlayerState *ps) {
     return;
   }
 
-  cg_state.printedControls = true;
+  cgameState.printedControls = true;
 
   cgi.Print("^3Camera controls:^7\n");
   cgi.Print("  Cycle camera:  %s\n", Cg_KeyBind("+hook"));
@@ -222,7 +222,7 @@ static void Cg_PrintControls(const PlayerState *ps) {
  */
 void Cg_CameraModeCycle_f(void) {
 
-  cg_state.cameraMode = (cg_state.cameraMode + 1) % CAMERA_MODE_TOTAL;
+  cgameState.cameraMode = (cgameState.cameraMode + 1) % CAMERA_MODE_TOTAL;
 
   Cg_PublishCameraMode();
 }
@@ -244,16 +244,16 @@ static void Cg_UpdateThirdPerson(const PlayerState *ps) {
 
   const bool follow = Cg_FollowEligible(ps);
 
-  if (follow && !cg_state.follow.following) {
+  if (follow && !cgameState.follow.following) {
     // entering follow: seed from where the view already is, so the camera takes over from the
     // subject's own orientation without a jump
-    cg_state.follow.yaw = cgi.view->angles.y + cg_thirdPersonYaw->value;
-    cg_state.follow.pitch = cgi.view->angles.x + cg_thirdPersonPitch->value;
-    cg_state.follow.distance = -cg_thirdPersonX->value;
+    cgameState.follow.yaw = cgi.view->angles.y + cg_thirdPersonYaw->value;
+    cgameState.follow.pitch = cgi.view->angles.x + cg_thirdPersonPitch->value;
+    cgameState.follow.distance = -cg_thirdPersonX->value;
   }
-  cg_state.follow.following = follow;
+  cgameState.follow.following = follow;
 
-  const bool thirdPerson = cg_state.cameraMode == CAMERA_THIRD_PERSON && Cg_CameraSubject(ps);
+  const bool thirdPerson = cgameState.cameraMode == CAMERA_THIRD_PERSON && Cg_CameraSubject(ps);
 
   if (cg_thirdPerson->value && Cg_Self()->current.model1) {
     cgi.client->thirdPerson = true;
@@ -268,11 +268,11 @@ static void Cg_UpdateThirdPerson(const PlayerState *ps) {
   Vec3 angles;
 
   if (follow) {
-    offset = MakeVec3(-cg_state.follow.distance, cg_thirdPersonY->value, cg_thirdPersonZ->value);
+    offset = MakeVec3(-cgameState.follow.distance, cg_thirdPersonY->value, cg_thirdPersonZ->value);
 
     // absolute, not relative to the subject: the camera holds its place in the world while the
     // player being watched turns, which is what makes it usable for reviewing a fight
-    angles = Vec3_ClampEuler(MakeVec3(cg_state.follow.pitch, cg_state.follow.yaw, 0.f));
+    angles = Vec3_ClampEuler(MakeVec3(cgameState.follow.pitch, cgameState.follow.yaw, 0.f));
   } else {
     offset = MakeVec3(
       cg_thirdPersonX->value,
@@ -361,7 +361,7 @@ static void Cg_UpdateBob(const PlayerState *ps) {
     return;
   }
 
-  if (cgi.client->demoServer && cg_state.spectate.detached) {
+  if (cgi.client->demoServer && cgameState.spectate.detached) {
     return; // a free camera does not walk, least of all to the gait of the player it left
   }
 
@@ -394,12 +394,12 @@ static void Cg_UpdateBob(const PlayerState *ps) {
   bob += frameBob;
   time = cgi.client->unclampedTime;
 
-  cg_view.bob = sinf(0.0066f * bob) * mod * mod;
-  cg_view.bob *= cg_bob->value; // scale via cvar too
+  cgameView.bob = sinf(0.0066f * bob) * mod * mod;
+  cgameView.bob *= cg_bob->value; // scale via cvar too
 
-  cgi.view->origin = Vec3_Fmaf(cgi.view->origin, -cg_view.bob, cgi.view->forward);
-  cgi.view->origin = Vec3_Fmaf(cgi.view->origin,  cg_view.bob, cgi.view->right);
-  cgi.view->origin = Vec3_Fmaf(cgi.view->origin,  cg_view.bob, cgi.view->up);
+  cgi.view->origin = Vec3_Fmaf(cgi.view->origin, -cgameView.bob, cgi.view->forward);
+  cgi.view->origin = Vec3_Fmaf(cgi.view->origin,  cgameView.bob, cgi.view->right);
+  cgi.view->origin = Vec3_Fmaf(cgi.view->origin,  cgameView.bob, cgi.view->up);
 }
 
 /**
@@ -409,8 +409,8 @@ static void Cg_UpdateBob(const PlayerState *ps) {
  */
 static void Cg_UpdateOrigin(const PlayerState *ps0, const PlayerState *ps1) {
 
-  if (cgi.client->demoServer && cg_state.spectate.detached) {
-    cgi.view->origin = cg_state.spectate.state.origin;
+  if (cgi.client->demoServer && cgameState.spectate.detached) {
+    cgi.view->origin = cgameState.spectate.state.origin;
     return;
   }
 
@@ -441,22 +441,22 @@ static void Cg_UpdateOrigin(const PlayerState *ps0, const PlayerState *ps1) {
 static void Cg_UpdateAngles(const PlayerState *ps0, const PlayerState *ps1) {
   Vec3 angles, angles0, angles1;
 
-  if (cgi.client->demoServer && cg_state.spectate.detached) {
-    cgi.view->angles = cg_state.spectate.state.viewAngles;
+  if (cgi.client->demoServer && cgameState.spectate.detached) {
+    cgi.view->angles = cgameState.spectate.state.viewAngles;
     Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
     return;
   }
 
-  if (cg_state.snapAngles) {
+  if (cgameState.snapAngles) {
     // Server requests an immediate snap to the authoritative view angles.
     // Bypass all interpolation and prediction, and also fix up cl.angles so
     // that subsequent input and prediction frames start from the right place.
-    cgi.view->angles = cg_state.snapViewAngles;
-    cgi.client->angles = cg_state.snapViewAngles;
+    cgi.view->angles = cgameState.snapViewAngles;
+    cgi.client->angles = cgameState.snapViewAngles;
     Cg_ClearInput();
 
     Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
-    cg_state.snapAngles = false;
+    cgameState.snapAngles = false;
     return;
   }
 
@@ -513,7 +513,7 @@ static void Cg_UpdateAngles(const PlayerState *ps0, const PlayerState *ps1) {
 static void Cg_UpdateAmbient(void) {
 
   const CmEntity *worldspawn = editor->value
-  ? cg_editor.entities[0].def
+  ? cgameEditor.entities[0].def
   : cgi.WorldModel()->bsp->cm->entities[0];
 
   const CmEntity *ambient = cgi.EntityValue(worldspawn, "ambient");
@@ -533,10 +533,10 @@ void Cg_PrepareView(const ClientFrame *frame) {
   cgi.view->type = VIEW_MAIN;
   cgi.view->flags = VIEW_FLAG_NONE;
 
-  assert(cg_framebuffer);
-  cgi.view->framebuffer = cg_framebuffer;
+  assert(cgameFramebuffer);
+  cgi.view->framebuffer = cgameFramebuffer;
 
-  cgi.view->viewport = MakeVec4i(0, 0, cg_framebuffer->size.w, cg_framebuffer->size.h);
+  cgi.view->viewport = MakeVec4i(0, 0, cgameFramebuffer->size.w, cgameFramebuffer->size.h);
 
   const PlayerState *ps0;
 

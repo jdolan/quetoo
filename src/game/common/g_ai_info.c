@@ -26,7 +26,7 @@ static Cvar *g_aiNamePrefix;
 /**
  * @brief The static roster of bot definitions.
  */
-static const AiRoster g_aiRoster[] = {
+static const AiRoster gameAiRoster[] = {
   // name          skin                  guid                                    skill  aggr   aware
   { "Enforcer",    "enforcer/default",    "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .50f,  .50f,  .50f },
   { "Guard",       "guard/default",       "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
@@ -55,37 +55,37 @@ static const AiRoster g_aiRoster[] = {
   { "Reaper",      "violator/default",    "17a3bcbb-e622-4736-a0c0-6c6ce64a9ee4", .80f,  .60f,  .65f },
 };
 
-static const uint32_t g_aiRosterCount = lengthof(g_aiRoster);
+static const uint32_t gameAiRosterCount = lengthof(gameAiRoster);
 
 /**
  * @brief Shuffled order in which roster entries are handed out. Reshuffled
  * each time it is exhausted so that every entry is used exactly once per
  * cycle, in a random order, before any entry repeats.
  */
-static uint32_t g_aiRosterOrder[lengthof(g_aiRoster)];
+static uint32_t gameAiRosterOrder[lengthof(gameAiRoster)];
 
 /**
- * @brief Index of the next entry to hand out from g_aiRosterOrder.
+ * @brief Index of the next entry to hand out from gameAiRosterOrder.
  */
-static uint32_t g_aiRosterIndex;
+static uint32_t gameAiRosterIndex;
 
 /**
- * @brief Reshuffles g_aiRosterOrder in place using a Fisher-Yates shuffle.
+ * @brief Reshuffles gameAiRosterOrder in place using a Fisher-Yates shuffle.
  */
 static void G_Ai_ShuffleRoster(void) {
 
-  for (uint32_t i = 0; i < g_aiRosterCount; i++) {
-    g_aiRosterOrder[i] = i;
+  for (uint32_t i = 0; i < gameAiRosterCount; i++) {
+    gameAiRosterOrder[i] = i;
   }
 
-  for (uint32_t i = g_aiRosterCount - 1; i > 0; i--) {
+  for (uint32_t i = gameAiRosterCount - 1; i > 0; i--) {
     const uint32_t j = RandomRangeu(0, i + 1);
-    const uint32_t tmp = g_aiRosterOrder[i];
-    g_aiRosterOrder[i] = g_aiRosterOrder[j];
-    g_aiRosterOrder[j] = tmp;
+    const uint32_t tmp = gameAiRosterOrder[i];
+    gameAiRosterOrder[i] = gameAiRosterOrder[j];
+    gameAiRosterOrder[j] = tmp;
   }
 
-  g_aiRosterIndex = 0;
+  gameAiRosterIndex = 0;
 }
 
 /**
@@ -118,13 +118,13 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
  */
 const AiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
-  if (g_aiRosterIndex == g_aiRosterCount) {
+  if (gameAiRosterIndex == gameAiRosterCount) {
     G_Ai_ShuffleRoster();
   }
 
-  const AiRoster *entry = &g_aiRoster[g_aiRosterOrder[g_aiRosterIndex]];
+  const AiRoster *entry = &gameAiRoster[gameAiRosterOrder[gameAiRosterIndex]];
 
-  g_aiRosterIndex++;
+  gameAiRosterIndex++;
 
   q_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 

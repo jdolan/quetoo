@@ -91,7 +91,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, File
   
     memset(info, 0, sizeof(*info));
 
-    *snd = sf_open_virtual(&sPhysfsIo, SFM_READ, info, *file);
+    *snd = sf_open_virtual(&soundPhysfsIo, SFM_READ, info, *file);
 
     if (!*snd || sf_error(*snd)) {
       Com_Warn("%s: %s\n", path, sf_strerror(*snd));

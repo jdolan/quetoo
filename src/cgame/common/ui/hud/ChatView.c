@@ -42,7 +42,7 @@ static void didEndEditing(TextView *textView) {
   const char *line = textView->attributedText->chars;
   if (*line) {
     const SDL_Keymod mods = SDL_GetModState();
-    const bool team = cg_hudState.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
+    const bool team = cgameHudState.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
 
     char command[MAX_PRINT_MSG];
     q_snprintf(command, sizeof(command), "%s %.*s^7\n", team ? "sayTeam" : "say", MAX_PRINT_MSG - 32, line);
@@ -94,7 +94,7 @@ static void beginTyping(ChatView *self) {
   $(input, setAttributedText, "");
   input->position = 0;
 
-  if (cg_hudState.chat.team) {
+  if (cgameHudState.chat.team) {
     $(view, addClassName, "team");
     $(input, setDefaultText, "sayTeam");
   } else {
@@ -137,7 +137,7 @@ static void updateBindings(View *self, ident data) {
 
     const uint32_t since = typing || now < millis ? 0 : now - millis;
 
-    this->history->console.whence = since > cg_hudState.clearTime ? since : cg_hudState.clearTime;
+    this->history->console.whence = since > cgameHudState.clearTime ? since : cgameHudState.clearTime;
 
     $(this->history, tail, self->superview->frame.w / 3, lines);
   }

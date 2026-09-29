@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-RenderDepthPipeline rDepthPipeline;
+RenderDepthPipeline renderDepthPipeline;
 
 /**
  * @brief Draws world geometry into the view depth buffer.
@@ -32,7 +32,7 @@ void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
     return;
   }
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
@@ -46,10 +46,10 @@ void R_DrawDepthPass(RenderView *view, CommandBuffer *commands) {
   });
 
   const Mat4 model = Mat4_Identity();
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
-  $(pass, bindPipeline, rDepthPipeline.pipeline);
+  $(pass, bindPipeline, renderDepthPipeline.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertexBuffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -85,7 +85,7 @@ void R_InitDepthPass(void) {
   });
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -117,7 +117,7 @@ void R_InitDepthPass(void) {
     .has_depth_stencil_target = true,
   };
 
-  rDepthPipeline.pipeline = $(renderContext.device, createGraphicsPipeline, &info);
+  renderDepthPipeline.pipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -127,8 +127,8 @@ void R_InitDepthPass(void) {
  * @brief Releases the depth pre-pass pipeline.
  */
 void R_ShutdownDepthPass(void) {
-  rDepthPipeline.pipeline = release(rDepthPipeline.pipeline);
-  rDepthPipeline.fence = release(rDepthPipeline.fence);
+  renderDepthPipeline.pipeline = release(renderDepthPipeline.pipeline);
+  renderDepthPipeline.fence = release(renderDepthPipeline.fence);
 }
 
 /**

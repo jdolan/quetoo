@@ -161,7 +161,7 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   opened `RTLD_LOCAL`, so one module's chain cannot reach the other's. Verified:
   `game default; game ctf` across a session gives 85 / 80 / 85 entities on
   `edge`. The rule to remember is that *persisting* state is harmless — media
-  indices, enabled flags and `g_items` are reassigned on every init — while
+  indices, enabled flags and `gameItems` are reassigned on every init — while
   *accumulating* state is not, which is what makes the guard above necessary.
 - **A feature holds only the hooks it replaced**, in its own local `previous`
   struct. Do not thread a shared table of every hook — `previous` would then be a
@@ -318,7 +318,7 @@ always answers "where does this come from".
 
 Additive one-liners on manifest fields, where a hook would be ceremony:
 the team roster's `.flag` and `.effect`, the capture and tech scoreboard stats,
-`g_level.captures`, `cl->persistent.captures`, the grapple's per-client state,
+`gameLevel.captures`, `cl->persistent.captures`, the grapple's per-client state,
 the `MOD_HOOK` obituary and weapon name, the haste refire scaling, the vampire
 heal, and the tech branches of `G_ResetItems` and `G_ClientThink`.
 
@@ -611,8 +611,8 @@ the diff alone - two reviewers reported them as bugs. The reasoning is in
   conceded the flags "will be in crap positions". Purpose-built CTF levels
   supply their own. Team play in a module without flags now simply uses
   `info_player_deathmatch` for everyone, because `G_SelectRandomSpawnPoint`
-  already recurses into `g_level.spawn_points` when a team's pool is empty.
-- **The `g_ctf` cvar is gone**, along with `g_level.ctf` and the `CS_CTF`
+  already recurses into `gameLevel.spawn_points` when a team's pool is empty.
+- **The `g_ctf` cvar is gone**, along with `gameLevel.ctf` and the `CS_CTF`
   config string. A ctf server runs capture the flag; it will never run team
   deathmatch. The `G_CTF` define the module compiles with says the same thing
   at build time. The cvar defaulted to 0, so out of the box the ctf module was

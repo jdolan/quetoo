@@ -145,7 +145,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
       const float angle = phase + strand * M_PI;
 
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cg_spriteParticle3,
+        .atlasImage = cgameSpriteParticle3,
         .origin = org,
         .termination = org,
         .lifetime = RandomRangeu(1700, 2301),
@@ -168,7 +168,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
   ring->intensity.peakLife = RandomRangef(0.2f, 0.4f);
 
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cg_spriteRing,
+    .atlasImage = cgameSpriteRing,
     .origin = Vec3_Fmaf(org, height, Vec3_Up()),
     .termination = org,
     .lifetime = 1200,
@@ -183,7 +183,7 @@ static void Cg_ItemRespawnEffect(const Vec3 org, const Color color) {
     .origin = Vec3_Fmaf(org, 20.f, Vec3_Up()),
     .lifetime = 1000,
     .size = 150.f,
-    .atlasImage = cg_spriteParticle,
+    .atlasImage = cgameSpriteParticle,
     .color = color.vec3,
   });
 
@@ -208,7 +208,7 @@ static void Cg_ItemPickupEffect(const Vec3 org, const Color color) {
       .origin = org,
       .lifetime = 400,
       .size = 10.f,
-      .atlasImage = cg_spriteRing,
+      .atlasImage = cgameSpriteRing,
       .color = color.vec3,
       .dir = Vec3_Up()
     }))) {
@@ -220,7 +220,7 @@ static void Cg_ItemPickupEffect(const Vec3 org, const Color color) {
     .origin = org,
     .lifetime = 1000,
     .size = 150,
-    .atlasImage = cg_spriteParticle,
+    .atlasImage = cgameSpriteParticle,
     .color = color.vec3,
   });
 
@@ -241,7 +241,7 @@ void Cg_TeleporterEffect(const Vec3 org) {
   for (int32_t i = 0; i < 64; i++) {
 
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cg_spriteParticle,
+      .atlasImage = cgameSpriteParticle,
       .size = 8.f,
       .origin = Vec3_Add(Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)), MakeVec3(0.f, 0.f, RandomRangef(8.f, 32.f))),
       .velocity = Vec3_Add(Vec3_RandomRange(-24.f, 24.f), MakeVec3(0.f, 0.f, RandomRangef(16.f, 48.f))),
@@ -294,7 +294,7 @@ static void Cg_DrownEffect(ClientEntity *ent) {
 static SoundSample *Cg_ClientModelSample(const ClientEntity *ent, const char *name) {
 
   const int32_t client = ent->current.client;
-  const CGameClientInfo *info = &cg_state.clients[client];
+  const CGameClientInfo *info = &cgameState.clients[client];
 
   if (!*info->model) {
     return NULL;
@@ -387,7 +387,7 @@ void Cg_EntityEvent(ClientEntity *ent) {
     case EV_ITEM_RESPAWN: {
       const GameItemTag tag = (GameItemTag) s->eventData;
       const Color effectColor = bgItemDefs[tag].effectColor;
-      play.sample = cg_sampleRespawn;
+      play.sample = cgameSampleRespawn;
       Cg_ItemRespawnEffect(s->origin, effectColor);
       break;
     }

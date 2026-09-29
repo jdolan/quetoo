@@ -125,13 +125,13 @@ static const Gameplay *Cg_ListGameplayModes_Ctf(size_t *count) {
 
   *count = 1;
 
-  for (size_t i = 0; i < lengthof(g_gameplayModes); i++) {
-    if (g_gameplayModes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
-      return &g_gameplayModes[i];
+  for (size_t i = 0; i < lengthof(gameplayModes); i++) {
+    if (gameplayModes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
+      return &gameplayModes[i];
     }
   }
 
-  return g_gameplayModes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
+  return gameplayModes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
 }
 
 /**

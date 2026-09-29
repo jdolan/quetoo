@@ -48,11 +48,11 @@ static struct {
   ClipClientEntity ClipEntity;
 } previous;
 
-static CGameClientInfo cg_raceGhost;
+static CGameClientInfo cgameRaceGhost;
 
 // the entity numbers of the barriers that pass this client, as the server last said
-static int32_t cg_racePassable[RACE_MAX_BARRIERS];
-static size_t cg_racePassableCount;
+static int32_t cgameRacePassable[RACE_MAX_BARRIERS];
+static size_t cgameRacePassableCount;
 
 /**
  * @see cg_race.h
@@ -66,7 +66,7 @@ uint32_t Cg_Race_Time(const PlayerState *ps) {
  * record, which `Cg_LoadClient` reads as the default.
  */
 static void Cg_Race_LoadGhost(void) {
-  Cg_LoadClient(&cg_raceGhost, cgi.ConfigString(CS_RACE_GHOST));
+  Cg_LoadClient(&cgameRaceGhost, cgi.ConfigString(CS_RACE_GHOST));
 }
 
 /**
@@ -117,13 +117,13 @@ static bool Cg_ParseServerCommand_Race(int32_t cmd) {
 
   const int32_t count = cgi.ReadByte();
 
-  cg_racePassableCount = 0;
+  cgameRacePassableCount = 0;
 
   for (int32_t i = 0; i < count; i++) {
     const int32_t entity = cgi.ReadShort();
 
-    if (cg_racePassableCount < RACE_MAX_BARRIERS) {
-      cg_racePassable[cg_racePassableCount++] = entity;
+    if (cgameRacePassableCount < RACE_MAX_BARRIERS) {
+      cgameRacePassable[cgameRacePassableCount++] = entity;
     }
   }
 
@@ -139,7 +139,7 @@ static void Cg_MediaDidLoad_Race(void) {
   previous.MediaDidLoad();
 
   Cg_Race_LoadGhost();
-  cg_racePassableCount = 0;
+  cgameRacePassableCount = 0;
 }
 
 /**
@@ -149,8 +149,8 @@ static void Cg_MediaDidLoad_Race(void) {
  */
 static bool Cg_ClipEntity_Race(const ClientEntity *mover, const ClientEntity *ent) {
 
-  for (size_t i = 0; mover == cgi.client->entity && i < cg_racePassableCount; i++) {
-    if (cg_racePassable[i] == ent->current.number) {
+  for (size_t i = 0; mover == cgi.client->entity && i < cgameRacePassableCount; i++) {
+    if (cgameRacePassable[i] == ent->current.number) {
       return false;
     }
   }
@@ -176,7 +176,7 @@ static void Cg_AddEntity_Race(ClientEntity *ent) {
 static CGameClientInfo *Cg_ClientInfo_Race(const ClientEntity *ent) {
 
   if (Cg_Race_IsGhost(ent)) {
-    return &cg_raceGhost;
+    return &cgameRaceGhost;
   }
 
   return previous.ClientInfo(ent);

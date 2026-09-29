@@ -87,7 +87,7 @@ static int32_t S_LoadSampleBuffer_(SoundSample *sample, char *path) {
     SF_INFO info;
     memset(&info, 0, sizeof(info));
 
-    SNDFILE *snd = sf_open_virtual(&sRwopsIo, SFM_READ, &info, rw);
+    SNDFILE *snd = sf_open_virtual(&soundRwopsIo, SFM_READ, &info, rw);
 
     if (snd) {
       const size_t rawSize = sizeof(float) * info.frames * info.channels;

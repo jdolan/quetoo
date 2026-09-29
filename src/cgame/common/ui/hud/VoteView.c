@@ -41,16 +41,16 @@ static View *init(View *self) {
  */
 static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
-  if (!cg_state.vote.active) {
+  if (!cgameState.vote.active) {
     return NULL;
   }
 
   const uint32_t time = cgi.client->time;
-  const uint32_t left = cg_state.vote.deadline > time ? (cg_state.vote.deadline - time) / 1000 : 0;
+  const uint32_t left = cgameState.vote.deadline > time ? (cgameState.vote.deadline - time) / 1000 : 0;
 
   return va("^2%s called a vote: %s%s%s\n^7Yes %d  No %d  of %d  %us",
-            cg_state.vote.initiator, cg_state.vote.type, *cg_state.vote.arg ? " " : "", cg_state.vote.arg,
-            cg_state.vote.yes, cg_state.vote.no, cg_state.vote.eligible, left);
+            cgameState.vote.initiator, cgameState.vote.type, *cgameState.vote.arg ? " " : "", cgameState.vote.arg,
+            cgameState.vote.yes, cgameState.vote.no, cgameState.vote.eligible, left);
 }
 
 #pragma mark - Class lifecycle

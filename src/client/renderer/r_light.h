@@ -120,7 +120,7 @@ typedef struct {
 /**
  * @brief Per-frame light storage.
  */
-extern RenderLights rLights;
+extern RenderLights renderLights;
 
 void R_ActiveDynamicLights(const RenderView *view, const Box3 bounds, RenderActiveDynamicLights *out);
 void R_UpdateLights(RenderView *view, CopyPass *copyPass);

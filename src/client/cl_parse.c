@@ -48,7 +48,7 @@ static void Cl_DownloadComplete(int32_t status, Data *data, void *userData) {
 	SDL_SetAtomicInt(&module.complete, 1);
 }
 
-static char *svCmdNames[32] = {
+static char *serverCmdNames[32] = {
   "SV_CMD_BAD",
   "SV_CMD_BASELINE",
   "SV_CMD_CBUF_TEXT",
@@ -422,7 +422,7 @@ static void Cl_ParsePrint(void) {
     }
 
     if (sample) {
-      S_AddSample(&cl_stage, &(SoundPlaySample) {
+      S_AddSample(&clientStage, &(SoundPlaySample) {
         .sample = S_LoadSample(sample, ASSET_CONTEXT_SOUNDS),
         .flags = S_PLAY_UI
       });
@@ -487,8 +487,8 @@ void Cl_ParseServerMessage(void) {
       break;
     }
 
-    if (cl_drawNetMessages->integer >= 2 && cmd < (int32_t) lengthof(svCmdNames) && svCmdNames[cmd]) {
-      Cl_ShowNet(svCmdNames[cmd]);
+    if (cl_drawNetMessages->integer >= 2 && cmd < (int32_t) lengthof(serverCmdNames) && serverCmdNames[cmd]) {
+      Cl_ShowNet(serverCmdNames[cmd]);
     }
 
     void *data = NULL;
@@ -554,7 +554,7 @@ void Cl_ParseServerMessage(void) {
         if (!cls.cgame->ParseMessage(cmd)) {
           Com_Error(ERROR_DROP, "Illegible server message:\n"
                     " %d: last command was %s\n", cmd,
-                    oldCmd < (int32_t) lengthof(svCmdNames) ? svCmdNames[oldCmd] : "unknown");
+                    oldCmd < (int32_t) lengthof(serverCmdNames) ? serverCmdNames[oldCmd] : "unknown");
         }
         break;
     }

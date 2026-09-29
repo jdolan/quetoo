@@ -54,10 +54,10 @@ GameTeam *G_TeamForFlag(const GameEntity *ent) {
     return NULL;
   }
 
-  for (int32_t i = 0; i < g_level.numTeams; i++) {
+  for (int32_t i = 0; i < gameLevel.numTeams; i++) {
 
-    if (!q_strcmp(ent->classname, g_teamList[i].flag)) {
-      return &g_teamList[i];
+    if (!q_strcmp(ent->classname, gameTeamList[i].flag)) {
+      return &gameTeamList[i];
     }
   }
 
@@ -86,13 +86,13 @@ static int32_t G_EffectForTeam(const GameTeam *t) {
  */
 const GameItem *G_GetFlag(const GameClient *cl) {
 
-  for (int32_t i = 0; i < g_level.numTeams; i++) {
+  for (int32_t i = 0; i < gameLevel.numTeams; i++) {
 
-    if (&g_teamList[i] == cl->persistent.team) {
+    if (&gameTeamList[i] == cl->persistent.team) {
       continue;
     }
 
-    GameEntity *f = G_FlagForTeam(&g_teamList[i]);
+    GameEntity *f = G_FlagForTeam(&gameTeamList[i]);
 
     if (f && cl->inventory[f->item->def.tag]) {
       return f->item;
@@ -169,9 +169,9 @@ static bool G_CheckCvars_Ctf(void) {
 
   if (g_captureLimit->modified) {
     g_captureLimit->modified = false;
-    g_level.captureLimit = g_captureLimit->integer;
+    gameLevel.captureLimit = g_captureLimit->integer;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", g_level.captureLimit);
+    gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", gameLevel.captureLimit);
   }
 
   return previous.CheckCvars();
@@ -182,10 +182,10 @@ static bool G_CheckCvars_Ctf(void) {
  */
 static bool G_CheckWinner_Ctf(void) {
 
-  if (g_level.captureLimit) {
+  if (gameLevel.captureLimit) {
 
-    for (int32_t i = 0; i < g_level.numTeams; i++) {
-      if (g_teamList[i].captures >= g_level.captureLimit) {
+    for (int32_t i = 0; i < gameLevel.numTeams; i++) {
+      if (gameTeamList[i].captures >= gameLevel.captureLimit) {
         gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
         return true;
       }
@@ -258,7 +258,7 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
     }
 
     if (carriedFlag) {
-      const GameTeam *otherTeam = &g_teamList[carriedFlag->def.tag - FLAG_FIRST];
+      const GameTeam *otherTeam = &gameTeamList[carriedFlag->def.tag - FLAG_FIRST];
       GameEntity *otherTeamFlag = G_FlagForTeam(otherTeam);
       if (!otherTeamFlag) {
         return false;
@@ -294,13 +294,13 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
             .playerAi = playerAi,
             .time = (uint32_t) time(NULL),
           };
-          q_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
+          q_strlcpy(capture.level,       gameLevel.name,              sizeof(capture.level));
           q_strlcpy(capture.player,      cl->persistent.netName,   sizeof(capture.player));
           q_strlcpy(capture.playerGuid, cl->persistent.guid,       sizeof(capture.playerGuid));
           q_strlcpy(capture.team,        otherTeam->name,          sizeof(capture.team));
 
           if (capture.playerGuid[0]) {
-            $(g_level.captures, add, &capture);
+            $(gameLevel.captures, add, &capture);
           }
         }
 
@@ -344,7 +344,7 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
  */
 static GameEntity *G_ReleaseFlag(GameClient *cl, const GameItem *flag) {
 
-  const GameTeam *team = &g_teamList[flag->def.tag - FLAG_FIRST];
+  const GameTeam *team = &gameTeamList[flag->def.tag - FLAG_FIRST];
 
   cl->entity->s.model3 = 0;
   cl->entity->s.effects &= ~EF_CTF_MASK;
@@ -400,7 +400,7 @@ static void G_ResetItem_Ctf(GameEntity *ent) {
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     const GameTeamId flagTeam = ent->item->def.tag - FLAG_FIRST;
 
-    if (flagTeam >= g_level.numTeams) {
+    if (flagTeam >= gameLevel.numTeams) {
       ent->svFlags |= SVF_NO_CLIENT;
       ent->solid = SOLID_NOT;
 

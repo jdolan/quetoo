@@ -156,9 +156,9 @@ static void Cl_PostAnalytics(bool start) {
     q_strlcpy(payload.build, BUILD, sizeof(payload.build));
     q_strlcpy(payload.buildNumber, BUILD_NUMBER, sizeof(payload.buildNumber));
     q_strlcpy(payload.platform, SDL_GetPlatform(), sizeof(payload.platform));
-    q_strlcpy(payload.device, rConfig.device, sizeof(payload.device));
-    q_strlcpy(payload.vendor, rConfig.vendor, sizeof(payload.vendor));
-    q_strlcpy(payload.renderer, rConfig.renderer, sizeof(payload.renderer));
+    q_strlcpy(payload.device, renderConfig.device, sizeof(payload.device));
+    q_strlcpy(payload.vendor, renderConfig.vendor, sizeof(payload.vendor));
+    q_strlcpy(payload.renderer, renderConfig.renderer, sizeof(payload.renderer));
 
     data = $(ctx, dataFromStruct, &properties, &payload);
   } else {

@@ -425,7 +425,7 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
       attacker->client->persistent.score++;
     }
 
-    if (g_level.teams && cl->persistent.team && attacker->client->persistent.team) {
+    if (gameLevel.teams && cl->persistent.team && attacker->client->persistent.team) {
       if (friendlyFire) {
         attacker->client->persistent.team->score--;
       } else {
@@ -435,7 +435,7 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
   } else {
     cl->persistent.score--;
 
-    if (g_level.teams && cl->persistent.team) {
+    if (gameLevel.teams && cl->persistent.team) {
       cl->persistent.team->score--;
     }
   }
@@ -448,8 +448,8 @@ static void G_ClientGiblet_Touch(GameEntity *ent, GameEntity *other, const CmTra
 
   // G_TouchOccupy passes no trace, and is the only way a giblet reaches a player
   if (ent->damage && other->client && other != ent->owner && other->takeDamage) {
-    if ((uint32_t) ent->count <= g_level.time) {
-      ent->count = g_level.time + 500;
+    if ((uint32_t) ent->count <= gameLevel.time) {
+      ent->count = gameLevel.time + 500;
 
       G_Damage(&(GameDamage) {
         .target = other,
@@ -475,12 +475,12 @@ static void G_ClientGiblet_Touch(GameEntity *ent, GameEntity *other, const CmTra
     const float speed = Vec3_Length(ent->velocity);
     if (speed > 40.0 && G_IsStructural(trace)) {
 
-      if (g_level.time - ent->touchTime > 200) {
+      if (gameLevel.time - ent->touchTime > 200) {
         G_MulticastSound(&(const GamePlaySound) {
           .index = ent->sound,
           .entity = ent,
         }, MULTICAST_PHS);
-        ent->touchTime = g_level.time;
+        ent->touchTime = gameLevel.time;
       }
     }
   }
@@ -506,9 +506,9 @@ static void G_ClientGiblet_Touch(GameEntity *ent, GameEntity *other, const CmTra
  */
 static void G_Giblet_Think(GameEntity *ent) {
 
-  if (g_level.time >= ent->timestamp) {
+  if (gameLevel.time >= ent->timestamp) {
 
-    if (g_level.time >= ent->timestamp + DESPAWN_TIME) {
+    if (gameLevel.time >= ent->timestamp + DESPAWN_TIME) {
       G_FreeEntity(ent);
       return;
     }
@@ -534,7 +534,7 @@ static void G_Giblet_Think(GameEntity *ent) {
     }
   }
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -543,7 +543,7 @@ static void G_Giblet_Think(GameEntity *ent) {
  */
 static void G_ClientCorpse_Think(GameEntity *ent) {
 
-  const uint32_t age = g_level.time - ent->timestamp;
+  const uint32_t age = gameLevel.time - ent->timestamp;
 
   if (ent->s.model1 == MODEL_CLIENT) {
     if (age > 6000) {
@@ -611,7 +611,7 @@ static void G_ClientCorpse_Think(GameEntity *ent) {
     gi.LinkEntity(ent);
   }
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -654,8 +654,8 @@ void G_Giblets(const GameGiblets *giblets) {
 
     gib->solid = giblets->damage ? SOLID_TRIGGER : SOLID_DEAD;
 
-    gib->s.model1 = g_media.models.gibs[gibIndex];
-    gib->sound = g_media.sounds.gibHits[i % NUM_GIB_SOUNDS];
+    gib->s.model1 = gameMedia.models.gibs[gibIndex];
+    gib->sound = gameMedia.sounds.gibHits[i % NUM_GIB_SOUNDS];
 
     gib->velocity = giblets->velocity;
 
@@ -682,12 +682,12 @@ void G_Giblets(const GameGiblets *giblets) {
     gib->Touch = G_ClientGiblet_Touch;
 
     if (giblets->lifetime) {
-      gib->timestamp = g_level.time + giblets->lifetime;
+      gib->timestamp = gameLevel.time + giblets->lifetime;
       gib->Think = G_Giblet_Think;
-      gib->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+      gib->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
     } else {
       gib->Think = G_ClientCorpse_Think;
-      gib->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+      gib->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
     }
 
     gi.LinkEntity(gib);
@@ -732,7 +732,7 @@ static void G_ClientCorpse_Die(GameEntity *ent, GameEntity *attacker, uint32_t m
 
     ent->client->ps.pmState.flags |= PMF_GIBLET;
 
-    ent->s.model1 = g_media.models.gibs[2];
+    ent->s.model1 = gameMedia.models.gibs[2];
 
     ent->mass = 20.0;
 
@@ -841,7 +841,7 @@ static void G_ClientCorpse(GameClient *cl) {
   ent->Die = ent->health > 0 ? G_ClientCorpse_Die : NULL;
   ent->Pain = ent->health > 0 ? G_ClientCorpse_Pain : NULL;
   ent->Think = G_ClientCorpse_Think;
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(ent);
 }
@@ -867,7 +867,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   G_TossInvisibility(cl);
   G_TossInvulnerability(cl);
 
-  if ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
+  if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
     G_TossWeapon(cl);
   }
 
@@ -877,7 +877,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
     G_ClientCorpse_Die(ent, attacker, mod);
   } else {
     G_MulticastSound(&(const GamePlaySound) {
-      .index = g_media.sounds.death[Randomi() % lengthof(g_media.sounds.death)],
+      .index = gameMedia.sounds.death[Randomi() % lengthof(gameMedia.sounds.death)],
       .entity = ent,
       .origin = &ent->s.origin, // send the origin in case of fast respawn
     }, MULTICAST_PHS);
@@ -913,7 +913,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
         120,          // damage dealt
         120,          // knockback
         185.0,          // blast radius
-        Clampf(3000 - (int32_t) (g_level.time - nadeHoldTime), 1, 3000) // time before explode (next think)
+        Clampf(3000 - (int32_t) (gameLevel.time - nadeHoldTime), 1, 3000) // time before explode (next think)
     );
   }
 
@@ -935,8 +935,8 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   ent->takeDamage = true;
 
   ent->clipMask = CONTENTS_MASK_CLIP_CORPSE;
-  cl->respawnTime = g_level.time + 1800; // respawn delay, independent of death animation length
-  cl->deathTime = g_level.time; // used to gate the DEATHx -> DEADx animation transition below
+  cl->respawnTime = gameLevel.time + 1800; // respawn delay, independent of death animation length
+  cl->deathTime = gameLevel.time; // used to gate the DEATHx -> DEADx animation transition below
   cl->showScores = true;
   cl->persistent.deaths++;
 
@@ -959,7 +959,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
     );
 
     cl->deathCamAngles = cl->angles;
-    cl->deathCamTime = g_level.time;
+    cl->deathCamTime = gameLevel.time;
     cl->ps.pmState.flags |= PMF_DEATH_CAM;
   } else {
     G_ClientDamageKick(cl, cl->right, 60.0);
@@ -992,7 +992,7 @@ static void G_Give(GameClient *cl, char *it, int16_t quantity) {
     cl->inventory[index]++;
 
     if (item->def.ammo) {
-      const GameItem *ammo = &g_items[item->def.ammo];
+      const GameItem *ammo = &gameItems[item->def.ammo];
       const GameItemTag ammoIndex = ammo->def.tag;
 
       if (quantity > -1) {
@@ -1017,13 +1017,13 @@ static void G_InitInventory_Common(GameClient *cl) {
   const GameItem *item;
 
   // instagib gets railgun and slugs, both in normal mode and warmup
-  if ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
+  if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
     G_Give(cl, "Railgun", 1);
     G_Give(cl, "Grenades", 1);
-    item = &g_items[WEAPON_RAILGUN];
+    item = &gameItems[WEAPON_RAILGUN];
   }
   // arena yields all weapons, health, etc..
-  else if ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_ARENA) {
+  else if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_ARENA) {
     G_Give(cl, "Railgun", 50);
     G_Give(cl, "Lightning Gun", 200);
     G_Give(cl, "Hyperblaster", 200);
@@ -1037,15 +1037,15 @@ static void G_InitInventory_Common(GameClient *cl) {
 
     G_Give(cl, "Body Armor", -1);
 
-    item = &g_items[WEAPON_ROCKET_LAUNCHER];
+    item = &gameItems[WEAPON_ROCKET_LAUNCHER];
   }
   // dm gets the blaster, or the quake shotgun + shells in quake item sets
-  else if (g_level.items == ITEMS_QUAKE) {
+  else if (gameLevel.items == ITEMS_QUAKE) {
     G_Give(cl, "Shotgun", 10);
-    item = &g_items[WEAPON_QUAKE_SHOTGUN];
+    item = &gameItems[WEAPON_QUAKE_SHOTGUN];
   } else {
     G_Give(cl, "Blaster", -1);
-    item = &g_items[WEAPON_BLASTER];
+    item = &gameItems[WEAPON_BLASTER];
   }
 
   G_UseWeapon(cl, item);
@@ -1074,7 +1074,7 @@ static float G_EnemyRangeFromSpot(GameClient *cl, GameEntity *spot) {
     v = Vec3_Subtract(spot->s.origin, enemy->entity->s.origin);
     dist = Vec3_Length(v);
 
-    if (g_level.teams) { // avoid collision with team mates
+    if (gameLevel.teams) { // avoid collision with team mates
 
       if (enemy->persistent.team == cl->persistent.team) {
         if (dist > 64.0) { // if they're far away, ignore them
@@ -1119,10 +1119,10 @@ static bool G_WouldTelefrag(const Vec3 spot) {
 static GameEntity *G_SelectRandomSpawnPoint(const GameSpawnPoints *spawnPoints) {
 
   if (!spawnPoints->count) {
-    if (spawnPoints == &g_level.spawnPoints) {
-      G_Error("No spawn points on %s\n", g_level.name);
+    if (spawnPoints == &gameLevel.spawnPoints) {
+      G_Error("No spawn points on %s\n", gameLevel.name);
     }
-    return G_SelectRandomSpawnPoint(&g_level.spawnPoints);
+    return G_SelectRandomSpawnPoint(&gameLevel.spawnPoints);
   }
 
   uint32_t emptySpawns[spawnPoints->count];
@@ -1172,7 +1172,7 @@ static uint32_t G_CollectSpawnPoints(GameEntity **pool, uint32_t count, const Ga
 static GameEntity *G_SelectRandomSpawnPointFromPool(GameEntity **spots, const uint32_t count) {
 
   if (!count) {
-    return G_SelectRandomSpawnPoint(&g_level.spawnPoints);
+    return G_SelectRandomSpawnPoint(&gameLevel.spawnPoints);
   }
 
   uint32_t emptySpawns[count];
@@ -1252,10 +1252,10 @@ static GameEntity *G_SelectDeathmatchSpawnPoint(GameClient *cl) {
   GameEntity *pool[MAX_ENTITIES];
   uint32_t count = 0;
   
-  count = G_CollectSpawnPoints(pool, count, &g_level.spawnPoints);
+  count = G_CollectSpawnPoints(pool, count, &gameLevel.spawnPoints);
 
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    count = G_CollectSpawnPoints(pool, count, &g_teamList[t].spawnPoints);
+    count = G_CollectSpawnPoints(pool, count, &gameTeamList[t].spawnPoints);
   }
 
   if (g_spawnFarthest->value) {
@@ -1287,7 +1287,7 @@ static GameEntity *G_SelectTeamSpawnPoint(GameClient *cl) {
 static GameEntity *G_SelectSpawnPoint(GameClient *cl) {
   GameEntity *spawn = NULL;
 
-  if (g_level.teams) { // try team spawns first if applicable
+  if (gameLevel.teams) { // try team spawns first if applicable
     spawn = G_SelectTeamSpawnPoint(cl);
   }
 
@@ -1472,9 +1472,9 @@ static void G_ClientRespawn_(GameClient *cl) {
     ent->s.model1 = MODEL_CLIENT;
     ent->s.event = EV_CLIENT_TELEPORT;
 
-    const int32_t teleportSound = g_level.items == ITEMS_QUAKE
-      ? g_media.sounds.quakeTeleport[RandomRangei(0, 5)]
-      : g_media.sounds.teleport;
+    const int32_t teleportSound = gameLevel.items == ITEMS_QUAKE
+      ? gameMedia.sounds.quakeTeleport[RandomRangei(0, 5)]
+      : gameMedia.sounds.teleport;
 
     G_MulticastSound(&(const GamePlaySound) {
       .index = teleportSound,
@@ -1498,7 +1498,7 @@ static void G_ClientRespawn_(GameClient *cl) {
     ent->waterType = 0;
     ent->rippleSize = 32.0;
 
-    cl->boostTime = g_level.time + 1000;
+    cl->boostTime = gameLevel.time + 1000;
     cl->maxArmor = 200;
     cl->maxBoostHealth = ent->maxHealth + 100;
 
@@ -1512,7 +1512,7 @@ static void G_ClientRespawn_(GameClient *cl) {
     }
 
     // briefly disable firing, since we likely just clicked to respawn
-    cl->weaponFireTime = g_level.time + 250;
+    cl->weaponFireTime = gameLevel.time + 250;
 
     if (place.killBox) {
       G_KillBox(ent); // kill anyone in our spot
@@ -1538,8 +1538,8 @@ void G_ClientRespawn(GameClient *cl, bool voluntary) {
 #endif
   }
 
-  cl->respawnTime = g_level.time;
-  cl->respawnProtectionTime = g_level.time + g_respawnProtection->value * 1000;
+  cl->respawnTime = gameLevel.time;
+  cl->respawnProtectionTime = gameLevel.time + g_respawnProtection->value * 1000;
 
   if (cl->ai) {
     G_Ai_Respawn(cl);
@@ -1575,7 +1575,7 @@ void G_ClientBegin(GameClient *cl) {
   cl->ps.entity = cl->entity->s.number;
 
   cl->cmdAngles = Vec3_Zero();
-  cl->persistent.firstFrame = g_level.frameNum;
+  cl->persistent.firstFrame = gameLevel.frameNum;
 
   // ensure CS_CLIENTS is set before the entity becomes visible in frames
   G_ClientUserInfoChanged(cl, cl->persistent.userInfo);
@@ -1584,7 +1584,7 @@ void G_ClientBegin(GameClient *cl) {
     cl->persistent.spectator = true;
   }
   else {
-    if (g_level.teams) {
+    if (gameLevel.teams) {
       if (g_autoJoin->value || cl->ai) {
         G_AddClientToTeam(cl, G_SmallestTeam()->name);
       } else {
@@ -1595,7 +1595,7 @@ void G_ClientBegin(GameClient *cl) {
 
   G_ClientRespawn(cl, true);
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
     G_ClientToIntermission(cl);
   } else {
     q_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
@@ -1608,12 +1608,12 @@ void G_ClientBegin(GameClient *cl) {
     }
 
     q_strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
-    q_strlcat(welcome, G_GameplayById(g_level.gameplay)->label, sizeof(welcome));
+    q_strlcat(welcome, G_GameplayById(gameLevel.gameplay)->label, sizeof(welcome));
 
     q_strlcat(welcome, "\n^2Movement is ^1", sizeof(welcome));
-    q_strlcat(welcome, Pm_Movement(g_level.movement)->label, sizeof(welcome));
+    q_strlcat(welcome, Pm_Movement(gameLevel.movement)->label, sizeof(welcome));
 
-    if (g_level.teams) {
+    if (gameLevel.teams) {
       q_strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
     }
 
@@ -1932,7 +1932,7 @@ void G_ClientDisconnect(GameClient *cl) {
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static CmTrace G_ClientMove_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
-  const GameEntity *self = g_level.currentEntity;
+  const GameEntity *self = gameLevel.currentEntity;
 
   return gi.Trace(start, end, bounds, self, self->clipMask);
 }
@@ -2030,7 +2030,7 @@ static void G_ClientMove(GameClient *cl, PMoveCmd *cmd) {
   if (ent->dead == false) {
 
     if (pm.s.flags & PMF_JUMPED) {
-      if (g_level.time - 100 > cl->jumpTime) {
+      if (gameLevel.time - 100 > cl->jumpTime) {
         Vec3 angles, forward, point;
         CmTrace tr;
 
@@ -2053,18 +2053,18 @@ static void G_ClientMove(GameClient *cl, PMoveCmd *cmd) {
           ent->s.event = EV_CLIENT_JUMP;
         }
 
-        cl->jumpTime = g_level.time;
+        cl->jumpTime = gameLevel.time;
       }
     } else if (pm.s.flags & PMF_TIME_WATER_JUMP) {
-      if (g_level.time - 2000 > cl->jumpTime) {
+      if (gameLevel.time - 2000 > cl->jumpTime) {
 
         G_SetAnimation(cl, ANIM_LEGS_JUMP1, true);
 
         ent->s.event = EV_CLIENT_JUMP;
-        cl->jumpTime = g_level.time;
+        cl->jumpTime = gameLevel.time;
       }
     } else if (pm.s.flags & PMF_TIME_LAND) {
-      if (g_level.time - 800 > cl->landTime) {
+      if (gameLevel.time - 800 > cl->landTime) {
         GameEntityEvent event = EV_CLIENT_LAND;
 
         if (G_IsAnimation(cl, ANIM_LEGS_JUMP2)) {
@@ -2091,7 +2091,7 @@ static void G_ClientMove(GameClient *cl, PMoveCmd *cmd) {
           }
 
           if (damage >= 1) {
-            cl->painTime = g_level.time; // suppress pain sound
+            cl->painTime = gameLevel.time; // suppress pain sound
 
             // TODO: get normal from what we've landed on
             G_Damage(&(GameDamage) {
@@ -2110,23 +2110,23 @@ static void G_ClientMove(GameClient *cl, PMoveCmd *cmd) {
         }
 
         ent->s.event = event;
-        cl->landTime = g_level.time;
+        cl->landTime = gameLevel.time;
       }
     } else if (pm.s.flags & PMF_ON_LADDER) {
-      if (g_level.time - 400 > cl->jumpTime) {
+      if (gameLevel.time - 400 > cl->jumpTime) {
         if (fabs(ent->velocity.z) > 20.0) {
 
           G_SetAnimation(cl, ANIM_LEGS_JUMP1, true);
 
           ent->s.event = EV_CLIENT_JUMP;
-          cl->jumpTime = g_level.time;
+          cl->jumpTime = gameLevel.time;
         }
       }
     }
 
     // detect hitting the ground to help with animation blending
     if (pm.ground.ent && !ent->ground.ent) {
-      cl->groundTime = g_level.time;
+      cl->groundTime = gameLevel.time;
     }
   }
 
@@ -2163,16 +2163,16 @@ static void G_ClientInventoryThink(GameClient *cl) {
 
   if (cl->inventory[POWERUP_QUAD]) { // if they have quad
 
-    if (cl->quadCountdownTime && cl->quadCountdownTime < g_level.time) { // play the countdown sound      
+    if (cl->quadCountdownTime && cl->quadCountdownTime < gameLevel.time) { // play the countdown sound      
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.quadExpire,
+        .index = gameMedia.sounds.quadExpire,
         .entity = cl->entity,
       }, MULTICAST_PHS);
       
       cl->quadCountdownTime += 1000;
     }
 
-    if (cl->quadDamageTime < g_level.time) { // expire it
+    if (cl->quadDamageTime < gameLevel.time) { // expire it
 
       cl->quadDamageTime = 0.0;
       cl->inventory[POWERUP_QUAD] = 0;
@@ -2185,13 +2185,13 @@ static void G_ClientInventoryThink(GameClient *cl) {
 
   if (cl->inventory[POWERUP_INVISIBILITY]) {
 
-    if (cl->invisibilityTime < g_level.time) {
+    if (cl->invisibilityTime < gameLevel.time) {
       cl->invisibilityTime = 0;
       cl->inventory[POWERUP_INVISIBILITY] = 0;
       cl->entity->s.effects &= ~EF_INVISIBILITY;
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.invisibilityExpire,
+        .index = gameMedia.sounds.invisibilityExpire,
         .entity = cl->entity,
       }, MULTICAST_PHS);
     }
@@ -2199,16 +2199,16 @@ static void G_ClientInventoryThink(GameClient *cl) {
 
   if (cl->inventory[POWERUP_INVULNERABILITY]) {
 
-    if (cl->invulnerabilityCountdownTime && cl->invulnerabilityCountdownTime < g_level.time) {
+    if (cl->invulnerabilityCountdownTime && cl->invulnerabilityCountdownTime < gameLevel.time) {
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.invulnerabilityExpire,
+        .index = gameMedia.sounds.invulnerabilityExpire,
         .entity = cl->entity,
       }, MULTICAST_PHS);
 
       cl->invulnerabilityCountdownTime += 1000;
     }
 
-    if (cl->invulnerabilityTime < g_level.time) {
+    if (cl->invulnerabilityTime < gameLevel.time) {
       cl->invulnerabilityTime = 0;
       cl->invulnerabilityCountdownTime = 0;
       cl->inventory[POWERUP_INVULNERABILITY] = 0;
@@ -2216,17 +2216,17 @@ static void G_ClientInventoryThink(GameClient *cl) {
     }
   }
 
-  if (cl->respawnProtectionTime > g_level.time) {
+  if (cl->respawnProtectionTime > gameLevel.time) {
     cl->entity->s.effects |= EF_RESPAWN;
   } else {
     cl->entity->s.effects &= ~EF_RESPAWN;
   }
 
   // decrement any boosted health from items
-  if (cl->boostTime != 0 && cl->boostTime < g_level.time) {
+  if (cl->boostTime != 0 && cl->boostTime < gameLevel.time) {
     if (cl->entity->health > cl->entity->maxHealth) {
       cl->entity->health -= 1;
-      cl->boostTime = g_level.time + 1000;
+      cl->boostTime = gameLevel.time + 1000;
     } else {
       cl->boostTime = 0;
     }
@@ -2239,11 +2239,11 @@ static void G_ClientInventoryThink(GameClient *cl) {
  */
 void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
     return;
   }
 
-  g_level.currentEntity = cl->entity;
+  gameLevel.currentEntity = cl->entity;
 
   if (cl->chaseTarget) { // ensure chase is valid
     if (!G_IsMeat(cl->chaseTarget->entity)) {
@@ -2261,7 +2261,7 @@ void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
   if (!cl->chaseTarget) { // move through the world
 
 #if defined(G_HOOK)
-    if (cl->hook.thinkTime < g_level.time) {
+    if (cl->hook.thinkTime < gameLevel.time) {
       G_HookThink(cl, false);
     }
 #endif
@@ -2286,7 +2286,7 @@ void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
       }
 
       G_ClientChaseThink(cl);
-    } else if (cl->weaponThinkTime < g_level.time) {
+    } else if (cl->weaponThinkTime < gameLevel.time) {
       G_ClientWeaponThink(cl);
     }
   }
@@ -2313,7 +2313,7 @@ void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
  */
 void G_ClientBeginFrame(GameClient *cl) {
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
     return;
   }
 
@@ -2326,12 +2326,12 @@ void G_ClientBeginFrame(GameClient *cl) {
   }
 
   // run weapon think if it hasn't been done by a command
-  if (cl->weaponThinkTime < g_level.time) {
+  if (cl->weaponThinkTime < gameLevel.time) {
     G_ClientWeaponThink(cl);
   }
 
 #if defined(G_HOOK)
-  if (cl->hook.thinkTime < g_level.time) {
+  if (cl->hook.thinkTime < gameLevel.time) {
     G_HookThink(cl, false);
   }
 #endif
@@ -2341,7 +2341,7 @@ void G_ClientBeginFrame(GameClient *cl) {
 #endif
 
   if (ent->dead) {
-    if (g_level.time > cl->respawnTime) {
+    if (gameLevel.time > cl->respawnTime) {
       if (cl->latchedButtons & BUTTON_ATTACK) {
         G_ClientRespawn(cl, false);
       }

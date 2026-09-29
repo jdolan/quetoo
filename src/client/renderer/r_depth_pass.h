@@ -41,7 +41,7 @@ typedef struct {
   Fence *fence;
 } RenderDepthPipeline;
 
-extern RenderDepthPipeline rDepthPipeline;
+extern RenderDepthPipeline renderDepthPipeline;
 
 void R_DrawDepthPass(RenderView *view, CommandBuffer *commands);
 void R_InitDepthPass(void);

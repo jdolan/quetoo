@@ -293,7 +293,7 @@ static void cycleCandidate(EntityViewController *self, int32_t dir) {
 
   self->candidate = candidate;
 
-  CGameEditorEntity *entity = &cg_editor.entities[self->candidates[candidate]];
+  CGameEditorEntity *entity = &cgameEditor.entities[self->candidates[candidate]];
 
   $(self, setEntity, entity);
 
@@ -361,7 +361,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
     if (key == SDLK_G) {
       self->showFuncGroups = !self->showFuncGroups;
-      cg_editor.showFuncGroups = self->showFuncGroups;
+      cgameEditor.showFuncGroups = self->showFuncGroups;
       cgi.Print("func_group entities %s\n", self->showFuncGroups ? "^2shown" : "^1hidden");
     }
 
@@ -460,7 +460,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
         const char *info = cgi.client->configStrings[CS_ENTITIES + number];
 
-        CGameEditorEntity *entity = &cg_editor.entities[number];
+        CGameEditorEntity *entity = &cgameEditor.entities[number];
 
         if (this->entity && number == this->entity->number) {
           $(this, setEntity, entity);
@@ -491,7 +491,7 @@ static void viewWillAppear(ViewController *self) {
   this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates);
   this->candidate = 0;
 
-  $(this, setEntity, this->numCandidates ? &cg_editor.entities[this->candidates[0]] : &cg_editor.entities[0]);
+  $(this, setEntity, this->numCandidates ? &cgameEditor.entities[this->candidates[0]] : &cgameEditor.entities[0]);
 
   super(ViewController, self, viewWillAppear);
 }
@@ -500,7 +500,7 @@ static void viewWillAppear(ViewController *self) {
  * @see ViewController::viewWillDisappear(ViewController *)
  */
 static void viewWillDisappear(ViewController *self) {
-  cg_editor.selected = -1;
+  cgameEditor.selected = -1;
 }
 
 #pragma mark - EntityViewController
@@ -586,7 +586,7 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
       const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
       if (teamMaster != -1 && teamMaster != self->entity->number) {
 
-        self->teamEntity = &cg_editor.entities[teamMaster];
+        self->teamEntity = &cgameEditor.entities[teamMaster];
 
         for (CmEntity *e = self->teamEntity->def; e; e = e->next) {
 
@@ -615,7 +615,7 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
     self->teamEntity = NULL;
   }
 
-  cg_editor.selected = self->entity ? self->entity->number : -1;
+  cgameEditor.selected = self->entity ? self->entity->number : -1;
 
   setModel(self, self->entity && IS_MESH_MODEL(self->entity->model) ? (RenderModel *) self->entity->model : NULL);
 

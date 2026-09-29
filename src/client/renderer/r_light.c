@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-RenderLights rLights;
+RenderLights renderLights;
 
 /**
  * @brief Adds a light source to the view's light list.
@@ -71,10 +71,10 @@ void R_ActiveDynamicLights(const RenderView *view, const Box3 bounds, RenderActi
  */
 static void R_UploadLightBlock(CopyPass *copyPass, Buffer *buffer, const void *block, uint32_t size) {
 
-  $(rLights.transferBuffer, write, block, size, true);
+  $(renderLights.transferBuffer, write, block, size, true);
 
   $(copyPass, uploadBuffer,
-    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = rLights.transferBuffer->buffer },
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = renderLights.transferBuffer->buffer },
     &(SDL_GPUBufferRegion) { .buffer = buffer->buffer, .size = size },
     true);
 }
@@ -85,13 +85,13 @@ static void R_UploadLightBlock(CopyPass *copyPass, Buffer *buffer, const void *b
  */
 void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
 
-  RenderBspLightsUniformBlock *bspLights = &rLights.bspBlock;
-  RenderDynamicLightsUniformBlock *dynamicLights = &rLights.dynamicBlock;
+  RenderBspLightsUniformBlock *bspLights = &renderLights.bspBlock;
+  RenderDynamicLightsUniformBlock *dynamicLights = &renderLights.dynamicBlock;
 
   memset(bspLights, 0, sizeof(*bspLights));
   memset(dynamicLights, 0, sizeof(*dynamicLights));
 
-  bspLights->numLights = rModels.world ? rModels.world->bsp->numLights : 0;
+  bspLights->numLights = renderModels.world ? renderModels.world->bsp->numLights : 0;
 
   int32_t numDynamicLights = 0;
 
@@ -100,7 +100,7 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
 
     RenderLightUniform *out;
     if (l->bspLight) {
-      const ptrdiff_t index = (ptrdiff_t) (l->bspLight - rModels.world->bsp->lights);
+      const ptrdiff_t index = (ptrdiff_t) (l->bspLight - renderModels.world->bsp->lights);
       out = &bspLights->lights[index];
     } else {
       if (numDynamicLights == MAX_DYNAMIC_LIGHTS) {
@@ -124,9 +124,9 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
     }
 
     if (l->occluded) {
-      rStats->lightsOccluded++;
+      renderStats->lightsOccluded++;
     } else {
-      rStats->lightsVisible++;
+      renderStats->lightsVisible++;
     }
 
     if (l->flags & R_LIGHT_NO_SHADOW) {
@@ -134,8 +134,8 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
     } else {
       const int32_t lightCol = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
       const int32_t lightRow = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
-      l->tile = MakeVec2((float) (lightCol * rShadowAtlas.tileSize),
-                     (float) (lightRow * rShadowAtlas.tileSize));
+      l->tile = MakeVec2((float) (lightCol * renderShadowAtlas.tileSize),
+                     (float) (lightRow * renderShadowAtlas.tileSize));
     }
 
     out->tile = l->tile;
@@ -146,13 +146,13 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
   dynamicLights->numLights = numDynamicLights;
 
   const uint32_t bspSize = offsetof(RenderBspLightsUniformBlock, lights) + bspLights->numLights * sizeof(RenderLightUniform);
-  R_UploadLightBlock(copyPass, rLights.bspBuffer, bspLights, bspSize);
+  R_UploadLightBlock(copyPass, renderLights.bspBuffer, bspLights, bspSize);
 
   const uint32_t dynamicSize = offsetof(RenderDynamicLightsUniformBlock, lights) + dynamicLights->numLights * sizeof(RenderLightUniform);
-  R_UploadLightBlock(copyPass, rLights.dynamicBuffer, dynamicLights, dynamicSize);
+  R_UploadLightBlock(copyPass, renderLights.dynamicBuffer, dynamicLights, dynamicSize);
 
-  if (rModels.world) {
-    const RenderBspInlineModel *in = &rModels.world->bsp->inlineModels[0];
+  if (renderModels.world) {
+    const RenderBspInlineModel *in = &renderModels.world->bsp->inlineModels[0];
 
     RenderBspBlock *block = in->blocks;
     for (int32_t i = 0; i < in->numBlocks; i++, block++) {
@@ -176,25 +176,25 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
  */
 void R_InitLights(void) {
 
-  memset(&rLights, 0, sizeof(rLights));
+  memset(&renderLights, 0, sizeof(renderLights));
 
-  rLights.bspBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  renderLights.bspBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-    .size = sizeof(rLights.bspBlock),
+    .size = sizeof(renderLights.bspBlock),
   });
 
-  rLights.dynamicBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  renderLights.dynamicBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-    .size = sizeof(rLights.dynamicBlock),
+    .size = sizeof(renderLights.dynamicBlock),
   });
 
-  rLights.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  renderLights.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-    .size = Maxi(sizeof(rLights.bspBlock), sizeof(rLights.dynamicBlock)),
+    .size = Maxi(sizeof(renderLights.bspBlock), sizeof(renderLights.dynamicBlock)),
   });
 
   const int32_t noLights[2] = { 0, 0 };
-  rLights.voxelFallbackBuffer = $(renderContext.device, createBufferWithConstMem,
+  renderLights.voxelFallbackBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ, noLights, sizeof(noLights));
 }
 
@@ -203,8 +203,8 @@ void R_InitLights(void) {
  */
 void R_ShutdownLights(void) {
 
-  rLights.bspBuffer = release(rLights.bspBuffer);
-  rLights.dynamicBuffer = release(rLights.dynamicBuffer);
-  rLights.transferBuffer = release(rLights.transferBuffer);
-  rLights.voxelFallbackBuffer = release(rLights.voxelFallbackBuffer);
+  renderLights.bspBuffer = release(renderLights.bspBuffer);
+  renderLights.dynamicBuffer = release(renderLights.dynamicBuffer);
+  renderLights.transferBuffer = release(renderLights.transferBuffer);
+  renderLights.voxelFallbackBuffer = release(renderLights.voxelFallbackBuffer);
 }

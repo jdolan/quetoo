@@ -29,7 +29,7 @@
 ServerStatic svs; // persistent server info
 Server sv; // per-level server info
 
-ServerClient *svClient; // current client
+ServerClient *serverClient; // current client
 
 Cvar *sv_demoList;
 Cvar *sv_enforceTime;
@@ -349,14 +349,14 @@ static bool Sv_RconAuthenticate(void) {
   return true;
 }
 
-static char svRconBuffer[MAX_PRINT_MSG];
+static char serverRconBuffer[MAX_PRINT_MSG];
 
 /**
  * @brief Console appender for remote console.
  */
 static void Sv_Rcon_Print(const ConsoleString *str) {
 
-  q_strlcat(svRconBuffer, str->chars, sizeof(svRconBuffer));
+  q_strlcat(serverRconBuffer, str->chars, sizeof(serverRconBuffer));
 }
 
 /**
@@ -379,7 +379,7 @@ static void Sv_Rcon_f(void) {
   // then redirect the remaining output back to the client
 
   Console rcon = { .Append = Sv_Rcon_Print };
-  svRconBuffer[0] = '\0';
+  serverRconBuffer[0] = '\0';
 
   Con_AddConsole(&rcon);
 
@@ -397,7 +397,7 @@ static void Sv_Rcon_f(void) {
     Com_Print("Bad rconPassword\n");
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", svRconBuffer);
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", serverRconBuffer);
 
   Con_RemoveConsole(&rcon);
 }

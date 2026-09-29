@@ -1606,7 +1606,7 @@ typedef struct RenderModel {
 #define IS_BSP_MODEL(m) (m && m->type == MODEL_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MODEL_BSP_INLINE)
 #define IS_MESH_MODEL(m) (m && m->type == MODEL_MESH)
-#define IS_WORLDSPAWN(m) (IS_BSP_MODEL(rModels.world) && IS_BSP_INLINE_MODEL(m) && rModels.world->bsp->worldspawn == m)
+#define IS_WORLDSPAWN(m) (IS_BSP_MODEL(renderModels.world) && IS_BSP_INLINE_MODEL(m) && renderModels.world->bsp->worldspawn == m)
 
 /**
  * @brief The model format type.
@@ -1654,7 +1654,7 @@ typedef struct {
 /**
  * @brief The models instance.
  */
-extern RenderModels rModels;
+extern RenderModels renderModels;
 
 /**
  * @brief Sprite rendering flags.

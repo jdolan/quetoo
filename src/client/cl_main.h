@@ -44,8 +44,8 @@ void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);
 
-extern RenderView cl_view;
-extern SoundStage cl_stage;
+extern RenderView clientView;
+extern SoundStage clientStage;
 
 #if defined(__CL_LOCAL_H__)
 

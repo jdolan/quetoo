@@ -252,7 +252,7 @@ void G_Race_ResolveStages(void) {
 
     if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
       G_Warn("%s needs restart_target to name one info_notnull, and \"%s\" does not\n", etos(stage), name);
-      g_level.raceCourse.stagesValid = false;
+      gameLevel.raceCourse.stagesValid = false;
       continue;
     }
 
@@ -297,21 +297,21 @@ static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
     return;
   }
 
-  if (g_level.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
+  if (gameLevel.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
     G_Warn("%s is one func_race_* too many; the level may have %d\n", etos(ent), RACE_MAX_BARRIERS);
     G_FreeEntity(ent);
     return;
   }
 
   ent->raceBarrier = barrier;
-  ent->raceBarrierSlot = g_level.raceCourse.barrierCount;
+  ent->raceBarrierSlot = gameLevel.raceCourse.barrierCount;
   ent->solid = SOLID_BSP;
   ent->moveType = MOVE_TYPE_NONE;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
 
-  g_level.raceCourse.barriers[g_level.raceCourse.barrierCount++] = ent;
+  gameLevel.raceCourse.barriers[gameLevel.raceCourse.barrierCount++] = ent;
 }
 
 /*QUAKED func_race_checkpoint_gate (0 .5 .8) ?
@@ -420,7 +420,7 @@ static bool G_Race_Passes(const GameClient *cl, const GameEntity *ent) {
  * @see g_race.h
  */
 void G_Race_UpdateBarriers(GameClient *cl) {
-  const GameRaceCourse *course = &g_level.raceCourse;
+  const GameRaceCourse *course = &gameLevel.raceCourse;
 
   if (!course->barrierCount) {
     return;
@@ -466,7 +466,7 @@ bool G_Race_ClipEntity(const GameEntity *mover, const GameEntity *ent) {
 static const struct {
   const char *classname;
   void (*Init)(GameEntity *ent);
-} g_race_entity_classes[] = {
+} gameRaceEntityClasses[] = {
   { "trigger_race_start", G_trigger_race_start },
   { "trigger_race_checkpoint", G_trigger_race_checkpoint },
   { "trigger_race_split", G_trigger_race_split },
@@ -481,9 +481,9 @@ static const struct {
  */
 bool G_Race_InitEntity(GameEntity *ent) {
 
-  for (size_t i = 0; i < lengthof(g_race_entity_classes); i++) {
-    if (!q_strcmp(g_race_entity_classes[i].classname, ent->classname)) {
-      g_race_entity_classes[i].Init(ent);
+  for (size_t i = 0; i < lengthof(gameRaceEntityClasses); i++) {
+    if (!q_strcmp(gameRaceEntityClasses[i].classname, ent->classname)) {
+      gameRaceEntityClasses[i].Init(ent);
       return true;
     }
   }

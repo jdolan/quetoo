@@ -35,17 +35,17 @@ Cvar *m_sensitivityZoom;
 Cvar *m_pitch;
 Cvar *m_yaw;
 
-static InputButton cl_buttons[10];
-#define in_left cl_buttons[0]
-#define in_right cl_buttons[1]
-#define in_forward cl_buttons[2]
-#define in_back cl_buttons[3]
-#define in_look_up cl_buttons[4]
-#define in_look_down cl_buttons[5]
-#define in_move_left cl_buttons[6]
-#define in_move_right cl_buttons[7]
-#define in_up cl_buttons[8]
-#define in_down cl_buttons[9]
+static InputButton clientButtons[10];
+#define in_left clientButtons[0]
+#define in_right clientButtons[1]
+#define in_forward clientButtons[2]
+#define in_back clientButtons[3]
+#define in_look_up clientButtons[4]
+#define in_look_down clientButtons[5]
+#define in_move_left clientButtons[6]
+#define in_move_right clientButtons[7]
+#define in_up clientButtons[8]
+#define in_down clientButtons[9]
 
 /**
  * @brief Registers a key-down event for the given button, tracking which keys hold it.
@@ -283,7 +283,7 @@ static void Cl_TextEvent(const SDL_Event *event) {
     return;
   }
 
-  ConsoleInput *in = &clConsole.input;
+  ConsoleInput *in = &clientConsole.input;
 
   const char *src = event->text.text;
 
@@ -541,7 +541,7 @@ void Cl_Move(PMoveCmd *cmd) {
  */
 void Cl_ClearInput(void) {
 
-  memset(cl_buttons, 0, sizeof(cl_buttons));
+  memset(clientButtons, 0, sizeof(clientButtons));
 
   S_StopVoice();
 }

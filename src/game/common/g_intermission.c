@@ -75,7 +75,7 @@ static void G_Intermission_Offer(const char *name, int32_t index) {
 
   // by name rather than by position, since a rotation may list either the map we are
   // on or a candidate more than once, and neither is a second thing to vote for
-  if (!name || !*name || !q_strcmp(name, g_level.name) || G_Intermission_Offers(name)) {
+  if (!name || !*name || !q_strcmp(name, gameLevel.name) || G_Intermission_Offers(name)) {
     return;
   }
 
@@ -150,7 +150,7 @@ static void G_Intermission_SelectMaps(void) {
     // no rotation, or nothing in it we can serve: the server replays this map, which
     // is what `nextMap` falls back to on its own, so we leave it to do that
     module.indices[0] = -1;
-    q_strlcpy(module.maps[0], g_level.name, MAX_QPATH);
+    q_strlcpy(module.maps[0], gameLevel.name, MAX_QPATH);
     module.numMaps = 1;
   }
 
@@ -208,9 +208,9 @@ static void G_Intermission_Publish(void) {
  */
 static void G_Intermission_PublishTime(void) {
 
-  const uint32_t end = g_level.intermissionTime + INTERMISSION;
+  const uint32_t end = gameLevel.intermissionTime + INTERMISSION;
 
-  gi.SetConfigString(CS_TIME, G_FormatTime(end > g_level.time ? end - g_level.time : 0));
+  gi.SetConfigString(CS_TIME, G_FormatTime(end > gameLevel.time ? end - gameLevel.time : 0));
 }
 
 /**
@@ -330,13 +330,13 @@ static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) 
  */
 static void G_FrameDidEnd_Intermission(void) {
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
 
     if (!module.active) {
       G_Intermission_Begin();
     }
 
-    if (g_level.frameNum % QUETOO_TICK_RATE == 0) {
+    if (gameLevel.frameNum % QUETOO_TICK_RATE == 0) {
       G_Intermission_PublishTime();
     }
 

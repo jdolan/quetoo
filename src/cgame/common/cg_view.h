@@ -36,7 +36,7 @@ typedef struct {
   float bob;
 } CGameView;
 
-extern CGameView cg_view;
+extern CGameView cgameView;
 
 void Cg_PrepareView(const ClientFrame *frame);
 void Cg_CameraModeCycle_f(void);

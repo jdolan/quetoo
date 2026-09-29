@@ -532,11 +532,11 @@ void R_UpdateDecals(const RenderView *view, CopyPass *pass) {
  */
 void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 
-  assert(rModels.world);
+  assert(renderModels.world);
 
   CommandBuffer *commands = renderContext.device->commands;
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -545,15 +545,15 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   $(pass, bindPipeline, decalPipeline.pipeline);
 
   SDL_GPUBuffer *storage[] = {
-    rLights.bspBuffer->buffer,
-    rLights.dynamicBuffer->buffer,
+    renderLights.bspBuffer->buffer,
+    renderLights.dynamicBuffer->buffer,
     bsp->voxels.lightDataBuffer->buffer,
-    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : renderLights.voxelFallbackBuffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, 0, storage, 4);
 
@@ -609,7 +609,7 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 
       $(pass, drawPrimitives, numVertexes, 1, 0, 0);
 
-      rStats->decalDrawElements++;
+      renderStats->decalDrawElements++;
     }
   }
 }
@@ -620,7 +620,7 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 static void R_InitDecalPipeline(void) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
 
   info.depth_stencil_state.enable_depth_write = false;
 

@@ -21,7 +21,7 @@
 
 #include "cl_local.h"
 
-Console clConsole;
+Console clientConsole;
 
 Cvar *cl_consoleHeight;
 Cvar *cl_drawConsoleBackgroundAlpha;
@@ -55,7 +55,7 @@ void Cl_ToggleConsole_f(void) {
     Cl_SetKeyDest(KEY_CONSOLE);
   }
 
-  memset(&clConsole.input, 0, sizeof(clConsole.input));
+  memset(&clientConsole.input, 0, sizeof(clientConsole.input));
 }
 
 /**
@@ -86,17 +86,17 @@ static void Cl_Error_f(void) {
  */
 void Cl_InitConsole(void) {
 
-  memset(&clConsole, 0, sizeof(clConsole));
+  memset(&clientConsole, 0, sizeof(clientConsole));
 
-  clConsole.echo = true;
+  clientConsole.echo = true;
 
-  clConsole.Append = Cl_Print;
+  clientConsole.Append = Cl_Print;
 
-  Con_AddConsole(&clConsole);
+  Con_AddConsole(&clientConsole);
 
   File *file = Fs_OpenRead("history");
   if (file) {
-    Con_ReadHistory(&clConsole, file);
+    Con_ReadHistory(&clientConsole, file);
     Fs_Close(file);
   } else {
     Com_Debug(DEBUG_CLIENT, "Couldn't read history");
@@ -118,11 +118,11 @@ void Cl_InitConsole(void) {
  */
 void Cl_ShutdownConsole(void) {
 
-  Con_RemoveConsole(&clConsole);
+  Con_RemoveConsole(&clientConsole);
 
   File *file = Fs_OpenWrite("history");
   if (file) {
-    Con_WriteHistory(&clConsole, file);
+    Con_WriteHistory(&clientConsole, file);
     Fs_Close(file);
   } else {
     Com_Warn("Couldn't write history\n");

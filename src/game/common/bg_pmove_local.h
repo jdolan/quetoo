@@ -33,7 +33,7 @@
  * by `PMoveParams.kernel`. A kernel owns the ground, water, ladder and duck
  * checks, the move itself, and `Pm_CheckViewStep` if it wants step smoothing.
  *
- * `pm` and `pmLocals` are set before the dispatch, and every step here reads
+ * `pm` and `pmoveLocals` are set before the dispatch, and every step here reads
  * them rather than taking the move as a parameter, so a kernel is written the
  * way Quetoo's is.
  *
@@ -103,7 +103,7 @@ typedef struct {
 } PMoveLocals;
 
 extern PMove *pm;
-extern PMoveLocals pmLocals;
+extern PMoveLocals pmoveLocals;
 
 /**
  * @brief Unlike the game and the client game, this keeps its own mask test: it is
@@ -138,7 +138,7 @@ void Pm_Quake3Move(void);
  * @brief The parameters each movement that has its own is defined by, exported
  * by the kernel that implements it.
  */
-extern const PMoveParams pmQuakeParams;
-extern const PMoveParams pmQuake2Params;
-extern const PMoveParams pmRaceParams;
-extern const PMoveParams pmQuake3Params;
+extern const PMoveParams pmoveQuakeParams;
+extern const PMoveParams pmoveQuake2Params;
+extern const PMoveParams pmoveRaceParams;
+extern const PMoveParams pmoveQuake3Params;

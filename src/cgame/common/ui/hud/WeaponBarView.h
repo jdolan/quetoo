@@ -38,7 +38,7 @@ typedef struct WeaponBarViewInterface WeaponBarViewInterface;
  * @brief The weapon bar: every carried weapon in a row of slots, the selection highlighted
  * and named.
  * @details Shown while a weapon change is pending or was just made, fading over
- * `cg_selectWeaponFade`; the selection state itself lives in `cg_hudState.weapon`, driven
+ * `cg_selectWeaponFade`; the selection state itself lives in `cgameHudState.weapon`, driven
  * by Cg_UpdateSelectWeapon and the `cg_weaponNext` and `cg_weaponPrevious` commands.
  * @extends StackView
  */

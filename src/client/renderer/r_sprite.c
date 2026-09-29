@@ -372,7 +372,7 @@ void R_UpdateSprites(RenderView *view, CopyPass *copyPass) {
  */
 void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 
-  assert(rModels.world);
+  assert(renderModels.world);
 
   if (view->numSpriteInstances == 0) {
     return;
@@ -380,7 +380,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 
   CommandBuffer *commands = renderContext.device->commands;
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -389,7 +389,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   $(pass, bindPipeline, module.pipeline);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = module.elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
@@ -401,10 +401,10 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    rLights.bspBuffer->buffer,
-    rLights.dynamicBuffer->buffer,
+    renderLights.bspBuffer->buffer,
+    renderLights.dynamicBuffer->buffer,
     bsp->voxels.lightDataBuffer->buffer,
-    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : renderLights.voxelFallbackBuffer->buffer,
     module.instanceBuffer->buffer,
   };
   $(pass, bindVertexStorageBuffers, 0, storage, 5);
@@ -441,7 +441,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 
     $(pass, drawIndexedPrimitives, (uint32_t) batchSize * 6, 1, (uint32_t) i * 6, 0, 0);
 
-    rStats->spriteDrawElements++;
+    renderStats->spriteDrawElements++;
 
     i += batchSize;
   }
@@ -453,7 +453,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 static void R_InitSpritePipeline(void) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 

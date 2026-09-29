@@ -865,7 +865,7 @@ static void R_RegisterBspModel(RenderMedia *self) {
   R_RegisterDependency(self, (RenderMedia *) mod->bsp->voxels.lightIndices);
   R_RegisterDependency(self, (RenderMedia *) mod->bsp->sky);
 
-  rModels.world = mod;
+  renderModels.world = mod;
 }
 
 /**
@@ -894,7 +894,7 @@ static void R_FreeBspModel(RenderMedia *self) {
 /**
  * @brief BSP model format descriptor.
  */
-const RenderModelFormat rBspModelFormat = {
+const RenderModelFormat renderBspModelFormat = {
   .extension = "bsp",
   .type = MODEL_BSP,
   .Load = R_LoadBspModel,

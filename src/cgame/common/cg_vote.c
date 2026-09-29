@@ -37,7 +37,7 @@ static const VoteType *Cg_ListVoteTypes_Common(size_t *count) {
 ListVoteTypes Cg_ListVoteTypes = Cg_ListVoteTypes_Common;
 
 /**
- * @brief Reads `CS_VOTE` into `cg_state.vote`.
+ * @brief Reads `CS_VOTE` into `cgameState.vote`.
  */
 static bool Cg_ParseConfigString_Vote(int32_t index) {
 
@@ -47,7 +47,7 @@ static bool Cg_ParseConfigString_Vote(int32_t index) {
 
   const char *s = cgi.ConfigString(index);
 
-  memset(&cg_state.vote, 0, sizeof(cg_state.vote));
+  memset(&cgameState.vote, 0, sizeof(cgameState.vote));
 
   if (!*s) {
     return true;
@@ -76,14 +76,14 @@ static bool Cg_ParseConfigString_Vote(int32_t index) {
     return true;
   }
 
-  cg_state.vote.active = true;
-  q_strlcpy(cg_state.vote.type, fields[VOTE_CS_TYPE], sizeof(cg_state.vote.type));
-  q_strlcpy(cg_state.vote.arg, fields[VOTE_CS_ARG], sizeof(cg_state.vote.arg));
-  cg_state.vote.yes = (int32_t) strtol(fields[VOTE_CS_YES], NULL, 10);
-  cg_state.vote.no = (int32_t) strtol(fields[VOTE_CS_NO], NULL, 10);
-  cg_state.vote.eligible = (int32_t) strtol(fields[VOTE_CS_ELIGIBLE], NULL, 10);
-  cg_state.vote.deadline = (uint32_t) strtoul(fields[VOTE_CS_DEADLINE], NULL, 10);
-  q_strlcpy(cg_state.vote.initiator, fields[VOTE_CS_INITIATOR], sizeof(cg_state.vote.initiator));
+  cgameState.vote.active = true;
+  q_strlcpy(cgameState.vote.type, fields[VOTE_CS_TYPE], sizeof(cgameState.vote.type));
+  q_strlcpy(cgameState.vote.arg, fields[VOTE_CS_ARG], sizeof(cgameState.vote.arg));
+  cgameState.vote.yes = (int32_t) strtol(fields[VOTE_CS_YES], NULL, 10);
+  cgameState.vote.no = (int32_t) strtol(fields[VOTE_CS_NO], NULL, 10);
+  cgameState.vote.eligible = (int32_t) strtol(fields[VOTE_CS_ELIGIBLE], NULL, 10);
+  cgameState.vote.deadline = (uint32_t) strtoul(fields[VOTE_CS_DEADLINE], NULL, 10);
+  q_strlcpy(cgameState.vote.initiator, fields[VOTE_CS_INITIATOR], sizeof(cgameState.vote.initiator));
 
   return true;
 }

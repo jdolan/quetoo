@@ -103,7 +103,7 @@ typedef struct {
 
 } CGameEditor;
 
-extern CGameEditor cg_editor;
+extern CGameEditor cgameEditor;
 
 /**
  * @brief The result of a combined editor trace against all BSP models and `CONTENTS_EDITOR` entities.

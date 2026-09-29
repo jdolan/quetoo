@@ -51,8 +51,8 @@ Cvar *cl_drawNetMessages;
 ClientStatic cls;
 Client cl;
 
-RenderView cl_view;
-SoundStage cl_stage;
+RenderView clientView;
+SoundStage clientStage;
 
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
@@ -594,17 +594,17 @@ static void Cl_UpdateScene(void) {
     thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }
 
-  R_DrawViewDepth(&cl_view);
+  R_DrawViewDepth(&clientView);
 
   Thread_Wait(thread);
 
-  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
+  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &clientStage, THREAD_NONE);
 
-  R_DrawSubviews(&cl_view);
+  R_DrawSubviews(&clientView);
 
-  R_DrawMainView(&cl_view);
+  R_DrawMainView(&clientView);
 
-  R_DrawPost(&cl_view);
+  R_DrawPost(&clientView);
 
   Thread_Wait(thread);
 }
@@ -614,9 +614,9 @@ static void Cl_UpdateScene(void) {
  */
 int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
-  R_InitView(&cl_view);
+  R_InitView(&clientView);
 
-  S_InitStage(&cl_stage);
+  S_InitStage(&clientStage);
 
   Cl_HandleEvents();
 
@@ -628,9 +628,9 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
   R_EndFrame();
 
-  S_RenderStage(&cl_stage);
+  S_RenderStage(&clientStage);
 
-  R_Screenshot(&cl_view);
+  R_Screenshot(&clientView);
 
   return res;
 }
@@ -690,9 +690,9 @@ void Cl_Frame(const uint32_t msec) {
     }
   }
 
-  R_InitView(&cl_view);
+  R_InitView(&clientView);
 
-  S_InitStage(&cl_stage);
+  S_InitStage(&clientStage);
 
   Cl_AttemptConnect();
 
@@ -716,14 +716,14 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     Cl_SendCommands();
 
-    S_RenderStage(&cl_stage);
+    S_RenderStage(&clientStage);
   }
 
   Cl_UpdateScreen();
 
   R_EndFrame();
 
-  R_Screenshot(&cl_view);
+  R_Screenshot(&clientView);
 
   cls.cgame->UpdateDiscord();
 

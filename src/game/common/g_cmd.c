@@ -66,7 +66,7 @@ static void G_Give_f(GameClient *cl) {
 
   if (giveAll || q_strcasecmp(name, "armor") == 0) {
     for (GameItemTag t = ARMOR_FIRST; t < ARMOR_LAST; t++) {
-      it = &g_items[t];
+      it = &gameItems[t];
       if (!it->Pickup) {
         continue;
       }
@@ -82,7 +82,7 @@ static void G_Give_f(GameClient *cl) {
 
   if (giveAll || q_strcasecmp(name, "weapons") == 0) {
     for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-      it = &g_items[t];
+      it = &gameItems[t];
       if (!it->Pickup) {
         continue;
       }
@@ -98,7 +98,7 @@ static void G_Give_f(GameClient *cl) {
 
   if (giveAll || q_strcasecmp(name, "ammo") == 0) {
     for (GameItemTag t = AMMO_FIRST; t < AMMO_LAST; t++) {
-      it = &g_items[t];
+      it = &gameItems[t];
       if (!it->Pickup) {
         continue;
       }
@@ -106,8 +106,8 @@ static void G_Give_f(GameClient *cl) {
       bool available = G_ItemAvailable(it);
       if (!available) {
         for (GameItemTag w = WEAPON_FIRST; w < WEAPON_LAST; w++) {
-          if (G_ItemAvailable(&g_items[w]) &&
-              g_items[w].def.ammo == it->def.tag) {
+          if (G_ItemAvailable(&gameItems[w]) &&
+              gameItems[w].def.ammo == it->def.tag) {
             available = true;
             break;
           }
@@ -258,7 +258,7 @@ static void G_Use_f(GameClient *cl) {
 
   // In Quake item set maps, redirect Quetoo weapon names to their Quake equivalents
   // so that generic bindings (e.g. "use Rocket Launcher") work across both item sets.
-  if (g_level.items == ITEMS_QUAKE && it->def.type == ITEM_TYPE_WEAPON) {
+  if (gameLevel.items == ITEMS_QUAKE && it->def.type == ITEM_TYPE_WEAPON) {
     const GameItem *mapped = G_MappedWeapon(it);
     if (mapped) {
       it = mapped;
@@ -310,7 +310,7 @@ static void G_WeaponLast_f(GameClient *cl) {
     return;
   }
 
-  const GameItem *it = &g_items[index];
+  const GameItem *it = &gameItems[index];
 
   if (!it->Use) {
     return;
@@ -328,7 +328,7 @@ static void G_WeaponLast_f(GameClient *cl) {
  */
 static void G_Kill_f(GameClient *cl) {
 
-  if ((g_level.time - cl->respawnTime) < 1000) {
+  if ((gameLevel.time - cl->respawnTime) < 1000) {
     return;
   }
 
@@ -444,7 +444,7 @@ static void G_Say_f(GameClient *cl) {
   if (!q_strcmp(gi.Argv(0), "say") || !q_strcmp(gi.Argv(0), "sayTeam")) {
     arg0 = false;
 
-    if (!q_strcmp(gi.Argv(0), "sayTeam") && g_level.teams) {
+    if (!q_strcmp(gi.Argv(0), "sayTeam") && gameLevel.teams) {
       team = true;
     }
   }
@@ -476,11 +476,11 @@ static void G_Say_f(GameClient *cl) {
 
   if (!team) { // chat flood protection, does not pertain to teams
 
-    if (g_level.time < cl->chatTime) {
+    if (gameLevel.time < cl->chatTime) {
       return;
     }
 
-    cl->chatTime = g_level.time + 250;
+    cl->chatTime = gameLevel.time + 250;
   }
 
   char message[MAX_STRING_CHARS];
@@ -525,7 +525,7 @@ static void G_PlayerList_f(GameClient *cl) {
 
   // connect time, ping, score, name
   G_ForEachClient(c, {
-    const int32_t seconds = (g_level.frameNum - c->persistent.firstFrame) / QUETOO_TICK_RATE;
+    const int32_t seconds = (gameLevel.frameNum - c->persistent.firstFrame) / QUETOO_TICK_RATE;
 
     char st[80];
     q_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
@@ -580,12 +580,12 @@ bool G_AddClientToTeam(GameClient *cl, const char *teamName) {
  */
 static void G_Team_f(GameClient *cl) {
 
-  if (g_level.teams && gi.Argc() != 2) {
+  if (gameLevel.teams && gi.Argc() != 2) {
     gi.ClientPrint(cl, PRINT_HIGH, "Usage: %s <team name>\n", gi.Argv(0));
     return;
   }
 
-  if (!g_level.teams) {
+  if (!gameLevel.teams) {
     gi.ClientPrint(cl, PRINT_HIGH, "Teams are disabled\n");
     return;
   }
@@ -603,7 +603,7 @@ static void G_Team_f(GameClient *cl) {
 static void G_Spectate_f(GameClient *cl) {
 
   // prevent spectator spamming
-  if (g_level.time - cl->respawnTime < 1000) {
+  if (gameLevel.time - cl->respawnTime < 1000) {
     return;
   }
 
@@ -628,7 +628,7 @@ static void G_Spectate_f(GameClient *cl) {
       return;
     }
 
-    if (g_level.teams) {
+    if (gameLevel.teams) {
       if (g_autoJoin->value) { // assign them to a team
         G_AddClientToTeam(cl, G_SmallestTeam()->name);
       } else { // or ask them to pick
@@ -809,7 +809,7 @@ void G_ClientCommand(GameClient *cl) {
   }
 
   // most commands can not be executed during intermission
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
     return;
   }
 

@@ -21,10 +21,10 @@
 
 #include "cg_local.h"
 
-static CGameSprite *cg_freeSprites;
-static CGameSprite *cg_activeSprites;
+static CGameSprite *cgameFreeSprites;
+static CGameSprite *cgameActiveSprites;
 
-static CGameSprite cg_sprites[MAX_SPRITES];
+static CGameSprite cgameSprites[MAX_SPRITES];
 
 /**
  * @brief Pushes the sprite onto the head of specified list.
@@ -71,16 +71,16 @@ CGameSprite *Cg_AddSprite(const CGameSprite *inS) {
     return NULL;
   }
 
-  if (!cg_freeSprites) {
+  if (!cgameFreeSprites) {
     Cg_Debug("No free sprites\n");
     return NULL;
   }
 
   assert(inS->media);
 
-  CGameSprite *s = cg_freeSprites;
+  CGameSprite *s = cgameFreeSprites;
 
-  Cg_PopSprite(s, &cg_freeSprites);
+  Cg_PopSprite(s, &cgameFreeSprites);
 
   *s = *inS;
 
@@ -90,7 +90,7 @@ CGameSprite *Cg_AddSprite(const CGameSprite *inS) {
     s->time = s->timestamp = cgi.client->unclampedTime;
   }
 
-  Cg_PushSprite(s, &cg_activeSprites);
+  Cg_PushSprite(s, &cgameActiveSprites);
 
   return s;
 }
@@ -102,9 +102,9 @@ CGameSprite *Cg_AddSprite(const CGameSprite *inS) {
 CGameSprite *Cg_FreeSprite(CGameSprite *s) {
   CGameSprite *next = s->next;
 
-  Cg_PopSprite(s, &cg_activeSprites);
+  Cg_PopSprite(s, &cgameActiveSprites);
 
-  Cg_PushSprite(s, &cg_freeSprites);
+  Cg_PushSprite(s, &cgameFreeSprites);
 
   if (s->data && !(s->flags & SPRITE_DATA_NOFREE)) {
     cgi.Free(s->data);
@@ -121,7 +121,7 @@ CGameSprite *Cg_FreeSprite(CGameSprite *s) {
  */
 void Cg_FreeSpritesByData(const void *data) {
 
-  CGameSprite *s = cg_activeSprites;
+  CGameSprite *s = cgameActiveSprites;
   while (s) {
     if (s->data == data) {
       s->flags |= SPRITE_DATA_NOFREE;
@@ -137,13 +137,13 @@ void Cg_FreeSpritesByData(const void *data) {
  */
 void Cg_FreeSprites(void) {
 
-  cg_freeSprites = NULL;
-  cg_activeSprites = NULL;
+  cgameFreeSprites = NULL;
+  cgameActiveSprites = NULL;
 
-  memset(cg_sprites, 0, sizeof(cg_sprites));
+  memset(cgameSprites, 0, sizeof(cgameSprites));
 
-  for (size_t i = 0; i < lengthof(cg_sprites); i++) {
-    Cg_PushSprite(&cg_sprites[i], &cg_freeSprites);
+  for (size_t i = 0; i < lengthof(cgameSprites); i++) {
+    Cg_PushSprite(&cgameSprites[i], &cgameFreeSprites);
   }
 }
 
@@ -159,7 +159,7 @@ void Cg_AddSprites(void) {
   const float delta = MILLIS_TO_SECONDS(cgi.client->worldMsec);
   const uint32_t clientTime = cgi.client->unclampedTime, serverTime = cgi.client->frame.time;
 
-  CGameSprite *s = cg_activeSprites;
+  CGameSprite *s = cgameActiveSprites;
   while (s) {
 
     assert(s->media);

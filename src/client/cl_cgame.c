@@ -184,8 +184,8 @@ void Cl_InitCgame(void) {
   import.server = &cls.server;
   import.demo = &cls.demo;
   import.context = &renderContext;
-  import.view = &cl_view;
-  import.stage = &cl_stage;
+  import.view = &clientView;
+  import.stage = &clientStage;
 
   import.Print = Com_Print;
   import.PrintLevel = Cl_CgamePrintLevel;

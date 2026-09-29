@@ -21,9 +21,9 @@
 
 #include "r_local.h"
 
-RenderConfig rConfig;
-RenderUniforms rUniforms;
-RenderViewStats *rStats;
+RenderConfig renderConfig;
+RenderUniforms renderUniforms;
+RenderViewStats *renderStats;
 
 Cvar *r_alphaTest;
 Cvar *r_cull;
@@ -72,7 +72,7 @@ Cvar *r_windowWidth;
 /**
  * @brief MSAA sample count for the 3D scene.
  */
-SDL_GPUSampleCount rSceneSamples = SDL_GPU_SAMPLECOUNT_1;
+SDL_GPUSampleCount renderSceneSamples = SDL_GPU_SAMPLECOUNT_1;
 
 /**
  * @brief Maps the r_antialias cvar to an SDL_gpu sample count.
@@ -133,7 +133,7 @@ static Mat4 R_ObliqueProjection(Mat4 projection, const Vec4 plane) {
  */
 void R_UpdateUniforms(const RenderView *view) {
 
-  struct RenderUniformBlock *out = &rUniforms.block;
+  struct RenderUniformBlock *out = &renderUniforms.block;
   memset(out, 0, sizeof(*out));
 
   if (view) {
@@ -193,7 +193,7 @@ void R_UpdateUniforms(const RenderView *view) {
       out->voxels.maxs = MakeVec4(1.f, 1.f, 1.f, 0.f);
       out->voxels.size = MakeVec4(1.f, 1.f, 1.f, 0.f);
     } else {
-      const RenderBspVoxels *voxels = &rModels.world->bsp->voxels;
+      const RenderBspVoxels *voxels = &renderModels.world->bsp->voxels;
 
       out->voxels.mins = Vec3_ToVec4(voxels->bounds.mins, 0.f);
       out->voxels.maxs = Vec3_ToVec4(voxels->bounds.maxs, 0.f);
@@ -278,8 +278,8 @@ void R_BeginFrame(void) {
 
   if (r_antialias->modified) {
     const SDL_GPUSampleCount samples = R_SampleCount();
-    if (samples != rSceneSamples) {
-      rSceneSamples = samples;
+    if (samples != renderSceneSamples) {
+      renderSceneSamples = samples;
       R_UpdatePipelines();
       SDL_PushEvent(&(SDL_Event) {
         .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
@@ -337,7 +337,7 @@ void R_InitView(RenderView *view) {
  */
 void R_DrawViewDepth(RenderView *view) {
 
-  rStats = &view->stats;
+  renderStats = &view->stats;
 
   R_UpdateFrustum(view);
 
@@ -349,10 +349,10 @@ void R_DrawViewDepth(RenderView *view) {
 
   R_DrawOcclusionQueries(view, commands);
 
-  if (rDepthPipeline.fence) {
+  if (renderDepthPipeline.fence) {
     $(commands, submit);
   } else {
-    rDepthPipeline.fence = $(commands, submitAndFence);
+    renderDepthPipeline.fence = $(commands, submitAndFence);
   }
 
   release(commands);
@@ -365,7 +365,7 @@ void R_DrawMainView(RenderView *view) {
 
   assert(view);
 
-  rStats = &view->stats;
+  renderStats = &view->stats;
 
   CommandBuffer *commands = renderContext.device->commands;
   if (!commands) {
@@ -422,7 +422,7 @@ void R_DrawPlayerModelView(RenderView *view) {
 
   assert(view);
 
-  rStats = &view->stats;
+  renderStats = &view->stats;
 
   CommandBuffer *commands = renderContext.device->commands;
   if (!commands) {
@@ -534,28 +534,28 @@ static void R_InitLocal(void) {
  */
 static void R_InitConfig(void) {
 
-  memset(&rConfig, 0, sizeof(rConfig));
+  memset(&renderConfig, 0, sizeof(renderConfig));
 
-  rConfig.renderer = SDL_GetGPUDeviceDriver(renderContext.device->device);
+  renderConfig.renderer = SDL_GetGPUDeviceDriver(renderContext.device->device);
 
   const SDL_PropertiesID properties = SDL_GetGPUDeviceProperties(renderContext.device->device);
   if (properties == 0) {
     Com_Warn("Failed to query GPU device properties: %s\n", SDL_GetError());
   }
 
-  rConfig.device = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_NAME_STRING, "unknown");
-  rConfig.vendor = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING, "unknown");
-  rConfig.version = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, "unknown");
+  renderConfig.device = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_NAME_STRING, "unknown");
+  renderConfig.vendor = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING, "unknown");
+  renderConfig.version = SDL_GetStringProperty(properties, SDL_PROP_GPU_DEVICE_DRIVER_VERSION_STRING, "unknown");
 
-  rConfig.maxTexunits = 16;
-  rConfig.maxTextureSize = 16384;
-  rConfig.max3dTextureSize = 2048;
-  rConfig.maxUniformBlockSize = 65536;
+  renderConfig.maxTexunits = 16;
+  renderConfig.maxTextureSize = 16384;
+  renderConfig.max3dTextureSize = 2048;
+  renderConfig.maxUniformBlockSize = 65536;
 
-  Com_Print(  "  Renderer:   ^2%s^7\n", rConfig.renderer);
-  Com_Print(  "  Device:     ^2%s^7\n", rConfig.device);
-  Com_Print(  "  Vendor:     ^2%s^7\n", rConfig.vendor);
-  Com_Print(  "  Version:    ^2%s^7\n", rConfig.version);
+  Com_Print(  "  Renderer:   ^2%s^7\n", renderConfig.renderer);
+  Com_Print(  "  Device:     ^2%s^7\n", renderConfig.device);
+  Com_Print(  "  Vendor:     ^2%s^7\n", renderConfig.vendor);
+  Com_Print(  "  Version:    ^2%s^7\n", renderConfig.version);
 }
 
 /**
@@ -572,7 +572,7 @@ void R_Init(void) {
   R_UpdateSwapInterval();
   r_swapInterval->modified = false;
 
-  rSceneSamples = R_SampleCount();
+  renderSceneSamples = R_SampleCount();
 
   R_InitConfig();
   

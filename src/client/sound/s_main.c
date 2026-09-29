@@ -100,7 +100,7 @@ static sf_count_t S_RWops_tell(void *userData) {
 /**
  * @brief An interface to `SDL_IOStream` for libsndfile
  */
-SF_VIRTUAL_IO sRwopsIo = {
+SF_VIRTUAL_IO soundRwopsIo = {
   .get_filelen = S_RWops_get_filelen,
   .seek = S_RWops_seek,
   .read = S_RWops_read,
@@ -164,7 +164,7 @@ static sf_count_t S_PhysFS_tell(void *userData) {
 /**
  * @brief An interface to PhysFS for libsndfile
  */
-SF_VIRTUAL_IO sPhysfsIo = {
+SF_VIRTUAL_IO soundPhysfsIo = {
   .get_filelen = S_PhysFS_get_filelen,
   .seek = S_PhysFS_seek,
   .read = S_PhysFS_read,

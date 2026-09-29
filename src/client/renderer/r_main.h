@@ -52,7 +52,7 @@ extern Cvar *r_swapInterval;
 extern Cvar *r_windowHeight;
 extern Cvar *r_windowWidth;
 
-extern SDL_GPUSampleCount rSceneSamples;
+extern SDL_GPUSampleCount renderSceneSamples;
 SDL_GPUSampleCount R_SampleCount(void);
 SDL_GPUFillMode R_FillMode(void);
 
@@ -112,11 +112,11 @@ typedef struct {
   int32_t maxUniformBlockSize;
 } RenderConfig;
 
-extern RenderConfig rConfig;
+extern RenderConfig renderConfig;
 
 #if defined(__R_LOCAL_H__)
 
-extern RenderViewStats *rStats;
+extern RenderViewStats *renderStats;
 
 /**
  * @brief Vec4-aligned voxel uniforms.
@@ -255,7 +255,7 @@ typedef struct {
 /**
  * @brief Per-frame global uniforms.
  */
-extern RenderUniforms rUniforms;
+extern RenderUniforms renderUniforms;
 extern Cvar *r_alphaTest;
 extern Cvar *r_cull;
 extern Cvar *r_depthPass;

@@ -22,12 +22,12 @@
 #include "sv_local.h"
 #include "net/net_http_server.h"
 
-static int32_t svHttpSocket = -1;
+static int32_t serverHttpSocket = -1;
 
 /**
  * @brief Allowed download patterns, matching the former UDP download allowlist.
  */
-static const char *svHttpAllowedPatterns[] = {
+static const char *serverHttpAllowedPatterns[] = {
 	"*.pk3",
 	"docs/*",
 	"maps/*",
@@ -44,7 +44,7 @@ static const char *svHttpAllowedPatterns[] = {
  */
 static bool Sv_HttpIsAllowed(const char *filename) {
 
-	const char **pattern = svHttpAllowedPatterns;
+	const char **pattern = serverHttpAllowedPatterns;
 	while (*pattern) {
 		if (GlobMatch(*pattern, filename, GLOB_FLAGS_NONE)) {
 			return true;
@@ -131,7 +131,7 @@ static void Sv_HttpHandleRequest(ServerHttpClient *http) {
 static void Sv_HttpAccept(void) {
 
 	NetAddr from;
-	const int32_t sock = Net_Accept(svHttpSocket, &from);
+	const int32_t sock = Net_Accept(serverHttpSocket, &from);
 	if (sock == -1) {
 		return;
 	}
@@ -226,7 +226,7 @@ static void Sv_HttpClientThink(ServerHttpClient *http) {
  */
 void Sv_HttpThink(void) {
 
-	if (svHttpSocket == -1 || svs.clients == NULL) {
+	if (serverHttpSocket == -1 || svs.clients == NULL) {
 		return;
 	}
 
@@ -268,8 +268,8 @@ void Sv_InitHttp(void) {
 
 	const in_port_t port = netPort->integer;
 
-	svHttpSocket = Net_SocketListen(NULL, port, 8);
-	if (svHttpSocket == -1) {
+	serverHttpSocket = Net_SocketListen(NULL, port, 8);
+	if (serverHttpSocket == -1) {
 		Com_Warn("HTTP: Failed to create listen socket on port %d\n", port);
 		return;
 	}
@@ -282,7 +282,7 @@ void Sv_InitHttp(void) {
  */
 void Sv_ShutdownHttp(void) {
 
-	if (svHttpSocket == -1) {
+	if (serverHttpSocket == -1) {
 		return;
 	}
 
@@ -292,8 +292,8 @@ void Sv_ShutdownHttp(void) {
 		Sv_HttpClientDisconnect(&cl->http);
 	}
 
-	Net_CloseSocket(svHttpSocket);
-	svHttpSocket = -1;
+	Net_CloseSocket(serverHttpSocket);
+	serverHttpSocket = -1;
 
 	Com_Print("HTTP server stopped\n");
 }

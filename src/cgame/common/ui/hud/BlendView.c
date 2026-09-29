@@ -169,21 +169,21 @@ static void updateBindings(View *self, ident data) {
   }
 
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
-  if (pickup && pickup != cg_hudState.blend.pickup) {
-    cg_hudState.blend.pickupTime = cgi.client->unclampedTime;
+  if (pickup && pickup != cgameHudState.blend.pickup) {
+    cgameHudState.blend.pickupTime = cgi.client->unclampedTime;
   }
-  cg_hudState.blend.pickup = pickup;
+  cgameHudState.blend.pickup = pickup;
 
   if (ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH]) {
-    cg_hudState.blend.damageTime = cgi.client->unclampedTime;
+    cgameHudState.blend.damageTime = cgi.client->unclampedTime;
   }
 
   float alphas[BlendViewTotal] = {
-    [BlendViewPickup] = cg_drawBlendPickup->value ? decayingAlpha(cg_hudState.blend.pickupTime, BLEND_PICKUP_TIME, cg_drawBlendPickup->value) : 0.f,
+    [BlendViewPickup] = cg_drawBlendPickup->value ? decayingAlpha(cgameHudState.blend.pickupTime, BLEND_PICKUP_TIME, cg_drawBlendPickup->value) : 0.f,
     [BlendViewQuad] = ps->stats[STAT_QUAD_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvisibility] = ps->stats[STAT_INVISIBILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvulnerability] = ps->stats[STAT_INVULNERABILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
-    [BlendViewDamage] = cg_drawBlendDamage->value ? decayingAlpha(cg_hudState.blend.damageTime, BLEND_DAMAGE_TIME, cg_drawBlendDamage->value) : 0.f,
+    [BlendViewDamage] = cg_drawBlendDamage->value ? decayingAlpha(cgameHudState.blend.damageTime, BLEND_DAMAGE_TIME, cg_drawBlendDamage->value) : 0.f,
   };
 
   for (size_t i = 0; i < BlendViewTotal; i++) {

@@ -224,7 +224,7 @@ Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
     Maxi((int32_t) (info->size.h * scale), 1)
   );
 
-  create.sampleCount = rSceneSamples;
+  create.sampleCount = renderSceneSamples;
 
   return $(renderContext.device, createFramebuffer, &create);
 }

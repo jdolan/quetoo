@@ -216,11 +216,11 @@ void R_Draw3DBox(const Box3 bounds, const Color color, bool depthTest) {
  */
 static void R_UpdateBspNormals(const RenderView *view) {
 
-  if (!r_drawBspNormals->value || !rModels.world) {
+  if (!r_drawBspNormals->value || !renderModels.world) {
     return;
   }
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
 
   const RenderBspVertex *v = bsp->vertexes;
   for (int32_t i = 0; i < bsp->numVertexes; i++, v++) {
@@ -310,8 +310,8 @@ static void R_UpdateLightBounds(const RenderView *view) {
 static void R_UpdateOcclusionBounds(const RenderView *view) {
 
   if (r_drawOcclusionQueries->value) {
-    const RenderOcclusionQuery *q = rOcclusion.queries;
-    for (int32_t i = 0; i < rOcclusion.numQueries; i++, q++) {
+    const RenderOcclusionQuery *q = renderOcclusion.queries;
+    for (int32_t i = 0; i < renderOcclusion.numQueries; i++, q++) {
       const float dist = Vec3_Distance(Box3_Center(q->bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (!q->result) {
@@ -322,9 +322,9 @@ static void R_UpdateOcclusionBounds(const RenderView *view) {
     }
   }
 
-  if (r_drawBspBlocks->value && rModels.world) {
-    RenderBspBlock *b = rModels.world->bsp->inlineModels->blocks;
-    for (int32_t i = 0; i < rModels.world->bsp->inlineModels->numBlocks; i++, b++) {
+  if (r_drawBspBlocks->value && renderModels.world) {
+    RenderBspBlock *b = renderModels.world->bsp->inlineModels->blocks;
+    for (int32_t i = 0; i < renderModels.world->bsp->inlineModels->numBlocks; i++, b++) {
       const float dist = Vec3_Distance(Box3_Center(b->visibleBounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (!b->query->result) {
@@ -398,7 +398,7 @@ void R_Draw3D(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   GraphicsPipeline *pipeline = NULL;
 
@@ -426,7 +426,7 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
                                                Shader *vertexShader, Shader *fragmentShader) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 

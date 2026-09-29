@@ -286,7 +286,7 @@ static void R_AddReflection(RenderView *view, RenderSubview *reflection, const M
  */
 static void R_AddReflections(RenderView *view) {
 
-  if (!rModels.world || !rModels.world->bsp->numReflections) {
+  if (!renderModels.world || !renderModels.world->bsp->numReflections) {
     return;
   }
 
@@ -301,8 +301,8 @@ static void R_AddReflections(RenderView *view) {
       continue;
     }
 
-    RenderSubview *r = rModels.world->bsp->reflections;
-    for (int32_t j = 0; j < rModels.world->bsp->numReflections; j++, r++) {
+    RenderSubview *r = renderModels.world->bsp->reflections;
+    for (int32_t j = 0; j < renderModels.world->bsp->numReflections; j++, r++) {
 
       if (r->model == e->model) {
         R_AddReflection(view, r, e->matrix);
@@ -639,15 +639,15 @@ void R_DrawSubviews(RenderView *view) {
 
   // cleared before anything is offered, so that a subview that was not offered, or was offered
   // and culled, leaves its face on its own material rather than sampling a stale layer
-  if (rModels.world) {
+  if (renderModels.world) {
 
-    RenderSubview *p = rModels.world->bsp->portals;
-    for (int32_t i = 0; i < rModels.world->bsp->numPortals; i++, p++) {
+    RenderSubview *p = renderModels.world->bsp->portals;
+    for (int32_t i = 0; i < renderModels.world->bsp->numPortals; i++, p++) {
       p->layer = -1;
     }
 
-    RenderSubview *r = rModels.world->bsp->reflections;
-    for (int32_t i = 0; i < rModels.world->bsp->numReflections; i++, r++) {
+    RenderSubview *r = renderModels.world->bsp->reflections;
+    for (int32_t i = 0; i < renderModels.world->bsp->numReflections; i++, r++) {
       r->layer = -1;
     }
   }
@@ -665,9 +665,9 @@ void R_DrawSubviews(RenderView *view) {
 
   // captured before any subview is drawn, since drawing one replaces the uniform block with
   // its own view
-  const Mat4 vp = Mat4_Concat(rUniforms.block.projection3D, rUniforms.block.view);
+  const Mat4 vp = Mat4_Concat(renderUniforms.block.projection3D, renderUniforms.block.view);
 
-  RenderViewStats *stats = rStats;
+  RenderViewStats *stats = renderStats;
 
   int32_t layer = 0;
   for (int32_t i = 0; i < view->numSubviews; i++) {
@@ -702,7 +702,7 @@ void R_DrawSubviews(RenderView *view) {
 
     R_UpdateSubviewScene(view, subview->view);
 
-    rStats = &subview->view->stats;
+    renderStats = &subview->view->stats;
     R_DrawSubview(subview, &scissor, projected, mins, maxs);
 
     stats->subviewsTriangles += subview->view->stats.bspTriangles + subview->view->stats.meshTriangles;
@@ -710,7 +710,7 @@ void R_DrawSubviews(RenderView *view) {
 
   $(module.framebuffer, swap);
 
-  rStats = stats;
+  renderStats = stats;
 
   R_UpdateUniforms(view);
 }

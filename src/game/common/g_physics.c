@@ -99,7 +99,7 @@ static void G_CheckWater(GameEntity *ent) {
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.waterIn,
+        .index = gameMedia.sounds.waterIn,
         .origin = &pos,
         .pitch = pitch,
         .gain = gain
@@ -121,7 +121,7 @@ static void G_CheckWater(GameEntity *ent) {
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.waterOut,
+        .index = gameMedia.sounds.waterOut,
         .origin = &pos,
         .pitch = pitch,
         .gain = gain
@@ -149,7 +149,7 @@ void G_RunThink(GameEntity *ent) {
     return;
   }
 
-  if (ent->nextThink > g_level.time + 1) {
+  if (ent->nextThink > gameLevel.time + 1) {
     return;
   }
 
@@ -447,7 +447,7 @@ typedef struct {
   int16_t deltaYaw;
 } GamePush;
 
-static GamePush g_pushes[MAX_ENTITIES], *g_push_p;
+static GamePush gamePushes[MAX_ENTITIES], *g_push_p;
 
 /**
  * @brief Records the current origin, angles, and client delta-yaw of the entity
@@ -455,7 +455,7 @@ static GamePush g_pushes[MAX_ENTITIES], *g_push_p;
  */
 static void G_Physics_Push_Impact(GameEntity *ent) {
 
-  if (g_push_p - g_pushes == MAX_ENTITIES) {
+  if (g_push_p - gamePushes == MAX_ENTITIES) {
     G_Error("MAX_ENTITIES\n");
   }
 
@@ -658,7 +658,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
     // if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
     // blocked: revert any moves we may have made and return our obstacle
 
-    while (g_push_p > g_pushes) {
+    while (g_push_p > gamePushes) {
       G_Physics_Push_Revert(--g_push_p);
     }
 
@@ -669,7 +669,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
   ent->s.origin = finalPosition;
 
   // the move was successful, so re-link all pushed entities
-  for (GamePush *p = g_push_p - 1; p >= g_pushes; p--) {
+  for (GamePush *p = g_push_p - 1; p >= gamePushes; p--) {
     if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
@@ -903,7 +903,7 @@ static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
     // if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
     // blocked: revert any moves we may have made and return our obstacle
 
-    while (g_push_p > g_pushes) {
+    while (g_push_p > gamePushes) {
       G_Physics_Push_Revert(--g_push_p);
     }
 
@@ -911,7 +911,7 @@ static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
   }
 
   // the move was successful, so re-link all pushed entities
-  for (GamePush *p = g_push_p - 1; p >= g_pushes; p--) {
+  for (GamePush *p = g_push_p - 1; p >= gamePushes; p--) {
     if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
@@ -940,7 +940,7 @@ static void G_Physics_Push(GameEntity *ent) {
   }
 
   // reset the pushed array
-  g_push_p = g_pushes;
+  g_push_p = gamePushes;
 
   // make sure all team slaves can move before committing any moves
   for (GameEntity *part = ent; part; part = part->teamNext) {
@@ -975,7 +975,7 @@ typedef struct {
   int32_t numEntities;
 } GameTouch;
 
-static GameTouch g_touch;
+static GameTouch gameTouch;
 
 /**
  * @brief Runs the `Touch` functions of each object.
@@ -984,13 +984,13 @@ static void G_TouchEntity(GameEntity *ent, const CmTrace *trace) {
 
   // ensure that we only impact an entity once per frame
 
-  for (int32_t i = 0; i < g_touch.numEntities; i++) {
-    if (g_touch.entities[i] == trace->ent) {
+  for (int32_t i = 0; i < gameTouch.numEntities; i++) {
+    if (gameTouch.entities[i] == trace->ent) {
       return;
     }
   }
 
-  g_touch.entities[g_touch.numEntities++] = trace->ent;
+  gameTouch.entities[gameTouch.numEntities++] = trace->ent;
 
   // run the interaction
 
@@ -1016,7 +1016,7 @@ static bool G_Physics_Fly_Move(GameEntity *ent, const float bounce) {
   Vec3 planes[MAX_CLIP_PLANES];
   Vec3 origin, angles;
 
-  memset(&g_touch, 0, sizeof(g_touch));
+  memset(&gameTouch, 0, sizeof(gameTouch));
 
   origin = ent->s.origin;
   angles = ent->s.angles;

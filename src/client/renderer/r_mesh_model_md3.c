@@ -24,7 +24,7 @@
 /**
  * @brief Sine and cosine of each of the 256 angles an MD3 normal byte can encode.
  */
-static Vec2 rMd3Normals[256];
+static Vec2 renderMd3Normals[256];
 
 /**
  * @brief Builds the MD3 normal lookup table.
@@ -33,7 +33,7 @@ void R_InitMd3Normals(void) {
 
   for (int32_t i = 0; i < 256; i++) {
     const float angle = i * (float) M_PI / 128.f;
-    rMd3Normals[i] = MakeVec2(cosf(angle), sinf(angle));
+    renderMd3Normals[i] = MakeVec2(cosf(angle), sinf(angle));
   }
 }
 
@@ -430,8 +430,8 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
 
             mod->bounds = Box3_Append(mod->bounds, outVertex->position);
 
-            const Vec2 lat = rMd3Normals[(vertex.norm >> 8) & 0xff];
-            const Vec2 lon = rMd3Normals[vertex.norm & 0xff];
+            const Vec2 lat = renderMd3Normals[(vertex.norm >> 8) & 0xff];
+            const Vec2 lon = renderMd3Normals[vertex.norm & 0xff];
 
             outVertex->normal.x = lat.x * lon.y;
             outVertex->normal.y = lat.y * lon.y;
@@ -487,7 +487,7 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
 /**
  * @brief The MD3 model format descriptor.
  */
-const RenderModelFormat rMd3ModelFormat = {
+const RenderModelFormat renderMd3ModelFormat = {
   .extension = "md3",
   .type = MODEL_MESH,
   .Load = R_LoadMd3Model,

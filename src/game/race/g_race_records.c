@@ -48,7 +48,7 @@
  * @brief Where this level's records live in the write dir.
  */
 static const char *G_Race_RecordsPath(void) {
-  return va("records/%s.rec", g_level.name);
+  return va("records/%s.rec", gameLevel.name);
 }
 
 /**
@@ -125,7 +125,7 @@ static int32_t G_Race_CompareRecords(const void *a, const void *b) {
  * @brief Keeps the records fastest first within each movement.
  */
 static void G_Race_SortRecords(void) {
-  qsort(g_level.raceRecords, g_level.raceRecordCount, sizeof(GameRaceRecord), G_Race_CompareRecords);
+  qsort(gameLevel.raceRecords, gameLevel.raceRecordCount, sizeof(GameRaceRecord), G_Race_CompareRecords);
 }
 
 /**
@@ -134,20 +134,20 @@ static void G_Race_SortRecords(void) {
  */
 static GameRaceRecord *G_Race_AddRecord(void) {
 
-  if (g_level.raceRecordCount == g_level.raceRecordCapacity) {
-    const size_t capacity = g_level.raceRecordCapacity ? g_level.raceRecordCapacity * 2 : 32;
+  if (gameLevel.raceRecordCount == gameLevel.raceRecordCapacity) {
+    const size_t capacity = gameLevel.raceRecordCapacity ? gameLevel.raceRecordCapacity * 2 : 32;
     GameRaceRecord *records = gi.Malloc(capacity * sizeof(GameRaceRecord), MEM_TAG_GAME_LEVEL);
 
-    if (g_level.raceRecords) {
-      memcpy(records, g_level.raceRecords, g_level.raceRecordCount * sizeof(GameRaceRecord));
-      gi.Free(g_level.raceRecords);
+    if (gameLevel.raceRecords) {
+      memcpy(records, gameLevel.raceRecords, gameLevel.raceRecordCount * sizeof(GameRaceRecord));
+      gi.Free(gameLevel.raceRecords);
     }
 
-    g_level.raceRecords = records;
-    g_level.raceRecordCapacity = capacity;
+    gameLevel.raceRecords = records;
+    gameLevel.raceRecordCapacity = capacity;
   }
 
-  GameRaceRecord *record = &g_level.raceRecords[g_level.raceRecordCount++];
+  GameRaceRecord *record = &gameLevel.raceRecords[gameLevel.raceRecordCount++];
   memset(record, 0, sizeof(*record));
   return record;
 }
@@ -157,8 +157,8 @@ static GameRaceRecord *G_Race_AddRecord(void) {
  */
 static GameRaceRecord *G_Race_FindRecord(const char *guid, PMovement movement) {
 
-  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
-    GameRaceRecord *record = &g_level.raceRecords[i];
+  for (size_t i = 0; i < gameLevel.raceRecordCount; i++) {
+    GameRaceRecord *record = &gameLevel.raceRecords[i];
 
     if (record->movement == movement && !q_strcmp(record->guid, guid)) {
       return record;
@@ -173,9 +173,9 @@ static GameRaceRecord *G_Race_FindRecord(const char *guid, PMovement movement) {
  */
 const GameRaceRecord *G_Race_BestRecord(PMovement movement) {
 
-  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
-    if (g_level.raceRecords[i].movement == movement) {
-      return &g_level.raceRecords[i];
+  for (size_t i = 0; i < gameLevel.raceRecordCount; i++) {
+    if (gameLevel.raceRecords[i].movement == movement) {
+      return &gameLevel.raceRecords[i];
     }
   }
 
@@ -196,8 +196,8 @@ size_t G_Race_Rank(const GameRaceRecord *record, size_t *count) {
   size_t rank = 0;
 
   *count = 0;
-  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
-    const GameRaceRecord *r = &g_level.raceRecords[i];
+  for (size_t i = 0; i < gameLevel.raceRecordCount; i++) {
+    const GameRaceRecord *r = &gameLevel.raceRecords[i];
 
     if (r->movement != record->movement) {
       continue;
@@ -220,10 +220,10 @@ static void G_Race_PublishRecords(void) {
   char string[MAX_STRING_CHARS] = "";
   size_t shown = 0;
 
-  for (size_t i = 0; i < g_level.raceRecordCount && shown < RACE_RECORDS_SHOWN; i++) {
-    const GameRaceRecord *record = &g_level.raceRecords[i];
+  for (size_t i = 0; i < gameLevel.raceRecordCount && shown < RACE_RECORDS_SHOWN; i++) {
+    const GameRaceRecord *record = &gameLevel.raceRecords[i];
 
-    if (record->movement != g_level.movement) {
+    if (record->movement != gameLevel.movement) {
       continue;
     }
 
@@ -298,8 +298,8 @@ static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
 void G_Race_LoadRecords(void) {
 
   // the level's end freed the last map's, and this may be the same map again
-  g_level.raceRecords = NULL;
-  g_level.raceRecordCount = g_level.raceRecordCapacity = 0;
+  gameLevel.raceRecords = NULL;
+  gameLevel.raceRecordCount = gameLevel.raceRecordCapacity = 0;
 
   void *buffer;
   if (gi.LoadFile(G_Race_RecordsPath(), &buffer) <= 0) { // missing, or empty and so not even a buffer
@@ -323,7 +323,7 @@ void G_Race_LoadRecords(void) {
   G_Race_SortRecords();
   G_Race_PublishRecords();
 
-  G_Debug("Loaded %zu records from %s\n", g_level.raceRecordCount, G_Race_RecordsPath());
+  G_Debug("Loaded %zu records from %s\n", gameLevel.raceRecordCount, G_Race_RecordsPath());
 }
 
 static void G_Race_WriteLine(File *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -363,10 +363,10 @@ static void G_Race_SaveRecords(void) {
     return;
   }
 
-  G_Race_WriteLine(file, "// Race records for %s: one personal best per player per movement\n", g_level.name);
+  G_Race_WriteLine(file, "// Race records for %s: one personal best per player per movement\n", gameLevel.name);
 
-  for (size_t i = 0; i < g_level.raceRecordCount; i++) {
-    const GameRaceRecord *r = &g_level.raceRecords[i];
+  for (size_t i = 0; i < gameLevel.raceRecordCount; i++) {
+    const GameRaceRecord *r = &gameLevel.raceRecords[i];
 
     G_Race_WriteLine(file, "{\n");
     G_Race_WriteLine(file, "  \"guid\" \"%s\"\n", r->guid);

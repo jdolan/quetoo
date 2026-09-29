@@ -145,7 +145,7 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
  */
 void R_DrawPost(const RenderView *view) {
 
-  if (!rModels.world) {
+  if (!renderModels.world) {
     return;
   }
 

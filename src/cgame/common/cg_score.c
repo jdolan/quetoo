@@ -31,7 +31,7 @@ typedef struct {
   uint32_t generation;
 } CGameScoreState;
 
-static CGameScoreState cg_scoreState;
+static CGameScoreState cgameScoreState;
 
 /**
  * @brief A comparator for sorting `GameScore`.
@@ -62,31 +62,31 @@ void Cg_ParseScores(void) {
   }
 
   if (index == 0) {
-    cg_scoreState.numPending = 0;
-  } else if ((size_t) index != cg_scoreState.numPending) {
-    Cg_Warn("Score packet %d arrived with %zu pending\n", index, cg_scoreState.numPending);
-    cg_scoreState.numPending = 0;
+    cgameScoreState.numPending = 0;
+  } else if ((size_t) index != cgameScoreState.numPending) {
+    Cg_Warn("Score packet %d arrived with %zu pending\n", index, cgameScoreState.numPending);
+    cgameScoreState.numPending = 0;
     return;
   }
 
-  cgi.ReadData(cg_scoreState.pending + index, count * sizeof(GameScore));
-  cg_scoreState.numPending = index + count;
+  cgi.ReadData(cgameScoreState.pending + index, count * sizeof(GameScore));
+  cgameScoreState.numPending = index + count;
 
   if (cgi.ReadByte()) { // last packet in sequence
 
-    cg_scoreState.numScores = cg_scoreState.numPending;
-    cg_scoreState.numPending = 0;
+    cgameScoreState.numScores = cgameScoreState.numPending;
+    cgameScoreState.numPending = 0;
 
     // the aggregate scores are the last set in the array
-    if (cg_state.numTeams) {
-      cg_scoreState.numScores -= MAX_TEAMS;
+    if (cgameState.numTeams) {
+      cgameScoreState.numScores -= MAX_TEAMS;
     }
 
-    memcpy(cg_scoreState.scores, cg_scoreState.pending, sizeof(cg_scoreState.scores));
+    memcpy(cgameScoreState.scores, cgameScoreState.pending, sizeof(cgameScoreState.scores));
 
-    qsort(cg_scoreState.scores, cg_scoreState.numScores, sizeof(GameScore), Cg_ParseScores_Compare);
+    qsort(cgameScoreState.scores, cgameScoreState.numScores, sizeof(GameScore), Cg_ParseScores_Compare);
 
-    cg_scoreState.generation++;
+    cgameScoreState.generation++;
   }
 }
 
@@ -94,15 +94,15 @@ void Cg_ParseScores(void) {
  * @see cg_score.h
  */
 const GameScore *Cg_Scores(size_t *count) {
-  *count = cg_scoreState.numScores;
-  return cg_scoreState.scores;
+  *count = cgameScoreState.numScores;
+  return cgameScoreState.scores;
 }
 
 /**
  * @see cg_score.h
  */
 uint32_t Cg_ScoresGeneration(void) {
-  return cg_scoreState.generation;
+  return cgameScoreState.generation;
 }
 
 /**
@@ -110,9 +110,9 @@ uint32_t Cg_ScoresGeneration(void) {
  */
 void Cg_ClearScores(void) {
 
-  const uint32_t generation = cg_scoreState.generation;
+  const uint32_t generation = cgameScoreState.generation;
 
-  memset(&cg_scoreState, 0, sizeof(cg_scoreState));
+  memset(&cgameScoreState, 0, sizeof(cgameScoreState));
 
-  cg_scoreState.generation = generation + 1;
+  cgameScoreState.generation = generation + 1;
 }

@@ -36,7 +36,7 @@ static struct {
   bool dirty;
 } module;
 
-static Console svConsole;
+static Console serverConsole;
 
 /**
  * @brief Console append callback.
@@ -51,7 +51,7 @@ static void Sv_Print(const ConsoleString *str) {
  */
 static void Sv_HandleEvents(void) {
 
-  ConsoleInput *in = &svConsole.input;
+  ConsoleInput *in = &serverConsole.input;
 
   int32_t key;
   while ((key = wgetch(module.window)) != ERR) {
@@ -62,12 +62,12 @@ static void Sv_HandleEvents(void) {
 
       case '\n':
       case KEY_ENTER:
-        Con_SubmitInput(&svConsole);
+        Con_SubmitInput(&serverConsole);
         break;
 
       case '\t':
       case KEY_STAB:
-        Con_CompleteInput(&svConsole);
+        Con_CompleteInput(&serverConsole);
         break;
 
       case '\b':   // Windows backspace
@@ -94,11 +94,11 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_UP:
-        Con_NavigateHistory(&svConsole, CON_HISTORY_PREV);
+        Con_NavigateHistory(&serverConsole, CON_HISTORY_PREV);
         break;
 
       case KEY_DOWN:
-        Con_NavigateHistory(&svConsole, CON_HISTORY_NEXT);
+        Con_NavigateHistory(&serverConsole, CON_HISTORY_NEXT);
         break;
 
       case KEY_LEFT:
@@ -114,18 +114,18 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_PPAGE:
-        if (svConsole.scroll < consoleState.strings->count) {
-          svConsole.scroll++;
+        if (serverConsole.scroll < consoleState.strings->count) {
+          serverConsole.scroll++;
         } else {
-          svConsole.scroll = consoleState.strings->count;
+          serverConsole.scroll = consoleState.strings->count;
         }
         break;
 
       case KEY_NPAGE:
-        if (svConsole.scroll > 0) {
-          svConsole.scroll--;
+        if (serverConsole.scroll > 0) {
+          serverConsole.scroll--;
         } else {
-          svConsole.scroll = 0;
+          serverConsole.scroll = 0;
         }
         break;
 
@@ -191,10 +191,10 @@ static void Sv_DrawConsole_Background(void) {
  */
 static void Sv_DrawConsole_Buffer(void) {
 
-  char *lines[svConsole.height];
-  const size_t count = Con_Tail(&svConsole, lines, svConsole.height);
+  char *lines[serverConsole.height];
+  const size_t count = Con_Tail(&serverConsole, lines, serverConsole.height);
 
-  size_t row = svConsole.height;
+  size_t row = serverConsole.height;
 
   for (size_t i = 0; i < count; i++) {
     const size_t j = count - i - 1;
@@ -228,9 +228,9 @@ static void Sv_DrawConsole_Input(void) {
 
   Sv_DrawConsole_Color(ESC_COLOR_ALT);
 
-  const ConsoleInput *in = &svConsole.input;
+  const ConsoleInput *in = &serverConsole.input;
 
-  const char *s = &in->buffer[(in->pos / svConsole.width) * svConsole.width];
+  const char *s = &in->buffer[(in->pos / serverConsole.width) * serverConsole.width];
 
   const size_t len = q_strlen(s);
   const size_t pos = in->pos - (s - in->buffer);
@@ -256,8 +256,8 @@ void Sv_DrawConsole(void) {
 
   if (module.dirty) {
 
-    svConsole.width = COLS - 2;
-    svConsole.height = LINES - 2;
+    serverConsole.width = COLS - 2;
+    serverConsole.height = LINES - 2;
 
     Sv_DrawConsole_Background();
     Sv_DrawConsole_Buffer();
@@ -346,15 +346,15 @@ void Sv_InitConsole(void) {
   signal(SIGWINCH, Sv_ResizeConsole);
 #endif
 
-  memset(&svConsole, 0, sizeof(svConsole));
+  memset(&serverConsole, 0, sizeof(serverConsole));
 
-  svConsole.Append = Sv_Print;
+  serverConsole.Append = Sv_Print;
 
-  Con_AddConsole(&svConsole);
+  Con_AddConsole(&serverConsole);
 
   File *file = Fs_OpenRead("history");
   if (file) {
-    Con_ReadHistory(&svConsole, file);
+    Con_ReadHistory(&serverConsole, file);
     Fs_Close(file);
   } else {
     Com_Debug(DEBUG_SERVER, "Couldn't read history");
@@ -378,11 +378,11 @@ void Sv_ShutdownConsole(void) {
 
   endwin();
 
-  Con_RemoveConsole(&svConsole);
+  Con_RemoveConsole(&serverConsole);
 
   File *file = Fs_OpenWrite("history");
   if (file) {
-    Con_WriteHistory(&svConsole, file);
+    Con_WriteHistory(&serverConsole, file);
     Fs_Close(file);
   } else {
     Com_Warn("Couldn't write history\n");

@@ -194,8 +194,8 @@ static void update(ConsoleView *self, int32_t height) {
     return;
   }
 
-  clConsole.width = Maxi(frame.w / ch.w, 2);
-  clConsole.height = Maxi(height / ch.h - 1, 0);
+  clientConsole.width = Maxi(frame.w / ch.w, 2);
+  clientConsole.height = Maxi(height / ch.h - 1, 0);
 
   if (view->frame.h != height) {
     $(view, resize, &MakeSize(view->frame.w, height));
@@ -228,8 +228,8 @@ static void update(ConsoleView *self, int32_t height) {
     $(view, invalidateStyle);
   }
 
-  tail(&clConsole, clConsole.height, self->buffer);
-  inputLine(&clConsole, ESC_COLOR_GREEN, self->input);
+  tail(&clientConsole, clientConsole.height, self->buffer);
+  inputLine(&clientConsole, ESC_COLOR_GREEN, self->input);
 
   self->input->view.frame.x = 1;
   self->input->view.frame.y = height - ch.h;

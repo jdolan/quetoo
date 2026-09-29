@@ -154,7 +154,7 @@ static GraphicsPipeline *R_MeshStagePipeline(CmBlend src, CmBlend dest) {
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -261,7 +261,7 @@ static void R_DrawMeshEntityMaterialStage(const RenderView *view,
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, face->numElements, 1, firstIndex, 0, 0);
 
-  rStats->meshTriangles += face->numElements / 3;
+  renderStats->meshTriangles += face->numElements / 3;
 }
 
 /**
@@ -412,8 +412,8 @@ static void R_DrawMeshEntityFace(const RenderView *view,
 
     $(pass, drawIndexedPrimitives, face->numElements, 1, firstIndex, 0, 0);
 
-    rStats->meshDrawElements++;
-    rStats->meshTriangles += face->numElements / 3;
+    renderStats->meshDrawElements++;
+    renderStats->meshTriangles += face->numElements / 3;
   }
 
   if (module.drawStages) {
@@ -581,7 +581,7 @@ static void R_DrawMeshEntity(const RenderView *view, const RenderEntity *e, Rend
     });
   }
 
-  rStats->meshModels++;
+  renderStats->meshModels++;
 }
 
 /**
@@ -592,7 +592,7 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
   // The player model preview must never bind the current world's voxel/sky
   // data: its view origin has no relation to the loaded map's lighting, so
   // doing so would produce seemingly random lighting on the preview model.
-  const RenderBspModel *bsp = view->type == VIEW_PLAYER_MODEL ? NULL : rModels.world->bsp;
+  const RenderBspModel *bsp = view->type == VIEW_PLAYER_MODEL ? NULL : renderModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -601,17 +601,17 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   $(pass, bindPipeline, module.opaquePipeline);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rShadowAtlas.textures[0]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[1]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[2]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[3]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[4]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[5]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[0]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[1]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[2]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[3]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[4]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[5]->texture, .sampler = renderShadowAtlas.sampler->sampler },
   }, 6);
 
   Texture *caustics = bsp ? bsp->voxels.caustics->texture : module.voxelCausticsFallback;
@@ -639,10 +639,10 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
-    rLights.bspBuffer->buffer,
-    rLights.dynamicBuffer->buffer,
-    bsp && bsp->voxels.lightDataBuffer ? bsp->voxels.lightDataBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
-    bsp && bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
+    renderLights.bspBuffer->buffer,
+    renderLights.dynamicBuffer->buffer,
+    bsp && bsp->voxels.lightDataBuffer ? bsp->voxels.lightDataBuffer->buffer : renderLights.voxelFallbackBuffer->buffer,
+    bsp && bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : renderLights.voxelFallbackBuffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
@@ -659,12 +659,12 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
     }
 
     if (R_CullEntity(view, e)) {
-      rStats->entitiesOccluded++;
+      renderStats->entitiesOccluded++;
       continue;
     }
 
     R_DrawMeshEntity(view, e, pass);
-    rStats->entitiesVisible++;
+    renderStats->entitiesVisible++;
   }
 }
 
@@ -688,7 +688,7 @@ void R_InitMeshPipeline(void) {
   });
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 

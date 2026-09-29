@@ -48,7 +48,7 @@ void teardown(void) {
 }
 
 START_TEST(check_Ms_AddServer) {
-  ck_assert_int_eq(msServers ? (int) msServers->count : 0, 0);
+  ck_assert_int_eq(masterServers ? (int) masterServers->count : 0, 0);
 
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
@@ -58,18 +58,18 @@ START_TEST(check_Ms_AddServer) {
   addr.sin_port = htons(PORT_SERVER);
 
   Ms_AddServer(&addr);
-  ck_assert_int_eq((int) msServers->count, 1);
+  ck_assert_int_eq((int) masterServers->count, 1);
 
-  MasterServer *server = (MasterServer *) msServers->head->element;
+  MasterServer *server = (MasterServer *) masterServers->head->element;
   ck_assert_msg(server->addr.sin_addr.s_addr == addr.sin_addr.s_addr, "Corrupt server address");
 
   Ms_AddServer(&addr);
-  ck_assert_int_eq((int) msServers->count, 1);
+  ck_assert_int_eq((int) masterServers->count, 1);
 
   *(in_addr_t *) &addr.sin_addr = inet_addr("192.168.1.2");
 
   Ms_AddServer(&addr);
-  ck_assert_int_eq((int) msServers->count, 2);
+  ck_assert_int_eq((int) masterServers->count, 2);
 
   server = Ms_GetServer(&addr);
   ck_assert_msg(server != NULL, "Server was not registered");
@@ -77,13 +77,13 @@ START_TEST(check_Ms_AddServer) {
   server->challenge = 42u;
 
   Ms_RemoveServer(&addr, "shutdown");
-  ck_assert_int_eq((int) msServers->count, 2);
+  ck_assert_int_eq((int) masterServers->count, 2);
 
   Ms_RemoveServer(&addr, "shutdown 41");
-  ck_assert_int_eq((int) msServers->count, 2);
+  ck_assert_int_eq((int) masterServers->count, 2);
 
   Ms_RemoveServer(&addr, va("shutdown %u", server->challenge));
-  ck_assert_int_eq((int) msServers->count, 1);
+  ck_assert_int_eq((int) masterServers->count, 1);
 
   MasterServer *s = Ms_GetServer(&addr);
   ck_assert_msg(!s, "Server was not NULL");
@@ -185,8 +185,8 @@ static int32_t query_master(const char *cmd, bool dispatch) {
   ck_assert_msg(setsockopt(rx, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != -1,
                 "Failed to set the receive timeout");
 
-  msSock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  ck_assert_msg(msSock != -1, "Failed to create the master socket");
+  masterSock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  ck_assert_msg(masterSock != -1, "Failed to create the master socket");
 
   if (dispatch) {
     char data[256];
@@ -200,8 +200,8 @@ static int32_t query_master(const char *cmd, bool dispatch) {
   const ssize_t received = recv(rx, (char *) buffer, sizeof(buffer), 0);
 
   close(rx);
-  close(msSock);
-  msSock = 0;
+  close(masterSock);
+  masterSock = 0;
 
   if (received == -1) {
     return -1;

@@ -49,8 +49,8 @@ extern Server sv;
 extern ServerStatic svs;
 
 // current client / player edict
-extern ServerClient *svClient;
-extern GameEntity *svPlayer;
+extern ServerClient *serverClient;
+extern GameEntity *serverPlayer;
 
 const char *Sv_StatusString(void);
 const char *Sv_NetaddrToString(const ServerClient *cl);
