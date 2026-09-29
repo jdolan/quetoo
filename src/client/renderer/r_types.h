@@ -211,7 +211,7 @@ typedef struct RenderStage {
   /**
    * @brief The backing collision material stage.
    */
-  const CmStage *cm;
+  const MaterialStage *cm;
 
   /**
    * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
@@ -244,7 +244,7 @@ typedef struct {
   /**
    * @brief The collision material definition.
    */
-  CmMaterial *cm;
+  Material *cm;
 
   /**
    * @brief The layered texture containing the diffusemap, normalmap and specularmap.
@@ -344,7 +344,7 @@ typedef struct {
   /**
    * @brief The collision plane.
    */
-  const CmBspPlane *cm;
+  const CollisionPlane *cm;
 } RenderBspPlane;
 
 /**
@@ -720,7 +720,7 @@ typedef struct RenderBspInlineModel {
   /**
    * @brief The backing entity definition for this inline model.
    */
-  CmEntity *entity;
+  Entity *entity;
 
   /**
    * @brief The head node of this inline model.
@@ -852,7 +852,7 @@ typedef struct RenderSubview {
   /**
    * @brief The face's plane this frame, in world space, for culling.
    */
-  CmBspPlane absPlane;
+  CollisionPlane absPlane;
 
   /**
    * @brief Carries a point or direction from the portal face's frame into the frame of the
@@ -887,7 +887,7 @@ typedef struct {
   /**
    * @brief The entity that defines this light.
    */
-  CmEntity *entity;
+  Entity *entity;
 
   /**
    * @brief The light origin.
@@ -945,7 +945,7 @@ typedef struct {
   /**
    * @brief The target entity for dynamic lights attached to inline model entities, or `NULL`.
    */
-  CmEntity *targetEntity;
+  Entity *targetEntity;
 
   /**
    * @brief The material that emits this light, or `NULL` for a light entity.
@@ -1051,7 +1051,7 @@ typedef struct {
   /**
    * @brief The backing collision BSP model.
    */
-  const CmBsp *cm;
+  const CollisionBsp *cm;
 
   /**
    * @brief The count of planes.
@@ -2406,7 +2406,7 @@ typedef struct RenderView {
   /**
    * @brief The view frustum, for box and sphere culling.
    */
-  CmBspPlane frustum[4];
+  CollisionPlane frustum[4];
 
   /**
    * @brief Draw statistics for the most recent render of this view.
@@ -2469,7 +2469,7 @@ typedef struct {
   /**
    * @brief The blend operators.
    */
-  CmBlend src, dest;
+  MaterialBlend src, dest;
 
   /**
    * @brief The depth write flag.

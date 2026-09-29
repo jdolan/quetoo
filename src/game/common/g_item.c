@@ -132,7 +132,7 @@ const GameItem *G_ClientArmor(const GameClient *cl) {
  */
 static bool G_ItemRestoreOrigin(GameEntity *ent) {
 
-  const CmEntity *origin = gi.EntityValue(ent->def, "origin");
+  const Entity *origin = gi.EntityValue(ent->def, "origin");
   if (!(origin->parsed & ENTITY_VEC3)) {
     return false;
   }
@@ -761,7 +761,7 @@ static void G_DropItem_Think(GameEntity *ent) {
 /**
  * @brief Touch callback that handles item pickup when a player contacts an item entity.
  */
-void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_Ai_InDeveloperMode()) {
     return;
@@ -858,7 +858,7 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
     it->s.origin.z -= it->bounds.mins.z;
   }
 
-  const CmTrace tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, cl->entity, CONTENTS_MASK_SOLID);
+  const CollisionTrace tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, cl->entity, CONTENTS_MASK_SOLID);
 
   it->item = item;
 
@@ -1042,7 +1042,7 @@ InhibitItem G_InhibitItem = G_InhibitItem_Common;
  * properties (Touch, Use, move type, ..).
  */
 static void G_ItemDropToFloor(GameEntity *ent) {
-  CmTrace tr;
+  CollisionTrace tr;
   Vec3 dest;
   bool dropNode = false;
 

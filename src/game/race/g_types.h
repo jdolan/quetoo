@@ -2009,7 +2009,7 @@ struct GameEntity {
   /**
    * @brief Called on entity contact.
    */
-  void (*Touch)(GameEntity *ent, GameEntity *other, const CmTrace *trace);
+  void (*Touch)(GameEntity *ent, GameEntity *other, const CollisionTrace *trace);
 
   /**
    * @brief Called when triggered.
@@ -2134,7 +2134,7 @@ struct GameEntity {
   /**
    * @brief Ground trace result from the last physics frame.
    */
-  CmTrace ground;
+  CollisionTrace ground;
 
   /**
    * @brief Content type of water the entity is submerged in.

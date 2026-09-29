@@ -87,7 +87,7 @@ static SDL_Color liquidTint(void) {
 
   Color color;
 
-  const CmTrace tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
+  const CollisionTrace tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
   if (tr.brush) {
     const char *name = tr.brush->brushSides[0].material->name;
     color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;

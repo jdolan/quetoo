@@ -40,13 +40,13 @@ void teardown(void) {
 
 START_TEST(check_Cm_EntityToInfoString) {
 
-  const CmEntity entity = {
+  const Entity entity = {
     .key = "classname",
     .string = "light",
-    .next = &(CmEntity) {
+    .next = &(Entity) {
       .key = "color",
       .string = "1 1 0",
-      .next = &(CmEntity) {
+      .next = &(Entity) {
         .key = "origin",
         .string = "128 256 512"
       }
@@ -75,7 +75,7 @@ START_TEST(check_Cm_EntityFromInfoString) {
 
   const char *info = "classname\\light\\color\\1 1 0\\origin\\128 256 512";
 
-  CmEntity *entity = Cm_EntityFromInfoString(info);
+  Entity *entity = Cm_EntityFromInfoString(info);
 
   ck_assert_str_eq(Cm_EntityValue(entity, "classname")->string, "light");
   ck_assert_str_eq(Cm_EntityValue(entity, "color")->string, "1 1 0");

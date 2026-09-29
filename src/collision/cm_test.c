@@ -70,9 +70,9 @@ int32_t Cm_SignBitsForNormal(const Vec3 normal) {
 /**
  * @return A constructed plane struct.
  */
-CmBspPlane Cm_Plane(const Vec3 normal, float dist) {
+CollisionPlane Cm_Plane(const Vec3 normal, float dist) {
 
-  return (CmBspPlane) {
+  return (CollisionPlane) {
     .normal = normal,
     .dist = dist,
     .type = Cm_PlaneTypeForNormal(normal),
@@ -83,7 +83,7 @@ CmBspPlane Cm_Plane(const Vec3 normal, float dist) {
 /**
  * @return The plane transformed by the input matrix.
  */
-CmBspPlane Cm_TransformPlane(const Mat4 matrix, const CmBspPlane plane) {
+CollisionPlane Cm_TransformPlane(const Mat4 matrix, const CollisionPlane plane) {
   const Vec4 out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
   return Cm_Plane(out.xyz, out.w);
 }
@@ -91,7 +91,7 @@ CmBspPlane Cm_TransformPlane(const Mat4 matrix, const CmBspPlane plane) {
 /**
  * @return The `point` projected onto `plane`.
  */
-Vec3 Cm_ProjectPointToPlane(const Vec3 point, const CmBspPlane *plane) {
+Vec3 Cm_ProjectPointToPlane(const Vec3 point, const CollisionPlane *plane) {
   const float dist = Cm_DistanceToPlane(point, plane);
   return Vec3_Subtract(point, Vec3_Scale(plane->normal, dist));
 }
@@ -99,11 +99,11 @@ Vec3 Cm_ProjectPointToPlane(const Vec3 point, const CmBspPlane *plane) {
 /**
  * @return `true` if `point` resides inside `brush`, `false` otherwise.
  */
-bool Cm_PointInsideBrush(const Vec3 point, const CmBspBrush *brush) {
+bool Cm_PointInsideBrush(const Vec3 point, const CollisionBrush *brush) {
 
   if (Box3_ContainsPoint(brush->bounds, point)) {
 
-    const CmBspBrushSide *side = brush->brushSides;
+    const CollisionBrushSide *side = brush->brushSides;
     for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
       if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
         return false;
@@ -120,7 +120,7 @@ bool Cm_PointInsideBrush(const Vec3 point, const CmBspBrush *brush) {
  * @return The sidedness of the given bounds relative to the specified plane.
  * If the box straddles the plane, `SIDE_BOTH` is returned.
  */
-int32_t Cm_BoxOnPlaneSide(const Box3 bounds, const CmBspPlane *p) {
+int32_t Cm_BoxOnPlaneSide(const Box3 bounds, const CollisionPlane *p) {
 
   if (AXIAL(p)) {
     if (bounds.mins.xyz[p->type] - p->dist >= 0.f) {
@@ -196,20 +196,20 @@ typedef struct {
   /**
    * @brief The 12 planes defining the box hull faces.
    */
-  CmBspPlane *planes;
+  CollisionPlane *planes;
 
   /**
    * @brief The single brush representing the box.
    */
-  CmBspBrush *brush;
+  CollisionBrush *brush;
 
   /**
    * @brief The single leaf enclosing the box.
    */
-  CmBspLeaf *leaf;
-} CmBox;
+  CollisionLeaf *leaf;
+} CollisionBoxHull;
 
-static CmBox boxHull;
+static CollisionBoxHull boxHull;
 
 /**
  * @brief Appends a brush (6 nodes, 12 planes) opaquely to the primary BSP
@@ -217,7 +217,7 @@ static CmBox boxHull;
  * is never tested by the rest of the collision detection code, as it resides
  * just beyond the parsed size of the map.
  */
-void Cm_InitBoxHull(CmBsp *bsp) {
+void Cm_InitBoxHull(CollisionBsp *bsp) {
 
   if (bsp->numPlanes + 12 > MAX_BSP_PLANES) {
     Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
@@ -267,7 +267,7 @@ void Cm_InitBoxHull(CmBsp *bsp) {
   for (int32_t i = 0; i < 6; i++) {
 
     // fill in planes, two per side
-    CmBspPlane *plane = &boxHull.planes[i * 2];
+    CollisionPlane *plane = &boxHull.planes[i * 2];
     plane->normal = Vec3_Zero();
     plane->normal.xyz[i >> 1] = 1.f;
     plane->signBits = Cm_SignBitsForNormal(plane->normal);
@@ -282,7 +282,7 @@ void Cm_InitBoxHull(CmBsp *bsp) {
     const int32_t s = i & 1;
 
     // fill in nodes, one per side
-    CmBspNode *node = &bsp->nodes[boxHull.headNode + i];
+    CollisionNode *node = &bsp->nodes[boxHull.headNode + i];
     node->plane = bsp->planes + (bsp->numPlanes + i * 2);
     node->children[s] = -1 - bsp->numLeafs;
     if (i != 5) {
@@ -292,7 +292,7 @@ void Cm_InitBoxHull(CmBsp *bsp) {
     }
 
     // fill in brush sides, one per side
-    CmBspBrushSide *side = &bsp->brushSides[bsp->numBrushSides + i];
+    CollisionBrushSide *side = &bsp->brushSides[bsp->numBrushSides + i];
     side->plane = bsp->planes + (bsp->numPlanes + i * 2 + s);
   }
 }
@@ -328,13 +328,13 @@ int32_t Cm_SetBoxHull(const Box3 bounds, const int32_t contents) {
  */
 int32_t Cm_PointLeafnum(const Vec3 p, int32_t headNode) {
 
-  if (!cmBsp.numNodes) {
+  if (!collisionBsp.numNodes) {
     return 0;
   }
 
   int32_t num = headNode;
   while (num >= 0) {
-    const CmBspNode *node = cmBsp.nodes + num;
+    const CollisionNode *node = collisionBsp.nodes + num;
     const float dist = Cm_DistanceToPlane(p, node->plane);
     if (dist < 0.f) {
       num = node->children[1];
@@ -359,7 +359,7 @@ int32_t Cm_PointLeafnum(const Vec3 p, int32_t headNode) {
  */
 int32_t Cm_PointContents(const Vec3 p, int32_t headNode, const Mat4 inverseMatrix) {
 
-  if (!cmBsp.numNodes) {
+  if (!collisionBsp.numNodes) {
     return 0;
   }
 
@@ -371,7 +371,7 @@ int32_t Cm_PointContents(const Vec3 p, int32_t headNode, const Mat4 inverseMatri
 
   const int32_t leafNum = Cm_PointLeafnum(p0, headNode);
 
-  return cmBsp.leafs[leafNum].contents;
+  return collisionBsp.leafs[leafNum].contents;
 }
 
 /**
@@ -403,18 +403,18 @@ typedef struct {
    * @brief Accumulated contents from all touched leafs.
    */
   int32_t contents;
-} CmBoxLeafnumData;
+} CollisionBoxLeafnumData;
 
 /**
  * @brief Recurse the BSP tree from the specified node, accumulating leafs the
  * given box occupies in the data structure.
  */
-static void Cm_BoxLeafnums_r(CmBoxLeafnumData *data, int32_t nodeNum) {
+static void Cm_BoxLeafnums_r(CollisionBoxLeafnumData *data, int32_t nodeNum) {
 
   while (true) {
     if (nodeNum < 0) {
       const int32_t leafNum = -1 - nodeNum;
-      data->contents |= cmBsp.leafs[leafNum].contents;
+      data->contents |= collisionBsp.leafs[leafNum].contents;
 
       if (data->count < data->length) {
         data->list[data->count++] = leafNum;
@@ -423,8 +423,8 @@ static void Cm_BoxLeafnums_r(CmBoxLeafnumData *data, int32_t nodeNum) {
       return;
     }
 
-    const CmBspNode *node = &cmBsp.nodes[nodeNum];
-    const CmBspPlane plane = *node->plane;
+    const CollisionNode *node = &collisionBsp.nodes[nodeNum];
+    const CollisionPlane plane = *node->plane;
     const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);
 
     if (side == SIDE_FRONT) {
@@ -458,14 +458,14 @@ static void Cm_BoxLeafnums_r(CmBoxLeafnumData *data, int32_t nodeNum) {
 size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *topNode,
             int32_t headNode) {
 
-  CmBoxLeafnumData data = {
+  CollisionBoxLeafnumData data = {
     .bounds = bounds,
     .list = list,
     .length = length,
     .topNode = -1
   };
 
-  if (cmBsp.numNodes) {
+  if (collisionBsp.numNodes) {
     Cm_BoxLeafnums_r(&data, headNode);
   }
 
@@ -488,7 +488,7 @@ size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *
  * @return The contents mask of all leafs within the transformed bounds.
  */
 int32_t Cm_BoxContents(const Box3 bounds, int32_t headNode) {
-  CmBoxLeafnumData data = {
+  CollisionBoxLeafnumData data = {
     .bounds = bounds,
     .list = NULL,
     .length = 0,

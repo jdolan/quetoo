@@ -41,10 +41,10 @@ static bool isBrushEntity(const CGameEditorEntity *entity) {
 /**
  * @brief Sets the given entity's origin to where the client is looking.
  */
-static void setEntityOriginFromClientView(CmEntity *entity) {
+static void setEntityOriginFromClientView(Entity *entity) {
 
   Vec3 origin = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
-  const CmTrace tr = cgi.Trace(cgi.view->origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
+  const CollisionTrace tr = cgi.Trace(cgi.view->origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
 
   origin = Vec3_Fmaf(tr.end, editor_gridSize->value, Vec3_Negate(cgi.view->forward));
   origin = Vec3_Quantize(origin, editor_gridSize->value);
@@ -154,7 +154,7 @@ static void didEndEditingWorld(TextView *textView) {
 /**
  * @brief EntityViewDelegate.
  */
-static void didEditEntity(EntityView *view, CmEntity *def) {
+static void didEditEntity(EntityView *view, Entity *def) {
 
   EntityViewController *this = view->delegate.self;
 
@@ -180,7 +180,7 @@ static void didEditEntity(EntityView *view, CmEntity *def) {
 /**
  * @brief EntityViewDelegate.
  */
-static void didEditTeamEntity(EntityView *view, CmEntity *def) {
+static void didEditTeamEntity(EntityView *view, Entity *def) {
 
   EntityViewController *this = view->delegate.self;
 
@@ -308,7 +308,7 @@ static void cycleCandidate(EntityViewController *self, int32_t dir) {
  */
 static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
 
-  CmEntity *e = self->entity ? self->entity->def : NULL;
+  Entity *e = self->entity ? self->entity->def : NULL;
 
   const SDL_Keycode key = event->key.key;
   // Mask out lock keys (Num/Caps/Scroll); their sticky modifier bits otherwise
@@ -339,7 +339,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       case SDLK_V:
         if (SDL_HasClipboardText()) {
           char *info = SDL_GetClipboardText();
-          CmEntity *entity = cgi.EntityFromInfoString(info);
+          Entity *entity = cgi.EntityFromInfoString(info);
           if (entity) {
             setEntityOriginFromClientView(entity);
             cgi.Free(self->created);
@@ -511,7 +511,7 @@ static void viewWillDisappear(ViewController *self) {
  */
 static void createEntity(EntityViewController *self) {
 
-  CmEntity *entity = cgi.SetEntityKeyValue(NULL, "classname", ENTITY_STRING, "light");
+  Entity *entity = cgi.SetEntityKeyValue(NULL, "classname", ENTITY_STRING, "light");
   setEntityOriginFromClientView(entity);
 
   cgi.Free(self->created);
@@ -559,7 +559,7 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
     self->entity = entity;
     self->teamEntity = entity;
 
-    for (CmEntity *e = self->entity->def; e; e = e->next) {
+    for (Entity *e = self->entity->def; e; e = e->next) {
 
       if (!q_strncmp(e->key, "_tb_", 4)) {
         continue;
@@ -588,7 +588,7 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
 
         self->teamEntity = &cgameEditor.entities[teamMaster];
 
-        for (CmEntity *e = self->teamEntity->def; e; e = e->next) {
+        for (Entity *e = self->teamEntity->def; e; e = e->next) {
 
           if (!q_strncmp(e->key, "_tb_", 4)
               || !q_strcmp(e->key, "classname")

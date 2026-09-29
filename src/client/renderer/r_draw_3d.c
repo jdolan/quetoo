@@ -294,7 +294,7 @@ static void R_UpdateLightBounds(const RenderView *view) {
   }
 
   const Vec3 end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-  const CmTrace tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
+  const CollisionTrace tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
 
   const RenderLight *l = view->lights;
   for (int32_t i = 0; i < view->numLights; i++, l++) {

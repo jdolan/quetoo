@@ -28,7 +28,7 @@
  */
 static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val, ident data) {
   (void) table;
-  const CmManifestEntry *entry = (const CmManifestEntry *) val;
+  const ManifestEntry *entry = (const ManifestEntry *) val;
   if (Fs_Exists(entry->path)) {
     if (!Cm_CheckManifestEntry(entry)) {
 
@@ -203,7 +203,7 @@ static void Cl_LoadSounds(void) {
   }
 
   for (int32_t i = 0; i < Cm_Bsp()->numMaterials; i++) {
-    const CmFootsteps *footsteps = &Cm_Bsp()->materials[i]->footsteps;
+    const MaterialFootsteps *footsteps = &Cm_Bsp()->materials[i]->footsteps;
 
     const Asset *sample = footsteps->samples;
     for (int32_t j = 0; j < footsteps->numSamples; j++, sample++) {

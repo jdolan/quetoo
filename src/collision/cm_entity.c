@@ -21,21 +21,21 @@
 
 #include "cm_local.h"
 
-static const CmEntity nullEntity = { 0 };
+static const Entity nullEntity = { 0 };
 
 /**
  * @brief Allocates and returns a new zeroed entity key-value pair.
  */
-CmEntity *Cm_AllocEntity(void) {
-  return Mem_TagMalloc(sizeof(CmEntity), MEM_TAG_COLLISION);
+Entity *Cm_AllocEntity(void) {
+  return Mem_TagMalloc(sizeof(Entity), MEM_TAG_COLLISION);
 }
 
 /**
  * @brief Frees the entity and all subsequent pairs in its linked list.
  */
-void Cm_FreeEntity(CmEntity *entity) {
+void Cm_FreeEntity(Entity *entity) {
 
-  CmEntity *e = entity, *next;
+  Entity *e = entity, *next;
 
   while (e) {
     next = e->next;
@@ -50,12 +50,12 @@ void Cm_FreeEntity(CmEntity *entity) {
 /**
  * @brief Returns a deep copy of the entity linked list.
  */
-CmEntity *Cm_CopyEntity(const CmEntity *entity) {
+Entity *Cm_CopyEntity(const Entity *entity) {
 
-  CmEntity *copy = NULL;
-  for (const CmEntity *in = entity; in; in = in->next) {
+  Entity *copy = NULL;
+  for (const Entity *in = entity; in; in = in->next) {
 
-    CmEntity *out = Cm_AllocEntity();
+    Entity *out = Cm_AllocEntity();
 
     q_strlcpy(out->key, in->key, sizeof(out->key));
     q_strlcpy(out->string, in->string, sizeof(out->string));
@@ -79,11 +79,11 @@ CmEntity *Cm_CopyEntity(const CmEntity *entity) {
  *   Analogous to JavaScript's `Object.assign(dst, src)`.
  * @return A newly allocated entity list; the caller must free with `Cm_FreeEntity`.
  */
-CmEntity *Cm_EntityAssign(const CmEntity *dst, const CmEntity *src) {
+Entity *Cm_EntityAssign(const Entity *dst, const Entity *src) {
 
-  CmEntity *out = Cm_CopyEntity(dst);
+  Entity *out = Cm_CopyEntity(dst);
 
-  for (const CmEntity *s = src; s; s = s->next) {
+  for (const Entity *s = src; s; s = s->next) {
 
     if (!s->parsed) {
       continue;
@@ -93,7 +93,7 @@ CmEntity *Cm_EntityAssign(const CmEntity *dst, const CmEntity *src) {
       continue;
     }
 
-    CmEntity *pair = Cm_AllocEntity();
+    Entity *pair = Cm_AllocEntity();
 
     q_strlcpy(pair->key, s->key, sizeof(pair->key));
     q_strlcpy(pair->string, s->string, sizeof(pair->string));
@@ -113,7 +113,7 @@ CmEntity *Cm_EntityAssign(const CmEntity *dst, const CmEntity *src) {
 /**
  * @brief Parses the string field of an entity pair into its typed fields.
  */
-void Cm_ParseEntity(CmEntity *pair) {
+void Cm_ParseEntity(Entity *pair) {
 
   assert(pair);
   assert(pair->string);
@@ -163,8 +163,8 @@ void Cm_ParseEntity(CmEntity *pair) {
  */
 static Order Cm_SortEntity_cmp(const ident a, const ident b) {
 
-  const CmEntity *m = *(const CmEntity *const *) a;
-  const CmEntity *n = *(const CmEntity *const *) b;
+  const Entity *m = *(const Entity *const *) a;
+  const Entity *n = *(const Entity *const *) b;
 
   if (!q_strcmp(m->key, "classname")) {
     return OrderAscending;
@@ -181,36 +181,36 @@ static Order Cm_SortEntity_cmp(const ident a, const ident b) {
 /**
  * @brief Sorts the entity key-value pairs, placing classname first.
  */
-CmEntity *Cm_SortEntity(CmEntity *entity) {
+Entity *Cm_SortEntity(Entity *entity) {
 
   assert(entity);
   assert(entity != &nullEntity);
 
-  Vector *pairs = $(alloc(Vector), initWithSize, sizeof(CmEntity *));
+  Vector *pairs = $(alloc(Vector), initWithSize, sizeof(Entity *));
 
-  for (CmEntity *e = entity; e; e = e->next) {
+  for (Entity *e = entity; e; e = e->next) {
     $(pairs, add, &e);
   }
 
   $(pairs, sort, Cm_SortEntity_cmp);
 
-  CmEntity *classname = NULL;
+  Entity *classname = NULL;
 
   // now rebuild the linked list
 
   for (size_t i = 0; i < pairs->count; i++) {
 
-    CmEntity *e = VectorValue(pairs, CmEntity *, i);
+    Entity *e = VectorValue(pairs, Entity *, i);
 
     if (i == 0) {
       classname = e;
       classname->prev = NULL;
     } else {
-      e->prev = VectorValue(pairs, CmEntity *, i - 1);
+      e->prev = VectorValue(pairs, Entity *, i - 1);
     }
 
     if (i < pairs->count - 1) {
-      e->next = VectorValue(pairs, CmEntity *, i + 1);
+      e->next = VectorValue(pairs, Entity *, i + 1);
     } else {
       e->next = NULL;
     }
@@ -240,11 +240,11 @@ List *Cm_LoadEntities(const char *entityString) {
 
     if (!q_strcmp("{", token)) {
 
-      CmEntity *entity = NULL;
+      Entity *entity = NULL;
 
       while (true) {
 
-        CmEntity *pair = Cm_AllocEntity();
+        Entity *pair = Cm_AllocEntity();
 
         if (!Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key))) {
           Cm_FreeEntity(pair);
@@ -281,7 +281,7 @@ List *Cm_LoadEntities(const char *entityString) {
 /**
  * @brief Returns the index of the entity in the loaded BSP entities array, or -1 if not found.
  */
-int32_t Cm_EntityNumber(const CmEntity *entity) {
+int32_t Cm_EntityNumber(const Entity *entity) {
 
   for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++) {
     if (Cm_Bsp()->entities[i] == entity) {
@@ -295,9 +295,9 @@ int32_t Cm_EntityNumber(const CmEntity *entity) {
 /**
  * @brief Returns the entity pair matching key, or a null entity if not found.
  */
-const CmEntity *Cm_EntityValue(const CmEntity *entity, const char *key) {
+const Entity *Cm_EntityValue(const Entity *entity, const char *key) {
 
-  for (const CmEntity *e = entity; e; e = e->next) {
+  for (const Entity *e = entity; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
       return e;
     }
@@ -315,12 +315,12 @@ const CmEntity *Cm_EntityValue(const CmEntity *entity, const char *key) {
  * @param value The value string.
  * @return The modified key-value pair.
  */
-CmEntity *Cm_EntitySetKeyValue(CmEntity *entity, const char *key, CmEntityParsed field, const void *value) {
+Entity *Cm_EntitySetKeyValue(Entity *entity, const char *key, EntityParsed field, const void *value) {
 
   assert(entity != &nullEntity);
 
-  CmEntity *e;
-  CmEntity *target = NULL;
+  Entity *e;
+  Entity *target = NULL;
   for (e = entity; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
       target = e;
@@ -373,11 +373,11 @@ CmEntity *Cm_EntitySetKeyValue(CmEntity *entity, const char *key, CmEntityParsed
 /**
  * @brief Returns a Vector of brushes belonging to the given entity.
  */
-Vector *Cm_EntityBrushes(const CmEntity *entity) {
+Vector *Cm_EntityBrushes(const Entity *entity) {
 
-  Vector *brushes = $(alloc(Vector), initWithSize, sizeof(CmBspBrush *));
+  Vector *brushes = $(alloc(Vector), initWithSize, sizeof(CollisionBrush *));
 
-  CmBspBrush *brush = Cm_Bsp()->brushes;
+  CollisionBrush *brush = Cm_Bsp()->brushes;
   for (int32_t i = 0; i < Cm_Bsp()->numBrushes; i++, brush++) {
 
     if (brush->entity == entity) {
@@ -389,12 +389,12 @@ Vector *Cm_EntityBrushes(const CmEntity *entity) {
 }
 
 /**
- * @brief Serializes a `CmEntity` to an info string.
+ * @brief Serializes a `Entity` to an info string.
  */
-char *Cm_EntityToInfoString(const CmEntity *entity) {
+char *Cm_EntityToInfoString(const Entity *entity) {
   char *str = Mem_TagMalloc(MAX_INFO_STRING_STRING, MEM_TAG_COLLISION);
 
-  for (const CmEntity *e = entity; e; e = e->next) {
+  for (const Entity *e = entity; e; e = e->next) {
     InfoString_Set(str, e->key, e->string);
   }
 
@@ -402,17 +402,17 @@ char *Cm_EntityToInfoString(const CmEntity *entity) {
 }
 
 /**
- * @brief Deserializes an info string to a `CmEntity`.
+ * @brief Deserializes an info string to a `Entity`.
  */
-CmEntity *Cm_EntityFromInfoString(const char *str) {
+Entity *Cm_EntityFromInfoString(const char *str) {
 
   if (InfoString_Validate(str)) {
 
-    CmEntity *entity = NULL;
+    Entity *entity = NULL;
     const char *s = str;
 
     do {
-      CmEntity *pair = Cm_AllocEntity();
+      Entity *pair = Cm_AllocEntity();
 
       s = InfoString_Next(s, pair->key, pair->string);
 
@@ -439,12 +439,12 @@ CmEntity *Cm_EntityFromInfoString(const char *str) {
  * definitions (including patchDef2 blocks) for each entity. Entity ordering in
  * the map text must match the entities array.
  */
-void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEntities) {
+void Cm_ParseMapBrushes(const char *mapText, Entity **entities, int32_t numEntities) {
 
   Parser parser = Parse_Init(mapText, PARSER_DEFAULT);
 
   for (int32_t i = 0; i < numEntities; i++) {
-    CmEntity *e = entities[i];
+    Entity *e = entities[i];
 
     const char *brushes = NULL;
     bool inEntity = false;

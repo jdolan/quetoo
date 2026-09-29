@@ -56,7 +56,7 @@ void EmitPlanes(void) {
  */
 void EmitMaterials(void) {
 
-  const Material *m = materials;
+  const MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
     BspMaterial *out = &bspFile.materials[bspFile.numMaterials];
 
@@ -412,7 +412,7 @@ void EndBSPFile(void) {
 /**
  * @brief Allocates a new BSP model entry for the given entity and initializes its face and element offsets.
  */
-BspModel *BeginModel(const Entity *e) {
+BspModel *BeginModel(const MapEntity *e) {
 
   if (bspFile.numModels == MAX_BSP_MODELS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_MODELS\n");

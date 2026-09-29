@@ -92,7 +92,7 @@ typedef struct {
   /**
    * @brief Collision models; [0] is worldspawn, rest are inline models.
    */
-  CmBspModel *cmModels[MAX_MODELS];
+  CollisionModel *cmModels[MAX_MODELS];
 
   /**
    * @brief Config strings enumerating all loaded assets (models, sounds, skins, etc.).
@@ -422,7 +422,7 @@ typedef struct {
   char filename[MAX_QPATH];
 
   /**
-   * @brief Cached map list entries (`CmEntity *`) parsed from `sv_mapList`.
+   * @brief Cached map list entries (`Entity *`) parsed from `sv_mapList`.
    */
   List *list;
 

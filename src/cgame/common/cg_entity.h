@@ -85,7 +85,7 @@ struct CGameEntity {
   /**
    * @brief The backing entity definition.
    */
-  const CmEntity *def;
+  const Entity *def;
 
   /**
    * @brief The entity origin.
@@ -100,12 +100,12 @@ struct CGameEntity {
   /**
    * @brief The entity's target, if any.
    */
-  const CmEntity *target;
+  const Entity *target;
 
   /**
    * @brief The entity's teammate, if any.
    */
-  const CmEntity *team;
+  const Entity *team;
 
   /**
    * @brief Timestamp for next emission.
@@ -129,7 +129,7 @@ extern const size_t cgameNumEntityClasses;
 
 extern Vector *cgameEntities;
 
-CGameEntity *Cg_EntityForDefinition(const CmEntity *e);
+CGameEntity *Cg_EntityForDefinition(const Entity *e);
 void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
 

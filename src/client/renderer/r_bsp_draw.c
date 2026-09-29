@@ -201,7 +201,7 @@ static inline void R_BindBspDrawElements(const RenderView *view,
 /**
  * @brief Returns the cached BSP material-stage pipeline for the given blend state.
  */
-static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend dest, bool depthWrite) {
+static GraphicsPipeline *R_DrawBspMaterialStagePipeline(MaterialBlend src, MaterialBlend dest, bool depthWrite) {
 
   const RenderStagePipeline *p = module.stagePipelines;
   for (int32_t i = 0; i < module.numStagePipelines; i++, p++) {

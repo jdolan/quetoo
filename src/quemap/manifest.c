@@ -156,7 +156,7 @@ static void AddSky(const char *sky) {
 /**
  * @brief Adds the material's assets to the assets list.
  */
-static void AddMaterial(const CmMaterial *material) {
+static void AddMaterial(const Material *material) {
 
 	if (Add(material->diffusemap.path)) {
 		Add(material->path);
@@ -164,7 +164,7 @@ static void AddMaterial(const CmMaterial *material) {
 		Add(material->specularmap.path);
 		Add(material->tintmap.path);
 
-		for (const CmStage *stage = material->stages; stage; stage = stage->next) {
+		for (const MaterialStage *stage = material->stages; stage; stage = stage->next) {
 			Add(stage->asset.path);
 			for (int32_t i = 0; i < stage->animation.numFrames; i++) {
 				Add(stage->animation.frames[i].path);
@@ -183,7 +183,7 @@ static void AddBspMaterials(void) {
 	for (int32_t i = 0; i < bspFile.numMaterials; i++) {
 		const char *name = bspFile.materials[i].name;
 
-		CmMaterial *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
+		Material *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
 
 		AddMaterial(material);
 
@@ -228,7 +228,7 @@ static void AddEntities(void) {
   entities->destroy = (Consumer) Cm_FreeEntity;
 
 	for (const ListNode *node = entities->head; node; node = node->next) {
-		const CmEntity *e = node->element;
+		const Entity *e = node->element;
 		while (e) {
 
 			if (!q_strcmp(e->key, "sound")) {

@@ -50,7 +50,7 @@ static Vec3 Pm_ClipVelocity(const Vec3 in, const Vec3 normal, float bounce) {
 /**
  * @brief Collide with the results of the trace, clipping our velocity along the normal.
  */
-static void Pm_ClipMove(const CmTrace *trace) {
+static void Pm_ClipMove(const CollisionTrace *trace) {
 
   if (trace->ent == NULL) {
     return;
@@ -100,7 +100,7 @@ static float Pm_SlideMove(void) {
     const float dist0 = Vec3_Distance(pos, org0);
 
     // trace to it
-    const CmTrace trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
+    const CollisionTrace trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
     // move to the end position
     pm->s.origin = trace.end;
@@ -134,7 +134,7 @@ static float Pm_SlideMove(void) {
 /**
  * @return True if the downward trace yielded a step, false otherwise.
  */
-static bool Pm_CheckStep(const CmTrace *trace) {
+static bool Pm_CheckStep(const CollisionTrace *trace) {
 
   if (!trace->allSolid) {
     if (trace->ent && trace->plane.normal.z >= PM_STEP_NORMAL) {
@@ -148,7 +148,7 @@ static bool Pm_CheckStep(const CmTrace *trace) {
 /**
  * @brief Moves the player origin to the end of a step-down trace and records the step height.
  */
-static void Pm_StepDown(const CmTrace *trace) {
+static void Pm_StepDown(const CollisionTrace *trace) {
 
   pm->s.origin = trace->end;
   
@@ -175,7 +175,7 @@ static void Pm_StepSlideMove(void) {
   if ((pm->s.flags & PMF_ON_GROUND) && pm->cmd.up <= 0) {
 
     const Vec3 down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-    const CmTrace stepDown = Pm_Trace(pm->s.origin, down, pm->bounds);
+    const CollisionTrace stepDown = Pm_Trace(pm->s.origin, down, pm->bounds);
 
     if (Pm_CheckStep(&stepDown)) {
       Pm_StepDown(&stepDown);
@@ -187,7 +187,7 @@ static void Pm_StepSlideMove(void) {
   const Vec3 vel1 = pm->s.velocity;
 
   const Vec3 up = Vec3_Fmaf(org0, PM_STEP_HEIGHT, Vec3_Up());
-  const CmTrace stepUp = Pm_Trace(org0, up, pm->bounds);
+  const CollisionTrace stepUp = Pm_Trace(org0, up, pm->bounds);
 
   if (stepUp.fraction == 1.f) {
 
@@ -200,7 +200,7 @@ static void Pm_StepSlideMove(void) {
 
       // settle to the new ground, keeping the step if and only if it was successful
       const Vec3 down = Vec3_Fmaf(pm->s.origin, PM_STEP_HEIGHT + PM_GROUND_DIST, Vec3_Down());
-      const CmTrace stepDown = Pm_Trace(pm->s.origin, down, pm->bounds);
+      const CollisionTrace stepDown = Pm_Trace(pm->s.origin, down, pm->bounds);
 
       if (Pm_CheckStep(&stepDown)) {
         // Quake2 trick jump secret sauce
@@ -449,7 +449,7 @@ static void Pm_CheckGround(void) {
   }
 
   // seek the ground
-  CmTrace trace = pmoveLocals.ground = Pm_Trace(pm->s.origin, pos, pm->bounds);
+  CollisionTrace trace = pmoveLocals.ground = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
   // if we hit an upward facing plane, make it our ground
   if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
@@ -560,7 +560,7 @@ static void Pm_CheckDuck(void) {
     if (!isDucking && wantsDucking) {
       pm->s.flags |= PMF_DUCKED;
     } else if (isDucking && !wantsDucking) {
-      const CmTrace trace = Pm_Trace(pm->s.origin, pm->s.origin, pm->bounds);
+      const CollisionTrace trace = Pm_Trace(pm->s.origin, pm->s.origin, pm->bounds);
 
       if (!trace.allSolid && !trace.startSolid) {
         pm->s.flags &= ~PMF_DUCKED;
@@ -679,7 +679,7 @@ static void Pm_CheckLadder(void) {
   }
 
   const Vec3 pos = Vec3_Fmaf(pm->s.origin, 4.f, pmoveLocals.forwardXy);
-  const CmTrace trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
+  const CollisionTrace trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
   if (trace.contents & CONTENTS_LADDER) {
     pm->s.flags |= PMF_ON_LADDER;
@@ -714,7 +714,7 @@ static bool Pm_CheckWaterJump(void) {
   }
 
   Vec3 pos = Vec3_Fmaf(pm->s.origin, 16.f, pmoveLocals.forward);
-  CmTrace trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
+  CollisionTrace trace = Pm_Trace(pm->s.origin, pos, pm->bounds);
 
   if (trace.contents & CONTENTS_MASK_SOLID) {
 

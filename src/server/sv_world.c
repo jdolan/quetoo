@@ -106,7 +106,7 @@ static void Sv_InitWorld(void) {
 /**
  * @brief Initializes the world and spawns all entities for the current map.
  */
-void Sv_SpawnEntities(const char *name, const CmEntity *mapListEntry) {
+void Sv_SpawnEntities(const char *name, const Entity *mapListEntry) {
 
   Sv_InitWorld();
 
@@ -124,7 +124,7 @@ void Sv_SpawnEntities(const char *name, const CmEntity *mapListEntry) {
         numEntities, sv_maxEntities->integer);
     }
 
-    CmEntity **defs = Mem_TagMalloc(sizeof(CmEntity *) * numEntities, MEM_TAG_SERVER);
+    Entity **defs = Mem_TagMalloc(sizeof(Entity *) * numEntities, MEM_TAG_SERVER);
     for (int32_t i = 0; i < numEntities; i++) {
       defs[i] = Cm_CopyEntity(Cm_Bsp()->entities[i]);
     }
@@ -355,7 +355,7 @@ static int32_t Sv_HullForEntity(const GameEntity *ent) {
     }
 
     case SOLID_BSP: {
-      const CmBspModel *mod = sv.cmModels[ent->s.model1];
+      const CollisionModel *mod = sv.cmModels[ent->s.model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
@@ -431,7 +431,7 @@ typedef struct {
   Vec3 start, end;
   Box3 bounds; // size of the moving object
   Box3 absBounds; // enclose the test object along entire move
-  CmTrace trace;
+  CollisionTrace trace;
   const GameEntity *skip;
   int32_t contents;
 } ServerTrace;
@@ -482,7 +482,7 @@ static void Sv_ClipTraceToEntity(ServerTrace *trace, const GameEntity *ent) {
 
   const ServerEntity *sent = &sv.entities[ent->s.number];
 
-  CmTrace tr;
+  CollisionTrace tr;
   
   if (Mat4_Equal(sent->matrix, Mat4_Identity())) {
     tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, headNode, trace->contents);
@@ -521,7 +521,7 @@ static void Sv_ClipTraceToEntities(ServerTrace *trace) {
  * The skipped edict, and edicts owned by him, are explicitly not checked.
  * This prevents players from clipping against their own projectiles, etc.
  */
-CmTrace Sv_Trace(const Vec3 start, const Vec3 end, const Box3 bounds,
+CollisionTrace Sv_Trace(const Vec3 start, const Vec3 end, const Box3 bounds,
                     const GameEntity *skip, int32_t contents) {
 
   ServerTrace trace = {
@@ -545,7 +545,7 @@ CmTrace Sv_Trace(const Vec3 start, const Vec3 end, const Box3 bounds,
 /**
  * @brief Tests a clip of the specified translation against the specified entity.
  */
-CmTrace Sv_Clip(const Vec3 start, const Vec3 end, const Box3 bounds,
+CollisionTrace Sv_Clip(const Vec3 start, const Vec3 end, const Box3 bounds,
                    const GameEntity *test, int32_t contents) {
 
   ServerTrace trace = {

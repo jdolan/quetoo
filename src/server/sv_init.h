@@ -23,7 +23,7 @@
 
 #include "sv_types.h"
 
-void Sv_InitServer(const char *name, const CmEntity *mapListEntry, ServerState state);
+void Sv_InitServer(const char *name, const Entity *mapListEntry, ServerState state);
 void Sv_ShutdownServer(const char *msg);
 
 #if defined(__SV_LOCAL_H__)

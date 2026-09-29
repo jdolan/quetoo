@@ -111,7 +111,7 @@ typedef struct BrushSide {
   /**
    * @brief All brush sides will have a valid winding.
    */
-  CmWinding *winding;
+  Winding *winding;
 
   /**
    * @brief Points to the original side from which this split side was derived.
@@ -178,7 +178,7 @@ typedef enum {
 extern MapFormat mapFormat;
 
 extern int32_t numEntities;
-extern Entity entities[MAX_BSP_ENTITIES];
+extern MapEntity entities[MAX_BSP_ENTITIES];
 
 extern Plane planes[MAX_BSP_PLANES];
 extern int32_t numPlanes;

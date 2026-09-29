@@ -38,7 +38,7 @@
 /**
  * @brief The common half of every race trigger's setup.
  */
-static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, GameEntity *, const CmTrace *)) {
+static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, GameEntity *, const CollisionTrace *)) {
 
   if (ent->wait == 0.f) {
     ent->wait = RACE_TRIGGER_WAIT;
@@ -68,7 +68,7 @@ static bool G_trigger_race_Accepts(GameEntity *ent, GameEntity *other) {
 /**
  * @brief Arms, starts or restarts a run, as the start's mode asks.
  */
-static void G_trigger_race_start_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_start_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!G_trigger_race_Accepts(ent, other)) {
     return;
@@ -117,7 +117,7 @@ static void G_trigger_race_start(GameEntity *ent) {
 /**
  * @brief Counts the checkpoint when it is the next one in sequence.
  */
-static void G_trigger_race_checkpoint_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_checkpoint_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Checkpoint(other->client, ent->count)) {
     G_UseTargets(ent, other);
@@ -136,7 +136,7 @@ static void G_trigger_race_checkpoint_Touch(GameEntity *ent, GameEntity *other, 
  */
 static void G_trigger_race_checkpoint(GameEntity *ent) {
 
-  const CmEntity *cp = gi.EntityValue(ent->def, "cp");
+  const Entity *cp = gi.EntityValue(ent->def, "cp");
 
   // an unreadable number is recorded as an impossible one, so that the course
   // is spoiled rather than validated around the trigger this frees
@@ -161,7 +161,7 @@ static const char *G_trigger_race_Label(const GameEntity *ent) {
 /**
  * @brief Records the split and tells the racer how it compares.
  */
-static void G_trigger_race_split_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_split_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Split(other->client, ent->count, G_trigger_race_Label(ent))) {
     G_UseTargets(ent, other);
@@ -182,7 +182,7 @@ static void G_trigger_race_split_Touch(GameEntity *ent, GameEntity *other, const
  */
 static void G_trigger_race_split(GameEntity *ent) {
 
-  const CmEntity *split = gi.EntityValue(ent->def, "split");
+  const Entity *split = gi.EntityValue(ent->def, "split");
 
   if (!G_Race_AddSplit(split->parsed & ENTITY_INTEGER ? split->integer : 0)) {
     G_Warn("%s needs split, an integer from 1 through %d\n", etos(ent), RACE_MAX_CHECKPOINTS);
@@ -198,7 +198,7 @@ static void G_trigger_race_split(GameEntity *ent) {
 /**
  * @brief Advances the run to the stage and remembers where it restarts.
  */
-static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) &&
       G_Race_Stage(other->client, ent->count, G_trigger_race_Label(ent), ent->targetEnt)) {
@@ -222,7 +222,7 @@ static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const
  */
 static void G_trigger_race_stage(GameEntity *ent) {
 
-  const CmEntity *stage = gi.EntityValue(ent->def, "stage");
+  const Entity *stage = gi.EntityValue(ent->def, "stage");
   const char *restart = gi.EntityValue(ent->def, "restart_target")->nullableString;
 
   const bool complete = (stage->parsed & ENTITY_INTEGER) && restart && *restart;
@@ -263,7 +263,7 @@ void G_Race_ResolveStages(void) {
 /**
  * @brief Ends the run, submits the record, and says how it went.
  */
-static void G_trigger_race_finish_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_finish_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Finish(other->client)) {
     G_UseTargets(ent, other);
@@ -327,7 +327,7 @@ static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
  */
 static void G_func_race_checkpoint_gate(GameEntity *ent) {
 
-  const CmEntity *cp = gi.EntityValue(ent->def, "cp");
+  const Entity *cp = gi.EntityValue(ent->def, "cp");
   const char *mode = gi.EntityValue(ent->def, "mode")->nullableString;
 
   if (!(cp->parsed & ENTITY_INTEGER) || cp->integer < 1 || cp->integer > RACE_MAX_CHECKPOINTS) {

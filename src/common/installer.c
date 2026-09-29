@@ -552,9 +552,9 @@ static void Installer_WritePending(const char *pending) {
  * @details Must be called from the module thread without holding the mutex.
  */
 static void Installer_FindPending(const HashTable *table, ident key, ident value, ident data) {
-  CmManifestEntry **out = data;
+  ManifestEntry **out = data;
   if (*out) { return; } // already found
-  CmManifestEntry *e = value;
+  ManifestEntry *e = value;
   if (e->status == ENTRY_PENDING) {
     e->status = ENTRY_DOWNLOADING;
     *out = e;
@@ -562,7 +562,7 @@ static void Installer_FindPending(const HashTable *table, ident key, ident value
 }
 
 static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident value, ident data) {
-  const CmManifestEntry *entry = value;
+  const ManifestEntry *entry = value;
   if (entry->status == ENTRY_STALE) {
     char fullPath[MAX_OS_PATH];
     q_snprintf(fullPath, sizeof(fullPath), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
@@ -575,15 +575,15 @@ static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident v
 }
 
 static void Installer_MarkPending(const HashTable *table, ident key, ident value, ident data) {
-  ((CmManifestEntry *) value)->status = ENTRY_PENDING;
+  ((ManifestEntry *) value)->status = ENTRY_PENDING;
 }
 
 static void Installer_MarkStale(const HashTable *table, ident key, ident value, ident data) {
-  ((CmManifestEntry *) value)->status = ENTRY_STALE;
+  ((ManifestEntry *) value)->status = ENTRY_STALE;
 }
 
 static void Installer_WriteManifestEntry(const HashTable *table, ident key, ident value, ident data) {
-  const CmManifestEntry *entry = value;
+  const ManifestEntry *entry = value;
   fprintf((FILE *) data, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
 }
 
@@ -615,10 +615,10 @@ typedef struct {
 
 static void Installer_CompareEntry(const HashTable *table, ident key, ident value, ident data) {
   InstallerCompare *ctx = data;
-  CmManifestEntry *re = value;
-  const CmManifestEntry *le = ctx->local ? $(ctx->local, get, re->path) : NULL;
+  ManifestEntry *re = value;
+  const ManifestEntry *le = ctx->local ? $(ctx->local, get, re->path) : NULL;
   if (le) {
-    ((CmManifestEntry *) le)->status = ENTRY_CURRENT;
+    ((ManifestEntry *) le)->status = ENTRY_CURRENT;
     if (q_strcmp(le->hash, re->hash) == 0) {
       re->status = ENTRY_CURRENT;
     }
@@ -650,7 +650,7 @@ static void Installer_Commit(void) {
  * @brief Downloads a single data file to the data directory.
  * @return True on success, false on failure.
  */
-static bool Installer_DownloadFile(const CmManifestEntry *entry) {
+static bool Installer_DownloadFile(const ManifestEntry *entry) {
 
   // URL-encode the path (pass-through '/' as safe)
   const char *src = entry->path;
@@ -837,9 +837,9 @@ static int Installer_DownloadThread(void *unused) {
       break;
     }
 
-    const CmManifestEntry *entry = NULL;
+    const ManifestEntry *entry = NULL;
     {
-      CmManifestEntry *found = NULL;
+      ManifestEntry *found = NULL;
       $(module.remoteManifest, enumerate, Installer_FindPending, &found);
       if (found) {
         q_strlcpy(in->currentFile, found->path, sizeof(in->currentFile));
@@ -860,7 +860,7 @@ static int Installer_DownloadThread(void *unused) {
     if (ok) {
       in->filesDone++;
       in->kbytesDone += (int32_t) ((entry->size + 1023) / 1024);
-      ((CmManifestEntry *) entry)->status = ENTRY_CURRENT;
+      ((ManifestEntry *) entry)->status = ENTRY_CURRENT;
     } else if (in->state == INSTALLER_DOWNLOADING_DATA) {
       in->state = INSTALLER_ERROR;
       q_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);

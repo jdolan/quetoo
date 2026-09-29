@@ -91,9 +91,9 @@ void R_AddDecal(RenderView *view, const RenderDecal *decal) {
  * `MEM_TAG_POLYLIB` at shutdown.
  */
 static _Thread_local struct {
-  CmWinding *decal;
-  CmWinding *face;
-  CmWinding *a, *b;
+  Winding *decal;
+  Winding *face;
+  Winding *a, *b;
   int32_t maxFacePoints;
   int32_t capacity;
 } decalWindings;
@@ -247,13 +247,13 @@ static void R_ClipDecalToFace(const RenderView *view,
 
   R_ReserveDecalWindings(face->patch ? 4 * (nEdge - 1) : face->numVertexes);
 
-  CmWinding *dw = decalWindings.decal;
+  Winding *dw = decalWindings.decal;
   dw->numPoints = 4;
   for (int32_t i = 0; i < dw->numPoints; i++) {
     dw->points[i] = Vec3_Add(positions[i], n);
   }
 
-  CmWinding *fw = decalWindings.face;
+  Winding *fw = decalWindings.face;
   if (face->patch) {
     fw->numPoints = 0;
     for (int32_t i = 0; i < nEdge; i++)
@@ -271,7 +271,7 @@ static void R_ClipDecalToFace(const RenderView *view,
     }
   }
 
-  const CmWinding *w = Cm_ClipWindingToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
+  const Winding *w = Cm_ClipWindingToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
                                                       decalWindings.a, decalWindings.b,
                                                       decalWindings.capacity);
 
@@ -367,7 +367,7 @@ static void R_ClipDecalToNode(const RenderView *view,
     R_ClipDecalToFace(view, face, &faceProjected, normal, tangent, bitangent, decals);
   }
 
-  const CmBspPlane *plane = node->plane->cm;
+  const CollisionPlane *plane = node->plane->cm;
   const float dist = Cm_DistanceToPlane(decal->origin, plane);
 
   if (dist > decal->radius) {

@@ -202,9 +202,9 @@ static void BuildVoxelVoxels(void) {
     Com_Error(ERROR_FATAL, "MAX_BSP_VOXELS\n");
   }
 
-  voxels.voxels = Mem_TagMalloc(voxels.numVoxels * sizeof(Voxel), (MemTag) MEM_TAG_VOXEL);
+  voxels.voxels = Mem_TagMalloc(voxels.numVoxels * sizeof(MapVoxel), (MemTag) MEM_TAG_VOXEL);
 
-  Voxel *v = voxels.voxels;
+  MapVoxel *v = voxels.voxels;
 
   for (int32_t z = 0; z < voxels.size.z; z++) {
     for (int32_t y = 0; y < voxels.size.y; y++) {
@@ -242,7 +242,7 @@ static void DebugVoxels(void) {
     return;
   }
 
-  Voxel *v = voxels.voxels;
+  MapVoxel *v = voxels.voxels;
   for (size_t i = 0; i < voxels.numVoxels; i++, v++) {
 
     Fs_Print(file, "{\n");
@@ -280,7 +280,7 @@ size_t BuildVoxels(void) {
  */
 void LightVoxel(int32_t voxelNum) {
 
-  Voxel *voxel = &voxels.voxels[voxelNum];
+  MapVoxel *voxel = &voxels.voxels[voxelNum];
 
   Vec3 points[9];
   points[0] = voxel->origin;
@@ -298,7 +298,7 @@ void LightVoxel(int32_t voxelNum) {
 
     for (size_t j = 0; j < lengthof(points); j++) {
 
-      const CmTrace toVoxel = Light_Trace(light->origin, points[j], 0, CONTENTS_MASK_SHADOW);
+      const CollisionTrace toVoxel = Light_Trace(light->origin, points[j], 0, CONTENTS_MASK_SHADOW);
       if (toVoxel.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, toVoxel.end)) {
         $(voxel->lights, set, light, light);
         break;
@@ -313,7 +313,7 @@ void LightVoxel(int32_t voxelNum) {
  */
 void FloodLights(void) {
 
-  Voxel *v = voxels.voxels;
+  MapVoxel *v = voxels.voxels;
 
   for (size_t i = 0; i < lights->count; i++) {
     Light *l = VectorValue(lights, Light *, i);
@@ -526,7 +526,7 @@ void AssignBlockVoxels(void) {
 
     Progress("Assigning block voxels", 100.f * i / voxels.numVoxels);
 
-    const Voxel *voxel = &voxels.voxels[i];
+    const MapVoxel *voxel = &voxels.voxels[i];
 
     const size_t numLeafs = Cm_BoxLeafnums(voxel->bounds, leafs, lengthof(leafs), NULL, headNode);
 
@@ -596,7 +596,7 @@ void AssignBlockVoxels(void) {
  */
 void CausticsVoxel(int32_t voxelNum) {
 
-  Voxel *voxel = &voxels.voxels[voxelNum];
+  MapVoxel *voxel = &voxels.voxels[voxelNum];
   
   const int32_t contents = Cm_BoxContents(voxel->bounds, 0);
 
@@ -643,7 +643,7 @@ void CausticsVoxel(int32_t voxelNum) {
         continue;
       }
       
-      const CmTrace trace = Light_Trace(points[j], liquidPoint, 0, CONTENTS_MASK_SHADOW);
+      const CollisionTrace trace = Light_Trace(points[j], liquidPoint, 0, CONTENTS_MASK_SHADOW);
       if (trace.fraction == 1.f) {
         const float strength = Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
         const Vec3 dir = Vec3_Normalize(Vec3_Subtract(liquidPoint, points[j]));
@@ -662,7 +662,7 @@ void CausticsVoxel(int32_t voxelNum) {
  */
 void ExposureVoxel(int32_t voxelNum) {
 
-  Voxel *voxel = &voxels.voxels[voxelNum];
+  MapVoxel *voxel = &voxels.voxels[voxelNum];
   
   // Use dome vectors to sample hemisphere for better coverage
   static const Vec3 dome_vectors[] = DOME_UNIFORM_16X;
@@ -674,7 +674,7 @@ void ExposureVoxel(int32_t voxelNum) {
     const Vec3 dir = Vec3_Scale(dome_vectors[i], MAX_WORLD_AXIAL);
     const Vec3 end = Vec3_Add(start, dir);
     
-    const CmTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SHADOW);
+    const CollisionTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SHADOW);
     
     // If we hit sky or nothing, count as exposed
     if (trace.surface & SURF_SKY || trace.fraction == 1.f) {
@@ -699,7 +699,7 @@ void ExposureVoxel(int32_t voxelNum) {
  */
 void OccludeVoxel(int32_t voxelNum) {
 
-  Voxel *voxel = &voxels.voxels[voxelNum];
+  MapVoxel *voxel = &voxels.voxels[voxelNum];
 
   static const Vec3 sphere_vectors[] = SPHERE_UNIFORM_32X;
 
@@ -710,7 +710,7 @@ void OccludeVoxel(int32_t voxelNum) {
     const Vec3 dir = Vec3_Scale(sphere_vectors[i], OCCLUSION_RADIUS);
     const Vec3 end = Vec3_Add(start, dir);
 
-    const CmTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID);
+    const CollisionTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID);
     fractionSum += trace.fraction;
   }
 
@@ -788,7 +788,7 @@ void EmitVoxels(void) {
 
   voxels.numLightIndices = 0;
 
-  Voxel *v = voxels.voxels;
+  MapVoxel *v = voxels.voxels;
   int32_t maxLights = 0;
   size_t totalLights = 0, litVoxels = 0;
 
@@ -843,7 +843,7 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const Voxel *voxel = &voxels.voxels[index];
+        const MapVoxel *voxel = &voxels.voxels[index];
 
         const Vec3 caustics = Vec3_Clamp(voxel->caustics, Vec3_Negate(Vec3_One()), Vec3_One());
         *outData++ = (byte)((caustics.x * 0.5f + 0.5f) * 255.f);
@@ -861,7 +861,7 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const Voxel *voxel = &voxels.voxels[index];
+        const MapVoxel *voxel = &voxels.voxels[index];
 
         *outLightData++ = voxel->lightsOffset;
         *outLightData++ = voxel->lightsCount;
@@ -877,7 +877,7 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const Voxel *voxel = &voxels.voxels[index];
+        const MapVoxel *voxel = &voxels.voxels[index];
 
         int32_t *indices = outLightIndices;
         VoxelLightIndices collector = {
@@ -902,7 +902,7 @@ void EmitVoxels(void) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
 
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
-        const Voxel *voxel = &voxels.voxels[index];
+        const MapVoxel *voxel = &voxels.voxels[index];
 
         *outOcclusion++ = (byte)(Clampf01(voxel->occlusion) * 255.f);
         *outOcclusion++ = (byte)(Clampf01(voxel->exposure) * 255.f);
@@ -920,7 +920,7 @@ void EmitVoxels(void) {
  */
 void FreeVoxels(void) {
 
-  Voxel *v = voxels.voxels;
+  MapVoxel *v = voxels.voxels;
   for (size_t i = 0; i < voxels.numVoxels; i++, v++) {
     release(v->lights);
   }

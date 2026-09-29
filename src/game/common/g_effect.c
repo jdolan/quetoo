@@ -32,7 +32,7 @@
  */
 void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, bool splash) {
 
-  CmTrace tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
+  CollisionTrace tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
   if (!tr.brushSide) {
     tr = gi.Trace(pos2, pos1, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
   }
@@ -89,7 +89,7 @@ void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, boo
  */
 bool G_ImmediateWall(GameEntity *ent, GameEntity *projectile) {
 
-  const CmTrace tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
+  const CollisionTrace tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
                                  ent, CONTENTS_MASK_SOLID);
 
   return tr.fraction < 1.0;

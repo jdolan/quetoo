@@ -218,13 +218,13 @@ static void R_LoadMeshTangents(RenderModel *mod) {
   const RenderMeshFace *face = mod->mesh->faces;
   for (int32_t i = 0; i < mod->mesh->numFaces; i++, face++) {
 
-    CmVertex *vertexes = Mem_Malloc(sizeof(CmVertex) * face->numVertexes);
+    WindingVertex *vertexes = Mem_Malloc(sizeof(WindingVertex) * face->numVertexes);
 
     for (int32_t j = 0; j < mod->mesh->numFrames; j++) {
 
       RenderMeshVertex *v = face->vertexes + face->numVertexes * j;
       for (int32_t k = 0; k < face->numVertexes; k++, v++) {
-        vertexes[k] = (CmVertex) {
+        vertexes[k] = (WindingVertex) {
           .position = &v->position,
           .normal = &v->normal,
           .tangent = &v->tangent,

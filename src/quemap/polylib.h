@@ -25,6 +25,6 @@
 
 #include "quemap.h"
 
-bool WindingIsSmall(const CmWinding *w);
-bool WindingIsLarge(const CmWinding *w);
+bool WindingIsSmall(const Winding *w);
+bool WindingIsLarge(const Winding *w);
 void FreeWindings(void);

@@ -100,7 +100,7 @@ void Cg_AddFlares(void) {
       assert(flare->entity);
     }
 
-    CmBspPlane plane = *(flare->face->plane->cm);
+    CollisionPlane plane = *(flare->face->plane->cm);
 
     if (flare->entity) {
       flare->out.origin = Mat4_Transform(matrix, flare->in.origin);

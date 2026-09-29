@@ -82,7 +82,7 @@ static void G_trigger_multiple_Use(GameEntity *ent, GameEntity *other,
 /**
  * @brief Handles use activation of a `trigger_multiple`, delegating to the think function.
  */
-static void G_trigger_multiple_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_multiple_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->client) {
     const bool isProjectile = other->owner && other->owner->client;
@@ -224,7 +224,7 @@ void G_trigger_always(GameEntity *ent) {
 /**
  * @brief Handles touch events on a `trigger_push`, applying velocity to the touching entity.
  */
-static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other->moveType == MOVE_TYPE_WALK || other->moveType == MOVE_TYPE_BOUNCE) {
 
@@ -305,7 +305,7 @@ void G_trigger_push(GameEntity *ent) {
 
   ent->Touch = G_trigger_push_Touch;
 
-  const CmEntity *sound = gi.EntityValue(ent->def, "sound");
+  const Entity *sound = gi.EntityValue(ent->def, "sound");
   if (sound->parsed & ENTITY_STRING) {
     ent->moveInfo.soundStart = gi.SoundIndex(sound->string);
   } else {
@@ -351,7 +351,7 @@ static void G_trigger_hurt_Use(GameEntity *ent, GameEntity *other, GameEntity *a
 /**
  * @brief Handles touch events on a `trigger_hurt`, dealing damage to entities that enter it.
  */
-static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->takeDamage) { // deal with items that land on us
 
@@ -439,7 +439,7 @@ void G_trigger_hurt(GameEntity *ent) {
 /**
  * @brief Handles touch events on a `trigger_exec`, executing a console command or script.
  */
-static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (ent->timestamp > gameLevel.time) {
     return;

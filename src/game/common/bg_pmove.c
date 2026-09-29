@@ -118,7 +118,7 @@ PMoveLocals pmoveLocals;
  * @brief Mark the specified entity as touched. This enables the game module to
  * detect player -> entity interactions.
  */
-void Pm_TouchEntity(const CmTrace *trace) {
+void Pm_TouchEntity(const CollisionTrace *trace) {
 
   if (trace->ent == NULL) {
     return;
@@ -143,7 +143,7 @@ void Pm_TouchEntity(const CmTrace *trace) {
  * it is adjusted so that the trace begins outside of the solid it impacts.
  * @return The actual trace.
  */
-CmTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+CollisionTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
   const float offsets[] = { 0.f, 1.f, -1.f };
 
@@ -152,7 +152,7 @@ CmTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
     for (uint32_t j = 0; j < lengthof(offsets); j++) {
       for (uint32_t k = 0; k < lengthof(offsets); k++) {
         const Vec3 point = Vec3_Add(start, MakeVec3(offsets[i], offsets[j], offsets[k]));
-        const CmTrace trace = pm->Trace(point, end, bounds);
+        const CollisionTrace trace = pm->Trace(point, end, bounds);
         
         if (!trace.allSolid) {
 

@@ -444,7 +444,7 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
 /**
  * @brief Play a sloppy sound when impacting the world.
  */
-static void G_ClientGiblet_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_ClientGiblet_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   // G_TouchOccupy passes no trace, and is the only way a giblet reaches a player
   if (ent->damage && other->client && other != ent->owner && other->takeDamage) {
@@ -1931,7 +1931,7 @@ void G_ClientDisconnect(GameClient *cl) {
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static CmTrace G_ClientMove_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+static CollisionTrace G_ClientMove_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
   const GameEntity *self = gameLevel.currentEntity;
 
   return gi.Trace(start, end, bounds, self, self->clipMask);
@@ -2032,7 +2032,7 @@ static void G_ClientMove(GameClient *cl, PMoveCmd *cmd) {
     if (pm.s.flags & PMF_JUMPED) {
       if (gameLevel.time - 100 > cl->jumpTime) {
         Vec3 angles, forward, point;
-        CmTrace tr;
+        CollisionTrace tr;
 
         angles = MakeVec3(0.0, ent->s.angles.y, 0.0);
         Vec3_Vectors(angles, &forward, NULL, NULL);
@@ -2141,7 +2141,7 @@ static void G_ClientMove(GameClient *cl, PMoveCmd *cmd) {
   // touch every object we collided with objects
   if (ent->moveType != MOVE_TYPE_NO_CLIP) {
 
-    const CmTrace *touched = pm.touched;
+    const CollisionTrace *touched = pm.touched;
     for (int32_t i = 0; i < pm.numTouched; i++, touched++) {
       GameEntity *other = touched->ent;
 

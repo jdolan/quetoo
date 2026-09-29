@@ -123,7 +123,7 @@ typedef struct {
 /**
  * @brief Returns the cached mesh stage pipeline for the specified blend function.
  */
-static GraphicsPipeline *R_MeshStagePipeline(CmBlend src, CmBlend dest) {
+static GraphicsPipeline *R_MeshStagePipeline(MaterialBlend src, MaterialBlend dest) {
 
   RenderStagePipeline *p = module.stagePipelines;
   for (int32_t i = 0; i < module.numStagePipelines; i++, p++) {
@@ -289,7 +289,7 @@ static void R_DrawMeshEntityShellEffect(const RenderView *view, const RenderEnti
 
   const float radius = (e->effects & EF_WEAPON) ? .25f : 1.f;
 
-  const CmStage cm = {
+  const MaterialStage cm = {
     .flags = STAGE_COLOR | STAGE_SHELL
         | STAGE_SCALE_S | STAGE_SCALE_T
         | STAGE_SCROLL_S | STAGE_SCROLL_T

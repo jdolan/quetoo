@@ -24,7 +24,7 @@
 /**
  * @brief Sets or creates the key-value pair with the given key on the entity.
  */
-void SetValueForKey(Entity *ent, const char *key, const char *value) {
+void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
 
   for (EntityKeyValue *e = ent->values; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
@@ -44,7 +44,7 @@ void SetValueForKey(Entity *ent, const char *key, const char *value) {
 /**
  * @brief Returns the value for the given key on the entity, or def if not found.
  */
-const char *ValueForKey(const Entity *ent, const char *key, const char *def) {
+const char *ValueForKey(const MapEntity *ent, const char *key, const char *def) {
 
   for (const EntityKeyValue *e = ent->values; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
@@ -58,7 +58,7 @@ const char *ValueForKey(const Entity *ent, const char *key, const char *def) {
 /**
  * @brief Returns the `Vec3` value for the given key on the entity, or def if not found or not parseable.
  */
-Vec3 VectorForKey(const Entity *ent, const char *key, const Vec3 def) {
+Vec3 VectorForKey(const MapEntity *ent, const char *key, const Vec3 def) {
 
   const char *value = ValueForKey(ent, key, NULL);
   if (value) {

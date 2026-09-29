@@ -269,7 +269,7 @@ static void Sv_InitEntities(ServerState state) {
  * strings."  We hand off the entity string to the game module, which will
  * load the rest.
  */
-static void Sv_LoadMedia(const char *name, const CmEntity *mapListEntry, ServerState state) {
+static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerState state) {
 
   strcpy(sv.name, name);
   strcpy(sv.configStrings[CS_MESSAGE], name);
@@ -335,7 +335,7 @@ static void Sv_LoadMedia(const char *name, const CmEntity *mapListEntry, ServerS
  * clearing state. Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.
  */
-void Sv_InitServer(const char *name, const CmEntity *mapListEntry, ServerState state) {
+void Sv_InitServer(const char *name, const Entity *mapListEntry, ServerState state) {
   extern void Cl_Disconnect(void);
 
   Com_Debug(DEBUG_SERVER, "Sv_InitServer: %s (%d)\n", name, state);

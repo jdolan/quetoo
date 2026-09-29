@@ -92,11 +92,11 @@ static uint32_t G_Race_HashParams(const PMoveParams *params) {
  * @brief Reads `key_N` for N from `first` up, as long as they are there: a
  * value is at most `MAX_BSP_ENTITY_VALUE` long, so a list is one key per time.
  */
-static uint16_t G_Race_ParseTimes(const CmEntity *def, const char *key, int32_t first, uint32_t *times) {
+static uint16_t G_Race_ParseTimes(const Entity *def, const char *key, int32_t first, uint32_t *times) {
   uint16_t count = 0;
 
   for (int32_t n = first; n <= RACE_MAX_CHECKPOINTS; n++) {
-    const CmEntity *time = gi.EntityValue(def, va("%s_%d", key, n));
+    const Entity *time = gi.EntityValue(def, va("%s_%d", key, n));
 
     if (!(time->parsed & ENTITY_INTEGER)) {
       break;
@@ -243,11 +243,11 @@ static void G_Race_PublishRecords(void) {
 /**
  * @brief Reads one block, or says why it is not a record.
  */
-static bool G_Race_ParseRecord(const CmEntity *def, int32_t index) {
+static bool G_Race_ParseRecord(const Entity *def, int32_t index) {
 
   const char *guid = gi.EntityValue(def, "guid")->nullableString;
   const char *movementName = gi.EntityValue(def, "movement")->nullableString;
-  const CmEntity *time = gi.EntityValue(def, "time");
+  const Entity *time = gi.EntityValue(def, "time");
 
   PMovement movement;
 
@@ -312,7 +312,7 @@ void G_Race_LoadRecords(void) {
 
   int32_t index = 0;
   for (const ListNode *node = defs->head; node; node = node->next, index++) {
-    CmEntity *def = node->element;
+    Entity *def = node->element;
     G_Race_ParseRecord(def, index);
     gi.FreeEntity(def);
   }

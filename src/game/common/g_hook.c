@@ -241,7 +241,7 @@ void G_Hook_Init(void) {
 /**
  * @brief Touch callback for the hook projectile; attaches to structural surfaces or deals damage and detaches on hitting enemies.
  */
-static void G_HookProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_HookProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other == ent->owner) {
     return;

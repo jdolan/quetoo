@@ -32,5 +32,5 @@ void EmitEntities(void);
 int32_t EmitNodes(const Tree *tree);
 void BeginBSPFile(void);
 void EndBSPFile(void);
-BspModel *BeginModel(const Entity *e);
+BspModel *BeginModel(const MapEntity *e);
 void EndModel(BspModel *mod);

@@ -280,7 +280,7 @@ static void G_ClientDeathCam(GameClient *cl) {
   // that grazing a wall doesn't permanently arrest the camera
   Vec3 origin = cl->deathCamOrigin;
 
-  const CmTrace tr = gi.Trace(ent->s.origin, origin, Box3f(16.f, 16.f, 16.f), ent,
+  const CollisionTrace tr = gi.Trace(ent->s.origin, origin, Box3f(16.f, 16.f, 16.f), ent,
                                  CONTENTS_MASK_CLIP_PLAYER);
   if (!tr.startSolid && !tr.allSolid) {
     origin = tr.end;

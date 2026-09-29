@@ -45,7 +45,7 @@ bool noTjunc = false;
 /**
  * @brief Compiles the world model entity, performing CSG, BSP, portal, and face generation.
  */
-static void ProcessWorldModel(const Entity *e, BspModel *out) {
+static void ProcessWorldModel(const MapEntity *e, BspModel *out) {
 
   CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
 
@@ -92,7 +92,7 @@ static void ProcessWorldModel(const Entity *e, BspModel *out) {
 /**
  * @brief Compiles a brush entity as an inline BSP model (e.g. `func_door`, `func_plat`).
  */
-static void ProcessInlineModel(const Entity *e, BspModel *out) {
+static void ProcessInlineModel(const MapEntity *e, BspModel *out) {
 
   CsgBrush *brushes = MakeBrushes(e->firstBrush, e->numBrushes);
   if (!noCsg) {
@@ -132,7 +132,7 @@ static void ProcessInlineModel(const Entity *e, BspModel *out) {
 static void ProcessModels(void) {
 
   for (int32_t i = 0; i < numEntities; i++) {
-    const Entity *e = entities + i;
+    const MapEntity *e = entities + i;
 
     if (!e->numBrushSides) {
       continue;

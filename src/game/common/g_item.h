@@ -57,7 +57,7 @@
   GameEntity *G_TossQuadDamage(GameClient *cl);
   GameEntity *G_TossInvisibility(GameClient *cl);
   GameEntity *G_TossInvulnerability(GameClient *cl);
-  void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace);
+  void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace);
   void G_InitItems(void);
 
 #endif

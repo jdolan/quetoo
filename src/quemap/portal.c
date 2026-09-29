@@ -179,10 +179,10 @@ void MakeHeadnodePortals(Tree *tree) {
 /**
  * @brief Returns the full-plane winding for the node clipped by all of its ancestors.
  */
-static CmWinding *BaseWindingForNode(const Node *node) {
+static Winding *BaseWindingForNode(const Node *node) {
 
   const Plane *plane = &planes[node->plane];
-  CmWinding *w = Cm_WindingForPlane(plane->normal, plane->dist);
+  Winding *w = Cm_WindingForPlane(plane->normal, plane->dist);
 
   // clip by all the parents
   for (const Node *n = node->parent; n && w;) {
@@ -210,7 +210,7 @@ void MakeNodePortal(Node *node) {
   double dist;
   int32_t side;
 
-  CmWinding *w = BaseWindingForNode(node);
+  Winding *w = BaseWindingForNode(node);
 
   // clip the portal by all the other portals in the node
   for (const Portal *p = node->portals; p && w; p = p->next[side]) {
@@ -272,7 +272,7 @@ void SplitNodePortals(Node *node) {
 
     // cut the portal into two portals, one on each side of the cut plane
 
-    CmWinding *frontWinding, *backWinding;
+    Winding *frontWinding, *backWinding;
     Cm_SplitWinding(p->winding, plane->normal, plane->dist, SIDE_EPSILON, &frontWinding, &backWinding);
 
     if (frontWinding && WindingIsSmall(frontWinding)) {
@@ -409,7 +409,7 @@ static void FloodPortals_r(Node *node, int32_t occupied) {
 /**
  * @return True if the entity can be placed in a valid leaf beneath `headNode`, false otherwise.
  */
-static bool PlaceOccupant(Node *headNode, const Vec3 origin, const Entity *occupant) {
+static bool PlaceOccupant(Node *headNode, const Vec3 origin, const MapEntity *occupant) {
 
   Node *node = headNode;
   while (node->plane != PLANE_LEAF) {
@@ -441,7 +441,7 @@ bool FloodEntities(Tree *tree) {
 
   bool insideOccupied = false;
 
-  const Entity *ent = &entities[1];
+  const MapEntity *ent = &entities[1];
   for (int32_t i = 1; i < numEntities; i++, ent++) {
 
     // Skip brush entities, we're only interested in point entities for flooding

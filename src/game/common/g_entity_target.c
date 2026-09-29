@@ -363,7 +363,7 @@ static void G_ballistics_Lightning(const GameBallisticsType *type, GameEntity *e
  */
 static void G_ballistics_Giblets(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
 
-  const CmTrace tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+  const CollisionTrace tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
 
   G_Giblets(&(const GameGiblets) {
     .origin = tr.fraction < 1.f ? ent->s.origin : start,

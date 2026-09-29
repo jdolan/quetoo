@@ -81,7 +81,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
 	assert(data);
 	assert(len > 0);
 
-	CmManifestEntry *entry = Mem_Malloc(sizeof(*entry));
+	ManifestEntry *entry = Mem_Malloc(sizeof(*entry));
 	q_strlcpy(entry->path, path, sizeof(entry->path));
 	entry->size = (int64_t) len;
 	Cm_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
@@ -92,7 +92,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
 /**
  * @brief Verifies a manifest entry against the local file on disk.
  */
-bool Cm_CheckManifestEntry(const CmManifestEntry *entry) {
+bool Cm_CheckManifestEntry(const ManifestEntry *entry) {
 
 	assert(entry);
 
@@ -122,13 +122,13 @@ static int Cm_ManifestKeyCmp(const void *a, const void *b) {
 typedef struct {
 	const char **keys;
 	size_t count;
-} CmManifestKeys;
+} ManifestKeys;
 
 /**
  * @brief HashTableEnumerator callback that collects keys.
  */
 static void Cm_CollectKey(const HashTable *table, ident key, ident value, ident data) {
-	CmManifestKeys *collector = data;
+	ManifestKeys *collector = data;
 	collector->keys[collector->count++] = key;
 }
 
@@ -145,13 +145,13 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
 
 	const size_t count = manifest->count;
 	const char **keys = Mem_Malloc(count * sizeof(char *));
-	CmManifestKeys collector = { .keys = keys };
+	ManifestKeys collector = { .keys = keys };
 
 	$(manifest, enumerate, Cm_CollectKey, &collector);
 	qsort(keys, count, sizeof(char *), Cm_ManifestKeyCmp);
 
 	for (size_t k = 0; k < count; k++) {
-		const CmManifestEntry *entry = $(manifest, get, (void *) keys[k]);
+		const ManifestEntry *entry = $(manifest, get, (void *) keys[k]);
 		Fs_Print(file, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
 	}
 
@@ -210,7 +210,7 @@ HashTable *Cm_ParseManifest(const char *data, size_t len) {
 		}
 		*space2 = '\0';
 
-		CmManifestEntry *entry = Mem_Malloc(sizeof(*entry));
+		ManifestEntry *entry = Mem_Malloc(sizeof(*entry));
 		q_strlcpy(entry->hash, line, sizeof(entry->hash));
 		entry->size = (int64_t) strtoll(space1 + 1, NULL, 10);
 		q_strlcpy(entry->path, space2 + 1, sizeof(entry->path));

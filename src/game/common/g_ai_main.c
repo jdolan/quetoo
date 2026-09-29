@@ -118,7 +118,7 @@ static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
     return false;
   }
 
-  CmTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   if (tr.ent == other) {
     return true;
@@ -867,7 +867,7 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   Vec3_Vectors(MakeVec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
   const Vec3 end = Vec3_Fmaf(ent->s.origin, Box3_Size(ent->bounds).x * 2.0f, forward);
-  const CmTrace tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
+  const CollisionTrace tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
 
   bool blocked = tr.fraction < 1.0f;
 
@@ -875,7 +875,7 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   if (!blocked) {
     const Vec3 dropStart = end;
     const Vec3 dropEnd = Vec3_Subtract(dropStart, MakeVec3(0, 0, PM_STEP_HEIGHT * 4.f));
-    const CmTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+    const CollisionTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
     blocked = groundTr.fraction >= 1.0f;
   }
 
@@ -905,7 +905,7 @@ static GameEntity *aiCurrentEntity;
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static CmTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
   const GameEntity *ent= aiCurrentEntity;
 
@@ -997,7 +997,7 @@ static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
 
     // something is blocking our destination
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-    const CmTrace tr = gi.Trace(eyeOrigin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
+    const CollisionTrace tr = gi.Trace(eyeOrigin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
 
     if (tr.fraction < 1.0f) {
       goal->distress += 0.25f;

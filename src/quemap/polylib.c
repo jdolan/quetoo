@@ -25,7 +25,7 @@
 /**
  * @brief True if the winding would be crunched out of existence by vertex snapping.
  */
-bool WindingIsSmall(const CmWinding *w) {
+bool WindingIsSmall(const Winding *w) {
 
   int32_t validEdges = 0;
   for (int32_t i = 0; i < w->numPoints; i++) {
@@ -42,7 +42,7 @@ bool WindingIsSmall(const CmWinding *w) {
 /**
  * @brief Returns true if the winding still has one of the points from basewinding for plane
  */
-bool WindingIsLarge(const CmWinding *w) {
+bool WindingIsLarge(const Winding *w) {
 
   for (int32_t i = 0; i < w->numPoints; i++) {
     for (int32_t j = 0; j < 3; j++)

@@ -28,13 +28,17 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
 `Cl_AddEntity` it wraps.
 
 - The type prefix is the subsystem name, not the function prefix. It is spelled out where the
-  subsystem is one word (`Render`, `Client`, `Server`, `Game`, `Sound`) and abbreviated where it is
-  not (`CGame` for the client game, `PMove` for player movement, `Cm` for collision).
-- An extern global MUST spell its subsystem prefix as the type names do: `render`, `client`, `server`,
-  `sound`, `game`, `cgame`, `pmove`, `cm`, and `master` and `net` for those two libraries. The prefix
-  names the subsystem that owns the global, not its type: `clientView` is a `RenderView`. It MUST
-  NOT use the function prefix (`rConfig`) or an underscore (`g_level`). An underscore after a short
-  prefix marks a cvar, and only a cvar.
+  subsystem is one word (`Render`, `Client`, `Server`, `Game`, `Sound`, `Collision`) and abbreviated
+  where it is not (`CGame` for the client game, `PMove` for player movement).
+- The collision library also holds data that is not collision data. Those types take a bare name:
+  `Material`, `MaterialStage`, `Entity`, `Winding`, `ManifestEntry`, `Voxel`. The compiler's own
+  types for the same concepts take `Map`: `MapMaterial` (which wraps a `Material`), `MapEntity`,
+  `MapVoxel`.
+- An extern global MUST spell its subsystem prefix as the type names do: `render`, `client`,
+  `server`, `sound`, `game`, `cgame`, `pmove`, `collision`, and `master` and `net` for those two
+  libraries. The prefix names the subsystem that owns the global, not its type: `clientView` is a
+  `RenderView`. It MUST NOT use the function prefix (`rConfig`) or an underscore (`g_level`). An
+  underscore after a short prefix marks a cvar, and only a cvar.
 - A file static SHOULD NOT carry a subsystem prefix, because its file is its namespace:
   `aiNodes`, `gameplayLevel`, `world`. Its name MUST NOT match a local or parameter in that file.
 - Locals and parameters MUST NOT carry a subsystem prefix. Name them for what they hold.
@@ -127,7 +131,7 @@ Changing these breaks something this repository cannot see.
   `sv_maxClients` and `sv_map`, and the master is deployed separately. Renaming one requires
   redeploying the master, and servers are missing from listings until they upgrade.
 - **Material keywords are a content format.** `alpha_test`, `no_draw`, `phong` and the rest in
-  `cm_surfaceList` and the `Cm_LoadMaterial` parser are how every `.mat` file in `quetoo-data` and
+  `surfaceHints` and the `Cm_LoadMaterial` parser are how every `.mat` file in `quetoo-data` and
   in user maps is written. They are not identifiers and MUST NOT be renamed with code.
 - **GLSL has its own namespace.** Shader struct and function names are independent of the C names
   they mirror. A comment naming a C type should track the C name; the shader's own types should not.

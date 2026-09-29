@@ -401,7 +401,7 @@ static bool EmitHull(const BspModel *mod, const int32_t *group, int32_t count, D
     points[corners[i]].used = true;
   }
 
-  CmWinding *w = Cm_AllocWinding(numPoints);
+  Winding *w = Cm_AllocWinding(numPoints);
   int32_t *source = Mem_Malloc(numPoints * sizeof(int32_t));
   HullEdgePoint *edgePoints = Mem_Malloc(numPoints * sizeof(HullEdgePoint));
 

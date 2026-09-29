@@ -52,7 +52,7 @@ static bool G_TakesDamage(GameEntity *ent) {
  */
 static bool G_ImmediateImpact(GameEntity *ent, GameEntity *projectile) {
 
-  const CmTrace tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
+  const CollisionTrace tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
                                  ent, CONTENTS_MASK_SOLID);
 
   if (tr.fraction == 1.0) {
@@ -72,7 +72,7 @@ static bool G_ImmediateImpact(GameEntity *ent, GameEntity *projectile) {
 /**
  * @brief Used to add generic bubble trails to shots.
  */
-static void G_BubbleTrail(const Vec3 start, CmTrace *tr, float freq) {
+static void G_BubbleTrail(const Vec3 start, CollisionTrace *tr, float freq) {
   Vec3 dir, pos;
 
   if (Vec3_Equal(tr->end, start)) {
@@ -86,7 +86,7 @@ static void G_BubbleTrail(const Vec3 start, CmTrace *tr, float freq) {
   if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
     tr->end = pos;
   } else {
-    const CmTrace trace = gi.Trace(pos, start, Box3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
+    const CollisionTrace trace = gi.Trace(pos, start, Box3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
     tr->end = trace.end;
   }
 
@@ -128,7 +128,7 @@ static void G_Tracer(const Vec3 start, const Vec3 end) {
 /**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
-static void G_BulletImpact(const CmTrace *trace) {
+static void G_BulletImpact(const CollisionTrace *trace) {
 
   if (trace->surface & SURF_ALPHA_TEST) {
     return;
@@ -145,7 +145,7 @@ static void G_BulletImpact(const CmTrace *trace) {
 /**
  * @brief Touch callback for the blaster projectile; deals energy damage and emits an impact effect.
  */
-static void G_BlasterProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_BlasterProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other == ent->owner) {
     return;
@@ -227,7 +227,7 @@ void G_BlasterProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
 /**
  * @brief Touch callback for nail projectiles.
  */
-static void G_NailProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_NailProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other == ent->owner) {
     return;
@@ -309,7 +309,7 @@ void G_NailProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 star
  */
 void G_BulletProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
-  CmTrace tr = gi.Trace(emitter->s.origin, start, Box3f(1.f, 1.f, 1.f), emitter, CONTENTS_MASK_CLIP_PROJECTILE);
+  CollisionTrace tr = gi.Trace(emitter->s.origin, start, Box3f(1.f, 1.f, 1.f), emitter, CONTENTS_MASK_CLIP_PROJECTILE);
   if (tr.fraction == 1.0) {
     Vec3 angles, forward, right, up, end;
 
@@ -429,7 +429,7 @@ static void G_GrenadeProjectile_Explode(GameEntity *ent) {
 /**
  * @brief Touch callback for the grenade projectile; bounces off structures or explodes on contact with damageable entities.
  */
-void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other == ent->owner) {
     return;
@@ -466,7 +466,7 @@ void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace
   G_GrenadeProjectile_Explode(ent);
 }
 
-static void G_QuakeGrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_QuakeGrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other == ent->owner) {
     return;
@@ -659,7 +659,7 @@ void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, Vec3 const
  */
 #define QUAKE_ROCKET 1
 
-static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
   const bool quakeRocket = (ent->spawnFlags & QUAKE_ROCKET) != 0;
   const uint32_t directMod = ent->mod ?: (quakeRocket ? MOD_QUAKE_ROCKET : MOD_ROCKET);
   const uint32_t splashMod = ent->mod ?: (quakeRocket ? MOD_QUAKE_ROCKET_SPLASH : MOD_ROCKET_SPLASH);
@@ -787,7 +787,7 @@ void G_QuakeRocketProjectile(GameEntity *emitter, GameEntity *attacker, const Ve
 /**
  * @brief Touch callback for the hyperblaster projectile; deals energy damage and handles hyperblaster climb mechanics.
  */
-static void G_HyperblasterProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_HyperblasterProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other == ent->owner) {
     return;
@@ -965,7 +965,7 @@ static void G_LightningProjectile_Think(GameEntity *ent) {
   Vec3 forward, right, up;
   Vec3 start, end;
   Vec3 waterStart;
-  CmTrace tr;
+  CollisionTrace tr;
 
   if (G_LightningProjectile_Expire(ent)) {
     G_FreeEntity(ent);
@@ -1145,7 +1145,7 @@ static void G_BeamProjectile_Think(GameEntity *ent) {
   const Vec3 start = Vec3_Fmaf(emitter->s.origin, 8.f, dir);
   const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, dir);
 
-  const CmTrace tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
   if (gameLevel.time >= ent->timestamp && G_TakesDamage(tr.ent)) {
 
@@ -1248,7 +1248,7 @@ void G_RailgunProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
 
   pos = start;
 
-  CmTrace tr = gi.Trace(emitter->s.origin, pos, Box3_Zero(), emitter, CONTENTS_MASK_CLIP_PROJECTILE);
+  CollisionTrace tr = gi.Trace(emitter->s.origin, pos, Box3_Zero(), emitter, CONTENTS_MASK_CLIP_PROJECTILE);
   if (tr.fraction < 1.0) {
     pos = emitter->s.origin;
   }
@@ -1328,7 +1328,7 @@ void G_RailgunProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
 /**
  * @brief Touch callback for the BFG projectile; deals energy and radius blast damage on impact.
  */
-static void G_BfgProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_BfgProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other == ent->owner) {
     return;

@@ -34,7 +34,7 @@ bool R_CullBox(const RenderView *view, const Box3 bounds) {
     return false;
   }
 
-  const CmBspPlane *plane = view->frustum;
+  const CollisionPlane *plane = view->frustum;
   for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
 
     const Vec3 corner = MakeVec3(plane->normal.x >= 0.f ? bounds.maxs.x : bounds.mins.x,
@@ -62,7 +62,7 @@ bool R_CullSphere(const RenderView *view, const Vec3 point, const float radius) 
     return false;
   }
 
-  const CmBspPlane *plane = view->frustum;
+  const CollisionPlane *plane = view->frustum;
   for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
     const float dist = Cm_DistanceToPlane(point, plane);
     if (dist < -radius) {
@@ -82,7 +82,7 @@ void R_UpdateFrustum(RenderView *view) {
     return;
   }
 
-  CmBspPlane *p = view->frustum;
+  CollisionPlane *p = view->frustum;
 
   float hs = sinf(Radians(view->fov.x));
   float hc = cosf(Radians(view->fov.x));

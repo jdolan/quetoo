@@ -102,7 +102,7 @@ static const char *G_Intermission_MapAt(const List *list, int32_t index) {
     return NULL;
   }
 
-  return gi.EntityValue((const CmEntity *) node->element, "name")->string;
+  return gi.EntityValue((const Entity *) node->element, "name")->string;
 }
 
 /**
@@ -140,7 +140,7 @@ static void G_Intermission_SelectMaps(void) {
     }
 
     for (const ListNode *node = list->head; node; node = node->next) {
-      gi.FreeEntity((CmEntity *) node->element);
+      gi.FreeEntity((Entity *) node->element);
     }
 
     release(list);

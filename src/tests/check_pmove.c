@@ -49,9 +49,9 @@ static void *testGroundEnt = (void *) (intptr_t) 1;
 /**
  * @brief A world that is nothing but a floor at z = 0.
  */
-static CmTrace Test_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+static CollisionTrace Test_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
-  CmTrace trace = { .fraction = 1.f, .end = end };
+  CollisionTrace trace = { .fraction = 1.f, .end = end };
 
   const float from = start.z + bounds.mins.z;
   const float to = end.z + bounds.mins.z;

@@ -65,7 +65,7 @@ Face *MergeFaces(Face *a, Face *b) {
   }
 
   const Plane *plane = &planes[a->plane];
-  CmWinding *w = Cm_MergeWindings(a->w, b->w, plane->normal);
+  Winding *w = Cm_MergeWindings(a->w, b->w, plane->normal);
   if (!w) {
     return NULL;
   }
@@ -118,7 +118,7 @@ static bool VertexGridEqualFunc(const ident a_, const ident b_) {
 /**
  * @brief Emits a vertex array for the given face.
  */
-static int32_t EmitFaceVertexes(const Face *face, const CmWinding *w) {
+static int32_t EmitFaceVertexes(const Face *face, const Winding *w) {
   const BrushSide *brushSide = face->brushSide;
 
   const Vec3 sdir = brushSide->axis[0].xyz;
@@ -179,7 +179,7 @@ BspFace *EmitFace(const Face *face) {
   assert(face->brushSide->material >= 0);
   assert(face->brushSide->out);
 
-  CmWinding *w = Cm_AllocWinding(face->w->numPoints);
+  Winding *w = Cm_AllocWinding(face->w->numPoints);
 
   for (int32_t i = 0; i < face->w->numPoints; i++) {
     const Vec3 p = face->w->points[i];
@@ -195,7 +195,7 @@ BspFace *EmitFace(const Face *face) {
   }
 
   if (w->numPoints < 3) {
-    const Material *mat = &materials[face->brushSide->material];
+    const MapMaterial *mat = &materials[face->brushSide->material];
     Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->cm->name, vtos(Cm_WindingCenter(face->w)));
     Cm_FreeWinding(w);
     return NULL;
@@ -205,7 +205,7 @@ BspFace *EmitFace(const Face *face) {
   const int32_t numElements = Cm_ElementsForWinding(w, elements);
 
   if (numElements != (int32_t) lengthof(elements)) {
-    const Material *mat = &materials[face->brushSide->material];
+    const MapMaterial *mat = &materials[face->brushSide->material];
     Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(Cm_WindingCenter(w)));
   }
 
@@ -435,7 +435,7 @@ static void PhongVertex(const BspFace *face, BspVertex *v, float phongCosine) {
        * are more reliable.
        */
 
-      CmWinding *w = $(phongBrushSideWindings, get, (ident) s);
+      Winding *w = $(phongBrushSideWindings, get, (ident) s);
       if (!w) {
         continue;
       }
@@ -527,7 +527,7 @@ void PhongShading(const BspModel *mod) {
 
   phongModel = mod;
 
-  const Entity *entity = &entities[mod->entity];
+  const MapEntity *entity = &entities[mod->entity];
   const float phongAngle = atof(ValueForKey(entity, "phong", "60"));
 
   phongCosine = cosf(Radians(phongAngle));
@@ -561,11 +561,11 @@ static void TangentVectors_(BspModel *model) {
     numElements += face->numElements;
   }
 
-  CmVertex *cm = Mem_Malloc(sizeof(CmVertex) * numVertexes);
+  WindingVertex *cm = Mem_Malloc(sizeof(WindingVertex) * numVertexes);
 
   BspVertex *v = vertexes;
   for (int32_t i = 0; i < numVertexes; i++, v++) {
-    cm[i] = (CmVertex) {
+    cm[i] = (WindingVertex) {
       .position = &v->position,
       .normal = &v->normal,
       .tangent = &v->tangent,

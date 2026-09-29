@@ -43,7 +43,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    const CmEntity *e = cgameEditor.entities[i].def;
+    const Entity *e = cgameEditor.entities[i].def;
     if (!e) {
       continue;
     }
@@ -80,7 +80,7 @@ static Vec4 Cg_AddEditorEntity_Light(CGameEditorEntity *edit) {
   if (team) {
     const int32_t master = Cg_FindTeamMaster("light", team);
     if (master != -1) {
-      const CmEntity *e = cgameEditor.entities[master].def;
+      const Entity *e = cgameEditor.entities[master].def;
       light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
       light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
       light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
@@ -103,7 +103,7 @@ static Vec4 Cg_AddEditorEntity_Light(CGameEditorEntity *edit) {
 /**
  * @brief Resolves the current world position of a material light, which follows its brush entity.
  */
-static Vec3 Cg_EditorMaterialLightOrigin(const CmMaterialLight *l) {
+static Vec3 Cg_EditorMaterialLightOrigin(const MaterialLight *l) {
 
   if (l->model == 0) {
     return l->origin;
@@ -129,7 +129,7 @@ static Vec3 Cg_EditorMaterialLightOrigin(const CmMaterialLight *l) {
  * @brief Resolves the color of a material light, resolving and caching the default color of its
  * material when the stage does not specify one.
  */
-static Vec3 Cg_EditorMaterialLightColor(int32_t material, const CmStage *stage) {
+static Vec3 Cg_EditorMaterialLightColor(int32_t material, const MaterialStage *stage) {
 
   if (!Vec3_Equal(stage->light.color, Vec3_Zero())) {
     return stage->light.color;
@@ -153,9 +153,9 @@ static void Cg_AddEditorMaterialLights(void) {
   }
 
   for (size_t i = 0; i < cgameEditor.materialLights->count; i++) {
-    const CmMaterialLight *l = VectorElement(cgameEditor.materialLights, CmMaterialLight, i);
+    const MaterialLight *l = VectorElement(cgameEditor.materialLights, MaterialLight, i);
 
-    const CmStage *stage = cgi.MaterialLightStage(cgameEditor.materials[l->material]);
+    const MaterialStage *stage = cgi.MaterialLightStage(cgameEditor.materials[l->material]);
     if (!stage) {
       continue;
     }
@@ -180,14 +180,14 @@ static void Cg_LoadEditorMaterialLights(void) {
   const RenderBspModel *bsp = cgi.WorldModel()->bsp;
   const int32_t numMaterials = Maxi(1, bsp->numMaterials);
 
-  cgameEditor.materials = cgi.Malloc(sizeof(CmMaterial *) * numMaterials, MEM_TAG_CGAME_LEVEL);
+  cgameEditor.materials = cgi.Malloc(sizeof(Material *) * numMaterials, MEM_TAG_CGAME_LEVEL);
   for (int32_t i = 0; i < bsp->numMaterials; i++) {
     cgameEditor.materials[i] = bsp->materials[i]->cm;
   }
 
   cgameEditor.materialLightColors = cgi.Malloc(sizeof(Vec3) * numMaterials, MEM_TAG_CGAME_LEVEL);
 
-  cgameEditor.materialLights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
+  cgameEditor.materialLights = $(alloc(Vector), initWithSize, sizeof(MaterialLight));
   cgi.MaterialLights(bsp->cm->file, cgameEditor.materials, -1, cgameEditor.materialLights);
 }
 
@@ -213,16 +213,16 @@ static void Cg_FreeEditorMaterialLights(void) {
  * @brief Places the material light previews of the given material again, after an edit to its
  * light stage, and resets its default color.
  */
-void Cg_UpdateEditorMaterialLights(const CmMaterial *material) {
+void Cg_UpdateEditorMaterialLights(const Material *material) {
 
   if (!cgameEditor.materialLights) {
     return;
   }
 
-  Vector *lights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
+  Vector *lights = $(alloc(Vector), initWithSize, sizeof(MaterialLight));
 
   for (size_t i = 0; i < cgameEditor.materialLights->count; i++) {
-    const CmMaterialLight *l = VectorElement(cgameEditor.materialLights, CmMaterialLight, i);
+    const MaterialLight *l = VectorElement(cgameEditor.materialLights, MaterialLight, i);
     if (cgameEditor.materials[l->material] != material) {
       $(lights, add, (ident) l);
     }
@@ -365,7 +365,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       if (isSelected || q_strcmp(classname, "worldspawn")) {
         const Color color = isSelected ? color_red : Color4fv(debugColor);
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
-          const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
+          const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
           Cg_DrawEditorBrush(brush->bounds, e->matrix, color);
         }
       }
@@ -602,9 +602,9 @@ size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t ou
       const Vec3 modelEnd = Mat4_Transform(inverse, end);
 
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
+        const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
 
-        const CmTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
+        const CollisionTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
 
         if (tr.startSolid || tr.fraction >= fraction) {
           continue;
@@ -668,9 +668,9 @@ CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
       const Vec3 modelEnd = Mat4_Transform(inverse, end);
 
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
+        const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
 
-        const CmTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
+        const CollisionTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
 
         if (tr.startSolid || tr.fraction >= out.trace.fraction) {
           continue;
@@ -694,7 +694,7 @@ CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
       for (int32_t j = 0; j < mesh->numFaces; j++) {
         if (mesh->faces[j].material) {
           out.ent = edit;
-          out.trace = (CmTrace) {
+          out.trace = (CollisionTrace) {
             .fraction = frac,
             .end = Vec3_Mix(start, end, frac),
             .material = mesh->faces[j].material->cm,

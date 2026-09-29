@@ -297,7 +297,7 @@ static void Cg_UpdateThirdPerson(const PlayerState *ps) {
   origin = Vec3_Fmaf(origin, offset.y, right);
   origin = Vec3_Fmaf(origin, offset.x, forward);
 
-  const CmTrace tr = cgi.Trace(cgi.view->origin, origin, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+  const CollisionTrace tr = cgi.Trace(cgi.view->origin, origin, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
   cgi.view->origin = tr.end;
 
   point = Vec3_Subtract(point, cgi.view->origin);
@@ -512,11 +512,11 @@ static void Cg_UpdateAngles(const PlayerState *ps0, const PlayerState *ps1) {
  */
 static void Cg_UpdateAmbient(void) {
 
-  const CmEntity *worldspawn = editor->value
+  const Entity *worldspawn = editor->value
   ? cgameEditor.entities[0].def
   : cgi.WorldModel()->bsp->cm->entities[0];
 
-  const CmEntity *ambient = cgi.EntityValue(worldspawn, "ambient");
+  const Entity *ambient = cgi.EntityValue(worldspawn, "ambient");
 
   if (ambient->parsed & ENTITY_VEC3) {
     cgi.view->ambient = ambient->vec3;

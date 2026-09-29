@@ -25,7 +25,7 @@
 /**
  * @brief Handles touch events on a `misc_teleporter`, warping the touching entity to the destination.
  */
-static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
 #if defined(G_HOOK)
   // a grappling hook shouldn't reach through teleporters: detach a hook
@@ -284,7 +284,7 @@ static void G_misc_fireball_Think(GameEntity *ent) {
 /**
  * @brief Handles touch events on a fireball projectile, dealing damage to entities it strikes.
  */
-static void G_misc_fireball_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_misc_fireball_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (gameLevel.time - ent->touchTime > 500) {
     ent->touchTime = gameLevel.time;

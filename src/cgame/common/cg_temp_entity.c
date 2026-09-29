@@ -182,7 +182,7 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
   // draw bbox representation
   const Box3 bounds = Cg_PlayerBounds(false);
 
-  CmTrace tr = cgi.Trace(start, Vec3_Subtract(start, MakeVec3(0, 0, MAX_WORLD_DIST)), bounds, NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
+  CollisionTrace tr = cgi.Trace(start, Vec3_Subtract(start, MakeVec3(0, 0, MAX_WORLD_DIST)), bounds, NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
 
   if (tr.startSolid) {
     tr = cgi.Trace(start, Vec3_Subtract(start, MakeVec3(0, 0, MAX_WORLD_DIST)), Cg_PlayerBounds(true), NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
@@ -594,7 +594,7 @@ void Cg_GibEffect(const Vec3 org, int32_t count) {
     float dist = GIB_STREAM_DIST;
     Vec3 tmp = Vec3_Fmaf(o, dist, v);
 
-    const CmTrace tr = cgi.Trace(o, tmp, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
+    const CollisionTrace tr = cgi.Trace(o, tmp, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
     dist = GIB_STREAM_DIST * tr.fraction;
 
     for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {

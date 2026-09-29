@@ -28,7 +28,7 @@
 static void R_LoadBspPlanes(RenderBspModel *bsp) {
   RenderBspPlane *out;
 
-  const CmBspPlane *in = bsp->cm->planes;
+  const CollisionPlane *in = bsp->cm->planes;
 
   bsp->numPlanes = bsp->cm->numPlanes;
   bsp->planes = out = Mem_LinkMalloc(bsp->numPlanes * sizeof(*out), bsp);

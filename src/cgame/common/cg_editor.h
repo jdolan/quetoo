@@ -38,7 +38,7 @@ typedef struct {
   /**
    * @brief The owned entity definition, parsed from configstrings.
    */
-  CmEntity *def;
+  Entity *def;
 
   /**
    * @brief The client entity.
@@ -87,10 +87,10 @@ typedef struct {
    * @brief The materials of the map, indexed by BSP material, as the renderer loaded and the
    * editor edits them.
    */
-  CmMaterial **materials;
+  Material **materials;
 
   /**
-   * @brief The `CmMaterialLight` previews of the brush sides with a `STAGE_LIGHT` material.
+   * @brief The `MaterialLight` previews of the brush sides with a `STAGE_LIGHT` material.
    * @details BSP lights are not drawn in editor mode, so these are placed as quemap places them
    * and added as dynamic lights, so that edits to the light stages show without a recompile.
    */
@@ -120,7 +120,7 @@ typedef struct {
    * @brief The raw BSP trace result. Check `.fraction < 1.f` for a hit; `.material`, `.brush`,
    *   and `.plane` are set on a BSP brush hit.
    */
-  CmTrace trace;
+  CollisionTrace trace;
 
 } CGameEditorTrace;
 
@@ -134,7 +134,7 @@ void Cg_ParseEditorEntity(int16_t number, const char *info);
 void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const ClientFrame *frame);
-void Cg_UpdateEditorMaterialLights(const CmMaterial *material);
+void Cg_UpdateEditorMaterialLights(const Material *material);
 void Cg_ReloadEditorMaterialStages(RenderMaterial *material);
 size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t out[CG_EDITOR_MAX_CANDIDATES]);
 CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end);

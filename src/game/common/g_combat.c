@@ -173,7 +173,7 @@ static const char *G_WeaponNameForMod(GameMeansOfDeath mod) {
  */
 bool G_CanDamage(const GameEntity *targ, const GameEntity *inflictor) {
   Vec3 dest;
-  CmTrace tr;
+  CollisionTrace tr;
 
   // BSP sub-models need special checking because their origin is 0,0,0
   if (targ->solid == SOLID_BSP) {

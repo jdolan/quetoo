@@ -146,7 +146,7 @@ static void Pm_QuakeFlyMove(void) {
   const Vec3 primalVelocity = pm->s.velocity;
   const Vec3 originalVelocity = pm->s.velocity;
 
-  CmBspPlane planes[PM_QUAKE_CLIP_PLANES];
+  CollisionPlane planes[PM_QUAKE_CLIP_PLANES];
   int32_t numPlanes = 0;
 
   float timeLeft = pmoveLocals.time;
@@ -154,7 +154,7 @@ static void Pm_QuakeFlyMove(void) {
   for (int32_t bump = 0; bump < PM_QUAKE_BUMPS; bump++) {
 
     const Vec3 end = Vec3_Fmaf(pm->s.origin, timeLeft, pm->s.velocity);
-    const CmTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
+    const CollisionTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
 
     if (trace.startSolid || trace.allSolid) { // trapped in a solid
       pm->s.velocity = Vec3_Zero();
@@ -237,7 +237,7 @@ static void Pm_QuakeGroundMove(void) {
                            pm->s.origin.y + pm->s.velocity.y * pmoveLocals.time,
                            pm->s.origin.z);
 
-  CmTrace trace = Pm_Trace(pm->s.origin, dest, pm->bounds);
+  CollisionTrace trace = Pm_Trace(pm->s.origin, dest, pm->bounds);
   if (trace.fraction == 1.f) {
     pm->s.origin = trace.end;
     return;
@@ -409,7 +409,7 @@ static void Pm_QuakeWaterMove(void) {
   const Vec3 dest = Vec3_Fmaf(pm->s.origin, pmoveLocals.time, pm->s.velocity);
   const Vec3 start = MakeVec3(dest.x, dest.y, dest.z + PM_QUAKE_STEP_SIZE + 1.f);
 
-  const CmTrace trace = Pm_Trace(start, dest, pm->bounds);
+  const CollisionTrace trace = Pm_Trace(start, dest, pm->bounds);
   if (!trace.startSolid && !trace.allSolid) { // walked up the step
     pm->s.origin = trace.end;
     return;
@@ -474,7 +474,7 @@ static void Pm_QuakeCategorizePosition(void) {
     memset(&pm->ground, 0, sizeof(pm->ground));
   } else {
     const Vec3 below = MakeVec3(pm->s.origin.x, pm->s.origin.y, pm->s.origin.z - 1.f);
-    const CmTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
+    const CollisionTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
 
     if (trace.plane.normal.z < PM_QUAKE_GROUND_NORMAL) { // too steep
       pm->s.flags &= ~PMF_ON_GROUND;

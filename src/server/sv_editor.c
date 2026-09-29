@@ -65,17 +65,17 @@ void Sv_ConfigureEditorEntity(int32_t number) {
     // use the BSP inline model to set bounds
     const char *model = Cm_EntityValue(ent->def, "model")->string;
     if (*model == '*') {
-      const CmBspModel *mod = Cm_Model(model);
+      const CollisionModel *mod = Cm_Model(model);
       ent->bounds = mod->bounds;
     } else {
       // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
       // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
-      const CmEntity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
+      const Entity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
       Vector *brushes = Cm_EntityBrushes(bspDef);
       if (brushes->count) {
         ent->bounds = Box3_Null();
         for (uint32_t j = 0; j < brushes->count; j++) {
-          const CmBspBrush *brush = VectorValue(brushes, CmBspBrush *, j);
+          const CollisionBrush *brush = VectorValue(brushes, CollisionBrush *, j);
           ent->bounds = Box3_Union(ent->bounds, brush->bounds);
         }
       }
@@ -97,7 +97,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
  */
 void Sv_EditEditorEntity(int32_t number, const char *info) {
 
-  CmEntity *def = Cm_EntityFromInfoString(info);
+  Entity *def = Cm_EntityFromInfoString(info);
 
   if (!def) {
     Com_Warn("Invalid entity info string for %d\n", number);
@@ -106,7 +106,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
   if (number > -1) {
     GameEntity *entity = sv.entities[number].gent;
-    CmEntity *ent = (CmEntity *) entity->def;
+    Entity *ent = (Entity *) entity->def;
 
     if (ent) {
       def->brushes = ent->brushes;
@@ -143,7 +143,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
  */
 void Sv_FreeEditorEntity(int32_t number) {
 
-  CmEntity *def = (CmEntity *) sv.entities[number].gent->def;
+  Entity *def = (Entity *) sv.entities[number].gent->def;
 
   svs.game->FreeEditorEntity(number);
 
@@ -215,12 +215,12 @@ void Sv_SaveEditorMap_f(void) {
     Fs_Print(file, "// entity %d\n", entityNum++);
     Fs_Print(file, "{\n");
 
-    for (const CmEntity *e = ent->def; e; e = e->next) {
+    for (const Entity *e = ent->def; e; e = e->next) {
       Fs_Print(file, "\"%s\" \"%s\"\n", e->key, e->string);
     }
 
     const char *brushes = "";
-    for (const CmEntity *e = ent->def; e; e = e->next) {
+    for (const Entity *e = ent->def; e; e = e->next) {
       if (e->brushes) {
         brushes = e->brushes;
         break;

@@ -88,12 +88,12 @@ typedef struct {
   /**
    * @brief The player's ground interaction.
    */
-  CmTrace ground;
+  CollisionTrace ground;
 
   /**
    * @brief The clipping planes per slide-move.
    */
-  CmBspPlane clipPlanes[MAX_CLIP_PLANES];
+  CollisionPlane clipPlanes[MAX_CLIP_PLANES];
 
   /**
    * @brief The number of clipping planes per slide-move.
@@ -118,8 +118,8 @@ extern PMoveLocals pmoveLocals;
     } \
   } while (0)
 
-void Pm_TouchEntity(const CmTrace *trace);
-CmTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds);
+void Pm_TouchEntity(const CollisionTrace *trace);
+CollisionTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds);
 void Pm_Friction(const bool flying);
 void Pm_Accelerate(const Vec3 dir, float speed, float accel);
 void Pm_Gravity(void);

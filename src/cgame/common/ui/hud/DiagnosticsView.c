@@ -74,7 +74,7 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   addRow(self, "leaf", "%d", cgi.PointLeafnum(view->origin, 0));
 
   const Vec3 end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-  const CmTrace tr = cgi.Trace(view->origin, end, Box3_Zero(), NULL, CONTENTS_MASK_VISIBLE);
+  const CollisionTrace tr = cgi.Trace(view->origin, end, Box3_Zero(), NULL, CONTENTS_MASK_VISIBLE);
   if (tr.material) {
     addRow(self, "surface", "%s (%g %g %g) %g", tr.material->name,
            tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z, tr.plane.dist);

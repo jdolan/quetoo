@@ -69,11 +69,11 @@ START_TEST(check_Cm_LoadMaterial_light) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_light", ASSET_CONTEXT_NONE);
+	Material *m = Cm_LoadMaterial("check_light", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 	ck_assert(m->stageFlags & STAGE_LIGHT);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_LIGHT);
 	ck_assert(s->flags & STAGE_PULSE);
@@ -106,7 +106,7 @@ START_TEST(check_Cm_SaveMaterial_light) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_save", ASSET_CONTEXT_NONE);
+	Material *m = Cm_LoadMaterial("check_save", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 	ck_assert(Cm_SaveMaterial(m));
 	Cm_FreeMaterial(m);
@@ -114,7 +114,7 @@ START_TEST(check_Cm_SaveMaterial_light) {
 	m = Cm_LoadMaterial("check_save", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_LIGHT);
 	ck_assert_float_eq(s->light.radius, 150.f);
@@ -141,10 +141,10 @@ START_TEST(check_Cm_LoadMaterial_envmap) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_envmap", ASSET_CONTEXT_NONE);
+	Material *m = Cm_LoadMaterial("check_envmap", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_ENVMAP);
 	ck_assert(s->flags & STAGE_TEXTURE);
@@ -191,10 +191,10 @@ START_TEST(check_Cm_LoadMaterial_pulse_drift_ignored) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_drift", ASSET_CONTEXT_NONE);
+	Material *m = Cm_LoadMaterial("check_drift", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_PULSE);
 	ck_assert_float_eq(s->pulse.hz, 2.f);
@@ -216,7 +216,7 @@ START_TEST(check_Cm_ResolveStageFlags) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_flags", ASSET_CONTEXT_NONE);
+	Material *m = Cm_LoadMaterial("check_flags", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 	ck_assert(m->stageFlags & STAGE_LIGHT);
 
@@ -243,10 +243,10 @@ START_TEST(check_Cm_LoadMaterial_light_only_stage) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_only", ASSET_CONTEXT_NONE);
+	Material *m = Cm_LoadMaterial("check_only", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = Cm_MaterialLightStage(m);
+	const MaterialStage *s = Cm_MaterialLightStage(m);
 	ck_assert_ptr_eq(s, m->stages);
 	ck_assert(!(s->flags & STAGE_DRAW));
 	ck_assert_float_eq(s->light.radius, 200.f);
@@ -270,11 +270,11 @@ START_TEST(check_Cm_AddStage_RemoveStage) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_edit", ASSET_CONTEXT_NONE);
+	Material *m = Cm_LoadMaterial("check_edit", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 	ck_assert(!(m->stageFlags & STAGE_LIGHT));
 
-	CmStage *s = Cm_AddStage(m);
+	MaterialStage *s = Cm_AddStage(m);
 	ck_assert_ptr_nonnull(s);
 	ck_assert_ptr_eq(m->stages->next, s);
 	ck_assert(s->flags & STAGE_TEXTURE);

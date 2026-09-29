@@ -33,7 +33,7 @@
 typedef struct {
   const char *identifier;
   const char *box;
-  CmStageFlags flag;
+  MaterialStageFlags flag;
   ptrdiff_t offset;
   float value;
 } StageFlag;
@@ -43,21 +43,21 @@ typedef struct {
  */
 static const StageFlag stageFlags[] = {
   { "stageBlend", "stageBlendBox", STAGE_BLEND, -1, 0.f },
-  { "stageColor", "stageColorBox", STAGE_COLOR, offsetof(CmStage, color.a), 1.f },
-  { "stagePulse", "stagePulseBox", STAGE_PULSE, offsetof(CmStage, pulse.hz), 1.f },
-  { "stageScroll", "stageScrollBox", STAGE_SCROLL_S | STAGE_SCROLL_T, offsetof(CmStage, scroll.s), .25f },
-  { "stageScale", "stageScaleBox", STAGE_SCALE_S | STAGE_SCALE_T, offsetof(CmStage, scale.s), 1.f },
-  { "stageRotate", "stageRotateBox", STAGE_ROTATE, offsetof(CmStage, rotate.hz), .25f },
-  { "stageStretch", "stageStretchBox", STAGE_STRETCH, offsetof(CmStage, stretch.hz), 1.f },
-  { "stageWarp", "stageWarpBox", STAGE_WARP, offsetof(CmStage, warp.hz), 1.f },
-  { "stageEmissive", "stageEmissiveBox", STAGE_EMISSIVE, offsetof(CmStage, emissive), 1.f },
-  { "stageLighting", "stageLightingBox", STAGE_LIGHTING, offsetof(CmStage, lighting.intensity), 1.f },
-  { "stageDirtmap", "stageDirtmapBox", STAGE_DIRTMAP, offsetof(CmStage, dirtmap.intensity), 1.f },
-  { "stageLight", "stageLightBox", STAGE_LIGHT, offsetof(CmStage, light.intensity), STAGE_LIGHT_INTENSITY },
+  { "stageColor", "stageColorBox", STAGE_COLOR, offsetof(MaterialStage, color.a), 1.f },
+  { "stagePulse", "stagePulseBox", STAGE_PULSE, offsetof(MaterialStage, pulse.hz), 1.f },
+  { "stageScroll", "stageScrollBox", STAGE_SCROLL_S | STAGE_SCROLL_T, offsetof(MaterialStage, scroll.s), .25f },
+  { "stageScale", "stageScaleBox", STAGE_SCALE_S | STAGE_SCALE_T, offsetof(MaterialStage, scale.s), 1.f },
+  { "stageRotate", "stageRotateBox", STAGE_ROTATE, offsetof(MaterialStage, rotate.hz), .25f },
+  { "stageStretch", "stageStretchBox", STAGE_STRETCH, offsetof(MaterialStage, stretch.hz), 1.f },
+  { "stageWarp", "stageWarpBox", STAGE_WARP, offsetof(MaterialStage, warp.hz), 1.f },
+  { "stageEmissive", "stageEmissiveBox", STAGE_EMISSIVE, offsetof(MaterialStage, emissive), 1.f },
+  { "stageLighting", "stageLightingBox", STAGE_LIGHTING, offsetof(MaterialStage, lighting.intensity), 1.f },
+  { "stageDirtmap", "stageDirtmapBox", STAGE_DIRTMAP, offsetof(MaterialStage, dirtmap.intensity), 1.f },
+  { "stageLight", "stageLightBox", STAGE_LIGHT, offsetof(MaterialStage, light.intensity), STAGE_LIGHT_INTENSITY },
   { "stageFlare", NULL, STAGE_FLARE, -1, 0.f },
-  { "stageEnvmap", "stageEnvmapBox", STAGE_ENVMAP, offsetof(CmStage, envmap.amount), STAGE_ENVMAP_AMOUNT },
-  { "stageShell", "stageShellBox", STAGE_SHELL, offsetof(CmStage, shell.radius), 1.f },
-  { "stageAnimation", "stageAnimationBox", STAGE_ANIMATION, offsetof(CmStage, animation.fps), 10.f },
+  { "stageEnvmap", "stageEnvmapBox", STAGE_ENVMAP, offsetof(MaterialStage, envmap.amount), STAGE_ENVMAP_AMOUNT },
+  { "stageShell", "stageShellBox", STAGE_SHELL, offsetof(MaterialStage, shell.radius), 1.f },
+  { "stageAnimation", "stageAnimationBox", STAGE_ANIMATION, offsetof(MaterialStage, animation.fps), 10.f },
   { "stageLerp", NULL, STAGE_ANIM_LERP, -1, 0.f },
   { "stageTerrain", "stageTerrainBox", STAGE_TERRAIN, -1, 0.f },
   { "stageFlat", NULL, STAGE_LIGHTING_FLAT, -1, 0.f },
@@ -81,27 +81,27 @@ typedef struct {
  * @brief The stage parameters. A parameter that affects light placement places the lights again.
  */
 static const StageParam stageParams[] = {
-  { "stageColorR", offsetof(CmStage, color.r), false },
-  { "stageColorG", offsetof(CmStage, color.g), false },
-  { "stageColorB", offsetof(CmStage, color.b), false },
-  { "stageColorA", offsetof(CmStage, color.a), false },
-  { "stagePulseHz", offsetof(CmStage, pulse.hz), false },
-  { "stageRotateHz", offsetof(CmStage, rotate.hz), false },
-  { "stageStretchAmplitude", offsetof(CmStage, stretch.amplitude), false },
-  { "stageStretchHz", offsetof(CmStage, stretch.hz), false },
-  { "stageWarpHz", offsetof(CmStage, warp.hz), false },
-  { "stageWarpAmplitude", offsetof(CmStage, warp.amplitude), false },
-  { "stageEnvmapAmount", offsetof(CmStage, envmap.amount), false },
-  { "stageShellRadius", offsetof(CmStage, shell.radius), false },
-  { "stageAnimationFps", offsetof(CmStage, animation.fps), false },
-  { "stageEmissiveValue", offsetof(CmStage, emissive), false },
-  { "stageLightingIntensity", offsetof(CmStage, lighting.intensity), false },
-  { "stageDirtmapIntensity", offsetof(CmStage, dirtmap.intensity), false },
-  { "stageLightRadius", offsetof(CmStage, light.radius), true },
-  { "stageLightIntensity", offsetof(CmStage, light.intensity), false },
-  { "stageLightR", offsetof(CmStage, light.color.x), false },
-  { "stageLightG", offsetof(CmStage, light.color.y), false },
-  { "stageLightB", offsetof(CmStage, light.color.z), false },
+  { "stageColorR", offsetof(MaterialStage, color.r), false },
+  { "stageColorG", offsetof(MaterialStage, color.g), false },
+  { "stageColorB", offsetof(MaterialStage, color.b), false },
+  { "stageColorA", offsetof(MaterialStage, color.a), false },
+  { "stagePulseHz", offsetof(MaterialStage, pulse.hz), false },
+  { "stageRotateHz", offsetof(MaterialStage, rotate.hz), false },
+  { "stageStretchAmplitude", offsetof(MaterialStage, stretch.amplitude), false },
+  { "stageStretchHz", offsetof(MaterialStage, stretch.hz), false },
+  { "stageWarpHz", offsetof(MaterialStage, warp.hz), false },
+  { "stageWarpAmplitude", offsetof(MaterialStage, warp.amplitude), false },
+  { "stageEnvmapAmount", offsetof(MaterialStage, envmap.amount), false },
+  { "stageShellRadius", offsetof(MaterialStage, shell.radius), false },
+  { "stageAnimationFps", offsetof(MaterialStage, animation.fps), false },
+  { "stageEmissiveValue", offsetof(MaterialStage, emissive), false },
+  { "stageLightingIntensity", offsetof(MaterialStage, lighting.intensity), false },
+  { "stageDirtmapIntensity", offsetof(MaterialStage, dirtmap.intensity), false },
+  { "stageLightRadius", offsetof(MaterialStage, light.radius), true },
+  { "stageLightIntensity", offsetof(MaterialStage, light.intensity), false },
+  { "stageLightR", offsetof(MaterialStage, light.color.x), false },
+  { "stageLightG", offsetof(MaterialStage, light.color.y), false },
+  { "stageLightB", offsetof(MaterialStage, light.color.z), false },
 };
 
 /**
@@ -111,17 +111,17 @@ static const StageParam stageParams[] = {
 typedef struct {
   const char *identifier;
   ptrdiff_t offset;
-  CmStageFlags flag;
+  MaterialStageFlags flag;
 } StageAxis;
 
 /**
  * @brief The scroll and scale axes.
  */
 static const StageAxis stageAxes[] = {
-  { "stageScrollSValue", offsetof(CmStage, scroll.s), STAGE_SCROLL_S },
-  { "stageScrollTValue", offsetof(CmStage, scroll.t), STAGE_SCROLL_T },
-  { "stageScaleSValue", offsetof(CmStage, scale.s), STAGE_SCALE_S },
-  { "stageScaleTValue", offsetof(CmStage, scale.t), STAGE_SCALE_T },
+  { "stageScrollSValue", offsetof(MaterialStage, scroll.s), STAGE_SCROLL_S },
+  { "stageScrollTValue", offsetof(MaterialStage, scroll.t), STAGE_SCROLL_T },
+  { "stageScaleSValue", offsetof(MaterialStage, scale.s), STAGE_SCALE_S },
+  { "stageScaleTValue", offsetof(MaterialStage, scale.t), STAGE_SCALE_T },
 };
 
 /**
@@ -137,9 +137,9 @@ typedef struct {
  * @brief The animation frame count and the terrain floor and ceiling.
  */
 static const StageField stageFields[] = {
-  { "stageAnimationFrames", offsetof(CmStage, animation.numFrames), true },
-  { "stageTerrainFloor", offsetof(CmStage, terrain.floor), false },
-  { "stageTerrainCeil", offsetof(CmStage, terrain.ceil), false },
+  { "stageAnimationFrames", offsetof(MaterialStage, animation.numFrames), true },
+  { "stageTerrainFloor", offsetof(MaterialStage, terrain.floor), false },
+  { "stageTerrainCeil", offsetof(MaterialStage, terrain.ceil), false },
 };
 
 /**
@@ -153,7 +153,7 @@ static const StageField stageFields[] = {
  */
 static const struct {
   const char *name;
-  CmBlend blend;
+  MaterialBlend blend;
 } stageBlends[] = {
   { "one", BLEND_ONE },
   { "zero", BLEND_ZERO },
@@ -168,28 +168,28 @@ static const struct {
  * @return True if the stage parameter at the offset is a channel of the light color.
  */
 static bool isLightColor(ptrdiff_t offset) {
-  return offset >= (ptrdiff_t) offsetof(CmStage, light.color) &&
-         offset < (ptrdiff_t) (offsetof(CmStage, light.color) + sizeof(Vec3));
+  return offset >= (ptrdiff_t) offsetof(MaterialStage, light.color) &&
+         offset < (ptrdiff_t) (offsetof(MaterialStage, light.color) + sizeof(Vec3));
 }
 
 /**
  * @return The mask of the scroll or scale axes within the flag, or none.
  */
-static CmStageFlags axesOf(CmStageFlags flag) {
+static MaterialStageFlags axesOf(MaterialStageFlags flag) {
   return flag & (STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T);
 }
 
 /**
  * @return The float parameter of the stage at the given offset.
  */
-static float *stageFloat(CmStage *stage, ptrdiff_t offset) {
+static float *stageFloat(MaterialStage *stage, ptrdiff_t offset) {
   return (float *) ((byte *) stage + offset);
 }
 
 /**
  * @brief Sets the flag of each axis within the mask from its value: a zero axis is not written.
  */
-static void resolveStageAxes(CmStage *stage, CmStageFlags mask) {
+static void resolveStageAxes(MaterialStage *stage, MaterialStageFlags mask) {
 
   for (size_t i = 0; i < lengthof(stageAxes); i++) {
     if (stageAxes[i].flag & mask) {
@@ -206,7 +206,7 @@ static void resolveStageAxes(CmStage *stage, CmStageFlags mask) {
  * @return The asset name that the stage shows: `portal` or `reflect` for a subview stage, which
  * has no asset, and otherwise its texture or sprite.
  */
-static const char *stageAssetName(const CmStage *stage) {
+static const char *stageAssetName(const MaterialStage *stage) {
 
   if (stage->flags & STAGE_PORTAL) {
     return "portal";
@@ -227,7 +227,7 @@ static const char *summary(const StageView *this) {
   static char buf[MAX_STRING_CHARS];
 
   int32_t index = 1;
-  for (const CmStage *s = this->material->cm->stages; s && s != this->stage; s = s->next) {
+  for (const MaterialStage *s = this->material->cm->stages; s && s != this->stage; s = s->next) {
     index++;
   }
 
@@ -263,7 +263,7 @@ static const char *summary(const StageView *this) {
  */
 static void updateStage(StageView *this) {
 
-  CmStage *stage = this->stage;
+  MaterialStage *stage = this->stage;
 
   $(this->stageTexture, setAttributedText, stageAssetName(stage));
 
@@ -302,7 +302,7 @@ static void updateStage(StageView *this) {
     if (slider) {
       const ptrdiff_t offset = stageParams[i].offset;
       if (isLightColor(offset)) {
-        $(slider, setValue, (double) lightColor.xyz[(offset - offsetof(CmStage, light.color)) / sizeof(float)]);
+        $(slider, setValue, (double) lightColor.xyz[(offset - offsetof(MaterialStage, light.color)) / sizeof(float)]);
       } else {
         $(slider, setValue, (double) *stageFloat(stage, offset));
       }
@@ -343,8 +343,8 @@ static void didSelectBlend(Select *select, Option *option) {
     return;
   }
 
-  const CmBlend blend = (CmBlend) (intptr_t) option->value;
-  CmBlend *factor = select == this->stageBlendSrc ? &this->stage->blend.src : &this->stage->blend.dest;
+  const MaterialBlend blend = (MaterialBlend) (intptr_t) option->value;
+  MaterialBlend *factor = select == this->stageBlendSrc ? &this->stage->blend.src : &this->stage->blend.dest;
 
   if (*factor == blend) {
     return;
@@ -725,10 +725,10 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 #pragma mark - StageView
 
 /**
- * @fn StageView *StageView::initWithStage(StageView *self, RenderMaterial *material, CmStage *stage)
+ * @fn StageView *StageView::initWithStage(StageView *self, RenderMaterial *material, MaterialStage *stage)
  * @memberof StageView
  */
-static StageView *initWithStage(StageView *self, RenderMaterial *material, CmStage *stage) {
+static StageView *initWithStage(StageView *self, RenderMaterial *material, MaterialStage *stage) {
 
   self = (StageView *) super(Box, self, initWithFrame, NULL);
   if (self) {

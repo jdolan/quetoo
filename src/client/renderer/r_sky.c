@@ -62,7 +62,7 @@ static struct {
 /**
  * @brief Returns the cached sky stage pipeline for the given blend mode.
  */
-static GraphicsPipeline *R_SkyStagePipeline(CmBlend src, CmBlend dest) {
+static GraphicsPipeline *R_SkyStagePipeline(MaterialBlend src, MaterialBlend dest) {
 
   RenderStagePipeline *p = module.stagePipelines;
   for (int32_t i = 0; i < module.numStagePipelines; i++, p++) {

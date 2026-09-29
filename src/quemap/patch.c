@@ -190,7 +190,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
  * @param v Triangle vertices (3 points on the surface).
  * @param normal The outward-facing surface normal.
  */
-static void EmitPatchCollisionBrush(Entity *entity,
+static void EmitPatchCollisionBrush(MapEntity *entity,
                                     const Vec3 v[3],
                                     const Vec3 normal) {
 
@@ -307,7 +307,7 @@ static void EmitPatchCollisionBrush(Entity *entity,
  * @brief Generates collision brushes for a patch by tessellating at a coarse
  * resolution and emitting caulk brushes for each quad cell.
  */
-void EmitPatchCollisionBrushes(Patch *patch, Entity *entity) {
+void EmitPatchCollisionBrushes(Patch *patch, MapEntity *entity) {
 
   if (patch->material < 0) {
     return;

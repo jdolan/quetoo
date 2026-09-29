@@ -295,7 +295,7 @@ typedef struct {
   /**
    * @brief The ground trace for the predicted position.
    */
-  CmTrace ground;
+  CollisionTrace ground;
 
   /**
    * @brief The prediction error, interpolated over the current server frame.
@@ -459,7 +459,7 @@ typedef struct {
   /**
    * @brief Collision BSP inline models loaded for client-side prediction.
    */
-  CmBspModel *cmModels[MAX_MODELS];
+  CollisionModel *cmModels[MAX_MODELS];
 
   /**
    * @brief Renderer models resolved from `configStrings`.

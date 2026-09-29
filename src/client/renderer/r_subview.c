@@ -102,7 +102,7 @@ static void R_UpdateSubview(RenderSubview *subview, const Mat4 matrix) {
   subview->absBounds = Mat4_TransformBounds(matrix, subview->bounds);
   const Vec3 normal = Mat4_RotateVector(matrix, subview->normal);
 
-  subview->absPlane = (CmBspPlane) {
+  subview->absPlane = (CollisionPlane) {
     .normal = normal,
     .dist = Vec3_Dot(subview->absOrigin, normal),
     .type = Cm_PlaneTypeForNormal(normal),
@@ -236,7 +236,7 @@ static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 or
  * `Mat4` takes a row-vector convention, so the translation is the last literal row, as it is in
  * `Mat4_FromFrustum`.
  */
-static Mat4 R_ReflectionMatrix(const CmBspPlane *plane) {
+static Mat4 R_ReflectionMatrix(const CollisionPlane *plane) {
 
   const Vec3 n = plane->normal;
   const float d = plane->dist;
@@ -455,7 +455,7 @@ static void R_UpdateSubviewFrustum(RenderView *view, Vec2 mins, Vec2 maxs) {
   const float tx = tanf(Radians(view->fov.x));
   const float ty = tanf(Radians(view->fov.y));
 
-  CmBspPlane *p = view->frustum;
+  CollisionPlane *p = view->frustum;
 
   p[0].normal = Vec3_Fmaf(Vec3_Scale(view->right, -1.f), maxs.x * tx, view->forward);
   p[1].normal = Vec3_Fmaf(view->right, -mins.x * tx, view->forward);

@@ -217,8 +217,8 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 static void R_ResolveMaterialStages(RenderMaterial *material) {
   int32_t numStages = 0;
 
-  const CmMaterial *cm = material->cm;
-  for (const CmStage *cs = cm->stages; cs; cs = cs->next, numStages++) {
+  const Material *cm = material->cm;
+  for (const MaterialStage *cs = cm->stages; cs; cs = cs->next, numStages++) {
 
     RenderStage *stage = (RenderStage *) Mem_LinkMalloc(sizeof(RenderStage), material);
     stage->cm = cs;
@@ -255,7 +255,7 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
 /**
  * @brief Creates a renderer material from a collision material.
  */
-static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
+static RenderMaterial *R_ResolveMaterial(Material *cm) {
   char key[MAX_QPATH];
 
   Cm_MaterialPath(cm->name, key, sizeof(key), cm->context);
@@ -456,7 +456,7 @@ void R_ReloadMaterialStages(RenderMaterial *material) {
  */
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out) {
 
-  const CmMaterial *cm = material->cm;
+  const Material *cm = material->cm;
 
   memset(out, 0, sizeof(*out));
 
@@ -488,7 +488,7 @@ float R_StageDriftHash(const void *a, const void *b) {
 bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const RenderBspDrawElements *draw, const RenderStage *stage,
                      RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **textureNext) {
 
-  const CmStage *cm = stage->cm;
+  const MaterialStage *cm = stage->cm;
 
   out->lerp = 0.f;
 
@@ -616,7 +616,7 @@ RenderMaterial *R_LoadMaterial(const char *name, AssetContext context) {
   RenderMaterial *material = R_FindMaterial(name, context);
   if (material == NULL) {
 
-    CmMaterial *cm = Cm_LoadMaterial(name, context);
+    Material *cm = Cm_LoadMaterial(name, context);
 
     material = R_ResolveMaterial(cm);
   }

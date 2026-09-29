@@ -315,10 +315,10 @@ static SoundSample *Cg_Footstep(ClientEntity *ent) {
   Vec3 end = start;
   end.z -= PM_STEP_HEIGHT;
 
-  CmTrace tr = cgi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+  CollisionTrace tr = cgi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
 
   if (tr.material) {
-    const CmFootsteps *footsteps = &cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES)->cm->footsteps;
+    const MaterialFootsteps *footsteps = &cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES)->cm->footsteps;
 
     if (footsteps->numSamples) {
       static uint32_t lastIndex = -1;

@@ -37,7 +37,7 @@ static void Sv_RefreshMapList(void) {
 /**
  * @brief The rotation entry at `index`, or `NULL`.
  */
-static const CmEntity *Sv_MapAt(int32_t index) {
+static const Entity *Sv_MapAt(int32_t index) {
 
   if (svs.maps.list == NULL || index < 0 || index >= svs.maps.length) {
     return NULL;
@@ -48,12 +48,12 @@ static const CmEntity *Sv_MapAt(int32_t index) {
     node = node->next;
   }
 
-  return node ? (const CmEntity *) node->element : NULL;
+  return node ? (const Entity *) node->element : NULL;
 }
 
 /**
  * @brief Returns a copy of the configured map list, or `NULL` if there is none.
- * @return A list of `CmEntity *`, each to be freed with `Cm_FreeEntity`.
+ * @return A list of `Entity *`, each to be freed with `Cm_FreeEntity`.
  * @remarks The copy is the caller's, so that a `sv_mapList` edit which re-parses the
  * list underneath them does not free entries they still hold.
  */
@@ -68,7 +68,7 @@ List *Sv_MapList(void) {
   List *copy = $(alloc(List), init);
 
   for (const ListNode *node = svs.maps.list->head; node; node = node->next) {
-    $(copy, append, Cm_CopyEntity((const CmEntity *) node->element));
+    $(copy, append, Cm_CopyEntity((const Entity *) node->element));
   }
 
   return copy;
@@ -106,7 +106,7 @@ void Sv_SetNextMap(int32_t index) {
 /**
  * @brief Returns the next map from the configured list, or `NULL` if unavailable.
  */
-const CmEntity *Sv_NextMap(void) {
+const Entity *Sv_NextMap(void) {
 
   Sv_RefreshMapList();
 
@@ -163,9 +163,9 @@ void Sv_InitMapList(void) {
 
   int32_t i = 0;
   for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
-    CmEntity *e = (CmEntity *) node->element;
+    Entity *e = (Entity *) node->element;
 
-    const CmEntity *name = Cm_EntityValue(e, "name");
+    const Entity *name = Cm_EntityValue(e, "name");
     if (q_strlen(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_mapList->string);
       Cm_FreeEntity(e);

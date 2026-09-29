@@ -159,7 +159,7 @@ void EmitPortals(void) {
       continue;
     }
 
-    const Entity *exit = NULL;
+    const MapEntity *exit = NULL;
     for (int32_t j = 0; j < numEntities; j++) {
       const char *targetname = ValueForKey(&entities[j], "targetname", NULL);
       if (targetname && !q_strcmp(targetname, target)) {

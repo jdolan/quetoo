@@ -97,7 +97,7 @@ void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *
   // resolve the projectile destination
   const Vec3 start = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl->forward);
-  const CmTrace tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   // resolve the projectile origin
   Vec3 entForward, entRight, entUp;
@@ -125,7 +125,7 @@ void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *
     *org = Vec3_Fmaf(*org, -12.f, entUp);
   }
 
-  const CmTrace check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
   if (Vec3_Distance(tr.end, check.end) > 16.f) {
     *org = start;
   }
@@ -694,7 +694,7 @@ bool G_IsStationary(const GameEntity *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-bool G_IsStructural(const CmTrace *trace) {
+bool G_IsStructural(const CollisionTrace *trace) {
 
   if ((trace->contents & CONTENTS_MASK_SOLID) && !G_IsSky(trace)) {
     return true;
@@ -706,7 +706,7 @@ bool G_IsStructural(const CmTrace *trace) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-bool G_IsSky(const CmTrace *trace) {
+bool G_IsSky(const CollisionTrace *trace) {
   return trace->surface & SURF_SKY;
 }
 

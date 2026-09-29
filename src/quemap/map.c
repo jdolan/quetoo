@@ -30,7 +30,7 @@
 MapFormat mapFormat;
 
 int32_t numEntities;
-Entity entities[MAX_BSP_ENTITIES];
+MapEntity entities[MAX_BSP_ENTITIES];
 
 int32_t numBrushes;
 Brush brushes[MAX_BSP_BRUSHES];
@@ -420,7 +420,7 @@ void MakeBrushWindings(Brush *brush) {
  */
 static void SetMaterialFlags(BrushSide *side) {
 
-  const Material *material = &materials[side->material];
+  const MapMaterial *material = &materials[side->material];
   if (material->cm->contents) {
     if (side->contents == 0) {
       side->contents = material->cm->contents;
@@ -466,7 +466,7 @@ static void SetMaterialFlags(BrushSide *side) {
 /**
  * @brief Parses a single brush or patchDef2 block from the map file and adds it to the entity.
  */
-static Brush *ParseBrush(Parser *parser, Entity *entity) {
+static Brush *ParseBrush(Parser *parser, MapEntity *entity) {
   char token[MAX_TOKEN_CHARS];
 
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
@@ -727,7 +727,7 @@ static Brush *ParseBrush(Parser *parser, Entity *entity) {
 /**
  * @brief Some entities are merged into the world, e.g. `func_group`.
  */
-static void MoveBrushesToWorld(Entity *ent) {
+static void MoveBrushesToWorld(MapEntity *ent) {
 
   const int32_t newBrushes = ent->numBrushes;
   const int32_t worldBrushes = entities[0].numBrushes;
@@ -757,7 +757,7 @@ static void MoveBrushesToWorld(Entity *ent) {
 /**
  * @brief Some entities are merged into the world, e.g. `func_group`.
  */
-static void MovePatchesToWorld(Entity *ent) {
+static void MovePatchesToWorld(MapEntity *ent) {
 
   const int32_t newPatches = ent->numPatches;
   const int32_t worldPatches = entities[0].numPatches;
@@ -791,10 +791,10 @@ static void MovePatchesToWorld(Entity *ent) {
 /**
  * @brief Parses one entity block (key-value pairs and brushes) from the map file.
  */
-static Entity *ParseEntity(Parser *parser) {
+static MapEntity *ParseEntity(Parser *parser) {
   char token[MAX_TOKEN_CHARS];
 
-  Entity *entity = NULL;
+  MapEntity *entity = NULL;
 
   if (Parse_IsEOF(parser)) {
     return NULL;
@@ -882,7 +882,7 @@ static Entity *ParseEntity(Parser *parser) {
     // CSG subtracted and included in the world's BSP tree. However, these brushes will
     // maintain a reference to their entity definition, so that any entity pairs
     // associated with them will still be available. Their brushes will point to their
-    // defining CmEntity.
+    // defining MapEntity.
     const char *classname = ValueForKey(entity, "classname", NULL);
     if (!q_strcmp(classname, "func_group") ||
       !q_strcmp(classname, "misc_dust") ||
@@ -932,7 +932,7 @@ MapFormat LoadMapFile(const char *filename) {
 
   for (int32_t i = 0, models = 0; i < MAX_BSP_ENTITIES; i++) {
 
-    Entity *entity = ParseEntity(&parser);
+    MapEntity *entity = ParseEntity(&parser);
     if (!entity) {
       break;
     }

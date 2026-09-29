@@ -469,7 +469,7 @@ void G_Ai_Node_Destroy(const AiNodeId id) {
  * @brief Returns true if the client entity is currently standing on solid ground.
  */
 static bool G_Ai_Node_OnGround(const GameClient *cl) {
-  const CmTrace tr = gi.Trace(cl->entity->s.origin,
+  const CollisionTrace tr = gi.Trace(cl->entity->s.origin,
                                  Vec3_Add(cl->entity->s.origin, MakeVec3(0, 0, -PM_GROUND_DIST)),
                                  cl->entity->s.bounds,
                                  NULL,
@@ -543,7 +543,7 @@ bool G_Ai_Node_CanPathTo(const Vec3 position) {
   const Vec3 end = Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f));
 
   // check if the destination has ground
-  CmTrace tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), MakeVec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+  CollisionTrace tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), MakeVec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
   // bad ground
   bool stuckInMover = tr.ent
@@ -755,7 +755,7 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
       node->position = ent->s.origin;
 
       if (cmd->up < 0) {
-        const CmTrace tr = gi.Trace(node->position, Vec3_Subtract(node->position, MakeVec3(0.f, 0.f, MAX_WORLD_COORD)), Pm_Bounds(&ent->client->ps.pmState.params, false), ent, CONTENTS_MASK_SOLID);
+        const CollisionTrace tr = gi.Trace(node->position, Vec3_Subtract(node->position, MakeVec3(0.f, 0.f, MAX_WORLD_COORD)), Pm_Bounds(&ent->client->ps.pmState.params, false), ent, CONTENTS_MASK_SOLID);
         node->position = tr.end;
       }
 
@@ -1755,7 +1755,7 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
   }
 
   // make a new node on the item
-  CmTrace down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, MakeVec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
+  CollisionTrace down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, MakeVec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
   Vec3 pos;
 
   if (down.fraction == 1.0) {

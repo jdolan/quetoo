@@ -126,7 +126,7 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
  * @brief Returns the intensity of a stage light, scaled by the stage pulse with the same formula
  * as the material shaders, so that the light and the glow stay in phase.
  */
-float Cg_AnimateStageLight(const CmStage *stage) {
+float Cg_AnimateStageLight(const MaterialStage *stage) {
 
   float intensity = stage->light.intensity;
 
@@ -170,7 +170,7 @@ static void Cg_AddBspLights(void) {
 
     float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
-    const CmStage *stage = l->material ? cgi.MaterialLightStage(l->material->cm) : NULL;
+    const MaterialStage *stage = l->material ? cgi.MaterialLightStage(l->material->cm) : NULL;
     if (stage) {
       intensity = Cg_AnimateStageLight(stage);
     }

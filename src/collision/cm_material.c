@@ -24,7 +24,7 @@
 /**
  * @brief Free the specified material.
  */
-void Cm_FreeMaterial(CmMaterial *material) {
+void Cm_FreeMaterial(Material *material) {
   Mem_Free(material);
 }
 
@@ -37,12 +37,12 @@ typedef struct {
     const int32_t flag;
     const int32_t enumVal;
   };
-} CmMaterialHint;
+} MaterialHint;
 
 /**
  * @brief Content flags
  */
-static CmMaterialHint contentsHints[] = {
+static MaterialHint contentsHints[] = {
   { .keyword = "solid", .flag = CONTENTS_SOLID },
   { .keyword = "window", .flag = CONTENTS_WINDOW },
   { .keyword = "decoration", .flag = CONTENTS_DECORATION },
@@ -61,7 +61,7 @@ static int32_t Cm_ParseContents(const char *c) {
 
   int32_t contents = 0;
 
-  for (CmMaterialHint *hint = contentsHints; hint < contentsHints + lengthof(contentsHints); hint++) {
+  for (MaterialHint *hint = contentsHints; hint < contentsHints + lengthof(contentsHints); hint++) {
     if (q_strstr(c, hint->keyword)) {
       contents |= hint->flag;
     }
@@ -77,7 +77,7 @@ static char *Cm_UnparseContents(int32_t contents) {
   static char s[MAX_STRING_CHARS];
   *s = '\0';
 
-  for (CmMaterialHint *hint = contentsHints; hint < contentsHints + lengthof(contentsHints); hint++) {
+  for (MaterialHint *hint = contentsHints; hint < contentsHints + lengthof(contentsHints); hint++) {
     if (contents & hint->flag) {
       q_strlcat(s, va("%s ", hint->keyword), sizeof(s));
     }
@@ -89,7 +89,7 @@ static char *Cm_UnparseContents(int32_t contents) {
 /**
  * @brief Surface flags
  */
-static CmMaterialHint surfaceHints[] = {
+static MaterialHint surfaceHints[] = {
   { .keyword = "slick", .flag = SURF_SLICK },
   { .keyword = "sky", .flag = SURF_SKY },
   { .keyword = "liquid", .flag = SURF_LIQUID },
@@ -113,7 +113,7 @@ static int32_t Cm_ParseSurface(const char *c) {
 
   int32_t surface = 0;
 
-  for (CmMaterialHint *hint = surfaceHints; hint < surfaceHints + lengthof(surfaceHints); hint++) {
+  for (MaterialHint *hint = surfaceHints; hint < surfaceHints + lengthof(surfaceHints); hint++) {
     if (q_strstr(c, hint->keyword)) {
       surface |= hint->flag;
     }
@@ -129,7 +129,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
   static char s[MAX_STRING_CHARS];
   *s = '\0';
 
-  for (CmMaterialHint *list = surfaceHints; list < surfaceHints + lengthof(surfaceHints); list++) {
+  for (MaterialHint *list = surfaceHints; list < surfaceHints + lengthof(surfaceHints); list++) {
     if (surface & list->flag) {
       q_strlcat(s, va("%s ", list->keyword), sizeof(s));
     }
@@ -141,7 +141,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
 /**
  * @brief Blend consts
  */
-static CmMaterialHint blendConstList[] = {
+static MaterialHint blendConstList[] = {
   { .keyword = "one", .enumVal = BLEND_ONE },
   { .keyword = "zero", .enumVal = BLEND_ZERO },
   { .keyword = "src_alpha", .enumVal = BLEND_SRC_ALPHA },
@@ -154,11 +154,11 @@ static CmMaterialHint blendConstList[] = {
 /**
  * @brief Returns the blend factor for the given keyword string.
  */
-static inline CmBlend Cm_BlendConstByName(const char *c) {
+static inline MaterialBlend Cm_BlendConstByName(const char *c) {
 
-  for (CmMaterialHint *list = blendConstList; list < blendConstList + lengthof(blendConstList); list++) {
+  for (MaterialHint *list = blendConstList; list < blendConstList + lengthof(blendConstList); list++) {
     if (!q_strcmp(c, list->keyword)) {
-      return (CmBlend) list->enumVal;
+      return (MaterialBlend) list->enumVal;
     }
   }
 
@@ -169,10 +169,10 @@ static inline CmBlend Cm_BlendConstByName(const char *c) {
 /**
  * @brief Returns the keyword string for the given blend factor.
  */
-static inline const char *Cm_BlendNameByConst(const CmBlend c) {
+static inline const char *Cm_BlendNameByConst(const MaterialBlend c) {
 
-  for (CmMaterialHint *list = blendConstList; list < blendConstList + lengthof(blendConstList); list++) {
-    if (c == (CmBlend) list->enumVal) {
+  for (MaterialHint *list = blendConstList; list < blendConstList + lengthof(blendConstList); list++) {
+    if (c == (MaterialBlend) list->enumVal) {
       return list->keyword;
     }
   }
@@ -184,7 +184,7 @@ static inline const char *Cm_BlendNameByConst(const CmBlend c) {
 /**
  * @brief Emits a parse warning with file position for the given material.
  */
-static void Cm_MaterialWarn(const CmMaterial *m, const Parser *parser, const char *message) {
+static void Cm_MaterialWarn(const Material *m, const Parser *parser, const char *message) {
   Com_Warn("%s: Syntax error (Ln %u Col %u)\n", m->path, parser->position.row + 1, parser->position.col);
 
   if (message) {
@@ -195,7 +195,7 @@ static void Cm_MaterialWarn(const CmMaterial *m, const Parser *parser, const cha
 /**
  * @brief Applies the implied flags and defaults of a stage after its keywords are set.
  */
-void Cm_FinalizeStage(CmStage *s) {
+void Cm_FinalizeStage(MaterialStage *s) {
 
   if (s->flags & (STAGE_TEXTURE | STAGE_SHELL | STAGE_MASK_SUBVIEW)) {
     s->flags |= STAGE_DRAW;
@@ -231,11 +231,11 @@ void Cm_FinalizeStage(CmStage *s) {
 /**
  * @brief Recomputes the material's aggregate stage flags from its stages.
  */
-void Cm_ResolveStageFlags(CmMaterial *m) {
+void Cm_ResolveStageFlags(Material *m) {
 
   m->stageFlags = STAGE_NONE;
 
-  for (const CmStage *s = m->stages; s; s = s->next) {
+  for (const MaterialStage *s = m->stages; s; s = s->next) {
     m->stageFlags |= s->flags;
   }
 }
@@ -243,10 +243,10 @@ void Cm_ResolveStageFlags(CmMaterial *m) {
 /**
  * @brief Returns the first `STAGE_LIGHT` stage of the material, or `NULL`.
  */
-CmStage *Cm_MaterialLightStage(const CmMaterial *m) {
+MaterialStage *Cm_MaterialLightStage(const Material *m) {
 
   if (m && (m->stageFlags & STAGE_LIGHT)) {
-    for (CmStage *s = m->stages; s; s = s->next) {
+    for (MaterialStage *s = m->stages; s; s = s->next) {
       if (s->flags & STAGE_LIGHT) {
         return s;
       }
@@ -259,7 +259,7 @@ CmStage *Cm_MaterialLightStage(const CmMaterial *m) {
 /**
  * @brief Parses a stage block from the material parser into the given stage.
  */
-static bool Cm_ParseStage(CmMaterial *m, CmStage *s, Parser *parser) {
+static bool Cm_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
   char token[MAX_TOKEN_CHARS];
 
   while (true) {
@@ -722,12 +722,12 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len) {
 /**
  * @brief Appends a stage to the end of the material's stage list.
  */
-static void Cm_AppendStage(CmMaterial *m, CmStage *s) {
+static void Cm_AppendStage(Material *m, MaterialStage *s) {
 
   if (m->stages == NULL) {
     m->stages = s;
   } else {
-    CmStage *ss = m->stages;
+    MaterialStage *ss = m->stages;
     while (ss->next) {
       ss = ss->next;
     }
@@ -738,10 +738,10 @@ static void Cm_AppendStage(CmMaterial *m, CmStage *s) {
 /**
  * @brief Returns the zero-based index of the stage within the material, or -1.
  */
-static int32_t Cm_StageIndex(const CmMaterial *m, const CmStage *stage) {
+static int32_t Cm_StageIndex(const Material *m, const MaterialStage *stage) {
   int32_t i = 0;
 
-  for (const CmStage *s = m->stages; s; s = s->next, i++) {
+  for (const MaterialStage *s = m->stages; s; s = s->next, i++) {
     if (s == stage) {
       return i;
     }
@@ -753,13 +753,13 @@ static int32_t Cm_StageIndex(const CmMaterial *m, const CmStage *stage) {
 /**
  * @brief Allocates a material, setting up the diffuse stage.
  */
-static CmMaterial *Cm_AllocMaterial(const char *name, AssetContext context) {
+static Material *Cm_AllocMaterial(const char *name, AssetContext context) {
 
   if (!name || !name[0]) {
     Com_Error(ERROR_DROP, "NULL diffuse name\n");
   }
 
-  CmMaterial *mat = Mem_TagMalloc(sizeof(CmMaterial), MEM_TAG_MATERIAL);
+  Material *mat = Mem_TagMalloc(sizeof(Material), MEM_TAG_MATERIAL);
 
   char stripped[MAX_QPATH];
   StripExtension(name, stripped);
@@ -787,9 +787,9 @@ static CmMaterial *Cm_AllocMaterial(const char *name, AssetContext context) {
  * @param context The asset context for path resolution.
  * @return The material (always non-`NULL`).
  */
-CmMaterial *Cm_LoadMaterial(const char *name, AssetContext context) {
+Material *Cm_LoadMaterial(const char *name, AssetContext context) {
 
-  CmMaterial *m = Cm_AllocMaterial(name, context);
+  Material *m = Cm_AllocMaterial(name, context);
 
   void *buf;
 
@@ -947,7 +947,7 @@ CmMaterial *Cm_LoadMaterial(const char *name, AssetContext context) {
 
     } else if (*token == '{') {
 
-      CmStage *s = (CmStage *) Mem_LinkMalloc(sizeof(*s), m);
+      MaterialStage *s = (MaterialStage *) Mem_LinkMalloc(sizeof(*s), m);
 
       if (!Cm_ParseStage(m, s, &parser)) {
         Com_Debug(DEBUG_COLLISION, "Couldn't load a stage in %s", m->name);
@@ -1004,7 +1004,7 @@ static bool Cm_ResolveAsset(Asset *asset, AssetContext context) {
 /**
  * @brief Resolves the frame assets for an animation stage.
  */
-static bool Cm_ResolveStageAnimation(CmStage *stage, AssetContext context) {
+static bool Cm_ResolveStageAnimation(MaterialStage *stage, AssetContext context) {
 
   if (!Cm_ResolveAsset(&stage->asset, context)) {
     Com_Warn("Failed to resolve animation asset %s\n", stage->asset.name);
@@ -1046,7 +1046,7 @@ static bool Cm_ResolveStageAnimation(CmStage *stage, AssetContext context) {
  * @details A stage texture resolves in the material's context, and then among the textures, so
  * that a model material can use a shared texture such as an envmap.
  */
-static bool Cm_ResolveStageAssets(CmMaterial *material, CmStage *stage, AssetContext context) {
+static bool Cm_ResolveStageAssets(Material *material, MaterialStage *stage, AssetContext context) {
 
   bool res = false;
 
@@ -1090,7 +1090,7 @@ static bool Cm_ResolveStageAssets(CmMaterial *material, CmStage *stage, AssetCon
 /**
  * @brief Resolves the asset for the given material.
  */
-static bool Cm_ResolveMaterialAsset(CmMaterial *material, Asset *asset, const char **suffix) {
+static bool Cm_ResolveMaterialAsset(Material *material, Asset *asset, const char **suffix) {
 
   if (*asset->name) {
     char name[MAX_QPATH];
@@ -1126,7 +1126,7 @@ static bool Cm_ResolveMaterialAsset(CmMaterial *material, Asset *asset, const ch
  */
 static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
 
-  CmFootsteps *footsteps = data;
+  MaterialFootsteps *footsteps = data;
 
   if (footsteps->numSamples == lengthof(footsteps->samples)) {
     Com_Debug(DEBUG_COLLISION, "MAX_FOOTSTEP_SAMPLES\n");
@@ -1155,7 +1155,7 @@ static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
 /**
  * @brief Resolves footstep audio sample assets for the given footsteps definition.
  */
-static void Cm_ResolveFootsteps(CmFootsteps *footsteps) {
+static void Cm_ResolveFootsteps(MaterialFootsteps *footsteps) {
 
   if (!q_strlen(footsteps->name)) {
     q_strlcpy(footsteps->name, "default", sizeof(footsteps->name));
@@ -1175,7 +1175,7 @@ static void Cm_ResolveFootsteps(CmFootsteps *footsteps) {
 /**
  * @brief Finalizes the stage after an edit, and resolves its assets and the material stage flags.
  */
-bool Cm_ResolveStage(CmMaterial *m, CmStage *s) {
+bool Cm_ResolveStage(Material *m, MaterialStage *s) {
 
   Cm_FinalizeStage(s);
 
@@ -1190,9 +1190,9 @@ bool Cm_ResolveStage(CmMaterial *m, CmStage *s) {
 /**
  * @brief Appends a new stage that draws the material diffusemap.
  */
-CmStage *Cm_AddStage(CmMaterial *m) {
+MaterialStage *Cm_AddStage(Material *m) {
 
-  CmStage *s = (CmStage *) Mem_LinkMalloc(sizeof(*s), m);
+  MaterialStage *s = (MaterialStage *) Mem_LinkMalloc(sizeof(*s), m);
 
   s->flags = STAGE_TEXTURE;
   s->color = color_white;
@@ -1207,9 +1207,9 @@ CmStage *Cm_AddStage(CmMaterial *m) {
 /**
  * @brief Removes and frees the stage.
  */
-void Cm_RemoveStage(CmMaterial *m, CmStage *s) {
+void Cm_RemoveStage(Material *m, MaterialStage *s) {
 
-  for (CmStage **ss = &m->stages; *ss; ss = &(*ss)->next) {
+  for (MaterialStage **ss = &m->stages; *ss; ss = &(*ss)->next) {
     if (*ss == s) {
       *ss = s->next;
       Mem_Free(s);
@@ -1224,7 +1224,7 @@ void Cm_RemoveStage(CmMaterial *m, CmStage *s) {
 /**
  * @brief Resolves all asset references within the specified material.
  */
-bool Cm_ResolveMaterial(CmMaterial *m) {
+bool Cm_ResolveMaterial(Material *m) {
 
   assert(m);
 
@@ -1239,7 +1239,7 @@ bool Cm_ResolveMaterial(CmMaterial *m) {
     Cm_ResolveMaterialAsset(m, &m->tintmap, (const char *[]) { "_tint", NULL });
   }
 
-  CmStage *stage = m->stages;
+  MaterialStage *stage = m->stages;
   while (stage) {
     if (Cm_ResolveStageAssets(m, stage, m->context)) {
       stage = stage->next;
@@ -1256,7 +1256,7 @@ bool Cm_ResolveMaterial(CmMaterial *m) {
 /**
  * @brief Serialize the given stage.
  */
-static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File *file) {
+static void Cm_WriteStage(const Material *material, const MaterialStage *stage, File *file) {
   Fs_Print(file, "\t{\n");
 
   if (stage->flags & STAGE_TEXTURE) {
@@ -1375,7 +1375,7 @@ static void Cm_WriteStage(const CmMaterial *material, const CmStage *stage, File
 /**
  * @brief Serialize the given material.
  */
-static void Cm_WriteMaterial(const CmMaterial *material, File *file) {
+static void Cm_WriteMaterial(const Material *material, File *file) {
   Fs_Print(file, "{\n");
 
   Fs_Print(file, "\tdiffusemap %s\n", material->name);
@@ -1427,7 +1427,7 @@ static void Cm_WriteMaterial(const CmMaterial *material, File *file) {
   }
 
   // write stages
-  for (CmStage *stage = material->stages; stage; stage = stage->next) {
+  for (MaterialStage *stage = material->stages; stage; stage = stage->next) {
     Cm_WriteStage(material, stage, file);
   }
 
@@ -1437,7 +1437,7 @@ static void Cm_WriteMaterial(const CmMaterial *material, File *file) {
 /**
  * @brief Serialize the material into the specified file path.
  */
-bool Cm_SaveMaterial(const CmMaterial *material) {
+bool Cm_SaveMaterial(const Material *material) {
 
   File *file = Fs_OpenWrite(material->path);
   if (file) {

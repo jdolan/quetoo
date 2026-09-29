@@ -40,7 +40,7 @@ static int32_t Cl_HullForEntity(const EntityState *s) {
     }
 
     case SOLID_BSP: {
-      const CmBspModel *mod = cl.cmModels[s->model1];
+      const CollisionModel *mod = cl.cmModels[s->model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
@@ -132,7 +132,7 @@ typedef struct {
   Vec3 start, end;
   Box3 bounds;
   Box3 absBounds;
-  CmTrace trace;
+  CollisionTrace trace;
   const ClientEntity *skip;
   int32_t contents;
 } ClientTrace;
@@ -166,7 +166,7 @@ static bool Cl_ClipTraceToEntity(ClientTrace *trace, ClientEntity *ent) {
 
   const int32_t headNode = Cl_HullForEntity(s);
 
-  CmTrace tr;
+  CollisionTrace tr;
 
   if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
     tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, headNode, trace->contents);
@@ -204,7 +204,7 @@ static void Cl_ClipTraceToEntities(ClientTrace *trace) {
  *
  * @param skip An optional entity to skip.
  */
-CmTrace Cl_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents) {
+CollisionTrace Cl_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents) {
 
   ClientTrace trace = {
     .start = start,

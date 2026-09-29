@@ -90,19 +90,19 @@ typedef struct {
   /**
    * @brief The trace result.
    */
-  CmTrace trace;
+  CollisionTrace trace;
 
   /**
    * @brief The trace fraction not taking any epsilon nudging into account.
    */
   float unnudgedFraction;
-} CmTraceData;
+} CollisionTraceData;
 
 /**
  * @brief Returns true if this brush was already tested in the current trace,
  *   preventing duplicate work when a brush spans multiple leaves.
  */
-static inline bool Cm_BrushAlreadyTested(CmTraceData *data, int32_t brushNum) {
+static inline bool Cm_BrushAlreadyTested(CollisionTraceData *data, int32_t brushNum) {
   const int32_t hash = brushNum & (lengthof(data->brushCache) - 1);
 
   const bool skip = (data->brushCache[hash] == brushNum);
@@ -126,7 +126,7 @@ static inline bool Cm_BrushAlreadyTested(CmTraceData *data, int32_t brushNum) {
  * The offsets[] array provides the box corner in the direction of each plane normal,
  * effectively expanding each plane outward by the box's radius in that direction.
  */
-static void Cm_TraceToBrush_(CmTraceData *data, const CmBspBrush *brush) {
+static void Cm_TraceToBrush_(CollisionTraceData *data, const CollisionBrush *brush) {
 
   if (!brush->numBrushSides) {
     return;
@@ -140,15 +140,15 @@ static void Cm_TraceToBrush_(CmTraceData *data, const CmBspBrush *brush) {
   float leaveFraction = 1.f;
   float nudgedEnterFraction = -1.f;
 
-  CmBspPlane plane = { };
-  const CmBspBrushSide *side = NULL;
+  CollisionPlane plane = { };
+  const CollisionBrushSide *side = NULL;
 
   bool startOutside = false, endOutside = false;
 
-  const CmBspBrushSide *s = brush->brushSides + brush->numBrushSides - 1;
+  const CollisionBrushSide *s = brush->brushSides + brush->numBrushSides - 1;
   for (int32_t i = brush->numBrushSides - 1; i >= 0; i--, s--) {
 
-    CmBspPlane p;
+    CollisionPlane p;
 
     if (data->isTransformed) {
       p = Cm_TransformPlane(data->matrix, *s->plane);
@@ -225,7 +225,7 @@ static void Cm_TraceToBrush_(CmTraceData *data, const CmBspBrush *brush) {
 /**
  * @brief Tests whether the trace start point is inside the given brush.
  */
-static void Cm_TestBoxInBrush(CmTraceData *data, const CmBspBrush *brush) {
+static void Cm_TestBoxInBrush(CollisionTraceData *data, const CollisionBrush *brush) {
 
   if (!brush->numBrushSides) {
     return;
@@ -235,10 +235,10 @@ static void Cm_TestBoxInBrush(CmTraceData *data, const CmBspBrush *brush) {
     return;
   }
 
-  const CmBspBrushSide *side = brush->brushSides;
+  const CollisionBrushSide *side = brush->brushSides;
   for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
-    CmBspPlane plane;
+    CollisionPlane plane;
 
     if (data->isTransformed) {
       plane = Cm_TransformPlane(data->matrix, *side->plane);
@@ -266,9 +266,9 @@ static void Cm_TestBoxInBrush(CmTraceData *data, const CmBspBrush *brush) {
 /**
  * @brief Clips the trace against all brushes within the given leaf.
  */
-static void Cm_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
+static void Cm_TraceToLeaf(CollisionTraceData *data, int32_t leafNum) {
 
-  const CmBspLeaf *leaf = &cmBsp.leafs[leafNum];
+  const CollisionLeaf *leaf = &collisionBsp.leafs[leafNum];
 
   if (!(leaf->contents & data->contents)) {
     return;
@@ -276,13 +276,13 @@ static void Cm_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
 
   // trace line against all brushes in the leaf
   for (int32_t i = 0; i < leaf->numLeafBrushes; i++) {
-    const int32_t brushNum = cmBsp.leafBrushes[leaf->firstLeafBrush + i];
+    const int32_t brushNum = collisionBsp.leafBrushes[leaf->firstLeafBrush + i];
 
     if (Cm_BrushAlreadyTested(data, brushNum)) {
       continue; // already checked this brush in another leaf
     }
 
-    const CmBspBrush *b = &cmBsp.brushes[brushNum];
+    const CollisionBrush *b = &collisionBsp.brushes[brushNum];
 
     if (!(b->contents & data->contents)) {
       continue;
@@ -299,9 +299,9 @@ static void Cm_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
 /**
  * @brief Tests the trace start position against all brushes within the given leaf.
  */
-static void Cm_TestInLeaf(CmTraceData *data, int32_t leafNum) {
+static void Cm_TestInLeaf(CollisionTraceData *data, int32_t leafNum) {
 
-  const CmBspLeaf *leaf = &cmBsp.leafs[leafNum];
+  const CollisionLeaf *leaf = &collisionBsp.leafs[leafNum];
 
   if (!(leaf->contents & data->contents)) {
     return;
@@ -309,13 +309,13 @@ static void Cm_TestInLeaf(CmTraceData *data, int32_t leafNum) {
 
   // trace line against all brushes in the leaf
   for (int32_t i = 0; i < leaf->numLeafBrushes; i++) {
-    const int32_t brushNum = cmBsp.leafBrushes[leaf->firstLeafBrush + i];
+    const int32_t brushNum = collisionBsp.leafBrushes[leaf->firstLeafBrush + i];
 
     if (Cm_BrushAlreadyTested(data, brushNum)) {
       continue; // already checked this brush in another leaf
     }
 
-    const CmBspBrush *b = &cmBsp.brushes[brushNum];
+    const CollisionBrush *b = &collisionBsp.brushes[brushNum];
 
     if (!(b->contents & data->contents)) {
       continue;
@@ -342,14 +342,14 @@ static void Cm_TestInLeaf(CmTraceData *data, int32_t leafNum) {
  * The fractions p1f and p2f track how far along the original trace [0,1] each recursive
  * segment represents, allowing early-out when we've already found a closer hit.
  */
-static void Cm_TraceToNode(CmTraceData *data, int32_t num, float p1f, float p2f,
+static void Cm_TraceToNode(CollisionTraceData *data, int32_t num, float p1f, float p2f,
                            const Vec3 p1, const Vec3 p2) {
 
 next:;
   // find the point distances to the separating plane
   // and the offset for the size of the box
-  const CmBspNode *node = cmBsp.nodes + num;
-  const CmBspPlane plane = *node->plane;
+  const CollisionNode *node = collisionBsp.nodes + num;
+  const CollisionPlane plane = *node->plane;
 
   float d1, d2, offset;
   if (AXIAL(&plane)) {
@@ -461,9 +461,9 @@ next:;
  *
  * @return The trace.
  */
-static inline CmTrace Cm_BoxTrace_(CmTraceData *data) {
+static inline CollisionTrace Cm_BoxTrace_(CollisionTraceData *data) {
 
-  if (!cmBsp.numNodes) { // map not loaded
+  if (!collisionBsp.numNodes) { // map not loaded
     return data->trace;
   }
 
@@ -535,10 +535,10 @@ static inline CmTrace Cm_BoxTrace_(CmTraceData *data) {
  *
  * @return The trace.
  */
-CmTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode,
+CollisionTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode,
                         int32_t contents, const Mat4 matrix, const Mat4 inverseMatrix) {
 
-  return Cm_BoxTrace_(&(CmTraceData) {
+  return Cm_BoxTrace_(&(CollisionTraceData) {
     .start = start,
     .end = end,
     .bounds = bounds,
@@ -548,7 +548,7 @@ CmTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 boun
     .absBounds = Cm_TraceBounds(start, end, bounds),
     .contents = contents,
     .isTransformed = true,
-    .trace = (CmTrace) {
+    .trace = (CollisionTrace) {
       .fraction = 1.f
     },
     .unnudgedFraction = 1.f + TRACE_EPSILON
@@ -570,9 +570,9 @@ CmTrace Cm_TransformedBoxTrace(const Vec3 start, const Vec3 end, const Box3 boun
  *
  * @return The trace.
  */
-CmTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode, int32_t contents) {
+CollisionTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode, int32_t contents) {
   
-  return Cm_BoxTrace_(&(CmTraceData) {
+  return Cm_BoxTrace_(&(CollisionTraceData) {
     .start = start,
     .end = end,
     .bounds = bounds,
@@ -580,7 +580,7 @@ CmTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t
     .absBounds = Cm_TraceBounds(start, end, bounds),
     .contents = contents,
     .isTransformed = false,
-    .trace = (CmTrace) {
+    .trace = (CollisionTrace) {
       .fraction = 1.f
     },
     .unnudgedFraction = 1.f + TRACE_EPSILON
@@ -596,11 +596,11 @@ CmTrace Cm_BoxTrace(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t
  *   should skip `startSolid` results when selecting entities to avoid selecting brushes
  *   that geometrically contain the view origin.
  */
-CmTrace Cm_TraceToBrush(const Vec3 start, const Vec3 end, const CmBspBrush *brush) {
+CollisionTrace Cm_TraceToBrush(const Vec3 start, const Vec3 end, const CollisionBrush *brush) {
 
   const Box3 absBounds = Cm_TraceBounds(start, end, Box3_Zero());
 
-  CmTraceData data = {
+  CollisionTraceData data = {
     .start = start,
     .end = end,
     .bounds = Box3_Zero(),

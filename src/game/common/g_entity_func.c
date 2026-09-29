@@ -635,7 +635,7 @@ static void G_func_plat_Use(GameEntity *ent, GameEntity *other, GameEntity *acti
 /**
  * @brief Handles touch events on the platform trigger, sending the platform upward when a player steps on it.
  */
-static void G_func_plat_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_func_plat_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->client) {
     return;
@@ -740,7 +740,7 @@ void G_func_plat(GameEntity *ent) {
   ent->pos1 = ent->s.origin;
   ent->pos2 = ent->s.origin;
 
-  const CmEntity *height = gi.EntityValue(ent->def, "height");
+  const Entity *height = gi.EntityValue(ent->def, "height");
   if (height->parsed & ENTITY_INTEGER) { // use the specified height
     ent->pos2.z -= height->integer;
   } else { // or derive it from the model height
@@ -1023,7 +1023,7 @@ void G_func_bob(GameEntity *ent) {
 /**
  * @brief Damages entities that touch a rotating brush while it is in motion.
  */
-static void G_func_rotating_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_func_rotating_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (ent->damage) {
     if (!Vec3_Equal(ent->avelocity, Vec3_Zero())) {
@@ -1195,7 +1195,7 @@ static void G_func_button_Use(GameEntity *ent, GameEntity *other,
 /**
  * @brief Handles touch events on a button, pressing it when a live player makes contact.
  */
-static void G_func_button_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_func_button_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->client) {
     return;
@@ -1443,7 +1443,7 @@ static void G_func_door_Use(GameEntity *ent, GameEntity *other, GameEntity *acti
 /**
  * @brief Touch callback for a door's proximity trigger, opening the door when a player enters the volume.
  */
-static void G_func_door_TouchTrigger(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_func_door_TouchTrigger(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other->health <= 0) {
     return;
@@ -1572,7 +1572,7 @@ static void G_func_door_Die(GameEntity *ent, GameEntity *attacker, uint32_t mod)
 /**
  * @brief Displays the door's locked message when a player first touches it.
  */
-static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->client) {
     return;
@@ -2263,7 +2263,7 @@ static void G_func_train_Next(GameEntity *ent);
  */
 static bool G_func_train_HasOrigin(const GameEntity *ent) {
 
-  const CmEntity *origin = gi.EntityValue(ent->def, "origin");
+  const Entity *origin = gi.EntityValue(ent->def, "origin");
 
   return (origin->parsed & ENTITY_VEC3) && !Vec3_Equal(origin->vec3, Vec3_Zero());
 }
@@ -2294,12 +2294,12 @@ static bool G_path_corner_HasAngles(const GameEntity *corner) {
  */
 static float G_func_train_Heading(const GameEntity *ent) {
 
-  const CmEntity *angle = gi.EntityValue(ent->def, "angle");
+  const Entity *angle = gi.EntityValue(ent->def, "angle");
   if (angle->parsed & ENTITY_FLOAT) {
     return angle->value;
   }
 
-  const CmEntity *angles = gi.EntityValue(ent->def, "angles");
+  const Entity *angles = gi.EntityValue(ent->def, "angles");
   if (angles->parsed & ENTITY_VEC3) {
     return angles->vec3.y;
   }

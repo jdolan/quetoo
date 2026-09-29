@@ -50,8 +50,8 @@ typedef struct {
 
   Box3 bounds;
 
-} Entity;
+} MapEntity;
 
-void SetValueForKey(Entity *ent, const char *key, const char *value);
-const char *ValueForKey(const Entity *ent, const char *key, const char *def);
-Vec3 VectorForKey(const Entity *ent, const char *key, const Vec3 def);
+void SetValueForKey(MapEntity *ent, const char *key, const char *value);
+const char *ValueForKey(const MapEntity *ent, const char *key, const char *def);
+Vec3 VectorForKey(const MapEntity *ent, const char *key, const Vec3 def);

@@ -23,4 +23,4 @@
 
 #include "cm_types.h"
 
-const CmVoxel *Cm_VoxelForPoint(const Vec3 pos);
+const Voxel *Cm_VoxelForPoint(const Vec3 pos);

@@ -127,7 +127,7 @@ static void Cg_PlaySampleThink(const SoundStage *stage, SoundPlaySample *play) {
       play->flags &= ~S_PLAY_UNDERWATER;
     }
 
-    const CmTrace tr = cgi.Trace(stage->origin, play->origin, Box3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+    const CollisionTrace tr = cgi.Trace(stage->origin, play->origin, Box3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
     if (tr.fraction < 1.f) {
       play->flags |= S_PLAY_OCCLUDED;
     } else {

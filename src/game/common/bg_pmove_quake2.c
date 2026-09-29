@@ -159,7 +159,7 @@ static void Pm_Quake2SlideMove(void) {
 
   const Vec3 primalVelocity = pm->s.velocity;
 
-  CmBspPlane planes[PM_QUAKE2_CLIP_PLANES];
+  CollisionPlane planes[PM_QUAKE2_CLIP_PLANES];
   int32_t numPlanes = 0;
 
   float timeLeft = pmoveLocals.time;
@@ -167,7 +167,7 @@ static void Pm_Quake2SlideMove(void) {
   for (int32_t bump = 0; bump < PM_QUAKE2_BUMPS; bump++) {
 
     const Vec3 end = Vec3_Fmaf(pm->s.origin, timeLeft, pm->s.velocity);
-    const CmTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
+    const CollisionTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
 
     if (trace.allSolid) { // trapped in a solid
       pm->s.velocity.z = 0.f; // and do not build up falling damage
@@ -265,7 +265,7 @@ static void Pm_Quake2StepSlideMove(void) {
   const Vec3 down = MakeVec3(pm->s.origin.x, pm->s.origin.y,
                            pm->s.origin.z - PM_QUAKE2_STEP_SIZE);
 
-  const CmTrace trace = Pm_Trace(pm->s.origin, down, pm->bounds);
+  const CollisionTrace trace = Pm_Trace(pm->s.origin, down, pm->bounds);
   if (!trace.allSolid) {
     pm->s.origin = trace.end;
   }
@@ -539,7 +539,7 @@ static void Pm_Quake2CategorizePosition(void) {
     const Vec3 below = MakeVec3(pm->s.origin.x, pm->s.origin.y,
                               pm->s.origin.z - PM_QUAKE2_GROUND_PROBE);
 
-    const CmTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
+    const CollisionTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
     pmoveLocals.ground = trace;
 
     // a steep plane is still ground if we started inside it
@@ -680,7 +680,7 @@ static void Pm_Quake2CheckSpecialMovement(void) {
 
   const Vec3 ahead = Vec3_Fmaf(pm->s.origin, PM_QUAKE2_LADDER_PROBE, forward);
 
-  const CmTrace trace = Pm_Trace(pm->s.origin, ahead, pm->bounds);
+  const CollisionTrace trace = Pm_Trace(pm->s.origin, ahead, pm->bounds);
   if (trace.fraction < 1.f && (trace.contents & CONTENTS_LADDER)) {
     pm->s.flags |= PMF_ON_LADDER;
   }

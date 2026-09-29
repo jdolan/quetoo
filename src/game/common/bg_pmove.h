@@ -187,13 +187,13 @@ typedef struct {
 
   float hookPullSpeed; // hook pull speed (in)
 
-  CmTrace touched[PM_MAX_TOUCHS]; // entities touched (out)
+  CollisionTrace touched[PM_MAX_TOUCHS]; // entities touched (out)
   int32_t numTouched;
 
   Vec3 angles; // clamped, and including kick and delta (out)
   Box3 bounds; // bounding box size (out)
 
-  CmTrace ground; // (in / out)
+  CollisionTrace ground; // (in / out)
 
   int32_t waterType; // water type and level (out)
   PMoveWaterLevel waterLevel;
@@ -205,7 +205,7 @@ typedef struct {
   int32_t (*BoxContents)(const Box3 box);
 
   // collision with the world and solid entities
-  CmTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds);
+  CollisionTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds);
 
   // print debug messages for development
   DebugFlags (*DebugMask)(void);

@@ -39,7 +39,7 @@ static void didEndEditing(TextView *textView) {
   assert(self);
   assert(self->delegate.didEditEntity);
 
-  CmEntity *e = self->pair ?: cgi.AllocEntity();
+  Entity *e = self->pair ?: cgi.AllocEntity();
 
   const char *key = self->key->attributedText->chars;
   const char *value = self->value->attributedText->chars;
@@ -108,10 +108,10 @@ static View *init(View *self) {
 #pragma mark - EntityView
 
 /**
- * @fn EntityView *EntityView::initWithEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair)
+ * @fn EntityView *EntityView::initWithEntity(EntityView *self, CGameEditorEntity *edit, Entity *pair)
  * @memberof EntityView
  */
-static EntityView *initWithEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair) {
+static EntityView *initWithEntity(EntityView *self, CGameEditorEntity *edit, Entity *pair) {
 
   self = (EntityView *) super(StackView, self, initWithFrame, NULL);
   if (self) {
@@ -134,10 +134,10 @@ static EntityView *initWithEntity(EntityView *self, CGameEditorEntity *edit, CmE
 }
 
 /**
- * @fn void EntityView::setEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair)
+ * @fn void EntityView::setEntity(EntityView *self, CGameEditorEntity *edit, Entity *pair)
  * @memberof EntityView
  */
-static void setEntity(EntityView *self, CGameEditorEntity *edit, CmEntity *pair) {
+static void setEntity(EntityView *self, CGameEditorEntity *edit, Entity *pair) {
 
   self->edit = edit;
   self->pair = pair;

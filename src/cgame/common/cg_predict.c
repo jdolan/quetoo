@@ -92,7 +92,7 @@ PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common
 /**
  * @brief Trace wrapper for `Pm_Move`.
  */
-static CmTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+static CollisionTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
   return cgi.Trace(start, end, bounds, cgi.client->entity, CONTENTS_MASK_CLIP_PLAYER);
 }
 

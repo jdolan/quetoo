@@ -175,8 +175,8 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
     presetStr = dustPresetSteam;
   }
 
-  CmEntity *preset = cgi.EntityFromInfoString(presetStr);
-  CmEntity *def = cgi.EntityAssign(self->def, preset);
+  Entity *preset = cgi.EntityFromInfoString(presetStr);
+  Entity *def = cgi.EntityAssign(self->def, preset);
   cgi.FreeEntity(preset);
 
   if (!q_strcmp(type, "fizz")) {
@@ -212,7 +212,7 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
 
   dust->density = cgi.EntityValue(def, "density")->value;
 
-  const CmEntity *sizeSpread = cgi.EntityValue(def, "size_spread");
+  const Entity *sizeSpread = cgi.EntityValue(def, "size_spread");
   dust->sizeSpread = (sizeSpread->parsed & ENTITY_FLOAT) ? sizeSpread->value : .1f;
   dust->velocitySpread = cgi.EntityValue(def, "velocity_spread")->vec3;
   dust->accelerationSpread = cgi.EntityValue(def, "acceleration_spread")->vec3;
@@ -224,12 +224,12 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
 
   self->bounds = Box3_Null();
 
-  const CmBsp *bsp = cgi.WorldModel()->bsp->cm;
-  const CmEntity *brushDef = self->id < bsp->numEntities ? bsp->entities[self->id] : self->def;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const Entity *brushDef = self->id < bsp->numEntities ? bsp->entities[self->id] : self->def;
   Vector *brushes = cgi.EntityBrushes(brushDef);
   for (size_t i = 0; i < brushes->count; i++) {
 
-    const CmBspBrush *brush = VectorValue(brushes, CmBspBrush *, i);
+    const CollisionBrush *brush = VectorValue(brushes, CollisionBrush *, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);
 
     const Vec3 brushSize = Box3_Size(brush->bounds);
@@ -508,7 +508,7 @@ static void Cg_misc_model_Init(CGameEntity *self) {
   entity->lerp = 1.f;
   entity->color = Vec4_One();
 
-  const CmEntity *model = cgi.EntityValue(self->def, "model");
+  const Entity *model = cgi.EntityValue(self->def, "model");
   if (model->parsed & ENTITY_STRING) {
     entity->model = cgi.LoadModel(model->string);
     if (entity->model) {
@@ -725,14 +725,14 @@ static void Cg_misc_sprite_Init(CGameEntity *self) {
   sprite->sprite.rotationVelocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
   sprite->sprite.dir = cgi.EntityValue(self->def, "dir")->vec3;
 
-  const CmEntity *color = cgi.EntityValue(self->def, "color");
+  const Entity *color = cgi.EntityValue(self->def, "color");
   if (color->parsed & ENTITY_VEC3) {
     sprite->sprite.color = color->vec3;
   } else {
     sprite->sprite.color = MakeVec3(1.f, 1.f, 1.f);
   }
 
-  const CmEntity *endColor = cgi.EntityValue(self->def, "end_color");
+  const Entity *endColor = cgi.EntityValue(self->def, "end_color");
   if (endColor->parsed & ENTITY_VEC3) {
     sprite->sprite.endColor = endColor->vec3;
   } else {
@@ -829,7 +829,7 @@ static void Cg_misc_steam_Init(CGameEntity *self) {
     const Vec3 targetOrigin = cgi.EntityValue(self->target, "origin")->vec3;
     steam->velocity = Vec3_Subtract(targetOrigin, self->origin);
   } else {
-    const CmEntity *velocity = cgi.EntityValue(self->def, "velocity");
+    const Entity *velocity = cgi.EntityValue(self->def, "velocity");
     if (velocity->parsed & ENTITY_VEC3) {
       steam->velocity = velocity->vec3;
     } else {
@@ -992,12 +992,12 @@ static void Cg_misc_weather_Init(CGameEntity *self) {
 
   self->bounds = Box3_Null();
 
-  const CmBsp *bsp = cgi.WorldModel()->bsp->cm;
-  const CmEntity *brushDef = self->id < bsp->numEntities ? bsp->entities[self->id] : self->def;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const Entity *brushDef = self->id < bsp->numEntities ? bsp->entities[self->id] : self->def;
   Vector *brushes = cgi.EntityBrushes(brushDef);
   for (size_t i = 0; i < brushes->count; i++) {
 
-    const CmBspBrush *brush = VectorValue(brushes, CmBspBrush *, i);
+    const CollisionBrush *brush = VectorValue(brushes, CollisionBrush *, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);
 
     const Vec3 brushSize = Box3_Size(brush->bounds);
@@ -1057,7 +1057,7 @@ static CGameSprite *Cg_misc_weather_SpawnSprite(CGameEntity *self, CGameWeather 
 
   if (origin->w == 0.f) {
     const Vec3 end = MakeVec3(pos.x, pos.y, pos.z - MAX_WORLD_AXIAL);
-    const CmTrace trace = cgi.Trace(pos, end, Box3_Zero(), NULL, CONTENTS_SOLID);
+    const CollisionTrace trace = cgi.Trace(pos, end, Box3_Zero(), NULL, CONTENTS_SOLID);
     origin->w = pos.z - trace.end.z;
     self->bounds = Box3_Append(self->bounds, trace.end);
   }

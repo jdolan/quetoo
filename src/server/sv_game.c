@@ -73,7 +73,7 @@ static void Sv_SetModel(GameEntity *ent, const char *name) {
 
   // if it is an inline model, get the size information for it
   if (name[0] == '*') {
-    const CmBspModel *mod = Cm_Model(name);
+    const CollisionModel *mod = Cm_Model(name);
     ent->bounds = mod->bounds;
     Sv_LinkEntity(ent);
   }

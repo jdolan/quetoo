@@ -240,7 +240,7 @@ static bool Pm_Quake3SlideMove(const bool gravity) {
   for (bump = 0; bump < PM_QUAKE3_BUMPS; bump++) {
 
     const Vec3 end = Vec3_Fmaf(pm->s.origin, timeLeft, pm->s.velocity);
-    const CmTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
+    const CollisionTrace trace = Pm_Trace(pm->s.origin, end, pm->bounds);
 
     if (trace.allSolid) { // trapped in a solid
       pm->s.velocity.z = 0.f; // and do not build up falling damage
@@ -368,7 +368,7 @@ static void Pm_Quake3StepSlideMove(const bool gravity) {
   // latter jitters the start by up to a unit to escape a solid, so it cannot
   // answer a question about the position as it stands, and the origin it returns
   // would carry that jitter into the move
-  CmTrace trace = pm->Trace(startOrigin, below, pm->bounds);
+  CollisionTrace trace = pm->Trace(startOrigin, below, pm->bounds);
 
   // never step up while still rising, unless there is floor right underneath
   if (pm->s.velocity.z > 0.f &&
@@ -743,7 +743,7 @@ static void Pm_Quake3GroundTrace(void) {
 
   // Pm_Trace is itself Quake III's PM_CorrectAllSolid, so the corrective case
   // upstream spells out here is already taken
-  const CmTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
+  const CollisionTrace trace = Pm_Trace(pm->s.origin, below, pm->bounds);
   pmoveLocals.ground = trace;
 
   pm->s.flags &= ~PMF_ON_GROUND;

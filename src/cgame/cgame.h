@@ -645,7 +645,7 @@ typedef struct {
    * @param number The entity number, or -1 to create a new entity.
    * @param entity The entity definition, or `NULL` to delete the entity.
    */
-  void (*WriteEntityInfoCommand)(int16_t number, const CmEntity *entity);
+  void (*WriteEntityInfoCommand)(int16_t number, const Entity *entity);
 
   /**
    * @}
@@ -656,13 +656,13 @@ typedef struct {
   /**
    * @return The BSP model for the currrently loaded map.
    */
-  const CmBsp *(*Bsp)(void);
+  const CollisionBsp *(*Bsp)(void);
 
   /**
    * @brief Returns the worldspawn entity definition.
    * @return The worldspawn entity definition.
    */
-  const CmEntity *(*Worldspawn)(void);
+  const Entity *(*Worldspawn)(void);
 
   /**
    * @brief Finds the entity pair for `key` within the specifed entity.
@@ -672,7 +672,7 @@ typedef struct {
    * @remarks This function will always return non-`NULL` for convenience. Check the
    * parsed types on the returned pair to differentiate "not present" from "0."
    */
-  const CmEntity *(*EntityValue)(const CmEntity *entity, const char *key);
+  const Entity *(*EntityValue)(const Entity *entity, const char *key);
 
   /**
    * @brief Returns a new entity list with keys from src assigned into a copy of dst.
@@ -680,7 +680,7 @@ typedef struct {
    *   Analogous to JavaScript's `Object.assign(dst, src)`.
    * @return A newly allocated entity list; the caller must free with `Cm_FreeEntity`.
    */
-  CmEntity *(*EntityAssign)(const CmEntity *dst, const CmEntity *src);
+  Entity *(*EntityAssign)(const Entity *dst, const Entity *src);
 
   /**
    * @brief Finds all brushes within the specified entity.
@@ -690,25 +690,25 @@ typedef struct {
    * in the source .map file. Even `func_group` and other entities which have their
    * brushes merged into `worldspawn` during the compilation step are fully supported.
    */
-  Vector *(*EntityBrushes)(const CmEntity *entity);
+  Vector *(*EntityBrushes)(const Entity *entity);
 
   /**
    * @brief Allocates a new entity definition. Used primarily by the editor.
    * @return A new entity definition.
    */
-  CmEntity *(*AllocEntity)(void);
+  Entity *(*AllocEntity)(void);
 
   /**
    * @brief Frees an entity definition. Used primarily by the editor.
    * @param entity The entity definition to free.
    */
-  void (*FreeEntity)(CmEntity *entity);
+  void (*FreeEntity)(Entity *entity);
 
   /**
    * @brief Parses the key/value pairs of the specified entity.
    * @param entity The entity to parse.
    */
-  void (*ParseEntity)(CmEntity *entity);
+  void (*ParseEntity)(Entity *entity);
 
   /**
    * @brief Sets a key/value pair on the specified entity.
@@ -718,21 +718,21 @@ typedef struct {
    * @param value The value.
    * @return The entity.
    */
-  CmEntity *(*SetEntityKeyValue)(CmEntity *entity, const char *key, CmEntityParsed field, const void *value);
+  Entity *(*SetEntityKeyValue)(Entity *entity, const char *key, EntityParsed field, const void *value);
 
   /**
    * @brief Serializes the entity to an info string.
    * @param entity The entity.
    * @return The info string. The caller must free this.
    */
-  char *(*EntityToInfoString)(const CmEntity *entity);
+  char *(*EntityToInfoString)(const Entity *entity);
 
   /**
    * @brief Deserializes an entity from an info string.
    * @param str The info string.
    * @return A newly allocated entity. The caller must free this with FreeEntity.
    */
-  CmEntity *(*EntityFromInfoString)(const char *str);
+  Entity *(*EntityFromInfoString)(const char *str);
 
   /**
    * @return The contents mask at the specified point.
@@ -767,7 +767,7 @@ typedef struct {
    * @remarks This function is useful for testing points against non-solid brushes
    * from brush entities. For general purpose collision detection, use PointContents.
    */
-  bool (*PointInsideBrush)(const Vec3 point, const CmBspBrush *brush);
+  bool (*PointInsideBrush)(const Vec3 point, const CollisionBrush *brush);
 
   /**
    * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
@@ -778,7 +778,7 @@ typedef struct {
    * @param contents Solids matching this mask will clip the returned trace.
    * @return A trace result.
    */
-  CmTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents);
+  CollisionTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents);
 
   /**
    * @brief Traces a point ray from `start` to `end` against a single brush.
@@ -787,7 +787,7 @@ typedef struct {
    * @param brush The brush to test.
    * @return A trace result. Check `startSolid` to detect the view origin being inside the brush.
    */
-  CmTrace (*TraceToBrush)(const Vec3 start, const Vec3 end, const CmBspBrush *brush);
+  CollisionTrace (*TraceToBrush)(const Vec3 start, const Vec3 end, const CollisionBrush *brush);
 
   /**
    * @brief Returns the leaf number containing the specified point.
@@ -947,7 +947,7 @@ typedef struct {
    * @param material The material.
    * @return The light stage, or `NULL`.
    */
-  CmStage *(*MaterialLightStage)(const CmMaterial *material);
+  MaterialStage *(*MaterialLightStage)(const Material *material);
 
   /**
    * @brief Places the lights of the brush sides whose material has a `STAGE_LIGHT` stage, as
@@ -955,10 +955,10 @@ typedef struct {
    * @param file The BSP file.
    * @param materials The materials to read the light stages from, indexed by BSP material.
    * @param material The BSP material index to place lights for, or `-1` for all materials.
-   * @param lights The Vector of `CmMaterialLight` to append to.
+   * @param lights The Vector of `MaterialLight` to append to.
    * @return The number of lights appended.
    */
-  size_t (*MaterialLights)(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights);
+  size_t (*MaterialLights)(const BspFile *file, Material *const *materials, int32_t material, Vector *lights);
 
   /**
    * @brief Resolves the default color of a stage light that does not specify `light.color`.
@@ -966,7 +966,7 @@ typedef struct {
    * @param stage The light stage.
    * @return The color, as quemap resolves it.
    */
-  Vec3 (*MaterialLightColor)(const CmMaterial *material, const CmStage *stage);
+  Vec3 (*MaterialLightColor)(const Material *material, const MaterialStage *stage);
 
   /**
    * @brief Appends a new stage to the material, which draws its diffusemap.
@@ -974,7 +974,7 @@ typedef struct {
    * @return The new stage.
    * @remarks The renderer stages MUST be reloaded with `ReloadMaterialStages` after this.
    */
-  CmStage *(*AddMaterialStage)(CmMaterial *material);
+  MaterialStage *(*AddMaterialStage)(Material *material);
 
   /**
    * @brief Removes and frees the stage of the material.
@@ -982,7 +982,7 @@ typedef struct {
    * @param stage The stage.
    * @remarks The renderer stages MUST be reloaded with `ReloadMaterialStages` after this.
    */
-  void (*RemoveMaterialStage)(CmMaterial *material, CmStage *stage);
+  void (*RemoveMaterialStage)(Material *material, MaterialStage *stage);
 
   /**
    * @brief Finalizes a stage after its flags or asset change, and resolves its assets.
@@ -990,7 +990,7 @@ typedef struct {
    * @param stage The stage.
    * @return True if the stage assets were resolved.
    */
-  bool (*ResolveMaterialStage)(CmMaterial *material, CmStage *stage);
+  bool (*ResolveMaterialStage)(Material *material, MaterialStage *stage);
 
   /**
    * @brief Resolves the render stages of the material again from its collision material.

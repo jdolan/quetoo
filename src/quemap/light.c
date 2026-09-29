@@ -46,13 +46,13 @@ static void FreeLight(Light *light) {
 /**
  * @brief Finds the `teamMaster` light entity for the given team.
  */
-static const CmEntity *FindTeamMaster(const char *team) {
+static const Entity *FindTeamMaster(const char *team) {
 
   if (!team) {
     return NULL;
   }
 
-  CmEntity **e = Cm_Bsp()->entities;
+  Entity **e = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++, e++) {
     const char *classname = Cm_EntityValue(*e, "classname")->string;
     if (!q_strcmp(classname, "light")) {
@@ -71,7 +71,7 @@ static const CmEntity *FindTeamMaster(const char *team) {
 /**
  * @brief Parses a light entity and returns a populated `Light`, or `NULL` if the entity is not a light.
  */
-static Light *LightForEntity(const CmEntity *entity) {
+static Light *LightForEntity(const Entity *entity) {
 
   const char *classname = Cm_EntityValue(entity, "classname")->string;
   if (!q_strcmp(classname, "light")) {
@@ -87,7 +87,7 @@ static Light *LightForEntity(const CmEntity *entity) {
 
     const float drift = Cm_EntityValue(entity, "drift")->value;
 
-    const CmEntity *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullableString);
+    const Entity *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullableString);
     if (master) {
       light->radius = light->radius ?: Cm_EntityValue(master, "radius")->value;
 
@@ -131,7 +131,7 @@ static Light *LightForEntity(const CmEntity *entity) {
     // Resolve the target entity number now so the BSP carries the reference.
     const char *target = Cm_EntityValue(entity, "target")->nullableString;
     if (target) {
-      const CmBsp *bsp = Cm_Bsp();
+      const CollisionBsp *bsp = Cm_Bsp();
       for (int32_t i = 0; i < bsp->numEntities; i++) {
         const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullableString;
         if (!q_strcmp(targetname, target)) {
@@ -171,10 +171,10 @@ void FreeLights(void) {
  * @brief Returns a new light for the given material light.
  * @param colors The resolved default colors, indexed by material, and zero until resolved.
  */
-static Light *LightForMaterial(const CmMaterialLight *in, Vec3 *colors) {
+static Light *LightForMaterial(const MaterialLight *in, Vec3 *colors) {
 
-  const CmMaterial *material = Cm_Bsp()->materials[in->material];
-  const CmStage *stage = Cm_MaterialLightStage(material);
+  const Material *material = Cm_Bsp()->materials[in->material];
+  const MaterialStage *stage = Cm_MaterialLightStage(material);
 
   Light *light = AllocLight();
 
@@ -214,7 +214,7 @@ void BuildLights(void) {
 
   lights = lights ?: $(alloc(Vector), initWithSize, sizeof(Light *));
 
-  CmEntity **entity = Cm_Bsp()->entities;
+  Entity **entity = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++, entity++) {
     Light *light = LightForEntity(*entity);
     if (light) {
@@ -223,7 +223,7 @@ void BuildLights(void) {
     Progress("Building lights", i * 100.f / Cm_Bsp()->numEntities);
   }
 
-  Vector *materialLights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
+  Vector *materialLights = $(alloc(Vector), initWithSize, sizeof(MaterialLight));
   Cm_MaterialLights(&bspFile, Cm_Bsp()->materials, -1, materialLights);
 
   Vec3 *colors = Mem_TagMalloc(sizeof(Vec3) * Maxi(1, Cm_Bsp()->numMaterials), (MemTag) MEM_TAG_LIGHT);
@@ -236,7 +236,7 @@ void BuildLights(void) {
       break;
     }
 
-    Light *light = LightForMaterial(VectorElement(materialLights, CmMaterialLight, i), colors);
+    Light *light = LightForMaterial(VectorElement(materialLights, MaterialLight, i), colors);
     $(lights, add, &light);
   }
 
