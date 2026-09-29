@@ -137,13 +137,6 @@ Cvar *g_friendlyFire;
 Cvar *g_gameplay;
 Cvar *g_movement;
 
-/**
- * @brief What this level asked for, remembered so that setting `g_movement`
- * back to "default" returns to it rather than to Quetoo's.
- */
-static PMovement movementLevel;
-static GameplayId gameplayLevel;
-
 // player movement parameters (hydrated into PMoveParams by G_MovementParams)
 Cvar *g_airAcceleration;
 Cvar *g_airFriction;
@@ -660,7 +653,7 @@ float G_LevelGravity(void) {
  */
 static PMovement G_CoerceMovement(void) {
 
-  PMovement movement = movementLevel;
+  PMovement movement = gameLevel.requested.movement;
 
   if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
     if (!Pm_MovementByName(g_movement->string, &movement)) {
@@ -682,12 +675,12 @@ static PMovement G_CoerceMovement(void) {
  */
 PMovement G_ResolveMovement(const char *name) {
 
-  movementLevel = G_MOVEMENT_DEFAULT;
+  gameLevel.requested.movement = G_MOVEMENT_DEFAULT;
 
   if (name && *name) {
-    if (!Pm_MovementByName(name, &movementLevel)) {
+    if (!Pm_MovementByName(name, &gameLevel.requested.movement)) {
       G_Warn("Unknown movement \"%s\" in this level, using %s\n",
-              name, Pm_Movement(movementLevel)->name);
+              name, Pm_Movement(gameLevel.requested.movement)->name);
     }
   }
 
@@ -701,7 +694,7 @@ PMovement G_ResolveMovement(const char *name) {
  */
 static GameplayId G_CoerceGameplay(void) {
 
-  GameplayId gameplay = gameplayLevel;
+  GameplayId gameplay = gameLevel.requested.gameplay;
 
   if (q_strcmp(g_gameplay->string, "default")) { // "default" defers to the level
     gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
@@ -724,7 +717,7 @@ static GameplayId G_CoerceGameplay(void) {
  */
 GameplayId G_ResolveGameplay(const char *name) {
 
-  gameplayLevel = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
+  gameLevel.requested.gameplay = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
 
   return G_CoerceGameplay();
 }

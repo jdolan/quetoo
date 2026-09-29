@@ -824,6 +824,15 @@ typedef struct {
   PMovement movement;
 
   /**
+   * @brief What this level asked for, remembered so that setting `g_gameplay` or
+   * `g_movement` back to "default" returns to it rather than to Quetoo's.
+   */
+  struct {
+    GameplayId gameplay;
+    PMovement movement;
+  } requested;
+
+  /**
    * @brief True if team play is active.
    */
   bool teams;
