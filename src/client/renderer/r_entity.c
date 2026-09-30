@@ -33,31 +33,27 @@ static void R_SetEntityBounds(RenderEntity *e) {
 }
 
 /**
- * @brief Tests whether the entity should be culled.
+ * @return Whether the entity is visible, culled or occluded.
  */
-bool R_CullEntity(const RenderView *view, const RenderEntity *e) {
+RenderVisibility R_CullEntity(const RenderView *view, const RenderEntity *e) {
 
   if (view->type == VIEW_PLAYER_MODEL) {
-    return false;
+    return VISIBILITY_VISIBLE;
   }
 
   if (e->parent) {
-    return false;
+    return VISIBILITY_VISIBLE;
   }
 
   if (e->effects & (EF_WORLD | EF_SELF | EF_WEAPON)) {
-    return false;
+    return VISIBILITY_VISIBLE;
   }
 
   if (Box3_IsNull(e->absModelBounds)) {
-    return true;
+    return VISIBILITY_CULLED;
   }
 
-  if (R_CulludeBox(view, e->absModelBounds)) {
-    return true;
-  }
-
-  return false;
+  return R_CulludeBox(view, e->absModelBounds);
 }
 
 /**

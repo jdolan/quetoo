@@ -99,17 +99,51 @@ bool R_OccludeSphere(const RenderView *view, const Vec3 origin, float radius) {
 }
 
 /**
- * @brief Returns true if the box is culled or occluded.
+ * @return Whether the box is visible, culled or occluded.
  */
-bool R_CulludeBox(const RenderView *view, const Box3 bounds) {
-  return R_CullBox(view, bounds) || R_OccludeBox(view, bounds);
+RenderVisibility R_CulludeBox(const RenderView *view, const Box3 bounds) {
+
+  if (R_CullBox(view, bounds)) {
+    return VISIBILITY_CULLED;
+  }
+
+  if (R_OccludeBox(view, bounds)) {
+    return VISIBILITY_OCCLUDED;
+  }
+
+  return VISIBILITY_VISIBLE;
 }
 
 /**
- * @brief Returns true if the sphere is culled or occluded.
+ * @return Whether the sphere is visible, culled or occluded.
  */
-bool R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius) {
-  return R_CullSphere(view, point, radius) || R_OccludeSphere(view, point, radius);
+RenderVisibility R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius) {
+
+  if (R_CullSphere(view, point, radius)) {
+    return VISIBILITY_CULLED;
+  }
+
+  if (R_OccludeSphere(view, point, radius)) {
+    return VISIBILITY_OCCLUDED;
+  }
+
+  return VISIBILITY_VISIBLE;
+}
+
+/**
+ * @return Whether @p query is visible, culled or occluded this frame.
+ */
+RenderVisibility R_OcclusionQueryVisibility(const RenderOcclusionQuery *query) {
+
+  if (query->culled) {
+    return VISIBILITY_CULLED;
+  }
+
+  if (!query->result) {
+    return VISIBILITY_OCCLUDED;
+  }
+
+  return VISIBILITY_VISIBLE;
 }
 
 /**
@@ -265,13 +299,7 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
     }
 
     renderDiagnostics->queriesAllocated++;
-    if (q->culled) {
-      renderDiagnostics->queriesCulled++;
-    } else if (q->result) {
-      renderDiagnostics->queriesVisible++;
-    } else {
-      renderDiagnostics->queriesOccluded++;
-    }
+    renderDiagnostics->queries[R_OcclusionQueryVisibility(q)]++;
   }
 
   R_UpdateOcclusionBounds();

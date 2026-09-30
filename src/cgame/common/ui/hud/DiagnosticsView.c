@@ -85,16 +85,17 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   addRow(self, "ping", "%d ms", frame->ps.stats[STAT_PING]);
   addRow(self, "dropped", "%u", cl->dropped);
 
-  addRow(self, "queries", "%d allocated, %d visible, %d culled, %d occluded",
-         r->queriesAllocated, r->queriesVisible, r->queriesCulled, r->queriesOccluded);
+  addRow(self, "queries", "%d allocated, %d visible, %d culled, %d occluded", r->queriesAllocated,
+         r->queries[VISIBILITY_VISIBLE], r->queries[VISIBILITY_CULLED], r->queries[VISIBILITY_OCCLUDED]);
   addRow(self, "lights", "%d visible, %d culled, %d occluded, %d cached",
-         r->lightsVisible, r->lightsCulled, r->lightsOccluded, r->lightsCached);
+         r->lights[VISIBILITY_VISIBLE], r->lights[VISIBILITY_CULLED], r->lights[VISIBILITY_OCCLUDED], r->lightsCached);
   addRow(self, "entities", "%d visible, %d culled, %d occluded",
-         r->entitiesVisible, r->entitiesCulled, r->entitiesOccluded);
+         r->entities[VISIBILITY_VISIBLE], r->entities[VISIBILITY_CULLED], r->entities[VISIBILITY_OCCLUDED]);
   addRow(self, "blocks", "%d visible, %d culled, %d occluded",
-         r->blocksVisible, r->blocksCulled, r->blocksOccluded);
+         r->blocks[VISIBILITY_VISIBLE], r->blocks[VISIBILITY_CULLED], r->blocks[VISIBILITY_OCCLUDED]);
   addRow(self, "subviews", "%d offered, %d culled, %d occluded, %d drawn, %d triangles",
-         r->subviewsOffered, r->subviewsCulled, r->subviewsOccluded, r->subviewsDrawn, r->subviewsTriangles);
+         r->subviewsOffered, r->subviews[VISIBILITY_CULLED], r->subviews[VISIBILITY_OCCLUDED], r->subviewsDrawn,
+         r->subviewsTriangles);
   addRow(self, "  portals", "%d offered, %d drawn", r->portalsOffered, r->portalsDrawn);
   addRow(self, "  reflections", "%d offered, %d drawn", r->reflectionsOffered, r->reflectionsDrawn);
   addRow(self, "bsp", "%d models, %d draws, %d triangles",

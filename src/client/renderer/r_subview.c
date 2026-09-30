@@ -676,13 +676,14 @@ void R_DrawSubviews(RenderView *view) {
 
     // the scene was populated before any of it was culled, so a subview may well have been
     // offered a view it turns out not to need
-    if (R_CullBox(view, subview->absBounds)) {
-      diagnostics->subviewsCulled++;
-      continue;
+    RenderVisibility visibility = R_CulludeBox(view, subview->absBounds);
+    if (visibility == VISIBILITY_VISIBLE && subview->query && !subview->query->result) {
+      visibility = VISIBILITY_OCCLUDED;
     }
 
-    if (R_OccludeBox(view, subview->absBounds) || (subview->query && !subview->query->result)) {
-      diagnostics->subviewsOccluded++;
+    diagnostics->subviews[visibility]++;
+
+    if (visibility != VISIBILITY_VISIBLE) {
       continue;
     }
 

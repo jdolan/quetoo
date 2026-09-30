@@ -657,17 +657,14 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
       continue;
     }
 
-    if (R_CullEntity(view, e)) {
-      if (Box3_IsNull(e->absModelBounds) || R_CullBox(view, e->absModelBounds)) {
-        renderDiagnostics->entitiesCulled++;
-      } else {
-        renderDiagnostics->entitiesOccluded++;
-      }
+    const RenderVisibility visibility = R_CullEntity(view, e);
+    renderDiagnostics->entities[visibility]++;
+
+    if (visibility != VISIBILITY_VISIBLE) {
       continue;
     }
 
     R_DrawMeshEntity(view, e, pass);
-    renderDiagnostics->entitiesVisible++;
   }
 }
 

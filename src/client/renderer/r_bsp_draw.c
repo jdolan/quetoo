@@ -299,18 +299,18 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(MaterialBlend src, Mater
 }
 
 /**
- * @return True if @p block should be skipped when drawing @p view.
+ * @return Whether @p block is visible, culled or occluded when drawing @p view.
  * @details The main view has hardware occlusion queries, which subsume frustum culling. A
  * subview cannot use them at all -- they were resolved for a camera somewhere else
  * entirely -- so it culls its own frustum and nothing more.
  */
-static inline bool R_CullBspBlock(const RenderView *view, const RenderBspBlock *block) {
+static inline RenderVisibility R_CullBspBlock(const RenderView *view, const RenderBspBlock *block) {
 
   if (view->type == VIEW_SUBVIEW) {
-    return R_CullBox(view, block->visibleBounds);
+    return R_CullBox(view, block->visibleBounds) ? VISIBILITY_CULLED : VISIBILITY_VISIBLE;
   }
 
-  return block->query->result == 0;
+  return R_OcclusionQueryVisibility(block->query);
 }
 
 /**
@@ -495,16 +495,12 @@ static void R_DrawOpaqueBspEntity(const RenderView *view, const RenderEntity *en
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (R_CullBspBlock(view, block)) {
-        if (view->type == VIEW_SUBVIEW || block->query->culled) {
-          renderDiagnostics->blocksCulled++;
-        } else {
-          renderDiagnostics->blocksOccluded++;
-        }
+      const RenderVisibility visibility = R_CullBspBlock(view, block);
+      renderDiagnostics->blocks[visibility]++;
+
+      if (visibility != VISIBILITY_VISIBLE) {
         continue;
       }
-
-      renderDiagnostics->blocksVisible++;
 
       memcpy(&locals.activeDynamicLights, &block->activeDynamicLights, sizeof(locals.activeDynamicLights));
       R_PushBspUniformLocals(&locals, pass);
@@ -632,17 +628,13 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
       continue;
     }
 
-    if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
-      if (Box3_IsNull(e->absModelBounds) || R_CullBox(view, e->absModelBounds)) {
-        renderDiagnostics->entitiesCulled++;
-      } else {
-        renderDiagnostics->entitiesOccluded++;
-      }
-      continue;
-    }
-
     if (!IS_WORLDSPAWN(e->model)) {
-      renderDiagnostics->entitiesVisible++;
+      const RenderVisibility visibility = R_CullEntity(view, e);
+      renderDiagnostics->entities[visibility]++;
+
+      if (visibility != VISIBILITY_VISIBLE) {
+        continue;
+      }
     }
 
     R_DrawOpaqueBspEntity(view, e, pass);

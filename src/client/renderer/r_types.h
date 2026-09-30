@@ -305,6 +305,30 @@ typedef struct {
 #define MAX_DECALS 0x800
 
 /**
+ * @brief Whether a box, entity or query can be seen from a view, and if not, why.
+ * @details `VISIBILITY_VISIBLE` is zero, so that a visibility read as a boolean is true when the
+ *   item is hidden, as the culling functions that return one were before it existed.
+ */
+typedef enum {
+  /**
+   * @brief Inside the view's frustum, and not occluded.
+   */
+  VISIBILITY_VISIBLE,
+
+  /**
+   * @brief Outside the view's frustum.
+   */
+  VISIBILITY_CULLED,
+
+  /**
+   * @brief Inside the view's frustum, but occluded by other geometry.
+   */
+  VISIBILITY_OCCLUDED,
+
+  VISIBILITY_TOTAL
+} RenderVisibility;
+
+/**
  * @brief Hardware occlusion queries.
  */
 typedef struct {
@@ -2113,19 +2137,9 @@ typedef enum {
  */
 typedef struct {
   /**
-   * @brief The count of visible lights.
+   * @brief The counts of lights by visibility.
    */
-  int32_t lightsVisible;
-
-  /**
-   * @brief The count of lights outside the view's frustum.
-   */
-  int32_t lightsCulled;
-
-  /**
-   * @brief The count of lights inside the view's frustum, but occluded by other geometry.
-   */
-  int32_t lightsOccluded;
+  int32_t lights[VISIBILITY_TOTAL];
 
   /**
    * @brief The count of lights with cached shadowmaps.
@@ -2133,34 +2147,14 @@ typedef struct {
   int32_t lightsCached;
 
   /**
-   * @brief The count of visible entities.
+   * @brief The counts of entities by visibility.
    */
-  int32_t entitiesVisible;
+  int32_t entities[VISIBILITY_TOTAL];
 
   /**
-   * @brief The count of entities outside the view's frustum.
+   * @brief The counts of BSP blocks by visibility.
    */
-  int32_t entitiesCulled;
-
-  /**
-   * @brief The count of entities inside the view's frustum, but occluded by other geometry.
-   */
-  int32_t entitiesOccluded;
-
-  /**
-   * @brief The count of visible (non-occluded) BSP blocks.
-   */
-  int32_t blocksVisible;
-
-  /**
-   * @brief The count of BSP blocks outside the view's frustum.
-   */
-  int32_t blocksCulled;
-
-  /**
-   * @brief The count of BSP blocks inside the view's frustum, but occluded by other geometry.
-   */
-  int32_t blocksOccluded;
+  int32_t blocks[VISIBILITY_TOTAL];
 
   /**
    * @brief The count of currently allocated occlusion queries.
@@ -2168,20 +2162,9 @@ typedef struct {
   int32_t queriesAllocated;
 
   /**
-   * @brief The count of visible occlusion queries this frame.
+   * @brief The counts of occlusion queries by visibility this frame.
    */
-  int32_t queriesVisible;
-
-  /**
-   * @brief The count of occlusion queries outside the view's frustum this frame.
-   */
-  int32_t queriesCulled;
-
-  /**
-   * @brief The count of occlusion queries inside the view's frustum, but occluded by other
-   * geometry this frame.
-   */
-  int32_t queriesOccluded;
+  int32_t queries[VISIBILITY_TOTAL];
 
   /**
    * @brief The counts of subviews offered, and of those actually drawn.
@@ -2189,10 +2172,9 @@ typedef struct {
   int32_t subviewsOffered, subviewsDrawn;
 
   /**
-   * @brief The counts of offered subviews outside the view's frustum, and of those inside it but
-   * occluded by other geometry.
+   * @brief The counts of offered subviews by visibility.
    */
-  int32_t subviewsCulled, subviewsOccluded;
+  int32_t subviews[VISIBILITY_TOTAL];
 
   /**
    * @brief The counts portals offered and drawn.
