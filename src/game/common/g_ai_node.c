@@ -34,7 +34,7 @@
  * the previous O(n) linear scan), and is rebuilt lazily after any mutation
  * of the global node array.
  */
-static struct GridKdTree *aiNodesKdtree = NULL;
+static struct GameAiKdTree *aiNodesKdtree = NULL;
 static Vec3 *aiNodesKdtreePositions = NULL;
 static size_t aiNodesKdtreeCount = 0;
 
@@ -44,7 +44,7 @@ static size_t aiNodesKdtreeCount = 0;
  */
 static void G_Ai_Node_InvalidateSpatialIndex(void) {
   if (aiNodesKdtree) {
-    gridkdtree_free(&aiNodesKdtree);
+    G_Ai_KdTreeFree(&aiNodesKdtree);
   }
   if (aiNodesKdtreePositions) {
     free(aiNodesKdtreePositions);
@@ -172,7 +172,7 @@ static bool G_Ai_Node_EnsureSpatialIndex(void) {
     aiNodesKdtreePositions[i] = AI_NODE(aiNodes, i)->position;
   }
 
-  aiNodesKdtree = gridkdtree_create(aiNodesKdtreePositions, n);
+  aiNodesKdtree = G_Ai_KdTreeCreate(aiNodesKdtreePositions, n);
   if (!aiNodesKdtree) {
     free(aiNodesKdtreePositions);
     aiNodesKdtreePositions = NULL;
@@ -232,7 +232,7 @@ GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance,
       .preferLevel = preferLevel
     };
 
-    const size_t node = gridkdtree_query_filter(aiNodesKdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
+    const size_t node = G_Ai_KdTreeQuery(aiNodesKdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
 
     return node == SIZE_MAX ? AI_NODE_INVALID : (GameAiNodeId) node;
   }
@@ -1368,7 +1368,7 @@ typedef struct {
   float priority;
 } GameAiNodePriority;
 
-static struct GHeap *aiNodePathQueue;
+static struct GameAiHeap *aiNodePathQueue;
 static GameAiNodePriority *aiNodePathEntries;
 static size_t aiNodePathCapacity;
 static size_t aiNodePathCount;
@@ -1378,7 +1378,7 @@ static size_t aiNodePathCount;
  */
 static void G_Ai_Node_FreePathPool(void) {
 
-  gheap_free(&aiNodePathQueue);
+  G_Ai_HeapFree(&aiNodePathQueue);
   free(aiNodePathEntries);
   aiNodePathEntries = NULL;
   aiNodePathCapacity = 0;
@@ -1391,14 +1391,14 @@ static void G_Ai_Node_FreePathPool(void) {
 static bool G_Ai_Node_EnsurePathPool(const size_t capacity) {
 
   if (aiNodePathQueue && aiNodePathCapacity >= capacity) {
-    gheap_reset(aiNodePathQueue);
+    G_Ai_HeapReset(aiNodePathQueue);
     aiNodePathCount = 0;
     return true;
   }
 
   G_Ai_Node_FreePathPool();
 
-  aiNodePathQueue = gheap_create(capacity);
+  aiNodePathQueue = G_Ai_HeapCreate(capacity);
   aiNodePathEntries = malloc(sizeof(GameAiNodePriority) * capacity);
 
   if (!aiNodePathQueue || !aiNodePathEntries) {
@@ -1532,14 +1532,14 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
     return NULL;
   }
 
-  struct GHeap *queue = aiNodePathQueue;
+  struct GameAiHeap *queue = aiNodePathQueue;
   bool finished = false;
 
   {
     GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
     e->id = start;
     e->priority = 0;
-    gheap_push(queue, e->priority, e);
+    G_Ai_HeapPush(queue, e->priority, e);
   }
 
   GameAiNode *startNode = AI_NODE(aiNodes, start);
@@ -1548,7 +1548,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
   visited++;
 
   for (;;) {
-    GameAiNodePriority *current = (GameAiNodePriority *) gheap_pop(queue);
+    GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
     if (!current) {
       break;
     }
@@ -1658,7 +1658,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
         // fall back to allocating a larger one is overkill; we simply
         // log and stop expanding from this node. The capacity heuristic
         // above (4 * N + 16) is generous for typical Quetoo maps.
-        if (!gheap_push(queue, priority, e)) {
+        if (!G_Ai_HeapPush(queue, priority, e)) {
           G_Warn("A* open-set heap exhausted (capacity %zu)\n", heapCapacity);
           break;
         }
