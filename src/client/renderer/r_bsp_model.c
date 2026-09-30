@@ -535,7 +535,8 @@ static void R_AppendOcclusionQueryVoxels(RenderOcclusionQuery *query, const BspV
  *   occluded by the block queries alone. The box is the face's bounds grown by a voxel: that puts
  *   its front clear of the face, which is itself in the depth buffer that the query is tested
  *   against, and it turns the query visible a little before the face is, so that the latency of
- *   the results does not leave an undrawn layer on a face that has just come into view.
+ *   the results does not leave an undrawn layer on a face that comes out from behind geometry. A
+ *   face that turns into the frustum is covered by `RenderOcclusionQuery::drawnCulled`.
  */
 static void R_LoadBspSubviewOcclusionQuery(const RenderBspModel *bsp, RenderSubview *subview) {
 

@@ -197,8 +197,12 @@ static void R_DrawOcclusionQueries_(const RenderView *view, CommandBuffer *comma
 
   RenderOcclusionQuery *q = renderOcclusion.queries;
   for (int32_t i = 0; i < renderOcclusion.numQueries; i++, q++) {
+    q->drawnCulled = R_CullBox(view, q->bounds);
+
     $(pass, beginQuery, renderOcclusion.pool, i);
-    $(pass, drawIndexedPrimitives, 36, q->numBoxes, 0, 0, q->firstBox);
+    if (!q->drawnCulled) {
+      $(pass, drawIndexedPrimitives, 36, q->numBoxes, 0, 0, q->firstBox);
+    }
     $(pass, endQuery, renderOcclusion.pool, i);
   }
 
@@ -218,7 +222,7 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
       const int32_t numResults = Mini(renderOcclusion.numQueriesDownloaded, renderOcclusion.numQueries);
       for (int32_t i = 0; i < numResults; i++) {
-        renderOcclusion.queries[i].result = results[i] > 0;
+        renderOcclusion.queries[i].result = results[i] > 0 || renderOcclusion.queries[i].drawnCulled;
       }
 
       $(renderOcclusion.transfer, unmap);

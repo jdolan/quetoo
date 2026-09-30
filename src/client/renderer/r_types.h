@@ -333,6 +333,13 @@ typedef struct {
    * clears `result`.
    */
   bool culled;
+
+  /**
+   * @brief True if the query's bounds were outside the view's frustum when it was last drawn.
+   * @details Its boxes were not drawn then, so its downloaded result says nothing about
+   *   occlusion, and is read as visible.
+   */
+  bool drawnCulled;
 } RenderOcclusionQuery;
 
 /**
