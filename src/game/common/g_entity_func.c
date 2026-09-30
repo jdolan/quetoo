@@ -2121,11 +2121,11 @@ static void G_func_wall_Use(GameEntity *ent, GameEntity *other,
 
   if (ent->solid == SOLID_NOT) {
     ent->solid = SOLID_BSP;
-    ent->svFlags &= ~SVF_NO_CLIENT;
+    ent->serverFlags &= ~SVF_NO_CLIENT;
     G_KillBox(ent);
   } else {
     ent->solid = SOLID_NOT;
-    ent->svFlags |= SVF_NO_CLIENT;
+    ent->serverFlags |= SVF_NO_CLIENT;
   }
   gi.LinkEntity(ent);
 
@@ -2175,7 +2175,7 @@ void G_func_wall(GameEntity *ent) {
     ent->solid = SOLID_BSP;
   } else {
     ent->solid = SOLID_NOT;
-    ent->svFlags |= SVF_NO_CLIENT;
+    ent->serverFlags |= SVF_NO_CLIENT;
   }
 
   gi.LinkEntity(ent);
@@ -2756,7 +2756,7 @@ void G_func_timer(GameEntity *ent) {
     ent->activator = ent;
   }
 
-  ent->svFlags = SVF_NO_CLIENT;
+  ent->serverFlags = SVF_NO_CLIENT;
 }
 
 /**

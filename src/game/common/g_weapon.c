@@ -533,7 +533,7 @@ static void G_PullGrenadePin(GameClient *cl) {
   nade->owner = cl->entity;
   nade->s.origin = cl->entity->s.origin;
   nade->solid = SOLID_NOT;
-  nade->svFlags |= SVF_NO_CLIENT;
+  nade->serverFlags |= SVF_NO_CLIENT;
   nade->moveType = MOVE_TYPE_NONE;
   nade->clipMask = CONTENTS_MASK_CLIP_PROJECTILE;
   nade->takeDamage = true;
@@ -984,7 +984,7 @@ void G_FireBfg(GameClient *cl) {
 
     GameEntity *timer = G_AllocEntity(__func__);
     timer->owner = cl->entity;
-    timer->svFlags = SVF_NO_CLIENT;
+    timer->serverFlags = SVF_NO_CLIENT;
 
     timer->Think = G_FireBfg_;
     timer->nextThink = gameLevel.time + SECONDS_TO_MILLIS(g_balanceBfgPrefire->value) - QUETOO_TICK_MILLIS;

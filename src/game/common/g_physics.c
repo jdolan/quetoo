@@ -94,7 +94,7 @@ static void G_CheckWater(GameEntity *ent) {
       ent->velocity = Vec3_Scale(ent->velocity, 0.66);
     }
 
-    if (!(ent->svFlags & SVF_NO_CLIENT)) {
+    if (!(ent->serverFlags & SVF_NO_CLIENT)) {
       const int8_t pitch = ent->waterType & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
@@ -116,7 +116,7 @@ static void G_CheckWater(GameEntity *ent) {
 
   } else if (oldWaterLevel == WATER_UNDER && ent->waterLevel == WATER_NONE) {
 
-    if (!(ent->svFlags & SVF_NO_CLIENT)) {
+    if (!(ent->serverFlags & SVF_NO_CLIENT)) {
       const int8_t pitch = oldWaterType & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 

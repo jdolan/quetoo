@@ -46,7 +46,7 @@ static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, Gam
 
   ent->solid = SOLID_TRIGGER;
   ent->moveType = MOVE_TYPE_NONE;
-  ent->svFlags |= SVF_NO_CLIENT;
+  ent->serverFlags |= SVF_NO_CLIENT;
   ent->Touch = touch;
 
   gi.SetModel(ent, ent->model);

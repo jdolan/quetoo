@@ -557,7 +557,7 @@ static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target, 
  */
 static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 
-  if (target->solid == SOLID_DEAD || (target->svFlags & SVF_NO_CLIENT)) {
+  if (target->solid == SOLID_DEAD || (target->serverFlags & SVF_NO_CLIENT)) {
     return false;
   }
 
@@ -1613,7 +1613,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
       continue;
     }
 
-    if (ent->svFlags & SVF_NO_CLIENT) {
+    if (ent->serverFlags & SVF_NO_CLIENT) {
       continue;
     }
 

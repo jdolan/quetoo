@@ -37,7 +37,7 @@ static void G_Trigger_Init(GameEntity *ent) {
   ent->solid = SOLID_TRIGGER;
   ent->moveType = MOVE_TYPE_NONE;
   gi.SetModel(ent, ent->model);
-  ent->svFlags = SVF_NO_CLIENT;
+  ent->serverFlags = SVF_NO_CLIENT;
 }
 
 /**
@@ -139,7 +139,7 @@ void G_trigger_multiple(GameEntity *ent) {
 
   ent->Touch = G_trigger_multiple_Touch;
   ent->moveType = MOVE_TYPE_NONE;
-  ent->svFlags |= SVF_NO_CLIENT;
+  ent->serverFlags |= SVF_NO_CLIENT;
 
   if (ent->spawnFlags & TRIGGERED) {
     ent->solid = SOLID_NOT;

@@ -798,7 +798,7 @@ static void G_ClientCorpseSlot(GameEntity *corpse, const GameClient *cl) {
  */
 static void G_ClientCorpse(GameClient *cl) {
 
-  if (cl->entity->svFlags & SVF_NO_CLIENT) {
+  if (cl->entity->serverFlags & SVF_NO_CLIENT) {
     return;
   }
 
@@ -1451,7 +1451,7 @@ static void G_ClientRespawn_(GameClient *cl) {
     ent->bounds = Box3_Zero();
 
     ent->solid = SOLID_NOT;
-    ent->svFlags = SVF_NO_CLIENT;
+    ent->serverFlags = SVF_NO_CLIENT;
 
     ent->moveType = MOVE_TYPE_NO_CLIP;
     ent->dead = true;
@@ -1465,7 +1465,7 @@ static void G_ClientRespawn_(GameClient *cl) {
     ent->classname = "client";
 
     ent->solid = SOLID_BOX;
-    ent->svFlags = 0;
+    ent->serverFlags = 0;
 
     ent->bounds = G_PlayerBounds();
 

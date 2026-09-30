@@ -116,7 +116,7 @@ static void G_ResetDroppedFlag(GameEntity *ent) {
     return;
   }
 
-  f->svFlags &= ~SVF_NO_CLIENT;
+  f->serverFlags &= ~SVF_NO_CLIENT;
   f->s.event = EV_ITEM_RESPAWN;
   f->s.eventData = f->item->def.tag;
   f->solid = SOLID_TRIGGER;
@@ -241,7 +241,7 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
     if (ent->spawnFlags & SF_ITEM_DROPPED) { // return it if necessary
 
       teamFlag->solid = SOLID_TRIGGER;
-      teamFlag->svFlags &= ~SVF_NO_CLIENT;
+      teamFlag->serverFlags &= ~SVF_NO_CLIENT;
 
       gi.LinkEntity(teamFlag);
 
@@ -272,7 +272,7 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
         cl->entity->s.model3 = 0;
 
         otherTeamFlag->solid = SOLID_TRIGGER;
-        otherTeamFlag->svFlags &= ~SVF_NO_CLIENT; // reset the other flag
+        otherTeamFlag->serverFlags &= ~SVF_NO_CLIENT; // reset the other flag
 
         gi.LinkEntity(otherTeamFlag);
 
@@ -318,7 +318,7 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
   }
 
   teamFlag->solid = SOLID_NOT;
-  teamFlag->svFlags |= SVF_NO_CLIENT;
+  teamFlag->serverFlags |= SVF_NO_CLIENT;
 
   gi.LinkEntity(teamFlag);
 
@@ -401,7 +401,7 @@ static void G_ResetItem_Ctf(GameEntity *ent) {
     const GameTeamId flagTeam = ent->item->def.tag - FLAG_FIRST;
 
     if (flagTeam >= gameLevel.numTeams) {
-      ent->svFlags |= SVF_NO_CLIENT;
+      ent->serverFlags |= SVF_NO_CLIENT;
       ent->solid = SOLID_NOT;
 
       gi.LinkEntity(ent);

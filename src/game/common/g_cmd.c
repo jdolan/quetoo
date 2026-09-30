@@ -211,7 +211,7 @@ static void G_NoClip_f(GameClient *cl) {
  */
 static void G_Wave_f(GameClient *cl) {
 
-  if (cl->entity->svFlags & SVF_NO_CLIENT) {
+  if (cl->entity->serverFlags & SVF_NO_CLIENT) {
     return;
   }
 

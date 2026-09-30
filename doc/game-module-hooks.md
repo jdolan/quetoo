@@ -345,7 +345,7 @@ the feature, so a mod that builds it gets bots that hunt carriers and a client
 that draws the trails.
 
 It is `G_CTF` and `g_ctf.c` rather than `G_FLAG` and `g_flag.c` because "flag" is
-badly overloaded in this codebase - `spawn_flags`, `sv_flags`, `dflags`, a score's
+badly overloaded in this codebase - `spawn_flags`, `serverFlags`, `dflags`, a score's
 `flags`, the `EF_` and `SF_` bits - and because the feature is more than the item.
 "Flag" is kept only where it means the item: `G_TossFlag`, `G_PickupFlag`,
 `G_TeamForFlag`, `G_FlagForTeam`. Everything naming the feature is `_Ctf`:

@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 44
+#define GAME_API_VERSION 45
 
 /**
  * @brief Server flags for `GameEntity`.
@@ -142,7 +142,7 @@ struct ServerGameEntity {
   /**
    * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
    */
-  uint32_t svFlags;
+  uint32_t serverFlags;
 
   /**
    * @brief Game-set bounding box in entity-local space.

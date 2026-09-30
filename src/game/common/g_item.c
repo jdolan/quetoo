@@ -162,7 +162,7 @@ static void G_ItemRespawn(GameEntity *ent) {
     }
   }
 
-  ent->svFlags &= ~SVF_NO_CLIENT;
+  ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->solid = SOLID_TRIGGER;
 
   gi.LinkEntity(ent);
@@ -213,7 +213,7 @@ void G_SetItemRespawn(GameEntity *ent, uint32_t delay) {
   ent->Think = G_ItemRespawn;
 
   ent->solid = SOLID_NOT;
-  ent->svFlags |= SVF_NO_CLIENT;
+  ent->serverFlags |= SVF_NO_CLIENT;
 
   G_ItemRestoreOrigin(ent);
 
@@ -976,7 +976,7 @@ void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
  */
 static void G_UseItem(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
-  ent->svFlags &= ~SVF_NO_CLIENT;
+  ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->Use = NULL;
 
   if (ent->spawnFlags & SF_ITEM_NO_TOUCH) {
@@ -996,11 +996,11 @@ static void G_UseItem(GameEntity *ent, GameEntity *other, GameEntity *activator)
 static void G_ResetItem_Common(GameEntity *ent) {
 
   ent->solid = SOLID_TRIGGER;
-  ent->svFlags &= ~SVF_NO_CLIENT;
+  ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->Touch = G_TouchItem;
 
   if (ent->spawnFlags & SF_ITEM_TRIGGER) {
-    ent->svFlags |= SVF_NO_CLIENT;
+    ent->serverFlags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
     ent->Use = G_UseItem;
   }
@@ -1011,7 +1011,7 @@ static void G_ResetItem_Common(GameEntity *ent) {
   }
 
   if (G_InhibitItem(ent) || (ent->flags & FL_TEAM_SLAVE)) {
-    ent->svFlags |= SVF_NO_CLIENT;
+    ent->serverFlags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
   }
 

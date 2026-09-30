@@ -640,7 +640,7 @@ void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, Vec3 const
   projectile->knockback = knockback;
   projectile->nextThink = gameLevel.time + timer;
   projectile->solid = SOLID_PROJECTILE;
-  projectile->svFlags &= ~SVF_NO_CLIENT;
+  projectile->serverFlags &= ~SVF_NO_CLIENT;
   projectile->moveType = MOVE_TYPE_BOUNCE;
   projectile->Think = G_GrenadeProjectile_Explode;
   projectile->Touch = G_GrenadeProjectile_Touch;

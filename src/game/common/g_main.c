@@ -343,14 +343,14 @@ static void G_ResetTeamSpawnPoints(GameSpawnPoints *points, const GameEntityTrai
       }
 
       ent->s.trail = trail;
-      ent->svFlags = 0;
+      ent->serverFlags = 0;
 
       gi.LinkEntity(ent);
     } else {
 
       ent->s.trail = 0;
       ent->s.color = (Color32) { .rgba = 0 };
-      ent->svFlags = SVF_NO_CLIENT;
+      ent->serverFlags = SVF_NO_CLIENT;
 
       gi.UnlinkEntity(ent);
     }
@@ -884,7 +884,7 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (!(ent->svFlags & SVF_NO_CLIENT)) {
+        if (!(ent->serverFlags & SVF_NO_CLIENT)) {
           continue;
         }
 
