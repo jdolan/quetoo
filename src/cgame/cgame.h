@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 63
+#define CGAME_API_VERSION 64
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -505,6 +505,13 @@ typedef struct {
    * @param bind The binding, or `NULL` to unbind.
    */
   void (*BindKey)(SDL_Scancode key, const char *bind);
+
+  /**
+   * @brief Binds `key` to `bind`, unless the player has bound it already.
+   * @param key The key name, as the `bind` command takes it (e.g. `"left shift"`).
+   * @param bind The binding.
+   */
+  void (*BindDefault)(const char *key, const char *bind);
 
   /**
    * @brief Set the keyboard input destination.
@@ -1226,6 +1233,13 @@ typedef struct CGameExport {
    * @param cmd The current movement command.
    */
   void (*Move)(PMoveCmd *cmd);
+
+  /**
+   * @brief Binds the keys the module expects, leaving a key the player has bound alone.
+   * @remarks The client calls this when a different client game loads, and not
+   * again for the same one, so that a key the player cleared stays clear.
+   */
+  void (*BindDefaults)(void);
 
   /**
    * @}

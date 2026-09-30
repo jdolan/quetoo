@@ -619,6 +619,7 @@ CGameExport *Cg_LoadCgame(CGameImport *import) {
   cge.HandleEvent = Cg_HandleEvent;
   cge.Look = Cg_Look;
   cge.Move = Cg_ExportMove;
+  cge.BindDefaults = Cg_ExportBindDefaults;
 
   cge.Interpolate = Cg_Interpolate;
   cge.UsePrediction = Cg_ExportUsePrediction;

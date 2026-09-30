@@ -341,7 +341,7 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
  * the buffer they were rebuilding, so `use blaster` became `use ` and was then
  * written back to the config. The weapon is not recoverable, but the shape is
  * unmistakable: nothing else leaves a bind ending in whitespace. Discarding
- * such a line leaves the default bind, which `DEFAULT_BINDS` has already run.
+ * such a line leaves the key unbound, for its default bind to fill.
  */
 static bool Cl_IsTruncatedBind(const char *bind) {
 
@@ -381,6 +381,25 @@ void Cl_Bind(SDL_Scancode key, const char *bind) {
   strcpy(cls.keyState.binds[key], bind);
 }
 
+
+/**
+ * @brief Binds the named key to the given command, unless the key is bound already.
+ */
+void Cl_BindDefault(const char *key, const char *bind) {
+
+  const SDL_Scancode k = Cl_KeyForName(key);
+
+  if (k == SDL_SCANCODE_COUNT) {
+    Com_Warn("\"%s\" isn't a valid key\n", key);
+    return;
+  }
+
+  if (cls.keyState.binds[k] && cls.keyState.binds[k][0]) {
+    return;
+  }
+
+  Cl_Bind(k, bind);
+}
 
 /**
  * @brief Handles the `unbind` console command, removing the binding for a named key.

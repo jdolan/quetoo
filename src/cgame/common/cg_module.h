@@ -139,6 +139,25 @@ extern CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList;
 
 /**
  * @}
+ * @defgroup cg-hooks-input Input
+ * @brief The keys this module binds by default. Tail in cg_input.c.
+ * @{
+ */
+
+/**
+ * @brief Binds the keys this module's commands expect, with `cgi.BindDefault`, so
+ * that a key the player has bound keeps its bind. The client calls it when a different
+ * client game loads, and not on `r_restart`, so that a key the player cleared stays clear.
+ * @details Chainable. A module adding a command binds its own key and defers to
+ * previous. A module whose keys differ binds its own first, or replaces the tail.
+ * The client binds only the console and the screenshot keys.
+ */
+typedef void (*CGameBindDefaultsHook)(void);
+
+extern CGameBindDefaultsHook Cg_BindDefaults;
+
+/**
+ * @}
  * @defgroup cg-hooks-movement Movement
  * @brief How the client predicts movement. Tails in cg_predict.c.
  * @{

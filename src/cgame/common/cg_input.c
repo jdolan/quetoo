@@ -453,6 +453,83 @@ static void Cg_VoiceTeam_down_f(void) {
 }
 
 /**
+ * @brief The tail of the `Cg_BindDefaults` chain: the keys for the weapons, the
+ * movement, the chat and the scores that the common sources provide.
+ */
+static void Cg_BindDefaults_Common(void) {
+
+  static const struct {
+    const char *key, *bind;
+  } binds[] = {
+    { "1", "use blaster" },
+    { "2", "use shotgun" },
+    { "3", "use super shotgun" },
+    { "4", "use machinegun" },
+    { "5", "use grenade launcher" },
+    { "6", "use rocket launcher" },
+    { "7", "use hyperblaster" },
+    { "8", "use lightning gun" },
+    { "9", "use railgun" },
+    { "0", "use bfg10k" },
+    { "g", "use hand grenades" },
+
+    { "w", "+forward" },
+    { "a", "+moveLeft" },
+    { "s", "+back" },
+    { "d", "+moveRight" },
+    { "space", "+moveUp" },
+    { "c", "+moveDown" },
+    { "left", "+left" },
+    { "right", "+right" },
+    { "home", "centerView" },
+    { "left shift", "+speed" },
+    { "e", "use" },
+
+    { "v", "+voice" },
+
+    { "t", "cg_messageMode" },
+    { "return", "cg_messageMode" },
+    { "y", "cg_messageMode2" },
+
+    { "mouse 1", "+attack" },
+    { "mouse 2", "+hook" },
+    { "mouse 3", "+moveUp" },
+    { "mouse wheel up", "cg_weaponPrevious" },
+    { "mouse wheel down", "cg_weaponNext" },
+
+    { "tab", "+score" },
+
+    { "left alt", "+ZOOM" },
+  };
+
+  cgi.Cbuf("alias +ZOOM \""
+           "set f $cg_fov;"
+           "set cg_fov $cg_fovZoom;"
+           "set s $m_sensitivity;"
+           "set m_sensitivity $m_sensitivityZoom;"
+           "\"\n"
+           "alias -ZOOM \""
+           "set cg_fov $f;"
+           "set m_sensitivity $s;"
+           "\"\n");
+
+  for (size_t i = 0; i < lengthof(binds); i++) {
+    cgi.BindDefault(binds[i].key, binds[i].bind);
+  }
+}
+
+CGameBindDefaultsHook Cg_BindDefaults = Cg_BindDefaults_Common;
+
+/**
+ * @brief The `BindDefaults` export. The client holds this rather than the chain
+ * head, so that the chain a module installs from `Cg_Module_Init` is the one that
+ * gets called.
+ */
+void Cg_ExportBindDefaults(void) {
+  Cg_BindDefaults();
+}
+
+/**
  * @brief Init cgame input system.
  */
 void Cg_InitInput(void) {

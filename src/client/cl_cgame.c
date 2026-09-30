@@ -27,6 +27,11 @@
 static void *handle;
 
 /**
+ * @brief The client game whose default binds were last applied.
+ */
+static char boundCgame[MAX_QPATH];
+
+/**
  * @brief Fetch the active debug mask.
  */
 static DebugFlags Cl_CgameDebugMask(void) {
@@ -256,6 +261,7 @@ void Cl_InitCgame(void) {
   import.KeyForBind = Cl_KeyForBind;
   import.KeyName = Cl_KeyName;
   import.BindKey = Cl_Bind;
+  import.BindDefault = Cl_BindDefault;
   import.SetKeyDest = Cl_SetKeyDest;
   import.GetKeyDest = Cl_GetKeyDest;
   import.KeyDown = Cl_KeyDown;
@@ -371,6 +377,11 @@ void Cl_InitCgame(void) {
 
   cls.cgame = cgame;
   cls.cgame->Init();
+
+  if (Str_Compare(boundCgame, dir)) {
+    Str_Copy(boundCgame, dir, sizeof(boundCgame));
+    cls.cgame->BindDefaults();
+  }
 
   Com_Print("Client game initialized\n");
   Com_InitSubsystem(QUETOO_CGAME);

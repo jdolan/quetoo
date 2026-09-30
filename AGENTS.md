@@ -159,10 +159,11 @@ Changing these breaks something this repository cannot see.
 
 ## Ordering that no call site shows
 
-- `Cl_InitKeys` runs early in `Cl_Init` and calls `Cbuf_Execute()` immediately, so the default binds
-  and the `quetoo.cfg` they exec run **before** `Cl_InitInput` registers `+moveLeft` and friends. A
-  bind cannot be resolved as it is set. `Cl_CanonicalizeBinds` runs once at the end of `Cl_Init` for
-  this reason.
+- `Cl_InitKeys` runs early in `Cl_Init` and calls `Cbuf_Execute()` immediately, so the engine's
+  default binds and the `quetoo.cfg` they exec run **before** any module loads or registers its
+  commands. The client game's default binds come later, from `cge.BindDefaults`, and fill only the
+  keys that are still unbound, so a config bind wins. The client calls it when a different client
+  game loads, and not on `r_restart`.
 - A config can set a cvar before the owning subsystem registers it. `Cvar_Set_` creates it through
   `Cvar_Add`, and the owner's `Cvar_Add` adopts it. A name that differs from the registered name by
   more than case makes a separate cvar, which nothing reads.
