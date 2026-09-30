@@ -62,8 +62,8 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
   file can hold several such classes: `SpeedView_init`, `SpeedView_valueForFrame`,
   `SpeedView_initialize`.
 
-`Cvar_Get` and `Cmd_Get` still resolve an older snake_case spelling and warn when they do, so
-existing configs keep working. Configs migrate themselves on save.
+`Cvar_Get` and `Cmd_Get` ignore case, but they MUST NOT resolve an older spelling: a lookup is on
+the path of every key event. A config or bind that uses a renamed name no longer resolves.
 
 ## Sibling repositories
 
@@ -164,7 +164,8 @@ Changing these breaks something this repository cannot see.
   bind cannot be resolved as it is set. `Cl_CanonicalizeBinds` runs once at the end of `Cl_Init` for
   this reason.
 - A config can set a cvar before the owning subsystem registers it. `Cvar_Set_` creates it through
-  `Cvar_Add`, so it exists under whatever name the config used until `Cvar_Add` re-keys it.
+  `Cvar_Add`, and the owner's `Cvar_Add` adopts it. A name that differs from the registered name by
+  more than case makes a separate cvar, which nothing reads.
 - Renderer media are reaped by seed at the end of a load pass. Anything holding a `RenderMaterial *`
   across a level change MUST re-resolve it, or the pointer dangles.
 

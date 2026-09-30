@@ -38,24 +38,6 @@ START_TEST(check_Str_HasToken) {
   ck_assert(!Str_HasToken("dm", NULL));
 } END_TEST
 
-START_TEST(check_Str_IdentEqual) {
-  ck_assert(Str_IdentEqual("r_swapInterval", "r_swapInterval"));
-  ck_assert(Str_IdentEqual("cg_addDecals", "cg_addDecals"));
-  ck_assert(Str_IdentEqual("+move_forward", "+moveForward"));
-  ck_assert(Str_IdentEqual("noClip", "noClip"));
-  ck_assert(Str_IdentEqual("r_swapInterval", "r_swapInterval"));
-  ck_assert(Str_IdentEqual("R_SWAP_INTERVAL", "r_swapInterval"));
-  ck_assert(Str_IdentEqual("__r__swap__interval__", "r_swapInterval"));
-  ck_assert(Str_IdentEqual("", "____"));
-  ck_assert(Str_IdentEqual(NULL, NULL));
-
-  ck_assert(!Str_IdentEqual("r_swapInterval", "r_swapIntervals"));
-  ck_assert(!Str_IdentEqual("cg_addDecals", "cl_addDecals"));
-  ck_assert(!Str_IdentEqual("+moveForward", "-moveForward"));
-  ck_assert(!Str_IdentEqual("r_swapInterval", NULL));
-  ck_assert(!Str_IdentEqual(NULL, "r_swapInterval"));
-} END_TEST
-
 START_TEST(check_InfoString_Get) {
   const char *info =
     "\\g_gameplayMode\\deathmatch"
@@ -102,7 +84,6 @@ int32_t main(int32_t argc, char **argv) {
 
   TCase *tcase = tcase_create("check_shared");
   tcase_add_test(tcase, check_Str_HasToken);
-  tcase_add_test(tcase, check_Str_IdentEqual);
   tcase_add_test(tcase, check_InfoString_Get);
 
   Suite *suite = suite_create("check_shared");

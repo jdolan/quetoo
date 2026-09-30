@@ -358,35 +358,6 @@ static bool Cl_IsTruncatedBind(const char *bind) {
 }
 
 /**
- * @brief Rewrites `bind` so that its command is spelled the way the command is
- * registered now, leaving any arguments alone.
- * @remarks A bind is opaque text that no lookup resolves, so one written with
- * an older command name would otherwise keep it, and resolve by the legacy
- * path on every key event.
- */
-static void Cl_CanonicalizeBind(char *bind, size_t size) {
-
-  char name[MAX_STRING_CHARS];
-  Str_Copy(name, bind, sizeof(name));
-
-  char *args = Str_FindChar(name, ' ');
-  if (args) {
-    *args++ = '\0';
-  }
-
-  const Cmd *cmd = Cmd_Get(name);
-  if (cmd == NULL) {
-    return;
-  }
-
-  if (args) {
-    Str_Format(bind, size, "%s %s", cmd->name, args);
-  } else {
-    Str_Copy(bind, cmd->name, size);
-  }
-}
-
-/**
  * @brief Binds the specified key to the given command.
  */
 void Cl_Bind(SDL_Scancode key, const char *bind) {
@@ -513,8 +484,6 @@ static void Cl_Bind_f(void) {
     return;
   }
 
-  Cl_CanonicalizeBind(cmd, sizeof(cmd));
-
   Cl_Bind(k, cmd);
 }
 
@@ -581,29 +550,6 @@ void Cl_InitKeys(void) {
 
   Cbuf_AddText(DEFAULT_BINDS);
   Cbuf_Execute();
-}
-
-/**
- * @brief Rewrites every bind to the command names registered now.
- * @remarks The default binds and quetoo.cfg are executed from Cl_InitKeys,
- * before the rest of the client registers its commands, so a bind naming a
- * command that does not exist yet cannot be resolved as it is set.
- */
-void Cl_CanonicalizeBinds(void) {
-  char bind[MAX_STRING_CHARS];
-
-  for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (cls.keyState.binds[k] == NULL || *cls.keyState.binds[k] == '\0') {
-      continue;
-    }
-
-    Str_Copy(bind, cls.keyState.binds[k], sizeof(bind));
-    Cl_CanonicalizeBind(bind, sizeof(bind));
-
-    if (Str_Compare(bind, cls.keyState.binds[k])) {
-      Cl_Bind(k, bind);
-    }
-  }
 }
 
 /**

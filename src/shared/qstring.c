@@ -289,35 +289,3 @@ int32_t Str_LastColor(const char *s) {
 
 	return ESC_COLOR_DEFAULT;
 }
-
-/**
- * @see qstring.h
- */
-bool Str_IdentEqual(const char *a, const char *b) {
-
-	if (a == NULL || b == NULL) {
-		return a == b;
-	}
-
-	while (true) {
-
-		while (*a == '_') {
-			a++;
-		}
-
-		while (*b == '_') {
-			b++;
-		}
-
-		if (tolower((unsigned char) *a) != tolower((unsigned char) *b)) {
-			return false;
-		}
-
-		if (*a == '\0') {
-			return true;
-		}
-
-    a++;
-    b++;
-	}
-}

@@ -258,31 +258,6 @@ void Cmd_TokenizeString(const char *text) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-typedef struct {
-  const char *name;
-  Cmd *cmd;
-} CmdLegacyCtx;
-
-/**
- * @brief Finds a command whose name matches but for case and underscores.
- */
-static void Cmd_Legacy_enumerate(const HashTable *table, ident key, ident value, ident data) {
-  CmdLegacyCtx *ctx = data;
-
-  if (ctx->cmd) {
-    return;
-  }
-
-  const List *list = value;
-  for (const ListNode *node = list->head; node; node = node->next) {
-    Cmd *cmd = node->element;
-    if (Str_IdentEqual(cmd->name, ctx->name)) {
-      ctx->cmd = cmd;
-      return;
-    }
-  }
-}
-
 static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
 
   if (cmdState.commands) {
@@ -308,18 +283,7 @@ static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
     }
   }
 
-  if (!cmdState.commands) {
-    return NULL;
-  }
-
-  CmdLegacyCtx ctx = { .name = name };
-  $(cmdState.commands, enumerate, Cmd_Legacy_enumerate, &ctx);
-
-  if (ctx.cmd) {
-    Com_Warn("%s is now %s\n", name, ctx.cmd->name);
-  }
-
-  return ctx.cmd;
+  return NULL;
 }
 
 /**

@@ -177,14 +177,6 @@ int32_t __attribute__ ((warn_unused_result)) Str_CaseCompare(const char *a, cons
 int32_t __attribute__ ((warn_unused_result)) Str_CaseCompareN(const char *a, const char *b, size_t n);
 
 /**
- * @brief Compares two identifiers, ignoring case and underscores, so that
- * `r_swap_interval` and `r_swapInterval` compare equal. NULL-safe.
- * @remarks This is how cvar and console command names written in the older
- * snake_case form are resolved to their current names.
- */
-bool __attribute__ ((warn_unused_result)) Str_IdentEqual(const char *a, const char *b);
-
-/**
  * @brief Null-safe strdup using malloc. The caller must free() the result.
  * @return A heap copy of `s`, or NULL if `s` is NULL.
  */
