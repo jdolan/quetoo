@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-InputButton cgameButtons[4];
+CGameButtons cgameButtons;
 
 #define CG_FOLLOW_ZOOM_SPEED 400.f
 #define CG_FOLLOW_DISTANCE_MIN 40.f
@@ -294,14 +294,14 @@ static void Cg_Move_Common(PMoveCmd *cmd) {
     // already does exactly this with the attack button, so only playback needs it here.
     // While paused the mouse is a cursor for the transport controls rather than a weapon, so
     // attack is dropped: clicking Play would otherwise detach the camera at the same time
-    if ((in_attack.state & BUTTON_STATE_DOWN) && !cgi.demo->paused) {
+    if ((cgameButtons.attack.state & BUTTON_STATE_DOWN) && !cgi.demo->paused) {
       cgameState.spectate.detached = !cgameState.spectate.detached;
       cgameState.spectate.initialized = false;
     }
 
-    in_attack.state &= ~BUTTON_STATE_DOWN;
-  } else if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
-    if (!((in_attack.state & BUTTON_STATE_DOWN) && Cg_AttemptSelectWeapon(&cgi.client->frame.ps))) {
+    cgameButtons.attack.state &= ~BUTTON_STATE_DOWN;
+  } else if (cgameButtons.attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
+    if (!((cgameButtons.attack.state & BUTTON_STATE_DOWN) && Cg_AttemptSelectWeapon(&cgi.client->frame.ps))) {
       cmd->buttons |= BUTTON_ATTACK;
 
       // Encode the pixel-accurate muzzle position as a player-relative offset
@@ -316,27 +316,27 @@ static void Cg_Move_Common(PMoveCmd *cmd) {
   // The hook is dead weight while watching someone else - there is no body to swing on - so it
   // cycles how they are framed instead. Attack keeps doing what it always has, leaving a player
   // behind and picking one back up, which is the press you least want happening by reflex
-  if ((in_hook.state & BUTTON_STATE_DOWN) && Cg_CameraSubject(&cgi.client->frame.ps)) {
+  if ((cgameButtons.hook.state & BUTTON_STATE_DOWN) && Cg_CameraSubject(&cgi.client->frame.ps)) {
     cgi.Cbuf("camera\n");
-    in_hook.state &= ~BUTTON_STATE_DOWN;
+    cgameButtons.hook.state &= ~BUTTON_STATE_DOWN;
   }
 
-  if (in_hook.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
+  if (cgameButtons.hook.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
     cmd->buttons |= BUTTON_HOOK;
   }
 
-  if (in_score.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
+  if (cgameButtons.score.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
     cmd->buttons |= BUTTON_SCORE;
   }
 
-  in_attack.state &= ~BUTTON_STATE_DOWN;
+  cgameButtons.attack.state &= ~BUTTON_STATE_DOWN;
 
   if (cg_run->value) {
-    if (in_speed.state & BUTTON_STATE_HELD) {
+    if (cgameButtons.speed.state & BUTTON_STATE_HELD) {
       cmd->buttons |= BUTTON_WALK;
     }
   } else {
-    if (!(in_speed.state & BUTTON_STATE_HELD)) {
+    if (!(cgameButtons.speed.state & BUTTON_STATE_HELD)) {
       cmd->buttons |= BUTTON_WALK;
     }
   }
@@ -380,39 +380,39 @@ void Cg_ExportMove(PMoveCmd *cmd) {
  */
 void Cg_ClearInput(void) {
   memset(&viewKick, 0, sizeof(viewKick));
-  memset(cgameButtons, 0, sizeof(cgameButtons));
+  memset(&cgameButtons, 0, sizeof(cgameButtons));
 }
 
 static void Cg_Speed_down_f(void) {
-  cgi.KeyDown(&in_speed);
+  cgi.KeyDown(&cgameButtons.speed);
 }
 
 static void Cg_Speed_up_f(void) {
-  cgi.KeyUp(&in_speed);
+  cgi.KeyUp(&cgameButtons.speed);
 }
 
 static void Cg_Attack_down_f(void) {
-  cgi.KeyDown(&in_attack);
+  cgi.KeyDown(&cgameButtons.attack);
 }
 
 static void Cg_Attack_up_f(void) {
-  cgi.KeyUp(&in_attack);
+  cgi.KeyUp(&cgameButtons.attack);
 }
 
 static void Cg_Hook_down_f(void) {
-  cgi.KeyDown(&in_hook);
+  cgi.KeyDown(&cgameButtons.hook);
 }
 
 static void Cg_Hook_up_f(void) {
-  cgi.KeyUp(&in_hook);
+  cgi.KeyUp(&cgameButtons.hook);
 }
 
 static void Cg_Score_down_f(void) {
-  cgi.KeyDown(&in_score);
+  cgi.KeyDown(&cgameButtons.score);
 }
 
 static void Cg_Score_up_f(void) {
-  cgi.KeyUp(&in_score);
+  cgi.KeyUp(&cgameButtons.score);
 }
 
 /**

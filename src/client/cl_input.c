@@ -35,17 +35,12 @@ Cvar *m_sensitivityZoom;
 Cvar *m_pitch;
 Cvar *m_yaw;
 
-static InputButton buttons[10];
-#define in_left buttons[0]
-#define in_right buttons[1]
-#define in_forward buttons[2]
-#define in_back buttons[3]
-#define in_look_up buttons[4]
-#define in_look_down buttons[5]
-#define in_move_left buttons[6]
-#define in_move_right buttons[7]
-#define in_up buttons[8]
-#define in_down buttons[9]
+static struct {
+  InputButton left, right, forward, back;
+  InputButton lookUp, lookDown;
+  InputButton moveLeft, moveRight;
+  InputButton up, down;
+} buttons;
 
 /**
  * @brief Registers a key-down event for the given button, tracking which keys hold it.
@@ -125,83 +120,83 @@ void Cl_KeyUp(InputButton *b) {
 }
 
 static void Cl_Up_down_f(void) {
-  Cl_KeyDown(&in_up);
+  Cl_KeyDown(&buttons.up);
 }
 
 static void Cl_Up_up_f(void) {
-  Cl_KeyUp(&in_up);
+  Cl_KeyUp(&buttons.up);
 }
 
 static void Cl_Down_down_f(void) {
-  Cl_KeyDown(&in_down);
+  Cl_KeyDown(&buttons.down);
 }
 
 static void Cl_Down_up_f(void) {
-  Cl_KeyUp(&in_down);
+  Cl_KeyUp(&buttons.down);
 }
 
 static void Cl_Left_down_f(void) {
-  Cl_KeyDown(&in_left);
+  Cl_KeyDown(&buttons.left);
 }
 
 static void Cl_Left_up_f(void) {
-  Cl_KeyUp(&in_left);
+  Cl_KeyUp(&buttons.left);
 }
 
 static void Cl_Right_down_f(void) {
-  Cl_KeyDown(&in_right);
+  Cl_KeyDown(&buttons.right);
 }
 
 static void Cl_Right_up_f(void) {
-  Cl_KeyUp(&in_right);
+  Cl_KeyUp(&buttons.right);
 }
 
 static void Cl_Forward_down_f(void) {
-  Cl_KeyDown(&in_forward);
+  Cl_KeyDown(&buttons.forward);
 }
 
 static void Cl_Forward_up_f(void) {
-  Cl_KeyUp(&in_forward);
+  Cl_KeyUp(&buttons.forward);
 }
 
 static void Cl_Back_down_f(void) {
-  Cl_KeyDown(&in_back);
+  Cl_KeyDown(&buttons.back);
 }
 
 static void Cl_Back_up_f(void) {
-  Cl_KeyUp(&in_back);
+  Cl_KeyUp(&buttons.back);
 }
 
 static void Cl_LookUp_down_f(void) {
-  Cl_KeyDown(&in_look_up);
+  Cl_KeyDown(&buttons.lookUp);
 }
 
 static void Cl_LookUp_up_f(void) {
-  Cl_KeyUp(&in_look_up);
+  Cl_KeyUp(&buttons.lookUp);
 }
 
 static void Cl_LookDown_down_f(void) {
-  Cl_KeyDown(&in_look_down);
+  Cl_KeyDown(&buttons.lookDown);
 }
 
 static void Cl_LookDown_up_f(void) {
-  Cl_KeyUp(&in_look_down);
+  Cl_KeyUp(&buttons.lookDown);
 }
 
 static void Cl_MoveLeft_down_f(void) {
-  Cl_KeyDown(&in_move_left);
+  Cl_KeyDown(&buttons.moveLeft);
 }
 
 static void Cl_MoveLeft_up_f(void) {
-  Cl_KeyUp(&in_move_left);
+  Cl_KeyUp(&buttons.moveLeft);
 }
 
 static void Cl_MoveRight_down_f(void) {
-  Cl_KeyDown(&in_move_right);
+  Cl_KeyDown(&buttons.moveRight);
 }
 
 static void Cl_MoveRight_up_f(void) {
-  Cl_KeyUp(&in_move_right);
+  Cl_KeyUp(&buttons.moveRight);
 }
 
 static void Cl_CenterView_f(void) {
@@ -499,14 +494,14 @@ static void Cl_ClampPitch(const PlayerState *ps) {
  */
 void Cl_Look(PMoveCmd *cmd) {
 
-  cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
-  cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
+  cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.up, cmd->msec);
+  cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.down, cmd->msec);
 
-  cl.angles.y -= cl_yawSpeed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
-  cl.angles.y += cl_yawSpeed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
+  cl.angles.y -= cl_yawSpeed->value * cmd->msec * Cl_KeyState(&buttons.right, cmd->msec);
+  cl.angles.y += cl_yawSpeed->value * cmd->msec * Cl_KeyState(&buttons.left, cmd->msec);
 
-  cl.angles.x -= cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
-  cl.angles.x += cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
+  cl.angles.x -= cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&buttons.lookUp, cmd->msec);
+  cl.angles.x += cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&buttons.lookDown, cmd->msec);
 
   cls.cgame->Look(cmd);
 
@@ -522,11 +517,11 @@ void Cl_Look(PMoveCmd *cmd) {
  */
 void Cl_Move(PMoveCmd *cmd) {
 
-  cmd->forward += cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
-  cmd->forward -= cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);
+  cmd->forward += cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&buttons.forward, cmd->msec);
+  cmd->forward -= cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&buttons.back, cmd->msec);
 
-  cmd->right += cl_rightSpeed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
-  cmd->right -= cl_rightSpeed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
+  cmd->right += cl_rightSpeed->value * cmd->msec * Cl_KeyState(&buttons.moveRight, cmd->msec);
+  cmd->right -= cl_rightSpeed->value * cmd->msec * Cl_KeyState(&buttons.moveLeft, cmd->msec);
 
   // pass to cgame
   cls.cgame->Move(cmd);
@@ -541,7 +536,7 @@ void Cl_Move(PMoveCmd *cmd) {
  */
 void Cl_ClearInput(void) {
 
-  memset(buttons, 0, sizeof(buttons));
+  memset(&buttons, 0, sizeof(buttons));
 
   S_StopVoice();
 }
