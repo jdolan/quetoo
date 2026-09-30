@@ -130,7 +130,7 @@ static void Cl_AttemptConnect(void) {
     Com_Print("Connecting to %s...\n", cls.server.address);
   }
 
-  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "get_challenge\n");
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getChallenge\n");
 }
 
 /**
@@ -386,7 +386,7 @@ static void Cl_ConnectionlessPacket(void) {
   Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&netFrom), c);
 
   // server connection
-  if (!Str_Compare(c, "client_connect")) {
+  if (!Str_Compare(c, "clientConnect")) {
 
     if (cls.state == CL_CONNECTED) {
       Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&netFrom));

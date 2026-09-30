@@ -136,7 +136,7 @@ static void Sv_Status_f(void) {
 }
 
 /**
- * @brief Returns a challenge number that can be used in a subsequent `client_connect`
+ * @brief Returns a challenge number that can be used in a subsequent `clientConnect`
  * command.
  *
  * We do this to prevent denial of service attacks that flood the server with
@@ -327,7 +327,7 @@ static void Sv_Connect_f(void) {
   }
 
   // send the connect packet to the client
-  NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect");
+  NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "clientConnect");
 }
 
 /**
@@ -425,7 +425,7 @@ static void Sv_ConnectionlessPacket(void) {
     Sv_Challenge(&netFrom, (uint32_t) strtoul(Cmd_Argv(1), NULL, 10));
   } else if (!Str_Compare(c, "status")) {
     Sv_Status_f();
-  } else if (!Str_Compare(c, "get_challenge")) {
+  } else if (!Str_Compare(c, "getChallenge")) {
     Sv_GetChallenge_f();
   } else if (!Str_Compare(c, "connect")) {
     Sv_Connect_f();
