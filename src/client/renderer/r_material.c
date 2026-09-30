@@ -89,7 +89,7 @@ typedef struct {
 } RenderMaterialSurface;
 
 /**
- * @brief ThreadRunFunc which decodes a single material surface.
+ * @brief ThreadRun which decodes a single material surface.
  */
 static void R_LoadMaterialSurface(void *data) {
 

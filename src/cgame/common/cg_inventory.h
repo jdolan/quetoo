@@ -83,7 +83,7 @@ void Cg_InitInventory(void);
 bool Cg_HasWeapon(const PlayerState *ps);
 
 /**
- * @brief Returns the active weapon index into `cgWeapons[]`, or `WEAPON_SELECT_OFF`.
+ * @brief Returns the active weapon index into `cgameWeapons[]`, or `WEAPON_SELECT_OFF`.
  * Prefers the weapon being switched to over the one currently equipped.
  */
 int16_t Cg_ActiveWeapon(const PlayerState *ps);

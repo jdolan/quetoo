@@ -142,7 +142,7 @@ bool Cg_ViewIsSelf(void) {
 
 /**
  * @brief Returns true if the third-person offset should be driven by the viewer's mouse and
- * `+forward`/`+back` (`cgameState.follow`) rather than the static `cg_third_person_*` cvars.
+ * `+forward`/`+back` (`cgameState.follow`) rather than the static `cg_thirdPerson*` cvars.
  * @details That input is free to take in exactly these states: a chasing spectator's aim is
  * never read by the game module (`G_ClientChaseThink` overwrites their view entirely), and demo
  * playback sends no commands to anything. A player forcing `cg_thirdPerson` while actually

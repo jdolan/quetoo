@@ -818,7 +818,7 @@ Some paths need a state the map does not hand you:
   named "Enemy Flag", so the name resolves to the first, which is your own team's
   unless you `team Blue` first. Neither is enough. `HeldFlagView` is therefore the one
   View this document cannot claim was seen working - it needs a real capture, or a bot
-  chased in `cg_third_person_chasecam`.
+  chased with the follow camera (`camera`).
 
 The bundle the runtime needs is described under [Verifying](#verifying); for the
 client specifically, `Contents/Resources` is a symlink to `quetoo-data/target` and

@@ -177,7 +177,7 @@ static void enumerateDemos(const char *path, void *data) {
 }
 
 /**
- * @brief ThreadRunFunc for asynchronous demo info loading.
+ * @brief ThreadRun for asynchronous demo info loading.
  */
 static void loadDemos(void *data) {
 

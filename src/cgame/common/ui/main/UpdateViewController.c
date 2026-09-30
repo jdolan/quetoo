@@ -34,7 +34,7 @@
 #pragma mark - Delegates
 
 /**
- * @brief `ThreadRunFunc` that pre-fetches all hero images synchronously.
+ * @brief `ThreadRun` that pre-fetches all hero images synchronously.
  */
 static void fetchHeroImages(void *data) {
 

@@ -108,8 +108,8 @@ extern CGameEditor cgameEditor;
  */
 typedef struct {
   /**
-   * @brief Pointer into `cgEditor.entities[]` for the resolved entity. Always valid; defaults to
-   *   worldspawn (`&cgEditor.entities[0]`) when no more-specific entity was hit.
+   * @brief Pointer into `cgameEditor.entities[]` for the resolved entity. Always valid; defaults to
+   *   worldspawn (`&cgameEditor.entities[0]`) when no more-specific entity was hit.
    */
   CGameEditorEntity *ent;
 

@@ -15,13 +15,13 @@ anything else, read the code. It is never out of date.
 | Category | Convention | Example |
 |---|---|---|
 | Types | `PascalCase`, with the subsystem prefix | `RenderEntity`, `CGameSprite`, `PMoveParams` |
-| Functions | `Prefix_PascalCase`: the subsystem's short prefix, or the type name for a type with a bare name | `R_DrawMaterialStages`, `G_Damage`, `Cm_BoxTrace`, `Material_Load`, `Winding_Clip` |
+| Functions | `Prefix_PascalCase`: the subsystem's short prefix, or the type name for a type with a bare name | `R_DrawEntities`, `G_Damage`, `Cm_BoxTrace`, `Material_Load`, `Winding_Clip` |
 | Function-pointer members | `PascalCase` | `cgi.AddEntity`, `gi.Multicast` |
 | Function-pointer types | `PascalCase` with the subsystem prefix, as any type, and a `Func` suffix where no better noun fits; module hooks take `Hook` | `CvarEnumerator`, `GameAiGoalFunc`, `GameConfigureLevelHook` |
 | Variables, parameters, data members | `camelCase` | `numElements`, `oldOrigin` |
 | Extern globals | the subsystem prefix, lowercased, then `camelCase` | `renderConfig`, `cgameState`, `gameLevel` |
 | File statics | `camelCase`, no subsystem prefix | `aiNodes`, `world` |
-| Cvars and console commands | keep the prefix, camelCase the rest | `r_swapInterval`, `cg_addDecals`, `+moveForward` |
+| Cvars and console commands | keep the prefix, camelCase the rest | `r_swapInterval`, `cg_addDecals`, `+moveLeft` |
 | Enum constants and macros | `UPPER_CASE`, except that an enum belonging to an Objectively class uses Objectively's `PascalCase` constants | `MAX_CLIENTS`, `SURF_ALPHA_TEST`, `BlendViewPickup` |
 
 The rule is not "everything camelCases". **Case encodes a category.** A callable is PascalCase, data
@@ -48,7 +48,7 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
   `autoSwitch`. The game and the client game both read it, and its name goes over the network in
   the userinfo string each time it changes, where every character counts. The C variable keeps
   its prefix: `cg_hand` registers `"hand"`.
-- Where only one word follows the prefix, nothing moves: `r_gamma`, `m_pitch`.
+- Where only one word follows the prefix, nothing moves: `r_bloom`, `m_pitch`.
 - A function's private helper takes the function's name and a lowercase role suffix:
   `Cvar_Enumerate_collect`, `R_EnumerateMedia_comparator`. A trailing underscore marks the inner
   version of a public function: `Com_Error_`. A recursive helper is named for what it visits:
@@ -142,8 +142,8 @@ any code.
 Changing these breaks something this repository cannot see.
 
 - **Cvar names flagged `CVAR_USER_INFO` or `CVAR_SERVER_INFO` are wire keys.** They are read by
-  literal key through `InfoString_Get` and `Ms_InfoValue`, not through `Cvar_Get`, so the legacy
-  lookup does not cover them. `src/master/main.c` parses `sv_hostname`, `sv_protocol`,
+  literal key through `InfoString_Get` and `Ms_InfoValue`, not through `Cvar_Get`, and they compare
+  case-sensitively. `src/master/main.c` parses `sv_hostname`, `sv_protocol`,
   `sv_maxClients` and `sv_map`, and the master is deployed separately. Renaming one requires
   redeploying the master, and servers are missing from listings until they upgrade.
 - **Material keywords are a content format.** `alpha_test`, `no_draw`, `phong` and the rest in

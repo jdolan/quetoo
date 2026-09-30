@@ -208,7 +208,7 @@ typedef enum {
   CAMERA_FIRST_PERSON,
 
   /**
-   * @brief Behind the subject, at the `cg_third_person_*` offset, riding their facing.
+   * @brief Behind the subject, at the `cg_thirdPerson*` offset, riding their facing.
    */
   CAMERA_THIRD_PERSON,
 

@@ -488,7 +488,7 @@ static void Cg_InitEditorEntity(int16_t number) {
 }
 
 /**
- * @brief Frees the numbered `cgEditor.entities` slot.
+ * @brief Frees the numbered `cgameEditor.entities` slot.
  */
 static void Cg_FreeEditorEntity(int16_t number) {
 

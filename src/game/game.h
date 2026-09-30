@@ -452,25 +452,25 @@ typedef struct {
 
   /**
    * @return The argument count for the currently executing command.
-   * @remarks This should only be called from within `CmdExecuteFunc`.
+   * @remarks This should only be called from within `CmdExecute`.
    */
   int32_t (*Argc)(void);
 
   /**
    * @return The nth argument for the currently executing command.
    * @param arg The argument index. Pass `0` for the command name itself.
-   * @remarks This should only be called from within `CmdExecuteFunc`.
+   * @remarks This should only be called from within `CmdExecute`.
    */
   const char *(*Argv)(int32_t arg);
 
   /**
    * @return The arguments vector for the currently executing command.
-   * @remarks This should only be called from within `CmdExecuteFunc`.
+   * @remarks This should only be called from within `CmdExecute`.
    */
   const char *(*Args)(void);
 
   /**
-   * @brief Tokenizes `text`, setting up the arguments vector for `CmdExecuteFunc`.
+   * @brief Tokenizes `text`, setting up the arguments vector for `CmdExecute`.
    * @param text The user command to tokenize.
    * @remarks This can be useful if dispatching commands to another subsystem (e.g. AI).
    */

@@ -211,7 +211,7 @@ static void enumerateMaps(const char *path, void *data) {
 }
 
 /**
- * @brief ThreadRunFunc for asynchronous map info loading.
+ * @brief ThreadRun for asynchronous map info loading.
  */
 static void loadMaps(void *data) {
 
