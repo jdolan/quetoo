@@ -400,21 +400,21 @@ static void Cl_SetDemoPlaybackSpeedRelative(int32_t increment) {
 }
 
 /**
- * @brief Handles the `demo_playbackFaster` command, increasing demo playback speed.
+ * @brief Handles the `demoPlaybackFaster` command, increasing demo playback speed.
  */
 void Cl_DemoPlaybackFaster_f(void) {
   Cl_SetDemoPlaybackSpeedRelative(+1);
 }
 
 /**
- * @brief Handles the `demo_playbackSlower` command, decreasing demo playback speed.
+ * @brief Handles the `demoPlaybackSlower` command, decreasing demo playback speed.
  */
 void Cl_DemoPlaybackSlower_f(void) {
   Cl_SetDemoPlaybackSpeedRelative(-1);
 }
 
 /**
- * @brief Handles the `demo_pause` command by forwarding it to the demo relay, which owns pause
+ * @brief Handles the `demoPause` command by forwarding it to the demo relay, which owns pause
  * state and reports it back via @c SV_CMD_DEMO_INFO. Nothing is toggled locally: the server pauses
  * on its own when playback reaches the last frame, and a local guess would desync from that.
  * `cls.demo.paused` then frees the mouse and shows the cursor so the transport controls can be

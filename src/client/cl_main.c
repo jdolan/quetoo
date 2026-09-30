@@ -558,10 +558,10 @@ static void Cl_InitLocal(void) {
   Cmd_Add("servers", Cl_Servers_f, CMD_CLIENT, NULL);
   Cmd_Add("record", Cl_Record_f, CMD_CLIENT, NULL);
   Cmd_Add("serversList", Cl_Servers_List_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playbackFaster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playbackSlower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playbackSpeed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_pause", Cl_DemoPause_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPlaybackFaster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPlaybackSlower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPlaybackSpeed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPause", Cl_DemoPause_f, CMD_CLIENT, NULL);
   Cmd_Add("stop", Cl_Stop_f, CMD_CLIENT, NULL);
   Cmd_Add("connect", Cl_Connect_f, CMD_CLIENT, NULL);
   Cmd_Add("reconnect", Cl_Reconnect_f, CMD_CLIENT, NULL);

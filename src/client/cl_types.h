@@ -768,7 +768,7 @@ typedef struct {
   int32_t duration;
 
   /**
-   * @brief True if demo playback is believed to be paused, toggled locally by the `demo_pause`
+   * @brief True if demo playback is believed to be paused, toggled locally by the `demoPause`
    * command (see `Cl_DemoPause_f`). The server is the actual authority on pause state, but
    * tracking it client-side avoids a round trip just to gate the paused-playback controls UI,
    * the mouse grab, and UI event dispatch.

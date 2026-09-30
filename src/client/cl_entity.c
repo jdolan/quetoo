@@ -329,7 +329,7 @@ void Cl_ParseFrame(void) {
 
       // pause local demo playback on initial load
       if (cl.demoServer && !timeDemo->value && cls.netChan.remoteAddress.type == NA_LOOP) {
-        Cbuf_AddText("demo_pause\n");
+        Cbuf_AddText("demoPause\n");
       }
     }
 

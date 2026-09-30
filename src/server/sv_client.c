@@ -58,7 +58,7 @@ static void Sv_New_f(void) {
 
   // begin fetching configStrings
   Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
-  Net_WriteString(&serverClient->netChan.message, va("config_strings %i 0\n", svs.spawnCount));
+  Net_WriteString(&serverClient->netChan.message, va("configStrings %i 0\n", svs.spawnCount));
 }
 
 /**
@@ -113,7 +113,7 @@ static void Sv_ConfigStrings_f(void) {
   } else {
     Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
     Net_WriteString(&serverClient->netChan.message,
-                    va("config_strings %i %i\n", svs.spawnCount, start));
+                    va("configStrings %i %i\n", svs.spawnCount, start));
   }
 }
 
@@ -237,14 +237,14 @@ typedef struct {
 
 static ServerUserStringCmd userStringCmds[] = { // mapping command names to their functions
   { "new", Sv_New_f },
-  { "config_strings", Sv_ConfigStrings_f },
+  { "configStrings", Sv_ConfigStrings_f },
   { "baselines", Sv_Baselines_f },
   { "begin", Sv_Begin_f },
   { "disconnect", Sv_Disconnect_f },
   { "info", Sv_Info_f },
-  { "demo_seek", Sv_DemoSeek_f },
-  { "demo_seek_relative", Sv_DemoSeekRelative_f },
-  { "demo_pause", Sv_DemoPause_f },
+  { "demoSeek", Sv_DemoSeek_f },
+  { "demoSeekRelative", Sv_DemoSeekRelative_f },
+  { "demoPause", Sv_DemoPause_f },
   { NULL, NULL }
 };
 

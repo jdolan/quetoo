@@ -63,7 +63,7 @@ struct DemoControlsView {
   Button *stepBackButton;
 
   /**
-   * @brief Resumes playback (sends `demo_pause`).
+   * @brief Resumes playback (sends `demoPause`).
    */
   Button *playButton;
 
