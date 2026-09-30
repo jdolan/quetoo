@@ -44,7 +44,7 @@
                           "class": "CvarSlider",
                           "min": 0.125,
                           "max": 6,
-                          "var": "mSensitivity"
+                          "var": "m_sensitivity"
                         }
                       },
                       {
@@ -56,7 +56,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "mInvert"
+                          "var": "m_invert"
                         }
                       },
                       {
@@ -68,7 +68,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "mInterpolate"
+                          "var": "m_interpolate"
                         }
                       }
                     ]
@@ -136,7 +136,7 @@
                           "class": "CvarSlider",
                           "min": 0.125,
                           "max": 6,
-                          "var": "mSensitivityZoom"
+                          "var": "m_sensitivityZoom"
                         }
                       }
                     ]
