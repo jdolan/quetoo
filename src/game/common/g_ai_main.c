@@ -158,15 +158,15 @@ typedef struct {
   const GameEntity *entity;
   const GameItem *item;
   float weight;
-} AiItemPick;
+} GameAiItemPick;
 
 /**
  * @brief Comparison function for sorting item pick candidates by descending weight.
  */
 static int32_t G_Ai_CompareItems(const void *a, const void *b) {
 
-  const AiItemPick *w0 = (const AiItemPick *) a;
-  const AiItemPick *w1 = (const AiItemPick *) b;
+  const GameAiItemPick *w0 = (const GameAiItemPick *) a;
+  const GameAiItemPick *w1 = (const GameAiItemPick *) b;
 
   return SignOf(w1->weight - w0->weight);
 }
@@ -212,8 +212,8 @@ static inline void G_Ai_RestorePath(const GameClient *cl, Ai *ai) {
   if (ai->backupMoveTarget.type == AI_GOAL_PATH) {
     // generate a new path to the old target, because we might have gotten a bit out
     // of sync with moving to the item
-    const AiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-    const AiNodeId dest = VectorValue(ai->backupMoveTarget.path.path, AiNodeId, ai->backupMoveTarget.path.path->count - 1);
+    const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+    const GameAiNodeId dest = VectorValue(ai->backupMoveTarget.path.path, GameAiNodeId, ai->backupMoveTarget.path.path->count - 1);
     Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
 
     if (!path) {
@@ -283,7 +283,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // we have nothing to do, start looking for a new one
-  Vector *itemsVisible = $(alloc(Vector), initWithSize, sizeof(AiItemPick));
+  Vector *itemsVisible = $(alloc(Vector), initWithSize, sizeof(GameAiItemPick));
 
   G_ForEachEntity(ent, {
     if (ent->s.solid != SOLID_TRIGGER) {
@@ -319,7 +319,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       weight *= 3.f;
     }
 
-    $(itemsVisible, add, &(AiItemPick) {
+    $(itemsVisible, add, &(GameAiItemPick) {
       .entity = ent,
       .item = item,
       .weight = weight
@@ -334,7 +334,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     }
 
     for (uint32_t i = 0; i < itemsVisible->count; i++) {
-      const AiItemPick pick = VectorValue(itemsVisible, AiItemPick, 0);
+      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, 0);
       const bool found = pick.weight > cl->ai->moveTarget.priority;
 
       if (!found) {
@@ -344,8 +344,8 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       bool pathFound = false;
 
       if (pick.entity->node != AI_NODE_INVALID) {
-        const AiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-        const AiNodeId dest = pick.entity->node;
+        const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+        const GameAiNodeId dest = pick.entity->node;
 
         if (src != AI_NODE_INVALID) {
           float length;
@@ -391,12 +391,12 @@ typedef enum {
   RANGE_SHORT = 128,
   RANGE_MED = 512,
   RANGE_LONG = 1024
-} AiRange;
+} GameAiRange;
 
 /**
  * @brief Classifies a distance value into a discrete range category.
  */
-static AiRange G_Ai_GetRange(const float distance) {
+static GameAiRange G_Ai_GetRange(const float distance) {
   if (distance < (float) RANGE_MELEE) {
     return RANGE_MELEE;
   } else if (distance < (float) RANGE_SHORT) {
@@ -415,7 +415,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
 
   cl->ai->weaponCheckTime = gameLevel.time + 250; // don't try again for a bit
 
-  AiRange targRange;
+  GameAiRange targRange;
 
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
     targRange = G_Ai_GetRange(Vec3_Distance(cl->entity->s.origin, cl->ai->combatTarget.entity.ent->s.origin));
@@ -423,7 +423,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
     targRange = RANGE_DONT_CARE;
   }
 
-  AiItemPick weapons[WEAPON_TOTAL];
+  GameAiItemPick weapons[WEAPON_TOTAL];
   size_t numWeapons = 0;
 
   const int16_t *inventory = cl->inventory;
@@ -503,7 +503,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
       weight *= RandomRangef(.7f, 1.3f);
     }
 
-    weapons[numWeapons++] = (AiItemPick) {
+    weapons[numWeapons++] = (GameAiItemPick) {
       .item = it,
       .weight = weight
     };
@@ -513,9 +513,9 @@ static void G_Ai_PickWeapon(GameClient *cl) {
     return;
   }
 
-  qsort(weapons, numWeapons, sizeof(AiItemPick), G_Ai_CompareItems);
+  qsort(weapons, numWeapons, sizeof(GameAiItemPick), G_Ai_CompareItems);
 
-  const AiItemPick *bestWeapon = &weapons[0];
+  const GameAiItemPick *bestWeapon = &weapons[0];
 
   if (cl->weapon == bestWeapon->item) {
     return;
@@ -662,8 +662,8 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
         const Vec3 whereTo = cl->ai->combatTarget.entity.ent->s.origin;
         
-        const AiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
-        const AiNodeId closestToTarget = G_Ai_Node_FindClosest(whereTo, 128.f, true, true);
+        const GameAiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
+        const GameAiNodeId closestToTarget = G_Ai_Node_FindClosest(whereTo, 128.f, true, true);
         Vector *path = G_Ai_Node_FindPath(cl, closest, closestToTarget, G_Ai_Node_Heuristic, NULL);
 
         if (path) {
@@ -735,8 +735,8 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
     const float dist = Vec3_Distance(cl->entity->s.origin, enemy->s.origin);
 
     // try to find a safe path to the enemy via navigation nodes
-    const AiNodeId myNode = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
-    const AiNodeId enemyNode = G_Ai_Node_FindClosest(enemy->s.origin, 128.f, true, true);
+    const GameAiNodeId myNode = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
+    const GameAiNodeId enemyNode = G_Ai_Node_FindClosest(enemy->s.origin, 128.f, true, true);
     bool pathed = false;
 
     if (myNode != AI_NODE_INVALID && enemyNode != AI_NODE_INVALID && myNode != enemyNode) {
@@ -919,7 +919,7 @@ static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box
 /**
  * @brief Increase our path pointer.
  */
-static bool G_Ai_AdvancePath(GameClient *cl, AiGoal *goal) {
+static bool G_Ai_AdvancePath(GameClient *cl, GameAiGoal *goal) {
 
   goal->path.pathIndex++;
 
@@ -931,8 +931,8 @@ static bool G_Ai_AdvancePath(GameClient *cl, AiGoal *goal) {
   const Vector *path = goal->path.path;
   const uint32_t index = goal->path.pathIndex;
 
-  const AiNodeId node = VectorValue(path, AiNodeId, index);
-  const AiNodeId next = VectorValue(path, AiNodeId, Minz(path->count - 1, index + 1));
+  const GameAiNodeId node = VectorValue(path, GameAiNodeId, index);
+  const GameAiNodeId next = VectorValue(path, GameAiNodeId, Minz(path->count - 1, index + 1));
   goal->path.pathPosition = G_Ai_Node_GetPosition(node);
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
   goal->distress = 0;
@@ -945,7 +945,7 @@ static bool G_Ai_AdvancePath(GameClient *cl, AiGoal *goal) {
 /**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
-static bool G_Ai_CheckNav(GameClient *cl, AiGoal *goal) {
+static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
 
   /*
    * The AI's bbox is expanded for collision checks. This is so
@@ -964,7 +964,7 @@ static bool G_Ai_CheckNav(GameClient *cl, AiGoal *goal) {
 /**
  * @brief Updates the distress counter for a goal and returns false if the goal should be abandoned.
  */
-static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
+static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest) {
   const float pathDist = Vec3_Distance(cl->entity->s.origin, dest);
 
   // wander's distress is handled elsewhere
@@ -1027,7 +1027,7 @@ static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
  */
 static inline bool G_Ai_Path_IsLinked(const Vector *path, const uint32_t a, const uint32_t b) {
 
-  return G_Ai_Node_IsLinked(VectorValue(path, AiNodeId, a), VectorValue(path, AiNodeId, b));
+  return G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, a), VectorValue(path, GameAiNodeId, b));
 }
 
 /**
@@ -1051,7 +1051,7 @@ static bool G_Ai_FacingTarget(const GameClient *cl, const Vec3 target) {
  * @brief A slow-drop occurs when a connection is mono-directional, not far horizontally
  * but far vertically.
  */
-bool G_Ai_ShouldSlowDrop(const AiNodeId fromNode, const AiNodeId toNode) {
+bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode) {
   static const float minDrop = 128.f;
   static const float maxDrop = 512.f;
 
@@ -1198,8 +1198,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     // running off the edge, transition to walking so we don't overshoot targets beneath us
     } else if (!swimming && cl->ai->moveTarget.path.pathIndex > 0 &&
                G_Ai_ShouldSlowDrop(
-                 VectorValue(cl->ai->moveTarget.path.path, AiNodeId, cl->ai->moveTarget.path.pathIndex - 1),
-                 VectorValue(cl->ai->moveTarget.path.path, AiNodeId, cl->ai->moveTarget.path.pathIndex))) {
+                 VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex - 1),
+                 VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex))) {
       dir = Vec3_Scale(dir, PM_SPEED_RUN * 0.5f);
     // run full speed towards the target
     } else {
@@ -1448,7 +1448,7 @@ static float G_Ai_CalcAngle(GameClient *cl, const float speed, float current, fl
  */
 static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
-  AiGoal *combatTarget = &cl->ai->combatTarget;
+  GameAiGoal *combatTarget = &cl->ai->combatTarget;
 
   GameEntity *ent = cl->entity;
   Vec3 idealAngles;
@@ -1606,13 +1606,13 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // check to be sure we're in a navicable spot
-  const AiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
+  const GameAiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
 
   if (closest == AI_NODE_INVALID) {
     return 200;
   }
 
-  Vector *goalPossibilities = $(alloc(Vector), initWithSize, sizeof(AiItemPick));
+  Vector *goalPossibilities = $(alloc(Vector), initWithSize, sizeof(GameAiItemPick));
 
   G_ForEachEntity(ent, {
 
@@ -1659,7 +1659,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
     weight = Randomf() * weight;
 
     // add!!
-    $(goalPossibilities, add, &(AiItemPick) {
+    $(goalPossibilities, add, &(GameAiItemPick) {
       .weight = weight,
       .entity = ent
     });
@@ -1673,8 +1673,8 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
   // go down the list, high priority wins but might not be pickable
   for (uint32_t i = 0; i < goalPossibilities->count; i++) {
 
-    const AiItemPick *pick = VectorElement(goalPossibilities, AiItemPick, i);
-    const AiNodeId closestToItem = G_Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
+    const GameAiItemPick *pick = VectorElement(goalPossibilities, GameAiItemPick, i);
+    const GameAiNodeId closestToItem = G_Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
 
     Vector *path = G_Ai_Node_FindPath(cl, closest, closestToItem, G_Ai_Node_Heuristic, NULL);
     if (path) {
@@ -1716,7 +1716,7 @@ static const G_Ai_GoalFunc aiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
  * Delete this along with everything else guarded by `AI_GOAL_HARDENING` once
  * the root cause is understood and fixed.
  */
-static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, AiGoal *goal) {
+static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, GameAiGoal *goal) {
 
   if (goal->type != AI_GOAL_ENTITY) {
     return;
@@ -1818,9 +1818,9 @@ void G_Ai_Respawn(GameClient *cl) {
  */
 void G_Ai_Begin(GameClient *cl) {
 
-  const AiRoster *r = cl->ai->roster;
+  const GameAiRoster *r = cl->ai->roster;
 
-  cl->ai->personality = (AiPersonality) {
+  cl->ai->personality = (GameAiPersonality) {
     .skill      = r->skill,
     .aggression = r->aggression,
     .awareness  = r->awareness,
@@ -1889,7 +1889,7 @@ static void G_Ai_ClientBegin(GameClient *cl) {
 static void G_Ai_Connect(GameClient *cl) {
 
   char userInfo[MAX_INFO_STRING_STRING];
-  const AiRoster *roster = G_Ai_GetRoster(cl, userInfo);
+  const GameAiRoster *roster = G_Ai_GetRoster(cl, userInfo);
 
   cl->ai = gi.Malloc(sizeof(Ai), MEM_TAG_AI);
   cl->ai->roster = roster;
@@ -1971,7 +1971,7 @@ static void G_Ai_DeleteNode_f(void) {
     return;
   }
 
-  G_Ai_Node_Destroy((AiNodeId) atoi(gi.Argv(1)));
+  G_Ai_Node_Destroy((GameAiNodeId) atoi(gi.Argv(1)));
 }
 
 /**
@@ -1994,14 +1994,14 @@ static void G_Ai_TestPath_f(void) {
 
   G_ForEachClient(cl, {
     if (cl->ai) {
-      const AiNodeId closestToPlayer = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
+      const GameAiNodeId closestToPlayer = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
 
       if (closestToPlayer == AI_NODE_INVALID) {
         G_Ai_Debug("Can't find a node near this bot\n");
         continue;
       }
 
-      Vector *pathToStart = G_Ai_Node_FindPath(cl, closestToPlayer, VectorValue(path, AiNodeId, 0), G_Ai_Node_Heuristic, NULL);
+      Vector *pathToStart = G_Ai_Node_FindPath(cl, closestToPlayer, VectorValue(path, GameAiNodeId, 0), G_Ai_Node_Heuristic, NULL);
 
       if (pathToStart == NULL) {
         G_Ai_Debug("Can't find a path to the test path\n");
@@ -2009,7 +2009,7 @@ static void G_Ai_TestPath_f(void) {
       }
 
       for (uint32_t i = 1; i < path->count; i++) {
-        AiNodeId node = VectorValue(path, AiNodeId, i);
+        GameAiNodeId node = VectorValue(path, GameAiNodeId, i);
         $(pathToStart, add, &node);
       }
       G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, 1.0, pathToStart, NULL);

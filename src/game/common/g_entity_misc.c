@@ -148,15 +148,15 @@ static void G_misc_teleporter_Think(GameEntity *ent) {
   }
 
   // find nodes closest to src and dst
-  const AiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
-  const AiNodeId dstNode = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
+  const GameAiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+  const GameAiNodeId dstNode = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
 
   if (srcNode != AI_NODE_INVALID && dstNode != AI_NODE_INVALID) {
 
     // make a new node on top of src so we touch the teleporter, connect
     // it to dst with a small cost
 
-    const AiNodeId newNode = G_Ai_Node_Create(ent->s.origin);
+    const GameAiNodeId newNode = G_Ai_Node_Create(ent->s.origin);
 
     // use default cost for the entrance
     G_Ai_Node_Link(srcNode, newNode, Vec3_Distance(G_Ai_Node_GetPosition(srcNode), ent->s.origin));

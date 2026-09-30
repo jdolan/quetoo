@@ -1943,7 +1943,7 @@ struct GameEntity {
   /**
    * @brief AI navigation node for item path tracking.
    */
-  AiNodeId node;
+  GameAiNodeId node;
 
   /**
    * @brief True if the entity should advance along the item path.

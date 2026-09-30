@@ -589,7 +589,7 @@ bool InfoString_Validate(const char *s);
 /**
  * @brief The type of an AI node.
  */
-typedef uint16_t AiNodeId;
+typedef uint16_t GameAiNodeId;
 
 /**
  * @brief Default filesystem initialization flags.

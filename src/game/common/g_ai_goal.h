@@ -24,12 +24,12 @@
 #if defined(__G_LOCAL_H__)
 #include "g_ai_types.h"
 
-void G_Ai_SetPositionGoal(const GameClient *cl, AiGoal *goal, float priority, const Vec3 position);
-void G_Ai_SetEntityGoal(const GameClient *cl, AiGoal *goal, float priority, const GameEntity *entity);
-void G_Ai_SetPathGoal(const GameClient *cl, AiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget);
-void G_Ai_CopyGoal(const AiGoal *from, AiGoal *to);
-void G_Ai_ClearGoal(AiGoal *goal);
-bool G_Ai_GoalHasEntity(const AiGoal *goal, const GameEntity *ent);
+void G_Ai_SetPositionGoal(const GameClient *cl, GameAiGoal *goal, float priority, const Vec3 position);
+void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, const GameEntity *entity);
+void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget);
+void G_Ai_CopyGoal(const GameAiGoal *from, GameAiGoal *to);
+void G_Ai_ClearGoal(GameAiGoal *goal);
+bool G_Ai_GoalHasEntity(const GameAiGoal *goal, const GameEntity *ent);
 #if AI_GOAL_HARDENING
 const GameEntity *G_Ai_ResolveGoalEntity(int32_t number);
 #endif
