@@ -295,10 +295,10 @@ static size_t S_MediaHash(const void * key) {
  * @brief Equality function for sound media entries keyed by name and type.
  */
 static bool S_MediaEqual(const void * a, const void * b) {
-  const SoundMedia *_a = a, *_b = b;
+  const SoundMedia *mediaA = a, *mediaB = b;
 
-  if (_a->type == _b->type) {
-    return !Str_Compare(_a->name, _b->name);
+  if (mediaA->type == mediaB->type) {
+    return !Str_Compare(mediaA->name, mediaB->name);
   }
 
   return false;

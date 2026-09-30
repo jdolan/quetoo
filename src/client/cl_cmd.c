@@ -69,7 +69,7 @@ static void Cl_FinalizeMovementCommand(void) {
  * @brief Writes the most recent movement command(s) using delta-compression if available.
  */
 static void Cl_WriteMovementCommand(NetMessage *msg) {
-  static ClientCmd null_cmd;
+  static ClientCmd nullCmd;
 
   Net_WriteByte(msg, CL_CMD_MOVE);
 
@@ -79,7 +79,7 @@ static void Cl_WriteMovementCommand(NetMessage *msg) {
     Net_WriteLong(msg, cl.frame.frameNum);
   }
 
-  ClientCmd *from = &null_cmd, *to = &cl.cmds[(cls.netChan.outgoingSequence - 2) & CMD_MASK];
+  ClientCmd *from = &nullCmd, *to = &cl.cmds[(cls.netChan.outgoingSequence - 2) & CMD_MASK];
   Net_WriteDeltaMoveCmd(msg, &from->cmd, &to->cmd);
 
   from = to; to = &cl.cmds[(cls.netChan.outgoingSequence - 1) & CMD_MASK];

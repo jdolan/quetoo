@@ -831,7 +831,7 @@ int32_t Sv_InstallerFrame(const InstallerStatus *in) {
 
   SDL_Delay(100);
 
-  return in->state >= INSTALLER_DONE || sys_signal_received;
+  return in->state >= INSTALLER_DONE || sysSignalReceived;
 }
 
 /**

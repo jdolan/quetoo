@@ -26,12 +26,12 @@
  * compression for all fields where possible.
  */
 static void Cl_ParsePlayerState(const ClientFrame *deltaFrame, ClientFrame *frame) {
-  static PlayerState null_state;
+  static PlayerState nullState;
 
   if (deltaFrame && deltaFrame->valid) {
     Net_ReadDeltaPlayerState(&netMessage, &deltaFrame->ps, &frame->ps);
   } else {
-    Net_ReadDeltaPlayerState(&netMessage, &null_state, &frame->ps);
+    Net_ReadDeltaPlayerState(&netMessage, &nullState, &frame->ps);
   }
 
   if (cl.demoServer) { // if playing a demo, force freeze

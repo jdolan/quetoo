@@ -276,10 +276,10 @@ static size_t R_MediaHash(const void * key) {
  * @brief Tests whether two media entries are equal by type and name.
  */
 static bool R_MediaEqual(const void * a, const void * b) {
-  const RenderMedia *_a = a, *_b = b;
+  const RenderMedia *mediaA = a, *mediaB = b;
 
-  if (_a->type == _b->type) {
-    return !Str_Compare(_a->name, _b->name);
+  if (mediaA->type == mediaB->type) {
+    return !Str_Compare(mediaA->name, mediaB->name);
   }
 
   return false;

@@ -1015,18 +1015,18 @@ static inline Vec3 __attribute__ ((warn_unused_result)) Vec3_Mix(const Vec3 a, c
  */
 static inline Vec3 __attribute__ ((warn_unused_result)) Vec3_MixEuler(const Vec3 a, const Vec3 b, float mix) {
 
-  Vec3 _a = a;
-  Vec3 _b = b;
+  Vec3 eulerA = a;
+  Vec3 eulerB = b;
 
   for (size_t i = 0; i < 3; i++) {
-    if (_b.xyz[i] - _a.xyz[i] >= 180.f) {
-      _a.xyz[i] += 360.f;
-    } else if (_b.xyz[i] - _a.xyz[i] <= -180.f) {
-      _b.xyz[i] += 360.f;
+    if (eulerB.xyz[i] - eulerA.xyz[i] >= 180.f) {
+      eulerA.xyz[i] += 360.f;
+    } else if (eulerB.xyz[i] - eulerA.xyz[i] <= -180.f) {
+      eulerB.xyz[i] += 360.f;
     }
   }
 
-  return Vec3_Mix(_a, _b, mix);
+  return Vec3_Mix(eulerA, eulerB, mix);
 }
 
 /**

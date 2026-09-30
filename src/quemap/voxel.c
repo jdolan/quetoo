@@ -665,13 +665,13 @@ void ExposureVoxel(int32_t voxelNum) {
   MapVoxel *voxel = &voxels.voxels[voxelNum];
   
   // Use dome vectors to sample hemisphere for better coverage
-  static const Vec3 dome_vectors[] = DOME_UNIFORM_16X;
+  static const Vec3 domeVectors[] = DOME_UNIFORM_16X;
   
   float exposureSum = 0.f;
   
-  for (size_t i = 0; i < lengthof(dome_vectors); i++) {
+  for (size_t i = 0; i < lengthof(domeVectors); i++) {
     const Vec3 start = voxel->origin;
-    const Vec3 dir = Vec3_Scale(dome_vectors[i], MAX_WORLD_AXIAL);
+    const Vec3 dir = Vec3_Scale(domeVectors[i], MAX_WORLD_AXIAL);
     const Vec3 end = Vec3_Add(start, dir);
     
     const CollisionTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SHADOW);
@@ -685,7 +685,7 @@ void ExposureVoxel(int32_t voxelNum) {
     }
   }
   
-  voxel->exposure = exposureSum / (float)lengthof(dome_vectors);
+  voxel->exposure = exposureSum / (float)lengthof(domeVectors);
 }
 
 #define OCCLUSION_RADIUS 256.f
@@ -701,20 +701,20 @@ void OccludeVoxel(int32_t voxelNum) {
 
   MapVoxel *voxel = &voxels.voxels[voxelNum];
 
-  static const Vec3 sphere_vectors[] = SPHERE_UNIFORM_32X;
+  static const Vec3 sphereVectors[] = SPHERE_UNIFORM_32X;
 
   float fractionSum = 0.f;
 
-  for (size_t i = 0; i < lengthof(sphere_vectors); i++) {
+  for (size_t i = 0; i < lengthof(sphereVectors); i++) {
     const Vec3 start = voxel->origin;
-    const Vec3 dir = Vec3_Scale(sphere_vectors[i], OCCLUSION_RADIUS);
+    const Vec3 dir = Vec3_Scale(sphereVectors[i], OCCLUSION_RADIUS);
     const Vec3 end = Vec3_Add(start, dir);
 
     const CollisionTrace trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID);
     fractionSum += trace.fraction;
   }
 
-  voxel->occlusion = 1.f - (fractionSum / (float) lengthof(sphere_vectors));
+  voxel->occlusion = 1.f - (fractionSum / (float) lengthof(sphereVectors));
 }
 
 /**

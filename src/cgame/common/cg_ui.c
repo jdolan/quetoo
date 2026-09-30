@@ -288,15 +288,15 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
   }
 
   if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {
-    static uint64_t done_at = 0;
-    if (done_at == 0) {
-      done_at = SDL_GetTicks();
+    static uint64_t doneAt = 0;
+    if (doneAt == 0) {
+      doneAt = SDL_GetTicks();
     }
-    if (acceptedRestart || SDL_GetTicks() - done_at > 2000) {
+    if (acceptedRestart || SDL_GetTicks() - doneAt > 2000) {
       cgi.PopViewController();
       release(updateViewController);
       updateViewController = NULL;
-      done_at = 0;
+      doneAt = 0;
       return 1;
     }
   }

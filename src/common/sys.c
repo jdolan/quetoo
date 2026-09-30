@@ -562,18 +562,18 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
 
     // check for line number support
     if (SymGetLineFromAddr(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
-      char *last_slash = Str_FindLastChar(line.FileName, '\\');
+      char *lastSlash = Str_FindLastChar(line.FileName, '\\');
 
-      if (!last_slash)
-        last_slash = Str_FindLastChar(line.FileName, '/');
+      if (!lastSlash)
+        lastSlash = Str_FindLastChar(line.FileName, '/');
 
-      if (!last_slash)
-        last_slash = line.FileName;
+      if (!lastSlash)
+        lastSlash = line.FileName;
       else
-        last_slash++;
+        lastSlash++;
 
       char frame[512];
-      Str_Format(frame, sizeof(frame), "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+      Str_Format(frame, sizeof(frame), "> %s (%s:%i)\n", symbol->Name, lastSlash, line.LineNumber);
       Str_Append(buf, frame, sizeof(buf));
     }
     else {
@@ -779,7 +779,7 @@ void Sys_Raise(const char *msg) {
 /**
  * @brief Signal received flag, checked by the main loop.
  */
-volatile sig_atomic_t sys_signal_received = 0;
+volatile sig_atomic_t sysSignalReceived = 0;
 
 /**
  * @brief Catch kernel interrupts and dispatch the appropriate exit routine.
@@ -800,7 +800,7 @@ void Sys_Signal(int32_t s) {
     case SIGHUP:
     case SIGQUIT:
 #endif
-      sys_signal_received = s;
+      sysSignalReceived = s;
       return;
     default:
       signal(s, SIG_DFL);

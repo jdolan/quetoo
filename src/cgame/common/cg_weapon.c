@@ -67,13 +67,13 @@ static void Cg_WeaponOffset(ClientEntity *ent, Vec3 *offset, Vec3 *angles) {
  * over a small interval to smooth out rapid changes.
  */
 static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
-  static Vec3 old_speed, new_speed;
+  static Vec3 oldSpeed, new_speed;
   static uint32_t time;
 
   if (cgi.client->unclampedTime < time) {
     time = 0;
 
-    old_speed = Vec3_Zero();
+    oldSpeed = Vec3_Zero();
     new_speed = Vec3_Zero();
   }
 
@@ -83,17 +83,17 @@ static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
   if (delta < 100) {
     const float lerp = delta / 100.f;
 
-    speed.x = old_speed.x + lerp * (new_speed.x - old_speed.x);
-    speed.y = old_speed.y + lerp * (new_speed.y - old_speed.y);
-    speed.z = old_speed.z + lerp * (new_speed.z - old_speed.z);
+    speed.x = oldSpeed.x + lerp * (new_speed.x - oldSpeed.x);
+    speed.y = oldSpeed.y + lerp * (new_speed.y - oldSpeed.y);
+    speed.z = oldSpeed.z + lerp * (new_speed.z - oldSpeed.z);
   } else {
-    old_speed = new_speed;
+    oldSpeed = new_speed;
 
     new_speed.x = -Clampf(ps->pmState.velocity.x / 200.f, -1.f, 1.f);
     new_speed.y = -Clampf(ps->pmState.velocity.y / 200.f, -1.f, 1.f);
     new_speed.z = -Clampf(ps->pmState.velocity.z / 200.f, -.3f, 1.f);
 
-    speed = old_speed;
+    speed = oldSpeed;
 
     time = cgi.client->unclampedTime;
   }

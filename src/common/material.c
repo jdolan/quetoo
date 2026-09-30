@@ -840,8 +840,8 @@ Material *Material_Load(const char *name, AssetContext context) {
         Material_Warn(m, &parser, "Invalid tintmap path");
       }
     } else if (!Str_CompareN(token, "tintmap.", Str_Length("tintmap."))) {
-      static Vec4 unused_color;
-      Vec4 *color = &unused_color;
+      static Vec4 unusedColor;
+      Vec4 *color = &unusedColor;
 
       if (!Str_Compare(token, "tintmap.tint_r_default")) {
         color = &m->tintmapDefaults[TINT_R];

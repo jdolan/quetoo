@@ -49,7 +49,7 @@ static inline void Cg_ParticleTrailLifeOffset(Vec3 start, Vec3 end, float speed,
 */
 static int32_t Cg_TrailCount(const Vec3 end, float freq, ClientEntity *ent, ClientTrailId trail, Vec3 *start, Vec3 *dir) {
   const float dist = Vec3_Distance(end, ent ? ent->trailOrigins[trail] : *start);
-  static Vec3 _start, _dir;
+  static Vec3 scratchStart, scratchDir;
 
   // haven't travelled long enough yet
   if (dist < freq) {
@@ -61,11 +61,11 @@ static int32_t Cg_TrailCount(const Vec3 end, float freq, ClientEntity *ent, Clie
 
   // allow nulls to be passed
   if (!start) {
-    start = &_start;
+    start = &scratchStart;
   }
 
   if (!dir) {
-    dir = &_dir;
+    dir = &scratchDir;
   }
 
   // adjust new origin

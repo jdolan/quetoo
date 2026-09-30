@@ -725,8 +725,8 @@ static void G_worldspawn_Music(void) {
     }
 
     while (isspace((unsigned char) *t)) { t++; }
-    char *_end = t + Str_Length(t) - 1;
-    while (_end >= t && isspace((unsigned char) *_end)) { *_end-- = '\0'; }
+    char *tail = t + Str_Length(t) - 1;
+    while (tail >= t && isspace((unsigned char) *tail)) { *tail-- = '\0'; }
 
     if (*t != '\0') {
       gi.SetConfigString(CS_MUSICS + i++, t);

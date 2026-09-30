@@ -405,9 +405,9 @@ void Sv_ParseClientMessage(ServerClient *cl) {
         }
 
         // the client sends their 3 most recent movement commands every frame to combat packet loss
-        static PMoveCmd null_cmd;
+        static PMoveCmd nullCmd;
         PMoveCmd cmd[3];
-        Net_ReadDeltaMoveCmd(&netMessage, &null_cmd, &cmd[0]);
+        Net_ReadDeltaMoveCmd(&netMessage, &nullCmd, &cmd[0]);
         Net_ReadDeltaMoveCmd(&netMessage, &cmd[0], &cmd[1]);
         Net_ReadDeltaMoveCmd(&netMessage, &cmd[1], &cmd[2]);
 

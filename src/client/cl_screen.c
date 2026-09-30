@@ -28,22 +28,22 @@
  */
 void Cl_UpdateScreen(void) {
 
-  static ClientKeyDest previous_key_dest = KEY_UI;
-  static bool previous_active = false;
+  static ClientKeyDest previousKeyDest = KEY_UI;
+  static bool previousActive = false;
 
   const bool active = cls.state == CL_ACTIVE;
 
   if (cls.keyState.dest == KEY_UI) {
-    if (previous_key_dest != KEY_UI || previous_active != active) {
+    if (previousKeyDest != KEY_UI || previousActive != active) {
       Ui_ViewWillAppear();
     }
   } else {
-    if (previous_key_dest == KEY_UI) {
+    if (previousKeyDest == KEY_UI) {
       Ui_ViewWillDisappear();
     }
   }
-  previous_key_dest = cls.keyState.dest;
-  previous_active = active;
+  previousKeyDest = cls.keyState.dest;
+  previousActive = active;
 
   switch (cls.state) {
     case CL_UNINITIALIZED:

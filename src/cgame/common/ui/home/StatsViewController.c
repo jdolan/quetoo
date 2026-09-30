@@ -31,8 +31,8 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-static const char *_weapon = "Weapon";
-static const char *_frags = "Frags";
+static const char *columnWeapon = "Weapon";
+static const char *columnFrags = "Frags";
 
 #pragma mark - JSON deserialization
 
@@ -177,9 +177,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (Str_Compare(column->identifier, _weapon) == 0) {
+  if (Str_Compare(column->identifier, columnWeapon) == 0) {
     $(cell->text, setText, w->weapon);
-  } else if (Str_Compare(column->identifier, _frags) == 0) {
+  } else if (Str_Compare(column->identifier, columnFrags) == 0) {
     $(cell->text, setText, va("%d", w->frags));
   }
 
@@ -214,8 +214,8 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->weapons, addColumnWithIdentifier, _weapon);
-  $(this->weapons, addColumnWithIdentifier, _frags);
+  $(this->weapons, addColumnWithIdentifier, columnWeapon);
+  $(this->weapons, addColumnWithIdentifier, columnFrags);
 
   this->weapons->dataSource.numberOfRows = numberOfRows;
   this->weapons->dataSource.self = this;

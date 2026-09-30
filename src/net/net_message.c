@@ -157,17 +157,17 @@ void Net_WriteDir(NetMessage *msg, const Vec3 dir) {
  */
 void Net_WriteBounds(NetMessage *msg, const Box3 bounds) {
 
-  const Vec3s _mins = Vec3_CastVec3s(bounds.mins);
+  const Vec3s shortMins = Vec3_CastVec3s(bounds.mins);
 
-  Net_WriteShort(msg, _mins.x);
-  Net_WriteShort(msg, _mins.y);
-  Net_WriteShort(msg, _mins.z);
+  Net_WriteShort(msg, shortMins.x);
+  Net_WriteShort(msg, shortMins.y);
+  Net_WriteShort(msg, shortMins.z);
 
-  const Vec3s _maxs = Vec3_CastVec3s(bounds.maxs);
+  const Vec3s shortMaxs = Vec3_CastVec3s(bounds.maxs);
 
-  Net_WriteShort(msg, _maxs.x);
-  Net_WriteShort(msg, _maxs.y);
-  Net_WriteShort(msg, _maxs.z);
+  Net_WriteShort(msg, shortMaxs.x);
+  Net_WriteShort(msg, shortMaxs.y);
+  Net_WriteShort(msg, shortMaxs.z);
 }
 
 /**

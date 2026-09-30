@@ -29,12 +29,12 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-static const char *_rank = "Rank";
-static const char *_player = "Player";
-static const char *_frags = "Frags";
-static const char *_deaths = "Deaths";
-static const char *_kd = "KD";
-static const char *_time_played = "Time";
+static const char *columnRank = "Rank";
+static const char *columnPlayer = "Player";
+static const char *columnFrags = "Frags";
+static const char *columnDeaths = "Deaths";
+static const char *columnKd = "KD";
+static const char *columnTimePlayed = "Time";
 
 static const JSONProperty leaderboardEntryFields[] = {
   MakeJSONProperty(LeaderboardEntry, rank, NULL, JSONDeserializeInt32, NULL),
@@ -57,11 +57,11 @@ static const JSONProperties leaderboardEntryProperties = {
  * @brief Maps a column identifier to its API sort parameter.
  */
 static const char *sortParamForColumn(const char *identifier) {
-  if (Str_Compare(identifier, _player) == 0) return "name";
-  if (Str_Compare(identifier, _frags) == 0) return "frags";
-  if (Str_Compare(identifier, _deaths) == 0) return "deaths";
-  if (Str_Compare(identifier, _kd) == 0) return "kd";
-  if (Str_Compare(identifier, _time_played) == 0) return "time_played";
+  if (Str_Compare(identifier, columnPlayer) == 0) return "name";
+  if (Str_Compare(identifier, columnFrags) == 0) return "frags";
+  if (Str_Compare(identifier, columnDeaths) == 0) return "deaths";
+  if (Str_Compare(identifier, columnKd) == 0) return "kd";
+  if (Str_Compare(identifier, columnTimePlayed) == 0) return "time_played";
   return NULL;
 }
 
@@ -188,18 +188,18 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $((View *) cell, addClassName, "me");
   }
 
-  if (Str_Compare(column->identifier, _rank) == 0) {
+  if (Str_Compare(column->identifier, columnRank) == 0) {
     $(cell->text, setText, va("%d", entry->rank));
-  } else if (Str_Compare(column->identifier, _player) == 0) {
+  } else if (Str_Compare(column->identifier, columnPlayer) == 0) {
     $(cell->text, setText, entry->name);
-  } else if (Str_Compare(column->identifier, _frags) == 0) {
+  } else if (Str_Compare(column->identifier, columnFrags) == 0) {
     $(cell->text, setText, va("%d", entry->frags));
-  } else if (Str_Compare(column->identifier, _deaths) == 0) {
+  } else if (Str_Compare(column->identifier, columnDeaths) == 0) {
     $(cell->text, setText, va("%d", entry->deaths));
-  } else if (Str_Compare(column->identifier, _kd) == 0) {
+  } else if (Str_Compare(column->identifier, columnKd) == 0) {
     const float kd = entry->deaths > 0 ? (float) entry->frags / entry->deaths : (float) entry->frags;
     $(cell->text, setText, va("%.2f", kd));
-  } else if (Str_Compare(column->identifier, _time_played) == 0) {
+  } else if (Str_Compare(column->identifier, columnTimePlayed) == 0) {
     $(cell->text, setText, formatTime(entry->timePlayed));
   }
 
@@ -237,12 +237,12 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/LeaderboardViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->leaderboard, addColumnWithIdentifier, _rank);
-  $(this->leaderboard, addColumnWithIdentifier, _player);
-  $(this->leaderboard, addColumnWithIdentifier, _frags);
-  $(this->leaderboard, addColumnWithIdentifier, _deaths);
-  $(this->leaderboard, addColumnWithIdentifier, _kd);
-  $(this->leaderboard, addColumnWithIdentifier, _time_played);
+  $(this->leaderboard, addColumnWithIdentifier, columnRank);
+  $(this->leaderboard, addColumnWithIdentifier, columnPlayer);
+  $(this->leaderboard, addColumnWithIdentifier, columnFrags);
+  $(this->leaderboard, addColumnWithIdentifier, columnDeaths);
+  $(this->leaderboard, addColumnWithIdentifier, columnKd);
+  $(this->leaderboard, addColumnWithIdentifier, columnTimePlayed);
 
   this->leaderboard->dataSource.numberOfRows = numberOfRows;
   this->leaderboard->dataSource.self = this;

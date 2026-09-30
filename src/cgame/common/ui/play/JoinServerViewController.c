@@ -25,16 +25,16 @@
 #include "CvarCheckbox.h"
 #include "CvarSlider.h"
 
-static const char *_server = "Server";
-static const char *_game = "Game";
-static const char *_map = "Map";
-static const char *_players = "Players";
-static const char *_ping = "Ping";
+static const char *columnServer = "Server";
+static const char *columnGame = "Game";
+static const char *columnMap = "Map";
+static const char *columnPlayers = "Players";
+static const char *columnPing = "Ping";
 
 /**
  * @brief Stands in for a detail field the selected server did not report.
  */
-static const char *_unset = "—";
+static const char *unsetValue = "—";
 
 /**
  * @brief A ping the client never got an answer for.
@@ -143,7 +143,7 @@ static const char *sourceLabel(const ClientServerInfo *server) {
       return "LAN";
   }
 
-  return _unset;
+  return unsetValue;
 }
 
 #pragma mark - Details pane
@@ -202,15 +202,15 @@ static void refreshDetails(JoinServerViewController *self) {
     return;
   }
 
-  setLabelText(self->hostnameLabel, *server->hostname ? server->hostname : _unset);
+  setLabelText(self->hostnameLabel, *server->hostname ? server->hostname : unsetValue);
   setLabelText(self->addressLabel, addressLabel(&server->addr));
 
   setLabelText(self->sourceLabel, sourceLabel(server));
-  setLabelText(self->mapLabel, *server->name ? server->name : _unset);
-  setLabelText(self->gameModeLabel, *server->gameMode ? server->gameMode : _unset);
-  setLabelText(self->movementLabel, *server->movement ? server->movement : _unset);
+  setLabelText(self->mapLabel, *server->name ? server->name : unsetValue);
+  setLabelText(self->gameModeLabel, *server->gameMode ? server->gameMode : unsetValue);
+  setLabelText(self->movementLabel, *server->movement ? server->movement : unsetValue);
   setLabelText(self->playersLabel, va("%d / %d", server->clients, server->maxClients));
-  setLabelText(self->pingLabel, pingUnanswered(server) ? _unset : va("%d ms", server->ping));
+  setLabelText(self->pingLabel, pingUnanswered(server) ? unsetValue : va("%d ms", server->ping));
 
   $((View *) self->connectButton, setVisibility, ViewVisibilityVisible);
 }
@@ -394,25 +394,25 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
   if (Str_Length(server->error)) {
-    if (Str_Compare(column->identifier, _server) == 0) {
+    if (Str_Compare(column->identifier, columnServer) == 0) {
       $(cell->text, setText, server->error);
       $((View *) cell, addClassName, "error");
     }
     return cell;
   }
 
-  if (Str_Compare(column->identifier, _server) == 0) {
+  if (Str_Compare(column->identifier, columnServer) == 0) {
     $(cell->text, setText, server->hostname);
-  } else if (Str_Compare(column->identifier, _game) == 0) {
-    $(cell->text, setText, server->game[0] ? server->game : _unset);
-  } else if (Str_Compare(column->identifier, _map) == 0) {
+  } else if (Str_Compare(column->identifier, columnGame) == 0) {
+    $(cell->text, setText, server->game[0] ? server->game : unsetValue);
+  } else if (Str_Compare(column->identifier, columnMap) == 0) {
     $(cell->text, setText, server->name);
-  } else if (Str_Compare(column->identifier, _players) == 0) {
+  } else if (Str_Compare(column->identifier, columnPlayers) == 0) {
     $(cell->text, setText, va("%d / %d", server->clients, server->maxClients));
-  } else if (Str_Compare(column->identifier, _ping) == 0) {
+  } else if (Str_Compare(column->identifier, columnPing) == 0) {
 
     if (pingUnanswered(server)) {
-      $(cell->text, setText, _unset);
+      $(cell->text, setText, unsetValue);
       $((View *) cell, addClassName, "pingUnanswered");
     } else {
       $(cell->text, setText, va("%d ms", server->ping));
@@ -509,11 +509,11 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/JoinServerViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->serversTableView, addColumnWithIdentifier, _server);
-  $(this->serversTableView, addColumnWithIdentifier, _game);
-  $(this->serversTableView, addColumnWithIdentifier, _map);
-  $(this->serversTableView, addColumnWithIdentifier, _players);
-  $(this->serversTableView, addColumnWithIdentifier, _ping);
+  $(this->serversTableView, addColumnWithIdentifier, columnServer);
+  $(this->serversTableView, addColumnWithIdentifier, columnGame);
+  $(this->serversTableView, addColumnWithIdentifier, columnMap);
+  $(this->serversTableView, addColumnWithIdentifier, columnPlayers);
+  $(this->serversTableView, addColumnWithIdentifier, columnPing);
 
   this->serversTableView->dataSource.numberOfRows = numberOfRows;
   this->serversTableView->dataSource.self = this;
@@ -582,7 +582,7 @@ static Order comparator(const ident a, const ident b) {
   const TableColumn *sortColumn = this->serversTableView->sortColumn;
 
   // an unanswered server goes last, whichever way the ping column points
-  if (sortColumn && Str_Compare(sortColumn->identifier, _ping) == 0) {
+  if (sortColumn && Str_Compare(sortColumn->identifier, columnPing) == 0) {
     const bool leftUnanswered = pingUnanswered((const ClientServerInfo *) a);
     const bool rightUnanswered = pingUnanswered((const ClientServerInfo *) b);
     if (leftUnanswered != rightUnanswered) {
@@ -606,15 +606,15 @@ static Order comparator(const ident a, const ident b) {
 
     int32_t cmp = 0;
 
-    if (Str_Compare(sortColumn->identifier, _server) == 0) {
+    if (Str_Compare(sortColumn->identifier, columnServer) == 0) {
       cmp = Str_Compare(s0->hostname, s1->hostname);
-    } else if (Str_Compare(sortColumn->identifier, _game) == 0) {
+    } else if (Str_Compare(sortColumn->identifier, columnGame) == 0) {
       cmp = Str_Compare(s0->game, s1->game);
-    } else if (Str_Compare(sortColumn->identifier, _map) == 0) {
+    } else if (Str_Compare(sortColumn->identifier, columnMap) == 0) {
       cmp = Str_Compare(s0->name, s1->name);
-    } else if (Str_Compare(sortColumn->identifier, _players) == 0) {
+    } else if (Str_Compare(sortColumn->identifier, columnPlayers) == 0) {
       cmp = s0->clients - s1->clients;
-    } else if (Str_Compare(sortColumn->identifier, _ping) == 0) {
+    } else if (Str_Compare(sortColumn->identifier, columnPing) == 0) {
       cmp = s0->ping - s1->ping;
     } else {
       assert(false);

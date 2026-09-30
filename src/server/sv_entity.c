@@ -93,12 +93,12 @@ static void Sv_WriteEntities(ServerClientFrame *from, ServerClientFrame *to, Net
  * @brief Writes a delta-compressed player state to the message buffer.
  */
 static void Sv_WritePlayerState(ServerClientFrame *from, ServerClientFrame *to, NetMessage *msg) {
-  static PlayerState null_state;
+  static PlayerState nullState;
 
   if (from) {
     Net_WriteDeltaPlayerState(msg, &from->ps, &to->ps);
   } else {
-    Net_WriteDeltaPlayerState(msg, &null_state, &to->ps);
+    Net_WriteDeltaPlayerState(msg, &nullState, &to->ps);
   }
 }
 

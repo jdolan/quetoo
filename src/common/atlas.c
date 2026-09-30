@@ -129,14 +129,14 @@ AtlasNode *Atlas_Find(Atlas *atlas, int32_t layer, SDL_Surface *surface) {
 /**
  * @brief Thread-local atlas context for node sort.
  */
-static const Atlas *_sort_atlas;
+static const Atlas *sortAtlas;
 
 /**
  * @brief Comparator for node sorting; receives AtlasNode* values.
  */
 static int Atlas_NodeComparator(const ident a, const ident b) {
 
-  return _sort_atlas->comparator(*(const AtlasNode **) a, *(const AtlasNode **) b);
+  return sortAtlas->comparator(*(const AtlasNode **) a, *(const AtlasNode **) b);
 }
 
 /**
@@ -169,7 +169,7 @@ int32_t Atlas_Compile(Atlas *atlas, int32_t start, ...) {
 
   atlas->tag++;
 
-  _sort_atlas = atlas;
+  sortAtlas = atlas;
   $(atlas->nodes, sort, Atlas_NodeComparator);
 
   const int32_t p = atlas->padding;

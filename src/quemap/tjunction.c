@@ -48,10 +48,10 @@ static void FixTJunctions_(int32_t faceNum) {
       continue;
     }
 
-    const Winding *f_winding = windings[s];
+    const Winding *winding = windings[s];
 
-    for (int32_t i = 0; i < f_winding->numPoints; i++) {
-      const Vec3 v = f_winding->points[i];
+    for (int32_t i = 0; i < winding->numPoints; i++) {
+      const Vec3 v = winding->points[i];
 
       const double d = Vec3_Dot(v, plane->normal) - plane->dist;
       if (d > ON_EPSILON || d < -ON_EPSILON) {
@@ -60,12 +60,12 @@ static void FixTJunctions_(int32_t faceNum) {
 
       // v is on face's plane, so test it against face's edges
 
-      const Winding *face_winding = face->w;
+      const Winding *faceWinding = face->w;
 
-      for (int32_t j = 0; j < face_winding->numPoints; j++) {
+      for (int32_t j = 0; j < faceWinding->numPoints; j++) {
 
-        const Vec3 v0 = face_winding->points[(j + 0) % face_winding->numPoints];
-        const Vec3 v1 = face_winding->points[(j + 1) % face_winding->numPoints];
+        const Vec3 v0 = faceWinding->points[(j + 0) % faceWinding->numPoints];
+        const Vec3 v1 = faceWinding->points[(j + 1) % faceWinding->numPoints];
 
         Vec3 a;
         const float aDist = Vec3_DistanceDir(v0, v, &a);
@@ -83,16 +83,16 @@ static void FixTJunctions_(int32_t faceNum) {
         }
 
         // v sits between v0 and v1, so add it to the face
-        Winding *w = Winding_Alloc(face_winding->numPoints + 1);
-        w->numPoints = face_winding->numPoints + 1;
+        Winding *w = Winding_Alloc(faceWinding->numPoints + 1);
+        w->numPoints = faceWinding->numPoints + 1;
 
         for (int32_t k = 0; k < w->numPoints; k++) {
           if (k <= j) {
-            w->points[k] = face_winding->points[k];
+            w->points[k] = faceWinding->points[k];
           } else if (k == j + 1) {
             w->points[k] = v;
           } else {
-            w->points[k] = face_winding->points[k - 1];
+            w->points[k] = faceWinding->points[k - 1];
           }
         }
 

@@ -575,7 +575,7 @@ static bool G_PickupHealth(GameClient *cl, GameEntity *ent) {
  * @return The `GameArmorInfo` for the specified item.
  */
 const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
-  static const GameArmorInfo armor_info[] = {
+  static const GameArmorInfo armorInfo[] = {
     { ARMOR_QUAKE_JACKET, 0.3, 0.0 },
     { ARMOR_QUAKE_COMBAT, 0.6, 0.0 },
     { ARMOR_QUAKE_BODY,   0.8, 0.0 },
@@ -588,9 +588,9 @@ const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
     return NULL;
   }
 
-  for (size_t i = 0; i < lengthof(armor_info); i++) {
-    if (armor->def.tag == armor_info[i].tag) {
-      return &armor_info[i];
+  for (size_t i = 0; i < lengthof(armorInfo); i++) {
+    if (armor->def.tag == armorInfo[i].tag) {
+      return &armorInfo[i];
     }
   }
 

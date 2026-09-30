@@ -567,19 +567,19 @@ int32_t main(int32_t argc, char *argv[]) {
     HKEY key;
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL) == ERROR_SUCCESS) {
-      const char *url_proto = "URL:Quetoo Protocol";
-      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) Str_Length(url_proto) + 1);
+      const char *urlProto = "URL:Quetoo Protocol";
+      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) urlProto, (DWORD) Str_Length(urlProto) + 1);
       RegSetValueEx(key, "URL Protocol", 0, REG_SZ, (const BYTE *) "", 1);
       RegCloseKey(key);
     }
 
-    HKEY cmd_key;
+    HKEY cmdKey;
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
-                       REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
+                       REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmdKey, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
       Str_Format(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exePath);
-      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) Str_Length(cmd) + 1);
-      RegCloseKey(cmd_key);
+      RegSetValueEx(cmdKey, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) Str_Length(cmd) + 1);
+      RegCloseKey(cmdKey);
     }
   }
 #endif
@@ -601,8 +601,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
   while (true) { // this is our main loop
 
-    if (sys_signal_received) {
-      Com_Shutdown("Received signal %d, quitting...\n", sys_signal_received);
+    if (sysSignalReceived) {
+      Com_Shutdown("Received signal %d, quitting...\n", sysSignalReceived);
     }
 
     if (setjmp(env)) { // an ERROR_DROP was thrown

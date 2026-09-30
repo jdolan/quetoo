@@ -190,7 +190,7 @@ void Cl_Precache_f(void) {
  * @brief Parses the baseline entity state for the given entity number.
  */
 static void Cl_ParseBaseline(void) {
-  static EntityState null_state;
+  static EntityState nullState;
 
   const int16_t number = Net_ReadShort(&netMessage);
   const uint16_t bits = Net_ReadShort(&netMessage);
@@ -201,7 +201,7 @@ static void Cl_ParseBaseline(void) {
 
   ClientEntity *ent = &cl.entities[number];
 
-  Net_ReadDeltaEntity(&netMessage, &null_state, &ent->baseline, number, bits);
+  Net_ReadDeltaEntity(&netMessage, &nullState, &ent->baseline, number, bits);
 }
 
 /**

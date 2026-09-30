@@ -926,8 +926,8 @@ int32_t quetoo_main(int32_t argc, char **argv) {
       }
     }
 
-    if (sys_signal_received) {
-      Com_Shutdown("Received signal %d, quitting...\n", sys_signal_received);
+    if (sysSignalReceived) {
+      Com_Shutdown("Received signal %d, quitting...\n", sysSignalReceived);
     }
 
     Ms_Frame();

@@ -27,8 +27,8 @@
 
 #define DIAGNOSTICS_REFRESH_INTERVAL 250
 
-static const char *_name = "name";
-static const char *_value = "value";
+static const char *columnName = "name";
+static const char *columnValue = "value";
 
 #pragma mark - Rows
 
@@ -126,7 +126,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
   assert(cell);
 
-  if (Str_Compare(column->identifier, _name) == 0) {
+  if (Str_Compare(column->identifier, columnName) == 0) {
     $(cell->text, setText, this->rows[row].name);
     $((View *) cell->text, addClassName, "caption");
   } else {
@@ -149,8 +149,8 @@ static View *init(View *self) {
     DiagnosticsView *this = (DiagnosticsView *) self;
     TableView *table = (TableView *) self;
 
-    $(table, addColumnWithIdentifier, _name);
-    $(table, addColumnWithIdentifier, _value);
+    $(table, addColumnWithIdentifier, columnName);
+    $(table, addColumnWithIdentifier, columnValue);
 
     table->dataSource.numberOfRows = numberOfRows;
     table->dataSource.self = this;

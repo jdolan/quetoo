@@ -428,29 +428,29 @@ static size_t Parse_TypeSize(const ParseType type) {
  */
 static bool Parse_TypeParse(const ParseType type, const char *input, void *output) {
   int32_t result;
-  static byte scan_buffer[sizeof(double)];
+  static byte scanBuffer[sizeof(double)];
   const size_t typeSize = Parse_TypeSize(type);
 
   switch (type) {
   case PARSE_UINT8:
   case PARSE_UINT16:
   case PARSE_UINT32:
-    result = sscanf(input, "%" SCNu32, (uint32_t *) scan_buffer);
+    result = sscanf(input, "%" SCNu32, (uint32_t *) scanBuffer);
     break;
   case PARSE_INT8:
   case PARSE_INT16:
   case PARSE_INT32:
-    result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
+    result = sscanf(input, "%" SCNi32, (int32_t *) scanBuffer);
     break;
   case PARSE_FLOAT:
-    result = sscanf(input, "%f", (float *) scan_buffer);
-    if (isinf(*(float *) scan_buffer) || isnan(*(float *) scan_buffer)) {
+    result = sscanf(input, "%f", (float *) scanBuffer);
+    if (isinf(*(float *) scanBuffer) || isnan(*(float *) scanBuffer)) {
       result = 0;
     }
     break;
   case PARSE_DOUBLE:
-    result = sscanf(input, "%lf", (double *) scan_buffer);
-    if (isinf(*(double *) scan_buffer) || isnan(*(double *) scan_buffer)) {
+    result = sscanf(input, "%lf", (double *) scanBuffer);
+    if (isinf(*(double *) scanBuffer) || isnan(*(double *) scanBuffer)) {
       result = 0;
     }
     break;
@@ -461,7 +461,7 @@ static bool Parse_TypeParse(const ParseType type, const char *input, void *outpu
 
   if (result == 1) {
     if (output) {
-      memcpy(output, scan_buffer, typeSize);
+      memcpy(output, scanBuffer, typeSize);
     }
     return true;
   }

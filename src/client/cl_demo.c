@@ -64,7 +64,7 @@ static void Cl_AddDemoKeyframe(int32_t frameNum, int32_t offset) {
  * having received them at connect time.
  */
 static void Cl_WriteDemoHeader(void) {
-  static EntityState null_state;
+  static EntityState nullState;
   MemBuf msg;
   byte buffer[MAX_MSG_SIZE];
 
@@ -125,7 +125,7 @@ static void Cl_WriteDemoHeader(void) {
     }
 
     Net_WriteByte(&msg, SV_CMD_BASELINE);
-    Net_WriteDeltaEntity(&msg, &null_state, &cl.entities[i].baseline, true);
+    Net_WriteDeltaEntity(&msg, &nullState, &cl.entities[i].baseline, true);
   }
 
   Net_WriteByte(&msg, SV_CMD_CBUF_TEXT);
@@ -177,7 +177,7 @@ void Cl_WriteDemoMessage(void) {
 
   Cl_AddDemoKeyframe(frameNum, (int32_t) Fs_Tell(cls.demo.file));
 
-  static PlayerState null_ps;
+  static PlayerState nullPlayerState;
 
   // bounded by MAX_MSG_SIZE to match what Sv_GetDemoMessage accepts as a valid chunk on
   // playback, and what the server's own relay buffers and NetChan_Transmit can actually carry in
@@ -196,7 +196,7 @@ void Cl_WriteDemoMessage(void) {
   // a real discontinuity (a seek) is still correctly detected and snapped.
   Net_WriteLong(&msg, -1);
 
-  Net_WriteDeltaPlayerState(&msg, &null_ps, &cl.frame.ps);
+  Net_WriteDeltaPlayerState(&msg, &nullPlayerState, &cl.frame.ps);
 
   int32_t entitiesDropped = 0;
   for (int32_t i = 0; i < cl.frame.numEntities; i++) {
