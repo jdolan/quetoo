@@ -296,34 +296,6 @@ static void G_Drop_f(GameClient *cl) {
 }
 
 /**
- * @brief Switches the client back to their previously held weapon.
- */
-static void G_WeaponLast_f(GameClient *cl) {
-
-  if (!cl->weapon || !cl->prevWeapon) {
-    return;
-  }
-
-  const GameItemTag index = cl->prevWeapon->def.tag;
-
-  if (!cl->inventory[index]) {
-    return;
-  }
-
-  const GameItem *it = &gameItems[index];
-
-  if (!it->Use) {
-    return;
-  }
-
-  if (it->def.type != ITEM_TYPE_WEAPON) {
-    return;
-  }
-
-  it->Use(cl, it);
-}
-
-/**
  * @brief Kills the client via suicide, respecting rate limiting and spectator state.
  */
 static void G_Kill_f(GameClient *cl) {
@@ -690,7 +662,7 @@ static void G_EditorUse_f(GameClient *cl) {
   }
 
   if (gi.Argc() != 2) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Usage: editor_use <entity>\n");
+    gi.ClientPrint(cl, PRINT_HIGH, "Usage: editorUse <entity>\n");
     return;
   }
 
@@ -836,34 +808,21 @@ void G_ClientCommand(GameClient *cl) {
     G_NoClip_f(cl);
   } else if (Str_Compare(cmd, "wave") == 0) {
     G_Wave_f(cl);
-  } else if (Str_Compare(cmd, "weaponLast") == 0) {
-    G_WeaponLast_f(cl);
   } else if (Str_Compare(cmd, "kill") == 0) {
     G_Kill_f(cl);
   } else if (Str_Compare(cmd, "playerList") == 0) {
     G_PlayerList_f(cl);
-  } else if (Str_Compare(cmd, "chase_previous") == 0) {
+  } else if (Str_Compare(cmd, "chasePrevious") == 0) {
     G_ClientChasePrevious(cl);
-  } else if (Str_Compare(cmd, "chase_next") == 0) {
+  } else if (Str_Compare(cmd, "chaseNext") == 0) {
     G_ClientChaseNext(cl);
   } else if (Str_Compare(cmd, "chaseStop") == 0) {
     if (cl->persistent.spectator) {
       G_ClientChaseStop(cl);
     }
-  } else if (Str_Compare(cmd, "editor_use") == 0) {
+  } else if (Str_Compare(cmd, "editorUse") == 0) {
     G_EditorUse_f(cl);
-  }
-#if defined(_DEBUG)
-  else if (Str_Compare(cmd, "pmove_record") == 0) {
-    G_RecordPmove();
-  } else if (Str_Compare(cmd, "pmove_play") == 0) {
-    G_PlayPmove();
-  }
-#endif
-
-  else
-    // anything that doesn't match a command will be a chat
-  {
+  } else { // anything that doesn't match a command will be a chat
     G_Say_f(cl);
   }
 }

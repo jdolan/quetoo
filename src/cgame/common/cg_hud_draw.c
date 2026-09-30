@@ -78,9 +78,9 @@ static void Cg_SelectWeapon(const int8_t dir) {
     // not gated on STAT_CHASE: stepping to another target while detached acquires one, which is
     // how a free-flying spectator lands back on a player
     if (dir == 1) {
-      cgi.Cbuf("chase_next");
+      cgi.Cbuf("chaseNext");
     } else {
-      cgi.Cbuf("chase_previous");
+      cgi.Cbuf("chasePrevious");
     }
 
     return;
@@ -183,6 +183,25 @@ bool Cg_AttemptSelectWeapon(const PlayerState *ps) {
   }
 
   return false;
+}
+
+/**
+ * @brief Remembers the weapon held before the active one, for `cg_weaponLast`.
+ * @remarks A spectator's and a demo's `STAT_WEAPON` belong to the player in view, not to us.
+ */
+void Cg_TrackWeapon(const PlayerState *ps) {
+
+  if (cgi.client->demoServer || ps->stats[STAT_SPECTATOR] || ps->stats[STAT_CHASE]) {
+    return;
+  }
+
+  const int16_t active = Cg_ActiveWeapon(ps);
+  if (active == WEAPON_SELECT_OFF || active == cgameHudState.weapon.current) {
+    return;
+  }
+
+  cgameHudState.weapon.last = cgameHudState.weapon.current;
+  cgameHudState.weapon.current = active;
 }
 
 /**
@@ -305,6 +324,25 @@ static void Cg_Weapon_Next_f(void) {
 }
 
 /**
+ * @brief Console command handler to switch back to the previously held weapon.
+ */
+static void Cg_Weapon_Last_f(void) {
+  const PlayerState *ps = &cgi.client->frame.ps;
+
+  const int16_t last = cgameHudState.weapon.last;
+  if (last == WEAPON_SELECT_OFF || ps->stats[STAT_SPECTATOR] || ps->pmState.type == PM_DEAD) {
+    return;
+  }
+
+  const GameItemTag tag = cgameWeapons[last].tag;
+  if (!ps->inventory[tag]) {
+    return;
+  }
+
+  cgi.Cbuf(va("use %s\n", gameItemDefs[tag].classname));
+}
+
+/**
  * @brief Registers HUD console commands and initializes HUD-related console variables.
  */
 void Cg_InitHud(void) {
@@ -312,6 +350,7 @@ void Cg_InitHud(void) {
          "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
   cgi.AddCmd("cg_weaponPrevious", Cg_Weapon_Prev_f, CMD_CGAME,
          "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
+  cgi.AddCmd("cg_weaponLast", Cg_Weapon_Last_f, CMD_CGAME, "Switch back to the previously held weapon.");
   cgi.AddCmd("cg_messageMode", Cg_MessageMode_f, CMD_CGAME, "Open the chat input");
   cgi.AddCmd("cg_messageMode2", Cg_MessageMode2_f, CMD_CGAME, "Open the team chat input");
 
@@ -344,5 +383,7 @@ void Cg_ClearHud(void) {
   memset(&cgameHudState, 0, sizeof(cgameHudState));
 
   cgameHudState.weapon.bit = WEAPON_SELECT_OFF;
+  cgameHudState.weapon.current = WEAPON_SELECT_OFF;
+  cgameHudState.weapon.last = WEAPON_SELECT_OFF;
   cgameHudState.clearTime = (uint32_t) SDL_GetTicks();
 }

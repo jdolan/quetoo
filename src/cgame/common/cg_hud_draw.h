@@ -62,6 +62,11 @@ typedef struct {
     uint32_t time, barTime;
     int16_t num;
     bool has[WEAPON_TOTAL];
+
+    /**
+     * @brief The active weapon, and the one before it, for `cg_weaponLast`.
+     */
+    int16_t current, last;
   } weapon;
 
   int16_t chaseTarget;
@@ -89,6 +94,7 @@ extern Cvar *cg_selectWeaponInterval;
 
 bool Cg_UpdateSelectWeapon(const PlayerState *ps, float *alpha);
 bool Cg_AttemptSelectWeapon(const PlayerState *ps);
+void Cg_TrackWeapon(const PlayerState *ps);
 void Cg_ParseCenterPrint(void);
 void Cg_InitHud(void);
 void Cg_LoadHudMedia(void);

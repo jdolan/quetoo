@@ -247,6 +247,8 @@ void Cg_Interpolate(const ClientFrame *frame) {
     // same frame again does not fire it twice
     ent->current.event = s->event = 0;
   }
+
+  Cg_TrackWeapon(&frame->ps);
 }
 
 /**

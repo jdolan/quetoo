@@ -189,7 +189,6 @@ static void Cg_Init(void) {
   cgi.AddCmd("give", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("god", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("noClip", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("weaponLast", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("team", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("teamName", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("teamSkin", NULL, CMD_CGAME, NULL);

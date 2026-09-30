@@ -53,7 +53,6 @@ static void G_ChangeWeapon(GameClient *cl, const GameItem *item) {
   cl->weaponChangeTime = gameLevel.time + 500;
 
   cl->nextWeapon = item;
-  cl->prevWeapon = cl->weapon;
 
   cl->weaponFireTime = gameLevel.time + 100; // enable fire
   cl->grenadeHoldTime = 0; // put the pin back in
