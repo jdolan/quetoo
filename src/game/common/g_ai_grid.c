@@ -34,7 +34,7 @@ void G_Ai_KdTreeFree(struct GameAiKdTree **tree) {
 static _Thread_local struct GameAiKdTreeSortContext {
   uint8_t dim;
   Vec3 *srcdata;
-} cmpstr;
+} sortContext;
 
 struct GameAiKdTreeBuildContext {
   struct GameAiKdTree *tree;
@@ -45,8 +45,8 @@ struct GameAiKdTreeBuildContext {
 static int32_t G_Ai_KdTreeCompare(const void *_l, const void *_r) {
   const int32_t l = *(const int32_t *) _l;
   const int32_t r = *(const int32_t *) _r;
-  const Vec3 *srcdata = cmpstr.srcdata;
-  const uint8_t dim = cmpstr.dim;
+  const Vec3 *srcdata = sortContext.srcdata;
+  const uint8_t dim = sortContext.dim;
 
   if (srcdata[l].xyz[dim] < srcdata[r].xyz[dim]) {
     return -1;
@@ -73,8 +73,8 @@ static struct GameAiKdTreeNode *G_Ai_KdTreeBuild(struct GameAiKdTreeBuildContext
     return NULL;
   }
 
-  cmpstr.srcdata = ctx->tree->srcdata;
-  cmpstr.dim = dim;
+  sortContext.srcdata = ctx->tree->srcdata;
+  sortContext.dim = dim;
   qsort(ctx->sortedx, ctx->slicesize, sizeof(ctx->sortedx[0]), G_Ai_KdTreeCompare);
 
   struct GameAiKdTreeNode *node = G_Ai_KdTreeAllocNode(ctx->tree);

@@ -25,7 +25,7 @@
 #include "console.h"
 #include "filesystem.h"
 
-static HashTable *cvarVars;
+static HashTable *registry;
 
 bool cvarUserInfoModified;
 
@@ -84,11 +84,11 @@ static Cvar *Cvar_Get_(const char *name, bool *legacy) {
 
   *legacy = false;
 
-  if (cvarVars == NULL) {
+  if (registry == NULL) {
     return NULL;
   }
 
-  const List *list = $(cvarVars, get, (void *) name);
+  const List *list = $(registry, get, (void *) name);
   if (list) {
     if (list->count == 1) { // only 1 entry, return it
       return list->head->element;
@@ -104,7 +104,7 @@ static Cvar *Cvar_Get_(const char *name, bool *legacy) {
   }
 
   CvarLegacyCtx ctx = { .name = name };
-  $(cvarVars, enumerate, Cvar_Legacy_enumerate, &ctx);
+  $(registry, enumerate, Cvar_Legacy_enumerate, &ctx);
 
   *legacy = ctx.var != NULL;
   return ctx.var;
@@ -116,7 +116,7 @@ static Cvar *Cvar_Get_(const char *name, bool *legacy) {
  */
 static void Cvar_Rename_(Cvar *var, const char *name) {
 
-  List *list = $(cvarVars, get, (void *) var->name);
+  List *list = $(registry, get, (void *) var->name);
   if (list) {
 
     // the list owns its elements, and we are moving this one, not freeing it
@@ -126,7 +126,7 @@ static void Cvar_Rename_(Cvar *var, const char *name) {
     list->destroy = destroy;
 
     if (list->count == 0) {
-      $(cvarVars, remove, (void *) var->name);
+      $(registry, remove, (void *) var->name);
     }
   }
 
@@ -134,12 +134,12 @@ static void Cvar_Rename_(Cvar *var, const char *name) {
   var->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CVAR), var);
 
   void *key = (void *) var->name;
-  list = $(cvarVars, get, key);
+  list = $(registry, get, key);
 
   if (!list) {
     list = $(alloc(List), init);
     list->destroy = Mem_Free;
-    $(cvarVars, set, key, list);
+    $(registry, set, key, list);
   }
 
   $(list, prepend, var);
@@ -275,7 +275,7 @@ void Cvar_Enumerate(CvarEnumerator func, void *data) {
     .vars = $(alloc(PointerArray), init),
   };
 
-  $(cvarVars, enumerate, Cvar_Enumerate_collect, &ctx);
+  $(registry, enumerate, Cvar_Enumerate_collect, &ctx);
   $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.vars->count; i++) {
@@ -285,7 +285,7 @@ void Cvar_Enumerate(CvarEnumerator func, void *data) {
   release(ctx.vars);
 }
 
-static char cvarCompletePattern[MAX_STRING_CHARS];
+static char completePattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for `Cvar_CompleteVar`.
@@ -293,7 +293,7 @@ static char cvarCompletePattern[MAX_STRING_CHARS];
 static void Cvar_CompleteVar_enumerate(Cvar *var, void *data) {
   List *matches = data;
 
-  if (GlobMatch(cvarCompletePattern, var->name, GLOB_CASE_INSENSITIVE)) {
+  if (GlobMatch(completePattern, var->name, GLOB_CASE_INSENSITIVE)) {
     Con_AutocompleteMatch(matches, var->name, Cvar_Stringify(var));
   }
 }
@@ -302,7 +302,7 @@ static void Cvar_CompleteVar_enumerate(Cvar *var, void *data) {
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, List *matches) {
-  q_strlcpy(cvarCompletePattern, pattern, sizeof(cvarCompletePattern));
+  q_strlcpy(completePattern, pattern, sizeof(completePattern));
   Cvar_Enumerate(Cvar_CompleteVar_enumerate, matches);
 }
 
@@ -373,12 +373,12 @@ Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *
   }
 
   void *key = (void *) var->name;
-  List *list = $(cvarVars, get, key);
+  List *list = $(registry, get, key);
 
   if (!list) {
     list = $(alloc(List), init);
     list->destroy = Mem_Free;
-    $(cvarVars, set, key, list);
+    $(registry, set, key, list);
   }
 
   $(list, prepend, var);
@@ -593,7 +593,7 @@ void Cvar_UpdateLatched(void) {
   Cvar_Enumerate(Cvar_UpdateLatched_enumerate, NULL);
 }
 
-static bool cvarPending;
+static bool anyPending;
 
 /**
  * @brief Enumeration helper for `Cvar_Pending`.
@@ -602,7 +602,7 @@ static void Cvar_Pending_enumerate(Cvar *var, void *data) {
   uint32_t flags = *((uint32_t *) data);
 
   if ((var->flags & flags) && var->modified) {
-    cvarPending = true;
+    anyPending = true;
   }
 }
 
@@ -610,11 +610,11 @@ static void Cvar_Pending_enumerate(Cvar *var, void *data) {
  * @brief Returns true if any variables whose flags match the specified mask are pending.
  */
 bool Cvar_Pending(uint32_t flags) {
-  cvarPending = false;
+  anyPending = false;
 
   Cvar_Enumerate(Cvar_Pending_enumerate, (void *) &flags);
 
-  return cvarPending;
+  return anyPending;
 }
 
 /**
@@ -813,7 +813,7 @@ static void Cvar_FreeAll(void) {
     .lists = $(alloc(PointerArray), init),
   };
 
-  $(cvarVars, enumerate, Cvar_Shutdown_collect, ctx.lists);
+  $(registry, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
     release((List *) $(ctx.lists, get, i));
@@ -830,7 +830,7 @@ static void Cvar_FreeAll(void) {
  */
 void Cvar_Init(void) {
 
-  cvarVars = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
+  registry = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
   Cmd *setCmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
   Cmd *setaCmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
@@ -872,8 +872,8 @@ void Cvar_Init(void) {
 void Cvar_Shutdown(void) {
 
   Cvar_FreeAll();
-  release(cvarVars);
-  cvarVars = NULL;
+  release(registry);
+  registry = NULL;
 
   Cmd_Remove("set");
   Cmd_Remove("seta");

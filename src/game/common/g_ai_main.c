@@ -1693,7 +1693,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
 /**
  * @brief Static list of func goal functions
  */
-static const GameAiGoalFunc aiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
+static const GameAiGoalFunc aiGoalFuncs[AI_FUNC_GOAL_TOTAL] = {
   [AI_FUNC_GOAL_LONGRANGE] = G_Ai_LongRange,
   [AI_FUNC_GOAL_HUNT] = G_Ai_Hunt,
   [AI_FUNC_GOAL_WEAPONRY] = G_Ai_Weaponry,
@@ -1769,7 +1769,7 @@ void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
 
     if (cl->ai->funcGoalNextThinks[i] <= gameLevel.time) {
       const int64_t funcStart = G_Ai_Microseconds();
-      const uint32_t next = aiGoalfuncs[i](cl, cmd);
+      const uint32_t next = aiGoalFuncs[i](cl, cmd);
       const int64_t funcUs = G_Ai_Microseconds() - funcStart;
 
       cl->ai->funcGoalNextThinks[i] = gameLevel.time + next;

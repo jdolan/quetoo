@@ -602,33 +602,33 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
 /**
  * @brief Pre-computed crash log path, populated lazily on first use.
  */
-static char sysCrashLogPath[MAX_OS_PATH];
+static char crashLogPath[MAX_OS_PATH];
 
 #if !defined(_WIN32)
 /**
  * @brief Open file descriptor for the crash log, used in signal handlers.
  */
-static int sysCrashLogFd = -1;
+static int crashLogFd = -1;
 #endif
 
 /**
- * @brief Ensures `sysCrashLogPath` is set and its directory exists.
+ * @brief Ensures `crashLogPath` is set and its directory exists.
  */
 static void Sys_EnsureCrashLogPath(void) {
 
-  if (*sysCrashLogPath) {
+  if (*crashLogPath) {
     return;
   }
 
   char *dir = NULL;
   SDL_asprintf(&dir, "%s/default", Sys_UserDir());
   SDL_CreateDirectory(dir);
-  q_snprintf(sysCrashLogPath, sizeof(sysCrashLogPath), "%s/crash.log", dir);
+  q_snprintf(crashLogPath, sizeof(crashLogPath), "%s/crash.log", dir);
   free(dir);
 
 #if !defined(_WIN32)
-  if (sysCrashLogFd == -1) {
-    sysCrashLogFd = open(sysCrashLogPath, O_WRONLY | O_CREAT | O_APPEND, 0644);
+  if (crashLogFd == -1) {
+    crashLogFd = open(crashLogPath, O_WRONLY | O_CREAT | O_APPEND, 0644);
   }
 #endif
 }
@@ -640,7 +640,7 @@ static void Sys_WriteCrashLog(const char *text) {
 
   Sys_EnsureCrashLogPath();
 
-  FILE *log = fopen(sysCrashLogPath, "a");
+  FILE *log = fopen(crashLogPath, "a");
   if (log) {
     fputs(text, log);
     fclose(log);
@@ -704,7 +704,7 @@ void Sys_Raise(const char *msg) {
 
     // Truncate the dialog message to avoid oversized message boxes
     char *dialogMsg = NULL;
-    SDL_asprintf(&dialogMsg, "%s\n\nFull report saved to:\n%s", crash, sysCrashLogPath);
+    SDL_asprintf(&dialogMsg, "%s\n\nFull report saved to:\n%s", crash, crashLogPath);
     if (q_strlen(dialogMsg) > CRASH_REPORT_DIALOG_MAX) {
       dialogMsg[CRASH_REPORT_DIALOG_MAX] = '\0';
     }
@@ -838,7 +838,7 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
   const int count = backtrace(frames, MAX_BACKTRACE_SYMBOLS);
 #endif
 
-  const int fds[] = { STDERR_FILENO, sysCrashLogFd };
+  const int fds[] = { STDERR_FILENO, crashLogFd };
   for (int i = 0; i < (int) lengthof(fds); i++) {
     if (fds[i] == -1) {
       continue;

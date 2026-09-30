@@ -548,7 +548,7 @@ static const char *Cmd_Stringify(const Cmd *cmd) {
   return buffer;
 }
 
-static char cmdCompletePattern[MAX_STRING_CHARS];
+static char completePattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for `Cmd_CompleteCommand`.
@@ -556,7 +556,7 @@ static char cmdCompletePattern[MAX_STRING_CHARS];
 static void Cmd_CompleteCommand_enumerate(Cmd *cmd, void *data) {
   List *matches = data;
 
-  if (GlobMatch(cmdCompletePattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
+  if (GlobMatch(completePattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
     Con_AutocompleteMatch(matches, cmd->name, Cmd_Stringify(cmd));
   }
 }
@@ -565,7 +565,7 @@ static void Cmd_CompleteCommand_enumerate(Cmd *cmd, void *data) {
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, List *matches) {
-  q_strlcpy(cmdCompletePattern, pattern, sizeof(cmdCompletePattern));
+  q_strlcpy(completePattern, pattern, sizeof(completePattern));
   Cmd_Enumerate(Cmd_CompleteCommand_enumerate, matches);
 }
 
