@@ -28,7 +28,7 @@
 #include <ObjectivelyGPU.h>
 
 #include "common/atlas.h"
-#include "common/files.h"
+#include "common/file_formats.h"
 #include "collision/cm_bsp.h"
 
 /**

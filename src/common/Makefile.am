@@ -6,6 +6,7 @@ noinst_HEADERS = \
 	common.h \
 	console.h \
 	cvar.h \
+	file_formats.h \
 	filesystem.h \
 	image.h \
 	installer.h \

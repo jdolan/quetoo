@@ -37,8 +37,8 @@ TESTS = \
 	check_cmd \
 	check_color \
 	check_cvar \
-	check_editor_map \
 	check_entity \
+	check_entity_brushes \
 	check_filesystem \
 	check_g_race \
 	check_http \
@@ -106,19 +106,19 @@ check_cvar_CFLAGS = \
 check_cvar_LDADD = \
 	$(TESTS_LIBS)
 
-check_editor_map_SOURCES = \
-	check_editor_map.c
-check_editor_map_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_editor_map_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la
-
 check_entity_SOURCES = \
 	check_entity.c
 check_entity_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_entity_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
+
+check_entity_brushes_SOURCES = \
+	check_entity_brushes.c
+check_entity_brushes_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_entity_brushes_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la
 

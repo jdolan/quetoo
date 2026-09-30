@@ -400,7 +400,7 @@ int32_t main(int32_t argc, char **argv) {
 
   Test_Init(argc, argv);
 
-  Suite *suite = suite_create("check_editor_map");
+  Suite *suite = suite_create("check_entity_brushes");
 
   {
     TCase *tcase = tcase_create("ParseMapBrushes");

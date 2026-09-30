@@ -86,7 +86,7 @@
     <ClInclude Include="..\..\src\common\cvar.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\common\files.h">
+    <ClInclude Include="..\..\src\common\file_formats.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\filesystem.h">

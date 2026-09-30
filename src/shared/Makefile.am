@@ -18,7 +18,7 @@ libshared_la_SOURCES = \
 	parse.c \
 	qstring.c \
 	shared.c \
-	shared-anorms.c \
+	shared_anorms.c \
 	swap.c
 libshared_la_CFLAGS = \
 	-I$(top_srcdir)/src \
