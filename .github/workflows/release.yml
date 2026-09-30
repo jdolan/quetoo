@@ -49,8 +49,8 @@ jobs:
 
     # The jdolan/SDL ObjectivelyGPU tag: 3.4.12 plus the SDL_gpu query API
     # (3.4.14 regressed SDL_gpu on macOS). SDL3_image and SDL3_ttf are built
-    # here too, because Homebrew's link Homebrew's sdl3, and dylibbundler would
-    # then see two libSDL3.0.dylib. See #945 and #1093.
+    # here too, because Homebrew's bottles link Homebrew's sdl3, and dylibbundler
+    # would then see two libSDL3.0.dylib. See #945 and #1093.
     - name: Build SDL3
       run: |
         git clone --depth 1 --branch ObjectivelyGPU https://github.com/jdolan/SDL.git SDL3
