@@ -144,32 +144,3 @@ size_t Box3_Merge(const Box3 *boxes, size_t count, Box3 **out) {
   *out = realloc(merged, numMerged * sizeof(Box3));
   return numMerged;
 }
-
-/**
- * @see box.h
- */
-Box3 Box3_Clip(const Box3 in, const Vec4 plane) {
-  Box3 out = Box3_Null();
-
-  Vec3 corners[8];
-  Box3_ToPoints(in, corners);
-
-  // There are 8 corners in the AABB
-  for (size_t i = 0; i < lengthof(corners); i++) {
-    const Vec3 corner = corners[i];
-
-    // If the corner is on the positive side of the plane, include it
-    const float dist = Vec3_Dot(plane.xyz, corner) - plane.w;
-    if (dist >= 0.f) {
-      out.mins = Vec3_Minf(out.mins, corner);
-      out.maxs = Vec3_Maxf(out.maxs, corner);
-    } else {
-      // Otherwise, project the corner onto the plane and include it
-      const Vec3 point = Vec3_Subtract(corner, Vec3_Scale(plane.xyz, dist));
-      out.mins = Vec3_Minf(out.mins, point);
-      out.maxs = Vec3_Maxf(out.maxs, point);
-    }
-  }
-
-  return out;
-}
