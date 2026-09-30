@@ -73,7 +73,7 @@ struct CreateServerViewController {
   /**
    * @brief The gameplay Select.
    */
-  Select *gamePlay;
+  Select *gameplay;
 
   /**
    * @brief The player movement to run.

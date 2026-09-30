@@ -867,7 +867,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   G_TossInvisibility(cl);
   G_TossInvulnerability(cl);
 
-  if ((gameLevel.gamePlay & ~GAMEPLAY_TEAMS) == GAMEPLAY_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
+  if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
     G_TossWeapon(cl);
   }
 
@@ -1017,13 +1017,13 @@ static void G_InitInventory_Common(GameClient *cl) {
   const GameItem *item;
 
   // instagib gets railgun and slugs, both in normal mode and warmup
-  if ((gameLevel.gamePlay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
+  if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
     G_Give(cl, "Railgun", 1);
     G_Give(cl, "Grenades", 1);
     item = &gameItems[WEAPON_RAILGUN];
   }
   // arena yields all weapons, health, etc..
-  else if ((gameLevel.gamePlay & ~GAMEPLAY_TEAMS) == GAMEPLAY_ARENA) {
+  else if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_ARENA) {
     G_Give(cl, "Railgun", 50);
     G_Give(cl, "Lightning Gun", 200);
     G_Give(cl, "Hyperblaster", 200);
@@ -1608,7 +1608,7 @@ void G_ClientBegin(GameClient *cl) {
     }
 
     Str_Append(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
-    Str_Append(welcome, G_GamePlayById(gameLevel.gamePlay)->label, sizeof(welcome));
+    Str_Append(welcome, G_GamePlayById(gameLevel.gameplay)->label, sizeof(welcome));
 
     Str_Append(welcome, "\n^2Movement is ^1", sizeof(welcome));
     Str_Append(welcome, Pm_Movement(gameLevel.movement)->label, sizeof(welcome));

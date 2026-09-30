@@ -504,7 +504,7 @@ void G_Gib(GameEntity *ent) {
 }
 
 /**
- * @brief Returns the `gamePlays` entry whose `->name` matches the given
+ * @brief Returns the `gameplays` entry whose `->name` matches the given
  * cvar string, case-insensitively. Anything that doesn't match - including
  * empty strings, garbage, and "default" itself - falls back to the table's
  * first entry (plain deathmatch, no teams). "default" is deliberately not a
@@ -525,9 +525,9 @@ const GamePlay *G_GamePlayByName(const char *c) {
       *p = (char) tolower((unsigned char) *p);
     }
 
-    for (size_t i = 0; i < lengthof(gamePlays); i++) {
-      if (!Str_Compare(lower, gamePlays[i].name)) {
-        return &gamePlays[i];
+    for (size_t i = 0; i < lengthof(gameplays); i++) {
+      if (!Str_Compare(lower, gameplays[i].name)) {
+        return &gameplays[i];
       }
     }
 
@@ -548,27 +548,27 @@ const GamePlay *G_GamePlayByName(const char *c) {
     return G_GamePlayById((GamePlayId) id);
   }
 
-  return &gamePlays[0];
+  return &gameplays[0];
 }
 
 /**
- * @brief Returns the `gamePlays` entry for the given mode id. Used
+ * @brief Returns the `gameplays` entry for the given mode id. Used
  * after `G_ClampGamePlay`, which operates on the scalar id, to recover the
  * `->name` and `->label` for the id it decided on.
  * @details A module's `ClampGamePlay` MUST only ever return an id that is
- * actually one of the six rows in `gamePlays`, so this should never
+ * actually one of the six rows in `gameplays`, so this should never
  * miss; it falls back to the first entry rather than asserting, matching
  * `G_GamePlayByName`'s own fallback.
  */
 const GamePlay *G_GamePlayById(GamePlayId id) {
 
-  for (size_t i = 0; i < lengthof(gamePlays); i++) {
-    if (gamePlays[i].id == id) {
-      return &gamePlays[i];
+  for (size_t i = 0; i < lengthof(gameplays); i++) {
+    if (gameplays[i].id == id) {
+      return &gameplays[i];
     }
   }
 
-  return &gamePlays[0];
+  return &gameplays[0];
 }
 
 /**

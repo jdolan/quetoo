@@ -73,7 +73,7 @@ struct JoinServerViewController {
    * @brief The details pane, populated from the current selection.
    */
   Label *hostnameLabel, *addressLabel, *hintLabel, *sourceLabel;
-  Label *mapLabel, *gamePlayLabel, *movementLabel, *playersLabel, *pingLabel;
+  Label *mapLabel, *gameplayLabel, *movementLabel, *playersLabel, *pingLabel;
 
   /**
    * @brief The selected server's mapshot, when its map is installed locally.

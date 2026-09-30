@@ -694,21 +694,21 @@ PMovement G_ResolveMovement(const char *name) {
  */
 static GamePlayId G_CoerceGamePlay(void) {
 
-  GamePlayId gamePlay = gameLevel.requested.gamePlay;
+  GamePlayId gameplay = gameLevel.requested.gameplay;
 
   if (Str_Compare(g_gameplay->string, "default")) { // "default" defers to the level
-    gamePlay = G_ClampGamePlay(G_GamePlayByName(g_gameplay->string)->id);
+    gameplay = G_ClampGamePlay(G_GamePlayByName(g_gameplay->string)->id);
 
-    gi.SetCvarString(g_gameplay->name, G_GamePlayById(gamePlay)->name); // reject garbage values
+    gi.SetCvarString(g_gameplay->name, G_GamePlayById(gameplay)->name); // reject garbage values
   } else {
-    gamePlay = G_ClampGamePlay(gamePlay);
+    gameplay = G_ClampGamePlay(gameplay);
   }
 
   // g_gameplay holds what the admin asked for, which may be an alias, or "default";
   // publish what it resolved to as well, since that is what a server browser shows
-  gi.ForceSetCvarString("g_gameplayMode", G_GamePlayById(gamePlay)->name);
+  gi.ForceSetCvarString("g_gameplayMode", G_GamePlayById(gameplay)->name);
 
-  return gamePlay;
+  return gameplay;
 }
 
 /**
@@ -717,7 +717,7 @@ static GamePlayId G_CoerceGamePlay(void) {
  */
 GamePlayId G_ResolveGamePlay(const char *name) {
 
-  gameLevel.requested.gamePlay = name && *name ? G_GamePlayByName(name)->id : GAMEPLAY_DEATHMATCH;
+  gameLevel.requested.gameplay = name && *name ? G_GamePlayByName(name)->id : GAMEPLAY_DEATHMATCH;
 
   return G_CoerceGamePlay();
 }
@@ -750,7 +750,7 @@ static void G_CheckRules(void) {
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
 
-    const GamePlayId gamePlay = G_CoerceGamePlay();
+    const GamePlayId gameplay = G_CoerceGamePlay();
 
     // SetCvarString above re-marks modified whenever the string actually changed
     // (i.e. whenever we just coerced garbage, or the module clamped it to something
@@ -758,16 +758,16 @@ static void G_CheckRules(void) {
     // block again next frame
     g_gameplay->modified = false;
 
-    gameLevel.gamePlay = gamePlay;
-    gameLevel.teams = (gameLevel.gamePlay & GAMEPLAY_TEAMS) != 0;
+    gameLevel.gameplay = gameplay;
+    gameLevel.teams = (gameLevel.gameplay & GAMEPLAY_TEAMS) != 0;
 
-    gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gamePlay));
+    gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameplay));
 
     G_InitNumTeams();
 
     restart = true;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GamePlayById(gameLevel.gamePlay)->label);
+    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GamePlayById(gameLevel.gameplay)->label);
   }
 
   if (g_movement->modified) { // change how players move, with no restart
@@ -966,7 +966,7 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  Str_Copy(name, G_GamePlayById(gameLevel.gamePlay)->label, size);
+  Str_Copy(name, G_GamePlayById(gameLevel.gameplay)->label, size);
 
   G_FormatGameName(name, size);
 

@@ -401,7 +401,7 @@ typedef struct {
   /**
    * @brief The gameplay mode.
    */
-  GamePlayId gamePlay;
+  GamePlayId gameplay;
 
   /**
    * @brief Active item set.

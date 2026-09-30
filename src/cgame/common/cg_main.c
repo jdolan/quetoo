@@ -309,7 +309,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   switch (i) {
     case CS_GAMEPLAY:
-      cgameState.gamePlay = (GamePlayId) strtol(s, NULL, 10);
+      cgameState.gameplay = (GamePlayId) strtol(s, NULL, 10);
       return;
     case CS_NUM_TEAMS:
       cgameState.numTeams = Clampf(atoi(s), 0, MAX_TEAMS);
@@ -487,15 +487,15 @@ float Cg_GetHookPullSpeed(void) {
 
 /**
  * @brief The tail of the `Cg_ListGamePlays` hook, offering every mode in
- * `gamePlays` - the same table `g_gameplay` is parsed against on the
+ * `gameplays` - the same table `g_gameplay` is parsed against on the
  * game side, so the name and label a module offers can never drift from what
  * the server will actually coerce it to.
  */
 static const GamePlay *Cg_ListGamePlays_Common(size_t *count) {
 
-  *count = lengthof(gamePlays);
+  *count = lengthof(gameplays);
 
-  return gamePlays;
+  return gameplays;
 }
 
 CGameListGamePlaysHook Cg_ListGamePlays = Cg_ListGamePlays_Common;

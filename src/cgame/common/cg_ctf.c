@@ -117,7 +117,7 @@ Class *_HeldFlagView(void) {
  * and teams are not optional. A single owner, like the game side's
  * `G_ClampGamePlay_Ctf`, so it does not add to what `previous` offers.
  * @details Points directly at the `GAMEPLAY_TEAM_DEATHMATCH` row of the shared
- * `gamePlays` table rather than copying its `name`/`label` into a
+ * `gameplays` table rather than copying its `name`/`label` into a
  * duplicate row - there is nothing here to drift out of sync with the game
  * side, since it is the same static data.
  */
@@ -125,13 +125,13 @@ static const GamePlay *Cg_ListGamePlays_Ctf(size_t *count) {
 
   *count = 1;
 
-  for (size_t i = 0; i < lengthof(gamePlays); i++) {
-    if (gamePlays[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
-      return &gamePlays[i];
+  for (size_t i = 0; i < lengthof(gameplays); i++) {
+    if (gameplays[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
+      return &gameplays[i];
     }
   }
 
-  return gamePlays; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
+  return gameplays; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
 }
 
 /**

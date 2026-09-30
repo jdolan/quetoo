@@ -418,7 +418,7 @@ typedef struct {
  * get their own compiled copy through header inclusion - no cross-binary
  * linkage, and no drift, since it is one source text.
  */
-static const GamePlay gamePlays[] = {
+static const GamePlay gameplays[] = {
   { GAMEPLAY_DEATHMATCH,      "deathmatch",      "Deathmatch" },
   { GAMEPLAY_TEAM_DEATHMATCH, "team_deathmatch", "Team Deathmatch" },
   { GAMEPLAY_INSTAGIB,        "instagib",        "Instagib" },
@@ -805,7 +805,7 @@ typedef struct {
   /**
    * @brief Active gameplay mode.
    */
-  GamePlayId gamePlay;
+  GamePlayId gameplay;
 
   /**
    * @brief Active item set.
@@ -822,7 +822,7 @@ typedef struct {
    * `g_movement` back to "default" returns to it rather than to Quetoo's.
    */
   struct {
-    GamePlayId gamePlay;
+    GamePlayId gameplay;
     PMovement movement;
   } requested;
 

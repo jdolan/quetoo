@@ -165,7 +165,7 @@ static const char *Cg_DescribeGamePlay_Common(void) {
 #else
   const char *mode;
 
-  switch (cgameState.gamePlay & ~GAMEPLAY_TEAMS) {
+  switch (cgameState.gameplay & ~GAMEPLAY_TEAMS) {
     case GAMEPLAY_ARENA:
       mode = "Arena";
       break;
