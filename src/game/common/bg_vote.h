@@ -72,8 +72,8 @@ static const GameVoteType voteTypesCommon[] = {
   { "bots", "Bots", VOTE_ARG_INTEGER, 0, 8 },
   { "spectate", "Force spectate", VOTE_ARG_CLIENT, 0, 0 },
   { "mute", "Mute", VOTE_ARG_CLIENT, 0, 0 },
-  { "frag_limit", "Frag limit", VOTE_ARG_INTEGER, 0, 100 },
-  { "time_limit", "Time limit", VOTE_ARG_INTEGER, 0, 60 },
+  { "fragLimit", "Frag limit", VOTE_ARG_INTEGER, 0, 100 },
+  { "timeLimit", "Time limit", VOTE_ARG_INTEGER, 0, 60 },
 };
 
 /**

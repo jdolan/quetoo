@@ -210,7 +210,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return true;
   }
 
-  if (!Str_Compare(type, "frag_limit") || !Str_Compare(type, "time_limit")) {
+  if (!Str_Compare(type, "fragLimit") || !Str_Compare(type, "timeLimit")) {
     gi.SetCvarInteger(va("g_%s", type), (int32_t) strtol(arg, NULL, 10));
     return true;
   }
