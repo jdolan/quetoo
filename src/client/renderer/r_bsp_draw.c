@@ -633,7 +633,11 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
     }
 
     if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
-      renderDiagnostics->entitiesOccluded++;
+      if (Box3_IsNull(e->absModelBounds) || R_CullBox(view, e->absModelBounds)) {
+        renderDiagnostics->entitiesCulled++;
+      } else {
+        renderDiagnostics->entitiesOccluded++;
+      }
       continue;
     }
 
