@@ -57,6 +57,10 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
 - File names: `snake_case` for a plain C module, `PascalCase` for a file that declares one
   Objectively class and is named after it (`ChatView.c`). This distinction is load-bearing — it tells
   you which kind of file you are opening. Do not "fix" it.
+- A plain C module MAY define a private Objectively class that no other file uses, with no header
+  (`HeldFlagView` in `cg_ctf.c`). Its method statics MUST take the class name as a prefix, because a
+  file can hold several such classes: `SpeedView_init`, `SpeedView_valueForFrame`,
+  `SpeedView_initialize`.
 
 `Cvar_Get` and `Cmd_Get` still resolve an older snake_case spelling and warn when they do, so
 existing configs keep working. Configs migrate themselves on save.

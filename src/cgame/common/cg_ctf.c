@@ -44,7 +44,7 @@ struct HeldFlagViewInterface {
 /**
  * @see View::updateBindings(View *, ident)
  */
-static void updateBindings(View *self, ident data) {
+static void HeldFlagView_updateBindings(View *self, ident data) {
 
   super(View, self, updateBindings, data);
 
@@ -80,17 +80,17 @@ static void updateBindings(View *self, ident data) {
 /**
  * @see View::init(View *)
  */
-static View *initHeldFlagView(View *self) {
+static View *HeldFlagView_init(View *self) {
   return super(View, self, init);
 }
 
 /**
  * @see Class::initialize(Class *)
  */
-static void initialize(Class *clazz) {
+static void HeldFlagView_initialize(Class *clazz) {
 
-  ((ViewInterface *) clazz->interface)->init = initHeldFlagView;
-  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->init = HeldFlagView_init;
+  ((ViewInterface *) clazz->interface)->updateBindings = HeldFlagView_updateBindings;
 }
 
 Class *_HeldFlagView(void) {
@@ -103,7 +103,7 @@ Class *_HeldFlagView(void) {
       .superclass = _ImageView(),
       .instanceSize = sizeof(HeldFlagView),
       .interfaceSize = sizeof(HeldFlagViewInterface),
-      .initialize = initialize,
+      .initialize = HeldFlagView_initialize,
     });
   });
 
