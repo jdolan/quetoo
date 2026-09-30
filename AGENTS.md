@@ -22,7 +22,7 @@ anything else, read the code. It is never out of date.
 | Extern globals | the subsystem prefix, lowercased, then `camelCase` | `renderConfig`, `cgameState`, `gameLevel` |
 | File statics | `camelCase`, no subsystem prefix | `aiNodes`, `world` |
 | Cvars and console commands | keep the prefix, camelCase the rest | `r_swapInterval`, `cg_addDecals`, `+moveForward` |
-| Enum constants and macros | `UPPER_CASE` | `MAX_CLIENTS`, `SURF_ALPHA_TEST` |
+| Enum constants and macros | `UPPER_CASE`, except that an enum belonging to an Objectively class uses Objectively's `PascalCase` constants | `MAX_CLIENTS`, `SURF_ALPHA_TEST`, `BlendViewPickup` |
 
 The rule is not "everything camelCases". **Case encodes a category.** A callable is PascalCase, data
 is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirroring the
@@ -45,6 +45,13 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
 - Locals and parameters MUST NOT carry a subsystem prefix. Name them for what they hold.
 - A cvar or command with no subsystem prefix camelCases whole: `numPlanes`, `nextMap`.
 - Where only one word follows the prefix, nothing moves: `r_gamma`, `m_pitch`.
+- A function's private helper takes the function's name and a lowercase role suffix:
+  `Cvar_Enumerate_collect`, `R_EnumerateMedia_comparator`. A trailing underscore marks the inner
+  version of a public function: `Com_Error_`. A recursive helper is named for what it visits:
+  `Cm_TraceToNode`, `G_Ai_KdTreeQueryNode`.
+- Test helpers take `Test_`, as `tests.c` does: `Test_WriteFile`, `Test_QueryMaster`.
+- `quemap`'s internal functions have no prefix. Its three stages' entry points are named for their
+  files: `Qbsp_Main`, `Qlight_Main`, `Qzip_Main`.
 - The file-static struct a module uses to collect its file globals is named `module`. A file holding
   more than one keeps descriptive names.
 - File names: `snake_case` for a plain C module, `PascalCase` for a file that declares one
