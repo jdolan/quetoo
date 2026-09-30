@@ -50,7 +50,6 @@ enum {
  * @brief Mesh draw pipelines, samplers, and stage cache.
  */
 static struct {
-
   /**
    * @brief The opaque mesh pipeline.
    */

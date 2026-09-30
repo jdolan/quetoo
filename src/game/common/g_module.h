@@ -411,7 +411,6 @@ extern GameFormatGameNameHook G_FormatGameName;
  * @brief Where and how a client is about to spawn.
  */
 typedef struct {
-
   /**
    * @brief The spawn origin and view angles, from the selected spawn point. The
    * origin is the floor, as a spawn point's is; `PM_STEP_HEIGHT` is added once

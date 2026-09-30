@@ -29,7 +29,6 @@
 #include "ui/ui_types.h"
 
 typedef struct {
-
   /**
    * @brief The movement command.
    */
@@ -64,7 +63,6 @@ typedef struct {
 } ClientCmd;
 
 typedef struct {
-
   /**
    * @brief Sequential frame identifier, used for delta.
    */
@@ -107,7 +105,6 @@ typedef struct {
 } ClientFrame;
 
 typedef struct {
-
   /**
    * @brief The animation definition.
    */
@@ -154,7 +151,6 @@ typedef enum {
 } ClientTrailId;
 
 typedef struct {
-
   /**
    * @brief Delta base state; used when no previous frame is available.
    */
@@ -314,7 +310,6 @@ typedef struct {
  * the client game module to provide access to media and other client state.
  */
 typedef struct {
-
   /**
    * @brief Total frames rendered during a timedemo run.
    */
@@ -537,7 +532,6 @@ enum {
 #endif
 
 typedef struct {
-
   /**
    * @brief The current key destination (UI, console, game, chat).
    */
@@ -560,7 +554,6 @@ typedef struct {
 } ClientKeyState;
 
 typedef struct {
-
   /**
    * @brief Current relative mouse delta, in sensitivity-scaled units.
    */
@@ -573,7 +566,6 @@ typedef struct {
 } ClientMouseState;
 
 typedef struct {
-
   /**
    * @brief The download file handle.
    */
@@ -603,7 +595,6 @@ typedef enum {
  * @brief The server information type, hydrated by querying server status via the browser.
  */
 typedef struct {
-
   /**
    * @brief The server network address.
    */
@@ -839,7 +830,6 @@ typedef enum {
  * client game module.
  */
 typedef struct {
-
   /**
    * @brief The current client connection state.
    */

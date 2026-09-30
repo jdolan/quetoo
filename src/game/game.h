@@ -208,7 +208,6 @@ typedef struct {
  * such as frame intervals to the game module.
  */
 typedef struct {
-
   /**
    * @defgroup console-appending Console appending
    * @{
@@ -732,7 +731,6 @@ typedef struct {
  * the server. The game must populate this structure as part of `G_Init`.
  */
 typedef struct {
-
   /**
    * @brief Game API version; validated by the server on load.
    */

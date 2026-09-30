@@ -33,7 +33,6 @@
  * @brief The client game reprensetation of teams.
  */
 typedef struct {
-
   /**
    * @brief Team ID.
    */
@@ -60,7 +59,6 @@ typedef struct {
  * @brief The vote in progress, as `CS_VOTE` describes it.
  */
 typedef struct {
-
   /**
    * @brief Whether a vote is under way.
    */
@@ -92,7 +90,6 @@ typedef struct {
  * @brief The intermission's map candidates, as `CS_NEXT_MAP` describes them.
  */
 typedef struct {
-
   /**
    * @brief Whether an intermission is under way. The maps are published only for one,
    * so their absence is what says the level is still being played.
@@ -122,7 +119,6 @@ typedef struct {
  * @brief The client game representation of clients (players).
  */
 typedef struct {
-
   /**
    * @brief The client info string, e.g. "newbie\enforcer/default."
    */
@@ -382,7 +378,6 @@ typedef struct {
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
  */
 typedef struct {
-
   /**
    * @brief The clients (players).
    */

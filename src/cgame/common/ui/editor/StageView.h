@@ -41,7 +41,6 @@ typedef struct StageViewInterface StageViewInterface;
  * @brief The StageView delegate.
  */
 typedef struct {
-
   /**
    * @brief The delegate self-reference.
    */

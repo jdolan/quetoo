@@ -33,7 +33,6 @@
  * @brief Cached per-item data derived from `gameItemDefs` at load time.
  */
 typedef struct {
-
   /**
    * @brief The item model, or `NULL` if not found.
    */
@@ -50,7 +49,6 @@ extern CGameItem cgameItems[ITEM_TOTAL];
  * @brief Cached per-weapon data derived from `gameItemDefs` at load time.
  */
 typedef struct {
-
   /**
    * @brief The weapon's item tag.
    */

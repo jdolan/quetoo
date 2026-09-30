@@ -84,7 +84,6 @@ typedef enum {
  * @brief The variant structure of a goal.
  */
 typedef struct {
-
   /**
    * @brief Type of this goal; controls which union variant is active.
    */
@@ -248,7 +247,6 @@ typedef enum {
  * @brief Static bot definition from the roster.
  */
 typedef struct {
-
   /**
    * @brief Bot display name.
    */
@@ -284,7 +282,6 @@ typedef struct {
  * @brief Per-bot runtime personality, initialized from the roster entry on spawn.
  */
 typedef struct {
-
   /**
    * @brief Aim accuracy and reaction speed (0.0–1.0).
    */

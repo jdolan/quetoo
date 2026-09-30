@@ -58,7 +58,6 @@
  * vector such that all components are >= 0.
  */
 typedef struct {
-
   /**
    * @brief Plane normal vector.
    */
@@ -90,7 +89,6 @@ typedef struct {
  * They are treated as their own sub-trees and recursed separately.
  */
 typedef struct {
-
   /**
    * @brief The entity definition of this inline model.
    */
@@ -285,7 +283,6 @@ typedef struct CollisionBrush {
  * with non-solid contents comprise the parts of the world the player may occupy.
  */
 typedef struct {
-
   /**
    * @brief The leaf `CONTENTS_*`.
    */
@@ -306,7 +303,6 @@ typedef struct {
  * @brief The BSP node structure.
  */
 typedef struct {
-
   /**
    * @brief The positive plane that separates this node's children.
    */
@@ -323,7 +319,6 @@ typedef struct {
  * @brief Per-voxel data decoded from the BSP voxel lump.
  */
 typedef struct {
-
   /**
    * @brief World-space center of the voxel cell.
    */
@@ -351,7 +346,6 @@ typedef struct {
  * @brief The BSP model structure.
  */
 typedef struct {
-
   /**
    * @brief The Quake path of the .bsp, e.g. `maps/edge.bsp`.
    */
@@ -490,7 +484,6 @@ typedef struct {
  * within Quake.
  */
 typedef struct {
-
   /**
    * @brief True if the trace started and ended within the same solid.
    */

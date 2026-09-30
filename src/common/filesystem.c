@@ -36,7 +36,6 @@
 #define MAX_COMMAND_LINE_PATHS 8
 
 static struct {
-
   /**
    * @brief The `FS_`* flags.
    */

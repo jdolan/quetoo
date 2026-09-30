@@ -35,7 +35,6 @@ typedef void (*CGameEntityThink)(CGameEntity *self);
  * @brief The client game entity class type.
  */
 typedef struct {
-
   /**
    * @brief The entity class name.
    */

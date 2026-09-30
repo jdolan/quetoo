@@ -243,7 +243,6 @@ typedef enum {
  * it.
  */
 typedef struct {
-
   /**
    * @brief The name used by `g_movement`, the worldspawn `movement` key and the
    * menu. Never "default", which those reserve to mean "whatever the level

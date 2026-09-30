@@ -155,7 +155,6 @@ typedef enum {
  * from the scene as needed.
  */
 typedef struct {
-
   /**
    * @brief Entity slot number this state update belongs to.
    */
@@ -362,7 +361,6 @@ typedef struct {
  * contains.
  */
 typedef struct {
-
   /**
    * @brief Client index for this player.
    */

@@ -31,7 +31,6 @@ bool G_Ai_Node_IsLinked(const GameAiNodeId a, const GameAiNodeId b);
  * @brief A link from one AI node to another, with traversal cost.
  */
 typedef struct {
-
   /**
    * @brief Destination node ID.
    */

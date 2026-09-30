@@ -29,7 +29,6 @@
  * @brief The quemap representation of materials.
  */
 typedef struct {
-
   /**
    * @brief The material definition.
    */

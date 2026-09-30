@@ -28,7 +28,6 @@
  * @brief An atlas node locates one or more layered surfaces within an atlas.
  */
 typedef struct {
-
   /**
    * @brief Layered surfaces, all of the same size; the first (layer 0) must not be `NULL`.
    */
@@ -79,7 +78,6 @@ typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SD
  * surfaces. All layers in a given node must be of the same size.
  */
 typedef struct {
-
   /**
    * @brief Number of surface layers in the atlas.
    */

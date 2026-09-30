@@ -27,7 +27,6 @@
  * @brief Represents a bounding box constructed from two points.
  */
 typedef struct {
-
   /**
    * @brief The mins of the bbox.
    */

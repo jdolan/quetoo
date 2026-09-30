@@ -40,7 +40,6 @@ typedef enum {
  * @brief A named asset with a resolved file path.
  */
 typedef struct {
-
   /**
    * @brief The asset name as referenced in material, model or animation files.
    */

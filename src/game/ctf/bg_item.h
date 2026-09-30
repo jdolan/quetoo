@@ -153,7 +153,6 @@ static_assert(ITEM_TOTAL <= MAX_INVENTORY, "ITEM_TOTAL exceeds MAX_INVENTORY; in
  * embeds this as its first member and adds runtime-computed fields.
  */
 typedef struct {
-
   /**
    * @brief Entity classname used for map spawning.
    */

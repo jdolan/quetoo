@@ -27,7 +27,6 @@
 #include "thread.h"
 
 typedef struct {
-
   /**
    * @brief The lock governing global thread pool access.
    */

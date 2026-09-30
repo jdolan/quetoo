@@ -25,7 +25,6 @@
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
-
   /**
    * @brief The trace start and end points, as provided by the user.
    */

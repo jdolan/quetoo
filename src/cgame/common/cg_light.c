@@ -25,7 +25,6 @@
  * @brief Dynamic light source accounting structure.
  */
 static struct {
-
   /**
    * @brief The allocated lights.
    */

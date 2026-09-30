@@ -43,7 +43,6 @@ typedef enum {
  * @brief A kind of vote a client may call.
  */
 typedef struct {
-
   /**
    * @brief The name, as the `vote` command and the config string spell it.
    */

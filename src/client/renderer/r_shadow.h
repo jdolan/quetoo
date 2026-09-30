@@ -34,7 +34,6 @@
  * @brief Shadow atlas resources.
  */
 typedef struct {
-
   /**
    * @brief The per-face shadow atlas textures.
    */

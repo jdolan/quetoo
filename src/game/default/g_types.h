@@ -209,7 +209,6 @@ typedef enum {
  * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
  */
 typedef struct {
-
   /**
    * @brief ConfigString index of the sample to play.
    */
@@ -245,7 +244,6 @@ typedef struct {
  * @brief Player scores are transmitted as binary to the client game module.
  */
 typedef struct {
-
   /**
    * @brief Client number.
    */
@@ -456,7 +454,6 @@ typedef enum {
  * @brief Armor attributes.
  */
 typedef struct {
-
   /**
    * @brief Armor type tag.
    */
@@ -584,7 +581,6 @@ typedef enum {
  * @brief Physics parameters and think functions for entities which move.
  */
 typedef struct {
-
   /**
    * @brief Starting origin.
    */
@@ -764,7 +760,6 @@ typedef struct {
  * @brief A list of spawn point entities available for player spawning.
  */
 typedef struct {
-
   /**
    * @brief Number of spawn point entities.
    */
@@ -781,7 +776,6 @@ typedef struct {
  * level load.
  */
 typedef struct {
-
   /**
    * @brief Current server frame number.
    */
@@ -1056,7 +1050,6 @@ typedef struct {
  * `ballistics_giblets`.
  */
 typedef struct {
-
   /**
    * @brief The origin the giblets are scattered from.
    */
@@ -1114,7 +1107,6 @@ typedef struct {
  * @brief There are four teams in the default game module.
  */
 typedef struct {
-
   /**
    * @brief Team identifier, used for comparison instead of pointer equality.
    */
@@ -1181,7 +1173,6 @@ typedef struct {
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
-
   /**
    * @brief Frame number when the client first entered the game.
    */

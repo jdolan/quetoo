@@ -29,7 +29,6 @@
  *   and shadow cache flag into a single slot indexed by entity number.
  */
 typedef struct {
-
   /**
    * @brief The entity number.
    */
@@ -66,7 +65,6 @@ typedef struct {
  * @brief Encapsulates all mutable editor state.
  */
 typedef struct {
-
   /**
    * @brief Editor entity array, indexed by entity number.
    */
@@ -109,7 +107,6 @@ extern CGameEditor cgameEditor;
  * @brief The result of a combined editor trace against all BSP models and `CONTENTS_EDITOR` entities.
  */
 typedef struct {
-
   /**
    * @brief Pointer into `cgEditor.entities[]` for the resolved entity. Always valid; defaults to
    *   worldspawn (`&cgEditor.entities[0]`) when no more-specific entity was hit.

@@ -21,7 +21,6 @@
  * @brief A 3D draw batch.
  */
 typedef struct {
-
   /**
    * @brief Primitive mode.
    */
@@ -50,7 +49,6 @@ typedef struct {
  * @brief 3D debug vertex.
  */
 typedef struct {
-
   /**
    * @brief Vertex position.
    */

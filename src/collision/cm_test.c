@@ -187,7 +187,6 @@ int32_t Cm_BoxOnPlaneSide(const Box3 bounds, const CollisionPlane *p) {
  * @brief Bounding box to BSP tree structure for box positional testing.
  */
 typedef struct {
-
   /**
    * @brief Head node of the appended box hull subtree.
    */
@@ -378,7 +377,6 @@ int32_t Cm_PointContents(const Vec3 p, int32_t headNode, const Mat4 inverseMatri
  * @brief Data binding structure for box to leaf tests.
  */
 typedef struct {
-
   /**
    * @brief The AABB being tested.
    */

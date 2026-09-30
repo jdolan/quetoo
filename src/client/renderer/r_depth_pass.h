@@ -29,7 +29,6 @@
  * @brief Depth pre-pass resources.
  */
 typedef struct {
-
   /**
    * @brief Depth pre-pass pipeline.
    */

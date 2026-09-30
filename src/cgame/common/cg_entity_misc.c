@@ -25,7 +25,6 @@
  * @brief The `misc_dist` type.
  */
 typedef struct {
-
   /**
    * @brief The sprite template.
    */
@@ -375,7 +374,6 @@ const CGameEntityClass cgameMiscDust = {
  * @brief The `misc_flame` type.
  */
 typedef struct {
-
   /**
    * @brief Flame radius.
    */
@@ -551,7 +549,6 @@ const CGameEntityClass cgameMiscModel = {
  * @brief The `misc_sound` type.
  */
 typedef struct {
-
   /**
    * @brief The play sample template.
    */
@@ -610,7 +607,6 @@ const CGameEntityClass cgameMiscSound = {
  * @brief The `misc_sparks` type.
  */
 typedef struct {
-
   /**
    * @brief The sparks direction, configured by either key, or by target entity.
    */
@@ -677,7 +673,6 @@ const CGameEntityClass cgameMiscSparks = {
  * @brief The `misc_sprite` type.
  */
 typedef struct {
-
   /**
    * @brief The sprite template instance.
    */
@@ -906,7 +901,6 @@ const CGameEntityClass cgameMiscSteam = {
  * @brief The `misc_weather` type.
  */
 typedef struct {
-
   /**
    * @brief The weather type bitmask.
    */

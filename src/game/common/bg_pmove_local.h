@@ -59,7 +59,6 @@
  * at each call to `Pm_Move` (this is obviously not thread-safe).
  */
 typedef struct {
-
   /**
    * @brief Previous (incoming) origin, in case movement fails and must be reverted.
    */

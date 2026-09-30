@@ -145,7 +145,6 @@ void Com_Error_f(void) __attribute__((noreturn));
  * @brief Global engine structure.
  */
 typedef struct {
-
   /**
    * @brief The command line argument count.
    */

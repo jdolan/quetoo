@@ -75,7 +75,6 @@ typedef struct {
  * @brief BSP draw pipeline state and cached material-stage pipelines.
  */
 static struct {
-
   /**
    * @brief Opaque BSP pipeline.
    */

@@ -4,7 +4,6 @@
  * @brief Metadata for BSP lumps
  */
 typedef struct {
-
   /**
    * @brief Offset into `BspFile` to the lump element count.
    */

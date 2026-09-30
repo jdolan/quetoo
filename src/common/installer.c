@@ -76,7 +76,6 @@ typedef struct {
  * standard `Frame` loop begins.
  */
 static struct {
-
   /**
    * @brief Enforces mutex across the main thread, module thread, and download threads.
    */

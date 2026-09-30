@@ -113,7 +113,6 @@ typedef enum {
  * @brief Images are referenced by materials, models, entities, particles, etc.
  */
 typedef struct {
-
   /**
    * @brief The media.
    */
@@ -139,7 +138,6 @@ typedef struct {
  * @brief An image atlas.
  */
 typedef struct {
-
   /**
    * @brief The media.
    */
@@ -165,7 +163,6 @@ typedef struct {
  * @brief An atlas image, castable to `RenderImage` and `RenderMedia`.
  */
 typedef struct {
-
   /**
    * @brief The image.
    */
@@ -186,7 +183,6 @@ typedef struct {
  * @brief An animation, castable to `RenderMedia`.
  */
 typedef struct {
-
   /**
    * @brief The media.
    */
@@ -235,7 +231,6 @@ typedef struct RenderStage {
  * @brief Materials define texture, animation and lighting properties for BSP and mesh models.
  */
 typedef struct {
-
   /**
    * @brief Materials are media.
    */
@@ -271,7 +266,6 @@ typedef struct {
  * @brief Decals are projected textures that conform to BSP geometry.
  */
 typedef struct {
-
   /**
    * @brief The decal origin.
    */
@@ -314,7 +308,6 @@ typedef struct {
  * @brief Hardware occlusion queries.
  */
 typedef struct {
-
   /**
    * @brief The query bounds used for CPU-side culling.
    */
@@ -340,7 +333,6 @@ typedef struct {
  * @brief BSP plane structure.
  */
 typedef struct {
-
   /**
    * @brief The collision plane.
    */
@@ -351,7 +343,6 @@ typedef struct {
  * @brief BSP brush side structure.
  */
 typedef struct {
-
   /**
    * @brief The plane.
    */
@@ -387,7 +378,6 @@ typedef struct {
  * @brief BSP patch structure, resolved from `BspPatch`.
  */
 typedef struct {
-
   /**
    * @brief The material.
    */
@@ -408,7 +398,6 @@ typedef struct {
  * @brief BSP vertex structure.
  */
 typedef struct {
-
   /**
    * @brief The position.
    */
@@ -444,7 +433,6 @@ typedef struct {
  * @brief BSP faces, which may reside on the front or back of their node.
  */
 typedef struct {
-
   /**
    * @brief The brush side which generated this face, or `NULL` for patch faces.
    */
@@ -500,7 +488,6 @@ typedef struct {
  * @brief BSP draw elements for one material within an inline model.
  */
 typedef struct {
-
   /**
    * @brief The material.
    */
@@ -593,7 +580,6 @@ typedef struct RenderBspNode {
  * @remarks Leafs can be cast to `RenderBspNode`.
  */
 typedef struct {
-
   /**
    * @brief The contents mask. Valid for leafs, always `CONTENTS_NODE` for nodes.
    */
@@ -641,7 +627,6 @@ typedef struct {
  * @brief Decals are aggregated at the BSP block level.
  */
 typedef struct {
-
   /**
    * @brief The decal atlas, cast to `RenderImage` for texture binding.
    */
@@ -883,7 +868,6 @@ typedef struct RenderSubview {
  * @brief A BSP light source, including shadow, style, and entity data.
  */
 typedef struct {
-
   /**
    * @brief The entity that defines this light.
    */
@@ -959,7 +943,6 @@ typedef struct {
  * @brief Individual voxel data for CPU-side access.
  */
 typedef struct {
-
   /**
    * @brief The voxel's world-space bounds.
    */
@@ -985,7 +968,6 @@ typedef struct {
  * @brief The BSP voxel grid, including light index data for clustered forward lighting.
  */
 typedef struct {
-
   /**
    * @brief The grid dimensions in voxels.
    */
@@ -1047,7 +1029,6 @@ typedef struct {
  * @brief The renderer representation of the BSP model.
  */
 typedef struct {
-
   /**
    * @brief The backing collision BSP model.
    */
@@ -1250,7 +1231,6 @@ typedef struct {
  * @brief The mesh vertex type.
  */
 typedef struct {
-
   /**
    * @brief The vertex position.
    */
@@ -1281,7 +1261,6 @@ typedef struct {
  * @brief The mesh frame type.
  */
 typedef struct {
-
   /**
    * @brief The frame bounds.
    */
@@ -1297,7 +1276,6 @@ typedef struct {
  * @brief A mesh attachment tag.
  */
 typedef struct {
-
   /**
    * @brief The tag name.
    */
@@ -1313,7 +1291,6 @@ typedef struct {
  * @brief A mesh face.
  */
 typedef struct {
-
   /**
    * @brief The face name. This is used to resolve the material.
    */
@@ -1366,7 +1343,6 @@ typedef struct {
  * @brief The mesh animation type.
  */
 typedef struct {
-
   /**
    * @brief The index of the first frame.
    */
@@ -1444,7 +1420,6 @@ typedef enum {
  * @brief The mesh model type.
  */
 typedef struct {
-
   /**
    * @brief The mesh model flags (see `RenderMeshModelFlags`).
    */
@@ -1612,7 +1587,6 @@ typedef struct RenderModel {
  * @brief The model format type.
  */
 typedef struct {
-
   /**
    * @brief The file extension.
    */
@@ -1643,7 +1617,6 @@ typedef struct {
  * @brief The models type.
  */
 typedef struct {
-
   /**
    * @brief The currently loaded BSP model, if any.
    */
@@ -1681,7 +1654,6 @@ typedef enum {
  * @brief Sprites are billboarded alpha blended quads, optionally animated.
  */
 typedef struct {
-
   /**
    * @brief The sprite origin.
    */
@@ -1750,7 +1722,6 @@ typedef struct {
  * @brief Beams are segmented sprites.
  */
 typedef struct {
-
   /**
    * @brief The beam start.
    */
@@ -1817,7 +1788,6 @@ typedef struct {
  * match `SpriteInstance` in sprite_vs.glsl.
  */
 typedef struct {
-
   /**
    * @brief The quad center, and the animation interpolation factor in `w`.
    */
@@ -1855,7 +1825,6 @@ static_assert(sizeof(RenderSpriteInstance) == 96, "RenderSpriteInstance must mat
  * @brief The batching state for a sprite instance, parallel to it by index.
  */
 typedef struct {
-
   /**
    * @brief The diffusemap texture.
    */
@@ -2124,7 +2093,6 @@ typedef enum {
  * @brief Draw statistics, accumulated by the renderer for each view it draws.
  */
 typedef struct {
-
   /**
    * @brief The count of visible lights.
    */
@@ -2418,7 +2386,6 @@ typedef struct RenderView {
  * @brief Window and GPU device information.
  */
 typedef struct {
-
   /**
    * @brief The display associated with the application window.
    */

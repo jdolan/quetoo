@@ -70,7 +70,6 @@ void R_UpdateUniforms(const RenderView *view);
  * @brief Renderer driver information.
  */
 typedef struct {
-
   /**
    * @brief Renderer name.
    */
@@ -122,7 +121,6 @@ extern RenderViewStats *renderStats;
  * @brief Vec4-aligned voxel uniforms.
  */
 typedef struct {
-
   /**
    * @brief Voxel grid minimum corner.
    */
@@ -148,7 +146,6 @@ typedef struct {
  * @brief The uniforms block type.
  */
 typedef struct {
-
   /**
    * @brief Vec4-aligned global uniform block.
    */

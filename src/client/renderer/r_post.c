@@ -53,7 +53,6 @@ typedef struct {
  * @brief The post-processing state.
  */
 static struct {
-
   /**
    * @brief Fullscreen quad vertex buffer.
    */

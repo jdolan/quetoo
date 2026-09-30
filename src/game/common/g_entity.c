@@ -26,7 +26,6 @@
  * @brief The entity class structure.
  */
 typedef struct {
-
   /**
    * @brief The entity class name.
    */

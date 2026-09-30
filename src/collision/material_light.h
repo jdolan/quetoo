@@ -34,7 +34,6 @@
  * @brief A light emitted by a brush side whose material has a `STAGE_LIGHT` stage.
  */
 typedef struct {
-
   /**
    * @brief The light origin in world space, in front of the brush side. For a brush entity with
    * an origin brush, this includes the entity origin.

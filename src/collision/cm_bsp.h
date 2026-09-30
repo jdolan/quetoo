@@ -111,7 +111,6 @@ typedef enum {
  * @brief The BSP lump type.
  */
 typedef struct {
-
   /**
    * @brief The lump offset in bytes.
    */
@@ -127,7 +126,6 @@ typedef struct {
  * @brief The BSP header type.
  */
 typedef struct {
-
   /**
    * @brief `BSP_IDENT`
    */
@@ -148,7 +146,6 @@ typedef struct {
  * @brief Material references.
  */
 typedef struct {
-
   /**
    * @brief The material name path.
    */
@@ -159,7 +156,6 @@ typedef struct {
  * @brief Planes are stored in opposing pairs, with positive normal vectors first in each pair.
  */
 typedef struct {
-
   /**
    * @brief The normal vector.
    */
@@ -183,7 +179,6 @@ typedef struct {
  * to optimize collision detection.
  */
 typedef struct {
-
   /**
    * @brief The index of the plane of this brush side.
    */
@@ -219,7 +214,6 @@ typedef struct {
  * @brief Brushes are convex volumes defined by four or more clipping planes.
  */
 typedef struct {
-
   /**
    * @brief The index of the entity that defined this brush in the source .map.
    */
@@ -260,7 +254,6 @@ typedef struct {
  * @brief A patch control point for the BSP patches lump.
  */
 typedef struct {
-
   /**
    * @brief Control point position in model space.
    */
@@ -276,7 +269,6 @@ typedef struct {
  * @brief BSP representation of a patchDef2 Bézier surface.
  */
 typedef struct {
-
   /**
    * @brief The entity number that defined this patch.
    */
@@ -313,7 +305,6 @@ typedef struct {
  * @brief The BSP vertex type.
  */
 typedef struct {
-
   /**
    * @brief Vertex position in model space.
    */
@@ -349,7 +340,6 @@ typedef struct {
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
  */
 typedef struct {
-
   /**
    * @brief The index of the brush side which created this face, or -1 for patch faces.
    */
@@ -407,7 +397,6 @@ typedef struct {
  * planes which include visible faces and split as few brushes as possible.
  */
 typedef struct {
-
   /**
    * @brief The index of the plane that created this node.
    */
@@ -448,7 +437,6 @@ typedef struct {
  * @brief The BSP leaf type.
  */
 typedef struct {
-
   /**
    * @brief The contents of the leaf, which is the bitwise OR of all brushes inside the leaf.
    */
@@ -477,7 +465,6 @@ typedef struct {
  * are also grouped.
  */
 typedef struct {
-
   /**
    * @brief The material index.
    */
@@ -519,7 +506,6 @@ typedef struct {
  * baked inconsistently with them.
  */
 typedef struct {
-
   /**
    * @brief The index of the brush side that defined this portal.
    */
@@ -565,7 +551,6 @@ typedef struct {
  * it cannot be baked inconsistently with them.
  */
 typedef struct {
-
   /**
    * @brief The index of the inline model whose faces show this reflection.
    */
@@ -592,7 +577,6 @@ typedef struct {
  * rendering operations.
  */
 typedef struct {
-
   /**
    * @brief The `CONTENTS_BLOCK` node defining this block.
    */
@@ -629,7 +613,6 @@ typedef struct {
  * @details Each map is comprised of 1 or more inline models. The first is the _worldspawn_ entity.
  */
 typedef struct {
-
   /**
    * @brief The index of the entity that defined this model.
    */
@@ -699,7 +682,6 @@ typedef struct {
  * @brief BSP representation of light sources.
  */
 typedef struct {
-
   /**
    * @brief The entity number.
    */
@@ -786,7 +768,6 @@ typedef struct {
  * @brief The voxels lump header.
  */
 typedef struct {
-
   /**
    * @brief The voxel grid dimensions.
    */

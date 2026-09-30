@@ -51,7 +51,6 @@
  * @brief An ordered collection of coplanar points describing a convex volume.
  */
 typedef struct {
-
   /**
    * @brief The number of points in the winding.
    */
@@ -67,7 +66,6 @@ typedef struct {
  * @brief A winding point, clipped against a specific plane.
  */
 typedef struct {
-
   /**
    * @brief The clipped point.
    */
@@ -172,7 +170,6 @@ int32_t Winding_Elements(const Winding *w, int32_t *elements);
  * @brief A UV mapped vertex primitive.
  */
 typedef struct {
-
   /**
    * @brief The vertex position.
    */

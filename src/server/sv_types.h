@@ -42,7 +42,6 @@ typedef enum {
  * @brief The server entity type.
  */
 typedef struct {
-
   /**
    * @brief The corresponding game entity; set once per map at spawn time.
    */
@@ -73,7 +72,6 @@ typedef struct {
  * @brief The `Server` struct is wiped at each level load.
  */
 typedef struct {
-
   /**
    * @brief Simulation time in ms; always `frameNum` * 1000 / `QUETOO_TICK_RATE`.
    */
@@ -165,7 +163,6 @@ typedef struct {
  * structure is sent as the header of `SV_CMD_FRAME`.
  */
 typedef struct {
-
   /**
    * @brief Player state snapshot for this frame.
    */
@@ -234,7 +231,6 @@ typedef enum {
  * bounds and transmitted as fragments when necessary.
  */
 typedef struct {
-
   /**
    * @brief Byte offset of this message in the datagram buffer.
    */
@@ -251,7 +247,6 @@ typedef struct {
  * that it may be safely fragmented for delivery.
  */
 typedef struct {
-
   /**
    * @brief Managed-size buffer wrapping data[].
    */
@@ -284,7 +279,6 @@ typedef struct {
  * @brief The server client type.
  */
 typedef struct {
-
   /**
    * @brief The corresponding game client; set once at game initialization.
    */
@@ -462,7 +456,6 @@ typedef struct {
  * game module.
  */
 typedef struct {
-
   /**
    * @brief Current server lifecycle state.
    */
