@@ -496,7 +496,11 @@ static void R_DrawOpaqueBspEntity(const RenderView *view, const RenderEntity *en
     if (IS_WORLDSPAWN(entity->model)) {
 
       if (R_CullBspBlock(view, block)) {
-        renderDiagnostics->blocksOccluded++;
+        if (view->type == VIEW_SUBVIEW || block->query->culled) {
+          renderDiagnostics->blocksCulled++;
+        } else {
+          renderDiagnostics->blocksOccluded++;
+        }
         continue;
       }
 

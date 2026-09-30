@@ -244,6 +244,8 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
   RenderOcclusionQuery *q = renderOcclusion.queries;
   for (int32_t i = 0; i < renderOcclusion.numQueries; i++, q++) {
 
+    q->culled = false;
+
     if (!r_occlude->integer) {
       q->result = true;
     } else {
@@ -251,11 +253,14 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
         q->result = true;
       } else if (R_CullBox(view, q->bounds)) {
         q->result = false;
+        q->culled = true;
       }
     }
 
     renderDiagnostics->queriesAllocated++;
-    if (q->result) {
+    if (q->culled) {
+      renderDiagnostics->queriesCulled++;
+    } else if (q->result) {
       renderDiagnostics->queriesVisible++;
     } else {
       renderDiagnostics->queriesOccluded++;

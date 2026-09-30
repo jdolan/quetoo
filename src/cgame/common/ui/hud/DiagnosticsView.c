@@ -85,12 +85,14 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   addRow(self, "ping", "%d ms", frame->ps.stats[STAT_PING]);
   addRow(self, "dropped", "%u", cl->dropped);
 
-  addRow(self, "queries", "%d allocated, %d visible, %d occluded",
-         r->queriesAllocated, r->queriesVisible, r->queriesOccluded);
-  addRow(self, "lights", "%d visible, %d occluded, %d cached",
-         r->lightsVisible, r->lightsOccluded, r->lightsCached);
-  addRow(self, "entities", "%d visible, %d occluded", r->entitiesVisible, r->entitiesOccluded);
-  addRow(self, "blocks", "%d visible, %d occluded", r->blocksVisible, r->blocksOccluded);
+  addRow(self, "queries", "%d allocated, %d visible, %d culled, %d occluded",
+         r->queriesAllocated, r->queriesVisible, r->queriesCulled, r->queriesOccluded);
+  addRow(self, "lights", "%d visible, %d culled, %d occluded, %d cached",
+         r->lightsVisible, r->lightsCulled, r->lightsOccluded, r->lightsCached);
+  addRow(self, "entities", "%d visible, %d culled, %d occluded",
+         r->entitiesVisible, r->entitiesCulled, r->entitiesOccluded);
+  addRow(self, "blocks", "%d visible, %d culled, %d occluded",
+         r->blocksVisible, r->blocksCulled, r->blocksOccluded);
   addRow(self, "subviews", "%d offered, %d drawn, %d triangles", r->subviewsOffered, r->subviewsDrawn, r->subviewsTriangles);
   addRow(self, "  portals", "%d offered, %d drawn", r->portalsOffered, r->portalsDrawn);
   addRow(self, "  reflections", "%d offered, %d drawn", r->reflectionsOffered, r->reflectionsDrawn);

@@ -327,6 +327,12 @@ typedef struct {
    * @brief True if the query produced visible fragments.
    */
   bool result;
+
+  /**
+   * @brief True if the query's bounds were outside the view's frustum this frame, which also
+   * clears `result`.
+   */
+  bool culled;
 } RenderOcclusionQuery;
 
 /**
@@ -2099,7 +2105,12 @@ typedef struct {
   int32_t lightsVisible;
 
   /**
-   * @brief The count of occluded lights.
+   * @brief The count of lights outside the view's frustum.
+   */
+  int32_t lightsCulled;
+
+  /**
+   * @brief The count of lights inside the view's frustum, but occluded by other geometry.
    */
   int32_t lightsOccluded;
 
@@ -2114,7 +2125,12 @@ typedef struct {
   int32_t entitiesVisible;
 
   /**
-   * @brief The count of occluded entities.
+   * @brief The count of entities outside the view's frustum.
+   */
+  int32_t entitiesCulled;
+
+  /**
+   * @brief The count of entities inside the view's frustum, but occluded by other geometry.
    */
   int32_t entitiesOccluded;
 
@@ -2124,7 +2140,12 @@ typedef struct {
   int32_t blocksVisible;
 
   /**
-   * @brief The count of occluded BSP blocks.
+   * @brief The count of BSP blocks outside the view's frustum.
+   */
+  int32_t blocksCulled;
+
+  /**
+   * @brief The count of BSP blocks inside the view's frustum, but occluded by other geometry.
    */
   int32_t blocksOccluded;
 
@@ -2139,7 +2160,13 @@ typedef struct {
   int32_t queriesVisible;
 
   /**
-   * @brief The count of occluded occlusion queries this frame.
+   * @brief The count of occlusion queries outside the view's frustum this frame.
+   */
+  int32_t queriesCulled;
+
+  /**
+   * @brief The count of occlusion queries inside the view's frustum, but occluded by other
+   * geometry this frame.
    */
   int32_t queriesOccluded;
 

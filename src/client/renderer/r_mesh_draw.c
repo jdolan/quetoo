@@ -658,7 +658,11 @@ void R_DrawMeshEntities(const RenderView *view, RenderPass *pass) {
     }
 
     if (R_CullEntity(view, e)) {
-      renderDiagnostics->entitiesOccluded++;
+      if (Box3_IsNull(e->absModelBounds) || R_CullBox(view, e->absModelBounds)) {
+        renderDiagnostics->entitiesCulled++;
+      } else {
+        renderDiagnostics->entitiesOccluded++;
+      }
       continue;
     }
 
