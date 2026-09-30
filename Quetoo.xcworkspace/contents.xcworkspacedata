@@ -2,10 +2,10 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "container:../Objectively/Objectively.xcodeproj">
+      location = "container:../SDL3/Xcode/SDL/SDL.xcodeproj">
    </FileRef>
    <FileRef
-      location = "container:../SDL3/Xcode/SDL/SDL.xcodeproj">
+      location = "container:../Objectively/Objectively.xcodeproj">
    </FileRef>
    <FileRef
       location = "container:../ObjectivelyGPU/ObjectivelyGPU.xcodeproj">
