@@ -44,7 +44,7 @@ void teardown(void) {
 /**
  * @brief Helper to write raw text to a file.
  */
-static void write_file(const char *path, const char *content) {
+static void Test_WriteFile(const char *path, const char *content) {
 	File *file = Fs_OpenWrite(path);
 	ck_assert_msg(file != NULL, "Failed to open %s for writing", path);
 	Fs_Print(file, "%s", content);
@@ -53,7 +53,7 @@ static void write_file(const char *path, const char *content) {
 
 START_TEST(check_Material_Load_light) {
 
-	write_file("check_light.mat",
+	Test_WriteFile("check_light.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_light\n"
@@ -95,7 +95,7 @@ START_TEST(check_Material_Load_light) {
 
 START_TEST(check_Material_Save_light) {
 
-	write_file("check_save.mat",
+	Test_WriteFile("check_save.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_save\n"
@@ -127,7 +127,7 @@ START_TEST(check_Material_Save_light) {
 
 START_TEST(check_Material_Load_envmap) {
 
-	write_file("check_envmap.mat",
+	Test_WriteFile("check_envmap.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_envmap\n"
@@ -181,7 +181,7 @@ START_TEST(check_Material_Load_envmap) {
 
 START_TEST(check_Material_Load_pulse_drift_ignored) {
 
-	write_file("check_drift.mat",
+	Test_WriteFile("check_drift.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_drift\n"
@@ -207,7 +207,7 @@ START_TEST(check_Material_Load_pulse_drift_ignored) {
 
 START_TEST(check_Material_ResolveStageFlags) {
 
-	write_file("check_flags.mat",
+	Test_WriteFile("check_flags.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_flags\n"
@@ -230,7 +230,7 @@ START_TEST(check_Material_ResolveStageFlags) {
 
 START_TEST(check_Material_Load_light_only_stage) {
 
-	write_file("check_only.mat",
+	Test_WriteFile("check_only.mat",
 		"{\n"
 		"	{\n"
 		"		light.radius 200\n"
@@ -260,7 +260,7 @@ START_TEST(check_Material_Load_light_only_stage) {
 
 START_TEST(check_Material_AddStage_RemoveStage) {
 
-	write_file("check_edit.mat",
+	Test_WriteFile("check_edit.mat",
 		"{\n"
 		"	diffusemap check_edit\n"
 		"	{\n"

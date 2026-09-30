@@ -93,7 +93,7 @@ START_TEST(check_Ms_AddServer) {
 /**
  * @brief Replaces the blacklist file with the specified rules.
  */
-static void write_blacklist(const char *rules) {
+static void Test_WriteBlacklist(const char *rules) {
   File *f = Fs_OpenWrite("servers-blacklist");
   ck_assert_msg(f != NULL, "Failed to open servers-blacklist");
 
@@ -104,7 +104,7 @@ static void write_blacklist(const char *rules) {
 }
 
 START_TEST(check_Ms_BlacklistServer) {
-  write_blacklist("192.168.0.*\n// a comment\n\n10.0.0.1:27910 # a trailing comment\n");
+  Test_WriteBlacklist("192.168.0.*\n// a comment\n\n10.0.0.1:27910 # a trailing comment\n");
 
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
@@ -129,7 +129,7 @@ START_TEST(check_Ms_BlacklistServer) {
   ck_assert_msg(!Ms_BlacklistServer(&addr), "False positive for %s", inet_ntoa(addr.sin_addr));
 
   // a rewrite within the same second must still be picked up
-  write_blacklist("10.0.0.*\n");
+  Test_WriteBlacklist("10.0.0.*\n");
 
   ck_assert_msg(Ms_BlacklistServer(&addr), "Missed %s after reload", inet_ntoa(addr.sin_addr));
 
@@ -142,7 +142,7 @@ START_TEST(check_Ms_BlacklistServer) {
 /**
  * @brief Registers a validated server at the given address and protocol.
  */
-static void add_validated_server(const char *ip, uint16_t port, int32_t protocol) {
+static void Test_AddValidatedServer(const char *ip, uint16_t port, int32_t protocol) {
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
 
@@ -164,7 +164,7 @@ static void add_validated_server(const char *ip, uint16_t port, int32_t protocol
  * Ms_ParseMessage as a datagram would be, or handed straight to Ms_GetServers.
  * @return The number of servers in the reply, or -1 if there was no reply.
  */
-static int32_t query_master(const char *cmd, bool dispatch) {
+static int32_t Test_QueryMaster(const char *cmd, bool dispatch) {
   const int32_t rx = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ck_assert_msg(rx != -1, "Failed to create the receiving socket");
 
@@ -223,39 +223,39 @@ static int32_t query_master(const char *cmd, bool dispatch) {
  * @brief Issues cmd straight to Ms_GetServers over loopback.
  * @return The number of servers in the reply.
  */
-static int32_t query_servers(const char *cmd) {
-  return query_master(cmd, false);
+static int32_t Test_QueryServers(const char *cmd) {
+  return Test_QueryMaster(cmd, false);
 }
 
 START_TEST(check_Ms_GetServers) {
-  add_validated_server("192.168.1.1", PORT_SERVER, PROTOCOL_MAJOR);
-  add_validated_server("192.168.1.2", PORT_SERVER, PROTOCOL_MAJOR - 1);
+  Test_AddValidatedServer("192.168.1.1", PORT_SERVER, PROTOCOL_MAJOR);
+  Test_AddValidatedServer("192.168.1.2", PORT_SERVER, PROTOCOL_MAJOR - 1);
 
   // a server registered before sv_protocol existed reports no protocol at all
-  add_validated_server("192.168.1.3", PORT_SERVER, 0);
+  Test_AddValidatedServer("192.168.1.3", PORT_SERVER, 0);
 
   // a query naming no protocol gets only servers a current client could join
-  ck_assert_int_eq(query_servers("getservers"), 1);
+  ck_assert_int_eq(Test_QueryServers("getservers"), 1);
 
-  ck_assert_int_eq(query_servers(va("getservers %d", PROTOCOL_MAJOR)), 1);
-  ck_assert_int_eq(query_servers(va("getservers %d", PROTOCOL_MAJOR - 1)), 1);
-  ck_assert_int_eq(query_servers(va("getservers %d", PROTOCOL_MAJOR + 1)), 0);
+  ck_assert_int_eq(Test_QueryServers(va("getservers %d", PROTOCOL_MAJOR)), 1);
+  ck_assert_int_eq(Test_QueryServers(va("getservers %d", PROTOCOL_MAJOR - 1)), 1);
+  ck_assert_int_eq(Test_QueryServers(va("getservers %d", PROTOCOL_MAJOR + 1)), 0);
 
   // anything below one asks for the whole registry
-  ck_assert_int_eq(query_servers("getservers 0"), 3);
-  ck_assert_int_eq(query_servers("getservers -1"), 3);
+  ck_assert_int_eq(Test_QueryServers("getservers 0"), 3);
+  ck_assert_int_eq(Test_QueryServers("getservers -1"), 3);
 
   // an argument we cannot parse must not be mistaken for that wildcard
-  ck_assert_int_eq(query_servers("getservers abc"), 1);
-  ck_assert_int_eq(query_servers(va("getservers %dx", PROTOCOL_MAJOR)), 1);
+  ck_assert_int_eq(Test_QueryServers("getservers abc"), 1);
+  ck_assert_int_eq(Test_QueryServers(va("getservers %dx", PROTOCOL_MAJOR)), 1);
 
   // nor may one we cannot represent wrap onto a live protocol, or onto nothing
-  ck_assert_int_eq(query_servers("getservers 99999999999999999999"), 1);
-  ck_assert_int_eq(query_servers("getservers 2147483648"), 1);
-  ck_assert_int_eq(query_servers(va("getservers %lld", 4294967296LL + PROTOCOL_MAJOR)), 1);
+  ck_assert_int_eq(Test_QueryServers("getservers 99999999999999999999"), 1);
+  ck_assert_int_eq(Test_QueryServers("getservers 2147483648"), 1);
+  ck_assert_int_eq(Test_QueryServers(va("getservers %lld", 4294967296LL + PROTOCOL_MAJOR)), 1);
 
   // surrounding whitespace is not an argument we cannot parse
-  ck_assert_int_eq(query_servers(va("getservers  %d ", PROTOCOL_MAJOR)), 1);
+  ck_assert_int_eq(Test_QueryServers(va("getservers  %d ", PROTOCOL_MAJOR)), 1);
 
   // an unvalidated server is never published, whatever is asked for
   struct sockaddr_in addr;
@@ -268,21 +268,21 @@ START_TEST(check_Ms_GetServers) {
   Ms_AddServer(&addr);
   Ms_GetServer(&addr)->protocol = PROTOCOL_MAJOR;
 
-  ck_assert_int_eq(query_servers("getservers"), 1);
-  ck_assert_int_eq(query_servers("getservers 0"), 3);
+  ck_assert_int_eq(Test_QueryServers("getservers"), 1);
+  ck_assert_int_eq(Test_QueryServers("getservers 0"), 3);
 
 } END_TEST
 
 START_TEST(check_Ms_ParseMessage) {
-  add_validated_server("192.168.1.1", PORT_SERVER, PROTOCOL_MAJOR);
+  Test_AddValidatedServer("192.168.1.1", PORT_SERVER, PROTOCOL_MAJOR);
 
-  ck_assert_int_eq(query_master("getservers", true), 1);
-  ck_assert_int_eq(query_master(va("getservers %d", PROTOCOL_MAJOR), true), 1);
+  ck_assert_int_eq(Test_QueryMaster("getservers", true), 1);
+  ck_assert_int_eq(Test_QueryMaster(va("getservers %d", PROTOCOL_MAJOR), true), 1);
 
   // the master speaks for Quetoo alone; the Quake2 aliases answer to nobody
-  ck_assert_int_eq(query_master("y", true), -1);
-  ck_assert_int_eq(query_master("yo", true), -1);
-  ck_assert_int_eq(query_master("query", true), -1);
+  ck_assert_int_eq(Test_QueryMaster("y", true), -1);
+  ck_assert_int_eq(Test_QueryMaster("yo", true), -1);
+  ck_assert_int_eq(Test_QueryMaster("query", true), -1);
 
 } END_TEST
 
@@ -304,7 +304,7 @@ START_TEST(check_Ms_InfoValue) {
   ck_assert_str_eq(val, "1");
 
   // so a status response cannot list a server that never named its protocol
-  add_validated_server("192.168.1.1", PORT_SERVER, 0);
+  Test_AddValidatedServer("192.168.1.1", PORT_SERVER, 0);
 
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));

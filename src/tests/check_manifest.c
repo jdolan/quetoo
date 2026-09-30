@@ -44,7 +44,7 @@ void teardown(void) {
 /**
  * @brief Helper to write raw text to a file.
  */
-static void write_file(const char *path, const char *content) {
+static void Test_WriteFile(const char *path, const char *content) {
 	File *file = Fs_OpenWrite(path);
 	ck_assert_msg(file != NULL, "Failed to open %s for writing", path);
 	Fs_Print(file, "%s", content);
@@ -53,7 +53,7 @@ static void write_file(const char *path, const char *content) {
 
 START_TEST(check_Manifest_Read) {
 
-	write_file("test.mf",
+	Test_WriteFile("test.mf",
 		"d41d8cd98f00b204e9800998ecf8427e 1234 textures/edge/floor01_d.tga\n"
 		"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 5678 sounds/weapons/rg_fire.ogg\n"
 	);
@@ -80,7 +80,7 @@ START_TEST(check_Manifest_Read) {
 
 START_TEST(check_Manifest_Read_empty_lines) {
 
-	write_file("test_empty.mf",
+	Test_WriteFile("test_empty.mf",
 		"\n"
 		"d41d8cd98f00b204e9800998ecf8427e 100 textures/foo.tga\n"
 		"\n"
@@ -207,7 +207,7 @@ START_TEST(check_Manifest_CheckEntry) {
 
 	// write a file and build a manifest entry from the same content
 	const char *content = "test file content";
-	write_file("test_asset.tga", content);
+	Test_WriteFile("test_asset.tga", content);
 
 	HashTable *manifest = Manifest_Alloc();
 	Manifest_AddEntry(manifest, "test_asset.tga", content, strlen(content));
@@ -218,7 +218,7 @@ START_TEST(check_Manifest_CheckEntry) {
 	ck_assert(Manifest_CheckEntry(entry));
 
 	// overwrite the file with different content
-	write_file("test_asset.tga", "different content");
+	Test_WriteFile("test_asset.tga", "different content");
 
 	// now should return false
 	ck_assert(!Manifest_CheckEntry(entry));
