@@ -90,7 +90,7 @@ typedef struct RenderMedia {
  * @brief Model types.
  */
 typedef enum {
-  MOD_INVALID,
+  MODEL_INVALID,
   MODEL_BSP,
   MODEL_BSP_INLINE,
   MODEL_MESH
