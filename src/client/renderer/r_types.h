@@ -856,6 +856,12 @@ typedef struct RenderSubview {
   Mat4 matrix;
 
   /**
+   * @brief The occlusion query fitted to this subview's face, or `NULL` for a subview on a moving
+   * inline model, whose face the static query boxes cannot follow.
+   */
+  RenderOcclusionQuery *query;
+
+  /**
    * @brief The view this subview is drawn with, from the renderer's pool, or `NULL` if this
    * subview was not added to a view this frame.
    */
@@ -2174,6 +2180,12 @@ typedef struct {
    * @brief The counts of subviews offered, and of those actually drawn.
    */
   int32_t subviewsOffered, subviewsDrawn;
+
+  /**
+   * @brief The counts of offered subviews outside the view's frustum, and of those inside it but
+   * occluded by other geometry.
+   */
+  int32_t subviewsCulled, subviewsOccluded;
 
   /**
    * @brief The counts portals offered and drawn.

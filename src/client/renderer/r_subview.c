@@ -676,7 +676,13 @@ void R_DrawSubviews(RenderView *view) {
 
     // the scene was populated before any of it was culled, so a subview may well have been
     // offered a view it turns out not to need
-    if (R_CulludeBox(view, subview->absBounds)) {
+    if (R_CullBox(view, subview->absBounds)) {
+      diagnostics->subviewsCulled++;
+      continue;
+    }
+
+    if (R_OccludeBox(view, subview->absBounds) || (subview->query && !subview->query->result)) {
+      diagnostics->subviewsOccluded++;
       continue;
     }
 
