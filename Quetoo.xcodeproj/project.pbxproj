@@ -1137,9 +1137,6 @@
 		CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
-		CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
-		CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */; };
-		CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
 		CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */; };
 		CEEF01CE0000000000000002 /* s_voice.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000001 /* s_voice.c */; };
 		CEEF01CE0000000000000004 /* s_voice.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000003 /* s_voice.h */; };
@@ -3039,8 +3036,6 @@
 		CEE13C14293241970075585D /* r_shadow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_shadow.h; sourceTree = "<group>"; };
 		CEE3A0EF21EE2A5E0070FD3E /* check_winding.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_winding.c; sourceTree = "<group>"; };
 		CEE3A10121EE2B3F0070FD3E /* check_entity */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_entity; sourceTree = BUILT_PRODUCTS_DIR; };
-		CEE7508A2D6A3253004CDBCA /* rgb9e5.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rgb9e5.h; sourceTree = "<group>"; };
-		CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rgb9e5.c; sourceTree = "<group>"; };
 		CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
 		CEEF01CE0000000000000001 /* s_voice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_voice.c; sourceTree = "<group>"; };
 		CEEF01CE0000000000000003 /* s_voice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_voice.h; sourceTree = "<group>"; };
@@ -3853,8 +3848,6 @@
 				CE12D6891C5C58C300CD0B13 /* mem.c */,
 				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
 				CE12D68B1C5C58C300CD0B13 /* mem_buf.c */,
-				CEE7508A2D6A3253004CDBCA /* rgb9e5.h */,
-				CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */,
 				CE12D6BD1C5C58C300CD0B13 /* sys.h */,
 				CE12D6BC1C5C58C300CD0B13 /* sys.c */,
 				CE12D6DF1C5C58C300CD0B13 /* thread.h */,
@@ -5427,7 +5420,6 @@
 				CE89C2BC2FE56440000B6244 /* md5.h in Headers */,
 				CE04F42025CADFD200C31433 /* parse.h in Headers */,
 				CE89C2BE2FE56451000B6244 /* qstring.h in Headers */,
-				CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */,
 				CE80FE781C5E439200A21A51 /* shared.h in Headers */,
 				CE04F44425CADFD800C31433 /* swap.h in Headers */,
 				CE04F46825CADFDA00C31433 /* vector.h in Headers */,
@@ -5451,7 +5443,6 @@
 				CE04F1D525CADF6F00C31433 /* installer.h in Headers */,
 				CE04F24325CADF7A00C31433 /* mem.h in Headers */,
 				CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */,
-				CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */,
 				CE04F26825CADF7C00C31433 /* sys.h in Headers */,
 				CE04F28D25CADF7F00C31433 /* thread.h in Headers */,
 				F53787C291008C7507AE5FF4 /* manifest.h in Headers */,
@@ -7307,7 +7298,6 @@
 				CE04F2FC25CADF9300C31433 /* installer.c in Sources */,
 				CE04F34625CADF9B00C31433 /* mem.c in Sources */,
 				CE04F32125CADF9800C31433 /* mem_buf.c in Sources */,
-				CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */,
 				CE04F36B25CADF9F00C31433 /* sys.c in Sources */,
 				CE04F39025CADFA200C31433 /* thread.c in Sources */,
 				522B158EA7384E83CD005789 /* manifest.c in Sources */,

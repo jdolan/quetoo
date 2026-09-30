@@ -14,7 +14,6 @@ noinst_HEADERS = \
 	material.h \
 	mem.h \
 	mem_buf.h \
-	rgb9e5.h \
 	sys.h \
 	thread.h \
 	winding.h
@@ -37,7 +36,6 @@ libcommon_la_SOURCES = \
 	material.c \
 	mem.c \
 	mem_buf.c \
-	rgb9e5.c \
 	sys.c \
 	thread.c \
 	winding.c
