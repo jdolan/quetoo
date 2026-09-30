@@ -371,7 +371,7 @@ Cmd *Cmd_Add(const char *name, CmdExecute function, uint32_t flags,
 /**
  * @brief Assign the specified autocomplete function to the given command.
  */
-void Cmd_SetAutocomplete(Cmd *cmd, ConAutocomplete autocomplete) {
+void Cmd_SetAutocomplete(Cmd *cmd, ConsoleAutocomplete autocomplete) {
   cmd->Autocomplete = autocomplete;
 }
 

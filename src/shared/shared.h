@@ -435,7 +435,7 @@ typedef struct {
  * @param matches The list of matches you need to write to.
  */
 typedef struct List List;
-typedef void (*ConAutocomplete)(const uint32_t argi, List *matches);
+typedef void (*ConsoleAutocomplete)(const uint32_t argi, List *matches);
 
 /**
  * @brief Console variables hold mutable scalars and strings.
@@ -450,7 +450,7 @@ typedef struct {
   uint32_t flags;
   const char *description;
   bool modified; // set each time the cvar is changed
-  ConAutocomplete Autocomplete;
+  ConsoleAutocomplete Autocomplete;
 } Cvar;
 
 typedef void (*CmdExecute)(void);
@@ -462,7 +462,7 @@ typedef struct {
   const char *name;
   const char *description;
   CmdExecute Execute;
-  ConAutocomplete Autocomplete;
+  ConsoleAutocomplete Autocomplete;
   const char *commands; // for alias commands
   uint32_t flags;
 } Cmd;

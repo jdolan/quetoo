@@ -604,7 +604,7 @@ bool Con_CompleteInput(Console *console) {
     argi++;
   }
 
-  ConAutocomplete autocomplete = NULL;
+  ConsoleAutocomplete autocomplete = NULL;
 
   if (argi == 0) {
     autocomplete = Con_AutocompleteInput_f;

@@ -491,7 +491,7 @@ static void Cg_SkinAutocomplete_ModelEnumerate(const char *path, void *data) {
 }
 
 /**
- * @brief ConAutocomplete for the `skin` cvar, matching against all resolvable
+ * @brief ConsoleAutocomplete for the `skin` cvar, matching against all resolvable
  * `model/skin` combinations beneath `players/`.
  */
 void Cg_SkinAutocomplete_f(const uint32_t argi, List *matches) {
