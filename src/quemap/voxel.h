@@ -47,9 +47,9 @@ typedef struct {
   size_t numVoxels;
   MapVoxel *voxels;
   size_t numLightIndices;
-} Voxels;
+} MapVoxels;
 
-extern Voxels voxels;
+extern MapVoxels voxels;
 
 size_t BuildVoxels(void);
 void LightVoxel(int32_t voxelNum);

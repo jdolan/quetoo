@@ -209,7 +209,7 @@ typedef struct {
    * @brief The value printed to the screen. If null, name isused.
    */
   char *description;
-} ConAutocompleteMatch;
+} ConsoleAutocompleteMatch;
 
 void Con_Append(int32_t level, const char *string);
 size_t Con_Wrap(const char *chars, size_t lineWidth, char **lines, size_t maxLines);

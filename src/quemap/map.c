@@ -837,7 +837,7 @@ static MapEntity *ParseEntity(Parser *parser) {
         }
 
       } else {
-        EntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
+        MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
 
         if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
           Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", numEntities);

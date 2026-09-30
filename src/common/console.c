@@ -399,8 +399,8 @@ void Con_WriteHistory(const Console *console, File *file) {
  * @brief Autocomplete match compare function
  */
 static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
-  const ConAutocompleteMatch *ma = (const ConAutocompleteMatch *) a;
-  const ConAutocompleteMatch *mb = (const ConAutocompleteMatch *) b;
+  const ConsoleAutocompleteMatch *ma = (const ConsoleAutocompleteMatch *) a;
+  const ConsoleAutocompleteMatch *mb = (const ConsoleAutocompleteMatch *) b;
 
   return q_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
 }
@@ -410,7 +410,7 @@ static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
  */
 void Con_AutocompleteMatch(List *matches, const char *name, const char *description) {
 
-  ConAutocompleteMatch *match = Mem_Malloc(sizeof(ConAutocompleteMatch));
+  ConsoleAutocompleteMatch *match = Mem_Malloc(sizeof(ConsoleAutocompleteMatch));
 
   match->name = Mem_CopyString(name);
   Mem_Link(match->name, match);
@@ -422,7 +422,7 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
 
   ListNode *insertAfter = NULL;
   for (ListNode *node = matches->head; node; node = node->next) {
-    const ConAutocompleteMatch *m = node->element;
+    const ConsoleAutocompleteMatch *m = node->element;
     const int32_t cmp = Con_AutocompleteMatchCompare(m, match);
     if (cmp == 0) {
       Mem_Free(match);
@@ -473,7 +473,7 @@ static void Con_PrintMatches(const Console *console, List *matches) {
 
   // calculate width per column
   for (const ListNode *m = matches->head; m; m = m->next) {
-    const ConAutocompleteMatch *match = m->element;
+    const ConsoleAutocompleteMatch *match = m->element;
     const char *str = (match->description ?: match->name);
     const size_t strLen = q_strlen(str);
 
@@ -499,7 +499,7 @@ static void Con_PrintMatches(const Console *console, List *matches) {
   if (perRow == 1 || (!allSimple && numRows == 1)) {
     
     for (const ListNode *m = matches->head; m; m = m->next) {
-      const ConAutocompleteMatch *match = m->element;
+      const ConsoleAutocompleteMatch *match = m->element;
       const char *str = (match->description ?: match->name);
 
       Con_Append(PRINT_ECHO, va("%s\n", str));
@@ -515,7 +515,7 @@ static void Con_PrintMatches(const Console *console, List *matches) {
     line[0] = '\0';
 
     for (size_t i = 0; m && i < perRow; i++, m = m->next) {
-      const ConAutocompleteMatch *match = m->element;
+      const ConsoleAutocompleteMatch *match = m->element;
       const char *str = (match->description ?: match->name);
       const size_t strLen = q_strlen(str);
 
@@ -547,7 +547,7 @@ static char *Con_CommonPrefix(List *matches) {
 
   for (size_t i = 0; i < sizeof(commonPrefix) - 1; i++) {
     ListNode *e = matches->head;
-    const ConAutocompleteMatch *m = e->element;
+    const ConsoleAutocompleteMatch *m = e->element;
     const char c = m->name[i];
 
     e = e->next;
@@ -638,7 +638,7 @@ bool Con_CompleteInput(Console *console) {
   bool outputQuotes = false;
 
   if (matches->count == 1) {
-    match = ((const ConAutocompleteMatch *) matches->head->element)->name;
+    match = ((const ConsoleAutocompleteMatch *) matches->head->element)->name;
 
     if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s\" ", match);

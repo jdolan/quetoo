@@ -26,14 +26,14 @@
  */
 void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
 
-  for (EntityKeyValue *e = ent->values; e; e = e->next) {
+  for (MapEntityKeyValue *e = ent->values; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
       q_strlcpy(e->value, value, sizeof(e->value));
       return;
     }
   }
 
-  EntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
+  MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
   e->next = ent->values;
   ent->values = e;
 
@@ -46,7 +46,7 @@ void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
  */
 const char *ValueForKey(const MapEntity *ent, const char *key, const char *def) {
 
-  for (const EntityKeyValue *e = ent->values; e; e = e->next) {
+  for (const MapEntityKeyValue *e = ent->values; e; e = e->next) {
     if (!q_strcmp(e->key, key)) {
       return e->value;
     }

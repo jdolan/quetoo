@@ -104,7 +104,7 @@ struct ServerGameClient {
   /**
    * @brief Non-null if this client is a bot.
    */
-  struct Ai *ai;
+  struct GameAi *ai;
 };
 
 /**

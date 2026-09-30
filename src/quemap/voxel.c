@@ -30,7 +30,7 @@ typedef struct {
   size_t count;
 } VoxelLightIndices;
 
-static void Voxel_CollectLightIndex(const HashTable *table, ident key, ident value, ident data) {
+static void MapVoxel_CollectLightIndex(const HashTable *table, ident key, ident value, ident data) {
   VoxelLightIndices *collector = data;
   const Light *light = key;
 
@@ -44,7 +44,7 @@ static void Voxel_CollectLightIndex(const HashTable *table, ident key, ident val
  */
 #define VOXEL_LIGHT_DENSITY_WARN 5.f
 
-Voxels voxels;
+MapVoxels voxels;
 
 /**
  * @brief Create an `SDL_Surface` with the given voxel data.
@@ -169,7 +169,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
 
 /**
  * @brief Builds the voxel grid aligned to world coordinates at `BSP_VOXEL_SIZE` intervals.
- * Voxels are placed at ..., -64, -32, 0, 32, 64, 96, ... in all axes.
+ * MapVoxels are placed at ..., -64, -32, 0, 32, 64, 96, ... in all axes.
  */
 static void BuildVoxelExtents(void) {
 
@@ -357,7 +357,7 @@ typedef struct {
   int32_t voxelIndex;
 } LightVoxelData;
 
-static void Voxel_AppendLightVoxel(const HashTable *table, ident key, ident value, ident data) {
+static void MapVoxel_AppendLightVoxel(const HashTable *table, ident key, ident value, ident data) {
 
   LightVoxelData *d = data;
   const Light *light = key;
@@ -394,7 +394,7 @@ void AssignLightVoxels(void) {
       .voxelIndex = (int32_t) i
     };
 
-    $(voxels.voxels[i].lights, enumerate, Voxel_AppendLightVoxel, &data);
+    $(voxels.voxels[i].lights, enumerate, MapVoxel_AppendLightVoxel, &data);
   }
 
   int32_t total = 0;
@@ -426,7 +426,7 @@ void AssignLightVoxels(void) {
  * @brief Builds a lookup from `CONTENTS_BLOCK` node index to the index of the block it defines
  * within `bspFile.blocks`, or -1 if the node is not a block.
  */
-static int32_t *Voxel_BuildNodeToBlock(void) {
+static int32_t *MapVoxel_BuildNodeToBlock(void) {
 
   int32_t *nodeToBlock = Mem_TagMalloc(bspFile.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
 
@@ -447,7 +447,7 @@ static int32_t *Voxel_BuildNodeToBlock(void) {
  * has no parent pointers, unlike quemap's transient tree-building `Node`, so we derive them
  * here with a single pass over the node array.
  */
-static void Voxel_BuildParents(int32_t **nodeParent, int32_t **leafParent) {
+static void MapVoxel_BuildParents(int32_t **nodeParent, int32_t **leafParent) {
 
   *nodeParent = Mem_TagMalloc(bspFile.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
   *leafParent = Mem_TagMalloc(bspFile.numLeafs * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
@@ -476,8 +476,8 @@ static void Voxel_BuildParents(int32_t **nodeParent, int32_t **leafParent) {
  * @brief Walks up from the given leaf to its enclosing `CONTENTS_BLOCK` ancestor, returning the
  * index of that block within `bspFile.blocks`, or -1 if none is found.
  */
-static int32_t Voxel_BlockForLeaf(int32_t leafNum, const int32_t *nodeParent, const int32_t *leafParent,
-                                   const int32_t *nodeToBlock) {
+static int32_t MapVoxel_BlockForLeaf(int32_t leafNum, const int32_t *nodeParent, const int32_t *leafParent,
+                                     const int32_t *nodeToBlock) {
 
   int32_t nodeNum = leafParent[leafNum];
 
@@ -509,9 +509,9 @@ void AssignBlockVoxels(void) {
   }
 
   int32_t *nodeParent, *leafParent;
-  Voxel_BuildParents(&nodeParent, &leafParent);
+  MapVoxel_BuildParents(&nodeParent, &leafParent);
 
-  int32_t *nodeToBlock = Voxel_BuildNodeToBlock();
+  int32_t *nodeToBlock = MapVoxel_BuildNodeToBlock();
 
   Vector **blockVoxelLists = Mem_TagMalloc(bspFile.numBlocks * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
   for (int32_t i = 0; i < bspFile.numBlocks; i++) {
@@ -535,7 +535,7 @@ void AssignBlockVoxels(void) {
 
     for (size_t j = 0; j < numLeafs; j++) {
 
-      const int32_t block = Voxel_BlockForLeaf(leafs[j], nodeParent, leafParent, nodeToBlock);
+      const int32_t block = MapVoxel_BlockForLeaf(leafs[j], nodeParent, leafParent, nodeToBlock);
       if (block == -1) {
         continue;
       }
@@ -884,7 +884,7 @@ void EmitVoxels(void) {
           .indices = outLightIndices
         };
 
-        $(voxel->lights, enumerate, Voxel_CollectLightIndex, &collector);
+        $(voxel->lights, enumerate, MapVoxel_CollectLightIndex, &collector);
         outLightIndices += collector.count;
 
         const int32_t count = (int32_t) (outLightIndices - indices);

@@ -309,7 +309,7 @@ typedef struct {
 /**
  * @brief AI-specific per-client state.
  */
-typedef struct Ai {
+typedef struct GameAi {
 
   /**
    * @brief Pointer to this bot's static roster definition.
@@ -366,6 +366,6 @@ typedef struct Ai {
    * Valid only when `lookaheadFrame == gameLevel.frameNum`.
    */
   bool lookaheadNoGround;
-} Ai;
+} GameAi;
 
 #endif

@@ -199,7 +199,7 @@ static float G_Ai_ItemReachable(const GameClient *cl, const GameEntity *other) {
   return dist;
 }
 
-static inline void G_Ai_BackupPath(Ai *ai) {
+static inline void G_Ai_BackupPath(GameAi *ai) {
 
   if (!ai->backupMoveTarget.type && ai->moveTarget.type == AI_GOAL_PATH) {
     G_Ai_CopyGoal(&ai->moveTarget, &ai->backupMoveTarget);
@@ -207,7 +207,7 @@ static inline void G_Ai_BackupPath(Ai *ai) {
   }
 }
 
-static inline void G_Ai_RestorePath(const GameClient *cl, Ai *ai) {
+static inline void G_Ai_RestorePath(const GameClient *cl, GameAi *ai) {
 
   if (ai->backupMoveTarget.type == AI_GOAL_PATH) {
     // generate a new path to the old target, because we might have gotten a bit out
@@ -1561,7 +1561,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
  * a bot doesn't retain a dangling reference to it (e.g. a bot targeting a
  * player who disconnects).
  */
-void G_Ai_InvalidateReferences(Ai *ai, const GameEntity *ent) {
+void G_Ai_InvalidateReferences(GameAi *ai, const GameEntity *ent) {
 
   if (G_Ai_GoalHasEntity(&ai->combatTarget, ent)) {
     G_Ai_ClearGoal(&ai->combatTarget);
@@ -1891,7 +1891,7 @@ static void G_Ai_Connect(GameClient *cl) {
   char userInfo[MAX_INFO_STRING_STRING];
   const GameAiRoster *roster = G_Ai_GetRoster(cl, userInfo);
 
-  cl->ai = gi.Malloc(sizeof(Ai), MEM_TAG_AI);
+  cl->ai = gi.Malloc(sizeof(GameAi), MEM_TAG_AI);
   cl->ai->roster = roster;
 
   G_ClientConnect(cl, userInfo);

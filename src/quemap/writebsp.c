@@ -337,7 +337,7 @@ void EmitEntities(void) {
   *out = '\0';
 
   for (int32_t i = 0; i < numEntities; i++) {
-    const EntityKeyValue *e = entities[i].values;
+    const MapEntityKeyValue *e = entities[i].values;
     if (e) {
       q_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {

@@ -33,10 +33,10 @@ static Order R_EnumerateMedia_comparator(const ident a, const ident b) {
 
 typedef struct {
   Vector *media;
-} REnumerateMediaCtx;
+} RenderEnumerateMediaContext;
 
 static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident value, ident data) {
-  REnumerateMediaCtx *ctx = data;
+  RenderEnumerateMediaContext *ctx = data;
   RenderMedia *media = value;
   $(ctx->media, add, &media);
 }
@@ -45,7 +45,7 @@ static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident va
  * @brief Enumerates media in key order.
  */
 void R_EnumerateMedia(RenderMediaEnumerator enumerator, void *data) {
-  REnumerateMediaCtx ctx = {
+  RenderEnumerateMediaContext ctx = {
     .media = $(alloc(Vector), initWithSize, sizeof(RenderMedia *)),
   };
 
@@ -191,10 +191,10 @@ static bool R_FreeMedia_(RenderMedia *media, void *data) {
 typedef struct {
   Vector *media;
   void *data;
-} RFreeMediaCtx;
+} RenderFreeMediaContext;
 
 static void R_FreeMedia_collect(const HashTable *table, ident key, ident value, ident data) {
-  RFreeMediaCtx *ctx = data;
+  RenderFreeMediaContext *ctx = data;
   RenderMedia *media = value;
 
   if (R_FreeMedia_(media, ctx->data)) {
@@ -203,7 +203,7 @@ static void R_FreeMedia_collect(const HashTable *table, ident key, ident value, 
 }
 
 static void R_FreeMediaEntries(void *data) {
-  RFreeMediaCtx ctx = {
+  RenderFreeMediaContext ctx = {
     .media = $(alloc(Vector), initWithSize, sizeof(RenderMedia *)),
     .data = data,
   };
