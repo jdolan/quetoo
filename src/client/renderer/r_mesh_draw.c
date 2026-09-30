@@ -289,7 +289,7 @@ static void R_DrawMeshEntityShellEffect(const RenderView *view, const RenderEnti
 
   const float radius = (e->effects & EF_WEAPON) ? .25f : 1.f;
 
-  const MaterialStage cm = {
+  const MaterialStage def = {
     .flags = STAGE_COLOR | STAGE_SHELL
         | STAGE_SCALE_S | STAGE_SCALE_T
         | STAGE_SCROLL_S | STAGE_SCROLL_T
@@ -303,8 +303,8 @@ static void R_DrawMeshEntityShellEffect(const RenderView *view, const RenderEnti
   };
 
   const RenderStage defaultShell = {
-    .def = &cm,
-    .flags = cm.flags,
+    .def = &def,
+    .flags = def.flags,
     .media = (RenderMedia *) module.shell,
   };
 

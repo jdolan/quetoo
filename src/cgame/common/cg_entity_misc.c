@@ -224,7 +224,7 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
 
   self->bounds = Box3_Null();
 
-  const CollisionBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->collision;
   const Entity *brushDef = self->id < bsp->numEntities ? bsp->entities[self->id] : self->def;
   Vector *brushes = cgi.EntityBrushes(brushDef);
   for (size_t i = 0; i < brushes->count; i++) {
@@ -992,7 +992,7 @@ static void Cg_misc_weather_Init(CGameEntity *self) {
 
   self->bounds = Box3_Null();
 
-  const CollisionBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->collision;
   const Entity *brushDef = self->id < bsp->numEntities ? bsp->entities[self->id] : self->def;
   Vector *brushes = cgi.EntityBrushes(brushDef);
   for (size_t i = 0; i < brushes->count; i++) {

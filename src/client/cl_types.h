@@ -459,7 +459,7 @@ typedef struct {
   /**
    * @brief Collision BSP inline models loaded for client-side prediction.
    */
-  CollisionModel *cmModels[MAX_MODELS];
+  CollisionModel *collisionModels[MAX_MODELS];
 
   /**
    * @brief Renderer models resolved from `configStrings`.

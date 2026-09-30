@@ -33,7 +33,7 @@
     <ClInclude Include="..\..\src\collision\voxel.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_light.h">
+    <ClInclude Include="..\..\src\collision\material_light.h">
       <Filter>src\collision</Filter>
     </ClInclude>
   </ItemGroup>
@@ -56,7 +56,7 @@
     <ClCompile Include="..\..\src\collision\voxel.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_light.c">
+    <ClCompile Include="..\..\src\collision\material_light.c">
       <Filter>src\collision</Filter>
     </ClCompile>
   </ItemGroup>

@@ -28,13 +28,13 @@
 static void R_LoadBspPlanes(RenderBspModel *bsp) {
   RenderBspPlane *out;
 
-  const CollisionPlane *in = bsp->cm->planes;
+  const CollisionPlane *in = bsp->collision->planes;
 
-  bsp->numPlanes = bsp->cm->numPlanes;
+  bsp->numPlanes = bsp->collision->numPlanes;
   bsp->planes = out = Mem_LinkMalloc(bsp->numPlanes * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numPlanes; i++, out++, in++) {
-    out->cm = in;
+    out->collision = in;
   }
 }
 
@@ -44,9 +44,9 @@ static void R_LoadBspPlanes(RenderBspModel *bsp) {
 static void R_LoadBspMaterials(RenderModel *mod) {
 
   RenderMaterial **out;
-  const BspMaterial *in = mod->bsp->cm->file->materials;
+  const BspMaterial *in = mod->bsp->collision->file->materials;
 
-  mod->bsp->numMaterials = mod->bsp->cm->file->numMaterials;
+  mod->bsp->numMaterials = mod->bsp->collision->file->numMaterials;
   mod->bsp->materials = out = Mem_LinkMalloc(mod->bsp->numMaterials * sizeof(*out), mod->bsp);
 
   for (int32_t i = 0; i < mod->bsp->numMaterials; i++, in++, out++) {
@@ -61,9 +61,9 @@ static void R_LoadBspMaterials(RenderModel *mod) {
 static void R_LoadBspBrushSides(RenderBspModel *bsp) {
   RenderBspBrushSide *out;
 
-  const BspBrushSide *in = bsp->cm->file->brushSides;
+  const BspBrushSide *in = bsp->collision->file->brushSides;
 
-  bsp->numBrushSides = bsp->cm->file->numBrushSides;
+  bsp->numBrushSides = bsp->collision->file->numBrushSides;
   bsp->brushSides = out = Mem_LinkMalloc(bsp->numBrushSides * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numBrushSides; i++, in++, out++) {
@@ -88,9 +88,9 @@ static void R_LoadBspBrushSides(RenderBspModel *bsp) {
  */
 static void R_LoadBspPatches(RenderBspModel *bsp) {
 
-  const BspPatch *in = bsp->cm->file->patches;
+  const BspPatch *in = bsp->collision->file->patches;
 
-  bsp->numPatches = bsp->cm->file->numPatches;
+  bsp->numPatches = bsp->collision->file->numPatches;
   RenderBspPatch *out = bsp->patches = Mem_LinkMalloc(bsp->numPatches * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numPatches; i++, in++, out++) {
@@ -109,10 +109,10 @@ static void R_LoadBspPatches(RenderBspModel *bsp) {
  */
 static void R_LoadBspVertexes(RenderBspModel *bsp) {
 
-  bsp->numVertexes = bsp->cm->file->numVertexes;
+  bsp->numVertexes = bsp->collision->file->numVertexes;
   RenderBspVertex *out = bsp->vertexes = Mem_LinkMalloc(bsp->numVertexes * sizeof(*out), bsp);
 
-  const BspVertex *in = bsp->cm->file->vertexes;
+  const BspVertex *in = bsp->collision->file->vertexes;
   for (int32_t i = 0; i < bsp->numVertexes; i++, in++, out++) {
 
     out->position = in->position;
@@ -129,10 +129,10 @@ static void R_LoadBspVertexes(RenderBspModel *bsp) {
  */
 static void R_LoadBspElements(RenderBspModel *bsp) {
 
-  bsp->numElements = bsp->cm->file->numElements;
+  bsp->numElements = bsp->collision->file->numElements;
   uint32_t *out = bsp->elements = Mem_LinkMalloc(bsp->numElements * sizeof(*out), bsp);
 
-  const int32_t *in = bsp->cm->file->elements;
+  const int32_t *in = bsp->collision->file->elements;
   for (int32_t i = 0; i < bsp->numElements; i++, in++, out++) {
     *out = *in;
   }
@@ -143,10 +143,10 @@ static void R_LoadBspElements(RenderBspModel *bsp) {
  */
 static void R_LoadBspFaces(RenderBspModel *bsp) {
 
-  const BspFace *in = bsp->cm->file->faces;
+  const BspFace *in = bsp->collision->file->faces;
   RenderBspFace *out;
 
-  bsp->numFaces = bsp->cm->file->numFaces;
+  bsp->numFaces = bsp->collision->file->numFaces;
   bsp->faces = out = Mem_LinkMalloc(bsp->numFaces * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numFaces; i++, in++, out++) {
@@ -175,9 +175,9 @@ static void R_LoadBspFaces(RenderBspModel *bsp) {
 static void R_LoadBspLeafs(RenderBspModel *bsp) {
   RenderBspLeaf *out;
 
-  const BspLeaf *in = bsp->cm->file->leafs;
+  const BspLeaf *in = bsp->collision->file->leafs;
 
-  bsp->numLeafs = bsp->cm->file->numLeafs;
+  bsp->numLeafs = bsp->collision->file->numLeafs;
   bsp->leafs = out = Mem_LinkMalloc(bsp->numLeafs * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numLeafs; i++, in++, out++) {
@@ -192,9 +192,9 @@ static void R_LoadBspLeafs(RenderBspModel *bsp) {
 static void R_LoadBspNodes(RenderBspModel *bsp) {
   RenderBspNode *out;
 
-  const BspNode *in = bsp->cm->file->nodes;
+  const BspNode *in = bsp->collision->file->nodes;
 
-  bsp->numNodes = bsp->cm->file->numNodes;
+  bsp->numNodes = bsp->collision->file->numNodes;
   bsp->nodes = out = Mem_LinkMalloc(bsp->numNodes * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numNodes; i++, in++, out++) {
@@ -245,10 +245,10 @@ static void R_SetupBspNode(RenderBspInlineModel *model, RenderBspNode *parent, R
 static void R_LoadBspDrawElements(RenderBspModel *bsp) {
   RenderBspDrawElements *out;
 
-  bsp->numDrawElements = bsp->cm->file->numDrawElements;
+  bsp->numDrawElements = bsp->collision->file->numDrawElements;
   bsp->drawElements = out = Mem_LinkMalloc(bsp->numDrawElements * sizeof(*out), bsp);
 
-  const BspDrawElements *in = bsp->cm->file->drawElements;
+  const BspDrawElements *in = bsp->collision->file->drawElements;
   for (int32_t i = 0; i < bsp->numDrawElements; i++, in++, out++) {
 
     if (in->material > -1) {
@@ -285,10 +285,10 @@ static void R_LoadBspDrawElements(RenderBspModel *bsp) {
 static void R_LoadBspBlocks(RenderBspModel *bsp) {
   RenderBspBlock *out;
 
-  bsp->numBlocks = bsp->cm->file->numBlocks;
+  bsp->numBlocks = bsp->collision->file->numBlocks;
   bsp->blocks = out = Mem_LinkMalloc(bsp->numBlocks * sizeof(RenderBspBlock), bsp);
 
-  const BspBlock *in = bsp->cm->file->blocks;
+  const BspBlock *in = bsp->collision->file->blocks;
   for (int32_t i = 0; i < bsp->numBlocks; i++, in++, out++) {
 
     out->node = bsp->nodes + in->node;
@@ -306,7 +306,7 @@ static void R_LoadBspBlocks(RenderBspModel *bsp) {
 
   }
 
-  const BspFace *inFace = bsp->cm->file->faces;
+  const BspFace *inFace = bsp->collision->file->faces;
   RenderBspFace *outFace = bsp->faces;
   for (int32_t i = 0; i < bsp->numFaces; i++, inFace++, outFace++) {
     if (inFace->block >= 0 && inFace->block < bsp->numBlocks) {
@@ -321,14 +321,14 @@ static void R_LoadBspBlocks(RenderBspModel *bsp) {
 static void R_LoadBspInlineModels(RenderBspModel *bsp) {
   RenderBspInlineModel *out;
 
-  const BspModel *in = bsp->cm->file->models;
+  const BspModel *in = bsp->collision->file->models;
 
-  bsp->numInlineModels = bsp->cm->file->numModels;
+  bsp->numInlineModels = bsp->collision->file->numModels;
   bsp->inlineModels = out = Mem_LinkMalloc(bsp->numInlineModels * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numInlineModels; i++, in++, out++) {
 
-    out->entity = bsp->cm->entities[in->entity];
+    out->entity = bsp->collision->entities[in->entity];
     out->headNode = bsp->nodes + in->headNode;
 
     out->visibleBounds = in->visibleBounds;
@@ -360,14 +360,14 @@ static void R_LoadBspPortals(RenderModel *mod) {
 
   RenderBspModel *bsp = mod->bsp;
 
-  bsp->numPortals = bsp->cm->file->numPortals;
+  bsp->numPortals = bsp->collision->file->numPortals;
   if (!bsp->numPortals) {
     return;
   }
 
   RenderSubview *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->numPortals, bsp);
 
-  const BspPortal *in = bsp->cm->file->portals;
+  const BspPortal *in = bsp->collision->file->portals;
   for (int32_t i = 0; i < bsp->numPortals; i++, in++, out++) {
 
     if (in->drawElements < 0 || in->drawElements >= bsp->numDrawElements) {
@@ -414,14 +414,14 @@ static void R_LoadBspReflections(RenderModel *mod) {
 
   RenderBspModel *bsp = mod->bsp;
 
-  bsp->numReflections = bsp->cm->file->numReflections;
+  bsp->numReflections = bsp->collision->file->numReflections;
   if (!bsp->numReflections) {
     return;
   }
 
   RenderSubview *out = bsp->reflections = Mem_LinkMalloc(sizeof(*out) * bsp->numReflections, bsp);
 
-  const BspReflection *in = bsp->cm->file->reflections;
+  const BspReflection *in = bsp->collision->file->reflections;
   for (int32_t i = 0; i < bsp->numReflections; i++, in++, out++) {
 
     if (in->model < 0 || in->model >= bsp->numInlineModels) {
@@ -440,7 +440,7 @@ static void R_LoadBspReflections(RenderModel *mod) {
   RenderBspDrawElements *draw = bsp->drawElements;
   for (int32_t i = 0; i < bsp->numDrawElements; i++, draw++) {
 
-    const int32_t reflection = bsp->cm->file->drawElements[i].reflection;
+    const int32_t reflection = bsp->collision->file->drawElements[i].reflection;
     if (reflection == -1) {
       continue;
     }
@@ -468,14 +468,14 @@ static void R_LoadBspReflections(RenderModel *mod) {
  */
 static void R_LoadBspLights(RenderBspModel *bsp) {
 
-  const BspLight *in = bsp->cm->file->lights;
+  const BspLight *in = bsp->collision->file->lights;
 
-  bsp->numLights = bsp->cm->file->numLights;
+  bsp->numLights = bsp->collision->file->numLights;
   RenderBspLight *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->numLights, bsp);
 
   for (int32_t i = 0; i < bsp->numLights; i++, in++, out++) {
 
-    out->entity = bsp->cm->entities[in->entity];
+    out->entity = bsp->collision->entities[in->entity];
     out->origin = in->origin;
     out->color = in->color;
     out->radius = in->radius;
@@ -485,7 +485,7 @@ static void R_LoadBspLights(RenderBspModel *bsp) {
     out->drift = in->drift;
     out->drawElements = bsp->drawElements + in->firstDrawElements;
     out->numDrawElements = in->numDrawElements;
-    out->targetEntity = in->targetEntity > 0 ? bsp->cm->entities[in->targetEntity] : NULL;
+    out->targetEntity = in->targetEntity > 0 ? bsp->collision->entities[in->targetEntity] : NULL;
     out->material = in->material >= 0 && in->material < bsp->numMaterials ? bsp->materials[in->material] : NULL;
   }
 }
@@ -534,7 +534,7 @@ static void R_AppendOcclusionQueryVoxels(RenderOcclusionQuery *query, const BspV
  */
 static void R_LoadBspOcclusionQueries(RenderBspModel *bsp) {
 
-  const BspFile *file = bsp->cm->file;
+  const BspFile *file = bsp->collision->file;
   const BspVoxels *voxels = file->voxels;
 
   RenderBspBlock *block = bsp->blocks;
@@ -572,7 +572,7 @@ static void R_LoadBspOcclusionQueries(RenderBspModel *bsp) {
  */
 static void R_LoadBspVoxels(RenderModel *mod) {
 
-  const BspVoxels *in = mod->bsp->cm->file->voxels;
+  const BspVoxels *in = mod->bsp->collision->file->voxels;
   const byte *data = (byte *) in + sizeof(BspVoxels);
 
   RenderBspVoxels *out = &mod->bsp->voxels;
@@ -803,9 +803,9 @@ static void R_LoadBspModel(RenderModel *mod, void *buffer) {
   BspHeader *header = (BspHeader *) buffer;
 
   mod->bsp = Mem_LinkMalloc(sizeof(RenderBspModel), mod);
-  mod->bsp->cm = Cm_Bsp();
+  mod->bsp->collision = Cm_Bsp();
 
-  Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
+  Bsp_LoadLumps(header, mod->bsp->collision->file, R_BSP_LUMPS);
 
   R_LoadBspPlanes(mod->bsp);
   R_LoadBspMaterials(mod);
@@ -829,7 +829,7 @@ static void R_LoadBspModel(RenderModel *mod, void *buffer) {
   R_LoadBspVoxels(mod);
   R_LoadBspSky(mod);
 
-  Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
+  Bsp_UnloadLumps(mod->bsp->collision->file, R_BSP_LUMPS);
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");
   Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:  %s\n", mod->media.name);

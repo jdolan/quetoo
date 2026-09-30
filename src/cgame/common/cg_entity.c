@@ -34,7 +34,7 @@ typedef bool (*CGameEntityPredicate)(const Entity *e, void *data);
  */
 static const Entity *Cg_FindEntity(const Entity *from, const CGameEntityPredicate predicate, void *data) {
 
-  const CollisionBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->collision;
 
   int32_t start = 0;
   if (from) {
@@ -112,7 +112,7 @@ void Cg_LoadEntities(void) {
 
   cgameEntities = $(alloc(Vector), initWithSize, sizeof(CGameEntity));
 
-  const CollisionBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->collision;
   for (int32_t i = 0; i < bsp->numEntities; i++) {
 
     const Entity *def = bsp->entities[i];

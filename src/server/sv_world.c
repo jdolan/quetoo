@@ -100,7 +100,7 @@ static void Sv_InitWorld(void) {
 
   memset(&world, 0, sizeof(world));
 
-  Sv_CreateSector(0, sv.cmModels[0]->bounds);
+  Sv_CreateSector(0, sv.collisionModels[0]->bounds);
 }
 
 /**
@@ -355,7 +355,7 @@ static int32_t Sv_HullForEntity(const GameEntity *ent) {
     }
 
     case SOLID_BSP: {
-      const CollisionModel *mod = sv.cmModels[ent->s.model1];
+      const CollisionModel *mod = sv.collisionModels[ent->s.model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }

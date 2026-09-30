@@ -27,7 +27,7 @@
     <ClInclude Include="..\..\src\collision\cm_trace.h" />
     <ClInclude Include="..\..\src\collision\cm_types.h" />
     <ClInclude Include="..\..\src\collision\voxel.h" />
-    <ClInclude Include="..\..\src\collision\cm_light.h" />
+    <ClInclude Include="..\..\src\collision\material_light.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\collision\cm_bsp.c" />
@@ -36,7 +36,7 @@
     <ClCompile Include="..\..\src\collision\cm_test.c" />
     <ClCompile Include="..\..\src\collision\cm_trace.c" />
     <ClCompile Include="..\..\src\collision\voxel.c" />
-    <ClCompile Include="..\..\src\collision\cm_light.c" />
+    <ClCompile Include="..\..\src\collision\material_light.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{76EBD445-3535-4652-BE8B-7DE4F03591CE}</ProjectGuid>

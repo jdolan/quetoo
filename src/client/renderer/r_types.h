@@ -344,7 +344,7 @@ typedef struct {
   /**
    * @brief The collision plane.
    */
-  const CollisionPlane *cm;
+  const CollisionPlane *collision;
 } RenderBspPlane;
 
 /**
@@ -1051,7 +1051,7 @@ typedef struct {
   /**
    * @brief The backing collision BSP model.
    */
-  const CollisionBsp *cm;
+  const CollisionBsp *collision;
 
   /**
    * @brief The count of planes.

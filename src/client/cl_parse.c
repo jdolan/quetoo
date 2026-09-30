@@ -234,9 +234,9 @@ int32_t Cl_ParseConfigString(void) {
     if (cls.state == CL_ACTIVE) {
       cl.models[i - CS_MODELS] = R_LoadModel(s);
       if (*s == '*') {
-        cl.cmModels[i - CS_MODELS] = Cm_Model(s);
+        cl.collisionModels[i - CS_MODELS] = Cm_Model(s);
       } else {
-        cl.cmModels[i - CS_MODELS] = NULL;
+        cl.collisionModels[i - CS_MODELS] = NULL;
       }
     }
   } else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {

@@ -190,7 +190,7 @@
 		A1F809FD3D4907D862309E48 /* PickupView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E9A665C836946BF25073235 /* PickupView.json */; };
 		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
 		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
-		A790EABCD57D46D9B0A80850 /* cm_light.c in Sources */ = {isa = PBXBuildFile; fileRef = 0CCDA7DD47374DC3BA55D24A /* cm_light.c */; };
+		A790EABCD57D46D9B0A80850 /* material_light.c in Sources */ = {isa = PBXBuildFile; fileRef = 0CCDA7DD47374DC3BA55D24A /* material_light.c */; };
 		A978478284E6A536361DE6FC /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
 		AC814FDD1291470DA9883B6C /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
@@ -224,7 +224,7 @@
 		C916425B74784B149039A63B /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CB4A43F954CB0C6DB34F666F /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		CC87D6AEB29F498DB8AA7E1C /* voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* voxel.c */; };
-		CC8A4E1E3C5749B68DBD795C /* cm_light.h in Headers */ = {isa = PBXBuildFile; fileRef = 21090788F7AC4042B84FEE10 /* cm_light.h */; };
+		CC8A4E1E3C5749B68DBD795C /* material_light.h in Headers */ = {isa = PBXBuildFile; fileRef = 21090788F7AC4042B84FEE10 /* material_light.h */; };
 		CCF7D4742DB959FD23C3CC3B /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
 		CE04F06325CADF4D00C31433 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
@@ -2218,7 +2218,7 @@
 		0713BF4BF04837B81E77D924 /* DemoList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoList.h; sourceTree = "<group>"; };
 		07C9A88ED1D718092FD62601 /* CenterPrintView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CenterPrintView.c; sourceTree = "<group>"; };
 		09A28D5220214F20A1942F76 /* ConsoleText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleText.c; sourceTree = "<group>"; };
-		0CCDA7DD47374DC3BA55D24A /* cm_light.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_light.c; sourceTree = "<group>"; };
+		0CCDA7DD47374DC3BA55D24A /* material_light.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = material_light.c; sourceTree = "<group>"; };
 		0D77AADBD995ED68B8CFA201 /* CounterView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CounterView.json; sourceTree = "<group>"; };
 		15F241361EC624CD05FF20DA /* HudViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HudViewController.h; sourceTree = "<group>"; };
 		19388404C9634A90A13D5466 /* PingView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PingView.h; sourceTree = "<group>"; };
@@ -2226,7 +2226,7 @@
 		1C923406FE86A096F618B0A6 /* ChaseView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChaseView.c; sourceTree = "<group>"; };
 		1EE6A866A93B42938A4E84E6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DiagnosticsView.c; sourceTree = "<group>"; };
-		21090788F7AC4042B84FEE10 /* cm_light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_light.h; sourceTree = "<group>"; };
+		21090788F7AC4042B84FEE10 /* material_light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = material_light.h; sourceTree = "<group>"; };
 		24281E30C5869DF85EACFC22 /* cl_analytics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_analytics.h; sourceTree = "<group>"; };
 		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
 		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
@@ -4235,8 +4235,6 @@
 			children = (
 				CE6C2D101E24902900F55B0A /* cm_bsp.h */,
 				CE6C2D0F1E24902900F55B0A /* cm_bsp.c */,
-				21090788F7AC4042B84FEE10 /* cm_light.h */,
-				0CCDA7DD47374DC3BA55D24A /* cm_light.c */,
 				CE12D6291C5C58C300CD0B13 /* cm_local.h */,
 				CE12D62B1C5C58C300CD0B13 /* cm_model.h */,
 				CE12D62A1C5C58C300CD0B13 /* cm_model.c */,
@@ -4248,6 +4246,8 @@
 				CE12D6331C5C58C300CD0B13 /* collision.h */,
 				CEBDB0C7214A037800A7AC3D /* entity.h */,
 				CEBDB0C8214A037900A7AC3D /* entity.c */,
+				21090788F7AC4042B84FEE10 /* material_light.h */,
+				0CCDA7DD47374DC3BA55D24A /* material_light.c */,
 				97BDA8A5C8DF41E290656B3D /* voxel.h */,
 				1EE6A866A93B42938A4E84E6 /* voxel.c */,
 				CE12D6341C5C58C300CD0B13 /* Makefile.am */,
@@ -5472,7 +5472,7 @@
 				CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */,
 				CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */,
 				EEE815CF5A924D398351DF7C /* voxel.h in Headers */,
-				CC8A4E1E3C5749B68DBD795C /* cm_light.h in Headers */,
+				CC8A4E1E3C5749B68DBD795C /* material_light.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -7326,7 +7326,7 @@
 				CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */,
 				CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */,
 				CC87D6AEB29F498DB8AA7E1C /* voxel.c in Sources */,
-				A790EABCD57D46D9B0A80850 /* cm_light.c in Sources */,
+				A790EABCD57D46D9B0A80850 /* material_light.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

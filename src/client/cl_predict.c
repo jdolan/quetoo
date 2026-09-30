@@ -40,7 +40,7 @@ static int32_t Cl_HullForEntity(const EntityState *s) {
     }
 
     case SOLID_BSP: {
-      const CollisionModel *mod = cl.cmModels[s->model1];
+      const CollisionModel *mod = cl.collisionModels[s->model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
@@ -342,9 +342,9 @@ void Cl_UpdatePrediction(void) {
 
     const char *s = cl.configStrings[CS_MODELS + i];
     if (*s == '*') {
-      cl.cmModels[i] = Cm_Model(cl.configStrings[CS_MODELS + i]);
+      cl.collisionModels[i] = Cm_Model(cl.configStrings[CS_MODELS + i]);
     } else {
-      cl.cmModels[i] = NULL;
+      cl.collisionModels[i] = NULL;
     }
   }
 }

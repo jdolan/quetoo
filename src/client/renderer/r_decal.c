@@ -367,7 +367,7 @@ static void R_ClipDecalToNode(const RenderView *view,
     R_ClipDecalToFace(view, face, &faceProjected, normal, tangent, bitangent, decals);
   }
 
-  const CollisionPlane *plane = node->plane->cm;
+  const CollisionPlane *plane = node->plane->collision;
   const float dist = Cm_DistanceToPlane(decal->origin, plane);
 
   if (dist > decal->radius) {
@@ -402,7 +402,7 @@ static void R_ClipDecalToNode(const RenderView *view,
       continue;
     }
 
-    if (Cm_DistanceToPlane(decal->origin, face->plane->cm) < -SIDE_EPSILON) {
+    if (Cm_DistanceToPlane(decal->origin, face->plane->collision) < -SIDE_EPSILON) {
       continue;
     }
 
@@ -411,13 +411,13 @@ static void R_ClipDecalToNode(const RenderView *view,
     }
 
     if (projected.radius >= 16.f) {
-      const Vec3 pos = Vec3_Add(Box3_Center(face->bounds), face->plane->cm->normal);
+      const Vec3 pos = Vec3_Add(Box3_Center(face->bounds), face->plane->collision->normal);
       if (Cm_BoxTrace(decal->origin, pos, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
         continue;
       }
     }
 
-    const Vec3 normal = face->plane->cm->normal;
+    const Vec3 normal = face->plane->collision->normal;
     const Vec3 sdir = face->brushSide->axis[0].xyz;
     const Vec3 tdir = face->brushSide->axis[1].xyz;
     Vec3 tangent, bitangent;

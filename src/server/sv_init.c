@@ -287,7 +287,7 @@ static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerSta
 
     q_snprintf(sv.configStrings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
-    sv.cmModels[0] = Cm_LoadBspModel(sv.configStrings[CS_BSP], NULL);
+    sv.collisionModels[0] = Cm_LoadBspModel(sv.configStrings[CS_BSP], NULL);
 
     // advertise the bsp we actually loaded, so that a client can prove it loaded
     // the same one. Hashing the file rather than trusting our own manifest: a
@@ -315,7 +315,7 @@ static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerSta
       char *s = sv.configStrings[CS_MODELS + i];
       q_snprintf(s, MAX_STRING_CHARS, "*%d", i);
 
-      sv.cmModels[i] = Cm_Model(s);
+      sv.collisionModels[i] = Cm_Model(s);
     }
 
     svs.state = SV_LOADING;

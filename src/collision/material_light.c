@@ -20,7 +20,7 @@
  */
 
 #include "cm_local.h"
-#include "cm_light.h"
+#include "material_light.h"
 
 /**
  * @brief The distance within which the windings of two coplanar brush sides touch.

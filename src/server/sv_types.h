@@ -92,7 +92,7 @@ typedef struct {
   /**
    * @brief Collision models; [0] is worldspawn, rest are inline models.
    */
-  CollisionModel *cmModels[MAX_MODELS];
+  CollisionModel *collisionModels[MAX_MODELS];
 
   /**
    * @brief Config strings enumerating all loaded assets (models, sounds, skins, etc.).

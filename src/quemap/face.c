@@ -561,11 +561,11 @@ static void TangentVectors_(BspModel *model) {
     numElements += face->numElements;
   }
 
-  WindingVertex *cm = Mem_Malloc(sizeof(WindingVertex) * numVertexes);
+  WindingVertex *windingVertexes = Mem_Malloc(sizeof(WindingVertex) * numVertexes);
 
   BspVertex *v = vertexes;
   for (int32_t i = 0; i < numVertexes; i++, v++) {
-    cm[i] = (WindingVertex) {
+    windingVertexes[i] = (WindingVertex) {
       .position = &v->position,
       .normal = &v->normal,
       .tangent = &v->tangent,
@@ -574,14 +574,14 @@ static void TangentVectors_(BspModel *model) {
     };
   }
 
-  Winding_Tangents(cm, baseVertex, numVertexes, elements, numElements);
+  Winding_Tangents(windingVertexes, baseVertex, numVertexes, elements, numElements);
 
   int32_t numBadVertexes = 0;
 
   v = vertexes;
   for (int32_t i = 0; i < numVertexes; i++, v++) {
 
-    if (cm[i].numTris == 0) {
+    if (windingVertexes[i].numTris == 0) {
       continue;
     }
 
@@ -593,7 +593,7 @@ static void TangentVectors_(BspModel *model) {
 
   Com_Debug(DEBUG_ALL, "%d bad vertexes\n", numBadVertexes);
 
-  Mem_Free(cm);
+  Mem_Free(windingVertexes);
 }
 
 /**

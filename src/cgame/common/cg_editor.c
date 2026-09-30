@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 #include "bg_item.h"
-#include "collision/cm_light.h"
+#include "collision/material_light.h"
 #include "ui/editor/EditorViewController.h"
 
 /**
@@ -109,7 +109,7 @@ static Vec3 Cg_EditorMaterialLightOrigin(const MaterialLight *l) {
     return l->origin;
   }
 
-  const int32_t entity = cgi.WorldModel()->bsp->cm->file->models[l->model].entity;
+  const int32_t entity = cgi.WorldModel()->bsp->collision->file->models[l->model].entity;
   if (entity <= 0 || entity >= MAX_ENTITIES) {
     return l->origin;
   }
@@ -188,7 +188,7 @@ static void Cg_LoadEditorMaterialLights(void) {
   cgameEditor.materialLightColors = cgi.Malloc(sizeof(Vec3) * numMaterials, MEM_TAG_CGAME_LEVEL);
 
   cgameEditor.materialLights = $(alloc(Vector), initWithSize, sizeof(MaterialLight));
-  cgi.MaterialLights(bsp->cm->file, cgameEditor.materials, -1, cgameEditor.materialLights);
+  cgi.MaterialLights(bsp->collision->file, cgameEditor.materials, -1, cgameEditor.materialLights);
 }
 
 /**
@@ -232,7 +232,7 @@ void Cg_UpdateEditorMaterialLights(const Material *material) {
   for (int32_t i = 0; i < bsp->numMaterials; i++) {
     if (cgameEditor.materials[i] == material) {
       cgameEditor.materialLightColors[i] = Vec3_Zero();
-      cgi.MaterialLights(bsp->cm->file, cgameEditor.materials, i, lights);
+      cgi.MaterialLights(bsp->collision->file, cgameEditor.materials, i, lights);
     }
   }
 

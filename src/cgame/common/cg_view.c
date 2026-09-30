@@ -514,7 +514,7 @@ static void Cg_UpdateAmbient(void) {
 
   const Entity *worldspawn = editor->value
   ? cgameEditor.entities[0].def
-  : cgi.WorldModel()->bsp->cm->entities[0];
+  : cgi.WorldModel()->bsp->collision->entities[0];
 
   const Entity *ambient = cgi.EntityValue(worldspawn, "ambient");
 
