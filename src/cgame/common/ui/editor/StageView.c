@@ -533,7 +533,7 @@ static void didToggleStageFlag(Checkbox *checkbox) {
     this->openAxes |= axesOf(flag->flag);
 
     if (flag->flag == STAGE_COLOR && this->stage->color.r + this->stage->color.g + this->stage->color.b == 0.f) {
-      this->stage->color = color_white;
+      this->stage->color = COLOR_RGB_WHITE;
     }
 
     if (flag->flag == STAGE_FLARE) {

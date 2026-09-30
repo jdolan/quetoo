@@ -1196,7 +1196,7 @@ MaterialStage *Material_AddStage(Material *m) {
   MaterialStage *s = (MaterialStage *) Mem_LinkMalloc(sizeof(*s), m);
 
   s->flags = STAGE_TEXTURE;
-  s->color = color_white;
+  s->color = COLOR_RGB_WHITE;
   Material_Basename(m->diffusemap.name, s->asset.name, sizeof(s->asset.name));
 
   Material_AppendStage(m, s);

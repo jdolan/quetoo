@@ -66,9 +66,9 @@ vec3_t color_start = Vec3(204.f, .75f, .44f);
 vec3_t color_end = Vec3(204.f, .75f, .0f);
 
 // cg_temp_entity.c
-const vec3_t both_color = Vec3(color_hue_green, color_intensity, color_intensity);
-const vec3_t a_color = Vec3(color_hue_blue, color_intensity, color_intensity);
-const vec3_t mover_color = Vec3(color_hue_cyan, color_intensity, color_intensity);
+const vec3_t both_color = Vec3(COLOR_HUE_GREEN, color_intensity, color_intensity);
+const vec3_t a_color = Vec3(COLOR_HUE_BLUE, color_intensity, color_intensity);
+const vec3_t mover_color = Vec3(COLOR_HUE_CYAN, color_intensity, color_intensity);
 ```
 
 ### 5. Color Operations

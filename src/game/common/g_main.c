@@ -337,7 +337,7 @@ static void G_ResetTeamSpawnPoints(GameSpawnPoints *points, const GameEntityTrai
 
       if (ent->s.trail) {
         // Shared spawn point (already claimed by another team): use yellow
-        ent->s.color = Color_Color32(ColorHSV(color_hue_yellow, 1.f, 1.f));
+        ent->s.color = Color_Color32(ColorHSV(COLOR_HUE_YELLOW, 1.f, 1.f));
       } else {
         ent->s.color = Color_Color32(ColorHSV(gameTeamList[teamId].color, 1.f, 1.f));
       }

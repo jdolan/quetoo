@@ -228,7 +228,7 @@ void Cg_BubbleTrail(ClientEntity *ent, const Vec3 start, const Vec3 end, float f
  */
 static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
 
-  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_orange);
+  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, COLOR_HUE_ORANGE);
 
   const int32_t liquid = Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID;
   if (liquid) {
@@ -775,7 +775,7 @@ static void Cg_HookTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   Vec3 forward;
   Vec3_Vectors(ent->angles, &forward, NULL, NULL);
 
-  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_green);
+  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, COLOR_HUE_GREEN);
 
   cgi.AddBeam(cgi.view, &(const RenderBeam) {
     .start = start,
@@ -887,7 +887,7 @@ static void Cg_TeleporterTrail_Think(CGameSprite *sprite, float life, float delt
 
 static void Cg_TeleporterTrail(ClientEntity *ent) {
 
-  const Vec3 gold = ColorHSV(color_hue_yellow, .7f, 1.f).vec3;
+  const Vec3 gold = ColorHSV(COLOR_HUE_YELLOW, .7f, 1.f).vec3;
   const float t = MILLIS_TO_SECONDS(cgi.client->unclampedTime);
 
   Cg_AddSprite(&(CGameSprite) {
@@ -959,7 +959,7 @@ static void Cg_PlayerSpawnTrail(const ClientEntity *ent) {
   const Color color = Color32_Color(ent->current.color);
   const Vec3 rgb = color.r > 0.f || color.g > 0.f || color.b > 0.f
     ? color.vec3
-    : ColorHSV(color_hue_yellow, 1.f, 1.f).vec3;
+    : ColorHSV(COLOR_HUE_YELLOW, 1.f, 1.f).vec3;
 
   cgi.AddSprite(cgi.view, &(RenderSprite) {
     .media = (RenderMedia *) cgameMedia.sprites.ring,
@@ -1009,7 +1009,7 @@ static void Cg_GibTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
       .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
       .origin = Vec3_Mix(end, origin, step * i),
       .radius = RandomRangef(8.f, 32.f),
-      .color = color_red,
+      .color = COLOR_RGB_RED,
       .lifetime = 8000 + Randomf() * 4000,
       .rotation = RandomRadian()
     });

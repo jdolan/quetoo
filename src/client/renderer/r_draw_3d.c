@@ -234,13 +234,13 @@ static void R_UpdateBspNormals(const RenderView *view) {
     const Vec3 tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
     const Vec3 bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
-    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
+    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, COLOR_RGB_RED, true);
 
     if (r_drawBspNormals->integer > 1) {
-      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, color_green, true);
+      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, COLOR_RGB_GREEN, true);
 
       if (r_drawBspNormals->integer > 2) {
-        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, color_blue, true);
+        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, COLOR_RGB_BLUE, true);
       }
     }
   }

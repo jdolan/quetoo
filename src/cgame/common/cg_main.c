@@ -279,7 +279,7 @@ static void Cg_ParseTeamInfo(const char *s) {
     team->hue = atoi((char *) $(info, get, i + 2));
 
     if (!Color_Parse((char *) $(info, get, i + 3), &team->color)) {
-      team->color = color_white;
+      team->color = COLOR_RGB_WHITE;
     }
   }
 

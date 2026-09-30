@@ -72,7 +72,7 @@ static void Cg_InactiveEffect(ClientEntity *ent, const Vec3 org) {
 
   cgi.AddSprite(cgi.view, &(const RenderSprite) {
     .origin = Vec3_Add(org, MakeVec3(0.f, 0.f, 50.f)),
-    .color = color_white.vec3,
+    .color = COLOR_RGB_WHITE.vec3,
     .media = (RenderMedia *) cgameMedia.sprites.inactive,
     .size = 32.f,
   });

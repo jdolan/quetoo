@@ -26,7 +26,7 @@
  */
 static void Cg_BlasterFlash(const Vec3 muzzle, const Vec3 origin, const Vec3 angles, const int32_t client) {
 
-  const Vec3 color = Cg_ClientEffectColor(client, NULL, color_hue_orange);
+  const Vec3 color = Cg_ClientEffectColor(client, NULL, COLOR_HUE_ORANGE);
 
   Vec3 org = muzzle;
 

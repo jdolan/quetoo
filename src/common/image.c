@@ -104,7 +104,7 @@ SDL_Surface *Img_LoadSurfaceFromData(const void *data, size_t len) {
  */
 Color Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 
-  Color out = color_white;
+  Color out = COLOR_RGB_WHITE;
 
   if (surf) {
     float max = 0.f;

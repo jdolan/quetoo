@@ -262,28 +262,28 @@ bool StrIsEmoji(const char *c) {
 Color ColorEsc(int32_t esc) {
   switch (esc) {
     case ESC_COLOR_BLACK:
-      return color_white;
+      return COLOR_RGB_WHITE;
     case ESC_COLOR_RED:
-      return color_red;
+      return COLOR_RGB_RED;
     case ESC_COLOR_GREEN:
-      return color_green;
+      return COLOR_RGB_GREEN;
     case ESC_COLOR_YELLOW:
-      return color_yellow;
+      return COLOR_RGB_YELLOW;
     case ESC_COLOR_BLUE:
-      return color_blue;
+      return COLOR_RGB_BLUE;
     case ESC_COLOR_MAGENTA:
-      return color_magenta;
+      return COLOR_RGB_MAGENTA;
     case ESC_COLOR_CYAN:
-      return color_cyan;
+      return COLOR_RGB_CYAN;
     case ESC_COLOR_WHITE:
-      return color_white;
+      return COLOR_RGB_WHITE;
     case ESC_COLOR_ORANGE:
-      return color_orange;
+      return COLOR_RGB_ORANGE;
     case ESC_COLOR_GREY:
-      return color_grey;
+      return COLOR_RGB_GREY;
   }
 
-  return color_white;
+  return COLOR_RGB_WHITE;
 }
 
 /**

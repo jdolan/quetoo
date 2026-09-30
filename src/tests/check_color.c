@@ -52,7 +52,7 @@ START_TEST(check_Color_Parse_rgba) {
 } END_TEST
 
 START_TEST(check_Color_Unparse) {
-  ck_assert_str_eq(Color_Unparse(color_white), "ffffffff");
+  ck_assert_str_eq(Color_Unparse(COLOR_RGB_WHITE), "ffffffff");
   ck_assert_str_eq(Color_Unparse(Color3f(1.f, 0.f, 0.f)), "ff0000ff");
 } END_TEST
 

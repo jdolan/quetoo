@@ -326,8 +326,8 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
 
     const ClientEntity *ent = edit->ent;
 
-    Vec4 debugColor = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
-    Vec4 modelColor = color_white.vec4;
+    Vec4 debugColor = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : COLOR_RGB_WHITE.vec4;
+    Vec4 modelColor = COLOR_RGB_WHITE.vec4;
 
     if (!Str_Compare(classname, "light")) {
       modelColor = Cg_AddEditorEntity_Light(edit);
@@ -363,7 +363,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       });
 
       if (isSelected || Str_Compare(classname, "worldspawn")) {
-        const Color color = isSelected ? color_red : Color4fv(debugColor);
+        const Color color = isSelected ? COLOR_RGB_RED : Color4fv(debugColor);
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
           const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
           Cg_DrawEditorBrush(brush->bounds, e->matrix, color);
@@ -384,7 +384,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       });
 
       if (isSelected) {
-        cgi.Draw3DBox(Box3_Expand(ent->absBounds, 2.f), color_red, true);
+        cgi.Draw3DBox(Box3_Expand(ent->absBounds, 2.f), COLOR_RGB_RED, true);
 
         if (edit->model && IS_MESH_MODEL(edit->model)) {
           const RenderMeshConfig *view = &edit->model->mesh->config.view;
@@ -407,13 +407,13 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       Vec3 points[2] = { ent->origin };
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(1.f, 0.f, 0.f));
-      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_red, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, COLOR_RGB_RED, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(0.f, 1.f, 0.f));
-      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_green, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, COLOR_RGB_GREEN, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(0.f, 0.f, 1.f));
-      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_blue, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, COLOR_RGB_BLUE, true);
     }
   }
 

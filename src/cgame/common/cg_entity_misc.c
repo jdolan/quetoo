@@ -428,7 +428,7 @@ static void Cg_misc_flame_Think(CGameEntity *self) {
   const float s = Clampf(r / 64.f, .125f, 1.f);
 
   for (int32_t i = 0; i < flame->radius * flame->density; i++) {
-    const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
+    const float hue = COLOR_HUE_ORANGE + RandomRangef(-20.f, 20.f);
     const float sat = RandomRangef(.7f, 1.f);
 
     if (!Cg_AddSprite(&(CGameSprite) {

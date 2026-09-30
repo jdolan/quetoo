@@ -146,7 +146,7 @@ CGameFlare *Cg_LoadFlare(const RenderBspFace *face, const RenderStage *stage) {
   if (stage->def->flags & STAGE_COLOR) {
     flare->in.color = stage->def->color.vec3;
   } else {
-    flare->in.color = color_white.vec3;
+    flare->in.color = COLOR_RGB_WHITE.vec3;
   }
 
   flare->in.media = stage->media;

@@ -151,12 +151,12 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
   const uint8_t colorId = color & 0x7;
 
   const float hue = colorId == 3
-    ? color_hue_red
+    ? COLOR_HUE_RED
     : colorId == 2
-      ? color_hue_rose
+      ? COLOR_HUE_ROSE
       : colorId == 1
-        ? color_hue_yellow
-        : color_hue_orange;
+        ? COLOR_HUE_YELLOW
+        : COLOR_HUE_ORANGE;
 
   if (color & 16) {
     Cg_AddSprite(&(CGameSprite) {
@@ -240,9 +240,9 @@ static void Cg_AiNodeEffect(const Vec3 start, const uint8_t color, const uint16_
 static void Cg_AiNodeLinkEffect(const Vec3 start, const Vec3 end, const uint8_t bits) {
 
   const float satval = (bits & 4) ? 0.2f : 1.0f;
-  const Vec3 bothColor = ColorHSV(color_hue_green, satval, satval).vec3;
-  const Vec3 aColor = ColorHSV(color_hue_blue, satval, satval).vec3;
-  const Vec3 moverColor = ColorHSV(color_hue_cyan, satval, satval).vec3;
+  const Vec3 bothColor = ColorHSV(COLOR_HUE_GREEN, satval, satval).vec3;
+  const Vec3 aColor = ColorHSV(COLOR_HUE_BLUE, satval, satval).vec3;
+  const Vec3 moverColor = ColorHSV(COLOR_HUE_CYAN, satval, satval).vec3;
 
   // mover connection
   if (bits & 8) {
@@ -395,7 +395,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
       .dir = dir,
       .size = 4.f,
       .lifetime = 650,
-      .color = ColorHSV(color_hue_orange, 0.8f, 1.f).vec3,
+      .color = ColorHSV(COLOR_HUE_ORANGE, 0.8f, 1.f).vec3,
     });
 
     // impact light flash
@@ -413,7 +413,7 @@ static void Cg_BulletEffect(const Vec3 org, const Vec3 dir) {
     .image = cgameMedia.decals.bullet[Randomi() % lengthof(cgameMedia.decals.bullet)],
     .origin = org,
     .radius = RandomRangef(1.f, 3.f),
-    .color = color_black,
+    .color = COLOR_RGB_BLACK,
     .lifetime = 12000 + Randomf() * 10000,
     .rotation = RandomRadian()
   });
@@ -506,7 +506,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
       .dir = dir,
       .size = 4.f,
       .lifetime = 650,
-      .color = ColorHSV(color_hue_orange, 0.8f, 1.f).vec3,
+      .color = ColorHSV(COLOR_HUE_ORANGE, 0.8f, 1.f).vec3,
     });
 
     // impact light flash
@@ -524,7 +524,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
     .image = cgameMedia.decals.bullet[Randomi() % lengthof(cgameMedia.decals.bullet)],
     .origin = org,
     .radius = RandomRangef(1.f, 3.f),
-    .color = color_black,
+    .color = COLOR_RGB_BLACK,
     .lifetime = 12000 + Randomf() * 10000,
     .rotation = RandomRadian()
   });
@@ -618,7 +618,7 @@ void Cg_GibEffect(const Vec3 org, int32_t count) {
     .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
     .origin = org,
     .radius = RandomRangef(64.f, 128.f),
-    .color = color_red,
+    .color = COLOR_RGB_RED,
     .lifetime = 6000 + Randomf() * 6000,
     .rotation = RandomRadian()
   });
@@ -678,12 +678,12 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
     .dir = dir,
     .size = 4.f,
     .lifetime = 650,
-    .color = ColorHSV(color_hue_orange, .8f, 1.f).vec3,
+    .color = ColorHSV(COLOR_HUE_ORANGE, .8f, 1.f).vec3,
   });
 
   // bouncing sparks
   for (int32_t i = 0; i < count; i++) {
-    const float hue = color_hue_yellow - RandomRangef(4.f, 40.f);
+    const float hue = COLOR_HUE_YELLOW - RandomRangef(4.f, 40.f);
 
     if (!Cg_AddSprite(&(CGameSprite) {
         .atlasImage = cgameMedia.sprites.spark,
@@ -1141,7 +1141,7 @@ static void Cg_BfgLaserDeadEffect(const int16_t orgEntity, const int16_t destEnt
     .termination = end,
     .size = 1.5f,
     .flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
-    .color = ColorHSV(color_hue_green, .5f, .5f).vec3,
+    .color = ColorHSV(COLOR_HUE_GREEN, .5f, .5f).vec3,
     .data = ((CGameBfgLaserData) { .org = orgEntity, .dest = destEntity }).data,
     .Think = Cg_BfgLaserThink,
     .lighting = .25f,
@@ -1163,7 +1163,7 @@ static void Cg_BfgLaserEffect(const int16_t orgEntity, const int16_t destEntity)
     .termination = end,
     .size = 5.f,
     .flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
-    .color = ColorHSV(color_hue_green, 1.f, 1.f).vec3,
+    .color = ColorHSV(COLOR_HUE_GREEN, 1.f, 1.f).vec3,
     .data = ((CGameBfgLaserData) { .org = orgEntity, .dest = destEntity }).data,
     .Think = Cg_BfgLaserThink,
     .lighting = .5f,
@@ -1181,7 +1181,7 @@ static void Cg_BfgLaserEffect(const int16_t orgEntity, const int16_t destEntity)
     .image = cgameMedia.decals.burn[Randomi() % lengthof(cgameMedia.decals.burn)],
     .origin = end,
     .radius = RandomRangef(12.f, 24.f),
-    .color = ColorHSV(color_hue_green, 1.f, 1.f),
+    .color = ColorHSV(COLOR_HUE_GREEN, 1.f, 1.f),
     .lifetime = 10000 + Randomf() * 4000,
     .rotation = RandomRadian()
   });
@@ -1455,7 +1455,7 @@ void Cg_ParseTempEntity(void) {
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
       i = cgi.ReadByte();
-      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, color_hue_orange));
+      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE));
       break;
 
     case TE_TRACER:
@@ -1513,7 +1513,7 @@ void Cg_ParseTempEntity(void) {
       const int32_t flags = cgi.ReadLong();
       const int32_t client = cgi.ReadByte();
       float hue;
-      Cg_ClientEffectColor(client, &hue, color_hue_cyan);
+      Cg_ClientEffectColor(client, &hue, COLOR_HUE_CYAN);
       if (client == cgi.client->frame.ps.client && Cg_ViewIsSelf()) {
         pos = cgameState.clients[client].weaponMuzzle;
       }
