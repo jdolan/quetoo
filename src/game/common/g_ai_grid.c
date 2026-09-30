@@ -140,7 +140,7 @@ struct GameAiKdTreeQueryContext {
   void *data;
 };
 
-static void G_Ai_KdTreeQuery_r(struct GameAiKdTreeQueryContext *ctx, const struct GameAiKdTreeNode *node, const size_t dim) {
+static void G_Ai_KdTreeQueryNode(struct GameAiKdTreeQueryContext *ctx, const struct GameAiKdTreeNode *node, const size_t dim) {
 
   if (node == NULL || node->nodenum == SIZE_MAX) {
     return;
@@ -159,10 +159,10 @@ static void G_Ai_KdTreeQuery_r(struct GameAiKdTreeQueryContext *ctx, const struc
   const struct GameAiKdTreeNode *farNode = sdist < 0 ? node->right : node->left;
   const size_t nextDim = (dim + 1) % 3;
 
-  G_Ai_KdTreeQuery_r(ctx, nearNode, nextDim);
+  G_Ai_KdTreeQueryNode(ctx, nearNode, nextDim);
 
   if (sdist * sdist <= ctx->bestdist) {
-    G_Ai_KdTreeQuery_r(ctx, farNode, nextDim);
+    G_Ai_KdTreeQueryNode(ctx, farNode, nextDim);
   }
 }
 
@@ -182,7 +182,7 @@ size_t G_Ai_KdTreeQuery(struct GameAiKdTree *tree, const Vec3 querypos, const fl
     .data = data
   };
 
-  G_Ai_KdTreeQuery_r(&ctx, tree->root, 0);
+  G_Ai_KdTreeQueryNode(&ctx, tree->root, 0);
   return ctx.best;
 }
 
