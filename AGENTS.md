@@ -17,7 +17,7 @@ anything else, read the code. It is never out of date.
 | Types | `PascalCase`, with the subsystem prefix | `RenderEntity`, `CGameSprite`, `PMoveParams` |
 | Functions | `Prefix_PascalCase`: the subsystem's short prefix, or the type name for a type with a bare name | `R_DrawEntities`, `G_Damage`, `Cm_BoxTrace`, `Material_Load`, `Winding_Clip` |
 | Function-pointer members | `PascalCase` | `cgi.AddEntity`, `gi.Multicast` |
-| Function-pointer types | `PascalCase` with the subsystem prefix, as any type, and a `Func` suffix where no better noun fits; module hooks take `Hook` | `CvarEnumerator`, `GameAiGoalFunc`, `GameConfigureLevelHook` |
+| Function-pointer types | `PascalCase` with the subsystem prefix, as any type. A name that ends in a verb or an agent noun needs no suffix; one that ends in any other noun takes `Func`, so that it does not read as data; module hooks take `Hook` | `ThreadRun`, `CmdExecute`, `CvarEnumerator`, `GameAiGoalFunc`, `GameConfigureLevelHook` |
 | Variables, parameters, data members | `camelCase` | `numElements`, `oldOrigin` |
 | Extern globals | the subsystem prefix, lowercased, then `camelCase` | `renderConfig`, `cgameState`, `gameLevel` |
 | File statics | `camelCase`, no subsystem prefix | `aiNodes`, `world` |
