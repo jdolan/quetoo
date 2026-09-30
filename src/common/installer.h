@@ -78,9 +78,9 @@ typedef struct {
  * there is nobody to ask.
  * @details Returning non-zero will terminate the installer process and resume startup.
  */
-typedef int32_t (*Installer_FrameFunction)(const InstallerStatus *status);
+typedef int32_t (*InstallerFrameFunction)(const InstallerStatus *status);
 
-void Installer_Init(Installer_FrameFunction frame);
+void Installer_Init(InstallerFrameFunction frame);
 
 /**
  * @brief Moves a staged update into place, and sweeps files displaced by a

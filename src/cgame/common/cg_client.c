@@ -459,7 +459,7 @@ void Cg_LoadClients(void) {
 }
 
 /**
- * @brief Fs_Enumerator data for `Cg_SkinAutocomplete_f`.
+ * @brief FsEnumerator data for `Cg_SkinAutocomplete_f`.
  */
 typedef struct {
   const char *partial;
@@ -467,7 +467,7 @@ typedef struct {
 } CGameSkinAutocomplete;
 
 /**
- * @brief Fs_Enumerator for `Cg_SkinAutocomplete_ModelEnumerate`, appending a `model/skin`
+ * @brief FsEnumerator for `Cg_SkinAutocomplete_ModelEnumerate`, appending a `model/skin`
  * match for each resolved `players/<model>/<skin>.skin` file that begins with the partial.
  */
 static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
@@ -483,7 +483,7 @@ static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
 }
 
 /**
- * @brief Fs_Enumerator for `Cg_SkinAutocomplete_f`, descending into each `players/<model>`
+ * @brief FsEnumerator for `Cg_SkinAutocomplete_f`, descending into each `players/<model>`
  * directory to resolve its `.skin` files.
  */
 static void Cg_SkinAutocomplete_ModelEnumerate(const char *path, void *data) {

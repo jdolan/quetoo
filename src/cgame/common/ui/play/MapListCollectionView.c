@@ -93,7 +93,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous map loading
 
 /**
- * @brief Fs_Enumerator for map discovery.
+ * @brief FsEnumerator for map discovery.
  */
 static void enumerateMaps(const char *path, void *data) {
 

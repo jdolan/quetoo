@@ -423,7 +423,7 @@ typedef struct {
 } StageAssetCompletions;
 
 /**
- * @brief Fs_Enumerator for completionsForStageTexture: adds an image once, without its
+ * @brief FsEnumerator for completionsForStageTexture: adds an image once, without its
  * extension, or a directory with a trailing slash. Normal, specular and tint maps are not stage
  * assets.
  */

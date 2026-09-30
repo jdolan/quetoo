@@ -27,7 +27,7 @@
 
 extern bool cvarUserInfoModified;
 
-typedef void (*Cvar_Enumerator)(Cvar *var, void *data);
+typedef void (*CvarEnumerator)(Cvar *var, void *data);
 
 Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *description);
 Cvar *Cvar_Get(const char *name);
@@ -42,7 +42,7 @@ Cvar *Cvar_ForceSetInteger(const char *name, int32_t value);
 Cvar *Cvar_ForceSetString(const char *name, const char *value);
 Cvar *Cvar_ForceSetValue(const char *name, float value);
 Cvar *Cvar_Toggle(const char *name);
-void Cvar_Enumerate(Cvar_Enumerator func, void *data);
+void Cvar_Enumerate(CvarEnumerator func, void *data);
 void Cvar_CompleteVar(const char *pattern, List *matches);
 bool Cvar_PendingLatched(void);
 void Cvar_UpdateLatched(void);

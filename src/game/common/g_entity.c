@@ -677,7 +677,7 @@ int32_t G_worldspawn_MusicShuffle(const ident a, const ident b) {
 }
 
 /**
- * @brief `Fs_Enumerator` to collect music track names.
+ * @brief `FsEnumerator` to collect music track names.
  */
 static void G_worldspawn_EnumerateMusic(const char *path, void *data) {
   Vector *tracks = (Vector *) data;

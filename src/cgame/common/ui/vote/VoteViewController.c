@@ -104,7 +104,7 @@ static void didClickCall(Button *button) {
 #pragma mark - Options
 
 /**
- * @brief Fs_Enumerator adding each installed map to the map select.
+ * @brief FsEnumerator adding each installed map to the map select.
  */
 static void enumerateMaps(const char *path, void *data) {
 

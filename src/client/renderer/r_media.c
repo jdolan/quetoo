@@ -44,7 +44,7 @@ static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident va
 /**
  * @brief Enumerates media in key order.
  */
-void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
+void R_EnumerateMedia(RenderMediaEnumerator enumerator, void *data) {
   REnumerateMediaCtx ctx = {
     .media = $(alloc(Vector), initWithSize, sizeof(RenderMedia *)),
   };

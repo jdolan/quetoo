@@ -58,7 +58,7 @@ void G_Ai_Node_Destroy(const GameAiNodeId id);
 void G_Ai_DeleteNodes(void);
 void G_Ai_ShutdownNodes(void);
 
-typedef float (*G_Ai_NodeCostFunc)(const GameAiNodeId a, const GameAiNodeId b);
+typedef float (*GameAiNodeCostFunc)(const GameAiNodeId a, const GameAiNodeId b);
 
 /**
  * @brief Heuristic cost function for A* pathfinding using Manhattan distance.
@@ -79,7 +79,7 @@ static inline float G_Ai_Node_Cost(const GameAiNodeId a, const GameAiNodeId b) {
   return Vec3_Distance(av, bv);
 }
 
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const G_Ai_NodeCostFunc heuristic, float *length);
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, float *length);
 Vector *G_Ai_Node_TestPath(void);
 bool G_Ai_DropItemLikeNode(GameEntity *ent);
 

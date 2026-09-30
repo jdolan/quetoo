@@ -64,7 +64,7 @@ Image *Cg_LoadImage(const char *name) {
 }
 
 /**
- * @brief `Fs_Enumerator` registering one emoji with the Theme's icon atlas, so that `:name:`
+ * @brief `FsEnumerator` registering one emoji with the Theme's icon atlas, so that `:name:`
  * in any Text draws it inline.
  */
 static void Cg_AddEmoji(const char *path, void *data) {
@@ -85,7 +85,7 @@ static void Cg_AddEmoji(const char *path, void *data) {
 }
 
 /**
- * @brief `Fs_Enumerator` registering one image with the Theme's icon atlas under its resource
+ * @brief `FsEnumerator` registering one image with the Theme's icon atlas under its resource
  * name, e.g. `pics/game_ctf`, for Views that fetch app art by `Theme::icon`.
  */
 static void Cg_AddIcon(const char *path, void *data) {

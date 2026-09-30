@@ -28,7 +28,7 @@
 #pragma mark - Crosshair selection
 
 /**
- * @brief @c Fs_Enumerator for crosshair selection.
+ * @brief @c FsEnumerator for crosshair selection.
  */
 static void enumerateCrosshairs(const char *path, void *data) {
   char name[MAX_QPATH];
@@ -137,7 +137,7 @@ static void setDelegate(View *view, ident data) {
 }
 
 /**
- * @brief @c Fs_Enumerator for HUD selection.
+ * @brief @c FsEnumerator for HUD selection.
  */
 static void enumerateHuds(const char *path, void *data) {
 

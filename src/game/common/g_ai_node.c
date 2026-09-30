@@ -1501,7 +1501,7 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
 /**
  * @see g_ai_node.h
  */
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const G_Ai_NodeCostFunc heuristic, float *length) {
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, float *length) {
   
   if (length) {
     *length = 0;

@@ -74,7 +74,7 @@ static BspLumpMeta lumpMeta[BSP_LUMP_LAST] = {
 /**
  * @brief Table of swap functions.
  */
-typedef void (*Bsp_SwapFunction) (void *lump, const int32_t num);
+typedef void (*BspSwapFunction) (void *lump, const int32_t num);
 
 /**
  * @brief Swap function.
@@ -451,7 +451,7 @@ static void Bsp_SwapBlockVoxels(void *lump, const int32_t num) {
  */
 static void Bsp_SwapLump(const BspLumpId lumpId, void *lump, int32_t count) {
 
-  const Bsp_SwapFunction swap[BSP_LUMP_LAST] = {
+  const BspSwapFunction swap[BSP_LUMP_LAST] = {
     NULL,
     NULL,
     Bsp_SwapPlanes,

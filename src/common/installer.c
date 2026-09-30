@@ -72,7 +72,7 @@ typedef struct {
  * @brief The module type.
  * @details The module runs a dedicated thread that steps through the `InstallerState`
  * lifecycle. `Installer_Main` is called on the main thread via `Init`, which pumps an
- * `Installer_FrameFunction` in loop to show progress. When the `Installer_Main` returns, the
+ * `InstallerFrameFunction` in loop to show progress. When the `Installer_Main` returns, the
  * standard `Frame` loop begins.
  */
 static struct {
@@ -121,7 +121,7 @@ static struct {
   bool relaunch;
 
   /**
-   * @brief The module status, used to expose progress via `Installer_FrameFunction`.
+   * @brief The module status, used to expose progress via `InstallerFrameFunction`.
    */
   InstallerStatus status;
 } module;
@@ -1209,7 +1209,7 @@ static void Installer_SweepDisplaced(void) {
 /**
  * @brief Applied to each staged file by `Installer_EachPending`.
  */
-typedef bool (*Installer_PendingFunc)(const char *staged, const char *target, FILE *cleanup);
+typedef bool (*InstallerPendingFunc)(const char *staged, const char *target, FILE *cleanup);
 
 /**
  * @brief Returns the path a displaced file is parked at while an apply runs.
@@ -1332,7 +1332,7 @@ static bool Installer_Rollback(const char *staged, const char *target, FILE *cle
  * @brief Iterates the staged files, invoking `func` for each.
  * @return The number of entries visited, or -1 if the manifest is malformed.
  */
-static int32_t Installer_EachPending(FILE *file, const char *root, Installer_PendingFunc func,
+static int32_t Installer_EachPending(FILE *file, const char *root, InstallerPendingFunc func,
                                      FILE *cleanup) {
 
   fseek(file, 0, SEEK_SET);
@@ -1453,7 +1453,7 @@ void Installer_ApplyPending(void) {
     success = Installer_Install(root, Fs_BaseDir(), cleanup);
   }
 
-  const Installer_PendingFunc finish = success ? Installer_Commit_ : Installer_Rollback;
+  const InstallerPendingFunc finish = success ? Installer_Commit_ : Installer_Rollback;
 
   if (whole) {
     finish(root, Fs_BaseDir(), success ? cleanup : NULL);
@@ -1481,7 +1481,7 @@ void Installer_ApplyPending(void) {
  * @brief Starts an asynchronous data update and blocks until it completes,
  * calling @c frame each iteration while the module is in progress.
  */
-void Installer_Init(Installer_FrameFunction frame) {
+void Installer_Init(InstallerFrameFunction frame) {
 
 #if defined(_WIN32)
   Installer_SweepDisplaced();

@@ -25,14 +25,14 @@
 Vector *cgameEntities = NULL;
 
 /**
- * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
+ * @brief The `CGameEntityPredicate` type for `Cg_FindEntity`.
  */
-typedef bool (*Cg_EntityPredicate)(const Entity *e, void *data);
+typedef bool (*CGameEntityPredicate)(const Entity *e, void *data);
 
 /**
  * @return The first entity after `from` for which `predicate` returns `true`, or `NULL`.
  */
-static const Entity *Cg_FindEntity(const Entity *from, const Cg_EntityPredicate predicate, void *data) {
+static const Entity *Cg_FindEntity(const Entity *from, const CGameEntityPredicate predicate, void *data) {
 
   const CollisionBsp *bsp = cgi.WorldModel()->bsp->cm;
 

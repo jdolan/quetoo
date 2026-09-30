@@ -349,7 +349,7 @@ static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value
 /**
  * @brief Enumerates all known commands with the given function.
  */
-void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
+void Cmd_Enumerate(CmdEnumerator func, void *data) {
   CmdEnumerateCtx ctx = {
     .cmds = $(alloc(PointerArray), init),
   };

@@ -366,7 +366,7 @@ typedef struct {
    * @param enumerator The enumerator function.
    * @param data User data.
    */
-  void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
+  void (*EnumerateFiles)(const char *pattern, FsEnumerator enumerator, void *data);
 
   /**
    * @}

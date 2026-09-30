@@ -88,7 +88,7 @@ typedef struct {
 } DemoEnumeration;
 
 /**
- * @brief Fs_Enumerator for demo discovery.
+ * @brief FsEnumerator for demo discovery.
  */
 static void enumerateDemos(const char *path, void *data) {
 

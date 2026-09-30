@@ -270,7 +270,7 @@ static void Cvar_Enumerate_collect(const HashTable *table, ident key, ident valu
 /**
  * @brief Enumerates all known variables with the given function.
  */
-void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
+void Cvar_Enumerate(CvarEnumerator func, void *data) {
   CvarEnumerateCtx ctx = {
     .vars = $(alloc(PointerArray), init),
   };

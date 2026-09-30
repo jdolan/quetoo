@@ -607,7 +607,7 @@ typedef struct {
   void *opaque;
 } File;
 
-typedef void (*Fs_Enumerator)(const char *path, void *data);
+typedef void (*FsEnumerator)(const char *path, void *data);
 
 /**
  * @brief Debug cateogories.

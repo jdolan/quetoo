@@ -41,7 +41,7 @@ static Order sortOptions(const ident a, const ident b) {
 }
 
 /**
- * @brief Fs_Enumerator counting the matched files, for existence checks.
+ * @brief FsEnumerator counting the matched files, for existence checks.
  */
 static void countFiles(const char *path, void *data) {
   int32_t *count = (int32_t *) data;
@@ -68,7 +68,7 @@ static bool selectOptionWithTitle(Select *select, const char *title) {
 }
 
 /**
- * @brief Fs_Enumerator for resolving the skin variants of the currently
+ * @brief FsEnumerator for resolving the skin variants of the currently
  * selected model into skinSelect.
  */
 static void enumerateSkins(const char *path, void *data) {
@@ -142,7 +142,7 @@ static void refreshSkins(PlayerSetupViewController *this, const char *model) {
 }
 
 /**
- * @brief Fs_Enumerator for resolving the available player models into
+ * @brief FsEnumerator for resolving the available player models into
  * modelSelect. Directories with no `.skin` files (e.g. `players/common`,
  * which holds shared sounds, not a model) are skipped.
  */
