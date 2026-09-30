@@ -72,7 +72,7 @@ typedef struct {
  * @brief The module type.
  * @details The module runs a dedicated thread that steps through the `InstallerState`
  * lifecycle. `Installer_Main` is called on the main thread via `Init`, which pumps an
- * `InstallerFrameFunction` in loop to show progress. When the `Installer_Main` returns, the
+ * `InstallerFrameFunc` in loop to show progress. When the `Installer_Main` returns, the
  * standard `Frame` loop begins.
  */
 static struct {
@@ -121,7 +121,7 @@ static struct {
   bool relaunch;
 
   /**
-   * @brief The module status, used to expose progress via `InstallerFrameFunction`.
+   * @brief The module status, used to expose progress via `InstallerFrameFunc`.
    */
   InstallerStatus status;
 } module;
@@ -1481,7 +1481,7 @@ void Installer_ApplyPending(void) {
  * @brief Starts an asynchronous data update and blocks until it completes,
  * calling @c frame each iteration while the module is in progress.
  */
-void Installer_Init(InstallerFrameFunction frame) {
+void Installer_Init(InstallerFrameFunc frame) {
 
 #if defined(_WIN32)
   Installer_SweepDisplaced();
