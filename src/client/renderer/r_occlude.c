@@ -224,15 +224,15 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
       renderDepthPipeline.fence = release(renderDepthPipeline.fence);
 
-      if (r_occlude->integer) {
+      if (r_occlude->integer && renderOcclusion.numQueries) {
         R_DrawOcclusionQueries_(view, commands);
-      }
 
-      CopyPass *pass = $(commands, beginCopyPass);
-      $(pass, downloadQueryResults, renderOcclusion.pool, 0, renderOcclusion.numQueries, &(SDL_GPUTransferBufferLocation) {
-        .transfer_buffer = renderOcclusion.transfer->buffer,
-      });
-      release(pass);
+        CopyPass *pass = $(commands, beginCopyPass);
+        $(pass, downloadQueryResults, renderOcclusion.pool, 0, renderOcclusion.numQueries, &(SDL_GPUTransferBufferLocation) {
+          .transfer_buffer = renderOcclusion.transfer->buffer,
+        });
+        release(pass);
+      }
     }
   }
 
