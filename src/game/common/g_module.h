@@ -380,9 +380,9 @@ extern GameApplyVoteHook G_ApplyVote;
  * @details A single owner, like `CheckWinner`: a module that plays exactly one
  * mode replaces this outright rather than qualifying whatever it was handed.
  */
-typedef GameModeId (*GameClampGameModeHook)(GameModeId gameMode);
+typedef GamePlayId (*GameClampGamePlayHook)(GamePlayId gamePlay);
 
-extern GameClampGameModeHook G_ClampGameMode;
+extern GameClampGamePlayHook G_ClampGamePlay;
 
 /**
  * @brief Names the gameplay the server is running, for its info strings.

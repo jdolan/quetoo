@@ -155,17 +155,17 @@ static void Cg_DiscordReady(const DiscordUser *user) {
 }
 
 /**
- * @brief The tail of the `Cg_DescribeGameMode` chain: the gameplay and the
+ * @brief The tail of the `Cg_DescribeGamePlay` chain: the gameplay and the
  * team count, or the flag mode.
  */
-static const char *Cg_DescribeGameMode_Common(void) {
+static const char *Cg_DescribeGamePlay_Common(void) {
 
 #if defined(G_CTF)
   return va("%i-Team CTF", cgameState.numTeams);
 #else
   const char *mode;
 
-  switch (cgameState.gameMode & ~GAMEPLAY_TEAMS) {
+  switch (cgameState.gamePlay & ~GAMEPLAY_TEAMS) {
     case GAMEPLAY_ARENA:
       mode = "Arena";
       break;
@@ -185,7 +185,7 @@ static const char *Cg_DescribeGameMode_Common(void) {
 #endif
 }
 
-CGameDescribeGameModeHook Cg_DescribeGameMode = Cg_DescribeGameMode_Common;
+CGameDescribeGamePlayHook Cg_DescribeGamePlay = Cg_DescribeGamePlay_Common;
 
 void Cg_UpdateDiscord(void) {
 
@@ -217,7 +217,7 @@ void Cg_UpdateDiscord(void) {
         char message[MAX_STRING_CHARS];
         Str_StripColors(cgi.ConfigString(CS_MESSAGE), message);
 
-        Str_Format(details, sizeof(details), "%s - %s", Cg_DescribeGameMode(), message);
+        Str_Format(details, sizeof(details), "%s - %s", Cg_DescribeGamePlay(), message);
         presence.details = details;
 
         if (Str_Compare(cgi.server->address, "localhost")) {

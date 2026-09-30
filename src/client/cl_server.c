@@ -145,7 +145,7 @@ void Cl_ParseServerInfo(void) {
 
   char hostname[sizeof(server->hostname)];
   char name[sizeof(server->name)];
-  char gameMode[sizeof(server->gameMode)];
+  char gamePlay[sizeof(server->gamePlay)];
   char movement[sizeof(server->movement)];
   char guid[sizeof(server->guid)];
   char game[sizeof(server->game)];
@@ -156,8 +156,8 @@ void Cl_ParseServerInfo(void) {
   InfoString_Get(string, "gameName", game, sizeof(game));
 
   // the mode keys are what the level resolved to, and fall back to what was asked for
-  if (InfoString_Get(string, "g_gameplayMode", gameMode, sizeof(gameMode)) <= 0) {
-    InfoString_Get(string, "g_gameplay", gameMode, sizeof(gameMode));
+  if (InfoString_Get(string, "g_gameplayMode", gamePlay, sizeof(gamePlay)) <= 0) {
+    InfoString_Get(string, "g_gameplay", gamePlay, sizeof(gamePlay));
   }
 
   if (InfoString_Get(string, "g_movementMode", movement, sizeof(movement)) <= 0) {
@@ -172,7 +172,7 @@ void Cl_ParseServerInfo(void) {
     Str_Copy(server->hostname, hostname, sizeof(server->hostname));
     Str_Copy(server->name, name, sizeof(server->name));
     Str_Copy(server->guid, guid, sizeof(server->guid));
-    Str_Copy(server->gameMode, gameMode, sizeof(server->gameMode));
+    Str_Copy(server->gamePlay, gamePlay, sizeof(server->gamePlay));
     Str_Copy(server->movement, movement, sizeof(server->movement));
     Str_Copy(server->game, game, sizeof(server->game));
     server->maxClients = maxClients;
@@ -215,7 +215,7 @@ void Cl_ParseServerInfo(void) {
     server->error[0] = '\0';
 
     Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, gameplay %s, %d/%d clients (%d bots), %dms\n",
-              Net_NetaddrToString(&netFrom), server->hostname, server->name, server->gameMode,
+              Net_NetaddrToString(&netFrom), server->hostname, server->name, server->gamePlay,
               server->clients, server->maxClients, server->bots, server->ping);
 
     Cl_MergeDuplicateServers(server);
@@ -223,7 +223,7 @@ void Cl_ParseServerInfo(void) {
   } else {
     server->hostname[0] = '\0';
     server->name[0] = '\0';
-    server->gameMode[0] = '\0';
+    server->gamePlay[0] = '\0';
     server->movement[0] = '\0';
     server->game[0] = '\0';
 
@@ -464,7 +464,7 @@ void Cl_Servers_List_f(void) {
     const ClientServerInfo *s = (const ClientServerInfo *) $(cls.servers, get, i);
 
     Str_Format(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
-               s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameMode, s->clients,
+               s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gamePlay, s->clients,
                s->maxClients, s->ping);
     Com_Print("%s\n", string);
   }

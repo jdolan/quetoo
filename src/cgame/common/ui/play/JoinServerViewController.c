@@ -207,7 +207,7 @@ static void refreshDetails(JoinServerViewController *self) {
 
   setLabelText(self->sourceLabel, sourceLabel(server));
   setLabelText(self->mapLabel, *server->name ? server->name : unsetValue);
-  setLabelText(self->gameModeLabel, *server->gameMode ? server->gameMode : unsetValue);
+  setLabelText(self->gamePlayLabel, *server->gamePlay ? server->gamePlay : unsetValue);
   setLabelText(self->movementLabel, *server->movement ? server->movement : unsetValue);
   setLabelText(self->playersLabel, va("%d / %d", server->clients, server->maxClients));
   setLabelText(self->pingLabel, pingUnanswered(server) ? unsetValue : va("%d ms", server->ping));
@@ -490,7 +490,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("serverGrid", &this->detailGrid),
     MakeOutlet("serverSource", &this->sourceLabel),
     MakeOutlet("serverMap", &this->mapLabel),
-    MakeOutlet("serverGameMode", &this->gameModeLabel),
+    MakeOutlet("serverGamePlay", &this->gamePlayLabel),
     MakeOutlet("serverMovement", &this->movementLabel),
     MakeOutlet("serverMapshot", &this->mapshotView),
     MakeOutlet("serverPlayers", &this->playersLabel),

@@ -115,23 +115,23 @@ Class *_HeldFlagView(void) {
 /**
  * @brief Captures is always team deathmatch: instagib and arena do not apply,
  * and teams are not optional. A single owner, like the game side's
- * `G_ClampGameMode_Ctf`, so it does not add to what `previous` offers.
+ * `G_ClampGamePlay_Ctf`, so it does not add to what `previous` offers.
  * @details Points directly at the `GAMEPLAY_TEAM_DEATHMATCH` row of the shared
- * `gameModes` table rather than copying its `name`/`label` into a
+ * `gamePlays` table rather than copying its `name`/`label` into a
  * duplicate row - there is nothing here to drift out of sync with the game
  * side, since it is the same static data.
  */
-static const GameMode *Cg_ListGameModes_Ctf(size_t *count) {
+static const GamePlay *Cg_ListGamePlays_Ctf(size_t *count) {
 
   *count = 1;
 
-  for (size_t i = 0; i < lengthof(gameModes); i++) {
-    if (gameModes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
-      return &gameModes[i];
+  for (size_t i = 0; i < lengthof(gamePlays); i++) {
+    if (gamePlays[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
+      return &gamePlays[i];
     }
   }
 
-  return gameModes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
+  return gamePlays; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
 }
 
 /**
@@ -148,7 +148,7 @@ void Cg_Ctf_Init(void) {
     return;
   }
 
-  Cg_ListGameModes = Cg_ListGameModes_Ctf;
+  Cg_ListGamePlays = Cg_ListGamePlays_Ctf;
 
   installed = true;
 }

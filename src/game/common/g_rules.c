@@ -75,18 +75,18 @@ static bool G_AllowNextMap_Common(void) {
 GameAllowNextMapHook G_AllowNextMap = G_AllowNextMap_Common;
 
 /**
- * @brief The tail of the `G_ClampGameMode` hook: every mode `GameModeId`
+ * @brief The tail of the `G_ClampGamePlay` hook: every mode `GamePlayId`
  * defines is one this module supports, so there is nothing to coerce.
  */
-static GameModeId G_ClampGameMode_Common(GameModeId gameMode) {
-  return gameMode;
+static GamePlayId G_ClampGamePlay_Common(GamePlayId gamePlay) {
+  return gamePlay;
 }
 
-GameClampGameModeHook G_ClampGameMode = G_ClampGameMode_Common;
+GameClampGamePlayHook G_ClampGamePlay = G_ClampGamePlay_Common;
 
 /**
  * @brief The tail of the `G_FormatGameName` chain. The label looked up from
- * `gameModes` already qualifies the name with team play via the
+ * `gamePlays` already qualifies the name with team play via the
  * `GAMEPLAY_TEAMS` bit, so this has nothing to add; a feature can still hook this
  * chain to name its own mode.
  */

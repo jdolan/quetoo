@@ -238,7 +238,7 @@
                               },
                               {
                                 "class": "Label",
-                                "identifier": "serverGameMode",
+                                "identifier": "serverGamePlay",
                                 "classNames": [
                                   "joinDetailValue"
                                 ],

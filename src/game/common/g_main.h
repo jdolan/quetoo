@@ -45,7 +45,7 @@ char *G_FormatTime(uint32_t time);
 PMoveParams G_MovementParams(void);
 float G_LevelGravity(void);
 PMovement G_ResolveMovement(const char *name);
-GameModeId G_ResolveGameMode(const char *name);
+GamePlayId G_ResolveGamePlay(const char *name);
 
 extern GameImport gi;
 

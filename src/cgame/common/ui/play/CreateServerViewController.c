@@ -99,13 +99,13 @@ static void loadView(ViewController *self) {
 
   CreateServerViewController *this = (CreateServerViewController *) self;
 
-  View *gameModeInput, *hookInput, *techsInput;
+  View *gamePlayInput, *hookInput, *techsInput;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("hostname", &this->hostname),
     MakeOutlet("bots", &this->bots),
-    MakeOutlet("gameMode", &this->gameMode),
-    MakeOutlet("gameModeInput", &gameModeInput),
+    MakeOutlet("gamePlay", &this->gamePlay),
+    MakeOutlet("gamePlayInput", &gamePlayInput),
     MakeOutlet("movement", &this->movement),
     MakeOutlet("hookInput", &hookInput),
     MakeOutlet("techsInput", &techsInput),
@@ -133,15 +133,15 @@ static void loadView(ViewController *self) {
 
   this->bots->delegate.didEndEditing = botsDidEndEditing;
 
-  $(this->gameMode, addOption, "Default", "default");
+  $(this->gamePlay, addOption, "Default", "default");
 
   size_t numModes;
-  const GameMode *modes = Cg_ListGameModes(&numModes);
+  const GamePlay *modes = Cg_ListGamePlays(&numModes);
   if (numModes <= 1) {
-    $(gameModeInput, removeFromSuperview);
+    $(gamePlayInput, removeFromSuperview);
   } else {
     for (size_t i = 0; i < numModes; i++) {
-      $(this->gameMode, addOption, modes[i].label, (ident) modes[i].name);
+      $(this->gamePlay, addOption, modes[i].label, (ident) modes[i].name);
     }
   }
 

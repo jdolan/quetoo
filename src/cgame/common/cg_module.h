@@ -109,14 +109,14 @@ void Cg_Module_Shutdown(void);
  * the create-server menu's gameplay Select.
  * @param count The number of modes returned.
  * @return The modes, `GAMEPLAY_TEAMS` included where a mode is team play.
- * @details A single owner, like `G_ClampGameMode` on the game side: a module
+ * @details A single owner, like `G_ClampGamePlay` on the game side: a module
  * that plays exactly one mode replaces this outright rather than adding to the
  * list common offers. The menu MUST NOT assume a fixed set - a mod that plays
  * only one mode should not have to hide options it will never honor.
  */
-typedef const GameMode *(*CGameListGameModesHook)(size_t *count);
+typedef const GamePlay *(*CGameListGamePlaysHook)(size_t *count);
 
-extern CGameListGameModesHook Cg_ListGameModes;
+extern CGameListGamePlaysHook Cg_ListGamePlays;
 
 typedef struct MapListItemInfo MapListItemInfo;
 
@@ -347,9 +347,9 @@ extern CGameClientInfoHook Cg_ClientInfo;
  * feature that names its mode outright does not defer to previous.
  * @return A static or `va` string.
  */
-typedef const char *(*CGameDescribeGameModeHook)(void);
+typedef const char *(*CGameDescribeGamePlayHook)(void);
 
-extern CGameDescribeGameModeHook Cg_DescribeGameMode;
+extern CGameDescribeGamePlayHook Cg_DescribeGamePlay;
 
 /**
  * @brief The kinds of vote the Vote screen offers. The default is the common

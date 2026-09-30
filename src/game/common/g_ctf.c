@@ -209,7 +209,7 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
  * and teams are not optional. Replaces rather than qualifies, and so does not
  * defer to previous.
  */
-static GameModeId G_ClampGameMode_Ctf(GameModeId gameMode) {
+static GamePlayId G_ClampGamePlay_Ctf(GamePlayId gamePlay) {
   return GAMEPLAY_TEAM_DEATHMATCH;
 }
 
@@ -467,7 +467,7 @@ void G_Ctf_Init(void) {
 
     G_CheckWinner = G_CheckWinner_Ctf;
 
-    G_ClampGameMode = G_ClampGameMode_Ctf;
+    G_ClampGamePlay = G_ClampGamePlay_Ctf;
 
     G_FormatGameName = G_FormatGameName_Ctf;
     previous.TossInventory = G_TossInventory;
