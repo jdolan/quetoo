@@ -54,7 +54,7 @@ static WorkerThreadPool threadPool;
 /**
  * @brief A sentinel thread function to indicate thread termination.
  */
-static ThreadRunFunc ThreadTerminate = (ThreadRunFunc) &ThreadTerminate;
+static ThreadRunFunc threadTerminate = (ThreadRunFunc) &threadTerminate;
 
 /**
  * @brief The main thread ID.
@@ -74,7 +74,7 @@ static int32_t Thread_Run(void *data) {
 
   threadId = SDL_GetCurrentThreadID();
 
-  while (t->Run != ThreadTerminate) {
+  while (t->Run != threadTerminate) {
 
     SDL_LockMutex(t->mutex);
 
@@ -134,7 +134,7 @@ static void Thread_Shutdown_(void) {
 
     for (size_t i = 0; i < threadPool.numThreads; i++, t++) {
       Thread_Wait(t);
-      t->Run = ThreadTerminate;
+      t->Run = threadTerminate;
       SDL_SignalCondition(t->cond);
       SDL_WaitThread(t->thread, NULL);
       SDL_DestroyCondition(t->cond);

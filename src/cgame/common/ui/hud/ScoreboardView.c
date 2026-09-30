@@ -198,7 +198,7 @@ static View *init(View *self) {
   return self;
 }
 
-static const EnumName ScoreboardLayoutNames[] = MakeEnumNames(
+static const EnumName layoutNames[] = MakeEnumNames(
   MakeEnumAlias(ScoreboardLayoutCards, cards),
   MakeEnumAlias(ScoreboardLayoutTable, table)
 );
@@ -213,7 +213,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
   ScoreboardView *this = (ScoreboardView *) self;
 
   const Inlet inlets[] = MakeInlets(
-    MakeInlet("layout", InletTypeEnum, &this->layout, (ident) ScoreboardLayoutNames)
+    MakeInlet("layout", InletTypeEnum, &this->layout, (ident) layoutNames)
   );
 
   $(self, bind, inlets, dictionary);

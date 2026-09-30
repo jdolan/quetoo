@@ -26,7 +26,7 @@
 
 #define _Class _StatView
 
-static const EnumName StatViewStatNames[] = MakeEnumNames(
+static const EnumName statNames[] = MakeEnumNames(
   MakeEnumAlias(StatViewHealth, health),
   MakeEnumAlias(StatViewArmor, armor),
   MakeEnumAlias(StatViewAmmo, ammo)
@@ -79,7 +79,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
   const Inlet inlets[] = MakeInlets(
     MakeInlet("caption", InletTypeCharacters, &caption, NULL),
-    MakeInlet("stat", InletTypeEnum, &this->stat, (ident) StatViewStatNames)
+    MakeInlet("stat", InletTypeEnum, &this->stat, (ident) statNames)
   );
 
   $(self, bind, inlets, dictionary);

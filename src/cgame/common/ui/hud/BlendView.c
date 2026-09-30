@@ -28,7 +28,7 @@
 #define BLEND_DAMAGE_TIME 1500
 #define BLEND_PICKUP_TIME 600
 
-static const char *BlendViewFlashImages[BlendViewTotal] = {
+static const char *flashImages[BlendViewTotal] = {
   "pics/pickup",
   "pics/powerup_quad",
   "pics/powerup_invisibility",
@@ -142,12 +142,12 @@ static void updateBindings(View *self, ident data) {
 
   if (data == NULL) {
     for (size_t i = 0; i < BlendViewTotal; i++) {
-      SDL_Surface *surface = cgi.LoadSurface(BlendViewFlashImages[i]);
+      SDL_Surface *surface = cgi.LoadSurface(flashImages[i]);
       if (surface) {
         $(this->flashes[i], setImageWithSurface, surface);
         SDL_DestroySurface(surface);
       } else {
-        Cg_Warn("Failed to load %s\n", BlendViewFlashImages[i]);
+        Cg_Warn("Failed to load %s\n", flashImages[i]);
       }
     }
     return;

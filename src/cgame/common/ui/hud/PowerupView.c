@@ -26,7 +26,7 @@
 
 #define _Class _PowerupView
 
-static const EnumName PowerupViewPowerupNames[] = MakeEnumNames(
+static const EnumName powerupNames[] = MakeEnumNames(
   MakeEnumAlias(PowerupViewQuad, quad),
   MakeEnumAlias(PowerupViewInvulnerability, invulnerability),
   MakeEnumAlias(PowerupViewInvisibility, invisibility)
@@ -44,7 +44,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
   PowerupView *this = (PowerupView *) self;
 
   const Inlet inlets[] = MakeInlets(
-    MakeInlet("powerup", InletTypeEnum, &this->powerup, (ident) PowerupViewPowerupNames)
+    MakeInlet("powerup", InletTypeEnum, &this->powerup, (ident) powerupNames)
   );
 
   $(self, bind, inlets, dictionary);
