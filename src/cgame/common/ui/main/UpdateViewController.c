@@ -54,28 +54,28 @@ static void fetchHeroImages(void *data) {
 	PointerArray *urls = $(alloc(PointerArray), initWithDestroy, free);
 
 	char *p = (char *) listData->bytes;
-	while ((p = q_strstr(p, prefix)) != NULL) {
+	while ((p = Str_Find(p, prefix)) != NULL) {
 
-		p += q_strlen(prefix);
-		char *s = q_strstr(p, suffix);
+		p += Str_Length(prefix);
+		char *s = Str_Find(p, suffix);
 		assert(s);
 		*s = '\0';
 
 		if (*p == '\0') {
-			p = s + q_strlen(suffix);
+			p = s + Str_Length(suffix);
 			continue;
 		}
 
 		char url[MAX_STRING_CHARS];
-		const int urlLen = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		const int urlLen = Str_Format(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (urlLen < 0 || (size_t) urlLen >= sizeof(url)) {
 			Cg_Warn("Failed to build hero image URL: %s", p);
-			p = s + q_strlen(suffix);
+			p = s + Str_Length(suffix);
 			continue;
 		}
 
-		$(urls, add, q_strdup(url));
-		p = s + q_strlen(suffix);
+		$(urls, add, Str_Duplicate(url));
+		p = s + Str_Length(suffix);
 	}
 
 	release(listData);

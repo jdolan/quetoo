@@ -40,7 +40,7 @@ static const char *lithiumGames[] = { "dm", "tdm", "duel", "instagib" };
 static bool Cg_FilterCreateServerMapList_Lithium(const MapListItemInfo *info) {
 
   for (size_t i = 0; i < lengthof(lithiumGames); i++) {
-    if (q_str_has_token(info->games, lithiumGames[i])) {
+    if (Str_HasToken(info->games, lithiumGames[i])) {
       return true;
     }
   }

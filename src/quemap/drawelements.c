@@ -162,7 +162,7 @@ void EmitPortals(void) {
     const MapEntity *exit = NULL;
     for (int32_t j = 0; j < numEntities; j++) {
       const char *targetname = ValueForKey(&entities[j], "targetname", NULL);
-      if (targetname && !q_strcmp(targetname, target)) {
+      if (targetname && !Str_Compare(targetname, target)) {
         exit = &entities[j];
         break;
       }
@@ -189,7 +189,7 @@ void EmitPortals(void) {
     // viewpoint is raised to the eye. This is Quetoo's standing eye: a server running another
     // pmove module sees the portal from a little above or below its own
     const char *classname = ValueForKey(exit, "classname", NULL);
-    if (classname && !q_strcmp(classname, "misc_teleporter_dest")) {
+    if (classname && !Str_Compare(classname, "misc_teleporter_dest")) {
       exitOrigin.z += PORTAL_DEST_VIEW_HEIGHT;
     }
 

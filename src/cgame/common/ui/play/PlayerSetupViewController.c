@@ -37,7 +37,7 @@ static Order sortOptions(const ident a, const ident b) {
   const char *c = ((const Option *) a)->title->text;
   const char *d = ((const Option *) b)->title->text;
 
-  return q_strcmp(c, d) < 0 ? OrderAscending : OrderDescending;
+  return Str_Compare(c, d) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
@@ -58,7 +58,7 @@ static bool selectOptionWithTitle(Select *select, const char *title) {
   for (size_t i = 0; i < options->count; i++) {
 
     Option *option = (Option *) $(options, objectAtIndex, i);
-    if (q_strcmp(option->title->text, title) == 0) {
+    if (Str_Compare(option->title->text, title) == 0) {
       $(select, selectOption, option);
       return true;
     }
@@ -85,13 +85,13 @@ static void enumerateSkins(const char *path, void *data) {
     const Range *skin = &matches[1];
 
     char title[MAX_QPATH];
-    q_snprintf(title, sizeof(title), "%.*s", (int) skin->length, path + skin->location);
+    Str_Format(title, sizeof(title), "%.*s", (int) skin->length, path + skin->location);
 
     const Array *options = (Array *) this->skinSelect->options;
     bool exists = false;
     for (size_t i = 0; i < options->count; i++) {
       const Option *option = $(options, objectAtIndex, i);
-      if (q_strcmp(option->title->text, title) == 0) {
+      if (Str_Compare(option->title->text, title) == 0) {
         exists = true;
         break;
       }
@@ -124,7 +124,7 @@ static void refreshSkins(PlayerSetupViewController *this, const char *model) {
   }
 
   char prefix[MAX_QPATH];
-  q_snprintf(prefix, sizeof(prefix), "%s/", model);
+  Str_Format(prefix, sizeof(prefix), "%s/", model);
 
   bool selected = false;
   if (!strncmp(cg_skin->string, prefix, strlen(prefix))) {
@@ -160,7 +160,7 @@ static void enumerateModels(const char *path, void *data) {
     const Range *model = &matches[1];
 
     char title[MAX_QPATH];
-    q_snprintf(title, sizeof(title), "%.*s", (int) model->length, path + model->location);
+    Str_Format(title, sizeof(title), "%.*s", (int) model->length, path + model->location);
 
     int32_t count = 0;
     cgi.EnumerateFiles(va("%s/*.skin", path), countFiles, &count);
@@ -170,7 +170,7 @@ static void enumerateModels(const char *path, void *data) {
       bool exists = false;
       for (size_t i = 0; i < options->count; i++) {
         const Option *option = $(options, objectAtIndex, i);
-        if (q_strcmp(option->title->text, title) == 0) {
+        if (Str_Compare(option->title->text, title) == 0) {
           exists = true;
           break;
         }
@@ -314,7 +314,7 @@ static void loadView(ViewController *self) {
   char model[MAX_QPATH];
   const char *slash = strchr(cg_skin->string, '/');
   if (slash) {
-    q_snprintf(model, sizeof(model), "%.*s", (int) (slash - cg_skin->string), cg_skin->string);
+    Str_Format(model, sizeof(model), "%.*s", (int) (slash - cg_skin->string), cg_skin->string);
   } else {
     model[0] = '\0';
   }
@@ -358,7 +358,7 @@ static void viewWillAppear(ViewController *self) {
 
   PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-  if (q_strcmp(cg_color->string, "default")) {
+  if (Str_Compare(cg_color->string, "default")) {
     $(this->effectsColorPicker, setColor, cg_color->integer, 1.0, 1.0);
   } else {
     $(this->effectsColorPicker, setColor, -1.0, 1.0, 1.0);

@@ -56,7 +56,7 @@ GameTeam *G_TeamForFlag(const GameEntity *ent) {
 
   for (int32_t i = 0; i < gameLevel.numTeams; i++) {
 
-    if (!q_strcmp(ent->classname, gameTeamList[i].flag)) {
+    if (!Str_Compare(ent->classname, gameTeamList[i].flag)) {
       return &gameTeamList[i];
     }
   }
@@ -152,7 +152,7 @@ static void G_ResetDroppedItem_Ctf(GameEntity *ent) {
  */
 static const GameItem *G_ResolveInventoryItem_Ctf(GameClient *cl, const char *name) {
 
-  if (!q_strcasecmp(name, "flag")) {
+  if (!Str_CaseCompare(name, "flag")) {
     const GameItem *flag = G_GetFlag(cl);
     if (flag) {
       return flag;
@@ -201,7 +201,7 @@ static bool G_CheckWinner_Ctf(void) {
  */
 static void G_FormatGameName_Ctf(char *name, size_t size) {
 
-  q_strlcat(name, " CTF", size);
+  Str_Append(name, " CTF", size);
 }
 
 /**
@@ -294,10 +294,10 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
             .playerAi = playerAi,
             .time = (uint32_t) time(NULL),
           };
-          q_strlcpy(capture.level,       gameLevel.name,              sizeof(capture.level));
-          q_strlcpy(capture.player,      cl->persistent.netName,   sizeof(capture.player));
-          q_strlcpy(capture.playerGuid, cl->persistent.guid,       sizeof(capture.playerGuid));
-          q_strlcpy(capture.team,        otherTeam->name,          sizeof(capture.team));
+          Str_Copy(capture.level,       gameLevel.name,              sizeof(capture.level));
+          Str_Copy(capture.player,      cl->persistent.netName,   sizeof(capture.player));
+          Str_Copy(capture.playerGuid, cl->persistent.guid,       sizeof(capture.playerGuid));
+          Str_Copy(capture.team,        otherTeam->name,          sizeof(capture.team));
 
           if (capture.playerGuid[0]) {
             $(gameLevel.captures, add, &capture);

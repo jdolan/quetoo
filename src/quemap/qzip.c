@@ -30,15 +30,15 @@ bool includeShared = false;
 bool updateZip = false;
 
 static bool HasSuffix(const char *str, const char *suffix) {
-  const size_t len = q_strlen(str);
-  const size_t suffixLen = q_strlen(suffix);
-  return len >= suffixLen && !q_strcmp(str + len - suffixLen, suffix);
+  const size_t len = Str_Length(str);
+  const size_t suffixLen = Str_Length(suffix);
+  return len >= suffixLen && !Str_Compare(str + len - suffixLen, suffix);
 }
 
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
   List *assets = data;
   const ManifestEntry *entry = value;
-  $(assets, append, q_strdup(entry->path));
+  $(assets, append, Str_Duplicate(entry->path));
 }
 
 /**
@@ -55,7 +55,7 @@ int32_t Qzip_Main(void) {
 
   // read the manifest
   char mfPath[MAX_OS_PATH];
-  q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
+  Str_Format(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
   HashTable *manifest = Manifest_Read(mfPath);
   if (!manifest) {
@@ -67,7 +67,7 @@ int32_t Qzip_Main(void) {
   assets->destroy = free;
 
   // include the manifest itself so the pk3 is self-contained
-  $(assets, append, q_strdup(mfPath));
+  $(assets, append, Str_Duplicate(mfPath));
   $(manifest, enumerate, CollectManifestAsset, assets);
 
   Manifest_Free(manifest);
@@ -76,7 +76,7 @@ int32_t Qzip_Main(void) {
   memset(&zip, 0, sizeof(zip));
 
   // write to a "temporary" archive name
-  q_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), mapBase, getpid());
+  Str_Format(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), mapBase, getpid());
 
   if (mz_zip_writer_init_file(&zip, path, 0)) {
     Com_Print("Compressing %zu resources to %s...\n", assets->count, path);
@@ -101,7 +101,7 @@ int32_t Qzip_Main(void) {
           // skip it. This allows us to rebuild our official maps easily, but without
           // pulling in flares, envmaps, etc.
 
-          (!q_strncmp(dir, PKGDATADIR, q_strlen(PKGDATADIR)) && !HasSuffix(dir, ".pk3"))) {
+          (!Str_CompareN(dir, PKGDATADIR, Str_Length(PKGDATADIR)) && !HasSuffix(dir, ".pk3"))) {
 
             Com_Print("[S] %s (%s)\n", filename, dir);
             continue;
@@ -151,7 +151,7 @@ int32_t Qzip_Main(void) {
 
       if (dir) {
         char toUpdate[MAX_OS_PATH];
-        q_snprintf(toUpdate, sizeof(toUpdate), "%s/%s", dir, existing);
+        Str_Format(toUpdate, sizeof(toUpdate), "%s/%s", dir, existing);
 
         rename(path, toUpdate);
         Com_Print("Renamed %s to %s\n", path, toUpdate);

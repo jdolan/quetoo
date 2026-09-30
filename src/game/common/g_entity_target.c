@@ -147,7 +147,7 @@ static void G_target_speaker_Use(GameEntity *ent, GameEntity *other, GameEntity 
 void G_target_speaker(GameEntity *ent) {
 
   const char *sound = gi.EntityValue(ent->def, "sound")->string;
-  if (!q_strlen(sound)) {
+  if (!Str_Length(sound)) {
     G_Warn("No sound specified for %s\n", etos(ent));
     return;
   }
@@ -608,7 +608,7 @@ static const GameBallisticsType ballisticsTypes[] = {
 static const GameBallisticsType *G_ballistics_Type(const char *name) {
 
   for (size_t i = 0; i < lengthof(ballisticsTypes); i++) {
-    if (!q_strcmp(ballisticsTypes[i].name, name)) {
+    if (!Str_Compare(ballisticsTypes[i].name, name)) {
       return &ballisticsTypes[i];
     }
   }

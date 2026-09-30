@@ -34,7 +34,7 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
   }
 
   for (i = 0; i < max && sv.configStrings[start + i][0]; i++)
-    if (!q_strcmp(sv.configStrings[start + i], name)) {
+    if (!Str_Compare(sv.configStrings[start + i], name)) {
       return i;
     }
 
@@ -47,7 +47,7 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
     return 0;
   }
 
-  q_strlcpy(sv.configStrings[start + i], name, sizeof(sv.configStrings[i]));
+  Str_Copy(sv.configStrings[start + i], name, sizeof(sv.configStrings[i]));
 
   if (svs.state != SV_LOADING) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -285,7 +285,7 @@ static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerSta
   } else { // loading a map
     Cvar_ForceSetString(sv_map->name, sv.name);
 
-    q_snprintf(sv.configStrings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
+    Str_Format(sv.configStrings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
     sv.collisionModels[0] = Cm_LoadBspModel(sv.configStrings[CS_BSP], NULL);
 
@@ -297,14 +297,14 @@ static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerSta
     }
 
     const char *dir = Fs_RealDir(sv.configStrings[CS_BSP]);
-    const size_t dirLen = q_strlen(dir);
-    if (dirLen >= 4 && !q_strcmp(dir + dirLen - 4, ".pk3")) {
-      q_strlcpy(sv.configStrings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
+    const size_t dirLen = Str_Length(dir);
+    if (dirLen >= 4 && !Str_Compare(dir + dirLen - 4, ".pk3")) {
+      Str_Copy(sv.configStrings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
     } else {
       sv.configStrings[CS_PK3][0] = '\0';
     }
 
-    q_snprintf(sv.configStrings[CS_MANIFEST], MAX_STRING_CHARS, "maps/%s.mf", sv.name);
+    Str_Format(sv.configStrings[CS_MANIFEST], MAX_STRING_CHARS, "maps/%s.mf", sv.name);
 
     for (int32_t i = 0; i < Cm_NumModels(); i++) {
 
@@ -313,7 +313,7 @@ static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerSta
       }
 
       char *s = sv.configStrings[CS_MODELS + i];
-      q_snprintf(s, MAX_STRING_CHARS, "*%d", i);
+      Str_Format(s, MAX_STRING_CHARS, "*%d", i);
 
       sv.collisionModels[i] = Cm_Model(s);
     }

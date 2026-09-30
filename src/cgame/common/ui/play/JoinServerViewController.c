@@ -393,23 +393,23 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (q_strlen(server->error)) {
-    if (q_strcmp(column->identifier, _server) == 0) {
+  if (Str_Length(server->error)) {
+    if (Str_Compare(column->identifier, _server) == 0) {
       $(cell->text, setText, server->error);
       $((View *) cell, addClassName, "error");
     }
     return cell;
   }
 
-  if (q_strcmp(column->identifier, _server) == 0) {
+  if (Str_Compare(column->identifier, _server) == 0) {
     $(cell->text, setText, server->hostname);
-  } else if (q_strcmp(column->identifier, _game) == 0) {
+  } else if (Str_Compare(column->identifier, _game) == 0) {
     $(cell->text, setText, server->game[0] ? server->game : _unset);
-  } else if (q_strcmp(column->identifier, _map) == 0) {
+  } else if (Str_Compare(column->identifier, _map) == 0) {
     $(cell->text, setText, server->name);
-  } else if (q_strcmp(column->identifier, _players) == 0) {
+  } else if (Str_Compare(column->identifier, _players) == 0) {
     $(cell->text, setText, va("%d / %d", server->clients, server->maxClients));
-  } else if (q_strcmp(column->identifier, _ping) == 0) {
+  } else if (Str_Compare(column->identifier, _ping) == 0) {
 
     if (pingUnanswered(server)) {
       $(cell->text, setText, _unset);
@@ -582,7 +582,7 @@ static Order comparator(const ident a, const ident b) {
   const TableColumn *sortColumn = this->serversTableView->sortColumn;
 
   // an unanswered server goes last, whichever way the ping column points
-  if (sortColumn && q_strcmp(sortColumn->identifier, _ping) == 0) {
+  if (sortColumn && Str_Compare(sortColumn->identifier, _ping) == 0) {
     const bool leftUnanswered = pingUnanswered((const ClientServerInfo *) a);
     const bool rightUnanswered = pingUnanswered((const ClientServerInfo *) b);
     if (leftUnanswered != rightUnanswered) {
@@ -606,15 +606,15 @@ static Order comparator(const ident a, const ident b) {
 
     int32_t cmp = 0;
 
-    if (q_strcmp(sortColumn->identifier, _server) == 0) {
-      cmp = q_strcmp(s0->hostname, s1->hostname);
-    } else if (q_strcmp(sortColumn->identifier, _game) == 0) {
-      cmp = q_strcmp(s0->game, s1->game);
-    } else if (q_strcmp(sortColumn->identifier, _map) == 0) {
-      cmp = q_strcmp(s0->name, s1->name);
-    } else if (q_strcmp(sortColumn->identifier, _players) == 0) {
+    if (Str_Compare(sortColumn->identifier, _server) == 0) {
+      cmp = Str_Compare(s0->hostname, s1->hostname);
+    } else if (Str_Compare(sortColumn->identifier, _game) == 0) {
+      cmp = Str_Compare(s0->game, s1->game);
+    } else if (Str_Compare(sortColumn->identifier, _map) == 0) {
+      cmp = Str_Compare(s0->name, s1->name);
+    } else if (Str_Compare(sortColumn->identifier, _players) == 0) {
       cmp = s0->clients - s1->clients;
-    } else if (q_strcmp(sortColumn->identifier, _ping) == 0) {
+    } else if (Str_Compare(sortColumn->identifier, _ping) == 0) {
       cmp = s0->ping - s1->ping;
     } else {
       assert(false);

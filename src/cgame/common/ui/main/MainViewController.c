@@ -279,7 +279,7 @@ static void primaryButton(MainViewController *self, const char *title, const But
   Button *button = $(alloc(Button), initWithTitle, title);
   assert(button);
 
-  button->control.view.identifier = q_strdup(title);
+  button->control.view.identifier = Str_Duplicate(title);
   assert(button->control.view.identifier);
 
   button->delegate = *delegate;

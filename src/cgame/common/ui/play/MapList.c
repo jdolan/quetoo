@@ -44,10 +44,10 @@ static Order sortMaps(const ident a, const ident b) {
   const MapListItemInfo *c = a;
   const MapListItemInfo *d = b;
 
-  const char *e = !q_strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
-  const char *f = !q_strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
+  const char *e = !Str_CompareN(c->message, "The ", 4) ? c->message + 4 : c->message;
+  const char *f = !Str_CompareN(d->message, "The ", 4) ? d->message + 4 : d->message;
 
-  return q_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
+  return Str_CaseCompare(e, f) < 0 ? OrderAscending : OrderDescending;
 }
 
 #pragma mark - Object
@@ -126,7 +126,7 @@ static void add(MapList *self, MapListItemInfo *info) {
     bool duplicate = false;
     for (size_t i = 0; i < self->maps->count; i++) {
       const MapListItemInfo *existing = $(self->maps, get, i);
-      if (q_strcmp(existing->mapname, info->mapname) == 0) {
+      if (Str_Compare(existing->mapname, info->mapname) == 0) {
         duplicate = true;
         break;
       }

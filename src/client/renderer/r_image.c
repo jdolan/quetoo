@@ -91,17 +91,17 @@ static void R_Screenshot_encode(void *data) {
   strftime(date, sizeof(date), "%Y-%m-%d-%H-%M-%S", tm);
   const int32_t millis = (int32_t) (quetoo.ticks % 1000);
 
-  q_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
+  Str_Format(path, sizeof(path), "screenshots/%s.%03d", date, millis);
 
   bool res;
-  if (!q_strcmp(r_screenshotFormat->string, "tga")) {
-    q_strlcat(path, ".tga", sizeof(path));
+  if (!Str_Compare(r_screenshotFormat->string, "tga")) {
+    Str_Append(path, ".tga", sizeof(path));
     res = Img_WriteTGA(path, surface->pixels, surface->w, surface->h);
-  } else if (!q_strcmp(r_screenshotFormat->string, "jpg")) {
-    q_strlcat(path, ".jpg", sizeof(path));
+  } else if (!Str_Compare(r_screenshotFormat->string, "jpg")) {
+    Str_Append(path, ".jpg", sizeof(path));
     res = Img_WriteJPG(path, surface->pixels, surface->w, surface->h, 95);
   } else {
-    q_strlcat(path, ".png", sizeof(path));
+    Str_Append(path, ".png", sizeof(path));
     res = Img_WritePNG(path, surface->pixels, surface->w, surface->h);
   }
 
@@ -174,7 +174,7 @@ void R_Screenshot(RenderView *view) {
  */
 void R_Screenshot_f(void) {
 
-  if (!q_strcmp(Cmd_Argv(1), "view")) {
+  if (!Str_Compare(Cmd_Argv(1), "view")) {
     pendingScreenshot = SCREENSHOT_VIEW;
   } else {
     pendingScreenshot = SCREENSHOT_DEFAULT;
@@ -357,7 +357,7 @@ static void R_DumpImages_enumerator(const RenderMedia *media, void *data) {
     const RenderImage *image = (const RenderImage *) media;
     char path[MAX_OS_PATH];
 
-    q_snprintf(path, sizeof(path), "imgdmp/%s", image->media.name);
+    Str_Format(path, sizeof(path), "imgdmp/%s", image->media.name);
 
     R_DumpImage(image, path, true, false);
   }

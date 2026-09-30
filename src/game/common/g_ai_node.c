@@ -515,7 +515,7 @@ static void G_Ai_Node_UpdateCosts(const GameAiNodeId id) {
 static bool G_Ai_PlatformAccessible(const Vec3 position) {
 
   G_ForEachEntity(ent, {
-    if (!ent->classname || q_strcmp(ent->classname, "func_plat") != 0) {
+    if (!ent->classname || Str_Compare(ent->classname, "func_plat") != 0) {
       continue;
     }
 
@@ -1161,7 +1161,7 @@ void G_Ai_InitNodes(void) {
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", gameLevel.name);
+  Str_Format(filename, sizeof(filename), "maps/%s.nav", gameLevel.name);
 
   if (!gi.FileExists(filename)) {
     G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_aiNodeDev` to set up nodes.\n");
@@ -1250,7 +1250,7 @@ void G_Ai_NodesReady(void) {
   gi.Print("  Game loaded %zu additional nodes with %zu new links.\n", addedNodes, addedLinks);
 
   G_ForEachEntity(ent, {
-    if (ent->classname && q_strcmp(ent->classname, "func_plat") == 0) {
+    if (ent->classname && Str_Compare(ent->classname, "func_plat") == 0) {
       if (!aiPlatforms) {
         aiPlatforms = $(alloc(Vector), initWithSize, sizeof(GameEntity *));
       }
@@ -1278,7 +1278,7 @@ void G_Ai_SaveNodes(void) {
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", gameLevel.name);
+  Str_Format(filename, sizeof(filename), "maps/%s.nav", gameLevel.name);
 
   if (!aiNodes) {
     G_Warn("No nodes to write.\n");

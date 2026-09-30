@@ -103,39 +103,39 @@ static void R_LoadObjModel(RenderModel *mod, void *buffer) {
   for (char *line = strtok(file, "\r\n"); line; line = strtok(NULL, "\r\n")) {
 
     Vec3 vec;
-    if (q_strncmp("v ", line, q_strlen("v ")) == 0) {
-      if (Parse_QuickPrimitive(line + q_strlen("v "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
+    if (Str_CompareN("v ", line, Str_Length("v ")) == 0) {
+      if (Parse_QuickPrimitive(line + Str_Length("v "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
         vec = MakeVec3(vec.x, vec.z, vec.y);
         mod->bounds = Box3_Append(mod->bounds, vec);
         $(obj.v, add, &vec);
       }
-    } else if (q_strncmp("vt ", line, q_strlen("vt ")) == 0) {
-      if (Parse_QuickPrimitive(line + q_strlen("vt "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 2) == 2) {
+    } else if (Str_CompareN("vt ", line, Str_Length("vt ")) == 0) {
+      if (Parse_QuickPrimitive(line + Str_Length("vt "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 2) == 2) {
         vec.y = -vec.y;
         $(obj.vt, add, &vec);
       }
-    } else if (q_strncmp("vn ", line, q_strlen("vn ")) == 0) {
-      if (Parse_QuickPrimitive(line + q_strlen("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
+    } else if (Str_CompareN("vn ", line, Str_Length("vn ")) == 0) {
+      if (Parse_QuickPrimitive(line + Str_Length("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
         vec = Vec3_Normalize(MakeVec3(vec.x, vec.z, vec.y));
         $(obj.vn, add, &vec);
       }
-    } else if (q_strncmp("usemtl ", line, q_strlen("usemtl ")) == 0) {
+    } else if (Str_CompareN("usemtl ", line, Str_Length("usemtl ")) == 0) {
       if (group.f->count) {
         $(obj.g, add, &group);
       } else {
         release(group.f);
       }
-      q_strlcpy(group.name, line + q_strlen("usemtl "), sizeof(group.name));
+      Str_Copy(group.name, line + Str_Length("usemtl "), sizeof(group.name));
       group.f = $(alloc(Vector), initWithSize, sizeof(RenderObjFace));
-    } else if (q_strncmp("g ", line, q_strlen("g ")) == 0) {
+    } else if (Str_CompareN("g ", line, Str_Length("g ")) == 0) {
       if (group.f->count) {
         $(obj.g, add, &group);
       } else {
         release(group.f);
       }
-      q_strlcpy(group.name, line + q_strlen("g "), sizeof(group.name));
+      Str_Copy(group.name, line + Str_Length("g "), sizeof(group.name));
       group.f = $(alloc(Vector), initWithSize, sizeof(RenderObjFace));
-    } else if (q_strncmp("f ", line, q_strlen("f ")) == 0) {
+    } else if (Str_CompareN("f ", line, Str_Length("f ")) == 0) {
 
       RenderObjFace face;
       memset(&face, 0, sizeof(face));
@@ -180,7 +180,7 @@ static void R_LoadObjModel(RenderModel *mod, void *buffer) {
     const RenderObjGroup *group = VectorElement(obj.g, RenderObjGroup, i);
     RenderMeshFace *face = out->faces + i;
 
-    q_strlcpy(face->name, group->name, sizeof(face->name));
+    Str_Copy(face->name, group->name, sizeof(face->name));
     face->material = R_LoadMaterial(face->name, ASSET_CONTEXT_MODELS);
     R_RegisterDependency((RenderMedia *) mod, (RenderMedia *) face->material);
 

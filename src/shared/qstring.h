@@ -27,50 +27,50 @@
  * @file qstring.h
  * @brief Portable, null-safe string utilities.
  *
- * Every string operation in the codebase should use a `q_str*` function from
+ * Every string operation in the codebase should use a `Str_*` function from
  * this header rather than its raw C, POSIX, or SDL equivalent. This gives us:
  *
- *  - Portability: `q_strlcpy`/`q_strlcat` work on all platforms; q_strcasecmp
- *    does not rely on locale-sensitive POSIX functions; q_strtok_r maps to
+ *  - Portability: `Str_Copy`/`Str_Append` work on all platforms; Str_CaseCompare
+ *    does not rely on locale-sensitive POSIX functions; Str_Tokenize maps to
  *    strtok_s on MSVC.
  *
  *  - Null-safety: every comparison, search, and length function treats a NULL
  *    argument as an empty string rather than crashing.
  *
- *  - Allocation consistency: `q_strdup`/`q_strndup` use `malloc`; the caller frees
+ *  - Allocation consistency: `Str_Duplicate`/`Str_DuplicateN` use `malloc`; the caller frees
  *    with `free`.
  */
 
 /**
  * @brief Portable snprintf. snprintf is C99 and available everywhere.
  */
-#define q_snprintf snprintf
+#define Str_Format snprintf
 
 /**
  * @return The length of `s`, or 0 if `s` is NULL.
  */
-static inline size_t __attribute__ ((warn_unused_result)) q_strlen(const char *s) {
+static inline size_t __attribute__ ((warn_unused_result)) Str_Length(const char *s) {
 	return s ? strlen(s) : 0;
 }
 
 /**
  * @return The first occurrence of `c` in `s`, or NULL if not found or `s` is NULL.
  */
-static inline char * __attribute__ ((warn_unused_result)) q_strchr(const char *s, int c) {
+static inline char * __attribute__ ((warn_unused_result)) Str_FindChar(const char *s, int c) {
 	return s ? strchr(s, c) : NULL;
 }
 
 /**
  * @return The last occurrence of `c` in `s`, or NULL if not found or `s` is NULL.
  */
-static inline char * __attribute__ ((warn_unused_result)) q_strrchr(const char *s, int c) {
+static inline char * __attribute__ ((warn_unused_result)) Str_FindLastChar(const char *s, int c) {
 	return s ? strrchr(s, c) : NULL;
 }
 
 /**
  * @return The first occurrence of `needle` in `haystack`, or NULL if either is NULL.
  */
-static inline char * __attribute__ ((warn_unused_result)) q_strstr(const char *haystack, const char *needle) {
+static inline char * __attribute__ ((warn_unused_result)) Str_Find(const char *haystack, const char *needle) {
 	return (haystack && needle) ? strstr(haystack, needle) : NULL;
 }
 
@@ -78,7 +78,7 @@ static inline char * __attribute__ ((warn_unused_result)) q_strstr(const char *h
  * @return Negative if `a` < `b`, 0 if equal, positive if `a` > `b`.
  * NULL is ordered before any non-NULL string; NULL == NULL.
  */
-static inline int32_t __attribute__ ((warn_unused_result)) q_strcmp(const char *a, const char *b) {
+static inline int32_t __attribute__ ((warn_unused_result)) Str_Compare(const char *a, const char *b) {
 	if (a == b) {
 		return 0;
 	}
@@ -94,7 +94,7 @@ static inline int32_t __attribute__ ((warn_unused_result)) q_strcmp(const char *
 /**
  * @return Compares at most `n` characters. NULL-safe.
  */
-static inline int32_t __attribute__ ((warn_unused_result)) q_strncmp(const char *a, const char *b, size_t n) {
+static inline int32_t __attribute__ ((warn_unused_result)) Str_CompareN(const char *a, const char *b, size_t n) {
 	if (a == b || n == 0) {
 		return 0;
 	}
@@ -110,14 +110,14 @@ static inline int32_t __attribute__ ((warn_unused_result)) q_strncmp(const char 
 /**
  * @return True if `s` begins with `prefix`. NULL-safe.
  */
-static inline bool __attribute__ ((warn_unused_result)) q_str_has_prefix(const char *s, const char *prefix) {
+static inline bool __attribute__ ((warn_unused_result)) Str_HasPrefix(const char *s, const char *prefix) {
 	return (s && prefix) ? strncmp(s, prefix, strlen(prefix)) == 0 : false;
 }
 
 /**
  * @return True if `s` ends with `suffix`. NULL-safe.
  */
-static inline bool __attribute__ ((warn_unused_result)) q_str_has_suffix(const char *s, const char *suffix) {
+static inline bool __attribute__ ((warn_unused_result)) Str_HasSuffix(const char *s, const char *suffix) {
 	if (!s || !suffix) {
 		return false;
 	}
@@ -130,7 +130,7 @@ static inline bool __attribute__ ((warn_unused_result)) q_str_has_suffix(const c
  * @return True if `s`, read as whitespace-delimited tokens, contains `token` as a whole
  * token: `dm` is found in `dm ctf` but not in `tdm`. NULL-safe; an empty `token` is never found.
  */
-static inline bool __attribute__ ((warn_unused_result)) q_str_has_token(const char *s, const char *token) {
+static inline bool __attribute__ ((warn_unused_result)) Str_HasToken(const char *s, const char *token) {
 	if (!s || !token || !*token) {
 		return false;
 	}
@@ -156,25 +156,25 @@ static inline bool __attribute__ ((warn_unused_result)) q_str_has_token(const ch
  * NUL-terminating. If `src` is NULL, `dst` is set to "".
  * @return The length of `src` (not the number of bytes written).
  */
-size_t q_strlcpy(char *dst, const char *src, size_t size);
+size_t Str_Copy(char *dst, const char *src, size_t size);
 
 /**
  * @brief Appends `src` to `dst`, writing at most `size - strlen(dst) - 1`
  * bytes, always NUL-terminating. If `src` is NULL, `dst` is unchanged.
  * @return The total length that would result if `size` were unlimited.
  */
-size_t q_strlcat(char *dst, const char *src, size_t size);
+size_t Str_Append(char *dst, const char *src, size_t size);
 
 /**
  * @brief Case-insensitive string comparison. NULL-safe.
  * @return Negative if `a` < `b`, 0 if equal, positive if `a` > `b`.
  */
-int32_t __attribute__ ((warn_unused_result)) q_strcasecmp(const char *a, const char *b);
+int32_t __attribute__ ((warn_unused_result)) Str_CaseCompare(const char *a, const char *b);
 
 /**
  * @brief Case-insensitive comparison of at most `n` characters. NULL-safe.
  */
-int32_t __attribute__ ((warn_unused_result)) q_strncasecmp(const char *a, const char *b, size_t n);
+int32_t __attribute__ ((warn_unused_result)) Str_CaseCompareN(const char *a, const char *b, size_t n);
 
 /**
  * @brief Compares two identifiers, ignoring case and underscores, so that
@@ -182,37 +182,37 @@ int32_t __attribute__ ((warn_unused_result)) q_strncasecmp(const char *a, const 
  * @remarks This is how cvar and console command names written in the older
  * snake_case form are resolved to their current names.
  */
-bool __attribute__ ((warn_unused_result)) q_str_ident_equal(const char *a, const char *b);
+bool __attribute__ ((warn_unused_result)) Str_IdentEqual(const char *a, const char *b);
 
 /**
  * @brief Null-safe strdup using malloc. The caller must free() the result.
  * @return A heap copy of `s`, or NULL if `s` is NULL.
  */
-char * __attribute__ ((warn_unused_result)) q_strdup(const char *s);
+char * __attribute__ ((warn_unused_result)) Str_Duplicate(const char *s);
 
 /**
  * @brief Portable strndup using malloc. Copies at most `n` characters,
  * always NUL-terminates. The caller must free() the result.
  * @return A heap copy, or NULL if `s` is NULL.
  */
-char * __attribute__ ((warn_unused_result)) q_strndup(const char *s, size_t n);
+char * __attribute__ ((warn_unused_result)) Str_DuplicateN(const char *s, size_t n);
 
 /**
  * @brief Portable reentrant tokenizer. Uses strtok_s on MSVC.
  */
-char *q_strtok_r(char *s, const char *delim, char **savePtr);
+char *Str_Tokenize(char *s, const char *delim, char **savePtr);
 
 /**
  * @brief Lowercases the string `in` into `out`. `out` must be at least as
  * large as `in`. `in` and `out` may alias.
  */
-void q_strlower(const char *in, char *out);
+void Str_Lower(const char *in, char *out);
 
 /**
  * @brief Trims all leading and trailing whitespace (`' '`, `'\t'`, `'\r'`,
  * `'\n'`) from `in` into `out`. `out` must be at least as large as `in`.
  */
-void q_strtrim(const char *in, char *out);
+void Str_Trim(const char *in, char *out);
 
 /**
  * @brief Escape sequences for Quake3-style color-encoded strings.
@@ -242,7 +242,7 @@ void q_strtrim(const char *in, char *out);
  * @return True if `s` points to a color escape sequence (`^[0-9]`).
  * NULL-safe.
  */
-static inline bool __attribute__ ((warn_unused_result)) q_striscolor(const char *s) {
+static inline bool __attribute__ ((warn_unused_result)) Str_IsColor(const char *s) {
 	if (s && *s == ESC_COLOR) {
 		const char n = *(s + 1);
 		return n >= '0' && n <= '9';
@@ -254,28 +254,28 @@ static inline bool __attribute__ ((warn_unused_result)) q_striscolor(const char 
  * @brief Strips color escape sequences from `in`, writing the result to `out`.
  * `out` must be at least as large as `in`.
  */
-void q_strcolorstrip(const char *in, char *out);
+void Str_StripColors(const char *in, char *out);
 
 /**
  * @return The visual (stripped) length of `s`, excluding color escapes.
  * NULL-safe.
  */
-size_t __attribute__ ((warn_unused_result)) q_strcolorlen(const char *s);
+size_t __attribute__ ((warn_unused_result)) Str_ColorLength(const char *s);
 
 /**
  * @brief Case- and color-insensitive string comparison.
  * @return Negative if `s1` < `s2`, 0 if equal, positive if `s1` > `s2`.
  */
-int32_t __attribute__ ((warn_unused_result)) q_strcolorcmp(const char *s1, const char *s2);
+int32_t __attribute__ ((warn_unused_result)) Str_ColorCompare(const char *s1, const char *s2);
 
 /**
  * @return The index (0-9) of the first color escape sequence in `s`, or
  * `ESC_COLOR_DEFAULT` if none is found. NULL-safe.
  */
-int32_t __attribute__ ((warn_unused_result)) q_strcolor(const char *s);
+int32_t __attribute__ ((warn_unused_result)) Str_FirstColor(const char *s);
 
 /**
  * @return The index (0-9) of the last color escape sequence in `s`, or
  * `ESC_COLOR_DEFAULT` if none is found. NULL-safe.
  */
-int32_t __attribute__ ((warn_unused_result)) q_strrcolor(const char *s);
+int32_t __attribute__ ((warn_unused_result)) Str_LastColor(const char *s);

@@ -36,10 +36,10 @@ static void updateBindings(View *self, ident data) {
 
   TeamPlayerView *this = (TeamPlayerView *) self;
 
-  if (this->client && q_strlen(this->client->info)) {
+  if (this->client && Str_Length(this->client->info)) {
 
     char name[MAX_INFO_STRING_VALUE];
-    q_strcolorstrip(this->client->name, name);
+    Str_StripColors(this->client->name, name);
 
     $(this->name->text, setText, name);
 

@@ -160,7 +160,7 @@ static GameRaceRecord *G_Race_FindRecord(const char *guid, PMovement movement) {
   for (size_t i = 0; i < gameLevel.raceRecordCount; i++) {
     GameRaceRecord *record = &gameLevel.raceRecords[i];
 
-    if (record->movement == movement && !q_strcmp(record->guid, guid)) {
+    if (record->movement == movement && !Str_Compare(record->guid, guid)) {
       return record;
     }
   }
@@ -229,11 +229,11 @@ static void G_Race_PublishRecords(void) {
 
     const char *pair = va("%s%s\\%u", shown ? "\\" : "", record->name, record->time);
 
-    if (q_strlen(string) + q_strlen(pair) >= sizeof(string)) {
+    if (Str_Length(string) + Str_Length(pair) >= sizeof(string)) {
       break;
     }
 
-    q_strlcat(string, pair, sizeof(string));
+    Str_Append(string, pair, sizeof(string));
     shown++;
   }
 
@@ -273,10 +273,10 @@ static bool G_Race_ParseRecord(const Entity *def, int32_t index) {
 
   GameRaceRecord *record = G_Race_AddRecord();
 
-  q_strlcpy(record->guid, guid, sizeof(record->guid));
-  q_strlcpy(record->name, gi.EntityValue(def, "name")->string, sizeof(record->name));
-  q_strlcpy(record->ip, gi.EntityValue(def, "ip")->string, sizeof(record->ip));
-  q_strlcpy(record->date, gi.EntityValue(def, "date")->string, sizeof(record->date));
+  Str_Copy(record->guid, guid, sizeof(record->guid));
+  Str_Copy(record->name, gi.EntityValue(def, "name")->string, sizeof(record->name));
+  Str_Copy(record->ip, gi.EntityValue(def, "ip")->string, sizeof(record->ip));
+  Str_Copy(record->date, gi.EntityValue(def, "date")->string, sizeof(record->date));
 
   record->movement = movement;
   record->params = (uint32_t) strtoul(gi.EntityValue(def, "params")->string, NULL, 16);
@@ -409,8 +409,8 @@ bool G_Race_SubmitRecord(GameClient *cl) {
     record = G_Race_AddRecord();
   }
 
-  q_strlcpy(record->guid, cl->persistent.guid, sizeof(record->guid));
-  q_strlcpy(record->name, cl->persistent.netName, sizeof(record->name));
+  Str_Copy(record->guid, cl->persistent.guid, sizeof(record->guid));
+  Str_Copy(record->name, cl->persistent.netName, sizeof(record->name));
   InfoString_Get(cl->persistent.userInfo, "ip", record->ip, sizeof(record->ip));
 
   const time_t now = time(NULL);

@@ -268,7 +268,7 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
       askedToInstall = true;
 
       static char message[MAX_STRING_CHARS];
-      q_snprintf(message, sizeof(message), "Quetoo %s is available. Install it?", in->currentFile);
+      Str_Format(message, sizeof(message), "Quetoo %s is available. Install it?", in->currentFile);
 
       Cg_InstallerDialog(message, "Install", Cg_AcceptUpdate);
     }

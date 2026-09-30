@@ -37,7 +37,7 @@ Cvar *cl_analyticsUrl;
  * `set cl_analyticsUrl ""` silently does nothing. `0` is what we document.
  */
 static bool Cl_AnalyticsEnabled(void) {
-  return cl_analyticsUrl->string[0] && q_strcmp(cl_analyticsUrl->string, "0");
+  return cl_analyticsUrl->string[0] && Str_Compare(cl_analyticsUrl->string, "0");
 }
 
 /**
@@ -105,14 +105,14 @@ static void Cl_AnalyticsToken(void) {
 
   md5_ctx ctx;
   md5_init(&ctx);
-  md5_update(&ctx, guid->string, q_strlen(guid->string));
-  md5_update(&ctx, date, q_strlen(date));
+  md5_update(&ctx, guid->string, Str_Length(guid->string));
+  md5_update(&ctx, date, Str_Length(date));
 
   uint8_t digest[16];
   md5_finalize(&ctx, digest);
 
   for (size_t i = 0; i < lengthof(digest); i++) {
-    q_snprintf(module.token + i * 2, 3, "%02x", digest[i]);
+    Str_Format(module.token + i * 2, 3, "%02x", digest[i]);
   }
 }
 
@@ -149,16 +149,16 @@ static void Cl_PostAnalytics(bool start) {
       .systemRamMb = SDL_GetSystemRAM()
     };
 
-    q_strlcpy(payload.event, "start", sizeof(payload.event));
-    q_strlcpy(payload.token, module.token, sizeof(payload.token));
-    q_strlcpy(payload.sessionId, module.sessionId, sizeof(payload.sessionId));
-    q_strlcpy(payload.version, VERSION, sizeof(payload.version));
-    q_strlcpy(payload.build, BUILD, sizeof(payload.build));
-    q_strlcpy(payload.buildNumber, BUILD_NUMBER, sizeof(payload.buildNumber));
-    q_strlcpy(payload.platform, SDL_GetPlatform(), sizeof(payload.platform));
-    q_strlcpy(payload.device, renderConfig.device, sizeof(payload.device));
-    q_strlcpy(payload.vendor, renderConfig.vendor, sizeof(payload.vendor));
-    q_strlcpy(payload.renderer, renderConfig.renderer, sizeof(payload.renderer));
+    Str_Copy(payload.event, "start", sizeof(payload.event));
+    Str_Copy(payload.token, module.token, sizeof(payload.token));
+    Str_Copy(payload.sessionId, module.sessionId, sizeof(payload.sessionId));
+    Str_Copy(payload.version, VERSION, sizeof(payload.version));
+    Str_Copy(payload.build, BUILD, sizeof(payload.build));
+    Str_Copy(payload.buildNumber, BUILD_NUMBER, sizeof(payload.buildNumber));
+    Str_Copy(payload.platform, SDL_GetPlatform(), sizeof(payload.platform));
+    Str_Copy(payload.device, renderConfig.device, sizeof(payload.device));
+    Str_Copy(payload.vendor, renderConfig.vendor, sizeof(payload.vendor));
+    Str_Copy(payload.renderer, renderConfig.renderer, sizeof(payload.renderer));
 
     data = $(ctx, dataFromStruct, &properties, &payload);
   } else {
@@ -176,9 +176,9 @@ static void Cl_PostAnalytics(bool start) {
       .maps = module.maps
     };
 
-    q_strlcpy(payload.event, "end", sizeof(payload.event));
-    q_strlcpy(payload.token, module.token, sizeof(payload.token));
-    q_strlcpy(payload.sessionId, module.sessionId, sizeof(payload.sessionId));
+    Str_Copy(payload.event, "end", sizeof(payload.event));
+    Str_Copy(payload.token, module.token, sizeof(payload.token));
+    Str_Copy(payload.sessionId, module.sessionId, sizeof(payload.sessionId));
 
     data = $(ctx, dataFromStruct, &properties, &payload);
   }
@@ -222,21 +222,21 @@ void Cl_InitAnalytics(void) {
   module.startTicks = quetoo.ticks;
 
   char base[MAX_STRING_CHARS];
-  q_strlcpy(base, cl_analyticsUrl->string, sizeof(base));
+  Str_Copy(base, cl_analyticsUrl->string, sizeof(base));
 
-  size_t length = q_strlen(base);
+  size_t length = Str_Length(base);
   while (length && base[length - 1] == '/') {
     base[--length] = '\0';
   }
 
-  if (q_strncasecmp(base, "http://", 7) && q_strncasecmp(base, "https://", 8)) {
+  if (Str_CaseCompareN(base, "http://", 7) && Str_CaseCompareN(base, "https://", 8)) {
     Com_Warn("cl_analyticsUrl must be an http:// or https:// URL, or 0 to disable\n");
     return;
   }
 
   module.enabled = true;
 
-  q_snprintf(module.url, sizeof(module.url), "%s/api/sessions", base);
+  Str_Format(module.url, sizeof(module.url), "%s/api/sessions", base);
 
   Cl_AnalyticsToken();
   Com_Uuid(module.sessionId, sizeof(module.sessionId));

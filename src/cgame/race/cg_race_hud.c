@@ -63,10 +63,10 @@ static struct {
 void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vsBest, int32_t vsRecord) {
 
   if (label && *label) {
-    q_strlcpy(module.name, label, sizeof(module.name));
+    Str_Copy(module.name, label, sizeof(module.name));
   } else {
     const char *kinds[] = { "Checkpoint", "Split", "Stage" };
-    q_snprintf(module.name, sizeof(module.name), "%s %u", kinds[kind % 3], number);
+    Str_Format(module.name, sizeof(module.name), "%s %u", kinds[kind % 3], number);
   }
 
   module.time = time;
@@ -129,26 +129,26 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
   }
 
   static char text[MAX_STRING_CHARS];
-  q_snprintf(text, sizeof(text), "%s%s", color, Cg_Race_FormatTime(Cg_Race_Time(ps)));
+  Str_Format(text, sizeof(text), "%s%s", color, Cg_Race_FormatTime(Cg_Race_Time(ps)));
 
   uint32_t checkpoints = 0;
   sscanf(cgi.ConfigString(CS_RACE_COURSE), "%u", &checkpoints);
 
   if (checkpoints) {
-    q_strlcat(text, va("\n^7%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), sizeof(text));
+    Str_Append(text, va("\n^7%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), sizeof(text));
   }
 
   if (module.shown && cgi.client->unclampedTime - module.shown < RACE_HUD_MILESTONE_MILLIS) {
 
-    q_strlcat(text, va("\n^7%s  %s", module.name, Cg_Race_FormatTime(module.time)), sizeof(text));
+    Str_Append(text, va("\n^7%s  %s", module.name, Cg_Race_FormatTime(module.time)), sizeof(text));
 
     if (module.vsBest != RACE_MILESTONE_NO_DELTA &&
         module.vsBest != module.vsRecord) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(module.vsBest, "best")), sizeof(text));
+      Str_Append(text, va("\n%s", Cg_Race_FormatDelta(module.vsBest, "best")), sizeof(text));
     }
 
     if (module.vsRecord != RACE_MILESTONE_NO_DELTA) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(module.vsRecord, "record")), sizeof(text));
+      Str_Append(text, va("\n%s", Cg_Race_FormatDelta(module.vsRecord, "record")), sizeof(text));
     }
   }
 

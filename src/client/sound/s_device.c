@@ -160,7 +160,7 @@ static void S_CheckSharedDevice(const char *capture) {
 
   const char *playback = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(module.playback));
 
-  if (playback && capture && !q_strcmp(playback, capture)) {
+  if (playback && capture && !Str_Compare(playback, capture)) {
     Com_Warn("Microphone and speakers are both \"%s\".\n"
              "If this is a Bluetooth headset, audio quality will drop while you transmit.\n"
              "Run s_captureDeviceList and set s_captureDevice to a separate microphone to avoid it.\n",
@@ -185,7 +185,7 @@ static SDL_AudioDeviceID S_CaptureDevice(void) {
 
   for (int32_t i = 0; i < count; i++) {
     const char *name = SDL_GetAudioDeviceName(devices[i]);
-    if (name && !q_strcmp(name, s_captureDevice->string)) {
+    if (name && !Str_Compare(name, s_captureDevice->string)) {
       device = devices[i];
       break;
     }

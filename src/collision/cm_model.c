@@ -325,7 +325,7 @@ CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size) {
     collisionBsp.modTime = Fs_LastModTime(name);
   }
 
-  q_strlcpy(collisionBsp.name, name, sizeof(collisionBsp.name));
+  Str_Copy(collisionBsp.name, name, sizeof(collisionBsp.name));
 
   Fs_Free(header);
 

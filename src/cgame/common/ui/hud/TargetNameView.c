@@ -65,7 +65,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
       const CGameClientInfo *client = Cg_ClientInfo(ent);
 
-      q_strlcpy(name, client->name, sizeof(name));
+      Str_Copy(name, client->name, sizeof(name));
       time = cgi.client->unclampedTime;
     }
   }

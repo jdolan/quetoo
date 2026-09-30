@@ -553,11 +553,11 @@ static void G_Race_Mode_f(GameClient *cl) {
 
   const char *name = gi.Argv(1);
 
-  if (!q_strcasecmp(name, "race")) {
+  if (!Str_CaseCompare(name, "race")) {
     G_Race_SetMode(cl, RACE_MODE_RACE);
-  } else if (!q_strcasecmp(name, "practice")) {
+  } else if (!Str_CaseCompare(name, "practice")) {
     G_Race_SetMode(cl, RACE_MODE_PRACTICE);
-  } else if (!q_strcasecmp(name, "spectator") || !q_strcasecmp(name, "spectate")) {
+  } else if (!Str_CaseCompare(name, "spectator") || !Str_CaseCompare(name, "spectate")) {
     G_Race_SetMode(cl, RACE_MODE_SPECTATOR);
   } else {
     gi.ClientPrint(cl, PRINT_HIGH, "Unknown mode \"%s\". Use race, practice or spectator\n", name);
@@ -813,17 +813,17 @@ static bool G_HandleClientCommand_Race(GameClient *cl, const char *cmd) {
     return previous.HandleClientCommand(cl, cmd);
   }
 
-  if (!q_strcmp(cmd, "race")) {
+  if (!Str_Compare(cmd, "race")) {
     G_Race_Status_f(cl);
-  } else if (!q_strcmp(cmd, "mode")) {
+  } else if (!Str_Compare(cmd, "mode")) {
     G_Race_Mode_f(cl);
-  } else if (!q_strcmp(cmd, "store")) {
+  } else if (!Str_Compare(cmd, "store")) {
     G_Race_Store_f(cl);
-  } else if (!q_strcmp(cmd, "kill")) {
+  } else if (!Str_Compare(cmd, "kill")) {
     G_Race_Kill_f(cl);
-  } else if (!q_strcmp(cmd, "noClip")) {
+  } else if (!Str_Compare(cmd, "noClip")) {
     G_Race_NoClip_f(cl);
-  } else if (!q_strcmp(cmd, "ghost")) {
+  } else if (!Str_Compare(cmd, "ghost")) {
     G_Race_Ghost_f(cl);
   } else {
     return previous.HandleClientCommand(cl, cmd);

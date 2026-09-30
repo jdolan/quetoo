@@ -82,10 +82,10 @@ static void updateBindings(View *self, ident data) {
     }
 
     if (names[0]) {
-      q_strlcat(names, ", ", sizeof(names));
+      Str_Append(names, ", ", sizeof(names));
     }
 
-    q_strlcat(names, cgameState.clients[i].name, sizeof(names));
+    Str_Append(names, cgameState.clients[i].name, sizeof(names));
   }
 
   if (names[0]) {

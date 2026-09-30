@@ -32,15 +32,15 @@
 static HashTable *paths;
 
 static bool HasSuffix(const char *str, const char *suffix) {
-	const size_t len = q_strlen(str);
-	const size_t suffixLen = q_strlen(suffix);
-	return len >= suffixLen && !q_strcmp(str + len - suffixLen, suffix);
+	const size_t len = Str_Length(str);
+	const size_t suffixLen = Str_Length(suffix);
+	return len >= suffixLen && !Str_Compare(str + len - suffixLen, suffix);
 }
 
 static Order AssetPathCompare(const ident a, const ident b) {
 	const char *const *pathA = a;
 	const char *const *pathB = b;
-	const int32_t cmp = q_strcmp(*pathA, *pathB);
+	const int32_t cmp = Str_Compare(*pathA, *pathB);
 	return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -63,7 +63,7 @@ static bool Add(const char *name) {
 
 	assert(name);
 
-	if (!q_strlen(name)) {
+	if (!Str_Length(name)) {
 		Com_Verbose("Failed to add empty path\n");
 		return false;
 	}
@@ -73,12 +73,12 @@ static bool Add(const char *name) {
 		return false;
 	}
 
-	if (q_strchr(name, ' ')) {
+	if (Str_FindChar(name, ' ')) {
 		Com_Warn("Rejecting path with spaces: %s\n", name);
 		return false;
 	}
 
-	if (q_strstr(name, "..")) {
+	if (Str_Find(name, "..")) {
 		Com_Warn("Rejecting path with '..': %s\n", name);
 		return false;
 	}
@@ -92,7 +92,7 @@ static bool Add(const char *name) {
 
 	if (Fs_Exists(name)) {
 		if ($(paths, get, (void *) name) == NULL) {
-			$(paths, set, q_strdup(name), q_strdup(name));
+			$(paths, set, Str_Duplicate(name), Str_Duplicate(name));
 		}
 		return true;
 	} else {
@@ -231,11 +231,11 @@ static void AddEntities(void) {
 		const Entity *e = node->element;
 		while (e) {
 
-			if (!q_strcmp(e->key, "sound")) {
+			if (!Str_Compare(e->key, "sound")) {
 				AddSound(e->string);
-			} else if (!q_strcmp(e->key, "model")) {
+			} else if (!Str_Compare(e->key, "model")) {
 				AddModel(e->string);
-			} else if (!q_strcmp(e->key, "sky")) {
+			} else if (!Str_Compare(e->key, "sky")) {
 				AddSky(e->string);
 			}
 
@@ -340,7 +340,7 @@ int32_t WriteManifest(void) {
 
 	// write the manifest
 	char mfPath[MAX_OS_PATH];
-	q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
+	Str_Format(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
 	const int32_t count = Manifest_Write(mfPath, manifest);
 	if (count < 0) {

@@ -224,7 +224,7 @@ static void updateBindings(View *self, ident data) {
     cg_drawCrosshairColor->modified = false;
 
     Color color = color_white;
-    if (q_strcmp(cg_drawCrosshairColor->string, "default")) {
+    if (Str_Compare(cg_drawCrosshairColor->string, "default")) {
       if (!Color_Parse(cg_drawCrosshairColor->string, &color)) {
         color = color_white;
       }

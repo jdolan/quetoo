@@ -27,7 +27,7 @@ static struct {
 } module;
 
 static Order R_EnumerateMedia_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcmp((*(const RenderMedia *const *) a)->name, (*(const RenderMedia *const *) b)->name);
+  const int32_t cmp = Str_Compare((*(const RenderMedia *const *) a)->name, (*(const RenderMedia *const *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -137,7 +137,7 @@ RenderMedia *R_FindMedia(const char *name, RenderMediaType type) {
     .type = type
   };
   
-  q_strlcpy(lookup.name, name, sizeof(lookup.name));
+  Str_Copy(lookup.name, name, sizeof(lookup.name));
 
   RenderMedia *media = $(module.media, get, &lookup);
   if (media) {
@@ -158,7 +158,7 @@ RenderMedia *R_AllocMedia(const char *name, size_t size, RenderMediaType type) {
 
   RenderMedia *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
 
-  q_strlcpy(media->name, name, sizeof(media->name));
+  Str_Copy(media->name, name, sizeof(media->name));
   media->type = type;
 
   return media;
@@ -279,7 +279,7 @@ static bool R_MediaEqual(const void * a, const void * b) {
   const RenderMedia *_a = a, *_b = b;
 
   if (_a->type == _b->type) {
-    return !q_strcmp(_a->name, _b->name);
+    return !Str_Compare(_a->name, _b->name);
   }
 
   return false;

@@ -76,7 +76,7 @@ RenderAtlasImage *R_LoadAtlasImage(RenderAtlas *atlas, const char *name, RenderI
     AtlasNode *node = VectorValue(nodes, AtlasNode *, i);
 
     RenderAtlasImage *atlasImage = node->data;
-    if (!q_strcmp(name, atlasImage->image.media.name)) {
+    if (!Str_Compare(name, atlasImage->image.media.name)) {
       R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlasImage);
       return atlasImage;
     }

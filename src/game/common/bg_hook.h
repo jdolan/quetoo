@@ -107,7 +107,7 @@ static inline const char *Hook_StyleName(GameHookStyle style) {
 static inline GameHookStyle Hook_StyleByName(const char *name) {
 
   for (GameHookStyle style = HOOK_PULL; style <= HOOK_SWING_AUTO; style++) {
-    if (!q_strcmp(name, Hook_StyleName(style))) {
+    if (!Str_Compare(name, Hook_StyleName(style))) {
       return style;
     }
   }

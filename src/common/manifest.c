@@ -35,7 +35,7 @@ static void Manifest_Md5Hex(const void *data, size_t len, char *hex, size_t hexS
 	md5_finalize(&ctx, digest);
 
 	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hexSize; i++) {
-		q_snprintf(hex + i * 2, 3, "%02x", digest[i]);
+		Str_Format(hex + i * 2, 3, "%02x", digest[i]);
 	}
 }
 
@@ -82,7 +82,7 @@ void Manifest_AddEntry(HashTable *manifest, const char *path, const void *data, 
 	assert(len > 0);
 
 	ManifestEntry *entry = Mem_Malloc(sizeof(*entry));
-	q_strlcpy(entry->path, path, sizeof(entry->path));
+	Str_Copy(entry->path, path, sizeof(entry->path));
 	entry->size = (int64_t) len;
 	Manifest_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
 
@@ -109,14 +109,14 @@ bool Manifest_CheckEntry(const ManifestEntry *entry) {
 	Manifest_Md5Hex(data, len, hash, sizeof(hash));
 	Fs_Free(data);
 
-	return !q_strcmp(entry->hash, hash);
+	return !Str_Compare(entry->hash, hash);
 }
 
 /**
  * @brief Comparator for sorting manifest keys alphabetically.
  */
 static int Manifest_KeyCmp(const void *a, const void *b) {
-	return q_strcmp(*(const char **) a, *(const char **) b);
+	return Str_Compare(*(const char **) a, *(const char **) b);
 }
 
 typedef struct {
@@ -180,44 +180,44 @@ HashTable *Manifest_Parse(const char *data, size_t len) {
 	buf[len] = '\0';
 
 	char *saveptr = NULL;
-	char *line = q_strtok_r(buf, "\n", &saveptr);
+	char *line = Str_Tokenize(buf, "\n", &saveptr);
 	while (line) {
 
 		// Trim trailing whitespace
-		char *end = line + q_strlen(line);
+		char *end = line + Str_Length(line);
 		while (end > line && (*end == '\0' || *end == '\r' || *end == ' ' || *end == '\t')) {
 			*end-- = '\0';
 		}
 
 		if (*line == '\0') {
-			line = q_strtok_r(NULL, "\n", &saveptr);
+			line = Str_Tokenize(NULL, "\n", &saveptr);
 			continue;
 		}
 
-		char *space1 = q_strchr(line, ' ');
+		char *space1 = Str_FindChar(line, ' ');
 		if (!space1) {
 			Com_Warn("Malformed manifest line: %s\n", line);
-			line = q_strtok_r(NULL, "\n", &saveptr);
+			line = Str_Tokenize(NULL, "\n", &saveptr);
 			continue;
 		}
 		*space1 = '\0';
 
-		char *space2 = q_strchr(space1 + 1, ' ');
+		char *space2 = Str_FindChar(space1 + 1, ' ');
 		if (!space2) {
 			Com_Warn("Malformed manifest line: %s\n", line);
-			line = q_strtok_r(NULL, "\n", &saveptr);
+			line = Str_Tokenize(NULL, "\n", &saveptr);
 			continue;
 		}
 		*space2 = '\0';
 
 		ManifestEntry *entry = Mem_Malloc(sizeof(*entry));
-		q_strlcpy(entry->hash, line, sizeof(entry->hash));
+		Str_Copy(entry->hash, line, sizeof(entry->hash));
 		entry->size = (int64_t) strtoll(space1 + 1, NULL, 10);
-		q_strlcpy(entry->path, space2 + 1, sizeof(entry->path));
+		Str_Copy(entry->path, space2 + 1, sizeof(entry->path));
 
 		$(manifest, set, entry->path, entry);
 
-		line = q_strtok_r(NULL, "\n", &saveptr);
+		line = Str_Tokenize(NULL, "\n", &saveptr);
 	}
 
 	Mem_Free(buf);

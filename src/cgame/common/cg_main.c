@@ -256,10 +256,10 @@ static void Cg_ParseTeamInfo(const char *s) {
   PointerArray *info = $(alloc(PointerArray), initWithDestroy, free);
 
   char buf[MAX_STRING_CHARS];
-  q_strlcpy(buf, s, sizeof(buf));
+  Str_Copy(buf, s, sizeof(buf));
   char *save = NULL;
-  for (char *tok = q_strtok_r(buf, "\\", &save); tok; tok = q_strtok_r(NULL, "\\", &save)) {
-    $(info, add, q_strdup(tok));
+  for (char *tok = Str_Tokenize(buf, "\\", &save); tok; tok = Str_Tokenize(NULL, "\\", &save)) {
+    $(info, add, Str_Duplicate(tok));
   }
 
   const size_t count = info->count;
@@ -274,7 +274,7 @@ static void Cg_ParseTeamInfo(const char *s) {
 
     team->id = atoi((char *) $(info, get, i + 0));
 
-    q_strlcpy(team->name, (char *) $(info, get, i + 1), sizeof(team->name));
+    Str_Copy(team->name, (char *) $(info, get, i + 1), sizeof(team->name));
 
     team->hue = atoi((char *) $(info, get, i + 2));
 

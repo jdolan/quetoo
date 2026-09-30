@@ -73,8 +73,8 @@ static void Cl_WriteDemoHeader(void) {
 
   memcpy(header->magic, DEMO_MAGIC, sizeof(header->magic));
   header->version = LittleLong(DEMO_VERSION);
-  q_strlcpy(header->map, cl.configStrings[CS_BSP], sizeof(header->map));
-  q_strlcpy(header->message, cl.configStrings[CS_MESSAGE], sizeof(header->message));
+  Str_Copy(header->map, cl.configStrings[CS_BSP], sizeof(header->map));
+  Str_Copy(header->message, cl.configStrings[CS_MESSAGE], sizeof(header->message));
   header->title[0] = '\0';
   header->favorite = 0;
   header->duration = 0;
@@ -82,7 +82,7 @@ static void Cl_WriteDemoHeader(void) {
   header->ofsKeyframes = 0;
   header->protocolMajor = LittleLong(PROTOCOL_MAJOR);
   header->protocolMinor = LittleLong(cls.cgame->protocol);
-  q_strlcpy(header->cgame, cls.cgame->name, sizeof(header->cgame));
+  Str_Copy(header->cgame, cls.cgame->name, sizeof(header->cgame));
 
   Fs_Write(cls.demo.file, header, sizeof(*header), 1);
 
@@ -101,7 +101,7 @@ static void Cl_WriteDemoHeader(void) {
   // and configStrings
   for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
     if (*cl.configStrings[i] != '\0') {
-      if (msg.size + q_strlen(cl.configStrings[i]) + 32 > msg.maxSize) { // write it out
+      if (msg.size + Str_Length(cl.configStrings[i]) + 32 > msg.maxSize) { // write it out
         Cl_WriteDemoChunk(msg.data, msg.size, 0);
         msg.size = 0;
       }
@@ -302,14 +302,14 @@ void Cl_Record_f(void) {
   }
 
   if (Cmd_Argc() == 2) {
-    q_snprintf(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", Cmd_Argv(1));
+    Str_Format(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", Cmd_Argv(1));
   } else {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
     char datestamp[32];
     strftime(datestamp, sizeof(datestamp), "%Y-%m-%d-%H-%M-%S", tm);
 
-    q_snprintf(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", datestamp);
+    Str_Format(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", datestamp);
   }
 
   // open the demo file

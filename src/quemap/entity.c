@@ -27,8 +27,8 @@
 void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
 
   for (MapEntityKeyValue *e = ent->values; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
-      q_strlcpy(e->value, value, sizeof(e->value));
+    if (!Str_Compare(e->key, key)) {
+      Str_Copy(e->value, value, sizeof(e->value));
       return;
     }
   }
@@ -37,8 +37,8 @@ void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
   e->next = ent->values;
   ent->values = e;
 
-  q_strlcpy(e->key, key, sizeof(e->key));
-  q_strlcpy(e->value, value, sizeof(e->value));
+  Str_Copy(e->key, key, sizeof(e->key));
+  Str_Copy(e->value, value, sizeof(e->value));
 }
 
 /**
@@ -47,7 +47,7 @@ void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
 const char *ValueForKey(const MapEntity *ent, const char *key, const char *def) {
 
   for (const MapEntityKeyValue *e = ent->values; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
+    if (!Str_Compare(e->key, key)) {
       return e->value;
     }
   }

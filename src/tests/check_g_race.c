@@ -74,9 +74,9 @@ static char testCsRaceGhost[MAX_STRING_CHARS];
 static void Test_SetConfigString(const int32_t index, const char *string) {
 
   if (index == CS_RACE_RECORDS) {
-    q_strlcpy(testCsRaceRecords, string, sizeof(testCsRaceRecords));
+    Str_Copy(testCsRaceRecords, string, sizeof(testCsRaceRecords));
   } else if (index == CS_RACE_GHOST) {
-    q_strlcpy(testCsRaceGhost, string, sizeof(testCsRaceGhost));
+    Str_Copy(testCsRaceGhost, string, sizeof(testCsRaceGhost));
   }
 }
 
@@ -153,7 +153,7 @@ void setup(void) {
   gi.Warn = Test_Warn;
 
   memset(&gameLevel, 0, sizeof(gameLevel));
-  q_strlcpy(gameLevel.name, "checkrace", sizeof(gameLevel.name));
+  Str_Copy(gameLevel.name, "checkrace", sizeof(gameLevel.name));
   gameLevel.movement = PM_MOVEMENT_RACE;
 
   memset(testCsRaceRecords, 0, sizeof(testCsRaceRecords));
@@ -187,8 +187,8 @@ static void Test_FinishRun(GameClient *cl, const char *guid, const char *name, u
   GameRaceRun *run = &cl->raceRun;
   memset(run, 0, sizeof(*run));
 
-  q_strlcpy(cl->persistent.guid, guid, sizeof(cl->persistent.guid));
-  q_strlcpy(cl->persistent.netName, name, sizeof(cl->persistent.netName));
+  Str_Copy(cl->persistent.guid, guid, sizeof(cl->persistent.guid));
+  Str_Copy(cl->persistent.netName, name, sizeof(cl->persistent.netName));
 
   // a real run has real params behind it, not the zeroed struct a fresh fixture starts with
   cl->ps.pmState.params = *Pm_Movement(PM_MOVEMENT_RACE)->params;
@@ -246,7 +246,7 @@ START_TEST(check_G_Race_Records_RoundTrip) {
   ck_assert_float_eq_tol(record->topSpeed, 900.f, 1.f);
   ck_assert_float_eq_tol(record->averageSpeed, 640.f, 1.f);
 
-  ck_assert(q_strlen(testCsRaceRecords) > 0);
+  ck_assert(Str_Length(testCsRaceRecords) > 0);
 
 } END_TEST
 
@@ -284,7 +284,7 @@ START_TEST(check_G_Race_Records_MalformedSkipped) {
     "  \"movement\" \"race\"\n"
     "}\n";
 
-  gi.WriteFile(file, malformed, 1, q_strlen(malformed));
+  gi.WriteFile(file, malformed, 1, Str_Length(malformed));
   gi.CloseFile(file);
 
   G_Race_LoadRecords();
@@ -327,7 +327,7 @@ START_TEST(check_G_Race_Line_RoundTrip) {
     ck_assert_uint_eq(sample->animation2, 2);
   }
 
-  ck_assert(q_strlen(testCsRaceGhost) > 0);
+  ck_assert(Str_Length(testCsRaceGhost) > 0);
 
 } END_TEST
 
@@ -362,7 +362,7 @@ START_TEST(check_G_Race_Line_BspMismatchRejected) {
     "0 0.00 0.00 0.00 0.0 0.0 0.0 0 0\n"
     "100 10.00 0.00 0.00 0.0 0.0 0.0 0 0\n";
 
-  gi.WriteFile(file, rebuilt, 1, q_strlen(rebuilt));
+  gi.WriteFile(file, rebuilt, 1, Str_Length(rebuilt));
   gi.CloseFile(file);
 
   G_Race_LoadLine();

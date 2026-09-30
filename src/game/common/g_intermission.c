@@ -54,7 +54,7 @@ static bool installed;
 static bool G_Intermission_Offers(const char *name) {
 
   for (int32_t i = 0; i < module.numMaps; i++) {
-    if (!q_strcmp(module.maps[i], name)) {
+    if (!Str_Compare(module.maps[i], name)) {
       return true;
     }
   }
@@ -75,7 +75,7 @@ static void G_Intermission_Offer(const char *name, int32_t index) {
 
   // by name rather than by position, since a rotation may list either the map we are
   // on or a candidate more than once, and neither is a second thing to vote for
-  if (!name || !*name || !q_strcmp(name, gameLevel.name) || G_Intermission_Offers(name)) {
+  if (!name || !*name || !Str_Compare(name, gameLevel.name) || G_Intermission_Offers(name)) {
     return;
   }
 
@@ -85,7 +85,7 @@ static void G_Intermission_Offer(const char *name, int32_t index) {
   }
 
   module.indices[module.numMaps] = index;
-  q_strlcpy(module.maps[module.numMaps++], name, MAX_QPATH);
+  Str_Copy(module.maps[module.numMaps++], name, MAX_QPATH);
 }
 
 /**
@@ -150,7 +150,7 @@ static void G_Intermission_SelectMaps(void) {
     // no rotation, or nothing in it we can serve: the server replays this map, which
     // is what `nextMap` falls back to on its own, so we leave it to do that
     module.indices[0] = -1;
-    q_strlcpy(module.maps[0], gameLevel.name, MAX_QPATH);
+    Str_Copy(module.maps[0], gameLevel.name, MAX_QPATH);
     module.numMaps = 1;
   }
 
@@ -190,10 +190,10 @@ static void G_Intermission_Publish(void) {
   memcpy(module.published, votes, sizeof(votes));
 
   char string[MAX_STRING_CHARS];
-  q_snprintf(string, sizeof(string), "%d", module.voting ? 1 : 0);
+  Str_Format(string, sizeof(string), "%d", module.voting ? 1 : 0);
 
   for (int32_t i = 0; i < module.numMaps; i++) {
-    q_strlcat(string, va("\\%s\\%d", module.maps[i], votes[i]), sizeof(string));
+    Str_Append(string, va("\\%s\\%d", module.maps[i], votes[i]), sizeof(string));
   }
 
   G_Debug("%s\n", string);
@@ -310,7 +310,7 @@ static void G_Intermission_Cast(GameClient *cl, int32_t map) {
  */
 static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) {
 
-  if (q_strcmp(cmd, "voteMap")) {
+  if (Str_Compare(cmd, "voteMap")) {
     return previous.HandleClientCommand(cl, cmd);
   }
 

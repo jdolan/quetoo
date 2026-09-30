@@ -84,7 +84,7 @@ static void G_ResetDroppedItem_Tech(GameEntity *ent) {
  */
 static const GameItem *G_ResolveInventoryItem_Tech(GameClient *cl, const char *name) {
 
-  if (!q_strcasecmp(name, "tech")) {
+  if (!Str_CaseCompare(name, "tech")) {
     const GameItem *tech = G_GetTech(cl);
     if (tech) {
       return tech;
@@ -234,7 +234,7 @@ void G_Tech_Init(void) {
  */
 void G_Tech_CheckState(void) {
 
-  if (q_strcmp(g_techs->string, "default")) {
+  if (Str_Compare(g_techs->string, "default")) {
     techEnabled = !!g_techs->integer;
   } else {
     techEnabled = true;

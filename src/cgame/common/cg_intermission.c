@@ -58,7 +58,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   }
 
   char buf[MAX_STRING_CHARS];
-  q_strlcpy(buf, s, sizeof(buf));
+  Str_Copy(buf, s, sizeof(buf));
 
   // split positionally, since the count of candidates is what the string carries
   char *fields[NEXT_MAP_CS_FIELDS_FOR(MAX_NEXT_MAPS)] = { NULL };
@@ -85,7 +85,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   nextMap->numMaps = (int32_t) (count - NEXT_MAP_CS_MAPS) / 2;
 
   for (int32_t i = 0; i < nextMap->numMaps; i++) {
-    q_strlcpy(nextMap->maps[i], fields[NEXT_MAP_CS_MAPS + i * 2], MAX_QPATH);
+    Str_Copy(nextMap->maps[i], fields[NEXT_MAP_CS_MAPS + i * 2], MAX_QPATH);
     nextMap->votes[i] = (int32_t) strtol(fields[NEXT_MAP_CS_MAPS + i * 2 + 1], NULL, 10);
   }
 

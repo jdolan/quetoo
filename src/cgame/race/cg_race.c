@@ -105,7 +105,7 @@ static bool Cg_ParseServerCommand_Race(int32_t cmd) {
     const uint16_t number = cgi.ReadByte();
 
     char label[MAX_QPATH];
-    q_strlcpy(label, cgi.ReadString(), sizeof(label));
+    Str_Copy(label, cgi.ReadString(), sizeof(label));
 
     const uint32_t time = cgi.ReadLong();
     const int32_t vsBest = cgi.ReadLong();

@@ -114,7 +114,7 @@ static void S_RegisterMedia_InsertSortedKey(const char *name) {
 
   // find insertion point (insert before first node where name <= existing)
   for (ListNode *n = module.keys->head; n; n = n->next) {
-    if (q_strcmp(name, (const char *) n->element) <= 0) {
+    if (Str_Compare(name, (const char *) n->element) <= 0) {
       $(module.keys, insertAfter, n->prev, (void *) name);
       return;
     }
@@ -167,7 +167,7 @@ SoundMedia *S_FindMedia(const char *name, SoundMediaType type) {
     .type = type
   };
 
-  q_strlcpy(lookup.name, name, sizeof(lookup.name));
+  Str_Copy(lookup.name, name, sizeof(lookup.name));
 
   SoundMedia *media = $(module.media, get, &lookup);
   if (media) {
@@ -191,7 +191,7 @@ SoundMedia *S_AllocMedia(const char *name, size_t size, SoundMediaType type) {
 
   SoundMedia *media = Mem_TagMalloc(size, MEM_TAG_SOUND);
 
-  q_strlcpy(media->name, name, sizeof(media->name));
+  Str_Copy(media->name, name, sizeof(media->name));
   media->type = type;
 
   return media;
@@ -298,7 +298,7 @@ static bool S_MediaEqual(const void * a, const void * b) {
   const SoundMedia *_a = a, *_b = b;
 
   if (_a->type == _b->type) {
-    return !q_strcmp(_a->name, _b->name);
+    return !Str_Compare(_a->name, _b->name);
   }
 
   return false;

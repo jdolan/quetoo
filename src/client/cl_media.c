@@ -96,10 +96,10 @@ void Cl_RequestNextDownload(void) {
 static void Cl_Mapshots_enumerate(const char *path, void *data) {
   List *list = (List *) data;
 
-  const size_t len = q_strlen(path);
-  if ((len >= 4 && !q_strcmp(path + len - 4, ".jpg")) ||
-      (len >= 4 && !q_strcmp(path + len - 4, ".png"))) {
-    $(list, append, q_strdup(path));
+  const size_t len = Str_Length(path);
+  if ((len >= 4 && !Str_Compare(path + len - 4, ".jpg")) ||
+      (len >= 4 && !Str_Compare(path + len - 4, ".png"))) {
+    $(list, append, Str_Duplicate(path));
   }
 }
 

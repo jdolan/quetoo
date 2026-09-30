@@ -98,11 +98,11 @@ static void G_trigger_race_start(GameEntity *ent) {
 
   const char *mode = gi.EntityValue(ent->def, "start_mode")->nullableString;
 
-  if (!mode || !*mode || !q_strcasecmp(mode, "touch")) {
+  if (!mode || !*mode || !Str_CaseCompare(mode, "touch")) {
     ent->count = RACE_START_TOUCH;
-  } else if (!q_strcasecmp(mode, "exit")) {
+  } else if (!Str_CaseCompare(mode, "exit")) {
     ent->count = RACE_START_EXIT;
-  } else if (!q_strcasecmp(mode, "jump")) {
+  } else if (!Str_CaseCompare(mode, "jump")) {
     ent->count = RACE_START_JUMP;
   } else {
     G_Warn("%s has start_mode \"%s\"; it must be touch, exit or jump\n", etos(ent), mode);
@@ -250,7 +250,7 @@ void G_Race_ResolveStages(void) {
 
     GameEntity *anchor = G_Find(NULL, EOFS(targetName), name);
 
-    if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
+    if (!anchor || Str_Compare(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
       G_Warn("%s needs restart_target to name one info_notnull, and \"%s\" does not\n", etos(stage), name);
       gameLevel.raceCourse.stagesValid = false;
       continue;
@@ -341,9 +341,9 @@ static void G_func_race_checkpoint_gate(GameEntity *ent) {
     .invert = gi.EntityValue(ent->def, "invert")->integer != 0,
   };
 
-  if (!mode || !*mode || !q_strcasecmp(mode, "atleast")) {
+  if (!mode || !*mode || !Str_CaseCompare(mode, "atleast")) {
     gate.mode = RACE_GATE_AT_LEAST;
-  } else if (!q_strcasecmp(mode, "exact")) {
+  } else if (!Str_CaseCompare(mode, "exact")) {
     gate.mode = RACE_GATE_EXACT;
   } else {
     G_Warn("%s has mode \"%s\"; it must be atleast or exact\n", etos(ent), mode);
@@ -482,7 +482,7 @@ static const struct {
 bool G_Race_InitEntity(GameEntity *ent) {
 
   for (size_t i = 0; i < lengthof(raceEntityClasses); i++) {
-    if (!q_strcmp(raceEntityClasses[i].classname, ent->classname)) {
+    if (!Str_Compare(raceEntityClasses[i].classname, ent->classname)) {
       raceEntityClasses[i].Init(ent);
       return true;
     }

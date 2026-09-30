@@ -251,11 +251,11 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    q_snprintf(buffer, sizeof(buffer), msg, cl->persistent.netName, attacker->client->persistent.netName);
+    Str_Format(buffer, sizeof(buffer), msg, cl->persistent.netName, attacker->client->persistent.netName);
 #pragma clang diagnostic pop
 
     if (friendlyFire) {
-      q_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
+      Str_Append(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
     }
 
   } else { // killed by self or world
@@ -399,7 +399,7 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    q_snprintf(buffer, sizeof(buffer), msg, cl->persistent.netName);
+    Str_Format(buffer, sizeof(buffer), msg, cl->persistent.netName);
 #pragma clang diagnostic pop
   }
 
@@ -975,7 +975,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
  */
 static void G_Give(GameClient *cl, char *it, int16_t quantity) {
 
-  if (!q_strcasecmp(it, "Health")) {
+  if (!Str_CaseCompare(it, "Health")) {
     cl->entity->health = quantity;
     return;
   }
@@ -1598,23 +1598,23 @@ void G_ClientBegin(GameClient *cl) {
   if (gameLevel.intermissionTime) {
     G_ClientToIntermission(cl);
   } else {
-    q_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
+    Str_Format(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
 
     if (*g_motd->string) {
       char motd[MAX_QPATH];
-      q_snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
+      Str_Format(motd, sizeof(motd), "\n%s^7", g_motd->string);
 
-      q_strlcat(welcome, motd, sizeof(welcome));
+      Str_Append(welcome, motd, sizeof(welcome));
     }
 
-    q_strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
-    q_strlcat(welcome, G_GameplayById(gameLevel.gameplay)->label, sizeof(welcome));
+    Str_Append(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
+    Str_Append(welcome, G_GameplayById(gameLevel.gameplay)->label, sizeof(welcome));
 
-    q_strlcat(welcome, "\n^2Movement is ^1", sizeof(welcome));
-    q_strlcat(welcome, Pm_Movement(gameLevel.movement)->label, sizeof(welcome));
+    Str_Append(welcome, "\n^2Movement is ^1", sizeof(welcome));
+    Str_Append(welcome, Pm_Movement(gameLevel.movement)->label, sizeof(welcome));
 
     if (gameLevel.teams) {
-      q_strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
+      Str_Append(welcome, "\n^2Teams are enabled", sizeof(welcome));
     }
 
     gi.ClientPrint(cl, PRINT_HIGH, "%s\n", welcome);
@@ -1660,7 +1660,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   }
 
   // save off the userInfo in case we want to check something later
-  const size_t len = q_strlen(userInfo);
+  const size_t len = Str_Length(userInfo);
   memmove(cl->userInfo, userInfo, len + 1);
   memmove(cl->persistent.userInfo, userInfo, len + 1);
 
@@ -1670,7 +1670,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   char s[MAX_INFO_STRING_VALUE];
   InfoString_Get(userInfo, "name", s, sizeof(s));
 
-  q_strlcpy(name, s, sizeof(name));
+  Str_Copy(name, s, sizeof(name));
 
   bool color = false;
   char *c = name;
@@ -1683,7 +1683,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
       break;
     }
 
-    if (q_striscolor(c)) {
+    if (Str_IsColor(c)) {
       color = true;
       c += 2;
       continue;
@@ -1699,16 +1699,16 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   }
 
   if (color) { // reset to white
-    q_strlcat(name, "^7", sizeof(name));
+    Str_Append(name, "^7", sizeof(name));
   }
 
-  if (q_strncmp(cl->persistent.netName, name, sizeof(cl->persistent.netName))) {
+  if (Str_CompareN(cl->persistent.netName, name, sizeof(cl->persistent.netName))) {
 
     if (*cl->persistent.netName != '\0') {
       gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->persistent.netName, name);
     }
 
-    q_strlcpy(cl->persistent.netName, name, sizeof(cl->persistent.netName));
+    Str_Copy(cl->persistent.netName, name, sizeof(cl->persistent.netName));
   }
 
   const GameTeam *team = cl->persistent.team;
@@ -1718,20 +1718,20 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
     InfoString_Get(userInfo, "skin", s, sizeof(s));
 
     char *p;
-    if (s[0] && (p = q_strchr(s, '/'))) {
+    if (s[0] && (p = Str_FindChar(s, '/'))) {
       *p = '\0';
-      q_strlcpy(s, va("%s/%s", s, DEFAULT_USER_SKIN), sizeof(s));
+      Str_Copy(s, va("%s/%s", s, DEFAULT_USER_SKIN), sizeof(s));
     } else {
-      q_strlcpy(s, va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_USER_SKIN), sizeof(s));
+      Str_Copy(s, va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_USER_SKIN), sizeof(s));
     }
   } else {
     InfoString_Get(userInfo, "skin", s, sizeof(s));
   }
 
-  if (q_strlen(s) && !q_strstr(s, "..")) { // something valid-ish was provided
-    q_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
+  if (Str_Length(s) && !Str_Find(s, "..")) { // something valid-ish was provided
+    Str_Copy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
   } else {
-    q_strlcpy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
+    Str_Copy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
   }
 
   // set effect color
@@ -1742,7 +1742,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 
     cl->persistent.color = -1;
 
-    if (q_strlen(s) && q_strcmp(s, "default")) { // not default
+    if (Str_Length(s) && Str_Compare(s, "default")) { // not default
       const int32_t hue = atoi(s);
       if (hue >= 0) {
         cl->persistent.color = Minf(hue, 361);
@@ -1784,30 +1784,30 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   char clientInfo[MAX_INFO_STRING_STRING] = { '\0' };
 
   // build the client info string
-  q_strlcat(clientInfo, va("%d", team ? team->id : TEAM_NONE), sizeof(clientInfo));
+  Str_Append(clientInfo, va("%d", team ? team->id : TEAM_NONE), sizeof(clientInfo));
 
-  q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, cl->persistent.netName, sizeof(clientInfo));
+  Str_Append(clientInfo, "\\", sizeof(clientInfo));
+  Str_Append(clientInfo, cl->persistent.netName, sizeof(clientInfo));
 
-  q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, cl->persistent.skin, sizeof(clientInfo));
+  Str_Append(clientInfo, "\\", sizeof(clientInfo));
+  Str_Append(clientInfo, cl->persistent.skin, sizeof(clientInfo));
 
-  q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, G_ClientTintString(cl->persistent.shirt), sizeof(clientInfo));
+  Str_Append(clientInfo, "\\", sizeof(clientInfo));
+  Str_Append(clientInfo, G_ClientTintString(cl->persistent.shirt), sizeof(clientInfo));
 
-  q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, G_ClientTintString(cl->persistent.pants), sizeof(clientInfo));
+  Str_Append(clientInfo, "\\", sizeof(clientInfo));
+  Str_Append(clientInfo, G_ClientTintString(cl->persistent.pants), sizeof(clientInfo));
 
-  q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, G_ClientTintString(cl->persistent.helmet), sizeof(clientInfo));
+  Str_Append(clientInfo, "\\", sizeof(clientInfo));
+  Str_Append(clientInfo, G_ClientTintString(cl->persistent.helmet), sizeof(clientInfo));
 
-  q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, va("%i", cl->persistent.color), sizeof(clientInfo));
+  Str_Append(clientInfo, "\\", sizeof(clientInfo));
+  Str_Append(clientInfo, va("%i", cl->persistent.color), sizeof(clientInfo));
 
   cl->persistent.standingBounds = G_ClientStandingBounds(cl);
 
-  q_strlcat(clientInfo, "\\", sizeof(clientInfo));
-  q_strlcat(clientInfo, va("%g/%g", cl->persistent.standingBounds.mins.z,
+  Str_Append(clientInfo, "\\", sizeof(clientInfo));
+  Str_Append(clientInfo, va("%g/%g", cl->persistent.standingBounds.mins.z,
                             cl->persistent.standingBounds.maxs.z), sizeof(clientInfo));
 
   // send it to clients
@@ -1819,7 +1819,7 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 
   if (cl->entity) {
     InfoString_Get(userInfo, "active", s, sizeof(s));
-    if (q_strcmp(s, "0") == 0) {
+    if (Str_Compare(s, "0") == 0) {
       cl->entity->s.effects |= EF_INACTIVE;
     } else {
       cl->entity->s.effects &= ~(EF_INACTIVE);
@@ -1852,11 +1852,11 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 bool G_ClientConnect(GameClient *cl, char *userInfo) {
 
   // check password
-  if (q_strlen(g_password->string) && !cl->ai) {
+  if (Str_Length(g_password->string) && !cl->ai) {
     char password[MAX_INFO_STRING_VALUE];
     InfoString_Get(userInfo, "password", password, sizeof(password));
 
-    if (q_strcmp(g_password->string, password)) {
+    if (Str_Compare(g_password->string, password)) {
       InfoString_Set(userInfo, "rejmsg", "Password required or incorrect.");
       return false;
     }

@@ -163,15 +163,15 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
   const char *type = cgi.EntityValue(self->def, "type")->nullableString;
 
   const char *presetStr = dustPresetDefault;
-  if (!q_strcmp(type, "embers")) {
+  if (!Str_Compare(type, "embers")) {
     presetStr = dustPresetEmbers;
-  } else if (!q_strcmp(type, "bubbles")) {
+  } else if (!Str_Compare(type, "bubbles")) {
     presetStr = dustPresetBubbles;
-  } else if (!q_strcmp(type, "fizz")) {
+  } else if (!Str_Compare(type, "fizz")) {
     presetStr = dustPresetFizz;
-  } else if (!q_strcmp(type, "flame")) {
+  } else if (!Str_Compare(type, "flame")) {
     presetStr = dustPresetFlame;
-  } else if (!q_strcmp(type, "steam")) {
+  } else if (!Str_Compare(type, "steam")) {
     presetStr = dustPresetSteam;
   }
 
@@ -179,11 +179,11 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
   Entity *def = cgi.EntityAssign(self->def, preset);
   cgi.FreeEntity(preset);
 
-  if (!q_strcmp(type, "fizz")) {
+  if (!Str_Compare(type, "fizz")) {
     dust->sprite.animation = cgameMedia.sprites.fizz01;
-  } else if (!q_strcmp(type, "flame")) {
+  } else if (!Str_Compare(type, "flame")) {
     dust->sprite.atlasImage = cgameMedia.sprites.flame;
-  } else if (!q_strcmp(type, "steam")) {
+  } else if (!Str_Compare(type, "steam")) {
     dust->sprite.atlasImage = cgameMedia.sprites.steam;
   } else {
     const char *name = cgi.EntityValue(def, "sprite")->nullableString ?: "particle";
@@ -409,7 +409,7 @@ static void Cg_misc_flame_Init(CGameEntity *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullableString;
   if (sound) {
-    if (q_strcmp(sound, "none")) {
+    if (Str_Compare(sound, "none")) {
       flame->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
@@ -758,7 +758,7 @@ static void Cg_misc_sprite_Think(CGameEntity *self) {
 
   const CGameEntity *teammate = Cg_EntityForDefinition(self->team);
   if (teammate) {
-    if (!q_strcmp(self->clazz->classname, teammate->clazz->classname)) {
+    if (!Str_Compare(self->clazz->classname, teammate->clazz->classname)) {
       that = teammate->data;
     } else {
       Cg_Warn("Teammate is not %s\n", self->clazz->classname);
@@ -842,7 +842,7 @@ static void Cg_misc_steam_Init(CGameEntity *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullableString;
   if (sound) {
-    if (q_strcmp(sound, "none")) {
+    if (Str_Compare(sound, "none")) {
       steam->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
@@ -952,13 +952,13 @@ static void Cg_misc_weather_Init(CGameEntity *self) {
 
   const char *type = cgi.EntityValue(self->def, "weather")->nullableString;
   if (type) {
-    if (q_strstr(type, "rain")) {
+    if (Str_Find(type, "rain")) {
       weather->weather |= WEATHER_RAIN;
     }
-    if (q_strstr(type, "snow")) {
+    if (Str_Find(type, "snow")) {
       weather->weather |= WEATHER_SNOW;
     }
-    if (q_strstr(type, "ash")) {
+    if (Str_Find(type, "ash")) {
       weather->weather |= WEATHER_ASH;
     }
   }
@@ -969,7 +969,7 @@ static void Cg_misc_weather_Init(CGameEntity *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullableString;
   if (sound) {
-    if (q_strcmp(sound, "none")) {
+    if (Str_Compare(sound, "none")) {
       weather->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {

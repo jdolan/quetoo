@@ -129,7 +129,7 @@ void Progress(const char *progress, int32_t percent) {
 
   if (percent == -1) {
     Com_Print("\r%-24s [%c]", progress, string[index]);
-    index = (index + 1) % q_strlen(string);
+    index = (index + 1) % Str_Length(string);
   } else {
     if (percent != lastPercent) {
       Com_Print("\r%-24s [%3d%%]", progress, percent);

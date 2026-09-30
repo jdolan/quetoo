@@ -40,7 +40,7 @@ static const char *defaultGames[] = { "dm", "tdm", "duel", "instagib" };
 static bool Cg_FilterCreateServerMapList_Default(const MapListItemInfo *info) {
 
   for (size_t i = 0; i < lengthof(defaultGames); i++) {
-    if (q_str_has_token(info->games, defaultGames[i])) {
+    if (Str_HasToken(info->games, defaultGames[i])) {
       return true;
     }
   }

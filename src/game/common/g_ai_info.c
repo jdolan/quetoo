@@ -99,7 +99,7 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
     }
     char otherName[MAX_INFO_STRING_VALUE];
     InfoString_Get(other->userInfo, "name", otherName, sizeof(otherName));
-    if (q_strcmp(otherName, name) == 0) {
+    if (Str_Compare(otherName, name) == 0) {
       return true;
     }
   });
@@ -126,7 +126,7 @@ const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
   aiRosterIndex++;
 
-  q_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
+  Str_Copy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
   InfoString_Set(info, "skin", entry->skin);
   InfoString_Set(info, "guid", entry->guid);
@@ -137,9 +137,9 @@ const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
   InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
   char name[MAX_INFO_STRING_VALUE];
-  q_snprintf(name, sizeof(name), "%s%s", g_aiNamePrefix->string, entry->name);
+  Str_Format(name, sizeof(name), "%s%s", g_aiNamePrefix->string, entry->name);
   for (uint32_t suffix = 1; G_Ai_NameInUse(cl, name); suffix++) {
-    q_snprintf(name, sizeof(name), "%s%s %u", g_aiNamePrefix->string, entry->name, suffix);
+    Str_Format(name, sizeof(name), "%s%s %u", g_aiNamePrefix->string, entry->name, suffix);
   }
 
   InfoString_Set(info, "name", name);

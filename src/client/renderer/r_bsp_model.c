@@ -481,7 +481,7 @@ static void R_LoadBspLights(RenderBspModel *bsp) {
     out->radius = in->radius;
     out->intensity = in->intensity;
     out->bounds = in->bounds;
-    q_strlcpy(out->style, in->style, sizeof(out->style));
+    Str_Copy(out->style, in->style, sizeof(out->style));
     out->drift = in->drift;
     out->drawElements = bsp->drawElements + in->firstDrawElements;
     out->numDrawElements = in->numDrawElements;
@@ -734,7 +734,7 @@ static void R_SetupBspInlineModels(RenderModel *mod) {
   for (int32_t i = 0; i < mod->bsp->numInlineModels; i++, in++) {
 
     char name[MAX_QPATH];
-    q_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
+    Str_Format(name, sizeof(name), "%s#%d", mod->media.name, i);
 
     RenderModel *out = (RenderModel *) R_AllocMedia(name, sizeof(RenderModel), R_MEDIA_MODEL);
 

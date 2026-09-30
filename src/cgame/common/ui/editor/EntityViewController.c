@@ -75,7 +75,7 @@ static void setClassName(View *view, const char *className, bool enabled) {
 static char *vs(const Vec3 v) {
   static char buf[MAX_TOKEN_CHARS];
 
-  q_snprintf(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
+  Str_Format(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
   return buf;
 }
 
@@ -160,11 +160,11 @@ static void didEditEntity(EntityView *view, Entity *def) {
 
   if (view == this->add) {
 
-    if (!q_strlen(def->key) || !q_strlen(def->string)) {
+    if (!Str_Length(def->key) || !Str_Length(def->string)) {
       return;
     }
 
-    if (isBrushEntity(this->entity) && !q_strcmp(def->key, "origin")) {
+    if (isBrushEntity(this->entity) && !Str_Compare(def->key, "origin")) {
       Cg_Warn("Skipping origin on %s\n", cgi.EntityValue(this->entity->def, "classname")->string);
     } else {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
@@ -186,7 +186,7 @@ static void didEditTeamEntity(EntityView *view, Entity *def) {
 
   if (view == this->teamAdd) {
 
-    if (!q_strlen(def->key) || !q_strlen(def->string)) {
+    if (!Str_Length(def->key) || !Str_Length(def->string)) {
       return;
     }
 
@@ -467,7 +467,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         } else if (this->teamEntity && number == this->teamEntity->number) {
           // Preserve the selected light while refreshing team-level fields.
           $(this, setEntity, this->entity);
-        } else if (!q_strcmp(this->created, info)) {
+        } else if (!Str_Compare(this->created, info)) {
           $(this, setEntity, entity);
         }
       }
@@ -561,11 +561,11 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
 
     for (Entity *e = self->entity->def; e; e = e->next) {
 
-      if (!q_strncmp(e->key, "_tb_", 4)) {
+      if (!Str_CompareN(e->key, "_tb_", 4)) {
         continue;
       }
 
-      if (isBrushEntity(self->entity) && !q_strcmp(e->key, "origin")) {
+      if (isBrushEntity(self->entity) && !Str_Compare(e->key, "origin")) {
         continue;
       }
 
@@ -580,7 +580,7 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
     }
 
     const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
-    if (!q_strcmp(classname, "light")) {
+    if (!Str_Compare(classname, "light")) {
 
       const char *team = cgi.EntityValue(self->entity->def, "team")->nullableString;
       const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
@@ -590,11 +590,11 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
 
         for (Entity *e = self->teamEntity->def; e; e = e->next) {
 
-          if (!q_strncmp(e->key, "_tb_", 4)
-              || !q_strcmp(e->key, "classname")
-              || !q_strcmp(e->key, "origin")
-              || !q_strcmp(e->key, "team")
-              || !q_strcmp(e->key, "team_master")) {
+          if (!Str_CompareN(e->key, "_tb_", 4)
+              || !Str_Compare(e->key, "classname")
+              || !Str_Compare(e->key, "origin")
+              || !Str_Compare(e->key, "team")
+              || !Str_Compare(e->key, "team_master")) {
             continue;
           }
 

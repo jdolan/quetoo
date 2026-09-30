@@ -62,14 +62,14 @@ static const Entity *Cg_FindEntity(const Entity *from, const CGameEntityPredicat
  * @brief Predicate function testing whether an entity's targetname matches the given string.
  */
 static bool Cg_EntityTarget_Predicate(const Entity *e, void *data) {
-  return !q_strcmp(cgi.EntityValue(e, "targetname")->nullableString, data);
+  return !Str_Compare(cgi.EntityValue(e, "targetname")->nullableString, data);
 }
 
 /**
  * @brief Predicate function testing whether an entity's team key matches the given string.
  */
 static bool Cg_EntityTeam_Predicate(const Entity *e, void *data) {
-  return !q_strcmp(cgi.EntityValue(e, "team")->nullableString, data);
+  return !Str_Compare(cgi.EntityValue(e, "team")->nullableString, data);
 }
 
 /**
@@ -121,7 +121,7 @@ void Cg_LoadEntities(void) {
     const CGameEntityClass **clazz = cgameEntityClasses;
     for (size_t j = 0; j < cgameNumEntityClasses; j++, clazz++) {
 
-      if (!q_strcmp(classname, (*clazz)->classname)) {
+      if (!Str_Compare(classname, (*clazz)->classname)) {
 
         CGameEntity e = {
           .id = MAX_ENTITIES + (int32_t) cgameEntities->count,

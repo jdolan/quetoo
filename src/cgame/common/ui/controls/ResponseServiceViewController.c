@@ -35,7 +35,7 @@ static void enumerateCrosshairs(const char *path, void *data) {
 
   StripExtension(Basename(path), name);
 
-  intptr_t value = strtol(name + q_strlen("ch"), NULL, 10);
+  intptr_t value = strtol(name + Str_Length("ch"), NULL, 10);
   assert(value);
 
   $((Select *) data, addOption, name, (ident) value);
@@ -49,7 +49,7 @@ static Order sortAlphabetical(const ident a, const ident b) {
   const char *c = ((const Option *) a)->title->text;
   const char *d = ((const Option *) b)->title->text;
 
-  return q_strcmp(c, d) < 0 ? OrderAscending : OrderDescending;
+  return Str_Compare(c, d) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
@@ -152,7 +152,7 @@ static void enumerateHuds(const char *path, void *data) {
 
       for (size_t i = 0; i < select->options->count; i++) {
         Option *option = $(select->options, objectAtIndex, i);
-        if (!q_strcmp(option->title->text, name)) {
+        if (!Str_Compare(option->title->text, name)) {
           return;
         }
       }

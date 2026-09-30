@@ -91,11 +91,11 @@ static bool Parse_SkipWhitespace(Parser *parser, const ParseFlags flags) {
  */
 static bool Parse_SkipCommentLine(Parser *parser, const char *identifier) {
 
-  if (q_strncmp(parser->position.ptr, identifier, q_strlen(identifier))) {
+  if (Str_CompareN(parser->position.ptr, identifier, Str_Length(identifier))) {
     return false;
   }
 
-  parser->position.ptr += q_strlen(identifier);
+  parser->position.ptr += Str_Length(identifier);
   Parse_NextColumn(parser, 2);
 
   while (true) {
@@ -134,12 +134,12 @@ static bool Parse_SkipCommentLine(Parser *parser, const char *identifier) {
  */
 static bool Parse_SkipCommentBlock(Parser *parser, const char *start, const char *end) {
 
-  if (q_strncmp(parser->position.ptr, start, q_strlen(start))) {
+  if (Str_CompareN(parser->position.ptr, start, Str_Length(start))) {
     return false;
   }
 
-  parser->position.ptr += q_strlen(start);
-  Parse_NextColumn(parser, q_strlen(start));
+  parser->position.ptr += Str_Length(start);
+  Parse_NextColumn(parser, Str_Length(start));
 
   while (true) {
     char c = *parser->position.ptr;
@@ -148,9 +148,9 @@ static bool Parse_SkipCommentBlock(Parser *parser, const char *start, const char
       return false;
     }
 
-    if (!q_strncmp(parser->position.ptr, end, q_strlen(end))) {
-      parser->position.ptr += q_strlen(end); // found it!
-      Parse_NextColumn(parser, q_strlen(end));
+    if (!Str_CompareN(parser->position.ptr, end, Str_Length(end))) {
+      parser->position.ptr += Str_Length(end); // found it!
+      Parse_NextColumn(parser, Str_Length(end));
       return true;
     }
 
@@ -499,7 +499,7 @@ size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType t
   // if we had quotes...
   if (*scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
     // init sub-parser without quotes
-    scratch[q_strlen(scratch) - 1] = '\0';
+    scratch[Str_Length(scratch) - 1] = '\0';
 
     numParsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
   } else {

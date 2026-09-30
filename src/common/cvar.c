@@ -36,13 +36,13 @@ static bool Cvar_InfoValidate(const char *s) {
   if (!s) {
     return false;
   }
-  if (q_strstr(s, "\\")) {
+  if (Str_Find(s, "\\")) {
     return false;
   }
-  if (q_strstr(s, "\"")) {
+  if (Str_Find(s, "\"")) {
     return false;
   }
-  if (q_strstr(s, ";")) {
+  if (Str_Find(s, ";")) {
     return false;
   }
   return true;
@@ -69,7 +69,7 @@ static void Cvar_Legacy_enumerate(const HashTable *table, ident key, ident value
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
     Cvar *cvar = node->element;
-    if (q_str_ident_equal(cvar->name, ctx->name)) {
+    if (Str_IdentEqual(cvar->name, ctx->name)) {
       ctx->var = cvar;
       return;
     }
@@ -96,7 +96,7 @@ static Cvar *Cvar_Get_(const char *name, bool *legacy) {
       // only return the exact match
       for (const ListNode *node = list->head; node; node = node->next) {
         Cvar *cvar = node->element;
-        if (!q_strcmp(cvar->name, name)) {
+        if (!Str_Compare(cvar->name, name)) {
           return cvar;
         }
       }
@@ -226,32 +226,32 @@ static const char *Cvar_Stringify(const Cvar *var) {
   }
 
   static char str[MAX_STRING_CHARS];
-  q_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
+  Str_Format(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
-  if (q_strcmp(var->string, var->defaultString)) {
-    q_strlcat(str, va(" [\"^3%s^7\"]", var->defaultString), sizeof(str));
+  if (Str_Compare(var->string, var->defaultString)) {
+    Str_Append(str, va(" [\"^3%s^7\"]", var->defaultString), sizeof(str));
   }
 
   if (modCount) {
-    q_strlcat(str, " (", sizeof(str));
+    Str_Append(str, " (", sizeof(str));
     for (size_t i = 0; i < modCount; i++) {
       if (i) {
-        q_strlcat(str, ", ", sizeof(str));
+        Str_Append(str, ", ", sizeof(str));
       }
-      q_strlcat(str, modifiers[i], sizeof(str));
+      Str_Append(str, modifiers[i], sizeof(str));
     }
-    q_strlcat(str, ")", sizeof(str));
+    Str_Append(str, ")", sizeof(str));
   }
 
   if (var->description) {
-    q_strlcat(str, va("\n  ^2%s^7", var->description), sizeof(str));
+    Str_Append(str, va("\n  ^2%s^7", var->description), sizeof(str));
   }
 
   return str;
 }
 
 static Order Cvar_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcasecmp(((const Cvar *) a)->name, ((const Cvar *) b)->name);
+  const int32_t cmp = Str_CaseCompare(((const Cvar *) a)->name, ((const Cvar *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -302,7 +302,7 @@ static void Cvar_CompleteVar_enumerate(Cvar *var, void *data) {
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, List *matches) {
-  q_strlcpy(completePattern, pattern, sizeof(completePattern));
+  Str_Copy(completePattern, pattern, sizeof(completePattern));
   Cvar_Enumerate(Cvar_CompleteVar_enumerate, matches);
 }
 
@@ -422,12 +422,12 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
     // while latched variables can only be changed on map load
     if (var->flags & CVAR_LATCH) {
       if (var->latchedString) {
-        if (!q_strcmp(value, var->latchedString)) {
+        if (!Str_Compare(value, var->latchedString)) {
           return var;
         }
         Mem_Free(var->latchedString);
       } else {
-        if (!q_strcmp(value, var->string)) {
+        if (!Str_Compare(value, var->string)) {
           return var;
         }
       }
@@ -453,7 +453,7 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
     }
   }
 
-  if (!q_strcmp(var->string, value)) {
+  if (!Str_Compare(var->string, value)) {
     return var; // not changed
   }
 
@@ -677,11 +677,11 @@ static void Cvar_Set_f(void) {
 
   int32_t flags = 0;
 
-  if (!q_strcmp("seta", Cmd_Argv(0))) {
+  if (!Str_Compare("seta", Cmd_Argv(0))) {
     flags |= CVAR_ARCHIVE;
-  } else if (!q_strcmp("sets", Cmd_Argv(0))) {
+  } else if (!Str_Compare("sets", Cmd_Argv(0))) {
     flags |= CVAR_SERVER_INFO;
-  } else if (!q_strcmp("setu", Cmd_Argv(0))) {
+  } else if (!Str_Compare("setu", Cmd_Argv(0))) {
     flags |= CVAR_USER_INFO;
   }
 
@@ -707,11 +707,11 @@ typedef struct {
 
 static void Cvar_List_f_enumerate(Cvar *var, void *data) {
   CvarListCtx *ctx = data;
-  $(ctx->strs, add, q_strdup(Cvar_Stringify(var)));
+  $(ctx->strs, add, Str_Duplicate(Cvar_Stringify(var)));
 }
 
 static Order Cvar_List_sortfn(const ident a, const ident b) {
-  const int32_t cmp = q_strcolorcmp((const char *) a, (const char *) b);
+  const int32_t cmp = Str_ColorCompare((const char *) a, (const char *) b);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -851,7 +851,7 @@ void Cvar_Init(void) {
   for (int32_t i = 1; i < Com_Argc(); i++) {
     const char *s = Com_Argv(i);
 
-    if (!q_strncmp(s, "+set", 4)) {
+    if (!Str_CompareN(s, "+set", 4)) {
       Cmd_ExecuteString(va("%s %s \"%s\"\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
       Cvar *var = Cvar_Get(Com_Argv(i + 1));

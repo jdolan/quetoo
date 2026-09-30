@@ -436,7 +436,7 @@ size_t Mem_Size(void) {
 char *Mem_TagCopyString(const char *in, MemTag tag) {
   char *out;
 
-  out = Mem_TagMalloc(q_strlen(in) + 1, tag);
+  out = Mem_TagMalloc(Str_Length(in) + 1, tag);
   strcpy(out, in);
 
   return out;

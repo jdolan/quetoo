@@ -49,7 +49,7 @@ static char *Cg_StripWhitespace(char *str) {
   }
 
   if (*str) {
-    char *end = str + q_strlen(str) - 1;
+    char *end = str + Str_Length(str) - 1;
     while (end > str && isspace((unsigned char) *end)) {
       *end-- = '\0';
     }
@@ -73,7 +73,7 @@ static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
 
     info[count++] = cursor;
 
-    char *separator = q_strchr(cursor, '\\');
+    char *separator = Str_FindChar(cursor, '\\');
     if (separator == NULL) {
       return count;
     }
@@ -91,7 +91,7 @@ static void Cg_LoadClientSkin(CGameClientInfo *ci, char *line) {
 
   char *skinName, *faceName = line;
 
-  if ((skinName = q_strchr(faceName, ','))) {
+  if ((skinName = Str_FindChar(faceName, ','))) {
     *skinName++ = '\0';
 
     while (isspace(*skinName)) {
@@ -121,7 +121,7 @@ static void Cg_LoadClientSkin(CGameClientInfo *ci, char *line) {
 
     const RenderMeshFace *face = meshes[m].model->mesh->faces;
     for (int32_t i = 0; i < meshes[m].model->mesh->numFaces; i++, face++) {
-      if (!q_strcasecmp(faceName, face->name)) {
+      if (!Str_CaseCompare(faceName, face->name)) {
         meshes[m].skins[i] = cgi.LoadMaterial(skinName, ASSET_CONTEXT_PLAYERS);
         return;
       }
@@ -144,7 +144,7 @@ static bool Cg_LoadClientSkins(CGameClientInfo *ci, const char *skin) {
   char *buffer;
   int64_t len;
 
-  q_snprintf(path, sizeof(path), "players/%s/%s.skin", ci->model, skin);
+  Str_Format(path, sizeof(path), "players/%s/%s.skin", ci->model, skin);
 
   if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
     Cg_Debug("%s not found\n", path);
@@ -242,18 +242,18 @@ static bool Cg_ValidateSkin(CGameClientInfo *ci) {
  */
 static bool Cg_LoadClientModel(CGameClientInfo *ci, const char *model, const char *skin) {
 
-  q_strlcpy(ci->model, model, sizeof(ci->model));
-  q_strlcpy(ci->skin, skin, sizeof(ci->skin));
+  Str_Copy(ci->model, model, sizeof(ci->model));
+  Str_Copy(ci->skin, skin, sizeof(ci->skin));
 
   char path[MAX_QPATH];
 
-  q_snprintf(path, sizeof(path), "players/%s/head", ci->model);
+  Str_Format(path, sizeof(path), "players/%s/head", ci->model);
   ci->head = cgi.LoadModel(path);
 
-  q_snprintf(path, sizeof(path), "players/%s/upper", ci->model);
+  Str_Format(path, sizeof(path), "players/%s/upper", ci->model);
   ci->torso = cgi.LoadModel(path);
 
-  q_snprintf(path, sizeof(path), "players/%s/lower", ci->model);
+  Str_Format(path, sizeof(path), "players/%s/lower", ci->model);
   ci->legs = cgi.LoadModel(path);
 
   if (!ci->head || !ci->torso || !ci->legs) {
@@ -272,7 +272,7 @@ static bool Cg_LoadClientModel(CGameClientInfo *ci, const char *model, const cha
     return false;
   }
 
-  q_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
+  Str_Format(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
   ci->icon = cgi.LoadImage(path, IMG_PIC);
 
   if (!ci->icon) {
@@ -295,7 +295,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
   Cg_Debug("%s\n", s);
 
   // copy the entire string
-  q_strlcpy(ci->info, s, sizeof(ci->info));
+  Str_Copy(ci->info, s, sizeof(ci->info));
 
   i = 0;
   t = s;
@@ -315,7 +315,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
   // split info into tokens
   char infoString[sizeof(ci->info)];
   char *info[MAX_CLIENT_INFO_ENTRIES];
-  q_strlcpy(infoString, s, sizeof(infoString));
+  Str_Copy(infoString, s, sizeof(infoString));
 
   const size_t entries = Cg_SplitClientInfo(infoString, info, lengthof(info));
 
@@ -332,10 +332,10 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
     }
 
     // copy in the name
-    q_strlcpy(ci->name, info[1], sizeof(ci->name));
+    Str_Copy(ci->name, info[1], sizeof(ci->name));
 
     // check for valid skin
-    if ((v = q_strchr(info[2], '/'))) { // it's well-formed
+    if ((v = Str_FindChar(info[2], '/'))) { // it's well-formed
       *v = '\0';
 
       // load the models
@@ -388,7 +388,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
     const bool models = v && IS_MESH_MODEL(ci->head) && IS_MESH_MODEL(ci->torso) && IS_MESH_MODEL(ci->legs);
 
     if (!models || !Cg_ValidateSkin(ci)) {
-      if (!q_strcmp(s, DEFAULT_CLIENT_INFO)) {
+      if (!Str_Compare(s, DEFAULT_CLIENT_INFO)) {
         Cg_Error("Failed to load default client info\n");
       }
     }
@@ -477,7 +477,7 @@ static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
   char name[MAX_QPATH];
   StripExtension(path + strlen("players/"), name);
 
-  if (!q_strncasecmp(name, autocomplete->partial, strlen(autocomplete->partial))) {
+  if (!Str_CaseCompareN(name, autocomplete->partial, strlen(autocomplete->partial))) {
     cgi.AutocompleteMatch(autocomplete->matches, name, NULL);
   }
 }

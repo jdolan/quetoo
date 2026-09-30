@@ -103,7 +103,7 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Co
   int32_t soundIndex;
   if (customSound) {
     soundIndex = gi.SoundIndex(customSound);
-  } else if (gameLevel.items == ITEMS_QUAKE && !q_strcmp(ent->classname, "trigger_teleporter")) {
+  } else if (gameLevel.items == ITEMS_QUAKE && !Str_Compare(ent->classname, "trigger_teleporter")) {
     soundIndex = gameMedia.sounds.quakeTeleport[RandomRangei(0, 5)];
   } else {
     soundIndex = gameMedia.sounds.teleport;

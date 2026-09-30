@@ -60,7 +60,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
 
   // consume "{"
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strcmp(token, "{")) {
+  if (Str_Compare(token, "{")) {
     Com_Error(ERROR_FATAL, "Expected '{' after patchDef2, got '%s'\n", token);
   }
 
@@ -74,14 +74,14 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
 
   // read texture name
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strlen(token) > sizeof(patch->texture) - 1) {
+  if (Str_Length(token) > sizeof(patch->texture) - 1) {
     Com_Error(ERROR_FATAL, "Patch texture name \"%s\" is too long.\n", token);
   }
-  q_strlcpy(patch->texture, token, sizeof(patch->texture));
+  Str_Copy(patch->texture, token, sizeof(patch->texture));
 
   // read "( rows cols 0 0 0 )" — rows = outer dimension, cols = inner dimension
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strcmp(token, "(")) {
+  if (Str_Compare(token, "(")) {
     Com_Error(ERROR_FATAL, "Expected '(' for patch dimensions, got '%s'\n", token);
   }
 
@@ -96,7 +96,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
   Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &reserved, 1);
 
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strcmp(token, ")")) {
+  if (Str_Compare(token, ")")) {
     Com_Error(ERROR_FATAL, "Expected ')' after patch dimensions, got '%s'\n", token);
   }
 
@@ -112,7 +112,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
 
   // read "(" to begin control point grid
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strcmp(token, "(")) {
+  if (Str_Compare(token, "(")) {
     Com_Error(ERROR_FATAL, "Expected '(' for patch control points, got '%s'\n", token);
   }
 
@@ -121,7 +121,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
 
     // read "(" to begin row
     Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-    if (q_strcmp(token, "(")) {
+    if (Str_Compare(token, "(")) {
       Com_Error(ERROR_FATAL, "Expected '(' for patch row %d, got '%s'\n", row, token);
     }
 
@@ -130,7 +130,7 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
 
       // read "("
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (q_strcmp(token, "(")) {
+      if (Str_Compare(token, "(")) {
         Com_Error(ERROR_FATAL, "Expected '(' for control point [%d][%d], got '%s'\n", row, col, token);
       }
 
@@ -142,33 +142,33 @@ Patch *ParsePatch(Parser *parser, int32_t entityNum) {
 
       // read ")"
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (q_strcmp(token, ")")) {
+      if (Str_Compare(token, ")")) {
         Com_Error(ERROR_FATAL, "Expected ')' for control point [%d][%d], got '%s'\n", row, col, token);
       }
     }
 
     // read ")" to end row
     Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-    if (q_strcmp(token, ")")) {
+    if (Str_Compare(token, ")")) {
       Com_Error(ERROR_FATAL, "Expected ')' to end patch row %d, got '%s'\n", row, token);
     }
   }
 
   // read ")" to end control point grid
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strcmp(token, ")")) {
+  if (Str_Compare(token, ")")) {
     Com_Error(ERROR_FATAL, "Expected ')' to end patch control points, got '%s'\n", token);
   }
 
   // read "}" to end patchDef2
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strcmp(token, "}")) {
+  if (Str_Compare(token, "}")) {
     Com_Error(ERROR_FATAL, "Expected '}' to end patchDef2, got '%s'\n", token);
   }
 
   // read "}" to end brush containing the patch
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-  if (q_strcmp(token, "}")) {
+  if (Str_Compare(token, "}")) {
     Com_Error(ERROR_FATAL, "Expected '}' to end patch brush, got '%s'\n", token);
   }
 
@@ -247,7 +247,7 @@ static void EmitPatchCollisionBrush(MapEntity *entity,
   side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   side->surface = SURF_NO_DRAW;
   side->material = caulkMaterial;
-  q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+  Str_Copy(side->texture, "common/caulk", sizeof(side->texture));
   side->scale = MakeVec2(1.f, 1.f);
   numSides++;
 
@@ -258,7 +258,7 @@ static void EmitPatchCollisionBrush(MapEntity *entity,
   side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   side->surface = SURF_NO_DRAW;
   side->material = caulkMaterial;
-  q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+  Str_Copy(side->texture, "common/caulk", sizeof(side->texture));
   side->scale = MakeVec2(1.f, 1.f);
   numSides++;
 
@@ -278,7 +278,7 @@ static void EmitPatchCollisionBrush(MapEntity *entity,
     side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
     side->surface = SURF_NO_DRAW;
     side->material = caulkMaterial;
-    q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+    Str_Copy(side->texture, "common/caulk", sizeof(side->texture));
     side->scale = MakeVec2(1.f, 1.f);
     numSides++;
   }

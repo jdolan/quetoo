@@ -55,7 +55,7 @@ static CmdState cmdState;
  */
 void Cbuf_AddText(const char *text) {
 
-  const size_t l = q_strlen(text);
+  const size_t l = Str_Length(text);
 
   if (cmdState.buf.size + l >= cmdState.buf.maxSize) {
     Com_Warn("Overflow\n");
@@ -70,7 +70,7 @@ void Cbuf_AddText(const char *text) {
  */
 void Cbuf_InsertText(const char *text) {
 
-  if (text && q_strlen(text)) {
+  if (text && Str_Length(text)) {
     void *temp;
 
     // copy off any commands still remaining in the exec buffer
@@ -147,7 +147,7 @@ void Cbuf_Execute(void) {
     if (i >= sizeof(line)) {
       Com_Warn("Command exceeded %" PRIuPTR " chars, discarded\n", sizeof(line));
     } else {
-      q_strlcpy(line, text, i + 1);
+      Str_Copy(line, text, i + 1);
     }
 
     // delete the text from the command buffer and move remaining commands down
@@ -212,7 +212,7 @@ void Cmd_TokenizeString(const char *text) {
   }
 
   // prevent overflows
-  if (q_strlen(text) >= MAX_STRING_CHARS) {
+  if (Str_Length(text) >= MAX_STRING_CHARS) {
     Com_Warn("MAX_STRING_CHARS exceeded\n");
     return;
   }
@@ -228,10 +228,10 @@ void Cmd_TokenizeString(const char *text) {
 
     // set cmdState.args to everything after the command name
     if (cmdState.args.argc == 1) {
-      q_strlcpy(cmdState.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
+      Str_Copy(cmdState.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
       // strip off any trailing whitespace
-      size_t l = q_strlen(cmdState.args.args);
+      size_t l = Str_Length(cmdState.args.args);
       if (l > 0) {
         char *c = &cmdState.args.args[l - 1];
 
@@ -246,9 +246,9 @@ void Cmd_TokenizeString(const char *text) {
     }
 
     // expand console variables
-    if (*cmdState.args.argv[cmdState.args.argc] == '$' && q_strcmp(cmdState.args.argv[0], "alias")) {
+    if (*cmdState.args.argv[cmdState.args.argc] == '$' && Str_Compare(cmdState.args.argv[0], "alias")) {
       const char *c = Cvar_GetString(cmdState.args.argv[cmdState.args.argc] + 1);
-      q_strlcpy(cmdState.args.argv[cmdState.args.argc], c, MAX_TOKEN_CHARS);
+      Str_Copy(cmdState.args.argv[cmdState.args.argc], c, MAX_TOKEN_CHARS);
     }
 
     cmdState.args.argc++;
@@ -276,7 +276,7 @@ static void Cmd_Legacy_enumerate(const HashTable *table, ident key, ident value,
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
     Cmd *cmd = node->element;
-    if (q_str_ident_equal(cmd->name, ctx->name)) {
+    if (Str_IdentEqual(cmd->name, ctx->name)) {
       ctx->cmd = cmd;
       return;
     }
@@ -292,7 +292,7 @@ static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
       if (list->count == 1) { // only 1 entry, return it
         Cmd *cmd = list->head->element;
 
-        if (!caseSensitive || q_strcmp(cmd->name, name) == 0) {
+        if (!caseSensitive || Str_Compare(cmd->name, name) == 0) {
           return cmd;
         }
       } else {
@@ -300,7 +300,7 @@ static Cmd *Cmd_Get_(const char *name, const bool caseSensitive) {
         for (const ListNode *node = list->head; node; node = node->next) {
           Cmd *cmd = node->element;
 
-          if (!q_strcmp(cmd->name, name)) {
+          if (!Str_Compare(cmd->name, name)) {
             return cmd;
           }
         }
@@ -330,7 +330,7 @@ Cmd *Cmd_Get(const char *name) {
 }
 
 static Order Cmd_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcasecmp(((const Cmd *) a)->name, ((const Cmd *) b)->name);
+  const int32_t cmp = Str_CaseCompare(((const Cmd *) a)->name, ((const Cmd *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -534,15 +534,15 @@ static const char *Cmd_Stringify(const Cmd *cmd) {
   buffer[0] = '\0';
 
   if (cmd->Execute) {
-    q_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
+    Str_Append(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
 
     if (cmd->description) {
-      q_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
+      Str_Append(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
     }
   } else if (cmd->commands) {
-    q_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
+    Str_Append(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
   } else {
-    q_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
+    Str_Append(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
   }
 
   return buffer;
@@ -565,7 +565,7 @@ static void Cmd_CompleteCommand_enumerate(Cmd *cmd, void *data) {
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, List *matches) {
-  q_strlcpy(completePattern, pattern, sizeof(completePattern));
+  Str_Copy(completePattern, pattern, sizeof(completePattern));
   Cmd_Enumerate(Cmd_CompleteCommand_enumerate, matches);
 }
 
@@ -646,12 +646,12 @@ static void Cmd_Alias_f(void) {
 
   cmd[0] = '\0';
   for (int32_t i = 2; i < Cmd_Argc(); i++) {
-    q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+    Str_Append(cmd, Cmd_Argv(i), sizeof(cmd));
     if (i != (Cmd_Argc() - 1)) {
-      q_strlcat(cmd, " ", sizeof(cmd));
+      Str_Append(cmd, " ", sizeof(cmd));
     }
   }
-  q_strlcat(cmd, "\n", sizeof(cmd));
+  Str_Append(cmd, "\n", sizeof(cmd));
 
   Cmd_Alias(Cmd_Argv(1), cmd);
 }
@@ -662,11 +662,11 @@ typedef struct {
 
 static void Cmd_List_f_enumerate(Cmd *cmd, void *data) {
   CmdListCtx *ctx = data;
-  $(ctx->strs, add, q_strdup(Cmd_Stringify(cmd)));
+  $(ctx->strs, add, Str_Duplicate(Cmd_Stringify(cmd)));
 }
 
 static Order Cmd_List_sortfn(const ident a, const ident b) {
-  const int32_t cmp = q_strcolorcmp((const char *) a, (const char *) b);
+  const int32_t cmp = Str_ColorCompare((const char *) a, (const char *) b);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -708,10 +708,10 @@ static void Cmd_Exec_f(void) {
     return;
   }
 
-  q_strlcpy(path, Cmd_Argv(1), sizeof(path));
-  const size_t plen = q_strlen(path);
-  if (plen < 4 || q_strcmp(path + plen - 4, ".cfg") != 0) {
-    q_strlcat(path, ".cfg", sizeof(path));
+  Str_Copy(path, Cmd_Argv(1), sizeof(path));
+  const size_t plen = Str_Length(path);
+  if (plen < 4 || Str_Compare(path + plen - 4, ".cfg") != 0) {
+    Str_Append(path, ".cfg", sizeof(path));
   }
 
   if (Fs_Load(path, &buffer) == -1) {
@@ -774,7 +774,7 @@ void Cmd_Init(void) {
     const char *c = Com_Argv(i);
 
     // if we encounter a non-set command, consume until the next + or EOL
-    if (*c == '+' && q_strncmp(c, "+set", 4)) {
+    if (*c == '+' && Str_CompareN(c, "+set", 4)) {
       Cbuf_AddText(c + 1);
       i++;
 

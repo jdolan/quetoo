@@ -726,7 +726,7 @@ START_TEST(check_Movement_Names) {
     const PMovementInfo *info = Pm_Movement((PMovement) i);
 
     ck_assert_msg(info && info->name && *info->name, "movement %zu has no name", i);
-    ck_assert_msg(q_strcasecmp(info->name, "default"),
+    ck_assert_msg(Str_CaseCompare(info->name, "default"),
                   "movement %zu is named \"default\", which is reserved", i);
 
     PMovement resolved = (PMovement) -1;

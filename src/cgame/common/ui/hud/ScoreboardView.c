@@ -358,7 +358,7 @@ static void describe(const ScoreboardView *self, const GameScore *score, const c
 
   for (size_t i = 0; i + 1 < count; i++) {
     const char *value = $((ScoreboardView *) self, valueForField, score, i);
-    q_strlcat(text, va("%s%s %s", i ? "\n" : "", value, f[i].caption), sizeof(text));
+    Str_Append(text, va("%s%s %s", i ? "\n" : "", value, f[i].caption), sizeof(text));
   }
 
   *detail = va("%s", text);

@@ -105,7 +105,7 @@ void Cg_AddLight(const CGameLight *in) {
 float Cg_AnimateLight(float intensity, const char *style, float drift) {
 
   if (style && *style) {
-    const size_t len = q_strlen(style);
+    const size_t len = Str_Length(style);
     const uint32_t phaseOffset = (uint32_t)(drift * len * 100);
     const uint32_t time = cgi.client->unclampedTime + phaseOffset;
     const uint32_t styleIndex = (time / 100) % len;
@@ -145,7 +145,7 @@ float Cg_AnimateStageLight(const MaterialStage *stage) {
 static int32_t Cg_ResolveBspModel(const char *model) {
 
   for (int32_t i = 1; i < MAX_MODELS; i++) {
-    if (!q_strcmp(cgi.client->configStrings[CS_MODELS + i], model)) {
+    if (!Str_Compare(cgi.client->configStrings[CS_MODELS + i], model)) {
       return i;
     }
   }

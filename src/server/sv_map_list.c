@@ -28,7 +28,7 @@
  */
 static void Sv_RefreshMapList(void) {
 
-  if (q_strcmp(svs.maps.filename, sv_mapList->string) ||
+  if (Str_Compare(svs.maps.filename, sv_mapList->string) ||
       (*sv_mapList->string && Fs_LastModTime(sv_mapList->string) != svs.maps.modtime)) {
     Sv_InitMapList();
   }
@@ -152,7 +152,7 @@ void Sv_InitMapList(void) {
     return;
   }
 
-  q_strlcpy(svs.maps.filename, sv_mapList->string, sizeof(svs.maps.filename));
+  Str_Copy(svs.maps.filename, sv_mapList->string, sizeof(svs.maps.filename));
 
   svs.maps.modtime = Fs_LastModTime(sv_mapList->string);
 
@@ -166,7 +166,7 @@ void Sv_InitMapList(void) {
     Entity *e = (Entity *) node->element;
 
     const Entity *name = Entity_Value(e, "name");
-    if (q_strlen(name->string) == 0) {
+    if (Str_Length(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_mapList->string);
       Entity_Free(e);
     } else {

@@ -45,7 +45,7 @@ static void didEndEditing(TextView *textView) {
     const bool team = cgameHudState.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
 
     char command[MAX_PRINT_MSG];
-    q_snprintf(command, sizeof(command), "%s %.*s^7\n", team ? "sayTeam" : "say", MAX_PRINT_MSG - 32, line);
+    Str_Format(command, sizeof(command), "%s %.*s^7\n", team ? "sayTeam" : "say", MAX_PRINT_MSG - 32, line);
 
     cgi.Cbuf(command);
   }

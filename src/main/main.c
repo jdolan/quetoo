@@ -226,7 +226,7 @@ static void Warn(const char *msg) {
 static const char *StartupGame(void) {
 
   for (int32_t i = 1; i < Com_Argc() - 1; i++) {
-    if (!q_strcmp(Com_Argv(i), "+game")) {
+    if (!Str_Compare(Com_Argv(i), "+game")) {
 
       // a bare +game asks what the game is, and the next token is the command
       // after it rather than a name
@@ -269,7 +269,7 @@ static void Game_f(void) {
 
   // the provider is part of what is current, so a game that has since gained a
   // client game of its own is still a change worth making
-  if (!q_strcmp(game, Com_Game()) && !q_strcmp(cgame ? : "", Com_Cgame())) {
+  if (!Str_Compare(game, Com_Game()) && !Str_Compare(cgame ? : "", Com_Cgame())) {
     Com_Print("Game is already ^2%s^7\n", game);
     return;
   }
@@ -385,7 +385,7 @@ static void Init(void) {
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
 
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
-  if (q_strstr(Sys_ExecutablePath(), "-dedicated")) {
+  if (Str_Find(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
   }
 
@@ -568,7 +568,7 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL) == ERROR_SUCCESS) {
       const char *url_proto = "URL:Quetoo Protocol";
-      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) q_strlen(url_proto) + 1);
+      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) Str_Length(url_proto) + 1);
       RegSetValueEx(key, "URL Protocol", 0, REG_SZ, (const BYTE *) "", 1);
       RegCloseKey(key);
     }
@@ -577,8 +577,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
-      q_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exePath);
-      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) q_strlen(cmd) + 1);
+      Str_Format(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exePath);
+      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) Str_Length(cmd) + 1);
       RegCloseKey(cmd_key);
     }
   }
@@ -586,8 +586,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
   // Handle quetoo:// URI scheme launch (Linux / Windows pass the URL as argv).
   for (int32_t i = 1; i < argc; i++) {
-    if (!q_strncmp(argv[i], "quetoo://", 9)) {
-      Cbuf_AddText(va("connect %s\n", argv[i] + q_strlen("quetoo://")));
+    if (!Str_CompareN(argv[i], "quetoo://", 9)) {
+      Cbuf_AddText(va("connect %s\n", argv[i] + Str_Length("quetoo://")));
       break;
     }
   }

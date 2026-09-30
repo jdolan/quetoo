@@ -92,7 +92,7 @@ void Sv_InitMaster(void) {
 
   memset(&svs.master, 0, sizeof(svs.master));
 
-  if (!q_strlen(sv_master->string)) {
+  if (!Str_Length(sv_master->string)) {
     Com_Print("Master server disabled\n");
     return;
   }

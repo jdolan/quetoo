@@ -61,10 +61,10 @@ void EmitMaterials(void) {
     BspMaterial *out = &bspFile.materials[bspFile.numMaterials];
 
     const char *name = m->def->name;
-    if (!q_strncmp(name, "textures/", 9)) {
-      name += q_strlen("textures/");
+    if (!Str_CompareN(name, "textures/", 9)) {
+      name += Str_Length("textures/");
     }
-    q_strlcpy(out->name, name, sizeof(out->name));
+    Str_Copy(out->name, name, sizeof(out->name));
 
     bspFile.numMaterials++;
 
@@ -339,18 +339,18 @@ void EmitEntities(void) {
   for (int32_t i = 0; i < numEntities; i++) {
     const MapEntityKeyValue *e = entities[i].values;
     if (e) {
-      q_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
+      Str_Append(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {
-        q_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
+        Str_Append(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
         e = e->next;
       }
-      q_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
+      Str_Append(out, "}\n", MAX_BSP_ENTITIES_SIZE);
     }
 
     Progress("Emitting entities", 100.f * i / numEntities);
   }
 
-  const size_t len = q_strlen(out);
+  const size_t len = Str_Length(out);
 
   if (len == MAX_BSP_ENTITIES_SIZE - 1) {
     Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES_SIZE\n");

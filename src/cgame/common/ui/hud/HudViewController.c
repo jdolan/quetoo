@@ -226,7 +226,7 @@ static const char *hudResource(const char *hud, const char *file) {
  */
 static void checkHud(const char *hud) {
 
-  if (!q_strcmp(hud, HUD_DEFAULT)) {
+  if (!Str_Compare(hud, HUD_DEFAULT)) {
     return;
   }
 
@@ -349,7 +349,7 @@ static void reload(HudViewController *self) {
   $(self->viewController.view, addSubview, (View *) self->intermission);
 
   View *hud = loadHud(cg_hud->string);
-  if (hud == NULL && q_strcmp(cg_hud->string, HUD_DEFAULT)) {
+  if (hud == NULL && Str_Compare(cg_hud->string, HUD_DEFAULT)) {
     Cg_Warn("Falling back to the %s HUD\n", HUD_DEFAULT);
     hud = loadHud(HUD_DEFAULT);
   }

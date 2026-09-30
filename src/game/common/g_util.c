@@ -84,7 +84,7 @@ Box3 G_PlayerBounds(void) {
  */
 void G_InitPlayerSpawn(GameEntity *ent) {
 
-  if (!q_strcmp(ent->classname, "info_player_intermission")) {
+  if (!Str_Compare(ent->classname, "info_player_intermission")) {
     G_Ai_DropItemLikeNode(ent);
   }
 }
@@ -163,7 +163,7 @@ GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match) {
     if (!s) {
       continue;
     }
-    if (!q_strcasecmp(s, match)) {
+    if (!Str_CaseCompare(s, match)) {
       return ent;
     }
   }
@@ -520,13 +520,13 @@ const Gameplay *G_GameplayByName(const char *c) {
 
   if (c && *c) {
     char lower[64];
-    q_strlcpy(lower, c, sizeof(lower));
+    Str_Copy(lower, c, sizeof(lower));
     for (char *p = lower; *p; p++) {
       *p = (char) tolower((unsigned char) *p);
     }
 
     for (size_t i = 0; i < lengthof(gameplayModes); i++) {
-      if (!q_strcmp(lower, gameplayModes[i].name)) {
+      if (!Str_Compare(lower, gameplayModes[i].name)) {
         return &gameplayModes[i];
       }
     }
@@ -534,14 +534,14 @@ const Gameplay *G_GameplayByName(const char *c) {
     const char *mode = lower;
     int32_t id = GAMEPLAY_DEATHMATCH;
 
-    if (!q_strncmp(lower, "team_", 5)) {
+    if (!Str_CompareN(lower, "team_", 5)) {
       id |= GAMEPLAY_TEAMS;
       mode = lower + 5;
     }
 
-    if (!q_strncmp(mode, "insta", 5)) {
+    if (!Str_CompareN(mode, "insta", 5)) {
       id |= GAMEPLAY_INSTAGIB;
-    } else if (!q_strncmp(mode, "arena", 5)) {
+    } else if (!Str_CompareN(mode, "arena", 5)) {
       id |= GAMEPLAY_ARENA;
     }
 
@@ -583,7 +583,7 @@ GameTeam *G_TeamByName(const char *c) {
 
   for (int32_t i = 0; i < gameLevel.numTeams; i++) {
 
-    if (!q_strcolorcmp(gameTeamList[i].name, c)) {
+    if (!Str_ColorCompare(gameTeamList[i].name, c)) {
       return &gameTeamList[i];
     }
   }
@@ -637,7 +637,7 @@ GameClient *G_ClientByName(char *name) {
   int32_t match = INT32_MAX;
 
   G_ForEachClient(cl, {
-    const int32_t m = q_strcmp(name, cl->persistent.netName);
+    const int32_t m = Str_Compare(name, cl->persistent.netName);
     if (m < match) {
       client = cl;
       match = m;

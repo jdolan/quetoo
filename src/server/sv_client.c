@@ -94,7 +94,7 @@ static void Sv_ConfigStrings_f(void) {
   NetChan *ch = &serverClient->netChan;
 
   while (start < MAX_CONFIG_STRINGS) {
-    const size_t len = q_strlen(sv.configStrings[start]);
+    const size_t len = Str_Length(sv.configStrings[start]);
     if (len) {
       if (ch->message.size + len >= ch->message.maxSize - 48) {
         break;
@@ -257,7 +257,7 @@ static void Sv_UserStringCommand(const char *s) {
 
   Cmd_TokenizeString(s);
 
-  if (q_strchr(s, '\xFF')) { // catch end of message exploit
+  if (Str_FindChar(s, '\xFF')) { // catch end of message exploit
     Com_Warn("Illegal command from %s\n", Sv_NetaddrToString(serverClient));
     Sv_KickClient(serverClient, NULL);
     return;
@@ -265,7 +265,7 @@ static void Sv_UserStringCommand(const char *s) {
 
   for (c = userStringCmds; c->name; c++) {
 
-    if (!q_strcmp(Cmd_Argv(0), c->name)) {
+    if (!Str_Compare(Cmd_Argv(0), c->name)) {
       c->func();
       break;
     }
@@ -325,13 +325,13 @@ void Sv_ParseClientMessage(ServerClient *cl) {
 
         // leave room for ip stuffing, as the connect does; truncating instead
         // could leave a dangling key for the ip to complete
-        if (q_strlen(userInfo) >= sizeof(cl->userInfo) - 25) {
+        if (Str_Length(userInfo) >= sizeof(cl->userInfo) - 25) {
           Com_Print("Oversized user_info from %s\n", Sv_NetaddrToString(cl));
           Sv_KickClient(cl, "Bad user info");
           return;
         }
 
-        q_strlcpy(cl->userInfo, userInfo, sizeof(cl->userInfo));
+        Str_Copy(cl->userInfo, userInfo, sizeof(cl->userInfo));
         if (!Sv_UserInfoChanged(cl)) {
           return;
         }
@@ -345,7 +345,7 @@ void Sv_ParseClientMessage(ServerClient *cl) {
           Com_Warn("CL_CMD_ENTITY_INFO from %s but editor is disabled\n", Sv_NetaddrToString(cl));
           break;
         }
-        if (q_strlen(info)) {
+        if (Str_Length(info)) {
           if (number != -1 && (number < 0 || number >= sv_maxEntities->integer)) {
             Com_Warn("CL_CMD_ENTITY_INFO from %s: bad entity number %d\n", Sv_NetaddrToString(cl), number);
             break;

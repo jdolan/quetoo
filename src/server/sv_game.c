@@ -94,12 +94,12 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
   }
 
   // make sure it's actually changed
-  if (!q_strcmp(sv.configStrings[index], val)) {
+  if (!Str_Compare(sv.configStrings[index], val)) {
     return;
   }
 
   // change the string in sv.configStrings
-  q_strlcpy(sv.configStrings[index], val, sizeof(sv.configStrings[0]));
+  Str_Copy(sv.configStrings[index], val, sizeof(sv.configStrings[0]));
 
   if (svs.state >= SV_ACTIVE_GAME) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -232,7 +232,7 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *userData) {
  */
 static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCapture *captures, size_t capturesLen) {
 
-  if (!sv_statsUrl->string[0] || !q_strcmp(sv_statsUrl->string, "0") || sv_public->integer <= 0) {
+  if (!sv_statsUrl->string[0] || !Str_Compare(sv_statsUrl->string, "0") || sv_public->integer <= 0) {
     return;
   }
 
@@ -260,7 +260,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     );
 
     static char fragsUrl[MAX_STRING_CHARS];
-    q_snprintf(fragsUrl, sizeof(fragsUrl), "%s/api/frags", sv_statsUrl->string);
+    Str_Format(fragsUrl, sizeof(fragsUrl), "%s/api/frags", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &fragProperties, (ident) frags, fragsLen);
@@ -285,7 +285,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     );
 
     static char capturesUrl[MAX_STRING_CHARS];
-    q_snprintf(capturesUrl, sizeof(capturesUrl), "%s/api/captures", sv_statsUrl->string);
+    Str_Format(capturesUrl, sizeof(capturesUrl), "%s/api/captures", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &captureProperties, (ident) captures, capturesLen);

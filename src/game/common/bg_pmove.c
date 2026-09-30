@@ -101,7 +101,7 @@ bool Pm_MovementByName(const char *name, PMovement *movement) {
   }
 
   for (size_t i = 0; i < lengthof(movements); i++) {
-    if (!q_strcasecmp(movements[i].name, name)) {
+    if (!Str_CaseCompare(movements[i].name, name)) {
       *movement = (PMovement) i;
       return true;
     }

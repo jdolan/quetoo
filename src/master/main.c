@@ -120,23 +120,23 @@ static const char *discordWebhook;
  */
 static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bufSize) {
   char search[256];
-  q_snprintf(search, sizeof(search), "\\%s\\", key);
+  Str_Format(search, sizeof(search), "\\%s\\", key);
 
-  const char *newline = q_strchr(info, '\n');
+  const char *newline = Str_FindChar(info, '\n');
 
-  const char *p = q_strstr(info, search);
+  const char *p = Str_Find(info, search);
   if (!p || (newline && p >= newline)) {
     return false;
   }
 
-  p += q_strlen(search);
+  p += Str_Length(search);
 
   size_t len;
   const char *end = strpbrk(p, "\\\n");
   if (end) {
     len = end - p;
   } else {
-    len = q_strlen(p);
+    len = Str_Length(p);
   }
   len = Minui64(len, bufSize - 1);
 
@@ -180,13 +180,13 @@ static void Ms_DiscordNotify(const MasterServer *server, const char *playerName,
   const int32_t port = ntohs(server->addr.sin_port);
 
   char json[1024];
-  q_snprintf(json, sizeof(json),
+  Str_Format(json, sizeof(json),
     "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
     escapedPlayer, escapedHost, escapedMap,
     numClients, server->maxClients,
     ip, port);
 
-  Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
+  Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, Str_Length(json));
   $($$(RESTClient, sharedInstance), postAsync, discordWebhook, body, NULL, NULL, NULL);
   release(body);
 }
@@ -201,7 +201,7 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
   char val[256];
 
   if (Ms_InfoValue(status, "sv_hostname", val, sizeof(val))) {
-    q_strcolorstrip(val, server->hostname);
+    Str_StripColors(val, server->hostname);
   }
 
   if (Ms_InfoValue(status, "sv_protocol", val, sizeof(val))) {
@@ -215,15 +215,15 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
 
   bool mapChanged = false;
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
-    mapChanged = q_strcmp(server->map, val) != 0;
-    q_strlcpy(server->map, val, sizeof(server->map));
+    mapChanged = Str_Compare(server->map, val) != 0;
+    Str_Copy(server->map, val, sizeof(server->map));
   }
 
   char newPlayers[MAX_CLIENTS][64];
   int32_t newCount = 0;
 
   // player lines begin after the infostring's trailing newline
-  const char *line = q_strchr(status, '\n');
+  const char *line = Str_FindChar(status, '\n');
   while (line && newCount < MAX_CLIENTS) {
     line++; // skip the newline
     if (*line == '\0') {
@@ -231,23 +231,23 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
     }
 
     // isolate the current player line to prevent cross-line key lookups
-    const char *lineEnd = q_strchr(line, '\n');
+    const char *lineEnd = Str_FindChar(line, '\n');
     char curLine[256];
     if (lineEnd) {
-      q_strlcpy(curLine, line, (size_t) (lineEnd - line) + 1 < sizeof(curLine) ? (size_t)(lineEnd - line) + 1 : sizeof(curLine));
+      Str_Copy(curLine, line, (size_t) (lineEnd - line) + 1 < sizeof(curLine) ? (size_t)(lineEnd - line) + 1 : sizeof(curLine));
     } else {
-      q_strlcpy(curLine, line, sizeof(curLine));
+      Str_Copy(curLine, line, sizeof(curLine));
     }
 
     char name[64] = { 0 };
     char aiVal[4] = { 0 };
     if (Ms_InfoValue(curLine, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
-      q_strcolorstrip(name, stripped);
+      Str_StripColors(name, stripped);
       Ms_InfoValue(curLine, "ai", aiVal, sizeof(aiVal));
       Com_Verbose("Player: %s ai=%s\n", stripped, aiVal[0] ? aiVal : "(none)");
       if (!atoi(aiVal)) {
-        q_strlcpy(newPlayers[newCount], stripped, sizeof(newPlayers[newCount]));
+        Str_Copy(newPlayers[newCount], stripped, sizeof(newPlayers[newCount]));
         newCount++;
       }
     }
@@ -262,7 +262,7 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
     for (int32_t i = 0; i < newCount; i++) {
       bool found = false;
       for (int32_t j = 0; j < oldCount; j++) {
-        if (!q_strcmp(newPlayers[i], server->players[j])) {
+        if (!Str_Compare(newPlayers[i], server->players[j])) {
           found = true;
           break;
         }
@@ -275,7 +275,7 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
 
   server->numClients = newCount;
   for (int32_t i = 0; i < newCount; i++) {
-    q_strlcpy(server->players[i], newPlayers[i], sizeof(server->players[i]));
+    Str_Copy(server->players[i], newPlayers[i], sizeof(server->players[i]));
   }
 }
 
@@ -467,12 +467,12 @@ static bool Ms_BlacklistServer(const struct sockaddr_in *from) {
   const char *ip = inet_ntoa(from->sin_addr);
 
   char ipPort[64];
-  q_snprintf(ipPort, sizeof(ipPort), "%s:%d", ip, ntohs(from->sin_port));
+  Str_Format(ipPort, sizeof(ipPort), "%s:%d", ip, ntohs(from->sin_port));
 
   for (size_t i = 0; i < blacklist.count; i++) {
     const char *rule = blacklist.rules[i];
 
-    if (GlobMatch(rule, q_strchr(rule, ':') ? ipPort : ip, GLOB_FLAGS_NONE)) {
+    if (GlobMatch(rule, Str_FindChar(rule, ':') ? ipPort : ip, GLOB_FLAGS_NONE)) {
       return true;
     }
   }
@@ -522,7 +522,7 @@ static void Ms_SendChallenge(MasterServer *server, time_t now) {
   char buffer[32];
   memcpy(buffer, "\xFF\xFF\xFF\xFF", 4);
 
-  const int32_t len = q_snprintf(buffer + 4, sizeof(buffer) - 4, "challenge %u", server->challenge);
+  const int32_t len = Str_Format(buffer + 4, sizeof(buffer) - 4, "challenge %u", server->challenge);
 
   Com_Verbose("Challenging %s\n", stos(server));
 
@@ -535,7 +535,7 @@ static void Ms_SendChallenge(MasterServer *server, time_t now) {
  */
 static uint32_t Ms_ParseChallenge(const char *cmd, const char *name) {
 
-  const char *c = cmd + q_strlen(name);
+  const char *c = cmd + Str_Length(name);
   while (*c == ' ') {
     c++;
   }
@@ -652,7 +652,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   // protocol, for enumerating the registry. An argument we cannot parse falls back
   // to the current protocol rather than dumping the whole list.
   int32_t protocol = PROTOCOL_MAJOR;
-  const char *p = cmd + q_strlen("getservers");
+  const char *p = cmd + Str_Length("getservers");
   while (isspace((unsigned char) *p)) p++;
   if (*p) {
     char *end;
@@ -670,7 +670,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
   const char *servers = "\xFF\xFF\xFF\xFF" "servers ";
-  Mem_WriteBuffer(&buf, servers, q_strlen(servers));
+  Mem_WriteBuffer(&buf, servers, Str_Length(servers));
 
   uint32_t i = 0;
   for (const ListNode *s = serverList ? serverList->head : NULL; s; s = s->next) {
@@ -753,11 +753,11 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 
   cmd += 4;
 
-  if (!q_strncasecmp(cmd, "heartbeat", 9)) {
+  if (!Str_CaseCompareN(cmd, "heartbeat", 9)) {
     Ms_Heartbeat(from, cmd, line);
-  } else if (!q_strncasecmp(cmd, "shutdown", 8)) {
+  } else if (!Str_CaseCompareN(cmd, "shutdown", 8)) {
     Ms_RemoveServer(from, cmd);
-  } else if (!q_strncasecmp(cmd, "getservers", 10)) {
+  } else if (!Str_CaseCompareN(cmd, "getservers", 10)) {
     Ms_GetServers(from, cmd);
   } else {
     Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
@@ -846,12 +846,12 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   int32_t i;
   for (i = 0; i < Com_Argc(); i++) {
 
-    if (!q_strcmp(Com_Argv(i), "-v") || !q_strcmp(Com_Argv(i), "--verbose")) {
+    if (!Str_Compare(Com_Argv(i), "-v") || !Str_Compare(Com_Argv(i), "--verbose")) {
       verbose = true;
       continue;
     }
 
-    if (!q_strcmp(Com_Argv(i), "-d") || !q_strcmp(Com_Argv(i), "--debug")) {
+    if (!Str_Compare(Com_Argv(i), "-d") || !Str_Compare(Com_Argv(i), "--debug")) {
       debug = true;
       continue;
     }

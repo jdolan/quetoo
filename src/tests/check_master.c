@@ -190,7 +190,7 @@ static int32_t query_master(const char *cmd, bool dispatch) {
 
   if (dispatch) {
     char data[256];
-    q_snprintf(data, sizeof(data), "\xFF\xFF\xFF\xFF%s", cmd);
+    Str_Format(data, sizeof(data), "\xFF\xFF\xFF\xFF%s", cmd);
     Ms_ParseMessage(&to, data);
   } else {
     Ms_GetServers(&to, cmd);
@@ -208,7 +208,7 @@ static int32_t query_master(const char *cmd, bool dispatch) {
   }
 
   const char *header = "\xFF\xFF\xFF\xFF" "servers ";
-  const size_t headerLen = q_strlen(header);
+  const size_t headerLen = Str_Length(header);
 
   ck_assert_msg(received >= (ssize_t) headerLen, "Truncated reply to '%s'", cmd);
   ck_assert_msg(!memcmp(buffer, header, headerLen), "Corrupt reply to '%s'", cmd);

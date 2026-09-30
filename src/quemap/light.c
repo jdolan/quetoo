@@ -55,9 +55,9 @@ static const Entity *FindTeamMaster(const char *team) {
   Entity **e = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++, e++) {
     const char *classname = Entity_Value(*e, "classname")->string;
-    if (!q_strcmp(classname, "light")) {
+    if (!Str_Compare(classname, "light")) {
       const char *entTeam = Entity_Value(*e, "team")->nullableString;
-      if (entTeam && !q_strcmp(entTeam, team)) {
+      if (entTeam && !Str_Compare(entTeam, team)) {
         if (Entity_Value(*e, "team_master")->parsed) {
           return *e;
         }
@@ -74,7 +74,7 @@ static const Entity *FindTeamMaster(const char *team) {
 static Light *LightForEntity(const Entity *entity) {
 
   const char *classname = Entity_Value(entity, "classname")->string;
-  if (!q_strcmp(classname, "light")) {
+  if (!Str_Compare(classname, "light")) {
 
     Light *light = AllocLight();
 
@@ -83,7 +83,7 @@ static Light *LightForEntity(const Entity *entity) {
     light->radius = Entity_Value(entity, "radius")->value;
     light->color = Entity_Value(entity, "color")->vec3;
     light->intensity = Entity_Value(entity, "intensity")->value;
-    q_strlcpy(light->style, Entity_Value(entity, "style")->string, sizeof(light->style));
+    Str_Copy(light->style, Entity_Value(entity, "style")->string, sizeof(light->style));
 
     const float drift = Entity_Value(entity, "drift")->value;
 
@@ -98,7 +98,7 @@ static Light *LightForEntity(const Entity *entity) {
       light->intensity = light->intensity ?: Entity_Value(master, "intensity")->value;
 
       if (!*light->style) {
-        q_strlcpy(light->style, Entity_Value(master, "style")->string, sizeof(light->style));
+        Str_Copy(light->style, Entity_Value(master, "style")->string, sizeof(light->style));
       }
 
       if (!light->drift) {
@@ -134,7 +134,7 @@ static Light *LightForEntity(const Entity *entity) {
       const CollisionBsp *bsp = Cm_Bsp();
       for (int32_t i = 0; i < bsp->numEntities; i++) {
         const char *targetname = Entity_Value(bsp->entities[i], "targetname")->nullableString;
-        if (!q_strcmp(targetname, target)) {
+        if (!Str_Compare(targetname, target)) {
           light->targetEntity = i;
           break;
         }
@@ -294,7 +294,7 @@ void EmitLights(void) {
     out->bounds = light->visibleBounds;
     out->targetEntity = light->targetEntity;
     out->material = light->material;
-    q_strlcpy(out->style, light->style, sizeof(out->style));
+    Str_Copy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 
     if (light->targetEntity == -1) {

@@ -42,7 +42,7 @@ static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...
     return;
   }
 
-  q_strlcpy(self->rows[self->numRows].name, name, DIAGNOSTICS_ROW_NAME);
+  Str_Copy(self->rows[self->numRows].name, name, DIAGNOSTICS_ROW_NAME);
 
   va_list args;
   va_start(args, fmt);
@@ -126,7 +126,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
   assert(cell);
 
-  if (q_strcmp(column->identifier, _name) == 0) {
+  if (Str_Compare(column->identifier, _name) == 0) {
     $(cell->text, setText, this->rows[row].name);
     $((View *) cell->text, addClassName, "caption");
   } else {

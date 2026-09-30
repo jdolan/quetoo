@@ -389,16 +389,16 @@ static inline Color __attribute__ ((warn_unused_result)) Color_Mix(const Color a
  */
 static inline bool __attribute__ ((warn_unused_result)) Color_Parse(const char *s, Color *color) {
 
-  const size_t length = q_strlen(s);
+  const size_t length = Str_Length(s);
   if (length != 6 && length != 8) {
     return false;
   }
 
   char buffer[9];
-  q_strlcpy(buffer, s, sizeof(buffer));
+  Str_Copy(buffer, s, sizeof(buffer));
 
   if (length == 6) {
-    q_strlcat(buffer, "ff", sizeof(buffer));
+    Str_Append(buffer, "ff", sizeof(buffer));
   }
 
   uint32_t rgba;
@@ -495,7 +495,7 @@ static inline const char * __attribute__ ((warn_unused_result)) Color_Unparse(co
   const Color32 c = Color_Color32(color);
 
   static char buffer[12];
-  q_snprintf(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
+  Str_Format(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
 
   return buffer;
 }

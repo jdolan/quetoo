@@ -428,9 +428,9 @@ static void Cg_Voice_down_f(void) {
   // button commands are passed the scancode and time, so a bare bind presents a number here
   if (name[0] && !isdigit(name[0])) {
 
-    if (!q_strcmp(name, "team")) {
+    if (!Str_Compare(name, "team")) {
       cgi.StartVoice(VOICE_CHANNEL_TEAM);
-    } else if (!q_strcmp(name, "all")) {
+    } else if (!Str_Compare(name, "all")) {
       cgi.StartVoice(VOICE_CHANNEL_ALL);
     } else {
       cgi.Print("Unknown voice channel \"%s\"\n", name);

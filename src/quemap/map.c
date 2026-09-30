@@ -345,7 +345,7 @@ static void UnparseBrush(MapBrush *brush, Parser *parser) {
     char token[MAX_TOKEN_CHARS];
     while (true) {
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (!q_strcmp(token, "}")) {
+      if (!Str_Compare(token, "}")) {
         break;
       }
     }
@@ -432,29 +432,29 @@ static void SetMaterialFlags(MapBrushSide *side) {
     }
   }
 
-  if (!q_strcmp(side->texture, "common/caulk")) {
+  if (!Str_Compare(side->texture, "common/caulk")) {
     side->surface |= SURF_NO_DRAW;
-  } else if (!q_strcmp(side->texture, "common/clip")) {
+  } else if (!Str_Compare(side->texture, "common/clip")) {
     side->contents |= CONTENTS_PLAYER_CLIP;
-  } else if (!q_strcmp(side->texture, "common/dust")) {
+  } else if (!Str_Compare(side->texture, "common/dust")) {
     side->contents |= CONTENTS_ATMOSPHERIC;
-  } else if (!q_strcmp(side->texture, "common/hint")) {
+  } else if (!Str_Compare(side->texture, "common/hint")) {
     side->surface |= SURF_HINT;
-  } else if (!q_strcmp(side->texture, "common/ladder")) {
+  } else if (!Str_Compare(side->texture, "common/ladder")) {
     side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
-  } else if (!q_strcmp(side->texture, "common/monsterclip")) {
+  } else if (!Str_Compare(side->texture, "common/monsterclip")) {
     side->contents |= CONTENTS_MONSTER_CLIP;
-  } else if (!q_strcmp(side->texture, "common/origin")) {
+  } else if (!Str_Compare(side->texture, "common/origin")) {
     side->contents |= CONTENTS_ORIGIN;
-  } else if (!q_strcmp(side->texture, "common/portal")) {
+  } else if (!Str_Compare(side->texture, "common/portal")) {
     side->surface |= SURF_PORTAL;
-  } else if (!q_strcmp(side->texture, "common/skip")) {
+  } else if (!Str_Compare(side->texture, "common/skip")) {
     side->surface |= SURF_SKIP;
-  } else if (!q_strcmp(side->texture, "common/sky")) {
+  } else if (!Str_Compare(side->texture, "common/sky")) {
     side->surface |= SURF_SKY;
-  } else if (!q_strcmp(side->texture, "common/trigger")) {
+  } else if (!Str_Compare(side->texture, "common/trigger")) {
     side->surface |= SURF_NO_DRAW;
-  } else if (!q_strcmp(side->texture, "common/weather")) {
+  } else if (!Str_Compare(side->texture, "common/weather")) {
     side->contents |= CONTENTS_ATMOSPHERIC;
   }
 
@@ -471,13 +471,13 @@ static MapBrush *ParseBrush(Parser *parser, MapEntity *entity) {
 
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
-  if (q_strcmp(token, "{")) {
+  if (Str_Compare(token, "{")) {
     return NULL;
   }
 
   // Check if this is a patchDef2 block
   if (Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
-    if (!q_strcmp(token, "patchDef2")) {
+    if (!Str_Compare(token, "patchDef2")) {
       const int32_t entityNum = (int32_t) (entity - entities);
       Patch *patch = ParsePatch(parser, entityNum);
       if (patch) {
@@ -507,7 +507,7 @@ static MapBrush *ParseBrush(Parser *parser, MapEntity *entity) {
       Com_Error(ERROR_FATAL, "EOF without closing brush\n");
     }
 
-    if (!q_strcmp(token, "}")) {
+    if (!Str_Compare(token, "}")) {
       Parse_SkipToken(parser, PARSE_DEFAULT);
       break;
     }
@@ -525,7 +525,7 @@ static MapBrush *ParseBrush(Parser *parser, MapEntity *entity) {
     for (int32_t i = 0; i < 3; i++) {
 
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (q_strcmp(token, "(")) {
+      if (Str_Compare(token, "(")) {
         Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
       }
 
@@ -534,7 +534,7 @@ static MapBrush *ParseBrush(Parser *parser, MapEntity *entity) {
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i].z, 1);
 
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (q_strcmp(token, ")")) {
+      if (Str_Compare(token, ")")) {
         Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
       }
     }
@@ -542,16 +542,16 @@ static MapBrush *ParseBrush(Parser *parser, MapEntity *entity) {
     // read the texture name
     Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
-    if (q_strlen(token) > sizeof(side->texture) - 1) {
+    if (Str_Length(token) > sizeof(side->texture) - 1) {
       Com_Error(ERROR_FATAL, "Texture name \"%s\" is too long.\n", token);
     }
 
-    q_strlcpy(side->texture, token, sizeof(side->texture));
+    Str_Copy(side->texture, token, sizeof(side->texture));
 
     // detect Valve-220 vs standard Q1/Q3 format by peeking for '['
     Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token));
 
-    if (!q_strcmp(token, "[")) {
+    if (!Str_Compare(token, "[")) {
       // Valve-220: [ ux uy uz shift_x ] [ vx vy vz shift_y ] rotation scale_x scale_y
       if (mapFormat == MAP_FORMAT_UNKNOWN) {
         mapFormat = MAP_FORMAT_VALVE;
@@ -560,7 +560,7 @@ static MapBrush *ParseBrush(Parser *parser, MapEntity *entity) {
       }
       for (int32_t i = 0; i < 2; i++) {
         Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
-        if (q_strcmp(token, "[")) {
+        if (Str_Compare(token, "[")) {
           Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
         }
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].x, 1);
@@ -568,7 +568,7 @@ static MapBrush *ParseBrush(Parser *parser, MapEntity *entity) {
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].z, 1);
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].w, 1); // shift
         Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
-        if (q_strcmp(token, "]")) {
+        if (Str_Compare(token, "]")) {
           Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", numBrushes, token);
         }
       }
@@ -802,7 +802,7 @@ static MapEntity *ParseEntity(Parser *parser) {
 
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
-  if (!q_strcmp(token, "{")) {
+  if (!Str_Compare(token, "{")) {
 
     if (numEntities == MAX_BSP_ENTITIES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES\n");
@@ -823,12 +823,12 @@ static MapEntity *ParseEntity(Parser *parser) {
         Com_Error(ERROR_FATAL, "EOF without closing entity\n");
       }
 
-      if (!q_strcmp(token, "}")) {
+      if (!Str_Compare(token, "}")) {
         Parse_SkipToken(parser, PARSE_DEFAULT);
         break;
       }
 
-      if (!q_strcmp(token, "{")) {
+      if (!Str_Compare(token, "{")) {
         MapBrush *brush = ParseBrush(parser, entity);
         if (brush) {
           entity->numBrushes++;
@@ -884,10 +884,10 @@ static MapEntity *ParseEntity(Parser *parser) {
     // associated with them will still be available. Their brushes will point to their
     // defining MapEntity.
     const char *classname = ValueForKey(entity, "classname", NULL);
-    if (!q_strcmp(classname, "func_group") ||
-      !q_strcmp(classname, "misc_dust") ||
-      !q_strcmp(classname, "misc_sprite") ||
-      !q_strcmp(classname, "misc_weather")) {
+    if (!Str_Compare(classname, "func_group") ||
+      !Str_Compare(classname, "misc_dust") ||
+      !Str_Compare(classname, "misc_sprite") ||
+      !Str_Compare(classname, "misc_weather")) {
       MoveBrushesToWorld(entity);
       MovePatchesToWorld(entity);
     }

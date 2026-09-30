@@ -128,7 +128,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   // write to a temp file, then rename
   char tempname[MAX_OS_PATH];
   StripExtension(filename, tempname);
-  q_strlcat(tempname, ".tmp", sizeof(tempname));
+  Str_Append(tempname, ".tmp", sizeof(tempname));
 
   File *file = Fs_OpenWrite(tempname);
   if (!file) {
@@ -147,7 +147,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   if (Fs_Rename(tempname, filename)) {
     Com_Print("Downloaded %s (%zu bytes)\n", filename, downloadedLength);
 
-    if (q_strstr(filename, ".pk3")) {
+    if (Str_Find(filename, ".pk3")) {
       Fs_AddToSearchPath(filename);
     }
   } else {
@@ -226,7 +226,7 @@ int32_t Cl_ParseConfigString(void) {
     Com_Error(ERROR_DROP, "Invalid index %i\n", i);
   }
 
-  q_strlcpy(cl.configStrings[i], Net_ReadString(&netMessage), MAX_STRING_CHARS);
+  Str_Copy(cl.configStrings[i], Net_ReadString(&netMessage), MAX_STRING_CHARS);
 
   const char *s = cl.configStrings[i];
 
@@ -353,7 +353,7 @@ static void Cl_ParseServerData(void) {
   }
 
   char game[MAX_QPATH];
-  q_strlcpy(game, s, sizeof(game));
+  Str_Copy(game, s, sizeof(game));
 
   s = Net_ReadString(&netMessage);
 
@@ -362,7 +362,7 @@ static void Cl_ParseServerData(void) {
   }
 
   char cgame[MAX_QPATH];
-  q_strlcpy(cgame, s, sizeof(cgame));
+  Str_Copy(cgame, s, sizeof(cgame));
 
   // ensure we have the required cgame installed
   if (!Sys_HasLibrary(cgame, "cgame")) {
@@ -376,12 +376,12 @@ static void Cl_ParseServerData(void) {
 
   // only the module we hold can say which one it is, and it says so only once a
   // load has succeeded, so a load that failed is retried rather than remembered
-  if (!cls.cgame || q_strcmp(cls.cgame->name, cgame)) {
+  if (!cls.cgame || Str_Compare(cls.cgame->name, cgame)) {
     Cl_InitCgame();
   }
 
   // ensure the module we loaded is the module the server expects
-  if (q_strcmp(cls.cgame->name, cgame)) {
+  if (Str_Compare(cls.cgame->name, cgame)) {
     Com_Error(ERROR_DROP, "Server requires client game %s, you loaded %s\n", cgame, cls.cgame->name);
   }
 

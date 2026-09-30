@@ -445,7 +445,7 @@ static void G_MoveType_Push_Blocked(GameEntity *ent, GameEntity *other) {
   const Vec3 dir = ent->velocity;
 
   // func_bob gets its own obituary; every other pusher uses the generic crush message
-  const uint32_t mod = q_strcmp(ent->classname, "func_bob") ? MOD_CRUSH : MOD_BOB;
+  const uint32_t mod = Str_Compare(ent->classname, "func_bob") ? MOD_CRUSH : MOD_BOB;
 
   // Dead entities (meat boxes) are obliterated immediately, no throttle needed.
   // Symmetrical to non-meat entities which get G_Explode + freed.
@@ -1367,7 +1367,7 @@ static void G_func_door_GoingDown(GameEntity *ent) {
   }
 
   ent->moveInfo.state = MOVE_STATE_GOING_DOWN;
-  if (q_strcmp(ent->classname, "func_door_rotating")) {
+  if (Str_Compare(ent->classname, "func_door_rotating")) {
     G_MoveInfo_Linear_Init(ent, ent->moveInfo.startOrigin, G_func_door_Bottom);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Bottom);
@@ -1400,7 +1400,7 @@ static void G_func_door_GoingUp(GameEntity *ent, GameEntity *activator) {
     ent->s.sound = ent->moveInfo.soundMiddle;
   }
   ent->moveInfo.state = MOVE_STATE_GOING_UP;
-  if (q_strcmp(ent->classname, "func_door_rotating")) {
+  if (Str_Compare(ent->classname, "func_door_rotating")) {
     G_MoveInfo_Linear_Init(ent, ent->moveInfo.endOrigin, G_func_door_Top);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Top);
@@ -1584,7 +1584,7 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const Collisio
 
   ent->touchTime = gameLevel.time + 10000;
 
-  if (ent->message && q_strlen(ent->message)) {
+  if (ent->message && Str_Length(ent->message)) {
     gi.WriteByte(SV_CMD_CENTER_PRINT);
     gi.WriteString(ent->message);
     gi.Unicast(other->client, true);

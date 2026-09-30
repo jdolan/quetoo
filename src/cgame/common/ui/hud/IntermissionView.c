@@ -69,7 +69,7 @@ static Image *thumbnail(const char *map) {
   release(mapshots);
 
   if (image == NULL) {
-    image = Cg_LoadImage(va("ui/backgrounds/%u", (uint32_t) (q_strlen(map) % 6)));
+    image = Cg_LoadImage(va("ui/backgrounds/%u", (uint32_t) (Str_Length(map) % 6)));
   }
 
   return image;
@@ -192,7 +192,7 @@ static void updateBindings(View *self, ident data) {
 
     // the server publishes the intermission's clock here once the match clock stops
     const char *time = cgi.ConfigString(CS_TIME);
-    if (!q_strncmp(time, "^7", 2)) {
+    if (!Str_CompareN(time, "^7", 2)) {
       time += 2;
     }
 

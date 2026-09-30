@@ -57,7 +57,7 @@ static const RenderMeshTag *R_MeshTag(const RenderModel *mod, const char *name, 
   const RenderMeshTag *tag = &model->tags[frame * model->numTags];
 
   for (int32_t i = 0; i < model->numTags; i++, tag++) {
-    if (!q_strcmp(name, tag->name)) {
+    if (!Str_Compare(name, tag->name)) {
       return tag;
     }
   }

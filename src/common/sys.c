@@ -112,7 +112,7 @@ void Sys_Relaunch(void) {
   size_t length = 0;
 
   for (int32_t i = 0; i < Com_Argc(); i++) {
-    const int32_t n = q_snprintf(cmd + length, sizeof(cmd) - length, "%s\"%s\"",
+    const int32_t n = Str_Format(cmd + length, sizeof(cmd) - length, "%s\"%s\"",
                                  i ? " " : "", Com_Argv(i));
     if (n < 0 || (size_t) n >= sizeof(cmd) - length) {
       Com_Warn("Failed to build the relaunch command line\n");
@@ -169,13 +169,13 @@ const char *Sys_UserDir(void) {
     }
 
     {
-      const size_t prefLen = q_strlen(pref);
+      const size_t prefLen = Str_Length(pref);
       if (prefLen > 0 && (pref[prefLen - 1] == '/' || pref[prefLen - 1] == '\\')) {
         pref[prefLen - 1] = '\0';
       }
     }
 
-    q_strlcpy(userDir, pref, sizeof(userDir));
+    Str_Copy(userDir, pref, sizeof(userDir));
     SDL_free(pref);
   }
 
@@ -207,7 +207,7 @@ static void Sys_CheckLibrary(const char *path) {
 
     char *actual = realpath(image, NULL);
     if (actual) {
-      loaded = !q_strcmp(actual, expected);
+      loaded = !Str_Compare(actual, expected);
       free(actual);
     }
   }
@@ -345,21 +345,21 @@ void Sys_InstallDesktopEntry(void) {
   }
 
   // Skip system-managed installs; the package manager owns desktop integration.
-  if (q_strncmp(exe, "/usr/", 5) == 0) {
+  if (Str_CompareN(exe, "/usr/", 5) == 0) {
     return;
   }
 
   // Derive install prefix by stripping /bin/<name>.
   char prefix[MAX_OS_PATH];
-  q_strlcpy(prefix, exe, sizeof(prefix));
-  char *bin = q_strstr(prefix, "/bin/");
+  Str_Copy(prefix, exe, sizeof(prefix));
+  char *bin = Str_Find(prefix, "/bin/");
   if (!bin) {
     return;
   }
   *bin = '\0';
 
   char iconPath[MAX_OS_PATH];
-  q_snprintf(iconPath, sizeof(iconPath),
+  Str_Format(iconPath, sizeof(iconPath),
     "%s/share/icons/hicolor/256x256/apps/quetoo.png", prefix);
 
   // Destination: ~/.local/share/applications/quetoo.desktop
@@ -368,23 +368,23 @@ void Sys_InstallDesktopEntry(void) {
     const char *xdg = getenv("XDG_DATA_HOME");
     char dataHome[MAX_OS_PATH];
     if (xdg && *xdg) {
-      q_strlcpy(dataHome, xdg, sizeof(dataHome));
+      Str_Copy(dataHome, xdg, sizeof(dataHome));
     } else {
-      q_snprintf(dataHome, sizeof(dataHome), "%s/.local/share", getenv("HOME") ? getenv("HOME") : "");
+      Str_Format(dataHome, sizeof(dataHome), "%s/.local/share", getenv("HOME") ? getenv("HOME") : "");
     }
-    q_snprintf(desktopDest, sizeof(desktopDest), "%s/applications/quetoo.desktop", dataHome);
+    Str_Format(desktopDest, sizeof(desktopDest), "%s/applications/quetoo.desktop", dataHome);
   }
 
   // Skip writing if Exec= already points at this binary (no change needed).
   char expectedExec[MAX_OS_PATH];
-  q_snprintf(expectedExec, sizeof(expectedExec), "Exec=%s", exe);
+  Str_Format(expectedExec, sizeof(expectedExec), "Exec=%s", exe);
   if (SDL_GetPathInfo(desktopDest, NULL)) {
     FILE *f = fopen(desktopDest, "r");
     if (f) {
       char contents[4096] = "";
       fread(contents, 1, sizeof(contents) - 1, f);
       fclose(f);
-      const bool upToDate = q_strstr(contents, expectedExec) != NULL;
+      const bool upToDate = Str_Find(contents, expectedExec) != NULL;
       if (upToDate) {
         return;
       }
@@ -392,9 +392,9 @@ void Sys_InstallDesktopEntry(void) {
   }
 
   char dir[MAX_OS_PATH];
-  q_strlcpy(dir, desktopDest, sizeof(dir));
+  Str_Copy(dir, desktopDest, sizeof(dir));
   {
-    char *slash = q_strrchr(dir, '/');
+    char *slash = Str_FindLastChar(dir, '/');
     if (slash) { *slash = '\0'; }
   }
   SDL_CreateDirectory(dir);
@@ -456,13 +456,13 @@ void Sys_InstallLocalBin(void) {
   static const char *names[] = { "quetoo", "quemap", "quetoo-dedicated", NULL };
 
   const char *exe = Sys_ExecutablePath();
-  if (!exe || q_strncmp(exe, "/usr/", 5) == 0) {
+  if (!exe || Str_CompareN(exe, "/usr/", 5) == 0) {
     return;
   }
 
   char prefix[MAX_OS_PATH];
-  q_strlcpy(prefix, exe, sizeof(prefix));
-  char *bin = q_strstr(prefix, "/bin/");
+  Str_Copy(prefix, exe, sizeof(prefix));
+  char *bin = Str_Find(prefix, "/bin/");
   if (!bin) {
     return;
   }
@@ -471,26 +471,26 @@ void Sys_InstallLocalBin(void) {
   char localBin[MAX_OS_PATH];
   {
     const char *home = getenv("HOME");
-    q_snprintf(localBin, sizeof(localBin), "%s/.local/bin", home ? home : "");
+    Str_Format(localBin, sizeof(localBin), "%s/.local/bin", home ? home : "");
   }
   SDL_CreateDirectory(localBin);
 
   for (const char * const *name = names; *name; name++) {
     char src[MAX_OS_PATH];
-    q_snprintf(src, sizeof(src), "%s/bin/%s", prefix, *name);
+    Str_Format(src, sizeof(src), "%s/bin/%s", prefix, *name);
 
     if (!SDL_GetPathInfo(src, NULL)) {
       continue;
     }
 
     char dest[MAX_OS_PATH];
-    q_snprintf(dest, sizeof(dest), "%s/%s", localBin, *name);
+    Str_Format(dest, sizeof(dest), "%s/%s", localBin, *name);
 
     char current[MAX_OS_PATH] = { 0 };
     const ssize_t rlen = readlink(dest, current, sizeof(current) - 1);
     if (rlen > 0) {
       current[rlen] = '\0';
-      if (q_strcmp(current, src) == 0) {
+      if (Str_Compare(current, src) == 0) {
         continue;
       }
       SDL_RemovePath(dest);
@@ -519,8 +519,8 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
   char **strings = backtrace_symbols(symbols, symbolCount);
 
   for (uint32_t i = start, s = 0; s < maxCount && i < (uint32_t) symbolCount; i++, s++) {
-    q_strlcat(buf, strings[i], sizeof(buf));
-    q_strlcat(buf, "\n", sizeof(buf));
+    Str_Append(buf, strings[i], sizeof(buf));
+    Str_Append(buf, "\n", sizeof(buf));
   }
 
   free(strings);
@@ -551,21 +551,21 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
     BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
 
     if (!result) {
-      q_strlcat(buf, "> ???\n", sizeof(buf));
+      Str_Append(buf, "> ???\n", sizeof(buf));
       continue;
     }
 
     // we don't care about UCRT/Windows SDK stuff
-    if (!q_strcmp(symbol->Name, "invoke_main") || !q_strncmp(symbol->Name, "__scrt_", 7)) {
+    if (!Str_Compare(symbol->Name, "invoke_main") || !Str_CompareN(symbol->Name, "__scrt_", 7)) {
       break;
     }
 
     // check for line number support
     if (SymGetLineFromAddr(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
-      char *last_slash = q_strrchr(line.FileName, '\\');
+      char *last_slash = Str_FindLastChar(line.FileName, '\\');
 
       if (!last_slash)
-        last_slash = q_strrchr(line.FileName, '/');
+        last_slash = Str_FindLastChar(line.FileName, '/');
 
       if (!last_slash)
         last_slash = line.FileName;
@@ -573,30 +573,30 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
         last_slash++;
 
       char frame[512];
-      q_snprintf(frame, sizeof(frame), "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
-      q_strlcat(buf, frame, sizeof(buf));
+      Str_Format(frame, sizeof(frame), "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+      Str_Append(buf, frame, sizeof(buf));
     }
     else {
       char frame[512];
-      q_snprintf(frame, sizeof(frame), "> %s (unknown:unknown)\n", symbol->Name);
-      q_strlcat(buf, frame, sizeof(buf));
+      Str_Format(frame, sizeof(frame), "> %s (unknown:unknown)\n", symbol->Name);
+      Str_Append(buf, frame, sizeof(buf));
     }
   }
 
   free(symbol);
 #else
-  q_strlcat(buf, "Backtrace not supported.\n", sizeof(buf));
+  Str_Append(buf, "Backtrace not supported.\n", sizeof(buf));
 #endif
 
   // cut off the last \n
   {
-    size_t blen = q_strlen(buf);
+    size_t blen = Str_Length(buf);
     if (blen > 0 && buf[blen - 1] == '\n') {
       buf[blen - 1] = '\0';
     }
   }
 
-  return q_strdup(buf);
+  return Str_Duplicate(buf);
 }
 
 /**
@@ -623,7 +623,7 @@ static void Sys_EnsureCrashLogPath(void) {
   char *dir = NULL;
   SDL_asprintf(&dir, "%s/default", Sys_UserDir());
   SDL_CreateDirectory(dir);
-  q_snprintf(crashLogPath, sizeof(crashLogPath), "%s/crash.log", dir);
+  Str_Format(crashLogPath, sizeof(crashLogPath), "%s/crash.log", dir);
   free(dir);
 
 #if !defined(_WIN32)
@@ -656,7 +656,7 @@ static void Sys_WriteCrashLog(const char *text) {
  */
 static char *Sys_UrlEncode(const char *str) {
 
-  const size_t max = q_strlen(str) * 3 + 1;
+  const size_t max = Str_Length(str) * 3 + 1;
   char *out = malloc(max);
   char *p = out;
 
@@ -664,7 +664,7 @@ static char *Sys_UrlEncode(const char *str) {
     if (isalnum((unsigned char) *s) || *s == '-' || *s == '_' || *s == '.' || *s == '~') {
       *p++ = *s;
     } else {
-      p += q_snprintf(p, out + max - p, "%%%02X", (unsigned char) *s);
+      p += Str_Format(p, out + max - p, "%%%02X", (unsigned char) *s);
     }
   }
   *p = '\0';
@@ -705,7 +705,7 @@ void Sys_Raise(const char *msg) {
     // Truncate the dialog message to avoid oversized message boxes
     char *dialogMsg = NULL;
     SDL_asprintf(&dialogMsg, "%s\n\nFull report saved to:\n%s", crash, crashLogPath);
-    if (q_strlen(dialogMsg) > CRASH_REPORT_DIALOG_MAX) {
+    if (Str_Length(dialogMsg) > CRASH_REPORT_DIALOG_MAX) {
       dialogMsg[CRASH_REPORT_DIALOG_MAX] = '\0';
     }
 
@@ -722,7 +722,7 @@ void Sys_Raise(const char *msg) {
                  CRASH_REPORT_GITHUB_URL, encodedBody);
     free(encodedBody);
 
-    if (q_strlen(issueUrl) > CRASH_REPORT_URL_MAX) {
+    if (Str_Length(issueUrl) > CRASH_REPORT_URL_MAX) {
       issueUrl[CRASH_REPORT_URL_MAX] = '\0';
     }
 
@@ -844,7 +844,7 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
       continue;
     }
     (void) write(fds[i], header, sizeof(header) - 1);
-    (void) write(fds[i], sigName, q_strlen(sigName));
+    (void) write(fds[i], sigName, Str_Length(sigName));
 #if HAVE_EXECINFO
     backtrace_symbols_fd(frames, count, fds[i]);
 #endif

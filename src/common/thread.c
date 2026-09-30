@@ -168,7 +168,7 @@ WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, Wo
           t->status = THREAD_RUNNING;
           t->options = options;
 
-          q_strlcpy(t->name, name, sizeof(t->name));
+          Str_Copy(t->name, name, sizeof(t->name));
 
           t->Run = run;
           t->data = data;

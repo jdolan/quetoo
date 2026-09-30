@@ -279,16 +279,16 @@ void G_SetTeamNames(void) {
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
 
     if (i != TEAM_RED) {
-      q_strlcat(teamInfo, "\\", sizeof(teamInfo));
+      Str_Append(teamInfo, "\\", sizeof(teamInfo));
     }
 
-    q_strlcat(teamInfo, va("%d", gameTeamList[i].id), sizeof(teamInfo));
-    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
-    q_strlcat(teamInfo, gameTeamList[i].name, sizeof(teamInfo));
-    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
-    q_strlcat(teamInfo, va("%d", gameTeamList[i].color), sizeof(teamInfo));
-    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
-    q_strlcat(teamInfo, Color_Unparse(gameTeamList[i].shirt), sizeof(teamInfo));
+    Str_Append(teamInfo, va("%d", gameTeamList[i].id), sizeof(teamInfo));
+    Str_Append(teamInfo, "\\", sizeof(teamInfo));
+    Str_Append(teamInfo, gameTeamList[i].name, sizeof(teamInfo));
+    Str_Append(teamInfo, "\\", sizeof(teamInfo));
+    Str_Append(teamInfo, va("%d", gameTeamList[i].color), sizeof(teamInfo));
+    Str_Append(teamInfo, "\\", sizeof(teamInfo));
+    Str_Append(teamInfo, Color_Unparse(gameTeamList[i].shirt), sizeof(teamInfo));
   }
 
   gi.SetConfigString(CS_TEAM_INFO, teamInfo);
@@ -560,7 +560,7 @@ char *G_FormatTime(uint32_t time) {
     c = "^7";
   }
 
-  q_snprintf(formattedTime, sizeof(formattedTime), "%s%2u:%02u", c, m, s);
+  Str_Format(formattedTime, sizeof(formattedTime), "%s%2u:%02u", c, m, s);
 
   lastTime = time;
 
@@ -655,7 +655,7 @@ static PMovement G_CoerceMovement(void) {
 
   PMovement movement = gameLevel.requested.movement;
 
-  if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
+  if (Str_Compare(g_movement->string, "default")) { // "default" defers to the level
     if (!Pm_MovementByName(g_movement->string, &movement)) {
       G_Warn("Unknown movement \"%s\", using %s\n",
               g_movement->string, Pm_Movement(movement)->name);
@@ -696,7 +696,7 @@ static GameplayId G_CoerceGameplay(void) {
 
   GameplayId gameplay = gameLevel.requested.gameplay;
 
-  if (q_strcmp(g_gameplay->string, "default")) { // "default" defers to the level
+  if (Str_Compare(g_gameplay->string, "default")) { // "default" defers to the level
     gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
 
     gi.SetCvarString(g_gameplay->name, G_GameplayById(gameplay)->name); // reject garbage values
@@ -823,7 +823,7 @@ static void G_CheckRules(void) {
 
     int32_t numTeams;
 
-    if (!q_strcmp(g_numTeams->string, "default")) {
+    if (!Str_Compare(g_numTeams->string, "default")) {
       numTeams = -1; // G_InitNumTeams will pick this up
     } else {
       numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
@@ -966,7 +966,7 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  q_strlcpy(name, G_GameplayById(gameLevel.gameplay)->label, size);
+  Str_Copy(name, G_GameplayById(gameLevel.gameplay)->label, size);
 
   G_FormatGameName(name, size);
 

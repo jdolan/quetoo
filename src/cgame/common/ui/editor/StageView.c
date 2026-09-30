@@ -238,21 +238,21 @@ static const char *summary(const StageView *this) {
 
   const bool collapsed = $((View *) this, hasClassName, "collapsed");
 
-  q_snprintf(buf, sizeof(buf), "%s %d: %s", collapsed ? "[+]" : "[-]", index, name);
+  Str_Format(buf, sizeof(buf), "%s %d: %s", collapsed ? "[+]" : "[-]", index, name);
 
   const char *sep = " (";
   for (size_t i = 0; i < lengthof(stageFlags); i++) {
     if (this->stage->flags & stageFlags[i].flag) {
       char flag[MAX_QPATH];
-      q_strlcpy(flag, stageFlags[i].identifier + strlen("stage"), sizeof(flag));
+      Str_Copy(flag, stageFlags[i].identifier + strlen("stage"), sizeof(flag));
       flag[0] = (char) tolower(flag[0]);
-      q_strlcat(buf, va("%s%s", sep, flag), sizeof(buf));
+      Str_Append(buf, va("%s%s", sep, flag), sizeof(buf));
       sep = ", ";
     }
   }
 
   if (strcmp(sep, " (")) {
-    q_strlcat(buf, ")", sizeof(buf));
+    Str_Append(buf, ")", sizeof(buf));
   }
 
   return buf;
@@ -385,17 +385,17 @@ static void didEndEditingStageTexture(TextView *textView) {
 
   const char *name = textView->attributedText->chars;
 
-  if (!q_strcmp(name, stageAssetName(this->stage))) {
+  if (!Str_Compare(name, stageAssetName(this->stage))) {
     return;
   }
 
-  if (!q_strcmp(name, "portal") || !q_strcmp(name, "reflect")) {
+  if (!Str_Compare(name, "portal") || !Str_Compare(name, "reflect")) {
     *this->stage->asset.name = '\0';
     *this->stage->asset.path = '\0';
     this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_ANIMATION | STAGE_MASK_SUBVIEW);
-    this->stage->flags |= !q_strcmp(name, "portal") ? STAGE_PORTAL : STAGE_REFLECT;
+    this->stage->flags |= !Str_Compare(name, "portal") ? STAGE_PORTAL : STAGE_REFLECT;
   } else if (*name) {
-    q_strlcpy(this->stage->asset.name, name, sizeof(this->stage->asset.name));
+    Str_Copy(this->stage->asset.name, name, sizeof(this->stage->asset.name));
     this->stage->flags &= ~STAGE_MASK_SUBVIEW;
     if (!(this->stage->flags & STAGE_FLARE)) {
       this->stage->flags |= STAGE_TEXTURE;
@@ -438,9 +438,9 @@ static void completionsForStageTexture_enumerate(const char *path, void *data) {
   char completion[MAX_QPATH];
 
   if (ext == NULL) {
-    q_snprintf(completion, sizeof(completion), "%s/", name);
+    Str_Format(completion, sizeof(completion), "%s/", name);
   } else {
-    if (q_strcasecmp(ext, ".png") && q_strcasecmp(ext, ".jpg") && q_strcasecmp(ext, ".tga")) {
+    if (Str_CaseCompare(ext, ".png") && Str_CaseCompare(ext, ".jpg") && Str_CaseCompare(ext, ".tga")) {
       return;
     }
 
@@ -449,14 +449,14 @@ static void completionsForStageTexture_enumerate(const char *path, void *data) {
     const char *suffixes[] = { "_norm", "_spec", "_tint" };
     for (size_t i = 0; i < lengthof(suffixes); i++) {
       const size_t len = strlen(completion), slen = strlen(suffixes[i]);
-      if (len > slen && !q_strcmp(completion + len - slen, suffixes[i])) {
+      if (len > slen && !Str_Compare(completion + len - slen, suffixes[i])) {
         return;
       }
     }
   }
 
   for (size_t i = 0; i < completions->count; i++) {
-    if (!q_strcmp(((String *) $(completions, objectAtIndex, i))->chars, completion)) {
+    if (!Str_Compare(((String *) $(completions, objectAtIndex, i))->chars, completion)) {
       return;
     }
   }
@@ -470,7 +470,7 @@ static void completionsForStageTexture_enumerate(const char *path, void *data) {
  * @brief Comparator for completionsForStageTexture.
  */
 static Order completionsForStageTexture_compare(const ident a, const ident b) {
-  return (Order) Maxi(-1, Mini(1, q_strcmp(((String *) a)->chars, ((String *) b)->chars)));
+  return (Order) Maxi(-1, Mini(1, Str_Compare(((String *) a)->chars, ((String *) b)->chars)));
 }
 
 /**
@@ -538,7 +538,7 @@ static void didToggleStageFlag(Checkbox *checkbox) {
 
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_ANIMATION | STAGE_ENVMAP);
-      q_strlcpy(this->stage->asset.name, STAGE_FLARE_SPRITE, sizeof(this->stage->asset.name));
+      Str_Copy(this->stage->asset.name, STAGE_FLARE_SPRITE, sizeof(this->stage->asset.name));
     }
 
     if (flag->flag == STAGE_ANIMATION) {
@@ -560,7 +560,7 @@ static void didToggleStageFlag(Checkbox *checkbox) {
 
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags |= STAGE_TEXTURE;
-      q_strlcpy(this->stage->asset.name, this->material->def->basename, sizeof(this->stage->asset.name));
+      Str_Copy(this->stage->asset.name, this->material->def->basename, sizeof(this->stage->asset.name));
     }
 
     if (flag->flag == STAGE_ANIMATION) {
@@ -669,7 +669,7 @@ static void didSetStageValue(Slider *slider, double value) {
   const char *identifier = ((View *) slider)->identifier;
 
   for (size_t i = 0; i < lengthof(stageParams); i++) {
-    if (!q_strcmp(identifier, stageParams[i].identifier)) {
+    if (!Str_Compare(identifier, stageParams[i].identifier)) {
 
       if (isLightColor(stageParams[i].offset) && Vec3_Equal(this->stage->light.color, Vec3_Zero())) {
         this->stage->light.color = cgi.MaterialLightColor(this->material->def, this->stage);

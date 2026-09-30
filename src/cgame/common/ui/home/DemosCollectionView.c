@@ -110,7 +110,7 @@ static void enumerateDemos(const char *path, void *data) {
   }
 
   // these are read verbatim from disk with no guarantee of NUL-termination; a corrupt or
-  // malicious file that fills a whole field could otherwise send q_strlcpy's strlen scanning
+  // malicious file that fills a whole field could otherwise send Str_Copy's strlen scanning
   // past it into whatever follows on the stack
   header.map[sizeof(header.map) - 1] = '\0';
   header.message[sizeof(header.message) - 1] = '\0';
@@ -126,7 +126,7 @@ static void enumerateDemos(const char *path, void *data) {
   // out. The minor is the client game's, so it is only ours to judge when the recording names
   // the module we are running: another module's demo plays under that module, which has its
   // own answer, and hiding it here would hide something playable
-  const bool ours = !q_strcmp(header.cgame, GAME_NAME);
+  const bool ours = !Str_Compare(header.cgame, GAME_NAME);
 
   if (header.protocolMajor != PROTOCOL_MAJOR ||
       (ours && header.protocolMinor != PROTOCOL_MINOR)) {
@@ -140,10 +140,10 @@ static void enumerateDemos(const char *path, void *data) {
 
   DemoListItemInfo *info = calloc(1, sizeof(*info));
 
-  q_strlcpy(info->filename, path, sizeof(info->filename));
-  q_strlcpy(info->map, header.map, sizeof(info->map));
-  q_strlcpy(info->message, header.message, sizeof(info->message));
-  q_strlcpy(info->title, header.title, sizeof(info->title));
+  Str_Copy(info->filename, path, sizeof(info->filename));
+  Str_Copy(info->map, header.map, sizeof(info->map));
+  Str_Copy(info->message, header.message, sizeof(info->message));
+  Str_Copy(info->title, header.title, sizeof(info->title));
   info->duration = header.duration;
   info->favorite = header.favorite != 0;
 

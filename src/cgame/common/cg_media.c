@@ -70,13 +70,13 @@ static RenderAnimation *Cg_LoadAnimatedSprite(RenderAtlas *atlas, char *basePath
   assert(lastFrame > firstFrame);
 
   char formatPath[MAX_QPATH];
-  q_snprintf(formatPath, sizeof(formatPath), "%s%s", basePath, seqNumFmt);
+  Str_Format(formatPath, sizeof(formatPath), "%s%s", basePath, seqNumFmt);
 
   char name[MAX_QPATH];
   const uint32_t length = (lastFrame - firstFrame) + 1;
   const RenderImage *images[length];
   for (uint32_t i = 0; i < length; i++) {
-    q_snprintf(name, MAX_QPATH, formatPath, i + firstFrame);
+    Str_Format(name, MAX_QPATH, formatPath, i + firstFrame);
     images[i] = (RenderImage *) cgi.LoadAtlasImage(atlas, name, IMG_SPRITE);
   }
 
@@ -134,17 +134,17 @@ void Cg_LoadMedia(void) {
   cgameMedia.sounds.gib = cgi.LoadSample("gibs/common/gib", ASSET_CONTEXT_SOUNDS);
 
   for (uint32_t i = 0; i < lengthof(cgameMedia.sounds.hits); i++) {
-    q_snprintf(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
+    Str_Format(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
     cgameMedia.sounds.hits[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
   for (uint32_t i = 0; i < lengthof(cgameMedia.sounds.machinegunFire); i++) {
-    q_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
+    Str_Format(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
     cgameMedia.sounds.machinegunFire[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
   for (uint32_t i = 0; i < lengthof(cgameMedia.sounds.machinegunHit); i++) {
-    q_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIu32, i + 1);
+    Str_Format(name, sizeof(name), "weapons/machinegun/hit_%" PRIu32, i + 1);
     cgameMedia.sounds.machinegunHit[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
@@ -223,22 +223,22 @@ void Cg_LoadMedia(void) {
   decalAtlas = cgi.LoadAtlas("cg_decal_atlas");
 
   for (size_t i = 0; i < lengthof(cgameMedia.decals.bullet); i++) {
-    q_snprintf(name, sizeof(name), "decals/bullet_%zd", i);
+    Str_Format(name, sizeof(name), "decals/bullet_%zd", i);
     cgameMedia.decals.bullet[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cgameMedia.decals.blood); i++) {
-    q_snprintf(name, sizeof(name), "decals/blood_%zd", i);
+    Str_Format(name, sizeof(name), "decals/blood_%zd", i);
     cgameMedia.decals.blood[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cgameMedia.decals.burn); i++) {
-    q_snprintf(name, sizeof(name), "decals/burn_%zd", i);
+    Str_Format(name, sizeof(name), "decals/burn_%zd", i);
     cgameMedia.decals.burn[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cgameMedia.decals.slug); i++) {
-      q_snprintf(name, sizeof(name), "decals/slug_%zd", i);
+      Str_Format(name, sizeof(name), "decals/slug_%zd", i);
       cgameMedia.decals.slug[i] = cgi.LoadAtlasImage(decalAtlas, name, IMG_SPRITE);
   }
 

@@ -282,7 +282,7 @@ void Net_Config(NetSrc source, bool up) {
     const Cvar *netPort = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
     if (*sock == 0) {
-      const char *iface = q_strlen(netInterface->string) ? netInterface->string : NULL;
+      const char *iface = Str_Length(netInterface->string) ? netInterface->string : NULL;
       const in_port_t port = source == NS_UDP_SERVER ? netPort->integer : 0;
 
       *sock = Net_Socket(NA_DATAGRAM, iface, port);

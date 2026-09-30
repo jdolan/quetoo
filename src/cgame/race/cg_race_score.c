@@ -77,11 +77,11 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
   static char text[MAX_STRING_CHARS * 2];
   char string[MAX_STRING_CHARS];
 
-  q_strlcpy(string, cgi.ConfigString(CS_RACE_RECORDS), sizeof(string));
-  q_strlcpy(text, "^2Course records", sizeof(text));
+  Str_Copy(string, cgi.ConfigString(CS_RACE_RECORDS), sizeof(string));
+  Str_Copy(text, "^2Course records", sizeof(text));
 
   if (!*string) {
-    q_strlcat(text, "\n^8none yet", sizeof(text));
+    Str_Append(text, "\n^8none yet", sizeof(text));
     return text;
   }
 
@@ -102,13 +102,13 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
     if (s) {
       *s++ = '\0';
     } else {
-      s = time + q_strlen(time);
+      s = time + Str_Length(time);
     }
 
     const char *formatted = Cg_Race_FormatTime((uint32_t) strtoul(time, NULL, 10));
-    const int32_t pad = width - 4 - (int32_t) q_strlen(name) - (int32_t) q_strlen(formatted);
+    const int32_t pad = width - 4 - (int32_t) Str_Length(name) - (int32_t) Str_Length(formatted);
 
-    q_strlcat(text, va("\n^7%2d  %s%*s%s", rank, name, pad > 1 ? pad : 1, "", formatted), sizeof(text));
+    Str_Append(text, va("\n^7%2d  %s%*s%s", rank, name, pad > 1 ? pad : 1, "", formatted), sizeof(text));
   }
 
   return text;

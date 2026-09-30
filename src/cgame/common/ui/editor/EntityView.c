@@ -44,8 +44,8 @@ static void didEndEditing(TextView *textView) {
   const char *key = self->key->attributedText->chars;
   const char *value = self->value->attributedText->chars;
 
-  q_strlcpy(e->key, key ?: "", sizeof(e->key));
-  q_strlcpy(e->string, value ?: "", sizeof(e->string));
+  Str_Copy(e->key, key ?: "", sizeof(e->key));
+  Str_Copy(e->string, value ?: "", sizeof(e->string));
 
   cgi.ParseEntity(e);
 
@@ -159,8 +159,8 @@ static void setEntity(EntityView *self, CGameEditorEntity *edit, Entity *pair) {
       $(self->value, setAttributedText, pair->string);
     }
 
-    if (!q_strcmp(pair->key, "classname")
-        && !q_strcmp(pair->string, "worldspawn")) {
+    if (!Str_Compare(pair->key, "classname")
+        && !Str_Compare(pair->string, "worldspawn")) {
       self->key->control.state |= ControlStateDisabled;
       self->value->control.state |= ControlStateDisabled;
     }

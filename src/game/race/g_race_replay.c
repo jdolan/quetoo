@@ -130,23 +130,23 @@ void G_Race_LoadLine(void) {
         continue;
       }
 
-      value += q_strlen(key);
+      value += Str_Length(key);
       while (*value == ' ') {
         value++;
       }
 
-      if (!q_strcmp(key, "holder")) {
-        q_strlcpy(gameLevel.raceLineHolder, value, sizeof(gameLevel.raceLineHolder));
-      } else if (!q_strcmp(key, "client")) {
-        q_strlcpy(gameLevel.raceLineClient, value, sizeof(gameLevel.raceLineClient));
-      } else if (!q_strcmp(key, "time")) {
+      if (!Str_Compare(key, "holder")) {
+        Str_Copy(gameLevel.raceLineHolder, value, sizeof(gameLevel.raceLineHolder));
+      } else if (!Str_Compare(key, "client")) {
+        Str_Copy(gameLevel.raceLineClient, value, sizeof(gameLevel.raceLineClient));
+      } else if (!Str_Compare(key, "time")) {
         gameLevel.raceLineTime = (uint32_t) strtoul(value, NULL, 10);
-      } else if (!q_strcmp(key, "bsp")) {
-        if (q_strcmp(value, bsp)) {
+      } else if (!Str_Compare(key, "bsp")) {
+        if (Str_Compare(value, bsp)) {
           G_Warn("%s was set on another build of %s; ignoring it\n", path, gameLevel.name);
           valid = false;
         }
-      } else if (!q_strcmp(key, "samples")) {
+      } else if (!Str_Compare(key, "samples")) {
         expected = strtoul(value, NULL, 10);
         header = false;
       }

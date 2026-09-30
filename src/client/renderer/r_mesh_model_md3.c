@@ -56,7 +56,7 @@ static void R_LoadMd3Animations(RenderModel *mod) {
 
   mod->mesh->animations = Mem_LinkMalloc(sizeof(RenderMeshAnimation) * MD3_MAX_ANIMATIONS, mod->mesh);
 
-  q_strlcpy(mod->mesh->sounds, "male", sizeof(mod->mesh->sounds));
+  Str_Copy(mod->mesh->sounds, "male", sizeof(mod->mesh->sounds));
 
   Parser parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
 
@@ -66,20 +66,20 @@ static void R_LoadMd3Animations(RenderModel *mod) {
       break;
     }
 
-    if (!q_strcmp(token, "footsteps")) {
+    if (!Str_Compare(token, "footsteps")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
       continue;
     }
 
-    if (!q_strcmp(token, "headoffset")) {
+    if (!Str_Compare(token, "headoffset")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipPrimitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_FLOAT, 3);
       continue;
     }
 
     // legacy Quake III directive; maps to a sound set name for backwards compatibility
-    if (!q_strcmp(token, "sex")) {
+    if (!Str_Compare(token, "sex")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
       continue;
@@ -87,7 +87,7 @@ static void R_LoadMd3Animations(RenderModel *mod) {
 
     // names the directory under players/common to fall back to for samples the
     // model does not provide its own version of, e.g. "female", "cyborg", "demon"
-    if (!q_strcmp(token, "sounds")) {
+    if (!Str_Compare(token, "sounds")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, mod->mesh->sounds, sizeof(mod->mesh->sounds))) {
         break;
@@ -95,13 +95,13 @@ static void R_LoadMd3Animations(RenderModel *mod) {
       continue;
     }
 
-    if (!q_strcmp(token, "fixedlegs")) {
+    if (!Str_Compare(token, "fixedlegs")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       mod->mesh->flags |= MESH_MODEL_FIXED_LEGS;
       continue;
     }
 
-    if (!q_strcmp(token, "fixedtorso")) {
+    if (!Str_Compare(token, "fixedtorso")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       mod->mesh->flags |= MESH_MODEL_FIXED_TORSO;
       continue;
@@ -332,7 +332,7 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
     Com_Error(ERROR_DROP, "%s MD3_MAX_SURFACES %d\n", mod->media.name, md3.numSurfaces);
   }
 
-  if (q_strncmp(mod->media.name, "players/", 8)) {
+  if (Str_CompareN(mod->media.name, "players/", 8)) {
     Com_Warn("%s: MD3 is only supported for player models; use OBJ instead\n", mod->media.name);
     return;
   }
@@ -368,7 +368,7 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
 
         const Md3Tag tag = R_SwapMd3Tag(in);
 
-        q_strlcpy(out->name, tag.name, MD3_MAX_PATH);
+        Str_Copy(out->name, tag.name, MD3_MAX_PATH);
         out->matrix = Mat4_FromVectors(tag.axis[0], tag.axis[1], tag.axis[2], tag.origin);
       }
     }
@@ -401,7 +401,7 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
         Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_VERTEXES %d\n", mod->media.name, surface.name, surface.numVertexes);
       }
 
-      q_strlcpy(out->name, surface.name, MD3_MAX_PATH);
+      Str_Copy(out->name, surface.name, MD3_MAX_PATH);
 
       const byte *surfaceBase = (byte *) in;
 
@@ -465,7 +465,7 @@ static void R_LoadMd3Model(RenderModel *mod, void *buffer) {
     }
   }
 
-  if (q_strstr(mod->media.name, "/upper")) {
+  if (Str_Find(mod->media.name, "/upper")) {
     R_LoadMd3Animations(mod);
   }
 

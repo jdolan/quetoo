@@ -152,26 +152,26 @@ static void Shutdown(const char *msg) {
 static void Qbsp_CheckOptions(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
-    if (!q_strcmp(Com_Argv(i), "--micro-volume")) {
+    if (!Str_Compare(Com_Argv(i), "--micro-volume")) {
       microVolume = atof(Com_Argv(i + 1));
       Com_Verbose("micro_volume = %f\n", microVolume);
       i++;
-    } else if (!q_strcmp(Com_Argv(i), "--no-csg")) {
+    } else if (!Str_Compare(Com_Argv(i), "--no-csg")) {
       Com_Verbose("no_csg = true\n");
       noCsg = true;
-    } else if (!q_strcmp(Com_Argv(i), "--no-detail")) {
+    } else if (!Str_Compare(Com_Argv(i), "--no-detail")) {
       Com_Verbose("no_detail = true\n");
       noDetail = true;
-    } else if (!q_strcmp(Com_Argv(i), "--no-liquid")) {
+    } else if (!Str_Compare(Com_Argv(i), "--no-liquid")) {
       Com_Verbose("no_liquid = true\n");
       noLiquid = true;
-    } else if (!q_strcmp(Com_Argv(i), "--no-merge")) {
+    } else if (!Str_Compare(Com_Argv(i), "--no-merge")) {
       Com_Verbose("no_merge = true\n");
       noMerge = true;
-    } else if (!q_strcmp(Com_Argv(i), "--no-phong")) {
+    } else if (!Str_Compare(Com_Argv(i), "--no-phong")) {
       Com_Verbose("no_phong = true\n");
       noPhong = true;
-    } else if (!q_strcmp(Com_Argv(i), "--no-tjunc")) {
+    } else if (!Str_Compare(Com_Argv(i), "--no-tjunc")) {
       Com_Verbose("no_tjunc = true\n");
       noTjunc = true;
     } else {
@@ -197,10 +197,10 @@ static void Qzip_CheckOptions(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
 
-    if (!q_strcmp(Com_Argv(i), "--include-shared")) {
+    if (!Str_Compare(Com_Argv(i), "--include-shared")) {
       includeShared = true;
       Com_Verbose("Including shared assets\n");
-    } else if (!q_strcmp(Com_Argv(i), "--update")) {
+    } else if (!Str_Compare(Com_Argv(i), "--update")) {
       updateZip = true;
       Com_Verbose("Updating existing zip archive\n");
     } else {
@@ -277,29 +277,29 @@ int32_t main(int32_t argc, char **argv) {
   // general options
   for (int32_t i = 1; i < Com_Argc(); i++) {
 
-    if (!q_strcmp(Com_Argv(i), "-h") || !q_strcmp(Com_Argv(i), "--help")) {
+    if (!Str_Compare(Com_Argv(i), "-h") || !Str_Compare(Com_Argv(i), "--help")) {
       PrintHelpMessage();
       Com_Shutdown(NULL);
     }
 
-    if (!q_strcmp(Com_Argv(i), "-v") || !q_strcmp(Com_Argv(i), "--verbose")) {
+    if (!Str_Compare(Com_Argv(i), "-v") || !Str_Compare(Com_Argv(i), "--verbose")) {
       verbose = true;
       continue;
     }
 
-    if (!q_strcmp(Com_Argv(i), "-d") || !q_strcmp(Com_Argv(i), "--debug")) {
+    if (!Str_Compare(Com_Argv(i), "-d") || !Str_Compare(Com_Argv(i), "--debug")) {
       Com_SetDebug("all");
       debug = true;
       verbose = true;
       continue;
     }
 
-    if (!q_strcmp(Com_Argv(i), "-t") || !q_strcmp(Com_Argv(i), "--threads")) {
+    if (!Str_Compare(Com_Argv(i), "-t") || !Str_Compare(Com_Argv(i), "--threads")) {
       numThreads = atoi(Com_Argv(i + 1));
       continue;
     }
 
-    if (!q_strcmp(Com_Argv(i), "-g") || !q_strcmp(Com_Argv(i), "--game")) {
+    if (!Str_Compare(Com_Argv(i), "-g") || !Str_Compare(Com_Argv(i), "--game")) {
       const char *arg = Com_Argv(i + 1);
       if (i + 1 >= Com_Argc() || *arg == '-' || *arg == '\0') {
         Com_Error(ERROR_FATAL, "Missing game name for -g\n");
@@ -316,13 +316,13 @@ int32_t main(int32_t argc, char **argv) {
   // read compiling options
   for (int32_t i = 1; i < Com_Argc(); i++) {
 
-    if (!q_strcmp(Com_Argv(i), "-bsp")) {
+    if (!Str_Compare(Com_Argv(i), "-bsp")) {
       doBsp = true;
       Qbsp_CheckOptions(i + 1);
       Qlight_CheckOptions(i + 1);
     }
 
-    if (!q_strcmp(Com_Argv(i), "-zip")) {
+    if (!Str_Compare(Com_Argv(i), "-zip")) {
       doZip = true;
       Qzip_CheckOptions(i + 1);
     }
@@ -338,7 +338,7 @@ int32_t main(int32_t argc, char **argv) {
 
   const char *filename = Com_Argv(Com_Argc() - 1);
 
-  if (q_strncmp(filename, "maps/", 5)) {
+  if (Str_CompareN(filename, "maps/", 5)) {
     PrintHelpMessage();
     Com_Error(ERROR_FATAL, "Invalid Quake path for %s.\n", filename);
   }
@@ -347,17 +347,17 @@ int32_t main(int32_t argc, char **argv) {
   StripExtension(Basename(filename), mapBase);
 
   StripExtension(filename, mapName);
-  q_strlcat(mapName, ".map", sizeof(mapName));
+  Str_Append(mapName, ".map", sizeof(mapName));
 
   if (!Fs_Exists(mapName)) {
-    q_snprintf(mapName, sizeof(mapName), "maps/%s.map", mapBase);
+    Str_Format(mapName, sizeof(mapName), "maps/%s.map", mapBase);
   }
 
   StripExtension(filename, bspName);
-  q_strlcat(bspName, ".bsp", sizeof(bspName));
+  Str_Append(bspName, ".bsp", sizeof(bspName));
 
   if (!Fs_Exists(bspName)) {
-    q_snprintf(bspName, sizeof(bspName), "maps/%s.bsp", mapBase);
+    Str_Format(bspName, sizeof(bspName), "maps/%s.bsp", mapBase);
   }
 
   // start timer

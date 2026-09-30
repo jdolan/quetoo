@@ -623,7 +623,7 @@ void G_SetClientHookStyle(GameClient *cl) {
   GameHookStyle hookStyle;
 
   // respect userInfo on default
-  if (!q_strcmp(g_hookStyle->string, "default")) {
+  if (!Str_Compare(g_hookStyle->string, "default")) {
     char style[MAX_INFO_STRING_VALUE];
     InfoString_Get(cl->persistent.userInfo, "hookStyle", style, sizeof(style));
 
@@ -642,7 +642,7 @@ void G_SetClientHookStyle(GameClient *cl) {
  */
 void G_Hook_CheckState(void) {
 
-  if (q_strcmp(g_hook->string, "default")) { // the cvar, else compiled in means on
+  if (Str_Compare(g_hook->string, "default")) { // the cvar, else compiled in means on
     hookEnabled = !!g_hook->integer;
   } else {
     hookEnabled = true;

@@ -30,9 +30,9 @@ Cvar *cl_drawConsoleBackgroundAlpha;
  * @brief Outputs a stripped (color-code-free) console string to stdout.
  */
 static void Cl_Print(const ConsoleString *str) {
-  char stripped[q_strlen(str->chars) + 1];
+  char stripped[Str_Length(str->chars) + 1];
 
-  q_strcolorstrip(str->chars, stripped);
+  Str_StripColors(str->chars, stripped);
   fputs(stripped, stdout);
 }
 

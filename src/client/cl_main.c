@@ -84,13 +84,13 @@ static void Cl_SendConnect(void) {
 static void Cl_AttemptConnect(void) {
 
   // if the local server is running and we aren't then connect
-  if (Com_WasInit(QUETOO_SERVER) && q_strcmp(cls.server.address, "localhost")) {
+  if (Com_WasInit(QUETOO_SERVER) && Str_Compare(cls.server.address, "localhost")) {
 
     if (cls.state > CL_DISCONNECTED) {
       Cl_Disconnect();
     }
 
-    q_strlcpy(cls.server.address, "localhost", sizeof(cls.server.address));
+    Str_Copy(cls.server.address, "localhost", sizeof(cls.server.address));
 
     cls.state = CL_CONNECTING;
     cls.server.connectTime = 0;
@@ -124,7 +124,7 @@ static void Cl_AttemptConnect(void) {
   Cl_QueryServer(&addr);
 
   const char *s = Net_NetaddrToString(&addr);
-  if (q_strcmp(cls.server.address, s)) {
+  if (Str_Compare(cls.server.address, s)) {
     Com_Print("Connecting to %s (%s)...\n", cls.server.address, s);
   } else {
     Com_Print("Connecting to %s...\n", cls.server.address);
@@ -144,7 +144,7 @@ void Cl_Connect(const NetAddr *addr) {
 
   Cl_Disconnect();
 
-  q_strlcpy(cls.server.address, Net_NetaddrToString(addr), sizeof(cls.server.address));
+  Str_Copy(cls.server.address, Net_NetaddrToString(addr), sizeof(cls.server.address));
 
   cls.state = CL_CONNECTING;
   cls.server.connectTime = 0;
@@ -216,7 +216,7 @@ static void Cl_Rcon_f(void) {
     }
   }
 
-  Net_SendDatagram(NS_UDP_CLIENT, &to, message, q_strlen(message) + 1);
+  Net_SendDatagram(NS_UDP_CLIENT, &to, message, Str_Length(message) + 1);
 }
 
 /**
@@ -287,7 +287,7 @@ void Cl_SendDisconnect(void) {
   cmd[0] = CL_CMD_STRING;
   strcpy((char *) cmd + 1, "disconnect");
 
-  Netchan_Transmit(&cls.netChan, cmd, q_strlen((char *) cmd));
+  Netchan_Transmit(&cls.netChan, cmd, Str_Length((char *) cmd));
 }
 
 /**
@@ -386,7 +386,7 @@ static void Cl_ConnectionlessPacket(void) {
   Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&netFrom), c);
 
   // server connection
-  if (!q_strcmp(c, "client_connect")) {
+  if (!Str_Compare(c, "client_connect")) {
 
     if (cls.state == CL_CONNECTED) {
       Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&netFrom));
@@ -404,32 +404,32 @@ static void Cl_ConnectionlessPacket(void) {
   }
 
   // server responding to a status query
-  if (!q_strcmp(c, "status")) {
+  if (!Str_Compare(c, "status")) {
     Cl_ParseServerInfo();
     return;
   }
 
   // print command from somewhere
-  if (!q_strcmp(c, "print")) {
+  if (!Str_Compare(c, "print")) {
     s = Net_ReadString(&netMessage);
     Com_Print("%s", s);
     return;
   }
 
   // ping from somewhere
-  if (!q_strcmp(c, "ping")) {
+  if (!Str_Compare(c, "ping")) {
     Netchan_OutOfBandPrint(NS_UDP_CLIENT, &netFrom, "ack");
     return;
   }
 
   // servers list from master
-  if (!q_strcmp(c, "servers")) {
+  if (!Str_Compare(c, "servers")) {
     Cl_ParseServers();
     return;
   }
 
   // challenge from the server we are connecting to
-  if (!q_strcmp(c, "challenge")) {
+  if (!Str_Compare(c, "challenge")) {
     if (cls.state != CL_CONNECTING) {
       Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&netFrom));
       return;
@@ -737,7 +737,7 @@ void Cl_Frame(const uint32_t msec) {
  */
 static void Cl_InitGuid(void) {
 
-  if (q_strlen(guid->string) == 0) {
+  if (Str_Length(guid->string) == 0) {
     char uuid[37];
     Com_Uuid(uuid, sizeof(uuid));
     Cvar_ForceSetString("guid", uuid);
@@ -746,7 +746,7 @@ static void Cl_InitGuid(void) {
   Cvar_Add("guidHash", "", CVAR_NO_SET, NULL);
 
   char url[256];
-  q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+  Str_Format(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
 
   Data *data;
   const int32_t status = $($$(RESTClient, sharedInstance), get, url, NULL, &data);

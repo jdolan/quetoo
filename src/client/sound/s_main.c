@@ -391,10 +391,10 @@ void S_Init(void) {
 
   {
     char extBuf[4096];
-    q_strlcpy(extBuf, alGetString(AL_EXTENSIONS) ? alGetString(AL_EXTENSIONS) : "", sizeof(extBuf));
+    Str_Copy(extBuf, alGetString(AL_EXTENSIONS) ? alGetString(AL_EXTENSIONS) : "", sizeof(extBuf));
     char *save = NULL;
     bool first = true;
-    for (char *tok = q_strtok_r(extBuf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
+    for (char *tok = Str_Tokenize(extBuf, " ", &save); tok; tok = Str_Tokenize(NULL, " ", &save)) {
       if (first) {
         Com_Verbose("  Extensions: ^2%s^7\n", tok);
         first = false;
@@ -407,9 +407,9 @@ void S_Init(void) {
   {
     const char *alcExt = alcGetString(soundContext.device, ALC_EXTENSIONS);
     char extBuf[4096];
-    q_strlcpy(extBuf, alcExt ? alcExt : "", sizeof(extBuf));
+    Str_Copy(extBuf, alcExt ? alcExt : "", sizeof(extBuf));
     char *save = NULL;
-    for (char *tok = q_strtok_r(extBuf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
+    for (char *tok = Str_Tokenize(extBuf, " ", &save); tok; tok = Str_Tokenize(NULL, " ", &save)) {
       Com_Verbose("              ^2%s^7\n", tok);
     }
   }

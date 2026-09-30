@@ -210,7 +210,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, InstallerR
 
     if (tag && assets) {
 
-      q_strlcpy(out->tag, tag->chars, sizeof(out->tag));
+      Str_Copy(out->tag, tag->chars, sizeof(out->tag));
 
       for (size_t i = 0; i < assets->count; i++) {
 
@@ -220,7 +220,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, InstallerR
         }
 
         const String *name = Installer_Cast($(asset, objectForKeyPath, "name"), _String());
-        if (name == NULL || q_strcmp(name->chars, want)) {
+        if (name == NULL || Str_Compare(name->chars, want)) {
           continue;
         }
 
@@ -228,8 +228,8 @@ static bool Installer_FetchRelease(const char *api, const char *want, InstallerR
         const Number *size = Installer_Cast($(asset, objectForKeyPath, "size"), _Number());
 
         if (url && size) {
-          q_strlcpy(out->asset, name->chars, sizeof(out->asset));
-          q_strlcpy(out->url, url->chars, sizeof(out->url));
+          Str_Copy(out->asset, name->chars, sizeof(out->asset));
+          Str_Copy(out->url, url->chars, sizeof(out->url));
           out->size = (int64_t) size->value;
           success = true;
         }
@@ -269,7 +269,7 @@ static bool Installer_IsSeparator(char c) {
  */
 static bool Installer_IsRoot(const char *dir) {
 
-  const size_t len = q_strlen(dir);
+  const size_t len = Str_Length(dir);
 
 #if defined(_WIN32)
   return len == 0 || (len == 2 && dir[1] == ':');
@@ -284,10 +284,10 @@ static bool Installer_IsRoot(const char *dir) {
  */
 static void Installer_Join(char *out, size_t len, const char *dir, const char *name) {
 
-  const size_t dirLen = q_strlen(dir);
+  const size_t dirLen = Str_Length(dir);
   const bool separated = dirLen && Installer_IsSeparator(dir[dirLen - 1]);
 
-  q_snprintf(out, (int32_t) len, "%s%s%s", dir, separated ? "" : "/", name);
+  Str_Format(out, (int32_t) len, "%s%s%s", dir, separated ? "" : "/", name);
 }
 
 /**
@@ -332,14 +332,14 @@ static void Installer_RemoveTree(const char *path) {
 static void Installer_StagingParent(char *out, size_t len) {
 
 #if defined(__APPLE__)
-  q_strlcpy(out, Fs_BaseDir(), len);
+  Str_Copy(out, Fs_BaseDir(), len);
 
-  char *slash = q_strrchr(out, '/');
+  char *slash = Str_FindLastChar(out, '/');
   if (slash) {
     *slash = '\0';
   }
 #else
-  q_strlcpy(out, Fs_BaseDir(), len);
+  Str_Copy(out, Fs_BaseDir(), len);
 #endif
 }
 
@@ -351,7 +351,7 @@ static void Installer_PendingDir(char *out, size_t len) {
   char parent[MAX_OS_PATH];
   Installer_StagingParent(parent, sizeof(parent));
 
-  q_snprintf(out, (int32_t) len, "%s/.quetoo-pending", parent);
+  Str_Format(out, (int32_t) len, "%s/.quetoo-pending", parent);
 }
 
 /**
@@ -364,7 +364,7 @@ static void Installer_PendingDir(char *out, size_t len) {
 static bool Installer_IsManaged(const char *dir) {
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s", dir, INSTALLER_MANAGED);
+  Str_Format(path, sizeof(path), "%s/%s", dir, INSTALLER_MANAGED);
 
   return SDL_GetPathInfo(path, NULL);
 }
@@ -378,7 +378,7 @@ static bool Installer_IsManaged(const char *dir) {
 static bool Installer_IsWritable(const char *dir) {
 
   char probe[MAX_OS_PATH];
-  q_snprintf(probe, sizeof(probe), "%s/.writable", dir);
+  Str_Format(probe, sizeof(probe), "%s/.writable", dir);
 
   FILE *file = fopen(probe, "wb");
   if (!file) {
@@ -494,7 +494,7 @@ static SDL_EnumerationResult Installer_EnumeratePending(void *data, const char *
   if (info.type == SDL_PATHTYPE_DIRECTORY) {
     SDL_EnumerateDirectory(path, Installer_EnumeratePending, file);
   } else if (info.type == SDL_PATHTYPE_FILE &&
-             q_strcmp(name, "pending.mf") && q_strcmp(name, "pending.tmp")) {
+             Str_Compare(name, "pending.mf") && Str_Compare(name, "pending.tmp")) {
     fprintf(file, "%s\n", path);
   }
 
@@ -514,16 +514,16 @@ static void Installer_WritePending(const char *pending) {
 
   char root[MAX_OS_PATH];
 #if defined(__APPLE__)
-  q_snprintf(root, sizeof(root), "%s/Quetoo.app", pending);
+  Str_Format(root, sizeof(root), "%s/Quetoo.app", pending);
 #elif defined(_WIN32)
-  q_strlcpy(root, pending, sizeof(root));
+  Str_Copy(root, pending, sizeof(root));
 #else
-  q_snprintf(root, sizeof(root), "%s/quetoo", pending);
+  Str_Format(root, sizeof(root), "%s/quetoo", pending);
 #endif
 
   char path[MAX_OS_PATH], temp[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/pending.mf", pending);
-  q_snprintf(temp, sizeof(temp), "%s/pending.tmp", pending);
+  Str_Format(path, sizeof(path), "%s/pending.mf", pending);
+  Str_Format(temp, sizeof(temp), "%s/pending.tmp", pending);
 
   FILE *file = fopen(temp, "wb");
   if (!file) {
@@ -565,7 +565,7 @@ static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident v
   const ManifestEntry *entry = value;
   if (entry->status == ENTRY_STALE) {
     char fullPath[MAX_OS_PATH];
-    q_snprintf(fullPath, sizeof(fullPath), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
+    Str_Format(fullPath, sizeof(fullPath), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
     if (SDL_RemovePath(fullPath)) {
       Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
     } else {
@@ -619,7 +619,7 @@ static void Installer_CompareEntry(const HashTable *table, ident key, ident valu
   const ManifestEntry *le = ctx->local ? $(ctx->local, get, re->path) : NULL;
   if (le) {
     ((ManifestEntry *) le)->status = ENTRY_CURRENT;
-    if (q_strcmp(le->hash, re->hash) == 0) {
+    if (Str_Compare(le->hash, re->hash) == 0) {
       re->status = ENTRY_CURRENT;
     }
   }
@@ -639,7 +639,7 @@ static void Installer_Commit(void) {
 
   if (module.remoteManifest) {
     char mfPath[MAX_OS_PATH];
-    q_snprintf(mfPath, sizeof(mfPath), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+    Str_Format(mfPath, sizeof(mfPath), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
     Installer_WriteManifest(mfPath, module.remoteManifest);
     Manifest_Free(module.remoteManifest);
     module.remoteManifest = NULL;
@@ -660,14 +660,14 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
     if (isalnum((unsigned char)*src) || *src == '-' || *src == '_' || *src == '.' || *src == '~' || *src == '/') {
       *dst++ = *src;
     } else {
-      dst += q_snprintf(dst, 4, "%%%02X", (unsigned char)*src);
+      dst += Str_Format(dst, 4, "%%%02X", (unsigned char)*src);
     }
     src++;
   }
   *dst = '\0';
 
   char url[MAX_OS_PATH * 2];
-  q_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", Com_Game(), encoded);
+  Str_Format(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", Com_Game(), encoded);
 
   Data *data = NULL;
 
@@ -679,12 +679,12 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
   }
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
+  Str_Format(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
 
   {
     char dir[MAX_OS_PATH];
-    q_strlcpy(dir, path, sizeof(dir));
-    char *slash = q_strrchr(dir, '/');
+    Str_Copy(dir, path, sizeof(dir));
+    char *slash = Str_FindLastChar(dir, '/');
     if (slash) {
       *slash = '\0';
     }
@@ -721,7 +721,7 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
 static bool Installer_HasManifest(void) {
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+  Str_Format(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
 
   return SDL_GetPathInfo(path, NULL);
 }
@@ -738,7 +738,7 @@ static bool Installer_HasManifest(void) {
 static HashTable *Installer_ReadManifest(void) {
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+  Str_Format(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
 
   FILE *file = fopen(path, "rb");
   if (!file) {
@@ -783,7 +783,7 @@ static bool Installer_InstallData(void) {
   }
 
   char archive[MAX_OS_PATH];
-  q_snprintf(archive, sizeof(archive), "%s/%s", Fs_DataDir(), QUETOO_DATA_ARCHIVE);
+  Str_Format(archive, sizeof(archive), "%s/%s", Fs_DataDir(), QUETOO_DATA_ARCHIVE);
 
   if (!SDL_CreateDirectory(Fs_DataDir())) {
     Com_Warn("Failed to create %s: %s\n", Fs_DataDir(), SDL_GetError());
@@ -794,7 +794,7 @@ static bool Installer_InstallData(void) {
   in->state = INSTALLER_INSTALLING_DATA;
   in->kbytesDone = 0;
   in->kbytesTotal = (int32_t) (data.size / 1024);
-  q_strlcpy(in->currentFile, data.asset, sizeof(in->currentFile));
+  Str_Copy(in->currentFile, data.asset, sizeof(in->currentFile));
   SDL_UnlockMutex(module.mutex);
 
   bool success = Installer_DownloadToFile(data.url, archive, data.size);
@@ -807,7 +807,7 @@ static bool Installer_InstallData(void) {
 
   if (!success) {
     char manifest[MAX_OS_PATH];
-    q_snprintf(manifest, sizeof(manifest), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+    Str_Format(manifest, sizeof(manifest), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
     SDL_RemovePath(manifest);
   }
 
@@ -842,7 +842,7 @@ static int Installer_DownloadThread(void *unused) {
       ManifestEntry *found = NULL;
       $(module.remoteManifest, enumerate, Installer_FindPending, &found);
       if (found) {
-        q_strlcpy(in->currentFile, found->path, sizeof(in->currentFile));
+        Str_Copy(in->currentFile, found->path, sizeof(in->currentFile));
         entry = found;
       }
     }
@@ -863,7 +863,7 @@ static int Installer_DownloadThread(void *unused) {
       ((ManifestEntry *) entry)->status = ENTRY_CURRENT;
     } else if (in->state == INSTALLER_DOWNLOADING_DATA) {
       in->state = INSTALLER_ERROR;
-      q_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
+      Str_Format(in->error, sizeof(in->error), "Download failed: %s", entry->path);
     }
 
     SDL_UnlockMutex(module.mutex);
@@ -912,11 +912,11 @@ static int Installer_Thread(void *unused) {
         SDL_LockMutex(module.mutex);
         if (!ok) {
           in->state = INSTALLER_ERROR;
-          q_snprintf(in->error, sizeof(in->error), "Failed to check for updates");
+          Str_Format(in->error, sizeof(in->error), "Failed to check for updates");
         } else if (Installer_CompareVersions(module.release.tag, version->string) > 0) {
           if (writable) {
             in->state = INSTALLER_BIN_AVAILABLE;
-            q_strlcpy(in->currentFile, module.release.asset, sizeof(in->currentFile));
+            Str_Copy(in->currentFile, module.release.asset, sizeof(in->currentFile));
           } else {
             in->state = INSTALLER_CHECKING_DATA;
             if (!managed) {
@@ -949,12 +949,12 @@ static int Installer_Thread(void *unused) {
 
         Data *data = NULL;
         char manifestUrl[MAX_OS_PATH];
-        q_snprintf(manifestUrl, sizeof(manifestUrl), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
+        Str_Format(manifestUrl, sizeof(manifestUrl), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
         const int32_t httpStatus = $($$(RESTClient, sharedInstance), get, manifestUrl, NULL, &data);
         if (httpStatus != 200 || !data) {
           SDL_LockMutex(module.mutex);
           in->state = INSTALLER_ERROR;
-          q_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", httpStatus);
+          Str_Format(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", httpStatus);
           SDL_UnlockMutex(module.mutex);
           release(data);
           break;
@@ -1056,7 +1056,7 @@ static int Installer_Thread(void *unused) {
           break;
         }
 
-        q_snprintf(archive, sizeof(archive), "%s/%s", pending, module.release.asset);
+        Str_Format(archive, sizeof(archive), "%s/%s", pending, module.release.asset);
 
         const bool ok = Installer_DownloadToFile(module.release.url, archive,
                                                  module.release.size);
@@ -1077,7 +1077,7 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_STAGING_BIN: {
         char pending[MAX_OS_PATH], archive[MAX_OS_PATH];
         Installer_PendingDir(pending, sizeof(pending));
-        q_snprintf(archive, sizeof(archive), "%s/%s", pending, module.release.asset);
+        Str_Format(archive, sizeof(archive), "%s/%s", pending, module.release.asset);
 
         const bool ok = Archive_Extract(archive, pending);
         SDL_RemovePath(archive);
@@ -1139,7 +1139,7 @@ static int Installer_Thread(void *unused) {
  */
 static void Installer_Chomp(char *line) {
 
-  char *end = line + q_strlen(line);
+  char *end = line + Str_Length(line);
   while (end > line && (end[-1] == '\n' || end[-1] == '\r')) {
     *--end = '\0';
   }
@@ -1158,7 +1158,7 @@ static void Installer_Chomp(char *line) {
 static void Installer_SweepDisplaced(void) {
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/.cleanup", Fs_BaseDir());
+  Str_Format(path, sizeof(path), "%s/.cleanup", Fs_BaseDir());
 
   FILE *file = fopen(path, "rb");
   if (!file) {
@@ -1183,7 +1183,7 @@ static void Installer_SweepDisplaced(void) {
       swept = false;
       Com_Debug(DEBUG_INSTALLER, "Still displaced: %s\n", line);
       const size_t remaining = sizeof(survivors) - length;
-      const int32_t n = q_snprintf(survivors + length, remaining, "%s\n", line);
+      const int32_t n = Str_Format(survivors + length, remaining, "%s\n", line);
       if (n > 0 && (size_t) n < remaining) {
         length += (size_t) n;
       } else {
@@ -1215,7 +1215,7 @@ typedef bool (*InstallerPendingFunc)(const char *staged, const char *target, FIL
  * @brief Returns the path a displaced file is parked at while an apply runs.
  */
 static void Installer_Displaced(const char *target, char *out, size_t len) {
-  q_snprintf(out, (int32_t) len, "%s.old", target);
+  Str_Format(out, (int32_t) len, "%s.old", target);
 }
 
 /**
@@ -1232,7 +1232,7 @@ static void Installer_Displaced(const char *target, char *out, size_t len) {
 static bool Installer_Install(const char *staged, const char *target, FILE *cleanup) {
 
   char dir[MAX_OS_PATH];
-  q_strlcpy(dir, target, sizeof(dir));
+  Str_Copy(dir, target, sizeof(dir));
 
   char *slash = NULL;
   for (char *c = dir; *c; c++) {
@@ -1342,13 +1342,13 @@ static int32_t Installer_EachPending(FILE *file, const char *root, InstallerPend
     return -1;
   }
 
-  const size_t rootLen = q_strlen(root);
+  const size_t rootLen = Str_Length(root);
 
   int32_t count = 0;
 
   while (fgets(line, sizeof(line), file)) {
 
-    const bool complete = q_strchr(line, '\n') || feof(file);
+    const bool complete = Str_FindChar(line, '\n') || feof(file);
     Installer_Chomp(line);
 
     if (!complete) {
@@ -1356,12 +1356,12 @@ static int32_t Installer_EachPending(FILE *file, const char *root, InstallerPend
       return -1;
     }
 
-    if (q_strncmp(line, root, rootLen) || !Installer_IsSeparator(line[rootLen])) {
+    if (Str_CompareN(line, root, rootLen) || !Installer_IsSeparator(line[rootLen])) {
       continue;
     }
 
     char target[MAX_OS_PATH];
-    q_snprintf(target, sizeof(target), "%s%s", Fs_BaseDir(), line + rootLen);
+    Str_Format(target, sizeof(target), "%s%s", Fs_BaseDir(), line + rootLen);
 
     if (!func(line, target, cleanup)) {
       return -1;
@@ -1394,7 +1394,7 @@ void Installer_ApplyPending(void) {
 
   char pending[MAX_OS_PATH], path[MAX_OS_PATH];
   Installer_PendingDir(pending, sizeof(pending));
-  q_snprintf(path, sizeof(path), "%s/pending.mf", pending);
+  Str_Format(path, sizeof(path), "%s/pending.mf", pending);
 
   FILE *file = fopen(path, "rb");
   if (!file) {
@@ -1418,7 +1418,7 @@ void Installer_ApplyPending(void) {
   FILE *cleanup = NULL;
 #if defined(_WIN32)
   char cleanupPath[MAX_OS_PATH];
-  q_snprintf(cleanupPath, sizeof(cleanupPath), "%s/.cleanup", Fs_BaseDir());
+  Str_Format(cleanupPath, sizeof(cleanupPath), "%s/.cleanup", Fs_BaseDir());
   cleanup = fopen(cleanupPath, "ab");
   if (!cleanup) {
     Com_Warn("Failed to open %s for writing; displaced files will be swept synchronously\n",
@@ -1492,7 +1492,7 @@ void Installer_Init(InstallerFrameFunc frame) {
   }
 
 #if defined(__linux__)
-  if (q_strcmp(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
+  if (Str_Compare(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
     Com_Print("Package-managed installation; auto-updates disabled.\n");
     return;
   }

@@ -85,7 +85,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, File
   *snd = NULL;
 
   StripExtension(name, path);
-  q_snprintf(path, sizeof(path), "music/%s.ogg", name);
+  Str_Format(path, sizeof(path), "music/%s.ogg", name);
 
   if ((*file = Fs_OpenRead(path)) != NULL) {
   

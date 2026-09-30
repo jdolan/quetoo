@@ -508,12 +508,12 @@ void G_Damage(const GameDamage *dmg) {
             .attackerAi = attackerAi,
             .targetAi = targetAi,
           };
-          q_strlcpy(frag.level, gameLevel.name, sizeof(frag.level));
-          q_strlcpy(frag.attacker, attacker->client->persistent.netName, sizeof(frag.attacker));
-          q_strlcpy(frag.attackerGuid, attacker->client->persistent.guid, sizeof(frag.attackerGuid));
-          q_strlcpy(frag.target, target->client->persistent.netName, sizeof(frag.target));
-          q_strlcpy(frag.targetGuid, target->client->persistent.guid, sizeof(frag.targetGuid));
-          q_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
+          Str_Copy(frag.level, gameLevel.name, sizeof(frag.level));
+          Str_Copy(frag.attacker, attacker->client->persistent.netName, sizeof(frag.attacker));
+          Str_Copy(frag.attackerGuid, attacker->client->persistent.guid, sizeof(frag.attackerGuid));
+          Str_Copy(frag.target, target->client->persistent.netName, sizeof(frag.target));
+          Str_Copy(frag.targetGuid, target->client->persistent.guid, sizeof(frag.targetGuid));
+          Str_Copy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
           if (frag.attackerGuid[0] && frag.targetGuid[0]) {
             $(gameLevel.frags, add, &frag);

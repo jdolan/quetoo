@@ -90,8 +90,8 @@ void Sv_DropClient(ServerClient *client) {
 const char *Sv_StatusString(void) {
   static char status[MAX_MSG_SIZE - 16];
 
-  q_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
-  size_t statusLen = q_strlen(status);
+  Str_Format(status, sizeof(status), "%s\n", Cvar_ServerInfo());
+  size_t statusLen = Str_Length(status);
 
   for (int32_t i = 0; i < sv_maxClients->integer; i++) {
 
@@ -101,20 +101,20 @@ const char *Sv_StatusString(void) {
       char player[MAX_TOKEN_CHARS];
 
       char name[sizeof(cl->name)];
-      q_strcolorstrip(cl->name, name);
+      Str_StripColors(cl->name, name);
 
       const int16_t score = cl->state == SV_CLIENT_ACTIVE ? cl->gclient->score : 0;
       const bool isBot = cl->gclient->ai != NULL;
 
       if (isBot) {
-        q_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\\ai\\1\n",
+        Str_Format(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\\ai\\1\n",
                    score, cl->ping, name);
       } else {
-        q_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\n",
+        Str_Format(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\n",
                    score, cl->ping, name);
       }
 
-      const size_t playerLen = q_strlen(player);
+      const size_t playerLen = Str_Length(player);
 
       if (statusLen + playerLen + 1 >= sizeof(status)) {
         break;
@@ -195,7 +195,7 @@ static void Sv_Connect_f(void) {
 
   // copy userInfo, leave room for ip stuffing
   char userInfo[MAX_INFO_STRING_STRING];
-  q_strlcpy(userInfo, Cmd_Argv(4), sizeof(userInfo) - 25);
+  Str_Copy(userInfo, Cmd_Argv(4), sizeof(userInfo) - 25);
 
   if (*userInfo == '\0') { // catch empty userInfo
     Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
@@ -203,7 +203,7 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  if (q_strchr(userInfo, '\xFF')) { // catch end of message in string exploit
+  if (Str_FindChar(userInfo, '\xFF')) { // catch end of message in string exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
@@ -318,7 +318,7 @@ static void Sv_Connect_f(void) {
   client->state = SV_CLIENT_CONNECTED;
 
   // Sv_UserInfoChanged refuses an ip and forces the client's own, so drop ours
-  q_strlcpy(client->userInfo, userInfo, sizeof(client->userInfo));
+  Str_Copy(client->userInfo, userInfo, sizeof(client->userInfo));
   InfoString_Delete(client->userInfo, "ip");
 
   if (!Sv_UserInfoChanged(client)) {
@@ -342,7 +342,7 @@ static bool Sv_RconAuthenticate(void) {
   }
 
   // and of course the passwords must match
-  if (q_strcmp(Cmd_Argv(1), rconPassword->string)) {
+  if (Str_Compare(Cmd_Argv(1), rconPassword->string)) {
     return false;
   }
 
@@ -356,7 +356,7 @@ static char rconBuffer[MAX_PRINT_MSG];
  */
 static void Sv_Rcon_Print(const ConsoleString *str) {
 
-  q_strlcat(rconBuffer, str->chars, sizeof(rconBuffer));
+  Str_Append(rconBuffer, str->chars, sizeof(rconBuffer));
 }
 
 /**
@@ -388,8 +388,8 @@ static void Sv_Rcon_f(void) {
     cmd[0] = '\0';
 
     for (int32_t i = 2; i < Cmd_Argc(); i++) {
-      q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
-      q_strlcat(cmd, " ", sizeof(cmd));
+      Str_Append(cmd, Cmd_Argv(i), sizeof(cmd));
+      Str_Append(cmd, " ", sizeof(cmd));
     }
 
     Cmd_ExecuteString(cmd);
@@ -421,15 +421,15 @@ static void Sv_ConnectionlessPacket(void) {
 
   Com_Debug(DEBUG_SERVER, "Packet from %s: %s\n", a, c);
 
-  if (!q_strcmp(c, "challenge")) {
+  if (!Str_Compare(c, "challenge")) {
     Sv_Challenge(&netFrom, (uint32_t) strtoul(Cmd_Argv(1), NULL, 10));
-  } else if (!q_strcmp(c, "status")) {
+  } else if (!Str_Compare(c, "status")) {
     Sv_Status_f();
-  } else if (!q_strcmp(c, "get_challenge")) {
+  } else if (!Str_Compare(c, "get_challenge")) {
     Sv_GetChallenge_f();
-  } else if (!q_strcmp(c, "connect")) {
+  } else if (!Str_Compare(c, "connect")) {
     Sv_Connect_f();
-  } else if (!q_strcmp(c, "rcon")) {
+  } else if (!Str_Compare(c, "rcon")) {
     Sv_Rcon_f();
   } else {
     Com_Print("Bad connectionless packet from %s:\n%s\n", a, s);
@@ -644,7 +644,7 @@ static void Sv_SyncGameClients(void) {
 
     if (client->state == SV_CLIENT_FREE) {
       if (cl->inUse && cl->ai) { // ai client has just connected
-        q_strlcpy(client->userInfo, cl->userInfo, sizeof(client->userInfo));
+        Str_Copy(client->userInfo, cl->userInfo, sizeof(client->userInfo));
         client->lastMessage = UINT32_MAX; // ai clients never time out
         client->state = SV_CLIENT_ACTIVE;
         if (!Sv_UserInfoChanged(client)) {
@@ -693,13 +693,13 @@ void Sv_KickClient(ServerClient *cl, const char *msg) {
   if (*cl->name == '\0') { // force a name to kick
     strcpy(name, "player");
   } else {
-    q_strlcpy(name, cl->name, sizeof(name));
+    Str_Copy(name, cl->name, sizeof(name));
   }
 
   memset(buf, 0, sizeof(buf));
 
   if (msg && *msg != '\0') {
-    q_snprintf(buf, sizeof(buf), ": %s", msg);
+    Str_Format(buf, sizeof(buf), ": %s", msg);
   }
 
   Sv_ClientPrint(cl->gclient, PRINT_HIGH, "You were kicked%s\n", buf);
@@ -731,7 +731,7 @@ bool Sv_UserInfoChanged(ServerClient *cl) {
     return false;
   }
 
-  if (q_strchr(cl->userInfo, '\xFF')) { // catch end of message exploit
+  if (Str_FindChar(cl->userInfo, '\xFF')) { // catch end of message exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return false;
@@ -777,7 +777,7 @@ bool Sv_UserInfoChanged(ServerClient *cl) {
 int32_t Sv_InstallerFrame(const InstallerStatus *in) {
   static InstallerStatus last;
 
-  if (in->state != last.state || q_strcmp(in->currentFile, last.currentFile)) {
+  if (in->state != last.state || Str_Compare(in->currentFile, last.currentFile)) {
     switch (in->state) {
       case INSTALLER_CHECKING_BIN:
         Com_Print("Checking for updates\u2026\n");

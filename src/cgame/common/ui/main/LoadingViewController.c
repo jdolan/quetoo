@@ -108,7 +108,7 @@ static const char *resolveServerName(void) {
     return "";
   }
 
-  if (!q_strcmp(cgi.server->address, "localhost")) {
+  if (!Str_Compare(cgi.server->address, "localhost")) {
     const char *hostname = cgi.GetCvarString("sv_hostname");
     return *hostname ? hostname : "Local server";
   }

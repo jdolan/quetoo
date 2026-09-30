@@ -57,11 +57,11 @@ static const JSONProperties leaderboardEntryProperties = {
  * @brief Maps a column identifier to its API sort parameter.
  */
 static const char *sortParamForColumn(const char *identifier) {
-  if (q_strcmp(identifier, _player) == 0) return "name";
-  if (q_strcmp(identifier, _frags) == 0) return "frags";
-  if (q_strcmp(identifier, _deaths) == 0) return "deaths";
-  if (q_strcmp(identifier, _kd) == 0) return "kd";
-  if (q_strcmp(identifier, _time_played) == 0) return "time_played";
+  if (Str_Compare(identifier, _player) == 0) return "name";
+  if (Str_Compare(identifier, _frags) == 0) return "frags";
+  if (Str_Compare(identifier, _deaths) == 0) return "deaths";
+  if (Str_Compare(identifier, _kd) == 0) return "kd";
+  if (Str_Compare(identifier, _time_played) == 0) return "time_played";
   return NULL;
 }
 
@@ -124,9 +124,9 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
   char url[512];
-  int n = q_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=1", LEADERBOARD_MAX_ENTRIES);
+  int n = Str_Format(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=1", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
-    n += q_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
+    n += Str_Format(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
   }
 
   $(cgi.restClient, getAsync, url, NULL, fetchLeaderboardComplete, NULL);
@@ -138,12 +138,12 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
 static void selectOwnRow(LeaderboardViewController *this) {
 
   const char *guidHash = cgi.GetCvarString("guidHash");
-  if (q_strlen(guidHash) == 0) {
+  if (Str_Length(guidHash) == 0) {
     return;
   }
 
   for (size_t i = 0; i < this->leaderboardResponse.numEntries; i++) {
-    if (q_strcmp(this->leaderboardResponse.entries[i].guid, guidHash) == 0) {
+    if (Str_Compare(this->leaderboardResponse.entries[i].guid, guidHash) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -184,22 +184,22 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   }
 
   const char *guidHash = cgi.GetCvarString("guidHash");
-  if (q_strcmp(entry->guid, guidHash) == 0) {
+  if (Str_Compare(entry->guid, guidHash) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
-  if (q_strcmp(column->identifier, _rank) == 0) {
+  if (Str_Compare(column->identifier, _rank) == 0) {
     $(cell->text, setText, va("%d", entry->rank));
-  } else if (q_strcmp(column->identifier, _player) == 0) {
+  } else if (Str_Compare(column->identifier, _player) == 0) {
     $(cell->text, setText, entry->name);
-  } else if (q_strcmp(column->identifier, _frags) == 0) {
+  } else if (Str_Compare(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", entry->frags));
-  } else if (q_strcmp(column->identifier, _deaths) == 0) {
+  } else if (Str_Compare(column->identifier, _deaths) == 0) {
     $(cell->text, setText, va("%d", entry->deaths));
-  } else if (q_strcmp(column->identifier, _kd) == 0) {
+  } else if (Str_Compare(column->identifier, _kd) == 0) {
     const float kd = entry->deaths > 0 ? (float) entry->frags / entry->deaths : (float) entry->frags;
     $(cell->text, setText, va("%.2f", kd));
-  } else if (q_strcmp(column->identifier, _time_played) == 0) {
+  } else if (Str_Compare(column->identifier, _time_played) == 0) {
     $(cell->text, setText, formatTime(entry->timePlayed));
   }
 

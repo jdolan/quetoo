@@ -147,7 +147,7 @@ static void S_LoadSampleBuffer(SoundSample *sample) {
 
   char path[MAX_QPATH];
   for (const char **fmt = sndFormats; *fmt; fmt++) {
-    q_snprintf(path, sizeof(path), "%s.%s", sample->media.name, *fmt);
+    Str_Format(path, sizeof(path), "%s.%s", sample->media.name, *fmt);
     if (S_LoadSampleBuffer_(sample, path)) {
       break;
     }
@@ -156,7 +156,7 @@ static void S_LoadSampleBuffer(SoundSample *sample) {
   if (sample->buffer) {
     Com_Debug(DEBUG_SOUND, "Loaded %s for %s\n", path, sample->media.name);
   } else {
-    if (!q_strncmp(sample->media.name, "players/", 8)) {
+    if (!Str_CompareN(sample->media.name, "players/", 8)) {
       Com_Debug(DEBUG_SOUND, "Failed to load player sample %s\n", sample->media.name);
     } else {
       Com_Warn("Failed to load %s\n", sample->media.name);
@@ -203,7 +203,7 @@ SoundSample *S_LoadSample(const char *name, AssetContext context) {
 
   char key[MAX_QPATH];
   if (stripped[0] == '*') { // placeholder, resolved per-client at play time; never context-qualified
-    q_strlcpy(key, stripped, sizeof(key));
+    Str_Copy(key, stripped, sizeof(key));
   } else {
     Asset_Path(stripped, key, sizeof(key), context);
   }
@@ -240,13 +240,13 @@ SoundSample *S_LoadClientModelSample(const char *model, const char *soundSet, co
   }
 
   char key[MAX_QPATH];
-  q_snprintf(key, sizeof(key), "players/%s/%s", model, name + 1);
+  Str_Format(key, sizeof(key), "players/%s/%s", model, name + 1);
 
   SoundSample *sample = (SoundSample *) S_FindMedia(key, S_MEDIA_SAMPLE);
   if (sample == NULL) {
 
     char relative[MAX_QPATH];
-    q_snprintf(relative, sizeof(relative), "%s/%s", model, name + 1);
+    Str_Format(relative, sizeof(relative), "%s/%s", model, name + 1);
 
     sample = S_LoadSample(relative, ASSET_CONTEXT_PLAYERS);
     if (sample->buffer) {
@@ -255,7 +255,7 @@ SoundSample *S_LoadClientModelSample(const char *model, const char *soundSet, co
       SoundSample *aliased = NULL;
 
       if (soundSet && soundSet[0]) {
-        q_snprintf(relative, sizeof(relative), "common/%s/%s", soundSet, name + 1);
+        Str_Format(relative, sizeof(relative), "common/%s/%s", soundSet, name + 1);
 
         aliased = S_LoadSample(relative, ASSET_CONTEXT_PLAYERS);
         if (!aliased->buffer) {
@@ -264,7 +264,7 @@ SoundSample *S_LoadClientModelSample(const char *model, const char *soundSet, co
       }
 
       if (aliased == NULL) {
-        q_snprintf(relative, sizeof(relative), "common/%s", name + 1);
+        Str_Format(relative, sizeof(relative), "common/%s", name + 1);
         aliased = S_LoadSample(relative, ASSET_CONTEXT_PLAYERS);
       }
 

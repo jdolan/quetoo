@@ -68,7 +68,7 @@ static bool Sv_SetPlayer(void) {
       continue;
     }
 
-    if (!q_strcmp(cl->name, s)) {
+    if (!Str_Compare(cl->name, s)) {
       serverClient = cl;
       return true;
     }
@@ -194,7 +194,7 @@ static void Sv_Status_f(void) {
     const uint32_t ping = Mini(cl->ping, 9999);
 
     char status[MAX_STRING_CHARS];
-    q_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
+    Str_Format(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
                i,
                ping,
                cl->name,
@@ -239,16 +239,16 @@ static void Sv_Say_f(void) {
     return;
   }
 
-  q_strcolorstrip(Cmd_Args(), text);
-  if (!q_strlen(text)) {
+  Str_StripColors(Cmd_Args(), text);
+  if (!Str_Length(text)) {
     return;
   }
 
-  q_strlcpy(text, Cmd_Args(), sizeof(text));
+  Str_Copy(text, Cmd_Args(), sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
-    s[q_strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[Str_Length(s) - 1] == '"') {
+    s[Str_Length(s) - 1] = '\0';
     s++;
   }
 
@@ -280,17 +280,17 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  const char *msg = Cmd_Args() + q_strlen(Cmd_Argv(1)) + 1;
-  q_strcolorstrip(msg, text);
-  if (!q_strlen(text)) {
+  const char *msg = Cmd_Args() + Str_Length(Cmd_Argv(1)) + 1;
+  Str_StripColors(msg, text);
+  if (!Str_Length(text)) {
     return;
   }
 
-  q_strlcpy(text, msg, sizeof(text));
+  Str_Copy(text, msg, sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
-    s[q_strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[Str_Length(s) - 1] == '"') {
+    s[Str_Length(s) - 1] = '\0';
     s++;
   }
 
@@ -361,8 +361,8 @@ static void Sv_Stuff_f(void) {
 
   strcpy(text, Cmd_Argv(2));
   for (i = 3; i <= Cmd_Argc(); i++) {
-    q_strlcat(text, " ", sizeof(text));
-    q_strlcat(text, Cmd_Argv(i), sizeof(text));
+    Str_Append(text, " ", sizeof(text));
+    Str_Append(text, Cmd_Argv(i), sizeof(text));
   }
 
   Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);

@@ -34,7 +34,7 @@ const GameItem *G_FindItemByClassName(const char *classname) {
   for (GameItemTag t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
     const GameItem *it = &gameItems[t];
 
-    if (!q_strcmp(it->def.classname, classname)) {
+    if (!Str_Compare(it->def.classname, classname)) {
       return it;
     }
   }
@@ -55,7 +55,7 @@ const GameItem *G_FindItem(const char *name) {
   for (GameItemTag t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
     const GameItem *it = &gameItems[t];
 
-    if (!q_strcasecmp(it->def.name, name)) {
+    if (!Str_CaseCompare(it->def.name, name)) {
       if (G_ItemAvailable(it)) {
         return it;
       }
@@ -1151,12 +1151,12 @@ void G_PrecacheItem(const GameItem *it) {
     }
 
     // determine type based on extension
-    const size_t dlen = q_strlen(data);
-    if ((dlen >= 4 && (!q_strcmp(data + dlen - 4, ".md3") || !q_strcmp(data + dlen - 4, ".obj")))) {
+    const size_t dlen = Str_Length(data);
+    if ((dlen >= 4 && (!Str_Compare(data + dlen - 4, ".md3") || !Str_Compare(data + dlen - 4, ".obj")))) {
       gi.ModelIndex(data);
-    } else if (dlen >= 4 && (!q_strcmp(data + dlen - 4, ".wav") || !q_strcmp(data + dlen - 4, ".ogg"))) {
+    } else if (dlen >= 4 && (!Str_Compare(data + dlen - 4, ".wav") || !Str_Compare(data + dlen - 4, ".ogg"))) {
       gi.SoundIndex(data);
-    } else if (dlen >= 4 && (!q_strcmp(data + dlen - 4, ".png") || !q_strcmp(data + dlen - 4, ".jpg") || !q_strcmp(data + dlen - 4, ".tga"))) {
+    } else if (dlen >= 4 && (!Str_Compare(data + dlen - 4, ".png") || !Str_Compare(data + dlen - 4, ".jpg") || !Str_Compare(data + dlen - 4, ".tga"))) {
       gi.ImageIndex(data);
     } else {
       G_Error("%s has unknown data type\n", it->def.classname);
@@ -1280,48 +1280,48 @@ static void G_InitItem_Common(GameItem *it) {
       it->Use = G_UseWeapon;
       it->Drop = G_DropWeapon;
 
-      if (!q_strcmp(it->def.classname, "weapon_blaster") ||
-          !q_strcmp(it->def.classname, "weapon_handgrenades")) {
+      if (!Str_Compare(it->def.classname, "weapon_blaster") ||
+          !Str_Compare(it->def.classname, "weapon_handgrenades")) {
         it->Drop = NULL;
-      } else if (!q_strcmp(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_grenadelauncher")) {
         it->Pickup = G_PickupGrenadeLauncher;
       }
 
-      if (!q_strcmp(it->def.classname, "weapon_blaster")) {
+      if (!Str_Compare(it->def.classname, "weapon_blaster")) {
         it->Think = G_FireBlaster;
-      } else if (!q_strcmp(it->def.classname, "weapon_shotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_shotgun")) {
         it->Think = G_FireShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_supershotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_supershotgun")) {
         it->Think = G_FireSuperShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_machinegun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_machinegun")) {
         it->Think = G_FireMachinegun;
-      } else if (!q_strcmp(it->def.classname, "weapon_handgrenades")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_handgrenades")) {
         it->Think = G_FireHandGrenade;
-      } else if (!q_strcmp(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_grenadelauncher")) {
         it->Think = G_FireGrenadeLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_rocketlauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_rocketlauncher")) {
         it->Think = G_FireRocketLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_hyperblaster")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_hyperblaster")) {
         it->Think = G_FireHyperblaster;
-      } else if (!q_strcmp(it->def.classname, "weapon_lightning")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_lightning")) {
         it->Think = G_FireLightning;
-      } else if (!q_strcmp(it->def.classname, "weapon_railgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_railgun")) {
         it->Think = G_FireRailgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_bfg")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_bfg")) {
         it->Think = G_FireBfg;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_shotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_shotgun")) {
         it->Think = G_FireQuakeShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_supershotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_supershotgun")) {
         it->Think = G_FireQuakeSuperShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_nailgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_nailgun")) {
         it->Think = G_FireQuakeNailgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_supernailgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_supernailgun")) {
         it->Think = G_FireQuakeSuperNailgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_grenadelauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_grenadelauncher")) {
         it->Think = G_FireQuakeGrenadeLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_rocketlauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_rocketlauncher")) {
         it->Think = G_FireQuakeRocketLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_thunderbolt")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_thunderbolt")) {
         it->Think = G_FireQuakeThunderbolt;
       }
       break;
@@ -1329,7 +1329,7 @@ static void G_InitItem_Common(GameItem *it) {
     case ITEM_TYPE_AMMO:
       it->Pickup = G_PickupAmmo;
       it->Drop = G_DropItem;
-      if (!q_strcmp(it->def.classname, "ammo_grenades")) {
+      if (!Str_Compare(it->def.classname, "ammo_grenades")) {
         it->Pickup = G_PickupGrenades;
         it->Use = G_UseGrenades;
       }
@@ -1340,13 +1340,13 @@ static void G_InitItem_Common(GameItem *it) {
       break;
 
     case ITEM_TYPE_POWERUP:
-      if (!q_strcmp(it->def.classname, "item_adrenaline")) {
+      if (!Str_Compare(it->def.classname, "item_adrenaline")) {
         it->Pickup = G_PickupAdrenaline;
-      } else if (!q_strcmp(it->def.classname, "item_quad")) {
+      } else if (!Str_Compare(it->def.classname, "item_quad")) {
         it->Pickup = G_PickupQuadDamage;
-      } else if (!q_strcmp(it->def.classname, "item_invisibility")) {
+      } else if (!Str_Compare(it->def.classname, "item_invisibility")) {
         it->Pickup = G_PickupInvisibility;
-      } else if (!q_strcmp(it->def.classname, "item_invulnerability")) {
+      } else if (!Str_Compare(it->def.classname, "item_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
       break;

@@ -52,9 +52,9 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   for (int32_t i = 0; i < cgameState.centerPrint.numLines; i++) {
     if (i) {
-      q_strlcat(string, "\n", sizeof(string));
+      Str_Append(string, "\n", sizeof(string));
     }
-    q_strlcat(string, cgameState.centerPrint.lines[i], sizeof(string));
+    Str_Append(string, cgameState.centerPrint.lines[i], sizeof(string));
   }
 
   return string;

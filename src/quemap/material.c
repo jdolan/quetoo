@@ -35,7 +35,7 @@ int32_t LoadMaterial(const char *name) {
 
   MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
-    if (!q_strcmp(name, m->def->name)) {
+    if (!Str_Compare(name, m->def->name)) {
       return i;
     }
   }

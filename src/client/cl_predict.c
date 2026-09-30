@@ -330,7 +330,7 @@ void Cl_UpdatePrediction(void) {
         Com_Error(ERROR_DROP, "Failed to hash %s\n", cl.configStrings[CS_BSP]);
       }
 
-      if (q_strcmp(hash, expected)) {
+      if (Str_Compare(hash, expected)) {
         Com_Error(ERROR_DROP, "%s differs from server (%s, expected %s)\n",
                   cl.configStrings[CS_BSP], hash, expected);
       }

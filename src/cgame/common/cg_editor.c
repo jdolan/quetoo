@@ -48,8 +48,8 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
       continue;
     }
 
-    if (!q_strcmp(cgi.EntityValue(e, "classname")->string, classname)) {
-      if (!q_strcmp(cgi.EntityValue(e, "team")->string, team)) {
+    if (!Str_Compare(cgi.EntityValue(e, "classname")->string, classname)) {
+      if (!Str_Compare(cgi.EntityValue(e, "team")->string, team)) {
         if (cgi.EntityValue(e, "team_master")->parsed) {
           return i;
         }
@@ -320,7 +320,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
     }
 
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
-    if (!q_strcmp(classname, "func_group") && !cgameEditor.showFuncGroups) {
+    if (!Str_Compare(classname, "func_group") && !cgameEditor.showFuncGroups) {
       continue;
     }
 
@@ -329,7 +329,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
     Vec4 debugColor = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
     Vec4 modelColor = color_white.vec4;
 
-    if (!q_strcmp(classname, "light")) {
+    if (!Str_Compare(classname, "light")) {
       modelColor = Cg_AddEditorEntity_Light(edit);
       debugColor = modelColor;
     } else {
@@ -362,7 +362,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
         .model = edit->model
       });
 
-      if (isSelected || q_strcmp(classname, "worldspawn")) {
+      if (isSelected || Str_Compare(classname, "worldspawn")) {
         const Color color = isSelected ? color_red : Color4fv(debugColor);
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
           const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
@@ -403,7 +403,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       }
     }
 
-    if (isSelected && q_strcmp(classname, "worldspawn")) {
+    if (isSelected && Str_Compare(classname, "worldspawn")) {
       Vec3 points[2] = { ent->origin };
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(1.f, 0.f, 0.f));
@@ -441,12 +441,12 @@ static void Cg_InitEditorEntity(int16_t number) {
   edit->def = cgi.EntityFromInfoString(info);
 
   const char *mod = cgi.EntityValue(edit->def, "model")->string;
-  if (q_strlen(mod)) {
+  if (Str_Length(mod)) {
     edit->model = cgi.LoadModel(mod);
   } else {
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
     for (size_t i = 0; i < bgNumItems; i++) {
-      if (!q_strcmp(bgItemDefs[i].classname, classname)) {
+      if (!Str_Compare(bgItemDefs[i].classname, classname)) {
         edit->model = cgi.LoadModel(bgItemDefs[i].model);
         break;
       }
@@ -464,7 +464,7 @@ static void Cg_InitEditorEntity(int16_t number) {
 
   const CGameEntityClass *clazz = NULL;
   for (size_t j = 0; j < cgameNumEntityClasses; j++) {
-    if (!q_strcmp(classname, cgameEntityClasses[j]->classname)) {
+    if (!Str_Compare(classname, cgameEntityClasses[j]->classname)) {
       clazz = cgameEntityClasses[j];
       break;
     }
@@ -519,7 +519,7 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
 
   Cg_FreeEditorEntity(number);
 
-  if (*cgi.state == CL_ACTIVE && q_strlen(info)) {
+  if (*cgi.state == CL_ACTIVE && Str_Length(info)) {
     Cg_InitEditorEntity(number);
   }
 
@@ -588,7 +588,7 @@ size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t ou
     }
 
     if (!cgameEditor.showFuncGroups) {
-      if (!q_strcmp(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
+      if (!Str_Compare(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
         continue;
       }
     }

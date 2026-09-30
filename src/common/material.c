@@ -63,7 +63,7 @@ static int32_t Material_ParseContents(const char *c) {
   int32_t contents = 0;
 
   for (MaterialHint *hint = contentsHints; hint < contentsHints + lengthof(contentsHints); hint++) {
-    if (q_strstr(c, hint->keyword)) {
+    if (Str_Find(c, hint->keyword)) {
       contents |= hint->flag;
     }
   }
@@ -80,11 +80,11 @@ static char *Material_UnparseContents(int32_t contents) {
 
   for (MaterialHint *hint = contentsHints; hint < contentsHints + lengthof(contentsHints); hint++) {
     if (contents & hint->flag) {
-      q_strlcat(s, va("%s ", hint->keyword), sizeof(s));
+      Str_Append(s, va("%s ", hint->keyword), sizeof(s));
     }
   }
 
-  {size_t _l = q_strlen(s); while (_l > 0 && isspace((unsigned char) s[_l-1])) s[--_l] = 0; return s;}
+  {size_t _l = Str_Length(s); while (_l > 0 && isspace((unsigned char) s[_l-1])) s[--_l] = 0; return s;}
 }
 
 /**
@@ -115,7 +115,7 @@ static int32_t Material_ParseSurface(const char *c) {
   int32_t surface = 0;
 
   for (MaterialHint *hint = surfaceHints; hint < surfaceHints + lengthof(surfaceHints); hint++) {
-    if (q_strstr(c, hint->keyword)) {
+    if (Str_Find(c, hint->keyword)) {
       surface |= hint->flag;
     }
   }
@@ -132,11 +132,11 @@ static char *Material_UnparseSurface(int32_t surface) {
 
   for (MaterialHint *list = surfaceHints; list < surfaceHints + lengthof(surfaceHints); list++) {
     if (surface & list->flag) {
-      q_strlcat(s, va("%s ", list->keyword), sizeof(s));
+      Str_Append(s, va("%s ", list->keyword), sizeof(s));
     }
   }
 
-  {size_t _l = q_strlen(s); while (_l > 0 && isspace((unsigned char) s[_l-1])) s[--_l] = 0; return s;}
+  {size_t _l = Str_Length(s); while (_l > 0 && isspace((unsigned char) s[_l-1])) s[--_l] = 0; return s;}
 }
 
 /**
@@ -158,7 +158,7 @@ static MaterialHint blendConstList[] = {
 static inline MaterialBlend Material_BlendConstByName(const char *c) {
 
   for (MaterialHint *list = blendConstList; list < blendConstList + lengthof(blendConstList); list++) {
-    if (!q_strcmp(c, list->keyword)) {
+    if (!Str_Compare(c, list->keyword)) {
       return (MaterialBlend) list->enumVal;
     }
   }
@@ -269,7 +269,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       break;
     }
 
-    if (!q_strcmp(token, "texture")) {
+    if (!Str_Compare(token, "texture")) {
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
         Material_Warn(m, parser, "Missing texture name");
@@ -280,17 +280,17 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "portal")) {
+    if (!Str_Compare(token, "portal")) {
       s->flags |= STAGE_PORTAL;
       continue;
     }
 
-    if (!q_strcmp(token, "reflect")) {
+    if (!Str_Compare(token, "reflect")) {
       s->flags |= STAGE_REFLECT;
       continue;
     }
 
-    if (!q_strcmp(token, "blend")) {
+    if (!Str_Compare(token, "blend")) {
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token))) {
         Material_Warn(m, parser, "Missing blend src");
@@ -318,7 +318,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "color")) {
+    if (!Str_Compare(token, "color")) {
 
       const size_t count = Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, s->color.rgba, 4);
       if (count != 4) {
@@ -340,7 +340,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "pulse")) {
+    if (!Str_Compare(token, "pulse")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.hz, 1) != 1) {
         Material_Warn(m, parser, "No value provided for pulse");
@@ -362,7 +362,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "stretch")) {
+    if (!Str_Compare(token, "stretch")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amplitude, 1) != 1) {
         Material_Warn(m, parser, "No value provided for amplitude");
@@ -390,7 +390,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "rotate")) {
+    if (!Str_Compare(token, "rotate")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->rotate.hz, 1) != 1) {
         Material_Warn(m, parser, "No value provided for rotate");
@@ -406,7 +406,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "scroll.s")) {
+    if (!Str_Compare(token, "scroll.s")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.s, 1) != 1) {
         Material_Warn(m, parser, "No value provided for scroll.s");
@@ -422,7 +422,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "scroll.t")) {
+    if (!Str_Compare(token, "scroll.t")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scroll.t, 1) != 1) {
         Material_Warn(m, parser, "No value provided for scroll.t");
@@ -438,7 +438,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "scale.s")) {
+    if (!Str_Compare(token, "scale.s")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.s, 1) != 1) {
         Material_Warn(m, parser, "No value provided for scale.s");
@@ -454,7 +454,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "scale.t")) {
+    if (!Str_Compare(token, "scale.t")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->scale.t, 1) != 1) {
         Material_Warn(m, parser, "No value provided for scale.t");
@@ -470,7 +470,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "terrain")) {
+    if (!Str_Compare(token, "terrain")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->terrain.floor, 1) != 1 ||
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->terrain.ceil, 1) != 1) {
@@ -487,7 +487,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "dirtmap")) {
+    if (!Str_Compare(token, "dirtmap")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->dirtmap.intensity, 1) != 1) {
         Material_Warn(m, parser, "No value provided for dirtmap");
@@ -503,7 +503,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "envmap")) {
+    if (!Str_Compare(token, "envmap")) {
 
       if (Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token)) && (isdigit((unsigned char) *token) || *token == '.')) {
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->envmap.amount, 1);
@@ -517,7 +517,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "warp")) {
+    if (!Str_Compare(token, "warp")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->warp.hz, 1) != 1) {
         Material_Warn(m, parser, "No value provided for warp hz");
@@ -532,7 +532,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       s->flags |= STAGE_WARP;
     }
 
-    if (!q_strcmp(token, "shell")) {
+    if (!Str_Compare(token, "shell")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->shell.radius, 1) != 1) {
         Material_Warn(m, parser, "No value provided for shell radius");
@@ -543,7 +543,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "anim")) {
+    if (!Str_Compare(token, "anim")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_UINT16, &s->animation.numFrames, 1) != 1) {
         Material_Warn(m, parser, "Need number of frames");
@@ -575,7 +575,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "lerp")) {
+    if (!Str_Compare(token, "lerp")) {
       int32_t value = 0;
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &value, 1);
       if (value) {
@@ -584,7 +584,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "lighting")) {
+    if (!Str_Compare(token, "lighting")) {
       s->flags |= STAGE_LIGHTING;
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->lighting.intensity, 1) != 1) {
@@ -596,7 +596,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
         s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
       }
 
-      if (Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token)) && !q_strcmp(token, "flat")) {
+      if (Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token)) && !Str_Compare(token, "flat")) {
         Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
         s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
         s->flags |= STAGE_LIGHTING_FLAT;
@@ -605,7 +605,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "emissive")) {
+    if (!Str_Compare(token, "emissive")) {
       s->flags |= STAGE_EMISSIVE;
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->emissive, 1) != 1) {
@@ -615,7 +615,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "light.radius")) {
+    if (!Str_Compare(token, "light.radius")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->light.radius, 1) != 1) {
         Material_Warn(m, parser, "No value provided for light.radius");
@@ -631,7 +631,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "light.color")) {
+    if (!Str_Compare(token, "light.color")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, s->light.color.xyz, 3) != 3) {
         Material_Warn(m, parser, "Need 3 values for light.color");
@@ -643,7 +643,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "light.intensity")) {
+    if (!Str_Compare(token, "light.intensity")) {
 
       if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->light.intensity, 1) != 1) {
         Material_Warn(m, parser, "No value provided for light.intensity");
@@ -654,7 +654,7 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
       continue;
     }
 
-    if (!q_strcmp(token, "flare")) {
+    if (!Str_Compare(token, "flare")) {
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
         Material_Warn(m, parser, "Missing flare asset or index");
@@ -712,11 +712,11 @@ static bool Material_ParseStage(Material *m, MaterialStage *s, Parser *parser) {
 void Material_Basename(const char *in, char *out, size_t len) {
 
   if (out != in) {
-    q_strlcpy(out, in, len);
+    Str_Copy(out, in, len);
   }
 
-  if (q_strlen(out) >= 2 && !q_strcmp(out + q_strlen(out) - 2, "_d")) {
-    out[q_strlen(out) - 2] = '\0';
+  if (Str_Length(out) >= 2 && !Str_Compare(out + Str_Length(out) - 2, "_d")) {
+    out[Str_Length(out) - 2] = '\0';
   }
 }
 
@@ -765,7 +765,7 @@ static Material *Material_Alloc(const char *name, AssetContext context) {
   char stripped[MAX_QPATH];
   StripExtension(name, stripped);
 
-  q_strlcpy(mat->name, stripped, sizeof(mat->name));
+  Str_Copy(mat->name, stripped, sizeof(mat->name));
 
   Material_Basename(mat->name, mat->basename, sizeof(mat->basename));
   Material_Path(mat->basename, mat->path, sizeof(mat->path), context);
@@ -822,32 +822,32 @@ Material *Material_Load(const char *name, AssetContext context) {
       break;
     }
 
-    if (!q_strcmp(token, "diffusemap")) {
+    if (!Str_Compare(token, "diffusemap")) {
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->diffusemap.name, MAX_QPATH)) {
         Material_Warn(m, &parser, "Invalid diffusemap path");
       }
     }
-    else if (!q_strcmp(token, "normalmap")) {
+    else if (!Str_Compare(token, "normalmap")) {
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->normalmap.name, sizeof(m->normalmap.name))) {
         Material_Warn(m, &parser, "Invalid normalmap path");
       }
-    } else if (!q_strcmp(token, "specularmap")) {
+    } else if (!Str_Compare(token, "specularmap")) {
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
         Material_Warn(m, &parser, "Invalid specularmap path");
       }
-    } else if (!q_strcmp(token, "tintmap")) {
+    } else if (!Str_Compare(token, "tintmap")) {
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->tintmap.name, sizeof(m->tintmap.name))) {
         Material_Warn(m, &parser, "Invalid tintmap path");
       }
-    } else if (!q_strncmp(token, "tintmap.", q_strlen("tintmap."))) {
+    } else if (!Str_CompareN(token, "tintmap.", Str_Length("tintmap."))) {
       static Vec4 unused_color;
       Vec4 *color = &unused_color;
 
-      if (!q_strcmp(token, "tintmap.tint_r_default")) {
+      if (!Str_Compare(token, "tintmap.tint_r_default")) {
         color = &m->tintmapDefaults[TINT_R];
-      } else if (!q_strcmp(token, "tintmap.tint_g_default")) {
+      } else if (!Str_Compare(token, "tintmap.tint_g_default")) {
         color = &m->tintmapDefaults[TINT_G];
-      } else if (!q_strcmp(token, "tintmap.tint_b_default")) {
+      } else if (!Str_Compare(token, "tintmap.tint_b_default")) {
         color = &m->tintmapDefaults[TINT_B];
       } else {
         Material_Warn(m, &parser, va("Invalid token \"%s\"", token));
@@ -868,7 +868,7 @@ Material *Material_Load(const char *name, AssetContext context) {
         }
       }
 
-    } else if (!q_strcmp(token, "roughness")) {
+    } else if (!Str_Compare(token, "roughness")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
         Material_Warn(m, &parser, "No roughness specified");
@@ -877,7 +877,7 @@ Material *Material_Load(const char *name, AssetContext context) {
         m->roughness = MATERIAL_ROUGHNESS;
       }
 
-    } else if (!q_strcmp(token, "hardness")) {
+    } else if (!Str_Compare(token, "hardness")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
         Material_Warn(m, &parser, "No hardness specified");
@@ -886,7 +886,7 @@ Material *Material_Load(const char *name, AssetContext context) {
         m->hardness = MATERIAL_HARDNESS;
       }
 
-    } else if (!q_strcmp(token, "specularity")) {
+    } else if (!Str_Compare(token, "specularity")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specularity, 1) != 1) {
         Material_Warn(m, &parser, "No specularity specified");
@@ -895,7 +895,7 @@ Material *Material_Load(const char *name, AssetContext context) {
         m->specularity = MATERIAL_SPECULARITY;
       }
 
-    } else if (!q_strcmp(token, "alpha_test")) {
+    } else if (!Str_Compare(token, "alpha_test")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alphaTest, 1) != 1) {
         Material_Warn(m, &parser, "No alpha test specified");
@@ -906,7 +906,7 @@ Material *Material_Load(const char *name, AssetContext context) {
 
       m->surface |= SURF_ALPHA_TEST;
 
-    } else if (!q_strcmp(token, "contents")) {
+    } else if (!Str_Compare(token, "contents")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
         Material_Warn(m, &parser, "No contents specified");
@@ -914,7 +914,7 @@ Material *Material_Load(const char *name, AssetContext context) {
         m->contents |= Material_ParseContents(token);
       }
 
-    } else if (!q_strcmp(token, "surface")) {
+    } else if (!Str_Compare(token, "surface")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
         Material_Warn(m, &parser, "No surface flags specified");
@@ -922,13 +922,13 @@ Material *Material_Load(const char *name, AssetContext context) {
         m->surface |= Material_ParseSurface(token);
       }
 
-    } else if (!q_strcmp(token, "footsteps")) {
+    } else if (!Str_Compare(token, "footsteps")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
         Material_Warn(m, &parser, "Invalid footsteps value");
       }
 
-    } else if (!q_strcmp(token, "parallax")) {
+    } else if (!Str_Compare(token, "parallax")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
         Material_Warn(m, &parser, "No parallax specified");
@@ -937,7 +937,7 @@ Material *Material_Load(const char *name, AssetContext context) {
         m->parallax = MATERIAL_PARALLAX;
       }
 
-    } else if (!q_strcmp(token, "shadow")) {
+    } else if (!Str_Compare(token, "shadow")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->shadow, 1) != 1) {
         Material_Warn(m, &parser, "No shadow specified");
@@ -976,7 +976,7 @@ void Material_Path(const char *name, char *path, size_t len, AssetContext contex
 
   Asset_Path(name, path, len, context);
 
-  q_strlcat(path, ".mat", len);
+  Str_Append(path, ".mat", len);
 }
 
 /**
@@ -989,9 +989,9 @@ static bool Material_ResolveAsset(Asset *asset, AssetContext context) {
   Asset_Path(asset->name, name, sizeof(name), context);
 
   for (size_t i = 0; i < lengthof(extensions); i++) {
-    q_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
+    Str_Format(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
 
-    q_strlower(asset->path, asset->path);
+    Str_Lower(asset->path, asset->path);
 
     if (Fs_Exists(asset->path)) {
       return true;
@@ -1016,9 +1016,9 @@ static bool Material_ResolveStageAnimation(MaterialStage *stage, AssetContext co
   stage->animation.frames = Mem_LinkMalloc(size, stage);
 
   char base[MAX_QPATH];
-  q_strlcpy(base, stage->asset.name, sizeof(base));
+  Str_Copy(base, stage->asset.name, sizeof(base));
 
-  char *c = base + q_strlen(base) - 1;
+  char *c = base + Str_Length(base) - 1;
   while (isdigit(*c)) {
     c--;
   }
@@ -1031,7 +1031,7 @@ static bool Material_ResolveStageAnimation(MaterialStage *stage, AssetContext co
   for (int32_t i = 0; i < stage->animation.numFrames; i++) {
 
     Asset *frame = &stage->animation.frames[i];
-    q_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
+    Str_Format(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
     if (!Material_ResolveAsset(frame, context)) {
       Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
@@ -1095,20 +1095,20 @@ static bool Material_ResolveSuffixedAsset(Material *material, Asset *asset, cons
 
   if (*asset->name) {
     char name[MAX_QPATH];
-    q_strlcpy(name, asset->name, sizeof(name));
+    Str_Copy(name, asset->name, sizeof(name));
     for (const char **s = suffix; *s; s++) {
-      q_snprintf(asset->name, sizeof(asset->name), "%s%s", name, *s);
+      Str_Format(asset->name, sizeof(asset->name), "%s%s", name, *s);
       if (Material_ResolveAsset(asset, material->context)) {
         Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
         return true;
       }
     }
-    q_strlcpy(asset->name, name, sizeof(asset->name));
+    Str_Copy(asset->name, name, sizeof(asset->name));
     return Material_ResolveAsset(asset, material->context);
   }
 
   for (const char **s = suffix; *s; s++) {
-    q_snprintf(asset->name, sizeof(asset->name), "%s%s", material->basename, *s);
+    Str_Format(asset->name, sizeof(asset->name), "%s%s", material->basename, *s);
     if (Material_ResolveAsset(asset, material->context)) {
       Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
       break;
@@ -1136,8 +1136,8 @@ static void Material_ResolveFootsteps_Enumerate(const char *file, void *data) {
 
   Asset *out = footsteps->samples + footsteps->numSamples;
 
-  q_strlcpy(out->name, file, sizeof(out->name));
-  q_strlcpy(out->path, file, sizeof(out->path));
+  Str_Copy(out->name, file, sizeof(out->name));
+  Str_Copy(out->path, file, sizeof(out->path));
 
   footsteps->numSamples++;
 }
@@ -1150,7 +1150,7 @@ static int32_t Material_ResolveFootsteps_Compare(const void *a, const void *b) {
   const Asset *aAsset = a;
   const Asset *bAsset = b;
 
-  return q_strcmp(aAsset->name, bAsset->name);
+  return Str_Compare(aAsset->name, bAsset->name);
 }
 
 /**
@@ -1158,8 +1158,8 @@ static int32_t Material_ResolveFootsteps_Compare(const void *a, const void *b) {
  */
 static void Material_ResolveFootsteps(MaterialFootsteps *footsteps) {
 
-  if (!q_strlen(footsteps->name)) {
-    q_strlcpy(footsteps->name, "default", sizeof(footsteps->name));
+  if (!Str_Length(footsteps->name)) {
+    Str_Copy(footsteps->name, "default", sizeof(footsteps->name));
   }
 
   const char *pattern = va("players/common/step_%s_*", footsteps->name);
@@ -1381,13 +1381,13 @@ static void Material_Write(const Material *material, File *file) {
 
   Fs_Print(file, "\tdiffusemap %s\n", material->name);
 
-  if (*material->normalmap.name && q_strncmp(material->normalmap.name, material->basename, q_strlen(material->basename))) {
+  if (*material->normalmap.name && Str_CompareN(material->normalmap.name, material->basename, Str_Length(material->basename))) {
     Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
   }
-  if (*material->specularmap.name && q_strncmp(material->specularmap.name, material->basename, q_strlen(material->basename))) {
+  if (*material->specularmap.name && Str_CompareN(material->specularmap.name, material->basename, Str_Length(material->basename))) {
     Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
   }
-  if (*material->tintmap.name && q_strncmp(material->tintmap.name, material->basename, q_strlen(material->basename))) {
+  if (*material->tintmap.name && Str_CompareN(material->tintmap.name, material->basename, Str_Length(material->basename))) {
     Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
   }
 
@@ -1423,7 +1423,7 @@ static void Material_Write(const Material *material, File *file) {
   }
 
   // if not empty/default, write footsteps
-  if (*material->footsteps.name && q_strcmp(material->footsteps.name, "default")) {
+  if (*material->footsteps.name && Str_Compare(material->footsteps.name, "default")) {
     Fs_Print(file, "\tfootsteps %s\n", material->footsteps.name);
   }
 

@@ -176,7 +176,7 @@ static bool G_InitEntity_Common(GameEntity *ent) {
   for (size_t i = 0; i < lengthof(entityClasses); i++) {
     const GameEntityClass *clazz = entityClasses + i;
 
-    if (!q_strcmp(clazz->classname, ent->classname)) {
+    if (!Str_Compare(clazz->classname, ent->classname)) {
       clazz->Init(ent);
       return true;
     }
@@ -246,7 +246,7 @@ static const GameEntityClass *G_EditorEntityClass(const GameEntity *ent) {
 
   for (size_t i = 0; i < lengthof(editorEntityClasses); i++) {
 
-    if (q_strcmp(editorEntityClasses[i].classname, ent->classname)) {
+    if (Str_Compare(editorEntityClasses[i].classname, ent->classname)) {
       continue;
     }
 
@@ -258,7 +258,7 @@ static const GameEntityClass *G_EditorEntityClass(const GameEntity *ent) {
     }
 
     for (size_t j = 0; j < lengthof(entityClasses); j++) {
-      if (!q_strcmp(entityClasses[j].classname, ent->classname)) {
+      if (!Str_Compare(entityClasses[j].classname, ent->classname)) {
         return entityClasses + j;
       }
     }
@@ -365,7 +365,7 @@ static void G_InitEntityTeams(void) {
         continue;
       }
 
-      if (!q_strcmp(ent->team, e->team)) {
+      if (!Str_Compare(ent->team, e->team)) {
 
         e->teamMaster = ent;
         e->flags |= FL_TEAM_SLAVE;
@@ -606,7 +606,7 @@ void G_SpawnEntities(const char *name, const Entity *mapListEntry, Entity *const
 
   memset(&gameLevel, 0, sizeof(gameLevel));
 
-  q_strlcpy(gameLevel.name, name, sizeof(gameLevel.name));
+  Str_Copy(gameLevel.name, name, sizeof(gameLevel.name));
 
   G_LevelWillSpawn();
 
@@ -683,7 +683,7 @@ static void G_worldspawn_EnumerateMusic(const char *path, void *data) {
   Vector *tracks = (Vector *) data;
   char name[MAX_QPATH];
   StripExtension(Basename(path), name);
-  if (q_strcmp(name, "gtdstudio-explore") == 0) {
+  if (Str_Compare(name, "gtdstudio-explore") == 0) {
     return;
   }
   $(tracks, add, name);
@@ -709,7 +709,7 @@ static void G_worldspawn_Music(void) {
   }
 
   char buf[MAX_STRING_CHARS];
-  q_strlcpy(buf, gameLevel.music, sizeof(buf));
+  Str_Copy(buf, gameLevel.music, sizeof(buf));
 
   int32_t i = 0;
   char *t = strtok(buf, ",");
@@ -725,7 +725,7 @@ static void G_worldspawn_Music(void) {
     }
 
     while (isspace((unsigned char) *t)) { t++; }
-    char *_end = t + q_strlen(t) - 1;
+    char *_end = t + Str_Length(t) - 1;
     while (_end >= t && isspace((unsigned char) *_end)) { *_end-- = '\0'; }
 
     if (*t != '\0') {
@@ -772,15 +772,15 @@ static void G_worldspawn(GameEntity *ent) {
   ent->s.bounds = ent->bounds;
 
   if (ent->message && *ent->message) {
-    q_strlcpy(gameLevel.message, ent->message, sizeof(gameLevel.message));
+    Str_Copy(gameLevel.message, ent->message, sizeof(gameLevel.message));
   } else {
-    q_strlcpy(gameLevel.message, gameLevel.name, sizeof(gameLevel.message));
+    Str_Copy(gameLevel.message, gameLevel.name, sizeof(gameLevel.message));
   }
 
   gi.SetConfigString(CS_MESSAGE, gameLevel.message);
 
   const Entity *gravityMap = G_MapListEntryValue("gravity");
-  if (q_strcmp(g_gravity->string, g_gravity->defaultString)) { // prefer an explicit g_gravity override
+  if (Str_Compare(g_gravity->string, g_gravity->defaultString)) { // prefer an explicit g_gravity override
     gameLevel.gravity = g_gravity->integer;
   } else if (gravityMap && (gravityMap->parsed & ENTITY_INTEGER) && gravityMap->integer > 0) { // then map metadata gravity
     gameLevel.gravity = gravityMap->integer;
@@ -811,7 +811,7 @@ static void G_worldspawn(GameEntity *ent) {
   gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameplay));
 
   const Entity *items = gi.EntityValue(ent->def, "items");
-  if (q_strcasecmp(items->string, "quake") == 0) {
+  if (Str_CaseCompare(items->string, "quake") == 0) {
     gameLevel.items = ITEMS_QUAKE;
   } else {
     gameLevel.items = ITEMS_DEFAULT;
@@ -834,7 +834,7 @@ static void G_worldspawn(GameEntity *ent) {
 
   gameLevel.teams = (gameLevel.gameplay & GAMEPLAY_TEAMS) != 0;
 
-  if (q_strcmp(g_numTeams->string, "default")) {
+  if (Str_Compare(g_numTeams->string, "default")) {
     gameLevel.numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
   } else {
     gameLevel.numTeams = -1; // G_InitSpawnPoints derives it from the spawn points
@@ -889,11 +889,11 @@ static void G_worldspawn(GameEntity *ent) {
 
   const Entity *musicMap = G_MapListEntryValue("music");
   if (musicMap && *musicMap->string) { // prefer map metadata music
-    q_strlcpy(gameLevel.music, musicMap->string, sizeof(gameLevel.music));
+    Str_Copy(gameLevel.music, musicMap->string, sizeof(gameLevel.music));
   } else { // or fall back on worldspawn
     const Entity *music = gi.EntityValue(ent->def, "music");
     if (*music->string) {
-      q_strlcpy(gameLevel.music, music->string, sizeof(gameLevel.music));
+      Str_Copy(gameLevel.music, music->string, sizeof(gameLevel.music));
     } else {
       gameLevel.music[0] = '\0';
     }

@@ -38,17 +38,17 @@ void Sv_ConfigureEditorEntity(int32_t number) {
 
   ent->s.color = Color32i(0xffffffff);
 
-  if (!q_strcmp(ent->classname, "worldspawn")) {
+  if (!Str_Compare(ent->classname, "worldspawn")) {
     ent->s.effects = EF_WORLD;
-  } else if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
+  } else if (!Str_CompareN(ent->classname, "info_player", Str_Length("info_player"))) {
     ent->s.color = Color32i(0xffff00ff);
-  } else if (!q_strncmp(ent->classname, "trigger_", q_strlen("trigger_"))) {
+  } else if (!Str_CompareN(ent->classname, "trigger_", Str_Length("trigger_"))) {
     ent->s.color = Color32i(0xff0088ff);
-  } else if (!q_strncmp(ent->classname, "func_", q_strlen("func_"))) {
+  } else if (!Str_CompareN(ent->classname, "func_", Str_Length("func_"))) {
     ent->s.color = Color32i(0xff00ff00);
-  } else if (!q_strncmp(ent->classname, "misc_", q_strlen("misc_"))) {
+  } else if (!Str_CompareN(ent->classname, "misc_", Str_Length("misc_"))) {
     ent->s.color = Color32i(0xff00ffff);
-  } else if (!q_strncmp(ent->classname, "item_", q_strlen("item_"))) {
+  } else if (!Str_CompareN(ent->classname, "item_", Str_Length("item_"))) {
     ent->s.color = Color32i(0xffffff00);
   }
 
@@ -56,9 +56,9 @@ void Sv_ConfigureEditorEntity(int32_t number) {
 
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
 
-    if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
+    if (!Str_CompareN(ent->classname, "info_player", Str_Length("info_player"))) {
       ent->bounds = MakeBox3(MakeVec3(-16.f, -16.f, -24.f), MakeVec3(16.f, 16.f, 36.f));
-    } else if (!q_strncmp(ent->classname, "light", q_strlen("light"))) {
+    } else if (!Str_CompareN(ent->classname, "light", Str_Length("light"))) {
       ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
     }
 
@@ -158,7 +158,7 @@ void Sv_FreeEditorEntity(int32_t number) {
 void Sv_LoadEditorMap(void) {
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  q_strlcat(path, ".map", sizeof(path));
+  Str_Append(path, ".map", sizeof(path));
 
   void *buffer;
   if (Fs_Load(path, &buffer) == -1) {
@@ -189,7 +189,7 @@ void Sv_SaveEditorMap_f(void) {
 
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  q_strlcat(path, ".map", sizeof(path));
+  Str_Append(path, ".map", sizeof(path));
 
   File *file = Fs_OpenWrite(path);
   if (!file) {
@@ -226,7 +226,7 @@ void Sv_SaveEditorMap_f(void) {
         break;
       }
     }
-    Fs_Write(file, brushes, sizeof(char), q_strlen(brushes));
+    Fs_Write(file, brushes, sizeof(char), Str_Length(brushes));
 
     Fs_Print(file, "}\n");
   }

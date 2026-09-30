@@ -84,7 +84,7 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_DC:
-        if (in->pos < q_strlen(in->buffer)) {
+        if (in->pos < Str_Length(in->buffer)) {
           char *c = in->buffer + in->pos;
           while (*c) {
             *c = *(c + 1);
@@ -108,7 +108,7 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_RIGHT:
-        if (in->pos < q_strlen(in->buffer)) {
+        if (in->pos < Str_Length(in->buffer)) {
           in->pos++;
         }
         break;
@@ -134,17 +134,17 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_END:
-        in->pos = q_strlen(in->buffer);
+        in->pos = Str_Length(in->buffer);
         break;
 
       default:
         if (isascii(key) && isprint(key)) {
-          if (q_strlen(in->buffer) < sizeof(in->buffer) - 1) {
+          if (Str_Length(in->buffer) < sizeof(in->buffer) - 1) {
             char tmp[MAX_STRING_CHARS];
-            q_strlcpy(tmp, in->buffer + in->pos, sizeof(tmp));
+            Str_Copy(tmp, in->buffer + in->pos, sizeof(tmp));
             in->buffer[in->pos++] = key;
             in->buffer[in->pos] = '\0';
-            q_strlcat(in->buffer, tmp, sizeof(in->buffer));
+            Str_Append(in->buffer, tmp, sizeof(in->buffer));
           }
         }
         break;
@@ -201,11 +201,11 @@ static void Sv_DrawConsole_Buffer(void) {
     char *line = lines[j];
     char *s = line;
 
-    Sv_DrawConsole_Color(j ? q_strrcolor(lines[j - 1]) : ESC_COLOR_DEFAULT);
+    Sv_DrawConsole_Color(j ? Str_LastColor(lines[j - 1]) : ESC_COLOR_DEFAULT);
 
     size_t col = 1;
     while (*s) {
-      if (q_striscolor(s)) {
+      if (Str_IsColor(s)) {
         Sv_DrawConsole_Color(*(s + 1) - '0');
         s++;
       } else if (isascii(*s)) {
@@ -232,7 +232,7 @@ static void Sv_DrawConsole_Input(void) {
 
   const char *s = &in->buffer[(in->pos / console.width) * console.width];
 
-  const size_t len = q_strlen(s);
+  const size_t len = Str_Length(s);
   const size_t pos = in->pos - (s - in->buffer);
 
   int32_t col = 2;

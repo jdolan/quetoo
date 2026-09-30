@@ -45,7 +45,7 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
       break;
     }
 
-    if (!q_strcmp(token, "translate")) {
+    if (!Str_Compare(token, "translate")) {
 
       Vec3 v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
@@ -57,7 +57,7 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
       continue;
     }
 
-    if (!q_strcmp(token, "rotate")) {
+    if (!Str_Compare(token, "rotate")) {
 
       Vec3 v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
@@ -69,7 +69,7 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
       continue;
     }
 
-    if (!q_strcmp(token, "scale")) {
+    if (!Str_Compare(token, "scale")) {
 
       float v;
       if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &v, 1)) {
@@ -81,7 +81,7 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
       continue;
     }
 
-    if (!q_strcmp(token, "muzzle")) {
+    if (!Str_Compare(token, "muzzle")) {
 
       Vec3 v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
@@ -148,22 +148,22 @@ static bool R_SaveMeshConfig(const RenderMeshConfig *cfg, const char *path) {
   size_t len;
 
   if (!Vec3_Equal(cfg->translate, Vec3_Zero())) {
-    len = (size_t) q_snprintf(line, sizeof(line), "translate %g %g %g\n", cfg->translate.x, cfg->translate.y, cfg->translate.z);
+    len = (size_t) Str_Format(line, sizeof(line), "translate %g %g %g\n", cfg->translate.x, cfg->translate.y, cfg->translate.z);
     Fs_Write(file, line, 1, len);
   }
 
   if (!Vec3_Equal(cfg->rotate, Vec3_Zero())) {
-    len = (size_t) q_snprintf(line, sizeof(line), "rotate %g %g %g\n", cfg->rotate.x, cfg->rotate.y, cfg->rotate.z);
+    len = (size_t) Str_Format(line, sizeof(line), "rotate %g %g %g\n", cfg->rotate.x, cfg->rotate.y, cfg->rotate.z);
     Fs_Write(file, line, 1, len);
   }
 
   if (cfg->scale != 1.f) {
-    len = (size_t) q_snprintf(line, sizeof(line), "scale %g\n", cfg->scale);
+    len = (size_t) Str_Format(line, sizeof(line), "scale %g\n", cfg->scale);
     Fs_Write(file, line, 1, len);
   }
 
   if (!Vec3_Equal(cfg->muzzle, Vec3_Zero())) {
-    len = (size_t) q_snprintf(line, sizeof(line), "muzzle %g %g %g\n", cfg->muzzle.x, cfg->muzzle.y, cfg->muzzle.z);
+    len = (size_t) Str_Format(line, sizeof(line), "muzzle %g %g %g\n", cfg->muzzle.x, cfg->muzzle.y, cfg->muzzle.z);
     Fs_Write(file, line, 1, len);
   }
 

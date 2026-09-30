@@ -67,7 +67,7 @@ bool G_Vote_Eligible(const GameClient *cl) {
  */
 static bool G_Vote_ValidMapName(const char *name) {
 
-  if (!*name || q_strlen(name) >= MAX_QPATH) {
+  if (!*name || Str_Length(name) >= MAX_QPATH) {
     return false;
   }
 
@@ -87,7 +87,7 @@ static bool G_Vote_ValidMapName(const char *name) {
 static GameClient *G_Vote_ClientByName(const char *name) {
 
   G_ForEachClient(cl, {
-    if (G_Vote_Eligible(cl) && !q_strcasecmp(cl->persistent.netName, name)) {
+    if (G_Vote_Eligible(cl) && !Str_CaseCompare(cl->persistent.netName, name)) {
       return cl;
     }
   });
@@ -101,7 +101,7 @@ static GameClient *G_Vote_ClientByName(const char *name) {
 static const VoteType *G_Vote_Type(const char *name) {
 
   for (size_t i = 0; i < lengthof(voteTypesCommon); i++) {
-    if (!q_strcmp(voteTypesCommon[i].name, name)) {
+    if (!Str_Compare(voteTypesCommon[i].name, name)) {
       return &voteTypesCommon[i];
     }
   }
@@ -125,14 +125,14 @@ static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const c
       return true;
 
     case VOTE_ARG_MAP:
-      if (!q_strcmp(arg, "next")) {
-        q_strlcpy(canonical, arg, size);
+      if (!Str_Compare(arg, "next")) {
+        Str_Copy(canonical, arg, size);
         return true;
       }
       if (!G_Vote_ValidMapName(arg) || !gi.FileExists(va("maps/%s.bsp", arg))) {
         return false;
       }
-      q_strlcpy(canonical, arg, size);
+      Str_Copy(canonical, arg, size);
       return true;
 
     case VOTE_ARG_CLIENT: {
@@ -140,12 +140,12 @@ static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const c
       if (!target) {
         return false;
       }
-      q_strlcpy(canonical, target->persistent.netName, size);
+      Str_Copy(canonical, target->persistent.netName, size);
       return true;
     }
 
     case VOTE_ARG_INTEGER: {
-      if (!q_strcmp(type, "bots") && gameLevel.minClientsMap > -1) {
+      if (!Str_Compare(type, "bots") && gameLevel.minClientsMap > -1) {
         return false;
       }
 
@@ -154,7 +154,7 @@ static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const c
       if (end == arg || *end || value < vote->min || value > vote->max) {
         return false;
       }
-      q_snprintf(canonical, size, "%ld", value);
+      Str_Format(canonical, size, "%ld", value);
       return true;
     }
   }
@@ -174,8 +174,8 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return false;
   }
 
-  if (!q_strcmp(type, "map")) {
-    if (!q_strcmp(arg, "next")) {
+  if (!Str_Compare(type, "map")) {
+    if (!Str_Compare(arg, "next")) {
       gi.Cbuf("nextMap\n");
     } else {
       gi.Cbuf(va("map %s\n", arg));
@@ -183,12 +183,12 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return true;
   }
 
-  if (!q_strcmp(type, "bots")) {
+  if (!Str_Compare(type, "bots")) {
     gi.SetCvarInteger("sv_minClients", (int32_t) strtol(arg, NULL, 10));
     return true;
   }
 
-  if (!q_strcmp(type, "spectate")) {
+  if (!Str_Compare(type, "spectate")) {
     GameClient *target = G_Vote_ClientByName(arg);
     if (target && !target->persistent.spectator) {
       G_TossInventory(target);
@@ -198,7 +198,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return true;
   }
 
-  if (!q_strcmp(type, "mute")) {
+  if (!Str_Compare(type, "mute")) {
     GameClient *target = G_Vote_ClientByName(arg);
     if (target) {
       // mute the client the vote resolved, not one G_ClientByName might match a second time
@@ -210,7 +210,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return true;
   }
 
-  if (!q_strcmp(type, "frag_limit") || !q_strcmp(type, "time_limit")) {
+  if (!Str_Compare(type, "frag_limit") || !Str_Compare(type, "time_limit")) {
     gi.SetCvarInteger(va("g_%s", type), (int32_t) strtol(arg, NULL, 10));
     return true;
   }
@@ -370,9 +370,9 @@ static void G_Vote_Call(GameClient *cl, const char *type, const char *arg) {
   memset(module.ballots, 0, sizeof(module.ballots));
 
   module.active = true;
-  q_strlcpy(module.type, type, sizeof(module.type));
-  q_strlcpy(module.arg, canonical, sizeof(module.arg));
-  q_strlcpy(module.initiator, cl->persistent.netName, sizeof(module.initiator));
+  Str_Copy(module.type, type, sizeof(module.type));
+  Str_Copy(module.arg, canonical, sizeof(module.arg));
+  Str_Copy(module.initiator, cl->persistent.netName, sizeof(module.initiator));
   module.deadline = gameLevel.time + Maxf(1.f, g_voteTime->value) * 1000;
   module.ballots[cl->ps.client] = BALLOT_YES;
   module.cooldown[cl->ps.client] = gameLevel.time + Maxf(0.f, g_voteCooldown->value) * 1000;
@@ -389,7 +389,7 @@ static void G_Vote_Call(GameClient *cl, const char *type, const char *arg) {
  */
 static bool G_HandleClientCommand_Vote(GameClient *cl, const char *cmd) {
 
-  if (q_strcmp(cmd, "vote")) {
+  if (Str_Compare(cmd, "vote")) {
     return previous.HandleClientCommand(cl, cmd);
   }
 
@@ -400,9 +400,9 @@ static bool G_HandleClientCommand_Vote(GameClient *cl, const char *cmd) {
 
   const char *what = gi.Argv(1);
 
-  if (!q_strcasecmp(what, "yes")) {
+  if (!Str_CaseCompare(what, "yes")) {
     G_Vote_Cast(cl, BALLOT_YES);
-  } else if (!q_strcasecmp(what, "no")) {
+  } else if (!Str_CaseCompare(what, "no")) {
     G_Vote_Cast(cl, BALLOT_NO);
   } else if (gameLevel.intermissionTime) {
     gi.ClientPrint(cl, PRINT_HIGH, "The level is ending\n");

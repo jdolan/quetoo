@@ -57,8 +57,8 @@ Entity *Entity_Copy(const Entity *entity) {
 
     Entity *out = Entity_Alloc();
 
-    q_strlcpy(out->key, in->key, sizeof(out->key));
-    q_strlcpy(out->string, in->string, sizeof(out->string));
+    Str_Copy(out->key, in->key, sizeof(out->key));
+    Str_Copy(out->string, in->string, sizeof(out->string));
 
     Entity_Parse(out);
 
@@ -95,8 +95,8 @@ Entity *Entity_Assign(const Entity *dst, const Entity *src) {
 
     Entity *pair = Entity_Alloc();
 
-    q_strlcpy(pair->key, s->key, sizeof(pair->key));
-    q_strlcpy(pair->string, s->string, sizeof(pair->string));
+    Str_Copy(pair->key, s->key, sizeof(pair->key));
+    Str_Copy(pair->string, s->string, sizeof(pair->string));
 
     Entity_Parse(pair);
 
@@ -118,7 +118,7 @@ void Entity_Parse(Entity *pair) {
   assert(pair);
   assert(pair->string);
 
-  if (q_strlen(pair->string)) {
+  if (Str_Length(pair->string)) {
     pair->parsed |= ENTITY_STRING;
     pair->nullableString = pair->string;
   }
@@ -166,15 +166,15 @@ static Order Entity_Sort_cmp(const ident a, const ident b) {
   const Entity *m = *(const Entity *const *) a;
   const Entity *n = *(const Entity *const *) b;
 
-  if (!q_strcmp(m->key, "classname")) {
+  if (!Str_Compare(m->key, "classname")) {
     return OrderAscending;
   }
 
-  if (!q_strcmp(n->key, "classname")) {
+  if (!Str_Compare(n->key, "classname")) {
     return OrderDescending;
   }
 
-  const int32_t cmp = q_strcmp(m->key, n->key);
+  const int32_t cmp = Str_Compare(m->key, n->key);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -238,7 +238,7 @@ List *Entity_LoadAll(const char *entityString) {
       break;
     }
 
-    if (!q_strcmp("{", token)) {
+    if (!Str_Compare("{", token)) {
 
       Entity *entity = NULL;
 
@@ -262,7 +262,7 @@ List *Entity_LoadAll(const char *entityString) {
 
         Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
 
-        if (!q_strcmp("}", token)) {
+        if (!Str_Compare("}", token)) {
           break;
         }
       }
@@ -298,7 +298,7 @@ int32_t Entity_Number(const Entity *entity) {
 const Entity *Entity_Value(const Entity *entity, const char *key) {
 
   for (const Entity *e = entity; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
+    if (!Str_Compare(e->key, key)) {
       return e;
     }
   }
@@ -322,7 +322,7 @@ Entity *Entity_SetKeyValue(Entity *entity, const char *key, EntityParsed field, 
   Entity *e;
   Entity *target = NULL;
   for (e = entity; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
+    if (!Str_Compare(e->key, key)) {
       target = e;
       break;
     }
@@ -337,31 +337,31 @@ Entity *Entity_SetKeyValue(Entity *entity, const char *key, EntityParsed field, 
     }
   }
 
-  q_strlcpy(target->key, key, sizeof(target->key));
+  Str_Copy(target->key, key, sizeof(target->key));
 
   switch (field) {
     case ENTITY_STRING:
-      q_strlcpy(target->string, (const char *) value, sizeof(entity->string));
+      Str_Copy(target->string, (const char *) value, sizeof(entity->string));
       break;
     case ENTITY_INTEGER:
-      q_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
+      Str_Format(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
       break;
     case ENTITY_FLOAT:
-      q_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
+      Str_Format(target->string, sizeof(entity->string), "%g", *(float *) value);
       break;
     case ENTITY_VEC2: {
       const Vec2 v = *(Vec2 *) value;
-      q_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
+      Str_Format(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
       break;
     }
     case ENTITY_VEC3: {
       const Vec3 v = *(Vec3 *) value;
-      q_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
+      Str_Format(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
       break;
     }
     case ENTITY_VEC4: {
       const Vec4 v = *(Vec4 *) value;
-      q_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      Str_Format(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
       break;
     }
   }
@@ -453,7 +453,7 @@ void Entity_ParseBrushes(const char *mapText, Entity **entities, int32_t numEnti
 
     while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
 
-      if (!q_strcmp(token, "{")) {
+      if (!Str_Compare(token, "{")) {
         if (!inEntity) {
           inEntity = true;
         } else {
@@ -464,7 +464,7 @@ void Entity_ParseBrushes(const char *mapText, Entity **entities, int32_t numEnti
         }
       }
 
-      if (!q_strcmp(token, "}")) {
+      if (!Str_Compare(token, "}")) {
         if (brushDepth > 0) {
           brushDepth--;
         } else if (inEntity) {
@@ -476,9 +476,9 @@ void Entity_ParseBrushes(const char *mapText, Entity **entities, int32_t numEnti
 
     if (brushes) {
       const size_t len = parser.position.ptr - brushes - 1;
-      e->brushes = Mem_TagMalloc(len + q_strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
+      e->brushes = Mem_TagMalloc(len + Str_Length("// brush 0\n") + 1, MEM_TAG_COLLISION);
       strcpy(e->brushes, "// brush 0\n");
-      memcpy(e->brushes + q_strlen(e->brushes), brushes, len);
+      memcpy(e->brushes + Str_Length(e->brushes), brushes, len);
     }
   }
 }

@@ -126,7 +126,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_DELETE:
-      if (in->pos < q_strlen(in->buffer)) {
+      if (in->pos < Str_Length(in->buffer)) {
         char *c = in->buffer + in->pos;
         while (*c) {
           *c = *(c + 1);
@@ -158,7 +158,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
     case SDLK_RIGHT:
       if (SDL_GetModState() & SDL_KMOD_CTRL) { // move one word right
-        const size_t len = q_strlen(in->buffer);
+        const size_t len = Str_Length(in->buffer);
         while (in->pos < len && in->buffer[in->pos] == ' ') {
           in->pos++; // off current word
         }
@@ -168,7 +168,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
         if (in->pos < len) { // all the way in front
           in->pos++;
         }
-      } else if (in->pos < q_strlen(in->buffer)) {
+      } else if (in->pos < Str_Length(in->buffer)) {
         in->pos++;
       }
       break;
@@ -194,7 +194,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_END:
-      in->pos = q_strlen(in->buffer);
+      in->pos = Str_Length(in->buffer);
       break;
 
     case SDLK_A:
@@ -204,7 +204,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
     case SDLK_E:
       if (SDL_GetModState() & SDL_KMOD_CTRL) {
-        in->pos = q_strlen(in->buffer);
+        in->pos = Str_Length(in->buffer);
       }
       break;
     case SDLK_C:
@@ -216,15 +216,15 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
     case SDLK_V:
       if ((SDL_GetModState() & SDL_KMOD_CLIPBOARD) && SDL_HasClipboardText()) {
-        char *tail = q_strdup(in->buffer + in->pos);
+        char *tail = Str_Duplicate(in->buffer + in->pos);
         in->buffer[in->pos] = '\0';
 
         char *text = SDL_GetClipboardText();
-        q_strlcat(in->buffer, text, sizeof(in->buffer));
-        q_strlcat(in->buffer, tail, sizeof(in->buffer));
+        Str_Append(in->buffer, text, sizeof(in->buffer));
+        Str_Append(in->buffer, tail, sizeof(in->buffer));
         free(tail);
 
-        in->pos = Minf(in->pos + q_strlen(text), sizeof(in->buffer) - 1);
+        in->pos = Minf(in->pos + Str_Length(text), sizeof(in->buffer) - 1);
         SDL_free(text);
       }
       break;
@@ -269,18 +269,18 @@ static void Cl_KeyGame(const SDL_Event *event) {
   if (bind[0] == '+') { // button commands add key and time as a param
     if (event->type == SDL_EVENT_KEY_DOWN) {
       if (cls.keyState.down[key] == false) {
-        q_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.inputTime);
+        Str_Format(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.inputTime);
         cls.keyState.latched[key] = true;
       }
     } else {
       if (cls.keyState.down[key] == true && cls.keyState.latched[key] == true) {
-        q_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.inputTime);
+        Str_Format(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.inputTime);
         cls.keyState.latched[key] = false;
       }
     }
   } else {
     if (event->type == SDL_EVENT_KEY_DOWN) {
-      q_snprintf(cmd, sizeof(cmd), "%s\n", bind);
+      Str_Format(cmd, sizeof(cmd), "%s\n", bind);
     }
   }
 
@@ -312,7 +312,7 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     if (keyNames[k]) {
-      if (!q_strcasecmp(name, keyNames[k])) {
+      if (!Str_CaseCompare(name, keyNames[k])) {
         return k;
       }
     }
@@ -327,7 +327,7 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 
   for (SDL_Scancode k = from + 1; k < SDL_SCANCODE_COUNT; k++) {
-    if (q_strcmp(binding, cls.keyState.binds[k]) == 0) {
+    if (Str_Compare(binding, cls.keyState.binds[k]) == 0) {
       return k;
     }
   }
@@ -345,16 +345,16 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
  */
 static bool Cl_IsTruncatedBind(const char *bind) {
 
-  const size_t length = q_strlen(bind);
+  const size_t length = Str_Length(bind);
   if (length == 0 || bind[length - 1] != ' ') {
     return false;
   }
 
   char name[MAX_STRING_CHARS];
-  q_strlcpy(name, bind, sizeof(name));
+  Str_Copy(name, bind, sizeof(name));
   name[length - 1] = '\0';
 
-  return q_strchr(name, ' ') == NULL && Cmd_Get(name) != NULL;
+  return Str_FindChar(name, ' ') == NULL && Cmd_Get(name) != NULL;
 }
 
 /**
@@ -367,9 +367,9 @@ static bool Cl_IsTruncatedBind(const char *bind) {
 static void Cl_CanonicalizeBind(char *bind, size_t size) {
 
   char name[MAX_STRING_CHARS];
-  q_strlcpy(name, bind, sizeof(name));
+  Str_Copy(name, bind, sizeof(name));
 
-  char *args = q_strchr(name, ' ');
+  char *args = Str_FindChar(name, ' ');
   if (args) {
     *args++ = '\0';
   }
@@ -380,9 +380,9 @@ static void Cl_CanonicalizeBind(char *bind, size_t size) {
   }
 
   if (args) {
-    q_snprintf(bind, size, "%s %s", cmd->name, args);
+    Str_Format(bind, size, "%s %s", cmd->name, args);
   } else {
-    q_strlcpy(bind, cmd->name, size);
+    Str_Copy(bind, cmd->name, size);
   }
 }
 
@@ -406,7 +406,7 @@ void Cl_Bind(SDL_Scancode key, const char *bind) {
   }
 
   // allocate for new binding and copy it in
-  cls.keyState.binds[key] = Mem_TagMalloc(q_strlen(bind) + 1, MEM_TAG_CLIENT);
+  cls.keyState.binds[key] = Mem_TagMalloc(Str_Length(bind) + 1, MEM_TAG_CLIENT);
   strcpy(cls.keyState.binds[key], bind);
 }
 
@@ -503,7 +503,7 @@ static void Cl_Bind_f(void) {
   }
 
   // check for compound bindings
-  if (q_strchr(cmd, ';')) {
+  if (Str_FindChar(cmd, ';')) {
     Com_Print("Complex bind \"%s\" ignored; use 'alias' instead\n", cmd);
     return;
   }
@@ -553,7 +553,7 @@ void Cl_InitKeys(void) {
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     const char *name = SDL_GetScancodeName(k);
-    if (q_strlen(name)) {
+    if (Str_Length(name)) {
       keyNames[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), keyNames);
     }
   }
@@ -597,10 +597,10 @@ void Cl_CanonicalizeBinds(void) {
       continue;
     }
 
-    q_strlcpy(bind, cls.keyState.binds[k], sizeof(bind));
+    Str_Copy(bind, cls.keyState.binds[k], sizeof(bind));
     Cl_CanonicalizeBind(bind, sizeof(bind));
 
-    if (q_strcmp(bind, cls.keyState.binds[k])) {
+    if (Str_Compare(bind, cls.keyState.binds[k])) {
       Cl_Bind(k, bind);
     }
   }
