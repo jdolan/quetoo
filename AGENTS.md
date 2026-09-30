@@ -44,6 +44,10 @@ is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirro
   `aiNodes`, `handle`, `world`. Its name MUST NOT match a local or parameter in that file.
 - Locals and parameters MUST NOT carry a subsystem prefix. Name them for what they hold.
 - A cvar or command with no subsystem prefix camelCases whole: `numPlanes`, `nextMap`.
+- A player's userinfo cvar (`CVAR_USER_INFO`) MUST NOT take a prefix: `hand`, `skin`,
+  `autoSwitch`. The game and the client game both read it, and its name goes over the network in
+  the userinfo string each time it changes, where every character counts. The C variable keeps
+  its prefix: `cg_hand` registers `"hand"`.
 - Where only one word follows the prefix, nothing moves: `r_gamma`, `m_pitch`.
 - A function's private helper takes the function's name and a lowercase role suffix:
   `Cvar_Enumerate_collect`, `R_EnumerateMedia_comparator`. A trailing underscore marks the inner
