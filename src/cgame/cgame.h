@@ -187,7 +187,7 @@ typedef struct {
    * @remarks Unless `THREAD_NO_WAIT` is passed via `options`, the caller must also
    * call `Wait` on the returned thread in order to relinquish it to the thread pool.
    */
-  WorkerThread *(*Thread)(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options);
+  WorkerThread *(*Thread)(const char *name, ThreadRun run, void *data, WorkerThreadOptions options);
 
   /**
    * @brief Waits for the previously started thread, blocking the calling thread.
@@ -390,7 +390,7 @@ typedef struct {
    * @param desc The command description for builtin console help.
    * @return The console command.
    */
-  Cmd *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
+  Cmd *(*AddCmd)(const char *name, CmdExecute function, uint32_t flags, const char *desc);
 
   /**
    * @brief Returns the tokenized argument at the given index, as set by the most recent

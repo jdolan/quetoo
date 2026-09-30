@@ -54,7 +54,7 @@ static WorkerThreadPool threadPool;
 /**
  * @brief A sentinel thread function to indicate thread termination.
  */
-static ThreadRunFunc threadTerminate = (ThreadRunFunc) &threadTerminate;
+static ThreadRun threadTerminate = (ThreadRun) &threadTerminate;
 
 /**
  * @brief The main thread ID.
@@ -149,7 +149,7 @@ static void Thread_Shutdown_(void) {
  * @brief Creates a new thread to run the specified function. Callers must use
  * `Thread_Wait` on the returned handle to release the thread when finished.
  */
-WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options) {
+WorkerThread *Thread_Create_(const char *name, ThreadRun run, void *data, WorkerThreadOptions options) {
 
   // if threads are available, find an idle one and dispatch it
   if (threadPool.numThreads) {

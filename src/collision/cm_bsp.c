@@ -27,22 +27,21 @@ typedef struct {
 } BspLumpMeta;
 
 #if !defined(BSP_SIZEOF)
-#define BSP_SIZEOF(T, F) \
-sizeof(*((T *) 0)->F)
+#define BSP_SIZEOF(T, F) sizeof(*((T *) 0)->F)
 #endif
 
 #define BSP_LUMP_NUM_STRUCT(c, n, m) { \
-.countOffset = offsetof(BspFile, c), \
-.dataOffset = offsetof(BspFile, n), \
-.typeSize = BSP_SIZEOF(BspFile, n), \
-.maxCount = m \
+  .countOffset = offsetof(BspFile, c), \
+  .dataOffset = offsetof(BspFile, n), \
+  .typeSize = BSP_SIZEOF(BspFile, n), \
+  .maxCount = m \
 }
 
 #define BSP_LUMP_SIZE_STRUCT(c, n, m) { \
-.countOffset = offsetof(BspFile, c), \
-.dataOffset = offsetof(BspFile, n),\
-.typeSize = sizeof(byte), \
-.maxCount = m \
+  .countOffset = offsetof(BspFile, c), \
+  .dataOffset = offsetof(BspFile, n),\
+  .typeSize = sizeof(byte), \
+  .maxCount = m \
 }
 
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
@@ -74,7 +73,7 @@ static BspLumpMeta lumpMeta[BSP_LUMP_LAST] = {
 /**
  * @brief Table of swap functions.
  */
-typedef void (*BspSwapFunc) (void *lump, const int32_t num);
+typedef void (*BspSwapLump)(void *lump, const int32_t num);
 
 /**
  * @brief Swap function.
@@ -451,7 +450,7 @@ static void Bsp_SwapBlockVoxels(void *lump, const int32_t num) {
  */
 static void Bsp_SwapLump(const BspLumpId lumpId, void *lump, int32_t count) {
 
-  const BspSwapFunc swap[BSP_LUMP_LAST] = {
+  const BspSwapLump swap[BSP_LUMP_LAST] = {
     NULL,
     NULL,
     Bsp_SwapPlanes,

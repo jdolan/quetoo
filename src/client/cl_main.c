@@ -589,16 +589,16 @@ static void Cl_UpdateScene(void) {
   cls.cgame->PrepareScene(&cl.frame);
 
   if (editor->value) {
-    thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateEditorScene, &cl.frame, THREAD_NONE);
+    thread = Thread_Create((ThreadRun) cls.cgame->PopulateEditorScene, &cl.frame, THREAD_NONE);
   } else {
-    thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
+    thread = Thread_Create((ThreadRun) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }
 
   R_DrawViewDepth(&clientView);
 
   Thread_Wait(thread);
 
-  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &clientStage, THREAD_NONE);
+  thread = Thread_Create((ThreadRun) S_RenderStage, &clientStage, THREAD_NONE);
 
   R_DrawSubviews(&clientView);
 

@@ -367,7 +367,7 @@ void Cmd_Enumerate(CmdEnumerator func, void *data) {
 /**
  * @brief Adds the specified command, bound to the given function.
  */
-Cmd *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
+Cmd *Cmd_Add(const char *name, CmdExecute function, uint32_t flags,
                const char *description) {
   Cmd *cmd;
 
@@ -407,7 +407,7 @@ Cmd *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 /**
  * @brief Assign the specified autocomplete function to the given command.
  */
-void Cmd_SetAutocomplete(Cmd *cmd, AutocompleteFunc autocomplete) {
+void Cmd_SetAutocomplete(Cmd *cmd, ConAutocomplete autocomplete) {
   cmd->Autocomplete = autocomplete;
 }
 

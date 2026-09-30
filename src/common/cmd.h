@@ -42,8 +42,8 @@ typedef void (*CmdEnumerator)(Cmd *cmd, void *data);
 // general command management
 Cmd *Cmd_Get(const char *name);
 void Cmd_Enumerate(CmdEnumerator func, void *data);
-Cmd *Cmd_Add(const char *name, CmdExecuteFunc func, uint32_t flags, const char *description);
-void Cmd_SetAutocomplete(Cmd *cmd, AutocompleteFunc autocomplete);
+Cmd *Cmd_Add(const char *name, CmdExecute func, uint32_t flags, const char *description);
+void Cmd_SetAutocomplete(Cmd *cmd, ConAutocomplete autocomplete);
 void Cmd_Remove(const char *name);
 void Cmd_RemoveAll(uint32_t flags);
 void Cmd_CompleteCommand(const char *pattern, List *matches);

@@ -34,7 +34,6 @@
  */
 typedef struct {
 
-
   /**
    * @brief The item model, or `NULL` if not found.
    */
@@ -61,7 +60,6 @@ typedef struct {
    * @brief The ammo item tag this weapon consumes, or `ITEM_NONE`.
    */
   GameItemTag ammoTag;
-
 
   /**
    * @brief The weapon model, or `NULL` if not found.

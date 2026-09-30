@@ -42,7 +42,7 @@ typedef enum {
   THREAD_NO_WAIT
 } WorkerThreadOptions;
 
-typedef void (*ThreadRunFunc)(void *data);
+typedef void (*ThreadRun)(void *data);
 
 typedef struct {
   SDL_Thread *thread;
@@ -51,11 +51,11 @@ typedef struct {
   WorkerThreadStatus status;
   WorkerThreadOptions options;
   char name[64];
-  ThreadRunFunc Run;
+  ThreadRun Run;
   void *data;
 } WorkerThread;
 
-WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options);
+WorkerThread *Thread_Create_(const char *name, ThreadRun run, void *data, WorkerThreadOptions options);
 #define Thread_Create(function, data, options) Thread_Create_(#function, function, data, options)
 void Thread_Wait(WorkerThread *t);
 int32_t Thread_Count(void);

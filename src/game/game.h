@@ -449,7 +449,7 @@ typedef struct {
    * @param desc The command description for builtin console help.
    * @return The console command.
    */
-  Cmd *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
+  Cmd *(*AddCmd)(const char *name, CmdExecute function, uint32_t flags, const char *desc);
 
   /**
    * @return The argument count for the currently executing command.
