@@ -35,15 +35,15 @@ void Cg_InitInventory(void) {
   memset(cgameWeapons, 0, sizeof(cgameWeapons));
 
   for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bgItemDefs[t].model) {
-      cgameItems[t].model = cgi.LoadModel(bgItemDefs[t].model);
+    if (gameItemDefs[t].model) {
+      cgameItems[t].model = cgi.LoadModel(gameItemDefs[t].model);
     }
   }
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     CGameWeapon *w = &cgameWeapons[t - WEAPON_FIRST];
     w->tag = t;
-    w->ammoTag = bgItemDefs[t].ammo;
+    w->ammoTag = gameItemDefs[t].ammo;
     w->model = cgameItems[t].model;
   }
 }

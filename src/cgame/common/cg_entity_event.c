@@ -386,14 +386,14 @@ void Cg_EntityEvent(ClientEntity *ent) {
 
     case EV_ITEM_RESPAWN: {
       const GameItemTag tag = (GameItemTag) s->eventData;
-      const Color effectColor = bgItemDefs[tag].effectColor;
+      const Color effectColor = gameItemDefs[tag].effectColor;
       play.sample = cgameMedia.sounds.respawn;
       Cg_ItemRespawnEffect(s->origin, effectColor);
       break;
     }
     case EV_ITEM_PICKUP: {
       const GameItemTag tag = (GameItemTag) s->eventData;
-      const Color effectColor = bgItemDefs[tag].effectColor;
+      const Color effectColor = gameItemDefs[tag].effectColor;
       Cg_ItemPickupEffect(s->origin, effectColor);
     }
       break;

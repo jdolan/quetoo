@@ -445,9 +445,9 @@ static void Cg_InitEditorEntity(int16_t number) {
     edit->model = cgi.LoadModel(mod);
   } else {
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
-    for (size_t i = 0; i < bgNumItems; i++) {
-      if (!Str_Compare(bgItemDefs[i].classname, classname)) {
-        edit->model = cgi.LoadModel(bgItemDefs[i].model);
+    for (size_t i = 0; i < gameNumItems; i++) {
+      if (!Str_Compare(gameItemDefs[i].classname, classname)) {
+        edit->model = cgi.LoadModel(gameItemDefs[i].model);
         break;
       }
     }

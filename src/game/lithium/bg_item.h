@@ -235,9 +235,9 @@ typedef struct {
 /**
  * @brief The complete list of item definitions, shared between game and cgame.
  */
-extern const GameItemDef bgItemDefs[];
+extern const GameItemDef gameItemDefs[];
 
 /**
- * @brief The count of `bgItemDefs`.
+ * @brief The count of `gameItemDefs`.
  */
-extern size_t bgNumItems;
+extern size_t gameNumItems;

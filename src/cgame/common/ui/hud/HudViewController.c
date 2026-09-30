@@ -429,8 +429,8 @@ static void updateEditorViews(View *view, ident data) {
 static void warm(HudViewController *self) {
 
   for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bgItemDefs[t].icon) {
-      $(self, image, bgItemDefs[t].icon);
+    if (gameItemDefs[t].icon) {
+      $(self, image, gameItemDefs[t].icon);
     }
   }
 

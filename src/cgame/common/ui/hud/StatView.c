@@ -57,7 +57,7 @@ static const char *armorIconName(const PlayerState *ps) {
 
   for (GameItemTag t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
     if (ps->inventory[t]) {
-      return bgItemDefs[t].icon;
+      return gameItemDefs[t].icon;
     }
   }
 
@@ -143,8 +143,8 @@ static void updateBindings(View *self, ident data) {
 
         const int16_t active = Cg_ActiveWeapon(ps);
         if (active != WEAPON_SELECT_OFF) {
-          low = (int16_t) bgItemDefs[cgameWeapons[active].ammoTag].quantity;
-          iconName = bgItemDefs[cgameWeapons[active].tag].icon;
+          low = (int16_t) gameItemDefs[cgameWeapons[active].ammoTag].quantity;
+          iconName = gameItemDefs[cgameWeapons[active].tag].icon;
         }
       }
       break;

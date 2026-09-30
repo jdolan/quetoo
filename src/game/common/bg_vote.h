@@ -37,7 +37,7 @@ typedef enum {
   VOTE_ARG_MAP, // a map name, or "next"
   VOTE_ARG_CLIENT, // a client's name
   VOTE_ARG_INTEGER // a number within the type's range
-} VoteArg;
+} GameVoteArg;
 
 /**
  * @brief A kind of vote a client may call.
@@ -57,18 +57,18 @@ typedef struct {
   /**
    * @brief What the argument is.
    */
-  VoteArg arg;
+  GameVoteArg arg;
 
   /**
    * @brief The range of an integer argument, inclusive.
    */
   int32_t min, max;
-} VoteType;
+} GameVoteType;
 
 /**
  * @brief The votes every game offers.
  */
-static const VoteType voteTypesCommon[] = {
+static const GameVoteType voteTypesCommon[] = {
   { "map", "Change map", VOTE_ARG_MAP, 0, 0 },
   { "bots", "Bots", VOTE_ARG_INTEGER, 0, 8 },
   { "spectate", "Force spectate", VOTE_ARG_CLIENT, 0, 0 },
@@ -90,4 +90,4 @@ typedef enum {
   VOTE_CS_DEADLINE, // level time in milliseconds
   VOTE_CS_INITIATOR,
   VOTE_CS_FIELDS
-} VoteCsField;
+} GameVoteCsField;

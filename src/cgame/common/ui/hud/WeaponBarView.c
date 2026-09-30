@@ -83,7 +83,7 @@ static void rebuild(WeaponBarView *self) {
       ImageView *icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
       assert(icon);
 
-      const char *name = bgItemDefs[cgameWeapons[i].tag].icon;
+      const char *name = gameItemDefs[cgameWeapons[i].tag].icon;
       $(icon, setImage, name ? (Image *) Cg_HudImage(name) : NULL);
 
       $(slot, addSubview, (View *) icon);
@@ -171,7 +171,7 @@ static void updateBindings(View *self, ident data) {
 
       index = k;
 
-      $(this->name, setText, bgItemDefs[cgameWeapons[i].tag].name);
+      $(this->name, setText, gameItemDefs[cgameWeapons[i].tag].name);
     } else {
       icon->color.a = unselected;
     }

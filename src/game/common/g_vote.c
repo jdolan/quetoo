@@ -98,7 +98,7 @@ static GameClient *G_Vote_ClientByName(const char *name) {
 /**
  * @brief The common vote type `name` names, or `NULL`.
  */
-static const VoteType *G_Vote_Type(const char *name) {
+static const GameVoteType *G_Vote_Type(const char *name) {
 
   for (size_t i = 0; i < lengthof(voteTypesCommon); i++) {
     if (!Str_Compare(voteTypesCommon[i].name, name)) {
@@ -114,7 +114,7 @@ static const VoteType *G_Vote_Type(const char *name) {
  */
 static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const char *arg, char *canonical, size_t size) {
 
-  const VoteType *vote = G_Vote_Type(type);
+  const GameVoteType *vote = G_Vote_Type(type);
   if (!vote) {
     return false;
   }
@@ -169,7 +169,7 @@ GamePrepareVoteHook G_PrepareVote = G_PrepareVote_Common;
  */
 static bool G_ApplyVote_Common(const char *type, const char *arg) {
 
-  const VoteType *vote = G_Vote_Type(type);
+  const GameVoteType *vote = G_Vote_Type(type);
   if (!vote) {
     return false;
   }

@@ -44,7 +44,7 @@ static void didClickNo(Button *button) {
 static void didSelectType(Select *select, Option *option) {
 
   VoteViewController *this = select->delegate.self;
-  const VoteType *type = option->value;
+  const GameVoteType *type = option->value;
 
   $(((View *) this->map)->superview, setVisibility,
     type->arg != VOTE_ARG_MAP ? ViewVisibilityHidden : ViewVisibilityVisible);
@@ -70,7 +70,7 @@ static void didClickCall(Button *button) {
     return;
   }
 
-  const VoteType *type = selected->value;
+  const GameVoteType *type = selected->value;
   const char *arg = "";
 
   switch (type->arg) {
@@ -180,7 +180,7 @@ static void loadView(ViewController *self) {
   this->type->delegate.self = self;
 
   size_t count;
-  const VoteType *types = Cg_ListVoteTypes(&count);
+  const GameVoteType *types = Cg_ListVoteTypes(&count);
   for (size_t i = 0; i < count; i++) {
     $(this->type, addOption, types[i].title, (ident) &types[i]);
   }

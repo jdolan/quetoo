@@ -1379,7 +1379,7 @@ void G_InitItems(void) {
   gameItems = gi.Malloc(ITEM_TOTAL * sizeof(GameItem), MEM_TAG_GAME);
 
   for (GameItemTag tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
-    gameItems[tag].def = bgItemDefs[tag];
+    gameItems[tag].def = gameItemDefs[tag];
     G_SetupItem(&gameItems[tag]);
   }
 }

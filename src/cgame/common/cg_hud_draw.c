@@ -169,7 +169,7 @@ bool Cg_AttemptSelectWeapon(const PlayerState *ps) {
     cgameHudState.weapon.bit != -1) {
 
     if (cgameHudState.weapon.bit != Cg_ActiveWeapon(ps)) {
-      const char *classname = bgItemDefs[cgameWeapons[cgameHudState.weapon.bit].tag].classname;
+      const char *classname = gameItemDefs[cgameWeapons[cgameHudState.weapon.bit].tag].classname;
       cgi.Cbuf(va("use %s\n", classname));
 
       cgameHudState.weapon.time = cgi.client->unclampedTime + cg_selectWeaponInterval->integer;

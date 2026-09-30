@@ -115,7 +115,7 @@ static void update(PowerupView *self, GameItemTag item, int16_t value) {
   if (item != self->item) {
     self->item = item;
 
-    const char *icon = bgItemDefs[item].icon;
+    const char *icon = gameItemDefs[item].icon;
     $(self->icon, setImage, icon ? (Image *) Cg_HudImage(icon) : NULL);
   }
 

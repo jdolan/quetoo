@@ -359,7 +359,7 @@ extern CGameDescribeGameModeHook Cg_DescribeGameMode;
  * accepts, and the game's `PrepareVote` chain must accept every name listed.
  * The list MUST be static storage; the screen keeps pointers into it.
  */
-typedef const VoteType *(*CGameListVoteTypesHook)(size_t *count);
+typedef const GameVoteType *(*CGameListVoteTypesHook)(size_t *count);
 
 extern CGameListVoteTypesHook Cg_ListVoteTypes;
 

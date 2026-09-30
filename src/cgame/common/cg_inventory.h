@@ -30,7 +30,7 @@
 #define WEAPON_SELECT_OFF (-1)
 
 /**
- * @brief Cached per-item data derived from `bgItemDefs` at load time.
+ * @brief Cached per-item data derived from `gameItemDefs` at load time.
  */
 typedef struct {
 
@@ -48,7 +48,7 @@ typedef struct {
 extern CGameItem cgameItems[ITEM_TOTAL];
 
 /**
- * @brief Cached per-weapon data derived from `bgItemDefs` at load time.
+ * @brief Cached per-weapon data derived from `gameItemDefs` at load time.
  */
 typedef struct {
 
