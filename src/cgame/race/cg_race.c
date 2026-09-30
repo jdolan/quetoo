@@ -39,13 +39,13 @@
 #define RACE_GHOST_ALPHA .5f
 
 static struct {
-  ParseConfigString ParseConfigString;
-  ParseServerCommand ParseServerCommand;
-  MediaDidLoad MediaDidLoad;
-  AddEntity AddEntity;
-  ClientInfo ClientInfo;
-  EntityEffects EntityEffects;
-  ClipClientEntity ClipEntity;
+  CGameParseConfigStringHook ParseConfigString;
+  CGameParseServerCommandHook ParseServerCommand;
+  CGameMediaDidLoadHook MediaDidLoad;
+  CGameAddEntityHook AddEntity;
+  CGameClientInfoHook ClientInfo;
+  CGameEntityEffectsHook EntityEffects;
+  CGameClipClientEntityHook ClipEntity;
 } previous;
 
 static CGameClientInfo raceGhost;

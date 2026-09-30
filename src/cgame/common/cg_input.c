@@ -364,7 +364,7 @@ static void Cg_Move_Common(PMoveCmd *cmd) {
   }
 }
 
-Move Cg_Move = Cg_Move_Common;
+CGameMoveHook Cg_Move = Cg_Move_Common;
 
 /**
  * @brief The `Move` export. The client holds this rather than the chain head, so

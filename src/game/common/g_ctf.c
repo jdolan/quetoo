@@ -25,14 +25,14 @@
  * @brief `g_module.h` function pointers.
  */
 static struct {
-  ResetDroppedItem ResetDroppedItem;
-  ResolveInventoryItem ResolveInventoryItem;
-  CheckCvars CheckCvars;
-  TossInventory TossInventory;
-  InitMedia InitMedia;
-  ResetItem ResetItem;
-  InhibitItem InhibitItem;
-  InitItem InitItem;
+  GameResetDroppedItemHook ResetDroppedItem;
+  GameResolveInventoryItemHook ResolveInventoryItem;
+  GameCheckCvarsHook CheckCvars;
+  GameTossInventoryHook TossInventory;
+  GameInitMediaHook InitMedia;
+  GameResetItemHook ResetItem;
+  GameInhibitItemHook InhibitItem;
+  GameInitItemHook InitItem;
 } previous;
 
 static bool installed;

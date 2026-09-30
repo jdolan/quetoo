@@ -548,7 +548,7 @@ void G_ClientEndFrame(GameClient *cl) {
 static void G_FrameDidEnd_Common(void) {
 }
 
-FrameDidEnd G_FrameDidEnd = G_FrameDidEnd_Common;
+GameFrameDidEndHook G_FrameDidEnd = G_FrameDidEnd_Common;
 
 /**
  * @brief Finalizes all client frames and applies chase camera state.

@@ -39,10 +39,10 @@ static struct {
 } module;
 
 static struct {
-  HandleClientCommand HandleClientCommand;
-  FrameDidEnd FrameDidEnd;
-  ClientWillDisconnect ClientWillDisconnect;
-  ConfigureLevel ConfigureLevel;
+  GameHandleClientCommandHook HandleClientCommand;
+  GameFrameDidEndHook FrameDidEnd;
+  GameClientWillDisconnectHook ClientWillDisconnect;
+  GameConfigureLevelHook ConfigureLevel;
 } previous;
 
 static bool installed;

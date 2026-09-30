@@ -397,7 +397,7 @@ static void G_TossInventory_Common(GameClient *cl) {
   G_TossQuadDamage(cl);
 }
 
-TossInventory G_TossInventory = G_TossInventory_Common;
+GameTossInventoryHook G_TossInventory = G_TossInventory_Common;
 
 /**
  * @brief Adds the given amount of ammo to the client's inventory, clamped to the item's maximum.
@@ -717,7 +717,7 @@ static void G_ResetDroppedItem_Common(GameEntity *ent) {
   G_FreeEntity(ent);
 }
 
-ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
+GameResetDroppedItemHook G_ResetDroppedItem = G_ResetDroppedItem_Common;
 
 /**
  * @brief Sets the expiration timer and think function for a dropped item entity.
@@ -914,7 +914,7 @@ static const GameItem *G_ResolveInventoryItem_Common(GameClient *cl, const char 
   return G_FindItem(name);
 }
 
-ResolveInventoryItem G_ResolveInventoryItem = G_ResolveInventoryItem_Common;
+GameResolveInventoryItemHook G_ResolveInventoryItem = G_ResolveInventoryItem_Common;
 
 /**
  * @brief Drops the given item from the client's inventory, reporting to them
@@ -1024,7 +1024,7 @@ static void G_ResetItem_Common(GameEntity *ent) {
   gi.LinkEntity(ent);
 }
 
-ResetItem G_ResetItem = G_ResetItem_Common;
+GameResetItemHook G_ResetItem = G_ResetItem_Common;
 
 /**
  * @brief The tail of the `G_InhibitItem` chain: arena and instagib play with
@@ -1035,7 +1035,7 @@ static bool G_InhibitItem_Common(const GameEntity *ent) {
   return gameplay == GAMEPLAY_ARENA || gameplay == GAMEPLAY_INSTAGIB;
 }
 
-InhibitItem G_InhibitItem = G_InhibitItem_Common;
+GameInhibitItemHook G_InhibitItem = G_InhibitItem_Common;
 
 /**
  * @brief Drops the specified item to the floor and sets up interaction
@@ -1357,7 +1357,7 @@ static void G_InitItem_Common(GameItem *it) {
 
 }
 
-InitItem G_InitItem = G_InitItem_Common;
+GameInitItemHook G_InitItem = G_InitItem_Common;
 
 /**
  * @brief Fills in an item's behaviour and indexes its media. The behaviour is a

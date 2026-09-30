@@ -293,7 +293,7 @@ static bool Cg_ParseConfigString_Common(int32_t index) {
   return false;
 }
 
-ParseConfigString Cg_ParseConfigString = Cg_ParseConfigString_Common;
+CGameParseConfigStringHook Cg_ParseConfigString = Cg_ParseConfigString_Common;
 
 /**
  * @brief An updated configuration string has just been received from the server.
@@ -427,7 +427,7 @@ static bool Cg_ParseServerCommand_Common(int32_t cmd) {
   return false;
 }
 
-ParseServerCommand Cg_ParseServerCommand = Cg_ParseServerCommand_Common;
+CGameParseServerCommandHook Cg_ParseServerCommand = Cg_ParseServerCommand_Common;
 
 /**
  * @brief Parse a single server command, returning true on success.
@@ -498,7 +498,7 @@ static const Gameplay *Cg_ListGameplayModes_Common(size_t *count) {
   return gameplayModes;
 }
 
-ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
+CGameListGameplayModesHook Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
 
 /**
  * @brief Clear any state that should not persist over multiple server connections.
@@ -528,7 +528,7 @@ static void Cg_ClearState(void) {
 static void Cg_StateDidClear_Common(void) {
 }
 
-StateDidClear Cg_StateDidClear = Cg_StateDidClear_Common;
+CGameStateDidClearHook Cg_StateDidClear = Cg_StateDidClear_Common;
 
 /**
  * @brief Prepares the scene so that early rendering operations may begin.
@@ -566,7 +566,7 @@ static void Cg_PopulateScene(const ClientFrame *frame) {
 static void Cg_SceneDidPopulate_Common(const ClientFrame *frame) {
 }
 
-SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
+CGameSceneDidPopulateHook Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
 
 /**
  * @brief Hands the frame to the HUD, and to what the HUD still does outside its View hierarchy.
@@ -591,7 +591,7 @@ static void Cg_UpdateScreen(const ClientFrame *frame) {
 static void Cg_ScreenDidUpdate_Common(const ClientFrame *frame) {
 }
 
-ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
+CGameScreenDidUpdateHook Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
 
 /**
  * @brief Entry point that populates and returns the cgame export table with all function pointers.

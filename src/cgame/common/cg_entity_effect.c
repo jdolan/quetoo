@@ -227,4 +227,4 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 }
 
-EntityEffects Cg_EntityEffects = Cg_EntityEffects_Common;
+CGameEntityEffectsHook Cg_EntityEffects = Cg_EntityEffects_Common;

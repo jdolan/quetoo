@@ -23,8 +23,8 @@
 #include "bg_intermission.h"
 
 static struct {
-  ParseConfigString ParseConfigString;
-  StateDidClear StateDidClear;
+  CGameParseConfigStringHook ParseConfigString;
+  CGameStateDidClearHook StateDidClear;
 } previous;
 
 /**

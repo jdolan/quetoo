@@ -44,21 +44,21 @@
 #define RACE_KILL_INTERVAL 300
 
 static struct {
-  LevelWillSpawn LevelWillSpawn;
-  ConfigureLevel ConfigureLevel;
-  InitEntity InitEntity;
-  ClipEntity ClipEntity;
-  PrepareSpawn PrepareSpawn;
-  TossInventory TossInventory;
-  ModifyDamage ModifyDamage;
-  AllowHook AllowHook;
-  HandleClientCommand HandleClientCommand;
-  ClientWillThink ClientWillThink;
-  ClientDidMove ClientDidMove;
-  FrameDidEnd FrameDidEnd;
-  ClientWillDisconnect ClientWillDisconnect;
-  WriteStats WriteStats;
-  WriteScore WriteScore;
+  GameLevelWillSpawnHook LevelWillSpawn;
+  GameConfigureLevelHook ConfigureLevel;
+  GameInitEntityHook InitEntity;
+  GameClipEntityHook ClipEntity;
+  GamePrepareSpawnHook PrepareSpawn;
+  GameTossInventoryHook TossInventory;
+  GameModifyDamageHook ModifyDamage;
+  GameAllowHookHook AllowHook;
+  GameHandleClientCommandHook HandleClientCommand;
+  GameClientWillThinkHook ClientWillThink;
+  GameClientDidMoveHook ClientDidMove;
+  GameFrameDidEndHook FrameDidEnd;
+  GameClientWillDisconnectHook ClientWillDisconnect;
+  GameWriteStatsHook WriteStats;
+  GameWriteScoreHook WriteScore;
 } previous;
 
 static bool installed;

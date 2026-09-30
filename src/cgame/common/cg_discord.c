@@ -185,7 +185,7 @@ static const char *Cg_DescribeGameMode_Common(void) {
 #endif
 }
 
-DescribeGameMode Cg_DescribeGameMode = Cg_DescribeGameMode_Common;
+CGameDescribeGameModeHook Cg_DescribeGameMode = Cg_DescribeGameMode_Common;
 
 void Cg_UpdateDiscord(void) {
 

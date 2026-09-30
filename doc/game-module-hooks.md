@@ -91,9 +91,9 @@ value it displaced to call as `previous`.
 
 ```c
 /* g_module.h — the contract, and the single authoritative list of hooks */
-typedef void (*ResetDroppedItem)(GameEntity *ent);
+typedef void (*GameResetDroppedItemHook)(GameEntity *ent);
 
-extern ResetDroppedItem G_ResetDroppedItem;
+extern GameResetDroppedItemHook G_ResetDroppedItem;
 ```
 
 ```c
@@ -102,7 +102,7 @@ static void G_ResetDroppedItem_Common(GameEntity *ent) {
   G_FreeEntity(ent);
 }
 
-ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
+GameResetDroppedItemHook G_ResetDroppedItem = G_ResetDroppedItem_Common;
 ```
 
 ```c
@@ -170,10 +170,12 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 
 ### Naming
 
-- Hook type: **VerbSubject**, PascalCase, no prefix — `ResetDroppedItem`,
-  `ResolveInventoryItem`, `InhibitItem`, `ConfigureLevel`, `PrepareMove`. This
-  matches `GameEntity::Think` and `::Touch`, and the `cg_entity.h` typedefs.
-- Dispatch pointer: the type with a `G_` prefix — `G_ResetDroppedItem`.
+- Hook name: **VerbSubject**, PascalCase — `ResetDroppedItem`, `ResolveInventoryItem`,
+  `InhibitItem`, `ConfigureLevel`, `PrepareMove`.
+- Hook type: the name with the module's type prefix and a `Hook` suffix —
+  `GameResetDroppedItemHook`, `CGameMediaDidLoadHook` — so that a hook type
+  cannot be mistaken for any other function pointer type.
+- Dispatch pointer: the name with a `G_` (or `Cg_`) prefix — `G_ResetDroppedItem`.
 - Feature implementation: the dispatch pointer with the feature suffixed —
   `G_ResetDroppedItem_Tech`, `G_ResolveInventoryItem_Ctf`. Reading a call site's
   chain then only means grepping for the hook's name.

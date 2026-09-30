@@ -911,7 +911,7 @@ static void G_CheckRules(void) {
 static void G_FrameWillBegin_Common(void) {
 }
 
-FrameWillBegin G_FrameWillBegin = G_FrameWillBegin_Common;
+GameFrameWillBeginHook G_FrameWillBegin = G_FrameWillBegin_Common;
 
 /**
  * @brief Runs one server frame: the timers, every entity, the rules, and the

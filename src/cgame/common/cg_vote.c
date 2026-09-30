@@ -23,7 +23,7 @@
 #include "bg_vote.h"
 
 static struct {
-  ParseConfigString ParseConfigString;
+  CGameParseConfigStringHook ParseConfigString;
 } previous;
 
 /**
@@ -34,7 +34,7 @@ static const VoteType *Cg_ListVoteTypes_Common(size_t *count) {
   return voteTypesCommon;
 }
 
-ListVoteTypes Cg_ListVoteTypes = Cg_ListVoteTypes_Common;
+CGameListVoteTypesHook Cg_ListVoteTypes = Cg_ListVoteTypes_Common;
 
 /**
  * @brief Reads `CS_VOTE` into `cgameState.vote`.

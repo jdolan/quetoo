@@ -32,11 +32,11 @@
  * @brief `g_module.h` function pointers.
  */
 static struct {
-  CheckCvars CheckCvars;
-  TossInventory TossInventory;
-  InitMedia InitMedia;
-  ConfigureLevel ConfigureLevel;
-  PrepareMove PrepareMove;
+  GameCheckCvarsHook CheckCvars;
+  GameTossInventoryHook TossInventory;
+  GameInitMediaHook InitMedia;
+  GameConfigureLevelHook ConfigureLevel;
+  GamePrepareMoveHook PrepareMove;
 } previous;
 
 static bool installed;
@@ -558,7 +558,7 @@ static bool G_AllowHook_Common(const GameClient *cl) {
   return Pm_Movement(gameLevel.movement)->hook;
 }
 
-AllowHook G_AllowHook = G_AllowHook_Common;
+GameAllowHookHook G_AllowHook = G_AllowHook_Common;
 
 /**
  * @brief Handles management of the hook for a given player.

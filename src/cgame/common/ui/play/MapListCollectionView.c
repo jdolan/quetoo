@@ -44,7 +44,7 @@ static bool Cg_FilterCreateServerMapList_Common(const MapListItemInfo *info) {
   return Str_HasToken(info->games, GAME_NAME);
 }
 
-FilterCreateServerMapList Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Common;
+CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Common;
 
 #pragma mark CollectionViewDataSource
 

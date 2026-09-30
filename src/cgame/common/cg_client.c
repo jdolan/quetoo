@@ -801,7 +801,7 @@ static CGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
   return &cgameState.clients[ent->current.client];
 }
 
-ClientInfo Cg_ClientInfo = Cg_ClientInfo_Common;
+CGameClientInfoHook Cg_ClientInfo = Cg_ClientInfo_Common;
 
 /**
  * @brief Adds the numerous render entities which comprise a given client (player)

@@ -185,7 +185,7 @@ static bool G_InitEntity_Common(GameEntity *ent) {
   return false;
 }
 
-InitEntity G_InitEntity = G_InitEntity_Common;
+GameInitEntityHook G_InitEntity = G_InitEntity_Common;
 
 /**
  * @brief The tail of the `G_LevelWillSpawn` chain: a notification, so it does nothing.
@@ -193,7 +193,7 @@ InitEntity G_InitEntity = G_InitEntity_Common;
 static void G_LevelWillSpawn_Common(void) {
 }
 
-LevelWillSpawn G_LevelWillSpawn = G_LevelWillSpawn_Common;
+GameLevelWillSpawnHook G_LevelWillSpawn = G_LevelWillSpawn_Common;
 
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
@@ -479,7 +479,7 @@ static void G_InitMedia_Common(void) {
   gameMedia.images.health = gi.ImageIndex("pics/health");
 }
 
-InitMedia G_InitMedia = G_InitMedia_Common;
+GameInitMediaHook G_InitMedia = G_InitMedia_Common;
 
 
 /**
@@ -582,7 +582,7 @@ static void G_InitSpawnPoints(void) {
 static void G_ConfigureLevel_Common(void) {
 }
 
-ConfigureLevel G_ConfigureLevel = G_ConfigureLevel_Common;
+GameConfigureLevelHook G_ConfigureLevel = G_ConfigureLevel_Common;
 
 /**
  * @brief Spawns game entities from the BSP entity definition lump.

@@ -34,7 +34,7 @@ static bool G_CheckCvars_Common(void) {
   return false;
 }
 
-CheckCvars G_CheckCvars = G_CheckCvars_Common;
+GameCheckCvarsHook G_CheckCvars = G_CheckCvars_Common;
 
 /**
  * @brief The tail of the `G_CheckWinner` chain, playing for frags.
@@ -63,7 +63,7 @@ static bool G_CheckWinner_Common(void) {
   return false;
 }
 
-CheckWinner G_CheckWinner = G_CheckWinner_Common;
+GameCheckWinnerHook G_CheckWinner = G_CheckWinner_Common;
 
 /**
  * @brief The tail of the `G_AllowNextMap` chain: the level may always advance.
@@ -72,7 +72,7 @@ static bool G_AllowNextMap_Common(void) {
   return true;
 }
 
-AllowNextMap G_AllowNextMap = G_AllowNextMap_Common;
+GameAllowNextMapHook G_AllowNextMap = G_AllowNextMap_Common;
 
 /**
  * @brief The tail of the `G_ClampGameplay` hook: every mode `GameplayId`
@@ -82,7 +82,7 @@ static GameplayId G_ClampGameplay_Common(GameplayId gameplay) {
   return gameplay;
 }
 
-ClampGameplay G_ClampGameplay = G_ClampGameplay_Common;
+GameClampGameplayHook G_ClampGameplay = G_ClampGameplay_Common;
 
 /**
  * @brief The tail of the `G_FormatGameName` chain. The label looked up from
@@ -93,4 +93,4 @@ ClampGameplay G_ClampGameplay = G_ClampGameplay_Common;
 static void G_FormatGameName_Common(char *name, size_t size) {
 }
 
-FormatGameName G_FormatGameName = G_FormatGameName_Common;
+GameFormatGameNameHook G_FormatGameName = G_FormatGameName_Common;

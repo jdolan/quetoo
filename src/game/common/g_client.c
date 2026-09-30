@@ -1051,7 +1051,7 @@ static void G_InitInventory_Common(GameClient *cl) {
   G_UseWeapon(cl, item);
 }
 
-InitInventory G_InitInventory = G_InitInventory_Common;
+GameInitInventoryHook G_InitInventory = G_InitInventory_Common;
 
 /**
  * @brief Returns the distance to the nearest enemy from the given spot.
@@ -1304,7 +1304,7 @@ static GameEntity *G_SelectSpawnPoint(GameClient *cl) {
 static void G_PrepareSpawn_Common(GameClient *cl, GameClientSpawn *spawn) {
 }
 
-PrepareSpawn G_PrepareSpawn = G_PrepareSpawn_Common;
+GamePrepareSpawnHook G_PrepareSpawn = G_PrepareSpawn_Common;
 
 /**
  * @brief The tail of the `G_ClientWillBegin` chain: a notification, so it does nothing.
@@ -1312,7 +1312,7 @@ PrepareSpawn G_PrepareSpawn = G_PrepareSpawn_Common;
 static void G_ClientWillBegin_Common(GameClient *cl) {
 }
 
-ClientWillBegin G_ClientWillBegin = G_ClientWillBegin_Common;
+GameClientWillBeginHook G_ClientWillBegin = G_ClientWillBegin_Common;
 
 /**
  * @brief The tail of the `G_ClientDidBegin` chain: a notification, so it does nothing.
@@ -1320,7 +1320,7 @@ ClientWillBegin G_ClientWillBegin = G_ClientWillBegin_Common;
 static void G_ClientDidBegin_Common(GameClient *cl) {
 }
 
-ClientDidBegin G_ClientDidBegin = G_ClientDidBegin_Common;
+GameClientDidBeginHook G_ClientDidBegin = G_ClientDidBegin_Common;
 
 /**
  * @brief The tail of the `G_ClientWillChangeUserInfo` chain: a notification, so it does nothing.
@@ -1328,7 +1328,7 @@ ClientDidBegin G_ClientDidBegin = G_ClientDidBegin_Common;
 static void G_ClientWillChangeUserInfo_Common(GameClient *cl, const char *userInfo) {
 }
 
-ClientWillChangeUserInfo G_ClientWillChangeUserInfo = G_ClientWillChangeUserInfo_Common;
+GameClientWillChangeUserInfoHook G_ClientWillChangeUserInfo = G_ClientWillChangeUserInfo_Common;
 
 /**
  * @brief The tail of the `G_ClientDidChangeUserInfo` chain: a notification, so it does nothing.
@@ -1336,7 +1336,7 @@ ClientWillChangeUserInfo G_ClientWillChangeUserInfo = G_ClientWillChangeUserInfo
 static void G_ClientDidChangeUserInfo_Common(GameClient *cl) {
 }
 
-ClientDidChangeUserInfo G_ClientDidChangeUserInfo = G_ClientDidChangeUserInfo_Common;
+GameClientDidChangeUserInfoHook G_ClientDidChangeUserInfo = G_ClientDidChangeUserInfo_Common;
 
 /**
  * @brief The tail of the `G_ClientWillDisconnect` chain: a notification, so it does nothing.
@@ -1344,7 +1344,7 @@ ClientDidChangeUserInfo G_ClientDidChangeUserInfo = G_ClientDidChangeUserInfo_Co
 static void G_ClientWillDisconnect_Common(GameClient *cl) {
 }
 
-ClientWillDisconnect G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
+GameClientWillDisconnectHook G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
 
 /**
  * @brief The tail of the `G_ClientDidDisconnect` chain: a notification, so it does nothing.
@@ -1352,7 +1352,7 @@ ClientWillDisconnect G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
 static void G_ClientDidDisconnect_Common(GameClient *cl) {
 }
 
-ClientDidDisconnect G_ClientDidDisconnect = G_ClientDidDisconnect_Common;
+GameClientDidDisconnectHook G_ClientDidDisconnect = G_ClientDidDisconnect_Common;
 
 /**
  * @brief The tail of the `G_ClientWillThink` chain: a notification, so it does nothing.
@@ -1360,7 +1360,7 @@ ClientDidDisconnect G_ClientDidDisconnect = G_ClientDidDisconnect_Common;
 static void G_ClientWillThink_Common(GameClient *cl, const PMoveCmd *cmd) {
 }
 
-ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
+GameClientWillThinkHook G_ClientWillThink = G_ClientWillThink_Common;
 
 /**
  * @brief The tail of the `G_ClientDidMove` chain: a notification, so it does nothing.
@@ -1368,7 +1368,7 @@ ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
 static void G_ClientDidMove_Common(GameClient *cl, const PMoveCmd *cmd) {
 }
 
-ClientDidMove G_ClientDidMove = G_ClientDidMove_Common;
+GameClientDidMoveHook G_ClientDidMove = G_ClientDidMove_Common;
 
 /**
  * @brief Spawns the client's entity, as a player or a spectator.
@@ -1946,14 +1946,14 @@ static void G_PrepareMove_Common(GameClient *cl, PMove *pm) {
   pm->s.velocity = cl->entity->velocity;
 }
 
-PrepareMove G_PrepareMove = G_PrepareMove_Common;
+GamePrepareMoveHook G_PrepareMove = G_PrepareMove_Common;
 
 /**
  * @brief The `G_ClipEntity` chain has no tail: it is `NULL` until a module
  * installs a link, and `G_Init` exports whatever is installed, so that a game
  * with nothing to say is never asked.
  */
-ClipEntity G_ClipEntity = NULL;
+GameClipEntityHook G_ClipEntity = NULL;
 
 /**
  * @brief Process the movement command, call `Pm_Move` and act on the result.

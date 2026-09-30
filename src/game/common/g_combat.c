@@ -316,7 +316,7 @@ static bool G_ModifyDamage_Common(GameEntity *target, GameEntity *attacker, int3
   return true;
 }
 
-ModifyDamage G_ModifyDamage = G_ModifyDamage_Common;
+GameModifyDamageHook G_ModifyDamage = G_ModifyDamage_Common;
 
 /**
  * @brief Damage routine. The inflictor imparts damage on the target on behalf

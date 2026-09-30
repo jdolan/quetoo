@@ -34,14 +34,14 @@ Cvar *g_techs;
  * @brief `g_module.h` function pointers.
  */
 static struct {
-  ResetDroppedItem ResetDroppedItem;
-  ResolveInventoryItem ResolveInventoryItem;
-  ModifyDamage ModifyDamage;
-  CheckCvars CheckCvars;
-  TossInventory TossInventory;
-  InitItem InitItem;
-  InitMedia InitMedia;
-  ConfigureLevel ConfigureLevel;
+  GameResetDroppedItemHook ResetDroppedItem;
+  GameResolveInventoryItemHook ResolveInventoryItem;
+  GameModifyDamageHook ModifyDamage;
+  GameCheckCvarsHook CheckCvars;
+  GameTossInventoryHook TossInventory;
+  GameInitItemHook InitItem;
+  GameInitMediaHook InitMedia;
+  GameConfigureLevelHook ConfigureLevel;
 } previous;
 
 static bool installed;

@@ -722,7 +722,7 @@ static bool G_HandleClientCommand_Common(GameClient *cl, const char *cmd) {
   return false;
 }
 
-HandleClientCommand G_HandleClientCommand = G_HandleClientCommand_Common;
+GameHandleClientCommandHook G_HandleClientCommand = G_HandleClientCommand_Common;
 
 /**
  * @brief The tail of the `G_ClientWillChat` chain: everyone may speak.
@@ -731,7 +731,7 @@ static bool G_ClientWillChat_Common(GameClient *cl, char *text, size_t size, boo
   return true;
 }
 
-ClientWillChat G_ClientWillChat = G_ClientWillChat_Common;
+GameClientWillChatHook G_ClientWillChat = G_ClientWillChat_Common;
 
 /**
  * @brief The tail of the `G_ClientDidChat` chain: a notification, so it does nothing.
@@ -739,7 +739,7 @@ ClientWillChat G_ClientWillChat = G_ClientWillChat_Common;
 static void G_ClientDidChat_Common(GameClient *cl, const char *text, bool team) {
 }
 
-ClientDidChat G_ClientDidChat = G_ClientDidChat_Common;
+GameClientDidChatHook G_ClientDidChat = G_ClientDidChat_Common;
 
 /**
  * @brief Dispatches an incoming client command string to the appropriate handler.

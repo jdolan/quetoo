@@ -25,7 +25,7 @@
 #include "MapListCollectionItemView.h"
 
 static struct {
-  FilterCreateServerMapList FilterCreateServerMapList;
+  CGameFilterCreateServerMapListHook FilterCreateServerMapList;
 } previous;
 
 /**

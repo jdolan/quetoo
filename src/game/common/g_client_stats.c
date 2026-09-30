@@ -104,7 +104,7 @@ static void G_UpdateScore(const GameClient *cl, GameScore *s) {
 static void G_WriteScore_Common(const GameClient *cl, GameScore *s) {
 }
 
-WriteScore G_WriteScore = G_WriteScore_Common;
+GameWriteScoreHook G_WriteScore = G_WriteScore_Common;
 
 /**
  * @brief The tail of the `G_WriteStats` chain: a notification, so it does nothing.
@@ -112,7 +112,7 @@ WriteScore G_WriteScore = G_WriteScore_Common;
 static void G_WriteStats_Common(GameClient *cl) {
 }
 
-WriteStats G_WriteStats = G_WriteStats_Common;
+GameWriteStatsHook G_WriteStats = G_WriteStats_Common;
 
 /**
  * @brief Returns the number of scores written to the buffer.

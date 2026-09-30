@@ -277,7 +277,7 @@ void Cg_LoadMedia(void) {
 static void Cg_MediaDidLoad_Common(void) {
 }
 
-MediaDidLoad Cg_MediaDidLoad = Cg_MediaDidLoad_Common;
+CGameMediaDidLoadHook Cg_MediaDidLoad = Cg_MediaDidLoad_Common;
 
 /**
  * @brief Frees all client game media and resets per-level subsystem state.

@@ -308,7 +308,7 @@ static void Cg_AddEntity_Common(ClientEntity *ent) {
   cgi.AddEntity(cgi.view, &e);
 }
 
-AddEntity Cg_AddEntity = Cg_AddEntity_Common;
+CGameAddEntityHook Cg_AddEntity = Cg_AddEntity_Common;
 
 /**
  * @brief Iterate all entities in the current frame, adding models, sprites,

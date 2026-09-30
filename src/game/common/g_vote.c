@@ -47,10 +47,10 @@ static struct {
 } module;
 
 static struct {
-  HandleClientCommand HandleClientCommand;
-  FrameDidEnd FrameDidEnd;
-  ClientWillDisconnect ClientWillDisconnect;
-  ConfigureLevel ConfigureLevel;
+  GameHandleClientCommandHook HandleClientCommand;
+  GameFrameDidEndHook FrameDidEnd;
+  GameClientWillDisconnectHook ClientWillDisconnect;
+  GameConfigureLevelHook ConfigureLevel;
 } previous;
 
 static bool installed;
@@ -162,7 +162,7 @@ static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const c
   return false;
 }
 
-PrepareVote G_PrepareVote = G_PrepareVote_Common;
+GamePrepareVoteHook G_PrepareVote = G_PrepareVote_Common;
 
 /**
  * @brief The tail of the `G_ApplyVote` chain: the common votes.
@@ -218,7 +218,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
   return false;
 }
 
-ApplyVote G_ApplyVote = G_ApplyVote_Common;
+GameApplyVoteHook G_ApplyVote = G_ApplyVote_Common;
 
 /**
  * @brief Counts the ballots and the clients entitled to cast one.

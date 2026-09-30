@@ -54,7 +54,7 @@ static bool Cg_UsePrediction_Common(void) {
   return true;
 }
 
-UsePrediction Cg_UsePrediction = Cg_UsePrediction_Common;
+CGameUsePredictionHook Cg_UsePrediction = Cg_UsePrediction_Common;
 
 /**
  * @brief The `UsePrediction` export. The client holds this rather than the chain head, so
@@ -71,7 +71,7 @@ bool Cg_ExportUsePrediction(void) {
 static void Cg_MoveCommandWillRun_Common(PMove *pm, const ClientCmd *cmd) {
 }
 
-MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
+CGameMoveCommandWillRunHook Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 
 /**
  * @brief The tail of the `Cg_MoveCommandDidRun` chain: a notification, so it does nothing.
@@ -79,7 +79,7 @@ MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 static void Cg_MoveCommandDidRun_Common(const PMove *pm, const ClientCmd *cmd) {
 }
 
-MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
+CGameMoveCommandDidRunHook Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 
 /**
  * @brief The tail of the `Cg_PredictionDidComplete` chain: a notification, so it does nothing.
@@ -87,7 +87,7 @@ MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 static void Cg_PredictionDidComplete_Common(const PMove *pm) {
 }
 
-PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
+CGamePredictionDidCompleteHook Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
 
 /**
  * @brief Trace wrapper for `Pm_Move`.
@@ -101,7 +101,7 @@ static CollisionTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end,
  * installs a link, and `Cg_Init` exports whatever is installed, so that a
  * client game with nothing to say is never asked.
  */
-ClipClientEntity Cg_ClipEntity = NULL;
+CGameClipClientEntityHook Cg_ClipEntity = NULL;
 
 /**
  * @brief Run recent movement commands through the player movement code locally, storing the

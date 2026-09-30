@@ -97,18 +97,18 @@ void G_Module_Shutdown(void);
  * @details Nothing to do by default. A feature decides here whether it is
  * enabled this level, and publishes any config strings the client needs.
  */
-typedef void (*ConfigureLevel)(void);
+typedef void (*GameConfigureLevelHook)(void);
 
-extern ConfigureLevel G_ConfigureLevel;
+extern GameConfigureLevelHook G_ConfigureLevel;
 
 /**
  * @brief Indexes the models and sounds the module needs for the level ahead.
  * @details The whole of the deathmatch media is the default; a feature indexes
  * its own on top, and keeps the indices itself rather than growing `gMedia`.
  */
-typedef void (*InitMedia)(void);
+typedef void (*GameInitMediaHook)(void);
 
-extern InitMedia G_InitMedia;
+extern GameInitMediaHook G_InitMedia;
 
 /**
  * @brief The level is about to be spawned: `gLevel` is reset and named, the
@@ -117,9 +117,9 @@ extern InitMedia G_InitMedia;
  * settings over cvars the worldspawn reads does so here.
  * @details Notification; the tail does nothing.
  */
-typedef void (*LevelWillSpawn)(void);
+typedef void (*GameLevelWillSpawnHook)(void);
 
-extern LevelWillSpawn G_LevelWillSpawn;
+extern GameLevelWillSpawnHook G_LevelWillSpawn;
 
 /**
  * @brief Initializes a freshly spawned entity by its class name. The default
@@ -130,9 +130,9 @@ extern LevelWillSpawn G_LevelWillSpawn;
  * without consulting the chain.
  * @return True if the entity was initialized.
  */
-typedef bool (*InitEntity)(GameEntity *ent);
+typedef bool (*GameInitEntityHook)(GameEntity *ent);
 
-extern InitEntity G_InitEntity;
+extern GameInitEntityHook G_InitEntity;
 
 /**
  * @}
@@ -147,9 +147,9 @@ extern InitEntity G_InitEntity;
  * @details Arena and instagib withhold everything by default. A feature whose
  * items are the point of the level, such as the flags, exempts its own.
  */
-typedef bool (*InhibitItem)(const GameEntity *ent);
+typedef bool (*GameInhibitItemHook)(const GameEntity *ent);
 
-extern InhibitItem G_InhibitItem;
+extern GameInhibitItemHook G_InhibitItem;
 
 /**
  * @brief Fills in an item's behaviour - how it is picked up, and how it is
@@ -158,9 +158,9 @@ extern InhibitItem G_InhibitItem;
  * type it does not recognise, so a feature bringing its own item type MUST
  * install ahead of it and answer for that type rather than deferring.
  */
-typedef void (*InitItem)(GameItem *it);
+typedef void (*GameInitItemHook)(GameItem *it);
 
-extern InitItem G_InitItem;
+extern GameInitItemHook G_InitItem;
 
 /**
  * @brief Disposes of a dropped item that has left the world - fallen into the
@@ -168,9 +168,9 @@ extern InitItem G_InitItem;
  * @details A plain deathmatch module frees it. A module with flags returns them
  * to their base instead, and one with techs respawns them.
  */
-typedef void (*ResetDroppedItem)(GameEntity *ent);
+typedef void (*GameResetDroppedItemHook)(GameEntity *ent);
 
-extern ResetDroppedItem G_ResetDroppedItem;
+extern GameResetDroppedItemHook G_ResetDroppedItem;
 
 /**
  * @brief Places an item in the world for the start of a level, deciding whether
@@ -179,9 +179,9 @@ extern ResetDroppedItem G_ResetDroppedItem;
  * that has more to say about its own items installs over the top. Anything it
  * changes after deferring to previous MUST be linked again, because previous links.
  */
-typedef void (*ResetItem)(GameEntity *ent);
+typedef void (*GameResetItemHook)(GameEntity *ent);
 
-extern ResetItem G_ResetItem;
+extern GameResetItemHook G_ResetItem;
 
 /**
  * @}
@@ -198,9 +198,9 @@ extern ResetItem G_ResetItem;
  * then gives; a mode with no weapons at all does not defer to previous. The
  * tail lives in g_client.c, beside the spawn.
  */
-typedef void (*InitInventory)(GameClient *cl);
+typedef void (*GameInitInventoryHook)(GameClient *cl);
 
-extern InitInventory G_InitInventory;
+extern GameInitInventoryHook G_InitInventory;
 
 /**
  * @brief Resolves the item a client named to one they are carrying, or `NULL`
@@ -214,9 +214,9 @@ extern InitInventory G_InitInventory;
  * handing a name back to the item list finds the first of them and not the one
  * being carried.
  */
-typedef const GameItem *(*ResolveInventoryItem)(GameClient *cl, const char *name);
+typedef const GameItem *(*GameResolveInventoryItemHook)(GameClient *cl, const char *name);
 
-extern ResolveInventoryItem G_ResolveInventoryItem;
+extern GameResolveInventoryItemHook G_ResolveInventoryItem;
 
 /**
  * @brief Tosses whatever the client is carrying that must not leave play with
@@ -225,9 +225,9 @@ extern ResolveInventoryItem G_ResolveInventoryItem;
  * each add their own, which is why this is a chain rather than a list of calls
  * in whichever command happens to need it.
  */
-typedef void (*TossInventory)(GameClient *cl);
+typedef void (*GameTossInventoryHook)(GameClient *cl);
 
-extern TossInventory G_TossInventory;
+extern GameTossInventoryHook G_TossInventory;
 
 /**
  * @}
@@ -254,9 +254,9 @@ extern TossInventory G_TossInventory;
  * is the world entity when the attack had none.
  * @return False to abort the attack.
  */
-typedef bool (*ModifyDamage)(GameEntity *target, GameEntity *attacker, int32_t *damage, int32_t *knockback);
+typedef bool (*GameModifyDamageHook)(GameEntity *target, GameEntity *attacker, int32_t *damage, int32_t *knockback);
 
-extern ModifyDamage G_ModifyDamage;
+extern GameModifyDamageHook G_ModifyDamage;
 
 /**
  * @}
@@ -272,9 +272,9 @@ extern ModifyDamage G_ModifyDamage;
  * takes the movement over, as the grapple does while pulling, sets the move type
  * and the velocity it wants and does not defer to previous.
  */
-typedef void (*PrepareMove)(GameClient *cl, PMove *pm);
+typedef void (*GamePrepareMoveHook)(GameClient *cl, PMove *pm);
 
-extern PrepareMove G_PrepareMove;
+extern GamePrepareMoveHook G_PrepareMove;
 
 /**
  * @brief Decides whether `ent` clips a trace made on behalf of `mover`, after the
@@ -288,9 +288,9 @@ extern PrepareMove G_PrepareMove;
  * `Sv_Trace` and `Cl_Trace`, and speculative traces such as the bots' lookahead
  * run it many times for a move that never happens.
  */
-typedef bool (*ClipEntity)(const GameEntity *mover, const GameEntity *ent);
+typedef bool (*GameClipEntityHook)(const GameEntity *mover, const GameEntity *ent);
 
-extern ClipEntity G_ClipEntity;
+extern GameClipEntityHook G_ClipEntity;
 
 #if defined(G_HOOK)
 /**
@@ -301,9 +301,9 @@ extern ClipEntity G_ClipEntity;
  * for its cases and defers to previous.
  * @return True if the client may hook.
  */
-typedef bool (*AllowHook)(const GameClient *cl);
+typedef bool (*GameAllowHookHook)(const GameClient *cl);
 
-extern AllowHook G_AllowHook;
+extern GameAllowHookHook G_AllowHook;
 #endif
 
 /**
@@ -323,9 +323,9 @@ extern AllowHook G_AllowHook;
  * clear the `modified` flag of each cvar it consumes, or it will announce the
  * same change on every frame.
  */
-typedef bool (*CheckCvars)(void);
+typedef bool (*GameCheckCvarsHook)(void);
 
-extern CheckCvars G_CheckCvars;
+extern GameCheckCvarsHook G_CheckCvars;
 
 /**
  * @brief Decides whether the level has been won, once per server frame.
@@ -334,9 +334,9 @@ extern CheckCvars G_CheckCvars;
  * replaces this rather than chaining onto it. Announce the reason before
  * returning true; the caller only ends the level.
  */
-typedef bool (*CheckWinner)(void);
+typedef bool (*GameCheckWinnerHook)(void);
 
-extern CheckWinner G_CheckWinner;
+extern GameCheckWinnerHook G_CheckWinner;
 
 /**
  * @brief Whether the level may advance now that the intermission has run its
@@ -345,9 +345,9 @@ extern CheckWinner G_CheckWinner;
  * until the vote is in, then defers to previous.
  * @return True to advance to the next map.
  */
-typedef bool (*AllowNextMap)(void);
+typedef bool (*GameAllowNextMapHook)(void);
 
-extern AllowNextMap G_AllowNextMap;
+extern GameAllowNextMapHook G_AllowNextMap;
 
 /**
  * @brief Validates a vote a client is calling, writing the argument in the
@@ -357,9 +357,9 @@ extern AllowNextMap G_AllowNextMap;
  * owns and defers to previous for the rest.
  * @return True if the vote may be called.
  */
-typedef bool (*PrepareVote)(const GameClient *cl, const char *type, const char *arg, char *canonical, size_t size);
+typedef bool (*GamePrepareVoteHook)(const GameClient *cl, const char *type, const char *arg, char *canonical, size_t size);
 
-extern PrepareVote G_PrepareVote;
+extern GamePrepareVoteHook G_PrepareVote;
 
 /**
  * @brief Applies a vote that passed. The default applies the votes in
@@ -368,9 +368,9 @@ extern PrepareVote G_PrepareVote;
  * previous for the rest.
  * @return True if the vote was applied.
  */
-typedef bool (*ApplyVote)(const char *type, const char *arg);
+typedef bool (*GameApplyVoteHook)(const char *type, const char *arg);
 
-extern ApplyVote G_ApplyVote;
+extern GameApplyVoteHook G_ApplyVote;
 
 /**
  * @brief Coerces a requested gameplay mode to one this module actually
@@ -380,9 +380,9 @@ extern ApplyVote G_ApplyVote;
  * @details A single owner, like `CheckWinner`: a module that plays exactly one
  * mode replaces this outright rather than qualifying whatever it was handed.
  */
-typedef GameplayId (*ClampGameplay)(GameplayId gameplay);
+typedef GameplayId (*GameClampGameplayHook)(GameplayId gameplay);
 
-extern ClampGameplay G_ClampGameplay;
+extern GameClampGameplayHook G_ClampGameplay;
 
 /**
  * @brief Names the gameplay the server is running, for its info strings.
@@ -391,9 +391,9 @@ extern ClampGameplay G_ClampGameplay;
  * @details Chainable so that a feature can qualify what it was handed, but a
  * feature that renames the gameplay outright does not defer to previous.
  */
-typedef void (*FormatGameName)(char *name, size_t size);
+typedef void (*GameFormatGameNameHook)(char *name, size_t size);
 
-extern FormatGameName G_FormatGameName;
+extern GameFormatGameNameHook G_FormatGameName;
 
 /**
  * @}
@@ -436,43 +436,43 @@ typedef struct {
  * @details Chainable. A feature that spawns players somewhere of its own, or
  * lets them pass through each other, edits `spawn` and calls previous.
  */
-typedef void (*PrepareSpawn)(GameClient *cl, GameClientSpawn *spawn);
+typedef void (*GamePrepareSpawnHook)(GameClient *cl, GameClientSpawn *spawn);
 
-extern PrepareSpawn G_PrepareSpawn;
+extern GamePrepareSpawnHook G_PrepareSpawn;
 
 /**
  * @brief The client is about to enter the game: nothing of their entity exists yet.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillBegin)(GameClient *cl);
+typedef void (*GameClientWillBeginHook)(GameClient *cl);
 
-extern ClientWillBegin G_ClientWillBegin;
+extern GameClientWillBeginHook G_ClientWillBegin;
 
 /**
  * @brief The client has entered the game: their entity exists and is placed.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidBegin)(GameClient *cl);
+typedef void (*GameClientDidBeginHook)(GameClient *cl);
 
-extern ClientDidBegin G_ClientDidBegin;
+extern GameClientDidBeginHook G_ClientDidBegin;
 
 /**
  * @brief The client's user info is about to be applied: `cl->persistent` still
  * holds what it held, and `userInfo` what they sent, unvalidated.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillChangeUserInfo)(GameClient *cl, const char *userInfo);
+typedef void (*GameClientWillChangeUserInfoHook)(GameClient *cl, const char *userInfo);
 
-extern ClientWillChangeUserInfo G_ClientWillChangeUserInfo;
+extern GameClientWillChangeUserInfoHook G_ClientWillChangeUserInfo;
 
 /**
  * @brief The client's user info was applied: name, skin, colors and the rest
  * are current on `cl->persistent`.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidChangeUserInfo)(GameClient *cl);
+typedef void (*GameClientDidChangeUserInfoHook)(GameClient *cl);
 
-extern ClientDidChangeUserInfo G_ClientDidChangeUserInfo;
+extern GameClientDidChangeUserInfoHook G_ClientDidChangeUserInfo;
 
 /**
  * @brief The client is about to leave: their inventory is still intact, and so
@@ -480,18 +480,18 @@ extern ClientDidChangeUserInfo G_ClientDidChangeUserInfo;
  * `cl->entity` is `NULL` for a client that connected and left without spawning.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillDisconnect)(GameClient *cl);
+typedef void (*GameClientWillDisconnectHook)(GameClient *cl);
 
-extern ClientWillDisconnect G_ClientWillDisconnect;
+extern GameClientWillDisconnectHook G_ClientWillDisconnect;
 
 /**
  * @brief The client has left: their entity is freed and their slot is about to
  * be forgotten.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidDisconnect)(GameClient *cl);
+typedef void (*GameClientDidDisconnectHook)(GameClient *cl);
 
-extern ClientDidDisconnect G_ClientDidDisconnect;
+extern GameClientDidDisconnectHook G_ClientDidDisconnect;
 
 /**
  * @brief A movement command has arrived and the buttons are latched, before
@@ -499,18 +499,18 @@ extern ClientDidDisconnect G_ClientDidDisconnect;
  * are ignored.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientWillThink)(GameClient *cl, const PMoveCmd *cmd);
+typedef void (*GameClientWillThinkHook)(GameClient *cl, const PMoveCmd *cmd);
 
-extern ClientWillThink G_ClientWillThink;
+extern GameClientWillThinkHook G_ClientWillThink;
 
 /**
  * @brief The client's entity has moved for this command and is linked, before
  * weapons are handled. Not called for a client chasing another.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidMove)(GameClient *cl, const PMoveCmd *cmd);
+typedef void (*GameClientDidMoveHook)(GameClient *cl, const PMoveCmd *cmd);
 
-extern ClientDidMove G_ClientDidMove;
+extern GameClientDidMoveHook G_ClientDidMove;
 
 /**
  * @brief Handles a command the client sent, ahead of the built-in commands.
@@ -525,9 +525,9 @@ extern ClientDidMove G_ClientDidMove;
  * under the built-in table that runs next.
  * @return True if the command was handled.
  */
-typedef bool (*HandleClientCommand)(GameClient *cl, const char *cmd);
+typedef bool (*GameHandleClientCommandHook)(GameClient *cl, const char *cmd);
 
-extern HandleClientCommand G_HandleClientCommand;
+extern GameHandleClientCommandHook G_HandleClientCommand;
 
 /**
  * @brief The client is about to say `text`: their message after variable
@@ -539,9 +539,9 @@ extern HandleClientCommand G_HandleClientCommand;
  * does. The tail says yes.
  * @return True to deliver the message.
  */
-typedef bool (*ClientWillChat)(GameClient *cl, char *text, size_t size, bool team);
+typedef bool (*GameClientWillChatHook)(GameClient *cl, char *text, size_t size, bool team);
 
-extern ClientWillChat G_ClientWillChat;
+extern GameClientWillChatHook G_ClientWillChat;
 
 /**
  * @brief The client said something, and it was delivered. `text` is the line as
@@ -550,9 +550,9 @@ extern ClientWillChat G_ClientWillChat;
  * A muted, empty or flood-limited message is not delivered and not reported.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ClientDidChat)(GameClient *cl, const char *text, bool team);
+typedef void (*GameClientDidChatHook)(GameClient *cl, const char *text, bool team);
 
-extern ClientDidChat G_ClientDidChat;
+extern GameClientDidChatHook G_ClientDidChat;
 
 /**
  * @brief Writes a client's stats for this frame, after the built-in ones. A
@@ -561,9 +561,9 @@ extern ClientDidChat G_ClientDidChat;
  * that client's stats wholesale and does not run the chain.
  * @details Chainable; call previous, then write.
  */
-typedef void (*WriteStats)(GameClient *cl);
+typedef void (*GameWriteStatsHook)(GameClient *cl);
 
-extern WriteStats G_WriteStats;
+extern GameWriteStatsHook G_WriteStats;
 
 /**
  * @brief Writes a client's scoreboard entry, after the built-in fields. A
@@ -571,9 +571,9 @@ extern WriteStats G_WriteStats;
  * carries.
  * @details Chainable; call previous, then write.
  */
-typedef void (*WriteScore)(const GameClient *cl, GameScore *s);
+typedef void (*GameWriteScoreHook)(const GameClient *cl, GameScore *s);
 
-extern WriteScore G_WriteScore;
+extern GameWriteScoreHook G_WriteScore;
 
 /**
  * @}
@@ -587,18 +587,18 @@ extern WriteScore G_WriteScore;
  * has thought yet.
  * @details Notification; the tail does nothing.
  */
-typedef void (*FrameWillBegin)(void);
+typedef void (*GameFrameWillBeginHook)(void);
 
-extern FrameWillBegin G_FrameWillBegin;
+extern GameFrameWillBeginHook G_FrameWillBegin;
 
 /**
  * @brief The frame is complete: every entity has run, the rules are checked and
  * every client's player state is built.
  * @details Notification; the tail does nothing.
  */
-typedef void (*FrameDidEnd)(void);
+typedef void (*GameFrameDidEndHook)(void);
 
-extern FrameDidEnd G_FrameDidEnd;
+extern GameFrameDidEndHook G_FrameDidEnd;
 
 /**
  * @}
