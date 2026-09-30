@@ -97,6 +97,11 @@ typedef struct {
    * @brief Query result transfer buffer.
    */
   TransferBuffer *transfer;
+
+  /**
+   * @brief The number of query results that the fenced frame downloaded into the transfer buffer.
+   */
+  int32_t numQueriesDownloaded;
 } RenderOcclusion;
 
 extern RenderOcclusion renderOcclusion;

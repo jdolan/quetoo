@@ -216,13 +216,16 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
       const Uint64 *results = $(renderOcclusion.transfer, map, false);
 
-      for (int32_t i = 0; i < renderOcclusion.numQueries; i++) {
+      const int32_t numResults = Mini(renderOcclusion.numQueriesDownloaded, renderOcclusion.numQueries);
+      for (int32_t i = 0; i < numResults; i++) {
         renderOcclusion.queries[i].result = results[i] > 0;
       }
 
       $(renderOcclusion.transfer, unmap);
 
       renderDepthPipeline.fence = release(renderDepthPipeline.fence);
+
+      renderOcclusion.numQueriesDownloaded = 0;
 
       if (r_occlude->integer && renderOcclusion.numQueries) {
         R_DrawOcclusionQueries_(view, commands);
@@ -232,6 +235,8 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
           .transfer_buffer = renderOcclusion.transfer->buffer,
         });
         release(pass);
+
+        renderOcclusion.numQueriesDownloaded = renderOcclusion.numQueries;
       }
     }
   }
