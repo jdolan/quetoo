@@ -976,7 +976,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 
     float2 _2132;
     _2132.x = textureMaterial.calculate_clamped_lod(textureMaterialSmplr, vertex0.diffusemap);
     _2132.y = textureMaterial.calculate_unclamped_lod(textureMaterialSmplr, vertex0.diffusemap);
-    fragment0.texLod = _2132.x;
+    fragment0.texLod = _2132.y;
     CommonVertex param = vertex0;
     CommonFragment param_1 = fragment0;
     parallaxOcclusionMapping(param, param_1, textureMaterial, textureMaterialSmplr, material, _538);

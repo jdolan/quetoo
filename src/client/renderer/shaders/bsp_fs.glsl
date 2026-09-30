@@ -204,7 +204,7 @@ void main(void) {
 
   fragment.viewDir = normalize(-vertex.position);
   fragment.viewDist = length(vertex.position);
-  fragment.texLod = textureQueryLod(textureMaterial, vertex.diffusemap).x;
+  fragment.texLod = textureQueryLod(textureMaterial, vertex.diffusemap).y;
 
   parallaxOcclusionMapping(vertex, fragment);
 
