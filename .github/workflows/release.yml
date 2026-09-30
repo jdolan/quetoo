@@ -19,6 +19,7 @@ jobs:
       objectively-sha: ${{ steps.resolve.outputs.objectively-sha }}
       objectivelygpu-sha: ${{ steps.resolve.outputs.objectivelygpu-sha }}
       objectivelymvc-sha: ${{ steps.resolve.outputs.objectivelymvc-sha }}
+      sdl3-sha: ${{ steps.resolve.outputs.sdl3-sha }}
     steps:
     - name: Resolve dependency versions
       id: resolve
@@ -26,6 +27,7 @@ jobs:
         echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
         echo "objectivelygpu-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyGPU.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
         echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+        echo "sdl3-sha=$(git ls-remote https://github.com/jdolan/SDL.git refs/tags/ObjectivelyGPU | cut -f1)" >> $GITHUB_OUTPUT
 
   build-macos:
     needs: resolve-deps
@@ -41,27 +43,41 @@ jobs:
         brew install --quiet \
           autoconf automake libtool pkg-config \
           ncurses check \
-          sdl3 sdl3_image sdl3_ttf \
+          cmake freetype harfbuzz \
           openal-soft libsndfile physfs opus \
           curl dylibbundler
 
-    # 3.4.14 regressed SDL_gpu on macOS and the fix is not due until 3.4.18,
-    # so the core library is held at 3.4.12. Homebrew's formula is newer, so
-    # this must run after brew to supersede it. SDL3_image and SDL3_ttf do not
-    # touch SDL_gpu and are left to brew. See #945.
-    - name: Pin SDL3
+    # The jdolan/SDL ObjectivelyGPU tag: 3.4.12 plus the SDL_gpu query API
+    # (3.4.14 regressed SDL_gpu on macOS). SDL3_image and SDL3_ttf are built
+    # here too, because Homebrew's link Homebrew's sdl3, and dylibbundler would
+    # then see two libSDL3.0.dylib. See #945 and #1093.
+    - name: Build SDL3
       run: |
-        git clone --depth 1 --branch release-3.4.12 https://github.com/libsdl-org/SDL.git SDL3
+        git clone --depth 1 --branch ObjectivelyGPU https://github.com/jdolan/SDL.git SDL3
         cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${HOMEBREW_PREFIX} -DCMAKE_INSTALL_NAME_DIR=${HOMEBREW_PREFIX}/lib
         cmake --build SDL3/build -j$(sysctl -n hw.logicalcpu)
         sudo cmake --install SDL3/build
+
+    - name: Build SDL3_image
+      run: |
+        git clone --depth 1 --branch release-3.4.4 https://github.com/libsdl-org/SDL_image.git SDL3_image
+        cmake -S SDL3_image -B SDL3_image/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${HOMEBREW_PREFIX} -DCMAKE_INSTALL_NAME_DIR=${HOMEBREW_PREFIX}/lib
+        cmake --build SDL3_image/build -j$(sysctl -n hw.logicalcpu)
+        sudo cmake --install SDL3_image/build
+
+    - name: Build SDL3_ttf
+      run: |
+        git clone --depth 1 --branch release-3.2.2 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf
+        cmake -S SDL3_ttf -B SDL3_ttf/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${HOMEBREW_PREFIX} -DCMAKE_INSTALL_NAME_DIR=${HOMEBREW_PREFIX}/lib
+        cmake --build SDL3_ttf/build -j$(sysctl -n hw.logicalcpu)
+        sudo cmake --install SDL3_ttf/build
 
     - name: Cache Objectively and ObjectivelyMVC
       id: cache-deps
       uses: actions/cache@v5
       with:
         path: /usr/local
-        key: macos-deps-arm64-sdl3.4.12-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelygpu-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+        key: macos-deps-arm64-sdl3-${{ needs.resolve-deps.outputs.sdl3-sha }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelygpu-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -250,11 +266,11 @@ jobs:
         cmake --build openal-soft/build -j$(nproc)
         sudo cmake --install openal-soft/build
 
-    # Held at 3.4.12 in step with the macOS pin, so that a release bisects to
-    # the same SDL3 on every platform. See #945.
+    # The jdolan/SDL ObjectivelyGPU tag: 3.4.12 plus the SDL_gpu query API,
+    # the same SDL3 on every platform. See #945 and #1093.
     - name: Build SDL3
       run: |
-        git clone --depth 1 --branch release-3.4.12 https://github.com/libsdl-org/SDL.git SDL3
+        git clone --depth 1 --branch ObjectivelyGPU https://github.com/jdolan/SDL.git SDL3
         cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
         cmake --build SDL3/build -j$(nproc)
         sudo cmake --install SDL3/build

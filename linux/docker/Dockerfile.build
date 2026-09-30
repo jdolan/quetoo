@@ -32,7 +32,7 @@ RUN git clone --depth 1 --branch 1.25.2 https://github.com/kcat/openal-soft.git 
   && cmake --install openal-soft/build \
   && rm -rf openal-soft
 
-RUN git clone --depth 1 --branch release-3.4.8 https://github.com/libsdl-org/SDL.git SDL3 \
+RUN git clone --depth 1 --branch ObjectivelyGPU https://github.com/jdolan/SDL.git SDL3 \
   && cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
   && cmake --build SDL3/build -j$(nproc) \
   && cmake --install SDL3/build \
