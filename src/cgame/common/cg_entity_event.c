@@ -293,8 +293,7 @@ static void Cg_DrownEffect(ClientEntity *ent) {
  */
 static SoundSample *Cg_ClientModelSample(const ClientEntity *ent, const char *name) {
 
-  const int32_t client = ent->current.client;
-  const CGameClientInfo *info = &cgameState.clients[client];
+  const CGameClientInfo *info = Cg_ClientInfo(ent);
 
   if (!*info->model) {
     return NULL;
