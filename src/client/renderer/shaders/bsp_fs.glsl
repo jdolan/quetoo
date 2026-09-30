@@ -26,8 +26,8 @@
  * from their heightmaps; mesh entities do not (see mesh_fs.glsl).
  */
 #define PARALLAX_SELF_SHADOW
-#define PARALLAX_FADE_LOD 1.5
-#define PARALLAX_MAX_LOD 2.0
+#define PARALLAX_FADE_MIN_PIXELS 0.5
+#define PARALLAX_FADE_MAX_PIXELS 2.0
 
 #include "uniforms.glsl"
 
@@ -88,7 +88,6 @@ layout (location = 1) out float outDepth;
 CommonFragment fragment;
 
 #define PARALLAX_SAMPLES_PER_TEXEL 2.0
-#define PARALLAX_MIN_SAMPLES 32.0
 #define PARALLAX_MAX_SAMPLES 64.0
 #define PARALLAX_REFINE_STEPS 4
 
@@ -99,19 +98,25 @@ void parallaxOcclusionMapping(in CommonVertex vertex, inout CommonFragment fragm
 
   fragment.parallax = vertex.diffusemap;
 
-  if (material.parallax == 0.0 || fragment.texLod >= PARALLAX_MAX_LOD ||
+  if (material.parallax == 0.0 ||
       fragment.viewDist >= lightingDistance + LIGHTING_LOD_BLEND_DIST) {
     return;
   }
 
   vec3 dir = normalize(fragment.viewDir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
 
-  float fade = 1.0 - linearstep(PARALLAX_FADE_LOD, PARALLAX_MAX_LOD, fragment.texLod);
-  vec2 offset = (dir.xy / max(dir.z, 0.1)) * material.parallax * material.parallax * fade;
+  vec2 offset = (dir.xy / max(dir.z, 0.1)) * material.parallax * material.parallax;
 
   float sweep = length(offset) / exp2(fragment.texLod);
-  float budget = floor(mix(PARALLAX_MAX_SAMPLES, PARALLAX_MIN_SAMPLES, fragment.texLod / PARALLAX_MAX_LOD));
-  float numSamples = clamp(ceil(sweep * PARALLAX_SAMPLES_PER_TEXEL), 1.0, budget);
+  float fade = linearstep(PARALLAX_FADE_MIN_PIXELS, PARALLAX_FADE_MAX_PIXELS, sweep);
+  if (fade <= 0.0) {
+    return;
+  }
+
+  offset *= fade;
+  sweep *= fade;
+
+  float numSamples = clamp(ceil(sweep * PARALLAX_SAMPLES_PER_TEXEL), 1.0, PARALLAX_MAX_SAMPLES);
 
   vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
   vec2 delta = offset * texel / numSamples;

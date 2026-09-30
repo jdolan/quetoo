@@ -304,7 +304,6 @@ void fragmentCaustics(in CommonVertex v, inout CommonFragment f) {
 #if defined(PARALLAX_SELF_SHADOW)
 
 #define PARALLAX_SHADOW_SAMPLES_PER_TEXEL 2.0
-#define PARALLAX_SHADOW_MIN_SAMPLES 8.0
 #define PARALLAX_SHADOW_MAX_SAMPLES 16.0
 
 /**
@@ -314,15 +313,21 @@ float parallaxSelfShadow(in vec3 lightDir, in CommonVertex v, in CommonFragment 
 
   vec3 dir = normalize(vec3(dot(lightDir, v.tangent), dot(lightDir, v.bitangent), dot(lightDir, v.normal)));
 
+  vec2 offset = (dir.xy / max(dir.z, 0.1)) * material.parallax * material.parallax;
+
+  float sweep = length(offset) / exp2(f.texLod);
+  float fade = linearstep(PARALLAX_FADE_MIN_PIXELS, PARALLAX_FADE_MAX_PIXELS, sweep);
+  if (fade <= 0.0) {
+    return 1.0;
+  }
+
   float height = sampleMaterialHeightmap(f.parallax, f.texLod);
   float rise = 1.0 - height;
 
-  float fade = 1.0 - linearstep(PARALLAX_FADE_LOD, PARALLAX_MAX_LOD, f.texLod);
-  vec2 offset = (dir.xy / max(dir.z, 0.1)) * material.parallax * material.parallax * fade * rise;
+  offset *= fade * rise;
+  sweep *= fade * rise;
 
-  float sweep = length(offset) / exp2(f.texLod);
-  float budget = floor(mix(PARALLAX_SHADOW_MAX_SAMPLES, PARALLAX_SHADOW_MIN_SAMPLES, f.texLod / PARALLAX_MAX_LOD));
-  float numSamples = clamp(ceil(sweep * PARALLAX_SHADOW_SAMPLES_PER_TEXEL), 1.0, budget);
+  float numSamples = clamp(ceil(sweep * PARALLAX_SHADOW_SAMPLES_PER_TEXEL), 1.0, PARALLAX_SHADOW_MAX_SAMPLES);
 
   vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
   vec3 delta = vec3(offset * texel, rise) / numSamples;
@@ -369,7 +374,7 @@ void fragmentLight(in CommonVertex v, inout CommonFragment f, in Light light) {
   float shadow = sampleShadowAtlas(light, v, f, atten);
 
 #if defined(PARALLAX_SELF_SHADOW)
-  if (!isStage && material.shadow > 0.0 && f.texLod < PARALLAX_MAX_LOD) {
+  if (!isStage && material.shadow > 0.0) {
     shadow *= parallaxSelfShadow(dir, v, f);
   }
 #endif
