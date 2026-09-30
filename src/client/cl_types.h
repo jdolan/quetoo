@@ -633,7 +633,7 @@ typedef struct {
   /**
    * @brief The gameplay mode name.
    */
-  char gameplay[32];
+  char gameMode[32];
 
   /**
    * @brief The movement name.

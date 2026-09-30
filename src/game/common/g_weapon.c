@@ -323,7 +323,7 @@ static void G_WeaponFired(GameClient *cl, uint32_t interval, uint32_t ammoNeeded
   cl->weaponFiredTime = gameLevel.time;
 
   // and decrease their inventory
-  if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+  if ((gameLevel.gameMode & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
     if (cl->ammoIndex) {
       cl->inventory[cl->ammoIndex] -= ammoNeeded;
     }
@@ -772,7 +772,7 @@ void G_FireRailgun(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    const int16_t damage = ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) ? 999 : g_balanceRailgunDamage->integer;
+    const int16_t damage = ((gameLevel.gameMode & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) ? 999 : g_balanceRailgunDamage->integer;
 
     G_RailgunProjectile(cl->entity, cl->entity, org, forward, damage, g_balanceRailgunKnockback->integer, MOD_RAILGUN);
 

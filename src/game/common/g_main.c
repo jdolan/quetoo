@@ -692,34 +692,34 @@ PMovement G_ResolveMovement(const char *name) {
  * clamp it to a mode it supports, and coerces the cvar itself to whichever
  * canonical name results. "default" defers to the level, and is left alone.
  */
-static GameplayId G_CoerceGameplay(void) {
+static GameModeId G_CoerceGameMode(void) {
 
-  GameplayId gameplay = gameLevel.requested.gameplay;
+  GameModeId gameMode = gameLevel.requested.gameMode;
 
   if (Str_Compare(g_gameplay->string, "default")) { // "default" defers to the level
-    gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
+    gameMode = G_ClampGameMode(G_GameModeByName(g_gameplay->string)->id);
 
-    gi.SetCvarString(g_gameplay->name, G_GameplayById(gameplay)->name); // reject garbage values
+    gi.SetCvarString(g_gameplay->name, G_GameModeById(gameMode)->name); // reject garbage values
   } else {
-    gameplay = G_ClampGameplay(gameplay);
+    gameMode = G_ClampGameMode(gameMode);
   }
 
   // g_gameplay holds what the admin asked for, which may be an alias, or "default";
   // publish what it resolved to as well, since that is what a server browser shows
-  gi.ForceSetCvarString("g_gameplayMode", G_GameplayById(gameplay)->name);
+  gi.ForceSetCvarString("g_gameplayMode", G_GameModeById(gameMode)->name);
 
-  return gameplay;
+  return gameMode;
 }
 
 /**
  * @brief Resolves the gameplay for a level that asks for `name`, which may be
  * empty. `g_gameplay` still wins if the admin named one.
  */
-GameplayId G_ResolveGameplay(const char *name) {
+GameModeId G_ResolveGameMode(const char *name) {
 
-  gameLevel.requested.gameplay = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
+  gameLevel.requested.gameMode = name && *name ? G_GameModeByName(name)->id : GAMEPLAY_DEATHMATCH;
 
-  return G_CoerceGameplay();
+  return G_CoerceGameMode();
 }
 
 /**
@@ -750,7 +750,7 @@ static void G_CheckRules(void) {
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
 
-    const GameplayId gameplay = G_CoerceGameplay();
+    const GameModeId gameMode = G_CoerceGameMode();
 
     // SetCvarString above re-marks modified whenever the string actually changed
     // (i.e. whenever we just coerced garbage, or the module clamped it to something
@@ -758,16 +758,16 @@ static void G_CheckRules(void) {
     // block again next frame
     g_gameplay->modified = false;
 
-    gameLevel.gameplay = gameplay;
-    gameLevel.teams = (gameLevel.gameplay & GAMEPLAY_TEAMS) != 0;
+    gameLevel.gameMode = gameMode;
+    gameLevel.teams = (gameLevel.gameMode & GAMEPLAY_TEAMS) != 0;
 
-    gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameplay));
+    gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameMode));
 
     G_InitNumTeams();
 
     restart = true;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayById(gameLevel.gameplay)->label);
+    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameModeById(gameLevel.gameMode)->label);
   }
 
   if (g_movement->modified) { // change how players move, with no restart
@@ -966,7 +966,7 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  Str_Copy(name, G_GameplayById(gameLevel.gameplay)->label, size);
+  Str_Copy(name, G_GameModeById(gameLevel.gameMode)->label, size);
 
   G_FormatGameName(name, size);
 
@@ -1223,7 +1223,7 @@ void G_Init(void) {
   // started with "+set g_gameplay arena" advertises "team_deathmatch" from the
   // first frame rather than whatever garbage/unsupported value it was started
   // with; the level's own gameplay resolution (G_worldspawn) is unaffected
-  G_CoerceGameplay();
+  G_CoerceGameMode();
 
   // set these to false to avoid spurious game restarts and alerts on init
       g_cheats->modified =

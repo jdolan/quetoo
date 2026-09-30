@@ -117,7 +117,7 @@
                     "subviews": [
                       {
                         "class": "Input",
-                        "identifier": "gameplayInput",
+                        "identifier": "gameModeInput",
                         "label": {
                           "text": {
                             "text": "Gameplay"
@@ -126,7 +126,7 @@
                         "control": {
                           "class": "CvarSelect",
                           "expectsStringValue": true,
-                          "identifier": "gameplay",
+                          "identifier": "gameMode",
                           "var": "g_gameplay"
                         }
                       },

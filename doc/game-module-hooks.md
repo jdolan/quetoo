@@ -360,7 +360,7 @@ and make the block additive instead.
 
 | hook | tail lives in | installed by |
 | --- | --- | --- |
-| `ListGameplayModes` | `cg_main.c` | ctf |
+| `ListGameModes` | `cg_main.c` | ctf |
 | `ClipEntity` | `cg_predict.c` | race |
 | `UsePrediction` | `cg_predict.c` | — |
 | `Move` | `cg_input.c` | — |
@@ -388,7 +388,7 @@ The HUD and the scoreboard are not hooks at all any more; see
 way, on `G_CTF` and `G_TECH` guards. Both have since become ObjectivelyMVC Views a
 module arranges in JSON - see [The client game](#the-client-game). The team modes a mod offers used to be a
 per-module manifest in `cg_team_mode.c`; that file is gone now that team play is
-a bit on `Gameplay` (`GAME_TEAMS`) rather than a mode a menu had to enumerate.
+a bit on `GameMode` (`GAME_TEAMS`) rather than a mode a menu had to enumerate.
 
 The cgame gets the **same** feature defines as its game module, in all three build
 systems, and it includes that module's own `g_types.h`. That is what keeps the two
@@ -754,7 +754,7 @@ the `hookStyle` cvar, the config string, the accessor - and the two in
 `cg_local.h` are the feature includes, which are guards like any other.
 
 `cg_team_mode.c` no longer exists: team play is now the `GAME_TEAMS` bit on
-`Gameplay`, so there is no per-module manifest of team modes to guard.
+`GameMode`, so there is no per-module manifest of team modes to guard.
 
 ### Where the guards went
 

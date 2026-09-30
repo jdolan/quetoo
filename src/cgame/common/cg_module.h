@@ -109,14 +109,14 @@ void Cg_Module_Shutdown(void);
  * the create-server menu's gameplay Select.
  * @param count The number of modes returned.
  * @return The modes, `GAMEPLAY_TEAMS` included where a mode is team play.
- * @details A single owner, like `G_ClampGameplay` on the game side: a module
+ * @details A single owner, like `G_ClampGameMode` on the game side: a module
  * that plays exactly one mode replaces this outright rather than adding to the
  * list common offers. The menu MUST NOT assume a fixed set - a mod that plays
  * only one mode should not have to hide options it will never honor.
  */
-typedef const Gameplay *(*CGameListGameplayModesHook)(size_t *count);
+typedef const GameMode *(*CGameListGameModesHook)(size_t *count);
 
-extern CGameListGameplayModesHook Cg_ListGameplayModes;
+extern CGameListGameModesHook Cg_ListGameModes;
 
 typedef struct MapListItemInfo MapListItemInfo;
 

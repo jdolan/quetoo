@@ -130,7 +130,7 @@ static void updateBindings(View *self, ident data) {
       iconName = healthIconName(value);
       break;
     case StatViewArmor:
-      if ((cgameState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+      if ((cgameState.gameMode & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
         value = ps->stats[STAT_ARMOR];
         med = HUD_ARMOR_MED;
         low = HUD_ARMOR_LOW;
@@ -138,7 +138,7 @@ static void updateBindings(View *self, ident data) {
       }
       break;
     case StatViewAmmo:
-      if ((cgameState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+      if ((cgameState.gameMode & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
         value = Cg_ActiveAmmo(ps);
 
         const int16_t active = Cg_ActiveWeapon(ps);

@@ -801,14 +801,14 @@ static void G_worldspawn(GameEntity *ent) {
 
   // the gameplay is g_gameplay if the admin named one, else this level's
   // metadata, else its worldspawn, else deathmatch, as the movement is below
-  const Entity *gameplayMap = G_MapListEntryValue("gameplay");
-  const char *gameplay = (gameplayMap && (gameplayMap->parsed & ENTITY_INTEGER) && gameplayMap->integer > -1)
-                         ? G_GameplayById(gameplayMap->integer)->name
+  const Entity *gameModeMap = G_MapListEntryValue("gameplay");
+  const char *gameMode = (gameModeMap && (gameModeMap->parsed & ENTITY_INTEGER) && gameModeMap->integer > -1)
+                         ? G_GameModeById(gameModeMap->integer)->name
                          : gi.EntityValue(ent->def, "gameplay")->string;
 
-  gameLevel.gameplay = G_ResolveGameplay(gameplay);
+  gameLevel.gameMode = G_ResolveGameMode(gameMode);
 
-  gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameplay));
+  gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameMode));
 
   const Entity *items = gi.EntityValue(ent->def, "items");
   if (Str_CaseCompare(items->string, "quake") == 0) {
@@ -832,7 +832,7 @@ static void G_worldspawn(GameEntity *ent) {
 
   gi.Print("  Movement:   ^2%s^7\n", Pm_Movement(gameLevel.movement)->name);
 
-  gameLevel.teams = (gameLevel.gameplay & GAMEPLAY_TEAMS) != 0;
+  gameLevel.teams = (gameLevel.gameMode & GAMEPLAY_TEAMS) != 0;
 
   if (Str_Compare(g_numTeams->string, "default")) {
     gameLevel.numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);

@@ -408,17 +408,17 @@ typedef enum {
   GAMEPLAY_TEAM_DEATHMATCH = GAMEPLAY_DEATHMATCH | GAMEPLAY_TEAMS,
   GAMEPLAY_TEAM_INSTAGIB = GAMEPLAY_INSTAGIB | GAMEPLAY_TEAMS,
   GAMEPLAY_TEAM_ARENA = GAMEPLAY_ARENA | GAMEPLAY_TEAMS
-} GameplayId;
+} GameModeId;
 
 /**
- * @brief One of the six modes `GameplayId` defines, paired with the
+ * @brief One of the six modes `GameModeId` defines, paired with the
  * canonical `g_gameplay` cvar string and menu label for it.
  */
 typedef struct {
-  GameplayId id;
+  GameModeId id;
   const char *name;
   const char *label;
-} Gameplay;
+} GameMode;
 
 /**
  * @brief The canonical table of every gameplay mode, in menu order. Defined
@@ -426,7 +426,7 @@ typedef struct {
  * get their own compiled copy through header inclusion - no cross-binary
  * linkage, and no drift, since it is one source text.
  */
-static const Gameplay gameplayModes[] = {
+static const GameMode gameModes[] = {
   { GAMEPLAY_DEATHMATCH,      "deathmatch",      "Deathmatch" },
   { GAMEPLAY_TEAM_DEATHMATCH, "team_deathmatch", "Team Deathmatch" },
   { GAMEPLAY_INSTAGIB,        "instagib",        "Instagib" },
@@ -817,7 +817,7 @@ typedef struct {
   /**
    * @brief Active gameplay mode.
    */
-  GameplayId gameplay;
+  GameModeId gameMode;
 
   /**
    * @brief Active item set.
@@ -834,7 +834,7 @@ typedef struct {
    * `g_movement` back to "default" returns to it rather than to Quetoo's.
    */
   struct {
-    GameplayId gameplay;
+    GameModeId gameMode;
     PMovement movement;
   } requested;
 

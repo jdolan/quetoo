@@ -504,7 +504,7 @@ void G_Gib(GameEntity *ent) {
 }
 
 /**
- * @brief Returns the `gGameplayModes` entry whose `->name` matches the given
+ * @brief Returns the `gameModes` entry whose `->name` matches the given
  * cvar string, case-insensitively. Anything that doesn't match - including
  * empty strings, garbage, and "default" itself - falls back to the table's
  * first entry (plain deathmatch, no teams). "default" is deliberately not a
@@ -516,7 +516,7 @@ void G_Gib(GameEntity *ent) {
  * predate this table (and are shorter than the canonical "instagib") still
  * resolve, exactly as the original hand-rolled parser accepted them.
  */
-const Gameplay *G_GameplayByName(const char *c) {
+const GameMode *G_GameModeByName(const char *c) {
 
   if (c && *c) {
     char lower[64];
@@ -525,9 +525,9 @@ const Gameplay *G_GameplayByName(const char *c) {
       *p = (char) tolower((unsigned char) *p);
     }
 
-    for (size_t i = 0; i < lengthof(gameplayModes); i++) {
-      if (!Str_Compare(lower, gameplayModes[i].name)) {
-        return &gameplayModes[i];
+    for (size_t i = 0; i < lengthof(gameModes); i++) {
+      if (!Str_Compare(lower, gameModes[i].name)) {
+        return &gameModes[i];
       }
     }
 
@@ -545,30 +545,30 @@ const Gameplay *G_GameplayByName(const char *c) {
       id |= GAMEPLAY_ARENA;
     }
 
-    return G_GameplayById((GameplayId) id);
+    return G_GameModeById((GameModeId) id);
   }
 
-  return &gameplayModes[0];
+  return &gameModes[0];
 }
 
 /**
- * @brief Returns the `gGameplayModes` entry for the given mode id. Used
- * after `G_ClampGameplay`, which operates on the scalar id, to recover the
+ * @brief Returns the `gameModes` entry for the given mode id. Used
+ * after `G_ClampGameMode`, which operates on the scalar id, to recover the
  * `->name` and `->label` for the id it decided on.
- * @details A module's `ClampGameplay` MUST only ever return an id that is
- * actually one of the six rows in `gGameplayModes`, so this should never
+ * @details A module's `ClampGameMode` MUST only ever return an id that is
+ * actually one of the six rows in `gameModes`, so this should never
  * miss; it falls back to the first entry rather than asserting, matching
- * `G_GameplayByName`'s own fallback.
+ * `G_GameModeByName`'s own fallback.
  */
-const Gameplay *G_GameplayById(GameplayId id) {
+const GameMode *G_GameModeById(GameModeId id) {
 
-  for (size_t i = 0; i < lengthof(gameplayModes); i++) {
-    if (gameplayModes[i].id == id) {
-      return &gameplayModes[i];
+  for (size_t i = 0; i < lengthof(gameModes); i++) {
+    if (gameModes[i].id == id) {
+      return &gameModes[i];
     }
   }
 
-  return &gameplayModes[0];
+  return &gameModes[0];
 }
 
 /**

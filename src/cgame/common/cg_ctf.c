@@ -117,21 +117,21 @@ Class *_HeldFlagView(void) {
  * and teams are not optional. A single owner, like the game side's
  * `G_ClampGameplay_Ctf`, so it does not add to what `previous` offers.
  * @details Points directly at the `GAMEPLAY_TEAM_DEATHMATCH` row of the shared
- * `gGameplayModes` table rather than copying its `name`/`label` into a
+ * `gameModes` table rather than copying its `name`/`label` into a
  * duplicate row - there is nothing here to drift out of sync with the game
  * side, since it is the same static data.
  */
-static const Gameplay *Cg_ListGameplayModes_Ctf(size_t *count) {
+static const GameMode *Cg_ListGameModes_Ctf(size_t *count) {
 
   *count = 1;
 
-  for (size_t i = 0; i < lengthof(gameplayModes); i++) {
-    if (gameplayModes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
-      return &gameplayModes[i];
+  for (size_t i = 0; i < lengthof(gameModes); i++) {
+    if (gameModes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
+      return &gameModes[i];
     }
   }
 
-  return gameplayModes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
+  return gameModes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
 }
 
 /**
@@ -148,7 +148,7 @@ void Cg_Ctf_Init(void) {
     return;
   }
 
-  Cg_ListGameplayModes = Cg_ListGameplayModes_Ctf;
+  Cg_ListGameModes = Cg_ListGameModes_Ctf;
 
   installed = true;
 }
