@@ -453,10 +453,10 @@ static void Cg_VoiceTeam_down_f(void) {
 }
 
 /**
- * @brief The tail of the `Cg_BindDefaults` chain: the keys for the weapons, the
+ * @brief The tail of the `Cg_BindKeys` chain: the keys for the weapons, the
  * movement, the chat and the scores that the common sources provide.
  */
-static void Cg_BindDefaults_Common(void) {
+static void Cg_BindKeys_Common(void) {
 
   static const struct {
     const char *key, *bind;
@@ -518,15 +518,15 @@ static void Cg_BindDefaults_Common(void) {
   }
 }
 
-CGameBindDefaultsHook Cg_BindDefaults = Cg_BindDefaults_Common;
+CGameBindKeysHook Cg_BindKeys = Cg_BindKeys_Common;
 
 /**
- * @brief The `BindDefaults` export. The client holds this rather than the chain
+ * @brief The `BindKeys` export. The client holds this rather than the chain
  * head, so that the chain a module installs from `Cg_Module_Init` is the one that
  * gets called.
  */
-void Cg_ExportBindDefaults(void) {
-  Cg_BindDefaults();
+void Cg_ExportBindKeys(void) {
+  Cg_BindKeys();
 }
 
 /**

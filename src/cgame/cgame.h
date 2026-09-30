@@ -1239,7 +1239,7 @@ typedef struct CGameExport {
    * @remarks The client calls this when a different client game loads, and not
    * again for the same one, so that a key the player cleared stays clear.
    */
-  void (*BindDefaults)(void);
+  void (*BindKeys)(void);
 
   /**
    * @}

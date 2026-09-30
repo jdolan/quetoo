@@ -152,9 +152,9 @@ extern CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList;
  * previous. A module whose keys differ binds its own first, or replaces the tail.
  * The client binds only the console and the screenshot keys.
  */
-typedef void (*CGameBindDefaultsHook)(void);
+typedef void (*CGameBindKeysHook)(void);
 
-extern CGameBindDefaultsHook Cg_BindDefaults;
+extern CGameBindKeysHook Cg_BindKeys;
 
 /**
  * @}

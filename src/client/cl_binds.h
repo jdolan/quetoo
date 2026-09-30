@@ -23,7 +23,7 @@
 
 /**
  * @brief The binds the engine owns. The client game binds the rest, with
- * `Cg_BindDefaults`, once it has loaded.
+ * `Cg_BindKeys`, once it has loaded.
  */
 static const char *DEFAULT_BINDS =
     "bind f11 r_screenshot view\n"

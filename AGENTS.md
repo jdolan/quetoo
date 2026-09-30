@@ -165,7 +165,7 @@ Changing these breaks something this repository cannot see.
 
 - `Cl_InitKeys` runs early in `Cl_Init` and calls `Cbuf_Execute()` immediately, so the engine's
   default binds and the `quetoo.cfg` they exec run **before** any module loads or registers its
-  commands. The client game's default binds come later, from `cge.BindDefaults`, and fill only the
+  commands. The client game's default binds come later, from `cge.BindKeys`, and fill only the
   keys that are still unbound, so a config bind wins. The client calls it when a different client
   game loads, and not on `r_restart`.
 - A config can set a cvar before the owning subsystem registers it. `Cvar_Set_` creates it through

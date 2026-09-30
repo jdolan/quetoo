@@ -380,7 +380,7 @@ void Cl_InitCgame(void) {
 
   if (Str_Compare(boundCgame, dir)) {
     Str_Copy(boundCgame, dir, sizeof(boundCgame));
-    cls.cgame->BindDefaults();
+    cls.cgame->BindKeys();
   }
 
   Com_Print("Client game initialized\n");
