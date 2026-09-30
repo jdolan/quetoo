@@ -26,6 +26,8 @@
  * from their heightmaps; mesh entities do not (see mesh_fs.glsl).
  */
 #define PARALLAX_SELF_SHADOW
+#define PARALLAX_FADE_LOD 1.5
+#define PARALLAX_MAX_LOD 2.0
 
 #include "uniforms.glsl"
 
@@ -89,8 +91,6 @@ CommonFragment fragment;
 #define PARALLAX_MIN_SAMPLES 32.0
 #define PARALLAX_MAX_SAMPLES 64.0
 #define PARALLAX_REFINE_STEPS 4
-#define PARALLAX_FADE_LOD 1.5
-#define PARALLAX_MAX_LOD 2.0
 
 /**
  * @brief Applies parallax occlusion mapping to the fragment texcoord.
