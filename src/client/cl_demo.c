@@ -180,7 +180,7 @@ void Cl_WriteDemoMessage(void) {
   static PlayerState null_ps;
 
   // bounded by MAX_MSG_SIZE to match what Sv_GetDemoMessage accepts as a valid chunk on
-  // playback, and what the server's own relay buffers and Netchan_Transmit can actually carry in
+  // playback, and what the server's own relay buffers and NetChan_Transmit can actually carry in
   // one message - unlike a plain on-disk record size, this isn't a purely local concern.
   MemBuf msg;
   byte buffer[MAX_MSG_SIZE];

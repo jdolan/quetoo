@@ -60,7 +60,7 @@ void S_GetError_(const char *function, const char *msg) {
 /**
  * @brief Returns the size of the `SDL_IOStream` for use as a libsndfile virtual file length callback.
  */
-static sf_count_t S_RWops_get_filelen(void *userData) {
+static sf_count_t S_RWops_GetFileLength(void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_GetIOSize(rwops);
 }
@@ -68,7 +68,7 @@ static sf_count_t S_RWops_get_filelen(void *userData) {
 /**
  * @brief Seeks the `SDL_IOStream` for use as a libsndfile virtual seek callback.
  */
-static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *userData) {
+static sf_count_t S_RWops_Seek(sf_count_t offset, int whence, void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_SeekIO(rwops, offset, whence);
 }
@@ -76,7 +76,7 @@ static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *userData) {
 /**
  * @brief Reads from the `SDL_IOStream` for use as a libsndfile virtual read callback.
  */
-static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_RWops_Read(void *ptr, sf_count_t count, void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_ReadIO(rwops, ptr, count);
 }
@@ -84,7 +84,7 @@ static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *userData) {
 /**
  * @brief Writes to the `SDL_IOStream` for use as a libsndfile virtual write callback.
  */
-static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_RWops_Write(const void *ptr, sf_count_t count, void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_WriteIO(rwops, ptr, count);
 }
@@ -92,7 +92,7 @@ static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *userDat
 /**
  * @brief Returns the current position of the `SDL_IOStream` for use as a libsndfile virtual tell callback.
  */
-static sf_count_t S_RWops_tell(void *userData) {
+static sf_count_t S_RWops_Tell(void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_TellIO(rwops);
 }
@@ -101,17 +101,17 @@ static sf_count_t S_RWops_tell(void *userData) {
  * @brief An interface to `SDL_IOStream` for libsndfile
  */
 SF_VIRTUAL_IO soundRwopsIo = {
-  .get_filelen = S_RWops_get_filelen,
-  .seek = S_RWops_seek,
-  .read = S_RWops_read,
-  .write = S_RWops_write,
-  .tell = S_RWops_tell
+  .get_filelen = S_RWops_GetFileLength,
+  .seek = S_RWops_Seek,
+  .read = S_RWops_Read,
+  .write = S_RWops_Write,
+  .tell = S_RWops_Tell
 };
 
 /**
  * @brief Returns the size of the PhysFS file for use as a libsndfile virtual file length callback.
  */
-static sf_count_t S_PhysFS_get_filelen(void *userData) {
+static sf_count_t S_PhysFS_GetFileLength(void *userData) {
   File *file = (File *) userData;
   return Fs_FileLength(file);
 }
@@ -119,7 +119,7 @@ static sf_count_t S_PhysFS_get_filelen(void *userData) {
 /**
  * @brief Seeks the PhysFS file for use as a libsndfile virtual seek callback.
  */
-static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *userData) {
+static sf_count_t S_PhysFS_Seek(sf_count_t offset, int whence, void *userData) {
   File *file = (File *) userData;
 
   switch (whence) {
@@ -140,7 +140,7 @@ static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *userData) {
 /**
  * @brief Reads from the PhysFS file for use as a libsndfile virtual read callback.
  */
-static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_PhysFS_Read(void *ptr, sf_count_t count, void *userData) {
   File *file = (File *) userData;
   return Fs_Read(file, ptr, 1, count);
 }
@@ -148,7 +148,7 @@ static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *userData) {
 /**
  * @brief Writes to the PhysFS file for use as a libsndfile virtual write callback.
  */
-static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_PhysFS_Write(const void *ptr, sf_count_t count, void *userData) {
   File *file = (File *) userData;
   return Fs_Write(file, ptr, 1, count);
 }
@@ -156,7 +156,7 @@ static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *userDa
 /**
  * @brief Returns the current position of the PhysFS file for use as a libsndfile virtual tell callback.
  */
-static sf_count_t S_PhysFS_tell(void *userData) {
+static sf_count_t S_PhysFS_Tell(void *userData) {
   File *file = (File *) userData;
   return Fs_Tell(file);
 }
@@ -165,11 +165,11 @@ static sf_count_t S_PhysFS_tell(void *userData) {
  * @brief An interface to PhysFS for libsndfile
  */
 SF_VIRTUAL_IO soundPhysfsIo = {
-  .get_filelen = S_PhysFS_get_filelen,
-  .seek = S_PhysFS_seek,
-  .read = S_PhysFS_read,
-  .write = S_PhysFS_write,
-  .tell = S_PhysFS_tell
+  .get_filelen = S_PhysFS_GetFileLength,
+  .seek = S_PhysFS_Seek,
+  .read = S_PhysFS_Read,
+  .write = S_PhysFS_Write,
+  .tell = S_PhysFS_Tell
 };
 
 /**

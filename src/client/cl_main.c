@@ -72,7 +72,7 @@ static void Cl_SendConnect(void) {
     addr.port = htons(PORT_SERVER);
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
                          qport->integer, cls.server.challenge, Cvar_UserInfo());
 
   cvarUserInfoModified = false;
@@ -130,7 +130,7 @@ static void Cl_AttemptConnect(void) {
     Com_Print("Connecting to %s...\n", cls.server.address);
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "get_challenge\n");
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "get_challenge\n");
 }
 
 /**
@@ -287,7 +287,7 @@ void Cl_SendDisconnect(void) {
   cmd[0] = CL_CMD_STRING;
   strcpy((char *) cmd + 1, "disconnect");
 
-  Netchan_Transmit(&cls.netChan, cmd, Str_Length((char *) cmd));
+  NetChan_Transmit(&cls.netChan, cmd, Str_Length((char *) cmd));
 }
 
 /**
@@ -393,7 +393,7 @@ static void Cl_ConnectionlessPacket(void) {
       return;
     }
 
-    Netchan_Setup(NS_UDP_CLIENT, &cls.netChan, &netFrom, qport->integer);
+    NetChan_Setup(NS_UDP_CLIENT, &cls.netChan, &netFrom, qport->integer);
 
     Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
     Net_WriteString(&cls.netChan.message, "new");
@@ -418,7 +418,7 @@ static void Cl_ConnectionlessPacket(void) {
 
   // ping from somewhere
   if (!Str_Compare(c, "ping")) {
-    Netchan_OutOfBandPrint(NS_UDP_CLIENT, &netFrom, "ack");
+    NetChan_OutOfBandPrint(NS_UDP_CLIENT, &netFrom, "ack");
     return;
   }
 
@@ -475,7 +475,7 @@ static void Cl_ReadPackets(void) {
       continue;
     }
 
-    if (!Netchan_Process(&cls.netChan, &netMessage)) {
+    if (!NetChan_Process(&cls.netChan, &netMessage)) {
       continue; // wasn't accepted for some reason
     }
 

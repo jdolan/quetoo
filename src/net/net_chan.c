@@ -82,7 +82,7 @@ NetMessage netMessage;
 /**
  * @brief Sends an out-of-band datagram
  */
-void Netchan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size_t len) {
+void NetChan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size_t len) {
   MemBuf send;
   byte sendBuffer[MAX_MSG_SIZE];
 
@@ -99,7 +99,7 @@ void Netchan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size
 /**
  * @brief Sends a text message in an out-of-band datagram
  */
-void Netchan_OutOfBandPrint(int32_t sock, const NetAddr *addr, const char *format, ...) {
+void NetChan_OutOfBandPrint(int32_t sock, const NetAddr *addr, const char *format, ...) {
   va_list args;
   char string[MAX_MSG_SIZE - 4];
 
@@ -109,13 +109,13 @@ void Netchan_OutOfBandPrint(int32_t sock, const NetAddr *addr, const char *forma
   vsnprintf(string, sizeof(string), format, args);
   va_end(args);
 
-  Netchan_OutOfBand(sock, addr, (const void *) string, Str_Length(string));
+  NetChan_OutOfBand(sock, addr, (const void *) string, Str_Length(string));
 }
 
 /**
  * @brief Called to open a channel to a remote system.
  */
-void Netchan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport) {
+void NetChan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport) {
 
   memset(chan, 0, sizeof(*chan));
 
@@ -134,7 +134,7 @@ void Netchan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport) {
  * @return True if reliable data must be transmitted this frame, false
  * otherwise.
  */
-static bool Netchan_CheckRetransmit(NetChan *chan) {
+static bool NetChan_CheckRetransmit(NetChan *chan) {
 
   // if the remote side dropped the last reliable message, re-send it
   if (chan->incomingAcknowledged > chan->reliableOutgoing && chan->reliableAcknowledged
@@ -151,12 +151,12 @@ static bool Netchan_CheckRetransmit(NetChan *chan) {
  *
  * A 0 size will still generate a packet and deal with the reliable messages.
  */
-void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
+void NetChan_Transmit(NetChan *chan, byte *data, size_t len) {
   MemBuf send;
   byte sendBuffer[MAX_MSG_SIZE];
 
   // check for re-transmission of reliable message
-  bool sendReliable = Netchan_CheckRetransmit(chan);
+  bool sendReliable = NetChan_CheckRetransmit(chan);
 
   // or for transmission of a new one
   if (!chan->reliableSize && chan->message.size) {
@@ -194,7 +194,7 @@ void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
   if (send.maxSize - send.size >= len) {
     Mem_WriteBuffer(&send, data, len);
   } else {
-    Com_Warn("Netchan_Transmit: dumped unreliable\n");
+    Com_Warn("NetChan_Transmit: dumped unreliable\n");
   }
 
   // send the datagram
@@ -215,7 +215,7 @@ void Netchan_Transmit(NetChan *chan, byte *data, size_t len) {
  * @brief Called when the current `netMessage` is from `remoteAddress`
  * modifies `netMessage` so that it points to the packet payload
  */
-bool Netchan_Process(NetChan *chan, NetMessage *msg) {
+bool NetChan_Process(NetChan *chan, NetMessage *msg) {
   uint32_t sequence, sequenceAck;
   uint32_t reliableAck, reliableMessage;
 
@@ -284,7 +284,7 @@ bool Netchan_Process(NetChan *chan, NetMessage *msg) {
 /**
  * @brief Initializes the network channel subsystem, the global message buffer, and debug cvars.
  */
-void Netchan_Init(void) {
+void NetChan_Init(void) {
   static byte buffer[MAX_MSG_SIZE];
 
   Net_Init();
@@ -298,7 +298,7 @@ void Netchan_Init(void) {
 /**
  * @brief Shuts down the network channel subsystem and releases all socket resources.
  */
-void Netchan_Shutdown(void) {
+void NetChan_Shutdown(void) {
 
   Net_Config(NS_UDP_CLIENT, false);
   Net_Config(NS_UDP_SERVER, false);

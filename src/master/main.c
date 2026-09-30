@@ -282,11 +282,11 @@ static void Ms_ParseStatusString(MasterServer *server, const char *status) {
 /**
  * @brief Shorthand for printing Internet addresses.
  */
-static const char *atos(const struct sockaddr_in *addr) {
+static const char *Ms_AddrToString(const struct sockaddr_in *addr) {
   return va("%s:%d", inet_ntoa(addr->sin_addr), ntohs(addr->sin_port));
 }
 
-#define stos(s) (atos(&s->addr))
+#define stos(s) (Ms_AddrToString(&s->addr))
 
 /**
  * @brief Returns the server for the specified address, or `NULL`.
@@ -550,13 +550,13 @@ static uint32_t Ms_ParseChallenge(const char *cmd, const char *name) {
 static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
 
   if (Ms_GetServer(from)) {
-    Com_Warn("Duplicate registration from %s\n", atos(from));
+    Com_Warn("Duplicate registration from %s\n", Ms_AddrToString(from));
     return NULL;
   }
 
   // bound the list before touching the filesystem for the blacklist
   if (serverList && serverList->count >= MAX_SERVERS) {
-    Com_Warn("Server list is full, rejecting %s\n", atos(from));
+    Com_Warn("Server list is full, rejecting %s\n", Ms_AddrToString(from));
     return NULL;
   }
 
@@ -568,12 +568,12 @@ static MasterServer *Ms_AddServer(struct sockaddr_in *from) {
   }
 
   if (pending >= MAX_PENDING_SERVERS) {
-    Com_Warn("Too many servers awaiting validation, rejecting %s\n", atos(from));
+    Com_Warn("Too many servers awaiting validation, rejecting %s\n", Ms_AddrToString(from));
     return NULL;
   }
 
   if (Ms_BlacklistServer(from)) {
-    Com_Warn("Server %s has been blacklisted\n", atos(from));
+    Com_Warn("Server %s has been blacklisted\n", Ms_AddrToString(from));
     return NULL;
   }
 
@@ -600,7 +600,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from, const char *cmd) {
   MasterServer *server = Ms_GetServer(from);
 
   if (!server) {
-    Com_Warn("Shutdown from unregistered server %s\n", atos(from));
+    Com_Warn("Shutdown from unregistered server %s\n", Ms_AddrToString(from));
     return;
   }
 
@@ -661,7 +661,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
     const bool parsed = end != p;
     while (isspace((unsigned char) *end)) end++;
     if (!parsed || *end || errno == ERANGE || requested > INT32_MAX || requested < INT32_MIN) {
-      Com_Warn("Invalid protocol '%.32s' from %s\n", p, atos(from));
+      Com_Warn("Invalid protocol '%.32s' from %s\n", p, Ms_AddrToString(from));
     } else {
       protocol = requested > 0 ? (int32_t) requested : 0;
     }
@@ -683,9 +683,9 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   }
 
   if ((sendto(sock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
-    Com_Warn("%s: %s\n", atos(from), strerror(errno));
+    Com_Warn("%s: %s\n", Ms_AddrToString(from), strerror(errno));
   } else {
-    Com_Verbose("Sent %d servers (protocol %d) to %s\n", i, protocol, atos(from));
+    Com_Verbose("Sent %d servers (protocol %d) to %s\n", i, protocol, Ms_AddrToString(from));
   }
 }
 
@@ -760,14 +760,14 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   } else if (!Str_CaseCompareN(cmd, "getservers", 10)) {
     Ms_GetServers(from, cmd);
   } else {
-    Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
+    Com_Warn("Unknown command from %s: '%s'\n", Ms_AddrToString(from), cmd);
   }
 }
 
 /**
  * @brief `Com_Debug` implementation.
  */
-static void Debug(const DebugFlags debug, const char *msg) {
+static void Ms_Debug(const DebugFlags debug, const char *msg) {
 
   if (debug) {
     fputs(msg, stdout);
@@ -777,7 +777,7 @@ static void Debug(const DebugFlags debug, const char *msg) {
 /**
  * @brief `Com_Verbose` implementation.
  */
-static void Verbose(const char *msg) {
+static void Ms_Verbose(const char *msg) {
 
   if (verbose) {
     fputs(msg, stdout);
@@ -787,7 +787,7 @@ static void Verbose(const char *msg) {
 /**
  * @brief `Com_Init` implementation.
  */
-static void Init(void) {
+static void Ms_Init(void) {
 
   Mem_Init();
 
@@ -797,7 +797,7 @@ static void Init(void) {
 /**
  * @brief `Com_Shutdown` implementation.
  */
-static void Shutdown(const char *msg) {
+static void Ms_Shutdown(const char *msg) {
 
   if (msg) {
     fputs(msg, stdout);
@@ -826,11 +826,11 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
   memset(&quetoo, 0, sizeof(quetoo));
 
-  quetoo.Debug = Debug;
-  quetoo.Verbose = Verbose;
+  quetoo.Debug = Ms_Debug;
+  quetoo.Verbose = Ms_Verbose;
 
-  quetoo.Init = Init;
-  quetoo.Shutdown = Shutdown;
+  quetoo.Init = Ms_Init;
+  quetoo.Shutdown = Ms_Shutdown;
   quetoo.logFileName = "quetoo-master.log";
 
   signal(SIGINT, Sys_Signal);
@@ -881,7 +881,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
     Com_Error(ERROR_FATAL, "Failed to bind port %i\n", PORT_MASTER);
   }
 
-  Com_Print("Listening on %s\n", atos(&address));
+  Com_Print("Listening on %s\n", Ms_AddrToString(&address));
 
   while (true) {
     fd_set set;
@@ -918,7 +918,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
           if (len > 4) {
             Ms_ParseMessage(&from, buffer);
           } else {
-            Com_Warn("Invalid packet from %s\n", atos(&from));
+            Com_Warn("Invalid packet from %s\n", Ms_AddrToString(&from));
           }
         } else {
           Com_Warn("Socket error: %s\n", strerror(errno));

@@ -54,7 +54,7 @@ void Sv_HeartbeatMaster(void) {
   Com_Debug(DEBUG_SERVER, "Sending heartbeat to %s\n", Net_NetaddrToString(&svs.master.addr));
 
   // send the same string that we would give for a status command
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "heartbeat %u\n%s",
+  NetChan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "heartbeat %u\n%s",
                          svs.master.challenge, Sv_StatusString());
 }
 
@@ -125,5 +125,5 @@ void Sv_ShutdownMaster(void) {
   }
 
   Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.master.addr));
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "shutdown %u", svs.master.challenge);
+  NetChan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "shutdown %u", svs.master.challenge);
 }

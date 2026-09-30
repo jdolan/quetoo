@@ -177,7 +177,7 @@ void Sv_SendDemoSetup(ServerClient *cl) {
       break;
     }
 
-    Netchan_Transmit(&cl->netChan, buffer, size);
+    NetChan_Transmit(&cl->netChan, buffer, size);
   }
 
   // restore the shared playback cursor regardless of how the loop above ended, so a setup-read
@@ -431,7 +431,7 @@ bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
   if (sv.demoPaused) {
 
     if (size) {
-      Netchan_Transmit(&cl->netChan, buffer, size);
+      NetChan_Transmit(&cl->netChan, buffer, size);
       return true;
     }
 
@@ -440,7 +440,7 @@ bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
     // applies its normal timeout check regardless of demo state, and would otherwise disconnect
     // a spectator who paused playback for longer than cl_timeout
     if (cl->netChan.message.size || quetoo.ticks - cl->netChan.lastSent > 1000) {
-      Netchan_Transmit(&cl->netChan, NULL, 0);
+      NetChan_Transmit(&cl->netChan, NULL, 0);
     }
 
     return true;
@@ -450,7 +450,7 @@ bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
     return false;
   }
 
-  Netchan_Transmit(&cl->netChan, buffer, size);
+  NetChan_Transmit(&cl->netChan, buffer, size);
 
   return true;
 }

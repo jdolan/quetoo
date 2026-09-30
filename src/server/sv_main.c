@@ -62,7 +62,7 @@ void Sv_DropClient(ServerClient *client) {
     if (!cl->ai) { // bots have no network connection
       Mem_ClearBuffer(&client->netChan.message);
       Net_WriteByte(&client->netChan.message, SV_CMD_DROP);
-      Netchan_Transmit(&client->netChan, client->netChan.message.data, client->netChan.message.size);
+      NetChan_Transmit(&client->netChan, client->netChan.message.data, client->netChan.message.size);
     }
 
     if (cl->inUse) { // inform the game module
@@ -132,7 +132,7 @@ const char *Sv_StatusString(void) {
  * @brief Responds with all the info that qplug or qspy can see.
  */
 static void Sv_Status_f(void) {
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "status\n%s", Sv_StatusString());
+  NetChan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "status\n%s", Sv_StatusString());
 }
 
 /**
@@ -170,7 +170,7 @@ static void Sv_GetChallenge_f(void) {
   }
 
   // send it back
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "challenge %i", svs.challenges[i].challenge);
+  NetChan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "challenge %i", svs.challenges[i].challenge);
 }
 
 /**
@@ -186,7 +186,7 @@ static void Sv_Connect_f(void) {
 
   // resolve protocol
   if (version != PROTOCOL_MAJOR) {
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL_MAJOR);
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL_MAJOR);
     return;
   }
 
@@ -199,13 +199,13 @@ static void Sv_Connect_f(void) {
 
   if (*userInfo == '\0') { // catch empty userInfo
     Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
   if (Str_FindChar(userInfo, '\xFF')) { // catch end of message in string exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
@@ -213,13 +213,13 @@ static void Sv_Connect_f(void) {
 
   if (InfoString_Get(userInfo, "ip", val, sizeof(val)) > 0) { // catch spoofed ips
     Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
   if (!InfoString_Validate(userInfo)) { // catch otherwise invalid userInfo
     Com_Print("Invalid user_info from %s\n", Net_NetaddrToString(addr));
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
@@ -234,13 +234,13 @@ static void Sv_Connect_f(void) {
         svs.challenges[i].challenge = 0;
         break; // good
       }
-      Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nBad challenge\n");
+      NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nBad challenge\n");
       return;
     }
   }
   if (i == MAX_CHALLENGES) {
     Com_Print("Connection without challenge from %s\n", Net_NetaddrToString(addr));
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nNo challenge for address\n");
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nNo challenge for address\n");
     return;
   }
 
@@ -290,7 +290,7 @@ static void Sv_Connect_f(void) {
   }
 
   if (!client) {
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is full\n");
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is full\n");
     Com_Debug(DEBUG_SERVER, "Rejected a connection\n");
     return;
   }
@@ -300,16 +300,16 @@ static void Sv_Connect_f(void) {
     char rejmsg[MAX_INFO_STRING_VALUE];
 
     if (InfoString_Get(userInfo, "rejmsg", rejmsg, sizeof(rejmsg)) > 0) {
-      Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
+      NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
     } else {
-      Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
+      NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     }
 
     Com_Debug(DEBUG_SERVER, "Game rejected a connection\n");
     return;
   }
 
-  Netchan_Setup(NS_UDP_SERVER, &client->netChan, addr, qport);
+  NetChan_Setup(NS_UDP_SERVER, &client->netChan, addr, qport);
 
   Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
 
@@ -322,12 +322,12 @@ static void Sv_Connect_f(void) {
   InfoString_Delete(client->userInfo, "ip");
 
   if (!Sv_UserInfoChanged(client)) {
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
   // send the connect packet to the client
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect");
+  NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect");
 }
 
 /**
@@ -397,7 +397,7 @@ static void Sv_Rcon_f(void) {
     Com_Print("Bad rconPassword\n");
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", rconBuffer);
+  NetChan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "print\n%s", rconBuffer);
 
   Con_RemoveConsole(&rcon);
 }
@@ -567,7 +567,7 @@ static void Sv_ReadPackets(void) {
       }
 
       // this is a valid, sequenced packet, so process it
-      if (Netchan_Process(&cl->netChan, &netMessage)) {
+      if (NetChan_Process(&cl->netChan, &netMessage)) {
         cl->lastMessage = quetoo.ticks; // nudge timeout
         Sv_ParseClientMessage(cl);
       }

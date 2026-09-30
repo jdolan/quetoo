@@ -132,7 +132,7 @@ static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
   ServerClient *cl = svs.clients;
   for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++)
     if (cl->state >= SV_CLIENT_CONNECTED) {
-      Netchan_Transmit(&cl->netChan, netMessage.data, netMessage.size);
+      NetChan_Transmit(&cl->netChan, netMessage.data, netMessage.size);
     }
 }
 

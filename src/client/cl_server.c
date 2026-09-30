@@ -280,7 +280,7 @@ void Cl_Ping_f(void) {
 
   Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
 }
 
 /**
@@ -300,7 +300,7 @@ void Cl_QueryServer(const NetAddr *addr) {
 
   server->pingTime = quetoo.ticks;
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
 }
 
 /**
@@ -339,7 +339,7 @@ static void Cl_SendBroadcast(void) {
 
   Com_Debug(DEBUG_CLIENT, "Broadcasting status to %s\n", Net_NetaddrToString(&addr));
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
 
   cls.broadcastTime = quetoo.ticks;
 }
@@ -363,7 +363,7 @@ void Cl_Servers_f(void) {
   Com_Debug(DEBUG_CLIENT, "Requesting servers from %s (%s) for protocol %d\n",
             HOST_MASTER, Net_NetaddrToString(&addr), PROTOCOL_MAJOR);
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers %d", PROTOCOL_MAJOR);
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers %d", PROTOCOL_MAJOR);
 
   Cl_SendBroadcast();
 }
@@ -439,7 +439,7 @@ void Cl_ParseServers(void) {
       server->pingTime = quetoo.ticks;
       server->ping = 0;
 
-      Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+      NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
       queried++;
     }
   }

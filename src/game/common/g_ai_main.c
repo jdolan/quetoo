@@ -26,13 +26,6 @@ Cvar *g_aiNoTarget;
 Cvar *g_aiNodeDev;
 
 /**
- * @brief Linear interpolation between a and b by fraction t (0.0 to 1.0).
- */
-static inline float Lerpf(float a, float b, float t) {
-  return a + (b - a) * t;
-}
-
-/**
  * @brief Minimum weapon priority to be considered "armed" for combat.
  * Blaster (0.10) is below this threshold; Shotgun (0.15) and above are armed.
  */
@@ -54,7 +47,7 @@ static inline float Lerpf(float a, float b, float t) {
  */
 static bool G_Ai_IsArmed(const GameClient *cl) {
 
-  const float threshold = AI_ARMED_PRIORITY * Lerpf(1.25f, .6f, cl->ai->personality.aggression);
+  const float threshold = AI_ARMED_PRIORITY * Mixf(1.25f, .6f, cl->ai->personality.aggression);
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     const GameItem *it = &gameItems[t];
@@ -72,7 +65,7 @@ static bool G_Ai_IsArmed(const GameClient *cl) {
  * Bots also flee from enemies carrying dangerous powerups.
  */
 static bool G_Ai_ShouldRetreat(const GameClient *cl) {
-  const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Lerpf(1.5f, .5f, cl->ai->personality.aggression));
+  const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Mixf(1.5f, .5f, cl->ai->personality.aggression));
   if (cl->entity->health < threshold) {
     return true;
   }
@@ -101,7 +94,7 @@ static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
   // invisible enemies are only detectable within a skill-dependent range
   if (other->s.effects & EF_INVISIBILITY) {
     const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
-    const float detectRange = Lerpf(256.f, 512.f, cl->ai->personality.skill);
+    const float detectRange = Mixf(256.f, 512.f, cl->ai->personality.skill);
     if (dist > detectRange) {
       return false;
     }
@@ -190,7 +183,7 @@ static float G_Ai_ItemReachable(const GameClient *cl, const GameEntity *other) {
   const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
 
   // aware bots spot items from farther away (512 to 1024)
-  const float range = AI_MAX_ITEM_DISTANCE * Lerpf(.67f, 1.33f, cl->ai->personality.awareness);
+  const float range = AI_MAX_ITEM_DISTANCE * Mixf(.67f, 1.33f, cl->ai->personality.awareness);
 
   if (dist > range) {
     return AI_ITEM_UNREACHABLE;
@@ -594,7 +587,7 @@ static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 #endif
 
   // aggressive bots are more willing to chase
-  chance *= Lerpf(.6f, 1.4f, cl->ai->personality.aggression);
+  chance *= Mixf(.6f, 1.4f, cl->ai->personality.aggression);
 
   return Randomf() < chance;
 }
@@ -633,7 +626,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
           cl->ai->combatTarget.entity.ent->s.origin);
 
       // keep fighting if they're right on top of us (aggressive bots fight at longer range)
-      const float defenseDist = AI_SELF_DEFENSE_DISTANCE * Lerpf(.5f, 1.5f, cl->ai->personality.aggression);
+      const float defenseDist = AI_SELF_DEFENSE_DISTANCE * Mixf(.5f, 1.5f, cl->ai->personality.aggression);
       if (dist > defenseDist) {
 
         if (cl->ai->moveTarget.type == AI_GOAL_ENTITY &&
@@ -718,8 +711,8 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
       }
 
       // skilled bots react faster (100-400ms vs 500-1200ms)
-      const uint32_t lockMin = (uint32_t) Lerpf(500.f, 100.f, cl->ai->personality.skill);
-      const uint32_t lockMax = (uint32_t) Lerpf(1200.f, 400.f, cl->ai->personality.skill);
+      const uint32_t lockMin = (uint32_t) Mixf(500.f, 100.f, cl->ai->personality.skill);
+      const uint32_t lockMax = (uint32_t) Mixf(1200.f, 400.f, cl->ai->personality.skill);
       cl->ai->combatTarget.entity.lockOnTime = gameLevel.time + RandomRangeu(lockMin, lockMax);
 
       if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK) {
@@ -792,7 +785,7 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
           Box3_Center(cl->ai->combatTarget.entity.ent->absBounds), eyeOrigin));
 
       // skilled bots fire with tighter aim cone (10° to 25°)
-      const float fireCone = Lerpf(25.f, 10.f, cl->ai->personality.skill);
+      const float fireCone = Mixf(25.f, 10.f, cl->ai->personality.skill);
       if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone))) {
         const uint32_t grenadeHoldTime = cl->grenadeHoldTime;
         if (grenadeHoldTime) {
@@ -824,8 +817,8 @@ static uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // do some acrobatics (aggressive bots dodge more)
-  const uint32_t crouchFreq = (uint32_t) Lerpf(48.f, 20.f, cl->ai->personality.aggression);
-  const uint32_t jumpFreq = (uint32_t) Lerpf(120.f, 50.f, cl->ai->personality.aggression);
+  const uint32_t crouchFreq = (uint32_t) Mixf(48.f, 20.f, cl->ai->personality.aggression);
+  const uint32_t jumpFreq = (uint32_t) Mixf(120.f, 50.f, cl->ai->personality.aggression);
 
   if (cl->entity->ground.ent) {
 
@@ -1516,7 +1509,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     if (weapon->def.flags & WF_PROJECTILE) {
       const float dist = Vec3_Distance(eyeOrigin, enemyCenter);
       // skilled bots predict more accurately (tighter speed estimate range)
-      const float spread = Lerpf(300.f, 100.f, cl->ai->personality.skill);
+      const float spread = Mixf(300.f, 100.f, cl->ai->personality.skill);
       const float speed = RandomRangef(1050.f - spread, 1050.f + spread);
       const float time = dist / speed;
       const Vec3 targetVelocity = combatTarget->entity.ent->velocity;
@@ -1541,7 +1534,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
   const Vec3 viewAngles = cl->angles;
 
   // turn speed: skilled bots turn faster (range 6.25 to 18.75)
-  const float turnSpeed = Lerpf(.5f, 1.5f, cl->ai->personality.skill) * 12.5f;
+  const float turnSpeed = Mixf(.5f, 1.5f, cl->ai->personality.skill) * 12.5f;
 
   for (int32_t i = 0; i < 2; ++i) {
     idealAngles.xyz[i] = G_Ai_CalcAngle(cl, turnSpeed * (cmd->msec / (float)QUETOO_TICK_MILLIS), viewAngles.xyz[i], idealAngles.xyz[i]);

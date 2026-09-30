@@ -88,7 +88,7 @@ typedef struct {
  * declared once here rather than spelled out in a menu and a parser that must
  * agree by inspection.
  */
-static inline const char *Hook_StyleName(GameHookStyle style) {
+static inline const char *GameHookStyle_Name(GameHookStyle style) {
 
   switch (style) {
     case HOOK_SWING_MANUAL:
@@ -104,10 +104,10 @@ static inline const char *Hook_StyleName(GameHookStyle style) {
  * @return The hook style of the given name, defaulting to `HOOK_PULL` for any
  * name that is not one of them, including "default".
  */
-static inline GameHookStyle Hook_StyleByName(const char *name) {
+static inline GameHookStyle GameHookStyle_ForName(const char *name) {
 
   for (GameHookStyle style = HOOK_PULL; style <= HOOK_SWING_AUTO; style++) {
-    if (!Str_Compare(name, Hook_StyleName(style))) {
+    if (!Str_Compare(name, GameHookStyle_Name(style))) {
       return style;
     }
   }

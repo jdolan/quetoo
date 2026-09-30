@@ -475,7 +475,7 @@ front of the types they need. That is not a style choice, it is a cycle - it was
 tried, and the compiler says `unknown type name 'GameClient'`.
 
 They are `bg_` rather than `g_` because both sides genuinely use them:
-`Hook_StyleName` and `Hook_StyleByName` live in `bg_hook.h`, so the three style
+`GameHookStyle_Name` and `GameHookStyle_ForName` live in `bg_hook.h`, so the three style
 names the client game offers in its menu are the same three the game parses out of
 a cvar and a client's user info, rather than two lists that must agree by
 inspection. There is no `bg_hook.c`, because those two functions are all the shared

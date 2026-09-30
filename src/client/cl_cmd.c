@@ -164,7 +164,7 @@ void Cl_SendCommands(void) {
     case CL_LOADING:
 
       if (cls.netChan.message.size || delta > 1000) {
-        Netchan_Transmit(&cls.netChan, NULL, 0);
+        NetChan_Transmit(&cls.netChan, NULL, 0);
         cl.packets++;
       }
 
@@ -185,7 +185,7 @@ void Cl_SendCommands(void) {
 
       Cl_WriteVoiceCommand(&buf);
 
-      Netchan_Transmit(&cls.netChan, buf.data, buf.size);
+      NetChan_Transmit(&cls.netChan, buf.data, buf.size);
       cl.packets++;
 
       Cl_InitMovementCommand();

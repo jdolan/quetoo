@@ -627,9 +627,9 @@ void G_SetClientHookStyle(GameClient *cl) {
     char style[MAX_INFO_STRING_VALUE];
     InfoString_Get(cl->persistent.userInfo, "hookStyle", style, sizeof(style));
 
-    hookStyle = Hook_StyleByName(style);
+    hookStyle = GameHookStyle_ForName(style);
   } else {
-    hookStyle = Hook_StyleByName(g_hookStyle->string);
+    hookStyle = GameHookStyle_ForName(g_hookStyle->string);
   }
 
   cl->persistent.hookStyle = hookStyle;

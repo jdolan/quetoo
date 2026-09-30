@@ -273,7 +273,7 @@ static void Sv_SendClientDatagram(ServerClient *cl) {
       if (buf.size + msg->len > (MAX_MSG_SIZE_UDP - 16)) {
         Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
-        Netchan_Transmit(&cl->netChan, buf.data, buf.size);
+        NetChan_Transmit(&cl->netChan, buf.data, buf.size);
 
         Mem_ClearBuffer(&buf);
       }
@@ -283,7 +283,7 @@ static void Sv_SendClientDatagram(ServerClient *cl) {
   }
 
   // send the pending packet, which may include reliable messages
-  Netchan_Transmit(&cl->netChan, buf.data, buf.size);
+  NetChan_Transmit(&cl->netChan, buf.data, buf.size);
 }
 
 /**
@@ -350,9 +350,9 @@ void Sv_SendClientPackets(void) {
       cl->datagram.messages = release(cl->datagram.messages);
 
     } else if (cl->netChan.message.size) { // update reliable
-      Netchan_Transmit(&cl->netChan, NULL, 0);
+      NetChan_Transmit(&cl->netChan, NULL, 0);
     } else if (quetoo.ticks - cl->netChan.lastSent > 1000) { // or just don't timeout
-      Netchan_Transmit(&cl->netChan, NULL, 0);
+      NetChan_Transmit(&cl->netChan, NULL, 0);
     }
   }
 }
