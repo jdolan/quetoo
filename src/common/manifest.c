@@ -27,12 +27,12 @@
  */
 static void Manifest_Md5Hex(const void *data, size_t len, char *hex, size_t hexSize) {
 
-	md5_ctx ctx;
+	Md5Context ctx;
 	uint8_t digest[16];
 
-	md5_init(&ctx);
-	md5_update(&ctx, data, len);
-	md5_finalize(&ctx, digest);
+	Md5_Init(&ctx);
+	Md5_Update(&ctx, data, len);
+	Md5_Finalize(&ctx, digest);
 
 	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hexSize; i++) {
 		Str_Format(hex + i * 2, 3, "%02x", digest[i]);

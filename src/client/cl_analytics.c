@@ -103,13 +103,13 @@ static void Cl_AnalyticsToken(void) {
   char date[11];
   strftime(date, sizeof(date), "%Y-%m-%d", gmtime(&now));
 
-  md5_ctx ctx;
-  md5_init(&ctx);
-  md5_update(&ctx, guid->string, Str_Length(guid->string));
-  md5_update(&ctx, date, Str_Length(date));
+  Md5Context ctx;
+  Md5_Init(&ctx);
+  Md5_Update(&ctx, guid->string, Str_Length(guid->string));
+  Md5_Update(&ctx, date, Str_Length(date));
 
   uint8_t digest[16];
-  md5_finalize(&ctx, digest);
+  Md5_Finalize(&ctx, digest);
 
   for (size_t i = 0; i < lengthof(digest); i++) {
     Str_Format(module.token + i * 2, 3, "%02x", digest[i]);
