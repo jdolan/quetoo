@@ -1488,6 +1488,7 @@ static void G_ClientRespawn_(GameClient *cl) {
 
     ent->dead = false;
     ent->Die = G_ClientDie;
+    ent->Pain = NULL;
     memset(&ent->ground, 0, sizeof(ent->ground));
     ent->maxHealth = 100;
     ent->health = ent->maxHealth + 5;
