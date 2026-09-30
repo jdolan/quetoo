@@ -85,9 +85,12 @@ layout (location = 1) out float outDepth;
 
 CommonFragment fragment;
 
-#define PARALLAX_SAMPLES_PER_TEXEL 6.0
-#define PARALLAX_MIN_SAMPLES 24.0
-#define PARALLAX_MAX_SAMPLES 96.0
+#define PARALLAX_SAMPLES_PER_TEXEL 2.0
+#define PARALLAX_MIN_SAMPLES 32.0
+#define PARALLAX_MAX_SAMPLES 64.0
+#define PARALLAX_REFINE_STEPS 4
+#define PARALLAX_FADE_LOD 1.5
+#define PARALLAX_MAX_LOD 2.0
 
 /**
  * @brief Applies parallax occlusion mapping to the fragment texcoord.
@@ -96,40 +99,62 @@ void parallaxOcclusionMapping(in CommonVertex vertex, inout CommonFragment fragm
 
   fragment.parallax = vertex.diffusemap;
 
-  if (material.parallax == 0.0 || fragment.texLod > 2.0 ||
+  if (material.parallax == 0.0 || fragment.texLod >= PARALLAX_MAX_LOD ||
       fragment.viewDist >= lightingDistance + LIGHTING_LOD_BLEND_DIST) {
     return;
   }
 
   vec3 dir = normalize(fragment.viewDir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
 
-  vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
-  vec2 p = ((dir.xy * texel) / max(dir.z, 0.1)) * material.parallax * material.parallax;
+  float fade = 1.0 - linearstep(PARALLAX_FADE_LOD, PARALLAX_MAX_LOD, fragment.texLod);
+  vec2 offset = (dir.xy / max(dir.z, 0.1)) * material.parallax * material.parallax * fade;
 
-  float sweep = length(p / texel) / exp2(fragment.texLod);
-  float budget = mix(PARALLAX_MAX_SAMPLES, PARALLAX_MIN_SAMPLES, fragment.texLodNormalized);
+  float sweep = length(offset) / exp2(fragment.texLod);
+  float budget = floor(mix(PARALLAX_MAX_SAMPLES, PARALLAX_MIN_SAMPLES, fragment.texLod / PARALLAX_MAX_LOD));
   float numSamples = clamp(ceil(sweep * PARALLAX_SAMPLES_PER_TEXEL), 1.0, budget);
 
-  vec2 delta = p / numSamples;
+  vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
+  vec2 delta = offset * texel / numSamples;
+  float layer = 1.0 / numSamples;
 
   vec2 texcoord = vertex.diffusemap;
-  vec2 prevTexcoord = vertex.diffusemap;
-
   float depth = 0.0;
-  float layer = 1.0 / numSamples;
   float displacement = sampleMaterialDisplacement(texcoord, fragment.texLod);
 
+  vec2 prevTexcoord = texcoord;
+  float prevDepth = depth;
+  float prevDisplacement = displacement;
+
   for (int i = 0; i < int(numSamples) && depth < displacement; i++) {
-    depth += layer;
     prevTexcoord = texcoord;
+    prevDepth = depth;
+    prevDisplacement = displacement;
+
     texcoord -= delta;
+    depth += layer;
     displacement = sampleMaterialDisplacement(texcoord, fragment.texLod);
   }
 
-  float a = displacement - depth;
-  float b = sampleMaterialDisplacement(prevTexcoord, fragment.texLod) - depth + layer;
+  for (int i = 0; i < PARALLAX_REFINE_STEPS; i++) {
+    vec2 midTexcoord = (prevTexcoord + texcoord) * 0.5;
+    float midDepth = (prevDepth + depth) * 0.5;
+    float midDisplacement = sampleMaterialDisplacement(midTexcoord, fragment.texLod);
 
-  fragment.parallax = mix(prevTexcoord, texcoord, a / (a - b));
+    if (midDepth < midDisplacement) {
+      prevTexcoord = midTexcoord;
+      prevDepth = midDepth;
+      prevDisplacement = midDisplacement;
+    } else {
+      texcoord = midTexcoord;
+      depth = midDepth;
+      displacement = midDisplacement;
+    }
+  }
+
+  float above = prevDisplacement - prevDepth;
+  float below = displacement - depth;
+
+  fragment.parallax = mix(prevTexcoord, texcoord, clamp(above / max(above - below, 1e-5), 0.0, 1.0));
 }
 
 /**
@@ -175,8 +200,6 @@ void main(void) {
   fragment.viewDir = normalize(-vertex.position);
   fragment.viewDist = length(vertex.position);
   fragment.texLod = textureQueryLod(textureMaterial, vertex.diffusemap).x;
-  int numMipmapLevels = textureQueryLevels(textureMaterial);
-  fragment.texLodNormalized = clamp(fragment.texLod / float(numMipmapLevels - 1), 0.0, 1.0);
 
   parallaxOcclusionMapping(vertex, fragment);
 
