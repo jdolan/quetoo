@@ -64,7 +64,7 @@
 		00FE572C5C861491D333D0DC /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
 		01209575888A584DAE8F7D25 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		014684FA691B4EB0944ACDCB /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = 26FE8732000C404A8AFA1688 /* r_post.c */; };
-		033334174247678F654646CA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		033334174247678F654646CA /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		0748101724F775645A77CED3 /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
@@ -95,16 +95,16 @@
 		2F1258894A585916F6D8F513 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		2FAD5FD12BD7CC3AC13E4E10 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
-		31BF67401CBF4B95BDBDCC83 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		31BF67401CBF4B95BDBDCC83 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
-		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		332CAA47FF0E8521C12DF852 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		363A0C94E511346808FE5F3D /* r_subview.c in Sources */ = {isa = PBXBuildFile; fileRef = 96A84939E49450A34A627546 /* r_subview.c */; };
 		368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* hud.json */; };
 		397AF06E0005AF477FB5FC35 /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
-		3CBF190D5B00F3CCADD14B52 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		3CBF190D5B00F3CCADD14B52 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		3D8401C9D86FF746C42D2AB6 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
 		457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		46EE82019B925D394B363E01 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
@@ -113,7 +113,7 @@
 		48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
 		4932286FA54FFE0479DD188C /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		4DA60E0E0E86520782FCF112 /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
-		4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		4E0DA0FBE7F88EC11A4CF033 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		4E265AE532584E47A2D20258 /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
 		4E59F0F29F01B776A97F96B1 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		4F0FA3FF26DFBC1FF49D2A63 /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
@@ -128,7 +128,7 @@
 		54194A7922708C783B541F5B /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
 		544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92AA3129971ABAAB21EE5BAD /* scoreboard.json */; };
 		547AC46C9A45CC44AB005215 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
-		549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		549E7CC4A7BA476A2463B7CC /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		552ED498920A44B77CEAEC2E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		55ECBA76D3FED12161978AAF /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
@@ -144,7 +144,7 @@
 		68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
-		6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		6B31320926D77CB87B783BDD /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		6B6C876AA822AB4DFB8D3158 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
 		6C7870B960DDA48FF5959231 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		6D7DB99594CACA60C5C42A98 /* cl_analytics.h in Headers */ = {isa = PBXBuildFile; fileRef = 24281E30C5869DF85EACFC22 /* cl_analytics.h */; };
@@ -152,8 +152,8 @@
 		72A48E18ED83E23491FE447D /* asset.c in Sources */ = {isa = PBXBuildFile; fileRef = 52CCC184568D9A04E0D91F1A /* asset.c */; };
 		73DBBF49A55BBA6FB35431A6 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
-		77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		77DC97E1E9FDFCF8FD91B1BC /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
+		7857EDF77E5E58CEFFD03198 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		78965577428364713231086F /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
 		78BFCA151AAC14630B15208D /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
 		7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
@@ -182,7 +182,7 @@
 		9B67395438D49AA25C710A4A /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		9B731F4E62224A92F0E685EF /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
-		9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		9C43D41506579A6ED4EE80F5 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* hud.json */; };
 		9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
@@ -197,10 +197,10 @@
 		AD9B2D464FD840D5A031FC6A /* PingView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5624F1C74F4646918DA71088 /* PingView.c */; };
 		AE4EA13B59877C5736940695 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
 		AF637037D323F5359A9E5F26 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
-		AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		AF8056E19DEC77694B63EDD7 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		B221DFE8D70C9012A418D37B /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
-		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		B2B62AE1E7C09567B299F1AA /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		B4BEE8A9F5DA5D6E42A56454 /* cl_analytics.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B5E2E164CF77588FE00447F /* cl_analytics.c */; };
 		B50A7AB9A94C86F0D55675BD /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* hud.json */; };
@@ -208,7 +208,7 @@
 		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
 		B8A5AAD33BD44C1EA2F1800F /* PingView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5624F1C74F4646918DA71088 /* PingView.c */; };
 		B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
-		B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		B92B8EA5B4D9C775CF3C2541 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		C085E3159720D0EEC6C6372D /* CameraControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = C22C8B9ED966181A40EEE5A3 /* CameraControlsView.c */; };
 		C1A592C4D259F42E82027392 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
@@ -219,7 +219,7 @@
 		C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
 		C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		C6003D3330E811D015D2DFAF /* asset.h in Headers */ = {isa = PBXBuildFile; fileRef = 5BBBA6607E11C1453041B2A3 /* asset.h */; };
-		C6BE5C361D7A11928CC7373B /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		C6BE5C361D7A11928CC7373B /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		C8FD8F82018E30E0052179E2 /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		C916425B74784B149039A63B /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CB4A43F954CB0C6DB34F666F /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
@@ -425,7 +425,7 @@
 		CE05B3F030224900C0DE0058 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
 		CE05B3F030224900C0DE0059 /* cg_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57F1C5C58C300CD0B13 /* cg_view.h */; };
 		CE05B3F030224900C0DE005A /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
-		CE05B3F030224900C0DE005B /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CE05B3F030224900C0DE005B /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CE05B3F030224900C0DE005C /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CE05B3F030224900C0DE005D /* ObjectivelyMVC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */; };
 		CE05B3F030224900C0DE005E /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
@@ -476,7 +476,7 @@
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE148DA8242A37BA00B589D8 /* r_animation.c in Sources */ = {isa = PBXBuildFile; fileRef = CE148DA6242A37B900B589D8 /* r_animation.c */; };
 		CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */ = {isa = PBXBuildFile; fileRef = CE148DA7242A37BA00B589D8 /* r_animation.h */; };
-		CE16434A2FF5A12100863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CE16434A2FF5A12100863996 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CE1643642FF5A23300863996 /* bsp_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16434F2FF5A1E400863996 /* bsp_fs.metal */; };
 		CE1643672FF5A23300863996 /* bsp_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643512FF5A1E400863996 /* bsp_vs.metal */; };
 		CE16436D2FF5A23300863996 /* depth_pass_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643532FF5A1E400863996 /* depth_pass_fs.metal */; };
@@ -486,11 +486,11 @@
 		CE1643842FF5A23300863996 /* post_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435F2FF5A1E400863996 /* post_fs.metal */; };
 		CE1643872FF5A23300863996 /* post_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643612FF5A1E400863996 /* post_vs.metal */; };
 		CE1643942FF5A65900863996 /* ObjectivelyGPU.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */; };
-		CE1643952FF5A68800863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CE1643952FF5A68800863996 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CE1643962FF5D11F00863996 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
-		CE1643972FF5D11F00863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		CE1643982FF5D13D00863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		CE1643992FF5D14900863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CE1643972FF5D11F00863996 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
+		CE1643982FF5D13D00863996 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
+		CE1643992FF5D14900863996 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CE1643A32FF69B3C00863996 /* mesh_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16439B2FF6962600863996 /* mesh_fs.metal */; };
 		CE1643A42FF69B3F00863996 /* mesh_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16439D2FF6962600863996 /* mesh_vs.metal */; };
 		CE1643A52FF69B6100863996 /* shadow_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643A12FF6962600863996 /* shadow_vs.metal */; };
@@ -1003,7 +1003,7 @@
 		CEC0FF00202601030000019D /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
 		CEC0FF00202601030000019E /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CEC0FF00202601030000019F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
-		CEC0FF0020260103000001D5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CEC0FF0020260103000001D5 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CEC0FF0020260103000001D6 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CEC0FF0020260103000001D7 /* ObjectivelyMVC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */; };
 		CEC0FF0020260103000001D8 /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
@@ -1174,7 +1174,7 @@
 		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFF1377277FB721001E1500 /* TeamPlayerView.json */; };
-		CF43CA06A122206F8CB8748A /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CF43CA06A122206F8CB8748A /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CFA000142F9100000000C014 /* cg_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000022F9100000000C002 /* cg_editor.c */; };
 		CFA000152F9100000000C015 /* cg_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CFA000032F9100000000C003 /* cg_editor.h */; };
 		CFA000162F9100000000C016 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000042F9100000000C004 /* EditorViewController.c */; };
@@ -1365,7 +1365,7 @@
 		D2A5C10000000000000000A0 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		D2A5C10000000000000000A1 /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57E1C5C58C300CD0B13 /* cg_view.c */; };
 		D2A5C10000000000000000A2 /* cg_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4DCF05256DCCA100FECAFC /* cg_weapon.c */; };
-		D2A5C10000000000000000A3 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		D2A5C10000000000000000A3 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		D2A5C10000000000000000A4 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		D2A5C10000000000000000A5 /* ObjectivelyMVC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */; };
 		D2A5C10000000000000000A6 /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
@@ -1464,7 +1464,7 @@
 		D9A5C10000000000000000C7 /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		D9A5C10000000000000000C8 /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
 		D9A5C10000000000000000C9 /* g_race_replay.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A5 /* g_race_replay.c */; };
-		D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		D9A5C10000000000000000D0 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		D9A5C10000000000000000D2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		D9A5C10000000000000000D3 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
@@ -2618,7 +2618,7 @@
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE148DA6242A37B900B589D8 /* r_animation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_animation.c; sourceTree = "<group>"; };
 		CE148DA7242A37BA00B589D8 /* r_animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_animation.h; sourceTree = "<group>"; };
-		CE1643492FF5A12100863996 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = /Users/jdolan/Coding/ObjectivelyMVC/../ObjectivelyGPU/Frameworks/SDL3.xcframework; sourceTree = "<absolute>"; };
+		CE1643492FF5A12100863996 /* SDL3.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SDL3.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE16434F2FF5A1E400863996 /* bsp_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = bsp_fs.metal; sourceTree = "<group>"; };
 		CE1643512FF5A1E400863996 /* bsp_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = bsp_vs.metal; sourceTree = "<group>"; };
 		CE1643532FF5A1E400863996 /* depth_pass_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = depth_pass_fs.metal; sourceTree = "<group>"; };
@@ -3047,7 +3047,6 @@
 		CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ObjectivelyMVC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEF601C42FE711B7005C680C /* SDL3_image.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3_image.xcframework; path = ../ObjectivelyMVC/Frameworks/SDL3_image.xcframework; sourceTree = "<group>"; };
 		CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3_ttf.xcframework; path = ../ObjectivelyMVC/Frameworks/SDL3_ttf.xcframework; sourceTree = "<group>"; };
-		CEF601C82FE711C9005C680C /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = ../ObjectivelyMVC/Frameworks/SDL3.xcframework; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
 		CEF75F402EB996E80026CCA4 /* sv_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_editor.c; sourceTree = "<group>"; };
 		CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_fs.glsl; sourceTree = "<group>"; };
@@ -3167,7 +3166,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C916425B74784B149039A63B /* libminizip.a in Frameworks */,
-				31BF67401CBF4B95BDBDCC83 /* SDL3.xcframework in Frameworks */,
+				31BF67401CBF4B95BDBDCC83 /* SDL3.framework in Frameworks */,
 				F57463209C1D4FDDA29BCA9E /* Objectively.framework in Frameworks */,
 				93E3C4D327C8457BAE598423 /* libshared.a in Frameworks */,
 				7D15C1A91F54482CB47DCB24 /* libcommon.a in Frameworks */,
@@ -3180,7 +3179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000001 /* libminizip.a in Frameworks */,
-				77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */,
+				77DC97E1E9FDFCF8FD91B1BC /* SDL3.framework in Frameworks */,
 				CED40A703049B36F0090C57A /* Objectively.framework in Frameworks */,
 				CE2B083C23F9EDEA007C77B6 /* libshared.a in Frameworks */,
 				CE052A62214831FE003446C9 /* libcommon.a in Frameworks */,
@@ -3192,7 +3191,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000002 /* libminizip.a in Frameworks */,
-				3CBF190D5B00F3CCADD14B52 /* SDL3.xcframework in Frameworks */,
+				3CBF190D5B00F3CCADD14B52 /* SDL3.framework in Frameworks */,
 				CED40A713049B3830090C57A /* Objectively.framework in Frameworks */,
 				CE052A88214832E1003446C9 /* libcommon.a in Frameworks */,
 				CE2B083B23F9EDD7007C77B6 /* libshared.a in Frameworks */,
@@ -3212,7 +3211,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE05B3F030224900C0DE005B /* SDL3.xcframework in Frameworks */,
+				CE05B3F030224900C0DE005B /* SDL3.framework in Frameworks */,
 				CE05B3F030224900C0DE005C /* Objectively.framework in Frameworks */,
 				CE05B3F030224900C0DE005D /* ObjectivelyMVC.framework in Frameworks */,
 				CE05B3F030224900C0DE005E /* libc++.1.tbd in Frameworks */,
@@ -3228,7 +3227,7 @@
 			files = (
 				D9A5C2010000000000000003 /* libminizip.a in Frameworks */,
 				CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */,
-				CE16434A2FF5A12100863996 /* SDL3.xcframework in Frameworks */,
+				CE16434A2FF5A12100863996 /* SDL3.framework in Frameworks */,
 				CEF601C52FE711B7005C680C /* SDL3_image.xcframework in Frameworks */,
 				CEF601C72FE711B7005C680C /* SDL3_ttf.xcframework in Frameworks */,
 				CEF601BF2FE6088A005C680C /* Objectively.framework in Frameworks */,
@@ -3259,7 +3258,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE1643952FF5A68800863996 /* SDL3.xcframework in Frameworks */,
+				CE1643952FF5A68800863996 /* SDL3.framework in Frameworks */,
 				CEF601BC2FE60835005C680C /* Objectively.framework in Frameworks */,
 				CEF601BE2FE6083F005C680C /* ObjectivelyMVC.framework in Frameworks */,
 				CE82F2962D0F9FBE004EE5DF /* libc++.1.tbd in Frameworks */,
@@ -3281,7 +3280,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000004 /* libminizip.a in Frameworks */,
-				CE1643982FF5D13D00863996 /* SDL3.xcframework in Frameworks */,
+				CE1643982FF5D13D00863996 /* SDL3.framework in Frameworks */,
 				CEF601C32FE608D5005C680C /* Objectively.framework in Frameworks */,
 				CE80FFCF1C5E4B9B00A21A51 /* libclient-null.a in Frameworks */,
 				CE80FFD01C5E4B9B00A21A51 /* libcollision.a in Frameworks */,
@@ -3305,7 +3304,7 @@
 			files = (
 				D9A5C2010000000000000005 /* libminizip.a in Frameworks */,
 				B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */,
-				549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */,
+				549E7CC4A7BA476A2463B7CC /* SDL3.framework in Frameworks */,
 				CED40A733049B3F70090C57A /* Objectively.framework in Frameworks */,
 				CED40A743049B3FB0090C57A /* libshared.a in Frameworks */,
 				CE04F56525CAE12B00C31433 /* libcommon.a in Frameworks */,
@@ -3317,7 +3316,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000006 /* libminizip.a in Frameworks */,
-				033334174247678F654646CA /* SDL3.xcframework in Frameworks */,
+				033334174247678F654646CA /* SDL3.framework in Frameworks */,
 				CED40A6D3049B3470090C57A /* Objectively.framework in Frameworks */,
 				CE4DCF97256F0DAD00FECAFC /* libshared.a in Frameworks */,
 				CE4DCF94256F0DAD00FECAFC /* libcommon.a in Frameworks */,
@@ -3331,7 +3330,7 @@
 			files = (
 				D9A5C2010000000000000007 /* libminizip.a in Frameworks */,
 				FBA34330EDE55ADE01202579 /* SDL3_image.xcframework in Frameworks */,
-				332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */,
+				332CAA47FF0E8521C12DF852 /* SDL3.framework in Frameworks */,
 				CED40A643049AFD00090C57A /* Objectively.framework in Frameworks */,
 				CED40A773049B4840090C57A /* ObjectivelyGPU.framework in Frameworks */,
 				CE2B085223F9EEEE007C77B6 /* libshared.a in Frameworks */,
@@ -3346,7 +3345,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000008 /* libminizip.a in Frameworks */,
-				9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */,
+				9C43D41506579A6ED4EE80F5 /* SDL3.framework in Frameworks */,
 				CED40A673049B0280090C57A /* Objectively.framework in Frameworks */,
 				CE51FBA321481DD300ABE14F /* libcommon.a in Frameworks */,
 				CE04F5AA25CAE14500C31433 /* libshared.a in Frameworks */,
@@ -3358,7 +3357,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000009 /* libminizip.a in Frameworks */,
-				AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */,
+				AF8056E19DEC77694B63EDD7 /* SDL3.framework in Frameworks */,
 				CED40A683049B0540090C57A /* Objectively.framework in Frameworks */,
 				CE2B084D23F9EEBC007C77B6 /* libshared.a in Frameworks */,
 				CE51FBB821481F2500ABE14F /* libcommon.a in Frameworks */,
@@ -3370,7 +3369,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C201000000000000000A /* libminizip.a in Frameworks */,
-				4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */,
+				4E0DA0FBE7F88EC11A4CF033 /* SDL3.framework in Frameworks */,
 				CED40A663049B00C0090C57A /* Objectively.framework in Frameworks */,
 				CE2B084423F9EE46007C77B6 /* libshared.a in Frameworks */,
 				CE51FBD321481FC100ABE14F /* libcommon.a in Frameworks */,
@@ -3382,7 +3381,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C201000000000000000B /* libminizip.a in Frameworks */,
-				6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */,
+				6B31320926D77CB87B783BDD /* SDL3.framework in Frameworks */,
 				CED40A6F3049B3690090C57A /* Objectively.framework in Frameworks */,
 				CE51FC042148213200ABE14F /* libshared.a in Frameworks */,
 				CE51FC08214821F000ABE14F /* libcommon.a in Frameworks */,
@@ -3401,7 +3400,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE1643962FF5D11F00863996 /* SDL3_image.xcframework in Frameworks */,
-				CE1643972FF5D11F00863996 /* SDL3.xcframework in Frameworks */,
+				CE1643972FF5D11F00863996 /* SDL3.framework in Frameworks */,
 				CEF601C12FE608A6005C680C /* Objectively.framework in Frameworks */,
 				CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */,
 				CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */,
@@ -3464,7 +3463,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C6BE5C361D7A11928CC7373B /* SDL3.xcframework in Frameworks */,
+				C6BE5C361D7A11928CC7373B /* SDL3.framework in Frameworks */,
 				CE948B2E2235699300D961FA /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3490,7 +3489,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C201000000000000000C /* libminizip.a in Frameworks */,
-				CE1643992FF5D14900863996 /* SDL3.xcframework in Frameworks */,
+				CE1643992FF5D14900863996 /* SDL3.framework in Frameworks */,
 				CEF601C22FE608AF005C680C /* Objectively.framework in Frameworks */,
 				CEFC7A931D9CB75D000FA6B2 /* libcommon.a in Frameworks */,
 				CEFC7A941D9CB75D000FA6B2 /* libshared.a in Frameworks */,
@@ -3503,7 +3502,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C201000000000000000D /* libminizip.a in Frameworks */,
-				7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */,
+				7857EDF77E5E58CEFFD03198 /* SDL3.framework in Frameworks */,
 				CED40A6C3049B3420090C57A /* Objectively.framework in Frameworks */,
 				CEA508FE2EA5D20A00F27205 /* libshared.a in Frameworks */,
 				CEA508FD2EA5D20A00F27205 /* libcommon.a in Frameworks */,
@@ -3516,7 +3515,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C201000000000000000E /* libminizip.a in Frameworks */,
-				B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */,
+				B2B62AE1E7C09567B299F1AA /* SDL3.framework in Frameworks */,
 				CED40A653049B0040090C57A /* Objectively.framework in Frameworks */,
 				CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */,
 				CEAD8F942F8D765F0087A850 /* libcommon.a in Frameworks */,
@@ -3529,7 +3528,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C201000000000000000F /* libminizip.a in Frameworks */,
-				B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */,
+				B92B8EA5B4D9C775CF3C2541 /* SDL3.framework in Frameworks */,
 				CED40A6B3049B33B0090C57A /* Objectively.framework in Frameworks */,
 				CEAD8FAC2F8D8DE30087A850 /* libshared.a in Frameworks */,
 				CEAD8FAB2F8D8DE30087A850 /* libcommon.a in Frameworks */,
@@ -3558,7 +3557,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC0FF0020260103000001D5 /* SDL3.xcframework in Frameworks */,
+				CEC0FF0020260103000001D5 /* SDL3.framework in Frameworks */,
 				CEC0FF0020260103000001D6 /* Objectively.framework in Frameworks */,
 				CEC0FF0020260103000001D7 /* ObjectivelyMVC.framework in Frameworks */,
 				CEC0FF0020260103000001D8 /* libc++.1.tbd in Frameworks */,
@@ -3587,7 +3586,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000010 /* libminizip.a in Frameworks */,
-				CF43CA06A122206F8CB8748A /* SDL3.xcframework in Frameworks */,
+				CF43CA06A122206F8CB8748A /* SDL3.framework in Frameworks */,
 				CED40A6A3049B32E0090C57A /* Objectively.framework in Frameworks */,
 				CE2B083823F9ECE1007C77B6 /* libshared.a in Frameworks */,
 				CE2B083623F9ECC7007C77B6 /* libcommon.a in Frameworks */,
@@ -3608,7 +3607,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D2A5C10000000000000000A3 /* SDL3.xcframework in Frameworks */,
+				D2A5C10000000000000000A3 /* SDL3.framework in Frameworks */,
 				D2A5C10000000000000000A4 /* Objectively.framework in Frameworks */,
 				D2A5C10000000000000000A5 /* ObjectivelyMVC.framework in Frameworks */,
 				D2A5C10000000000000000A6 /* libc++.1.tbd in Frameworks */,
@@ -3623,7 +3622,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9A5C2010000000000000011 /* libminizip.a in Frameworks */,
-				D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */,
+				D9A5C10000000000000000D0 /* SDL3.framework in Frameworks */,
 				D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */,
 				D9A5C10000000000000000D2 /* libshared.a in Frameworks */,
 				D9A5C10000000000000000D3 /* libcommon.a in Frameworks */,
@@ -4533,8 +4532,7 @@
 				CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */,
 				CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */,
 				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
-				CE1643492FF5A12100863996 /* SDL3.xcframework */,
-				CEF601C82FE711C9005C680C /* SDL3.xcframework */,
+				CE1643492FF5A12100863996 /* SDL3.framework */,
 				CEF601C42FE711B7005C680C /* SDL3_image.xcframework */,
 				CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */,
 			);
@@ -8344,7 +8342,7 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
-					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Frameworks/SDL3.xcframework/macos-arm64_x86_64/SDL3.framework/Headers",
+					"$(SRCROOT)/../SDL3/include",
 					"$(HOMEBREW_PREFIX)/include",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
@@ -8393,7 +8391,7 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
-					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Frameworks/SDL3.xcframework/macos-arm64_x86_64/SDL3.framework/Headers",
+					"$(SRCROOT)/../SDL3/include",
 					"$(HOMEBREW_PREFIX)/include",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
