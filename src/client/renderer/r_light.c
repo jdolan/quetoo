@@ -124,9 +124,9 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
     }
 
     if (l->occluded) {
-      renderStats->lightsOccluded++;
+      renderDiagnostics->lightsOccluded++;
     } else {
-      renderStats->lightsVisible++;
+      renderDiagnostics->lightsVisible++;
     }
 
     if (l->flags & R_LIGHT_NO_SHADOW) {

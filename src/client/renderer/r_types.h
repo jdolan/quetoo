@@ -2202,7 +2202,7 @@ typedef struct {
    * @brief The count of rendered decal draw element batches.
    */
   int32_t decalDrawElements;
-} RenderViewStats;
+} RenderDiagnostics;
 
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
@@ -2379,7 +2379,7 @@ typedef struct RenderView {
   /**
    * @brief Draw statistics for the most recent render of this view.
    */
-  RenderViewStats stats;
+  RenderDiagnostics diagnostics;
 } RenderView;
 
 /**

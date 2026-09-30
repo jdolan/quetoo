@@ -201,7 +201,7 @@ void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index
   l->hash = hash ?: 1;
 
   if (l->hash == module.hashes[index]) {
-    renderStats->lightsCached++;
+    renderDiagnostics->lightsCached++;
   }
 }
 

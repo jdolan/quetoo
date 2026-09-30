@@ -377,7 +377,7 @@ typedef struct {
    * @brief The reverb intensity at the listener origin.
    */
   float reverb;
-} SoundStageStats;
+} SoundDiagnostics;
 
 /**
  * @brief The sound stage type.
@@ -437,7 +437,7 @@ typedef struct SoundStage {
   /**
    * @brief Statistics for the most recent render of this stage.
    */
-  SoundStageStats stats;
+  SoundDiagnostics diagnostics;
 } SoundStage;
 
 #if defined(__S_LOCAL_H__)

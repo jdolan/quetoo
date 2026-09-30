@@ -609,7 +609,7 @@ void R_DrawDecals(const RenderView *view, RenderPass *pass) {
 
       $(pass, drawPrimitives, numVertexes, 1, 0, 0);
 
-      renderStats->decalDrawElements++;
+      renderDiagnostics->decalDrawElements++;
     }
   }
 }

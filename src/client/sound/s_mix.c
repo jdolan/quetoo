@@ -180,7 +180,7 @@ void S_MixChannels(SoundStage *stage) {
 
   soundContext.numActiveChannels = 0;
 
-  stage->stats.reverb = soundContext.reverb;
+  stage->diagnostics.reverb = soundContext.reverb;
 
   SoundChannel *ch = soundContext.channels;
   for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
@@ -270,7 +270,7 @@ void S_MixChannels(SoundStage *stage) {
     soundContext.numActiveChannels++;
   }
 
-  stage->stats.numChannels = soundContext.numActiveChannels;
+  stage->diagnostics.numChannels = soundContext.numActiveChannels;
 
   soundContext.prevTicks = stage->ticks;
 }

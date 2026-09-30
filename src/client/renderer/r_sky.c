@@ -179,7 +179,7 @@ static void R_DrawSkyDrawElementsMaterialStage(const RenderView *view,
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
 
-  renderStats->bspTriangles += draw->numElements / 3;
+  renderDiagnostics->bspTriangles += draw->numElements / 3;
 }
 
 /**
@@ -278,8 +278,8 @@ void R_DrawSky(const RenderView *view, RenderPass *pass) {
 
       $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
 
-      renderStats->bspTriangles += draw->numElements / 3;
-      renderStats->bspDrawElements++;
+      renderDiagnostics->bspTriangles += draw->numElements / 3;
+      renderDiagnostics->bspDrawElements++;
 
       if (r_drawMaterialStages->integer) {
         R_DrawSkyDrawElementsMaterialStages(view, draw, pass);

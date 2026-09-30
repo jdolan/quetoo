@@ -59,8 +59,8 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
 
   const Client *cl = cgi.client;
   const RenderView *view = cgi.view;
-  const RenderViewStats *r = &view->stats;
-  const SoundStageStats *s = &cgi.stage->stats;
+  const RenderDiagnostics *r = &view->diagnostics;
+  const SoundDiagnostics *s = &cgi.stage->diagnostics;
 
   self->numRows = 0;
 

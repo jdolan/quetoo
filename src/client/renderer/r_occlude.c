@@ -254,11 +254,11 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
       }
     }
 
-    renderStats->queriesAllocated++;
+    renderDiagnostics->queriesAllocated++;
     if (q->result) {
-      renderStats->queriesVisible++;
+      renderDiagnostics->queriesVisible++;
     } else {
-      renderStats->queriesOccluded++;
+      renderDiagnostics->queriesOccluded++;
     }
   }
 

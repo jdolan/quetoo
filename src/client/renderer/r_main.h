@@ -115,7 +115,7 @@ extern RenderConfig renderConfig;
 
 #if defined(__R_LOCAL_H__)
 
-extern RenderViewStats *renderStats;
+extern RenderDiagnostics *renderDiagnostics;
 
 /**
  * @brief Vec4-aligned voxel uniforms.
