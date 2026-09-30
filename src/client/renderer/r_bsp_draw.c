@@ -641,6 +641,10 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
       continue;
     }
 
+    if (!IS_WORLDSPAWN(e->model)) {
+      renderDiagnostics->entitiesVisible++;
+    }
+
     R_DrawOpaqueBspEntity(view, e, pass);
   }
 
