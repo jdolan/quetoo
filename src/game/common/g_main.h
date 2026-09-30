@@ -225,11 +225,6 @@ extern Cvar *editor;
 
 extern GameTeam gameTeamList[MAX_TEAMS];
 
-#define g_team_red (&gTeamList[TEAM_RED])
-#define g_team_blue (&gTeamList[TEAM_BLUE])
-#define g_team_yellow (&gTeamList[TEAM_YELLOW])
-#define g_team_green (&gTeamList[TEAM_GREEN])
-
 void G_Init(void);
 void G_Shutdown(void);
 void G_ResetItems(void);

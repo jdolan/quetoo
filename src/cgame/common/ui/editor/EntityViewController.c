@@ -21,8 +21,8 @@
 
 #include "cg_local.h"
 
-static Cvar *editor_gridSize;
-static Cvar *editor_selectDist;
+static Cvar *editorGridSize;
+static Cvar *editorSelectDist;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
@@ -46,12 +46,12 @@ static void setEntityOriginFromClientView(Entity *entity) {
   Vec3 origin = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
   const CollisionTrace tr = cgi.Trace(cgi.view->origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
 
-  origin = Vec3_Fmaf(tr.end, editor_gridSize->value, Vec3_Negate(cgi.view->forward));
-  origin = Vec3_Quantize(origin, editor_gridSize->value);
+  origin = Vec3_Fmaf(tr.end, editorGridSize->value, Vec3_Negate(cgi.view->forward));
+  origin = Vec3_Quantize(origin, editorGridSize->value);
 
   if (cgi.PointLeafnum(origin, 0) == -1) {
     origin = Vec3_Fmaf(cgi.view->origin, 256.f, cgi.view->forward);
-    origin = Vec3_Quantize(origin, editor_gridSize->value);
+    origin = Vec3_Quantize(origin, editorGridSize->value);
   }
 
   cgi.SetEntityKeyValue(entity, "origin", ENTITY_VEC3, &origin);
@@ -355,8 +355,8 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   } else if (mod == SDL_KMOD_NONE) {
 
     if (key >= SDLK_1 && key <= SDLK_8) {
-      cgi.SetCvarValue(editor_gridSize->name, (1 << (key - SDLK_1)));
-      cgi.Print("Editor grid size set to %g\n", editor_gridSize->value);
+      cgi.SetCvarValue(editorGridSize->name, (1 << (key - SDLK_1)));
+      cgi.Print("Editor grid size set to %g\n", editorGridSize->value);
     }
 
     if (key == SDLK_G) {
@@ -383,7 +383,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         right.x = SignOf(cgi.view->right.x);
       }
 
-      const float step = editor_gridSize->value;
+      const float step = editorGridSize->value;
 
       switch (key) {
         case SDLK_W:
@@ -426,7 +426,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       if (!Vec3_Equal(move, Vec3_Zero()) && !isBrushEntity(self->entity)) {
 
         Vec3 origin = cgi.EntityValue(e, "origin")->vec3;
-        origin = Vec3_Quantize(Vec3_Add(origin, move), editor_gridSize->value);
+        origin = Vec3_Quantize(Vec3_Add(origin, move), editorGridSize->value);
 
         cgi.SetEntityKeyValue(e, "origin", ENTITY_VEC3, &origin);
 
@@ -486,7 +486,7 @@ static void viewWillAppear(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   const Vec3 start = cgi.view->origin;
-  const Vec3 end = Vec3_Fmaf(start, editor_selectDist->value, cgi.view->forward);
+  const Vec3 end = Vec3_Fmaf(start, editorSelectDist->value, cgi.view->forward);
 
   this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates);
   this->candidate = 0;
@@ -658,8 +658,8 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
-  editor_gridSize = cgi.AddCvar("editorGridSize", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
-  editor_selectDist = cgi.AddCvar("editorSelectDist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
+  editorGridSize = cgi.AddCvar("editorGridSize", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editorSelectDist = cgi.AddCvar("editorSelectDist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
 }
 
 /**

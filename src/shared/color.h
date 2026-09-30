@@ -38,7 +38,7 @@
 #define color_white       Color3bv(0xffffff)
 #define color_orange      Color3bv(0x0088ff)
 #define color_grey        Color3bv(0x888888)
-#define color_transparent Color4bv(0);
+#define color_transparent Color4bv(0)
 
 #define color_hue_red              0.f
 #define color_hue_orange           30.f

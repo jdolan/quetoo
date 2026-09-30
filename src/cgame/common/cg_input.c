@@ -72,13 +72,13 @@ static void Cg_UpdateFollowLook(const SDL_Event *event) {
     return;
   }
 
-  const float sensitivity = cgi.GetCvarValue("mSensitivity");
-  const float invert = cgi.GetCvarValue("mInvert") ? -1.f : 1.f;
+  const float sensitivity = cgi.GetCvarValue("m_sensitivity");
+  const float invert = cgi.GetCvarValue("m_invert") ? -1.f : 1.f;
 
-  cgameState.follow.yaw -= cgi.GetCvarValue("mYaw") * event->motion.xrel * sensitivity;
+  cgameState.follow.yaw -= cgi.GetCvarValue("m_yaw") * event->motion.xrel * sensitivity;
 
   cgameState.follow.pitch = Clampf(
-    cgameState.follow.pitch + invert * cgi.GetCvarValue("mPitch") * event->motion.yrel * sensitivity,
+    cgameState.follow.pitch + invert * cgi.GetCvarValue("m_pitch") * event->motion.yrel * sensitivity,
     -89.f, 89.f
   );
 }
