@@ -169,7 +169,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
 
 /**
  * @brief Builds the voxel grid aligned to world coordinates at `BSP_VOXEL_SIZE` intervals.
- * MapVoxels are placed at ..., -64, -32, 0, 32, 64, 96, ... in all axes.
+ * Voxels are placed at ..., -64, -32, 0, 32, 64, 96, ... in all axes.
  */
 static void BuildVoxelExtents(void) {
 
