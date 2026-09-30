@@ -226,7 +226,7 @@ static const MapBrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
 
       assert(side->winding);
 
-      const int32_t plane = side->plane ^ 1;
+      const int32_t plane = side->plane & ~1;
       bool cached = false;
       for (size_t j = 0; j < cache->count; j++) {
         if (VectorValue(cache, intptr_t, j) == plane) {
@@ -361,6 +361,11 @@ static Node *BuildTree_r(Node *node, CsgBrush *brushes) {
   node->children[1]->parent = node;
 
   SplitBrush(node->volume, node->plane, &node->children[0]->volume, &node->children[1]->volume);
+
+  if (!node->children[0]->volume || !node->children[1]->volume) {
+    Com_Error(ERROR_FATAL, "Plane %d left a child of node %s %s without a volume\n",
+              node->plane, vtos(node->volume->bounds.mins), vtos(node->volume->bounds.maxs));
+  }
 
   CsgBrush *front, *back;
   SplitBrushes(brushes, node, &front, &back);
