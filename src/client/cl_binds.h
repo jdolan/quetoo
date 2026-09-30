@@ -29,9 +29,8 @@ static const char *DEFAULT_BINDS =
     "bind f11 r_screenshot view\n"
     "bind f12 r_screenshot\n"
 
-    // now execute the "default" configuration file
     "exec quetoo.cfg\n"
 
-    // bind these last in case somebody is using a Quake 2 config
+    // bind these last so they are guaranteed to work
     "bind ` cl_toggleConsole\n"
     "bind f8 cl_toggleConsole\n";

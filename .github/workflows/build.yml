@@ -61,11 +61,11 @@ jobs:
         cmake --build openal-soft/build -j$(nproc)
         sudo cmake --install openal-soft/build
 
-    # Held at 3.4.12 in step with the macOS pin, so that a release bisects to
-    # the same SDL3 on every platform. See #945.
+    # The jdolan/SDL ObjectivelyGPU tag: 3.4.12 plus the SDL_gpu query API,
+    # the same SDL3 on every platform. See #945 and #1093.
     - name: Build SDL3
       run: |
-        git clone --depth 1 --branch release-3.4.12 https://github.com/libsdl-org/SDL.git SDL3
+        git clone --depth 1 --branch ObjectivelyGPU https://github.com/jdolan/SDL.git SDL3
         cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
         cmake --build SDL3/build -j$(nproc)
         sudo cmake --install SDL3/build

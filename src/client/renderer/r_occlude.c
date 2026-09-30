@@ -24,6 +24,14 @@
 
 #include "r_local.h"
 
+#ifndef SDL_GPU_QUERY_API
+ #if defined(_MSC_VER)
+  #pragma message("SDL3 lacks SDL_GPU_QUERY_API: occlusion queries are disabled")
+ #else
+  #warning "SDL3 lacks SDL_GPU_QUERY_API: occlusion queries are disabled"
+ #endif
+#endif
+
 RenderOcclusion renderOcclusion;
 
 /**
@@ -208,7 +216,8 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
       const Uint64 *results = $(renderOcclusion.transfer, map, false);
 
-      for (int32_t i = 0; i < renderOcclusion.numQueries; i++) {
+      const int32_t numResults = Mini(renderOcclusion.numQueriesDownloaded, renderOcclusion.numQueries);
+      for (int32_t i = 0; i < numResults; i++) {
         renderOcclusion.queries[i].result = results[i] > 0;
       }
 
@@ -216,15 +225,19 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
       renderDepthPipeline.fence = release(renderDepthPipeline.fence);
 
-      if (r_occlude->integer) {
-        R_DrawOcclusionQueries_(view, commands);
-      }
+      renderOcclusion.numQueriesDownloaded = 0;
 
-      CopyPass *pass = $(commands, beginCopyPass);
-      $(pass, downloadQueryResults, renderOcclusion.pool, 0, renderOcclusion.numQueries, &(SDL_GPUTransferBufferLocation) {
-        .transfer_buffer = renderOcclusion.transfer->buffer,
-      });
-      release(pass);
+      if (r_occlude->integer && renderOcclusion.numQueries) {
+        R_DrawOcclusionQueries_(view, commands);
+
+        CopyPass *pass = $(commands, beginCopyPass);
+        $(pass, downloadQueryResults, renderOcclusion.pool, 0, renderOcclusion.numQueries, &(SDL_GPUTransferBufferLocation) {
+          .transfer_buffer = renderOcclusion.transfer->buffer,
+        });
+        release(pass);
+
+        renderOcclusion.numQueriesDownloaded = renderOcclusion.numQueries;
+      }
     }
   }
 
