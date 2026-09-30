@@ -45,7 +45,7 @@ static void CollectManifestAsset(const HashTable *table, ident key, ident value,
  * @brief Reads the manifest file and generates a pk3 archive containing
  * all referenced assets.
  */
-int32_t ZIP_Main(void) {
+int32_t Qzip_Main(void) {
   char path[MAX_OS_PATH];
 
   Com_Print("\n------------------------------------------\n");

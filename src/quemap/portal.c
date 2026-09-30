@@ -151,7 +151,7 @@ void MakeHeadnodePortals(Tree *tree) {
       Portal *p = AllocPortal();
       portals[n] = p;
 
-      Plane *plane = &p->plane;
+      MapPlane *plane = &p->plane;
       if (j) {
         plane->normal.xyz[i] = -1;
         plane->dist = -bounds.maxs.xyz[i];
@@ -170,7 +170,7 @@ void MakeHeadnodePortals(Tree *tree) {
       if (j == i) {
         continue;
       }
-      const Plane *plane = &portals[j]->plane;
+      const MapPlane *plane = &portals[j]->plane;
       Winding_Clip(&portals[i]->winding, plane->normal, plane->dist, SIDE_EPSILON);
     }
   }
@@ -181,7 +181,7 @@ void MakeHeadnodePortals(Tree *tree) {
  */
 static Winding *BaseWindingForNode(const Node *node) {
 
-  const Plane *plane = &planes[node->plane];
+  const MapPlane *plane = &planes[node->plane];
   Winding *w = Winding_ForPlane(plane->normal, plane->dist);
 
   // clip by all the parents
@@ -252,7 +252,7 @@ void MakeNodePortal(Node *node) {
 void SplitNodePortals(Node *node) {
   Portal *next;
 
-  Plane *plane = &planes[node->plane];
+  MapPlane *plane = &planes[node->plane];
 
   for (Portal *p = node->portals; p; p = next) {
     int32_t side;
@@ -413,7 +413,7 @@ static bool PlaceOccupant(Node *headNode, const Vec3 origin, const MapEntity *oc
 
   Node *node = headNode;
   while (node->plane != PLANE_LEAF) {
-    const Plane *plane = &planes[node->plane];
+    const MapPlane *plane = &planes[node->plane];
     const double d = Vec3_Dot(origin, plane->normal) - plane->dist;
     if (d >= 0.0) {
       node = node->children[0];

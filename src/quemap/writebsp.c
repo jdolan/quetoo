@@ -38,7 +38,7 @@ void EmitPlanes(void) {
 
   bspFile.numPlanes = 0;
 
-  const Plane *p = planes;
+  const MapPlane *p = planes;
   for (int32_t i = 0; i < numPlanes; i++, p++) {
     BspPlane *out = &bspFile.planes[bspFile.numPlanes];
 
@@ -253,7 +253,7 @@ int32_t EmitNodes(const Tree *tree) {
 /**
  * @brief Emits a single brush side into the BSP brush sides lump and returns a pointer to it.
  */
-static BspBrushSide *EmitBrushSide(const BrushSide *side) {
+static BspBrushSide *EmitBrushSide(const MapBrushSide *side) {
 
   BspBrushSide *out = bspFile.brushSides + bspFile.numBrushSides;
 
@@ -275,9 +275,9 @@ static BspBrushSide *EmitBrushSide(const BrushSide *side) {
  * @brief Emits all sides of a brush into the BSP brush sides lump.
  * @return The number of brush sides emitted.
  */
-static int32_t EmitBrushSides(const Brush *brush) {
+static int32_t EmitBrushSides(const MapBrush *brush) {
 
-  BrushSide *side = brush->brushSides;
+  MapBrushSide *side = brush->brushSides;
   for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
     side->out = EmitBrushSide(side);
@@ -290,7 +290,7 @@ static int32_t EmitBrushSides(const Brush *brush) {
 /**
  * @brief Emits a single brush and its sides into the BSP brushes lump and returns a pointer to the emitted brush.
  */
-static BspBrush *EmitBrush(const Brush *brush) {
+static BspBrush *EmitBrush(const MapBrush *brush) {
 
   BspBrush *out = bspFile.brushes + bspFile.numBrushes;
 
@@ -310,7 +310,7 @@ static BspBrush *EmitBrush(const Brush *brush) {
  */
 void EmitBrushes(void) {
 
-  Brush *brush = brushes;
+  MapBrush *brush = brushes;
   for (int32_t i = 0; i < numBrushes; i++, brush++) {
 
     if (!brush->numBrushSides) {
@@ -432,7 +432,7 @@ BspModel *BeginModel(const MapEntity *e) {
 
   mod->bounds = Box3_Null();
 
-  const Brush *brush = &brushes[start];
+  const MapBrush *brush = &brushes[start];
   for (int32_t j = start; j < end; j++, brush++) {
 
     if (brush->numBrushSides) {

@@ -211,7 +211,7 @@ static void EmitPatchCollisionBrush(MapEntity *entity,
 
   const int32_t caulkMaterial = LoadMaterial("common/caulk");
 
-  Brush *brush = &brushes[numBrushes];
+  MapBrush *brush = &brushes[numBrushes];
   memset(brush, 0, sizeof(*brush));
   brush->entity = (int32_t) (entity - entities);
   brush->brush = numBrushes - entity->firstBrush;
@@ -238,7 +238,7 @@ static void EmitPatchCollisionBrush(MapEntity *entity,
   };
 
   int32_t numSides = 0;
-  BrushSide *side;
+  MapBrushSide *side;
 
   // Front
   side = &brush->brushSides[numSides];

@@ -157,7 +157,7 @@ static void ProcessModels(void) {
  * @brief Entry point for the BSP compilation stage; loads the map, builds the BSP tree, and writes the .bsp file.
  * @return The exit code for the BSP stage.
  */
-int32_t BSP_Main(void) {
+int32_t Qbsp_Main(void) {
 
   Com_Print("\n------------------------------------------\n");
   Com_Print("\nCompiling %s from %s\n\n", bspName, mapName);

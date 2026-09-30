@@ -37,7 +37,7 @@ typedef struct Node {
   int32_t contents; // OR of all brush contents, or CONTENTS_NODE, CONTENTS_BLOCK
 
   // nodes only
-  const BrushSide *splitSide; // the side that created the node
+  const MapBrushSide *splitSide; // the side that created the node
   struct Node *children[2];
   Face *faces;
   struct PatchFace *patchFaces;

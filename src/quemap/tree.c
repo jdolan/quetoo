@@ -147,7 +147,7 @@ static Node *LeafNode(Node *node, CsgBrush *brushes) {
  * @return A heuristic value for splitting the brushes list by the given side. Higher values mean
  * that this face produces a more balanced tree while splitting as few brushes as possible.
  */
-static int32_t SelectSplitSideHeuristic(const BrushSide *side, const CsgBrush *brushes) {
+static int32_t SelectSplitSideHeuristic(const MapBrushSide *side, const CsgBrush *brushes) {
 
   if (side->surface & SURF_HINT) {
     return INT32_MAX;
@@ -189,9 +189,9 @@ static int32_t SelectSplitSideHeuristic(const BrushSide *side, const CsgBrush *b
 /**
  * @return The original brush side from brushes with the highest heuristic value.
  */
-static const BrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
+static const MapBrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
 
-  const BrushSide *bestSide = NULL;
+  const MapBrushSide *bestSide = NULL;
   int32_t bestValue = INT32_MIN;
 
   Vector *cache = $(alloc(Vector), initWithSize, sizeof(intptr_t));
@@ -214,7 +214,7 @@ static const BrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
       }
     }
 
-    const BrushSide *side = brush->brushSides;
+    const MapBrushSide *side = brush->brushSides;
     for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
       if (side->surface & SURF_BEVEL) {
@@ -400,7 +400,7 @@ Tree *BuildTree(CsgBrush *brushes) {
       Com_Warn("Entity %d brush %d produced microvolume\n", b->original->entity, b->original->brush);
     }
 
-    const BrushSide *s = b->brushSides;
+    const MapBrushSide *s = b->brushSides;
     for (int32_t i = 0; i < b->numBrushSides; i++, s++) {
       if (s->surface & SURF_BEVEL) {
         continue;
@@ -447,7 +447,7 @@ static int32_t VisibleContents(int32_t contents) {
 /**
  * @return True if every point of @p w lies within `ON_EPSILON` of @p plane.
  */
-static bool WindingOnPlane(const Winding *w, const Plane *plane) {
+static bool WindingOnPlane(const Winding *w, const MapPlane *plane) {
 
   for (int32_t i = 0; i < w->numPoints; i++) {
     if (fabs(Vec3_Dot(w->points[i], plane->normal) - plane->dist) > ON_EPSILON) {
@@ -461,7 +461,7 @@ static bool WindingOnPlane(const Winding *w, const Plane *plane) {
 /**
  * @return True if the leaf @p node holds a fragment of @p brush.
  */
-static bool LeafHoldsBrush(const Node *node, const Brush *brush) {
+static bool LeafHoldsBrush(const Node *node, const MapBrush *brush) {
 
   for (const CsgBrush *b = node->brushes; b; b = b->next) {
     if (b->original == brush) {
@@ -481,7 +481,7 @@ static Node *PointInLeaf(const Vec3 point) {
 
   Node *node = faceHeadNode;
   while (node->plane != PLANE_LEAF) {
-    const Plane *plane = &planes[node->plane];
+    const MapPlane *plane = &planes[node->plane];
     node = node->children[Vec3_Dot(point, plane->normal) - plane->dist >= 0.0 ? 0 : 1];
   }
 
@@ -494,7 +494,7 @@ static Node *PointInLeaf(const Vec3 point) {
  * @details The leaf is found at points in front of the center of the piece, up to 4 units away.
  * If each of them is still in a leaf that holds the brush, the piece is not visible.
  */
-static bool SideVisibleInFront(const Winding *w, const CsgBrush *brush, const BrushSide *side) {
+static bool SideVisibleInFront(const Winding *w, const CsgBrush *brush, const MapBrushSide *side) {
 
   static const float distances[] = { .5f, 1.f, 2.f, 4.f };
 
@@ -539,7 +539,7 @@ static int32_t cFaces;
  * inside, so each visible piece of it also makes a face that looks into the brush: the surface of
  * water, seen from under it.
  */
-static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, const BrushSide *side, Node *onNode) {
+static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, const MapBrushSide *side, Node *onNode) {
 
   if (node->plane == PLANE_LEAF) {
 
@@ -594,7 +594,7 @@ static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, co
     return;
   }
 
-  const Plane *plane = &planes[node->plane];
+  const MapPlane *plane = &planes[node->plane];
 
   if (WindingOnPlane(w, plane)) {
     const bool facing = Vec3_Dot(planes[side->plane].normal, plane->normal) > 0.f;
@@ -621,7 +621,7 @@ static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, co
  */
 typedef struct {
   const CsgBrush *brush;
-  const BrushSide *side;
+  const MapBrushSide *side;
   int32_t order;
 } TreeFaceSide;
 
@@ -753,7 +753,7 @@ void MakeTreeFaces(Tree *tree, const CsgBrush *brushes) {
       continue;
     }
 
-    const BrushSide *side = brush->brushSides;
+    const MapBrushSide *side = brush->brushSides;
     for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
       if (!side->original || !side->winding) {

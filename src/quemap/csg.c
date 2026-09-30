@@ -115,7 +115,7 @@ CsgBrush *MakeBrushes(int32_t index, int32_t count) {
 
   CsgBrush *list = NULL;
 
-  const Brush *in = &brushes[index];
+  const MapBrush *in = &brushes[index];
   for (int32_t i = 0; i < count; i++, in++) {
 
     if (!in->numBrushSides) {

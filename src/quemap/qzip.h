@@ -26,4 +26,4 @@
 extern bool includeShared;
 extern bool updateZip;
 
-int32_t ZIP_Main(void);
+int32_t Qzip_Main(void);

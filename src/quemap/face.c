@@ -64,7 +64,7 @@ Face *MergeFaces(Face *a, Face *b) {
     return NULL;
   }
 
-  const Plane *plane = &planes[a->plane];
+  const MapPlane *plane = &planes[a->plane];
   Winding *w = Winding_Merge(a->w, b->w, plane->normal);
   if (!w) {
     return NULL;
@@ -119,7 +119,7 @@ static bool VertexGridEqualFunc(const ident a_, const ident b_) {
  * @brief Emits a vertex array for the given face.
  */
 static int32_t EmitFaceVertexes(const Face *face, const Winding *w) {
-  const BrushSide *brushSide = face->brushSide;
+  const MapBrushSide *brushSide = face->brushSide;
 
   const Vec3 sdir = brushSide->axis[0].xyz;
   const Vec3 tdir = brushSide->axis[1].xyz;
@@ -296,7 +296,7 @@ static void BuildPhongMaps(const BspModel *mod) {
   }
 
   phongBrushSideWindings = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
-  const BrushSide *mapSide = brushSides;
+  const MapBrushSide *mapSide = brushSides;
   for (int32_t j = 0; j < numBrushSides; j++, mapSide++) {
     if (mapSide->out && mapSide->winding) {
       $(phongBrushSideWindings, set, (void *) mapSide->out, mapSide->winding);

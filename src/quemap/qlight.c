@@ -435,12 +435,12 @@ static void LightWorld(void) {
 
 /**
  * @brief `LIGHT` stage entry point: builds and bakes all lights, and writes the updated BSP.
- * @details `BSP_Main()` always runs immediately before this in the same process, so `bspFile`
+ * @details `Qbsp_Main()` always runs immediately before this in the same process, so `bspFile`
  * is already fully populated in memory; there is no need to reload it from disk here. The
  * collision model, however, is a distinct representation that must be built from the .bsp file
- * `BSP_Main()` just wrote.
+ * `Qbsp_Main()` just wrote.
  */
-int32_t LIGHT_Main(void) {
+int32_t Qlight_Main(void) {
 
   Com_Print("\n------------------------------------------\n");
   Com_Print("\nLighting %s\n\n", bspName);

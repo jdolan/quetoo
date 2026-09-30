@@ -40,7 +40,7 @@ static void FixTJunctions_(int32_t faceNum) {
 
   Face *face = VectorValue(faces, Face *, faceNum);
 
-  const Plane *plane = &planes[face->brushSide->plane];
+  const MapPlane *plane = &planes[face->brushSide->plane];
 
   for (size_t s = 0; s < faces->count; s++) {
 

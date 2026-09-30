@@ -149,7 +149,7 @@ static void Shutdown(const char *msg) {
 /**
  * @brief Parses command-line options for the BSP compilation stage beginning at argv index argc.
  */
-static void Check_BSP_Options(int32_t argc) {
+static void Qbsp_CheckOptions(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
     if (!q_strcmp(Com_Argv(i), "--micro-volume")) {
@@ -183,7 +183,7 @@ static void Check_BSP_Options(int32_t argc) {
 /**
  * @brief Parses command-line options for the light compilation stage beginning at argv index argc.
  */
-static void Check_LIGHT_Options(int32_t argc) {
+static void Qlight_CheckOptions(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
     
@@ -193,7 +193,7 @@ static void Check_LIGHT_Options(int32_t argc) {
 /**
  * @brief Parses command-line options for the zip packaging stage beginning at argv index argc.
  */
-static void Check_ZIP_Options(int32_t argc) {
+static void Qzip_CheckOptions(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
 
@@ -318,13 +318,13 @@ int32_t main(int32_t argc, char **argv) {
 
     if (!q_strcmp(Com_Argv(i), "-bsp")) {
       doBsp = true;
-      Check_BSP_Options(i + 1);
-      Check_LIGHT_Options(i + 1);
+      Qbsp_CheckOptions(i + 1);
+      Qlight_CheckOptions(i + 1);
     }
 
     if (!q_strcmp(Com_Argv(i), "-zip")) {
       doZip = true;
-      Check_ZIP_Options(i + 1);
+      Qzip_CheckOptions(i + 1);
     }
   }
 
@@ -365,9 +365,9 @@ int32_t main(int32_t argc, char **argv) {
 
   if (doBsp) {
 
-    BSP_Main();
+    Qbsp_Main();
 
-    LIGHT_Main();
+    Qlight_Main();
 
     FreeMaterials();
   }
@@ -376,7 +376,7 @@ int32_t main(int32_t argc, char **argv) {
   WriteManifest();
 
   if (doZip) {
-    ZIP_Main();
+    Qzip_Main();
   }
 
   // emit time
