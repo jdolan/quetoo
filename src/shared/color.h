@@ -28,30 +28,30 @@
 /**
  * @brief Color constants.
  */
-#define color_black       Color3bv(0x000000)
-#define color_red         Color3bv(0x0000ff)
-#define color_green       Color3bv(0x00ff00)
-#define color_yellow      Color3bv(0x00ffff)
-#define color_blue        Color3bv(0xff0000)
-#define color_magenta     Color3bv(0xff00ff)
-#define color_cyan        Color3bv(0xffff00)
-#define color_white       Color3bv(0xffffff)
-#define color_orange      Color3bv(0x0088ff)
-#define color_grey        Color3bv(0x888888)
-#define color_transparent Color4bv(0);
+#define COLOR_RGB_BLACK        Color3bv(0x000000)
+#define COLOR_RGB_RED          Color3bv(0x0000ff)
+#define COLOR_RGB_GREEN        Color3bv(0x00ff00)
+#define COLOR_RGB_YELLOW       Color3bv(0x00ffff)
+#define COLOR_RGB_BLUE         Color3bv(0xff0000)
+#define COLOR_RGB_MAGENTA      Color3bv(0xff00ff)
+#define COLOR_RGB_CYAN         Color3bv(0xffff00)
+#define COLOR_RGB_WHITE        Color3bv(0xffffff)
+#define COLOR_RGB_ORANGE       Color3bv(0x0088ff)
+#define COLOR_RGB_GREY         Color3bv(0x888888)
+#define COLOR_RGBA_TRANSPARENT Color4bv(0)
 
-#define color_hue_red              0.f
-#define color_hue_orange           30.f
-#define color_hue_yellow           60.f
-#define color_hue_chartreuse_green 90.f
-#define color_hue_green            120.f
-#define color_hue_spring_green     150.f
-#define color_hue_cyan             180.f
-#define color_hue_azure            210.f
-#define color_hue_blue             240.f
-#define color_hue_violet           270.f
-#define color_hue_magenta          300.f
-#define color_hue_rose             330.f
+#define COLOR_HUE_RED              0.f
+#define COLOR_HUE_ORANGE           30.f
+#define COLOR_HUE_YELLOW           60.f
+#define COLOR_HUE_CHARTREUSE_GREEN 90.f
+#define COLOR_HUE_GREEN            120.f
+#define COLOR_HUE_SPRING_GREEN     150.f
+#define COLOR_HUE_CYAN             180.f
+#define COLOR_HUE_AZURE            210.f
+#define COLOR_HUE_BLUE             240.f
+#define COLOR_HUE_VIOLET           270.f
+#define COLOR_HUE_MAGENTA          300.f
+#define COLOR_HUE_ROSE             330.f
 
 /**
  * @brief A clamped floating point RGBA color.
@@ -389,16 +389,16 @@ static inline Color __attribute__ ((warn_unused_result)) Color_Mix(const Color a
  */
 static inline bool __attribute__ ((warn_unused_result)) Color_Parse(const char *s, Color *color) {
 
-  const size_t length = q_strlen(s);
+  const size_t length = Str_Length(s);
   if (length != 6 && length != 8) {
     return false;
   }
 
   char buffer[9];
-  q_strlcpy(buffer, s, sizeof(buffer));
+  Str_Copy(buffer, s, sizeof(buffer));
 
   if (length == 6) {
-    q_strlcat(buffer, "ff", sizeof(buffer));
+    Str_Append(buffer, "ff", sizeof(buffer));
   }
 
   uint32_t rgba;
@@ -495,7 +495,7 @@ static inline const char * __attribute__ ((warn_unused_result)) Color_Unparse(co
   const Color32 c = Color_Color32(color);
 
   static char buffer[12];
-  q_snprintf(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
+  Str_Format(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
 
   return buffer;
 }

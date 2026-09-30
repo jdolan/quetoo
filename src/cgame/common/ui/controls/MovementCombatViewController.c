@@ -78,9 +78,9 @@ static void loadView(ViewController *self) {
   $(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
 #if defined(G_HOOK)
-  $(hookStyle, addOption, Hook_StyleName(HOOK_PULL), NULL);
-  $(hookStyle, addOption, Hook_StyleName(HOOK_SWING_MANUAL), NULL);
-  $(hookStyle, addOption, Hook_StyleName(HOOK_SWING_AUTO), NULL);
+  $(hookStyle, addOption, GameHookStyle_Name(HOOK_PULL), NULL);
+  $(hookStyle, addOption, GameHookStyle_Name(HOOK_SWING_MANUAL), NULL);
+  $(hookStyle, addOption, GameHookStyle_Name(HOOK_SWING_AUTO), NULL);
 #else
   $(grappleHook, removeFromSuperview);
 #endif

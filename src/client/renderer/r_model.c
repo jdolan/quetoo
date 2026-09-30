@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-RenderModels rModels;
+RenderModels renderModels;
 
 /**
  * @brief Loads the model by the specified name.
@@ -34,7 +34,7 @@ RenderModel *R_LoadModel(const char *name) {
   }
 
   if (*name == '*') {
-    q_snprintf(key, sizeof(key), "%s#%s", rModels.world->media.name, name + 1);
+    Str_Format(key, sizeof(key), "%s#%s", renderModels.world->media.name, name + 1);
   } else {
     StripExtension(name, key);
   }
@@ -43,9 +43,9 @@ RenderModel *R_LoadModel(const char *name) {
   if (mod == NULL) {
 
     const RenderModelFormat formats[] = {
-      rObjModelFormat,
-      rMd3ModelFormat,
-      rBspModelFormat
+      renderObjModelFormat,
+      renderMd3ModelFormat,
+      renderBspModelFormat
     };
 
     const RenderModelFormat *format = formats;
@@ -54,7 +54,7 @@ RenderModel *R_LoadModel(const char *name) {
     size_t i;
     for (i = 0; i < lengthof(formats); i++, format++) {
 
-      q_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
+      Str_Format(path, sizeof(path), "%s.%s", key, format->extension);
 
       if (Fs_Exists(path)) {
         break;
@@ -68,9 +68,9 @@ RenderModel *R_LoadModel(const char *name) {
         warned->destroyKey = free;
       }
       if ($(warned, get, (void *) key) == NULL) {
-        char *warnedKey = q_strdup(key);
+        char *warnedKey = Str_Duplicate(key);
         $(warned, set, warnedKey, warnedKey);
-        if (q_strstr(name, "players/")) {
+        if (Str_Find(name, "players/")) {
           Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
         } else {
           Com_Warn("Failed to load %s\n", name);
@@ -112,7 +112,7 @@ RenderModel *R_LoadModel(const char *name) {
  * @brief Returns the currently loaded world model (BSP).
  */
 RenderModel *R_WorldModel(void) {
-  return rModels.world;
+  return renderModels.world;
 }
 
 /**
@@ -120,7 +120,7 @@ RenderModel *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 
-  memset(&rModels, 0, sizeof(rModels));
+  memset(&renderModels, 0, sizeof(renderModels));
 
   R_InitMd3Normals();
 
@@ -132,7 +132,7 @@ void R_InitModels(void) {
  */
 void R_ShutdownModels(void) {
 
-  memset(&rModels, 0, sizeof(rModels));
+  memset(&renderModels, 0, sizeof(renderModels));
 
   R_ShutdownMeshPipeline();
 }

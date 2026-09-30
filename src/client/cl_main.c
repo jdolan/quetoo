@@ -51,8 +51,8 @@ Cvar *cl_drawNetMessages;
 ClientStatic cls;
 Client cl;
 
-RenderView clView;
-SoundStage clStage;
+RenderView clientView;
+SoundStage clientStage;
 
 /**
  * @brief We have gotten a challenge from the server, so try and connect.
@@ -72,7 +72,7 @@ static void Cl_SendConnect(void) {
     addr.port = htons(PORT_SERVER);
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
                          qport->integer, cls.server.challenge, Cvar_UserInfo());
 
   cvarUserInfoModified = false;
@@ -84,13 +84,13 @@ static void Cl_SendConnect(void) {
 static void Cl_AttemptConnect(void) {
 
   // if the local server is running and we aren't then connect
-  if (Com_WasInit(QUETOO_SERVER) && q_strcmp(cls.server.address, "localhost")) {
+  if (Com_WasInit(QUETOO_SERVER) && Str_Compare(cls.server.address, "localhost")) {
 
     if (cls.state > CL_DISCONNECTED) {
       Cl_Disconnect();
     }
 
-    q_strlcpy(cls.server.address, "localhost", sizeof(cls.server.address));
+    Str_Copy(cls.server.address, "localhost", sizeof(cls.server.address));
 
     cls.state = CL_CONNECTING;
     cls.server.connectTime = 0;
@@ -124,13 +124,13 @@ static void Cl_AttemptConnect(void) {
   Cl_QueryServer(&addr);
 
   const char *s = Net_NetaddrToString(&addr);
-  if (q_strcmp(cls.server.address, s)) {
+  if (Str_Compare(cls.server.address, s)) {
     Com_Print("Connecting to %s (%s)...\n", cls.server.address, s);
   } else {
     Com_Print("Connecting to %s...\n", cls.server.address);
   }
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "get_challenge\n");
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getChallenge\n");
 }
 
 /**
@@ -144,7 +144,7 @@ void Cl_Connect(const NetAddr *addr) {
 
   Cl_Disconnect();
 
-  q_strlcpy(cls.server.address, Net_NetaddrToString(addr), sizeof(cls.server.address));
+  Str_Copy(cls.server.address, Net_NetaddrToString(addr), sizeof(cls.server.address));
 
   cls.state = CL_CONNECTING;
   cls.server.connectTime = 0;
@@ -216,7 +216,7 @@ static void Cl_Rcon_f(void) {
     }
   }
 
-  Net_SendDatagram(NS_UDP_CLIENT, &to, message, q_strlen(message) + 1);
+  Net_SendDatagram(NS_UDP_CLIENT, &to, message, Str_Length(message) + 1);
 }
 
 /**
@@ -287,7 +287,7 @@ void Cl_SendDisconnect(void) {
   cmd[0] = CL_CMD_STRING;
   strcpy((char *) cmd + 1, "disconnect");
 
-  Netchan_Transmit(&cls.netChan, cmd, q_strlen((char *) cmd));
+  NetChan_Transmit(&cls.netChan, cmd, Str_Length((char *) cmd));
 }
 
 /**
@@ -386,14 +386,14 @@ static void Cl_ConnectionlessPacket(void) {
   Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&netFrom), c);
 
   // server connection
-  if (!q_strcmp(c, "client_connect")) {
+  if (!Str_Compare(c, "clientConnect")) {
 
     if (cls.state == CL_CONNECTED) {
       Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&netFrom));
       return;
     }
 
-    Netchan_Setup(NS_UDP_CLIENT, &cls.netChan, &netFrom, qport->integer);
+    NetChan_Setup(NS_UDP_CLIENT, &cls.netChan, &netFrom, qport->integer);
 
     Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
     Net_WriteString(&cls.netChan.message, "new");
@@ -404,32 +404,32 @@ static void Cl_ConnectionlessPacket(void) {
   }
 
   // server responding to a status query
-  if (!q_strcmp(c, "status")) {
+  if (!Str_Compare(c, "status")) {
     Cl_ParseServerInfo();
     return;
   }
 
   // print command from somewhere
-  if (!q_strcmp(c, "print")) {
+  if (!Str_Compare(c, "print")) {
     s = Net_ReadString(&netMessage);
     Com_Print("%s", s);
     return;
   }
 
   // ping from somewhere
-  if (!q_strcmp(c, "ping")) {
-    Netchan_OutOfBandPrint(NS_UDP_CLIENT, &netFrom, "ack");
+  if (!Str_Compare(c, "ping")) {
+    NetChan_OutOfBandPrint(NS_UDP_CLIENT, &netFrom, "ack");
     return;
   }
 
   // servers list from master
-  if (!q_strcmp(c, "servers")) {
+  if (!Str_Compare(c, "servers")) {
     Cl_ParseServers();
     return;
   }
 
   // challenge from the server we are connecting to
-  if (!q_strcmp(c, "challenge")) {
+  if (!Str_Compare(c, "challenge")) {
     if (cls.state != CL_CONNECTING) {
       Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&netFrom));
       return;
@@ -475,7 +475,7 @@ static void Cl_ReadPackets(void) {
       continue;
     }
 
-    if (!Netchan_Process(&cls.netChan, &netMessage)) {
+    if (!NetChan_Process(&cls.netChan, &netMessage)) {
       continue; // wasn't accepted for some reason
     }
 
@@ -557,11 +557,11 @@ static void Cl_InitLocal(void) {
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
   Cmd_Add("servers", Cl_Servers_f, CMD_CLIENT, NULL);
   Cmd_Add("record", Cl_Record_f, CMD_CLIENT, NULL);
-  Cmd_Add("serversList", Cl_Servers_List_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playbackFaster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playbackSlower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_playbackSpeed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
-  Cmd_Add("demo_pause", Cl_DemoPause_f, CMD_CLIENT, NULL);
+  Cmd_Add("serverList", Cl_ServerList_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPlaybackFaster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPlaybackSlower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPlaybackSpeed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
+  Cmd_Add("demoPause", Cl_DemoPause_f, CMD_CLIENT, NULL);
   Cmd_Add("stop", Cl_Stop_f, CMD_CLIENT, NULL);
   Cmd_Add("connect", Cl_Connect_f, CMD_CLIENT, NULL);
   Cmd_Add("reconnect", Cl_Reconnect_f, CMD_CLIENT, NULL);
@@ -589,22 +589,22 @@ static void Cl_UpdateScene(void) {
   cls.cgame->PrepareScene(&cl.frame);
 
   if (editor->value) {
-    thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateEditorScene, &cl.frame, THREAD_NONE);
+    thread = Thread_Create((ThreadRun) cls.cgame->PopulateEditorScene, &cl.frame, THREAD_NONE);
   } else {
-    thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
+    thread = Thread_Create((ThreadRun) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }
 
-  R_DrawViewDepth(&clView);
+  R_DrawViewDepth(&clientView);
 
   Thread_Wait(thread);
 
-  thread = Thread_Create((ThreadRunFunc) S_RenderStage, &clStage, THREAD_NONE);
+  thread = Thread_Create((ThreadRun) S_RenderStage, &clientStage, THREAD_NONE);
 
-  R_DrawSubviews(&clView);
+  R_DrawSubviews(&clientView);
 
-  R_DrawMainView(&clView);
+  R_DrawMainView(&clientView);
 
-  R_DrawPost(&clView);
+  R_DrawPost(&clientView);
 
   Thread_Wait(thread);
 }
@@ -614,9 +614,9 @@ static void Cl_UpdateScene(void) {
  */
 int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
-  R_InitView(&clView);
+  R_InitView(&clientView);
 
-  S_InitStage(&clStage);
+  S_InitStage(&clientStage);
 
   Cl_HandleEvents();
 
@@ -628,9 +628,9 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
   R_EndFrame();
 
-  S_RenderStage(&clStage);
+  S_RenderStage(&clientStage);
 
-  R_Screenshot(&clView);
+  R_Screenshot(&clientView);
 
   return res;
 }
@@ -679,8 +679,8 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     float targetFps = cl_maxFps->value;
     if (targetFps == 0.f) {
-      if (rContext.displayMode) {
-        targetFps = rContext.displayMode->refresh_rate;
+      if (renderContext.displayMode) {
+        targetFps = renderContext.displayMode->refresh_rate;
       }
     }
     if (targetFps > 0.f) { // cap render frame rate
@@ -690,9 +690,9 @@ void Cl_Frame(const uint32_t msec) {
     }
   }
 
-  R_InitView(&clView);
+  R_InitView(&clientView);
 
-  S_InitStage(&clStage);
+  S_InitStage(&clientStage);
 
   Cl_AttemptConnect();
 
@@ -716,14 +716,14 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     Cl_SendCommands();
 
-    S_RenderStage(&clStage);
+    S_RenderStage(&clientStage);
   }
 
   Cl_UpdateScreen();
 
   R_EndFrame();
 
-  R_Screenshot(&clView);
+  R_Screenshot(&clientView);
 
   cls.cgame->UpdateDiscord();
 
@@ -737,7 +737,7 @@ void Cl_Frame(const uint32_t msec) {
  */
 static void Cl_InitGuid(void) {
 
-  if (q_strlen(guid->string) == 0) {
+  if (Str_Length(guid->string) == 0) {
     char uuid[37];
     Com_Uuid(uuid, sizeof(uuid));
     Cvar_ForceSetString("guid", uuid);
@@ -746,7 +746,7 @@ static void Cl_InitGuid(void) {
   Cvar_Add("guidHash", "", CVAR_NO_SET, NULL);
 
   char url[256];
-  q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+  Str_Format(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
 
   Data *data;
   const int32_t status = $($$(RESTClient, sharedInstance), get, url, NULL, &data);
@@ -807,10 +807,6 @@ void Cl_Init(void) {
   Cl_ClearState();
 
   Cl_InitCgame();
-
-  // every command is registered by now, so binds written with an older name
-  // can be resolved and rewritten, once
-  Cl_CanonicalizeBinds();
 
   Cl_SetKeyDest(KEY_UI);
 

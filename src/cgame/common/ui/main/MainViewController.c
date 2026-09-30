@@ -224,7 +224,7 @@ static void viewWillAppear(ViewController *self) {
 
   MainViewController *this = (MainViewController *) self;
 
-  if (cgState.numTeams > 0) {
+  if (cgameState.numTeams > 0) {
     const int16_t team = cgi.client->frame.ps.stats[STAT_TEAM];
     if (team == TEAM_NONE) {
       $(this, navigateToViewController, _TeamsViewController());
@@ -279,7 +279,7 @@ static void primaryButton(MainViewController *self, const char *title, const But
   Button *button = $(alloc(Button), initWithTitle, title);
   assert(button);
 
-  button->control.view.identifier = q_strdup(title);
+  button->control.view.identifier = Str_Duplicate(title);
   assert(button->control.view.identifier);
 
   button->delegate = *delegate;

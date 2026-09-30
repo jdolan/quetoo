@@ -34,7 +34,6 @@
 #include "installer.h"
 #include "mem.h"
 #include "mem_buf.h"
-#include "rgb9e5.h"
 #include "sys.h"
 #include "thread.h"
 
@@ -48,7 +47,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain `PROTOCOL_MINOR` as well.
  */
-#define PROTOCOL_MAJOR 2035
+#define PROTOCOL_MAJOR 2036
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
@@ -146,7 +145,6 @@ void Com_Error_f(void) __attribute__((noreturn));
  * @brief Global engine structure.
  */
 typedef struct {
-
   /**
    * @brief The command line argument count.
    */

@@ -47,7 +47,7 @@ static bool containsCaseInsensitive(const char *haystack, const char *needle) {
   }
 
   for (const char *h = haystack; *h; h++) {
-    if (!q_strncasecmp(h, needle, needleLen)) {
+    if (!Str_CaseCompareN(h, needle, needleLen)) {
       return true;
     }
   }
@@ -167,7 +167,7 @@ static void add(DemoList *self, DemoListItemInfo *info) {
     bool duplicate = false;
     for (size_t i = 0; i < self->demos->count; i++) {
       const DemoListItemInfo *existing = $(self->demos, get, i);
-      if (q_strcmp(existing->filename, info->filename) == 0) {
+      if (Str_Compare(existing->filename, info->filename) == 0) {
         duplicate = true;
         break;
       }
@@ -194,7 +194,7 @@ static void _remove(DemoList *self, const char *filename) {
 
     for (size_t i = 0; i < self->demos->count; i++) {
       const DemoListItemInfo *info = $(self->demos, get, i);
-      if (q_strcmp(info->filename, filename) == 0) {
+      if (Str_Compare(info->filename, filename) == 0) {
         $(self->demos, removeAt, i);
         break;
       }
@@ -212,7 +212,7 @@ static void setFilter(DemoList *self, const char *filter) {
 
   synchronized(self->lock, {
     free(self->filter);
-    self->filter = filter && *filter ? q_strdup(filter) : NULL;
+    self->filter = filter && *filter ? Str_Duplicate(filter) : NULL;
 
     applyFilter(self);
   });

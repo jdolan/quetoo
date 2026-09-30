@@ -38,23 +38,23 @@ static void didSetValue(Slider *slider, double value) {
     return;
   }
   if (slider == this->roughness) {
-    this->material->cm->roughness = slider->value;
+    this->material->def->roughness = slider->value;
   } else if (slider == this->hardness) {
-    this->material->cm->hardness = slider->value;
+    this->material->def->hardness = slider->value;
   } else if (slider == this->specularity) {
-    this->material->cm->specularity = slider->value;
+    this->material->def->specularity = slider->value;
   } else if (slider == this->parallax) {
-    this->material->cm->parallax = slider->value;
+    this->material->def->parallax = slider->value;
   } else if (slider == this->shadow) {
-    this->material->cm->shadow = slider->value;
+    this->material->def->shadow = slider->value;
   } else if (slider == this->alphaTest) {
-    this->material->cm->alphaTest = slider->value;
+    this->material->def->alphaTest = slider->value;
   } else {
     Cg_Debug("Unknown Slider %p\n", (void *) slider);
     return;
   }
 
-  this->material->cm->dirty = true;
+  this->material->def->dirty = true;
 }
 
 /**
@@ -113,12 +113,12 @@ static void didToggleContentsFlag(Checkbox *checkbox) {
   }
 
   if ($((Control *) checkbox, isSelected)) {
-    this->material->cm->contents |= flag->flag;
+    this->material->def->contents |= flag->flag;
   } else {
-    this->material->cm->contents &= ~flag->flag;
+    this->material->def->contents &= ~flag->flag;
   }
 
-  this->material->cm->dirty = true;
+  this->material->def->dirty = true;
 }
 
 /**
@@ -134,12 +134,12 @@ static void didToggleSurfaceFlag(Checkbox *checkbox) {
   }
 
   if ($((Control *) checkbox, isSelected)) {
-    this->material->cm->surface |= flag->flag;
+    this->material->def->surface |= flag->flag;
   } else {
-    this->material->cm->surface &= ~flag->flag;
+    this->material->def->surface &= ~flag->flag;
   }
 
-  this->material->cm->dirty = true;
+  this->material->def->dirty = true;
 }
 
 /**
@@ -274,17 +274,17 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
   self->material = material;
 
   if (self->material) {
-    $(self->materialBox->label->text, setText, va("Material [%s]", self->material->cm->basename));
-    $(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
-    $(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
-    $(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
+    $(self->materialBox->label->text, setText, va("Material [%s]", self->material->def->basename));
+    $(self->diffusemap, setDefaultText, self->material->def->diffusemap.name);
+    $(self->normalmap, setDefaultText, self->material->def->normalmap.name);
+    $(self->specularmap, setDefaultText, self->material->def->specularmap.name);
 
-    $(self->roughness, setValue, (double) self->material->cm->roughness);
-    $(self->hardness, setValue, (double) self->material->cm->hardness);
-    $(self->specularity, setValue, (double) self->material->cm->specularity);
-    $(self->parallax, setValue, (double) self->material->cm->parallax);
-    $(self->shadow, setValue, (double) self->material->cm->shadow);
-    $(self->alphaTest, setValue, (double) self->material->cm->alphaTest);
+    $(self->roughness, setValue, (double) self->material->def->roughness);
+    $(self->hardness, setValue, (double) self->material->def->hardness);
+    $(self->specularity, setValue, (double) self->material->def->specularity);
+    $(self->parallax, setValue, (double) self->material->def->parallax);
+    $(self->shadow, setValue, (double) self->material->def->shadow);
+    $(self->alphaTest, setValue, (double) self->material->def->alphaTest);
 
   } else {
     $(self->materialBox->label->text, setText, "Material");
@@ -300,8 +300,8 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
     $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
   }
 
-  setFlags(self, contentsFlags, lengthof(contentsFlags), self->material ? self->material->cm->contents : 0);
-  setFlags(self, surfaceFlags, lengthof(surfaceFlags), self->material ? self->material->cm->surface : 0);
+  setFlags(self, contentsFlags, lengthof(contentsFlags), self->material ? self->material->def->contents : 0);
+  setFlags(self, surfaceFlags, lengthof(surfaceFlags), self->material ? self->material->def->surface : 0);
 }
 
 #pragma mark - Class lifecycle

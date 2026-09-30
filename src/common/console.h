@@ -33,7 +33,6 @@
  * @brief A console string.
  */
 typedef struct {
-
   /**
    * @brief The print level (e.g. `PRINT_HIGH`).
    */
@@ -70,7 +69,6 @@ typedef struct {
  * @brief The console state.
  */
 typedef struct {
-
   /**
    * @brief The console strings.
    */
@@ -109,7 +107,6 @@ typedef enum {
  * @brief The console history structure.
  */
 typedef struct {
-
   /**
    * @brief The circular buffer of history strings.
    */
@@ -131,7 +128,6 @@ typedef struct {
  * @brief The console input structure.
  */
 typedef struct {
-
   /**
    * @brief The input buffer.
    */
@@ -148,7 +144,6 @@ typedef struct {
  * @brief The console structure.
  */
 typedef struct {
-
   /**
    * @brief Console width in characters.
    */
@@ -199,7 +194,6 @@ typedef struct {
  * @brief The structure used for autocomplete values.
  */
 typedef struct {
-
   /**
    * @brief The match itself
    */
@@ -209,7 +203,7 @@ typedef struct {
    * @brief The value printed to the screen. If null, name isused.
    */
   char *description;
-} ConAutocompleteMatch;
+} ConsoleAutocompleteMatch;
 
 void Con_Append(int32_t level, const char *string);
 size_t Con_Wrap(const char *chars, size_t lineWidth, char **lines, size_t maxLines);

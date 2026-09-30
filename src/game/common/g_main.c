@@ -24,8 +24,8 @@
 GameImport gi;
 GameExport ge;
 
-GameLevel g_level;
-GameMedia g_media;
+GameLevel gameLevel;
+GameMedia gameMedia;
 
 Cvar *g_adminPassword;
 Cvar *g_ammoRespawnTime;
@@ -137,13 +137,6 @@ Cvar *g_friendlyFire;
 Cvar *g_gameplay;
 Cvar *g_movement;
 
-/**
- * @brief What this level asked for, remembered so that setting `g_movement`
- * back to "default" returns to it rather than to Quetoo's.
- */
-static PMovement g_movementLevel;
-static GameplayId g_gameplayLevel;
-
 // player movement parameters (hydrated into PMoveParams by G_MovementParams)
 Cvar *g_airAcceleration;
 Cvar *g_airFriction;
@@ -196,7 +189,7 @@ Cvar *sv_hostname;
 Cvar *dedicated;
 Cvar *editor;
 
-GameTeam g_teamList[MAX_TEAMS] = {
+GameTeam gameTeamList[MAX_TEAMS] = {
   [TEAM_RED] = {
     .id = TEAM_RED,
     .name = "Red",
@@ -265,7 +258,7 @@ GameTeam g_teamList[MAX_TEAMS] = {
 void G_ResetTeams(void) {
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    GameTeam *team = &g_teamList[i];
+    GameTeam *team = &gameTeamList[i];
     team->score = 0;
     team->spawnPoints = (GameSpawnPoints) { 0 };
 #if defined(G_CTF)
@@ -286,16 +279,16 @@ void G_SetTeamNames(void) {
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
 
     if (i != TEAM_RED) {
-      q_strlcat(teamInfo, "\\", sizeof(teamInfo));
+      Str_Append(teamInfo, "\\", sizeof(teamInfo));
     }
 
-    q_strlcat(teamInfo, va("%d", g_teamList[i].id), sizeof(teamInfo));
-    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
-    q_strlcat(teamInfo, g_teamList[i].name, sizeof(teamInfo));
-    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
-    q_strlcat(teamInfo, va("%d", g_teamList[i].color), sizeof(teamInfo));
-    q_strlcat(teamInfo, "\\", sizeof(teamInfo));
-    q_strlcat(teamInfo, Color_Unparse(g_teamList[i].shirt), sizeof(teamInfo));
+    Str_Append(teamInfo, va("%d", gameTeamList[i].id), sizeof(teamInfo));
+    Str_Append(teamInfo, "\\", sizeof(teamInfo));
+    Str_Append(teamInfo, gameTeamList[i].name, sizeof(teamInfo));
+    Str_Append(teamInfo, "\\", sizeof(teamInfo));
+    Str_Append(teamInfo, va("%d", gameTeamList[i].color), sizeof(teamInfo));
+    Str_Append(teamInfo, "\\", sizeof(teamInfo));
+    Str_Append(teamInfo, Color_Unparse(gameTeamList[i].shirt), sizeof(teamInfo));
   }
 
   gi.SetConfigString(CS_TEAM_INFO, teamInfo);
@@ -340,24 +333,24 @@ static void G_ResetTeamSpawnPoints(GameSpawnPoints *points, const GameEntityTrai
   for (size_t i = 0; i < points->count; i++) {
     GameEntity *ent = points->spots[i];
 
-    if (trail && g_level.teams) {
+    if (trail && gameLevel.teams) {
 
       if (ent->s.trail) {
         // Shared spawn point (already claimed by another team): use yellow
-        ent->s.color = Color_Color32(ColorHSV(color_hue_yellow, 1.f, 1.f));
+        ent->s.color = Color_Color32(ColorHSV(COLOR_HUE_YELLOW, 1.f, 1.f));
       } else {
-        ent->s.color = Color_Color32(ColorHSV(g_teamList[teamId].color, 1.f, 1.f));
+        ent->s.color = Color_Color32(ColorHSV(gameTeamList[teamId].color, 1.f, 1.f));
       }
 
       ent->s.trail = trail;
-      ent->svFlags = 0;
+      ent->serverFlags = 0;
 
       gi.LinkEntity(ent);
     } else {
 
       ent->s.trail = 0;
       ent->s.color = (Color32) { .rgba = 0 };
-      ent->svFlags = SVF_NO_CLIENT;
+      ent->serverFlags = SVF_NO_CLIENT;
 
       gi.UnlinkEntity(ent);
     }
@@ -371,12 +364,12 @@ void G_ResetSpawnPoints(void) {
 
   // reset trails to 0 first
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    G_ResetTeamSpawnPoints(&g_teamList[t].spawnPoints, 0, 0);
+    G_ResetTeamSpawnPoints(&gameTeamList[t].spawnPoints, 0, 0);
   }
 
   // then apply team-based trails, this is done twice so neutrality gets applied properly
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    G_ResetTeamSpawnPoints(&g_teamList[t].spawnPoints, TRAIL_PLAYER_SPAWN, t);
+    G_ResetTeamSpawnPoints(&gameTeamList[t].spawnPoints, TRAIL_PLAYER_SPAWN, t);
   }
 }
 
@@ -399,7 +392,7 @@ static void G_RestartGame(bool teamz) {
 
     // determine spectator or team affiliations
 
-    if (g_level.teams) {
+    if (gameLevel.teams) {
 
       if (!cl->persistent.team) {
         if (g_autoJoin->value) {
@@ -423,16 +416,16 @@ static void G_RestartGame(bool teamz) {
   G_InitNumTeams();
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    g_teamList[i].score = 0;
+    gameTeamList[i].score = 0;
 #if defined(G_CTF)
-    g_teamList[i].captures = 0;
+    gameTeamList[i].captures = 0;
 #endif
   }
 
   gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.teleport
+    .index = gameMedia.sounds.teleport
   }, MULTICAST_PHS_R);
 }
 
@@ -473,17 +466,17 @@ static void G_PostStats(void) {
   int32_t numCaptures = 0;
 
 #if defined(G_CTF)
-  captures = (GameCapture *) g_level.captures->elements;
-  numCaptures = (int32_t) g_level.captures->count;
+  captures = (GameCapture *) gameLevel.captures->elements;
+  numCaptures = (int32_t) gameLevel.captures->count;
 #endif
 
-  gi.PostStats((GameFrag *) g_level.frags->elements, (int32_t) g_level.frags->count,
+  gi.PostStats((GameFrag *) gameLevel.frags->elements, (int32_t) gameLevel.frags->count,
                captures, numCaptures);
 
-  g_level.frags = release(g_level.frags);
+  gameLevel.frags = release(gameLevel.frags);
 
 #if defined(G_CTF)
-  g_level.captures = release(g_level.captures);
+  gameLevel.captures = release(gameLevel.captures);
 #endif
 }
 
@@ -493,11 +486,11 @@ static void G_PostStats(void) {
  */
 static void G_BeginIntermission(void) {
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
     return; // already activated
   }
 
-  g_level.intermissionTime = g_level.time;
+  gameLevel.intermissionTime = gameLevel.time;
 
   G_PostStats();
 
@@ -517,14 +510,14 @@ static void G_BeginIntermission(void) {
     }
   }
 
-  g_level.intermissionOrigin = ent->s.origin;
-  g_level.intermissionAngle = ent->s.angles;
+  gameLevel.intermissionOrigin = ent->s.origin;
+  gameLevel.intermissionAngle = ent->s.angles;
 
   if (ent->target) {
     const GameEntity *target = G_PickTarget(ent->target);
     if (target) {
       const Vec3 dir = Vec3_Subtract(target->s.origin, ent->s.origin);
-      g_level.intermissionAngle = Vec3_Euler(dir);
+      gameLevel.intermissionAngle = Vec3_Euler(dir);
     } else {
       G_Debug("%s has invalid target %s\n", etos(ent), ent->target);
     }
@@ -537,7 +530,7 @@ static void G_BeginIntermission(void) {
 
   // play a dramatic sound effect
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.roar
+    .index = gameMedia.sounds.roar
   }, MULTICAST_PHS_R);
 
 }
@@ -567,7 +560,7 @@ char *G_FormatTime(uint32_t time) {
     c = "^7";
   }
 
-  q_snprintf(formattedTime, sizeof(formattedTime), "%s%2u:%02u", c, m, s);
+  Str_Format(formattedTime, sizeof(formattedTime), "%s%2u:%02u", c, m, s);
 
   lastTime = time;
 
@@ -586,7 +579,7 @@ char *G_FormatTime(uint32_t time) {
  */
 PMoveParams G_MovementParams(void) {
 
-  const PMovementInfo *movement = Pm_Movement(g_level.movement);
+  const PMovementInfo *movement = Pm_Movement(gameLevel.movement);
   PMoveParams params;
 
   if (movement->params) {
@@ -626,10 +619,10 @@ PMoveParams G_MovementParams(void) {
     };
   }
 
-  params.movement = g_level.movement;
+  params.movement = gameLevel.movement;
 
-  if (g_level.gravity) {
-    params.gravity = g_level.gravity;
+  if (gameLevel.gravity) {
+    params.gravity = gameLevel.gravity;
   }
 
   return params;
@@ -641,11 +634,11 @@ PMoveParams G_MovementParams(void) {
  */
 float G_LevelGravity(void) {
 
-  if (g_level.gravity) {
-    return g_level.gravity;
+  if (gameLevel.gravity) {
+    return gameLevel.gravity;
   }
 
-  const PMovementInfo *movement = Pm_Movement(g_level.movement);
+  const PMovementInfo *movement = Pm_Movement(gameLevel.movement);
 
   return movement->params ? movement->params->gravity : DEFAULT_GRAVITY;
 }
@@ -660,9 +653,9 @@ float G_LevelGravity(void) {
  */
 static PMovement G_CoerceMovement(void) {
 
-  PMovement movement = g_movementLevel;
+  PMovement movement = gameLevel.requested.movement;
 
-  if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
+  if (Str_Compare(g_movement->string, "default")) { // "default" defers to the level
     if (!Pm_MovementByName(g_movement->string, &movement)) {
       G_Warn("Unknown movement \"%s\", using %s\n",
               g_movement->string, Pm_Movement(movement)->name);
@@ -682,12 +675,12 @@ static PMovement G_CoerceMovement(void) {
  */
 PMovement G_ResolveMovement(const char *name) {
 
-  g_movementLevel = G_MOVEMENT_DEFAULT;
+  gameLevel.requested.movement = G_MOVEMENT_DEFAULT;
 
   if (name && *name) {
-    if (!Pm_MovementByName(name, &g_movementLevel)) {
+    if (!Pm_MovementByName(name, &gameLevel.requested.movement)) {
       G_Warn("Unknown movement \"%s\" in this level, using %s\n",
-              name, Pm_Movement(g_movementLevel)->name);
+              name, Pm_Movement(gameLevel.requested.movement)->name);
     }
   }
 
@@ -699,21 +692,21 @@ PMovement G_ResolveMovement(const char *name) {
  * clamp it to a mode it supports, and coerces the cvar itself to whichever
  * canonical name results. "default" defers to the level, and is left alone.
  */
-static GameplayId G_CoerceGameplay(void) {
+static GamePlayId G_CoerceGamePlay(void) {
 
-  GameplayId gameplay = g_gameplayLevel;
+  GamePlayId gameplay = gameLevel.requested.gameplay;
 
-  if (q_strcmp(g_gameplay->string, "default")) { // "default" defers to the level
-    gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
+  if (Str_Compare(g_gameplay->string, "default")) { // "default" defers to the level
+    gameplay = G_ClampGamePlay(G_GamePlayByName(g_gameplay->string)->id);
 
-    gi.SetCvarString(g_gameplay->name, G_GameplayById(gameplay)->name); // reject garbage values
+    gi.SetCvarString(g_gameplay->name, G_GamePlayById(gameplay)->name); // reject garbage values
   } else {
-    gameplay = G_ClampGameplay(gameplay);
+    gameplay = G_ClampGamePlay(gameplay);
   }
 
   // g_gameplay holds what the admin asked for, which may be an alias, or "default";
   // publish what it resolved to as well, since that is what a server browser shows
-  gi.ForceSetCvarString("g_gameplayMode", G_GameplayById(gameplay)->name);
+  gi.ForceSetCvarString("g_gameplayMode", G_GamePlayById(gameplay)->name);
 
   return gameplay;
 }
@@ -722,11 +715,11 @@ static GameplayId G_CoerceGameplay(void) {
  * @brief Resolves the gameplay for a level that asks for `name`, which may be
  * empty. `g_gameplay` still wins if the admin named one.
  */
-GameplayId G_ResolveGameplay(const char *name) {
+GamePlayId G_ResolveGamePlay(const char *name) {
 
-  g_gameplayLevel = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
+  gameLevel.requested.gameplay = name && *name ? G_GamePlayByName(name)->id : GAMEPLAY_DEATHMATCH;
 
-  return G_CoerceGameplay();
+  return G_CoerceGamePlay();
 }
 
 /**
@@ -736,7 +729,7 @@ GameplayId G_ResolveGameplay(const char *name) {
 static void G_CheckRules(void) {
   bool restart = false;
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
     return;
   }
 
@@ -757,7 +750,7 @@ static void G_CheckRules(void) {
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
 
-    const GameplayId gameplay = G_CoerceGameplay();
+    const GamePlayId gameplay = G_CoerceGamePlay();
 
     // SetCvarString above re-marks modified whenever the string actually changed
     // (i.e. whenever we just coerced garbage, or the module clamped it to something
@@ -765,16 +758,16 @@ static void G_CheckRules(void) {
     // block again next frame
     g_gameplay->modified = false;
 
-    g_level.gameplay = gameplay;
-    g_level.teams = (g_level.gameplay & GAMEPLAY_TEAMS) != 0;
+    gameLevel.gameplay = gameplay;
+    gameLevel.teams = (gameLevel.gameplay & GAMEPLAY_TEAMS) != 0;
 
-    gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
+    gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameplay));
 
     G_InitNumTeams();
 
     restart = true;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayById(g_level.gameplay)->label);
+    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GamePlayById(gameLevel.gameplay)->label);
   }
 
   if (g_movement->modified) { // change how players move, with no restart
@@ -784,8 +777,8 @@ static void G_CheckRules(void) {
     // as above, the coercion re-marks modified whenever it changed the string
     g_movement->modified = false;
 
-    if (movement != g_level.movement) {
-      g_level.movement = movement;
+    if (movement != gameLevel.movement) {
+      gameLevel.movement = movement;
 
       // the parameters are hydrated per client per frame and travel inside the
       // player state, so the change reaches everyone without a restart; the one
@@ -819,10 +812,10 @@ static void G_CheckRules(void) {
     gi.BroadcastPrint(PRINT_HIGH, "Self knockback has been changed to %g\n", g_selfKnockback->value);
   }
 
-  if (g_gravity->modified) { // G_MovementParams() reads g_level.gravity each move
+  if (g_gravity->modified) { // G_MovementParams() reads gameLevel.gravity each move
     g_gravity->modified = false;
 
-    g_level.gravity = g_gravity->integer;
+    gameLevel.gravity = g_gravity->integer;
   }
 
   if (g_numTeams->modified) { // reset teams, scores, etc
@@ -830,20 +823,20 @@ static void G_CheckRules(void) {
 
     int32_t numTeams;
 
-    if (!q_strcmp(g_numTeams->string, "default")) {
+    if (!Str_Compare(g_numTeams->string, "default")) {
       numTeams = -1; // G_InitNumTeams will pick this up
     } else {
       numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
     }
 
-    if (g_level.numTeams != numTeams) {
-      g_level.numTeams = numTeams;
+    if (gameLevel.numTeams != numTeams) {
+      gameLevel.numTeams = numTeams;
 
-      if (g_level.teams) {
+      if (gameLevel.teams) {
         G_InitNumTeams();
 
         gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
-                  g_level.numTeams);
+                  gameLevel.numTeams);
 
         restart = true;
       }
@@ -858,14 +851,14 @@ static void G_CheckRules(void) {
 
   if (g_fragLimit->modified) {
     g_fragLimit->modified = false;
-    g_level.fragLimit = g_fragLimit->integer;
+    gameLevel.fragLimit = g_fragLimit->integer;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", g_level.fragLimit);
+    gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", gameLevel.fragLimit);
   }
 
   if (g_timeLimit->modified) {
     g_timeLimit->modified = false;
-    g_level.timeLimit = g_timeLimit->value * 60 * 1000;
+    gameLevel.timeLimit = g_timeLimit->value * 60 * 1000;
 
     gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_timeLimit->value);
   }
@@ -891,7 +884,7 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (!(ent->svFlags & SVF_NO_CLIENT)) {
+        if (!(ent->serverFlags & SVF_NO_CLIENT)) {
           continue;
         }
 
@@ -918,7 +911,7 @@ static void G_CheckRules(void) {
 static void G_FrameWillBegin_Common(void) {
 }
 
-FrameWillBegin G_FrameWillBegin = G_FrameWillBegin_Common;
+GameFrameWillBeginHook G_FrameWillBegin = G_FrameWillBegin_Common;
 
 /**
  * @brief Runs one server frame: the timers, every entity, the rules, and the
@@ -926,15 +919,15 @@ FrameWillBegin G_FrameWillBegin = G_FrameWillBegin_Common;
  */
 static void G_Frame(void) {
 
-  g_level.frameNum++;
-  g_level.time = g_level.frameNum * QUETOO_TICK_MILLIS;
+  gameLevel.frameNum++;
+  gameLevel.time = gameLevel.frameNum * QUETOO_TICK_MILLIS;
 
   G_FrameWillBegin();
 
   // check for level change after running intermission
-  if (g_level.intermissionTime) {
-    if (g_level.time > g_level.intermissionTime + INTERMISSION && G_AllowNextMap()) {
-      g_level.intermissionTime = 0;
+  if (gameLevel.intermissionTime) {
+    if (gameLevel.time > gameLevel.intermissionTime + INTERMISSION && G_AllowNextMap()) {
+      gameLevel.intermissionTime = 0;
 
       gi.Cbuf("nextMap\n");
 
@@ -945,7 +938,7 @@ static void G_Frame(void) {
 
   // treat each object in turn, even the world gets a chance to think
   G_ForEachEntity(ent, {
-    g_level.currentEntity = ent;
+    gameLevel.currentEntity = ent;
 
     if (ent->client) {
       G_ClientBeginFrame(ent->client);
@@ -953,7 +946,7 @@ static void G_Frame(void) {
       G_RunEntity(ent);
     }
 
-    g_level.currentEntity = NULL;
+    gameLevel.currentEntity = NULL;
   });
 
   // let the AI think
@@ -973,7 +966,7 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  q_strlcpy(name, G_GameplayById(g_level.gameplay)->label, size);
+  Str_Copy(name, G_GamePlayById(gameLevel.gameplay)->label, size);
 
   G_FormatGameName(name, size);
 
@@ -992,22 +985,22 @@ static void G_Restart_f(void) {
  */
 void G_InitNumTeams(void) {
 
-  if (g_level.numTeams == -1) { // set to default, so let's set number of teams
-    g_level.numTeams = 0;
+  if (gameLevel.numTeams == -1) { // set to default, so let's set number of teams
+    gameLevel.numTeams = 0;
 
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-      if (!g_teamList[t].spawnPoints.count) {
+      if (!gameTeamList[t].spawnPoints.count) {
         break;
       }
 
-      g_level.numTeams++;
+      gameLevel.numTeams++;
     }
 
-    g_level.numTeams = Clampf(g_level.numTeams, 2, MAX_TEAMS);
+    gameLevel.numTeams = Clampf(gameLevel.numTeams, 2, MAX_TEAMS);
   }
 
-  gi.SetConfigString(CS_NUM_TEAMS, va("%d", g_level.teams ? g_level.numTeams : 0));
+  gi.SetConfigString(CS_NUM_TEAMS, va("%d", gameLevel.teams ? gameLevel.numTeams : 0));
 }
 
 /**
@@ -1230,7 +1223,7 @@ void G_Init(void) {
   // started with "+set g_gameplay arena" advertises "team_deathmatch" from the
   // first frame rather than whatever garbage/unsupported value it was started
   // with; the level's own gameplay resolution (G_worldspawn) is unaffected
-  G_CoerceGameplay();
+  G_CoerceGamePlay();
 
   // set these to false to avoid spurious game restarts and alerts on init
       g_cheats->modified =
@@ -1263,10 +1256,10 @@ void G_Shutdown(void) {
 
   G_Ai_Shutdown();
 
-  g_level.frags = release(g_level.frags);
+  gameLevel.frags = release(gameLevel.frags);
 
 #if defined(G_CTF)
-  g_level.captures = release(g_level.captures);
+  gameLevel.captures = release(gameLevel.captures);
 #endif
 
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
@@ -1277,18 +1270,18 @@ void G_Shutdown(void) {
  * @brief Handles clock, countdown, and timeout timers for the current level.
  */
 void G_RunTimers(void) {
-  uint32_t time = g_level.time;
+  uint32_t time = gameLevel.time;
 
-  if (g_level.timeLimit) { // check timeLimit
-    if (time >= (uint32_t) g_level.timeLimit) {
+  if (gameLevel.timeLimit) { // check timeLimit
+    if (time >= (uint32_t) gameLevel.timeLimit) {
       gi.BroadcastPrint(PRINT_HIGH, "Time limit hit\n");
       G_EndLevel();
       return;
     }
-    time = g_level.timeLimit - g_level.time; // count down
+    time = gameLevel.timeLimit - gameLevel.time; // count down
   }
 
-  if (g_level.frameNum % QUETOO_TICK_RATE == 0) { // send time updates once per second
+  if (gameLevel.frameNum % QUETOO_TICK_RATE == 0) { // send time updates once per second
     gi.SetConfigString(CS_TIME, G_FormatTime(time));
   }
 }

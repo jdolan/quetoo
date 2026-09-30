@@ -26,16 +26,16 @@
  * @brief The global material count and array used by the map compiler.
  */
 int32_t numMaterials;
-Material materials[MAX_BSP_MATERIALS];
+MapMaterial materials[MAX_BSP_MATERIALS];
 
 /**
  * @brief Finds the material with the specified name, allocating a new one if necessary.
  */
 int32_t LoadMaterial(const char *name) {
 
-  Material *m = materials;
+  MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
-    if (!q_strcmp(name, m->cm->name)) {
+    if (!Str_Compare(name, m->def->name)) {
       return i;
     }
   }
@@ -47,11 +47,11 @@ int32_t LoadMaterial(const char *name) {
   m = materials + numMaterials;
   numMaterials++;
 
-  m->cm = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
+  m->def = Material_Load(name, ASSET_CONTEXT_TEXTURES);
 
-  m->diffusemap = Img_LoadSurface(m->cm->diffusemap.path);
+  m->diffusemap = Img_LoadSurface(m->def->diffusemap.path);
   if (m->diffusemap) {
-    Com_Verbose("Loaded %s\n", m->cm->diffusemap.path);
+    Com_Verbose("Loaded %s\n", m->def->diffusemap.path);
   } else {
     Com_Warn("Failed to resolve %s\n", name);
     m->diffusemap = Img_LoadSurface("textures/common/notex");
@@ -65,9 +65,9 @@ int32_t LoadMaterial(const char *name) {
  */
 void FreeMaterials(void) {
 
-  Material *m = materials;
+  MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
-    Cm_FreeMaterial(m->cm);
+    Material_Free(m->def);
     SDL_DestroySurface(m->diffusemap);
   }
 

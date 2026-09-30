@@ -21,8 +21,8 @@
 
 #include "cg_local.h"
 
-static Cvar *editor_gridSize;
-static Cvar *editor_selectDist;
+static Cvar *editorGridSize;
+static Cvar *editorSelectDist;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
@@ -41,17 +41,17 @@ static bool isBrushEntity(const CGameEditorEntity *entity) {
 /**
  * @brief Sets the given entity's origin to where the client is looking.
  */
-static void setEntityOriginFromClientView(CmEntity *entity) {
+static void setEntityOriginFromClientView(Entity *entity) {
 
   Vec3 origin = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
-  const CmTrace tr = cgi.Trace(cgi.view->origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
+  const CollisionTrace tr = cgi.Trace(cgi.view->origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
 
-  origin = Vec3_Fmaf(tr.end, editor_gridSize->value, Vec3_Negate(cgi.view->forward));
-  origin = Vec3_Quantize(origin, editor_gridSize->value);
+  origin = Vec3_Fmaf(tr.end, editorGridSize->value, Vec3_Negate(cgi.view->forward));
+  origin = Vec3_Quantize(origin, editorGridSize->value);
 
   if (cgi.PointLeafnum(origin, 0) == -1) {
     origin = Vec3_Fmaf(cgi.view->origin, 256.f, cgi.view->forward);
-    origin = Vec3_Quantize(origin, editor_gridSize->value);
+    origin = Vec3_Quantize(origin, editorGridSize->value);
   }
 
   cgi.SetEntityKeyValue(entity, "origin", ENTITY_VEC3, &origin);
@@ -75,7 +75,7 @@ static void setClassName(View *view, const char *className, bool enabled) {
 static char *vs(const Vec3 v) {
   static char buf[MAX_TOKEN_CHARS];
 
-  q_snprintf(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
+  Str_Format(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
   return buf;
 }
 
@@ -154,17 +154,17 @@ static void didEndEditingWorld(TextView *textView) {
 /**
  * @brief EntityViewDelegate.
  */
-static void didEditEntity(EntityView *view, CmEntity *def) {
+static void didEditEntity(EntityView *view, Entity *def) {
 
   EntityViewController *this = view->delegate.self;
 
   if (view == this->add) {
 
-    if (!q_strlen(def->key) || !q_strlen(def->string)) {
+    if (!Str_Length(def->key) || !Str_Length(def->string)) {
       return;
     }
 
-    if (isBrushEntity(this->entity) && !q_strcmp(def->key, "origin")) {
+    if (isBrushEntity(this->entity) && !Str_Compare(def->key, "origin")) {
       Cg_Warn("Skipping origin on %s\n", cgi.EntityValue(this->entity->def, "classname")->string);
     } else {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
@@ -180,13 +180,13 @@ static void didEditEntity(EntityView *view, CmEntity *def) {
 /**
  * @brief EntityViewDelegate.
  */
-static void didEditTeamEntity(EntityView *view, CmEntity *def) {
+static void didEditTeamEntity(EntityView *view, Entity *def) {
 
   EntityViewController *this = view->delegate.self;
 
   if (view == this->teamAdd) {
 
-    if (!q_strlen(def->key) || !q_strlen(def->string)) {
+    if (!Str_Length(def->key) || !Str_Length(def->string)) {
       return;
     }
 
@@ -293,7 +293,7 @@ static void cycleCandidate(EntityViewController *self, int32_t dir) {
 
   self->candidate = candidate;
 
-  CGameEditorEntity *entity = &cgEditor.entities[self->candidates[candidate]];
+  CGameEditorEntity *entity = &cgameEditor.entities[self->candidates[candidate]];
 
   $(self, setEntity, entity);
 
@@ -308,7 +308,7 @@ static void cycleCandidate(EntityViewController *self, int32_t dir) {
  */
 static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
 
-  CmEntity *e = self->entity ? self->entity->def : NULL;
+  Entity *e = self->entity ? self->entity->def : NULL;
 
   const SDL_Keycode key = event->key.key;
   // Mask out lock keys (Num/Caps/Scroll); their sticky modifier bits otherwise
@@ -339,7 +339,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       case SDLK_V:
         if (SDL_HasClipboardText()) {
           char *info = SDL_GetClipboardText();
-          CmEntity *entity = cgi.EntityFromInfoString(info);
+          Entity *entity = cgi.EntityFromInfoString(info);
           if (entity) {
             setEntityOriginFromClientView(entity);
             cgi.Free(self->created);
@@ -355,18 +355,18 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   } else if (mod == SDL_KMOD_NONE) {
 
     if (key >= SDLK_1 && key <= SDLK_8) {
-      cgi.SetCvarValue(editor_gridSize->name, (1 << (key - SDLK_1)));
-      cgi.Print("Editor grid size set to %g\n", editor_gridSize->value);
+      cgi.SetCvarValue(editorGridSize->name, (1 << (key - SDLK_1)));
+      cgi.Print("Editor grid size set to %g\n", editorGridSize->value);
     }
 
     if (key == SDLK_G) {
       self->showFuncGroups = !self->showFuncGroups;
-      cgEditor.showFuncGroups = self->showFuncGroups;
+      cgameEditor.showFuncGroups = self->showFuncGroups;
       cgi.Print("func_group entities %s\n", self->showFuncGroups ? "^2shown" : "^1hidden");
     }
 
     if (key == SDLK_U && cgi.GetKeyDest() == KEY_UI && self->entity) {
-      cgi.Cbuf(va("editor_use %d\n", self->entity->number));
+      cgi.Cbuf(va("editorUse %d\n", self->entity->number));
     }
 
     if (cgi.GetKeyDest() == KEY_UI && e) {
@@ -383,7 +383,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         right.x = SignOf(cgi.view->right.x);
       }
 
-      const float step = editor_gridSize->value;
+      const float step = editorGridSize->value;
 
       switch (key) {
         case SDLK_W:
@@ -426,7 +426,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       if (!Vec3_Equal(move, Vec3_Zero()) && !isBrushEntity(self->entity)) {
 
         Vec3 origin = cgi.EntityValue(e, "origin")->vec3;
-        origin = Vec3_Quantize(Vec3_Add(origin, move), editor_gridSize->value);
+        origin = Vec3_Quantize(Vec3_Add(origin, move), editorGridSize->value);
 
         cgi.SetEntityKeyValue(e, "origin", ENTITY_VEC3, &origin);
 
@@ -460,14 +460,14 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
         const char *info = cgi.client->configStrings[CS_ENTITIES + number];
 
-        CGameEditorEntity *entity = &cgEditor.entities[number];
+        CGameEditorEntity *entity = &cgameEditor.entities[number];
 
         if (this->entity && number == this->entity->number) {
           $(this, setEntity, entity);
         } else if (this->teamEntity && number == this->teamEntity->number) {
           // Preserve the selected light while refreshing team-level fields.
           $(this, setEntity, this->entity);
-        } else if (!q_strcmp(this->created, info)) {
+        } else if (!Str_Compare(this->created, info)) {
           $(this, setEntity, entity);
         }
       }
@@ -486,12 +486,12 @@ static void viewWillAppear(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   const Vec3 start = cgi.view->origin;
-  const Vec3 end = Vec3_Fmaf(start, editor_selectDist->value, cgi.view->forward);
+  const Vec3 end = Vec3_Fmaf(start, editorSelectDist->value, cgi.view->forward);
 
   this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates);
   this->candidate = 0;
 
-  $(this, setEntity, this->numCandidates ? &cgEditor.entities[this->candidates[0]] : &cgEditor.entities[0]);
+  $(this, setEntity, this->numCandidates ? &cgameEditor.entities[this->candidates[0]] : &cgameEditor.entities[0]);
 
   super(ViewController, self, viewWillAppear);
 }
@@ -500,7 +500,7 @@ static void viewWillAppear(ViewController *self) {
  * @see ViewController::viewWillDisappear(ViewController *)
  */
 static void viewWillDisappear(ViewController *self) {
-  cgEditor.selected = -1;
+  cgameEditor.selected = -1;
 }
 
 #pragma mark - EntityViewController
@@ -511,7 +511,7 @@ static void viewWillDisappear(ViewController *self) {
  */
 static void createEntity(EntityViewController *self) {
 
-  CmEntity *entity = cgi.SetEntityKeyValue(NULL, "classname", ENTITY_STRING, "light");
+  Entity *entity = cgi.SetEntityKeyValue(NULL, "classname", ENTITY_STRING, "light");
   setEntityOriginFromClientView(entity);
 
   cgi.Free(self->created);
@@ -559,13 +559,13 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
     self->entity = entity;
     self->teamEntity = entity;
 
-    for (CmEntity *e = self->entity->def; e; e = e->next) {
+    for (Entity *e = self->entity->def; e; e = e->next) {
 
-      if (!q_strncmp(e->key, "_tb_", 4)) {
+      if (!Str_CompareN(e->key, "_tb_", 4)) {
         continue;
       }
 
-      if (isBrushEntity(self->entity) && !q_strcmp(e->key, "origin")) {
+      if (isBrushEntity(self->entity) && !Str_Compare(e->key, "origin")) {
         continue;
       }
 
@@ -580,21 +580,21 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
     }
 
     const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
-    if (!q_strcmp(classname, "light")) {
+    if (!Str_Compare(classname, "light")) {
 
       const char *team = cgi.EntityValue(self->entity->def, "team")->nullableString;
       const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
       if (teamMaster != -1 && teamMaster != self->entity->number) {
 
-        self->teamEntity = &cgEditor.entities[teamMaster];
+        self->teamEntity = &cgameEditor.entities[teamMaster];
 
-        for (CmEntity *e = self->teamEntity->def; e; e = e->next) {
+        for (Entity *e = self->teamEntity->def; e; e = e->next) {
 
-          if (!q_strncmp(e->key, "_tb_", 4)
-              || !q_strcmp(e->key, "classname")
-              || !q_strcmp(e->key, "origin")
-              || !q_strcmp(e->key, "team")
-              || !q_strcmp(e->key, "team_master")) {
+          if (!Str_CompareN(e->key, "_tb_", 4)
+              || !Str_Compare(e->key, "classname")
+              || !Str_Compare(e->key, "origin")
+              || !Str_Compare(e->key, "team")
+              || !Str_Compare(e->key, "team_master")) {
             continue;
           }
 
@@ -615,7 +615,7 @@ static void setEntity(EntityViewController *self, CGameEditorEntity *entity) {
     self->teamEntity = NULL;
   }
 
-  cgEditor.selected = self->entity ? self->entity->number : -1;
+  cgameEditor.selected = self->entity ? self->entity->number : -1;
 
   setModel(self, self->entity && IS_MESH_MODEL(self->entity->model) ? (RenderModel *) self->entity->model : NULL);
 
@@ -658,8 +658,8 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
-  editor_gridSize = cgi.AddCvar("editorGridSize", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
-  editor_selectDist = cgi.AddCvar("editorSelectDist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
+  editorGridSize = cgi.AddCvar("editorGridSize", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editorSelectDist = cgi.AddCvar("editorSelectDist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
 }
 
 /**

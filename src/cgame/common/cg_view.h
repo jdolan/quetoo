@@ -29,14 +29,13 @@
  * @brief The client game view structure.
  */
 typedef struct {
-
   /**
    * @brief View bob.
    */
   float bob;
 } CGameView;
 
-extern CGameView cgView;
+extern CGameView cgameView;
 
 void Cg_PrepareView(const ClientFrame *frame);
 void Cg_CameraModeCycle_f(void);

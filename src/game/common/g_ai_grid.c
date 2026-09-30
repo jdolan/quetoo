@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-void gridkdtree_free(struct GridKdTree **tree) {
+void G_Ai_KdTreeFree(struct GameAiKdTree **tree) {
 
   if (!*tree) {
     return;
@@ -31,22 +31,22 @@ void gridkdtree_free(struct GridKdTree **tree) {
   *tree = NULL;
 }
 
-static _Thread_local struct CmpStr {
+static _Thread_local struct GameAiKdTreeSortContext {
   uint8_t dim;
   Vec3 *srcdata;
-} cmpstr;
+} sortContext;
 
-struct KdTreeBuildCtx {
-  struct GridKdTree *tree;
+struct GameAiKdTreeBuildContext {
+  struct GameAiKdTree *tree;
   int32_t *sortedx;
   size_t slicesize;
 };
 
-static int32_t compare_v(const void *_l, const void *_r) {
+static int32_t G_Ai_KdTreeCompare(const void *_l, const void *_r) {
   const int32_t l = *(const int32_t *) _l;
   const int32_t r = *(const int32_t *) _r;
-  const Vec3 *srcdata = cmpstr.srcdata;
-  const uint8_t dim = cmpstr.dim;
+  const Vec3 *srcdata = sortContext.srcdata;
+  const uint8_t dim = sortContext.dim;
 
   if (srcdata[l].xyz[dim] < srcdata[r].xyz[dim]) {
     return -1;
@@ -58,7 +58,7 @@ static int32_t compare_v(const void *_l, const void *_r) {
   return 0;
 }
 
-static struct KdTreeNode *gkdt_alloc_node(struct GridKdTree *tree) {
+static struct GameAiKdTreeNode *G_Ai_KdTreeAllocNode(struct GameAiKdTree *tree) {
 
   if (tree->nodecount < tree->capacity) {
     return &tree->nodes[tree->nodecount++];
@@ -67,27 +67,27 @@ static struct KdTreeNode *gkdt_alloc_node(struct GridKdTree *tree) {
   return NULL;
 }
 
-static struct KdTreeNode *kdtree_build(struct KdTreeBuildCtx *ctx, const size_t dim) {
+static struct GameAiKdTreeNode *G_Ai_KdTreeBuild(struct GameAiKdTreeBuildContext *ctx, const size_t dim) {
 
   if (ctx->slicesize == 0) {
     return NULL;
   }
 
-  cmpstr.srcdata = ctx->tree->srcdata;
-  cmpstr.dim = dim;
-  qsort(ctx->sortedx, ctx->slicesize, sizeof(ctx->sortedx[0]), compare_v);
+  sortContext.srcdata = ctx->tree->srcdata;
+  sortContext.dim = dim;
+  qsort(ctx->sortedx, ctx->slicesize, sizeof(ctx->sortedx[0]), G_Ai_KdTreeCompare);
 
-  struct KdTreeNode *node = gkdt_alloc_node(ctx->tree);
+  struct GameAiKdTreeNode *node = G_Ai_KdTreeAllocNode(ctx->tree);
   const size_t mid = (ctx->slicesize - 1) / 2;
   const size_t nextDim = (dim + 1) % 3;
 
   node->nodenum = ctx->sortedx[mid];
-  node->left = kdtree_build(&(struct KdTreeBuildCtx) {
+  node->left = G_Ai_KdTreeBuild(&(struct GameAiKdTreeBuildContext) {
     .tree = ctx->tree,
     .sortedx = ctx->sortedx,
     .slicesize = mid
   }, nextDim);
-  node->right = kdtree_build(&(struct KdTreeBuildCtx) {
+  node->right = G_Ai_KdTreeBuild(&(struct GameAiKdTreeBuildContext) {
     .tree = ctx->tree,
     .sortedx = ctx->sortedx + mid + 1,
     .slicesize = ctx->slicesize - mid - 1
@@ -96,11 +96,11 @@ static struct KdTreeNode *kdtree_build(struct KdTreeBuildCtx *ctx, const size_t 
   return node;
 }
 
-struct GridKdTree *gridkdtree_create(Vec3 *srcdata, const size_t count) {
+struct GameAiKdTree *G_Ai_KdTreeCreate(Vec3 *srcdata, const size_t count) {
   int32_t *sortedx = malloc(count * sizeof(int32_t));
   const size_t capacity = count;
-  const size_t size = sizeof(struct GridKdTree) + capacity * sizeof(struct KdTreeNode);
-  struct GridKdTree *tree = malloc(size);
+  const size_t size = sizeof(struct GameAiKdTree) + capacity * sizeof(struct GameAiKdTreeNode);
+  struct GameAiKdTree *tree = malloc(size);
 
   if (!tree || !sortedx) {
     free(tree);
@@ -122,7 +122,7 @@ struct GridKdTree *gridkdtree_create(Vec3 *srcdata, const size_t count) {
   tree->nodecount = 0;
   tree->capacity = capacity;
 
-  tree->root = kdtree_build(&(struct KdTreeBuildCtx) {
+  tree->root = G_Ai_KdTreeBuild(&(struct GameAiKdTreeBuildContext) {
     .tree = tree,
     .sortedx = sortedx,
     .slicesize = count
@@ -131,16 +131,16 @@ struct GridKdTree *gridkdtree_create(Vec3 *srcdata, const size_t count) {
   free(sortedx);
   return tree;
 }
-struct KdTreeFilterCtx {
-  struct GridKdTree *tree;
+struct GameAiKdTreeQueryContext {
+  struct GameAiKdTree *tree;
   Vec3 querypos;
   double bestdist;
   size_t best;
-  GridKdTreeFilter filter;
+  GameAiKdTreeFilter filter;
   void *data;
 };
 
-static void kdtree_query_filter_rec(struct KdTreeFilterCtx *ctx, const struct KdTreeNode *node, const size_t dim) {
+static void G_Ai_KdTreeQueryNode(struct GameAiKdTreeQueryContext *ctx, const struct GameAiKdTreeNode *node, const size_t dim) {
 
   if (node == NULL || node->nodenum == SIZE_MAX) {
     return;
@@ -155,25 +155,25 @@ static void kdtree_query_filter_rec(struct KdTreeFilterCtx *ctx, const struct Kd
   }
 
   const double sdist = ctx->querypos.xyz[dim] - pos.xyz[dim];
-  const struct KdTreeNode *nearNode = sdist < 0 ? node->left : node->right;
-  const struct KdTreeNode *farNode = sdist < 0 ? node->right : node->left;
+  const struct GameAiKdTreeNode *nearNode = sdist < 0 ? node->left : node->right;
+  const struct GameAiKdTreeNode *farNode = sdist < 0 ? node->right : node->left;
   const size_t nextDim = (dim + 1) % 3;
 
-  kdtree_query_filter_rec(ctx, nearNode, nextDim);
+  G_Ai_KdTreeQueryNode(ctx, nearNode, nextDim);
 
   if (sdist * sdist <= ctx->bestdist) {
-    kdtree_query_filter_rec(ctx, farNode, nextDim);
+    G_Ai_KdTreeQueryNode(ctx, farNode, nextDim);
   }
 }
 
-size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, const float maxDistance,
-                               GridKdTreeFilter filter, void *data) {
+size_t G_Ai_KdTreeQuery(struct GameAiKdTree *tree, const Vec3 querypos, const float maxDistance,
+                        GameAiKdTreeFilter filter, void *data) {
 
   if (!tree || !tree->root || !filter || maxDistance <= 0.f) {
     return SIZE_MAX;
   }
 
-  struct KdTreeFilterCtx ctx = {
+  struct GameAiKdTreeQueryContext ctx = {
     .tree = tree,
     .querypos = querypos,
     .bestdist = (double) maxDistance * maxDistance,
@@ -182,12 +182,12 @@ size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, con
     .data = data
   };
 
-  kdtree_query_filter_rec(&ctx, tree->root, 0);
+  G_Ai_KdTreeQueryNode(&ctx, tree->root, 0);
   return ctx.best;
 }
 
-struct GHeap *gheap_create(const size_t capacity) {
-  struct GHeap *ret = malloc(sizeof(struct GHeap) + sizeof(struct GHeapEntry) * capacity);
+struct GameAiHeap *G_Ai_HeapCreate(const size_t capacity) {
+  struct GameAiHeap *ret = malloc(sizeof(struct GameAiHeap) + sizeof(struct GameAiHeapEntry) * capacity);
 
   if (ret == NULL) {
     return NULL;
@@ -203,7 +203,7 @@ struct GHeap *gheap_create(const size_t capacity) {
   return ret;
 }
 
-void gheap_free(struct GHeap **heap) {
+void G_Ai_HeapFree(struct GameAiHeap **heap) {
 
   if (!*heap) {
     return;
@@ -213,13 +213,13 @@ void gheap_free(struct GHeap **heap) {
   *heap = NULL;
 }
 
-static void hswap(struct GHeapEntry *a, struct GHeapEntry *b) {
-  struct GHeapEntry tmp = *a;
+static void G_Ai_HeapSwap(struct GameAiHeapEntry *a, struct GameAiHeapEntry *b) {
+  struct GameAiHeapEntry tmp = *a;
   *a = *b;
   *b = tmp;
 }
 
-bool gheap_push(struct GHeap *heap, const float cost, void *data) {
+bool G_Ai_HeapPush(struct GameAiHeap *heap, const float cost, void *data) {
   assert(data != NULL);
 
   if (heap->count >= heap->capacity) {
@@ -237,10 +237,10 @@ bool gheap_push(struct GHeap *heap, const float cost, void *data) {
 
   while (i != 0) {
     const size_t parentIndex = (i - 1) / 2;
-    struct GHeapEntry *parent = &heap->entries[parentIndex];
+    struct GameAiHeapEntry *parent = &heap->entries[parentIndex];
 
     if (heap->entries[i].cost < parent->cost) {
-      hswap(&heap->entries[i], parent);
+      G_Ai_HeapSwap(&heap->entries[i], parent);
       i = parentIndex;
     } else {
       break;
@@ -250,23 +250,23 @@ bool gheap_push(struct GHeap *heap, const float cost, void *data) {
   return true;
 }
 
-static float gheap_peek_cost(const struct GHeap *heap, const size_t node) {
+static float G_Ai_HeapPeekCost(const struct GameAiHeap *heap, const size_t node) {
 
   if (node >= heap->count) {
     return INFINITY;
   }
 
-  const struct GHeapEntry *entry = &heap->entries[node];
+  const struct GameAiHeapEntry *entry = &heap->entries[node];
   return entry->cost;
 }
 
-static struct GHeapEntry gheap_pop_inner(struct GHeap *heap) {
+static struct GameAiHeapEntry G_Ai_HeapPopEntry(struct GameAiHeap *heap) {
 
   if (heap->count == 0) {
-    return (struct GHeapEntry) { INFINITY, NULL };
+    return (struct GameAiHeapEntry) { INFINITY, NULL };
   }
 
-  const struct GHeapEntry ret = heap->entries[0];
+  const struct GameAiHeapEntry ret = heap->entries[0];
   heap->count--;
   heap->entries[0] = heap->entries[heap->count];
 
@@ -279,14 +279,14 @@ static struct GHeapEntry gheap_pop_inner(struct GHeap *heap) {
       break;
     }
 
-    struct GHeapEntry *cur = &heap->entries[node];
+    struct GameAiHeapEntry *cur = &heap->entries[node];
     size_t smallest = node;
 
-    if (left < heap->count && gheap_peek_cost(heap, left) < cur->cost) {
+    if (left < heap->count && G_Ai_HeapPeekCost(heap, left) < cur->cost) {
       smallest = left;
     }
 
-    if (right < heap->count && gheap_peek_cost(heap, right) < heap->entries[smallest].cost) {
+    if (right < heap->count && G_Ai_HeapPeekCost(heap, right) < heap->entries[smallest].cost) {
       smallest = right;
     }
 
@@ -294,17 +294,17 @@ static struct GHeapEntry gheap_pop_inner(struct GHeap *heap) {
       break;
     }
 
-    hswap(cur, &heap->entries[smallest]);
+    G_Ai_HeapSwap(cur, &heap->entries[smallest]);
     node = smallest;
   }
 
   return ret;
 }
 
-void gheap_reset(struct GHeap *heap) {
+void G_Ai_HeapReset(struct GameAiHeap *heap) {
   heap->count = 0;
 }
 
-void *gheap_pop(struct GHeap *heap) {
-  return gheap_pop_inner(heap).data;
+void *G_Ai_HeapPop(struct GameAiHeap *heap) {
+  return G_Ai_HeapPopEntry(heap).data;
 }

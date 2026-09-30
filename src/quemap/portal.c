@@ -42,7 +42,7 @@ static Portal *AllocPortal(void) {
 void FreePortal(Portal *p) {
 
   if (p->winding) {
-    Cm_FreeWinding(p->winding);
+    Winding_Free(p->winding);
   }
 
   SDL_AddAtomicInt(&cActivePortals, -1);
@@ -151,7 +151,7 @@ void MakeHeadnodePortals(Tree *tree) {
       Portal *p = AllocPortal();
       portals[n] = p;
 
-      Plane *plane = &p->plane;
+      MapPlane *plane = &p->plane;
       if (j) {
         plane->normal.xyz[i] = -1;
         plane->dist = -bounds.maxs.xyz[i];
@@ -159,7 +159,7 @@ void MakeHeadnodePortals(Tree *tree) {
         plane->normal.xyz[i] = 1;
         plane->dist = bounds.mins.xyz[i];
       }
-      p->winding = Cm_WindingForPlane(plane->normal, plane->dist);
+      p->winding = Winding_ForPlane(plane->normal, plane->dist);
       AddPortalToNodes(p, tree->headNode, &tree->outsideNode);
     }
   }
@@ -170,8 +170,8 @@ void MakeHeadnodePortals(Tree *tree) {
       if (j == i) {
         continue;
       }
-      const Plane *plane = &portals[j]->plane;
-      Cm_ClipWinding(&portals[i]->winding, plane->normal, plane->dist, SIDE_EPSILON);
+      const MapPlane *plane = &portals[j]->plane;
+      Winding_Clip(&portals[i]->winding, plane->normal, plane->dist, SIDE_EPSILON);
     }
   }
 }
@@ -179,20 +179,20 @@ void MakeHeadnodePortals(Tree *tree) {
 /**
  * @brief Returns the full-plane winding for the node clipped by all of its ancestors.
  */
-static CmWinding *BaseWindingForNode(const Node *node) {
+static Winding *BaseWindingForNode(const Node *node) {
 
-  const Plane *plane = &planes[node->plane];
-  CmWinding *w = Cm_WindingForPlane(plane->normal, plane->dist);
+  const MapPlane *plane = &planes[node->plane];
+  Winding *w = Winding_ForPlane(plane->normal, plane->dist);
 
   // clip by all the parents
   for (const Node *n = node->parent; n && w;) {
     plane = &planes[n->plane];
 
     if (n->children[0] == node) { // take front
-      Cm_ClipWinding(&w, plane->normal, plane->dist, SIDE_EPSILON);
+      Winding_Clip(&w, plane->normal, plane->dist, SIDE_EPSILON);
     } else { // take back
       const Vec3 normal = Vec3_Negate(plane->normal);
-      Cm_ClipWinding(&w, normal, -plane->dist, SIDE_EPSILON);
+      Winding_Clip(&w, normal, -plane->dist, SIDE_EPSILON);
     }
     node = n;
     n = n->parent;
@@ -210,7 +210,7 @@ void MakeNodePortal(Node *node) {
   double dist;
   int32_t side;
 
-  CmWinding *w = BaseWindingForNode(node);
+  Winding *w = BaseWindingForNode(node);
 
   // clip the portal by all the other portals in the node
   for (const Portal *p = node->portals; p && w; p = p->next[side]) {
@@ -226,7 +226,7 @@ void MakeNodePortal(Node *node) {
       Com_Error(ERROR_FATAL, "Mis-linked portal\n");
     }
 
-    Cm_ClipWinding(&w, normal, dist, SIDE_EPSILON);
+    Winding_Clip(&w, normal, dist, SIDE_EPSILON);
   }
 
   if (!w) {
@@ -235,7 +235,7 @@ void MakeNodePortal(Node *node) {
 
   if (WindingIsSmall(w)) {
     cSmallPortals++;
-    Cm_FreeWinding(w);
+    Winding_Free(w);
     return;
   }
 
@@ -252,7 +252,7 @@ void MakeNodePortal(Node *node) {
 void SplitNodePortals(Node *node) {
   Portal *next;
 
-  Plane *plane = &planes[node->plane];
+  MapPlane *plane = &planes[node->plane];
 
   for (Portal *p = node->portals; p; p = next) {
     int32_t side;
@@ -272,17 +272,17 @@ void SplitNodePortals(Node *node) {
 
     // cut the portal into two portals, one on each side of the cut plane
 
-    CmWinding *frontWinding, *backWinding;
-    Cm_SplitWinding(p->winding, plane->normal, plane->dist, SIDE_EPSILON, &frontWinding, &backWinding);
+    Winding *frontWinding, *backWinding;
+    Winding_Split(p->winding, plane->normal, plane->dist, SIDE_EPSILON, &frontWinding, &backWinding);
 
     if (frontWinding && WindingIsSmall(frontWinding)) {
-      Cm_FreeWinding(frontWinding);
+      Winding_Free(frontWinding);
       frontWinding = NULL;
       cSmallPortals++;
     }
 
     if (backWinding && WindingIsSmall(backWinding)) {
-      Cm_FreeWinding(backWinding);
+      Winding_Free(backWinding);
       backWinding = NULL;
       cSmallPortals++;
     }
@@ -292,7 +292,7 @@ void SplitNodePortals(Node *node) {
     }
 
     if (!frontWinding) { // only back
-      Cm_FreeWinding(backWinding);
+      Winding_Free(backWinding);
       if (side == 0) {
         AddPortalToNodes(p, node->children[1], other);
       } else {
@@ -301,7 +301,7 @@ void SplitNodePortals(Node *node) {
       continue;
     }
     if (!backWinding) { // only front
-      Cm_FreeWinding(frontWinding);
+      Winding_Free(frontWinding);
       if (side == 0) {
         AddPortalToNodes(p, node->children[0], other);
       } else {
@@ -315,7 +315,7 @@ void SplitNodePortals(Node *node) {
     Portal *q = AllocPortal();
     *q = *p;
     q->winding = backWinding;
-    Cm_FreeWinding(p->winding);
+    Winding_Free(p->winding);
     p->winding = frontWinding;
 
     if (side == 0) {
@@ -340,7 +340,7 @@ static void CalcNodeBounds(Node *node) {
 
   for (const Portal *p = node->portals; p; p = p->next[s]) {
     s = (p->nodes[1] == node);
-    node->bounds = Box3_Union(node->bounds, Cm_WindingBounds(p->winding));
+    node->bounds = Box3_Union(node->bounds, Winding_Bounds(p->winding));
   }
 }
 
@@ -409,11 +409,11 @@ static void FloodPortals_r(Node *node, int32_t occupied) {
 /**
  * @return True if the entity can be placed in a valid leaf beneath `headNode`, false otherwise.
  */
-static bool PlaceOccupant(Node *headNode, const Vec3 origin, const Entity *occupant) {
+static bool PlaceOccupant(Node *headNode, const Vec3 origin, const MapEntity *occupant) {
 
   Node *node = headNode;
   while (node->plane != PLANE_LEAF) {
-    const Plane *plane = &planes[node->plane];
+    const MapPlane *plane = &planes[node->plane];
     const double d = Vec3_Dot(origin, plane->normal) - plane->dist;
     if (d >= 0.0) {
       node = node->children[0];
@@ -441,7 +441,7 @@ bool FloodEntities(Tree *tree) {
 
   bool insideOccupied = false;
 
-  const Entity *ent = &entities[1];
+  const MapEntity *ent = &entities[1];
   for (int32_t i = 1; i < numEntities; i++, ent++) {
 
     // Skip brush entities, we're only interested in point entities for flooding

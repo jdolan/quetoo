@@ -29,7 +29,6 @@
  * those of one brush side in one block, or those of one patch face.
  */
 typedef struct {
-
   /**
    * @brief A face of the group, which gives its material, surface, reflection plane and portal.
    */

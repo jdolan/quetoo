@@ -25,8 +25,8 @@
 
 #if defined(__G_LOCAL_H__)
 
-extern GameLevel g_level;
-extern GameMedia g_media;
+extern GameLevel gameLevel;
+extern GameMedia gameMedia;
 
 /**
  * @brief The movement a level falls back to when neither `g_movement`, its
@@ -45,7 +45,7 @@ char *G_FormatTime(uint32_t time);
 PMoveParams G_MovementParams(void);
 float G_LevelGravity(void);
 PMovement G_ResolveMovement(const char *name);
-GameplayId G_ResolveGameplay(const char *name);
+GamePlayId G_ResolveGamePlay(const char *name);
 
 extern GameImport gi;
 
@@ -223,12 +223,7 @@ extern Cvar *sv_hostname;
 extern Cvar *dedicated;
 extern Cvar *editor;
 
-extern GameTeam g_teamList[MAX_TEAMS];
-
-#define g_team_red (&gTeamList[TEAM_RED])
-#define g_team_blue (&gTeamList[TEAM_BLUE])
-#define g_team_yellow (&gTeamList[TEAM_YELLOW])
-#define g_team_green (&gTeamList[TEAM_GREEN])
+extern GameTeam gameTeamList[MAX_TEAMS];
 
 void G_Init(void);
 void G_Shutdown(void);

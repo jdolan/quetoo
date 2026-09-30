@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "75D08AE2AF1245A4BCA3DE4B"
-               BuildableName = "check_cm_material"
-               BlueprintName = "check_cm_material"
+               BlueprintIdentifier = "CEA508F52EA5D20A00F27205"
+               BuildableName = "check_winding"
+               BlueprintName = "check_winding"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -40,15 +40,14 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
-      viewDebuggingEnabled = "No"
-      queueDebuggingEnableBacktraceRecording = "Yes">
+      viewDebuggingEnabled = "No">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "75D08AE2AF1245A4BCA3DE4B"
-            BuildableName = "check_cm_material"
-            BlueprintName = "check_cm_material"
+            BlueprintIdentifier = "CEA508F52EA5D20A00F27205"
+            BuildableName = "check_winding"
+            BlueprintName = "check_winding"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -63,9 +62,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "75D08AE2AF1245A4BCA3DE4B"
-            BuildableName = "check_cm_material"
-            BlueprintName = "check_cm_material"
+            BlueprintIdentifier = "CEA508F52EA5D20A00F27205"
+            BuildableName = "check_winding"
+            BlueprintName = "check_winding"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

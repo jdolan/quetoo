@@ -43,7 +43,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1055
+#define PROTOCOL_MINOR 1056
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -209,7 +209,6 @@ typedef enum {
  * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
  */
 typedef struct {
-
   /**
    * @brief ConfigString index of the sample to play.
    */
@@ -245,7 +244,6 @@ typedef struct {
  * @brief Player scores are transmitted as binary to the client game module.
  */
 typedef struct {
-
   /**
    * @brief Client number.
    */
@@ -353,10 +351,10 @@ typedef enum {
 /**
  * @brief Scoreboard background color hues.
  */
-#define TEAM_COLOR_RED    color_hue_red
-#define TEAM_COLOR_BLUE   color_hue_blue
-#define TEAM_COLOR_YELLOW color_hue_yellow
-#define TEAM_COLOR_GREEN  color_hue_green
+#define TEAM_COLOR_RED    COLOR_HUE_RED
+#define TEAM_COLOR_BLUE   COLOR_HUE_BLUE
+#define TEAM_COLOR_YELLOW COLOR_HUE_YELLOW
+#define TEAM_COLOR_GREEN  COLOR_HUE_GREEN
 
 /**
  * @brief Team ID
@@ -402,17 +400,17 @@ typedef enum {
   GAMEPLAY_TEAM_DEATHMATCH = GAMEPLAY_DEATHMATCH | GAMEPLAY_TEAMS,
   GAMEPLAY_TEAM_INSTAGIB = GAMEPLAY_INSTAGIB | GAMEPLAY_TEAMS,
   GAMEPLAY_TEAM_ARENA = GAMEPLAY_ARENA | GAMEPLAY_TEAMS
-} GameplayId;
+} GamePlayId;
 
 /**
- * @brief One of the six modes `GameplayId` defines, paired with the
+ * @brief One of the six modes `GamePlayId` defines, paired with the
  * canonical `g_gameplay` cvar string and menu label for it.
  */
 typedef struct {
-  GameplayId id;
+  GamePlayId id;
   const char *name;
   const char *label;
-} Gameplay;
+} GamePlay;
 
 /**
  * @brief The canonical table of every gameplay mode, in menu order. Defined
@@ -420,7 +418,7 @@ typedef struct {
  * get their own compiled copy through header inclusion - no cross-binary
  * linkage, and no drift, since it is one source text.
  */
-static const Gameplay g_gameplayModes[] = {
+static const GamePlay gameplays[] = {
   { GAMEPLAY_DEATHMATCH,      "deathmatch",      "Deathmatch" },
   { GAMEPLAY_TEAM_DEATHMATCH, "team_deathmatch", "Team Deathmatch" },
   { GAMEPLAY_INSTAGIB,        "instagib",        "Instagib" },
@@ -456,7 +454,6 @@ typedef enum {
  * @brief Armor attributes.
  */
 typedef struct {
-
   /**
    * @brief Armor type tag.
    */
@@ -584,7 +581,6 @@ typedef enum {
  * @brief Physics parameters and think functions for entities which move.
  */
 typedef struct {
-
   /**
    * @brief Starting origin.
    */
@@ -764,7 +760,6 @@ typedef struct {
  * @brief A list of spawn point entities available for player spawning.
  */
 typedef struct {
-
   /**
    * @brief Number of spawn point entities.
    */
@@ -781,7 +776,6 @@ typedef struct {
  * level load.
  */
 typedef struct {
-
   /**
    * @brief Current server frame number.
    */
@@ -811,7 +805,7 @@ typedef struct {
   /**
    * @brief Active gameplay mode.
    */
-  GameplayId gameplay;
+  GamePlayId gameplay;
 
   /**
    * @brief Active item set.
@@ -822,6 +816,15 @@ typedef struct {
    * @brief The player movement this level runs.
    */
   PMovement movement;
+
+  /**
+   * @brief What this level asked for, remembered so that setting `g_gameplay` or
+   * `g_movement` back to "default" returns to it rather than to Quetoo's.
+   */
+  struct {
+    GamePlayId gameplay;
+    PMovement movement;
+  } requested;
 
   /**
    * @brief True if team play is active.
@@ -975,7 +978,7 @@ typedef struct {
   MOD_TURRET_LASER,
   MOD_TURRET_GIBLETS,
   MOD_FRIENDLY_FIRE = 0x8000000
-} g_means_of_death;
+} GameMeansOfDeath;
 
 /**
  * @brief Damage flags. These can be and often are combined.
@@ -1039,7 +1042,7 @@ typedef struct {
  /**
   * @brief Means of death identifier.
   */
-	g_means_of_death mod;
+	GameMeansOfDeath mod;
 } GameDamage;
 
 /**
@@ -1047,7 +1050,6 @@ typedef struct {
  * `ballistics_giblets`.
  */
 typedef struct {
-
   /**
    * @brief The origin the giblets are scattered from.
    */
@@ -1105,7 +1107,6 @@ typedef struct {
  * @brief There are four teams in the default game module.
  */
 typedef struct {
-
   /**
    * @brief Team identifier, used for comparison instead of pointer equality.
    */
@@ -1172,7 +1173,6 @@ typedef struct {
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
-
   /**
    * @brief Frame number when the client first entered the game.
    */
@@ -1295,11 +1295,6 @@ struct GameClient {
    * @brief Currently active weapon.
    */
   const GameItem *weapon;
-
-  /**
-   * @brief Previously active weapon.
-   */
-  const GameItem *prevWeapon;
 
   /**
    * @brief Weapon currently being switched to.
@@ -1716,7 +1711,7 @@ struct GameEntity {
   /**
    * @brief Called on entity contact.
    */
-  void (*Touch)(GameEntity *ent, GameEntity *other, const CmTrace *trace);
+  void (*Touch)(GameEntity *ent, GameEntity *other, const CollisionTrace *trace);
 
   /**
    * @brief Called when triggered.
@@ -1841,7 +1836,7 @@ struct GameEntity {
   /**
    * @brief Ground trace result from the last physics frame.
    */
-  CmTrace ground;
+  CollisionTrace ground;
 
   /**
    * @brief Content type of water the entity is submerged in.
@@ -1867,7 +1862,7 @@ struct GameEntity {
   /**
    * @brief AI navigation node for item path tracking.
    */
-  AiNodeId node;
+  GameAiNodeId node;
 
   /**
    * @brief True if the entity should advance along the item path.

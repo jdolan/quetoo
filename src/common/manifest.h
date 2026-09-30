@@ -23,7 +23,7 @@
 
 #include <Objectively/HashTable.h>
 
-#include "common/common.h"
+#include "common.h"
 
 /**
  * @brief Status of a manifest entry, used by the installer to track update state.
@@ -33,7 +33,7 @@ typedef enum {
 	ENTRY_PENDING,
 	ENTRY_DOWNLOADING,
 	ENTRY_STALE,
-} CmManifestEntryStatus;
+} ManifestEntryStatus;
 
 /**
  * @brief A single entry in a manifest.
@@ -59,31 +59,31 @@ typedef struct {
  /**
   * @brief Current update status of this entry.
   */
-	CmManifestEntryStatus status;
-} CmManifestEntry;
+	ManifestEntryStatus status;
+} ManifestEntry;
 
 /**
  * @brief Allocates an empty manifest table.
- * @return A new HashTable mapping path strings to `CmManifestEntry` values.
+ * @return A new HashTable mapping path strings to `ManifestEntry` values.
  */
-HashTable *Cm_AllocManifest(void);
+HashTable *Manifest_Alloc(void);
 
 /**
  * @brief Inserts an entry into a manifest table, computing the `MD5` checksum of the given data.
- * @param manifest The manifest table returned by `Cm_AllocManifest` or `Cm_ParseManifest`.
+ * @param manifest The manifest table returned by `Manifest_Alloc` or `Manifest_Parse`.
  * @param path The asset path (used as the table key).
  * @param data The file data to checksum.
  * @param len The length of the data in bytes.
  */
-void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data, size_t len);
+void Manifest_AddEntry(HashTable *manifest, const char *path, const void *data, size_t len);
 
 /**
  * @brief Verifies a manifest entry against the local file on disk.
  * @param entry The manifest entry to check.
  * @return true if the local file exists and its `MD5` matches the entry's hash.
  */
-bool Cm_CheckManifestEntry(const CmManifestEntry *entry);
-bool Cm_HashFile(const char *path, char *hex, size_t hexSize);
+bool Manifest_CheckEntry(const ManifestEntry *entry);
+bool Manifest_HashFile(const char *path, char *hex, size_t hexSize);
 
 /**
  * @brief Writes a manifest table to a file, sorted by path.
@@ -91,7 +91,7 @@ bool Cm_HashFile(const char *path, char *hex, size_t hexSize);
  * @param manifest The manifest table to write.
  * @return The number of entries written, or -1 on failure.
  */
-int32_t Cm_WriteManifest(const char *path, HashTable *manifest);
+int32_t Manifest_Write(const char *path, HashTable *manifest);
 
 /**
  * @brief Parses a manifest from an in-memory buffer.
@@ -99,18 +99,18 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest);
  * Returns an empty table (never `NULL`) when @c data is `NULL` or @c len is zero.
  * @param data The manifest text data, or `NULL` for an empty manifest.
  * @param len The length of @c data in bytes.
- * @return A HashTable mapping path strings to `CmManifestEntry` values.
+ * @return A HashTable mapping path strings to `ManifestEntry` values.
  */
-HashTable *Cm_ParseManifest(const char *data, size_t len);
+HashTable *Manifest_Parse(const char *data, size_t len);
 
 /**
  * @brief Reads a manifest file into a table.
  * @param path The manifest file path (e.g. "maps/`edge.mf`").
- * @return A HashTable of `CmManifestEntry`, or `NULL` if the file does not exist.
+ * @return A HashTable of `ManifestEntry`, or `NULL` if the file does not exist.
  */
-HashTable *Cm_ReadManifest(const char *path);
+HashTable *Manifest_Read(const char *path);
 
 /**
  * @brief Frees a manifest table and all its entries.
  */
-void Cm_FreeManifest(HashTable *manifest);
+void Manifest_Free(HashTable *manifest);

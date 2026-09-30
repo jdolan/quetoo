@@ -263,7 +263,7 @@ typedef struct {
 	bool ok;
 } HttpServer;
 
-static int SDLCALL http_server_thread(void *data) {
+static int SDLCALL Test_HttpServerThread(void *data) {
 	HttpServer *ctx = data;
 
 	// Make listen socket blocking so accept() waits for the client
@@ -330,7 +330,7 @@ START_TEST(check_Net_Http_roundtrip) {
 		.ok = false,
 	};
 
-	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
+	SDL_Thread *thread = SDL_CreateThread(Test_HttpServerThread, "http_server", &server);
 	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
 
 	// Client: download via RESTClient (Objectively URLSession / libcurl)

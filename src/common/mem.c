@@ -45,13 +45,11 @@ typedef struct {
   MemMagic magic;
 } MemFooter;
 
-typedef struct {
+static struct {
   MemBlock *head;   // head of global doubly-linked block list
   size_t size;
   SDL_SpinLock lock;
-} MemState;
-
-static MemState memState;
+} module;
 
 /**
  * @brief Returns a properly aligned pointer to the footer for a data block.
@@ -143,7 +141,7 @@ static void Mem_Free_(MemBlock *b) {
   }
 
   // decrement the pool size and free the memory
-  memState.size -= b->size;
+  module.size -= b->size;
 
   free(b);
 }
@@ -156,7 +154,7 @@ void Mem_Free(void *p) {
   if (p) {
     MemBlock *b = Mem_CheckMagic(p);
 
-    SDL_LockSpinlock(&memState.lock);
+    SDL_LockSpinlock(&module.lock);
 
     if (b->parent) {
       // Unlink from parent's intrusive children list
@@ -168,13 +166,13 @@ void Mem_Free(void *p) {
     } else {
       // Unlink from global doubly-linked list
       if (b->prevBlock) { b->prevBlock->nextBlock = b->nextBlock; }
-      else { memState.head = b->nextBlock; }
+      else { module.head = b->nextBlock; }
       if (b->nextBlock) { b->nextBlock->prevBlock = b->prevBlock; }
     }
 
     Mem_Free_(b);
 
-    SDL_UnlockSpinlock(&memState.lock);
+    SDL_UnlockSpinlock(&module.lock);
   }
 }
 
@@ -183,22 +181,22 @@ void Mem_Free(void *p) {
  */
 void Mem_FreeTag(MemTag tag) {
 
-  SDL_LockSpinlock(&memState.lock);
+  SDL_LockSpinlock(&module.lock);
 
-  MemBlock *b = memState.head;
+  MemBlock *b = module.head;
   while (b) {
     MemBlock *next = b->nextBlock;
     if (tag == MEM_TAG_ALL || b->tag == tag) {
       // Unlink from global list
       if (b->prevBlock) { b->prevBlock->nextBlock = b->nextBlock; }
-      else { memState.head = b->nextBlock; }
+      else { module.head = b->nextBlock; }
       if (b->nextBlock) { b->nextBlock->prevBlock = b->prevBlock; }
       Mem_Free_(b);
     }
     b = next;
   }
 
-  SDL_UnlockSpinlock(&memState.lock);
+  SDL_UnlockSpinlock(&module.lock);
 }
 
 /**
@@ -243,7 +241,7 @@ static void *Mem_Malloc_(size_t size, MemTag tag, void *parent) {
   footer->magic = (MemMagic) (MEM_MAGIC + b->size);
 
   // insert it into the managed memory structures
-  SDL_LockSpinlock(&memState.lock);
+  SDL_LockSpinlock(&module.lock);
 
   if (b->parent) {
     // Prepend to parent's intrusive children list
@@ -251,15 +249,15 @@ static void *Mem_Malloc_(size_t size, MemTag tag, void *parent) {
     b->parent->firstChild = b;
   } else {
     // Prepend to global doubly-linked list
-    b->nextBlock = memState.head;
+    b->nextBlock = module.head;
     b->prevBlock = NULL;
-    if (memState.head) { memState.head->prevBlock = b; }
-    memState.head = b;
+    if (module.head) { module.head->prevBlock = b; }
+    module.head = b;
   }
 
-  memState.size += size;
+  module.size += size;
 
-  SDL_UnlockSpinlock(&memState.lock);
+  SDL_UnlockSpinlock(&module.lock);
 
   // return the address in front of the block
   return data;
@@ -331,7 +329,7 @@ void *Mem_Realloc(void *p, size_t size) {
   // those have been re-seated.
   const bool hasChildren = b->firstChild != NULL;
 
-  SDL_LockSpinlock(&memState.lock);
+  SDL_LockSpinlock(&module.lock);
 
   // remove the old block while b is still a valid pointer
   if (b->parent) {
@@ -340,12 +338,12 @@ void *Mem_Realloc(void *p, size_t size) {
     if (*pp) { *pp = b->nextSibling; }
   } else {
     if (b->prevBlock) { b->prevBlock->nextBlock = b->nextBlock; }
-    else { memState.head = b->nextBlock; }
+    else { module.head = b->nextBlock; }
     if (b->nextBlock) { b->nextBlock->prevBlock = b->prevBlock; }
   }
 
   if (!hasChildren) {
-    SDL_UnlockSpinlock(&memState.lock);
+    SDL_UnlockSpinlock(&module.lock);
   }
 
   b->size = size;
@@ -362,7 +360,7 @@ void *Mem_Realloc(void *p, size_t size) {
   footer->magic = (MemMagic) (MEM_MAGIC + newB->size);
 
   if (!hasChildren) {
-    SDL_LockSpinlock(&memState.lock);
+    SDL_LockSpinlock(&module.lock);
   }
 
   // re-seat us in our parent or in global list
@@ -370,10 +368,10 @@ void *Mem_Realloc(void *p, size_t size) {
     newB->nextSibling = newB->parent->firstChild;
     newB->parent->firstChild = newB;
   } else {
-    newB->nextBlock = memState.head;
+    newB->nextBlock = module.head;
     newB->prevBlock = NULL;
-    if (memState.head) { memState.head->prevBlock = newB; }
-    memState.head = newB;
+    if (module.head) { module.head->prevBlock = newB; }
+    module.head = newB;
   }
 
   // change our children's parent pointers
@@ -383,10 +381,10 @@ void *Mem_Realloc(void *p, size_t size) {
     }
   }
 
-  memState.size -= oldSize;
-  memState.size += size;
+  module.size -= oldSize;
+  module.size += size;
 
-  SDL_UnlockSpinlock(&memState.lock);
+  SDL_UnlockSpinlock(&module.lock);
 
   return data;
 }
@@ -404,7 +402,7 @@ void *Mem_Link(void *child, void *parent) {
   MemBlock *c = Mem_CheckMagic(child);
   MemBlock *p = Mem_CheckMagic(parent);
 
-  SDL_LockSpinlock(&memState.lock);
+  SDL_LockSpinlock(&module.lock);
 
   if (c->parent) {
     MemBlock **pp = &c->parent->firstChild;
@@ -412,7 +410,7 @@ void *Mem_Link(void *child, void *parent) {
     if (*pp) { *pp = c->nextSibling; }
   } else {
     if (c->prevBlock) { c->prevBlock->nextBlock = c->nextBlock; }
-    else { memState.head = c->nextBlock; }
+    else { module.head = c->nextBlock; }
     if (c->nextBlock) { c->nextBlock->prevBlock = c->prevBlock; }
   }
 
@@ -420,7 +418,7 @@ void *Mem_Link(void *child, void *parent) {
   c->nextSibling = p->firstChild;
   p->firstChild = c;
 
-  SDL_UnlockSpinlock(&memState.lock);
+  SDL_UnlockSpinlock(&module.lock);
 
   return child;
 }
@@ -429,7 +427,7 @@ void *Mem_Link(void *child, void *parent) {
  * @return The current size (user bytes) of the zone allocation pool.
  */
 size_t Mem_Size(void) {
-  return memState.size;
+  return module.size;
 }
 
 /**
@@ -438,7 +436,7 @@ size_t Mem_Size(void) {
 char *Mem_TagCopyString(const char *in, MemTag tag) {
   char *out;
 
-  out = Mem_TagMalloc(q_strlen(in) + 1, tag);
+  out = Mem_TagMalloc(Str_Length(in) + 1, tag);
   strcpy(out, in);
 
   return out;
@@ -478,14 +476,14 @@ static size_t Mem_CalculateBlockSize(const MemBlock *b) {
  */
 Vector *Mem_Stats(void) {
 
-  SDL_LockSpinlock(&memState.lock);
+  SDL_LockSpinlock(&module.lock);
 
   Vector *statArray = $(alloc(Vector), initWithSize, sizeof(MemStat));
 
-  MemStat total = { .tag = -1, .size = memState.size, .count = 0 };
+  MemStat total = { .tag = -1, .size = module.size, .count = 0 };
   $(statArray, add, &total);
 
-  for (const MemBlock *b = memState.head; b; b = b->nextBlock) {
+  for (const MemBlock *b = module.head; b; b = b->nextBlock) {
     MemStat *stats = NULL;
 
     for (size_t i = 0; i < statArray->count; i++) {
@@ -509,7 +507,7 @@ Vector *Mem_Stats(void) {
     }
   }
 
-  SDL_UnlockSpinlock(&memState.lock);
+  SDL_UnlockSpinlock(&module.lock);
 
   $(statArray, sort, Mem_Stats_Sort);
 
@@ -522,7 +520,7 @@ Vector *Mem_Stats(void) {
  */
 void Mem_Init(void) {
 
-  memset(&memState, 0, sizeof(memState));
+  memset(&module, 0, sizeof(module));
 }
 
 /**

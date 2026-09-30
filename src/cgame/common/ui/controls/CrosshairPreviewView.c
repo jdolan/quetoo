@@ -88,7 +88,7 @@ static void updateBindings(View *self, ident data) {
       release(image);
 
       SDL_Color color = Colors.White;
-      if (q_strcmp(cg_drawCrosshairColor->string, "default")) {
+      if (Str_Compare(cg_drawCrosshairColor->string, "default")) {
         color = MVC_HexToRGBA(cg_drawCrosshairColor->string);
         if (color.r == 0 && color.g == 0 && color.b == 0) {
           color = Colors.White;

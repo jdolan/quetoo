@@ -23,18 +23,18 @@
 #include "bg_intermission.h"
 
 static struct {
-  ParseConfigString ParseConfigString;
-  StateDidClear StateDidClear;
+  CGameParseConfigStringHook ParseConfigString;
+  CGameStateDidClearHook StateDidClear;
 } previous;
 
 /**
  * @brief Bumped whenever the candidates change, never reset, so that a view comparing
  * against it sees a change even across a level.
  */
-static uint32_t cgNextMapGeneration;
+static uint32_t nextMapGeneration;
 
 /**
- * @brief Reads `CS_NEXT_MAP` into `cgState.nextMap`.
+ * @brief Reads `CS_NEXT_MAP` into `cgameState.nextMap`.
  */
 static bool Cg_ParseConfigString_Intermission(int32_t index) {
 
@@ -42,7 +42,7 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     return previous.ParseConfigString(index);
   }
 
-  CGameNextMapState *nextMap = &cgState.nextMap;
+  CGameNextMapState *nextMap = &cgameState.nextMap;
 
   char was[MAX_NEXT_MAPS][MAX_QPATH];
   memcpy(was, nextMap->maps, sizeof(was));
@@ -53,12 +53,12 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   memset(nextMap, 0, sizeof(*nextMap));
 
   if (!*s) {
-    nextMap->generation = numWas ? ++cgNextMapGeneration : cgNextMapGeneration;
+    nextMap->generation = numWas ? ++nextMapGeneration : nextMapGeneration;
     return true;
   }
 
   char buf[MAX_STRING_CHARS];
-  q_strlcpy(buf, s, sizeof(buf));
+  Str_Copy(buf, s, sizeof(buf));
 
   // split positionally, since the count of candidates is what the string carries
   char *fields[NEXT_MAP_CS_FIELDS_FOR(MAX_NEXT_MAPS)] = { NULL };
@@ -85,16 +85,16 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   nextMap->numMaps = (int32_t) (count - NEXT_MAP_CS_MAPS) / 2;
 
   for (int32_t i = 0; i < nextMap->numMaps; i++) {
-    q_strlcpy(nextMap->maps[i], fields[NEXT_MAP_CS_MAPS + i * 2], MAX_QPATH);
+    Str_Copy(nextMap->maps[i], fields[NEXT_MAP_CS_MAPS + i * 2], MAX_QPATH);
     nextMap->votes[i] = (int32_t) strtol(fields[NEXT_MAP_CS_MAPS + i * 2 + 1], NULL, 10);
   }
 
   // only the names cost anything to show, so the tally moving is not a redraw
   if (nextMap->numMaps != numWas || memcmp(was, nextMap->maps, sizeof(was))) {
-    cgNextMapGeneration++;
+    nextMapGeneration++;
   }
 
-  nextMap->generation = cgNextMapGeneration;
+  nextMap->generation = nextMapGeneration;
 
   return true;
 }
@@ -115,7 +115,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
     return false;
   }
 
-  if (!cgState.nextMap.active || !cgState.nextMap.voting) {
+  if (!cgameState.nextMap.active || !cgameState.nextMap.voting) {
     return false;
   }
 
@@ -127,7 +127,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
 
   const int32_t map = (int32_t) (event->key.key - SDLK_1);
 
-  if (map < 0 || map >= cgState.nextMap.numMaps) {
+  if (map < 0 || map >= cgameState.nextMap.numMaps) {
     return false;
   }
 
@@ -141,7 +141,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
  */
 static void Cg_StateDidClear_Intermission(void) {
 
-  memset(&cgState.nextMap, 0, sizeof(cgState.nextMap));
+  memset(&cgameState.nextMap, 0, sizeof(cgameState.nextMap));
 
   previous.StateDidClear();
 }

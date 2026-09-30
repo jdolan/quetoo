@@ -40,5 +40,5 @@ void G_FreeBeamProjectile(GameEntity *emitter);
 void G_RailgunProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t damage, int32_t knockback, uint32_t mod);
 void G_BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius);
 void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius, uint32_t timer);
-void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace);
+void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace);
 #endif

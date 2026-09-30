@@ -177,7 +177,7 @@ void Sv_SendDemoSetup(ServerClient *cl) {
       break;
     }
 
-    Netchan_Transmit(&cl->netChan, buffer, size);
+    NetChan_Transmit(&cl->netChan, buffer, size);
   }
 
   // restore the shared playback cursor regardless of how the loop above ended, so a setup-read
@@ -232,7 +232,7 @@ static void Sv_DemoCompleted(void) {
   if (sv_demoList->string[0]) {
 
     const char *currentDemo = sv.name;
-    const char *nextDemo = q_strstr(sv_demoList->string, currentDemo);
+    const char *nextDemo = Str_Find(sv_demoList->string, currentDemo);
     char demoToken[MAX_QPATH];
 
     if (!nextDemo) {
@@ -240,7 +240,7 @@ static void Sv_DemoCompleted(void) {
       nextDemo = sv_demoList->string;
     } else {
 
-      nextDemo += q_strlen(currentDemo);
+      nextDemo += Str_Length(currentDemo);
 
       if (nextDemo[0] == ' ') {
         nextDemo++;
@@ -249,10 +249,10 @@ static void Sv_DemoCompleted(void) {
       }
     }
 
-    const char *space = q_strchr(nextDemo, ' ') ? : (nextDemo + q_strlen(nextDemo));
+    const char *space = Str_FindChar(nextDemo, ' ') ? : (nextDemo + Str_Length(nextDemo));
     size_t len = space - nextDemo;
 
-    q_strlcpy(demoToken, nextDemo, len + 1);
+    Str_Copy(demoToken, nextDemo, len + 1);
 
     if (demoToken[0]) {
       Sv_InitServer(demoToken, NULL, SV_ACTIVE_DEMO);
@@ -431,7 +431,7 @@ bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
   if (sv.demoPaused) {
 
     if (size) {
-      Netchan_Transmit(&cl->netChan, buffer, size);
+      NetChan_Transmit(&cl->netChan, buffer, size);
       return true;
     }
 
@@ -440,7 +440,7 @@ bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
     // applies its normal timeout check regardless of demo state, and would otherwise disconnect
     // a spectator who paused playback for longer than cl_timeout
     if (cl->netChan.message.size || quetoo.ticks - cl->netChan.lastSent > 1000) {
-      Netchan_Transmit(&cl->netChan, NULL, 0);
+      NetChan_Transmit(&cl->netChan, NULL, 0);
     }
 
     return true;
@@ -450,7 +450,7 @@ bool Sv_SendDemoPacket(ServerClient *cl, byte *buffer, size_t size) {
     return false;
   }
 
-  Netchan_Transmit(&cl->netChan, buffer, size);
+  NetChan_Transmit(&cl->netChan, buffer, size);
 
   return true;
 }

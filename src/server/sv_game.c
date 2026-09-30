@@ -73,7 +73,7 @@ static void Sv_SetModel(GameEntity *ent, const char *name) {
 
   // if it is an inline model, get the size information for it
   if (name[0] == '*') {
-    const CmBspModel *mod = Cm_Model(name);
+    const CollisionModel *mod = Cm_Model(name);
     ent->bounds = mod->bounds;
     Sv_LinkEntity(ent);
   }
@@ -94,12 +94,12 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
   }
 
   // make sure it's actually changed
-  if (!q_strcmp(sv.configStrings[index], val)) {
+  if (!Str_Compare(sv.configStrings[index], val)) {
     return;
   }
 
   // change the string in sv.configStrings
-  q_strlcpy(sv.configStrings[index], val, sizeof(sv.configStrings[0]));
+  Str_Copy(sv.configStrings[index], val, sizeof(sv.configStrings[0]));
 
   if (svs.state >= SV_ACTIVE_GAME) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -201,7 +201,7 @@ static void Sv_WriteAngles(const Vec3 angles) {
   Net_WriteAngles(&sv.multicast, angles);
 }
 
-static void *gameHandle;
+static void *handle;
 
 /**
  * @brief `RESTClientCompletion` for `Sv_PostStats`.
@@ -232,7 +232,7 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *userData) {
  */
 static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCapture *captures, size_t capturesLen) {
 
-  if (!sv_statsUrl->string[0] || !q_strcmp(sv_statsUrl->string, "0") || sv_public->integer <= 0) {
+  if (!sv_statsUrl->string[0] || !Str_Compare(sv_statsUrl->string, "0") || sv_public->integer <= 0) {
     return;
   }
 
@@ -246,7 +246,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
 
   if (fragsLen) {
 
-    const JSONProperties svFragProperties = MakeJSONProperties(GameFrag,
+    const JSONProperties fragProperties = MakeJSONProperties(GameFrag,
       MakeJSONProperty(GameFrag, level,         JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameFrag, attacker,      JSONSerializeCharacters, NULL, NULL),
       MakeJSONPropertyWithKey(GameFrag, attackerGuid, "attacker_guid", JSONSerializeCharacters, NULL, NULL),
@@ -260,10 +260,10 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     );
 
     static char fragsUrl[MAX_STRING_CHARS];
-    q_snprintf(fragsUrl, sizeof(fragsUrl), "%s/api/frags", sv_statsUrl->string);
+    Str_Format(fragsUrl, sizeof(fragsUrl), "%s/api/frags", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromStructs, &svFragProperties, (ident) frags, fragsLen);
+    Data *data = $(ctx, dataFromStructs, &fragProperties, (ident) frags, fragsLen);
     release(ctx);
     assert(data);
 
@@ -275,7 +275,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
 
   if (capturesLen) {
 
-    const JSONProperties svCaptureProperties = MakeJSONProperties(GameCapture,
+    const JSONProperties captureProperties = MakeJSONProperties(GameCapture,
       MakeJSONProperty(GameCapture, level,       JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameCapture, player,      JSONSerializeCharacters, NULL, NULL),
       MakeJSONPropertyWithKey(GameCapture, playerGuid, "player_guid", JSONSerializeCharacters, NULL, NULL),
@@ -285,10 +285,10 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     );
 
     static char capturesUrl[MAX_STRING_CHARS];
-    q_snprintf(capturesUrl, sizeof(capturesUrl), "%s/api/captures", sv_statsUrl->string);
+    Str_Format(capturesUrl, sizeof(capturesUrl), "%s/api/captures", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromStructs, &svCaptureProperties, (ident) captures, capturesLen);
+    Data *data = $(ctx, dataFromStructs, &captureProperties, (ident) captures, capturesLen);
     release(ctx);
     assert(data);
 
@@ -370,10 +370,10 @@ void Sv_InitGame(void) {
 
   import.Bsp = Cm_Bsp;
   import.Worldspawn = Cm_Worldspawn;
-  import.EntityValue = Cm_EntityValue;
-  import.EntityBrushes = Cm_EntityBrushes;
-  import.LoadEntities = Cm_LoadEntities;
-  import.FreeEntity = Cm_FreeEntity;
+  import.EntityValue = Entity_Value;
+  import.EntityBrushes = Entity_Brushes;
+  import.LoadEntities = Entity_LoadAll;
+  import.FreeEntity = Entity_Free;
   import.MapList = Sv_MapList;
   import.MapIndex = Sv_MapIndex;
   import.SetNextMap = Sv_SetNextMap;
@@ -412,21 +412,21 @@ void Sv_InitGame(void) {
     Com_Error(ERROR_DROP, "Neither %s nor %s provides a game module\n", Com_Game(), DEFAULT_GAME);
   }
 
-  gameHandle = Sys_OpenLibrary(dir, "game");
-  if (!gameHandle) {
+  handle = Sys_OpenLibrary(dir, "game");
+  if (!handle) {
     Com_Error(ERROR_DROP, "Failed to open %s's game module\n", dir);
   }
   
-  GameExport *game = (GameExport *) Sys_LoadLibrary(gameHandle, "G_LoadGame", &import);
+  GameExport *game = (GameExport *) Sys_LoadLibrary(handle, "G_LoadGame", &import);
 
   if (!game) {
-    gameHandle = Sys_CloseLibrary(gameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_DROP, "Failed to load %s's game module\n", dir);
   }
 
   if (game->apiVersion != GAME_API_VERSION) {
     const int32_t version = game->apiVersion;
-    gameHandle = Sys_CloseLibrary(gameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_DROP, "%s's game module is version %i, not %i\n", dir, version, GAME_API_VERSION);
   }
 
@@ -462,5 +462,5 @@ void Sv_ShutdownGame(void) {
   Com_Print("Game down\n");
   Com_QuitSubsystem(QUETOO_GAME);
 
-  gameHandle = Sys_CloseLibrary(gameHandle);
+  handle = Sys_CloseLibrary(handle);
 }

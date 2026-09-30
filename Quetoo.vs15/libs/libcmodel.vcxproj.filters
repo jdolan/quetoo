@@ -24,25 +24,16 @@
     <ClInclude Include="..\..\src\collision\cm_types.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_material.h">
-      <Filter>src\collision</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\collision\cm_bsp.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_entity.h">
+    <ClInclude Include="..\..\src\collision\entity.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_manifest.h">
+    <ClInclude Include="..\..\src\collision\voxel.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_polylib.h">
-      <Filter>src\collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_voxel.h">
-      <Filter>src\collision</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\collision\cm_light.h">
+    <ClInclude Include="..\..\src\collision\material_light.h">
       <Filter>src\collision</Filter>
     </ClInclude>
   </ItemGroup>
@@ -56,25 +47,16 @@
     <ClCompile Include="..\..\src\collision\cm_trace.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_material.c">
-      <Filter>src\collision</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_bsp.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_entity.c">
+    <ClCompile Include="..\..\src\collision\entity.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_manifest.c">
+    <ClCompile Include="..\..\src\collision\voxel.c">
       <Filter>src\collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_polylib.c">
-      <Filter>src\collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_voxel.c">
-      <Filter>src\collision</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\collision\cm_light.c">
+    <ClCompile Include="..\..\src\collision\material_light.c">
       <Filter>src\collision</Filter>
     </ClCompile>
   </ItemGroup>

@@ -42,6 +42,15 @@
     <ClCompile Include="..\..\src\common\installer.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\manifest.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\material.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\winding.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\mem.c">
       <Filter>src\common</Filter>
     </ClCompile>
@@ -52,9 +61,6 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\common\thread.c">
-      <Filter>src\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\common\rgb9e5.c">
       <Filter>src\common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,7 +83,7 @@
     <ClInclude Include="..\..\src\common\cvar.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\common\files.h">
+    <ClInclude Include="..\..\src\common\file_formats.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\filesystem.h">
@@ -90,6 +96,15 @@
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\installer.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\manifest.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\material.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\winding.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\mem.h">

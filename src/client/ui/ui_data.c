@@ -26,5 +26,5 @@
  * @brief Creates and returns a theme for the current SDL window.
  */
 Theme *Ui_Theme(void) {
-  return $$(Theme, theme, rContext.window);
+  return $$(Theme, theme, renderContext.window);
 }

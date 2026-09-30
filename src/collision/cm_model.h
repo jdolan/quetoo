@@ -29,12 +29,12 @@
  * @param size If non-`NULL`, receives the file size for compatibility checking.
  * @return The world inline model (model 0), or `NULL` on failure.
  */
-CmBspModel *Cm_LoadBspModel(const char *name, int64_t *size);
+CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size);
 
 /**
  * @brief Returns the inline BSP model with the given name (e.g. "*1").
  */
-CmBspModel *Cm_Model(const char *name); // *1, *2, etc
+CollisionModel *Cm_Model(const char *name); // *1, *2, etc
 
 /**
  * @brief Returns the number of inline BSP models in the loaded BSP.
@@ -49,7 +49,7 @@ const char *Cm_EntityString(void);
 /**
  * @brief Returns the worldspawn entity (first entity in the loaded BSP).
  */
-const CmEntity *Cm_Worldspawn(void);
+const Entity *Cm_Worldspawn(void);
 
 /**
  * @brief Returns the contents mask for the given BSP leaf number.
@@ -59,10 +59,10 @@ int32_t Cm_LeafContents(const int32_t leafNum);
 /**
  * @brief Returns a const pointer to the global BSP collision model.
  */
-const CmBsp *Cm_Bsp(void);
+const CollisionBsp *Cm_Bsp(void);
 
 #if defined(__CM_LOCAL_H__)
 
-extern CmBsp cmBsp;
+extern CollisionBsp collisionBsp;
 
 #endif

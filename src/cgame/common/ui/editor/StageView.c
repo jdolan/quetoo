@@ -33,7 +33,7 @@
 typedef struct {
   const char *identifier;
   const char *box;
-  CmStageFlags flag;
+  MaterialStageFlags flag;
   ptrdiff_t offset;
   float value;
 } StageFlag;
@@ -43,21 +43,21 @@ typedef struct {
  */
 static const StageFlag stageFlags[] = {
   { "stageBlend", "stageBlendBox", STAGE_BLEND, -1, 0.f },
-  { "stageColor", "stageColorBox", STAGE_COLOR, offsetof(CmStage, color.a), 1.f },
-  { "stagePulse", "stagePulseBox", STAGE_PULSE, offsetof(CmStage, pulse.hz), 1.f },
-  { "stageScroll", "stageScrollBox", STAGE_SCROLL_S | STAGE_SCROLL_T, offsetof(CmStage, scroll.s), .25f },
-  { "stageScale", "stageScaleBox", STAGE_SCALE_S | STAGE_SCALE_T, offsetof(CmStage, scale.s), 1.f },
-  { "stageRotate", "stageRotateBox", STAGE_ROTATE, offsetof(CmStage, rotate.hz), .25f },
-  { "stageStretch", "stageStretchBox", STAGE_STRETCH, offsetof(CmStage, stretch.hz), 1.f },
-  { "stageWarp", "stageWarpBox", STAGE_WARP, offsetof(CmStage, warp.hz), 1.f },
-  { "stageEmissive", "stageEmissiveBox", STAGE_EMISSIVE, offsetof(CmStage, emissive), 1.f },
-  { "stageLighting", "stageLightingBox", STAGE_LIGHTING, offsetof(CmStage, lighting.intensity), 1.f },
-  { "stageDirtmap", "stageDirtmapBox", STAGE_DIRTMAP, offsetof(CmStage, dirtmap.intensity), 1.f },
-  { "stageLight", "stageLightBox", STAGE_LIGHT, offsetof(CmStage, light.intensity), STAGE_LIGHT_INTENSITY },
+  { "stageColor", "stageColorBox", STAGE_COLOR, offsetof(MaterialStage, color.a), 1.f },
+  { "stagePulse", "stagePulseBox", STAGE_PULSE, offsetof(MaterialStage, pulse.hz), 1.f },
+  { "stageScroll", "stageScrollBox", STAGE_SCROLL_S | STAGE_SCROLL_T, offsetof(MaterialStage, scroll.s), .25f },
+  { "stageScale", "stageScaleBox", STAGE_SCALE_S | STAGE_SCALE_T, offsetof(MaterialStage, scale.s), 1.f },
+  { "stageRotate", "stageRotateBox", STAGE_ROTATE, offsetof(MaterialStage, rotate.hz), .25f },
+  { "stageStretch", "stageStretchBox", STAGE_STRETCH, offsetof(MaterialStage, stretch.hz), 1.f },
+  { "stageWarp", "stageWarpBox", STAGE_WARP, offsetof(MaterialStage, warp.hz), 1.f },
+  { "stageEmissive", "stageEmissiveBox", STAGE_EMISSIVE, offsetof(MaterialStage, emissive), 1.f },
+  { "stageLighting", "stageLightingBox", STAGE_LIGHTING, offsetof(MaterialStage, lighting.intensity), 1.f },
+  { "stageDirtmap", "stageDirtmapBox", STAGE_DIRTMAP, offsetof(MaterialStage, dirtmap.intensity), 1.f },
+  { "stageLight", "stageLightBox", STAGE_LIGHT, offsetof(MaterialStage, light.intensity), STAGE_LIGHT_INTENSITY },
   { "stageFlare", NULL, STAGE_FLARE, -1, 0.f },
-  { "stageEnvmap", "stageEnvmapBox", STAGE_ENVMAP, offsetof(CmStage, envmap.amount), STAGE_ENVMAP_AMOUNT },
-  { "stageShell", "stageShellBox", STAGE_SHELL, offsetof(CmStage, shell.radius), 1.f },
-  { "stageAnimation", "stageAnimationBox", STAGE_ANIMATION, offsetof(CmStage, animation.fps), 10.f },
+  { "stageEnvmap", "stageEnvmapBox", STAGE_ENVMAP, offsetof(MaterialStage, envmap.amount), STAGE_ENVMAP_AMOUNT },
+  { "stageShell", "stageShellBox", STAGE_SHELL, offsetof(MaterialStage, shell.radius), 1.f },
+  { "stageAnimation", "stageAnimationBox", STAGE_ANIMATION, offsetof(MaterialStage, animation.fps), 10.f },
   { "stageLerp", NULL, STAGE_ANIM_LERP, -1, 0.f },
   { "stageTerrain", "stageTerrainBox", STAGE_TERRAIN, -1, 0.f },
   { "stageFlat", NULL, STAGE_LIGHTING_FLAT, -1, 0.f },
@@ -81,27 +81,27 @@ typedef struct {
  * @brief The stage parameters. A parameter that affects light placement places the lights again.
  */
 static const StageParam stageParams[] = {
-  { "stageColorR", offsetof(CmStage, color.r), false },
-  { "stageColorG", offsetof(CmStage, color.g), false },
-  { "stageColorB", offsetof(CmStage, color.b), false },
-  { "stageColorA", offsetof(CmStage, color.a), false },
-  { "stagePulseHz", offsetof(CmStage, pulse.hz), false },
-  { "stageRotateHz", offsetof(CmStage, rotate.hz), false },
-  { "stageStretchAmplitude", offsetof(CmStage, stretch.amplitude), false },
-  { "stageStretchHz", offsetof(CmStage, stretch.hz), false },
-  { "stageWarpHz", offsetof(CmStage, warp.hz), false },
-  { "stageWarpAmplitude", offsetof(CmStage, warp.amplitude), false },
-  { "stageEnvmapAmount", offsetof(CmStage, envmap.amount), false },
-  { "stageShellRadius", offsetof(CmStage, shell.radius), false },
-  { "stageAnimationFps", offsetof(CmStage, animation.fps), false },
-  { "stageEmissiveValue", offsetof(CmStage, emissive), false },
-  { "stageLightingIntensity", offsetof(CmStage, lighting.intensity), false },
-  { "stageDirtmapIntensity", offsetof(CmStage, dirtmap.intensity), false },
-  { "stageLightRadius", offsetof(CmStage, light.radius), true },
-  { "stageLightIntensity", offsetof(CmStage, light.intensity), false },
-  { "stageLightR", offsetof(CmStage, light.color.x), false },
-  { "stageLightG", offsetof(CmStage, light.color.y), false },
-  { "stageLightB", offsetof(CmStage, light.color.z), false },
+  { "stageColorR", offsetof(MaterialStage, color.r), false },
+  { "stageColorG", offsetof(MaterialStage, color.g), false },
+  { "stageColorB", offsetof(MaterialStage, color.b), false },
+  { "stageColorA", offsetof(MaterialStage, color.a), false },
+  { "stagePulseHz", offsetof(MaterialStage, pulse.hz), false },
+  { "stageRotateHz", offsetof(MaterialStage, rotate.hz), false },
+  { "stageStretchAmplitude", offsetof(MaterialStage, stretch.amplitude), false },
+  { "stageStretchHz", offsetof(MaterialStage, stretch.hz), false },
+  { "stageWarpHz", offsetof(MaterialStage, warp.hz), false },
+  { "stageWarpAmplitude", offsetof(MaterialStage, warp.amplitude), false },
+  { "stageEnvmapAmount", offsetof(MaterialStage, envmap.amount), false },
+  { "stageShellRadius", offsetof(MaterialStage, shell.radius), false },
+  { "stageAnimationFps", offsetof(MaterialStage, animation.fps), false },
+  { "stageEmissiveValue", offsetof(MaterialStage, emissive), false },
+  { "stageLightingIntensity", offsetof(MaterialStage, lighting.intensity), false },
+  { "stageDirtmapIntensity", offsetof(MaterialStage, dirtmap.intensity), false },
+  { "stageLightRadius", offsetof(MaterialStage, light.radius), true },
+  { "stageLightIntensity", offsetof(MaterialStage, light.intensity), false },
+  { "stageLightR", offsetof(MaterialStage, light.color.x), false },
+  { "stageLightG", offsetof(MaterialStage, light.color.y), false },
+  { "stageLightB", offsetof(MaterialStage, light.color.z), false },
 };
 
 /**
@@ -111,17 +111,17 @@ static const StageParam stageParams[] = {
 typedef struct {
   const char *identifier;
   ptrdiff_t offset;
-  CmStageFlags flag;
+  MaterialStageFlags flag;
 } StageAxis;
 
 /**
  * @brief The scroll and scale axes.
  */
 static const StageAxis stageAxes[] = {
-  { "stageScrollSValue", offsetof(CmStage, scroll.s), STAGE_SCROLL_S },
-  { "stageScrollTValue", offsetof(CmStage, scroll.t), STAGE_SCROLL_T },
-  { "stageScaleSValue", offsetof(CmStage, scale.s), STAGE_SCALE_S },
-  { "stageScaleTValue", offsetof(CmStage, scale.t), STAGE_SCALE_T },
+  { "stageScrollSValue", offsetof(MaterialStage, scroll.s), STAGE_SCROLL_S },
+  { "stageScrollTValue", offsetof(MaterialStage, scroll.t), STAGE_SCROLL_T },
+  { "stageScaleSValue", offsetof(MaterialStage, scale.s), STAGE_SCALE_S },
+  { "stageScaleTValue", offsetof(MaterialStage, scale.t), STAGE_SCALE_T },
 };
 
 /**
@@ -137,9 +137,9 @@ typedef struct {
  * @brief The animation frame count and the terrain floor and ceiling.
  */
 static const StageField stageFields[] = {
-  { "stageAnimationFrames", offsetof(CmStage, animation.numFrames), true },
-  { "stageTerrainFloor", offsetof(CmStage, terrain.floor), false },
-  { "stageTerrainCeil", offsetof(CmStage, terrain.ceil), false },
+  { "stageAnimationFrames", offsetof(MaterialStage, animation.numFrames), true },
+  { "stageTerrainFloor", offsetof(MaterialStage, terrain.floor), false },
+  { "stageTerrainCeil", offsetof(MaterialStage, terrain.ceil), false },
 };
 
 /**
@@ -153,7 +153,7 @@ static const StageField stageFields[] = {
  */
 static const struct {
   const char *name;
-  CmBlend blend;
+  MaterialBlend blend;
 } stageBlends[] = {
   { "one", BLEND_ONE },
   { "zero", BLEND_ZERO },
@@ -168,28 +168,28 @@ static const struct {
  * @return True if the stage parameter at the offset is a channel of the light color.
  */
 static bool isLightColor(ptrdiff_t offset) {
-  return offset >= (ptrdiff_t) offsetof(CmStage, light.color) &&
-         offset < (ptrdiff_t) (offsetof(CmStage, light.color) + sizeof(Vec3));
+  return offset >= (ptrdiff_t) offsetof(MaterialStage, light.color) &&
+         offset < (ptrdiff_t) (offsetof(MaterialStage, light.color) + sizeof(Vec3));
 }
 
 /**
  * @return The mask of the scroll or scale axes within the flag, or none.
  */
-static CmStageFlags axesOf(CmStageFlags flag) {
+static MaterialStageFlags axesOf(MaterialStageFlags flag) {
   return flag & (STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_SCALE_S | STAGE_SCALE_T);
 }
 
 /**
  * @return The float parameter of the stage at the given offset.
  */
-static float *stageFloat(CmStage *stage, ptrdiff_t offset) {
+static float *stageFloat(MaterialStage *stage, ptrdiff_t offset) {
   return (float *) ((byte *) stage + offset);
 }
 
 /**
  * @brief Sets the flag of each axis within the mask from its value: a zero axis is not written.
  */
-static void resolveStageAxes(CmStage *stage, CmStageFlags mask) {
+static void resolveStageAxes(MaterialStage *stage, MaterialStageFlags mask) {
 
   for (size_t i = 0; i < lengthof(stageAxes); i++) {
     if (stageAxes[i].flag & mask) {
@@ -206,7 +206,7 @@ static void resolveStageAxes(CmStage *stage, CmStageFlags mask) {
  * @return The asset name that the stage shows: `portal` or `reflect` for a subview stage, which
  * has no asset, and otherwise its texture or sprite.
  */
-static const char *stageAssetName(const CmStage *stage) {
+static const char *stageAssetName(const MaterialStage *stage) {
 
   if (stage->flags & STAGE_PORTAL) {
     return "portal";
@@ -227,7 +227,7 @@ static const char *summary(const StageView *this) {
   static char buf[MAX_STRING_CHARS];
 
   int32_t index = 1;
-  for (const CmStage *s = this->material->cm->stages; s && s != this->stage; s = s->next) {
+  for (const MaterialStage *s = this->material->def->stages; s && s != this->stage; s = s->next) {
     index++;
   }
 
@@ -238,21 +238,21 @@ static const char *summary(const StageView *this) {
 
   const bool collapsed = $((View *) this, hasClassName, "collapsed");
 
-  q_snprintf(buf, sizeof(buf), "%s %d: %s", collapsed ? "[+]" : "[-]", index, name);
+  Str_Format(buf, sizeof(buf), "%s %d: %s", collapsed ? "[+]" : "[-]", index, name);
 
   const char *sep = " (";
   for (size_t i = 0; i < lengthof(stageFlags); i++) {
     if (this->stage->flags & stageFlags[i].flag) {
       char flag[MAX_QPATH];
-      q_strlcpy(flag, stageFlags[i].identifier + strlen("stage"), sizeof(flag));
+      Str_Copy(flag, stageFlags[i].identifier + strlen("stage"), sizeof(flag));
       flag[0] = (char) tolower(flag[0]);
-      q_strlcat(buf, va("%s%s", sep, flag), sizeof(buf));
+      Str_Append(buf, va("%s%s", sep, flag), sizeof(buf));
       sep = ", ";
     }
   }
 
   if (strcmp(sep, " (")) {
-    q_strlcat(buf, ")", sizeof(buf));
+    Str_Append(buf, ")", sizeof(buf));
   }
 
   return buf;
@@ -263,7 +263,7 @@ static const char *summary(const StageView *this) {
  */
 static void updateStage(StageView *this) {
 
-  CmStage *stage = this->stage;
+  MaterialStage *stage = this->stage;
 
   $(this->stageTexture, setAttributedText, stageAssetName(stage));
 
@@ -294,7 +294,7 @@ static void updateStage(StageView *this) {
 
   Vec3 lightColor = stage->light.color;
   if ((stage->flags & STAGE_LIGHT) && Vec3_Equal(lightColor, Vec3_Zero())) {
-    lightColor = cgi.MaterialLightColor(this->material->cm, stage);
+    lightColor = cgi.MaterialLightColor(this->material->def, stage);
   }
 
   for (size_t i = 0; i < lengthof(stageParams); i++) {
@@ -302,7 +302,7 @@ static void updateStage(StageView *this) {
     if (slider) {
       const ptrdiff_t offset = stageParams[i].offset;
       if (isLightColor(offset)) {
-        $(slider, setValue, (double) lightColor.xyz[(offset - offsetof(CmStage, light.color)) / sizeof(float)]);
+        $(slider, setValue, (double) lightColor.xyz[(offset - offsetof(MaterialStage, light.color)) / sizeof(float)]);
       } else {
         $(slider, setValue, (double) *stageFloat(stage, offset));
       }
@@ -343,8 +343,8 @@ static void didSelectBlend(Select *select, Option *option) {
     return;
   }
 
-  const CmBlend blend = (CmBlend) (intptr_t) option->value;
-  CmBlend *factor = select == this->stageBlendSrc ? &this->stage->blend.src : &this->stage->blend.dest;
+  const MaterialBlend blend = (MaterialBlend) (intptr_t) option->value;
+  MaterialBlend *factor = select == this->stageBlendSrc ? &this->stage->blend.src : &this->stage->blend.dest;
 
   if (*factor == blend) {
     return;
@@ -353,7 +353,7 @@ static void didSelectBlend(Select *select, Option *option) {
   *factor = blend;
   this->stage->flags |= STAGE_BLEND;
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -385,17 +385,17 @@ static void didEndEditingStageTexture(TextView *textView) {
 
   const char *name = textView->attributedText->chars;
 
-  if (!q_strcmp(name, stageAssetName(this->stage))) {
+  if (!Str_Compare(name, stageAssetName(this->stage))) {
     return;
   }
 
-  if (!q_strcmp(name, "portal") || !q_strcmp(name, "reflect")) {
+  if (!Str_Compare(name, "portal") || !Str_Compare(name, "reflect")) {
     *this->stage->asset.name = '\0';
     *this->stage->asset.path = '\0';
     this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_ANIMATION | STAGE_MASK_SUBVIEW);
-    this->stage->flags |= !q_strcmp(name, "portal") ? STAGE_PORTAL : STAGE_REFLECT;
+    this->stage->flags |= !Str_Compare(name, "portal") ? STAGE_PORTAL : STAGE_REFLECT;
   } else if (*name) {
-    q_strlcpy(this->stage->asset.name, name, sizeof(this->stage->asset.name));
+    Str_Copy(this->stage->asset.name, name, sizeof(this->stage->asset.name));
     this->stage->flags &= ~STAGE_MASK_SUBVIEW;
     if (!(this->stage->flags & STAGE_FLARE)) {
       this->stage->flags |= STAGE_TEXTURE;
@@ -406,7 +406,7 @@ static void didEndEditingStageTexture(TextView *textView) {
     this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_FLARE | STAGE_MASK_SUBVIEW);
   }
 
-  if (!cgi.ResolveMaterialStage(this->material->cm, this->stage)) {
+  if (!cgi.ResolveMaterialStage(this->material->def, this->stage)) {
     Cg_Warn("Failed to resolve stage asset %s\n", name);
   }
 
@@ -423,7 +423,7 @@ typedef struct {
 } StageAssetCompletions;
 
 /**
- * @brief Fs_Enumerator for completionsForStageTexture: adds an image once, without its
+ * @brief FsEnumerator for completionsForStageTexture: adds an image once, without its
  * extension, or a directory with a trailing slash. Normal, specular and tint maps are not stage
  * assets.
  */
@@ -438,9 +438,9 @@ static void completionsForStageTexture_enumerate(const char *path, void *data) {
   char completion[MAX_QPATH];
 
   if (ext == NULL) {
-    q_snprintf(completion, sizeof(completion), "%s/", name);
+    Str_Format(completion, sizeof(completion), "%s/", name);
   } else {
-    if (q_strcasecmp(ext, ".png") && q_strcasecmp(ext, ".jpg") && q_strcasecmp(ext, ".tga")) {
+    if (Str_CaseCompare(ext, ".png") && Str_CaseCompare(ext, ".jpg") && Str_CaseCompare(ext, ".tga")) {
       return;
     }
 
@@ -449,14 +449,14 @@ static void completionsForStageTexture_enumerate(const char *path, void *data) {
     const char *suffixes[] = { "_norm", "_spec", "_tint" };
     for (size_t i = 0; i < lengthof(suffixes); i++) {
       const size_t len = strlen(completion), slen = strlen(suffixes[i]);
-      if (len > slen && !q_strcmp(completion + len - slen, suffixes[i])) {
+      if (len > slen && !Str_Compare(completion + len - slen, suffixes[i])) {
         return;
       }
     }
   }
 
   for (size_t i = 0; i < completions->count; i++) {
-    if (!q_strcmp(((String *) $(completions, objectAtIndex, i))->chars, completion)) {
+    if (!Str_Compare(((String *) $(completions, objectAtIndex, i))->chars, completion)) {
       return;
     }
   }
@@ -470,7 +470,7 @@ static void completionsForStageTexture_enumerate(const char *path, void *data) {
  * @brief Comparator for completionsForStageTexture.
  */
 static Order completionsForStageTexture_compare(const ident a, const ident b) {
-  return (Order) Maxi(-1, Mini(1, q_strcmp(((String *) a)->chars, ((String *) b)->chars)));
+  return (Order) Maxi(-1, Mini(1, Str_Compare(((String *) a)->chars, ((String *) b)->chars)));
 }
 
 /**
@@ -489,7 +489,7 @@ static Array *completionsForStageTexture(TextView *textView, const char *prefix)
 
   if (this->stage && (this->stage->flags & STAGE_FLARE)) {
     assets.dir = "sprites/";
-  } else if (this->material->cm->context != ASSET_CONTEXT_TEXTURES) {
+  } else if (this->material->def->context != ASSET_CONTEXT_TEXTURES) {
     return NULL;
   }
 
@@ -533,12 +533,12 @@ static void didToggleStageFlag(Checkbox *checkbox) {
     this->openAxes |= axesOf(flag->flag);
 
     if (flag->flag == STAGE_COLOR && this->stage->color.r + this->stage->color.g + this->stage->color.b == 0.f) {
-      this->stage->color = color_white;
+      this->stage->color = COLOR_RGB_WHITE;
     }
 
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags &= ~(STAGE_TEXTURE | STAGE_DRAW | STAGE_ANIMATION | STAGE_ENVMAP);
-      q_strlcpy(this->stage->asset.name, STAGE_FLARE_SPRITE, sizeof(this->stage->asset.name));
+      Str_Copy(this->stage->asset.name, STAGE_FLARE_SPRITE, sizeof(this->stage->asset.name));
     }
 
     if (flag->flag == STAGE_ANIMATION) {
@@ -560,7 +560,7 @@ static void didToggleStageFlag(Checkbox *checkbox) {
 
     if (flag->flag == STAGE_FLARE) {
       this->stage->flags |= STAGE_TEXTURE;
-      q_strlcpy(this->stage->asset.name, this->material->cm->basename, sizeof(this->stage->asset.name));
+      Str_Copy(this->stage->asset.name, this->material->def->basename, sizeof(this->stage->asset.name));
     }
 
     if (flag->flag == STAGE_ANIMATION) {
@@ -576,7 +576,7 @@ static void didToggleStageFlag(Checkbox *checkbox) {
     }
   }
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -606,7 +606,7 @@ static void didEndEditingStageAxis(TextView *textView) {
   *value = parsed;
   resolveStageAxes(this->stage, axis->flag);
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -650,7 +650,7 @@ static void didEndEditingStageField(TextView *textView) {
     }
   }
 
-  cgi.ResolveMaterialStage(this->material->cm, this->stage);
+  cgi.ResolveMaterialStage(this->material->def, this->stage);
   Cg_ReloadEditorMaterialStages(this->material);
   updateStage(this);
 }
@@ -669,10 +669,10 @@ static void didSetStageValue(Slider *slider, double value) {
   const char *identifier = ((View *) slider)->identifier;
 
   for (size_t i = 0; i < lengthof(stageParams); i++) {
-    if (!q_strcmp(identifier, stageParams[i].identifier)) {
+    if (!Str_Compare(identifier, stageParams[i].identifier)) {
 
       if (isLightColor(stageParams[i].offset) && Vec3_Equal(this->stage->light.color, Vec3_Zero())) {
-        this->stage->light.color = cgi.MaterialLightColor(this->material->cm, this->stage);
+        this->stage->light.color = cgi.MaterialLightColor(this->material->def, this->stage);
       }
 
       float *param = stageFloat(this->stage, stageParams[i].offset);
@@ -681,10 +681,10 @@ static void didSetStageValue(Slider *slider, double value) {
       }
 
       *param = (float) value;
-      this->material->cm->dirty = true;
+      this->material->def->dirty = true;
 
       if (stageParams[i].placement) {
-        Cg_UpdateEditorMaterialLights(this->material->cm);
+        Cg_UpdateEditorMaterialLights(this->material->def);
       }
 
       return;
@@ -725,10 +725,10 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 #pragma mark - StageView
 
 /**
- * @fn StageView *StageView::initWithStage(StageView *self, RenderMaterial *material, CmStage *stage)
+ * @fn StageView *StageView::initWithStage(StageView *self, RenderMaterial *material, MaterialStage *stage)
  * @memberof StageView
  */
-static StageView *initWithStage(StageView *self, RenderMaterial *material, CmStage *stage) {
+static StageView *initWithStage(StageView *self, RenderMaterial *material, MaterialStage *stage) {
 
   self = (StageView *) super(Box, self, initWithFrame, NULL);
   if (self) {

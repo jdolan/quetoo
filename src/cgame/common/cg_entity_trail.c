@@ -49,7 +49,7 @@ static inline void Cg_ParticleTrailLifeOffset(Vec3 start, Vec3 end, float speed,
 */
 static int32_t Cg_TrailCount(const Vec3 end, float freq, ClientEntity *ent, ClientTrailId trail, Vec3 *start, Vec3 *dir) {
   const float dist = Vec3_Distance(end, ent ? ent->trailOrigins[trail] : *start);
-  static Vec3 _start, _dir;
+  static Vec3 scratchStart, scratchDir;
 
   // haven't travelled long enough yet
   if (dist < freq) {
@@ -61,11 +61,11 @@ static int32_t Cg_TrailCount(const Vec3 end, float freq, ClientEntity *ent, Clie
 
   // allow nulls to be passed
   if (!start) {
-    start = &_start;
+    start = &scratchStart;
   }
 
   if (!dir) {
-    dir = &_dir;
+    dir = &scratchDir;
   }
 
   // adjust new origin
@@ -112,7 +112,7 @@ void Cg_BreathTrail(ClientEntity *ent) {
     if ((contents & CONTENTS_MASK_LIQUID) == CONTENTS_WATER) {
 
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgSpriteBubble,
+        .atlasImage = cgameMedia.sprites.bubble,
         .origin = Vec3_Add(pos, Vec3_RandomRange(-2.f, 2.f)),
         .velocity = Vec3_Add(Vec3_Add(Vec3_Scale(forward, 2.f), Vec3_RandomRange(-5.f, 5.f)), MakeVec3(0.f, 0.f, 6.f)),
         .acceleration.z = 10.f,
@@ -136,7 +136,7 @@ void Cg_FlameTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   const Vec3 color = ColorHSV(hue, 1.f, 1.f).vec3;
 
   CGameSprite *s = Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgSpriteFlame,
+    .atlasImage = cgameMedia.sprites.flame,
     .origin = end,
     .velocity = Vec3_RandomRange(-4.f, 4.f),
     .acceleration.z = 15.f,
@@ -195,7 +195,7 @@ void Cg_BubbleTrail(ClientEntity *ent, const Vec3 start, const Vec3 end, float f
     const float v = RandomRangef(.6f, 1.f);
 
     CGameSprite *s = Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteBubble,
+      .atlasImage = cgameMedia.sprites.bubble,
       .origin = Vec3_Add(pos, Vec3_RandomRange(-2.f, 2.f)),
       .velocity = Vec3_Add(Vec3_RandomRange(-5.f, 5.f), MakeVec3(0.f, 0.f, 6.f)),
       .acceleration = Vec3_Add(Vec3_RandomRange(-4.f, 4.f), MakeVec3(0.f, 0.f, 14.f)),
@@ -228,7 +228,7 @@ void Cg_BubbleTrail(ClientEntity *ent, const Vec3 start, const Vec3 end, float f
  */
 static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
 
-  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_orange);
+  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, COLOR_HUE_ORANGE);
 
   const int32_t liquid = Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID;
   if (liquid) {
@@ -253,7 +253,7 @@ static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
       const float pdist = Vec3_Distance(Vec3_Zero(), porg) / scale;
 
       if (!Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgSpriteParticle,
+        .atlasImage = cgameMedia.sprites.particle,
         .lifetime = 1000,
         .velocity = Vec3_Scale(pdir, pdist * 10.f),
         .origin = Vec3_Add(porg, Vec3_Mix(end, org, 1.0f / i)),
@@ -268,7 +268,7 @@ static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
   }
 
   cgi.AddSprite(cgi.view, &(RenderSprite) {
-    .media = (RenderMedia *) cgSpriteParticle,
+    .media = (RenderMedia *) cgameMedia.sprites.particle,
     .origin = end,
     .size = 8.f,
     .color = color,
@@ -300,7 +300,7 @@ static void Cg_GrenadeTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
 
     for (int32_t i = 0; i <= count; i++) {
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgSpriteSmoke,
+        .atlasImage = cgameMedia.sprites.smoke,
         .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
         .velocity = MakeVec3(RandomRangef(-5.f, 5.f), RandomRangef(-5.f, 5.f), RandomRangef(10.f, 20.f)),
         .lifetime = RandomRangef(600.f, 900.f),
@@ -352,7 +352,7 @@ static void Cg_QuakeGrenadeTrail(ClientEntity *ent, const Vec3 start, const Vec3
 
     for (int32_t i = 0; i <= count; i++) {
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgSpriteSmoke,
+        .atlasImage = cgameMedia.sprites.smoke,
         .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
         .velocity = MakeVec3(RandomRangef(-5.f, 5.f), RandomRangef(-5.f, 5.f), RandomRangef(10.f, 20.f)),
         .lifetime = RandomRangef(600.f, 900.f),
@@ -398,7 +398,7 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
 
   // exhaust glow
   cgi.AddSprite(cgi.view, &(RenderSprite) {
-    .media = (RenderMedia *) cgSpriteExplosionGlow,
+    .media = (RenderMedia *) cgameMedia.sprites.explosionGlow,
     .origin = Vec3_Fmaf(ent->origin, -20.f, direction),
     .size = 50.f,
     .color = ColorHSV(29.f, .57f, .34f).vec3,
@@ -407,7 +407,7 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
   // exhaust flare
   for (int32_t i = 0; i < 2; i++) {
     cgi.AddSprite(cgi.view, &(RenderSprite) {
-      .media = (RenderMedia *) cgSpriteExplosionFlash,
+      .media = (RenderMedia *) cgameMedia.sprites.explosionFlash,
       .origin = Vec3_Fmaf(ent->origin, -20.f, direction),
       .size = 35.f,
       .color = ColorHSV(0.f, 0.f, .50f).vec3,
@@ -433,8 +433,8 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
 
       // fire
       if (!Cg_AddSprite(&(CGameSprite) {
-          .animation = cgSpriteRocketFlame,
-          .lifetime = Cg_AnimationLifetime(cgSpriteRocketFlame, 90) * particleLifeFrac,
+          .animation = cgameMedia.sprites.rocketFlame,
+          .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.rocketFlame, 90) * particleLifeFrac,
           .origin = Vec3_Mix(start, origin, step * i),
           .velocity = velocity,
           .rotation = RandomRadian(),
@@ -461,8 +461,8 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
       // interlace smoke 1 and 2 for some subtle variety
       // smoke 1
       if (!Cg_AddSprite(&(CGameSprite) {
-          .animation = cgSpriteSmoke04,
-          .lifetime = Cg_AnimationLifetime(cgSpriteSmoke04, 60) * particleLifeFrac,
+          .animation = cgameMedia.sprites.smoke04,
+          .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.smoke04, 60) * particleLifeFrac,
           .origin = Vec3_Add(Vec3_Mix(start, origin, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
           .velocity = Vec3_Scale(velocity, 0.5),
           .rotation = RandomRadian(),
@@ -476,8 +476,8 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
 
       // smoke 2
       if (!Cg_AddSprite(&(CGameSprite) {
-          .animation = cgSpriteSmoke05,
-          .lifetime = Cg_AnimationLifetime(cgSpriteSmoke05, 60) * particleLifeFrac,
+          .animation = cgameMedia.sprites.smoke05,
+          .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.smoke05, 60) * particleLifeFrac,
           .origin = Vec3_Add(Vec3_Mix(start, origin, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
           .velocity = Vec3_Scale(velocity, 0.5),
           .rotation = RandomRadian(),
@@ -504,7 +504,7 @@ static void Cg_RocketTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) 
 
       // sparks
       if (!Cg_AddSprite(&(CGameSprite) {
-          .atlasImage = cgSpriteParticle,
+          .atlasImage = cgameMedia.sprites.particle,
           .lifetime = RandomRangef(900.f, 1300.f) * particleLifeFrac,
           .origin = Vec3_Mix(start, origin, step * i),
           .velocity = Vec3_RandomRange(-10.f, 10.f),
@@ -542,9 +542,9 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
   Vec3 dir = Vec3_Direction(start, end);
 
   RenderAtlasImage *variation[] = {
-    cgSpritePlasmaVar01,
-    cgSpritePlasmaVar02,
-    cgSpritePlasmaVar03
+    cgameMedia.sprites.plasmaVar01,
+    cgameMedia.sprites.plasmaVar02,
+    cgameMedia.sprites.plasmaVar03
   };
 
   // outer rim
@@ -566,7 +566,7 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
 
   // center blob
   cgi.AddSprite(cgi.view, &(RenderSprite) {
-    .media = (RenderMedia *) cgSpriteBlob01,
+    .media = (RenderMedia *) cgameMedia.sprites.blob01,
     .origin = ent->origin,
     .size = RandomRangef(14.f, 18.f),
     .rotation = RandomRadian(),
@@ -576,7 +576,7 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
 
   // center core (bright hot spot)
   cgi.AddSprite(cgi.view, &(RenderSprite) {
-    .media = (RenderMedia *) cgSpriteParticle,
+    .media = (RenderMedia *) cgameMedia.sprites.particle,
     .origin = ent->origin,
     .size = RandomRangef(6.f, 9.f),
     .rotation = RandomRadian(),
@@ -588,7 +588,7 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
     .start = Vec3_Fmaf(end, 70.f, dir),
     .end = start,
     .color = coreColor,
-    .image = cgBeamTail,
+    .image = cgameMedia.beams.tail,
     .size = 6.0f,
     .translate = cgi.client->unclampedTime * RandomRangef(.003f, .009f),
     .lighting = .5f,
@@ -661,7 +661,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
       .start = drawStart,
       .end = drawEnd,
       .color = MakeVec3(.85f, .85f, 1.f),
-      .image = cgBeamLightning,
+      .image = cgameMedia.beams.lightning,
       .size = 5.5f,
       .flags = SPRITE_BEAM_REPEAT,
       .translate = translate,
@@ -670,7 +670,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
 
   // beam endpoint cap
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgSpriteElectro02,
+    .atlasImage = cgameMedia.sprites.electro02,
     .origin = Vec3_Fmaf(end, -10.f, dir),
     .lifetime = 30.f,
     .size = 50.f,
@@ -689,7 +689,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
     });
 
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteParticle3,
+      .atlasImage = cgameMedia.sprites.particle3,
       .origin = Vec3_Fmaf(start, f + seed, dir),
       .velocity = Vec3_Scale(Vec3_Add(dir, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
       .acceleration.z = -SPRITE_GRAVITY * 3.0,
@@ -706,7 +706,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
 
   //hit face decal
   Cg_AddDecal(&(RenderDecal) {
-      .image = cgDecalBullet[Randomi() % lengthof(cgDecalBullet)],
+      .image = cgameMedia.decals.bullet[Randomi() % lengthof(cgameMedia.decals.bullet)],
           .origin = end,
           .radius = RandomRangef(2.f, 4.f),
           .color = Color3f(0.02f, 0.01f, 0.02f),
@@ -724,7 +724,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
       // hit billboards
       for (int32_t i = 0; i < 2; i++) {
         Cg_AddSprite(&(CGameSprite) {
-          .atlasImage = cgSpriteElectro02,
+          .atlasImage = cgameMedia.sprites.electro02,
           .origin = end,
           .lifetime = 60 * (i + 1),
           .size = RandomRangef(100.f, 200.f),
@@ -737,7 +737,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
 
       // hit decal
       Cg_AddSprite(&(CGameSprite) {
-        .atlasImage = cgSpriteElectro02,
+        .atlasImage = cgameMedia.sprites.electro02,
         .origin = Vec3_Add(end, dir),
         .lifetime = 120,
         .size = RandomRangef(100.f, 200.f),
@@ -750,7 +750,7 @@ static void Cg_LightningTrail(ClientEntity *ent, const Vec3 start, const Vec3 en
       // hit sparks
       for (int32_t i = 0; i < 2; i++) {
         Cg_AddSprite(&(CGameSprite) {
-          .atlasImage = cgSpriteParticle3,
+          .atlasImage = cgameMedia.sprites.particle3,
           .origin = end,
           .velocity = Vec3_Scale(Vec3_Add(dir, Vec3_RandomRange(-.2f, .2f)), RandomRangef(50, 200)),
           .acceleration.z = -SPRITE_GRAVITY * 3.0,
@@ -775,13 +775,13 @@ static void Cg_HookTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   Vec3 forward;
   Vec3_Vectors(ent->angles, &forward, NULL, NULL);
 
-  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_green);
+  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, COLOR_HUE_GREEN);
 
   cgi.AddBeam(cgi.view, &(const RenderBeam) {
     .start = start,
     .end = Vec3_Fmaf(end, -3.f, forward),
     .color = color,
-    .image = cgBeamHook,
+    .image = cgameMedia.beams.hook,
     .size = 1.f,
     .flags = SPRITE_BEAM_REPEAT,
   });
@@ -834,7 +834,7 @@ static void Cg_BfgTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   cgi.AddSprite(cgi.view, &(RenderSprite) {
     .origin = ent->origin,
     .size = 100.f,
-    .media = (RenderMedia *) cgSpriteHyperball01,
+    .media = (RenderMedia *) cgameMedia.sprites.hyperball01,
     .rotation = mod * 200.f * M_PI,
     .color = MakeVec3(1.f, 1.f, 1.f),
     .life = fmod(cgi.client->unclampedTime * 0.001f, 1.0f),
@@ -844,7 +844,7 @@ static void Cg_BfgTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
     ent->timestamp = cgi.client->unclampedTime + 4;
   
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteParticle,
+      .atlasImage = cgameMedia.sprites.particle,
       .origin = Vec3_Zero(),
       .size = 6.f,
       .color = MakeVec3(.5f, 1.f, 0.5f),
@@ -887,11 +887,11 @@ static void Cg_TeleporterTrail_Think(CGameSprite *sprite, float life, float delt
 
 static void Cg_TeleporterTrail(ClientEntity *ent) {
 
-  const Vec3 gold = ColorHSV(color_hue_yellow, .7f, 1.f).vec3;
+  const Vec3 gold = ColorHSV(COLOR_HUE_YELLOW, .7f, 1.f).vec3;
   const float t = MILLIS_TO_SECONDS(cgi.client->unclampedTime);
 
   Cg_AddSprite(&(CGameSprite) {
-    .atlasImage = cgSpriteTeleportCore,
+    .atlasImage = cgameMedia.sprites.teleportCore,
     .origin = Vec3_Fmaf(ent->origin, 8.f, Vec3_Up()),
     .size = 64.f,
     .color = Vec3_Scale(gold, .7f + sinf(t * 3.f) * .15f),
@@ -902,7 +902,7 @@ static void Cg_TeleporterTrail(ClientEntity *ent) {
     ent->timestamp = cgi.client->unclampedTime + 32;
 
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteSpark,
+      .atlasImage = cgameMedia.sprites.spark,
       .origin = Vec3_Zero(),
       .size = 2.5f,
       .color = gold,
@@ -920,7 +920,7 @@ static void Cg_TeleporterTrail(ClientEntity *ent) {
   // Rising rings
   if ((cgi.client->unclampedTime % 200) < cgi.client->worldMsec) {
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteRing,
+      .atlasImage = cgameMedia.sprites.ring,
       .dir = Vec3_Up(),
       .origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
       .velocity.z = RandomRangef(60.f, 100.f),
@@ -959,10 +959,10 @@ static void Cg_PlayerSpawnTrail(const ClientEntity *ent) {
   const Color color = Color32_Color(ent->current.color);
   const Vec3 rgb = color.r > 0.f || color.g > 0.f || color.b > 0.f
     ? color.vec3
-    : ColorHSV(color_hue_yellow, 1.f, 1.f).vec3;
+    : ColorHSV(COLOR_HUE_YELLOW, 1.f, 1.f).vec3;
 
   cgi.AddSprite(cgi.view, &(RenderSprite) {
-    .media = (RenderMedia *) cgSpriteRing,
+    .media = (RenderMedia *) cgameMedia.sprites.ring,
     .origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
     .size = 48.f + Cg_Oscillate(1, 12.f, 1.f, 0.f),
     .color = rgb,
@@ -992,8 +992,8 @@ static void Cg_GibTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   for (int32_t i = 0; i <= count; i++) {
 
     if (!Cg_AddSprite(&(CGameSprite) {
-        .animation = cgSpriteBlood01,
-        .lifetime = Cg_AnimationLifetime(cgSpriteBlood01, 30) + Randomf() * 500,
+        .animation = cgameMedia.sprites.blood01,
+        .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.blood01, 30) + Randomf() * 500,
         .size = RandomRangef(40.f, 64.f),
         .rotation = RandomRadian(),
         .origin = Vec3_Mix(end, origin, step * i),
@@ -1006,10 +1006,10 @@ static void Cg_GibTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
     }
 
     Cg_AddDecal(&(RenderDecal) {
-      .image = cgDecalBlood[Randomi() % lengthof(cgDecalBlood)],
+      .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
       .origin = Vec3_Mix(end, origin, step * i),
       .radius = RandomRangef(8.f, 32.f),
-      .color = color_red,
+      .color = COLOR_RGB_RED,
       .lifetime = 8000 + Randomf() * 4000,
       .rotation = RandomRadian()
     });
@@ -1029,7 +1029,7 @@ static void Cg_LaserTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
     .start = start,
     .end = end,
     .color = Vec3_Scale(color, .4f),
-    .image = cgBeamRail,
+    .image = cgameMedia.beams.rail,
     .size = 14.f,
     .lighting = .5f,
   });
@@ -1038,7 +1038,7 @@ static void Cg_LaserTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
     .start = start,
     .end = end,
     .color = color,
-    .image = cgBeamRail,
+    .image = cgameMedia.beams.rail,
     .size = 5.f,
     .lighting = .5f,
   });
@@ -1054,7 +1054,7 @@ static void Cg_LaserTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
   if (Cg_TrailCount(end, 24.f, ent, TRAIL_PRIMARY, NULL, NULL)) {
 
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteParticle,
+      .atlasImage = cgameMedia.sprites.particle,
       .lifetime = 300,
       .size = RandomRangef(4.f, 8.f),
       .rotation = RandomRadian(),
@@ -1085,7 +1085,7 @@ static void Cg_NailTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
     .start = Vec3_Fmaf(end, -Minf(len, 40.f), dir),
     .end = end,
     .color = MakeVec3(1.f, .9f, .6f),
-    .image = cgBeamTracer,
+    .image = cgameMedia.beams.tracer,
     .size = 1.5f,
   });
 }
@@ -1118,7 +1118,7 @@ static void Cg_FireballTrail(ClientEntity *ent, const Vec3 start, const Vec3 end
       const float step = 1.f / count;
       for (int32_t i = 0; i <= count; i++) {
         Cg_AddSprite(&(CGameSprite) {
-          .atlasImage = cgSpriteSmoke,
+          .atlasImage = cgameMedia.sprites.smoke,
           .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
           .velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f)),
           .acceleration = Vec3_Scale(dir, -20.f),
@@ -1183,7 +1183,7 @@ static void Cg_OrbitalTrail(ClientEntity *ent, const Vec3 start, const Vec3 end,
     const float phase = RandomRangef(0.f, 2.f * M_PI);
 
     Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteSpark,
+      .atlasImage = cgameMedia.sprites.spark,
       .origin = Vec3_Zero(),
       .size = 2.5f,
       .color = color,
@@ -1203,7 +1203,7 @@ static void Cg_OrbitalTrail(ClientEntity *ent, const Vec3 start, const Vec3 end,
   for (int32_t i = 0; i < count; i++) {
 
     if (!Cg_AddSprite(&(CGameSprite) {
-      .atlasImage = cgSpriteParticle,
+      .atlasImage = cgameMedia.sprites.particle,
       .lifetime = RandomRangeu(300, 800),
       .size = RandomRangef(1.f, 2.f),
       .sizeVelocity = RandomRangef(-3.f, -1.f),
@@ -1226,8 +1226,8 @@ static void Cg_OrbitalTrail(ClientEntity *ent, const Vec3 start, const Vec3 end,
  */
 static void Cg_CtfEffectTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
 
-  const CGameTeamInfo *team = cgState.teams;
-  for (size_t i = 0; i < lengthof(cgState.teams); i++, team++) {
+  const CGameTeamInfo *team = cgameState.teams;
+  for (size_t i = 0; i < lengthof(cgameState.teams); i++, team++) {
     if (ent->current.effects & (EF_CTF_RED << i)) {
       break;
     }
@@ -1259,7 +1259,7 @@ void Cg_EntityTrail(ClientEntity *ent) {
 
       // we own this beam (lightning, grapple, etc..)
       // anchor start to the client-side muzzle; keep end as the server-authoritative termination
-      start = cgState.clients[ent->current.client].weaponMuzzle;
+      start = cgameState.clients[ent->current.client].weaponMuzzle;
 
 #if defined(G_HOOK)
       if (s->trail == TRAIL_HOOK) {

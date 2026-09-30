@@ -31,7 +31,7 @@ void WriteLeakFile(const Tree *tree) {
   Vec3 point;
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "maps/%s.lin", mapBase);
+  Str_Format(path, sizeof(path), "maps/%s.lin", mapBase);
 
   File *file = Fs_OpenWrite(path);
   if (!file) {
@@ -59,7 +59,7 @@ void WriteLeakFile(const Tree *tree) {
     node = nextNode;
 
     // add the portal center
-    point = Cm_WindingCenter(nextPortal->winding);
+    point = Winding_Center(nextPortal->winding);
     Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
   }
   

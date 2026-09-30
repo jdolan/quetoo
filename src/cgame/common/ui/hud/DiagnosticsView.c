@@ -27,8 +27,8 @@
 
 #define DIAGNOSTICS_REFRESH_INTERVAL 250
 
-static const char *_name = "name";
-static const char *_value = "value";
+static const char *columnName = "name";
+static const char *columnValue = "value";
 
 #pragma mark - Rows
 
@@ -42,7 +42,7 @@ static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...
     return;
   }
 
-  q_strlcpy(self->rows[self->numRows].name, name, DIAGNOSTICS_ROW_NAME);
+  Str_Copy(self->rows[self->numRows].name, name, DIAGNOSTICS_ROW_NAME);
 
   va_list args;
   va_start(args, fmt);
@@ -74,7 +74,7 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   addRow(self, "leaf", "%d", cgi.PointLeafnum(view->origin, 0));
 
   const Vec3 end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-  const CmTrace tr = cgi.Trace(view->origin, end, Box3_Zero(), NULL, CONTENTS_MASK_VISIBLE);
+  const CollisionTrace tr = cgi.Trace(view->origin, end, Box3_Zero(), NULL, CONTENTS_MASK_VISIBLE);
   if (tr.material) {
     addRow(self, "surface", "%s (%g %g %g) %g", tr.material->name,
            tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z, tr.plane.dist);
@@ -126,7 +126,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
   assert(cell);
 
-  if (q_strcmp(column->identifier, _name) == 0) {
+  if (Str_Compare(column->identifier, columnName) == 0) {
     $(cell->text, setText, this->rows[row].name);
     $((View *) cell->text, addClassName, "caption");
   } else {
@@ -149,8 +149,8 @@ static View *init(View *self) {
     DiagnosticsView *this = (DiagnosticsView *) self;
     TableView *table = (TableView *) self;
 
-    $(table, addColumnWithIdentifier, _name);
-    $(table, addColumnWithIdentifier, _value);
+    $(table, addColumnWithIdentifier, columnName);
+    $(table, addColumnWithIdentifier, columnValue);
 
     table->dataSource.numberOfRows = numberOfRows;
     table->dataSource.self = this;

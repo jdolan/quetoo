@@ -53,7 +53,6 @@ typedef struct {
  * @brief The post-processing state.
  */
 static struct {
-
   /**
    * @brief Fullscreen quad vertex buffer.
    */
@@ -96,7 +95,7 @@ static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 
     module.bloomFramebuffers[i] = release(module.bloomFramebuffers[i]);
 
-    module.bloomFramebuffers[i] = $(rContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+    module.bloomFramebuffers[i] = $(renderContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
       .size = MakeSize(module.bloomWidth, module.bloomHeight),
       .colorAttachments = { { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT } },
       .numColorTargets = 1,
@@ -112,7 +111,7 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
                        Texture *color, Texture *bloom,
                        int32_t width, int32_t height, const RenderPostLocals *locals) {
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   const SDL_GPUColorTargetInfo colorTarget =
       $(target, colorTargetInfo, 0, SDL_GPU_LOADOP_DONT_CARE, SDL_GPU_STOREOP_STORE);
@@ -145,17 +144,17 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
  */
 void R_DrawPost(const RenderView *view) {
 
-  if (!rModels.world) {
+  if (!renderModels.world) {
     return;
   }
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
   if (!commands) {
     return;
   }
 
   Framebuffer *scene = view->framebuffer;
-  Framebuffer *present = rContext.device->framebuffer;
+  Framebuffer *present = renderContext.device->framebuffer;
 
   Texture *sceneColor = $(scene, resolveColorTexture, 0);
 
@@ -246,7 +245,7 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
     },
   };
 
-  return $(rContext.device, loadGraphicsPipeline,
+  return $(renderContext.device, loadGraphicsPipeline,
     "shaders/post_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     },
@@ -274,12 +273,12 @@ void R_InitPost(void) {
     { .position = MakeVec2(-1.f,  1.f), .texcoord = MakeVec2(0.f, 0.f) },
   };
 
-  module.vertexBuffer = $(rContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
+  module.vertexBuffer = $(renderContext.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
 
   module.bloomPipeline = R_CreatePostPipeline(SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT);
-  module.compositePipeline = R_CreatePostPipeline(rContext.device->framebuffer->colorAttachments[0].format);
+  module.compositePipeline = R_CreatePostPipeline(renderContext.device->framebuffer->colorAttachments[0].format);
 
-  module.sampler = $(rContext.device, createSamplerLinearClamp);
+  module.sampler = $(renderContext.device, createSamplerLinearClamp);
 }
 
 /**

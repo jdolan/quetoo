@@ -39,20 +39,20 @@
 #define RACE_GHOST_ALPHA .5f
 
 static struct {
-  ParseConfigString ParseConfigString;
-  ParseServerCommand ParseServerCommand;
-  MediaDidLoad MediaDidLoad;
-  AddEntity AddEntity;
-  ClientInfo ClientInfo;
-  EntityEffects EntityEffects;
-  ClipClientEntity ClipEntity;
+  CGameParseConfigStringHook ParseConfigString;
+  CGameParseServerCommandHook ParseServerCommand;
+  CGameMediaDidLoadHook MediaDidLoad;
+  CGameAddEntityHook AddEntity;
+  CGameClientInfoHook ClientInfo;
+  CGameEntityEffectsHook EntityEffects;
+  CGameClipClientEntityHook ClipEntity;
 } previous;
 
-static CGameClientInfo cgRaceGhost;
+static CGameClientInfo raceGhost;
 
 // the entity numbers of the barriers that pass this client, as the server last said
-static int32_t cgRacePassable[RACE_MAX_BARRIERS];
-static size_t cgRacePassableCount;
+static int32_t racePassable[RACE_MAX_BARRIERS];
+static size_t racePassableCount;
 
 /**
  * @see cg_race.h
@@ -66,7 +66,7 @@ uint32_t Cg_Race_Time(const PlayerState *ps) {
  * record, which `Cg_LoadClient` reads as the default.
  */
 static void Cg_Race_LoadGhost(void) {
-  Cg_LoadClient(&cgRaceGhost, cgi.ConfigString(CS_RACE_GHOST));
+  Cg_LoadClient(&raceGhost, cgi.ConfigString(CS_RACE_GHOST));
 }
 
 /**
@@ -105,7 +105,7 @@ static bool Cg_ParseServerCommand_Race(int32_t cmd) {
     const uint16_t number = cgi.ReadByte();
 
     char label[MAX_QPATH];
-    q_strlcpy(label, cgi.ReadString(), sizeof(label));
+    Str_Copy(label, cgi.ReadString(), sizeof(label));
 
     const uint32_t time = cgi.ReadLong();
     const int32_t vsBest = cgi.ReadLong();
@@ -117,13 +117,13 @@ static bool Cg_ParseServerCommand_Race(int32_t cmd) {
 
   const int32_t count = cgi.ReadByte();
 
-  cgRacePassableCount = 0;
+  racePassableCount = 0;
 
   for (int32_t i = 0; i < count; i++) {
     const int32_t entity = cgi.ReadShort();
 
-    if (cgRacePassableCount < RACE_MAX_BARRIERS) {
-      cgRacePassable[cgRacePassableCount++] = entity;
+    if (racePassableCount < RACE_MAX_BARRIERS) {
+      racePassable[racePassableCount++] = entity;
     }
   }
 
@@ -139,7 +139,7 @@ static void Cg_MediaDidLoad_Race(void) {
   previous.MediaDidLoad();
 
   Cg_Race_LoadGhost();
-  cgRacePassableCount = 0;
+  racePassableCount = 0;
 }
 
 /**
@@ -149,8 +149,8 @@ static void Cg_MediaDidLoad_Race(void) {
  */
 static bool Cg_ClipEntity_Race(const ClientEntity *mover, const ClientEntity *ent) {
 
-  for (size_t i = 0; mover == cgi.client->entity && i < cgRacePassableCount; i++) {
-    if (cgRacePassable[i] == ent->current.number) {
+  for (size_t i = 0; mover == cgi.client->entity && i < racePassableCount; i++) {
+    if (racePassable[i] == ent->current.number) {
       return false;
     }
   }
@@ -176,7 +176,7 @@ static void Cg_AddEntity_Race(ClientEntity *ent) {
 static CGameClientInfo *Cg_ClientInfo_Race(const ClientEntity *ent) {
 
   if (Cg_Race_IsGhost(ent)) {
-    return &cgRaceGhost;
+    return &raceGhost;
   }
 
   return previous.ClientInfo(ent);

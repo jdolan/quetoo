@@ -38,17 +38,17 @@ void Sv_ConfigureEditorEntity(int32_t number) {
 
   ent->s.color = Color32i(0xffffffff);
 
-  if (!q_strcmp(ent->classname, "worldspawn")) {
+  if (!Str_Compare(ent->classname, "worldspawn")) {
     ent->s.effects = EF_WORLD;
-  } else if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
+  } else if (!Str_CompareN(ent->classname, "info_player", Str_Length("info_player"))) {
     ent->s.color = Color32i(0xffff00ff);
-  } else if (!q_strncmp(ent->classname, "trigger_", q_strlen("trigger_"))) {
+  } else if (!Str_CompareN(ent->classname, "trigger_", Str_Length("trigger_"))) {
     ent->s.color = Color32i(0xff0088ff);
-  } else if (!q_strncmp(ent->classname, "func_", q_strlen("func_"))) {
+  } else if (!Str_CompareN(ent->classname, "func_", Str_Length("func_"))) {
     ent->s.color = Color32i(0xff00ff00);
-  } else if (!q_strncmp(ent->classname, "misc_", q_strlen("misc_"))) {
+  } else if (!Str_CompareN(ent->classname, "misc_", Str_Length("misc_"))) {
     ent->s.color = Color32i(0xff00ffff);
-  } else if (!q_strncmp(ent->classname, "item_", q_strlen("item_"))) {
+  } else if (!Str_CompareN(ent->classname, "item_", Str_Length("item_"))) {
     ent->s.color = Color32i(0xffffff00);
   }
 
@@ -56,26 +56,26 @@ void Sv_ConfigureEditorEntity(int32_t number) {
 
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
 
-    if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
+    if (!Str_CompareN(ent->classname, "info_player", Str_Length("info_player"))) {
       ent->bounds = MakeBox3(MakeVec3(-16.f, -16.f, -24.f), MakeVec3(16.f, 16.f, 36.f));
-    } else if (!q_strncmp(ent->classname, "light", q_strlen("light"))) {
+    } else if (!Str_CompareN(ent->classname, "light", Str_Length("light"))) {
       ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
     }
 
     // use the BSP inline model to set bounds
-    const char *model = Cm_EntityValue(ent->def, "model")->string;
+    const char *model = Entity_Value(ent->def, "model")->string;
     if (*model == '*') {
-      const CmBspModel *mod = Cm_Model(model);
+      const CollisionModel *mod = Cm_Model(model);
       ent->bounds = mod->bounds;
     } else {
       // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
       // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
-      const CmEntity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
-      Vector *brushes = Cm_EntityBrushes(bspDef);
+      const Entity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
+      Vector *brushes = Entity_Brushes(bspDef);
       if (brushes->count) {
         ent->bounds = Box3_Null();
         for (uint32_t j = 0; j < brushes->count; j++) {
-          const CmBspBrush *brush = VectorValue(brushes, CmBspBrush *, j);
+          const CollisionBrush *brush = VectorValue(brushes, CollisionBrush *, j);
           ent->bounds = Box3_Union(ent->bounds, brush->bounds);
         }
       }
@@ -85,7 +85,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
     Sv_LinkEntity(ent);
   }
 
-  char *info = Cm_EntityToInfoString(ent->def);
+  char *info = Entity_ToInfoString(ent->def);
 
   Sv_SetConfigString(CS_ENTITIES + number, info);
 
@@ -97,7 +97,7 @@ void Sv_ConfigureEditorEntity(int32_t number) {
  */
 void Sv_EditEditorEntity(int32_t number, const char *info) {
 
-  CmEntity *def = Cm_EntityFromInfoString(info);
+  Entity *def = Entity_FromInfoString(info);
 
   if (!def) {
     Com_Warn("Invalid entity info string for %d\n", number);
@@ -106,7 +106,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
   if (number > -1) {
     GameEntity *entity = sv.entities[number].gent;
-    CmEntity *ent = (CmEntity *) entity->def;
+    Entity *ent = (Entity *) entity->def;
 
     if (ent) {
       def->brushes = ent->brushes;
@@ -115,7 +115,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
     svs.game->FreeEditorEntity(number);
 
-    Cm_FreeEntity(ent);
+    Entity_Free(ent);
   } else {
     for (int32_t i = Cm_Bsp()->numEntities; i < sv_maxEntities->integer; i++) {
       if (sv.entities[i].gent->inUse == false) {
@@ -126,7 +126,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
     if (number == -1) {
       Com_Warn("No free entity slots available\n");
-      Cm_FreeEntity(def);
+      Entity_Free(def);
       return;
     }
   }
@@ -143,11 +143,11 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
  */
 void Sv_FreeEditorEntity(int32_t number) {
 
-  CmEntity *def = (CmEntity *) sv.entities[number].gent->def;
+  Entity *def = (Entity *) sv.entities[number].gent->def;
 
   svs.game->FreeEditorEntity(number);
 
-  Cm_FreeEntity(def);
+  Entity_Free(def);
 
   Sv_SetConfigString(CS_ENTITIES + number, "");
 }
@@ -158,7 +158,7 @@ void Sv_FreeEditorEntity(int32_t number) {
 void Sv_LoadEditorMap(void) {
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  q_strlcat(path, ".map", sizeof(path));
+  Str_Append(path, ".map", sizeof(path));
 
   void *buffer;
   if (Fs_Load(path, &buffer) == -1) {
@@ -167,7 +167,7 @@ void Sv_LoadEditorMap(void) {
     return;
   }
 
-  Cm_ParseMapBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->numEntities);
+  Entity_ParseBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->numEntities);
 
   Fs_Free(buffer);
 }
@@ -189,7 +189,7 @@ void Sv_SaveEditorMap_f(void) {
 
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  q_strlcat(path, ".map", sizeof(path));
+  Str_Append(path, ".map", sizeof(path));
 
   File *file = Fs_OpenWrite(path);
   if (!file) {
@@ -215,18 +215,18 @@ void Sv_SaveEditorMap_f(void) {
     Fs_Print(file, "// entity %d\n", entityNum++);
     Fs_Print(file, "{\n");
 
-    for (const CmEntity *e = ent->def; e; e = e->next) {
+    for (const Entity *e = ent->def; e; e = e->next) {
       Fs_Print(file, "\"%s\" \"%s\"\n", e->key, e->string);
     }
 
     const char *brushes = "";
-    for (const CmEntity *e = ent->def; e; e = e->next) {
+    for (const Entity *e = ent->def; e; e = e->next) {
       if (e->brushes) {
         brushes = e->brushes;
         break;
       }
     }
-    Fs_Write(file, brushes, sizeof(char), q_strlen(brushes));
+    Fs_Write(file, brushes, sizeof(char), Str_Length(brushes));
 
     Fs_Print(file, "}\n");
   }

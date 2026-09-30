@@ -87,7 +87,7 @@ static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additio
     const int32_t bytes = additional < (int32_t) sizeof(buffer) ? additional : (int32_t) sizeof(buffer);
     const int32_t samples = bytes / S_FRAME_SIZE;
 
-    alcRenderSamplesSOFT(sContext.device, buffer, samples);
+    alcRenderSamplesSOFT(soundContext.device, buffer, samples);
     SDL_PutAudioStreamData(stream, buffer, samples * (int32_t) S_FRAME_SIZE);
 
     additional -= samples * (int32_t) S_FRAME_SIZE;
@@ -160,7 +160,7 @@ static void S_CheckSharedDevice(const char *capture) {
 
   const char *playback = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(module.playback));
 
-  if (playback && capture && !q_strcmp(playback, capture)) {
+  if (playback && capture && !Str_Compare(playback, capture)) {
     Com_Warn("Microphone and speakers are both \"%s\".\n"
              "If this is a Bluetooth headset, audio quality will drop while you transmit.\n"
              "Run s_captureDeviceList and set s_captureDevice to a separate microphone to avoid it.\n",
@@ -185,7 +185,7 @@ static SDL_AudioDeviceID S_CaptureDevice(void) {
 
   for (int32_t i = 0; i < count; i++) {
     const char *name = SDL_GetAudioDeviceName(devices[i]);
-    if (name && !q_strcmp(name, s_captureDevice->string)) {
+    if (name && !Str_Compare(name, s_captureDevice->string)) {
       device = devices[i];
       break;
     }

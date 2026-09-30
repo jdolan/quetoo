@@ -58,7 +58,7 @@ static struct {
  * @brief Allocates the placeholder subview texture.
  */
 void R_InitSubviews(void) {
-  module.nullTexture = $(rContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
+  module.nullTexture = $(renderContext.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
 }
 
 /**
@@ -102,7 +102,7 @@ static void R_UpdateSubview(RenderSubview *subview, const Mat4 matrix) {
   subview->absBounds = Mat4_TransformBounds(matrix, subview->bounds);
   const Vec3 normal = Mat4_RotateVector(matrix, subview->normal);
 
-  subview->absPlane = (CmBspPlane) {
+  subview->absPlane = (CollisionPlane) {
     .normal = normal,
     .dist = Vec3_Dot(subview->absOrigin, normal),
     .type = Cm_PlaneTypeForNormal(normal),
@@ -236,7 +236,7 @@ static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 or
  * `Mat4` takes a row-vector convention, so the translation is the last literal row, as it is in
  * `Mat4_FromFrustum`.
  */
-static Mat4 R_ReflectionMatrix(const CmBspPlane *plane) {
+static Mat4 R_ReflectionMatrix(const CollisionPlane *plane) {
 
   const Vec3 n = plane->normal;
   const float d = plane->dist;
@@ -286,7 +286,7 @@ static void R_AddReflection(RenderView *view, RenderSubview *reflection, const M
  */
 static void R_AddReflections(RenderView *view) {
 
-  if (!rModels.world || !rModels.world->bsp->numReflections) {
+  if (!renderModels.world || !renderModels.world->bsp->numReflections) {
     return;
   }
 
@@ -301,8 +301,8 @@ static void R_AddReflections(RenderView *view) {
       continue;
     }
 
-    RenderSubview *r = rModels.world->bsp->reflections;
-    for (int32_t j = 0; j < rModels.world->bsp->numReflections; j++, r++) {
+    RenderSubview *r = renderModels.world->bsp->reflections;
+    for (int32_t j = 0; j < renderModels.world->bsp->numReflections; j++, r++) {
 
       if (r->model == e->model) {
         R_AddReflection(view, r, e->matrix);
@@ -368,7 +368,7 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
  */
 static void R_UpdateSubviewFramebuffer(void) {
 
-  const SDL_Size window = MakeSize(rContext.windowBounds.w, rContext.windowBounds.h);
+  const SDL_Size window = MakeSize(renderContext.windowBounds.w, renderContext.windowBounds.h);
 
   if (module.framebuffer) {
     if (module.size.w == window.w && module.size.h == window.h) {
@@ -455,7 +455,7 @@ static void R_UpdateSubviewFrustum(RenderView *view, Vec2 mins, Vec2 maxs) {
   const float tx = tanf(Radians(view->fov.x));
   const float ty = tanf(Radians(view->fov.y));
 
-  CmBspPlane *p = view->frustum;
+  CollisionPlane *p = view->frustum;
 
   p[0].normal = Vec3_Fmaf(Vec3_Scale(view->right, -1.f), maxs.x * tx, view->forward);
   p[1].normal = Vec3_Fmaf(view->right, -mins.x * tx, view->forward);
@@ -519,7 +519,7 @@ static SDL_Rect R_SubviewScissor(const RenderSubview *subview, const bool projec
 static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor, const bool projected,
                           const Vec2 mins, const Vec2 maxs) {
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   RenderView *view = subview->view;
 
@@ -639,15 +639,15 @@ void R_DrawSubviews(RenderView *view) {
 
   // cleared before anything is offered, so that a subview that was not offered, or was offered
   // and culled, leaves its face on its own material rather than sampling a stale layer
-  if (rModels.world) {
+  if (renderModels.world) {
 
-    RenderSubview *p = rModels.world->bsp->portals;
-    for (int32_t i = 0; i < rModels.world->bsp->numPortals; i++, p++) {
+    RenderSubview *p = renderModels.world->bsp->portals;
+    for (int32_t i = 0; i < renderModels.world->bsp->numPortals; i++, p++) {
       p->layer = -1;
     }
 
-    RenderSubview *r = rModels.world->bsp->reflections;
-    for (int32_t i = 0; i < rModels.world->bsp->numReflections; i++, r++) {
+    RenderSubview *r = renderModels.world->bsp->reflections;
+    for (int32_t i = 0; i < renderModels.world->bsp->numReflections; i++, r++) {
       r->layer = -1;
     }
   }
@@ -657,7 +657,7 @@ void R_DrawSubviews(RenderView *view) {
   // by now, so they are offered here and sort against the portals already held
   R_AddReflections(view);
 
-  if (!view->numSubviews || !rContext.device->commands) {
+  if (!view->numSubviews || !renderContext.device->commands) {
     return;
   }
 
@@ -665,9 +665,9 @@ void R_DrawSubviews(RenderView *view) {
 
   // captured before any subview is drawn, since drawing one replaces the uniform block with
   // its own view
-  const Mat4 vp = Mat4_Concat(rUniforms.block.projection3D, rUniforms.block.view);
+  const Mat4 vp = Mat4_Concat(renderUniforms.block.projection3D, renderUniforms.block.view);
 
-  RenderViewStats *stats = rStats;
+  RenderViewStats *stats = renderStats;
 
   int32_t layer = 0;
   for (int32_t i = 0; i < view->numSubviews; i++) {
@@ -702,7 +702,7 @@ void R_DrawSubviews(RenderView *view) {
 
     R_UpdateSubviewScene(view, subview->view);
 
-    rStats = &subview->view->stats;
+    renderStats = &subview->view->stats;
     R_DrawSubview(subview, &scissor, projected, mins, maxs);
 
     stats->subviewsTriangles += subview->view->stats.bspTriangles + subview->view->stats.meshTriangles;
@@ -710,7 +710,7 @@ void R_DrawSubviews(RenderView *view) {
 
   $(module.framebuffer, swap);
 
-  rStats = stats;
+  renderStats = stats;
 
   R_UpdateUniforms(view);
 }

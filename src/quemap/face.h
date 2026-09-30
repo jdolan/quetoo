@@ -53,7 +53,7 @@ typedef struct Face {
   /**
    * @brief The ordered face winding, used to emit BSP vertexes.
    */
-  CmWinding *w;
+  Winding *w;
 
   /**
    * @brief The output face in the BSP, so that node faces may emit leaf faces.

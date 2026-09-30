@@ -64,7 +64,7 @@ Image *Cg_LoadImage(const char *name) {
 }
 
 /**
- * @brief `Fs_Enumerator` registering one emoji with the Theme's icon atlas, so that `:name:`
+ * @brief `FsEnumerator` registering one emoji with the Theme's icon atlas, so that `:name:`
  * in any Text draws it inline.
  */
 static void Cg_AddEmoji(const char *path, void *data) {
@@ -85,7 +85,7 @@ static void Cg_AddEmoji(const char *path, void *data) {
 }
 
 /**
- * @brief `Fs_Enumerator` registering one image with the Theme's icon atlas under its resource
+ * @brief `FsEnumerator` registering one image with the Theme's icon atlas under its resource
  * name, e.g. `pics/game_ctf`, for Views that fetch app art by `Theme::icon`.
  */
 static void Cg_AddIcon(const char *path, void *data) {
@@ -157,10 +157,10 @@ void Cg_InitUi(void) {
 
 void Cg_InitHudUi(void) {
 
-  cgHudViewController = (HudViewController *) $((ViewController *) alloc(HudViewController), init);
-  assert(cgHudViewController);
+  cgameHudViewController = (HudViewController *) $((ViewController *) alloc(HudViewController), init);
+  assert(cgameHudViewController);
 
-  cgi.SetHudViewController((ViewController *) cgHudViewController);
+  cgi.SetHudViewController((ViewController *) cgameHudViewController);
 }
 
 /**
@@ -172,7 +172,7 @@ void Cg_ShutdownUi(void) {
   cgi.PopViewController();
 
   cgi.SetHudViewController(NULL);
-  release(cgHudViewController);
+  release(cgameHudViewController);
 
   $(cgi.Theme(), removeStylesheet, stylesheet);
 
@@ -268,7 +268,7 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
       askedToInstall = true;
 
       static char message[MAX_STRING_CHARS];
-      q_snprintf(message, sizeof(message), "Quetoo %s is available. Install it?", in->currentFile);
+      Str_Format(message, sizeof(message), "Quetoo %s is available. Install it?", in->currentFile);
 
       Cg_InstallerDialog(message, "Install", Cg_AcceptUpdate);
     }
@@ -288,15 +288,15 @@ int32_t Cg_UpdateInstaller(const InstallerStatus *in) {
   }
 
   if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {
-    static uint64_t done_at = 0;
-    if (done_at == 0) {
-      done_at = SDL_GetTicks();
+    static uint64_t doneAt = 0;
+    if (doneAt == 0) {
+      doneAt = SDL_GetTicks();
     }
-    if (acceptedRestart || SDL_GetTicks() - done_at > 2000) {
+    if (acceptedRestart || SDL_GetTicks() - doneAt > 2000) {
       cgi.PopViewController();
       release(updateViewController);
       updateViewController = NULL;
-      done_at = 0;
+      doneAt = 0;
       return 1;
     }
   }

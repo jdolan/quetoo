@@ -82,7 +82,6 @@ typedef struct SoundMedia {
  * @brief A sound sample.
  */
 typedef struct {
-
   /**
    * @brief The media.
    */
@@ -177,7 +176,6 @@ typedef struct SoundPlaySample {
  * @brief Samples are collected into channels that are spatialized and played back.
  */
 typedef struct {
-
   /**
    * @brief The play sample.
    */
@@ -225,7 +223,6 @@ typedef struct {
  * @brief A music track.
  */
 typedef struct {
-
   /**
    * @brief The media.
    */
@@ -256,7 +253,6 @@ typedef struct {
  * @brief Filters and effects used by the sound system if `s_effects` is enabled & supported.
  */
 typedef struct {
-
   /**
    * @brief EAX or standard reverb effect, driven by per-listener voxel enclosure.
    */
@@ -277,7 +273,6 @@ typedef struct {
  * @brief The sound environment.
  */
 typedef struct {
-
   /**
    * @brief The OpenAL playback device.
    */
@@ -373,7 +368,6 @@ typedef struct {
  * @brief Sound statistics, written by the sound module for each rendered stage.
  */
 typedef struct {
-
   /**
    * @brief The count of channels playing after the stage was mixed.
    */
@@ -448,7 +442,7 @@ typedef struct SoundStage {
 
 #if defined(__S_LOCAL_H__)
 
-extern SF_VIRTUAL_IO sRwopsIo;
-extern SF_VIRTUAL_IO sPhysfsIo;
+extern SF_VIRTUAL_IO soundRwopsIo;
+extern SF_VIRTUAL_IO soundPhysfsIo;
 
 #endif

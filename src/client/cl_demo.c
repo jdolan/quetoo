@@ -64,7 +64,7 @@ static void Cl_AddDemoKeyframe(int32_t frameNum, int32_t offset) {
  * having received them at connect time.
  */
 static void Cl_WriteDemoHeader(void) {
-  static EntityState null_state;
+  static EntityState nullState;
   MemBuf msg;
   byte buffer[MAX_MSG_SIZE];
 
@@ -73,8 +73,8 @@ static void Cl_WriteDemoHeader(void) {
 
   memcpy(header->magic, DEMO_MAGIC, sizeof(header->magic));
   header->version = LittleLong(DEMO_VERSION);
-  q_strlcpy(header->map, cl.configStrings[CS_BSP], sizeof(header->map));
-  q_strlcpy(header->message, cl.configStrings[CS_MESSAGE], sizeof(header->message));
+  Str_Copy(header->map, cl.configStrings[CS_BSP], sizeof(header->map));
+  Str_Copy(header->message, cl.configStrings[CS_MESSAGE], sizeof(header->message));
   header->title[0] = '\0';
   header->favorite = 0;
   header->duration = 0;
@@ -82,7 +82,7 @@ static void Cl_WriteDemoHeader(void) {
   header->ofsKeyframes = 0;
   header->protocolMajor = LittleLong(PROTOCOL_MAJOR);
   header->protocolMinor = LittleLong(cls.cgame->protocol);
-  q_strlcpy(header->cgame, cls.cgame->name, sizeof(header->cgame));
+  Str_Copy(header->cgame, cls.cgame->name, sizeof(header->cgame));
 
   Fs_Write(cls.demo.file, header, sizeof(*header), 1);
 
@@ -101,7 +101,7 @@ static void Cl_WriteDemoHeader(void) {
   // and configStrings
   for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
     if (*cl.configStrings[i] != '\0') {
-      if (msg.size + q_strlen(cl.configStrings[i]) + 32 > msg.maxSize) { // write it out
+      if (msg.size + Str_Length(cl.configStrings[i]) + 32 > msg.maxSize) { // write it out
         Cl_WriteDemoChunk(msg.data, msg.size, 0);
         msg.size = 0;
       }
@@ -125,7 +125,7 @@ static void Cl_WriteDemoHeader(void) {
     }
 
     Net_WriteByte(&msg, SV_CMD_BASELINE);
-    Net_WriteDeltaEntity(&msg, &null_state, &cl.entities[i].baseline, true);
+    Net_WriteDeltaEntity(&msg, &nullState, &cl.entities[i].baseline, true);
   }
 
   Net_WriteByte(&msg, SV_CMD_CBUF_TEXT);
@@ -177,10 +177,10 @@ void Cl_WriteDemoMessage(void) {
 
   Cl_AddDemoKeyframe(frameNum, (int32_t) Fs_Tell(cls.demo.file));
 
-  static PlayerState null_ps;
+  static PlayerState nullPlayerState;
 
   // bounded by MAX_MSG_SIZE to match what Sv_GetDemoMessage accepts as a valid chunk on
-  // playback, and what the server's own relay buffers and Netchan_Transmit can actually carry in
+  // playback, and what the server's own relay buffers and NetChan_Transmit can actually carry in
   // one message - unlike a plain on-disk record size, this isn't a purely local concern.
   MemBuf msg;
   byte buffer[MAX_MSG_SIZE];
@@ -196,7 +196,7 @@ void Cl_WriteDemoMessage(void) {
   // a real discontinuity (a seek) is still correctly detected and snapped.
   Net_WriteLong(&msg, -1);
 
-  Net_WriteDeltaPlayerState(&msg, &null_ps, &cl.frame.ps);
+  Net_WriteDeltaPlayerState(&msg, &nullPlayerState, &cl.frame.ps);
 
   int32_t entitiesDropped = 0;
   for (int32_t i = 0; i < cl.frame.numEntities; i++) {
@@ -302,14 +302,14 @@ void Cl_Record_f(void) {
   }
 
   if (Cmd_Argc() == 2) {
-    q_snprintf(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", Cmd_Argv(1));
+    Str_Format(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", Cmd_Argv(1));
   } else {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
     char datestamp[32];
     strftime(datestamp, sizeof(datestamp), "%Y-%m-%d-%H-%M-%S", tm);
 
-    q_snprintf(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", datestamp);
+    Str_Format(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", datestamp);
   }
 
   // open the demo file
@@ -400,21 +400,21 @@ static void Cl_SetDemoPlaybackSpeedRelative(int32_t increment) {
 }
 
 /**
- * @brief Handles the `demo_playbackFaster` command, increasing demo playback speed.
+ * @brief Handles the `demoPlaybackFaster` command, increasing demo playback speed.
  */
 void Cl_DemoPlaybackFaster_f(void) {
   Cl_SetDemoPlaybackSpeedRelative(+1);
 }
 
 /**
- * @brief Handles the `demo_playbackSlower` command, decreasing demo playback speed.
+ * @brief Handles the `demoPlaybackSlower` command, decreasing demo playback speed.
  */
 void Cl_DemoPlaybackSlower_f(void) {
   Cl_SetDemoPlaybackSpeedRelative(-1);
 }
 
 /**
- * @brief Handles the `demo_pause` command by forwarding it to the demo relay, which owns pause
+ * @brief Handles the `demoPause` command by forwarding it to the demo relay, which owns pause
  * state and reports it back via @c SV_CMD_DEMO_INFO. Nothing is toggled locally: the server pauses
  * on its own when playback reaches the last frame, and a local guess would desync from that.
  * `cls.demo.paused` then frees the mouse and shows the cursor so the transport controls can be

@@ -28,7 +28,7 @@ static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
   SDL_Surface *surf = NULL;
 
   char path[MAX_QPATH];
-  q_snprintf(path, sizeof(path), "%s.%s", name, type);
+  Str_Format(path, sizeof(path), "%s.%s", name, type);
 
   void *buf;
   int64_t len;
@@ -104,7 +104,7 @@ SDL_Surface *Img_LoadSurfaceFromData(const void *data, size_t len) {
  */
 Color Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 
-  Color out = color_white;
+  Color out = COLOR_RGB_WHITE;
 
   if (surf) {
     float max = 0.f;
@@ -405,14 +405,14 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
   char header[256];
 
   if (bpp == 4) {
-    q_snprintf(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
+    Str_Format(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
   }
   else {
-    q_snprintf(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
+    Str_Format(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
   }
 
   // write PBM header
-  SDL_WriteIO(f, header, q_strlen(header));
+  SDL_WriteIO(f, header, Str_Length(header));
 
   // output buffer
   byte *buffer = Mem_Malloc(width * height * 3 * bpp);

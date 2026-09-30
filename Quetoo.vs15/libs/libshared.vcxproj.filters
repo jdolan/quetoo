@@ -59,7 +59,7 @@
     <ClCompile Include="..\..\src\shared\shared.c">
       <Filter>src\shared</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared\shared-anorms.c">
+    <ClCompile Include="..\..\src\shared\shared_anorms.c">
       <Filter>src\shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\shared\swap.c">

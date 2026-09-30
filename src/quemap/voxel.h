@@ -36,7 +36,7 @@ typedef struct {
   HashTable *lights;
   int32_t lightsOffset;
   int32_t lightsCount;
-} Voxel;
+} MapVoxel;
 
 /**
  * @brief The voxel grid type.
@@ -45,11 +45,11 @@ typedef struct {
   Box3 stuBounds;
   Vec3i size;
   size_t numVoxels;
-  Voxel *voxels;
+  MapVoxel *voxels;
   size_t numLightIndices;
-} Voxels;
+} MapVoxels;
 
-extern Voxels voxels;
+extern MapVoxels voxels;
 
 size_t BuildVoxels(void);
 void LightVoxel(int32_t voxelNum);

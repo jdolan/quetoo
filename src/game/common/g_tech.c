@@ -34,14 +34,14 @@ Cvar *g_techs;
  * @brief `g_module.h` function pointers.
  */
 static struct {
-  ResetDroppedItem ResetDroppedItem;
-  ResolveInventoryItem ResolveInventoryItem;
-  ModifyDamage ModifyDamage;
-  CheckCvars CheckCvars;
-  TossInventory TossInventory;
-  InitItem InitItem;
-  InitMedia InitMedia;
-  ConfigureLevel ConfigureLevel;
+  GameResetDroppedItemHook ResetDroppedItem;
+  GameResolveInventoryItemHook ResolveInventoryItem;
+  GameModifyDamageHook ModifyDamage;
+  GameCheckCvarsHook CheckCvars;
+  GameTossInventoryHook TossInventory;
+  GameInitItemHook InitItem;
+  GameInitMediaHook InitMedia;
+  GameConfigureLevelHook ConfigureLevel;
 } previous;
 
 static bool installed;
@@ -57,13 +57,13 @@ static struct {
 /**
  * @brief True when techs are available this level.
  */
-static bool g_techEnabled;
+static bool techEnabled;
 
 /**
  * @return True if techs are enabled for this level.
  */
 static bool G_Tech_Enabled(void) {
-  return g_techEnabled;
+  return techEnabled;
 }
 
 /**
@@ -84,7 +84,7 @@ static void G_ResetDroppedItem_Tech(GameEntity *ent) {
  */
 static const GameItem *G_ResolveInventoryItem_Tech(GameClient *cl, const char *name) {
 
-  if (!q_strcasecmp(name, "tech")) {
+  if (!Str_CaseCompare(name, "tech")) {
     const GameItem *tech = G_GetTech(cl);
     if (tech) {
       return tech;
@@ -234,10 +234,10 @@ void G_Tech_Init(void) {
  */
 void G_Tech_CheckState(void) {
 
-  if (q_strcmp(g_techs->string, "default")) {
-    g_techEnabled = !!g_techs->integer;
+  if (Str_Compare(g_techs->string, "default")) {
+    techEnabled = !!g_techs->integer;
   } else {
-    g_techEnabled = true;
+    techEnabled = true;
   }
 }
 
@@ -252,7 +252,7 @@ static float G_TechRangeFromSpawn(const GameEntity *spawn) {
 
     GameEntity *ent = NULL;
     G_ForEachEntity(e, {
-      if (e->item == &g_items[tech]) {
+      if (e->item == &gameItems[tech]) {
         ent = e;
         break;
       }
@@ -302,16 +302,16 @@ static GameEntity *G_SelectTechSpawnPoint(void) {
   float pointDist = -FLT_MAX;
   GameEntity *point = NULL;
 
-  if (g_level.teams) {
-    for (int32_t i = 0; i < g_level.numTeams; i++) {
-      G_SelectFarthestTechSpawnPoint(&g_teamList[i].spawnPoints, &point, &pointDist);
+  if (gameLevel.teams) {
+    for (int32_t i = 0; i < gameLevel.numTeams; i++) {
+      G_SelectFarthestTechSpawnPoint(&gameTeamList[i].spawnPoints, &point, &pointDist);
     }
   } else {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawnPoints, &point, &pointDist);
+    G_SelectFarthestTechSpawnPoint(&gameLevel.spawnPoints, &point, &pointDist);
   }
 
   if (!point) {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawnPoints, &point, &pointDist);
+    G_SelectFarthestTechSpawnPoint(&gameLevel.spawnPoints, &point, &pointDist);
   }
 
   return point;
@@ -346,7 +346,7 @@ static void G_SpawnTech(const GameItem *item) {
   // instead of forcing immediate pickup on spawn.
   ent->spawnFlags |= SF_ITEM_DROPPED;
   ent->moveType = MOVE_TYPE_BOUNCE;
-  ent->touchTime = g_level.time + 1000;
+  ent->touchTime = gameLevel.time + 1000;
 
   ent->velocity = Vec3_Scale(forward, 100.f);
   ent->velocity.z = 300.f + (Randomf() * 50.f);
@@ -359,12 +359,12 @@ static void G_SpawnTech(const GameItem *item) {
  */
 void G_Tech_SpawnAll(void) {
 
-  if (!g_techEnabled) {
+  if (!techEnabled) {
     return;
   }
 
   for (GameItemTag i = TECH_FIRST; i < TECH_LAST; i++) {
-    G_SpawnTech(&g_items[i]);
+    G_SpawnTech(&gameItems[i]);
   }
 }
 
@@ -411,7 +411,7 @@ const GameItem *G_GetTech(const GameClient *cl) {
   for (GameItemTag i = TECH_FIRST; i < TECH_LAST; i++) {
 
     if (G_HasTech(cl, i)) {
-      return &g_items[i];
+      return &gameItems[i];
     }
   }
 
@@ -444,12 +444,12 @@ void G_PlayTechSound(GameClient *cl) {
     return;
   }
 
-  if (cl->tech.soundTime < g_level.time) {
+  if (cl->tech.soundTime < gameLevel.time) {
     G_MulticastSound(&(const GamePlaySound) {
       .index = module.sounds[tech->def.tag - TECH_FIRST],
       .entity = cl->entity,
     }, MULTICAST_PHS);
-    cl->tech.soundTime = g_level.time + 500;
+    cl->tech.soundTime = gameLevel.time + 500;
   }
 }
 
@@ -464,8 +464,8 @@ void G_Tech_ClientThink(GameEntity *ent) {
     return;
   }
 
-  if (cl->tech.regenTime < g_level.time) {
-    cl->tech.regenTime = g_level.time + TECH_REGEN_TICK_TIME;
+  if (cl->tech.regenTime < gameLevel.time) {
+    cl->tech.regenTime = gameLevel.time + TECH_REGEN_TICK_TIME;
 
     if (ent->health < ent->maxHealth) {
       ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->maxHealth);

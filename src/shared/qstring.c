@@ -24,7 +24,7 @@
 /**
  * @see qstring.h
  */
-size_t q_strlcpy(char *dst, const char *src, size_t size) {
+size_t Str_Copy(char *dst, const char *src, size_t size) {
 
 	if (!src) {
 		if (size) {
@@ -47,7 +47,7 @@ size_t q_strlcpy(char *dst, const char *src, size_t size) {
 /**
  * @see qstring.h
  */
-size_t q_strlcat(char *dst, const char *src, size_t size) {
+size_t Str_Append(char *dst, const char *src, size_t size) {
 
 	if (!src) {
 		return strlen(dst);
@@ -68,7 +68,7 @@ size_t q_strlcat(char *dst, const char *src, size_t size) {
 /**
  * @see qstring.h
  */
-int32_t q_strcasecmp(const char *a, const char *b) {
+int32_t Str_CaseCompare(const char *a, const char *b) {
 
 	if (a == b) {
 		return 0;
@@ -95,7 +95,7 @@ int32_t q_strcasecmp(const char *a, const char *b) {
 /**
  * @see qstring.h
  */
-int32_t q_strncasecmp(const char *a, const char *b, size_t n) {
+int32_t Str_CaseCompareN(const char *a, const char *b, size_t n) {
 
 	if (a == b || n == 0) {
 		return 0;
@@ -125,7 +125,7 @@ int32_t q_strncasecmp(const char *a, const char *b, size_t n) {
 /**
  * @see qstring.h
  */
-char *q_strdup(const char *s) {
+char *Str_Duplicate(const char *s) {
 
 	if (!s) {
 		return NULL;
@@ -142,7 +142,7 @@ char *q_strdup(const char *s) {
 /**
  * @see qstring.h
  */
-char *q_strndup(const char *s, size_t n) {
+char *Str_DuplicateN(const char *s, size_t n) {
 
 	if (!s) {
 		return NULL;
@@ -164,7 +164,7 @@ char *q_strndup(const char *s, size_t n) {
 /**
  * @see qstring.h
  */
-char *q_strtok_r(char *s, const char *delim, char **savePtr) {
+char *Str_Tokenize(char *s, const char *delim, char **savePtr) {
 #if defined(_MSC_VER)
 	return strtok_s(s, delim, savePtr);
 #else
@@ -175,7 +175,7 @@ char *q_strtok_r(char *s, const char *delim, char **savePtr) {
 /**
  * @see qstring.h
  */
-void q_strlower(const char *in, char *out) {
+void Str_Lower(const char *in, char *out) {
 
 	if (in) {
 		while (*in) {
@@ -188,7 +188,7 @@ void q_strlower(const char *in, char *out) {
 /**
  * @see qstring.h
  */
-void q_strtrim(const char *in, char *out) {
+void Str_Trim(const char *in, char *out) {
 
 	if (!in) {
 		*out = '\0';
@@ -212,10 +212,10 @@ void q_strtrim(const char *in, char *out) {
 /**
  * @see qstring.h
  */
-void q_strcolorstrip(const char *in, char *out) {
+void Str_StripColors(const char *in, char *out) {
 
 	while (*in) {
-		if (q_striscolor(in)) {
+		if (Str_IsColor(in)) {
 			in += 2;
 			continue;
 		}
@@ -227,12 +227,12 @@ void q_strcolorstrip(const char *in, char *out) {
 /**
  * @see qstring.h
  */
-size_t q_strcolorlen(const char *s) {
+size_t Str_ColorLength(const char *s) {
 
 	size_t len = 0;
 
 	while (s && *s) {
-		if (q_striscolor(s)) {
+		if (Str_IsColor(s)) {
 			s += 2;
 			continue;
 		}
@@ -246,24 +246,24 @@ size_t q_strcolorlen(const char *s) {
 /**
  * @see qstring.h
  */
-int32_t q_strcolorcmp(const char *s1, const char *s2) {
+int32_t Str_ColorCompare(const char *s1, const char *s2) {
 
-	char a[q_strlen(s1) + 1], b[q_strlen(s2) + 1];
+	char a[Str_Length(s1) + 1], b[Str_Length(s2) + 1];
 
-	q_strcolorstrip(s1 ? s1 : "", a);
-	q_strcolorstrip(s2 ? s2 : "", b);
+	Str_StripColors(s1 ? s1 : "", a);
+	Str_StripColors(s2 ? s2 : "", b);
 
-	return q_strcasecmp(a, b);
+	return Str_CaseCompare(a, b);
 }
 
 /**
  * @see qstring.h
  */
-int32_t q_strcolor(const char *s) {
+int32_t Str_FirstColor(const char *s) {
 
 	const char *c = s;
 	while (c && *c) {
-		if (q_striscolor(c)) {
+		if (Str_IsColor(c)) {
 			return *(c + 1) - '0';
 		}
 		c++;
@@ -275,12 +275,12 @@ int32_t q_strcolor(const char *s) {
 /**
  * @see qstring.h
  */
-int32_t q_strrcolor(const char *s) {
+int32_t Str_LastColor(const char *s) {
 
 	if (s) {
 		const char *c = s + strlen(s) - 1;
 		while (c > s) {
-			if (q_striscolor(c)) {
+			if (Str_IsColor(c)) {
 				return *(c + 1) - '0';
 			}
 			c--;
@@ -288,36 +288,4 @@ int32_t q_strrcolor(const char *s) {
 	}
 
 	return ESC_COLOR_DEFAULT;
-}
-
-/**
- * @see qstring.h
- */
-bool q_str_ident_equal(const char *a, const char *b) {
-
-	if (a == NULL || b == NULL) {
-		return a == b;
-	}
-
-	while (true) {
-
-		while (*a == '_') {
-			a++;
-		}
-
-		while (*b == '_') {
-			b++;
-		}
-
-		if (tolower((unsigned char) *a) != tolower((unsigned char) *b)) {
-			return false;
-		}
-
-		if (*a == '\0') {
-			return true;
-		}
-
-    a++;
-    b++;
-	}
 }

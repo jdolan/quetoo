@@ -48,7 +48,7 @@ Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultH
   float clientHue = -1.f;
 
   if (client < MAX_CLIENTS) {
-    const CGameClientInfo *ci = &cgState.clients[client];
+    const CGameClientInfo *ci = &cgameState.clients[client];
     clientHue = ci->team ? ci->team->hue : ci->hue;
   }
 
@@ -72,8 +72,8 @@ static void Cg_InactiveEffect(ClientEntity *ent, const Vec3 org) {
 
   cgi.AddSprite(cgi.view, &(const RenderSprite) {
     .origin = Vec3_Add(org, MakeVec3(0.f, 0.f, 50.f)),
-    .color = color_white.vec3,
-    .media = (RenderMedia *) cgSpriteInactive,
+    .color = COLOR_RGB_WHITE.vec3,
+    .media = (RenderMedia *) cgameMedia.sprites.inactive,
     .size = 32.f,
   });
 }
@@ -144,7 +144,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
 
     for (GameTeamId team = TEAM_RED; team < MAX_TEAMS; team++) {
       if (e->effects & (EF_CTF_RED << team)) {
-        const Vec3 color = Cg_EffectColor(&cgState.teams[team].hue, 0.f);
+        const Vec3 color = Cg_EffectColor(&cgameState.teams[team].hue, 0.f);
         const float pulse = 2.5f + sinf(cgi.client->unclampedTime * 0.005f) * .5f;
 
         const CGameLight l = {
@@ -218,7 +218,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   if (e->effects & EF_TEAM_TINT) {
     assert(ent->current.animation1 < MAX_TEAMS);
 
-    const CGameTeamInfo *team = cgState.teams + ent->current.animation1;
+    const CGameTeamInfo *team = cgameState.teams + ent->current.animation1;
     e->tints[0] = MakeVec4(team->color.r, team->color.g, team->color.b, 1.f);
 
     for (int32_t i = 1; i < 3; i++) {
@@ -227,4 +227,4 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 }
 
-EntityEffects Cg_EntityEffects = Cg_EntityEffects_Common;
+CGameEntityEffectsHook Cg_EntityEffects = Cg_EntityEffects_Common;

@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "collision/cm_material.h"
+#include "common/material.h"
 
 Quetoo quetoo;
 
@@ -44,16 +44,16 @@ void teardown(void) {
 /**
  * @brief Helper to write raw text to a file.
  */
-static void write_file(const char *path, const char *content) {
+static void Test_WriteFile(const char *path, const char *content) {
 	File *file = Fs_OpenWrite(path);
 	ck_assert_msg(file != NULL, "Failed to open %s for writing", path);
 	Fs_Print(file, "%s", content);
 	Fs_Close(file);
 }
 
-START_TEST(check_Cm_LoadMaterial_light) {
+START_TEST(check_Material_Load_light) {
 
-	write_file("check_light.mat",
+	Test_WriteFile("check_light.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_light\n"
@@ -69,11 +69,11 @@ START_TEST(check_Cm_LoadMaterial_light) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_light", ASSET_CONTEXT_NONE);
+	Material *m = Material_Load("check_light", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 	ck_assert(m->stageFlags & STAGE_LIGHT);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_LIGHT);
 	ck_assert(s->flags & STAGE_PULSE);
@@ -89,13 +89,13 @@ START_TEST(check_Cm_LoadMaterial_light) {
 	ck_assert(Vec3_Equal(s->light.color, Vec3_Zero()));
 	ck_assert_float_eq(s->light.intensity, 2.f);
 
-	Cm_FreeMaterial(m);
+	Material_Free(m);
 
 } END_TEST
 
-START_TEST(check_Cm_SaveMaterial_light) {
+START_TEST(check_Material_Save_light) {
 
-	write_file("check_save.mat",
+	Test_WriteFile("check_save.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_save\n"
@@ -106,28 +106,28 @@ START_TEST(check_Cm_SaveMaterial_light) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_save", ASSET_CONTEXT_NONE);
+	Material *m = Material_Load("check_save", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
-	ck_assert(Cm_SaveMaterial(m));
-	Cm_FreeMaterial(m);
+	ck_assert(Material_Save(m));
+	Material_Free(m);
 
-	m = Cm_LoadMaterial("check_save", ASSET_CONTEXT_NONE);
+	m = Material_Load("check_save", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_LIGHT);
 	ck_assert_float_eq(s->light.radius, 150.f);
 	ck_assert(Vec3_Equal(s->light.color, MakeVec3(.5f, .25f, 1.f)));
 	ck_assert_float_eq(s->light.intensity, .75f);
 
-	Cm_FreeMaterial(m);
+	Material_Free(m);
 
 } END_TEST
 
-START_TEST(check_Cm_LoadMaterial_envmap) {
+START_TEST(check_Material_Load_envmap) {
 
-	write_file("check_envmap.mat",
+	Test_WriteFile("check_envmap.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_envmap\n"
@@ -141,10 +141,10 @@ START_TEST(check_Cm_LoadMaterial_envmap) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_envmap", ASSET_CONTEXT_NONE);
+	Material *m = Material_Load("check_envmap", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_ENVMAP);
 	ck_assert(s->flags & STAGE_TEXTURE);
@@ -159,10 +159,10 @@ START_TEST(check_Cm_LoadMaterial_envmap) {
 	ck_assert(s->flags & STAGE_COLOR);
 	ck_assert_float_eq(s->envmap.amount, .2f);
 
-	ck_assert(Cm_SaveMaterial(m));
-	Cm_FreeMaterial(m);
+	ck_assert(Material_Save(m));
+	Material_Free(m);
 
-	m = Cm_LoadMaterial("check_envmap", ASSET_CONTEXT_NONE);
+	m = Material_Load("check_envmap", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
 	s = m->stages;
@@ -175,13 +175,13 @@ START_TEST(check_Cm_LoadMaterial_envmap) {
 	ck_assert(s->flags & STAGE_REFLECT);
 	ck_assert_float_eq(s->envmap.amount, .2f);
 
-	Cm_FreeMaterial(m);
+	Material_Free(m);
 
 } END_TEST
 
-START_TEST(check_Cm_LoadMaterial_pulse_drift_ignored) {
+START_TEST(check_Material_Load_pulse_drift_ignored) {
 
-	write_file("check_drift.mat",
+	Test_WriteFile("check_drift.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_drift\n"
@@ -191,23 +191,23 @@ START_TEST(check_Cm_LoadMaterial_pulse_drift_ignored) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_drift", ASSET_CONTEXT_NONE);
+	Material *m = Material_Load("check_drift", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = m->stages;
+	const MaterialStage *s = m->stages;
 	ck_assert_ptr_nonnull(s);
 	ck_assert(s->flags & STAGE_PULSE);
 	ck_assert_float_eq(s->pulse.hz, 2.f);
 	ck_assert(s->flags & STAGE_EMISSIVE);
 	ck_assert_float_eq(s->emissive, .5f);
 
-	Cm_FreeMaterial(m);
+	Material_Free(m);
 
 } END_TEST
 
-START_TEST(check_Cm_ResolveStageFlags) {
+START_TEST(check_Material_ResolveStageFlags) {
 
-	write_file("check_flags.mat",
+	Test_WriteFile("check_flags.mat",
 		"{\n"
 		"	{\n"
 		"		texture check_flags\n"
@@ -216,21 +216,21 @@ START_TEST(check_Cm_ResolveStageFlags) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_flags", ASSET_CONTEXT_NONE);
+	Material *m = Material_Load("check_flags", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 	ck_assert(m->stageFlags & STAGE_LIGHT);
 
 	m->stages->flags &= ~STAGE_LIGHT;
-	Cm_ResolveStageFlags(m);
+	Material_ResolveStageFlags(m);
 	ck_assert(!(m->stageFlags & STAGE_LIGHT));
 
-	Cm_FreeMaterial(m);
+	Material_Free(m);
 
 } END_TEST
 
-START_TEST(check_Cm_LoadMaterial_light_only_stage) {
+START_TEST(check_Material_Load_light_only_stage) {
 
-	write_file("check_only.mat",
+	Test_WriteFile("check_only.mat",
 		"{\n"
 		"	{\n"
 		"		light.radius 200\n"
@@ -243,10 +243,10 @@ START_TEST(check_Cm_LoadMaterial_light_only_stage) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_only", ASSET_CONTEXT_NONE);
+	Material *m = Material_Load("check_only", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 
-	const CmStage *s = Cm_MaterialLightStage(m);
+	const MaterialStage *s = Material_LightStage(m);
 	ck_assert_ptr_eq(s, m->stages);
 	ck_assert(!(s->flags & STAGE_DRAW));
 	ck_assert_float_eq(s->light.radius, 200.f);
@@ -254,13 +254,13 @@ START_TEST(check_Cm_LoadMaterial_light_only_stage) {
 	ck_assert_ptr_nonnull(m->stages->next);
 	ck_assert(m->stages->next->flags & STAGE_PULSE);
 
-	Cm_FreeMaterial(m);
+	Material_Free(m);
 
 } END_TEST
 
-START_TEST(check_Cm_AddStage_RemoveStage) {
+START_TEST(check_Material_AddStage_RemoveStage) {
 
-	write_file("check_edit.mat",
+	Test_WriteFile("check_edit.mat",
 		"{\n"
 		"	diffusemap check_edit\n"
 		"	{\n"
@@ -270,11 +270,11 @@ START_TEST(check_Cm_AddStage_RemoveStage) {
 		"}\n"
 	);
 
-	CmMaterial *m = Cm_LoadMaterial("check_edit", ASSET_CONTEXT_NONE);
+	Material *m = Material_Load("check_edit", ASSET_CONTEXT_NONE);
 	ck_assert_ptr_nonnull(m);
 	ck_assert(!(m->stageFlags & STAGE_LIGHT));
 
-	CmStage *s = Cm_AddStage(m);
+	MaterialStage *s = Material_AddStage(m);
 	ck_assert_ptr_nonnull(s);
 	ck_assert_ptr_eq(m->stages->next, s);
 	ck_assert(s->flags & STAGE_TEXTURE);
@@ -283,17 +283,17 @@ START_TEST(check_Cm_AddStage_RemoveStage) {
 
 	s->flags |= STAGE_LIGHT;
 	s->light.intensity = 3.f;
-	Cm_ResolveStage(m, s);
+	Material_ResolveStage(m, s);
 	ck_assert(m->stageFlags & STAGE_LIGHT);
 	ck_assert_float_eq(s->light.radius, STAGE_LIGHT_RADIUS);
-	ck_assert_ptr_eq(Cm_MaterialLightStage(m), s);
+	ck_assert_ptr_eq(Material_LightStage(m), s);
 
-	Cm_RemoveStage(m, s);
+	Material_RemoveStage(m, s);
 	ck_assert_ptr_null(m->stages->next);
 	ck_assert(!(m->stageFlags & STAGE_LIGHT));
-	ck_assert_ptr_null(Cm_MaterialLightStage(m));
+	ck_assert_ptr_null(Material_LightStage(m));
 
-	Cm_FreeMaterial(m);
+	Material_Free(m);
 
 } END_TEST
 
@@ -304,18 +304,18 @@ int32_t main(int32_t argc, char **argv) {
 
 	Test_Init(argc, argv);
 
-	TCase *tcase = tcase_create("check_cm_material");
+	TCase *tcase = tcase_create("check_material");
 	tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, check_Cm_LoadMaterial_light);
-	tcase_add_test(tcase, check_Cm_SaveMaterial_light);
-	tcase_add_test(tcase, check_Cm_LoadMaterial_envmap);
-	tcase_add_test(tcase, check_Cm_LoadMaterial_pulse_drift_ignored);
-	tcase_add_test(tcase, check_Cm_ResolveStageFlags);
-	tcase_add_test(tcase, check_Cm_LoadMaterial_light_only_stage);
-	tcase_add_test(tcase, check_Cm_AddStage_RemoveStage);
+	tcase_add_test(tcase, check_Material_Load_light);
+	tcase_add_test(tcase, check_Material_Save_light);
+	tcase_add_test(tcase, check_Material_Load_envmap);
+	tcase_add_test(tcase, check_Material_Load_pulse_drift_ignored);
+	tcase_add_test(tcase, check_Material_ResolveStageFlags);
+	tcase_add_test(tcase, check_Material_Load_light_only_stage);
+	tcase_add_test(tcase, check_Material_AddStage_RemoveStage);
 
-	Suite *suite = suite_create("check_cm_material");
+	Suite *suite = suite_create("check_material");
 	suite_add_tcase(suite, tcase);
 
 	int32_t failed = Test_Run(suite);

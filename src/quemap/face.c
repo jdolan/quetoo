@@ -42,7 +42,7 @@ Face *AllocFace(void) {
 void FreeFace(Face *f) {
 
   if (f->w) {
-    Cm_FreeWinding(f->w);
+    Winding_Free(f->w);
   }
 
   Mem_Free(f);
@@ -64,8 +64,8 @@ Face *MergeFaces(Face *a, Face *b) {
     return NULL;
   }
 
-  const Plane *plane = &planes[a->plane];
-  CmWinding *w = Cm_MergeWindings(a->w, b->w, plane->normal);
+  const MapPlane *plane = &planes[a->plane];
+  Winding *w = Winding_Merge(a->w, b->w, plane->normal);
   if (!w) {
     return NULL;
   }
@@ -78,8 +78,8 @@ Face *MergeFaces(Face *a, Face *b) {
   a->merged = merged;
   b->merged = merged;
 
-  Cm_FreeWinding(a->w);
-  Cm_FreeWinding(b->w);
+  Winding_Free(a->w);
+  Winding_Free(b->w);
 
   a->w = NULL;
   b->w = NULL;
@@ -118,8 +118,8 @@ static bool VertexGridEqualFunc(const ident a_, const ident b_) {
 /**
  * @brief Emits a vertex array for the given face.
  */
-static int32_t EmitFaceVertexes(const Face *face, const CmWinding *w) {
-  const BrushSide *brushSide = face->brushSide;
+static int32_t EmitFaceVertexes(const Face *face, const Winding *w) {
+  const MapBrushSide *brushSide = face->brushSide;
 
   const Vec3 sdir = brushSide->axis[0].xyz;
   const Vec3 tdir = brushSide->axis[1].xyz;
@@ -179,7 +179,7 @@ BspFace *EmitFace(const Face *face) {
   assert(face->brushSide->material >= 0);
   assert(face->brushSide->out);
 
-  CmWinding *w = Cm_AllocWinding(face->w->numPoints);
+  Winding *w = Winding_Alloc(face->w->numPoints);
 
   for (int32_t i = 0; i < face->w->numPoints; i++) {
     const Vec3 p = face->w->points[i];
@@ -195,22 +195,22 @@ BspFace *EmitFace(const Face *face) {
   }
 
   if (w->numPoints < 3) {
-    const Material *mat = &materials[face->brushSide->material];
-    Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->cm->name, vtos(Cm_WindingCenter(face->w)));
-    Cm_FreeWinding(w);
+    const MapMaterial *mat = &materials[face->brushSide->material];
+    Com_Verbose("Face %s @ %s is narrower than ON_EPSILON\n", mat->def->name, vtos(Winding_Center(face->w)));
+    Winding_Free(w);
     return NULL;
   }
 
   int32_t elements[(w->numPoints - 2) * 3];
-  const int32_t numElements = Cm_ElementsForWinding(w, elements);
+  const int32_t numElements = Winding_Elements(w, elements);
 
   if (numElements != (int32_t) lengthof(elements)) {
-    const Material *mat = &materials[face->brushSide->material];
-    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(Cm_WindingCenter(w)));
+    const MapMaterial *mat = &materials[face->brushSide->material];
+    Com_Warn("Face %s @ %s has degenerate winding\n", mat->def->name, vtos(Winding_Center(w)));
   }
 
   if (numElements == 0) {
-    Cm_FreeWinding(w);
+    Winding_Free(w);
     return NULL;
   }
 
@@ -230,7 +230,7 @@ BspFace *EmitFace(const Face *face) {
   out->firstVertex = bspFile.numVertexes;
   out->numVertexes = EmitFaceVertexes(face, w);
 
-  Cm_FreeWinding(w);
+  Winding_Free(w);
 
   bspFile.numFaces++;
 
@@ -296,7 +296,7 @@ static void BuildPhongMaps(const BspModel *mod) {
   }
 
   phongBrushSideWindings = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
-  const BrushSide *mapSide = brushSides;
+  const MapBrushSide *mapSide = brushSides;
   for (int32_t j = 0; j < numBrushSides; j++, mapSide++) {
     if (mapSide->out && mapSide->winding) {
       $(phongBrushSideWindings, set, (void *) mapSide->out, mapSide->winding);
@@ -435,12 +435,12 @@ static void PhongVertex(const BspFace *face, BspVertex *v, float phongCosine) {
        * are more reliable.
        */
 
-      CmWinding *w = $(phongBrushSideWindings, get, (ident) s);
+      Winding *w = $(phongBrushSideWindings, get, (ident) s);
       if (!w) {
         continue;
       }
 
-      v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), p->normal);
+      v->normal = Vec3_Fmaf(v->normal, Winding_Area(w), p->normal);
     }
 
     if (Vec3_LengthSquared(v->normal)) {
@@ -488,7 +488,7 @@ static void PhongFace(int32_t modelFaceNum) {
 
   // FIXME: There is a corner case here (get it?) where multiple colinear vertexes on a Phong
   // FIXME: shaded face will receive bad normals. A complete solution here would be to copy what
-  // FIXME: Cm_ElementsForWinding does, and actually flag the corners of the winding, and then
+  // FIXME: Winding_Elements does, and actually flag the corners of the winding, and then
   // FIXME: linear interpolate all non-corner vertex normals in this loop between their two
   // FIXME: bounding corners.
 
@@ -527,7 +527,7 @@ void PhongShading(const BspModel *mod) {
 
   phongModel = mod;
 
-  const Entity *entity = &entities[mod->entity];
+  const MapEntity *entity = &entities[mod->entity];
   const float phongAngle = atof(ValueForKey(entity, "phong", "60"));
 
   phongCosine = cosf(Radians(phongAngle));
@@ -561,11 +561,11 @@ static void TangentVectors_(BspModel *model) {
     numElements += face->numElements;
   }
 
-  CmVertex *cm = Mem_Malloc(sizeof(CmVertex) * numVertexes);
+  WindingVertex *windingVertexes = Mem_Malloc(sizeof(WindingVertex) * numVertexes);
 
   BspVertex *v = vertexes;
   for (int32_t i = 0; i < numVertexes; i++, v++) {
-    cm[i] = (CmVertex) {
+    windingVertexes[i] = (WindingVertex) {
       .position = &v->position,
       .normal = &v->normal,
       .tangent = &v->tangent,
@@ -574,14 +574,14 @@ static void TangentVectors_(BspModel *model) {
     };
   }
 
-  Cm_Tangents(cm, baseVertex, numVertexes, elements, numElements);
+  Winding_Tangents(windingVertexes, baseVertex, numVertexes, elements, numElements);
 
   int32_t numBadVertexes = 0;
 
   v = vertexes;
   for (int32_t i = 0; i < numVertexes; i++, v++) {
 
-    if (cm[i].numTris == 0) {
+    if (windingVertexes[i].numTris == 0) {
       continue;
     }
 
@@ -593,7 +593,7 @@ static void TangentVectors_(BspModel *model) {
 
   Com_Debug(DEBUG_ALL, "%d bad vertexes\n", numBadVertexes);
 
-  Mem_Free(cm);
+  Mem_Free(windingVertexes);
 }
 
 /**

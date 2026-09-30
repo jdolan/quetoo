@@ -4,7 +4,6 @@
  * @brief Metadata for BSP lumps
  */
 typedef struct {
-
   /**
    * @brief Offset into `BspFile` to the lump element count.
    */
@@ -27,27 +26,26 @@ typedef struct {
 } BspLumpMeta;
 
 #if !defined(BSP_SIZEOF)
-#define BSP_SIZEOF(T, F) \
-sizeof(*((T *) 0)->F)
+#define BSP_SIZEOF(T, F) sizeof(*((T *) 0)->F)
 #endif
 
 #define BSP_LUMP_NUM_STRUCT(c, n, m) { \
-.countOffset = offsetof(BspFile, c), \
-.dataOffset = offsetof(BspFile, n), \
-.typeSize = BSP_SIZEOF(BspFile, n), \
-.maxCount = m \
+  .countOffset = offsetof(BspFile, c), \
+  .dataOffset = offsetof(BspFile, n), \
+  .typeSize = BSP_SIZEOF(BspFile, n), \
+  .maxCount = m \
 }
 
 #define BSP_LUMP_SIZE_STRUCT(c, n, m) { \
-.countOffset = offsetof(BspFile, c), \
-.dataOffset = offsetof(BspFile, n),\
-.typeSize = sizeof(byte), \
-.maxCount = m \
+  .countOffset = offsetof(BspFile, c), \
+  .dataOffset = offsetof(BspFile, n),\
+  .typeSize = sizeof(byte), \
+  .maxCount = m \
 }
 
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
 
-static BspLumpMeta bspLumpMeta[BSP_LUMP_LAST] = {
+static BspLumpMeta lumpMeta[BSP_LUMP_LAST] = {
   BSP_LUMP_SIZE_STRUCT(entityStringSize, entityString, MAX_BSP_ENTITIES_SIZE),
   BSP_LUMP_NUM_STRUCT(numMaterials, materials, MAX_BSP_MATERIALS),
   BSP_LUMP_NUM_STRUCT(numPlanes, planes, MAX_BSP_PLANES),
@@ -74,7 +72,7 @@ static BspLumpMeta bspLumpMeta[BSP_LUMP_LAST] = {
 /**
  * @brief Table of swap functions.
  */
-typedef void (*Bsp_SwapFunction) (void *lump, const int32_t num);
+typedef void (*BspSwapLump)(void *lump, const int32_t num);
 
 /**
  * @brief Swap function.
@@ -451,7 +449,7 @@ static void Bsp_SwapBlockVoxels(void *lump, const int32_t num) {
  */
 static void Bsp_SwapLump(const BspLumpId lumpId, void *lump, int32_t count) {
 
-  const Bsp_SwapFunction swap[BSP_LUMP_LAST] = {
+  const BspSwapLump swap[BSP_LUMP_LAST] = {
     NULL,
     NULL,
     Bsp_SwapPlanes,
@@ -544,7 +542,7 @@ static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lumpId, int32
     return false;
   }
 
-  BspLumpMeta *meta = &bspLumpMeta[lumpId];
+  BspLumpMeta *meta = &lumpMeta[lumpId];
 
   if (!meta->typeSize) {
 
@@ -643,7 +641,7 @@ bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lumpId) {
   BspLump lump;
   Bsp_GetLumpPosition(file, lumpId, &lump);
 
-  const size_t lumpTypeSize = bspLumpMeta[lumpId].typeSize;
+  const size_t lumpTypeSize = lumpMeta[lumpId].typeSize;
 
   if (lump.fileLen < 0 || lump.fileOfs < 0) {
     Com_Error(ERROR_DROP, "Lump (%i) has invalid offset (%i) or size (%i)\n",
@@ -657,9 +655,9 @@ bool Bsp_LoadLump(const BspHeader *file, BspFile *bsp, const BspLumpId lumpId) {
 
   *lumpCount = lump.fileLen / lumpTypeSize;
 
-  if (*lumpCount >= (int32_t) bspLumpMeta[lumpId].maxCount) {
+  if (*lumpCount >= (int32_t) lumpMeta[lumpId].maxCount) {
     Com_Error(ERROR_DROP, "Lump (%i) count (%i) exceeds max (%" PRIuPTR ")\n", lumpId, *lumpCount,
-              bspLumpMeta[lumpId].maxCount);
+              lumpMeta[lumpId].maxCount);
   }
 
   if (*lumpCount) {
@@ -726,7 +724,7 @@ void Bsp_AllocLump(BspFile *bsp, const BspLumpId lumpId, const size_t count) {
   }
 
   // calculate size
-  const size_t lumpTypeSize = bspLumpMeta[lumpId].typeSize;
+  const size_t lumpTypeSize = lumpMeta[lumpId].typeSize;
 
   const size_t oldCount = (size_t) *lumpCount;
 
@@ -769,7 +767,7 @@ void Bsp_Write(File *file, const BspFile *bsp) {
     int32_t *lumpCount;
     void **lumpData;
 
-    const size_t size = bspLumpMeta[lump].typeSize;
+    const size_t size = lumpMeta[lump].typeSize;
 
     Bsp_GetLumpOffsets(bsp, lump, &lumpCount, &lumpData);
 
@@ -804,4 +802,74 @@ void Bsp_Write(File *file, const BspFile *bsp) {
 
   // return to where we were
   Fs_Seek(file, currentPosition);
+}
+
+/**
+ * @brief Creates a winding for the given face, removing any collinear points.
+ */
+Winding *Cm_WindingForFace(const BspFile *file, const BspFace *face) {
+
+  Winding *w = Winding_Alloc(face->numVertexes);
+  const int32_t v = face->firstVertex;
+
+  for (int32_t i = 0; i < face->numVertexes; i++) {
+
+    const BspVertex *v0 = &file->vertexes[(v + (i + 0) % face->numVertexes)];
+    const BspVertex *v1 = &file->vertexes[(v + (i + 1) % face->numVertexes)];
+    const BspVertex *v2 = &file->vertexes[(v + (i + 2) % face->numVertexes)];
+
+    w->points[w->numPoints] = v0->position;
+    w->numPoints++;
+
+    Vec3 a, b;
+    a = Vec3_Subtract(v1->position, v0->position);
+    b = Vec3_Subtract(v2->position, v1->position);
+
+    a = Vec3_Normalize(a);
+    b = Vec3_Normalize(b);
+
+    if (Vec3_Dot(a, b) > 1.0f - COLINEAR_EPSILON) { // skip v1
+      i++;
+    }
+  }
+
+  return w;
+}
+
+/**
+ * @brief Creates a winding for the given brush side, clipped to its brush.
+ */
+Winding *Cm_WindingForBrushSide(const BspFile *file, const BspBrushSide *brushSide) {
+
+  const BspPlane *plane = file->planes + brushSide->plane;
+  Winding *winding = Winding_ForPlane(plane->normal, plane->dist);
+
+  const int32_t side = (int32_t) (brushSide - file->brushSides);
+
+  const BspBrush *brush = file->brushes;
+  for (int32_t i = 0; i < file->numBrushes; i++, brush++) {
+
+    if (side >= brush->firstBrushSide
+      && side < brush->firstBrushSide + brush->numBrushSides) {
+      break;
+    }
+  }
+
+  const BspBrushSide *s = file->brushSides + brush->firstBrushSide;
+  for (int32_t i = 0; i < brush->numBrushSides; i++, s++) {
+    if (s == brushSide) {
+      continue;
+    }
+    if (s->surface & SURF_BEVEL) {
+      continue;
+    }
+    const BspPlane *p = &file->planes[s->plane ^ 1];
+    Winding_Clip(&winding, p->normal, p->dist, SIDE_EPSILON);
+
+    if (winding == NULL) {
+      break;
+    }
+  }
+
+  return winding;
 }

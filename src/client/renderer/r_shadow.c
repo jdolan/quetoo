@@ -17,7 +17,7 @@
 
 #include "r_local.h"
 
-RenderShadowAtlas rShadowAtlas;
+RenderShadowAtlas renderShadowAtlas;
 
 /**
  * @brief Per-face shadow uniform locals, pushed to vertex uniform slot 1.
@@ -201,7 +201,7 @@ void R_UpdateLightEntities(const RenderView *view, RenderLight *l, int32_t index
   l->hash = hash ?: 1;
 
   if (l->hash == module.hashes[index]) {
-    rStats->lightsCached++;
+    renderStats->lightsCached++;
   }
 }
 
@@ -243,7 +243,7 @@ static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const Ren
       .sampler = module.repeatSampler->sampler,
     }, 1);
 
-    const float alphaTestValue = draw->material->cm->alphaTest * r_alphaTest->value;
+    const float alphaTestValue = draw->material->def->alphaTest * r_alphaTest->value;
     $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alphaTestValue, sizeof(alphaTestValue));
   }
 
@@ -310,7 +310,7 @@ static void R_DrawBspEntityShadows(const RenderLight *l, const RenderEntity *e, 
     return;
   }
 
-  $(rContext.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const RenderShadowLocals) {
+  $(renderContext.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const RenderShadowLocals) {
     .model = e->matrix,
     .lightView = module.lightView[module.face],
     .lightOrigin = Vec3_ToVec4(l->origin, l->radius),
@@ -333,7 +333,7 @@ static void R_DrawBspEntityShadows(const RenderLight *l, const RenderEntity *e, 
  */
 static void R_DrawBspEntitiesShadows(const RenderView *view, const RenderLight *l, RenderPass *pass) {
 
-  const Uint32 ts = rShadowAtlas.tileSize;
+  const Uint32 ts = renderShadowAtlas.tileSize;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = l->tile.x,
@@ -390,13 +390,13 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
       continue;
     }
 
-    if (material->cm->surface & SURF_MASK_BLEND) {
+    if (material->def->surface & SURF_MASK_BLEND) {
       continue;
     }
 
     GraphicsPipeline *pipeline = module.meshOpaquePipeline;
 
-    if (material->cm->surface & SURF_ALPHA_TEST) {
+    if (material->def->surface & SURF_ALPHA_TEST) {
       pipeline = module.meshAlphaTestPipeline;
 
       $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
@@ -404,7 +404,7 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
         .sampler = module.repeatSampler->sampler,
       }, 1);
 
-      const float alphaTestValue = material->cm->alphaTest * r_alphaTest->value;
+      const float alphaTestValue = material->def->alphaTest * r_alphaTest->value;
       $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alphaTestValue, sizeof(alphaTestValue));
     }
 
@@ -430,7 +430,7 @@ static void R_DrawMeshEntityShadow(const RenderView *view, const RenderLight *l,
  */
 static void R_DrawMeshEntitiesShadows(const RenderView *view, const RenderLight *l, RenderPass *pass) {
 
-  const Uint32 ts = rShadowAtlas.tileSize;
+  const Uint32 ts = renderShadowAtlas.tileSize;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = l->tile.x,
@@ -459,23 +459,23 @@ static void R_DrawMeshEntitiesShadows(const RenderView *view, const RenderLight 
  */
 void R_DrawShadows(const RenderView *view) {
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
-  const RenderBspModel *bsp = rModels.world ? rModels.world->bsp : NULL;
+  const RenderBspModel *bsp = renderModels.world ? renderModels.world->bsp : NULL;
 
   for (int32_t face = 0; face < 6; face++) {
 
     module.face = face;
 
     const SDL_GPUDepthStencilTargetInfo depth = {
-      .texture = rShadowAtlas.textures[face]->texture,
+      .texture = renderShadowAtlas.textures[face]->texture,
       .load_op = SDL_GPU_LOADOP_LOAD,
       .store_op = SDL_GPU_STOREOP_STORE,
     };
 
     RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-    const Uint32 ts = rShadowAtlas.tileSize;
+    const Uint32 ts = renderShadowAtlas.tileSize;
 
     $(pass, bindPipeline, module.clearPipeline);
 
@@ -513,7 +513,7 @@ void R_DrawShadows(const RenderView *view) {
       }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
     }
 
-    $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+    $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
     l = view->lights;
     for (int32_t i = 0; i < view->numLights; i++, l++) {
@@ -563,14 +563,14 @@ void R_InitShadows(void) {
 
   memset(&module, 0, sizeof(module));
 
-  memset(&rShadowAtlas, 0, sizeof(rShadowAtlas));
+  memset(&renderShadowAtlas, 0, sizeof(renderShadowAtlas));
 
-  rShadowAtlas.tileSize = Maxi(r_shadowTileSize->integer, 128);
+  renderShadowAtlas.tileSize = Maxi(r_shadowTileSize->integer, 128);
 
-  const Uint32 atlasSize = SHADOW_ATLAS_LIGHTS_PER_ROW * rShadowAtlas.tileSize;
+  const Uint32 atlasSize = SHADOW_ATLAS_LIGHTS_PER_ROW * renderShadowAtlas.tileSize;
 
   for (int32_t face = 0; face < 6; face++) {
-    rShadowAtlas.textures[face] = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    renderShadowAtlas.textures[face] = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D,
       .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
       .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -581,17 +581,17 @@ void R_InitShadows(void) {
       .sample_count = SDL_GPU_SAMPLECOUNT_1,
     }, NULL);
 
-    $(rShadowAtlas.textures[face], setName, va("shadow atlas %d", face));
+    $(renderShadowAtlas.textures[face], setName, va("shadow atlas %d", face));
   }
 
-  rShadowAtlas.sampler = $(rContext.device, createSamplerShadowCompare);
+  renderShadowAtlas.sampler = $(renderContext.device, createSamplerShadowCompare);
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_uniform_buffers = 1,
   });
@@ -630,7 +630,7 @@ void R_InitShadows(void) {
     },
   };
 
-  module.bspOpaquePipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.bspOpaquePipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -645,17 +645,17 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 2,
   };
 
-  module.meshOpaquePipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.meshOpaquePipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  Shader *alphaTestVertexShader = $(rContext.device, loadShader, "shaders/shadow_vs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+  Shader *alphaTestVertexShader = $(renderContext.device, loadShader, "shaders/shadow_vs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2,
   });
 
-  Shader *alphaTestFragmentShader = $(rContext.device, loadShader, "shaders/shadow_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+  Shader *alphaTestFragmentShader = $(renderContext.device, loadShader, "shaders/shadow_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 1,
     .num_uniform_buffers = 2,
@@ -677,7 +677,7 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 3,
   };
 
-  module.meshAlphaTestPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.meshAlphaTestPipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -693,12 +693,12 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 3,
   };
 
-  module.bspAlphaTestPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.bspAlphaTestPipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(alphaTestVertexShader);
   release(alphaTestFragmentShader);
 
-  module.repeatSampler = $(rContext.device, createSamplerLinearRepeat);
+  module.repeatSampler = $(renderContext.device, createSamplerLinearRepeat);
 
   SDL_GPUGraphicsPipelineCreateInfo clearInfo = {
     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
@@ -719,7 +719,7 @@ void R_InitShadows(void) {
     },
   };
 
-  module.clearPipeline = $(rContext.device, loadGraphicsPipeline,
+  module.clearPipeline = $(renderContext.device, loadGraphicsPipeline,
     "shaders/shadow_clear_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     },
@@ -747,9 +747,9 @@ void R_ShutdownShadows(void) {
   module.meshAlphaTestPipeline = release(module.meshAlphaTestPipeline);
   module.clearPipeline = release(module.clearPipeline);
   module.repeatSampler = release(module.repeatSampler);
-  rShadowAtlas.sampler = release(rShadowAtlas.sampler);
+  renderShadowAtlas.sampler = release(renderShadowAtlas.sampler);
 
   for (int32_t face = 0; face < 6; face++) {
-    rShadowAtlas.textures[face] = release(rShadowAtlas.textures[face]);
+    renderShadowAtlas.textures[face] = release(renderShadowAtlas.textures[face]);
   }
 }

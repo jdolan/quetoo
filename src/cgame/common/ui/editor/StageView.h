@@ -41,7 +41,6 @@ typedef struct StageViewInterface StageViewInterface;
  * @brief The StageView delegate.
  */
 typedef struct {
-
   /**
    * @brief The delegate self-reference.
    */
@@ -84,13 +83,13 @@ struct StageView {
   /**
    * @brief The stage.
    */
-  CmStage *stage;
+  MaterialStage *stage;
 
   /**
    * @brief The scroll and scale effects that stay checked while both of their axes are zero. The
    * material cannot hold a zero axis, so it does not save them, but the editor keeps them open.
    */
-  CmStageFlags openAxes;
+  MaterialStageFlags openAxes;
 
   /**
    * @brief The button that removes the stage.
@@ -124,7 +123,7 @@ struct StageViewInterface {
   BoxInterface boxInterface;
 
   /**
-   * @fn StageView *StageView::initWithStage(StageView *self, RenderMaterial *material, CmStage *stage)
+   * @fn StageView *StageView::initWithStage(StageView *self, RenderMaterial *material, MaterialStage *stage)
    * @brief Initializes this StageView with the given stage.
    * @param self The StageView.
    * @param material The material that owns the stage.
@@ -132,7 +131,7 @@ struct StageViewInterface {
    * @return The initialized StageView, or `NULL` on error.
    * @memberof StageView
    */
-  StageView *(*initWithStage)(StageView *self, RenderMaterial *material, CmStage *stage);
+  StageView *(*initWithStage)(StageView *self, RenderMaterial *material, MaterialStage *stage);
 
   /**
    * @fn void StageView::setCollapsed(StageView *self, bool collapsed)

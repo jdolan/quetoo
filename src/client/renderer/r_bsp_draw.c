@@ -75,7 +75,6 @@ typedef struct {
  * @brief BSP draw pipeline state and cached material-stage pipelines.
  */
 static struct {
-
   /**
    * @brief Opaque BSP pipeline.
    */
@@ -201,7 +200,7 @@ static inline void R_BindBspDrawElements(const RenderView *view,
 /**
  * @brief Returns the cached BSP material-stage pipeline for the given blend state.
  */
-static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend dest, bool depthWrite) {
+static GraphicsPipeline *R_DrawBspMaterialStagePipeline(MaterialBlend src, MaterialBlend dest, bool depthWrite) {
 
   const RenderStagePipeline *p = module.stagePipelines;
   for (int32_t i = 0; i < module.numStagePipelines; i++, p++) {
@@ -214,14 +213,14 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend des
     Com_Error(ERROR_DROP, "MAX_STAGE_PIPELINES\n");
   }
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = BSP_NUM_VERTEX_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -232,7 +231,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend des
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -284,7 +283,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(CmBlend src, CmBlend des
     .has_depth_stencil_target = true,
   };
 
-  GraphicsPipeline *pipeline = $(rContext.device, createGraphicsPipeline, &info);
+  GraphicsPipeline *pipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -332,7 +331,7 @@ static void R_DrawBspDrawElementsMaterialStage(const RenderView *view,
     return;
   }
 
-  GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->cm->blend.src, stage->cm->blend.dest, depthWrite);
+  GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->def->blend.src, stage->def->blend.dest, depthWrite);
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
@@ -345,7 +344,7 @@ static void R_DrawBspDrawElementsMaterialStage(const RenderView *view,
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
 
-  rStats->bspTriangles += draw->numElements / 3;
+  renderStats->bspTriangles += draw->numElements / 3;
 }
 
 /**
@@ -358,7 +357,7 @@ static void R_DrawBspDrawElementsMaterialStages(const RenderView *view,
                                                 RenderPass *pass) {
 
   const RenderMaterial *material = draw->material;
-  if (!(material->cm->stageFlags & STAGE_DRAW)) {
+  if (!(material->def->stageFlags & STAGE_DRAW)) {
     return;
   }
 
@@ -376,7 +375,7 @@ static void R_DrawBspDrawElementsMaterialStages(const RenderView *view,
 
   for (const RenderStage *stage = material->stages; stage; stage = stage->next) {
 
-    if (!(stage->cm->flags & STAGE_DRAW)) {
+    if (!(stage->def->flags & STAGE_DRAW)) {
       continue;
     }
 
@@ -443,10 +442,10 @@ static void R_DrawOpaqueBspBlock(const RenderView *view, const RenderBspBlock *b
 
     if (!(draw->surface & SURF_MATERIAL)) {
       $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
-      rStats->bspTriangles += draw->numElements / 3;
+      renderStats->bspTriangles += draw->numElements / 3;
     }
 
-    rStats->bspDrawElements++;
+    renderStats->bspDrawElements++;
   }
 }
 
@@ -468,10 +467,10 @@ static void R_DrawAlphaTestBspBlock(const RenderView *view, const RenderBspBlock
 
     if (!(draw->surface & SURF_MATERIAL)) {
       $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
-      rStats->bspTriangles += draw->numElements / 3;
+      renderStats->bspTriangles += draw->numElements / 3;
     }
 
-    rStats->bspDrawElements++;
+    renderStats->bspDrawElements++;
   }
 }
 
@@ -497,11 +496,11 @@ static void R_DrawOpaqueBspEntity(const RenderView *view, const RenderEntity *en
     if (IS_WORLDSPAWN(entity->model)) {
 
       if (R_CullBspBlock(view, block)) {
-        rStats->blocksOccluded++;
+        renderStats->blocksOccluded++;
         continue;
       }
 
-      rStats->blocksVisible++;
+      renderStats->blocksVisible++;
 
       memcpy(&locals.activeDynamicLights, &block->activeDynamicLights, sizeof(locals.activeDynamicLights));
       R_PushBspUniformLocals(&locals, pass);
@@ -510,7 +509,7 @@ static void R_DrawOpaqueBspEntity(const RenderView *view, const RenderEntity *en
     R_DrawOpaqueBspBlock(view, block, pass);
   }
 
-  rStats->bspInlineModels++;
+  renderStats->bspInlineModels++;
 }
 
 /**
@@ -552,11 +551,11 @@ static void R_DrawAlphaTestBspEntity(const RenderView *view, const RenderEntity 
  */
 void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
 
-  assert(rModels.world);
+  assert(renderModels.world);
 
   R_DrawSky(view, pass);
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -565,7 +564,7 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   module.material = NULL;
 
@@ -580,12 +579,12 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rShadowAtlas.textures[0]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[1]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[2]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[3]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[4]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[5]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[0]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[1]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[2]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[3]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[4]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[5]->texture, .sampler = renderShadowAtlas.sampler->sampler },
   }, 6);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
@@ -595,8 +594,8 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
   }, 2);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
@@ -610,10 +609,10 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    rLights.bspBuffer->buffer,
-    rLights.dynamicBuffer->buffer,
+    renderLights.bspBuffer->buffer,
+    renderLights.dynamicBuffer->buffer,
     bsp->voxels.lightDataBuffer->buffer,
-    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : renderLights.voxelFallbackBuffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
@@ -630,7 +629,7 @@ void R_DrawOpaqueBspEntities(const RenderView *view, RenderPass *pass) {
     }
 
     if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
-      rStats->entitiesOccluded++;
+      renderStats->entitiesOccluded++;
       continue;
     }
 
@@ -700,8 +699,8 @@ static void R_DrawBlendBspBlock(const RenderView *view, const RenderEntity *enti
     const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
     $(pass, drawIndexedPrimitives, draw->numElements, 1, firstIndex, 0, 0);
 
-    rStats->bspTriangles += draw->numElements / 3;
-    rStats->bspDrawElements++;
+    renderStats->bspTriangles += draw->numElements / 3;
+    renderStats->bspDrawElements++;
 
     if (r_drawMaterialStages->integer) {
       R_DrawBspDrawElementsMaterialStages(view, entity, draw, false, pass);
@@ -753,9 +752,9 @@ static void R_DrawBlendBspEntity(const RenderView *view, const RenderEntity *ent
  */
 void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
 
-  assert(rModels.world);
+  assert(renderModels.world);
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -765,7 +764,7 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   module.material = NULL;
 
@@ -780,12 +779,12 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rShadowAtlas.textures[0]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[1]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[2]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[3]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[4]->texture, .sampler = rShadowAtlas.sampler->sampler },
-    { .texture = rShadowAtlas.textures[5]->texture, .sampler = rShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[0]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[1]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[2]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[3]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[4]->texture, .sampler = renderShadowAtlas.sampler->sampler },
+    { .texture = renderShadowAtlas.textures[5]->texture, .sampler = renderShadowAtlas.sampler->sampler },
   }, 6);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
@@ -795,8 +794,8 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
-    { .texture = rContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
+    { .texture = renderContext.nullTexture->texture, .sampler = module.repeatSampler->sampler },
   }, 2);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
@@ -810,10 +809,10 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    rLights.bspBuffer->buffer,
-    rLights.dynamicBuffer->buffer,
+    renderLights.bspBuffer->buffer,
+    renderLights.dynamicBuffer->buffer,
     bsp->voxels.lightDataBuffer->buffer,
-    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : renderLights.voxelFallbackBuffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
@@ -842,14 +841,14 @@ void R_DrawBlendBspEntities(const RenderView *view, RenderPass *pass) {
  */
 void R_InitBspPipeline(void) {
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = BSP_NUM_VERTEX_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -857,7 +856,7 @@ void R_InitBspPipeline(void) {
   });
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -925,9 +924,9 @@ void R_InitBspPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  module.opaquePipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.opaquePipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
-  Shader *alphaTestFragmentShader = $(rContext.device, loadShader, "shaders/bsp_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+  Shader *alphaTestFragmentShader = $(renderContext.device, loadShader, "shaders/bsp_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,
     .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
@@ -935,7 +934,7 @@ void R_InitBspPipeline(void) {
   });
 
   info.fragment_shader = alphaTestFragmentShader->shader;
-  module.alphaTestPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.alphaTestPipeline = $(renderContext.device, createGraphicsPipeline, &info);
   release(alphaTestFragmentShader);
 
   info.fragment_shader = fragmentShader->shader;
@@ -944,13 +943,13 @@ void R_InitBspPipeline(void) {
     .enable_color_write_mask = true, .color_write_mask = 0,
   };
   info.depth_stencil_state.enable_depth_write = false;
-  module.blendPipeline = $(rContext.device, createGraphicsPipeline, &info);
+  module.blendPipeline = $(renderContext.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  module.repeatSampler = $(rContext.device, createSamplerLinearRepeat);
-  module.clampSampler = $(rContext.device, createSamplerLinearClamp);
+  module.repeatSampler = $(renderContext.device, createSamplerLinearRepeat);
+  module.clampSampler = $(renderContext.device, createSamplerLinearClamp);
 
   #define WARP_IMAGE_SIZE 16
   byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
@@ -963,7 +962,7 @@ void R_InitBspPipeline(void) {
     }
   }
 
-  module.warpTexture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  module.warpTexture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_2D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .width = WARP_IMAGE_SIZE,
@@ -974,7 +973,7 @@ void R_InitBspPipeline(void) {
   }, data);
   #undef WARP_IMAGE_SIZE
 
-  CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
+  CommandBuffer *commands = $(renderContext.device, acquireCommandBuffer);
   $(commands, generateMipmaps, module.warpTexture->texture);
   $(commands, submit);
   release(commands);

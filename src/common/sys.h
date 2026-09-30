@@ -53,4 +53,4 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount);
 void Sys_Raise(const char *msg);
 void Sys_Signal(int32_t s);
 void Sys_InitCrashSignals(void);
-extern volatile sig_atomic_t sys_signal_received;
+extern volatile sig_atomic_t sysSignalReceived;

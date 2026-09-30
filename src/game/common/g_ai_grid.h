@@ -23,40 +23,40 @@
 
 #include "g_local.h"
 
-typedef bool (*GridKdTreeFilter)(size_t nodenum, void *data, float *distance);
+typedef bool (*GameAiKdTreeFilter)(size_t nodenum, void *data, float *distance);
 
-struct GHeapEntry {
+struct GameAiHeapEntry {
   float cost;
   void *data;
 };
 
-struct GHeap {
+struct GameAiHeap {
   size_t count;
   size_t capacity;
-  struct GHeapEntry entries[];
+  struct GameAiHeapEntry entries[];
 };
 
-struct KdTreeNode {
+struct GameAiKdTreeNode {
   size_t nodenum;
-  struct KdTreeNode *left;
-  struct KdTreeNode *right;
+  struct GameAiKdTreeNode *left;
+  struct GameAiKdTreeNode *right;
 };
 
-struct GridKdTree {
+struct GameAiKdTree {
   size_t nodecount;
   size_t capacity;
   Vec3 *srcdata;
-  struct KdTreeNode *root;
-  struct KdTreeNode nodes[];
+  struct GameAiKdTreeNode *root;
+  struct GameAiKdTreeNode nodes[];
 };
 
-void gridkdtree_free(struct GridKdTree **tree);
-struct GridKdTree *gridkdtree_create(Vec3 *srcdata, size_t count);
-size_t gridkdtree_query_filter(struct GridKdTree *tree, const Vec3 querypos, float maxDistance,
-                               GridKdTreeFilter filter, void *data);
+void G_Ai_KdTreeFree(struct GameAiKdTree **tree);
+struct GameAiKdTree *G_Ai_KdTreeCreate(Vec3 *srcdata, size_t count);
+size_t G_Ai_KdTreeQuery(struct GameAiKdTree *tree, const Vec3 querypos, float maxDistance,
+                        GameAiKdTreeFilter filter, void *data);
 
-struct GHeap *gheap_create(size_t capacity);
-void gheap_free(struct GHeap **heap);
-bool gheap_push(struct GHeap *heap, float cost, void *data);
-void *gheap_pop(struct GHeap *heap);
-void gheap_reset(struct GHeap *heap);
+struct GameAiHeap *G_Ai_HeapCreate(size_t capacity);
+void G_Ai_HeapFree(struct GameAiHeap **heap);
+bool G_Ai_HeapPush(struct GameAiHeap *heap, float cost, void *data);
+void *G_Ai_HeapPop(struct GameAiHeap *heap);
+void G_Ai_HeapReset(struct GameAiHeap *heap);

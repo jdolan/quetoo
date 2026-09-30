@@ -48,7 +48,7 @@ static void Cl_DownloadComplete(int32_t status, Data *data, void *userData) {
 	SDL_SetAtomicInt(&module.complete, 1);
 }
 
-static char *svCmdNames[32] = {
+static char *serverCmdNames[32] = {
   "SV_CMD_BAD",
   "SV_CMD_BASELINE",
   "SV_CMD_CBUF_TEXT",
@@ -128,7 +128,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   // write to a temp file, then rename
   char tempname[MAX_OS_PATH];
   StripExtension(filename, tempname);
-  q_strlcat(tempname, ".tmp", sizeof(tempname));
+  Str_Append(tempname, ".tmp", sizeof(tempname));
 
   File *file = Fs_OpenWrite(tempname);
   if (!file) {
@@ -147,7 +147,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   if (Fs_Rename(tempname, filename)) {
     Com_Print("Downloaded %s (%zu bytes)\n", filename, downloadedLength);
 
-    if (q_strstr(filename, ".pk3")) {
+    if (Str_Find(filename, ".pk3")) {
       Fs_AddToSearchPath(filename);
     }
   } else {
@@ -190,7 +190,7 @@ void Cl_Precache_f(void) {
  * @brief Parses the baseline entity state for the given entity number.
  */
 static void Cl_ParseBaseline(void) {
-  static EntityState null_state;
+  static EntityState nullState;
 
   const int16_t number = Net_ReadShort(&netMessage);
   const uint16_t bits = Net_ReadShort(&netMessage);
@@ -201,7 +201,7 @@ static void Cl_ParseBaseline(void) {
 
   ClientEntity *ent = &cl.entities[number];
 
-  Net_ReadDeltaEntity(&netMessage, &null_state, &ent->baseline, number, bits);
+  Net_ReadDeltaEntity(&netMessage, &nullState, &ent->baseline, number, bits);
 }
 
 /**
@@ -226,7 +226,7 @@ int32_t Cl_ParseConfigString(void) {
     Com_Error(ERROR_DROP, "Invalid index %i\n", i);
   }
 
-  q_strlcpy(cl.configStrings[i], Net_ReadString(&netMessage), MAX_STRING_CHARS);
+  Str_Copy(cl.configStrings[i], Net_ReadString(&netMessage), MAX_STRING_CHARS);
 
   const char *s = cl.configStrings[i];
 
@@ -234,9 +234,9 @@ int32_t Cl_ParseConfigString(void) {
     if (cls.state == CL_ACTIVE) {
       cl.models[i - CS_MODELS] = R_LoadModel(s);
       if (*s == '*') {
-        cl.cmModels[i - CS_MODELS] = Cm_Model(s);
+        cl.collisionModels[i - CS_MODELS] = Cm_Model(s);
       } else {
-        cl.cmModels[i - CS_MODELS] = NULL;
+        cl.collisionModels[i - CS_MODELS] = NULL;
       }
     }
   } else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
@@ -353,7 +353,7 @@ static void Cl_ParseServerData(void) {
   }
 
   char game[MAX_QPATH];
-  q_strlcpy(game, s, sizeof(game));
+  Str_Copy(game, s, sizeof(game));
 
   s = Net_ReadString(&netMessage);
 
@@ -362,7 +362,7 @@ static void Cl_ParseServerData(void) {
   }
 
   char cgame[MAX_QPATH];
-  q_strlcpy(cgame, s, sizeof(cgame));
+  Str_Copy(cgame, s, sizeof(cgame));
 
   // ensure we have the required cgame installed
   if (!Sys_HasLibrary(cgame, "cgame")) {
@@ -376,12 +376,12 @@ static void Cl_ParseServerData(void) {
 
   // only the module we hold can say which one it is, and it says so only once a
   // load has succeeded, so a load that failed is retried rather than remembered
-  if (!cls.cgame || q_strcmp(cls.cgame->name, cgame)) {
+  if (!cls.cgame || Str_Compare(cls.cgame->name, cgame)) {
     Cl_InitCgame();
   }
 
   // ensure the module we loaded is the module the server expects
-  if (q_strcmp(cls.cgame->name, cgame)) {
+  if (Str_Compare(cls.cgame->name, cgame)) {
     Com_Error(ERROR_DROP, "Server requires client game %s, you loaded %s\n", cgame, cls.cgame->name);
   }
 
@@ -422,7 +422,7 @@ static void Cl_ParsePrint(void) {
     }
 
     if (sample) {
-      S_AddSample(&clStage, &(SoundPlaySample) {
+      S_AddSample(&clientStage, &(SoundPlaySample) {
         .sample = S_LoadSample(sample, ASSET_CONTEXT_SOUNDS),
         .flags = S_PLAY_UI
       });
@@ -487,8 +487,8 @@ void Cl_ParseServerMessage(void) {
       break;
     }
 
-    if (cl_drawNetMessages->integer >= 2 && cmd < (int32_t) lengthof(svCmdNames) && svCmdNames[cmd]) {
-      Cl_ShowNet(svCmdNames[cmd]);
+    if (cl_drawNetMessages->integer >= 2 && cmd < (int32_t) lengthof(serverCmdNames) && serverCmdNames[cmd]) {
+      Cl_ShowNet(serverCmdNames[cmd]);
     }
 
     void *data = NULL;
@@ -554,7 +554,7 @@ void Cl_ParseServerMessage(void) {
         if (!cls.cgame->ParseMessage(cmd)) {
           Com_Error(ERROR_DROP, "Illegible server message:\n"
                     " %d: last command was %s\n", cmd,
-                    oldCmd < (int32_t) lengthof(svCmdNames) ? svCmdNames[oldCmd] : "unknown");
+                    oldCmd < (int32_t) lengthof(serverCmdNames) ? serverCmdNames[oldCmd] : "unknown");
         }
         break;
     }

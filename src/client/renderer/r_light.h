@@ -31,7 +31,6 @@ void R_AddLight(RenderView *view, const RenderLight *l);
  * @brief Vec4-aligned light uniform.
  */
 typedef struct {
-
   /**
    * @brief Light origin and radius.
    */
@@ -52,7 +51,6 @@ typedef struct {
  * @brief Static BSP light uniform block.
  */
 typedef struct {
-
   /**
    * @brief Number of BSP lights.
    */
@@ -68,7 +66,6 @@ typedef struct {
  * @brief Per-frame dynamic light uniform block.
  */
 typedef struct {
-
   /**
    * @brief Number of dynamic lights.
    */
@@ -120,7 +117,7 @@ typedef struct {
 /**
  * @brief Per-frame light storage.
  */
-extern RenderLights rLights;
+extern RenderLights renderLights;
 
 void R_ActiveDynamicLights(const RenderView *view, const Box3 bounds, RenderActiveDynamicLights *out);
 void R_UpdateLights(RenderView *view, CopyPass *copyPass);

@@ -23,23 +23,8 @@
 
 #include "shared/shared.h"
 
-#include "cm_material.h"
-
-/**
- * @brief Plane side epsilon. Because plane side tests scrutinize values around
- * and across zero, `FLT_EPSILON` is appropriate and accurate.
- */
-#define SIDE_EPSILON     FLT_EPSILON
-
-/**
- * @brief Colinear points dot product epsilon.
- */
-#define COLINEAR_EPSILON .00001f
-
-/**
- * @brief Point equality epsilon.
- */
-#define ON_EPSILON       .1f
+#include "common/material.h"
+#include "common/winding.h"
 
 /**
  * @brief Vertex equality epsilon.
@@ -55,14 +40,6 @@
  * @brief Trace collision epsilon.
  */
 #define TRACE_EPSILON    .125f
-
-/**
- * @brief Plane side constants used for BSP recursion.
- */
-#define SIDE_FRONT       1
-#define SIDE_BACK        2
-#define SIDE_BOTH        3
-#define SIDE_ON          4
 
 /**
  * @brief Plane type constants for axial plane optimizations.
@@ -81,7 +58,6 @@
  * vector such that all components are >= 0.
  */
 typedef struct {
-
   /**
    * @brief Plane normal vector.
    */
@@ -101,7 +77,7 @@ typedef struct {
    * @brief Sign bit mask of normal components, used for fast plane side tests.
    */
   int32_t signBits;
-} CmBspPlane;
+} CollisionPlane;
 
 /**
  * @brief Returns true if the specified plane is axially aligned.
@@ -113,11 +89,10 @@ typedef struct {
  * They are treated as their own sub-trees and recursed separately.
  */
 typedef struct {
-
   /**
    * @brief The entity definition of this inline model.
    */
-  struct CmEntity *entity;
+  struct Entity *entity;
 
   /**
    * @brief The index of the head node in the BSP file.
@@ -128,7 +103,7 @@ typedef struct {
    * @brief The model bounds.
    */
   Box3 bounds;
-} CmBspModel;
+} CollisionModel;
 
 /**
  * @brief The maximum length of an entity pair key, in characters.
@@ -151,17 +126,17 @@ typedef enum {
     ENTITY_VEC3 = 0x10,
     ENTITY_COLOR = ENTITY_VEC3,
     ENTITY_VEC4 = 0x20,
-} CmEntityParsed;
+} EntityParsed;
 
 /**
  * @brief Entities are, essentially, linked lists of key-value pairs.
  */
-typedef struct CmEntity {
+typedef struct Entity {
 
   /**
    * @brief A bitmask of entity pair parsed types.
    */
-  CmEntityParsed parsed;
+  EntityParsed parsed;
 
   /**
    * @brief The entity pair key.
@@ -225,13 +200,13 @@ typedef struct CmEntity {
   /**
    * @brief The previous entity pair in this entity, or `NULL`.
    */
-  struct CmEntity *prev;
+  struct Entity *prev;
 
   /**
    * @brief The next entity pair in this entity, or `NULL`.
    */
-  struct CmEntity *next;
-} CmEntity;
+  struct Entity *next;
+} Entity;
 
 /**
  * @brief Brush sides are represented as unbounded planes, and the materials covering those planes.
@@ -240,17 +215,17 @@ typedef struct CmEntity {
  * other to produce their windings (ordered vertices). Visible windings are then onto portals,
  * and portals in turn generate faces (rendered geometry).
  */
-typedef struct CmBspBrushSide {
+typedef struct CollisionBrushSide {
 
   /**
    * @brief The plane.
    */
-  CmBspPlane *plane;
+  CollisionPlane *plane;
 
   /**
    * @brief The material definition.
    */
-  struct CmMaterial *material;
+  struct Material *material;
 
   /**
    * @brief The contents mask (`CONTENTS_`*).
@@ -266,19 +241,19 @@ typedef struct CmBspBrushSide {
    * @brief The surface value (e.g. light radius).
    */
   int32_t value;
-} CmBspBrushSide;
+} CollisionBrushSide;
 
 /**
  * @brief Brushes are convex volumes defined by the clipping planes of their sides.
  */
-typedef struct CmBspBrush {
+typedef struct CollisionBrush {
 
   /**
    * @brief The entity this brush belongs to.
    * @remarks Brushes may reside within the world model's BSP tree, but may have been
    * defined in a different entity (`func_group`, `misc_dust`, etc).
    */
-  CmEntity *entity;
+  Entity *entity;
 
   /**
    * @brief The contents mask (`CONTENTS_*`).
@@ -288,7 +263,7 @@ typedef struct CmBspBrush {
   /**
    * @brief The brush sides.
    */
-  CmBspBrushSide *brushSides;
+  CollisionBrushSide *brushSides;
 
   /**
    * @brief The number of brush sides.
@@ -299,7 +274,7 @@ typedef struct CmBspBrush {
    * @brief The brush bounds.
    */
   Box3 bounds;
-} CmBspBrush;
+} CollisionBrush;
 
 /**
  * @brief Leafs are the terminating nodes of the BSP tree.
@@ -308,7 +283,6 @@ typedef struct CmBspBrush {
  * with non-solid contents comprise the parts of the world the player may occupy.
  */
 typedef struct {
-
   /**
    * @brief The leaf `CONTENTS_*`.
    */
@@ -323,30 +297,28 @@ typedef struct {
    * @brief The number of leaf-brush references for this leaf.
    */
   int32_t numLeafBrushes;
-} CmBspLeaf;
+} CollisionLeaf;
 
 /**
  * @brief The BSP node structure.
  */
 typedef struct {
-
   /**
    * @brief The positive plane that separates this node's children.
    */
-  CmBspPlane *plane;
+  CollisionPlane *plane;
 
   /**
    * @brief The child node indexes, where positive values are nodes, and negative are leafs.
    * @remarks Because 0 can not be negated, the BSP is padded with an empty first leaf.
    */
   int32_t children[2];
-} CmBspNode;
+} CollisionNode;
 
 /**
  * @brief Per-voxel data decoded from the BSP voxel lump.
  */
 typedef struct {
-
   /**
    * @brief World-space center of the voxel cell.
    */
@@ -368,13 +340,12 @@ typedef struct {
    * audio reverb and renderer ambient occlusion.
    */
   float occlusion;
-} CmVoxel;
+} Voxel;
 
 /**
  * @brief The BSP model structure.
  */
 typedef struct {
-
   /**
    * @brief The Quake path of the .bsp, e.g. `maps/edge.bsp`.
    */
@@ -403,7 +374,7 @@ typedef struct {
   /**
    * @brief Plane array.
    */
-  CmBspPlane *planes;
+  CollisionPlane *planes;
 
   /**
    * @brief Number of BSP nodes.
@@ -413,7 +384,7 @@ typedef struct {
   /**
    * @brief Node array.
    */
-  CmBspNode *nodes;
+  CollisionNode *nodes;
 
   /**
    * @brief Number of BSP leafs.
@@ -423,7 +394,7 @@ typedef struct {
   /**
    * @brief Leaf array.
    */
-  CmBspLeaf *leafs;
+  CollisionLeaf *leafs;
 
   /**
    * @brief Number of brushes.
@@ -433,7 +404,7 @@ typedef struct {
   /**
    * @brief Brush array.
    */
-  CmBspBrush *brushes;
+  CollisionBrush *brushes;
 
   /**
    * @brief Number of brush sides.
@@ -443,7 +414,7 @@ typedef struct {
   /**
    * @brief Brush side array.
    */
-  CmBspBrushSide *brushSides;
+  CollisionBrushSide *brushSides;
 
   /**
    * @brief Number of leaf-brush references.
@@ -463,7 +434,7 @@ typedef struct {
   /**
    * @brief Inline model array.
    */
-  CmBspModel *models;
+  CollisionModel *models;
 
   /**
    * @brief Number of parsed entities.
@@ -473,7 +444,7 @@ typedef struct {
   /**
    * @brief Parsed entity array.
    */
-  CmEntity **entities;
+  Entity **entities;
 
   /**
    * @brief Number of materials referenced by brush sides.
@@ -483,7 +454,7 @@ typedef struct {
   /**
    * @brief Material pointer array.
    */
-  CmMaterial **materials;
+  Material **materials;
 
   /**
    * @brief Voxel grid dimensions.
@@ -503,9 +474,9 @@ typedef struct {
   /**
    * @brief Decoded voxel array, indexed by (z*size.y + y)*size.x + x.
    */
-  CmVoxel *voxels;
+  Voxel *voxels;
 
-} CmBsp;
+} CollisionBsp;
 
 /**
  * @brief Traces are discrete movements through world space, clipped to the
@@ -513,7 +484,6 @@ typedef struct {
  * within Quake.
  */
 typedef struct {
-
   /**
    * @brief True if the trace started and ended within the same solid.
    */
@@ -537,17 +507,17 @@ typedef struct {
   /**
    * @brief The impacted or enclosing brush; prefer derived fields.
    */
-  const struct CmBspBrush *brush;
+  const struct CollisionBrush *brush;
 
   /**
    * @brief The impacted brush side; prefer derived fields.
    */
-  const struct CmBspBrushSide *brushSide;
+  const struct CollisionBrushSide *brushSide;
 
   /**
    * @brief The impacted plane, transformed by the matrix provided to `Cm_BoxTrace`.
    */
-  CmBspPlane plane;
+  CollisionPlane plane;
 
   /**
    * @brief The contents mask of the impacted brush side.
@@ -562,10 +532,10 @@ typedef struct {
   /**
    * @brief The material of the impacted brush side.
    */
-  const struct CmMaterial *material;
+  const struct Material *material;
 
   /**
    * @brief The impacted entity, or `NULL`; set by `Sv_Trace` / `Cl_Trace`, not by `Cm_BoxTrace`.
    */
   void *ent;
-} CmTrace;
+} CollisionTrace;

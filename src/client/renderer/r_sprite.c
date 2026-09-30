@@ -372,15 +372,15 @@ void R_UpdateSprites(RenderView *view, CopyPass *copyPass) {
  */
 void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 
-  assert(rModels.world);
+  assert(renderModels.world);
 
   if (view->numSpriteInstances == 0) {
     return;
   }
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -389,7 +389,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   $(pass, bindPipeline, module.pipeline);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = module.elementsBuffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
@@ -401,10 +401,10 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    rLights.bspBuffer->buffer,
-    rLights.dynamicBuffer->buffer,
+    renderLights.bspBuffer->buffer,
+    renderLights.dynamicBuffer->buffer,
     bsp->voxels.lightDataBuffer->buffer,
-    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : rLights.voxelFallbackBuffer->buffer,
+    bsp->voxels.lightIndicesBuffer ? bsp->voxels.lightIndicesBuffer->buffer : renderLights.voxelFallbackBuffer->buffer,
     module.instanceBuffer->buffer,
   };
   $(pass, bindVertexStorageBuffers, 0, storage, 5);
@@ -441,7 +441,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 
     $(pass, drawIndexedPrimitives, (uint32_t) batchSize * 6, 1, (uint32_t) i * 6, 0, 0);
 
-    rStats->spriteDrawElements++;
+    renderStats->spriteDrawElements++;
 
     i += batchSize;
   }
@@ -453,7 +453,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 static void R_InitSpritePipeline(void) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
@@ -486,7 +486,7 @@ static void R_InitSpritePipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  module.pipeline = $(rContext.device, loadGraphicsPipeline,
+  module.pipeline = $(renderContext.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_storage_buffers = 5,
@@ -499,8 +499,8 @@ static void R_InitSpritePipeline(void) {
     },
     &info);
 
-  module.sampler = $(rContext.device, createSamplerLinearClamp);
-  module.depthSampler = $(rContext.device, createSamplerNearestClamp);
+  module.sampler = $(renderContext.device, createSamplerLinearClamp);
+  module.depthSampler = $(renderContext.device, createSamplerNearestClamp);
 }
 
 /**
@@ -522,17 +522,17 @@ void R_InitSprites(void) {
     elements[e + 5] = v + 3;
   }
 
-  module.elementsBuffer = $(rContext.device, createBufferWithConstMem,
+  module.elementsBuffer = $(renderContext.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX, elements, (Uint32) (numElements * sizeof(uint32_t)));
 
   free(elements);
 
-  module.instanceBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  module.instanceBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
     .size = sizeof(module.instances),
   });
 
-  module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+  module.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
     .size = sizeof(module.instances),
   });

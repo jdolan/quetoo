@@ -102,7 +102,7 @@ bool Net_CompareClientNetaddr(const NetAddr *a, const NetAddr *b) {
 const char *Net_NetaddrToString(const NetAddr *a) {
   static char s[64];
 
-  q_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
+  Str_Format(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
 
   return s;
 }
@@ -114,7 +114,7 @@ const char *Net_NetaddrToString(const NetAddr *a) {
 const char *Net_NetaddrToIpString(const NetAddr *a) {
   static char s[INET_ADDRSTRLEN];
 
-  q_strlcpy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
+  Str_Copy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
 
   return s;
 }
@@ -132,12 +132,12 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 
   memset(saddr, 0, sizeof(*saddr));
 
-  char *node = q_strdup(s);
+  char *node = Str_Duplicate(s);
 
-  char *service = q_strchr(node, ':');
+  char *service = Str_FindChar(node, ':');
   if (service) {
     *service++ = '\0';
-    char *slash = q_strchr(service, '/'); // strip trailing slash from URL-style addresses
+    char *slash = Str_FindChar(service, '/'); // strip trailing slash from URL-style addresses
     if (slash) {
       *slash = '\0';
     }
@@ -171,7 +171,7 @@ bool Net_StringToNetaddr(const char *s, NetAddr *a) {
 
   a->addr = saddr.sin_addr.s_addr;
 
-  if (q_strcmp(s, "localhost") == 0) {
+  if (Str_Compare(s, "localhost") == 0) {
     a->port = 0;
     a->type = NA_LOOP;
   } else {

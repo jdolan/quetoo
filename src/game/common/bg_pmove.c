@@ -62,12 +62,12 @@ Box3 Pm_Bounds(const PMoveParams *params, bool ducked) {
  * apart. Quetoo's carries no parameters of its own: it is the one that follows
  * the server's movement cvars, which is what makes it the default.
  */
-static const PMovementInfo pmMovements[] = {
+static const PMovementInfo movements[] = {
   [PM_MOVEMENT_QUETOO] = { .name = "quetoo", .label = "Quetoo",      .params = NULL, .hook = true },
-  [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Quetoo Race", .params = &pmRaceParams },
-  [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "Quake",       .params = &pmQuakeParams },
-  [PM_MOVEMENT_QUAKE2] = { .name = "quake2", .label = "Quake2",      .params = &pmQuake2Params },
-  [PM_MOVEMENT_QUAKE3] = { .name = "quake3", .label = "Quake3",      .params = &pmQuake3Params },
+  [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Quetoo Race", .params = &pmoveRaceParams },
+  [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "Quake",       .params = &pmoveQuakeParams },
+  [PM_MOVEMENT_QUAKE2] = { .name = "quake2", .label = "Quake2",      .params = &pmoveQuake2Params },
+  [PM_MOVEMENT_QUAKE3] = { .name = "quake3", .label = "Quake3",      .params = &pmoveQuake3Params },
 };
 
 /**
@@ -75,18 +75,18 @@ static const PMovementInfo pmMovements[] = {
  */
 const PMovementInfo *Pm_Movement(PMovement movement) {
 
-  if ((size_t) movement >= lengthof(pmMovements)) {
+  if ((size_t) movement >= lengthof(movements)) {
     return NULL;
   }
 
-  return &pmMovements[movement];
+  return &movements[movement];
 }
 
 /**
  * @see bg_pmove.h
  */
 size_t Pm_MovementCount(void) {
-  return lengthof(pmMovements);
+  return lengthof(movements);
 }
 
 /**
@@ -100,8 +100,8 @@ bool Pm_MovementByName(const char *name, PMovement *movement) {
     return false;
   }
 
-  for (size_t i = 0; i < lengthof(pmMovements); i++) {
-    if (!q_strcasecmp(pmMovements[i].name, name)) {
+  for (size_t i = 0; i < lengthof(movements); i++) {
+    if (!Str_CaseCompare(movements[i].name, name)) {
       *movement = (PMovement) i;
       return true;
     }
@@ -112,13 +112,13 @@ bool Pm_MovementByName(const char *name, PMovement *movement) {
 
 PMove *pm;
 
-PMoveLocals pmLocals;
+PMoveLocals pmoveLocals;
 
 /**
  * @brief Mark the specified entity as touched. This enables the game module to
  * detect player -> entity interactions.
  */
-void Pm_TouchEntity(const CmTrace *trace) {
+void Pm_TouchEntity(const CollisionTrace *trace) {
 
   if (trace->ent == NULL) {
     return;
@@ -143,7 +143,7 @@ void Pm_TouchEntity(const CmTrace *trace) {
  * it is adjusted so that the trace begins outside of the solid it impacts.
  * @return The actual trace.
  */
-CmTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+CollisionTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
   const float offsets[] = { 0.f, 1.f, -1.f };
 
@@ -152,7 +152,7 @@ CmTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
     for (uint32_t j = 0; j < lengthof(offsets); j++) {
       for (uint32_t k = 0; k < lengthof(offsets); k++) {
         const Vec3 point = Vec3_Add(start, MakeVec3(offsets[i], offsets[j], offsets[k]));
-        const CmTrace trace = pm->Trace(point, end, bounds);
+        const CollisionTrace trace = pm->Trace(point, end, bounds);
         
         if (!trace.allSolid) {
 
@@ -204,7 +204,7 @@ void Pm_Friction(const bool flying) {
   } else if (pm->waterLevel > WATER_FEET) { // water friction
     friction = pm->s.params.frictionWater;
   } else if (pm->s.flags & PMF_ON_GROUND) { // ground friction
-    if (pmLocals.ground.ent && (pmLocals.ground.surface & SURF_SLICK)) {
+    if (pmoveLocals.ground.ent && (pmoveLocals.ground.surface & SURF_SLICK)) {
       friction = pm->s.params.frictionGroundSlick;
     } else {
       friction = pm->s.params.frictionGround;
@@ -216,7 +216,7 @@ void Pm_Friction(const bool flying) {
   friction = Maxf(0.f, friction); // never reverse direction
 
   // scale the velocity, taking care to not reverse direction
-  const float scale = Maxf(0.f, speed - (friction * control * pmLocals.time)) / speed;
+  const float scale = Maxf(0.f, speed - (friction * control * pmoveLocals.time)) / speed;
 
   pm->s.velocity = Vec3_Scale(pm->s.velocity, scale);
 }
@@ -229,7 +229,7 @@ void Pm_Accelerate(const Vec3 dir, float speed, float accel) {
   const float addSpeed = speed - currentSpeed;
 
   if (addSpeed > 0.f) {
-    float accelSpeed = accel * pmLocals.time * speed;
+    float accelSpeed = accel * pmoveLocals.time * speed;
 
     if (accelSpeed > addSpeed) {
       accelSpeed = addSpeed;
@@ -248,7 +248,7 @@ void Pm_Gravity(void) {
     return;
   }
 
-  pm->s.velocity.z -= pm->s.params.gravity * pmLocals.time;
+  pm->s.velocity.z -= pm->s.params.gravity * pmoveLocals.time;
 }
 
 /**
@@ -260,8 +260,8 @@ static void Pm_SpectatorMove(void) {
 
   // user intentions on X/Y/Z
   Vec3 vel = Vec3_Zero();
-  vel = Vec3_Fmaf(vel, pm->cmd.forward, pmLocals.forward);
-  vel = Vec3_Fmaf(vel, pm->cmd.right, pmLocals.right);
+  vel = Vec3_Fmaf(vel, pm->cmd.forward, pmoveLocals.forward);
+  vel = Vec3_Fmaf(vel, pm->cmd.right, pmoveLocals.right);
 
   // add explicit Z
   vel.z += pm->cmd.up;
@@ -278,7 +278,7 @@ static void Pm_SpectatorMove(void) {
   Pm_Accelerate(vel, speed, Maxf(0.f, pm->s.params.accelSpectator));
 
   // do the move
-  pm->s.origin = Vec3_Fmaf(pm->s.origin, pmLocals.time, pm->s.velocity);
+  pm->s.origin = Vec3_Fmaf(pm->s.origin, pmoveLocals.time, pm->s.velocity);
 }
 
 /**
@@ -357,20 +357,20 @@ static void Pm_ClampAngles(void) {
  */
 static void Pm_InitLocal(void) {
 
-  memset(&pmLocals, 0, sizeof(pmLocals));
+  memset(&pmoveLocals, 0, sizeof(pmoveLocals));
 
   // save previous values in case move fails, and to detect landings
-  pmLocals.previousOrigin = pm->s.origin;
-  pmLocals.previousVelocity = pm->s.velocity;
+  pmoveLocals.previousOrigin = pm->s.origin;
+  pmoveLocals.previousVelocity = pm->s.velocity;
 
   // convert from milliseconds to seconds
-  pmLocals.time = pm->cmd.msec * .001f;
+  pmoveLocals.time = pm->cmd.msec * .001f;
 
   // calculate the directional vectors for this move
-  Vec3_Vectors(pm->angles, &pmLocals.forward, &pmLocals.right, &pmLocals.up);
+  Vec3_Vectors(pm->angles, &pmoveLocals.forward, &pmoveLocals.right, &pmoveLocals.up);
 
   // and calculate the directional vectors in the XY plane
-  Vec3_Vectors(MakeVec3(0.f, pm->angles.y, 0.f), &pmLocals.forwardXy, &pmLocals.rightXy, NULL);
+  Vec3_Vectors(MakeVec3(0.f, pm->angles.y, 0.f), &pmoveLocals.forwardXy, &pmoveLocals.rightXy, NULL);
 }
 
 /**
@@ -386,7 +386,7 @@ void Pm_CheckViewStep(void) {
   // calculate change to the step offset
   if (pm->s.stepOffset) {
 
-    const float stepSpeed = pmLocals.time * (PM_SPEED_STEP * (Maxf(1.f, fabsf(pm->s.stepOffset) / PM_STEP_HEIGHT)));
+    const float stepSpeed = pmoveLocals.time * (PM_SPEED_STEP * (Maxf(1.f, fabsf(pm->s.stepOffset) / PM_STEP_HEIGHT)));
 
     if (pm->s.stepOffset > 0) {
       pm->s.stepOffset = Maxf(0.f, pm->s.stepOffset - stepSpeed);
@@ -400,8 +400,8 @@ void Pm_CheckViewStep(void) {
  * @brief Called by the game and the client game to update the player's
  * authoritative or predicted movement state, respectively.
  */
-void Pm_Move(PMove *pmMove) {
-  pm = pmMove;
+void Pm_Move(PMove *move) {
+  pm = move;
 
   Pm_Init();
 

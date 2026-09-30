@@ -47,7 +47,7 @@ typedef enum {
 /**
  * @brief Sprite think function type.
  */
-typedef void (*Cg_SpriteThink)(CGameSprite *sprite, float life, float delta);
+typedef void (*CGameSpriteThink)(CGameSprite *sprite, float life, float delta);
 
 /**
  * @brief CGame-specific sprite flags.
@@ -209,7 +209,7 @@ struct CGameSprite {
   /**
    * @brief Think function for custom logic.
    */
-  Cg_SpriteThink Think;
+  CGameSpriteThink Think;
 
   /**
    * @brief Custom data allocated on a sprite. Automatically freed unless

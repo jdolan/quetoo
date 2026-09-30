@@ -23,7 +23,7 @@
 
 #include "net_sock.h"
 
-bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf);
+bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, NetMessage *buf);
 bool Net_SendDatagram(NetSrc source, const NetAddr *to, const void *data, size_t len);
 
 void Net_Config(NetSrc source, bool up);

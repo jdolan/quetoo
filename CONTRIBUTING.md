@@ -112,7 +112,7 @@ Each subsystem uses a consistent file and function prefix:
 - Comment code that needs clarification; don't over-comment obvious logic.
 - Keep functions short and focused on one task.
 - Use `Mem_Malloc()` / `Mem_Free()` rather than `malloc()` / `free()` directly.
-- Use `q_snprintf()` instead of `snprintf()` for internal string formatting.
+- Use `Str_Format()` instead of `snprintf()` for internal string formatting.
 
 ### Vector Math
 

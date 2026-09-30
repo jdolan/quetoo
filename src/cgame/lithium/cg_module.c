@@ -25,22 +25,22 @@
 #include "MapListCollectionItemView.h"
 
 static struct {
-  FilterCreateServerMapList FilterCreateServerMapList;
+  CGameFilterCreateServerMapListHook FilterCreateServerMapList;
 } previous;
 
 /**
  * @brief The games this module plays as variants of deathmatch, which the maps name
  * rather than `lithium`.
  */
-static const char *cgLithiumGames[] = { "dm", "tdm", "duel", "instagib" };
+static const char *lithiumGames[] = { "dm", "tdm", "duel", "instagib" };
 
 /**
  * @brief Lists a map made for any of the deathmatch variants.
  */
 static bool Cg_FilterCreateServerMapList_Lithium(const MapListItemInfo *info) {
 
-  for (size_t i = 0; i < lengthof(cgLithiumGames); i++) {
-    if (q_str_has_token(info->games, cgLithiumGames[i])) {
+  for (size_t i = 0; i < lengthof(lithiumGames); i++) {
+    if (Str_HasToken(info->games, lithiumGames[i])) {
       return true;
     }
   }

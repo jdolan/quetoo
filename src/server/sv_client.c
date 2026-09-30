@@ -27,11 +27,11 @@
  */
 static void Sv_New_f(void) {
 
-  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(svClient));
+  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(serverClient));
 
-  if (svClient->state != SV_CLIENT_CONNECTED) {
-    Com_Warn("%s issued new from %d\n", Sv_NetaddrToString(svClient), svClient->state);
-    Sv_DropClient(svClient);
+  if (serverClient->state != SV_CLIENT_CONNECTED) {
+    Com_Warn("%s issued new from %d\n", Sv_NetaddrToString(serverClient), serverClient->state);
+    Sv_DropClient(serverClient);
     return;
   }
 
@@ -41,24 +41,24 @@ static void Sv_New_f(void) {
   // so Sv_SendDemoInfo covers those separately, here and on every later change
   if (svs.state == SV_ACTIVE_DEMO) {
     Sv_SendDemoInfo();
-    Sv_SendDemoSetup(svClient);
+    Sv_SendDemoSetup(serverClient);
     return;
   }
 
   // send the server data
-  Net_WriteByte(&svClient->netChan.message, SV_CMD_SERVER_DATA);
-  Net_WriteLong(&svClient->netChan.message, PROTOCOL_MAJOR);
-  Net_WriteLong(&svClient->netChan.message, svs.game->protocol);
-  Net_WriteByte(&svClient->netChan.message, 0);
-  Net_WriteString(&svClient->netChan.message, Com_Game());
-  Net_WriteString(&svClient->netChan.message, svs.game->cgame ? : Com_Game());
+  Net_WriteByte(&serverClient->netChan.message, SV_CMD_SERVER_DATA);
+  Net_WriteLong(&serverClient->netChan.message, PROTOCOL_MAJOR);
+  Net_WriteLong(&serverClient->netChan.message, svs.game->protocol);
+  Net_WriteByte(&serverClient->netChan.message, 0);
+  Net_WriteString(&serverClient->netChan.message, Com_Game());
+  Net_WriteString(&serverClient->netChan.message, svs.game->cgame ? : Com_Game());
 
   // send level title
-  Net_WriteString(&svClient->netChan.message, sv.configStrings[CS_MESSAGE]);
+  Net_WriteString(&serverClient->netChan.message, sv.configStrings[CS_MESSAGE]);
 
   // begin fetching configStrings
-  Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
-  Net_WriteString(&svClient->netChan.message, va("config_strings %i 0\n", svs.spawnCount));
+  Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
+  Net_WriteString(&serverClient->netChan.message, va("configStrings %i 0\n", svs.spawnCount));
 }
 
 /**
@@ -67,16 +67,16 @@ static void Sv_New_f(void) {
 static void Sv_ConfigStrings_f(void) {
   uint32_t start;
 
-  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(svClient));
+  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(serverClient));
 
-  if (svClient->state != SV_CLIENT_CONNECTED) {
-    Com_Warn("%s already spawned\n", Sv_NetaddrToString(svClient));
+  if (serverClient->state != SV_CLIENT_CONNECTED) {
+    Com_Warn("%s already spawned\n", Sv_NetaddrToString(serverClient));
     return;
   }
 
   // handle the case of a level changing while a client was connecting
   if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawnCount) {
-    Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(svClient));
+    Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(serverClient));
     Sv_New_f();
     return;
   }
@@ -84,36 +84,36 @@ static void Sv_ConfigStrings_f(void) {
   start = (uint32_t) strtoul(Cmd_Argv(2), NULL, 0);
 
   if (start >= MAX_CONFIG_STRINGS) { // catch bad offsets
-    Com_Warn("Bad offset from %s\n", Sv_NetaddrToString(svClient));
-    Sv_KickClient(svClient, NULL);
+    Com_Warn("Bad offset from %s\n", Sv_NetaddrToString(serverClient));
+    Sv_KickClient(serverClient, NULL);
     return;
   }
 
   // write a packet full of data
 
-  NetChan *ch = &svClient->netChan;
+  NetChan *ch = &serverClient->netChan;
 
   while (start < MAX_CONFIG_STRINGS) {
-    const size_t len = q_strlen(sv.configStrings[start]);
+    const size_t len = Str_Length(sv.configStrings[start]);
     if (len) {
       if (ch->message.size + len >= ch->message.maxSize - 48) {
         break;
       }
-      Net_WriteByte(&svClient->netChan.message, SV_CMD_CONFIG_STRING);
-      Net_WriteShort(&svClient->netChan.message, start);
-      Net_WriteString(&svClient->netChan.message, sv.configStrings[start]);
+      Net_WriteByte(&serverClient->netChan.message, SV_CMD_CONFIG_STRING);
+      Net_WriteShort(&serverClient->netChan.message, start);
+      Net_WriteString(&serverClient->netChan.message, sv.configStrings[start]);
     }
     start++;
   }
 
   // send next command
   if (start == MAX_CONFIG_STRINGS) {
-    Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
-    Net_WriteString(&svClient->netChan.message, va("baselines %i 0\n", svs.spawnCount));
+    Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
+    Net_WriteString(&serverClient->netChan.message, va("baselines %i 0\n", svs.spawnCount));
   } else {
-    Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
-    Net_WriteString(&svClient->netChan.message,
-                    va("config_strings %i %i\n", svs.spawnCount, start));
+    Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
+    Net_WriteString(&serverClient->netChan.message,
+                    va("configStrings %i %i\n", svs.spawnCount, start));
   }
 }
 
@@ -125,16 +125,16 @@ static void Sv_Baselines_f(void) {
   EntityState nullState;
   EntityState *base;
 
-  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(svClient));
+  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(serverClient));
 
-  if (svClient->state != SV_CLIENT_CONNECTED) {
-    Com_Warn("%s already spawned\n", Sv_NetaddrToString(svClient));
+  if (serverClient->state != SV_CLIENT_CONNECTED) {
+    Com_Warn("%s already spawned\n", Sv_NetaddrToString(serverClient));
     return;
   }
 
   // handle the case of a level changing while a client was connecting
   if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawnCount) {
-    Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(svClient));
+    Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(serverClient));
     Sv_New_f();
     return;
   }
@@ -144,22 +144,22 @@ static void Sv_Baselines_f(void) {
   memset(&nullState, 0, sizeof(nullState));
 
   // write a packet full of data
-  while (svClient->netChan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_ENTITIES) {
+  while (serverClient->netChan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_ENTITIES) {
     base = &sv.entities[start].baseline;
     if (base->model1 || base->sound || base->effects) {
-      Net_WriteByte(&svClient->netChan.message, SV_CMD_BASELINE);
-      Net_WriteDeltaEntity(&svClient->netChan.message, &nullState, base, true);
+      Net_WriteByte(&serverClient->netChan.message, SV_CMD_BASELINE);
+      Net_WriteDeltaEntity(&serverClient->netChan.message, &nullState, base, true);
     }
     start++;
   }
 
   // send next command
   if (start == MAX_ENTITIES) {
-    Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
-    Net_WriteString(&svClient->netChan.message, va("precache %i\n", svs.spawnCount));
+    Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
+    Net_WriteString(&serverClient->netChan.message, va("precache %i\n", svs.spawnCount));
   } else {
-    Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
-    Net_WriteString(&svClient->netChan.message, va("baselines %i %i\n", svs.spawnCount, start));
+    Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
+    Net_WriteString(&serverClient->netChan.message, va("baselines %i %i\n", svs.spawnCount, start));
   }
 }
 
@@ -168,11 +168,11 @@ static void Sv_Baselines_f(void) {
  */
 static void Sv_Begin_f(void) {
 
-  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(svClient));
+  Com_Debug(DEBUG_SERVER, "%s\n", Sv_NetaddrToString(serverClient));
 
-  if (svClient->state != SV_CLIENT_CONNECTED) { // catch duplicate spawns
-    Com_Warn("Invalid begin from %s\n", Sv_NetaddrToString(svClient));
-    Sv_DropClient(svClient);
+  if (serverClient->state != SV_CLIENT_CONNECTED) { // catch duplicate spawns
+    Com_Warn("Invalid begin from %s\n", Sv_NetaddrToString(serverClient));
+    Sv_DropClient(serverClient);
     return;
   }
 
@@ -182,14 +182,14 @@ static void Sv_Begin_f(void) {
 
   // handle the case of a level changing while a client was connecting
   if (strtoul(Cmd_Argv(1), NULL, 0) != svs.spawnCount) {
-    Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(svClient));
+    Com_Debug(DEBUG_SERVER, "Stale spawn count from %s\n", Sv_NetaddrToString(serverClient));
     Sv_New_f();
     return;
   }
 
-  svClient->state = SV_CLIENT_ACTIVE;
+  serverClient->state = SV_CLIENT_ACTIVE;
 
-  GameClient *cl = svClient->gclient;
+  GameClient *cl = serverClient->gclient;
 
   svs.game->ClientBegin(cl);
 
@@ -200,7 +200,7 @@ static void Sv_Begin_f(void) {
  * @brief The client is going to disconnect, so remove the connection immediately
  */
 static void Sv_Disconnect_f(void) {
-  Sv_DropClient(svClient);
+  Sv_DropClient(serverClient);
 }
 
 /**
@@ -222,12 +222,12 @@ static void Sv_Info_f_enumerate(Cvar *var, void *data) {
  */
 static void Sv_Info_f(void) {
 
-  if (!svClient) { // print to server console
+  if (!serverClient) { // print to server console
     Com_PrintInfo(Cvar_ServerInfo());
     return;
   }
 
-  Cvar_Enumerate(Sv_Info_f_enumerate, (void *) svClient);
+  Cvar_Enumerate(Sv_Info_f_enumerate, (void *) serverClient);
 }
 
 typedef struct {
@@ -235,16 +235,16 @@ typedef struct {
   void (*func)(void);
 } ServerUserStringCmd;
 
-static ServerUserStringCmd svUserStringCmds[] = { // mapping command names to their functions
+static ServerUserStringCmd userStringCmds[] = { // mapping command names to their functions
   { "new", Sv_New_f },
-  { "config_strings", Sv_ConfigStrings_f },
+  { "configStrings", Sv_ConfigStrings_f },
   { "baselines", Sv_Baselines_f },
   { "begin", Sv_Begin_f },
   { "disconnect", Sv_Disconnect_f },
   { "info", Sv_Info_f },
-  { "demo_seek", Sv_DemoSeek_f },
-  { "demo_seek_relative", Sv_DemoSeekRelative_f },
-  { "demo_pause", Sv_DemoPause_f },
+  { "demoSeek", Sv_DemoSeek_f },
+  { "demoSeekRelative", Sv_DemoSeekRelative_f },
+  { "demoPause", Sv_DemoPause_f },
   { NULL, NULL }
 };
 
@@ -257,15 +257,15 @@ static void Sv_UserStringCommand(const char *s) {
 
   Cmd_TokenizeString(s);
 
-  if (q_strchr(s, '\xFF')) { // catch end of message exploit
-    Com_Warn("Illegal command from %s\n", Sv_NetaddrToString(svClient));
-    Sv_KickClient(svClient, NULL);
+  if (Str_FindChar(s, '\xFF')) { // catch end of message exploit
+    Com_Warn("Illegal command from %s\n", Sv_NetaddrToString(serverClient));
+    Sv_KickClient(serverClient, NULL);
     return;
   }
 
-  for (c = svUserStringCmds; c->name; c++) {
+  for (c = userStringCmds; c->name; c++) {
 
-    if (!q_strcmp(Cmd_Argv(0), c->name)) {
+    if (!Str_Compare(Cmd_Argv(0), c->name)) {
       c->func();
       break;
     }
@@ -273,7 +273,7 @@ static void Sv_UserStringCommand(const char *s) {
 
   if (!c->name) { // unmatched command
     if (svs.state == SV_ACTIVE_GAME) { // maybe the game knows what to do with it
-      svs.game->ClientCommand(svClient->gclient);
+      svs.game->ClientCommand(serverClient->gclient);
     }
   }
 }
@@ -300,7 +300,7 @@ void Sv_ParseClientMessage(ServerClient *cl) {
   int32_t movesIssued;
   int32_t voiceIssued;
 
-  svClient = cl;
+  serverClient = cl;
 
   // allow a finite number of moves and strings
   movesIssued = stringsIssued = voiceIssued = 0;
@@ -308,7 +308,7 @@ void Sv_ParseClientMessage(ServerClient *cl) {
   while (true) {
 
     if (netMessage.read > netMessage.size) {
-      Com_Warn("Bad read from %s\n", Sv_NetaddrToString(svClient));
+      Com_Warn("Bad read from %s\n", Sv_NetaddrToString(serverClient));
       Sv_DropClient(cl);
       return;
     }
@@ -325,13 +325,13 @@ void Sv_ParseClientMessage(ServerClient *cl) {
 
         // leave room for ip stuffing, as the connect does; truncating instead
         // could leave a dangling key for the ip to complete
-        if (q_strlen(userInfo) >= sizeof(cl->userInfo) - 25) {
+        if (Str_Length(userInfo) >= sizeof(cl->userInfo) - 25) {
           Com_Print("Oversized user_info from %s\n", Sv_NetaddrToString(cl));
           Sv_KickClient(cl, "Bad user info");
           return;
         }
 
-        q_strlcpy(cl->userInfo, userInfo, sizeof(cl->userInfo));
+        Str_Copy(cl->userInfo, userInfo, sizeof(cl->userInfo));
         if (!Sv_UserInfoChanged(cl)) {
           return;
         }
@@ -345,7 +345,7 @@ void Sv_ParseClientMessage(ServerClient *cl) {
           Com_Warn("CL_CMD_ENTITY_INFO from %s but editor is disabled\n", Sv_NetaddrToString(cl));
           break;
         }
-        if (q_strlen(info)) {
+        if (Str_Length(info)) {
           if (number != -1 && (number < 0 || number >= sv_maxEntities->integer)) {
             Com_Warn("CL_CMD_ENTITY_INFO from %s: bad entity number %d\n", Sv_NetaddrToString(cl), number);
             break;
@@ -405,9 +405,9 @@ void Sv_ParseClientMessage(ServerClient *cl) {
         }
 
         // the client sends their 3 most recent movement commands every frame to combat packet loss
-        static PMoveCmd null_cmd;
+        static PMoveCmd nullCmd;
         PMoveCmd cmd[3];
-        Net_ReadDeltaMoveCmd(&netMessage, &null_cmd, &cmd[0]);
+        Net_ReadDeltaMoveCmd(&netMessage, &nullCmd, &cmd[0]);
         Net_ReadDeltaMoveCmd(&netMessage, &cmd[0], &cmd[1]);
         Net_ReadDeltaMoveCmd(&netMessage, &cmd[1], &cmd[2]);
 

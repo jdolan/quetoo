@@ -24,7 +24,12 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/URLCache.h>
 
-static void *cgameHandle;
+static void *handle;
+
+/**
+ * @brief The client game whose default binds were last applied.
+ */
+static char boundCgame[MAX_QPATH];
 
 /**
  * @brief Fetch the active debug mask.
@@ -170,8 +175,8 @@ void Cl_InitCgame(void) {
     Com_Error(ERROR_DROP, "Neither %s nor %s provides a client game module\n", Com_Game(), DEFAULT_GAME);
   }
 
-  void *handle = Sys_OpenLibrary(dir, "cgame");
-  if (!handle) {
+  void *library = Sys_OpenLibrary(dir, "cgame");
+  if (!library) {
     Com_Error(ERROR_DROP, "Failed to open %s's client game module\n", dir);
   }
 
@@ -183,9 +188,9 @@ void Cl_InitCgame(void) {
   import.state = &cls.state;
   import.server = &cls.server;
   import.demo = &cls.demo;
-  import.context = &rContext;
-  import.view = &clView;
-  import.stage = &clStage;
+  import.context = &renderContext;
+  import.view = &clientView;
+  import.stage = &clientStage;
 
   import.Print = Com_Print;
   import.PrintLevel = Cl_CgamePrintLevel;
@@ -256,6 +261,7 @@ void Cl_InitCgame(void) {
   import.KeyForBind = Cl_KeyForBind;
   import.KeyName = Cl_KeyName;
   import.BindKey = Cl_Bind;
+  import.BindDefault = Cl_BindDefault;
   import.SetKeyDest = Cl_SetKeyDest;
   import.GetKeyDest = Cl_GetKeyDest;
   import.KeyDown = Cl_KeyDown;
@@ -284,15 +290,15 @@ void Cl_InitCgame(void) {
 
   import.Bsp = Cm_Bsp;
   import.Worldspawn = Cm_Worldspawn;
-  import.EntityValue = Cm_EntityValue;
-  import.EntityAssign = Cm_EntityAssign;
-  import.EntityBrushes = Cm_EntityBrushes;
-  import.AllocEntity = Cm_AllocEntity;
-  import.FreeEntity = Cm_FreeEntity;
-  import.ParseEntity = Cm_ParseEntity;
-  import.SetEntityKeyValue = Cm_EntitySetKeyValue;
-  import.EntityToInfoString = Cm_EntityToInfoString;
-  import.EntityFromInfoString = Cm_EntityFromInfoString;
+  import.EntityValue = Entity_Value;
+  import.EntityAssign = Entity_Assign;
+  import.EntityBrushes = Entity_Brushes;
+  import.AllocEntity = Entity_Alloc;
+  import.FreeEntity = Entity_Free;
+  import.ParseEntity = Entity_Parse;
+  import.SetEntityKeyValue = Entity_SetKeyValue;
+  import.EntityToInfoString = Entity_ToInfoString;
+  import.EntityFromInfoString = Entity_FromInfoString;
   import.PointContents = Cl_PointContents;
   import.BoxContents = Cl_BoxContents;
   import.BoxLeafnums = Cm_BoxLeafnums;
@@ -320,12 +326,12 @@ void Cl_InitCgame(void) {
   import.CompileAtlas = R_CompileAtlas;
   import.CreateAnimation = R_CreateAnimation;
   import.LoadMaterial = R_LoadMaterial;
-  import.MaterialLightStage = Cm_MaterialLightStage;
-  import.MaterialLights = Cm_MaterialLights;
-  import.MaterialLightColor = Cm_MaterialLightColor;
-  import.AddMaterialStage = Cm_AddStage;
-  import.RemoveMaterialStage = Cm_RemoveStage;
-  import.ResolveMaterialStage = Cm_ResolveStage;
+  import.MaterialLightStage = Material_LightStage;
+  import.MaterialLights = Material_Lights;
+  import.MaterialLightColor = Material_LightColor;
+  import.AddMaterialStage = Material_AddStage;
+  import.RemoveMaterialStage = Material_RemoveStage;
+  import.ResolveMaterialStage = Material_ResolveStage;
   import.ReloadMaterialStages = R_ReloadMaterialStages;
   import.LoadModel = R_LoadModel;
   import.WorldModel = R_WorldModel;
@@ -346,18 +352,18 @@ void Cl_InitCgame(void) {
   // teardown. Nothing below may fail without leaving us no client game at all
   Cl_ShutdownCgame();
 
-  cgameHandle = handle;
+  handle = library;
 
-  CGameExport *cgame = Sys_LoadLibrary(cgameHandle, "Cg_LoadCgame", &import);
+  CGameExport *cgame = Sys_LoadLibrary(handle, "Cg_LoadCgame", &import);
 
   if (!cgame) {
-    cgameHandle = Sys_CloseLibrary(cgameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_FATAL, "Failed to load %s's client game\n", dir);
   }
 
   if (cgame->apiVersion != CGAME_API_VERSION) {
     const int32_t version = cgame->apiVersion;
-    cgameHandle = Sys_CloseLibrary(cgameHandle);
+    handle = Sys_CloseLibrary(handle);
     Com_Error(ERROR_FATAL, "%s's client game is version %i, not %i\n", dir, version, CGAME_API_VERSION);
   }
 
@@ -367,10 +373,15 @@ void Cl_InitCgame(void) {
   // otherwise search, and Windows has no such namespace at all. The export
   // table is a static within the module, which is the address Objectively
   // resolves the module by, so that it can drop its Classes when it comes down.
-  addClassImage(cgameHandle, cgame);
+  addClassImage(handle, cgame);
 
   cls.cgame = cgame;
   cls.cgame->Init();
+
+  if (Str_Compare(boundCgame, dir)) {
+    Str_Copy(boundCgame, dir, sizeof(boundCgame));
+    cls.cgame->BindKeys();
+  }
 
   Com_Print("Client game initialized\n");
   Com_InitSubsystem(QUETOO_CGAME);
@@ -400,7 +411,7 @@ void Cl_ShutdownCgame(void) {
 
   // last, and while the handle is still open: the menus are gone by now, and
   // the Classes this image declared must not outlive it
-  removeClassImage(cgameHandle);
+  removeClassImage(handle);
 
-  cgameHandle = Sys_CloseLibrary(cgameHandle);
+  handle = Sys_CloseLibrary(handle);
 }

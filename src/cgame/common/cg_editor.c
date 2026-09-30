@@ -22,13 +22,13 @@
 #include "cg_local.h"
 
 #include "bg_item.h"
-#include "collision/cm_light.h"
+#include "collision/material_light.h"
 #include "ui/editor/EditorViewController.h"
 
 /**
  * @brief Global editor state.
  */
-CGameEditor cgEditor = {
+CGameEditor cgameEditor = {
   .showFuncGroups = true,
   .selected = -1
 };
@@ -43,13 +43,13 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    const CmEntity *e = cgEditor.entities[i].def;
+    const Entity *e = cgameEditor.entities[i].def;
     if (!e) {
       continue;
     }
 
-    if (!q_strcmp(cgi.EntityValue(e, "classname")->string, classname)) {
-      if (!q_strcmp(cgi.EntityValue(e, "team")->string, team)) {
+    if (!Str_Compare(cgi.EntityValue(e, "classname")->string, classname)) {
+      if (!Str_Compare(cgi.EntityValue(e, "team")->string, team)) {
         if (cgi.EntityValue(e, "team_master")->parsed) {
           return i;
         }
@@ -80,7 +80,7 @@ static Vec4 Cg_AddEditorEntity_Light(CGameEditorEntity *edit) {
   if (team) {
     const int32_t master = Cg_FindTeamMaster("light", team);
     if (master != -1) {
-      const CmEntity *e = cgEditor.entities[master].def;
+      const Entity *e = cgameEditor.entities[master].def;
       light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
       light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
       light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
@@ -103,18 +103,18 @@ static Vec4 Cg_AddEditorEntity_Light(CGameEditorEntity *edit) {
 /**
  * @brief Resolves the current world position of a material light, which follows its brush entity.
  */
-static Vec3 Cg_EditorMaterialLightOrigin(const CmMaterialLight *l) {
+static Vec3 Cg_EditorMaterialLightOrigin(const MaterialLight *l) {
 
   if (l->model == 0) {
     return l->origin;
   }
 
-  const int32_t entity = cgi.WorldModel()->bsp->cm->file->models[l->model].entity;
+  const int32_t entity = cgi.WorldModel()->bsp->collision->file->models[l->model].entity;
   if (entity <= 0 || entity >= MAX_ENTITIES) {
     return l->origin;
   }
 
-  const CGameEditorEntity *edit = &cgEditor.entities[entity];
+  const CGameEditorEntity *edit = &cgameEditor.entities[entity];
   if (!edit->def || !edit->ent) {
     return l->origin;
   }
@@ -129,15 +129,15 @@ static Vec3 Cg_EditorMaterialLightOrigin(const CmMaterialLight *l) {
  * @brief Resolves the color of a material light, resolving and caching the default color of its
  * material when the stage does not specify one.
  */
-static Vec3 Cg_EditorMaterialLightColor(int32_t material, const CmStage *stage) {
+static Vec3 Cg_EditorMaterialLightColor(int32_t material, const MaterialStage *stage) {
 
   if (!Vec3_Equal(stage->light.color, Vec3_Zero())) {
     return stage->light.color;
   }
 
-  Vec3 *color = &cgEditor.materialLightColors[material];
+  Vec3 *color = &cgameEditor.materialLightColors[material];
   if (Vec3_Equal(*color, Vec3_Zero())) {
-    *color = cgi.MaterialLightColor(cgEditor.materials[material], stage);
+    *color = cgi.MaterialLightColor(cgameEditor.materials[material], stage);
   }
 
   return *color;
@@ -148,14 +148,14 @@ static Vec3 Cg_EditorMaterialLightColor(int32_t material, const CmStage *stage) 
  */
 static void Cg_AddEditorMaterialLights(void) {
 
-  if (!cgEditor.materialLights) {
+  if (!cgameEditor.materialLights) {
     return;
   }
 
-  for (size_t i = 0; i < cgEditor.materialLights->count; i++) {
-    const CmMaterialLight *l = VectorElement(cgEditor.materialLights, CmMaterialLight, i);
+  for (size_t i = 0; i < cgameEditor.materialLights->count; i++) {
+    const MaterialLight *l = VectorElement(cgameEditor.materialLights, MaterialLight, i);
 
-    const CmStage *stage = cgi.MaterialLightStage(cgEditor.materials[l->material]);
+    const MaterialStage *stage = cgi.MaterialLightStage(cgameEditor.materials[l->material]);
     if (!stage) {
       continue;
     }
@@ -180,15 +180,15 @@ static void Cg_LoadEditorMaterialLights(void) {
   const RenderBspModel *bsp = cgi.WorldModel()->bsp;
   const int32_t numMaterials = Maxi(1, bsp->numMaterials);
 
-  cgEditor.materials = cgi.Malloc(sizeof(CmMaterial *) * numMaterials, MEM_TAG_CGAME_LEVEL);
+  cgameEditor.materials = cgi.Malloc(sizeof(Material *) * numMaterials, MEM_TAG_CGAME_LEVEL);
   for (int32_t i = 0; i < bsp->numMaterials; i++) {
-    cgEditor.materials[i] = bsp->materials[i]->cm;
+    cgameEditor.materials[i] = bsp->materials[i]->def;
   }
 
-  cgEditor.materialLightColors = cgi.Malloc(sizeof(Vec3) * numMaterials, MEM_TAG_CGAME_LEVEL);
+  cgameEditor.materialLightColors = cgi.Malloc(sizeof(Vec3) * numMaterials, MEM_TAG_CGAME_LEVEL);
 
-  cgEditor.materialLights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
-  cgi.MaterialLights(bsp->cm->file, cgEditor.materials, -1, cgEditor.materialLights);
+  cgameEditor.materialLights = $(alloc(Vector), initWithSize, sizeof(MaterialLight));
+  cgi.MaterialLights(bsp->collision->file, cgameEditor.materials, -1, cgameEditor.materialLights);
 }
 
 /**
@@ -196,16 +196,16 @@ static void Cg_LoadEditorMaterialLights(void) {
  */
 static void Cg_FreeEditorMaterialLights(void) {
 
-  cgEditor.materialLights = release(cgEditor.materialLights);
+  cgameEditor.materialLights = release(cgameEditor.materialLights);
 
-  if (cgEditor.materials) {
-    cgi.Free(cgEditor.materials);
-    cgEditor.materials = NULL;
+  if (cgameEditor.materials) {
+    cgi.Free(cgameEditor.materials);
+    cgameEditor.materials = NULL;
   }
 
-  if (cgEditor.materialLightColors) {
-    cgi.Free(cgEditor.materialLightColors);
-    cgEditor.materialLightColors = NULL;
+  if (cgameEditor.materialLightColors) {
+    cgi.Free(cgameEditor.materialLightColors);
+    cgameEditor.materialLightColors = NULL;
   }
 }
 
@@ -213,31 +213,31 @@ static void Cg_FreeEditorMaterialLights(void) {
  * @brief Places the material light previews of the given material again, after an edit to its
  * light stage, and resets its default color.
  */
-void Cg_UpdateEditorMaterialLights(const CmMaterial *material) {
+void Cg_UpdateEditorMaterialLights(const Material *material) {
 
-  if (!cgEditor.materialLights) {
+  if (!cgameEditor.materialLights) {
     return;
   }
 
-  Vector *lights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
+  Vector *lights = $(alloc(Vector), initWithSize, sizeof(MaterialLight));
 
-  for (size_t i = 0; i < cgEditor.materialLights->count; i++) {
-    const CmMaterialLight *l = VectorElement(cgEditor.materialLights, CmMaterialLight, i);
-    if (cgEditor.materials[l->material] != material) {
+  for (size_t i = 0; i < cgameEditor.materialLights->count; i++) {
+    const MaterialLight *l = VectorElement(cgameEditor.materialLights, MaterialLight, i);
+    if (cgameEditor.materials[l->material] != material) {
       $(lights, add, (ident) l);
     }
   }
 
   const RenderBspModel *bsp = cgi.WorldModel()->bsp;
   for (int32_t i = 0; i < bsp->numMaterials; i++) {
-    if (cgEditor.materials[i] == material) {
-      cgEditor.materialLightColors[i] = Vec3_Zero();
-      cgi.MaterialLights(bsp->cm->file, cgEditor.materials, i, lights);
+    if (cgameEditor.materials[i] == material) {
+      cgameEditor.materialLightColors[i] = Vec3_Zero();
+      cgi.MaterialLights(bsp->collision->file, cgameEditor.materials, i, lights);
     }
   }
 
-  release(cgEditor.materialLights);
-  cgEditor.materialLights = lights;
+  release(cgameEditor.materialLights);
+  cgameEditor.materialLights = lights;
 }
 
 /**
@@ -246,14 +246,14 @@ void Cg_UpdateEditorMaterialLights(const CmMaterial *material) {
  */
 void Cg_ReloadEditorMaterialStages(RenderMaterial *material) {
 
-  material->cm->dirty = true;
+  material->def->dirty = true;
 
   cgi.ReloadMaterialStages(material);
 
   Cg_FreeFlares();
   Cg_LoadFlares();
 
-  Cg_UpdateEditorMaterialLights(material->cm);
+  Cg_UpdateEditorMaterialLights(material->def);
 }
 
 /**
@@ -312,7 +312,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
     didPrintHelp = true;
   }
 
-  CGameEditorEntity *edit = cgEditor.entities;
+  CGameEditorEntity *edit = cgameEditor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (!edit->def) {
@@ -320,23 +320,23 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
     }
 
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
-    if (!q_strcmp(classname, "func_group") && !cgEditor.showFuncGroups) {
+    if (!Str_Compare(classname, "func_group") && !cgameEditor.showFuncGroups) {
       continue;
     }
 
     const ClientEntity *ent = edit->ent;
 
-    Vec4 debugColor = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
-    Vec4 modelColor = color_white.vec4;
+    Vec4 debugColor = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : COLOR_RGB_WHITE.vec4;
+    Vec4 modelColor = COLOR_RGB_WHITE.vec4;
 
-    if (!q_strcmp(classname, "light")) {
+    if (!Str_Compare(classname, "light")) {
       modelColor = Cg_AddEditorEntity_Light(edit);
       debugColor = modelColor;
     } else {
 
       // check for a client-side entity like misc_flame
 
-      CGameEntity *misc = &cgEditor.entities[i].misc;
+      CGameEntity *misc = &cgameEditor.entities[i].misc;
       if (misc->clazz) {
         if (misc->nextThink <= cgi.client->unclampedTime) {
           misc->clazz->Think(misc);
@@ -347,7 +347,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       }
     }
 
-    const bool isSelected = cgEditor.selected == edit->number;
+    const bool isSelected = cgameEditor.selected == edit->number;
 
     if (edit->brushes) {
       const RenderEntity *e = cgi.AddEntity(cgi.view, &(const RenderEntity) {
@@ -362,10 +362,10 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
         .model = edit->model
       });
 
-      if (isSelected || q_strcmp(classname, "worldspawn")) {
-        const Color color = isSelected ? color_red : Color4fv(debugColor);
+      if (isSelected || Str_Compare(classname, "worldspawn")) {
+        const Color color = isSelected ? COLOR_RGB_RED : Color4fv(debugColor);
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
-          const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
+          const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
           Cg_DrawEditorBrush(brush->bounds, e->matrix, color);
         }
       }
@@ -384,14 +384,14 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       });
 
       if (isSelected) {
-        cgi.Draw3DBox(Box3_Expand(ent->absBounds, 2.f), color_red, true);
+        cgi.Draw3DBox(Box3_Expand(ent->absBounds, 2.f), COLOR_RGB_RED, true);
 
         if (edit->model && IS_MESH_MODEL(edit->model)) {
           const RenderMeshConfig *view = &edit->model->mesh->config.view;
           if (!Vec3_Equal(Vec3_Zero(), view->muzzle)) {
             const Vec3 muzzle = Mat4_Transform(e->matrix, view->muzzle);
             Cg_AddSprite(&(CGameSprite) {
-              .animation = cgSpriteImpactSpark01,
+              .animation = cgameMedia.sprites.impactSpark01,
               .origin = muzzle,
               .size = 30.f,
               .color = MakeVec3(1.f, .9f, .7f),
@@ -403,17 +403,17 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
       }
     }
 
-    if (isSelected && q_strcmp(classname, "worldspawn")) {
+    if (isSelected && Str_Compare(classname, "worldspawn")) {
       Vec3 points[2] = { ent->origin };
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(1.f, 0.f, 0.f));
-      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_red, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, COLOR_RGB_RED, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(0.f, 1.f, 0.f));
-      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_green, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, COLOR_RGB_GREEN, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, MakeVec3(0.f, 0.f, 1.f));
-      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_blue, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, COLOR_RGB_BLUE, true);
     }
   }
 
@@ -432,7 +432,7 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
  */
 static void Cg_InitEditorEntity(int16_t number) {
 
-  CGameEditorEntity *edit = &cgEditor.entities[number];
+  CGameEditorEntity *edit = &cgameEditor.entities[number];
 
   edit->number = number;
   edit->ent = &cgi.client->entities[number];
@@ -441,13 +441,13 @@ static void Cg_InitEditorEntity(int16_t number) {
   edit->def = cgi.EntityFromInfoString(info);
 
   const char *mod = cgi.EntityValue(edit->def, "model")->string;
-  if (q_strlen(mod)) {
+  if (Str_Length(mod)) {
     edit->model = cgi.LoadModel(mod);
   } else {
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
-    for (size_t i = 0; i < bgNumItems; i++) {
-      if (!q_strcmp(bgItemDefs[i].classname, classname)) {
-        edit->model = cgi.LoadModel(bgItemDefs[i].model);
+    for (size_t i = 0; i < gameNumItems; i++) {
+      if (!Str_Compare(gameItemDefs[i].classname, classname)) {
+        edit->model = cgi.LoadModel(gameItemDefs[i].model);
         break;
       }
     }
@@ -463,9 +463,9 @@ static void Cg_InitEditorEntity(int16_t number) {
   const char *classname = cgi.EntityValue(edit->def, "classname")->string;
 
   const CGameEntityClass *clazz = NULL;
-  for (size_t j = 0; j < cgNumEntityClasses; j++) {
-    if (!q_strcmp(classname, cgEntityClasses[j]->classname)) {
-      clazz = cgEntityClasses[j];
+  for (size_t j = 0; j < cgameNumEntityClasses; j++) {
+    if (!Str_Compare(classname, cgameEntityClasses[j]->classname)) {
+      clazz = cgameEntityClasses[j];
       break;
     }
   }
@@ -488,15 +488,15 @@ static void Cg_InitEditorEntity(int16_t number) {
 }
 
 /**
- * @brief Frees the numbered `cgEditor.entities` slot.
+ * @brief Frees the numbered `cgameEditor.entities` slot.
  */
 static void Cg_FreeEditorEntity(int16_t number) {
 
-  if (cgEditor.selected == number) {
-    cgEditor.selected = -1;
+  if (cgameEditor.selected == number) {
+    cgameEditor.selected = -1;
   }
 
-  CGameEditorEntity *edit = &cgEditor.entities[number];
+  CGameEditorEntity *edit = &cgameEditor.entities[number];
 
   cgi.FreeEntity(edit->def);
 
@@ -519,7 +519,7 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
 
   Cg_FreeEditorEntity(number);
 
-  if (*cgi.state == CL_ACTIVE && q_strlen(info)) {
+  if (*cgi.state == CL_ACTIVE && Str_Length(info)) {
     Cg_InitEditorEntity(number);
   }
 
@@ -560,9 +560,9 @@ void Cg_FreeEditorEntities(void) {
     Cg_FreeEditorEntity(i);
   }
 
-  memset(cgEditor.entities, 0, sizeof(cgEditor.entities));
+  memset(cgameEditor.entities, 0, sizeof(cgameEditor.entities));
 
-  cgEditor.selected = -1;
+  cgameEditor.selected = -1;
 
   Cg_FreeEditorMaterialLights();
 }
@@ -580,15 +580,15 @@ size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t ou
   float fractions[CG_EDITOR_MAX_CANDIDATES];
   size_t count = 0;
 
-  CGameEditorEntity *edit = cgEditor.entities + 1;
+  CGameEditorEntity *edit = cgameEditor.entities + 1;
   for (int32_t i = 1; i < MAX_ENTITIES; i++, edit++) {
 
     if (edit->def == NULL) {
       continue;
     }
 
-    if (!cgEditor.showFuncGroups) {
-      if (!q_strcmp(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
+    if (!cgameEditor.showFuncGroups) {
+      if (!Str_Compare(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
         continue;
       }
     }
@@ -602,9 +602,9 @@ size_t Cg_EntitySelectionCandidates(const Vec3 start, const Vec3 end, int16_t ou
       const Vec3 modelEnd = Mat4_Transform(inverse, end);
 
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
+        const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
 
-        const CmTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
+        const CollisionTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
 
         if (tr.startSolid || tr.fraction >= fraction) {
           continue;
@@ -654,7 +654,7 @@ CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
     }
   };
 
-  CGameEditorEntity *edit = cgEditor.entities;
+  CGameEditorEntity *edit = cgameEditor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (edit->def == NULL) {
@@ -668,9 +668,9 @@ CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
       const Vec3 modelEnd = Mat4_Transform(inverse, end);
 
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const CmBspBrush *brush = VectorValue(edit->brushes, CmBspBrush *, j);
+        const CollisionBrush *brush = VectorValue(edit->brushes, CollisionBrush *, j);
 
-        const CmTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
+        const CollisionTrace tr = cgi.TraceToBrush(modelStart, modelEnd, brush);
 
         if (tr.startSolid || tr.fraction >= out.trace.fraction) {
           continue;
@@ -694,10 +694,10 @@ CGameEditorTrace Cg_MaterialSelectionTrace(const Vec3 start, const Vec3 end) {
       for (int32_t j = 0; j < mesh->numFaces; j++) {
         if (mesh->faces[j].material) {
           out.ent = edit;
-          out.trace = (CmTrace) {
+          out.trace = (CollisionTrace) {
             .fraction = frac,
             .end = Vec3_Mix(start, end, frac),
-            .material = mesh->faces[j].material->cm,
+            .material = mesh->faces[j].material->def,
           };
           break;
         }

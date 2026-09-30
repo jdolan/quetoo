@@ -21,7 +21,7 @@
 
 #include "tests.h"
 
-#include "collision/cm_entity.h"
+#include "collision/entity.h"
 #include "game/race/g_race.h"
 
 /**
@@ -38,7 +38,7 @@
 
 Quetoo quetoo;
 GameImport gi;
-GameLevel g_level;
+GameLevel gameLevel;
 
 static GameRaceMode testRaceMode = RACE_MODE_RACE;
 
@@ -74,9 +74,9 @@ static char testCsRaceGhost[MAX_STRING_CHARS];
 static void Test_SetConfigString(const int32_t index, const char *string) {
 
   if (index == CS_RACE_RECORDS) {
-    q_strlcpy(testCsRaceRecords, string, sizeof(testCsRaceRecords));
+    Str_Copy(testCsRaceRecords, string, sizeof(testCsRaceRecords));
   } else if (index == CS_RACE_GHOST) {
-    q_strlcpy(testCsRaceGhost, string, sizeof(testCsRaceGhost));
+    Str_Copy(testCsRaceGhost, string, sizeof(testCsRaceGhost));
   }
 }
 
@@ -141,9 +141,9 @@ void setup(void) {
   gi.LoadFile = Fs_Load;
   gi.FreeFile = Fs_Free;
 
-  gi.EntityValue = Cm_EntityValue;
-  gi.LoadEntities = Cm_LoadEntities;
-  gi.FreeEntity = Cm_FreeEntity;
+  gi.EntityValue = Entity_Value;
+  gi.LoadEntities = Entity_LoadAll;
+  gi.FreeEntity = Entity_Free;
 
   gi.SetConfigString = Test_SetConfigString;
   gi.GetConfigString = Test_GetConfigString;
@@ -152,9 +152,9 @@ void setup(void) {
   gi.Debug = Test_Debug;
   gi.Warn = Test_Warn;
 
-  memset(&g_level, 0, sizeof(g_level));
-  q_strlcpy(g_level.name, "checkrace", sizeof(g_level.name));
-  g_level.movement = PM_MOVEMENT_RACE;
+  memset(&gameLevel, 0, sizeof(gameLevel));
+  Str_Copy(gameLevel.name, "checkrace", sizeof(gameLevel.name));
+  gameLevel.movement = PM_MOVEMENT_RACE;
 
   memset(testCsRaceRecords, 0, sizeof(testCsRaceRecords));
   memset(testCsRaceGhost, 0, sizeof(testCsRaceGhost));
@@ -171,8 +171,8 @@ void setup(void) {
  */
 void teardown(void) {
 
-  gi.Free(g_level.raceRecords);
-  gi.Free(g_level.raceLine.samples);
+  gi.Free(gameLevel.raceRecords);
+  gi.Free(gameLevel.raceLine.samples);
 
   Fs_Shutdown();
 
@@ -187,8 +187,8 @@ static void Test_FinishRun(GameClient *cl, const char *guid, const char *name, u
   GameRaceRun *run = &cl->raceRun;
   memset(run, 0, sizeof(*run));
 
-  q_strlcpy(cl->persistent.guid, guid, sizeof(cl->persistent.guid));
-  q_strlcpy(cl->persistent.netName, name, sizeof(cl->persistent.netName));
+  Str_Copy(cl->persistent.guid, guid, sizeof(cl->persistent.guid));
+  Str_Copy(cl->persistent.netName, name, sizeof(cl->persistent.netName));
 
   // a real run has real params behind it, not the zeroed struct a fresh fixture starts with
   cl->ps.pmState.params = *Pm_Movement(PM_MOVEMENT_RACE)->params;
@@ -216,20 +216,20 @@ START_TEST(check_G_Race_Records_RoundTrip) {
   Test_FinishRun(&testClient, "guid-alice", "Alice", 83412);
 
   ck_assert(G_Race_SubmitRecord(&testClient));
-  ck_assert_uint_eq(g_level.raceRecordCount, 1);
+  ck_assert_uint_eq(gameLevel.raceRecordCount, 1);
 
   const uint32_t params = G_Race_Record("guid-alice", PM_MOVEMENT_RACE)->params;
   ck_assert_uint_ne(params, 0); // the fixture's params are not the zeroed struct's hash
 
   // forget everything in memory, and what was published, and reload from what was just written
-  gi.Free(g_level.raceRecords);
-  memset(&g_level.raceRecords, 0, sizeof(g_level.raceRecords));
-  g_level.raceRecordCount = g_level.raceRecordCapacity = 0;
+  gi.Free(gameLevel.raceRecords);
+  memset(&gameLevel.raceRecords, 0, sizeof(gameLevel.raceRecords));
+  gameLevel.raceRecordCount = gameLevel.raceRecordCapacity = 0;
   memset(testCsRaceRecords, 0, sizeof(testCsRaceRecords));
 
   G_Race_LoadRecords();
 
-  ck_assert_uint_eq(g_level.raceRecordCount, 1);
+  ck_assert_uint_eq(gameLevel.raceRecordCount, 1);
 
   const GameRaceRecord *record = G_Race_Record("guid-alice", PM_MOVEMENT_RACE);
   ck_assert_ptr_nonnull(record);
@@ -246,7 +246,7 @@ START_TEST(check_G_Race_Records_RoundTrip) {
   ck_assert_float_eq_tol(record->topSpeed, 900.f, 1.f);
   ck_assert_float_eq_tol(record->averageSpeed, 640.f, 1.f);
 
-  ck_assert(q_strlen(testCsRaceRecords) > 0);
+  ck_assert(Str_Length(testCsRaceRecords) > 0);
 
 } END_TEST
 
@@ -268,7 +268,7 @@ START_TEST(check_G_Race_Records_KeepsBestOnly) {
   record = G_Race_Record("guid-bob", PM_MOVEMENT_RACE);
   ck_assert_ptr_nonnull(record);
   ck_assert_uint_eq(record->time, 80000);
-  ck_assert_uint_eq(g_level.raceRecordCount, 1); // one record per client, not one per run
+  ck_assert_uint_eq(gameLevel.raceRecordCount, 1); // one record per client, not one per run
 
 } END_TEST
 
@@ -284,12 +284,12 @@ START_TEST(check_G_Race_Records_MalformedSkipped) {
     "  \"movement\" \"race\"\n"
     "}\n";
 
-  gi.WriteFile(file, malformed, 1, q_strlen(malformed));
+  gi.WriteFile(file, malformed, 1, Str_Length(malformed));
   gi.CloseFile(file);
 
   G_Race_LoadRecords();
 
-  ck_assert_uint_eq(g_level.raceRecordCount, 0);
+  ck_assert_uint_eq(gameLevel.raceRecordCount, 0);
   ck_assert_ptr_null(G_Race_Record("guid-nobody", PM_MOVEMENT_RACE));
 
 } END_TEST
@@ -299,7 +299,7 @@ START_TEST(check_G_Race_Line_RoundTrip) {
   G_Race_BeginLine(&testClient);
 
   for (uint32_t time = 0; time <= 200; time += 100) {
-    g_level.time = time;
+    gameLevel.time = time;
     testEntity.s.origin = MakeVec3((float) time, (float) time * 2.f, 0.f);
     testEntity.s.angles = MakeVec3(0.f, (float) time, 0.f);
     testEntity.s.animation1 = 1;
@@ -311,13 +311,13 @@ START_TEST(check_G_Race_Line_RoundTrip) {
 
   G_Race_KeepLine(&testClient);
 
-  // G_Race_KeepLine reloaded g_level.raceLine from disk, since the movement matches
-  ck_assert_uint_eq(g_level.raceLine.count, 3);
-  ck_assert_str_eq(g_level.raceLineHolder, "Carol");
-  ck_assert_uint_eq(g_level.raceLineTime, 200);
+  // G_Race_KeepLine reloaded gameLevel.raceLine from disk, since the movement matches
+  ck_assert_uint_eq(gameLevel.raceLine.count, 3);
+  ck_assert_str_eq(gameLevel.raceLineHolder, "Carol");
+  ck_assert_uint_eq(gameLevel.raceLineTime, 200);
 
-  for (size_t i = 0; i < g_level.raceLine.count; i++) {
-    const GameRaceSample *sample = &g_level.raceLine.samples[i];
+  for (size_t i = 0; i < gameLevel.raceLine.count; i++) {
+    const GameRaceSample *sample = &gameLevel.raceLine.samples[i];
     const uint32_t expectedTime = (uint32_t) i * 100;
 
     ck_assert_uint_eq(sample->time, expectedTime);
@@ -327,7 +327,7 @@ START_TEST(check_G_Race_Line_RoundTrip) {
     ck_assert_uint_eq(sample->animation2, 2);
   }
 
-  ck_assert(q_strlen(testCsRaceGhost) > 0);
+  ck_assert(Str_Length(testCsRaceGhost) > 0);
 
 } END_TEST
 
@@ -335,18 +335,18 @@ START_TEST(check_G_Race_Line_BspMismatchRejected) {
 
   G_Race_BeginLine(&testClient);
 
-  g_level.time = 0;
+  gameLevel.time = 0;
   testEntity.s.origin = Vec3_Zero();
   G_Race_SampleLine(&testClient);
 
-  g_level.time = 100;
+  gameLevel.time = 100;
   testEntity.s.origin = MakeVec3(10.f, 0.f, 0.f);
   G_Race_SampleLine(&testClient);
 
   Test_FinishRun(&testClient, "guid-dan", "Dan", 100);
   G_Race_KeepLine(&testClient);
 
-  ck_assert_uint_gt(g_level.raceLine.count, 0);
+  ck_assert_uint_gt(gameLevel.raceLine.count, 0);
 
   // a rebuild of the map changes the hash the ghost was tied to
   File *file = gi.OpenFileWrite("records/checkrace-race.ghost");
@@ -362,13 +362,13 @@ START_TEST(check_G_Race_Line_BspMismatchRejected) {
     "0 0.00 0.00 0.00 0.0 0.0 0.0 0 0\n"
     "100 10.00 0.00 0.00 0.0 0.0 0.0 0 0\n";
 
-  gi.WriteFile(file, rebuilt, 1, q_strlen(rebuilt));
+  gi.WriteFile(file, rebuilt, 1, Str_Length(rebuilt));
   gi.CloseFile(file);
 
   G_Race_LoadLine();
 
-  ck_assert_uint_eq(g_level.raceLine.count, 0);
-  ck_assert_uint_eq(g_level.raceLineTime, 0);
+  ck_assert_uint_eq(gameLevel.raceLine.count, 0);
+  ck_assert_uint_eq(gameLevel.raceLineTime, 0);
 
 } END_TEST
 

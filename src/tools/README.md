@@ -176,8 +176,8 @@ JPG/PNG/TGA are all accepted on input.
 ### Normalmap convention
 
 Quetoo's renderer expects **DirectX-convention** normalmaps (G channel
-points image-down). This is determined by how `Cm_Tangents`
-(`src/collision/cm_polylib.c`) builds the bitangent (`∂P/∂T`) combined
+points image-down). This is determined by how `Winding_Tangents`
+(`src/common/winding.c`) builds the bitangent (`∂P/∂T`) combined
 with Quake's V-down texture coordinates.
 
 The GUI's `Source convention` radio (DirectX / OpenGL) tells the tool how

@@ -52,18 +52,18 @@ Cvar *timeDemo;
 Cvar *timeScale;
 Cvar *version;
 
-static void Debug(const DebugFlags debug, const char *msg);
-static void Error(Err err, const char *msg) __attribute__((noreturn));
-static void Frame(const uint32_t msec);
-static void Print(const char *msg);
-static void Shutdown(const char *msg);
-static void Verbose(const char *msg);
-static void Warn(const char *msg);
+static void Main_Debug(const DebugFlags debug, const char *msg);
+static void Main_Error(Err err, const char *msg) __attribute__((noreturn));
+static void Main_Frame(const uint32_t msec);
+static void Main_Print(const char *msg);
+static void Main_Shutdown(const char *msg);
+static void Main_Verbose(const char *msg);
+static void Main_Warn(const char *msg);
 
 /**
  * @brief Console command to set or toggle active debug categories.
  */
-static void Debug_f(void) {
+static void Main_Debug_f(void) {
 
   if (Cmd_Argc() == 1) {
     Com_Print("Set or toggle debug categories.\nUsage: debug [category] ..\n");
@@ -115,7 +115,7 @@ static void Debug_f(void) {
 /**
  * @brief Prints debug output using colored escapes based on the debug category.
  */
-static void Debug(const DebugFlags debug, const char *msg) {
+static void Main_Debug(const DebugFlags debug, const char *msg) {
 
   int32_t color = ESC_COLOR_WHITE;
   switch (debug) {
@@ -145,7 +145,7 @@ static void Debug(const DebugFlags debug, const char *msg) {
       break;
   }
 
-  Print(va("^%d%s", color, msg));
+  Main_Print(va("^%d%s", color, msg));
 }
 
 static bool jmpSet = false;
@@ -154,13 +154,13 @@ static bool jmpSet = false;
  * @brief Callback for subsystem failures. Depending on the severity, we may try to
  * recover, or we may shut the entire engine down and exit.
  */
-static void Error(Err err, const char *msg) {
+static void Main_Error(Err err, const char *msg) {
 
   if (quetoo.debugMask & DEBUG_BREAKPOINT) {
     SDL_TriggerBreakpoint();
   }
 
-  Print(va("^1%s\n", msg));
+  Main_Print(va("^1%s\n", msg));
 
   if (err == ERROR_DROP && !jmpSet) {
     err = ERROR_FATAL;
@@ -177,7 +177,7 @@ static void Error(Err err, const char *msg) {
     case ERROR_FATAL:
     default:
       Sys_Raise(msg);
-      Shutdown(msg);
+      Main_Shutdown(msg);
       exit(err);
   }
 }
@@ -185,7 +185,7 @@ static void Error(Err err, const char *msg) {
 /**
  * @brief Delegates all printing to the console.
  */
-static void Print(const char *msg) {
+static void Main_Print(const char *msg) {
 
   if (consoleState.lock) {
     Con_Append(PRINT_HIGH, msg);
@@ -197,23 +197,23 @@ static void Print(const char *msg) {
 /**
  * @brief Filters verbose output to when the `verbose` cvar is set.
  */
-static void Verbose(const char *msg) {
+static void Main_Verbose(const char *msg) {
 
   if (verbose->integer) {
-    Print(msg);
+    Main_Print(msg);
   }
 }
 
 /**
  * @brief Prints the specified message with a colored accent.
  */
-static void Warn(const char *msg) {
+static void Main_Warn(const char *msg) {
 
   if (quetoo.debugMask & DEBUG_BREAKPOINT) {
     SDL_TriggerBreakpoint();
   }
 
-  Print(va("^3%s", msg));
+  Main_Print(va("^3%s", msg));
 }
 
 /**
@@ -223,10 +223,10 @@ static void Warn(const char *msg) {
  * after it. The `game` command is idempotent, so when it runs from there it finds
  * this game already current and does nothing.
  */
-static const char *StartupGame(void) {
+static const char *Main_StartupGame(void) {
 
   for (int32_t i = 1; i < Com_Argc() - 1; i++) {
-    if (!q_strcmp(Com_Argv(i), "+game")) {
+    if (!Str_Compare(Com_Argv(i), "+game")) {
 
       // a bare +game asks what the game is, and the next token is the command
       // after it rather than a name
@@ -251,7 +251,7 @@ static const char *StartupGame(void) {
  * Any game directory is accepted: one that ships no module of its own runs the
  * default game's, so there is nothing left to refuse.
  */
-static void Game_f(void) {
+static void Main_Game_f(void) {
 
   if (Cmd_Argc() < 2) {
     Com_Print("Game: ^2%s^7\n", Com_Game());
@@ -269,7 +269,7 @@ static void Game_f(void) {
 
   // the provider is part of what is current, so a game that has since gained a
   // client game of its own is still a change worth making
-  if (!q_strcmp(game, Com_Game()) && !q_strcmp(cgame ? : "", Com_Cgame())) {
+  if (!Str_Compare(game, Com_Game()) && !Str_Compare(cgame ? : "", Com_Cgame())) {
     Com_Print("Game is already ^2%s^7\n", game);
     return;
   }
@@ -294,15 +294,15 @@ static void Game_f(void) {
 /**
  * @brief Game command autocompletion.
  */
-static void Game_Autocomplete_f(const uint32_t argi, List *matches) {
+static void Main_Game_Autocomplete_f(const uint32_t argi, List *matches) {
   Fs_CompleteGame(va("%s*", Cmd_Argv(argi)), matches);
 }
 
 /**
  * @brief Console command to cleanly shut down the engine.
  */
-static void Quit_f(void) __attribute__((noreturn));
-static void Quit_f(void) {
+static void Main_Quit_f(void) __attribute__((noreturn));
+static void Main_Quit_f(void) {
   Com_Shutdown("Server quit\n");
 }
 
@@ -329,7 +329,7 @@ static const char *memTagNames[MEM_TAG_TOTAL] = {
 /**
  * @brief Console command to print a per-tag memory usage breakdown.
  */
-static void MemStats_f(void) {
+static void Main_MemStats_f(void) {
 
   Vector *stats = Mem_Stats();
 
@@ -368,7 +368,7 @@ static void MemStats_f(void) {
 /**
  * @brief Initializes all engine subsystems in dependency order.
  */
-static void Init(void) {
+static void Main_Init(void) {
 
   SDL_Init(SDL_INIT_EVENTS);
 
@@ -376,7 +376,7 @@ static void Init(void) {
 
   Cmd_Init();
 
-  Cmd_Add("comError", Com_Error_f, 0, "Trigger a test error: comError [drop|fatal]");
+  Cmd_Add("com_error", Com_Error_f, 0, "Trigger a test error: com_error [drop|fatal]");
 
   Cvar_Init();
 
@@ -385,7 +385,7 @@ static void Init(void) {
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
 
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
-  if (q_strstr(Sys_ExecutablePath(), "-dedicated")) {
+  if (Str_Find(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
   }
 
@@ -405,15 +405,15 @@ static void Init(void) {
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
-  quetoo.Debug = Debug;
-  quetoo.Error = Error;
-  quetoo.Print = Print;
-  quetoo.Verbose = Verbose;
-  quetoo.Warn = Warn;
+  quetoo.Debug = Main_Debug;
+  quetoo.Error = Main_Error;
+  quetoo.Print = Main_Print;
+  quetoo.Verbose = Main_Verbose;
+  quetoo.Warn = Main_Warn;
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
-  const char *game = StartupGame();
+  const char *game = Main_StartupGame();
 
   if (!Com_SetGame(game, Sys_LibraryDir(game, "cgame"))) {
     Com_SetGame(DEFAULT_GAME, Sys_LibraryDir(DEFAULT_GAME, "cgame"));
@@ -423,13 +423,13 @@ static void Init(void) {
 
   Con_Init();
 
-  Cmd *gameCmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
-  Cmd_SetAutocomplete(gameCmd, Game_Autocomplete_f);
-  Cmd_Add("memStats", MemStats_f, CMD_SYSTEM, "Print memory stats");
-  Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
-  Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
+  Cmd *gameCmd = Cmd_Add("game", Main_Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  Cmd_SetAutocomplete(gameCmd, Main_Game_Autocomplete_f);
+  Cmd_Add("memStats", Main_MemStats_f, CMD_SYSTEM, "Print memory stats");
+  Cmd_Add("debug", Main_Debug_f, CMD_SYSTEM, "Control debugging output");
+  Cmd_Add("quit", Main_Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
-  Netchan_Init();
+  NetChan_Init();
 
   Sv_Init();
 
@@ -471,7 +471,7 @@ static void Init(void) {
 /**
  * @brief Cleans up all game engine subsystems.
  */
-static void Shutdown(const char *msg) {
+static void Main_Shutdown(const char *msg) {
 
   Com_Print("%s", msg);
 
@@ -487,7 +487,7 @@ static void Shutdown(const char *msg) {
 
   Installer_ApplyPending();
 
-  Netchan_Shutdown();
+  NetChan_Shutdown();
 
   Thread_Shutdown();
 
@@ -511,7 +511,7 @@ static void Shutdown(const char *msg) {
 /**
  * @brief Runs one engine frame, executing queued commands and ticking all subsystems.
  */
-static void Frame(const uint32_t msec) {
+static void Main_Frame(const uint32_t msec) {
 
   Cbuf_Execute();
 
@@ -545,8 +545,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
   memset(&quetoo, 0, sizeof(quetoo));
 
-  quetoo.Init = Init;
-  quetoo.Shutdown = Shutdown;
+  quetoo.Init = Main_Init;
+  quetoo.Shutdown = Main_Shutdown;
 
   signal(SIGINT, Sys_Signal);
   signal(SIGTERM, Sys_Signal);
@@ -567,27 +567,27 @@ int32_t main(int32_t argc, char *argv[]) {
     HKEY key;
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL) == ERROR_SUCCESS) {
-      const char *url_proto = "URL:Quetoo Protocol";
-      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) q_strlen(url_proto) + 1);
+      const char *urlProto = "URL:Quetoo Protocol";
+      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) urlProto, (DWORD) Str_Length(urlProto) + 1);
       RegSetValueEx(key, "URL Protocol", 0, REG_SZ, (const BYTE *) "", 1);
       RegCloseKey(key);
     }
 
-    HKEY cmd_key;
+    HKEY cmdKey;
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
-                       REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
+                       REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmdKey, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
-      q_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exePath);
-      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) q_strlen(cmd) + 1);
-      RegCloseKey(cmd_key);
+      Str_Format(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exePath);
+      RegSetValueEx(cmdKey, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) Str_Length(cmd) + 1);
+      RegCloseKey(cmdKey);
     }
   }
 #endif
 
   // Handle quetoo:// URI scheme launch (Linux / Windows pass the URL as argv).
   for (int32_t i = 1; i < argc; i++) {
-    if (!q_strncmp(argv[i], "quetoo://", 9)) {
-      Cbuf_AddText(va("connect %s\n", argv[i] + q_strlen("quetoo://")));
+    if (!Str_CompareN(argv[i], "quetoo://", 9)) {
+      Cbuf_AddText(va("connect %s\n", argv[i] + Str_Length("quetoo://")));
       break;
     }
   }
@@ -601,8 +601,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
   while (true) { // this is our main loop
 
-    if (sys_signal_received) {
-      Com_Shutdown("Received signal %d, quitting...\n", sys_signal_received);
+    if (sysSignalReceived) {
+      Com_Shutdown("Received signal %d, quitting...\n", sysSignalReceived);
     }
 
     if (setjmp(env)) { // an ERROR_DROP was thrown
@@ -620,7 +620,7 @@ int32_t main(int32_t argc, char *argv[]) {
       msec = (quetoo.ticks - oldTime) * timeScale->value;
     } while (msec < 1);
 
-    Frame(msec);
+    Main_Frame(msec);
 
     oldTime = quetoo.ticks;
   }

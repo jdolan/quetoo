@@ -27,7 +27,6 @@
 #include "thread.h"
 
 typedef struct {
-
   /**
    * @brief The lock governing global thread pool access.
    */
@@ -54,7 +53,7 @@ static WorkerThreadPool threadPool;
 /**
  * @brief A sentinel thread function to indicate thread termination.
  */
-static ThreadRunFunc ThreadTerminate = (ThreadRunFunc) &ThreadTerminate;
+static ThreadRun threadTerminate = (ThreadRun) &threadTerminate;
 
 /**
  * @brief The main thread ID.
@@ -74,7 +73,7 @@ static int32_t Thread_Run(void *data) {
 
   threadId = SDL_GetCurrentThreadID();
 
-  while (t->Run != ThreadTerminate) {
+  while (t->Run != threadTerminate) {
 
     SDL_LockMutex(t->mutex);
 
@@ -134,7 +133,7 @@ static void Thread_Shutdown_(void) {
 
     for (size_t i = 0; i < threadPool.numThreads; i++, t++) {
       Thread_Wait(t);
-      t->Run = ThreadTerminate;
+      t->Run = threadTerminate;
       SDL_SignalCondition(t->cond);
       SDL_WaitThread(t->thread, NULL);
       SDL_DestroyCondition(t->cond);
@@ -149,7 +148,7 @@ static void Thread_Shutdown_(void) {
  * @brief Creates a new thread to run the specified function. Callers must use
  * `Thread_Wait` on the returned handle to release the thread when finished.
  */
-WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, WorkerThreadOptions options) {
+WorkerThread *Thread_Create_(const char *name, ThreadRun run, void *data, WorkerThreadOptions options) {
 
   // if threads are available, find an idle one and dispatch it
   if (threadPool.numThreads) {
@@ -168,7 +167,7 @@ WorkerThread *Thread_Create_(const char *name, ThreadRunFunc run, void *data, Wo
           t->status = THREAD_RUNNING;
           t->options = options;
 
-          q_strlcpy(t->name, name, sizeof(t->name));
+          Str_Copy(t->name, name, sizeof(t->name));
 
           t->Run = run;
           t->data = data;

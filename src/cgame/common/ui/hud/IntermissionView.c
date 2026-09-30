@@ -69,7 +69,7 @@ static Image *thumbnail(const char *map) {
   release(mapshots);
 
   if (image == NULL) {
-    image = Cg_LoadImage(va("ui/backgrounds/%u", (uint32_t) (q_strlen(map) % 6)));
+    image = Cg_LoadImage(va("ui/backgrounds/%u", (uint32_t) (Str_Length(map) % 6)));
   }
 
   return image;
@@ -80,7 +80,7 @@ static Image *thumbnail(const char *map) {
  */
 static void addMap(IntermissionView *self, int32_t index) {
 
-  const CGameNextMapState *nextMap = &cgState.nextMap;
+  const CGameNextMapState *nextMap = &cgameState.nextMap;
 
   StackView *tile = $(alloc(StackView), initWithFrame, NULL);
   assert(tile);
@@ -134,7 +134,7 @@ static void rebuild(IntermissionView *self) {
 
   memset(self->votes, 0, sizeof(self->votes));
 
-  for (int32_t i = 0; i < cgState.nextMap.numMaps; i++) {
+  for (int32_t i = 0; i < cgameState.nextMap.numMaps; i++) {
     addMap(self, i);
   }
 }
@@ -173,7 +173,7 @@ static void updateBindings(View *self, ident data) {
 
   IntermissionView *this = (IntermissionView *) self;
 
-  const CGameNextMapState *nextMap = &cgState.nextMap;
+  const CGameNextMapState *nextMap = &cgameState.nextMap;
 
   if (data) {
 
@@ -192,7 +192,7 @@ static void updateBindings(View *self, ident data) {
 
     // the server publishes the intermission's clock here once the match clock stops
     const char *time = cgi.ConfigString(CS_TIME);
-    if (!q_strncmp(time, "^7", 2)) {
+    if (!Str_CompareN(time, "^7", 2)) {
       time += 2;
     }
 

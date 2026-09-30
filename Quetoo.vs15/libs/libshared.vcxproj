@@ -35,7 +35,7 @@
     <ClCompile Include="..\..\src\shared\md5.c" />
     <ClCompile Include="..\..\src\shared\parse.c" />
     <ClCompile Include="..\..\src\shared\qstring.c" />
-    <ClCompile Include="..\..\src\shared\shared-anorms.c" />
+    <ClCompile Include="..\..\src\shared\shared_anorms.c" />
     <ClCompile Include="..\..\src\shared\shared.c" />
     <ClCompile Include="..\..\src\shared\swap.c" />
   </ItemGroup>

@@ -33,7 +33,7 @@ static void Sv_Heartbeat_f(void) {
 }
 
 /**
- * @brief Sets `svClient` and `svPlayer` to the player identified by `Cmd_Argv(1)`.
+ * @brief Sets `serverClient` and `serverPlayer` to the player identified by `Cmd_Argv(1)`.
  */
 static bool Sv_SetPlayer(void) {
   ServerClient *cl;
@@ -53,8 +53,8 @@ static bool Sv_SetPlayer(void) {
       return false;
     }
 
-    svClient = &svs.clients[num];
-    if (!svClient->state) {
+    serverClient = &svs.clients[num];
+    if (!serverClient->state) {
       Com_Print("Client %i is not active\n", num);
       return false;
     }
@@ -68,8 +68,8 @@ static bool Sv_SetPlayer(void) {
       continue;
     }
 
-    if (!q_strcmp(cl->name, s)) {
-      svClient = cl;
+    if (!Str_Compare(cl->name, s)) {
+      serverClient = cl;
       return true;
     }
   }
@@ -137,9 +137,9 @@ static void Sv_Map_f(void) {
  */
 void Sv_NextMap_f(void) {
 
-  const CmEntity *mapListEntry = Sv_NextMap();
+  const Entity *mapListEntry = Sv_NextMap();
   if (mapListEntry) {
-    const char *name = Cm_EntityValue(mapListEntry, "name")->string;
+    const char *name = Entity_Value(mapListEntry, "name")->string;
     Sv_InitServer(name, mapListEntry, SV_ACTIVE_GAME);
   } else if (*sv.name && svs.state == SV_ACTIVE_GAME) {
     Sv_InitServer(sv.name, NULL, SV_ACTIVE_GAME);
@@ -167,7 +167,7 @@ static void Sv_Kick_f(void) {
     return;
   }
 
-  Sv_KickClient(svClient, NULL);
+  Sv_KickClient(serverClient, NULL);
 }
 
 /**
@@ -194,7 +194,7 @@ static void Sv_Status_f(void) {
     const uint32_t ping = Mini(cl->ping, 9999);
 
     char status[MAX_STRING_CHARS];
-    q_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
+    Str_Format(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
                i,
                ping,
                cl->name,
@@ -239,16 +239,16 @@ static void Sv_Say_f(void) {
     return;
   }
 
-  q_strcolorstrip(Cmd_Args(), text);
-  if (!q_strlen(text)) {
+  Str_StripColors(Cmd_Args(), text);
+  if (!Str_Length(text)) {
     return;
   }
 
-  q_strlcpy(text, Cmd_Args(), sizeof(text));
+  Str_Copy(text, Cmd_Args(), sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
-    s[q_strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[Str_Length(s) - 1] == '"') {
+    s[Str_Length(s) - 1] = '\0';
     s++;
   }
 
@@ -280,25 +280,25 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  const char *msg = Cmd_Args() + q_strlen(Cmd_Argv(1)) + 1;
-  q_strcolorstrip(msg, text);
-  if (!q_strlen(text)) {
+  const char *msg = Cmd_Args() + Str_Length(Cmd_Argv(1)) + 1;
+  Str_StripColors(msg, text);
+  if (!Str_Length(text)) {
     return;
   }
 
-  q_strlcpy(text, msg, sizeof(text));
+  Str_Copy(text, msg, sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
-    s[q_strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[Str_Length(s) - 1] == '"') {
+    s[Str_Length(s) - 1] = '\0';
     s++;
   }
 
-  if (svClient->state != SV_CLIENT_ACTIVE) {
+  if (serverClient->state != SV_CLIENT_ACTIVE) {
     return;
   }
 
-  const GameClient *cl = svClient->gclient;
+  const GameClient *cl = serverClient->gclient;
   Sv_ClientPrint(cl, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
   Com_Print("^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
 }
@@ -336,7 +336,7 @@ static void Sv_UserInfo_f(void) {
     return;
   }
 
-  Com_PrintInfo(svClient->userInfo);
+  Com_PrintInfo(serverClient->userInfo);
 }
 
 /**
@@ -355,18 +355,18 @@ static void Sv_Stuff_f(void) {
     return;
   }
 
-  if (svClient->state != SV_CLIENT_ACTIVE) {
+  if (serverClient->state != SV_CLIENT_ACTIVE) {
     return;
   }
 
   strcpy(text, Cmd_Argv(2));
   for (i = 3; i <= Cmd_Argc(); i++) {
-    q_strlcat(text, " ", sizeof(text));
-    q_strlcat(text, Cmd_Argv(i), sizeof(text));
+    Str_Append(text, " ", sizeof(text));
+    Str_Append(text, Cmd_Argv(i), sizeof(text));
   }
 
-  Net_WriteByte(&svClient->netChan.message, SV_CMD_CBUF_TEXT);
-  Net_WriteString(&svClient->netChan.message, va("%s\n", text));
+  Net_WriteByte(&serverClient->netChan.message, SV_CMD_CBUF_TEXT);
+  Net_WriteString(&serverClient->netChan.message, va("%s\n", text));
 }
 
 /**

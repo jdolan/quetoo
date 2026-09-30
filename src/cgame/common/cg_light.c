@@ -25,7 +25,6 @@
  * @brief Dynamic light source accounting structure.
  */
 static struct {
-
   /**
    * @brief The allocated lights.
    */
@@ -105,7 +104,7 @@ void Cg_AddLight(const CGameLight *in) {
 float Cg_AnimateLight(float intensity, const char *style, float drift) {
 
   if (style && *style) {
-    const size_t len = q_strlen(style);
+    const size_t len = Str_Length(style);
     const uint32_t phaseOffset = (uint32_t)(drift * len * 100);
     const uint32_t time = cgi.client->unclampedTime + phaseOffset;
     const uint32_t styleIndex = (time / 100) % len;
@@ -126,7 +125,7 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
  * @brief Returns the intensity of a stage light, scaled by the stage pulse with the same formula
  * as the material shaders, so that the light and the glow stay in phase.
  */
-float Cg_AnimateStageLight(const CmStage *stage) {
+float Cg_AnimateStageLight(const MaterialStage *stage) {
 
   float intensity = stage->light.intensity;
 
@@ -145,7 +144,7 @@ float Cg_AnimateStageLight(const CmStage *stage) {
 static int32_t Cg_ResolveBspModel(const char *model) {
 
   for (int32_t i = 1; i < MAX_MODELS; i++) {
-    if (!q_strcmp(cgi.client->configStrings[CS_MODELS + i], model)) {
+    if (!Str_Compare(cgi.client->configStrings[CS_MODELS + i], model)) {
       return i;
     }
   }
@@ -170,7 +169,7 @@ static void Cg_AddBspLights(void) {
 
     float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
-    const CmStage *stage = l->material ? cgi.MaterialLightStage(l->material->cm) : NULL;
+    const MaterialStage *stage = l->material ? cgi.MaterialLightStage(l->material->def) : NULL;
     if (stage) {
       intensity = Cg_AnimateStageLight(stage);
     }

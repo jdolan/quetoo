@@ -24,4 +24,4 @@
 #include "map.h"
 
 int32_t FindTexture(const char *name);
-void TextureVectorsForBrushSide(BrushSide *side, const Vec3 origin);
+void TextureVectorsForBrushSide(MapBrushSide *side, const Vec3 origin);

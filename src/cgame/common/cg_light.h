@@ -29,7 +29,6 @@
  * @brief Light sources that optionally persistent over multiple frames.
  */
 typedef struct {
-
   /**
    * @brief The light origin.
    */
@@ -77,7 +76,7 @@ typedef struct {
 } CGameLight;
 
 float Cg_AnimateLight(float intensity, const char *style, float drift);
-float Cg_AnimateStageLight(const CmStage *stage);
+float Cg_AnimateStageLight(const MaterialStage *stage);
 void Cg_AddLight(const CGameLight *s);
 void Cg_AddDynamicLights(void);
 void Cg_AddLights(void);

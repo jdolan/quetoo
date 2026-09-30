@@ -73,7 +73,7 @@ int64_t Fs_LastModTime(const char *filename);
 void Fs_Free(void *buffer);
 bool Fs_Rename(const char *source, const char *dest);
 bool Fs_Unlink(const char *filename);
-void Fs_Enumerate(const char *pattern, Fs_Enumerator, void *data);
+void Fs_Enumerate(const char *pattern, FsEnumerator, void *data);
 void Fs_CompleteFile(const char *pattern, List *matches);
 void Fs_CompleteGame(const char *pattern, List *matches);
 void Fs_AddToSearchPath(const char *path);

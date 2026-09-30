@@ -38,7 +38,7 @@
 static struct {
   const BspFace *face;
   int32_t drawElements;
-} portal_faces[MAX_BSP_PORTALS];
+} portalFaces[MAX_BSP_PORTALS];
 
 static int32_t numPortalFaces;
 
@@ -66,7 +66,7 @@ static int32_t numReflectElements;
  * @brief The distance of each reflection's plane, which the lump does not store: it bakes the
  * normal, and the distance follows from an origin that lies on the plane.
  */
-static float reflect_dists[MAX_BSP_REFLECTIONS];
+static float reflectDists[MAX_BSP_REFLECTIONS];
 
 static int32_t EmitDrawFaceElements(Vector *drawFaces);
 
@@ -136,9 +136,9 @@ void EmitPortals(void) {
 
   for (int32_t i = 0; i < numPortalFaces; i++) {
 
-    const BspFace *face = portal_faces[i].face;
+    const BspFace *face = portalFaces[i].face;
 
-    const BspDrawElements *draw = &bspFile.drawElements[portal_faces[i].drawElements];
+    const BspDrawElements *draw = &bspFile.drawElements[portalFaces[i].drawElements];
 
     Vec3 entryOrigin, entryForward, entryUp;
     PortalFaceFrame(face, draw, &entryOrigin, &entryForward, &entryUp);
@@ -159,10 +159,10 @@ void EmitPortals(void) {
       continue;
     }
 
-    const Entity *exit = NULL;
+    const MapEntity *exit = NULL;
     for (int32_t j = 0; j < numEntities; j++) {
       const char *targetname = ValueForKey(&entities[j], "targetname", NULL);
-      if (targetname && !q_strcmp(targetname, target)) {
+      if (targetname && !Str_Compare(targetname, target)) {
         exit = &entities[j];
         break;
       }
@@ -189,7 +189,7 @@ void EmitPortals(void) {
     // viewpoint is raised to the eye. This is Quetoo's standing eye: a server running another
     // pmove module sees the portal from a little above or below its own
     const char *classname = ValueForKey(exit, "classname", NULL);
-    if (classname && !q_strcmp(classname, "misc_teleporter_dest")) {
+    if (classname && !Str_Compare(classname, "misc_teleporter_dest")) {
       exitOrigin.z += PORTAL_DEST_VIEW_HEIGHT;
     }
 
@@ -197,7 +197,7 @@ void EmitPortals(void) {
     bspFile.numPortals++;
 
     out->brushSide = face->brushSide;
-    out->drawElements = portal_faces[i].drawElements;
+    out->drawElements = portalFaces[i].drawElements;
     out->entryOrigin = entryOrigin;
     out->entryForward = entryForward;
     out->entryUp = entryUp;
@@ -426,8 +426,8 @@ static int32_t EmitDrawFaceElements(Vector *drawFaces) {
       if (numPortalFaces == MAX_BSP_PORTALS) {
         Com_Error(ERROR_FATAL, "MAX_BSP_PORTALS\n");
       }
-      portal_faces[numPortalFaces].face = a->face;
-      portal_faces[numPortalFaces].drawElements = (int32_t) (out - bspFile.drawElements);
+      portalFaces[numPortalFaces].face = a->face;
+      portalFaces[numPortalFaces].drawElements = (int32_t) (out - bspFile.drawElements);
       numPortalFaces++;
     }
 
@@ -569,7 +569,7 @@ void EmitReflections(BspModel *mod) {
     BspReflection *out = NULL;
 
     for (int32_t j = firstReflection; j < bspFile.numReflections && out == NULL; j++) {
-      if (fabsf(reflect_dists[j] - reflect_elements[i].dist) <= ON_EPSILON &&
+      if (fabsf(reflectDists[j] - reflect_elements[i].dist) <= ON_EPSILON &&
           Vec3_Dot(bspFile.reflections[j].normal, reflect_elements[i].normal) >= 1.f - COLINEAR_EPSILON) {
         out = &bspFile.reflections[j];
       }
@@ -583,7 +583,7 @@ void EmitReflections(BspModel *mod) {
 
       out = &bspFile.reflections[bspFile.numReflections];
 
-      reflect_dists[bspFile.numReflections] = reflect_elements[i].dist;
+      reflectDists[bspFile.numReflections] = reflect_elements[i].dist;
       bspFile.numReflections++;
 
       out->model = (int32_t) (mod - bspFile.models);
@@ -604,7 +604,7 @@ void EmitReflections(BspModel *mod) {
 
     const Vec3 center = Box3_Center(out->bounds);
 
-    out->origin = Vec3_Fmaf(center, reflect_dists[i] - Vec3_Dot(center, out->normal), out->normal);
+    out->origin = Vec3_Fmaf(center, reflectDists[i] - Vec3_Dot(center, out->normal), out->normal);
   }
 
   if (bspFile.numReflections > firstReflection) {

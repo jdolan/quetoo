@@ -31,35 +31,35 @@
  * @brief ButtonDelegate for the rewind button.
  */
 static void didClickRewind(Button *button) {
-  cgi.Cbuf("demo_seek_relative -5000\n");
+  cgi.Cbuf("demoSeekRelative -5000\n");
 }
 
 /**
  * @brief ButtonDelegate for the step back button.
  */
 static void didClickStepBack(Button *button) {
-  cgi.Cbuf(va("demo_seek_relative %d\n", -QUETOO_TICK_MILLIS));
+  cgi.Cbuf(va("demoSeekRelative %d\n", -QUETOO_TICK_MILLIS));
 }
 
 /**
  * @brief ButtonDelegate for the step forward button.
  */
 static void didClickStepForward(Button *button) {
-  cgi.Cbuf(va("demo_seek_relative %d\n", QUETOO_TICK_MILLIS));
+  cgi.Cbuf(va("demoSeekRelative %d\n", QUETOO_TICK_MILLIS));
 }
 
 /**
  * @brief ButtonDelegate for the play (resume) button.
  */
 static void didClickPlay(Button *button) {
-  cgi.Cbuf("demo_pause\n");
+  cgi.Cbuf("demoPause\n");
 }
 
 /**
  * @brief ButtonDelegate for the fast-forward button.
  */
 static void didClickFastForward(Button *button) {
-  cgi.Cbuf("demo_seek_relative 5000\n");
+  cgi.Cbuf("demoSeekRelative 5000\n");
 }
 
 /**
@@ -92,25 +92,25 @@ static void respondToEvent(View *self, const SDL_Event *event) {
   switch (event->key.scancode) {
 
     case SDL_SCANCODE_LEFT:
-      cgi.Cbuf(va("demo_seek_relative %d\n", -QUETOO_TICK_MILLIS));
+      cgi.Cbuf(va("demoSeekRelative %d\n", -QUETOO_TICK_MILLIS));
       break;
     case SDL_SCANCODE_RIGHT:
-      cgi.Cbuf(va("demo_seek_relative %d\n", QUETOO_TICK_MILLIS));
+      cgi.Cbuf(va("demoSeekRelative %d\n", QUETOO_TICK_MILLIS));
       break;
 
     case SDL_SCANCODE_SPACE:
       if (!event->key.repeat) {
-        cgi.Cbuf("demo_pause\n");
+        cgi.Cbuf("demoPause\n");
       }
       break;
     case SDL_SCANCODE_COMMA:
       if (!event->key.repeat) {
-        cgi.Cbuf("demo_playbackSlower\n");
+        cgi.Cbuf("demoPlaybackSlower\n");
       }
       break;
     case SDL_SCANCODE_PERIOD:
       if (!event->key.repeat) {
-        cgi.Cbuf("demo_playbackFaster\n");
+        cgi.Cbuf("demoPlaybackFaster\n");
       }
       break;
 
@@ -196,7 +196,7 @@ static void update(DemoControlsView *self, int32_t time, int32_t duration) {
 
     const uint64_t now = SDL_GetTicks();
     if (!dragging || now - self->lastSeek >= QUETOO_TICK_MILLIS) {
-      cgi.Cbuf(va("demo_seek %d\n", self->pendingSeek));
+      cgi.Cbuf(va("demoSeek %d\n", self->pendingSeek));
       self->pendingSeek = -1;
       self->lastSeek = now;
     }

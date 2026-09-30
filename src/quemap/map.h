@@ -47,7 +47,7 @@ typedef struct Plane {
    * @brief The plane hash chain, for fast plane lookups.
    */
   struct Plane *hashChain;
-} Plane;
+} MapPlane;
 
 /**
  * @brief The map file reprensetation of a brush side.
@@ -111,7 +111,7 @@ typedef struct BrushSide {
   /**
    * @brief All brush sides will have a valid winding.
    */
-  CmWinding *winding;
+  Winding *winding;
 
   /**
    * @brief Points to the original side from which this split side was derived.
@@ -122,7 +122,7 @@ typedef struct BrushSide {
    * @brief The BSP brush side emitted from this map brush side.
    */
   BspBrushSide *out;
-} BrushSide;
+} MapBrushSide;
 
 /**
  * @brief The map file representation of a brush.
@@ -152,7 +152,7 @@ typedef struct Brush {
   /**
    * @brief The brush sides (pointer to a statically allocated global array).
    */
-  BrushSide *brushSides;
+  MapBrushSide *brushSides;
 
   /**
    * @brief The number of brush sides.
@@ -163,7 +163,7 @@ typedef struct Brush {
    * @brief The BSP brush emitted from this map brush.
    */
   BspBrush *out;
-} Brush;
+} MapBrush;
 
 /**
  * @brief Map file format.
@@ -178,20 +178,20 @@ typedef enum {
 extern MapFormat mapFormat;
 
 extern int32_t numEntities;
-extern Entity entities[MAX_BSP_ENTITIES];
+extern MapEntity entities[MAX_BSP_ENTITIES];
 
-extern Plane planes[MAX_BSP_PLANES];
+extern MapPlane planes[MAX_BSP_PLANES];
 extern int32_t numPlanes;
 
 extern int32_t numBrushes;
-extern Brush brushes[MAX_BSP_BRUSHES];
+extern MapBrush brushes[MAX_BSP_BRUSHES];
 
 extern int32_t numBrushSides;
-extern BrushSide brushSides[MAX_BSP_BRUSH_SIDES];
+extern MapBrushSide brushSides[MAX_BSP_BRUSH_SIDES];
 
 extern Box3 mapBounds;
 
 int32_t FindPlane(const Vec3 normal, double dist);
-void MakeBrushWindings(Brush *brush);
-void AddBrushBevels(Brush *b);
+void MakeBrushWindings(MapBrush *brush);
+void AddBrushBevels(MapBrush *b);
 MapFormat LoadMapFile(const char *filename);

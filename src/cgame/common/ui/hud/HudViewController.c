@@ -34,12 +34,12 @@
 
 #define HUD_DEFAULT "default"
 
-HudViewController *cgHudViewController;
+HudViewController *cgameHudViewController;
 
 AtlasImage *Cg_HudImage(const char *name) {
 
-  if (cgHudViewController) {
-    return $(cgHudViewController, image, name);
+  if (cgameHudViewController) {
+    return $(cgameHudViewController, image, name);
   }
 
   return NULL;
@@ -54,8 +54,8 @@ static void dealloc(Object *self) {
 
   HudViewController *this = (HudViewController *) self;
 
-  if (cgHudViewController == this) {
-    cgHudViewController = NULL;
+  if (cgameHudViewController == this) {
+    cgameHudViewController = NULL;
   }
 
   release(this->hud);
@@ -226,7 +226,7 @@ static const char *hudResource(const char *hud, const char *file) {
  */
 static void checkHud(const char *hud) {
 
-  if (!q_strcmp(hud, HUD_DEFAULT)) {
+  if (!Str_Compare(hud, HUD_DEFAULT)) {
     return;
   }
 
@@ -349,7 +349,7 @@ static void reload(HudViewController *self) {
   $(self->viewController.view, addSubview, (View *) self->intermission);
 
   View *hud = loadHud(cg_hud->string);
-  if (hud == NULL && q_strcmp(cg_hud->string, HUD_DEFAULT)) {
+  if (hud == NULL && Str_Compare(cg_hud->string, HUD_DEFAULT)) {
     Cg_Warn("Falling back to the %s HUD\n", HUD_DEFAULT);
     hud = loadHud(HUD_DEFAULT);
   }
@@ -429,8 +429,8 @@ static void updateEditorViews(View *view, ident data) {
 static void warm(HudViewController *self) {
 
   for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bgItemDefs[t].icon) {
-      $(self, image, bgItemDefs[t].icon);
+    if (gameItemDefs[t].icon) {
+      $(self, image, gameItemDefs[t].icon);
     }
   }
 
@@ -474,7 +474,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
-  const bool scores = ps->stats[STAT_SCORES] && !cgState.navEdit;
+  const bool scores = ps->stats[STAT_SCORES] && !cgameState.navEdit;
 
   $((View *) self->scoreboard, setVisibility,
     scores ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -485,7 +485,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The maps are published only during the intermission, so their presence is what says
   // there is one; like the scoreboard, this shows when the hud does not
-  const bool intermission = cgState.nextMap.active && !cgState.navEdit;
+  const bool intermission = cgameState.nextMap.active && !cgameState.navEdit;
 
   $((View *) self->intermission, setVisibility,
     intermission ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -513,7 +513,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
     $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
-  const bool hidden = cgState.navEdit || (!editor->integer && (!cg_drawHud->integer || !ps->stats[STAT_TIME]));
+  const bool hidden = cgameState.navEdit || (!editor->integer && (!cg_drawHud->integer || !ps->stats[STAT_TIME]));
 
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);

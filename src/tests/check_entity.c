@@ -20,7 +20,7 @@
  */
 
 #include "tests.h"
-#include "collision/cm_entity.h"
+#include "collision/entity.h"
 
 Quetoo quetoo;
 
@@ -38,22 +38,22 @@ void teardown(void) {
   Mem_Shutdown();
 }
 
-START_TEST(check_Cm_EntityToInfoString) {
+START_TEST(check_Entity_ToInfoString) {
 
-  const CmEntity entity = {
+  const Entity entity = {
     .key = "classname",
     .string = "light",
-    .next = &(CmEntity) {
+    .next = &(Entity) {
       .key = "color",
       .string = "1 1 0",
-      .next = &(CmEntity) {
+      .next = &(Entity) {
         .key = "origin",
         .string = "128 256 512"
       }
     }
   };
 
-  char *str = Cm_EntityToInfoString(&entity);
+  char *str = Entity_ToInfoString(&entity);
 
   char value[MAX_INFO_STRING_VALUE];
 
@@ -71,15 +71,15 @@ START_TEST(check_Cm_EntityToInfoString) {
 
 } END_TEST
 
-START_TEST(check_Cm_EntityFromInfoString) {
+START_TEST(check_Entity_FromInfoString) {
 
   const char *info = "classname\\light\\color\\1 1 0\\origin\\128 256 512";
 
-  CmEntity *entity = Cm_EntityFromInfoString(info);
+  Entity *entity = Entity_FromInfoString(info);
 
-  ck_assert_str_eq(Cm_EntityValue(entity, "classname")->string, "light");
-  ck_assert_str_eq(Cm_EntityValue(entity, "color")->string, "1 1 0");
-  ck_assert_str_eq(Cm_EntityValue(entity, "origin")->string, "128 256 512");
+  ck_assert_str_eq(Entity_Value(entity, "classname")->string, "light");
+  ck_assert_str_eq(Entity_Value(entity, "color")->string, "1 1 0");
+  ck_assert_str_eq(Entity_Value(entity, "origin")->string, "128 256 512");
 
   Mem_FreeTag(MEM_TAG_COLLISION);
 
@@ -92,20 +92,20 @@ int32_t main(int32_t argc, char **argv) {
 
   Test_Init(argc, argv);
 
-  Suite *suite = suite_create("check_cm_entity");
+  Suite *suite = suite_create("check_entity");
 
   {
-    TCase *tcase = tcase_create("Cm_EntityToInfoString");
+    TCase *tcase = tcase_create("Entity_ToInfoString");
     tcase_add_checked_fixture(tcase, setup, teardown);
-    tcase_add_test(tcase, check_Cm_EntityToInfoString);
+    tcase_add_test(tcase, check_Entity_ToInfoString);
 
     suite_add_tcase(suite, tcase);
   }
 
   {
-    TCase *tcase = tcase_create("Cm_EntityFromInfoString");
+    TCase *tcase = tcase_create("Entity_FromInfoString");
     tcase_add_checked_fixture(tcase, setup, teardown);
-    tcase_add_test(tcase, check_Cm_EntityFromInfoString);
+    tcase_add_test(tcase, check_Entity_FromInfoString);
 
     suite_add_tcase(suite, tcase);
   }

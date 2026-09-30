@@ -25,7 +25,7 @@
 #include "console.h"
 #include "filesystem.h"
 
-static HashTable *cvarVars;
+static HashTable *registry;
 
 bool cvarUserInfoModified;
 
@@ -36,13 +36,13 @@ static bool Cvar_InfoValidate(const char *s) {
   if (!s) {
     return false;
   }
-  if (q_strstr(s, "\\")) {
+  if (Str_Find(s, "\\")) {
     return false;
   }
-  if (q_strstr(s, "\"")) {
+  if (Str_Find(s, "\"")) {
     return false;
   }
-  if (q_strstr(s, ";")) {
+  if (Str_Find(s, ";")) {
     return false;
   }
   return true;
@@ -51,110 +51,26 @@ static bool Cvar_InfoValidate(const char *s) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-typedef struct {
-  const char *name;
-  Cvar *var;
-} CvarLegacyCtx;
+Cvar *Cvar_Get(const char *name) {
 
-/**
- * @brief Finds a variable whose name matches but for case and underscores.
- */
-static void Cvar_Legacy_enumerate(const HashTable *table, ident key, ident value, ident data) {
-  CvarLegacyCtx *ctx = data;
-
-  if (ctx->var) {
-    return;
-  }
-
-  const List *list = value;
-  for (const ListNode *node = list->head; node; node = node->next) {
-    Cvar *cvar = node->element;
-    if (q_str_ident_equal(cvar->name, ctx->name)) {
-      ctx->var = cvar;
-      return;
-    }
-  }
-}
-
-/**
- * @brief Resolves a variable, falling back to its older snake_case spelling.
- * @param legacy Set to true if `name` matched only by that fallback.
- */
-static Cvar *Cvar_Get_(const char *name, bool *legacy) {
-
-  *legacy = false;
-
-  if (cvarVars == NULL) {
-    return NULL;
-  }
-
-  const List *list = $(cvarVars, get, (void *) name);
-  if (list) {
-    if (list->count == 1) { // only 1 entry, return it
-      return list->head->element;
-    } else {
-      // only return the exact match
-      for (const ListNode *node = list->head; node; node = node->next) {
-        Cvar *cvar = node->element;
-        if (!q_strcmp(cvar->name, name)) {
-          return cvar;
+  if (registry) {
+    const List *list = $(registry, get, (void *) name);
+    if (list) {
+      if (list->count == 1) { // only 1 entry, return it
+        return list->head->element;
+      } else {
+        // only return the exact match
+        for (const ListNode *node = list->head; node; node = node->next) {
+          Cvar *cvar = node->element;
+          if (!Str_Compare(cvar->name, name)) {
+            return cvar;
+          }
         }
       }
     }
   }
 
-  CvarLegacyCtx ctx = { .name = name };
-  $(cvarVars, enumerate, Cvar_Legacy_enumerate, &ctx);
-
-  *legacy = ctx.var != NULL;
-  return ctx.var;
-}
-
-/**
- * @brief Re-keys `var` under `name`, so that it is written back under the
- * name the owning subsystem registers rather than the one a config used.
- */
-static void Cvar_Rename_(Cvar *var, const char *name) {
-
-  List *list = $(cvarVars, get, (void *) var->name);
-  if (list) {
-
-    // the list owns its elements, and we are moving this one, not freeing it
-    Consumer destroy = list->destroy;
-    list->destroy = NULL;
-    $(list, remove, var);
-    list->destroy = destroy;
-
-    if (list->count == 0) {
-      $(cvarVars, remove, (void *) var->name);
-    }
-  }
-
-  Mem_Free((void *) var->name);
-  var->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CVAR), var);
-
-  void *key = (void *) var->name;
-  list = $(cvarVars, get, key);
-
-  if (!list) {
-    list = $(alloc(List), init);
-    list->destroy = Mem_Free;
-    $(cvarVars, set, key, list);
-  }
-
-  $(list, prepend, var);
-}
-
-Cvar *Cvar_Get(const char *name) {
-  bool legacy;
-
-  Cvar *var = Cvar_Get_(name, &legacy);
-
-  if (legacy) {
-    Com_Warn("%s is now %s\n", name, var->name);
-  }
-
-  return var;
+  return NULL;
 }
 
 /**
@@ -226,32 +142,32 @@ static const char *Cvar_Stringify(const Cvar *var) {
   }
 
   static char str[MAX_STRING_CHARS];
-  q_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
+  Str_Format(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
-  if (q_strcmp(var->string, var->defaultString)) {
-    q_strlcat(str, va(" [\"^3%s^7\"]", var->defaultString), sizeof(str));
+  if (Str_Compare(var->string, var->defaultString)) {
+    Str_Append(str, va(" [\"^3%s^7\"]", var->defaultString), sizeof(str));
   }
 
   if (modCount) {
-    q_strlcat(str, " (", sizeof(str));
+    Str_Append(str, " (", sizeof(str));
     for (size_t i = 0; i < modCount; i++) {
       if (i) {
-        q_strlcat(str, ", ", sizeof(str));
+        Str_Append(str, ", ", sizeof(str));
       }
-      q_strlcat(str, modifiers[i], sizeof(str));
+      Str_Append(str, modifiers[i], sizeof(str));
     }
-    q_strlcat(str, ")", sizeof(str));
+    Str_Append(str, ")", sizeof(str));
   }
 
   if (var->description) {
-    q_strlcat(str, va("\n  ^2%s^7", var->description), sizeof(str));
+    Str_Append(str, va("\n  ^2%s^7", var->description), sizeof(str));
   }
 
   return str;
 }
 
 static Order Cvar_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcasecmp(((const Cvar *) a)->name, ((const Cvar *) b)->name);
+  const int32_t cmp = Str_CaseCompare(((const Cvar *) a)->name, ((const Cvar *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -270,12 +186,12 @@ static void Cvar_Enumerate_collect(const HashTable *table, ident key, ident valu
 /**
  * @brief Enumerates all known variables with the given function.
  */
-void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
+void Cvar_Enumerate(CvarEnumerator func, void *data) {
   CvarEnumerateCtx ctx = {
     .vars = $(alloc(PointerArray), init),
   };
 
-  $(cvarVars, enumerate, Cvar_Enumerate_collect, &ctx);
+  $(registry, enumerate, Cvar_Enumerate_collect, &ctx);
   $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.vars->count; i++) {
@@ -285,7 +201,7 @@ void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
   release(ctx.vars);
 }
 
-static char cvarCompletePattern[MAX_STRING_CHARS];
+static char completePattern[MAX_STRING_CHARS];
 
 /**
  * @brief Enumeration helper for `Cvar_CompleteVar`.
@@ -293,7 +209,7 @@ static char cvarCompletePattern[MAX_STRING_CHARS];
 static void Cvar_CompleteVar_enumerate(Cvar *var, void *data) {
   List *matches = data;
 
-  if (GlobMatch(cvarCompletePattern, var->name, GLOB_CASE_INSENSITIVE)) {
+  if (GlobMatch(completePattern, var->name, GLOB_CASE_INSENSITIVE)) {
     Con_AutocompleteMatch(matches, var->name, Cvar_Stringify(var));
   }
 }
@@ -302,7 +218,7 @@ static void Cvar_CompleteVar_enumerate(Cvar *var, void *data) {
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, List *matches) {
-  q_strlcpy(cvarCompletePattern, pattern, sizeof(cvarCompletePattern));
+  Str_Copy(completePattern, pattern, sizeof(completePattern));
   Cvar_Enumerate(Cvar_CompleteVar_enumerate, matches);
 }
 
@@ -329,17 +245,8 @@ Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *
   }
 
   // update existing variables with meta data from owning subsystem
-  bool legacy;
-  Cvar *var = Cvar_Get_(name, &legacy);
+  Cvar *var = Cvar_Get(name);
   if (var) {
-
-    // a config set this under its older name before we registered it; adopt
-    // the value but re-key it, so that it is written back under this name
-    if (legacy) {
-      Com_Warn("%s is now %s\n", var->name, name);
-      Cvar_Rename_(var, name);
-    }
-
     if (value) {
       if (var->defaultString) {
         Mem_Free((void *) var->defaultString);
@@ -373,12 +280,12 @@ Cvar *Cvar_Add(const char *name, const char *value, uint32_t flags, const char *
   }
 
   void *key = (void *) var->name;
-  List *list = $(cvarVars, get, key);
+  List *list = $(registry, get, key);
 
   if (!list) {
     list = $(alloc(List), init);
     list->destroy = Mem_Free;
-    $(cvarVars, set, key, list);
+    $(registry, set, key, list);
   }
 
   $(list, prepend, var);
@@ -422,12 +329,12 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
     // while latched variables can only be changed on map load
     if (var->flags & CVAR_LATCH) {
       if (var->latchedString) {
-        if (!q_strcmp(value, var->latchedString)) {
+        if (!Str_Compare(value, var->latchedString)) {
           return var;
         }
         Mem_Free(var->latchedString);
       } else {
-        if (!q_strcmp(value, var->string)) {
+        if (!Str_Compare(value, var->string)) {
           return var;
         }
       }
@@ -453,7 +360,7 @@ static Cvar *Cvar_Set_(const char *name, const char *value, int32_t flags, bool 
     }
   }
 
-  if (!q_strcmp(var->string, value)) {
+  if (!Str_Compare(var->string, value)) {
     return var; // not changed
   }
 
@@ -593,7 +500,7 @@ void Cvar_UpdateLatched(void) {
   Cvar_Enumerate(Cvar_UpdateLatched_enumerate, NULL);
 }
 
-static bool cvarPending;
+static bool anyPending;
 
 /**
  * @brief Enumeration helper for `Cvar_Pending`.
@@ -602,7 +509,7 @@ static void Cvar_Pending_enumerate(Cvar *var, void *data) {
   uint32_t flags = *((uint32_t *) data);
 
   if ((var->flags & flags) && var->modified) {
-    cvarPending = true;
+    anyPending = true;
   }
 }
 
@@ -610,11 +517,11 @@ static void Cvar_Pending_enumerate(Cvar *var, void *data) {
  * @brief Returns true if any variables whose flags match the specified mask are pending.
  */
 bool Cvar_Pending(uint32_t flags) {
-  cvarPending = false;
+  anyPending = false;
 
   Cvar_Enumerate(Cvar_Pending_enumerate, (void *) &flags);
 
-  return cvarPending;
+  return anyPending;
 }
 
 /**
@@ -677,11 +584,11 @@ static void Cvar_Set_f(void) {
 
   int32_t flags = 0;
 
-  if (!q_strcmp("seta", Cmd_Argv(0))) {
+  if (!Str_Compare("seta", Cmd_Argv(0))) {
     flags |= CVAR_ARCHIVE;
-  } else if (!q_strcmp("sets", Cmd_Argv(0))) {
+  } else if (!Str_Compare("sets", Cmd_Argv(0))) {
     flags |= CVAR_SERVER_INFO;
-  } else if (!q_strcmp("setu", Cmd_Argv(0))) {
+  } else if (!Str_Compare("setu", Cmd_Argv(0))) {
     flags |= CVAR_USER_INFO;
   }
 
@@ -707,11 +614,11 @@ typedef struct {
 
 static void Cvar_List_f_enumerate(Cvar *var, void *data) {
   CvarListCtx *ctx = data;
-  $(ctx->strs, add, q_strdup(Cvar_Stringify(var)));
+  $(ctx->strs, add, Str_Duplicate(Cvar_Stringify(var)));
 }
 
 static Order Cvar_List_sortfn(const ident a, const ident b) {
-  const int32_t cmp = q_strcolorcmp((const char *) a, (const char *) b);
+  const int32_t cmp = Str_ColorCompare((const char *) a, (const char *) b);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -813,7 +720,7 @@ static void Cvar_FreeAll(void) {
     .lists = $(alloc(PointerArray), init),
   };
 
-  $(cvarVars, enumerate, Cvar_Shutdown_collect, ctx.lists);
+  $(registry, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
     release((List *) $(ctx.lists, get, i));
@@ -830,7 +737,7 @@ static void Cvar_FreeAll(void) {
  */
 void Cvar_Init(void) {
 
-  cvarVars = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
+  registry = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
   Cmd *setCmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
   Cmd *setaCmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
@@ -851,7 +758,7 @@ void Cvar_Init(void) {
   for (int32_t i = 1; i < Com_Argc(); i++) {
     const char *s = Com_Argv(i);
 
-    if (!q_strncmp(s, "+set", 4)) {
+    if (!Str_CompareN(s, "+set", 4)) {
       Cmd_ExecuteString(va("%s %s \"%s\"\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
       Cvar *var = Cvar_Get(Com_Argv(i + 1));
@@ -872,8 +779,8 @@ void Cvar_Init(void) {
 void Cvar_Shutdown(void) {
 
   Cvar_FreeAll();
-  release(cvarVars);
-  cvarVars = NULL;
+  release(registry);
+  registry = NULL;
 
   Cmd_Remove("set");
   Cmd_Remove("seta");

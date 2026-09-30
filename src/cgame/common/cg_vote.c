@@ -23,21 +23,21 @@
 #include "bg_vote.h"
 
 static struct {
-  ParseConfigString ParseConfigString;
+  CGameParseConfigStringHook ParseConfigString;
 } previous;
 
 /**
  * @brief The tail of the `Cg_ListVoteTypes` hook: the common votes.
  */
-static const VoteType *Cg_ListVoteTypes_Common(size_t *count) {
+static const GameVoteType *Cg_ListVoteTypes_Common(size_t *count) {
   *count = lengthof(voteTypesCommon);
   return voteTypesCommon;
 }
 
-ListVoteTypes Cg_ListVoteTypes = Cg_ListVoteTypes_Common;
+CGameListVoteTypesHook Cg_ListVoteTypes = Cg_ListVoteTypes_Common;
 
 /**
- * @brief Reads `CS_VOTE` into `cgState.vote`.
+ * @brief Reads `CS_VOTE` into `cgameState.vote`.
  */
 static bool Cg_ParseConfigString_Vote(int32_t index) {
 
@@ -47,14 +47,14 @@ static bool Cg_ParseConfigString_Vote(int32_t index) {
 
   const char *s = cgi.ConfigString(index);
 
-  memset(&cgState.vote, 0, sizeof(cgState.vote));
+  memset(&cgameState.vote, 0, sizeof(cgameState.vote));
 
   if (!*s) {
     return true;
   }
 
   char buf[MAX_STRING_CHARS];
-  q_strlcpy(buf, s, sizeof(buf));
+  Str_Copy(buf, s, sizeof(buf));
 
   // split positionally, since a field may be empty
   char *fields[VOTE_CS_FIELDS] = { NULL };
@@ -76,14 +76,14 @@ static bool Cg_ParseConfigString_Vote(int32_t index) {
     return true;
   }
 
-  cgState.vote.active = true;
-  q_strlcpy(cgState.vote.type, fields[VOTE_CS_TYPE], sizeof(cgState.vote.type));
-  q_strlcpy(cgState.vote.arg, fields[VOTE_CS_ARG], sizeof(cgState.vote.arg));
-  cgState.vote.yes = (int32_t) strtol(fields[VOTE_CS_YES], NULL, 10);
-  cgState.vote.no = (int32_t) strtol(fields[VOTE_CS_NO], NULL, 10);
-  cgState.vote.eligible = (int32_t) strtol(fields[VOTE_CS_ELIGIBLE], NULL, 10);
-  cgState.vote.deadline = (uint32_t) strtoul(fields[VOTE_CS_DEADLINE], NULL, 10);
-  q_strlcpy(cgState.vote.initiator, fields[VOTE_CS_INITIATOR], sizeof(cgState.vote.initiator));
+  cgameState.vote.active = true;
+  Str_Copy(cgameState.vote.type, fields[VOTE_CS_TYPE], sizeof(cgameState.vote.type));
+  Str_Copy(cgameState.vote.arg, fields[VOTE_CS_ARG], sizeof(cgameState.vote.arg));
+  cgameState.vote.yes = (int32_t) strtol(fields[VOTE_CS_YES], NULL, 10);
+  cgameState.vote.no = (int32_t) strtol(fields[VOTE_CS_NO], NULL, 10);
+  cgameState.vote.eligible = (int32_t) strtol(fields[VOTE_CS_ELIGIBLE], NULL, 10);
+  cgameState.vote.deadline = (uint32_t) strtoul(fields[VOTE_CS_DEADLINE], NULL, 10);
+  Str_Copy(cgameState.vote.initiator, fields[VOTE_CS_INITIATOR], sizeof(cgameState.vote.initiator));
 
   return true;
 }

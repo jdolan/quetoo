@@ -35,7 +35,6 @@
  * one entry per frame and any entry is always a safe, independent seek target.
  */
 typedef struct {
-
   /**
    * @brief The frame number this entry was recorded at.
    */
@@ -61,7 +60,6 @@ typedef struct {
  * @brief The fixed-size header written at offset 0 of every recorded demo file.
  */
 typedef struct {
-
   /**
    * @brief Format identifier; see `DEMO_MAGIC`.
    */

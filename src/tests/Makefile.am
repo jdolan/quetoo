@@ -33,26 +33,26 @@ TESTS = \
 	check_archive \
 	check_atlas \
 	check_box \
-	check_cm_entity \
-	check_cm_manifest \
-	check_cm_material \
-	check_cm_polylib \
 	check_cm_test \
 	check_cmd \
 	check_color \
 	check_cvar \
-	check_editor_map \
+	check_entity \
+	check_entity_brushes \
 	check_filesystem \
 	check_g_race \
 	check_http \
+	check_manifest \
 	check_master \
+	check_material \
 	check_mem \
 	check_net_message \
 	check_pmove \
 	check_r_media \
 	check_shared \
 	check_thread \
-	check_vector
+	check_vector \
+	check_winding
 
 noinst_PROGRAMS = $(TESTS)
 
@@ -77,53 +77,6 @@ check_box_CFLAGS = \
 check_box_LDADD = \
 	$(TESTS_LIBS)
 
-check_cmd_SOURCES = \
-	check_cmd.c
-check_cmd_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_cmd_LDADD = \
-	$(TESTS_LIBS)
-
-check_cm_entity_SOURCES = \
-	check_cm_entity.c
-check_cm_entity_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_cm_entity_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la
-
-check_cm_manifest_SOURCES = \
-	check_cm_manifest.c
-check_cm_manifest_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_cm_manifest_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la
-
-check_cm_material_SOURCES = \
-	check_cm_material.c
-check_cm_material_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_cm_material_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la
-
-check_editor_map_SOURCES = \
-	check_editor_map.c
-check_editor_map_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_editor_map_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la
-
-check_cm_polylib_SOURCES = \
-	check_cm_polylib.c
-check_cm_polylib_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_cm_polylib_LDADD = \
-	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la
-
 check_cm_test_SOURCES = \
 	check_cm_test.c
 check_cm_test_CFLAGS = \
@@ -131,6 +84,13 @@ check_cm_test_CFLAGS = \
 check_cm_test_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la
+
+check_cmd_SOURCES = \
+	check_cmd.c
+check_cmd_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_cmd_LDADD = \
+	$(TESTS_LIBS)
 
 check_color_SOURCES = \
 	check_color.c
@@ -145,6 +105,22 @@ check_cvar_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cvar_LDADD = \
 	$(TESTS_LIBS)
+
+check_entity_SOURCES = \
+	check_entity.c
+check_entity_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_entity_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
+
+check_entity_brushes_SOURCES = \
+	check_entity_brushes.c
+check_entity_brushes_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_entity_brushes_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_filesystem_SOURCES = \
 	check_filesystem.c
@@ -184,6 +160,14 @@ check_http_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/net/libnet.la
 
+check_manifest_SOURCES = \
+	check_manifest.c
+check_manifest_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_manifest_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
+
 check_master_SOURCES = \
 	check_master.c
 check_master_CFLAGS = \
@@ -191,6 +175,14 @@ check_master_CFLAGS = \
 check_master_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/net/libnet.la
+
+check_material_SOURCES = \
+	check_material.c
+check_material_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_material_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_mem_SOURCES = \
 	check_mem.c
@@ -257,5 +249,13 @@ check_vector_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_vector_LDADD = \
 	$(TESTS_LIBS)
+
+check_winding_SOURCES = \
+	check_winding.c
+check_winding_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_winding_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
 
 endif

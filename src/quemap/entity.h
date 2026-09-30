@@ -26,18 +26,18 @@
 /**
  * @brief Entity pairs.
  */
-typedef struct EntityKeyValue {
-  struct EntityKeyValue *next;
+typedef struct MapEntityKeyValue {
+  struct MapEntityKeyValue *next;
   char key[MAX_BSP_ENTITY_KEY];
   char value[MAX_BSP_ENTITY_VALUE];
-} EntityKeyValue;
+} MapEntityKeyValue;
 
 /**
  * @brief The map file representation of an entity.
  */
 typedef struct {
 
-  EntityKeyValue *values;
+  MapEntityKeyValue *values;
 
   int32_t firstBrush;
   int32_t numBrushes;
@@ -50,8 +50,8 @@ typedef struct {
 
   Box3 bounds;
 
-} Entity;
+} MapEntity;
 
-void SetValueForKey(Entity *ent, const char *key, const char *value);
-const char *ValueForKey(const Entity *ent, const char *key, const char *def);
-Vec3 VectorForKey(const Entity *ent, const char *key, const Vec3 def);
+void SetValueForKey(MapEntity *ent, const char *key, const char *value);
+const char *ValueForKey(const MapEntity *ent, const char *key, const char *def);
+Vec3 VectorForKey(const MapEntity *ent, const char *key, const Vec3 def);

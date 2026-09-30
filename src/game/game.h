@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 44
+#define GAME_API_VERSION 45
 
 /**
  * @brief Server flags for `GameEntity`.
@@ -104,7 +104,7 @@ struct ServerGameClient {
   /**
    * @brief Non-null if this client is a bot.
    */
-  struct Ai *ai;
+  struct GameAi *ai;
 };
 
 /**
@@ -117,7 +117,7 @@ struct ServerGameEntity {
   /**
    * @brief Entity definition from the BSP file.
    */
-  const CmEntity *def;
+  const Entity *def;
 
   /**
    * @brief Entity class name; guaranteed set through `G_Spawn`.
@@ -142,7 +142,7 @@ struct ServerGameEntity {
   /**
    * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
    */
-  uint32_t svFlags;
+  uint32_t serverFlags;
 
   /**
    * @brief Game-set bounding box in entity-local space.
@@ -208,7 +208,6 @@ typedef struct {
  * such as frame intervals to the game module.
  */
 typedef struct {
-
   /**
    * @defgroup console-appending Console appending
    * @{
@@ -366,7 +365,7 @@ typedef struct {
    * @param enumerator The enumerator function.
    * @param data User data.
    */
-  void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
+  void (*EnumerateFiles)(const char *pattern, FsEnumerator enumerator, void *data);
 
   /**
    * @}
@@ -449,29 +448,29 @@ typedef struct {
    * @param desc The command description for builtin console help.
    * @return The console command.
    */
-  Cmd *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
+  Cmd *(*AddCmd)(const char *name, CmdExecute function, uint32_t flags, const char *desc);
 
   /**
    * @return The argument count for the currently executing command.
-   * @remarks This should only be called from within `CmdExecuteFunc`.
+   * @remarks This should only be called from within `CmdExecute`.
    */
   int32_t (*Argc)(void);
 
   /**
    * @return The nth argument for the currently executing command.
    * @param arg The argument index. Pass `0` for the command name itself.
-   * @remarks This should only be called from within `CmdExecuteFunc`.
+   * @remarks This should only be called from within `CmdExecute`.
    */
   const char *(*Argv)(int32_t arg);
 
   /**
    * @return The arguments vector for the currently executing command.
-   * @remarks This should only be called from within `CmdExecuteFunc`.
+   * @remarks This should only be called from within `CmdExecute`.
    */
   const char *(*Args)(void);
 
   /**
-   * @brief Tokenizes `text`, setting up the arguments vector for `CmdExecuteFunc`.
+   * @brief Tokenizes `text`, setting up the arguments vector for `CmdExecute`.
    * @param text The user command to tokenize.
    * @remarks This can be useful if dispatching commands to another subsystem (e.g. AI).
    */
@@ -535,12 +534,12 @@ typedef struct {
   /**
    * @return The BSP model for the currently loaded map.
    */
-  const CmBsp *(*Bsp)(void);
+  const CollisionBsp *(*Bsp)(void);
   
   /**
    * @brief Returns the worldspawn entity definition.
    */
-  const CmEntity *(*Worldspawn)(void);
+  const Entity *(*Worldspawn)(void);
 
   /**
    * @brief Finds the entity pair for `key` within the specifed entity.
@@ -550,7 +549,7 @@ typedef struct {
    * @remarks This function will always return non-`NULL` for convenience. Check the
    * parsed types on the returned pair to differentiate "not present" from "0."
    */
-  const CmEntity *(*EntityValue)(const CmEntity *entity, const char *key);
+  const Entity *(*EntityValue)(const Entity *entity, const char *key);
 
   /**
    * @brief Finds all brushes within the specified entity.
@@ -560,23 +559,23 @@ typedef struct {
    * in the source .map file. Even `func_group` and other entities which have their
    * contents merged into `worldspawn` during the compilation step are fully supported.
    */
-  Vector *(*EntityBrushes)(const CmEntity *entity);
+  Vector *(*EntityBrushes)(const Entity *entity);
 
   /**
    * @brief Parses a string of brace-delimited key-value entity definitions, the
    * format of a map's entity string and of `maps.lst`.
-   * @return A list of `CmEntity *`, each to be freed with `FreeEntity`.
+   * @return A list of `Entity *`, each to be freed with `FreeEntity`.
    */
   List *(*LoadEntities)(const char *entityString);
 
   /**
    * @brief Frees an entity definition from `LoadEntities`.
    */
-  void (*FreeEntity)(CmEntity *entity);
+  void (*FreeEntity)(Entity *entity);
 
   /**
    * @brief Returns the server's map rotation, as configured by `sv_mapList`.
-   * @return A list of `CmEntity *`, each to be freed with `FreeEntity`, or `NULL`
+   * @return A list of `Entity *`, each to be freed with `FreeEntity`, or `NULL`
    * if no rotation is configured.
    * @remarks The list is a copy, so a `sv_mapList` edit can not free entries from
    * underneath the caller.
@@ -620,7 +619,7 @@ typedef struct {
    * @remarks This function is useful for testing points against non-solid brushes
    * from brush entities. For general purpose collision detection, use PointContents.
    */
-  bool (*PointInsideBrush)(const Vec3 point, const CmBspBrush *brush);
+  bool (*PointInsideBrush)(const Vec3 point, const CollisionBrush *brush);
 
   /**
    * @brief Collision detection. Traces between the two endpoints, impacting
@@ -635,7 +634,7 @@ typedef struct {
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
    */
-  CmTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *skip, int32_t contents);
+  CollisionTrace (*Trace)(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *skip, int32_t contents);
 
   /**
    * @brief Collision detection. Traces between the two endpoints, impacting
@@ -650,7 +649,7 @@ typedef struct {
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
    */
-  CmTrace (*Clip)(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *ent, int32_t contents);
+  CollisionTrace (*Clip)(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *ent, int32_t contents);
 
   /**
    * @brief Set the model of a given entity by name.
@@ -732,7 +731,6 @@ typedef struct {
  * the server. The game must populate this structure as part of `G_Init`.
  */
 typedef struct {
-
   /**
    * @brief Game API version; validated by the server on load.
    */
@@ -784,13 +782,13 @@ typedef struct {
    * @param entities The map-defined entities.
    * @param numEntities The length of @c entities.
    */
-  void (*SpawnEntities)(const char *name, const CmEntity *mapListEntry, CmEntity *const *entities, size_t numEntities);
+  void (*SpawnEntities)(const char *name, const Entity *mapListEntry, Entity *const *entities, size_t numEntities);
 
   /**
    * @brief Called in editor mode to spawn or respawn a single entity at the given
    * entity number, taking ownership of `def`.
    */
-  void (*SpawnEditorEntity)(int32_t number, CmEntity *def);
+  void (*SpawnEditorEntity)(int32_t number, Entity *def);
 
   /**
    * @brief Called in editor mode to free the entity at the given entity number,

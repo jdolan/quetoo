@@ -26,7 +26,7 @@
 /**
  * @brief The complete list of item definitions, shared between game and cgame.
  */
-const GameItemDef bgItemDefs[] = {
+const GameItemDef gameItemDefs[] = {
 
   { /* ITEM_NONE */ },
 
@@ -817,4 +817,4 @@ const GameItemDef bgItemDefs[] = {
 
 };
 
-size_t bgNumItems = sizeof(bgItemDefs) / sizeof(bgItemDefs[0]);
+size_t gameNumItems = sizeof(gameItemDefs) / sizeof(gameItemDefs[0]);

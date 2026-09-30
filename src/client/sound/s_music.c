@@ -85,13 +85,13 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, File
   *snd = NULL;
 
   StripExtension(name, path);
-  q_snprintf(path, sizeof(path), "music/%s.ogg", name);
+  Str_Format(path, sizeof(path), "music/%s.ogg", name);
 
   if ((*file = Fs_OpenRead(path)) != NULL) {
   
     memset(info, 0, sizeof(*info));
 
-    *snd = sf_open_virtual(&sPhysfsIo, SFM_READ, info, *file);
+    *snd = sf_open_virtual(&soundPhysfsIo, SFM_READ, info, *file);
 
     if (!*snd || sf_error(*snd)) {
       Com_Warn("%s: %s\n", path, sf_strerror(*snd));

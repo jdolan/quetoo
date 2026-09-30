@@ -23,13 +23,13 @@
 
 #include "common/common.h"
 
+#include "common/manifest.h"
+#include "common/material.h"
+#include "common/winding.h"
 #include "cm_bsp.h"
-#include "cm_entity.h"
-#include "cm_light.h"
-#include "cm_manifest.h"
-#include "cm_material.h"
 #include "cm_model.h"
-#include "cm_polylib.h"
 #include "cm_test.h"
 #include "cm_trace.h"
 #include "cm_types.h"
+#include "entity.h"
+#include "material_light.h"

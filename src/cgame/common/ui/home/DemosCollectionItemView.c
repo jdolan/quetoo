@@ -86,7 +86,7 @@ static void didClickDelete(Button *button) {
   }
 
   char filename[MAX_QPATH];
-  q_strlcpy(filename, info->filename, sizeof(filename));
+  Str_Copy(filename, info->filename, sizeof(filename));
 
   if (cgi.DeleteFile(filename)) {
     $(self->collectionView, removeDemo, filename);
@@ -112,14 +112,14 @@ static void didEndEditingTitle(TextView *textView) {
   // zeroed, not merely NUL-terminated: the whole fixed-size field is written back to the file,
   // so an uninitialized tail would put stack bytes on disk
   char title[MAX_QPATH] = { 0 };
-  q_strlcpy(title, textView->attributedText->chars ?: "", sizeof(title));
+  Str_Copy(title, textView->attributedText->chars ?: "", sizeof(title));
 
-  if (!q_strcmp(title, info->title)) {
+  if (!Str_Compare(title, info->title)) {
     return;
   }
 
   if (cgi.WriteFileAt(info->filename, title, sizeof(title), offsetof(DemoHeader, title))) {
-    q_strlcpy(info->title, title, sizeof(info->title));
+    Str_Copy(info->title, title, sizeof(info->title));
   } else {
     Cg_Warn("Failed to update %s\n", info->filename);
   }

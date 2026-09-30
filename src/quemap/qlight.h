@@ -29,6 +29,6 @@
 #include "voxel.h"
 
 int32_t Light_PointContents(const Vec3 p, int32_t headNode);
-CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t headNode, int32_t mask);
+CollisionTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t headNode, int32_t mask);
 
-int32_t LIGHT_Main(void);
+int32_t Qlight_Main(void);

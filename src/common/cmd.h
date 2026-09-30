@@ -37,13 +37,13 @@ const char *Cmd_Args(void);
 void Cmd_TokenizeString(const char *text);
 void Cmd_ExecuteString(const char *text);
 
-typedef void (*Cmd_Enumerator)(Cmd *cmd, void *data);
+typedef void (*CmdEnumerator)(Cmd *cmd, void *data);
 
 // general command management
 Cmd *Cmd_Get(const char *name);
-void Cmd_Enumerate(Cmd_Enumerator func, void *data);
-Cmd *Cmd_Add(const char *name, CmdExecuteFunc func, uint32_t flags, const char *description);
-void Cmd_SetAutocomplete(Cmd *cmd, AutocompleteFunc autocomplete);
+void Cmd_Enumerate(CmdEnumerator func, void *data);
+Cmd *Cmd_Add(const char *name, CmdExecute func, uint32_t flags, const char *description);
+void Cmd_SetAutocomplete(Cmd *cmd, ConsoleAutocomplete autocomplete);
 void Cmd_Remove(const char *name);
 void Cmd_RemoveAll(uint32_t flags);
 void Cmd_CompleteCommand(const char *pattern, List *matches);

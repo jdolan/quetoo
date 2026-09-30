@@ -26,5 +26,5 @@
 void R_InitMd3Normals(void);
 
 #if defined(__R_LOCAL_H__)
-extern const RenderModelFormat rMd3ModelFormat;
+extern const RenderModelFormat renderMd3ModelFormat;
 #endif

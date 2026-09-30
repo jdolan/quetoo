@@ -91,9 +91,9 @@ value it displaced to call as `previous`.
 
 ```c
 /* g_module.h — the contract, and the single authoritative list of hooks */
-typedef void (*ResetDroppedItem)(GameEntity *ent);
+typedef void (*GameResetDroppedItemHook)(GameEntity *ent);
 
-extern ResetDroppedItem G_ResetDroppedItem;
+extern GameResetDroppedItemHook G_ResetDroppedItem;
 ```
 
 ```c
@@ -102,7 +102,7 @@ static void G_ResetDroppedItem_Common(GameEntity *ent) {
   G_FreeEntity(ent);
 }
 
-ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
+GameResetDroppedItemHook G_ResetDroppedItem = G_ResetDroppedItem_Common;
 ```
 
 ```c
@@ -161,7 +161,7 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   opened `RTLD_LOCAL`, so one module's chain cannot reach the other's. Verified:
   `game default; game ctf` across a session gives 85 / 80 / 85 entities on
   `edge`. The rule to remember is that *persisting* state is harmless — media
-  indices, enabled flags and `g_items` are reassigned on every init — while
+  indices, enabled flags and `gameItems` are reassigned on every init — while
   *accumulating* state is not, which is what makes the guard above necessary.
 - **A feature holds only the hooks it replaced**, in its own local `previous`
   struct. Do not thread a shared table of every hook — `previous` would then be a
@@ -170,10 +170,12 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 
 ### Naming
 
-- Hook type: **VerbSubject**, PascalCase, no prefix — `ResetDroppedItem`,
-  `ResolveInventoryItem`, `InhibitItem`, `ConfigureLevel`, `PrepareMove`. This
-  matches `GameEntity::Think` and `::Touch`, and the `cg_entity.h` typedefs.
-- Dispatch pointer: the type with a `G_` prefix — `G_ResetDroppedItem`.
+- Hook name: **VerbSubject**, PascalCase — `ResetDroppedItem`, `ResolveInventoryItem`,
+  `InhibitItem`, `ConfigureLevel`, `PrepareMove`.
+- Hook type: the name with the module's type prefix and a `Hook` suffix —
+  `GameResetDroppedItemHook`, `CGameMediaDidLoadHook` — so that a hook type
+  cannot be mistaken for any other function pointer type.
+- Dispatch pointer: the name with a `G_` (or `Cg_`) prefix — `G_ResetDroppedItem`.
 - Feature implementation: the dispatch pointer with the feature suffixed —
   `G_ResetDroppedItem_Tech`, `G_ResolveInventoryItem_Ctf`. Reading a call site's
   chain then only means grepping for the hook's name.
@@ -318,7 +320,7 @@ always answers "where does this come from".
 
 Additive one-liners on manifest fields, where a hook would be ceremony:
 the team roster's `.flag` and `.effect`, the capture and tech scoreboard stats,
-`g_level.captures`, `cl->persistent.captures`, the grapple's per-client state,
+`gameLevel.captures`, `cl->persistent.captures`, the grapple's per-client state,
 the `MOD_HOOK` obituary and weapon name, the haste refire scaling, the vampire
 heal, and the tech branches of `G_ResetItems` and `G_ClientThink`.
 
@@ -343,7 +345,7 @@ the feature, so a mod that builds it gets bots that hunt carriers and a client
 that draws the trails.
 
 It is `G_CTF` and `g_ctf.c` rather than `G_FLAG` and `g_flag.c` because "flag" is
-badly overloaded in this codebase - `spawn_flags`, `sv_flags`, `dflags`, a score's
+badly overloaded in this codebase - `spawn_flags`, `serverFlags`, `dflags`, a score's
 `flags`, the `EF_` and `SF_` bits - and because the feature is more than the item.
 "Flag" is kept only where it means the item: `G_TossFlag`, `G_PickupFlag`,
 `G_TeamForFlag`, `G_FlagForTeam`. Everything naming the feature is `_Ctf`:
@@ -358,7 +360,8 @@ and make the block additive instead.
 
 | hook | tail lives in | installed by |
 | --- | --- | --- |
-| `ListGameplayModes` | `cg_main.c` | ctf |
+| `ListGamePlays` | `cg_main.c` | ctf |
+| `BindKeys` | `cg_input.c` | — |
 | `ClipEntity` | `cg_predict.c` | race |
 | `UsePrediction` | `cg_predict.c` | — |
 | `Move` | `cg_input.c` | — |
@@ -374,7 +377,7 @@ and make the block additive instead.
 | `AddEntity` | `cg_entity.c` | race |
 | `ClientInfo` | `cg_client.c` | race |
 | `EntityEffects` | `cg_entity_effect.c` | race |
-| `DescribeGameMode` | `cg_discord.c` | — |
+| `DescribeGamePlay` | `cg_discord.c` | — |
 | `ListVoteTypes` | `cg_vote.c` | — |
 
 The HUD and the scoreboard are not hooks at all any more; see
@@ -386,7 +389,7 @@ The HUD and the scoreboard are not hooks at all any more; see
 way, on `G_CTF` and `G_TECH` guards. Both have since become ObjectivelyMVC Views a
 module arranges in JSON - see [The client game](#the-client-game). The team modes a mod offers used to be a
 per-module manifest in `cg_team_mode.c`; that file is gone now that team play is
-a bit on `Gameplay` (`GAME_TEAMS`) rather than a mode a menu had to enumerate.
+the `GAMEPLAY_TEAMS` bit on `GamePlayId` rather than a mode a menu had to enumerate.
 
 The cgame gets the **same** feature defines as its game module, in all three build
 systems, and it includes that module's own `g_types.h`. That is what keeps the two
@@ -473,7 +476,7 @@ front of the types they need. That is not a style choice, it is a cycle - it was
 tried, and the compiler says `unknown type name 'GameClient'`.
 
 They are `bg_` rather than `g_` because both sides genuinely use them:
-`Hook_StyleName` and `Hook_StyleByName` live in `bg_hook.h`, so the three style
+`GameHookStyle_Name` and `GameHookStyle_ForName` live in `bg_hook.h`, so the three style
 names the client game offers in its menu are the same three the game parses out of
 a cvar and a client's user info, rather than two lists that must agree by
 inspection. There is no `bg_hook.c`, because those two functions are all the shared
@@ -611,8 +614,8 @@ the diff alone - two reviewers reported them as bugs. The reasoning is in
   conceded the flags "will be in crap positions". Purpose-built CTF levels
   supply their own. Team play in a module without flags now simply uses
   `info_player_deathmatch` for everyone, because `G_SelectRandomSpawnPoint`
-  already recurses into `g_level.spawn_points` when a team's pool is empty.
-- **The `g_ctf` cvar is gone**, along with `g_level.ctf` and the `CS_CTF`
+  already recurses into `gameLevel.spawn_points` when a team's pool is empty.
+- **The `g_ctf` cvar is gone**, along with `gameLevel.ctf` and the `CS_CTF`
   config string. A ctf server runs capture the flag; it will never run team
   deathmatch. The `G_CTF` define the module compiles with says the same thing
   at build time. The cvar defaulted to 0, so out of the box the ctf module was
@@ -751,8 +754,8 @@ are driven by a JSON resource rather than by code. `cg_main.{c,h}`'s are wiring 
 the `hookStyle` cvar, the config string, the accessor - and the two in
 `cg_local.h` are the feature includes, which are guards like any other.
 
-`cg_team_mode.c` no longer exists: team play is now the `GAME_TEAMS` bit on
-`Gameplay`, so there is no per-module manifest of team modes to guard.
+`cg_team_mode.c` no longer exists: team play is now the `GAMEPLAY_TEAMS` bit on
+`GamePlayId`, so there is no per-module manifest of team modes to guard.
 
 ### Where the guards went
 
@@ -815,7 +818,7 @@ Some paths need a state the map does not hand you:
   named "Enemy Flag", so the name resolves to the first, which is your own team's
   unless you `team Blue` first. Neither is enough. `HeldFlagView` is therefore the one
   View this document cannot claim was seen working - it needs a real capture, or a bot
-  chased in `cg_third_person_chasecam`.
+  chased with the follow camera (`camera`).
 
 The bundle the runtime needs is described under [Verifying](#verifying); for the
 client specifically, `Contents/Resources` is a symlink to `quetoo-data/target` and

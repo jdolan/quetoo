@@ -109,14 +109,14 @@ void Cg_Module_Shutdown(void);
  * the create-server menu's gameplay Select.
  * @param count The number of modes returned.
  * @return The modes, `GAMEPLAY_TEAMS` included where a mode is team play.
- * @details A single owner, like `G_ClampGameplay` on the game side: a module
+ * @details A single owner, like `G_ClampGamePlay` on the game side: a module
  * that plays exactly one mode replaces this outright rather than adding to the
  * list common offers. The menu MUST NOT assume a fixed set - a mod that plays
  * only one mode should not have to hide options it will never honor.
  */
-typedef const Gameplay *(*ListGameplayModes)(size_t *count);
+typedef const GamePlay *(*CGameListGamePlaysHook)(size_t *count);
 
-extern ListGameplayModes Cg_ListGameplayModes;
+extern CGameListGamePlaysHook Cg_ListGamePlays;
 
 typedef struct MapListItemInfo MapListItemInfo;
 
@@ -133,9 +133,28 @@ typedef struct MapListItemInfo MapListItemInfo;
  * installs a link accepting its variants before deferring. A link MAY ignore
  * `games` entirely and decide by path, title or prefix instead.
  */
-typedef bool (*FilterCreateServerMapList)(const MapListItemInfo *info);
+typedef bool (*CGameFilterCreateServerMapListHook)(const MapListItemInfo *info);
 
-extern FilterCreateServerMapList Cg_FilterCreateServerMapList;
+extern CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList;
+
+/**
+ * @}
+ * @defgroup cg-hooks-input Input
+ * @brief The keys this module binds by default. Tail in cg_input.c.
+ * @{
+ */
+
+/**
+ * @brief Binds the keys this module's commands expect, with `cgi.BindDefault`, so
+ * that a key the player has bound keeps its bind. The client calls it when a different
+ * client game loads, and not on `r_restart`, so that a key the player cleared stays clear.
+ * @details Chainable. A module adding a command binds its own key and defers to
+ * previous. A module whose keys differ binds its own first, or replaces the tail.
+ * The client binds only the console and the screenshot keys.
+ */
+typedef void (*CGameBindKeysHook)(void);
+
+extern CGameBindKeysHook Cg_BindKeys;
 
 /**
  * @}
@@ -154,9 +173,9 @@ extern FilterCreateServerMapList Cg_FilterCreateServerMapList;
  * Prediction traces on behalf of `cgi.client->entity`; `mover` is `NULL` for a
  * trace with no entity behind it. An implementation MUST be pure.
  */
-typedef bool (*ClipClientEntity)(const ClientEntity *mover, const ClientEntity *ent);
+typedef bool (*CGameClipClientEntityHook)(const ClientEntity *mover, const ClientEntity *ent);
 
-extern ClipClientEntity Cg_ClipEntity;
+extern CGameClipClientEntityHook Cg_ClipEntity;
 
 /**
  * @brief Whether the client predicts its own movement this frame. The default
@@ -167,9 +186,9 @@ extern ClipClientEntity Cg_ClipEntity;
  * defers to previous.
  * @return True to predict.
  */
-typedef bool (*UsePrediction)(void);
+typedef bool (*CGameUsePredictionHook)(void);
 
-extern UsePrediction Cg_UsePrediction;
+extern CGameUsePredictionHook Cg_UsePrediction;
 
 /**
  * @brief Builds the movement command from the client's input: the movement,
@@ -177,9 +196,9 @@ extern UsePrediction Cg_UsePrediction;
  * @details Chainable. A feature adding an input reads its own key, sets what it
  * sets on `cmd` and defers to previous.
  */
-typedef void (*Move)(PMoveCmd *cmd);
+typedef void (*CGameMoveHook)(PMoveCmd *cmd);
 
-extern Move Cg_Move;
+extern CGameMoveHook Cg_Move;
 
 /**
  * @brief A pending command with time is about to be run through `Pm_Move` for
@@ -188,27 +207,27 @@ extern Move Cg_Move;
  * set for the commands that follow.
  * @details Notification; the tail does nothing.
  */
-typedef void (*MoveCommandWillRun)(PMove *pm, const ClientCmd *cmd);
+typedef void (*CGameMoveCommandWillRunHook)(PMove *pm, const ClientCmd *cmd);
 
-extern MoveCommandWillRun Cg_MoveCommandWillRun;
+extern CGameMoveCommandWillRunHook Cg_MoveCommandWillRun;
 
 /**
  * @brief A pending command with time has been run through `Pm_Move` for
  * prediction.
  * @details Notification; the tail does nothing.
  */
-typedef void (*MoveCommandDidRun)(const PMove *pm, const ClientCmd *cmd);
+typedef void (*CGameMoveCommandDidRunHook)(const PMove *pm, const ClientCmd *cmd);
 
-extern MoveCommandDidRun Cg_MoveCommandDidRun;
+extern CGameMoveCommandDidRunHook Cg_MoveCommandDidRun;
 
 /**
  * @brief Every pending command has been predicted and `pm` holds the result
  * the view will be rendered from.
  * @details Notification; the tail does nothing.
  */
-typedef void (*PredictionDidComplete)(const PMove *pm);
+typedef void (*CGamePredictionDidCompleteHook)(const PMove *pm);
 
-extern PredictionDidComplete Cg_PredictionDidComplete;
+extern CGamePredictionDidCompleteHook Cg_PredictionDidComplete;
 
 /**
  * @}
@@ -228,9 +247,9 @@ extern PredictionDidComplete Cg_PredictionDidComplete;
  * is misparsed.
  * @return True if the command was parsed.
  */
-typedef bool (*ParseServerCommand)(int32_t cmd);
+typedef bool (*CGameParseServerCommandHook)(int32_t cmd);
 
-extern ParseServerCommand Cg_ParseServerCommand;
+extern CGameParseServerCommandHook Cg_ParseServerCommand;
 
 /**
  * @brief Applies a config string that changed, ahead of the built-in handling.
@@ -239,9 +258,9 @@ extern ParseServerCommand Cg_ParseServerCommand;
  * it defers to previous for the rest. The tail applies nothing.
  * @return True if the config string was applied.
  */
-typedef bool (*ParseConfigString)(int32_t index);
+typedef bool (*CGameParseConfigStringHook)(int32_t index);
 
-extern ParseConfigString Cg_ParseConfigString;
+extern CGameParseConfigStringHook Cg_ParseConfigString;
 
 /**
  * @}
@@ -259,35 +278,35 @@ extern ParseConfigString Cg_ParseConfigString;
  * leaving one. A feature drops what it knew about the last server here.
  * @details Notification; the tail does nothing.
  */
-typedef void (*StateDidClear)(void);
+typedef void (*CGameStateDidClearHook)(void);
 
-extern StateDidClear Cg_StateDidClear;
+extern CGameStateDidClearHook Cg_StateDidClear;
 
 /**
  * @brief The level's media are loaded. A feature loads its own here.
  * @details Notification; the tail does nothing.
  */
-typedef void (*MediaDidLoad)(void);
+typedef void (*CGameMediaDidLoadHook)(void);
 
-extern MediaDidLoad Cg_MediaDidLoad;
+extern CGameMediaDidLoadHook Cg_MediaDidLoad;
 
 /**
  * @brief The scene holds every entity, effect, flare, sprite and light the
  * client game adds for this frame. A feature adds its own here.
  * @details Notification; the tail does nothing.
  */
-typedef void (*SceneDidPopulate)(const ClientFrame *frame);
+typedef void (*CGameSceneDidPopulateHook)(const ClientFrame *frame);
 
-extern SceneDidPopulate Cg_SceneDidPopulate;
+extern CGameSceneDidPopulateHook Cg_SceneDidPopulate;
 
 /**
  * @brief The HUD, the scoreboard and the editor are drawn for this frame. A
  * feature that draws an overlay of its own does so here, over the top.
  * @details Notification; the tail does nothing.
  */
-typedef void (*ScreenDidUpdate)(const ClientFrame *frame);
+typedef void (*CGameScreenDidUpdateHook)(const ClientFrame *frame);
 
-extern ScreenDidUpdate Cg_ScreenDidUpdate;
+extern CGameScreenDidUpdateHook Cg_ScreenDidUpdate;
 
 /**
  * @}
@@ -305,9 +324,9 @@ extern ScreenDidUpdate Cg_ScreenDidUpdate;
  * adds around the call. Sounds and events are not decided here; they have played
  * by the time the scene is populated.
  */
-typedef void (*AddEntity)(ClientEntity *ent);
+typedef void (*CGameAddEntityHook)(ClientEntity *ent);
 
-extern AddEntity Cg_AddEntity;
+extern CGameAddEntityHook Cg_AddEntity;
 
 /**
  * @brief Augments the renderer entity for an entity the server sent, from its
@@ -316,9 +335,9 @@ extern AddEntity Cg_AddEntity;
  * @details Chainable. A feature that defines an effect of its own calls previous
  * and then reads its flag, as `EF_GAME` leaves it room to.
  */
-typedef void (*EntityEffects)(ClientEntity *ent, RenderEntity *e);
+typedef void (*CGameEntityEffectsHook)(ClientEntity *ent, RenderEntity *e);
 
-extern EntityEffects Cg_EntityEffects;
+extern CGameEntityEffectsHook Cg_EntityEffects;
 
 /**
  * @brief The client info that dresses an entity wearing a player model: its
@@ -328,9 +347,9 @@ extern EntityEffects Cg_EntityEffects;
  * a ghost, a dummy - answers its own info for it and defers to previous for
  * the rest.
  */
-typedef CGameClientInfo *(*ClientInfo)(const ClientEntity *ent);
+typedef CGameClientInfo *(*CGameClientInfoHook)(const ClientEntity *ent);
 
-extern ClientInfo Cg_ClientInfo;
+extern CGameClientInfoHook Cg_ClientInfo;
 
 /**
  * @}
@@ -347,9 +366,9 @@ extern ClientInfo Cg_ClientInfo;
  * feature that names its mode outright does not defer to previous.
  * @return A static or `va` string.
  */
-typedef const char *(*DescribeGameMode)(void);
+typedef const char *(*CGameDescribeGamePlayHook)(void);
 
-extern DescribeGameMode Cg_DescribeGameMode;
+extern CGameDescribeGamePlayHook Cg_DescribeGamePlay;
 
 /**
  * @brief The kinds of vote the Vote screen offers. The default is the common
@@ -359,9 +378,9 @@ extern DescribeGameMode Cg_DescribeGameMode;
  * accepts, and the game's `PrepareVote` chain must accept every name listed.
  * The list MUST be static storage; the screen keeps pointers into it.
  */
-typedef const VoteType *(*ListVoteTypes)(size_t *count);
+typedef const GameVoteType *(*CGameListVoteTypesHook)(size_t *count);
 
-extern ListVoteTypes Cg_ListVoteTypes;
+extern CGameListVoteTypesHook Cg_ListVoteTypes;
 
 /**
  * @}

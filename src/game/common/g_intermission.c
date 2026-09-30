@@ -39,10 +39,10 @@ static struct {
 } module;
 
 static struct {
-  HandleClientCommand HandleClientCommand;
-  FrameDidEnd FrameDidEnd;
-  ClientWillDisconnect ClientWillDisconnect;
-  ConfigureLevel ConfigureLevel;
+  GameHandleClientCommandHook HandleClientCommand;
+  GameFrameDidEndHook FrameDidEnd;
+  GameClientWillDisconnectHook ClientWillDisconnect;
+  GameConfigureLevelHook ConfigureLevel;
 } previous;
 
 static bool installed;
@@ -54,7 +54,7 @@ static bool installed;
 static bool G_Intermission_Offers(const char *name) {
 
   for (int32_t i = 0; i < module.numMaps; i++) {
-    if (!q_strcmp(module.maps[i], name)) {
+    if (!Str_Compare(module.maps[i], name)) {
       return true;
     }
   }
@@ -75,7 +75,7 @@ static void G_Intermission_Offer(const char *name, int32_t index) {
 
   // by name rather than by position, since a rotation may list either the map we are
   // on or a candidate more than once, and neither is a second thing to vote for
-  if (!name || !*name || !q_strcmp(name, g_level.name) || G_Intermission_Offers(name)) {
+  if (!name || !*name || !Str_Compare(name, gameLevel.name) || G_Intermission_Offers(name)) {
     return;
   }
 
@@ -85,7 +85,7 @@ static void G_Intermission_Offer(const char *name, int32_t index) {
   }
 
   module.indices[module.numMaps] = index;
-  q_strlcpy(module.maps[module.numMaps++], name, MAX_QPATH);
+  Str_Copy(module.maps[module.numMaps++], name, MAX_QPATH);
 }
 
 /**
@@ -102,7 +102,7 @@ static const char *G_Intermission_MapAt(const List *list, int32_t index) {
     return NULL;
   }
 
-  return gi.EntityValue((const CmEntity *) node->element, "name")->string;
+  return gi.EntityValue((const Entity *) node->element, "name")->string;
 }
 
 /**
@@ -140,7 +140,7 @@ static void G_Intermission_SelectMaps(void) {
     }
 
     for (const ListNode *node = list->head; node; node = node->next) {
-      gi.FreeEntity((CmEntity *) node->element);
+      gi.FreeEntity((Entity *) node->element);
     }
 
     release(list);
@@ -150,7 +150,7 @@ static void G_Intermission_SelectMaps(void) {
     // no rotation, or nothing in it we can serve: the server replays this map, which
     // is what `nextMap` falls back to on its own, so we leave it to do that
     module.indices[0] = -1;
-    q_strlcpy(module.maps[0], g_level.name, MAX_QPATH);
+    Str_Copy(module.maps[0], gameLevel.name, MAX_QPATH);
     module.numMaps = 1;
   }
 
@@ -190,10 +190,10 @@ static void G_Intermission_Publish(void) {
   memcpy(module.published, votes, sizeof(votes));
 
   char string[MAX_STRING_CHARS];
-  q_snprintf(string, sizeof(string), "%d", module.voting ? 1 : 0);
+  Str_Format(string, sizeof(string), "%d", module.voting ? 1 : 0);
 
   for (int32_t i = 0; i < module.numMaps; i++) {
-    q_strlcat(string, va("\\%s\\%d", module.maps[i], votes[i]), sizeof(string));
+    Str_Append(string, va("\\%s\\%d", module.maps[i], votes[i]), sizeof(string));
   }
 
   G_Debug("%s\n", string);
@@ -208,9 +208,9 @@ static void G_Intermission_Publish(void) {
  */
 static void G_Intermission_PublishTime(void) {
 
-  const uint32_t end = g_level.intermissionTime + INTERMISSION;
+  const uint32_t end = gameLevel.intermissionTime + INTERMISSION;
 
-  gi.SetConfigString(CS_TIME, G_FormatTime(end > g_level.time ? end - g_level.time : 0));
+  gi.SetConfigString(CS_TIME, G_FormatTime(end > gameLevel.time ? end - gameLevel.time : 0));
 }
 
 /**
@@ -310,7 +310,7 @@ static void G_Intermission_Cast(GameClient *cl, int32_t map) {
  */
 static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) {
 
-  if (q_strcmp(cmd, "voteMap")) {
+  if (Str_Compare(cmd, "voteMap")) {
     return previous.HandleClientCommand(cl, cmd);
   }
 
@@ -330,13 +330,13 @@ static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) 
  */
 static void G_FrameDidEnd_Intermission(void) {
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
 
     if (!module.active) {
       G_Intermission_Begin();
     }
 
-    if (g_level.frameNum % QUETOO_TICK_RATE == 0) {
+    if (gameLevel.frameNum % QUETOO_TICK_RATE == 0) {
       G_Intermission_PublishTime();
     }
 

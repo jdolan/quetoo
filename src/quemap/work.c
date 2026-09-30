@@ -23,16 +23,14 @@
 
 #include "quemap.h"
 
-typedef struct {
+static struct {
   SDL_Mutex *lock; // mutex on all running work
   const char *name; // the work name
   WorkFunc func; // the work function
   int32_t index; // current work cycle
   int32_t count; // total work cycles
   int32_t percent; // last fraction of work completed
-} WorkState;
-
-static WorkState work;
+} module;
 
 /**
  * @brief Return an iteration of work, updating progress when appropriate.
@@ -40,26 +38,26 @@ static WorkState work;
 static int32_t GetWork(void) {
 
   int32_t w = -1;
-  SDL_LockMutex(work.lock);
+  SDL_LockMutex(module.lock);
 
   if (Com_WasInit(QUEMAP)) {
-    if (work.index < work.count) {
+    if (module.index < module.count) {
 
       // update work percent and output progress
-      const int32_t p = ceilf(100.0 * work.index / work.count);
-      if (p != work.percent) {
-        if (work.name) {
-          Com_Print("\r%-24s [%3d%%]", work.name, p);
+      const int32_t p = ceilf(100.0 * module.index / module.count);
+      if (p != module.percent) {
+        if (module.name) {
+          Com_Print("\r%-24s [%3d%%]", module.name, p);
         }
-        work.percent = p;
+        module.percent = p;
       }
 
       // assign the next work iteration
-      w = work.index++;
+      w = module.index++;
     }
   }
 
-  SDL_UnlockMutex(work.lock);
+  SDL_UnlockMutex(module.lock);
   return w;
 }
 
@@ -74,7 +72,7 @@ static void RunWorkFunc(void *p) {
     if (w == -1) {
       break;
     }
-    work.func(w);
+    module.func(w);
   }
 }
 
@@ -83,14 +81,14 @@ static void RunWorkFunc(void *p) {
  */
 void Work(const char *name, WorkFunc func, int32_t count) {
 
-  memset(&work, 0, sizeof(work));
+  memset(&module, 0, sizeof(module));
 
-  work.lock = SDL_CreateMutex();
-  work.name = name;
-  work.count = count;
-  work.func = func;
-  work.index = 0;
-  work.percent = -1;
+  module.lock = SDL_CreateMutex();
+  module.name = name;
+  module.count = count;
+  module.func = func;
+  module.index = 0;
+  module.percent = -1;
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
@@ -110,12 +108,12 @@ void Work(const char *name, WorkFunc func, int32_t count) {
     }
   }
 
-  SDL_DestroyMutex(work.lock);
-  work.lock = NULL;
+  SDL_DestroyMutex(module.lock);
+  module.lock = NULL;
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
 
-  if (work.name) {
+  if (module.name) {
     Com_Print(" %d ms\n", end - start);
   }
 }
@@ -131,7 +129,7 @@ void Progress(const char *progress, int32_t percent) {
 
   if (percent == -1) {
     Com_Print("\r%-24s [%c]", progress, string[index]);
-    index = (index + 1) % q_strlen(string);
+    index = (index + 1) % Str_Length(string);
   } else {
     if (percent != lastPercent) {
       Com_Print("\r%-24s [%3d%%]", progress, percent);

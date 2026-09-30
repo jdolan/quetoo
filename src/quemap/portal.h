@@ -24,11 +24,11 @@
 #include "tree.h"
 
 typedef struct Portal {
-  Plane plane;
+  MapPlane plane;
   Node *onNode; // NULL = outside box
   Node *nodes[2]; // [0] = front side of plane
   struct Portal *next[2];
-  CmWinding *winding;
+  Winding *winding;
 } Portal;
 
 void MakeHeadnodePortals(Tree *tree);

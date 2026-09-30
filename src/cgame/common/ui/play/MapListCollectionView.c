@@ -41,10 +41,10 @@
  * @brief The tail of the `Cg_FilterCreateServerMapList` hook, listing a map made for this game.
  */
 static bool Cg_FilterCreateServerMapList_Common(const MapListItemInfo *info) {
-  return q_str_has_token(info->games, GAME_NAME);
+  return Str_HasToken(info->games, GAME_NAME);
 }
 
-FilterCreateServerMapList Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Common;
+CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Common;
 
 #pragma mark CollectionViewDataSource
 
@@ -93,7 +93,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous map loading
 
 /**
- * @brief Fs_Enumerator for map discovery.
+ * @brief FsEnumerator for map discovery.
  */
 static void enumerateMaps(const char *path, void *data) {
 
@@ -117,9 +117,9 @@ static void enumerateMaps(const char *path, void *data) {
 
       MapListItemInfo *info = calloc(1, sizeof(*info));
 
-      q_strlcpy(info->mapname, path, sizeof(info->mapname));
-      q_strlcpy(info->message, path, sizeof(info->message));
-      q_strlcpy(info->games, DEFAULT_GAMES, sizeof(info->games));
+      Str_Copy(info->mapname, path, sizeof(info->mapname));
+      Str_Copy(info->message, path, sizeof(info->message));
+      Str_Copy(info->games, DEFAULT_GAMES, sizeof(info->games));
 
       const int32_t size = header.lumps[BSP_LUMP_ENTITIES].fileLen;
 
@@ -138,11 +138,11 @@ static void enumerateMaps(const char *path, void *data) {
           break;
         }
 
-        if (q_strcmp(key, "}") == 0) {
+        if (Str_Compare(key, "}") == 0) {
           break;
         }
 
-        if (q_strcmp(key, "{") == 0) {
+        if (Str_Compare(key, "{") == 0) {
           continue;
         }
 
@@ -150,22 +150,22 @@ static void enumerateMaps(const char *path, void *data) {
           break;
         }
 
-        if (q_strcmp(key, "games") == 0) {
-          q_strlcpy(info->games, token, sizeof(info->games));
-        } else if (q_strcmp(key, "message") == 0) {
-          q_strcolorstrip(token, info->message);
+        if (Str_Compare(key, "games") == 0) {
+          Str_Copy(info->games, token, sizeof(info->games));
+        } else if (Str_Compare(key, "message") == 0) {
+          Str_StripColors(token, info->message);
 
-          char *c = q_strstr(info->message, "\\n");
+          char *c = Str_Find(info->message, "\\n");
           if (c) {
             *c = '\0';
           }
 
-          c = q_strstr(info->message, " - ");
+          c = Str_Find(info->message, " - ");
           if (c) {
             *c = '\0';
           }
 
-          c = q_strstr(info->message, " by ");
+          c = Str_Find(info->message, " by ");
           if (c) {
             *c = '\0';
           }
@@ -211,7 +211,7 @@ static void enumerateMaps(const char *path, void *data) {
 }
 
 /**
- * @brief ThreadRunFunc for asynchronous map info loading.
+ * @brief ThreadRun for asynchronous map info loading.
  */
 static void loadMaps(void *data) {
 

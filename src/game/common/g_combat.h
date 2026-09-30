@@ -31,5 +31,5 @@ Vec3 G_GetOrigin(const GameEntity *ent);
 void G_Damage(const GameDamage *damage);
 
 void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ignore, int32_t damage,
-                    int32_t knockback, float radius, g_means_of_death mod);
+                    int32_t knockback, float radius, GameMeansOfDeath mod);
 #endif

@@ -173,7 +173,7 @@ static bool visible(const PlayerState *ps) {
     return false;
   }
 
-  if (cgState.centerPrint.time > cgi.client->unclampedTime) {
+  if (cgameState.centerPrint.time > cgi.client->unclampedTime) {
     return false;
   }
 
@@ -223,10 +223,10 @@ static void updateBindings(View *self, ident data) {
   if (cg_drawCrosshairColor->modified) {
     cg_drawCrosshairColor->modified = false;
 
-    Color color = color_white;
-    if (q_strcmp(cg_drawCrosshairColor->string, "default")) {
+    Color color = COLOR_RGB_WHITE;
+    if (Str_Compare(cg_drawCrosshairColor->string, "default")) {
       if (!Color_Parse(cg_drawCrosshairColor->string, &color)) {
-        color = color_white;
+        color = COLOR_RGB_WHITE;
       }
     }
 
@@ -250,13 +250,13 @@ static void updateBindings(View *self, ident data) {
   if (cg_drawCrosshairPulse->value) {
 
     const int16_t p = ps->stats[STAT_PICKUP];
-    if (p && p != cgHudState.pulse.pickup) {
-      cgHudState.pulse.time = cgi.client->unclampedTime;
+    if (p && p != cgameHudState.pulse.pickup) {
+      cgameHudState.pulse.time = cgi.client->unclampedTime;
     }
 
-    cgHudState.pulse.pickup = p;
+    cgameHudState.pulse.pickup = p;
 
-    const uint32_t delta = cgi.client->unclampedTime - cgHudState.pulse.time;
+    const uint32_t delta = cgi.client->unclampedTime - cgameHudState.pulse.time;
     if (delta < 300) {
       const float frac = delta / 300.f;
       scale += sinf(frac * M_PI) * CROSSHAIR_SCALE;

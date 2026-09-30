@@ -22,13 +22,12 @@
 #include "qlight.h"
 
 // we use a subset of the collision detection facilities for lighting
-static CmBspModel *bspModels[MAX_BSP_MODELS];
+static CollisionModel *bspModels[MAX_BSP_MODELS];
 
 /**
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
-
   /**
    * @brief The trace start and end points, as provided by the user.
    */
@@ -52,18 +51,18 @@ typedef struct {
   /**
    * @brief The trace result.
    */
-  CmTrace trace;
+  CollisionTrace trace;
 
   /**
    * @brief The trace fraction not taking any epsilon nudging into account.
    */
   float unnudgedFraction;
-} CmTraceData;
+} CollisionTraceData;
 
 /**
  * @brief Returns true if the given brush number has already been tested in this trace, using a hash cache.
  */
-static inline bool Light_BrushAlreadyTested(CmTraceData *data, int32_t brushNum) {
+static inline bool Light_BrushAlreadyTested(CollisionTraceData *data, int32_t brushNum) {
   const int32_t hash = brushNum & (lengthof(data->brushCache) - 1);
 
   const bool skip = (data->brushCache[hash] == brushNum);
@@ -76,7 +75,7 @@ static inline bool Light_BrushAlreadyTested(CmTraceData *data, int32_t brushNum)
 /**
  * @brief Clips the bounded box to all brush sides for the given brush.
  */
-static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush) {
+static inline void Light_TraceToBrush(CollisionTraceData *data, const CollisionBrush *brush) {
 
   if (!brush->numBrushSides) {
     return;
@@ -90,15 +89,15 @@ static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush
   float leaveFraction = 1.f;
   float nudgedEnterFraction = -1.f;
 
-  CmBspPlane plane = { };
-  const CmBspBrushSide *side = NULL;
+  CollisionPlane plane = { };
+  const CollisionBrushSide *side = NULL;
 
   bool startOutside = false, endOutside = false;
 
-  const CmBspBrushSide *s = brush->brushSides + brush->numBrushSides - 1;
+  const CollisionBrushSide *s = brush->brushSides + brush->numBrushSides - 1;
   for (int32_t i = brush->numBrushSides - 1; i >= 0; i--, s--) {
 
-    CmBspPlane *p = s->plane;
+    CollisionPlane *p = s->plane;
 
     const float dist = p->dist;
 
@@ -167,9 +166,9 @@ static inline void Light_TraceToBrush(CmTraceData *data, const CmBspBrush *brush
 /**
  * @brief Traces through a single BSP leaf, testing all brushes within against the bounding box.
  */
-static inline void Light_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
+static inline void Light_TraceToLeaf(CollisionTraceData *data, int32_t leafNum) {
 
-  const CmBspLeaf *leaf = &Cm_Bsp()->leafs[leafNum];
+  const CollisionLeaf *leaf = &Cm_Bsp()->leafs[leafNum];
 
   if (!(leaf->contents & data->contents)) {
     return;
@@ -183,7 +182,7 @@ static inline void Light_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
       continue; // already checked this brush in another leaf
     }
 
-    const CmBspBrush *b = &Cm_Bsp()->brushes[brushNum];
+    const CollisionBrush *b = &Cm_Bsp()->brushes[brushNum];
 
     if (!(b->contents & data->contents)) {
       continue;
@@ -200,14 +199,14 @@ static inline void Light_TraceToLeaf(CmTraceData *data, int32_t leafNum) {
 /**
  * @brief Recursively traces the bounding box through the BSP tree from p1 to p2.
  */
-static inline void Light_TraceToNode(CmTraceData *data, int32_t num, float p1f, float p2f,
+static inline void Light_TraceToNode(CollisionTraceData *data, int32_t num, float p1f, float p2f,
                                      const Vec3 p1, const Vec3 p2) {
 
   next:;
   // find the point distances to the separating plane
   // and the offset for the size of the box
-  const CmBspNode *node = Cm_Bsp()->nodes + num;
-  const CmBspPlane plane = *node->plane;
+  const CollisionNode *node = Cm_Bsp()->nodes + num;
+  const CollisionPlane plane = *node->plane;
 
   float d1, d2;
   if (AXIAL(&plane)) {
@@ -314,11 +313,11 @@ static inline void Light_TraceToNode(CmTraceData *data, int32_t num, float p1f, 
  *
  * @return The trace.
  */
-static inline CmTrace Light_Trace_(Vec3 start, Vec3 end, int32_t headNode, int32_t contents) {
+static inline CollisionTrace Light_Trace_(Vec3 start, Vec3 end, int32_t headNode, int32_t contents) {
 
-  CmTraceData data;
+  CollisionTraceData data;
 
-  data.trace = (CmTrace) {
+  data.trace = (CollisionTrace) {
     .fraction = 1.f
   };
 
@@ -366,14 +365,14 @@ int32_t Light_PointContents(const Vec3 p, int32_t headNode) {
  * @param mask The contents mask to clip to.
  * @return The trace.
  */
-CmTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t headNode, int32_t mask) {
-  CmTrace trace = Light_Trace_(start, end, 0, mask);
+CollisionTrace Light_Trace(const Vec3 start, const Vec3 end, int32_t headNode, int32_t mask) {
+  CollisionTrace trace = Light_Trace_(start, end, 0, mask);
   if (trace.startSolid) {
     trace.fraction = 0.f;
   }
 
   if (headNode) {
-    CmTrace tr = Light_Trace_(start, end, headNode, mask);
+    CollisionTrace tr = Light_Trace_(start, end, headNode, mask);
     if (tr.startSolid) {
       tr.fraction = 0.f;
     }
@@ -435,12 +434,12 @@ static void LightWorld(void) {
 
 /**
  * @brief `LIGHT` stage entry point: builds and bakes all lights, and writes the updated BSP.
- * @details `BSP_Main()` always runs immediately before this in the same process, so `bspFile`
+ * @details `Qbsp_Main()` always runs immediately before this in the same process, so `bspFile`
  * is already fully populated in memory; there is no need to reload it from disk here. The
  * collision model, however, is a distinct representation that must be built from the .bsp file
- * `BSP_Main()` just wrote.
+ * `Qbsp_Main()` just wrote.
  */
-int32_t LIGHT_Main(void) {
+int32_t Qlight_Main(void) {
 
   Com_Print("\n------------------------------------------\n");
   Com_Print("\nLighting %s\n\n", bspName);

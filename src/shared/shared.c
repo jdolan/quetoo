@@ -205,7 +205,7 @@ const char *Basename(const char *path) {
 void Dirname(const char *in, char *out) {
   char *c;
 
-  if (!(c = q_strrchr(in, '/'))) {
+  if (!(c = Str_FindLastChar(in, '/'))) {
     strcpy(out, "./");
     return;
   }
@@ -223,10 +223,10 @@ void Dirname(const char *in, char *out) {
 void StripExtension(const char *in, char *out) {
 
   if (in) {
-    const size_t len = q_strlen(in);
+    const size_t len = Str_Length(in);
     memmove(out, in, len + 1);
 
-    char *ext = q_strrchr(out, '.');
+    char *ext = Str_FindLastChar(out, '.');
     if (ext) {
       *ext = '\0';
     }
@@ -244,7 +244,7 @@ bool StrIsEmoji(const char *c) {
     if (*c == ESC_EMOJI) {
       c++;
       if (isalpha(*c)) {
-        while (isalnum(*c) || q_strchr("_-", *c)) {
+        while (isalnum(*c) || Str_FindChar("_-", *c)) {
           c++;
         }
         if (*c == ESC_EMOJI) {
@@ -262,28 +262,28 @@ bool StrIsEmoji(const char *c) {
 Color ColorEsc(int32_t esc) {
   switch (esc) {
     case ESC_COLOR_BLACK:
-      return color_white;
+      return COLOR_RGB_WHITE;
     case ESC_COLOR_RED:
-      return color_red;
+      return COLOR_RGB_RED;
     case ESC_COLOR_GREEN:
-      return color_green;
+      return COLOR_RGB_GREEN;
     case ESC_COLOR_YELLOW:
-      return color_yellow;
+      return COLOR_RGB_YELLOW;
     case ESC_COLOR_BLUE:
-      return color_blue;
+      return COLOR_RGB_BLUE;
     case ESC_COLOR_MAGENTA:
-      return color_magenta;
+      return COLOR_RGB_MAGENTA;
     case ESC_COLOR_CYAN:
-      return color_cyan;
+      return COLOR_RGB_CYAN;
     case ESC_COLOR_WHITE:
-      return color_white;
+      return COLOR_RGB_WHITE;
     case ESC_COLOR_ORANGE:
-      return color_orange;
+      return COLOR_RGB_ORANGE;
     case ESC_COLOR_GREY:
-      return color_grey;
+      return COLOR_RGB_GREY;
   }
 
-  return color_white;
+  return COLOR_RGB_WHITE;
 }
 
 /**
@@ -297,7 +297,7 @@ const char *EmojiEsc(const char *in, char *out, size_t outSize) {
   in++;
 
   for (size_t i = 0; i < outSize - 1; i++) {
-    if (isalnum(*in) || q_strchr("_", *in)) {
+    if (isalnum(*in) || Str_FindChar("_", *in)) {
       if (out) {
         *out++ = *in++;
       }
@@ -342,7 +342,7 @@ char *vtos(const Vec3 v) {
   static char str[8][MAX_QPATH];
 
   char *s = str[index++ % 8];
-  q_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
+  Str_Format(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
 
   return s;
 }
@@ -356,7 +356,7 @@ ssize_t InfoString_Get(const char *s, const char *key, char *out, size_t outSize
 
   out[0] = '\0';
 
-  const size_t keyLen = q_strlen(key);
+  const size_t keyLen = Str_Length(key);
 
   if (*s == '\\') {
     s++;
@@ -381,7 +381,7 @@ ssize_t InfoString_Get(const char *s, const char *key, char *out, size_t outSize
       s++;
     }
 
-    if (len == keyLen && !q_strncmp(k, key, len)) {
+    if (len == keyLen && !Str_CompareN(k, key, len)) {
       const size_t copy = Minz((size_t) (s - v), outSize - 1);
       memcpy(out, v, copy);
       out[copy] = '\0';
@@ -418,7 +418,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  q_strlcpy(key, src, s - src + 1);
+  Str_Copy(key, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -429,7 +429,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  q_strlcpy(value, src, s - src + 1);
+  Str_Copy(value, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -452,7 +452,7 @@ bool InfoString_Delete(char *s, const char *key) {
   char value[512];
   char *o;
 
-  if (q_strstr(key, "\\")) {
+  if (Str_Find(key, "\\")) {
     return false;
   }
 
@@ -480,8 +480,8 @@ bool InfoString_Delete(char *s, const char *key) {
     }
     *o = '\0';
 
-    if (!q_strcmp(key, pkey)) {
-      memmove(start, s, q_strlen(s) + 1);
+    if (!Str_Compare(key, pkey)) {
+      memmove(start, s, Str_Length(s) + 1);
       return true;
     }
 
@@ -498,7 +498,7 @@ bool InfoString_Validate(const char *s) {
   if (!s || !*s) {
     return false;
   }
-  if (q_strstr(s, "\"")) {
+  if (Str_Find(s, "\"")) {
     return false;
   }
   return true;
@@ -511,40 +511,40 @@ bool InfoString_Validate(const char *s) {
 bool InfoString_Set(char *s, const char *key, const char *value) {
   char newi[MAX_INFO_STRING_STRING * 16], *v;
 
-  if (!q_strlen(key)) {
+  if (!Str_Length(key)) {
     return false;
   }
 
-  if (q_strstr(key, "\\") || q_strstr(value, "\\")) {
+  if (Str_Find(key, "\\") || Str_Find(value, "\\")) {
     return false;
   }
 
-  if (q_strstr(key, ";")) {
+  if (Str_Find(key, ";")) {
     return false;
   }
 
-  if (q_strstr(key, "\"") || q_strstr(value, "\"")) {
+  if (Str_Find(key, "\"") || Str_Find(value, "\"")) {
     return false;
   }
 
-  if (q_strlen(key) > MAX_INFO_STRING_KEY - 1 || q_strlen(value) > MAX_INFO_STRING_VALUE - 1) {
+  if (Str_Length(key) > MAX_INFO_STRING_KEY - 1 || Str_Length(value) > MAX_INFO_STRING_VALUE - 1) {
     return false;
   }
 
   InfoString_Delete(s, key);
 
-  if (q_strlen(s)) {
-    q_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
+  if (Str_Length(s)) {
+    Str_Format(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
   } else {
-    q_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
+    Str_Format(newi, sizeof(newi), "%s\\%s", key, value ?: "");
   }
 
-  if (q_strlen(newi) + q_strlen(s) > MAX_INFO_STRING_STRING) {
+  if (Str_Length(newi) + Str_Length(s) > MAX_INFO_STRING_STRING) {
     return false;
   }
 
   // only copy ascii values
-  s += q_strlen(s);
+  s += Str_Length(s);
   v = newi;
   while (*v) {
     char c = *v++;

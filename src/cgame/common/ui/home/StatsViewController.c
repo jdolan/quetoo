@@ -31,8 +31,8 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-static const char *_weapon = "Weapon";
-static const char *_frags = "Frags";
+static const char *columnWeapon = "Weapon";
+static const char *columnFrags = "Frags";
 
 #pragma mark - JSON deserialization
 
@@ -134,12 +134,12 @@ static void fetchStatsComplete(int32_t status, Data *data, void *userData) {
 static void fetchStats(StatsViewController *this) {
 
   const char *guidHash = cgi.GetCvarString("guidHash");
-  if (q_strlen(guidHash) == 0) {
+  if (Str_Length(guidHash) == 0) {
     return;
   }
 
   char url[MAX_STRING_CHARS];
-  q_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guidHash);
+  Str_Format(url, sizeof(url), QUETOO_STATS_URL "/%s", guidHash);
 
   $(cgi.restClient, getAsync, url, NULL, fetchStatsComplete, NULL);
 }
@@ -156,7 +156,7 @@ static size_t numberOfRows(const TableView *tableView) {
   size_t i;
   const KillsByWeapon *w = this->stats.killsByWeapon;
   for (i = 0; i < lengthof(this->stats.killsByWeapon); i++, w++) {
-    if (q_strlen(w->weapon) == 0) {
+    if (Str_Length(w->weapon) == 0) {
       break;
     }
   }
@@ -177,9 +177,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (q_strcmp(column->identifier, _weapon) == 0) {
+  if (Str_Compare(column->identifier, columnWeapon) == 0) {
     $(cell->text, setText, w->weapon);
-  } else if (q_strcmp(column->identifier, _frags) == 0) {
+  } else if (Str_Compare(column->identifier, columnFrags) == 0) {
     $(cell->text, setText, va("%d", w->frags));
   }
 
@@ -214,8 +214,8 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->weapons, addColumnWithIdentifier, _weapon);
-  $(this->weapons, addColumnWithIdentifier, _frags);
+  $(this->weapons, addColumnWithIdentifier, columnWeapon);
+  $(this->weapons, addColumnWithIdentifier, columnFrags);
 
   this->weapons->dataSource.numberOfRows = numberOfRows;
   this->weapons->dataSource.self = this;

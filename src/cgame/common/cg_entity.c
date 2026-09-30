@@ -22,19 +22,19 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-Vector *cgEntities = NULL;
+Vector *cgameEntities = NULL;
 
 /**
- * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
+ * @brief The `CGameEntityPredicate` type for `Cg_FindEntity`.
  */
-typedef bool (*Cg_EntityPredicate)(const CmEntity *e, void *data);
+typedef bool (*CGameEntityPredicate)(const Entity *e, void *data);
 
 /**
  * @return The first entity after `from` for which `predicate` returns `true`, or `NULL`.
  */
-static const CmEntity *Cg_FindEntity(const CmEntity *from, const Cg_EntityPredicate predicate, void *data) {
+static const Entity *Cg_FindEntity(const Entity *from, const CGameEntityPredicate predicate, void *data) {
 
-  const CmBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->collision;
 
   int32_t start = 0;
   if (from) {
@@ -49,7 +49,7 @@ static const CmEntity *Cg_FindEntity(const CmEntity *from, const Cg_EntityPredic
   }
 
   for (int32_t i = start; i < bsp->numEntities; i++) {
-    const CmEntity *e = bsp->entities[i];
+    const Entity *e = bsp->entities[i];
     if (predicate(e, data)) {
       return e;
     }
@@ -61,25 +61,25 @@ static const CmEntity *Cg_FindEntity(const CmEntity *from, const Cg_EntityPredic
 /**
  * @brief Predicate function testing whether an entity's targetname matches the given string.
  */
-static bool Cg_EntityTarget_Predicate(const CmEntity *e, void *data) {
-  return !q_strcmp(cgi.EntityValue(e, "targetname")->nullableString, data);
+static bool Cg_EntityTarget_Predicate(const Entity *e, void *data) {
+  return !Str_Compare(cgi.EntityValue(e, "targetname")->nullableString, data);
 }
 
 /**
  * @brief Predicate function testing whether an entity's team key matches the given string.
  */
-static bool Cg_EntityTeam_Predicate(const CmEntity *e, void *data) {
-  return !q_strcmp(cgi.EntityValue(e, "team")->nullableString, data);
+static bool Cg_EntityTeam_Predicate(const Entity *e, void *data) {
+  return !Str_Compare(cgi.EntityValue(e, "team")->nullableString, data);
 }
 
 /**
- * @return The `CGameEntity *` for the specified `CmEntity *`, if any.
+ * @return The `CGameEntity *` for the specified `Entity *`, if any.
  */
-CGameEntity *Cg_EntityForDefinition(const CmEntity *e) {
+CGameEntity *Cg_EntityForDefinition(const Entity *e) {
 
   if (e) {
-    for (uint32_t i = 0; i < cgEntities->count; i++) {
-      CGameEntity *ent = VectorElement(cgEntities, CGameEntity, i);
+    for (uint32_t i = 0; i < cgameEntities->count; i++) {
+      CGameEntity *ent = VectorElement(cgameEntities, CGameEntity, i);
       if (ent->def == e) {
         return ent;
       }
@@ -89,18 +89,18 @@ CGameEntity *Cg_EntityForDefinition(const CmEntity *e) {
   return NULL;
 }
 
-const CGameEntityClass *cgEntityClasses[] = {
-  &cgMiscDust,
-  &cgMiscFlame,
-  &cgMiscModel,
-  &cgMiscSound,
-  &cgMiscSparks,
-  &cgMiscSprite,
-  &cgMiscSteam,
-  &cgMiscWeather
+const CGameEntityClass *cgameEntityClasses[] = {
+  &cgameMiscDust,
+  &cgameMiscFlame,
+  &cgameMiscModel,
+  &cgameMiscSound,
+  &cgameMiscSparks,
+  &cgameMiscSprite,
+  &cgameMiscSteam,
+  &cgameMiscWeather
 };
 
-const size_t cgNumEntityClasses = lengthof(cgEntityClasses);
+const size_t cgameNumEntityClasses = lengthof(cgameEntityClasses);
 
 /**
  * @brief Loads entities from the current level.
@@ -110,21 +110,21 @@ void Cg_LoadEntities(void) {
 
   Cg_FreeEntities();
 
-  cgEntities = $(alloc(Vector), initWithSize, sizeof(CGameEntity));
+  cgameEntities = $(alloc(Vector), initWithSize, sizeof(CGameEntity));
 
-  const CmBsp *bsp = cgi.WorldModel()->bsp->cm;
+  const CollisionBsp *bsp = cgi.WorldModel()->bsp->collision;
   for (int32_t i = 0; i < bsp->numEntities; i++) {
 
-    const CmEntity *def = bsp->entities[i];
+    const Entity *def = bsp->entities[i];
     const char *classname = cgi.EntityValue(def, "classname")->string;
 
-    const CGameEntityClass **clazz = cgEntityClasses;
-    for (size_t j = 0; j < cgNumEntityClasses; j++, clazz++) {
+    const CGameEntityClass **clazz = cgameEntityClasses;
+    for (size_t j = 0; j < cgameNumEntityClasses; j++, clazz++) {
 
-      if (!q_strcmp(classname, (*clazz)->classname)) {
+      if (!Str_Compare(classname, (*clazz)->classname)) {
 
         CGameEntity e = {
-          .id = MAX_ENTITIES + (int32_t) cgEntities->count,
+          .id = MAX_ENTITIES + (int32_t) cgameEntities->count,
           .clazz = *clazz,
           .def = def
         };
@@ -157,7 +157,7 @@ void Cg_LoadEntities(void) {
           e.nextThink += interval * Randomf();
         }
 
-        $(cgEntities, add, &e);
+        $(cgameEntities, add, &e);
       }
     }
   }
@@ -168,9 +168,9 @@ void Cg_LoadEntities(void) {
  */
 void Cg_FreeEntities(void) {
 
-  if (cgEntities) {
-    release(cgEntities);
-    cgEntities = NULL;
+  if (cgameEntities) {
+    release(cgameEntities);
+    cgameEntities = NULL;
   }
 }
 
@@ -247,6 +247,8 @@ void Cg_Interpolate(const ClientFrame *frame) {
     // same frame again does not fire it twice
     ent->current.event = s->event = 0;
   }
+
+  Cg_TrackWeapon(&frame->ps);
 }
 
 /**
@@ -308,7 +310,7 @@ static void Cg_AddEntity_Common(ClientEntity *ent) {
   cgi.AddEntity(cgi.view, &e);
 }
 
-AddEntity Cg_AddEntity = Cg_AddEntity_Common;
+CGameAddEntityHook Cg_AddEntity = Cg_AddEntity_Common;
 
 /**
  * @brief Iterate all entities in the current frame, adding models, sprites,
@@ -343,8 +345,8 @@ void Cg_AddEntities(const ClientFrame *frame) {
   }
 
   // and client side entities too
-  CGameEntity *e = cgEntities->elements;
-  for (uint32_t i = 0; i < cgEntities->count; i++, e++) {
+  CGameEntity *e = cgameEntities->elements;
+  for (uint32_t i = 0; i < cgameEntities->count; i++, e++) {
 
     if (e->nextThink > cgi.client->unclampedTime) {
       continue;

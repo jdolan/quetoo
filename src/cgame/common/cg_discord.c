@@ -137,7 +137,7 @@ typedef enum {
   DISCORD_ACTIVE
 } CGameDiscordStatus;
 
-typedef struct {
+static struct {
   bool initialized;
   bool failed;
   CGameDiscordStatus status;
@@ -146,28 +146,26 @@ typedef struct {
    * @brief The party size last published, so that presence is refreshed when it changes.
    */
   int32_t partyMax;
-} CGameDiscordState;
-
-static CGameDiscordState cgDiscordState;
+} module;
 
 static void Cg_DiscordReady(const DiscordUser *user) {
 
   cgi.Print("Discord Loaded (%s)\n", user->username);
-  cgDiscordState.initialized = true;
+  module.initialized = true;
 }
 
 /**
- * @brief The tail of the `Cg_DescribeGameMode` chain: the gameplay and the
+ * @brief The tail of the `Cg_DescribeGamePlay` chain: the gameplay and the
  * team count, or the flag mode.
  */
-static const char *Cg_DescribeGameMode_Common(void) {
+static const char *Cg_DescribeGamePlay_Common(void) {
 
 #if defined(G_CTF)
-  return va("%i-Team CTF", cgState.numTeams);
+  return va("%i-Team CTF", cgameState.numTeams);
 #else
   const char *mode;
 
-  switch (cgState.gameplay & ~GAMEPLAY_TEAMS) {
+  switch (cgameState.gameplay & ~GAMEPLAY_TEAMS) {
     case GAMEPLAY_ARENA:
       mode = "Arena";
       break;
@@ -179,23 +177,23 @@ static const char *Cg_DescribeGameMode_Common(void) {
       break;
   }
 
-  if (cgState.numTeams) {
-    return va("%i-Team %s", cgState.numTeams, mode);
+  if (cgameState.numTeams) {
+    return va("%i-Team %s", cgameState.numTeams, mode);
   }
 
   return mode;
 #endif
 }
 
-DescribeGameMode Cg_DescribeGameMode = Cg_DescribeGameMode_Common;
+CGameDescribeGamePlayHook Cg_DescribeGamePlay = Cg_DescribeGamePlay_Common;
 
 void Cg_UpdateDiscord(void) {
 
-  if (cgDiscordState.failed) {
+  if (module.failed) {
     return;
   }
 
-  if (cgDiscordState.initialized) {
+  if (module.initialized) {
     DiscordRichPresence presence = { 0 };
     bool needsUpdate = false;
 
@@ -210,42 +208,42 @@ void Cg_UpdateDiscord(void) {
 
       // the status reply that carries the party size arrives on its own schedule, and may
       // land after we are already in game, so publish again when it does
-      if (cgDiscordState.status != DISCORD_ACTIVE || cgDiscordState.partyMax != partyMax) {
+      if (module.status != DISCORD_ACTIVE || module.partyMax != partyMax) {
         needsUpdate = true;
       
         presence.largeImageKey = "default";
         presence.state = "Playing";
 
         char message[MAX_STRING_CHARS];
-        q_strcolorstrip(cgi.ConfigString(CS_MESSAGE), message);
+        Str_StripColors(cgi.ConfigString(CS_MESSAGE), message);
 
-        q_snprintf(details, sizeof(details), "%s - %s", Cg_DescribeGameMode(), message);
+        Str_Format(details, sizeof(details), "%s - %s", Cg_DescribeGamePlay(), message);
         presence.details = details;
 
-        if (q_strcmp(cgi.server->address, "localhost")) {
+        if (Str_Compare(cgi.server->address, "localhost")) {
           presence.partyId = cgi.server->address;
 
-          q_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
+          Str_Format(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
           presence.joinSecret = joinSecret;
 
-          q_snprintf(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
+          Str_Format(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
           presence.spectateSecret = spectateSecret;
         }
 
-        presence.partySize = cgState.numClients;
+        presence.partySize = cgameState.numClients;
         presence.partyMax = partyMax;
-        cgDiscordState.partyMax = partyMax;
-        cgDiscordState.status = DISCORD_ACTIVE;
+        module.partyMax = partyMax;
+        module.status = DISCORD_ACTIVE;
         presence.instance = true;
       }
     } else {
-      if (cgDiscordState.status != DISCORD_INACTIVE) {
+      if (module.status != DISCORD_INACTIVE) {
         needsUpdate = true;
       
         presence.largeImageKey = "default";
         presence.state = "In Main Menu";
 
-        cgDiscordState.status = DISCORD_INACTIVE;
+        module.status = DISCORD_INACTIVE;
       }
     }
 
@@ -259,14 +257,14 @@ void Cg_UpdateDiscord(void) {
 
 static void Cg_DiscordJoinGame(const char *secret) {
 
-  if (q_strncasecmp(secret, "JOIN_", 5)) {
+  if (Str_CaseCompareN(secret, "JOIN_", 5)) {
     Cg_Warn("Invalid invitation\n");
     return;
   }
 
   // Sanitize the address to prevent command injection via newlines or semicolons
   char addr[MAX_STRING_CHARS];
-  q_strlcpy(addr, secret + 5, sizeof(addr));
+  Str_Copy(addr, secret + 5, sizeof(addr));
   for (char *c = addr; *c; c++) {
     if (*c == '\n' || *c == ';' || *c == '"') {
       *c = '\0';
@@ -299,7 +297,7 @@ void Cg_InitDiscord(void) {
     Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
   } __except(EXCEPTION_EXECUTE_HANDLER) {
     Cg_Warn("Discord RPC initialization crashed, Rich Presence disabled\n");
-    cgDiscordState.failed = true;
+    module.failed = true;
   }
 #else
   Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
@@ -308,9 +306,9 @@ void Cg_InitDiscord(void) {
 
 void Cg_ShutdownDiscord(void) {
 
-  if (!cgDiscordState.failed) {
+  if (!module.failed) {
     Discord_Shutdown();
   }
 
-  memset(&cgDiscordState, 0, sizeof(cgDiscordState));
+  memset(&module, 0, sizeof(module));
 }

@@ -26,13 +26,6 @@ Cvar *g_aiNoTarget;
 Cvar *g_aiNodeDev;
 
 /**
- * @brief Linear interpolation between a and b by fraction t (0.0 to 1.0).
- */
-static inline float Lerpf(float a, float b, float t) {
-  return a + (b - a) * t;
-}
-
-/**
  * @brief Minimum weapon priority to be considered "armed" for combat.
  * Blaster (0.10) is below this threshold; Shotgun (0.15) and above are armed.
  */
@@ -54,10 +47,10 @@ static inline float Lerpf(float a, float b, float t) {
  */
 static bool G_Ai_IsArmed(const GameClient *cl) {
 
-  const float threshold = AI_ARMED_PRIORITY * Lerpf(1.25f, .6f, cl->ai->personality.aggression);
+  const float threshold = AI_ARMED_PRIORITY * Mixf(1.25f, .6f, cl->ai->personality.aggression);
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const GameItem *it = &g_items[t];
+    const GameItem *it = &gameItems[t];
     if (cl->inventory[t] && it->def.priority >= threshold) {
       return true;
     }
@@ -72,7 +65,7 @@ static bool G_Ai_IsArmed(const GameClient *cl) {
  * Bots also flee from enemies carrying dangerous powerups.
  */
 static bool G_Ai_ShouldRetreat(const GameClient *cl) {
-  const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Lerpf(1.5f, .5f, cl->ai->personality.aggression));
+  const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Mixf(1.5f, .5f, cl->ai->personality.aggression));
   if (cl->entity->health < threshold) {
     return true;
   }
@@ -101,7 +94,7 @@ static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
   // invisible enemies are only detectable within a skill-dependent range
   if (other->s.effects & EF_INVISIBILITY) {
     const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
-    const float detectRange = Lerpf(256.f, 512.f, cl->ai->personality.skill);
+    const float detectRange = Mixf(256.f, 512.f, cl->ai->personality.skill);
     if (dist > detectRange) {
       return false;
     }
@@ -118,7 +111,7 @@ static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
     return false;
   }
 
-  CmTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   if (tr.ent == other) {
     return true;
@@ -158,15 +151,15 @@ typedef struct {
   const GameEntity *entity;
   const GameItem *item;
   float weight;
-} AiItemPick;
+} GameAiItemPick;
 
 /**
  * @brief Comparison function for sorting item pick candidates by descending weight.
  */
 static int32_t G_Ai_CompareItems(const void *a, const void *b) {
 
-  const AiItemPick *w0 = (const AiItemPick *) a;
-  const AiItemPick *w1 = (const AiItemPick *) b;
+  const GameAiItemPick *w0 = (const GameAiItemPick *) a;
+  const GameAiItemPick *w1 = (const GameAiItemPick *) b;
 
   return SignOf(w1->weight - w0->weight);
 }
@@ -177,7 +170,7 @@ static Order G_Ai_CompareItemsOrder(const ident a, const ident b) {
 }
 
 static inline int64_t G_Ai_Microseconds(void) {
-  return (int64_t) g_level.time * 1000;
+  return (int64_t) gameLevel.time * 1000;
 }
 
 #define AI_ITEM_UNREACHABLE -1.0
@@ -190,7 +183,7 @@ static float G_Ai_ItemReachable(const GameClient *cl, const GameEntity *other) {
   const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
 
   // aware bots spot items from farther away (512 to 1024)
-  const float range = AI_MAX_ITEM_DISTANCE * Lerpf(.67f, 1.33f, cl->ai->personality.awareness);
+  const float range = AI_MAX_ITEM_DISTANCE * Mixf(.67f, 1.33f, cl->ai->personality.awareness);
 
   if (dist > range) {
     return AI_ITEM_UNREACHABLE;
@@ -199,7 +192,7 @@ static float G_Ai_ItemReachable(const GameClient *cl, const GameEntity *other) {
   return dist;
 }
 
-static inline void G_Ai_BackupPath(Ai *ai) {
+static inline void G_Ai_BackupPath(GameAi *ai) {
 
   if (!ai->backupMoveTarget.type && ai->moveTarget.type == AI_GOAL_PATH) {
     G_Ai_CopyGoal(&ai->moveTarget, &ai->backupMoveTarget);
@@ -207,13 +200,13 @@ static inline void G_Ai_BackupPath(Ai *ai) {
   }
 }
 
-static inline void G_Ai_RestorePath(const GameClient *cl, Ai *ai) {
+static inline void G_Ai_RestorePath(const GameClient *cl, GameAi *ai) {
 
   if (ai->backupMoveTarget.type == AI_GOAL_PATH) {
     // generate a new path to the old target, because we might have gotten a bit out
     // of sync with moving to the item
-    const AiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-    const AiNodeId dest = VectorValue(ai->backupMoveTarget.path.path, AiNodeId, ai->backupMoveTarget.path.path->count - 1);
+    const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+    const GameAiNodeId dest = VectorValue(ai->backupMoveTarget.path.path, GameAiNodeId, ai->backupMoveTarget.path.path->count - 1);
     Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
 
     if (!path) {
@@ -245,8 +238,8 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
 
   // if we got stuck, don't hunt for items for a little bit
-  if (cl->ai->reacquireTime > g_level.time) {
-    return cl->ai->reacquireTime - g_level.time; 
+  if (cl->ai->reacquireTime > gameLevel.time) {
+    return cl->ai->reacquireTime - gameLevel.time; 
   }
 
   // skip item seeking if we're in the air, or if we're armed, healthy, and fighting
@@ -283,7 +276,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // we have nothing to do, start looking for a new one
-  Vector *itemsVisible = $(alloc(Vector), initWithSize, sizeof(AiItemPick));
+  Vector *itemsVisible = $(alloc(Vector), initWithSize, sizeof(GameAiItemPick));
 
   G_ForEachEntity(ent, {
     if (ent->s.solid != SOLID_TRIGGER) {
@@ -319,7 +312,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       weight *= 3.f;
     }
 
-    $(itemsVisible, add, &(AiItemPick) {
+    $(itemsVisible, add, &(GameAiItemPick) {
       .entity = ent,
       .item = item,
       .weight = weight
@@ -334,7 +327,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     }
 
     for (uint32_t i = 0; i < itemsVisible->count; i++) {
-      const AiItemPick pick = VectorValue(itemsVisible, AiItemPick, 0);
+      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, 0);
       const bool found = pick.weight > cl->ai->moveTarget.priority;
 
       if (!found) {
@@ -344,8 +337,8 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       bool pathFound = false;
 
       if (pick.entity->node != AI_NODE_INVALID) {
-        const AiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-        const AiNodeId dest = pick.entity->node;
+        const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+        const GameAiNodeId dest = pick.entity->node;
 
         if (src != AI_NODE_INVALID) {
           float length;
@@ -391,12 +384,12 @@ typedef enum {
   RANGE_SHORT = 128,
   RANGE_MED = 512,
   RANGE_LONG = 1024
-} AiRange;
+} GameAiRange;
 
 /**
  * @brief Classifies a distance value into a discrete range category.
  */
-static AiRange G_Ai_GetRange(const float distance) {
+static GameAiRange G_Ai_GetRange(const float distance) {
   if (distance < (float) RANGE_MELEE) {
     return RANGE_MELEE;
   } else if (distance < (float) RANGE_SHORT) {
@@ -413,9 +406,9 @@ static AiRange G_Ai_GetRange(const float distance) {
  */
 static void G_Ai_PickWeapon(GameClient *cl) {
 
-  cl->ai->weaponCheckTime = g_level.time + 250; // don't try again for a bit
+  cl->ai->weaponCheckTime = gameLevel.time + 250; // don't try again for a bit
 
-  AiRange targRange;
+  GameAiRange targRange;
 
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
     targRange = G_Ai_GetRange(Vec3_Distance(cl->entity->s.origin, cl->ai->combatTarget.entity.ent->s.origin));
@@ -423,13 +416,13 @@ static void G_Ai_PickWeapon(GameClient *cl) {
     targRange = RANGE_DONT_CARE;
   }
 
-  AiItemPick weapons[WEAPON_TOTAL];
+  GameAiItemPick weapons[WEAPON_TOTAL];
   size_t numWeapons = 0;
 
   const int16_t *inventory = cl->inventory;
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const GameItem *it = &g_items[t];
+    const GameItem *it = &gameItems[t];
 
     if (!inventory[t]) { // not in stock
       continue;
@@ -503,7 +496,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
       weight *= RandomRangef(.7f, 1.3f);
     }
 
-    weapons[numWeapons++] = (AiItemPick) {
+    weapons[numWeapons++] = (GameAiItemPick) {
       .item = it,
       .weight = weight
     };
@@ -513,9 +506,9 @@ static void G_Ai_PickWeapon(GameClient *cl) {
     return;
   }
 
-  qsort(weapons, numWeapons, sizeof(AiItemPick), G_Ai_CompareItems);
+  qsort(weapons, numWeapons, sizeof(GameAiItemPick), G_Ai_CompareItems);
 
-  const AiItemPick *bestWeapon = &weapons[0];
+  const GameAiItemPick *bestWeapon = &weapons[0];
 
   if (cl->weapon == bestWeapon->item) {
     return;
@@ -523,7 +516,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
 
   gi.TokenizeString(va("use %s", bestWeapon->item->def.name));
   ge.ClientCommand(cl);
-  cl->ai->weaponCheckTime = g_level.time + 300; // don't try again for a bit
+  cl->ai->weaponCheckTime = gameLevel.time + 300; // don't try again for a bit
   G_Ai_Debug("weapon choice: %s (%d choices)\n", bestWeapon->item->def.name, (int32_t) numWeapons);
 }
 
@@ -564,7 +557,7 @@ static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target, 
  */
 static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 
-  if (target->solid == SOLID_DEAD || (target->svFlags & SVF_NO_CLIENT)) {
+  if (target->solid == SOLID_DEAD || (target->serverFlags & SVF_NO_CLIENT)) {
     return false;
   }
 
@@ -594,7 +587,7 @@ static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 #endif
 
   // aggressive bots are more willing to chase
-  chance *= Lerpf(.6f, 1.4f, cl->ai->personality.aggression);
+  chance *= Mixf(.6f, 1.4f, cl->ai->personality.aggression);
 
   return Randomf() < chance;
 }
@@ -633,7 +626,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
           cl->ai->combatTarget.entity.ent->s.origin);
 
       // keep fighting if they're right on top of us (aggressive bots fight at longer range)
-      const float defenseDist = AI_SELF_DEFENSE_DISTANCE * Lerpf(.5f, 1.5f, cl->ai->personality.aggression);
+      const float defenseDist = AI_SELF_DEFENSE_DISTANCE * Mixf(.5f, 1.5f, cl->ai->personality.aggression);
       if (dist > defenseDist) {
 
         if (cl->ai->moveTarget.type == AI_GOAL_ENTITY &&
@@ -662,8 +655,8 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
         const Vec3 whereTo = cl->ai->combatTarget.entity.ent->s.origin;
         
-        const AiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
-        const AiNodeId closestToTarget = G_Ai_Node_FindClosest(whereTo, 128.f, true, true);
+        const GameAiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
+        const GameAiNodeId closestToTarget = G_Ai_Node_FindClosest(whereTo, 128.f, true, true);
         Vector *path = G_Ai_Node_FindPath(cl, closest, closestToTarget, G_Ai_Node_Heuristic, NULL);
 
         if (path) {
@@ -718,9 +711,9 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
       }
 
       // skilled bots react faster (100-400ms vs 500-1200ms)
-      const uint32_t lockMin = (uint32_t) Lerpf(500.f, 100.f, cl->ai->personality.skill);
-      const uint32_t lockMax = (uint32_t) Lerpf(1200.f, 400.f, cl->ai->personality.skill);
-      cl->ai->combatTarget.entity.lockOnTime = g_level.time + RandomRangeu(lockMin, lockMax);
+      const uint32_t lockMin = (uint32_t) Mixf(500.f, 100.f, cl->ai->personality.skill);
+      const uint32_t lockMax = (uint32_t) Mixf(1200.f, 400.f, cl->ai->personality.skill);
+      cl->ai->combatTarget.entity.lockOnTime = gameLevel.time + RandomRangeu(lockMin, lockMax);
 
       if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK) {
         cl->ai->combatTarget.entity.flankAngle = Randomb() ? -90 : 90;
@@ -735,8 +728,8 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
     const float dist = Vec3_Distance(cl->entity->s.origin, enemy->s.origin);
 
     // try to find a safe path to the enemy via navigation nodes
-    const AiNodeId myNode = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
-    const AiNodeId enemyNode = G_Ai_Node_FindClosest(enemy->s.origin, 128.f, true, true);
+    const GameAiNodeId myNode = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
+    const GameAiNodeId enemyNode = G_Ai_Node_FindClosest(enemy->s.origin, 128.f, true, true);
     bool pathed = false;
 
     if (myNode != AI_NODE_INVALID && enemyNode != AI_NODE_INVALID && myNode != enemyNode) {
@@ -772,31 +765,31 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
   // if we're dead, just keep clicking so we respawn.
   if (cl->entity->dead) {
 
-    if (g_level.frameNum & 1) {
+    if (gameLevel.frameNum & 1) {
       cmd->buttons = BUTTON_ATTACK;
     }
     return 1;
   }
 
 
-  if (cl->ai->weaponCheckTime < g_level.time) { // check for a new weapon every once in a while
+  if (cl->ai->weaponCheckTime < gameLevel.time) { // check for a new weapon every once in a while
     G_Ai_PickWeapon(cl);
   }
 
   // we're alive - if we're aiming at an enemy, start-a-firin
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-    if (cl->ai->combatTarget.entity.lockOnTime < g_level.time) {
+    if (cl->ai->combatTarget.entity.lockOnTime < gameLevel.time) {
 
       const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
       const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
           Box3_Center(cl->ai->combatTarget.entity.ent->absBounds), eyeOrigin));
 
       // skilled bots fire with tighter aim cone (10° to 25°)
-      const float fireCone = Lerpf(25.f, 10.f, cl->ai->personality.skill);
+      const float fireCone = Mixf(25.f, 10.f, cl->ai->personality.skill);
       if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone))) {
         const uint32_t grenadeHoldTime = cl->grenadeHoldTime;
         if (grenadeHoldTime) {
-          if (g_level.time - grenadeHoldTime < RandomRangeu(1500, 2500)) {
+          if (gameLevel.time - grenadeHoldTime < RandomRangeu(1500, 2500)) {
             cmd->buttons |= BUTTON_ATTACK;
           }
         } else {
@@ -824,8 +817,8 @@ static uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // do some acrobatics (aggressive bots dodge more)
-  const uint32_t crouchFreq = (uint32_t) Lerpf(48.f, 20.f, cl->ai->personality.aggression);
-  const uint32_t jumpFreq = (uint32_t) Lerpf(120.f, 50.f, cl->ai->personality.aggression);
+  const uint32_t crouchFreq = (uint32_t) Mixf(48.f, 20.f, cl->ai->personality.aggression);
+  const uint32_t jumpFreq = (uint32_t) Mixf(120.f, 50.f, cl->ai->personality.aggression);
 
   if (cl->entity->ground.ent) {
 
@@ -867,7 +860,7 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   Vec3_Vectors(MakeVec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
   const Vec3 end = Vec3_Fmaf(ent->s.origin, Box3_Size(ent->bounds).x * 2.0f, forward);
-  const CmTrace tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
+  const CollisionTrace tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
 
   bool blocked = tr.fraction < 1.0f;
 
@@ -875,7 +868,7 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   if (!blocked) {
     const Vec3 dropStart = end;
     const Vec3 dropEnd = Vec3_Subtract(dropStart, MakeVec3(0, 0, PM_STEP_HEIGHT * 4.f));
-    const CmTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+    const CollisionTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
     blocked = groundTr.fraction >= 1.0f;
   }
 
@@ -900,14 +893,14 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   return *angle;
 }
 
-static GameEntity *g_aiCurrentEntity;
+static GameEntity *aiCurrentEntity;
 
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
-static CmTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
 
-  const GameEntity *ent= g_aiCurrentEntity;
+  const GameEntity *ent= aiCurrentEntity;
 
   if (ent->solid == SOLID_DEAD) {
     return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_CORPSE);
@@ -919,7 +912,7 @@ static CmTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box3 bound
 /**
  * @brief Increase our path pointer.
  */
-static bool G_Ai_AdvancePath(GameClient *cl, AiGoal *goal) {
+static bool G_Ai_AdvancePath(GameClient *cl, GameAiGoal *goal) {
 
   goal->path.pathIndex++;
 
@@ -931,8 +924,8 @@ static bool G_Ai_AdvancePath(GameClient *cl, AiGoal *goal) {
   const Vector *path = goal->path.path;
   const uint32_t index = goal->path.pathIndex;
 
-  const AiNodeId node = VectorValue(path, AiNodeId, index);
-  const AiNodeId next = VectorValue(path, AiNodeId, Minz(path->count - 1, index + 1));
+  const GameAiNodeId node = VectorValue(path, GameAiNodeId, index);
+  const GameAiNodeId next = VectorValue(path, GameAiNodeId, Minz(path->count - 1, index + 1));
   goal->path.pathPosition = G_Ai_Node_GetPosition(node);
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
   goal->distress = 0;
@@ -945,7 +938,7 @@ static bool G_Ai_AdvancePath(GameClient *cl, AiGoal *goal) {
 /**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
-static bool G_Ai_CheckNav(GameClient *cl, AiGoal *goal) {
+static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
 
   /*
    * The AI's bbox is expanded for collision checks. This is so
@@ -964,7 +957,7 @@ static bool G_Ai_CheckNav(GameClient *cl, AiGoal *goal) {
 /**
  * @brief Updates the distress counter for a goal and returns false if the goal should be abandoned.
  */
-static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
+static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest) {
   const float pathDist = Vec3_Distance(cl->entity->s.origin, dest);
 
   // wander's distress is handled elsewhere
@@ -997,7 +990,7 @@ static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
 
     // something is blocking our destination
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-    const CmTrace tr = gi.Trace(eyeOrigin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
+    const CollisionTrace tr = gi.Trace(eyeOrigin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
 
     if (tr.fraction < 1.0f) {
       goal->distress += 0.25f;
@@ -1013,7 +1006,7 @@ static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
     goal->distress = 0;
     goal->lastDistance = 0;
     goal->distressExtension = false;
-    cl->ai->reacquireTime = g_level.time + 1000;
+    cl->ai->reacquireTime = gameLevel.time + 1000;
       
     G_Ai_Debug("Distress threshold reached\n");
     return false;
@@ -1027,7 +1020,7 @@ static bool G_Ai_GoalDistress(GameClient *cl, AiGoal *goal, const Vec3 dest) {
  */
 static inline bool G_Ai_Path_IsLinked(const Vector *path, const uint32_t a, const uint32_t b) {
 
-  return G_Ai_Node_IsLinked(VectorValue(path, AiNodeId, a), VectorValue(path, AiNodeId, b));
+  return G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, a), VectorValue(path, GameAiNodeId, b));
 }
 
 /**
@@ -1051,7 +1044,7 @@ static bool G_Ai_FacingTarget(const GameClient *cl, const Vec3 target) {
  * @brief A slow-drop occurs when a connection is mono-directional, not far horizontally
  * but far vertically.
  */
-bool G_Ai_ShouldSlowDrop(const AiNodeId fromNode, const AiNodeId toNode) {
+bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode) {
   static const float minDrop = 128.f;
   static const float maxDrop = 512.f;
 
@@ -1198,8 +1191,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     // running off the edge, transition to walking so we don't overshoot targets beneath us
     } else if (!swimming && cl->ai->moveTarget.path.pathIndex > 0 &&
                G_Ai_ShouldSlowDrop(
-                 VectorValue(cl->ai->moveTarget.path.path, AiNodeId, cl->ai->moveTarget.path.pathIndex - 1),
-                 VectorValue(cl->ai->moveTarget.path.path, AiNodeId, cl->ai->moveTarget.path.pathIndex))) {
+                 VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex - 1),
+                 VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex))) {
       dir = Vec3_Scale(dir, PM_SPEED_RUN * 0.5f);
     // run full speed towards the target
     } else {
@@ -1231,7 +1224,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   cmd->forward = dir.x;
   cmd->right = dir.y;
 
-  g_aiCurrentEntity = ent;
+  aiCurrentEntity = ent;
 
   // predict ahead
   PMove pm;
@@ -1262,12 +1255,12 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   // predict a few frames ahead for timely edge/mover stoppage; cache result per
   // tick so the three sub-passes of G_Ai_ClientThink share one expensive Pm_Move
-  if (cl->ai->lookaheadFrame != g_level.frameNum) {
-    PMove pmAhead = pm;
-    pmAhead.cmd.msec = 100;
-    Pm_Move(&pmAhead);
-    cl->ai->lookaheadFrame = g_level.frameNum;
-    cl->ai->lookaheadNoGround = !pmAhead.ground.ent;
+  if (cl->ai->lookaheadFrame != gameLevel.frameNum) {
+    PMove ahead = pm;
+    ahead.cmd.msec = 100;
+    Pm_Move(&ahead);
+    cl->ai->lookaheadFrame = gameLevel.frameNum;
+    cl->ai->lookaheadNoGround = !ahead.ground.ent;
   }
 
   // predicted ground is gone
@@ -1354,7 +1347,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
     if (moveLen < smolDist) {
       
-      if (cl->ai->distressJumpOffset <= g_level.time) {
+      if (cl->ai->distressJumpOffset <= gameLevel.time) {
         // if we're navving, node is above us, and we're on ground, jump; we're probably trying
         // to trick-jump or something
         if (cl->ai->moveTarget.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent) {
@@ -1448,7 +1441,7 @@ static float G_Ai_CalcAngle(GameClient *cl, const float speed, float current, fl
  */
 static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
-  AiGoal *combatTarget = &cl->ai->combatTarget;
+  GameAiGoal *combatTarget = &cl->ai->combatTarget;
 
   GameEntity *ent = cl->entity;
   Vec3 idealAngles;
@@ -1516,7 +1509,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     if (weapon->def.flags & WF_PROJECTILE) {
       const float dist = Vec3_Distance(eyeOrigin, enemyCenter);
       // skilled bots predict more accurately (tighter speed estimate range)
-      const float spread = Lerpf(300.f, 100.f, cl->ai->personality.skill);
+      const float spread = Mixf(300.f, 100.f, cl->ai->personality.skill);
       const float speed = RandomRangef(1050.f - spread, 1050.f + spread);
       const float time = dist / speed;
       const Vec3 targetVelocity = combatTarget->entity.ent->velocity;
@@ -1534,14 +1527,14 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     const float wobble = (1.f - cl->ai->personality.skill) * 2.f
         + ((weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
     const float phase = cl->ai->personality.aimPhase;
-    idealAngles.x += sinf((g_level.time + phase) / 128.0f) * 4.3f * wobble;
-    idealAngles.y += cosf((g_level.time + phase) / 164.0f) * 4.0f * wobble;
+    idealAngles.x += sinf((gameLevel.time + phase) / 128.0f) * 4.3f * wobble;
+    idealAngles.y += cosf((gameLevel.time + phase) / 164.0f) * 4.0f * wobble;
   }
 
   const Vec3 viewAngles = cl->angles;
 
   // turn speed: skilled bots turn faster (range 6.25 to 18.75)
-  const float turnSpeed = Lerpf(.5f, 1.5f, cl->ai->personality.skill) * 12.5f;
+  const float turnSpeed = Mixf(.5f, 1.5f, cl->ai->personality.skill) * 12.5f;
 
   for (int32_t i = 0; i < 2; ++i) {
     idealAngles.xyz[i] = G_Ai_CalcAngle(cl, turnSpeed * (cmd->msec / (float)QUETOO_TICK_MILLIS), viewAngles.xyz[i], idealAngles.xyz[i]);
@@ -1561,7 +1554,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
  * a bot doesn't retain a dangling reference to it (e.g. a bot targeting a
  * player who disconnects).
  */
-void G_Ai_InvalidateReferences(Ai *ai, const GameEntity *ent) {
+void G_Ai_InvalidateReferences(GameAi *ai, const GameEntity *ent) {
 
   if (G_Ai_GoalHasEntity(&ai->combatTarget, ent)) {
     G_Ai_ClearGoal(&ai->combatTarget);
@@ -1606,13 +1599,13 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // check to be sure we're in a navicable spot
-  const AiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
+  const GameAiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
 
   if (closest == AI_NODE_INVALID) {
     return 200;
   }
 
-  Vector *goalPossibilities = $(alloc(Vector), initWithSize, sizeof(AiItemPick));
+  Vector *goalPossibilities = $(alloc(Vector), initWithSize, sizeof(GameAiItemPick));
 
   G_ForEachEntity(ent, {
 
@@ -1620,7 +1613,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
       continue;
     }
 
-    if (ent->svFlags & SVF_NO_CLIENT) {
+    if (ent->serverFlags & SVF_NO_CLIENT) {
       continue;
     }
 
@@ -1659,7 +1652,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
     weight = Randomf() * weight;
 
     // add!!
-    $(goalPossibilities, add, &(AiItemPick) {
+    $(goalPossibilities, add, &(GameAiItemPick) {
       .weight = weight,
       .entity = ent
     });
@@ -1673,8 +1666,8 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
   // go down the list, high priority wins but might not be pickable
   for (uint32_t i = 0; i < goalPossibilities->count; i++) {
 
-    const AiItemPick *pick = VectorElement(goalPossibilities, AiItemPick, i);
-    const AiNodeId closestToItem = G_Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
+    const GameAiItemPick *pick = VectorElement(goalPossibilities, GameAiItemPick, i);
+    const GameAiNodeId closestToItem = G_Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
 
     Vector *path = G_Ai_Node_FindPath(cl, closest, closestToItem, G_Ai_Node_Heuristic, NULL);
     if (path) {
@@ -1693,7 +1686,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
 /**
  * @brief Static list of func goal functions
  */
-static const G_Ai_GoalFunc g_aiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
+static const GameAiGoalFunc aiGoalFuncs[AI_FUNC_GOAL_TOTAL] = {
   [AI_FUNC_GOAL_LONGRANGE] = G_Ai_LongRange,
   [AI_FUNC_GOAL_HUNT] = G_Ai_Hunt,
   [AI_FUNC_GOAL_WEAPONRY] = G_Ai_Weaponry,
@@ -1716,7 +1709,7 @@ static const G_Ai_GoalFunc g_aiGoalfuncs[AI_FUNC_GOAL_TOTAL] = {
  * Delete this along with everything else guarded by `AI_GOAL_HARDENING` once
  * the root cause is understood and fixed.
  */
-static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, AiGoal *goal) {
+static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, GameAiGoal *goal) {
 
   if (goal->type != AI_GOAL_ENTITY) {
     return;
@@ -1767,12 +1760,12 @@ void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
   // run functional goals
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
-    if (cl->ai->funcGoalNextThinks[i] <= g_level.time) {
+    if (cl->ai->funcGoalNextThinks[i] <= gameLevel.time) {
       const int64_t funcStart = G_Ai_Microseconds();
-      const uint32_t next = g_aiGoalfuncs[i](cl, cmd);
+      const uint32_t next = aiGoalFuncs[i](cl, cmd);
       const int64_t funcUs = G_Ai_Microseconds() - funcStart;
 
-      cl->ai->funcGoalNextThinks[i] = g_level.time + next;
+      cl->ai->funcGoalNextThinks[i] = gameLevel.time + next;
 
       if (funcUs > 50000) { // > 50ms for one goal function is pathological
         G_Warn("%s goal func %d took %dms\n",
@@ -1818,9 +1811,9 @@ void G_Ai_Respawn(GameClient *cl) {
  */
 void G_Ai_Begin(GameClient *cl) {
 
-  const AiRoster *r = cl->ai->roster;
+  const GameAiRoster *r = cl->ai->roster;
 
-  cl->ai->personality = (AiPersonality) {
+  cl->ai->personality = (GameAiPersonality) {
     .skill      = r->skill,
     .aggression = r->aggression,
     .awareness  = r->awareness,
@@ -1865,7 +1858,7 @@ static void G_Ai_ClientThink(GameEntity *ent) {
     msecLeft -= cmd.msec;
   }
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -1880,7 +1873,7 @@ static void G_Ai_ClientBegin(GameClient *cl) {
   G_Debug("Spawned %s at %s", cl->persistent.netName, vtos(cl->entity->s.origin));
 
   cl->entity->Think = G_Ai_ClientThink;
-  cl->entity->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  cl->entity->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -1889,9 +1882,9 @@ static void G_Ai_ClientBegin(GameClient *cl) {
 static void G_Ai_Connect(GameClient *cl) {
 
   char userInfo[MAX_INFO_STRING_STRING];
-  const AiRoster *roster = G_Ai_GetRoster(cl, userInfo);
+  const GameAiRoster *roster = G_Ai_GetRoster(cl, userInfo);
 
-  cl->ai = gi.Malloc(sizeof(Ai), MEM_TAG_AI);
+  cl->ai = gi.Malloc(sizeof(GameAi), MEM_TAG_AI);
   cl->ai->roster = roster;
 
   G_ClientConnect(cl, userInfo);
@@ -1904,15 +1897,15 @@ static void G_Ai_Connect(GameClient *cl) {
  */
 void G_Ai_Frame(void) {
 
-  if (g_level.intermissionTime) {
+  if (gameLevel.intermissionTime) {
     return;
   }
 
-  if (g_level.time == 1000) {
+  if (gameLevel.time == 1000) {
     G_Ai_NodesReady();
   }
 
-  if (g_level.time % 1000 == 0) {
+  if (gameLevel.time % 1000 == 0) {
 
     int32_t humanClients = 0;
     int32_t aiClients = 0;
@@ -1926,7 +1919,7 @@ void G_Ai_Frame(void) {
 
     const int32_t activeClients = humanClients + aiClients;
 
-    const int32_t baseMinClients = g_level.minClientsMap > -1 ? g_level.minClientsMap : sv_minClients->integer;
+    const int32_t baseMinClients = gameLevel.minClientsMap > -1 ? gameLevel.minClientsMap : sv_minClients->integer;
     const int32_t minClients = Maxi(0, baseMinClients);
     const int32_t maxClients = Maxi(0, sv_maxClients->integer);
 
@@ -1971,7 +1964,7 @@ static void G_Ai_DeleteNode_f(void) {
     return;
   }
 
-  G_Ai_Node_Destroy((AiNodeId) atoi(gi.Argv(1)));
+  G_Ai_Node_Destroy((GameAiNodeId) atoi(gi.Argv(1)));
 }
 
 /**
@@ -1994,14 +1987,14 @@ static void G_Ai_TestPath_f(void) {
 
   G_ForEachClient(cl, {
     if (cl->ai) {
-      const AiNodeId closestToPlayer = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
+      const GameAiNodeId closestToPlayer = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
 
       if (closestToPlayer == AI_NODE_INVALID) {
         G_Ai_Debug("Can't find a node near this bot\n");
         continue;
       }
 
-      Vector *pathToStart = G_Ai_Node_FindPath(cl, closestToPlayer, VectorValue(path, AiNodeId, 0), G_Ai_Node_Heuristic, NULL);
+      Vector *pathToStart = G_Ai_Node_FindPath(cl, closestToPlayer, VectorValue(path, GameAiNodeId, 0), G_Ai_Node_Heuristic, NULL);
 
       if (pathToStart == NULL) {
         G_Ai_Debug("Can't find a path to the test path\n");
@@ -2009,7 +2002,7 @@ static void G_Ai_TestPath_f(void) {
       }
 
       for (uint32_t i = 1; i < path->count; i++) {
-        AiNodeId node = VectorValue(path, AiNodeId, i);
+        GameAiNodeId node = VectorValue(path, GameAiNodeId, i);
         $(pathToStart, add, &node);
       }
       G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, 1.0, pathToStart, NULL);

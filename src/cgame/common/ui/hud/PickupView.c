@@ -76,9 +76,9 @@ static void updateBindings(View *self, ident data) {
   if (valid && pickup != (int16_t) this->item) {
     this->item = pickup;
 
-    const char *icon = bgItemDefs[pickup].icon;
+    const char *icon = gameItemDefs[pickup].icon;
     $(this->icon, setImage, icon ? (Image *) Cg_HudImage(icon) : NULL);
-    $(this->name, setText, bgItemDefs[pickup].name);
+    $(this->name, setText, gameItemDefs[pickup].name);
   }
 }
 

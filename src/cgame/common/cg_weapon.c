@@ -27,8 +27,8 @@
 static void Cg_WeaponBob(const PlayerState *ps, Vec3 *offset, Vec3 *angles) {
   const Vec3 bob = MakeVec3(0.2f, 0.4f, 0.2f);
 
-  *offset = Vec3_Fmaf(*offset, cgView.bob, bob);
-  *angles = Vec3_Add(*angles, MakeVec3(0.f, 1.5f * cgView.bob, 0.f));
+  *offset = Vec3_Fmaf(*offset, cgameView.bob, bob);
+  *angles = Vec3_Add(*angles, MakeVec3(0.f, 1.5f * cgameView.bob, 0.f));
 }
 
 /**
@@ -67,13 +67,13 @@ static void Cg_WeaponOffset(ClientEntity *ent, Vec3 *offset, Vec3 *angles) {
  * over a small interval to smooth out rapid changes.
  */
 static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
-  static Vec3 old_speed, new_speed;
+  static Vec3 oldSpeed, new_speed;
   static uint32_t time;
 
   if (cgi.client->unclampedTime < time) {
     time = 0;
 
-    old_speed = Vec3_Zero();
+    oldSpeed = Vec3_Zero();
     new_speed = Vec3_Zero();
   }
 
@@ -83,17 +83,17 @@ static void Cg_SpeedModulus(const PlayerState *ps, Vec3 *offset) {
   if (delta < 100) {
     const float lerp = delta / 100.f;
 
-    speed.x = old_speed.x + lerp * (new_speed.x - old_speed.x);
-    speed.y = old_speed.y + lerp * (new_speed.y - old_speed.y);
-    speed.z = old_speed.z + lerp * (new_speed.z - old_speed.z);
+    speed.x = oldSpeed.x + lerp * (new_speed.x - oldSpeed.x);
+    speed.y = oldSpeed.y + lerp * (new_speed.y - oldSpeed.y);
+    speed.z = oldSpeed.z + lerp * (new_speed.z - oldSpeed.z);
   } else {
-    old_speed = new_speed;
+    oldSpeed = new_speed;
 
     new_speed.x = -Clampf(ps->pmState.velocity.x / 200.f, -1.f, 1.f);
     new_speed.y = -Clampf(ps->pmState.velocity.y / 200.f, -1.f, 1.f);
     new_speed.z = -Clampf(ps->pmState.velocity.z / 200.f, -.3f, 1.f);
 
-    speed = old_speed;
+    speed = oldSpeed;
 
     time = cgi.client->unclampedTime;
   }
@@ -132,7 +132,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
     return; // spectating
   }
 
-  if (cgi.client->demoServer && cgState.spectate.detached) {
+  if (cgi.client->demoServer && cgameState.spectate.detached) {
     return; // the camera has left the recorded player behind, and their weapon with it
   }
 
@@ -152,9 +152,9 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   w.origin = Vec3_Add(w.origin, velocity);
 
-  w.model = cgWeapons[active].model;
+  w.model = cgameWeapons[active].model;
 
-  if (cgWeapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
+  if (cgameWeapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
     switch (cg_hand->integer) {
       case HAND_LEFT:
         offset.y -= 5.f;
@@ -196,7 +196,7 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   RenderEntity *weapon = cgi.AddEntity(cgi.view, &w);
 
-  CGameClientInfo *ci = &cgState.clients[cgi.client->frame.ps.client];
+  CGameClientInfo *ci = &cgameState.clients[cgi.client->frame.ps.client];
 
   Vec3 weaponOrigin;
   Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weaponOrigin);

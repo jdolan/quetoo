@@ -107,7 +107,7 @@ static bool BrushesDisjoint(const CsgBrush *a, const CsgBrush *b) {
 }
 
 /**
- * @brief Create a list of `CsgBrush` for the `Brush` between start and start + count.
+ * @brief Create a list of `CsgBrush` for the `MapBrush` between start and start + count.
  */
 CsgBrush *MakeBrushes(int32_t index, int32_t count) {
 
@@ -115,7 +115,7 @@ CsgBrush *MakeBrushes(int32_t index, int32_t count) {
 
   CsgBrush *list = NULL;
 
-  const Brush *in = &brushes[index];
+  const MapBrush *in = &brushes[index];
   for (int32_t i = 0; i < count; i++, in++) {
 
     if (!in->numBrushSides) {
@@ -133,7 +133,7 @@ CsgBrush *MakeBrushes(int32_t index, int32_t count) {
       out->brushSides[j].original = &in->brushSides[j];
 
       if (in->brushSides[j].winding) {
-        out->brushSides[j].winding = Cm_CopyWinding(in->brushSides[j].winding);
+        out->brushSides[j].winding = Winding_Copy(in->brushSides[j].winding);
       }
     }
     

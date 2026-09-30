@@ -22,8 +22,8 @@
 #include "cg_local.h"
 #include "bg_item.h"
 
-CGameItem cgItems[ITEM_TOTAL];
-CGameWeapon cgWeapons[WEAPON_TOTAL];
+CGameItem cgameItems[ITEM_TOTAL];
+CGameWeapon cgameWeapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache: item icons and models, weapon and ammo tags.
@@ -31,20 +31,20 @@ CGameWeapon cgWeapons[WEAPON_TOTAL];
  */
 void Cg_InitInventory(void) {
 
-  memset(cgItems, 0, sizeof(cgItems));
-  memset(cgWeapons, 0, sizeof(cgWeapons));
+  memset(cgameItems, 0, sizeof(cgameItems));
+  memset(cgameWeapons, 0, sizeof(cgameWeapons));
 
   for (GameItemTag t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bgItemDefs[t].model) {
-      cgItems[t].model = cgi.LoadModel(bgItemDefs[t].model);
+    if (gameItemDefs[t].model) {
+      cgameItems[t].model = cgi.LoadModel(gameItemDefs[t].model);
     }
   }
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    CGameWeapon *w = &cgWeapons[t - WEAPON_FIRST];
+    CGameWeapon *w = &cgameWeapons[t - WEAPON_FIRST];
     w->tag = t;
-    w->ammoTag = bgItemDefs[t].ammo;
-    w->model = cgItems[t].model;
+    w->ammoTag = gameItemDefs[t].ammo;
+    w->model = cgameItems[t].model;
   }
 }
 
@@ -62,7 +62,7 @@ bool Cg_HasWeapon(const PlayerState *ps) {
 }
 
 /**
- * @brief Returns the active weapon index into `cgWeapons[]`, or `WEAPON_SELECT_OFF`.
+ * @brief Returns the active weapon index into `cgameWeapons[]`, or `WEAPON_SELECT_OFF`.
  * Prefers the weapon being switched to over the one currently equipped.
  */
 int16_t Cg_ActiveWeapon(const PlayerState *ps) {
@@ -91,7 +91,7 @@ int16_t Cg_ActiveAmmo(const PlayerState *ps) {
     return 0;
   }
 
-  const GameItemTag ammoTag = cgWeapons[active].ammoTag;
+  const GameItemTag ammoTag = cgameWeapons[active].ammoTag;
   if (!ammoTag) {
     return 0;
   }

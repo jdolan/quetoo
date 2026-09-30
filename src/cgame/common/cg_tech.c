@@ -28,7 +28,7 @@
 /**
  * @see View::init(View *)
  */
-static View *initTechView(View *self) {
+static View *TechView_init(View *self) {
   return (View *) $((PowerupView *) self, initWithPowerup, PowerupViewNone);
 }
 
@@ -47,7 +47,7 @@ struct TechViewInterface {
   PowerupViewInterface powerupViewInterface;
 };
 
-static void updateBindings(View *self, ident data) {
+static void TechView_updateBindings(View *self, ident data) {
 
   super(View, self, updateBindings, data);
 
@@ -57,10 +57,10 @@ static void updateBindings(View *self, ident data) {
   }
 }
 
-static void initialize(Class *clazz) {
+static void TechView_initialize(Class *clazz) {
 
-  ((ViewInterface *) clazz->interface)->init = initTechView;
-  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->init = TechView_init;
+  ((ViewInterface *) clazz->interface)->updateBindings = TechView_updateBindings;
 }
 
 Class *_TechView(void) {
@@ -73,7 +73,7 @@ Class *_TechView(void) {
       .superclass = _PowerupView(),
       .instanceSize = sizeof(TechView),
       .interfaceSize = sizeof(TechViewInterface),
-      .initialize = initialize,
+      .initialize = TechView_initialize,
     });
   });
 

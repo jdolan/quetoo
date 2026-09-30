@@ -35,9 +35,9 @@ enum {
 };
 
 /**
- * @brief Maps a `CmBlend` blend factor to its SDL_gpu equivalent.
+ * @brief Maps a `MaterialBlend` blend factor to its SDL_gpu equivalent.
  */
-static inline SDL_GPUBlendFactor R_BlendFactor(CmBlend blend) {
+static inline SDL_GPUBlendFactor R_BlendFactor(MaterialBlend blend) {
   switch (blend) {
     case BLEND_ZERO:                return SDL_GPU_BLENDFACTOR_ZERO;
     case BLEND_ONE:                 return SDL_GPU_BLENDFACTOR_ONE;

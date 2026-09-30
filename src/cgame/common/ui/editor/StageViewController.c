@@ -47,7 +47,7 @@ static void didRemoveStage(StageView *stageView);
 /**
  * @brief Appends a StageView for the stage to the list.
  */
-static StageView *addStageView(StageViewController *this, CmStage *stage, bool collapsed) {
+static StageView *addStageView(StageViewController *this, MaterialStage *stage, bool collapsed) {
 
   $(this->removedStageViews, removeAllObjects);
 
@@ -74,7 +74,7 @@ static void didRemoveStage(StageView *stageView) {
 
   StageViewController *this = stageView->delegate.self;
 
-  cgi.RemoveMaterialStage(this->material->cm, stageView->stage);
+  cgi.RemoveMaterialStage(this->material->def, stageView->stage);
   Cg_ReloadEditorMaterialStages(this->material);
 
   $(this->removedStageViews, removeAllObjects);
@@ -96,7 +96,7 @@ static void didClickAddStage(Button *button) {
     return;
   }
 
-  CmStage *stage = cgi.AddMaterialStage(this->material->cm);
+  MaterialStage *stage = cgi.AddMaterialStage(this->material->def);
   Cg_ReloadEditorMaterialStages(this->material);
 
   addStageView(this, stage, false);
@@ -195,10 +195,10 @@ static void setMaterial(StageViewController *self, RenderMaterial *material) {
   $((View *) self->stageList, removeAllSubviews);
 
   if (self->material) {
-    const CmStage *stages = self->material->cm->stages;
+    const MaterialStage *stages = self->material->def->stages;
     const bool collapsed = stages && stages->next;
 
-    for (CmStage *s = self->material->cm->stages; s; s = s->next) {
+    for (MaterialStage *s = self->material->def->stages; s; s = s->next) {
       addStageView(self, s, collapsed);
     }
   }

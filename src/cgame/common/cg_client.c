@@ -49,7 +49,7 @@ static char *Cg_StripWhitespace(char *str) {
   }
 
   if (*str) {
-    char *end = str + q_strlen(str) - 1;
+    char *end = str + Str_Length(str) - 1;
     while (end > str && isspace((unsigned char) *end)) {
       *end-- = '\0';
     }
@@ -73,7 +73,7 @@ static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
 
     info[count++] = cursor;
 
-    char *separator = q_strchr(cursor, '\\');
+    char *separator = Str_FindChar(cursor, '\\');
     if (separator == NULL) {
       return count;
     }
@@ -91,7 +91,7 @@ static void Cg_LoadClientSkin(CGameClientInfo *ci, char *line) {
 
   char *skinName, *faceName = line;
 
-  if ((skinName = q_strchr(faceName, ','))) {
+  if ((skinName = Str_FindChar(faceName, ','))) {
     *skinName++ = '\0';
 
     while (isspace(*skinName)) {
@@ -121,7 +121,7 @@ static void Cg_LoadClientSkin(CGameClientInfo *ci, char *line) {
 
     const RenderMeshFace *face = meshes[m].model->mesh->faces;
     for (int32_t i = 0; i < meshes[m].model->mesh->numFaces; i++, face++) {
-      if (!q_strcasecmp(faceName, face->name)) {
+      if (!Str_CaseCompare(faceName, face->name)) {
         meshes[m].skins[i] = cgi.LoadMaterial(skinName, ASSET_CONTEXT_PLAYERS);
         return;
       }
@@ -144,7 +144,7 @@ static bool Cg_LoadClientSkins(CGameClientInfo *ci, const char *skin) {
   char *buffer;
   int64_t len;
 
-  q_snprintf(path, sizeof(path), "players/%s/%s.skin", ci->model, skin);
+  Str_Format(path, sizeof(path), "players/%s/%s.skin", ci->model, skin);
 
   if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
     Cg_Debug("%s not found\n", path);
@@ -242,18 +242,18 @@ static bool Cg_ValidateSkin(CGameClientInfo *ci) {
  */
 static bool Cg_LoadClientModel(CGameClientInfo *ci, const char *model, const char *skin) {
 
-  q_strlcpy(ci->model, model, sizeof(ci->model));
-  q_strlcpy(ci->skin, skin, sizeof(ci->skin));
+  Str_Copy(ci->model, model, sizeof(ci->model));
+  Str_Copy(ci->skin, skin, sizeof(ci->skin));
 
   char path[MAX_QPATH];
 
-  q_snprintf(path, sizeof(path), "players/%s/head", ci->model);
+  Str_Format(path, sizeof(path), "players/%s/head", ci->model);
   ci->head = cgi.LoadModel(path);
 
-  q_snprintf(path, sizeof(path), "players/%s/upper", ci->model);
+  Str_Format(path, sizeof(path), "players/%s/upper", ci->model);
   ci->torso = cgi.LoadModel(path);
 
-  q_snprintf(path, sizeof(path), "players/%s/lower", ci->model);
+  Str_Format(path, sizeof(path), "players/%s/lower", ci->model);
   ci->legs = cgi.LoadModel(path);
 
   if (!ci->head || !ci->torso || !ci->legs) {
@@ -272,7 +272,7 @@ static bool Cg_LoadClientModel(CGameClientInfo *ci, const char *model, const cha
     return false;
   }
 
-  q_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
+  Str_Format(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
   ci->icon = cgi.LoadImage(path, IMG_PIC);
 
   if (!ci->icon) {
@@ -295,7 +295,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
   Cg_Debug("%s\n", s);
 
   // copy the entire string
-  q_strlcpy(ci->info, s, sizeof(ci->info));
+  Str_Copy(ci->info, s, sizeof(ci->info));
 
   i = 0;
   t = s;
@@ -315,7 +315,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
   // split info into tokens
   char infoString[sizeof(ci->info)];
   char *info[MAX_CLIENT_INFO_ENTRIES];
-  q_strlcpy(infoString, s, sizeof(infoString));
+  Str_Copy(infoString, s, sizeof(infoString));
 
   const size_t entries = Cg_SplitClientInfo(infoString, info, lengthof(info));
 
@@ -326,16 +326,16 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
     // resolve the team
     const GameTeamId teamId = atoi(info[0]);
     if (teamId != TEAM_NONE) {
-      ci->team = cgState.teams + teamId;
+      ci->team = cgameState.teams + teamId;
     } else {
       ci->team = NULL;
     }
 
     // copy in the name
-    q_strlcpy(ci->name, info[1], sizeof(ci->name));
+    Str_Copy(ci->name, info[1], sizeof(ci->name));
 
     // check for valid skin
-    if ((v = q_strchr(info[2], '/'))) { // it's well-formed
+    if ((v = Str_FindChar(info[2], '/'))) { // it's well-formed
       *v = '\0';
 
       // load the models
@@ -388,7 +388,7 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
     const bool models = v && IS_MESH_MODEL(ci->head) && IS_MESH_MODEL(ci->torso) && IS_MESH_MODEL(ci->legs);
 
     if (!models || !Cg_ValidateSkin(ci)) {
-      if (!q_strcmp(s, DEFAULT_CLIENT_INFO)) {
+      if (!Str_Compare(s, DEFAULT_CLIENT_INFO)) {
         Cg_Error("Failed to load default client info\n");
       }
     }
@@ -418,10 +418,10 @@ void Cg_LoadClient(CGameClientInfo *ci, const char *s) {
  */
 void Cg_LoadClients(void) {
 
-  memset(cgState.clients, 0, sizeof(cgState.clients));
+  memset(cgameState.clients, 0, sizeof(cgameState.clients));
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-    CGameClientInfo *ci = &cgState.clients[i];
+    CGameClientInfo *ci = &cgameState.clients[i];
     const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
     if (!*s) {
@@ -439,7 +439,7 @@ void Cg_LoadClients(void) {
   // before the media reload; without reloading them here their models are freed out from
   // under them by R_EndLoading, and the bodies still standing are drawn through dangling
   // pointers
-  memset(cgState.corpses, 0, sizeof(cgState.corpses));
+  memset(cgameState.corpses, 0, sizeof(cgameState.corpses));
 
   for (int32_t i = 0; i < MAX_CORPSES; i++) {
     const char *s = cgi.ConfigString(CS_CORPSES + i);
@@ -448,18 +448,18 @@ void Cg_LoadClients(void) {
       continue;
     }
 
-    Cg_LoadClient(&cgState.corpses[i], s);
+    Cg_LoadClient(&cgameState.corpses[i], s);
   }
 
-  memset(&cgState.forceSkin, 0, sizeof(cgState.forceSkin));
+  memset(&cgameState.forceSkin, 0, sizeof(cgameState.forceSkin));
 
   if (*cg_forceSkin->string) {
-    Cg_LoadClient(&cgState.forceSkin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_forceSkin->string));
+    Cg_LoadClient(&cgameState.forceSkin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_forceSkin->string));
   }
 }
 
 /**
- * @brief Fs_Enumerator data for `Cg_SkinAutocomplete_f`.
+ * @brief FsEnumerator data for `Cg_SkinAutocomplete_f`.
  */
 typedef struct {
   const char *partial;
@@ -467,7 +467,7 @@ typedef struct {
 } CGameSkinAutocomplete;
 
 /**
- * @brief Fs_Enumerator for `Cg_SkinAutocomplete_ModelEnumerate`, appending a `model/skin`
+ * @brief FsEnumerator for `Cg_SkinAutocomplete_ModelEnumerate`, appending a `model/skin`
  * match for each resolved `players/<model>/<skin>.skin` file that begins with the partial.
  */
 static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
@@ -477,13 +477,13 @@ static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
   char name[MAX_QPATH];
   StripExtension(path + strlen("players/"), name);
 
-  if (!q_strncasecmp(name, autocomplete->partial, strlen(autocomplete->partial))) {
+  if (!Str_CaseCompareN(name, autocomplete->partial, strlen(autocomplete->partial))) {
     cgi.AutocompleteMatch(autocomplete->matches, name, NULL);
   }
 }
 
 /**
- * @brief Fs_Enumerator for `Cg_SkinAutocomplete_f`, descending into each `players/<model>`
+ * @brief FsEnumerator for `Cg_SkinAutocomplete_f`, descending into each `players/<model>`
  * directory to resolve its `.skin` files.
  */
 static void Cg_SkinAutocomplete_ModelEnumerate(const char *path, void *data) {
@@ -491,7 +491,7 @@ static void Cg_SkinAutocomplete_ModelEnumerate(const char *path, void *data) {
 }
 
 /**
- * @brief AutocompleteFunc for the `skin` cvar, matching against all resolvable
+ * @brief ConsoleAutocomplete for the `skin` cvar, matching against all resolvable
  * `model/skin` combinations beneath `players/`.
  */
 void Cg_SkinAutocomplete_f(const uint32_t argi, List *matches) {
@@ -795,13 +795,13 @@ static CGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
   // not repainted by its owner changing skin and does not fall back to the default model when
   // they disconnect and their entry is cleared. The mask is what the slot was assigned with.
   if (ent->current.effects & EF_CORPSE) {
-    return &cgState.corpses[ent->current.client & (MAX_CORPSES - 1)];
+    return &cgameState.corpses[ent->current.client & (MAX_CORPSES - 1)];
   }
 
-  return &cgState.clients[ent->current.client];
+  return &cgameState.clients[ent->current.client];
 }
 
-ClientInfo Cg_ClientInfo = Cg_ClientInfo_Common;
+CGameClientInfoHook Cg_ClientInfo = Cg_ClientInfo_Common;
 
 /**
  * @brief Adds the numerous render entities which comprise a given client (player)
@@ -863,9 +863,9 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
   CGameClientInfo *skin = ci;
 
   // force the preferred skin on all _other_ players, not on ourselves
-  if (IS_MESH_MODEL(cgState.forceSkin.head) && IS_MESH_MODEL(cgState.forceSkin.torso) &&
-      IS_MESH_MODEL(cgState.forceSkin.legs) && ent != cgi.client->entity) {
-    skin = &cgState.forceSkin;
+  if (IS_MESH_MODEL(cgameState.forceSkin.head) && IS_MESH_MODEL(cgameState.forceSkin.torso) &&
+      IS_MESH_MODEL(cgameState.forceSkin.legs) && ent != cgi.client->entity) {
+    skin = &cgameState.forceSkin;
   }
 
   legs.model = skin->legs;
@@ -899,28 +899,28 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
 
   Cg_AnimateClientEntity(ent, &torso, &legs);
 
-  RenderEntity *rLegs = cgi.AddEntity(cgi.view, &legs);
+  RenderEntity *legsEntity = cgi.AddEntity(cgi.view, &legs);
 
-  if (!rLegs) {
+  if (!legsEntity) {
     return; // if the legs were culled, we're done
   }
 
-  torso.parent = rLegs;
+  torso.parent = legsEntity;
   torso.tag = "tag_torso";
 
-  RenderEntity *rTorso = cgi.AddEntity(cgi.view, &torso);
-  assert(rTorso);
+  RenderEntity *torsoEntity = cgi.AddEntity(cgi.view, &torso);
+  assert(torsoEntity);
 
-  head.parent = rTorso;
+  head.parent = torsoEntity;
   head.tag = "tag_head";
 
-  RenderEntity *rHead = cgi.AddEntity(cgi.view, &head);
-  assert(rHead);
+  RenderEntity *headEntity = cgi.AddEntity(cgi.view, &head);
+  assert(headEntity);
 
-  RenderEntity *rWeapon = NULL;
+  RenderEntity *weaponEntity = NULL;
   if (s->model2) {
-    rWeapon = cgi.AddEntity(cgi.view, &(const RenderEntity) {
-      .parent = rTorso,
+    weaponEntity = cgi.AddEntity(cgi.view, &(const RenderEntity) {
+      .parent = torsoEntity,
       .tag = "tag_weapon",
       .scale = e->scale,
       .model = cgi.client->models[s->model2],
@@ -929,22 +929,22 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .shell = e->shell,
     });
 
-    assert(rWeapon);
+    assert(weaponEntity);
 
     // cache the muzzle position post-animation for muzzle flash and beam alignment
 
-    const Vec3 cfgMuzzle = rWeapon->model->mesh->config.link.muzzle;
+    const Vec3 cfgMuzzle = weaponEntity->model->mesh->config.link.muzzle;
     if (!Vec3_Equal(cfgMuzzle, Vec3_Zero())) {
-      ci->weaponMuzzle = Mat4_Transform(rWeapon->matrix, cfgMuzzle);
+      ci->weaponMuzzle = Mat4_Transform(weaponEntity->matrix, cfgMuzzle);
     } else {
-      ci->weaponMuzzle = rWeapon->origin;
+      ci->weaponMuzzle = weaponEntity->origin;
     }
   }
 
-  RenderEntity *rFlag = NULL;
+  RenderEntity *flagEntity = NULL;
   if (s->model3) {
-    rFlag = cgi.AddEntity(cgi.view, &(const RenderEntity) {
-      .parent = rTorso,
+    flagEntity = cgi.AddEntity(cgi.view, &(const RenderEntity) {
+      .parent = torsoEntity,
       .tag = "tag_head",
       .scale = e->scale,
       .model = cgi.client->models[s->model3],
@@ -953,7 +953,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .shell = e->shell,
     });
 
-    assert(rFlag);
+    assert(flagEntity);
   }
 
   if (s->model4) {

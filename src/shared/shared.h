@@ -155,7 +155,6 @@ typedef enum {
  * from the scene as needed.
  */
 typedef struct {
-
   /**
    * @brief Entity slot number this state update belongs to.
    */
@@ -362,7 +361,6 @@ typedef struct {
  * contains.
  */
 typedef struct {
-
   /**
    * @brief Client index for this player.
    */
@@ -437,7 +435,7 @@ typedef struct {
  * @param matches The list of matches you need to write to.
  */
 typedef struct List List;
-typedef void (*AutocompleteFunc)(const uint32_t argi, List *matches);
+typedef void (*ConsoleAutocomplete)(const uint32_t argi, List *matches);
 
 /**
  * @brief Console variables hold mutable scalars and strings.
@@ -452,10 +450,10 @@ typedef struct {
   uint32_t flags;
   const char *description;
   bool modified; // set each time the cvar is changed
-  AutocompleteFunc Autocomplete;
+  ConsoleAutocomplete Autocomplete;
 } Cvar;
 
-typedef void (*CmdExecuteFunc)(void);
+typedef void (*CmdExecute)(void);
 
 /**
  * @brief Console commands provide a scripting environment for users.
@@ -463,8 +461,8 @@ typedef void (*CmdExecuteFunc)(void);
 typedef struct {
   const char *name;
   const char *description;
-  CmdExecuteFunc Execute;
-  AutocompleteFunc Autocomplete;
+  CmdExecute Execute;
+  ConsoleAutocomplete Autocomplete;
   const char *commands; // for alias commands
   uint32_t flags;
 } Cmd;
@@ -589,7 +587,7 @@ bool InfoString_Validate(const char *s);
 /**
  * @brief The type of an AI node.
  */
-typedef uint16_t AiNodeId;
+typedef uint16_t GameAiNodeId;
 
 /**
  * @brief Default filesystem initialization flags.
@@ -607,7 +605,7 @@ typedef struct {
   void *opaque;
 } File;
 
-typedef void (*Fs_Enumerator)(const char *path, void *data);
+typedef void (*FsEnumerator)(const char *path, void *data);
 
 /**
  * @brief Debug cateogories.

@@ -70,7 +70,7 @@ void G_SetSpawnPoints(GameSpawnPoints *points, const Vector *spawns) {
  */
 Box3 G_PlayerBounds(void) {
 
-  const PMovementInfo *movement = Pm_Movement(g_level.movement);
+  const PMovementInfo *movement = Pm_Movement(gameLevel.movement);
 
   return movement->params ? movement->params->bounds : PM_BOUNDS;
 }
@@ -84,7 +84,7 @@ Box3 G_PlayerBounds(void) {
  */
 void G_InitPlayerSpawn(GameEntity *ent) {
 
-  if (!q_strcmp(ent->classname, "info_player_intermission")) {
+  if (!Str_Compare(ent->classname, "info_player_intermission")) {
     G_Ai_DropItemLikeNode(ent);
   }
 }
@@ -97,7 +97,7 @@ void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *
   // resolve the projectile destination
   const Vec3 start = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl->forward);
-  const CmTrace tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   // resolve the projectile origin
   Vec3 entForward, entRight, entUp;
@@ -125,7 +125,7 @@ void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *
     *org = Vec3_Fmaf(*org, -12.f, entUp);
   }
 
-  const CmTrace check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
   if (Vec3_Distance(tr.end, check.end) > 16.f) {
     *org = start;
   }
@@ -163,7 +163,7 @@ GameEntity *G_Find(GameEntity *from, ptrdiff_t field, const char *match) {
     if (!s) {
       continue;
     }
-    if (!q_strcasecmp(s, match)) {
+    if (!Str_CaseCompare(s, match)) {
       return ent;
     }
   }
@@ -228,7 +228,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
   if (ent->delay) {
     // create a temp entity to fire at a later time
     GameEntity *temp = G_AllocEntity(__func__);
-    temp->nextThink = g_level.time + ent->delay * 1000;
+    temp->nextThink = gameLevel.time + ent->delay * 1000;
     temp->Think = G_UseTargets_Delay;
     temp->activator = activator;
     if (!activator) {
@@ -248,7 +248,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
     gi.Unicast(activator->client, true);
 
     G_UnicastSound(&(const GamePlaySound) {
-      .index = ent->sound ?: g_media.sounds.chat,
+      .index = ent->sound ?: gameMedia.sounds.chat,
     }, activator->client, true);
   }
 
@@ -326,7 +326,7 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   e->classname = classname;
   e->inUse = true;
   e->waterLevel = WATER_UNKNOWN;
-  e->timestamp = g_level.time;
+  e->timestamp = gameLevel.time;
   e->s.number = number;
   e->s.spawnId = nextSpawnId++;
 
@@ -504,7 +504,7 @@ void G_Gib(GameEntity *ent) {
 }
 
 /**
- * @brief Returns the `gGameplayModes` entry whose `->name` matches the given
+ * @brief Returns the `gameplays` entry whose `->name` matches the given
  * cvar string, case-insensitively. Anything that doesn't match - including
  * empty strings, garbage, and "default" itself - falls back to the table's
  * first entry (plain deathmatch, no teams). "default" is deliberately not a
@@ -516,59 +516,59 @@ void G_Gib(GameEntity *ent) {
  * predate this table (and are shorter than the canonical "instagib") still
  * resolve, exactly as the original hand-rolled parser accepted them.
  */
-const Gameplay *G_GameplayByName(const char *c) {
+const GamePlay *G_GamePlayByName(const char *c) {
 
   if (c && *c) {
     char lower[64];
-    q_strlcpy(lower, c, sizeof(lower));
+    Str_Copy(lower, c, sizeof(lower));
     for (char *p = lower; *p; p++) {
       *p = (char) tolower((unsigned char) *p);
     }
 
-    for (size_t i = 0; i < lengthof(g_gameplayModes); i++) {
-      if (!q_strcmp(lower, g_gameplayModes[i].name)) {
-        return &g_gameplayModes[i];
+    for (size_t i = 0; i < lengthof(gameplays); i++) {
+      if (!Str_Compare(lower, gameplays[i].name)) {
+        return &gameplays[i];
       }
     }
 
     const char *mode = lower;
     int32_t id = GAMEPLAY_DEATHMATCH;
 
-    if (!q_strncmp(lower, "team_", 5)) {
+    if (!Str_CompareN(lower, "team_", 5)) {
       id |= GAMEPLAY_TEAMS;
       mode = lower + 5;
     }
 
-    if (!q_strncmp(mode, "insta", 5)) {
+    if (!Str_CompareN(mode, "insta", 5)) {
       id |= GAMEPLAY_INSTAGIB;
-    } else if (!q_strncmp(mode, "arena", 5)) {
+    } else if (!Str_CompareN(mode, "arena", 5)) {
       id |= GAMEPLAY_ARENA;
     }
 
-    return G_GameplayById((GameplayId) id);
+    return G_GamePlayById((GamePlayId) id);
   }
 
-  return &g_gameplayModes[0];
+  return &gameplays[0];
 }
 
 /**
- * @brief Returns the `gGameplayModes` entry for the given mode id. Used
- * after `G_ClampGameplay`, which operates on the scalar id, to recover the
+ * @brief Returns the `gameplays` entry for the given mode id. Used
+ * after `G_ClampGamePlay`, which operates on the scalar id, to recover the
  * `->name` and `->label` for the id it decided on.
- * @details A module's `ClampGameplay` MUST only ever return an id that is
- * actually one of the six rows in `gGameplayModes`, so this should never
+ * @details A module's `ClampGamePlay` MUST only ever return an id that is
+ * actually one of the six rows in `gameplays`, so this should never
  * miss; it falls back to the first entry rather than asserting, matching
- * `G_GameplayByName`'s own fallback.
+ * `G_GamePlayByName`'s own fallback.
  */
-const Gameplay *G_GameplayById(GameplayId id) {
+const GamePlay *G_GamePlayById(GamePlayId id) {
 
-  for (size_t i = 0; i < lengthof(g_gameplayModes); i++) {
-    if (g_gameplayModes[i].id == id) {
-      return &g_gameplayModes[i];
+  for (size_t i = 0; i < lengthof(gameplays); i++) {
+    if (gameplays[i].id == id) {
+      return &gameplays[i];
     }
   }
 
-  return &g_gameplayModes[0];
+  return &gameplays[0];
 }
 
 /**
@@ -581,10 +581,10 @@ GameTeam *G_TeamByName(const char *c) {
     return NULL;
   }
 
-  for (int32_t i = 0; i < g_level.numTeams; i++) {
+  for (int32_t i = 0; i < gameLevel.numTeams; i++) {
 
-    if (!q_strcolorcmp(g_teamList[i].name, c)) {
-      return &g_teamList[i];
+    if (!Str_ColorCompare(gameTeamList[i].name, c)) {
+      return &gameTeamList[i];
     }
   }
 
@@ -615,8 +615,8 @@ GameTeam *G_SmallestTeam(void) {
   GameTeam *smallest = NULL;
   size_t size = SIZE_MAX;
 
-  GameTeam *team = g_teamList;
-  for (int32_t i = 0; i < g_level.numTeams; i++, team++) {
+  GameTeam *team = gameTeamList;
+  for (int32_t i = 0; i < gameLevel.numTeams; i++, team++) {
     const size_t s = G_TeamSize(team);
     if (s < size) {
       smallest = team;
@@ -637,7 +637,7 @@ GameClient *G_ClientByName(char *name) {
   int32_t match = INT32_MAX;
 
   G_ForEachClient(cl, {
-    const int32_t m = q_strcmp(name, cl->persistent.netName);
+    const int32_t m = Str_Compare(name, cl->persistent.netName);
     if (m < match) {
       client = cl;
       match = m;
@@ -694,7 +694,7 @@ bool G_IsStationary(const GameEntity *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-bool G_IsStructural(const CmTrace *trace) {
+bool G_IsStructural(const CollisionTrace *trace) {
 
   if ((trace->contents & CONTENTS_MASK_SOLID) && !G_IsSky(trace)) {
     return true;
@@ -706,7 +706,7 @@ bool G_IsStructural(const CmTrace *trace) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-bool G_IsSky(const CmTrace *trace) {
+bool G_IsSky(const CollisionTrace *trace) {
   return trace->surface & SURF_SKY;
 }
 
@@ -742,14 +742,14 @@ void G_SetAnimation(GameClient *cl, EntityAnimation anim, bool restart) {
   // while most go to one or the other, and are throttled
 
   if (anim < ANIM_LEGS_WALKCR) {
-    if (restart || cl->animation1Time <= g_level.time) {
+    if (restart || cl->animation1Time <= gameLevel.time) {
       G_SetAnimation_(&cl->entity->s.animation1, anim, restart);
-      cl->animation1Time = g_level.time + 50;
+      cl->animation1Time = gameLevel.time + 50;
     }
   } else {
-    if (restart || cl->animation2Time <= g_level.time) {
+    if (restart || cl->animation2Time <= gameLevel.time) {
       G_SetAnimation_(&cl->entity->s.animation2, anim, restart);
-      cl->animation2Time = g_level.time + 50;
+      cl->animation2Time = gameLevel.time + 50;
     }
   }
 }

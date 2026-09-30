@@ -63,10 +63,10 @@ static struct {
 void Cg_Race_Milestone(GameRaceMilestone kind, uint16_t number, const char *label, uint32_t time, int32_t vsBest, int32_t vsRecord) {
 
   if (label && *label) {
-    q_strlcpy(module.name, label, sizeof(module.name));
+    Str_Copy(module.name, label, sizeof(module.name));
   } else {
     const char *kinds[] = { "Checkpoint", "Split", "Stage" };
-    q_snprintf(module.name, sizeof(module.name), "%s %u", kinds[kind % 3], number);
+    Str_Format(module.name, sizeof(module.name), "%s %u", kinds[kind % 3], number);
   }
 
   module.time = time;
@@ -105,7 +105,7 @@ static const char *Cg_Race_FormatDelta(int32_t delta, const char *against) {
 /**
  * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
+static const char *RaceRunView_textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   const PlayerState *ps = &frame->ps;
 
@@ -129,26 +129,26 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
   }
 
   static char text[MAX_STRING_CHARS];
-  q_snprintf(text, sizeof(text), "%s%s", color, Cg_Race_FormatTime(Cg_Race_Time(ps)));
+  Str_Format(text, sizeof(text), "%s%s", color, Cg_Race_FormatTime(Cg_Race_Time(ps)));
 
   uint32_t checkpoints = 0;
   sscanf(cgi.ConfigString(CS_RACE_COURSE), "%u", &checkpoints);
 
   if (checkpoints) {
-    q_strlcat(text, va("\n^7%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), sizeof(text));
+    Str_Append(text, va("\n^7%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), sizeof(text));
   }
 
   if (module.shown && cgi.client->unclampedTime - module.shown < RACE_HUD_MILESTONE_MILLIS) {
 
-    q_strlcat(text, va("\n^7%s  %s", module.name, Cg_Race_FormatTime(module.time)), sizeof(text));
+    Str_Append(text, va("\n^7%s  %s", module.name, Cg_Race_FormatTime(module.time)), sizeof(text));
 
     if (module.vsBest != RACE_MILESTONE_NO_DELTA &&
         module.vsBest != module.vsRecord) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(module.vsBest, "best")), sizeof(text));
+      Str_Append(text, va("\n%s", Cg_Race_FormatDelta(module.vsBest, "best")), sizeof(text));
     }
 
     if (module.vsRecord != RACE_MILESTONE_NO_DELTA) {
-      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(module.vsRecord, "record")), sizeof(text));
+      Str_Append(text, va("\n%s", Cg_Race_FormatDelta(module.vsRecord, "record")), sizeof(text));
     }
   }
 
@@ -158,17 +158,17 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 /**
  * @see View::init(View *)
  */
-static View *initRaceRunView(View *self) {
+static View *RaceRunView_init(View *self) {
   return super(View, self, init);
 }
 
 /**
  * @see Class::initialize(Class *)
  */
-static void initializeRaceRunView(Class *clazz) {
+static void RaceRunView_initialize(Class *clazz) {
 
-  ((ViewInterface *) clazz->interface)->init = initRaceRunView;
-  ((OverlayTextInterface *) clazz->interface)->textForFrame = textForFrame;
+  ((ViewInterface *) clazz->interface)->init = RaceRunView_init;
+  ((OverlayTextInterface *) clazz->interface)->textForFrame = RaceRunView_textForFrame;
 }
 
 Class *_RaceRunView(void) {
@@ -181,7 +181,7 @@ Class *_RaceRunView(void) {
       .superclass = _OverlayText(),
       .instanceSize = sizeof(RaceRunView),
       .interfaceSize = sizeof(RaceRunViewInterface),
-      .initialize = initializeRaceRunView,
+      .initialize = RaceRunView_initialize,
     });
   });
 
@@ -213,7 +213,7 @@ struct SpeedViewInterface {
 /**
  * @see CounterView::valueForFrame(CounterView *, const ClientFrame *)
  */
-static int32_t valueForFrame(CounterView *self, const ClientFrame *frame) {
+static int32_t SpeedView_valueForFrame(CounterView *self, const ClientFrame *frame) {
 
   SpeedView *this = (SpeedView *) self;
 
@@ -228,7 +228,7 @@ static int32_t valueForFrame(CounterView *self, const ClientFrame *frame) {
 /**
  * @see View::init(View *)
  */
-static View *initSpeedView(View *self) {
+static View *SpeedView_init(View *self) {
 
   self = super(View, self, init);
   if (self) {
@@ -244,10 +244,10 @@ static View *initSpeedView(View *self) {
 /**
  * @see Class::initialize(Class *)
  */
-static void initializeSpeedView(Class *clazz) {
+static void SpeedView_initialize(Class *clazz) {
 
-  ((ViewInterface *) clazz->interface)->init = initSpeedView;
-  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
+  ((ViewInterface *) clazz->interface)->init = SpeedView_init;
+  ((CounterViewInterface *) clazz->interface)->valueForFrame = SpeedView_valueForFrame;
 }
 
 Class *_SpeedView(void) {
@@ -260,7 +260,7 @@ Class *_SpeedView(void) {
       .superclass = _CounterView(),
       .instanceSize = sizeof(SpeedView),
       .interfaceSize = sizeof(SpeedViewInterface),
-      .initialize = initializeSpeedView,
+      .initialize = SpeedView_initialize,
     });
   });
 
@@ -291,24 +291,24 @@ struct RunsViewInterface {
 /**
  * @see CounterView::valueForFrame(CounterView *, const ClientFrame *)
  */
-static int32_t runsForFrame(CounterView *self, const ClientFrame *frame) {
+static int32_t RunsView_valueForFrame(CounterView *self, const ClientFrame *frame) {
   return frame->ps.stats[STAT_RACE_RUNS];
 }
 
 /**
  * @see View::init(View *)
  */
-static View *initRunsView(View *self) {
+static View *RunsView_init(View *self) {
   return super(View, self, init);
 }
 
 /**
  * @see Class::initialize(Class *)
  */
-static void initializeRunsView(Class *clazz) {
+static void RunsView_initialize(Class *clazz) {
 
-  ((ViewInterface *) clazz->interface)->init = initRunsView;
-  ((CounterViewInterface *) clazz->interface)->valueForFrame = runsForFrame;
+  ((ViewInterface *) clazz->interface)->init = RunsView_init;
+  ((CounterViewInterface *) clazz->interface)->valueForFrame = RunsView_valueForFrame;
 }
 
 Class *_RunsView(void) {
@@ -321,7 +321,7 @@ Class *_RunsView(void) {
       .superclass = _CounterView(),
       .instanceSize = sizeof(RunsView),
       .interfaceSize = sizeof(RunsViewInterface),
-      .initialize = initializeRunsView,
+      .initialize = RunsView_initialize,
     });
   });
 

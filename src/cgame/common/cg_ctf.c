@@ -44,7 +44,7 @@ struct HeldFlagViewInterface {
 /**
  * @see View::updateBindings(View *, ident)
  */
-static void updateBindings(View *self, ident data) {
+static void HeldFlagView_updateBindings(View *self, ident data) {
 
   super(View, self, updateBindings, data);
 
@@ -71,7 +71,7 @@ static void updateBindings(View *self, ident data) {
 
   if (flag != this->flag) {
     this->flag = flag;
-    $((ImageView *) self, setImage, (Image *) Cg_HudImage(bgItemDefs[flag].icon));
+    $((ImageView *) self, setImage, (Image *) Cg_HudImage(gameItemDefs[flag].icon));
   }
 
   ((ImageView *) self)->color.a = (Uint8) (Clampf(sinf(cgi.client->unclampedTime / 150.f), 0.75f, 1.f) * 255);
@@ -80,17 +80,17 @@ static void updateBindings(View *self, ident data) {
 /**
  * @see View::init(View *)
  */
-static View *initHeldFlagView(View *self) {
+static View *HeldFlagView_init(View *self) {
   return super(View, self, init);
 }
 
 /**
  * @see Class::initialize(Class *)
  */
-static void initialize(Class *clazz) {
+static void HeldFlagView_initialize(Class *clazz) {
 
-  ((ViewInterface *) clazz->interface)->init = initHeldFlagView;
-  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->init = HeldFlagView_init;
+  ((ViewInterface *) clazz->interface)->updateBindings = HeldFlagView_updateBindings;
 }
 
 Class *_HeldFlagView(void) {
@@ -103,7 +103,7 @@ Class *_HeldFlagView(void) {
       .superclass = _ImageView(),
       .instanceSize = sizeof(HeldFlagView),
       .interfaceSize = sizeof(HeldFlagViewInterface),
-      .initialize = initialize,
+      .initialize = HeldFlagView_initialize,
     });
   });
 
@@ -115,23 +115,23 @@ Class *_HeldFlagView(void) {
 /**
  * @brief Captures is always team deathmatch: instagib and arena do not apply,
  * and teams are not optional. A single owner, like the game side's
- * `G_ClampGameplay_Ctf`, so it does not add to what `previous` offers.
+ * `G_ClampGamePlay_Ctf`, so it does not add to what `previous` offers.
  * @details Points directly at the `GAMEPLAY_TEAM_DEATHMATCH` row of the shared
- * `gGameplayModes` table rather than copying its `name`/`label` into a
+ * `gameplays` table rather than copying its `name`/`label` into a
  * duplicate row - there is nothing here to drift out of sync with the game
  * side, since it is the same static data.
  */
-static const Gameplay *Cg_ListGameplayModes_Ctf(size_t *count) {
+static const GamePlay *Cg_ListGamePlays_Ctf(size_t *count) {
 
   *count = 1;
 
-  for (size_t i = 0; i < lengthof(g_gameplayModes); i++) {
-    if (g_gameplayModes[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
-      return &g_gameplayModes[i];
+  for (size_t i = 0; i < lengthof(gameplays); i++) {
+    if (gameplays[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
+      return &gameplays[i];
     }
   }
 
-  return g_gameplayModes; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
+  return gameplays; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
 }
 
 /**
@@ -148,7 +148,7 @@ void Cg_Ctf_Init(void) {
     return;
   }
 
-  Cg_ListGameplayModes = Cg_ListGameplayModes_Ctf;
+  Cg_ListGamePlays = Cg_ListGamePlays_Ctf;
 
   installed = true;
 }

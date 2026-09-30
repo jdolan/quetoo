@@ -19,23 +19,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "cm_manifest.h"
+#include "manifest.h"
 #include "shared/md5.h"
 
 /**
  * @brief Computes the `MD5` hex digest of the given data.
  */
-static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hexSize) {
+static void Manifest_Md5Hex(const void *data, size_t len, char *hex, size_t hexSize) {
 
-	md5_ctx ctx;
+	Md5Context ctx;
 	uint8_t digest[16];
 
-	md5_init(&ctx);
-	md5_update(&ctx, data, len);
-	md5_finalize(&ctx, digest);
+	Md5_Init(&ctx);
+	Md5_Update(&ctx, data, len);
+	Md5_Finalize(&ctx, digest);
 
 	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hexSize; i++) {
-		q_snprintf(hex + i * 2, 3, "%02x", digest[i]);
+		Str_Format(hex + i * 2, 3, "%02x", digest[i]);
 	}
 }
 
@@ -45,7 +45,7 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hexSize) {
  * @details Both sides of the wire hash the same way, so that the server can
  * advertise what it loaded and the client can prove it loaded the same thing.
  */
-bool Cm_HashFile(const char *path, char *hex, size_t hexSize) {
+bool Manifest_HashFile(const char *path, char *hex, size_t hexSize) {
 
 	void *data = NULL;
 	const int64_t len = Fs_Load(path, &data);
@@ -56,7 +56,7 @@ bool Cm_HashFile(const char *path, char *hex, size_t hexSize) {
 		return false;
 	}
 
-	Cm_Md5Hex(data, len, hex, hexSize);
+	Manifest_Md5Hex(data, len, hex, hexSize);
 	Fs_Free(data);
 
 	return true;
@@ -65,7 +65,7 @@ bool Cm_HashFile(const char *path, char *hex, size_t hexSize) {
 /**
  * @brief Allocates an empty manifest table.
  */
-HashTable *Cm_AllocManifest(void) {
+HashTable *Manifest_Alloc(void) {
 	HashTable *manifest = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
 	manifest->destroyValue = Mem_Free;
 	return manifest;
@@ -74,17 +74,17 @@ HashTable *Cm_AllocManifest(void) {
 /**
  * @brief Inserts an entry into a manifest table, computing the `MD5` checksum of the given data.
  */
-void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data, size_t len) {
+void Manifest_AddEntry(HashTable *manifest, const char *path, const void *data, size_t len) {
 
 	assert(manifest);
 	assert(path);
 	assert(data);
 	assert(len > 0);
 
-	CmManifestEntry *entry = Mem_Malloc(sizeof(*entry));
-	q_strlcpy(entry->path, path, sizeof(entry->path));
+	ManifestEntry *entry = Mem_Malloc(sizeof(*entry));
+	Str_Copy(entry->path, path, sizeof(entry->path));
 	entry->size = (int64_t) len;
-	Cm_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
+	Manifest_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
 
 	$(manifest, set, entry->path, entry);
 }
@@ -92,7 +92,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
 /**
  * @brief Verifies a manifest entry against the local file on disk.
  */
-bool Cm_CheckManifestEntry(const CmManifestEntry *entry) {
+bool Manifest_CheckEntry(const ManifestEntry *entry) {
 
 	assert(entry);
 
@@ -106,36 +106,36 @@ bool Cm_CheckManifestEntry(const CmManifestEntry *entry) {
 	}
 
 	char hash[sizeof(entry->hash)];
-	Cm_Md5Hex(data, len, hash, sizeof(hash));
+	Manifest_Md5Hex(data, len, hash, sizeof(hash));
 	Fs_Free(data);
 
-	return !q_strcmp(entry->hash, hash);
+	return !Str_Compare(entry->hash, hash);
 }
 
 /**
  * @brief Comparator for sorting manifest keys alphabetically.
  */
-static int Cm_ManifestKeyCmp(const void *a, const void *b) {
-	return q_strcmp(*(const char **) a, *(const char **) b);
+static int Manifest_KeyCmp(const void *a, const void *b) {
+	return Str_Compare(*(const char **) a, *(const char **) b);
 }
 
 typedef struct {
 	const char **keys;
 	size_t count;
-} CmManifestKeys;
+} ManifestKeys;
 
 /**
  * @brief HashTableEnumerator callback that collects keys.
  */
-static void Cm_CollectKey(const HashTable *table, ident key, ident value, ident data) {
-	CmManifestKeys *collector = data;
+static void Manifest_CollectKey(const HashTable *table, ident key, ident value, ident data) {
+	ManifestKeys *collector = data;
 	collector->keys[collector->count++] = key;
 }
 
 /**
  * @brief Writes a manifest table to a file, sorted by path.
  */
-int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
+int32_t Manifest_Write(const char *path, HashTable *manifest) {
 
 	File *file = Fs_OpenWrite(path);
 	if (!file) {
@@ -145,13 +145,13 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
 
 	const size_t count = manifest->count;
 	const char **keys = Mem_Malloc(count * sizeof(char *));
-	CmManifestKeys collector = { .keys = keys };
+	ManifestKeys collector = { .keys = keys };
 
-	$(manifest, enumerate, Cm_CollectKey, &collector);
-	qsort(keys, count, sizeof(char *), Cm_ManifestKeyCmp);
+	$(manifest, enumerate, Manifest_CollectKey, &collector);
+	qsort(keys, count, sizeof(char *), Manifest_KeyCmp);
 
 	for (size_t k = 0; k < count; k++) {
-		const CmManifestEntry *entry = $(manifest, get, (void *) keys[k]);
+		const ManifestEntry *entry = $(manifest, get, (void *) keys[k]);
 		Fs_Print(file, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
 	}
 
@@ -164,9 +164,9 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
 /**
  * @brief Parses a manifest from an in-memory buffer.
  */
-HashTable *Cm_ParseManifest(const char *data, size_t len) {
+HashTable *Manifest_Parse(const char *data, size_t len) {
 
-	HashTable *manifest = Cm_AllocManifest();
+	HashTable *manifest = Manifest_Alloc();
 
 	if (!data || len == 0) {
 		return manifest;
@@ -180,44 +180,44 @@ HashTable *Cm_ParseManifest(const char *data, size_t len) {
 	buf[len] = '\0';
 
 	char *saveptr = NULL;
-	char *line = q_strtok_r(buf, "\n", &saveptr);
+	char *line = Str_Tokenize(buf, "\n", &saveptr);
 	while (line) {
 
 		// Trim trailing whitespace
-		char *end = line + q_strlen(line);
+		char *end = line + Str_Length(line);
 		while (end > line && (*end == '\0' || *end == '\r' || *end == ' ' || *end == '\t')) {
 			*end-- = '\0';
 		}
 
 		if (*line == '\0') {
-			line = q_strtok_r(NULL, "\n", &saveptr);
+			line = Str_Tokenize(NULL, "\n", &saveptr);
 			continue;
 		}
 
-		char *space1 = q_strchr(line, ' ');
+		char *space1 = Str_FindChar(line, ' ');
 		if (!space1) {
 			Com_Warn("Malformed manifest line: %s\n", line);
-			line = q_strtok_r(NULL, "\n", &saveptr);
+			line = Str_Tokenize(NULL, "\n", &saveptr);
 			continue;
 		}
 		*space1 = '\0';
 
-		char *space2 = q_strchr(space1 + 1, ' ');
+		char *space2 = Str_FindChar(space1 + 1, ' ');
 		if (!space2) {
 			Com_Warn("Malformed manifest line: %s\n", line);
-			line = q_strtok_r(NULL, "\n", &saveptr);
+			line = Str_Tokenize(NULL, "\n", &saveptr);
 			continue;
 		}
 		*space2 = '\0';
 
-		CmManifestEntry *entry = Mem_Malloc(sizeof(*entry));
-		q_strlcpy(entry->hash, line, sizeof(entry->hash));
+		ManifestEntry *entry = Mem_Malloc(sizeof(*entry));
+		Str_Copy(entry->hash, line, sizeof(entry->hash));
 		entry->size = (int64_t) strtoll(space1 + 1, NULL, 10);
-		q_strlcpy(entry->path, space2 + 1, sizeof(entry->path));
+		Str_Copy(entry->path, space2 + 1, sizeof(entry->path));
 
 		$(manifest, set, entry->path, entry);
 
-		line = q_strtok_r(NULL, "\n", &saveptr);
+		line = Str_Tokenize(NULL, "\n", &saveptr);
 	}
 
 	Mem_Free(buf);
@@ -227,7 +227,7 @@ HashTable *Cm_ParseManifest(const char *data, size_t len) {
 /**
  * @brief Reads a manifest file into a table.
  */
-HashTable *Cm_ReadManifest(const char *path) {
+HashTable *Manifest_Read(const char *path) {
 
 	void *data = NULL;
 	const int64_t len = Fs_Load(path, &data);
@@ -235,7 +235,7 @@ HashTable *Cm_ReadManifest(const char *path) {
 		return NULL;
 	}
 
-	HashTable *manifest = Cm_ParseManifest((const char *) data, (size_t) len);
+	HashTable *manifest = Manifest_Parse((const char *) data, (size_t) len);
 	Fs_Free(data);
 
 	return manifest;
@@ -244,7 +244,7 @@ HashTable *Cm_ReadManifest(const char *path) {
 /**
  * @brief Frees a manifest table and all its entries.
  */
-void Cm_FreeManifest(HashTable *manifest) {
+void Manifest_Free(HashTable *manifest) {
 	if (manifest) {
 		release(manifest);
 	}

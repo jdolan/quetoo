@@ -28,9 +28,9 @@
  */
 static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val, ident data) {
   (void) table;
-  const CmManifestEntry *entry = (const CmManifestEntry *) val;
+  const ManifestEntry *entry = (const ManifestEntry *) val;
   if (Fs_Exists(entry->path)) {
-    if (!Cm_CheckManifestEntry(entry)) {
+    if (!Manifest_CheckEntry(entry)) {
 
       // the manifest is our own file, so this only says our copy disagrees with
       // what our copy claims. The bsp is proven against the server's hash in
@@ -72,14 +72,14 @@ void Cl_RequestNextDownload(void) {
     if (*cl.configStrings[CS_MANIFEST] != '\0') {
       Cl_CheckOrDownloadFile(cl.configStrings[CS_MANIFEST]);
 
-      HashTable *manifest = Cm_ReadManifest(cl.configStrings[CS_MANIFEST]);
+      HashTable *manifest = Manifest_Read(cl.configStrings[CS_MANIFEST]);
       if (!manifest) {
         Com_Error(ERROR_DROP, "Failed to read %s\n", cl.configStrings[CS_MANIFEST]);
       }
 
       $(manifest, enumerate, Cl_CheckManifestEntry_, NULL);
 
-      Cm_FreeManifest(manifest);
+      Manifest_Free(manifest);
     }
   }
 
@@ -96,10 +96,10 @@ void Cl_RequestNextDownload(void) {
 static void Cl_Mapshots_enumerate(const char *path, void *data) {
   List *list = (List *) data;
 
-  const size_t len = q_strlen(path);
-  if ((len >= 4 && !q_strcmp(path + len - 4, ".jpg")) ||
-      (len >= 4 && !q_strcmp(path + len - 4, ".png"))) {
-    $(list, append, q_strdup(path));
+  const size_t len = Str_Length(path);
+  if ((len >= 4 && !Str_Compare(path + len - 4, ".jpg")) ||
+      (len >= 4 && !Str_Compare(path + len - 4, ".png"))) {
+    $(list, append, Str_Duplicate(path));
   }
 }
 
@@ -203,7 +203,7 @@ static void Cl_LoadSounds(void) {
   }
 
   for (int32_t i = 0; i < Cm_Bsp()->numMaterials; i++) {
-    const CmFootsteps *footsteps = &Cm_Bsp()->materials[i]->footsteps;
+    const MaterialFootsteps *footsteps = &Cm_Bsp()->materials[i]->footsteps;
 
     const Asset *sample = footsteps->samples;
     for (int32_t j = 0; j < footsteps->numSamples; j++, sample++) {

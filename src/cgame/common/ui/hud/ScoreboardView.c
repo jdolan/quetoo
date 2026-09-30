@@ -198,7 +198,7 @@ static View *init(View *self) {
   return self;
 }
 
-static const EnumName ScoreboardLayoutNames[] = MakeEnumNames(
+static const EnumName layoutNames[] = MakeEnumNames(
   MakeEnumAlias(ScoreboardLayoutCards, cards),
   MakeEnumAlias(ScoreboardLayoutTable, table)
 );
@@ -213,7 +213,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
   ScoreboardView *this = (ScoreboardView *) self;
 
   const Inlet inlets[] = MakeInlets(
-    MakeInlet("layout", InletTypeEnum, &this->layout, (ident) ScoreboardLayoutNames)
+    MakeInlet("layout", InletTypeEnum, &this->layout, (ident) layoutNames)
   );
 
   $(self, bind, inlets, dictionary);
@@ -358,7 +358,7 @@ static void describe(const ScoreboardView *self, const GameScore *score, const c
 
   for (size_t i = 0; i + 1 < count; i++) {
     const char *value = $((ScoreboardView *) self, valueForField, score, i);
-    q_strlcat(text, va("%s%s %s", i ? "\n" : "", value, f[i].caption), sizeof(text));
+    Str_Append(text, va("%s%s %s", i ? "\n" : "", value, f[i].caption), sizeof(text));
   }
 
   *detail = va("%s", text);
@@ -403,16 +403,16 @@ static void rebuild(ScoreboardView *self) {
   const int32_t reserved = self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0;
   const size_t rows = rowsThatFit(self, 64, reserved);
 
-  if (cgState.numTeams) {
+  if (cgameState.numTeams) {
 
     // the aggregate scores follow the players' in the array
     const GameScore *totals = scores + count;
 
-    for (int32_t t = 0; t < cgState.numTeams; t++) {
-      Text *total = $(alloc(Text), initWithText, teamTotal(&cgState.teams[t], &totals[t]), NULL);
+    for (int32_t t = 0; t < cgameState.numTeams; t++) {
+      Text *total = $(alloc(Text), initWithText, teamTotal(&cgameState.teams[t], &totals[t]), NULL);
       assert(total);
 
-      const Color32 rgba = Color_Color32(cgState.teams[t].color);
+      const Color32 rgba = Color_Color32(cgameState.teams[t].color);
       const SDL_Color color = { rgba.r, rgba.g, rgba.b, 255 };
 
       $(total->view.style, addColorAttribute, "color", &color);
@@ -424,7 +424,7 @@ static void rebuild(ScoreboardView *self) {
     StackView *spectators = $(self, addColumn);
     $((View *) spectators, addClassName, "spectators");
 
-    for (int32_t t = 0; t < cgState.numTeams; t++) {
+    for (int32_t t = 0; t < cgameState.numTeams; t++) {
       StackView *column = addRowsColumn(self);
 
       size_t added = 0;

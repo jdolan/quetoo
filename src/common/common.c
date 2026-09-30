@@ -52,19 +52,19 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   const char *game = DEFAULT_GAME;
   const char *logName = quetoo.logFileName ? : "quetoo.log";
   for (int32_t i = 1; i < argc - 2; i++) {
-    if (!q_strcmp(argv[i], "+set") && !q_strcmp(argv[i + 1], "game")) {
+    if (!Str_Compare(argv[i], "+set") && !Str_Compare(argv[i + 1], "game")) {
       game = argv[i + 2];
       break;
     }
   }
 
   char path[MAX_QPATH * 3];
-  q_snprintf(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, logName);
+  Str_Format(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, logName);
 
   char dir[MAX_QPATH * 2];
-  q_strlcpy(dir, path, sizeof(dir));
-  char *sep = q_strrchr(dir, '/');
-  if (!sep) { sep = q_strrchr(dir, '\\'); }
+  Str_Copy(dir, path, sizeof(dir));
+  char *sep = Str_FindLastChar(dir, '/');
+  if (!sep) { sep = Str_FindLastChar(dir, '\\'); }
   if (sep) { *sep = '\0'; }
   SDL_CreateDirectory(dir);
 
@@ -98,7 +98,7 @@ void Com_Uuid(char *out, size_t len) {
   const uint32_t c = (uint32_t) SDL_rand(INT32_MAX);
   const uint32_t d = (uint32_t) SDL_rand(INT32_MAX);
 
-  q_snprintf(out, len, "%08x-%04x-%04x-%04x-%04x%08x",
+  Str_Format(out, len, "%08x-%04x-%04x-%04x-%04x%08x",
              a,
              b & 0xffff,
              (b >> 16 & 0x0fff) | 0x4000, // version 4
@@ -120,12 +120,12 @@ const char *Com_Cgame(void) {
 bool Com_IsValidGame(const char *game) {
 
   return game && *game
-         && q_strlen(game) < MAX_GAME
-         && q_strcmp(game, ".")
-         && !q_strstr(game, "..")
-         && !q_strstr(game, "/")
-         && !q_strstr(game, "\\")
-         && !q_strstr(game, ":");
+         && Str_Length(game) < MAX_GAME
+         && Str_Compare(game, ".")
+         && !Str_Find(game, "..")
+         && !Str_Find(game, "/")
+         && !Str_Find(game, "\\")
+         && !Str_Find(game, ":");
 }
 
 /**
@@ -137,22 +137,22 @@ bool Com_IsValidDownload(const char *filename) {
     return false;
   }
 
-  if (q_strstr(filename, "..") || q_strchr(filename, ' ') || q_strchr(filename, ':')) {
+  if (Str_Find(filename, "..") || Str_FindChar(filename, ' ') || Str_FindChar(filename, ':')) {
     return false;
   }
 
   const char *base = Basename(filename);
-  const size_t len = q_strlen(base);
+  const size_t len = Str_Length(base);
 
   if (len && base[len - 1] == '.') {
     return false;
   }
 
-  const char *ext = q_strrchr(base, '.');
+  const char *ext = Str_FindLastChar(base, '.');
 
-  if (ext && (!q_strcasecmp(ext, ".so") ||
-              !q_strcasecmp(ext, ".dll") ||
-              !q_strcasecmp(ext, ".dylib"))) {
+  if (ext && (!Str_CaseCompare(ext, ".so") ||
+              !Str_CaseCompare(ext, ".dll") ||
+              !Str_CaseCompare(ext, ".dylib"))) {
     return false;
   }
 
@@ -173,7 +173,7 @@ bool Com_SetGame(const char *game, const char *cgame) {
     return false;
   }
 
-  if (!q_strcmp(quetoo.game, game) && !q_strcmp(quetoo.cgame, cgame ? : "")) {
+  if (!Str_Compare(quetoo.game, game) && !Str_Compare(quetoo.cgame, cgame ? : "")) {
     return true;
   }
 
@@ -186,8 +186,8 @@ bool Com_SetGame(const char *game, const char *cgame) {
     return false;
   }
 
-  q_strlcpy(quetoo.game, game, sizeof(quetoo.game));
-  q_strlcpy(quetoo.cgame, cgame ? : "", sizeof(quetoo.cgame));
+  Str_Copy(quetoo.game, game, sizeof(quetoo.game));
+  Str_Copy(quetoo.cgame, cgame ? : "", sizeof(quetoo.cgame));
 
   if (!initial && Fs_Exists("autoexec.cfg")) {
     Cbuf_AddText("exec autoexec.cfg\n");
@@ -209,8 +209,8 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
   "filesystem",
   "game",
   "net",
-  "pmove_client",
-  "pmove_server",
+  "pmoveClient",
+  "pmoveServer",
   "renderer",
   "server",
   "sound",
@@ -236,15 +236,15 @@ const char *Com_GetDebug(void) {
 
   for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
     if (quetoo.debugMask & (1 << i)) {
-      if (q_strlen(debug)) {
-        q_strlcat(debug, " ", sizeof(debug));
+      if (Str_Length(debug)) {
+        Str_Append(debug, " ", sizeof(debug));
       }
-      q_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
+      Str_Append(debug, DEBUG_CATEGORIES[i], sizeof(debug));
     }
   }
 
   if (quetoo.debugMask & DEBUG_BREAKPOINT) {
-    q_strlcat(debug, " breakpoint", sizeof(debug));
+    Str_Append(debug, " breakpoint", sizeof(debug));
   }
 
   return debug;
@@ -265,15 +265,15 @@ void Com_SetDebug(const char *debug) {
       break;
     }
 
-    if (!q_strcmp(token, "none") || !q_strcmp(token, "0")) {
+    if (!Str_Compare(token, "none") || !Str_Compare(token, "0")) {
       quetoo.debugMask = 0;
-    } else if (!q_strcmp(token, "breakpoint") || !q_strcmp(token, "bp")) {
+    } else if (!Str_Compare(token, "breakpoint") || !Str_Compare(token, "bp")) {
       quetoo.debugMask ^= DEBUG_BREAKPOINT;
-    } else if (!q_strcmp(token, "any") || !q_strcmp(token, "all")) {
+    } else if (!Str_Compare(token, "any") || !Str_Compare(token, "all")) {
       quetoo.debugMask ^= DEBUG_ALL;
     } else {
       for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-        if (!q_strcmp(token, DEBUG_CATEGORIES[i])) {
+        if (!Str_Compare(token, DEBUG_CATEGORIES[i])) {
           quetoo.debugMask ^= (1 << i);
         }
       }
@@ -303,8 +303,8 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
     if (fmt[0] == '!') { // skip it
       fmt++;
     } else {
-      q_snprintf(str, (size_t) size, "%s: ", func);
-      len = q_strlen(str);
+      Str_Format(str, (size_t) size, "%s: ", func);
+      len = Str_Length(str);
     }
   }
 
@@ -405,11 +405,11 @@ void Com_Errorv_(Err error, const char *func, const char *fmt, va_list args) {
 }
 
 /**
- * @brief Console command to trigger a test error. Usage: `comError [drop|fatal]`
+ * @brief Console command to trigger a test error. Usage: `com_error [drop|fatal]`
  */
 void Com_Error_f(void) {
 
-  const Err err = !q_strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
+  const Err err = !Str_Compare(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
   Com_Error(err, "Test error (%s)\n", err == ERROR_FATAL ? "fatal" : "drop");
 }
 
@@ -521,9 +521,9 @@ void Com_Init(int32_t argc, char *argv[]) {
 
     // if we specified debug mode, quickly set it to all here
     // so that early systems prior to init can write stuff out
-    if (!q_strcmp(Com_Argv(i), "-d") ||
-        !q_strcmp(Com_Argv(i), "--debug") ||
-        !q_strcmp(Com_Argv(i), "+debug")) {
+    if (!Str_Compare(Com_Argv(i), "-d") ||
+        !Str_Compare(Com_Argv(i), "--debug") ||
+        !Str_Compare(Com_Argv(i), "+debug")) {
       Com_SetDebug("all");
       continue;
     }

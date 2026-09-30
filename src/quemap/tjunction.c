@@ -29,7 +29,7 @@
 static SDL_AtomicInt cTjunctions;
 static Vector *faces;
 static HashTable *facesSet;
-static CmWinding **windings;
+static Winding **windings;
 
 /**
  * @brief Processes a single face, inserting vertices from all other coplanar faces that lie on its edges to eliminate T-junctions.
@@ -40,7 +40,7 @@ static void FixTJunctions_(int32_t faceNum) {
 
   Face *face = VectorValue(faces, Face *, faceNum);
 
-  const Plane *plane = &planes[face->brushSide->plane];
+  const MapPlane *plane = &planes[face->brushSide->plane];
 
   for (size_t s = 0; s < faces->count; s++) {
 
@@ -48,10 +48,10 @@ static void FixTJunctions_(int32_t faceNum) {
       continue;
     }
 
-    const CmWinding *f_winding = windings[s];
+    const Winding *winding = windings[s];
 
-    for (int32_t i = 0; i < f_winding->numPoints; i++) {
-      const Vec3 v = f_winding->points[i];
+    for (int32_t i = 0; i < winding->numPoints; i++) {
+      const Vec3 v = winding->points[i];
 
       const double d = Vec3_Dot(v, plane->normal) - plane->dist;
       if (d > ON_EPSILON || d < -ON_EPSILON) {
@@ -60,12 +60,12 @@ static void FixTJunctions_(int32_t faceNum) {
 
       // v is on face's plane, so test it against face's edges
 
-      const CmWinding *face_winding = face->w;
+      const Winding *faceWinding = face->w;
 
-      for (int32_t j = 0; j < face_winding->numPoints; j++) {
+      for (int32_t j = 0; j < faceWinding->numPoints; j++) {
 
-        const Vec3 v0 = face_winding->points[(j + 0) % face_winding->numPoints];
-        const Vec3 v1 = face_winding->points[(j + 1) % face_winding->numPoints];
+        const Vec3 v0 = faceWinding->points[(j + 0) % faceWinding->numPoints];
+        const Vec3 v1 = faceWinding->points[(j + 1) % faceWinding->numPoints];
 
         Vec3 a;
         const float aDist = Vec3_DistanceDir(v0, v, &a);
@@ -83,20 +83,20 @@ static void FixTJunctions_(int32_t faceNum) {
         }
 
         // v sits between v0 and v1, so add it to the face
-        CmWinding *w = Cm_AllocWinding(face_winding->numPoints + 1);
-        w->numPoints = face_winding->numPoints + 1;
+        Winding *w = Winding_Alloc(faceWinding->numPoints + 1);
+        w->numPoints = faceWinding->numPoints + 1;
 
         for (int32_t k = 0; k < w->numPoints; k++) {
           if (k <= j) {
-            w->points[k] = face_winding->points[k];
+            w->points[k] = faceWinding->points[k];
           } else if (k == j + 1) {
             w->points[k] = v;
           } else {
-            w->points[k] = face_winding->points[k - 1];
+            w->points[k] = faceWinding->points[k - 1];
           }
         }
 
-        Cm_FreeWinding(face->w);
+        Winding_Free(face->w);
         face->w = w;
 
         SDL_AddAtomicInt(&cTjunctions, 1);
@@ -144,10 +144,10 @@ void FixTJunctions(Tree *tree) {
   FixTJunctions_r(tree->headNode);
   facesSet = release(facesSet);
 
-  windings = Mem_Malloc(sizeof(CmWinding *) * faces->count);
+  windings = Mem_Malloc(sizeof(Winding *) * faces->count);
   for (size_t i = 0; i < faces->count; i++) {
     const Face *face = VectorValue(faces, Face *, i);
-    windings[i] = Cm_CopyWinding(face->w);
+    windings[i] = Winding_Copy(face->w);
   }
 
   Work("Fixing t-junctions", FixTJunctions_, (int32_t) faces->count);
@@ -155,7 +155,7 @@ void FixTJunctions(Tree *tree) {
   Com_Verbose("%5i fixed tjunctions\n", SDL_GetAtomicInt(&cTjunctions));
 
   for (size_t i = 0; i < faces->count; i++) {
-    Cm_FreeWinding(windings[i]);
+    Winding_Free(windings[i]);
   }
   Mem_Free(windings);
 

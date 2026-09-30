@@ -37,7 +37,7 @@ static void G_Trigger_Init(GameEntity *ent) {
   ent->solid = SOLID_TRIGGER;
   ent->moveType = MOVE_TYPE_NONE;
   gi.SetModel(ent, ent->model);
-  ent->svFlags = SVF_NO_CLIENT;
+  ent->serverFlags = SVF_NO_CLIENT;
 }
 
 /**
@@ -60,11 +60,11 @@ static void G_trigger_multiple_Think(GameEntity *ent) {
 
   if (ent->wait < 0) { // a trigger_once, which fires the once and is gone
     ent->Touch = NULL;
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
     ent->Think = G_FreeEntity;
   } else { // otherwise re-arm, at zero meaning as often as we are touched
     ent->Think = G_trigger_multiple_Wait;
-    ent->nextThink = g_level.time + (uint32_t) Maxi((int32_t) SECONDS_TO_MILLIS(ent->wait), QUETOO_TICK_MILLIS);
+    ent->nextThink = gameLevel.time + (uint32_t) Maxi((int32_t) SECONDS_TO_MILLIS(ent->wait), QUETOO_TICK_MILLIS);
   }
 }
 
@@ -82,7 +82,7 @@ static void G_trigger_multiple_Use(GameEntity *ent, GameEntity *other,
 /**
  * @brief Handles use activation of a `trigger_multiple`, delegating to the think function.
  */
-static void G_trigger_multiple_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_multiple_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->client) {
     const bool isProjectile = other->owner && other->owner->client;
@@ -139,7 +139,7 @@ void G_trigger_multiple(GameEntity *ent) {
 
   ent->Touch = G_trigger_multiple_Touch;
   ent->moveType = MOVE_TYPE_NONE;
-  ent->svFlags |= SVF_NO_CLIENT;
+  ent->serverFlags |= SVF_NO_CLIENT;
 
   if (ent->spawnFlags & TRIGGERED) {
     ent->solid = SOLID_NOT;
@@ -224,7 +224,7 @@ void G_trigger_always(GameEntity *ent) {
 /**
  * @brief Handles touch events on a `trigger_push`, applying velocity to the touching entity.
  */
-static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (other->moveType == MOVE_TYPE_WALK || other->moveType == MOVE_TYPE_BOUNCE) {
 
@@ -235,8 +235,8 @@ static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CmTra
       other->client->ps.pmState.time = 240;
     }
 
-    if (other->pushTime < g_level.time) {
-      other->pushTime = g_level.time + 1500;
+    if (other->pushTime < gameLevel.time) {
+      other->pushTime = gameLevel.time + 1500;
       G_MulticastSound(&(const GamePlaySound) {
         .index = ent->moveInfo.soundStart,
         .origin = &other->s.origin,
@@ -305,7 +305,7 @@ void G_trigger_push(GameEntity *ent) {
 
   ent->Touch = G_trigger_push_Touch;
 
-  const CmEntity *sound = gi.EntityValue(ent->def, "sound");
+  const Entity *sound = gi.EntityValue(ent->def, "sound");
   if (sound->parsed & ENTITY_STRING) {
     ent->moveInfo.soundStart = gi.SoundIndex(sound->string);
   } else {
@@ -351,7 +351,7 @@ static void G_trigger_hurt_Use(GameEntity *ent, GameEntity *other, GameEntity *a
 /**
  * @brief Handles touch events on a `trigger_hurt`, dealing damage to entities that enter it.
  */
-static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->takeDamage) { // deal with items that land on us
 
@@ -367,14 +367,14 @@ static void G_trigger_hurt_Touch(GameEntity *ent, GameEntity *other, const CmTra
     return;
   }
 
-  if (ent->timestamp > g_level.time) {
+  if (ent->timestamp > gameLevel.time) {
     return;
   }
 
   if (ent->spawnFlags & 16) {
-    ent->timestamp = g_level.time + 1000;
+    ent->timestamp = gameLevel.time + 1000;
   } else {
-    ent->timestamp = g_level.time + 100;
+    ent->timestamp = gameLevel.time + 100;
   }
 
   const int16_t d = ent->damage;
@@ -439,13 +439,13 @@ void G_trigger_hurt(GameEntity *ent) {
 /**
  * @brief Handles touch events on a `trigger_exec`, executing a console command or script.
  */
-static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
-  if (ent->timestamp > g_level.time) {
+  if (ent->timestamp > gameLevel.time) {
     return;
   }
 
-  ent->timestamp = g_level.time + ent->delay * 1000;
+  ent->timestamp = gameLevel.time + ent->delay * 1000;
 
   const char *command = gi.EntityValue(ent->def, "command")->nullableString;
   if (command) {

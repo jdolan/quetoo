@@ -35,17 +35,12 @@ Cvar *m_sensitivityZoom;
 Cvar *m_pitch;
 Cvar *m_yaw;
 
-static InputButton cl_buttons[10];
-#define in_left cl_buttons[0]
-#define in_right cl_buttons[1]
-#define in_forward cl_buttons[2]
-#define in_back cl_buttons[3]
-#define in_look_up cl_buttons[4]
-#define in_look_down cl_buttons[5]
-#define in_move_left cl_buttons[6]
-#define in_move_right cl_buttons[7]
-#define in_up cl_buttons[8]
-#define in_down cl_buttons[9]
+static struct {
+  InputButton left, right, forward, back;
+  InputButton lookUp, lookDown;
+  InputButton moveLeft, moveRight;
+  InputButton up, down;
+} buttons;
 
 /**
  * @brief Registers a key-down event for the given button, tracking which keys hold it.
@@ -125,83 +120,83 @@ void Cl_KeyUp(InputButton *b) {
 }
 
 static void Cl_Up_down_f(void) {
-  Cl_KeyDown(&in_up);
+  Cl_KeyDown(&buttons.up);
 }
 
 static void Cl_Up_up_f(void) {
-  Cl_KeyUp(&in_up);
+  Cl_KeyUp(&buttons.up);
 }
 
 static void Cl_Down_down_f(void) {
-  Cl_KeyDown(&in_down);
+  Cl_KeyDown(&buttons.down);
 }
 
 static void Cl_Down_up_f(void) {
-  Cl_KeyUp(&in_down);
+  Cl_KeyUp(&buttons.down);
 }
 
 static void Cl_Left_down_f(void) {
-  Cl_KeyDown(&in_left);
+  Cl_KeyDown(&buttons.left);
 }
 
 static void Cl_Left_up_f(void) {
-  Cl_KeyUp(&in_left);
+  Cl_KeyUp(&buttons.left);
 }
 
 static void Cl_Right_down_f(void) {
-  Cl_KeyDown(&in_right);
+  Cl_KeyDown(&buttons.right);
 }
 
 static void Cl_Right_up_f(void) {
-  Cl_KeyUp(&in_right);
+  Cl_KeyUp(&buttons.right);
 }
 
 static void Cl_Forward_down_f(void) {
-  Cl_KeyDown(&in_forward);
+  Cl_KeyDown(&buttons.forward);
 }
 
 static void Cl_Forward_up_f(void) {
-  Cl_KeyUp(&in_forward);
+  Cl_KeyUp(&buttons.forward);
 }
 
 static void Cl_Back_down_f(void) {
-  Cl_KeyDown(&in_back);
+  Cl_KeyDown(&buttons.back);
 }
 
 static void Cl_Back_up_f(void) {
-  Cl_KeyUp(&in_back);
+  Cl_KeyUp(&buttons.back);
 }
 
 static void Cl_LookUp_down_f(void) {
-  Cl_KeyDown(&in_look_up);
+  Cl_KeyDown(&buttons.lookUp);
 }
 
 static void Cl_LookUp_up_f(void) {
-  Cl_KeyUp(&in_look_up);
+  Cl_KeyUp(&buttons.lookUp);
 }
 
 static void Cl_LookDown_down_f(void) {
-  Cl_KeyDown(&in_look_down);
+  Cl_KeyDown(&buttons.lookDown);
 }
 
 static void Cl_LookDown_up_f(void) {
-  Cl_KeyUp(&in_look_down);
+  Cl_KeyUp(&buttons.lookDown);
 }
 
 static void Cl_MoveLeft_down_f(void) {
-  Cl_KeyDown(&in_move_left);
+  Cl_KeyDown(&buttons.moveLeft);
 }
 
 static void Cl_MoveLeft_up_f(void) {
-  Cl_KeyUp(&in_move_left);
+  Cl_KeyUp(&buttons.moveLeft);
 }
 
 static void Cl_MoveRight_down_f(void) {
-  Cl_KeyDown(&in_move_right);
+  Cl_KeyDown(&buttons.moveRight);
 }
 
 static void Cl_MoveRight_up_f(void) {
-  Cl_KeyUp(&in_move_right);
+  Cl_KeyUp(&buttons.moveRight);
 }
 
 static void Cl_CenterView_f(void) {
@@ -231,24 +226,24 @@ float Cl_KeyState(InputButton *key, uint32_t cmdMsec) {
  */
 static void Cl_UpdateMouseState(void) {
 
-  const SDL_WindowFlags flags = SDL_GetWindowFlags(rContext.window);
+  const SDL_WindowFlags flags = SDL_GetWindowFlags(renderContext.window);
 
   // paused demo playback stays in KEY_GAME so the HUD (and its transport controls) keep
   // drawing, but wants a visible, ungrabbed cursor to drive those controls with
   if (cls.keyState.dest == KEY_UI || cls.keyState.dest == KEY_CONSOLE || cls.demo.paused ||
       (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
     SDL_ShowCursor();
-    SDL_SetWindowMouseGrab(rContext.window, false);
+    SDL_SetWindowMouseGrab(renderContext.window, false);
   } else {
     SDL_HideCursor();
-    SDL_SetWindowMouseGrab(rContext.window, true);
+    SDL_SetWindowMouseGrab(renderContext.window, true);
   }
 
   // Cl_SetKeyDest owns relative mouse mode for key destination changes, but pausing a demo
   // doesn't change destination, so the pause state is reconciled here each frame instead - and
   // so it survives a trip through the menus and back
   if (cls.keyState.dest == KEY_GAME) {
-    SDL_SetWindowRelativeMouseMode(rContext.window, !cls.demo.paused);
+    SDL_SetWindowRelativeMouseMode(renderContext.window, !cls.demo.paused);
   }
 }
 
@@ -261,17 +256,17 @@ static void Cl_UpdateMouseState(void) {
 static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs, const size_t len) {
   char tmp[MAX_STRING_CHARS];
 
-  const size_t l = q_strlen(dest);
+  const size_t l = Str_Length(dest);
 
-  q_strlcpy(tmp, dest + ofs, sizeof(tmp));
+  Str_Copy(tmp, dest + ofs, sizeof(tmp));
   dest[ofs] = '\0';
 
-  const size_t i = q_strlcat(dest, src, len);
+  const size_t i = Str_Append(dest, src, len);
   if (i < len) {
-    q_strlcat(dest, tmp, len);
+    Str_Append(dest, tmp, len);
   }
 
-  return q_strlen(dest) - l;
+  return Str_Length(dest) - l;
 }
 
 /**
@@ -283,7 +278,7 @@ static void Cl_TextEvent(const SDL_Event *event) {
     return;
   }
 
-  ConsoleInput *in = &clConsole.input;
+  ConsoleInput *in = &clientConsole.input;
 
   const char *src = event->text.text;
 
@@ -301,8 +296,8 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
     case SDL_EVENT_DROP_FILE: {
       const char *data = event->drop.data;
-      if (data && !q_strncmp(data, "quetoo://", 9)) {
-        Cbuf_AddText(va("connect %s\n", data + q_strlen("quetoo://")));
+      if (data && !Str_CompareN(data, "quetoo://", 9)) {
+        Cbuf_AddText(va("connect %s\n", data + Str_Length("quetoo://")));
         return true;
       }
       return false;
@@ -499,14 +494,14 @@ static void Cl_ClampPitch(const PlayerState *ps) {
  */
 void Cl_Look(PMoveCmd *cmd) {
 
-  cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_up, cmd->msec);
-  cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&in_down, cmd->msec);
+  cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.up, cmd->msec);
+  cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.down, cmd->msec);
 
-  cl.angles.y -= cl_yawSpeed->value * cmd->msec * Cl_KeyState(&in_right, cmd->msec);
-  cl.angles.y += cl_yawSpeed->value * cmd->msec * Cl_KeyState(&in_left, cmd->msec);
+  cl.angles.y -= cl_yawSpeed->value * cmd->msec * Cl_KeyState(&buttons.right, cmd->msec);
+  cl.angles.y += cl_yawSpeed->value * cmd->msec * Cl_KeyState(&buttons.left, cmd->msec);
 
-  cl.angles.x -= cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&in_look_up, cmd->msec);
-  cl.angles.x += cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&in_look_down, cmd->msec);
+  cl.angles.x -= cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&buttons.lookUp, cmd->msec);
+  cl.angles.x += cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&buttons.lookDown, cmd->msec);
 
   cls.cgame->Look(cmd);
 
@@ -522,11 +517,11 @@ void Cl_Look(PMoveCmd *cmd) {
  */
 void Cl_Move(PMoveCmd *cmd) {
 
-  cmd->forward += cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_forward, cmd->msec);
-  cmd->forward -= cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&in_back, cmd->msec);
+  cmd->forward += cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&buttons.forward, cmd->msec);
+  cmd->forward -= cl_forwardSpeed->value * cmd->msec * Cl_KeyState(&buttons.back, cmd->msec);
 
-  cmd->right += cl_rightSpeed->value * cmd->msec * Cl_KeyState(&in_move_right, cmd->msec);
-  cmd->right -= cl_rightSpeed->value * cmd->msec * Cl_KeyState(&in_move_left, cmd->msec);
+  cmd->right += cl_rightSpeed->value * cmd->msec * Cl_KeyState(&buttons.moveRight, cmd->msec);
+  cmd->right -= cl_rightSpeed->value * cmd->msec * Cl_KeyState(&buttons.moveLeft, cmd->msec);
 
   // pass to cgame
   cls.cgame->Move(cmd);
@@ -541,7 +536,7 @@ void Cl_Move(PMoveCmd *cmd) {
  */
 void Cl_ClearInput(void) {
 
-  memset(cl_buttons, 0, sizeof(cl_buttons));
+  memset(&buttons, 0, sizeof(buttons));
 
   S_StopVoice();
 }

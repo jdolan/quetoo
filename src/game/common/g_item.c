@@ -32,9 +32,9 @@ const Box3 ITEM_BOUNDS = {
 const GameItem *G_FindItemByClassName(const char *classname) {
 
   for (GameItemTag t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
-    const GameItem *it = &g_items[t];
+    const GameItem *it = &gameItems[t];
 
-    if (!q_strcmp(it->def.classname, classname)) {
+    if (!Str_Compare(it->def.classname, classname)) {
       return it;
     }
   }
@@ -53,9 +53,9 @@ const GameItem *G_FindItem(const char *name) {
 
   const GameItem *fallback = NULL;
   for (GameItemTag t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
-    const GameItem *it = &g_items[t];
+    const GameItem *it = &gameItems[t];
 
-    if (!q_strcasecmp(it->def.name, name)) {
+    if (!Str_CaseCompare(it->def.name, name)) {
       if (G_ItemAvailable(it)) {
         return it;
       }
@@ -71,10 +71,10 @@ const GameItem *G_FindItem(const char *name) {
 /**
  * @brief Maps Quetoo weapon tags to their Quake equivalent, by gameplay role.
  *  Used to redirect generic bindings (e.g. "use Rocket Launcher") to the
- *  appropriate weapon when `g_level.items == ITEMS_QUAKE`.
+ *  appropriate weapon when `gameLevel.items == ITEMS_QUAKE`.
  *  `WEAPON_NONE` means no equivalent exists.
  */
-static const GameItemTag g_quakeWeaponMap[WEAPON_LAST] = {
+static const GameItemTag quakeWeaponMap[WEAPON_LAST] = {
   [WEAPON_BLASTER]          = WEAPON_QUAKE_SHOTGUN,
   [WEAPON_SHOTGUN]          = WEAPON_QUAKE_SHOTGUN,
   [WEAPON_SUPER_SHOTGUN]    = WEAPON_QUAKE_SUPER_SHOTGUN,
@@ -90,7 +90,7 @@ static const GameItemTag g_quakeWeaponMap[WEAPON_LAST] = {
 
 /**
  * @brief Returns the Quake equivalent of a Quetoo weapon item when
- *  `g_level.items == ITEMS_QUAKE`, or `NULL` if no mapping exists or the item is
+ *  `gameLevel.items == ITEMS_QUAKE`, or `NULL` if no mapping exists or the item is
  *  already a Quake weapon.
  */
 const GameItem *G_MappedWeapon(const GameItem *weapon) {
@@ -99,12 +99,12 @@ const GameItem *G_MappedWeapon(const GameItem *weapon) {
     return NULL; // already a Quake weapon, or unmapped
   }
 
-  const GameItemTag mapped = g_quakeWeaponMap[weapon->def.tag];
+  const GameItemTag mapped = quakeWeaponMap[weapon->def.tag];
   if (!mapped) {
     return NULL;
   }
 
-  return &g_items[mapped];
+  return &gameItems[mapped];
 }
 
 /**
@@ -117,7 +117,7 @@ const GameItem *G_ClientArmor(const GameClient *cl) {
   for (GameItemTag armor = ARMOR_QUAKE_BODY; armor > ARMOR_SHARD; armor--) {
 
     if (cl->inventory[armor]) {
-      return &g_items[armor];
+      return &gameItems[armor];
     }
   }
 
@@ -132,7 +132,7 @@ const GameItem *G_ClientArmor(const GameClient *cl) {
  */
 static bool G_ItemRestoreOrigin(GameEntity *ent) {
 
-  const CmEntity *origin = gi.EntityValue(ent->def, "origin");
+  const Entity *origin = gi.EntityValue(ent->def, "origin");
   if (!(origin->parsed & ENTITY_VEC3)) {
     return false;
   }
@@ -162,7 +162,7 @@ static void G_ItemRespawn(GameEntity *ent) {
     }
   }
 
-  ent->svFlags &= ~SVF_NO_CLIENT;
+  ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->solid = SOLID_TRIGGER;
 
   gi.LinkEntity(ent);
@@ -209,11 +209,11 @@ void G_CheckItemHazard(GameEntity *ent) {
  */
 void G_SetItemRespawn(GameEntity *ent, uint32_t delay) {
 
-  ent->nextThink = g_level.time + delay;
+  ent->nextThink = gameLevel.time + delay;
   ent->Think = G_ItemRespawn;
 
   ent->solid = SOLID_NOT;
-  ent->svFlags |= SVF_NO_CLIENT;
+  ent->serverFlags |= SVF_NO_CLIENT;
 
   G_ItemRestoreOrigin(ent);
 
@@ -253,7 +253,7 @@ static bool G_PickupQuadDamage(GameClient *cl, GameEntity *ent) {
     cl->quadDamageTime = ent->nextThink;
     cl->quadCountdownTime = ent->nextThink - delta;
   } else {
-    cl->quadDamageTime = g_level.time + SECONDS_TO_MILLIS(g_balanceQuadDamageTime->value);
+    cl->quadDamageTime = gameLevel.time + SECONDS_TO_MILLIS(g_balanceQuadDamageTime->value);
     cl->quadCountdownTime = cl->quadDamageTime - delta;
     G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balanceQuadDamageRespawnTime->value));
   }
@@ -272,7 +272,7 @@ GameEntity *G_TossQuadDamage(GameClient *cl) {
     return NULL;
   }
 
-  quad = G_DropItem(cl, &g_items[POWERUP_QUAD]);
+  quad = G_DropItem(cl, &gameItems[POWERUP_QUAD]);
 
   if (quad) {
     quad->timestamp = cl->quadDamageTime;
@@ -298,14 +298,14 @@ static bool G_PickupInvisibility(GameClient *cl, GameEntity *ent) {
   if (ent->spawnFlags & SF_ITEM_DROPPED) {
     cl->invisibilityTime = ent->nextThink;
   } else {
-    cl->invisibilityTime = g_level.time + SECONDS_TO_MILLIS(g_balanceInvisibilityTime->value);
+    cl->invisibilityTime = gameLevel.time + SECONDS_TO_MILLIS(g_balanceInvisibilityTime->value);
     G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balanceInvisibilityRespawnTime->value));
   }
 
   cl->entity->s.effects |= EF_INVISIBILITY;
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.invisibilityPickup,
+    .index = gameMedia.sounds.invisibilityPickup,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -321,7 +321,7 @@ GameEntity *G_TossInvisibility(GameClient *cl) {
     return NULL;
   }
 
-  GameEntity *item = G_DropItem(cl, &g_items[POWERUP_INVISIBILITY]);
+  GameEntity *item = G_DropItem(cl, &gameItems[POWERUP_INVISIBILITY]);
 
   if (item) {
     item->timestamp = cl->invisibilityTime;
@@ -351,7 +351,7 @@ static bool G_PickupInvulnerability(GameClient *cl, GameEntity *ent) {
     cl->invulnerabilityTime = ent->nextThink;
     cl->invulnerabilityCountdownTime = ent->nextThink - delta;
   } else {
-    cl->invulnerabilityTime = g_level.time + SECONDS_TO_MILLIS(g_balanceInvulnerabilityTime->value);
+    cl->invulnerabilityTime = gameLevel.time + SECONDS_TO_MILLIS(g_balanceInvulnerabilityTime->value);
     cl->invulnerabilityCountdownTime = cl->invulnerabilityTime - delta;
     G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balanceInvulnerabilityRespawnTime->value));
   }
@@ -359,7 +359,7 @@ static bool G_PickupInvulnerability(GameClient *cl, GameEntity *ent) {
   cl->entity->s.effects |= EF_INVULNERABILITY;
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = g_media.sounds.invulnerabilityPickup,
+    .index = gameMedia.sounds.invulnerabilityPickup,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -375,7 +375,7 @@ GameEntity *G_TossInvulnerability(GameClient *cl) {
     return NULL;
   }
 
-  GameEntity *item = G_DropItem(cl, &g_items[POWERUP_INVULNERABILITY]);
+  GameEntity *item = G_DropItem(cl, &gameItems[POWERUP_INVULNERABILITY]);
 
   if (item) {
     item->timestamp = cl->invulnerabilityTime;
@@ -397,7 +397,7 @@ static void G_TossInventory_Common(GameClient *cl) {
   G_TossQuadDamage(cl);
 }
 
-TossInventory G_TossInventory = G_TossInventory_Common;
+GameTossInventoryHook G_TossInventory = G_TossInventory_Common;
 
 /**
  * @brief Adds the given amount of ammo to the client's inventory, clamped to the item's maximum.
@@ -479,8 +479,8 @@ static bool G_PickupGrenades(GameClient *cl, GameEntity *ent) {
       cl->inventory[WEAPON_HAND_GRENADE]++;
     }
 
-    if (cl->persistent.autoSwitch && cl->weapon == &g_items[WEAPON_BLASTER]) {
-      G_UseWeapon(cl, &g_items[WEAPON_HAND_GRENADE]);
+    if (cl->persistent.autoSwitch && cl->weapon == &gameItems[WEAPON_BLASTER]) {
+      G_UseWeapon(cl, &gameItems[WEAPON_HAND_GRENADE]);
     }
   }
 
@@ -528,7 +528,7 @@ static bool G_PickupHealth(GameClient *cl, GameEntity *ent) {
     if (alwaysPickup) { // resolve max
       if (h > max && cl) {
         if (tag == HEALTH_MEGA || tag == HEALTH_QUAKE_MEGA) {
-          cl->boostTime = g_level.time + 1000;
+          cl->boostTime = gameLevel.time + 1000;
         }
         max = cl->maxBoostHealth;
       }
@@ -575,7 +575,7 @@ static bool G_PickupHealth(GameClient *cl, GameEntity *ent) {
  * @return The `GameArmorInfo` for the specified item.
  */
 const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
-  static const GameArmorInfo armor_info[] = {
+  static const GameArmorInfo armorInfo[] = {
     { ARMOR_QUAKE_JACKET, 0.3, 0.0 },
     { ARMOR_QUAKE_COMBAT, 0.6, 0.0 },
     { ARMOR_QUAKE_BODY,   0.8, 0.0 },
@@ -588,9 +588,9 @@ const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
     return NULL;
   }
 
-  for (size_t i = 0; i < lengthof(armor_info); i++) {
-    if (armor->def.tag == armor_info[i].tag) {
-      return &armor_info[i];
+  for (size_t i = 0; i < lengthof(armorInfo); i++) {
+    if (armor->def.tag == armorInfo[i].tag) {
+      return &armorInfo[i];
     }
   }
 
@@ -717,7 +717,7 @@ static void G_ResetDroppedItem_Common(GameEntity *ent) {
   G_FreeEntity(ent);
 }
 
-ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
+GameResetDroppedItemHook G_ResetDroppedItem = G_ResetDroppedItem_Common;
 
 /**
  * @brief Sets the expiration timer and think function for a dropped item entity.
@@ -728,7 +728,7 @@ static void G_DropItem_SetExpiration(GameEntity *ent) {
 
   uint32_t expiration;
   if (ent->item->def.type == ITEM_TYPE_POWERUP) { // expire from last touch
-    expiration = ent->timestamp - g_level.time;
+    expiration = ent->timestamp - gameLevel.time;
   } else { // general case
     expiration = 30000;
   }
@@ -742,7 +742,7 @@ static void G_DropItem_SetExpiration(GameEntity *ent) {
     expiration /= 2;
   }
 
-  ent->nextThink = g_level.time + expiration;
+  ent->nextThink = gameLevel.time + expiration;
 }
 
 /**
@@ -754,14 +754,14 @@ static void G_DropItem_Think(GameEntity *ent) {
   if (ent->ground.ent || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
     G_DropItem_SetExpiration(ent);
   } else {
-    ent->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+    ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
   }
 }
 
 /**
  * @brief Touch callback that handles item pickup when a player contacts an item entity.
  */
-void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_Ai_InDeveloperMode()) {
     return;
@@ -770,7 +770,7 @@ void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
   // an item that was dropped ignores whoever dropped it for a moment; one that
   // nobody dropped ignores everybody, so an item placed by the game cannot be
   // taken the instant it appears
-  if (ent->touchTime > g_level.time) {
+  if (ent->touchTime > gameLevel.time) {
     if (ent->owner == NULL || other == ent->owner) {
       return;
     }
@@ -809,7 +809,7 @@ void G_TouchItem(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
     if (ent->item->Use) {
       cl->lastPickup = ent->item;
     }
-    cl->pickupMsgTime = g_level.time + 3000;
+    cl->pickupMsgTime = gameLevel.time + 3000;
 
     if (ent->item->def.pickupSound) {
       G_MulticastSound(&(const GamePlaySound) {
@@ -858,7 +858,7 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
     it->s.origin.z -= it->bounds.mins.z;
   }
 
-  const CmTrace tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, cl->entity, CONTENTS_MASK_SOLID);
+  const CollisionTrace tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, cl->entity, CONTENTS_MASK_SOLID);
 
   it->item = item;
 
@@ -881,12 +881,12 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
     it->s.color = Color_Color32(Color3fv(item->def.lightColor));
     it->s.termination.x = item->def.lightRadius;
   }
-  it->touchTime = g_level.time + 1000;
+  it->touchTime = gameLevel.time + 1000;
 
   it->s.model1 = item->modelIndex;
 
   if (item->def.type == ITEM_TYPE_WEAPON) {
-    const GameItem *ammo = item->def.ammo ? &g_items[item->def.ammo] : NULL;
+    const GameItem *ammo = item->def.ammo ? &gameItems[item->def.ammo] : NULL;
     if (ammo) {
       it->health = ammo->def.quantity;
     }
@@ -896,7 +896,7 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
   it->velocity.z = 300.0 + (Randomf() * 50.0);
 
   it->Think = G_DropItem_Think;
-  it->nextThink = g_level.time + QUETOO_TICK_MILLIS;
+  it->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(it);
 
@@ -914,7 +914,7 @@ static const GameItem *G_ResolveInventoryItem_Common(GameClient *cl, const char 
   return G_FindItem(name);
 }
 
-ResolveInventoryItem G_ResolveInventoryItem = G_ResolveInventoryItem_Common;
+GameResolveInventoryItemHook G_ResolveInventoryItem = G_ResolveInventoryItem_Common;
 
 /**
  * @brief Drops the given item from the client's inventory, reporting to them
@@ -925,7 +925,7 @@ void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
   const char *name = it->def.name;
 
   // we don't drop in instagib or arena
-  if (g_level.gameplay & ~GAMEPLAY_TEAMS) {
+  if (gameLevel.gameplay & ~GAMEPLAY_TEAMS) {
     return;
   }
 
@@ -976,7 +976,7 @@ void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
  */
 static void G_UseItem(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
-  ent->svFlags &= ~SVF_NO_CLIENT;
+  ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->Use = NULL;
 
   if (ent->spawnFlags & SF_ITEM_NO_TOUCH) {
@@ -996,11 +996,11 @@ static void G_UseItem(GameEntity *ent, GameEntity *other, GameEntity *activator)
 static void G_ResetItem_Common(GameEntity *ent) {
 
   ent->solid = SOLID_TRIGGER;
-  ent->svFlags &= ~SVF_NO_CLIENT;
+  ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->Touch = G_TouchItem;
 
   if (ent->spawnFlags & SF_ITEM_TRIGGER) {
-    ent->svFlags |= SVF_NO_CLIENT;
+    ent->serverFlags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
     ent->Use = G_UseItem;
   }
@@ -1011,7 +1011,7 @@ static void G_ResetItem_Common(GameEntity *ent) {
   }
 
   if (G_InhibitItem(ent) || (ent->flags & FL_TEAM_SLAVE)) {
-    ent->svFlags |= SVF_NO_CLIENT;
+    ent->serverFlags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
   }
 
@@ -1024,25 +1024,25 @@ static void G_ResetItem_Common(GameEntity *ent) {
   gi.LinkEntity(ent);
 }
 
-ResetItem G_ResetItem = G_ResetItem_Common;
+GameResetItemHook G_ResetItem = G_ResetItem_Common;
 
 /**
  * @brief The tail of the `G_InhibitItem` chain: arena and instagib play with
  * whatever the client spawns with.
  */
 static bool G_InhibitItem_Common(const GameEntity *ent) {
-  const GameplayId gameplay = g_level.gameplay & ~GAMEPLAY_TEAMS;
+  const GamePlayId gameplay = gameLevel.gameplay & ~GAMEPLAY_TEAMS;
   return gameplay == GAMEPLAY_ARENA || gameplay == GAMEPLAY_INSTAGIB;
 }
 
-InhibitItem G_InhibitItem = G_InhibitItem_Common;
+GameInhibitItemHook G_InhibitItem = G_InhibitItem_Common;
 
 /**
  * @brief Drops the specified item to the floor and sets up interaction
  * properties (Touch, Use, move type, ..).
  */
 static void G_ItemDropToFloor(GameEntity *ent) {
-  CmTrace tr;
+  CollisionTrace tr;
   Vec3 dest;
   bool dropNode = false;
 
@@ -1121,7 +1121,7 @@ void G_PrecacheItem(const GameItem *it) {
 
   // parse everything for its ammo
   if (it->def.ammo) {
-    const GameItem *ammo = &g_items[it->def.ammo];
+    const GameItem *ammo = &gameItems[it->def.ammo];
 
     if (ammo != it) {
       G_PrecacheItem(ammo);
@@ -1151,12 +1151,12 @@ void G_PrecacheItem(const GameItem *it) {
     }
 
     // determine type based on extension
-    const size_t dlen = q_strlen(data);
-    if ((dlen >= 4 && (!q_strcmp(data + dlen - 4, ".md3") || !q_strcmp(data + dlen - 4, ".obj")))) {
+    const size_t dlen = Str_Length(data);
+    if ((dlen >= 4 && (!Str_Compare(data + dlen - 4, ".md3") || !Str_Compare(data + dlen - 4, ".obj")))) {
       gi.ModelIndex(data);
-    } else if (dlen >= 4 && (!q_strcmp(data + dlen - 4, ".wav") || !q_strcmp(data + dlen - 4, ".ogg"))) {
+    } else if (dlen >= 4 && (!Str_Compare(data + dlen - 4, ".wav") || !Str_Compare(data + dlen - 4, ".ogg"))) {
       gi.SoundIndex(data);
-    } else if (dlen >= 4 && (!q_strcmp(data + dlen - 4, ".png") || !q_strcmp(data + dlen - 4, ".jpg") || !q_strcmp(data + dlen - 4, ".tga"))) {
+    } else if (dlen >= 4 && (!Str_Compare(data + dlen - 4, ".png") || !Str_Compare(data + dlen - 4, ".jpg") || !Str_Compare(data + dlen - 4, ".tga"))) {
       gi.ImageIndex(data);
     } else {
       G_Error("%s has unknown data type\n", it->def.classname);
@@ -1196,7 +1196,7 @@ void G_SpawnItem(GameEntity *ent, const GameItem *item) {
 
   // weapons override the health field to store their ammo count
   if (ent->item->def.type == ITEM_TYPE_WEAPON) {
-    const GameItem *ammo = ent->item->def.ammo ? &g_items[ent->item->def.ammo] : NULL;
+    const GameItem *ammo = ent->item->def.ammo ? &gameItems[ent->item->def.ammo] : NULL;
     if (ammo) {
       ent->health = ammo->def.quantity;
     } else {
@@ -1211,14 +1211,14 @@ void G_SpawnItem(GameEntity *ent, const GameItem *item) {
   }
 #endif
 
-  ent->nextThink = g_level.time + QUETOO_TICK_MILLIS * 2;
+  ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS * 2;
   ent->Think = G_ItemDropToFloor;
 }
 
 /**
  * @brief The item list; allocated and initialized in `G_InitItems`.
  */
-GameItem *g_items;
+GameItem *gameItems;
 
 /**
  * @brief Returns true if the item belongs to the active item set.
@@ -1226,7 +1226,7 @@ GameItem *g_items;
 bool G_ItemAvailable(const GameItem *item) {
 
   if (item->def.type == ITEM_TYPE_WEAPON) {
-    if (g_level.items == ITEMS_QUAKE) {
+    if (gameLevel.items == ITEMS_QUAKE) {
       return item->def.tag >= WEAPON_QUAKE_SHOTGUN;
     } else {
       return item->def.tag < WEAPON_QUAKE_SHOTGUN;
@@ -1234,7 +1234,7 @@ bool G_ItemAvailable(const GameItem *item) {
   }
 
   if (item->def.type == ITEM_TYPE_AMMO) {
-    if (g_level.items == ITEMS_QUAKE) {
+    if (gameLevel.items == ITEMS_QUAKE) {
       return item->def.tag >= AMMO_QUAKE_SHELLS;
     } else {
       return item->def.tag < AMMO_QUAKE_SHELLS;
@@ -1242,7 +1242,7 @@ bool G_ItemAvailable(const GameItem *item) {
   }
 
   if (item->def.type == ITEM_TYPE_ARMOR) {
-    if (g_level.items == ITEMS_QUAKE) {
+    if (gameLevel.items == ITEMS_QUAKE) {
       return item->def.tag >= ARMOR_QUAKE_JACKET;
     } else {
       return item->def.tag < ARMOR_QUAKE_JACKET;
@@ -1250,7 +1250,7 @@ bool G_ItemAvailable(const GameItem *item) {
   }
 
   if (item->def.type == ITEM_TYPE_HEALTH) {
-    if (g_level.items == ITEMS_QUAKE) {
+    if (gameLevel.items == ITEMS_QUAKE) {
       return item->def.tag >= HEALTH_QUAKE_MEDIUM;
     } else {
       return item->def.tag < HEALTH_QUAKE_MEDIUM;
@@ -1280,48 +1280,48 @@ static void G_InitItem_Common(GameItem *it) {
       it->Use = G_UseWeapon;
       it->Drop = G_DropWeapon;
 
-      if (!q_strcmp(it->def.classname, "weapon_blaster") ||
-          !q_strcmp(it->def.classname, "weapon_handgrenades")) {
+      if (!Str_Compare(it->def.classname, "weapon_blaster") ||
+          !Str_Compare(it->def.classname, "weapon_handgrenades")) {
         it->Drop = NULL;
-      } else if (!q_strcmp(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_grenadelauncher")) {
         it->Pickup = G_PickupGrenadeLauncher;
       }
 
-      if (!q_strcmp(it->def.classname, "weapon_blaster")) {
+      if (!Str_Compare(it->def.classname, "weapon_blaster")) {
         it->Think = G_FireBlaster;
-      } else if (!q_strcmp(it->def.classname, "weapon_shotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_shotgun")) {
         it->Think = G_FireShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_supershotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_supershotgun")) {
         it->Think = G_FireSuperShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_machinegun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_machinegun")) {
         it->Think = G_FireMachinegun;
-      } else if (!q_strcmp(it->def.classname, "weapon_handgrenades")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_handgrenades")) {
         it->Think = G_FireHandGrenade;
-      } else if (!q_strcmp(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_grenadelauncher")) {
         it->Think = G_FireGrenadeLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_rocketlauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_rocketlauncher")) {
         it->Think = G_FireRocketLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_hyperblaster")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_hyperblaster")) {
         it->Think = G_FireHyperblaster;
-      } else if (!q_strcmp(it->def.classname, "weapon_lightning")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_lightning")) {
         it->Think = G_FireLightning;
-      } else if (!q_strcmp(it->def.classname, "weapon_railgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_railgun")) {
         it->Think = G_FireRailgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_bfg")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_bfg")) {
         it->Think = G_FireBfg;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_shotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_shotgun")) {
         it->Think = G_FireQuakeShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_supershotgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_supershotgun")) {
         it->Think = G_FireQuakeSuperShotgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_nailgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_nailgun")) {
         it->Think = G_FireQuakeNailgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_supernailgun")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_supernailgun")) {
         it->Think = G_FireQuakeSuperNailgun;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_grenadelauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_grenadelauncher")) {
         it->Think = G_FireQuakeGrenadeLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_rocketlauncher")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_rocketlauncher")) {
         it->Think = G_FireQuakeRocketLauncher;
-      } else if (!q_strcmp(it->def.classname, "weapon_quake_thunderbolt")) {
+      } else if (!Str_Compare(it->def.classname, "weapon_quake_thunderbolt")) {
         it->Think = G_FireQuakeThunderbolt;
       }
       break;
@@ -1329,7 +1329,7 @@ static void G_InitItem_Common(GameItem *it) {
     case ITEM_TYPE_AMMO:
       it->Pickup = G_PickupAmmo;
       it->Drop = G_DropItem;
-      if (!q_strcmp(it->def.classname, "ammo_grenades")) {
+      if (!Str_Compare(it->def.classname, "ammo_grenades")) {
         it->Pickup = G_PickupGrenades;
         it->Use = G_UseGrenades;
       }
@@ -1340,13 +1340,13 @@ static void G_InitItem_Common(GameItem *it) {
       break;
 
     case ITEM_TYPE_POWERUP:
-      if (!q_strcmp(it->def.classname, "item_adrenaline")) {
+      if (!Str_Compare(it->def.classname, "item_adrenaline")) {
         it->Pickup = G_PickupAdrenaline;
-      } else if (!q_strcmp(it->def.classname, "item_quad")) {
+      } else if (!Str_Compare(it->def.classname, "item_quad")) {
         it->Pickup = G_PickupQuadDamage;
-      } else if (!q_strcmp(it->def.classname, "item_invisibility")) {
+      } else if (!Str_Compare(it->def.classname, "item_invisibility")) {
         it->Pickup = G_PickupInvisibility;
-      } else if (!q_strcmp(it->def.classname, "item_invulnerability")) {
+      } else if (!Str_Compare(it->def.classname, "item_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
       break;
@@ -1357,7 +1357,7 @@ static void G_InitItem_Common(GameItem *it) {
 
 }
 
-InitItem G_InitItem = G_InitItem_Common;
+GameInitItemHook G_InitItem = G_InitItem_Common;
 
 /**
  * @brief Fills in an item's behaviour and indexes its media. The behaviour is a
@@ -1376,11 +1376,11 @@ static void G_SetupItem(GameItem *it) {
  */
 void G_InitItems(void) {
 
-  g_items = gi.Malloc(ITEM_TOTAL * sizeof(GameItem), MEM_TAG_GAME);
+  gameItems = gi.Malloc(ITEM_TOTAL * sizeof(GameItem), MEM_TAG_GAME);
 
   for (GameItemTag tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
-    g_items[tag].def = bgItemDefs[tag];
-    G_SetupItem(&g_items[tag]);
+    gameItems[tag].def = gameItemDefs[tag];
+    G_SetupItem(&gameItems[tag]);
   }
 }
 

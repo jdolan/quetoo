@@ -30,11 +30,9 @@
 #define WEAPON_SELECT_OFF (-1)
 
 /**
- * @brief Cached per-item data derived from `bgItemDefs` at load time.
+ * @brief Cached per-item data derived from `gameItemDefs` at load time.
  */
 typedef struct {
-
-
   /**
    * @brief The item model, or `NULL` if not found.
    */
@@ -45,13 +43,12 @@ typedef struct {
 /**
  * @brief Per-item cache, indexed by `GameItemTag`. Populated at load time.
  */
-extern CGameItem cgItems[ITEM_TOTAL];
+extern CGameItem cgameItems[ITEM_TOTAL];
 
 /**
- * @brief Cached per-weapon data derived from `bgItemDefs` at load time.
+ * @brief Cached per-weapon data derived from `gameItemDefs` at load time.
  */
 typedef struct {
-
   /**
    * @brief The weapon's item tag.
    */
@@ -61,7 +58,6 @@ typedef struct {
    * @brief The ammo item tag this weapon consumes, or `ITEM_NONE`.
    */
   GameItemTag ammoTag;
-
 
   /**
    * @brief The weapon model, or `NULL` if not found.
@@ -73,7 +69,7 @@ typedef struct {
 /**
  * @brief Per-weapon cache, indexed by (tag - `WEAPON_FIRST`). Populated at load time.
  */
-extern CGameWeapon cgWeapons[WEAPON_TOTAL];
+extern CGameWeapon cgameWeapons[WEAPON_TOTAL];
 
 /**
  * @brief Initializes the inventory cache (item models, weapon ammo tags).
@@ -87,7 +83,7 @@ void Cg_InitInventory(void);
 bool Cg_HasWeapon(const PlayerState *ps);
 
 /**
- * @brief Returns the active weapon index into `cgWeapons[]`, or `WEAPON_SELECT_OFF`.
+ * @brief Returns the active weapon index into `cgameWeapons[]`, or `WEAPON_SELECT_OFF`.
  * Prefers the weapon being switched to over the one currently equipped.
  */
 int16_t Cg_ActiveWeapon(const PlayerState *ps);

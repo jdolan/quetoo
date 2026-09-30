@@ -54,7 +54,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   const Vec3 pos = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
 
-  const CmTrace tr = cgi.Trace(cgi.view->origin, pos, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace tr = cgi.Trace(cgi.view->origin, pos, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
   if (tr.fraction < 1.f) {
 
     const ClientEntity *ent = tr.ent;
@@ -65,7 +65,7 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
       const CGameClientInfo *client = Cg_ClientInfo(ent);
 
-      q_strlcpy(name, client->name, sizeof(name));
+      Str_Copy(name, client->name, sizeof(name));
       time = cgi.client->unclampedTime;
     }
   }

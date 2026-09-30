@@ -76,7 +76,7 @@ RenderAtlasImage *R_LoadAtlasImage(RenderAtlas *atlas, const char *name, RenderI
     AtlasNode *node = VectorValue(nodes, AtlasNode *, i);
 
     RenderAtlasImage *atlasImage = node->data;
-    if (!q_strcmp(name, atlasImage->image.media.name)) {
+    if (!Str_Compare(name, atlasImage->image.media.name)) {
       R_RegisterDependency((RenderMedia *) atlas, (RenderMedia *) atlasImage);
       return atlasImage;
     }
@@ -154,7 +154,7 @@ void R_CompileAtlas(RenderAtlas *atlas) {
 
   for (int32_t width = 1024; atlas->image->width == 0; width += 512) {
 
-    if (width > rConfig.maxTextureSize) {
+    if (width > renderConfig.maxTextureSize) {
       Com_Error(ERROR_DROP, "Atlas exceeds maximum texture size\n");
     }
 
@@ -166,7 +166,7 @@ void R_CompileAtlas(RenderAtlas *atlas) {
       atlas->image->width = width;
       atlas->image->height = width;
 
-      atlas->image->texture = $(rContext.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
+      atlas->image->texture = $(renderContext.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
 
       for (size_t i = 0; i < nodes->count; i++) {
         R_CompileAtlas_Node(VectorValue(nodes, AtlasNode *, i), atlas);

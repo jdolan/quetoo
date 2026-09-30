@@ -28,8 +28,8 @@ void R_EndLoading(void);
 
 #if defined(__R_LOCAL_H__)
 
-typedef void (*R_MediaEnumerator)(const RenderMedia *media, void *data);
-void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data);
+typedef void (*RenderMediaEnumerator)(const RenderMedia *media, void *data);
+void R_EnumerateMedia(RenderMediaEnumerator enumerator, void *data);
 void R_ListMedia_f(void);
 RenderMedia *R_RegisterDependency(RenderMedia *dependent, RenderMedia *dependency);
 RenderMedia *R_RegisterMedia(RenderMedia *media);

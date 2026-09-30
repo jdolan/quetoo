@@ -25,7 +25,7 @@
 
 #define _Class _CounterView
 
-static const EnumName CounterViewStatNames[] = MakeEnumNames(
+static const EnumName statNames[] = MakeEnumNames(
   MakeEnumAlias(STAT_FRAGS, frags),
   MakeEnumAlias(STAT_DEATHS, deaths)
 #if defined(G_CTF)
@@ -48,7 +48,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
   const Inlet inlets[] = MakeInlets(
     MakeInlet("caption", InletTypeCharacters, &caption, NULL),
-    MakeInlet("stat", InletTypeEnum, &this->stat, (ident) CounterViewStatNames)
+    MakeInlet("stat", InletTypeEnum, &this->stat, (ident) statNames)
   );
 
   $(self, bind, inlets, dictionary);

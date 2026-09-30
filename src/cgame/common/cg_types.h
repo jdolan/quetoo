@@ -33,7 +33,6 @@
  * @brief The client game reprensetation of teams.
  */
 typedef struct {
-
   /**
    * @brief Team ID.
    */
@@ -60,7 +59,6 @@ typedef struct {
  * @brief The vote in progress, as `CS_VOTE` describes it.
  */
 typedef struct {
-
   /**
    * @brief Whether a vote is under way.
    */
@@ -92,7 +90,6 @@ typedef struct {
  * @brief The intermission's map candidates, as `CS_NEXT_MAP` describes them.
  */
 typedef struct {
-
   /**
    * @brief Whether an intermission is under way. The maps are published only for one,
    * so their absence is what says the level is still being played.
@@ -122,7 +119,6 @@ typedef struct {
  * @brief The client game representation of clients (players).
  */
 typedef struct {
-
   /**
    * @brief The client info string, e.g. "newbie\enforcer/default."
    */
@@ -212,7 +208,7 @@ typedef enum {
   CAMERA_FIRST_PERSON,
 
   /**
-   * @brief Behind the subject, at the `cg_third_person_*` offset, riding their facing.
+   * @brief Behind the subject, at the `cg_thirdPerson*` offset, riding their facing.
    */
   CAMERA_THIRD_PERSON,
 
@@ -256,10 +252,132 @@ typedef struct {
 } CGameSpectateState;
 
 /**
+ * @brief This structure holds references to frequently accessed media.
+ */
+typedef struct {
+  struct CGameMediaSounds {
+    SoundSample *blasterFire;
+    SoundSample *blasterHit;
+    SoundSample *shotgunFire;
+    SoundSample *supershotgunFire;
+    SoundSample *machinegunFire[3];
+    SoundSample *machinegunHit[3];
+    SoundSample *grenadelauncherFire;
+    SoundSample *rocketlauncherFire;
+    SoundSample *hyperblasterFire;
+    SoundSample *hyperblasterHit;
+    SoundSample *lightningFire;
+    SoundSample *laserFire;
+    SoundSample *lightningDischarge;
+    SoundSample *railgunFire;
+    SoundSample *bfgFire;
+    SoundSample *bfgHit;
+
+#if defined(G_HOOK)
+    SoundSample *hookHit;
+#endif
+
+    SoundSample *quakeShotgunFire;
+    SoundSample *quakeSupershotgunFire;
+    SoundSample *quakeNailgunFire;
+    SoundSample *quakeSupernailgunFire;
+    SoundSample *quakeNailHit;
+    SoundSample *quakeGrenadelauncherFire;
+    SoundSample *quakeRocketlauncherFire;
+
+    SoundSample *explosion;
+    SoundSample *teleport;
+    SoundSample *respawn;
+    SoundSample *sparks;
+    SoundSample *fire;
+    SoundSample *steam;
+
+    SoundSample *rain;
+    SoundSample *snow;
+    SoundSample *ash;
+    SoundSample *underwater;
+    SoundSample *hits[2];
+    SoundSample *gib;
+  } sounds;
+
+  struct CGameMediaSprites {
+    RenderAtlasImage *particle;
+    RenderAtlasImage *particle2;
+    RenderAtlasImage *particle3;
+    RenderAtlasImage *flash;
+    RenderAtlasImage *ring;
+    RenderAtlasImage *blasterFlash;
+    RenderAtlasImage *anisoFlare01;
+    RenderAtlasImage *rain;
+    RenderAtlasImage *snow;
+    RenderAtlasImage *ash;
+    RenderAtlasImage *smoke;
+    RenderAtlasImage *flame;
+    RenderAtlasImage *spark;
+    RenderAtlasImage *bubble;
+    RenderAtlasImage *teleport;
+    RenderAtlasImage *teleportCore;
+    RenderAtlasImage *steam;
+    RenderAtlasImage *inactive;
+    RenderAtlasImage *plasmaVar01;
+    RenderAtlasImage *plasmaVar02;
+    RenderAtlasImage *plasmaVar03;
+    RenderAtlasImage *blob01;
+    RenderAtlasImage *electro02;
+    RenderAtlasImage *explosionFlash;
+    RenderAtlasImage *explosionGlow;
+    RenderAtlasImage *splash0203;
+    RenderAtlasImage *impactSpark01Dot;
+    RenderAtlasImage *puffCloud;
+    RenderAtlasImage *waterCircle;
+    RenderAtlasImage *waterRing;
+    RenderAtlasImage *waterRing2;
+    RenderAtlasImage *abstract01;
+    RenderAtlasImage *nodeWait;
+    RenderAtlasImage *nodeSlow;
+
+    RenderAnimation *explosion;
+    RenderAnimation *explosionRing02;
+    RenderAnimation *rocketFlame;
+    RenderAnimation *blasterFlame;
+    RenderAnimation *smoke04;
+    RenderAnimation *smoke05;
+    RenderAnimation *blasterRing;
+    RenderAnimation *bfgExplosion1;
+    RenderAnimation *bfgExplosion2;
+    RenderAnimation *bfgExplosion3;
+    RenderAnimation *poof01;
+    RenderAnimation *poof02;
+    RenderAnimation *blood01;
+    RenderAnimation *electro01;
+    RenderAnimation *fireball01;
+    RenderAnimation *impactSpark01;
+    RenderAnimation *hyperball01;
+    RenderAnimation *fizz01;
+  } sprites;
+
+  struct CGameMediaBeams {
+    RenderImage *hook;
+    RenderImage *arrow;
+    RenderImage *line;
+    RenderImage *rail;
+    RenderImage *lightning;
+    RenderImage *tracer;
+    RenderImage *tail;
+  } beams;
+
+  struct CGameMediaDecals {
+    RenderAtlasImage *bullet[3];
+    RenderAtlasImage *blood[4];
+    RenderAtlasImage *burn[4];
+    RenderAtlasImage *slug[4];
+  } decals;
+} CGameMedia;
+
+/**
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
  */
 typedef struct {
-
   /**
    * @brief The clients (players).
    */
@@ -283,7 +401,7 @@ typedef struct {
   /**
    * @brief The gameplay mode.
    */
-  GameplayId gameplay;
+  GamePlayId gameplay;
 
   /**
    * @brief Active item set.
@@ -363,6 +481,6 @@ typedef struct {
   CGameSpectateState spectate;
 } CGameState;
 
-extern CGameState cgState;
+extern CGameState cgameState;
 
 #endif

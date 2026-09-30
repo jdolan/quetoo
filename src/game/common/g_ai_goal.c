@@ -24,7 +24,7 @@
 /**
  * @brief Setup base entity goal for the specified target.
  */
-static inline void G_Ai_InitGoal(const GameClient *cl, AiGoal *goal, AiGoalType type, float priority) {
+static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiGoalType type, float priority) {
 
   G_Ai_ClearGoal(goal);
 
@@ -35,7 +35,7 @@ static inline void G_Ai_InitGoal(const GameClient *cl, AiGoal *goal, AiGoalType 
 /**
  * @brief Setup entity goal for the specified target.
  */
-void G_Ai_SetPositionGoal(const GameClient *cl, AiGoal *goal, float priority, const Vec3 pos) {
+void G_Ai_SetPositionGoal(const GameClient *cl, GameAiGoal *goal, float priority, const Vec3 pos) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_POSITION, priority);
 
@@ -64,7 +64,7 @@ const GameEntity *G_Ai_ResolveGoalEntity(int32_t number) {
 /**
  * @brief Setup entity goal for the specified target.
  */
-void G_Ai_SetEntityGoal(const GameClient *cl, AiGoal *goal, float priority, const GameEntity *entity) {
+void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, const GameEntity *entity) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_ENTITY, priority);
   
@@ -80,15 +80,15 @@ void G_Ai_SetEntityGoal(const GameClient *cl, AiGoal *goal, float priority, cons
 /**
  * @brief Setup entity goal for the specified target.
  */
-void G_Ai_SetPathGoal(const GameClient *cl, AiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget) {
+void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_PATH, priority);
   
   goal->path.path = retain(path);
   goal->path.pathIndex = 0;
 
-  const AiNodeId node = VectorValue(path, AiNodeId, 0);
-  const AiNodeId next = VectorValue(path, AiNodeId, Minz(path->count - 1, 1));
+  const GameAiNodeId node = VectorValue(path, GameAiNodeId, 0);
+  const GameAiNodeId next = VectorValue(path, GameAiNodeId, Minz(path->count - 1, 1));
   goal->path.pathPosition = G_Ai_Node_GetPosition(node);
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
   goal->path.pathTarget = pathTarget;
@@ -106,13 +106,13 @@ void G_Ai_SetPathGoal(const GameClient *cl, AiGoal *goal, float priority, Vector
   }
 #endif
 
-  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, AiNodeId, 0), VectorValue(path, AiNodeId, path->count - 1), priority, etos(pathTarget));
+  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, GameAiNodeId, 0), VectorValue(path, GameAiNodeId, path->count - 1), priority, etos(pathTarget));
 }
 
 /**
  * @brief Check if the goal references the same entity still
  */
-bool G_Ai_GoalHasEntity(const AiGoal *goal, const GameEntity *ent) {
+bool G_Ai_GoalHasEntity(const GameAiGoal *goal, const GameEntity *ent) {
 
   return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawnId == ent->s.spawnId) ||
     (goal->type == AI_GOAL_PATH && goal->path.pathTarget == ent && goal->path.pathTargetSpawnId == ent->s.spawnId);
@@ -121,13 +121,13 @@ bool G_Ai_GoalHasEntity(const AiGoal *goal, const GameEntity *ent) {
 /**
  * @brief Copy a goal from one target to another, resetting time-dependent state.
  */
-void G_Ai_CopyGoal(const AiGoal *from, AiGoal *to) {
+void G_Ai_CopyGoal(const GameAiGoal *from, GameAiGoal *to) {
 
   G_Ai_ClearGoal(to);
 
   to->type = from->type;
   to->priority = from->priority;
-  to->time = g_level.time;
+  to->time = gameLevel.time;
   to->lastDistance = FLT_MAX;
 
   switch (from->type) {
@@ -166,13 +166,13 @@ void G_Ai_CopyGoal(const AiGoal *from, AiGoal *to) {
 /**
  * @brief Clear a goal
  */
-void G_Ai_ClearGoal(AiGoal *goal) {
+void G_Ai_ClearGoal(GameAiGoal *goal) {
   
   if (goal->type == AI_GOAL_PATH) {
     release(goal->path.path);
   }
 
-  memset(goal, 0, sizeof(AiGoal));
-  goal->time = g_level.time;
+  memset(goal, 0, sizeof(GameAiGoal));
+  goal->time = gameLevel.time;
   goal->lastDistance = FLT_MAX;
 }

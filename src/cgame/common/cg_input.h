@@ -22,17 +22,18 @@
 #pragma once
 
 #if defined(__CG_LOCAL_H__)
-extern InputButton cgButtons[4];
-#define in_speed cgButtons[0]
-#define in_attack cgButtons[1]
-#define in_hook cgButtons[2]
-#define in_score cgButtons[3]
+typedef struct {
+  InputButton speed, attack, hook, score;
+} CGameButtons;
+
+extern CGameButtons cgameButtons;
 
 const char *Cg_KeyBind(const char *bind);
 void Cg_HandleEvent(const SDL_Event *event);
 void Cg_ParseViewKick(void);
 void Cg_Look(PMoveCmd *cmd);
 void Cg_ExportMove(PMoveCmd *cmd);
+void Cg_ExportBindKeys(void);
 void Cg_ClearInput(void);
 void Cg_InitInput(void);
 #endif

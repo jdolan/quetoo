@@ -21,7 +21,6 @@
  * @brief A 3D draw batch.
  */
 typedef struct {
-
   /**
    * @brief Primitive mode.
    */
@@ -50,7 +49,6 @@ typedef struct {
  * @brief 3D debug vertex.
  */
 typedef struct {
-
   /**
    * @brief Vertex position.
    */
@@ -216,11 +214,11 @@ void R_Draw3DBox(const Box3 bounds, const Color color, bool depthTest) {
  */
 static void R_UpdateBspNormals(const RenderView *view) {
 
-  if (!r_drawBspNormals->value || !rModels.world) {
+  if (!r_drawBspNormals->value || !renderModels.world) {
     return;
   }
 
-  const RenderBspModel *bsp = rModels.world->bsp;
+  const RenderBspModel *bsp = renderModels.world->bsp;
 
   const RenderBspVertex *v = bsp->vertexes;
   for (int32_t i = 0; i < bsp->numVertexes; i++, v++) {
@@ -234,13 +232,13 @@ static void R_UpdateBspNormals(const RenderView *view) {
     const Vec3 tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
     const Vec3 bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
-    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
+    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, COLOR_RGB_RED, true);
 
     if (r_drawBspNormals->integer > 1) {
-      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, color_green, true);
+      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, COLOR_RGB_GREEN, true);
 
       if (r_drawBspNormals->integer > 2) {
-        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, color_blue, true);
+        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, COLOR_RGB_BLUE, true);
       }
     }
   }
@@ -294,7 +292,7 @@ static void R_UpdateLightBounds(const RenderView *view) {
   }
 
   const Vec3 end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-  const CmTrace tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
+  const CollisionTrace tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
 
   const RenderLight *l = view->lights;
   for (int32_t i = 0; i < view->numLights; i++, l++) {
@@ -310,8 +308,8 @@ static void R_UpdateLightBounds(const RenderView *view) {
 static void R_UpdateOcclusionBounds(const RenderView *view) {
 
   if (r_drawOcclusionQueries->value) {
-    const RenderOcclusionQuery *q = rOcclusion.queries;
-    for (int32_t i = 0; i < rOcclusion.numQueries; i++, q++) {
+    const RenderOcclusionQuery *q = renderOcclusion.queries;
+    for (int32_t i = 0; i < renderOcclusion.numQueries; i++, q++) {
       const float dist = Vec3_Distance(Box3_Center(q->bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (!q->result) {
@@ -322,9 +320,9 @@ static void R_UpdateOcclusionBounds(const RenderView *view) {
     }
   }
 
-  if (r_drawBspBlocks->value && rModels.world) {
-    RenderBspBlock *b = rModels.world->bsp->inlineModels->blocks;
-    for (int32_t i = 0; i < rModels.world->bsp->inlineModels->numBlocks; i++, b++) {
+  if (r_drawBspBlocks->value && renderModels.world) {
+    RenderBspBlock *b = renderModels.world->bsp->inlineModels->blocks;
+    for (int32_t i = 0; i < renderModels.world->bsp->inlineModels->numBlocks; i++, b++) {
       const float dist = Vec3_Distance(Box3_Center(b->visibleBounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (!b->query->result) {
@@ -355,12 +353,12 @@ void R_UpdateDraw3D(const RenderView *view, CopyPass *copyPass) {
 
   if ((int32_t) count > module.vertexBufferCapacity) {
     module.vertexBuffer = release(module.vertexBuffer);
-    module.vertexBuffer = $(rContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    module.vertexBuffer = $(renderContext.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = count * sizeof(RenderDraw3dVertex),
     });
     module.transferBuffer = release(module.transferBuffer);
-    module.transferBuffer = $(rContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    module.transferBuffer = $(renderContext.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
       .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
       .size = count * sizeof(RenderDraw3dVertex),
     });
@@ -388,7 +386,7 @@ void R_Draw3D(const RenderView *view, RenderPass *pass) {
     return;
   }
 
-  CommandBuffer *commands = rContext.device->commands;
+  CommandBuffer *commands = renderContext.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -398,7 +396,7 @@ void R_Draw3D(const RenderView *view, RenderPass *pass) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &rUniforms.block, sizeof(rUniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &renderUniforms.block, sizeof(renderUniforms.block));
 
   GraphicsPipeline *pipeline = NULL;
 
@@ -426,7 +424,7 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
                                                Shader *vertexShader, Shader *fragmentShader) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = rSceneSamples;
+  info.multisample_state.sample_count = renderSceneSamples;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
@@ -477,7 +475,7 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
     .has_depth_stencil_target = true,
   };
 
-  return $(rContext.device, createGraphicsPipeline, &info);
+  return $(renderContext.device, createGraphicsPipeline, &info);
 }
 
 /**
@@ -487,12 +485,12 @@ void R_InitDraw3D(void) {
 
   memset(&module, 0, sizeof(module));
 
-  Shader *vertexShader = $(rContext.device, loadShader, "shaders/draw_3d_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(renderContext.device, loadShader, "shaders/draw_3d_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 1,
   });
 
-  Shader *fragmentShader = $(rContext.device, loadShader, "shaders/draw_3d_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(renderContext.device, loadShader, "shaders/draw_3d_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 

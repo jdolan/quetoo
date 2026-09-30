@@ -34,7 +34,6 @@
  * @brief A light emitted by a brush side whose material has a `STAGE_LIGHT` stage.
  */
 typedef struct {
-
   /**
    * @brief The light origin in world space, in front of the brush side. For a brush entity with
    * an origin brush, this includes the entity origin.
@@ -60,7 +59,7 @@ typedef struct {
    * @brief The BSP model that owns the brush side. Zero is the world.
    */
   int32_t model;
-} CmMaterialLight;
+} MaterialLight;
 
 /**
  * @brief Places the lights for every drawn brush side whose material has a `STAGE_LIGHT` stage.
@@ -70,14 +69,14 @@ typedef struct {
  * @param materials The materials to read the stages from, indexed by BSP material. quemap passes the
  * collision materials. The editor passes the materials it edits.
  * @param material The BSP material index to place lights for, or `-1` for all materials.
- * @param lights The Vector of `CmMaterialLight` to append to.
+ * @param lights The Vector of `MaterialLight` to append to.
  * @return The number of lights appended.
  * @remarks Each brush side gets a grid of lights across its winding, spaced by the stage light
  * radius, with at least one light per brush side. The order is stable (brush, brush side, grid
  * row, grid column), so that compiled BSPs are deterministic. Brush sides that face into
  * solid get no light, because each light is rejected in solid.
  */
-size_t Cm_MaterialLights(const BspFile *file, CmMaterial *const *materials, int32_t material, Vector *lights);
+size_t Material_Lights(const BspFile *file, Material *const *materials, int32_t material, Vector *lights);
 
 /**
  * @brief Resolves the default color of a stage light that does not specify `light.color`.
@@ -85,4 +84,4 @@ size_t Cm_MaterialLights(const BspFile *file, CmMaterial *const *materials, int3
  * if the stage has no texture) that are at least half as bright as the brightest pixel,
  * normalized to length 1.
  */
-Vec3 Cm_MaterialLightColor(const CmMaterial *material, const CmStage *stage);
+Vec3 Material_LightColor(const Material *material, const MaterialStage *stage);

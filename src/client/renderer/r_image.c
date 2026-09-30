@@ -38,7 +38,7 @@ typedef enum {
 /**
  * @brief Pending screenshot type.
  */
-static RenderScreenshotType rPendingScreenshot;
+static RenderScreenshotType pendingScreenshot;
 
 /**
  * @brief Initializes image output directories.
@@ -91,17 +91,17 @@ static void R_Screenshot_encode(void *data) {
   strftime(date, sizeof(date), "%Y-%m-%d-%H-%M-%S", tm);
   const int32_t millis = (int32_t) (quetoo.ticks % 1000);
 
-  q_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
+  Str_Format(path, sizeof(path), "screenshots/%s.%03d", date, millis);
 
   bool res;
-  if (!q_strcmp(r_screenshotFormat->string, "tga")) {
-    q_strlcat(path, ".tga", sizeof(path));
+  if (!Str_Compare(r_screenshotFormat->string, "tga")) {
+    Str_Append(path, ".tga", sizeof(path));
     res = Img_WriteTGA(path, surface->pixels, surface->w, surface->h);
-  } else if (!q_strcmp(r_screenshotFormat->string, "jpg")) {
-    q_strlcat(path, ".jpg", sizeof(path));
+  } else if (!Str_Compare(r_screenshotFormat->string, "jpg")) {
+    Str_Append(path, ".jpg", sizeof(path));
     res = Img_WriteJPG(path, surface->pixels, surface->w, surface->h, 95);
   } else {
-    q_strlcat(path, ".png", sizeof(path));
+    Str_Append(path, ".png", sizeof(path));
     res = Img_WritePNG(path, surface->pixels, surface->w, surface->h);
   }
 
@@ -155,18 +155,18 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
  */
 void R_Screenshot(RenderView *view) {
 
-  if (rPendingScreenshot == SCREENSHOT_NONE) {
+  if (pendingScreenshot == SCREENSHOT_NONE) {
     return;
   }
 
-  const Texture *texture = $(rContext.device->framebuffer, resolveColorTexture, 0);
+  const Texture *texture = $(renderContext.device->framebuffer, resolveColorTexture, 0);
 
   SDL_Surface *surface = texture ? R_ReadTexture(texture) : NULL;
   if (surface) {
     Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
   }
 
-  rPendingScreenshot = SCREENSHOT_NONE;
+  pendingScreenshot = SCREENSHOT_NONE;
 }
 
 /**
@@ -174,10 +174,10 @@ void R_Screenshot(RenderView *view) {
  */
 void R_Screenshot_f(void) {
 
-  if (!q_strcmp(Cmd_Argv(1), "view")) {
-    rPendingScreenshot = SCREENSHOT_VIEW;
+  if (!Str_Compare(Cmd_Argv(1), "view")) {
+    pendingScreenshot = SCREENSHOT_VIEW;
   } else {
-    rPendingScreenshot = SCREENSHOT_DEFAULT;
+    pendingScreenshot = SCREENSHOT_DEFAULT;
   }
 }
 
@@ -310,7 +310,7 @@ RenderImage *R_LoadImage(const char *name, RenderImageType type) {
     const int32_t levels = Mini(IMG_CUBEMAP_LEVELS,
                                 (int32_t) floorf(log2f((float) Mini(image->width, image->height))) + 1);
 
-    image->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    image->texture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_CUBE,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = image->width,
@@ -322,7 +322,7 @@ RenderImage *R_LoadImage(const char *name, RenderImageType type) {
 
     free(data);
 
-    CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
+    CommandBuffer *commands = $(renderContext.device, acquireCommandBuffer);
     $(commands, generateMipmaps, image->texture->texture);
     $(commands, submit);
     release(commands);
@@ -330,7 +330,7 @@ RenderImage *R_LoadImage(const char *name, RenderImageType type) {
     image->width = surface->w;
     image->height = surface->h;
 
-    image->texture = $(rContext.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
+    image->texture = $(renderContext.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
   }
 
   $(image->texture, setName, image->media.name);
@@ -357,7 +357,7 @@ static void R_DumpImages_enumerator(const RenderMedia *media, void *data) {
     const RenderImage *image = (const RenderImage *) media;
     char path[MAX_OS_PATH];
 
-    q_snprintf(path, sizeof(path), "imgdmp/%s", image->media.name);
+    Str_Format(path, sizeof(path), "imgdmp/%s", image->media.name);
 
     R_DumpImage(image, path, true, false);
   }

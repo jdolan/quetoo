@@ -33,7 +33,7 @@
  * by `PMoveParams.kernel`. A kernel owns the ground, water, ladder and duck
  * checks, the move itself, and `Pm_CheckViewStep` if it wants step smoothing.
  *
- * `pm` and `pmLocals` are set before the dispatch, and every step here reads
+ * `pm` and `pmoveLocals` are set before the dispatch, and every step here reads
  * them rather than taking the move as a parameter, so a kernel is written the
  * way Quetoo's is.
  *
@@ -59,7 +59,6 @@
  * at each call to `Pm_Move` (this is obviously not thread-safe).
  */
 typedef struct {
-
   /**
    * @brief Previous (incoming) origin, in case movement fails and must be reverted.
    */
@@ -88,12 +87,12 @@ typedef struct {
   /**
    * @brief The player's ground interaction.
    */
-  CmTrace ground;
+  CollisionTrace ground;
 
   /**
    * @brief The clipping planes per slide-move.
    */
-  CmBspPlane clipPlanes[MAX_CLIP_PLANES];
+  CollisionPlane clipPlanes[MAX_CLIP_PLANES];
 
   /**
    * @brief The number of clipping planes per slide-move.
@@ -103,7 +102,7 @@ typedef struct {
 } PMoveLocals;
 
 extern PMove *pm;
-extern PMoveLocals pmLocals;
+extern PMoveLocals pmoveLocals;
 
 /**
  * @brief Unlike the game and the client game, this keeps its own mask test: it is
@@ -118,8 +117,8 @@ extern PMoveLocals pmLocals;
     } \
   } while (0)
 
-void Pm_TouchEntity(const CmTrace *trace);
-CmTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds);
+void Pm_TouchEntity(const CollisionTrace *trace);
+CollisionTrace Pm_Trace(const Vec3 start, const Vec3 end, const Box3 bounds);
 void Pm_Friction(const bool flying);
 void Pm_Accelerate(const Vec3 dir, float speed, float accel);
 void Pm_Gravity(void);
@@ -138,7 +137,7 @@ void Pm_Quake3Move(void);
  * @brief The parameters each movement that has its own is defined by, exported
  * by the kernel that implements it.
  */
-extern const PMoveParams pmQuakeParams;
-extern const PMoveParams pmQuake2Params;
-extern const PMoveParams pmRaceParams;
-extern const PMoveParams pmQuake3Params;
+extern const PMoveParams pmoveQuakeParams;
+extern const PMoveParams pmoveQuake2Params;
+extern const PMoveParams pmoveRaceParams;
+extern const PMoveParams pmoveQuake3Params;

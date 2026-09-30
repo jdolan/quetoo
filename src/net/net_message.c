@@ -29,14 +29,14 @@ typedef union {
 /**
  * @brief Appends raw bytes to a network message buffer.
  */
-void Net_WriteData(MemBuf *msg, const void *data, size_t len) {
+void Net_WriteData(NetMessage *msg, const void *data, size_t len) {
   Mem_WriteBuffer(msg, data, len);
 }
 
 /**
  * @brief Writes a signed 8-bit integer to a network message buffer.
  */
-void Net_WriteChar(MemBuf *msg, int32_t c) {
+void Net_WriteChar(NetMessage *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(char));
@@ -46,7 +46,7 @@ void Net_WriteChar(MemBuf *msg, int32_t c) {
 /**
  * @brief Writes an unsigned 8-bit integer to a network message buffer.
  */
-void Net_WriteByte(MemBuf *msg, int32_t c) {
+void Net_WriteByte(NetMessage *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(byte));
@@ -56,7 +56,7 @@ void Net_WriteByte(MemBuf *msg, int32_t c) {
 /**
  * @brief Writes a 16-bit little-endian integer to a network message buffer.
  */
-void Net_WriteShort(MemBuf *msg, int32_t c) {
+void Net_WriteShort(NetMessage *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(int16_t));
@@ -67,7 +67,7 @@ void Net_WriteShort(MemBuf *msg, int32_t c) {
 /**
  * @brief Writes a 32-bit little-endian integer to a network message buffer.
  */
-void Net_WriteLong(MemBuf *msg, int32_t c) {
+void Net_WriteLong(NetMessage *msg, int32_t c) {
   byte *buf;
 
   buf = Mem_AllocBuffer(msg, sizeof(int32_t));
@@ -80,18 +80,18 @@ void Net_WriteLong(MemBuf *msg, int32_t c) {
 /**
  * @brief Writes a null-terminated string to a network message buffer.
  */
-void Net_WriteString(MemBuf *msg, const char *s) {
+void Net_WriteString(NetMessage *msg, const char *s) {
   if (!s) {
     Mem_WriteBuffer(msg, "", 1);
   } else {
-    Mem_WriteBuffer(msg, s, q_strlen(s) + 1);
+    Mem_WriteBuffer(msg, s, Str_Length(s) + 1);
   }
 }
 
 /**
  * @brief Writes a 32-bit float (as its raw integer bit pattern) to a network message buffer.
  */
-void Net_WriteFloat(MemBuf *msg, float v) {
+void Net_WriteFloat(NetMessage *msg, float v) {
 
   const net_float vec = {
     .v = v
@@ -103,7 +103,7 @@ void Net_WriteFloat(MemBuf *msg, float v) {
 /**
  * @brief Writes a 3D world-space position as three consecutive floats to a network message buffer.
  */
-void Net_WritePosition(MemBuf *msg, const Vec3 pos) {
+void Net_WritePosition(NetMessage *msg, const Vec3 pos) {
   Net_WriteFloat(msg, pos.x);
   Net_WriteFloat(msg, pos.y);
   Net_WriteFloat(msg, pos.z);
@@ -112,7 +112,7 @@ void Net_WritePosition(MemBuf *msg, const Vec3 pos) {
 /**
  * @brief Encodes an angle in degrees as a 16-bit integer and writes it to a network message buffer.
  */
-void Net_WriteAngle(MemBuf *msg, float angle) {
+void Net_WriteAngle(NetMessage *msg, float angle) {
 
   while (angle < 0.f) {
     angle += 360.f;
@@ -128,7 +128,7 @@ void Net_WriteAngle(MemBuf *msg, float angle) {
 /**
  * @brief Writes three Euler angles (pitch, yaw, roll) to a network message buffer.
  */
-void Net_WriteAngles(MemBuf *msg, const Vec3 angles) {
+void Net_WriteAngles(NetMessage *msg, const Vec3 angles) {
   Net_WriteAngle(msg, angles.x);
   Net_WriteAngle(msg, angles.y);
   Net_WriteAngle(msg, angles.z);
@@ -137,7 +137,7 @@ void Net_WriteAngles(MemBuf *msg, const Vec3 angles) {
 /**
  * @brief Encodes a direction vector as the index of the closest approximate normal and writes it to a network message buffer.
  */
-void Net_WriteDir(MemBuf *msg, const Vec3 dir) {
+void Net_WriteDir(NetMessage *msg, const Vec3 dir) {
   int32_t i, best = 0;
   float bestD = 0.0;
 
@@ -155,25 +155,25 @@ void Net_WriteDir(MemBuf *msg, const Vec3 dir) {
 /**
  * @brief Writes an axis-aligned bounding box as six 16-bit integers (mins then maxs) to a network message buffer.
  */
-void Net_WriteBounds(MemBuf *msg, const Box3 bounds) {
+void Net_WriteBounds(NetMessage *msg, const Box3 bounds) {
 
-  const Vec3s _mins = Vec3_CastVec3s(bounds.mins);
+  const Vec3s shortMins = Vec3_CastVec3s(bounds.mins);
 
-  Net_WriteShort(msg, _mins.x);
-  Net_WriteShort(msg, _mins.y);
-  Net_WriteShort(msg, _mins.z);
+  Net_WriteShort(msg, shortMins.x);
+  Net_WriteShort(msg, shortMins.y);
+  Net_WriteShort(msg, shortMins.z);
 
-  const Vec3s _maxs = Vec3_CastVec3s(bounds.maxs);
+  const Vec3s shortMaxs = Vec3_CastVec3s(bounds.maxs);
 
-  Net_WriteShort(msg, _maxs.x);
-  Net_WriteShort(msg, _maxs.y);
-  Net_WriteShort(msg, _maxs.z);
+  Net_WriteShort(msg, shortMaxs.x);
+  Net_WriteShort(msg, shortMaxs.y);
+  Net_WriteShort(msg, shortMaxs.z);
 }
 
 /**
  * @brief Writes only the changed fields of a movement command as a delta from `from` to `to`.
  */
-void Net_WriteDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, const PMoveCmd *to) {
+void Net_WriteDeltaMoveCmd(NetMessage *msg, const PMoveCmd *from, const PMoveCmd *to) {
 
   byte bits = 0;
 
@@ -243,7 +243,7 @@ void Net_WriteDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, const PMoveCmd *to
 /**
  * @brief Writes only the changed fields of a player state as a delta from `from` to `to`.
  */
-void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const PlayerState *to) {
+void Net_WriteDeltaPlayerState(NetMessage *msg, const PlayerState *from, const PlayerState *to) {
 
   uint32_t bits = 0;
 
@@ -420,7 +420,7 @@ void Net_WriteDeltaPlayerState(MemBuf *msg, const PlayerState *from, const Playe
 /**
  * @brief Writes an entity's state changes to a net message. Can delta from a baseline or a previous state.
  */
-void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityState *to, bool force) {
+void Net_WriteDeltaEntity(NetMessage *msg, const EntityState *from, const EntityState *to, bool force) {
 
   uint16_t bits = 0;
 
@@ -570,14 +570,14 @@ void Net_WriteDeltaEntity(MemBuf *msg, const EntityState *from, const EntityStat
 /**
  * @brief Resets the read cursor of a message buffer to the beginning.
  */
-void Net_BeginReading(MemBuf *msg) {
+void Net_BeginReading(NetMessage *msg) {
   msg->read = 0;
 }
 
 /**
  * @brief Reads `len` raw bytes from the network message buffer into `data`.
  */
-void Net_ReadData(MemBuf *msg, void *data, size_t len) {
+void Net_ReadData(NetMessage *msg, void *data, size_t len) {
   size_t i;
 
   for (i = 0; i < len; i++) {
@@ -588,7 +588,7 @@ void Net_ReadData(MemBuf *msg, void *data, size_t len) {
 /**
  * @brief Returns -1 if no more characters are available.
  */
-int32_t Net_ReadChar(MemBuf *msg) {
+int32_t Net_ReadChar(NetMessage *msg) {
   int32_t c;
 
   if (msg->read + 1 > msg->size) {
@@ -604,7 +604,7 @@ int32_t Net_ReadChar(MemBuf *msg) {
 /**
  * @brief Reads an unsigned byte from a network message buffer; returns -1 on underflow.
  */
-int32_t Net_ReadByte(MemBuf *msg) {
+int32_t Net_ReadByte(NetMessage *msg) {
   int32_t c;
 
   if (msg->read + 1 > msg->size) {
@@ -620,7 +620,7 @@ int32_t Net_ReadByte(MemBuf *msg) {
 /**
  * @brief Reads a 16-bit little-endian signed integer from a network message buffer; returns -1 on underflow.
  */
-int32_t Net_ReadShort(MemBuf *msg) {
+int32_t Net_ReadShort(NetMessage *msg) {
   int32_t c;
 
   if (msg->read + 2 > msg->size) {
@@ -637,7 +637,7 @@ int32_t Net_ReadShort(MemBuf *msg) {
 /**
  * @brief Reads a 32-bit little-endian integer from a network message buffer; returns -1 on underflow.
  */
-int32_t Net_ReadLong(MemBuf *msg) {
+int32_t Net_ReadLong(NetMessage *msg) {
   uint32_t c;
 
   if (msg->read + 4 > msg->size) {
@@ -657,7 +657,7 @@ int32_t Net_ReadLong(MemBuf *msg) {
  * @brief Reads a null-terminated string from a network message buffer into a static buffer.
  * @remarks Uses a static buffer; not reentrant.
  */
-char *Net_ReadString(MemBuf *msg) {
+char *Net_ReadString(NetMessage *msg) {
   static char string[MAX_STRING_CHARS];
 
   size_t l = 0;
@@ -679,7 +679,7 @@ char *Net_ReadString(MemBuf *msg) {
  * @brief Reads a newline- or null-terminated string from a network message buffer into a static buffer.
  * @remarks Uses a static buffer; not reentrant.
  */
-char *Net_ReadStringLine(MemBuf *msg) {
+char *Net_ReadStringLine(NetMessage *msg) {
   static char string[MAX_STRING_CHARS];
 
   size_t l = 0;
@@ -700,7 +700,7 @@ char *Net_ReadStringLine(MemBuf *msg) {
 /**
  * @brief Reads a 32-bit float (stored as a raw integer bit pattern) from a network message buffer.
  */
-float Net_ReadFloat(MemBuf *msg) {
+float Net_ReadFloat(NetMessage *msg) {
 
   const net_float vec = {
     .i = Net_ReadLong(msg)
@@ -712,7 +712,7 @@ float Net_ReadFloat(MemBuf *msg) {
 /**
  * @brief Reads a 3D world-space position from three consecutive floats in a network message buffer.
  */
-Vec3 Net_ReadPosition(MemBuf *msg) {
+Vec3 Net_ReadPosition(NetMessage *msg) {
   return (Vec3) {
     .x = Net_ReadFloat(msg),
     .y = Net_ReadFloat(msg),
@@ -723,14 +723,14 @@ Vec3 Net_ReadPosition(MemBuf *msg) {
 /**
  * @brief Reads a 16-bit encoded angle and converts it to degrees.
  */
-float Net_ReadAngle(MemBuf *msg) {
+float Net_ReadAngle(NetMessage *msg) {
   return Net_ReadShort(msg) * 360.f / UINT16_MAX;
 }
 
 /**
  * @brief Reads three Euler angles (pitch, yaw, roll) from a network message buffer.
  */
-Vec3 Net_ReadAngles(MemBuf *msg) {
+Vec3 Net_ReadAngles(NetMessage *msg) {
   return (Vec3) {
     .x = Net_ReadAngle(msg),
     .y = Net_ReadAngle(msg),
@@ -741,7 +741,7 @@ Vec3 Net_ReadAngles(MemBuf *msg) {
 /**
  * @brief Reads a direction byte index and returns the corresponding approximate normal vector.
  */
-Vec3 Net_ReadDir(MemBuf *msg) {
+Vec3 Net_ReadDir(NetMessage *msg) {
 
   const int32_t b = Net_ReadByte(msg);
 
@@ -755,7 +755,7 @@ Vec3 Net_ReadDir(MemBuf *msg) {
 /**
  * @brief Reads an axis-aligned bounding box (mins then maxs) from a network message buffer.
  */
-Box3 Net_ReadBounds(MemBuf *msg) {
+Box3 Net_ReadBounds(NetMessage *msg) {
   Box3 b;
 
   b.mins.x = Net_ReadShort(msg);
@@ -771,7 +771,7 @@ Box3 Net_ReadBounds(MemBuf *msg) {
 /**
  * @brief Reads delta-compressed movement command fields into `to`, starting from the baseline in `from`.
  */
-void Net_ReadDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, PMoveCmd *to) {
+void Net_ReadDeltaMoveCmd(NetMessage *msg, const PMoveCmd *from, PMoveCmd *to) {
 
   *to = *from;
 
@@ -813,7 +813,7 @@ void Net_ReadDeltaMoveCmd(MemBuf *msg, const PMoveCmd *from, PMoveCmd *to) {
 /**
  * @brief Reads delta-compressed player state fields into `to`, starting from the baseline in `from`.
  */
-void Net_ReadDeltaPlayerState(MemBuf *msg, const PlayerState *from, PlayerState *to) {
+void Net_ReadDeltaPlayerState(NetMessage *msg, const PlayerState *from, PlayerState *to) {
 
   *to = *from;
 
@@ -910,7 +910,7 @@ void Net_ReadDeltaPlayerState(MemBuf *msg, const PlayerState *from, PlayerState 
 /**
  * @brief Reads delta-compressed entity state fields into `to`, starting from the baseline in `from`.
  */
-void Net_ReadDeltaEntity(MemBuf *msg, const EntityState *from, EntityState *to,
+void Net_ReadDeltaEntity(NetMessage *msg, const EntityState *from, EntityState *to,
                          int16_t number, uint16_t bits) {
 
   *to = *from;

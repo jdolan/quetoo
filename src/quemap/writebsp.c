@@ -38,7 +38,7 @@ void EmitPlanes(void) {
 
   bspFile.numPlanes = 0;
 
-  const Plane *p = planes;
+  const MapPlane *p = planes;
   for (int32_t i = 0; i < numPlanes; i++, p++) {
     BspPlane *out = &bspFile.planes[bspFile.numPlanes];
 
@@ -56,15 +56,15 @@ void EmitPlanes(void) {
  */
 void EmitMaterials(void) {
 
-  const Material *m = materials;
+  const MapMaterial *m = materials;
   for (int32_t i = 0; i < numMaterials; i++, m++) {
     BspMaterial *out = &bspFile.materials[bspFile.numMaterials];
 
-    const char *name = m->cm->name;
-    if (!q_strncmp(name, "textures/", 9)) {
-      name += q_strlen("textures/");
+    const char *name = m->def->name;
+    if (!Str_CompareN(name, "textures/", 9)) {
+      name += Str_Length("textures/");
     }
-    q_strlcpy(out->name, name, sizeof(out->name));
+    Str_Copy(out->name, name, sizeof(out->name));
 
     bspFile.numMaterials++;
 
@@ -253,7 +253,7 @@ int32_t EmitNodes(const Tree *tree) {
 /**
  * @brief Emits a single brush side into the BSP brush sides lump and returns a pointer to it.
  */
-static BspBrushSide *EmitBrushSide(const BrushSide *side) {
+static BspBrushSide *EmitBrushSide(const MapBrushSide *side) {
 
   BspBrushSide *out = bspFile.brushSides + bspFile.numBrushSides;
 
@@ -275,9 +275,9 @@ static BspBrushSide *EmitBrushSide(const BrushSide *side) {
  * @brief Emits all sides of a brush into the BSP brush sides lump.
  * @return The number of brush sides emitted.
  */
-static int32_t EmitBrushSides(const Brush *brush) {
+static int32_t EmitBrushSides(const MapBrush *brush) {
 
-  BrushSide *side = brush->brushSides;
+  MapBrushSide *side = brush->brushSides;
   for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
     side->out = EmitBrushSide(side);
@@ -290,7 +290,7 @@ static int32_t EmitBrushSides(const Brush *brush) {
 /**
  * @brief Emits a single brush and its sides into the BSP brushes lump and returns a pointer to the emitted brush.
  */
-static BspBrush *EmitBrush(const Brush *brush) {
+static BspBrush *EmitBrush(const MapBrush *brush) {
 
   BspBrush *out = bspFile.brushes + bspFile.numBrushes;
 
@@ -310,7 +310,7 @@ static BspBrush *EmitBrush(const Brush *brush) {
  */
 void EmitBrushes(void) {
 
-  Brush *brush = brushes;
+  MapBrush *brush = brushes;
   for (int32_t i = 0; i < numBrushes; i++, brush++) {
 
     if (!brush->numBrushSides) {
@@ -337,20 +337,20 @@ void EmitEntities(void) {
   *out = '\0';
 
   for (int32_t i = 0; i < numEntities; i++) {
-    const EntityKeyValue *e = entities[i].values;
+    const MapEntityKeyValue *e = entities[i].values;
     if (e) {
-      q_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
+      Str_Append(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {
-        q_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
+        Str_Append(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
         e = e->next;
       }
-      q_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
+      Str_Append(out, "}\n", MAX_BSP_ENTITIES_SIZE);
     }
 
     Progress("Emitting entities", 100.f * i / numEntities);
   }
 
-  const size_t len = q_strlen(out);
+  const size_t len = Str_Length(out);
 
   if (len == MAX_BSP_ENTITIES_SIZE - 1) {
     Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES_SIZE\n");
@@ -412,7 +412,7 @@ void EndBSPFile(void) {
 /**
  * @brief Allocates a new BSP model entry for the given entity and initializes its face and element offsets.
  */
-BspModel *BeginModel(const Entity *e) {
+BspModel *BeginModel(const MapEntity *e) {
 
   if (bspFile.numModels == MAX_BSP_MODELS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_MODELS\n");
@@ -432,7 +432,7 @@ BspModel *BeginModel(const Entity *e) {
 
   mod->bounds = Box3_Null();
 
-  const Brush *brush = &brushes[start];
+  const MapBrush *brush = &brushes[start];
   for (int32_t j = start; j < end; j++, brush++) {
 
     if (brush->numBrushSides) {
@@ -480,7 +480,7 @@ void EndModel(BspModel *mod) {
   for (int32_t i = 0; i < mod->numFaces; i++, face++) {
     if (face->block == -1) {
       Com_Warn("Model %d face %d (%s) was not assigned to a CONTENTS_BLOCK node\n",
-               mod->entity, i, materials[FaceMaterial(face)].cm->name);
+               mod->entity, i, materials[FaceMaterial(face)].def->name);
     }
   }
 

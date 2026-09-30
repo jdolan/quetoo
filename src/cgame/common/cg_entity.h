@@ -35,7 +35,6 @@ typedef void (*CGameEntityThink)(CGameEntity *self);
  * @brief The client game entity class type.
  */
 typedef struct {
-
   /**
    * @brief The entity class name.
    */
@@ -85,7 +84,7 @@ struct CGameEntity {
   /**
    * @brief The backing entity definition.
    */
-  const CmEntity *def;
+  const Entity *def;
 
   /**
    * @brief The entity origin.
@@ -100,12 +99,12 @@ struct CGameEntity {
   /**
    * @brief The entity's target, if any.
    */
-  const CmEntity *target;
+  const Entity *target;
 
   /**
    * @brief The entity's teammate, if any.
    */
-  const CmEntity *team;
+  const Entity *team;
 
   /**
    * @brief Timestamp for next emission.
@@ -124,12 +123,12 @@ struct CGameEntity {
   void *data;
 };
 
-extern const CGameEntityClass *cgEntityClasses[];
-extern const size_t cgNumEntityClasses;
+extern const CGameEntityClass *cgameEntityClasses[];
+extern const size_t cgameNumEntityClasses;
 
-extern Vector *cgEntities;
+extern Vector *cgameEntities;
 
-CGameEntity *Cg_EntityForDefinition(const CmEntity *e);
+CGameEntity *Cg_EntityForDefinition(const Entity *e);
 void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
 

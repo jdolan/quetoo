@@ -47,7 +47,6 @@ void R_AddDecal(RenderView *view, const RenderDecal *decal);
  * match `DecalInstance` in decal_vs.glsl.
  */
 typedef struct {
-
   /**
    * @brief The origin projected onto the face, and the projected radius in `w`.
    */
@@ -103,7 +102,6 @@ static_assert(MAX_DECAL_INSTANCES <= 0x1000000, "MAX_DECAL_INSTANCES exceeds the
  * @brief Decal vertex.
  */
 typedef struct {
-
   /**
    * @brief Vertex position.
    */
@@ -120,7 +118,6 @@ typedef struct {
  * @brief Decal triangle.
  */
 typedef struct {
-
   /**
    * @brief Triangle vertices.
    */

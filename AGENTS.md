@@ -15,29 +15,59 @@ anything else, read the code. It is never out of date.
 | Category | Convention | Example |
 |---|---|---|
 | Types | `PascalCase`, with the subsystem prefix | `RenderEntity`, `CGameSprite`, `PMoveParams` |
-| Functions | `Prefix_PascalCase`, unchanged | `R_DrawMaterialStages`, `G_Damage` |
+| Functions | `Prefix_PascalCase`: the subsystem's short prefix, or the type name for a type with a bare name | `R_DrawEntities`, `G_Damage`, `Cm_BoxTrace`, `Material_Load`, `Winding_Clip` |
 | Function-pointer members | `PascalCase` | `cgi.AddEntity`, `gi.Multicast` |
+| Function-pointer types | `PascalCase` with the subsystem prefix, as any type. A name that ends in a verb or an agent noun needs no suffix; one that ends in any other noun takes `Func`, so that it does not read as data; module hooks take `Hook` | `ThreadRun`, `CmdExecute`, `CvarEnumerator`, `GameAiGoalFunc`, `GameConfigureLevelHook` |
 | Variables, parameters, data members | `camelCase` | `numElements`, `oldOrigin` |
-| Cvars and console commands | keep the prefix, camelCase the rest | `r_swapInterval`, `cg_addDecals`, `+moveForward` |
-| Enum constants and macros | `UPPER_CASE` | `MAX_CLIENTS`, `SURF_ALPHA_TEST` |
+| Extern globals | the subsystem prefix, lowercased, then `camelCase` | `renderConfig`, `cgameState`, `gameLevel` |
+| File statics | `camelCase`, no subsystem prefix | `aiNodes`, `world` |
+| Cvars and console commands | keep the prefix, camelCase the rest | `r_swapInterval`, `cg_addDecals`, `+moveLeft` |
+| Enum constants and macros | `UPPER_CASE`, except that an enum belonging to an Objectively class uses Objectively's `PascalCase` constants | `MAX_CLIENTS`, `SURF_ALPHA_TEST`, `BlendViewPickup` |
 
 The rule is not "everything camelCases". **Case encodes a category.** A callable is PascalCase, data
 is camelCase. That is why a function-pointer member keeps `cgi.AddEntity`, mirroring the
 `Cl_AddEntity` it wraps.
 
 - The type prefix is the subsystem name, not the function prefix. It is spelled out where the
-  subsystem is one word (`Render`, `Client`, `Server`, `Game`, `Sound`) and abbreviated where it is
-  not (`CGame` for the client game, `PMove` for player movement, `Cm` for collision).
+  subsystem is one word (`Render`, `Client`, `Server`, `Game`, `Sound`, `Collision`) and abbreviated
+  where it is not (`CGame` for the client game, `PMove` for player movement).
+- Map data that is not collision data takes a bare name: `Material`, `MaterialStage`, `Winding`
+  and `ManifestEntry` in `src/common`, and `Entity` and `Voxel` in the collision library. The
+  compiler's own types for the same concepts take `Map`: `MapMaterial` (which wraps a `Material`),
+  `MapEntity`, `MapVoxel`.
+- An extern global MUST spell its subsystem prefix as the type names do: `render`, `client`,
+  `server`, `sound`, `game`, `cgame`, `pmove`, `collision`, and `master` and `net` for those two
+  libraries. The prefix names the subsystem that owns the global, not its type: `clientView` is a
+  `RenderView`. It MUST NOT use the function prefix (`rConfig`) or an underscore (`g_level`). An
+  underscore after a short prefix marks a cvar, and only a cvar.
+- A file static SHOULD NOT carry a subsystem prefix, because its file is its namespace:
+  `aiNodes`, `handle`, `world`. Its name MUST NOT match a local or parameter in that file.
+- Locals and parameters MUST NOT carry a subsystem prefix. Name them for what they hold.
 - A cvar or command with no subsystem prefix camelCases whole: `numPlanes`, `nextMap`.
-- Where only one word follows the prefix, nothing moves: `r_gamma`, `m_pitch`.
+- A player's userinfo cvar (`CVAR_USER_INFO`) MUST NOT take a prefix: `hand`, `skin`,
+  `autoSwitch`. The game and the client game both read it, and its name goes over the network in
+  the userinfo string each time it changes, where every character counts. The C variable keeps
+  its prefix: `cg_hand` registers `"hand"`.
+- Where only one word follows the prefix, nothing moves: `r_bloom`, `m_pitch`.
+- A function's private helper takes the function's name and a lowercase role suffix:
+  `Cvar_Enumerate_collect`, `R_EnumerateMedia_comparator`. A trailing underscore marks the inner
+  version of a public function: `Com_Error_`. A recursive helper is named for what it visits:
+  `Cm_TraceToNode`, `G_Ai_KdTreeQueryNode`.
+- Test helpers take `Test_`, as `tests.c` does: `Test_WriteFile`, `Test_QueryMaster`.
+- `quemap`'s internal functions have no prefix. Its three stages' entry points are named for their
+  files: `Qbsp_Main`, `Qlight_Main`, `Qzip_Main`.
 - The file-static struct a module uses to collect its file globals is named `module`. A file holding
   more than one keeps descriptive names.
 - File names: `snake_case` for a plain C module, `PascalCase` for a file that declares one
   Objectively class and is named after it (`ChatView.c`). This distinction is load-bearing — it tells
   you which kind of file you are opening. Do not "fix" it.
+- A plain C module MAY define a private Objectively class that no other file uses, with no header
+  (`HeldFlagView` in `cg_ctf.c`). Its method statics MUST take the class name as a prefix, because a
+  file can hold several such classes: `SpeedView_init`, `SpeedView_valueForFrame`,
+  `SpeedView_initialize`.
 
-`Cvar_Get` and `Cmd_Get` still resolve an older snake_case spelling and warn when they do, so
-existing configs keep working. Configs migrate themselves on save.
+`Cvar_Get` and `Cmd_Get` ignore case, but they MUST NOT resolve an older spelling: a lookup is on
+the path of every key event. A config or bind that uses a renamed name no longer resolves.
 
 ## Sibling repositories
 
@@ -112,12 +142,12 @@ any code.
 Changing these breaks something this repository cannot see.
 
 - **Cvar names flagged `CVAR_USER_INFO` or `CVAR_SERVER_INFO` are wire keys.** They are read by
-  literal key through `InfoString_Get` and `Ms_InfoValue`, not through `Cvar_Get`, so the legacy
-  lookup does not cover them. `src/master/main.c` parses `sv_hostname`, `sv_protocol`,
+  literal key through `InfoString_Get` and `Ms_InfoValue`, not through `Cvar_Get`, and they compare
+  case-sensitively. `src/master/main.c` parses `sv_hostname`, `sv_protocol`,
   `sv_maxClients` and `sv_map`, and the master is deployed separately. Renaming one requires
   redeploying the master, and servers are missing from listings until they upgrade.
 - **Material keywords are a content format.** `alpha_test`, `no_draw`, `phong` and the rest in
-  `cm_surfaceList` and the `Cm_LoadMaterial` parser are how every `.mat` file in `quetoo-data` and
+  `surfaceHints` and the `Material_Load` parser are how every `.mat` file in `quetoo-data` and
   in user maps is written. They are not identifiers and MUST NOT be renamed with code.
 - **GLSL has its own namespace.** Shader struct and function names are independent of the C names
   they mirror. A comment naming a C type should track the C name; the shader's own types should not.
@@ -133,12 +163,14 @@ Changing these breaks something this repository cannot see.
 
 ## Ordering that no call site shows
 
-- `Cl_InitKeys` runs early in `Cl_Init` and calls `Cbuf_Execute()` immediately, so the default binds
-  and the `quetoo.cfg` they exec run **before** `Cl_InitInput` registers `+moveLeft` and friends. A
-  bind cannot be resolved as it is set. `Cl_CanonicalizeBinds` runs once at the end of `Cl_Init` for
-  this reason.
+- `Cl_InitKeys` runs early in `Cl_Init` and calls `Cbuf_Execute()` immediately, so the engine's
+  default binds and the `quetoo.cfg` they exec run **before** any module loads or registers its
+  commands. The client game's default binds come later, from `cge.BindKeys`, and fill only the
+  keys that are still unbound, so a config bind wins. The client calls it when a different client
+  game loads, and not on `r_restart`.
 - A config can set a cvar before the owning subsystem registers it. `Cvar_Set_` creates it through
-  `Cvar_Add`, so it exists under whatever name the config used until `Cvar_Add` re-keys it.
+  `Cvar_Add`, and the owner's `Cvar_Add` adopts it. A name that differs from the registered name by
+  more than case makes a separate cvar, which nothing reads.
 - Renderer media are reaped by seed at the end of a load pass. Anything holding a `RenderMaterial *`
   across a level change MUST re-resolve it, or the pointer dangles.
 

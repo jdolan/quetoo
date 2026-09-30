@@ -53,14 +53,14 @@ static void G_target_light_Use(GameEntity *ent, GameEntity *other, GameEntity *a
 
   if (ent->delay) {
     ent->Think = G_target_light_Cycle;
-    ent->nextThink = g_level.time + ent->delay * 1000.0;
+    ent->nextThink = gameLevel.time + ent->delay * 1000.0;
   } else {
     G_target_light_Cycle(ent);
   }
 
   if (ent->wait) {
     ent->Think = G_target_light_Cycle;
-    ent->nextThink = g_level.time + (ent->delay + ent->wait) * 1000.0;
+    ent->nextThink = gameLevel.time + (ent->delay + ent->wait) * 1000.0;
   }
 }
 
@@ -147,7 +147,7 @@ static void G_target_speaker_Use(GameEntity *ent, GameEntity *other, GameEntity 
 void G_target_speaker(GameEntity *ent) {
 
   const char *sound = gi.EntityValue(ent->def, "sound")->string;
-  if (!q_strlen(sound)) {
+  if (!Str_Length(sound)) {
     G_Warn("No sound specified for %s\n", etos(ent));
     return;
   }
@@ -264,14 +264,14 @@ struct GameBallisticsType {
 /**
  * @brief Fires a blaster bolt.
  */
-static void G_ballistics_Blaster(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Blaster(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BlasterProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, mod);
 }
 
 /**
  * @brief Fires a burst of pellets.
  */
-static void G_ballistics_Shotgun(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Shotgun(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_ShotgunProjectiles(ent, attacker, start, dir, ent->damage, ent->knockback,
     (*type->spreadX)->integer, (*type->spreadY)->integer, (*type->pellets)->integer, mod);
 }
@@ -279,7 +279,7 @@ static void G_ballistics_Shotgun(const GameBallisticsType *type, GameEntity *ent
 /**
  * @brief Fires a single bullet.
  */
-static void G_ballistics_Machinegun(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Machinegun(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BulletProjectile(ent, attacker, start, dir, ent->damage, ent->knockback,
     (*type->spreadX)->integer, (*type->spreadY)->integer, mod);
 }
@@ -287,28 +287,28 @@ static void G_ballistics_Machinegun(const GameBallisticsType *type, GameEntity *
 /**
  * @brief Fires a spike.
  */
-static void G_ballistics_Nail(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Nail(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_NailProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, mod);
 }
 
 /**
  * @brief Fires a rocket.
  */
-static void G_ballistics_Rocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Rocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_RocketProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damageRadius, mod);
 }
 
 /**
  * @brief Fires a Quake rocket.
  */
-static void G_ballistics_QuakeRocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_QuakeRocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_QuakeRocketProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damageRadius);
 }
 
 /**
  * @brief Fires a grenade.
  */
-static void G_ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_GrenadeProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback,
     ent->damageRadius, SECONDS_TO_MILLIS(g_balanceGrenadelauncherTimer->value), mod);
 }
@@ -316,7 +316,7 @@ static void G_ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent
 /**
  * @brief Fires a Quake grenade.
  */
-static void G_ballistics_QuakeGrenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_QuakeGrenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_QuakeGrenadeProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback,
     ent->damageRadius, SECONDS_TO_MILLIS(g_balanceQuakeGrenadelauncherTimer->value));
 }
@@ -324,46 +324,46 @@ static void G_ballistics_QuakeGrenade(const GameBallisticsType *type, GameEntity
 /**
  * @brief Fires a hyperblaster bolt.
  */
-static void G_ballistics_Hyperblaster(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Hyperblaster(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_HyperblasterProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback);
 }
 
 /**
  * @brief Fires a BFG orb.
  */
-static void G_ballistics_Bfg(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Bfg(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BfgProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damageRadius);
 }
 
 /**
  * @brief Fires a railgun slug.
  */
-static void G_ballistics_Rail(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Rail(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_RailgunProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod);
 }
 
 /**
  * @brief Creates or refreshes a laser beam.
  */
-static void G_ballistics_Laser(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Laser(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LASER,
-    g_media.sounds.laserFly);
+    gameMedia.sounds.laserFly);
 }
 
 /**
  * @brief Creates or refreshes a lightning beam.
  */
-static void G_ballistics_Lightning(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Lightning(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LIGHTNING,
-    g_media.sounds.lightningFly);
+    gameMedia.sounds.lightningFly);
 }
 
 /**
  * @brief Scatters giblets.
  */
-static void G_ballistics_Giblets(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Giblets(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
 
-  const CmTrace tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+  const CollisionTrace tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
 
   G_Giblets(&(const GameGiblets) {
     .origin = tr.fraction < 1.f ? ent->s.origin : start,
@@ -378,12 +378,12 @@ static void G_ballistics_Giblets(const GameBallisticsType *type, GameEntity *ent
   });
 }
 
-static const GameBallisticsType g_ballisticsTypes[] = {
+static const GameBallisticsType ballisticsTypes[] = {
   {
     .name = "blaster",
     .refire = &g_balanceBlasterRefire,
     .minWait = 200,
-    .Fire = G_ballistics_Blaster,
+    .Fire = G_Ballistics_Blaster,
     .flash = MZ_BLASTER,
     .ballisticsMod = MOD_BALLISTICS_BLASTER,
     .turretMod = MOD_TURRET_BLASTER,
@@ -394,7 +394,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "shotgun",
     .refire = &g_balanceShotgunRefire,
     .minWait = 200,
-    .Fire = G_ballistics_Shotgun,
+    .Fire = G_Ballistics_Shotgun,
     .flash = MZ_SHOTGUN,
     .ballisticsMod = MOD_BALLISTICS_SHOTGUN,
     .turretMod = MOD_TURRET_SHOTGUN,
@@ -407,7 +407,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "supershotgun",
     .refire = &g_balanceSupershotgunRefire,
     .minWait = 200,
-    .Fire = G_ballistics_Shotgun,
+    .Fire = G_Ballistics_Shotgun,
     .flash = MZ_SUPER_SHOTGUN,
     .ballisticsMod = MOD_BALLISTICS_SUPER_SHOTGUN,
     .turretMod = MOD_TURRET_SUPER_SHOTGUN,
@@ -420,7 +420,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "machinegun",
     .refire = &g_balanceMachinegunRefire,
     .minWait = 20,
-    .Fire = G_ballistics_Machinegun,
+    .Fire = G_Ballistics_Machinegun,
     .flash = MZ_MACHINEGUN,
     .ballisticsMod = MOD_BALLISTICS_MACHINEGUN,
     .turretMod = MOD_TURRET_MACHINEGUN,
@@ -432,7 +432,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "grenadelauncher",
     .refire = &g_balanceGrenadelauncherRefire,
     .minWait = 400,
-    .Fire = G_ballistics_Grenade,
+    .Fire = G_Ballistics_Grenade,
     .flash = MZ_GRENADE_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_GRENADE,
     .turretMod = MOD_TURRET_GRENADE,
@@ -444,7 +444,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "rocketlauncher",
     .refire = &g_balanceRocketlauncherRefire,
     .minWait = 400,
-    .Fire = G_ballistics_Rocket,
+    .Fire = G_Ballistics_Rocket,
     .flash = MZ_ROCKET_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_ROCKET,
     .turretMod = MOD_TURRET_ROCKET,
@@ -456,7 +456,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "hyperblaster",
     .refire = &g_balanceHyperblasterRefire,
     .minWait = 40,
-    .Fire = G_ballistics_Hyperblaster,
+    .Fire = G_Ballistics_Hyperblaster,
     .flash = MZ_HYPERBLASTER,
     .ballisticsMod = MOD_BALLISTICS_HYPERBLASTER,
     .turretMod = MOD_TURRET_HYPERBLASTER,
@@ -467,7 +467,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "lightning",
     .flash = MZ_LIGHTNING,
     .refire = &g_balanceLightningRefire,
-    .Fire = G_ballistics_Lightning,
+    .Fire = G_Ballistics_Lightning,
     .ballisticsMod = MOD_BALLISTICS_LIGHTNING,
     .turretMod = MOD_TURRET_LIGHTNING,
     .sustained = true,
@@ -477,7 +477,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "railgun",
     .refire = &g_balanceRailgunRefire,
     .minWait = 400,
-    .Fire = G_ballistics_Rail,
+    .Fire = G_Ballistics_Rail,
     .flash = MZ_RAILGUN,
     .ballisticsMod = MOD_BALLISTICS_RAILGUN,
     .turretMod = MOD_TURRET_RAILGUN,
@@ -489,7 +489,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .prefire = &g_balanceBfgPrefire,
     .muzzle = 48,
     .minWait = 1000,
-    .Fire = G_ballistics_Bfg,
+    .Fire = G_Ballistics_Bfg,
     .flash = MZ_BFG10K,
     .ballisticsMod = MOD_BALLISTICS_BFG,
     .turretMod = MOD_TURRET_BFG,
@@ -501,7 +501,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "quake_shotgun",
     .refire = &g_balanceQuakeShotgunRefire,
     .minWait = 200,
-    .Fire = G_ballistics_Shotgun,
+    .Fire = G_Ballistics_Shotgun,
     .flash = MZ_QUAKE_SHOTGUN,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_SHOTGUN,
     .turretMod = MOD_TURRET_QUAKE_SHOTGUN,
@@ -514,7 +514,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "quake_supershotgun",
     .refire = &g_balanceQuakeSupershotgunRefire,
     .minWait = 200,
-    .Fire = G_ballistics_Shotgun,
+    .Fire = G_Ballistics_Shotgun,
     .flash = MZ_QUAKE_SUPER_SHOTGUN,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_SUPER_SHOTGUN,
     .turretMod = MOD_TURRET_QUAKE_SUPER_SHOTGUN,
@@ -527,7 +527,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "quake_nailgun",
     .refire = &g_balanceQuakeNailgunRefire,
     .minWait = 40,
-    .Fire = G_ballistics_Nail,
+    .Fire = G_Ballistics_Nail,
     .flash = MZ_QUAKE_NAILGUN,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_NAILGUN,
     .turretMod = MOD_TURRET_QUAKE_NAILGUN,
@@ -538,7 +538,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "quake_supernailgun",
     .refire = &g_balanceQuakeSupernailgunRefire,
     .minWait = 60,
-    .Fire = G_ballistics_Nail,
+    .Fire = G_Ballistics_Nail,
     .flash = MZ_QUAKE_SUPER_NAILGUN,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_SUPER_NAILGUN,
     .turretMod = MOD_TURRET_QUAKE_SUPER_NAILGUN,
@@ -549,7 +549,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "quake_grenadelauncher",
     .refire = &g_balanceQuakeGrenadelauncherRefire,
     .minWait = 400,
-    .Fire = G_ballistics_QuakeGrenade,
+    .Fire = G_Ballistics_QuakeGrenade,
     .flash = MZ_QUAKE_GRENADE_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_GRENADE,
     .turretMod = MOD_TURRET_QUAKE_GRENADE,
@@ -561,7 +561,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "quake_rocketlauncher",
     .refire = &g_balanceQuakeRocketlauncherRefire,
     .minWait = 400,
-    .Fire = G_ballistics_QuakeRocket,
+    .Fire = G_Ballistics_QuakeRocket,
     .flash = MZ_QUAKE_ROCKET_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_ROCKET,
     .turretMod = MOD_TURRET_QUAKE_ROCKET,
@@ -573,7 +573,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "quake_thunderbolt",
     .flash = MZ_LIGHTNING,
     .refire = &g_balanceQuakeThunderboltRefire,
-    .Fire = G_ballistics_Lightning,
+    .Fire = G_Ballistics_Lightning,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_THUNDERBOLT,
     .turretMod = MOD_TURRET_QUAKE_THUNDERBOLT,
     .sustained = true,
@@ -583,7 +583,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
     .name = "laser",
     .flash = MZ_LASER,
     .defaultWait = 100,
-    .Fire = G_ballistics_Laser,
+    .Fire = G_Ballistics_Laser,
     .ballisticsMod = MOD_BALLISTICS_LASER,
     .turretMod = MOD_TURRET_LASER,
     .sustained = true,
@@ -591,7 +591,7 @@ static const GameBallisticsType g_ballisticsTypes[] = {
   }, {
     .name = "giblets",
     .defaultWait = 1000,
-    .Fire = G_ballistics_Giblets,
+    .Fire = G_Ballistics_Giblets,
     .flash = MZ_LOGOUT,
     .ballisticsMod = MOD_BALLISTICS_GIBLETS,
     .turretMod = MOD_TURRET_GIBLETS,
@@ -605,11 +605,11 @@ static const GameBallisticsType g_ballisticsTypes[] = {
 /**
  * @brief Resolves the projectile named by the suffix of a `ballistics_*` or `turret_*` classname.
  */
-static const GameBallisticsType *G_ballistics_Type(const char *name) {
+static const GameBallisticsType *G_Ballistics_Type(const char *name) {
 
-  for (size_t i = 0; i < lengthof(g_ballisticsTypes); i++) {
-    if (!q_strcmp(g_ballisticsTypes[i].name, name)) {
-      return &g_ballisticsTypes[i];
+  for (size_t i = 0; i < lengthof(ballisticsTypes); i++) {
+    if (!Str_Compare(ballisticsTypes[i].name, name)) {
+      return &ballisticsTypes[i];
     }
   }
 
@@ -619,7 +619,7 @@ static const GameBallisticsType *G_ballistics_Type(const char *name) {
 /**
  * @brief Resolves the direction a trap fires in, tracking its target entity if it has one.
  */
-static Vec3 G_ballistics_Dir(GameEntity *ent) {
+static Vec3 G_Ballistics_Dir(GameEntity *ent) {
 
   if (ent->target) {
     const GameEntity *target = G_PickTarget(ent->target);
@@ -642,7 +642,7 @@ static Vec3 G_ballistics_Dir(GameEntity *ent) {
  * hitscan type may legitimately fire on every tick, which no flash and its sample survive. A
  * sustained beam is not a shot at all, so it never flashes.
  */
-static void G_ballistics_Fire(GameEntity *ent, GameEntity *attacker, const Vec3 dir, uint32_t mod) {
+static void G_Ballistics_Fire(GameEntity *ent, GameEntity *attacker, const Vec3 dir, uint32_t mod) {
 
   const GameBallisticsType *type = ent->ballistics;
 
@@ -659,8 +659,8 @@ static void G_ballistics_Fire(GameEntity *ent, GameEntity *attacker, const Vec3 
     return;
   }
 
-  if (g_level.time >= ent->flashTime) {
-    ent->flashTime = g_level.time + type->flashInterval;
+  if (gameLevel.time >= ent->flashTime) {
+    ent->flashTime = gameLevel.time + type->flashInterval;
 
     G_WorldMuzzleFlash(start, aim, type->flash, ent->s.client);
   }
@@ -670,7 +670,7 @@ static void G_ballistics_Fire(GameEntity *ent, GameEntity *attacker, const Vec3 
  * @brief Resolves the wind-up before a shot leaves, and primes the weapon if it has one.
  * @return The millis to wait before firing, or zero to fire at once.
  */
-static uint32_t G_ballistics_Prefire(GameEntity *ent) {
+static uint32_t G_Ballistics_Prefire(GameEntity *ent) {
 
   const GameBallisticsType *type = ent->ballistics;
 
@@ -682,7 +682,7 @@ static uint32_t G_ballistics_Prefire(GameEntity *ent) {
 
   if (prefire) {
     G_MulticastSound(&(const GamePlaySound) {
-      .index = g_media.sounds.bfgPrime,
+      .index = gameMedia.sounds.bfgPrime,
       .origin = &ent->s.origin,
     }, MULTICAST_PHS);
   }
@@ -693,15 +693,15 @@ static uint32_t G_ballistics_Prefire(GameEntity *ent) {
 /**
  * @brief Think callback for a free-running trap; fires and re-arms itself.
  */
-static void G_ballistics_Think(GameEntity *ent) {
+static void G_Ballistics_Think(GameEntity *ent) {
 
   const GameBallisticsType *type = ent->ballistics;
 
   if (ent->activator && ent->activator->client) {
-    G_ballistics_Fire(ent, ent->activator, ent->activator->client->forward, type->turretMod);
+    G_Ballistics_Fire(ent, ent->activator, ent->activator->client->forward, type->turretMod);
     ent->activator = NULL;
   } else {
-    G_ballistics_Fire(ent, ent, G_ballistics_Dir(ent), type->ballisticsMod);
+    G_Ballistics_Fire(ent, ent, G_Ballistics_Dir(ent), type->ballisticsMod);
   }
 
   if (ent->count) {
@@ -709,7 +709,7 @@ static void G_ballistics_Think(GameEntity *ent) {
     const float wait = type->sustained ? 0.f
       : SECONDS_TO_MILLIS(ent->wait) + SECONDS_TO_MILLIS(ent->random) * RandomRangef(-1.f, 1.f);
 
-    ent->nextThink = g_level.time + (uint32_t) Maxf(wait, QUETOO_TICK_MILLIS);
+    ent->nextThink = gameLevel.time + (uint32_t) Maxf(wait, QUETOO_TICK_MILLIS);
   } else {
     ent->nextThink = 0;
   }
@@ -719,14 +719,14 @@ static void G_ballistics_Think(GameEntity *ent) {
  * @brief Handles use activation of a trap, toggling a free-running one or firing a single shot
  * after an optional delay.
  */
-static void G_ballistics_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
+static void G_Ballistics_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
 
   if (ent->spawnFlags & BALLISTICS_TOGGLE) {
 
     ent->count = !ent->count;
 
     if (ent->count) {
-      ent->nextThink = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(ent->delay), QUETOO_TICK_MILLIS);
+      ent->nextThink = gameLevel.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(ent->delay), QUETOO_TICK_MILLIS);
     } else {
       ent->nextThink = 0;
 
@@ -740,20 +740,20 @@ static void G_ballistics_Use(GameEntity *ent, GameEntity *other, GameEntity *act
     return;
   }
 
-  if (ent->timestamp > g_level.time) {
+  if (ent->timestamp > gameLevel.time) {
     return;
   }
 
-  ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
+  ent->timestamp = gameLevel.time + SECONDS_TO_MILLIS(ent->wait);
 
-  const uint32_t delay = (uint32_t) SECONDS_TO_MILLIS(ent->delay) + G_ballistics_Prefire(ent);
+  const uint32_t delay = (uint32_t) SECONDS_TO_MILLIS(ent->delay) + G_Ballistics_Prefire(ent);
 
   if (delay) {
-    ent->nextThink = g_level.time + (uint32_t) Maxi((int32_t) delay, QUETOO_TICK_MILLIS);
+    ent->nextThink = gameLevel.time + (uint32_t) Maxi((int32_t) delay, QUETOO_TICK_MILLIS);
   } else {
     const GameBallisticsType *type = ent->ballistics;
 
-    G_ballistics_Fire(ent, ent, G_ballistics_Dir(ent), type->ballisticsMod);
+    G_Ballistics_Fire(ent, ent, G_Ballistics_Dir(ent), type->ballisticsMod);
   }
 }
 
@@ -769,14 +769,14 @@ static void G_turret_Use(GameEntity *ent, GameEntity *other, GameEntity *activat
   // expires between uses, and its damage interval is enforced by the beam itself
   if (!type->sustained) {
 
-    if (ent->timestamp > g_level.time) {
+    if (ent->timestamp > gameLevel.time) {
       return;
     }
 
-    ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
+    ent->timestamp = gameLevel.time + SECONDS_TO_MILLIS(ent->wait);
   }
 
-  const uint32_t prefire = G_ballistics_Prefire(ent);
+  const uint32_t prefire = G_Ballistics_Prefire(ent);
 
   if (activator && activator->client) {
     ent->s.client = activator->s.client;
@@ -784,18 +784,18 @@ static void G_turret_Use(GameEntity *ent, GameEntity *other, GameEntity *activat
     if (prefire) {
       // hold the operator, and aim where they are looking when it goes off
       ent->activator = activator;
-      ent->nextThink = g_level.time + prefire;
+      ent->nextThink = gameLevel.time + prefire;
     } else {
-      G_ballistics_Fire(ent, activator, activator->client->forward, type->turretMod);
+      G_Ballistics_Fire(ent, activator, activator->client->forward, type->turretMod);
     }
   } else {
     ent->s.client = MAX_CLIENTS;
 
     if (prefire) {
       ent->activator = NULL;
-      ent->nextThink = g_level.time + prefire;
+      ent->nextThink = gameLevel.time + prefire;
     } else {
-      G_ballistics_Fire(ent, ent, ent->moveDir, type->ballisticsMod);
+      G_Ballistics_Fire(ent, ent, ent->moveDir, type->ballisticsMod);
     }
   }
 }
@@ -804,7 +804,7 @@ static void G_turret_Use(GameEntity *ent, GameEntity *other, GameEntity *activat
  * @brief Common initialization for both roles, applying the balance defaults the mapper did not
  * override.
  */
-static void G_ballistics_Init(GameEntity *ent, const GameBallisticsType *type) {
+static void G_Ballistics_Init(GameEntity *ent, const GameBallisticsType *type) {
 
   ent->ballistics = type;
 
@@ -908,25 +908,25 @@ bool G_ballistics(GameEntity *ent) {
     return false;
   }
 
-  const GameBallisticsType *type = G_ballistics_Type(name);
+  const GameBallisticsType *type = G_Ballistics_Type(name);
   if (type == NULL) {
     G_Warn("%s has no such projectile \"%s\"\n", etos(ent), name);
     G_FreeEntity(ent);
     return true;
   }
 
-  G_ballistics_Init(ent, type);
+  G_Ballistics_Init(ent, type);
 
   if (turret) {
     ent->Use = G_turret_Use;
-    ent->Think = G_ballistics_Think;
+    ent->Think = G_Ballistics_Think;
   } else {
-    ent->Use = G_ballistics_Use;
-    ent->Think = G_ballistics_Think;
+    ent->Use = G_Ballistics_Use;
+    ent->Think = G_Ballistics_Think;
 
     if (ent->spawnFlags & BALLISTICS_START_ON) {
       ent->count = 1;
-      ent->nextThink = g_level.time + RandomRangeu(1, 1000);
+      ent->nextThink = gameLevel.time + RandomRangeu(1, 1000);
     }
   }
 

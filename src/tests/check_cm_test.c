@@ -41,7 +41,7 @@ void teardown(void) {
 START_TEST(check_Cm_BoxOnPlaneSide_axial_front) {
 
   for (float i = -MAX_WORLD_AXIAL; i <= MAX_WORLD_AXIAL; i += 1.f) {
-    const CmBspPlane plane = Cm_Plane(Vec3_Up(), i);
+    const CollisionPlane plane = Cm_Plane(Vec3_Up(), i);
 
     const Vec3 mins = MakeVec3(0.f, 0.f, i);
     const Vec3 maxs = MakeVec3(0.f, 0.f, i + 1.f);
@@ -54,7 +54,7 @@ START_TEST(check_Cm_BoxOnPlaneSide_axial_front) {
 START_TEST(check_Cm_BoxOnPlaneSide_axial_back) {
 
   for (float i = -MAX_WORLD_AXIAL; i <= MAX_WORLD_AXIAL; i += 1.f) {
-    const CmBspPlane plane = Cm_Plane(Vec3_Up(), i);
+    const CollisionPlane plane = Cm_Plane(Vec3_Up(), i);
 
     const Vec3 mins = MakeVec3(0.f, 0.f, i - 1.f);
     const Vec3 maxs = MakeVec3(0.f, 0.f, i - ON_EPSILON);
@@ -67,7 +67,7 @@ START_TEST(check_Cm_BoxOnPlaneSide_axial_back) {
 START_TEST(check_Cm_BoxOnPlaneSide_general_front) {
 
   /*for (float i = -MAX_WORLD_AXIAL; i <= MAX_WORLD_AXIAL; i += 1.f) {
-    const CmBspPlane plane = Cm_Plane(Vec3_Up(), i);
+    const CollisionPlane plane = Cm_Plane(Vec3_Up(), i);
 
     const Vec3 mins = MakeVec3(0.f, 0.f, i + SIDE_EPSILON);
     const Vec3 maxs = MakeVec3(0.f, 0.f, i + SIDE_EPSILON + 1.f);
@@ -81,7 +81,7 @@ START_TEST(check_Cm_BoxOnPlaneSide_general_back) {
 
   /*for (float i = -MAX_WORLD_AXIAL; i <= MAX_WORLD_AXIAL; i += 1.f) {
     
-    const CmBspPlane plane = Cm_Plane(Vec3_Normalize(MakeVec3(1.f, 1.f, 1.f)), i);
+    const CollisionPlane plane = Cm_Plane(Vec3_Normalize(MakeVec3(1.f, 1.f, 1.f)), i);
 
     const Vec3 mins = Vec3_Scale(plane.normal, i - SIDE_EPSILON - 1.f);
     const Vec3 maxs = Vec3_Scale(plane.normal, i - SIDE_EPSILON);

@@ -38,7 +38,7 @@ static void G_CheckGround(GameEntity *ent) {
     pos = ent->s.origin;
     pos.z -= PM_GROUND_DIST;
 
-    CmTrace trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->clipMask ? : CONTENTS_MASK_SOLID);
+    CollisionTrace trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->clipMask ? : CONTENTS_MASK_SOLID);
 
     if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
       if (ent->ground.ent == NULL) {
@@ -94,12 +94,12 @@ static void G_CheckWater(GameEntity *ent) {
       ent->velocity = Vec3_Scale(ent->velocity, 0.66);
     }
 
-    if (!(ent->svFlags & SVF_NO_CLIENT)) {
+    if (!(ent->serverFlags & SVF_NO_CLIENT)) {
       const int8_t pitch = ent->waterType & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.waterIn,
+        .index = gameMedia.sounds.waterIn,
         .origin = &pos,
         .pitch = pitch,
         .gain = gain
@@ -116,12 +116,12 @@ static void G_CheckWater(GameEntity *ent) {
 
   } else if (oldWaterLevel == WATER_UNDER && ent->waterLevel == WATER_NONE) {
 
-    if (!(ent->svFlags & SVF_NO_CLIENT)) {
+    if (!(ent->serverFlags & SVF_NO_CLIENT)) {
       const int8_t pitch = oldWaterType & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
       const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = g_media.sounds.waterOut,
+        .index = gameMedia.sounds.waterOut,
         .origin = &pos,
         .pitch = pitch,
         .gain = gain
@@ -149,7 +149,7 @@ void G_RunThink(GameEntity *ent) {
     return;
   }
 
-  if (ent->nextThink > g_level.time + 1) {
+  if (ent->nextThink > gameLevel.time + 1) {
     return;
   }
 
@@ -169,7 +169,7 @@ static bool G_GoodPosition(const GameEntity *ent) {
 
   const int32_t mask = ent->clipMask ? : CONTENTS_MASK_SOLID;
 
-  const CmTrace tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, mask);
+  const CollisionTrace tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, mask);
 
   return tr.startSolid == false && tr.allSolid == false;
 }
@@ -447,7 +447,7 @@ typedef struct {
   int16_t deltaYaw;
 } GamePush;
 
-static GamePush g_pushes[MAX_ENTITIES], *g_push_p;
+static GamePush pushes[MAX_ENTITIES], *nextPush;
 
 /**
  * @brief Records the current origin, angles, and client delta-yaw of the entity
@@ -455,22 +455,22 @@ static GamePush g_pushes[MAX_ENTITIES], *g_push_p;
  */
 static void G_Physics_Push_Impact(GameEntity *ent) {
 
-  if (g_push_p - g_pushes == MAX_ENTITIES) {
+  if (nextPush - pushes == MAX_ENTITIES) {
     G_Error("MAX_ENTITIES\n");
   }
 
-  g_push_p->ent = ent;
+  nextPush->ent = ent;
 
-  g_push_p->origin = ent->s.origin;
-  g_push_p->angles = ent->s.angles;
+  nextPush->origin = ent->s.origin;
+  nextPush->angles = ent->s.angles;
 
   if (ent->client) {
-    g_push_p->deltaYaw = ent->client->ps.pmState.deltaAngles.y;
+    nextPush->deltaYaw = ent->client->ps.pmState.deltaAngles.y;
   } else {
-    g_push_p->deltaYaw = 0;
+    nextPush->deltaYaw = 0;
   }
 
-  g_push_p++;
+  nextPush++;
 }
 
 /**
@@ -576,7 +576,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
         // and clip us to where we end up.
         gi.UnlinkEntity(ent);
 
-        const CmTrace tr = gi.Trace(other->s.origin, Vec3_Add(other->s.origin, move), other->bounds, other, other->clipMask ? : CONTENTS_MASK_SOLID);
+        const CollisionTrace tr = gi.Trace(other->s.origin, Vec3_Add(other->s.origin, move), other->bounds, other, other->clipMask ? : CONTENTS_MASK_SOLID);
 
         gi.LinkEntity(ent);
 
@@ -589,7 +589,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
 
         // we intersected with the mover. we may have been pushed off of us by the world,
         // so try it's original position, which may now be valid.
-        G_Physics_Push_Revert(--g_push_p);
+        G_Physics_Push_Revert(--nextPush);
 
         if (G_CorrectPosition(other)) {
           continue;
@@ -606,7 +606,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
 
         gi.LinkEntity(ent);
 
-        CmTrace tr = gi.Clip(other->s.origin, Vec3_Subtract(other->s.origin, move), other->bounds, ent, other->clipMask ? : CONTENTS_MASK_SOLID);
+        CollisionTrace tr = gi.Clip(other->s.origin, Vec3_Subtract(other->s.origin, move), other->bounds, ent, other->clipMask ? : CONTENTS_MASK_SOLID);
 
         // move back to final position
         ent->s.origin = finalPosition;
@@ -658,8 +658,8 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
     // if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
     // blocked: revert any moves we may have made and return our obstacle
 
-    while (g_push_p > g_pushes) {
-      G_Physics_Push_Revert(--g_push_p);
+    while (nextPush > pushes) {
+      G_Physics_Push_Revert(--nextPush);
     }
 
     return other;
@@ -669,7 +669,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
   ent->s.origin = finalPosition;
 
   // the move was successful, so re-link all pushed entities
-  for (GamePush *p = g_push_p - 1; p >= g_pushes; p--) {
+  for (GamePush *p = nextPush - 1; p >= pushes; p--) {
     if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
@@ -688,7 +688,7 @@ static GameEntity *G_Physics_Push_Translate(GameEntity *ent, const Vec3 move) {
 /**
  * @brief Rotates the mover to `angles` and clips `ent` against it there.
  */
-static CmTrace G_Physics_Push_Rotate_And_Trace(GameEntity *ent, GameEntity *mover, const Vec3 angles) {
+static CollisionTrace G_Physics_Push_Rotate_And_Trace(GameEntity *ent, GameEntity *mover, const Vec3 angles) {
   mover->s.angles = angles;
   
   gi.LinkEntity(mover);
@@ -706,11 +706,11 @@ static CmTrace G_Physics_Push_Rotate_And_Trace(GameEntity *ent, GameEntity *move
  * @return The time-of-impact fraction in [0, 1] for the entity against the rotating mover.
  */
 static float G_Physics_Push_Calculate_Rotational_TOI(GameEntity *ent, GameEntity *mover, const Vec3 originalAngles, const Vec3 finalAngles, const float left, const float right) {
-  const CmTrace leftTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, left));
+  const CollisionTrace leftTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, left));
   
   const float half = Mixf(left, right, 0.5f);
 
-  const CmTrace halfTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, half));
+  const CollisionTrace halfTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, half));
 
   if (leftTr.fraction == 1.f && halfTr.fraction < 1.f) {
 
@@ -721,7 +721,7 @@ static float G_Physics_Push_Calculate_Rotational_TOI(GameEntity *ent, GameEntity
     return G_Physics_Push_Calculate_Rotational_TOI(ent, mover, originalAngles, finalAngles, left, half);
   }
 
-  const CmTrace rightTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, right));
+  const CollisionTrace rightTr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(originalAngles, finalAngles, right));
 
   if (halfTr.fraction == 1.f && rightTr.fraction < 1.f) {
 
@@ -804,7 +804,7 @@ static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
 
       gi.LinkEntity(self);
 
-      CmTrace tr = gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clipMask ? : CONTENTS_MASK_SOLID);
+      CollisionTrace tr = gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clipMask ? : CONTENTS_MASK_SOLID);
       float remainingMove = 1.0f;
 
       if (tr.fraction < 1.f) {
@@ -862,7 +862,7 @@ static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
         // an entity riding us may have been pushed off of us by the world, so try
         // it's original position, which may now be valid
 
-        G_Physics_Push_Revert(--g_push_p);
+        G_Physics_Push_Revert(--nextPush);
 
         // but in this case, don't rotate
         if (G_CorrectPosition(ent)) {
@@ -903,15 +903,15 @@ static GameEntity *G_Physics_Push_Rotate(GameEntity *self, const Vec3 amove) {
     // if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
     // blocked: revert any moves we may have made and return our obstacle
 
-    while (g_push_p > g_pushes) {
-      G_Physics_Push_Revert(--g_push_p);
+    while (nextPush > pushes) {
+      G_Physics_Push_Revert(--nextPush);
     }
 
     return ent;
   }
 
   // the move was successful, so re-link all pushed entities
-  for (GamePush *p = g_push_p - 1; p >= g_pushes; p--) {
+  for (GamePush *p = nextPush - 1; p >= pushes; p--) {
     if (p->ent->inUse) {
 
       gi.LinkEntity(p->ent);
@@ -940,7 +940,7 @@ static void G_Physics_Push(GameEntity *ent) {
   }
 
   // reset the pushed array
-  g_push_p = g_pushes;
+  nextPush = pushes;
 
   // make sure all team slaves can move before committing any moves
   for (GameEntity *part = ent; part; part = part->teamNext) {
@@ -975,22 +975,22 @@ typedef struct {
   int32_t numEntities;
 } GameTouch;
 
-static GameTouch g_touch;
+static GameTouch touch;
 
 /**
  * @brief Runs the `Touch` functions of each object.
  */
-static void G_TouchEntity(GameEntity *ent, const CmTrace *trace) {
+static void G_TouchEntity(GameEntity *ent, const CollisionTrace *trace) {
 
   // ensure that we only impact an entity once per frame
 
-  for (int32_t i = 0; i < g_touch.numEntities; i++) {
-    if (g_touch.entities[i] == trace->ent) {
+  for (int32_t i = 0; i < touch.numEntities; i++) {
+    if (touch.entities[i] == trace->ent) {
       return;
     }
   }
 
-  g_touch.entities[g_touch.numEntities++] = trace->ent;
+  touch.entities[touch.numEntities++] = trace->ent;
 
   // run the interaction
 
@@ -1016,7 +1016,7 @@ static bool G_Physics_Fly_Move(GameEntity *ent, const float bounce) {
   Vec3 planes[MAX_CLIP_PLANES];
   Vec3 origin, angles;
 
-  memset(&g_touch, 0, sizeof(g_touch));
+  memset(&touch, 0, sizeof(touch));
 
   origin = ent->s.origin;
   angles = ent->s.angles;
@@ -1037,7 +1037,7 @@ static bool G_Physics_Fly_Move(GameEntity *ent, const float bounce) {
     pos = Vec3_Fmaf(ent->s.origin, timeRemaining, ent->velocity);
 
     // trace to it
-    const CmTrace trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, mask);
+    const CollisionTrace trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, mask);
 
     // if the entity is trapped in a solid, don't build up Z
     if (trace.allSolid) {

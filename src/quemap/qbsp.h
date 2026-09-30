@@ -34,4 +34,4 @@ extern bool noMerge;
 extern bool noPhong;
 extern bool noTjunc;
 
-int32_t BSP_Main(void);
+int32_t Qbsp_Main(void);

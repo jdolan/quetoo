@@ -28,7 +28,7 @@
 #define BLEND_DAMAGE_TIME 1500
 #define BLEND_PICKUP_TIME 600
 
-static const char *BlendViewFlashImages[BlendViewTotal] = {
+static const char *flashImages[BlendViewTotal] = {
   "pics/pickup",
   "pics/powerup_quad",
   "pics/powerup_invisibility",
@@ -87,7 +87,7 @@ static SDL_Color liquidTint(void) {
 
   Color color;
 
-  const CmTrace tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
+  const CollisionTrace tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
   if (tr.brush) {
     const char *name = tr.brush->brushSides[0].material->name;
     color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
@@ -142,12 +142,12 @@ static void updateBindings(View *self, ident data) {
 
   if (data == NULL) {
     for (size_t i = 0; i < BlendViewTotal; i++) {
-      SDL_Surface *surface = cgi.LoadSurface(BlendViewFlashImages[i]);
+      SDL_Surface *surface = cgi.LoadSurface(flashImages[i]);
       if (surface) {
         $(this->flashes[i], setImageWithSurface, surface);
         SDL_DestroySurface(surface);
       } else {
-        Cg_Warn("Failed to load %s\n", BlendViewFlashImages[i]);
+        Cg_Warn("Failed to load %s\n", flashImages[i]);
       }
     }
     return;
@@ -169,21 +169,21 @@ static void updateBindings(View *self, ident data) {
   }
 
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
-  if (pickup && pickup != cgHudState.blend.pickup) {
-    cgHudState.blend.pickupTime = cgi.client->unclampedTime;
+  if (pickup && pickup != cgameHudState.blend.pickup) {
+    cgameHudState.blend.pickupTime = cgi.client->unclampedTime;
   }
-  cgHudState.blend.pickup = pickup;
+  cgameHudState.blend.pickup = pickup;
 
   if (ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH]) {
-    cgHudState.blend.damageTime = cgi.client->unclampedTime;
+    cgameHudState.blend.damageTime = cgi.client->unclampedTime;
   }
 
   float alphas[BlendViewTotal] = {
-    [BlendViewPickup] = cg_drawBlendPickup->value ? decayingAlpha(cgHudState.blend.pickupTime, BLEND_PICKUP_TIME, cg_drawBlendPickup->value) : 0.f,
+    [BlendViewPickup] = cg_drawBlendPickup->value ? decayingAlpha(cgameHudState.blend.pickupTime, BLEND_PICKUP_TIME, cg_drawBlendPickup->value) : 0.f,
     [BlendViewQuad] = ps->stats[STAT_QUAD_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvisibility] = ps->stats[STAT_INVISIBILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
     [BlendViewInvulnerability] = ps->stats[STAT_INVULNERABILITY_TIME] > 0 ? pulsingAlpha() : 0.f,
-    [BlendViewDamage] = cg_drawBlendDamage->value ? decayingAlpha(cgHudState.blend.damageTime, BLEND_DAMAGE_TIME, cg_drawBlendDamage->value) : 0.f,
+    [BlendViewDamage] = cg_drawBlendDamage->value ? decayingAlpha(cgameHudState.blend.damageTime, BLEND_DAMAGE_TIME, cg_drawBlendDamage->value) : 0.f,
   };
 
   for (size_t i = 0; i < BlendViewTotal; i++) {

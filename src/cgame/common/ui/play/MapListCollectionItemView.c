@@ -79,11 +79,11 @@ static void setMapListItemInfo(MapListCollectionItemView *self, const MapListIte
     $(item->imageView, setImageWithSurface, info->mapshot);
 
     char games[sizeof(info->games)];
-    q_strlcpy(games, info->games, sizeof(games));
+    Str_Copy(games, info->games, sizeof(games));
 
     for (char *game = strtok(games, " \t\n"); game; game = strtok(NULL, " \t\n")) {
 
-      if (q_strcmp(game, "dm") == 0) {
+      if (Str_Compare(game, "dm") == 0) {
         continue;
       }
 

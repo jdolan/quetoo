@@ -32,36 +32,36 @@ void Asset_Path(const char *name, char *out, size_t len, AssetContext context) {
     case ASSET_CONTEXT_NONE:
       break;
     case ASSET_CONTEXT_TEXTURES:
-      if (q_strncmp(name, "textures/", sizeof("textures/") - 1)) {
-        q_strlcat(out, "textures/", len);
+      if (Str_CompareN(name, "textures/", sizeof("textures/") - 1)) {
+        Str_Append(out, "textures/", len);
       }
       break;
     case ASSET_CONTEXT_MODELS:
-      if (q_strncmp(name, "models/", sizeof("models/") - 1)) {
-        q_strlcat(out, "models/", len);
+      if (Str_CompareN(name, "models/", sizeof("models/") - 1)) {
+        Str_Append(out, "models/", len);
       }
       break;
     case ASSET_CONTEXT_PLAYERS:
-      if (q_strncmp(name, "players/", sizeof("players/") - 1)) {
-        q_strlcat(out, "players/", len);
+      if (Str_CompareN(name, "players/", sizeof("players/") - 1)) {
+        Str_Append(out, "players/", len);
       }
       break;
     case ASSET_CONTEXT_SPRITES:
-      if (q_strncmp(name, "sprites/", sizeof("sprites/") - 1)) {
-        q_strlcat(out, "sprites/", len);
+      if (Str_CompareN(name, "sprites/", sizeof("sprites/") - 1)) {
+        Str_Append(out, "sprites/", len);
       }
       break;
     case ASSET_CONTEXT_SOUNDS:
-      if (q_strncmp(name, "sounds/", sizeof("sounds/") - 1)) {
-        q_strlcat(out, "sounds/", len);
+      if (Str_CompareN(name, "sounds/", sizeof("sounds/") - 1)) {
+        Str_Append(out, "sounds/", len);
       }
       break;
     case ASSET_CONTEXT_UI:
-      if (q_strncmp(name, "ui/", sizeof("ui/") - 1)) {
-        q_strlcat(out, "ui/", len);
+      if (Str_CompareN(name, "ui/", sizeof("ui/") - 1)) {
+        Str_Append(out, "ui/", len);
       }
       break;
   }
 
-  q_strlcat(out, name, len);
+  Str_Append(out, name, len);
 }

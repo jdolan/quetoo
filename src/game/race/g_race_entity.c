@@ -38,7 +38,7 @@
 /**
  * @brief The common half of every race trigger's setup.
  */
-static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, GameEntity *, const CmTrace *)) {
+static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, GameEntity *, const CollisionTrace *)) {
 
   if (ent->wait == 0.f) {
     ent->wait = RACE_TRIGGER_WAIT;
@@ -46,7 +46,7 @@ static void G_trigger_race_Init(GameEntity *ent, void (*touch)(GameEntity *, Gam
 
   ent->solid = SOLID_TRIGGER;
   ent->moveType = MOVE_TYPE_NONE;
-  ent->svFlags |= SVF_NO_CLIENT;
+  ent->serverFlags |= SVF_NO_CLIENT;
   ent->Touch = touch;
 
   gi.SetModel(ent, ent->model);
@@ -68,7 +68,7 @@ static bool G_trigger_race_Accepts(GameEntity *ent, GameEntity *other) {
 /**
  * @brief Arms, starts or restarts a run, as the start's mode asks.
  */
-static void G_trigger_race_start_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_start_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!G_trigger_race_Accepts(ent, other)) {
     return;
@@ -98,11 +98,11 @@ static void G_trigger_race_start(GameEntity *ent) {
 
   const char *mode = gi.EntityValue(ent->def, "start_mode")->nullableString;
 
-  if (!mode || !*mode || !q_strcasecmp(mode, "touch")) {
+  if (!mode || !*mode || !Str_CaseCompare(mode, "touch")) {
     ent->count = RACE_START_TOUCH;
-  } else if (!q_strcasecmp(mode, "exit")) {
+  } else if (!Str_CaseCompare(mode, "exit")) {
     ent->count = RACE_START_EXIT;
-  } else if (!q_strcasecmp(mode, "jump")) {
+  } else if (!Str_CaseCompare(mode, "jump")) {
     ent->count = RACE_START_JUMP;
   } else {
     G_Warn("%s has start_mode \"%s\"; it must be touch, exit or jump\n", etos(ent), mode);
@@ -117,7 +117,7 @@ static void G_trigger_race_start(GameEntity *ent) {
 /**
  * @brief Counts the checkpoint when it is the next one in sequence.
  */
-static void G_trigger_race_checkpoint_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_checkpoint_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Checkpoint(other->client, ent->count)) {
     G_UseTargets(ent, other);
@@ -136,7 +136,7 @@ static void G_trigger_race_checkpoint_Touch(GameEntity *ent, GameEntity *other, 
  */
 static void G_trigger_race_checkpoint(GameEntity *ent) {
 
-  const CmEntity *cp = gi.EntityValue(ent->def, "cp");
+  const Entity *cp = gi.EntityValue(ent->def, "cp");
 
   // an unreadable number is recorded as an impossible one, so that the course
   // is spoiled rather than validated around the trigger this frees
@@ -161,7 +161,7 @@ static const char *G_trigger_race_Label(const GameEntity *ent) {
 /**
  * @brief Records the split and tells the racer how it compares.
  */
-static void G_trigger_race_split_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_split_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Split(other->client, ent->count, G_trigger_race_Label(ent))) {
     G_UseTargets(ent, other);
@@ -182,7 +182,7 @@ static void G_trigger_race_split_Touch(GameEntity *ent, GameEntity *other, const
  */
 static void G_trigger_race_split(GameEntity *ent) {
 
-  const CmEntity *split = gi.EntityValue(ent->def, "split");
+  const Entity *split = gi.EntityValue(ent->def, "split");
 
   if (!G_Race_AddSplit(split->parsed & ENTITY_INTEGER ? split->integer : 0)) {
     G_Warn("%s needs split, an integer from 1 through %d\n", etos(ent), RACE_MAX_CHECKPOINTS);
@@ -198,7 +198,7 @@ static void G_trigger_race_split(GameEntity *ent) {
 /**
  * @brief Advances the run to the stage and remembers where it restarts.
  */
-static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) &&
       G_Race_Stage(other->client, ent->count, G_trigger_race_Label(ent), ent->targetEnt)) {
@@ -222,7 +222,7 @@ static void G_trigger_race_stage_Touch(GameEntity *ent, GameEntity *other, const
  */
 static void G_trigger_race_stage(GameEntity *ent) {
 
-  const CmEntity *stage = gi.EntityValue(ent->def, "stage");
+  const Entity *stage = gi.EntityValue(ent->def, "stage");
   const char *restart = gi.EntityValue(ent->def, "restart_target")->nullableString;
 
   const bool complete = (stage->parsed & ENTITY_INTEGER) && restart && *restart;
@@ -250,9 +250,9 @@ void G_Race_ResolveStages(void) {
 
     GameEntity *anchor = G_Find(NULL, EOFS(targetName), name);
 
-    if (!anchor || q_strcmp(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
+    if (!anchor || Str_Compare(anchor->classname, "info_notnull") || G_Find(anchor, EOFS(targetName), name)) {
       G_Warn("%s needs restart_target to name one info_notnull, and \"%s\" does not\n", etos(stage), name);
-      g_level.raceCourse.stagesValid = false;
+      gameLevel.raceCourse.stagesValid = false;
       continue;
     }
 
@@ -263,7 +263,7 @@ void G_Race_ResolveStages(void) {
 /**
  * @brief Ends the run, submits the record, and says how it went.
  */
-static void G_trigger_race_finish_Touch(GameEntity *ent, GameEntity *other, const CmTrace *trace) {
+static void G_trigger_race_finish_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Finish(other->client)) {
     G_UseTargets(ent, other);
@@ -297,21 +297,21 @@ static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
     return;
   }
 
-  if (g_level.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
+  if (gameLevel.raceCourse.barrierCount == RACE_MAX_BARRIERS) {
     G_Warn("%s is one func_race_* too many; the level may have %d\n", etos(ent), RACE_MAX_BARRIERS);
     G_FreeEntity(ent);
     return;
   }
 
   ent->raceBarrier = barrier;
-  ent->raceBarrierSlot = g_level.raceCourse.barrierCount;
+  ent->raceBarrierSlot = gameLevel.raceCourse.barrierCount;
   ent->solid = SOLID_BSP;
   ent->moveType = MOVE_TYPE_NONE;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
 
-  g_level.raceCourse.barriers[g_level.raceCourse.barrierCount++] = ent;
+  gameLevel.raceCourse.barriers[gameLevel.raceCourse.barrierCount++] = ent;
 }
 
 /*QUAKED func_race_checkpoint_gate (0 .5 .8) ?
@@ -327,7 +327,7 @@ static void G_func_race_Init(GameEntity *ent, GameRaceBarrier barrier) {
  */
 static void G_func_race_checkpoint_gate(GameEntity *ent) {
 
-  const CmEntity *cp = gi.EntityValue(ent->def, "cp");
+  const Entity *cp = gi.EntityValue(ent->def, "cp");
   const char *mode = gi.EntityValue(ent->def, "mode")->nullableString;
 
   if (!(cp->parsed & ENTITY_INTEGER) || cp->integer < 1 || cp->integer > RACE_MAX_CHECKPOINTS) {
@@ -341,9 +341,9 @@ static void G_func_race_checkpoint_gate(GameEntity *ent) {
     .invert = gi.EntityValue(ent->def, "invert")->integer != 0,
   };
 
-  if (!mode || !*mode || !q_strcasecmp(mode, "atleast")) {
+  if (!mode || !*mode || !Str_CaseCompare(mode, "atleast")) {
     gate.mode = RACE_GATE_AT_LEAST;
-  } else if (!q_strcasecmp(mode, "exact")) {
+  } else if (!Str_CaseCompare(mode, "exact")) {
     gate.mode = RACE_GATE_EXACT;
   } else {
     G_Warn("%s has mode \"%s\"; it must be atleast or exact\n", etos(ent), mode);
@@ -420,7 +420,7 @@ static bool G_Race_Passes(const GameClient *cl, const GameEntity *ent) {
  * @see g_race.h
  */
 void G_Race_UpdateBarriers(GameClient *cl) {
-  const GameRaceCourse *course = &g_level.raceCourse;
+  const GameRaceCourse *course = &gameLevel.raceCourse;
 
   if (!course->barrierCount) {
     return;
@@ -466,7 +466,7 @@ bool G_Race_ClipEntity(const GameEntity *mover, const GameEntity *ent) {
 static const struct {
   const char *classname;
   void (*Init)(GameEntity *ent);
-} g_race_entity_classes[] = {
+} raceEntityClasses[] = {
   { "trigger_race_start", G_trigger_race_start },
   { "trigger_race_checkpoint", G_trigger_race_checkpoint },
   { "trigger_race_split", G_trigger_race_split },
@@ -481,9 +481,9 @@ static const struct {
  */
 bool G_Race_InitEntity(GameEntity *ent) {
 
-  for (size_t i = 0; i < lengthof(g_race_entity_classes); i++) {
-    if (!q_strcmp(g_race_entity_classes[i].classname, ent->classname)) {
-      g_race_entity_classes[i].Init(ent);
+  for (size_t i = 0; i < lengthof(raceEntityClasses); i++) {
+    if (!Str_Compare(raceEntityClasses[i].classname, ent->classname)) {
+      raceEntityClasses[i].Init(ent);
       return true;
     }
   }

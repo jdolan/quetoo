@@ -72,16 +72,16 @@ struct RecordsViewInterface {
 /**
  * @see OverlayText::textForFrame(OverlayText *, const ClientFrame *)
  */
-static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
+static const char *RecordsView_textForFrame(OverlayText *self, const ClientFrame *frame) {
 
   static char text[MAX_STRING_CHARS * 2];
   char string[MAX_STRING_CHARS];
 
-  q_strlcpy(string, cgi.ConfigString(CS_RACE_RECORDS), sizeof(string));
-  q_strlcpy(text, "^2Course records", sizeof(text));
+  Str_Copy(string, cgi.ConfigString(CS_RACE_RECORDS), sizeof(string));
+  Str_Copy(text, "^2Course records", sizeof(text));
 
   if (!*string) {
-    q_strlcat(text, "\n^8none yet", sizeof(text));
+    Str_Append(text, "\n^8none yet", sizeof(text));
     return text;
   }
 
@@ -102,13 +102,13 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
     if (s) {
       *s++ = '\0';
     } else {
-      s = time + q_strlen(time);
+      s = time + Str_Length(time);
     }
 
     const char *formatted = Cg_Race_FormatTime((uint32_t) strtoul(time, NULL, 10));
-    const int32_t pad = width - 4 - (int32_t) q_strlen(name) - (int32_t) q_strlen(formatted);
+    const int32_t pad = width - 4 - (int32_t) Str_Length(name) - (int32_t) Str_Length(formatted);
 
-    q_strlcat(text, va("\n^7%2d  %s%*s%s", rank, name, pad > 1 ? pad : 1, "", formatted), sizeof(text));
+    Str_Append(text, va("\n^7%2d  %s%*s%s", rank, name, pad > 1 ? pad : 1, "", formatted), sizeof(text));
   }
 
   return text;
@@ -117,8 +117,8 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 /**
  * @see Class::initialize(Class *)
  */
-static void initializeRecordsView(Class *clazz) {
-  ((OverlayTextInterface *) clazz->interface)->textForFrame = textForFrame;
+static void RecordsView_initialize(Class *clazz) {
+  ((OverlayTextInterface *) clazz->interface)->textForFrame = RecordsView_textForFrame;
 }
 
 Class *_RecordsView(void) {
@@ -131,7 +131,7 @@ Class *_RecordsView(void) {
       .superclass = _OverlayText(),
       .instanceSize = sizeof(RecordsView),
       .interfaceSize = sizeof(RecordsViewInterface),
-      .initialize = initializeRecordsView,
+      .initialize = RecordsView_initialize,
     });
   });
 
@@ -163,7 +163,7 @@ struct RaceScoreboardViewInterface {
 /**
  * @see View::init(View *)
  */
-static View *init(View *self) {
+static View *RaceScoreboardView_init(View *self) {
 
   self = super(View, self, init);
   if (self) {
@@ -176,7 +176,7 @@ static View *init(View *self) {
 /**
  * @see ScoreboardView::rebuild(ScoreboardView *)
  */
-static void rebuild(ScoreboardView *self) {
+static void RaceScoreboardView_rebuild(ScoreboardView *self) {
 
   super(ScoreboardView, self, rebuild);
 
@@ -202,7 +202,7 @@ static void rebuild(ScoreboardView *self) {
 /**
  * @see ScoreboardView::fields(const ScoreboardView *, const ScoreField **)
  */
-static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
+static size_t RaceScoreboardView_fields(const ScoreboardView *self, const ScoreField **fields) {
 
   static const ScoreField racing[] = {
     { "mode", 128 },
@@ -217,7 +217,7 @@ static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
 /**
  * @see ScoreboardView::valueForField(const ScoreboardView *, const GameScore *, size_t)
  */
-static const char *valueForField(const ScoreboardView *self, const GameScore *score, size_t field) {
+static const char *RaceScoreboardView_valueForField(const ScoreboardView *self, const GameScore *score, size_t field) {
 
   switch (field) {
     case 0:
@@ -237,7 +237,7 @@ static const char *valueForField(const ScoreboardView *self, const GameScore *sc
 /**
  * @see ScoreboardView::describe(const ScoreboardView *, const GameScore *, const char **, const char **)
  */
-static void describe(const ScoreboardView *self, const GameScore *score, const char **detail, const char **aside) {
+static void RaceScoreboardView_describe(const ScoreboardView *self, const GameScore *score, const char **detail, const char **aside) {
 
   // the racer's mode leads, with their best and their runs opposite it
   *detail = Cg_Race_ModeName(score->raceMode);
@@ -252,14 +252,14 @@ static void describe(const ScoreboardView *self, const GameScore *score, const c
 /**
  * @see Class::initialize(Class *)
  */
-static void initializeRaceScoreboardView(Class *clazz) {
+static void RaceScoreboardView_initialize(Class *clazz) {
 
-  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->init = RaceScoreboardView_init;
 
-  ((ScoreboardViewInterface *) clazz->interface)->describe = describe;
-  ((ScoreboardViewInterface *) clazz->interface)->fields = fields;
-  ((ScoreboardViewInterface *) clazz->interface)->rebuild = rebuild;
-  ((ScoreboardViewInterface *) clazz->interface)->valueForField = valueForField;
+  ((ScoreboardViewInterface *) clazz->interface)->describe = RaceScoreboardView_describe;
+  ((ScoreboardViewInterface *) clazz->interface)->fields = RaceScoreboardView_fields;
+  ((ScoreboardViewInterface *) clazz->interface)->rebuild = RaceScoreboardView_rebuild;
+  ((ScoreboardViewInterface *) clazz->interface)->valueForField = RaceScoreboardView_valueForField;
 }
 
 Class *_RaceScoreboardView(void) {
@@ -272,7 +272,7 @@ Class *_RaceScoreboardView(void) {
       .superclass = _ScoreboardView(),
       .instanceSize = sizeof(RaceScoreboardView),
       .interfaceSize = sizeof(RaceScoreboardViewInterface),
-      .initialize = initializeRaceScoreboardView,
+      .initialize = RaceScoreboardView_initialize,
     });
   });
 

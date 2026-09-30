@@ -20,7 +20,7 @@
  */
 #pragma once
 
-#include "collision/cm_material.h"
+#include "common/material.h"
 #include "common/image.h"
 
 #include "quemap.h"
@@ -29,20 +29,19 @@
  * @brief The quemap representation of materials.
  */
 typedef struct {
-
   /**
-   * @brief The collision material backing this material.
+   * @brief The material definition.
    */
-  CmMaterial *cm;
+  Material *def;
 
   /**
    * @brief The diffusemap texture.
    */
   SDL_Surface *diffusemap;
-} Material;
+} MapMaterial;
 
 extern int32_t numMaterials;
-extern Material materials[MAX_BSP_MATERIALS];
+extern MapMaterial materials[MAX_BSP_MATERIALS];
 
 int32_t LoadMaterial(const char *name);
 void FreeMaterials(void);

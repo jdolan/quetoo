@@ -33,7 +33,7 @@
 static const struct {
   const char *icon;
   const char *name;
-} cg_cameras[CAMERA_MODE_TOTAL + 1] = {
+} cameras[CAMERA_MODE_TOTAL + 1] = {
   { "pics/camera-first_person", "1st Person" },
   { "pics/camera-third_person", "3rd Person" },
   { "pics/camera-follow", "Follow" },
@@ -83,15 +83,15 @@ static void updateBindings(View *self, ident data) {
 
   const bool detached = !Cg_CameraSubject(ps);
 
-  if (detached != this->detached || cgState.cameraMode != this->mode) {
+  if (detached != this->detached || cgameState.cameraMode != this->mode) {
 
     this->detached = detached;
-    this->mode = cgState.cameraMode;
+    this->mode = cgameState.cameraMode;
 
     const size_t camera = detached ? CAMERA_MODE_TOTAL : this->mode;
 
-    $(this->icon, setImage, (Image *) Cg_HudImage(cg_cameras[camera].icon));
-    $(this->name, setText, cg_cameras[camera].name);
+    $(this->icon, setImage, (Image *) Cg_HudImage(cameras[camera].icon));
+    $(this->name, setText, cameras[camera].name);
 
     this->time = cgi.client->unclampedTime + cg_selectWeaponInterval->integer;
   }

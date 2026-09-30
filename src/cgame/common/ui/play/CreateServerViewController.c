@@ -136,7 +136,7 @@ static void loadView(ViewController *self) {
   $(this->gameplay, addOption, "Default", "default");
 
   size_t numModes;
-  const Gameplay *modes = Cg_ListGameplayModes(&numModes);
+  const GamePlay *modes = Cg_ListGamePlays(&numModes);
   if (numModes <= 1) {
     $(gameplayInput, removeFromSuperview);
   } else {

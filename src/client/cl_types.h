@@ -29,7 +29,6 @@
 #include "ui/ui_types.h"
 
 typedef struct {
-
   /**
    * @brief The movement command.
    */
@@ -64,7 +63,6 @@ typedef struct {
 } ClientCmd;
 
 typedef struct {
-
   /**
    * @brief Sequential frame identifier, used for delta.
    */
@@ -107,7 +105,6 @@ typedef struct {
 } ClientFrame;
 
 typedef struct {
-
   /**
    * @brief The animation definition.
    */
@@ -154,7 +151,6 @@ typedef enum {
 } ClientTrailId;
 
 typedef struct {
-
   /**
    * @brief Delta base state; used when no previous frame is available.
    */
@@ -295,7 +291,7 @@ typedef struct {
   /**
    * @brief The ground trace for the predicted position.
    */
-  CmTrace ground;
+  CollisionTrace ground;
 
   /**
    * @brief The prediction error, interpolated over the current server frame.
@@ -314,7 +310,6 @@ typedef struct {
  * the client game module to provide access to media and other client state.
  */
 typedef struct {
-
   /**
    * @brief Total frames rendered during a timedemo run.
    */
@@ -459,7 +454,7 @@ typedef struct {
   /**
    * @brief Collision BSP inline models loaded for client-side prediction.
    */
-  CmBspModel *cmModels[MAX_MODELS];
+  CollisionModel *collisionModels[MAX_MODELS];
 
   /**
    * @brief Renderer models resolved from `configStrings`.
@@ -537,7 +532,6 @@ enum {
 #endif
 
 typedef struct {
-
   /**
    * @brief The current key destination (UI, console, game, chat).
    */
@@ -560,7 +554,6 @@ typedef struct {
 } ClientKeyState;
 
 typedef struct {
-
   /**
    * @brief Current relative mouse delta, in sensitivity-scaled units.
    */
@@ -573,7 +566,6 @@ typedef struct {
 } ClientMouseState;
 
 typedef struct {
-
   /**
    * @brief The download file handle.
    */
@@ -603,7 +595,6 @@ typedef enum {
  * @brief The server information type, hydrated by querying server status via the browser.
  */
 typedef struct {
-
   /**
    * @brief The server network address.
    */
@@ -777,7 +768,7 @@ typedef struct {
   int32_t duration;
 
   /**
-   * @brief True if demo playback is believed to be paused, toggled locally by the `demo_pause`
+   * @brief True if demo playback is believed to be paused, toggled locally by the `demoPause`
    * command (see `Cl_DemoPause_f`). The server is the actual authority on pause state, but
    * tracking it client-side avoids a round trip just to gate the paused-playback controls UI,
    * the mouse grab, and UI event dispatch.
@@ -839,7 +830,6 @@ typedef enum {
  * client game module.
  */
 typedef struct {
-
   /**
    * @brief The current client connection state.
    */

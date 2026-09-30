@@ -24,36 +24,18 @@
 
 #include "shared/shared.h"
 
-START_TEST(check_q_str_has_token) {
-  ck_assert(q_str_has_token("dm ctf race", "dm"));
-  ck_assert(q_str_has_token("dm ctf race", "ctf"));
-  ck_assert(q_str_has_token("dm ctf race", "race"));
-  ck_assert(q_str_has_token("  dm\tctf\n", "ctf"));
-  ck_assert(!q_str_has_token("tdm", "dm"));
-  ck_assert(!q_str_has_token("dm", "tdm"));
-  ck_assert(!q_str_has_token("dm ctf", "dm ctf"));
-  ck_assert(!q_str_has_token("dm ", ""));
-  ck_assert(!q_str_has_token("", "dm"));
-  ck_assert(!q_str_has_token(NULL, "dm"));
-  ck_assert(!q_str_has_token("dm", NULL));
-} END_TEST
-
-START_TEST(check_q_str_ident_equal) {
-  ck_assert(q_str_ident_equal("r_swapInterval", "r_swapInterval"));
-  ck_assert(q_str_ident_equal("cg_addDecals", "cg_addDecals"));
-  ck_assert(q_str_ident_equal("+move_forward", "+moveForward"));
-  ck_assert(q_str_ident_equal("noClip", "noClip"));
-  ck_assert(q_str_ident_equal("r_swapInterval", "r_swapInterval"));
-  ck_assert(q_str_ident_equal("R_SWAP_INTERVAL", "r_swapInterval"));
-  ck_assert(q_str_ident_equal("__r__swap__interval__", "r_swapInterval"));
-  ck_assert(q_str_ident_equal("", "____"));
-  ck_assert(q_str_ident_equal(NULL, NULL));
-
-  ck_assert(!q_str_ident_equal("r_swapInterval", "r_swapIntervals"));
-  ck_assert(!q_str_ident_equal("cg_addDecals", "cl_addDecals"));
-  ck_assert(!q_str_ident_equal("+moveForward", "-moveForward"));
-  ck_assert(!q_str_ident_equal("r_swapInterval", NULL));
-  ck_assert(!q_str_ident_equal(NULL, "r_swapInterval"));
+START_TEST(check_Str_HasToken) {
+  ck_assert(Str_HasToken("dm ctf race", "dm"));
+  ck_assert(Str_HasToken("dm ctf race", "ctf"));
+  ck_assert(Str_HasToken("dm ctf race", "race"));
+  ck_assert(Str_HasToken("  dm\tctf\n", "ctf"));
+  ck_assert(!Str_HasToken("tdm", "dm"));
+  ck_assert(!Str_HasToken("dm", "tdm"));
+  ck_assert(!Str_HasToken("dm ctf", "dm ctf"));
+  ck_assert(!Str_HasToken("dm ", ""));
+  ck_assert(!Str_HasToken("", "dm"));
+  ck_assert(!Str_HasToken(NULL, "dm"));
+  ck_assert(!Str_HasToken("dm", NULL));
 } END_TEST
 
 START_TEST(check_InfoString_Get) {
@@ -101,8 +83,7 @@ START_TEST(check_InfoString_Get) {
 int32_t main(int32_t argc, char **argv) {
 
   TCase *tcase = tcase_create("check_shared");
-  tcase_add_test(tcase, check_q_str_has_token);
-  tcase_add_test(tcase, check_q_str_ident_equal);
+  tcase_add_test(tcase, check_Str_HasToken);
   tcase_add_test(tcase, check_InfoString_Get);
 
   Suite *suite = suite_create("check_shared");

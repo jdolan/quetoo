@@ -56,7 +56,7 @@ static bool Archive_IsReservedName(const char *component, size_t len) {
 
   for (size_t i = 0; i < lengthof(archiveReservedNames); i++) {
     const char *reserved = archiveReservedNames[i];
-    if (stem == q_strlen(reserved) && q_strncasecmp(component, reserved, stem) == 0) {
+    if (stem == Str_Length(reserved) && Str_CaseCompareN(component, reserved, stem) == 0) {
       return true;
     }
   }
@@ -79,7 +79,7 @@ bool Archive_SafePath(const char *dest, const char *name, char *out, size_t len)
   }
 
   char normalized[MAX_OS_PATH];
-  if (q_strlcpy(normalized, name, sizeof(normalized)) >= sizeof(normalized)) {
+  if (Str_Copy(normalized, name, sizeof(normalized)) >= sizeof(normalized)) {
     return false;
   }
 
@@ -92,10 +92,10 @@ bool Archive_SafePath(const char *dest, const char *name, char *out, size_t len)
   const char *component = normalized;
   while (*component) {
 
-    const char *end = q_strchr(component, '/');
-    const size_t clen = end ? (size_t) (end - component) : q_strlen(component);
+    const char *end = Str_FindChar(component, '/');
+    const size_t clen = end ? (size_t) (end - component) : Str_Length(component);
 
-    if (clen == 2 && q_strncmp(component, "..", 2) == 0) {
+    if (clen == 2 && Str_CompareN(component, "..", 2) == 0) {
       return false;
     }
 
@@ -114,7 +114,7 @@ bool Archive_SafePath(const char *dest, const char *name, char *out, size_t len)
     component = end + 1;
   }
 
-  if (q_snprintf(out, len, "%s/%s", dest, normalized) >= (int32_t) len) {
+  if (Str_Format(out, len, "%s/%s", dest, normalized) >= (int32_t) len) {
     return false;
   }
 
@@ -127,9 +127,9 @@ bool Archive_SafePath(const char *dest, const char *name, char *out, size_t len)
 static bool Archive_CreateParent(const char *path) {
 
   char dir[MAX_OS_PATH];
-  q_strlcpy(dir, path, sizeof(dir));
+  Str_Copy(dir, path, sizeof(dir));
 
-  char *slash = q_strrchr(dir, '/');
+  char *slash = Str_FindLastChar(dir, '/');
   if (!slash) {
     return true;
   }
@@ -256,12 +256,12 @@ static bool Archive_DittoMount(const char *mount, const char *dest) {
   const struct dirent *entry;
   while ((entry = readdir(dir))) {
 
-    if (q_strcmp(entry->d_name, ".") == 0 || q_strcmp(entry->d_name, "..") == 0) {
+    if (Str_Compare(entry->d_name, ".") == 0 || Str_Compare(entry->d_name, "..") == 0) {
       continue;
     }
 
     char src[MAX_OS_PATH];
-    q_snprintf(src, sizeof(src), "%s/%s", mount, entry->d_name);
+    Str_Format(src, sizeof(src), "%s/%s", mount, entry->d_name);
 
     struct stat st;
     if (lstat(src, &st) == 0 && S_ISLNK(st.st_mode)) {
@@ -269,7 +269,7 @@ static bool Archive_DittoMount(const char *mount, const char *dest) {
     }
 
     char dst[MAX_OS_PATH];
-    q_snprintf(dst, sizeof(dst), "%s/%s", dest, entry->d_name);
+    Str_Format(dst, sizeof(dst), "%s/%s", dest, entry->d_name);
 
     if (!Archive_Spawn((const char *[]) { "/usr/bin/ditto", src, dst, NULL })) {
       success = false;
@@ -290,7 +290,7 @@ static bool Archive_DittoMount(const char *mount, const char *dest) {
 static bool Archive_ExtractDmg(const char *archive, const char *dest) {
 
   char mount[MAX_OS_PATH];
-  q_snprintf(mount, sizeof(mount), "%s/.mount", dest);
+  Str_Format(mount, sizeof(mount), "%s/.mount", dest);
 
   if (!SDL_CreateDirectory(mount)) {
     Com_Warn("Failed to create %s: %s\n", mount, SDL_GetError());
@@ -343,12 +343,12 @@ static bool Archive_ExtractTarGz(const char *archive, const char *dest) {
  */
 static bool Archive_HasSuffix(const char *path, const char *suffix) {
 
-  const size_t plen = q_strlen(path), slen = q_strlen(suffix);
+  const size_t plen = Str_Length(path), slen = Str_Length(suffix);
   if (plen < slen) {
     return false;
   }
 
-  return q_strncasecmp(path + plen - slen, suffix, slen) == 0;
+  return Str_CaseCompareN(path + plen - slen, suffix, slen) == 0;
 }
 
 bool Archive_Extract(const char *archive, const char *dest) {

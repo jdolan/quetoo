@@ -49,12 +49,12 @@ static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
   }
 
   const ClientEntity *ent = cgi.client->entities + e;
-  const CGameClientInfo *ci = &cgState.clients[ent->current.client];
+  const CGameClientInfo *ci = &cgameState.clients[ent->current.client];
 
   static char string[MAX_INFO_STRING_VALUE * 2];
-  q_snprintf(string, sizeof(string), "Chasing ^7%s", ci->name);
+  Str_Format(string, sizeof(string), "Chasing ^7%s", ci->name);
 
-  char *s = q_strchr(string, '\\');
+  char *s = Str_FindChar(string, '\\');
   if (s) {
     *s = '\0';
   }

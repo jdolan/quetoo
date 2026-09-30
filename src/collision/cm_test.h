@@ -27,7 +27,7 @@
  * @brief Returns the distance from `point` to `plane`.
  * @return The signed distance; positive is in front, negative is behind.
  */
-static inline float Cm_DistanceToPlane(const Vec3 point, const CmBspPlane *plane) {
+static inline float Cm_DistanceToPlane(const Vec3 point, const CollisionPlane *plane) {
   return Vec3_Dot(point, plane->normal) - plane->dist;
 }
 
@@ -42,29 +42,29 @@ int32_t Cm_PlaneTypeForNormal(const Vec3 normal);
 int32_t Cm_SignBitsForNormal(const Vec3 normal);
 
 /**
- * @brief Constructs a `CmBspPlane` from a normal and distance.
+ * @brief Constructs a `CollisionPlane` from a normal and distance.
  */
-CmBspPlane Cm_Plane(const Vec3 normal, float dist);
+CollisionPlane Cm_Plane(const Vec3 normal, float dist);
 
 /**
  * @brief Transforms a plane by the given 4x4 matrix.
  */
-CmBspPlane Cm_TransformPlane(const Mat4 matrix, const CmBspPlane plane);
+CollisionPlane Cm_TransformPlane(const Mat4 matrix, const CollisionPlane plane);
 
 /**
  * @brief Projects a point onto the plane, returning the nearest point on the plane surface.
  */
-Vec3 Cm_ProjectPointToPlane(const Vec3 point, const CmBspPlane *plane);
+Vec3 Cm_ProjectPointToPlane(const Vec3 point, const CollisionPlane *plane);
 
 /**
  * @brief Returns the side(s) of the plane that the bounding box intersects.
  */
-int32_t Cm_BoxOnPlaneSide(const Box3 bounds, const CmBspPlane *plane);
+int32_t Cm_BoxOnPlaneSide(const Box3 bounds, const CollisionPlane *plane);
 
 /**
  * @brief Returns true if the point lies inside (or on) all sides of the brush.
  */
-bool Cm_PointInsideBrush(const Vec3 point, const CmBspBrush *brush);
+bool Cm_PointInsideBrush(const Vec3 point, const CollisionBrush *brush);
 
 /**
  * @brief Allocates a temporary hull for the given axis-aligned bounding box.
@@ -94,5 +94,5 @@ size_t Cm_BoxLeafnums(const Box3 bounds, int32_t *list, size_t length, int32_t *
 int32_t Cm_BoxContents(const Box3 bounds, int32_t headNode);
 
 #if defined(__CM_LOCAL_H__)
-void Cm_InitBoxHull(CmBsp *bsp);
+void Cm_InitBoxHull(CollisionBsp *bsp);
 #endif

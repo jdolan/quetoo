@@ -46,19 +46,19 @@ static void FreeLight(Light *light) {
 /**
  * @brief Finds the `teamMaster` light entity for the given team.
  */
-static const CmEntity *FindTeamMaster(const char *team) {
+static const Entity *FindTeamMaster(const char *team) {
 
   if (!team) {
     return NULL;
   }
 
-  CmEntity **e = Cm_Bsp()->entities;
+  Entity **e = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++, e++) {
-    const char *classname = Cm_EntityValue(*e, "classname")->string;
-    if (!q_strcmp(classname, "light")) {
-      const char *entTeam = Cm_EntityValue(*e, "team")->nullableString;
-      if (entTeam && !q_strcmp(entTeam, team)) {
-        if (Cm_EntityValue(*e, "team_master")->parsed) {
+    const char *classname = Entity_Value(*e, "classname")->string;
+    if (!Str_Compare(classname, "light")) {
+      const char *entTeam = Entity_Value(*e, "team")->nullableString;
+      if (entTeam && !Str_Compare(entTeam, team)) {
+        if (Entity_Value(*e, "team_master")->parsed) {
           return *e;
         }
       }
@@ -71,38 +71,38 @@ static const CmEntity *FindTeamMaster(const char *team) {
 /**
  * @brief Parses a light entity and returns a populated `Light`, or `NULL` if the entity is not a light.
  */
-static Light *LightForEntity(const CmEntity *entity) {
+static Light *LightForEntity(const Entity *entity) {
 
-  const char *classname = Cm_EntityValue(entity, "classname")->string;
-  if (!q_strcmp(classname, "light")) {
+  const char *classname = Entity_Value(entity, "classname")->string;
+  if (!Str_Compare(classname, "light")) {
 
     Light *light = AllocLight();
 
-    light->entity = Cm_EntityNumber(entity);
-    light->origin = Cm_EntityValue(entity, "origin")->vec3;
-    light->radius = Cm_EntityValue(entity, "radius")->value;
-    light->color = Cm_EntityValue(entity, "color")->vec3;
-    light->intensity = Cm_EntityValue(entity, "intensity")->value;
-    q_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
+    light->entity = Entity_Number(entity);
+    light->origin = Entity_Value(entity, "origin")->vec3;
+    light->radius = Entity_Value(entity, "radius")->value;
+    light->color = Entity_Value(entity, "color")->vec3;
+    light->intensity = Entity_Value(entity, "intensity")->value;
+    Str_Copy(light->style, Entity_Value(entity, "style")->string, sizeof(light->style));
 
-    const float drift = Cm_EntityValue(entity, "drift")->value;
+    const float drift = Entity_Value(entity, "drift")->value;
 
-    const CmEntity *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullableString);
+    const Entity *master = FindTeamMaster(Entity_Value(entity, "team")->nullableString);
     if (master) {
-      light->radius = light->radius ?: Cm_EntityValue(master, "radius")->value;
+      light->radius = light->radius ?: Entity_Value(master, "radius")->value;
 
       if (Vec3_Equal(Vec3_Zero(), light->color)) {
-        light->color = Cm_EntityValue(master, "color")->vec3;
+        light->color = Entity_Value(master, "color")->vec3;
       }
 
-      light->intensity = light->intensity ?: Cm_EntityValue(master, "intensity")->value;
+      light->intensity = light->intensity ?: Entity_Value(master, "intensity")->value;
 
       if (!*light->style) {
-        q_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
+        Str_Copy(light->style, Entity_Value(master, "style")->string, sizeof(light->style));
       }
 
       if (!light->drift) {
-        light->drift = Cm_EntityValue(master, "drift")->value;
+        light->drift = Entity_Value(master, "drift")->value;
       }
     }
 
@@ -129,12 +129,12 @@ static Light *LightForEntity(const CmEntity *entity) {
 
     // Entity-attached lights target an inline model entity and move with it at runtime.
     // Resolve the target entity number now so the BSP carries the reference.
-    const char *target = Cm_EntityValue(entity, "target")->nullableString;
+    const char *target = Entity_Value(entity, "target")->nullableString;
     if (target) {
-      const CmBsp *bsp = Cm_Bsp();
+      const CollisionBsp *bsp = Cm_Bsp();
       for (int32_t i = 0; i < bsp->numEntities; i++) {
-        const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullableString;
-        if (!q_strcmp(targetname, target)) {
+        const char *targetname = Entity_Value(bsp->entities[i], "targetname")->nullableString;
+        if (!Str_Compare(targetname, target)) {
           light->targetEntity = i;
           break;
         }
@@ -171,10 +171,10 @@ void FreeLights(void) {
  * @brief Returns a new light for the given material light.
  * @param colors The resolved default colors, indexed by material, and zero until resolved.
  */
-static Light *LightForMaterial(const CmMaterialLight *in, Vec3 *colors) {
+static Light *LightForMaterial(const MaterialLight *in, Vec3 *colors) {
 
-  const CmMaterial *material = Cm_Bsp()->materials[in->material];
-  const CmStage *stage = Cm_MaterialLightStage(material);
+  const Material *material = Cm_Bsp()->materials[in->material];
+  const MaterialStage *stage = Material_LightStage(material);
 
   Light *light = AllocLight();
 
@@ -186,7 +186,7 @@ static Light *LightForMaterial(const CmMaterialLight *in, Vec3 *colors) {
 
   if (Vec3_Equal(stage->light.color, Vec3_Zero())) {
     if (Vec3_Equal(colors[in->material], Vec3_Zero())) {
-      colors[in->material] = Cm_MaterialLightColor(material, stage);
+      colors[in->material] = Material_LightColor(material, stage);
     }
     light->color = colors[in->material];
   } else {
@@ -214,7 +214,7 @@ void BuildLights(void) {
 
   lights = lights ?: $(alloc(Vector), initWithSize, sizeof(Light *));
 
-  CmEntity **entity = Cm_Bsp()->entities;
+  Entity **entity = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++, entity++) {
     Light *light = LightForEntity(*entity);
     if (light) {
@@ -223,8 +223,8 @@ void BuildLights(void) {
     Progress("Building lights", i * 100.f / Cm_Bsp()->numEntities);
   }
 
-  Vector *materialLights = $(alloc(Vector), initWithSize, sizeof(CmMaterialLight));
-  Cm_MaterialLights(&bspFile, Cm_Bsp()->materials, -1, materialLights);
+  Vector *materialLights = $(alloc(Vector), initWithSize, sizeof(MaterialLight));
+  Material_Lights(&bspFile, Cm_Bsp()->materials, -1, materialLights);
 
   Vec3 *colors = Mem_TagMalloc(sizeof(Vec3) * Maxi(1, Cm_Bsp()->numMaterials), (MemTag) MEM_TAG_LIGHT);
 
@@ -236,7 +236,7 @@ void BuildLights(void) {
       break;
     }
 
-    Light *light = LightForMaterial(VectorElement(materialLights, CmMaterialLight, i), colors);
+    Light *light = LightForMaterial(VectorElement(materialLights, MaterialLight, i), colors);
     $(lights, add, &light);
   }
 
@@ -294,7 +294,7 @@ void EmitLights(void) {
     out->bounds = light->visibleBounds;
     out->targetEntity = light->targetEntity;
     out->material = light->material;
-    q_strlcpy(out->style, light->style, sizeof(out->style));
+    Str_Copy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 
     if (light->targetEntity == -1) {

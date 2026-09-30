@@ -39,7 +39,7 @@ static void R_RegisterMaterial(RenderMedia *self) {
  */
 static void R_FreeMaterial(RenderMedia *self) {
 
-  Cm_FreeMaterial(((RenderMaterial *) self)->cm);
+  Material_Free(((RenderMaterial *) self)->def);
 }
 
 /**
@@ -47,21 +47,21 @@ static void R_FreeMaterial(RenderMedia *self) {
  */
 static RenderAnimation *R_LoadStageAnimation(const RenderMaterial *material, RenderStage *stage, int32_t index) {
 
-  const RenderImage *images[stage->cm->animation.numFrames];
+  const RenderImage *images[stage->def->animation.numFrames];
   const RenderImage **out = images;
 
-  for (int32_t i = 0; i < stage->cm->animation.numFrames; i++, out++) {
+  for (int32_t i = 0; i < stage->def->animation.numFrames; i++, out++) {
 
-    Asset *frame = &stage->cm->animation.frames[i];
+    Asset *frame = &stage->def->animation.frames[i];
     if (*frame->path) {
       *out = R_LoadImage(frame->path, IMG_MATERIAL);
     } else {
       *out = R_LoadImage("textures/common/notex", IMG_MATERIAL);
-      Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
+      Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->def->asset.name);
     }
   }
 
-  return R_CreateAnimation(va("%s_%d_animation", material->media.name, index), stage->cm->animation.numFrames, images);
+  return R_CreateAnimation(va("%s_%d_animation", material->media.name, index), stage->def->animation.numFrames, images);
 }
 
 /**
@@ -89,7 +89,7 @@ typedef struct {
 } RenderMaterialSurface;
 
 /**
- * @brief ThreadRunFunc which decodes a single material surface.
+ * @brief ThreadRun which decodes a single material surface.
  */
 static void R_LoadMaterialSurface(void *data) {
 
@@ -217,28 +217,28 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 static void R_ResolveMaterialStages(RenderMaterial *material) {
   int32_t numStages = 0;
 
-  const CmMaterial *cm = material->cm;
-  for (const CmStage *cs = cm->stages; cs; cs = cs->next, numStages++) {
+  const Material *def = material->def;
+  for (const MaterialStage *cs = def->stages; cs; cs = cs->next, numStages++) {
 
     RenderStage *stage = (RenderStage *) Mem_LinkMalloc(sizeof(RenderStage), material);
-    stage->cm = cs;
+    stage->def = cs;
     stage->flags = cs->flags;
 
     if (stage->flags & STAGE_MASK_SUBVIEW) {
 
       const int32_t surface = (stage->flags & STAGE_PORTAL) ? SURF_PORTAL : SURF_REFLECT;
 
-      if (!(cm->surface & surface)) {
-        Com_Warn("%s stage %d draws a subview its surface does not show\n", cm->name, numStages);
+      if (!(def->surface & surface)) {
+        Com_Warn("%s stage %d draws a subview its surface does not show\n", def->name, numStages);
         stage->flags &= ~STAGE_MASK_SUBVIEW;
       }
     }
 
-    if (*stage->cm->asset.path) {
-      if (stage->cm->flags & STAGE_ANIMATION) {
+    if (*stage->def->asset.path) {
+      if (stage->def->flags & STAGE_ANIMATION) {
         stage->media = (RenderMedia *) R_LoadStageAnimation(material, stage, numStages);
       } else {
-        stage->media = (RenderMedia *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
+        stage->media = (RenderMedia *) R_LoadImage(stage->def->asset.path, IMG_MATERIAL);
       }
 
       assert(stage->media);
@@ -249,19 +249,19 @@ static void R_ResolveMaterialStages(RenderMaterial *material) {
     R_AppendStage(material, stage);
   }
 
-  Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->cm->name, numStages);
+  Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->def->name, numStages);
 }
 
 /**
  * @brief Creates a renderer material from a collision material.
  */
-static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
+static RenderMaterial *R_ResolveMaterial(Material *def) {
   char key[MAX_QPATH];
 
-  Cm_MaterialPath(cm->name, key, sizeof(key), cm->context);
+  Material_Path(def->name, key, sizeof(key), def->context);
 
   RenderMaterial *material = (RenderMaterial *) R_AllocMedia(key, sizeof(RenderMaterial), R_MEDIA_MATERIAL);
-  material->cm = cm;
+  material->def = def;
 
   material->media.Register = R_RegisterMaterial;
   material->media.Free = R_FreeMaterial;
@@ -274,39 +274,39 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
   R_RegisterDependency((RenderMedia *) material, (RenderMedia *) material->texture);
 
-  Cm_ResolveMaterial(cm);
+  Material_Resolve(def);
 
-  const bool layered = cm->context == ASSET_CONTEXT_TEXTURES ||
-                       cm->context == ASSET_CONTEXT_MODELS ||
-                       cm->context == ASSET_CONTEXT_PLAYERS;
+  const bool layered = def->context == ASSET_CONTEXT_TEXTURES ||
+                       def->context == ASSET_CONTEXT_MODELS ||
+                       def->context == ASSET_CONTEXT_PLAYERS;
 
   RenderMaterialSurface surfaces[] = {
-    { .asset = &cm->diffusemap },
-    { .asset = &cm->normalmap },
-    { .asset = &cm->specularmap },
-    { .asset = &cm->tintmap },
+    { .asset = &def->diffusemap },
+    { .asset = &def->normalmap },
+    { .asset = &def->specularmap },
+    { .asset = &def->tintmap },
   };
 
   R_LoadMaterialSurfaces(surfaces, layered ? lengthof(surfaces) : 1);
 
   SDL_Surface *diffusemap = NULL;
-  if (*cm->diffusemap.path) {
+  if (*def->diffusemap.path) {
     if ((diffusemap = surfaces[0].surface)) {
-      Com_Debug(DEBUG_RENDERER, "Loaded diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+      Com_Debug(DEBUG_RENDERER, "Loaded diffusemap %s for %s\n", def->diffusemap.path, def->basename);
     } else {
-      if (cm->context == ASSET_CONTEXT_PLAYERS) {
-        Com_Debug(DEBUG_RENDERER, "Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+      if (def->context == ASSET_CONTEXT_PLAYERS) {
+        Com_Debug(DEBUG_RENDERER, "Failed to load diffusemap %s for %s\n", def->diffusemap.path, def->basename);
       } else {
-        Com_Warn("Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+        Com_Warn("Failed to load diffusemap %s for %s\n", def->diffusemap.path, def->basename);
       }
       diffusemap = Img_LoadSurface("textures/common/notex");
     }
   } else {
-    if (cm->context == ASSET_CONTEXT_PLAYERS) {
+    if (def->context == ASSET_CONTEXT_PLAYERS) {
       // third-party player models frequently omit skins for decorative or FX-only surfaces
-      Com_Debug(DEBUG_RENDERER, "Failed to load diffusemap for %s\n", cm->basename);
+      Com_Debug(DEBUG_RENDERER, "Failed to load diffusemap for %s\n", def->basename);
     } else {
-      Com_Warn("Failed to load diffusemap for %s\n", cm->basename);
+      Com_Warn("Failed to load diffusemap for %s\n", def->basename);
     }
     diffusemap = Img_LoadSurface("textures/common/notex");
   }
@@ -318,19 +318,19 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
   if (layered) {
 
-    if (cm->context == ASSET_CONTEXT_MODELS
-        || cm->context == ASSET_CONTEXT_PLAYERS) {
-      cm->shadow = 0.f;
+    if (def->context == ASSET_CONTEXT_MODELS
+        || def->context == ASSET_CONTEXT_PLAYERS) {
+      def->shadow = 0.f;
     }
 
     SDL_Surface *normalmap = NULL;
-    if (*cm->normalmap.path) {
+    if (*def->normalmap.path) {
       normalmap = surfaces[1].surface;
       if (normalmap == NULL) {
-        Com_Warn("Failed to load normalmap %s for %s\n", cm->normalmap.path, cm->basename);
+        Com_Warn("Failed to load normalmap %s for %s\n", def->normalmap.path, def->basename);
         normalmap = R_CreateMaterialSurface(w, h, MakeColor32(127, 127, 255, 255));
       } else {
-        normalmap = R_ResizeMaterialSurface(normalmap, w, h, cm->normalmap.path);
+        normalmap = R_ResizeMaterialSurface(normalmap, w, h, def->normalmap.path);
       }
     } else {
       normalmap = R_CreateMaterialSurface(w, h, MakeColor32(127, 127, 255, 255));
@@ -339,26 +339,26 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
     R_NormalizeMaterialHeightmap(normalmap);
 
     SDL_Surface *specularmap = NULL;
-    if (*cm->specularmap.path) {
+    if (*def->specularmap.path) {
       specularmap = surfaces[2].surface;
       if (specularmap == NULL) {
-        Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
+        Com_Warn("Failed to load specularmap %s for %s\n", def->specularmap.path, def->basename);
         specularmap = R_CreateSpecularmap(diffusemap);
       } else {
-        specularmap = R_ResizeMaterialSurface(specularmap, w, h, cm->specularmap.path);
+        specularmap = R_ResizeMaterialSurface(specularmap, w, h, def->specularmap.path);
       }
     } else {
       specularmap = R_CreateSpecularmap(diffusemap);
     }
 
     SDL_Surface *tintmap = NULL;
-    if (*cm->tintmap.path) {
+    if (*def->tintmap.path) {
       tintmap = surfaces[3].surface;
       if (tintmap == NULL) {
-        Com_Warn("Failed to load tintmap %s for %s\n", cm->tintmap.path, cm->basename);
+        Com_Warn("Failed to load tintmap %s for %s\n", def->tintmap.path, def->basename);
         tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, MakeColor32(0, 0, 0, 0));
       } else {
-        tintmap = R_ResizeMaterialSurface(tintmap, w, h, cm->tintmap.path);
+        tintmap = R_ResizeMaterialSurface(tintmap, w, h, def->tintmap.path);
       }
     } else {
       tintmap = R_CreateMaterialSurface(diffusemap->w, diffusemap->h, MakeColor32(0, 0, 0, 0));
@@ -375,7 +375,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
     const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
 
-    material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    material->texture->texture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = w,
@@ -387,7 +387,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
     free(data);
 
-    CommandBuffer *commands = $(rContext.device, acquireCommandBuffer);
+    CommandBuffer *commands = $(renderContext.device, acquireCommandBuffer);
     $(commands, generateMipmaps, material->texture->texture->texture);
     $(commands, submit);
     release(commands);
@@ -398,7 +398,7 @@ static RenderMaterial *R_ResolveMaterial(CmMaterial *cm) {
 
   } else {
 
-    material->texture->texture = $(rContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    material->texture->texture = $(renderContext.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = w,
@@ -456,17 +456,17 @@ void R_ReloadMaterialStages(RenderMaterial *material) {
  */
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out) {
 
-  const CmMaterial *cm = material->cm;
+  const Material *def = material->def;
 
   memset(out, 0, sizeof(*out));
 
   out->surface = surface;
-  out->alphaTest = cm->alphaTest * r_alphaTest->value;
-  out->roughness = cm->roughness * r_roughness->value;
-  out->hardness = cm->hardness * r_hardness->value;
-  out->specularity = cm->specularity * r_specularity->value;
-  out->parallax = cm->parallax * r_parallax->value;
-  out->shadow = cm->shadow * r_parallaxShadow->value;
+  out->alphaTest = def->alphaTest * r_alphaTest->value;
+  out->roughness = def->roughness * r_roughness->value;
+  out->hardness = def->hardness * r_hardness->value;
+  out->specularity = def->specularity * r_specularity->value;
+  out->parallax = def->parallax * r_parallax->value;
+  out->shadow = def->shadow * r_parallaxShadow->value;
 }
 
 /**
@@ -488,26 +488,26 @@ float R_StageDriftHash(const void *a, const void *b) {
 bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const RenderBspDrawElements *draw, const RenderStage *stage,
                      RenderMaterialUniforms *out, SDL_GPUTexture **texture, SDL_GPUTexture **textureNext) {
 
-  const CmStage *cm = stage->cm;
+  const MaterialStage *def = stage->def;
 
   out->lerp = 0.f;
 
   out->flags = stage->flags;
-  out->color = cm->color.vec4;
+  out->color = def->color.vec4;
   out->stOrigin = draw ? draw->stOrigin : Vec2_Zero();
-  out->stretch = MakeVec2(cm->stretch.amplitude, cm->stretch.hz);
-  out->scroll = MakeVec2(cm->scroll.s, cm->scroll.t);
-  out->scale = MakeVec2(cm->scale.s, cm->scale.t);
-  out->terrain = MakeVec2(cm->terrain.floor, cm->terrain.ceil);
-  out->warp = MakeVec2(cm->warp.hz, cm->warp.amplitude);
-  out->pulse = cm->pulse.hz;
+  out->stretch = MakeVec2(def->stretch.amplitude, def->stretch.hz);
+  out->scroll = MakeVec2(def->scroll.s, def->scroll.t);
+  out->scale = MakeVec2(def->scale.s, def->scale.t);
+  out->terrain = MakeVec2(def->terrain.floor, def->terrain.ceil);
+  out->warp = MakeVec2(def->warp.hz, def->warp.amplitude);
+  out->pulse = def->pulse.hz;
   out->drift = 0.f;
-  out->rotate = cm->rotate.hz;
-  out->dirtmap = cm->dirtmap.intensity;
-  out->lighting = cm->lighting.intensity;
-  out->emissive = cm->emissive;
-  out->shell = cm->shell.radius;
-  out->envmap = cm->envmap.amount;
+  out->rotate = def->rotate.hz;
+  out->dirtmap = def->dirtmap.intensity;
+  out->lighting = def->lighting.intensity;
+  out->emissive = def->emissive;
+  out->shell = def->shell.radius;
+  out->envmap = def->envmap.amount;
 
   *texture = NULL;
   *textureNext = NULL;
@@ -528,7 +528,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
       return false;
     }
 
-    *texture = *textureNext = rContext.nullTexture->texture;
+    *texture = *textureNext = renderContext.nullTexture->texture;
     return true;
   }
 
@@ -556,16 +556,16 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
       int32_t frame;
       float lerp = 0.f;
 
-      if (cm->animation.fps == 0.f && entity != NULL) {
+      if (def->animation.fps == 0.f && entity != NULL) {
         frame = entity->frame;
-        if (cm->flags & STAGE_ANIM_LERP) {
+        if (def->flags & STAGE_ANIM_LERP) {
           lerp = entity->lerp;
         }
       } else {
-        const float drift = cm->animation.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
-        const float frameF = (view->ticks / 1000.f + drift) * cm->animation.fps;
+        const float drift = def->animation.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
+        const float frameF = (view->ticks / 1000.f + drift) * def->animation.fps;
         frame = (int32_t) frameF;
-        if (cm->flags & STAGE_ANIM_LERP) {
+        if (def->flags & STAGE_ANIM_LERP) {
           lerp = frameF - floorf(frameF);
         }
       }
@@ -573,7 +573,7 @@ bool R_StageUniforms(const RenderView *view, const RenderEntity *entity, const R
       const RenderImage *cur = animation->frames[((frame % animation->numFrames) + animation->numFrames) % animation->numFrames];
       *texture = cur->texture ? cur->texture->texture : NULL;
 
-      if (cm->flags & STAGE_ANIM_LERP) {
+      if (def->flags & STAGE_ANIM_LERP) {
         const RenderImage *next = animation->frames[(((frame + 1) % animation->numFrames) + animation->numFrames) % animation->numFrames];
         *textureNext = next->texture ? next->texture->texture : NULL;
         out->lerp = lerp;
@@ -598,7 +598,7 @@ RenderMaterial *R_FindMaterial(const char *name, AssetContext context) {
   char basename[MAX_QPATH];
   
   StripExtension(name, basename);
-  Cm_MaterialPath(basename, key, sizeof(key), context);
+  Material_Path(basename, key, sizeof(key), context);
 
   return (RenderMaterial *) R_FindMedia(key, R_MEDIA_MATERIAL);
 }
@@ -616,12 +616,12 @@ RenderMaterial *R_LoadMaterial(const char *name, AssetContext context) {
   RenderMaterial *material = R_FindMaterial(name, context);
   if (material == NULL) {
 
-    CmMaterial *cm = Cm_LoadMaterial(name, context);
+    Material *def = Material_Load(name, context);
 
-    material = R_ResolveMaterial(cm);
+    material = R_ResolveMaterial(def);
   }
 
-  assert(material->cm);
+  assert(material->def);
 
   return material;
 }
@@ -633,9 +633,9 @@ static void R_SaveMaterials_enumerator(const RenderMedia *media, void *data) {
 
   if (media->type == R_MEDIA_MATERIAL) {
     RenderMaterial *material = (RenderMaterial *) media;
-    if (material->cm->dirty) {
-      if (Cm_SaveMaterial(material->cm)) {
-        material->cm->dirty = false;
+    if (material->def->dirty) {
+      if (Material_Save(material->def)) {
+        material->def->dirty = false;
         (*(int32_t *) data)++;
       }
     }

@@ -24,30 +24,30 @@
 /**
  * @brief Sets or creates the key-value pair with the given key on the entity.
  */
-void SetValueForKey(Entity *ent, const char *key, const char *value) {
+void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
 
-  for (EntityKeyValue *e = ent->values; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
-      q_strlcpy(e->value, value, sizeof(e->value));
+  for (MapEntityKeyValue *e = ent->values; e; e = e->next) {
+    if (!Str_Compare(e->key, key)) {
+      Str_Copy(e->value, value, sizeof(e->value));
       return;
     }
   }
 
-  EntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
+  MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
   e->next = ent->values;
   ent->values = e;
 
-  q_strlcpy(e->key, key, sizeof(e->key));
-  q_strlcpy(e->value, value, sizeof(e->value));
+  Str_Copy(e->key, key, sizeof(e->key));
+  Str_Copy(e->value, value, sizeof(e->value));
 }
 
 /**
  * @brief Returns the value for the given key on the entity, or def if not found.
  */
-const char *ValueForKey(const Entity *ent, const char *key, const char *def) {
+const char *ValueForKey(const MapEntity *ent, const char *key, const char *def) {
 
-  for (const EntityKeyValue *e = ent->values; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
+  for (const MapEntityKeyValue *e = ent->values; e; e = e->next) {
+    if (!Str_Compare(e->key, key)) {
       return e->value;
     }
   }
@@ -58,7 +58,7 @@ const char *ValueForKey(const Entity *ent, const char *key, const char *def) {
 /**
  * @brief Returns the `Vec3` value for the given key on the entity, or def if not found or not parseable.
  */
-Vec3 VectorForKey(const Entity *ent, const char *key, const Vec3 def) {
+Vec3 VectorForKey(const MapEntity *ent, const char *key, const Vec3 def) {
 
   const char *value = ValueForKey(ent, key, NULL);
   if (value) {

@@ -24,7 +24,7 @@
 #include "cl_types.h"
 
 #if defined(__CL_LOCAL_H__)
-extern Console clConsole;
+extern Console clientConsole;
 
 extern Cvar *cl_consoleHeight;
 extern Cvar *cl_drawConsoleBackgroundAlpha;

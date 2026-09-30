@@ -27,20 +27,20 @@
 #include "manifest.h"
 #include "material.h"
 
-#include "collision/cm_manifest.h"
+#include "common/manifest.h"
 
 static HashTable *paths;
 
 static bool HasSuffix(const char *str, const char *suffix) {
-	const size_t len = q_strlen(str);
-	const size_t suffixLen = q_strlen(suffix);
-	return len >= suffixLen && !q_strcmp(str + len - suffixLen, suffix);
+	const size_t len = Str_Length(str);
+	const size_t suffixLen = Str_Length(suffix);
+	return len >= suffixLen && !Str_Compare(str + len - suffixLen, suffix);
 }
 
 static Order AssetPathCompare(const ident a, const ident b) {
 	const char *const *pathA = a;
 	const char *const *pathB = b;
-	const int32_t cmp = q_strcmp(*pathA, *pathB);
+	const int32_t cmp = Str_Compare(*pathA, *pathB);
 	return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -63,7 +63,7 @@ static bool Add(const char *name) {
 
 	assert(name);
 
-	if (!q_strlen(name)) {
+	if (!Str_Length(name)) {
 		Com_Verbose("Failed to add empty path\n");
 		return false;
 	}
@@ -73,12 +73,12 @@ static bool Add(const char *name) {
 		return false;
 	}
 
-	if (q_strchr(name, ' ')) {
+	if (Str_FindChar(name, ' ')) {
 		Com_Warn("Rejecting path with spaces: %s\n", name);
 		return false;
 	}
 
-	if (q_strstr(name, "..")) {
+	if (Str_Find(name, "..")) {
 		Com_Warn("Rejecting path with '..': %s\n", name);
 		return false;
 	}
@@ -92,7 +92,7 @@ static bool Add(const char *name) {
 
 	if (Fs_Exists(name)) {
 		if ($(paths, get, (void *) name) == NULL) {
-			$(paths, set, q_strdup(name), q_strdup(name));
+			$(paths, set, Str_Duplicate(name), Str_Duplicate(name));
 		}
 		return true;
 	} else {
@@ -156,7 +156,7 @@ static void AddSky(const char *sky) {
 /**
  * @brief Adds the material's assets to the assets list.
  */
-static void AddMaterial(const CmMaterial *material) {
+static void AddMaterial(const Material *material) {
 
 	if (Add(material->diffusemap.path)) {
 		Add(material->path);
@@ -164,7 +164,7 @@ static void AddMaterial(const CmMaterial *material) {
 		Add(material->specularmap.path);
 		Add(material->tintmap.path);
 
-		for (const CmStage *stage = material->stages; stage; stage = stage->next) {
+		for (const MaterialStage *stage = material->stages; stage; stage = stage->next) {
 			Add(stage->asset.path);
 			for (int32_t i = 0; i < stage->animation.numFrames; i++) {
 				Add(stage->animation.frames[i].path);
@@ -183,11 +183,11 @@ static void AddBspMaterials(void) {
 	for (int32_t i = 0; i < bspFile.numMaterials; i++) {
 		const char *name = bspFile.materials[i].name;
 
-		CmMaterial *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
+		Material *material = Material_Load(name, ASSET_CONTEXT_TEXTURES);
 
 		AddMaterial(material);
 
-		Cm_FreeMaterial(material);
+		Material_Free(material);
 	}
 }
 
@@ -224,18 +224,18 @@ static void AddModel(const char *model) {
  */
 static void AddEntities(void) {
 
-	List *entities = Cm_LoadEntities(bspFile.entityString);
-  entities->destroy = (Consumer) Cm_FreeEntity;
+	List *entities = Entity_LoadAll(bspFile.entityString);
+  entities->destroy = (Consumer) Entity_Free;
 
 	for (const ListNode *node = entities->head; node; node = node->next) {
-		const CmEntity *e = node->element;
+		const Entity *e = node->element;
 		while (e) {
 
-			if (!q_strcmp(e->key, "sound")) {
+			if (!Str_Compare(e->key, "sound")) {
 				AddSound(e->string);
-			} else if (!q_strcmp(e->key, "model")) {
+			} else if (!Str_Compare(e->key, "model")) {
 				AddModel(e->string);
-			} else if (!q_strcmp(e->key, "sky")) {
+			} else if (!Str_Compare(e->key, "sky")) {
 				AddSky(e->string);
 			}
 
@@ -316,7 +316,7 @@ int32_t WriteManifest(void) {
 	$(assetPaths, sort, AssetPathCompare);
 
 	// build the manifest entries with checksums
-	HashTable *manifest = Cm_AllocManifest();
+	HashTable *manifest = Manifest_Alloc();
 
 	for (size_t i = 0; i < assetPaths->count; i++) {
 		const char *path = VectorValue(assetPaths, char *, i);
@@ -325,7 +325,7 @@ int32_t WriteManifest(void) {
 		const int64_t len = Fs_Load(path, &data);
 		// zero-length assets are intentionally skipped (no valid game assets are empty)
 		if (len > 0 && data) {
-			Cm_AddManifestEntry(manifest, path, data, len);
+			Manifest_AddEntry(manifest, path, data, len);
 			Com_Verbose("  %s\n", path);
 		} else {
 			Com_Warn("Failed to load %s\n", path);
@@ -340,14 +340,14 @@ int32_t WriteManifest(void) {
 
 	// write the manifest
 	char mfPath[MAX_OS_PATH];
-	q_snprintf(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
+	Str_Format(mfPath, sizeof(mfPath), "maps/%s.mf", mapBase);
 
-	const int32_t count = Cm_WriteManifest(mfPath, manifest);
+	const int32_t count = Manifest_Write(mfPath, manifest);
 	if (count < 0) {
 		Com_Error(ERROR_FATAL, "Failed to write %s\n", mfPath);
 	}
 
-	Cm_FreeManifest(manifest);
+	Manifest_Free(manifest);
 
 	Com_Print("Wrote %s (%d assets)\n", mfPath, count);
 

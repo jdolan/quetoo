@@ -40,12 +40,10 @@ typedef struct {
   int32_t send, recv;
 } NetUdpLoop;
 
-typedef struct {
+static struct {
   NetUdpLoop loops[2];
   int32_t sockets[2];
-} NetUdpState;
-
-static NetUdpState netUdpState;
+} module;
 
 static Cvar *net_loopLatency;
 static Cvar *net_loopJitter;
@@ -55,8 +53,8 @@ static Cvar *net_loopLoss;
  * @brief Reads a pending message, if available, from the loop buffer.
  * @return True if a message was read, false otherwise.
  */
-static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) {
-  NetUdpLoop *loop = &netUdpState.loops[source];
+static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, NetMessage *msg) {
+  NetUdpLoop *loop = &module.loops[source];
 
   if (loop->send - loop->recv > MAX_NET_UDP_LOOPS) {
     loop->recv = loop->send - MAX_NET_UDP_LOOPS;
@@ -67,10 +65,10 @@ static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) 
   }
 
   const uint32_t i = loop->recv & (MAX_NET_UDP_LOOPS - 1);
-  const NetUdpLoopMessage *msg = &loop->messages[i];
+  const NetUdpLoopMessage *out = &loop->messages[i];
 
   // simulate network latency and jitter
-  const uint32_t delta = quetoo.ticks - msg->timestamp;
+  const uint32_t delta = quetoo.ticks - out->timestamp;
   const uint32_t threshold = net_loopLatency->value * 0.5 + net_loopJitter->value * Randomf();
 
   if (delta < threshold) {
@@ -84,8 +82,8 @@ static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) 
     return false;
   }
 
-  memcpy(buf->data, msg->data, msg->size);
-  buf->size = msg->size;
+  memcpy(msg->data, out->data, out->size);
+  msg->size = out->size;
 
   from->type = NA_LOOP;
   from->addr = netLo;
@@ -98,7 +96,7 @@ static bool Net_ReceiveDatagram_Loop(NetSrc source, NetAddr *from, MemBuf *buf) 
  * @brief Receive a datagram on the specified socket, populating the from
  * address with the sender.
  */
-bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf) {
+bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, NetMessage *buf) {
 
   buf->read = buf->size = 0;
 
@@ -109,7 +107,7 @@ bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf) {
     return true;
   }
 
-  const int32_t sock = netUdpState.sockets[source];
+  const int32_t sock = module.sockets[source];
 
   if (!sock) {
     return false;
@@ -152,7 +150,7 @@ bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, MemBuf *buf) {
  * @brief Enqueues a datagram directly into the opposing side's loopback receive queue.
  */
 static bool Net_SendDatagram_Loop(NetSrc source, const void *data, size_t len) {
-  NetUdpLoop *loop = &netUdpState.loops[source ^ 1];
+  NetUdpLoop *loop = &module.loops[source ^ 1];
 
   const uint32_t i = loop->send & (MAX_NET_UDP_LOOPS - 1);
   loop->send++;
@@ -226,7 +224,7 @@ bool Net_SendDatagram(NetSrc source, const NetAddr *to, const void *data, size_t
 
   int32_t sock;
   if (to->type == NA_BROADCAST || to->type == NA_DATAGRAM) {
-    if (!(sock = netUdpState.sockets[source])) {
+    if (!(sock = module.sockets[source])) {
       return false;
     }
   } else {
@@ -249,7 +247,7 @@ void Net_Sleep(uint32_t msec) {
   struct timeval timeout;
   fd_set fdset;
 
-  const uint32_t sock = netUdpState.sockets[NS_UDP_SERVER];
+  const uint32_t sock = module.sockets[NS_UDP_SERVER];
   assert(sock);
 
   FD_ZERO(&fdset);
@@ -267,7 +265,7 @@ void Net_Sleep(uint32_t msec) {
  * set at the command line.
  */
 void Net_Config(NetSrc source, bool up) {
-  int32_t *sock = &netUdpState.sockets[source];
+  int32_t *sock = &module.sockets[source];
 
   if (up) {
 
@@ -284,7 +282,7 @@ void Net_Config(NetSrc source, bool up) {
     const Cvar *netPort = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
     if (*sock == 0) {
-      const char *iface = q_strlen(netInterface->string) ? netInterface->string : NULL;
+      const char *iface = Str_Length(netInterface->string) ? netInterface->string : NULL;
       const in_port_t port = source == NS_UDP_SERVER ? netPort->integer : 0;
 
       *sock = Net_Socket(NA_DATAGRAM, iface, port);

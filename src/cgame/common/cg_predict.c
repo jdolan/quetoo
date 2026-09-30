@@ -54,7 +54,7 @@ static bool Cg_UsePrediction_Common(void) {
   return true;
 }
 
-UsePrediction Cg_UsePrediction = Cg_UsePrediction_Common;
+CGameUsePredictionHook Cg_UsePrediction = Cg_UsePrediction_Common;
 
 /**
  * @brief The `UsePrediction` export. The client holds this rather than the chain head, so
@@ -71,7 +71,7 @@ bool Cg_ExportUsePrediction(void) {
 static void Cg_MoveCommandWillRun_Common(PMove *pm, const ClientCmd *cmd) {
 }
 
-MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
+CGameMoveCommandWillRunHook Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 
 /**
  * @brief The tail of the `Cg_MoveCommandDidRun` chain: a notification, so it does nothing.
@@ -79,7 +79,7 @@ MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 static void Cg_MoveCommandDidRun_Common(const PMove *pm, const ClientCmd *cmd) {
 }
 
-MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
+CGameMoveCommandDidRunHook Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 
 /**
  * @brief The tail of the `Cg_PredictionDidComplete` chain: a notification, so it does nothing.
@@ -87,12 +87,12 @@ MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 static void Cg_PredictionDidComplete_Common(const PMove *pm) {
 }
 
-PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
+CGamePredictionDidCompleteHook Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
 
 /**
  * @brief Trace wrapper for `Pm_Move`.
  */
-static CmTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+static CollisionTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
   return cgi.Trace(start, end, bounds, cgi.client->entity, CONTENTS_MASK_CLIP_PLAYER);
 }
 
@@ -101,7 +101,7 @@ static CmTrace Cg_PredictMovement_Trace(const Vec3 start, const Vec3 end, const 
  * installs a link, and `Cg_Init` exports whatever is installed, so that a
  * client game with nothing to say is never asked.
  */
-ClipClientEntity Cg_ClipEntity = NULL;
+CGameClipClientEntityHook Cg_ClipEntity = NULL;
 
 /**
  * @brief Run recent movement commands through the player movement code locally, storing the
@@ -120,7 +120,7 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   pm.ground = pr->ground;
 #if defined(G_HOOK)
-  pm.hookPullSpeed = cgState.hookPullSpeed;
+  pm.hookPullSpeed = cgameState.hookPullSpeed;
 #endif
 
   pm.PointContents = cgi.PointContents;
@@ -166,8 +166,8 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   // If the server is requesting a snap, use the authoritative angles rather than
   // the last cmd angles, which may be stale (pre-snap) pending commands.
-  if (cgState.snapAngles) {
-    pr->view.angles = cgState.snapViewAngles;
+  if (cgameState.snapAngles) {
+    pr->view.angles = cgameState.snapViewAngles;
   } else {
     pr->view.angles = pm.cmd.angles;
   }
@@ -185,20 +185,20 @@ void Cg_PredictMovement(const Vector *cmds) {
  */
 void Cg_UpdateSpectate(PMoveCmd *cmd) {
 
-  if (!cgState.spectate.initialized) {
-    cgState.spectate.state.type = PM_SPECTATOR;
-    cgState.spectate.state.origin = cgi.view->origin;
+  if (!cgameState.spectate.initialized) {
+    cgameState.spectate.state.type = PM_SPECTATOR;
+    cgameState.spectate.state.origin = cgi.view->origin;
 
     // take over the look angles from wherever the camera is pointing, rather than from the
     // recorded player's aim, which is what cgi.client->angles still holds: Cg_UpdateAngles stops
     // syncing it once this mode resolves the view, and every move from here reads it back
     cgi.client->angles = cgi.view->angles;
 
-    cgState.spectate.initialized = true;
+    cgameState.spectate.initialized = true;
   }
 
   PMove pm = {};
-  pm.s = cgState.spectate.state;
+  pm.s = cgameState.spectate.state;
 
   // Pm_SpectatorMove reads speedSpectator, accelSpectator and frictionSpectator from the
   // movement parameters, which the recording carries; without them the camera holds still
@@ -217,5 +217,5 @@ void Cg_UpdateSpectate(PMoveCmd *cmd) {
 
   Pm_Move(&pm);
 
-  cgState.spectate.state = pm.s;
+  cgameState.spectate.state = pm.s;
 }

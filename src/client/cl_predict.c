@@ -40,7 +40,7 @@ static int32_t Cl_HullForEntity(const EntityState *s) {
     }
 
     case SOLID_BSP: {
-      const CmBspModel *mod = cl.cmModels[s->model1];
+      const CollisionModel *mod = cl.collisionModels[s->model1];
       if (!mod) {
         Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
       }
@@ -132,7 +132,7 @@ typedef struct {
   Vec3 start, end;
   Box3 bounds;
   Box3 absBounds;
-  CmTrace trace;
+  CollisionTrace trace;
   const ClientEntity *skip;
   int32_t contents;
 } ClientTrace;
@@ -166,7 +166,7 @@ static bool Cl_ClipTraceToEntity(ClientTrace *trace, ClientEntity *ent) {
 
   const int32_t headNode = Cl_HullForEntity(s);
 
-  CmTrace tr;
+  CollisionTrace tr;
 
   if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
     tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, headNode, trace->contents);
@@ -204,7 +204,7 @@ static void Cl_ClipTraceToEntities(ClientTrace *trace) {
  *
  * @param skip An optional entity to skip.
  */
-CmTrace Cl_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents) {
+CollisionTrace Cl_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, const ClientEntity *skip, int32_t contents) {
 
   ClientTrace trace = {
     .start = start,
@@ -326,11 +326,11 @@ void Cl_UpdatePrediction(void) {
     if (*expected) {
 
       char hash[MAX_QPATH];
-      if (!Cm_HashFile(cl.configStrings[CS_BSP], hash, sizeof(hash))) {
+      if (!Manifest_HashFile(cl.configStrings[CS_BSP], hash, sizeof(hash))) {
         Com_Error(ERROR_DROP, "Failed to hash %s\n", cl.configStrings[CS_BSP]);
       }
 
-      if (q_strcmp(hash, expected)) {
+      if (Str_Compare(hash, expected)) {
         Com_Error(ERROR_DROP, "%s differs from server (%s, expected %s)\n",
                   cl.configStrings[CS_BSP], hash, expected);
       }
@@ -342,9 +342,9 @@ void Cl_UpdatePrediction(void) {
 
     const char *s = cl.configStrings[CS_MODELS + i];
     if (*s == '*') {
-      cl.cmModels[i] = Cm_Model(cl.configStrings[CS_MODELS + i]);
+      cl.collisionModels[i] = Cm_Model(cl.configStrings[CS_MODELS + i]);
     } else {
-      cl.cmModels[i] = NULL;
+      cl.collisionModels[i] = NULL;
     }
   }
 }

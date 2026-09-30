@@ -26,8 +26,8 @@
 /**
  * @brief Selects the best-fitting axis-aligned texture projection axes for the given plane.
  */
-static void TextureAxisForPlane(const Plane *plane, Vec3 *xv, Vec3 *yv) {
-  static const Vec3 base_axis[18] = {
+static void TextureAxisForPlane(const MapPlane *plane, Vec3 *xv, Vec3 *yv) {
+  static const Vec3 baseAxis[18] = {
     { {  0,  0,  1 } },
     { {  1,  0,  0 } },
     { {  0, -1,  0 } }, // floor
@@ -52,21 +52,21 @@ static void TextureAxisForPlane(const Plane *plane, Vec3 *xv, Vec3 *yv) {
   float best = 0.0;
 
   for (int32_t i = 0; i < 6; i++) {
-    const float dot = Vec3_Dot(plane->normal, base_axis[i * 3]);
+    const float dot = Vec3_Dot(plane->normal, baseAxis[i * 3]);
     if (dot > best) {
       best = dot;
       bestAxis = i;
     }
   }
 
-  *xv = base_axis[bestAxis * 3 + 1];
-  *yv = base_axis[bestAxis * 3 + 2];
+  *xv = baseAxis[bestAxis * 3 + 1];
+  *yv = baseAxis[bestAxis * 3 + 2];
 }
 
 /**
  * @brief Computes the world-space texture projection vectors for a brush side, accounting for shift, scale, and rotation.
  */
-void TextureVectorsForBrushSide(BrushSide *side, const Vec3 origin) {
+void TextureVectorsForBrushSide(MapBrushSide *side, const Vec3 origin) {
 
   if (mapFormat == MAP_FORMAT_VALVE) {
     // Valve-220: axes are already stored in side->axis as (direction, shift).

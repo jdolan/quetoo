@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CEA508F52EA5D20A00F27205"
-               BuildableName = "check_cm_polylib"
-               BlueprintName = "check_cm_polylib"
+               BlueprintIdentifier = "75D08AE2AF1245A4BCA3DE4B"
+               BuildableName = "check_material"
+               BlueprintName = "check_material"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -40,14 +40,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
-      viewDebuggingEnabled = "No">
+      viewDebuggingEnabled = "No"
+      queueDebuggingEnableBacktraceRecording = "Yes">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA508F52EA5D20A00F27205"
-            BuildableName = "check_cm_polylib"
-            BlueprintName = "check_cm_polylib"
+            BlueprintIdentifier = "75D08AE2AF1245A4BCA3DE4B"
+            BuildableName = "check_material"
+            BlueprintName = "check_material"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,9 +63,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA508F52EA5D20A00F27205"
-            BuildableName = "check_cm_polylib"
-            BlueprintName = "check_cm_polylib"
+            BlueprintIdentifier = "75D08AE2AF1245A4BCA3DE4B"
+            BuildableName = "check_material"
+            BlueprintName = "check_material"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

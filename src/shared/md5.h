@@ -30,8 +30,8 @@ typedef struct {
   uint64_t size;        // Size of input in bytes
   uint32_t buffer[4];   // Current accumulation of hash
   uint8_t input[64];    // Input buffer for remaining bytes
-} md5_ctx;
+} Md5Context;
 
-void md5_init(md5_ctx *ctx);
-void md5_update(md5_ctx *ctx, const void *data, size_t size);
-void md5_finalize(md5_ctx *ctx, uint8_t result[16]);
+void Md5_Init(Md5Context *ctx);
+void Md5_Update(Md5Context *ctx, const void *data, size_t size);
+void Md5_Finalize(Md5Context *ctx, uint8_t result[16]);

@@ -29,12 +29,12 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-static const char *_rank = "Rank";
-static const char *_player = "Player";
-static const char *_frags = "Frags";
-static const char *_deaths = "Deaths";
-static const char *_kd = "KD";
-static const char *_time_played = "Time";
+static const char *columnRank = "Rank";
+static const char *columnPlayer = "Player";
+static const char *columnFrags = "Frags";
+static const char *columnDeaths = "Deaths";
+static const char *columnKd = "KD";
+static const char *columnTimePlayed = "Time";
 
 static const JSONProperty leaderboardEntryFields[] = {
   MakeJSONProperty(LeaderboardEntry, rank, NULL, JSONDeserializeInt32, NULL),
@@ -57,11 +57,11 @@ static const JSONProperties leaderboardEntryProperties = {
  * @brief Maps a column identifier to its API sort parameter.
  */
 static const char *sortParamForColumn(const char *identifier) {
-  if (q_strcmp(identifier, _player) == 0) return "name";
-  if (q_strcmp(identifier, _frags) == 0) return "frags";
-  if (q_strcmp(identifier, _deaths) == 0) return "deaths";
-  if (q_strcmp(identifier, _kd) == 0) return "kd";
-  if (q_strcmp(identifier, _time_played) == 0) return "time_played";
+  if (Str_Compare(identifier, columnPlayer) == 0) return "name";
+  if (Str_Compare(identifier, columnFrags) == 0) return "frags";
+  if (Str_Compare(identifier, columnDeaths) == 0) return "deaths";
+  if (Str_Compare(identifier, columnKd) == 0) return "kd";
+  if (Str_Compare(identifier, columnTimePlayed) == 0) return "time_played";
   return NULL;
 }
 
@@ -124,9 +124,9 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
   char url[512];
-  int n = q_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=1", LEADERBOARD_MAX_ENTRIES);
+  int n = Str_Format(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=1", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
-    n += q_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
+    n += Str_Format(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
   }
 
   $(cgi.restClient, getAsync, url, NULL, fetchLeaderboardComplete, NULL);
@@ -138,12 +138,12 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
 static void selectOwnRow(LeaderboardViewController *this) {
 
   const char *guidHash = cgi.GetCvarString("guidHash");
-  if (q_strlen(guidHash) == 0) {
+  if (Str_Length(guidHash) == 0) {
     return;
   }
 
   for (size_t i = 0; i < this->leaderboardResponse.numEntries; i++) {
-    if (q_strcmp(this->leaderboardResponse.entries[i].guid, guidHash) == 0) {
+    if (Str_Compare(this->leaderboardResponse.entries[i].guid, guidHash) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -184,22 +184,22 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   }
 
   const char *guidHash = cgi.GetCvarString("guidHash");
-  if (q_strcmp(entry->guid, guidHash) == 0) {
+  if (Str_Compare(entry->guid, guidHash) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
-  if (q_strcmp(column->identifier, _rank) == 0) {
+  if (Str_Compare(column->identifier, columnRank) == 0) {
     $(cell->text, setText, va("%d", entry->rank));
-  } else if (q_strcmp(column->identifier, _player) == 0) {
+  } else if (Str_Compare(column->identifier, columnPlayer) == 0) {
     $(cell->text, setText, entry->name);
-  } else if (q_strcmp(column->identifier, _frags) == 0) {
+  } else if (Str_Compare(column->identifier, columnFrags) == 0) {
     $(cell->text, setText, va("%d", entry->frags));
-  } else if (q_strcmp(column->identifier, _deaths) == 0) {
+  } else if (Str_Compare(column->identifier, columnDeaths) == 0) {
     $(cell->text, setText, va("%d", entry->deaths));
-  } else if (q_strcmp(column->identifier, _kd) == 0) {
+  } else if (Str_Compare(column->identifier, columnKd) == 0) {
     const float kd = entry->deaths > 0 ? (float) entry->frags / entry->deaths : (float) entry->frags;
     $(cell->text, setText, va("%.2f", kd));
-  } else if (q_strcmp(column->identifier, _time_played) == 0) {
+  } else if (Str_Compare(column->identifier, columnTimePlayed) == 0) {
     $(cell->text, setText, formatTime(entry->timePlayed));
   }
 
@@ -237,12 +237,12 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/LeaderboardViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->leaderboard, addColumnWithIdentifier, _rank);
-  $(this->leaderboard, addColumnWithIdentifier, _player);
-  $(this->leaderboard, addColumnWithIdentifier, _frags);
-  $(this->leaderboard, addColumnWithIdentifier, _deaths);
-  $(this->leaderboard, addColumnWithIdentifier, _kd);
-  $(this->leaderboard, addColumnWithIdentifier, _time_played);
+  $(this->leaderboard, addColumnWithIdentifier, columnRank);
+  $(this->leaderboard, addColumnWithIdentifier, columnPlayer);
+  $(this->leaderboard, addColumnWithIdentifier, columnFrags);
+  $(this->leaderboard, addColumnWithIdentifier, columnDeaths);
+  $(this->leaderboard, addColumnWithIdentifier, columnKd);
+  $(this->leaderboard, addColumnWithIdentifier, columnTimePlayed);
 
   this->leaderboard->dataSource.numberOfRows = numberOfRows;
   this->leaderboard->dataSource.self = this;

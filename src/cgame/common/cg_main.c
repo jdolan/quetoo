@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-CGameState cgState;
+CGameState cgameState;
 
 Cvar *cg_addAtmospheric;
 Cvar *cg_addDecals;
@@ -189,7 +189,6 @@ static void Cg_Init(void) {
   cgi.AddCmd("give", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("god", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("noClip", NULL, CMD_CGAME, NULL);
-  cgi.AddCmd("weaponLast", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("team", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("teamName", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("teamSkin", NULL, CMD_CGAME, NULL);
@@ -256,30 +255,30 @@ static void Cg_ParseTeamInfo(const char *s) {
   PointerArray *info = $(alloc(PointerArray), initWithDestroy, free);
 
   char buf[MAX_STRING_CHARS];
-  q_strlcpy(buf, s, sizeof(buf));
+  Str_Copy(buf, s, sizeof(buf));
   char *save = NULL;
-  for (char *tok = q_strtok_r(buf, "\\", &save); tok; tok = q_strtok_r(NULL, "\\", &save)) {
-    $(info, add, q_strdup(tok));
+  for (char *tok = Str_Tokenize(buf, "\\", &save); tok; tok = Str_Tokenize(NULL, "\\", &save)) {
+    $(info, add, Str_Duplicate(tok));
   }
 
   const size_t count = info->count;
 
-  if (count != lengthof(cgState.teams) * 4) {
+  if (count != lengthof(cgameState.teams) * 4) {
     release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }
 
-  CGameTeamInfo *team = cgState.teams;
+  CGameTeamInfo *team = cgameState.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
     team->id = atoi((char *) $(info, get, i + 0));
 
-    q_strlcpy(team->name, (char *) $(info, get, i + 1), sizeof(team->name));
+    Str_Copy(team->name, (char *) $(info, get, i + 1), sizeof(team->name));
 
     team->hue = atoi((char *) $(info, get, i + 2));
 
     if (!Color_Parse((char *) $(info, get, i + 3), &team->color)) {
-      team->color = color_white;
+      team->color = COLOR_RGB_WHITE;
     }
   }
 
@@ -293,7 +292,7 @@ static bool Cg_ParseConfigString_Common(int32_t index) {
   return false;
 }
 
-ParseConfigString Cg_ParseConfigString = Cg_ParseConfigString_Common;
+CGameParseConfigStringHook Cg_ParseConfigString = Cg_ParseConfigString_Common;
 
 /**
  * @brief An updated configuration string has just been received from the server.
@@ -309,48 +308,48 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   switch (i) {
     case CS_GAMEPLAY:
-      cgState.gameplay = (GameplayId) strtol(s, NULL, 10);
+      cgameState.gameplay = (GamePlayId) strtol(s, NULL, 10);
       return;
     case CS_NUM_TEAMS:
-      cgState.numTeams = Clampf(atoi(s), 0, MAX_TEAMS);
+      cgameState.numTeams = Clampf(atoi(s), 0, MAX_TEAMS);
       return;
     case CS_TEAM_INFO:
       Cg_ParseTeamInfo(s);
       return;
     case CS_ITEM_SET:
-      cgState.items = (GameItems) strtol(s, NULL, 10);
+      cgameState.items = (GameItems) strtol(s, NULL, 10);
       return;
 #if defined(G_HOOK)
     case CS_HOOK_PULL_SPEED: {
       char *end;
-      cgState.hookPullSpeed = strtof(s, &end);
-      if (end == s || *end || !isfinite(cgState.hookPullSpeed) || cgState.hookPullSpeed <= 0.f) {
+      cgameState.hookPullSpeed = strtof(s, &end);
+      if (end == s || *end || !isfinite(cgameState.hookPullSpeed) || cgameState.hookPullSpeed <= 0.f) {
         Cg_Warn("Invalid hook pull speed \"%s\"\n", s);
-        cgState.hookPullSpeed = PM_SPEED_HOOK_PULL;
+        cgameState.hookPullSpeed = PM_SPEED_HOOK_PULL;
       }
       return;
     }
 #endif
     case CS_NAV_EDIT:
-      cgState.navEdit = (int32_t) strtol(s, NULL, 10);
+      cgameState.navEdit = (int32_t) strtol(s, NULL, 10);
       return;
   }
 
   if (i >= CS_CORPSES && i < CS_CORPSES + MAX_CORPSES) {
-    Cg_LoadClient(&cgState.corpses[i - CS_CORPSES], s);
+    Cg_LoadClient(&cgameState.corpses[i - CS_CORPSES], s);
     return;
   }
 
   if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
-    CGameClientInfo *ci = &cgState.clients[i - CS_CLIENTS];
+    CGameClientInfo *ci = &cgameState.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
 
     // the server does not count connected clients for us: the entries it sends are the count
-    cgState.numClients = 0;
+    cgameState.numClients = 0;
     for (int32_t j = 0; j < MAX_CLIENTS; j++) {
       if (*cgi.ConfigString(CS_CLIENTS + j)) {
-        cgState.numClients++;
+        cgameState.numClients++;
       }
     }
 
@@ -389,7 +388,7 @@ static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
 
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
 
-  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cgState.clients[client].name, color, message);
+  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cgameState.clients[client].name, color, message);
 
   // the sound is the module's to choose, because only it knows which kind of message this is
   const char *sample = cgi.GetCvarString(team ? "cl_teamChatSound" : "cl_chatSound");
@@ -427,7 +426,7 @@ static bool Cg_ParseServerCommand_Common(int32_t cmd) {
   return false;
 }
 
-ParseServerCommand Cg_ParseServerCommand = Cg_ParseServerCommand_Common;
+CGameParseServerCommandHook Cg_ParseServerCommand = Cg_ParseServerCommand_Common;
 
 /**
  * @brief Parse a single server command, returning true on success.
@@ -456,8 +455,8 @@ static bool Cg_ParseMessage(int32_t cmd) {
       return true;
 
     case SV_CMD_SNAP_ANGLES:
-      cgState.snapViewAngles = cgi.ReadAngles();
-      cgState.snapAngles = true;
+      cgameState.snapViewAngles = cgi.ReadAngles();
+      cgameState.snapAngles = true;
       return true;
 
     case SV_CMD_CENTER_PRINT:
@@ -481,31 +480,31 @@ static bool Cg_ParseMessage(int32_t cmd) {
  */
 float Cg_GetHookPullSpeed(void) {
 
-  return cgState.hookPullSpeed;
+  return cgameState.hookPullSpeed;
 }
 #endif
 
 /**
- * @brief The tail of the `Cg_ListGameplayModes` hook, offering every mode in
- * `gGameplayModes` - the same table `g_gameplay` is parsed against on the
+ * @brief The tail of the `Cg_ListGamePlays` hook, offering every mode in
+ * `gameplays` - the same table `g_gameplay` is parsed against on the
  * game side, so the name and label a module offers can never drift from what
  * the server will actually coerce it to.
  */
-static const Gameplay *Cg_ListGameplayModes_Common(size_t *count) {
+static const GamePlay *Cg_ListGamePlays_Common(size_t *count) {
 
-  *count = lengthof(g_gameplayModes);
+  *count = lengthof(gameplays);
 
-  return g_gameplayModes;
+  return gameplays;
 }
 
-ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
+CGameListGamePlaysHook Cg_ListGamePlays = Cg_ListGamePlays_Common;
 
 /**
  * @brief Clear any state that should not persist over multiple server connections.
  */
 static void Cg_ClearState(void) {
 
-  memset(&cgState, 0, sizeof(cgState));
+  memset(&cgameState, 0, sizeof(cgameState));
 
   Cg_ClearInput();
 
@@ -528,7 +527,7 @@ static void Cg_ClearState(void) {
 static void Cg_StateDidClear_Common(void) {
 }
 
-StateDidClear Cg_StateDidClear = Cg_StateDidClear_Common;
+CGameStateDidClearHook Cg_StateDidClear = Cg_StateDidClear_Common;
 
 /**
  * @brief Prepares the scene so that early rendering operations may begin.
@@ -566,7 +565,7 @@ static void Cg_PopulateScene(const ClientFrame *frame) {
 static void Cg_SceneDidPopulate_Common(const ClientFrame *frame) {
 }
 
-SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
+CGameSceneDidPopulateHook Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
 
 /**
  * @brief Hands the frame to the HUD, and to what the HUD still does outside its View hierarchy.
@@ -576,7 +575,7 @@ static void Cg_UpdateScreen(const ClientFrame *frame) {
   Cg_UpdateHud(frame);
 
   // The HUD hides itself in nav edit and shows the instructions instead
-  if (!cgState.navEdit) {
+  if (!cgameState.navEdit) {
     Cg_DrawHud(frame);
   }
 
@@ -591,7 +590,7 @@ static void Cg_UpdateScreen(const ClientFrame *frame) {
 static void Cg_ScreenDidUpdate_Common(const ClientFrame *frame) {
 }
 
-ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
+CGameScreenDidUpdateHook Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
 
 /**
  * @brief Entry point that populates and returns the cgame export table with all function pointers.
@@ -620,6 +619,7 @@ CGameExport *Cg_LoadCgame(CGameImport *import) {
   cge.HandleEvent = Cg_HandleEvent;
   cge.Look = Cg_Look;
   cge.Move = Cg_ExportMove;
+  cge.BindKeys = Cg_ExportBindKeys;
 
   cge.Interpolate = Cg_Interpolate;
   cge.UsePrediction = Cg_ExportUsePrediction;

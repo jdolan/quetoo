@@ -147,7 +147,7 @@ static Node *LeafNode(Node *node, CsgBrush *brushes) {
  * @return A heuristic value for splitting the brushes list by the given side. Higher values mean
  * that this face produces a more balanced tree while splitting as few brushes as possible.
  */
-static int32_t SelectSplitSideHeuristic(const BrushSide *side, const CsgBrush *brushes) {
+static int32_t SelectSplitSideHeuristic(const MapBrushSide *side, const CsgBrush *brushes) {
 
   if (side->surface & SURF_HINT) {
     return INT32_MAX;
@@ -189,9 +189,9 @@ static int32_t SelectSplitSideHeuristic(const BrushSide *side, const CsgBrush *b
 /**
  * @return The original brush side from brushes with the highest heuristic value.
  */
-static const BrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
+static const MapBrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
 
-  const BrushSide *bestSide = NULL;
+  const MapBrushSide *bestSide = NULL;
   int32_t bestValue = INT32_MIN;
 
   Vector *cache = $(alloc(Vector), initWithSize, sizeof(intptr_t));
@@ -214,7 +214,7 @@ static const BrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
       }
     }
 
-    const BrushSide *side = brush->brushSides;
+    const MapBrushSide *side = brush->brushSides;
     for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
       if (side->surface & SURF_BEVEL) {
@@ -400,7 +400,7 @@ Tree *BuildTree(CsgBrush *brushes) {
       Com_Warn("Entity %d brush %d produced microvolume\n", b->original->entity, b->original->brush);
     }
 
-    const BrushSide *s = b->brushSides;
+    const MapBrushSide *s = b->brushSides;
     for (int32_t i = 0; i < b->numBrushSides; i++, s++) {
       if (s->surface & SURF_BEVEL) {
         continue;
@@ -447,7 +447,7 @@ static int32_t VisibleContents(int32_t contents) {
 /**
  * @return True if every point of @p w lies within `ON_EPSILON` of @p plane.
  */
-static bool WindingOnPlane(const CmWinding *w, const Plane *plane) {
+static bool WindingOnPlane(const Winding *w, const MapPlane *plane) {
 
   for (int32_t i = 0; i < w->numPoints; i++) {
     if (fabs(Vec3_Dot(w->points[i], plane->normal) - plane->dist) > ON_EPSILON) {
@@ -461,7 +461,7 @@ static bool WindingOnPlane(const CmWinding *w, const Plane *plane) {
 /**
  * @return True if the leaf @p node holds a fragment of @p brush.
  */
-static bool LeafHoldsBrush(const Node *node, const Brush *brush) {
+static bool LeafHoldsBrush(const Node *node, const MapBrush *brush) {
 
   for (const CsgBrush *b = node->brushes; b; b = b->next) {
     if (b->original == brush) {
@@ -481,7 +481,7 @@ static Node *PointInLeaf(const Vec3 point) {
 
   Node *node = faceHeadNode;
   while (node->plane != PLANE_LEAF) {
-    const Plane *plane = &planes[node->plane];
+    const MapPlane *plane = &planes[node->plane];
     node = node->children[Vec3_Dot(point, plane->normal) - plane->dist >= 0.0 ? 0 : 1];
   }
 
@@ -494,11 +494,11 @@ static Node *PointInLeaf(const Vec3 point) {
  * @details The leaf is found at points in front of the center of the piece, up to 4 units away.
  * If each of them is still in a leaf that holds the brush, the piece is not visible.
  */
-static bool SideVisibleInFront(const CmWinding *w, const CsgBrush *brush, const BrushSide *side) {
+static bool SideVisibleInFront(const Winding *w, const CsgBrush *brush, const MapBrushSide *side) {
 
   static const float distances[] = { .5f, 1.f, 2.f, 4.f };
 
-  const Vec3 center = Cm_WindingCenter(w);
+  const Vec3 center = Winding_Center(w);
   const Vec3 normal = planes[side->plane].normal;
   const int32_t contents = brush->original->contents;
 
@@ -539,7 +539,7 @@ static int32_t cFaces;
  * inside, so each visible piece of it also makes a face that looks into the brush: the surface of
  * water, seen from under it.
  */
-static void ClipSideIntoTree_r(Node *node, CmWinding *w, const CsgBrush *brush, const BrushSide *side, Node *onNode) {
+static void ClipSideIntoTree_r(Node *node, Winding *w, const CsgBrush *brush, const MapBrushSide *side, Node *onNode) {
 
   if (node->plane == PLANE_LEAF) {
 
@@ -552,13 +552,13 @@ static void ClipSideIntoTree_r(Node *node, CmWinding *w, const CsgBrush *brush, 
     }
 
     if (!visible) {
-      Cm_FreeWinding(w);
+      Winding_Free(w);
       return;
     }
 
     if (!onNode) {
       Com_Verbose("Brush side %s @ %s is not on a node plane\n",
-                  materials[side->original->material].cm->name, vtos(Cm_WindingCenter(w)));
+                  materials[side->original->material].def->name, vtos(Winding_Center(w)));
       onNode = node->parent;
     }
 
@@ -568,7 +568,7 @@ static void ClipSideIntoTree_r(Node *node, CmWinding *w, const CsgBrush *brush, 
 
       inside->brushSide = side->original;
       inside->plane = side->plane ^ 1;
-      inside->w = Cm_ReverseWinding(w);
+      inside->w = Winding_Reverse(w);
 
       inside->next = onNode->faces;
       onNode->faces = inside;
@@ -594,7 +594,7 @@ static void ClipSideIntoTree_r(Node *node, CmWinding *w, const CsgBrush *brush, 
     return;
   }
 
-  const Plane *plane = &planes[node->plane];
+  const MapPlane *plane = &planes[node->plane];
 
   if (WindingOnPlane(w, plane)) {
     const bool facing = Vec3_Dot(planes[side->plane].normal, plane->normal) > 0.f;
@@ -602,9 +602,9 @@ static void ClipSideIntoTree_r(Node *node, CmWinding *w, const CsgBrush *brush, 
     return;
   }
 
-  CmWinding *front, *back;
-  Cm_SplitWinding(w, plane->normal, plane->dist, ON_EPSILON, &front, &back);
-  Cm_FreeWinding(w);
+  Winding *front, *back;
+  Winding_Split(w, plane->normal, plane->dist, ON_EPSILON, &front, &back);
+  Winding_Free(w);
 
   if (front) {
     ClipSideIntoTree_r(node->children[0], front, brush, side, onNode);
@@ -621,7 +621,7 @@ static void ClipSideIntoTree_r(Node *node, CmWinding *w, const CsgBrush *brush, 
  */
 typedef struct {
   const CsgBrush *brush;
-  const BrushSide *side;
+  const MapBrushSide *side;
   int32_t order;
 } TreeFaceSide;
 
@@ -651,25 +651,25 @@ static int32_t TreeFaceSideCmp(const void *a, const void *b) {
  * cover is kept whole, since the lines of the edges would cut it for nothing.
  * @return The pieces that remain, which replace @p pieces.
  */
-static Vector *SubtractWinding(Vector *pieces, const CmWinding *clip, const Vec3 normal) {
+static Vector *SubtractWinding(Vector *pieces, const Winding *clip, const Vec3 normal) {
 
-  Vector *out = $(alloc(Vector), initWithSize, sizeof(CmWinding *));
+  Vector *out = $(alloc(Vector), initWithSize, sizeof(Winding *));
 
-  const Vec3 center = Cm_WindingCenter(clip);
-  const Box3 bounds = Box3_Expand(Cm_WindingBounds(clip), ON_EPSILON);
+  const Vec3 center = Winding_Center(clip);
+  const Box3 bounds = Box3_Expand(Winding_Bounds(clip), ON_EPSILON);
 
   for (size_t i = 0; i < pieces->count; i++) {
 
-    CmWinding *piece = VectorValue(pieces, CmWinding *, i);
+    Winding *piece = VectorValue(pieces, Winding *, i);
 
-    if (!Box3_Intersects(Cm_WindingBounds(piece), bounds)) {
+    if (!Box3_Intersects(Winding_Bounds(piece), bounds)) {
       $(out, add, &piece);
       continue;
     }
 
     const size_t count = out->count;
 
-    CmWinding *w = Cm_CopyWinding(piece);
+    Winding *w = Winding_Copy(piece);
 
     for (int32_t j = 0; j < clip->numPoints && w; j++) {
 
@@ -686,9 +686,9 @@ static Vector *SubtractWinding(Vector *pieces, const CmWinding *clip, const Vec3
         outward = Vec3_Negate(outward);
       }
 
-      CmWinding *front, *back;
-      Cm_SplitWinding(w, outward, Vec3_Dot(a, outward), ON_EPSILON, &front, &back);
-      Cm_FreeWinding(w);
+      Winding *front, *back;
+      Winding_Split(w, outward, Vec3_Dot(a, outward), ON_EPSILON, &front, &back);
+      Winding_Free(w);
 
       if (front) {
         $(out, add, &front);
@@ -697,18 +697,18 @@ static Vector *SubtractWinding(Vector *pieces, const CmWinding *clip, const Vec3
       w = back;
     }
 
-    if (w && Cm_WindingArea(w) > ON_EPSILON) {
-      Cm_FreeWinding(w);
-      Cm_FreeWinding(piece);
+    if (w && Winding_Area(w) > ON_EPSILON) {
+      Winding_Free(w);
+      Winding_Free(piece);
       continue;
     }
 
     if (w) {
-      Cm_FreeWinding(w);
+      Winding_Free(w);
     }
 
     while (out->count > count) {
-      Cm_FreeWinding(VectorValue(out, CmWinding *, out->count - 1));
+      Winding_Free(VectorValue(out, Winding *, out->count - 1));
       $(out, removeAt, out->count - 1);
     }
 
@@ -753,7 +753,7 @@ void MakeTreeFaces(Tree *tree, const CsgBrush *brushes) {
       continue;
     }
 
-    const BrushSide *side = brush->brushSides;
+    const MapBrushSide *side = brush->brushSides;
     for (int32_t i = 0; i < brush->numBrushSides; i++, side++) {
 
       if (!side->original || !side->winding) {
@@ -785,18 +785,18 @@ void MakeTreeFaces(Tree *tree, const CsgBrush *brushes) {
     const int32_t contents = VisibleContents(s->brush->original->contents);
     const Vec3 normal = planes[s->side->plane].normal;
 
-    Vector *pieces = $(alloc(Vector), initWithSize, sizeof(CmWinding *));
+    Vector *pieces = $(alloc(Vector), initWithSize, sizeof(Winding *));
 
-    CmWinding *w = Cm_CopyWinding(s->side->winding);
+    Winding *w = Winding_Copy(s->side->winding);
     $(pieces, add, &w);
 
-    const Box3 bounds = Box3_Expand(Cm_WindingBounds(s->side->winding), ON_EPSILON);
+    const Box3 bounds = Box3_Expand(Winding_Bounds(s->side->winding), ON_EPSILON);
 
     for (int32_t j = i - 1; j >= 0 && sides[j].side->plane == s->side->plane && pieces->count; j--) {
 
       const TreeFaceSide *t = &sides[j];
 
-      if (!Box3_Intersects(Cm_WindingBounds(t->side->winding), bounds)) {
+      if (!Box3_Intersects(Winding_Bounds(t->side->winding), bounds)) {
         continue;
       }
 
@@ -812,7 +812,7 @@ void MakeTreeFaces(Tree *tree, const CsgBrush *brushes) {
     }
 
     for (size_t j = 0; j < pieces->count; j++) {
-      ClipSideIntoTree_r(tree->headNode, VectorValue(pieces, CmWinding *, j), s->brush, s->side, NULL);
+      ClipSideIntoTree_r(tree->headNode, VectorValue(pieces, Winding *, j), s->brush, s->side, NULL);
     }
 
     release(pieces);
@@ -888,7 +888,7 @@ static Box3 CalcNodeVisibleBounds_r(Node *node) {
     }
 
     assert(f->w);
-    node->visibleBounds = Box3_Union(node->visibleBounds, Cm_WindingBounds(f->w));
+    node->visibleBounds = Box3_Union(node->visibleBounds, Winding_Bounds(f->w));
   }
 
   return node->visibleBounds;

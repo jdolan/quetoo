@@ -22,9 +22,9 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-#define AI_NODE(vector, index) VectorElement((vector), AiNode, (index))
-#define AI_LINK(vector, index) VectorElement((vector), AiLink, (index))
-#define AI_NODE_ID(vector, index) (VectorValue((vector), AiNodeId, (index)))
+#define AI_NODE(vector, index) VectorElement((vector), GameAiNode, (index))
+#define AI_LINK(vector, index) VectorElement((vector), GameAiLink, (index))
+#define AI_NODE_ID(vector, index) (VectorValue((vector), GameAiNodeId, (index)))
 #define AI_PLATFORM(vector, index) (VectorValue((vector), GameEntity *, (index)))
 
 /**
@@ -34,23 +34,23 @@
  * the previous O(n) linear scan), and is rebuilt lazily after any mutation
  * of the global node array.
  */
-static struct GridKdTree *g_ai_nodes_kdtree = NULL;
-static Vec3 *g_aiNodesKdtreePositions = NULL;
-static size_t g_aiNodesKdtreeCount = 0;
+static struct GameAiKdTree *aiNodesKdtree = NULL;
+static Vec3 *aiNodesKdtreePositions = NULL;
+static size_t aiNodesKdtreeCount = 0;
 
 /**
  * @brief Invalidates the cached kd-tree. Must be called whenever the
- * underlying `g_aiNodes` array is mutated (add/remove/move/reload).
+ * underlying `aiNodes` array is mutated (add/remove/move/reload).
  */
 static void G_Ai_Node_InvalidateSpatialIndex(void) {
-  if (g_ai_nodes_kdtree) {
-    gridkdtree_free(&g_ai_nodes_kdtree);
+  if (aiNodesKdtree) {
+    G_Ai_KdTreeFree(&aiNodesKdtree);
   }
-  if (g_aiNodesKdtreePositions) {
-    free(g_aiNodesKdtreePositions);
-    g_aiNodesKdtreePositions = NULL;
+  if (aiNodesKdtreePositions) {
+    free(aiNodesKdtreePositions);
+    aiNodesKdtreePositions = NULL;
   }
-  g_aiNodesKdtreeCount = 0;
+  aiNodesKdtreeCount = 0;
 }
 
 /**
@@ -61,7 +61,7 @@ static struct {
 
   Vec3 floorPosition;
 
-  AiNodeId lastNodes[2];
+  GameAiNodeId lastNodes[2];
 
   bool awaitLanding, isJumping, isWaterJump, onMover;
 
@@ -108,24 +108,24 @@ typedef struct {
   // only used for nav purposes
 
   float cost;
-  AiNodeId cameFrom;
-} AiNode;
+  GameAiNodeId cameFrom;
+} GameAiNode;
 
 /**
  * @brief The global array of navigation nodes for the current map.
  */
-static Vector *g_aiNodes;
+static Vector *aiNodes;
 
 /**
  * @brief The global array of platforms for the current map.
  */
-static Vector *g_aiPlatforms;
+static Vector *aiPlatforms;
 
 /**
  * @brief Returns the index of a node pointer within the global node array.
  */
-static inline AiNodeId G_Ai_Node_Index(const AiNode *node) {
-  return node - (AiNode *) g_aiNodes->elements;
+static inline GameAiNodeId G_Ai_Node_Index(const GameAiNode *node) {
+  return node - (GameAiNode *) aiNodes->elements;
 }
 
 static void G_Ai_Node_FreePathPool(void);
@@ -133,7 +133,7 @@ static void G_Ai_Node_FreePathPool(void);
 /**
  * @brief Returns true if the given node is visible (unobstructed) from the specified position.
  */
-static bool G_Ai_Node_Visible(const Vec3 position, const AiNodeId node) {
+static bool G_Ai_Node_Visible(const Vec3 position, const GameAiNodeId node) {
 
   return gi.Trace(position, G_Ai_Node_GetPosition(node), Box3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
 }
@@ -142,44 +142,44 @@ static bool G_Ai_Node_Visible(const Vec3 position, const AiNodeId node) {
  * @brief Returns the total number of navigation nodes currently loaded.
  */
 uint32_t G_Ai_Node_Count(void) {
-  return g_aiNodes ? (uint32_t) g_aiNodes->count : 0;
+  return aiNodes ? (uint32_t) aiNodes->count : 0;
 }
 
 /**
- * @brief Lazily (re)builds the kd-tree spatial index over g_aiNodes.
+ * @brief Lazily (re)builds the kd-tree spatial index over aiNodes.
  * Returns true on success. The index is invalidated whenever the node
  * array is mutated (see G_Ai_Node_InvalidateSpatialIndex callers).
  */
 static bool G_Ai_Node_EnsureSpatialIndex(void) {
 
-  if (!g_aiNodes || g_aiNodes->count == 0) {
+  if (!aiNodes || aiNodes->count == 0) {
     return false;
   }
 
-  if (g_ai_nodes_kdtree && g_aiNodesKdtreeCount == g_aiNodes->count) {
+  if (aiNodesKdtree && aiNodesKdtreeCount == aiNodes->count) {
     return true;
   }
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  const size_t n = g_aiNodes->count;
-  g_aiNodesKdtreePositions = malloc(sizeof(Vec3) * n);
-  if (!g_aiNodesKdtreePositions) {
+  const size_t n = aiNodes->count;
+  aiNodesKdtreePositions = malloc(sizeof(Vec3) * n);
+  if (!aiNodesKdtreePositions) {
     return false;
   }
 
   for (size_t i = 0; i < n; i++) {
-    g_aiNodesKdtreePositions[i] = AI_NODE(g_aiNodes, i)->position;
+    aiNodesKdtreePositions[i] = AI_NODE(aiNodes, i)->position;
   }
 
-  g_ai_nodes_kdtree = gridkdtree_create(g_aiNodesKdtreePositions, n);
-  if (!g_ai_nodes_kdtree) {
-    free(g_aiNodesKdtreePositions);
-    g_aiNodesKdtreePositions = NULL;
+  aiNodesKdtree = G_Ai_KdTreeCreate(aiNodesKdtreePositions, n);
+  if (!aiNodesKdtree) {
+    free(aiNodesKdtreePositions);
+    aiNodesKdtreePositions = NULL;
     return false;
   }
 
-  g_aiNodesKdtreeCount = n;
+  aiNodesKdtreeCount = n;
   return true;
 }
 
@@ -187,14 +187,14 @@ typedef struct {
   Vec3 position;
   bool onlyVisible;
   bool preferLevel;
-} AiNodeQueryFilter;
+} GameAiNodeQueryFilter;
 
 /**
  * @brief Whether a node qualifies for `G_Ai_Node_FindClosest`, and at what distance.
  */
 static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float *distance) {
-  const AiNodeQueryFilter *filter = data;
-  const AiNode *node = AI_NODE(g_aiNodes, nodenum);
+  const GameAiNodeQueryFilter *filter = data;
+  const GameAiNode *node = AI_NODE(aiNodes, nodenum);
 
   Vec3 dir = Vec3_Subtract(filter->position, node->position);
 
@@ -215,31 +215,31 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
  * `onlyVisible` / `preferLevel` filters. Falls back to a linear scan if
  * the spatial index is unavailable.
  */
-AiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel) {
+GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel) {
 
-  if (!g_aiNodes || g_aiNodes->count == 0) {
+  if (!aiNodes || aiNodes->count == 0) {
     return AI_NODE_INVALID;
   }
 
-  AiNodeId closest = AI_NODE_INVALID;
+  GameAiNodeId closest = AI_NODE_INVALID;
   float closestDist = 0;
   const float distSquared = maxDistance * maxDistance;
 
   if (G_Ai_Node_EnsureSpatialIndex()) {
-    AiNodeQueryFilter filter = {
+    GameAiNodeQueryFilter filter = {
       .position = position,
       .onlyVisible = onlyVisible,
       .preferLevel = preferLevel
     };
 
-    const size_t node = gridkdtree_query_filter(g_ai_nodes_kdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
+    const size_t node = G_Ai_KdTreeQuery(aiNodesKdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
 
-    return node == SIZE_MAX ? AI_NODE_INVALID : (AiNodeId) node;
+    return node == SIZE_MAX ? AI_NODE_INVALID : (GameAiNodeId) node;
   }
 
   // Fallback: linear scan (kd-tree build failed).
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
 
     Vec3 dir = Vec3_Subtract(position, node->position);
     if (preferLevel && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
@@ -261,38 +261,38 @@ AiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, con
 /**
  * @brief Creates and appends a new navigation node at the specified world position.
  */
-AiNodeId G_Ai_Node_Create(const Vec3 position) {
+GameAiNodeId G_Ai_Node_Create(const Vec3 position) {
 
   if (gi.PointContents(position) & CONTENTS_MASK_SOLID) {
     G_Ai_Debug("Rejected node at %s (inside solid)\n", vtos(position));
     return AI_NODE_INVALID;
   }
 
-  if (!g_aiNodes) {
-    g_aiNodes = $(alloc(Vector), initWithSize, sizeof(AiNode));
+  if (!aiNodes) {
+    aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
   }
 
-  AiNode node = (AiNode) {
+  GameAiNode node = (GameAiNode) {
     .position = position
   };
-  $(g_aiNodes, add, &node);
+  $(aiNodes, add, &node);
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  G_Ai_Debug("Dropped new node %zu\n", g_aiNodes->count - 1);
+  G_Ai_Debug("Dropped new node %zu\n", aiNodes->count - 1);
 
-  return g_aiNodes->count - 1;
+  return aiNodes->count - 1;
 }
 
 /**
  * @brief Returns true if node a has a directed link to node b.
  */
-bool G_Ai_Node_IsLinked(const AiNodeId a, const AiNodeId b) {
-  const AiNode *nodeA = AI_NODE(g_aiNodes, a);
+bool G_Ai_Node_IsLinked(const GameAiNodeId a, const GameAiNodeId b) {
+  const GameAiNode *nodeA = AI_NODE(aiNodes, a);
 
   if (nodeA->links) {
     for (size_t i = 0; i < nodeA->links->count; i++) {
-      const AiLink *link = AI_LINK(nodeA->links, i);
+      const GameAiLink *link = AI_LINK(nodeA->links, i);
 
       if (link->id == b) {
         return true;
@@ -306,17 +306,17 @@ bool G_Ai_Node_IsLinked(const AiNodeId a, const AiNodeId b) {
 /**
  * @brief Returns the array of outgoing links for the specified node.
  */
-const Vector *G_Ai_Node_GetLinks(const AiNodeId a) {
-  const AiNode *nodeA = AI_NODE(g_aiNodes, a);
+const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a) {
+  const GameAiNode *nodeA = AI_NODE(aiNodes, a);
   return nodeA->links;
 }
 
 /**
  * @brief Creates a directed link from node a to node b with the given traversal cost.
  */
-void G_Ai_Node_Link(const AiNodeId a, const AiNodeId b, const float cost) {
+void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost) {
 
-  if (!g_aiNodes || a >= g_aiNodes->count || b >= g_aiNodes->count) {
+  if (!aiNodes || a >= aiNodes->count || b >= aiNodes->count) {
     return;
   }
 
@@ -324,13 +324,13 @@ void G_Ai_Node_Link(const AiNodeId a, const AiNodeId b, const float cost) {
     return;
   }
 
-  AiNode *nodeA = AI_NODE(g_aiNodes, a);
+  GameAiNode *nodeA = AI_NODE(aiNodes, a);
 
   if (!nodeA->links) {
-    nodeA->links = $(alloc(Vector), initWithSize, sizeof(AiLink));
+    nodeA->links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
   }
 
-  AiLink link = (AiLink) {
+  GameAiLink link = (GameAiLink) {
     .id = b,
     .cost = cost
   };
@@ -342,7 +342,7 @@ void G_Ai_Node_Link(const AiNodeId a, const AiNodeId b, const float cost) {
 /**
  * @brief Creates a link between two nodes using their Euclidean distance as the cost.
  */
-static inline void G_Ai_Node_LinkDefault(const AiNodeId a, const AiNodeId b, const bool bidirectional) {
+static inline void G_Ai_Node_LinkDefault(const GameAiNodeId a, const GameAiNodeId b, const bool bidirectional) {
 
   if (a == b) {
     return;
@@ -358,13 +358,13 @@ static inline void G_Ai_Node_LinkDefault(const AiNodeId a, const AiNodeId b, con
 /**
  * @brief Removes the bidirectional link between two nodes.
  */
-static void G_Ai_Node_Unlink(const AiNodeId a, const AiNodeId b) {
+static void G_Ai_Node_Unlink(const GameAiNodeId a, const GameAiNodeId b) {
   {
-    AiNode *nodeA = AI_NODE(g_aiNodes, a);
+    GameAiNode *nodeA = AI_NODE(aiNodes, a);
 
     if (nodeA->links) {
       for (size_t i = 0; i < nodeA->links->count; i++) {
-        const AiLink *link = AI_LINK(nodeA->links, i);
+        const GameAiLink *link = AI_LINK(nodeA->links, i);
 
         if (link->id == b) {
           $(nodeA->links, removeAt, i);
@@ -380,11 +380,11 @@ static void G_Ai_Node_Unlink(const AiNodeId a, const AiNodeId b) {
   }
 
   {
-    AiNode *nodeB = AI_NODE(g_aiNodes, b);
+    GameAiNode *nodeB = AI_NODE(aiNodes, b);
   
     if (nodeB->links) {
       for (size_t i = 0; i < nodeB->links->count; i++) {
-        const AiLink *link = AI_LINK(nodeB->links, i);
+        const GameAiLink *link = AI_LINK(nodeB->links, i);
 
         if (link->id == a) {
           $(nodeB->links, removeAt, i);
@@ -403,8 +403,8 @@ static void G_Ai_Node_Unlink(const AiNodeId a, const AiNodeId b) {
 /**
  * @brief Removes all links connected to the specified node.
  */
-static void G_Ai_Node_UnlinkAll(const AiNodeId id) {
-  const AiNode *node = AI_NODE(g_aiNodes, id);
+static void G_Ai_Node_UnlinkAll(const GameAiNodeId id) {
+  const GameAiNode *node = AI_NODE(aiNodes, id);
 
   if (!node->links) {
     return;
@@ -423,17 +423,17 @@ static void G_Ai_Node_UnlinkAll(const AiNodeId id) {
  * @brief Node `id` has been removed, so we need to fix up connection IDs
  * so that they don't shift.
 */
-static void G_Ai_Node_Adjust(const AiNodeId id) {
+static void G_Ai_Node_Adjust(const GameAiNodeId id) {
 
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
 
     if (!node->links) {
       continue;
     }
 
     for (size_t l = 0; l < node->links->count; l++) {
-      AiLink *link = AI_LINK(node->links, l);
+      GameAiLink *link = AI_LINK(node->links, l);
 
       if (link->id >= id) {
         link->id--;
@@ -445,21 +445,21 @@ static void G_Ai_Node_Adjust(const AiNodeId id) {
 /**
  * @brief Destroys a navigation node, removing all of its links and freeing its slot.
  */
-void G_Ai_Node_Destroy(const AiNodeId id) {
+void G_Ai_Node_Destroy(const GameAiNodeId id) {
 
-  if (!g_aiNodes || id >= g_aiNodes->count) {
+  if (!aiNodes || id >= aiNodes->count) {
     G_Warn("Invalid node id %u\n", id);
     return;
   }
 
   G_Ai_Node_UnlinkAll(id);
-  $(g_aiNodes, removeAt, id);
+  $(aiNodes, removeAt, id);
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  if (!g_aiNodes->count) {
-    release(g_aiNodes);
-    g_aiNodes = NULL;
+  if (!aiNodes->count) {
+    release(aiNodes);
+    aiNodes = NULL;
   } else {
     G_Ai_Node_Adjust(id);
   }
@@ -469,7 +469,7 @@ void G_Ai_Node_Destroy(const AiNodeId id) {
  * @brief Returns true if the client entity is currently standing on solid ground.
  */
 static bool G_Ai_Node_OnGround(const GameClient *cl) {
-  const CmTrace tr = gi.Trace(cl->entity->s.origin,
+  const CollisionTrace tr = gi.Trace(cl->entity->s.origin,
                                  Vec3_Add(cl->entity->s.origin, MakeVec3(0, 0, -PM_GROUND_DIST)),
                                  cl->entity->s.bounds,
                                  NULL,
@@ -481,25 +481,25 @@ static bool G_Ai_Node_OnGround(const GameClient *cl) {
 /**
  * @brief Returns the world position of the specified navigation node.
  */
-Vec3 G_Ai_Node_GetPosition(const AiNodeId node) {
+Vec3 G_Ai_Node_GetPosition(const GameAiNodeId node) {
 
-  return AI_NODE(g_aiNodes, node)->position;
+  return AI_NODE(aiNodes, node)->position;
 }
 
 /**
  * @brief Recalculates the traversal costs for all links incident to the given node.
  */
-static void G_Ai_Node_UpdateCosts(const AiNodeId id) {
+static void G_Ai_Node_UpdateCosts(const GameAiNodeId id) {
 
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
 
     if (!node->links || !node->links->count) {
       continue;
     }
 
     for (size_t l = 0; l < node->links->count; l++) {
-      AiLink *link = AI_LINK(node->links, l);
+      GameAiLink *link = AI_LINK(node->links, l);
 
       if (id == i || link->id == id) {
         link->cost = G_Ai_Node_Cost(i, link->id);
@@ -515,7 +515,7 @@ static void G_Ai_Node_UpdateCosts(const AiNodeId id) {
 static bool G_Ai_PlatformAccessible(const Vec3 position) {
 
   G_ForEachEntity(ent, {
-    if (!ent->classname || q_strcmp(ent->classname, "func_plat") != 0) {
+    if (!ent->classname || Str_Compare(ent->classname, "func_plat") != 0) {
       continue;
     }
 
@@ -543,7 +543,7 @@ bool G_Ai_Node_CanPathTo(const Vec3 position) {
   const Vec3 end = Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f));
 
   // check if the destination has ground
-  CmTrace tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), MakeVec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+  CollisionTrace tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), MakeVec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
   // bad ground
   bool stuckInMover = tr.ent
@@ -593,7 +593,7 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
 
   // if we're heading onto a mover node, only allow us to go forth
   // if the mover is there
-  return G_Ai_Node_CanPathTo(AI_NODE(g_aiNodes, AI_NODE_ID(path, index))->position);
+  return G_Ai_Node_CanPathTo(AI_NODE(aiNodes, AI_NODE_ID(path, index))->position);
 }
 
 /**
@@ -652,7 +652,7 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
         module.awaitLanding = false;
         module.position = ent->s.origin;
 
-        AiNodeId landedNearNode = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, true);
+        GameAiNodeId landedNearNode = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, true);
 
         if (landedNearNode == AI_NODE_INVALID) {
 
@@ -701,11 +701,11 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
     if (!G_Ai_Node_OnGround(cl) && !inWater) {
       // for water leavings, we want to drop where we are, not where we went into the water from
       const Vec3 where = module.isWaterJump ? ent->s.origin : module.floorPosition;
-      const AiNodeId jumpedNearNode = G_Ai_Node_FindClosest(where, WALKING_DISTANCE / 2, true, false);
+      const GameAiNodeId jumpedNearNode = G_Ai_Node_FindClosest(where, WALKING_DISTANCE / 2, true, false);
       const bool isJump = cl->ps.pmState.velocity.z > 0;
 
       if (jumpedNearNode == AI_NODE_INVALID) {
-        const AiNodeId id = G_Ai_Node_Create(where);
+        const GameAiNodeId id = G_Ai_Node_Create(where);
 
         if (module.lastNodes[0] != AI_NODE_INVALID) {
 
@@ -740,7 +740,7 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
 
   // we're walkin'
 
-  const AiNodeId closestNode = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 4, true, false);
+  const GameAiNodeId closestNode = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 4, true, false);
   const bool onMover = ent->ground.ent && ((GameEntity *) ent->ground.ent)->s.number != 0;
 
   // attack button enables/disables placement
@@ -751,11 +751,11 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
   // "use" moves node
   } else if (allowAdjustments && ent->moveNode) {
     if (module.lastNodes[0] != AI_NODE_INVALID) {
-      AiNode *node = AI_NODE(g_aiNodes, module.lastNodes[0]);
+      GameAiNode *node = AI_NODE(aiNodes, module.lastNodes[0]);
       node->position = ent->s.origin;
 
       if (cmd->up < 0) {
-        const CmTrace tr = gi.Trace(node->position, Vec3_Subtract(node->position, MakeVec3(0.f, 0.f, MAX_WORLD_COORD)), Pm_Bounds(&ent->client->ps.pmState.params, false), ent, CONTENTS_MASK_SOLID);
+        const CollisionTrace tr = gi.Trace(node->position, Vec3_Subtract(node->position, MakeVec3(0.f, 0.f, MAX_WORLD_COORD)), Pm_Bounds(&ent->client->ps.pmState.params, false), ent, CONTENTS_MASK_SOLID);
         node->position = tr.end;
       }
 
@@ -806,7 +806,7 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
     module.onMover = onMover;
 
     if (doNoding) {
-      AiNodeId id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 8, true, false);
+      GameAiNodeId id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 8, true, false);
       
       if (id == AI_NODE_INVALID) {
         id = G_Ai_Node_Create(ent->s.origin);
@@ -835,7 +835,7 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
   } else if (lastNodeDistanceCompare > WALKING_DISTANCE) {
 
     if (doNoding) {
-      AiNodeId id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, !inWater);
+      GameAiNodeId id = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 2, true, !inWater);
       
       if (id == AI_NODE_INVALID) {
         id = G_Ai_Node_Create(ent->s.origin);
@@ -868,24 +868,24 @@ void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
 typedef struct {
   union {
     struct {
-      AiNodeId a, b;
+      GameAiNodeId a, b;
     };
     int32_t v;
   };
-} AiUniqueLink;
+} GameAiUniqueLink;
 
 typedef struct {
-  AiUniqueLink link;
+  GameAiUniqueLink link;
   int32_t bits;
-} AiRenderLink;
+} GameAiRenderLink;
 
 /**
  * @brief Renders a single node link line for developer visualization.
  */
-static void G_Ai_Node_RenderLink(const AiUniqueLink ulink, const int32_t bits) {
+static void G_Ai_Node_RenderLink(const GameAiUniqueLink ulink, const int32_t bits) {
   
-  const AiNode *nodeA = AI_NODE(g_aiNodes, ulink.a);
-  const AiNode *nodeB = AI_NODE(g_aiNodes, ulink.b);
+  const GameAiNode *nodeA = AI_NODE(aiNodes, ulink.a);
+  const GameAiNode *nodeB = AI_NODE(aiNodes, ulink.b);
 
   GameClient *client = NULL;
   G_ForEachClient(cl, {
@@ -914,7 +914,7 @@ static void G_Ai_Node_RenderLink(const AiUniqueLink ulink, const int32_t bits) {
 /**
  * @brief Returns true if the specified node ID is present in the given path array.
  */
-static bool G_Ai_NodeInPath(Vector *path, AiNodeId node) {
+static bool G_Ai_NodeInPath(Vector *path, GameAiNodeId node) {
 
   if (!path) {
     return false;
@@ -938,7 +938,7 @@ void G_Ai_Node_Render(void) {
     return;
   }
 
-  if (!g_aiNodes) {
+  if (!aiNodes) {
     return;
   }
 
@@ -956,10 +956,10 @@ void G_Ai_Node_Render(void) {
 
   GameEntity *ent = client->entity;
 
-  Vector *uniqueLinks = $(alloc(Vector), initWithSize, sizeof(AiRenderLink));
+  Vector *uniqueLinks = $(alloc(Vector), initWithSize, sizeof(GameAiRenderLink));
 
-  for (uint32_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (uint32_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
     const bool inPath = G_Ai_NodeInPath(module.testPath, i);
 
     if (G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pmState.viewOffset), i)) {
@@ -990,8 +990,8 @@ void G_Ai_Node_Render(void) {
     if (node->links) {
 
       for (size_t l = 0; l < node->links->count; l++) {
-        const AiLink *link = AI_LINK(node->links, l);
-        AiUniqueLink ulink;
+        const GameAiLink *link = AI_LINK(node->links, l);
+        GameAiUniqueLink ulink;
         int32_t bit;
 
         if (link->id > i) {
@@ -1015,7 +1015,7 @@ void G_Ai_Node_Render(void) {
         bool found = false;
 
         for (uint32_t u = 0; u < uniqueLinks->count; u++) {
-          AiRenderLink *renderLink = VectorElement(uniqueLinks, AiRenderLink, u);
+          GameAiRenderLink *renderLink = VectorElement(uniqueLinks, GameAiRenderLink, u);
           if (renderLink->link.v == ulink.v) {
             renderLink->bits |= bit;
             found = true;
@@ -1024,7 +1024,7 @@ void G_Ai_Node_Render(void) {
         }
 
         if (!found) {
-          AiRenderLink renderLink = {
+          GameAiRenderLink renderLink = {
             .link = ulink,
             .bits = bit
           };
@@ -1035,7 +1035,7 @@ void G_Ai_Node_Render(void) {
   }
 
   for (size_t i = 0; i < uniqueLinks->count; i++) {
-    const AiRenderLink *renderLink = VectorElement(uniqueLinks, AiRenderLink, i);
+    const GameAiRenderLink *renderLink = VectorElement(uniqueLinks, GameAiRenderLink, i);
     G_Ai_Node_RenderLink(renderLink->link, renderLink->bits);
   }
 
@@ -1065,10 +1065,10 @@ void G_Ai_Node_Render(void) {
 #define AI_NODE_MAGIC ('Q' | '2' << 8 | 'N' << 16 | 'S' << 24)
 #define AI_NODE_VERSION 2
 
-_Static_assert(sizeof(AiLink) == 8, "AiLink is the on-disk link record; changing it requires a new AI_NODE_VERSION");
+_Static_assert(sizeof(GameAiLink) == 8, "GameAiLink is the on-disk link record; changing it requires a new AI_NODE_VERSION");
 
 /**
- * @brief Reads the nodes and links from an open .nav file into `g_aiNodes`.
+ * @brief Reads the nodes and links from an open .nav file into `aiNodes`.
  * @return False if the file is malformed, in which case the nodes read so far
  * must be discarded.
  */
@@ -1091,19 +1091,19 @@ static bool G_Ai_ReadNodes(File *file) {
     return false;
   }
 
-  g_aiNodes = $(alloc(Vector), initWithSize, sizeof(AiNode));
+  aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
 
   for (size_t i = 0; i < numNodes; i++) {
-    AiNode node = { 0 };
-    $(g_aiNodes, add, &node);
+    GameAiNode node = { 0 };
+    $(aiNodes, add, &node);
   }
 
   G_Ai_Node_InvalidateSpatialIndex();
 
   size_t totalLinks = 0;
 
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    GameAiNode *node = AI_NODE(aiNodes, i);
 
     if (gi.ReadFile(file, &node->position, sizeof(node->position), 1) != 1) {
       G_Warn("Nav file is truncated at node %zu\n", i);
@@ -1117,10 +1117,10 @@ static bool G_Ai_ReadNodes(File *file) {
     }
 
     if (numLinks) {
-      node->links = $(alloc(Vector), initWithSize, sizeof(AiLink));
+      node->links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
 
       for (size_t l = 0; l < numLinks; l++) {
-        AiLink link;
+        GameAiLink link;
 
         if (gi.ReadFile(file, &link, sizeof(link), 1) != 1) {
           G_Warn("Nav file is truncated at node %zu\n", i);
@@ -1161,7 +1161,7 @@ void G_Ai_InitNodes(void) {
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
+  Str_Format(filename, sizeof(filename), "maps/%s.nav", gameLevel.name);
 
   if (!gi.FileExists(filename)) {
     G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_aiNodeDev` to set up nodes.\n");
@@ -1183,11 +1183,11 @@ void G_Ai_InitNodes(void) {
     return;
   }
 
-  module.fileNodes = (uint32_t) g_aiNodes->count;
+  module.fileNodes = (uint32_t) aiNodes->count;
   module.fileLinks = 0;
 
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
 
     if (node->links) {
       module.fileLinks += (uint32_t) node->links->count;
@@ -1208,7 +1208,7 @@ static void G_Ai_CheckNodes(void) {
         continue;
       }
 
-      AiNodeId node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
+      GameAiNodeId node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 
       if (node == AI_NODE_INVALID) {
         G_Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
@@ -1216,8 +1216,8 @@ static void G_Ai_CheckNodes(void) {
     });
   }
 
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
     
     if (gi.PointContents(node->position) & CONTENTS_MASK_SOLID) {
       G_Warn("Node %zu @ %s is inside of solid\n", i, vtos(node->position));
@@ -1231,15 +1231,15 @@ static void G_Ai_CheckNodes(void) {
  */
 void G_Ai_NodesReady(void) {
 
-  if (!g_aiNodes) {
+  if (!aiNodes) {
     return;
   }
 
-  const size_t addedNodes = g_aiNodes->count - module.fileNodes;
+  const size_t addedNodes = aiNodes->count - module.fileNodes;
   size_t addedLinks = 0;
 
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
 
     if (node->links) {
       addedLinks += node->links->count;
@@ -1250,11 +1250,11 @@ void G_Ai_NodesReady(void) {
   gi.Print("  Game loaded %zu additional nodes with %zu new links.\n", addedNodes, addedLinks);
 
   G_ForEachEntity(ent, {
-    if (ent->classname && q_strcmp(ent->classname, "func_plat") == 0) {
-      if (!g_aiPlatforms) {
-        g_aiPlatforms = $(alloc(Vector), initWithSize, sizeof(GameEntity *));
+    if (ent->classname && Str_Compare(ent->classname, "func_plat") == 0) {
+      if (!aiPlatforms) {
+        aiPlatforms = $(alloc(Vector), initWithSize, sizeof(GameEntity *));
       }
-      $(g_aiPlatforms, add, &ent);
+      $(aiPlatforms, add, &ent);
     }
   });
 
@@ -1278,9 +1278,9 @@ void G_Ai_SaveNodes(void) {
 
   char filename[MAX_OS_PATH];
 
-  q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
+  Str_Format(filename, sizeof(filename), "maps/%s.nav", gameLevel.name);
 
-  if (!g_aiNodes) {
+  if (!aiNodes) {
     G_Warn("No nodes to write.\n");
     return;
   }
@@ -1292,18 +1292,18 @@ void G_Ai_SaveNodes(void) {
   gi.WriteFile(file, &magic, sizeof(magic), 1);
   gi.WriteFile(file, &version, sizeof(version), 1);
 
-  const uint32_t numNodes = (uint32_t) g_aiNodes->count;
+  const uint32_t numNodes = (uint32_t) aiNodes->count;
   gi.WriteFile(file, &numNodes, sizeof(numNodes), 1);
 
-  for (size_t i = 0; i < g_aiNodes->count; i++) {
-    const AiNode *node = AI_NODE(g_aiNodes, i);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
 
     gi.WriteFile(file, &node->position, sizeof(node->position), 1);
 
     if (node->links) {
       const uint32_t numLinks = (uint32_t) node->links->count;
       gi.WriteFile(file, &numLinks, sizeof(numLinks), 1);
-      gi.WriteFile(file, node->links->elements, sizeof(AiLink), node->links->count);
+      gi.WriteFile(file, node->links->elements, sizeof(GameAiLink), node->links->count);
     } else {
       uint32_t len = 0;
       gi.WriteFile(file, &len, sizeof(len), 1);
@@ -1322,19 +1322,19 @@ void G_Ai_SaveNodes(void) {
  */
 void G_Ai_DeleteNodes(void) {
 
-  if (g_aiNodes) {
-    for (uint32_t i = 0; i < g_aiNodes->count; i++) {
-      AiNode *node = AI_NODE(g_aiNodes, i);
+  if (aiNodes) {
+    for (uint32_t i = 0; i < aiNodes->count; i++) {
+      GameAiNode *node = AI_NODE(aiNodes, i);
 
       if (node->links) {
         release(node->links);
       }
     }
 
-    $(g_aiNodes, removeAll);
+    $(aiNodes, removeAll);
   }
 
-  g_aiPlatforms = release(g_aiPlatforms);
+  aiPlatforms = release(aiPlatforms);
 
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
@@ -1345,44 +1345,44 @@ void G_Ai_DeleteNodes(void) {
  */
 void G_Ai_ShutdownNodes(void) {
 
-  if (g_aiNodes) {
-    for (size_t i = 0; i < g_aiNodes->count; i++) {
-      AiNode *node = AI_NODE(g_aiNodes, i);
+  if (aiNodes) {
+    for (size_t i = 0; i < aiNodes->count; i++) {
+      GameAiNode *node = AI_NODE(aiNodes, i);
 
       if (node->links) {
         release(node->links);
       }
     }
 
-    g_aiNodes = release(g_aiNodes);
+    aiNodes = release(aiNodes);
   }
 
-  g_aiPlatforms = release(g_aiPlatforms);
+  aiPlatforms = release(aiPlatforms);
 
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
 }
 
 typedef struct {
-  AiNodeId id;
+  GameAiNodeId id;
   float priority;
-} AiNodePriority;
+} GameAiNodePriority;
 
-static struct GHeap *g_ai_node_path_queue;
-static AiNodePriority *g_aiNodePathEntries;
-static size_t g_aiNodePathCapacity;
-static size_t g_aiNodePathCount;
+static struct GameAiHeap *aiNodePathQueue;
+static GameAiNodePriority *aiNodePathEntries;
+static size_t aiNodePathCapacity;
+static size_t aiNodePathCount;
 
 /**
  * @brief Releases the pathfinding queue and its entries.
  */
 static void G_Ai_Node_FreePathPool(void) {
 
-  gheap_free(&g_ai_node_path_queue);
-  free(g_aiNodePathEntries);
-  g_aiNodePathEntries = NULL;
-  g_aiNodePathCapacity = 0;
-  g_aiNodePathCount = 0;
+  G_Ai_HeapFree(&aiNodePathQueue);
+  free(aiNodePathEntries);
+  aiNodePathEntries = NULL;
+  aiNodePathCapacity = 0;
+  aiNodePathCount = 0;
 }
 
 /**
@@ -1390,36 +1390,36 @@ static void G_Ai_Node_FreePathPool(void) {
  */
 static bool G_Ai_Node_EnsurePathPool(const size_t capacity) {
 
-  if (g_ai_node_path_queue && g_aiNodePathCapacity >= capacity) {
-    gheap_reset(g_ai_node_path_queue);
-    g_aiNodePathCount = 0;
+  if (aiNodePathQueue && aiNodePathCapacity >= capacity) {
+    G_Ai_HeapReset(aiNodePathQueue);
+    aiNodePathCount = 0;
     return true;
   }
 
   G_Ai_Node_FreePathPool();
 
-  g_ai_node_path_queue = gheap_create(capacity);
-  g_aiNodePathEntries = malloc(sizeof(AiNodePriority) * capacity);
+  aiNodePathQueue = G_Ai_HeapCreate(capacity);
+  aiNodePathEntries = malloc(sizeof(GameAiNodePriority) * capacity);
 
-  if (!g_ai_node_path_queue || !g_aiNodePathEntries) {
+  if (!aiNodePathQueue || !aiNodePathEntries) {
     G_Ai_Node_FreePathPool();
     return false;
   }
 
-  g_aiNodePathCapacity = capacity;
+  aiNodePathCapacity = capacity;
   return true;
 }
 
 /**
  * @brief The next free pathfinding entry, or `NULL` when the pool is spent.
  */
-static AiNodePriority *G_Ai_Node_AllocPathEntry(void) {
+static GameAiNodePriority *G_Ai_Node_AllocPathEntry(void) {
 
-  if (g_aiNodePathCount == g_aiNodePathCapacity) {
+  if (aiNodePathCount == aiNodePathCapacity) {
     return NULL;
   }
 
-  return &g_aiNodePathEntries[g_aiNodePathCount++];
+  return &aiNodePathEntries[aiNodePathCount++];
 }
 
 #define AI_MAX_DROP_HEIGHT 512.f
@@ -1431,13 +1431,13 @@ static AiNodePriority *G_Ai_Node_AllocPathEntry(void) {
 /**
  * @brief The stored cost of the link from `a` to `b`.
  */
-static inline float G_Ai_LinkCost(const AiNodeId a, const AiNodeId b) {
-  const AiNode *node = AI_NODE(g_aiNodes, a);
+static inline float G_Ai_LinkCost(const GameAiNodeId a, const GameAiNodeId b) {
+  const GameAiNode *node = AI_NODE(aiNodes, a);
 
   assert(node->links);
 
   for (uint32_t i = 0; i < node->links->count; i++) {
-    const AiLink *link = AI_LINK(node->links, i);
+    const GameAiLink *link = AI_LINK(node->links, i);
 
     if (link->id == b) {
       return link->cost;
@@ -1501,7 +1501,7 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
 /**
  * @see g_ai_node.h
  */
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiNodeId end, const G_Ai_NodeCostFunc heuristic, float *length) {
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, float *length) {
   
   if (length) {
     *length = 0;
@@ -1516,7 +1516,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
   // call G_ForEachEntity for every link expansion inside the A* loop.
 
   // size on 64k nodes is, say, 8kb.
-  const size_t costsStartedWords = ((size_t) g_aiNodes->count + 31u) / 32u;
+  const size_t costsStartedWords = ((size_t) aiNodes->count + 31u) / 32u;
   uint32_t *costsStarted = calloc(costsStartedWords, sizeof(*costsStarted));
   if (!costsStarted) {
     return NULL;
@@ -1526,29 +1526,29 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
   // queue (O(n) insertion) with an O(log n) binary heap from g_ai_grid.c.
   // Capacity is bounded by the node count plus headroom for re-insertions
   // (A* may push a better-cost duplicate before popping the stale one).
-  const size_t heapCapacity = (size_t) g_aiNodes->count * 4 + 16;
+  const size_t heapCapacity = (size_t) aiNodes->count * 4 + 16;
   if (!G_Ai_Node_EnsurePathPool(heapCapacity)) {
     free(costsStarted);
     return NULL;
   }
 
-  struct GHeap *queue = g_ai_node_path_queue;
+  struct GameAiHeap *queue = aiNodePathQueue;
   bool finished = false;
 
   {
-    AiNodePriority *e = G_Ai_Node_AllocPathEntry();
+    GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
     e->id = start;
     e->priority = 0;
-    gheap_push(queue, e->priority, e);
+    G_Ai_HeapPush(queue, e->priority, e);
   }
 
-  AiNode *startNode = AI_NODE(g_aiNodes, start);
+  GameAiNode *startNode = AI_NODE(aiNodes, start);
   startNode->cost = 0;
   costsStarted[start / 32] |= (uint32_t)1 << (start % 32);
   visited++;
 
   for (;;) {
-    AiNodePriority *current = (AiNodePriority *) gheap_pop(queue);
+    GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
     if (!current) {
       break;
     }
@@ -1558,7 +1558,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
       break;
     }
 
-    AiNode *node = AI_NODE(g_aiNodes, current->id);
+    GameAiNode *node = AI_NODE(aiNodes, current->id);
 
     // Stale entry guard: if this entry's priority is worse than the node's
     // best-known f-cost approximation (cost + 0 heuristic lower bound), the
@@ -1576,17 +1576,17 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
     const bool fromHazard = (nodeContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
     for (size_t i = 0; i < node->links->count; i++) {
-      const AiLink *link = AI_LINK(node->links, i);
-      AiNode *linkNode = AI_NODE(g_aiNodes, link->id);
+      const GameAiLink *link = AI_LINK(node->links, i);
+      GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
       const float drop = node->position.z - linkNode->position.z;
       const int32_t linkContents = gi.PointContents(linkNode->position);
       const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
       // Check platform accessibility using the pre-collected list.
-      if (g_aiPlatforms) {
+      if (aiPlatforms) {
         bool blocked = false;
-        for (size_t p = 0; p < g_aiPlatforms->count; p++) {
-          const GameEntity *plat = AI_PLATFORM(g_aiPlatforms, p);
+        for (size_t p = 0; p < aiPlatforms->count; p++) {
+          const GameEntity *plat = AI_PLATFORM(aiPlatforms, p);
           if (linkNode->position.x < plat->absBounds.mins.x || linkNode->position.x > plat->absBounds.maxs.x ||
               linkNode->position.y < plat->absBounds.mins.y || linkNode->position.y > plat->absBounds.maxs.y) {
             continue;
@@ -1635,7 +1635,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
 
       const float newCost = node->cost + link->cost + dropPenalty;
 
-      AiNodeId linkIndex = G_Ai_Node_Index(linkNode);
+      GameAiNodeId linkIndex = G_Ai_Node_Index(linkNode);
       const bool found = (costsStarted[linkIndex / 32] & ((uint32_t) 1u << (linkIndex % 32))) != 0;
       if (!found) {
         costsStarted[linkIndex / 32] |= (uint32_t) 1u << (linkIndex % 32);
@@ -1646,7 +1646,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
         linkNode->cost = newCost;
         const float priority = newCost + heuristic(link->id, end);
 
-        AiNodePriority *e = G_Ai_Node_AllocPathEntry();
+        GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
         if (!e) {
           G_Warn("A* open-set entry pool exhausted (capacity %zu)\n", heapCapacity);
           break;
@@ -1658,7 +1658,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
         // fall back to allocating a larger one is overkill; we simply
         // log and stop expanding from this node. The capacity heuristic
         // above (4 * N + 16) is generous for typical Quetoo maps.
-        if (!gheap_push(queue, priority, e)) {
+        if (!G_Ai_HeapPush(queue, priority, e)) {
           G_Warn("A* open-set heap exhausted (capacity %zu)\n", heapCapacity);
           break;
         }
@@ -1673,14 +1673,14 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
   if (finished) {
     G_Ai_Debug("Found path from %u -> %u with %u nodes visited\n", start, end, visited);
 
-    returnPath = $(alloc(Vector), initWithSize, sizeof(AiNodeId));
+    returnPath = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
     $(returnPath, insert, (void *) &end, 0);
 
     if (start != end) {
-      AiNodeId from = end;
+      GameAiNodeId from = end;
 
       for (;;) {
-        const AiNode *fromNode = AI_NODE(g_aiNodes, from);
+        const GameAiNode *fromNode = AI_NODE(aiNodes, from);
         from = fromNode->cameFrom;
         $(returnPath, insert, &from, 0);
 
@@ -1691,8 +1691,8 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const AiNodeId start, const AiN
 
       if (length) {
         for (size_t i = 0; i < returnPath->count - 1; i++) {
-          const AiNodeId a = AI_NODE_ID(returnPath, i);
-          const AiNodeId b = AI_NODE_ID(returnPath, i + 1);
+          const GameAiNodeId a = AI_NODE_ID(returnPath, i);
+          const GameAiNodeId b = AI_NODE_ID(returnPath, i + 1);
 
           *length += G_Ai_LinkCost(a, b);
         }
@@ -1729,8 +1729,8 @@ void G_Ai_OffsetNodes_f(void) {
     }
   }
 
-  for (uint32_t i = 0; i < g_aiNodes->count; i++) {
-    AiNode *node = AI_NODE(g_aiNodes, i);
+  for (uint32_t i = 0; i < aiNodes->count; i++) {
+    GameAiNode *node = AI_NODE(aiNodes, i);
     node->position = Vec3_Add(node->position, translate);
   }
 
@@ -1748,14 +1748,14 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
   }
 
   // find node closest to us
-  const AiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+  const GameAiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
 
   if (srcNode == AI_NODE_INVALID) {
     return false;
   }
 
   // make a new node on the item
-  CmTrace down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, MakeVec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
+  CollisionTrace down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, MakeVec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
   Vec3 pos;
 
   if (down.fraction == 1.0) {
@@ -1767,7 +1767,7 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
   // grab all the links of the node that brought us here
   const Vector *srcLinks = G_Ai_Node_GetLinks(srcNode);
 
-  const AiNodeId newNode = G_Ai_Node_Create(pos);
+  const GameAiNodeId newNode = G_Ai_Node_Create(pos);
   const float dist = Vec3_Distance(G_Ai_Node_GetPosition(srcNode), ent->s.origin);
 
   // bidirectionally connect us to source
@@ -1779,7 +1779,7 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
   if (srcLinks) {
 
     for (size_t i = 0; i < srcLinks->count; i++) {
-      const AiLink *link = AI_LINK(srcLinks, i);
+      const GameAiLink *link = AI_LINK(srcLinks, i);
 
       // not bidirectional
       if (!G_Ai_Node_IsLinked(link->id, srcNode)) {

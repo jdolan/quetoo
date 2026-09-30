@@ -132,7 +132,6 @@ static_assert(ITEM_TOTAL <= MAX_INVENTORY, "ITEM_TOTAL exceeds MAX_INVENTORY; in
  * embeds this as its first member and adds runtime-computed fields.
  */
 typedef struct {
-
   /**
    * @brief Entity classname used for map spawning.
    */
@@ -224,9 +223,9 @@ typedef struct {
 /**
  * @brief The complete list of item definitions, shared between game and cgame.
  */
-extern const GameItemDef bgItemDefs[];
+extern const GameItemDef gameItemDefs[];
 
 /**
- * @brief The count of `bgItemDefs`.
+ * @brief The count of `gameItemDefs`.
  */
-extern size_t bgNumItems;
+extern size_t gameNumItems;

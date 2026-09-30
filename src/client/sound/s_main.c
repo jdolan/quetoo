@@ -23,7 +23,7 @@
 
 #include "s_local.h"
 
-SoundContext sContext;
+SoundContext soundContext;
 
 Cvar *s_getError;
 
@@ -60,7 +60,7 @@ void S_GetError_(const char *function, const char *msg) {
 /**
  * @brief Returns the size of the `SDL_IOStream` for use as a libsndfile virtual file length callback.
  */
-static sf_count_t S_RWops_get_filelen(void *userData) {
+static sf_count_t S_RWops_GetFileLength(void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_GetIOSize(rwops);
 }
@@ -68,7 +68,7 @@ static sf_count_t S_RWops_get_filelen(void *userData) {
 /**
  * @brief Seeks the `SDL_IOStream` for use as a libsndfile virtual seek callback.
  */
-static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *userData) {
+static sf_count_t S_RWops_Seek(sf_count_t offset, int whence, void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_SeekIO(rwops, offset, whence);
 }
@@ -76,7 +76,7 @@ static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *userData) {
 /**
  * @brief Reads from the `SDL_IOStream` for use as a libsndfile virtual read callback.
  */
-static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_RWops_Read(void *ptr, sf_count_t count, void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_ReadIO(rwops, ptr, count);
 }
@@ -84,7 +84,7 @@ static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *userData) {
 /**
  * @brief Writes to the `SDL_IOStream` for use as a libsndfile virtual write callback.
  */
-static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_RWops_Write(const void *ptr, sf_count_t count, void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_WriteIO(rwops, ptr, count);
 }
@@ -92,7 +92,7 @@ static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *userDat
 /**
  * @brief Returns the current position of the `SDL_IOStream` for use as a libsndfile virtual tell callback.
  */
-static sf_count_t S_RWops_tell(void *userData) {
+static sf_count_t S_RWops_Tell(void *userData) {
   SDL_IOStream *rwops = (SDL_IOStream *) userData;
   return SDL_TellIO(rwops);
 }
@@ -100,18 +100,18 @@ static sf_count_t S_RWops_tell(void *userData) {
 /**
  * @brief An interface to `SDL_IOStream` for libsndfile
  */
-SF_VIRTUAL_IO sRwopsIo = {
-  .get_filelen = S_RWops_get_filelen,
-  .seek = S_RWops_seek,
-  .read = S_RWops_read,
-  .write = S_RWops_write,
-  .tell = S_RWops_tell
+SF_VIRTUAL_IO soundRwopsIo = {
+  .get_filelen = S_RWops_GetFileLength,
+  .seek = S_RWops_Seek,
+  .read = S_RWops_Read,
+  .write = S_RWops_Write,
+  .tell = S_RWops_Tell
 };
 
 /**
  * @brief Returns the size of the PhysFS file for use as a libsndfile virtual file length callback.
  */
-static sf_count_t S_PhysFS_get_filelen(void *userData) {
+static sf_count_t S_PhysFS_GetFileLength(void *userData) {
   File *file = (File *) userData;
   return Fs_FileLength(file);
 }
@@ -119,7 +119,7 @@ static sf_count_t S_PhysFS_get_filelen(void *userData) {
 /**
  * @brief Seeks the PhysFS file for use as a libsndfile virtual seek callback.
  */
-static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *userData) {
+static sf_count_t S_PhysFS_Seek(sf_count_t offset, int whence, void *userData) {
   File *file = (File *) userData;
 
   switch (whence) {
@@ -140,7 +140,7 @@ static sf_count_t S_PhysFS_seek(sf_count_t offset, int whence, void *userData) {
 /**
  * @brief Reads from the PhysFS file for use as a libsndfile virtual read callback.
  */
-static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_PhysFS_Read(void *ptr, sf_count_t count, void *userData) {
   File *file = (File *) userData;
   return Fs_Read(file, ptr, 1, count);
 }
@@ -148,7 +148,7 @@ static sf_count_t S_PhysFS_read(void *ptr, sf_count_t count, void *userData) {
 /**
  * @brief Writes to the PhysFS file for use as a libsndfile virtual write callback.
  */
-static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *userData) {
+static sf_count_t S_PhysFS_Write(const void *ptr, sf_count_t count, void *userData) {
   File *file = (File *) userData;
   return Fs_Write(file, ptr, 1, count);
 }
@@ -156,7 +156,7 @@ static sf_count_t S_PhysFS_write(const void *ptr, sf_count_t count, void *userDa
 /**
  * @brief Returns the current position of the PhysFS file for use as a libsndfile virtual tell callback.
  */
-static sf_count_t S_PhysFS_tell(void *userData) {
+static sf_count_t S_PhysFS_Tell(void *userData) {
   File *file = (File *) userData;
   return Fs_Tell(file);
 }
@@ -164,12 +164,12 @@ static sf_count_t S_PhysFS_tell(void *userData) {
 /**
  * @brief An interface to PhysFS for libsndfile
  */
-SF_VIRTUAL_IO sPhysfsIo = {
-  .get_filelen = S_PhysFS_get_filelen,
-  .seek = S_PhysFS_seek,
-  .read = S_PhysFS_read,
-  .write = S_PhysFS_write,
-  .tell = S_PhysFS_tell
+SF_VIRTUAL_IO soundPhysfsIo = {
+  .get_filelen = S_PhysFS_GetFileLength,
+  .seek = S_PhysFS_Seek,
+  .read = S_PhysFS_Read,
+  .write = S_PhysFS_Write,
+  .tell = S_PhysFS_Tell
 };
 
 /**
@@ -180,21 +180,21 @@ void S_Stop(void) {
   // Preserve per-channel filter handles (AL objects outlive channel state)
   ALuint filters[MAX_CHANNELS];
   for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-    filters[i] = sContext.channels[i].filter;
+    filters[i] = soundContext.channels[i].filter;
   }
 
-  memset(sContext.channels, 0, sizeof(sContext.channels));
+  memset(soundContext.channels, 0, sizeof(soundContext.channels));
 
   for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-    sContext.channels[i].filter = filters[i];
+    soundContext.channels[i].filter = filters[i];
   }
 
-  sContext.prevTicks = 0;
+  soundContext.prevTicks = 0;
 
-  alSourceStopv(MAX_CHANNELS, sContext.sources);
+  alSourceStopv(MAX_CHANNELS, soundContext.sources);
 
   for (size_t i = 0; i < MAX_CHANNELS; i++) {
-    alSourcei(sContext.sources[i], AL_BUFFER, 0);
+    alSourcei(soundContext.sources[i], AL_BUFFER, 0);
   }
 
   S_GetError(NULL);
@@ -215,7 +215,7 @@ void S_RenderStage(SoundStage *stage) {
 
   assert(stage);
 
-  if (!sContext.context) {
+  if (!soundContext.context) {
     return;
   }
 
@@ -223,7 +223,7 @@ void S_RenderStage(SoundStage *stage) {
   for (int32_t i = 0; i < stage->numSamples; i++, s++) {
 
     if (s->flags & S_PLAY_FRAME) {
-      SoundChannel *ch = sContext.channels;
+      SoundChannel *ch = soundContext.channels;
       int32_t j;
       for (j = 0; j < MAX_CHANNELS; j++, ch++) {
         if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) {
@@ -248,8 +248,8 @@ void S_RenderStage(SoundStage *stage) {
       continue;
     }
 
-    sContext.channels[c].play = *s;
-    sContext.channels[c].timestamp = stage->ticks;
+    soundContext.channels[c].play = *s;
+    soundContext.channels[c].timestamp = stage->ticks;
   }
 
   S_RenderMusic(stage);
@@ -293,7 +293,7 @@ static void S_InitLocal(void) {
  * @brief Initializes the sound subsystem.
  */
 void S_Init(void) {
-  memset(&sContext, 0, sizeof(sContext));
+  memset(&soundContext, 0, sizeof(soundContext));
 
   if (Cvar_GetValue("s_disable")) {
     Com_Warn("Sound disabled\n");
@@ -309,21 +309,21 @@ void S_Init(void) {
     return;
   }
 
-  sContext.initialized = true;
+  soundContext.initialized = true;
 
   if (!alcIsExtensionPresent(NULL, "ALC_SOFT_loopback")) {
     Com_Warn("OpenAL driver does not support ALC_SOFT_loopback\n");
     return;
   }
 
-  sContext.device = alcLoopbackOpenDeviceSOFT(NULL);
+  soundContext.device = alcLoopbackOpenDeviceSOFT(NULL);
 
-  if (!sContext.device) {
+  if (!soundContext.device) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
     return;
   }
 
-  if (!alcIsRenderFormatSupportedSOFT(sContext.device, s_rate->integer, ALC_STEREO_SOFT, ALC_SHORT_SOFT)) {
+  if (!alcIsRenderFormatSupportedSOFT(soundContext.device, s_rate->integer, ALC_STEREO_SOFT, ALC_SHORT_SOFT)) {
     Com_Warn("Unsupported render format: %dhz stereo 16 bit\n", s_rate->integer);
     return;
   }
@@ -336,21 +336,21 @@ void S_Init(void) {
     };
     int n = 6;
 
-    if (s_hrtf->integer && alcIsExtensionPresent(sContext.device, "ALC_SOFT_HRTF")) {
+    if (s_hrtf->integer && alcIsExtensionPresent(soundContext.device, "ALC_SOFT_HRTF")) {
       attrs[n++] = ALC_HRTF_SOFT;
       attrs[n++] = ALC_TRUE;
 
-      if (alcIsExtensionPresent(sContext.device, "ALC_SOFT_output_mode")) {
+      if (alcIsExtensionPresent(soundContext.device, "ALC_SOFT_output_mode")) {
         attrs[n++] = ALC_OUTPUT_MODE_SOFT;
         attrs[n++] = ALC_STEREO_HRTF_SOFT;
       }
     }
 
     attrs[n] = 0;
-    sContext.context = alcCreateContext(sContext.device, attrs);
+    soundContext.context = alcCreateContext(soundContext.device, attrs);
   }
 
-  if (!sContext.context || !alcMakeContextCurrent(sContext.context)) {
+  if (!soundContext.context || !alcMakeContextCurrent(soundContext.context)) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
     return;
   }
@@ -360,29 +360,29 @@ void S_Init(void) {
     // leave nothing half built: S_Shutdown keys media and music off the context, and neither
     // has been initialized yet
     alcMakeContextCurrent(NULL);
-    alcDestroyContext(sContext.context);
-    sContext.context = NULL;
+    alcDestroyContext(soundContext.context);
+    soundContext.context = NULL;
 
-    alcCloseDevice(sContext.device);
-    sContext.device = NULL;
+    alcCloseDevice(soundContext.device);
+    soundContext.device = NULL;
     return;
   }
 
-  const int efxSupported = alcIsExtensionPresent(sContext.device, "ALC_EXT_EFX");
+  const int efxSupported = alcIsExtensionPresent(soundContext.device, "ALC_EXT_EFX");
 
-  sContext.renderer = (const char *) alGetString(AL_RENDERER);
-  sContext.vendor = (const char *) alGetString(AL_VENDOR);
-  sContext.version = (const char *) alGetString(AL_VERSION);
+  soundContext.renderer = (const char *) alGetString(AL_RENDERER);
+  soundContext.vendor = (const char *) alGetString(AL_VENDOR);
+  soundContext.version = (const char *) alGetString(AL_VERSION);
 
-  Com_Print("  Renderer:   ^2%s^7\n", sContext.renderer);
-  Com_Print("  Vendor:     ^2%s^7\n", sContext.vendor);
-  Com_Print("  Version:    ^2%s^7\n", sContext.version);
+  Com_Print("  Renderer:   ^2%s^7\n", soundContext.renderer);
+  Com_Print("  Vendor:     ^2%s^7\n", soundContext.vendor);
+  Com_Print("  Version:    ^2%s^7\n", soundContext.version);
 
   if (s_hrtf->integer) {
     ALCint hrtfStatus;
-    alcGetIntegerv(sContext.device, ALC_HRTF_STATUS_SOFT, 1, &hrtfStatus);
+    alcGetIntegerv(soundContext.device, ALC_HRTF_STATUS_SOFT, 1, &hrtfStatus);
     if (hrtfStatus == ALC_HRTF_ENABLED_SOFT || hrtfStatus == ALC_HRTF_REQUIRED_SOFT) {
-      const ALCchar *name = alcGetString(sContext.device, ALC_HRTF_SPECIFIER_SOFT);
+      const ALCchar *name = alcGetString(soundContext.device, ALC_HRTF_SPECIFIER_SOFT);
       Com_Print("  HRTF:       ^2%s^7\n", name ? name : "enabled");
     } else {
       Com_Warn("HRTF requested but not enabled (status %d)\n", hrtfStatus);
@@ -391,10 +391,10 @@ void S_Init(void) {
 
   {
     char extBuf[4096];
-    q_strlcpy(extBuf, alGetString(AL_EXTENSIONS) ? alGetString(AL_EXTENSIONS) : "", sizeof(extBuf));
+    Str_Copy(extBuf, alGetString(AL_EXTENSIONS) ? alGetString(AL_EXTENSIONS) : "", sizeof(extBuf));
     char *save = NULL;
     bool first = true;
-    for (char *tok = q_strtok_r(extBuf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
+    for (char *tok = Str_Tokenize(extBuf, " ", &save); tok; tok = Str_Tokenize(NULL, " ", &save)) {
       if (first) {
         Com_Verbose("  Extensions: ^2%s^7\n", tok);
         first = false;
@@ -405,11 +405,11 @@ void S_Init(void) {
   }
 
   {
-    const char *alcExt = alcGetString(sContext.device, ALC_EXTENSIONS);
+    const char *alcExt = alcGetString(soundContext.device, ALC_EXTENSIONS);
     char extBuf[4096];
-    q_strlcpy(extBuf, alcExt ? alcExt : "", sizeof(extBuf));
+    Str_Copy(extBuf, alcExt ? alcExt : "", sizeof(extBuf));
     char *save = NULL;
-    for (char *tok = q_strtok_r(extBuf, " ", &save); tok; tok = q_strtok_r(NULL, " ", &save)) {
+    for (char *tok = Str_Tokenize(extBuf, " ", &save); tok; tok = Str_Tokenize(NULL, " ", &save)) {
       Com_Verbose("              ^2%s^7\n", tok);
     }
   }
@@ -419,7 +419,7 @@ void S_Init(void) {
       Com_Warn("s_effects is enabled but OpenAL driver does not support them.\n");
       Cvar_ForceSetInteger(s_effects->name, 0);
       s_effects->modified = false;
-      sContext.effects.loaded = false;
+      soundContext.effects.loaded = false;
     } else {
 
       // Per-channel combined lowpass filter (occlusion + underwater blended into one)
@@ -427,34 +427,34 @@ void S_Init(void) {
       alGenFilters(MAX_CHANNELS, filters);
       for (int32_t i = 0; i < MAX_CHANNELS; i++) {
         alFilteri(filters[i], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-        sContext.channels[i].filter = filters[i];
+        soundContext.channels[i].filter = filters[i];
       }
 
-      alGenEffects(1, &sContext.effects.reverb);
+      alGenEffects(1, &soundContext.effects.reverb);
       if (alGetError() == AL_NO_ERROR) {
-        alEffecti(sContext.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+        alEffecti(soundContext.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
         if (alGetError() != AL_NO_ERROR) {
-          alEffecti(sContext.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+          alEffecti(soundContext.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
           S_GetError("Failed to set reverb effect type");
         }
       }
 
-      alGenAuxiliaryEffectSlots(1, &sContext.effects.reverbSlot);
-      alAuxiliaryEffectSloti(sContext.effects.reverbSlot, AL_EFFECTSLOT_EFFECT, (ALint) sContext.effects.reverb);
+      alGenAuxiliaryEffectSlots(1, &soundContext.effects.reverbSlot);
+      alAuxiliaryEffectSloti(soundContext.effects.reverbSlot, AL_EFFECTSLOT_EFFECT, (ALint) soundContext.effects.reverb);
 
       if (alGetError() == AL_NO_ERROR) {
-        sContext.effects.loaded = true;
+        soundContext.effects.loaded = true;
       } else {
         Com_Warn("s_effects: failed to create filters, disabling.\n");
-        sContext.effects.loaded = false;
+        soundContext.effects.loaded = false;
       }
     }
   } else {
-    sContext.effects.loaded = false;
+    soundContext.effects.loaded = false;
   }
 
   alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
-  alGenSources(MAX_CHANNELS, sContext.sources);
+  alGenSources(MAX_CHANNELS, soundContext.sources);
   alSpeedOfSound(343.3f * 40.f); // 1 Quake unit ≈ 1 inch; 1 meter ≈ 40 units
 
   S_GetError(NULL);
@@ -467,7 +467,7 @@ void S_Init(void) {
 
   S_InitVoice();
 
-  sContext.resampleBuffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
+  soundContext.resampleBuffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
 /**
@@ -478,27 +478,27 @@ void S_Init(void) {
  */
 void S_Shutdown(void) {
 
-  if (!sContext.initialized) {
+  if (!soundContext.initialized) {
     return;
   }
 
   S_ShutdownPlayback();
 
-  if (sContext.context) {
+  if (soundContext.context) {
 
     S_Stop();
 
-    alDeleteSources(MAX_CHANNELS, sContext.sources);
+    alDeleteSources(MAX_CHANNELS, soundContext.sources);
 
-    if (sContext.effects.loaded) {
+    if (soundContext.effects.loaded) {
       ALuint filters[MAX_CHANNELS];
       for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-        filters[i] = sContext.channels[i].filter;
+        filters[i] = soundContext.channels[i].filter;
       }
       alDeleteFilters(MAX_CHANNELS, filters);
-      alDeleteAuxiliaryEffectSlots(1, &sContext.effects.reverbSlot);
-      alDeleteEffects(1, &sContext.effects.reverb);
-      sContext.effects.loaded = false;
+      alDeleteAuxiliaryEffectSlots(1, &soundContext.effects.reverbSlot);
+      alDeleteEffects(1, &soundContext.effects.reverb);
+      soundContext.effects.loaded = false;
     }
 
     S_GetError(NULL);
@@ -510,20 +510,20 @@ void S_Shutdown(void) {
     S_ShutdownMedia();
 
     alcMakeContextCurrent(NULL);
-    alcDestroyContext(sContext.context);
+    alcDestroyContext(soundContext.context);
   }
 
-  if (sContext.device) {
-    alcCloseDevice(sContext.device);
+  if (soundContext.device) {
+    alcCloseDevice(soundContext.device);
   }
 
   SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
   Cmd_RemoveAll(CMD_SOUND);
 
-  Mem_Free(sContext.rawSampleBuffer);
-  Mem_Free(sContext.convertedSampleBuffer);
-  Mem_Free(sContext.resampleBuffer);
+  Mem_Free(soundContext.rawSampleBuffer);
+  Mem_Free(soundContext.convertedSampleBuffer);
+  Mem_Free(soundContext.resampleBuffer);
 
   Mem_FreeTag(MEM_TAG_SOUND);
 }

@@ -34,25 +34,25 @@ static bool G_CheckCvars_Common(void) {
   return false;
 }
 
-CheckCvars G_CheckCvars = G_CheckCvars_Common;
+GameCheckCvarsHook G_CheckCvars = G_CheckCvars_Common;
 
 /**
  * @brief The tail of the `G_CheckWinner` chain, playing for frags.
  */
 static bool G_CheckWinner_Common(void) {
 
-  if (g_level.fragLimit) {
+  if (gameLevel.fragLimit) {
 
-    if (g_level.teams) { // check team scores
-      for (int32_t i = 0; i < g_level.numTeams; i++) {
-        if (g_teamList[i].score >= g_level.fragLimit) {
+    if (gameLevel.teams) { // check team scores
+      for (int32_t i = 0; i < gameLevel.numTeams; i++) {
+        if (gameTeamList[i].score >= gameLevel.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }
       }
     } else { // or individual scores
       G_ForEachClient(cl, {
-        if (cl->persistent.score >= g_level.fragLimit) {
+        if (cl->persistent.score >= gameLevel.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }
@@ -63,7 +63,7 @@ static bool G_CheckWinner_Common(void) {
   return false;
 }
 
-CheckWinner G_CheckWinner = G_CheckWinner_Common;
+GameCheckWinnerHook G_CheckWinner = G_CheckWinner_Common;
 
 /**
  * @brief The tail of the `G_AllowNextMap` chain: the level may always advance.
@@ -72,25 +72,25 @@ static bool G_AllowNextMap_Common(void) {
   return true;
 }
 
-AllowNextMap G_AllowNextMap = G_AllowNextMap_Common;
+GameAllowNextMapHook G_AllowNextMap = G_AllowNextMap_Common;
 
 /**
- * @brief The tail of the `G_ClampGameplay` hook: every mode `GameplayId`
+ * @brief The tail of the `G_ClampGamePlay` hook: every mode `GamePlayId`
  * defines is one this module supports, so there is nothing to coerce.
  */
-static GameplayId G_ClampGameplay_Common(GameplayId gameplay) {
+static GamePlayId G_ClampGamePlay_Common(GamePlayId gameplay) {
   return gameplay;
 }
 
-ClampGameplay G_ClampGameplay = G_ClampGameplay_Common;
+GameClampGamePlayHook G_ClampGamePlay = G_ClampGamePlay_Common;
 
 /**
  * @brief The tail of the `G_FormatGameName` chain. The label looked up from
- * `gGameplayModes` already qualifies the name with team play via the
+ * `gameplays` already qualifies the name with team play via the
  * `GAMEPLAY_TEAMS` bit, so this has nothing to add; a feature can still hook this
  * chain to name its own mode.
  */
 static void G_FormatGameName_Common(char *name, size_t size) {
 }
 
-FormatGameName G_FormatGameName = G_FormatGameName_Common;
+GameFormatGameNameHook G_FormatGameName = G_FormatGameName_Common;

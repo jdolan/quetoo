@@ -26,7 +26,7 @@
 
 #define _Class _StatView
 
-static const EnumName StatViewStatNames[] = MakeEnumNames(
+static const EnumName statNames[] = MakeEnumNames(
   MakeEnumAlias(StatViewHealth, health),
   MakeEnumAlias(StatViewArmor, armor),
   MakeEnumAlias(StatViewAmmo, ammo)
@@ -57,7 +57,7 @@ static const char *armorIconName(const PlayerState *ps) {
 
   for (GameItemTag t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
     if (ps->inventory[t]) {
-      return bgItemDefs[t].icon;
+      return gameItemDefs[t].icon;
     }
   }
 
@@ -79,7 +79,7 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
   const Inlet inlets[] = MakeInlets(
     MakeInlet("caption", InletTypeCharacters, &caption, NULL),
-    MakeInlet("stat", InletTypeEnum, &this->stat, (ident) StatViewStatNames)
+    MakeInlet("stat", InletTypeEnum, &this->stat, (ident) statNames)
   );
 
   $(self, bind, inlets, dictionary);
@@ -130,7 +130,7 @@ static void updateBindings(View *self, ident data) {
       iconName = healthIconName(value);
       break;
     case StatViewArmor:
-      if ((cgState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+      if ((cgameState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
         value = ps->stats[STAT_ARMOR];
         med = HUD_ARMOR_MED;
         low = HUD_ARMOR_LOW;
@@ -138,13 +138,13 @@ static void updateBindings(View *self, ident data) {
       }
       break;
     case StatViewAmmo:
-      if ((cgState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
+      if ((cgameState.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
         value = Cg_ActiveAmmo(ps);
 
         const int16_t active = Cg_ActiveWeapon(ps);
         if (active != WEAPON_SELECT_OFF) {
-          low = (int16_t) bgItemDefs[cgWeapons[active].ammoTag].quantity;
-          iconName = bgItemDefs[cgWeapons[active].tag].icon;
+          low = (int16_t) gameItemDefs[cgameWeapons[active].ammoTag].quantity;
+          iconName = gameItemDefs[cgameWeapons[active].tag].icon;
         }
       }
       break;

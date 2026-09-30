@@ -23,7 +23,7 @@
 
 #include "cl_local.h"
 
-static char **clKeyNames;
+static char **keyNames;
 
 /**
  * @brief Sets the key state destination.
@@ -32,7 +32,7 @@ void Cl_SetKeyDest(ClientKeyDest dest) {
 
   if (dest == cls.keyState.dest) {
     if (dest == KEY_CONSOLE || dest == KEY_CHAT) {
-      SDL_StartTextInput(rContext.window);
+      SDL_StartTextInput(renderContext.window);
     }
     return;
   }
@@ -51,25 +51,25 @@ void Cl_SetKeyDest(ClientKeyDest dest) {
       }
     }
 
-    SDL_SetWindowRelativeMouseMode(rContext.window, false);
+    SDL_SetWindowRelativeMouseMode(renderContext.window, false);
 
-    const int32_t cx = rContext.windowBounds.w * 0.5;
-    const int32_t cy = rContext.windowBounds.h * 0.5;
+    const int32_t cx = renderContext.windowBounds.w * 0.5;
+    const int32_t cy = renderContext.windowBounds.h * 0.5;
 
-    SDL_WarpMouseInWindow(rContext.window, cx, cy);
+    SDL_WarpMouseInWindow(renderContext.window, cx, cy);
   }
 
   switch (dest) {
     case KEY_CONSOLE:
     case KEY_CHAT:
-      SDL_StartTextInput(rContext.window);
+      SDL_StartTextInput(renderContext.window);
       break;
     case KEY_UI:
-      SDL_StopTextInput(rContext.window);
+      SDL_StopTextInput(renderContext.window);
       break;
     case KEY_GAME:
-      SDL_StopTextInput(rContext.window);
-      SDL_SetWindowRelativeMouseMode(rContext.window, true);
+      SDL_StopTextInput(renderContext.window);
+      SDL_SetWindowRelativeMouseMode(renderContext.window, true);
       break;
   }
 
@@ -98,19 +98,19 @@ static void Cl_KeyConsole(const SDL_Event *event) {
     return;
   }
 
-  ConsoleInput *in = &clConsole.input;
+  ConsoleInput *in = &clientConsole.input;
 
   const SDL_Keycode key = event->key.key;
   switch (key) {
 
     case SDLK_RETURN:
     case SDLK_KP_ENTER:
-      Con_SubmitInput(&clConsole);
+      Con_SubmitInput(&clientConsole);
       break;
 
     case SDLK_TAB:
     case SDLK_KP_TAB:
-      Con_CompleteInput(&clConsole);
+      Con_CompleteInput(&clientConsole);
       break;
 
     case SDLK_BACKSPACE:
@@ -126,7 +126,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_DELETE:
-      if (in->pos < q_strlen(in->buffer)) {
+      if (in->pos < Str_Length(in->buffer)) {
         char *c = in->buffer + in->pos;
         while (*c) {
           *c = *(c + 1);
@@ -136,11 +136,11 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_UP:
-      Con_NavigateHistory(&clConsole, CON_HISTORY_PREV);
+      Con_NavigateHistory(&clientConsole, CON_HISTORY_PREV);
       break;
 
     case SDLK_DOWN:
-      Con_NavigateHistory(&clConsole, CON_HISTORY_NEXT);
+      Con_NavigateHistory(&clientConsole, CON_HISTORY_NEXT);
       break;
 
     case SDLK_LEFT:
@@ -158,7 +158,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
     case SDLK_RIGHT:
       if (SDL_GetModState() & SDL_KMOD_CTRL) { // move one word right
-        const size_t len = q_strlen(in->buffer);
+        const size_t len = Str_Length(in->buffer);
         while (in->pos < len && in->buffer[in->pos] == ' ') {
           in->pos++; // off current word
         }
@@ -168,24 +168,24 @@ static void Cl_KeyConsole(const SDL_Event *event) {
         if (in->pos < len) { // all the way in front
           in->pos++;
         }
-      } else if (in->pos < q_strlen(in->buffer)) {
+      } else if (in->pos < Str_Length(in->buffer)) {
         in->pos++;
       }
       break;
 
     case SDLK_PAGEUP:
-      if (clConsole.scroll + clConsole.height < consoleState.strings->count) {
-        clConsole.scroll += clConsole.height;
+      if (clientConsole.scroll + clientConsole.height < consoleState.strings->count) {
+        clientConsole.scroll += clientConsole.height;
       } else {
-        clConsole.scroll = consoleState.strings->count;
+        clientConsole.scroll = consoleState.strings->count;
       }
       break;
 
     case SDLK_PAGEDOWN:
-      if (clConsole.scroll > clConsole.height) {
-        clConsole.scroll -= clConsole.height;
+      if (clientConsole.scroll > clientConsole.height) {
+        clientConsole.scroll -= clientConsole.height;
       } else {
-        clConsole.scroll = 0;
+        clientConsole.scroll = 0;
       }
       break;
 
@@ -194,7 +194,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_END:
-      in->pos = q_strlen(in->buffer);
+      in->pos = Str_Length(in->buffer);
       break;
 
     case SDLK_A:
@@ -204,7 +204,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
     case SDLK_E:
       if (SDL_GetModState() & SDL_KMOD_CTRL) {
-        in->pos = q_strlen(in->buffer);
+        in->pos = Str_Length(in->buffer);
       }
       break;
     case SDLK_C:
@@ -216,15 +216,15 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
     case SDLK_V:
       if ((SDL_GetModState() & SDL_KMOD_CLIPBOARD) && SDL_HasClipboardText()) {
-        char *tail = q_strdup(in->buffer + in->pos);
+        char *tail = Str_Duplicate(in->buffer + in->pos);
         in->buffer[in->pos] = '\0';
 
         char *text = SDL_GetClipboardText();
-        q_strlcat(in->buffer, text, sizeof(in->buffer));
-        q_strlcat(in->buffer, tail, sizeof(in->buffer));
+        Str_Append(in->buffer, text, sizeof(in->buffer));
+        Str_Append(in->buffer, tail, sizeof(in->buffer));
         free(tail);
 
-        in->pos = Minf(in->pos + q_strlen(text), sizeof(in->buffer) - 1);
+        in->pos = Minf(in->pos + Str_Length(text), sizeof(in->buffer) - 1);
         SDL_free(text);
       }
       break;
@@ -269,18 +269,18 @@ static void Cl_KeyGame(const SDL_Event *event) {
   if (bind[0] == '+') { // button commands add key and time as a param
     if (event->type == SDL_EVENT_KEY_DOWN) {
       if (cls.keyState.down[key] == false) {
-        q_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.inputTime);
+        Str_Format(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.inputTime);
         cls.keyState.latched[key] = true;
       }
     } else {
       if (cls.keyState.down[key] == true && cls.keyState.latched[key] == true) {
-        q_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.inputTime);
+        Str_Format(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.inputTime);
         cls.keyState.latched[key] = false;
       }
     }
   } else {
     if (event->type == SDL_EVENT_KEY_DOWN) {
-      q_snprintf(cmd, sizeof(cmd), "%s\n", bind);
+      Str_Format(cmd, sizeof(cmd), "%s\n", bind);
     }
   }
 
@@ -298,7 +298,7 @@ const char *Cl_KeyName(SDL_Scancode key) {
     return va("<unknown %d>", key);
   }
 
-  return clKeyNames[key];
+  return keyNames[key];
 }
 
 /**
@@ -311,8 +311,8 @@ SDL_Scancode Cl_KeyForName(const char *name) {
   }
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (clKeyNames[k]) {
-      if (!q_strcasecmp(name, clKeyNames[k])) {
+    if (keyNames[k]) {
+      if (!Str_CaseCompare(name, keyNames[k])) {
         return k;
       }
     }
@@ -327,7 +327,7 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 
   for (SDL_Scancode k = from + 1; k < SDL_SCANCODE_COUNT; k++) {
-    if (q_strcmp(binding, cls.keyState.binds[k]) == 0) {
+    if (Str_Compare(binding, cls.keyState.binds[k]) == 0) {
       return k;
     }
   }
@@ -341,49 +341,20 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
  * the buffer they were rebuilding, so `use blaster` became `use ` and was then
  * written back to the config. The weapon is not recoverable, but the shape is
  * unmistakable: nothing else leaves a bind ending in whitespace. Discarding
- * such a line leaves the default bind, which `DEFAULT_BINDS` has already run.
+ * such a line leaves the key unbound, for its default bind to fill.
  */
 static bool Cl_IsTruncatedBind(const char *bind) {
 
-  const size_t length = q_strlen(bind);
+  const size_t length = Str_Length(bind);
   if (length == 0 || bind[length - 1] != ' ') {
     return false;
   }
 
   char name[MAX_STRING_CHARS];
-  q_strlcpy(name, bind, sizeof(name));
+  Str_Copy(name, bind, sizeof(name));
   name[length - 1] = '\0';
 
-  return q_strchr(name, ' ') == NULL && Cmd_Get(name) != NULL;
-}
-
-/**
- * @brief Rewrites `bind` so that its command is spelled the way the command is
- * registered now, leaving any arguments alone.
- * @remarks A bind is opaque text that no lookup resolves, so one written with
- * an older command name would otherwise keep it, and resolve by the legacy
- * path on every key event.
- */
-static void Cl_CanonicalizeBind(char *bind, size_t size) {
-
-  char name[MAX_STRING_CHARS];
-  q_strlcpy(name, bind, sizeof(name));
-
-  char *args = q_strchr(name, ' ');
-  if (args) {
-    *args++ = '\0';
-  }
-
-  const Cmd *cmd = Cmd_Get(name);
-  if (cmd == NULL) {
-    return;
-  }
-
-  if (args) {
-    q_snprintf(bind, size, "%s %s", cmd->name, args);
-  } else {
-    q_strlcpy(bind, cmd->name, size);
-  }
+  return Str_FindChar(name, ' ') == NULL && Cmd_Get(name) != NULL;
 }
 
 /**
@@ -406,10 +377,29 @@ void Cl_Bind(SDL_Scancode key, const char *bind) {
   }
 
   // allocate for new binding and copy it in
-  cls.keyState.binds[key] = Mem_TagMalloc(q_strlen(bind) + 1, MEM_TAG_CLIENT);
+  cls.keyState.binds[key] = Mem_TagMalloc(Str_Length(bind) + 1, MEM_TAG_CLIENT);
   strcpy(cls.keyState.binds[key], bind);
 }
 
+
+/**
+ * @brief Binds the named key to the given command, unless the key is bound already.
+ */
+void Cl_BindDefault(const char *key, const char *bind) {
+
+  const SDL_Scancode k = Cl_KeyForName(key);
+
+  if (k == SDL_SCANCODE_COUNT) {
+    Com_Warn("\"%s\" isn't a valid key\n", key);
+    return;
+  }
+
+  if (cls.keyState.binds[k] && cls.keyState.binds[k][0]) {
+    return;
+  }
+
+  Cl_Bind(k, bind);
+}
 
 /**
  * @brief Handles the `unbind` console command, removing the binding for a named key.
@@ -455,8 +445,8 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("%s*", Cmd_Argv(argi));
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (clKeyNames[k]) {
-      const char *keyName = clKeyNames[k];
+    if (keyNames[k]) {
+      const char *keyName = keyNames[k];
 
       if (GlobMatch(pattern, keyName, GLOB_CASE_INSENSITIVE)) {
         Con_AutocompleteMatch(matches, keyName, NULL);
@@ -503,7 +493,7 @@ static void Cl_Bind_f(void) {
   }
 
   // check for compound bindings
-  if (q_strchr(cmd, ';')) {
+  if (Str_FindChar(cmd, ';')) {
     Com_Print("Complex bind \"%s\" ignored; use 'alias' instead\n", cmd);
     return;
   }
@@ -512,8 +502,6 @@ static void Cl_Bind_f(void) {
     Com_Warn("Discarding \"%s %s\", which lost its arguments to #1068\n", Cmd_Argv(0), cmd);
     return;
   }
-
-  Cl_CanonicalizeBind(cmd, sizeof(cmd));
 
   Cl_Bind(k, cmd);
 }
@@ -549,23 +537,23 @@ static void Cl_BindList_f(void) {
  */
 void Cl_InitKeys(void) {
 
-  clKeyNames = Mem_TagMalloc(SDL_SCANCODE_COUNT * sizeof(char *), MEM_TAG_CLIENT);
+  keyNames = Mem_TagMalloc(SDL_SCANCODE_COUNT * sizeof(char *), MEM_TAG_CLIENT);
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     const char *name = SDL_GetScancodeName(k);
-    if (q_strlen(name)) {
-      clKeyNames[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), clKeyNames);
+    if (Str_Length(name)) {
+      keyNames[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), keyNames);
     }
   }
 
   for (SDL_Buttoncode b = SDL_SCANCODE_MOUSE1; b <= SDL_SCANCODE_MOUSE15; b++) {
 
     const char *name = va("Mouse %d", b - SDL_SCANCODE_MOUSE1 + 1);
-    clKeyNames[b] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), clKeyNames);
+    keyNames[b] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), keyNames);
   }
 
-  clKeyNames[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), clKeyNames);
-  clKeyNames[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), clKeyNames);
+  keyNames[SDL_SCANCODE_MWHEELUP] = Mem_Link(Mem_TagCopyString("Mouse Wheel Up", MEM_TAG_CLIENT), keyNames);
+  keyNames[SDL_SCANCODE_MWHEELDOWN] = Mem_Link(Mem_TagCopyString("Mouse Wheel Down", MEM_TAG_CLIENT), keyNames);
 
   memset(&cls.keyState, 0, sizeof(ClientKeyState));
 
@@ -584,34 +572,11 @@ void Cl_InitKeys(void) {
 }
 
 /**
- * @brief Rewrites every bind to the command names registered now.
- * @remarks The default binds and quetoo.cfg are executed from Cl_InitKeys,
- * before the rest of the client registers its commands, so a bind naming a
- * command that does not exist yet cannot be resolved as it is set.
- */
-void Cl_CanonicalizeBinds(void) {
-  char bind[MAX_STRING_CHARS];
-
-  for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
-    if (cls.keyState.binds[k] == NULL || *cls.keyState.binds[k] == '\0') {
-      continue;
-    }
-
-    q_strlcpy(bind, cls.keyState.binds[k], sizeof(bind));
-    Cl_CanonicalizeBind(bind, sizeof(bind));
-
-    if (q_strcmp(bind, cls.keyState.binds[k])) {
-      Cl_Bind(k, bind);
-    }
-  }
-}
-
-/**
  * @brief Frees the key name table allocated during initialization.
  */
 void Cl_ShutdownKeys(void) {
 
-  Mem_Free(clKeyNames);
+  Mem_Free(keyNames);
 }
 
 /**

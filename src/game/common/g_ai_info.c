@@ -26,7 +26,7 @@ static Cvar *g_aiNamePrefix;
 /**
  * @brief The static roster of bot definitions.
  */
-static const AiRoster g_aiRoster[] = {
+static const GameAiRoster aiRoster[] = {
   // name          skin                  guid                                    skill  aggr   aware
   { "Enforcer",    "enforcer/default",    "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .50f,  .50f,  .50f },
   { "Guard",       "guard/default",       "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
@@ -55,37 +55,37 @@ static const AiRoster g_aiRoster[] = {
   { "Reaper",      "violator/default",    "17a3bcbb-e622-4736-a0c0-6c6ce64a9ee4", .80f,  .60f,  .65f },
 };
 
-static const uint32_t g_aiRosterCount = lengthof(g_aiRoster);
+static const uint32_t aiRosterCount = lengthof(aiRoster);
 
 /**
  * @brief Shuffled order in which roster entries are handed out. Reshuffled
  * each time it is exhausted so that every entry is used exactly once per
  * cycle, in a random order, before any entry repeats.
  */
-static uint32_t g_aiRosterOrder[lengthof(g_aiRoster)];
+static uint32_t aiRosterOrder[lengthof(aiRoster)];
 
 /**
- * @brief Index of the next entry to hand out from g_aiRosterOrder.
+ * @brief Index of the next entry to hand out from aiRosterOrder.
  */
-static uint32_t g_aiRosterIndex;
+static uint32_t aiRosterIndex;
 
 /**
- * @brief Reshuffles g_aiRosterOrder in place using a Fisher-Yates shuffle.
+ * @brief Reshuffles aiRosterOrder in place using a Fisher-Yates shuffle.
  */
 static void G_Ai_ShuffleRoster(void) {
 
-  for (uint32_t i = 0; i < g_aiRosterCount; i++) {
-    g_aiRosterOrder[i] = i;
+  for (uint32_t i = 0; i < aiRosterCount; i++) {
+    aiRosterOrder[i] = i;
   }
 
-  for (uint32_t i = g_aiRosterCount - 1; i > 0; i--) {
+  for (uint32_t i = aiRosterCount - 1; i > 0; i--) {
     const uint32_t j = RandomRangeu(0, i + 1);
-    const uint32_t tmp = g_aiRosterOrder[i];
-    g_aiRosterOrder[i] = g_aiRosterOrder[j];
-    g_aiRosterOrder[j] = tmp;
+    const uint32_t tmp = aiRosterOrder[i];
+    aiRosterOrder[i] = aiRosterOrder[j];
+    aiRosterOrder[j] = tmp;
   }
 
-  g_aiRosterIndex = 0;
+  aiRosterIndex = 0;
 }
 
 /**
@@ -99,7 +99,7 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
     }
     char otherName[MAX_INFO_STRING_VALUE];
     InfoString_Get(other->userInfo, "name", otherName, sizeof(otherName));
-    if (q_strcmp(otherName, name) == 0) {
+    if (Str_Compare(otherName, name) == 0) {
       return true;
     }
   });
@@ -116,17 +116,17 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
  * already taken by another connected client, appends " 1", " 2", etc. until a
  * unique name is found.
  */
-const AiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
+const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
-  if (g_aiRosterIndex == g_aiRosterCount) {
+  if (aiRosterIndex == aiRosterCount) {
     G_Ai_ShuffleRoster();
   }
 
-  const AiRoster *entry = &g_aiRoster[g_aiRosterOrder[g_aiRosterIndex]];
+  const GameAiRoster *entry = &aiRoster[aiRosterOrder[aiRosterIndex]];
 
-  g_aiRosterIndex++;
+  aiRosterIndex++;
 
-  q_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
+  Str_Copy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
   InfoString_Set(info, "skin", entry->skin);
   InfoString_Set(info, "guid", entry->guid);
@@ -137,9 +137,9 @@ const AiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
   InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
   char name[MAX_INFO_STRING_VALUE];
-  q_snprintf(name, sizeof(name), "%s%s", g_aiNamePrefix->string, entry->name);
+  Str_Format(name, sizeof(name), "%s%s", g_aiNamePrefix->string, entry->name);
   for (uint32_t suffix = 1; G_Ai_NameInUse(cl, name); suffix++) {
-    q_snprintf(name, sizeof(name), "%s%s %u", g_aiNamePrefix->string, entry->name, suffix);
+    Str_Format(name, sizeof(name), "%s%s %u", g_aiNamePrefix->string, entry->name, suffix);
   }
 
   InfoString_Set(info, "name", name);

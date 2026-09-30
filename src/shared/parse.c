@@ -91,11 +91,11 @@ static bool Parse_SkipWhitespace(Parser *parser, const ParseFlags flags) {
  */
 static bool Parse_SkipCommentLine(Parser *parser, const char *identifier) {
 
-  if (q_strncmp(parser->position.ptr, identifier, q_strlen(identifier))) {
+  if (Str_CompareN(parser->position.ptr, identifier, Str_Length(identifier))) {
     return false;
   }
 
-  parser->position.ptr += q_strlen(identifier);
+  parser->position.ptr += Str_Length(identifier);
   Parse_NextColumn(parser, 2);
 
   while (true) {
@@ -134,12 +134,12 @@ static bool Parse_SkipCommentLine(Parser *parser, const char *identifier) {
  */
 static bool Parse_SkipCommentBlock(Parser *parser, const char *start, const char *end) {
 
-  if (q_strncmp(parser->position.ptr, start, q_strlen(start))) {
+  if (Str_CompareN(parser->position.ptr, start, Str_Length(start))) {
     return false;
   }
 
-  parser->position.ptr += q_strlen(start);
-  Parse_NextColumn(parser, q_strlen(start));
+  parser->position.ptr += Str_Length(start);
+  Parse_NextColumn(parser, Str_Length(start));
 
   while (true) {
     char c = *parser->position.ptr;
@@ -148,9 +148,9 @@ static bool Parse_SkipCommentBlock(Parser *parser, const char *start, const char
       return false;
     }
 
-    if (!q_strncmp(parser->position.ptr, end, q_strlen(end))) {
-      parser->position.ptr += q_strlen(end); // found it!
-      Parse_NextColumn(parser, q_strlen(end));
+    if (!Str_CompareN(parser->position.ptr, end, Str_Length(end))) {
+      parser->position.ptr += Str_Length(end); // found it!
+      Parse_NextColumn(parser, Str_Length(end));
       return true;
     }
 
@@ -428,29 +428,29 @@ static size_t Parse_TypeSize(const ParseType type) {
  */
 static bool Parse_TypeParse(const ParseType type, const char *input, void *output) {
   int32_t result;
-  static byte scan_buffer[sizeof(double)];
+  static byte scanBuffer[sizeof(double)];
   const size_t typeSize = Parse_TypeSize(type);
 
   switch (type) {
   case PARSE_UINT8:
   case PARSE_UINT16:
   case PARSE_UINT32:
-    result = sscanf(input, "%" SCNu32, (uint32_t *) scan_buffer);
+    result = sscanf(input, "%" SCNu32, (uint32_t *) scanBuffer);
     break;
   case PARSE_INT8:
   case PARSE_INT16:
   case PARSE_INT32:
-    result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
+    result = sscanf(input, "%" SCNi32, (int32_t *) scanBuffer);
     break;
   case PARSE_FLOAT:
-    result = sscanf(input, "%f", (float *) scan_buffer);
-    if (isinf(*(float *) scan_buffer) || isnan(*(float *) scan_buffer)) {
+    result = sscanf(input, "%f", (float *) scanBuffer);
+    if (isinf(*(float *) scanBuffer) || isnan(*(float *) scanBuffer)) {
       result = 0;
     }
     break;
   case PARSE_DOUBLE:
-    result = sscanf(input, "%lf", (double *) scan_buffer);
-    if (isinf(*(double *) scan_buffer) || isnan(*(double *) scan_buffer)) {
+    result = sscanf(input, "%lf", (double *) scanBuffer);
+    if (isinf(*(double *) scanBuffer) || isnan(*(double *) scanBuffer)) {
       result = 0;
     }
     break;
@@ -461,7 +461,7 @@ static bool Parse_TypeParse(const ParseType type, const char *input, void *outpu
 
   if (result == 1) {
     if (output) {
-      memcpy(output, scan_buffer, typeSize);
+      memcpy(output, scanBuffer, typeSize);
     }
     return true;
   }
@@ -499,7 +499,7 @@ size_t Parse_Primitive(Parser *parser, const ParseFlags flags, const ParseType t
   // if we had quotes...
   if (*scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
     // init sub-parser without quotes
-    scratch[q_strlen(scratch) - 1] = '\0';
+    scratch[Str_Length(scratch) - 1] = '\0';
 
     numParsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
   } else {

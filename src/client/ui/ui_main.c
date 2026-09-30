@@ -304,7 +304,7 @@ void Ui_Init(void) {
   // MVC asset lookups resolve through the renderer's R_ResourceProvider, which
   // is registered for the lifetime of the device (see rContext.c); the old
   // Ui_Data provider was a redundant second bridge to Fs_Load.
-  windowController = $(alloc(WindowController), initWithDevice, rContext.device);
+  windowController = $(alloc(WindowController), initWithDevice, renderContext.device);
 
   rootViewController = $(alloc(ViewController), init);
   $(windowController, setViewController, rootViewController);

@@ -21,21 +21,21 @@
 
 #include "cm_local.h"
 
-static const CmEntity nullEntity = { 0 };
+static const Entity nullEntity = { 0 };
 
 /**
  * @brief Allocates and returns a new zeroed entity key-value pair.
  */
-CmEntity *Cm_AllocEntity(void) {
-  return Mem_TagMalloc(sizeof(CmEntity), MEM_TAG_COLLISION);
+Entity *Entity_Alloc(void) {
+  return Mem_TagMalloc(sizeof(Entity), MEM_TAG_COLLISION);
 }
 
 /**
  * @brief Frees the entity and all subsequent pairs in its linked list.
  */
-void Cm_FreeEntity(CmEntity *entity) {
+void Entity_Free(Entity *entity) {
 
-  CmEntity *e = entity, *next;
+  Entity *e = entity, *next;
 
   while (e) {
     next = e->next;
@@ -50,17 +50,17 @@ void Cm_FreeEntity(CmEntity *entity) {
 /**
  * @brief Returns a deep copy of the entity linked list.
  */
-CmEntity *Cm_CopyEntity(const CmEntity *entity) {
+Entity *Entity_Copy(const Entity *entity) {
 
-  CmEntity *copy = NULL;
-  for (const CmEntity *in = entity; in; in = in->next) {
+  Entity *copy = NULL;
+  for (const Entity *in = entity; in; in = in->next) {
 
-    CmEntity *out = Cm_AllocEntity();
+    Entity *out = Entity_Alloc();
 
-    q_strlcpy(out->key, in->key, sizeof(out->key));
-    q_strlcpy(out->string, in->string, sizeof(out->string));
+    Str_Copy(out->key, in->key, sizeof(out->key));
+    Str_Copy(out->string, in->string, sizeof(out->string));
 
-    Cm_ParseEntity(out);
+    Entity_Parse(out);
 
     if (in->brushes) {
       out->brushes = Mem_TagCopyString(in->brushes, MEM_TAG_COLLISION);
@@ -70,35 +70,35 @@ CmEntity *Cm_CopyEntity(const CmEntity *entity) {
     copy = out;
   }
 
-  return Cm_SortEntity(copy);
+  return Entity_Sort(copy);
 }
 
 /**
  * @brief Returns a new entity list with keys from src assigned into a copy of dst.
  * @details Keys already present in dst take priority; keys only in src are appended.
  *   Analogous to JavaScript's `Object.assign(dst, src)`.
- * @return A newly allocated entity list; the caller must free with `Cm_FreeEntity`.
+ * @return A newly allocated entity list; the caller must free with `Entity_Free`.
  */
-CmEntity *Cm_EntityAssign(const CmEntity *dst, const CmEntity *src) {
+Entity *Entity_Assign(const Entity *dst, const Entity *src) {
 
-  CmEntity *out = Cm_CopyEntity(dst);
+  Entity *out = Entity_Copy(dst);
 
-  for (const CmEntity *s = src; s; s = s->next) {
+  for (const Entity *s = src; s; s = s->next) {
 
     if (!s->parsed) {
       continue;
     }
 
-    if (Cm_EntityValue(out, s->key)->parsed) {
+    if (Entity_Value(out, s->key)->parsed) {
       continue;
     }
 
-    CmEntity *pair = Cm_AllocEntity();
+    Entity *pair = Entity_Alloc();
 
-    q_strlcpy(pair->key, s->key, sizeof(pair->key));
-    q_strlcpy(pair->string, s->string, sizeof(pair->string));
+    Str_Copy(pair->key, s->key, sizeof(pair->key));
+    Str_Copy(pair->string, s->string, sizeof(pair->string));
 
-    Cm_ParseEntity(pair);
+    Entity_Parse(pair);
 
     pair->next = out;
     if (out) {
@@ -113,12 +113,12 @@ CmEntity *Cm_EntityAssign(const CmEntity *dst, const CmEntity *src) {
 /**
  * @brief Parses the string field of an entity pair into its typed fields.
  */
-void Cm_ParseEntity(CmEntity *pair) {
+void Entity_Parse(Entity *pair) {
 
   assert(pair);
   assert(pair->string);
 
-  if (q_strlen(pair->string)) {
+  if (Str_Length(pair->string)) {
     pair->parsed |= ENTITY_STRING;
     pair->nullableString = pair->string;
   }
@@ -161,56 +161,56 @@ void Cm_ParseEntity(CmEntity *pair) {
  * @brief GCompareFunc for entity sorting.
  * @details Classname comes first, followed by the rest in lexigraphical order.
  */
-static Order Cm_SortEntity_cmp(const ident a, const ident b) {
+static Order Entity_Sort_cmp(const ident a, const ident b) {
 
-  const CmEntity *m = *(const CmEntity *const *) a;
-  const CmEntity *n = *(const CmEntity *const *) b;
+  const Entity *m = *(const Entity *const *) a;
+  const Entity *n = *(const Entity *const *) b;
 
-  if (!q_strcmp(m->key, "classname")) {
+  if (!Str_Compare(m->key, "classname")) {
     return OrderAscending;
   }
 
-  if (!q_strcmp(n->key, "classname")) {
+  if (!Str_Compare(n->key, "classname")) {
     return OrderDescending;
   }
 
-  const int32_t cmp = q_strcmp(m->key, n->key);
+  const int32_t cmp = Str_Compare(m->key, n->key);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 /**
  * @brief Sorts the entity key-value pairs, placing classname first.
  */
-CmEntity *Cm_SortEntity(CmEntity *entity) {
+Entity *Entity_Sort(Entity *entity) {
 
   assert(entity);
   assert(entity != &nullEntity);
 
-  Vector *pairs = $(alloc(Vector), initWithSize, sizeof(CmEntity *));
+  Vector *pairs = $(alloc(Vector), initWithSize, sizeof(Entity *));
 
-  for (CmEntity *e = entity; e; e = e->next) {
+  for (Entity *e = entity; e; e = e->next) {
     $(pairs, add, &e);
   }
 
-  $(pairs, sort, Cm_SortEntity_cmp);
+  $(pairs, sort, Entity_Sort_cmp);
 
-  CmEntity *classname = NULL;
+  Entity *classname = NULL;
 
   // now rebuild the linked list
 
   for (size_t i = 0; i < pairs->count; i++) {
 
-    CmEntity *e = VectorValue(pairs, CmEntity *, i);
+    Entity *e = VectorValue(pairs, Entity *, i);
 
     if (i == 0) {
       classname = e;
       classname->prev = NULL;
     } else {
-      e->prev = VectorValue(pairs, CmEntity *, i - 1);
+      e->prev = VectorValue(pairs, Entity *, i - 1);
     }
 
     if (i < pairs->count - 1) {
-      e->next = VectorValue(pairs, CmEntity *, i + 1);
+      e->next = VectorValue(pairs, Entity *, i + 1);
     } else {
       e->next = NULL;
     }
@@ -224,7 +224,7 @@ CmEntity *Cm_SortEntity(CmEntity *entity) {
 /**
  * @brief Loads the BSP entity string lump.
  */
-List *Cm_LoadEntities(const char *entityString) {
+List *Entity_LoadAll(const char *entityString) {
 
   List *entities = $(alloc(List), init);
 
@@ -238,21 +238,21 @@ List *Cm_LoadEntities(const char *entityString) {
       break;
     }
 
-    if (!q_strcmp("{", token)) {
+    if (!Str_Compare("{", token)) {
 
-      CmEntity *entity = NULL;
+      Entity *entity = NULL;
 
       while (true) {
 
-        CmEntity *pair = Cm_AllocEntity();
+        Entity *pair = Entity_Alloc();
 
         if (!Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key))) {
-          Cm_FreeEntity(pair);
+          Entity_Free(pair);
           break;
         }
         Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
 
-        Cm_ParseEntity(pair);
+        Entity_Parse(pair);
 
         pair->next = entity;
         if (entity) {
@@ -262,12 +262,12 @@ List *Cm_LoadEntities(const char *entityString) {
 
         Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
 
-        if (!q_strcmp("}", token)) {
+        if (!Str_Compare("}", token)) {
           break;
         }
       }
 
-      entity = Cm_SortEntity(entity);
+      entity = Entity_Sort(entity);
 
       assert(entity);
 
@@ -281,7 +281,7 @@ List *Cm_LoadEntities(const char *entityString) {
 /**
  * @brief Returns the index of the entity in the loaded BSP entities array, or -1 if not found.
  */
-int32_t Cm_EntityNumber(const CmEntity *entity) {
+int32_t Entity_Number(const Entity *entity) {
 
   for (int32_t i = 0; i < Cm_Bsp()->numEntities; i++) {
     if (Cm_Bsp()->entities[i] == entity) {
@@ -295,10 +295,10 @@ int32_t Cm_EntityNumber(const CmEntity *entity) {
 /**
  * @brief Returns the entity pair matching key, or a null entity if not found.
  */
-const CmEntity *Cm_EntityValue(const CmEntity *entity, const char *key) {
+const Entity *Entity_Value(const Entity *entity, const char *key) {
 
-  for (const CmEntity *e = entity; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
+  for (const Entity *e = entity; e; e = e->next) {
+    if (!Str_Compare(e->key, key)) {
       return e;
     }
   }
@@ -315,21 +315,21 @@ const CmEntity *Cm_EntityValue(const CmEntity *entity, const char *key) {
  * @param value The value string.
  * @return The modified key-value pair.
  */
-CmEntity *Cm_EntitySetKeyValue(CmEntity *entity, const char *key, CmEntityParsed field, const void *value) {
+Entity *Entity_SetKeyValue(Entity *entity, const char *key, EntityParsed field, const void *value) {
 
   assert(entity != &nullEntity);
 
-  CmEntity *e;
-  CmEntity *target = NULL;
+  Entity *e;
+  Entity *target = NULL;
   for (e = entity; e; e = e->next) {
-    if (!q_strcmp(e->key, key)) {
+    if (!Str_Compare(e->key, key)) {
       target = e;
       break;
     }
   }
 
   if (target == NULL) {
-    target = Cm_AllocEntity();
+    target = Entity_Alloc();
     if (entity) {
       for (e = entity; e->next; e = e->next) ;
       e->next = target;
@@ -337,47 +337,47 @@ CmEntity *Cm_EntitySetKeyValue(CmEntity *entity, const char *key, CmEntityParsed
     }
   }
 
-  q_strlcpy(target->key, key, sizeof(target->key));
+  Str_Copy(target->key, key, sizeof(target->key));
 
   switch (field) {
     case ENTITY_STRING:
-      q_strlcpy(target->string, (const char *) value, sizeof(entity->string));
+      Str_Copy(target->string, (const char *) value, sizeof(entity->string));
       break;
     case ENTITY_INTEGER:
-      q_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
+      Str_Format(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
       break;
     case ENTITY_FLOAT:
-      q_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
+      Str_Format(target->string, sizeof(entity->string), "%g", *(float *) value);
       break;
     case ENTITY_VEC2: {
       const Vec2 v = *(Vec2 *) value;
-      q_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
+      Str_Format(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
       break;
     }
     case ENTITY_VEC3: {
       const Vec3 v = *(Vec3 *) value;
-      q_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
+      Str_Format(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
       break;
     }
     case ENTITY_VEC4: {
       const Vec4 v = *(Vec4 *) value;
-      q_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      Str_Format(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
       break;
     }
   }
 
-  Cm_ParseEntity(target);
+  Entity_Parse(target);
   return target;
 }
 
 /**
  * @brief Returns a Vector of brushes belonging to the given entity.
  */
-Vector *Cm_EntityBrushes(const CmEntity *entity) {
+Vector *Entity_Brushes(const Entity *entity) {
 
-  Vector *brushes = $(alloc(Vector), initWithSize, sizeof(CmBspBrush *));
+  Vector *brushes = $(alloc(Vector), initWithSize, sizeof(CollisionBrush *));
 
-  CmBspBrush *brush = Cm_Bsp()->brushes;
+  CollisionBrush *brush = Cm_Bsp()->brushes;
   for (int32_t i = 0; i < Cm_Bsp()->numBrushes; i++, brush++) {
 
     if (brush->entity == entity) {
@@ -389,12 +389,12 @@ Vector *Cm_EntityBrushes(const CmEntity *entity) {
 }
 
 /**
- * @brief Serializes a `CmEntity` to an info string.
+ * @brief Serializes a `Entity` to an info string.
  */
-char *Cm_EntityToInfoString(const CmEntity *entity) {
+char *Entity_ToInfoString(const Entity *entity) {
   char *str = Mem_TagMalloc(MAX_INFO_STRING_STRING, MEM_TAG_COLLISION);
 
-  for (const CmEntity *e = entity; e; e = e->next) {
+  for (const Entity *e = entity; e; e = e->next) {
     InfoString_Set(str, e->key, e->string);
   }
 
@@ -402,21 +402,21 @@ char *Cm_EntityToInfoString(const CmEntity *entity) {
 }
 
 /**
- * @brief Deserializes an info string to a `CmEntity`.
+ * @brief Deserializes an info string to a `Entity`.
  */
-CmEntity *Cm_EntityFromInfoString(const char *str) {
+Entity *Entity_FromInfoString(const char *str) {
 
   if (InfoString_Validate(str)) {
 
-    CmEntity *entity = NULL;
+    Entity *entity = NULL;
     const char *s = str;
 
     do {
-      CmEntity *pair = Cm_AllocEntity();
+      Entity *pair = Entity_Alloc();
 
       s = InfoString_Next(s, pair->key, pair->string);
 
-      Cm_ParseEntity(pair);
+      Entity_Parse(pair);
 
       pair->next = entity;
       if (entity) {
@@ -426,7 +426,7 @@ CmEntity *Cm_EntityFromInfoString(const char *str) {
 
     } while (s);
 
-    return Cm_SortEntity(entity);
+    return Entity_Sort(entity);
   }
 
   Com_Debug(DEBUG_COLLISION, "Invalid entity info string: %s\n", str);
@@ -439,12 +439,12 @@ CmEntity *Cm_EntityFromInfoString(const char *str) {
  * definitions (including patchDef2 blocks) for each entity. Entity ordering in
  * the map text must match the entities array.
  */
-void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEntities) {
+void Entity_ParseBrushes(const char *mapText, Entity **entities, int32_t numEntities) {
 
   Parser parser = Parse_Init(mapText, PARSER_DEFAULT);
 
   for (int32_t i = 0; i < numEntities; i++) {
-    CmEntity *e = entities[i];
+    Entity *e = entities[i];
 
     const char *brushes = NULL;
     bool inEntity = false;
@@ -453,7 +453,7 @@ void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEnt
 
     while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
 
-      if (!q_strcmp(token, "{")) {
+      if (!Str_Compare(token, "{")) {
         if (!inEntity) {
           inEntity = true;
         } else {
@@ -464,7 +464,7 @@ void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEnt
         }
       }
 
-      if (!q_strcmp(token, "}")) {
+      if (!Str_Compare(token, "}")) {
         if (brushDepth > 0) {
           brushDepth--;
         } else if (inEntity) {
@@ -476,9 +476,9 @@ void Cm_ParseMapBrushes(const char *mapText, CmEntity **entities, int32_t numEnt
 
     if (brushes) {
       const size_t len = parser.position.ptr - brushes - 1;
-      e->brushes = Mem_TagMalloc(len + q_strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
+      e->brushes = Mem_TagMalloc(len + Str_Length("// brush 0\n") + 1, MEM_TAG_COLLISION);
       strcpy(e->brushes, "// brush 0\n");
-      memcpy(e->brushes + q_strlen(e->brushes), brushes, len);
+      memcpy(e->brushes + Str_Length(e->brushes), brushes, len);
     }
   }
 }
