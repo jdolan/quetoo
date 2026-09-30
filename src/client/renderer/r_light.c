@@ -115,19 +115,17 @@ void R_UpdateLights(RenderView *view, CopyPass *copyPass) {
 
     // a subview cannot occlude at all: the queries were resolved for another camera, so it
     // culls its own frustum and nothing more
+    RenderVisibility visibility;
     if (view->type == VIEW_SUBVIEW) {
-      l->occluded = R_CullBox(view, l->bounds);
+      visibility = R_CullBox(view, l->bounds) ? VISIBILITY_CULLED : VISIBILITY_VISIBLE;
     } else if (l->bspLight) {
-      l->occluded = !l->bspLight->query->result;
+      visibility = R_OcclusionQueryVisibility(l->bspLight->query);
     } else {
-      l->occluded = R_CulludeBox(view, l->bounds);
+      visibility = R_CulludeBox(view, l->bounds);
     }
 
-    if (l->occluded) {
-      renderStats->lightsOccluded++;
-    } else {
-      renderStats->lightsVisible++;
-    }
+    l->occluded = visibility != VISIBILITY_VISIBLE;
+    renderDiagnostics->lights[visibility]++;
 
     if (l->flags & R_LIGHT_NO_SHADOW) {
       l->tile = MakeVec2(-1.f, -1.f);

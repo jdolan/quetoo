@@ -26,7 +26,7 @@
 RenderEntity *R_AddEntity(RenderView *view, const RenderEntity *e);
 
 #if defined(__R_LOCAL_H__)
-bool R_CullEntity(const RenderView *view, const RenderEntity *e);
+RenderVisibility R_CullEntity(const RenderView *view, const RenderEntity *e);
 void R_UpdateEntities(RenderView *view, CopyPass *pass);
 void R_DrawEntities(const RenderView *view, RenderPass *pass);
 #endif

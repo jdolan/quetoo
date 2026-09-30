@@ -23,8 +23,9 @@
 
 #include "r_types.h"
 
-bool R_CulludeBox(const RenderView *view, const Box3 bounds);
-bool R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius);
+RenderVisibility R_CulludeBox(const RenderView *view, const Box3 bounds);
+RenderVisibility R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius);
+RenderVisibility R_OcclusionQueryVisibility(const RenderOcclusionQuery *query);
 bool R_OccludeBox(const RenderView *view, const Box3 bounds);
 bool R_OccludeSphere(const RenderView *view, const Vec3 origin, float radius);
 
@@ -33,7 +34,7 @@ bool R_OccludeSphere(const RenderView *view, const Vec3 origin, float radius);
 /**
  * @brief The maximum number of occlusion queries.
  */
-#define MAX_OCCLUSION_QUERIES (MAX_BSP_BLOCKS + MAX_BSP_LIGHTS)
+#define MAX_OCCLUSION_QUERIES (MAX_BSP_BLOCKS + MAX_BSP_LIGHTS + MAX_BSP_PORTALS + MAX_BSP_REFLECTIONS)
 
 /**
  * @brief Occlusion query state.

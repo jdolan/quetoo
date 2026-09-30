@@ -441,7 +441,7 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
 
     $(pass, drawIndexedPrimitives, (uint32_t) batchSize * 6, 1, (uint32_t) i * 6, 0, 0);
 
-    renderStats->spriteDrawElements++;
+    renderDiagnostics->spriteDrawElements++;
 
     i += batchSize;
   }

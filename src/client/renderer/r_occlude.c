@@ -99,17 +99,51 @@ bool R_OccludeSphere(const RenderView *view, const Vec3 origin, float radius) {
 }
 
 /**
- * @brief Returns true if the box is culled or occluded.
+ * @return Whether the box is visible, culled or occluded.
  */
-bool R_CulludeBox(const RenderView *view, const Box3 bounds) {
-  return R_CullBox(view, bounds) || R_OccludeBox(view, bounds);
+RenderVisibility R_CulludeBox(const RenderView *view, const Box3 bounds) {
+
+  if (R_CullBox(view, bounds)) {
+    return VISIBILITY_CULLED;
+  }
+
+  if (R_OccludeBox(view, bounds)) {
+    return VISIBILITY_OCCLUDED;
+  }
+
+  return VISIBILITY_VISIBLE;
 }
 
 /**
- * @brief Returns true if the sphere is culled or occluded.
+ * @return Whether the sphere is visible, culled or occluded.
  */
-bool R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius) {
-  return R_CullSphere(view, point, radius) || R_OccludeSphere(view, point, radius);
+RenderVisibility R_CulludeSphere(const RenderView *view, const Vec3 point, const float radius) {
+
+  if (R_CullSphere(view, point, radius)) {
+    return VISIBILITY_CULLED;
+  }
+
+  if (R_OccludeSphere(view, point, radius)) {
+    return VISIBILITY_OCCLUDED;
+  }
+
+  return VISIBILITY_VISIBLE;
+}
+
+/**
+ * @return Whether @p query is visible, culled or occluded this frame.
+ */
+RenderVisibility R_OcclusionQueryVisibility(const RenderOcclusionQuery *query) {
+
+  if (query->culled) {
+    return VISIBILITY_CULLED;
+  }
+
+  if (!query->result) {
+    return VISIBILITY_OCCLUDED;
+  }
+
+  return VISIBILITY_VISIBLE;
 }
 
 /**
@@ -197,8 +231,12 @@ static void R_DrawOcclusionQueries_(const RenderView *view, CommandBuffer *comma
 
   RenderOcclusionQuery *q = renderOcclusion.queries;
   for (int32_t i = 0; i < renderOcclusion.numQueries; i++, q++) {
+    q->drawnCulled = R_CullBox(view, q->bounds);
+
     $(pass, beginQuery, renderOcclusion.pool, i);
-    $(pass, drawIndexedPrimitives, 36, q->numBoxes, 0, 0, q->firstBox);
+    if (!q->drawnCulled) {
+      $(pass, drawIndexedPrimitives, 36, q->numBoxes, 0, 0, q->firstBox);
+    }
     $(pass, endQuery, renderOcclusion.pool, i);
   }
 
@@ -218,7 +256,7 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
 
       const int32_t numResults = Mini(renderOcclusion.numQueriesDownloaded, renderOcclusion.numQueries);
       for (int32_t i = 0; i < numResults; i++) {
-        renderOcclusion.queries[i].result = results[i] > 0;
+        renderOcclusion.queries[i].result = results[i] > 0 || renderOcclusion.queries[i].drawnCulled;
       }
 
       $(renderOcclusion.transfer, unmap);
@@ -244,6 +282,9 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
   RenderOcclusionQuery *q = renderOcclusion.queries;
   for (int32_t i = 0; i < renderOcclusion.numQueries; i++, q++) {
 
+    const bool wasCulled = q->culled;
+    q->culled = false;
+
     if (!r_occlude->integer) {
       q->result = true;
     } else {
@@ -251,15 +292,14 @@ void R_DrawOcclusionQueries(const RenderView *view, CommandBuffer *commands) {
         q->result = true;
       } else if (R_CullBox(view, q->bounds)) {
         q->result = false;
+        q->culled = true;
+      } else if (wasCulled) {
+        q->result = true;
       }
     }
 
-    renderStats->queriesAllocated++;
-    if (q->result) {
-      renderStats->queriesVisible++;
-    } else {
-      renderStats->queriesOccluded++;
-    }
+    renderDiagnostics->queriesAllocated++;
+    renderDiagnostics->queries[R_OcclusionQueryVisibility(q)]++;
   }
 
   R_UpdateOcclusionBounds();

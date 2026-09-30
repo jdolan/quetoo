@@ -305,6 +305,30 @@ typedef struct {
 #define MAX_DECALS 0x800
 
 /**
+ * @brief Whether a box, entity or query can be seen from a view, and if not, why.
+ * @details `VISIBILITY_VISIBLE` is zero, so that a visibility read as a boolean is true when the
+ *   item is hidden, as the culling functions that return one were before it existed.
+ */
+typedef enum {
+  /**
+   * @brief Inside the view's frustum, and not occluded.
+   */
+  VISIBILITY_VISIBLE,
+
+  /**
+   * @brief Outside the view's frustum.
+   */
+  VISIBILITY_CULLED,
+
+  /**
+   * @brief Inside the view's frustum, but occluded by other geometry.
+   */
+  VISIBILITY_OCCLUDED,
+
+  VISIBILITY_TOTAL
+} RenderVisibility;
+
+/**
  * @brief Hardware occlusion queries.
  */
 typedef struct {
@@ -327,6 +351,19 @@ typedef struct {
    * @brief True if the query produced visible fragments.
    */
   bool result;
+
+  /**
+   * @brief True if the query's bounds were outside the view's frustum this frame, which also
+   * clears `result`.
+   */
+  bool culled;
+
+  /**
+   * @brief True if the query's bounds were outside the view's frustum when it was last drawn.
+   * @details Its boxes were not drawn then, so its downloaded result says nothing about
+   *   occlusion, and is read as visible.
+   */
+  bool drawnCulled;
 } RenderOcclusionQuery;
 
 /**
@@ -848,6 +885,12 @@ typedef struct RenderSubview {
    *   fixed camera.
    */
   Mat4 matrix;
+
+  /**
+   * @brief The occlusion query fitted to this subview's face, or `NULL` for a subview on a moving
+   * inline model, whose face the static query boxes cannot follow.
+   */
+  RenderOcclusionQuery *query;
 
   /**
    * @brief The view this subview is drawn with, from the renderer's pool, or `NULL` if this
@@ -2094,14 +2137,9 @@ typedef enum {
  */
 typedef struct {
   /**
-   * @brief The count of visible lights.
+   * @brief The counts of lights by visibility.
    */
-  int32_t lightsVisible;
-
-  /**
-   * @brief The count of occluded lights.
-   */
-  int32_t lightsOccluded;
+  int32_t lights[VISIBILITY_TOTAL];
 
   /**
    * @brief The count of lights with cached shadowmaps.
@@ -2109,24 +2147,14 @@ typedef struct {
   int32_t lightsCached;
 
   /**
-   * @brief The count of visible entities.
+   * @brief The counts of entities by visibility.
    */
-  int32_t entitiesVisible;
+  int32_t entities[VISIBILITY_TOTAL];
 
   /**
-   * @brief The count of occluded entities.
+   * @brief The counts of BSP blocks by visibility.
    */
-  int32_t entitiesOccluded;
-
-  /**
-   * @brief The count of visible (non-occluded) BSP blocks.
-   */
-  int32_t blocksVisible;
-
-  /**
-   * @brief The count of occluded BSP blocks.
-   */
-  int32_t blocksOccluded;
+  int32_t blocks[VISIBILITY_TOTAL];
 
   /**
    * @brief The count of currently allocated occlusion queries.
@@ -2134,19 +2162,19 @@ typedef struct {
   int32_t queriesAllocated;
 
   /**
-   * @brief The count of visible occlusion queries this frame.
+   * @brief The counts of occlusion queries by visibility this frame.
    */
-  int32_t queriesVisible;
-
-  /**
-   * @brief The count of occluded occlusion queries this frame.
-   */
-  int32_t queriesOccluded;
+  int32_t queries[VISIBILITY_TOTAL];
 
   /**
    * @brief The counts of subviews offered, and of those actually drawn.
    */
   int32_t subviewsOffered, subviewsDrawn;
+
+  /**
+   * @brief The counts of offered subviews by visibility.
+   */
+  int32_t subviews[VISIBILITY_TOTAL];
 
   /**
    * @brief The counts portals offered and drawn.
@@ -2202,7 +2230,7 @@ typedef struct {
    * @brief The count of rendered decal draw element batches.
    */
   int32_t decalDrawElements;
-} RenderViewStats;
+} RenderDiagnostics;
 
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
@@ -2379,7 +2407,7 @@ typedef struct RenderView {
   /**
    * @brief Draw statistics for the most recent render of this view.
    */
-  RenderViewStats stats;
+  RenderDiagnostics diagnostics;
 } RenderView;
 
 /**

@@ -153,7 +153,7 @@ static float R_SubviewDistance(const RenderView *view, const RenderSubview *subv
 static bool R_AddSubview(RenderView *view, RenderSubview *subview, const Vec3 origin,
                          const Mat4 matrix, const Vec4 clipPlane, bool mirrored) {
 
-  view->stats.subviewsOffered++;
+  view->diagnostics.subviewsOffered++;
 
   // a subview face is single sided, and the BSP pipeline culls back faces, so from behind its
   // plane there is nothing of it to draw -- and a whole scene would be rendered into a layer
@@ -275,7 +275,7 @@ static void R_AddReflection(RenderView *view, RenderSubview *reflection, const M
 
   R_AddSubview(view, reflection, view->origin, R_ReflectionMatrix(&reflection->absPlane), clipPlane, true);
 
-  view->stats.reflectionsOffered++;
+  view->diagnostics.reflectionsOffered++;
 }
 
 /**
@@ -353,7 +353,7 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
 
   R_AddSubview(view, portal, origin, portal->matrix, Vec4_Zero(), false);
 
-  view->stats.portalsOffered++;
+  view->diagnostics.portalsOffered++;
 }
 
 /**
@@ -667,7 +667,7 @@ void R_DrawSubviews(RenderView *view) {
   // its own view
   const Mat4 vp = Mat4_Concat(renderUniforms.block.projection3D, renderUniforms.block.view);
 
-  RenderViewStats *stats = renderStats;
+  RenderDiagnostics *diagnostics = renderDiagnostics;
 
   int32_t layer = 0;
   for (int32_t i = 0; i < view->numSubviews; i++) {
@@ -676,7 +676,14 @@ void R_DrawSubviews(RenderView *view) {
 
     // the scene was populated before any of it was culled, so a subview may well have been
     // offered a view it turns out not to need
-    if (R_CulludeBox(view, subview->absBounds)) {
+    RenderVisibility visibility = R_CulludeBox(view, subview->absBounds);
+    if (visibility == VISIBILITY_VISIBLE && subview->query && !subview->query->result) {
+      visibility = VISIBILITY_OCCLUDED;
+    }
+
+    diagnostics->subviews[visibility]++;
+
+    if (visibility != VISIBILITY_VISIBLE) {
       continue;
     }
 
@@ -692,25 +699,25 @@ void R_DrawSubviews(RenderView *view) {
     // names one rendered this frame
     subview->layer = layer++;
 
-    stats->subviewsDrawn++;
+    diagnostics->subviewsDrawn++;
 
     if (subview->type == SUBVIEW_PORTAL) {
-      stats->portalsDrawn++;
+      diagnostics->portalsDrawn++;
     } else if (subview->type == SUBVIEW_REFLECTION) {
-      stats->reflectionsDrawn++;
+      diagnostics->reflectionsDrawn++;
     }
 
     R_UpdateSubviewScene(view, subview->view);
 
-    renderStats = &subview->view->stats;
+    renderDiagnostics = &subview->view->diagnostics;
     R_DrawSubview(subview, &scissor, projected, mins, maxs);
 
-    stats->subviewsTriangles += subview->view->stats.bspTriangles + subview->view->stats.meshTriangles;
+    diagnostics->subviewsTriangles += subview->view->diagnostics.bspTriangles + subview->view->diagnostics.meshTriangles;
   }
 
   $(module.framebuffer, swap);
 
-  renderStats = stats;
+  renderDiagnostics = diagnostics;
 
   R_UpdateUniforms(view);
 }

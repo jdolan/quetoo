@@ -23,7 +23,7 @@
 
 RenderConfig renderConfig;
 RenderUniforms renderUniforms;
-RenderViewStats *renderStats;
+RenderDiagnostics *renderDiagnostics;
 
 Cvar *r_alphaTest;
 Cvar *r_cull;
@@ -329,7 +329,7 @@ void R_InitView(RenderView *view) {
   view->numSpriteInstances = 0;
   view->numDecals = 0;
 
-  memset(&view->stats, 0, sizeof(view->stats));
+  memset(&view->diagnostics, 0, sizeof(view->diagnostics));
 }
 
 /**
@@ -337,7 +337,7 @@ void R_InitView(RenderView *view) {
  */
 void R_DrawViewDepth(RenderView *view) {
 
-  renderStats = &view->stats;
+  renderDiagnostics = &view->diagnostics;
 
   R_UpdateFrustum(view);
 
@@ -365,7 +365,7 @@ void R_DrawMainView(RenderView *view) {
 
   assert(view);
 
-  renderStats = &view->stats;
+  renderDiagnostics = &view->diagnostics;
 
   CommandBuffer *commands = renderContext.device->commands;
   if (!commands) {
@@ -422,7 +422,7 @@ void R_DrawPlayerModelView(RenderView *view) {
 
   assert(view);
 
-  renderStats = &view->stats;
+  renderDiagnostics = &view->diagnostics;
 
   CommandBuffer *commands = renderContext.device->commands;
   if (!commands) {

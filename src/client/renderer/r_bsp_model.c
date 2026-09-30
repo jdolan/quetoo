@@ -530,7 +530,29 @@ static void R_AppendOcclusionQueryVoxels(RenderOcclusionQuery *query, const BspV
 }
 
 /**
- * @brief Builds BSP block and light occlusion queries from voxel coverage.
+ * @brief Builds the occlusion query of @p subview, if its face is on worldspawn.
+ * @details The query boxes are static after load, so a face on a mover gets no query, and is
+ *   occluded by the block queries alone. The box is the face's bounds grown by a voxel: that puts
+ *   its front clear of the face, which is itself in the depth buffer that the query is tested
+ *   against, and it turns the query visible a little before the face is, so that the latency of
+ *   the results does not leave an undrawn layer on a face that comes out from behind geometry. A
+ *   face that turns into the frustum is covered by `RenderOcclusionQuery::drawnCulled`.
+ */
+static void R_LoadBspSubviewOcclusionQuery(const RenderBspModel *bsp, RenderSubview *subview) {
+
+  if (!subview->model || subview->model != bsp->worldspawn) {
+    return;
+  }
+
+  const Box3 bounds = Box3_Expand(subview->bounds, BSP_VOXEL_SIZE);
+
+  subview->query = R_AllocOcclusionQuery(bounds);
+  R_AppendOcclusionQueryBox(subview->query, bounds);
+}
+
+/**
+ * @brief Builds BSP block and light occlusion queries from voxel coverage, and the queries of
+ * worldspawn's subviews from their faces.
  */
 static void R_LoadBspOcclusionQueries(RenderBspModel *bsp) {
 
@@ -564,6 +586,14 @@ static void R_LoadBspOcclusionQueries(RenderBspModel *bsp) {
     if (!light->query->numBoxes) {
       R_AppendOcclusionQueryBox(light->query, light->bounds);
     }
+  }
+
+  for (int32_t i = 0; i < bsp->numPortals; i++) {
+    R_LoadBspSubviewOcclusionQuery(bsp, &bsp->portals[i]);
+  }
+
+  for (int32_t i = 0; i < bsp->numReflections; i++) {
+    R_LoadBspSubviewOcclusionQuery(bsp, &bsp->reflections[i]);
   }
 }
 
