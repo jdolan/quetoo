@@ -107,7 +107,7 @@ static bool BrushesDisjoint(const CsgBrush *a, const CsgBrush *b) {
 }
 
 /**
- * @brief Create a list of `CsgBrush` for the `Brush` between start and start + count.
+ * @brief Create a list of `CsgBrush` for the `MapBrush` between start and start + count.
  */
 CsgBrush *MakeBrushes(int32_t index, int32_t count) {
 

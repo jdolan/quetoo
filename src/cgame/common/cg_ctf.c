@@ -115,7 +115,7 @@ Class *_HeldFlagView(void) {
 /**
  * @brief Captures is always team deathmatch: instagib and arena do not apply,
  * and teams are not optional. A single owner, like the game side's
- * `G_ClampGameplay_Ctf`, so it does not add to what `previous` offers.
+ * `G_ClampGameMode_Ctf`, so it does not add to what `previous` offers.
  * @details Points directly at the `GAMEPLAY_TEAM_DEATHMATCH` row of the shared
  * `gameModes` table rather than copying its `name`/`label` into a
  * duplicate row - there is nothing here to drift out of sync with the game
