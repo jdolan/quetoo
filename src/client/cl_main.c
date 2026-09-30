@@ -557,7 +557,7 @@ static void Cl_InitLocal(void) {
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
   Cmd_Add("servers", Cl_Servers_f, CMD_CLIENT, NULL);
   Cmd_Add("record", Cl_Record_f, CMD_CLIENT, NULL);
-  Cmd_Add("serversList", Cl_Servers_List_f, CMD_CLIENT, NULL);
+  Cmd_Add("serverList", Cl_ServerList_f, CMD_CLIENT, NULL);
   Cmd_Add("demoPlaybackFaster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
   Cmd_Add("demoPlaybackSlower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
   Cmd_Add("demoPlaybackSpeed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);

@@ -209,8 +209,8 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
   "filesystem",
   "game",
   "net",
-  "pmove_client",
-  "pmove_server",
+  "pmoveClient",
+  "pmoveServer",
   "renderer",
   "server",
   "sound",
@@ -405,7 +405,7 @@ void Com_Errorv_(Err error, const char *func, const char *fmt, va_list args) {
 }
 
 /**
- * @brief Console command to trigger a test error. Usage: `comError [drop|fatal]`
+ * @brief Console command to trigger a test error. Usage: `com_error [drop|fatal]`
  */
 void Com_Error_f(void) {
 

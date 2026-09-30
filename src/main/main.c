@@ -376,7 +376,7 @@ static void Main_Init(void) {
 
   Cmd_Init();
 
-  Cmd_Add("comError", Com_Error_f, 0, "Trigger a test error: comError [drop|fatal]");
+  Cmd_Add("com_error", Com_Error_f, 0, "Trigger a test error: com_error [drop|fatal]");
 
   Cvar_Init();
 

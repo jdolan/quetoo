@@ -455,9 +455,9 @@ void Cl_ParseServers(void) {
 }
 
 /**
- * @brief Handles the `serversList` console command, printing all known servers to the console.
+ * @brief Handles the `serverList` console command, printing all known servers to the console.
  */
-void Cl_Servers_List_f(void) {
+void Cl_ServerList_f(void) {
   char string[256];
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {

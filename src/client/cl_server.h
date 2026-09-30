@@ -32,5 +32,5 @@ void Cl_QueryServer(const NetAddr *addr);
 const ClientServerInfo *Cl_ServerInfo(void);
 void Cl_ParseServerInfo(void);
 void Cl_ParseServers(void);
-void Cl_Servers_List_f(void);
+void Cl_ServerList_f(void);
 #endif
