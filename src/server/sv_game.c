@@ -246,7 +246,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
 
   if (fragsLen) {
 
-    const JSONProperties svFragProperties = MakeJSONProperties(GameFrag,
+    const JSONProperties fragProperties = MakeJSONProperties(GameFrag,
       MakeJSONProperty(GameFrag, level,         JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameFrag, attacker,      JSONSerializeCharacters, NULL, NULL),
       MakeJSONPropertyWithKey(GameFrag, attackerGuid, "attacker_guid", JSONSerializeCharacters, NULL, NULL),
@@ -263,7 +263,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     q_snprintf(fragsUrl, sizeof(fragsUrl), "%s/api/frags", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromStructs, &svFragProperties, (ident) frags, fragsLen);
+    Data *data = $(ctx, dataFromStructs, &fragProperties, (ident) frags, fragsLen);
     release(ctx);
     assert(data);
 
@@ -275,7 +275,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
 
   if (capturesLen) {
 
-    const JSONProperties svCaptureProperties = MakeJSONProperties(GameCapture,
+    const JSONProperties captureProperties = MakeJSONProperties(GameCapture,
       MakeJSONProperty(GameCapture, level,       JSONSerializeCharacters, NULL, NULL),
       MakeJSONProperty(GameCapture, player,      JSONSerializeCharacters, NULL, NULL),
       MakeJSONPropertyWithKey(GameCapture, playerGuid, "player_guid", JSONSerializeCharacters, NULL, NULL),
@@ -288,7 +288,7 @@ static void Sv_PostStats(const GameFrag *frags, size_t fragsLen, const GameCaptu
     q_snprintf(capturesUrl, sizeof(capturesUrl), "%s/api/captures", sv_statsUrl->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromStructs, &svCaptureProperties, (ident) captures, capturesLen);
+    Data *data = $(ctx, dataFromStructs, &captureProperties, (ident) captures, capturesLen);
     release(ctx);
     assert(data);
 

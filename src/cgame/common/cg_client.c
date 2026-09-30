@@ -899,28 +899,28 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
 
   Cg_AnimateClientEntity(ent, &torso, &legs);
 
-  RenderEntity *rLegs = cgi.AddEntity(cgi.view, &legs);
+  RenderEntity *legsEntity = cgi.AddEntity(cgi.view, &legs);
 
-  if (!rLegs) {
+  if (!legsEntity) {
     return; // if the legs were culled, we're done
   }
 
-  torso.parent = rLegs;
+  torso.parent = legsEntity;
   torso.tag = "tag_torso";
 
-  RenderEntity *rTorso = cgi.AddEntity(cgi.view, &torso);
-  assert(rTorso);
+  RenderEntity *torsoEntity = cgi.AddEntity(cgi.view, &torso);
+  assert(torsoEntity);
 
-  head.parent = rTorso;
+  head.parent = torsoEntity;
   head.tag = "tag_head";
 
-  RenderEntity *rHead = cgi.AddEntity(cgi.view, &head);
-  assert(rHead);
+  RenderEntity *headEntity = cgi.AddEntity(cgi.view, &head);
+  assert(headEntity);
 
-  RenderEntity *rWeapon = NULL;
+  RenderEntity *weaponEntity = NULL;
   if (s->model2) {
-    rWeapon = cgi.AddEntity(cgi.view, &(const RenderEntity) {
-      .parent = rTorso,
+    weaponEntity = cgi.AddEntity(cgi.view, &(const RenderEntity) {
+      .parent = torsoEntity,
       .tag = "tag_weapon",
       .scale = e->scale,
       .model = cgi.client->models[s->model2],
@@ -929,22 +929,22 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .shell = e->shell,
     });
 
-    assert(rWeapon);
+    assert(weaponEntity);
 
     // cache the muzzle position post-animation for muzzle flash and beam alignment
 
-    const Vec3 cfgMuzzle = rWeapon->model->mesh->config.link.muzzle;
+    const Vec3 cfgMuzzle = weaponEntity->model->mesh->config.link.muzzle;
     if (!Vec3_Equal(cfgMuzzle, Vec3_Zero())) {
-      ci->weaponMuzzle = Mat4_Transform(rWeapon->matrix, cfgMuzzle);
+      ci->weaponMuzzle = Mat4_Transform(weaponEntity->matrix, cfgMuzzle);
     } else {
-      ci->weaponMuzzle = rWeapon->origin;
+      ci->weaponMuzzle = weaponEntity->origin;
     }
   }
 
-  RenderEntity *rFlag = NULL;
+  RenderEntity *flagEntity = NULL;
   if (s->model3) {
-    rFlag = cgi.AddEntity(cgi.view, &(const RenderEntity) {
-      .parent = rTorso,
+    flagEntity = cgi.AddEntity(cgi.view, &(const RenderEntity) {
+      .parent = torsoEntity,
       .tag = "tag_head",
       .scale = e->scale,
       .model = cgi.client->models[s->model3],
@@ -953,7 +953,7 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .shell = e->shell,
     });
 
-    assert(rFlag);
+    assert(flagEntity);
   }
 
   if (s->model4) {

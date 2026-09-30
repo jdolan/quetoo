@@ -400,8 +400,8 @@ void Pm_CheckViewStep(void) {
  * @brief Called by the game and the client game to update the player's
  * authoritative or predicted movement state, respectively.
  */
-void Pm_Move(PMove *pmMove) {
-  pm = pmMove;
+void Pm_Move(PMove *move) {
+  pm = move;
 
   Pm_Init();
 

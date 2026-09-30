@@ -1263,11 +1263,11 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   // predict a few frames ahead for timely edge/mover stoppage; cache result per
   // tick so the three sub-passes of G_Ai_ClientThink share one expensive Pm_Move
   if (cl->ai->lookaheadFrame != gameLevel.frameNum) {
-    PMove pmAhead = pm;
-    pmAhead.cmd.msec = 100;
-    Pm_Move(&pmAhead);
+    PMove ahead = pm;
+    ahead.cmd.msec = 100;
+    Pm_Move(&ahead);
     cl->ai->lookaheadFrame = gameLevel.frameNum;
-    cl->ai->lookaheadNoGround = !pmAhead.ground.ent;
+    cl->ai->lookaheadNoGround = !ahead.ground.ent;
   }
 
   // predicted ground is gone

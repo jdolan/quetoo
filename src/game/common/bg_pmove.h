@@ -295,4 +295,4 @@ bool Pm_MovementByName(const char *name, PMovement *movement);
  * `PMoveParams.kernel` names. The parameters travel with the player, so the
  * server and the client run the same kernel over the same numbers.
  */
-void Pm_Move(PMove *pmMove);
+void Pm_Move(PMove *move);
