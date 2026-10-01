@@ -45,8 +45,6 @@ static void didSetValue(Slider *slider, double value) {
     this->material->def->specularity = slider->value;
   } else if (slider == this->parallax) {
     this->material->def->parallax = slider->value;
-  } else if (slider == this->shadow) {
-    this->material->def->shadow = slider->value;
   } else if (slider == this->alphaTest) {
     this->material->def->alphaTest = slider->value;
   } else {
@@ -186,7 +184,6 @@ static void loadView(ViewController *self) {
     MakeOutlet("hardness", &this->hardness),
     MakeOutlet("specularity", &this->specularity),
     MakeOutlet("parallax", &this->parallax),
-    MakeOutlet("shadow", &this->shadow),
     MakeOutlet("alphaTest", &this->alphaTest)
   );
 
@@ -207,9 +204,6 @@ static void loadView(ViewController *self) {
 
   this->parallax->delegate.self = self;
   this->parallax->delegate.didSetValue = didSetValue;
-
-  this->shadow->delegate.self = self;
-  this->shadow->delegate.didSetValue = didSetValue;
 
   this->alphaTest->delegate.self = self;
   this->alphaTest->delegate.didSetValue = didSetValue;
@@ -283,7 +277,6 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
     $(self->hardness, setValue, (double) self->material->def->hardness);
     $(self->specularity, setValue, (double) self->material->def->specularity);
     $(self->parallax, setValue, (double) self->material->def->parallax);
-    $(self->shadow, setValue, (double) self->material->def->shadow);
     $(self->alphaTest, setValue, (double) self->material->def->alphaTest);
 
   } else {
@@ -296,7 +289,6 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
     $(self->hardness, setValue, MATERIAL_HARDNESS);
     $(self->specularity, setValue, MATERIAL_SPECULARITY);
     $(self->parallax, setValue, MATERIAL_PARALLAX);
-    $(self->shadow, setValue, MATERIAL_SHADOW);
     $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
   }
 

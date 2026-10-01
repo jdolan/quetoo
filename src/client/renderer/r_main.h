@@ -242,9 +242,9 @@ typedef struct {
     int wireframe;
 
     /**
-     * @brief Pads the block to a multiple of vec4, as std140 requires.
+     * @brief Non-zero when parallax self-shadows are enabled.
      */
-    int padding;
+    int parallaxShadow;
   } block;
 
 } RenderUniforms;

@@ -183,6 +183,7 @@ void R_UpdateUniforms(const RenderView *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
     out->wireframe = r_drawWireframe->integer;
+    out->parallaxShadow = r_parallaxShadow->integer;
 
     // the player model preview must land all of its lookups on the one voxel of the fallback
     // buffers: clamping to a zero-sized grid would not, since clamp() with a low bound above
@@ -510,7 +511,7 @@ static void R_InitLocal(void) {
   r_modulateMesh = Cvar_Add("r_modulateMesh", "1", CVAR_ARCHIVE, "Controls the brightness of players and items, to increase their visibility.");
   r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls the color saturation of the rendered scene. 0 = grayscale, 1 = normal, 2 = vivid.");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
-  r_parallaxShadow = Cvar_Add("r_parallaxShadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
+  r_parallaxShadow = Cvar_Add("r_parallaxShadow", "1", CVAR_ARCHIVE, "Enables parallax self-shadows.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshotFormat = Cvar_Add("r_screenshotFormat", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");

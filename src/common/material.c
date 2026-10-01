@@ -776,7 +776,6 @@ static Material *Material_Alloc(const char *name, AssetContext context) {
   mat->hardness = MATERIAL_HARDNESS;
   mat->specularity = MATERIAL_SPECULARITY;
   mat->parallax = MATERIAL_PARALLAX;
-  mat->shadow = MATERIAL_SHADOW;
   mat->alphaTest = MATERIAL_ALPHA_TEST;
 
   return mat;
@@ -939,11 +938,9 @@ Material *Material_Load(const char *name, AssetContext context) {
 
     } else if (!Str_Compare(token, "shadow")) {
 
-      if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->shadow, 1) != 1) {
+      float shadow;
+      if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &shadow, 1) != 1) {
         Material_Warn(m, &parser, "No shadow specified");
-      } else if (m->shadow < 0.f) {
-        Material_Warn(m, &parser, "Invalid shadow, must be >= 0.0");
-        m->shadow = MATERIAL_SHADOW;
       }
 
     } else if (*token == '{') {
@@ -1402,9 +1399,6 @@ static void Material_Write(const Material *material, File *file) {
   }
   if (material->parallax != MATERIAL_PARALLAX) {
     Fs_Print(file, "\tparallax %0.2f\n", material->parallax);
-  }
-  if (material->shadow != MATERIAL_SHADOW) {
-    Fs_Print(file, "\tshadow %0.2f\n", material->shadow);
   }
 
   if (material->contents) {

@@ -305,7 +305,7 @@ void fragmentCaustics(in CommonVertex v, inout CommonFragment f) {
 
 #define PARALLAX_SHADOW_SAMPLES_PER_TEXEL 2.0
 #define PARALLAX_SHADOW_MAX_SAMPLES 16.0
-#define PARALLAX_SHADOW_STRENGTH 4.0
+#define PARALLAX_SHADOW_STRENGTH 32.0
 
 /**
  * @brief Raymarches parallax self-shadowing along the light direction.
@@ -334,15 +334,13 @@ float parallaxSelfShadow(in vec3 lightDir, in CommonVertex v, in CommonFragment 
   vec3 delta = vec3(offset * texel, rise) / numSamples;
   vec3 texcoord = vec3(f.parallax, height);
 
-  float strength = material.shadow * PARALLAX_SHADOW_STRENGTH;
-
   float occlusion = 0.0;
-  for (int i = 0; i < int(numSamples) && occlusion * strength < 1.0; i++) {
+  for (int i = 0; i < int(numSamples) && occlusion * PARALLAX_SHADOW_STRENGTH < 1.0; i++) {
     texcoord += delta;
     occlusion = max(occlusion, sampleMaterialHeightmap(texcoord.xy, f.texLod) - texcoord.z);
   }
 
-  return clamp(1.0 - occlusion * strength, 0.0, 1.0);
+  return clamp(1.0 - occlusion * PARALLAX_SHADOW_STRENGTH, 0.0, 1.0);
 }
 #endif
 
@@ -377,7 +375,7 @@ void fragmentLight(in CommonVertex v, inout CommonFragment f, in Light light) {
   float shadow = sampleShadowAtlas(light, v, f, atten);
 
 #if defined(PARALLAX_SELF_SHADOW)
-  if (!isStage && material.shadow > 0.0) {
+  if (!isStage && parallaxShadow != 0) {
     shadow *= parallaxSelfShadow(dir, v, f);
   }
 #endif
