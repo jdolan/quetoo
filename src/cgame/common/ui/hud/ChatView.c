@@ -39,7 +39,7 @@ static void didEndEditing(TextView *textView) {
     return;
   }
 
-  const char *line = textView->attributedText->chars;
+  const char *line = textView->attributedText->chars ?: "";
   if (*line) {
     const SDL_Keymod mods = SDL_GetModState();
     const bool team = cgameHudState.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
