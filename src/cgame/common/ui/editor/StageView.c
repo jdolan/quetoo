@@ -383,7 +383,7 @@ static void didEndEditingStageTexture(TextView *textView) {
     return;
   }
 
-  const char *name = textView->attributedText->chars;
+  const char *name = textView->attributedText->chars ?: "";
 
   if (!Str_Compare(name, stageAssetName(this->stage))) {
     return;
@@ -595,10 +595,12 @@ static void didEndEditingStageAxis(TextView *textView) {
   const StageAxis *axis = textView->delegate.data;
   float *value = stageFloat(this->stage, axis->offset);
 
-  char *end;
-  const float parsed = strtof(textView->attributedText->chars, &end);
+  const char *text = textView->attributedText->chars ?: "";
 
-  if (end == textView->attributedText->chars || parsed == *value) {
+  char *end;
+  const float parsed = strtof(text, &end);
+
+  if (end == text || parsed == *value) {
     $(textView, setAttributedText, va("%g", *value));
     return;
   }
@@ -622,7 +624,7 @@ static void didEndEditingStageField(TextView *textView) {
 
   void *value = (byte *) this->stage + field->offset;
 
-  const char *text = textView->attributedText->chars;
+  const char *text = textView->attributedText->chars ?: "";
   char *end;
 
   if (field->integer) {
