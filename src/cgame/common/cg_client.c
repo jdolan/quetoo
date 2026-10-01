@@ -603,7 +603,7 @@ static void Cg_AnimateClientEntity_(const RenderModel *model, ClientEntityAnimat
     if (!anim->loopedFrames) {
       const EntityAnimation next = Cg_NextAnimation(a);
       if (next == a->animation) { // no change, just stay put
-        a->oldFrame = a->frame;
+        a->frame = a->oldFrame = anim->firstFrame + (a->reverse ? 0 : anim->numFrames - 1);
         a->lerp = a->fraction = 1.0;
         return;
       }
