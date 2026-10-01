@@ -292,6 +292,31 @@ static void Cg_DrawEditorBrush(const Box3 bounds, const Mat4 matrix, const Color
 }
 
 /**
+ * @brief Offers every portal of the world to the main view, as `Cg_AddPortals` does in game.
+ * @details Editor placeholders carry no `model1`, so a portal is matched to the editor entity
+ * that draws its inline model instead.
+ */
+static void Cg_AddEditorPortals(void) {
+
+  const RenderModel *world = cgi.WorldModel();
+  if (!world) {
+    return;
+  }
+
+  RenderSubview *p = world->bsp->portals;
+  for (int32_t i = 0; i < world->bsp->numPortals; i++, p++) {
+
+    const CGameEditorEntity *edit = cgameEditor.entities;
+    for (int32_t j = 0; j < MAX_ENTITIES; j++, edit++) {
+      if (edit->def && edit->model == p->model) {
+        cgi.AddPortal(cgi.view, p, Mat4_FromRotationTranslationScale(edit->ent->angles, edit->ent->origin, 1.f));
+        break;
+      }
+    }
+  }
+}
+
+/**
  * @brief Populates the view and sound stage for the given editor frame.
  */
 void Cg_PopulateEditorScene(const ClientFrame *frame) {
@@ -311,6 +336,8 @@ void Cg_PopulateEditorScene(const ClientFrame *frame) {
 
     didPrintHelp = true;
   }
+
+  Cg_AddEditorPortals();
 
   CGameEditorEntity *edit = cgameEditor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
