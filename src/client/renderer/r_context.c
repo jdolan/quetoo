@@ -118,8 +118,6 @@ void R_InitContext(void) {
       break;
     case 2:
       windowFlags |= SDL_WINDOW_FULLSCREEN;
-      w = r_fullscreenWidth->integer ?: w;
-      h = r_fullscreenHeight->integer ?: h;
       break;
   }
 
@@ -133,21 +131,16 @@ void R_InitContext(void) {
 
   if (SDL_GetWindowFlags(renderContext.window) & SDL_WINDOW_FULLSCREEN) {
 
-    if (r_fullscreenWidth->integer > 0 && r_fullscreenHeight->integer > 0) {
-
-      SDL_DisplayMode mode;
-      if (SDL_GetClosestFullscreenDisplayMode(renderContext.display, w, h, 0.f, false, &mode)) {
-        Com_Print("  Setting fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
-
-        if (SDL_SetWindowFullscreenMode(renderContext.window, &mode)) {
-          SDL_SyncWindow(renderContext.window);
-          Com_Print("  Set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
-        } else {
-          Com_Warn("Failed to set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
-        }
+    const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(renderContext.display);
+    if (mode) {
+      if (SDL_SetWindowFullscreenMode(renderContext.window, mode)) {
+        SDL_SyncWindow(renderContext.window);
+        Com_Print("  Set fullscreen display mode %dx%d@%gHz\n", mode->w, mode->h, mode->refresh_rate);
       } else {
-        Com_Warn("No matching fullscreen display mode found for %dx%d\n", w, h);
+        Com_Warn("Failed to set fullscreen display mode %dx%d@%gHz: %s\n", mode->w, mode->h, mode->refresh_rate, SDL_GetError());
       }
+    } else {
+      Com_Warn("Failed to query the desktop display mode: %s\n", SDL_GetError());
     }
   }
 

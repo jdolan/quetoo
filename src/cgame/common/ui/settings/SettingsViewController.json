@@ -51,18 +51,6 @@
                           "class": "Input",
                           "label": {
                             "text": {
-                              "text": "Fullscreen resolution"
-                            }
-                          },
-                          "control": {
-                            "class": "Select",
-                            "identifier": "resolution"
-                          }
-                        },
-                        {
-                          "class": "Input",
-                          "label": {
-                            "text": {
                               "text": "Render scale"
                             }
                           },

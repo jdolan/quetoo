@@ -144,20 +144,6 @@ static void didSelectQuality(Select *select, Option *option) {
   }
 }
 
-/**
- * @brief SelectDelegate for the resolution Select.
- */
-static void didSelectResolution(Select *select, Option *option) {
-
-  const intptr_t value = (intptr_t) option->value;
-
-  const int32_t w  = (value >> 16) & 0xFFFF;
-  const int32_t h =  (value >>  0) & 0xFFFF;
-
-  cgi.SetCvarInteger("r_fullscreenWidth", w);
-  cgi.SetCvarInteger("r_fullscreenHeight", h);
-}
-
 #pragma mark - ViewController
 
 /**
@@ -173,12 +159,11 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
-  Select *windowMode, *resolution, *verticalSync, *anisotropy, *antialias, *quality;
+  Select *windowMode, *verticalSync, *anisotropy, *antialias, *quality;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("windowMode", &windowMode),
-    MakeOutlet("resolution", &resolution),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("antialias", &antialias),
@@ -191,42 +176,6 @@ static void loadView(ViewController *self) {
   $(windowMode, addOption, "Window", (ident) 0);
   $(windowMode, addOption, "Fullscreen", (ident) 1);
   $(windowMode, addOption, "Exclusive Fullscreen", (ident) 2);
-
-  $(resolution, addOption, "Desktop", (ident) 0);
-
-  int32_t numModes;
-  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(cgi.context->display, &numModes);
-  if (modes) {
-    int32_t lastW = 0, lastH = 0;
-    for (int32_t i = 0; i < numModes; i++) {
-
-      const SDL_DisplayMode *mode = modes[i];
-      if (mode->pixel_density > 1.f) {
-        continue;
-      }
-
-      const int32_t w = mode->w, h = mode->h;
-      if (w == lastW && h == lastH) {
-        continue;
-      }
-
-      lastW = w;
-      lastH = h;
-
-      char label[MAX_QPATH];
-      Str_Format(label, sizeof(label), "%dx%d", w, h);
-      $(resolution, addOption, label, (ident) (intptr_t) ((w << 16) | h));
-    }
-    SDL_free(modes);
-  }
-
-  const int32_t w = cgi.GetCvarInteger("r_fullscreenWidth");
-  const int32_t h = cgi.GetCvarInteger("r_fullscreenHeight");
-
-  $(resolution, selectOptionWithValue, (ident) (intptr_t) ((w << 16) | h));
-
-  resolution->delegate.self = self;
-  resolution->delegate.didSelectOption = didSelectResolution;
 
   $(verticalSync, addOption, "Disabled", (ident) 0);
   $(verticalSync, addOption, "Enabled", (ident) 1);

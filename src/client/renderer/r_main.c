@@ -51,8 +51,6 @@ Cvar *r_bloomThreshold;
 Cvar *r_caustics;
 Cvar *r_framebufferScale;
 Cvar *r_fullscreen;
-Cvar *r_fullscreenWidth;
-Cvar *r_fullscreenHeight;
 Cvar *r_gpuDriver;
 Cvar *r_hardness;
 Cvar *r_lightingDistance;
@@ -536,8 +534,6 @@ static void R_InitLocal(void) {
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_framebufferScale = Cvar_Add("r_framebufferScale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
-  r_fullscreenWidth = Cvar_Add("r_fullscreenWidth", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
-  r_fullscreenHeight = Cvar_Add("r_fullscreenHeight", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
   r_gpuDriver = Cvar_Add("r_gpuDriver", "", CVAR_NO_SET, "Forces the SDL_gpu backend driver: \"vulkan\", \"direct3d12\" or \"metal\". Empty lets SDL choose. Set via +set at the command line.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");
   r_lightingDistance = Cvar_Add("r_lightingDistance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");

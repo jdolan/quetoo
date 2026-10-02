@@ -33,8 +33,6 @@ extern Cvar *r_bloomThreshold;
 extern Cvar *r_caustics;
 extern Cvar *r_framebufferScale;
 extern Cvar *r_fullscreen;
-extern Cvar *r_fullscreenWidth;
-extern Cvar *r_fullscreenHeight;
 extern Cvar *r_gpuDriver;
 extern Cvar *r_hardness;
 extern Cvar *r_lightingDistance;
