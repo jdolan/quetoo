@@ -36,6 +36,8 @@ typedef struct {
   int32_t caustics;
   int32_t addWeather;
   int32_t addAtmospheric;
+  int32_t reflections;
+  int32_t portals;
 } QualityPreset;
 
 static const QualityPreset qualityPresets[] = {
@@ -48,6 +50,8 @@ static const QualityPreset qualityPresets[] = {
     .caustics               = 0,
     .addWeather             = 0,
     .addAtmospheric         = 0,
+    .reflections            = 0,
+    .portals                = 0,
   },
   [1] = { // Medium
     .shadows                = 1,
@@ -58,6 +62,8 @@ static const QualityPreset qualityPresets[] = {
     .caustics               = 0,
     .addWeather             = 1,
     .addAtmospheric         = 1,
+    .reflections            = 0,
+    .portals                = 1,
   },
   [2] = { // High
     .shadows                = 1,
@@ -68,6 +74,8 @@ static const QualityPreset qualityPresets[] = {
     .caustics               = 1,
     .addWeather             = 1,
     .addAtmospheric         = 1,
+    .reflections            = 1,
+    .portals                = 1,
   },
   [3] = { // Highest
     .shadows                = 1,
@@ -78,6 +86,8 @@ static const QualityPreset qualityPresets[] = {
     .caustics               = 1,
     .addWeather             = 1,
     .addAtmospheric         = 1,
+    .reflections            = 1,
+    .portals                = 1,
   },
 };
 
@@ -86,13 +96,15 @@ static const QualityPreset qualityPresets[] = {
  */
 static void applyQualityPreset(const QualityPreset *p) {
   cgi.SetCvarInteger("r_shadows",           p->shadows);
-  cgi.SetCvarInteger("r_shadowTileSize",  p->shadowTileSize);
-  cgi.SetCvarInteger("r_lightingDistance", p->lightingDistance);
+  cgi.SetCvarInteger("r_shadowTileSize",    p->shadowTileSize);
+  cgi.SetCvarInteger("r_lightingDistance",  p->lightingDistance);
   cgi.SetCvarInteger("r_parallax",          p->parallax);
-  cgi.SetCvarInteger("r_parallaxShadow",   p->parallaxShadow);
+  cgi.SetCvarInteger("r_parallaxShadow",    p->parallaxShadow);
   cgi.SetCvarInteger("r_caustics",          p->caustics);
-  cgi.SetCvarInteger("cg_addWeather",      p->addWeather);
-  cgi.SetCvarInteger("cg_addAtmospheric",  p->addAtmospheric);
+  cgi.SetCvarInteger("cg_addWeather",       p->addWeather);
+  cgi.SetCvarInteger("cg_addAtmospheric",   p->addAtmospheric);
+  cgi.SetCvarInteger("r_reflections",       p->reflections);
+  cgi.SetCvarInteger("r_portals",           p->portals);
 }
 
 /**
@@ -108,6 +120,8 @@ static intptr_t detectQualityPreset(void) {
     .caustics         = cgi.GetCvarInteger("r_caustics"),
     .addWeather       = cgi.GetCvarInteger("cg_addWeather"),
     .addAtmospheric   = cgi.GetCvarInteger("cg_addAtmospheric"),
+    .reflections      = cgi.GetCvarInteger("r_reflections"),
+    .portals          = cgi.GetCvarInteger("r_portals"),
   };
 
   for (size_t i = 0; i < lengthof(qualityPresets); i++) {
