@@ -324,6 +324,18 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Voice chat"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+voice"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Show score"
                           }
                         },
