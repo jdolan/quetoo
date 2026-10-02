@@ -230,6 +230,34 @@
                           "class": "Input",
                           "label": {
                             "text": {
+                              "text": "Playback device"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "playbackDevice",
+                            "var": "s_playbackDevice",
+                            "expectsStringValue": true
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Capture device"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "captureDevice",
+                            "var": "s_captureDevice",
+                            "expectsStringValue": true
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
                               "text": "Master"
                             }
                           },

@@ -21,6 +21,7 @@
 
 #include "cg_local.h"
 
+#include "CvarSelect.h"
 #include "SettingsViewController.h"
 
 #define _Class _SettingsViewController
@@ -158,6 +159,37 @@ static void didSelectQuality(Select *select, Option *option) {
   }
 }
 
+/**
+ * @brief Adds the system default and each of the given audio devices to the Select.
+ * @remarks A configured device that is not connected is offered too, so that the Select shows the
+ * player's choice rather than nothing.
+ */
+static void addAudioDevices(CvarSelect *select, SDL_AudioDeviceID *devices, int32_t count) {
+
+  if (!select->var) {
+    SDL_free(devices);
+    return;
+  }
+
+  $((Select *) select, addOption, "System default", (ident) "");
+
+  bool found = !select->var->string[0];
+
+  for (int32_t i = 0; i < count; i++) {
+    const char *name = SDL_GetAudioDeviceName(devices[i]);
+    if (name) {
+      $((Select *) select, addOption, name, NULL);
+      found |= !Str_Compare(name, select->var->string);
+    }
+  }
+
+  SDL_free(devices);
+
+  if (!found) {
+    $((Select *) select, addOption, select->var->string, NULL);
+  }
+}
+
 #pragma mark - ViewController
 
 /**
@@ -174,6 +206,7 @@ static void loadView(ViewController *self) {
   release(view);
 
   Select *windowMode, *verticalSync, *anisotropy, *antialias, *quality;
+  CvarSelect *playbackDevice, *captureDevice;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
@@ -182,6 +215,8 @@ static void loadView(ViewController *self) {
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("antialias", &antialias),
     MakeOutlet("quality", &quality),
+    MakeOutlet("playbackDevice", &playbackDevice),
+    MakeOutlet("captureDevice", &captureDevice),
     MakeOutlet("apply", &apply)
   );
 
@@ -216,6 +251,13 @@ static void loadView(ViewController *self) {
   quality->delegate.didSelectOption = didSelectQuality;
 
   $(quality, selectOptionWithValue, (ident) detectQualityPreset());
+
+  int32_t count = 0;
+  SDL_AudioDeviceID *devices = SDL_GetAudioPlaybackDevices(&count);
+  addAudioDevices(playbackDevice, devices, count);
+
+  devices = SDL_GetAudioRecordingDevices(&count);
+  addAudioDevices(captureDevice, devices, count);
 
   apply->delegate.didClick = didClickApply;
   apply->delegate.self = self;

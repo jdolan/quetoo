@@ -208,7 +208,7 @@ static void S_CheckSharedDevice(const char *capture) {
   if (playback && capture && !Str_Compare(playback, capture)) {
     Com_Warn("Microphone and speakers are both \"%s\".\n"
              "If this is a Bluetooth headset, audio quality will drop while you transmit.\n"
-             "Run s_captureDeviceList and set s_captureDevice to a separate microphone to avoid it.\n",
+             "Choose a separate capture device in the Settings menu to avoid it.\n",
              capture);
 
     module.warnedSharedDevice = true;
