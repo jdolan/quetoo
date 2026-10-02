@@ -82,11 +82,8 @@
                           }
                         },
                         "control": {
-                          "class": "CvarSlider",
-                          "var": "cl_maxFps",
-                          "min": 0,
-                          "max": 250,
-                          "step": 5
+                          "class": "Select",
+                          "identifier": "maxFps"
                         }
                       }
                     ]

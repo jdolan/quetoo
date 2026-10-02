@@ -157,6 +157,45 @@ static intptr_t detectBloom(void) {
   }
 }
 
+#pragma mark - Frame limiter
+
+/**
+ * @brief The frame limiter options, and the values of cl_maxFps they set.
+ */
+static const struct {
+  const char *title;
+  int32_t value;
+} maxFpsOptions[] = {
+  { "Unlimited", -1 },
+  { "Refresh rate", 0 },
+  { "60", 60 },
+  { "120", 120 },
+  { "144", 144 },
+  { "165", 165 },
+  { "240", 240 },
+};
+
+/**
+ * @brief The frame limiter Select value for a cl_maxFps that matches no option.
+ */
+#define MAX_FPS_CUSTOM -2
+
+/**
+ * @return The matching cl_maxFps option value, or MAX_FPS_CUSTOM.
+ */
+static intptr_t detectMaxFps(void) {
+
+  const float maxFps = cgi.GetCvarValue("cl_maxFps");
+
+  for (size_t i = 0; i < lengthof(maxFpsOptions); i++) {
+    if (maxFps == maxFpsOptions[i].value) {
+      return maxFpsOptions[i].value;
+    }
+  }
+
+  return MAX_FPS_CUSTOM;
+}
+
 #pragma mark - Delegates
 
 /**
@@ -179,6 +218,17 @@ static void didSelectQuality(Select *select, Option *option) {
   ViewController *this = select->delegate.self;
   if (this) {
     $(this->view, updateBindings, NULL);
+  }
+}
+
+/**
+ * @brief SelectDelegate callback for the frame limiter.
+ */
+static void didSelectMaxFps(Select *select, Option *option) {
+
+  const int32_t value = (int32_t) (intptr_t) option->value;
+  if (value != MAX_FPS_CUSTOM) {
+    cgi.SetCvarInteger("cl_maxFps", value);
   }
 }
 
@@ -309,12 +359,13 @@ static void loadView(ViewController *self) {
   this->tabViewController->tabView->delegate.self = this;
   this->tabViewController->tabView->delegate.didSelectTab = didSelectTab;
 
-  Select *windowMode, *verticalSync, *anisotropy, *antialias, *shadowTileSize, *lightingDistance;
+  Select *windowMode, *maxFps, *verticalSync, *anisotropy, *antialias, *shadowTileSize, *lightingDistance;
   CvarSelect *playbackDevice, *captureDevice;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("windowMode", &windowMode),
+    MakeOutlet("maxFps", &maxFps),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("antialias", &antialias),
@@ -336,6 +387,16 @@ static void loadView(ViewController *self) {
   $(verticalSync, addOption, "Disabled", (ident) 0);
   $(verticalSync, addOption, "Enabled", (ident) 1);
   $(verticalSync, addOption, "Adaptive", (ident) -1);
+
+  $(maxFps, addOption, "Custom", (ident) MAX_FPS_CUSTOM);
+  for (size_t i = 0; i < lengthof(maxFpsOptions); i++) {
+    $(maxFps, addOption, maxFpsOptions[i].title, (ident) (intptr_t) maxFpsOptions[i].value);
+  }
+
+  maxFps->delegate.self = self;
+  maxFps->delegate.didSelectOption = didSelectMaxFps;
+
+  $(maxFps, selectOptionWithValue, (ident) detectMaxFps());
 
   $(anisotropy, addOption, "Disabled", (ident) 0);
   $(anisotropy, addOption, "2x", (ident) 2);
