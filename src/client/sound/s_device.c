@@ -35,6 +35,7 @@ static struct {
 
 Cvar *s_bufferFrames;
 Cvar *s_captureDevice;
+Cvar *s_playbackDevice;
 
 /**
  * @brief Prints the devices in the given list.
@@ -65,7 +66,7 @@ static void S_CaptureDeviceList_f(void) {
 }
 
 /**
- * @brief Prints the available speakers.
+ * @brief Prints the available speakers, for use with s_playbackDevice.
  */
 static void S_PlaybackDeviceList_f(void) {
   int32_t count = 0;
@@ -95,6 +96,50 @@ static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additio
 }
 
 /**
+ * @brief Resolves the named device within the given list, falling back to the system default.
+ */
+static SDL_AudioDeviceID S_FindDevice(SDL_AudioDeviceID *devices, int32_t count, const char *name,
+                                      SDL_AudioDeviceID fallback, const char *what) {
+
+  SDL_AudioDeviceID device = fallback;
+
+  if (name[0]) {
+    for (int32_t i = 0; i < count; i++) {
+      const char *deviceName = SDL_GetAudioDeviceName(devices[i]);
+      if (deviceName && !Str_Compare(deviceName, name)) {
+        device = devices[i];
+        break;
+      }
+    }
+
+    if (device == fallback) {
+      Com_Warn("%s device \"%s\" not found, using the default\n", what, name);
+    }
+  }
+
+  SDL_free(devices);
+  return device;
+}
+
+/**
+ * @brief Resolves s_playbackDevice to a playback device, falling back to the system default.
+ */
+static SDL_AudioDeviceID S_PlaybackDevice(void) {
+  int32_t count = 0;
+  SDL_AudioDeviceID *devices = SDL_GetAudioPlaybackDevices(&count);
+  return S_FindDevice(devices, count, s_playbackDevice->string, SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, "Playback");
+}
+
+/**
+ * @brief Resolves s_captureDevice to a recording device, falling back to the system default.
+ */
+static SDL_AudioDeviceID S_CaptureDevice(void) {
+  int32_t count = 0;
+  SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
+  return S_FindDevice(devices, count, s_captureDevice->string, SDL_AUDIO_DEVICE_DEFAULT_RECORDING, "Capture");
+}
+
+/**
  * @brief Opens the playback device that drives the loopback renderer.
  */
 bool S_InitPlayback(void) {
@@ -111,7 +156,7 @@ bool S_InitPlayback(void) {
     .freq = s_rate->integer,
   };
 
-  module.playback = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, S_RenderSamples, NULL);
+  module.playback = SDL_OpenAudioDeviceStream(S_PlaybackDevice(), &spec, S_RenderSamples, NULL);
 
   if (!module.playback) {
     Com_Warn("Failed to open playback device: %s\n", SDL_GetError());
@@ -168,35 +213,6 @@ static void S_CheckSharedDevice(const char *capture) {
 
     module.warnedSharedDevice = true;
   }
-}
-
-/**
- * @brief Resolves s_captureDevice to a recording device, falling back to the system default.
- */
-static SDL_AudioDeviceID S_CaptureDevice(void) {
-
-  if (!s_captureDevice->string[0]) {
-    return SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
-  }
-
-  int32_t count = 0;
-  SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
-  SDL_AudioDeviceID device = SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
-
-  for (int32_t i = 0; i < count; i++) {
-    const char *name = SDL_GetAudioDeviceName(devices[i]);
-    if (name && !Str_Compare(name, s_captureDevice->string)) {
-      device = devices[i];
-      break;
-    }
-  }
-
-  if (device == SDL_AUDIO_DEVICE_DEFAULT_RECORDING) {
-    Com_Warn("Capture device \"%s\" not found, using the default\n", s_captureDevice->string);
-  }
-
-  SDL_free(devices);
-  return device;
 }
 
 /**
@@ -305,6 +321,7 @@ void S_InitDevices(void) {
 
   s_bufferFrames = Cvar_Add("s_bufferFrames", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Playback buffer size in sample frames, or 0 to let SDL choose. Raise this if audio crackles.");
   s_captureDevice = Cvar_Add("s_captureDevice", "", CVAR_ARCHIVE, "The microphone to capture from, or empty for the system default.");
+  s_playbackDevice = Cvar_Add("s_playbackDevice", "", CVAR_ARCHIVE | CVAR_S_DEVICE, "The speakers to play to, or empty for the system default.");
 
   Cmd_Add("s_captureDeviceList", S_CaptureDeviceList_f, CMD_SOUND, "List the available microphones.");
   Cmd_Add("s_playbackDeviceList", S_PlaybackDeviceList_f, CMD_SOUND, "List the available speakers.");

@@ -23,6 +23,7 @@
 
 extern Cvar *s_bufferFrames;
 extern Cvar *s_captureDevice;
+extern Cvar *s_playbackDevice;
 
 #if defined(__S_LOCAL_H__)
 bool S_InitPlayback(void);
