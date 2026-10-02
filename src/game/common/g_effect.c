@@ -84,13 +84,17 @@ void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, boo
 }
 
 /**
+ * @brief Traces the specified projectile's box from the entity's origin to the projectile's spawn
+ * origin, against the specified contents.
+ */
+CollisionTrace G_ImmediateTrace(GameEntity *ent, GameEntity *projectile, int32_t contents) {
+  return gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds, ent, contents);
+}
+
+/**
  * @brief Returns true if the entity is facing a wall at too close proximity
  * for the specified projectile.
  */
 bool G_ImmediateWall(GameEntity *ent, GameEntity *projectile) {
-
-  const CollisionTrace tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
-                                 ent, CONTENTS_MASK_SOLID);
-
-  return tr.fraction < 1.0;
+  return G_ImmediateTrace(ent, projectile, CONTENTS_MASK_SOLID).fraction < 1.0;
 }

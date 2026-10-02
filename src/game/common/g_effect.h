@@ -25,6 +25,7 @@
 
 #if defined(__G_LOCAL_H__)
 
+CollisionTrace G_ImmediateTrace(GameEntity *ent, GameEntity *projectile, int32_t contents);
 bool G_ImmediateWall(GameEntity *ent, GameEntity *projectile);
 void G_Ripple(GameEntity *ent, const Vec3 pos1, const Vec3 pos2, float size, bool splash);
 

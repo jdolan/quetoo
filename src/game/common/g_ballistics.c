@@ -52,14 +52,13 @@ static bool G_TakesDamage(GameEntity *ent) {
  */
 static bool G_ImmediateImpact(GameEntity *ent, GameEntity *projectile) {
 
-  const CollisionTrace tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
-                                 ent, CONTENTS_MASK_SOLID);
+  const CollisionTrace tr = G_ImmediateTrace(ent, projectile, CONTENTS_MASK_CLIP_PROJECTILE);
 
   if (tr.fraction == 1.0) {
     return false;
   }
 
-  if (tr.ent != ent && G_TakesDamage(tr.ent)) {
+  if (tr.ent != ent && tr.ent != projectile->owner && G_TakesDamage(tr.ent)) {
     gi.LinkEntity(projectile);
     projectile->Touch(projectile, tr.ent, &tr);
     return true;
