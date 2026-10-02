@@ -350,8 +350,9 @@ static void loadView(ViewController *self) {
   this->tabViewController = $(alloc(TabViewController), init);
   assert(this->tabViewController);
 
-  addTab(this->tabViewController, "ui/settings/GeneralSettings.json");
+  addTab(this->tabViewController, "ui/settings/GraphicsSettings.json");
   addTab(this->tabViewController, "ui/settings/AdvancedSettings.json");
+  addTab(this->tabViewController, "ui/settings/SoundSettings.json");
 
   $(self, addChildViewController, (ViewController *) this->tabViewController);
   $((View *) ((Panel *) view)->contentView, addSubview, ((ViewController *) this->tabViewController)->view);

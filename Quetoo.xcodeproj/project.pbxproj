@@ -648,7 +648,8 @@
 		CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */; };
 		CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */; };
 		CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2F20310763004BC58E /* SettingsViewController.json */; };
-		B325DB5E0D42C6B8A789B6A3 /* GeneralSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = EC1BDE3495A956825F0F39E1 /* GeneralSettings.json */; };
+		B325DB5E0D42C6B8A789B6A3 /* GraphicsSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */; };
+		A821A43811D4AEAD39192267 /* SoundSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */; };
 		D092C988E74BA9DDCD9C8058 /* AdvancedSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */; };
 		CE7FCDD72596996600E49A2D /* cl_screen.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7FCDD52596996500E49A2D /* cl_screen.c */; };
 		CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7FCDD62596996500E49A2D /* cl_screen.h */; };
@@ -2030,7 +2031,8 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */,
-				B325DB5E0D42C6B8A789B6A3 /* GeneralSettings.json in CopyFiles */,
+				B325DB5E0D42C6B8A789B6A3 /* GraphicsSettings.json in CopyFiles */,
+				A821A43811D4AEAD39192267 /* SoundSettings.json in CopyFiles */,
 				D092C988E74BA9DDCD9C8058 /* AdvancedSettings.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2868,7 +2870,8 @@
 		CE7D2C2A2030F269004BC58E /* DialogViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
 		CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LoadingViewController.json; sourceTree = "<group>"; };
 		CE7D2C2F20310763004BC58E /* SettingsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SettingsViewController.json; sourceTree = "<group>"; };
-		EC1BDE3495A956825F0F39E1 /* GeneralSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GeneralSettings.json; sourceTree = "<group>"; };
+		EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GraphicsSettings.json; sourceTree = "<group>"; };
+		F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SoundSettings.json; sourceTree = "<group>"; };
 		B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = AdvancedSettings.json; sourceTree = "<group>"; };
 		CE7FCDD52596996500E49A2D /* cl_screen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cl_screen.c; sourceTree = "<group>"; };
 		CE7FCDD62596996500E49A2D /* cl_screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cl_screen.h; sourceTree = "<group>"; };
@@ -4812,7 +4815,8 @@
 				CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */,
 				CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */,
 				CE7D2C2F20310763004BC58E /* SettingsViewController.json */,
-				EC1BDE3495A956825F0F39E1 /* GeneralSettings.json */,
+				EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */,
+				F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */,
 				B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */,
 			);
 			path = settings;

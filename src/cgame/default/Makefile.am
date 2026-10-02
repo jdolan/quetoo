@@ -181,8 +181,9 @@ cguisettingsdir = \
 
 cguisettings_DATA = \
 	$(CGUI_DIR)/settings/AdvancedSettings.json \
-	$(CGUI_DIR)/settings/GeneralSettings.json \
-	$(CGUI_DIR)/settings/SettingsViewController.json
+	$(CGUI_DIR)/settings/GraphicsSettings.json \
+	$(CGUI_DIR)/settings/SettingsViewController.json \
+	$(CGUI_DIR)/settings/SoundSettings.json
 
 cguiteamsdir = \
 	@PKGLIBDIR@/default/ui/teams

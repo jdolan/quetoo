@@ -52,7 +52,7 @@ struct SettingsViewController {
   SettingsViewControllerInterface *interface[0];
 
   /**
-   * @brief The TabViewController holding the General and Advanced tabs.
+   * @brief The TabViewController holding the Graphics, Advanced and Sound tabs.
    */
   TabViewController *tabViewController;
 
