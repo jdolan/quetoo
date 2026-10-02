@@ -271,6 +271,27 @@ static void didSelectTab(TabView *tabView, TabViewItem *tab) {
 }
 
 /**
+ * @brief TextViewDelegate callback for binding keys.
+ */
+static void didBindKey(TextView *textView) {
+
+  const ViewController *this = textView->delegate.self;
+
+  $(this->view, updateBindings, NULL);
+}
+
+/**
+ * @brief ViewEnumerator for setting the TextViewDelegate on BindTextViews.
+ */
+static void setBindDelegate(View *view, ident data) {
+
+  ((TextView *) view)->delegate = (TextViewDelegate) {
+    .self = data,
+    .didEndEditing = didBindKey
+  };
+}
+
+/**
  * @brief Adds a tab whose view is inflated from the given layout.
  */
 static void addTab(TabViewController *tabViewController, const char *name) {
@@ -380,6 +401,8 @@ static void loadView(ViewController *self) {
   );
 
   $(self->view, resolve, outlets);
+
+  $(self->view, enumerateSelection, "BindTextView", setBindDelegate, self);
 
   $(windowMode, addOption, "Window", (ident) 0);
   $(windowMode, addOption, "Fullscreen", (ident) 1);

@@ -147,6 +147,20 @@
                           "min": 0,
                           "max": 1
                         }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Voice"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "var": "s_voiceVolume",
+                          "min": 0,
+                          "max": 1
+                        }
                       }
                     ]
                   }
@@ -173,6 +187,30 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Voice chat"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "s_voice"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Push to talk"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+voice"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Capture device"
                           }
                         },
@@ -181,6 +219,33 @@
                           "identifier": "captureDevice",
                           "var": "s_captureDevice",
                           "expectsStringValue": true
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Microphone gain"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "var": "s_captureGain",
+                          "min": 0,
+                          "max": 4,
+                          "step": 0.1
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Auto-level"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "s_captureNormalize"
                         }
                       }
                     ]
