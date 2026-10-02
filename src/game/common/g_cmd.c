@@ -823,6 +823,6 @@ void G_ClientCommand(GameClient *cl) {
   } else if (Str_Compare(cmd, "editorUse") == 0) {
     G_EditorUse_f(cl);
   } else { // anything that doesn't match a command will be a chat
-    G_Say_f(cl);
+    gi.ClientPrint(cl, PRINT_HIGH, "Unknown command: %s\n", cmd);
   }
 }
