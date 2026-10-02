@@ -50,6 +50,21 @@ struct SettingsViewController {
    * @private
    */
   SettingsViewControllerInterface *interface[0];
+
+  /**
+   * @brief The TabViewController holding the General and Advanced tabs.
+   */
+  TabViewController *tabViewController;
+
+  /**
+   * @brief The quality preset Select.
+   */
+  Select *quality;
+
+  /**
+   * @brief The bloom Select.
+   */
+  Select *bloom;
 };
 
 /**

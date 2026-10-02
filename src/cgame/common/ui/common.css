@@ -104,6 +104,10 @@ TextView {
   background-color: #122e3b;
 }
 
+.settingsTab {
+  autoresizing-mask: contain | width;
+}
+
 .columns {
   autoresizing-mask: contain;
   axis: horizontal;

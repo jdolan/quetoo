@@ -1,0 +1,236 @@
+{
+  "identifier": "Advanced",
+  "classNames": [
+    "settingsTab"
+  ],
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Lighting"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shadows"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_shadows"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shadow quality"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "shadowTileSize",
+                          "var": "r_shadowTileSize"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Lighting distance"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "lightingDistance",
+                          "var": "r_lightingDistance"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Ambient occlusion"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "var": "r_ambientOcclusion",
+                          "min": 0.0,
+                          "max": 1.0
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Surfaces"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Parallax"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_parallax"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Parallax self-shadows"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_parallaxShadow"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Caustics"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_caustics"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Reflections"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_reflections"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Portals"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_portals"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Effects"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Bloom"
+                          }
+                        },
+                        "control": {
+                          "class": "Select",
+                          "identifier": "bloom"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weather"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_addWeather"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Atmospheric"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_addAtmospheric"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

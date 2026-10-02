@@ -134,6 +134,29 @@ static intptr_t detectQualityPreset(void) {
   return -1;
 }
 
+#pragma mark - Bloom
+
+/**
+ * @return The bloom iterations, 0 if bloom is disabled, or -1 if the iterations match no option.
+ */
+static intptr_t detectBloom(void) {
+
+  if (cgi.GetCvarValue("r_bloom") <= 0.f) {
+    return 0;
+  }
+
+  switch (cgi.GetCvarInteger("r_bloomIterations")) {
+    case 2:
+      return 2;
+    case 4:
+      return 4;
+    case 8:
+      return 8;
+    default:
+      return -1;
+  }
+}
+
 #pragma mark - Delegates
 
 /**
@@ -157,6 +180,59 @@ static void didSelectQuality(Select *select, Option *option) {
   if (this) {
     $(this->view, updateBindings, NULL);
   }
+}
+
+/**
+ * @brief SelectDelegate callback for bloom.
+ * @details The Select chooses the blur iterations. A player who tuned the bloom intensity keeps it,
+ * and only enabling bloom from Off restores the default intensity.
+ */
+static void didSelectBloom(Select *select, Option *option) {
+
+  const int32_t iterations = (int32_t) (intptr_t) option->value;
+  if (iterations < 0) {
+    return;
+  }
+
+  if (iterations == 0) {
+    cgi.SetCvarInteger("r_bloom", 0);
+    return;
+  }
+
+  if (cgi.GetCvarValue("r_bloom") <= 0.f) {
+    cgi.SetCvarString("r_bloom", cgi.GetCvar("r_bloom")->defaultString);
+  }
+
+  cgi.SetCvarInteger("r_bloomIterations", iterations);
+}
+
+/**
+ * @brief TabViewDelegate callback, so that each tab shows what the other changed.
+ * @details A change on the Advanced tab can turn a preset into Custom.
+ */
+static void didSelectTab(TabView *tabView, TabViewItem *tab) {
+
+  SettingsViewController *this = tabView->delegate.self;
+
+  $(this->quality, selectOptionWithValue, (ident) detectQualityPreset());
+  $(this->bloom, selectOptionWithValue, (ident) detectBloom());
+
+  $(((ViewController *) this)->view, updateBindings, NULL);
+}
+
+/**
+ * @brief Adds a tab whose view is inflated from the given layout.
+ */
+static void addTab(TabViewController *tabViewController, const char *name) {
+
+  ViewController *viewController = $(alloc(ViewController), init);
+  assert(viewController);
+
+  $(viewController, loadViewIfNeeded);
+  $(viewController->view, awakeWithResourceName, name);
+
+  $((ViewController *) tabViewController, addChildViewController, viewController);
+  release(viewController);
 }
 
 /**
@@ -190,6 +266,20 @@ static void addAudioDevices(CvarSelect *select, SDL_AudioDeviceID *devices, int3
   }
 }
 
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+  SettingsViewController *this = (SettingsViewController *) self;
+
+  release(this->tabViewController);
+
+  super(Object, self, dealloc);
+}
+
 #pragma mark - ViewController
 
 /**
@@ -199,13 +289,27 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
+  SettingsViewController *this = (SettingsViewController *) self;
+
   View *view = $$(View, viewWithResourceName, "ui/settings/SettingsViewController.json", NULL);
   assert(view);
 
   $(self, setView, view);
   release(view);
 
-  Select *windowMode, *verticalSync, *anisotropy, *antialias, *quality;
+  this->tabViewController = $(alloc(TabViewController), init);
+  assert(this->tabViewController);
+
+  addTab(this->tabViewController, "ui/settings/GeneralSettings.json");
+  addTab(this->tabViewController, "ui/settings/AdvancedSettings.json");
+
+  $(self, addChildViewController, (ViewController *) this->tabViewController);
+  $((View *) ((Panel *) view)->contentView, addSubview, ((ViewController *) this->tabViewController)->view);
+
+  this->tabViewController->tabView->delegate.self = this;
+  this->tabViewController->tabView->delegate.didSelectTab = didSelectTab;
+
+  Select *windowMode, *verticalSync, *anisotropy, *antialias, *shadowTileSize, *lightingDistance;
   CvarSelect *playbackDevice, *captureDevice;
   Button *apply;
 
@@ -214,7 +318,10 @@ static void loadView(ViewController *self) {
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("antialias", &antialias),
-    MakeOutlet("quality", &quality),
+    MakeOutlet("quality", &this->quality),
+    MakeOutlet("shadowTileSize", &shadowTileSize),
+    MakeOutlet("lightingDistance", &lightingDistance),
+    MakeOutlet("bloom", &this->bloom),
     MakeOutlet("playbackDevice", &playbackDevice),
     MakeOutlet("captureDevice", &captureDevice),
     MakeOutlet("apply", &apply)
@@ -241,16 +348,36 @@ static void loadView(ViewController *self) {
   $(antialias, addOption, "4x", (ident) 4);
   $(antialias, addOption, "8x", (ident) 8);
 
-  $(quality, addOption, "Custom", (ident) -1);
-  $(quality, addOption, "Low", (ident) 0);
-  $(quality, addOption, "Medium", (ident) 1);
-  $(quality, addOption, "High", (ident) 2);
-  $(quality, addOption, "Highest", (ident) 3);
+  $(this->quality, addOption, "Custom", (ident) -1);
+  $(this->quality, addOption, "Low", (ident) 0);
+  $(this->quality, addOption, "Medium", (ident) 1);
+  $(this->quality, addOption, "High", (ident) 2);
+  $(this->quality, addOption, "Highest", (ident) 3);
 
-  quality->delegate.self = self;
-  quality->delegate.didSelectOption = didSelectQuality;
+  this->quality->delegate.self = self;
+  this->quality->delegate.didSelectOption = didSelectQuality;
 
-  $(quality, selectOptionWithValue, (ident) detectQualityPreset());
+  $(this->quality, selectOptionWithValue, (ident) detectQualityPreset());
+
+  $(shadowTileSize, addOption, "Low", (ident) 128);
+  $(shadowTileSize, addOption, "Medium", (ident) 256);
+  $(shadowTileSize, addOption, "High", (ident) 512);
+
+  $(lightingDistance, addOption, "Low", (ident) 1024);
+  $(lightingDistance, addOption, "Medium", (ident) 2048);
+  $(lightingDistance, addOption, "High", (ident) 4096);
+  $(lightingDistance, addOption, "Highest", (ident) 8192);
+
+  $(this->bloom, addOption, "Custom", (ident) -1);
+  $(this->bloom, addOption, "Off", (ident) 0);
+  $(this->bloom, addOption, "Low", (ident) 2);
+  $(this->bloom, addOption, "Medium", (ident) 4);
+  $(this->bloom, addOption, "High", (ident) 8);
+
+  this->bloom->delegate.self = self;
+  this->bloom->delegate.didSelectOption = didSelectBloom;
+
+  $(this->bloom, selectOptionWithValue, (ident) detectBloom());
 
   int32_t count = 0;
   SDL_AudioDeviceID *devices = SDL_GetAudioPlaybackDevices(&count);
@@ -269,6 +396,9 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 

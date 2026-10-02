@@ -180,6 +180,8 @@ cguisettingsdir = \
 	@PKGLIBDIR@/default/ui/settings
 
 cguisettings_DATA = \
+	$(CGUI_DIR)/settings/AdvancedSettings.json \
+	$(CGUI_DIR)/settings/GeneralSettings.json \
 	$(CGUI_DIR)/settings/SettingsViewController.json
 
 cguiteamsdir = \
