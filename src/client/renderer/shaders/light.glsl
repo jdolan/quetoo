@@ -373,16 +373,18 @@ void fragmentLight(in CommonVertex v, inout CommonFragment f, in Light light) {
   vec3 color = lightColor(light) * atten;
 
   float shadow = sampleShadowAtlas(light, v, f, atten);
+  if (shadow <= 0.0) {
+    return;
+  }
 
 #if defined(PARALLAX_SELF_SHADOW)
   if (!isStage && parallaxShadow != 0) {
     shadow *= parallaxSelfShadow(dir, v, f);
+    if (shadow <= 0.0) {
+      return;
+    }
   }
 #endif
-
-  if (shadow <= 0.0) {
-    return;
-  }
 
   f.diffuse += color * lambert * shadow;
   f.specular += blinnPhong(color * shadow, dir, f);
