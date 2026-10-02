@@ -125,6 +125,11 @@ void G_ClientProjectile(const GameClient *cl, Vec3 *forward, Vec3 *right, Vec3 *
     *org = Vec3_Fmaf(*org, -12.f, entUp);
   }
 
+  const CollisionTrace reach = gi.Trace(start, *org, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  if (reach.fraction < 1.f || Vec3_Dot(Vec3_Subtract(tr.end, *org), cl->forward) <= 0.f) {
+    *org = start;
+  }
+
   const CollisionTrace check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
   if (Vec3_Distance(tr.end, check.end) > 16.f) {
     *org = start;
