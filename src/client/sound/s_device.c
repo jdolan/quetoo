@@ -62,7 +62,8 @@ static void S_DeviceList(SDL_AudioDeviceID *devices, int32_t count, const char *
  */
 static void S_CaptureDeviceList_f(void) {
   int32_t count = 0;
-  S_DeviceList(SDL_GetAudioRecordingDevices(&count), count, "Capture");
+  SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
+  S_DeviceList(devices, count, "Capture");
 }
 
 /**
@@ -70,7 +71,8 @@ static void S_CaptureDeviceList_f(void) {
  */
 static void S_PlaybackDeviceList_f(void) {
   int32_t count = 0;
-  S_DeviceList(SDL_GetAudioPlaybackDevices(&count), count, "Playback");
+  SDL_AudioDeviceID *devices = SDL_GetAudioPlaybackDevices(&count);
+  S_DeviceList(devices, count, "Playback");
 }
 
 /**
