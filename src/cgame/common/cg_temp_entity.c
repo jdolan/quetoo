@@ -541,7 +541,7 @@ static void Cg_NailEffect(const Vec3 org, const Vec3 dir) {
  */
 static void Cg_BloodEffect(const Vec3 org, const Vec3 dir, int32_t count) {
 
-  for (int32_t i = 0; i < count; i += 3) {
+  for (int32_t i = 0; i < count; i++) {
 
     if (!Cg_AddSprite(&(CGameSprite) {
         .animation = cgameMedia.sprites.blood01,
@@ -556,20 +556,16 @@ static void Cg_BloodEffect(const Vec3 org, const Vec3 dir, int32_t count) {
       })) {
       break;
     }
-
-    if (i % 6) {
-      continue;
-    }
-
-    Cg_AddDecal(&(RenderDecal) {
-      .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
-      .origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f)),
-      .radius = RandomRangef(32.f, 64.f),
-      .color = Color3f(.6f, 0.f, 0.f),
-      .lifetime = 6000 + Randomf() * 6000,
-      .rotation = RandomRadian()
-    });
   }
+
+  Cg_AddDecal(&(RenderDecal) {
+    .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
+    .origin = org,
+    .radius = (16.f + count * 6.f) * RandomRangef(.85f, 1.15f),
+    .color = Color3f(.6f, 0.f, 0.f),
+    .lifetime = 6000 + Randomf() * 6000,
+    .rotation = RandomRadian()
+  });
 }
 
 #define GIB_STREAM_DIST 220.0
@@ -1492,7 +1488,7 @@ void Cg_ParseTempEntity(void) {
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
       i = cgi.ReadByte();
-      Cg_SparksEffect(pos, dir, 12 * i);
+      Cg_SparksEffect(pos, dir, i);
       break;
 
     case TE_HYPERBLASTER: // hyperblaster hitting wall

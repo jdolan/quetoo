@@ -301,29 +301,46 @@ void fragmentCaustics(in CommonVertex v, inout CommonFragment f) {
   f.diffuse += max(vec3(0.0), light * f.caustics * noise);
 }
 
+#if defined(PARALLAX_SELF_SHADOW)
+
+#define PARALLAX_SHADOW_SAMPLES_PER_TEXEL 2.0
+#define PARALLAX_SHADOW_MAX_SAMPLES 16.0
+#define PARALLAX_SHADOW_STRENGTH 32.0
+
 /**
  * @brief Raymarches parallax self-shadowing along the light direction.
  */
-#if defined(PARALLAX_SELF_SHADOW)
 float parallaxSelfShadow(in vec3 lightDir, in CommonVertex v, in CommonFragment f) {
 
-  int maxSteps = int(mix(12.0, 2.0, min(f.texLod * 0.5, 1.0)));
-
-  float stepScale = mix(1.0, 4.0, min(f.texLod * 0.5, 1.0));
-
-  vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
   vec3 dir = normalize(vec3(dot(lightDir, v.tangent), dot(lightDir, v.bitangent), dot(lightDir, v.normal)));
-  vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * stepScale;
-  vec3 texcoord = vec3(f.parallax, sampleMaterialHeightmap(f.parallax, f.texLod));
 
-  float maxHeight = texcoord.z;
-  for (int i = 0; i < maxSteps && texcoord.z < 1.0 && maxHeight < 1.0; i++) {
-    texcoord += delta;
-    maxHeight = max(maxHeight, sampleMaterialHeightmap(texcoord.xy, f.texLod));
+  vec2 offset = (dir.xy / max(dir.z, 0.1)) * material.parallax * material.parallax;
+
+  float sweep = length(offset) / exp2(f.texLod);
+  float fade = linearstep(PARALLAX_FADE_MIN_PIXELS, PARALLAX_FADE_MAX_PIXELS, sweep);
+  if (fade <= 0.0) {
+    return 1.0;
   }
 
-  float shadow = 1.0 - (maxHeight - texcoord.z) * material.shadow;
-  return clamp(shadow, 0.0, 1.0);
+  float height = sampleMaterialHeightmap(f.parallax, f.texLod);
+  float rise = 1.0 - height;
+
+  offset *= fade * rise;
+  sweep *= fade * rise;
+
+  float numSamples = clamp(ceil(sweep * PARALLAX_SHADOW_SAMPLES_PER_TEXEL), 1.0, PARALLAX_SHADOW_MAX_SAMPLES);
+
+  vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
+  vec3 delta = vec3(offset * texel, rise) / numSamples;
+  vec3 texcoord = vec3(f.parallax, height);
+
+  float occlusion = 0.0;
+  for (int i = 0; i < int(numSamples) && occlusion * PARALLAX_SHADOW_STRENGTH < 1.0; i++) {
+    texcoord += delta;
+    occlusion = max(occlusion, sampleMaterialHeightmap(texcoord.xy, f.texLod) - texcoord.z);
+  }
+
+  return clamp(1.0 - occlusion * PARALLAX_SHADOW_STRENGTH, 0.0, 1.0);
 }
 #endif
 
@@ -356,16 +373,18 @@ void fragmentLight(in CommonVertex v, inout CommonFragment f, in Light light) {
   vec3 color = lightColor(light) * atten;
 
   float shadow = sampleShadowAtlas(light, v, f, atten);
-
-#if defined(PARALLAX_SELF_SHADOW)
-  if (!isStage && material.shadow > 0.0 && f.texLod < 2.0) {
-    shadow *= parallaxSelfShadow(dir, v, f);
-  }
-#endif
-
   if (shadow <= 0.0) {
     return;
   }
+
+#if defined(PARALLAX_SELF_SHADOW)
+  if (!isStage && parallaxShadow != 0) {
+    shadow *= parallaxSelfShadow(dir, v, f);
+    if (shadow <= 0.0) {
+      return;
+    }
+  }
+#endif
 
   f.diffuse += color * lambert * shadow;
   f.specular += blinnPhong(color * shadow, dir, f);

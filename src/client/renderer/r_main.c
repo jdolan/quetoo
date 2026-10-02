@@ -27,6 +27,7 @@ RenderDiagnostics *renderDiagnostics;
 
 Cvar *r_alphaTest;
 Cvar *r_cull;
+Cvar *r_debugGroups;
 Cvar *r_depthPass;
 Cvar *r_drawBspBlocks;
 Cvar *r_drawOcclusionQueries;
@@ -183,6 +184,7 @@ void R_UpdateUniforms(const RenderView *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
     out->wireframe = r_drawWireframe->integer;
+    out->parallaxShadow = r_parallaxShadow->integer;
 
     // the player model preview must land all of its lookups on the one voxel of the fallback
     // buffers: clamping to a zero-sized grid would not, since clamp() with a low bound above
@@ -333,6 +335,26 @@ void R_InitView(RenderView *view) {
 }
 
 /**
+ * @brief Opens a labelled GPU debug group on @p commands, if `r_debugGroups` is set.
+ */
+void R_PushDebugGroup(const CommandBuffer *commands, const char *name) {
+
+  if (r_debugGroups->integer) {
+    $(commands, pushDebugGroup, name);
+  }
+}
+
+/**
+ * @brief Closes the GPU debug group opened by `R_PushDebugGroup`.
+ */
+void R_PopDebugGroup(const CommandBuffer *commands) {
+
+  if (r_debugGroups->integer) {
+    $(commands, popDebugGroup);
+  }
+}
+
+/**
  * @brief Renders the depth pre-pass and occlusion queries for the view.
  */
 void R_DrawViewDepth(RenderView *view) {
@@ -345,9 +367,13 @@ void R_DrawViewDepth(RenderView *view) {
 
   CommandBuffer *commands = $(renderContext.device, acquireCommandBuffer);
 
+  R_PushDebugGroup(commands, "Depth pass");
   R_DrawDepthPass(view, commands);
+  R_PopDebugGroup(commands);
 
+  R_PushDebugGroup(commands, "Occlusion queries");
   R_DrawOcclusionQueries(view, commands);
+  R_PopDebugGroup(commands);
 
   if (renderDepthPipeline.fence) {
     $(commands, submit);
@@ -372,6 +398,7 @@ void R_DrawMainView(RenderView *view) {
     return;
   }
 
+  R_PushDebugGroup(commands, "Scene upload");
   {
     CopyPass *pass = $(commands, beginCopyPass);
 
@@ -387,8 +414,11 @@ void R_DrawMainView(RenderView *view) {
 
     pass = release(pass);
   }
+  R_PopDebugGroup(commands);
 
+  R_PushDebugGroup(commands, "Shadows");
   R_DrawShadows(view);
+  R_PopDebugGroup(commands);
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -400,17 +430,21 @@ void R_DrawMainView(RenderView *view) {
   const SDL_GPULoadOp depthLoadop = r_depthPass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
   const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depthLoadop, SDL_GPU_STOREOP_STORE);
 
+  R_PushDebugGroup(commands, "Main view");
   {
     RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
     R_DrawEntities(view, pass);
 
+    R_PushDebugGroup(commands, "Sprites");
     R_DrawSprites(view, pass);
+    R_PopDebugGroup(commands);
 
     R_Draw3D(view, pass);
 
     pass = release(pass);
   }
+  R_PopDebugGroup(commands);
 
   $(framebuffer, swap);
 }
@@ -478,6 +512,7 @@ static void R_InitLocal(void) {
 
   r_alphaTest = Cvar_Add("r_alphaTest", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool).");
+  r_debugGroups = Cvar_Add("r_debugGroups", "0", CVAR_DEVELOPER, "Labels GPU passes for frame capture and Metal System Trace (developer tool).");
   r_drawBspBlocks = Cvar_Add("r_drawBspBlocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
   r_drawOcclusionQueries = Cvar_Add("r_drawOcclusionQueries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
   r_drawBspNormals = Cvar_Add("r_drawBspNormals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
@@ -510,7 +545,7 @@ static void R_InitLocal(void) {
   r_modulateMesh = Cvar_Add("r_modulateMesh", "1", CVAR_ARCHIVE, "Controls the brightness of players and items, to increase their visibility.");
   r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls the color saturation of the rendered scene. 0 = grayscale, 1 = normal, 2 = vivid.");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
-  r_parallaxShadow = Cvar_Add("r_parallaxShadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
+  r_parallaxShadow = Cvar_Add("r_parallaxShadow", "1", CVAR_ARCHIVE, "Enables parallax self-shadows.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshotFormat = Cvar_Add("r_screenshotFormat", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");

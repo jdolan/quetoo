@@ -254,7 +254,9 @@ static void G_SpawnDamage(GameTempEntity type, const Vec3 pos, const Vec3 normal
   gi.WritePosition(pos);
   gi.WriteDir(normal);
   
-  if (type != TE_BULLET) {
+  if (type == TE_BLOOD) {
+    gi.WriteByte(Clampf(damage / 10, 2, 8));
+  } else if (type != TE_BULLET) {
     gi.WriteByte(Clampf(damage, 1, 255));
   }
   
@@ -295,7 +297,7 @@ static int32_t G_CheckArmor(GameEntity *ent, const Vec3 pos, const Vec3 normal, 
 
   ent->client->inventory[armor->def.tag] -= saved;
 
-  G_SpawnDamage(TE_BLOOD, pos, normal, saved);
+  G_SpawnDamage(TE_SPARKS, pos, normal, saved);
 
   return saved;
 }

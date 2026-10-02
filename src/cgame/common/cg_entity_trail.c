@@ -977,26 +977,22 @@ static void Cg_GibTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
 
   if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
     Cg_BubbleTrail(ent, start, end, 4.f);
+    Cg_TrailCount(end, 16.f, ent, TRAIL_PRIMARY, NULL, NULL);
+    Cg_TrailCount(end, 48.f, ent, TRAIL_SECONDARY, NULL, NULL);
     return;
   }
 
   Vec3 origin, dir;
-  const int32_t count = Cg_TrailCount(end, 8.f, ent, TRAIL_PRIMARY, &origin, &dir);
+  const int32_t numSprites = Cg_TrailCount(end, 16.f, ent, TRAIL_PRIMARY, &origin, &dir);
 
-  if (!count) {
-    return;
-  }
-
-  float step = 1.f / count;
-
-  for (int32_t i = 0; i <= count; i++) {
+  for (int32_t i = 1; i <= numSprites; i++) {
 
     if (!Cg_AddSprite(&(CGameSprite) {
         .animation = cgameMedia.sprites.blood01,
         .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.blood01, 30) + Randomf() * 500,
         .size = RandomRangef(40.f, 64.f),
         .rotation = RandomRadian(),
-        .origin = Vec3_Mix(end, origin, step * i),
+        .origin = Vec3_Fmaf(origin, i * 16.f, dir),
         .velocity = Vec3_Scale(dir, 20.0),
         .acceleration.z = -SPRITE_GRAVITY / 2.0,
         .color = MakeVec3(1.f, 1.f, .1f),
@@ -1004,10 +1000,15 @@ static void Cg_GibTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
       })) {
       break;
     }
+  }
+
+  const int32_t numDecals = Cg_TrailCount(end, 48.f, ent, TRAIL_SECONDARY, &origin, &dir);
+
+  for (int32_t i = 1; i <= numDecals; i++) {
 
     Cg_AddDecal(&(RenderDecal) {
       .image = cgameMedia.decals.blood[Randomi() % lengthof(cgameMedia.decals.blood)],
-      .origin = Vec3_Mix(end, origin, step * i),
+      .origin = Vec3_Fmaf(origin, i * 48.f, dir),
       .radius = RandomRangef(8.f, 32.f),
       .color = COLOR_RGB_RED,
       .lifetime = 8000 + Randomf() * 4000,

@@ -79,7 +79,6 @@ typedef struct {
   float hardness;
   float specularity;
   float parallax;
-  float shadow;
   int32_t flags;
   float pulse;
   float drift;
@@ -90,7 +89,7 @@ typedef struct {
   float lerp;
   float shell;
   float envmap;
-  float padding0, padding1, padding2;
+  float padding0, padding1, padding2, padding3;
 } RenderMaterialUniforms;
 
 void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderMaterialUniforms *out);

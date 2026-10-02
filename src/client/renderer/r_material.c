@@ -318,11 +318,6 @@ static RenderMaterial *R_ResolveMaterial(Material *def) {
 
   if (layered) {
 
-    if (def->context == ASSET_CONTEXT_MODELS
-        || def->context == ASSET_CONTEXT_PLAYERS) {
-      def->shadow = 0.f;
-    }
-
     SDL_Surface *normalmap = NULL;
     if (*def->normalmap.path) {
       normalmap = surfaces[1].surface;
@@ -466,7 +461,6 @@ void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderM
   out->hardness = def->hardness * r_hardness->value;
   out->specularity = def->specularity * r_specularity->value;
   out->parallax = def->parallax * r_parallax->value;
-  out->shadow = def->shadow * r_parallaxShadow->value;
 }
 
 /**

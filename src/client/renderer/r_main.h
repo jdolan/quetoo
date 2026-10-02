@@ -242,9 +242,9 @@ typedef struct {
     int wireframe;
 
     /**
-     * @brief Pads the block to a multiple of vec4, as std140 requires.
+     * @brief Non-zero when parallax self-shadows are enabled.
      */
-    int padding;
+    int parallaxShadow;
   } block;
 
 } RenderUniforms;
@@ -255,6 +255,7 @@ typedef struct {
 extern RenderUniforms renderUniforms;
 extern Cvar *r_alphaTest;
 extern Cvar *r_cull;
+extern Cvar *r_debugGroups;
 extern Cvar *r_depthPass;
 extern Cvar *r_drawBspBlocks;
 extern Cvar *r_drawOcclusionQueries;
@@ -267,5 +268,8 @@ extern Cvar *r_drawWireframe;
 extern Cvar *r_occlude;
 extern Cvar *r_portals;
 extern Cvar *r_reflections;
+
+void R_PushDebugGroup(const CommandBuffer *commands, const char *name);
+void R_PopDebugGroup(const CommandBuffer *commands);
 
 #endif

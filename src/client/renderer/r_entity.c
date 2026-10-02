@@ -113,11 +113,21 @@ void R_UpdateEntities(RenderView *view, CopyPass *pass) {
  */
 void R_DrawEntities(const RenderView *view, RenderPass *pass) {
 
+  const CommandBuffer *commands = renderContext.device->commands;
+
+  R_PushDebugGroup(commands, "Opaque BSP");
   R_DrawOpaqueBspEntities(view, pass);
+  R_PopDebugGroup(commands);
 
+  R_PushDebugGroup(commands, "Meshes");
   R_DrawMeshEntities(view, pass);
+  R_PopDebugGroup(commands);
 
+  R_PushDebugGroup(commands, "Decals");
   R_DrawDecals(view, pass);
+  R_PopDebugGroup(commands);
 
+  R_PushDebugGroup(commands, "Blend BSP");
   R_DrawBlendBspEntities(view, pass);
+  R_PopDebugGroup(commands);
 }

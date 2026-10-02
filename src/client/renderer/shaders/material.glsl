@@ -213,11 +213,6 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
   float parallax;
 
   /**
-   * @brief The material self-shadowing.
-   */
-  float shadow;
-
-  /**
    * @brief The stage flags.
    */
   int flags;
@@ -271,7 +266,7 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
    * @brief Pads the block to a multiple of 16 bytes, so that the tint colors that follow it in
    * the mesh program align as they do in RenderMaterialUniforms.
    */
-  float padding0, padding1, padding2;
+  float padding0, padding1, padding2, padding3;
 
 #if defined(MATERIAL_TINTS)
   /**

@@ -59,7 +59,6 @@ struct materialBlock
     float hardness;
     float specularity;
     float parallax;
-    float shadow;
     int flags;
     float pulse;
     float drift;
@@ -73,6 +72,7 @@ struct materialBlock
     float padding0;
     float padding1;
     float padding2;
+    float padding3;
 };
 
 struct Voxels
@@ -103,7 +103,7 @@ struct uniformsBlock
     int editor;
     int developer;
     int wireframe;
-    int padding;
+    int parallaxShadow;
 };
 
 constant spvUnsafeArray<float, 8> _275 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
@@ -149,25 +149,25 @@ float2 transformStageUv(thread float2& uv, constant materialBlock& material, con
     if ((material.flags & 96) != 0)
     {
         float2 center_1 = uv - float2(0.5);
-        float _198;
+        float _197;
         if ((material.flags & 32) == 32)
         {
-            _198 = material.scale.x;
+            _197 = material.scale.x;
         }
         else
         {
-            _198 = 1.0;
+            _197 = 1.0;
         }
-        float _211;
+        float _210;
         if ((material.flags & 64) == 64)
         {
-            _211 = material.scale.y;
+            _210 = material.scale.y;
         }
         else
         {
-            _211 = 1.0;
+            _210 = 1.0;
         }
-        center_1 /= float2(_198, _211);
+        center_1 /= float2(_197, _210);
         uv = center_1 + float2(0.5);
     }
     return uv;

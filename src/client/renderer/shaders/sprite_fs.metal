@@ -33,7 +33,7 @@ struct uniformsBlock
     int editor;
     int developer;
     int wireframe;
-    int padding;
+    int parallaxShadow;
 };
 
 struct main0_out

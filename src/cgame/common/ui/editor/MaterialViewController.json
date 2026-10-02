@@ -66,42 +66,8 @@
                     "identifier": "roughness",
                     "min": 0,
                     "max": 8,
-                    "step": 0.01,
-                    "labelFormat": "%.2f",
-                    "snapToStep": true
-                  }
-                },
-                {
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Parallax"
-                    }
-                  },
-                  "control": {
-                    "class": "Slider",
-                    "identifier": "parallax",
-                    "min": 0,
-                    "max": 8,
-                    "step": 0.01,
-                    "labelFormat": "%.2f",
-                    "snapToStep": true
-                  }
-                },
-                {
-                  "class": "Input",
-                  "label": {
-                    "text": {
-                      "text": "Shadow"
-                    }
-                  },
-                  "control": {
-                    "class": "Slider",
-                    "identifier": "shadow",
-                    "min": 0,
-                    "max": 8,
-                    "step": 0.01,
-                    "labelFormat": "%.2f",
+                    "step": 0.1,
+                    "labelFormat": "%.1f",
                     "snapToStep": true
                   }
                 },
@@ -117,8 +83,8 @@
                     "identifier": "hardness",
                     "min": 0,
                     "max": 8,
-                    "step": 0.01,
-                    "labelFormat": "%.2f",
+                    "step": 0.1,
+                    "labelFormat": "%.1f",
                     "snapToStep": true
                   }
                 },
@@ -134,8 +100,25 @@
                     "identifier": "specularity",
                     "min": 0,
                     "max": 8,
-                    "step": 0.01,
-                    "labelFormat": "%.2f",
+                    "step": 0.1,
+                    "labelFormat": "%.1f",
+                    "snapToStep": true
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Parallax"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "parallax",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.1,
+                    "labelFormat": "%.1f",
                     "snapToStep": true
                   }
                 },

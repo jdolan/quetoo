@@ -72,7 +72,7 @@ struct uniformsBlock
     int editor;
     int developer;
     int wireframe;
-    int padding;
+    int parallaxShadow;
 };
 
 struct materialBlock
@@ -90,7 +90,6 @@ struct materialBlock
     float hardness;
     float specularity;
     float parallax;
-    float shadow;
     int flags;
     float pulse;
     float drift;
@@ -104,6 +103,7 @@ struct materialBlock
     float padding0;
     float padding1;
     float padding2;
+    float padding3;
 };
 
 constant spvUnsafeArray<float, 8> _118 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });

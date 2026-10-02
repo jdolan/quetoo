@@ -710,7 +710,10 @@ void R_DrawSubviews(RenderView *view) {
     R_UpdateSubviewScene(view, subview->view);
 
     renderDiagnostics = &subview->view->diagnostics;
+
+    R_PushDebugGroup(renderContext.device->commands, subview->type == SUBVIEW_PORTAL ? "Portal" : "Reflection");
     R_DrawSubview(subview, &scissor, projected, mins, maxs);
+    R_PopDebugGroup(renderContext.device->commands);
 
     diagnostics->subviewsTriangles += subview->view->diagnostics.bspTriangles + subview->view->diagnostics.meshTriangles;
   }

@@ -102,7 +102,6 @@ struct materialBlock
     float hardness;
     float specularity;
     float parallax;
-    float shadow;
     int flags;
     float pulse;
     float drift;
@@ -116,6 +115,7 @@ struct materialBlock
     float padding0;
     float padding1;
     float padding2;
+    float padding3;
     float4 tintColors[3];
 };
 
@@ -147,7 +147,7 @@ struct uniformsBlock
     int editor;
     int developer;
     int wireframe;
-    int padding;
+    int parallaxShadow;
 };
 
 struct voxelLightDataBlock
