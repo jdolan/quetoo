@@ -166,6 +166,8 @@ void R_DrawPost(const RenderView *view) {
 
   if (bloom) {
 
+    R_PushDebugGroup(commands, "Bloom");
+
     R_PostPass(module.bloomFramebuffers[0], module.bloomPipeline,
                sceneColor, sceneColor,
                module.bloomWidth, module.bloomHeight,
@@ -189,7 +191,11 @@ void R_DrawPost(const RenderView *view) {
                  module.bloomWidth, module.bloomHeight,
                  &(RenderPostLocals) { .postStage = R_POST_BLOOM_BLUR_Y });
     }
+
+    R_PopDebugGroup(commands);
   }
+
+  R_PushDebugGroup(commands, "Tonemap");
 
   R_PostPass(present, module.compositePipeline,
              sceneColor,
@@ -199,6 +205,8 @@ void R_DrawPost(const RenderView *view) {
                .postStage = R_POST_TONEMAP,
                .bloom = r_bloom->value,
              });
+
+  R_PopDebugGroup(commands);
 }
 
 /**
