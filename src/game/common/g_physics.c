@@ -416,7 +416,22 @@ void G_TouchOccupy(GameEntity *ent) {
     G_Debug("%s occupying %s\n", etos(ent), etos(occupied));
 
     if (occupied->Touch) {
-      occupied->Touch(occupied, ent, NULL);
+      if (occupied->solid == SOLID_PROJECTILE) {
+        Vec3 normal = Vec3_Normalize(Vec3_Subtract(occupied->s.origin, ent->s.origin));
+        if (Vec3_Equal(normal, Vec3_Zero())) {
+          normal = Vec3_Up();
+        }
+
+        const CollisionTrace trace = {
+          .end = occupied->s.origin,
+          .plane.normal = normal,
+          .contents = ent->solid == SOLID_DEAD ? CONTENTS_DEAD_MONSTER : ent->client ? CONTENTS_MONSTER : CONTENTS_SOLID,
+          .ent = ent,
+        };
+        occupied->Touch(occupied, ent, &trace);
+      } else {
+        occupied->Touch(occupied, ent, NULL);
+      }
     }
 
     if (!ent->inUse) {
