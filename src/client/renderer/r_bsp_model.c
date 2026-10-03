@@ -563,14 +563,12 @@ static void R_LoadBspOcclusionQueries(RenderBspModel *bsp) {
   const BspBlock *inBlock = file->blocks;
   for (int32_t i = 0; i < bsp->numBlocks; i++, block++, inBlock++) {
 
-    const Box3 bounds = Box3_Union(block->node->bounds, block->visibleBounds);
-    block->query = R_AllocOcclusionQuery(bounds);
+    block->query = R_AllocOcclusionQuery(block->node->bounds);
 
-    R_AppendOcclusionQueryVoxels(block->query, voxels,
-                                 file->blockVoxels + inBlock->firstVoxel, inBlock->numVoxels);
+    R_AppendOcclusionQueryVoxels(block->query, voxels, file->blockVoxels + inBlock->firstVoxel, inBlock->numVoxels);
 
     if (!block->query->numBoxes) {
-      R_AppendOcclusionQueryBox(block->query, bounds);
+      R_AppendOcclusionQueryBox(block->query, block->node->bounds);
     }
   }
 

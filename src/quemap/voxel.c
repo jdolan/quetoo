@@ -292,6 +292,7 @@ void LightVoxel(int32_t voxelNum) {
     if (light->targetEntity != -1) {
       continue;
     }
+
     if (!Box3_Intersects(light->bounds, voxel->bounds)) {
       continue;
     }
