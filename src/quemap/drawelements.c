@@ -516,10 +516,18 @@ static void EmitBlocks_r(BspModel *mod, BspNode *node) {
       }
     }
 
-    if (blockDrawFaces->count == 0) {
+    // the world's blocks are emitted even without faces: the renderer's occlusion tests rely on
+    // them partitioning the world, so that empty space is still covered by a block's query.
+    // Only the world's blocks are tested, so an inline model's empty blocks are pruned.
+
+    if (blockDrawFaces->count == 0 && mod != bspFile.models) {
       release(blockDrawFaces);
       node->contents = CONTENTS_NODE;
       return;
+    }
+
+    if (bspFile.numBlocks == MAX_BSP_BLOCKS) {
+      Com_Error(ERROR_FATAL, "MAX_BSP_BLOCKS\n");
     }
 
     BspBlock *out = &bspFile.blocks[bspFile.numBlocks++];
