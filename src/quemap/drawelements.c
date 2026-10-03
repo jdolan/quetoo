@@ -499,6 +499,25 @@ int32_t EmitDrawElements(Vector *faces) {
 }
 
 /**
+ * @return True if every leaf beneath @p node is solid.
+ */
+static bool IsSolidNode_r(const BspNode *node) {
+
+  for (int32_t i = 0; i < 2; i++) {
+    const int32_t child = node->children[i];
+    if (child < 0) {
+      if (!(bspFile.leafs[-1 - child].contents & CONTENTS_SOLID)) {
+        return false;
+      }
+    } else if (!IsSolidNode_r(bspFile.nodes + child)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * @brief Recursively emits block draw-element groups for all `CONTENTS_BLOCK` nodes in the BSP tree.
  */
 static void EmitBlocks_r(BspModel *mod, BspNode *node) {
@@ -518,9 +537,10 @@ static void EmitBlocks_r(BspModel *mod, BspNode *node) {
 
     // the world's blocks are emitted even without faces: the renderer's occlusion tests rely on
     // them partitioning the world, so that empty space is still covered by a block's query.
-    // Only the world's blocks are tested, so an inline model's empty blocks are pruned.
+    // Only the world's blocks are tested, so an inline model's empty blocks are pruned, and
+    // nothing can occupy solid space, so neither is an empty block that is entirely solid.
 
-    if (blockDrawFaces->count == 0 && mod != bspFile.models) {
+    if (blockDrawFaces->count == 0 && (mod != bspFile.models || IsSolidNode_r(node))) {
       release(blockDrawFaces);
       node->contents = CONTENTS_NODE;
       return;
