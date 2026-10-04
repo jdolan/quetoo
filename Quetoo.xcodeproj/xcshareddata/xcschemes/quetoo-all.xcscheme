@@ -102,11 +102,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_windowWidth 1920 +set r_windowHeight 1080"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 2"
-            isEnabled = "NO">
+            argument = "+set r_fullscreen 0"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_volume 0"
@@ -146,11 +146,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set timeDemo 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+demo q1perf"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"

@@ -101,7 +101,7 @@
                   "class": "Box",
                   "label": {
                     "text": {
-                      "text": "Surfaces"
+                      "text": "Effects"
                     }
                   },
                   "contentView": {
@@ -110,7 +110,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Parallax"
+                            "text": "Parallax occlusion mapping"
                           }
                         },
                         "control": {
@@ -122,7 +122,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Parallax self-shadows"
+                            "text": "Parallax self-shadowing"
                           }
                         },
                         "control": {
