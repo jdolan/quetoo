@@ -186,8 +186,8 @@ struct bspLocalsBlock
     int subviewMirrored;
 };
 
-constant spvUnsafeArray<float2, 16> _1080 = spvUnsafeArray<float2, 16>({ float2(0.2770744860172271728515625, 0.69514548778533935546875), float2(-0.59327852725982666015625, -0.1203283965587615966796875), float2(0.449474990367889404296875, 0.246909797191619873046875), float2(-0.1460638940334320068359375, -0.5679666996002197265625), float2(0.64004981517791748046875, -0.407194793224334716796875), float2(-0.3631913959980010986328125, 0.79357779026031494140625), float2(0.124885700643062591552734375, -0.897523820400238037109375), float2(-0.7720317840576171875, 0.443845808506011962890625), float2(0.88518059253692626953125, 0.1653372943401336669921875), float2(-0.52380120754241943359375, -0.726029574871063232421875), float2(0.3642682135105133056640625, 0.596805393695831298828125), float2(-0.833170115947723388671875, -0.33283460140228271484375), float2(0.552725970745086669921875, -0.698580920696258544921875), float2(-0.24071229994297027587890625, 0.3153156936168670654296875), float2(0.72694051265716552734375, -0.14306400716304779052734375), float2(-0.64446747303009033203125, 0.64446747303009033203125) });
-constant spvUnsafeArray<float, 8> _2519 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
+constant spvUnsafeArray<float2, 16> _1113 = spvUnsafeArray<float2, 16>({ float2(0.2770744860172271728515625, 0.69514548778533935546875), float2(-0.59327852725982666015625, -0.1203283965587615966796875), float2(0.449474990367889404296875, 0.246909797191619873046875), float2(-0.1460638940334320068359375, -0.5679666996002197265625), float2(0.64004981517791748046875, -0.407194793224334716796875), float2(-0.3631913959980010986328125, 0.79357779026031494140625), float2(0.124885700643062591552734375, -0.897523820400238037109375), float2(-0.7720317840576171875, 0.443845808506011962890625), float2(0.88518059253692626953125, 0.1653372943401336669921875), float2(-0.52380120754241943359375, -0.726029574871063232421875), float2(0.3642682135105133056640625, 0.596805393695831298828125), float2(-0.833170115947723388671875, -0.33283460140228271484375), float2(0.552725970745086669921875, -0.698580920696258544921875), float2(-0.24071229994297027587890625, 0.3153156936168670654296875), float2(0.72694051265716552734375, -0.14306400716304779052734375), float2(-0.64446747303009033203125, 0.64446747303009033203125) });
+constant spvUnsafeArray<float, 8> _2576 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
@@ -220,8 +220,8 @@ float linearstep(thread const float& a, thread const float& b, thread const floa
 static inline __attribute__((always_inline))
 float sampleMaterialHeightmap(thread const float2& texcoord, thread const float& lod, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr)
 {
-    float3 _486 = float3(texcoord, 1.0);
-    return textureMaterial.sample(textureMaterialSmplr, _486.xy, uint(rint(_486.z)), level(lod)).w;
+    float3 _492 = float3(texcoord, 1.0);
+    return textureMaterial.sample(textureMaterialSmplr, _492.xy, uint(rint(_492.z)), level(lod)).w;
 }
 
 static inline __attribute__((always_inline))
@@ -233,20 +233,20 @@ float sampleMaterialDisplacement(thread const float2& texcoord, thread const flo
 }
 
 static inline __attribute__((always_inline))
-void parallaxOcclusionMapping(thread const CommonVertex& vertex0, thread CommonFragment& fragment0, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _538)
+void parallaxOcclusionMapping(thread const CommonVertex& vertex0, thread CommonFragment& fragment0, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _544)
 {
     fragment0.parallax = vertex0.diffusemap;
-    bool _1829 = material.parallax == 0.0;
-    bool _1839;
-    if (!_1829)
+    bool _1886 = material.parallax == 0.0;
+    bool _1896;
+    if (!_1886)
     {
-        _1839 = fragment0.viewDist >= (_538.lightingDistance + 128.0);
+        _1896 = fragment0.viewDist >= (_544.lightingDistance + 128.0);
     }
     else
     {
-        _1839 = _1829;
+        _1896 = _1886;
     }
-    if (_1839)
+    if (_1896)
     {
         return;
     }
@@ -314,15 +314,15 @@ void parallaxOcclusionMapping(thread const CommonVertex& vertex0, thread CommonF
 static inline __attribute__((always_inline))
 float4 sampleMaterialDiffuse(thread const float2& texcoord, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr)
 {
-    float3 _370 = float3(texcoord, 0.0);
-    return textureMaterial.sample(textureMaterialSmplr, _370.xy, uint(rint(_370.z)));
+    float3 _376 = float3(texcoord, 0.0);
+    return textureMaterial.sample(textureMaterialSmplr, _376.xy, uint(rint(_376.z)));
 }
 
 static inline __attribute__((always_inline))
 float3 sampleMaterialNormal(thread const float2& texcoord, thread const float3x3& tbn, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material)
 {
-    float3 _379 = float3(texcoord, 1.0);
-    float3 normalmap = (textureMaterial.sample(textureMaterialSmplr, _379.xy, uint(rint(_379.z))).xyz * 2.0) - float3(1.0);
+    float3 _385 = float3(texcoord, 1.0);
+    float3 normalmap = (textureMaterial.sample(textureMaterialSmplr, _385.xy, uint(rint(_385.z))).xyz * 2.0) - float3(1.0);
     float3 roughness = float3(float2(material.roughness), 1.0);
     return fast::normalize(tbn * (normalmap * roughness));
 }
@@ -344,17 +344,17 @@ float toksvigGloss(thread const float3& normal, thread const float& power)
 static inline __attribute__((always_inline))
 float4 sampleMaterialSpecular(thread const float2& texcoord, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material)
 {
-    float3 _411 = float3(texcoord, 2.0);
-    float3 _417 = textureMaterial.sample(textureMaterialSmplr, _411.xy, uint(rint(_411.z))).xyz * material.hardness;
+    float3 _417 = float3(texcoord, 2.0);
+    float3 _423 = textureMaterial.sample(textureMaterialSmplr, _417.xy, uint(rint(_417.z))).xyz * material.hardness;
     float4 specularmap;
-    specularmap.x = _417.x;
-    specularmap.y = _417.y;
-    specularmap.z = _417.z;
+    specularmap.x = _423.x;
+    specularmap.y = _423.y;
+    specularmap.z = _423.z;
     float3 roughness = float3(float2(material.roughness), 1.0);
-    float3 _436 = float3(texcoord, 1.0);
-    float3 normalmap0 = ((textureMaterial.sample(textureMaterialSmplr, _436.xy, uint(rint(_436.z)), level(0.0)).xyz * 2.0) - float3(1.0)) * roughness;
-    float3 _449 = float3(texcoord, 1.0);
-    float3 normalmap1 = ((textureMaterial.sample(textureMaterialSmplr, _449.xy, uint(rint(_449.z)), level(1.0)).xyz * 2.0) - float3(1.0)) * roughness;
+    float3 _442 = float3(texcoord, 1.0);
+    float3 normalmap0 = ((textureMaterial.sample(textureMaterialSmplr, _442.xy, uint(rint(_442.z)), level(0.0)).xyz * 2.0) - float3(1.0)) * roughness;
+    float3 _455 = float3(texcoord, 1.0);
+    float3 normalmap1 = ((textureMaterial.sample(textureMaterialSmplr, _455.xy, uint(rint(_455.z)), level(1.0)).xyz * 2.0) - float3(1.0)) * roughness;
     float power = powr(1.0 + material.specularity, 4.0);
     float3 param = normalmap0;
     float param_1 = power;
@@ -383,62 +383,62 @@ float voxelExposure(thread const float3& texcoord, texture3d<float> textureVoxel
 }
 
 static inline __attribute__((always_inline))
-float3 ambientLight(thread const CommonVertex& v, constant uniformsBlock& _538, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr)
+float3 ambientLight(thread const CommonVertex& v, constant uniformsBlock& _544, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr)
 {
     float3 param = v.voxel;
     float occlusion = voxelOcclusion(param, textureVoxelOcclusion, textureVoxelOcclusionSmplr);
     float3 param_1 = v.voxel;
     float exposure = voxelExposure(param_1, textureVoxelOcclusion, textureVoxelOcclusionSmplr);
     float3 sky = textureSky.sample(textureSkySmplr, fast::normalize(v.modelNormal), level(6.0)).xyz;
-    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _538.ambientOcclusion))) * float3(_538.ambient);
+    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _544.ambientOcclusion))) * float3(_544.ambient);
 }
 
 static inline __attribute__((always_inline))
-int3 voxelXyz(thread const float3& position, constant uniformsBlock& _538)
+int3 voxelXyz(thread const float3& position, constant uniformsBlock& _544)
 {
-    float3 pos = position - _538.voxels.mins.xyz;
+    float3 pos = position - _544.voxels.mins.xyz;
     int3 voxel = int3(floor((pos / float3(32.0)) + float3(0.001000000047497451305389404296875)));
-    return clamp(voxel, int3(0), int3(_538.voxels.size.xyz) - int3(1));
+    return clamp(voxel, int3(0), int3(_544.voxels.size.xyz) - int3(1));
 }
 
 static inline __attribute__((always_inline))
-int2 voxelLightData(thread const int3& voxel, constant uniformsBlock& _538, const device voxelLightDataBlock& _589)
+int2 voxelLightData(thread const int3& voxel, constant uniformsBlock& _544, const device voxelLightDataBlock& _595)
 {
-    int index = (((voxel.z * int(_538.voxels.size.y)) + voxel.y) * int(_538.voxels.size.x)) + voxel.x;
-    return int2(_589.voxelLightDataElements[(index * 2) + 0], _589.voxelLightDataElements[(index * 2) + 1]);
+    int index = (((voxel.z * int(_544.voxels.size.y)) + voxel.y) * int(_544.voxels.size.x)) + voxel.x;
+    return int2(_595.voxelLightDataElements[(index * 2) + 0], _595.voxelLightDataElements[(index * 2) + 1]);
 }
 
 static inline __attribute__((always_inline))
-int voxelLightIndex(thread const int& index, const device voxelLightIndicesBlock& _607)
+int voxelLightIndex(thread const int& index, const device voxelLightIndicesBlock& _613)
 {
-    return _607.voxelLightIndices[index];
+    return _613.voxelLightIndices[index];
 }
 
 static inline __attribute__((always_inline))
-float3 lightColor(thread const Light& l, constant uniformsBlock& _538)
+float3 lightColor(thread const Light& l, constant uniformsBlock& _544)
 {
-    float3 color = (l.color.xyz * l.color.w) * _538.modulate;
+    float3 color = (l.color.xyz * l.color.w) * _544.modulate;
     float luma = dot(color, float3(0.2125999927520751953125, 0.715200006961822509765625, 0.072200000286102294921875));
-    return mix(float3(luma), color, float3(_538.saturation));
+    return mix(float3(luma), color, float3(_544.saturation));
 }
 
 static inline __attribute__((always_inline))
 void cubemapFaceUv(thread const float3& dir, thread int& face, thread float2& faceUv, thread float& ma)
 {
     float3 ad = abs(dir);
-    bool _711 = ad.x >= ad.y;
-    bool _719;
-    if (_711)
+    bool _717 = ad.x >= ad.y;
+    bool _725;
+    if (_717)
     {
-        _719 = ad.x >= ad.z;
+        _725 = ad.x >= ad.z;
     }
     else
     {
-        _719 = _711;
+        _725 = _717;
     }
     float sc;
     float tc;
-    if (_719)
+    if (_725)
     {
         ma = ad.x;
         if (dir.x > 0.0)
@@ -456,17 +456,17 @@ void cubemapFaceUv(thread const float3& dir, thread int& face, thread float2& fa
     }
     else
     {
-        bool _748 = ad.y >= ad.x;
-        bool _756;
-        if (_748)
+        bool _754 = ad.y >= ad.x;
+        bool _762;
+        if (_754)
         {
-            _756 = ad.y >= ad.z;
+            _762 = ad.y >= ad.z;
         }
         else
         {
-            _756 = _748;
+            _762 = _754;
         }
-        if (_756)
+        if (_762)
         {
             ma = ad.y;
             if (dir.y > 0.0)
@@ -500,6 +500,53 @@ void cubemapFaceUv(thread const float3& dir, thread int& face, thread float2& fa
         }
     }
     faceUv = (float2(sc, tc) / float2(2.0 * ma)) + float2(0.5);
+}
+
+static inline __attribute__((always_inline))
+void cubemapFaceAxes(thread const int& face, thread float3& sAxis, thread float3& tAxis)
+{
+    if (face == 0)
+    {
+        sAxis = float3(0.0, 0.0, -1.0);
+        tAxis = float3(0.0, -1.0, 0.0);
+    }
+    else
+    {
+        if (face == 1)
+        {
+            sAxis = float3(0.0, 0.0, 1.0);
+            tAxis = float3(0.0, -1.0, 0.0);
+        }
+        else
+        {
+            if (face == 2)
+            {
+                sAxis = float3(1.0, 0.0, 0.0);
+                tAxis = float3(0.0, 0.0, 1.0);
+            }
+            else
+            {
+                if (face == 3)
+                {
+                    sAxis = float3(1.0, 0.0, 0.0);
+                    tAxis = float3(0.0, 0.0, -1.0);
+                }
+                else
+                {
+                    if (face == 4)
+                    {
+                        sAxis = float3(1.0, 0.0, 0.0);
+                        tAxis = float3(0.0, -1.0, 0.0);
+                    }
+                    else
+                    {
+                        sAxis = float3(-1.0, 0.0, 0.0);
+                        tAxis = float3(0.0, -1.0, 0.0);
+                    }
+                }
+            }
+        }
+    }
 }
 
 static inline __attribute__((always_inline))
@@ -571,34 +618,47 @@ float sampleShadowAtlas(thread const Light& light, thread const CommonVertex& v,
     int face = param_1;
     float2 fuv = param_2;
     float ma = param_3;
-    fuv.y = 1.0 - fuv.y;
+    int param_4 = face;
+    float3 param_5;
+    float3 param_6;
+    cubemapFaceAxes(param_4, param_5, param_6);
+    float3 sAxis = param_5;
+    float3 tAxis = param_6;
     float2 halfTexel = float2(0.5) / texSize;
     float2 tileMin = tileOrigin + halfTexel;
     float2 tileMax = (tileOrigin + float2(tileUv)) - halfTexel;
-    float filterUv = filterRadius / (2.0 * fast::max(ma, 0.001000000047497451305389404296875));
     float importance = atten * fast::clamp(1.0 - (f.viewDist / 2048.0), 0.0, 1.0);
-    int _1001;
+    int _1034;
     if (importance > 0.300000011920928955078125)
     {
-        _1001 = 8;
+        _1034 = 8;
     }
     else
     {
-        _1001 = (importance > 0.100000001490116119384765625) ? 4 : 2;
+        _1034 = (importance > 0.100000001490116119384765625) ? 4 : 2;
     }
-    int numSamples = _1001;
+    int numSamples = _1034;
     float s = f.shadowSinCos.x;
     float c = f.shadowSinCos.y;
     float shadow = 0.0;
+    int param_8;
+    float2 param_9;
+    float param_10;
     for (int i = 0; i < numSamples; i++)
     {
-        float2 rotated = float2((c * _1080[i].x) - (s * _1080[i].y), (s * _1080[i].x) + (c * _1080[i].y));
-        float2 sampleFuv = fuv + (rotated * filterUv);
+        float2 rotated = float2((c * _1113[i].x) - (s * _1113[i].y), (s * _1113[i].x) + (c * _1113[i].y));
+        float3 sampleDir = lightToFrag + (((sAxis * rotated.x) - (tAxis * rotated.y)) * filterRadius);
+        float3 param_7 = sampleDir;
+        cubemapFaceUv(param_7, param_8, param_9, param_10);
+        int sampleFace = param_8;
+        float2 sampleFuv = param_9;
+        float sampleMa = param_10;
+        sampleFuv.y = 1.0 - sampleFuv.y;
         float2 atlasUv = tileOrigin + (sampleFuv * float2(tileUv));
         atlasUv = fast::clamp(atlasUv, tileMin, tileMax);
-        int param_4 = face;
-        float3 param_5 = float3(atlasUv, currentDepth);
-        shadow += sampleShadowFace(param_4, param_5, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr);
+        int param_11 = sampleFace;
+        float3 param_12 = float3(atlasUv, currentDepth);
+        shadow += sampleShadowFace(param_11, param_12, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr);
     }
     return shadow / float(numSamples);
 }
@@ -631,17 +691,17 @@ float parallaxSelfShadow(thread const float3& lightDir, thread const CommonVerte
     int i = 0;
     for (;;)
     {
-        bool _1413 = i < int(numSamples);
-        bool _1419;
-        if (_1413)
+        bool _1470 = i < int(numSamples);
+        bool _1476;
+        if (_1470)
         {
-            _1419 = (occlusion * 32.0) < 1.0;
+            _1476 = (occlusion * 32.0) < 1.0;
         }
         else
         {
-            _1419 = _1413;
+            _1476 = _1470;
         }
-        if (_1419)
+        if (_1476)
         {
             texcoord += delta;
             float2 param_5 = texcoord.xy;
@@ -673,7 +733,7 @@ float3 blinnPhong(thread const float3& lightColor_1, thread const float3& lightD
 }
 
 static inline __attribute__((always_inline))
-void fragmentLight(thread const CommonVertex& v, thread CommonFragment& f, thread const Light& light, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _538, depth2d<float> textureShadowAtlas0, sampler textureShadowAtlas0Smplr, depth2d<float> textureShadowAtlas1, sampler textureShadowAtlas1Smplr, depth2d<float> textureShadowAtlas2, sampler textureShadowAtlas2Smplr, depth2d<float> textureShadowAtlas3, sampler textureShadowAtlas3Smplr, depth2d<float> textureShadowAtlas4, sampler textureShadowAtlas4Smplr, depth2d<float> textureShadowAtlas5, sampler textureShadowAtlas5Smplr)
+void fragmentLight(thread const CommonVertex& v, thread CommonFragment& f, thread const Light& light, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _544, depth2d<float> textureShadowAtlas0, sampler textureShadowAtlas0Smplr, depth2d<float> textureShadowAtlas1, sampler textureShadowAtlas1Smplr, depth2d<float> textureShadowAtlas2, sampler textureShadowAtlas2Smplr, depth2d<float> textureShadowAtlas3, sampler textureShadowAtlas3Smplr, depth2d<float> textureShadowAtlas4, sampler textureShadowAtlas4Smplr, depth2d<float> textureShadowAtlas5, sampler textureShadowAtlas5Smplr)
 {
     float3 dir = light.origin.xyz - v.modelPosition;
     float dist = length(dir);
@@ -683,27 +743,27 @@ void fragmentLight(thread const CommonVertex& v, thread CommonFragment& f, threa
     {
         return;
     }
-    dir = fast::normalize(_538.view * float4(dir, 0.0)).xyz;
+    dir = fast::normalize(_544.view * float4(dir, 0.0)).xyz;
     bool isBlend = (material.surface & 112) != int(0u);
     bool isLiquid = (material.surface & 8) != int(0u);
     bool isStage = material.flags != 0;
     float lambert = dot(dir, f.normalSample);
-    float _1503;
+    float _1560;
     if ((isBlend || isLiquid) || isStage)
     {
-        _1503 = abs(lambert);
+        _1560 = abs(lambert);
     }
     else
     {
-        _1503 = fast::max(0.0, lambert);
+        _1560 = fast::max(0.0, lambert);
     }
-    lambert = _1503;
+    lambert = _1560;
     if ((atten * lambert) <= 0.0)
     {
         return;
     }
     Light param = light;
-    float3 color = lightColor(param, _538) * atten;
+    float3 color = lightColor(param, _544) * atten;
     Light param_1 = light;
     CommonVertex param_2 = v;
     CommonFragment param_3 = f;
@@ -713,17 +773,17 @@ void fragmentLight(thread const CommonVertex& v, thread CommonFragment& f, threa
     {
         return;
     }
-    bool _1541 = !isStage;
-    bool _1548;
-    if (_1541)
+    bool _1598 = !isStage;
+    bool _1605;
+    if (_1598)
     {
-        _1548 = _538.parallaxShadow != 0;
+        _1605 = _544.parallaxShadow != 0;
     }
     else
     {
-        _1548 = _1541;
+        _1605 = _1598;
     }
-    if (_1548)
+    if (_1605)
     {
         float3 param_5 = dir;
         CommonVertex param_6 = v;
@@ -748,10 +808,10 @@ bool dynamicLightActive(thread const spvUnsafeArray<uint4, 4>& mask, thread cons
 }
 
 static inline __attribute__((always_inline))
-float3 voxelCaustics(thread const float3& texcoord, constant uniformsBlock& _538, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
+float3 voxelCaustics(thread const float3& texcoord, constant uniformsBlock& _544, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
 {
     float3 encoded = textureVoxelCaustics.sample(textureVoxelCausticsSmplr, texcoord).xyz;
-    return ((encoded * 2.0) - float3(1.0)) * _538.caustics;
+    return ((encoded * 2.0) - float3(1.0)) * _544.caustics;
 }
 
 static inline __attribute__((always_inline))
@@ -769,35 +829,35 @@ float noise3d(thread const float3& p)
     float3 pf = p - pi;
     float3 w = (pf * pf) * (float3(3.0) - (pf * 2.0));
     float3 param = pi + float3(0.0);
-    float3 _267 = hash33(param);
+    float3 _273 = hash33(param);
     float3 param_1 = pi + float3(1.0, 0.0, 0.0);
-    float3 _275 = hash33(param_1);
+    float3 _281 = hash33(param_1);
     float3 param_2 = pi + float3(0.0, 0.0, 1.0);
-    float3 _286 = hash33(param_2);
+    float3 _292 = hash33(param_2);
     float3 param_3 = pi + float3(1.0, 0.0, 1.0);
-    float3 _294 = hash33(param_3);
+    float3 _300 = hash33(param_3);
     float3 param_4 = pi + float3(0.0, 1.0, 0.0);
-    float3 _308 = hash33(param_4);
+    float3 _314 = hash33(param_4);
     float3 param_5 = pi + float3(1.0, 1.0, 0.0);
-    float3 _316 = hash33(param_5);
+    float3 _322 = hash33(param_5);
     float3 param_6 = pi + float3(0.0, 1.0, 1.0);
-    float3 _327 = hash33(param_6);
+    float3 _333 = hash33(param_6);
     float3 param_7 = pi + float3(1.0);
-    float3 _335 = hash33(param_7);
-    return mix(mix(mix(dot(pf - float3(0.0), _267), dot(pf - float3(1.0, 0.0, 0.0), _275), w.x), mix(dot(pf - float3(0.0, 0.0, 1.0), _286), dot(pf - float3(1.0, 0.0, 1.0), _294), w.x), w.z), mix(mix(dot(pf - float3(0.0, 1.0, 0.0), _308), dot(pf - float3(1.0, 1.0, 0.0), _316), w.x), mix(dot(pf - float3(0.0, 1.0, 1.0), _327), dot(pf - float3(1.0), _335), w.x), w.z), w.y);
+    float3 _341 = hash33(param_7);
+    return mix(mix(mix(dot(pf - float3(0.0), _273), dot(pf - float3(1.0, 0.0, 0.0), _281), w.x), mix(dot(pf - float3(0.0, 0.0, 1.0), _292), dot(pf - float3(1.0, 0.0, 1.0), _300), w.x), w.z), mix(mix(dot(pf - float3(0.0, 1.0, 0.0), _314), dot(pf - float3(1.0, 1.0, 0.0), _322), w.x), mix(dot(pf - float3(0.0, 1.0, 1.0), _333), dot(pf - float3(1.0), _341), w.x), w.z), w.y);
 }
 
 static inline __attribute__((always_inline))
-void fragmentCaustics(thread const CommonVertex& v, thread CommonFragment& f, constant uniformsBlock& _538, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
+void fragmentCaustics(thread const CommonVertex& v, thread CommonFragment& f, constant uniformsBlock& _544, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
 {
     float3 param = v.voxel;
-    float3 causticsSample = voxelCaustics(param, _538, textureVoxelCaustics, textureVoxelCausticsSmplr);
+    float3 causticsSample = voxelCaustics(param, _544, textureVoxelCaustics, textureVoxelCausticsSmplr);
     float causticsStrength = length(causticsSample);
     if (causticsStrength == 0.0)
     {
         return;
     }
-    float3 causticsDir = fast::normalize(float3x3(_538.view[0].xyz, _538.view[1].xyz, _538.view[2].xyz) * causticsSample);
+    float3 causticsDir = fast::normalize(float3x3(_544.view[0].xyz, _544.view[1].xyz, _544.view[2].xyz) * causticsSample);
     float facing = dot(v.normal, causticsDir);
     float backface = (facing < (-0.25)) ? 0.25 : 1.0;
     f.caustics = causticsStrength * backface;
@@ -805,7 +865,7 @@ void fragmentCaustics(thread const CommonVertex& v, thread CommonFragment& f, co
     {
         return;
     }
-    float3 param_1 = (v.modelPosition * 0.0500000007450580596923828125) + float3((float(_538.ticks) / 1000.0) * 0.5);
+    float3 param_1 = (v.modelPosition * 0.0500000007450580596923828125) + float3((float(_544.ticks) / 1000.0) * 0.5);
     float _noise = noise3d(param_1);
     float thickness = 0.0199999995529651641845703125;
     float glow = 5.0;
@@ -815,62 +875,62 @@ void fragmentCaustics(thread const CommonVertex& v, thread CommonFragment& f, co
 }
 
 static inline __attribute__((always_inline))
-void fragmentLighting(thread const CommonVertex& v, thread CommonFragment& f, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _538, const device voxelLightDataBlock& _589, const device voxelLightIndicesBlock& _607, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, depth2d<float> textureShadowAtlas0, sampler textureShadowAtlas0Smplr, depth2d<float> textureShadowAtlas1, sampler textureShadowAtlas1Smplr, depth2d<float> textureShadowAtlas2, sampler textureShadowAtlas2Smplr, depth2d<float> textureShadowAtlas3, sampler textureShadowAtlas3Smplr, depth2d<float> textureShadowAtlas4, sampler textureShadowAtlas4Smplr, depth2d<float> textureShadowAtlas5, sampler textureShadowAtlas5Smplr, texturecube<float> textureSky, sampler textureSkySmplr, const device bspLightsBlock& _1629, const device dynamicLightsBlock& _1659, constant bspLocalsBlock& _1666)
+void fragmentLighting(thread const CommonVertex& v, thread CommonFragment& f, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _544, const device voxelLightDataBlock& _595, const device voxelLightIndicesBlock& _613, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, depth2d<float> textureShadowAtlas0, sampler textureShadowAtlas0Smplr, depth2d<float> textureShadowAtlas1, sampler textureShadowAtlas1Smplr, depth2d<float> textureShadowAtlas2, sampler textureShadowAtlas2Smplr, depth2d<float> textureShadowAtlas3, sampler textureShadowAtlas3Smplr, depth2d<float> textureShadowAtlas4, sampler textureShadowAtlas4Smplr, depth2d<float> textureShadowAtlas5, sampler textureShadowAtlas5Smplr, texturecube<float> textureSky, sampler textureSkySmplr, const device bspLightsBlock& _1686, const device dynamicLightsBlock& _1716, constant bspLocalsBlock& _1723)
 {
     CommonVertex param = v;
-    f.ambient = ambientLight(param, _538, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr);
+    f.ambient = ambientLight(param, _544, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr);
     f.diffuse = float3(0.0);
     f.specular = float3(0.0);
-    if (_538.editor == 0)
+    if (_544.editor == 0)
     {
         float3 param_1 = v.modelPosition;
-        int3 voxelCoord = voxelXyz(param_1, _538);
+        int3 voxelCoord = voxelXyz(param_1, _544);
         int3 param_2 = voxelCoord;
-        int2 data = voxelLightData(param_2, _538, _589);
+        int2 data = voxelLightData(param_2, _544, _595);
         Light param_6;
         for (int i = 0; i < data.y; i++)
         {
             int param_3 = data.x + i;
-            int index = voxelLightIndex(param_3, _607);
+            int index = voxelLightIndex(param_3, _613);
             CommonVertex param_4 = v;
             CommonFragment param_5 = f;
-            param_6.origin = _1629.bspLights[index].origin;
-            param_6.color = _1629.bspLights[index].color;
-            param_6.tile = _1629.bspLights[index].tile;
-            fragmentLight(param_4, param_5, param_6, textureMaterial, textureMaterialSmplr, material, _538, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr);
+            param_6.origin = _1686.bspLights[index].origin;
+            param_6.color = _1686.bspLights[index].color;
+            param_6.tile = _1686.bspLights[index].tile;
+            fragmentLight(param_4, param_5, param_6, textureMaterial, textureMaterialSmplr, material, _544, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr);
             f = param_5;
         }
     }
     spvUnsafeArray<uint4, 4> param_7;
     Light param_11;
-    for (int j = 0; j < _1659.numDynamicLights; j++)
+    for (int j = 0; j < _1716.numDynamicLights; j++)
     {
-        param_7[0] = _1666.activeDynamicLights[0];
-        param_7[1] = _1666.activeDynamicLights[1];
-        param_7[2] = _1666.activeDynamicLights[2];
-        param_7[3] = _1666.activeDynamicLights[3];
+        param_7[0] = _1723.activeDynamicLights[0];
+        param_7[1] = _1723.activeDynamicLights[1];
+        param_7[2] = _1723.activeDynamicLights[2];
+        param_7[3] = _1723.activeDynamicLights[3];
         int param_8 = j;
         if (dynamicLightActive(param_7, param_8))
         {
             CommonVertex param_9 = v;
             CommonFragment param_10 = f;
-            param_11.origin = _1659.dynamicLights[j].origin;
-            param_11.color = _1659.dynamicLights[j].color;
-            param_11.tile = _1659.dynamicLights[j].tile;
-            fragmentLight(param_9, param_10, param_11, textureMaterial, textureMaterialSmplr, material, _538, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr);
+            param_11.origin = _1716.dynamicLights[j].origin;
+            param_11.color = _1716.dynamicLights[j].color;
+            param_11.tile = _1716.dynamicLights[j].tile;
+            fragmentLight(param_9, param_10, param_11, textureMaterial, textureMaterialSmplr, material, _544, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr);
             f = param_10;
         }
     }
     CommonVertex param_12 = v;
     CommonFragment param_13 = f;
-    fragmentCaustics(param_12, param_13, _538, textureVoxelCaustics, textureVoxelCausticsSmplr);
+    fragmentCaustics(param_12, param_13, _544, textureVoxelCaustics, textureVoxelCausticsSmplr);
     f = param_13;
 }
 
 static inline __attribute__((always_inline))
-void fragmentLightingLod(thread const CommonVertex& v, thread CommonFragment& f, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _538, const device voxelLightDataBlock& _589, const device voxelLightIndicesBlock& _607, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, depth2d<float> textureShadowAtlas0, sampler textureShadowAtlas0Smplr, depth2d<float> textureShadowAtlas1, sampler textureShadowAtlas1Smplr, depth2d<float> textureShadowAtlas2, sampler textureShadowAtlas2Smplr, depth2d<float> textureShadowAtlas3, sampler textureShadowAtlas3Smplr, depth2d<float> textureShadowAtlas4, sampler textureShadowAtlas4Smplr, depth2d<float> textureShadowAtlas5, sampler textureShadowAtlas5Smplr, texturecube<float> textureSky, sampler textureSkySmplr, const device bspLightsBlock& _1629, const device dynamicLightsBlock& _1659, constant bspLocalsBlock& _1666)
+void fragmentLightingLod(thread const CommonVertex& v, thread CommonFragment& f, texture2d_array<float> textureMaterial, sampler textureMaterialSmplr, constant materialBlock& material, constant uniformsBlock& _544, const device voxelLightDataBlock& _595, const device voxelLightIndicesBlock& _613, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, depth2d<float> textureShadowAtlas0, sampler textureShadowAtlas0Smplr, depth2d<float> textureShadowAtlas1, sampler textureShadowAtlas1Smplr, depth2d<float> textureShadowAtlas2, sampler textureShadowAtlas2Smplr, depth2d<float> textureShadowAtlas3, sampler textureShadowAtlas3Smplr, depth2d<float> textureShadowAtlas4, sampler textureShadowAtlas4Smplr, depth2d<float> textureShadowAtlas5, sampler textureShadowAtlas5Smplr, texturecube<float> textureSky, sampler textureSkySmplr, const device bspLightsBlock& _1686, const device dynamicLightsBlock& _1716, constant bspLocalsBlock& _1723)
 {
-    float lightingLod = fast::clamp((f.viewDist - _538.lightingDistance) / 128.0, 0.0, 1.0);
+    float lightingLod = fast::clamp((f.viewDist - _544.lightingDistance) / 128.0, 0.0, 1.0);
     if (lightingLod >= 1.0)
     {
         f.ambient = v.ambient;
@@ -896,7 +956,7 @@ void fragmentLightingLod(thread const CommonVertex& v, thread CommonFragment& f,
     f.shadowSinCos = float2(sin(angle), cos(angle));
     CommonVertex param_4 = v;
     CommonFragment param_5 = f;
-    fragmentLighting(param_4, param_5, textureMaterial, textureMaterialSmplr, material, _538, _589, _607, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1629, _1659, _1666);
+    fragmentLighting(param_4, param_5, textureMaterial, textureMaterialSmplr, material, _544, _595, _613, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1686, _1716, _1723);
     f = param_5;
     f.ambient = mix(f.ambient, v.ambient, float3(lightingLod));
     f.diffuse = mix(f.diffuse, v.diffuse, float3(lightingLod));
@@ -913,7 +973,7 @@ float4 sampleMaterialStage(thread const float2& texcoord, constant materialBlock
     return textureStage.sample(textureStageSmplr, texcoord);
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 [[buffer(0)]], constant bspLocalsBlock& _1666 [[buffer(1)]], constant materialBlock& material [[buffer(2)]], const device bspLightsBlock& _1629 [[buffer(3)]], const device dynamicLightsBlock& _1659 [[buffer(4)]], const device voxelLightDataBlock& _589 [[buffer(5)]], const device voxelLightIndicesBlock& _607 [[buffer(6)]], texture2d_array<float> textureMaterial [[texture(0)]], depth2d<float> textureShadowAtlas0 [[texture(1)]], depth2d<float> textureShadowAtlas1 [[texture(2)]], depth2d<float> textureShadowAtlas2 [[texture(3)]], depth2d<float> textureShadowAtlas3 [[texture(4)]], depth2d<float> textureShadowAtlas4 [[texture(5)]], depth2d<float> textureShadowAtlas5 [[texture(6)]], texture3d<float> textureVoxelCaustics [[texture(7)]], texture3d<float> textureVoxelOcclusion [[texture(8)]], texturecube<float> textureSky [[texture(9)]], texture2d<float> textureStage [[texture(10)]], texture2d<float> textureStageNext [[texture(11)]], texture2d<float> textureWarp [[texture(12)]], texture2d_array<float> textureSubviews [[texture(13)]], sampler textureMaterialSmplr [[sampler(0)]], sampler textureShadowAtlas0Smplr [[sampler(1)]], sampler textureShadowAtlas1Smplr [[sampler(2)]], sampler textureShadowAtlas2Smplr [[sampler(3)]], sampler textureShadowAtlas3Smplr [[sampler(4)]], sampler textureShadowAtlas4Smplr [[sampler(5)]], sampler textureShadowAtlas5Smplr [[sampler(6)]], sampler textureVoxelCausticsSmplr [[sampler(7)]], sampler textureVoxelOcclusionSmplr [[sampler(8)]], sampler textureSkySmplr [[sampler(9)]], sampler textureStageSmplr [[sampler(10)]], sampler textureStageNextSmplr [[sampler(11)]], sampler textureWarpSmplr [[sampler(12)]], sampler textureSubviewsSmplr [[sampler(13)]], float4 gl_FragCoord [[position]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _544 [[buffer(0)]], constant bspLocalsBlock& _1723 [[buffer(1)]], constant materialBlock& material [[buffer(2)]], const device bspLightsBlock& _1686 [[buffer(3)]], const device dynamicLightsBlock& _1716 [[buffer(4)]], const device voxelLightDataBlock& _595 [[buffer(5)]], const device voxelLightIndicesBlock& _613 [[buffer(6)]], texture2d_array<float> textureMaterial [[texture(0)]], depth2d<float> textureShadowAtlas0 [[texture(1)]], depth2d<float> textureShadowAtlas1 [[texture(2)]], depth2d<float> textureShadowAtlas2 [[texture(3)]], depth2d<float> textureShadowAtlas3 [[texture(4)]], depth2d<float> textureShadowAtlas4 [[texture(5)]], depth2d<float> textureShadowAtlas5 [[texture(6)]], texture3d<float> textureVoxelCaustics [[texture(7)]], texture3d<float> textureVoxelOcclusion [[texture(8)]], texturecube<float> textureSky [[texture(9)]], texture2d<float> textureStage [[texture(10)]], texture2d<float> textureStageNext [[texture(11)]], texture2d<float> textureWarp [[texture(12)]], texture2d_array<float> textureSubviews [[texture(13)]], sampler textureMaterialSmplr [[sampler(0)]], sampler textureShadowAtlas0Smplr [[sampler(1)]], sampler textureShadowAtlas1Smplr [[sampler(2)]], sampler textureShadowAtlas2Smplr [[sampler(3)]], sampler textureShadowAtlas3Smplr [[sampler(4)]], sampler textureShadowAtlas4Smplr [[sampler(5)]], sampler textureShadowAtlas5Smplr [[sampler(6)]], sampler textureVoxelCausticsSmplr [[sampler(7)]], sampler textureVoxelOcclusionSmplr [[sampler(8)]], sampler textureSkySmplr [[sampler(9)]], sampler textureStageSmplr [[sampler(10)]], sampler textureStageNextSmplr [[sampler(11)]], sampler textureWarpSmplr [[sampler(12)]], sampler textureSubviewsSmplr [[sampler(13)]], float4 gl_FragCoord [[position]])
 {
     main0_out out = {};
     CommonVertex vertex0 = {};
@@ -931,59 +991,59 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 
     vertex0.caustics = in.vertex0_caustics;
     out.outDepth = gl_FragCoord.z;
     CommonFragment fragment0;
-    if (_538.wireframe != 0)
+    if (_544.wireframe != 0)
     {
         out.outColor = float4(1.0);
         return out;
     }
-    bool _2056 = material.flags == 0;
-    bool _2064;
-    if (_2056)
+    bool _2113 = material.flags == 0;
+    bool _2121;
+    if (_2113)
     {
-        _2064 = (material.surface & 24576) != 0;
+        _2121 = (material.surface & 24576) != 0;
     }
     else
     {
-        _2064 = _2056;
+        _2121 = _2113;
     }
-    bool _2071;
-    if (_2064)
+    bool _2128;
+    if (_2121)
     {
-        _2071 = (material.surface & 112) == 0;
-    }
-    else
-    {
-        _2071 = _2064;
-    }
-    bool _2077;
-    if (_2071)
-    {
-        _2077 = _1666.subviewLayer >= 0;
+        _2128 = (material.surface & 112) == 0;
     }
     else
     {
-        _2077 = _2071;
+        _2128 = _2121;
     }
-    if (_2077)
+    bool _2134;
+    if (_2128)
     {
-        float2 st = gl_FragCoord.xy / float2(_538.viewport.zw);
-        if (_1666.subviewMirrored != 0)
+        _2134 = _1723.subviewLayer >= 0;
+    }
+    else
+    {
+        _2134 = _2128;
+    }
+    if (_2134)
+    {
+        float2 st = gl_FragCoord.xy / float2(_544.viewport.zw);
+        if (_1723.subviewMirrored != 0)
         {
             st.x = 1.0 - st.x;
         }
-        float3 _2106 = float3(st, float(_1666.subviewLayer));
-        out.outColor = float4(textureSubviews.sample(textureSubviewsSmplr, _2106.xy, uint(rint(_2106.z))).xyz, 1.0);
+        float3 _2163 = float3(st, float(_1723.subviewLayer));
+        out.outColor = float4(textureSubviews.sample(textureSubviewsSmplr, _2163.xy, uint(rint(_2163.z))).xyz, 1.0);
         return out;
     }
     fragment0.viewDir = fast::normalize(-vertex0.position);
     fragment0.viewDist = length(vertex0.position);
-    float2 _2134;
-    _2134.x = textureMaterial.calculate_clamped_lod(textureMaterialSmplr, vertex0.diffusemap);
-    _2134.y = textureMaterial.calculate_unclamped_lod(textureMaterialSmplr, vertex0.diffusemap);
-    fragment0.texLod = _2134.y;
+    float2 _2191;
+    _2191.x = textureMaterial.calculate_clamped_lod(textureMaterialSmplr, vertex0.diffusemap);
+    _2191.y = textureMaterial.calculate_unclamped_lod(textureMaterialSmplr, vertex0.diffusemap);
+    fragment0.texLod = _2191.y;
     CommonVertex param = vertex0;
     CommonFragment param_1 = fragment0;
-    parallaxOcclusionMapping(param, param_1, textureMaterial, textureMaterialSmplr, material, _538);
+    parallaxOcclusionMapping(param, param_1, textureMaterial, textureMaterialSmplr, material, _544);
     fragment0 = param_1;
     if (material.flags == 0)
     {
@@ -993,66 +1053,66 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 
         out.outColor *= vertex0.color;
         CommonVertex param_3 = vertex0;
         CommonFragment param_4 = fragment0;
-        fragmentLightingLod(param_3, param_4, textureMaterial, textureMaterialSmplr, material, _538, _589, _607, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1629, _1659, _1666);
+        fragmentLightingLod(param_3, param_4, textureMaterial, textureMaterialSmplr, material, _544, _595, _613, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1686, _1716, _1723);
         fragment0 = param_4;
-        float4 _2172 = out.outColor;
-        float3 _2174 = _2172.xyz * (fragment0.ambient + fragment0.diffuse);
-        out.outColor.x = _2174.x;
-        out.outColor.y = _2174.y;
-        out.outColor.z = _2174.z;
-        float4 _2183 = out.outColor;
-        float3 _2185 = _2183.xyz + fragment0.specular;
-        out.outColor.x = _2185.x;
-        out.outColor.y = _2185.y;
-        out.outColor.z = _2185.z;
+        float4 _2229 = out.outColor;
+        float3 _2231 = _2229.xyz * (fragment0.ambient + fragment0.diffuse);
+        out.outColor.x = _2231.x;
+        out.outColor.y = _2231.y;
+        out.outColor.z = _2231.z;
+        float4 _2240 = out.outColor;
+        float3 _2242 = _2240.xyz + fragment0.specular;
+        out.outColor.x = _2242.x;
+        out.outColor.y = _2242.y;
+        out.outColor.z = _2242.z;
     }
     else
     {
-        bool _2198 = (material.flags & 6291456) != 0;
-        bool _2204;
-        if (_2198)
+        bool _2255 = (material.flags & 6291456) != 0;
+        bool _2261;
+        if (_2255)
         {
-            _2204 = _1666.subviewLayer >= 0;
+            _2261 = _1723.subviewLayer >= 0;
         }
         else
         {
-            _2204 = _2198;
+            _2261 = _2255;
         }
-        bool subview = _2204;
-        bool _2212;
+        bool subview = _2261;
+        bool _2269;
         if (subview)
         {
-            _2212 = _1666.subviewMirrored != 0;
+            _2269 = _1723.subviewMirrored != 0;
         }
         else
         {
-            _2212 = subview;
+            _2269 = subview;
         }
-        bool mirrored = _2212;
-        float2 _2215;
+        bool mirrored = _2269;
+        float2 _2272;
         if (subview)
         {
-            _2215 = gl_FragCoord.xy / float2(_538.viewport.zw);
+            _2272 = gl_FragCoord.xy / float2(_544.viewport.zw);
         }
         else
         {
-            _2215 = fragment0.parallax;
+            _2272 = fragment0.parallax;
         }
-        float2 st_1 = _2215;
+        float2 st_1 = _2272;
         if (mirrored)
         {
             st_1.x = 1.0 - st_1.x;
         }
-        bool _2244;
+        bool _2301;
         if (subview)
         {
-            _2244 = (material.flags & 16384) == 16384;
+            _2301 = (material.flags & 16384) == 16384;
         }
         else
         {
-            _2244 = subview;
+            _2301 = subview;
         }
-        if (_2244)
+        if (_2301)
         {
             float3 normal = fast::normalize(vertex0.normal);
             float2 param_5 = fragment0.parallax;
@@ -1068,17 +1128,17 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 
         }
         if ((material.flags & 32768) == 32768)
         {
-            float2 _2307;
+            float2 _2364;
             if (subview)
             {
-                _2307 = vertex0.diffusemap;
+                _2364 = vertex0.diffusemap;
             }
             else
             {
-                _2307 = st_1;
+                _2364 = st_1;
             }
-            float2 texcoord = _2307;
-            float2 offset_1 = (textureWarp.sample(textureWarpSmplr, (texcoord + float2((float(_538.ticks) * material.warp.x) * 0.00012500000593718141317367553710938))).xy - float2(0.5)) * material.warp.y;
+            float2 texcoord = _2364;
+            float2 offset_1 = (textureWarp.sample(textureWarpSmplr, (texcoord + float2((float(_544.ticks) * material.warp.x) * 0.00012500000593718141317367553710938))).xy - float2(0.5)) * material.warp.y;
             if (subview)
             {
                 float2 dx = dfdx(vertex0.diffusemap);
@@ -1091,7 +1151,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 
                     {
                         pixels.x = -pixels.x;
                     }
-                    st_1 += (pixels / float2(_538.viewport.zw));
+                    st_1 += (pixels / float2(_544.viewport.zw));
                 }
             }
             else
@@ -1101,8 +1161,8 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 
         }
         if (subview)
         {
-            float3 _2421 = float3(st_1, float(_1666.subviewLayer));
-            fragment0.diffuseSample = float4(textureSubviews.sample(textureSubviewsSmplr, _2421.xy, uint(rint(_2421.z))).xyz, 1.0);
+            float3 _2478 = float3(st_1, float(_1723.subviewLayer));
+            fragment0.diffuseSample = float4(textureSubviews.sample(textureSubviewsSmplr, _2478.xy, uint(rint(_2478.z))).xyz, 1.0);
         }
         else
         {
@@ -1115,26 +1175,26 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _538 
         {
             CommonVertex param_8 = vertex0;
             CommonFragment param_9 = fragment0;
-            fragmentLightingLod(param_8, param_9, textureMaterial, textureMaterialSmplr, material, _538, _589, _607, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1629, _1659, _1666);
+            fragmentLightingLod(param_8, param_9, textureMaterial, textureMaterialSmplr, material, _544, _595, _613, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureShadowAtlas0, textureShadowAtlas0Smplr, textureShadowAtlas1, textureShadowAtlas1Smplr, textureShadowAtlas2, textureShadowAtlas2Smplr, textureShadowAtlas3, textureShadowAtlas3Smplr, textureShadowAtlas4, textureShadowAtlas4Smplr, textureShadowAtlas5, textureShadowAtlas5Smplr, textureSky, textureSkySmplr, _1686, _1716, _1723);
             fragment0 = param_9;
-            float4 _2464 = out.outColor;
-            float3 _2466 = _2464.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
-            out.outColor.x = _2466.x;
-            out.outColor.y = _2466.y;
-            out.outColor.z = _2466.z;
-            float4 _2478 = out.outColor;
-            float3 _2480 = _2478.xyz + (fragment0.specular * material.lighting);
-            out.outColor.x = _2480.x;
-            out.outColor.y = _2480.y;
-            out.outColor.z = _2480.z;
+            float4 _2521 = out.outColor;
+            float3 _2523 = _2521.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
+            out.outColor.x = _2523.x;
+            out.outColor.y = _2523.y;
+            out.outColor.z = _2523.z;
+            float4 _2535 = out.outColor;
+            float3 _2537 = _2535.xyz + (fragment0.specular * material.lighting);
+            out.outColor.x = _2537.x;
+            out.outColor.y = _2537.y;
+            out.outColor.z = _2537.z;
         }
         if ((material.flags & 262144) == 262144)
         {
-            float4 _2501 = out.outColor;
-            float3 _2503 = _2501.xyz + (fragment0.diffuseSample.xyz * material.emissive);
-            out.outColor.x = _2503.x;
-            out.outColor.y = _2503.y;
-            out.outColor.z = _2503.z;
+            float4 _2558 = out.outColor;
+            float3 _2560 = _2558.xyz + (fragment0.diffuseSample.xyz * material.emissive);
+            out.outColor.x = _2560.x;
+            out.outColor.y = _2560.y;
+            out.outColor.z = _2560.z;
         }
     }
     return out;

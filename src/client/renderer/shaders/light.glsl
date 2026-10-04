@@ -98,6 +98,26 @@ void cubemapFaceUv(in vec3 dir, out int face, out vec2 faceUv, out float ma) {
 }
 
 /**
+ * @brief Resolves the directions in which a cube face's sc and tc coordinates increase.
+ */
+void cubemapFaceAxes(in int face, out vec3 sAxis, out vec3 tAxis) {
+
+  if (face == 0) {
+    sAxis = vec3(0.0, 0.0, -1.0); tAxis = vec3(0.0, -1.0, 0.0);
+  } else if (face == 1) {
+    sAxis = vec3(0.0, 0.0, 1.0); tAxis = vec3(0.0, -1.0, 0.0);
+  } else if (face == 2) {
+    sAxis = vec3(1.0, 0.0, 0.0); tAxis = vec3(0.0, 0.0, 1.0);
+  } else if (face == 3) {
+    sAxis = vec3(1.0, 0.0, 0.0); tAxis = vec3(0.0, 0.0, -1.0);
+  } else if (face == 4) {
+    sAxis = vec3(1.0, 0.0, 0.0); tAxis = vec3(0.0, -1.0, 0.0);
+  } else {
+    sAxis = vec3(-1.0, 0.0, 0.0); tAxis = vec3(0.0, -1.0, 0.0);
+  }
+}
+
+/**
  * @brief Samples the shadow atlas face texture selected by face.
  */
 float sampleShadowFace(in int face, in vec3 uvw) {
@@ -155,13 +175,16 @@ float sampleShadowAtlas(in Light light, in CommonVertex v, in CommonFragment f, 
   float ma;
   cubemapFaceUv(lightToFrag, face, fuv, ma);
 
-  fuv.y = 1.0 - fuv.y;
+  // The filter is laid out in the plane of the fragment's own face, but each tap resolves its own
+  // face. Clamped to one face, taps never see across its edge, and a shadow edge lying on a face
+  // boundary, as grid-aligned geometry often does, is left unfiltered. The stored depth is radial,
+  // so it compares the same in any face.
+  vec3 sAxis, tAxis;
+  cubemapFaceAxes(face, sAxis, tAxis);
 
   vec2 halfTexel = 0.5 / texSize;
   vec2 tileMin = tileOrigin + halfTexel;
   vec2 tileMax = tileOrigin + vec2(tileUv) - halfTexel;
-
-  float filterUv = filterRadius / (2.0 * max(ma, 0.001));
 
   float importance = atten * clamp(1.0 - f.viewDist / 2048.0, 0.0, 1.0);
   int numSamples = importance > 0.3 ? 8 : (importance > 0.1 ? 4 : 2);
@@ -175,13 +198,21 @@ float sampleShadowAtlas(in Light light, in CommonVertex v, in CommonFragment f, 
     vec2 rotated = vec2(c * poissonDisk[i].x - s * poissonDisk[i].y,
                         s * poissonDisk[i].x + c * poissonDisk[i].y);
 
-    vec2 sampleFuv = fuv + rotated * filterUv;
+    // the face's v is flipped into the atlas, so the filter's v runs against tc
+    vec3 sampleDir = lightToFrag + (sAxis * rotated.x - tAxis * rotated.y) * filterRadius;
+
+    int sampleFace;
+    vec2 sampleFuv;
+    float sampleMa;
+    cubemapFaceUv(sampleDir, sampleFace, sampleFuv, sampleMa);
+
+    sampleFuv.y = 1.0 - sampleFuv.y;
 
     vec2 atlasUv = tileOrigin + sampleFuv * vec2(tileUv);
 
     atlasUv = clamp(atlasUv, tileMin, tileMax);
 
-    shadow += sampleShadowFace(face, vec3(atlasUv, currentDepth));
+    shadow += sampleShadowFace(sampleFace, vec3(atlasUv, currentDepth));
   }
 
   return shadow / float(numSamples);
