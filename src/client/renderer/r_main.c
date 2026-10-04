@@ -39,7 +39,9 @@ Cvar *r_drawMaterialStages;
 Cvar *r_drawWireframe;
 Cvar *r_occlude;
 Cvar *r_portals;
+Cvar *r_portalsQuality;
 Cvar *r_reflections;
+Cvar *r_reflectionsQuality;
 
 Cvar *r_ambient;
 Cvar *r_ambientOcclusion;
@@ -58,10 +60,13 @@ Cvar *r_modulate;
 Cvar *r_modulateMesh;
 Cvar *r_saturation;
 Cvar *r_parallax;
+Cvar *r_parallaxQuality;
 Cvar *r_parallaxShadow;
+Cvar *r_parallaxShadowQuality;
 Cvar *r_roughness;
 Cvar *r_screenshotFormat;
 Cvar *r_shadows;
+Cvar *r_shadowQuality;
 Cvar *r_shadowTileSize;
 Cvar *r_specularity;
 Cvar *r_swapInterval;
@@ -72,6 +77,14 @@ Cvar *r_windowWidth;
  * @brief MSAA sample count for the 3D scene.
  */
 SDL_GPUSampleCount renderSceneSamples = SDL_GPU_SAMPLECOUNT_1;
+
+int32_t R_QualityLevel(const Cvar *quality) {
+  return clamp(quality->integer, 1, 3);
+}
+
+float R_QualityScale(const Cvar *quality) {
+  return (float) (1 << (R_QualityLevel(quality) - 1)) * .25f;
+}
 
 /**
  * @brief Maps the r_antialias cvar to an SDL_gpu sample count.
@@ -183,6 +196,10 @@ void R_UpdateUniforms(const RenderView *view) {
     out->developer = developer->integer;
     out->wireframe = r_drawWireframe->integer;
     out->parallaxShadow = r_parallaxShadow->integer;
+    out->shadowSamples = (int32_t) (8.f * R_QualityScale(r_shadowQuality));
+    out->parallaxSamples = R_QualityScale(r_parallaxQuality);
+    out->parallaxShadowSamples = R_QualityScale(r_parallaxShadowQuality);
+    out->parallaxRefineSteps = 1 << (R_QualityLevel(r_parallaxQuality) - 1);
 
     // the player model preview must land all of its lookups on the one voxel of the fallback
     // buffers: clamping to a zero-sized grid would not, since clamp() with a low bound above
@@ -522,7 +539,9 @@ static void R_InitLocal(void) {
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
   r_drawWireframe = Cvar_Add("r_drawWireframe", "0", CVAR_DEVELOPER, "Draws world geometry as wireframe (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
+  r_portalsQuality = Cvar_Add("r_portalsQuality", "3", CVAR_ARCHIVE, "Portal resolution per axis: 1 = quarter, 2 = third, 3 = half.");
   r_reflections = Cvar_Add("r_reflections", "1", CVAR_ARCHIVE, "Controls rendering reflections in reflective surfaces.");
+  r_reflectionsQuality = Cvar_Add("r_reflectionsQuality", "3", CVAR_ARCHIVE, "Reflection resolution per axis: 1 = quarter, 2 = third, 3 = half.");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambientOcclusion = Cvar_Add("r_ambientOcclusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
@@ -541,10 +560,13 @@ static void R_InitLocal(void) {
   r_modulateMesh = Cvar_Add("r_modulateMesh", "1", CVAR_ARCHIVE, "Controls the brightness of players and items, to increase their visibility.");
   r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls the color saturation of the rendered scene. 0 = grayscale, 1 = normal, 2 = vivid.");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
+  r_parallaxQuality = Cvar_Add("r_parallaxQuality", "3", CVAR_ARCHIVE, "Parallax quality: 1 = 16 samples / half relief, 2 = 32 samples / three-quarter relief, 3 = 64 samples / full relief.");
   r_parallaxShadow = Cvar_Add("r_parallaxShadow", "1", CVAR_ARCHIVE, "Enables parallax self-shadows.");
+  r_parallaxShadowQuality = Cvar_Add("r_parallaxShadowQuality", "3", CVAR_ARCHIVE, "Parallax self-shadow quality: 1 = 4, 2 = 8, 3 = 16 samples maximum.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshotFormat = Cvar_Add("r_screenshotFormat", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
+  r_shadowQuality = Cvar_Add("r_shadowQuality", "3", CVAR_ARCHIVE, "Shadow PCF quality: 1 = 2, 2 = 4, 3 = 8 taps maximum.");
   r_shadowTileSize = Cvar_Add("r_shadowTileSize", "256", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadow atlas tile resolution (128-512).");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
   r_swapInterval = Cvar_Add("r_swapInterval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables mailbox (low latency, no tearing).");

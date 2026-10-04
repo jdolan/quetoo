@@ -29,6 +29,7 @@ void R_DrawSubviews(RenderView *view);
 #if defined(__R_LOCAL_H__)
 
 SDL_GPUTexture *R_SubviewTexture(const RenderView *view);
+SDL_Size R_SubviewSize(SDL_Size window, const Cvar *quality);
 void R_InitSubviews(void);
 void R_ShutdownSubviews(void);
 

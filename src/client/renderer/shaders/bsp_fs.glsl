@@ -89,7 +89,6 @@ CommonFragment fragment;
 
 #define PARALLAX_SAMPLES_PER_TEXEL 2.0
 #define PARALLAX_MAX_SAMPLES 64.0
-#define PARALLAX_REFINE_STEPS 4
 
 /**
  * @brief Applies parallax occlusion mapping to the fragment texcoord.
@@ -116,7 +115,8 @@ void parallaxOcclusionMapping(in CommonVertex vertex, inout CommonFragment fragm
   offset *= fade;
   sweep *= fade;
 
-  float numSamples = clamp(ceil(sweep * PARALLAX_SAMPLES_PER_TEXEL), 1.0, PARALLAX_MAX_SAMPLES);
+  float numSamples = clamp(ceil(sweep * PARALLAX_SAMPLES_PER_TEXEL * parallaxSamples),
+                           1.0, PARALLAX_MAX_SAMPLES * parallaxSamples);
 
   vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
   vec2 delta = offset * texel / numSamples;
@@ -140,7 +140,7 @@ void parallaxOcclusionMapping(in CommonVertex vertex, inout CommonFragment fragm
     displacement = sampleMaterialDisplacement(texcoord, fragment.texLod);
   }
 
-  for (int i = 0; i < PARALLAX_REFINE_STEPS; i++) {
+  for (int i = 0; i < parallaxRefineSteps; i++) {
     vec2 midTexcoord = (prevTexcoord + texcoord) * 0.5;
     float midDepth = (prevDepth + depth) * 0.5;
     float midDisplacement = sampleMaterialDisplacement(midTexcoord, fragment.texLod);

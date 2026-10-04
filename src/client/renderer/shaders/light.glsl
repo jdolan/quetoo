@@ -187,7 +187,7 @@ float sampleShadowAtlas(in Light light, in CommonVertex v, in CommonFragment f, 
   vec2 tileMax = tileOrigin + vec2(tileUv) - halfTexel;
 
   float importance = atten * clamp(1.0 - f.viewDist / 2048.0, 0.0, 1.0);
-  int numSamples = importance > 0.3 ? 8 : (importance > 0.1 ? 4 : 2);
+  int numSamples = max(1, shadowSamples / (importance > 0.3 ? 1 : (importance > 0.1 ? 2 : 4)));
 
   float s = f.shadowSinCos.x;
   float c = f.shadowSinCos.y;
@@ -359,7 +359,8 @@ float parallaxSelfShadow(in vec3 lightDir, in CommonVertex v, in CommonFragment 
   offset *= fade * rise;
   sweep *= fade * rise;
 
-  float numSamples = clamp(ceil(sweep * PARALLAX_SHADOW_SAMPLES_PER_TEXEL), 1.0, PARALLAX_SHADOW_MAX_SAMPLES);
+  float numSamples = clamp(ceil(sweep * PARALLAX_SHADOW_SAMPLES_PER_TEXEL * parallaxShadowSamples),
+                           1.0, PARALLAX_SHADOW_MAX_SAMPLES * parallaxShadowSamples);
 
   vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
   vec3 delta = vec3(offset * texel, rise) / numSamples;

@@ -33,10 +33,14 @@ struct uniformsBlock
     float caustics;
     float ambientOcclusion;
     float lightingDistance;
+    int shadowSamples;
+    int parallaxShadow;
+    float parallaxSamples;
+    float parallaxShadowSamples;
+    int parallaxRefineSteps;
     int editor;
     int developer;
     int wireframe;
-    int parallaxShadow;
 };
 
 struct main0_out

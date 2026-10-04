@@ -21,11 +21,6 @@
 
 #include "r_local.h"
 
-/**
- * @brief The factor by which subview framebuffers are smaller than the window, per axis.
- */
-#define SUBVIEW_FRAMEBUFFER_DIVISOR 2
-
 static struct {
   /**
    * @brief The views the subviews of a frame are drawn with, one per layer of the framebuffer.
@@ -36,16 +31,16 @@ static struct {
   RenderView views[MAX_SUBVIEWS];
 
   /**
-   * @brief The framebuffer all subviews render into, its color attachment holding one layer
-   * per subview of the loaded world. Its depth and depth copy are scratch, reused by each
-   * subview in turn, since subviews are drawn one after another and nothing reads them after.
+   * @brief The layered framebuffer for subviews at the larger effect resolution.
    */
   Framebuffer *framebuffer;
 
   /**
-   * @brief The window size the framebuffer was created for, so that it follows the window.
+   * @brief Scratch target for the smaller effect, only when resolutions differ.
    */
-  SDL_Size size;
+  Framebuffer *target;
+
+  SDL_Size portalSize, reflectionSize;
 
   /**
    * @brief A single-layer placeholder, bound when there is no subview framebuffer, since the
@@ -69,17 +64,17 @@ void R_ShutdownSubviews(void) {
   if (module.framebuffer) {
     R_DestroyFramebuffer(module.framebuffer);
     module.framebuffer = NULL;
-    module.size = MakeSize(0, 0);
   }
+
+  R_DestroyFramebuffer(module.target);
+  module.target = NULL;
 
   module.nullTexture = release(module.nullTexture);
 }
 
 /**
  * @return The array texture to bind to @p view's BSP subview sampler, never `NULL`.
- * @remarks A subview is drawn into that very texture, and binding a color attachment as a
- * sampler in the pass writing it is undefined, whether or not any fragment reads it. Subviews
- * sample nothing, so they are given the placeholder.
+ * @remarks Subviews never sample other subviews and receive the placeholder.
  */
 SDL_GPUTexture *R_SubviewTexture(const RenderView *view) {
 
@@ -356,37 +351,25 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
   view->diagnostics.portalsOffered++;
 }
 
-/**
- * @brief Creates or resizes the subview framebuffer for the loaded world.
- * @remarks The color attachment is layered, one layer per subview, so that the BSP fragment
- * stage samples every subview from a single binding.
- * @details Subviews render at half the window's resolution. A subview is sampled through a
- * warping material with further stages over it, so a full size layer per subview buys nothing
- * that can be seen, and costs a whole scene's fill rate each. The projection is unaffected: it
- * comes from the view's own viewport rather than from this size, so the image still registers
- * with the face, and only the rasterization is coarser.
- */
-static void R_UpdateSubviewFramebuffer(void) {
+static void R_UpdateSubviewTarget(Framebuffer **target, const SDL_Size size, const bool layered) {
 
-  const SDL_Size window = MakeSize(renderContext.windowBounds.w, renderContext.windowBounds.h);
+  const SDL_GPUSampleCount samples = renderSceneSamples;
 
-  if (module.framebuffer) {
-    if (module.size.w == window.w && module.size.h == window.h) {
+  if (*target) {
+    if ((*target)->size.w == size.w && (*target)->size.h == size.h && (*target)->sampleCount == samples) {
       return;
     }
-
-    R_DestroyFramebuffer(module.framebuffer);
+    R_DestroyFramebuffer(*target);
   }
 
-  module.size = window;
-
-  module.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
-    .size = MakeSize(window.w / SUBVIEW_FRAMEBUFFER_DIVISOR, window.h / SUBVIEW_FRAMEBUFFER_DIVISOR),
+  *target = $(renderContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+    .size = size,
+    .sampleCount = samples,
     .colorAttachments = {
       {
         .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .clearColor = { 0.f, 0.f, 0.f, 1.f },
-        .layerCount = MAX_SUBVIEWS,
+        .layerCount = layered ? MAX_SUBVIEWS : 1,
       },
       {
         .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
@@ -395,8 +378,54 @@ static void R_UpdateSubviewFramebuffer(void) {
       },
     },
     .numColorTargets = 2,
-    .depthAttachment = { .format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT, .clearDepth = 1.f },
+    .depthAttachment = {
+      .format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+      .clearDepth = 1.f
+    },
   });
+}
+
+SDL_Size R_SubviewSize(const SDL_Size window, const Cvar *quality) {
+  const int32_t divisor = 5 - R_QualityLevel(quality);
+  return R_FramebufferSize(MakeSize(window.w / divisor, window.h / divisor));
+}
+
+/**
+ * @brief Caches independently sized scene targets and a single array for both effect types.
+ * @details Only rasterization changes: the outer view's projection and normalized sampling
+ * coordinates are preserved. High retains the existing half-resolution rendering.
+ */
+static void R_UpdateSubviewFramebuffer(void) {
+
+  const SDL_Size window = MakeSize(renderContext.windowBounds.w, renderContext.windowBounds.h);
+
+  module.portalSize = r_portals->integer
+    ? R_SubviewSize(window, r_portalsQuality) : MakeSize(0, 0);
+  module.reflectionSize = r_reflections->integer
+    ? R_SubviewSize(window, r_reflectionsQuality) : MakeSize(0, 0);
+
+  const SDL_Size largest = MakeSize(Maxi(module.portalSize.w, module.reflectionSize.w),
+                                    Maxi(module.portalSize.h, module.reflectionSize.h));
+  const SDL_Size smallest = MakeSize(Mini(module.portalSize.w, module.reflectionSize.w),
+                                     Mini(module.portalSize.h, module.reflectionSize.h));
+
+  R_UpdateSubviewTarget(&module.framebuffer, largest, true);
+  if (smallest.w && smallest.h && (smallest.w != largest.w || smallest.h != largest.h)) {
+    R_UpdateSubviewTarget(&module.target, smallest, false);
+  } else {
+    R_DestroyFramebuffer(module.target);
+    module.target = NULL;
+  }
+}
+
+static Framebuffer *R_SubviewFramebuffer(const RenderSubview *subview) {
+  const SDL_Size size = subview->type == SUBVIEW_PORTAL ? module.portalSize : module.reflectionSize;
+  Framebuffer *target = module.framebuffer;
+  if (target->size.w != size.w || target->size.h != size.h) {
+    target = module.target;
+  }
+  assert(target);
+  return target;
 }
 
 /**
@@ -486,7 +515,7 @@ static void R_UpdateSubviewFrustum(RenderView *view, Vec2 mins, Vec2 maxs) {
  */
 static SDL_Rect R_SubviewScissor(const RenderSubview *subview, const bool projected, const Vec2 mins, const Vec2 maxs) {
 
-  const SDL_Size size = module.framebuffer->size;
+  const SDL_Size size = R_SubviewFramebuffer(subview)->size;
   const SDL_Rect framebuffer = { 0, 0, size.w, size.h };
 
   if (!projected) {
@@ -523,7 +552,8 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor,
 
   RenderView *view = subview->view;
 
-  view->framebuffer = module.framebuffer;
+  Framebuffer *target = R_SubviewFramebuffer(subview);
+  view->framebuffer = target;
 
   if (projected) {
     R_UpdateSubviewFrustum(view, mins, maxs);
@@ -546,12 +576,13 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor,
   }
 
   const SDL_GPUColorTargetInfo color[] = {
-    $(module.framebuffer, colorTargetInfoForLayer, 0, (Uint32) subview->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
-    $(module.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(target, colorTargetInfoForLayer, 0, target == module.framebuffer ? (Uint32) subview->layer : 0,
+      SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(target, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
   const SDL_GPUDepthStencilTargetInfo depth =
-    $(module.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
+    $(target, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
@@ -560,7 +591,7 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor,
   // same viewport again for themselves
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
-    .w = (float) module.framebuffer->size.w, .h = (float) module.framebuffer->size.h,
+    .w = (float) target->size.w, .h = (float) target->size.h,
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
@@ -573,6 +604,28 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor,
   R_DrawSprites(view, pass);
 
   pass = release(pass);
+
+  if (target == module.framebuffer) {
+    return;
+  }
+
+  Texture *source = $(target, resolveColorTexture, 0);
+  Texture *destination = $(module.framebuffer, resolveColorTexture, 0);
+  $(commands, blitTexture, &(SDL_GPUBlitInfo) {
+    .source = {
+      .texture = source->texture,
+      .w = (Uint32) target->size.w,
+      .h = (Uint32) target->size.h,
+    },
+    .destination = {
+      .texture = destination->texture,
+      .layer_or_depth_plane = (Uint32) subview->layer,
+      .w = (Uint32) module.framebuffer->size.w,
+      .h = (Uint32) module.framebuffer->size.h,
+    },
+    .load_op = SDL_GPU_LOADOP_DONT_CARE,
+    .filter = SDL_GPU_FILTER_LINEAR,
+  });
 }
 
 /**
@@ -628,10 +681,8 @@ static void R_UpdateSubviewScene(const RenderView *view, RenderView *out) {
  * drawn for, so the atlas it rendered lines up. They draw subview faces on their plain material
  * rather than sampled, which is what keeps this from recursing; see `R_PushBspSubviewLayer`.
  *
- * Their particles are not softened. Softening blends against a double buffered copy of the
- * view's own depth, and one copy cannot serve several subviews in a frame -- nor can each have
- * its own, since a render pass has four color targets -- so `sprite_fs` draws them hard rather
- * than against whichever subview was drawn last.
+ * Their particles are not softened. Scratch depth copies are shared between subviews, so
+ * `sprite_fs` draws them hard rather than against whichever subview was drawn last.
  * @param view The view being drawn around these, whose uniforms are restored before
  * returning, since `R_DrawMainView` relies on the ones `R_DrawViewDepth` wrote for it.
  */
@@ -719,6 +770,9 @@ void R_DrawSubviews(RenderView *view) {
   }
 
   $(module.framebuffer, swap);
+  if (module.target) {
+    $(module.target, swap);
+  }
 
   renderDiagnostics = diagnostics;
 

@@ -62,9 +62,17 @@ struct SettingsViewController {
   Select *quality;
 
   /**
-   * @brief The bloom Select.
+   * @brief The bloom Slider.
    */
-  Select *bloom;
+  Slider *bloom;
+
+  /**
+   * @brief Borrowed quality slider outlets: shadows, parallax, self-shadow, portals, reflections.
+   */
+  Slider *effects[5];
+
+  Slider *shadowResolution;
+  Slider *lightingDistance;
 };
 
 /**

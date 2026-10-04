@@ -28,6 +28,19 @@
 
 #pragma mark - Quality presets
 
+static const struct {
+  const char *identifier;
+  const char *enabled;
+  const char *quality;
+  bool intensity;
+} effectSettings[] = {
+  { "shadowQuality", "r_shadows", "r_shadowQuality", false },
+  { "parallaxQuality", "r_parallax", "r_parallaxQuality", true },
+  { "parallaxShadowQuality", "r_parallaxShadow", "r_parallaxShadowQuality", false },
+  { "portalsQuality", "r_portals", "r_portalsQuality", false },
+  { "reflectionsQuality", "r_reflections", "r_reflectionsQuality", false },
+};
+
 typedef struct {
   int32_t shadows;
   int32_t shadowTileSize;
@@ -39,6 +52,7 @@ typedef struct {
   int32_t addAtmospheric;
   int32_t reflections;
   int32_t portals;
+  int32_t effectQuality[5];
 } QualityPreset;
 
 static const QualityPreset qualityPresets[] = {
@@ -53,6 +67,7 @@ static const QualityPreset qualityPresets[] = {
     .addAtmospheric         = 0,
     .reflections            = 0,
     .portals                = 0,
+    .effectQuality          = { 1, 1, 1, 1, 1 },
   },
   [1] = { // Medium
     .shadows                = 1,
@@ -65,6 +80,7 @@ static const QualityPreset qualityPresets[] = {
     .addAtmospheric         = 1,
     .reflections            = 0,
     .portals                = 1,
+    .effectQuality          = { 1, 1, 1, 1, 1 },
   },
   [2] = { // High
     .shadows                = 1,
@@ -77,6 +93,7 @@ static const QualityPreset qualityPresets[] = {
     .addAtmospheric         = 1,
     .reflections            = 1,
     .portals                = 1,
+    .effectQuality          = { 2, 2, 2, 2, 2 },
   },
   [3] = { // Highest
     .shadows                = 1,
@@ -89,6 +106,7 @@ static const QualityPreset qualityPresets[] = {
     .addAtmospheric         = 1,
     .reflections            = 1,
     .portals                = 1,
+    .effectQuality          = { 3, 3, 3, 3, 3 },
   },
 };
 
@@ -106,13 +124,16 @@ static void applyQualityPreset(const QualityPreset *p) {
   cgi.SetCvarInteger("cg_addAtmospheric",   p->addAtmospheric);
   cgi.SetCvarInteger("r_reflections",       p->reflections);
   cgi.SetCvarInteger("r_portals",           p->portals);
+  for (size_t i = 0; i < lengthof(effectSettings); i++) {
+    cgi.SetCvarInteger(effectSettings[i].quality, p->effectQuality[i]);
+  }
 }
 
 /**
  * @return The index of the matching preset, or -1 if no preset matches.
  */
 static intptr_t detectQualityPreset(void) {
-  const QualityPreset current = {
+  QualityPreset current = {
     .shadows          = cgi.GetCvarInteger("r_shadows"),
     .shadowTileSize   = cgi.GetCvarInteger("r_shadowTileSize"),
     .lightingDistance = cgi.GetCvarInteger("r_lightingDistance"),
@@ -125,6 +146,18 @@ static intptr_t detectQualityPreset(void) {
     .portals          = cgi.GetCvarInteger("r_portals"),
   };
 
+  if (cgi.GetCvarValue("r_parallax") != current.parallax ||
+      cgi.GetCvarValue("r_caustics") != current.caustics) {
+    return -1;
+  }
+
+  for (size_t i = 0; i < lengthof(effectSettings); i++) {
+    current.effectQuality[i] = cgi.GetCvarInteger(effectSettings[i].quality);
+    if (cgi.GetCvarValue(effectSettings[i].quality) != current.effectQuality[i]) {
+      return -1;
+    }
+  }
+
   for (size_t i = 0; i < lengthof(qualityPresets); i++) {
     if (memcmp(&current, &qualityPresets[i], sizeof(QualityPreset)) == 0) {
       return (intptr_t) i;
@@ -132,29 +165,6 @@ static intptr_t detectQualityPreset(void) {
   }
 
   return -1;
-}
-
-#pragma mark - Bloom
-
-/**
- * @return The bloom iterations, 0 if bloom is disabled, or -1 if the iterations match no option.
- */
-static intptr_t detectBloom(void) {
-
-  if (cgi.GetCvarValue("r_bloom") <= 0.f) {
-    return 0;
-  }
-
-  switch (cgi.GetCvarInteger("r_bloomIterations")) {
-    case 2:
-      return 2;
-    case 4:
-      return 4;
-    case 8:
-      return 8;
-    default:
-      return -1;
-  }
 }
 
 #pragma mark - Frame limiter
@@ -198,6 +208,60 @@ static intptr_t detectMaxFps(void) {
 
 #pragma mark - Delegates
 
+static void refreshQualityControls(SettingsViewController *self) {
+
+  for (size_t i = 0; i < lengthof(effectSettings); i++) {
+    const Cvar *enabled = cgi.GetCvar(effectSettings[i].enabled);
+    const bool active = effectSettings[i].intensity ? enabled->value != 0.f : enabled->integer != 0;
+    const int32_t quality = clamp(cgi.GetCvarInteger(effectSettings[i].quality), 1, 3);
+    $(self->effects[i], setValue, active ? quality : 0);
+  }
+
+  $(self->shadowResolution, setValue, cgi.GetCvarInteger("r_shadowTileSize"));
+  $(self->lightingDistance, setValue, cgi.GetCvarValue("r_lightingDistance"));
+  $(self->bloom, setValue, cgi.GetCvarValue("r_bloom") > 0.f
+    ? max(2, cgi.GetCvarInteger("r_bloomIterations")) : 0);
+  $(self->quality, selectOptionWithValue, (ident) detectQualityPreset());
+  $(self->viewController.view, updateBindings, NULL);
+}
+
+static void didSetEffectQuality(Slider *slider, double value) {
+
+  SettingsViewController *this = slider->delegate.self;
+
+  for (size_t i = 0; i < lengthof(effectSettings); i++) {
+    if (this->effects[i] != slider) {
+      continue;
+    }
+
+    const Cvar *enabled = cgi.GetCvar(effectSettings[i].enabled);
+    if (value == 0) {
+      cgi.SetCvarInteger(enabled->name, 0);
+    } else {
+      cgi.SetCvarInteger(effectSettings[i].quality, (int32_t) value);
+      const bool active = effectSettings[i].intensity ? enabled->value != 0.f : enabled->integer != 0;
+      if (!active) {
+        cgi.SetCvarString(enabled->name, enabled->defaultString);
+      }
+    }
+
+    refreshQualityControls(this);
+    return;
+  }
+
+  assert(false);
+}
+
+static void didSetShadowResolution(Slider *slider, double value) {
+  cgi.SetCvarInteger("r_shadowTileSize", (int32_t) value);
+  refreshQualityControls(slider->delegate.self);
+}
+
+static void didSetLightingDistance(Slider *slider, double value) {
+  cgi.SetCvarInteger("r_lightingDistance", (int32_t) value);
+  refreshQualityControls(slider->delegate.self);
+}
+
 /**
  * @brief ButtonDelegate for the Apply button.
  */
@@ -215,9 +279,9 @@ static void didSelectQuality(Select *select, Option *option) {
     applyQualityPreset(&qualityPresets[index]);
   }
 
-  ViewController *this = select->delegate.self;
+  SettingsViewController *this = select->delegate.self;
   if (this) {
-    $(this->view, updateBindings, NULL);
+    refreshQualityControls(this);
   }
 }
 
@@ -233,27 +297,22 @@ static void didSelectMaxFps(Select *select, Option *option) {
 }
 
 /**
- * @brief SelectDelegate callback for bloom.
- * @details The Select chooses the blur iterations. A player who tuned the bloom intensity keeps it,
+ * @brief SliderDelegate callback for bloom.
+ * @details The Slider chooses the blur iterations. A player who tuned the bloom intensity keeps it,
  * and only enabling bloom from Off restores the default intensity.
  */
-static void didSelectBloom(Select *select, Option *option) {
+static void didSetBloom(Slider *slider, double value) {
 
-  const int32_t iterations = (int32_t) (intptr_t) option->value;
-  if (iterations < 0) {
-    return;
-  }
-
-  if (iterations == 0) {
+  if (value == 0) {
     cgi.SetCvarInteger("r_bloom", 0);
-    return;
+  } else {
+    if (cgi.GetCvarValue("r_bloom") <= 0.f) {
+      cgi.SetCvarString("r_bloom", cgi.GetCvar("r_bloom")->defaultString);
+    }
+    cgi.SetCvarInteger("r_bloomIterations", (int32_t) value);
   }
 
-  if (cgi.GetCvarValue("r_bloom") <= 0.f) {
-    cgi.SetCvarString("r_bloom", cgi.GetCvar("r_bloom")->defaultString);
-  }
-
-  cgi.SetCvarInteger("r_bloomIterations", iterations);
+  refreshQualityControls(slider->delegate.self);
 }
 
 /**
@@ -264,10 +323,7 @@ static void didSelectTab(TabView *tabView, TabViewItem *tab) {
 
   SettingsViewController *this = tabView->delegate.self;
 
-  $(this->quality, selectOptionWithValue, (ident) detectQualityPreset());
-  $(this->bloom, selectOptionWithValue, (ident) detectBloom());
-
-  $(((ViewController *) this)->view, updateBindings, NULL);
+  refreshQualityControls(this);
 }
 
 /**
@@ -381,7 +437,7 @@ static void loadView(ViewController *self) {
   this->tabViewController->tabView->delegate.self = this;
   this->tabViewController->tabView->delegate.didSelectTab = didSelectTab;
 
-  Select *windowMode, *maxFps, *verticalSync, *anisotropy, *antialias, *shadowTileSize, *lightingDistance;
+  Select *windowMode, *maxFps, *verticalSync, *anisotropy, *antialias;
   CvarSelect *playbackDevice, *captureDevice;
   Button *apply;
 
@@ -392,8 +448,8 @@ static void loadView(ViewController *self) {
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("antialias", &antialias),
     MakeOutlet("quality", &this->quality),
-    MakeOutlet("shadowTileSize", &shadowTileSize),
-    MakeOutlet("lightingDistance", &lightingDistance),
+    MakeOutlet("shadowResolution", &this->shadowResolution),
+    MakeOutlet("lightingDistance", &this->lightingDistance),
     MakeOutlet("bloom", &this->bloom),
     MakeOutlet("playbackDevice", &playbackDevice),
     MakeOutlet("captureDevice", &captureDevice),
@@ -401,6 +457,31 @@ static void loadView(ViewController *self) {
   );
 
   $(self->view, resolve, outlets);
+
+  static_assert(lengthof(effectSettings) == lengthof(this->effects), "Effect quality outlets");
+  for (size_t i = 0; i < lengthof(effectSettings); i++) {
+    Outlet effectOutlets[] = MakeOutlets(MakeOutlet(effectSettings[i].identifier, &this->effects[i]));
+    $(self->view, resolve, effectOutlets);
+    this->effects[i]->delegate = (SliderDelegate) {
+      .self = this,
+      .didSetValue = didSetEffectQuality,
+    };
+  }
+
+  this->shadowResolution->delegate = (SliderDelegate) {
+    .self = this,
+    .didSetValue = didSetShadowResolution,
+  };
+
+  this->lightingDistance->delegate = (SliderDelegate) {
+    .self = this,
+    .didSetValue = didSetLightingDistance,
+  };
+
+  this->bloom->delegate = (SliderDelegate) {
+    .self = this,
+    .didSetValue = didSetBloom,
+  };
 
   $(self->view, enumerateSelection, "BindTextView", setBindDelegate, self);
 
@@ -444,26 +525,6 @@ static void loadView(ViewController *self) {
 
   $(this->quality, selectOptionWithValue, (ident) detectQualityPreset());
 
-  $(shadowTileSize, addOption, "Low", (ident) 128);
-  $(shadowTileSize, addOption, "Medium", (ident) 256);
-  $(shadowTileSize, addOption, "High", (ident) 512);
-
-  $(lightingDistance, addOption, "Low", (ident) 1024);
-  $(lightingDistance, addOption, "Medium", (ident) 2048);
-  $(lightingDistance, addOption, "High", (ident) 4096);
-  $(lightingDistance, addOption, "Highest", (ident) 8192);
-
-  $(this->bloom, addOption, "Custom", (ident) -1);
-  $(this->bloom, addOption, "Off", (ident) 0);
-  $(this->bloom, addOption, "Low", (ident) 2);
-  $(this->bloom, addOption, "Medium", (ident) 4);
-  $(this->bloom, addOption, "High", (ident) 8);
-
-  this->bloom->delegate.self = self;
-  this->bloom->delegate.didSelectOption = didSelectBloom;
-
-  $(this->bloom, selectOptionWithValue, (ident) detectBloom());
-
   int32_t count = 0;
   SDL_AudioDeviceID *devices = SDL_GetAudioPlaybackDevices(&count);
   addAudioDevices(playbackDevice, devices, count);
@@ -473,6 +534,13 @@ static void loadView(ViewController *self) {
 
   apply->delegate.didClick = didClickApply;
   apply->delegate.self = self;
+
+  refreshQualityControls(this);
+}
+
+static void viewWillAppear(ViewController *self) {
+  super(ViewController, self, viewWillAppear);
+  refreshQualityControls((SettingsViewController *) self);
 }
 
 #pragma mark - Class lifecycle
@@ -485,6 +553,7 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**

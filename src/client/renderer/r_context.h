@@ -26,6 +26,7 @@
 extern RenderContext renderContext;
 
 void R_UpdateContext(void);
+SDL_Size R_FramebufferSize(SDL_Size size);
 
 /**
  * @brief Creates a framebuffer from @p info using the renderer's scaled size and scene sample count.

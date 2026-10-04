@@ -168,6 +168,27 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniformsB
   float lightingDistance;
 
   /**
+   * @brief Maximum adaptive PCF tap count.
+   */
+  int shadowSamples;
+
+  /**
+   * @brief Non-zero when parallax self-shadows are enabled.
+   */
+  int parallaxShadow;
+
+  /**
+   * @brief Parallax raymarch sampling density and maximum scalars.
+   */
+  float parallaxSamples;
+  float parallaxShadowSamples;
+
+  /**
+   * @brief Parallax binary-refinement step count.
+   */
+  int parallaxRefineSteps;
+
+  /**
    * @brief Editor debug flags.
    */
   int editor;
@@ -181,11 +202,6 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniformsB
    * @brief Non-zero when world geometry is drawn as wireframe, in white, with no sampling.
    */
   int wireframe;
-
-  /**
-   * @brief Non-zero when parallax self-shadows are enabled.
-   */
-  int parallaxShadow;
 };
 
 #endif // _UNIFORMS_GLSL_

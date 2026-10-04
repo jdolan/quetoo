@@ -41,21 +41,26 @@
                           }
                         },
                         "control": {
-                          "class": "CvarCheckbox",
-                          "var": "r_shadows"
+                          "class": "Slider",
+                          "identifier": "shadowQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
                         }
                       },
                       {
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Shadow quality"
+                            "text": "Shadow resolution"
                           }
                         },
                         "control": {
-                          "class": "CvarSelect",
-                          "identifier": "shadowTileSize",
-                          "var": "r_shadowTileSize"
+                          "class": "Slider",
+                          "identifier": "shadowResolution",
+                          "classNames": ["effectQuality"],
+                          "values": [128, 256, 512],
+                          "labels": ["Low", "Medium", "High"]
                         }
                       },
                       {
@@ -66,9 +71,11 @@
                           }
                         },
                         "control": {
-                          "class": "CvarSelect",
+                          "class": "Slider",
                           "identifier": "lightingDistance",
-                          "var": "r_lightingDistance"
+                          "classNames": ["effectQuality"],
+                          "values": [1024, 2048, 4096, 8192],
+                          "labels": ["Low", "Medium", "High", "Highest"]
                         }
                       },
                       {
@@ -114,8 +121,11 @@
                           }
                         },
                         "control": {
-                          "class": "CvarCheckbox",
-                          "var": "r_parallax"
+                          "class": "Slider",
+                          "identifier": "parallaxQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
                         }
                       },
                       {
@@ -126,8 +136,11 @@
                           }
                         },
                         "control": {
-                          "class": "CvarCheckbox",
-                          "var": "r_parallaxShadow"
+                          "class": "Slider",
+                          "identifier": "parallaxShadowQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
                         }
                       },
                       {
@@ -150,8 +163,11 @@
                           }
                         },
                         "control": {
-                          "class": "CvarCheckbox",
-                          "var": "r_reflections"
+                          "class": "Slider",
+                          "identifier": "reflectionsQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
                         }
                       },
                       {
@@ -162,8 +178,11 @@
                           }
                         },
                         "control": {
-                          "class": "CvarCheckbox",
-                          "var": "r_portals"
+                          "class": "Slider",
+                          "identifier": "portalsQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
                         }
                       }
                     ]
@@ -195,8 +214,24 @@
                           }
                         },
                         "control": {
-                          "class": "Select",
-                          "identifier": "bloom"
+                          "class": "Slider",
+                          "identifier": "bloom",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 2, 4, 8],
+                          "labels": ["Off", "Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Decals"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "identifier": "decals",
+                          "var": "cg_addDecals"
                         }
                       },
                       {

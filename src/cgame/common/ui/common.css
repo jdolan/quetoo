@@ -108,6 +108,11 @@ TextView {
   autoresizing-mask: contain | width;
 }
 
+.settingsTab Slider.effectQuality {
+  min-width: 200;
+  max-width: 200;
+}
+
 .columns {
   autoresizing-mask: contain;
   axis: horizontal;
@@ -336,4 +341,3 @@ CameraControlsView > Text {
   font-size: 20;
   text-transform: uppercase;
 }
-

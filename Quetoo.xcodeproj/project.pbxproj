@@ -191,6 +191,7 @@
 		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
 		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
 		A790EABCD57D46D9B0A80850 /* material_light.c in Sources */ = {isa = PBXBuildFile; fileRef = 0CCDA7DD47374DC3BA55D24A /* material_light.c */; };
+		A821A43811D4AEAD39192267 /* SoundSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */; };
 		A978478284E6A536361DE6FC /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
 		AC814FDD1291470DA9883B6C /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
@@ -201,6 +202,7 @@
 		B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		B221DFE8D70C9012A418D37B /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		B2B62AE1E7C09567B299F1AA /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
+		B325DB5E0D42C6B8A789B6A3 /* GraphicsSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */; };
 		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		B4BEE8A9F5DA5D6E42A56454 /* cl_analytics.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B5E2E164CF77588FE00447F /* cl_analytics.c */; };
 		B50A7AB9A94C86F0D55675BD /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* hud.json */; };
@@ -648,9 +650,6 @@
 		CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */; };
 		CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */; };
 		CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2F20310763004BC58E /* SettingsViewController.json */; };
-		B325DB5E0D42C6B8A789B6A3 /* GraphicsSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */; };
-		A821A43811D4AEAD39192267 /* SoundSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */; };
-		D092C988E74BA9DDCD9C8058 /* AdvancedSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */; };
 		CE7FCDD72596996600E49A2D /* cl_screen.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7FCDD52596996500E49A2D /* cl_screen.c */; };
 		CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7FCDD62596996500E49A2D /* cl_screen.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
@@ -1194,6 +1193,7 @@
 		CFA000252F9100000000C025 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		CFA000272F9100000000C027 /* StageViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000142F9100000000C027 /* StageViewController.css */; };
 		CFA000282F9100000000C028 /* StageViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000152F9100000000C028 /* StageViewController.json */; };
+		D092C988E74BA9DDCD9C8058 /* AdvancedSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */; };
 		D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000102 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
@@ -2304,6 +2304,7 @@
 		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
 		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
+		B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = AdvancedSettings.json; sourceTree = "<group>"; };
 		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		B76C2B2AE24E2511ACC08DEF /* MapList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapList.h; sourceTree = "<group>"; };
 		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
@@ -2572,7 +2573,7 @@
 		CE12D6B41C5C58C300CD0B13 /* sv_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_types.h; sourceTree = "<group>"; };
 		CE12D6B51C5C58C300CD0B13 /* sv_world.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_world.c; sourceTree = "<group>"; };
 		CE12D6B61C5C58C300CD0B13 /* sv_world.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_world.h; sourceTree = "<group>"; };
-		CE12D6B71C5C58C300CD0B13 /* shared_anorms.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "shared_anorms.c"; sourceTree = "<group>"; };
+		CE12D6B71C5C58C300CD0B13 /* shared_anorms.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shared_anorms.c; sourceTree = "<group>"; };
 		CE12D6B81C5C58C300CD0B13 /* shared.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shared.c; sourceTree = "<group>"; };
 		CE12D6B91C5C58C300CD0B13 /* shared.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shared.h; sourceTree = "<group>"; };
 		CE12D6BA1C5C58C300CD0B13 /* swap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swap.c; sourceTree = "<group>"; };
@@ -2870,9 +2871,6 @@
 		CE7D2C2A2030F269004BC58E /* DialogViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
 		CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LoadingViewController.json; sourceTree = "<group>"; };
 		CE7D2C2F20310763004BC58E /* SettingsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SettingsViewController.json; sourceTree = "<group>"; };
-		EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GraphicsSettings.json; sourceTree = "<group>"; };
-		F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SoundSettings.json; sourceTree = "<group>"; };
-		B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = AdvancedSettings.json; sourceTree = "<group>"; };
 		CE7FCDD52596996500E49A2D /* cl_screen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cl_screen.c; sourceTree = "<group>"; };
 		CE7FCDD62596996500E49A2D /* cl_screen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cl_screen.h; sourceTree = "<group>"; };
 		CE80FD871C5E3B6F00A21A51 /* quemap */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quemap; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2901,6 +2899,7 @@
 		CE9453C9305F876A000A4CA7 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		CE948B0F223564E900D961FA /* check_shared.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_shared.c; sourceTree = "<group>"; };
 		CE948B222235652600D961FA /* check_shared */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_shared; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE95122B3072923200410F5C /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		CE9A67092D2588B20068D720 /* check_box.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_box.c; sourceTree = "<group>"; };
 		CE9A67152D2589020068D720 /* check_box */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_box; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9CFC9023E792FE0009DA65 /* cg_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_light.h; sourceTree = "<group>"; };
@@ -3157,9 +3156,11 @@
 		E960839170EAFC21DD702B32 /* cg_portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_portal.c; sourceTree = "<group>"; };
 		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
 		EB4A4D641AA8495FB08D9F0E /* NotifyView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NotifyView.c; sourceTree = "<group>"; };
+		EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GraphicsSettings.json; sourceTree = "<group>"; };
 		EDF1F957220B1D1A54279F71 /* drawface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawface.h; sourceTree = "<group>"; };
 		F1709306B7EECB871EDD5BE3 /* cg_portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_portal.h; sourceTree = "<group>"; };
 		F2440E567EED9135ED4DDDC8 /* ScoreView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ScoreView.json; sourceTree = "<group>"; };
+		F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SoundSettings.json; sourceTree = "<group>"; };
 		F62845AB16EAC431505215D1 /* FpsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FpsView.h; sourceTree = "<group>"; };
 		F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosCollectionItemView.c; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
@@ -3924,6 +3925,7 @@
 				CE12D5091C5C58C300CD0B13 /* doc */,
 				CE12D50D1C5C58C300CD0B13 /* linux */,
 				CE12D5381C5C58C300CD0B13 /* src */,
+				CE95122B3072923200410F5C /* AGENTS.md */,
 				CE9453C9305F876A000A4CA7 /* CLAUDE.md */,
 				CE12D4A71C5C58C300CD0B13 /* config.h */,
 				CE12D4A81C5C58C300CD0B13 /* configure.ac */,

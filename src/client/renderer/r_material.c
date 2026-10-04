@@ -460,7 +460,9 @@ void R_MaterialUniforms(const RenderMaterial *material, int32_t surface, RenderM
   out->roughness = def->roughness * r_roughness->value;
   out->hardness = def->hardness * r_hardness->value;
   out->specularity = def->specularity * r_specularity->value;
-  out->parallax = def->parallax * r_parallax->value;
+  // The ray offset squares parallax, so scale its square root to reduce relief linearly.
+  const float relief = .25f * (R_QualityLevel(r_parallaxQuality) + 1);
+  out->parallax = def->parallax * r_parallax->value * sqrtf(relief);
 }
 
 /**

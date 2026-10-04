@@ -40,10 +40,15 @@ extern Cvar *r_modulate;
 extern Cvar *r_modulateMesh;
 extern Cvar *r_saturation;
 extern Cvar *r_parallax;
+extern Cvar *r_parallaxQuality;
 extern Cvar *r_parallaxShadow;
+extern Cvar *r_parallaxShadowQuality;
+extern Cvar *r_portalsQuality;
+extern Cvar *r_reflectionsQuality;
 extern Cvar *r_roughness;
 extern Cvar *r_screenshotFormat;
 extern Cvar *r_shadows;
+extern Cvar *r_shadowQuality;
 extern Cvar *r_shadowTileSize;
 extern Cvar *r_specularity;
 extern Cvar *r_swapInterval;
@@ -53,6 +58,8 @@ extern Cvar *r_windowWidth;
 extern SDL_GPUSampleCount renderSceneSamples;
 SDL_GPUSampleCount R_SampleCount(void);
 SDL_GPUFillMode R_FillMode(void);
+int32_t R_QualityLevel(const Cvar *quality);
+float R_QualityScale(const Cvar *quality);
 
 void R_Init(void);
 void R_Shutdown(void);
@@ -225,24 +232,40 @@ typedef struct {
     float lightingDistance;
 
     /**
-     * @brief Non-zero when the in-game editor is active.
+     * @brief Maximum adaptive PCF tap count.
      */
-    int editor;
-
-    /**
-     * @brief Non-zero when developer mode is enabled.
-     */
-    int developer;
-
-    /**
-     * @brief Non-zero when world geometry is drawn as wireframe, in white, with no sampling.
-     */
-    int wireframe;
+    int32_t shadowSamples;
 
     /**
      * @brief Non-zero when parallax self-shadows are enabled.
      */
-    int parallaxShadow;
+    int32_t parallaxShadow;
+
+    /**
+     * @brief Parallax raymarch sampling density and maximum scalars.
+     */
+    float parallaxSamples;
+    float parallaxShadowSamples;
+
+    /**
+     * @brief Parallax binary-refinement step count.
+     */
+    int32_t parallaxRefineSteps;
+
+    /**
+     * @brief Non-zero when the in-game editor is active.
+     */
+    int32_t editor;
+
+    /**
+     * @brief Non-zero when developer mode is enabled.
+     */
+    int32_t developer;
+
+    /**
+     * @brief Non-zero when world geometry is drawn as wireframe, in white, with no sampling.
+     */
+    int32_t wireframe;
   } block;
 
 } RenderUniforms;

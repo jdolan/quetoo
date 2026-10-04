@@ -204,19 +204,26 @@ void R_ShutdownContext(void) {
 }
 
 /**
- * @brief Creates a framebuffer from @p info using the renderer's scaled size and scene sample count.
+ * @brief Applies render scale and display pixel density to framebuffer dimensions.
  */
-Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
+SDL_Size R_FramebufferSize(const SDL_Size size) {
 
   const float scale = Clampf(r_framebufferScale->value, .125f, 4.f) * renderContext.displayMode->pixel_density;
 
+  return MakeSize(
+    Maxi((int32_t) (size.w * scale), 1),
+    Maxi((int32_t) (size.h * scale), 1)
+  );
+}
+
+/**
+ * @brief Creates a framebuffer using scaled dimensions and the scene sample count.
+ */
+Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
+
   GPU_FramebufferCreateInfo create = *info;
 
-  create.size = MakeSize(
-    Maxi((int32_t) (info->size.w * scale), 1),
-    Maxi((int32_t) (info->size.h * scale), 1)
-  );
-
+  create.size = R_FramebufferSize(info->size);
   create.sampleCount = renderSceneSamples;
 
   return $(renderContext.device, createFramebuffer, &create);
