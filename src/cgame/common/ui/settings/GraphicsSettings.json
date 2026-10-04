@@ -57,7 +57,7 @@
                           "class": "CvarSlider",
                           "var": "r_framebufferScale",
                           "min": 0.25,
-                          "max": 2.0,
+                          "max": 1.0,
                           "step": 0.05
                         }
                       },
@@ -88,75 +88,7 @@
                       }
                     ]
                   }
-                }
-              ]
-            },
-            {
-              "class": "StackView",
-              "classNames": [
-                "column",
-                "container"
-              ],
-              "subviews": [
-                {
-                  "class": "Box",
-                  "label": {
-                    "text": {
-                      "text": "Quality"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Quality"
-                          }
-                        },
-                        "control": {
-                          "class": "Select",
-                          "identifier": "quality"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Anisotropy"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "anisotropy",
-                          "var": "r_anisotropy"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Antialiasing"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "antialias",
-                          "var": "r_antialias"
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "class": "StackView",
-              "classNames": [
-                "column",
-                "container"
-              ],
-              "subviews": [
+                },
                 {
                   "class": "Box",
                   "label": {
@@ -205,7 +137,259 @@
                           "class": "CvarSlider",
                           "var": "cg_fov",
                           "min": 90,
-                          "max": 180
+                          "max": 130,
+                          "step": 5
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Quality"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Quality preset"
+                          }
+                        },
+                        "control": {
+                          "class": "Select",
+                          "identifier": "quality"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Anisotropy"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "anisotropy",
+                          "var": "r_anisotropy"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Antialiasing"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "antialias",
+                          "var": "r_antialias"
+                        }
+                      }
+                    ]
+                  }
+                },
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Lighting"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shadows"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "shadowQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Shadow resolution"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "shadowResolution",
+                          "classNames": ["effectQuality"],
+                          "values": [128, 256, 512],
+                          "labels": ["Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Lighting distance"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "lightingDistance",
+                          "classNames": ["effectQuality"],
+                          "values": [1024, 2048, 4096],
+                          "labels": ["Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Ambient occlusion"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "var": "r_ambientOcclusion",
+                          "min": 0.0,
+                          "max": 1.0
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Effects"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Parallax occlusion mapping"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "parallaxQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Parallax self-shadowing"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "parallaxShadowQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Portals & reflections"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "subviewQuality",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 1, 2, 3],
+                          "labels": ["Off", "Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Bloom"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "bloom",
+                          "classNames": ["effectQuality"],
+                          "values": [0, 2, 4, 8],
+                          "labels": ["Off", "Low", "Medium", "High"]
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Caustics"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "r_caustics"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Decals"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "identifier": "decals",
+                          "var": "cg_addDecals"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Atmospheric"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_addAtmospheric"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weather"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_addWeather"
                         }
                       }
                     ]

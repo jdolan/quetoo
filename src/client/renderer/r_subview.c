@@ -31,16 +31,9 @@ static struct {
   RenderView views[MAX_SUBVIEWS];
 
   /**
-   * @brief The layered framebuffer for subviews at the larger effect resolution.
+   * @brief The shared layered framebuffer for portals and reflections.
    */
   Framebuffer *framebuffer;
-
-  /**
-   * @brief Scratch target for the smaller effect, only when resolutions differ.
-   */
-  Framebuffer *target;
-
-  SDL_Size portalSize, reflectionSize;
 
   /**
    * @brief A single-layer placeholder, bound when there is no subview framebuffer, since the
@@ -65,9 +58,6 @@ void R_ShutdownSubviews(void) {
     R_DestroyFramebuffer(module.framebuffer);
     module.framebuffer = NULL;
   }
-
-  R_DestroyFramebuffer(module.target);
-  module.target = NULL;
 
   module.nullTexture = release(module.nullTexture);
 }
@@ -351,25 +341,33 @@ void R_AddPortal(RenderView *view, RenderSubview *portal, const Mat4 matrix) {
   view->diagnostics.portalsOffered++;
 }
 
-static void R_UpdateSubviewTarget(Framebuffer **target, const SDL_Size size, const bool layered) {
+/**
+ * @brief Caches the shared portal and reflection target at the selected resolution.
+ * @details High retains half-resolution rendering. The outer view's projection and normalized
+ * sampling coordinates are unchanged.
+ */
+static void R_UpdateSubviewFramebuffer(void) {
 
+  const SDL_Size window = MakeSize(renderContext.windowBounds.w, renderContext.windowBounds.h);
+  const SDL_Size size = R_SubviewSize(window, r_subviewQuality);
   const SDL_GPUSampleCount samples = renderSceneSamples;
 
-  if (*target) {
-    if ((*target)->size.w == size.w && (*target)->size.h == size.h && (*target)->sampleCount == samples) {
+  if (module.framebuffer) {
+    if (module.framebuffer->size.w == size.w && module.framebuffer->size.h == size.h &&
+        module.framebuffer->sampleCount == samples) {
       return;
     }
-    R_DestroyFramebuffer(*target);
+    R_DestroyFramebuffer(module.framebuffer);
   }
 
-  *target = $(renderContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+  module.framebuffer = $(renderContext.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
     .size = size,
     .sampleCount = samples,
     .colorAttachments = {
       {
         .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .clearColor = { 0.f, 0.f, 0.f, 1.f },
-        .layerCount = layered ? MAX_SUBVIEWS : 1,
+        .layerCount = MAX_SUBVIEWS,
       },
       {
         .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
@@ -388,44 +386,6 @@ static void R_UpdateSubviewTarget(Framebuffer **target, const SDL_Size size, con
 SDL_Size R_SubviewSize(const SDL_Size window, const Cvar *quality) {
   const int32_t divisor = 5 - R_QualityLevel(quality);
   return R_FramebufferSize(MakeSize(window.w / divisor, window.h / divisor));
-}
-
-/**
- * @brief Caches independently sized scene targets and a single array for both effect types.
- * @details Only rasterization changes: the outer view's projection and normalized sampling
- * coordinates are preserved. High retains the existing half-resolution rendering.
- */
-static void R_UpdateSubviewFramebuffer(void) {
-
-  const SDL_Size window = MakeSize(renderContext.windowBounds.w, renderContext.windowBounds.h);
-
-  module.portalSize = r_portals->integer
-    ? R_SubviewSize(window, r_portalsQuality) : MakeSize(0, 0);
-  module.reflectionSize = r_reflections->integer
-    ? R_SubviewSize(window, r_reflectionsQuality) : MakeSize(0, 0);
-
-  const SDL_Size largest = MakeSize(Maxi(module.portalSize.w, module.reflectionSize.w),
-                                    Maxi(module.portalSize.h, module.reflectionSize.h));
-  const SDL_Size smallest = MakeSize(Mini(module.portalSize.w, module.reflectionSize.w),
-                                     Mini(module.portalSize.h, module.reflectionSize.h));
-
-  R_UpdateSubviewTarget(&module.framebuffer, largest, true);
-  if (smallest.w && smallest.h && (smallest.w != largest.w || smallest.h != largest.h)) {
-    R_UpdateSubviewTarget(&module.target, smallest, false);
-  } else {
-    R_DestroyFramebuffer(module.target);
-    module.target = NULL;
-  }
-}
-
-static Framebuffer *R_SubviewFramebuffer(const RenderSubview *subview) {
-  const SDL_Size size = subview->type == SUBVIEW_PORTAL ? module.portalSize : module.reflectionSize;
-  Framebuffer *target = module.framebuffer;
-  if (target->size.w != size.w || target->size.h != size.h) {
-    target = module.target;
-  }
-  assert(target);
-  return target;
 }
 
 /**
@@ -515,7 +475,7 @@ static void R_UpdateSubviewFrustum(RenderView *view, Vec2 mins, Vec2 maxs) {
  */
 static SDL_Rect R_SubviewScissor(const RenderSubview *subview, const bool projected, const Vec2 mins, const Vec2 maxs) {
 
-  const SDL_Size size = R_SubviewFramebuffer(subview)->size;
+  const SDL_Size size = module.framebuffer->size;
   const SDL_Rect framebuffer = { 0, 0, size.w, size.h };
 
   if (!projected) {
@@ -552,7 +512,7 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor,
 
   RenderView *view = subview->view;
 
-  Framebuffer *target = R_SubviewFramebuffer(subview);
+  Framebuffer *target = module.framebuffer;
   view->framebuffer = target;
 
   if (projected) {
@@ -576,7 +536,7 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor,
   }
 
   const SDL_GPUColorTargetInfo color[] = {
-    $(target, colorTargetInfoForLayer, 0, target == module.framebuffer ? (Uint32) subview->layer : 0,
+    $(target, colorTargetInfoForLayer, 0, (Uint32) subview->layer,
       SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
     $(target, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
@@ -605,27 +565,6 @@ static void R_DrawSubview(const RenderSubview *subview, const SDL_Rect *scissor,
 
   pass = release(pass);
 
-  if (target == module.framebuffer) {
-    return;
-  }
-
-  Texture *source = $(target, resolveColorTexture, 0);
-  Texture *destination = $(module.framebuffer, resolveColorTexture, 0);
-  $(commands, blitTexture, &(SDL_GPUBlitInfo) {
-    .source = {
-      .texture = source->texture,
-      .w = (Uint32) target->size.w,
-      .h = (Uint32) target->size.h,
-    },
-    .destination = {
-      .texture = destination->texture,
-      .layer_or_depth_plane = (Uint32) subview->layer,
-      .w = (Uint32) module.framebuffer->size.w,
-      .h = (Uint32) module.framebuffer->size.h,
-    },
-    .load_op = SDL_GPU_LOADOP_DONT_CARE,
-    .filter = SDL_GPU_FILTER_LINEAR,
-  });
 }
 
 /**
@@ -770,9 +709,6 @@ void R_DrawSubviews(RenderView *view) {
   }
 
   $(module.framebuffer, swap);
-  if (module.target) {
-    $(module.target, swap);
-  }
 
   renderDiagnostics = diagnostics;
 

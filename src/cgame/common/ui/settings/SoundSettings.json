@@ -28,7 +28,7 @@
                   "class": "Box",
                   "label": {
                     "text": {
-                      "text": "Output"
+                      "text": "Playback"
                     }
                   },
                   "contentView": {
@@ -73,16 +73,7 @@
                       }
                     ]
                   }
-                }
-              ]
-            },
-            {
-              "class": "StackView",
-              "classNames": [
-                "column",
-                "container"
-              ],
-              "subviews": [
+                },
                 {
                   "class": "Box",
                   "label": {
@@ -178,11 +169,25 @@
                   "class": "Box",
                   "label": {
                     "text": {
-                      "text": "Voice"
+                      "text": "Capture"
                     }
                   },
                   "contentView": {
                     "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Capture device"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "captureDevice",
+                          "var": "s_captureDevice",
+                          "expectsStringValue": true
+                        }
+                      },
                       {
                         "class": "Input",
                         "label": {
@@ -205,20 +210,6 @@
                         "control": {
                           "class": "BindTextView",
                           "bind": "+voice"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Capture device"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "captureDevice",
-                          "var": "s_captureDevice",
-                          "expectsStringValue": true
                         }
                       },
                       {

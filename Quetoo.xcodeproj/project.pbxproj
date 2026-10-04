@@ -1193,7 +1193,6 @@
 		CFA000252F9100000000C025 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
 		CFA000272F9100000000C027 /* StageViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000142F9100000000C027 /* StageViewController.css */; };
 		CFA000282F9100000000C028 /* StageViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000152F9100000000C028 /* StageViewController.json */; };
-		D092C988E74BA9DDCD9C8058 /* AdvancedSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */; };
 		D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000102 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
@@ -2033,7 +2032,6 @@
 				CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */,
 				B325DB5E0D42C6B8A789B6A3 /* GraphicsSettings.json in CopyFiles */,
 				A821A43811D4AEAD39192267 /* SoundSettings.json in CopyFiles */,
-				D092C988E74BA9DDCD9C8058 /* AdvancedSettings.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2304,7 +2302,6 @@
 		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
 		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
-		B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = AdvancedSettings.json; sourceTree = "<group>"; };
 		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		B76C2B2AE24E2511ACC08DEF /* MapList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapList.h; sourceTree = "<group>"; };
 		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
@@ -4819,7 +4816,6 @@
 				CE7D2C2F20310763004BC58E /* SettingsViewController.json */,
 				EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */,
 				F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */,
-				B66A79EC6DCA4325B554B1ED /* AdvancedSettings.json */,
 			);
 			path = settings;
 			sourceTree = "<group>";

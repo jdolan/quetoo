@@ -30,132 +30,136 @@
 
 static const struct {
   const char *identifier;
-  const char *enabled;
+  const char *enabled[2];
   const char *quality;
   bool intensity;
 } effectSettings[] = {
-  { "shadowQuality", "r_shadows", "r_shadowQuality", false },
-  { "parallaxQuality", "r_parallax", "r_parallaxQuality", true },
-  { "parallaxShadowQuality", "r_parallaxShadow", "r_parallaxShadowQuality", false },
-  { "portalsQuality", "r_portals", "r_portalsQuality", false },
-  { "reflectionsQuality", "r_reflections", "r_reflectionsQuality", false },
+  { "shadowQuality", { "r_shadows" }, "r_shadowQuality", false },
+  { "parallaxQuality", { "r_parallax" }, "r_parallaxQuality", true },
+  { "parallaxShadowQuality", { "r_parallaxShadow" }, "r_parallaxShadowQuality", false },
+  { "subviewQuality", { "r_portals", "r_reflections" }, "r_subviewQuality", false },
 };
 
 typedef struct {
-  int32_t shadows;
+  int32_t shadowQuality;
   int32_t shadowTileSize;
   int32_t lightingDistance;
-  int32_t parallax;
-  int32_t parallaxShadow;
+  int32_t bloomIterations;
+  int32_t parallaxQuality;
+  int32_t parallaxShadowQuality;
+  int32_t subviewQuality;
   int32_t caustics;
   int32_t addWeather;
   int32_t addAtmospheric;
-  int32_t reflections;
-  int32_t portals;
-  int32_t effectQuality[5];
 } QualityPreset;
 
 static const QualityPreset qualityPresets[] = {
   [0] = { // Low
-    .shadows                = 0,
+    .shadowQuality          = 1,
     .shadowTileSize         = 128,
     .lightingDistance       = 1024,
-    .parallax               = 0,
-    .parallaxShadow         = 0,
+    .bloomIterations        = 2,
+    .parallaxQuality        = 1,
+    .parallaxShadowQuality  = 1,
+    .subviewQuality         = 1,
     .caustics               = 0,
-    .addWeather             = 0,
-    .addAtmospheric         = 0,
-    .reflections            = 0,
-    .portals                = 0,
-    .effectQuality          = { 1, 1, 1, 1, 1 },
+    .addWeather             = 1,
+    .addAtmospheric         = 1,
   },
   [1] = { // Medium
-    .shadows                = 1,
-    .shadowTileSize         = 128,
+    .shadowQuality          = 2,
+    .shadowTileSize         = 256,
     .lightingDistance       = 2048,
-    .parallax               = 0,
-    .parallaxShadow         = 0,
-    .caustics               = 0,
+    .bloomIterations        = 4,
+    .parallaxQuality        = 2,
+    .parallaxShadowQuality  = 2,
+    .subviewQuality         = 2,
+    .caustics               = 1,
     .addWeather             = 1,
     .addAtmospheric         = 1,
-    .reflections            = 0,
-    .portals                = 1,
-    .effectQuality          = { 1, 1, 1, 1, 1 },
   },
   [2] = { // High
-    .shadows                = 1,
-    .shadowTileSize         = 256,
-    .lightingDistance       = 4096,
-    .parallax               = 1,
-    .parallaxShadow         = 0,
-    .caustics               = 1,
-    .addWeather             = 1,
-    .addAtmospheric         = 1,
-    .reflections            = 1,
-    .portals                = 1,
-    .effectQuality          = { 2, 2, 2, 2, 2 },
-  },
-  [3] = { // Highest
-    .shadows                = 1,
+    .shadowQuality          = 3,
     .shadowTileSize         = 512,
-    .lightingDistance       = 8192,
-    .parallax               = 1,
-    .parallaxShadow         = 1,
+    .lightingDistance       = 4096,
+    .bloomIterations        = 8,
+    .parallaxQuality        = 3,
+    .parallaxShadowQuality  = 3,
+    .subviewQuality         = 3,
     .caustics               = 1,
     .addWeather             = 1,
     .addAtmospheric         = 1,
-    .reflections            = 1,
-    .portals                = 1,
-    .effectQuality          = { 3, 3, 3, 3, 3 },
   },
 };
+
+static void applyEffectQuality(size_t index, int32_t quality) {
+  if (quality != 0) {
+    cgi.SetCvarInteger(effectSettings[index].quality, quality);
+  }
+  for (size_t j = 0; j < lengthof(effectSettings[index].enabled) && effectSettings[index].enabled[j]; j++) {
+    const Cvar *enabled = cgi.GetCvar(effectSettings[index].enabled[j]);
+    if (quality == 0) {
+      cgi.SetCvarInteger(enabled->name, 0);
+    } else {
+      const bool active = effectSettings[index].intensity ? enabled->value != 0.f : enabled->integer != 0;
+      if (!active) {
+        cgi.SetCvarString(enabled->name, enabled->defaultString);
+      }
+    }
+  }
+}
+
+static int32_t detectEffectQuality(size_t index) {
+  for (size_t j = 0; j < lengthof(effectSettings[index].enabled) && effectSettings[index].enabled[j]; j++) {
+    const Cvar *enabled = cgi.GetCvar(effectSettings[index].enabled[j]);
+    const bool active = effectSettings[index].intensity ? enabled->value != 0.f : enabled->integer != 0;
+    if (!active) {
+      return 0;
+    }
+  }
+  const Cvar *quality = cgi.GetCvar(effectSettings[index].quality);
+  return quality->value == quality->integer ? quality->integer : -1;
+}
 
 /**
  * @brief Applies a graphics quality preset by setting all related renderer and game cvars.
  */
 static void applyQualityPreset(const QualityPreset *p) {
-  cgi.SetCvarInteger("r_shadows",           p->shadows);
+  applyEffectQuality(0, p->shadowQuality);
+  applyEffectQuality(1, p->parallaxQuality);
+  applyEffectQuality(2, p->parallaxShadowQuality);
+  applyEffectQuality(3, p->subviewQuality);
   cgi.SetCvarInteger("r_shadowTileSize",    p->shadowTileSize);
   cgi.SetCvarInteger("r_lightingDistance",  p->lightingDistance);
-  cgi.SetCvarInteger("r_parallax",          p->parallax);
-  cgi.SetCvarInteger("r_parallaxShadow",    p->parallaxShadow);
+  if (cgi.GetCvarValue("r_bloom") <= 0.f) {
+    cgi.SetCvarString("r_bloom", cgi.GetCvar("r_bloom")->defaultString);
+  }
+  cgi.SetCvarInteger("r_bloomIterations", p->bloomIterations);
   cgi.SetCvarInteger("r_caustics",          p->caustics);
   cgi.SetCvarInteger("cg_addWeather",       p->addWeather);
   cgi.SetCvarInteger("cg_addAtmospheric",   p->addAtmospheric);
-  cgi.SetCvarInteger("r_reflections",       p->reflections);
-  cgi.SetCvarInteger("r_portals",           p->portals);
-  for (size_t i = 0; i < lengthof(effectSettings); i++) {
-    cgi.SetCvarInteger(effectSettings[i].quality, p->effectQuality[i]);
-  }
 }
 
 /**
  * @return The index of the matching preset, or -1 if no preset matches.
  */
 static intptr_t detectQualityPreset(void) {
-  QualityPreset current = {
-    .shadows          = cgi.GetCvarInteger("r_shadows"),
-    .shadowTileSize   = cgi.GetCvarInteger("r_shadowTileSize"),
-    .lightingDistance = cgi.GetCvarInteger("r_lightingDistance"),
-    .parallax         = cgi.GetCvarInteger("r_parallax"),
-    .parallaxShadow   = cgi.GetCvarInteger("r_parallaxShadow"),
-    .caustics         = cgi.GetCvarInteger("r_caustics"),
-    .addWeather       = cgi.GetCvarInteger("cg_addWeather"),
-    .addAtmospheric   = cgi.GetCvarInteger("cg_addAtmospheric"),
-    .reflections      = cgi.GetCvarInteger("r_reflections"),
-    .portals          = cgi.GetCvarInteger("r_portals"),
+  const QualityPreset current = {
+    .shadowQuality        = detectEffectQuality(0),
+    .shadowTileSize       = cgi.GetCvarInteger("r_shadowTileSize"),
+    .lightingDistance     = cgi.GetCvarInteger("r_lightingDistance"),
+    .bloomIterations      = cgi.GetCvarInteger("r_bloomIterations"),
+    .parallaxQuality      = detectEffectQuality(1),
+    .parallaxShadowQuality = detectEffectQuality(2),
+    .subviewQuality       = detectEffectQuality(3),
+    .caustics             = cgi.GetCvarInteger("r_caustics"),
+    .addWeather           = cgi.GetCvarInteger("cg_addWeather"),
+    .addAtmospheric       = cgi.GetCvarInteger("cg_addAtmospheric"),
   };
 
-  if (cgi.GetCvarValue("r_parallax") != current.parallax ||
+  if (cgi.GetCvarValue("r_bloom") <= 0.f ||
       cgi.GetCvarValue("r_caustics") != current.caustics) {
     return -1;
-  }
-
-  for (size_t i = 0; i < lengthof(effectSettings); i++) {
-    current.effectQuality[i] = cgi.GetCvarInteger(effectSettings[i].quality);
-    if (cgi.GetCvarValue(effectSettings[i].quality) != current.effectQuality[i]) {
-      return -1;
-    }
   }
 
   for (size_t i = 0; i < lengthof(qualityPresets); i++) {
@@ -211,8 +215,11 @@ static intptr_t detectMaxFps(void) {
 static void refreshQualityControls(SettingsViewController *self) {
 
   for (size_t i = 0; i < lengthof(effectSettings); i++) {
-    const Cvar *enabled = cgi.GetCvar(effectSettings[i].enabled);
-    const bool active = effectSettings[i].intensity ? enabled->value != 0.f : enabled->integer != 0;
+    bool active = false;
+    for (size_t j = 0; j < lengthof(effectSettings[i].enabled) && effectSettings[i].enabled[j]; j++) {
+      const Cvar *enabled = cgi.GetCvar(effectSettings[i].enabled[j]);
+      active |= effectSettings[i].intensity ? enabled->value != 0.f : enabled->integer != 0;
+    }
     const int32_t quality = clamp(cgi.GetCvarInteger(effectSettings[i].quality), 1, 3);
     $(self->effects[i], setValue, active ? quality : 0);
   }
@@ -234,16 +241,7 @@ static void didSetEffectQuality(Slider *slider, double value) {
       continue;
     }
 
-    const Cvar *enabled = cgi.GetCvar(effectSettings[i].enabled);
-    if (value == 0) {
-      cgi.SetCvarInteger(enabled->name, 0);
-    } else {
-      cgi.SetCvarInteger(effectSettings[i].quality, (int32_t) value);
-      const bool active = effectSettings[i].intensity ? enabled->value != 0.f : enabled->integer != 0;
-      if (!active) {
-        cgi.SetCvarString(enabled->name, enabled->defaultString);
-      }
-    }
+    applyEffectQuality(i, (int32_t) value);
 
     refreshQualityControls(this);
     return;
@@ -317,7 +315,7 @@ static void didSetBloom(Slider *slider, double value) {
 
 /**
  * @brief TabViewDelegate callback, so that each tab shows what the other changed.
- * @details A change on the Advanced tab can turn a preset into Custom.
+ * @details Changing individual graphics controls can turn a preset into Custom.
  */
 static void didSelectTab(TabView *tabView, TabViewItem *tab) {
 
@@ -429,7 +427,6 @@ static void loadView(ViewController *self) {
 
   addTab(this->tabViewController, "ui/settings/GraphicsSettings.json");
   addTab(this->tabViewController, "ui/settings/SoundSettings.json");
-  addTab(this->tabViewController, "ui/settings/AdvancedSettings.json");
 
   $(self, addChildViewController, (ViewController *) this->tabViewController);
   $((View *) ((Panel *) view)->contentView, addSubview, ((ViewController *) this->tabViewController)->view);
@@ -518,7 +515,6 @@ static void loadView(ViewController *self) {
   $(this->quality, addOption, "Low", (ident) 0);
   $(this->quality, addOption, "Medium", (ident) 1);
   $(this->quality, addOption, "High", (ident) 2);
-  $(this->quality, addOption, "Highest", (ident) 3);
 
   this->quality->delegate.self = self;
   this->quality->delegate.didSelectOption = didSelectQuality;

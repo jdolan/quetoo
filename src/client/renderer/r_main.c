@@ -39,9 +39,8 @@ Cvar *r_drawMaterialStages;
 Cvar *r_drawWireframe;
 Cvar *r_occlude;
 Cvar *r_portals;
-Cvar *r_portalsQuality;
 Cvar *r_reflections;
-Cvar *r_reflectionsQuality;
+Cvar *r_subviewQuality;
 
 Cvar *r_ambient;
 Cvar *r_ambientOcclusion;
@@ -539,9 +538,8 @@ static void R_InitLocal(void) {
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
   r_drawWireframe = Cvar_Add("r_drawWireframe", "0", CVAR_DEVELOPER, "Draws world geometry as wireframe (developer tool).");
   r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
-  r_portalsQuality = Cvar_Add("r_portalsQuality", "3", CVAR_ARCHIVE, "Portal resolution per axis: 1 = quarter, 2 = third, 3 = half.");
   r_reflections = Cvar_Add("r_reflections", "1", CVAR_ARCHIVE, "Controls rendering reflections in reflective surfaces.");
-  r_reflectionsQuality = Cvar_Add("r_reflectionsQuality", "3", CVAR_ARCHIVE, "Reflection resolution per axis: 1 = quarter, 2 = third, 3 = half.");
+  r_subviewQuality = Cvar_Add("r_subviewQuality", "3", CVAR_ARCHIVE, "Portal and reflection resolution per axis: 1 = quarter, 2 = third, 3 = half.");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambientOcclusion = Cvar_Add("r_ambientOcclusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");

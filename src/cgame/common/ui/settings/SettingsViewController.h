@@ -52,7 +52,7 @@ struct SettingsViewController {
   SettingsViewControllerInterface *interface[0];
 
   /**
-   * @brief The TabViewController holding the Graphics, Advanced and Sound tabs.
+   * @brief The TabViewController holding the Graphics and Sound tabs.
    */
   TabViewController *tabViewController;
 
@@ -67,9 +67,9 @@ struct SettingsViewController {
   Slider *bloom;
 
   /**
-   * @brief Borrowed quality slider outlets: shadows, parallax, self-shadow, portals, reflections.
+   * @brief Borrowed quality slider outlets: shadows, parallax, self-shadow, portals/reflections.
    */
-  Slider *effects[5];
+  Slider *effects[4];
 
   Slider *shadowResolution;
   Slider *lightingDistance;
