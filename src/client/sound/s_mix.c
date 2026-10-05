@@ -74,28 +74,28 @@ void S_FreeChannel(int32_t c) {
 static bool S_SpatializeChannel(const SoundStage *stage, SoundChannel *ch) {
 
   ch->gain = 1.f;
+  ch->pitch = 1.f;
 
-  if (!(ch->play.flags & S_PLAY_UI)) {
+  if (ch->play.flags & S_PLAY_UI) {
+    return true;
+  }
 
-    // fade out frame sounds that are no longer being submitted
-    if (ch->startTime && (ch->play.flags & S_PLAY_FRAME)) {
-      if (ch->timestamp != stage->ticks) {
-        const uint32_t delta = stage->ticks - ch->timestamp;
+  // fade out frame sounds that are no longer being submitted
+  if (ch->startTime && (ch->play.flags & S_PLAY_FRAME)) {
+    if (ch->timestamp != stage->ticks) {
+      const uint32_t delta = stage->ticks - ch->timestamp;
 
-        if (delta > 250) {
-          return false;
-        }
-
-        ch->gain = 1.f - (delta / 250.f);
+      if (delta > 250) {
+        return false;
       }
+
+      ch->gain = 1.f - (delta / 250.f);
     }
   }
 
   if (ch->play.gain) {
     ch->gain *= ch->play.gain;
   }
-
-  ch->pitch = 1.f;
 
   if (stage->contents & CONTENTS_MASK_LIQUID) {
     ch->pitch = .5f;
