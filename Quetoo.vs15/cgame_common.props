@@ -207,6 +207,8 @@
     <ClInclude Include="..\src\cgame\common\ui\play\PlayerModelView.h" />
     <ClCompile Include="..\src\cgame\common\ui\play\PlayerSetupViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\play\PlayerSetupViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\settings\CaptureLevelView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\settings\CaptureLevelView.h" />
     <ClCompile Include="..\src\cgame\common\ui\settings\SettingsViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\settings\SettingsViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\teams\TeamPlayerView.c" />

@@ -360,6 +360,9 @@
     <ClInclude Include="..\src\cgame\common\ui\play\PlayerSetupViewController.h">
       <Filter>src\common\ui\play</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\settings\CaptureLevelView.h">
+      <Filter>src\common\ui\settings</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\settings\SettingsViewController.h">
       <Filter>src\common\ui\settings</Filter>
     </ClInclude>
@@ -697,6 +700,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\play\PlayerSetupViewController.c">
       <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\settings\CaptureLevelView.c">
+      <Filter>src\common\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\settings\SettingsViewController.c">
       <Filter>src\common\ui\settings</Filter>

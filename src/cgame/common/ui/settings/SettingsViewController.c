@@ -229,7 +229,12 @@ static void refreshQualityControls(SettingsViewController *self) {
   $(self->bloom, setValue, cgi.GetCvarValue("r_bloom") > 0.f
     ? max(2, cgi.GetCvarInteger("r_bloomIterations")) : 0);
   $(self->quality, selectOptionWithValue, (ident) detectQualityPreset());
+  $(self->voiceThreshold, setValue, cgi.GetCvarValue("s_voiceThreshold"));
   $(self->viewController.view, updateBindings, NULL);
+}
+
+static void didSetVoiceThreshold(Slider *slider, double value) {
+  cgi.SetCvarValue("s_voiceThreshold", value);
 }
 
 static void didSetEffectQuality(Slider *slider, double value) {
@@ -434,7 +439,7 @@ static void loadView(ViewController *self) {
   this->tabViewController->tabView->delegate.self = this;
   this->tabViewController->tabView->delegate.didSelectTab = didSelectTab;
 
-  Select *windowMode, *maxFps, *verticalSync, *anisotropy, *antialias;
+  Select *windowMode, *maxFps, *verticalSync, *anisotropy, *antialias, *voiceMode;
   CvarSelect *playbackDevice, *captureDevice;
   Button *apply;
 
@@ -450,6 +455,8 @@ static void loadView(ViewController *self) {
     MakeOutlet("bloom", &this->bloom),
     MakeOutlet("playbackDevice", &playbackDevice),
     MakeOutlet("captureDevice", &captureDevice),
+    MakeOutlet("voiceMode", &voiceMode),
+    MakeOutlet("voiceThreshold", &this->voiceThreshold),
     MakeOutlet("apply", &apply)
   );
 
@@ -479,6 +486,10 @@ static void loadView(ViewController *self) {
     .self = this,
     .didSetValue = didSetBloom,
   };
+
+  this->voiceThreshold->delegate.didSetValue = didSetVoiceThreshold;
+  $(voiceMode, addOption, "Push to talk", (ident) 0);
+  $(voiceMode, addOption, "Voice activated", (ident) 1);
 
   $(self->view, enumerateSelection, "BindTextView", setBindDelegate, self);
 

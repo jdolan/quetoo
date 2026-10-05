@@ -31,7 +31,7 @@ void S_ShutdownPlayback(void);
 
 bool S_OpenCapture(int32_t rate);
 void S_CloseCapture(void);
-void S_ResumeCapture(void);
+bool S_ResumeCapture(void);
 void S_PauseCapture(void);
 bool S_Capturing(void);
 int32_t S_ReadCapture(void *data, int32_t len);

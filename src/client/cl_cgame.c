@@ -313,6 +313,7 @@ void Cl_InitCgame(void) {
   import.AddSample = S_AddSample;
   import.StartVoice = S_StartVoice;
   import.StopVoice = S_StopVoice;
+  import.CaptureLevel = S_CaptureLevel;
 
   import.CreateFramebuffer = R_CreateFramebuffer;
   import.DestroyFramebuffer = R_DestroyFramebuffer;
@@ -397,6 +398,8 @@ void Cl_ShutdownCgame(void) {
   }
 
   Com_Print("Client game shutdown...\n");
+
+  S_StopVoices();
 
   cls.cgame->Shutdown();
   cls.cgame = NULL;

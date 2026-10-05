@@ -39,6 +39,18 @@ typedef struct {
 static CGameKick viewKick;
 
 /**
+ * @brief Held talk bindings, preserving team voice when another bound key is released.
+ */
+static struct {
+  struct {
+    int32_t key;
+    uint8_t channel;
+    bool held;
+  } keys[4];
+  bool active;
+} voiceInput;
+
+/**
  * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
  * @remarks Asking rather than naming the shipped default, which a player may well have moved -
  * on macOS a right click arrives as mouse 3, so `+hook` does not sit where the defaults put it.
@@ -379,6 +391,10 @@ void Cg_ExportMove(PMoveCmd *cmd) {
  * @brief Clear button states.
  */
 void Cg_ClearInput(void) {
+  if (voiceInput.active) {
+    cgi.StopVoice();
+  }
+  memset(&voiceInput, 0, sizeof(voiceInput));
   memset(&viewKick, 0, sizeof(viewKick));
   memset(&cgameButtons, 0, sizeof(cgameButtons));
 }
@@ -416,10 +432,67 @@ static void Cg_Score_up_f(void) {
 }
 
 /**
- * @brief Begins a push to talk voice transmission.
+ * @brief Keeps team voice private until its last held talk binding is released.
+ */
+static void Cg_UpdateVoiceInput(void) {
+
+  bool active = false;
+  uint8_t channel = VOICE_CHANNEL_ALL;
+
+  for (size_t i = 0; i < lengthof(voiceInput.keys); i++) {
+    if (voiceInput.keys[i].held) {
+      active = true;
+
+      if (voiceInput.keys[i].channel == VOICE_CHANNEL_TEAM) {
+        channel = VOICE_CHANNEL_TEAM;
+      }
+    }
+  }
+
+  if (active) {
+    cgi.StartVoice(channel);
+  } else if (voiceInput.active) {
+    cgi.StopVoice();
+  }
+
+  voiceInput.active = active;
+}
+
+/**
+ * @brief Records a held talk binding and updates the effective voice channel.
+ */
+static void Cg_VoiceKeyDown(int32_t key, uint8_t channel) {
+
+  ssize_t slot = -1;
+
+  for (size_t i = 0; i < lengthof(voiceInput.keys); i++) {
+    if (voiceInput.keys[i].held && voiceInput.keys[i].key == key) {
+      slot = i;
+      break;
+    }
+
+    if (!voiceInput.keys[i].held && slot == -1) {
+      slot = i;
+    }
+  }
+
+  if (slot == -1) {
+    cgi.Print("Too many voice keys held\n");
+    return;
+  }
+
+  voiceInput.keys[slot].key = key;
+  voiceInput.keys[slot].channel = channel;
+  voiceInput.keys[slot].held = true;
+
+  Cg_UpdateVoiceInput();
+}
+
+/**
+ * @brief Begins a push to talk voice transmission, overriding automatic voice.
  * @details Takes an optional channel name, so that a module's own channels can be bound. Without
- * one, holding shift promotes it to the team channel, the way shift sends a chat line as sayTeam:
- * key binds carry no modifier of their own, so one bind has to serve both.
+ * one, holding Shift alongside the talk key promotes it to the team channel. A Shift key bound
+ * to push to talk is not its own modifier; the other Shift key can still select team voice.
  */
 static void Cg_Voice_down_f(void) {
 
@@ -429,9 +502,9 @@ static void Cg_Voice_down_f(void) {
   if (name[0] && !isdigit(name[0])) {
 
     if (!Str_Compare(name, "team")) {
-      cgi.StartVoice(VOICE_CHANNEL_TEAM);
+      Cg_VoiceKeyDown(atoi(cgi.Argv(2)), VOICE_CHANNEL_TEAM);
     } else if (!Str_Compare(name, "all")) {
-      cgi.StartVoice(VOICE_CHANNEL_ALL);
+      Cg_VoiceKeyDown(atoi(cgi.Argv(2)), VOICE_CHANNEL_ALL);
     } else {
       cgi.Print("Unknown voice channel \"%s\"\n", name);
     }
@@ -439,17 +512,37 @@ static void Cg_Voice_down_f(void) {
     return;
   }
 
-  const bool team = SDL_GetModState() & SDL_KMOD_SHIFT;
+  const SDL_Scancode key = atoi(name);
+  SDL_Keymod modifiers = SDL_GetModState();
+  if (key == SDL_SCANCODE_LSHIFT) {
+    modifiers &= ~SDL_KMOD_LSHIFT;
+  } else if (key == SDL_SCANCODE_RSHIFT) {
+    modifiers &= ~SDL_KMOD_RSHIFT;
+  }
 
-  cgi.StartVoice(team ? VOICE_CHANNEL_TEAM : VOICE_CHANNEL_ALL);
+  const bool team = modifiers & SDL_KMOD_SHIFT;
+
+  Cg_VoiceKeyDown(key, team ? VOICE_CHANNEL_TEAM : VOICE_CHANNEL_ALL);
 }
 
 static void Cg_Voice_up_f(void) {
-  cgi.StopVoice();
+
+  const char *name = cgi.Argv(1);
+  if (name[0] && !isdigit(name[0])) {
+    name = cgi.Argv(2);
+  }
+
+  for (size_t i = 0; i < lengthof(voiceInput.keys); i++) {
+    if (!name[0] || voiceInput.keys[i].key == atoi(name)) {
+      voiceInput.keys[i].held = false;
+    }
+  }
+
+  Cg_UpdateVoiceInput();
 }
 
 static void Cg_VoiceTeam_down_f(void) {
-  cgi.StartVoice(VOICE_CHANNEL_TEAM);
+  Cg_VoiceKeyDown(atoi(cgi.Argv(1)), VOICE_CHANNEL_TEAM);
 }
 
 /**
@@ -544,7 +637,7 @@ void Cg_InitInput(void) {
   cgi.AddCmd("-hook", Cg_Hook_up_f, CMD_CGAME, NULL);
   cgi.AddCmd("+score", Cg_Score_down_f, CMD_CGAME, NULL);
   cgi.AddCmd("-score", Cg_Score_up_f, CMD_CGAME, NULL);
-  cgi.AddCmd("+voice", Cg_Voice_down_f, CMD_CGAME, "Transmit voice chat while held; hold shift for your team.");
+  cgi.AddCmd("+voice", Cg_Voice_down_f, CMD_CGAME, "Transmit voice chat while held; use a separate Shift modifier for your team.");
   cgi.AddCmd("-voice", Cg_Voice_up_f, CMD_CGAME, NULL);
   cgi.AddCmd("+voiceTeam", Cg_VoiceTeam_down_f, CMD_CGAME, "Transmit voice chat to your team while held.");
   cgi.AddCmd("-voiceTeam", Cg_Voice_up_f, CMD_CGAME, NULL);

@@ -22,6 +22,8 @@
 #pragma once
 
 extern Cvar *s_voice;
+extern Cvar *s_voiceMode;
+extern Cvar *s_voiceThreshold;
 extern Cvar *s_voiceBitrate;
 extern Cvar *s_captureGain;
 extern Cvar *s_captureNormalize;
@@ -29,6 +31,8 @@ extern Cvar *s_voiceLoopback;
 extern Cvar *s_voiceVolume;
 
 void S_StartVoice(uint8_t channel);
+void S_UpdateVoice(bool active, bool monitor, uint8_t channel);
+SoundCaptureLevel S_CaptureLevel(void);
 void S_StopVoice(void);
 void S_StopVoices(void);
 int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel);

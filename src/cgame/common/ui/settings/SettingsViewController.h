@@ -73,6 +73,7 @@ struct SettingsViewController {
 
   Slider *shadowResolution;
   Slider *lightingDistance;
+  Slider *voiceThreshold;
 };
 
 /**

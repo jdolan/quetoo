@@ -33,6 +33,37 @@
 #include "common/common.h"
 
 /**
+ * @brief Live microphone levels, normalized to signed 16-bit full scale.
+ */
+typedef struct {
+
+  /**
+   * @brief Raw RMS before microphone gain or auto-level.
+   */
+  float input;
+
+  /**
+   * @brief RMS after microphone gain, auto-level and clipping.
+   */
+  float output;
+
+  /**
+   * @brief Peak after gain, used to detect clipping.
+   */
+  float peak;
+
+  /**
+   * @brief The effective raw RMS activation threshold.
+   */
+  float threshold;
+
+  /**
+   * @brief The microphone is actively recording.
+   */
+  bool capturing;
+} SoundCaptureLevel;
+
+/**
  * @brief Media types.
  */
 typedef enum {

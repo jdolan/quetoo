@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 65
+#define CGAME_API_VERSION 67
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -93,8 +93,6 @@ typedef struct {
 
   /**
    * @brief Prints a formatted message to the consoles at the given level.
-   * @remarks The level is what console views filter on, so chat must arrive as PRINT_CHAT to reach
-   * the chat view rather than the notification lines.
    */
   void (*PrintLevel)(int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
@@ -849,6 +847,11 @@ typedef struct {
   void (*StopVoice)(void);
 
   /**
+   * @brief Returns raw RMS, gain-adjusted RMS and peak for the active capture device.
+   */
+  SoundCaptureLevel (*CaptureLevel)(void);
+
+  /**
    * @}
    * @defgroup video Video
    * @{
@@ -1124,6 +1127,11 @@ typedef struct CGameExport {
    * server's stats against the wrong layout.
    */
   const char *name;
+
+  /**
+   * @brief The channel for automatic voice activity, interpreted only by the game.
+   */
+  uint8_t defaultVoiceChannel;
 
   /**
    * @defgroup cg-lifecycle Lifecycle

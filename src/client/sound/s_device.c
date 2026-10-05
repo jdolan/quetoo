@@ -30,7 +30,6 @@ static struct {
   SDL_AudioStream *playback;
   SDL_AudioStream *capture;
   bool captureFailed;
-  bool warnedSharedDevice;
 } module;
 
 Cvar *s_bufferFrames;
@@ -193,31 +192,6 @@ void S_ShutdownPlayback(void) {
 }
 
 /**
- * @brief Warns when the microphone and the speakers are the same device.
- * @details A Bluetooth headset cannot carry a microphone and high quality audio at once. Opening
- * its microphone moves it from A2DP to the hands free profile, and the operating system drops
- * everything the game plays to 16kHz mono for as long as the key is held. Nothing can be done
- * about that from here, but a player deserves to know why their audio changed.
- */
-static void S_CheckSharedDevice(const char *capture) {
-
-  if (!module.playback || module.warnedSharedDevice) {
-    return;
-  }
-
-  const char *playback = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(module.playback));
-
-  if (playback && capture && !Str_Compare(playback, capture)) {
-    Com_Warn("Microphone and speakers are both \"%s\".\n"
-             "If this is a Bluetooth headset, audio quality will drop while you transmit.\n"
-             "Choose a separate capture device in the Settings menu to avoid it.\n",
-             capture);
-
-    module.warnedSharedDevice = true;
-  }
-}
-
-/**
  * @brief Opens the capture device, paused, warning once if it is unavailable.
  * @details Capture is opened on first use rather than at initialization, so that players who never
  * speak are never prompted for microphone access and never light the recording indicator.
@@ -234,10 +208,7 @@ bool S_OpenCapture(int32_t rate) {
     return false;
   }
 
-  if (s_captureDevice->modified) {
-    s_captureDevice->modified = false;
-    module.warnedSharedDevice = false;
-  }
+  s_captureDevice->modified = false;
 
   const SDL_AudioSpec spec = {
     .format = SDL_AUDIO_S16,
@@ -256,8 +227,6 @@ bool S_OpenCapture(int32_t rate) {
   const char *name = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(module.capture));
 
   Com_Print("Capture opened (%s)\n", name);
-
-  S_CheckSharedDevice(name);
 
   return true;
 }
@@ -278,12 +247,19 @@ void S_CloseCapture(void) {
 /**
  * @brief Starts the capture device, discarding anything buffered from last time.
  */
-void S_ResumeCapture(void) {
+bool S_ResumeCapture(void) {
 
   if (module.capture) {
-    SDL_ClearAudioStream(module.capture);
-    SDL_ResumeAudioStreamDevice(module.capture);
+    if (SDL_ClearAudioStream(module.capture) && SDL_ResumeAudioStreamDevice(module.capture)) {
+      return true;
+    }
+
+    Com_Warn("Couldn't resume capture: %s\n", SDL_GetError());
+    S_CloseCapture();
+    module.captureFailed = true;
   }
+
+  return false;
 }
 
 /**
@@ -292,8 +268,10 @@ void S_ResumeCapture(void) {
 void S_PauseCapture(void) {
 
   if (module.capture) {
-    SDL_PauseAudioStreamDevice(module.capture);
-    SDL_ClearAudioStream(module.capture);
+    if (!SDL_PauseAudioStreamDevice(module.capture) || !SDL_ClearAudioStream(module.capture)) {
+      Com_Warn("Couldn't pause capture: %s\n", SDL_GetError());
+      S_CloseCapture();
+    }
   }
 }
 
@@ -309,11 +287,23 @@ bool S_Capturing(void) {
  */
 int32_t S_ReadCapture(void *data, int32_t len) {
 
-  if (!module.capture || SDL_GetAudioStreamAvailable(module.capture) < len) {
+  if (!module.capture) {
     return 0;
   }
 
-  return SDL_GetAudioStreamData(module.capture, data, len);
+  const int32_t available = SDL_GetAudioStreamAvailable(module.capture);
+  if (available >= 0 && available < len) {
+    return 0;
+  }
+
+  const int32_t read = available < 0 ? -1 : SDL_GetAudioStreamData(module.capture, data, len);
+  if (read < 0) {
+    Com_Warn("Couldn't read capture: %s\n", SDL_GetError());
+    S_CloseCapture();
+    module.captureFailed = true;
+  }
+
+  return read;
 }
 
 /**

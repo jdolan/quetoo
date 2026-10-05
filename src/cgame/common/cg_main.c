@@ -597,6 +597,7 @@ CGameExport *Cg_LoadCgame(CGameImport *import) {
   cge.apiVersion = CGAME_API_VERSION;
   cge.protocol = PROTOCOL_MINOR;
   cge.name = GAME_NAME;
+  cge.defaultVoiceChannel = VOICE_CHANNEL_ALL;
 
   cge.Init = Cg_Init;
   cge.Shutdown = Cg_Shutdown;

@@ -395,6 +395,7 @@
 		CE05B3F030224900C0DE0038 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CE05B3F030224900C0DE0039 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
 		CE05B3F030224900C0DE003A /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
+		CECA90000000000000000011 /* CaptureLevelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA90000000000000000001 /* CaptureLevelView.c */; };
 		CE05B3F030224900C0DE003B /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
 		CE05B3F030224900C0DE003C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
@@ -636,6 +637,7 @@
 		CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
+		CECA90000000000000000012 /* CaptureLevelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA90000000000000000001 /* CaptureLevelView.c */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
 		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
@@ -1000,6 +1002,7 @@
 		CEC0FF002026010300000198 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
 		CEC0FF002026010300000199 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
 		CEC0FF00202601030000019A /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
+		CECA90000000000000000013 /* CaptureLevelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA90000000000000000001 /* CaptureLevelView.c */; };
 		CEC0FF00202601030000019B /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
 		CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEC0FF00202601030000019D /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
@@ -1331,6 +1334,7 @@
 		D2A5C100000000000000007C /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		D2A5C100000000000000007D /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
 		D2A5C100000000000000007E /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
+		CECA90000000000000000014 /* CaptureLevelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA90000000000000000001 /* CaptureLevelView.c */; };
 		D2A5C100000000000000007F /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
 		D2A5C1000000000000000080 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		D2A5C1000000000000000081 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
@@ -2811,6 +2815,8 @@
 		CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlayViewController.h; sourceTree = "<group>"; };
 		CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SettingsViewController.c; sourceTree = "<group>"; };
 		CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsViewController.h; sourceTree = "<group>"; };
+		CECA90000000000000000001 /* CaptureLevelView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CaptureLevelView.c; sourceTree = "<group>"; };
+		CECA90000000000000000002 /* CaptureLevelView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CaptureLevelView.h; sourceTree = "<group>"; };
 		CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoadingViewController.c; sourceTree = "<group>"; };
 		CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadingViewController.h; sourceTree = "<group>"; };
 		CE5870981F5CE7D2004CAAB2 /* MainViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MainViewController.c; sourceTree = "<group>"; };
@@ -4812,6 +4818,8 @@
 			isa = PBXGroup;
 			children = (
 				CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */,
+				CECA90000000000000000001 /* CaptureLevelView.c */,
+				CECA90000000000000000002 /* CaptureLevelView.h */,
 				CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */,
 				CE7D2C2F20310763004BC58E /* SettingsViewController.json */,
 				EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */,
@@ -6929,6 +6937,7 @@
 				CE05B3F030224900C0DE0038 /* PlayViewController.c in Sources */,
 				CE05B3F030224900C0DE0039 /* ResponseServiceViewController.c in Sources */,
 				CE05B3F030224900C0DE003A /* SettingsViewController.c in Sources */,
+				CECA90000000000000000011 /* CaptureLevelView.c in Sources */,
 				CE05B3F030224900C0DE003B /* StatsViewController.c in Sources */,
 				CE05B3F030224900C0DE003C /* TeamPlayerView.c in Sources */,
 				CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */,
@@ -7096,6 +7105,7 @@
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
 				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
+				CECA90000000000000000012 /* CaptureLevelView.c in Sources */,
 				CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */,
 				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
@@ -7576,6 +7586,7 @@
 				CEC0FF002026010300000196 /* PlayViewController.c in Sources */,
 				CEC0FF002026010300000199 /* ResponseServiceViewController.c in Sources */,
 				CEC0FF00202601030000019A /* SettingsViewController.c in Sources */,
+				CECA90000000000000000013 /* CaptureLevelView.c in Sources */,
 				CEC0FF00202601030000019B /* StatsViewController.c in Sources */,
 				CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */,
 				CEC0FF00202601030000019E /* TeamsViewController.c in Sources */,
@@ -7798,6 +7809,7 @@
 				D2A5C100000000000000007C /* PlayViewController.c in Sources */,
 				D2A5C100000000000000007D /* ResponseServiceViewController.c in Sources */,
 				D2A5C100000000000000007E /* SettingsViewController.c in Sources */,
+				CECA90000000000000000014 /* CaptureLevelView.c in Sources */,
 				D2A5C100000000000000007F /* StatsViewController.c in Sources */,
 				D2A5C1000000000000000080 /* TeamPlayerView.c in Sources */,
 				D2A5C1000000000000000081 /* TeamsViewController.c in Sources */,

@@ -632,6 +632,16 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 }
 
 /**
+ * @brief Updates microphone monitoring independently of render throttling and connection state.
+ */
+static void Cl_UpdateVoice(void) {
+
+  const bool active = cls.state == CL_ACTIVE && !cl.demoServer && cls.cgame;
+  S_UpdateVoice(active, Cl_GetKeyDest() != KEY_GAME,
+                cls.cgame ? cls.cgame->defaultVoiceChannel : 0);
+}
+
+/**
  * @brief Executes one client frame tick: networking, input, prediction, and rendering.
  */
 void Cl_Frame(const uint32_t msec) {
@@ -640,6 +650,8 @@ void Cl_Frame(const uint32_t msec) {
   if (dedicated->value) {
     return;
   }
+
+  Cl_UpdateVoice();
 
   // paused demo playback is a stopped world, so the clocks the world is drawn from stop with
   // it, and animations, trails and every other effect keyed on them hold their pose. Input is
@@ -695,6 +707,8 @@ void Cl_Frame(const uint32_t msec) {
   Cl_ReadPackets();
 
   Cl_HandleEvents();
+
+  Cl_UpdateVoice();
 
   R_BeginFrame();
 

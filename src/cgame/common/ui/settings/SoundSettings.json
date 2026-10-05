@@ -192,12 +192,53 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Microphone level"
+                          }
+                        },
+                        "control": {
+                          "class": "CaptureLevelView",
+                          "identifier": "captureLevel"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Voice chat"
                           }
                         },
                         "control": {
                           "class": "CvarCheckbox",
                           "var": "s_voice"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Voice mode"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "voiceMode",
+                          "var": "s_voiceMode"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Activation level"
+                          }
+                        },
+                        "control": {
+                          "class": "Slider",
+                          "identifier": "voiceThreshold",
+                          "min": 0.0,
+                          "max": 0.1,
+                          "step": 0.01,
+                          "labelFormat": "%.2f"
                         }
                       },
                       {
@@ -223,7 +264,7 @@
                           "class": "CvarSlider",
                           "var": "s_captureGain",
                           "min": 0,
-                          "max": 4,
+                          "max": 2,
                           "step": 0.1
                         }
                       },

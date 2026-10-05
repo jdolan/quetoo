@@ -126,6 +126,32 @@ TextView {
   max-width: 320;
 }
 
+CaptureLevelView {
+  autoresizing-mask: none;
+  width: 320;
+  height: 48;
+  pointer-events: none;
+  -level-color: #66c58c;
+  -track-color: #dedede18;
+  -threshold-color: #f1c46d;
+  -clipping-color: #ef6464;
+}
+
+CaptureLevelView Text {
+  autoresizing-mask: none;
+  width: 64;
+  height: 20;
+  font-size: 14;
+}
+
+CaptureLevelView .inputCaption {
+  alignment: top-left;
+}
+
+CaptureLevelView .outputCaption {
+  alignment: bottom-left;
+}
+
 .columns {
   autoresizing-mask: contain;
   axis: horizontal;
