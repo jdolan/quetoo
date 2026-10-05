@@ -154,10 +154,11 @@ START_TEST(check_R_QualityBudgets) {
   }
 
   ck_assert_int_eq(416, sizeof(renderUniforms.block));
-  ck_assert_int_eq(400, offsetof(struct RenderUniformBlock, shadowSamples));
-  ck_assert_int_eq(404, offsetof(struct RenderUniformBlock, parallaxSamples));
-  ck_assert_int_eq(408, offsetof(struct RenderUniformBlock, parallaxShadowSamples));
-  ck_assert_int_eq(412, offsetof(struct RenderUniformBlock, parallaxRefineSteps));
+  ck_assert_int_eq(384, offsetof(struct RenderUniformBlock, shadowSamples));
+  ck_assert_int_eq(388, offsetof(struct RenderUniformBlock, parallaxShadow));
+  ck_assert_int_eq(392, offsetof(struct RenderUniformBlock, parallaxSamples));
+  ck_assert_int_eq(396, offsetof(struct RenderUniformBlock, parallaxShadowSamples));
+  ck_assert_int_eq(400, offsetof(struct RenderUniformBlock, parallaxRefineSteps));
 } END_TEST
 
 START_TEST(check_R_QualityUniforms) {
