@@ -3,8 +3,7 @@
 Quetoo is a first-person shooter engine and game derived from id Software's Quake II. It is written
 in C, renders through SDL_GPU, and builds for macOS, Linux, BSD and Windows.
 
-This file is the shared instruction set for coding agents. `CLAUDE.md` and
-`.github/copilot-instructions.md` point here. Read this first.
+This file is the shared instruction set for coding agents. Read this first.
 
 It deliberately records only what a careful reading of the code does **not** reveal: rules that fail
 silently, constraints that live outside this repository, and ordering that no call site shows. For
@@ -78,7 +77,7 @@ fix belongs in one of them, make it there rather than working around it here, an
 |---|---|---|
 | `../Objectively` | The C object system: classes, interfaces, `$(obj, method, ...)` dispatch, collections, threads, JSON, URL sessions | You need the object model itself, or a collection or `Thread` behaves unexpectedly |
 | `../ObjectivelyGPU` | The GPU abstraction over SDL_GPU: devices, pipelines, passes, buffers, textures | A renderer call is missing, or a pipeline or pass does not behave as documented |
-| `../SDL` | jdolan/SDL at the `ObjectivelyGPU` tag: SDL 3.4.18 plus the SDL_gpu query API. `Quetoo.xcworkspace` builds `SDL3.framework` from it, and the Xcode build fails without it | An SDL_gpu call misbehaves, or the tag moves. See #1093 |
+| `../SDL` | jdolan/SDL at the `ObjectivelyGPU` tag: SDL 3.4.18 plus the SDL_gpu query API. `Quetoo.xcworkspace` builds `SDL3.framework` from it, and the Xcode build fails without it | An SDL_gpu call misbehaves, or the tag moves. See [SDL3 is a fork](#sdl3-is-a-fork) and #1093 |
 | `../ObjectivelyMVC` | The UI toolkit: Views, ViewControllers, the Selector / Style / Stylesheet system, `.json` layouts | Anything under `src/cgame/common/ui/` or `src/client/ui/` misbehaves. Read its `README.md` before touching a View |
 | `../quetoo-data` | Game content: maps, textures, models, sounds, materials, HUD and UI icons | A `.mat` keyword, a model, a skin or an icon is involved |
 | `../quetoo-www` | The website and server browser | Server listing or web-facing behaviour |
@@ -93,6 +92,29 @@ sibling's API does not match what you read in its source, suspect the installed 
 
 `/usr/local/share/quetoo` is normally a symlink to `../quetoo-data/target`, so content edits take
 effect without installing.
+
+### SDL3 is a fork
+
+Occlusion queries (`r_occlude.c`) need the SDL_gpu query API, which upstream SDL does not ship yet.
+Quetoo and ObjectivelyGPU build against the `ObjectivelyGPU` tag of jdolan/SDL. ObjectivelyGPU's
+[`Documentation/install.md`](https://github.com/jdolan/ObjectivelyGPU/blob/main/Documentation/install.md)
+is the canonical procedure for the whole stack: why the fork exists, how to install it, how CI gets
+it, and how to move the tag. Read it before you change anything about SDL.
+
+The failures are silent:
+
+- **Against stock SDL, occlusion queries silently do nothing.** The build emits one warning,
+  `SDL3 lacks SDL_GPU_QUERY_API`, and every query reports "not occluded".
+- **On macOS, Homebrew's stock `sdl3.pc` wins the `pkg-config` search** unless `PKG_CONFIG_PATH`
+  puts `/usr/local/lib/pkgconfig` first. The build succeeds and links stock SDL.
+- **SDL3_image and SDL3_ttf MUST be built from source against the fork.** Homebrew's `sdl3_image`
+  and `sdl3_ttf` link Homebrew's `sdl3`, so the process loads two copies of SDL3.
+- **D3D12 has no queries.** The fork's D3D12 query functions are stubs that fail, and
+  `R_InitOcclusionQueries` then exits through ObjectivelyGPU's `GPU_Assert`. `R_InitContext`
+  selects Vulkan on Windows by default, so only `r_gpuDriver direct3d12` reaches this.
+
+To confirm what a build loads, run `DYLD_PRINT_LIBRARIES=1 quetoo +set s_volume 0 +quit 2>&1 | grep SDL3`.
+Exactly one `libSDL3` MUST appear, from `/usr/local/lib`.
 
 ### quetoo-data: `src/` versus `target/`
 
