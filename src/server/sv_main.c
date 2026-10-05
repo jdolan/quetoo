@@ -965,17 +965,17 @@ void Sv_Frame(const uint32_t msec) {
  */
 static void Sv_InitLocal(void) {
 
-  sv_demoList = Cvar_Add("sv_demoList", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
-  sv_enforceTime = Cvar_Add("sv_enforceTime", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
-  sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
+  sv_demoList = Cvar_Add("sv_demoList", "", CVAR_SERVER_INFO, "A list of demo names to cycle through.");
+  sv_enforceTime = Cvar_Add("sv_enforceTime", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk.");
+  sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser.");
   sv_map = Cvar_Add("sv_map", "", CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
   sv_mapList = Cvar_Add("sv_mapList", "maps.lst", 0, "The map list filename.");
   sv_mapListShuffle = Cvar_Add("sv_mapListShuffle", "0", 0, "Enables map shuffling.");
-  sv_master = Cvar_Add("sv_master", HOST_MASTER, CVAR_NO_SET, "The master server to advertise on, or \"\" to advertise nowhere");
-  sv_maxClients = Cvar_Add("sv_maxClients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
-  sv_maxEntities = Cvar_Add("sv_maxEntities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
-  sv_minClients = Cvar_Add("sv_minClients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
-  sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
+  sv_master = Cvar_Add("sv_master", HOST_MASTER, CVAR_NO_SET, "The master server hostname.");
+  sv_maxClients = Cvar_Add("sv_maxClients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow.");
+  sv_maxEntities = Cvar_Add("sv_maxEntities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow.");
+  sv_minClients = Cvar_Add("sv_minClients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow.");
+  sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server.");
   sv_statsUrl = Cvar_Add("sv_statsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to 0 to disable.");
   char uuid[37];
   Com_Uuid(uuid, sizeof(uuid));
@@ -983,7 +983,7 @@ static void Sv_InitLocal(void) {
                      "This server's identity for the lifetime of the process, so that clients "
                      "reaching it by more than one address can tell it is one server");
 
-  sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
+  sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds.");
 
   sv_maxClients->integer = Mini(sv_maxClients->integer, MAX_CLIENTS);
   sv_maxEntities->integer = Mini(sv_maxEntities->integer, MAX_ENTITIES);

@@ -411,23 +411,7 @@ static void Cl_ParsePrint(void) {
   const byte level = Net_ReadByte(&netMessage);
   const char *string = Net_ReadString(&netMessage);
 
-  // the server shouldn't have sent us anything below our level anyway
   if (level >= messageLevel->integer) {
-
-    // chat from a player arrives as SV_CMD_CHAT and is sounded by the client game, which is the
-    // only side that knows what kind of message it is; this remains for console originated chat
-    char *sample = NULL;
-    if (level == PRINT_CHAT && *cl_chatSound->string) {
-      sample = cl_chatSound->string;
-    }
-
-    if (sample) {
-      S_AddSample(&clientStage, &(SoundPlaySample) {
-        .sample = S_LoadSample(sample, ASSET_CONTEXT_SOUNDS),
-        .flags = S_PLAY_UI
-      });
-    }
-
     Con_Append(level, string);
   }
 }

@@ -499,12 +499,11 @@ static const char *Cmd_Stringify(const Cmd *cmd) {
 
   if (cmd->Execute) {
     Str_Append(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
-
     if (cmd->description) {
-      Str_Append(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
+      Str_Append(buffer, va("\n  ^2%s^7", cmd->description), sizeof(buffer));
     }
   } else if (cmd->commands) {
-    Str_Append(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
+    Str_Append(buffer, va("^3%s^7\n  ^2%s^7", cmd->name, cmd->commands), sizeof(buffer));
   } else {
     Str_Append(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
   }

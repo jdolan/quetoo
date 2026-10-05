@@ -384,26 +384,26 @@ static void Main_Init(void) {
   buildNumber = Cvar_Add("buildNumber", BUILD_NUMBER, CVAR_NO_SET, NULL);
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
 
-  dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
+  dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server.");
   if (Str_Find(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
   }
 
-  developer = Cvar_Add("developer", "0", CVAR_DEVELOPER, "Enables shader debugging tools (developer tool)");
+  developer = Cvar_Add("developer", "0", CVAR_DEVELOPER, "Enables shader debugging tools (developer tool).");
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
-  rconAddress = Cvar_Add("rconAddress", "", 0, "The remote console server address (defaults to current server)");
+  rconAddress = Cvar_Add("rconAddress", "", 0, "The remote console server address (defaults to current server).");
   rconPassword = Cvar_Add("rconPassword", "", CVAR_ARCHIVE, "The remote console password. "
                            "Set this on your server to enable remote administration via the in-game console. "
                            "Set this on your client to authenticate with your server.");
 
-  threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
+  threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create.");
   threads->modified = false;
 
-  timeDemo = Cvar_Add("timeDemo", "0", CVAR_DEVELOPER, "Enables timed benchmark of demo playback");
-  timeScale = Cvar_Add("timeScale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
+  timeDemo = Cvar_Add("timeDemo", "0", CVAR_DEVELOPER, "Enables timed benchmark of demo playback.");
+  timeScale = Cvar_Add("timeScale", "1.0", CVAR_DEVELOPER, "Controls time lapse.");
 
-  verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
+  verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information.");
 
   quetoo.Debug = Main_Debug;
   quetoo.Error = Main_Error;
@@ -423,11 +423,11 @@ static void Main_Init(void) {
 
   Con_Init();
 
-  Cmd *gameCmd = Cmd_Add("game", Main_Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  Cmd *gameCmd = Cmd_Add("game", Main_Game_f, CMD_SYSTEM, "Change the game module: game [name].");
   Cmd_SetAutocomplete(gameCmd, Main_Game_Autocomplete_f);
-  Cmd_Add("memStats", Main_MemStats_f, CMD_SYSTEM, "Print memory stats");
-  Cmd_Add("debug", Main_Debug_f, CMD_SYSTEM, "Control debugging output");
-  Cmd_Add("quit", Main_Quit_f, CMD_SYSTEM, "Quit Quetoo");
+  Cmd_Add("memStats", Main_MemStats_f, CMD_SYSTEM, "Print memory stats.");
+  Cmd_Add("debug", Main_Debug_f, CMD_SYSTEM, "Control debugging output.");
+  Cmd_Add("quit", Main_Quit_f, CMD_SYSTEM, "Quit Quetoo.");
 
   NetChan_Init();
 

@@ -271,7 +271,7 @@ static void S_Stop_f(void) {
  */
 static void S_InitLocal(void) {
 
-  s_getError = Cvar_Add("s_getError", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
+  s_getError = Cvar_Add("s_getError", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool).");
 
   S_InitDevices();
 
@@ -285,8 +285,8 @@ static void S_InitLocal(void) {
 
   Cvar_ClearAll(CVAR_S_MASK);
 
-  Cmd_Add("s_listMedia", S_ListMedia_f, CMD_SOUND, "List all currently loaded media");
-  Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, NULL);
+  Cmd_Add("s_listMedia", S_ListMedia_f, CMD_SOUND, "List all currently loaded media.");
+  Cmd_Add("s_stop", S_Stop_f, CMD_SOUND, "Stop all playing sounds.");
 }
 
 /**

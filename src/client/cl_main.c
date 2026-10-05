@@ -536,18 +536,18 @@ static void Cl_InitLocal(void) {
   cl_analyticsUrl = Cvar_Add("cl_analyticsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST anonymous session analytics to. Set to 0 to disable.");
   cl_chatSound = Cvar_Add("cl_chatSound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
   cl_maxFps = Cvar_Add("cl_maxFps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
-  cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
   cl_teamChatSound = Cvar_Add("cl_teamChatSound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
-  cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
+  cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation (developer tool).");
+  cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server.");
 
   // user info
 
   guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-  name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
+  name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name.");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
-  messageLevel = Cvar_Add("messageLevel", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
-  password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
-  rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
+  messageLevel = Cvar_Add("messageLevel", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive.");
+  password = Cvar_Add("password", "", CVAR_USER_INFO, "The server password, for password protected servers.");
+  rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none.");
 
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
@@ -569,12 +569,12 @@ static void Cl_InitLocal(void) {
   Cmd_Add("rcon", Cl_Rcon_f, CMD_CLIENT, NULL);
   Cmd_Add("precache", Cl_Precache_f, CMD_CLIENT, NULL);
   Cmd_Add("download", Cl_Download_f, CMD_CLIENT, NULL);
-  Cmd_Add("saveConfig", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk");
+  Cmd_Add("saveConfig", Cl_WriteConfiguration, CMD_CLIENT, "Forces the configuration file to be written to disk.");
 
-  Cmd_Add("r_restart", Cl_R_Restart_f, CMD_CLIENT, "Restart the rendering subsystem");
-  Cmd_Add("r_toggleFullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen");
+  Cmd_Add("r_restart", Cl_R_Restart_f, CMD_CLIENT, "Restart the rendering subsystem.");
+  Cmd_Add("r_toggleFullscreen", Cl_R_ToggleFullscreen_f, CMD_SYSTEM | CMD_CLIENT, "Toggle fullscreen.");
 
-  Cmd_Add("s_restart", Cl_S_Restart_f, CMD_CLIENT, "Restart the sound subsystem");
+  Cmd_Add("s_restart", Cl_S_Restart_f, CMD_CLIENT, "Restart the sound subsystem.");
 
   // forward anything we don't handle locally to the server
   Cmd_ForwardToServer = Cl_ForwardCmdToServer;

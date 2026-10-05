@@ -380,7 +380,7 @@ void Sv_InitAdmin(void) {
   Cmd_Add("serverInfo", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings.");
   Cmd_Add("userInfo", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user.");
 
-  Cmd *demoCmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
+  Cmd *demoCmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file.");
   Cmd_SetAutocomplete(demoCmd, Sv_Demo_Autocomplete_f);
 
   Cmd *mapCmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
@@ -393,8 +393,8 @@ void Sv_InitAdmin(void) {
   Cmd_Add("saveEditorMap", Sv_SaveEditorMap_f, CMD_SERVER, "Saves editor changes to the .map file.");
 
   if (dedicated->value) {
-    Cmd_Add("say", Sv_Say_f, CMD_SERVER, "Send a global chat message");
-    Cmd_Add("tell", Sv_Tell_f, CMD_SERVER, "Send a private chat message");
-    Cmd_Add("stuff", Sv_Stuff_f, CMD_SERVER, "Force a client to execute a command");
+    Cmd_Add("say", Sv_Say_f, CMD_SERVER, "Send a global chat message.");
+    Cmd_Add("tell", Sv_Tell_f, CMD_SERVER, "Send a private chat message.");
+    Cmd_Add("stuff", Sv_Stuff_f, CMD_SERVER, "Force a client to execute a command.");
   }
 }

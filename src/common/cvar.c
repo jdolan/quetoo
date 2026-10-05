@@ -739,17 +739,17 @@ void Cvar_Init(void) {
 
   registry = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
-  Cmd *setCmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
-  Cmd *setaCmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
-  Cmd *setsCmd = Cmd_Add("sets", Cvar_Set_f, 0, "Set a server-info console variable");
-  Cmd *setuCmd = Cmd_Add("setu", Cvar_Set_f, 0, "Set a user-info console variable");
+  Cmd *setCmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable.");
+  Cmd *setaCmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable.");
+  Cmd *setsCmd = Cmd_Add("sets", Cvar_Set_f, 0, "Set a server-info console variable.");
+  Cmd *setuCmd = Cmd_Add("setu", Cvar_Set_f, 0, "Set a user-info console variable.");
 
   Cmd_SetAutocomplete(setCmd, Cvar_Set_Autocomplete_f);
   Cmd_SetAutocomplete(setaCmd, Cvar_Set_Autocomplete_f);
   Cmd_SetAutocomplete(setsCmd, Cvar_Set_Autocomplete_f);
   Cmd_SetAutocomplete(setuCmd, Cvar_Set_Autocomplete_f);
 
-  Cmd *toggleCmd = Cmd_Add("toggle", Cvar_Toggle_f, 0, "Toggle a cvar between 0 and 1");
+  Cmd *toggleCmd = Cmd_Add("toggle", Cvar_Toggle_f, 0, "Toggle a cvar between 0 and 1.");
 
   Cmd_SetAutocomplete(toggleCmd, Cvar_Set_Autocomplete_f);
 

@@ -578,7 +578,7 @@ void Cl_InitInput(void) {
   m_sensitivity = Cvar_Add("m_sensitivity", "3.0", CVAR_ARCHIVE, NULL);
   m_sensitivityZoom = Cvar_Add("m_sensitivityZoom", "1.0", CVAR_ARCHIVE, NULL);
   m_interpolate = Cvar_Add("m_interpolate", "0", CVAR_ARCHIVE, NULL);
-  m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse");
+  m_invert = Cvar_Add("m_invert", "0", CVAR_ARCHIVE, "Invert the mouse.");
   m_pitch = Cvar_Add("m_pitch", "0.022", 0, NULL);
   m_yaw = Cvar_Add("m_yaw", "0.022", 0, NULL);
 

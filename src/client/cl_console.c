@@ -105,10 +105,10 @@ void Cl_InitConsole(void) {
   cl_consoleHeight = Cvar_Add("cl_consoleHeight", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
   cl_drawConsoleBackgroundAlpha = Cvar_Add("cl_drawConsoleBackgroundAlpha", "0.8", CVAR_ARCHIVE, "The opacity of the console background, from 0 to 1.");
 
-  Cmd_Add("cl_toggleConsole", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
+  Cmd_Add("cl_toggleConsole", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console.");
 
-  Cmd_Add("cl_backtrace", Cl_Backtrace_f, CMD_SYSTEM, "Generate a backtrace");
-  Cmd_Add("cl_error", Cl_Error_f, CMD_SYSTEM, "Generate an error");
+  Cmd_Add("cl_backtrace", Cl_Backtrace_f, CMD_SYSTEM, "Generate a backtrace.");
+  Cmd_Add("cl_error", Cl_Error_f, CMD_SYSTEM, "Generate an error.");
 
   Com_Print("Client console initialized\n");
 }
