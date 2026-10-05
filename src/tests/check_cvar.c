@@ -74,7 +74,7 @@ START_TEST(check_Cvar_Get) {
   ck_assert_msg(var->integer == 3, "var->integer was %d", var->integer);
   ck_assert_msg(var->value > 3.19 && var->value < 3.21, "var->value was %f", var->value);
   ck_assert_msg(var->flags == (CVAR_ARCHIVE | CVAR_USER_INFO), "var->flags was %d", var->flags);
-  ck_assert_str_eq(var->description, "Some other description");
+  ck_assert_str_eq(var->description, "Some other description.");
 
   // modify the variable and inspect it for changes
   Cmd_ExecuteString("set var 1.4\n");
