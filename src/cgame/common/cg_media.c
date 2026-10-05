@@ -94,6 +94,9 @@ void Cg_LoadMedia(void) {
   
   cgi.LoadingProgress(-1, "sounds");
 
+  cgameMedia.sounds.chat = cgi.LoadSample("misc/chat", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.teamChat = cgi.LoadSample("misc/teamchat", ASSET_CONTEXT_SOUNDS);
+
   cgameMedia.sounds.blasterFire = cgi.LoadSample("weapons/blaster/fire", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.blasterHit = cgi.LoadSample("weapons/blaster/hit", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.shotgunFire = cgi.LoadSample("weapons/shotgun/fire", ASSET_CONTEXT_SOUNDS);

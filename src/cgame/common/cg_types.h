@@ -256,6 +256,9 @@ typedef struct {
  */
 typedef struct {
   struct CGameMediaSounds {
+    SoundSample *chat;
+    SoundSample *teamChat;
+
     SoundSample *blasterFire;
     SoundSample *blasterHit;
     SoundSample *shotgunFire;

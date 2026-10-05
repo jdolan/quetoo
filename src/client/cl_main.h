@@ -23,10 +23,8 @@
 
 #include "cl_types.h"
 
-extern Cvar *cl_chatSound;
 extern Cvar *cl_maxFps;
 extern Cvar *cl_noLerp;
-extern Cvar *cl_teamChatSound;
 extern Cvar *cl_timeout;
 
 extern Cvar *guid;

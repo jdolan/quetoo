@@ -31,10 +31,8 @@
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
 
-Cvar *cl_chatSound;
 Cvar *cl_maxFps;
 Cvar *cl_noLerp;
-Cvar *cl_teamChatSound;
 Cvar *cl_timeout;
 
 Cvar *guid;
@@ -534,9 +532,7 @@ static void Cl_InitLocal(void) {
 
   // register our variables
   cl_analyticsUrl = Cvar_Add("cl_analyticsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST anonymous session analytics to. Set to 0 to disable.");
-  cl_chatSound = Cvar_Add("cl_chatSound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
   cl_maxFps = Cvar_Add("cl_maxFps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
-  cl_teamChatSound = Cvar_Add("cl_teamChatSound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");
   cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation (developer tool).");
   cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server.");
 

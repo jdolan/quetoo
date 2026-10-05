@@ -385,20 +385,15 @@ static void Cg_UpdateConfigString(int32_t i) {
 static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
 
   const bool team = flags & CHAT_TEAM;
-
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
+  const SoundSample *sample = team ? cgameMedia.sounds.teamChat : cgameMedia.sounds.chat;
 
   cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cgameState.clients[client].name, color, message);
 
-  // the sound is the module's to choose, because only it knows which kind of message this is
-  const char *sample = cgi.GetCvarString(team ? "cl_teamChatSound" : "cl_chatSound");
-
-  if (sample && *sample) {
-    Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-      .sample = cgi.LoadSample(sample, ASSET_CONTEXT_SOUNDS),
-      .flags = S_PLAY_UI
-    });
-  }
+  Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
+    .sample = sample,
+    .flags = S_PLAY_UI
+  });
 }
 
 /**

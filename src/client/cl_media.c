@@ -184,14 +184,6 @@ static void Cl_LoadSounds(void) {
 
   Cl_LoadingProgress(-1, "sounds");
 
-  if (*cl_chatSound->string) {
-    S_LoadSample(cl_chatSound->string, ASSET_CONTEXT_SOUNDS);
-  }
-
-  if (*cl_teamChatSound->string) {
-    S_LoadSample(cl_teamChatSound->string, ASSET_CONTEXT_SOUNDS);
-  }
-
   for (int32_t i = 0; i < MAX_SOUNDS; i++) {
 
     const char *str = cl.configStrings[CS_SOUNDS + i];
