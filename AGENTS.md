@@ -224,8 +224,14 @@ Quetoo also ships Xcode (`Quetoo.xcodeproj`) and MSVC (`Quetoo.vs15/`) projects.
   `-target` build fails spuriously, because the Objectively frameworks are products of sibling
   projects referenced by the workspace.
 - **A new source file MUST be added to all three build systems**: the module's `Makefile.am`,
-  `Quetoo.xcodeproj/project.pbxproj`, and both `Quetoo.vs15/cgame_common.props` (the list MSBuild
-  actually compiles) and the per-target `.vcxproj.filters`.
+  `Quetoo.xcodeproj/project.pbxproj`, and the MSBuild list that compiles it, with the matching
+  `.vcxproj.filters`. In `Quetoo.vs15/`:
+  - an engine library: `libs/lib<name>.vcxproj`, for example `libs/librenderer.vcxproj`;
+  - client game code shared by every game module: `cgame_common.props`, and game code:
+    `game_common.props`. Each `cgame*.vcxproj` and `game*.vcxproj` imports them, and each has its
+    own `.vcxproj.filters`;
+  - code for one game module only: that module's `cgame-<mod>.vcxproj` or `game-<mod>.vcxproj`;
+  - a program: `quetoo`, `quetoo-dedicated`, `quemap` or `quetoo-master` `.vcxproj`.
 - CI (`.github/workflows/build.yml`) builds Linux and Windows on pushes to `main` and on pull
   requests against it. It is the only check that covers platform-guarded code.
 
