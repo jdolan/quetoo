@@ -78,7 +78,7 @@ fix belongs in one of them, make it there rather than working around it here, an
 |---|---|---|
 | `../Objectively` | The C object system: classes, interfaces, `$(obj, method, ...)` dispatch, collections, threads, JSON, URL sessions | You need the object model itself, or a collection or `Thread` behaves unexpectedly |
 | `../ObjectivelyGPU` | The GPU abstraction over SDL_GPU: devices, pipelines, passes, buffers, textures | A renderer call is missing, or a pipeline or pass does not behave as documented |
-| `../SDL` | jdolan/SDL at the `ObjectivelyGPU` tag: SDL 3.4.12 plus the SDL_gpu query API. `Quetoo.xcworkspace` builds `SDL3.framework` from it, and the Xcode build fails without it | An SDL_gpu call misbehaves, or the tag moves. See #1093 |
+| `../SDL` | jdolan/SDL at the `ObjectivelyGPU` tag: SDL 3.4.18 plus the SDL_gpu query API. `Quetoo.xcworkspace` builds `SDL3.framework` from it, and the Xcode build fails without it | An SDL_gpu call misbehaves, or the tag moves. See #1093 |
 | `../ObjectivelyMVC` | The UI toolkit: Views, ViewControllers, the Selector / Style / Stylesheet system, `.json` layouts | Anything under `src/cgame/common/ui/` or `src/client/ui/` misbehaves. Read its `README.md` before touching a View |
 | `../quetoo-data` | Game content: maps, textures, models, sounds, materials, HUD and UI icons | A `.mat` keyword, a model, a skin or an icon is involved |
 | `../quetoo-www` | The website and server browser | Server listing or web-facing behaviour |

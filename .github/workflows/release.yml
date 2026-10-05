@@ -47,8 +47,8 @@ jobs:
           openal-soft libsndfile physfs opus \
           curl dylibbundler
 
-    # The jdolan/SDL ObjectivelyGPU tag: 3.4.12 plus the SDL_gpu query API
-    # (3.4.14 regressed SDL_gpu on macOS). SDL3_image and SDL3_ttf are built
+    # The jdolan/SDL ObjectivelyGPU tag: 3.4.18 plus the SDL_gpu query API.
+    # SDL3_image and SDL3_ttf are built
     # here too, because Homebrew's bottles link Homebrew's sdl3, and dylibbundler
     # would then see two libSDL3.0.dylib. See #945 and #1093.
     - name: Build SDL3
@@ -266,7 +266,7 @@ jobs:
         cmake --build openal-soft/build -j$(nproc)
         sudo cmake --install openal-soft/build
 
-    # The jdolan/SDL ObjectivelyGPU tag: 3.4.12 plus the SDL_gpu query API,
+    # The jdolan/SDL ObjectivelyGPU tag: 3.4.18 plus the SDL_gpu query API,
     # the same SDL3 on every platform. See #945 and #1093.
     - name: Build SDL3
       run: |

@@ -61,7 +61,7 @@ jobs:
         cmake --build openal-soft/build -j$(nproc)
         sudo cmake --install openal-soft/build
 
-    # The jdolan/SDL ObjectivelyGPU tag: 3.4.12 plus the SDL_gpu query API,
+    # The jdolan/SDL ObjectivelyGPU tag: 3.4.18 plus the SDL_gpu query API,
     # the same SDL3 on every platform. See #945 and #1093.
     - name: Build SDL3
       run: |
