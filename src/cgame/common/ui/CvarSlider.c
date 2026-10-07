@@ -45,7 +45,13 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
   const double step = this->slider.step;
 
   if (step > 0.0 && step < 1.0 && !$(dictionary, objectForKeyPath, "labelFormat")) {
-    $((Slider *) this, setLabelFormat, va("%%.%df", (int32_t) ceil(-log10(step) - 1e-9)));
+
+    int32_t decimals = 1;
+    while (decimals < 6 && fabs(step * pow(10.0, decimals) - round(step * pow(10.0, decimals))) > 1e-6) {
+      decimals++;
+    }
+
+    $((Slider *) this, setLabelFormat, va("%%.%df", decimals));
   }
 }
 
