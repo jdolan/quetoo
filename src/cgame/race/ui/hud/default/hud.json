@@ -45,8 +45,14 @@
           ]
         },
         {
-          "class": "SpectatorView",
-          "identifier": "spectator"
+          "class": "View",
+          "identifier": "spectatorAnchor",
+          "subviews": [
+            {
+              "class": "SpectatorView",
+              "identifier": "spectator"
+            }
+          ]
         },
         {
           "class": "ChaseView",

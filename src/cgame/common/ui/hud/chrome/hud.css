@@ -419,10 +419,14 @@ ChatView TextView > Text {
   padding-top: 220;
 }
 
-#hud #spectator {
+#hud #spectatorAnchor {
   alignment: top-center;
-  color: #00ff00;
+  autoresizing-mask: contain;
   padding-top: 32;
+}
+
+#hud #spectator {
+  color: #00ff00;
 }
 
 /* Text discards padding - Text::sizeThatFits returns the glyph size, overriding View's - so the
