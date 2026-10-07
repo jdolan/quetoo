@@ -285,6 +285,60 @@
                   }
                 },
                 {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "View"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Show weapon"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_drawWeapon"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weapon bob"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "step": 0.05,
+                          "var": "cg_drawWeaponBob"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "View bob"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "step": 0.05,
+                          "var": "cg_bob"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
                   "class": "CrosshairPreviewView",
                   "identifier": "crosshairView"
                 }
