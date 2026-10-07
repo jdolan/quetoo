@@ -113,7 +113,7 @@ static void Cg_Init(void) {
   cg_addLights = cgi.AddCvar("cg_addLights", "1", 0, "Toggles adding dynamic lights to the scene.");
   cg_addSprites = cgi.AddCvar("cg_addSprites", "1", 0, "Toggles adding sprites to the scene.");
   cg_addWeather = cgi.AddCvar("cg_addWeather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
-  cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
+  cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Scales the view and weapon bob while moving, and the weapon's drop, raise and kick (0 to 2).");
   cg_drawBlend = cgi.AddCvar("cg_drawBlend", "1", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending.");
   cg_drawBlendDamage = cgi.AddCvar("cg_drawBlendDamage", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when taking damage.");
   cg_drawBlendLiquid = cgi.AddCvar("cg_drawBlendLiquid", "1", CVAR_ARCHIVE, "Controls the intensity of the blend effect while in a liquid.");
@@ -134,7 +134,7 @@ static void Cg_Init(void) {
   cg_drawTargetName = cgi.AddCvar("cg_drawTargetName", "1", CVAR_ARCHIVE, "Draw the target's name");
   cg_drawWeapon = cgi.AddCvar("cg_drawWeapon", "1", CVAR_ARCHIVE, "Toggle drawing of the weapon model.");
   cg_drawWeaponAlpha = cgi.AddCvar("cg_drawWeaponAlpha", "1", CVAR_ARCHIVE, "The alpha transparency for drawing the weapon model.");
-  cg_drawWeaponBob = cgi.AddCvar("cg_drawWeaponBob", "1", CVAR_ARCHIVE, "If the weapon model bobs while moving.");
+  cg_drawWeaponBob = cgi.AddCvar("cg_drawWeaponBob", "1", CVAR_ARCHIVE, "Scales the weapon model's sway with the player's velocity (0 to 2).");
   cg_drawWeaponX = cgi.AddCvar("cg_drawWeaponX", "0", CVAR_ARCHIVE, "The x offset for drawing the weapon model.");
   cg_drawWeaponY = cgi.AddCvar("cg_drawWeaponY", "0", CVAR_ARCHIVE, "The y offset for drawing the weapon model.");
   cg_drawWeaponZ = cgi.AddCvar("cg_drawWeaponZ", "0", CVAR_ARCHIVE, "The z offset for drawing the weapon model.");
