@@ -35,8 +35,14 @@
           ]
         },
         {
-          "class": "VoteView",
-          "identifier": "vote"
+          "class": "View",
+          "identifier": "voteAnchor",
+          "subviews": [
+            {
+              "class": "VoteView",
+              "identifier": "vote"
+            }
+          ]
         },
         {
           "class": "SpectatorView",

@@ -413,9 +413,10 @@ ChatView TextView > Text {
   color: #00ff00;
 }
 
-#hud #vote {
+#hud #voteAnchor {
   alignment: middle-center;
-  padding-top: 128;
+  autoresizing-mask: contain;
+  padding-top: 220;
 }
 
 #hud #spectator {
