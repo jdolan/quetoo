@@ -283,6 +283,18 @@
                           "var": "cg_hud",
                           "expectsStringValue": true
                         }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Show target names"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_drawTargetName"
+                        }
                       }
                     ]
                   }
