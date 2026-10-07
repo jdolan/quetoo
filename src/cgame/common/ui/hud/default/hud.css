@@ -313,7 +313,7 @@ ChatView TextView > Text {
 #hud #voteAnchor {
   alignment: middle-center;
   autoresizing-mask: contain;
-  padding-top: 220;
+  padding-bottom: 220;
 }
 
 #hud #spectatorAnchor {
