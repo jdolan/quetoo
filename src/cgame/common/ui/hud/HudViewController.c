@@ -391,13 +391,21 @@ static bool isEditorView(const View *view) {
 }
 
 /**
+ * @return True if the view is a wrapper, such as the layout or an anchor: a plain View that
+ * holds other views. A plain View with no subviews draws itself, as the chrome spine does.
+ */
+static bool isWrapperView(const View *view) {
+  return ((Object *) view)->clazz == _View() && view->subviews->count;
+}
+
+/**
  * @brief ViewEnumerator for updateWithFrame: in the editor, only the editor views show. Runs
- * before the hierarchy updates, so an element that hides itself still can. The layout wrapper
- * is looked through, not hidden, since the editor views live in it.
+ * before the hierarchy updates, so an element that hides itself still can. A wrapper is looked
+ * through, not hidden, since an editor view may live in it.
  */
 static void hideForEditor(View *view, ident data) {
 
-  if (view->identifier && strcmp(view->identifier, "layout") == 0) {
+  if (isWrapperView(view)) {
     $(view, enumerateSubviews, hideForEditor, data);
     return;
   }
@@ -408,11 +416,11 @@ static void hideForEditor(View *view, ident data) {
 
 /**
  * @brief ViewEnumerator for updateWithFrame: in the editor, only the editor views take the
- * frame, so that no other element shows itself again. The layout wrapper is looked through.
+ * frame, so that no other element shows itself again. A wrapper is looked through.
  */
 static void updateEditorViews(View *view, ident data) {
 
-  if (view->identifier && strcmp(view->identifier, "layout") == 0) {
+  if (isWrapperView(view)) {
     $(view, enumerateSubviews, updateEditorViews, data);
     return;
   }

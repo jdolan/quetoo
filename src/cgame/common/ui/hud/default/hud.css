@@ -299,22 +299,31 @@ ChatView TextView > Text {
   font-size: 16;
 }
 
-#hud #targetName {
-  alignment: bottom-center;
-  font-size: 28;
-  color: #00ff00;
-  padding-bottom: 224;
+#hud #targetNameAnchor {
+  alignment: middle-center;
+  autoresizing-mask: contain;
+  padding-top: 80;
 }
 
-#hud #vote {
+#hud #targetName {
+  font-size: 18;
+  color: #00ff00;
+}
+
+#hud #voteAnchor {
   alignment: middle-center;
-  padding-top: 128;
+  autoresizing-mask: contain;
+  padding-bottom: 220;
+}
+
+#hud #spectatorAnchor {
+  alignment: top-right;
+  autoresizing-mask: contain;
+  padding-top: 32;
 }
 
 #hud #spectator {
-  alignment: top-right;
   color: #00ff00;
-  padding-top: 32;
 }
 
 /* Text discards padding - Text::sizeThatFits returns the glyph size, overriding View's - so the

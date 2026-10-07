@@ -547,7 +547,7 @@ static void Cg_VoiceTeam_down_f(void) {
 
 /**
  * @brief The tail of the `Cg_BindKeys` chain: the keys for the weapons, the
- * movement, the chat and the scores that the common sources provide.
+ * movement, the chat, the scores and the vote that the common sources provide.
  */
 static void Cg_BindKeys_Common(void) {
 
@@ -591,6 +591,9 @@ static void Cg_BindKeys_Common(void) {
     { "mouse wheel down", "cg_weaponNext" },
 
     { "tab", "+score" },
+
+    { "f1", "vote yes" },
+    { "f2", "vote no" },
 
     { "left alt", "+ZOOM" },
   };

@@ -70,7 +70,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 
   ResponseServiceViewController *this = (ResponseServiceViewController *) hueColorPicker->delegate.self;
 
-  if (hue < 1.0) {
+  if (hue < 0.0) {
     cgi.SetCvarString(cg_drawCrosshairColor->name, "default");
 
     $(hueColorPicker->colorView->style, addColorAttribute, "background-color", &Colors.Charcoal);
@@ -240,7 +240,8 @@ static void viewWillAppear(ViewController *self) {
   if (color.r || color.g || color.b) {
     $(this->crosshairColorPicker, setRGBColor, &color);
   } else {
-    $(this->crosshairColorPicker, setColor, 0.0, 1.0, 1.0);
+    $(this->crosshairColorPicker, setColor, -1.0, 1.0, 1.0);
+    didPickCrosshairColor(this->crosshairColorPicker, -1.0, 1.0, 1.0);
   }
 
   $(this->crosshair, selectOptionWithValue, (ident) ((size_t) cg_drawCrosshair->integer));

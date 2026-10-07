@@ -18,16 +18,34 @@
           "identifier": "centerPrint"
         },
         {
-          "class": "TargetNameView",
-          "identifier": "targetName"
+          "class": "View",
+          "identifier": "targetNameAnchor",
+          "subviews": [
+            {
+              "class": "TargetNameView",
+              "identifier": "targetName"
+            }
+          ]
         },
         {
-          "class": "VoteView",
-          "identifier": "vote"
+          "class": "View",
+          "identifier": "voteAnchor",
+          "subviews": [
+            {
+              "class": "VoteView",
+              "identifier": "vote"
+            }
+          ]
         },
         {
-          "class": "SpectatorView",
-          "identifier": "spectator"
+          "class": "View",
+          "identifier": "spectatorAnchor",
+          "subviews": [
+            {
+              "class": "SpectatorView",
+              "identifier": "spectator"
+            }
+          ]
         },
         {
           "class": "TeamBannerView",
