@@ -331,6 +331,57 @@
                           "class": "CvarCheckbox",
                           "var": "cg_drawTargetName"
                         }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Show frame rate"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_drawFps"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Show ping"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_drawPing"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Pulse low vitals"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_drawVitalsPulse"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Screen flashes"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 1,
+                          "step": 0.05,
+                          "var": "cg_drawBlend"
+                        }
                       }
                     ]
                   }
