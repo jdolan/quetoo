@@ -41,7 +41,9 @@ void Cl_R_Restart_f(void) {
   R_Init();
 
   Ui_Init();
-  
+
+  Cl_SetKeyDest(cls.keyState.dest);
+
   Cl_InitCgame();
 
   if (cls.state == CL_ACTIVE) {
