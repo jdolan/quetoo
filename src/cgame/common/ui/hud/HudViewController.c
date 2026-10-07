@@ -392,12 +392,12 @@ static bool isEditorView(const View *view) {
 
 /**
  * @brief ViewEnumerator for updateWithFrame: in the editor, only the editor views show. Runs
- * before the hierarchy updates, so an element that hides itself still can. The layout wrapper
- * is looked through, not hidden, since the editor views live in it.
+ * before the hierarchy updates, so an element that hides itself still can. A plain View, such
+ * as the layout or an anchor, is looked through, not hidden, since an editor view may live in it.
  */
 static void hideForEditor(View *view, ident data) {
 
-  if (view->identifier && strcmp(view->identifier, "layout") == 0) {
+  if (((Object *) view)->clazz == _View()) {
     $(view, enumerateSubviews, hideForEditor, data);
     return;
   }
@@ -408,11 +408,11 @@ static void hideForEditor(View *view, ident data) {
 
 /**
  * @brief ViewEnumerator for updateWithFrame: in the editor, only the editor views take the
- * frame, so that no other element shows itself again. The layout wrapper is looked through.
+ * frame, so that no other element shows itself again. A plain View is looked through.
  */
 static void updateEditorViews(View *view, ident data) {
 
-  if (view->identifier && strcmp(view->identifier, "layout") == 0) {
+  if (((Object *) view)->clazz == _View()) {
     $(view, enumerateSubviews, updateEditorViews, data);
     return;
   }
