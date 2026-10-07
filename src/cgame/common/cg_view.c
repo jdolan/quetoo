@@ -355,6 +355,11 @@ static void Cg_UpdateBob(const PlayerState *ps) {
 
   cgameView.bob = 0.f;
 
+  if (cg_bob->modified) {
+    cgi.SetCvarValue(cg_bob->name, Clampf(cg_bob->value, 0.f, 2.f));
+    cg_bob->modified = false;
+  }
+
   if (!cg_bob->value) {
     return;
   }
@@ -373,11 +378,6 @@ static void Cg_UpdateBob(const PlayerState *ps) {
     if (!ps->stats[STAT_CHASE]) {
       return;
     }
-  }
-
-  if (cg_bob->modified) {
-    cgi.SetCvarValue(cg_bob->name, Clampf(cg_bob->value, 0.f, 2.f));
-    cg_bob->modified = false;
   }
 
   if (cgi.client->unclampedTime < time) {
