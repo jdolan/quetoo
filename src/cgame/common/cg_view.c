@@ -353,6 +353,8 @@ static void Cg_UpdateBob(const PlayerState *ps) {
   static uint32_t time;
   static float bob;
 
+  cgameView.bob = 0.f;
+
   if (!cg_bob->value) {
     return;
   }
