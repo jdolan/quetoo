@@ -285,6 +285,10 @@
                   }
                 },
                 {
+                  "class": "CrosshairPreviewView",
+                  "identifier": "crosshairView"
+                },
+                {
                   "class": "Box",
                   "label": {
                     "text": {
@@ -309,7 +313,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Weapon bob"
+                            "text": "Weapon sway"
                           }
                         },
                         "control": {
@@ -324,7 +328,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "View bob"
+                            "text": "Bob"
                           }
                         },
                         "control": {
@@ -337,10 +341,6 @@
                       }
                     ]
                   }
-                },
-                {
-                  "class": "CrosshairPreviewView",
-                  "identifier": "crosshairView"
                 }
               ]
             },
