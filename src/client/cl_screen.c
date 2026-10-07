@@ -40,6 +40,7 @@ void Cl_UpdateScreen(void) {
   } else {
     if (previousKeyDest == KEY_UI) {
       Ui_ViewWillDisappear();
+      Cl_SetKeyDest(cls.keyState.dest);
     }
   }
   previousKeyDest = cls.keyState.dest;
