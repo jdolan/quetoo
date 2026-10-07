@@ -141,6 +141,42 @@
                       }
                     ]
                   }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Vote"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Vote yes"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "vote yes"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Vote no"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "vote no"
+                        }
+                      }
+                    ]
+                  }
                 }
               ]
             },
