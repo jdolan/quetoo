@@ -18,8 +18,14 @@
           "identifier": "centerPrint"
         },
         {
-          "class": "TargetNameView",
-          "identifier": "targetName"
+          "class": "View",
+          "identifier": "targetNameAnchor",
+          "subviews": [
+            {
+              "class": "TargetNameView",
+              "identifier": "targetName"
+            }
+          ]
         },
         {
           "class": "VoteView",

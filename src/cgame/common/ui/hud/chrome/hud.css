@@ -402,11 +402,15 @@ ChatView TextView > Text {
   font-size: 16;
 }
 
+#hud #targetNameAnchor {
+  alignment: middle-center;
+  autoresizing-mask: contain;
+  padding-top: 80;
+}
+
 #hud #targetName {
-  alignment: bottom-center;
-  font-size: 28;
+  font-size: 18;
   color: #00ff00;
-  padding-bottom: 224;
 }
 
 #hud #vote {
