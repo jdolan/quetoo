@@ -31,6 +31,9 @@
  * is the plumbing every kernel shares, which `bg_pmove_local.h` declares.
  */
 
+#define PM_LADDER_FORWARD 0.125f // the fraction of ladder speed that forward and back allow
+#define PM_LADDER_LATERAL 0.5f   // and the fraction that strafing allows along the ladder
+
 /**
  * @brief Slide off of the impacted plane.
  */
@@ -683,6 +686,7 @@ static void Pm_CheckLadder(void) {
 
   if (trace.contents & CONTENTS_LADDER) {
     pm->s.flags |= PMF_ON_LADDER;
+    pmoveLocals.ladderNormal = Vec3_Normalize(MakeVec3(trace.plane.normal.x, trace.plane.normal.y, 0.f));
 
     memset(&pm->ground, 0, sizeof(pm->ground));
     pm->s.flags &= ~(PMF_ON_GROUND | PMF_DUCKED);
@@ -749,6 +753,17 @@ static bool Pm_CheckWaterJump(void) {
 }
 
 /**
+ * @return The part of `wish` that runs along the face of the ladder with `normal`, no faster than `speed`.
+ */
+static Vec3 Pm_LadderMove_lateral(const Vec3 wish, const Vec3 normal, float speed) {
+
+  float length;
+  const Vec3 dir = Vec3_NormalizeLength(Vec3_Fmaf(wish, -Vec3_Dot(wish, normal), normal), &length);
+
+  return Vec3_Scale(dir, Minf(length, speed));
+}
+
+/**
  * @brief Handles player movement while climbing a ladder.
  */
 static void Pm_LadderMove(void) {
@@ -762,17 +777,22 @@ static void Pm_LadderMove(void) {
   const float ladderSpeed = Maxf(0.f, pm->s.params.speedLadder);
   const float ladderAccel = Maxf(0.f, pm->s.params.accelLadder);
 
+  const float forwardSpeed = ladderSpeed * PM_LADDER_FORWARD;
+  const float lateralSpeed = ladderSpeed * PM_LADDER_LATERAL;
+
   // user intentions in X/Y
-  Vec3 vel = Vec3_Zero();
-  vel = Vec3_Fmaf(vel, pm->cmd.forward, pmoveLocals.forwardXy);
-  vel = Vec3_Fmaf(vel, pm->cmd.right, pmoveLocals.rightXy);
+  const Vec3 forward = Vec3_Scale(pmoveLocals.forwardXy, pm->cmd.forward);
+  const Vec3 right = Vec3_Scale(pmoveLocals.rightXy, pm->cmd.right);
 
-  const float s = ladderSpeed * 0.125f;
+  const Vec3 normal = pmoveLocals.ladderNormal;
+  const float away = Vec3_Dot(forward, normal);
 
-  // limit horizontal speed when on a ladder
-  vel.x = Clampf(vel.x, -s, s);
-  vel.y = Clampf(vel.y, -s, s);
-  vel.z = 0.f;
+  Vec3 lateral = Vec3_Zero();
+  lateral = Vec3_Add(lateral, Pm_LadderMove_lateral(forward, normal, forwardSpeed));
+  lateral = Vec3_Add(lateral, Pm_LadderMove_lateral(right, normal, lateralSpeed));
+
+  Vec3 vel = Pm_LadderMove_lateral(lateral, normal, lateralSpeed);
+  vel = Vec3_Fmaf(vel, Clampf(away, -forwardSpeed, forwardSpeed), normal);
 
   // handle Z intentions differently
   if (fabsf(pm->s.velocity.z) < ladderSpeed) {
