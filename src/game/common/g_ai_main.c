@@ -87,6 +87,21 @@ static bool G_Ai_ShouldRetreat(const GameClient *cl) {
 }
 
 /**
+ * @return True if nothing solid lies between the AI's eyes and the entity.
+ */
+static bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other) {
+
+  const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+
+  if (tr.ent == other) {
+    return true;
+  }
+
+  return Box3_ContainsPoint(Box3_Expand(other->absBounds, 1.f), tr.end);
+}
+
+/**
  * @brief Returns true if the AI client has line of sight to the target entity.
  */
 static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
@@ -111,13 +126,7 @@ static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
     return false;
   }
 
-  CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
-
-  if (tr.ent == other) {
-    return true;
-  }
-
-  return Box3_ContainsPoint(Box3_Expand(other->absBounds, 1.f), tr.end);
+  return G_Ai_HasLineOfSight(cl, other);
 }
 
 /**
@@ -173,6 +182,58 @@ static inline int64_t G_Ai_Microseconds(void) {
   return (int64_t) gameLevel.time * 1000;
 }
 
+/**
+ * @return True if the item decides who controls the map: a powerup, mega health or body armor.
+ */
+static bool G_Ai_IsMapControlItem(const GameItem *item) {
+
+  switch (item->def.type) {
+    case ITEM_TYPE_POWERUP:
+      return true;
+    case ITEM_TYPE_HEALTH:
+      return item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA;
+    case ITEM_TYPE_ARMOR:
+      return item->def.tag == ARMOR_BODY || item->def.tag == ARMOR_QUAKE_BODY;
+    default:
+      return false;
+  }
+}
+
+/**
+ * @return True if the entity is a map control item, or a dropped weapon that the AI lacks. Bots
+ * go after these above all else, even in combat.
+ */
+static bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
+
+  if (!ent->item) {
+    return false;
+  }
+
+  if (G_Ai_IsMapControlItem(ent->item)) {
+    return true;
+  }
+
+  return (ent->spawnFlags & SF_ITEM_DROPPED) && ent->item->def.type == ITEM_TYPE_WEAPON && !cl->inventory[ent->item->def.tag];
+}
+
+/**
+ * @return True if the AI's move target is a coveted item.
+ */
+static bool G_Ai_IsSeekingCovetedItem(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type == AI_GOAL_ENTITY) {
+    return G_Ai_IsCovetedItem(cl, goal->entity.ent);
+  }
+
+  if (goal->type == AI_GOAL_PATH && goal->path.pathTarget) {
+    return G_Ai_IsCovetedItem(cl, goal->path.pathTarget);
+  }
+
+  return false;
+}
+
 #define AI_ITEM_UNREACHABLE -1.0
 
 /**
@@ -183,7 +244,11 @@ static float G_Ai_ItemReachable(const GameClient *cl, const GameEntity *other) {
   const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
 
   // aware bots spot items from farther away (512 to 1024)
-  const float range = AI_MAX_ITEM_DISTANCE * Mixf(.67f, 1.33f, cl->ai->personality.awareness);
+  float range = AI_MAX_ITEM_DISTANCE * Mixf(.67f, 1.33f, cl->ai->personality.awareness);
+
+  if (G_Ai_IsCovetedItem(cl, other)) {
+    range = AI_MAX_ITEM_DISTANCE * 3.f;
+  }
 
   if (dist > range) {
     return AI_ITEM_UNREACHABLE;
@@ -242,15 +307,13 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     return cl->ai->reacquireTime - gameLevel.time; 
   }
 
-  // skip item seeking if we're in the air, or if we're armed, healthy, and fighting
+  // skip item seeking if we're in the air; if we're armed, healthy, and fighting, only a coveted item will do
   if (!cl->entity->ground.ent) {
     return 50;
   }
 
-  if (cl->ai->combatTarget.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl)) {
-    return 50;
-  }
-  
+  bool onlyCovetedItems = cl->ai->combatTarget.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl);
+
   // we're not attacking, so we probably care about items.
   if (cl->ai->moveTarget.type == AI_GOAL_ENTITY || cl->ai->moveTarget.type == AI_GOAL_PATH) {
     const GameEntity *target = (cl->ai->moveTarget.type == AI_GOAL_ENTITY) ? cl->ai->moveTarget.entity.ent : cl->ai->moveTarget.path.pathTarget;
@@ -269,8 +332,10 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
           G_Ai_RestorePath(cl, cl->ai);
         }
       // still a good goal
-      } else {
+      } else if (G_Ai_IsSeekingCovetedItem(cl)) {
         return 50;
+      } else {
+        onlyCovetedItems = true;
       }
     }
   }
@@ -294,10 +359,15 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       continue;
     }
 
-    // most likely an item!
+    const bool coveted = G_Ai_IsCovetedItem(cl, ent);
+
+    if (onlyCovetedItems && !coveted) {
+      continue;
+    }
+
     float distance;
 
-    if (!G_Ai_CanTarget(cl, ent) ||
+    if (!(coveted ? G_Ai_HasLineOfSight(cl, ent) : G_Ai_CanSee(cl, ent)) ||
         !G_Ai_CanPickup(cl, ent) ||
         (distance = G_Ai_ItemReachable(cl, ent)) <= AI_ITEM_UNREACHABLE) {
       continue;
@@ -310,6 +380,10 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       weight *= 3.f;
     } else if (G_Ai_ShouldRetreat(cl) && (item->def.type == ITEM_TYPE_HEALTH || item->def.type == ITEM_TYPE_ARMOR)) {
       weight *= 3.f;
+    }
+
+    if (coveted) {
+      weight = (AI_MAX_ITEM_DISTANCE * 8.f - distance) * item->def.priority;
     }
 
     $(itemsVisible, add, &(GameAiItemPick) {
@@ -336,26 +410,24 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
       bool pathFound = false;
 
-      if (pick.entity->node != AI_NODE_INVALID) {
-        const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-        const GameAiNodeId dest = pick.entity->node;
+      const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+      const GameAiNodeId dest = pick.entity->node != AI_NODE_INVALID
+        ? pick.entity->node
+        : G_Ai_Node_FindClosest(pick.entity->s.origin, 256.f, true, true);
 
-        if (src != AI_NODE_INVALID) {
-          float length;
-          Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, &length);
+      if (src != AI_NODE_INVALID && dest != AI_NODE_INVALID) {
+        const float maxLength = AI_MAX_ITEM_DISTANCE * (G_Ai_IsCovetedItem(cl, pick.entity) ? 3.f : 1.f);
 
-          // item is too far or not pathable despite dropping a node
-          if (!path || length > AI_MAX_ITEM_DISTANCE) {
-            release(path);
-            continue;
-          }
+        float length;
+        Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, &length);
 
+        if (path && length <= maxLength) {
           G_Ai_BackupPath(cl->ai);
-          G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, pick.weight, path, pick.entity);  
-          release(path);
-
+          G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, pick.weight, path, pick.entity);
           pathFound = true;
         }
+
+        release(path);
       }
 
       if (!pathFound && g_aiNodeDev->integer) {
@@ -651,7 +723,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
     if (!G_Ai_CanTarget(cl, cl->ai->combatTarget.entity.ent)) {
 
       // enemy dead/out of LOS/disconnected; chase them!
-      if (G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
+      if (!G_Ai_IsSeekingCovetedItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
 
         const Vec3 whereTo = cl->ai->combatTarget.entity.ent->s.origin;
         
@@ -730,7 +802,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // we have somebody to kill; go get'em!
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->moveTarget, cl->ai->combatTarget.entity.ent) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->moveTarget, cl->ai->combatTarget.entity.ent) && !G_Ai_IsSeekingCovetedItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
 
     const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
     const float dist = Vec3_Distance(cl->entity->s.origin, enemy->s.origin);
@@ -944,6 +1016,106 @@ static bool G_Ai_AdvancePath(GameClient *cl, GameAiGoal *goal) {
 }
 
 /**
+ * @brief The minimum interval in milliseconds between attempts to path around a raised plat.
+ */
+#define AI_REPLAN_MILLIS 1000
+
+/**
+ * @brief Plans a new path to the current path's destination, if the next node is under a raised
+ * `func_plat`. The search skips raised plats, so the new path goes around this one.
+ * @return True if the AI has a new path.
+ */
+static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (cl->ai->replanTime > gameLevel.time || !G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
+    return false;
+  }
+
+  cl->ai->replanTime = gameLevel.time + AI_REPLAN_MILLIS;
+
+  const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+  const GameAiNodeId dest = VectorValue(goal->path.path, GameAiNodeId, goal->path.path->count - 1);
+
+  if (src == AI_NODE_INVALID) {
+    return false;
+  }
+
+  Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
+
+  if (!path) {
+    return false;
+  }
+
+  G_Ai_SetPathGoal(cl, goal, goal->priority, path, goal->path.pathTarget);
+  release(path);
+
+  if (goal->path.path->count > 1 && G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
+    G_Ai_AdvancePath(cl, goal);
+  }
+
+  G_Ai_Debug("Pathing around a raised plat\n");
+  return true;
+}
+
+/**
+ * @return The command direction that takes the AI out from under the given plat, which its trigger
+ * would otherwise hold up, or zero if the AI is already clear of it.
+ */
+static Vec3 G_Ai_LeavePlatform(const GameClient *cl, const GameEntity *plat) {
+
+  const Box3 footprint = Box3_Expand3(plat->absBounds, MakeVec3(-16.f, -16.f, 0.f));
+  const Box3 bounds = cl->entity->absBounds;
+
+  if (bounds.maxs.x < footprint.mins.x || bounds.mins.x > footprint.maxs.x ||
+      bounds.maxs.y < footprint.mins.y || bounds.mins.y > footprint.maxs.y) {
+    return Vec3_Zero();
+  }
+
+  Vec3 away = Vec3_Subtract(cl->entity->s.origin, Box3_Center(plat->absBounds));
+  away.z = 0.f;
+
+  Vec3 dir;
+  Vec3_Vectors(MakeVec3(0.f, cl->angles.y - Vec3_Euler(Vec3_Normalize(away)).y, 0.f), &dir, NULL, NULL);
+
+  return Vec3_Scale(dir, PM_SPEED_RUN);
+}
+
+/**
+ * @brief The distance within which a bot at the end of its path walks on to an item with no node.
+ */
+#define AI_ITEM_APPROACH_DISTANCE 256.f
+
+/**
+ * @brief At the end of a path to an item with no node of its own, such as a dropped item, replaces
+ * the path with an entity goal on the item, if the item is still there and in sight.
+ * @return True if the AI now heads for the item.
+ */
+static bool G_Ai_ApproachPathTarget(GameClient *cl) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+  const GameEntity *target = goal->path.pathTarget;
+
+  if (!target || !target->item || target->node != AI_NODE_INVALID || target->solid != SOLID_TRIGGER) {
+    return false;
+  }
+
+  if (Vec3_Distance(cl->entity->s.origin, target->s.origin) > AI_ITEM_APPROACH_DISTANCE) {
+    return false;
+  }
+
+  const CollisionTrace tr = gi.Trace(cl->entity->s.origin, target->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_SOLID);
+
+  if (tr.fraction < 1.f) {
+    return false;
+  }
+
+  G_Ai_SetEntityGoal(cl, goal, goal->priority, target);
+  return true;
+}
+
+/**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
 static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
@@ -1136,7 +1308,13 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         break;
       case AI_GOAL_PATH:
         if (!G_Ai_CheckNav(cl, &cl->ai->moveTarget)) {
-          G_Ai_RestorePath(cl, cl->ai);
+          if (!G_Ai_ApproachPathTarget(cl)) {
+            G_Ai_RestorePath(cl, cl->ai);
+          }
+          continue;
+        }
+
+        if (G_Ai_AvoidRaisedPlatform(cl)) {
           continue;
         }
 
@@ -1190,7 +1368,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
     // the next step(s) will be onto a mover, so if we can't move yet, we wait.
     if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
-      dir = Vec3_Scale(dir, PM_SPEED_RUN);
+      const GameEntity *plat = G_Ai_Node_RaisedPlatform(cl->ai->moveTarget.path.pathPosition);
+      dir = plat ? G_Ai_LeavePlatform(cl, plat) : Vec3_Scale(dir, PM_SPEED_RUN);
       waitPolitely = true;
       cl->ai->moveTarget.distressExtension = true;
     // trick-jumping requires a bit of finesse
@@ -1846,6 +2025,7 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->reacquireTime = 0;
   cl->ai->lookaheadFrame = 0;
   cl->ai->lookaheadNoGround = false;
+  cl->ai->replanTime = 0;
 
   cl->ai->viewVelocity = Vec3_Zero();
   cl->ai->perceivedVelocity = Vec3_Zero();

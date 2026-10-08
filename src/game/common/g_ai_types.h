@@ -360,6 +360,11 @@ typedef struct GameAi {
   bool lookaheadNoGround;
 
   /**
+   * @brief Level time before the bot attempts again to path around a raised plat.
+   */
+  uint32_t replanTime;
+
+  /**
    * @brief The angular velocity of the view in degrees per second, so that turns ease in and out.
    */
   Vec3 viewVelocity;

@@ -334,6 +334,7 @@ GameEntity *G_AllocEntityAt(int32_t number, const char *classname) {
   e->timestamp = gameLevel.time;
   e->s.number = number;
   e->s.spawnId = nextSpawnId++;
+  e->node = AI_NODE_INVALID;
 
   return e;
 }

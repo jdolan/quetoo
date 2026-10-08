@@ -509,28 +509,28 @@ static void G_Ai_Node_UpdateCosts(const GameAiNodeId id) {
 }
 
 /**
- * @brief Returns false if any `func_plat` covering position is not at its bottom (accessible) state.
- * Bots should not attempt to path to nodes on an elevated platform.
+ * @return The `func_plat` over the given position that is not at its bottom, or `NULL`.
  */
-static bool G_Ai_PlatformAccessible(const Vec3 position) {
+const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position) {
 
-  G_ForEachEntity(ent, {
-    if (!ent->classname || Str_Compare(ent->classname, "func_plat") != 0) {
+  if (!aiPlatforms) {
+    return NULL;
+  }
+
+  for (size_t i = 0; i < aiPlatforms->count; i++) {
+    const GameEntity *plat = AI_PLATFORM(aiPlatforms, i);
+
+    if (position.x < plat->absBounds.mins.x || position.x > plat->absBounds.maxs.x ||
+        position.y < plat->absBounds.mins.y || position.y > plat->absBounds.maxs.y) {
       continue;
     }
 
-    if (position.x < ent->absBounds.mins.x || position.x > ent->absBounds.maxs.x ||
-        position.y < ent->absBounds.mins.y || position.y > ent->absBounds.maxs.y) {
-      continue;
+    if (plat->absBounds.maxs.z > position.z + 32.f) {
+      return plat;
     }
+  }
 
-    // Platform surface (abs_bounds.maxs.z) must be within reach of the node's Z.
-    if (ent->absBounds.maxs.z > position.z + 32.f) {
-      return false;
-    }
-  });
-
-  return true;
+  return NULL;
 }
 
 /**
@@ -578,7 +578,7 @@ bool G_Ai_Node_CanPathTo(const Vec3 position) {
     return false;
   }
 
-  return !G_Ai_PlatformAccessible(position) ? false : true;
+  return G_Ai_Node_RaisedPlatform(position) == NULL;
 }
 
 /**
@@ -1512,9 +1512,6 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
     return NULL;
   }
   
-  // Pre-collect func_plat entities once so G_Ai_PlatformAccessible doesn't
-  // call G_ForEachEntity for every link expansion inside the A* loop.
-
   // size on 64k nodes is, say, 8kb.
   const size_t costsStartedWords = ((size_t) aiNodes->count + 31u) / 32u;
   uint32_t *costsStarted = calloc(costsStartedWords, sizeof(*costsStarted));
@@ -1582,23 +1579,8 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
       const int32_t linkContents = gi.PointContents(linkNode->position);
       const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
-      // Check platform accessibility using the pre-collected list.
-      if (aiPlatforms) {
-        bool blocked = false;
-        for (size_t p = 0; p < aiPlatforms->count; p++) {
-          const GameEntity *plat = AI_PLATFORM(aiPlatforms, p);
-          if (linkNode->position.x < plat->absBounds.mins.x || linkNode->position.x > plat->absBounds.maxs.x ||
-              linkNode->position.y < plat->absBounds.mins.y || linkNode->position.y > plat->absBounds.maxs.y) {
-            continue;
-          }
-          if (plat->absBounds.maxs.z > linkNode->position.z + 32.f) {
-            blocked = true;
-            break;
-          }
-        }
-        if (blocked) {
-          continue;
-        }
+      if (G_Ai_Node_RaisedPlatform(linkNode->position)) {
+        continue;
       }
 
       if (fromHazard && toHazard) {
