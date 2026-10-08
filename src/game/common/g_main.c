@@ -1054,7 +1054,7 @@ void G_Init(void) {
   g_balanceArmorJacketRespawn = gi.AddCvar("g_balanceArmorJacketRespawn", "25", 0, NULL);
   g_balanceArmorCombatRespawn = gi.AddCvar("g_balanceArmorCombatRespawn", "25", 0, NULL);
   g_balanceArmorBodyRespawn = gi.AddCvar("g_balanceArmorBodyRespawn", "30", 0, NULL);
-  g_balanceBfgDamage = gi.AddCvar("g_balanceBfgDamage", "180", 0, NULL);
+  g_balanceBfgDamage = gi.AddCvar("g_balanceBfgDamage", "220", 0, NULL);
   g_balanceBfgKnockback = gi.AddCvar("g_balanceBfgKnockback", "140", 0, NULL);
   g_balanceBfgPrefire = gi.AddCvar("g_balanceBfgPrefire", "1", 0, "The prefire warmup delay for the BFG10K in seconds.");
   g_balanceBfgRadius = gi.AddCvar("g_balanceBfgRadius", "512", 0, NULL);
