@@ -90,6 +90,11 @@ typedef struct {
   CollisionTrace ground;
 
   /**
+   * @brief The horizontal normal of the ladder the player holds, if any.
+   */
+  Vec3 ladderNormal;
+
+  /**
    * @brief The clipping planes per slide-move.
    */
   CollisionPlane clipPlanes[MAX_CLIP_PLANES];

@@ -38,6 +38,9 @@ Quetoo quetoo;
 
 #define TEST_FLOOR 0.f
 
+// a ladder that faces down the -X axis
+#define TEST_LADDER 18.f
+
 // a full-strength movement intent, above any movement's own cap
 #define TEST_INTENT 400
 
@@ -71,6 +74,30 @@ static CollisionTrace Test_Trace(const Vec3 start, const Vec3 end, const Box3 bo
     trace.end = Vec3_Mix(start, end, trace.fraction);
     trace.plane.normal = Vec3_Up();
     trace.ent = testGroundEnt;
+  }
+
+  return trace;
+}
+
+/**
+ * @brief The floor, and a ladder that faces down the -X axis just ahead of the player.
+ */
+static CollisionTrace Test_LadderTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+
+  CollisionTrace trace = Test_Trace(start, end, bounds);
+
+  const float from = start.x + bounds.maxs.x;
+  const float to = end.x + bounds.maxs.x;
+
+  if (to > TEST_LADDER && from <= TEST_LADDER) {
+    const float fraction = (TEST_LADDER - from) / (to - from);
+    if (fraction < trace.fraction) {
+      trace.fraction = fraction;
+      trace.end = Vec3_Mix(start, end, fraction);
+      trace.plane.normal = MakeVec3(-1.f, 0.f, 0.f);
+      trace.contents = CONTENTS_LADDER;
+      trace.ent = testGroundEnt;
+    }
   }
 
   return trace;
@@ -607,6 +634,52 @@ START_TEST(check_Quetoo_GroundSpeed) {
 } END_TEST
 
 /**
+ * @brief A player on a ladder can strafe along it, so that an obstacle beside the
+ * ladder does not keep them from climbing it. Looking at the ladder askew must
+ * not carry them off it, whether they strafe or climb.
+ */
+START_TEST(check_Quetoo_LadderLateral) {
+
+  const struct {
+    const char *name;
+    float pitch, yaw;
+    int16_t forward, right;
+    float minLateral, maxLateral, minClimb;
+  } cases[] = {
+    { "strafing square", 0.f, 0.f, TEST_INTENT, -TEST_INTENT, 31.25f, 65.f, 0.f },
+    { "strafing askew", 0.f, 45.f, 0, -TEST_INTENT, 31.25f, 65.f, 0.f },
+    { "climbing askew", -30.f, 30.f, TEST_INTENT, 0, 0.f, 17.f, 62.5f },
+  };
+
+  for (size_t i = 0; i < lengthof(cases); i++) {
+    PMove pm = Test_Move(PM_MOVEMENT_QUETOO);
+    pm.Trace = Test_LadderTrace;
+    pm.s.params.speedLadder = PM_SPEED_LADDER;
+    pm.s.params.accelLadder = PM_ACCEL_LADDER;
+    pm.s.params.frictionLadder = PM_FRICT_LADDER;
+    pm.s.origin = MakeVec3(TEST_LADDER - pm.s.params.bounds.maxs.x, 0.f, 64.f);
+    pm.s.deltaAngles = MakeVec3(cases[i].pitch, cases[i].yaw, 0.f);
+
+    for (int32_t j = 0; j < 10; j++) {
+      Test_Command(&pm, cases[i].forward, cases[i].right, 0);
+    }
+
+    const char *name = cases[i].name;
+    const float lateral = fabsf(pm.s.velocity.y);
+    const float face = pm.s.origin.x + pm.bounds.maxs.x;
+
+    ck_assert_msg(pm.s.flags & PMF_ON_LADDER, "%s, did not hold the ladder", name);
+    ck_assert_msg(lateral >= cases[i].minLateral && lateral <= cases[i].maxLateral,
+                  "%s, moved along the ladder at %g", name, lateral);
+    ck_assert_msg(pm.s.velocity.z >= cases[i].minClimb,
+                  "%s, climbed at %g", name, pm.s.velocity.z);
+    ck_assert_msg(face <= TEST_LADDER + 0.1f, "%s, passed into the ladder", name);
+    ck_assert_msg(face >= TEST_LADDER - 1.f, "%s, drifted %g from the ladder",
+                  name, TEST_LADDER - face);
+  }
+} END_TEST
+
+/**
  * @brief The two movements stand in different boxes and look out of them from
  * different heights, which is a large part of why they feel different.
  */
@@ -765,6 +838,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Quake3_DucksInAir);
   tcase_add_test(tcase, check_Quake3_SnapsVelocity);
   tcase_add_test(tcase, check_Quetoo_GroundSpeed);
+  tcase_add_test(tcase, check_Quetoo_LadderLateral);
   tcase_add_test(tcase, check_Movement_BoxAndEye);
   tcase_add_test(tcase, check_Movement_BoxWidth);
   tcase_add_test(tcase, check_Movement_CorpseBox);
