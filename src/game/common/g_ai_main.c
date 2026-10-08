@@ -1555,7 +1555,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
     G_Ai_UpdateAimError(cl, idealRate, seconds);
 
-    idealAngles.x += cl->ai->aimError.x;
+    idealAngles.x = Clampf(G_Ai_AngleDelta(0.f, idealAngles.x + cl->ai->aimError.x), -90.f, 90.f);
     idealAngles.y += cl->ai->aimError.y;
   }
 
