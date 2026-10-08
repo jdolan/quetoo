@@ -47,12 +47,12 @@ static const GameAiRoster aiRoster[] = {
   { "Gammy",       "gammy/default",       "62b66b49-3413-4551-8a78-31b829d3d9c0", .35f,  .55f,  .50f },
   { "Gaunt",       "gaunt/default",       "c302fa4a-5e87-44ba-ad2f-bb5c7c4c3d56", .75f,  .30f,  .85f },
   { "Gladiator",   "gladiator/default",   "b905851b-c639-4535-aaa6-cb6360ac8633", .65f,  .65f,  .55f },
-  { "Magdalena",   "magdalena/default",   "2feaddd0-47f6-4457-9311-745774913ea4", .70f,  .45f,  .75f },
+  //{ "Magdalena",   "magdalena/default",   "2feaddd0-47f6-4457-9311-745774913ea4", .70f,  .45f,  .75f },
   { "Mantis",      "mantis/default",      "c1100255-64db-4e34-aec7-bffc0c772a19", .70f,  .70f,  .50f },
   { "Merc",        "merc/default",        "9a25c51a-7b1b-496b-8316-e506b6122ec3", .75f,  .55f,  .70f },
   { "Nitro",       "nitro/default",       "f8fdb0a8-b25c-411a-b2c2-b59b4933eea2", .45f,  .90f,  .25f },
   { "Captain",     "captain/default",     "f1867a5c-75cd-4825-be08-2f036d2325d5", .50f,  .70f,  .45f },
-  { "Reaper",      "violator/default",    "17a3bcbb-e622-4736-a0c0-6c6ce64a9ee4", .80f,  .60f,  .65f },
+  { "Violator",    "violator/default",    "17a3bcbb-e622-4736-a0c0-6c6ce64a9ee4", .80f,  .60f,  .65f },
 };
 
 static const uint32_t aiRosterCount = lengthof(aiRoster);
