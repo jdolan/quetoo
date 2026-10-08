@@ -327,7 +327,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     }
 
     for (uint32_t i = 0; i < itemsVisible->count; i++) {
-      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, 0);
+      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, i);
       const bool found = pick.weight > cl->ai->moveTarget.priority;
 
       if (!found) {
@@ -699,6 +699,14 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
       G_Ai_SetEntityGoal(cl, &cl->ai->combatTarget, bestPriority, bestEnemy);
 
+      const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+      const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(Box3_Center(bestEnemy->absBounds), eyeOrigin));
+      const float flick = Degrees(acosf(Clampf(Vec3_Dot(cl->forward, toEnemy), -1.f, 1.f))) * Mixf(.25f, .08f, cl->ai->personality.skill);
+      const float direction = RandomRadian();
+
+      cl->ai->perceivedVelocity = Vec3_Zero();
+      cl->ai->aimError = MakeVec2(sinf(direction) * flick * .6f, cosf(direction) * flick);
+
       G_Ai_PickWeapon(cl);
 
       // aggressive bots prefer close combat; cautious bots flank/wander
@@ -1065,6 +1073,20 @@ bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode)
 }
 
 /**
+ * @return True if the entity stands on a mover that carries it, such as a plat, a door or a train,
+ * and not on one that only rotates in place.
+ */
+static bool G_Ai_IsRidingMover(const GameEntity *ent) {
+  const GameEntity *ground = ent->ground.ent;
+
+  if (!ground || ground->s.number == 0) {
+    return false;
+  }
+
+  return !Vec3_Equal(ground->velocity, Vec3_Zero()) || Vec3_Equal(ground->avelocity, Vec3_Zero());
+}
+
+/**
  * @brief Move towards our current target
  */
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
@@ -1336,7 +1358,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
                && cl->ai->moveTarget.path.trickJump != TRICK_JUMP_TURNING)
                || cl->ai->moveTarget.type != AI_GOAL_PATH)
                && !waitPolitely
-               && (!ent->ground.ent || ((GameEntity *) ent->ground.ent)->s.number == 0)) {
+               && !G_Ai_IsRidingMover(ent)) {
 
     // we'll be pushed up against something
     float smolDist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
@@ -1370,7 +1392,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
       // if we're on a mover, distress differently so we don't unexpectedly
       // jump off of it
-      if (ent->ground.ent && ((GameEntity *) ent->ground.ent)->s.number != 0) {
+      if (G_Ai_IsRidingMover(ent)) {
         cl->ai->moveTarget.distress += 0.02f;
       } else {
         cl->ai->moveTarget.distress += 0.2f;
@@ -1398,53 +1420,55 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   return 0;
 }
 
-// note: this is not the same as AngleMod
-static inline float G_Ai_AngleMod(const float a) {
-  return (360.0f / 65536) * ((int32_t) (a * (65536 / 360.0f)) & 65535);
-}
-
-static float G_Ai_CalcAngle(GameClient *cl, const float speed, float current, float ideal) {
-  current = G_Ai_AngleMod(current);
-  ideal = G_Ai_AngleMod(ideal);
-
-  if (current == ideal) {
-    return current;
-  }
-
-  float move = ideal - current;
-
-  if (ideal > current) {
-    if (move >= 180.0f) {
-      move = move - 360.0f;
-    }
-  } else {
-    if (move <= -180.0f) {
-      move = move + 360.0f;
-    }
-  }
-
-  if (move > 0) {
-    if (move > speed) {
-      move = speed;
-    }
-  } else {
-    if (move < -speed) {
-      move = -speed;
-    }
-  }
-
-  return G_Ai_AngleMod(current + move);
+/**
+ * @return The shortest signed rotation in degrees from `from` to `to`.
+ */
+static inline float G_Ai_AngleDelta(const float from, const float to) {
+  return remainderf(to - from, 360.f);
 }
 
 /**
- * @brief Turn/look towards our current target
+ * @brief The interval in seconds over which the rate of change of the aim angles is measured.
+ */
+#define AI_AIM_RATE_SECONDS .05f
+
+/**
+ * @brief Advances the aim error, a random walk toward zero that widens with the target's angular
+ * rate and narrows with skill.
+ * @param rate The angular rate of the aim point in degrees per second.
+ */
+static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float seconds) {
+
+  const float skill = cl->ai->personality.skill;
+  const float correction = .35f;
+
+  const float angularSpeed = sqrtf(rate.x * rate.x + rate.y * rate.y);
+  const float deviation = Mixf(4.f, 1.f, skill) + Mixf(.1f, .04f, skill) * angularSpeed;
+  const float diffusion = deviation * sqrtf(2.f * seconds / correction);
+
+  Vec2 *error = &cl->ai->aimError;
+
+  for (int32_t i = 0; i < 2; i++) {
+    const float noise = (Randomf() + Randomf() + Randomf() - 1.5f) * 2.f;
+    const float scale = i == 0 ? .6f : 1.f;
+
+    error->xy[i] += -error->xy[i] * seconds / correction + noise * diffusion * scale;
+  }
+}
+
+/**
+ * @brief Turns the view toward the current target with a critically damped spring. In combat, the
+ * aim point lags the target's changes in velocity by the bot's reaction time, plus the aim error.
  */
 static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
   GameAiGoal *combatTarget = &cl->ai->combatTarget;
 
   GameEntity *ent = cl->entity;
+  const float seconds = MILLIS_TO_SECONDS(cmd->msec);
+
   Vec3 idealAngles;
+  Vec3 idealRate = Vec3_Zero();
 
   if (combatTarget->type != AI_GOAL_ENTITY) {
     if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
@@ -1500,10 +1524,15 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       }
     }
   } else {
+    const GameEntity *enemy = combatTarget->entity.ent;
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-    const Vec3 enemyCenter = Box3_Center(combatTarget->entity.ent->absBounds);
+    const Vec3 enemyCenter = Box3_Center(enemy->absBounds);
 
-    Vec3 aimDirection;
+    const float reaction = Mixf(.25f, .12f, cl->ai->personality.skill);
+    cl->ai->perceivedVelocity = Vec3_Mix(cl->ai->perceivedVelocity, enemy->velocity, 1.f - expf(-seconds / reaction));
+
+    Vec3 aimPoint = Vec3_Fmaf(enemyCenter, reaction, Vec3_Subtract(cl->ai->perceivedVelocity, enemy->velocity));
+
     const GameItem *const weapon = cl->weapon;
 
     if (weapon->def.flags & WF_PROJECTILE) {
@@ -1511,40 +1540,53 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       // skilled bots predict more accurately (tighter speed estimate range)
       const float spread = Mixf(300.f, 100.f, cl->ai->personality.skill);
       const float speed = RandomRangef(1050.f - spread, 1050.f + spread);
-      const float time = dist / speed;
-      const Vec3 targetVelocity = combatTarget->entity.ent->velocity;
-      const Vec3 targetPos = Vec3_Fmaf(enemyCenter, time, targetVelocity);
-      aimDirection = Vec3_Subtract(targetPos, eyeOrigin);
-    } else {
-      aimDirection = Vec3_Subtract(enemyCenter, eyeOrigin);
+      aimPoint = Vec3_Fmaf(aimPoint, dist / speed, cl->ai->perceivedVelocity);
     }
 
-    aimDirection = Vec3_Normalize(aimDirection);
-    idealAngles = Vec3_Euler(aimDirection);
+    idealAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(aimPoint, eyeOrigin)));
 
-    // fuzzy angle: amplitude scales with (1 - skill), per-bot phase offset
-    // hitscan weapons carry a small fixed floor to prevent perfect tracking
-    const float wobble = (1.f - cl->ai->personality.skill) * 2.f
-        + ((weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
-    const float phase = cl->ai->personality.aimPhase;
-    idealAngles.x += sinf((gameLevel.time + phase) / 128.0f) * 4.3f * wobble;
-    idealAngles.y += cosf((gameLevel.time + phase) / 164.0f) * 4.0f * wobble;
+    const Vec3 relativeVelocity = Vec3_Subtract(cl->ai->perceivedVelocity, ent->velocity);
+    const Vec3 nextAimPoint = Vec3_Fmaf(aimPoint, AI_AIM_RATE_SECONDS, relativeVelocity);
+    const Vec3 nextAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(nextAimPoint, eyeOrigin)));
+
+    for (int32_t i = 0; i < 2; i++) {
+      idealRate.xyz[i] = G_Ai_AngleDelta(idealAngles.xyz[i], nextAngles.xyz[i]) / AI_AIM_RATE_SECONDS;
+    }
+
+    G_Ai_UpdateAimError(cl, idealRate, seconds);
+
+    idealAngles.x += cl->ai->aimError.x;
+    idealAngles.y += cl->ai->aimError.y;
   }
+
+  idealAngles.x = G_Ai_AngleDelta(0.f, idealAngles.x);
+
+  if (fabsf(idealAngles.x) > 90.f) {
+    idealAngles.x = 90.f;
+  }
+
+  const float stiffness = Mixf(10.f, 20.f, cl->ai->personality.skill);
+  const float maxSpeed = Mixf(300.f, 900.f, cl->ai->personality.skill);
 
   const Vec3 viewAngles = cl->angles;
+  Vec3 angles = idealAngles;
 
-  // turn speed: skilled bots turn faster (range 6.25 to 18.75)
-  const float turnSpeed = Mixf(.5f, 1.5f, cl->ai->personality.skill) * 12.5f;
+  for (int32_t i = 0; i < 2; i++) {
+    const float error = G_Ai_AngleDelta(viewAngles.xyz[i], idealAngles.xyz[i]);
+    float *speed = &cl->ai->viewVelocity.xyz[i];
 
-  for (int32_t i = 0; i < 2; ++i) {
-    idealAngles.xyz[i] = G_Ai_CalcAngle(cl, turnSpeed * (cmd->msec / (float)QUETOO_TICK_MILLIS), viewAngles.xyz[i], idealAngles.xyz[i]);
+    *speed += (stiffness * stiffness * error + 2.f * stiffness * (idealRate.xyz[i] - *speed)) * seconds;
+    *speed = Clampf(*speed, -maxSpeed, maxSpeed);
+
+    angles.xyz[i] = viewAngles.xyz[i] + *speed * seconds;
   }
 
-  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->ai->moveTarget.path.trickJump == TRICK_JUMP_TURNING && viewAngles.y == idealAngles.y) {
+  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->ai->moveTarget.path.trickJump == TRICK_JUMP_TURNING &&
+      fabsf(G_Ai_AngleDelta(angles.y, idealAngles.y)) < 2.f) {
     cl->ai->moveTarget.path.trickJump = TRICK_JUMP_NONE;
   }
 
-  cmd->angles = Vec3_Subtract(idealAngles, cl->ps.pmState.deltaAngles);
+  cmd->angles = Vec3_Subtract(angles, cl->ps.pmState.deltaAngles);
   return 0;
 }
 
@@ -1804,6 +1846,10 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->reacquireTime = 0;
   cl->ai->lookaheadFrame = 0;
   cl->ai->lookaheadNoGround = false;
+
+  cl->ai->viewVelocity = Vec3_Zero();
+  cl->ai->perceivedVelocity = Vec3_Zero();
+  cl->ai->aimError = Vec2_Zero();
 }
 
 /**
@@ -1817,7 +1863,6 @@ void G_Ai_Begin(GameClient *cl) {
     .skill      = r->skill,
     .aggression = r->aggression,
     .awareness  = r->awareness,
-    .aimPhase  = RandomRangef(0.f, 1000.f),
   };
 
   G_Ai_Debug("%s: skill=%.2f aggression=%.2f awareness=%.2f\n",
