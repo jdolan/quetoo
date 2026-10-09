@@ -109,24 +109,27 @@ static bool S_SpatializeChannel(const SoundStage *stage, SoundChannel *ch) {
   if (soundContext.effects.loaded) {
     const uint32_t delta = soundContext.prevTicks ? stage->ticks - soundContext.prevTicks : 0;
 
+    // A new channel starts at its target, or a short sound plays its attack unfiltered during the ramp
+    const float transition = ch->startTime ? 300.f : 0.f;
+
     // Underwater: 300 ms transition, heavy lowpass (muffled and dark)
     {
       const float target = (ch->play.flags & S_PLAY_UNDERWATER) ? 1.f : 0.f;
-      const float step = delta / 300.f;
+      const float step = transition ? delta / transition : 1.f;
       ch->underwater = Clampf(ch->underwater + (target > ch->underwater ? step : -step), 0.f, 1.f);
     }
 
     // Occlusion: 300 ms transition, extreme HF cut (through-wall muffle)
     {
       const float target = (ch->play.flags & S_PLAY_OCCLUDED) ? 1.f : 0.f;
-      const float step = delta / 300.f;
+      const float step = transition ? delta / transition : 1.f;
       ch->occlusion = Clampf(ch->occlusion + (target > ch->occlusion ? step : -step), 0.f, 1.f);
     }
 
     // Combine both into a single filter by multiplying gains; only one AL_DIRECT_FILTER slot exists per source.
     {
-      const float gain   = Mixf(1.f, 0.66f,  ch->underwater) * Mixf(1.f, 0.33f, ch->occlusion);
-      const float gainhf = Mixf(1.f, 0.33f,  ch->underwater) * Mixf(1.f, 0.88f, ch->occlusion);
+      const float gain   = Mixf(1.f, 0.66f, ch->underwater) * Mixf(1.f, 0.33f, ch->occlusion);
+      const float gainhf = Mixf(1.f, 0.33f, ch->underwater) * Mixf(1.f, 0.88f, ch->occlusion);
       alFilterf(ch->filter, AL_LOWPASS_GAIN,   gain);
       alFilterf(ch->filter, AL_LOWPASS_GAINHF, gainhf);
     }
@@ -225,7 +228,7 @@ void S_MixChannels(SoundStage *stage) {
       alSourcei(src, AL_DIRECT_FILTER, (ALint) ch->filter);
       alSourcef(src, AL_AIR_ABSORPTION_FACTOR, 0.025f); // 0.05 dB/m × (1 m / 40 units)
       const ALuint send = (ch->play.flags & S_PLAY_UI) ? AL_EFFECTSLOT_NULL : (ALuint) soundContext.effects.reverbSlot;
-      alSource3i(src, AL_AUXILIARY_SEND_FILTER, (ALint) send, 0, AL_FILTER_NULL);
+      alSource3i(src, AL_AUXILIARY_SEND_FILTER, (ALint) send, 0, (ALint) ch->filter);
     }
 
     if (ch->startTime == 0) {

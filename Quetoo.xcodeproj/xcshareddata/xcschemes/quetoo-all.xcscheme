@@ -141,8 +141,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map hallways"
-            isEnabled = "NO">
+            argument = "+map abase"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set timeDemo 1"
