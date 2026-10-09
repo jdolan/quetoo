@@ -857,6 +857,294 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
+ * @return The shortest signed rotation in degrees from `from` to `to`.
+ */
+static inline float G_Ai_AngleDelta(const float from, const float to) {
+  return remainderf(to - from, 360.f);
+}
+
+/**
+ * @brief The projectile speed that a bot assumes for a weapon with no ballistics type, such as
+ * hand grenades, whose speed depends on how long they are held.
+ */
+#define AI_PROJECTILE_SPEED 1050
+
+/**
+ * @return The projectile speed of the given weapon.
+ */
+static float G_Ai_ProjectileSpeed(const GameItem *weapon) {
+
+  const char *classname = weapon->def.classname;
+  const char *name = classname + (Str_HasPrefix(classname, "weapon_") ? strlen("weapon_") : 0);
+
+  return G_Ballistics_Speed(name) ?: AI_PROJECTILE_SPEED;
+}
+
+/**
+ * @brief The upward speeds that launched and thrown grenades receive on top of their launch speed.
+ */
+#define AI_GRENADE_LOFT 100.f
+#define AI_HAND_GRENADE_LOFT 200.f
+
+/**
+ * @brief The range of distances at which a bot lobs grenades at a spot, beyond its own splash.
+ */
+#define AI_SPAM_MIN_DISTANCE 256.f
+#define AI_SPAM_MAX_DISTANCE 1000.f
+
+/**
+ * @brief The largest size of a brush entity that a bot will spam, so that it does not lob
+ * grenades at the center of a map-wide trigger.
+ */
+#define AI_SPAM_MAX_SIZE 512.f
+
+/**
+ * @brief The grenades that a bot keeps in reserve for combat.
+ */
+#define AI_SPAM_RESERVE 5
+
+/**
+ * @brief The longest time in milliseconds that a burst of grenade spam lasts.
+ */
+#define AI_SPAM_BURST_MILLIS 3000
+
+/**
+ * @brief The view error in degrees within which a bot releases a grenade at its spot.
+ */
+#define AI_SPAM_AIM_DEGREES 3.f
+
+/**
+ * @return The grenade weapon that the bot would spam with, or NULL if it has none to spare.
+ */
+static const GameItem *G_Ai_SpamWeapon(const GameClient *cl) {
+
+  static const GameItemTag tags[] = {
+    WEAPON_GRENADE_LAUNCHER,
+    WEAPON_QUAKE_GRENADE_LAUNCHER,
+    WEAPON_HAND_GRENADE,
+  };
+
+  for (size_t i = 0; i < lengthof(tags); i++) {
+    const GameItem *weapon = &gameItems[tags[i]];
+
+    if (cl->inventory[tags[i]] && cl->inventory[weapon->def.ammo] > AI_SPAM_RESERVE) {
+      return weapon;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Resolves the view angles that lob a grenade from the bot's eye to the given point.
+ * @param holdMillis For hand grenades, the time to hold the grenade so that it flies far enough.
+ * @return True if a grenade can reach the point.
+ */
+static bool G_Ai_SpamAngles(const GameClient *cl, const GameItem *weapon, const Vec3 point, Vec3 *angles, uint32_t *holdMillis) {
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const float gravity = G_LevelGravity();
+  const float distance = Vec2_Distance(Vec3_XY(eye), Vec3_XY(point));
+  const float height = point.z - eye.z;
+
+  if (distance < 1.f || gravity <= 0.f) {
+    return false;
+  }
+
+  float speed, loft;
+  if (weapon->def.flags & WF_TIMED) {
+    loft = AI_HAND_GRENADE_LOFT;
+    speed = Clampf(sqrtf(gravity * distance) * 1.2f, 500.f, 1200.f);
+    *holdMillis = (uint32_t) (speed / 500.f * 1000.f);
+  } else {
+    loft = AI_GRENADE_LOFT;
+    speed = G_Ai_ProjectileSpeed(weapon);
+    *holdMillis = 0;
+  }
+
+  const float launch = sqrtf(speed * speed + loft * loft);
+  const float launchSquared = launch * launch;
+  const float discriminant = launchSquared * launchSquared - gravity * (gravity * distance * distance + 2.f * height * launchSquared);
+
+  if (discriminant < 0.f) {
+    return false;
+  }
+
+  const float elevation = atanf((launchSquared - sqrtf(discriminant)) / (gravity * distance)) - atan2f(loft, speed);
+  const Vec3 dir = Vec3_Normalize(Vec3_Subtract(point, eye));
+
+  *angles = MakeVec3(-Degrees(elevation), Vec3_Euler(dir).y, 0.f);
+  return true;
+}
+
+/**
+ * @return True if the entity is a spot where players gather or pass, and so worth spamming.
+ */
+static bool G_Ai_IsSpamSpot(const GameEntity *ent) {
+
+  const char *classname = ent->classname;
+
+  if (classname == NULL) {
+    return false;
+  }
+
+  if (Str_HasPrefix(classname, "info_player_")) {
+    return Str_Compare(classname, "info_player_intermission") != 0;
+  }
+
+  return Str_HasPrefix(classname, "func_") ||
+         Str_HasPrefix(classname, "trigger_") ||
+         !Str_Compare(classname, "misc_teleporter_dest");
+}
+
+/**
+ * @brief Picks a random visible spot within grenade range for the bot to spam.
+ * @return True if a spot was found.
+ */
+static bool G_Ai_SpamPoint(const GameClient *cl, const GameItem *weapon, Vec3 *point) {
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  uint32_t count = 0;
+
+  G_ForEachEntity(ent, {
+    if (!G_Ai_IsSpamSpot(ent)) {
+      continue;
+    }
+
+    const Vec3 size = Box3_Size(ent->absBounds);
+    if (size.x > AI_SPAM_MAX_SIZE || size.y > AI_SPAM_MAX_SIZE || size.z > AI_SPAM_MAX_SIZE) {
+      continue;
+    }
+
+    const Vec3 spot = Vec3_Equal(size, Vec3_Zero()) ? ent->s.origin : Box3_Center(ent->absBounds);
+    const float distance = Vec3_Distance(eye, spot);
+    if (distance < AI_SPAM_MIN_DISTANCE || distance > AI_SPAM_MAX_DISTANCE) {
+      continue;
+    }
+
+    const CollisionTrace tr = gi.Trace(eye, spot, Box3_Zero(), cl->entity, CONTENTS_MASK_SOLID);
+    if (tr.fraction < 1.f && tr.ent != ent) {
+      continue;
+    }
+
+    Vec3 angles;
+    uint32_t holdMillis;
+    if (!G_Ai_SpamAngles(cl, weapon, spot, &angles, &holdMillis)) {
+      continue;
+    }
+
+    if (Randomf() * ++count < 1.f) {
+      *point = spot;
+    }
+  });
+
+  return count > 0;
+}
+
+/**
+ * @return True if the bot is in a burst of grenade spam.
+ */
+static inline bool G_Ai_IsSpamming(const GameClient *cl) {
+  return cl->ai->spamAmmo > 0;
+}
+
+/**
+ * @brief Ends the bot's burst of grenade spam, and schedules the next by its aggression.
+ */
+static void G_Ai_EndSpam(GameClient *cl) {
+
+  const float cooldown = Mixf(15000.f, 5000.f, cl->ai->personality.aggression) * RandomRangef(.75f, 1.25f);
+
+  cl->ai->spamAmmo = 0;
+  cl->ai->spamTime = gameLevel.time + (uint32_t) cooldown;
+  cl->ai->weaponCheckTime = 0;
+}
+
+/**
+ * @return True if the bot moves in a way that leaves its view free to spam, which is not the case
+ * while it trick-jumps, climbs a ladder or swims.
+ */
+static bool G_Ai_CanSpam(const GameClient *cl) {
+
+  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->ai->moveTarget.path.trickJump) {
+    return false;
+  }
+
+  if (cl->ps.pmState.flags & PMF_ON_LADDER) {
+    return false;
+  }
+
+  return cl->entity->waterLevel < WATER_WAIST;
+}
+
+/**
+ * @brief Lobs grenades at spots where players gather while the bot has no combat target.
+ */
+static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
+
+  const GameItem *weapon = G_Ai_SpamWeapon(cl);
+
+  if (!G_Ai_CanSpam(cl)) {
+    if (G_Ai_IsSpamming(cl)) {
+      G_Ai_EndSpam(cl);
+    }
+    return;
+  }
+
+  if (!G_Ai_IsSpamming(cl)) {
+    if (cl->ai->spamTime > gameLevel.time) {
+      return;
+    }
+
+    G_Ai_EndSpam(cl);
+
+    if (weapon == NULL || !G_Ai_SpamPoint(cl, weapon, &cl->ai->spamPoint)) {
+      return;
+    }
+
+    cl->ai->spamAmmo = cl->inventory[weapon->def.ammo] - RandomRangei(1, 4);
+    cl->ai->spamTime = gameLevel.time + AI_SPAM_BURST_MILLIS;
+    G_Ai_Debug("spamming %s\n", weapon->def.name);
+  }
+
+  const bool expired = gameLevel.time > cl->ai->spamTime && !cl->grenadeHoldTime;
+
+  if (weapon == NULL || expired || cl->inventory[weapon->def.ammo] <= cl->ai->spamAmmo) {
+    G_Ai_EndSpam(cl);
+    return;
+  }
+
+  if (cl->weapon != weapon) {
+    if (cl->ai->weaponCheckTime < gameLevel.time) {
+      gi.TokenizeString(va("use %s", weapon->def.name));
+      ge.ClientCommand(cl);
+      cl->ai->weaponCheckTime = gameLevel.time + 300;
+    }
+    return;
+  }
+
+  Vec3 angles;
+  uint32_t holdMillis;
+  if (!G_Ai_SpamAngles(cl, weapon, cl->ai->spamPoint, &angles, &holdMillis)) {
+    G_Ai_EndSpam(cl);
+    return;
+  }
+
+  if (cl->grenadeHoldTime) {
+    if (gameLevel.time - cl->grenadeHoldTime < holdMillis) {
+      cmd->buttons |= BUTTON_ATTACK;
+    }
+    return;
+  }
+
+  const Vec3 view = cl->angles;
+  if (fabsf(G_Ai_AngleDelta(view.x, angles.x)) < AI_SPAM_AIM_DEGREES &&
+      fabsf(G_Ai_AngleDelta(view.y, angles.y)) < AI_SPAM_AIM_DEGREES) {
+    cmd->buttons |= BUTTON_ATTACK;
+  }
+}
+
+/**
  * @brief Funcgoal that controls the AI's weaponry.
  */
 static uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
@@ -871,7 +1159,15 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
   }
 
 
-  if (cl->ai->weaponCheckTime < gameLevel.time) { // check for a new weapon every once in a while
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
+    if (G_Ai_IsSpamming(cl)) {
+      G_Ai_EndSpam(cl);
+    }
+  } else {
+    G_Ai_Weaponry_spam(cl, cmd);
+  }
+
+  if (!G_Ai_IsSpamming(cl) && cl->ai->weaponCheckTime < gameLevel.time) { // check for a new weapon every once in a while
     G_Ai_PickWeapon(cl);
   }
 
@@ -1627,13 +1923,6 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
- * @return The shortest signed rotation in degrees from `from` to `to`.
- */
-static inline float G_Ai_AngleDelta(const float from, const float to) {
-  return remainderf(to - from, 360.f);
-}
-
-/**
  * @brief The interval in seconds over which the rate of change of the aim angles is measured.
  */
 #define AI_AIM_RATE_SECONDS .05f
@@ -1661,12 +1950,6 @@ static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float sec
     error->xy[i] += -error->xy[i] * seconds / correction + noise * diffusion * scale;
   }
 }
-
-/**
- * @brief The projectile speed that a bot assumes for a weapon with no ballistics type, such as
- * hand grenades, whose speed depends on how long they are held.
- */
-#define AI_PROJECTILE_SPEED 1050
 
 /**
  * @brief The horizontal distance within which a path node is too near to look at, because the
@@ -1758,6 +2041,11 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
         idealAngles.x = 0.f;
       }
     }
+
+    if (G_Ai_IsSpamming(cl) && cl->weapon == G_Ai_SpamWeapon(cl)) {
+      uint32_t holdMillis;
+      G_Ai_SpamAngles(cl, cl->weapon, cl->ai->spamPoint, &idealAngles, &holdMillis);
+    }
   } else {
     const GameEntity *enemy = combatTarget->entity.ent;
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
@@ -1772,8 +2060,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
     if (weapon->def.flags & WF_PROJECTILE) {
       const float dist = Vec3_Distance(eyeOrigin, enemyCenter);
-      const char *name = weapon->def.classname + (Str_HasPrefix(weapon->def.classname, "weapon_") ? strlen("weapon_") : 0);
-      const int32_t speed = G_Ballistics_Speed(name) ?: AI_PROJECTILE_SPEED;
+      const float speed = G_Ai_ProjectileSpeed(weapon);
       aimPoint = Vec3_Fmaf(aimPoint, dist / (speed * (1.f + cl->ai->leadError)), cl->ai->perceivedVelocity);
     }
 
@@ -2090,6 +2377,8 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->perceivedVelocity = Vec3_Zero();
   cl->ai->aimError = Vec2_Zero();
   cl->ai->leadError = 0.f;
+  cl->ai->spamAmmo = 0;
+  cl->ai->spamTime = 0;
 }
 
 /**

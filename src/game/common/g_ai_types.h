@@ -395,6 +395,22 @@ typedef struct GameAi {
    * each combat target, so that the lead is consistently wrong rather than jittery.
    */
   float leadError;
+
+  /**
+   * @brief The spot at which the bot lobs grenades while it has no combat target.
+   */
+  Vec3 spamPoint;
+
+  /**
+   * @brief Level time at which the current burst of grenade spam ends, or, between bursts, at
+   * which the next may start.
+   */
+  uint32_t spamTime;
+
+  /**
+   * @brief The ammo count at which the current burst of grenade spam ends, or 0 between bursts.
+   */
+  int32_t spamAmmo;
 } GameAi;
 
 #endif
