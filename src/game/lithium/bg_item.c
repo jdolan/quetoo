@@ -92,7 +92,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_WEAPON,
     .tag = WEAPON_MACHINEGUN,
     .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
-    .flags = WF_HITSCAN | WF_SHORT_RANGE | WF_MED_RANGE,
+    .flags = WF_HITSCAN | WF_MED_RANGE | WF_LONG_RANGE,
     .priority = 0.30,
     .precaches = "weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
     "weapons/machinegun/fire_3.wav"
@@ -128,7 +128,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_WEAPON,
     .tag = WEAPON_GRENADE_LAUNCHER,
     .effectColor = { { 0.050f, 0.821f, 0.033f, 1.f } },
-    .flags = WF_PROJECTILE | WF_EXPLOSIVE,
+    .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE,
     .priority = 0.40,
     .precaches = "models/projectiles/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
   },
@@ -163,7 +163,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_WEAPON,
     .tag = WEAPON_HYPERBLASTER,
     .effectColor = { { 0.046f, 0.669f, 0.683f, 1.f } },
-    .flags = WF_PROJECTILE | WF_MED_RANGE,
+    .flags = WF_PROJECTILE | WF_MED_RANGE | WF_LONG_RANGE,
     .priority = 0.50,
     .precaches = "weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
   },
@@ -180,7 +180,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_WEAPON,
     .tag = WEAPON_LIGHTNING,
     .effectColor = { { 0.624f, 0.663f, 0.751f, 1.f } },
-    .flags = WF_HITSCAN | WF_SHORT_RANGE,
+    .flags = WF_HITSCAN | WF_SHORT_RANGE | WF_MED_RANGE,
     .priority = 0.50,
     .precaches = "weapons/lightning/fire.wav weapons/lightning/fly.wav "
     "weapons/lightning/discharge.wav"
@@ -266,7 +266,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_WEAPON,
     .tag = WEAPON_QUAKE_NAILGUN,
     .effectColor = { { 0.652f, 0.664f, 0.604f, 1.f } },
-    .flags = WF_HITSCAN | WF_MED_RANGE,
+    .flags = WF_PROJECTILE | WF_SHORT_RANGE | WF_MED_RANGE,
     .priority = 0.30,
     .precaches = "weapons/machinegun/fire_1.wav"
   },
@@ -283,7 +283,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_WEAPON,
     .tag = WEAPON_QUAKE_SUPER_NAILGUN,
     .effectColor = { { 0.652f, 0.664f, 0.604f, 1.f } },
-    .flags = WF_HITSCAN | WF_MED_RANGE,
+    .flags = WF_PROJECTILE | WF_SHORT_RANGE | WF_MED_RANGE,
     .priority = 0.40,
     .precaches = "weapons/machinegun/fire_1.wav"
   },
@@ -334,7 +334,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_WEAPON,
     .tag = WEAPON_QUAKE_THUNDERBOLT,
     .effectColor = { { 0.434f, 0.341f, 0.065f, 1.f } },
-    .flags = WF_HITSCAN | WF_SHORT_RANGE,
+    .flags = WF_HITSCAN | WF_SHORT_RANGE | WF_MED_RANGE,
     .priority = 0.55,
     .precaches = "weapons/lightning/fire.wav weapons/lightning/fly.wav "
     "weapons/lightning/discharge.wav"

@@ -546,7 +546,8 @@ static void G_Ai_PickWeapon(GameClient *cl) {
     }
 
     // additional penalty for long range + projectile unless explicitly long range
-    if ((it->def.flags & WF_PROJECTILE) &&
+    if (targRange == RANGE_LONG &&
+        (it->def.flags & WF_PROJECTILE) &&
         !(it->def.flags & WF_LONG_RANGE)) {
       weight /= 2.f;
     }
