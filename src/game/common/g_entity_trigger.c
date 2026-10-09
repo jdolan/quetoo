@@ -222,27 +222,53 @@ void G_trigger_always(GameEntity *ent) {
 #define PUSH_TOGGLE 8
 
 /**
+ * @brief The deepest stack of entities, each standing on the one below, that a `trigger_push`
+ * carries along with the entity it touches.
+ */
+#define PUSH_MAX_STACK 8
+
+/**
+ * @brief Applies the push to the given entity, and to the entities that stand on it, so that an
+ * entity above does not block the one below.
+ */
+static void G_trigger_push_Push(GameEntity *ent, GameEntity *other, int32_t depth) {
+
+  if (other->moveType != MOVE_TYPE_WALK && other->moveType != MOVE_TYPE_BOUNCE) {
+    return;
+  }
+
+  other->velocity = Vec3_Scale(ent->moveDir, ent->speed * 10.0);
+
+  if (other->client) {
+    other->client->ps.pmState.flags |= PMF_TIME_PUSHED;
+    other->client->ps.pmState.time = 240;
+  }
+
+  if (other->pushTime < gameLevel.time) {
+    other->pushTime = gameLevel.time + 1500;
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = ent->moveInfo.soundStart,
+      .origin = &other->s.origin,
+    }, MULTICAST_PHS);
+  }
+
+  if (depth == PUSH_MAX_STACK) {
+    return;
+  }
+
+  G_ForEachEntity(rider, {
+    if (rider != other && rider->ground.ent == other) {
+      G_trigger_push_Push(ent, rider, depth + 1);
+    }
+  });
+}
+
+/**
  * @brief Handles touch events on a `trigger_push`, applying velocity to the touching entity.
  */
 static void G_trigger_push_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
-  if (other->moveType == MOVE_TYPE_WALK || other->moveType == MOVE_TYPE_BOUNCE) {
-
-    other->velocity = Vec3_Scale(ent->moveDir, ent->speed * 10.0);
-
-    if (other->client) {
-      other->client->ps.pmState.flags |= PMF_TIME_PUSHED;
-      other->client->ps.pmState.time = 240;
-    }
-
-    if (other->pushTime < gameLevel.time) {
-      other->pushTime = gameLevel.time + 1500;
-      G_MulticastSound(&(const GamePlaySound) {
-        .index = ent->moveInfo.soundStart,
-        .origin = &other->s.origin,
-      }, MULTICAST_PHS);
-    }
-  }
+  G_trigger_push_Push(ent, other, 0);
 
   if (ent->spawnFlags & PUSH_ONCE) {
     G_FreeEntity(ent);
