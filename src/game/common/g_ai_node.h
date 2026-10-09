@@ -46,6 +46,7 @@ const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a);
 Vec3 G_Ai_Node_GetPosition(const GameAiNodeId node);
 GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 bool G_Ai_Node_CanPathTo(const Vec3 position);
+const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
 bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
 void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd);

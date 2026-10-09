@@ -296,11 +296,6 @@ typedef struct {
    * @brief Item-detection range and weapon-selection quality (0.0–1.0).
    */
   float awareness;
-
-  /**
-   * @brief Per-bot phase offset for sinusoidal aim wobble.
-   */
-  float aimPhase;
 } GameAiPersonality;
 
 /**
@@ -363,6 +358,37 @@ typedef struct GameAi {
    * Valid only when `lookaheadFrame == gameLevel.frameNum`.
    */
   bool lookaheadNoGround;
+
+  /**
+   * @brief Level time before the bot attempts again to path around a raised plat.
+   */
+  uint32_t replanTime;
+
+  /**
+   * @brief Level time before the bot may turn again while it wanders.
+   */
+  uint32_t wanderTurnTime;
+
+  /**
+   * @brief Level time at which the bot last saw its combat target.
+   */
+  uint32_t combatTargetSeenTime;
+
+  /**
+   * @brief The angular velocity of the view in degrees per second, so that turns ease in and out.
+   */
+  Vec3 viewVelocity;
+
+  /**
+   * @brief The combat target's velocity as the bot perceives it. It lags the true velocity by the
+   * bot's reaction time, so a target that changes direction is briefly misjudged.
+   */
+  Vec3 perceivedVelocity;
+
+  /**
+   * @brief The pitch and yaw aim error in degrees: a random walk that the bot corrects over time.
+   */
+  Vec2 aimError;
 } GameAi;
 
 #endif

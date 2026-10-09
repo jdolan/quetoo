@@ -87,6 +87,21 @@ static bool G_Ai_ShouldRetreat(const GameClient *cl) {
 }
 
 /**
+ * @return True if nothing solid lies between the AI's eyes and the entity.
+ */
+static bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other) {
+
+  const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+
+  if (tr.ent == other) {
+    return true;
+  }
+
+  return Box3_ContainsPoint(Box3_Expand(other->absBounds, 1.f), tr.end);
+}
+
+/**
  * @brief Returns true if the AI client has line of sight to the target entity.
  */
 static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
@@ -111,13 +126,7 @@ static bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
     return false;
   }
 
-  CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
-
-  if (tr.ent == other) {
-    return true;
-  }
-
-  return Box3_ContainsPoint(Box3_Expand(other->absBounds, 1.f), tr.end);
+  return G_Ai_HasLineOfSight(cl, other);
 }
 
 /**
@@ -173,6 +182,58 @@ static inline int64_t G_Ai_Microseconds(void) {
   return (int64_t) gameLevel.time * 1000;
 }
 
+/**
+ * @return True if the item decides who controls the map: a powerup, mega health or body armor.
+ */
+static bool G_Ai_IsMapControlItem(const GameItem *item) {
+
+  switch (item->def.type) {
+    case ITEM_TYPE_POWERUP:
+      return true;
+    case ITEM_TYPE_HEALTH:
+      return item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA;
+    case ITEM_TYPE_ARMOR:
+      return item->def.tag == ARMOR_BODY || item->def.tag == ARMOR_QUAKE_BODY;
+    default:
+      return false;
+  }
+}
+
+/**
+ * @return True if the entity is a map control item, or a dropped weapon that the AI lacks. Bots
+ * go after these above all else, even in combat.
+ */
+static bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
+
+  if (!ent->item) {
+    return false;
+  }
+
+  if (G_Ai_IsMapControlItem(ent->item)) {
+    return true;
+  }
+
+  return (ent->spawnFlags & SF_ITEM_DROPPED) && ent->item->def.type == ITEM_TYPE_WEAPON && !cl->inventory[ent->item->def.tag];
+}
+
+/**
+ * @return True if the AI's move target is a coveted item.
+ */
+static bool G_Ai_IsSeekingCovetedItem(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type == AI_GOAL_ENTITY) {
+    return G_Ai_IsCovetedItem(cl, goal->entity.ent);
+  }
+
+  if (goal->type == AI_GOAL_PATH && goal->path.pathTarget) {
+    return G_Ai_IsCovetedItem(cl, goal->path.pathTarget);
+  }
+
+  return false;
+}
+
 #define AI_ITEM_UNREACHABLE -1.0
 
 /**
@@ -183,7 +244,11 @@ static float G_Ai_ItemReachable(const GameClient *cl, const GameEntity *other) {
   const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
 
   // aware bots spot items from farther away (512 to 1024)
-  const float range = AI_MAX_ITEM_DISTANCE * Mixf(.67f, 1.33f, cl->ai->personality.awareness);
+  float range = AI_MAX_ITEM_DISTANCE * Mixf(.67f, 1.33f, cl->ai->personality.awareness);
+
+  if (G_Ai_IsCovetedItem(cl, other)) {
+    range = AI_MAX_ITEM_DISTANCE * 3.f;
+  }
 
   if (dist > range) {
     return AI_ITEM_UNREACHABLE;
@@ -242,15 +307,13 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     return cl->ai->reacquireTime - gameLevel.time; 
   }
 
-  // skip item seeking if we're in the air, or if we're armed, healthy, and fighting
+  // skip item seeking if we're in the air; if we're armed, healthy, and fighting, only a coveted item will do
   if (!cl->entity->ground.ent) {
     return 50;
   }
 
-  if (cl->ai->combatTarget.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl)) {
-    return 50;
-  }
-  
+  bool onlyCovetedItems = cl->ai->combatTarget.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl);
+
   // we're not attacking, so we probably care about items.
   if (cl->ai->moveTarget.type == AI_GOAL_ENTITY || cl->ai->moveTarget.type == AI_GOAL_PATH) {
     const GameEntity *target = (cl->ai->moveTarget.type == AI_GOAL_ENTITY) ? cl->ai->moveTarget.entity.ent : cl->ai->moveTarget.path.pathTarget;
@@ -269,8 +332,10 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
           G_Ai_RestorePath(cl, cl->ai);
         }
       // still a good goal
-      } else {
+      } else if (G_Ai_IsSeekingCovetedItem(cl)) {
         return 50;
+      } else {
+        onlyCovetedItems = true;
       }
     }
   }
@@ -294,10 +359,15 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       continue;
     }
 
-    // most likely an item!
+    const bool coveted = G_Ai_IsCovetedItem(cl, ent);
+
+    if (onlyCovetedItems && !coveted) {
+      continue;
+    }
+
     float distance;
 
-    if (!G_Ai_CanTarget(cl, ent) ||
+    if (!(coveted ? G_Ai_HasLineOfSight(cl, ent) : G_Ai_CanSee(cl, ent)) ||
         !G_Ai_CanPickup(cl, ent) ||
         (distance = G_Ai_ItemReachable(cl, ent)) <= AI_ITEM_UNREACHABLE) {
       continue;
@@ -310,6 +380,10 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       weight *= 3.f;
     } else if (G_Ai_ShouldRetreat(cl) && (item->def.type == ITEM_TYPE_HEALTH || item->def.type == ITEM_TYPE_ARMOR)) {
       weight *= 3.f;
+    }
+
+    if (coveted) {
+      weight = (AI_MAX_ITEM_DISTANCE * 8.f - distance) * item->def.priority;
     }
 
     $(itemsVisible, add, &(GameAiItemPick) {
@@ -327,7 +401,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     }
 
     for (uint32_t i = 0; i < itemsVisible->count; i++) {
-      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, 0);
+      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, i);
       const bool found = pick.weight > cl->ai->moveTarget.priority;
 
       if (!found) {
@@ -336,26 +410,24 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
       bool pathFound = false;
 
-      if (pick.entity->node != AI_NODE_INVALID) {
-        const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-        const GameAiNodeId dest = pick.entity->node;
+      const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+      const GameAiNodeId dest = pick.entity->node != AI_NODE_INVALID
+        ? pick.entity->node
+        : G_Ai_Node_FindClosest(pick.entity->s.origin, 256.f, true, true);
 
-        if (src != AI_NODE_INVALID) {
-          float length;
-          Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, &length);
+      if (src != AI_NODE_INVALID && dest != AI_NODE_INVALID) {
+        const float maxLength = AI_MAX_ITEM_DISTANCE * (G_Ai_IsCovetedItem(cl, pick.entity) ? 3.f : 1.f);
 
-          // item is too far or not pathable despite dropping a node
-          if (!path || length > AI_MAX_ITEM_DISTANCE) {
-            release(path);
-            continue;
-          }
+        float length;
+        Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, &length);
 
+        if (path && length <= maxLength) {
           G_Ai_BackupPath(cl->ai);
-          G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, pick.weight, path, pick.entity);  
-          release(path);
-
+          G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, pick.weight, path, pick.entity);
           pathFound = true;
         }
+
+        release(path);
       }
 
       if (!pathFound && g_aiNodeDev->integer) {
@@ -593,6 +665,17 @@ static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 }
 
 /**
+ * @brief The time in milliseconds that a bot keeps an enemy as its target after losing sight of it,
+ * so that a brief occlusion does not swing its view away and back.
+ */
+#define AI_TARGET_MEMORY_MILLIS 750
+
+/**
+ * @brief The time in milliseconds after a bot last saw its target within which it may fire.
+ */
+#define AI_TARGET_SEEN_MILLIS 100
+
+/**
  * @brief Funcgoal that controls the AI's lust for blood
  */
 static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
@@ -647,11 +730,14 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
   // see if we're already hunting
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
 
-    // check to see if the enemy has gone out of our line of sight
-    if (!G_Ai_CanTarget(cl, cl->ai->combatTarget.entity.ent)) {
+    const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
+
+    if (G_Ai_CanTarget(cl, enemy)) {
+      cl->ai->combatTargetSeenTime = gameLevel.time;
+    } else if (!G_Ai_IsTargetable(cl, enemy) || gameLevel.time - cl->ai->combatTargetSeenTime > AI_TARGET_MEMORY_MILLIS) {
 
       // enemy dead/out of LOS/disconnected; chase them!
-      if (G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
+      if (!G_Ai_IsSeekingCovetedItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
 
         const Vec3 whereTo = cl->ai->combatTarget.entity.ent->s.origin;
         
@@ -691,13 +777,22 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
   // switch targets if we found a significantly better one
   if (bestEnemy) {
-    const float currentPriority = cl->ai->combatTarget.type == AI_GOAL_ENTITY
+    const float currentPriority = cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTargetSeenTime == gameLevel.time
         ? G_Ai_EnemyPriority(cl, cl->ai->combatTarget.entity.ent, true)
         : 0.f;
 
     if (bestPriority > currentPriority + 1.f || cl->ai->combatTarget.type != AI_GOAL_ENTITY) {
 
       G_Ai_SetEntityGoal(cl, &cl->ai->combatTarget, bestPriority, bestEnemy);
+      cl->ai->combatTargetSeenTime = gameLevel.time;
+
+      const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+      const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(Box3_Center(bestEnemy->absBounds), eyeOrigin));
+      const float flick = Degrees(acosf(Clampf(Vec3_Dot(cl->forward, toEnemy), -1.f, 1.f))) * Mixf(.25f, .08f, cl->ai->personality.skill);
+      const float direction = RandomRadian();
+
+      cl->ai->perceivedVelocity = Vec3_Zero();
+      cl->ai->aimError = MakeVec2(sinf(direction) * flick * .6f, cosf(direction) * flick);
 
       G_Ai_PickWeapon(cl);
 
@@ -722,7 +817,7 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // we have somebody to kill; go get'em!
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->moveTarget, cl->ai->combatTarget.entity.ent) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->moveTarget, cl->ai->combatTarget.entity.ent) && !G_Ai_IsSeekingCovetedItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
 
     const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
     const float dist = Vec3_Distance(cl->entity->s.origin, enemy->s.origin);
@@ -778,7 +873,8 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 
   // we're alive - if we're aiming at an enemy, start-a-firin
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-    if (cl->ai->combatTarget.entity.lockOnTime < gameLevel.time) {
+    if (cl->ai->combatTarget.entity.lockOnTime < gameLevel.time &&
+        gameLevel.time - cl->ai->combatTargetSeenTime <= AI_TARGET_SEEN_MILLIS) {
 
       const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
       const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
@@ -846,6 +942,11 @@ static uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
+ * @brief The minimum interval in milliseconds between wander turns.
+ */
+#define AI_WANDER_TURN_MILLIS 300
+
+/**
  * @brief Wander aimlessly, hoping to find something to love.
  */
 static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
@@ -865,14 +966,16 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   bool blocked = tr.fraction < 1.0f;
 
   // check for ground ahead to avoid walking off edges
-  if (!blocked) {
+  if (!blocked && ent->waterLevel < WATER_WAIST) {
     const Vec3 dropStart = end;
     const Vec3 dropEnd = Vec3_Subtract(dropStart, MakeVec3(0, 0, PM_STEP_HEIGHT * 4.f));
     const CollisionTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
     blocked = groundTr.fraction >= 1.0f;
   }
 
-  if (blocked) {
+  if (blocked && cl->ai->wanderTurnTime <= gameLevel.time) {
+    cl->ai->wanderTurnTime = gameLevel.time + AI_WANDER_TURN_MILLIS;
+
     if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
       if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK && Randomb()) {
         cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
@@ -932,6 +1035,106 @@ static bool G_Ai_AdvancePath(GameClient *cl, GameAiGoal *goal) {
   goal->distressExtension = false;
   goal->lastDistance = FLT_MAX;
 
+  return true;
+}
+
+/**
+ * @brief The minimum interval in milliseconds between attempts to path around a raised plat.
+ */
+#define AI_REPLAN_MILLIS 1000
+
+/**
+ * @brief Plans a new path to the current path's destination, if the next node is under a raised
+ * `func_plat`. The search skips raised plats, so the new path goes around this one.
+ * @return True if the AI has a new path.
+ */
+static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (cl->ai->replanTime > gameLevel.time || !G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
+    return false;
+  }
+
+  cl->ai->replanTime = gameLevel.time + AI_REPLAN_MILLIS;
+
+  const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+  const GameAiNodeId dest = VectorValue(goal->path.path, GameAiNodeId, goal->path.path->count - 1);
+
+  if (src == AI_NODE_INVALID) {
+    return false;
+  }
+
+  Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
+
+  if (!path) {
+    return false;
+  }
+
+  G_Ai_SetPathGoal(cl, goal, goal->priority, path, goal->path.pathTarget);
+  release(path);
+
+  if (goal->path.path->count > 1 && G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
+    G_Ai_AdvancePath(cl, goal);
+  }
+
+  G_Ai_Debug("Pathing around a raised plat\n");
+  return true;
+}
+
+/**
+ * @return The command direction that takes the AI out from under the given plat, which its trigger
+ * would otherwise hold up, or zero if the AI is already clear of it.
+ */
+static Vec3 G_Ai_LeavePlatform(const GameClient *cl, const GameEntity *plat) {
+
+  const Box3 footprint = Box3_Expand3(plat->absBounds, MakeVec3(-16.f, -16.f, 0.f));
+  const Box3 bounds = cl->entity->absBounds;
+
+  if (bounds.maxs.x < footprint.mins.x || bounds.mins.x > footprint.maxs.x ||
+      bounds.maxs.y < footprint.mins.y || bounds.mins.y > footprint.maxs.y) {
+    return Vec3_Zero();
+  }
+
+  Vec3 away = Vec3_Subtract(cl->entity->s.origin, Box3_Center(plat->absBounds));
+  away.z = 0.f;
+
+  Vec3 dir;
+  Vec3_Vectors(MakeVec3(0.f, cl->angles.y - Vec3_Euler(Vec3_Normalize(away)).y, 0.f), &dir, NULL, NULL);
+
+  return Vec3_Scale(dir, PM_SPEED_RUN);
+}
+
+/**
+ * @brief The distance within which a bot at the end of its path walks on to an item with no node.
+ */
+#define AI_ITEM_APPROACH_DISTANCE 256.f
+
+/**
+ * @brief At the end of a path to an item with no node of its own, such as a dropped item, replaces
+ * the path with an entity goal on the item, if the item is still there and in sight.
+ * @return True if the AI now heads for the item.
+ */
+static bool G_Ai_ApproachPathTarget(GameClient *cl) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+  const GameEntity *target = goal->path.pathTarget;
+
+  if (!target || !target->item || target->node != AI_NODE_INVALID || target->solid != SOLID_TRIGGER) {
+    return false;
+  }
+
+  if (Vec3_Distance(cl->entity->s.origin, target->s.origin) > AI_ITEM_APPROACH_DISTANCE) {
+    return false;
+  }
+
+  const CollisionTrace tr = gi.Trace(cl->entity->s.origin, target->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_SOLID);
+
+  if (tr.fraction < 1.f) {
+    return false;
+  }
+
+  G_Ai_SetEntityGoal(cl, goal, goal->priority, target);
   return true;
 }
 
@@ -1065,6 +1268,20 @@ bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode)
 }
 
 /**
+ * @return True if the entity stands on a mover that carries it, such as a plat, a door or a train,
+ * and not on one that only rotates in place.
+ */
+static bool G_Ai_IsRidingMover(const GameEntity *ent) {
+  const GameEntity *ground = ent->ground.ent;
+
+  if (!ground || ground->s.number == 0) {
+    return false;
+  }
+
+  return !Vec3_Equal(ground->velocity, Vec3_Zero()) || Vec3_Equal(ground->avelocity, Vec3_Zero());
+}
+
+/**
  * @brief Move towards our current target
  */
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
@@ -1114,7 +1331,13 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         break;
       case AI_GOAL_PATH:
         if (!G_Ai_CheckNav(cl, &cl->ai->moveTarget)) {
-          G_Ai_RestorePath(cl, cl->ai);
+          if (!G_Ai_ApproachPathTarget(cl)) {
+            G_Ai_RestorePath(cl, cl->ai);
+          }
+          continue;
+        }
+
+        if (G_Ai_AvoidRaisedPlatform(cl)) {
           continue;
         }
 
@@ -1168,7 +1391,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
     // the next step(s) will be onto a mover, so if we can't move yet, we wait.
     if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
-      dir = Vec3_Scale(dir, PM_SPEED_RUN);
+      const GameEntity *plat = G_Ai_Node_RaisedPlatform(cl->ai->moveTarget.path.pathPosition);
+      dir = plat ? G_Ai_LeavePlatform(cl, plat) : Vec3_Scale(dir, PM_SPEED_RUN);
       waitPolitely = true;
       cl->ai->moveTarget.distressExtension = true;
     // trick-jumping requires a bit of finesse
@@ -1336,7 +1560,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
                && cl->ai->moveTarget.path.trickJump != TRICK_JUMP_TURNING)
                || cl->ai->moveTarget.type != AI_GOAL_PATH)
                && !waitPolitely
-               && (!ent->ground.ent || ((GameEntity *) ent->ground.ent)->s.number == 0)) {
+               && !G_Ai_IsRidingMover(ent)) {
 
     // we'll be pushed up against something
     float smolDist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
@@ -1370,7 +1594,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
       // if we're on a mover, distress differently so we don't unexpectedly
       // jump off of it
-      if (ent->ground.ent && ((GameEntity *) ent->ground.ent)->s.number != 0) {
+      if (G_Ai_IsRidingMover(ent)) {
         cl->ai->moveTarget.distress += 0.02f;
       } else {
         cl->ai->moveTarget.distress += 0.2f;
@@ -1398,59 +1622,68 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   return 0;
 }
 
-// note: this is not the same as AngleMod
-static inline float G_Ai_AngleMod(const float a) {
-  return (360.0f / 65536) * ((int32_t) (a * (65536 / 360.0f)) & 65535);
-}
-
-static float G_Ai_CalcAngle(GameClient *cl, const float speed, float current, float ideal) {
-  current = G_Ai_AngleMod(current);
-  ideal = G_Ai_AngleMod(ideal);
-
-  if (current == ideal) {
-    return current;
-  }
-
-  float move = ideal - current;
-
-  if (ideal > current) {
-    if (move >= 180.0f) {
-      move = move - 360.0f;
-    }
-  } else {
-    if (move <= -180.0f) {
-      move = move + 360.0f;
-    }
-  }
-
-  if (move > 0) {
-    if (move > speed) {
-      move = speed;
-    }
-  } else {
-    if (move < -speed) {
-      move = -speed;
-    }
-  }
-
-  return G_Ai_AngleMod(current + move);
+/**
+ * @return The shortest signed rotation in degrees from `from` to `to`.
+ */
+static inline float G_Ai_AngleDelta(const float from, const float to) {
+  return remainderf(to - from, 360.f);
 }
 
 /**
- * @brief Turn/look towards our current target
+ * @brief The interval in seconds over which the rate of change of the aim angles is measured.
+ */
+#define AI_AIM_RATE_SECONDS .05f
+
+/**
+ * @brief Advances the aim error, a random walk toward zero that widens with the target's angular
+ * rate and narrows with skill.
+ * @param rate The angular rate of the aim point in degrees per second.
+ */
+static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float seconds) {
+
+  const float skill = cl->ai->personality.skill;
+  const float correction = .35f;
+
+  const float angularSpeed = sqrtf(rate.x * rate.x + rate.y * rate.y);
+  const float deviation = Mixf(4.f, 1.f, skill) + Mixf(.1f, .04f, skill) * angularSpeed;
+  const float diffusion = deviation * sqrtf(2.f * seconds / correction);
+
+  Vec2 *error = &cl->ai->aimError;
+
+  for (int32_t i = 0; i < 2; i++) {
+    const float noise = (Randomf() + Randomf() + Randomf() - 1.5f) * 2.f;
+    const float scale = i == 0 ? .6f : 1.f;
+
+    error->xy[i] += -error->xy[i] * seconds / correction + noise * diffusion * scale;
+  }
+}
+
+/**
+ * @brief The horizontal distance within which a path node is too near to look at, because the
+ * direction to it swings as the bot passes it.
+ */
+#define AI_LOOK_MIN_DISTANCE 96.f
+
+/**
+ * @brief Turns the view toward the current target with a critically damped spring. In combat, the
+ * aim point lags the target's changes in velocity by the bot's reaction time, plus the aim error.
  */
 static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
   GameAiGoal *combatTarget = &cl->ai->combatTarget;
 
   GameEntity *ent = cl->entity;
+  const float seconds = MILLIS_TO_SECONDS(cmd->msec);
+
   Vec3 idealAngles;
+  Vec3 idealRate = Vec3_Zero();
 
   if (combatTarget->type != AI_GOAL_ENTITY) {
     if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
       idealAngles = MakeVec3(0.0, cl->ai->moveTarget.wander.angle, 0.0);
     } else {
       Vec3 aimTarget = Vec3_Zero();
+      bool holdYaw = false;
 
       if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
 
@@ -1471,6 +1704,18 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
         } else {
           aimTarget = cl->ai->moveTarget.path.pathPosition;
         }
+
+        const GameAiGoal *path = &cl->ai->moveTarget;
+
+        if (!path->path.trickJump && !(cl->ps.pmState.flags & PMF_ON_LADDER) && ent->waterLevel < WATER_WAIST &&
+            path->path.pathPosition.z - ent->s.origin.z <= PM_STEP_HEIGHT) {
+
+          if (Vec2_Distance(Vec3_XY(aimTarget), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE) {
+            aimTarget = path->path.nextPathPosition;
+          }
+
+          holdYaw = Vec2_Distance(Vec3_XY(aimTarget), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE;
+        }
       } else if (cl->ai->moveTarget.type == AI_GOAL_POSITION) {
         aimTarget = cl->ai->moveTarget.position.pos;
       } else if (cl->ai->moveTarget.type == AI_GOAL_ENTITY) {
@@ -1482,6 +1727,10 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       const Vec3 aimDirection = Vec3_Normalize(Vec3_Subtract(aimTarget, cl->entity->s.origin));
       idealAngles = Vec3_Euler(aimDirection);
       idealAngles.z = 0.f;
+
+      if (holdYaw) {
+        idealAngles.y = cl->angles.y;
+      }
 
       // if underwater or in air we have to directly face our target, otherwise
       // just yaw us.
@@ -1500,10 +1749,15 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       }
     }
   } else {
+    const GameEntity *enemy = combatTarget->entity.ent;
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-    const Vec3 enemyCenter = Box3_Center(combatTarget->entity.ent->absBounds);
+    const Vec3 enemyCenter = Box3_Center(enemy->absBounds);
 
-    Vec3 aimDirection;
+    const float reaction = Mixf(.25f, .12f, cl->ai->personality.skill);
+    cl->ai->perceivedVelocity = Vec3_Mix(cl->ai->perceivedVelocity, enemy->velocity, 1.f - expf(-seconds / reaction));
+
+    Vec3 aimPoint = Vec3_Fmaf(enemyCenter, reaction, Vec3_Subtract(cl->ai->perceivedVelocity, enemy->velocity));
+
     const GameItem *const weapon = cl->weapon;
 
     if (weapon->def.flags & WF_PROJECTILE) {
@@ -1511,40 +1765,55 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       // skilled bots predict more accurately (tighter speed estimate range)
       const float spread = Mixf(300.f, 100.f, cl->ai->personality.skill);
       const float speed = RandomRangef(1050.f - spread, 1050.f + spread);
-      const float time = dist / speed;
-      const Vec3 targetVelocity = combatTarget->entity.ent->velocity;
-      const Vec3 targetPos = Vec3_Fmaf(enemyCenter, time, targetVelocity);
-      aimDirection = Vec3_Subtract(targetPos, eyeOrigin);
-    } else {
-      aimDirection = Vec3_Subtract(enemyCenter, eyeOrigin);
+      aimPoint = Vec3_Fmaf(aimPoint, dist / speed, cl->ai->perceivedVelocity);
     }
 
-    aimDirection = Vec3_Normalize(aimDirection);
-    idealAngles = Vec3_Euler(aimDirection);
+    idealAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(aimPoint, eyeOrigin)));
 
-    // fuzzy angle: amplitude scales with (1 - skill), per-bot phase offset
-    // hitscan weapons carry a small fixed floor to prevent perfect tracking
-    const float wobble = (1.f - cl->ai->personality.skill) * 2.f
-        + ((weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
-    const float phase = cl->ai->personality.aimPhase;
-    idealAngles.x += sinf((gameLevel.time + phase) / 128.0f) * 4.3f * wobble;
-    idealAngles.y += cosf((gameLevel.time + phase) / 164.0f) * 4.0f * wobble;
+    const Vec3 relativeVelocity = Vec3_Subtract(cl->ai->perceivedVelocity, ent->velocity);
+    const Vec3 nextAimPoint = Vec3_Fmaf(aimPoint, AI_AIM_RATE_SECONDS, relativeVelocity);
+    const Vec3 nextAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(nextAimPoint, eyeOrigin)));
+
+    for (int32_t i = 0; i < 2; i++) {
+      idealRate.xyz[i] = G_Ai_AngleDelta(idealAngles.xyz[i], nextAngles.xyz[i]) / AI_AIM_RATE_SECONDS;
+    }
+
+    G_Ai_UpdateAimError(cl, idealRate, seconds);
+
+    idealAngles.x = Clampf(G_Ai_AngleDelta(0.f, idealAngles.x + cl->ai->aimError.x), -90.f, 90.f);
+    idealAngles.y += cl->ai->aimError.y;
   }
+
+  idealAngles.x = G_Ai_AngleDelta(0.f, idealAngles.x);
+
+  if (fabsf(idealAngles.x) > 90.f) {
+    idealAngles.x = 90.f;
+  }
+
+  const float stiffness = combatTarget->type == AI_GOAL_ENTITY
+    ? Mixf(10.f, 20.f, cl->ai->personality.skill)
+    : Mixf(6.f, 10.f, cl->ai->personality.skill);
+  const float maxSpeed = Mixf(300.f, 900.f, cl->ai->personality.skill);
 
   const Vec3 viewAngles = cl->angles;
+  Vec3 angles = idealAngles;
 
-  // turn speed: skilled bots turn faster (range 6.25 to 18.75)
-  const float turnSpeed = Mixf(.5f, 1.5f, cl->ai->personality.skill) * 12.5f;
+  for (int32_t i = 0; i < 2; i++) {
+    const float error = G_Ai_AngleDelta(viewAngles.xyz[i], idealAngles.xyz[i]);
+    float *speed = &cl->ai->viewVelocity.xyz[i];
 
-  for (int32_t i = 0; i < 2; ++i) {
-    idealAngles.xyz[i] = G_Ai_CalcAngle(cl, turnSpeed * (cmd->msec / (float)QUETOO_TICK_MILLIS), viewAngles.xyz[i], idealAngles.xyz[i]);
+    *speed += (stiffness * stiffness * error + 2.f * stiffness * (idealRate.xyz[i] - *speed)) * seconds;
+    *speed = Clampf(*speed, -maxSpeed, maxSpeed);
+
+    angles.xyz[i] = viewAngles.xyz[i] + *speed * seconds;
   }
 
-  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->ai->moveTarget.path.trickJump == TRICK_JUMP_TURNING && viewAngles.y == idealAngles.y) {
+  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->ai->moveTarget.path.trickJump == TRICK_JUMP_TURNING &&
+      fabsf(G_Ai_AngleDelta(angles.y, idealAngles.y)) < 2.f) {
     cl->ai->moveTarget.path.trickJump = TRICK_JUMP_NONE;
   }
 
-  cmd->angles = Vec3_Subtract(idealAngles, cl->ps.pmState.deltaAngles);
+  cmd->angles = Vec3_Subtract(angles, cl->ps.pmState.deltaAngles);
   return 0;
 }
 
@@ -1804,6 +2073,12 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->reacquireTime = 0;
   cl->ai->lookaheadFrame = 0;
   cl->ai->lookaheadNoGround = false;
+  cl->ai->replanTime = 0;
+  cl->ai->wanderTurnTime = 0;
+
+  cl->ai->viewVelocity = Vec3_Zero();
+  cl->ai->perceivedVelocity = Vec3_Zero();
+  cl->ai->aimError = Vec2_Zero();
 }
 
 /**
@@ -1817,7 +2092,6 @@ void G_Ai_Begin(GameClient *cl) {
     .skill      = r->skill,
     .aggression = r->aggression,
     .awareness  = r->awareness,
-    .aimPhase  = RandomRangef(0.f, 1000.f),
   };
 
   G_Ai_Debug("%s: skill=%.2f aggression=%.2f awareness=%.2f\n",
