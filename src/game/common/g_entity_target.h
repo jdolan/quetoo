@@ -25,6 +25,12 @@
 
 #if defined(__G_LOCAL_H__)
 bool G_ballistics(GameEntity *ent);
+
+/**
+ * @return The projectile speed of the named ballistics type, or 0 if it fires no projectile.
+ * @param name The name of the type, which is the weapon classname without its `weapon_` prefix.
+ */
+int32_t G_Ballistics_Speed(const char *name);
 void G_target_light(GameEntity *ent);
 void G_target_speaker(GameEntity *ent);
 void G_target_string(GameEntity *ent);

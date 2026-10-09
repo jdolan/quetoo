@@ -794,6 +794,9 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
       cl->ai->perceivedVelocity = Vec3_Zero();
       cl->ai->aimError = MakeVec2(sinf(direction) * flick * .6f, cosf(direction) * flick);
 
+      const float leadSpread = Mixf(.3f, .05f, cl->ai->personality.skill);
+      cl->ai->leadError = RandomRangef(-leadSpread, leadSpread);
+
       G_Ai_PickWeapon(cl);
 
       // aggressive bots prefer close combat; cautious bots flank/wander
@@ -1645,7 +1648,7 @@ static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float sec
   const float correction = .35f;
 
   const float angularSpeed = sqrtf(rate.x * rate.x + rate.y * rate.y);
-  const float deviation = Mixf(4.f, 1.f, skill) + Mixf(.1f, .04f, skill) * angularSpeed;
+  const float deviation = Mixf(4.f, .4f, skill) + Mixf(.1f, .015f, skill) * angularSpeed;
   const float diffusion = deviation * sqrtf(2.f * seconds / correction);
 
   Vec2 *error = &cl->ai->aimError;
@@ -1657,6 +1660,12 @@ static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float sec
     error->xy[i] += -error->xy[i] * seconds / correction + noise * diffusion * scale;
   }
 }
+
+/**
+ * @brief The projectile speed that a bot assumes for a weapon with no ballistics type, such as
+ * hand grenades, whose speed depends on how long they are held.
+ */
+#define AI_PROJECTILE_SPEED 1050
 
 /**
  * @brief The horizontal distance within which a path node is too near to look at, because the
@@ -1753,7 +1762,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
     const Vec3 enemyCenter = Box3_Center(enemy->absBounds);
 
-    const float reaction = Mixf(.25f, .12f, cl->ai->personality.skill);
+    const float reaction = Mixf(.25f, .05f, cl->ai->personality.skill);
     cl->ai->perceivedVelocity = Vec3_Mix(cl->ai->perceivedVelocity, enemy->velocity, 1.f - expf(-seconds / reaction));
 
     Vec3 aimPoint = Vec3_Fmaf(enemyCenter, reaction, Vec3_Subtract(cl->ai->perceivedVelocity, enemy->velocity));
@@ -1762,10 +1771,9 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
     if (weapon->def.flags & WF_PROJECTILE) {
       const float dist = Vec3_Distance(eyeOrigin, enemyCenter);
-      // skilled bots predict more accurately (tighter speed estimate range)
-      const float spread = Mixf(300.f, 100.f, cl->ai->personality.skill);
-      const float speed = RandomRangef(1050.f - spread, 1050.f + spread);
-      aimPoint = Vec3_Fmaf(aimPoint, dist / speed, cl->ai->perceivedVelocity);
+      const char *name = weapon->def.classname + (Str_HasPrefix(weapon->def.classname, "weapon_") ? strlen("weapon_") : 0);
+      const int32_t speed = G_Ballistics_Speed(name) ?: AI_PROJECTILE_SPEED;
+      aimPoint = Vec3_Fmaf(aimPoint, dist / (speed * (1.f + cl->ai->leadError)), cl->ai->perceivedVelocity);
     }
 
     idealAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(aimPoint, eyeOrigin)));
@@ -1793,6 +1801,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
   const float stiffness = combatTarget->type == AI_GOAL_ENTITY
     ? Mixf(10.f, 20.f, cl->ai->personality.skill)
     : Mixf(6.f, 10.f, cl->ai->personality.skill);
+
   const float maxSpeed = Mixf(300.f, 900.f, cl->ai->personality.skill);
 
   const Vec3 viewAngles = cl->angles;
@@ -2079,6 +2088,7 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->viewVelocity = Vec3_Zero();
   cl->ai->perceivedVelocity = Vec3_Zero();
   cl->ai->aimError = Vec2_Zero();
+  cl->ai->leadError = 0.f;
 }
 
 /**

@@ -389,6 +389,12 @@ typedef struct GameAi {
    * @brief The pitch and yaw aim error in degrees: a random walk that the bot corrects over time.
    */
   Vec2 aimError;
+
+  /**
+   * @brief The fractional error in the bot's estimate of its projectile speed. It is fixed for
+   * each combat target, so that the lead is consistently wrong rather than jittery.
+   */
+  float leadError;
 } GameAi;
 
 #endif

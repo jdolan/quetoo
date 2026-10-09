@@ -617,6 +617,19 @@ static const GameBallisticsType *G_Ballistics_Type(const char *name) {
 }
 
 /**
+ * @see G_Ballistics_Speed(const char *)
+ */
+int32_t G_Ballistics_Speed(const char *name) {
+
+  const GameBallisticsType *type = G_Ballistics_Type(name);
+  if (type == NULL) {
+    return 0;
+  }
+
+  return type->speed ? (*type->speed)->integer : type->defaultSpeed;
+}
+
+/**
  * @brief Resolves the direction a trap fires in, tracking its target entity if it has one.
  */
 static Vec3 G_Ballistics_Dir(GameEntity *ent) {
