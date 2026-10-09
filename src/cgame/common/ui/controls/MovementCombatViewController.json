@@ -226,6 +226,18 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Use item"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "use"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Drop weapon"
                           }
                         },
