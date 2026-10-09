@@ -66,6 +66,9 @@
     <ClInclude Include="..\src\game\common\bg_pmove_local.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_combat.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\common\g_ai_goal.h">
       <Filter>src\common</Filter>
     </ClInclude>
@@ -147,6 +150,9 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_weapon.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_combat.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_ai_goal.c">

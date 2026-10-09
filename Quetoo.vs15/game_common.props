@@ -25,7 +25,9 @@
     <ClInclude Include="..\src\game\common\g_intermission.h" />
     <ClInclude Include="..\src\game\common\g_vote.h" />
     <ClInclude Include="..\src\game\common\bg_pmove_local.h" />
+    <ClCompile Include="..\src\game\common\g_ai_combat.c" />
     <ClCompile Include="..\src\game\common\g_ai_goal.c" />
+    <ClInclude Include="..\src\game\common\g_ai_combat.h" />
     <ClInclude Include="..\src\game\common\g_ai_goal.h" />
     <ClCompile Include="..\src\game\common\g_ai_grid.c" />
     <ClInclude Include="..\src\game\common\g_ai_grid.h" />

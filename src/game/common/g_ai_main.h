@@ -28,6 +28,7 @@
 
 #define G_Ai_Debug(...) gi.Debug(DEBUG_AI, __func__, __VA_ARGS__)
 
+#include "g_ai_combat.h"
 #include "g_ai_goal.h"
 #include "g_ai_grid.h"
 #include "g_ai_info.h"
@@ -49,5 +50,27 @@ void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
 bool G_Ai_InDeveloperMode(void);
 bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode);
+bool G_Ai_IsArmed(const GameClient *cl);
+bool G_Ai_ShouldRetreat(const GameClient *cl);
+bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other);
+bool G_Ai_IsSeekingCovetedItem(const GameClient *cl);
+
+/**
+ * @brief Candidate item considered for AI pickup, weighted by desirability.
+ */
+typedef struct {
+  const GameEntity *entity;
+  const GameItem *item;
+  float weight;
+} GameAiItemPick;
+
+int32_t G_Ai_CompareItems(const void *a, const void *b);
+
+/**
+ * @return The shortest signed rotation in degrees from `from` to `to`.
+ */
+static inline float G_Ai_AngleDelta(const float from, const float to) {
+  return remainderf(to - from, 360.f);
+}
 
 #endif
