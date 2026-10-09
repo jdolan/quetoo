@@ -612,6 +612,29 @@ static bool G_Ai_ApproachPathTarget(GameClient *cl) {
 }
 
 /**
+ * @return True if the node lies within the horizontal extent of the given bounds.
+ */
+static bool G_Ai_IsWithinXY(const Box3 bounds, const Vec3 node) {
+  return node.x >= bounds.mins.x && node.x <= bounds.maxs.x &&
+         node.y >= bounds.mins.y && node.y <= bounds.maxs.y;
+}
+
+/**
+ * @return True if a rising mover, such as a plat, has lifted the AI off the node, which lies on the
+ * mover's floor where it started.
+ */
+static bool G_Ai_IsLiftedOffNode(const GameClient *cl, const Box3 bounds, const Vec3 node) {
+
+  const GameEntity *ground = cl->entity->ground.ent;
+
+  if (!ground || ground->s.number == 0 || ground->velocity.z <= 0.f) {
+    return false;
+  }
+
+  return G_Ai_IsWithinXY(bounds, node) && G_Ai_IsWithinXY(ground->absBounds, node) && node.z < bounds.mins.z;
+}
+
+/**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
 static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
@@ -622,8 +645,14 @@ static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
    */
   const Vec3 padding = { .x = 8.f, .y = 8.f, .z = 0.f };
 
+  const Box3 bounds = Box3_Expand3(cl->entity->absBounds, padding);
+
   // if we're touching our nav goal, we can go next
-  if (Box3_ContainsPoint(Box3_Expand3(cl->entity->absBounds, padding), goal->path.pathPosition)) {
+  if (Box3_ContainsPoint(bounds, goal->path.pathPosition)) {
+    return G_Ai_AdvancePath(cl, goal);
+  }
+
+  if (G_Ai_IsLiftedOffNode(cl, bounds, goal->path.pathPosition)) {
     return G_Ai_AdvancePath(cl, goal);
   }
 
