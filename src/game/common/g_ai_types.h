@@ -365,6 +365,16 @@ typedef struct GameAi {
   uint32_t replanTime;
 
   /**
+   * @brief Level time before the bot may turn again while it wanders.
+   */
+  uint32_t wanderTurnTime;
+
+  /**
+   * @brief Level time at which the bot last saw its combat target.
+   */
+  uint32_t combatTargetSeenTime;
+
+  /**
    * @brief The angular velocity of the view in degrees per second, so that turns ease in and out.
    */
   Vec3 viewVelocity;

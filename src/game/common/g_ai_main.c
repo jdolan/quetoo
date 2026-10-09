@@ -665,6 +665,17 @@ static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 }
 
 /**
+ * @brief The time in milliseconds that a bot keeps an enemy as its target after losing sight of it,
+ * so that a brief occlusion does not swing its view away and back.
+ */
+#define AI_TARGET_MEMORY_MILLIS 750
+
+/**
+ * @brief The time in milliseconds after a bot last saw its target within which it may fire.
+ */
+#define AI_TARGET_SEEN_MILLIS 100
+
+/**
  * @brief Funcgoal that controls the AI's lust for blood
  */
 static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
@@ -719,8 +730,11 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
   // see if we're already hunting
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
 
-    // check to see if the enemy has gone out of our line of sight
-    if (!G_Ai_CanTarget(cl, cl->ai->combatTarget.entity.ent)) {
+    const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
+
+    if (G_Ai_CanTarget(cl, enemy)) {
+      cl->ai->combatTargetSeenTime = gameLevel.time;
+    } else if (!G_Ai_IsTargetable(cl, enemy) || gameLevel.time - cl->ai->combatTargetSeenTime > AI_TARGET_MEMORY_MILLIS) {
 
       // enemy dead/out of LOS/disconnected; chase them!
       if (!G_Ai_IsSeekingCovetedItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
@@ -763,13 +777,14 @@ static uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
   // switch targets if we found a significantly better one
   if (bestEnemy) {
-    const float currentPriority = cl->ai->combatTarget.type == AI_GOAL_ENTITY
+    const float currentPriority = cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTargetSeenTime == gameLevel.time
         ? G_Ai_EnemyPriority(cl, cl->ai->combatTarget.entity.ent, true)
         : 0.f;
 
     if (bestPriority > currentPriority + 1.f || cl->ai->combatTarget.type != AI_GOAL_ENTITY) {
 
       G_Ai_SetEntityGoal(cl, &cl->ai->combatTarget, bestPriority, bestEnemy);
+      cl->ai->combatTargetSeenTime = gameLevel.time;
 
       const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
       const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(Box3_Center(bestEnemy->absBounds), eyeOrigin));
@@ -858,7 +873,8 @@ static uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 
   // we're alive - if we're aiming at an enemy, start-a-firin
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-    if (cl->ai->combatTarget.entity.lockOnTime < gameLevel.time) {
+    if (cl->ai->combatTarget.entity.lockOnTime < gameLevel.time &&
+        gameLevel.time - cl->ai->combatTargetSeenTime <= AI_TARGET_SEEN_MILLIS) {
 
       const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
       const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
@@ -926,6 +942,11 @@ static uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
+ * @brief The minimum interval in milliseconds between wander turns.
+ */
+#define AI_WANDER_TURN_MILLIS 300
+
+/**
  * @brief Wander aimlessly, hoping to find something to love.
  */
 static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
@@ -945,14 +966,16 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   bool blocked = tr.fraction < 1.0f;
 
   // check for ground ahead to avoid walking off edges
-  if (!blocked) {
+  if (!blocked && ent->waterLevel < WATER_WAIST) {
     const Vec3 dropStart = end;
     const Vec3 dropEnd = Vec3_Subtract(dropStart, MakeVec3(0, 0, PM_STEP_HEIGHT * 4.f));
     const CollisionTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
     blocked = groundTr.fraction >= 1.0f;
   }
 
-  if (blocked) {
+  if (blocked && cl->ai->wanderTurnTime <= gameLevel.time) {
+    cl->ai->wanderTurnTime = gameLevel.time + AI_WANDER_TURN_MILLIS;
+
     if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
       if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK && Randomb()) {
         cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
@@ -1636,6 +1659,12 @@ static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float sec
 }
 
 /**
+ * @brief The horizontal distance within which a path node is too near to look at, because the
+ * direction to it swings as the bot passes it.
+ */
+#define AI_LOOK_MIN_DISTANCE 96.f
+
+/**
  * @brief Turns the view toward the current target with a critically damped spring. In combat, the
  * aim point lags the target's changes in velocity by the bot's reaction time, plus the aim error.
  */
@@ -1654,6 +1683,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       idealAngles = MakeVec3(0.0, cl->ai->moveTarget.wander.angle, 0.0);
     } else {
       Vec3 aimTarget = Vec3_Zero();
+      bool holdYaw = false;
 
       if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
 
@@ -1674,6 +1704,18 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
         } else {
           aimTarget = cl->ai->moveTarget.path.pathPosition;
         }
+
+        const GameAiGoal *path = &cl->ai->moveTarget;
+
+        if (!path->path.trickJump && !(cl->ps.pmState.flags & PMF_ON_LADDER) && ent->waterLevel < WATER_WAIST &&
+            path->path.pathPosition.z - ent->s.origin.z <= PM_STEP_HEIGHT) {
+
+          if (Vec2_Distance(Vec3_XY(aimTarget), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE) {
+            aimTarget = path->path.nextPathPosition;
+          }
+
+          holdYaw = Vec2_Distance(Vec3_XY(aimTarget), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE;
+        }
       } else if (cl->ai->moveTarget.type == AI_GOAL_POSITION) {
         aimTarget = cl->ai->moveTarget.position.pos;
       } else if (cl->ai->moveTarget.type == AI_GOAL_ENTITY) {
@@ -1685,6 +1727,10 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       const Vec3 aimDirection = Vec3_Normalize(Vec3_Subtract(aimTarget, cl->entity->s.origin));
       idealAngles = Vec3_Euler(aimDirection);
       idealAngles.z = 0.f;
+
+      if (holdYaw) {
+        idealAngles.y = cl->angles.y;
+      }
 
       // if underwater or in air we have to directly face our target, otherwise
       // just yaw us.
@@ -1744,7 +1790,9 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     idealAngles.x = 90.f;
   }
 
-  const float stiffness = Mixf(10.f, 20.f, cl->ai->personality.skill);
+  const float stiffness = combatTarget->type == AI_GOAL_ENTITY
+    ? Mixf(10.f, 20.f, cl->ai->personality.skill)
+    : Mixf(6.f, 10.f, cl->ai->personality.skill);
   const float maxSpeed = Mixf(300.f, 900.f, cl->ai->personality.skill);
 
   const Vec3 viewAngles = cl->angles;
@@ -2026,6 +2074,7 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->lookaheadFrame = 0;
   cl->ai->lookaheadNoGround = false;
   cl->ai->replanTime = 0;
+  cl->ai->wanderTurnTime = 0;
 
   cl->ai->viewVelocity = Vec3_Zero();
   cl->ai->perceivedVelocity = Vec3_Zero();
