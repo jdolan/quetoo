@@ -129,7 +129,7 @@ const GameItemDef gameItemDefs[] = {
     .tag = WEAPON_GRENADE_LAUNCHER,
     .effectColor = { { 0.050f, 0.821f, 0.033f, 1.f } },
     .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE,
-    .priority = 0.40,
+    .priority = 0.48,
     .precaches = "models/projectiles/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
   },
 
@@ -301,7 +301,7 @@ const GameItemDef gameItemDefs[] = {
     .tag = WEAPON_QUAKE_GRENADE_LAUNCHER,
     .effectColor = { { 0.600f, 0.200f, 0.050f, 1.f } },
     .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE,
-    .priority = 0.45,
+    .priority = 0.48,
     .precaches = "weapons/grenadelauncher/fire.wav"
   },
 
@@ -700,7 +700,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_HEALTH,
     .tag = HEALTH_MEGA,
     .effectColor = { { 0.029f, 0.462f, 0.741f, 1.f } },
-    .priority = 0.60,
+    .priority = 0.80,
     .precaches = ""
   },
 
@@ -745,7 +745,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_HEALTH,
     .tag = HEALTH_QUAKE_MEGA,
     .effectColor = { { 0.620f, 0.167f, 0.107f, 1.f } },
-    .priority = 0.60,
+    .priority = 0.80,
     .precaches = ""
   },
 
@@ -760,7 +760,7 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_POWERUP,
     .tag = POWERUP_QUAD,
     .effectColor = { { 0.079f, 0.309f, 0.507f, 1.f } },
-    .priority = 0.80,
+    .priority = 0.90,
     .precaches = "powerups/quad/attack.wav powerups/quad/expire.wav",
     .lightColor = { { .2f, .4f, 1.f } },
     .lightRadius = 160.f,
