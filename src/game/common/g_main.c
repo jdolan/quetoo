@@ -1240,6 +1240,7 @@ void G_Init(void) {
   gi.AddCmd("mute", G_Mute_f, CMD_GAME, "Prevent a client from talking");
   gi.AddCmd("unmute", G_Mute_f, CMD_GAME, "Allow a muted client to talk again");
   gi.AddCmd("restart", G_Restart_f, CMD_GAME, "Force the game to restart");
+  gi.AddCmd("giveAi", G_GiveAiServer_f, CMD_GAME, "Give items to every bot, as give does");
 
   gi.Print("Game module initialized\n");
 }

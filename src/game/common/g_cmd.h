@@ -27,4 +27,5 @@
 bool G_AddClientToTeam(GameClient *cl, const char *teamName);
 void G_ClientCommand(GameClient *cl);
 void G_Mute_f(void);
+void G_GiveAiServer_f(void);
 #endif

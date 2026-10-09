@@ -22,18 +22,14 @@
 #include "g_local.h"
 
 /**
- * @brief Give items to a client
+ * @brief Gives the item named by the current command arguments to the client, as `give` does.
+ * @return An error message, or NULL if the item was given.
  */
-static void G_Give_f(GameClient *cl) {
+static const char *G_GiveItem(GameClient *cl) {
   const GameItem *it;
   uint32_t quantity;
   bool giveAll;
   GameEntity *itEnt;
-
-  if (sv_maxClients->integer > 1 && !g_cheats->value) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
-    return;
-  }
 
   const char *name = gi.Args();
 
@@ -60,7 +56,7 @@ static void G_Give_f(GameClient *cl) {
       cl->entity->health = cl->entity->maxHealth + 5;
     }
     if (!giveAll) {
-      return;
+      return NULL;
     }
   }
 
@@ -76,7 +72,7 @@ static void G_Give_f(GameClient *cl) {
       cl->inventory[t] = it->def.max;
     }
     if (!giveAll) {
-      return;
+      return NULL;
     }
   }
 
@@ -92,7 +88,7 @@ static void G_Give_f(GameClient *cl) {
       cl->inventory[t] += 1;
     }
     if (!giveAll) {
-      return;
+      return NULL;
     }
   }
 
@@ -119,12 +115,12 @@ static void G_Give_f(GameClient *cl) {
       G_AddAmmo(cl, it, quantity);
     }
     if (!giveAll) {
-      return;
+      return NULL;
     }
   }
 
   if (giveAll) { // we've given full health and inventory
-    return;
+    return NULL;
   }
 
   it = G_FindItem(name);
@@ -132,14 +128,12 @@ static void G_Give_f(GameClient *cl) {
     name = gi.Argv(1);
     it = G_FindItem(name);
     if (!it) {
-      gi.ClientPrint(cl, PRINT_HIGH, "Unknown item: %s\n", name);
-      return;
+      return va("Unknown item: %s\n", name);
     }
   }
 
   if (!it->Pickup) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Non-pickup item: %s\n", name);
-    return;
+    return va("Non-pickup item: %s\n", name);
   }
 
   if (it->def.type == ITEM_TYPE_AMMO) { // give the requested ammo quantity
@@ -158,6 +152,72 @@ static void G_Give_f(GameClient *cl) {
     if (itEnt->inUse) {
       G_FreeEntity(itEnt);
     }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Give items to a client
+ */
+static void G_Give_f(GameClient *cl) {
+
+  if (sv_maxClients->integer > 1 && !g_cheats->value) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
+    return;
+  }
+
+  const char *error = G_GiveItem(cl);
+  if (error) {
+    gi.ClientPrint(cl, PRINT_HIGH, "%s", error);
+  }
+}
+
+/**
+ * @brief Gives the item named by the current command arguments to every bot.
+ * @return An error message, or NULL if the item was given.
+ */
+static const char *G_GiveAi(void) {
+
+  int32_t count = 0;
+
+  G_ForEachClient(cl, {
+    if (cl->ai) {
+      const char *error = G_GiveItem(cl);
+      if (error) {
+        return error;
+      }
+      count++;
+    }
+  });
+
+  return count ? NULL : "No bots to give to\n";
+}
+
+/**
+ * @brief Give items to every bot, as `give` gives them to the client.
+ */
+static void G_GiveAi_f(GameClient *cl) {
+
+  if (sv_maxClients->integer > 1 && !g_cheats->value) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
+    return;
+  }
+
+  const char *error = G_GiveAi();
+  if (error) {
+    gi.ClientPrint(cl, PRINT_HIGH, "%s", error);
+  }
+}
+
+/**
+ * @brief Give items to every bot from the server console.
+ */
+void G_GiveAiServer_f(void) {
+
+  const char *error = G_GiveAi();
+  if (error) {
+    gi.Print("%s", error);
   }
 }
 
@@ -802,6 +862,8 @@ void G_ClientCommand(GameClient *cl) {
     G_Drop_f(cl);
   } else if (Str_Compare(cmd, "give") == 0) {
     G_Give_f(cl);
+  } else if (Str_Compare(cmd, "giveAi") == 0) {
+    G_GiveAi_f(cl);
   } else if (Str_Compare(cmd, "god") == 0) {
     G_God_f(cl);
   } else if (Str_Compare(cmd, "noClip") == 0) {
