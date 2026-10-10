@@ -51,9 +51,10 @@ void G_Ai_Shutdown(void);
 bool G_Ai_InDeveloperMode(void);
 bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode);
 bool G_Ai_IsArmed(const GameClient *cl);
+bool G_Ai_IsOutgunned(const GameClient *cl, const GameEntity *enemy);
 bool G_Ai_ShouldRetreat(const GameClient *cl);
 bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other);
-bool G_Ai_IsSeekingCovetedItem(const GameClient *cl);
+bool G_Ai_IsSeekingItem(const GameClient *cl);
 
 /**
  * @brief Candidate item considered for AI pickup, weighted by desirability.

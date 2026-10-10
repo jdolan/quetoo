@@ -37,6 +37,23 @@ Cvar *g_aiNodeDev;
 #define AI_RETREAT_HEALTH 40
 
 /**
+ * @brief A bot is outgunned by an enemy whose weapon priority exceeds its own best by this much.
+ * Unskilled and aggressive bots need a larger margin.
+ */
+#define AI_OUTGUNNED_PRIORITY .3f
+
+/**
+ * @brief A bot is outgunned by an enemy with quad damage if its best weapon is below this priority.
+ * Unskilled and aggressive bots need a lower priority.
+ */
+#define AI_OUTGUNNED_QUAD_PRIORITY .5f
+
+/**
+ * @brief Within a fight, a bot takes only the items within this distance and path length.
+ */
+#define AI_FIGHT_ITEM_DISTANCE 256.f
+
+/**
  * @return True if the bot has at least a Shotgun or better.
  * Blaster-only bots are considered unarmed and will prioritize weapon pickups.
  */
@@ -55,9 +72,57 @@ bool G_Ai_IsArmed(const GameClient *cl) {
 }
 
 /**
+ * @return The highest priority of the weapons that the bot holds with enough ammo to fire.
+ */
+static float G_Ai_BestWeaponPriority(const GameClient *cl) {
+
+  float best = 0.f;
+
+  for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
+    const GameItem *it = &gameItems[t];
+
+    if (!cl->inventory[t]) {
+      continue;
+    }
+
+    if (it->def.ammo && cl->inventory[it->def.ammo] < it->def.quantity) {
+      continue;
+    }
+
+    best = Maxf(best, it->def.priority);
+  }
+
+  return best;
+}
+
+/**
+ * @return True if the enemy is invulnerable, or seriously outguns the bot with its weapon or quad
+ * damage. Unskilled and aggressive bots misjudge or ignore the odds, so they pick worse fights.
+ */
+bool G_Ai_IsOutgunned(const GameClient *cl, const GameEntity *enemy) {
+
+  if (enemy->s.effects & EF_INVULNERABILITY) {
+    return true;
+  }
+
+  const float best = G_Ai_BestWeaponPriority(cl);
+  const float recklessness = Mixf(1.5f, 1.f, cl->ai->personality.skill) * Mixf(.7f, 1.3f, cl->ai->personality.aggression);
+
+  if ((enemy->s.effects & EF_QUAD) && best < AI_OUTGUNNED_QUAD_PRIORITY / recklessness) {
+    return true;
+  }
+
+  if (enemy->client && enemy->client->weapon) {
+    return enemy->client->weapon->def.priority - best >= AI_OUTGUNNED_PRIORITY * recklessness;
+  }
+
+  return false;
+}
+
+/**
  * @return True if the bot should disengage from combat to seek health/armor.
  * Aggressive bots retreat at lower health; cautious bots retreat earlier.
- * Bots also flee from enemies carrying dangerous powerups.
+ * Bots also flee from a combat target that outguns them.
  */
 bool G_Ai_ShouldRetreat(const GameClient *cl) {
   const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Mixf(1.5f, .5f, cl->ai->personality.aggression));
@@ -66,16 +131,7 @@ bool G_Ai_ShouldRetreat(const GameClient *cl) {
   }
 
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-    const GameEntity *target = cl->ai->combatTarget.entity.ent;
-
-    if (target->s.effects & EF_INVULNERABILITY) {
-      return true; // no point fighting an invulnerable enemy
-    }
-
-    // all but the most aggressive bots flee from quad damage
-    if ((target->s.effects & EF_QUAD) && cl->ai->personality.aggression < 0.8f) {
-      return true;
-    }
+    return G_Ai_IsOutgunned(cl, cl->ai->combatTarget.entity.ent);
   }
 
   return false;
@@ -184,21 +240,37 @@ static bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
 }
 
 /**
- * @return True if the AI's move target is a coveted item.
+ * @return The item that the AI's move target leads to, or NULL.
  */
-bool G_Ai_IsSeekingCovetedItem(const GameClient *cl) {
+static const GameEntity *G_Ai_SoughtItem(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
+  const GameEntity *ent = NULL;
 
   if (goal->type == AI_GOAL_ENTITY) {
-    return G_Ai_IsCovetedItem(cl, goal->entity.ent);
+    ent = goal->entity.ent;
+  } else if (goal->type == AI_GOAL_PATH) {
+    ent = goal->path.pathTarget;
   }
 
-  if (goal->type == AI_GOAL_PATH && goal->path.pathTarget) {
-    return G_Ai_IsCovetedItem(cl, goal->path.pathTarget);
-  }
+  return ent && ent->item ? ent : NULL;
+}
 
-  return false;
+/**
+ * @return True if the AI's move target is an item.
+ */
+bool G_Ai_IsSeekingItem(const GameClient *cl) {
+  return G_Ai_SoughtItem(cl) != NULL;
+}
+
+/**
+ * @return True if the AI's move target is a coveted item.
+ */
+static bool G_Ai_IsSeekingCovetedItem(const GameClient *cl) {
+
+  const GameEntity *item = G_Ai_SoughtItem(cl);
+
+  return item && G_Ai_IsCovetedItem(cl, item);
 }
 
 #define AI_ITEM_UNREACHABLE -1.0
@@ -244,6 +316,28 @@ static bool G_Ai_IsItemKnown(const GameClient *cl, const GameEntity *ent, const 
   }
 
   return G_Ai_CanSee(cl, ent);
+}
+
+/**
+ * @return The distance that the AI must still travel to reach the end of its move target.
+ */
+static float G_Ai_RemainingDistance(const GameClient *cl, const GameEntity *target) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type != AI_GOAL_PATH) {
+    return Vec3_Distance(cl->entity->s.origin, target->s.origin);
+  }
+
+  float distance = Vec3_Distance(cl->entity->s.origin, goal->path.pathPosition);
+
+  for (uint32_t i = goal->path.pathIndex; i + 1 < goal->path.path->count; i++) {
+    const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, i));
+    const Vec3 b = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, i + 1));
+    distance += Vec3_Distance(a, b);
+  }
+
+  return distance;
 }
 
 static inline void G_Ai_BackupPath(GameAi *ai) {
@@ -296,12 +390,13 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     return cl->ai->reacquireTime - gameLevel.time; 
   }
 
-  // skip item seeking if we're in the air; if we're armed, healthy, and fighting, only a coveted item will do
+  // skip item seeking if we're in the air; if we're armed, healthy, and fighting, only a nearby item will do
   if (!cl->entity->ground.ent) {
     return 50;
   }
 
-  bool onlyCovetedItems = cl->ai->combatTarget.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl);
+  const bool fighting = cl->ai->combatTarget.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl);
+  bool onlyCovetedItems = false;
 
   // we're not attacking, so we probably care about items.
   if (cl->ai->moveTarget.type == AI_GOAL_ENTITY || cl->ai->moveTarget.type == AI_GOAL_PATH) {
@@ -320,6 +415,14 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
           G_Ai_RestorePath(cl, cl->ai);
         }
+      } else if (fighting) {
+
+        if (G_Ai_RemainingDistance(cl, target) <= AI_FIGHT_ITEM_DISTANCE) {
+          return 50;
+        }
+
+        G_Ai_ClearGoal(&cl->ai->moveTarget);
+        G_Ai_ClearGoal(&cl->ai->backupMoveTarget);
       // still a good goal
       } else if (G_Ai_IsSeekingCovetedItem(cl)) {
         return 50;
@@ -351,6 +454,10 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     const bool coveted = G_Ai_IsCovetedItem(cl, ent);
 
     if (onlyCovetedItems && !coveted) {
+      continue;
+    }
+
+    if (fighting && Vec3_Distance(cl->entity->s.origin, ent->s.origin) > AI_FIGHT_ITEM_DISTANCE) {
       continue;
     }
 
@@ -405,10 +512,14 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
         : G_Ai_Node_FindClosest(pick.entity->s.origin, 256.f, true, true);
 
       if (src != AI_NODE_INVALID && dest != AI_NODE_INVALID) {
-        const float maxLength = AI_MAX_ITEM_DISTANCE * (G_Ai_IsCovetedItem(cl, pick.entity) ? 3.f : 1.f);
+        const float maxLength = fighting ? AI_FIGHT_ITEM_DISTANCE : AI_MAX_ITEM_DISTANCE * (G_Ai_IsCovetedItem(cl, pick.entity) ? 3.f : 1.f);
 
         float length;
         Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, maxLength, &length);
+
+        if (fighting) {
+          length += Vec3_Distance(cl->entity->s.origin, G_Ai_Node_GetPosition(src));
+        }
 
         if (path && length <= maxLength) {
           G_Ai_BackupPath(cl->ai);

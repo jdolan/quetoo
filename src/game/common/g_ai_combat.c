@@ -28,6 +28,12 @@
 #define AI_SELF_DEFENSE_DISTANCE 512.f
 
 /**
+ * @brief A bot that should retreat disengages beyond this multiple of its self-defense distance,
+ * so that an enemy near that distance does not start and end a fight every frame.
+ */
+#define AI_DISENGAGE_SCALE 1.25f
+
+/**
  * @brief Returns true if the given entity is a valid (enemy, alive, boxed) target for the AI.
  */
 static inline bool G_Ai_IsTargetable(const GameClient *cl, const GameEntity *other) {
@@ -302,15 +308,16 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
   const bool armed = G_Ai_IsArmed(cl);
   const bool retreat = G_Ai_ShouldRetreat(cl);
 
+  // keep fighting if they're right on top of us (aggressive bots fight at longer range)
+  const float defenseDist = AI_SELF_DEFENSE_DISTANCE * Mixf(.5f, 1.5f, cl->ai->personality.aggression);
+
   if (!armed || retreat) {
 
     if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
       const float dist = Vec3_Distance(cl->entity->s.origin,
           cl->ai->combatTarget.entity.ent->s.origin);
 
-      // keep fighting if they're right on top of us (aggressive bots fight at longer range)
-      const float defenseDist = AI_SELF_DEFENSE_DISTANCE * Mixf(.5f, 1.5f, cl->ai->personality.aggression);
-      if (dist > defenseDist) {
+      if (dist > defenseDist * AI_DISENGAGE_SCALE) {
 
         if (cl->ai->moveTarget.type == AI_GOAL_ENTITY &&
           cl->ai->moveTarget.entity.ent == cl->ai->combatTarget.entity.ent) {
@@ -318,7 +325,7 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
         }
 
         G_Ai_ClearGoal(&cl->ai->combatTarget);
-        G_Ai_Debug("%s: disengaging\n", !armed ? "Unarmed" : "Low health");
+        G_Ai_Debug("%s: disengaging\n", !armed ? "Unarmed" : "Retreating");
         return 50;
       }
     } else {
@@ -337,7 +344,7 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
     } else if (!G_Ai_IsTargetable(cl, enemy) || gameLevel.time - cl->ai->combatTargetSeenTime > AI_TARGET_MEMORY_MILLIS) {
 
       // enemy dead/out of LOS/disconnected; chase them!
-      if (!G_Ai_IsSeekingCovetedItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
+      if (!G_Ai_IsSeekingItem(cl) && !G_Ai_IsOutgunned(cl, enemy) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
 
         const Vec3 whereTo = cl->ai->combatTarget.entity.ent->s.origin;
         
@@ -367,6 +374,11 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
   G_ForEachEntity(ent, {
     if (G_Ai_CanTarget(cl, ent)) {
+
+      if (G_Ai_IsOutgunned(cl, ent) && Vec3_Distance(cl->entity->s.origin, ent->s.origin) > defenseDist) {
+        continue;
+      }
+
       const float priority = G_Ai_EnemyPriority(cl, ent, true);
       if (priority > bestPriority) {
         bestPriority = priority;
@@ -420,7 +432,7 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
   }
 
   // we have somebody to kill; go get'em!
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->moveTarget, cl->ai->combatTarget.entity.ent) && !G_Ai_IsSeekingCovetedItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->moveTarget, cl->ai->combatTarget.entity.ent) && !G_Ai_IsSeekingItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
 
     const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
     const float dist = Vec3_Distance(cl->entity->s.origin, enemy->s.origin);
