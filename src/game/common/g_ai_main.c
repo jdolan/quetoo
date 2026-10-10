@@ -1725,11 +1725,17 @@ static void G_Ai_ClientBegin(GameClient *cl) {
 
 /**
  * @brief Allocates AI state and connects the bot client to the game using a generated user info string.
+ * @param roster The roster entry to connect, or NULL for the next entry in the shuffled order.
  */
-static void G_Ai_Connect(GameClient *cl) {
+static void G_Ai_Connect(GameClient *cl, const GameAiRoster *roster) {
 
   char userInfo[MAX_INFO_STRING_STRING];
-  const GameAiRoster *roster = G_Ai_GetRoster(cl, userInfo);
+
+  if (roster) {
+    G_Ai_GetRosterInfo(cl, roster, userInfo);
+  } else {
+    roster = G_Ai_GetRoster(cl, userInfo);
+  }
 
   cl->ai = gi.Malloc(sizeof(GameAi), MEM_TAG_AI);
   cl->ai->roster = roster;
@@ -1758,7 +1764,7 @@ void G_Ai_Frame(void) {
     int32_t aiClients = 0;
     G_ForEachClient(cl, {
       if (cl->ai) {
-        aiClients++;
+        aiClients += cl->ai->added ? 0 : 1;
       } else if (!cl->persistent.spectator) {
         humanClients++;
       }
@@ -1774,12 +1780,12 @@ void G_Ai_Frame(void) {
 
     if (activeClients < desiredClients) {
       G_ForEachFreeClient(cl, {
-        G_Ai_Connect(cl);
+        G_Ai_Connect(cl, NULL);
         break;
       });
     } else if (activeClients > desiredClients) {
       G_ForEachClient(cl, {
-        if (cl->ai) {
+        if (cl->ai && !cl->ai->added) {
           gi.Cbuf(va("kick %d\n", cl->ps.client));
           break;
         }
@@ -1792,6 +1798,53 @@ void G_Ai_Frame(void) {
       G_RunThink(cl->entity);
     }
   });
+}
+
+/**
+ * @brief Console command handler to add a bot from the roster, with optional traits.
+ */
+static void G_Ai_Add_f(void) {
+
+  if (gi.Argc() < 2 || gi.Argc() > 5) {
+    gi.Print("Usage: %s <name> [skill] [aggression] [awareness]\n", gi.Argv(0));
+    G_Ai_PrintRoster();
+    return;
+  }
+
+  const GameAiRoster *roster = G_Ai_FindRoster(gi.Argv(1));
+  if (!roster) {
+    gi.Print("Unknown bot: %s\n", gi.Argv(1));
+    G_Ai_PrintRoster();
+    return;
+  }
+
+  float traits[] = { roster->skill, roster->aggression, roster->awareness };
+
+  for (int32_t i = 2; i < gi.Argc(); i++) {
+    char *end;
+    const float value = strtof(gi.Argv(i), &end);
+
+    if (end == gi.Argv(i) || *end || !(value >= 0.f && value <= 1.f)) {
+      gi.Print("Traits must be numbers from 0 to 1: %s\n", gi.Argv(i));
+      return;
+    }
+
+    traits[i - 2] = value;
+  }
+
+  G_ForEachFreeClient(cl, {
+    G_Ai_Connect(cl, roster);
+
+    cl->ai->added = true;
+    cl->ai->personality.skill = traits[0];
+    cl->ai->personality.aggression = traits[1];
+    cl->ai->personality.awareness = traits[2];
+
+    gi.Print("Added %s: skill=%.2f aggression=%.2f awareness=%.2f\n", cl->persistent.netName, traits[0], traits[1], traits[2]);
+    return;
+  });
+
+  gi.Print("No free client slot for %s\n", roster->name);
 }
 
 /**
@@ -1874,6 +1927,7 @@ void G_Ai_Init(void) {
 
   gi.SetConfigString(CS_NAV_EDIT, g_aiNodeDev->string);
 
+  gi.AddCmd("addAi", G_Ai_Add_f, CMD_GAME, "Add a bot from the roster, with optional skill, aggression and awareness");
   gi.AddCmd("g_aiSaveNodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
   gi.AddCmd("g_aiDeleteNode", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
   gi.AddCmd("g_aiDeleteNodes", G_Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");

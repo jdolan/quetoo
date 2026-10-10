@@ -314,6 +314,12 @@ typedef struct GameAi {
   GameAiPersonality personality;
 
   /**
+   * @brief True if a command added this bot, so that the population control neither counts nor
+   * kicks it.
+   */
+  bool added;
+
+  /**
    * @brief Next think times indexed by `GameAiFuncGoal`.
    */
   uint32_t funcGoalNextThinks[AI_FUNC_GOAL_TOTAL];

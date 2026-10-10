@@ -108,23 +108,12 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
 }
 
 /**
- * @brief Create the user info for the specified bot and return its roster entry.
+ * @brief Create the user info for the specified bot from the given roster entry.
  *
- * @details Assigns the next roster entry from a shuffled order, so that entries
- * are handed out in a random sequence without repeating until every entry has
- * been used, at which point the order is reshuffled. If the base name is
- * already taken by another connected client, appends " 1", " 2", etc. until a
- * unique name is found.
+ * @details If the base name is already taken by another connected client, appends
+ * " 1", " 2", etc. until a unique name is found.
  */
-const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
-
-  if (aiRosterIndex == aiRosterCount) {
-    G_Ai_ShuffleRoster();
-  }
-
-  const GameAiRoster *entry = &aiRoster[aiRosterOrder[aiRosterIndex]];
-
-  aiRosterIndex++;
+void G_Ai_GetRosterInfo(const GameClient *cl, const GameAiRoster *entry, char *info) {
 
   Str_Copy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
@@ -143,8 +132,55 @@ const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
   }
 
   InfoString_Set(info, "name", name);
+}
+
+/**
+ * @brief Create the user info for the specified bot and return its roster entry.
+ *
+ * @details Assigns the next roster entry from a shuffled order, so that entries
+ * are handed out in a random sequence without repeating until every entry has
+ * been used, at which point the order is reshuffled.
+ */
+const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
+
+  if (aiRosterIndex == aiRosterCount) {
+    G_Ai_ShuffleRoster();
+  }
+
+  const GameAiRoster *entry = &aiRoster[aiRosterOrder[aiRosterIndex]];
+
+  aiRosterIndex++;
+
+  G_Ai_GetRosterInfo(cl, entry, info);
 
   return entry;
+}
+
+/**
+ * @return The roster entry with the given name, ignoring case, or NULL.
+ */
+const GameAiRoster *G_Ai_FindRoster(const char *name) {
+
+  for (uint32_t i = 0; i < aiRosterCount; i++) {
+    if (Str_CaseCompare(aiRoster[i].name, name) == 0) {
+      return &aiRoster[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Prints the name and traits of each roster entry.
+ */
+void G_Ai_PrintRoster(void) {
+
+  gi.Print("  name         skill  aggression  awareness\n");
+
+  for (uint32_t i = 0; i < aiRosterCount; i++) {
+    const GameAiRoster *entry = &aiRoster[i];
+    gi.Print("  %-12s %.2f   %.2f        %.2f\n", entry->name, entry->skill, entry->aggression, entry->awareness);
+  }
 }
 
 /**
