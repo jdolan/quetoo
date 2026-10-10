@@ -224,6 +224,28 @@ static float G_Ai_ItemReachable(const GameClient *cl, const GameEntity *other) {
   return dist;
 }
 
+/**
+ * @brief Within this distance, a bot notices a dropped item in any direction.
+ */
+#define AI_ITEM_NOTICE_DISTANCE 384.f
+
+/**
+ * @return True if the AI knows about the item. Bots learn where the map's items spawn, so they need
+ * no sight of those. A dropped item must be in sight, and in view unless it is near or coveted.
+ */
+static bool G_Ai_IsItemKnown(const GameClient *cl, const GameEntity *ent, const bool coveted) {
+
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
+    return true;
+  }
+
+  if (coveted || Vec3_Distance(cl->entity->s.origin, ent->s.origin) < AI_ITEM_NOTICE_DISTANCE) {
+    return G_Ai_HasLineOfSight(cl, ent);
+  }
+
+  return G_Ai_CanSee(cl, ent);
+}
+
 static inline void G_Ai_BackupPath(GameAi *ai) {
 
   if (!ai->backupMoveTarget.type && ai->moveTarget.type == AI_GOAL_PATH) {
@@ -334,7 +356,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
     float distance;
 
-    if (!(coveted ? G_Ai_HasLineOfSight(cl, ent) : G_Ai_CanSee(cl, ent)) ||
+    if (!G_Ai_IsItemKnown(cl, ent, coveted) ||
         !G_Ai_CanPickup(cl, ent) ||
         (distance = G_Ai_ItemReachable(cl, ent)) <= AI_ITEM_UNREACHABLE) {
       continue;
