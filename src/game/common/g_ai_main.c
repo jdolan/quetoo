@@ -239,7 +239,7 @@ static inline void G_Ai_RestorePath(const GameClient *cl, GameAi *ai) {
     // of sync with moving to the item
     const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
     const GameAiNodeId dest = VectorValue(ai->backupMoveTarget.path.path, GameAiNodeId, ai->backupMoveTarget.path.path->count - 1);
-    Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
+    Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, 0.f, NULL);
 
     if (!path) {
       G_Ai_ClearGoal(&ai->moveTarget);
@@ -386,7 +386,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
         const float maxLength = AI_MAX_ITEM_DISTANCE * (G_Ai_IsCovetedItem(cl, pick.entity) ? 3.f : 1.f);
 
         float length;
-        Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, &length);
+        Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, maxLength, &length);
 
         if (path && length <= maxLength) {
           G_Ai_BackupPath(cl->ai);
@@ -538,7 +538,7 @@ static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
     return false;
   }
 
-  Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
+  Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, 0.f, NULL);
 
   if (!path) {
     return false;
@@ -1375,7 +1375,7 @@ static uint32_t G_Ai_LongRange(GameClient *cl, PMoveCmd *cmd) {
     const GameAiItemPick *pick = VectorElement(goalPossibilities, GameAiItemPick, i);
     const GameAiNodeId closestToItem = G_Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
 
-    Vector *path = G_Ai_Node_FindPath(cl, closest, closestToItem, G_Ai_Node_Heuristic, NULL);
+    Vector *path = G_Ai_Node_FindPath(cl, closest, closestToItem, G_Ai_Node_Heuristic, 0.f, NULL);
     if (path) {
       G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, pick->weight, path, pick->entity);
       release(path);
@@ -1708,7 +1708,7 @@ static void G_Ai_TestPath_f(void) {
         continue;
       }
 
-      Vector *pathToStart = G_Ai_Node_FindPath(cl, closestToPlayer, VectorValue(path, GameAiNodeId, 0), G_Ai_Node_Heuristic, NULL);
+      Vector *pathToStart = G_Ai_Node_FindPath(cl, closestToPlayer, VectorValue(path, GameAiNodeId, 0), G_Ai_Node_Heuristic, 0.f, NULL);
 
       if (pathToStart == NULL) {
         G_Ai_Debug("Can't find a path to the test path\n");

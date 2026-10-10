@@ -79,7 +79,14 @@ static inline float G_Ai_Node_Cost(const GameAiNodeId a, const GameAiNodeId b) {
   return Vec3_Distance(av, bv);
 }
 
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, float *length);
+/**
+ * @brief Finds a path between two nodes with A*.
+ * @param maxCost The search MUST NOT extend a path whose cost, including drop penalties, exceeds
+ * this. Pass 0 for no limit.
+ * @param length If not NULL, receives the length of the path found.
+ * @return The path as a Vector of `GameAiNodeId`, or NULL if none was found.
+ */
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, const float maxCost, float *length);
 Vector *G_Ai_Node_TestPath(void);
 bool G_Ai_DropItemLikeNode(GameEntity *ent);
 

@@ -343,7 +343,7 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
         
         const GameAiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
         const GameAiNodeId closestToTarget = G_Ai_Node_FindClosest(whereTo, 128.f, true, true);
-        Vector *path = G_Ai_Node_FindPath(cl, closest, closestToTarget, G_Ai_Node_Heuristic, NULL);
+        Vector *path = G_Ai_Node_FindPath(cl, closest, closestToTarget, G_Ai_Node_Heuristic, 0.f, NULL);
 
         if (path) {
           G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, 0.7f, path, cl->ai->combatTarget.entity.ent);
@@ -431,7 +431,7 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
     bool pathed = false;
 
     if (myNode != AI_NODE_INVALID && enemyNode != AI_NODE_INVALID && myNode != enemyNode) {
-      Vector *path = G_Ai_Node_FindPath(cl, myNode, enemyNode, G_Ai_Node_Heuristic, NULL);
+      Vector *path = G_Ai_Node_FindPath(cl, myNode, enemyNode, G_Ai_Node_Heuristic, 0.f, NULL);
       if (path) {
         G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, 0.7f, path, enemy);
         release(path);

@@ -93,7 +93,7 @@ Vector *G_Ai_Node_TestPath(void) {
     return NULL;
   }
 
-  return module.testPath = G_Ai_Node_FindPath(NULL, module.lastNodes[1], module.lastNodes[0], G_Ai_Node_Heuristic, NULL);
+  return module.testPath = G_Ai_Node_FindPath(NULL, module.lastNodes[1], module.lastNodes[0], G_Ai_Node_Heuristic, 0.f, NULL);
 }
 
 /**
@@ -1501,7 +1501,7 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
 /**
  * @see g_ai_node.h
  */
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, float *length) {
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, const float maxCost, float *length) {
   
   if (length) {
     *length = 0;
@@ -1616,6 +1616,10 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
       }
 
       const float newCost = node->cost + link->cost + dropPenalty;
+
+      if (maxCost > 0.f && newCost > maxCost) {
+        continue;
+      }
 
       GameAiNodeId linkIndex = G_Ai_Node_Index(linkNode);
       const bool found = (costsStarted[linkIndex / 32] & ((uint32_t) 1u << (linkIndex % 32))) != 0;
