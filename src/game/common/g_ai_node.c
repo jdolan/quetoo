@@ -21,6 +21,8 @@
 
 #include "g_local.h"
 #include "bg_pmove.h"
+#include "collision/cm_bsp.h"
+#include "collision/nav.h"
 
 #define AI_NODE(vector, index) VectorElement((vector), GameAiNode, (index))
 #define AI_LINK(vector, index) VectorElement((vector), GameAiLink, (index))
@@ -72,6 +74,10 @@ static struct {
   uint32_t fileNodes, fileLinks;
 
   bool doNoding, dropNodes;
+
+  bool compiled;
+
+  int32_t *voxelNodes;
 } module;
 
 /**
@@ -104,6 +110,11 @@ typedef struct {
 
   Vec3 position;
   Vector *links;
+
+  // only set by compiled graphs
+
+  int32_t voxel;
+  int32_t contents;
 
   // only used for nav purposes
 
@@ -208,6 +219,61 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
 }
 
 /**
+ * @brief Finds the closest compiled node in the voxels around the given position.
+ * @details Any node outside of the voxels searched is at least `BSP_VOXEL_SIZE` from the
+ * position, so a node found within that distance is the closest of all.
+ * @param maxDistance The squared distance, at most `BSP_VOXEL_SIZE` squared, to search.
+ */
+static GameAiNodeId G_Ai_Node_FindClosestVoxel(GameAiNodeQueryFilter *filter, const float maxDistance) {
+
+  const CollisionBsp *bsp = gi.Bsp();
+
+  const Vec3 rel = Vec3_Subtract(filter->position, bsp->voxelBounds.mins);
+  const int32_t x = (int32_t) floorf(rel.x / BSP_VOXEL_SIZE);
+  const int32_t y = (int32_t) floorf(rel.y / BSP_VOXEL_SIZE);
+  const int32_t z = (int32_t) floorf(rel.z / BSP_VOXEL_SIZE);
+
+  GameAiNodeId closest = AI_NODE_INVALID;
+  float closestDistance = maxDistance;
+
+  for (int32_t dz = -2; dz <= 1; dz++) {
+    for (int32_t dy = -1; dy <= 1; dy++) {
+      for (int32_t dx = -1; dx <= 1; dx++) {
+
+        const Vec3i xyz = MakeVec3i(x + dx, y + dy, z + dz);
+
+        if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0) {
+          continue;
+        }
+
+        if (xyz.x >= bsp->voxelSize.x || xyz.y >= bsp->voxelSize.y || xyz.z >= bsp->voxelSize.z) {
+          continue;
+        }
+
+        const int32_t voxel = (xyz.z * bsp->voxelSize.y + xyz.y) * bsp->voxelSize.x + xyz.x;
+        const int32_t node = module.voxelNodes[voxel];
+
+        if (node == -1) {
+          continue;
+        }
+
+        float distance;
+        if (!G_Ai_Node_FindClosestFilter(node, filter, &distance)) {
+          continue;
+        }
+
+        if (distance <= closestDistance) {
+          closestDistance = distance;
+          closest = node;
+        }
+      }
+    }
+  }
+
+  return closest;
+}
+
+/**
  * @brief Finds the closest navigation node to the given position within the specified distance.
  *
  * Uses the cached kd-tree spatial index (built lazily) to gather candidate
@@ -225,12 +291,20 @@ GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance,
   float closestDist = 0;
   const float distSquared = maxDistance * maxDistance;
 
+  GameAiNodeQueryFilter filter = {
+    .position = position,
+    .onlyVisible = onlyVisible,
+    .preferLevel = preferLevel
+  };
+
+  if (module.compiled) {
+    closest = G_Ai_Node_FindClosestVoxel(&filter, Minf(distSquared, BSP_VOXEL_SIZE * BSP_VOXEL_SIZE));
+    if (closest != AI_NODE_INVALID) {
+      return closest;
+    }
+  }
+
   if (G_Ai_Node_EnsureSpatialIndex()) {
-    GameAiNodeQueryFilter filter = {
-      .position = position,
-      .onlyVisible = onlyVisible,
-      .preferLevel = preferLevel
-    };
 
     const size_t node = G_Ai_KdTreeQuery(aiNodesKdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
 
@@ -273,7 +347,9 @@ GameAiNodeId G_Ai_Node_Create(const Vec3 position) {
   }
 
   GameAiNode node = (GameAiNode) {
-    .position = position
+    .position = position,
+    .voxel = -1,
+    .contents = gi.PointContents(position) & CONTENTS_MASK_LIQUID
   };
   $(aiNodes, add, &node);
 
@@ -452,6 +528,11 @@ void G_Ai_Node_Destroy(const GameAiNodeId id) {
     return;
   }
 
+  if (module.compiled) {
+    G_Warn("This map's nodes were compiled by quemap -nav; recompile them instead.\n");
+    return;
+  }
+
   G_Ai_Node_UnlinkAll(id);
   $(aiNodes, removeAt, id);
 
@@ -611,7 +692,7 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
  */
 void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
 
-  if (!g_aiNodeDev->integer) {
+  if (!g_aiNodeDev->integer || module.compiled) {
     return;
   }
 
@@ -930,6 +1011,11 @@ static bool G_Ai_NodeInPath(Vector *path, GameAiNodeId node) {
 }
 
 /**
+ * @brief The distance within which a compiled graph's nodes are rendered, as it has thousands.
+ */
+#define AI_NODE_RENDER_DISTANCE 768.f
+
+/**
  * @brief Renders all navigation nodes and their links for developer visualization.
  */
 void G_Ai_Node_Render(void) {
@@ -960,6 +1046,11 @@ void G_Ai_Node_Render(void) {
 
   for (uint32_t i = 0; i < aiNodes->count; i++) {
     const GameAiNode *node = AI_NODE(aiNodes, i);
+
+    if (module.compiled && Vec3_Distance(node->position, ent->s.origin) > AI_NODE_RENDER_DISTANCE) {
+      continue;
+    }
+
     const bool inPath = G_Ai_NodeInPath(module.testPath, i);
 
     if (G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pmState.viewOffset), i)) {
@@ -1068,6 +1159,123 @@ void G_Ai_Node_Render(void) {
 _Static_assert(sizeof(GameAiLink) == 8, "GameAiLink is the on-disk link record; changing it requires a new AI_NODE_VERSION");
 
 /**
+ * @brief The most links a compiled node can have, for validating a `.nav` file's link count.
+ */
+#define AI_NODE_MAX_LINKS 64
+
+/**
+ * @brief Reads the nodes and links of a `.nav` file compiled by `quemap -nav`, after its magic and
+ * version, into `aiNodes`.
+ * @return False if the file is malformed or was compiled from a different BSP, in which case the
+ * nodes read so far must be discarded.
+ */
+static bool G_Ai_ReadCompiledNodes(File *file) {
+
+  NavHeader header;
+
+  if (gi.ReadFile(file, &header.voxelSize, sizeof(header) - offsetof(NavHeader, voxelSize), 1) != 1) {
+    G_Warn("Nav file is truncated\n");
+    return false;
+  }
+
+  const CollisionBsp *bsp = gi.Bsp();
+
+  if (header.voxelSize.x != bsp->voxelSize.x ||
+      header.voxelSize.y != bsp->voxelSize.y ||
+      header.voxelSize.z != bsp->voxelSize.z ||
+      !Vec3_Equal(header.voxelMins, bsp->voxelBounds.mins)) {
+    G_Warn("Nav file was compiled from a different BSP; recompile it with quemap -nav\n");
+    return false;
+  }
+
+  if (header.numNodes < 0 || header.numNodes > bsp->numVoxels || header.numLinks < 0 ||
+      header.numLinks / AI_NODE_MAX_LINKS > header.numNodes) {
+    G_Warn("Nav file has an invalid node or link count\n");
+    return false;
+  }
+
+  NavNode *nodes = gi.Malloc(sizeof(NavNode) * Maxi(1, header.numNodes), MEM_TAG_AI);
+  NavLink *links = gi.Malloc(sizeof(NavLink) * Maxi(1, header.numLinks), MEM_TAG_AI);
+
+  bool valid = gi.ReadFile(file, nodes, sizeof(NavNode), header.numNodes) == header.numNodes &&
+               gi.ReadFile(file, links, sizeof(NavLink), header.numLinks) == header.numLinks;
+
+  if (!valid) {
+    G_Warn("Nav file is truncated\n");
+  }
+
+  aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
+
+  module.voxelNodes = malloc(sizeof(int32_t) * bsp->numVoxels);
+  if (!module.voxelNodes) {
+    G_Warn("Failed to allocate the voxel index for %d voxels\n", bsp->numVoxels);
+    valid = false;
+  }
+
+  for (int32_t i = 0; i < bsp->numVoxels && valid; i++) {
+    module.voxelNodes[i] = -1;
+  }
+
+  for (int32_t i = 0; i < header.numNodes && valid; i++) {
+    const NavNode *in = &nodes[i];
+
+    if (in->voxel < 0 || in->voxel >= bsp->numVoxels || in->firstLink < 0 || in->numLinks < 0 ||
+        in->firstLink > header.numLinks || in->numLinks > header.numLinks - in->firstLink) {
+      G_Warn("Nav file has an invalid node %d\n", i);
+      valid = false;
+      break;
+    }
+
+    GameAiNode node = {
+      .position = in->position,
+      .voxel = in->voxel,
+      .contents = in->contents
+    };
+
+    if (in->numLinks) {
+      node.links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
+
+      for (int32_t j = 0; j < in->numLinks; j++) {
+        const NavLink *link = &links[in->firstLink + j];
+
+        if (link->node < 0 || link->node >= header.numNodes || link->travelTime <= 0) {
+          G_Warn("Nav file has an invalid link from node %d\n", i);
+          valid = false;
+          break;
+        }
+
+        const float distance = Vec3_Distance(in->position, nodes[link->node].position);
+
+        GameAiLink out = {
+          .id = link->node,
+          .cost = Maxf(distance, link->travelTime * PM_SPEED_RUN / 100.f)
+        };
+
+        $(node.links, add, &out);
+      }
+    }
+
+    $(aiNodes, add, &node);
+    module.voxelNodes[in->voxel] = i;
+  }
+
+  gi.Free(nodes);
+  gi.Free(links);
+
+  G_Ai_Node_InvalidateSpatialIndex();
+
+  if (!valid) {
+    return false;
+  }
+
+  module.compiled = true;
+
+  gi.Print("  Loaded %d compiled nodes with %d total links.\n", header.numNodes, header.numLinks);
+
+  return true;
+}
+
+/**
  * @brief Reads the nodes and links from an open .nav file into `aiNodes`.
  * @return False if the file is malformed, in which case the nodes read so far
  * must be discarded.
@@ -1080,7 +1288,16 @@ static bool G_Ai_ReadNodes(File *file) {
     return false;
   }
 
-  if (gi.ReadFile(file, &version, sizeof(version), 1) != 1 || version != AI_NODE_VERSION) {
+  if (gi.ReadFile(file, &version, sizeof(version), 1) != 1) {
+    G_Warn("Nav file out of date!\n");
+    return false;
+  }
+
+  if (version == NAV_VERSION) {
+    return G_Ai_ReadCompiledNodes(file);
+  }
+
+  if (version != AI_NODE_VERSION) {
     G_Warn("Nav file out of date!\n");
     return false;
   }
@@ -1216,6 +1433,10 @@ static void G_Ai_CheckNodes(void) {
     });
   }
 
+  if (module.compiled) {
+    return;
+  }
+
   for (size_t i = 0; i < aiNodes->count; i++) {
     const GameAiNode *node = AI_NODE(aiNodes, i);
     
@@ -1273,6 +1494,11 @@ void G_Ai_SaveNodes(void) {
 
   if (g_aiNodeDev->integer != 1) {
     G_Warn("This command only works with `g_aiNodeDev` set to 1.\n");
+    return;
+  }
+
+  if (module.compiled) {
+    G_Warn("This map's nodes were compiled by quemap -nav; recompile them instead.\n");
     return;
   }
 
@@ -1336,6 +1562,11 @@ void G_Ai_DeleteNodes(void) {
 
   aiPlatforms = release(aiPlatforms);
 
+  free(module.voxelNodes);
+  module.voxelNodes = NULL;
+
+  module.compiled = false;
+
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
 }
@@ -1358,6 +1589,11 @@ void G_Ai_ShutdownNodes(void) {
   }
 
   aiPlatforms = release(aiPlatforms);
+
+  free(module.voxelNodes);
+  module.voxelNodes = NULL;
+
+  module.compiled = false;
 
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
@@ -1476,6 +1712,13 @@ static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to) {
 }
 
 /**
+ * @return The contents at the node: compiled with the graph, or tested.
+ */
+static int32_t G_Ai_Node_Contents(const GameAiNode *node) {
+  return node->voxel != -1 ? node->contents : gi.PointContents(node->position);
+}
+
+/**
  * @brief Finds the shortest path between two nodes using the A* algorithm.
  */
 static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, const int32_t waterLevel) {
@@ -1569,14 +1812,14 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
     }
 
     // Compute once per expanded node rather than once per link.
-    const int32_t nodeContents = gi.PointContents(node->position);
+    const int32_t nodeContents = G_Ai_Node_Contents(node);
     const bool fromHazard = (nodeContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
     for (size_t i = 0; i < node->links->count; i++) {
       const GameAiLink *link = AI_LINK(node->links, i);
       GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
       const float drop = node->position.z - linkNode->position.z;
-      const int32_t linkContents = gi.PointContents(linkNode->position);
+      const int32_t linkContents = G_Ai_Node_Contents(linkNode);
       const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
       if (G_Ai_Node_RaisedPlatform(linkNode->position)) {
@@ -1587,7 +1830,8 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
         continue;
       }
 
-      if (!fromHazard && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
+      const bool compiledLink = node->voxel != -1 && linkNode->voxel != -1;
+      if (!fromHazard && !compiledLink && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
         continue;
       }
 
@@ -1696,6 +1940,11 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
  * @brief Translates every node by the given offset, for repairing a graph after a map shifts.
  */
 void G_Ai_OffsetNodes_f(void) {
+
+  if (module.compiled) {
+    G_Warn("This map's nodes were compiled by quemap -nav; recompile them instead.\n");
+    return;
+  }
 
   Vec3 translate;
 

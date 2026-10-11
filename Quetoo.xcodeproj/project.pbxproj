@@ -791,6 +791,13 @@
 		CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F71C5C58C300CD0B13 /* portal.c */; };
 		CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FA1C5C58C300CD0B13 /* qbsp.c */; };
 		CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FC1C5C58C300CD0B13 /* qlight.c */; };
+		FA7E00000000000000000004 /* qnav.c in Sources */ = {isa = PBXBuildFile; fileRef = FA7E00000000000000000001 /* qnav.c */; };
+		FA7E00000000000000000006 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
+		FA7E00000000000000000007 /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
+		FA7E00000000000000000008 /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		FA7E00000000000000000009 /* bg_pmove_quake3.c in Sources */ = {isa = PBXBuildFile; fileRef = D7A5C10000000000000000A1 /* bg_pmove_quake3.c */; };
+		FA7E0000000000000000000A /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		FA7E0000000000000000000B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7021C5C58C300CD0B13 /* qzip.c */; };
 		CE80FFF81C5E4D1800A21A51 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7051C5C58C300CD0B13 /* texture.c */; };
 		CE80FFF91C5E4D1800A21A51 /* work.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7061C5C58C300CD0B13 /* work.c */; };
@@ -1520,6 +1527,7 @@
 		EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		ECD977BEDE394CD17019BC2C /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		EEE815CF5A924D398351DF7C /* voxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 97BDA8A5C8DF41E290656B3D /* voxel.h */; };
+		FA7E00000000000000000005 /* nav.h in Headers */ = {isa = PBXBuildFile; fileRef = FA7E00000000000000000003 /* nav.h */; };
 		EF3850D157838948B4F2B64F /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		F0D2694D4DD29796B8BB5639 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		F0E26144AB354006B07FF3E0 /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
@@ -2281,6 +2289,7 @@
 		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
 		96A84939E49450A34A627546 /* r_subview.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_subview.c; sourceTree = "<group>"; };
 		97BDA8A5C8DF41E290656B3D /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
+		FA7E00000000000000000003 /* nav.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nav.h; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		9C56DC135154CED4C2498031 /* SpectatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpectatorView.h; sourceTree = "<group>"; };
 		9CA6BC01A9434CCDBF23E8C0 /* StatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatView.c; sourceTree = "<group>"; };
@@ -2597,6 +2606,8 @@
 		CE12D6FB1C5C58C300CD0B13 /* qbsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qbsp.h; sourceTree = "<group>"; };
 		CE12D6FC1C5C58C300CD0B13 /* qlight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = qlight.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6FD1C5C58C300CD0B13 /* qlight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qlight.h; sourceTree = "<group>"; };
+		FA7E00000000000000000001 /* qnav.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qnav.c; sourceTree = "<group>"; };
+		FA7E00000000000000000002 /* qnav.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qnav.h; sourceTree = "<group>"; };
 		CE12D6FF1C5C58C300CD0B13 /* quemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = quemap.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		CE12D7021C5C58C300CD0B13 /* qzip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qzip.c; sourceTree = "<group>"; };
 		CE12D7051C5C58C300CD0B13 /* texture.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture.c; sourceTree = "<group>"; };
@@ -4232,6 +4243,7 @@
 				CEBDB0C8214A037900A7AC3D /* entity.c */,
 				21090788F7AC4042B84FEE10 /* material_light.h */,
 				0CCDA7DD47374DC3BA55D24A /* material_light.c */,
+				FA7E00000000000000000003 /* nav.h */,
 				97BDA8A5C8DF41E290656B3D /* voxel.h */,
 				1EE6A866A93B42938A4E84E6 /* voxel.c */,
 				CE12D6341C5C58C300CD0B13 /* Makefile.am */,
@@ -4423,6 +4435,8 @@
 				CE12D6FA1C5C58C300CD0B13 /* qbsp.c */,
 				CE12D6FD1C5C58C300CD0B13 /* qlight.h */,
 				CE12D6FC1C5C58C300CD0B13 /* qlight.c */,
+				FA7E00000000000000000002 /* qnav.h */,
+				FA7E00000000000000000001 /* qnav.c */,
 				CE12D6FF1C5C58C300CD0B13 /* quemap.h */,
 				CE92B3AA1D2FF77800E9153A /* quemap.ico */,
 				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
@@ -5461,6 +5475,7 @@
 				CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */,
 				CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */,
 				EEE815CF5A924D398351DF7C /* voxel.h in Headers */,
+				FA7E00000000000000000005 /* nav.h in Headers */,
 				CC8A4E1E3C5749B68DBD795C /* material_light.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -7237,6 +7252,13 @@
 				CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */,
 				CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */,
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
+				FA7E00000000000000000004 /* qnav.c in Sources */,
+				FA7E00000000000000000006 /* bg_pmove.c in Sources */,
+				FA7E00000000000000000007 /* bg_pmove_quake.c in Sources */,
+				FA7E00000000000000000008 /* bg_pmove_quake2.c in Sources */,
+				FA7E00000000000000000009 /* bg_pmove_quake3.c in Sources */,
+				FA7E0000000000000000000A /* bg_pmove_quetoo.c in Sources */,
+				FA7E0000000000000000000B /* bg_pmove_race.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* texture.c in Sources */,
 				CE91924D2055731E007AC8FF /* tjunction.c in Sources */,
@@ -8777,6 +8799,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
 				OTHER_LDFLAGS = (
 					"-lphysfs",
 					"-lxml2",
@@ -8790,6 +8817,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
 				OTHER_LDFLAGS = (
 					"-lphysfs",
 					"-lxml2",

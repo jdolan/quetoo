@@ -38,6 +38,7 @@ extern char bspName[MAX_OS_PATH];
 extern bool verbose;
 extern bool debug;
 extern bool doBsp;
+extern bool doNav;
 extern bool doZip;
 
 enum {
@@ -53,5 +54,6 @@ enum {
   MEM_TAG_LIGHT,
   MEM_TAG_VOXEL,
   MEM_TAG_QMAT,
+  MEM_TAG_QNAV,
   MEM_TAG_QZIP
 };

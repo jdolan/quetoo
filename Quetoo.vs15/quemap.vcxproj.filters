@@ -10,6 +10,9 @@
     <Filter Include="src\quemap">
       <UniqueIdentifier>{753d6095-620b-4b4c-bb85-6648e3b57a95}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\game">
+      <UniqueIdentifier>{cafe3e33-e0ee-4c91-b80c-acdd34ef5d81}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\main">
       <UniqueIdentifier>{49ccf0d7-16cf-4dc6-b323-484ef7ad81a5}</UniqueIdentifier>
     </Filter>
@@ -53,6 +56,27 @@
     </ClCompile>
     <ClCompile Include="..\src\quemap\qlight.c">
       <Filter>src\quemap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\quemap\qnav.c">
+      <Filter>src\quemap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove.c">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quake.c">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quake2.c">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quake3.c">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quetoo.c">
+      <Filter>src\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_race.c">
+      <Filter>src\game</Filter>
     </ClCompile>
     <ClCompile Include="..\src\quemap\qzip.c">
       <Filter>src\quemap</Filter>
@@ -132,6 +156,9 @@
       <Filter>src\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\quemap\qlight.h">
+      <Filter>src\quemap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\quemap\qnav.h">
       <Filter>src\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\quemap\quemap.h">
