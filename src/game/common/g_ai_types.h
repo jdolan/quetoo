@@ -372,7 +372,8 @@ typedef struct GameAi {
 
   /**
    * @brief Level time at which a `trigger_push` launched the bot, or 0 once it lands. The bot gives
-   * no move input in between, so that it follows the arc of the jump pad.
+   * no move input in between, so that it follows the arc of the jump pad. A push straight up does
+   * not set it, so that the bot steers to the ledge above.
    */
   uint32_t pushTime;
 

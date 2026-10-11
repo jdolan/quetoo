@@ -228,6 +228,12 @@ void G_trigger_always(GameEntity *ent) {
 #define PUSH_MAX_STACK 8
 
 /**
+ * @brief A `trigger_push` whose direction has at least this upward component pushes straight up.
+ * A bot steers in flight from such a push, so that it lands on the ledge above.
+ */
+#define PUSH_VERTICAL .99f
+
+/**
  * @brief Applies the push to the given entity, and to the entities that stand on it, so that an
  * entity above does not block the one below.
  */
@@ -243,7 +249,7 @@ static void G_trigger_push_Push(GameEntity *ent, GameEntity *other, int32_t dept
     other->client->ps.pmState.flags |= PMF_TIME_PUSHED;
     other->client->ps.pmState.time = 240;
 
-    if (other->client->ai && !other->client->ai->pushTime && ent->moveDir.z > 0.f) {
+    if (other->client->ai && !other->client->ai->pushTime && ent->moveDir.z > 0.f && ent->moveDir.z < PUSH_VERTICAL) {
       other->client->ai->pushTime = gameLevel.time;
     }
   }
