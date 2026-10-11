@@ -469,6 +469,10 @@ void G_Damage(const GameDamage *dmg) {
 
   const bool wasDead = target->dead;
 
+  if (!wasDead) {
+    G_Ai_Damaged(target, attacker);
+  }
+
   // do the damage
   if (damageHealth && (target->health || target->dead)) {
     if (G_IsMeat(target)) {

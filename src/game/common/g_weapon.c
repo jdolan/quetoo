@@ -412,6 +412,8 @@ static void G_ClientMuzzleFlash(GameEntity *ent, GameMuzzleFlash flash) {
   gi.WriteByte(flash);
 
   gi.Multicast(ent->s.origin, MULTICAST_PHS);
+
+  G_Ai_Hear(ent, AI_HEAR_WEAPON_DISTANCE);
 }
 
 /**

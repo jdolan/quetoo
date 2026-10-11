@@ -405,6 +405,12 @@ typedef struct GameAi {
   uint32_t combatTargetSeenTime;
 
   /**
+   * @brief Where the bot last saw its combat target. A bot that loses sight of its target chases
+   * this position, not the target's true one.
+   */
+  Vec3 combatTargetSeenPosition;
+
+  /**
    * @brief The angular velocity of the view in degrees per second, so that turns ease in and out.
    */
   Vec3 viewVelocity;
@@ -441,6 +447,31 @@ typedef struct GameAi {
    * @brief The ammo count at which the current burst of grenade spam ends, or 0 between bursts.
    */
   int32_t spamAmmo;
+
+  /**
+   * @brief Where the bot last heard an enemy, or was shot from.
+   */
+  Vec3 alertPosition;
+
+  /**
+   * @brief Level time of the alert, or 0 for none.
+   */
+  uint32_t alertTime;
+
+  /**
+   * @brief True once the bot has decided whether to investigate the alert.
+   */
+  bool alertInvestigated;
+
+  /**
+   * @brief The entity number of the last enemy that hurt the bot.
+   */
+  int32_t attacker;
+
+  /**
+   * @brief Level time at which `attacker` last hurt the bot.
+   */
+  uint32_t attackedTime;
 
   /**
    * @brief True while the bot replays a learned jump.

@@ -59,6 +59,37 @@ bool G_Ai_FallsToVoid(const GameClient *cl, Vec3 origin, Vec3 velocity);
 Vec3 G_Ai_JumpVelocity(const GameClient *cl);
 
 /**
+ * @brief The distance at which bots hear a weapon fire.
+ */
+#define AI_HEAR_WEAPON_DISTANCE 1024.f
+
+/**
+ * @brief The distance at which bots hear an item picked up.
+ */
+#define AI_HEAR_PICKUP_DISTANCE 512.f
+
+/**
+ * @brief Alerts the bots within `distance` of `source`, other than its teammates, to its position.
+ */
+void G_Ai_Hear(const GameEntity *source, const float distance);
+
+/**
+ * @brief Alerts a bot that `attacker` hurt it, so that it turns toward the attacker and prefers
+ * it as a target.
+ */
+void G_Ai_Damaged(const GameEntity *target, const GameEntity *attacker);
+
+/**
+ * @return True if the bot heard an enemy, or was shot, within `AI_ALERT_MILLIS`.
+ */
+bool G_Ai_IsAlerted(const GameClient *cl);
+
+/**
+ * @return True if `ent` hurt the bot recently.
+ */
+bool G_Ai_IsAttacker(const GameClient *cl, const GameEntity *ent);
+
+/**
  * @brief Candidate item considered for AI pickup, weighted by desirability.
  */
 typedef struct {

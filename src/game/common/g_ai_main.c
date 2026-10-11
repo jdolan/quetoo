@@ -1921,6 +1921,12 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       }
     }
 
+    if (G_Ai_IsAlerted(cl)) {
+      const Vec3 eye = Vec3_Add(ent->s.origin, cl->ps.pmState.viewOffset);
+      idealAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(cl->ai->alertPosition, eye)));
+      idealAngles.z = 0.f;
+    }
+
     G_Ai_SpamViewAngles(cl, &idealAngles);
   } else {
     G_Ai_CombatAngles(cl, seconds, &idealAngles, &idealRate);
@@ -2534,6 +2540,88 @@ void G_Ai_Shutdown(void) {
   G_Ai_ShutdownSkins();
 
   gi.FreeTag(MEM_TAG_AI);
+}
+
+/**
+ * @brief The time in milliseconds for which a bot attends to an alert.
+ */
+#define AI_ALERT_MILLIS 1500
+
+/**
+ * @brief The time in milliseconds for which the last enemy to hurt a bot is a preferred target.
+ */
+#define AI_ATTACKER_MILLIS 2000
+
+/**
+ * @brief Alerts the bot to the given position, unless it is fighting an enemy that it can see.
+ */
+static void G_Ai_Alert(GameClient *cl, const Vec3 position) {
+
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTargetSeenTime == gameLevel.time) {
+    return;
+  }
+
+  cl->ai->alertPosition = position;
+  cl->ai->alertTime = gameLevel.time;
+  cl->ai->alertInvestigated = false;
+}
+
+/**
+ * @see g_ai_main.h
+ */
+void G_Ai_Hear(const GameEntity *source, const float distance) {
+
+  if (!source->client) {
+    return;
+  }
+
+  G_ForEachClient(cl, {
+    if (!cl->ai || !cl->entity || cl->entity == source || cl->entity->dead) {
+      continue;
+    }
+
+    if (G_OnSameTeam(cl, source->client)) {
+      continue;
+    }
+
+    if (Vec3_Distance(cl->entity->s.origin, source->s.origin) > distance) {
+      continue;
+    }
+
+    G_Ai_Alert(cl, source->s.origin);
+  });
+}
+
+/**
+ * @see g_ai_main.h
+ */
+void G_Ai_Damaged(const GameEntity *target, const GameEntity *attacker) {
+
+  GameClient *cl = target->client;
+
+  if (!cl || !cl->ai || !attacker->client || attacker == target || G_OnSameTeam(cl, attacker->client)) {
+    return;
+  }
+
+  cl->ai->attacker = attacker->s.number;
+  cl->ai->attackedTime = gameLevel.time;
+
+  G_Ai_Alert(cl, attacker->s.origin);
+}
+
+/**
+ * @see g_ai_main.h
+ */
+bool G_Ai_IsAlerted(const GameClient *cl) {
+  return cl->ai->alertTime && gameLevel.time - cl->ai->alertTime < AI_ALERT_MILLIS;
+}
+
+/**
+ * @return True if `ent` hurt the bot within `AI_ATTACKER_MILLIS`.
+ */
+bool G_Ai_IsAttacker(const GameClient *cl, const GameEntity *ent) {
+  return cl->ai->attackedTime && cl->ai->attacker == ent->s.number &&
+         gameLevel.time - cl->ai->attackedTime < AI_ATTACKER_MILLIS;
 }
 
 /**

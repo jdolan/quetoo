@@ -797,6 +797,8 @@ void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace
 
   const bool pickup = ent->item->Pickup(cl, ent);
   if (pickup) {
+    G_Ai_Hear(other, AI_HEAR_PICKUP_DISTANCE);
+
     // show icon and name on status bar
     uint16_t tag = ent->item->def.tag;
 
