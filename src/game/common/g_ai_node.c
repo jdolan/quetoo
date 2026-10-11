@@ -411,9 +411,9 @@ const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a) {
 }
 
 /**
- * @brief Creates a directed link from node a to node b with the given traversal cost.
+ * @brief Creates a directed link from node a to node b with the given traversal cost and travel type.
  */
-void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost) {
+void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const int32_t travelType) {
 
   if (!aiNodes || a >= aiNodes->count || b >= aiNodes->count) {
     return;
@@ -431,11 +431,19 @@ void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost
 
   GameAiLink link = (GameAiLink) {
     .id = b,
-    .cost = cost
+    .cost = cost,
+    .travelType = travelType
   };
   $(nodeA->links, add, &link);
 
   G_Ai_Debug("Connected %d -> %d\n", a, b);
+}
+
+/**
+ * @brief Creates a directed link from node a to node b with the given traversal cost.
+ */
+void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost) {
+  G_Ai_Node_LinkTravel(a, b, cost, 0);
 }
 
 /**
@@ -1484,6 +1492,217 @@ static void G_Ai_CheckNodes(void) {
 }
 
 /**
+ * @brief The time step of a simulated jump pad flight, in seconds.
+ */
+#define AI_RIDE_STEP .025f
+
+/**
+ * @brief The longest simulated jump pad flight, in seconds.
+ */
+#define AI_RIDE_TIME 4.f
+
+/**
+ * @brief The distance within which a ride starts or ends at a node.
+ */
+#define AI_RIDE_NODE_DISTANCE 64.f
+
+/**
+ * @brief A `trigger_push` whose direction has at least this upward component pushes straight up,
+ * as `PUSH_VERTICAL` in `g_entity_trigger.c`.
+ */
+#define AI_RIDE_VERTICAL .99f
+
+/**
+ * @brief The horizontal reach of a bot that steers in flight from a vertical push.
+ */
+#define AI_RIDE_VERTICAL_REACH 128.f
+
+/**
+ * @return The cost of a ride that lasts `seconds`.
+ */
+static float G_Ai_Node_RideCost(const float seconds) {
+  return Maxf(1.f, seconds * PM_SPEED_RUN);
+}
+
+/**
+ * @brief Links the node on a `trigger_push` to the nodes that its push lands on.
+ * @details An angled push is a ballistic flight, swept in short box traces. A vertical push links
+ * to the ledges beside its column, which a bot steers onto in flight.
+ */
+static void G_Ai_Node_LinkPush(const GameEntity *push) {
+
+  if (push->solid == SOLID_NOT) {
+    return;
+  }
+
+  const Vec3 center = Box3_Center(push->absBounds);
+  const Vec3 pad = MakeVec3(center.x, center.y, push->absBounds.mins.z - PM_BOUNDS.mins.z);
+
+  const GameAiNodeId start = G_Ai_Node_FindClosest(pad, AI_RIDE_NODE_DISTANCE, false, false);
+  if (start == AI_NODE_INVALID) {
+    G_Ai_Debug("No node at %s @ %s\n", push->classname, vtos(pad));
+    return;
+  }
+
+  const float gravity = G_LevelGravity();
+  const Vec3 velocity = Vec3_Scale(push->moveDir, push->speed * 10.f);
+  const Vec3 origin = G_Ai_Node_GetPosition(start);
+
+  if (push->moveDir.z >= AI_RIDE_VERTICAL) {
+    const float apex = velocity.z * velocity.z / (2.f * gravity);
+
+    for (size_t i = 0; i < aiNodes->count; i++) {
+      const GameAiNode *node = AI_NODE(aiNodes, i);
+      const float rise = node->position.z - origin.z;
+
+      if (node->voxel == -1 || rise <= PM_STEP_HEIGHT || rise > apex) {
+        continue;
+      }
+
+      if (Vec2_Distance(Vec3_XY(node->position), Vec3_XY(origin)) > AI_RIDE_VERTICAL_REACH) {
+        continue;
+      }
+
+      const Vec3 column = MakeVec3(origin.x, origin.y, node->position.z);
+
+      if (gi.Trace(origin, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+        continue;
+      }
+
+      if (gi.Trace(column, node->position, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+        continue;
+      }
+
+      const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
+      G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
+    }
+    return;
+  }
+
+  Vec3 position = origin;
+
+  for (float time = AI_RIDE_STEP; time <= AI_RIDE_TIME; time += AI_RIDE_STEP) {
+
+    const Vec3 next = MakeVec3(origin.x + velocity.x * time,
+                               origin.y + velocity.y * time,
+                               origin.z + velocity.z * time - .5f * gravity * time * time);
+
+    const CollisionTrace trace = gi.Trace(position, next, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER);
+    if (trace.startSolid) {
+      return;
+    }
+
+    if (trace.fraction < 1.f) {
+      if (trace.plane.normal.z < PM_STEP_NORMAL) {
+        G_Ai_Debug("%s @ %s pushes into a wall at %s\n", push->classname, vtos(pad), vtos(trace.end));
+        return;
+      }
+
+      const GameAiNodeId end = G_Ai_Node_FindClosest(trace.end, AI_RIDE_NODE_DISTANCE, false, false);
+      if (end != AI_NODE_INVALID && end != start) {
+        G_Ai_Node_LinkTravel(start, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
+      }
+      return;
+    }
+
+    position = next;
+  }
+}
+
+/**
+ * @brief Links the compiled nodes at the given height around a plat to the plat's own node there,
+ * in both directions.
+ */
+static void G_Ai_Node_LinkPlatLevel(const GameEntity *plat, const GameAiNodeId platNode) {
+
+  const Vec3 position = G_Ai_Node_GetPosition(platNode);
+  const float reach = Maxf(Box3_Size(plat->absBounds).x, Box3_Size(plat->absBounds).y) * .5f + AI_RIDE_NODE_DISTANCE;
+
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
+
+    if (node->voxel == -1 || fabsf(node->position.z - position.z) > PM_STEP_HEIGHT) {
+      continue;
+    }
+
+    const float distance = Vec2_Distance(Vec3_XY(node->position), Vec3_XY(position));
+    if (distance > reach) {
+      continue;
+    }
+
+    if (gi.Trace(node->position, position, PM_BOUNDS, NULL, CONTENTS_MASK_SOLID).fraction < 1.f) {
+      continue;
+    }
+
+    G_Ai_Node_LinkTravel((GameAiNodeId) i, platNode, distance, NAV_TRAVEL_WALK);
+    G_Ai_Node_LinkTravel(platNode, (GameAiNodeId) i, distance, NAV_TRAVEL_WALK);
+  }
+}
+
+/**
+ * @brief Gives a `func_plat` a node at the bottom and at the top of its travel, links the bottom
+ * to the top as an elevator, and links each to the compiled nodes beside it.
+ */
+static void G_Ai_Node_LinkPlat(const GameEntity *plat) {
+
+  const float rise = plat->pos1.z - plat->pos2.z;
+  if (rise <= PM_STEP_HEIGHT) {
+    return;
+  }
+
+  const Vec3 center = Box3_Center(plat->absBounds);
+  const float bottom = plat->absBounds.maxs.z - (plat->s.origin.z - plat->pos2.z) - PM_BOUNDS.mins.z;
+
+  const GameAiNodeId lower = G_Ai_Node_Create(MakeVec3(center.x, center.y, bottom));
+  const GameAiNodeId upper = G_Ai_Node_Create(MakeVec3(center.x, center.y, bottom + rise));
+
+  if (lower == AI_NODE_INVALID || upper == AI_NODE_INVALID) {
+    G_Ai_Debug("No room for nodes on %s @ %s\n", plat->classname, vtos(center));
+    return;
+  }
+
+  const float speed = Maxf(1.f, plat->moveInfo.speed);
+  G_Ai_Node_LinkTravel(lower, upper, G_Ai_Node_RideCost(rise / speed), NAV_TRAVEL_ELEVATOR);
+
+  G_Ai_Node_LinkPlatLevel(plat, lower);
+  G_Ai_Node_LinkPlatLevel(plat, upper);
+}
+
+/**
+ * @brief Links a compiled graph's rides: jump pads and plats. Teleporters link themselves.
+ */
+static void G_Ai_Node_LinkRides(void) {
+
+  G_ForEachEntity(ent, {
+    if (!ent->classname) {
+      continue;
+    }
+
+    if (!Str_Compare(ent->classname, "trigger_push")) {
+      G_Ai_Node_LinkPush(ent);
+    } else if (!Str_Compare(ent->classname, "func_plat")) {
+      G_Ai_Node_LinkPlat(ent);
+    }
+  });
+
+  int32_t counts[NAV_TRAVEL_ELEVATOR + 1] = { 0 };
+
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const Vector *links = AI_NODE(aiNodes, i)->links;
+
+    for (size_t j = 0; links && j < links->count; j++) {
+      const int32_t type = AI_LINK(links, j)->travelType;
+      if (type >= NAV_TRAVEL_TELEPORT && type <= NAV_TRAVEL_ELEVATOR) {
+        counts[type]++;
+      }
+    }
+  }
+
+  gi.Print("  Linked %d teleporters, %d jump pads and %d elevators.\n",
+           counts[NAV_TRAVEL_TELEPORT], counts[NAV_TRAVEL_JUMP_PAD], counts[NAV_TRAVEL_ELEVATOR]);
+}
+
+/**
  * @brief Called after the first second of gameplay to allow the AI to pick up nodes
  * from late-spawning entities.
  */
@@ -1506,6 +1725,10 @@ void G_Ai_NodesReady(void) {
 
   addedLinks -= module.fileLinks;
   gi.Print("  Game loaded %zu additional nodes with %zu new links.\n", addedNodes, addedLinks);
+
+  if (module.compiled) {
+    G_Ai_Node_LinkRides();
+  }
 
   G_ForEachEntity(ent, {
     if (ent->classname && Str_Compare(ent->classname, "func_plat") == 0) {

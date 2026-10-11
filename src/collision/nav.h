@@ -64,6 +64,21 @@ typedef enum {
    * @brief Jump straight up onto a ledge that is too high to step onto.
    */
   NAV_TRAVEL_BARRIER_JUMP,
+
+  /**
+   * @brief Touch a teleporter. The game links these at load; they are never compiled.
+   */
+  NAV_TRAVEL_TELEPORT,
+
+  /**
+   * @brief Ride a `trigger_push`. The game links these at load; they are never compiled.
+   */
+  NAV_TRAVEL_JUMP_PAD,
+
+  /**
+   * @brief Ride a `func_plat` up. The game links these at load; they are never compiled.
+   */
+  NAV_TRAVEL_ELEVATOR,
 } NavTravelType;
 
 /**
