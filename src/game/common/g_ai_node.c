@@ -150,6 +150,7 @@ static struct {
   bool compiled;
 
   int32_t *voxelNodes;
+  int32_t cellSize;
 
   NavHeader navFile;
   NavNode *navNodes;
@@ -300,10 +301,10 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
 }
 
 /**
- * @brief Finds the closest compiled node in the voxels around the given position.
- * @details Any node outside of the voxels searched is at least `BSP_VOXEL_SIZE` from the
- * position, so a node found within that distance is the closest of all.
- * @param maxDistance The squared distance, at most `BSP_VOXEL_SIZE` squared, to search.
+ * @brief Finds the closest compiled node in the cells around the given position.
+ * @details Any node outside of the voxels searched is at least one cell width from the position,
+ * so a node found within that distance is the closest of all.
+ * @param maxDistance The squared distance, at most one cell width squared, to search.
  */
 static GameAiNodeId G_Ai_Node_FindClosestVoxel(GameAiNodeQueryFilter *filter, const float maxDistance) {
 
@@ -317,9 +318,11 @@ static GameAiNodeId G_Ai_Node_FindClosestVoxel(GameAiNodeQueryFilter *filter, co
   GameAiNodeId closest = AI_NODE_INVALID;
   float closestDistance = maxDistance;
 
+  const int32_t reach = module.cellSize;
+
   for (int32_t dz = -2; dz <= 1; dz++) {
-    for (int32_t dy = -1; dy <= 1; dy++) {
-      for (int32_t dx = -1; dx <= 1; dx++) {
+    for (int32_t dy = -reach; dy <= reach; dy++) {
+      for (int32_t dx = -reach; dx <= reach; dx++) {
 
         const Vec3i xyz = MakeVec3i(x + dx, y + dy, z + dz);
 
@@ -379,7 +382,8 @@ GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance,
   };
 
   if (module.compiled) {
-    closest = G_Ai_Node_FindClosestVoxel(&filter, Minf(distSquared, BSP_VOXEL_SIZE * BSP_VOXEL_SIZE));
+    const float cell = BSP_VOXEL_SIZE * module.cellSize;
+    closest = G_Ai_Node_FindClosestVoxel(&filter, Minf(distSquared, cell * cell));
     if (closest != AI_NODE_INVALID) {
       return closest;
     }
@@ -1617,6 +1621,11 @@ static void G_Ai_Node_RecordJump(GameClient *cl, const PMoveCmd *cmd) {
 }
 
 /**
+ * @brief The widest navigation cell, in voxels, for validating a `.nav` file's cell size.
+ */
+#define AI_NODE_MAX_CELL 4
+
+/**
  * @brief The most links a compiled node can have, for validating a `.nav` file's link count.
  */
 #define AI_NODE_MAX_LINKS 64
@@ -1643,6 +1652,11 @@ static bool G_Ai_ReadCompiledNodes(File *file) {
       header.voxelSize.z != bsp->voxelSize.z ||
       !Vec3_Equal(header.voxelMins, bsp->voxelBounds.mins)) {
     G_Warn("Nav file was compiled from a different BSP; recompile it with quemap -nav\n");
+    return false;
+  }
+
+  if (header.cellSize < 1 || header.cellSize > AI_NODE_MAX_CELL) {
+    G_Warn("Nav file has an invalid cell size %d\n", header.cellSize);
     return false;
   }
 
@@ -1730,8 +1744,18 @@ static bool G_Ai_ReadCompiledNodes(File *file) {
     }
 
     $(aiNodes, add, &node);
-    module.voxelNodes[in->voxel] = i;
+
+    const int32_t x = in->voxel % bsp->voxelSize.x;
+    const int32_t y = (in->voxel / bsp->voxelSize.x) % bsp->voxelSize.y;
+
+    for (int32_t dy = 0; dy < header.cellSize && y + dy < bsp->voxelSize.y; dy++) {
+      for (int32_t dx = 0; dx < header.cellSize && x + dx < bsp->voxelSize.x; dx++) {
+        module.voxelNodes[in->voxel + dy * bsp->voxelSize.x + dx] = i;
+      }
+    }
   }
+
+  module.cellSize = header.cellSize;
 
   G_Ai_Node_InvalidateSpatialIndex();
 

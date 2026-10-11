@@ -37,6 +37,16 @@
 #define NAV_SAMPLE_OFFSET .5f
 
 /**
+ * @brief The width of a navigation cell, in voxels. Each cell samples one floor per voxel height.
+ */
+#define NAV_CELL 2
+
+/**
+ * @brief The width of a navigation cell, in units.
+ */
+#define NAV_CELL_SIZE (BSP_VOXEL_SIZE * NAV_CELL)
+
+/**
  * @brief The horizontal distance of one step of a simulated walk.
  */
 #define NAV_WALK_STEP 8.f
@@ -44,7 +54,7 @@
 /**
  * @brief The furthest a simulated walk goes past the edge of a floor, looking for the drop.
  */
-#define NAV_LEDGE_DISTANCE 48.f
+#define NAV_LEDGE_DISTANCE (NAV_CELL_SIZE + 16.f)
 
 /**
  * @brief The furthest fall that a drop link spans.
@@ -54,7 +64,7 @@
 /**
  * @brief The furthest a fall can land from the node it links to.
  */
-#define NAV_LANDING_DISTANCE (BSP_VOXEL_SIZE * 1.5f)
+#define NAV_LANDING_DISTANCE NAV_CELL_SIZE
 
 /**
  * @brief The distance within which a learned jump's node maps onto a node of the new graph.
@@ -69,7 +79,7 @@
 /**
  * @brief Items further than this from every node are reported as unreachable.
  */
-#define NAV_ITEM_DISTANCE 64.f
+#define NAV_ITEM_DISTANCE (NAV_CELL_SIZE * 2.f)
 
 /**
  * @brief The margin below the highest jump that a barrier jump may climb.
@@ -146,16 +156,16 @@ static struct {
 } module;
 
 /**
- * @brief The horizontal sample offsets within a voxel, center first.
+ * @brief The horizontal sample offsets within a cell, center first.
  */
 static const Vec2 offsets[] = {
   { { 0.f, 0.f } },
-  { { -8.f, 0.f } }, { { 8.f, 0.f } }, { { 0.f, -8.f } }, { { 0.f, 8.f } },
-  { { -8.f, -8.f } }, { { 8.f, -8.f } }, { { -8.f, 8.f } }, { { 8.f, 8.f } },
+  { { -16.f, 0.f } }, { { 16.f, 0.f } }, { { 0.f, -16.f } }, { { 0.f, 16.f } },
+  { { -16.f, -16.f } }, { { 16.f, -16.f } }, { { -16.f, 16.f } }, { { 16.f, 16.f } },
 };
 
 /**
- * @brief The 8 horizontal directions to neighboring voxels.
+ * @brief The 8 horizontal directions to neighboring cells.
  */
 static const Vec3i directions[] = {
   { { 1, 0, 0 } }, { { -1, 0, 0 } }, { { 0, 1, 0 } }, { { 0, -1, 0 } },
@@ -324,7 +334,13 @@ static void SampleVoxel(int32_t index) {
 
   NavSample *sample = &module.samples[index];
 
-  const Vec3 center = Vec3_Add(VoxelOrigin(VoxelCoordinate(index)), Vec3_Scale(Vec3_Up(), NAV_SAMPLE_OFFSET));
+  const Vec3i xyz = VoxelCoordinate(index);
+  if (xyz.x % NAV_CELL || xyz.y % NAV_CELL) {
+    return;
+  }
+
+  const float half = (NAV_CELL_SIZE - BSP_VOXEL_SIZE) * .5f;
+  const Vec3 center = Vec3_Add(VoxelOrigin(xyz), MakeVec3(half, half, NAV_SAMPLE_OFFSET));
 
   for (size_t i = 0; i < lengthof(offsets); i++) {
 
@@ -562,7 +578,7 @@ static void LinkNode(int32_t index) {
 
     for (int32_t dz = -1; dz <= 2; dz++) {
 
-      const Vec3i neighbor = MakeVec3i(xyz.x + directions[i].x, xyz.y + directions[i].y, xyz.z + dz);
+      const Vec3i neighbor = MakeVec3i(xyz.x + directions[i].x * NAV_CELL, xyz.y + directions[i].y * NAV_CELL, xyz.z + dz);
 
       const int32_t voxel = VoxelIndex(neighbor);
       if (voxel == -1 || module.voxelNodes[voxel] == -1) {
@@ -644,16 +660,29 @@ static void CollectNodes(void) {
   module.voxelNodes = Mem_TagMalloc(sizeof(int32_t) * module.numVoxels, (MemTag) MEM_TAG_QNAV);
 
   for (int32_t i = 0; i < module.numVoxels; i++) {
+    module.voxelNodes[i] = -1;
+  }
+
+  for (int32_t i = 0; i < module.numVoxels; i++) {
 
     const NavSample *sample = &module.samples[i];
 
     if (sample->result != SAMPLE_NODE) {
-      module.voxelNodes[i] = -1;
       continue;
     }
 
     module.voxelNodes[i] = module.numNodes;
     module.nodes[module.numNodes++] = sample->node;
+
+    const Vec3i xyz = VoxelCoordinate(i);
+    for (int32_t y = 0; y < NAV_CELL; y++) {
+      for (int32_t x = 0; x < NAV_CELL; x++) {
+        const int32_t voxel = VoxelIndex(MakeVec3i(xyz.x + x, xyz.y + y, xyz.z));
+        if (voxel != -1) {
+          module.voxelNodes[voxel] = module.numNodes - 1;
+        }
+      }
+    }
 
     if (sample->offset) {
       numOffset++;
@@ -668,6 +697,267 @@ static void CollectNodes(void) {
   Com_Print("%9d crouch nodes\n", numCrouch);
   Com_Print("%9d nodes found at an offset\n", numOffset);
   Com_Print("%9d floors with no room for a player\n", numNoFit);
+}
+
+/**
+ * @return True if `node` may merge with the open floor around it: it is a standing node whose
+ * links are all walks.
+ */
+static bool Mergeable(const int32_t node) {
+
+  if (module.nodes[node].flags) {
+    return false;
+  }
+
+  const NavNodeLinks *links = &module.nodeLinks[node];
+  for (int32_t i = 0; i < links->numLinks; i++) {
+    if (links->links[i].travelType != NAV_TRAVEL_WALK) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @return True if `a` has a walk link to `b`.
+ */
+static bool WalkLinked(const int32_t a, const int32_t b) {
+
+  const NavNodeLinks *links = &module.nodeLinks[a];
+  for (int32_t i = 0; i < links->numLinks; i++) {
+    if (links->links[i].node == b) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @return True if `kept` walks to every node outside the group that a member links to, and back,
+ * so that merging the group into it keeps every route.
+ */
+static bool ReachesNeighbors(const int32_t kept, const int32_t members[4]) {
+
+  for (int32_t i = 0; i < 4; i++) {
+    const NavNodeLinks *links = &module.nodeLinks[members[i]];
+
+    for (int32_t j = 0; j < links->numLinks; j++) {
+      const int32_t neighbor = links->links[j].node;
+
+      if (neighbor == members[0] || neighbor == members[1] || neighbor == members[2] || neighbor == members[3]) {
+        continue;
+      }
+
+      float distance;
+      if (!Walk(&module.nodes[kept], &module.nodes[neighbor], &distance) ||
+          !Walk(&module.nodes[neighbor], &module.nodes[kept], &distance)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @return The count of connected parts of the graph, with links taken in both directions.
+ */
+static int32_t CountParts(void) {
+
+  int32_t *parent = Mem_TagMalloc(sizeof(int32_t) * Maxi(1, module.numNodes), (MemTag) MEM_TAG_QNAV);
+  for (int32_t i = 0; i < module.numNodes; i++) {
+    parent[i] = i;
+  }
+
+  for (int32_t i = 0; i < module.numNodes; i++) {
+    const NavNodeLinks *links = &module.nodeLinks[i];
+    for (int32_t j = 0; j < links->numLinks; j++) {
+      int32_t a = i, b = links->links[j].node;
+      while (parent[a] != a) {
+        a = parent[a] = parent[parent[a]];
+      }
+      while (parent[b] != b) {
+        b = parent[b] = parent[parent[b]];
+      }
+      parent[Maxi(a, b)] = Mini(a, b);
+    }
+  }
+
+  int32_t parts = 0;
+  for (int32_t i = 0; i < module.numNodes; i++) {
+    parts += parent[i] == i;
+  }
+
+  Mem_Free(parent);
+  return parts;
+}
+
+/**
+ * @brief Plans the merge of open floor into `target`, which maps each node to the node it merges
+ * into, skipping the groups that hold a `pinned` node.
+ */
+static void PlanMerge(int32_t *target, const bool *pinned) {
+
+  for (int32_t i = 0; i < module.numNodes; i++) {
+    target[i] = i;
+  }
+
+  for (int32_t z = 0; z < module.size.z; z++) {
+    for (int32_t y = 0; y + NAV_CELL < module.size.y; y += NAV_CELL * 2) {
+      for (int32_t x = 0; x + NAV_CELL < module.size.x; x += NAV_CELL * 2) {
+
+        int32_t members[4];
+        bool mergeable = true;
+
+        for (int32_t i = 0; i < 4 && mergeable; i++) {
+          const int32_t voxel = VoxelIndex(MakeVec3i(x + (i & 1) * NAV_CELL, y + (i >> 1) * NAV_CELL, z));
+          members[i] = module.voxelNodes[voxel];
+          mergeable = members[i] != -1 && !pinned[members[i]] && Mergeable(members[i]);
+        }
+
+        for (int32_t i = 0; i < 4 && mergeable; i++) {
+          const NavNode *a = &module.nodes[members[i]];
+          for (int32_t j = 0; j < 4 && mergeable; j++) {
+            const NavNode *b = &module.nodes[members[j]];
+            mergeable = i == j || (fabsf(a->position.z - b->position.z) <= 1.f &&
+                                   a->contents == b->contents && WalkLinked(members[i], members[j]));
+          }
+        }
+
+        if (!mergeable) {
+          continue;
+        }
+
+        const float half = (NAV_CELL - .5f) * BSP_VOXEL_SIZE;
+        const Vec3 center = Vec3_Add(VoxelOrigin(MakeVec3i(x, y, z)), MakeVec3(half, half, 0.f));
+
+        int32_t kept = members[0];
+        for (int32_t i = 1; i < 4; i++) {
+          if (Vec2_Distance(Vec3_XY(module.nodes[members[i]].position), Vec3_XY(center)) <
+              Vec2_Distance(Vec3_XY(module.nodes[kept].position), Vec3_XY(center))) {
+            kept = members[i];
+          }
+        }
+
+        if (!ReachesNeighbors(kept, members)) {
+          continue;
+        }
+
+        for (int32_t i = 0; i < 4; i++) {
+          target[members[i]] = kept;
+        }
+      }
+    }
+  }
+
+}
+
+/**
+ * @brief Merges open floor: each aligned 2x2 group of cells whose four nodes stand at one
+ * height, with the same contents, have only walk links, and are all linked to each other, becomes
+ * the member nearest the group's center. The members' links move to it, and each walk is simulated
+ * again; where one fails, both of its groups stay unmerged, and the plan is made again. Stairs,
+ * ledges, narrow paths and crouch spaces keep their nodes.
+ */
+static void MergeNodes(void) {
+
+  const int32_t numNodes = module.numNodes;
+  const int32_t partsBefore = CountParts();
+
+  int32_t *target = Mem_TagMalloc(sizeof(int32_t) * Maxi(1, numNodes), (MemTag) MEM_TAG_QNAV);
+  bool *pinned = Mem_TagMalloc(sizeof(bool) * Maxi(1, numNodes), (MemTag) MEM_TAG_QNAV);
+
+  int32_t numDropped;
+
+  do {
+    PlanMerge(target, pinned);
+    numDropped = 0;
+
+    for (int32_t i = 0; i < numNodes; i++) {
+      const NavNodeLinks *links = &module.nodeLinks[i];
+
+      for (int32_t j = 0; j < links->numLinks; j++) {
+        const NavLink *link = &links->links[j];
+        const int32_t from = target[i], to = target[link->node];
+
+        if (from == to || link->travelType != NAV_TRAVEL_WALK || (from == i && to == link->node)) {
+          continue;
+        }
+
+        float distance;
+        if (!Walk(&module.nodes[from], &module.nodes[to], &distance)) {
+          pinned[i] = pinned[link->node] = true;
+          numDropped++;
+        }
+      }
+    }
+  } while (numDropped);
+
+  int32_t *index = Mem_TagMalloc(sizeof(int32_t) * Maxi(1, numNodes), (MemTag) MEM_TAG_QNAV);
+  int32_t count = 0;
+  for (int32_t i = 0; i < numNodes; i++) {
+    index[i] = target[i] == i ? count++ : -1;
+  }
+
+  NavNode *nodes = Mem_TagMalloc(sizeof(NavNode) * Maxi(1, count), (MemTag) MEM_TAG_QNAV);
+  NavNodeLinks *nodeLinks = Mem_TagMalloc(sizeof(NavNodeLinks) * Maxi(1, count), (MemTag) MEM_TAG_QNAV);
+
+  for (int32_t i = 0; i < numNodes; i++) {
+    if (target[i] == i) {
+      nodes[index[i]] = module.nodes[i];
+    }
+  }
+
+  for (int32_t i = 0; i < numNodes; i++) {
+    const int32_t from = index[target[i]];
+    const NavNodeLinks *links = &module.nodeLinks[i];
+
+    for (int32_t j = 0; j < links->numLinks; j++) {
+      const NavLink *link = &links->links[j];
+      const int32_t to = index[target[link->node]];
+
+      if (from == to) {
+        continue;
+      }
+
+      int32_t time = link->travelTime;
+
+      if (link->travelType == NAV_TRAVEL_WALK && (target[i] != i || target[link->node] != link->node)) {
+        float distance;
+        Walk(&nodes[from], &nodes[to], &distance);
+        time = TravelTime(distance, PM_SPEED_RUN);
+      }
+
+      AddLink(&nodeLinks[from], to, link->travelType, time);
+    }
+  }
+
+  for (int32_t i = 0; i < module.numVoxels; i++) {
+    if (module.voxelNodes[i] != -1) {
+      module.voxelNodes[i] = index[target[module.voxelNodes[i]]];
+    }
+  }
+
+  Mem_Free(module.nodes);
+  Mem_Free(module.nodeLinks);
+
+  module.nodes = nodes;
+  module.nodeLinks = nodeLinks;
+  module.numNodes = count;
+
+  Mem_Free(target);
+  Mem_Free(pinned);
+  Mem_Free(index);
+
+  const int32_t partsAfter = CountParts();
+
+  Com_Print("%9d nodes after merging open floor\n", module.numNodes);
+
+  if (partsAfter != partsBefore) {
+    Com_Warn("Merging changed the graph's connected parts from %d to %d\n", partsBefore, partsAfter);
+  }
 }
 
 /**
@@ -751,6 +1041,25 @@ static int32_t NodeAt(const Vec3 position) {
 }
 
 /**
+ * @return The node of the new graph for a node of the existing file: the node that now holds its
+ * voxel, where the voxel grid is unchanged, or else the node at its position.
+ */
+static int32_t NodeFor(const NavHeader *header, const NavNode *node) {
+
+  const bool sameGrid = header->voxelSize.x == module.size.x && header->voxelSize.y == module.size.y &&
+                        header->voxelSize.z == module.size.z && Vec3_Equal(header->voxelMins, module.bounds.mins);
+
+  if (sameGrid && node->voxel >= 0 && node->voxel < module.numVoxels) {
+    const int32_t index = module.voxelNodes[node->voxel];
+    if (index != -1 && fabsf(module.nodes[index].position.z - node->position.z) <= PM_STEP_HEIGHT) {
+      return index;
+    }
+  }
+
+  return NodeAt(node->position);
+}
+
+/**
  * @brief Carries the jumps that the game learned from the existing `maps/<name>.nav` onto the
  * new graph, by the positions of their nodes. A jump whose nodes moved is dropped. The game
  * replays every jump at load, so a jump that no longer lands is dropped there.
@@ -802,8 +1111,8 @@ static void CarryJumps(void) {
       continue;
     }
 
-    const int32_t from = NodeAt(nodes[jump->from].position);
-    const int32_t to = NodeAt(nodes[jump->to].position);
+    const int32_t from = NodeFor(header, &nodes[jump->from]);
+    const int32_t to = NodeFor(header, &nodes[jump->to]);
 
     if (from == -1 || to == -1 || from == to) {
       Com_Warn("Learned jump %d from %s to %s lost its nodes; dropping it\n", i,
@@ -843,6 +1152,7 @@ static void WriteNavFile(void) {
     .version = NAV_VERSION,
     .voxelSize = module.size,
     .voxelMins = module.bounds.mins,
+    .cellSize = NAV_CELL,
     .numNodes = module.numNodes,
     .numLinks = module.numLinks,
     .numJumps = module.numJumps,
@@ -909,6 +1219,8 @@ int32_t Qnav_Main(void) {
   module.nodeLinks = Mem_TagMalloc(sizeof(NavNodeLinks) * Maxi(1, module.numNodes), (MemTag) MEM_TAG_QNAV);
 
   Work("Linking nodes", LinkNode, module.numNodes);
+
+  MergeNodes();
 
   CollectLinks();
 

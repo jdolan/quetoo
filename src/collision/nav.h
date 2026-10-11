@@ -26,7 +26,8 @@
 /**
  * @file
  * @brief The compiled navigation file format, `maps/<name>.nav`.
- * @details `quemap -nav` writes it from the BSP voxel grid: one floor node at most per voxel,
+ * @details `quemap -nav` writes it from the BSP voxel grid: one floor node at most per cell of
+ * `cellSize` by `cellSize` voxel columns, per voxel height,
  * and typed links between nodes. The game reads it to route its bots, and appends the jumps
  * that it learns from players. Every field is little-endian, and the file is the header, then
  * `numNodes` nodes, `numLinks` links, `numJumps` jumps and `numJumpSteps` jump steps.
@@ -120,6 +121,11 @@ typedef struct {
    * @brief The voxel grid origin of the BSP this file was compiled from.
    */
   Vec3 voxelMins;
+
+  /**
+   * @brief The width of a navigation cell, in voxels. A node covers the cell of its `voxel`.
+   */
+  int32_t cellSize;
 
   /**
    * @brief The node count.
@@ -283,7 +289,7 @@ typedef struct {
   uint8_t buttons;
 } NavJumpStep;
 
-_Static_assert(sizeof(NavHeader) == 48, "NavHeader is on disk; changing it requires a new NAV_VERSION");
+_Static_assert(sizeof(NavHeader) == 52, "NavHeader is on disk; changing it requires a new NAV_VERSION");
 _Static_assert(sizeof(NavNode) == 32, "NavNode is on disk; changing it requires a new NAV_VERSION");
 _Static_assert(sizeof(NavLink) == 12, "NavLink is on disk; changing it requires a new NAV_VERSION");
 _Static_assert(sizeof(NavJump) == 56, "NavJump is on disk; changing it requires a new NAV_VERSION");
