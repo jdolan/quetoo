@@ -32,6 +32,6 @@ void G_ClientRespawn(GameClient *cl, bool voluntary);
 void G_ClientThink(GameClient *cl, PMoveCmd *cmd);
 Box3 G_ClientStandingBounds(const GameClient *cl);
 void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo);
-void G_Giblets(const GameGiblets *giblets);
+GameEntity *G_Giblets(const GameGiblets *giblets);
 #endif
 bool G_ClientCanHearVoice(const GameClient *speaker, const GameClient *listener, uint8_t channel);

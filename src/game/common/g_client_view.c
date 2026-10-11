@@ -360,16 +360,6 @@ static void G_ClientKickAngles(GameClient *cl) {
 }
 
 /**
- * @brief The maximum time, in milliseconds, that a client's BOTH_DEATHx animation is
- * permitted to play before we force it into its terminal BOTH_DEADx frame. This must be
- * long enough to accommodate the longest death animation among all bundled player
- * models (custom models may author far longer death sequences than the stock ones), or
- * their animations will be truncated. It is intentionally decoupled from respawnTime,
- * which governs actual respawn eligibility and must not be tied to animation length.
- */
-#define DEATH_ANIM_SETTLE_TIME 8000
-
-/**
  * @brief Sets the animation sequences for the specified entity. This is called
  * towards the end of each frame, after our ground entity and water level have
  * been resolved.
@@ -379,24 +369,6 @@ static void G_ClientAnimation(GameClient *cl) {
   GameEntity *ent = cl->entity;
 
   if (ent->s.model1 != MODEL_CLIENT) {
-    return;
-  }
-
-  // corpses animate to their final resting place
-
-  if (ent->solid == SOLID_DEAD) {
-
-    if (gameLevel.time >= cl->deathTime + DEATH_ANIM_SETTLE_TIME) {
-      switch (ent->s.animation1 & ANIM_MASK_VALUE) {
-        case ANIM_BOTH_DEATH1:
-        case ANIM_BOTH_DEATH2:
-        case ANIM_BOTH_DEATH3:
-          G_SetAnimation(cl, (ent->s.animation1 & ANIM_MASK_VALUE) + 1, false);
-          break;
-        default:
-          break;
-      }
-    }
     return;
   }
 
@@ -489,6 +461,13 @@ static void G_ClientAnimation(GameClient *cl) {
  * @brief Called for each client at the end of the server frame.
  */
 void G_ClientEndFrame(GameClient *cl) {
+
+  // the dead are carried along with the corpse they watch
+  if (cl->corpse) {
+    cl->entity->s.origin = cl->corpse->s.origin;
+    cl->entity->velocity = cl->corpse->velocity;
+    gi.LinkEntity(cl->entity);
+  }
 
   // If the origin or velocity have changed since G_ClientThink(),
   // update the PMoveState values. This will happen when the client

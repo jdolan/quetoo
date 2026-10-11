@@ -538,14 +538,56 @@ static void G_Giblet_Think(GameEntity *ent) {
 }
 
 /**
+ * @brief The time, in milliseconds, that a corpse's BOTH_DEATHx animation may play before it is
+ * settled into its BOTH_DEADx pose.
+ * @details The client advances into BOTH_DEADx on its own. The settle is for whoever first sees
+ * the corpse later, since the client starts the animation of an entity new to it from the first
+ * frame, and they would otherwise watch the whole death again. It MUST outlast the longest death
+ * animation of any player model, or that animation is cut short.
+ */
+#define DEATH_ANIM_SETTLE_TIME 8000
+
+/**
+ * @return True if @p ent is the corpse or head giblet that its client still watches while dead.
+ */
+static bool G_ClientCorpse_IsWatched(const GameEntity *ent) {
+  return ent->owner && ent->owner->client && ent->owner->client->corpse == ent;
+}
+
+/**
+ * @brief Settles a corpse's animation into the BOTH_DEADx pose that follows its BOTH_DEATHx.
+ */
+static void G_ClientCorpse_Settle(uint8_t *animation) {
+
+  const uint8_t value = *animation & ANIM_MASK_VALUE;
+
+  switch (value) {
+    case ANIM_BOTH_DEATH1:
+    case ANIM_BOTH_DEATH2:
+    case ANIM_BOTH_DEATH3:
+      *animation = value + 1;
+      break;
+    default:
+      break;
+  }
+}
+
+/**
  * @brief Sink into the floor after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
+ * @remarks Nothing despawns while its client still watches it, and their respawn restarts the
+ * clock, so a body lasts as long after the respawn as it did when it was spawned there.
  */
 static void G_ClientCorpse_Think(GameEntity *ent) {
 
   const uint32_t age = gameLevel.time - ent->timestamp;
 
   if (ent->s.model1 == MODEL_CLIENT) {
+    if (age >= DEATH_ANIM_SETTLE_TIME) {
+      G_ClientCorpse_Settle(&ent->s.animation1);
+      G_ClientCorpse_Settle(&ent->s.animation2);
+    }
+
     if (age > 6000) {
       const int32_t dmg = ent->health;
 
@@ -589,6 +631,11 @@ static void G_ClientCorpse_Think(GameEntity *ent) {
     }
   }
 
+  if (G_ClientCorpse_IsWatched(ent)) {
+    ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
+    return;
+  }
+
   if (age > CORPSE_LIFETIME + DESPAWN_TIME) {
     G_FreeEntity(ent);
     return;
@@ -625,8 +672,11 @@ static void G_ClientCorpse_Pain(GameEntity *ent, GameEntity *attacker, int16_t d
  * @brief Scatters a burst of giblets from the given origin, inheriting the given velocity.
  * Giblets bounce when damaged, and eventually sink through the floor and disappear. When
  * `damage` is set they also injure whatever they strike, credited to `attacker`.
+ * @return The head giblet, if `head` is set, or `NULL`.
  */
-void G_Giblets(const GameGiblets *giblets) {
+GameEntity *G_Giblets(const GameGiblets *giblets) {
+
+  GameEntity *head = NULL;
 
   const Box3 bounds[NUM_GIB_MODELS] = {
     Box3f(12.f, 12.f, 12.f),
@@ -647,6 +697,10 @@ void G_Giblets(const GameGiblets *giblets) {
     }
 
     GameEntity *gib = G_AllocEntity(__func__);
+
+    if (gibIndex == 2 && i == 1) {
+      head = gib;
+    }
 
     gib->s.origin = giblets->origin;
 
@@ -697,73 +751,50 @@ void G_Giblets(const GameGiblets *giblets) {
   gi.WriteByte(TE_GIB);
   gi.WritePosition(giblets->origin);
   gi.Multicast(giblets->origin, MULTICAST_PVS);
+
+  return head;
+}
+
+/**
+ * @brief Binds the view of the dead client @p cl to @p corpse, the corpse or head giblet that
+ * they watch until they respawn.
+ * @details The corpse becomes the client's view entity, so the client game treats it as its own
+ * body: hidden in first person, drawn in third person and by the death camera.
+ */
+static void G_ClientCorpse_Watch(GameClient *cl, GameEntity *corpse) {
+
+  corpse->owner = cl->entity;
+
+  cl->corpse = corpse;
+  cl->ps.entity = corpse->s.number;
+
+  if (corpse->s.model1 != MODEL_CLIENT) {
+    corpse->s.client = cl->ps.client;
+    cl->ps.pmState.flags |= PMF_GIBLET;
+  }
 }
 
 /**
  * @brief Corpses explode into giblets when killed. Giblets receive the
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
+ * @remarks A client still watching the corpse goes on to watch its head.
  */
 static void G_ClientCorpse_Die(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
-  G_Giblets(&(const GameGiblets) {
+  GameEntity *head = G_Giblets(&(const GameGiblets) {
     .origin = ent->s.origin,
     .velocity = ent->velocity,
     .count = RandomRangei(4, 8),
-    .head = ent->client == NULL,
+    .head = true,
     .lift = 100.f,
   });
 
-  if (ent->client) {
-    ent->bounds = Box3f(8.f, 8.f, 8.f);
-
-    const int32_t h = Clampf(-5.0 * ent->health, 100, 500);
-    
-    ent->velocity.x += RandomRangef(-h, h);
-    ent->velocity.y += RandomRangef(-h, h);
-    ent->velocity.z += RandomRangef(100.f, 100.f + h);
-
-    for (int32_t i = 0; i < 3; ++i) {
-      ent->avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
-      ent->s.angles.xyz[i] = RandomRangef(0, 360.f);
-    }
-
-    ent->Die = NULL;
-
-    ent->client->ps.pmState.flags |= PMF_GIBLET;
-
-    ent->s.model1 = gameMedia.models.gibs[2];
-
-    ent->mass = 20.0;
-
-    ent->solid = SOLID_DEAD;
-
-    gi.LinkEntity(ent);
-  } else {
-    G_FreeEntity(ent);
+  if (G_ClientCorpse_IsWatched(ent)) {
+    G_ClientCorpse_Watch(ent->owner->client, head);
   }
-}
 
-/**
- * @return The animation a corpse should be left in, given the one its client died playing.
- * @details A player who respawns before their death animation has run out is still mid-death,
- * and G_ClientAnimation settles that only for a client, which a corpse no longer has. The
- * client also restarts the animation of any entity it has not seen before, so a corpse handed
- * a death animation plays the whole thing over again where it lies. Hand it the rest pose that
- * follows instead.
- */
-static uint8_t G_ClientCorpseAnimation(uint8_t animation) {
-
-  const uint8_t value = animation & ANIM_MASK_VALUE;
-
-  switch (value) {
-    case ANIM_BOTH_DEATH1:
-    case ANIM_BOTH_DEATH2:
-    case ANIM_BOTH_DEATH3:
-      return value + 1;
-    default:
-      return value;
-  }
+  G_FreeEntity(ent);
 }
 
 /**
@@ -793,36 +824,25 @@ static void G_ClientCorpseSlot(GameEntity *corpse, const GameClient *cl) {
 }
 
 /**
- * @brief Spawns a corpse for the specified client. The corpse will eventually sink into the floor
- * and disappear if not over-killed.
+ * @brief Spawns a corpse for the specified client as they die. The corpse plays their death
+ * animation through, and will eventually sink into the floor and disappear if not over-killed.
+ * @return The corpse.
  */
-static void G_ClientCorpse(GameClient *cl) {
-
-  if (cl->entity->serverFlags & SVF_NO_CLIENT) {
-    return;
-  }
-
-  if (cl->entity->dead == false) {
-    return;
-  }
-
-  if (cl->entity->s.model1 != MODEL_CLIENT) {
-    return;
-  }
+static GameEntity *G_ClientCorpse(GameClient *cl) {
 
   GameEntity *ent = G_AllocEntity(__func__);
 
   ent->solid = SOLID_DEAD;
 
   ent->s.origin = cl->entity->s.origin;
-  ent->s.angles = cl->entity->s.angles;
+  ent->s.angles = MakeVec3(0.f, cl->entity->s.angles.y, 0.f);
 
   ent->bounds = cl->entity->bounds;
 
   ent->s.model1 = cl->entity->s.model1;
 
-  ent->s.animation1 = G_ClientCorpseAnimation(cl->entity->s.animation1);
-  ent->s.animation2 = G_ClientCorpseAnimation(cl->entity->s.animation2);
+  ent->s.animation1 = cl->entity->s.animation1;
+  ent->s.animation2 = cl->entity->s.animation2;
 
   ent->s.effects = EF_CLIENT | EF_CORPSE;
 
@@ -844,6 +864,8 @@ static void G_ClientCorpse(GameClient *cl) {
   ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(ent);
+
+  return ent;
 }
 
 #define CLIENT_CORPSE_HEALTH 80
@@ -873,31 +895,6 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
   const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;
 
-  if (gibbed) {
-    G_ClientCorpse_Die(ent, attacker, mod);
-  } else {
-    G_MulticastSound(&(const GamePlaySound) {
-      .index = gameMedia.sounds.death[Randomi() % lengthof(gameMedia.sounds.death)],
-      .entity = ent,
-      .origin = &ent->s.origin, // send the origin in case of fast respawn
-    }, MULTICAST_PHS);
-
-    const float r = Randomf();
-    if (r < 0.33) {
-      G_SetAnimation(cl, ANIM_BOTH_DEATH1, true);
-    } else if (r < 0.66) {
-      G_SetAnimation(cl, ANIM_BOTH_DEATH2, true);
-    } else {
-      G_SetAnimation(cl, ANIM_BOTH_DEATH3, true);
-    }
-
-    ent->bounds.maxs.z = 0.0; // corpses are laying down
-
-    ent->health = CLIENT_CORPSE_HEALTH;
-    ent->Die = G_ClientCorpse_Die;
-    ent->Pain = G_ClientCorpse_Pain;
-  }
-
   uint32_t nadeHoldTime = cl->grenadeHoldTime;
 
   if (nadeHoldTime != 0) {
@@ -921,22 +918,59 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   cl->grenadeHoldFrame = 0;
   cl->heldGrenade = NULL;
 
-  ent->solid = SOLID_DEAD;
   ent->dead = true;
 
+  if (gibbed) {
+    G_ClientCorpse_Watch(cl, G_Giblets(&(const GameGiblets) {
+      .origin = ent->s.origin,
+      .velocity = ent->velocity,
+      .count = RandomRangei(4, 8),
+      .head = true,
+      .lift = 100.f,
+    }));
+  } else {
+    const float r = Randomf();
+    if (r < 0.33) {
+      G_SetAnimation(cl, ANIM_BOTH_DEATH1, true);
+    } else if (r < 0.66) {
+      G_SetAnimation(cl, ANIM_BOTH_DEATH2, true);
+    } else {
+      G_SetAnimation(cl, ANIM_BOTH_DEATH3, true);
+    }
+
+    ent->bounds.maxs.z = 0.0; // corpses are laying down
+    ent->health = CLIENT_CORPSE_HEALTH;
+
+    GameEntity *corpse = G_ClientCorpse(cl);
+
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.death[Randomi() % lengthof(gameMedia.sounds.death)],
+      .entity = corpse,
+      .origin = &corpse->s.origin,
+    }, MULTICAST_PHS);
+
+    G_ClientCorpse_Watch(cl, corpse);
+  }
+
+  // the corpse is our body now, and this entity only carries our view along with it
+  ent->solid = SOLID_NOT;
+  ent->serverFlags |= SVF_NO_CLIENT;
+
   ent->s.event = EV_NONE;
-  ent->s.effects = gibbed ? 0 : EF_CLIENT;
+  ent->s.effects = 0;
   ent->s.trail = TRAIL_NONE;
+  ent->s.model1 = 0;
   ent->s.model2 = 0;
   ent->s.model3 = 0;
   ent->s.model4 = 0;
   ent->s.sound = 0;
 
-  ent->takeDamage = true;
+  ent->takeDamage = false;
+  ent->Die = NULL;
+  ent->Pain = NULL;
 
   ent->clipMask = CONTENTS_MASK_CLIP_CORPSE;
   cl->respawnTime = gameLevel.time + 1800; // respawn delay, independent of death animation length
-  cl->deathTime = gameLevel.time; // used to gate the DEATHx -> DEADx animation transition below
   cl->showScores = true;
   cl->persistent.deaths++;
 
@@ -1385,8 +1419,11 @@ static void G_ClientRespawn_(GameClient *cl) {
 
   gi.UnlinkEntity(cl->entity);
 
-  // leave a corpse in our place if applicable
-  G_ClientCorpse(cl);
+  // release our corpse, which lasts as long from here as it would have had it been left here
+  if (cl->corpse) {
+    cl->corpse->owner = NULL;
+    cl->corpse->timestamp = gameLevel.time;
+  }
 
   // clear the client, retaining only critical fields
   const GameClient tmp = *cl;

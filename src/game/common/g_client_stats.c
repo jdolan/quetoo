@@ -312,7 +312,7 @@ void G_ClientSpectatorStats(GameClient *cl) {
     memcpy(cl->ps.stats, cl->chaseTarget->ps.stats, sizeof(cl->ps.stats));
 
     cl->ps.stats[STAT_SPECTATOR] = 1;
-    cl->ps.stats[STAT_CHASE] = cl->chaseTarget->entity->s.number;
+    cl->ps.stats[STAT_CHASE] = cl->chaseTarget->ps.entity;
 
     // scores are independent of chase camera target
     if (gameLevel.intermissionTime || cl->showScores) {

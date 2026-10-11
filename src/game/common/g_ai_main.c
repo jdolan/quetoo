@@ -380,7 +380,7 @@ static inline void G_Ai_RestorePath(const GameClient *cl, GameAi *ai) {
  */
 static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (G_IsMeat(cl->entity) && cl->entity->dead) {
     return 1;
   }
 
@@ -611,7 +611,7 @@ static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box
 
   const GameEntity *ent= aiCurrentEntity;
 
-  if (ent->solid == SOLID_DEAD) {
+  if (G_IsMeat(ent) && ent->dead) {
     return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_CORPSE);
   } else {
     return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
@@ -1919,7 +1919,7 @@ static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, Gam
  */
 void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (G_IsMeat(cl->entity) && cl->entity->dead) {
     G_Ai_ClearGoal(&cl->ai->combatTarget);
     G_Ai_ClearGoal(&cl->ai->moveTarget);
     G_Ai_ClearGoal(&cl->ai->backupMoveTarget);

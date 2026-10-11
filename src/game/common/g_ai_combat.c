@@ -286,7 +286,7 @@ static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
  */
 uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (G_IsMeat(cl->entity) && cl->entity->dead) {
     return 1;
   }
 
@@ -807,7 +807,7 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
  */
 uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (G_IsMeat(cl->entity) && cl->entity->dead) {
     return 1;
   }
 

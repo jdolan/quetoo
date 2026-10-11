@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1058
+#define PROTOCOL_MINOR 1059
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -1700,10 +1700,9 @@ struct GameClient {
   uint32_t respawnTime;
 
   /**
-   * @brief The time at which this client died, used to gate the forced
-   * BOTH_DEATHx -> BOTH_DEADx animation transition (see DEATH_ANIM_SETTLE_TIME).
+   * @brief The corpse or head giblet this client watches while dead, until they respawn.
    */
-  uint32_t deathTime;
+  GameEntity *corpse;
 
   /**
    * @brief Respawn protection expires at this time.

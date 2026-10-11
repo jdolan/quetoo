@@ -389,6 +389,10 @@ void G_InvalidateEntityReferences(const GameEntity *ent) {
       if (other->client->heldGrenade == ent) {
         other->client->heldGrenade = NULL;
       }
+      if (other->client->corpse == ent) {
+        other->client->corpse = NULL;
+        other->client->ps.entity = other->s.number;
+      }
       if (other->client->ai) {
         G_Ai_InvalidateReferences(other->client->ai, ent);
       }
@@ -655,6 +659,8 @@ GameClient *G_ClientByName(char *name) {
 
 /**
  * @return True if the specified entity should bleed when damaged.
+ * @remarks A dead client is meat, though their own entity is no longer solid: their corpse is
+ * their body until they respawn.
  */
 bool G_IsMeat(const GameEntity *ent) {
 
@@ -663,6 +669,10 @@ bool G_IsMeat(const GameEntity *ent) {
   }
 
   if (ent->solid == SOLID_BOX && ent->client) {
+    return true;
+  }
+
+  if (ent->client && ent->dead && !ent->client->persistent.spectator) {
     return true;
   }
 

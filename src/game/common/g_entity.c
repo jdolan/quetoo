@@ -618,6 +618,7 @@ void G_SpawnEntities(const char *name, const Entity *mapListEntry, Entity *const
   // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
     cl->entity = NULL;
+    cl->corpse = NULL;
 #if defined(G_HOOK)
     // the grapple's entities are freed below with all the rest, so the state
     // referring to them must not survive into the next level
