@@ -27,8 +27,9 @@
  * @file
  * @brief The compiled navigation file format, `maps/<name>.nav`.
  * @details `quemap -nav` writes it from the BSP voxel grid: one floor node at most per voxel,
- * and typed links between nodes. The game reads it to route its bots. Every field is
- * little-endian, and the file is the header, then `numNodes` nodes, then `numLinks` links.
+ * and typed links between nodes. The game reads it to route its bots, and appends the jumps
+ * that it learns from players. Every field is little-endian, and the file is the header, then
+ * `numNodes` nodes, `numLinks` links, `numJumps` jumps and `numJumpSteps` jump steps.
  */
 
 /**
@@ -79,6 +80,11 @@ typedef enum {
    * @brief Ride a `func_plat` up. The game links these at load; they are never compiled.
    */
   NAV_TRAVEL_ELEVATOR,
+
+  /**
+   * @brief Replay a `NavJump` that the game learned from a player.
+   */
+  NAV_TRAVEL_JUMP,
 } NavTravelType;
 
 /**
@@ -124,6 +130,16 @@ typedef struct {
    * @brief The link count.
    */
   int32_t numLinks;
+
+  /**
+   * @brief The learned jump count.
+   */
+  int32_t numJumps;
+
+  /**
+   * @brief The jump step count, over all jumps.
+   */
+  int32_t numJumpSteps;
 } NavHeader;
 
 /**
@@ -181,6 +197,94 @@ typedef struct {
   int32_t travelTime;
 } NavLink;
 
-_Static_assert(sizeof(NavHeader) == 40, "NavHeader is on disk; changing it requires a new NAV_VERSION");
+/**
+ * @brief A jump that the game learned from a player: the state at its start, and the commands
+ * that the player sent from there until landing.
+ */
+typedef struct {
+  /**
+   * @brief The node nearest the start of the jump.
+   */
+  int32_t from;
+
+  /**
+   * @brief The node nearest the landing.
+   */
+  int32_t to;
+
+  /**
+   * @brief The `PMovement` that the jump was learned under. It is valid for that movement only.
+   */
+  int32_t movement;
+
+  /**
+   * @brief The travel time, in hundredths of a second.
+   */
+  int32_t travelTime;
+
+  /**
+   * @brief The player origin at the start of the jump.
+   */
+  Vec3 origin;
+
+  /**
+   * @brief The player velocity at the start of the jump.
+   */
+  Vec3 velocity;
+
+  /**
+   * @brief The Pmove flags at the start of the jump.
+   */
+  int32_t flags;
+
+  /**
+   * @brief The Pmove timer at the start of the jump.
+   */
+  int32_t time;
+
+  /**
+   * @brief The index of the jump's first step.
+   */
+  int32_t firstStep;
+
+  /**
+   * @brief The count of the jump's steps.
+   */
+  int32_t numSteps;
+} NavJump;
+
+/**
+ * @brief One movement command of a learned jump, and where it left the player.
+ */
+typedef struct {
+  /**
+   * @brief The view angles that Pmove used: the command's angles plus the delta angles.
+   */
+  Vec3 angles;
+
+  /**
+   * @brief The player origin after the command.
+   */
+  Vec3 origin;
+
+  /**
+   * @brief The command's directional intentions.
+   */
+  int16_t forward, right, up;
+
+  /**
+   * @brief The command's duration, in milliseconds.
+   */
+  uint8_t msec;
+
+  /**
+   * @brief The command's buttons.
+   */
+  uint8_t buttons;
+} NavJumpStep;
+
+_Static_assert(sizeof(NavHeader) == 48, "NavHeader is on disk; changing it requires a new NAV_VERSION");
 _Static_assert(sizeof(NavNode) == 32, "NavNode is on disk; changing it requires a new NAV_VERSION");
 _Static_assert(sizeof(NavLink) == 12, "NavLink is on disk; changing it requires a new NAV_VERSION");
+_Static_assert(sizeof(NavJump) == 56, "NavJump is on disk; changing it requires a new NAV_VERSION");
+_Static_assert(sizeof(NavJumpStep) == 32, "NavJumpStep is on disk; changing it requires a new NAV_VERSION");

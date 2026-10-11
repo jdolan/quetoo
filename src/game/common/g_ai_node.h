@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "collision/nav.h"
+
 #if defined(__G_LOCAL_H__)
 
 uint32_t G_Ai_Node_Count(void);
@@ -45,10 +47,25 @@ typedef struct {
    * @brief The `NavTravelType`, or 0 for a link recorded in game.
    */
   int32_t travelType;
+
+  /**
+   * @brief The index of the learned jump that a `NAV_TRAVEL_JUMP` link replays, or -1.
+   */
+  int32_t jump;
 } GameAiLink;
 
 const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a);
 const GameAiLink *G_Ai_Node_GetLink(const GameAiNodeId a, const GameAiNodeId b);
+
+/**
+ * @return The learned jump at `index`, or `NULL`.
+ */
+const NavJump *G_Ai_Node_GetJump(const int32_t index);
+
+/**
+ * @return The steps of the given learned jump.
+ */
+const NavJumpStep *G_Ai_Node_GetJumpSteps(const NavJump *jump);
 Vec3 G_Ai_Node_GetPosition(const GameAiNodeId node);
 GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 bool G_Ai_Node_CanPathTo(const Vec3 position);

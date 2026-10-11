@@ -1261,6 +1261,176 @@ static bool G_Ai_IsRidingMover(const GameEntity *ent) {
  * @brief Move towards our current target
  */
 /**
+ * @brief The distance from a learned jump's start at which a bot starts to replay it.
+ */
+#define AI_JUMP_START_DISTANCE 8.f
+
+/**
+ * @brief The distance from a learned jump's recorded path at which a bot abandons the replay.
+ */
+#define AI_JUMP_ABORT_DISTANCE 32.f
+
+/**
+ * @brief The most that a bot turns per step to return to a learned jump's recorded path.
+ */
+#define AI_JUMP_CORRECTION 10.f
+
+/**
+ * @return The learned jump on the bot's current path link, or `NULL`.
+ */
+static const NavJump *G_Ai_PathJump(const GameClient *cl, int32_t *index) {
+
+  if (cl->ai->moveTarget.type != AI_GOAL_PATH || cl->ai->moveTarget.path.pathIndex == 0) {
+    return NULL;
+  }
+
+  const Vector *path = cl->ai->moveTarget.path.path;
+  const uint32_t i = cl->ai->moveTarget.path.pathIndex;
+
+  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, i - 1),
+                                             VectorValue(path, GameAiNodeId, i));
+
+  if (!link || link->travelType != NAV_TRAVEL_JUMP) {
+    return NULL;
+  }
+
+  *index = link->jump;
+  return G_Ai_Node_GetJump(link->jump);
+}
+
+/**
+ * @brief The most that a bot's horizontal velocity may differ from a learned jump's, at the run-up
+ * step where it joins the jump.
+ */
+#define AI_JUMP_JOIN_SPEED 50.f
+
+/**
+ * @brief Steers the bot to the start of the learned jump on its path. The bot joins the jump at
+ * any step of the run-up where its position and velocity match the recording's.
+ * @return True if the path's current link is a learned jump, in which case `dest` is its start.
+ */
+static bool G_Ai_ApproachJump(GameClient *cl, Vec3 *dest) {
+
+  int32_t index;
+  const NavJump *jump = G_Ai_PathJump(cl, &index);
+  if (!jump) {
+    return false;
+  }
+
+  *dest = jump->origin;
+
+  const GameEntity *ent = cl->entity;
+  if (!ent->ground.ent) {
+    return true;
+  }
+
+  const NavJumpStep *steps = G_Ai_Node_GetJumpSteps(jump);
+
+  for (int32_t i = 0; i < jump->numSteps - 1 && steps[i].up <= 0; i++) {
+
+    const Vec3 position = i ? steps[i - 1].origin : jump->origin;
+    const Vec2 delta = Vec2_Subtract(Vec3_XY(position), Vec3_XY(ent->s.origin));
+
+    if (Vec2_Length(delta) > AI_JUMP_START_DISTANCE || fabsf(position.z - ent->s.origin.z) > PM_STEP_HEIGHT) {
+      continue;
+    }
+
+    const Vec3 velocity = i ? Vec3_Scale(Vec3_Subtract(steps[i].origin, position), 1000.f / Maxi(1, steps[i].msec))
+                            : jump->velocity;
+
+    if (Vec2_Length(Vec2_Subtract(Vec3_XY(velocity), Vec3_XY(ent->velocity))) > AI_JUMP_JOIN_SPEED) {
+      continue;
+    }
+
+    cl->ai->jumping = true;
+    cl->ai->jump = index;
+    cl->ai->jumpStep = i;
+    cl->ai->jumpDebt = 0;
+    G_Ai_Debug("Replaying learned jump %d from step %d\n", index, i);
+    break;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Builds the next command of the learned jump that the bot replays. Where the bot strays
+ * from the recorded path, it turns back toward it, by at most `AI_JUMP_CORRECTION` per step.
+ * @return False, and the replay ends, when the jump is done or the bot strays too far.
+ */
+static bool G_Ai_JumpCommand(GameClient *cl, PMoveCmd *cmd) {
+
+  const NavJump *jump = G_Ai_Node_GetJump(cl->ai->jump);
+  const GameEntity *ent = cl->entity;
+
+  if (!jump || cl->ai->jumpStep >= jump->numSteps || ent->dead) {
+    cl->ai->jumping = false;
+    return false;
+  }
+
+  const NavJumpStep *steps = G_Ai_Node_GetJumpSteps(jump);
+  const NavJumpStep *step = &steps[cl->ai->jumpStep];
+  const Vec3 expected = cl->ai->jumpStep ? steps[cl->ai->jumpStep - 1].origin : jump->origin;
+
+  if (Vec3_Distance(ent->s.origin, expected) > AI_JUMP_ABORT_DISTANCE) {
+    G_Ai_Debug("Abandoning learned jump %d at step %d\n", cl->ai->jump, cl->ai->jumpStep);
+    cl->ai->jumping = false;
+    return false;
+  }
+
+  Vec3 angles = step->angles;
+
+  const Vec2 recorded = Vec2_Subtract(Vec3_XY(step->origin), Vec3_XY(expected));
+  const Vec2 wanted = Vec2_Subtract(Vec3_XY(step->origin), Vec3_XY(ent->s.origin));
+
+  if (Vec2_Length(recorded) > 1.f && Vec2_Length(wanted) > 1.f) {
+    const float error = AngleMod(Degrees(atan2f(wanted.y, wanted.x) - atan2f(recorded.y, recorded.x)));
+    angles.y += Clampf(error > 180.f ? error - 360.f : error, -AI_JUMP_CORRECTION, AI_JUMP_CORRECTION);
+  }
+
+  *cmd = (PMoveCmd) {
+    .msec = step->msec,
+    .angles = Vec3_Subtract(angles, cl->ps.pmState.deltaAngles),
+    .forward = step->forward,
+    .right = step->right,
+    .up = step->up,
+    .buttons = step->buttons
+  };
+
+  cl->ai->jumpStep++;
+  return true;
+}
+
+/**
+ * @brief Replays the bot's learned jump for one server tick, with the recorded command durations.
+ * A tick that runs over is repaid from the next.
+ * @return The milliseconds of the tick that the replay left unused.
+ */
+static uint32_t G_Ai_ReplayJump(GameClient *cl) {
+
+  const int32_t budget = QUETOO_TICK_MILLIS - Mini(cl->ai->jumpDebt, QUETOO_TICK_MILLIS);
+  int32_t millis = 0;
+
+  while (cl->ai->jumping && millis < budget) {
+    PMoveCmd cmd;
+    if (!G_Ai_JumpCommand(cl, &cmd)) {
+      break;
+    }
+
+    millis += cmd.msec;
+    G_ClientThink(cl, &cmd);
+  }
+
+  if (millis >= budget) {
+    cl->ai->jumpDebt += millis - QUETOO_TICK_MILLIS;
+    return 0;
+  }
+
+  cl->ai->jumpDebt = 0;
+  return (uint32_t) (budget - millis);
+}
+
+/**
  * @brief The horizontal distance from a barrier jump's target at which a bot jumps.
  */
 #define AI_BARRIER_JUMP_DISTANCE 48.f
@@ -1362,6 +1532,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
         if (cl->ai->moveTarget.path.trickJump) {
           dest = cl->ai->moveTarget.path.trickPosition;
+        } else if (G_Ai_ApproachJump(cl, &dest)) {
+          toPush = false;
         } else {
           dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
           toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);
@@ -2082,8 +2254,13 @@ void G_Ai_Begin(GameClient *cl) {
  * @brief Runs the AI think function multiple times per server frame to simulate a real client.
  */
 static void G_Ai_ClientThink(GameEntity *ent) {
-  const int32_t numRuns = 3;
+  int32_t numRuns = 3;
   uint8_t msecLeft = QUETOO_TICK_MILLIS;
+
+  if (ent->client && ent->client->ai->jumping) {
+    msecLeft = (uint8_t) G_Ai_ReplayJump(ent->client);
+    numRuns = msecLeft ? 1 : 0;
+  }
 
   for (int32_t i = 0; i < numRuns; i++) {
 

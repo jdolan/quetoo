@@ -56,6 +56,78 @@ static void G_Ai_Node_InvalidateSpatialIndex(void) {
 }
 
 /**
+ * @brief The most steps that a learned jump can have, its run-up included.
+ */
+#define AI_JUMP_MAX_STEPS 512
+
+/**
+ * @brief The run-up, in milliseconds, that a learned jump keeps before its takeoff.
+ */
+#define AI_JUMP_RUN_UP_MILLIS 250
+
+/**
+ * @brief The time on the ground, in milliseconds, that ends a learned jump. A jump within it
+ * continues the same jump, as a trick jump does.
+ */
+#define AI_JUMP_LAND_MILLIS 100
+
+/**
+ * @brief The longest jump that the recorder learns, in milliseconds.
+ */
+#define AI_JUMP_MAX_MILLIS 4000
+
+/**
+ * @brief The distance from a node within which a learned jump starts or lands at it.
+ */
+#define AI_JUMP_NODE_DISTANCE 48.f
+
+/**
+ * @brief The most that a replayed jump may stray from the recorded origin of any step.
+ */
+#define AI_JUMP_REPLAY_TOLERANCE 16.f
+
+/**
+ * @brief A jump is learned only if the graph's best path is this much more costly, or absent.
+ */
+#define AI_JUMP_SHORTCUT 1.5f
+
+/**
+ * @brief One recorded command, and the player state before it.
+ */
+typedef struct {
+  NavJumpStep step;
+  Vec3 origin, velocity;
+  uint16_t flags, time;
+  bool grounded;
+} GameAiJumpSample;
+
+/**
+ * @brief The recorder's progress through a jump.
+ */
+typedef enum {
+  AI_JUMP_IDLE,
+  AI_JUMP_AIRBORNE,
+  AI_JUMP_LANDED,
+} GameAiJumpState;
+
+/**
+ * @brief Records the jumps of the developer's player, to learn the ones that the graph lacks.
+ */
+typedef struct {
+  bool primed;
+  Vec3 origin, velocity;
+  uint16_t flags, time;
+  bool grounded;
+
+  GameAiJumpSample samples[AI_JUMP_MAX_STEPS];
+  int32_t count;
+
+  GameAiJumpState state;
+  int32_t landing;
+  uint32_t millis, landedMillis;
+} GameAiJumpRecorder;
+
+/**
  * @brief State used during player roam recording for AI node development.
  */
 static struct {
@@ -78,6 +150,15 @@ static struct {
   bool compiled;
 
   int32_t *voxelNodes;
+
+  NavHeader navFile;
+  NavNode *navNodes;
+  NavLink *navLinks;
+
+  Vector *jumps;
+  Vector *jumpSteps;
+
+  GameAiJumpRecorder recorder;
 } module;
 
 /**
@@ -403,6 +484,25 @@ const GameAiLink *G_Ai_Node_GetLink(const GameAiNodeId a, const GameAiNodeId b) 
 }
 
 /**
+ * @see g_ai_node.h
+ */
+const NavJump *G_Ai_Node_GetJump(const int32_t index) {
+
+  if (!module.jumps || index < 0 || index >= (int32_t) module.jumps->count) {
+    return NULL;
+  }
+
+  return VectorElement(module.jumps, NavJump, index);
+}
+
+/**
+ * @see g_ai_node.h
+ */
+const NavJumpStep *G_Ai_Node_GetJumpSteps(const NavJump *jump) {
+  return VectorElement(module.jumpSteps, NavJumpStep, jump->firstStep);
+}
+
+/**
  * @brief Returns the array of outgoing links for the specified node.
  */
 const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a) {
@@ -432,7 +532,8 @@ void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const floa
   GameAiLink link = (GameAiLink) {
     .id = b,
     .cost = cost,
-    .travelType = travelType
+    .travelType = travelType,
+    .jump = -1
   };
   $(nodeA->links, add, &link);
 
@@ -718,12 +819,21 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
  */
 #define TELEPORT_DISTANCE  64.f
 
+static void G_Ai_Node_RecordJump(GameClient *cl, const PMoveCmd *cmd);
+
 /**
  * @brief Handles automatic node placement as the player moves through the map during development.
  */
 void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd) {
 
-  if (!g_aiNodeDev->integer || module.compiled) {
+  if (!g_aiNodeDev->integer) {
+    return;
+  }
+
+  if (module.compiled) {
+    if (g_aiNodeDev->integer == 1) {
+      G_Ai_Node_RecordJump(cl, cmd);
+    }
     return;
   }
 
@@ -1198,6 +1308,309 @@ typedef struct {
 _Static_assert(sizeof(GameAiLinkRecord) == 8, "GameAiLinkRecord is on disk; changing it requires a new AI_NODE_VERSION");
 
 /**
+ * @brief Clips a replayed jump to the world alone, so that players and movers do not block it.
+ */
+static CollisionTrace G_Ai_Node_ReplayTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+  return gi.Clip(start, end, bounds, ge.entities[0], CONTENTS_MASK_CLIP_CORPSE);
+}
+
+/**
+ * @brief Replays a learned jump with the current movement.
+ * @return True if every step lands within `AI_JUMP_REPLAY_TOLERANCE` of where it was recorded.
+ */
+static bool G_Ai_Node_ReplayJump(const NavJump *jump, const NavJumpStep *steps) {
+
+  PMove pm;
+  memset(&pm, 0, sizeof(pm));
+
+  pm.s.type = PM_NORMAL;
+  pm.s.origin = jump->origin;
+  pm.s.velocity = jump->velocity;
+  pm.s.flags = (uint16_t) jump->flags;
+  pm.s.time = (uint16_t) jump->time;
+  pm.s.params = G_MovementParams();
+
+  pm.PointContents = gi.PointContents;
+  pm.BoxContents = gi.BoxContents;
+  pm.Trace = G_Ai_Node_ReplayTrace;
+
+  pm.Debug = gi.Debug;
+  pm.DebugMask = gi.DebugMask;
+  pm.debugMask = DEBUG_PMOVE_SERVER;
+
+  for (int32_t i = 0; i < jump->numSteps; i++) {
+    const NavJumpStep *step = &steps[i];
+
+    pm.cmd = (PMoveCmd) {
+      .msec = step->msec,
+      .angles = step->angles,
+      .forward = step->forward,
+      .right = step->right,
+      .up = step->up,
+      .buttons = step->buttons
+    };
+
+    Pm_Move(&pm);
+
+    if (Vec3_Distance(pm.s.origin, step->origin) > AI_JUMP_REPLAY_TOLERANCE) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @brief Adds a learned jump to the graph, as a link that replays it.
+ */
+static void G_Ai_Node_AddJump(const NavJump *jump, const NavJumpStep *steps) {
+
+  NavJump copy = *jump;
+  copy.firstStep = (int32_t) module.jumpSteps->count;
+
+  for (int32_t i = 0; i < jump->numSteps; i++) {
+    $(module.jumpSteps, add, (ident) &steps[i]);
+  }
+
+  $(module.jumps, add, &copy);
+
+  if (copy.movement != G_MovementParams().movement) {
+    return;
+  }
+
+  const Vec3 from = G_Ai_Node_GetPosition(copy.from);
+  const Vec3 to = G_Ai_Node_GetPosition(copy.to);
+  const float cost = Maxf(Vec3_Distance(from, to), copy.travelTime * PM_SPEED_RUN / 100.f);
+
+  G_Ai_Node_LinkTravel(copy.from, copy.to, cost, NAV_TRAVEL_JUMP);
+
+  GameAiNode *node = AI_NODE(aiNodes, copy.from);
+  for (size_t i = 0; i < node->links->count; i++) {
+    GameAiLink *link = AI_LINK(node->links, i);
+    if (link->id == (GameAiNodeId) copy.to) {
+      link->travelType = NAV_TRAVEL_JUMP;
+      link->jump = (int32_t) module.jumps->count - 1;
+    }
+  }
+}
+
+/**
+ * @brief Adds a compiled file's learned jumps to the graph. A jump learned under the current
+ * movement is replayed first, and dropped if it no longer lands. A jump learned under another
+ * movement is kept for saving, but not linked.
+ */
+static void G_Ai_Node_LoadJumps(const NavJump *jumps, int32_t numJumps, const NavJumpStep *steps, int32_t numSteps) {
+
+  module.jumps = $(alloc(Vector), initWithSize, sizeof(NavJump));
+  module.jumpSteps = $(alloc(Vector), initWithSize, sizeof(NavJumpStep));
+
+  const int32_t movement = G_MovementParams().movement;
+  int32_t numLinked = 0, numOther = 0;
+
+  for (int32_t i = 0; i < numJumps; i++) {
+    const NavJump *jump = &jumps[i];
+
+    if (jump->from < 0 || jump->from >= (int32_t) aiNodes->count ||
+        jump->to < 0 || jump->to >= (int32_t) aiNodes->count || jump->travelTime <= 0 ||
+        jump->numSteps <= 0 || jump->numSteps > AI_JUMP_MAX_STEPS || jump->firstStep < 0 ||
+        jump->firstStep > numSteps || jump->numSteps > numSteps - jump->firstStep) {
+      G_Warn("Nav file has an invalid jump %d\n", i);
+      continue;
+    }
+
+    if (jump->movement != movement) {
+      G_Ai_Node_AddJump(jump, &steps[jump->firstStep]);
+      numOther++;
+      continue;
+    }
+
+    if (!G_Ai_Node_ReplayJump(jump, &steps[jump->firstStep])) {
+      G_Warn("Learned jump %d from node %d to %d no longer lands; dropping it\n", i, jump->from, jump->to);
+      continue;
+    }
+
+    G_Ai_Node_AddJump(jump, &steps[jump->firstStep]);
+    numLinked++;
+  }
+
+  if (numJumps) {
+    gi.Print("  Loaded %d learned jumps, and %d for other movements.\n", numLinked, numOther);
+  }
+}
+
+/**
+ * @brief Learns the jump that the recorder holds, if the graph lacks it and it replays.
+ */
+static void G_Ai_Node_LearnJump(const GameClient *cl) {
+
+  GameAiJumpRecorder *rec = &module.recorder;
+
+  const GameAiJumpSample *first = &rec->samples[0];
+  const GameAiJumpSample *landing = &rec->samples[rec->landing];
+
+  const GameAiNodeId from = G_Ai_Node_FindClosest(first->origin, AI_JUMP_NODE_DISTANCE, false, true);
+  const GameAiNodeId to = G_Ai_Node_FindClosest(landing->step.origin, AI_JUMP_NODE_DISTANCE, false, true);
+
+  if (from == AI_NODE_INVALID || to == AI_NODE_INVALID || from == to) {
+    G_Ai_Debug("Jump does not start and end at different nodes\n");
+    return;
+  }
+
+  NavJumpStep steps[AI_JUMP_MAX_STEPS];
+  uint32_t millis = 0;
+
+  for (int32_t i = 0; i <= rec->landing; i++) {
+    steps[i] = rec->samples[i].step;
+    millis += steps[i].msec;
+  }
+
+  const NavJump jump = {
+    .from = (int32_t) from,
+    .to = (int32_t) to,
+    .movement = cl->ps.pmState.params.movement,
+    .travelTime = Maxi(1, (int32_t) (millis + 9) / 10),
+    .origin = first->origin,
+    .velocity = first->velocity,
+    .flags = first->flags,
+    .time = first->time,
+    .firstStep = 0,
+    .numSteps = rec->landing + 1
+  };
+
+  if (G_Ai_Node_GetLink(from, to)) {
+    gi.Print("Already linked node %u to %u\n", from, to);
+    return;
+  }
+
+  const float cost = Maxf(Vec3_Distance(G_Ai_Node_GetPosition(from), G_Ai_Node_GetPosition(to)),
+                          jump.travelTime * PM_SPEED_RUN / 100.f);
+
+  Vector *path = G_Ai_Node_FindPath(NULL, from, to, G_Ai_Node_Heuristic, cost * AI_JUMP_SHORTCUT, NULL);
+  if (path) {
+    release(path);
+    gi.Print("A path from node %u to %u exists; not learning this jump\n", from, to);
+    return;
+  }
+
+  if (!G_Ai_Node_ReplayJump(&jump, steps)) {
+    gi.Print("The jump from node %u to %u does not replay; not learning it\n", from, to);
+    return;
+  }
+
+  G_Ai_Node_AddJump(&jump, steps);
+
+  gi.Print("Learned a jump from node %u to %u: %d steps, %u ms\n", from, to, jump.numSteps, millis);
+}
+
+/**
+ * @brief Records the developer's movement, and learns the jumps that the compiled graph lacks.
+ * @details A jump starts with a run-up of `AI_JUMP_RUN_UP_MILLIS` on the ground and a takeoff with
+ * the jump button held. It ends after `AI_JUMP_LAND_MILLIS` on the ground, so a jump on landing,
+ * as in a trick jump, belongs to the same jump. Pushes, teleports, water and ladders abort it.
+ */
+static void G_Ai_Node_RecordJump(GameClient *cl, const PMoveCmd *cmd) {
+
+  GameAiJumpRecorder *rec = &module.recorder;
+  const GameEntity *ent = cl->entity;
+  const bool grounded = ent->ground.ent != NULL;
+
+  const GameAiJumpSample sample = {
+    .step = {
+      .angles = Vec3_Add(cmd->angles, cl->ps.pmState.deltaAngles),
+      .origin = ent->s.origin,
+      .forward = cmd->forward,
+      .right = cmd->right,
+      .up = cmd->up,
+      .msec = cmd->msec,
+      .buttons = cmd->buttons
+    },
+    .origin = rec->origin,
+    .velocity = rec->velocity,
+    .flags = rec->flags,
+    .time = rec->time,
+    .grounded = rec->grounded
+  };
+
+  const bool primed = rec->primed;
+
+  rec->primed = true;
+  rec->origin = ent->s.origin;
+  rec->velocity = ent->velocity;
+  rec->flags = cl->ps.pmState.flags;
+  rec->time = cl->ps.pmState.time;
+  rec->grounded = grounded;
+
+  const bool abort = !primed || ent->dead || cl->ps.pmState.type != PM_NORMAL ||
+    (cl->ps.pmState.flags & (PMF_TIME_PUSHED | PMF_TIME_TELEPORT | PMF_ON_LADDER)) ||
+    ent->waterLevel > WATER_FEET || Vec3_Distance(sample.origin, ent->s.origin) > 64.f ||
+    rec->count == AI_JUMP_MAX_STEPS || rec->millis > AI_JUMP_MAX_MILLIS;
+
+  if (abort) {
+    rec->count = 0;
+    rec->state = AI_JUMP_IDLE;
+    return;
+  }
+
+  switch (rec->state) {
+    case AI_JUMP_IDLE:
+      if (sample.grounded && grounded) {
+        rec->samples[rec->count++] = sample;
+
+        uint32_t millis = 0;
+        for (int32_t i = 0; i < rec->count; i++) {
+          millis += rec->samples[i].step.msec;
+        }
+
+        int32_t trim = 0;
+        while (millis > AI_JUMP_RUN_UP_MILLIS && trim < rec->count - 1) {
+          millis -= rec->samples[trim++].step.msec;
+        }
+
+        memmove(rec->samples, rec->samples + trim, sizeof(GameAiJumpSample) * (rec->count - trim));
+        rec->count -= trim;
+      } else if (sample.grounded && !grounded && cmd->up > 0) {
+        rec->samples[rec->count++] = sample;
+        rec->state = AI_JUMP_AIRBORNE;
+        rec->millis = 0;
+        for (int32_t i = 0; i < rec->count; i++) {
+          rec->millis += rec->samples[i].step.msec;
+        }
+      } else {
+        rec->count = 0;
+      }
+      break;
+
+    case AI_JUMP_AIRBORNE:
+      rec->samples[rec->count++] = sample;
+      rec->millis += cmd->msec;
+
+      if (grounded) {
+        rec->state = AI_JUMP_LANDED;
+        rec->landing = rec->count - 1;
+        rec->landedMillis = 0;
+      }
+      break;
+
+    case AI_JUMP_LANDED:
+      rec->samples[rec->count++] = sample;
+      rec->millis += cmd->msec;
+
+      if (!grounded) {
+        rec->state = AI_JUMP_AIRBORNE;
+      } else {
+        rec->landedMillis += cmd->msec;
+
+        if (rec->landedMillis >= AI_JUMP_LAND_MILLIS) {
+          G_Ai_Node_LearnJump(cl);
+          rec->count = 0;
+          rec->state = AI_JUMP_IDLE;
+        }
+      }
+      break;
+  }
+}
+
+/**
  * @brief The most links a compiled node can have, for validating a `.nav` file's link count.
  */
 #define AI_NODE_MAX_LINKS 64
@@ -1228,16 +1641,30 @@ static bool G_Ai_ReadCompiledNodes(File *file) {
   }
 
   if (header.numNodes < 0 || header.numNodes > bsp->numVoxels || header.numLinks < 0 ||
-      header.numLinks / AI_NODE_MAX_LINKS > header.numNodes) {
-    G_Warn("Nav file has an invalid node or link count\n");
+      header.numLinks / AI_NODE_MAX_LINKS > header.numNodes || header.numJumps < 0 ||
+      header.numJumpSteps < 0 || header.numJumpSteps / AI_JUMP_MAX_STEPS > header.numJumps) {
+    G_Warn("Nav file has an invalid node, link or jump count\n");
     return false;
   }
 
-  NavNode *nodes = gi.Malloc(sizeof(NavNode) * Maxi(1, header.numNodes), MEM_TAG_AI);
-  NavLink *links = gi.Malloc(sizeof(NavLink) * Maxi(1, header.numLinks), MEM_TAG_AI);
+  header.magic = NAV_MAGIC;
+  header.version = NAV_VERSION;
+  module.navFile = header;
 
-  bool valid = gi.ReadFile(file, nodes, sizeof(NavNode), header.numNodes) == header.numNodes &&
-               gi.ReadFile(file, links, sizeof(NavLink), header.numLinks) == header.numLinks;
+  NavNode *nodes = module.navNodes = malloc(sizeof(NavNode) * Maxi(1, header.numNodes));
+  NavLink *links = module.navLinks = malloc(sizeof(NavLink) * Maxi(1, header.numLinks));
+  NavJump *jumps = malloc(sizeof(NavJump) * Maxi(1, header.numJumps));
+  NavJumpStep *steps = malloc(sizeof(NavJumpStep) * Maxi(1, header.numJumpSteps));
+
+  bool valid = nodes && links && jumps && steps;
+  if (!valid) {
+    G_Warn("Failed to allocate the nav file\n");
+  }
+
+  valid = valid && gi.ReadFile(file, nodes, sizeof(NavNode), header.numNodes) == header.numNodes &&
+                   gi.ReadFile(file, links, sizeof(NavLink), header.numLinks) == header.numLinks &&
+                   gi.ReadFile(file, jumps, sizeof(NavJump), header.numJumps) == header.numJumps &&
+                   gi.ReadFile(file, steps, sizeof(NavJumpStep), header.numJumpSteps) == header.numJumpSteps;
 
   if (!valid) {
     G_Warn("Nav file is truncated\n");
@@ -1288,7 +1715,8 @@ static bool G_Ai_ReadCompiledNodes(File *file) {
         GameAiLink out = {
           .id = link->node,
           .cost = Maxf(distance, link->travelTime * PM_SPEED_RUN / 100.f),
-          .travelType = link->travelType
+          .travelType = link->travelType,
+          .jump = -1
         };
 
         $(node.links, add, &out);
@@ -1299,20 +1727,18 @@ static bool G_Ai_ReadCompiledNodes(File *file) {
     module.voxelNodes[in->voxel] = i;
   }
 
-  gi.Free(nodes);
-  gi.Free(links);
-
   G_Ai_Node_InvalidateSpatialIndex();
 
-  if (!valid) {
-    return false;
+  if (valid) {
+    module.compiled = true;
+    G_Ai_Node_LoadJumps(jumps, header.numJumps, steps, header.numJumpSteps);
+    gi.Print("  Loaded %d compiled nodes with %d total links.\n", header.numNodes, header.numLinks);
   }
 
-  module.compiled = true;
+  free(jumps);
+  free(steps);
 
-  gi.Print("  Loaded %d compiled nodes with %d total links.\n", header.numNodes, header.numLinks);
-
-  return true;
+  return valid;
 }
 
 /**
@@ -1386,7 +1812,8 @@ static bool G_Ai_ReadNodes(File *file) {
 
         GameAiLink link = {
           .id = record.id,
-          .cost = record.cost
+          .cost = record.cost,
+          .jump = -1
         };
 
         if (link.id >= numNodes) {
@@ -1748,6 +2175,32 @@ void G_Ai_NodesReady(void) {
 }
 
 /**
+ * @brief Writes the compiled graph that was loaded, with the jumps learned since, to `filename`.
+ */
+static void G_Ai_SaveCompiledNodes(const char *filename) {
+
+  File *file = gi.OpenFileWrite(filename);
+  if (!file) {
+    G_Warn("Failed to open %s\n", filename);
+    return;
+  }
+
+  NavHeader header = module.navFile;
+  header.numJumps = (int32_t) module.jumps->count;
+  header.numJumpSteps = (int32_t) module.jumpSteps->count;
+
+  gi.WriteFile(file, &header, sizeof(header), 1);
+  gi.WriteFile(file, module.navNodes, sizeof(NavNode), header.numNodes);
+  gi.WriteFile(file, module.navLinks, sizeof(NavLink), header.numLinks);
+  gi.WriteFile(file, module.jumps->elements, sizeof(NavJump), header.numJumps);
+  gi.WriteFile(file, module.jumpSteps->elements, sizeof(NavJumpStep), header.numJumpSteps);
+
+  gi.CloseFile(file);
+
+  gi.Print("Wrote %d learned jumps to %s.\n", header.numJumps, gi.RealPath(filename));
+}
+
+/**
  * @brief Serializes all navigation nodes and their links to the current map's .nav file.
  */
 void G_Ai_SaveNodes(void) {
@@ -1757,14 +2210,14 @@ void G_Ai_SaveNodes(void) {
     return;
   }
 
-  if (module.compiled) {
-    G_Warn("This map's nodes were compiled by quemap -nav; recompile them instead.\n");
-    return;
-  }
-
   char filename[MAX_OS_PATH];
 
   Str_Format(filename, sizeof(filename), "maps/%s.nav", gameLevel.name);
+
+  if (module.compiled) {
+    G_Ai_SaveCompiledNodes(filename);
+    return;
+  }
 
   if (!aiNodes) {
     G_Warn("No nodes to write.\n");
@@ -1811,6 +2264,29 @@ void G_Ai_SaveNodes(void) {
 }
 
 /**
+ * @brief Frees the state of a compiled graph: the voxel index, the file data, and learned jumps.
+ */
+static void G_Ai_Node_FreeCompiled(void) {
+
+  free(module.voxelNodes);
+  module.voxelNodes = NULL;
+
+  free(module.navNodes);
+  module.navNodes = NULL;
+
+  free(module.navLinks);
+  module.navLinks = NULL;
+
+  module.jumps = release(module.jumps);
+  module.jumpSteps = release(module.jumpSteps);
+
+  memset(&module.navFile, 0, sizeof(module.navFile));
+  memset(&module.recorder, 0, sizeof(module.recorder));
+
+  module.compiled = false;
+}
+
+/**
  * @brief Clears all navigation nodes, freeing their link arrays but retaining the backing array.
  */
 void G_Ai_DeleteNodes(void) {
@@ -1829,10 +2305,7 @@ void G_Ai_DeleteNodes(void) {
 
   aiPlatforms = release(aiPlatforms);
 
-  free(module.voxelNodes);
-  module.voxelNodes = NULL;
-
-  module.compiled = false;
+  G_Ai_Node_FreeCompiled();
 
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
@@ -1857,10 +2330,7 @@ void G_Ai_ShutdownNodes(void) {
 
   aiPlatforms = release(aiPlatforms);
 
-  free(module.voxelNodes);
-  module.voxelNodes = NULL;
-
-  module.compiled = false;
+  G_Ai_Node_FreeCompiled();
 
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();

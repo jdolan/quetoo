@@ -57,6 +57,11 @@
 #define NAV_LANDING_DISTANCE (BSP_VOXEL_SIZE * 1.5f)
 
 /**
+ * @brief The distance within which a learned jump's node maps onto a node of the new graph.
+ */
+#define NAV_JUMP_NODE_DISTANCE 16.f
+
+/**
  * @brief The gravity of a map that does not declare its own.
  */
 #define NAV_DEFAULT_GRAVITY 800.f
@@ -132,6 +137,12 @@ static struct {
 
   NavNodeLinks *nodeLinks;
   int32_t numLinks;
+
+  NavJump *jumps;
+  int32_t numJumps;
+
+  NavJumpStep *jumpSteps;
+  int32_t numJumpSteps;
 } module;
 
 /**
@@ -726,7 +737,97 @@ static void CheckItems(void) {
 }
 
 /**
- * @brief Writes the nodes and links to `maps/<name>.nav`.
+ * @return The node of the new graph within `NAV_JUMP_NODE_DISTANCE` of `position`, or -1.
+ */
+static int32_t NodeAt(const Vec3 position) {
+
+  const int32_t node = NodeForOrigin(position);
+
+  if (node == -1 || Vec3_Distance(module.nodes[node].position, position) > NAV_JUMP_NODE_DISTANCE) {
+    return -1;
+  }
+
+  return node;
+}
+
+/**
+ * @brief Carries the jumps that the game learned from the existing `maps/<name>.nav` onto the
+ * new graph, by the positions of their nodes. A jump whose nodes moved is dropped. The game
+ * replays every jump at load, so a jump that no longer lands is dropped there.
+ */
+static void CarryJumps(void) {
+
+  const char *path = va("maps/%s.nav", mapBase);
+
+  void *buffer;
+  const int64_t length = Fs_Load(path, &buffer);
+  if (length == -1) {
+    return;
+  }
+
+  const NavHeader *header = buffer;
+
+  if (length < (int64_t) sizeof(NavHeader) || header->magic != NAV_MAGIC || header->version != NAV_VERSION) {
+    Fs_Free(buffer);
+    return;
+  }
+
+  const int64_t expected = (int64_t) sizeof(NavHeader) +
+    (int64_t) header->numNodes * (int64_t) sizeof(NavNode) +
+    (int64_t) header->numLinks * (int64_t) sizeof(NavLink) +
+    (int64_t) header->numJumps * (int64_t) sizeof(NavJump) +
+    (int64_t) header->numJumpSteps * (int64_t) sizeof(NavJumpStep);
+
+  if (header->numNodes < 0 || header->numLinks < 0 || header->numJumps < 0 || header->numJumpSteps < 0 ||
+      expected != length) {
+    Com_Warn("%s is malformed; no learned jumps carried over\n", path);
+    Fs_Free(buffer);
+    return;
+  }
+
+  const NavNode *nodes = (const NavNode *) (header + 1);
+  const NavJump *jumps = (const NavJump *) ((const NavLink *) (nodes + header->numNodes) + header->numLinks);
+  const NavJumpStep *steps = (const NavJumpStep *) (jumps + header->numJumps);
+
+  module.jumps = Mem_TagMalloc(sizeof(NavJump) * Maxi(1, header->numJumps), (MemTag) MEM_TAG_QNAV);
+  module.jumpSteps = Mem_TagMalloc(sizeof(NavJumpStep) * Maxi(1, header->numJumpSteps), (MemTag) MEM_TAG_QNAV);
+
+  for (int32_t i = 0; i < header->numJumps; i++) {
+    const NavJump *jump = &jumps[i];
+
+    if (jump->from < 0 || jump->from >= header->numNodes || jump->to < 0 || jump->to >= header->numNodes ||
+        jump->numSteps <= 0 || jump->firstStep < 0 || jump->firstStep > header->numJumpSteps ||
+        jump->numSteps > header->numJumpSteps - jump->firstStep) {
+      Com_Warn("%s has an invalid jump %d\n", path, i);
+      continue;
+    }
+
+    const int32_t from = NodeAt(nodes[jump->from].position);
+    const int32_t to = NodeAt(nodes[jump->to].position);
+
+    if (from == -1 || to == -1 || from == to) {
+      Com_Warn("Learned jump %d from %s to %s lost its nodes; dropping it\n", i,
+               vtos(nodes[jump->from].position), vtos(nodes[jump->to].position));
+      continue;
+    }
+
+    NavJump *out = &module.jumps[module.numJumps++];
+    *out = *jump;
+    out->from = from;
+    out->to = to;
+    out->firstStep = module.numJumpSteps;
+
+    memcpy(&module.jumpSteps[module.numJumpSteps], &steps[jump->firstStep], sizeof(NavJumpStep) * jump->numSteps);
+    module.numJumpSteps += jump->numSteps;
+  }
+
+  Com_Print("%9d of %d learned jumps carried over\n", module.numJumps, header->numJumps);
+
+  Fs_Free(buffer);
+}
+
+/**
+ * @brief Writes the nodes, links and learned jumps to `maps/<name>.nav`.
  */
 static void WriteNavFile(void) {
 
@@ -743,7 +844,9 @@ static void WriteNavFile(void) {
     .voxelSize = module.size,
     .voxelMins = module.bounds.mins,
     .numNodes = module.numNodes,
-    .numLinks = module.numLinks
+    .numLinks = module.numLinks,
+    .numJumps = module.numJumps,
+    .numJumpSteps = module.numJumpSteps
   };
 
   Fs_Write(file, &header, sizeof(header), 1);
@@ -752,6 +855,11 @@ static void WriteNavFile(void) {
   for (int32_t i = 0; i < module.numNodes; i++) {
     const NavNodeLinks *links = &module.nodeLinks[i];
     Fs_Write(file, links->links, sizeof(NavLink), links->numLinks);
+  }
+
+  if (module.numJumps) {
+    Fs_Write(file, module.jumps, sizeof(NavJump), module.numJumps);
+    Fs_Write(file, module.jumpSteps, sizeof(NavJumpStep), module.numJumpSteps);
   }
 
   Fs_Close(file);
@@ -803,6 +911,8 @@ int32_t Qnav_Main(void) {
   Work("Linking nodes", LinkNode, module.numNodes);
 
   CollectLinks();
+
+  CarryJumps();
 
   CheckItems();
 

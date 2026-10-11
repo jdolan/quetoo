@@ -441,6 +441,26 @@ typedef struct GameAi {
    * @brief The ammo count at which the current burst of grenade spam ends, or 0 between bursts.
    */
   int32_t spamAmmo;
+
+  /**
+   * @brief True while the bot replays a learned jump.
+   */
+  bool jumping;
+
+  /**
+   * @brief The learned jump that the bot replays.
+   */
+  int32_t jump;
+
+  /**
+   * @brief The next step of the learned jump.
+   */
+  int32_t jumpStep;
+
+  /**
+   * @brief The milliseconds by which the replay ran ahead of the server's ticks.
+   */
+  int32_t jumpDebt;
 } GameAi;
 
 #endif
