@@ -361,17 +361,16 @@ def draw_overlay(font, window_height: int, lines: list[str]):
   glEnable(GL_DEPTH_TEST)
 
 
-def model_center(legs: Md3Model, torso: Md3Model, head: Md3Model | None, frame: int) -> Vec3:
-  """The center of the assembled model's bounds at `frame`. The orbit target
-  goes here so zooming closes in on the model instead of a point above it."""
+def model_center(legs: Md3Model, torso: Md3Model, frame: int) -> Vec3:
+  """The center of the legs' and torso's bounds at `frame`. The orbit target
+  goes here so zooming closes in on the model instead of a point above it.
+  The head is left out: some models build it into lower.md3 and park
+  head.md3 thousands of units away via tag_head to hide it."""
   points = [v for s in legs.surfaces for v in s.frames[frame % legs.num_frames]]
   tag_torso = legs.tags[frame % legs.num_frames].get("tag_torso")
   if tag_torso:
     torso_frame = frame % torso.num_frames
     points += [apply_tag(tag_torso, v) for s in torso.surfaces for v in s.frames[torso_frame]]
-    tag_head = torso.tags[torso_frame].get("tag_head")
-    if head and tag_head:
-      points += [apply_tag(tag_torso, apply_tag(tag_head, v)) for s in head.surfaces for v in s.frames[0]]
   if not points:
     raise SystemExit("model has no vertices to center the camera on")
   return tuple((min(p[i] for p in points) + max(p[i] for p in points)) * 0.5 for i in range(3))
@@ -469,7 +468,7 @@ def main():
   elif not args.no_skin:
     print(f"warning: no such skin file: {skin_path}")
 
-  cx, cy, cz = model_center(legs, torso, head, anim.first_frame)
+  cx, cy, cz = model_center(legs, torso, anim.first_frame)
   yaw, pitch, dist = -35.0, 15.0, extent * 2.5
   orbiting = False
   panning = False
