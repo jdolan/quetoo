@@ -371,6 +371,12 @@ typedef struct GameAi {
   uint32_t replanTime;
 
   /**
+   * @brief Level time at which a `trigger_push` launched the bot, or 0 once it lands. The bot gives
+   * no move input in between, so that it follows the arc of the jump pad.
+   */
+  uint32_t pushTime;
+
+  /**
    * @brief Level time before the bot may turn again while it wanders.
    */
   uint32_t wanderTurnTime;

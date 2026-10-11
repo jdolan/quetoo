@@ -650,19 +650,12 @@ static bool G_Ai_AdvancePath(GameClient *cl, GameAiGoal *goal) {
 #define AI_REPLAN_MILLIS 1000
 
 /**
- * @brief Plans a new path to the current path's destination, if the next node is under a raised
- * `func_plat`. The search skips raised plats, so the new path goes around this one.
+ * @brief Plans a new path from the node nearest the AI to the current path's destination.
  * @return True if the AI has a new path.
  */
-static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
+static bool G_Ai_ReplanPath(GameClient *cl) {
 
   GameAiGoal *goal = &cl->ai->moveTarget;
-
-  if (cl->ai->replanTime > gameLevel.time || !G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
-    return false;
-  }
-
-  cl->ai->replanTime = gameLevel.time + AI_REPLAN_MILLIS;
 
   const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
   const GameAiNodeId dest = VectorValue(goal->path.path, GameAiNodeId, goal->path.path->count - 1);
@@ -680,12 +673,175 @@ static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
   G_Ai_SetPathGoal(cl, goal, goal->priority, path, goal->path.pathTarget);
   release(path);
 
+  return true;
+}
+
+/**
+ * @brief Plans a new path to the current path's destination, if the next node is under a raised
+ * `func_plat`. The search skips raised plats, so the new path goes around this one.
+ * @return True if the AI has a new path.
+ */
+static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (cl->ai->replanTime > gameLevel.time || !G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
+    return false;
+  }
+
+  cl->ai->replanTime = gameLevel.time + AI_REPLAN_MILLIS;
+
+  if (!G_Ai_ReplanPath(cl)) {
+    return false;
+  }
+
   if (goal->path.path->count > 1 && G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
     G_Ai_AdvancePath(cl, goal);
   }
 
   G_Ai_Debug("Pathing around a raised plat\n");
   return true;
+}
+
+/**
+ * @brief The shortest path link in units that a bot takes for a crossing on a jump pad or a
+ * teleporter.
+ */
+#define AI_PUSH_LINK_DISTANCE 400.f
+
+/**
+ * @brief The distance in units from the start of a long path link within which a bot looks for
+ * the jump pad or teleporter that makes the crossing.
+ */
+#define AI_PUSH_LINK_RADIUS 128.f
+
+/**
+ * @brief The least cosine between the push of a `trigger_push` and a long path link, for the bot
+ * to take the push for the crossing of that link.
+ */
+#define AI_PUSH_LINK_ALIGNMENT .7f
+
+/**
+ * @brief The distance in units by which a path link MAY miss a jump pad or teleporter, and still
+ * cross on it: the half width of a player.
+ */
+#define AI_PUSH_LINK_MARGIN 16.f
+
+/**
+ * @return True if the horizontal line of the path link from `a` to `b` passes through the given
+ * bounds, widened by the half width of a player.
+ */
+static bool G_Ai_IsOnLink(const Box3 bounds, const Vec3 a, const Vec3 b) {
+
+  const Vec2 center = Vec3_XY(Box3_Center(bounds));
+  const Vec2 start = Vec3_XY(a);
+  const Vec2 delta = Vec2_Subtract(Vec3_XY(b), start);
+
+  const float t = Clampf(Vec2_Dot(Vec2_Subtract(center, start), delta) / Vec2_Dot(delta, delta), 0.f, 1.f);
+  const Vec2 closest = Vec2_Add(start, Vec2_Scale(delta, t));
+
+  return closest.x >= bounds.mins.x - AI_PUSH_LINK_MARGIN && closest.x <= bounds.maxs.x + AI_PUSH_LINK_MARGIN &&
+         closest.y >= bounds.mins.y - AI_PUSH_LINK_MARGIN && closest.y <= bounds.maxs.y + AI_PUSH_LINK_MARGIN;
+}
+
+/**
+ * @return The center of the jump pad or teleporter at the start of the AI's current path link, if
+ * the link is too long to walk, and the trigger lies on it. Else, the given destination.
+ * @remarks A path heads for the node at the far end of the link, and so it can run past the side
+ * of a small jump pad, and off the edge.
+ */
+static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->path.pathIndex == 0) {
+    return dest;
+  }
+
+  const Vec3 from = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+
+  if (Vec2_Distance(Vec3_XY(from), Vec3_XY(goal->path.pathPosition)) < AI_PUSH_LINK_DISTANCE) {
+    return dest;
+  }
+
+  GameEntity *ents[32];
+  const size_t len = gi.BoxEntities(Box3_FromCenterRadius(from, AI_PUSH_LINK_RADIUS), ents, lengthof(ents), BOX_OCCUPY);
+
+  Vec3 link = Vec3_Subtract(goal->path.pathPosition, from);
+  link.z = 0.f;
+
+  for (size_t i = 0; i < len; i++) {
+
+    const GameEntity *ent = ents[i];
+
+    if (!ent->classname) {
+      continue;
+    }
+
+    if (Str_Compare(ent->classname, "trigger_push") == 0) {
+      Vec3 push = ent->moveDir;
+      push.z = 0.f;
+
+      if (Vec3_Length(push) > .1f && Vec3_Dot(Vec3_Normalize(push), Vec3_Normalize(link)) < AI_PUSH_LINK_ALIGNMENT) {
+        continue;
+      }
+    } else if (Str_Compare(ent->classname, "misc_teleporter") && Str_Compare(ent->classname, "trigger_teleporter")) {
+      continue;
+    }
+
+    if (!G_Ai_IsOnLink(ent->absBounds, from, goal->path.pathPosition)) {
+      continue;
+    }
+
+    const Vec3 center = Box3_Center(ent->absBounds);
+    return MakeVec3(center.x, center.y, from.z);
+  }
+
+  return dest;
+}
+
+/**
+ * @brief The longest hold in milliseconds from the first launch of a `trigger_push`, after which
+ * the AI moves again, so that it cannot stay still where it finds no ground, or inside a push.
+ */
+#define AI_PUSH_MAX_MILLIS 5000
+
+/**
+ * @brief Holds the AI still from the time that a `trigger_push` launches it until it lands, because
+ * any move input in the air steers it off the arc of the jump pad. On landing, the AI plans a new
+ * path, because the flight can pass over the nodes of the old one.
+ * @remarks The flight lasts at least as long as `PMF_TIME_PUSHED` is set, because some movement
+ * modes keep the ground of the launch for that time.
+ * @return True if the AI is in flight from a `trigger_push`.
+ */
+static bool G_Ai_FollowPush(GameClient *cl) {
+
+  const GameEntity *ent = cl->entity;
+
+  if (!cl->ai->pushTime) {
+    return false;
+  }
+
+  const bool held = ent->waterLevel < WATER_WAIST && !(cl->ps.pmState.flags & PMF_ON_LADDER);
+
+  if (held && gameLevel.time - cl->ai->pushTime < AI_PUSH_MAX_MILLIS) {
+
+    if (cl->ps.pmState.flags & PMF_TIME_PUSHED) {
+      return true;
+    }
+
+    if (!ent->ground.ent) {
+      return true;
+    }
+  }
+
+  cl->ai->pushTime = 0;
+
+  if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
+    G_Ai_ReplanPath(cl);
+  }
+
+  return false;
 }
 
 /**
@@ -923,7 +1079,15 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
 
+  if (G_Ai_FollowPush(cl)) {
+    cmd->forward = 0;
+    cmd->right = 0;
+    cmd->up = 0;
+    return 0;
+  }
+
   bool targetEnemy = false;
+  bool toPush = false;
 
   Vec3 dir, angles, dest = Vec3_Zero();
   bool moveWander = false;
@@ -936,6 +1100,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   for (int32_t tries = 0; tries < 3 && !goalReady; tries++) {
 
     targetEnemy = false;
+    toPush = false;
     dest = Vec3_Zero();
     moveWander = false;
 
@@ -979,7 +1144,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         if (cl->ai->moveTarget.path.trickJump) {
           dest = cl->ai->moveTarget.path.trickPosition;
         } else {
-          dest = cl->ai->moveTarget.path.pathPosition;
+          dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
+          toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);
         }
         break;
     }
@@ -1138,7 +1304,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           G_Ai_Debug("Stopping early to prevent mover issues\n");
         // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
         } else if (((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
-          (xyDist > fabsf(cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) && (xyDist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
+          (xyDist > fabsf(cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) && (xyDist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent && !toPush) {
           cmd->up = PM_SPEED_JUMP;
         }
       }
@@ -1644,6 +1810,7 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->lookaheadFrame = 0;
   cl->ai->lookaheadNoGround = false;
   cl->ai->replanTime = 0;
+  cl->ai->pushTime = 0;
   cl->ai->wanderTurnTime = 0;
 
   cl->ai->viewVelocity = Vec3_Zero();
