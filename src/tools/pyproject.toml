@@ -7,6 +7,15 @@ name = "quetoo-tools"
 version = "0.1.0"
 description = "Developer Python tools for Quetoo"
 requires-python = ">=3.9"
+dependencies = [
+  "numpy",
+  "opencv-python",
+  "pillow",
+  "pygame-ce",
+  "PyOpenGL",
+  "scikit-image",
+  "scipy",
+]
 
 [project.scripts]
 matfu = "matfu:main"

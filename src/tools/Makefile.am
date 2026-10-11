@@ -20,6 +20,5 @@ EXTRA_DIST = \
 .PHONY: install-tools
 install-tools:
 	python3 -m venv .venv
-	PYTHONDONTWRITEBYTECODE=1 .venv/bin/python3 -m pip install numpy pillow opencv-python scikit-image scipy pygame PyOpenGL
 	PYTHONDONTWRITEBYTECODE=1 .venv/bin/python3 -m pip install -e .
 	@echo "Tools installed. Activate with: source src/tools/tools-env.sh"
