@@ -58,6 +58,7 @@ from OpenGL.GL import (
   glWindowPos2i,
 )
 from OpenGL.GLU import gluLookAt, gluPerspective
+import numpy as np
 from PIL import Image
 from md3 import Md3Model, Tag, Vec3, parse_skin, read_md3, resolve_texture
 from pygame.locals import DOUBLEBUF, KEYDOWN, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, MOUSEWHEEL, OPENGL, QUIT
@@ -75,6 +76,18 @@ ANIMATION_NAMES = [
   "LEGS_IDLE", "LEGS_IDLECR",
   "LEGS_TURN",
 ]
+# Tint color sets cycled with 'c': (label, shirt/pants/helmet colors). None
+# takes each texture's tintmap.tint_*_default colors from its .mat.
+TINT_SETS = [
+  ("mat defaults", None),
+  ("red", [(1.0, 0.0, 0.0)] * 3),
+  ("blue", [(0.0, 0.0, 1.0)] * 3),
+  ("mixed", [(0.9, 0.7, 0.1), (0.2, 0.5, 0.9), (0.1, 0.8, 0.3)]),
+  ("off", []),
+]
+# the engine's tintmapDefaults are zeroed where a .mat sets none (r_mesh_draw.c)
+BLACK = (0.0, 0.0, 0.0)
+
 ANIM_TORSO_GESTURE = ANIMATION_NAMES.index("TORSO_GESTURE")
 ANIM_LEGS_WALKCR = ANIMATION_NAMES.index("LEGS_WALKCR")
 
@@ -159,20 +172,76 @@ def lerp_tag(tag_a: Tag, tag_b: Tag, frac: float) -> Tag:
   return tuple(lerp3(a, b) for a, b in zip(tag_a, tag_b))
 
 
-def load_texture(path: Path) -> int:
-  """Loads an image with Pillow (so we're not at the mercy of SDL_image's
-  format support) and uploads it as an OpenGL 2D texture."""
-  image = Image.open(path).convert("RGBA")
-  data = image.tobytes()
-
-  tex_id = int(glGenTextures(1))
+def upload_texture(tex_id: int, width: int, height: int, data: bytes) -> int:
   glBindTexture(GL_TEXTURE_2D, tex_id)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
   return tex_id
+
+
+def read_tint_defaults(mat_path: Path) -> list[tuple[float, float, float] | None]:
+  """The tintmap.tint_{r,g,b}_default colors of a .mat, None where unset."""
+  defaults = [None, None, None]
+  if mat_path.is_file():
+    for line in mat_path.read_text().splitlines():
+      tokens = line.split()
+      for index, channel in enumerate("rgb"):
+        if tokens and tokens[0] == f"tintmap.tint_{channel}_default":
+          if len(tokens) < 4:
+            raise ValueError(f"{mat_path}: {tokens[0]} needs 3 components: {line.strip()}")
+          defaults[index] = tuple(float(t) for t in tokens[1:4])
+  return defaults
+
+
+class SkinTexture:
+  """A skin's diffuse map with its `<texture>_tint.png` applied on the CPU,
+  as mesh_fs.glsl does on the GPU, so fixed-function GL can show tinting.
+  Re-composes whenever the tintmap or .mat changes on disk."""
+
+  def __init__(self, data_root: Path, rel_path: str, image_path: Path):
+    self.image_path = image_path
+    self.tint_path = data_root / f"{rel_path}_tint.png"
+    self.mat_path = data_root / f"{rel_path}.mat"
+    self.tex_id = int(glGenTextures(1))
+    self.stamp = None
+    self.diffuse = None
+    self.tint = None
+    self.defaults = [None, None, None]
+
+  def _stamp(self):
+    return tuple(p.stat().st_mtime_ns if p.is_file() else None for p in (self.image_path, self.tint_path, self.mat_path))
+
+  def load(self):
+    self.stamp = self._stamp()
+    image = Image.open(self.image_path).convert("RGBA")
+    self.diffuse = np.asarray(image).astype(np.float32) / 255.0
+    self.tint = None
+    if self.tint_path.is_file():
+      # the engine samples both maps by UV, so a tintmap of another size still lines up
+      tint = Image.open(self.tint_path).convert("RGBA").resize(image.size, Image.BILINEAR)
+      self.tint = np.asarray(tint).astype(np.float32) / 255.0
+    self.defaults = read_tint_defaults(self.mat_path)
+
+  def stale(self) -> bool:
+    return self._stamp() != self.stamp
+
+  def compose(self, colors: list | None):
+    """Uploads the diffuse map tinted with `colors` (None for the .mat
+    defaults, empty for untinted)."""
+    rgb = self.diffuse[..., :3]
+    if self.tint is not None and colors != []:
+      if colors is None:
+        colors = [c or BLACK for c in self.defaults]
+      alpha = self.tint[..., 3:4]
+      rgb = rgb * (1.0 - alpha)
+      for index, color in enumerate(colors):
+        rgb = rgb + np.asarray(color, dtype=np.float32) * (self.tint[..., index:index + 1] * alpha)
+    pixels = np.concatenate([np.clip(rgb, 0.0, 1.0), self.diffuse[..., 3:4]], axis=-1)
+    height, width = pixels.shape[:2]
+    upload_texture(self.tex_id, width, height, (pixels * 255.0 + 0.5).astype(np.uint8).tobytes())
 
 
 def frame_for(anim: Animation, elapsed_ms: float, loop: bool = True) -> int:
@@ -369,18 +438,18 @@ def main():
   # .skin files map an MD3 surface name straight to a data-root-relative
   # texture path (no extension); one file covers all three model parts.
   textures: dict[str, int] = {}
+  skin_textures: dict[str, SkinTexture | None] = {}
   skin_path = model_dir / f"{args.skin}.skin"
   if skin_path.is_file():
     data_root = model_dir.parent.parent
-    cache: dict[str, int | None] = {}
     for surf_name, rel_path in parse_skin(skin_path).items():
-      if rel_path not in cache:
+      if rel_path not in skin_textures:
         image_path = resolve_texture(data_root, rel_path)
-        cache[rel_path] = load_texture(image_path) if image_path else None
+        skin_textures[rel_path] = SkinTexture(data_root, rel_path, image_path) if image_path else None
         if image_path is None:
           print(f"warning: no texture file found for '{surf_name}': {rel_path}")
-      if cache[rel_path] is not None:
-        textures[surf_name] = cache[rel_path]
+      if skin_textures[rel_path] is not None:
+        textures[surf_name] = skin_textures[rel_path].tex_id
   elif not args.no_skin:
     print(f"warning: no such skin file: {skin_path}")
 
@@ -393,6 +462,27 @@ def main():
   paused = False
   interpolate = not args.no_interpolate
   textured = bool(textures) and not args.no_skin
+  tint_index = 0
+  tinted = [t for t in skin_textures.values() if t and t.tint is not None]
+
+  def refresh_textures(force: bool = False):
+    nonlocal tinted
+    for skin_texture in skin_textures.values():
+      if skin_texture and (force or skin_texture.stale()):
+        try:
+          skin_texture.load()
+        except (OSError, ValueError) as error:
+          if skin_texture.diffuse is None:
+            raise
+          # tintfu may still be writing the file; keep the last good texture and retry on the next poll
+          skin_texture.stamp = None
+          print(f"warning: reload of {skin_texture.image_path.name} failed, keeping the previous texture: {error}")
+          continue
+        skin_texture.compose(TINT_SETS[tint_index][1])
+    tinted = [t for t in skin_textures.values() if t and t.tint is not None]
+
+  refresh_textures(force=True)
+  last_poll = 0
   elapsed = 0.0
   anim_index = animations.index(anim)
 
@@ -401,7 +491,7 @@ def main():
 
   def set_caption():
     status = "paused" if paused else "playing"
-    pygame.display.set_caption(f"md3-fu · {model_dir.name} · {anim.name} · {status}")
+    pygame.display.set_caption(f"md3-fu · {model_dir.name} · {args.skin} · {anim.name} · {status}")
 
   def switch_anim(index):
     nonlocal anim, anim_index, torso_static, elapsed
@@ -432,6 +522,12 @@ def main():
         elif event.key == pygame.K_t:
           if textures:
             textured = not textured
+        elif event.key == pygame.K_c:
+          tint_index = (tint_index + (-1 if event.mod & pygame.KMOD_SHIFT else 1)) % len(TINT_SETS)
+          for skin_texture in tinted:
+            skin_texture.compose(TINT_SETS[tint_index][1])
+        elif event.key == pygame.K_r:
+          refresh_textures(force=True)
         elif event.key == pygame.K_SPACE:
           paused = not paused
           set_caption()
@@ -485,6 +581,11 @@ def main():
     if not paused:
       elapsed += dt
 
+    # pick up tintmaps and .mat files rebuilt by tintfu while the viewer is open
+    if pygame.time.get_ticks() - last_poll > 1000:
+      last_poll = pygame.time.get_ticks()
+      refresh_textures()
+
     legs_frame, legs_next, legs_frac = lerp_frame_for(anim, elapsed)
     legs_frame, legs_next = legs_frame % legs.num_frames, legs_next % legs.num_frames
     if not interpolate:
@@ -535,9 +636,11 @@ def main():
 
     frame_in_anim = frame_for(anim, elapsed) - anim.first_frame + 1
     overlay_lines = [
+      f"{model_dir.name} / {args.skin}",
       f"{anim.name}   frame {frame_in_anim}/{anim.num_frames}   {'paused' if paused else 'playing'}",
       f"interpolate [l]: {'on' if interpolate else 'off'}   "
       f"texture [t]: {'on' if textured else 'off' if textures else 'n/a'}   wireframe [w]: {'on' if wireframe else 'off'}",
+      f"tint [c]: {TINT_SETS[tint_index][0] if tinted else 'n/a'}   reload [r]",
       "space: pause/play    ←/→: step frame    tab / shift+tab: next / prev anim",
       "drag: orbit    right-drag: pan    scroll: zoom    esc: quit",
     ]
