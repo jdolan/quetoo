@@ -47,7 +47,9 @@ define the region exactly. A surface or region rule MAY carry its own mask, whic
 limits that rule to the matching pixels and leaves the rest as they were, for
 an accent that shares a region with its surroundings. A rule MAY also be a list
 of rules, applied in order. Any mask MAY set "min_area" to drop specks smaller
-than that many pixels. A texture absent from the recipe gets no tintmap.
+than that many pixels. A mask MAY instead name an "image", relative to the
+recipe, whose white texels form the mask: for team paint, such as stripes, that
+the texture no longer shows. A texture absent from the recipe gets no tintmap.
 """
 
 import argparse
@@ -538,8 +540,14 @@ def hue_mask(rgb: np.ndarray, rule: dict) -> np.ndarray:
 
 def closed_hue_mask(rgb: np.ndarray, rule: dict) -> np.ndarray:
   """The hue mask with pinholes closed and, if the rule sets `min_area`, specks
-  smaller than that dropped, so worn metal that drifts into the hue stays out."""
-  keep = ndimage.binary_closing(hue_mask(rgb, rule), iterations=2)
+  smaller than that dropped, so worn metal that drifts into the hue stays out.
+  A rule with an `image` takes its white texels as the mask instead, for paint
+  that the texture itself no longer shows."""
+  if "image" in rule:
+    image = Image.open(rule["image"]).convert("L").resize((rgb.shape[1], rgb.shape[0]), Image.NEAREST)
+    keep = np.asarray(image) > 127
+  else:
+    keep = ndimage.binary_closing(hue_mask(rgb, rule), iterations=2)
   if "min_area" in rule:
     components, count = ndimage.label(keep)
     areas = ndimage.sum(keep, components, index=np.arange(1, count + 1))
@@ -703,11 +711,28 @@ def draw_preview(rgb: np.ndarray, tint: np.ndarray, defaults: list, size: int) -
   return strip
 
 
+def resolve_mask_images(node, base: Path):
+  """Makes every mask `image` path absolute, relative to the recipe's folder."""
+  if isinstance(node, dict):
+    if "image" in node:
+      path = base / node["image"]
+      if not path.is_file():
+        raise SystemExit(f"mask image {path} does not exist")
+      node["image"] = str(path)
+    for value in node.values():
+      resolve_mask_images(value, base)
+  elif isinstance(node, list):
+    for value in node:
+      resolve_mask_images(value, base)
+
+
 def build(args):
   if not args.model:
     raise SystemExit("build needs --model")
   data_root = Path(args.data).expanduser()
-  recipe = json.loads(Path(args.recipe).read_text())
+  recipe_path = Path(args.recipe).expanduser()
+  recipe = json.loads(recipe_path.read_text())
+  resolve_mask_images(recipe, recipe_path.parent)
   jobs = gather_jobs(data_root, args.model, args.skin)
   preview_dir = Path(args.preview).expanduser() / args.model if args.preview else None
   if preview_dir:
