@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "collision/nav.h"
 #include "bg_pmove.h"
 
 Cvar *g_aiNoTarget;
@@ -1259,6 +1260,36 @@ static bool G_Ai_IsRidingMover(const GameEntity *ent) {
 /**
  * @brief Move towards our current target
  */
+/**
+ * @brief The horizontal distance from a barrier jump's target at which a bot jumps.
+ */
+#define AI_BARRIER_JUMP_DISTANCE 48.f
+
+/**
+ * @return True if the bot is on the ground, within `AI_BARRIER_JUMP_DISTANCE` of the target of a
+ * barrier jump link on its path.
+ */
+static bool G_Ai_ShouldBarrierJump(const GameClient *cl) {
+
+  if (!cl->entity->ground.ent || cl->ai->moveTarget.path.pathIndex == 0) {
+    return false;
+  }
+
+  const Vector *path = cl->ai->moveTarget.path.path;
+  const uint32_t index = cl->ai->moveTarget.path.pathIndex;
+
+  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
+                                             VectorValue(path, GameAiNodeId, index));
+
+  if (!link || link->travelType != NAV_TRAVEL_BARRIER_JUMP) {
+    return false;
+  }
+
+  const Vec2 delta = Vec2_Subtract(Vec3_XY(cl->ai->moveTarget.path.pathPosition), Vec3_XY(cl->entity->s.origin));
+
+  return Vec2_Length(delta) <= AI_BARRIER_JUMP_DISTANCE;
+}
+
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
@@ -1423,6 +1454,9 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       } else {
         cmd->up = PM_SPEED_JUMP;
       }
+    } else if (G_Ai_ShouldBarrierJump(cl)) {
+      cmd->up = PM_SPEED_JUMP;
+      G_Ai_Debug("Barrier jump to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
     }
   // run full speed towards the target
   } else {

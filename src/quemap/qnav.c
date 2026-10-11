@@ -67,8 +67,13 @@
 #define NAV_ITEM_DISTANCE 64.f
 
 /**
- * @brief The most links that one node can have: a walk and a drop in each of 8 directions,
- * for each of 3 levels.
+ * @brief The margin below the highest jump that a barrier jump may climb.
+ */
+#define NAV_BARRIER_MARGIN 4.f
+
+/**
+ * @brief The most links that one node can have: a walk or barrier jump to each of 4 levels, and
+ * a drop, in each of 8 directions.
  */
 #define NAV_MAX_NODE_LINKS 48
 
@@ -117,6 +122,7 @@ static struct {
   Box3 bounds;
   int32_t numVoxels;
   float gravity;
+  float barrierHeight;
 
   NavSample *samples;
   int32_t *voxelNodes;
@@ -330,13 +336,13 @@ static void SampleVoxel(int32_t index) {
 }
 
 /**
- * @brief Moves the bounding box one step toward `target`, as Pmove would: up by the step
- * height, across, and down onto the floor.
+ * @brief Moves the bounding box toward `target`, as Pmove would: up by `height`, across, and down
+ * onto the floor.
  * @return True if the box arrives on a walkable floor.
  */
-static bool StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, Vec3 *to) {
+static bool StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, const float height, Vec3 *to) {
 
-  const CollisionTrace up = Trace(from, Vec3_Add(from, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT)), bounds);
+  const CollisionTrace up = Trace(from, Vec3_Add(from, Vec3_Scale(Vec3_Up(), height)), bounds);
   if (up.startSolid) {
     return false;
   }
@@ -347,7 +353,7 @@ static bool StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, Vec3
     return false;
   }
 
-  return Rest(over.end, PM_STEP_HEIGHT * 2.f + 1.f, bounds, to);
+  return Rest(over.end, height + PM_STEP_HEIGHT + 1.f, bounds, to);
 }
 
 /**
@@ -443,13 +449,38 @@ static bool Walk(const NavNode *a, const NavNode *b, float *distance) {
     const Vec3 target = Vec3_Mix(a->position, b->position, i / (float) steps);
 
     Vec3 next;
-    if (!StepMove(origin, target, bounds, &next)) {
+    if (!StepMove(origin, target, bounds, PM_STEP_HEIGHT, &next)) {
       return false;
     }
 
     *distance += Vec3_Distance(origin, next);
     origin = next;
   }
+
+  return fabsf(origin.z - b->position.z) <= 1.f;
+}
+
+/**
+ * @brief Simulates a jump straight up from node `a` onto the ledge of node `b`.
+ * @return True if the jump clears the ledge and lands at `b`.
+ */
+static bool BarrierJump(const NavNode *a, const NavNode *b, float *distance) {
+
+  if ((a->flags | b->flags) & NAV_NODE_CROUCH) {
+    return false;
+  }
+
+  const float rise = b->position.z - a->position.z;
+  if (rise <= PM_STEP_HEIGHT || rise > module.barrierHeight) {
+    return false;
+  }
+
+  Vec3 origin;
+  if (!StepMove(a->position, b->position, PM_BOUNDS, module.barrierHeight, &origin)) {
+    return false;
+  }
+
+  *distance = Vec2_Distance(Vec3_XY(a->position), Vec3_XY(b->position));
 
   return fabsf(origin.z - b->position.z) <= 1.f;
 }
@@ -518,7 +549,7 @@ static void LinkNode(int32_t index) {
 
     bool walked = false;
 
-    for (int32_t dz = -1; dz <= 1; dz++) {
+    for (int32_t dz = -1; dz <= 2; dz++) {
 
       const Vec3i neighbor = MakeVec3i(xyz.x + directions[i].x, xyz.y + directions[i].y, xyz.z + dz);
 
@@ -536,6 +567,11 @@ static void LinkNode(int32_t index) {
         const NavTravelType type = crouch ? NAV_TRAVEL_CROUCH : NAV_TRAVEL_WALK;
         AddLink(links, target, type, TravelTime(distance, crouch ? PM_SPEED_DUCKED : PM_SPEED_RUN));
         walked = true;
+      } else if (BarrierJump(node, other, &distance)) {
+        const float fall = module.barrierHeight - (other->position.z - node->position.z);
+        const int32_t time = TravelTime(distance, PM_SPEED_RUN) + FallTime(module.barrierHeight) + FallTime(fall);
+        AddLink(links, target, NAV_TRAVEL_BARRIER_JUMP, time);
+        walked = true;
       }
     }
 
@@ -550,6 +586,27 @@ static void LinkNode(int32_t index) {
       AddLink(links, target, NAV_TRAVEL_WALK_OFF_LEDGE, time);
     }
   }
+}
+
+/**
+ * @return The highest ledge that every movement can jump onto: the smallest jump height over all
+ * movements, less `NAV_BARRIER_MARGIN`.
+ */
+static float BarrierHeight(void) {
+
+  float height = FLT_MAX;
+
+  for (size_t i = 0; i < Pm_MovementCount(); i++) {
+
+    const PMoveParams *params = Pm_Movement((PMovement) i)->params;
+
+    const float jump = params ? params->speedJump : PM_SPEED_JUMP;
+    const float gravity = (params && params->gravity) ? Maxf(params->gravity, module.gravity) : module.gravity;
+
+    height = Minf(height, jump * jump / (2.f * gravity));
+  }
+
+  return height - NAV_BARRIER_MARGIN;
 }
 
 /**
@@ -607,7 +664,7 @@ static void CollectNodes(void) {
  */
 static void CollectLinks(void) {
 
-  int32_t counts[NAV_TRAVEL_WALK_OFF_LEDGE + 1] = { 0 };
+  int32_t counts[NAV_TRAVEL_BARRIER_JUMP + 1] = { 0 };
 
   for (int32_t i = 0; i < module.numNodes; i++) {
 
@@ -626,6 +683,7 @@ static void CollectLinks(void) {
   Com_Print("%9d walk\n", counts[NAV_TRAVEL_WALK]);
   Com_Print("%9d crouch\n", counts[NAV_TRAVEL_CROUCH]);
   Com_Print("%9d walk off ledge\n", counts[NAV_TRAVEL_WALK_OFF_LEDGE]);
+  Com_Print("%9d barrier jump\n", counts[NAV_TRAVEL_BARRIER_JUMP]);
 }
 
 /**
@@ -730,6 +788,9 @@ int32_t Qnav_Main(void) {
   } else {
     module.gravity = NAV_DEFAULT_GRAVITY;
   }
+
+  module.barrierHeight = BarrierHeight();
+  Com_Verbose("Barrier jump height %g\n", module.barrierHeight);
 
   module.samples = Mem_TagMalloc(sizeof(NavSample) * module.numVoxels, (MemTag) MEM_TAG_QNAV);
 

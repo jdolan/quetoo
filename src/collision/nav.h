@@ -59,6 +59,11 @@ typedef enum {
    * @brief Walk off a ledge and fall to the target.
    */
   NAV_TRAVEL_WALK_OFF_LEDGE,
+
+  /**
+   * @brief Jump straight up onto a ledge that is too high to step onto.
+   */
+  NAV_TRAVEL_BARRIER_JUMP,
 } NavTravelType;
 
 /**

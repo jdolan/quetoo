@@ -380,6 +380,29 @@ bool G_Ai_Node_IsLinked(const GameAiNodeId a, const GameAiNodeId b) {
 }
 
 /**
+ * @return The link from node `a` to node `b`, or `NULL`.
+ */
+const GameAiLink *G_Ai_Node_GetLink(const GameAiNodeId a, const GameAiNodeId b) {
+
+  if (!aiNodes || a >= aiNodes->count) {
+    return NULL;
+  }
+
+  const GameAiNode *node = AI_NODE(aiNodes, a);
+
+  if (node->links) {
+    for (size_t i = 0; i < node->links->count; i++) {
+      const GameAiLink *link = AI_LINK(node->links, i);
+      if (link->id == b) {
+        return link;
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
  * @brief Returns the array of outgoing links for the specified node.
  */
 const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a) {
@@ -1156,7 +1179,15 @@ void G_Ai_Node_Render(void) {
 #define AI_NODE_MAGIC ('Q' | '2' << 8 | 'N' << 16 | 'S' << 24)
 #define AI_NODE_VERSION 2
 
-_Static_assert(sizeof(GameAiLink) == 8, "GameAiLink is the on-disk link record; changing it requires a new AI_NODE_VERSION");
+/**
+ * @brief The version 2 on-disk link record.
+ */
+typedef struct {
+  GameAiNodeId id;
+  float cost;
+} GameAiLinkRecord;
+
+_Static_assert(sizeof(GameAiLinkRecord) == 8, "GameAiLinkRecord is on disk; changing it requires a new AI_NODE_VERSION");
 
 /**
  * @brief The most links a compiled node can have, for validating a `.nav` file's link count.
@@ -1248,7 +1279,8 @@ static bool G_Ai_ReadCompiledNodes(File *file) {
 
         GameAiLink out = {
           .id = link->node,
-          .cost = Maxf(distance, link->travelTime * PM_SPEED_RUN / 100.f)
+          .cost = Maxf(distance, link->travelTime * PM_SPEED_RUN / 100.f),
+          .travelType = link->travelType
         };
 
         $(node.links, add, &out);
@@ -1337,12 +1369,17 @@ static bool G_Ai_ReadNodes(File *file) {
       node->links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
 
       for (size_t l = 0; l < numLinks; l++) {
-        GameAiLink link;
+        GameAiLinkRecord record;
 
-        if (gi.ReadFile(file, &link, sizeof(link), 1) != 1) {
+        if (gi.ReadFile(file, &record, sizeof(record), 1) != 1) {
           G_Warn("Nav file is truncated at node %zu\n", i);
           return false;
         }
+
+        GameAiLink link = {
+          .id = record.id,
+          .cost = record.cost
+        };
 
         if (link.id >= numNodes) {
           G_Warn("Nav file links node %zu to nonexistent node %u\n", i, link.id);
@@ -1529,7 +1566,14 @@ void G_Ai_SaveNodes(void) {
     if (node->links) {
       const uint32_t numLinks = (uint32_t) node->links->count;
       gi.WriteFile(file, &numLinks, sizeof(numLinks), 1);
-      gi.WriteFile(file, node->links->elements, sizeof(GameAiLink), node->links->count);
+      for (size_t l = 0; l < node->links->count; l++) {
+        const GameAiLink *link = AI_LINK(node->links, l);
+        const GameAiLinkRecord record = {
+          .id = link->id,
+          .cost = link->cost
+        };
+        gi.WriteFile(file, &record, sizeof(record), 1);
+      }
     } else {
       uint32_t len = 0;
       gi.WriteFile(file, &len, sizeof(len), 1);
