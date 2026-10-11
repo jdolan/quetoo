@@ -28,7 +28,8 @@ Recipe format (JSON):
         "segmentation": {"segments": 800, "threshold": 6},
         "examples": {"shirt": [24, 165], "none": [70, 41]},
         "surfaces": {"u_torso": "shirt"},
-        "regions": {"12": "none", "13": {"channel": "pants", "alpha": 0.8}},
+        "regions": {"12": "none", "13": {"channel": "pants", "alpha": 0.8},
+                    "14": {"channel": "helmet", "mask": {"hue": 190, "chroma": 8, "spread": 40}}},
         "mask": {"hue": 40, "chroma": 25, "spread": 30}
       }
     }
@@ -41,7 +42,10 @@ segmentation to separate. A class is a channel name, "none", or "auto", which
 takes the channel from the surface prefix (l_ pants, u_ shirt, h_ helmet).
 Surface rules apply next, region rules override both. A mask then keeps only
 the pixels near a Lab hue (degrees) above a chroma, so a team skin's paint can
-define the region exactly. A texture absent from the recipe gets no tintmap.
+define the region exactly. A surface or region rule MAY carry its own mask, which
+limits that rule to the matching pixels and leaves the rest as they were, for
+an accent that shares a region with its surroundings. A texture absent from the
+recipe gets no tintmap.
 """
 
 import argparse
@@ -530,6 +534,17 @@ def hue_mask(rgb: np.ndarray, rule: dict) -> np.ndarray:
   return (chroma > float(rule.get("chroma", 25.0))) & (delta < float(rule.get("spread", 30.0)))
 
 
+def rule_mask(rgb: np.ndarray, rule, mask: np.ndarray, cache: dict) -> np.ndarray:
+  """Narrows `mask` to the pixels matching the rule's own hue mask, if it has
+  one. Many rules share one mask, so each distinct mask is computed once."""
+  if not (isinstance(rule, dict) and "mask" in rule):
+    return mask
+  key = json.dumps(rule["mask"], sort_keys=True)
+  if key not in cache:
+    cache[key] = ndimage.binary_closing(hue_mask(rgb, rule["mask"]), iterations=2)
+  return mask & cache[key]
+
+
 def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_recipe: dict,
            speck_area: int) -> tuple[np.ndarray, np.ndarray]:
   """Applies the recipe: examples first, then surface rules, then region rules,
@@ -537,6 +552,7 @@ def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_reci
   per-pixel channel index (-1 for none) and alpha."""
   channel = np.full(labels.shape, -1, dtype=np.int32)
   alpha = np.zeros(labels.shape, dtype=np.float32)
+  masks = {}
 
   if "examples" in texture_recipe:
     channel = classify_by_example(rgb, raster, labels, texture_recipe["examples"], speck_area)
@@ -546,7 +562,7 @@ def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_reci
     if surface_name not in raster.surface_names:
       raise SystemExit(f"recipe names surface {surface_name}, not in {raster.surface_names}")
     name, a = resolve_rule(rule)
-    mask = raster.surface_ids == raster.surface_names.index(surface_name)
+    mask = rule_mask(rgb, rule, raster.surface_ids == raster.surface_names.index(surface_name), masks)
     channel[mask] = CHANNELS[name] if name else -1
     alpha[mask] = a if name else 0.0
 
@@ -555,6 +571,7 @@ def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_reci
     if not mask.any():
       raise SystemExit(f"recipe names region {region_id}, which the segmentation did not produce")
     name, a = resolve_rule(rule)
+    mask = rule_mask(rgb, rule, mask, masks)
     channel[mask] = CHANNELS[name] if name else -1
     alpha[mask] = a if name else 0.0
 
