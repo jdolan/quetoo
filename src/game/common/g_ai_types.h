@@ -301,6 +301,26 @@ typedef struct {
 /**
  * @brief AI-specific per-client state.
  */
+/**
+ * @brief The most item respawns that a bot remembers.
+ */
+#define AI_ITEM_TIMINGS 16
+
+/**
+ * @brief An item that a bot saw or heard taken, and when it returns.
+ */
+typedef struct {
+  /**
+   * @brief The item's entity number.
+   */
+  int32_t number;
+
+  /**
+   * @brief Level time at which the item respawns.
+   */
+  uint32_t respawnTime;
+} GameAiItemTiming;
+
 typedef struct GameAi {
 
   /**
@@ -447,6 +467,17 @@ typedef struct GameAi {
    * @brief The ammo count at which the current burst of grenade spam ends, or 0 between bursts.
    */
   int32_t spamAmmo;
+
+  /**
+   * @brief The map control items that the bot saw or heard taken, so that it can be there when
+   * they return.
+   */
+  GameAiItemTiming itemTimings[AI_ITEM_TIMINGS];
+
+  /**
+   * @brief Level time at which the bot may next reverse its strafe around its target.
+   */
+  uint32_t strafeTime;
 
   /**
    * @brief Where the bot last heard an enemy, or was shot from.

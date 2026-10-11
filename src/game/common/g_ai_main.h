@@ -90,6 +90,11 @@ bool G_Ai_IsAlerted(const GameClient *cl);
 bool G_Ai_IsAttacker(const GameClient *cl, const GameEntity *ent);
 
 /**
+ * @brief Lets the bots that see or hear a map control item taken remember when it respawns.
+ */
+void G_Ai_ItemTaken(const GameEntity *item);
+
+/**
  * @brief Candidate item considered for AI pickup, weighted by desirability.
  */
 typedef struct {

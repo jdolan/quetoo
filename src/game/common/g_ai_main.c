@@ -262,6 +262,66 @@ static bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
 }
 
 /**
+ * @see g_ai_main.h
+ */
+void G_Ai_ItemTaken(const GameEntity *item) {
+
+  if (!item->item || !G_Ai_IsMapControlItem(item->item) || item->solid != SOLID_NOT ||
+      item->nextThink <= gameLevel.time) {
+    return;
+  }
+
+  G_ForEachClient(cl, {
+    if (!cl->ai || !cl->entity || cl->entity->dead) {
+      continue;
+    }
+
+    if (Vec3_Distance(cl->entity->s.origin, item->s.origin) > AI_HEAR_PICKUP_DISTANCE && !G_Ai_CanSee(cl, item)) {
+      continue;
+    }
+
+    GameAiItemTiming *slot = &cl->ai->itemTimings[0];
+    for (int32_t i = 0; i < AI_ITEM_TIMINGS; i++) {
+      GameAiItemTiming *timing = &cl->ai->itemTimings[i];
+      if (timing->number == item->s.number) {
+        slot = timing;
+        break;
+      }
+      if (timing->respawnTime < slot->respawnTime) {
+        slot = timing;
+      }
+    }
+
+    slot->number = item->s.number;
+    slot->respawnTime = item->nextThink;
+  });
+}
+
+/**
+ * @brief The time in milliseconds that a bot allows itself to wait at a timed item.
+ */
+#define AI_ITEM_TIMING_SLACK 2000
+
+/**
+ * @return True if the bot remembers that the taken item returns by the time it could get there.
+ */
+static bool G_Ai_IsTimedItem(const GameClient *cl, const GameEntity *item) {
+
+  for (int32_t i = 0; i < AI_ITEM_TIMINGS; i++) {
+    const GameAiItemTiming *timing = &cl->ai->itemTimings[i];
+
+    if (timing->number != item->s.number || timing->respawnTime <= gameLevel.time) {
+      continue;
+    }
+
+    const float eta = Vec3_Distance(cl->entity->s.origin, item->s.origin) / PM_SPEED_RUN * 1000.f;
+    return timing->respawnTime <= gameLevel.time + (uint32_t) eta + AI_ITEM_TIMING_SLACK;
+  }
+
+  return false;
+}
+
+/**
  * @return The item that the AI's move target leads to, or NULL.
  */
 static const GameEntity *G_Ai_SoughtItem(const GameClient *cl) {
@@ -400,6 +460,39 @@ static inline void G_Ai_RestorePath(const GameClient *cl, GameAi *ai) {
 /**
  * @brief Seek for items if we're not doing anything better.
  */
+/**
+ * @brief The most items, best first, whose paths a bot compares when it chooses one.
+ */
+#define AI_ITEM_CANDIDATES 3
+
+/**
+ * @brief The least that a detour scales an item's weight: an item whose path is many times longer
+ * than the straight line to it keeps this fraction of its weight.
+ */
+#define AI_ITEM_DETOUR_SCALE .25f
+
+/**
+ * @brief The weight scale of health and armor that lie closer to the enemy than to a retreating
+ * bot.
+ */
+#define AI_RETREAT_TOWARD_ENEMY_SCALE .25f
+
+/**
+ * @brief In developer mode, draws a tracer to an item that the bot cannot path to.
+ */
+static void G_Ai_Node_TraceUnreachable(const GameClient *cl, const GameEntity *item) {
+
+  if (!g_aiNodeDev->integer) {
+    return;
+  }
+
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_TRACER);
+  gi.WritePosition(cl->entity->s.origin);
+  gi.WritePosition(item->s.origin);
+  gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
+}
+
 static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
   if (G_IsMeat(cl->entity) && cl->entity->dead) {
@@ -427,7 +520,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
     // check to see if the thing we are moving to has been taken
     if (target && target->item) {
 
-      if (target->solid != SOLID_TRIGGER ||
+      if ((target->solid != SOLID_TRIGGER && !G_Ai_IsTimedItem(cl, target)) ||
         !G_Ai_CanPickup(cl, target)) {
 
         G_Ai_ClearGoal(&cl->ai->moveTarget);
@@ -460,7 +553,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
   Vector *itemsVisible = $(alloc(Vector), initWithSize, sizeof(GameAiItemPick));
 
   G_ForEachEntity(ent, {
-    if (ent->s.solid != SOLID_TRIGGER) {
+    if (ent->s.solid != SOLID_TRIGGER && !G_Ai_IsTimedItem(cl, ent)) {
       continue;
     }
 
@@ -506,6 +599,11 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       weight *= 3.f;
     }
 
+    if (G_Ai_ShouldRetreat(cl) && cl->ai->combatTarget.type == AI_GOAL_ENTITY &&
+        Vec3_Distance(ent->s.origin, cl->ai->combatTargetSeenPosition) < distance) {
+      weight *= AI_RETREAT_TOWARD_ENEMY_SCALE;
+    }
+
     if (coveted || G_Ai_WouldArm(cl, item)) {
       weight = (AI_MAX_ITEM_DISTANCE * 8.f - distance) * item->def.priority;
     }
@@ -524,50 +622,61 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       $(itemsVisible, sort, G_Ai_CompareItemsOrder);
     }
 
-    for (uint32_t i = 0; i < itemsVisible->count; i++) {
-      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, i);
-      const bool found = pick.weight > cl->ai->moveTarget.priority;
+    const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
 
-      if (!found) {
-        continue;
+    GameAiItemPick best = { 0 };
+    Vector *bestPath = NULL;
+    float bestWeight = 0.f;
+    int32_t candidates = 0;
+
+    for (uint32_t i = 0; i < itemsVisible->count && candidates < AI_ITEM_CANDIDATES; i++) {
+      const GameAiItemPick pick = VectorValue(itemsVisible, GameAiItemPick, i);
+
+      if (pick.weight <= cl->ai->moveTarget.priority) {
+        break;
       }
 
-      bool pathFound = false;
-
-      const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
       const GameAiNodeId dest = pick.entity->node != AI_NODE_INVALID
         ? pick.entity->node
         : G_Ai_Node_FindClosest(pick.entity->s.origin, 256.f, true, true);
 
-      if (src != AI_NODE_INVALID && dest != AI_NODE_INVALID) {
-        const float maxLength = fighting ? AI_FIGHT_ITEM_DISTANCE : AI_MAX_ITEM_DISTANCE * (G_Ai_IsCovetedItem(cl, pick.entity) ? 3.f : 1.f);
+      if (src == AI_NODE_INVALID || dest == AI_NODE_INVALID) {
+        G_Ai_Node_TraceUnreachable(cl, pick.entity);
+        continue;
+      }
 
-        float length;
-        Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, maxLength, &length);
+      const float maxLength = fighting ? AI_FIGHT_ITEM_DISTANCE : AI_MAX_ITEM_DISTANCE * (G_Ai_IsCovetedItem(cl, pick.entity) ? 3.f : 1.f);
 
-        if (fighting) {
-          length += Vec3_Distance(cl->entity->s.origin, G_Ai_Node_GetPosition(src));
-        }
+      float length;
+      Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, maxLength, &length);
 
-        if (path && length <= maxLength) {
-          G_Ai_BackupPath(cl->ai);
-          G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, pick.weight, path, pick.entity);
-          pathFound = true;
-        }
+      length += Vec3_Distance(cl->entity->s.origin, G_Ai_Node_GetPosition(src));
 
+      if (!path || length > maxLength) {
+        release(path);
+        G_Ai_Node_TraceUnreachable(cl, pick.entity);
+        continue;
+      }
+
+      candidates++;
+
+      const float straight = Vec3_Distance(cl->entity->s.origin, pick.entity->s.origin);
+      const float weight = pick.weight * Clampf(straight / Maxf(length, 1.f), AI_ITEM_DETOUR_SCALE, 1.f);
+
+      if (weight > bestWeight) {
+        release(bestPath);
+        bestPath = path;
+        bestWeight = weight;
+        best = pick;
+      } else {
         release(path);
       }
+    }
 
-      if (!pathFound && g_aiNodeDev->integer) {
-        gi.WriteByte(SV_CMD_TEMP_ENTITY);
-        gi.WriteByte(TE_TRACER);
-        gi.WritePosition(cl->entity->s.origin);
-        gi.WritePosition(pick.entity->s.origin);
-        gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
-      }
-
-      // if we can't find a path to the item, don't try to get it.
-      // entity goals are too finnicky for this to work properly.
+    if (bestPath) {
+      G_Ai_BackupPath(cl->ai);
+      G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, best.weight, bestPath, best.entity);
+      release(bestPath);
     }
   }
 
@@ -628,6 +737,95 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   }
 
   return *angle;
+}
+
+/**
+ * @brief The preferred distance to a target, by the range that the weapon is made for.
+ */
+#define AI_RANGE_SHORT 160.f
+#define AI_RANGE_MEDIUM 384.f
+#define AI_RANGE_LONG 640.f
+
+/**
+ * @brief The interval in milliseconds after which a strafing bot may reverse, for the least and
+ * the most skilled bots.
+ */
+#define AI_STRAFE_MILLIS_MAX 1000
+#define AI_STRAFE_MILLIS_MIN 400
+
+/**
+ * @return The distance at which the bot prefers to fight with its current weapon.
+ */
+static float G_Ai_PreferredRange(const GameClient *cl) {
+
+  const uint32_t flags = cl->weapon ? cl->weapon->def.flags : 0;
+
+  if (flags & WF_SHORT_RANGE) {
+    return AI_RANGE_SHORT;
+  } else if (flags & WF_LONG_RANGE) {
+    return AI_RANGE_LONG;
+  }
+
+  return AI_RANGE_MEDIUM;
+}
+
+/**
+ * @return True if the bot can move one body width toward `dir` without hitting a wall or walking
+ * off a ledge.
+ */
+static bool G_Ai_CanStep(const GameEntity *ent, const Vec3 dir) {
+
+  const Vec3 end = Vec3_Fmaf(ent->s.origin, Box3_Size(ent->bounds).x * 2.f, dir);
+
+  if (gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+    return false;
+  }
+
+  if (ent->waterLevel >= WATER_WAIST) {
+    return true;
+  }
+
+  const Vec3 below = Vec3_Subtract(end, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT * 4.f));
+  return gi.Trace(end, below, Box3_Zero(), ent, CONTENTS_MASK_SOLID).fraction < 1.f;
+}
+
+/**
+ * @brief Strafes around the combat target: sideways, plus toward or away from it to hold the
+ * weapon's preferred range. The bot reverses at intervals that shorten with skill, and when the
+ * way ahead is blocked or ends at a ledge.
+ * @return The point to move toward.
+ */
+static Vec3 G_Ai_Strafe(GameClient *cl, const GameEntity *enemy) {
+
+  const GameEntity *ent = cl->entity;
+  float *side = &cl->ai->combatTarget.entity.flankAngle;
+
+  if (*side == 0.f) {
+    *side = Randomb() ? -90.f : 90.f;
+  }
+
+  const Vec3 delta = MakeVec3(enemy->s.origin.x - ent->s.origin.x, enemy->s.origin.y - ent->s.origin.y, 0.f);
+  const float distance = Vec3_Length(delta);
+  const Vec3 toEnemy = distance > 1.f ? Vec3_Scale(delta, 1.f / distance) : MakeVec3(1.f, 0.f, 0.f);
+
+  const float range = G_Ai_PreferredRange(cl);
+  const float radial = Clampf((distance - range) / range, -1.f, 1.f);
+
+  Vec3 dir = Vec3_Normalize(Vec3_Fmaf(MakeVec3(-toEnemy.y * SignOf(*side), toEnemy.x * SignOf(*side), 0.f), radial, toEnemy));
+
+  const bool blocked = !G_Ai_CanStep(ent, dir);
+
+  if (blocked || cl->ai->strafeTime <= gameLevel.time) {
+    const uint32_t millis = (uint32_t) Mixf(AI_STRAFE_MILLIS_MAX, AI_STRAFE_MILLIS_MIN, cl->ai->personality.skill);
+    cl->ai->strafeTime = gameLevel.time + RandomRangeu(millis / 2, millis);
+
+    if (blocked || Randomb()) {
+      *side = -*side;
+      dir = Vec3_Normalize(Vec3_Fmaf(MakeVec3(-toEnemy.y * SignOf(*side), toEnemy.x * SignOf(*side), 0.f), radial, toEnemy));
+    }
+  }
+
+  return Vec3_Fmaf(ent->s.origin, AI_RANGE_SHORT, dir);
 }
 
 static GameEntity *aiCurrentEntity;
@@ -1512,6 +1710,9 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           targetEnemy = true;
           break;
         case AI_COMBAT_FLANK:
+          dest = G_Ai_Strafe(cl, cl->ai->moveTarget.entity.ent);
+          targetEnemy = true;
+          break;
         case AI_COMBAT_WANDER:
           moveWander = true;
           targetEnemy = true;
