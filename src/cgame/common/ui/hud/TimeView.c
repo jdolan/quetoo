@@ -23,7 +23,35 @@
 
 #include "TimeView.h"
 
+#include <stdlib.h>
+
 #define _Class _TimeView
+
+static char mapName[MAX_QPATH];
+static uint32_t mapStartTime;
+static bool mapTimerStarted;
+
+static bool TimeView_ParseTime(const char *text, uint32_t *seconds) {
+
+  if (text[0] == '^' && text[1]) {
+    text += 2;
+  }
+
+  char *end;
+  const unsigned long minutes = strtoul(text, &end, 10);
+  if (end == text || *end++ != ':') {
+    return false;
+  }
+
+  const char *secondsText = end;
+  const unsigned long remainder = strtoul(secondsText, &end, 10);
+  if (end == secondsText || *end || remainder >= 60 || minutes > (UINT32_MAX - remainder) / 60) {
+    return false;
+  }
+
+  *seconds = (uint32_t) (minutes * 60 + remainder);
+  return true;
+}
 
 #pragma mark - View
 
@@ -42,6 +70,33 @@ static View *init(View *self) {
 static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
   const char *time = cgi.ConfigString(CS_TIME);
+
+  if (frame->ps.stats[STAT_TIME]) {
+    const char *currentMap = cgi.ConfigString(CS_BSP);
+    if (!mapTimerStarted || Str_Compare(mapName, currentMap)) {
+      Str_Copy(mapName, currentMap, sizeof(mapName));
+      mapStartTime = frame->time;
+      mapTimerStarted = true;
+    }
+
+    if (cg_drawTimerCountup->integer) {
+      uint32_t remaining;
+      uint32_t elapsed;
+      const Cvar *timeLimit = cgi.GetCvar("g_timeLimit");
+
+      if (timeLimit && timeLimit->value > 0.f &&
+          timeLimit->value <= UINT32_MAX / 60.f &&
+          TimeView_ParseTime(time, &remaining)) {
+        const uint32_t limit = (uint32_t) (timeLimit->value * 60.f);
+        elapsed = limit > remaining ? limit - remaining : 0;
+      } else {
+        elapsed = frame->time >= mapStartTime ? (frame->time - mapStartTime) / 1000 : 0;
+      }
+
+      snprintf(self->text, sizeof(self->text), "%2u:%02u", elapsed / 60, elapsed % 60);
+      return self->text;
+    }
+  }
 
   if (time[0] == '^' && time[1] == '7') {
     return time + 2;

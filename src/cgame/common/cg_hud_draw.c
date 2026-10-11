@@ -23,6 +23,7 @@
 
 Cvar *cg_chatLines;
 Cvar *cg_chatTime;
+Cvar *cg_drawTimerCountup;
 Cvar *cg_notifyLines;
 Cvar *cg_notifyTime;
 Cvar *cg_selectWeaponAlpha;
@@ -356,6 +357,7 @@ void Cg_InitHud(void) {
 
   cg_chatLines = cgi.AddCvar("cg_chatLines", "4", CVAR_ARCHIVE, "How many chat lines to show on the HUD, 0 disables");
   cg_chatTime = cgi.AddCvar("cg_chatTime", "10.0", CVAR_ARCHIVE, "How long, in seconds, chat lines stay on the HUD");
+  cg_drawTimerCountup = cgi.AddCvar("cg_drawTimerCountup", "0", CVAR_ARCHIVE, "Count the map timer up instead of down");
   cg_notifyLines = cgi.AddCvar("cg_notifyLines", "3", CVAR_ARCHIVE, "How many console lines to show on the HUD, 0 disables");
   cg_notifyTime = cgi.AddCvar("cg_notifyTime", "3.0", CVAR_ARCHIVE, "How long, in seconds, console lines stay on the HUD");
 

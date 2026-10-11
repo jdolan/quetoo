@@ -85,6 +85,7 @@ extern CGameHudState cgameHudState;
 
 extern Cvar *cg_chatLines;
 extern Cvar *cg_chatTime;
+extern Cvar *cg_drawTimerCountup;
 extern Cvar *cg_notifyLines;
 extern Cvar *cg_notifyTime;
 extern Cvar *cg_selectWeaponAlpha;
