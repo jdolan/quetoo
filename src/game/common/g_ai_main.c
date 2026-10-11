@@ -801,6 +801,163 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
 }
 
 /**
+ * @brief The longest fall in seconds that `G_Ai_FallsToVoid` follows.
+ */
+#define AI_FALL_MAX_SECONDS 3.f
+
+/**
+ * @brief The time step in seconds with which `G_Ai_FallsToVoid` follows a fall.
+ */
+#define AI_FALL_STEP_SECONDS .1f
+
+/**
+ * @brief The time in seconds for which a bot slides on after it lands, in which it MUST still find
+ * a floor below it.
+ */
+#define AI_FALL_SLIDE_SECONDS .2f
+
+/**
+ * @brief The depth in units below the end of the slide within which a bot MUST find a floor, deep
+ * enough for a flight of stairs.
+ */
+#define AI_FALL_SLIDE_DEPTH 128.f
+
+/**
+ * @return True if a `trigger_hurt` occupies the given bounds.
+ */
+static bool G_Ai_IsHurtful(const Box3 bounds) {
+
+  GameEntity *ents[32];
+  const size_t len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_OCCUPY);
+
+  for (size_t i = 0; i < len; i++) {
+    if (ents[i]->classname && Str_Compare(ents[i]->classname, "trigger_hurt") == 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Follows the arc of the AI from the given origin and velocity, with no input, until it
+ * lands.
+ * @return True if the AI lands on no floor, on the sky, in lava or slime, or in a `trigger_hurt`, or
+ * if it slides off the floor on which it lands.
+ */
+bool G_Ai_FallsToVoid(const GameClient *cl, Vec3 origin, Vec3 velocity) {
+
+  const GameEntity *ent = cl->entity;
+  const float gravity = G_LevelGravity();
+
+  for (float time = 0.f; time < AI_FALL_MAX_SECONDS; time += AI_FALL_STEP_SECONDS) {
+
+    const Vec3 end = Vec3_Fmaf(origin, AI_FALL_STEP_SECONDS, velocity);
+    velocity.z -= gravity * AI_FALL_STEP_SECONDS;
+
+    const CollisionTrace tr = gi.Trace(origin, end, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
+
+    if (tr.startSolid) {
+      return false;
+    }
+
+    if (G_Ai_IsHurtful(Box3_Union(Box3_Translate(ent->bounds, origin), Box3_Translate(ent->bounds, tr.end)))) {
+      return true;
+    }
+
+    if (gi.PointContents(tr.end) & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+      return true;
+    }
+
+    if (tr.fraction < 1.f) {
+
+      if (tr.surface & SURF_SKY) {
+        return true;
+      }
+
+      if (tr.plane.normal.z >= PM_STEP_NORMAL) {
+        const Vec3 slide = Vec3_Fmaf(tr.end, AI_FALL_SLIDE_SECONDS, MakeVec3(velocity.x, velocity.y, 0.f));
+        const CollisionTrace wall = gi.Trace(tr.end, slide, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
+
+        if (wall.fraction < 1.f) {
+          return false;
+        }
+
+        const Vec3 below = Vec3_Fmaf(slide, AI_FALL_SLIDE_DEPTH, Vec3_Down());
+        return gi.Trace(slide, below, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER).fraction == 1.f;
+      }
+
+      velocity = Vec3_Subtract(velocity, Vec3_Scale(tr.plane.normal, Vec3_Dot(velocity, tr.plane.normal)));
+    }
+
+    origin = tr.end;
+  }
+
+  return true;
+}
+
+/**
+ * @return The velocity with which the AI leaves the ground, if it jumps now.
+ */
+Vec3 G_Ai_JumpVelocity(const GameClient *cl) {
+  return MakeVec3(cl->entity->velocity.x, cl->entity->velocity.y, cl->ps.pmState.params.speedJump);
+}
+
+/**
+ * @brief The horizontal speed, as a fraction of the run speed, above which a bot no longer
+ * controls where it goes, as after a jump pad or a knockback.
+ */
+#define AI_OVERSPEED_SCALE 1.2f
+
+/**
+ * @return True if the entity moves faster than it can run. A path link was walked by a player, who
+ * steered in the air, so a fall at run speed MAY look short with no input, and still land.
+ */
+static bool G_Ai_IsOverspeed(const GameEntity *ent) {
+  return Vec2_Length(Vec3_XY(ent->velocity)) > PM_SPEED_RUN * AI_OVERSPEED_SCALE;
+}
+
+/**
+ * @brief Steers the AI back toward the place at which it left the ground, if it is in the air
+ * with no path to follow, and its fall ends in the void. A path plans its own jumps and drops.
+ */
+static void G_Ai_AvoidVoid(GameClient *cl, PMoveCmd *cmd) {
+
+  const GameEntity *ent = cl->entity;
+
+  if (ent->ground.ent ||
+      cl->ai->moveTarget.type == AI_GOAL_PATH ||
+      ent->waterLevel >= WATER_WAIST ||
+      (cl->ps.pmState.flags & PMF_ON_LADDER)) {
+    return;
+  }
+
+  if (cl->ai->fallFrame != gameLevel.frameNum) {
+    cl->ai->fallFrame = gameLevel.frameNum;
+    cl->ai->fallsToVoid = G_Ai_FallsToVoid(cl, ent->s.origin, ent->velocity);
+  }
+
+  if (!cl->ai->fallsToVoid) {
+    return;
+  }
+
+  Vec3 back = Vec3_Subtract(cl->ai->groundPosition, ent->s.origin);
+  back.z = 0.f;
+
+  if (Vec3_Length(back) < 1.f) {
+    back = Vec3_Negate(ent->velocity);
+    back.z = 0.f;
+  }
+
+  Vec3 dir;
+  Vec3_Vectors(MakeVec3(0.f, cl->angles.y - Vec3_Euler(Vec3_Normalize(back)).y, 0.f), &dir, NULL, NULL);
+
+  cmd->forward = dir.x * PM_SPEED_RUN;
+  cmd->right = dir.y * PM_SPEED_RUN;
+  cmd->up = 0;
+}
+
+/**
  * @brief The longest hold in milliseconds from the first launch of a `trigger_push`, after which
  * the AI moves again, so that it cannot stay still where it finds no ground, or inside a push.
  */
@@ -1079,6 +1236,10 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
 
+  if (ent->ground.ent) {
+    cl->ai->groundPosition = ent->s.origin;
+  }
+
   if (G_Ai_FollowPush(cl)) {
     cmd->forward = 0;
     cmd->right = 0;
@@ -1282,14 +1443,16 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   // tick so the three sub-passes of G_Ai_ClientThink share one expensive Pm_Move
   if (cl->ai->lookaheadFrame != gameLevel.frameNum) {
     PMove ahead = pm;
-    ahead.cmd.msec = 100;
+    ahead.cmd.msec = cl->ai->moveTarget.type == AI_GOAL_PATH ? 100 : 250;
     Pm_Move(&ahead);
     cl->ai->lookaheadFrame = gameLevel.frameNum;
     cl->ai->lookaheadNoGround = !ahead.ground.ent;
   }
 
+  const bool atEdge = ent->ground.ent && (cl->ai->lookaheadNoGround || !pm.ground.ent);
+
   // predicted ground is gone
-  if (ent->ground.ent && (cl->ai->lookaheadNoGround || !pm.ground.ent)) {
+  if (atEdge) {
 
     if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
 
@@ -1305,7 +1468,15 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
         } else if (((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
           (xyDist > fabsf(cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) && (xyDist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent && !toPush) {
-          cmd->up = PM_SPEED_JUMP;
+          if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToVoid(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
+            cmd->forward = -cmd->forward;
+            cmd->right = -cmd->right;
+          } else {
+            cmd->up = PM_SPEED_JUMP;
+          }
+        } else if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToVoid(cl, ent->s.origin, ent->velocity)) {
+          cmd->forward = -cmd->forward;
+          cmd->right = -cmd->right;
         }
       }
 
@@ -1361,6 +1532,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
                && cl->ai->moveTarget.path.trickJump != TRICK_JUMP_TURNING)
                || cl->ai->moveTarget.type != AI_GOAL_PATH)
                && !waitPolitely
+               && !atEdge
                && !G_Ai_IsRidingMover(ent)) {
 
     // we'll be pushed up against something
@@ -1408,7 +1580,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
             cmd->right = -cmd->right;
           }
         // try a jump
-        } else if (cl->ai->moveTarget.distress > 12.f) {
+        } else if (cl->ai->moveTarget.distress > 12.f &&
+                   !G_Ai_FallsToVoid(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
           cmd->up = PM_SPEED_JUMP;
         }
       }
@@ -1420,6 +1593,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     }
   }
 
+  G_Ai_AvoidVoid(cl, cmd);
   return 0;
 }
 
@@ -1811,6 +1985,8 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->lookaheadNoGround = false;
   cl->ai->replanTime = 0;
   cl->ai->pushTime = 0;
+  cl->ai->groundPosition = cl->entity->s.origin;
+  cl->ai->fallFrame = 0;
   cl->ai->wanderTurnTime = 0;
 
   cl->ai->viewVelocity = Vec3_Zero();

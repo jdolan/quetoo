@@ -377,6 +377,23 @@ typedef struct GameAi {
   uint32_t pushTime;
 
   /**
+   * @brief The position at which the bot last stood on the ground, to which it steers back if it
+   * falls toward the void.
+   */
+  Vec3 groundPosition;
+
+  /**
+   * @brief Frame number for which `fallsToVoid` was computed.
+   */
+  uint32_t fallFrame;
+
+  /**
+   * @brief Cached result of `G_Ai_FallsToVoid` for the bot's own fall. Valid only when
+   * `fallFrame == gameLevel.frameNum`.
+   */
+  bool fallsToVoid;
+
+  /**
    * @brief Level time before the bot may turn again while it wanders.
    */
   uint32_t wanderTurnTime;

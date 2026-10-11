@@ -55,6 +55,8 @@ bool G_Ai_IsOutgunned(const GameClient *cl, const GameEntity *enemy);
 bool G_Ai_ShouldRetreat(const GameClient *cl);
 bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other);
 bool G_Ai_IsSeekingItem(const GameClient *cl);
+bool G_Ai_FallsToVoid(const GameClient *cl, Vec3 origin, Vec3 velocity);
+Vec3 G_Ai_JumpVelocity(const GameClient *cl);
 
 /**
  * @brief Candidate item considered for AI pickup, weighted by desirability.
