@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pygame
 from OpenGL.GL import (
+  GL_ALPHA_TEST,
   GL_BLEND,
   GL_COLOR_BUFFER_BIT,
   GL_CULL_FACE,
@@ -22,6 +23,7 @@ from OpenGL.GL import (
   GL_DEPTH_TEST,
   GL_FILL,
   GL_FRONT_AND_BACK,
+  GL_GREATER,
   GL_LINE,
   GL_LINEAR,
   GL_MODELVIEW,
@@ -37,6 +39,7 @@ from OpenGL.GL import (
   GL_TEXTURE_WRAP_T,
   GL_TRIANGLES,
   GL_UNSIGNED_BYTE,
+  glAlphaFunc,
   glBegin,
   glBindTexture,
   glBlendFunc,
@@ -353,11 +356,13 @@ def draw_overlay(font, window_height: int, lines: list[str]):
   data = pygame.image.tostring(surface, "RGBA", True)
 
   glDisable(GL_DEPTH_TEST)
+  glDisable(GL_ALPHA_TEST)
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glWindowPos2i(10, window_height - surface.get_height() - 10)
   glDrawPixels(surface.get_width(), surface.get_height(), GL_RGBA, GL_UNSIGNED_BYTE, data)
   glDisable(GL_BLEND)
+  glEnable(GL_ALPHA_TEST)
   glEnable(GL_DEPTH_TEST)
 
 
@@ -443,6 +448,9 @@ def main():
   font = pygame.font.SysFont(None, 20)
 
   glEnable(GL_DEPTH_TEST)
+  # cut out texels the way a material's alpha_test .5 does; opaque skins are unaffected
+  glEnable(GL_ALPHA_TEST)
+  glAlphaFunc(GL_GREATER, 0.5)
   glClearColor(0.12, 0.12, 0.14, 1.0)
 
   glMatrixMode(GL_PROJECTION)
