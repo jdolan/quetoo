@@ -299,9 +299,6 @@ typedef struct {
 } GameAiPersonality;
 
 /**
- * @brief AI-specific per-client state.
- */
-/**
  * @brief The most item respawns that a bot remembers.
  */
 #define AI_ITEM_TIMINGS 16
@@ -321,6 +318,9 @@ typedef struct {
   uint32_t respawnTime;
 } GameAiItemTiming;
 
+/**
+ * @brief AI-specific per-client state.
+ */
 typedef struct GameAi {
 
   /**

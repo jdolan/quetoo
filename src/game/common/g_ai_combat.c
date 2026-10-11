@@ -783,7 +783,7 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
 
 /**
  * @return True if the bot's line of fire is clear: no teammate is in it, and an explosive weapon
- * would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot.
+ * would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on a wall or on the enemy.
  */
 static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 
@@ -798,8 +798,7 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
     return false;
   }
 
-  if ((cl->weapon->def.flags & WF_EXPLOSIVE) && hit != enemy &&
-      Vec3_Distance(eye, trace.end) < AI_SELF_SPLASH_DISTANCE) {
+  if ((cl->weapon->def.flags & WF_EXPLOSIVE) && Vec3_Distance(eye, trace.end) < AI_SELF_SPLASH_DISTANCE) {
     return false;
   }
 
@@ -844,14 +843,13 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 
       // skilled bots fire with tighter aim cone (10° to 25°)
       const float fireCone = Mixf(25.f, 10.f, cl->ai->personality.skill);
-      if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone)) &&
-          G_Ai_ClearToFire(cl, cl->ai->combatTarget.entity.ent)) {
+      if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone))) {
         const uint32_t grenadeHoldTime = cl->grenadeHoldTime;
         if (grenadeHoldTime) {
           if (gameLevel.time - grenadeHoldTime < RandomRangeu(1500, 2500)) {
             cmd->buttons |= BUTTON_ATTACK;
           }
-        } else {
+        } else if (G_Ai_ClearToFire(cl, cl->ai->combatTarget.entity.ent)) {
           cmd->buttons |= BUTTON_ATTACK;
         }
       }

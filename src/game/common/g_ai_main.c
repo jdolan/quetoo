@@ -458,9 +458,6 @@ static inline void G_Ai_RestorePath(const GameClient *cl, GameAi *ai) {
 }
 
 /**
- * @brief Seek for items if we're not doing anything better.
- */
-/**
  * @brief The most items, best first, whose paths a bot compares when it chooses one.
  */
 #define AI_ITEM_CANDIDATES 3
@@ -480,7 +477,7 @@ static inline void G_Ai_RestorePath(const GameClient *cl, GameAi *ai) {
 /**
  * @brief In developer mode, draws a tracer to an item that the bot cannot path to.
  */
-static void G_Ai_Node_TraceUnreachable(const GameClient *cl, const GameEntity *item) {
+static void G_Ai_TraceUnreachableItem(const GameClient *cl, const GameEntity *item) {
 
   if (!g_aiNodeDev->integer) {
     return;
@@ -493,6 +490,9 @@ static void G_Ai_Node_TraceUnreachable(const GameClient *cl, const GameEntity *i
   gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
 }
 
+/**
+ * @brief Seek for items if we're not doing anything better.
+ */
 static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
   if (G_IsMeat(cl->entity) && cl->entity->dead) {
@@ -641,7 +641,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
         : G_Ai_Node_FindClosest(pick.entity->s.origin, 256.f, true, true);
 
       if (src == AI_NODE_INVALID || dest == AI_NODE_INVALID) {
-        G_Ai_Node_TraceUnreachable(cl, pick.entity);
+        G_Ai_TraceUnreachableItem(cl, pick.entity);
         continue;
       }
 
@@ -654,7 +654,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
 
       if (!path || length > maxLength) {
         release(path);
-        G_Ai_Node_TraceUnreachable(cl, pick.entity);
+        G_Ai_TraceUnreachableItem(cl, pick.entity);
         continue;
       }
 
@@ -1456,9 +1456,6 @@ static bool G_Ai_IsRidingMover(const GameEntity *ent) {
 }
 
 /**
- * @brief Move towards our current target
- */
-/**
  * @brief The distance from a learned jump's start at which a bot starts to replay it.
  */
 #define AI_JUMP_START_DISTANCE 8.f
@@ -1658,6 +1655,9 @@ static bool G_Ai_ShouldBarrierJump(const GameClient *cl) {
   return Vec2_Length(delta) <= AI_BARRIER_JUMP_DISTANCE;
 }
 
+/**
+ * @brief Move towards our current target
+ */
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
@@ -2491,6 +2491,10 @@ static void G_Ai_ClientThink(GameEntity *ent) {
     }
 
     msecLeft -= cmd.msec;
+
+    if (ent->client && ent->client->ai->jumping) {
+      break;
+    }
   }
 
   ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;

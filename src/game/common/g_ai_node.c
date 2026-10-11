@@ -1374,7 +1374,7 @@ static void G_Ai_Node_AddJump(const NavJump *jump, const NavJumpStep *steps) {
 
   $(module.jumps, add, &copy);
 
-  if (copy.movement != G_MovementParams().movement) {
+  if (copy.movement != G_MovementParams().movement || G_Ai_Node_GetLink(copy.from, copy.to)) {
     return;
   }
 
@@ -1385,7 +1385,7 @@ static void G_Ai_Node_AddJump(const NavJump *jump, const NavJumpStep *steps) {
   G_Ai_Node_LinkTravel(copy.from, copy.to, cost, NAV_TRAVEL_JUMP);
 
   GameAiNode *node = AI_NODE(aiNodes, copy.from);
-  for (size_t i = 0; i < node->links->count; i++) {
+  for (size_t i = 0; node->links && i < node->links->count; i++) {
     GameAiLink *link = AI_LINK(node->links, i);
     if (link->id == (GameAiNodeId) copy.to) {
       link->travelType = NAV_TRAVEL_JUMP;
@@ -1411,7 +1411,7 @@ static void G_Ai_Node_LoadJumps(const NavJump *jumps, int32_t numJumps, const Na
     const NavJump *jump = &jumps[i];
 
     if (jump->from < 0 || jump->from >= (int32_t) aiNodes->count ||
-        jump->to < 0 || jump->to >= (int32_t) aiNodes->count || jump->travelTime <= 0 ||
+        jump->to < 0 || jump->to >= (int32_t) aiNodes->count || jump->from == jump->to || jump->travelTime <= 0 ||
         jump->numSteps <= 0 || jump->numSteps > AI_JUMP_MAX_STEPS || jump->firstStep < 0 ||
         jump->firstStep > numSteps || jump->numSteps > numSteps - jump->firstStep) {
       G_Warn("Nav file has an invalid jump %d\n", i);
@@ -1453,6 +1453,11 @@ static void G_Ai_Node_LearnJump(const GameClient *cl) {
 
   if (from == AI_NODE_INVALID || to == AI_NODE_INVALID || from == to) {
     G_Ai_Debug("Jump does not start and end at different nodes\n");
+    return;
+  }
+
+  if (AI_NODE(aiNodes, from)->voxel == -1 || AI_NODE(aiNodes, to)->voxel == -1) {
+    gi.Print("The jump from node %u to %u starts or ends at a node the game made; not learning it\n", from, to);
     return;
   }
 
@@ -1543,10 +1548,11 @@ static void G_Ai_Node_RecordJump(GameClient *cl, const PMoveCmd *cmd) {
   const bool abort = !primed || ent->dead || cl->ps.pmState.type != PM_NORMAL ||
     (cl->ps.pmState.flags & (PMF_TIME_PUSHED | PMF_TIME_TELEPORT | PMF_ON_LADDER)) ||
     ent->waterLevel > WATER_FEET || Vec3_Distance(sample.origin, ent->s.origin) > 64.f ||
-    rec->count == AI_JUMP_MAX_STEPS || rec->millis > AI_JUMP_MAX_MILLIS;
+    rec->count == AI_JUMP_MAX_STEPS || (rec->state != AI_JUMP_IDLE && rec->millis > AI_JUMP_MAX_MILLIS);
 
   if (abort) {
     rec->count = 0;
+    rec->millis = 0;
     rec->state = AI_JUMP_IDLE;
     return;
   }
@@ -2449,6 +2455,20 @@ static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to) {
 }
 
 /**
+ * @return False for a learned jump that was linked under another movement than `movement`, as
+ * after `g_movement` changes during the level.
+ */
+static bool G_Ai_Node_LinkUsable(const GameAiLink *link, const int32_t movement) {
+
+  if (link->travelType != NAV_TRAVEL_JUMP) {
+    return true;
+  }
+
+  const NavJump *jump = G_Ai_Node_GetJump(link->jump);
+  return jump && jump->movement == movement;
+}
+
+/**
  * @return The contents at the node: compiled with the graph, or tested.
  */
 static int32_t G_Ai_Node_Contents(const GameAiNode *node) {
@@ -2512,6 +2532,8 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
   struct GameAiHeap *queue = aiNodePathQueue;
   bool finished = false;
 
+  const int32_t movement = G_MovementParams().movement;
+
   {
     GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
     e->id = start;
@@ -2554,6 +2576,11 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
 
     for (size_t i = 0; i < node->links->count; i++) {
       const GameAiLink *link = AI_LINK(node->links, i);
+
+      if (!G_Ai_Node_LinkUsable(link, movement)) {
+        continue;
+      }
+
       GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
       const float drop = node->position.z - linkNode->position.z;
       const int32_t linkContents = G_Ai_Node_Contents(linkNode);
