@@ -29,7 +29,8 @@ Recipe format (JSON):
         "examples": {"shirt": [24, 165], "none": [70, 41]},
         "surfaces": {"u_torso": "shirt"},
         "regions": {"12": "none", "13": {"channel": "pants", "alpha": 0.8},
-                    "14": {"channel": "helmet", "mask": {"hue": 190, "chroma": 8, "spread": 40}}},
+                    "14": {"channel": "helmet", "mask": {"hue": 190, "chroma": 8, "spread": 40}},
+                    "15": ["shirt", {"channel": "helmet", "mask": {"hue": 190, "chroma": 8, "spread": 40}}]},
         "mask": {"hue": 40, "chroma": 25, "spread": 30}
       }
     }
@@ -44,8 +45,8 @@ Surface rules apply next, region rules override both. A mask then keeps only
 the pixels near a Lab hue (degrees) above a chroma, so a team skin's paint can
 define the region exactly. A surface or region rule MAY carry its own mask, which
 limits that rule to the matching pixels and leaves the rest as they were, for
-an accent that shares a region with its surroundings. A texture absent from the
-recipe gets no tintmap.
+an accent that shares a region with its surroundings. A rule MAY also be a list
+of rules, applied in order. A texture absent from the recipe gets no tintmap.
 """
 
 import argparse
@@ -545,6 +546,16 @@ def rule_mask(rgb: np.ndarray, rule, mask: np.ndarray, cache: dict) -> np.ndarra
   return mask & cache[key]
 
 
+def apply_rules(rgb: np.ndarray, rules, mask: np.ndarray, masks: dict, channel: np.ndarray, alpha: np.ndarray):
+  """Assigns the pixels under `mask` by one rule, or by a list of rules in order
+  so that a masked rule can refine an unmasked one."""
+  for rule in rules if isinstance(rules, list) else [rules]:
+    name, a = resolve_rule(rule)
+    ruled = rule_mask(rgb, rule, mask, masks)
+    channel[ruled] = CHANNELS[name] if name else -1
+    alpha[ruled] = a if name else 0.0
+
+
 def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_recipe: dict,
            speck_area: int) -> tuple[np.ndarray, np.ndarray]:
   """Applies the recipe: examples first, then surface rules, then region rules,
@@ -561,19 +572,13 @@ def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_reci
   for surface_name, rule in texture_recipe.get("surfaces", {}).items():
     if surface_name not in raster.surface_names:
       raise SystemExit(f"recipe names surface {surface_name}, not in {raster.surface_names}")
-    name, a = resolve_rule(rule)
-    mask = rule_mask(rgb, rule, raster.surface_ids == raster.surface_names.index(surface_name), masks)
-    channel[mask] = CHANNELS[name] if name else -1
-    alpha[mask] = a if name else 0.0
+    apply_rules(rgb, rule, raster.surface_ids == raster.surface_names.index(surface_name), masks, channel, alpha)
 
   for region_id, rule in texture_recipe.get("regions", {}).items():
     mask = labels == int(region_id)
     if not mask.any():
       raise SystemExit(f"recipe names region {region_id}, which the segmentation did not produce")
-    name, a = resolve_rule(rule)
-    mask = rule_mask(rgb, rule, mask, masks)
-    channel[mask] = CHANNELS[name] if name else -1
-    alpha[mask] = a if name else 0.0
+    apply_rules(rgb, rule, mask, masks, channel, alpha)
 
   if "mask" in texture_recipe:
     keep = hue_mask(rgb, texture_recipe["mask"])
