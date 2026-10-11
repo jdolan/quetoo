@@ -54,12 +54,20 @@ Cvar *g_aiNodeDev;
 #define AI_FIGHT_ITEM_DISTANCE 256.f
 
 /**
+ * @return The lowest weapon priority at which the AI considers itself armed. Aggressive bots settle
+ * for less.
+ */
+static float G_Ai_ArmedPriority(const GameClient *cl) {
+  return AI_ARMED_PRIORITY * Mixf(1.25f, .6f, cl->ai->personality.aggression);
+}
+
+/**
  * @return True if the bot has at least a Shotgun or better.
  * Blaster-only bots are considered unarmed and will prioritize weapon pickups.
  */
 bool G_Ai_IsArmed(const GameClient *cl) {
 
-  const float threshold = AI_ARMED_PRIORITY * Mixf(1.25f, .6f, cl->ai->personality.aggression);
+  const float threshold = G_Ai_ArmedPriority(cl);
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     const GameItem *it = &gameItems[t];
@@ -69,6 +77,18 @@ bool G_Ai_IsArmed(const GameClient *cl) {
   }
 
   return false;
+}
+
+/**
+ * @return True if the AI is unarmed, and the item is a weapon that it lacks and that would arm it.
+ */
+static bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item) {
+
+  if (item->def.type != ITEM_TYPE_WEAPON || cl->inventory[item->def.tag]) {
+    return false;
+  }
+
+  return item->def.priority >= G_Ai_ArmedPriority(cl) && !G_Ai_IsArmed(cl);
 }
 
 /**
@@ -223,8 +243,9 @@ static bool G_Ai_IsMapControlItem(const GameItem *item) {
 }
 
 /**
- * @return True if the entity is a map control item, or a dropped weapon that the AI lacks. Bots
- * go after these above all else, even in combat.
+ * @return True if the entity is a map control item and the AI is armed, or a dropped weapon that
+ * the AI lacks. Bots go after these above all else, even in combat. An unarmed bot arms itself
+ * first, so that it can defend the map control item it then takes.
  */
 static bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
 
@@ -233,7 +254,7 @@ static bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
   }
 
   if (G_Ai_IsMapControlItem(ent->item)) {
-    return true;
+    return G_Ai_IsArmed(cl);
   }
 
   return (ent->spawnFlags & SF_ITEM_DROPPED) && ent->item->def.type == ITEM_TYPE_WEAPON && !cl->inventory[ent->item->def.tag];
@@ -396,7 +417,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
   }
 
   const bool fighting = cl->ai->combatTarget.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl);
-  bool onlyCovetedItems = false;
+  bool onlyCovetedItems = false, onlyWeapons = false;
 
   // we're not attacking, so we probably care about items.
   if (cl->ai->moveTarget.type == AI_GOAL_ENTITY || cl->ai->moveTarget.type == AI_GOAL_PATH) {
@@ -426,6 +447,8 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       // still a good goal
       } else if (G_Ai_IsSeekingCovetedItem(cl)) {
         return 50;
+      } else if (!G_Ai_IsArmed(cl) && !G_Ai_WouldArm(cl, target->item)) {
+        onlyWeapons = true;
       } else {
         onlyCovetedItems = true;
       }
@@ -457,6 +480,10 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       continue;
     }
 
+    if (onlyWeapons && !G_Ai_WouldArm(cl, item)) {
+      continue;
+    }
+
     if (fighting && Vec3_Distance(cl->entity->s.origin, ent->s.origin) > AI_FIGHT_ITEM_DISTANCE) {
       continue;
     }
@@ -478,7 +505,7 @@ static uint32_t G_Ai_FindItems(GameClient *cl, PMoveCmd *cmd) {
       weight *= 3.f;
     }
 
-    if (coveted) {
+    if (coveted || G_Ai_WouldArm(cl, item)) {
       weight = (AI_MAX_ITEM_DISTANCE * 8.f - distance) * item->def.priority;
     }
 
