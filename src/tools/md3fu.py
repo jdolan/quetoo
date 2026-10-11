@@ -361,6 +361,22 @@ def draw_overlay(font, window_height: int, lines: list[str]):
   glEnable(GL_DEPTH_TEST)
 
 
+def model_center(legs: Md3Model, torso: Md3Model, head: Md3Model | None, frame: int) -> Vec3:
+  """The center of the assembled model's bounds at `frame`. The orbit target
+  goes here so zooming closes in on the model instead of a point above it."""
+  points = [v for s in legs.surfaces for v in s.frames[frame % legs.num_frames]]
+  tag_torso = legs.tags[frame % legs.num_frames].get("tag_torso")
+  if tag_torso:
+    torso_frame = frame % torso.num_frames
+    points += [apply_tag(tag_torso, v) for s in torso.surfaces for v in s.frames[torso_frame]]
+    tag_head = torso.tags[torso_frame].get("tag_head")
+    if head and tag_head:
+      points += [apply_tag(tag_torso, apply_tag(tag_head, v)) for s in head.surfaces for v in s.frames[0]]
+  if not points:
+    raise SystemExit("model has no vertices to center the camera on")
+  return tuple((min(p[i] for p in points) + max(p[i] for p in points)) * 0.5 for i in range(3))
+
+
 def read_frame_bounds(path: Path):
   """Yields (mins, maxs, origin, radius) for every frame in an MD3, used only
   to pick a sane camera distance."""
@@ -453,7 +469,7 @@ def main():
   elif not args.no_skin:
     print(f"warning: no such skin file: {skin_path}")
 
-  cx, cy, cz = 0.0, 0.0, extent * 0.5
+  cx, cy, cz = model_center(legs, torso, head, anim.first_frame)
   yaw, pitch, dist = -35.0, 15.0, extent * 2.5
   orbiting = False
   panning = False
@@ -546,10 +562,15 @@ def main():
           frame = frame_for(anim, elapsed)
           print(f"{anim.name}: frame {frame} ({frame - anim.first_frame + 1}/{anim.num_frames})")
       elif event.type == MOUSEBUTTONDOWN and event.button == 1:
-        orbiting = True
+        # cmd+drag pans, since right-drag is awkward on a trackpad
+        if pygame.key.get_mods() & pygame.KMOD_META:
+          panning = True
+        else:
+          orbiting = True
         last = event.pos
       elif event.type == MOUSEBUTTONUP and event.button == 1:
         orbiting = False
+        panning = False
       elif event.type == MOUSEBUTTONDOWN and event.button == 3:
         panning = True
         last = event.pos
@@ -561,7 +582,7 @@ def main():
         pitch += dy * 0.35
         last = event.pos
       elif event.type == MOUSEMOTION and panning:
-        # right-drag pans the orbit target (cx, cy, cz) within the camera's own
+        # panning moves the orbit target (cx, cy, cz) within the camera's own
         # right/up plane, so panning behaves the same regardless of orbit angle.
         dx, dy = event.pos[0] - last[0], event.pos[1] - last[1]
         rt, rp = math.radians(yaw), math.radians(pitch)
@@ -642,7 +663,7 @@ def main():
       f"texture [t]: {'on' if textured else 'off' if textures else 'n/a'}   wireframe [w]: {'on' if wireframe else 'off'}",
       f"tint [c]: {TINT_SETS[tint_index][0] if tinted else 'n/a'}   reload [r]",
       "space: pause/play    ←/→: step frame    tab / shift+tab: next / prev anim",
-      "drag: orbit    right-drag: pan    scroll: zoom    esc: quit",
+      "drag: orbit    right/cmd-drag: pan    scroll: zoom    esc: quit",
     ]
     draw_overlay(font, h, overlay_lines)
 
