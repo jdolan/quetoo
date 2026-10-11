@@ -46,7 +46,8 @@ the pixels near a Lab hue (degrees) above a chroma, so a team skin's paint can
 define the region exactly. A surface or region rule MAY carry its own mask, which
 limits that rule to the matching pixels and leaves the rest as they were, for
 an accent that shares a region with its surroundings. A rule MAY also be a list
-of rules, applied in order. A texture absent from the recipe gets no tintmap.
+of rules, applied in order. Any mask MAY set "min_area" to drop specks smaller
+than that many pixels. A texture absent from the recipe gets no tintmap.
 """
 
 import argparse
@@ -535,6 +536,17 @@ def hue_mask(rgb: np.ndarray, rule: dict) -> np.ndarray:
   return (chroma > float(rule.get("chroma", 25.0))) & (delta < float(rule.get("spread", 30.0)))
 
 
+def closed_hue_mask(rgb: np.ndarray, rule: dict) -> np.ndarray:
+  """The hue mask with pinholes closed and, if the rule sets `min_area`, specks
+  smaller than that dropped, so worn metal that drifts into the hue stays out."""
+  keep = ndimage.binary_closing(hue_mask(rgb, rule), iterations=2)
+  if "min_area" in rule:
+    components, count = ndimage.label(keep)
+    areas = ndimage.sum(keep, components, index=np.arange(1, count + 1))
+    keep &= np.isin(components, np.nonzero(areas >= float(rule["min_area"]))[0] + 1)
+  return keep
+
+
 def rule_mask(rgb: np.ndarray, rule, mask: np.ndarray, cache: dict) -> np.ndarray:
   """Narrows `mask` to the pixels matching the rule's own hue mask, if it has
   one. Many rules share one mask, so each distinct mask is computed once."""
@@ -542,7 +554,7 @@ def rule_mask(rgb: np.ndarray, rule, mask: np.ndarray, cache: dict) -> np.ndarra
     return mask
   key = json.dumps(rule["mask"], sort_keys=True)
   if key not in cache:
-    cache[key] = ndimage.binary_closing(hue_mask(rgb, rule["mask"]), iterations=2)
+    cache[key] = closed_hue_mask(rgb, rule["mask"])
   return mask & cache[key]
 
 
@@ -581,8 +593,7 @@ def assign(rgb: np.ndarray, raster: Rasterized, labels: np.ndarray, texture_reci
     apply_rules(rgb, rule, mask, masks, channel, alpha)
 
   if "mask" in texture_recipe:
-    keep = hue_mask(rgb, texture_recipe["mask"])
-    keep = ndimage.binary_closing(keep, iterations=2)
+    keep = closed_hue_mask(rgb, texture_recipe["mask"])
     channel[~keep] = -1
     alpha[~keep] = 0.0
 
