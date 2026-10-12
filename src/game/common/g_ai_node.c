@@ -2488,26 +2488,6 @@ static GameAiNodePriority *G_Ai_Node_AllocPathEntry(void) {
 #define AI_DROP_DAMAGE_PENALTY_SCALE 6.f
 
 /**
- * @brief The stored cost of the link from `a` to `b`.
- */
-static inline float G_Ai_LinkCost(const GameAiNodeId a, const GameAiNodeId b) {
-  const GameAiNode *node = AI_NODE(aiNodes, a);
-
-  assert(node->links);
-
-  for (uint32_t i = 0; i < node->links->count; i++) {
-    const GameAiLink *link = AI_LINK(node->links, i);
-
-    if (link->id == b) {
-      return link->cost;
-    }
-  }
-
-  assert(false);
-  return -1;
-}
-
-/**
  * @brief Returns true if the segment between two nodes intersects lava or slime.
  */
 static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to) {
@@ -2576,6 +2556,63 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
   }
 
   return Maxf(0.f, damage);
+}
+
+/**
+ * @return The cost for the client to travel the link out of `node`, with penalties for drops that
+ * hurt, or -1 if the client must not use the link.
+ * @param fromHazard True if `node` is in lava or slime.
+ */
+static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, const bool fromHazard,
+                                const GameAiLink *link, const int32_t movement) {
+
+  if (!G_Ai_Node_LinkUsable(link, movement)) {
+    return -1.f;
+  }
+
+  const GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
+  const float drop = node->position.z - linkNode->position.z;
+  const int32_t linkContents = G_Ai_Node_Contents(linkNode);
+  const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+
+  if (G_Ai_Node_RaisedPlatform(linkNode->position)) {
+    return -1.f;
+  }
+
+  if (fromHazard && toHazard) {
+    return -1.f;
+  }
+
+  const bool compiledLink = node->voxel != -1 && linkNode->voxel != -1;
+  if (!fromHazard && !compiledLink && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
+    return -1.f;
+  }
+
+  if (drop > AI_MAX_DROP_HEIGHT) {
+    return -1.f;
+  }
+
+  if (drop > 0.f && toHazard) {
+    return -1.f;
+  }
+
+  float dropPenalty = 0.f;
+  if (drop > AI_DROP_PENALTY_START) {
+    dropPenalty = (drop - AI_DROP_PENALTY_START) * AI_DROP_PENALTY_SCALE;
+  }
+
+  if (cl && cl->entity) {
+    const int32_t waterLevel = (linkContents & CONTENTS_WATER) ? 1 : 0;
+    const float estimatedDamage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), waterLevel);
+
+    if (estimatedDamage + AI_DROP_HEALTH_MARGIN >= cl->entity->health) {
+      return -1.f;
+    }
+
+    dropPenalty += estimatedDamage * AI_DROP_DAMAGE_PENALTY_SCALE;
+  }
+
+  return link->cost + dropPenalty;
 }
 
 /**
@@ -2650,60 +2687,18 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
       continue;
     }
 
-    // Compute once per expanded node rather than once per link.
-    const int32_t nodeContents = G_Ai_Node_Contents(node);
-    const bool fromHazard = (nodeContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+    const bool fromHazard = (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
     for (size_t i = 0; i < node->links->count; i++) {
       const GameAiLink *link = AI_LINK(node->links, i);
+      const float stepCost = G_Ai_Node_StepCost(cl, node, fromHazard, link, movement);
 
-      if (!G_Ai_Node_LinkUsable(link, movement)) {
+      if (stepCost < 0.f) {
         continue;
       }
 
       GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
-      const float drop = node->position.z - linkNode->position.z;
-      const int32_t linkContents = G_Ai_Node_Contents(linkNode);
-      const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
-
-      if (G_Ai_Node_RaisedPlatform(linkNode->position)) {
-        continue;
-      }
-
-      if (fromHazard && toHazard) {
-        continue;
-      }
-
-      const bool compiledLink = node->voxel != -1 && linkNode->voxel != -1;
-      if (!fromHazard && !compiledLink && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
-        continue;
-      }
-
-      if (drop > AI_MAX_DROP_HEIGHT) {
-        continue;
-      }
-
-      if (drop > 0.f && (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME))) {
-        continue;
-      }
-
-      float dropPenalty = 0.f;
-      if (drop > AI_DROP_PENALTY_START) {
-        dropPenalty = (drop - AI_DROP_PENALTY_START) * AI_DROP_PENALTY_SCALE;
-      }
-
-      if (cl && cl->entity) {
-        const int32_t waterLevel = (linkContents & CONTENTS_WATER) ? 1 : 0;
-        const float estimatedDamage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), waterLevel);
-
-        if (estimatedDamage + AI_DROP_HEALTH_MARGIN >= cl->entity->health) {
-          continue;
-        }
-
-        dropPenalty += estimatedDamage * AI_DROP_DAMAGE_PENALTY_SCALE;
-      }
-
-      const float newCost = node->cost + link->cost + dropPenalty;
+      const float newCost = node->cost + stepCost;
 
       if (maxCost > 0.f && newCost > maxCost) {
         continue;
@@ -2762,15 +2757,10 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
           break;
         }
       }
+    }
 
-      if (length) {
-        for (size_t i = 0; i < returnPath->count - 1; i++) {
-          const GameAiNodeId a = AI_NODE_ID(returnPath, i);
-          const GameAiNodeId b = AI_NODE_ID(returnPath, i + 1);
-
-          *length += G_Ai_LinkCost(a, b);
-        }
-      }
+    if (length) {
+      *length = AI_NODE(aiNodes, end)->cost;
     }
   } else {
     G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
@@ -2778,6 +2768,87 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
 
   free(costsStarted);
   return returnPath;
+}
+
+/**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float *costs) {
+
+  if (start == AI_NODE_INVALID) {
+    return false;
+  }
+
+  for (uint32_t i = 0; i < aiNodes->count; i++) {
+    costs[i] = FLT_MAX;
+  }
+
+  const size_t heapCapacity = (size_t) aiNodes->count * 4 + 16;
+  if (!G_Ai_Node_EnsurePathPool(heapCapacity)) {
+    return false;
+  }
+
+  struct GameAiHeap *queue = aiNodePathQueue;
+  const int32_t movement = G_MovementParams().movement;
+
+  GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
+  e->id = start;
+  e->priority = 0.f;
+  G_Ai_HeapPush(queue, 0.f, e);
+
+  costs[start] = 0.f;
+
+  for (;;) {
+    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
+    if (!current) {
+      break;
+    }
+
+    if (current->priority > costs[current->id]) {
+      continue;
+    }
+
+    const GameAiNode *node = AI_NODE(aiNodes, current->id);
+
+    if (!node->links || !node->links->count) {
+      continue;
+    }
+
+    const bool fromHazard = (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+
+    for (size_t i = 0; i < node->links->count; i++) {
+      const GameAiLink *link = AI_LINK(node->links, i);
+      const float stepCost = G_Ai_Node_StepCost(cl, node, fromHazard, link, movement);
+
+      if (stepCost < 0.f) {
+        continue;
+      }
+
+      const float newCost = costs[current->id] + stepCost;
+
+      if (newCost >= costs[link->id]) {
+        continue;
+      }
+
+      costs[link->id] = newCost;
+
+      GameAiNodePriority *next = G_Ai_Node_AllocPathEntry();
+      if (!next) {
+        G_Warn("Travel cost entry pool exhausted (capacity %zu)\n", heapCapacity);
+        return true;
+      }
+
+      next->id = link->id;
+      next->priority = newCost;
+
+      if (!G_Ai_HeapPush(queue, newCost, next)) {
+        G_Warn("Travel cost heap exhausted (capacity %zu)\n", heapCapacity);
+        return true;
+      }
+    }
+  }
+
+  return true;
 }
 
 /**
