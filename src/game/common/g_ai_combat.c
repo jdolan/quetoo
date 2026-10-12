@@ -860,6 +860,43 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
+ * @brief The distance around a bot that must have floor, for it to jump to dodge.
+ */
+#define AI_DODGE_FLOOR_DISTANCE 96.f
+
+/**
+ * @brief The height above the bot's origin at which it checks for floor around it, about the top of
+ * the arc of a jump.
+ */
+#define AI_DODGE_HEIGHT 48.f
+
+/**
+ * @return True if each of eight directions around the bot has floor within
+ * `AI_DODGE_FLOOR_DISTANCE`, or before a wall that stands above the arc of a jump. A jump to dodge
+ * checks only its own arc, but the bot keeps moving while in the air, so it MUST NOT dodge near a
+ * ledge, on a bridge, or beside a rail that it would jump over.
+ */
+static bool G_Ai_HasFloorAround(const GameEntity *ent) {
+
+  const Vec3 start = Vec3_Add(ent->s.origin, MakeVec3(0.f, 0.f, AI_DODGE_HEIGHT));
+
+  for (int32_t i = 0; i < 8; i++) {
+    const float angle = Radians(i * 45.f);
+    const Vec3 end = Vec3_Add(start, MakeVec3(cosf(angle) * AI_DODGE_FLOOR_DISTANCE, sinf(angle) * AI_DODGE_FLOOR_DISTANCE, 0.f));
+
+    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
+    const Vec3 point = Vec3_Fmaf(tr.end, -1.f, Vec3_Normalize(Vec3_Subtract(end, start)));
+    const Vec3 below = Vec3_Subtract(point, MakeVec3(0.f, 0.f, AI_DODGE_HEIGHT + PM_STEP_HEIGHT * 4.f));
+
+    if (gi.Trace(point, below, Box3_Zero(), ent, CONTENTS_MASK_SOLID).fraction == 1.f) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * @brief Funcgoal that controls the AI's crouch/jumping while hunting.
  */
 uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
@@ -890,7 +927,7 @@ uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 
       if ((RandomRangeu(0, crouchFreq)) == 0) { // randomly crouch
         cmd->up = -PM_SPEED_JUMP;
-      } else if ((RandomRangeu(0, jumpFreq)) == 0 &&
+      } else if ((RandomRangeu(0, jumpFreq)) == 0 && G_Ai_HasFloorAround(cl->entity) &&
                  !G_Ai_FallsToVoid(cl, cl->entity->s.origin, G_Ai_JumpVelocity(cl))) { // randomly pop
         cmd->up = PM_SPEED_JUMP;
       }
