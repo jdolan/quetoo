@@ -530,6 +530,17 @@ typedef struct GameAi {
   bool strafeJumping;
 
   /**
+   * @brief True once a strafe jumping bot passes the top of its arc, and has decided whether to
+   * jump again on landing.
+   */
+  bool strafeFalling;
+
+  /**
+   * @brief True if the strafe jumping bot jumps again on landing.
+   */
+  bool strafeAgain;
+
+  /**
    * @brief Level time until which `steerIndex` and `steerRun` are valid, for `steerPath` at
    * `steerPathIndex`.
    */
