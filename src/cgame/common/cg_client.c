@@ -788,17 +788,30 @@ static void Cg_RotateClientLegs(const CGameClientInfo *ci, ClientEntity *ent, Re
 
 /**
  * @brief The tail of the `Cg_ClientInfo` chain: the slot the entity names.
+ * @details Corpses have their own copies of client info, so that when a player changes skins
+ * mid-game, their corpses do not suddenly swap models too.
  */
 static CGameClientInfo *Cg_ClientInfo_Common(const ClientEntity *ent) {
+  static CGameClientInfo nullInfo;
 
-  // a corpse names a slot of its own, holding the client info it died wearing, so that it is
-  // not repainted by its owner changing skin and does not fall back to the default model when
-  // they disconnect and their entry is cleared. The mask is what the slot was assigned with.
   if (ent->current.effects & EF_CORPSE) {
-    return &cgameState.corpses[ent->current.client & (MAX_CORPSES - 1)];
+    if (ent->current.client >= MAX_CORPSES) {
+      Cg_Warn("Bad client %u for corpse entity %d\n", ent->current.client, ent->current.number);
+      return &nullInfo;
+    }
+    return &cgameState.corpses[ent->current.client];
   }
 
-  return &cgameState.clients[ent->current.client];
+  if (ent->current.effects & (EF_CLIENT | EF_HEAD)) {
+    if (ent->current.client >= MAX_CLIENTS) {
+      Cg_Warn("Bad client %u for client entity %d\n", ent->current.client, ent->current.number);
+      return &nullInfo;
+    }
+    return &cgameState.clients[ent->current.client];
+  }
+
+  Cg_Warn("Entity %d is neither client nor corpse\n", ent->current.number);
+  return &nullInfo;
 }
 
 CGameClientInfoHook Cg_ClientInfo = Cg_ClientInfo_Common;
