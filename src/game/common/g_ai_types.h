@@ -523,6 +523,37 @@ typedef struct GameAi {
    * @brief The milliseconds by which the replay ran ahead of the server's ticks.
    */
   int32_t jumpDebt;
+
+  /**
+   * @brief True from the takeoff of a strafe jump until the bot lands and does not jump again.
+   */
+  bool strafeJumping;
+
+  /**
+   * @brief Level time until which `steerIndex` and `steerRun` are valid, for `steerPath` at
+   * `steerPathIndex`.
+   */
+  uint32_t steerTime;
+
+  /**
+   * @brief The path for which `steerIndex` was computed.
+   */
+  const Vector *steerPath;
+
+  /**
+   * @brief The path index for which `steerIndex` was computed.
+   */
+  uint32_t steerPathIndex;
+
+  /**
+   * @brief The index of the farthest path node that the bot can run straight to, or -1 for none.
+   */
+  int32_t steerIndex;
+
+  /**
+   * @brief The horizontal distance to the node at `steerIndex`.
+   */
+  float steerRun;
 } GameAi;
 
 #endif
