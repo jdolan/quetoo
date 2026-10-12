@@ -1966,8 +1966,8 @@ static void G_Ai_CheckNodes(void) {
 #define AI_RIDE_NODE_DISTANCE 64.f
 
 /**
- * @brief The distance within which a jump pad starts or lands at a node that is in sight. It is
- * two cells, because merged open floor leaves gaps wider than a cell between nodes.
+ * @brief The distance within which a jump pad starts or lands at a node that is in sight. It spans
+ * several cells, so that a pad whose trigger or landing lies between nodes still links.
  */
 #define AI_PUSH_NODE_DISTANCE 128.f
 

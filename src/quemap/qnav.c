@@ -39,7 +39,7 @@
 /**
  * @brief The width of a navigation cell, in voxels. Each cell samples one floor per voxel height.
  */
-#define NAV_CELL 2
+#define NAV_CELL 1
 
 /**
  * @brief The width of a navigation cell, in units.
@@ -160,8 +160,8 @@ static struct {
  */
 static const Vec2 offsets[] = {
   { { 0.f, 0.f } },
-  { { -16.f, 0.f } }, { { 16.f, 0.f } }, { { 0.f, -16.f } }, { { 0.f, 16.f } },
-  { { -16.f, -16.f } }, { { 16.f, -16.f } }, { { -16.f, 16.f } }, { { 16.f, 16.f } },
+  { { -8.f, 0.f } }, { { 8.f, 0.f } }, { { 0.f, -8.f } }, { { 0.f, 8.f } },
+  { { -8.f, -8.f } }, { { 8.f, -8.f } }, { { -8.f, 8.f } }, { { 8.f, 8.f } },
 };
 
 /**
@@ -700,267 +700,6 @@ static void CollectNodes(void) {
 }
 
 /**
- * @return True if `node` may merge with the open floor around it: it is a standing node whose
- * links are all walks.
- */
-static bool Mergeable(const int32_t node) {
-
-  if (module.nodes[node].flags) {
-    return false;
-  }
-
-  const NavNodeLinks *links = &module.nodeLinks[node];
-  for (int32_t i = 0; i < links->numLinks; i++) {
-    if (links->links[i].travelType != NAV_TRAVEL_WALK) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
- * @return True if `a` has a walk link to `b`.
- */
-static bool WalkLinked(const int32_t a, const int32_t b) {
-
-  const NavNodeLinks *links = &module.nodeLinks[a];
-  for (int32_t i = 0; i < links->numLinks; i++) {
-    if (links->links[i].node == b) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * @return True if `kept` walks to every node outside the group that a member links to, and back,
- * so that merging the group into it keeps every route.
- */
-static bool ReachesNeighbors(const int32_t kept, const int32_t members[4]) {
-
-  for (int32_t i = 0; i < 4; i++) {
-    const NavNodeLinks *links = &module.nodeLinks[members[i]];
-
-    for (int32_t j = 0; j < links->numLinks; j++) {
-      const int32_t neighbor = links->links[j].node;
-
-      if (neighbor == members[0] || neighbor == members[1] || neighbor == members[2] || neighbor == members[3]) {
-        continue;
-      }
-
-      float distance;
-      if (!Walk(&module.nodes[kept], &module.nodes[neighbor], &distance) ||
-          !Walk(&module.nodes[neighbor], &module.nodes[kept], &distance)) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-/**
- * @return The count of connected parts of the graph, with links taken in both directions.
- */
-static int32_t CountParts(void) {
-
-  int32_t *parent = Mem_TagMalloc(sizeof(int32_t) * Maxi(1, module.numNodes), (MemTag) MEM_TAG_QNAV);
-  for (int32_t i = 0; i < module.numNodes; i++) {
-    parent[i] = i;
-  }
-
-  for (int32_t i = 0; i < module.numNodes; i++) {
-    const NavNodeLinks *links = &module.nodeLinks[i];
-    for (int32_t j = 0; j < links->numLinks; j++) {
-      int32_t a = i, b = links->links[j].node;
-      while (parent[a] != a) {
-        a = parent[a] = parent[parent[a]];
-      }
-      while (parent[b] != b) {
-        b = parent[b] = parent[parent[b]];
-      }
-      parent[Maxi(a, b)] = Mini(a, b);
-    }
-  }
-
-  int32_t parts = 0;
-  for (int32_t i = 0; i < module.numNodes; i++) {
-    parts += parent[i] == i;
-  }
-
-  Mem_Free(parent);
-  return parts;
-}
-
-/**
- * @brief Plans the merge of open floor into `target`, which maps each node to the node it merges
- * into, skipping the groups that hold a `pinned` node.
- */
-static void PlanMerge(int32_t *target, const bool *pinned) {
-
-  for (int32_t i = 0; i < module.numNodes; i++) {
-    target[i] = i;
-  }
-
-  for (int32_t z = 0; z < module.size.z; z++) {
-    for (int32_t y = 0; y + NAV_CELL < module.size.y; y += NAV_CELL * 2) {
-      for (int32_t x = 0; x + NAV_CELL < module.size.x; x += NAV_CELL * 2) {
-
-        int32_t members[4];
-        bool mergeable = true;
-
-        for (int32_t i = 0; i < 4 && mergeable; i++) {
-          const int32_t voxel = VoxelIndex(MakeVec3i(x + (i & 1) * NAV_CELL, y + (i >> 1) * NAV_CELL, z));
-          members[i] = module.voxelNodes[voxel];
-          mergeable = members[i] != -1 && !pinned[members[i]] && Mergeable(members[i]);
-        }
-
-        for (int32_t i = 0; i < 4 && mergeable; i++) {
-          const NavNode *a = &module.nodes[members[i]];
-          for (int32_t j = 0; j < 4 && mergeable; j++) {
-            const NavNode *b = &module.nodes[members[j]];
-            mergeable = i == j || (fabsf(a->position.z - b->position.z) <= 1.f &&
-                                   a->contents == b->contents && WalkLinked(members[i], members[j]));
-          }
-        }
-
-        if (!mergeable) {
-          continue;
-        }
-
-        const float half = (NAV_CELL - .5f) * BSP_VOXEL_SIZE;
-        const Vec3 center = Vec3_Add(VoxelOrigin(MakeVec3i(x, y, z)), MakeVec3(half, half, 0.f));
-
-        int32_t kept = members[0];
-        for (int32_t i = 1; i < 4; i++) {
-          if (Vec2_Distance(Vec3_XY(module.nodes[members[i]].position), Vec3_XY(center)) <
-              Vec2_Distance(Vec3_XY(module.nodes[kept].position), Vec3_XY(center))) {
-            kept = members[i];
-          }
-        }
-
-        if (!ReachesNeighbors(kept, members)) {
-          continue;
-        }
-
-        for (int32_t i = 0; i < 4; i++) {
-          target[members[i]] = kept;
-        }
-      }
-    }
-  }
-
-}
-
-/**
- * @brief Merges open floor: each aligned 2x2 group of cells whose four nodes stand at one
- * height, with the same contents, have only walk links, and are all linked to each other, becomes
- * the member nearest the group's center. The members' links move to it, and each walk is simulated
- * again; where one fails, both of its groups stay unmerged, and the plan is made again. Stairs,
- * ledges, narrow paths and crouch spaces keep their nodes.
- */
-static void MergeNodes(void) {
-
-  const int32_t numNodes = module.numNodes;
-  const int32_t partsBefore = CountParts();
-
-  int32_t *target = Mem_TagMalloc(sizeof(int32_t) * Maxi(1, numNodes), (MemTag) MEM_TAG_QNAV);
-  bool *pinned = Mem_TagMalloc(sizeof(bool) * Maxi(1, numNodes), (MemTag) MEM_TAG_QNAV);
-
-  int32_t numDropped;
-
-  do {
-    PlanMerge(target, pinned);
-    numDropped = 0;
-
-    for (int32_t i = 0; i < numNodes; i++) {
-      const NavNodeLinks *links = &module.nodeLinks[i];
-
-      for (int32_t j = 0; j < links->numLinks; j++) {
-        const NavLink *link = &links->links[j];
-        const int32_t from = target[i], to = target[link->node];
-
-        if (from == to || link->travelType != NAV_TRAVEL_WALK || (from == i && to == link->node)) {
-          continue;
-        }
-
-        float distance;
-        if (!Walk(&module.nodes[from], &module.nodes[to], &distance)) {
-          pinned[i] = pinned[link->node] = true;
-          numDropped++;
-        }
-      }
-    }
-  } while (numDropped);
-
-  int32_t *index = Mem_TagMalloc(sizeof(int32_t) * Maxi(1, numNodes), (MemTag) MEM_TAG_QNAV);
-  int32_t count = 0;
-  for (int32_t i = 0; i < numNodes; i++) {
-    index[i] = target[i] == i ? count++ : -1;
-  }
-
-  NavNode *nodes = Mem_TagMalloc(sizeof(NavNode) * Maxi(1, count), (MemTag) MEM_TAG_QNAV);
-  NavNodeLinks *nodeLinks = Mem_TagMalloc(sizeof(NavNodeLinks) * Maxi(1, count), (MemTag) MEM_TAG_QNAV);
-
-  for (int32_t i = 0; i < numNodes; i++) {
-    if (target[i] == i) {
-      nodes[index[i]] = module.nodes[i];
-    }
-  }
-
-  for (int32_t i = 0; i < numNodes; i++) {
-    const int32_t from = index[target[i]];
-    const NavNodeLinks *links = &module.nodeLinks[i];
-
-    for (int32_t j = 0; j < links->numLinks; j++) {
-      const NavLink *link = &links->links[j];
-      const int32_t to = index[target[link->node]];
-
-      if (from == to) {
-        continue;
-      }
-
-      int32_t time = link->travelTime;
-
-      if (link->travelType == NAV_TRAVEL_WALK && (target[i] != i || target[link->node] != link->node)) {
-        float distance;
-        Walk(&nodes[from], &nodes[to], &distance);
-        time = TravelTime(distance, PM_SPEED_RUN);
-      }
-
-      AddLink(&nodeLinks[from], to, link->travelType, time);
-    }
-  }
-
-  for (int32_t i = 0; i < module.numVoxels; i++) {
-    if (module.voxelNodes[i] != -1) {
-      module.voxelNodes[i] = index[target[module.voxelNodes[i]]];
-    }
-  }
-
-  Mem_Free(module.nodes);
-  Mem_Free(module.nodeLinks);
-
-  module.nodes = nodes;
-  module.nodeLinks = nodeLinks;
-  module.numNodes = count;
-
-  Mem_Free(target);
-  Mem_Free(pinned);
-  Mem_Free(index);
-
-  const int32_t partsAfter = CountParts();
-
-  Com_Print("%9d nodes after merging open floor\n", module.numNodes);
-
-  if (partsAfter != partsBefore) {
-    Com_Warn("Merging changed the graph's connected parts from %d to %d\n", partsBefore, partsAfter);
-  }
-}
-
-/**
  * @brief Assigns each node its range of links, and counts the links of each travel type.
  */
 static void CollectLinks(void) {
@@ -1219,8 +958,6 @@ int32_t Qnav_Main(void) {
   module.nodeLinks = Mem_TagMalloc(sizeof(NavNodeLinks) * Maxi(1, module.numNodes), (MemTag) MEM_TAG_QNAV);
 
   Work("Linking nodes", LinkNode, module.numNodes);
-
-  MergeNodes();
 
   CollectLinks();
 
