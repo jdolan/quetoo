@@ -402,6 +402,7 @@
 		CE05B3F030224900C0DE003C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CE05B3F030224900C0DE003E /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
+		0A3AFEF82E92A6D7EDE49205 /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CE05B3F030224900C0DE0040 /* cg_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D55F1C5C58C300CD0B13 /* cg_client.h */; };
 		CE05B3F030224900C0DE0041 /* cg_discord.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E6B827AC95D1003D56AC /* cg_discord.h */; };
@@ -880,6 +881,7 @@
 		CEAD8FB52F8D8DF70087A850 /* check_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FA32F8D8DB70087A850 /* check_manifest.c */; };
 		CEAD8FB62F8D8E060087A850 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEAD8FB82F8DA0000087A850 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		9E1CC554403DDDF30E7936EF /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEAD8FBD2F93A5400087A850 /* UpdateViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */; };
 		CEAD8FBE2F93A5430087A850 /* UpdateViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FB92F93A4990087A850 /* UpdateViewController.css */; };
@@ -1013,6 +1015,7 @@
 		CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEC0FF00202601030000019D /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
 		CEC0FF00202601030000019E /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
+		30FD45E54A43D864398BD530 /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		CEC0FF00202601030000019F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEC0FF0020260103000001D5 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CEC0FF0020260103000001D6 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
@@ -1348,6 +1351,7 @@
 		D2A5C1000000000000000081 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		D2A5C1000000000000000082 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D2A5C1000000000000000083 /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
+		A04BD89F5AAC7CE024786A3C /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		D2A5C1000000000000000084 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		D2A5C1000000000000000085 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000002 /* bg_item.c */; };
 		D2A5C1000000000000000086 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
@@ -2992,6 +2996,8 @@
 		CEAD8F9D2F8D765F0087A850 /* check_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_http; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEAD8FA32F8D8DB70087A850 /* check_manifest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_manifest.c; sourceTree = "<group>"; };
 		CEAD8FB42F8D8DE30087A850 /* check_manifest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_manifest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B77DE24754DEF2A64422733 /* HeroImageList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HeroImageList.h; sourceTree = "<group>"; };
+		B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HeroImageList.c; sourceTree = "<group>"; };
 		CEAD8FB72F93A4990087A850 /* UpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateViewController.h; sourceTree = "<group>"; };
 		CEAD8FB82F93A4990087A850 /* UpdateViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = UpdateViewController.c; sourceTree = "<group>"; };
 		CEAD8FB92F93A4990087A850 /* UpdateViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = UpdateViewController.css; sourceTree = "<group>"; };
@@ -4849,6 +4855,8 @@
 				CE7D2C0D202F6134004BC58E /* MainView.json */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
 				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
+				6B77DE24754DEF2A64422733 /* HeroImageList.h */,
+				B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */,
 				CEAD8FB72F93A4990087A850 /* UpdateViewController.h */,
 				CEAD8FB82F93A4990087A850 /* UpdateViewController.c */,
 				CEAD8FB92F93A4990087A850 /* UpdateViewController.css */,
@@ -6958,6 +6966,7 @@
 				CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000206 /* VoteViewController.c in Sources */,
 				CE05B3F030224900C0DE003E /* TeamView.c in Sources */,
+				0A3AFEF82E92A6D7EDE49205 /* HeroImageList.c in Sources */,
 				CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */,
 				CE05B3F030224900C0DE0001 /* bg_item.c in Sources */,
 				CE05B3F030224900C0DE0002 /* bg_pmove.c in Sources */,
@@ -7127,6 +7136,7 @@
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000207 /* VoteViewController.c in Sources */,
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
+				9E1CC554403DDDF30E7936EF /* HeroImageList.c in Sources */,
 				CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000004 /* bg_item.c in Sources */,
 				CEFEED000000000000000002 /* bg_pmove.c in Sources */,
@@ -7609,6 +7619,7 @@
 				CEC0FF00202601030000019E /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000208 /* VoteViewController.c in Sources */,
 				CEC0FF00202601030000019D /* TeamView.c in Sources */,
+				30FD45E54A43D864398BD530 /* HeroImageList.c in Sources */,
 				CEC0FF00202601030000019F /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000005 /* bg_item.c in Sources */,
 				CEFEED000000000000000003 /* bg_pmove.c in Sources */,
@@ -7833,6 +7844,7 @@
 				D2A5C1000000000000000081 /* TeamsViewController.c in Sources */,
 				D2A5C1000000000000000082 /* VoteViewController.c in Sources */,
 				D2A5C1000000000000000083 /* TeamView.c in Sources */,
+				A04BD89F5AAC7CE024786A3C /* HeroImageList.c in Sources */,
 				D2A5C1000000000000000084 /* UpdateViewController.c in Sources */,
 				D2A5C1000000000000000085 /* bg_item.c in Sources */,
 				D2A5C1000000000000000086 /* bg_pmove.c in Sources */,

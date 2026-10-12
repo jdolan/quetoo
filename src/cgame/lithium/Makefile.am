@@ -145,6 +145,7 @@ cgame_la_SOURCES = \
 	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \
 	ui/hud/WeaponBarView.c \
+	ui/main/HeroImageList.c \
 	ui/main/LoadingViewController.c \
 	ui/main/MainView.c \
 	ui/main/MainViewController.c \

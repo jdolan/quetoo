@@ -38,13 +38,14 @@
  */
 static void fetchHeroImages(void *data) {
 
-	UpdateViewController *this = data;
+	HeroImageList *heroImages = data;
 
 	Data *listData = NULL, *imageData = NULL;
 
 	if ($(cgi.restClient, get, QUETOO_HERO_LIST_URL, NULL, &listData) != 200 || !listData) {
 		Cg_Warn("Failed to fetch hero image list");
 		release(listData);
+		release(heroImages);
 		return;
 	}
 
@@ -89,7 +90,7 @@ static void fetchHeroImages(void *data) {
 		}
 	}
 
-	for (size_t i = 0; i < urls->count; i++) {
+	for (size_t i = 0; i < urls->count && !$(heroImages, isCancelled); i++) {
 		imageData = NULL;
 		const char *urlStr = urls->elements[i];
 		if ($(cgi.restClient, get, urlStr, NULL, &imageData) == 200 && imageData) {
@@ -107,9 +108,7 @@ static void fetchHeroImages(void *data) {
 			}
 
 			if (image) {
-				SDL_LockMutex(this->pendingImagesLock);
-				$(this->pendingImages, addObject, image);
-				SDL_UnlockMutex(this->pendingImagesLock);
+				$(heroImages, add, image);
 			}
 			release(image);
 		} else {
@@ -119,6 +118,7 @@ static void fetchHeroImages(void *data) {
 	}
 
 	urls = release(urls);
+	release(heroImages);
 }
 
 #pragma mark - Object
@@ -130,10 +130,10 @@ static void dealloc(Object *self) {
 
   UpdateViewController *this = (UpdateViewController *) self;
 
-  cgi.Wait(this->fetchThread);
-
-  SDL_DestroyMutex(this->pendingImagesLock);
-  release(this->pendingImages);
+  if (this->heroImages) {
+    $(this->heroImages, cancel);
+    release(this->heroImages);
+  }
 
   super(Object, self, dealloc);
 }
@@ -161,15 +161,13 @@ static void loadView(ViewController *self) {
 	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/UpdateViewController.css");
 	assert(self->view->stylesheet);
 
-	this->pendingImagesLock = SDL_CreateMutex();
-	assert(this->pendingImagesLock);
-	this->pendingImages = $(alloc(Array), init);
-	assert(this->pendingImages);
+	this->heroImages = $(alloc(HeroImageList), init);
+	assert(this->heroImages);
 
 	$(this->logo, setImageWithResourceName, "ui/loading.png");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/progress_bar.png");
 
-	this->fetchThread = cgi.Thread(__func__, fetchHeroImages, this, THREAD_NO_WAIT);
+	cgi.Thread(__func__, fetchHeroImages, retain(this->heroImages), THREAD_NO_WAIT);
 }
 
 #pragma mark - UpdateViewController
@@ -188,16 +186,14 @@ static UpdateViewController *init(UpdateViewController *self) {
  */
 static void setStatus(UpdateViewController *self, const InstallerStatus *in) {
 
-	SDL_LockMutex(self->pendingImagesLock);
-	const Array *pending = (Array *) self->pendingImages;
-	if (pending->count) {
-		for (size_t i = 0; i < pending->count; i++) {
-			Image *image = $(pending, objectAtIndex, i);
+	Array *images = $(self->heroImages, drain);
+	if (images) {
+		for (size_t i = 0; i < images->count; i++) {
+			Image *image = $(images, objectAtIndex, i);
 			$(self->slideShow, addImage, image);
 		}
-		$(self->pendingImages, removeAllObjects);
+		release(images);
 	}
-	SDL_UnlockMutex(self->pendingImagesLock);
 
 	switch (in->state) {
     case INSTALLER_CHECKING_BIN:
