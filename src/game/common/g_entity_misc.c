@@ -155,6 +155,12 @@ static Vec3 G_misc_teleporter_Origin(const GameEntity *ent) {
  * @brief Creates bot node links
  */
 static void G_misc_teleporter_Think(GameEntity *ent) {
+
+  // a hand-recorded graph saves the nodes that the game adds, and a compiled one does not
+  if (G_Ai_InDeveloperMode() && !G_Ai_Node_IsCompiled()) {
+    return;
+  }
+
   const GameEntity *dest = G_Find(NULL, EOFS(targetName), ent->target);
 
   if (!dest) {
@@ -232,11 +238,9 @@ void G_misc_teleporter(GameEntity *ent) {
     gi.SoundIndex(customSound);
   }
   
-  // create link to destination
-  if (!G_Ai_InDeveloperMode()) {
-    ent->Think = G_misc_teleporter_Think;
-    ent->nextThink = gameLevel.time + 1;
-  }
+  // create link to destination, once the level's graph is loaded
+  ent->Think = G_misc_teleporter_Think;
+  ent->nextThink = gameLevel.time + 1;
 
   gi.LinkEntity(ent);
 }

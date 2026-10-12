@@ -56,6 +56,7 @@ typedef struct {
 
 const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a);
 const GameAiLink *G_Ai_Node_GetLink(const GameAiNodeId a, const GameAiNodeId b);
+bool G_Ai_Node_IsCompiled(void);
 
 /**
  * @return The learned jump at `index`, or `NULL`.

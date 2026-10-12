@@ -465,6 +465,13 @@ bool G_Ai_Node_IsLinked(const GameAiNodeId a, const GameAiNodeId b) {
 }
 
 /**
+ * @return True if the graph was compiled by `quemap -nav`, so that its links are typed.
+ */
+bool G_Ai_Node_IsCompiled(void) {
+  return module.compiled;
+}
+
+/**
  * @return The link from node `a` to node `b`, or `NULL`.
  */
 const GameAiLink *G_Ai_Node_GetLink(const GameAiNodeId a, const GameAiNodeId b) {
