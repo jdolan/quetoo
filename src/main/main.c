@@ -400,7 +400,7 @@ static void Main_Init(void) {
   threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create.");
   threads->modified = false;
 
-  timeDemo = Cvar_Add("timeDemo", "0", CVAR_DEVELOPER, "Enables timed benchmark of demo playback.");
+  timeDemo = Cvar_Add("timeDemo", "0", CVAR_DEVELOPER, "Enables timed benchmark of demo playback. A dedicated server runs its simulation as fast as it can.");
   timeScale = Cvar_Add("timeScale", "1.0", CVAR_DEVELOPER, "Controls time lapse.");
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information.");
@@ -618,7 +618,7 @@ int32_t main(int32_t argc, char *argv[]) {
     do {
       quetoo.ticks = (uint32_t) SDL_GetTicks();
       msec = (quetoo.ticks - oldTime) * timeScale->value;
-    } while (msec < 1);
+    } while (msec < 1 && !(dedicated->value && timeDemo->value));
 
     Main_Frame(msec);
 
