@@ -1949,11 +1949,6 @@ static void G_Ai_CheckNodes(void) {
 }
 
 /**
- * @brief The time step of a simulated jump pad flight, in seconds.
- */
-#define AI_RIDE_STEP .025f
-
-/**
  * @brief The longest simulated jump pad flight, in seconds.
  */
 #define AI_RIDE_TIME 4.f
@@ -1962,6 +1957,12 @@ static void G_Ai_CheckNodes(void) {
  * @brief The distance within which a ride starts or ends at a node.
  */
 #define AI_RIDE_NODE_DISTANCE 64.f
+
+/**
+ * @brief The distance within which a jump pad starts or lands at a node that is in sight. It is
+ * two cells, because merged open floor leaves gaps wider than a cell between nodes.
+ */
+#define AI_PUSH_NODE_DISTANCE 128.f
 
 /**
  * @brief A `trigger_push` whose direction has at least this upward component pushes straight up,
@@ -1982,8 +1983,60 @@ static float G_Ai_Node_RideCost(const float seconds) {
 }
 
 /**
+ * @brief Flies a player from `origin` on a `trigger_push` with the level's movement and no input,
+ * as a bot rides one. The push sets the velocity again in each move that the player's box touches
+ * the trigger, as `G_trigger_push_Push` does.
+ * @param landing The player origin where the flight lands.
+ * @param time The duration of the flight, in seconds.
+ * @return True if the flight lands within `AI_RIDE_TIME`.
+ */
+static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *landing, float *time) {
+
+  const Vec3 velocity = Vec3_Scale(push->moveDir, push->speed * 10.f);
+
+  PMove pm;
+  memset(&pm, 0, sizeof(pm));
+
+  pm.s.type = PM_NORMAL;
+  pm.s.origin = origin;
+  pm.s.params = G_MovementParams();
+
+  pm.PointContents = gi.PointContents;
+  pm.BoxContents = gi.BoxContents;
+  pm.Trace = G_Ai_Node_ReplayTrace;
+
+  pm.Debug = gi.Debug;
+  pm.DebugMask = gi.DebugMask;
+  pm.debugMask = DEBUG_PMOVE_SERVER;
+
+  const Box3 bounds = Pm_Bounds(&pm.s.params, false);
+  const uint8_t msec = QUETOO_TICK_MILLIS;
+
+  for (uint32_t millis = 0; millis <= AI_RIDE_TIME * 1000.f; millis += msec) {
+
+    if (Box3_Intersects(Box3_Translate(bounds, pm.s.origin), push->absBounds)) {
+      pm.s.velocity = velocity;
+      pm.s.flags |= PMF_TIME_PUSHED;
+      pm.s.time = 240;
+    } else if (pm.ground.ent && !(pm.s.flags & PMF_TIME_PUSHED)) {
+      *landing = pm.s.origin;
+      *time = MILLIS_TO_SECONDS(millis);
+      return true;
+    }
+
+    pm.cmd = (PMoveCmd) {
+      .msec = msec
+    };
+
+    Pm_Move(&pm);
+  }
+
+  return false;
+}
+
+/**
  * @brief Links the node on a `trigger_push` to the nodes that its push lands on.
- * @details An angled push is a ballistic flight, swept in short box traces. A vertical push links
+ * @details An angled push is flown from the pad with `G_Ai_Node_FlyPush`. A vertical push links
  * to the ledges beside its column, which a bot steers onto in flight.
  */
 static void G_Ai_Node_LinkPush(const GameEntity *push) {
@@ -1995,7 +2048,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
   const Vec3 center = Box3_Center(push->absBounds);
   const Vec3 pad = MakeVec3(center.x, center.y, push->absBounds.mins.z - PM_BOUNDS.mins.z);
 
-  const GameAiNodeId start = G_Ai_Node_FindClosest(pad, AI_RIDE_NODE_DISTANCE, false, false);
+  const GameAiNodeId start = G_Ai_Node_FindClosest(pad, AI_PUSH_NODE_DISTANCE, true, false);
   if (start == AI_NODE_INVALID) {
     G_Ai_Debug("No node at %s @ %s\n", push->classname, vtos(pad));
     return;
@@ -2036,34 +2089,30 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
     return;
   }
 
-  Vec3 position = origin;
+  const Vec3 top = MakeVec3(center.x, center.y, push->absBounds.maxs.z - PM_BOUNDS.mins.z);
+  const Vec3 bottom = Vec3_Subtract(pad, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT * 4.f));
+  const CollisionTrace drop = G_Ai_Node_ReplayTrace(top, bottom, PM_BOUNDS);
 
-  for (float time = AI_RIDE_STEP; time <= AI_RIDE_TIME; time += AI_RIDE_STEP) {
-
-    const Vec3 next = MakeVec3(origin.x + velocity.x * time,
-                               origin.y + velocity.y * time,
-                               origin.z + velocity.z * time - .5f * gravity * time * time);
-
-    const CollisionTrace trace = gi.Trace(position, next, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER);
-    if (trace.startSolid) {
-      return;
-    }
-
-    if (trace.fraction < 1.f) {
-      if (trace.plane.normal.z < PM_STEP_NORMAL) {
-        G_Ai_Debug("%s @ %s pushes into a wall at %s\n", push->classname, vtos(pad), vtos(trace.end));
-        return;
-      }
-
-      const GameAiNodeId end = G_Ai_Node_FindClosest(trace.end, AI_RIDE_NODE_DISTANCE, false, false);
-      if (end != AI_NODE_INVALID && end != start) {
-        G_Ai_Node_LinkTravel(start, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
-      }
-      return;
-    }
-
-    position = next;
+  if (drop.startSolid || drop.fraction == 1.f) {
+    G_Ai_Debug("%s @ %s has no floor\n", push->classname, vtos(pad));
+    return;
   }
+
+  Vec3 landing;
+  float time;
+
+  if (!G_Ai_Node_FlyPush(push, drop.end, &landing, &time)) {
+    G_Ai_Debug("%s @ %s does not land within %.0f seconds\n", push->classname, vtos(pad), AI_RIDE_TIME);
+    return;
+  }
+
+  const GameAiNodeId end = G_Ai_Node_FindClosest(landing, AI_PUSH_NODE_DISTANCE, true, false);
+  if (end == AI_NODE_INVALID || end == start) {
+    G_Ai_Debug("%s @ %s lands at %s, with no node in sight\n", push->classname, vtos(pad), vtos(landing));
+    return;
+  }
+
+  G_Ai_Node_LinkTravel(start, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
 }
 
 /**
