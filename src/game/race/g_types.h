@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1059
+#define PROTOCOL_MINOR 1060
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -93,11 +93,12 @@ typedef enum {
  * @brief ConfigStrings that are local to the game module.
  */
 /**
- * @brief The maximum number of corpses standing at once. Each claims a slot of CS_CORPSES for
- * the client info it died wearing, so that it is unaffected by its owner changing skin or
- * disconnecting. The oldest is gibbed to make room when they are all spoken for.
+ * @brief The number of CS_CORPSES slots. Each client holds one, published with the client info
+ * that their corpses wear, so that a corpse is unaffected by its owner changing skin or
+ * disconnecting. A slot is free once no client holds it and no corpse names it. It MUST be a
+ * power of two above MAX_CLIENTS, and MUST fit EntityState::client.
  */
-#define MAX_CORPSES 64
+#define MAX_CORPSES 128
 
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
 #define CS_TEAM_INFO       (CS_GAME + 1)  // team info, separated by \ (name\color\name\color, etc)
@@ -111,7 +112,7 @@ typedef enum {
 #define CS_RACE_RECORDS    (CS_GAME + 9) // the top times under this movement, name\time pairs
 #define CS_RACE_GHOST      (CS_GAME + 10) // the course record holder as a CS_CLIENTS string, for the ghost's skin
 #define CS_NEXT_MAP        (CS_GAME + 11) // the intermission's map candidates and tally (bg_intermission.h)
-#define CS_CORPSES         (CS_GAME + 12)  // one client info snapshot per corpse, MAX_CORPSES wide
+#define CS_CORPSES         (CS_GAME + 12)  // the client info that corpses wear, MAX_CORPSES wide
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -532,6 +533,7 @@ typedef enum {
 #define EF_INVISIBILITY    (EF_GAME << 15) // ring of shadows (invisible shell)
 #define EF_INVULNERABILITY (EF_GAME << 16) // invulnerability shell
 #define EF_MODULATE        (EF_GAME << 17) // boost mesh brightness; mirrored in r_types.h
+#define EF_HEAD            (EF_GAME << 18) // a client's head giblet, whose client is s.client
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what
@@ -1437,6 +1439,11 @@ typedef struct {
    * movement parameters republishes it.
    */
   Box3 standingBounds;
+
+  /**
+   * @brief The slot of CS_CORPSES that holds the client info this client's corpses wear.
+   */
+  uint8_t corpseSlot;
 
   /**
    * @brief Non-zero if weapons should auto-switch on pickup.
