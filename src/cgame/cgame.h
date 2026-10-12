@@ -180,7 +180,7 @@ typedef struct {
    * @remarks The client releases it when the client game is unloaded, after `Shutdown`. That
    * sets `isCancelled` on its Threads and waits for all queued and running work, so work MUST
    * NOT depend on anything that `Shutdown` frees. A long-running function SHOULD check
-   * `isCancelled` and return early.
+   * `Thread::isCancelled` and return early.
    */
   ThreadPool *threadPool;
 

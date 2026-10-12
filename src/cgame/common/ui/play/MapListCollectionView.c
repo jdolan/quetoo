@@ -98,7 +98,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 static void enumerateMaps(const char *path, void *data) {
 
   const Thread *thread = $$(Thread, currentThread);
-  if (thread && __atomic_load_n(&thread->isCancelled, __ATOMIC_ACQUIRE)) {
+  if (thread && $(thread, isCancelled)) {
     return;
   }
 

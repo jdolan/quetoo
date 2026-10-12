@@ -90,7 +90,7 @@ static ident fetchHeroImages(Thread *thread) {
 		}
 	}
 
-	for (size_t i = 0; i < urls->count && !__atomic_load_n(&thread->isCancelled, __ATOMIC_ACQUIRE) && !$(heroImages, isCancelled); i++) {
+	for (size_t i = 0; i < urls->count && !$(thread, isCancelled) && !$(heroImages, isCancelled); i++) {
 		imageData = NULL;
 		const char *urlStr = urls->elements[i];
 		if ($(cgi.restClient, get, urlStr, NULL, &imageData) == 200 && imageData) {
