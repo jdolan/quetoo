@@ -33,6 +33,12 @@ static void *handle;
 static ThreadPool *pool;
 
 /**
+ * @brief The client game's RESTClient, created for each client game with a URLSession of its
+ * own, so that its requests can be cancelled when it is unloaded.
+ */
+static RESTClient *restClient;
+
+/**
  * @brief The client game whose default binds were last applied.
  */
 static char boundCgame[MAX_QPATH];
@@ -169,6 +175,29 @@ static void Cl_CgamePrintLevel(int32_t level, const char *fmt, ...) {
 }
 
 /**
+ * @brief Creates the client game's RESTClient, whose URLSession shares the URLCache of the
+ * engine's shared URLSession, so that cached responses survive a client game reload.
+ */
+static RESTClient *Cl_InitCgame_restClient(void) {
+
+  URLSessionConfiguration *shared = $$(URLSession, sharedInstance)->configuration;
+  if (shared->urlCache == NULL) {
+    shared->urlCache = $(alloc(URLCache), init);
+  }
+
+  URLSessionConfiguration *configuration = $(alloc(URLSessionConfiguration), init);
+  configuration->urlCache = retain(shared->urlCache);
+
+  URLSession *session = $(alloc(URLSession), initWithConfiguration, configuration);
+  RESTClient *client = $(alloc(RESTClient), initWithSession, session);
+
+  release(session);
+  release(configuration);
+
+  return client;
+}
+
+/**
  * @brief Initializes the client game subsystem, running the client game that
  * `Com_Cgame` names.
  */
@@ -212,14 +241,6 @@ void Cl_InitCgame(void) {
   import.Realloc = Mem_Realloc;
   import.Free = Mem_Free;
   import.FreeTag = Mem_FreeTag;
-
-  {
-    RESTClient *client = $$(RESTClient, sharedInstance);
-    if (client->session->configuration->urlCache == NULL) {
-      client->session->configuration->urlCache = $(alloc(URLCache), init);
-    }
-    import.restClient = client;
-  }
 
   import.StatFile = Fs_Stat;
   import.OpenFile = Fs_OpenRead;
@@ -359,6 +380,9 @@ void Cl_InitCgame(void) {
   pool = $(alloc(ThreadPool), initWithSize, 4);
   import.threadPool = pool;
 
+  restClient = Cl_InitCgame_restClient();
+  import.restClient = restClient;
+
   handle = library;
 
   CGameExport *cgame = Sys_LoadLibrary(handle, "Cg_LoadCgame", &import);
@@ -410,7 +434,11 @@ void Cl_ShutdownCgame(void) {
   cls.cgame->Shutdown();
   cls.cgame = NULL;
 
+  $(restClient->session, invalidateAndCancel);
+
   pool = release(pool);
+
+  restClient = release(restClient);
 
   Cmd_RemoveAll(CMD_CGAME);
 

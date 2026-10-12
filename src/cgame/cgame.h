@@ -191,9 +191,13 @@ typedef struct {
    */
 
   /**
-   * @brief The shared RESTClient instance, backed by a URLSession with URLCache enabled.
-   * @remarks Use this for all HTTP requests from cgame. The session is shared with the engine;
-   * call `$(cgi.restClient->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
+   * @brief The client game's RESTClient, owned by the client.
+   * @remarks Use this for all HTTP requests from cgame. Its URLSession is the client game's own,
+   * but it shares its URLCache with the engine; call
+   * `$(cgi.restClient->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
+   * When the client game is unloaded, the client cancels its requests after `Shutdown`: a
+   * synchronous request then returns `0`, and an asynchronous completion runs with `0`, before
+   * the module is closed.
    */
   RESTClient *restClient;
 

@@ -368,7 +368,7 @@ void Net_Shutdown(void) {
   #undef interface // Windows COM headers redefine this, breaking Objectively macros
 #endif
 
-  // The URLSession shared instance (backing cgame's RESTClient) owns a persistent
+  // The URLSession shared instance (backing the engine's RESTClient) owns a persistent
   // background worker thread. Objectively's own atexit-driven class teardown will
   // eventually invalidate and join this thread, but that happens deep inside libc's
   // exit() cascade, racing against the worker thread if it's still processing a
