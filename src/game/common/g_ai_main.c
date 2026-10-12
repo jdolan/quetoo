@@ -1804,9 +1804,10 @@ static bool G_Ai_ReturnToPath(GameClient *cl) {
 
 /**
  * @brief The least cosine between the bot's velocity and the direction to the node that it steers
- * to, for it to jump: 30 degrees. It makes a sharper turn on the ground.
+ * to, for it to jump: 20 degrees. It makes a sharper turn on the ground, because air control turns
+ * too slowly to correct a larger error before the bot leaves a narrow floor.
  */
-#define AI_STRAFE_ALIGNMENT .866f
+#define AI_STRAFE_ALIGNMENT .94f
 
 /**
  * @brief The most error in degrees, at skill 0, in the wish direction of a strafe jumping bot.
@@ -2062,13 +2063,20 @@ static Vec3 G_Ai_StrafeWish(const GameClient *cl, const Vec3 origin, Vec3 veloci
 #define AI_STRAFE_HOP_MILLIS 2000
 
 /**
+ * @brief The time in milliseconds for which `G_Ai_SimulateMove` runs on after a strafe jump lands,
+ * so that a landing at the edge of a floor, from which the bot's speed carries it off, fails.
+ */
+#define AI_STRAFE_LAND_MILLIS 200
+
+/**
  * @brief Simulates the bot's next move off the ground with `Pm_Move`. A strafe jump uses the air
  * control of `G_Ai_StrafeWish`: from the ground, one jump; from the air, the rest of the fall, a
  * jump on landing, and the fall after it. A drop walks off and steers straight at the target, as
  * `G_Ai_Move` does in the air.
  * @param jump True for a strafe jump, false for a drop.
  * @return True if the move lands on the floor, no lower than the target, and no lower than the bot
- * for a jump, and touches no `trigger_hurt`, lava or slime on the way.
+ * for a jump, and touches no `trigger_hurt`, lava or slime on the way. A jump must also stay on the
+ * floor for `AI_STRAFE_LAND_MILLIS` after it lands.
  */
 static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump) {
 
@@ -2098,13 +2106,20 @@ static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump
   const uint8_t msec = (uint8_t) ceilf(QUETOO_TICK_MILLIS / 3.f);
 
   bool jumped = false;
+  bool landed = false;
+  uint32_t landTime = 0;
 
   for (uint32_t millis = 0; millis < AI_STRAFE_HOP_MILLIS; millis += msec) {
 
     Vec3 wish;
     float speed;
 
-    if (jump) {
+    if (landed) {
+      wish = Vec3_Subtract(target, pm.s.origin);
+      wish.z = 0.f;
+      wish = Vec3_Normalize(wish);
+      speed = PM_SPEED_RUN;
+    } else if (jump) {
       wish = G_Ai_StrafeWish(cl, pm.s.origin, pm.s.velocity, target, msec, 0.f);
       speed = Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN);
     } else {
@@ -2133,8 +2148,25 @@ static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump
       return false;
     }
 
-    if (jumped && pm.ground.ent) {
-      return pm.s.origin.z >= floor;
+    if (landed) {
+      if (!pm.ground.ent || pm.s.origin.z < floor) {
+        return false;
+      }
+
+      if (millis - landTime >= AI_STRAFE_LAND_MILLIS) {
+        return true;
+      }
+    } else if (jumped && pm.ground.ent) {
+      if (pm.s.origin.z < floor) {
+        return false;
+      }
+
+      if (!jump) {
+        return true;
+      }
+
+      landed = true;
+      landTime = millis;
     }
   }
 
