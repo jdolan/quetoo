@@ -1729,6 +1729,30 @@ static const char *G_ClientTintString(const Color color) {
 }
 
 /**
+ * @brief Writes the client info that the corpses of @p cl wear to @p info.
+ * @details This is the CS_CLIENTS string without the team and the effect hue. The client game
+ * resolves both by client number, and never through a corpse, so a change to either MUST NOT
+ * claim a corpse slot.
+ */
+static void G_ClientCorpseInfo(const GameClient *cl, char *info, size_t len) {
+
+  Str_Format(info, len, "%d\\%s\\%s", TEAM_NONE, cl->persistent.netName, cl->persistent.skin);
+
+  Str_Append(info, "\\", len);
+  Str_Append(info, G_ClientTintString(cl->persistent.shirt), len);
+
+  Str_Append(info, "\\", len);
+  Str_Append(info, G_ClientTintString(cl->persistent.pants), len);
+
+  Str_Append(info, "\\", len);
+  Str_Append(info, G_ClientTintString(cl->persistent.helmet), len);
+
+  Str_Append(info, "\\-1\\", len);
+  Str_Append(info, va("%g/%g", cl->persistent.standingBounds.mins.z,
+                      cl->persistent.standingBounds.maxs.z), len);
+}
+
+/**
  * @brief Applies updates from a client's user info string to their persistent state.
  */
 void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
@@ -1896,7 +1920,10 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
   // send it to clients
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, clientInfo);
 
-  G_ClientCorpseSlot(cl, clientInfo);
+  char corpseInfo[MAX_INFO_STRING_STRING];
+  G_ClientCorpseInfo(cl, corpseInfo, sizeof(corpseInfo));
+
+  G_ClientCorpseSlot(cl, corpseInfo);
 
   // set hand, if anything should go wrong, it defaults to 0 (centered)
   InfoString_Get(userInfo, "hand", s, sizeof(s));
