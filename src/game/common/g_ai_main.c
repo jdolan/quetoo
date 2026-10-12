@@ -1144,6 +1144,15 @@ static bool G_Ai_IsOverspeed(const GameEntity *ent) {
 }
 
 /**
+ * @return The yaw of the view that the command turns to. `G_Ai_Turn` sets the command's angles
+ * before `G_Ai_Move` runs, and the player move applies the move relative to them, not to the view
+ * before the command. In combat the two differ by several degrees each frame.
+ */
+static inline float G_Ai_CommandYaw(const GameClient *cl, const PMoveCmd *cmd) {
+  return cmd->angles.y + cl->ps.pmState.deltaAngles.y;
+}
+
+/**
  * @brief Steers the AI back toward the place at which it left the ground, if it is in the air
  * with no path to follow, and its fall ends in the void. A path plans its own jumps and drops.
  */
@@ -1176,7 +1185,7 @@ static void G_Ai_AvoidVoid(GameClient *cl, PMoveCmd *cmd) {
   }
 
   Vec3 dir;
-  Vec3_Vectors(MakeVec3(0.f, cl->angles.y - Vec3_Euler(Vec3_Normalize(back)).y, 0.f), &dir, NULL, NULL);
+  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(Vec3_Normalize(back)).y, 0.f), &dir, NULL, NULL);
 
   cmd->forward = dir.x * PM_SPEED_RUN;
   cmd->right = dir.y * PM_SPEED_RUN;
@@ -1231,7 +1240,7 @@ static bool G_Ai_FollowPush(GameClient *cl) {
  * @return The command direction that takes the AI out from under the given plat, which its trigger
  * would otherwise hold up, or zero if the AI is already clear of it.
  */
-static Vec3 G_Ai_LeavePlatform(const GameClient *cl, const GameEntity *plat) {
+static Vec3 G_Ai_LeavePlatform(const GameClient *cl, const PMoveCmd *cmd, const GameEntity *plat) {
 
   const Box3 footprint = Box3_Expand3(plat->absBounds, MakeVec3(-16.f, -16.f, 0.f));
   const Box3 bounds = cl->entity->absBounds;
@@ -1245,7 +1254,7 @@ static Vec3 G_Ai_LeavePlatform(const GameClient *cl, const GameEntity *plat) {
   away.z = 0.f;
 
   Vec3 dir;
-  Vec3_Vectors(MakeVec3(0.f, cl->angles.y - Vec3_Euler(Vec3_Normalize(away)).y, 0.f), &dir, NULL, NULL);
+  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(Vec3_Normalize(away)).y, 0.f), &dir, NULL, NULL);
 
   return Vec3_Scale(dir, PM_SPEED_RUN);
 }
@@ -2190,7 +2199,7 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
 
   const Vec3 wish = G_Ai_StrafeWish(cl, ent->s.origin, ent->velocity, target, cmd->msec,
                                     AI_STRAFE_ERROR * (1.f - ai->personality.skill));
-  const float deltaYaw = cl->angles.y - Vec3_Euler(wish).y;
+  const float deltaYaw = G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(wish).y;
 
   Vec3_Vectors(MakeVec3(0.f, deltaYaw, 0.f), dir, NULL, NULL);
   *dir = Vec3_Scale(*dir, Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN));
@@ -2326,7 +2335,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   dir = Vec3_Normalize(dir);
   angles = Vec3_Euler(dir);
 
-  const float deltaYaw = cl->angles.y - angles.y;
+  const float deltaYaw = G_Ai_CommandYaw(cl, cmd) - angles.y;
   Vec3_Vectors(MakeVec3(0.0, deltaYaw, 0.0), &dir, NULL, NULL);
 
   const bool swimming = ent->waterLevel >= WATER_WAIST;
@@ -2336,7 +2345,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     // the next step(s) will be onto a mover, so if we can't move yet, we wait.
     if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
       const GameEntity *plat = G_Ai_Node_RaisedPlatform(cl->ai->moveTarget.path.pathPosition);
-      dir = plat ? G_Ai_LeavePlatform(cl, plat) : Vec3_Scale(dir, PM_SPEED_RUN);
+      dir = plat ? G_Ai_LeavePlatform(cl, cmd, plat) : Vec3_Scale(dir, PM_SPEED_RUN);
       waitPolitely = true;
       cl->ai->moveTarget.distressExtension = true;
     // trick-jumping requires a bit of finesse
