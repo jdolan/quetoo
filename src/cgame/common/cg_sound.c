@@ -65,7 +65,15 @@ void Cg_ParseSound(void) {
     } else {
       play.origin = ent->current.origin;
       if (play.sample && play.sample->media.name[0] == '*') {
-        if (ent->current.client >= MAX_CLIENTS) {
+        if (ent->current.effects & EF_CORPSE) {
+          const CGameClientInfo *info = Cg_ClientInfo(ent);
+          if (IS_MESH_MODEL(info->torso)) {
+            play.sample = cgi.LoadClientModelSample(info->model, info->torso->mesh->sounds, play.sample->media.name);
+          } else {
+            Cg_Warn("No client info for %s on corpse %d\n", play.sample->media.name, number);
+            play.sample = NULL;
+          }
+        } else if (ent->current.client >= MAX_CLIENTS) {
           Cg_Warn("Bad client %u for entity %d\n", ent->current.client, number);
           play.sample = NULL;
         } else {
