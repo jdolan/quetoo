@@ -84,6 +84,11 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
  */
 static void enumerateDemos(const char *path, void *data) {
 
+  const Thread *thread = $$(Thread, currentThread);
+  if (thread && __atomic_load_n(&thread->isCancelled, __ATOMIC_ACQUIRE)) {
+    return;
+  }
+
   DemoList *demos = data;
 
   File *file = cgi.OpenFile(path);
@@ -160,15 +165,17 @@ static void enumerateDemos(const char *path, void *data) {
 }
 
 /**
- * @brief ThreadRun for asynchronous demo info loading.
+ * @brief `ThreadFunction` for asynchronous demo info loading.
  */
-static void loadDemos(void *data) {
+static ident loadDemos(Thread *thread) {
 
-  DemoList *demos = data;
+  DemoList *demos = thread->data;
 
   cgi.EnumerateFiles("demos/*.demo", enumerateDemos, demos);
 
   release(demos);
+
+  return NULL;
 }
 
 #pragma mark - Object
@@ -245,7 +252,7 @@ static DemosCollectionView *initWithFrame(DemosCollectionView *self, const SDL_R
  * @memberof DemosCollectionView
  */
 static void reloadDemos(DemosCollectionView *self) {
-  cgi.Thread(__func__, loadDemos, retain(self->demos), THREAD_NO_WAIT);
+  $(cgi.threadPool, detach, loadDemos, retain(self->demos));
 }
 
 /**

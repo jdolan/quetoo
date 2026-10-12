@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 67
+#define CGAME_API_VERSION 68
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -176,21 +176,13 @@ typedef struct {
    */
 
   /**
-   * @brief Starts a thread for the given function.
-   * @param name The thread name.
-   * @param run The thread function.
-   * @param data User data.
-   * @param options The thread options.
-   * @remarks Unless `THREAD_NO_WAIT` is passed via `options`, the caller must also
-   * call `Wait` on the returned thread in order to relinquish it to the thread pool.
+   * @brief The client game's ThreadPool, owned by the client.
+   * @remarks The client releases it when the client game is unloaded, after `Shutdown`. That
+   * sets `isCancelled` on its Threads and waits for all queued and running work, so work MUST
+   * NOT depend on anything that `Shutdown` frees. A long-running function SHOULD check
+   * `isCancelled` and return early.
    */
-  WorkerThread *(*Thread)(const char *name, ThreadRun run, void *data, WorkerThreadOptions options);
-
-  /**
-   * @brief Waits for the previously started thread, blocking the calling thread.
-   * @param thread The thread.
-   */
-  void (*Wait)(WorkerThread *thread);
+  ThreadPool *threadPool;
 
   /**
    * @}

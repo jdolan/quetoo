@@ -577,24 +577,48 @@ static void Cl_InitLocal(void) {
 }
 
 /**
+ * @brief `ThreadFunction` populating the editor scene for the frame in `thread->data`.
+ */
+static ident Cl_UpdateScene_populateEditor(Thread *thread) {
+  cls.cgame->PopulateEditorScene(thread->data);
+  return NULL;
+}
+
+/**
+ * @brief `ThreadFunction` populating the scene for the frame in `thread->data`.
+ */
+static ident Cl_UpdateScene_populate(Thread *thread) {
+  cls.cgame->PopulateScene(thread->data);
+  return NULL;
+}
+
+/**
+ * @brief `ThreadFunction` rendering the sound stage in `thread->data`.
+ */
+static ident Cl_UpdateScene_renderStage(Thread *thread) {
+  S_RenderStage(thread->data);
+  return NULL;
+}
+
+/**
  * @brief Populates the renderer scene and issues main draw calls for the current frame.
  */
 static void Cl_UpdateScene(void) {
-  WorkerThread *thread;
+  ThreadPoolWork *work;
 
   cls.cgame->PrepareScene(&cl.frame);
 
   if (editor->value) {
-    thread = Thread_Create((ThreadRun) cls.cgame->PopulateEditorScene, &cl.frame, THREAD_NONE);
+    work = $(threadPool, execute, Cl_UpdateScene_populateEditor, &cl.frame);
   } else {
-    thread = Thread_Create((ThreadRun) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
+    work = $(threadPool, execute, Cl_UpdateScene_populate, &cl.frame);
   }
 
   R_DrawViewDepth(&clientView);
 
-  Thread_Wait(thread);
+  $(threadPool, wait, work);
 
-  thread = Thread_Create((ThreadRun) S_RenderStage, &clientStage, THREAD_NONE);
+  work = $(threadPool, execute, Cl_UpdateScene_renderStage, &clientStage);
 
   R_DrawSubviews(&clientView);
 
@@ -602,7 +626,7 @@ static void Cl_UpdateScene(void) {
 
   R_DrawPost(&clientView);
 
-  Thread_Wait(thread);
+  $(threadPool, wait, work);
 }
 
 /**

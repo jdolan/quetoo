@@ -27,6 +27,12 @@
 static void *handle;
 
 /**
+ * @brief The client game's ThreadPool, created for each client game and released when it is
+ * unloaded, so that no client game work runs after its module is closed.
+ */
+static ThreadPool *pool;
+
+/**
  * @brief The client game whose default binds were last applied.
  */
 static char boundCgame[MAX_QPATH];
@@ -207,9 +213,6 @@ void Cl_InitCgame(void) {
   import.Free = Mem_Free;
   import.FreeTag = Mem_FreeTag;
 
-  import.Thread = Thread_Create_;
-  import.Wait = Thread_Wait;
-
   {
     RESTClient *client = $$(RESTClient, sharedInstance);
     if (client->session->configuration->urlCache == NULL) {
@@ -353,6 +356,9 @@ void Cl_InitCgame(void) {
   // teardown. Nothing below may fail without leaving us no client game at all
   Cl_ShutdownCgame();
 
+  pool = $(alloc(ThreadPool), initWithSize, 4);
+  import.threadPool = pool;
+
   handle = library;
 
   CGameExport *cgame = Sys_LoadLibrary(handle, "Cg_LoadCgame", &import);
@@ -403,6 +409,8 @@ void Cl_ShutdownCgame(void) {
 
   cls.cgame->Shutdown();
   cls.cgame = NULL;
+
+  pool = release(pool);
 
   Cmd_RemoveAll(CMD_CGAME);
 

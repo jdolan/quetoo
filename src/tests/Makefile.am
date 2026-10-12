@@ -50,7 +50,6 @@ TESTS = \
 	check_pmove \
 	check_r_media \
 	check_shared \
-	check_thread \
 	check_vector \
 	check_winding
 
@@ -233,14 +232,6 @@ check_shared_CFLAGS = \
 	-I$(top_srcdir)/src \
 	$(TESTS_CFLAGS)
 check_shared_LDADD = \
-	$(TESTS_LIBS)
-
-check_thread_SOURCES = \
-	check_thread.c
-check_thread_CFLAGS = \
-	-I$(top_srcdir)/src \
-	$(TESTS_CFLAGS)
-check_thread_LDADD = \
 	$(TESTS_LIBS)
 
 check_vector_SOURCES = \

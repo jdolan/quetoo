@@ -34,11 +34,11 @@
 #pragma mark - Delegates
 
 /**
- * @brief `ThreadRun` that pre-fetches all hero images synchronously.
+ * @brief `ThreadFunction` that pre-fetches all hero images synchronously.
  */
-static void fetchHeroImages(void *data) {
+static ident fetchHeroImages(Thread *thread) {
 
-	HeroImageList *heroImages = data;
+	HeroImageList *heroImages = thread->data;
 
 	Data *listData = NULL, *imageData = NULL;
 
@@ -46,7 +46,7 @@ static void fetchHeroImages(void *data) {
 		Cg_Warn("Failed to fetch hero image list");
 		release(listData);
 		release(heroImages);
-		return;
+		return NULL;
 	}
 
 	static const char prefix[] = "<Key>hero-images/";
@@ -90,7 +90,7 @@ static void fetchHeroImages(void *data) {
 		}
 	}
 
-	for (size_t i = 0; i < urls->count && !$(heroImages, isCancelled); i++) {
+	for (size_t i = 0; i < urls->count && !__atomic_load_n(&thread->isCancelled, __ATOMIC_ACQUIRE) && !$(heroImages, isCancelled); i++) {
 		imageData = NULL;
 		const char *urlStr = urls->elements[i];
 		if ($(cgi.restClient, get, urlStr, NULL, &imageData) == 200 && imageData) {
@@ -119,6 +119,8 @@ static void fetchHeroImages(void *data) {
 
 	urls = release(urls);
 	release(heroImages);
+
+	return NULL;
 }
 
 #pragma mark - Object
@@ -167,7 +169,7 @@ static void loadView(ViewController *self) {
 	$(this->logo, setImageWithResourceName, "ui/loading.png");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/progress_bar.png");
 
-	cgi.Thread(__func__, fetchHeroImages, retain(this->heroImages), THREAD_NO_WAIT);
+	$(cgi.threadPool, detach, fetchHeroImages, retain(this->heroImages));
 }
 
 #pragma mark - UpdateViewController

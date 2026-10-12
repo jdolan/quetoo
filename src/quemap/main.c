@@ -59,6 +59,11 @@ static void Debug(const DebugFlags debug, const char *msg) {
 static void Shutdown(const char *msg);
 
 /**
+ * @brief The thread that runs `main`, which alone may shut down on error.
+ */
+static SDL_ThreadID mainThread;
+
+/**
  * @brief Prints an error message to stderr and terminates the process.
  */
 static void Error(Err err, const char *msg) __attribute__((noreturn));
@@ -68,7 +73,7 @@ static void Error(Err err, const char *msg) {
 
   fflush(stderr);
 
-  if (SDL_GetCurrentThreadID() == threadMain) {
+  if (SDL_GetCurrentThreadID() == mainThread) {
     Shutdown(msg);
     exit(err);
   } else {
@@ -253,6 +258,8 @@ int32_t main(int32_t argc, char **argv) {
 
   printf("Quemap %s %s\n", VERSION, BUILD);
 
+  mainThread = SDL_GetCurrentThreadID();
+
   memset(&quetoo, 0, sizeof(quetoo));
 
   quetoo.Debug = Debug;
@@ -334,7 +341,7 @@ int32_t main(int32_t argc, char **argv) {
   }
 
   Thread_Init(numThreads);
-  Com_Print("Using %d threads\n", Thread_Count());
+  Com_Print("Using %zu threads\n", threadPool->size);
 
   const char *filename = Com_Argv(Com_Argc() - 1);
 

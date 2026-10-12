@@ -89,35 +89,37 @@ typedef struct {
 } RenderMaterialSurface;
 
 /**
- * @brief ThreadRun which decodes a single material surface.
+ * @brief `ThreadFunction` which decodes the material surface in `thread->data`.
  */
-static void R_LoadMaterialSurface(void *data) {
+static ident R_LoadMaterialSurface(Thread *thread) {
 
-  RenderMaterialSurface *surface = data;
+  RenderMaterialSurface *surface = thread->data;
 
   surface->surface = Img_LoadSurface(surface->asset->path);
+
+  return NULL;
 }
 
 /**
- * @brief Decodes the named material surfaces, one worker thread per surface.
+ * @brief Decodes the named material surfaces, one ThreadPool job per surface.
  * @details Image decode is the dominant cost of a material load, and it touches
  * neither the GPU nor the media cache, so the diffusemap, normalmap, specularmap
  * and tintmap are decoded concurrently.
  */
 static void R_LoadMaterialSurfaces(RenderMaterialSurface *surfaces, size_t count) {
 
-  WorkerThread *threads[count];
+  ThreadPoolWork *work[count];
 
   for (size_t i = 0; i < count; i++) {
     if (*surfaces[i].asset->path) {
-      threads[i] = Thread_Create(R_LoadMaterialSurface, surfaces + i, THREAD_NONE);
+      work[i] = $(threadPool, execute, R_LoadMaterialSurface, surfaces + i);
     } else {
-      threads[i] = NULL;
+      work[i] = NULL;
     }
   }
 
   for (size_t i = 0; i < count; i++) {
-    Thread_Wait(threads[i]);
+    $(threadPool, wait, work[i]);
   }
 }
 
