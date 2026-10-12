@@ -125,7 +125,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_aiNodeDev 1"
+            argument = "+set g_aiDrawNodes 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

@@ -30,9 +30,6 @@
     <ClInclude Include="..\..\src\collision\entity.h">
       <Filter>src\collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\collision\nav.h">
-      <Filter>src\collision</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\collision\voxel.h">
       <Filter>src\collision</Filter>
     </ClInclude>

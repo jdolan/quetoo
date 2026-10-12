@@ -8,7 +8,6 @@ noinst_HEADERS = \
 	collision.h \
 	entity.h \
 	material_light.h \
-	nav.h \
 	voxel.h
 
 noinst_LTLIBRARIES = \

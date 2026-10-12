@@ -794,10 +794,6 @@ static void G_DropItem_Think(GameEntity *ent) {
  */
 void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
-  if (G_Ai_InDeveloperMode()) {
-    return;
-  }
-
   // an item that was dropped ignores whoever dropped it for a moment; one that
   // nobody dropped ignores everybody, so an item placed by the game cannot be
   // taken the instant it appears

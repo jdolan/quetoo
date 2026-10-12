@@ -299,7 +299,7 @@ uint32_t G_Ai_Target(GameClient *cl, PMoveCmd *cmd) {
     return 1;
   }
 
-  if (g_aiNoTarget->integer || g_aiNodeDev->integer) {
+  if (g_aiNoTarget->integer) {
     G_Ai_ClearGoal(&cl->ai->combatTarget);
     return 1;
   }

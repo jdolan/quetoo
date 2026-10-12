@@ -20,11 +20,10 @@
  */
 
 #include "g_local.h"
-#include "collision/nav.h"
 #include "bg_pmove.h"
 
 Cvar *g_aiNoTarget;
-Cvar *g_aiNodeDev;
+Cvar *g_aiDrawNodes;
 
 /**
  * @brief Minimum weapon priority to be considered "armed" for combat.
@@ -1124,176 +1123,6 @@ static bool G_Ai_IsRidingMover(const GameEntity *ent) {
 }
 
 /**
- * @brief The distance from a learned jump's start at which a bot starts to replay it.
- */
-#define AI_JUMP_START_DISTANCE 8.f
-
-/**
- * @brief The distance from a learned jump's recorded path at which a bot abandons the replay.
- */
-#define AI_JUMP_ABORT_DISTANCE 32.f
-
-/**
- * @brief The most that a bot turns per step to return to a learned jump's recorded path.
- */
-#define AI_JUMP_CORRECTION 10.f
-
-/**
- * @return The learned jump on the bot's current path link, or `NULL`.
- */
-static const NavJump *G_Ai_PathJump(const GameClient *cl, int32_t *index) {
-
-  if (cl->ai->moveTarget.type != AI_GOAL_PATH || cl->ai->moveTarget.path.pathIndex == 0) {
-    return NULL;
-  }
-
-  const Vector *path = cl->ai->moveTarget.path.path;
-  const uint32_t i = cl->ai->moveTarget.path.pathIndex;
-
-  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, i - 1),
-                                             VectorValue(path, GameAiNodeId, i));
-
-  if (!link || link->travelType != NAV_TRAVEL_JUMP) {
-    return NULL;
-  }
-
-  *index = link->jump;
-  return G_Ai_Node_GetJump(link->jump);
-}
-
-/**
- * @brief The most that a bot's horizontal velocity may differ from a learned jump's, at the run-up
- * step where it joins the jump.
- */
-#define AI_JUMP_JOIN_SPEED 50.f
-
-/**
- * @brief Steers the bot to the start of the learned jump on its path. The bot joins the jump at
- * any step of the run-up where its position and velocity match the recording's.
- * @return True if the path's current link is a learned jump, in which case `dest` is its start.
- */
-static bool G_Ai_ApproachJump(GameClient *cl, Vec3 *dest) {
-
-  int32_t index;
-  const NavJump *jump = G_Ai_PathJump(cl, &index);
-  if (!jump) {
-    return false;
-  }
-
-  *dest = jump->origin;
-
-  const GameEntity *ent = cl->entity;
-  if (!ent->ground.ent) {
-    return true;
-  }
-
-  const NavJumpStep *steps = G_Ai_Node_GetJumpSteps(jump);
-
-  for (int32_t i = 0; i < jump->numSteps - 1 && steps[i].up <= 0; i++) {
-
-    const Vec3 position = i ? steps[i - 1].origin : jump->origin;
-    const Vec2 delta = Vec2_Subtract(Vec3_XY(position), Vec3_XY(ent->s.origin));
-
-    if (Vec2_Length(delta) > AI_JUMP_START_DISTANCE || fabsf(position.z - ent->s.origin.z) > PM_STEP_HEIGHT) {
-      continue;
-    }
-
-    const Vec3 velocity = i ? Vec3_Scale(Vec3_Subtract(steps[i].origin, position), 1000.f / Maxi(1, steps[i].msec))
-                            : jump->velocity;
-
-    if (Vec2_Length(Vec2_Subtract(Vec3_XY(velocity), Vec3_XY(ent->velocity))) > AI_JUMP_JOIN_SPEED) {
-      continue;
-    }
-
-    cl->ai->jumping = true;
-    cl->ai->jump = index;
-    cl->ai->jumpStep = i;
-    cl->ai->jumpDebt = 0;
-    G_Ai_Debug("Replaying learned jump %d from step %d\n", index, i);
-    break;
-  }
-
-  return true;
-}
-
-/**
- * @brief Builds the next command of the learned jump that the bot replays. Where the bot strays
- * from the recorded path, it turns back toward it, by at most `AI_JUMP_CORRECTION` per step.
- * @return False, and the replay ends, when the jump is done or the bot strays too far.
- */
-static bool G_Ai_JumpCommand(GameClient *cl, PMoveCmd *cmd) {
-
-  const NavJump *jump = G_Ai_Node_GetJump(cl->ai->jump);
-  const GameEntity *ent = cl->entity;
-
-  if (!jump || cl->ai->jumpStep >= jump->numSteps || ent->dead) {
-    cl->ai->jumping = false;
-    return false;
-  }
-
-  const NavJumpStep *steps = G_Ai_Node_GetJumpSteps(jump);
-  const NavJumpStep *step = &steps[cl->ai->jumpStep];
-  const Vec3 expected = cl->ai->jumpStep ? steps[cl->ai->jumpStep - 1].origin : jump->origin;
-
-  if (Vec3_Distance(ent->s.origin, expected) > AI_JUMP_ABORT_DISTANCE) {
-    G_Ai_Debug("Abandoning learned jump %d at step %d\n", cl->ai->jump, cl->ai->jumpStep);
-    cl->ai->jumping = false;
-    return false;
-  }
-
-  Vec3 angles = step->angles;
-
-  const Vec2 recorded = Vec2_Subtract(Vec3_XY(step->origin), Vec3_XY(expected));
-  const Vec2 wanted = Vec2_Subtract(Vec3_XY(step->origin), Vec3_XY(ent->s.origin));
-
-  if (Vec2_Length(recorded) > 1.f && Vec2_Length(wanted) > 1.f) {
-    const float error = AngleMod(Degrees(atan2f(wanted.y, wanted.x) - atan2f(recorded.y, recorded.x)));
-    angles.y += Clampf(error > 180.f ? error - 360.f : error, -AI_JUMP_CORRECTION, AI_JUMP_CORRECTION);
-  }
-
-  *cmd = (PMoveCmd) {
-    .msec = step->msec,
-    .angles = Vec3_Subtract(angles, cl->ps.pmState.deltaAngles),
-    .forward = step->forward,
-    .right = step->right,
-    .up = step->up,
-    .buttons = step->buttons
-  };
-
-  cl->ai->jumpStep++;
-  return true;
-}
-
-/**
- * @brief Replays the bot's learned jump for one server tick, with the recorded command durations.
- * A tick that runs over is repaid from the next.
- * @return The milliseconds of the tick that the replay left unused.
- */
-static uint32_t G_Ai_ReplayJump(GameClient *cl) {
-
-  const int32_t budget = QUETOO_TICK_MILLIS - Mini(cl->ai->jumpDebt, QUETOO_TICK_MILLIS);
-  int32_t millis = 0;
-
-  while (cl->ai->jumping && millis < budget) {
-    PMoveCmd cmd;
-    if (!G_Ai_JumpCommand(cl, &cmd)) {
-      break;
-    }
-
-    millis += cmd.msec;
-    G_ClientThink(cl, &cmd);
-  }
-
-  if (millis >= budget) {
-    cl->ai->jumpDebt += millis - QUETOO_TICK_MILLIS;
-    return 0;
-  }
-
-  cl->ai->jumpDebt = 0;
-  return (uint32_t) (budget - millis);
-}
-
-/**
  * @brief The horizontal distance from a barrier jump's target at which a bot jumps.
  */
 #define AI_BARRIER_JUMP_DISTANCE 48.f
@@ -1314,7 +1143,7 @@ static bool G_Ai_ShouldBarrierJump(const GameClient *cl) {
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
                                              VectorValue(path, GameAiNodeId, index));
 
-  if (!link || link->travelType != NAV_TRAVEL_BARRIER_JUMP) {
+  if (!link || link->travelType != AI_TRAVEL_BARRIER_JUMP) {
     return false;
   }
 
@@ -1382,7 +1211,7 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 }
 
 /**
- * @return True if the bot is on the ground, far from the compiled walk, crouch or ledge link that
+ * @return True if the bot is on the ground, far from the walk, crouch or ledge link that
  * it follows, or below both of its ends, so that the link no longer leads where it goes.
  */
 static bool G_Ai_IsOffPath(const GameClient *cl) {
@@ -1393,7 +1222,7 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
 
   const GameAiLink *link = G_Ai_PathLink(cl);
 
-  if (!link || link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) {
+  if (!link || link->travelType < AI_TRAVEL_WALK || link->travelType > AI_TRAVEL_BARRIER_JUMP) {
     return false;
   }
 
@@ -1502,7 +1331,7 @@ static bool G_Ai_CanStrafeJump(const GameClient *cl) {
     return false;
   }
 
-  if (goal->type != AI_GOAL_PATH || goal->path.trickJump || cl->ai->jumping) {
+  if (goal->type != AI_GOAL_PATH || goal->path.trickJump) {
     return false;
   }
 
@@ -1532,7 +1361,7 @@ static bool G_Ai_IsRunLink(const Vector *path, const uint32_t index) {
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
                                              VectorValue(path, GameAiNodeId, index));
 
-  return link && (link->travelType == 0 || link->travelType == NAV_TRAVEL_WALK);
+  return link && (link->travelType == 0 || link->travelType == AI_TRAVEL_WALK);
 }
 
 /**
@@ -1984,8 +1813,6 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
         if (cl->ai->moveTarget.path.trickJump) {
           dest = cl->ai->moveTarget.path.trickPosition;
-        } else if (G_Ai_ApproachJump(cl, &dest)) {
-          toPush = false;
         } else {
           dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
           toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);
@@ -2059,7 +1886,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     // we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
     // running off the edge, transition to walking so we don't overshoot targets beneath us
     } else if (!swimming && cl->ai->moveTarget.path.pathIndex > 0 &&
-               ((G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_WALK_OFF_LEDGE) ||
+               ((G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == AI_TRAVEL_WALK_OFF_LEDGE) ||
                G_Ai_ShouldSlowDrop(
                  VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex - 1),
                  VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex)))) {
@@ -2154,13 +1981,13 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           cmd->forward = -cmd->forward;
           cmd->right = -cmd->right; // stop for now
           G_Ai_Debug("Stopping early to prevent mover issues\n");
-        // a compiled ledge link drops from one place, if the fall lands where the link does
-        } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
+        // a ledge link drops from one place, if the fall lands where the link does
+        } else if (travelType == AI_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
                    G_Ai_SimulateMove(cl, cl->ai->moveTarget.path.pathPosition, false)) {
           G_Ai_Debug("Walking off a ledge to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
-        // compiled walk links, and the links that the game adds to them, have floor all the way, so
-        // an edge anywhere else means that we are off the path; a compiled graph learns its jumps
-        } else if (G_Ai_Node_IsCompiled() && !toPush && travelType <= NAV_TRAVEL_BARRIER_JUMP) {
+        // walk links, and the links that the game adds to them, have floor all the way, so an edge
+        // anywhere else means that we are off the path
+        } else if (!toPush && travelType <= AI_TRAVEL_BARRIER_JUMP) {
           cmd->forward = -cmd->forward;
           cmd->right = -cmd->right;
           G_Ai_ReturnToPath(cl);
@@ -2622,13 +2449,8 @@ void G_Ai_Begin(GameClient *cl) {
  * @brief Runs the AI think function multiple times per server frame to simulate a real client.
  */
 static void G_Ai_ClientThink(GameEntity *ent) {
-  int32_t numRuns = 3;
+  const int32_t numRuns = 3;
   uint8_t msecLeft = QUETOO_TICK_MILLIS;
-
-  if (ent->client && ent->client->ai->jumping) {
-    msecLeft = (uint8_t) G_Ai_ReplayJump(ent->client);
-    numRuns = msecLeft ? 1 : 0;
-  }
 
   for (int32_t i = 0; i < numRuns; i++) {
 
@@ -2652,10 +2474,6 @@ static void G_Ai_ClientThink(GameEntity *ent) {
     }
 
     msecLeft -= cmd.msec;
-
-    if (ent->client && ent->client->ai->jumping) {
-      break;
-    }
   }
 
   ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
@@ -2801,91 +2619,14 @@ static void G_Ai_Add_f(void) {
 }
 
 /**
- * @brief Console command handler to save navigation node data to disk.
- */
-static void G_Ai_SaveNodes_f(void) {
-  G_Ai_SaveNodes();
-}
-
-/**
- * @brief Console command handler to destroy a specific navigation node by ID.
- */
-static void G_Ai_DeleteNode_f(void) {
-
-  if (gi.Argc() != 2) {
-    gi.Print("Usage: %s [node_id]\n", gi.Argv(0));
-    return;
-  }
-
-  G_Ai_Node_Destroy((GameAiNodeId) atoi(gi.Argv(1)));
-}
-
-/**
- * @brief Console command handler to delete all navigation nodes.
- */
-static void G_Ai_DeleteNodes_f(void) {
-  G_Ai_DeleteNodes();
-}
-
-/**
- * @brief Console command handler that tests pathfinding by routing all bots through a specified path.
- */
-static void G_Ai_TestPath_f(void) {
-
-  Vector *path = G_Ai_Node_TestPath();
-
-  if (!path) {
-    return;
-  }
-
-  G_ForEachClient(cl, {
-    if (cl->ai) {
-      const GameAiNodeId closestToPlayer = G_Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
-
-      if (closestToPlayer == AI_NODE_INVALID) {
-        G_Ai_Debug("Can't find a node near this bot\n");
-        continue;
-      }
-
-      Vector *pathToStart = G_Ai_Node_FindPath(cl, closestToPlayer, VectorValue(path, GameAiNodeId, 0), G_Ai_Node_Heuristic, 0.f, NULL);
-
-      if (pathToStart == NULL) {
-        G_Ai_Debug("Can't find a path to the test path\n");
-        continue;
-      }
-
-      for (uint32_t i = 1; i < path->count; i++) {
-        GameAiNodeId node = VectorValue(path, GameAiNodeId, i);
-        $(pathToStart, add, &node);
-      }
-      G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, 1.0, pathToStart, NULL);
-      release(pathToStart);
-    }
-  });
-}
-
-void G_Ai_OffsetNodes_f(void);
-
-/**
  * @brief Initializes the AI subsystem.
  */
 void G_Ai_Init(void) {
 
   g_aiNoTarget = gi.AddCvar("g_aiNoTarget", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
-  g_aiNodeDev = gi.AddCvar("g_aiNodeDev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
-  
-  if (g_aiNodeDev->integer) {
-    gi.SetCvarInteger("g_cheats", 1);
-  }
-
-  gi.SetConfigString(CS_NAV_EDIT, g_aiNodeDev->string);
+  g_aiDrawNodes = gi.AddCvar("g_aiDrawNodes", "0", CVAR_DEVELOPER, "Draws the navigation nodes near the first player, their links, and the bots' paths.");
 
   gi.AddCmd("addAi", G_Ai_Add_f, CMD_GAME, "Add a bot from the roster, with optional skill, aggression and awareness");
-  gi.AddCmd("g_aiSaveNodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
-  gi.AddCmd("g_aiDeleteNode", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
-  gi.AddCmd("g_aiDeleteNodes", G_Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");
-  gi.AddCmd("g_aiTestPath", G_Ai_TestPath_f, CMD_AI, "Save current node data");
-  gi.AddCmd("g_aiOffsetNodes", G_Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
 
   G_Ai_InitSkins();
 }
@@ -2905,6 +2646,7 @@ void G_Ai_Shutdown(void) {
 
   G_Ai_ShutdownSkins();
   G_Ai_State_Shutdown();
+  G_Ai_ShutdownNodes();
 
   gi.FreeTag(MEM_TAG_AI);
 }
@@ -2989,12 +2731,4 @@ bool G_Ai_IsAlerted(const GameClient *cl) {
 bool G_Ai_IsAttacker(const GameClient *cl, const GameEntity *ent) {
   return cl->ai->attackedTime && cl->ai->attacker == ent->s.number &&
          gameLevel.time - cl->ai->attackedTime < AI_ATTACKER_MILLIS;
-}
-
-/**
- * @brief Returns true if the AI subsystem is running in full node development mode.
- */
-bool G_Ai_InDeveloperMode(void) {
-
-  return g_aiNodeDev->integer == 1;
 }

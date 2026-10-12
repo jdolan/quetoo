@@ -330,9 +330,6 @@ static void Cg_UpdateConfigString(int32_t i) {
       return;
     }
 #endif
-    case CS_NAV_EDIT:
-      cgameState.navEdit = (int32_t) strtol(s, NULL, 10);
-      return;
   }
 
   if (i >= CS_CORPSES && i < CS_CORPSES + MAX_CORPSES) {
@@ -569,10 +566,7 @@ static void Cg_UpdateScreen(const ClientFrame *frame) {
 
   Cg_UpdateHud(frame);
 
-  // The HUD hides itself in nav edit and shows the instructions instead
-  if (!cgameState.navEdit) {
-    Cg_DrawHud(frame);
-  }
+  Cg_DrawHud(frame);
 
   Cg_CheckEditor();
 

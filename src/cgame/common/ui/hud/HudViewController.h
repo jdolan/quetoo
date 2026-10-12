@@ -30,7 +30,6 @@
 #include "DemoControlsView.h"
 #include "DiagnosticsView.h"
 #include "IntermissionView.h"
-#include "NavEditView.h"
 #include "NotifyView.h"
 #include "ScoreboardView.h"
 
@@ -47,8 +46,8 @@ typedef struct HudViewController HudViewController;
 typedef struct HudViewControllerInterface HudViewControllerInterface;
 
 /**
- * @brief The HUD: the hud's View tree beneath the scoreboard, the notify lines, the chat
- * and the nav edit card, all fed the frame each Cg_UpdateScreen.
+ * @brief The HUD: the hud's View tree beneath the scoreboard, the notify lines and the chat,
+ * all fed the frame each Cg_UpdateScreen.
  * @extends ViewController
  */
 struct HudViewController {
@@ -106,11 +105,6 @@ struct HudViewController {
    * @brief AtlasImages by resource name.
    */
   Dictionary *images;
-
-  /**
-   * @brief The navigation edit instructions, shown in place of `hud` while editing.
-   */
-  NavEditView *navEdit;
 
   /**
    * @brief The console notifications View, a sibling of `hud`.

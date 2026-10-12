@@ -578,7 +578,7 @@ void G_HookThink(GameClient *cl, const bool refire) {
     return;
   }
 
-  if (G_Ai_InDeveloperMode() || !G_AllowHook(cl)) {
+  if (!G_AllowHook(cl)) {
     if (cl->hook.entity) {
       G_HookDetach(cl);
     }

@@ -26,7 +26,6 @@
     <ClInclude Include="..\..\src\collision\cm_test.h" />
     <ClInclude Include="..\..\src\collision\cm_trace.h" />
     <ClInclude Include="..\..\src\collision\cm_types.h" />
-    <ClInclude Include="..\..\src\collision\nav.h" />
     <ClInclude Include="..\..\src\collision\voxel.h" />
     <ClInclude Include="..\..\src\collision\material_light.h" />
   </ItemGroup>

@@ -22,7 +22,6 @@
 #include "manifest.h"
 #include "qbsp.h"
 #include "qlight.h"
-#include "qnav.h"
 #include "qzip.h"
 
 #if defined(_WIN32)
@@ -41,7 +40,6 @@ char bspName[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 bool verbose = false;
 bool debug = false;
 bool doBsp = false;
-bool doNav = false;
 bool doZip = false;
 
 static void Print(const char *msg);
@@ -239,9 +237,6 @@ static void PrintHelpMessage(void) {
   Com_Print(" --only-ents - only update the entity string from the .map\n");
   Com_Print("\n");
 
-  Com_Print("-nav               NAV stage: compile bot navigation from the BSP voxels\n");
-  Com_Print("\n");
-
   Com_Print("-zip               ZIP stage options:\n");
   Com_Print(" --include-shared - include assets from shared archives\n");
   Com_Print(" --update - Update the existing archive instead of authoring a new one\n");
@@ -249,7 +244,6 @@ static void PrintHelpMessage(void) {
 
   Com_Print("Examples:\n");
   Com_Print("BSP compile:\n quemap -bsp maps/my.map\n");
-  Com_Print("NAV compile:\n quemap -nav maps/my.bsp\n");
   Com_Print("ZIP compile:\n quemap -zip maps/my.bsp\n");
   Com_Print("\n");
 }
@@ -335,17 +329,13 @@ int32_t main(int32_t argc, char **argv) {
       Qlight_CheckOptions(i + 1);
     }
 
-    if (!Str_Compare(Com_Argv(i), "-nav")) {
-      doNav = true;
-    }
-
     if (!Str_Compare(Com_Argv(i), "-zip")) {
       doZip = true;
       Qzip_CheckOptions(i + 1);
     }
   }
 
-  if (!doBsp && !doNav && !doZip) {
+  if (!doBsp && !doZip) {
     PrintHelpMessage();
     Com_Error(ERROR_FATAL, "No action specified.\n");
   }
@@ -387,10 +377,6 @@ int32_t main(int32_t argc, char **argv) {
     Qlight_Main();
 
     FreeMaterials();
-  }
-
-  if (doNav) {
-    Qnav_Main();
   }
 
   // always write the manifest after compilation (or before -zip)

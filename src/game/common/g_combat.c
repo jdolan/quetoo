@@ -500,7 +500,7 @@ void G_Damage(const GameDamage *dmg) {
     }
 
     // kill target if he has *excessive blood loss*
-    if (target->health <= 0 && !G_Ai_InDeveloperMode()) {
+    if (target->health <= 0) {
       target->dead = true;
 
       if (attacker->client && target->client) {

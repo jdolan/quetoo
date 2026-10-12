@@ -132,7 +132,6 @@ cgame_la_SOURCES = \
 	ui/hud/FpsView.c \
 	ui/hud/HudViewController.c \
 	ui/hud/IntermissionView.c \
-	ui/hud/NavEditView.c \
 	ui/hud/NotifyView.c \
 	ui/hud/OverlayText.c \
 	ui/hud/PickupView.c \

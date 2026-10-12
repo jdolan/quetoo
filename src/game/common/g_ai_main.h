@@ -33,12 +33,13 @@
 #include "g_ai_grid.h"
 #include "g_ai_info.h"
 #include "g_ai_item.h"
+#include "g_ai_nav.h"
 #include "g_ai_node.h"
 #include "g_ai_state.h"
 #include "g_ai_types.h"
 
 extern Cvar *g_aiNoTarget;
-extern Cvar *g_aiNodeDev;
+extern Cvar *g_aiDrawNodes;
 
 void G_Ai_Disconnect(GameClient *cl);
 void G_Ai_InvalidateReferences(GameAi *ai, const GameEntity *ent);
@@ -49,7 +50,6 @@ void G_Ai_Init(void);
 void G_Ai_Frame(void);
 void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
-bool G_Ai_InDeveloperMode(void);
 bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode);
 bool G_Ai_IsArmed(const GameClient *cl);
 bool G_Ai_IsOutgunned(const GameClient *cl, const GameEntity *enemy);

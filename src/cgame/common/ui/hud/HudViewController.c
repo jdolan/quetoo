@@ -61,7 +61,6 @@ static void dealloc(Object *self) {
   release(this->hud);
   release(this->scoreboard);
   release(this->intermission);
-  release(this->navEdit);
   release(this->notify);
   release(this->chat);
   release(this->voice);
@@ -127,11 +126,6 @@ static void loadView(ViewController *self) {
 
   $(self, setView, view);
   release(view);
-
-  this->navEdit = (NavEditView *) $((View *) alloc(NavEditView), init);
-  assert(this->navEdit);
-
-  $(view, addSubview, (View *) this->navEdit);
 
   this->notify = (NotifyView *) $((View *) alloc(NotifyView), init);
   assert(this->notify);
@@ -359,14 +353,13 @@ static void reload(HudViewController *self) {
     return;
   }
 
-  // beneath the notify lines, the chat, the scoreboard, the nav edit and the demo controls
+  // beneath the notify lines, the chat, the scoreboard and the demo controls
   $(self->viewController.view, addSubview, hud);
   $(self->viewController.view, bringSubviewToFront, (View *) self->notify);
   $(self->viewController.view, bringSubviewToFront, (View *) self->chat);
   $(self->viewController.view, bringSubviewToFront, (View *) self->voice);
   $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
   $(self->viewController.view, bringSubviewToFront, (View *) self->intermission);
-  $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
   $(self->viewController.view, bringSubviewToFront, (View *) self->demoControls);
   self->hud = hud;
 
@@ -475,14 +468,13 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   const PlayerState *ps = &frame->ps;
 
-  $((View *) self->navEdit, updateBindings, (ident) frame);
   $((View *) self->notify, updateBindings, (ident) frame);
   $((View *) self->chat, updateBindings, (ident) frame);
   $((View *) self->voice, updateBindings, (ident) frame);
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
-  const bool scores = ps->stats[STAT_SCORES] && !cgameState.navEdit;
+  const bool scores = ps->stats[STAT_SCORES];
 
   $((View *) self->scoreboard, setVisibility,
     scores ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -493,7 +485,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
 
   // The maps are published only during the intermission, so their presence is what says
   // there is one; like the scoreboard, this shows when the hud does not
-  const bool intermission = cgameState.nextMap.active && !cgameState.navEdit;
+  const bool intermission = cgameState.nextMap.active;
 
   $((View *) self->intermission, setVisibility,
     intermission ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -521,7 +513,7 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
     $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
-  const bool hidden = cgameState.navEdit || (!editor->integer && (!cg_drawHud->integer || !ps->stats[STAT_TIME]));
+  const bool hidden = !editor->integer && (!cg_drawHud->integer || !ps->stats[STAT_TIME]);
 
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);

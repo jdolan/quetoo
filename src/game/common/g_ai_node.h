@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "collision/nav.h"
-
 #if defined(__G_LOCAL_H__)
 
 uint32_t G_Ai_Node_Count(void);
@@ -44,29 +42,13 @@ typedef struct {
   float cost;
 
   /**
-   * @brief The `NavTravelType`, or 0 for a link recorded in game.
+   * @brief The `GameAiTravelType`.
    */
   int32_t travelType;
-
-  /**
-   * @brief The index of the learned jump that a `NAV_TRAVEL_JUMP` link replays, or -1.
-   */
-  int32_t jump;
 } GameAiLink;
 
 const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a);
 const GameAiLink *G_Ai_Node_GetLink(const GameAiNodeId a, const GameAiNodeId b);
-bool G_Ai_Node_IsCompiled(void);
-
-/**
- * @return The learned jump at `index`, or `NULL`.
- */
-const NavJump *G_Ai_Node_GetJump(const int32_t index);
-
-/**
- * @return The steps of the given learned jump.
- */
-const NavJumpStep *G_Ai_Node_GetJumpSteps(const NavJump *jump);
 Vec3 G_Ai_Node_GetPosition(const GameAiNodeId node);
 GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 bool G_Ai_Node_CanPathTo(const Vec3 position);
@@ -74,13 +56,9 @@ const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
 bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
 void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const int32_t travelType);
-void G_Ai_Node_PlayerRoam(GameClient *cl, const PMoveCmd *cmd);
 void G_Ai_Node_Render(void);
 void G_Ai_InitNodes(void);
 void G_Ai_NodesReady(void);
-void G_Ai_SaveNodes(void);
-void G_Ai_Node_Destroy(const GameAiNodeId id);
-void G_Ai_DeleteNodes(void);
 void G_Ai_ShutdownNodes(void);
 
 typedef float (*GameAiNodeCostFunc)(const GameAiNodeId a, const GameAiNodeId b);
@@ -122,7 +100,6 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
  * @return True if the search ran.
  */
 bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float *costs);
-Vector *G_Ai_Node_TestPath(void);
 bool G_Ai_DropItemLikeNode(GameEntity *ent);
 
 #endif

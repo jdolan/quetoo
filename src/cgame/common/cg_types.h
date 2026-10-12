@@ -430,11 +430,6 @@ typedef struct {
   int32_t numClients;
 
   /**
-   * @brief Bot navitation node editor.
-   */
-  int32_t navEdit;
-
-  /**
    * @brief Center print message state from `SV_CMD_CENTER_PRINT`.
    */
   struct {

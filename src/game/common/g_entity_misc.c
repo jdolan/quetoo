@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "collision/nav.h"
 #include "bg_pmove.h"
 
 /**
@@ -156,11 +155,6 @@ static Vec3 G_misc_teleporter_Origin(const GameEntity *ent) {
  */
 static void G_misc_teleporter_Think(GameEntity *ent) {
 
-  // a hand-recorded graph saves the nodes that the game adds, and a compiled one does not
-  if (G_Ai_InDeveloperMode() && !G_Ai_Node_IsCompiled()) {
-    return;
-  }
-
   const GameEntity *dest = G_Find(NULL, EOFS(targetName), ent->target);
 
   if (!dest) {
@@ -185,7 +179,7 @@ static void G_misc_teleporter_Think(GameEntity *ent) {
     G_Ai_Node_Link(srcNode, newNode, Vec3_Distance(G_Ai_Node_GetPosition(srcNode), origin));
 
     // small cost for teleport node
-    G_Ai_Node_LinkTravel(newNode, dstNode, 1.f, NAV_TRAVEL_TELEPORT);
+    G_Ai_Node_LinkTravel(newNode, dstNode, 1.f, AI_TRAVEL_TELEPORT);
 
     ent->node = srcNode;
   }

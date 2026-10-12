@@ -1606,9 +1606,7 @@ static void G_ClientRespawn_(GameClient *cl) {
     cl->ps.pmState.time = 20;
 
     // setup inventory/weapon
-    if (!G_Ai_InDeveloperMode()) {
-      G_InitInventory(cl);
-    }
+    G_InitInventory(cl);
 
     // briefly disable firing, since we likely just clicked to respawn
     cl->weaponFireTime = gameLevel.time + 250;
@@ -2427,12 +2425,6 @@ void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
       G_ClientChaseThink(chaser);
     }
   });
-
-  // if we're the first player in a game, send our client over
-  // to the AI system in case it needs to make nodes
-  if (cl->ps.client == 0) {
-    G_Ai_Node_PlayerRoam(cl, cmd);
-  }
 }
 
 /**

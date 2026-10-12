@@ -721,8 +721,8 @@ The cost is that each differing module carries a copy of `classic.json` to keep 
 step with default's. That is the modding story working as intended - a modder does
 exactly this - and the copies are data, not code.
 
-The framing is still not part of the arrangement: `cg_drawHud`, the intermission,
-the editor and nav edit decide visibility in `HudViewController`, and the scoreboard is
+The framing is still not part of the arrangement: `cg_drawHud`, the intermission and
+the editor decide visibility in `HudViewController`, and the scoreboard is
 a sibling of the variant tree so that it shows through the intermission when the HUD
 does not.
 

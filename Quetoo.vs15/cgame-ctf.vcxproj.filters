@@ -273,9 +273,6 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\DiagnosticsView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\common\ui\hud\NavEditView.h">
-      <Filter>src\common\ui\hud</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\TimeView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
@@ -612,9 +609,6 @@
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\DiagnosticsView.c">
-      <Filter>src\common\ui\hud</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\common\ui\hud\NavEditView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\TimeView.c">

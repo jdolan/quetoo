@@ -19,7 +19,6 @@ noinst_HEADERS = \
 	portal.h \
 	qbsp.h \
 	qlight.h \
-	qnav.h \
 	quemap.h \
 	qzip.h \
 	texture.h \
@@ -48,24 +47,15 @@ quemap_SOURCES = \
 	portal.c \
 	qbsp.c \
 	qlight.c \
-	qnav.c \
 	qzip.c \
 	texture.c \
 	tjunction.c \
 	tree.c \
 	voxel.c \
 	work.c \
-	writebsp.c \
-	../game/common/bg_pmove.c \
-	../game/common/bg_pmove_quake.c \
-	../game/common/bg_pmove_quake2.c \
-	../game/common/bg_pmove_quake3.c \
-	../game/common/bg_pmove_quetoo.c \
-	../game/common/bg_pmove_race.c
+	writebsp.c
 
 quemap_CFLAGS = \
-	-fms-extensions \
-	-Wno-microsoft-anon-tag \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \

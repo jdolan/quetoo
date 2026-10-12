@@ -198,10 +198,6 @@ MapListCollectionItemView Text {
   alignment: bottom-center;
 }
 
-NavEditView {
-  autoresizing-mask: contain;
-}
-
 PickupView {
   axis: horizontal;
 }
