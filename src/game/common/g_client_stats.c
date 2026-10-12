@@ -310,6 +310,7 @@ void G_ClientSpectatorStats(GameClient *cl) {
   if (cl->chaseTarget && G_IsMeat(cl->chaseTarget->entity)) {
 
     memcpy(cl->ps.stats, cl->chaseTarget->ps.stats, sizeof(cl->ps.stats));
+    memcpy(cl->ps.inventory, cl->chaseTarget->ps.inventory, sizeof(cl->ps.inventory));
 
     cl->ps.stats[STAT_SPECTATOR] = 1;
     cl->ps.stats[STAT_CHASE] = cl->chaseTarget->ps.entity;
