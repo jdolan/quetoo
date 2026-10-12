@@ -327,6 +327,7 @@ typedef enum {
 #define EF_INVISIBILITY    (EF_GAME << 15) // ring of shadows (invisible shell)
 #define EF_INVULNERABILITY (EF_GAME << 16) // invulnerability shell
 #define EF_MODULATE        (EF_GAME << 17) // boost mesh brightness; mirrored in r_types.h
+#define EF_HEAD            (EF_GAME << 18) // a client's head giblet, whose client is s.client
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what

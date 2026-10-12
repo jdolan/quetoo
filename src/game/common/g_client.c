@@ -662,6 +662,21 @@ static void G_ClientCorpse_Think(GameEntity *ent) {
 }
 
 /**
+ * @brief The first think of a corpse, a tick after it spawns, from which it takes damage.
+ * @details A corpse spawns in the middle of the damage that killed its client, and
+ * G_RadiusDamage visits the entity array in order, so the rest of that damage would reach it
+ * too. One blast would push the body twice, and could gib it before any frame shows it. The
+ * death sound would then play on an entity that no client receives.
+ */
+static void G_ClientCorpse_Spawned(GameEntity *ent) {
+
+  ent->takeDamage = true;
+  ent->Think = G_ClientCorpse_Think;
+
+  G_ClientCorpse_Think(ent);
+}
+
+/**
  * @brief Fires a ragdoll jolt event; the client handles all animation locally.
  */
 static void G_ClientCorpse_Pain(GameEntity *ent, GameEntity *attacker, int16_t damage, int16_t knockback) {
@@ -769,6 +784,7 @@ static void G_ClientCorpse_Watch(GameClient *cl, GameEntity *corpse) {
   cl->ps.entity = corpse->s.number;
 
   if (corpse->s.model1 != MODEL_CLIENT) {
+    corpse->s.effects |= EF_HEAD;
     corpse->s.client = cl->ps.client;
     cl->ps.pmState.flags |= PMF_GIBLET;
   }
@@ -901,11 +917,11 @@ static GameEntity *G_ClientCorpse(GameClient *cl) {
   ent->dead = true;
   ent->mass = cl->entity->mass;
   ent->moveType = MOVE_TYPE_BOUNCE;
-  ent->takeDamage = true;
+  ent->takeDamage = false;
   ent->health = cl->entity->health;
   ent->Die = ent->health > 0 ? G_ClientCorpse_Die : NULL;
   ent->Pain = ent->health > 0 ? G_ClientCorpse_Pain : NULL;
-  ent->Think = G_ClientCorpse_Think;
+  ent->Think = G_ClientCorpse_Spawned;
   ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(ent);
