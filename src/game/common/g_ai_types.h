@@ -233,15 +233,57 @@ typedef uint32_t (*GameAiGoalFunc)(GameClient *cl, PMoveCmd *cmd);
  * @brief Functional AI goal slot IDs, one per periodic decision function.
  */
 typedef enum {
-  AI_FUNC_GOAL_LONGRANGE,
-  AI_FUNC_GOAL_HUNT,
+  AI_FUNC_GOAL_TARGET,
+  AI_FUNC_GOAL_STATE,
   AI_FUNC_GOAL_WEAPONRY,
   AI_FUNC_GOAL_ACROBATICS,
-  AI_FUNC_GOAL_FINDITEMS,
   AI_FUNC_GOAL_TURN,
   AI_FUNC_GOAL_MOVE,
   AI_FUNC_GOAL_TOTAL
 } GameAiFuncGoal;
+
+/**
+ * @brief The states of a bot's decision state machine. Only the active state sets the bot's move
+ * target.
+ */
+typedef enum {
+  /**
+   * @brief Go to the item of most value for its travel time.
+   */
+  AI_STATE_COLLECT,
+
+  /**
+   * @brief Go to a distant node, because no item has value to the bot.
+   */
+  AI_STATE_ROAM,
+
+  /**
+   * @brief Take an item that adds little travel time to the route to the goal, then resume it.
+   */
+  AI_STATE_DETOUR,
+
+  /**
+   * @brief Fight the combat target.
+   */
+  AI_STATE_FIGHT,
+
+  /**
+   * @brief Go to where the bot last saw the combat target that it lost.
+   */
+  AI_STATE_CHASE,
+
+  /**
+   * @brief Go to health, armor or a weapon, away from the combat target, and fire back.
+   */
+  AI_STATE_RETREAT,
+
+  /**
+   * @brief Go to where the bot heard an enemy, or was shot from.
+   */
+  AI_STATE_INVESTIGATE,
+
+  AI_STATE_TOTAL
+} GameAiStateId;
 
 /**
  * @brief Static bot definition from the roster.
@@ -319,6 +361,26 @@ typedef struct {
 } GameAiItemTiming;
 
 /**
+ * @brief The most items that a bot avoids at once.
+ */
+#define AI_AVOIDS 8
+
+/**
+ * @brief An item that a bot took, or failed to reach, and so avoids for a time.
+ */
+typedef struct {
+  /**
+   * @brief The item's entity number.
+   */
+  int32_t number;
+
+  /**
+   * @brief Level time at which the bot began to avoid the item.
+   */
+  uint32_t time;
+} GameAiAvoid;
+
+/**
  * @brief AI-specific per-client state.
  */
 typedef struct GameAi {
@@ -350,14 +412,56 @@ typedef struct GameAi {
   GameAiGoal moveTarget;
 
   /**
-   * @brief Saved movement goal, restored after a detour.
-   */
-  GameAiGoal backupMoveTarget;
-
-  /**
    * @brief Current combat/enemy goal.
    */
   GameAiGoal combatTarget;
+
+  /**
+   * @brief The active state of the decision state machine.
+   */
+  GameAiStateId state;
+
+  /**
+   * @brief Level time at which the bot entered its state.
+   */
+  uint32_t stateTime;
+
+  /**
+   * @brief Level time at which the state next reviews the bot's choice of goal, item or approach.
+   */
+  uint32_t reviewTime;
+
+  /**
+   * @brief True once a chase or an investigation has planned its path.
+   */
+  bool statePathed;
+
+  /**
+   * @brief The entity number of the item to collect, or -1 for none.
+   */
+  int32_t goalNumber;
+
+  /**
+   * @brief The spawn ID of the item to collect, to detect entity reuse.
+   */
+  uint8_t goalSpawnId;
+
+  /**
+   * @brief The node of the item to collect, or of the roam point, or `AI_NODE_INVALID` for none.
+   * A detour returns to it.
+   */
+  GameAiNodeId goalNode;
+
+  /**
+   * @brief True if the bot lost sight of its last combat target, rather than killed it or lost it
+   * to death or disconnect.
+   */
+  bool combatTargetLost;
+
+  /**
+   * @brief The items that the bot avoids, so that it roams the map rather than circles a few items.
+   */
+  GameAiAvoid avoids[AI_AVOIDS];
 
   /**
    * @brief Next level time to re-evaluate weapon selection.

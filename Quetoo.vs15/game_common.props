@@ -39,6 +39,8 @@
     <ClInclude Include="..\src\game\common\g_ai_main.h" />
     <ClCompile Include="..\src\game\common\g_ai_node.c" />
     <ClInclude Include="..\src\game\common\g_ai_node.h" />
+    <ClCompile Include="..\src\game\common\g_ai_state.c" />
+    <ClInclude Include="..\src\game\common\g_ai_state.h" />
     <ClInclude Include="..\src\game\common\g_ai_types.h" />
     <ClCompile Include="..\src\game\common\g_ballistics.c" />
     <ClInclude Include="..\src\game\common\g_ballistics.h" />

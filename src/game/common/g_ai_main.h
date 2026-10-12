@@ -34,6 +34,7 @@
 #include "g_ai_info.h"
 #include "g_ai_item.h"
 #include "g_ai_node.h"
+#include "g_ai_state.h"
 #include "g_ai_types.h"
 
 extern Cvar *g_aiNoTarget;
@@ -53,8 +54,52 @@ bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode)
 bool G_Ai_IsArmed(const GameClient *cl);
 bool G_Ai_IsOutgunned(const GameClient *cl, const GameEntity *enemy);
 bool G_Ai_ShouldRetreat(const GameClient *cl);
+
+/**
+ * @return The health below which the bot retreats. Aggressive bots retreat at lower health.
+ */
+int32_t G_Ai_RetreatHealth(const GameClient *cl);
+
+/**
+ * @return True if nothing solid lies between the AI's eyes and the entity.
+ */
+bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other);
+
+/**
+ * @return True if the AI is unarmed, and the item is a weapon that it lacks and that would arm it.
+ */
+bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item);
+
+/**
+ * @return True if the entity is a map control item and the AI is armed, or a dropped weapon that
+ * the AI lacks. Bots go after these above all else, even in combat. An unarmed bot arms itself
+ * first, so that it can defend the map control item it then takes.
+ */
+bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent);
+
+/**
+ * @return True if the bot remembers that the taken item returns by the time it gets there.
+ * @param eta The time in milliseconds that the bot needs to get to the item.
+ */
+bool G_Ai_IsTimedItem(const GameClient *cl, const GameEntity *item, const uint32_t eta);
+
+/**
+ * @return True if the AI knows about the item. Bots learn where the map's items spawn, so they need
+ * no sight of those. A dropped item must be in sight, and in view unless it is near or coveted.
+ */
+bool G_Ai_IsItemKnown(const GameClient *cl, const GameEntity *ent, const bool coveted);
+
+/**
+ * @return The distance at which the bot prefers to fight with its current weapon.
+ */
+float G_Ai_PreferredRange(const GameClient *cl);
+
+/**
+ * @brief Ends the bot's path, because it reached the end or cannot follow it, and lets the state
+ * machine choose the next one at once.
+ */
+void G_Ai_EndPath(GameClient *cl);
 bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other);
-bool G_Ai_IsSeekingItem(const GameClient *cl);
 bool G_Ai_FallsToVoid(const GameClient *cl, Vec3 origin, Vec3 velocity);
 Vec3 G_Ai_JumpVelocity(const GameClient *cl);
 
@@ -90,9 +135,10 @@ bool G_Ai_IsAlerted(const GameClient *cl);
 bool G_Ai_IsAttacker(const GameClient *cl, const GameEntity *ent);
 
 /**
- * @brief Lets the bots that see or hear a map control item taken remember when it respawns.
+ * @brief Lets the bots that see or hear a map control item taken remember when it respawns, and
+ * lets a bot that took the item avoid it for a time.
  */
-void G_Ai_ItemTaken(const GameEntity *item);
+void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker);
 
 /**
  * @brief Candidate item considered for AI pickup, weighted by desirability.
