@@ -133,6 +133,20 @@ static void Manifest_CollectKey(const HashTable *table, ident key, ident value, 
 }
 
 /**
+ * @return The keys of `manifest`, sorted by path, which the caller must `Mem_Free`.
+ */
+static const char **Manifest_SortedKeys(HashTable *manifest) {
+
+	const char **keys = Mem_Malloc(manifest->count * sizeof(char *));
+	ManifestKeys collector = { .keys = keys };
+
+	$(manifest, enumerate, Manifest_CollectKey, &collector);
+	qsort(keys, manifest->count, sizeof(char *), Manifest_KeyCmp);
+
+	return keys;
+}
+
+/**
  * @brief Writes a manifest table to a file, sorted by path.
  */
 int32_t Manifest_Write(const char *path, HashTable *manifest) {
@@ -143,14 +157,9 @@ int32_t Manifest_Write(const char *path, HashTable *manifest) {
 		return -1;
 	}
 
-	const size_t count = manifest->count;
-	const char **keys = Mem_Malloc(count * sizeof(char *));
-	ManifestKeys collector = { .keys = keys };
+	const char **keys = Manifest_SortedKeys(manifest);
 
-	$(manifest, enumerate, Manifest_CollectKey, &collector);
-	qsort(keys, count, sizeof(char *), Manifest_KeyCmp);
-
-	for (size_t k = 0; k < count; k++) {
+	for (size_t k = 0; k < manifest->count; k++) {
 		const ManifestEntry *entry = $(manifest, get, (void *) keys[k]);
 		Fs_Print(file, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
 	}
@@ -158,7 +167,31 @@ int32_t Manifest_Write(const char *path, HashTable *manifest) {
 	Mem_Free(keys);
 	Fs_Close(file);
 
-	return (int32_t) count;
+	return (int32_t) manifest->count;
+}
+
+/**
+ * @brief Writes a manifest table to a file on the real filesystem, sorted by path.
+ */
+int32_t Manifest_WriteFile(const char *path, HashTable *manifest) {
+
+	FILE *file = fopen(path, "wb");
+	if (!file) {
+		Com_Warn("Failed to open %s for writing\n", path);
+		return -1;
+	}
+
+	const char **keys = Manifest_SortedKeys(manifest);
+
+	for (size_t k = 0; k < manifest->count; k++) {
+		const ManifestEntry *entry = $(manifest, get, (void *) keys[k]);
+		fprintf(file, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
+	}
+
+	Mem_Free(keys);
+	fclose(file);
+
+	return (int32_t) manifest->count;
 }
 
 /**

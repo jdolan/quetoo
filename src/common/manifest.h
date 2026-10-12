@@ -94,6 +94,16 @@ bool Manifest_HashFile(const char *path, char *hex, size_t hexSize);
 int32_t Manifest_Write(const char *path, HashTable *manifest);
 
 /**
+ * @brief Writes a manifest table to a file on the real filesystem, sorted by path.
+ * @param path The output file's operating system path.
+ * @param manifest The manifest table to write.
+ * @return The number of entries written, or -1 on failure.
+ * @remarks `Manifest_Write` resolves `path` through PhysFS, against `Fs_WriteDir()`. Use this to
+ * write outside the search path, for example to `Fs_DataDir()`.
+ */
+int32_t Manifest_WriteFile(const char *path, HashTable *manifest);
+
+/**
  * @brief Parses a manifest from an in-memory buffer.
  * @details The buffer must be null-terminated (or zero-padded past @c len).
  * Returns an empty table (never `NULL`) when @c data is `NULL` or @c len is zero.

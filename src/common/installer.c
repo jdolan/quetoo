@@ -32,7 +32,6 @@
 #include <Objectively/Dictionary.h>
 #include <Objectively/JSONContext.h>
 #include <Objectively/Number.h>
-#include <Objectively/PointerArray.h>
 #include <Objectively/RESTClient.h>
 #include <Objectively/String.h>
 #include <Objectively/URL.h>
@@ -572,52 +571,6 @@ static void Installer_MarkStale(const HashTable *table, ident key, ident value, 
   ((ManifestEntry *) value)->status = ENTRY_STALE;
 }
 
-/**
- * @brief `HashTableEnumerator` collecting each ManifestEntry into the PointerArray in `data`.
- */
-static void Installer_WriteManifest_collect(const HashTable *table, ident key, ident value, ident data) {
-  $((PointerArray *) data, add, value);
-}
-
-/**
- * @brief `Comparator` ordering ManifestEntries by path, as `manifest.py` in quetoo-data does.
- */
-static Order Installer_WriteManifest_compare(const ident a, const ident b) {
-
-  const int32_t order = Str_Compare(((const ManifestEntry *) a)->path, ((const ManifestEntry *) b)->path);
-
-  return order < 0 ? OrderAscending : order > 0 ? OrderDescending : OrderSame;
-}
-
-/**
- * @brief Writes `manifest` directly to `path` on the real filesystem, sorted by path.
- * @details `Manifest_Write` writes through PhysFS, which resolves relative
- * paths against `Fs_WriteDir()` -- the user's writable game directory -- not
- * `Fs_DataDir()`, where `path` actually lives. Using it here would silently
- * write the manifest to a bogus nested path under the write dir instead of
- * updating the real one, leaving the local manifest permanently stale and
- * causing already-downloaded files to be re-downloaded on every launch.
- */
-static bool Installer_WriteManifest(const char *path, HashTable *manifest) {
-  FILE *f = fopen(path, "wb");
-  if (!f) {
-    Com_Warn("Failed to open %s for writing\n", path);
-    return false;
-  }
-  PointerArray *entries = $(alloc(PointerArray), init);
-  $(manifest, enumerate, Installer_WriteManifest_collect, entries);
-  $(entries, sort, Installer_WriteManifest_compare);
-
-  for (size_t i = 0; i < entries->count; i++) {
-    const ManifestEntry *entry = $(entries, get, i);
-    fprintf(f, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
-  }
-
-  release(entries);
-  fclose(f);
-  return true;
-}
-
 typedef struct {
   HashTable *local;
   int32_t filesTotal;
@@ -651,7 +604,7 @@ static void Installer_Commit(void) {
   if (module.remoteManifest) {
     char mfPath[MAX_OS_PATH];
     Str_Format(mfPath, sizeof(mfPath), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
-    Installer_WriteManifest(mfPath, module.remoteManifest);
+    Manifest_WriteFile(mfPath, module.remoteManifest);
     Manifest_Free(module.remoteManifest);
     module.remoteManifest = NULL;
   }
@@ -743,8 +696,8 @@ static bool Installer_HasManifest(void) {
  * directory is only mounted if it existed when `Fs_Init` ran, so a tree this
  * module just created is invisible to it. That would leave every entry
  * pending and re-download the whole data set a file at a time -- exactly what
- * the archive install exists to avoid. `Installer_WriteManifest` bypasses
- * PhysFS for the same reason.
+ * the archive install exists to avoid. It is written with `Manifest_WriteFile`
+ * for the same reason.
  */
 static HashTable *Installer_ReadManifest(void) {
 
