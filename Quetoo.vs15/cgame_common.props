@@ -183,6 +183,8 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\VoteView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\WeaponBarView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\WeaponBarView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\HeroImageList.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\HeroImageList.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\LoadingViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\main\LoadingViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\MainView.c" />

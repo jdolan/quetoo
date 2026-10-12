@@ -29,7 +29,6 @@
 				CE052A9B21483352003446C9 /* PBXTargetDependency */,
 				D9A5C10000000000000000BA /* PBXTargetDependency */,
 				CE948B2D2235660C00D961FA /* PBXTargetDependency */,
-				CE052A9D21483352003446C9 /* PBXTargetDependency */,
 				CEB3850229A3D2E3006DEA13 /* PBXTargetDependency */,
 			);
 			name = "quetoo-tests";
@@ -104,7 +103,6 @@
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
-		3CBF190D5B00F3CCADD14B52 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		3D8401C9D86FF746C42D2AB6 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
 		457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		46EE82019B925D394B363E01 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
@@ -265,9 +263,6 @@
 		CE052A5F214831FE003446C9 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE052A62214831FE003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE052A712148320E003446C9 /* check_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D31C5C58C300CD0B13 /* check_mem.c */; };
-		CE052A7721483255003446C9 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
-		CE052A8721483275003446C9 /* check_thread.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D71C5C58C300CD0B13 /* check_thread.c */; };
-		CE052A88214832E1003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE05B2883022486E0012862B /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
 		CE05B2893022486E0012862B /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		1579DAA95595D781239A5615 /* g_ai_combat.c in Sources */ = {isa = PBXBuildFile; fileRef = C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */; };
@@ -402,6 +397,7 @@
 		CE05B3F030224900C0DE003C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CE05B3F030224900C0DE003E /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
+		0A3AFEF82E92A6D7EDE49205 /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CE05B3F030224900C0DE0040 /* cg_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D55F1C5C58C300CD0B13 /* cg_client.h */; };
 		CE05B3F030224900C0DE0041 /* cg_discord.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E6B827AC95D1003D56AC /* cg_discord.h */; };
@@ -552,7 +548,6 @@
 		CE2B082423F9EB7A007C77B6 /* libclient-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5CDC321D9F51580034757D /* libclient-ui.a */; };
 		CE2B083623F9ECC7007C77B6 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE2B083823F9ECE1007C77B6 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CE2B083B23F9EDD7007C77B6 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE2B083C23F9EDEA007C77B6 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE2B084423F9EE46007C77B6 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE2B084D23F9EEBC007C77B6 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -880,6 +875,7 @@
 		CEAD8FB52F8D8DF70087A850 /* check_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FA32F8D8DB70087A850 /* check_manifest.c */; };
 		CEAD8FB62F8D8E060087A850 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEAD8FB82F8DA0000087A850 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		9E1CC554403DDDF30E7936EF /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEAD8FBD2F93A5400087A850 /* UpdateViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */; };
 		CEAD8FBE2F93A5430087A850 /* UpdateViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FB92F93A4990087A850 /* UpdateViewController.css */; };
@@ -1013,6 +1009,7 @@
 		CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEC0FF00202601030000019D /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
 		CEC0FF00202601030000019E /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
+		30FD45E54A43D864398BD530 /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		CEC0FF00202601030000019F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEC0FF0020260103000001D5 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		CEC0FF0020260103000001D6 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
@@ -1088,7 +1085,6 @@
 		CED40A6E3049B34E0090C57A /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CED40A6F3049B3690090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CED40A703049B36F0090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
-		CED40A713049B3830090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CED40A723049B38A0090C57A /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CED40A733049B3F70090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CED40A743049B3FB0090C57A /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -1348,6 +1344,7 @@
 		D2A5C1000000000000000081 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		D2A5C1000000000000000082 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D2A5C1000000000000000083 /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
+		A04BD89F5AAC7CE024786A3C /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
 		D2A5C1000000000000000084 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		D2A5C1000000000000000085 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000002 /* bg_item.c */; };
 		D2A5C1000000000000000086 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
@@ -1484,7 +1481,6 @@
 		D9A5C10000000000000000D3 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		D9A5C10000000000000000D4 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		D9A5C2010000000000000001 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
-		D9A5C2010000000000000002 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		D9A5C2010000000000000003 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		D9A5C2010000000000000004 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		D9A5C2010000000000000005 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
@@ -1589,13 +1585,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE51FB89214819B000ABE14F;
 			remoteInfo = check_r_media;
-		};
-		CE052A9C21483352003446C9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE052A7321483255003446C9;
-			remoteInfo = check_thread;
 		};
 		CE05B2D63022493E0012862B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1808,13 +1797,6 @@
 			remoteInfo = "quetoo-master";
 		};
 		CEB384FB29A3D28C006DEA13 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
-			remoteInfo = common;
-		};
-		CEB384FD29A3D29C006DEA13 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
 			proxyType = 1;
@@ -2333,7 +2315,6 @@
 		CE04FB1825CEDCD400C31433 /* net_http_server.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_http_server.c; sourceTree = "<group>"; };
 		CE04FE4E25D0D90400C31433 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		CE052A6E214831FE003446C9 /* check_mem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_mem; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE052A8421483255003446C9 /* check_thread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_thread; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE05B23D302248070012862B /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		CE05B23E302248070012862B /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		CE05B271302248070012862B /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
@@ -2595,7 +2576,6 @@
 		CE12D6D11C5C58C300CD0B13 /* check_master.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_master.c; sourceTree = "<group>"; };
 		CE12D6D31C5C58C300CD0B13 /* check_mem.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_mem.c; sourceTree = "<group>"; };
 		CE12D6D51C5C58C300CD0B13 /* check_r_media.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_r_media.c; sourceTree = "<group>"; };
-		CE12D6D71C5C58C300CD0B13 /* check_thread.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_thread.c; sourceTree = "<group>"; };
 		CE12D6DA1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D6DC1C5C58C300CD0B13 /* tests.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tests.c; sourceTree = "<group>"; };
 		CE12D6DD1C5C58C300CD0B13 /* tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
@@ -2992,6 +2972,8 @@
 		CEAD8F9D2F8D765F0087A850 /* check_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_http; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEAD8FA32F8D8DB70087A850 /* check_manifest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_manifest.c; sourceTree = "<group>"; };
 		CEAD8FB42F8D8DE30087A850 /* check_manifest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_manifest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B77DE24754DEF2A64422733 /* HeroImageList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HeroImageList.h; sourceTree = "<group>"; };
+		B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HeroImageList.c; sourceTree = "<group>"; };
 		CEAD8FB72F93A4990087A850 /* UpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateViewController.h; sourceTree = "<group>"; };
 		CEAD8FB82F93A4990087A850 /* UpdateViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = UpdateViewController.c; sourceTree = "<group>"; };
 		CEAD8FB92F93A4990087A850 /* UpdateViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = UpdateViewController.css; sourceTree = "<group>"; };
@@ -3205,18 +3187,6 @@
 				CED40A703049B36F0090C57A /* Objectively.framework in Frameworks */,
 				CE2B083C23F9EDEA007C77B6 /* libshared.a in Frameworks */,
 				CE052A62214831FE003446C9 /* libcommon.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE052A7921483255003446C9 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D9A5C2010000000000000002 /* libminizip.a in Frameworks */,
-				3CBF190D5B00F3CCADD14B52 /* SDL3.framework in Frameworks */,
-				CED40A713049B3830090C57A /* Objectively.framework in Frameworks */,
-				CE052A88214832E1003446C9 /* libcommon.a in Frameworks */,
-				CE2B083B23F9EDD7007C77B6 /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4387,7 +4357,6 @@
 				CE12D6D31C5C58C300CD0B13 /* check_mem.c */,
 				CE12D6D51C5C58C300CD0B13 /* check_r_media.c */,
 				CE948B0F223564E900D961FA /* check_shared.c */,
-				CE12D6D71C5C58C300CD0B13 /* check_thread.c */,
 				CE9CFC9C23EB3BF50009DA65 /* check_vector.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_winding.c */,
 				CE12D6DD1C5C58C300CD0B13 /* tests.h */,
@@ -4508,7 +4477,6 @@
 				CE052A6E214831FE003446C9 /* check_mem */,
 				CE51FB8A214819B000ABE14F /* check_r_media */,
 				CE948B222235652600D961FA /* check_shared */,
-				CE052A8421483255003446C9 /* check_thread */,
 				CE9CFCAF23EB3D020009DA65 /* check_vector */,
 				CEA509052EA5D20A00F27205 /* check_winding */,
 				CEC0FF0020260103000000EA /* game-ctf.so */,
@@ -4849,6 +4817,8 @@
 				CE7D2C0D202F6134004BC58E /* MainView.json */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
 				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
+				6B77DE24754DEF2A64422733 /* HeroImageList.h */,
+				B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */,
 				CEAD8FB72F93A4990087A850 /* UpdateViewController.h */,
 				CEAD8FB82F93A4990087A850 /* UpdateViewController.c */,
 				CEAD8FB92F93A4990087A850 /* UpdateViewController.css */,
@@ -5828,23 +5798,6 @@
 			productReference = CE052A6E214831FE003446C9 /* check_mem */;
 			productType = "com.apple.product-type.tool";
 		};
-		CE052A7321483255003446C9 /* check_thread */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CE052A8121483255003446C9 /* Build configuration list for PBXNativeTarget "check_thread" */;
-			buildPhases = (
-				CE052A7621483255003446C9 /* Sources */,
-				CE052A7921483255003446C9 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				CEB384FE29A3D29C006DEA13 /* PBXTargetDependency */,
-			);
-			name = check_thread;
-			productName = "test-r_media";
-			productReference = CE052A8421483255003446C9 /* check_thread */;
-			productType = "com.apple.product-type.tool";
-		};
 		CE05B2863022486E0012862B /* game-lithium */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE05B2D23022486E0012862B /* Build configuration list for PBXNativeTarget "game-lithium" */;
@@ -6646,7 +6599,6 @@
 				CE052A5B214831FE003446C9 /* check_mem */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
 				CE948B102235652600D961FA /* check_shared */,
-				CE052A7321483255003446C9 /* check_thread */,
 				CE9CFC9E23EB3D020009DA65 /* check_vector */,
 				CEA508F52EA5D20A00F27205 /* check_winding */,
 				CE052A8C2148333C003446C9 /* quetoo-tests */,
@@ -6666,7 +6618,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_box &&\n$BUILT_PRODUCTS_DIR/check_entity &&\n$BUILT_PRODUCTS_DIR/check_winding &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_g_race &&\n$BUILT_PRODUCTS_DIR/check_http &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
+			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_box &&\n$BUILT_PRODUCTS_DIR/check_entity &&\n$BUILT_PRODUCTS_DIR/check_winding &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_g_race &&\n$BUILT_PRODUCTS_DIR/check_http &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
 		};
 		CE05B2D13022486E0012862B /* Install module */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -6828,15 +6780,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE052A7621483255003446C9 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE052A8721483275003446C9 /* check_thread.c in Sources */,
-				CE052A7721483255003446C9 /* tests.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE05B2873022486E0012862B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -6958,6 +6901,7 @@
 				CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000206 /* VoteViewController.c in Sources */,
 				CE05B3F030224900C0DE003E /* TeamView.c in Sources */,
+				0A3AFEF82E92A6D7EDE49205 /* HeroImageList.c in Sources */,
 				CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */,
 				CE05B3F030224900C0DE0001 /* bg_item.c in Sources */,
 				CE05B3F030224900C0DE0002 /* bg_pmove.c in Sources */,
@@ -7127,6 +7071,7 @@
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000207 /* VoteViewController.c in Sources */,
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
+				9E1CC554403DDDF30E7936EF /* HeroImageList.c in Sources */,
 				CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000004 /* bg_item.c in Sources */,
 				CEFEED000000000000000002 /* bg_pmove.c in Sources */,
@@ -7609,6 +7554,7 @@
 				CEC0FF00202601030000019E /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000208 /* VoteViewController.c in Sources */,
 				CEC0FF00202601030000019D /* TeamView.c in Sources */,
+				30FD45E54A43D864398BD530 /* HeroImageList.c in Sources */,
 				CEC0FF00202601030000019F /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000005 /* bg_item.c in Sources */,
 				CEFEED000000000000000003 /* bg_pmove.c in Sources */,
@@ -7833,6 +7779,7 @@
 				D2A5C1000000000000000081 /* TeamsViewController.c in Sources */,
 				D2A5C1000000000000000082 /* VoteViewController.c in Sources */,
 				D2A5C1000000000000000083 /* TeamView.c in Sources */,
+				A04BD89F5AAC7CE024786A3C /* HeroImageList.c in Sources */,
 				D2A5C1000000000000000084 /* UpdateViewController.c in Sources */,
 				D2A5C1000000000000000085 /* bg_item.c in Sources */,
 				D2A5C1000000000000000086 /* bg_pmove.c in Sources */,
@@ -7931,11 +7878,6 @@
 			isa = PBXTargetDependency;
 			target = CE51FB89214819B000ABE14F /* check_r_media */;
 			targetProxy = CE052A9A21483352003446C9 /* PBXContainerItemProxy */;
-		};
-		CE052A9D21483352003446C9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE052A7321483255003446C9 /* check_thread */;
-			targetProxy = CE052A9C21483352003446C9 /* PBXContainerItemProxy */;
 		};
 		CE05B2D73022493E0012862B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -8092,11 +8034,6 @@
 			target = CE80FDD91C5E3E1100A21A51 /* common */;
 			targetProxy = CEB384FB29A3D28C006DEA13 /* PBXContainerItemProxy */;
 		};
-		CEB384FE29A3D29C006DEA13 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FDD91C5E3E1100A21A51 /* common */;
-			targetProxy = CEB384FD29A3D29C006DEA13 /* PBXContainerItemProxy */;
-		};
 		CEB3850029A3D2C6006DEA13 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CEB384DE29A3A73B006DEA13 /* check_color */;
@@ -8167,28 +8104,6 @@
 			name = Debug;
 		};
 		CE052A6D214831FE003446C9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lphysfs",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		CE052A8221483255003446C9 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lphysfs",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		CE052A8321483255003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				OTHER_LDFLAGS = (
@@ -9599,15 +9514,6 @@
 			buildConfigurations = (
 				CE052A6C214831FE003446C9 /* Debug */,
 				CE052A6D214831FE003446C9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		CE052A8121483255003446C9 /* Build configuration list for PBXNativeTarget "check_thread" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CE052A8221483255003446C9 /* Debug */,
-				CE052A8321483255003446C9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

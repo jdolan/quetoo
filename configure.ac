@@ -165,7 +165,7 @@ dnl ------------------------
 dnl Check for Objectively
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELY], [Objectively >= 2.2.0])
+PKG_CHECK_MODULES([OBJECTIVELY], [Objectively >= 2.4.0])
 
 dnl ------------------------
 dnl Check for ObjectivelyGPU

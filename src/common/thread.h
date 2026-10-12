@@ -21,46 +21,16 @@
 
 #pragma once
 
-#include <SDL3/SDL_thread.h>
+#include <Objectively/ThreadPool.h>
 
 #include "mem.h"
 
 #define MAX_THREADS 128
 
-typedef enum {
-  THREAD_IDLE,
-  THREAD_RUNNING,
-  THREAD_WAITING,
-} WorkerThreadStatus;
+/**
+ * @brief The engine ThreadPool, sized by the `threads` cvar.
+ */
+extern ThreadPool *threadPool;
 
-typedef enum {
-  THREAD_NONE,
-
-  /**
-   * @brief The thread will not require `Thread_Wait` before returning to the pool.
-   */
-  THREAD_NO_WAIT
-} WorkerThreadOptions;
-
-typedef void (*ThreadRun)(void *data);
-
-typedef struct {
-  SDL_Thread *thread;
-  SDL_Condition *cond;
-  SDL_Mutex *mutex;
-  WorkerThreadStatus status;
-  WorkerThreadOptions options;
-  char name[64];
-  ThreadRun Run;
-  void *data;
-} WorkerThread;
-
-WorkerThread *Thread_Create_(const char *name, ThreadRun run, void *data, WorkerThreadOptions options);
-#define Thread_Create(function, data, options) Thread_Create_(#function, function, data, options)
-void Thread_Wait(WorkerThread *t);
-int32_t Thread_Count(void);
 void Thread_Init(ssize_t numThreads);
 void Thread_Shutdown(void);
-
-extern SDL_ThreadID threadMain;
-extern _Thread_local SDL_ThreadID threadId;

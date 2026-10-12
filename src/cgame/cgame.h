@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 67
+#define CGAME_API_VERSION 68
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -176,21 +176,13 @@ typedef struct {
    */
 
   /**
-   * @brief Starts a thread for the given function.
-   * @param name The thread name.
-   * @param run The thread function.
-   * @param data User data.
-   * @param options The thread options.
-   * @remarks Unless `THREAD_NO_WAIT` is passed via `options`, the caller must also
-   * call `Wait` on the returned thread in order to relinquish it to the thread pool.
+   * @brief The client game's ThreadPool, owned by the client.
+   * @remarks The client releases it when the client game is unloaded, after `Shutdown`. That
+   * sets `isCancelled` on its Threads and waits for all queued and running work, so work MUST
+   * NOT depend on anything that `Shutdown` frees. A long-running function SHOULD check
+   * `Thread::isCancelled` and return early.
    */
-  WorkerThread *(*Thread)(const char *name, ThreadRun run, void *data, WorkerThreadOptions options);
-
-  /**
-   * @brief Waits for the previously started thread, blocking the calling thread.
-   * @param thread The thread.
-   */
-  void (*Wait)(WorkerThread *thread);
+  ThreadPool *threadPool;
 
   /**
    * @}
@@ -199,9 +191,13 @@ typedef struct {
    */
 
   /**
-   * @brief The shared RESTClient instance, backed by a URLSession with URLCache enabled.
-   * @remarks Use this for all HTTP requests from cgame. The session is shared with the engine;
-   * call `$(cgi.restClient->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
+   * @brief The client game's RESTClient, owned by the client.
+   * @remarks Use this for all HTTP requests from cgame. Its URLSession is the client game's own,
+   * but it shares its URLCache with the engine; call
+   * `$(cgi.restClient->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
+   * When the client game is unloaded, the client cancels its requests after `Shutdown`: a
+   * synchronous request then returns `0`, and an asynchronous completion runs with `0`, before
+   * the module is closed.
    */
   RESTClient *restClient;
 

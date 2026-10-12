@@ -65,7 +65,7 @@ static int32_t GetWork(void) {
  * @brief Shared work entry point by all threads. Retrieve and perform
  * chunks of work iteratively until work is finished.
  */
-static void RunWorkFunc(void *p) {
+static ident RunWorkFunc(Thread *thread) {
 
   while (true) {
     const int32_t w = GetWork();
@@ -74,6 +74,8 @@ static void RunWorkFunc(void *p) {
     }
     module.func(w);
   }
+
+  return NULL;
 }
 
 /**
@@ -92,20 +94,16 @@ void Work(const char *name, WorkFunc func, int32_t count) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  const int32_t threadCount = Thread_Count();
+  const size_t numWork = Maxz(threadPool->size, 1);
 
-  if (threadCount == 0) {
-    RunWorkFunc(0);
-  } else {
-    WorkerThread *threads[threadCount];
+  ThreadPoolWork *work[numWork];
 
-    for (int32_t i = 0; i < threadCount; i++) {
-      threads[i] = Thread_Create(RunWorkFunc, NULL, 0);
-    }
+  for (size_t i = 0; i < numWork; i++) {
+    work[i] = $(threadPool, execute, RunWorkFunc, NULL);
+  }
 
-    for (int32_t i = 0; i < threadCount; i++) {
-      Thread_Wait(threads[i]);
-    }
+  for (size_t i = 0; i < numWork; i++) {
+    $(threadPool, wait, work[i]);
   }
 
   SDL_DestroyMutex(module.lock);

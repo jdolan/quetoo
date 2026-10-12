@@ -97,6 +97,11 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
  */
 static void enumerateMaps(const char *path, void *data) {
 
+  const Thread *thread = $$(Thread, currentThread);
+  if (thread && $(thread, isCancelled)) {
+    return;
+  }
+
   MapList *maps = data;
 
   File *file = cgi.OpenFile(path);
@@ -211,15 +216,17 @@ static void enumerateMaps(const char *path, void *data) {
 }
 
 /**
- * @brief ThreadRun for asynchronous map info loading.
+ * @brief `ThreadFunction` for asynchronous map info loading.
  */
-static void loadMaps(void *data) {
+static ident loadMaps(Thread *thread) {
 
-  MapList *maps = data;
+  MapList *maps = thread->data;
 
   cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, maps);
 
   release(maps);
+
+  return NULL;
 }
 
 #pragma mark - Object
@@ -273,7 +280,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
     self->maps = $(alloc(MapList), init);
     assert(self->maps);
 
-    cgi.Thread(__func__, loadMaps, retain(self->maps), THREAD_NO_WAIT);
+    $(cgi.threadPool, detach, loadMaps, retain(self->maps));
 
     self->collectionView.dataSource.numberOfItems = numberOfItems;
     self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;

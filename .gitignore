@@ -62,7 +62,6 @@ src/tests/check_pmove
 src/tests/check_r_media
 src/tests/check_g_race
 src/tests/check_shared
-src/tests/check_thread
 src/tests/check_vector
 src/quemap/quemap
 src/master/quetoo-master

@@ -27,6 +27,8 @@
 
 #include "common/installer.h"
 
+#include "HeroImageList.h"
+
 /**
  * @file
  *
@@ -61,19 +63,9 @@ struct UpdateViewController {
 	SlideShowView *slideShow;
 
 	/**
-	 * @brief The background thread fetching hero images.
+	 * @brief Hero images fetched by the background thread, then added to slideShow on the main thread.
 	 */
-	WorkerThread *fetchThread;
-
-	/**
-	 * @brief Pending hero images fetched by the background thread, then added to slideShow on the main thread.
-	 */
-	Array *pendingImages;
-
-  /**
-   * @brief A mutex for ensuring consistent access to the pendingImages array.
-   */
-  SDL_Mutex *pendingImagesLock;
+	HeroImageList *heroImages;
 
 	/**
 	 * @brief The Quetoo logo.

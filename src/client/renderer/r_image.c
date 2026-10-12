@@ -75,15 +75,15 @@ static void R_FixupCubemapFace(SDL_Surface *side) {
 }
 
 /**
- * @brief Encodes and writes a screenshot surface.
+ * @brief `ThreadFunction` which encodes and writes the screenshot surface in `thread->data`.
  */
-static void R_Screenshot_encode(void *data) {
+static ident R_Screenshot_encode(Thread *thread) {
   char path[MAX_QPATH];
   char date[MAX_QPATH];
   
   Fs_Mkdir("screenshots");
 
-  SDL_Surface *surface = data;
+  SDL_Surface *surface = thread->data;
   assert(surface);
 
   time_t t = time(NULL);
@@ -112,6 +112,8 @@ static void R_Screenshot_encode(void *data) {
   }
 
   SDL_DestroySurface(surface);
+
+  return NULL;
 }
 
 /**
@@ -163,7 +165,7 @@ void R_Screenshot(RenderView *view) {
 
   SDL_Surface *surface = texture ? R_ReadTexture(texture) : NULL;
   if (surface) {
-    Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
+    $(threadPool, detach, R_Screenshot_encode, surface);
   }
 
   pendingScreenshot = SCREENSHOT_NONE;
