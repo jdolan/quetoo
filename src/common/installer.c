@@ -32,6 +32,7 @@
 #include <Objectively/Dictionary.h>
 #include <Objectively/JSONContext.h>
 #include <Objectively/Number.h>
+#include <Objectively/PointerArray.h>
 #include <Objectively/RESTClient.h>
 #include <Objectively/String.h>
 #include <Objectively/URL.h>
@@ -571,13 +572,25 @@ static void Installer_MarkStale(const HashTable *table, ident key, ident value, 
   ((ManifestEntry *) value)->status = ENTRY_STALE;
 }
 
-static void Installer_WriteManifestEntry(const HashTable *table, ident key, ident value, ident data) {
-  const ManifestEntry *entry = value;
-  fprintf((FILE *) data, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
+/**
+ * @brief `HashTableEnumerator` collecting each ManifestEntry into the PointerArray in `data`.
+ */
+static void Installer_WriteManifest_collect(const HashTable *table, ident key, ident value, ident data) {
+  $((PointerArray *) data, add, value);
 }
 
 /**
- * @brief Writes `manifest` directly to `path` on the real filesystem.
+ * @brief `Comparator` ordering ManifestEntries by path, as `manifest.py` in quetoo-data does.
+ */
+static Order Installer_WriteManifest_compare(const ident a, const ident b) {
+
+  const int32_t order = Str_Compare(((const ManifestEntry *) a)->path, ((const ManifestEntry *) b)->path);
+
+  return order < 0 ? OrderAscending : order > 0 ? OrderDescending : OrderSame;
+}
+
+/**
+ * @brief Writes `manifest` directly to `path` on the real filesystem, sorted by path.
  * @details `Manifest_Write` writes through PhysFS, which resolves relative
  * paths against `Fs_WriteDir()` -- the user's writable game directory -- not
  * `Fs_DataDir()`, where `path` actually lives. Using it here would silently
@@ -591,7 +604,16 @@ static bool Installer_WriteManifest(const char *path, HashTable *manifest) {
     Com_Warn("Failed to open %s for writing\n", path);
     return false;
   }
-  $(manifest, enumerate, Installer_WriteManifestEntry, f);
+  PointerArray *entries = $(alloc(PointerArray), init);
+  $(manifest, enumerate, Installer_WriteManifest_collect, entries);
+  $(entries, sort, Installer_WriteManifest_compare);
+
+  for (size_t i = 0; i < entries->count; i++) {
+    const ManifestEntry *entry = $(entries, get, i);
+    fprintf(f, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
+  }
+
+  release(entries);
   fclose(f);
   return true;
 }
