@@ -946,8 +946,30 @@ uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 #define AI_AIM_RATE_SECONDS .05f
 
 /**
+ * @brief The aim error scales of hitscan weapons. A hitscan weapon hits the instant that it fires,
+ * with no lead to misjudge, so a bot aims it worse than a projectile weapon. A weapon made only for
+ * long range, the railgun, does the most damage in one hit, so it scales most.
+ */
+#define AI_AIM_HITSCAN_SCALE 1.5f
+#define AI_AIM_SNIPER_SCALE 3.f
+
+/**
+ * @return The aim error scale of the weapon.
+ */
+static float G_Ai_AimScale(const GameItem *weapon) {
+
+  const uint32_t flags = weapon ? weapon->def.flags : 0;
+
+  if (!(flags & WF_HITSCAN)) {
+    return 1.f;
+  }
+
+  return (flags & (WF_SHORT_RANGE | WF_MED_RANGE)) ? AI_AIM_HITSCAN_SCALE : AI_AIM_SNIPER_SCALE;
+}
+
+/**
  * @brief Advances the aim error, a random walk toward zero that widens with the target's angular
- * rate and narrows with skill.
+ * rate and with the weapon's aim scale, and narrows with skill.
  * @param rate The angular rate of the aim point in degrees per second.
  */
 static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float seconds) {
@@ -956,7 +978,7 @@ static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float sec
   const float correction = .35f;
 
   const float angularSpeed = sqrtf(rate.x * rate.x + rate.y * rate.y);
-  const float deviation = Mixf(4.f, .4f, skill) + Mixf(.1f, .015f, skill) * angularSpeed;
+  const float deviation = (Mixf(4.f, .4f, skill) + Mixf(.1f, .015f, skill) * angularSpeed) * G_Ai_AimScale(cl->weapon);
   const float diffusion = deviation * sqrtf(2.f * seconds / correction);
 
   Vec2 *error = &cl->ai->aimError;
