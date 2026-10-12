@@ -65,7 +65,6 @@ typedef struct {
   char tag[64];
   char asset[MAX_QPATH];
   char url[MAX_OS_PATH * 2];
-  int64_t size;
 } InstallerRelease;
 
 /**
@@ -82,9 +81,20 @@ static struct {
   SDL_Mutex *mutex;
 
   /**
+   * @brief Signaled, with `mutex`, when the player answers a question or the update is cancelled.
+   */
+  SDL_Condition *condition;
+
+  /**
    * @brief The module thread that advances the state machine.
    */
   SDL_Thread *thread;
+
+  /**
+   * @brief The installer's RESTClient, with a URLSession of its own, so that cancelling the
+   * update can interrupt every request in progress.
+   */
+  RESTClient *restClient;
 
   /**
    * @brief The remote data manifest.
@@ -173,8 +183,6 @@ static ident Installer_Cast(ident object, Class *clazz) {
  * named asset.
  * @details `/releases/latest` excludes drafts and prereleases, and carries the
  * asset list in the same response, so one request yields everything needed.
- * The asset size is taken from the API rather than a `HEAD`, because
- * `RESTClient` discards response headers.
  */
 static bool Installer_FetchRelease(const char *api, const char *want, InstallerRelease *out) {
 
@@ -186,7 +194,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, InstallerR
   };
 
   Data *data = NULL;
-  const int32_t status = $($$(RESTClient, sharedInstance), get, api, headers, &data);
+  const int32_t status = $(module.restClient, get, api, headers, &data);
   if (status != 200 || !data) {
     Com_Warn("%s: HTTP %d\n", api, status);
     release(data);
@@ -224,12 +232,10 @@ static bool Installer_FetchRelease(const char *api, const char *want, InstallerR
         }
 
         const String *url = Installer_Cast($(asset, objectForKeyPath, "browser_download_url"), _String());
-        const Number *size = Installer_Cast($(asset, objectForKeyPath, "size"), _Number());
 
-        if (url && size) {
+        if (url) {
           Str_Copy(out->asset, name->chars, sizeof(out->asset));
           Str_Copy(out->url, url->chars, sizeof(out->url));
-          out->size = (int64_t) size->value;
           success = true;
         }
 
@@ -242,8 +248,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, InstallerR
   release(context);
 
   if (success) {
-    Com_Debug(DEBUG_INSTALLER, "Latest release %s, asset %s (%" PRId64 " bytes)\n",
-              out->tag, out->asset, out->size);
+    Com_Debug(DEBUG_INSTALLER, "Latest release %s, asset %s\n", out->tag, out->asset);
   } else {
     Com_Warn("No %s in %s\n", want, api);
   }
@@ -390,13 +395,27 @@ static bool Installer_IsWritable(const char *dir) {
 }
 
 /**
- * @brief Streams `url` to `path`, publishing progress and honoring cancellation.
- * @details The task is resumed rather than executed because
- * `URLSessionTask::execute` never inspects the task state, so a synchronous
- * request cannot be interrupted. These payloads are large enough that Cancel
- * would otherwise appear to hang.
+ * @brief `URLSessionTaskProgress` that publishes the progress of `Installer_DownloadToFile`.
  */
-static bool Installer_DownloadToFile(const char *address, const char *path, int64_t expected) {
+static void Installer_DownloadToFile_progress(URLSessionTask *task) {
+
+  SDL_LockMutex(module.mutex);
+
+  InstallerStatus *in = &module.status;
+  if (in->state != INSTALLER_CANCELLED) {
+    in->kbytesDone = (int32_t) (task->bytesReceived / 1024);
+    in->kbytesTotal = (int32_t) (task->bytesExpectedToReceive / 1024);
+  }
+
+  SDL_UnlockMutex(module.mutex);
+}
+
+/**
+ * @brief Streams `url` to `path`, publishing progress.
+ * @details Cancelling the update invalidates the installer's URLSession, which interrupts the
+ * download. A transfer that ends early fails, rather than leaving a truncated file.
+ */
+static bool Installer_DownloadToFile(const char *address, const char *path) {
 
   FILE *file = fopen(path, "wb");
   if (!file) {
@@ -412,7 +431,7 @@ static bool Installer_DownloadToFile(const char *address, const char *path, int6
     return false;
   }
 
-  URLSessionDownloadTask *download = $($$(URLSession, sharedInstance), downloadTaskWithURL, url, NULL);
+  URLSessionDownloadTask *download = $(module.restClient->session, downloadTaskWithURL, url, NULL);
   release(url);
 
   if (!download) {
@@ -425,50 +444,21 @@ static bool Installer_DownloadToFile(const char *address, const char *path, int6
   download->file = file;
 
   URLSessionTask *task = (URLSessionTask *) download;
-  $(task, resume);
+  task->progress = Installer_DownloadToFile_progress;
 
-  InstallerStatus *in = &module.status;
-
-  while (task->state != URLSESSIONTASK_COMPLETED && task->state != URLSESSIONTASK_CANCELED) {
-
-    SDL_LockMutex(module.mutex);
-    const bool cancelled = in->state == INSTALLER_CANCELLED;
-    if (!cancelled) {
-      const int64_t total = expected > 0 ? expected : (int64_t) task->bytesExpectedToReceive;
-      in->kbytesDone = (int32_t) (task->bytesReceived / 1024);
-      in->kbytesTotal = (int32_t) (total / 1024);
-    }
-    SDL_UnlockMutex(module.mutex);
-
-    if (cancelled) {
-      $(task, cancel);
-      break;
-    }
-
-    SDL_Delay(QUETOO_TICK_MILLIS);
-  }
-
-  while (task->state != URLSESSIONTASK_COMPLETED && task->state != URLSESSIONTASK_CANCELED) {
-    SDL_Delay(QUETOO_TICK_MILLIS);
-  }
+  $(task, execute);
 
   fclose(file);
 
-  const int32_t http = task->response ? task->response->httpStatusCode : 0;
-  bool success = task->state == URLSESSIONTASK_COMPLETED && http == 200;
+  const int32_t http = task->response->httpStatusCode;
+  const bool success = task->state == URLSESSIONTASK_COMPLETED && task->result == 0 && http == 200;
 
-  if (success && expected > 0 && (int64_t) task->bytesReceived != expected) {
-    Com_Warn("Truncated download of %s: %" PRId64 " of %" PRId64 " bytes\n",
-             address, (int64_t) task->bytesReceived, expected);
-    success = false;
+  if (!success) {
+    Com_Warn("Failed to download %s: HTTP %d: %s\n", address, http, task->error);
+    SDL_RemovePath(path);
   }
 
   release(task);
-
-  if (!success) {
-    Com_Warn("Failed to download %s: HTTP %d\n", address, http);
-    SDL_RemovePath(path);
-  }
 
   return success;
 }
@@ -670,7 +660,7 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
 
   Data *data = NULL;
 
-  const int32_t status = $($$(RESTClient, sharedInstance), get, url, NULL, &data);
+  const int32_t status = $(module.restClient, get, url, NULL, &data);
   if (status != 200) {
     Com_Warn("Downloading %s failed: HTTP %d\n", url, status);
     release(data);
@@ -792,11 +782,11 @@ static bool Installer_InstallData(void) {
   SDL_LockMutex(module.mutex);
   in->state = INSTALLER_INSTALLING_DATA;
   in->kbytesDone = 0;
-  in->kbytesTotal = (int32_t) (data.size / 1024);
+  in->kbytesTotal = 0;
   Str_Copy(in->currentFile, data.asset, sizeof(in->currentFile));
   SDL_UnlockMutex(module.mutex);
 
-  bool success = Installer_DownloadToFile(data.url, archive, data.size);
+  bool success = Installer_DownloadToFile(data.url, archive);
 
   if (success) {
     success = Archive_Extract(archive, Fs_DataDir());
@@ -909,23 +899,25 @@ static int Installer_Thread(void *unused) {
         }
 
         SDL_LockMutex(module.mutex);
-        if (!ok) {
-          in->state = INSTALLER_ERROR;
-          Str_Format(in->error, sizeof(in->error), "Failed to check for updates");
-        } else if (Installer_CompareVersions(module.release.tag, version->string) > 0) {
-          if (writable) {
-            in->state = INSTALLER_BIN_AVAILABLE;
-            Str_Copy(in->currentFile, module.release.asset, sizeof(in->currentFile));
+        if (in->state != INSTALLER_CANCELLED) {
+          if (!ok) {
+            in->state = INSTALLER_ERROR;
+            Str_Format(in->error, sizeof(in->error), "Failed to check for updates");
+          } else if (Installer_CompareVersions(module.release.tag, version->string) > 0) {
+            if (writable) {
+              in->state = INSTALLER_BIN_AVAILABLE;
+              Str_Copy(in->currentFile, module.release.asset, sizeof(in->currentFile));
+            } else {
+              in->state = INSTALLER_CHECKING_DATA;
+              if (!managed) {
+                Com_Warn("Quetoo %s is available, but %s is not writable.\n"
+                         "Download it from %s\n", module.release.tag,
+                         *parent ? parent : "this installation", QUETOO_RELEASES_PAGE);
+              }
+            }
           } else {
             in->state = INSTALLER_CHECKING_DATA;
-            if (!managed) {
-              Com_Warn("Quetoo %s is available, but %s is not writable.\n"
-                       "Download it from %s\n", module.release.tag,
-                       *parent ? parent : "this installation", QUETOO_RELEASES_PAGE);
-            }
           }
-        } else {
-          in->state = INSTALLER_CHECKING_DATA;
         }
         SDL_UnlockMutex(module.mutex);
       }
@@ -949,7 +941,7 @@ static int Installer_Thread(void *unused) {
         Data *data = NULL;
         char manifestUrl[MAX_OS_PATH];
         Str_Format(manifestUrl, sizeof(manifestUrl), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
-        const int32_t httpStatus = $($$(RESTClient, sharedInstance), get, manifestUrl, NULL, &data);
+        const int32_t httpStatus = $(module.restClient, get, manifestUrl, NULL, &data);
         if (httpStatus != 200 || !data) {
           SDL_LockMutex(module.mutex);
           in->state = INSTALLER_ERROR;
@@ -1017,21 +1009,17 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_BIN_AVAILABLE: {
 
         SDL_LockMutex(module.mutex);
-        const int32_t consent = module.consent;
-        SDL_UnlockMutex(module.mutex);
-
-        if (consent == 0) {
-          SDL_Delay(QUETOO_TICK_MILLIS);
-          break;
+        while (module.consent == 0 && in->state != INSTALLER_CANCELLED) {
+          SDL_WaitCondition(module.condition, module.mutex);
         }
 
-        SDL_LockMutex(module.mutex);
+        const int32_t consent = module.consent;
         module.consent = 0;
         if (in->state != INSTALLER_CANCELLED) {
           if (consent > 0) {
             in->state = INSTALLER_DOWNLOADING_BIN;
             in->kbytesDone = 0;
-            in->kbytesTotal = (int32_t) (module.release.size / 1024);
+            in->kbytesTotal = 0;
           } else {
             Com_Print("Skipping the update to Quetoo %s.\n", module.release.tag);
             in->state = INSTALLER_CHECKING_DATA;
@@ -1057,8 +1045,7 @@ static int Installer_Thread(void *unused) {
 
         Str_Format(archive, sizeof(archive), "%s/%s", pending, module.release.asset);
 
-        const bool ok = Installer_DownloadToFile(module.release.url, archive,
-                                                 module.release.size);
+        const bool ok = Installer_DownloadToFile(module.release.url, archive);
         SDL_LockMutex(module.mutex);
         if (in->state == INSTALLER_CANCELLED) {
           SDL_UnlockMutex(module.mutex);
@@ -1099,15 +1086,11 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_BIN_STAGED: {
 
         SDL_LockMutex(module.mutex);
-        const int32_t consent = module.consent;
-        SDL_UnlockMutex(module.mutex);
-
-        if (consent == 0) {
-          SDL_Delay(QUETOO_TICK_MILLIS);
-          break;
+        while (module.consent == 0 && in->state != INSTALLER_CANCELLED) {
+          SDL_WaitCondition(module.condition, module.mutex);
         }
 
-        SDL_LockMutex(module.mutex);
+        const int32_t consent = module.consent;
         module.consent = 0;
         if (in->state != INSTALLER_CANCELLED) {
           if (consent > 0) {
@@ -1377,6 +1360,7 @@ void Installer_Consent(bool accept) {
   if (module.mutex) {
     SDL_LockMutex(module.mutex);
     module.consent = accept ? 1 : -1;
+    SDL_BroadcastCondition(module.condition);
     SDL_UnlockMutex(module.mutex);
   }
 }
@@ -1477,6 +1461,33 @@ void Installer_ApplyPending(void) {
 }
 
 /**
+ * @brief Cancels the update if it is still in progress, interrupting its requests, then waits
+ * for the module thread and frees what `Installer_Init` created.
+ */
+static void Installer_Stop(void) {
+
+  SDL_LockMutex(module.mutex);
+  if (module.status.state < INSTALLER_DONE) {
+    module.status.state = INSTALLER_CANCELLED;
+  }
+  SDL_BroadcastCondition(module.condition);
+  SDL_UnlockMutex(module.mutex);
+
+  $(module.restClient->session, invalidateAndCancel);
+
+  SDL_WaitThread(module.thread, NULL);
+  module.thread = NULL;
+
+  module.restClient = release(module.restClient);
+
+  SDL_DestroyCondition(module.condition);
+  module.condition = NULL;
+
+  SDL_DestroyMutex(module.mutex);
+  module.mutex = NULL;
+}
+
+/**
  * @brief Starts an asynchronous data update and blocks until it completes,
  * calling @c frame each iteration while the module is in progress.
  */
@@ -1503,6 +1514,13 @@ void Installer_Init(InstallerFrameFunc frame) {
   module.mutex = SDL_CreateMutex();
   assert(module.mutex);
 
+  module.condition = SDL_CreateCondition();
+  assert(module.condition);
+
+  URLSession *session = $(alloc(URLSession), init);
+  module.restClient = $(alloc(RESTClient), initWithSession, session);
+  release(session);
+
   module.thread = SDL_CreateThread(Installer_Thread, "installer", &module);
   assert(module.thread);
 
@@ -1522,17 +1540,7 @@ void Installer_Init(InstallerFrameFunc frame) {
     SDL_Delay(QUETOO_TICK_MILLIS); // 40Hz should be plenty for progress bar updates etc
   }
 
-  SDL_LockMutex(module.mutex);
-  if (in->state < INSTALLER_DONE) {
-    in->state = INSTALLER_CANCELLED;
-  }
-  SDL_UnlockMutex(module.mutex);
-
-  SDL_WaitThread(module.thread, NULL);
-  module.thread = NULL;
-
-  SDL_DestroyMutex(module.mutex);
-  module.mutex = NULL;
+  Installer_Stop();
 }
 
 /**
@@ -1541,17 +1549,7 @@ void Installer_Init(InstallerFrameFunc frame) {
 void Installer_Shutdown(void) {
 
   if (module.thread) {
-    SDL_LockMutex(module.mutex);
-    if (module.status.state < INSTALLER_DONE) {
-      module.status.state = INSTALLER_CANCELLED;
-    }
-    SDL_UnlockMutex(module.mutex);
-
-    SDL_WaitThread(module.thread, NULL);
-    module.thread = NULL;
-
-    SDL_DestroyMutex(module.mutex);
-    module.mutex = NULL;
+    Installer_Stop();
   }
 
   Manifest_Free(module.remoteManifest);
