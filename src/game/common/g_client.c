@@ -797,30 +797,78 @@ static void G_ClientCorpse_Die(GameEntity *ent, GameEntity *attacker, uint32_t m
   G_FreeEntity(ent);
 }
 
+_Static_assert(MAX_CORPSES > MAX_CLIENTS, "Every client may hold a corpse slot, and one must remain");
+
 /**
- * @brief Claims a slot of CS_CORPSES for @p corpse, snapshotting the client info @p cl is
- * wearing as it dies.
+ * @brief Publishes @p info, the client info that the corpses of @p cl will wear, on a slot of
+ * CS_CORPSES, and saves that slot on @p cl.
  * @details A corpse outlives its client's identity: they may change skin, or disconnect, and
- * were they still resolved through CS_CLIENTS the bodies they left would follow them, or fall
- * back to the default model when their entry is cleared. The snapshot is what they wore.
- * @remarks The ring is also the corpse limit. Whoever still holds the slot we come around to is
- * gibbed rather than quietly deleted, so a body always leaves in a way the player can read.
+ * were it resolved through CS_CLIENTS it would follow them, or fall back to the default model
+ * when their entry is cleared. So corpses name a slot of their own. The slot is published as the
+ * client info changes, and not as the client dies, because config strings are reliable and the
+ * corpse and its death sound are not. A slot published at death may arrive after both, which
+ * resolves them through whoever held the slot before.
+ * @remarks A slot that no other client holds and no corpse names is free, and is overwritten in
+ * place. Otherwise a free slot is claimed. If there is none, the next slot that no other client
+ * holds is taken, and the corpses that name it are gibbed, so that a body always leaves in a way
+ * the player can read. With MAX_CORPSES above MAX_CLIENTS, such a slot always exists.
  */
-static void G_ClientCorpseSlot(GameEntity *corpse, const GameClient *cl) {
+static void G_ClientCorpseSlot(GameClient *cl, const char *info) {
 
-  static uint32_t index;
+  if (!Str_Compare(gi.GetConfigString(CS_CORPSES + cl->persistent.corpseSlot), info)) {
+    return;
+  }
 
-  const uint8_t slot = index++ % MAX_CORPSES;
+  bool held[MAX_CORPSES] = { false };
+  bool named[MAX_CORPSES] = { false };
 
-  G_ForEachEntity(ent, {
-    if (ent != corpse && (ent->s.effects & EF_CORPSE) && ent->s.client == slot) {
-      G_ClientCorpse_Die(ent, ent, MOD_CRUSH);
+  G_ForEachClient(other, {
+    if (other != cl) {
+      held[other->persistent.corpseSlot] = true;
     }
   });
 
-  corpse->s.client = slot;
+  G_ForEachEntity(ent, {
+    if (ent->s.effects & EF_CORPSE) {
+      named[ent->s.client] = true;
+    }
+  });
 
-  gi.SetConfigString(CS_CORPSES + slot, gi.GetConfigString(CS_CLIENTS + cl->ps.client));
+  static uint32_t index;
+
+  uint8_t slot = cl->persistent.corpseSlot;
+
+  if (held[slot] || named[slot]) {
+
+    uint32_t i;
+    for (i = 0; i < MAX_CORPSES; i++) {
+      slot = (index + i) % MAX_CORPSES;
+      if (!held[slot] && !named[slot]) {
+        break;
+      }
+    }
+
+    if (i == MAX_CORPSES) {
+      for (i = 0; i < MAX_CORPSES; i++) {
+        slot = (index + i) % MAX_CORPSES;
+        if (!held[slot]) {
+          break;
+        }
+      }
+
+      G_ForEachEntity(ent, {
+        if ((ent->s.effects & EF_CORPSE) && ent->s.client == slot) {
+          G_ClientCorpse_Die(ent, ent, MOD_CRUSH);
+        }
+      });
+    }
+
+    index = slot + 1;
+  }
+
+  cl->persistent.corpseSlot = slot;
+
+  gi.SetConfigString(CS_CORPSES + slot, info);
 }
 
 /**
@@ -845,10 +893,7 @@ static GameEntity *G_ClientCorpse(GameClient *cl) {
   ent->s.animation2 = cl->entity->s.animation2;
 
   ent->s.effects = EF_CLIENT | EF_CORPSE;
-
-  // claim the slot before the corpse is linked, so that its client info is known to everyone
-  // by the time it first appears in a frame
-  G_ClientCorpseSlot(ent, cl);
+  ent->s.client = cl->persistent.corpseSlot;
 
   ent->velocity = cl->entity->velocity;
 
@@ -1850,6 +1895,8 @@ void G_ClientUserInfoChanged(GameClient *cl, const char *userInfo) {
 
   // send it to clients
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, clientInfo);
+
+  G_ClientCorpseSlot(cl, clientInfo);
 
   // set hand, if anything should go wrong, it defaults to 0 (centered)
   InfoString_Get(userInfo, "hand", s, sizeof(s));

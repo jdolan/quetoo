@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1059
+#define PROTOCOL_MINOR 1060
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -91,11 +91,12 @@ typedef enum {
  * @brief ConfigStrings that are local to the game module.
  */
 /**
- * @brief The maximum number of corpses standing at once. Each claims a slot of CS_CORPSES for
- * the client info it died wearing, so that it is unaffected by its owner changing skin or
- * disconnecting. The oldest is gibbed to make room when they are all spoken for.
+ * @brief The number of CS_CORPSES slots. Each client holds one, published with the client info
+ * that their corpses wear, so that a corpse is unaffected by its owner changing skin or
+ * disconnecting. A slot is free once no client holds it and no corpse names it. It MUST be a
+ * power of two above MAX_CLIENTS, and MUST fit EntityState::client.
  */
-#define MAX_CORPSES 64
+#define MAX_CORPSES 128
 
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
 #define CS_TEAM_INFO       (CS_GAME + 1)  // team info, separated by \ (name\color\name\color, etc)
@@ -106,7 +107,7 @@ typedef enum {
 #define CS_HOOK_PULL_SPEED (CS_GAME + 6)  // hook speed
 #define CS_VOTE            (CS_GAME + 7)  // the vote in progress (bg_vote.h)
 #define CS_NEXT_MAP        (CS_GAME + 8) // the intermission's map candidates and tally (bg_intermission.h)
-#define CS_CORPSES         (CS_GAME + 9)  // one client info snapshot per corpse, MAX_CORPSES wide
+#define CS_CORPSES         (CS_GAME + 9)  // the client info that corpses wear, MAX_CORPSES wide
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -1210,6 +1211,11 @@ typedef struct {
    * movement parameters republishes it.
    */
   Box3 standingBounds;
+
+  /**
+   * @brief The slot of CS_CORPSES that holds the client info this client's corpses wear.
+   */
+  uint8_t corpseSlot;
 
   /**
    * @brief Non-zero if weapons should auto-switch on pickup.
