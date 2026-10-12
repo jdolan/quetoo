@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <SDL3/SDL_cpuinfo.h>
-
 #include "thread.h"
 
 ThreadPool *threadPool;
@@ -33,14 +31,15 @@ ThreadPool *threadPool;
 void Thread_Init(ssize_t numThreads) {
 
   if (numThreads == 0) {
-    numThreads = SDL_GetNumLogicalCPUCores();
+    threadPool = $(alloc(ThreadPool), init);
   } else if (numThreads < 0) {
-    numThreads = 0;
+    threadPool = $(alloc(ThreadPool), initWithSize, 0);
   } else if (numThreads > MAX_THREADS) {
-    numThreads = MAX_THREADS;
+    threadPool = $(alloc(ThreadPool), initWithSize, MAX_THREADS);
+  } else {
+    threadPool = $(alloc(ThreadPool), initWithSize, numThreads);
   }
 
-  threadPool = $(alloc(ThreadPool), initWithSize, numThreads);
   assert(threadPool);
 }
 
