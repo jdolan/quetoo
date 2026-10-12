@@ -598,82 +598,113 @@ const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
 }
 
 /**
- * @brief Handles pickup of an armor item, merging with or replacing the client's existing armor.
+ * @brief Resolves an armor pickup without applying it: the client loses `drop`, and has `count`
+ * of `give`.
+ * @return True if the client takes the armor.
  */
-static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
+bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
+                          const GameItem **give, int16_t *count) {
 
-  const GameItem *newArmor = ent->item;
   const GameItem *currentArmor = G_ClientArmor(cl);
 
   const GameArmorInfo *newInfo = G_ArmorInfo(newArmor);
   const GameArmorInfo *currentInfo = G_ArmorInfo(currentArmor);
 
-  bool taken = false;
+  *drop = NULL;
+  *give = NULL;
+  *count = 0;
 
   if (newArmor->def.tag == ARMOR_SHARD) { // always take it, ignoring cap
     if (currentArmor) {
-      cl->inventory[currentArmor->def.tag] =
-          Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity,
-                0, cl->maxArmor);
+      *give = currentArmor;
+      *count = Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity, 0, cl->maxArmor);
     } else {
-      cl->inventory[ARMOR_JACKET] =
-          Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+      *give = &gameItems[ARMOR_JACKET];
+      *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
     }
 
-    taken = true;
-  } else if (!currentArmor) { // no current armor, take it
-    cl->inventory[newArmor->def.tag] =
-        Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+    return true;
+  }
 
-    taken = true;
-  } else if (newArmor->def.tag >= ARMOR_QUAKE_JACKET) {
+  if (!currentArmor) { // no current armor, take it
+    *give = newArmor;
+    *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+
+    return true;
+  }
+
+  if (newArmor->def.tag >= ARMOR_QUAKE_JACKET) {
     // Quake-family armor uses Q1 effective-score logic: full swap, no salvage.
     // A pickup is only accepted if it strictly improves the player's effective score.
     const float currentScore = currentInfo->normalProtection * cl->inventory[currentArmor->def.tag];
     const float newScore = newInfo->normalProtection * newArmor->def.quantity;
 
     if (newScore > currentScore) {
-      cl->inventory[currentArmor->def.tag] = 0;
-      cl->inventory[newArmor->def.tag] = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
-      taken = true;
+      *drop = currentArmor;
+      *give = newArmor;
+      *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+      return true;
     }
-  } else {
-    // Q2-family armor uses salvage-conversion logic.
-    // we picked up stronger armor than we currently had
-    if (newInfo->normalProtection > currentInfo->normalProtection) {
 
-      // get the ratio between the new and old armor to add a portion to
-      // new armor pickup. Ganked from q2pro (thanks skuller)
-      const float salvage = currentInfo->normalProtection / newInfo->normalProtection;
-      const int16_t salvageCount = salvage * cl->inventory[currentArmor->def.tag];
+    return false;
+  }
 
-      const int16_t newCount = Clampf(salvageCount + newArmor->def.quantity, 0, newArmor->def.max);
+  // Q2-family armor uses salvage-conversion logic.
+  // we picked up stronger armor than we currently had
+  if (newInfo->normalProtection > currentInfo->normalProtection) {
 
-      if (newCount < cl->maxArmor) {
-        cl->inventory[currentArmor->def.tag] = 0;
+    // get the ratio between the new and old armor to add a portion to
+    // new armor pickup. Ganked from q2pro (thanks skuller)
+    const float salvage = currentInfo->normalProtection / newInfo->normalProtection;
+    const int16_t salvageCount = salvage * cl->inventory[currentArmor->def.tag];
 
-        cl->inventory[newArmor->def.tag] =
-            Clampf(newCount, 0, cl->maxArmor);
-      }
+    const int16_t newCount = Clampf(salvageCount + newArmor->def.quantity, 0, newArmor->def.max);
 
-      taken = true;
-    } else {
-      // we picked up the same, or weaker
-      const float salvage = newInfo->normalProtection / currentInfo->normalProtection;
-      const int16_t salvageCount = salvage * newArmor->def.quantity;
-
-      int16_t newCount = salvageCount + cl->inventory[currentArmor->def.tag];
-      newCount = Clampf(newCount, 0, currentArmor->def.max);
-
-      // take it
-      if (cl->inventory[currentArmor->def.tag] < newCount &&
-              cl->inventory[currentArmor->def.tag] < cl->maxArmor) {
-        cl->inventory[currentArmor->def.tag] =
-            Clampf(newCount, 0, cl->maxArmor);
-
-        taken = true;
-      }
+    if (newCount < cl->maxArmor) {
+      *drop = currentArmor;
+      *give = newArmor;
+      *count = Clampf(newCount, 0, cl->maxArmor);
     }
+
+    return true;
+  }
+
+  // we picked up the same, or weaker
+  const float salvage = newInfo->normalProtection / currentInfo->normalProtection;
+  const int16_t salvageCount = salvage * newArmor->def.quantity;
+
+  int16_t newCount = salvageCount + cl->inventory[currentArmor->def.tag];
+  newCount = Clampf(newCount, 0, currentArmor->def.max);
+
+  // take it
+  if (cl->inventory[currentArmor->def.tag] < newCount &&
+          cl->inventory[currentArmor->def.tag] < cl->maxArmor) {
+    *give = currentArmor;
+    *count = Clampf(newCount, 0, cl->maxArmor);
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * @brief Handles pickup of an armor item, merging with or replacing the client's existing armor.
+ */
+static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
+
+  const GameItem *newArmor = ent->item;
+
+  const GameItem *drop, *give;
+  int16_t count;
+
+  const bool taken = G_ResolveArmorPickup(cl, newArmor, &drop, &give, &count);
+
+  if (drop) {
+    cl->inventory[drop->def.tag] = 0;
+  }
+
+  if (give) {
+    cl->inventory[give->def.tag] = count;
   }
 
   if (taken && !(ent->spawnFlags & SF_ITEM_DROPPED)) {

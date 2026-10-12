@@ -50,6 +50,8 @@
   const GameItem *G_MappedWeapon(const GameItem *weapon);
   const GameItem *G_ClientArmor(const GameClient *cl);
   const GameArmorInfo *G_ArmorInfo(const GameItem *armor);
+  bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
+                            const GameItem **give, int16_t *count);
   void G_PrecacheItem(const GameItem *it);
   void G_SetItemRespawn(GameEntity *ent, uint32_t delay);
   void G_SpawnItem(GameEntity *ent, const GameItem *item);

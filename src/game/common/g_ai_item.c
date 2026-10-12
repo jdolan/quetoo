@@ -42,13 +42,11 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
       }
 
       return cl->entity->health < cl->entity->maxHealth;
-    case ITEM_TYPE_ARMOR:
-      if (item->def.tag == ARMOR_SHARD ||
-        inventory[item->def.tag] < item->def.max) {
-        return true;
-      }
-
-      return false;
+    case ITEM_TYPE_ARMOR: {
+      const GameItem *drop, *give;
+      int16_t count;
+      return G_ResolveArmorPickup(cl, item, &drop, &give, &count);
+    }
     case ITEM_TYPE_AMMO:
       return inventory[item->def.tag] < item->def.max;
     case ITEM_TYPE_WEAPON:
