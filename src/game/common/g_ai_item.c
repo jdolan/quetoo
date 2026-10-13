@@ -51,6 +51,10 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
       return inventory[item->def.tag] < item->def.max;
     case ITEM_TYPE_WEAPON:
       if (inventory[item->def.tag]) {
+        if (g_weaponStay->integer && other->team == NULL) {
+          return false;
+        }
+
         if (item->def.ammo) {
           return inventory[item->def.ammo] < gameItems[item->def.ammo].def.max;
         }
