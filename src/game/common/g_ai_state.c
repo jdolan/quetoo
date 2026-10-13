@@ -681,6 +681,23 @@ static bool G_Ai_WantsPursuit(const GameClient *cl) {
 }
 
 /**
+ * @return True if the bot, which has a combat target, should fight it. An unarmed bot fights only
+ * an enemy within the engage range of its weapon; otherwise it collects a weapon, and fires at the
+ * enemy on the way.
+ */
+static bool G_Ai_WantsFight(const GameClient *cl) {
+
+  if (G_Ai_IsArmed(cl)) {
+    return true;
+  }
+
+  const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
+  const float scale = cl->ai->state == AI_STATE_FIGHT ? AI_DISENGAGE_SCALE : AI_ENGAGE_SCALE;
+
+  return Vec3_Distance(cl->entity->s.origin, enemy->s.origin) <= G_Ai_PreferredRange(cl) * scale;
+}
+
+/**
  * @return True if the bot, which has a combat target, should retreat from it: for health, or from an
  * enemy that outguns it. A bot that retreats fights again only once its health exceeds its retreat
  * health by `AI_RECOVER_SCALE`, so that it does not switch at the threshold.
@@ -948,7 +965,13 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
   GameAi *ai = cl->ai;
 
   if (ai->combatTarget.type == AI_GOAL_ENTITY) {
-    G_Ai_Enter(cl, G_Ai_WantsRetreat(cl) ? AI_STATE_RETREAT : AI_STATE_FIGHT);
+    if (G_Ai_WantsRetreat(cl)) {
+      G_Ai_Enter(cl, AI_STATE_RETREAT);
+    } else if (G_Ai_WantsFight(cl)) {
+      G_Ai_Enter(cl, AI_STATE_FIGHT);
+    } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
+      G_Ai_Resume(cl);
+    }
   } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
     if (ai->combatTargetLost && G_Ai_WantsPursuit(cl)) {
       G_Ai_Enter(cl, AI_STATE_CHASE);
