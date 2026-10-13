@@ -31,6 +31,12 @@
 uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd);
 
 /**
+ * @return True if the bot collects an item that is taken, and stands where it returns, so that the
+ * bot reviews its choices only at intervals while it waits, and does not wander.
+ */
+bool G_Ai_IsWaiting(const GameClient *cl);
+
+/**
  * @brief Returns the bot to `AI_STATE_ROAM` with no goal, as when it spawns.
  */
 void G_Ai_State_Reset(GameClient *cl);

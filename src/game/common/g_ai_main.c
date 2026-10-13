@@ -1824,6 +1824,13 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     return 0;
   }
 
+  if (cl->ai->moveTarget.type == AI_GOAL_NONE && G_Ai_IsWaiting(cl)) {
+    cmd->forward = 0;
+    cmd->right = 0;
+    cmd->up = 0;
+    return 0;
+  }
+
   bool targetEnemy = false;
   bool toPush = false;
 

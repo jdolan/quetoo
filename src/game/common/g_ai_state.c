@@ -530,10 +530,9 @@ static void G_Ai_Resume(GameClient *cl) {
 }
 
 /**
- * @return True if the bot collects an item that is taken, and stands where it returns, so that the
- * bot reviews its choices only at intervals while it waits.
+ * @see g_ai_state.h
  */
-static bool G_Ai_IsWaiting(const GameClient *cl) {
+bool G_Ai_IsWaiting(const GameClient *cl) {
 
   const GameEntity *goal = G_Ai_GoalEntity(cl);
 
