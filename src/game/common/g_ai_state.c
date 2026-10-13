@@ -972,6 +972,19 @@ static void G_Ai_State_Pursue(GameClient *cl, const Vec3 position) {
 }
 
 /**
+ * @return True if the bot follows a path and is in the air, out of water and off a ladder. A new
+ * path chosen in the air starts at the node nearest the bot in flight, which is often beside or
+ * behind where it lands, and the bot turns toward it in the air, off the edge of a walkway.
+ */
+static bool G_Ai_IsAirborne(const GameClient *cl) {
+
+  const GameEntity *ent = cl->entity;
+
+  return cl->ai->moveTarget.type == AI_GOAL_PATH && !ent->ground.ent && ent->waterLevel < WATER_WAIST &&
+         !(cl->ps.pmState.flags & PMF_ON_LADDER);
+}
+
+/**
  * @see g_ai_state.h
  */
 uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
@@ -981,6 +994,10 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
   }
 
   GameAi *ai = cl->ai;
+
+  if (G_Ai_IsAirborne(cl)) {
+    return 1;
+  }
 
   if (ai->combatTarget.type == AI_GOAL_ENTITY) {
     if (G_Ai_WantsRetreat(cl)) {

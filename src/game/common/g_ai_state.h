@@ -26,7 +26,7 @@
 /**
  * @brief Funcgoal that runs the bot's decision state machine. The active state alone sets the
  * bot's move target: the long-term goal, a nearby item, the fight, the chase, the retreat or the
- * investigation of an alert.
+ * investigation of an alert. A bot that follows a path in the air keeps it until it lands.
  */
 uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd);
 
