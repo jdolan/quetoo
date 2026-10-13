@@ -62,12 +62,12 @@ typedef enum {
   /**
    * @brief Ride a `trigger_push`.
    */
-  NAV_TRAVEL_JUMP_PAD,
+  NAV_TRAVEL_PUSH,
 
   /**
    * @brief Ride a `func_plat` up.
    */
-  NAV_TRAVEL_ELEVATOR,
+  NAV_TRAVEL_PLAT,
 
   /**
    * @brief Swim to the target: through water, or up to the surface and out onto a ledge.

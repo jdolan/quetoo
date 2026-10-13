@@ -181,7 +181,7 @@ static bool G_Ai_Probe_NextIsPad(const GameClient *cl) {
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex),
                                              VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex + 1));
 
-  return link && link->travelType == NAV_TRAVEL_JUMP_PAD;
+  return link && link->travelType == NAV_TRAVEL_PUSH;
 }
 
 /**
@@ -448,7 +448,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
   const bool pushed = (cl->ps.pmState.flags & PMF_TIME_PUSHED) != 0;
   if (pushed && !c->pushed && G_Ai_Probe_TouchesPush(ent)) {
-    const bool planned = travelType == NAV_TRAVEL_JUMP_PAD || G_Ai_Probe_NextIsPad(cl);
+    const bool planned = travelType == NAV_TRAVEL_PUSH || G_Ai_Probe_NextIsPad(cl);
     G_Ai_Probe_Print(n, "PUSHED", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d planned=%d launch=%u goal=%s",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,

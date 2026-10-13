@@ -1043,7 +1043,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
       }
 
       const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
-      G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
+      G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
     }
 
     G_ForEachEntity(item, {
@@ -1072,7 +1072,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
       }
 
       const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
-      G_Ai_Node_LinkTravel(start, node, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
+      G_Ai_Node_LinkTravel(start, node, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
 
       item->node = node;
     });
@@ -1101,7 +1101,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
     return;
   }
 
-  G_Ai_Node_LinkTravel(entry == AI_NODE_INVALID ? start : entry, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
+  G_Ai_Node_LinkTravel(entry == AI_NODE_INVALID ? start : entry, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
 }
 
 /**
@@ -1161,7 +1161,7 @@ static void G_Ai_Node_LinkPlat(const GameEntity *plat) {
   }
 
   const float speed = Maxf(1.f, plat->moveInfo.speed);
-  G_Ai_Node_LinkTravel(lower, upper, G_Ai_Node_RideCost(rise / speed), NAV_TRAVEL_ELEVATOR);
+  G_Ai_Node_LinkTravel(lower, upper, G_Ai_Node_RideCost(rise / speed), NAV_TRAVEL_PLAT);
 
   G_Ai_Node_LinkPlatLevel(plat, lower);
   G_Ai_Node_LinkPlatLevel(plat, upper);
@@ -1184,21 +1184,21 @@ static void G_Ai_Node_LinkRides(void) {
     }
   });
 
-  int32_t counts[NAV_TRAVEL_ELEVATOR + 1] = { 0 };
+  int32_t counts[NAV_TRAVEL_PLAT + 1] = { 0 };
 
   for (size_t i = 0; i < aiNodes->count; i++) {
     const Vector *links = AI_NODE(aiNodes, i)->links;
 
     for (size_t j = 0; links && j < links->count; j++) {
       const int32_t type = AI_LINK(links, j)->travelType;
-      if (type >= NAV_TRAVEL_TELEPORT && type <= NAV_TRAVEL_ELEVATOR) {
+      if (type >= NAV_TRAVEL_TELEPORT && type <= NAV_TRAVEL_PLAT) {
         counts[type]++;
       }
     }
   }
 
   gi.Print("  Linked %d teleporters, %d jump pads and %d elevators.\n",
-           counts[NAV_TRAVEL_TELEPORT], counts[NAV_TRAVEL_JUMP_PAD], counts[NAV_TRAVEL_ELEVATOR]);
+           counts[NAV_TRAVEL_TELEPORT], counts[NAV_TRAVEL_PUSH], counts[NAV_TRAVEL_PLAT]);
 }
 
 /**

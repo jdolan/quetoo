@@ -175,10 +175,10 @@ static const char *Cg_AiTravelName(const NavTravelType type) {
       return "barrier jump";
     case NAV_TRAVEL_TELEPORT:
       return "teleport";
-    case NAV_TRAVEL_JUMP_PAD:
-      return "jump pad";
-    case NAV_TRAVEL_ELEVATOR:
-      return "elevator";
+    case NAV_TRAVEL_PUSH:
+      return "push";
+    case NAV_TRAVEL_PLAT:
+      return "plat";
     case NAV_TRAVEL_SWIM:
       return "swim";
     case NAV_TRAVEL_JUMP:

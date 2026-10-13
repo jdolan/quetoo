@@ -108,7 +108,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 
 Link types are the `NavTravelType` values: 0 for the links that `G_Ai_Node_Link` adds to splice
 item and spawn nodes into the graph, 1 walk, 2 crouch, 3 walk off ledge, 4 barrier jump,
-5 teleport, 6 jump pad, 7 elevator, 8 swim, 9 jump.
+5 teleport, 6 push, 7 plat, 8 swim, 9 jump.
 
 ## 4. Query the graph
 

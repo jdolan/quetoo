@@ -774,7 +774,7 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
 
   const GameAiLink *pathLink = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
                                                  VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
-  const bool pad = pathLink && pathLink->travelType == NAV_TRAVEL_JUMP_PAD;
+  const bool pad = pathLink && pathLink->travelType == NAV_TRAVEL_PUSH;
 
   if (!pad && Vec2_Distance(Vec3_XY(from), Vec3_XY(goal->path.pathPosition)) < AI_PUSH_LINK_DISTANCE) {
     return dest;
@@ -1188,7 +1188,7 @@ static bool G_Ai_IsPushedOffNode(const GameClient *cl, const GameAiGoal *goal, c
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index),
                                              VectorValue(path, GameAiNodeId, index + 1));
 
-  if (!link || link->travelType != NAV_TRAVEL_JUMP_PAD) {
+  if (!link || link->travelType != NAV_TRAVEL_PUSH) {
     return false;
   }
 
@@ -1683,8 +1683,8 @@ static bool G_Ai_CanStrafeJump(const GameClient *cl) {
  * @return True if the link is a ride: a teleporter, a jump pad or an elevator carries the bot.
  */
 static bool G_Ai_IsRideLink(const GameAiLink *link) {
-  return link && (link->travelType == NAV_TRAVEL_TELEPORT || link->travelType == NAV_TRAVEL_JUMP_PAD ||
-                  link->travelType == NAV_TRAVEL_ELEVATOR);
+  return link && (link->travelType == NAV_TRAVEL_TELEPORT || link->travelType == NAV_TRAVEL_PUSH ||
+                  link->travelType == NAV_TRAVEL_PLAT);
 }
 
 /**
