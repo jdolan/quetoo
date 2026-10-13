@@ -550,10 +550,10 @@ void G_Ai_InitNodes(void) {
 
   gi.Print("  Built %d navigation nodes, %d at an offset, and found %d floors with no room for a player "
            "and %d in a hurt or push trigger\n", graph->numNodes, graph->numOffset, graph->numNoFit, graph->numTrigger);
-  gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge and %d swim links\n",
+  gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim and %d jump links\n",
            graph->numTravel[NAV_TRAVEL_WALK], graph->numTravel[NAV_TRAVEL_CROUCH],
            graph->numTravel[NAV_TRAVEL_BARRIER_JUMP], graph->numTravel[NAV_TRAVEL_WALK_OFF_LEDGE],
-           graph->numTravel[NAV_TRAVEL_SWIM]);
+           graph->numTravel[NAV_TRAVEL_SWIM], graph->numTravel[NAV_TRAVEL_JUMP]);
 
   aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
 

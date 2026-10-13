@@ -87,8 +87,47 @@
 #define NAV_WATER_JUMP_MARGIN 8.f
 
 /**
- * @brief The most links that one node can have: a walk or barrier jump to each of 4 levels, and a
- * drop, in each of 8 directions, and swims to the cells around a node in water and around the
+ * @brief The fraction of the run speed at which a jump link is simulated, so that a bot that has
+ * not reached full speed still clears the gap.
+ */
+#define NAV_JUMP_SPEED_FRACTION .8f
+
+/**
+ * @brief The distance before the edge of the floor at which a jump link is simulated to take off,
+ * because a bot jumps up to one frame early.
+ */
+#define NAV_JUMP_TAKEOFF_MARGIN 16.f
+
+/**
+ * @brief The height above its target at which the arc of a jump link MUST arrive over it.
+ */
+#define NAV_JUMP_CLEARANCE 8.f
+
+/**
+ * @brief The most cells away, in one direction, that a jump link lands.
+ */
+#define NAV_MAX_JUMP_CELLS 3
+
+/**
+ * @brief The most walk steps that a jump link takes to the edge of the floor: more than the
+ * diagonal of `NAV_MAX_JUMP_CELLS` cells.
+ */
+#define NAV_MAX_JUMP_STEPS 64
+
+/**
+ * @brief The distance past the landing of a jump link that MUST have floor, because the player
+ * keeps its speed when it lands.
+ */
+#define NAV_JUMP_LANDING_DISTANCE 32.f
+
+/**
+ * @brief The time step in seconds of a simulated jump.
+ */
+#define NAV_JUMP_STEP .025f
+
+/**
+ * @brief The most links that one node can have: a walk or barrier jump to each of 4 levels, a drop
+ * and a jump, in each of 8 directions, and swims to the cells around a node in water and around the
  * surface above it.
  */
 #define NAV_MAX_NODE_LINKS 128
@@ -692,6 +731,156 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
 }
 
 /**
+ * @brief Simulates a running jump from node `a` across a gap to node `b`. The player walks straight
+ * toward `b` to the edge of the floor, and jumps `NAV_JUMP_TAKEOFF_MARGIN` before it: the lowest
+ * jump of all movements, at `NAV_JUMP_SPEED_FRACTION` of the run speed. The arc MUST be
+ * `NAV_JUMP_CLEARANCE` above `b` when it arrives over it.
+ * @param seconds The time of the run to the takeoff point, and of the flight until the player lands
+ * at `b`.
+ * @return True if the floor ends on the way, with no wall or high step before it, and the arc from
+ * the takeoff clears the world and every trigger, and lands at `b` with floor for
+ * `NAV_JUMP_LANDING_DISTANCE` past it, up to a wall.
+ */
+static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
+
+  float distance;
+  const Vec3 dir = Vec3_NormalizeLength(MakeVec3(b->position.x - a->position.x, b->position.y - a->position.y, 0.f), &distance);
+
+  Vec3 steps[NAV_MAX_JUMP_STEPS];
+  int32_t numSteps = 0;
+
+  steps[numSteps++] = a->position;
+
+  while (true) {
+    if (numSteps * NAV_WALK_STEP >= distance || numSteps == lengthof(steps)) {
+      return false;
+    }
+
+    const Vec3 from = steps[numSteps - 1];
+
+    const CollisionTrace up = Nav_Trace(from, Vec3_Add(from, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT)), PM_BOUNDS);
+    if (up.startSolid) {
+      return false;
+    }
+
+    const Vec3 target = Vec3_Add(up.end, Vec3_Scale(dir, NAV_WALK_STEP));
+    const CollisionTrace over = Nav_Trace(up.end, target, PM_BOUNDS);
+    if (over.fraction < 1.f) {
+      return false;
+    }
+
+    Vec3 next;
+    if (!Nav_Rest(over.end, PM_STEP_HEIGHT * 2.f + 1.f, PM_BOUNDS, &next)) {
+      break;
+    }
+
+    steps[numSteps++] = next;
+  }
+
+  const int32_t index = Maxi(0, numSteps - 1 - (int32_t) (NAV_JUMP_TAKEOFF_MARGIN / NAV_WALK_STEP));
+  const Vec3 takeoff = steps[index];
+  const float remaining = distance - index * NAV_WALK_STEP;
+  const float speed = PM_SPEED_RUN * NAV_JUMP_SPEED_FRACTION;
+  const float up = sqrtf(2.f * module.gravity * (module.barrierHeight + NAV_BARRIER_MARGIN));
+
+  Vec3 origin = takeoff;
+
+  for (float t = NAV_JUMP_STEP; ; t += NAV_JUMP_STEP) {
+
+    const float across = Minf(speed * t, remaining);
+    const float rise = up * t - .5f * module.gravity * t * t;
+
+    const Vec3 next = Vec3_Add(Vec3_Add(takeoff, Vec3_Scale(dir, across)), MakeVec3(0.f, 0.f, rise));
+
+    const CollisionTrace trace = Nav_Trace(origin, next, PM_BOUNDS);
+    if (trace.startSolid || trace.fraction < 1.f) {
+      return false;
+    }
+
+    if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, next))) {
+      return false;
+    }
+
+    origin = next;
+
+    if (t > up / module.gravity && origin.z < b->position.z + NAV_JUMP_CLEARANCE) {
+      return false;
+    }
+
+    if (across >= remaining) {
+      if (origin.z < b->position.z + NAV_JUMP_CLEARANCE) {
+        return false;
+      }
+
+      Vec3 floor;
+      if (!Nav_Rest(origin, origin.z - b->position.z + PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &floor)) {
+        return false;
+      }
+
+      if (fabsf(floor.z - b->position.z) > 1.f) {
+        return false;
+      }
+
+      Vec3 landing = floor;
+      for (float d = NAV_WALK_STEP; d <= NAV_JUMP_LANDING_DISTANCE; d += NAV_WALK_STEP) {
+
+        const CollisionTrace slide = Nav_Trace(landing, Vec3_Add(landing, Vec3_Scale(dir, NAV_WALK_STEP)), PM_BOUNDS);
+        if (slide.fraction < 1.f) {
+          break;
+        }
+
+        if (!Nav_Rest(slide.end, PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &landing)) {
+          return false;
+        }
+      }
+
+      *seconds = index * NAV_WALK_STEP / PM_SPEED_RUN + t + sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
+      return true;
+    }
+  }
+}
+
+/**
+ * @brief Finds the node that a running jump from `node` in `direction` lands at: the nearest one,
+ * 1 to `NAV_MAX_JUMP_CELLS` cells away, from two cells below up to the barrier jump height. A
+ * level without gravity has no jumps, and no jump starts or lands at a crouch or water node.
+ * @param seconds The time of the jump.
+ * @return The node that the jump lands at, or -1.
+ */
+static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *seconds) {
+
+  const NavGraph *graph = module.graph;
+
+  if (module.gravity <= 0.f || node->crouch || (node->contents & CONTENTS_WATER)) {
+    return -1;
+  }
+
+  const Vec3i xyz = Nav_CellCoordinate(node->cell);
+  const int32_t rise = (int32_t) ceilf(module.barrierHeight / NAV_CELL_HEIGHT);
+
+  for (int32_t k = 1; k <= NAV_MAX_JUMP_CELLS; k++) {
+    for (int32_t dz = -2; dz <= rise; dz++) {
+
+      const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + direction.x * k, xyz.y + direction.y * k, xyz.z + dz));
+      if (cell == -1 || graph->cellNodes[cell] == -1) {
+        continue;
+      }
+
+      const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
+      if (other == node || other->crouch || (other->contents & CONTENTS_WATER)) {
+        continue;
+      }
+
+      if (Nav_JumpArc(node, other, seconds)) {
+        return graph->cellNodes[cell];
+      }
+    }
+  }
+
+  return -1;
+}
+
+/**
  * @return True if the point is in water, which a player can swim through.
  */
 static bool Nav_InWater(const Vec3 point) {
@@ -801,8 +990,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
 }
 
 /**
- * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops where no
- * walk exists.
+ * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
+ * across gaps where no walk exists.
  * @return The count of links written to `links`.
  */
 static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
@@ -855,6 +1044,12 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     if (target != -1 && target != index) {
       const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) + Nav_FallTime(height);
       Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time);
+    }
+
+    float seconds;
+    const int32_t landing = Nav_Jump(node, directions[i], &seconds);
+    if (landing != -1) {
+      Nav_AddLink(links, &numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 100.f));
     }
   }
 

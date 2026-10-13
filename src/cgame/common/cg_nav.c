@@ -74,6 +74,8 @@ static const char *Cg_AiTravelName(const NavTravelType type) {
       return "elevator";
     case NAV_TRAVEL_SWIM:
       return "swim";
+    case NAV_TRAVEL_JUMP:
+      return "jump";
     default:
       return "none";
   }
@@ -179,6 +181,8 @@ static Color Cg_AiLinkColor(const NavTravelType type) {
       return ColorHSV(COLOR_HUE_ORANGE, 1.f, 1.f);
     case NAV_TRAVEL_SWIM:
       return ColorHSV(COLOR_HUE_CYAN, 1.f, 1.f);
+    case NAV_TRAVEL_JUMP:
+      return ColorHSV(COLOR_HUE_MAGENTA, 1.f, 1.f);
     default:
       return ColorHSV(COLOR_HUE_GREEN, .6f, .8f);
   }

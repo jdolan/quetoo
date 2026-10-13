@@ -1282,9 +1282,10 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 }
 
 /**
- * @return True if the bot is on the ground or in water to the waist, far from the walk, crouch or
- * ledge link that it follows, or below both of its ends, so that the link no longer leads where it
- * goes. A bot that falls into water off its path plans a new one, which swims out.
+ * @return True if the bot is on the ground or in water to the waist, far from the walk, crouch,
+ * ledge or jump link that it follows, or below both of its ends, so that the link no longer leads
+ * where it goes. A bot that falls into water off its path plans a new one, which swims out, and a
+ * bot that falls short of a jump plans one from where it lands.
  */
 static bool G_Ai_IsOffPath(const GameClient *cl) {
 
@@ -1294,7 +1295,8 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
 
   const GameAiLink *link = G_Ai_PathLink(cl);
 
-  if (!link || link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) {
+  if (!link || ((link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) &&
+                link->travelType != NAV_TRAVEL_JUMP)) {
     return false;
   }
 
@@ -1303,6 +1305,79 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
   const float z = Minf(a.z, goal->path.pathPosition.z);
 
   return G_Ai_PathLinkDistance(cl) > AI_OFF_PATH_DISTANCE || cl->entity->s.origin.z < z - AI_OFF_PATH_DROP;
+}
+
+/**
+ * @brief The distance ahead of the bot, on the line of a jump link, to which it steers.
+ */
+#define AI_JUMP_LOOK_DISTANCE 32.f
+
+/**
+ * @brief The farthest that a bot may be from the line of a jump link, to jump.
+ */
+#define AI_JUMP_LINE_DISTANCE 16.f
+
+/**
+ * @return True if the bot is on the line from the source node of its jump link to the target, which
+ * the navigation build simulated the jump along: within `AI_JUMP_LINE_DISTANCE` of it, between the
+ * source and the target, and on the source's level. Off that line, the jump can hit a wall or fall
+ * short, and past the target, or below the source after a fall, it MUST NOT jump again.
+ * @param along The distance along the line from the source node, or NULL.
+ */
+static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  const Vec3 source = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+
+  if (fabsf(cl->entity->s.origin.z - source.z) > PM_STEP_HEIGHT * 2.f) {
+    return false;
+  }
+
+  const Vec2 a = Vec3_XY(source);
+  const Vec2 ab = Vec2_Subtract(Vec3_XY(goal->path.pathPosition), a);
+  const Vec2 ap = Vec2_Subtract(Vec3_XY(cl->entity->s.origin), a);
+
+  const float length = Vec2_Length(ab);
+  if (length < 1.f) {
+    return false;
+  }
+
+  const float distance = Vec2_Dot(ap, ab) / length;
+  const float lateral = fabsf(ab.x * ap.y - ab.y * ap.x) / length;
+
+  if (along) {
+    *along = distance;
+  }
+
+  return lateral <= AI_JUMP_LINE_DISTANCE && distance >= -AI_JUMP_LINE_DISTANCE && distance < length;
+}
+
+/**
+ * @return The point to which a bot on a jump link steers: `AI_JUMP_LOOK_DISTANCE` ahead of it on
+ * the line of the jump. Off that line, it steers to the target if it stands on the target's level,
+ * nearer the target than the source, as after a jump that lands past the target, and otherwise to
+ * the source.
+ */
+static Vec3 G_Ai_JumpDestination(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 b = goal->path.pathPosition;
+
+  float along;
+  if (!G_Ai_IsOnJumpLine(cl, &along)) {
+    const Vec3 origin = cl->entity->s.origin;
+    if (fabsf(origin.z - b.z) <= PM_STEP_HEIGHT && Vec3_Distance(origin, b) < Vec3_Distance(origin, a)) {
+      return b;
+    }
+    return a;
+  }
+
+  const float length = Vec2_Distance(Vec3_XY(a), Vec3_XY(b));
+
+  return Vec3_Mix(a, b, Clampf((along + AI_JUMP_LOOK_DISTANCE) / length, 0.f, 1.f));
 }
 
 /**
@@ -1830,6 +1905,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
         if (cl->ai->moveTarget.path.trickJump) {
           dest = cl->ai->moveTarget.path.trickPosition;
+        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_JUMP && ent->ground.ent) {
+          dest = G_Ai_JumpDestination(cl);
         } else {
           dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
           toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);
@@ -2008,9 +2085,14 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
                    G_Ai_SimulateDrop(cl, cl->ai->moveTarget.path.pathPosition)) {
           G_Ai_Debug("Walking off a ledge to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
-        // walk links, and the links that the game adds to them, have floor all the way, so an edge
-        // anywhere else means that we are off the path
-        } else if (!toPush && travelType <= NAV_TRAVEL_BARRIER_JUMP) {
+        } else if (travelType == NAV_TRAVEL_JUMP && !toPush && G_Ai_IsOnJumpLine(cl, NULL)) {
+          if (!pm.ground.ent) {
+            cmd->up = PM_SPEED_JUMP;
+            G_Ai_Debug("Jumping across a gap to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
+          }
+        // walk links, and the links that the game adds to them, have floor all the way, and a jump
+        // link leaves it only on its line, so an edge anywhere else means that we are off the path
+        } else if (!toPush && (travelType <= NAV_TRAVEL_BARRIER_JUMP || travelType == NAV_TRAVEL_JUMP)) {
           cmd->forward = -cmd->forward;
           cmd->right = -cmd->right;
           G_Ai_ReturnToPath(cl);
