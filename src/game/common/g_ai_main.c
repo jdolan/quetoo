@@ -998,6 +998,30 @@ static bool G_Ai_IsLiftedOffNode(const GameClient *cl, const Box3 bounds, const 
 }
 
 /**
+ * @return True if a jump pad has launched the AI off the node, which starts a jump pad link on its
+ * path. A vertical pad launches the AI before its box reaches the node, and the AI must steer for
+ * the ledge that the link leads to, not back over the pad.
+ */
+static bool G_Ai_IsPushedOffNode(const GameClient *cl, const GameAiGoal *goal, const Box3 bounds) {
+
+  const Vector *path = goal->path.path;
+  const uint32_t index = goal->path.pathIndex;
+
+  if (cl->entity->ground.ent || index + 1 >= path->count) {
+    return false;
+  }
+
+  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index),
+                                             VectorValue(path, GameAiNodeId, index + 1));
+
+  if (!link || link->travelType != AI_TRAVEL_JUMP_PAD) {
+    return false;
+  }
+
+  return G_Ai_IsWithinXY(bounds, goal->path.pathPosition) && goal->path.pathPosition.z < bounds.mins.z;
+}
+
+/**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
 static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
@@ -1016,6 +1040,10 @@ static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
   }
 
   if (G_Ai_IsLiftedOffNode(cl, bounds, goal->path.pathPosition)) {
+    return G_Ai_AdvancePath(cl, goal);
+  }
+
+  if (G_Ai_IsPushedOffNode(cl, goal, bounds)) {
     return G_Ai_AdvancePath(cl, goal);
   }
 
