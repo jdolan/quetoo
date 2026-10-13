@@ -1282,12 +1282,13 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 }
 
 /**
- * @return True if the bot is on the ground, far from the walk, crouch or ledge link that
- * it follows, or below both of its ends, so that the link no longer leads where it goes.
+ * @return True if the bot is on the ground or in water to the waist, far from the walk, crouch or
+ * ledge link that it follows, or below both of its ends, so that the link no longer leads where it
+ * goes. A bot that falls into water off its path plans a new one, which swims out.
  */
 static bool G_Ai_IsOffPath(const GameClient *cl) {
 
-  if (!cl->entity->ground.ent || cl->ai->strafeJumping) {
+  if ((!cl->entity->ground.ent && cl->entity->waterLevel < WATER_WAIST) || cl->ai->strafeJumping) {
     return false;
   }
 
