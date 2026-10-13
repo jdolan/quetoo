@@ -22,7 +22,7 @@ Usage:
     ai_probe.py route <log> [--client N] [--top 10] [--show N]
     ai_probe.py moves <log> (--node N | --link A-B) [--client N] [--count 5] [--raw]
     ai_probe.py strafe <log> [--client N]
-    ai_probe.py linktimes <log> [--min 3] [--count 20]
+    ai_probe.py linktimes <log> [<log> ...] [--min 3] [--count 20]   (logs of one graph build)
     ai_probe.py kills <log> [--module default]
 
 `run` builds the tree's dedicated server and game module into a private stage, so it never
@@ -663,20 +663,26 @@ def cmd_strafe(args):
 
 
 def cmd_linktimes(args):
-    events = read_log(args.log)
-    people = set(humans(events))
     times = {True: collections.defaultdict(list), False: collections.defaultdict(list)}
-    last = {}
-    for e in events:
-        if e.kind == 'KILL':
-            last.pop(e.client, None)
-            continue
-        if e.kind != 'VISIT':
-            continue
-        prev = last.get(e.client)
-        if not route_breaks(prev, e):
-            times[e.client in people][(int(prev['node']), int(e['node']))].append(e.time - prev.time)
-        last[e.client] = e
+    counts = {}
+    for path in args.logs:
+        events = read_log(path)
+        graph = next((e for e in events if e.kind == 'GRAPH'), None)
+        counts[path] = graph['nodes'] if graph else '?'
+        if len(set(counts.values()) - {'?'}) > 1:
+            sys.exit(f'The logs have different graphs, so their node ids do not match: {counts}')
+        people = set(humans(events))
+        last = {}
+        for e in events:
+            if e.kind == 'KILL':
+                last.pop(e.client, None)
+                continue
+            if e.kind != 'VISIT':
+                continue
+            prev = last.get(e.client)
+            if not route_breaks(prev, e):
+                times[e.client in people][(int(prev['node']), int(e['node']))].append(e.time - prev.time)
+            last[e.client] = e
     rows = []
     for key, mine in times[True].items():
         theirs = times[False].get(key, [])
@@ -801,7 +807,7 @@ def main():
     p.set_defaults(func=cmd_strafe)
 
     p = sub.add_parser('linktimes', help='the node pairs that bots cross most slowly, against players')
-    p.add_argument('log')
+    p.add_argument('logs', nargs='+', help='logs of the same build of the same map, such as a player\'s and a bot match')
     p.add_argument('--min', type=int, default=3, help='the least crossings of a pair by each')
     p.add_argument('--count', type=int, default=20)
     p.set_defaults(func=cmd_linktimes)
