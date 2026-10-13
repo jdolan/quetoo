@@ -863,8 +863,137 @@ static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *l
 }
 
 /**
+ * @brief The clearance in units between a player at the entry of a jump pad and the pad's trigger.
+ */
+#define AI_PUSH_ENTRY_CLEARANCE 8.f
+
+/**
+ * @return True if a player can walk the straight line from `start` to `end`. The box is raised by
+ * a step, so that the floor does not stop it.
+ */
+static bool G_Ai_Node_CanWalk(const Vec3 start, const Vec3 end) {
+
+  Box3 bounds = PM_BOUNDS;
+  bounds.mins.z += PM_STEP_HEIGHT;
+
+  const CollisionTrace trace = G_Ai_Node_WorldTrace(start, end, bounds);
+  return !trace.startSolid && trace.fraction == 1.f;
+}
+
+/**
+ * @brief Finds the floor under a player at `origin`, within four steps below it.
+ * @param floor Receives the player origin on the floor.
+ * @return True if the player has floor there.
+ */
+static bool G_Ai_Node_Floor(const Vec3 origin, Vec3 *floor) {
+
+  const Vec3 bottom = Vec3_Subtract(origin, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT * 4.f));
+  const CollisionTrace trace = G_Ai_Node_WorldTrace(origin, bottom, PM_BOUNDS);
+
+  if (trace.startSolid || trace.fraction == 1.f) {
+    return false;
+  }
+
+  *floor = trace.end;
+  return true;
+}
+
+/**
+ * @brief Finds the floor of a `trigger_push`, under a player at the top of its center.
+ * @param floor Receives the player origin on the floor.
+ * @return True if the pad has floor within four steps below its trigger.
+ */
+static bool G_Ai_Node_PushFloor(const GameEntity *push, Vec3 *floor) {
+
+  const Vec3 center = Box3_Center(push->absBounds);
+  const Vec3 top = MakeVec3(center.x, center.y, push->absBounds.maxs.z - PM_BOUNDS.mins.z);
+  const Vec3 bottom = MakeVec3(center.x, center.y, push->absBounds.mins.z - PM_BOUNDS.mins.z - PM_STEP_HEIGHT * 4.f);
+  const CollisionTrace trace = G_Ai_Node_WorldTrace(top, bottom, PM_BOUNDS);
+
+  if (trace.startSolid || trace.fraction == 1.f) {
+    return false;
+  }
+
+  *floor = trace.end;
+  return true;
+}
+
+/**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_PushEntry(const GameEntity *push, Vec3 *entry) {
+
+  const Vec3 dir = MakeVec3(push->moveDir.x, push->moveDir.y, 0.f);
+  if (push->moveDir.z >= AI_RIDE_VERTICAL || Vec3_Length(dir) <= .1f) {
+    return false;
+  }
+
+  Vec3 pad;
+  if (!G_Ai_Node_PushFloor(push, &pad)) {
+    return false;
+  }
+
+  const Vec3 forward = Vec3_Normalize(dir);
+  const Vec3 size = Box3_Size(push->absBounds);
+
+  const float extent = (fabsf(forward.x) * size.x + fabsf(forward.y) * size.y) * .5f;
+  const float distance = extent + PM_BOUNDS.maxs.x + AI_PUSH_ENTRY_CLEARANCE;
+
+  const Vec3 behind = MakeVec3(pad.x - forward.x * distance, pad.y - forward.y * distance, pad.z);
+
+  if (!G_Ai_Node_CanWalk(behind, pad)) {
+    return false;
+  }
+
+  return G_Ai_Node_Floor(Vec3_Add(behind, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT)), entry);
+}
+
+/**
+ * @return The node from which a bot walks into an angled `trigger_push` along its push: the node
+ * nearest the pad's entry, within `AI_RIDE_NODE_DISTANCE` and at the level of the floor there, from
+ * which a player can walk to the entry. Else `AI_NODE_INVALID`. The distance keeps the pad within
+ * the reach in which `G_Ai_PushDestination` looks for it from the node.
+ * @remarks A pad can lie in a channel between walls, with a node beside it that a line of sight
+ * reaches but a player cannot. A bot that walks from that node into the side wall slides along it,
+ * past the pad, and off the edge that the pad throws it over.
+ */
+static GameAiNodeId G_Ai_Node_PushStart(const GameEntity *push) {
+
+  Vec3 entry;
+  if (!G_Ai_Node_PushEntry(push, &entry)) {
+    return AI_NODE_INVALID;
+  }
+
+  GameAiNodeId start = AI_NODE_INVALID;
+  float startDistance = AI_RIDE_NODE_DISTANCE;
+
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
+
+    if (node->cell == -1 || node->model || fabsf(node->position.z - entry.z) > PM_STEP_HEIGHT) {
+      continue;
+    }
+
+    const float distance = Vec3_Distance(node->position, entry);
+    if (distance >= startDistance) {
+      continue;
+    }
+
+    if (!G_Ai_Node_CanWalk(node->position, entry)) {
+      continue;
+    }
+
+    start = (GameAiNodeId) i;
+    startDistance = distance;
+  }
+
+  return start;
+}
+
+/**
  * @brief Links the node on a `trigger_push` to the nodes that its push lands on.
- * @details An angled push is flown from the pad with `G_Ai_Node_FlyPush`. A vertical push links
+ * @details An angled push is flown from the pad with `G_Ai_Node_FlyPush`, and linked from the node
+ * of `G_Ai_Node_PushStart`, if it has one, else from the node nearest the pad. A vertical push links
  * to the ledges beside its column, which a bot steers onto in flight, and to a node that it makes
  * for each hovering item in its column, which a bot takes in flight, as a player does. The column
  * to an item rises from the pad's center, as a player flies, not from the node beside the pad.
@@ -950,11 +1079,8 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
     return;
   }
 
-  const Vec3 top = MakeVec3(center.x, center.y, push->absBounds.maxs.z - PM_BOUNDS.mins.z);
-  const Vec3 bottom = Vec3_Subtract(pad, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT * 4.f));
-  const CollisionTrace drop = G_Ai_Node_WorldTrace(top, bottom, PM_BOUNDS);
-
-  if (drop.startSolid || drop.fraction == 1.f) {
+  Vec3 floor;
+  if (!G_Ai_Node_PushFloor(push, &floor)) {
     G_Ai_Debug("%s @ %s has no floor\n", push->classname, vtos(pad));
     return;
   }
@@ -962,18 +1088,20 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
   Vec3 landing;
   float time;
 
-  if (!G_Ai_Node_FlyPush(push, drop.end, &landing, &time)) {
+  if (!G_Ai_Node_FlyPush(push, floor, &landing, &time)) {
     G_Ai_Debug("%s @ %s does not land within %.0f seconds\n", push->classname, vtos(pad), NAV_FLIGHT_SECONDS);
     return;
   }
 
+  const GameAiNodeId entry = G_Ai_Node_PushStart(push);
+
   const GameAiNodeId end = G_Ai_Node_FindClosestStatic(landing, AI_PUSH_NODE_DISTANCE, true, false);
-  if (end == AI_NODE_INVALID || end == start) {
+  if (end == AI_NODE_INVALID || end == start || end == entry) {
     G_Ai_Debug("%s @ %s lands at %s, with no node in sight\n", push->classname, vtos(pad), vtos(landing));
     return;
   }
 
-  G_Ai_Node_LinkTravel(start, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
+  G_Ai_Node_LinkTravel(entry == AI_NODE_INVALID ? start : entry, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
 }
 
 /**

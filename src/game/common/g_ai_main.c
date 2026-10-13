@@ -712,10 +712,51 @@ static bool G_Ai_IsOnLink(const Box3 bounds, const Vec3 a, const Vec3 b) {
 }
 
 /**
- * @return The center of the jump pad or teleporter at the start of the AI's current path link, if
- * the link is too long to walk, and the trigger lies on it. If no pad lies on a jump pad link, it
- * takes the nearest pad to its start that pushes along it, on the floor of the start, because the
- * game links each pad from the node nearest it, which can lie to the side of the line to the
+ * @brief The least lateral distance in units by which a bot MAY stand off the line of an angled
+ * jump pad's push, and still walk on to its center.
+ */
+#define AI_PUSH_LANE_TOLERANCE 4.f
+
+/**
+ * @return The point at which the AI aims for the given jump pad or teleporter, at the height of
+ * `from`. An angled jump pad is entered from behind, along its push: a bot that stands off the line
+ * of the push, by more than the pad's half width less its own, aims first at the pad's entry, from
+ * `G_Ai_Node_PushEntry`, if the pad has one. Else, the trigger's center.
+ * @remarks A pad can lie in a channel between walls, which a bot that aims at the center from the
+ * side runs into, and slides along, past the pad.
+ */
+static Vec3 G_Ai_PushApproach(const GameClient *cl, const GameEntity *ent, const Vec3 from) {
+
+  const Vec3 center = Box3_Center(ent->absBounds);
+
+  if (Str_Compare(ent->classname, "trigger_push") || Vec2_Length(Vec3_XY(ent->moveDir)) <= .1f) {
+    return MakeVec3(center.x, center.y, from.z);
+  }
+
+  const Vec3 dir = Vec3_Normalize(MakeVec3(ent->moveDir.x, ent->moveDir.y, 0.f));
+  const Vec3 size = Box3_Size(ent->absBounds);
+
+  const float width = (fabsf(dir.y) * size.x + fabsf(dir.x) * size.y) * .5f;
+  const Vec2 offset = Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(center));
+  const float lateral = fabsf(offset.x * dir.y - offset.y * dir.x);
+
+  if (lateral <= Maxf(width - PM_BOUNDS.maxs.x, AI_PUSH_LANE_TOLERANCE)) {
+    return MakeVec3(center.x, center.y, from.z);
+  }
+
+  Vec3 entry;
+  if (!G_Ai_Node_PushEntry(ent, &entry)) {
+    return MakeVec3(center.x, center.y, from.z);
+  }
+
+  return MakeVec3(entry.x, entry.y, from.z);
+}
+
+/**
+ * @return The aim of `G_Ai_PushApproach` at the jump pad or teleporter at the start of the AI's
+ * current path link, if the link is too long to walk, and the trigger lies on it. If no pad lies on
+ * a jump pad link, it takes the nearest pad to its start that pushes along it, on the floor of the
+ * start, because the game can link a pad from a node that lies to the side of the line to the
  * landing. Else, the given destination.
  * @remarks A path heads for the node at the far end of the link, and so it can run past the side
  * of a small jump pad, and off the edge.
@@ -780,13 +821,11 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
       continue;
     }
 
-    const Vec3 center = Box3_Center(ent->absBounds);
-    return MakeVec3(center.x, center.y, from.z);
+    return G_Ai_PushApproach(cl, ent, from);
   }
 
   if (nearest) {
-    const Vec3 center = Box3_Center(nearest->absBounds);
-    return MakeVec3(center.x, center.y, from.z);
+    return G_Ai_PushApproach(cl, nearest, from);
   }
 
   return dest;

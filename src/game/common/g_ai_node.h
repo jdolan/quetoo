@@ -57,6 +57,16 @@ Vec3 G_Ai_Node_GetPosition(const GameAiNodeId node);
 bool G_Ai_Node_IsEdge(const GameAiNodeId node);
 GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
+
+/**
+ * @brief Finds the entry of an angled `trigger_push`: the player origin behind the pad, on the line
+ * of its push through its center, from which a player that walks along the push enters the pad.
+ * @param entry Receives the player origin on the floor at the entry. The floor there MAY be up to a
+ * step higher than the pad's.
+ * @return True if the push is angled, and a player has floor at the entry and can walk from it to
+ * the pad.
+ */
+bool G_Ai_Node_PushEntry(const GameEntity *push, Vec3 *entry);
 bool G_Ai_Node_CanPathTo(const Vec3 position);
 const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
 bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
