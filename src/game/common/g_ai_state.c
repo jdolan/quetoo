@@ -235,6 +235,17 @@ static inline float G_Ai_Utility(const float value, const float cost) {
 }
 
 /**
+ * @return The cost of the item to the bot: the travel cost to it, and the time that the bot would
+ * wait there for it to return, in the same units.
+ */
+static float G_Ai_ItemCost(const GameClient *cl, const GameEntity *ent, const float cost) {
+
+  const uint32_t wait = G_Ai_ItemWaitMillis(cl, ent, G_Ai_TravelMillis(cost));
+
+  return cost + wait * PM_SPEED_RUN / 1000.f;
+}
+
+/**
  * @see g_ai_state.h
  */
 void G_Ai_Avoid(GameClient *cl, const GameEntity *item) {
@@ -373,7 +384,7 @@ static GameAiChoice G_Ai_ChooseItem(const GameClient *cl, const float *costs, co
       continue;
     }
 
-    float utility = G_Ai_Utility(value, costs[node]) * RandomRangef(1.f - noise, 1.f + noise);
+    float utility = G_Ai_Utility(value, G_Ai_ItemCost(cl, ent, costs[node])) * RandomRangef(1.f - noise, 1.f + noise);
 
     if (retreat && enemy &&
         Vec3_Distance(ent->s.origin, enemy->s.origin) < Vec3_Distance(ent->s.origin, cl->entity->s.origin)) {
@@ -452,7 +463,7 @@ static bool G_Ai_GoToItem(GameClient *cl, const float *costs, const GameAiChoice
 
     const float value = cost == FLT_MAX ? 0.f : G_Ai_ItemValue(cl, current, G_Ai_TravelMillis(cost), retreat);
 
-    if (value > 0.f && (current == choice->ent || choice->utility <= G_Ai_Utility(value, cost) * AI_SWITCH_SCALE)) {
+    if (value > 0.f && (current == choice->ent || choice->utility <= G_Ai_Utility(value, G_Ai_ItemCost(cl, current, cost)) * AI_SWITCH_SCALE)) {
       return true;
     }
   }
@@ -645,7 +656,7 @@ static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
       continue;
     }
 
-    choice->utility = G_Ai_Utility(choice->value, Maxf(added, 0.f));
+    choice->utility = G_Ai_Utility(choice->value, G_Ai_ItemCost(cl, choice->ent, Maxf(added, 0.f)));
 
     if (choice->utility > best.utility) {
       best = *choice;
@@ -776,7 +787,7 @@ static void G_Ai_State_Navigate(GameClient *cl) {
     const float value = cost == FLT_MAX ? 0.f : G_Ai_ItemValue(cl, goal, G_Ai_TravelMillis(cost), false);
 
     if (value > 0.f) {
-      goalUtility = G_Ai_Utility(value, cost);
+      goalUtility = G_Ai_Utility(value, G_Ai_ItemCost(cl, goal, cost));
     } else {
       G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
       G_Ai_ClearGoal(&ai->moveTarget);

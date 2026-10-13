@@ -85,6 +85,12 @@ bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent);
 bool G_Ai_IsTimedItem(const GameClient *cl, const GameEntity *item, const uint32_t eta);
 
 /**
+ * @return The time in milliseconds that the bot would wait at the item, if it arrived in `eta`,
+ * before the item returns as the bot remembers. 0 if the item is there.
+ */
+uint32_t G_Ai_ItemWaitMillis(const GameClient *cl, const GameEntity *item, const uint32_t eta);
+
+/**
  * @return True if the AI knows about the item. Bots learn where the map's items spawn, so they need
  * no sight of those. A dropped item must be in sight, and in view unless it is near or coveted.
  */

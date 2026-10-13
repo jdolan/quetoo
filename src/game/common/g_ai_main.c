@@ -319,6 +319,26 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 /**
  * @see g_ai_main.h
  */
+uint32_t G_Ai_ItemWaitMillis(const GameClient *cl, const GameEntity *item, const uint32_t eta) {
+
+  if (item->solid == SOLID_TRIGGER) {
+    return 0;
+  }
+
+  for (int32_t i = 0; i < AI_ITEM_TIMINGS; i++) {
+    const GameAiItemTiming *timing = &cl->ai->itemTimings[i];
+
+    if (timing->number == item->s.number && timing->respawnTime > gameLevel.time + eta) {
+      return timing->respawnTime - (gameLevel.time + eta);
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * @see g_ai_main.h
+ */
 bool G_Ai_IsTimedItem(const GameClient *cl, const GameEntity *item, const uint32_t eta) {
 
   for (int32_t i = 0; i < AI_ITEM_TIMINGS; i++) {
