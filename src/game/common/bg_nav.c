@@ -55,6 +55,11 @@
 #define NAV_MAX_DROP 512.f
 
 /**
+ * @brief The distance from a node within which an edge over the void makes it an edge node.
+ */
+#define NAV_EDGE_DISTANCE NAV_CELL_SIZE
+
+/**
  * @brief The furthest a fall can land from the node it links to.
  */
 #define NAV_LANDING_DISTANCE NAV_CELL_SIZE
@@ -829,6 +834,54 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
 }
 
 /**
+ * @return True if a walk from the node in any of the 8 directions reaches, within
+ * `NAV_EDGE_DISTANCE` and before a wall, an edge with no floor below it within `NAV_MAX_DROP`. A
+ * node on a model that moves is not tested.
+ */
+static bool Nav_IsEdge(const NavNode *node) {
+
+  if (node->model) {
+    return false;
+  }
+
+  const Box3 bounds = Nav_Bounds(node->crouch);
+
+  for (size_t i = 0; i < lengthof(directions); i++) {
+
+    const Vec3 dir = Vec3_Normalize(MakeVec3(directions[i].x, directions[i].y, 0.f));
+
+    Vec3 origin = node->position;
+
+    for (float d = NAV_WALK_STEP; d <= NAV_EDGE_DISTANCE; d += NAV_WALK_STEP) {
+
+      const Vec3 target = Vec3_Add(node->position, Vec3_Scale(dir, d));
+
+      const CollisionTrace across = Nav_Trace(origin, MakeVec3(target.x, target.y, origin.z), bounds);
+      if (across.startSolid || across.fraction < 1.f) {
+        break;
+      }
+
+      origin = across.end;
+
+      Vec3 floor;
+      if (Nav_Rest(origin, PM_STEP_HEIGHT + 1.f, bounds, &floor)) {
+        origin = floor;
+        continue;
+      }
+
+      const CollisionTrace fall = Nav_Trace(origin, Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), NAV_MAX_DROP)), bounds);
+      if (!fall.startSolid && fall.fraction == 1.f) {
+        return true;
+      }
+
+      break;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @brief Simulates a running jump from node `a` across a gap to node `b`. The player walks straight
  * toward `b` to the edge of the floor, and jumps `NAV_JUMP_TAKEOFF_MARGIN` before it: the lowest
  * jump of all movements, at `NAV_JUMP_SPEED_FRACTION` of the run speed. The arc MUST be
@@ -1397,6 +1450,9 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
     NavLink links[NAV_MAX_NODE_LINKS];
+
+    graph->nodes[i].edge = Nav_IsEdge(&graph->nodes[i]);
+    graph->numEdge += graph->nodes[i].edge;
 
     const int32_t numLinks = Nav_LinkNode(i, links);
 

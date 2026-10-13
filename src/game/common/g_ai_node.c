@@ -143,6 +143,11 @@ typedef struct {
   int32_t contents;
 
   /**
+   * @brief True if the node stands at the edge of the void, as `NavNode::edge`.
+   */
+  bool edge;
+
+  /**
    * @brief The inline model that the node stands on and that moves it, or 0.
    */
   int32_t model;
@@ -579,6 +584,13 @@ Vec3 G_Ai_Node_GetPosition(const GameAiNodeId node) {
 }
 
 /**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_IsEdge(const GameAiNodeId node) {
+  return AI_NODE(aiNodes, node)->edge;
+}
+
+/**
  * @return The `func_plat` over the given position that is not at its bottom, or `NULL`.
  */
 const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position) {
@@ -697,8 +709,9 @@ void G_Ai_InitNodes(void) {
 
   const NavGraph *graph = &module.graph;
 
-  gi.Print("  Built %d navigation nodes, %d at an offset, and found %d floors with no room for a player "
-           "and %d in a hurt or push trigger\n", graph->numNodes, graph->numOffset, graph->numNoFit, graph->numTrigger);
+  gi.Print("  Built %d navigation nodes, %d at an offset and %d at the edge of the void, and found %d floors "
+           "with no room for a player and %d in a hurt or push trigger\n", graph->numNodes, graph->numOffset,
+           graph->numEdge, graph->numNoFit, graph->numTrigger);
   gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim and %d jump links\n",
            graph->numTravel[NAV_TRAVEL_WALK], graph->numTravel[NAV_TRAVEL_CROUCH],
            graph->numTravel[NAV_TRAVEL_BARRIER_JUMP], graph->numTravel[NAV_TRAVEL_WALK_OFF_LEDGE],
@@ -713,6 +726,7 @@ void G_Ai_InitNodes(void) {
       .position = in->position,
       .cell = in->cell,
       .contents = in->contents,
+      .edge = in->edge,
       .model = in->model,
       .local = in->local
     };
@@ -1607,6 +1621,12 @@ static GameAiNodePriority *G_Ai_Node_AllocPathEntry(void) {
 #define AI_DROP_DAMAGE_PENALTY_SCALE 6.f
 
 /**
+ * @brief The cost added to a link into a node at the edge of the void: half a cell, so that a path
+ * keeps to the middle of a walkway where it can, and still crosses a narrow one where it must.
+ */
+#define AI_EDGE_PENALTY (NAV_CELL_SIZE * .5f)
+
+/**
  * @brief Returns true if the segment between two nodes intersects lava or slime.
  */
 static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to) {
@@ -1665,7 +1685,7 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
 
 /**
  * @return The cost for the client to travel the link out of `node`, with penalties for drops that
- * hurt, or -1 if the client must not use the link.
+ * hurt and for a node at the edge of the void, or -1 if the client must not use the link.
  * @param fromHazard True if `node` is in lava or slime.
  */
 static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, const bool fromHazard,
@@ -1717,7 +1737,7 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
     dropPenalty += estimatedDamage * AI_DROP_DAMAGE_PENALTY_SCALE;
   }
 
-  return link->cost + dropPenalty;
+  return link->cost + dropPenalty + (linkNode->edge ? AI_EDGE_PENALTY : 0.f);
 }
 
 /**

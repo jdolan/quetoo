@@ -115,6 +115,12 @@ typedef struct {
   bool crouch;
 
   /**
+   * @brief True if the node stands near an edge with no floor below it within `NAV_MAX_DROP`, such
+   * as the edge of the void: a walk of `NAV_EDGE_DISTANCE` from it leaves the floor there.
+   */
+  bool edge;
+
+  /**
    * @brief The inline model that the node stands on and that moves it, or 0 for a node that does
    * not move.
    */
@@ -201,6 +207,11 @@ typedef struct {
    * @brief The count of floors in a `trigger_hurt` or a `trigger_push`.
    */
   int32_t numTrigger;
+
+  /**
+   * @brief The count of nodes at the edge of the void.
+   */
+  int32_t numEdge;
 
   /**
    * @brief The count of links of each `NavTravelType`.
