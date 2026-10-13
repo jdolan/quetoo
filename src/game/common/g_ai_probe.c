@@ -497,9 +497,23 @@ void G_Ai_Probe_Think(const GameClient *cl) {
   if (gameLevel.time - c->positionTime >= AI_PROBE_POSITION_MILLIS) {
     c->positionTime = gameLevel.time;
 
-    G_Ai_Probe_Print(n, "POS", "pos=%d,%d,%d state=%s goal=%s health=%d link=%d->%d type=%d",
+    const GameAiGoal *combat = &cl->ai->combatTarget;
+    const bool enemy = combat->type == AI_GOAL_ENTITY && combat->entity.ent;
+
+    char fire[MAX_STRING_CHARS] = "";
+    for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
+      const GameItem *it = &gameItems[t];
+      if (G_Ai_CanFire(cl, it)) {
+        Str_Append(fire, va("%s%s", *fire ? "," : "", it->def.classname), sizeof(fire));
+      }
+    }
+
+    G_Ai_Probe_Print(n, "POS", "pos=%d,%d,%d speed=%d state=%s goal=%s health=%d link=%d->%d type=%d weapon=%s fire=%s armed=%d enemy=%d combat=%d",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     G_Ai_StateName(cl), G_Ai_Probe_Goal(cl), ent->health, from, to, travelType);
+                     (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), G_Ai_StateName(cl), G_Ai_Probe_Goal(cl),
+                     ent->health, from, to, travelType, cl->weapon ? cl->weapon->def.classname : "none", *fire ? fire : "none",
+                     G_Ai_IsArmed(cl), enemy ? (int32_t) Vec3_Distance(ent->s.origin, combat->entity.ent->s.origin) : -1,
+                     enemy ? (int32_t) combat->entity.combatType : -1);
 
     c->positions[c->numPositions++ % AI_PROBE_STUCK_POSITIONS] = ent->s.origin;
 
