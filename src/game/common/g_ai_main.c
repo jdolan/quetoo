@@ -2091,6 +2091,10 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
                    G_Ai_SimulateDrop(cl, cl->ai->moveTarget.path.pathPosition)) {
           G_Ai_Debug("Walking off a ledge to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
+        } else if (travelType == NAV_TRAVEL_NONE && !toPush &&
+                   cl->ai->moveTarget.path.pathPosition.z < ent->s.origin.z - PM_STEP_HEIGHT &&
+                   G_Ai_SimulateDrop(cl, cl->ai->moveTarget.path.pathPosition)) {
+          G_Ai_Debug("Dropping to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
         } else if (travelType == NAV_TRAVEL_JUMP && !toPush && G_Ai_IsOnJumpLine(cl, NULL)) {
           if (!pm.ground.ent) {
             cmd->up = PM_SPEED_JUMP;
