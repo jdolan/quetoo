@@ -825,7 +825,9 @@ static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *l
 /**
  * @brief Links the node on a `trigger_push` to the nodes that its push lands on.
  * @details An angled push is flown from the pad with `G_Ai_Node_FlyPush`. A vertical push links
- * to the ledges beside its column, which a bot steers onto in flight.
+ * to the ledges beside its column, which a bot steers onto in flight, and to a node that it makes
+ * for each hovering item in its column, which a bot takes in flight, as a player does. The column
+ * to an item rises from the pad's center, as a player flies, not from the node beside the pad.
  */
 static void G_Ai_Node_LinkPush(const GameEntity *push) {
 
@@ -874,6 +876,37 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
       const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
       G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
     }
+
+    G_ForEachEntity(item, {
+      if (!item->item || item->node != AI_NODE_INVALID) {
+        continue;
+      }
+
+      const float rise = item->s.origin.z - origin.z;
+      if (rise <= PM_STEP_HEIGHT || rise > apex) {
+        continue;
+      }
+
+      if (Vec2_Distance(Vec3_XY(item->s.origin), Vec3_XY(origin)) > AI_RIDE_VERTICAL_REACH) {
+        continue;
+      }
+
+      const Vec3 column = MakeVec3(pad.x, pad.y, item->s.origin.z);
+
+      if (gi.Trace(pad, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+        continue;
+      }
+
+      const GameAiNodeId node = G_Ai_Node_Create(item->s.origin);
+      if (node == AI_NODE_INVALID) {
+        continue;
+      }
+
+      const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
+      G_Ai_Node_LinkTravel(start, node, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
+
+      item->node = node;
+    });
     return;
   }
 
