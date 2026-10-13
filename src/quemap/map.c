@@ -788,6 +788,65 @@ static void MovePatchesToWorld(MapEntity *ent) {
   ent->numPatches = 0;
 }
 
+static bool omitDefault;
+static int32_t omittedIds[MAX_BSP_ENTITIES], numOmittedIds;
+
+/**
+ * @brief Consumes a `{ ... }` block, including any blocks nested within it (e.g. `patchDef2`).
+ */
+static void SkipBlock(Parser *parser) {
+  char token[MAX_TOKEN_CHARS];
+
+  for (int32_t depth = 0; Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token)); ) {
+    if (!Str_Compare(token, "{")) {
+      depth++;
+    } else if (!Str_Compare(token, "}") && --depth == 0) {
+      return;
+    }
+  }
+
+  Com_Error(ERROR_FATAL, "EOF without closing block\n");
+}
+
+/**
+ * @brief Layers that TrenchBroom flags `_tb_layer_omit_from_export` are excluded, as they are from
+ * its own export. TrenchBroom writes each layer and group before its members, so the ids of omitted
+ * layers and groups are known by the time their members are parsed. The default layer has no entity
+ * of its own, so TrenchBroom flags it on worldspawn.
+ * @return True if the entity, whose key-values have been parsed, is omitted. Worldspawn is never
+ * dropped, but its brushes are omitted along with the default layer.
+ */
+static bool IsOmitted(const MapEntity *entity) {
+
+  bool omit = !Str_Compare(ValueForKey(entity, "_tb_layer_omit_from_export", ""), "1");
+
+  if (omit) {
+    Com_Print("Omitting TrenchBroom layer \"%s\"\n", ValueForKey(entity, "_tb_name", "Default Layer"));
+  }
+
+  if (entity == entities) {
+    return omitDefault = omit;
+  }
+
+  const char *group = ValueForKey(entity, "_tb_group", "0");
+  const int32_t parent = atoi(ValueForKey(entity, "_tb_layer", group));
+
+  if (parent) {
+    for (int32_t i = 0; i < numOmittedIds; i++) {
+      omit |= omittedIds[i] == parent;
+    }
+  } else if (Str_Compare(ValueForKey(entity, "_tb_type", ""), "_tb_layer")) {
+    omit |= omitDefault;
+  }
+
+  const int32_t id = atoi(ValueForKey(entity, "_tb_id", "0"));
+  if (omit && id && numOmittedIds < MAX_BSP_ENTITIES) {
+    omittedIds[numOmittedIds++] = id;
+  }
+
+  return omit;
+}
+
 /**
  * @brief Parses one entity block (key-value pairs and brushes) from the map file.
  */
@@ -817,10 +876,18 @@ static MapEntity *ParseEntity(Parser *parser) {
     entity->firstBrushSide = numBrushSides;
     entity->firstPatch = numPatches;
 
+    bool omit = false, resolved = false;
+
     while (true) {
 
       if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
         Com_Error(ERROR_FATAL, "EOF without closing entity\n");
+      }
+
+      // the key-values precede the brushes, so the entity can now be resolved
+      if (!resolved && (!Str_Compare(token, "{") || !Str_Compare(token, "}"))) {
+        omit = IsOmitted(entity);
+        resolved = true;
       }
 
       if (!Str_Compare(token, "}")) {
@@ -828,7 +895,10 @@ static MapEntity *ParseEntity(Parser *parser) {
         break;
       }
 
-      if (!Str_Compare(token, "{")) {
+      if (!Str_Compare(token, "{") && omit) {
+        SkipBlock(parser);
+
+      } else if (!Str_Compare(token, "{")) {
         MapBrush *brush = ParseBrush(parser, entity);
         if (brush) {
           entity->numBrushes++;
@@ -848,6 +918,13 @@ static MapEntity *ParseEntity(Parser *parser) {
         e->next = entity->values;
         entity->values = e;
       }
+    }
+
+    // an omitted entity has no brushes; release its slot, which the caller sees as empty
+    if (omit && entity != entities) {
+      memset(entity, 0, sizeof(*entity));
+      numEntities--;
+      return entity;
     }
 
     const Vec3 origin = VectorForKey(entity, "origin", Vec3_Zero());
@@ -908,6 +985,9 @@ MapFormat LoadMapFile(const char *filename) {
 
   memset(entities, 0, sizeof(entities));
   numEntities = 0;
+
+  omitDefault = false;
+  numOmittedIds = 0;
 
   memset(brushes, 0, sizeof(brushes));
   numBrushes = 0;
