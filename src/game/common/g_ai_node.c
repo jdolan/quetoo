@@ -905,12 +905,16 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
 
 /**
  * @brief Links the built nodes at the given height around a plat to the plat's own node there,
- * in both directions.
+ * in both directions. The line between them is swept with the player's box raised by a step,
+ * because a plat stops a few units off the level of its landing, and the box would clip its edge.
  */
 static void G_Ai_Node_LinkPlatLevel(const GameEntity *plat, const GameAiNodeId platNode) {
 
   const Vec3 position = G_Ai_Node_GetPosition(platNode);
   const float reach = Maxf(Box3_Size(plat->absBounds).x, Box3_Size(plat->absBounds).y) * .5f + AI_RIDE_NODE_DISTANCE;
+
+  Box3 bounds = PM_BOUNDS;
+  bounds.mins.z += PM_STEP_HEIGHT;
 
   for (size_t i = 0; i < aiNodes->count; i++) {
     const GameAiNode *node = AI_NODE(aiNodes, i);
@@ -924,7 +928,7 @@ static void G_Ai_Node_LinkPlatLevel(const GameEntity *plat, const GameAiNodeId p
       continue;
     }
 
-    if (gi.Trace(node->position, position, PM_BOUNDS, NULL, CONTENTS_MASK_SOLID).fraction < 1.f) {
+    if (gi.Trace(node->position, position, bounds, NULL, CONTENTS_MASK_SOLID).fraction < 1.f) {
       continue;
     }
 
