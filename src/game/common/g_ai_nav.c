@@ -66,11 +66,17 @@
 #define AI_NAV_MAX_NODE_LINKS 48
 
 /**
+ * @brief The most `trigger_hurt` entities that the build avoids.
+ */
+#define AI_NAV_MAX_HURTS 256
+
+/**
  * @brief The outcome of a floor sample.
  */
 typedef enum {
   AI_NAV_SAMPLE_NONE,
   AI_NAV_SAMPLE_NO_FIT,
+  AI_NAV_SAMPLE_HURT,
   AI_NAV_SAMPLE_NODE,
 } GameAiNavSample;
 
@@ -82,6 +88,12 @@ static struct {
   float gravity;
   float barrierHeight;
   int32_t capacity;
+
+  /**
+   * @brief The bounds of the level's `trigger_hurt` entities, which no node may touch.
+   */
+  Box3 hurts[AI_NAV_MAX_HURTS];
+  int32_t numHurts;
 } module;
 
 /**
@@ -262,6 +274,14 @@ static GameAiNavSample G_Ai_Nav_SampleFloor(const Vec3 point, GameAiNavNode *nod
     return AI_NAV_SAMPLE_NO_FIT;
   }
 
+  const Box3 bounds = Box3_Translate(G_Ai_Nav_Bounds(node->crouch), origin);
+
+  for (int32_t i = 0; i < module.numHurts; i++) {
+    if (Box3_Intersects(bounds, module.hurts[i])) {
+      return AI_NAV_SAMPLE_HURT;
+    }
+  }
+
   node->position = origin;
   node->contents = G_Ai_Nav_PointContents(origin) & CONTENTS_MASK_LIQUID;
 
@@ -307,8 +327,8 @@ static GameAiNavSample G_Ai_Nav_SampleCell(const int32_t cell, bool *offset) {
       return AI_NAV_SAMPLE_NODE;
     }
 
-    if (result == AI_NAV_SAMPLE_NO_FIT) {
-      sample = AI_NAV_SAMPLE_NO_FIT;
+    if (result == AI_NAV_SAMPLE_NO_FIT || result == AI_NAV_SAMPLE_HURT) {
+      sample = Maxi(sample, result);
     }
   }
 
@@ -601,6 +621,26 @@ static float G_Ai_Nav_BarrierHeight(void) {
 }
 
 /**
+ * @brief Gathers the bounds of the level's `trigger_hurt` entities. A player touches a trigger where
+ * their bounds intersect, as `G_TouchOccupy` does, so that is where no node may stand.
+ */
+static void G_Ai_Nav_InitHurts(void) {
+
+  G_ForEachEntity(ent, {
+    if (!ent->classname || Str_Compare(ent->classname, "trigger_hurt")) {
+      continue;
+    }
+
+    if (module.numHurts == AI_NAV_MAX_HURTS) {
+      G_Warn("More than %d trigger_hurt entities; bots may path through the rest\n", AI_NAV_MAX_HURTS);
+      break;
+    }
+
+    module.hurts[module.numHurts++] = ent->absBounds;
+  });
+}
+
+/**
  * @brief Lays the cell grid over the world model's bounds, aligned to the cell size.
  */
 static void G_Ai_Nav_InitGrid(GameAiNavGraph *graph) {
@@ -641,7 +681,9 @@ bool G_Ai_Nav_Build(GameAiNavGraph *graph) {
 
   G_Ai_Nav_InitGrid(graph);
 
-  int32_t numOffset = 0, numNoFit = 0;
+  G_Ai_Nav_InitHurts();
+
+  int32_t numOffset = 0, numNoFit = 0, numHurt = 0;
 
   for (int32_t i = 0; i < graph->numCells; i++) {
     bool offset = false;
@@ -652,6 +694,9 @@ bool G_Ai_Nav_Build(GameAiNavGraph *graph) {
         break;
       case AI_NAV_SAMPLE_NO_FIT:
         numNoFit++;
+        break;
+      case AI_NAV_SAMPLE_HURT:
+        numHurt++;
         break;
       default:
         break;
@@ -693,8 +738,8 @@ bool G_Ai_Nav_Build(GameAiNavGraph *graph) {
     }
   }
 
-  gi.Print("  Built %d navigation nodes, %d at an offset, and found %d floors with no room for a player\n",
-           graph->numNodes, numOffset, numNoFit);
+  gi.Print("  Built %d navigation nodes, %d at an offset, and found %d floors with no room for a player "
+           "and %d in a trigger_hurt\n", graph->numNodes, numOffset, numNoFit, numHurt);
   gi.Print("  Built %d walk, %d crouch, %d barrier jump and %d walk off ledge links\n",
            counts[AI_TRAVEL_WALK], counts[AI_TRAVEL_CROUCH], counts[AI_TRAVEL_BARRIER_JUMP],
            counts[AI_TRAVEL_WALK_OFF_LEDGE]);
