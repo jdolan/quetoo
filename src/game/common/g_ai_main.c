@@ -754,7 +754,8 @@ static Vec3 G_Ai_PushApproach(const GameClient *cl, const GameEntity *ent, const
 
 /**
  * @return The aim of `G_Ai_PushApproach` at the jump pad or teleporter at the start of the AI's
- * current path link, if the link is too long to walk, and the trigger lies on it. If no pad lies on
+ * current path link, if the link is a jump pad link or too long to walk, and the trigger lies on
+ * it. A jump pad link MAY be short, as to a ledge above a vertical push. If no pad lies on
  * a jump pad link, it takes the nearest pad to its start that pushes along it, on the floor of the
  * start, because the game can link a pad from a node that lies to the side of the line to the
  * landing. Else, the given destination.
@@ -771,7 +772,11 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
 
   const Vec3 from = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
 
-  if (Vec2_Distance(Vec3_XY(from), Vec3_XY(goal->path.pathPosition)) < AI_PUSH_LINK_DISTANCE) {
+  const GameAiLink *pathLink = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                                                 VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
+  const bool pad = pathLink && pathLink->travelType == NAV_TRAVEL_JUMP_PAD;
+
+  if (!pad && Vec2_Distance(Vec3_XY(from), Vec3_XY(goal->path.pathPosition)) < AI_PUSH_LINK_DISTANCE) {
     return dest;
   }
 
@@ -780,10 +785,6 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
 
   Vec3 link = Vec3_Subtract(goal->path.pathPosition, from);
   link.z = 0.f;
-
-  const GameAiLink *pathLink = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
-                                                 VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
-  const bool pad = pathLink && pathLink->travelType == NAV_TRAVEL_JUMP_PAD;
 
   const GameEntity *nearest = NULL;
   float nearestDistance = FLT_MAX;
