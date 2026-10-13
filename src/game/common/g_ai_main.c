@@ -678,7 +678,10 @@ static bool G_Ai_IsOnLink(const Box3 bounds, const Vec3 a, const Vec3 b) {
 
 /**
  * @return The center of the jump pad or teleporter at the start of the AI's current path link, if
- * the link is too long to walk, and the trigger lies on it. Else, the given destination.
+ * the link is too long to walk, and the trigger lies on it. If no pad lies on a jump pad link, it
+ * takes the nearest pad to its start that pushes along it, on the floor of the start, because the
+ * game links each pad from the node nearest it, which can lie to the side of the line to the
+ * landing. Else, the given destination.
  * @remarks A path heads for the node at the far end of the link, and so it can run past the side
  * of a small jump pad, and off the edge.
  */
@@ -702,6 +705,13 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
   Vec3 link = Vec3_Subtract(goal->path.pathPosition, from);
   link.z = 0.f;
 
+  const GameAiLink *pathLink = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                                                 VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
+  const bool pad = pathLink && pathLink->travelType == NAV_TRAVEL_JUMP_PAD;
+
+  const GameEntity *nearest = NULL;
+  float nearestDistance = FLT_MAX;
+
   for (size_t i = 0; i < len; i++) {
 
     const GameEntity *ent = ents[i];
@@ -717,6 +727,16 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
       if (Vec3_Length(push) > .1f && Vec3_Dot(Vec3_Normalize(push), Vec3_Normalize(link)) < AI_PUSH_LINK_ALIGNMENT) {
         continue;
       }
+
+      if (pad && !G_Ai_IsOnLink(ent->absBounds, from, goal->path.pathPosition)) {
+        const Vec3 center = Box3_Center(ent->absBounds);
+        const float distance = Vec2_Distance(Vec3_XY(center), Vec3_XY(from));
+        if (fabsf(ent->absBounds.mins.z - (from.z + PM_BOUNDS.mins.z)) <= PM_STEP_HEIGHT * 2.f && distance < nearestDistance) {
+          nearestDistance = distance;
+          nearest = ent;
+        }
+        continue;
+      }
     } else if (Str_Compare(ent->classname, "misc_teleporter") && Str_Compare(ent->classname, "trigger_teleporter")) {
       continue;
     }
@@ -726,6 +746,11 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
     }
 
     const Vec3 center = Box3_Center(ent->absBounds);
+    return MakeVec3(center.x, center.y, from.z);
+  }
+
+  if (nearest) {
+    const Vec3 center = Box3_Center(nearest->absBounds);
     return MakeVec3(center.x, center.y, from.z);
   }
 
