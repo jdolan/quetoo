@@ -148,6 +148,11 @@
 #define NAV_DOOR_START_OPEN 0x1
 
 /**
+ * @brief The `func_rotating` spawn flags that turn it about a horizontal axis: x_axis and y_axis.
+ */
+#define NAV_ROTATING_HORIZONTAL 0xc
+
+/**
  * @brief The `func_wall` spawn flags: triggered, toggle and start on.
  */
 #define NAV_WALL_SPAWN_FLAGS 0x7
@@ -168,9 +173,20 @@ typedef enum {
 } NavSample;
 
 /**
- * @brief A closed door or a wall: an inline model, where it spawns.
+ * @brief A closed door, a wall or a rotating model: an inline model, where it spawns.
  */
 typedef struct {
+  /**
+   * @brief The index of the inline model.
+   */
+  int32_t model;
+
+  /**
+   * @brief True if the model's floors move with it, so that the nodes on them are linked only to
+   * each other, and the game links them to the rest as the model moves.
+   */
+  bool moves;
+
   /**
    * @brief The model's head node.
    */
@@ -211,6 +227,11 @@ static struct {
    */
   NavBarrier barriers[NAV_MAX_BARRIERS];
   int32_t numBarriers;
+
+  /**
+   * @brief The barrier whose model the last `Nav_Trace` hit first, or -1 for the world.
+   */
+  int32_t traceBarrier;
 } module;
 
 /**
@@ -283,6 +304,8 @@ static CollisionTrace Nav_Trace(const Vec3 start, const Vec3 end, const Box3 bou
 
   CollisionTrace trace = module.params->BoxTrace(start, end, bounds, 0, NAV_MASK);
 
+  module.traceBarrier = -1;
+
   const Box3 swept = Box3_Union(Box3_Translate(bounds, start), Box3_Translate(bounds, end));
 
   for (int32_t i = 0; i < module.numBarriers; i++) {
@@ -301,6 +324,7 @@ static CollisionTrace Nav_Trace(const Vec3 start, const Vec3 end, const Box3 bou
       const bool startSolid = trace.startSolid;
       trace = tr;
       trace.startSolid |= startSolid;
+      module.traceBarrier = i;
     } else if (tr.startSolid) {
       trace.startSolid = true;
     }
@@ -415,6 +439,8 @@ static NavSample Nav_SampleFloor(const Vec3 point, const Box3 footprint, NavNode
     return NAV_SAMPLE_NONE;
   }
 
+  const int32_t barrier = module.traceBarrier;
+
   const Vec3 normal = floor.plane.normal;
   const float lift = PM_BOUNDS.maxs.x * (fabsf(normal.x) + fabsf(normal.y)) / normal.z + 1.f;
   const float height = -PM_BOUNDS.mins.z;
@@ -440,6 +466,11 @@ static NavSample Nav_SampleFloor(const Vec3 point, const Box3 footprint, NavNode
 
   node->position = origin;
   node->contents = Nav_PointContents(origin) & CONTENTS_MASK_LIQUID;
+
+  if (barrier != -1 && module.barriers[barrier].moves) {
+    node->model = module.barriers[barrier].model;
+    node->local = Vec3_Subtract(origin, module.barriers[barrier].origin);
+  }
 
   return NAV_SAMPLE_NODE;
 }
@@ -547,6 +578,14 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
 }
 
 /**
+ * @return True if the last `Nav_Trace` hit a model that moves first, so that a floor that it found
+ * is only where the model spawned. A link between nodes that do not move MUST NOT stand on it.
+ */
+static bool Nav_TraceHitMover(void) {
+  return module.traceBarrier != -1 && module.barriers[module.traceBarrier].moves;
+}
+
+/**
  * @brief Moves the bounding box toward `target`, as Pmove would: up by `height`, across, and down
  * onto the floor.
  * @return True if the box arrives on a walkable floor.
@@ -605,7 +644,7 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin) {
         }
 
         const NavNode *node = &graph->nodes[graph->cellNodes[cell]];
-        if (fabsf(node->position.z - origin.z) > PM_STEP_HEIGHT) {
+        if (node->model || fabsf(node->position.z - origin.z) > PM_STEP_HEIGHT) {
           continue;
         }
 
@@ -668,6 +707,10 @@ static bool Nav_Walk(const NavNode *a, const NavNode *b, float *distance) {
       return false;
     }
 
+    if (!a->model && Nav_TraceHitMover()) {
+      return false;
+    }
+
     if (Nav_TouchesTrigger(Box3_Translate(bounds, next))) {
       return false;
     }
@@ -696,6 +739,10 @@ static bool Nav_BarrierJump(const NavNode *a, const NavNode *b, float *distance)
 
   Vec3 origin;
   if (!Nav_StepMove(a->position, b->position, PM_BOUNDS, module.barrierHeight, &origin)) {
+    return false;
+  }
+
+  if (!a->model && Nav_TraceHitMover()) {
     return false;
   }
 
@@ -735,6 +782,9 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
 
     Vec3 floor;
     if (Nav_Rest(origin, PM_STEP_HEIGHT + 1.f, bounds, &floor)) {
+      if (Nav_TraceHitMover()) {
+        return -1;
+      }
       origin = floor;
       continue;
     }
@@ -742,7 +792,7 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
     const Vec3 end = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), NAV_MAX_DROP));
     const CollisionTrace fall = Nav_Trace(origin, end, bounds);
 
-    if (fall.startSolid || fall.fraction == 1.f || fall.plane.normal.z < PM_STEP_NORMAL) {
+    if (fall.startSolid || fall.fraction == 1.f || fall.plane.normal.z < PM_STEP_NORMAL || Nav_TraceHitMover()) {
       return -1;
     }
 
@@ -801,6 +851,10 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
       break;
     }
 
+    if (Nav_TraceHitMover()) {
+      return false;
+    }
+
     steps[numSteps++] = next;
   }
 
@@ -840,7 +894,7 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
       }
 
       Vec3 floor;
-      if (!Nav_Rest(origin, origin.z - b->position.z + PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &floor)) {
+      if (!Nav_Rest(origin, origin.z - b->position.z + PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &floor) || Nav_TraceHitMover()) {
         return false;
       }
 
@@ -894,7 +948,7 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
       }
 
       const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
-      if (other == node || other->crouch || (other->contents & CONTENTS_WATER)) {
+      if (other == node || other->model || other->crouch || (other->contents & CONTENTS_WATER)) {
         continue;
       }
 
@@ -958,7 +1012,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
-        if (!(other->contents & CONTENTS_WATER) || other->crouch || node->crouch) {
+        if (!(other->contents & CONTENTS_WATER) || other->model || other->crouch || node->crouch) {
           continue;
         }
 
@@ -996,7 +1050,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
-        if ((other->contents & CONTENTS_WATER) || other->crouch || other->position.z <= surface.z) {
+        if ((other->contents & CONTENTS_WATER) || other->model || other->crouch || other->position.z <= surface.z) {
           continue;
         }
 
@@ -1018,7 +1072,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
 
 /**
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
- * across gaps where no walk exists.
+ * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the same
+ * model, and the game links it to the rest as the model moves.
  * @return The count of links written to `links`.
  */
 static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
@@ -1046,6 +1101,10 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       const int32_t target = graph->cellNodes[cell];
       const NavNode *other = &graph->nodes[target];
 
+      if (other->model != node->model) {
+        continue;
+      }
+
       float distance;
       if (Nav_Walk(node, other, &distance)) {
         const bool crouch = node->crouch || other->crouch;
@@ -1062,7 +1121,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       }
     }
 
-    if (walked) {
+    if (walked || node->model) {
       continue;
     }
 
@@ -1080,7 +1139,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     }
   }
 
-  if (node->contents & CONTENTS_WATER) {
+  if ((node->contents & CONTENTS_WATER) && !node->model) {
     Nav_LinkSwims(index, links, &numLinks);
   }
 
@@ -1162,12 +1221,16 @@ static bool Nav_EntityHas(const Entity *entity, const char *key) {
 
 /**
  * @brief Gathers the level's `trigger_hurt` and `trigger_push` entities, and the doors that a bot
- * cannot open by walking up to them, and the walls, from the inline models of the BSP.
+ * cannot open by walking up to them, the walls and the rotating models, from the inline models of
+ * the BSP.
  * @details A player touches a trigger where their bounds intersect, as `G_TouchOccupy` does, so
  * that is where no node may stand and no walk may pass. A jump pad's own link starts at the
  * nearest node beside it. A door with `health` or a `targetname` opens when shot or triggered, and
  * has no trigger that opens it for a player who walks up to it (`G_func_door`). A door that spawns
- * open is not a barrier. A wall is solid where it spawns so (`G_func_wall`).
+ * open is not a barrier. A wall is solid where it spawns so (`G_func_wall`). A rotating door, and a
+ * `func_rotating` that turns about the vertical axis, carry their floors with them, so their nodes
+ * move with them. A `func_rotating` that turns about a horizontal axis is taken to be a smooth
+ * wheel, whose top stays where it spawns.
  */
 static void Nav_InitModels(void) {
 
@@ -1196,13 +1259,17 @@ static void Nav_InitModels(void) {
       continue;
     }
 
-    bool barrier = false;
+    bool barrier = false, moves = false;
 
     if (!Str_Compare(classname, "func_door") || !Str_Compare(classname, "func_door_rotating")) {
       const bool closed = !(spawnFlags & NAV_DOOR_START_OPEN);
       barrier = closed && (Nav_EntityInteger(model->entity, "health") || Nav_EntityHas(model->entity, "targetname"));
+      moves = !Str_Compare(classname, "func_door_rotating");
     } else if (!Str_Compare(classname, "func_wall")) {
       barrier = (spawnFlags & NAV_WALL_SPAWN_FLAGS) == 0 || (spawnFlags & NAV_WALL_START_ON);
+    } else if (!Str_Compare(classname, "func_rotating")) {
+      barrier = true;
+      moves = !(spawnFlags & NAV_ROTATING_HORIZONTAL);
     }
 
     if (!barrier) {
@@ -1210,11 +1277,13 @@ static void Nav_InitModels(void) {
     }
 
     if (module.numBarriers == NAV_MAX_BARRIERS) {
-      module.params->Warn(__func__, "More than %d closed doors and walls; bots may path through the rest\n", NAV_MAX_BARRIERS);
+      module.params->Warn(__func__, "More than %d closed doors, walls and rotating models; bots may path through the rest\n", NAV_MAX_BARRIERS);
       continue;
     }
 
     module.barriers[module.numBarriers++] = (NavBarrier) {
+      .model = i,
+      .moves = moves,
       .headNode = model->headNode,
       .origin = origin,
       .bounds = bounds

@@ -115,6 +115,18 @@ typedef struct {
   bool crouch;
 
   /**
+   * @brief The inline model that the node stands on and that moves it, or 0 for a node that does
+   * not move.
+   */
+  int32_t model;
+
+  /**
+   * @brief The node's position in the space of `model`, by which the game and the client game move
+   * it with the model's entity.
+   */
+  Vec3 local;
+
+  /**
    * @brief The index of the node's first link in `NavGraph::links`.
    */
   int32_t firstLink;
