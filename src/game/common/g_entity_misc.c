@@ -179,7 +179,7 @@ static void G_misc_teleporter_Think(GameEntity *ent) {
     G_Ai_Node_Link(srcNode, newNode, Vec3_Distance(G_Ai_Node_GetPosition(srcNode), origin));
 
     // small cost for teleport node
-    G_Ai_Node_LinkTravel(newNode, dstNode, 1.f, AI_TRAVEL_TELEPORT);
+    G_Ai_Node_LinkTravel(newNode, dstNode, 1.f, NAV_TRAVEL_TELEPORT);
 
     ent->node = srcNode;
   }

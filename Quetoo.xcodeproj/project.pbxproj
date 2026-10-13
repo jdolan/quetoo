@@ -59,6 +59,18 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		AA5E00000000000000000023 /* cg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000022 /* cg_nav.h */; };
+		AA5E00000000000000000024 /* cg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000022 /* cg_nav.h */; };
+		AA5E00000000000000000025 /* cg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000022 /* cg_nav.h */; };
+		AA5E00000000000000000026 /* cg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000022 /* cg_nav.h */; };
+		AA5E00000000000000000027 /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
+		AA5E00000000000000000028 /* cg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000021 /* cg_nav.c */; };
+		AA5E00000000000000000029 /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
+		AA5E0000000000000000002A /* cg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000021 /* cg_nav.c */; };
+		AA5E0000000000000000002B /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
+		AA5E0000000000000000002C /* cg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000021 /* cg_nav.c */; };
+		AA5E0000000000000000002D /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
+		AA5E0000000000000000002E /* cg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000021 /* cg_nav.c */; };
 		0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */; };
 		00FE572C5C861491D333D0DC /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
 		01209575888A584DAE8F7D25 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
@@ -271,7 +283,7 @@
 		CE05B28E3022486E0012862B /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F527BDA2AE003D56AC /* g_ai_main.c */; };
 		CE05B28F3022486E0012862B /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
 		AA5E00000000000000000003 /* g_ai_state.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000001 /* g_ai_state.c */; };
-		AA5E00000000000000000013 /* g_ai_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* g_ai_nav.c */; };
+		AA5E00000000000000000013 /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
 		CE05B2903022486E0012862B /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
 		CE05B2913022486E0012862B /* g_client_chase.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */; };
 		CE05B2923022486E0012862B /* g_client_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D64F1C5C58C300CD0B13 /* g_client_view.c */; };
@@ -306,7 +318,7 @@
 		CE05B2B33022486E0012862B /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		CE05B2B43022486E0012862B /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		AA5E00000000000000000004 /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
-		AA5E00000000000000000014 /* g_ai_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* g_ai_nav.h */; };
+		AA5E00000000000000000014 /* bg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* bg_nav.h */; };
 		CE05B2B53022486E0012862B /* g_ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F627BDA2AE003D56AC /* g_ai_types.h */; };
 		CE05B2B63022486E0012862B /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6481C5C58C300CD0B13 /* g_ballistics.h */; };
 		CE05B2B73022486E0012862B /* g_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D64A1C5C58C300CD0B13 /* g_client.h */; };
@@ -543,10 +555,10 @@
 		CE27EA0227BDA2AF003D56AC /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		CE27EA0327BDA2AF003D56AC /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
 		AA5E00000000000000000005 /* g_ai_state.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000001 /* g_ai_state.c */; };
-		AA5E00000000000000000015 /* g_ai_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* g_ai_nav.c */; };
+		AA5E00000000000000000015 /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
 		CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		AA5E00000000000000000006 /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
-		AA5E00000000000000000016 /* g_ai_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* g_ai_nav.h */; };
+		AA5E00000000000000000016 /* bg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* bg_nav.h */; };
 		CE27EA0527BDA2AF003D56AC /* g_ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */; };
 		CE27EA0627BDA2AF003D56AC /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */; };
 		CE2B082223F9EB7A007C77B6 /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
@@ -927,7 +939,7 @@
 		CEC0FF0020260103000000F3 /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F527BDA2AE003D56AC /* g_ai_main.c */; };
 		CEC0FF0020260103000000F4 /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
 		AA5E00000000000000000007 /* g_ai_state.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000001 /* g_ai_state.c */; };
-		AA5E00000000000000000017 /* g_ai_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* g_ai_nav.c */; };
+		AA5E00000000000000000017 /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
 		CEC0FF0020260103000000F5 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
 		CEC0FF0020260103000000F6 /* g_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6491C5C58C300CD0B13 /* g_client.c */; };
 		CEC0FF0020260103000000F7 /* g_client_chase.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */; };
@@ -958,7 +970,7 @@
 		CEC0FF00202601030000010F /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		CEC0FF002026010300000110 /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		AA5E00000000000000000008 /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
-		AA5E00000000000000000018 /* g_ai_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* g_ai_nav.h */; };
+		AA5E00000000000000000018 /* bg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* bg_nav.h */; };
 		CEC0FF002026010300000111 /* g_ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F627BDA2AE003D56AC /* g_ai_types.h */; };
 		CEC0FF002026010300000112 /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6481C5C58C300CD0B13 /* g_ballistics.h */; };
 		CEC0FF002026010300000113 /* g_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D64A1C5C58C300CD0B13 /* g_client.h */; };
@@ -1257,7 +1269,7 @@
 		D2A5C1000000000000000016 /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F527BDA2AE003D56AC /* g_ai_main.c */; };
 		D2A5C1000000000000000017 /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
 		AA5E00000000000000000009 /* g_ai_state.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000001 /* g_ai_state.c */; };
-		AA5E00000000000000000019 /* g_ai_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* g_ai_nav.c */; };
+		AA5E00000000000000000019 /* bg_nav.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000011 /* bg_nav.c */; };
 		D2A5C1000000000000000018 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
 		D2A5C1000000000000000019 /* g_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6491C5C58C300CD0B13 /* g_client.c */; };
 		D2A5C100000000000000001A /* g_client_chase.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */; };
@@ -1297,7 +1309,7 @@
 		D2A5C100000000000000003B /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		D2A5C100000000000000003C /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		AA5E0000000000000000000A /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
-		AA5E0000000000000000001A /* g_ai_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* g_ai_nav.h */; };
+		AA5E0000000000000000001A /* bg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* bg_nav.h */; };
 		D2A5C100000000000000003D /* g_ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F627BDA2AE003D56AC /* g_ai_types.h */; };
 		D2A5C100000000000000003E /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6481C5C58C300CD0B13 /* g_ballistics.h */; };
 		D2A5C100000000000000003F /* g_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D64A1C5C58C300CD0B13 /* g_client.h */; };
@@ -2375,7 +2387,9 @@
 		CE12D5721C5C58C300CD0D03 /* cg_tech.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_tech.c; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0D04 /* cg_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_tech.h; sourceTree = "<group>"; };
 		CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_muzzle_flash.c; sourceTree = "<group>"; };
+		AA5E00000000000000000021 /* cg_nav.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_nav.c; sourceTree = "<group>"; };
 		CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_muzzle_flash.h; sourceTree = "<group>"; };
+		AA5E00000000000000000022 /* cg_nav.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_nav.h; sourceTree = "<group>"; };
 		CE12D5771C5C58C300CD0B13 /* cg_predict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_predict.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5781C5C58C300CD0B13 /* cg_predict.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_predict.h; sourceTree = "<group>"; };
 		CE12D5791C5C58C300CD0B13 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
@@ -2736,10 +2750,10 @@
 		CE27E9F727BDA2AE003D56AC /* g_ai_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_main.h; sourceTree = "<group>"; };
 		CE27E9F827BDA2AE003D56AC /* g_ai_node.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_node.c; sourceTree = "<group>"; };
 		AA5E00000000000000000001 /* g_ai_state.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_state.c; sourceTree = "<group>"; };
-		AA5E00000000000000000011 /* g_ai_nav.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_nav.c; sourceTree = "<group>"; };
+		AA5E00000000000000000011 /* bg_nav.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bg_nav.c; sourceTree = "<group>"; };
 		CE27E9F927BDA2AE003D56AC /* g_ai_node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_node.h; sourceTree = "<group>"; };
 		AA5E00000000000000000002 /* g_ai_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_state.h; sourceTree = "<group>"; };
-		AA5E00000000000000000012 /* g_ai_nav.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_nav.h; sourceTree = "<group>"; };
+		AA5E00000000000000000012 /* bg_nav.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bg_nav.h; sourceTree = "<group>"; };
 		CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_item.h; sourceTree = "<group>"; };
 		CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_info.h; sourceTree = "<group>"; };
 		CE2CEB9125852E110001E599 /* r_depth_pass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_depth_pass.h; sourceTree = "<group>"; };
@@ -4982,7 +4996,9 @@
 				CE12D5711C5C58C300CD0B13 /* cg_media.c */,
 				CE12D5721C5C58C300CD0C21 /* cg_module.h */,
 				CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */,
+				AA5E00000000000000000022 /* cg_nav.h */,
 				CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */,
+				AA5E00000000000000000021 /* cg_nav.c */,
 				F1709306B7EECB871EDD5BE3 /* cg_portal.h */,
 				E960839170EAFC21DD702B32 /* cg_portal.c */,
 				CE12D5781C5C58C300CD0B13 /* cg_predict.h */,
@@ -5040,9 +5056,9 @@
 				CE27E9F927BDA2AE003D56AC /* g_ai_node.h */,
 				CE27E9F827BDA2AE003D56AC /* g_ai_node.c */,
 				AA5E00000000000000000002 /* g_ai_state.h */,
-				AA5E00000000000000000012 /* g_ai_nav.h */,
+				AA5E00000000000000000012 /* bg_nav.h */,
 				AA5E00000000000000000001 /* g_ai_state.c */,
-				AA5E00000000000000000011 /* g_ai_nav.c */,
+				AA5E00000000000000000011 /* bg_nav.c */,
 				CE27E9F627BDA2AE003D56AC /* g_ai_types.h */,
 				CE12D6481C5C58C300CD0B13 /* g_ballistics.h */,
 				CE12D6471C5C58C300CD0B13 /* g_ballistics.c */,
@@ -5250,7 +5266,7 @@
 				CE05B2B33022486E0012862B /* g_ai_main.h in Headers */,
 				CE05B2B43022486E0012862B /* g_ai_node.h in Headers */,
 				AA5E00000000000000000004 /* g_ai_state.h in Headers */,
-				AA5E00000000000000000014 /* g_ai_nav.h in Headers */,
+				AA5E00000000000000000014 /* bg_nav.h in Headers */,
 				CE05B2B53022486E0012862B /* g_ai_types.h in Headers */,
 				CE05B2B63022486E0012862B /* g_ballistics.h in Headers */,
 				CE05B2B73022486E0012862B /* g_client.h in Headers */,
@@ -5306,6 +5322,7 @@
 				CE05B3F030224900C0DEAD04 /* cg_tech.h in Headers */,
 				CE05B3F030224900C0DEAC21 /* cg_module.h in Headers */,
 				CE05B3F030224900C0DE0051 /* cg_muzzle_flash.h in Headers */,
+				AA5E00000000000000000023 /* cg_nav.h in Headers */,
 				CE05B3F030224900C0DE0052 /* cg_predict.h in Headers */,
 				CE05B3F030224900C0DE0053 /* cg_score.h in Headers */,
 				CE05B3F030224900C0DE0054 /* cg_sound.h in Headers */,
@@ -5330,7 +5347,7 @@
 				CE27EA0227BDA2AF003D56AC /* g_ai_main.h in Headers */,
 				CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */,
 				AA5E00000000000000000006 /* g_ai_state.h in Headers */,
-				AA5E00000000000000000016 /* g_ai_nav.h in Headers */,
+				AA5E00000000000000000016 /* bg_nav.h in Headers */,
 				CE27EA0127BDA2AF003D56AC /* g_ai_types.h in Headers */,
 				CE80FE7E1C5E442700A21A51 /* g_ballistics.h in Headers */,
 				CE80FE7F1C5E442700A21A51 /* g_client.h in Headers */,
@@ -5381,6 +5398,7 @@
 				CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */,
 				CE80FE9F1C5E445500A2AC21 /* cg_module.h in Headers */,
 				CE80FEA01C5E445500A21A51 /* cg_muzzle_flash.h in Headers */,
+				AA5E00000000000000000024 /* cg_nav.h in Headers */,
 				CE80FEA21C5E445500A21A51 /* cg_predict.h in Headers */,
 				CE80FEA31C5E445500A21A51 /* cg_score.h in Headers */,
 				CEBDD1B625A0C2710055860E /* cg_sound.h in Headers */,
@@ -5577,7 +5595,7 @@
 				CEC0FF00202601030000010F /* g_ai_main.h in Headers */,
 				CEC0FF002026010300000110 /* g_ai_node.h in Headers */,
 				AA5E00000000000000000008 /* g_ai_state.h in Headers */,
-				AA5E00000000000000000018 /* g_ai_nav.h in Headers */,
+				AA5E00000000000000000018 /* bg_nav.h in Headers */,
 				CEC0FF002026010300000111 /* g_ai_types.h in Headers */,
 				CEC0FF002026010300000112 /* g_ballistics.h in Headers */,
 				CEC0FF002026010300000113 /* g_client.h in Headers */,
@@ -5635,6 +5653,7 @@
 				CEC0FF0020260103000AD02 /* cg_ctf.h in Headers */,
 				CEC0FF002026010300000AC2 /* cg_module.h in Headers */,
 				CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */,
+				AA5E00000000000000000025 /* cg_nav.h in Headers */,
 				CEC0FF00202601030000020C /* cg_predict.h in Headers */,
 				CEC0FD002026010500000008 /* cg_score.h in Headers */,
 				CEC0FF00202601030000020E /* cg_sound.h in Headers */,
@@ -5719,7 +5738,7 @@
 				D2A5C100000000000000003B /* g_ai_main.h in Headers */,
 				D2A5C100000000000000003C /* g_ai_node.h in Headers */,
 				AA5E0000000000000000000A /* g_ai_state.h in Headers */,
-				AA5E0000000000000000001A /* g_ai_nav.h in Headers */,
+				AA5E0000000000000000001A /* bg_nav.h in Headers */,
 				D2A5C100000000000000003D /* g_ai_types.h in Headers */,
 				D2A5C100000000000000003E /* g_ballistics.h in Headers */,
 				D2A5C100000000000000003F /* g_client.h in Headers */,
@@ -5773,6 +5792,7 @@
 				D2A5C10000000000000000BA /* cg_media.h in Headers */,
 				D2A5C10000000000000000BB /* cg_module.h in Headers */,
 				D2A5C10000000000000000BC /* cg_muzzle_flash.h in Headers */,
+				AA5E00000000000000000026 /* cg_nav.h in Headers */,
 				D2A5C10000000000000000BD /* cg_predict.h in Headers */,
 				D2A5C10000000000000000BE /* cg_score.h in Headers */,
 				D2A5C10000000000000000BF /* cg_sound.h in Headers */,
@@ -6823,7 +6843,7 @@
 				CE05B28E3022486E0012862B /* g_ai_main.c in Sources */,
 				CE05B28F3022486E0012862B /* g_ai_node.c in Sources */,
 				AA5E00000000000000000003 /* g_ai_state.c in Sources */,
-				AA5E00000000000000000013 /* g_ai_nav.c in Sources */,
+				AA5E00000000000000000013 /* bg_nav.c in Sources */,
 				CE05B2903022486E0012862B /* g_ballistics.c in Sources */,
 				CE05B2A03022486E0012862B /* g_client.c in Sources */,
 				CE05B2913022486E0012862B /* g_client_chase.c in Sources */,
@@ -6930,6 +6950,7 @@
 				CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */,
 				CE05B3F030224900C0DE0001 /* bg_item.c in Sources */,
 				CE05B3F030224900C0DE0002 /* bg_pmove.c in Sources */,
+				AA5E00000000000000000027 /* bg_nav.c in Sources */,
 				D3A5C100000000000000002B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000002B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000002B /* bg_pmove_quake2.c in Sources */,
@@ -6955,6 +6976,7 @@
 				CE05B3F030224900C0DE0014 /* cg_media.c in Sources */,
 				CE05B3F030224900C0DEAD03 /* cg_tech.c in Sources */,
 				CE05B3F030224900C0DE0015 /* cg_muzzle_flash.c in Sources */,
+				AA5E00000000000000000028 /* cg_nav.c in Sources */,
 				CE05B3F030224900C0DE0016 /* cg_predict.c in Sources */,
 				CE05B3F030224900C0DE0017 /* cg_score.c in Sources */,
 				D1A5B0000000000000000202 /* cg_vote.c in Sources */,
@@ -6996,7 +7018,7 @@
 				CE27EA0027BDA2AE003D56AC /* g_ai_main.c in Sources */,
 				CE27EA0327BDA2AF003D56AC /* g_ai_node.c in Sources */,
 				AA5E00000000000000000005 /* g_ai_state.c in Sources */,
-				AA5E00000000000000000015 /* g_ai_nav.c in Sources */,
+				AA5E00000000000000000015 /* bg_nav.c in Sources */,
 				CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */,
 				CE12D7D41C5C5D6A00CD0B13 /* g_client.c in Sources */,
 				CE12D7D51C5C5D6A00CD0B13 /* g_client_chase.c in Sources */,
@@ -7101,6 +7123,7 @@
 				CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000004 /* bg_item.c in Sources */,
 				CEFEED000000000000000002 /* bg_pmove.c in Sources */,
+				AA5E00000000000000000029 /* bg_nav.c in Sources */,
 				D3A5C100000000000000006B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000006B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000006B /* bg_pmove_quake2.c in Sources */,
@@ -7125,6 +7148,7 @@
 				CE12D7F71C5C5E0200CD0B13 /* cg_main.c in Sources */,
 				CE12D7F81C5C5E0200CD0B13 /* cg_media.c in Sources */,
 				CE12D7F91C5C5E0200CD0B13 /* cg_muzzle_flash.c in Sources */,
+				AA5E0000000000000000002A /* cg_nav.c in Sources */,
 				CE12D7FB1C5C5E0200CD0B13 /* cg_predict.c in Sources */,
 				CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */,
 				D1A5B0000000000000000203 /* cg_vote.c in Sources */,
@@ -7477,7 +7501,7 @@
 				CEC0FF0020260103000000F3 /* g_ai_main.c in Sources */,
 				CEC0FF0020260103000000F4 /* g_ai_node.c in Sources */,
 				AA5E00000000000000000007 /* g_ai_state.c in Sources */,
-				AA5E00000000000000000017 /* g_ai_nav.c in Sources */,
+				AA5E00000000000000000017 /* bg_nav.c in Sources */,
 				CEC0FF0020260103000000F5 /* g_ballistics.c in Sources */,
 				CEC0FF0020260103000000F6 /* g_client.c in Sources */,
 				CEC0FF0020260103000000F7 /* g_client_chase.c in Sources */,
@@ -7585,6 +7609,7 @@
 				CEC0FF00202601030000019F /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000005 /* bg_item.c in Sources */,
 				CEFEED000000000000000003 /* bg_pmove.c in Sources */,
+				AA5E0000000000000000002B /* bg_nav.c in Sources */,
 				D3A5C100000000000000007B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000007B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000007B /* bg_pmove_quake2.c in Sources */,
@@ -7611,6 +7636,7 @@
 				CEC0FF0020260103000AD03 /* cg_tech.c in Sources */,
 				CEC0FF0020260103000AD01 /* cg_ctf.c in Sources */,
 				CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */,
+				AA5E0000000000000000002C /* cg_nav.c in Sources */,
 				CEC0FF0020260103000001F1 /* cg_predict.c in Sources */,
 				CEC0FD002026010500000006 /* cg_score.c in Sources */,
 				D1A5B0000000000000000204 /* cg_vote.c in Sources */,
@@ -7701,7 +7727,7 @@
 				D2A5C1000000000000000016 /* g_ai_main.c in Sources */,
 				D2A5C1000000000000000017 /* g_ai_node.c in Sources */,
 				AA5E00000000000000000009 /* g_ai_state.c in Sources */,
-				AA5E00000000000000000019 /* g_ai_nav.c in Sources */,
+				AA5E00000000000000000019 /* bg_nav.c in Sources */,
 				D2A5C1000000000000000018 /* g_ballistics.c in Sources */,
 				D2A5C1000000000000000019 /* g_client.c in Sources */,
 				D2A5C100000000000000001A /* g_client_chase.c in Sources */,
@@ -7811,6 +7837,7 @@
 				D2A5C1000000000000000084 /* UpdateViewController.c in Sources */,
 				D2A5C1000000000000000085 /* bg_item.c in Sources */,
 				D2A5C1000000000000000086 /* bg_pmove.c in Sources */,
+				AA5E0000000000000000002D /* bg_nav.c in Sources */,
 				D3A5C100000000000000003B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000003B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000003B /* bg_pmove_quake2.c in Sources */,
@@ -7835,6 +7862,7 @@
 				D2A5C1000000000000000096 /* cg_main.c in Sources */,
 				D2A5C1000000000000000097 /* cg_media.c in Sources */,
 				D2A5C1000000000000000098 /* cg_muzzle_flash.c in Sources */,
+				AA5E0000000000000000002E /* cg_nav.c in Sources */,
 				D2A5C1000000000000000099 /* cg_predict.c in Sources */,
 				D2A5C100000000000000009A /* cg_score.c in Sources */,
 				D2A5C100000000000000009B /* cg_vote.c in Sources */,

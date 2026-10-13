@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 45
+#define GAME_API_VERSION 46
 
 /**
  * @brief Server flags for `GameEntity`.
@@ -650,6 +650,20 @@ typedef struct {
    * the trace intersected a plane.
    */
   CollisionTrace (*Clip)(const Vec3 start, const Vec3 end, const Box3 bounds, const GameEntity *ent, int32_t contents);
+
+  /**
+   * @brief Collision detection against a BSP head node alone, such as the world's, 0, or an inline
+   * model's where it spawns. No entity clips the trace.
+   *
+   * @param start The start point.
+   * @param end The end point.
+   * @param bounds The bounding box (`Box3_Zero()` for a line trace).
+   * @param headNode The head node to trace against.
+   * @param contents The contents mask to intersect with.
+   *
+   * @return The resulting trace.
+   */
+  CollisionTrace (*BoxTrace)(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode, int32_t contents);
 
   /**
    * @brief Set the model of a given entity by name.

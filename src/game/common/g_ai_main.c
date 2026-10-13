@@ -23,7 +23,6 @@
 #include "bg_pmove.h"
 
 Cvar *g_aiNoTarget;
-Cvar *g_aiDrawNodes;
 
 /**
  * @brief Minimum weapon priority to be considered "armed" for combat.
@@ -1034,7 +1033,7 @@ static bool G_Ai_IsPushedOffNode(const GameClient *cl, const GameAiGoal *goal, c
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index),
                                              VectorValue(path, GameAiNodeId, index + 1));
 
-  if (!link || link->travelType != AI_TRAVEL_JUMP_PAD) {
+  if (!link || link->travelType != NAV_TRAVEL_JUMP_PAD) {
     return false;
   }
 
@@ -1215,7 +1214,7 @@ static bool G_Ai_ShouldBarrierJump(const GameClient *cl) {
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
                                              VectorValue(path, GameAiNodeId, index));
 
-  if (!link || link->travelType != AI_TRAVEL_BARRIER_JUMP) {
+  if (!link || link->travelType != NAV_TRAVEL_BARRIER_JUMP) {
     return false;
   }
 
@@ -1294,7 +1293,7 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
 
   const GameAiLink *link = G_Ai_PathLink(cl);
 
-  if (!link || link->travelType < AI_TRAVEL_WALK || link->travelType > AI_TRAVEL_BARRIER_JUMP) {
+  if (!link || link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) {
     return false;
   }
 
@@ -1433,7 +1432,7 @@ static bool G_Ai_IsRunLink(const Vector *path, const uint32_t index) {
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
                                              VectorValue(path, GameAiNodeId, index));
 
-  return link && (link->travelType == 0 || link->travelType == AI_TRAVEL_WALK);
+  return link && (link->travelType == 0 || link->travelType == NAV_TRAVEL_WALK);
 }
 
 /**
@@ -1968,7 +1967,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     // we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
     // running off the edge, transition to walking so we don't overshoot targets beneath us
     } else if (!swimming && cl->ai->moveTarget.path.pathIndex > 0 &&
-               ((G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == AI_TRAVEL_WALK_OFF_LEDGE) ||
+               ((G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_WALK_OFF_LEDGE) ||
                G_Ai_ShouldSlowDrop(
                  VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex - 1),
                  VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex)))) {
@@ -2070,12 +2069,12 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           cmd->right = -cmd->right; // stop for now
           G_Ai_Debug("Stopping early to prevent mover issues\n");
         // a ledge link drops from one place, if the fall lands where the link does
-        } else if (travelType == AI_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
+        } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
                    G_Ai_SimulateMove(cl, cl->ai->moveTarget.path.pathPosition, false)) {
           G_Ai_Debug("Walking off a ledge to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
         // walk links, and the links that the game adds to them, have floor all the way, so an edge
         // anywhere else means that we are off the path
-        } else if (!toPush && travelType <= AI_TRAVEL_BARRIER_JUMP) {
+        } else if (!toPush && travelType <= NAV_TRAVEL_BARRIER_JUMP) {
           cmd->forward = -cmd->forward;
           cmd->right = -cmd->right;
           G_Ai_ReturnToPath(cl);
@@ -2712,7 +2711,6 @@ static void G_Ai_Add_f(void) {
 void G_Ai_Init(void) {
 
   g_aiNoTarget = gi.AddCvar("g_aiNoTarget", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
-  g_aiDrawNodes = gi.AddCvar("g_aiDrawNodes", "0", CVAR_DEVELOPER, "Draws the navigation nodes near the first player, their links, and the bots' paths.");
 
   gi.AddCmd("addAi", G_Ai_Add_f, CMD_GAME, "Add a bot from the roster, with optional skill, aggression and awareness");
 

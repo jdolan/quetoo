@@ -21,7 +21,8 @@
 
 #pragma once
 
-#if defined(__G_LOCAL_H__)
+#include "shared/shared.h"
+#include "collision/cm_types.h"
 
 /**
  * @brief How a bot travels a link. The names follow the Quake III AAS travel types.
@@ -30,57 +31,57 @@ typedef enum {
   /**
    * @brief A link that the game made to a node of its own, such as an item's.
    */
-  AI_TRAVEL_NONE,
+  NAV_TRAVEL_NONE,
 
   /**
    * @brief Walk to the target, stepping up or down at most `PM_STEP_HEIGHT`.
    */
-  AI_TRAVEL_WALK,
+  NAV_TRAVEL_WALK,
 
   /**
    * @brief Walk to the target while crouched, beneath a low ceiling.
    */
-  AI_TRAVEL_CROUCH,
+  NAV_TRAVEL_CROUCH,
 
   /**
    * @brief Walk off a ledge and fall to the target.
    */
-  AI_TRAVEL_WALK_OFF_LEDGE,
+  NAV_TRAVEL_WALK_OFF_LEDGE,
 
   /**
    * @brief Jump straight up onto a ledge that is too high to step onto.
    */
-  AI_TRAVEL_BARRIER_JUMP,
+  NAV_TRAVEL_BARRIER_JUMP,
 
   /**
    * @brief Touch a teleporter.
    */
-  AI_TRAVEL_TELEPORT,
+  NAV_TRAVEL_TELEPORT,
 
   /**
    * @brief Ride a `trigger_push`.
    */
-  AI_TRAVEL_JUMP_PAD,
+  NAV_TRAVEL_JUMP_PAD,
 
   /**
    * @brief Ride a `func_plat` up.
    */
-  AI_TRAVEL_ELEVATOR,
-} GameAiTravelType;
+  NAV_TRAVEL_ELEVATOR,
+} NavTravelType;
 
 /**
  * @brief The width of a navigation cell, in units. Each cell has one node at most.
  */
-#define AI_NAV_CELL_SIZE 64.f
+#define NAV_CELL_SIZE 64.f
 
 /**
  * @brief The height of a navigation cell, in units, so that floors this far apart have their own
  * nodes.
  */
-#define AI_NAV_CELL_HEIGHT 32.f
+#define NAV_CELL_HEIGHT 32.f
 
 /**
- * @brief A node of the graph that `G_Ai_Nav_Build` makes.
+ * @brief A node of the graph that `Nav_Build` makes.
  */
 typedef struct {
   /**
@@ -104,7 +105,7 @@ typedef struct {
   bool crouch;
 
   /**
-   * @brief The index of the node's first link in `GameAiNavGraph::links`.
+   * @brief The index of the node's first link in `NavGraph::links`.
    */
   int32_t firstLink;
 
@@ -112,10 +113,10 @@ typedef struct {
    * @brief The count of the node's links.
    */
   int32_t numLinks;
-} GameAiNavNode;
+} NavNode;
 
 /**
- * @brief A link of the graph that `G_Ai_Nav_Build` makes.
+ * @brief A link of the graph that `Nav_Build` makes.
  */
 typedef struct {
   /**
@@ -124,15 +125,15 @@ typedef struct {
   int32_t node;
 
   /**
-   * @brief The `GameAiTravelType`.
+   * @brief The `NavTravelType`.
    */
-  GameAiTravelType travelType;
+  NavTravelType travelType;
 
   /**
    * @brief The time to travel the link, in hundredths of a second.
    */
   int32_t travelTime;
-} GameAiNavLink;
+} NavLink;
 
 /**
  * @brief The navigation graph of the level.
@@ -153,34 +154,94 @@ typedef struct {
    */
   int32_t numCells;
 
-  GameAiNavNode *nodes;
+  NavNode *nodes;
   int32_t numNodes;
 
-  GameAiNavLink *links;
+  NavLink *links;
   int32_t numLinks;
 
   /**
    * @brief The node on the floor of each cell, or -1.
    */
   int32_t *cellNodes;
-} GameAiNavGraph;
+
+  /**
+   * @brief The count of nodes found at an offset from their cell's center.
+   */
+  int32_t numOffset;
+
+  /**
+   * @brief The count of floors with no room for a player.
+   */
+  int32_t numNoFit;
+
+  /**
+   * @brief The count of floors in a `trigger_hurt` or a `trigger_push`.
+   */
+  int32_t numTrigger;
+
+  /**
+   * @brief The count of links of each `NavTravelType`.
+   */
+  int32_t numTravel[NAV_TRAVEL_ELEVATOR + 1];
+} NavGraph;
 
 /**
- * @brief Makes the level's navigation graph from its collision model: a node on each floor that a
+ * @brief What `Nav_Build` needs from the game or the client game. The graph depends on the BSP and
+ * its entities alone, so that both build the same graph.
+ */
+typedef struct {
+  /**
+   * @brief The level's collision model.
+   */
+  const CollisionBsp *bsp;
+
+  /**
+   * @brief The level's gravity.
+   */
+  float gravity;
+
+  /**
+   * @brief Traces a box against the given BSP head node.
+   */
+  CollisionTrace (*BoxTrace)(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode, int32_t contents);
+
+  /**
+   * @return True if `point` is inside `brush`.
+   */
+  bool (*PointInsideBrush)(const Vec3 point, const CollisionBrush *brush);
+
+  /**
+   * @return The value of the entity's key.
+   */
+  const Entity *(*EntityValue)(const Entity *entity, const char *key);
+
+  /**
+   * @brief Prints a warning.
+   */
+  void (*Warn)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+
+  /**
+   * @brief Aborts with an error.
+   */
+  void (*Error)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+} NavParams;
+
+/**
+ * @brief Makes the level's navigation graph from its collision model and entities: a node on each floor that a
  * player fits on in each cell, and walk, crouch, barrier jump and walk-off-ledge links between them.
  * @return True if the graph has at least one node.
- * @remarks The caller MUST free the graph with `G_Ai_Nav_Free`.
+ * @remarks The caller MUST free the graph with `Nav_Free`.
  */
-bool G_Ai_Nav_Build(GameAiNavGraph *graph);
+bool Nav_Build(const NavParams *params, NavGraph *graph);
 
 /**
- * @brief Frees the nodes and links of a graph that `G_Ai_Nav_Build` made, and keeps its cells.
+ * @brief Frees the nodes and links of a graph that `Nav_Build` made, and keeps its cells.
  */
-void G_Ai_Nav_FreeNodes(GameAiNavGraph *graph);
+void Nav_FreeNodes(NavGraph *graph);
 
 /**
- * @brief Frees a graph that `G_Ai_Nav_Build` made.
+ * @brief Frees a graph that `Nav_Build` made.
  */
-void G_Ai_Nav_Free(GameAiNavGraph *graph);
+void Nav_Free(NavGraph *graph);
 
-#endif /* __G_LOCAL_H__ */

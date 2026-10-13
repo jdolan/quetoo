@@ -56,6 +56,7 @@ cgamelib_LTLIBRARIES = \
 
 cgame_la_SOURCES = \
 	bg_item.c \
+	bg_nav.c \
 	bg_pmove.c \
 	bg_pmove_quake.c \
 	bg_pmove_quake2.c \
@@ -85,6 +86,7 @@ cgame_la_SOURCES = \
 	cg_race_hud.c \
 	cg_race_score.c \
 	cg_muzzle_flash.c \
+	cg_nav.c \
 	cg_portal.c \
 	cg_predict.c \
 	cg_score.c \

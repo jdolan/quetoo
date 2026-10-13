@@ -23,6 +23,7 @@ gamelib_LTLIBRARIES = \
 
 game_la_SOURCES = \
 	bg_item.c \
+	bg_nav.c \
 	bg_pmove.c \
 	bg_pmove_quake.c \
 	bg_pmove_quake2.c \
@@ -34,7 +35,6 @@ game_la_SOURCES = \
 	g_ai_grid.c \
 	g_ai_info.c \
 	g_ai_item.c \
-	g_ai_nav.c \
 	g_ai_main.c \
 	g_ai_node.c \
 	g_ai_state.c \

@@ -56,6 +56,7 @@
 #include "cg_media.h"
 #include "cg_module.h"
 #include "cg_muzzle_flash.h"
+#include "cg_nav.h"
 #include "cg_predict.h"
 #include "cg_score.h"
 #include "cg_sound.h"

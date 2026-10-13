@@ -382,6 +382,7 @@ void Sv_InitGame(void) {
   import.PointInsideBrush = Cm_PointInsideBrush;
   import.Trace = Sv_Trace;
   import.Clip = Sv_Clip;
+  import.BoxTrace = Cm_BoxTrace;
   import.SetModel = Sv_SetModel;
   import.LinkEntity = Sv_LinkEntity;
   import.UnlinkEntity = Sv_UnlinkEntity;

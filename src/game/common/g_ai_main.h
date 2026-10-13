@@ -28,18 +28,17 @@
 
 #define G_Ai_Debug(...) gi.Debug(DEBUG_AI, __func__, __VA_ARGS__)
 
+#include "bg_nav.h"
 #include "g_ai_combat.h"
 #include "g_ai_goal.h"
 #include "g_ai_grid.h"
 #include "g_ai_info.h"
 #include "g_ai_item.h"
-#include "g_ai_nav.h"
 #include "g_ai_node.h"
 #include "g_ai_state.h"
 #include "g_ai_types.h"
 
 extern Cvar *g_aiNoTarget;
-extern Cvar *g_aiDrawNodes;
 
 void G_Ai_Disconnect(GameClient *cl);
 void G_Ai_InvalidateReferences(GameAi *ai, const GameEntity *ent);

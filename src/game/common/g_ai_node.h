@@ -42,7 +42,7 @@ typedef struct {
   float cost;
 
   /**
-   * @brief The `GameAiTravelType`.
+   * @brief The `NavTravelType`.
    */
   int32_t travelType;
 } GameAiLink;
@@ -56,7 +56,6 @@ const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
 bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
 void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const int32_t travelType);
-void G_Ai_Node_Render(void);
 void G_Ai_InitNodes(void);
 void G_Ai_NodesReady(void);
 void G_Ai_ShutdownNodes(void);

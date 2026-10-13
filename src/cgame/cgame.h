@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 68
+#define CGAME_API_VERSION 69
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -788,6 +788,18 @@ typedef struct {
    * @return A trace result. Check `startSolid` to detect the view origin being inside the brush.
    */
   CollisionTrace (*TraceToBrush)(const Vec3 start, const Vec3 end, const CollisionBrush *brush);
+
+  /**
+   * @brief Traces a box against a BSP head node alone, such as the world's, 0, or an inline model's
+   * where it spawns. No entity clips the trace.
+   * @param start The trace start point.
+   * @param end The trace end point.
+   * @param bounds The trace bounds, or `Box3_Zero()` for a point trace.
+   * @param headNode The head node to trace against.
+   * @param contents Solids matching this mask will clip the returned trace.
+   * @return A trace result.
+   */
+  CollisionTrace (*BoxTrace)(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode, int32_t contents);
 
   /**
    * @brief Returns the leaf number containing the specified point.

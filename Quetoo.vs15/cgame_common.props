@@ -53,7 +53,9 @@
     <ClInclude Include="..\src\cgame\common\cg_media.h" />
     <ClInclude Include="..\src\cgame\common\cg_module.h" />
     <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c" />
+    <ClCompile Include="..\src\cgame\common\cg_nav.c" />
     <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h" />
+    <ClInclude Include="..\src\cgame\common\cg_nav.h" />
     <ClCompile Include="..\src\cgame\common\cg_portal.c" />
     <ClInclude Include="..\src\cgame\common\cg_portal.h" />
     <ClCompile Include="..\src\cgame\common\cg_predict.c" />

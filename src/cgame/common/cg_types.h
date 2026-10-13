@@ -336,8 +336,6 @@ typedef struct {
     RenderAtlasImage *waterRing;
     RenderAtlasImage *waterRing2;
     RenderAtlasImage *abstract01;
-    RenderAtlasImage *nodeWait;
-    RenderAtlasImage *nodeSlow;
 
     RenderAnimation *explosion;
     RenderAnimation *explosionRing02;
@@ -361,7 +359,6 @@ typedef struct {
 
   struct CGameMediaBeams {
     RenderImage *hook;
-    RenderImage *arrow;
     RenderImage *line;
     RenderImage *rail;
     RenderImage *lightning;

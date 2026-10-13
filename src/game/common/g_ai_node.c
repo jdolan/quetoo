@@ -58,9 +58,9 @@ static void G_Ai_Node_InvalidateSpatialIndex(void) {
  */
 static struct {
   /**
-   * @brief The graph that `G_Ai_Nav_Build` made for the level.
+   * @brief The graph that `Nav_Build` made for the level.
    */
-  GameAiNavGraph graph;
+  NavGraph graph;
 
   /**
    * @brief The count of nodes and links that the graph had, before the game added its own.
@@ -76,7 +76,7 @@ typedef struct {
   Vector *links;
 
   /**
-   * @brief The cell of the node in the graph that `G_Ai_Nav_Build` made, or -1 for a node that the
+   * @brief The cell of the node in the graph that `Nav_Build` made, or -1 for a node that the
    * game made, such as an item's.
    */
   int32_t cell;
@@ -191,7 +191,7 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
 /**
  * @brief The distance within which `G_Ai_Node_FindClosestCell` finds the closest node.
  */
-#define AI_NODE_CELL_REACH Minf(AI_NAV_CELL_SIZE, AI_NAV_CELL_HEIGHT * 2.f)
+#define AI_NODE_CELL_REACH Minf(NAV_CELL_SIZE, NAV_CELL_HEIGHT * 2.f)
 
 /**
  * @brief Finds the closest node of the built graph in the cells around the given position.
@@ -201,12 +201,12 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
  */
 static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, const float maxDistance) {
 
-  const GameAiNavGraph *graph = &module.graph;
+  const NavGraph *graph = &module.graph;
 
   const Vec3 rel = Vec3_Subtract(filter->position, graph->mins);
-  const int32_t x = (int32_t) floorf(rel.x / AI_NAV_CELL_SIZE);
-  const int32_t y = (int32_t) floorf(rel.y / AI_NAV_CELL_SIZE);
-  const int32_t z = (int32_t) floorf(rel.z / AI_NAV_CELL_HEIGHT);
+  const int32_t x = (int32_t) floorf(rel.x / NAV_CELL_SIZE);
+  const int32_t y = (int32_t) floorf(rel.y / NAV_CELL_SIZE);
+  const int32_t z = (int32_t) floorf(rel.z / NAV_CELL_HEIGHT);
 
   GameAiNodeId closest = AI_NODE_INVALID;
   float closestDistance = maxDistance;
@@ -518,186 +518,6 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
 }
 
 /**
- * @brief A compact representation of a directed link pair used for render deduplication.
- */
-typedef struct {
-  union {
-    struct {
-      GameAiNodeId a, b;
-    };
-    int32_t v;
-  };
-} GameAiUniqueLink;
-
-typedef struct {
-  GameAiUniqueLink link;
-  int32_t bits;
-} GameAiRenderLink;
-
-/**
- * @brief Renders a single node link line for developer visualization.
- */
-static void G_Ai_Node_RenderLink(const GameAiUniqueLink ulink, const int32_t bits) {
-  
-  const GameAiNode *nodeA = AI_NODE(aiNodes, ulink.a);
-  const GameAiNode *nodeB = AI_NODE(aiNodes, ulink.b);
-
-  GameClient *client = NULL;
-  G_ForEachClient(cl, {
-    if (!cl->ai) {
-      client = cl;
-      break;
-    }
-  });
-
-  assert(client);
-  GameEntity *ent = client->entity;
-
-  if (!G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pmState.viewOffset), ulink.a)
-      && !G_Ai_Node_Visible(Vec3_Add(ent->s.origin,client->ps.pmState.viewOffset), ulink.b)) {
-    return;
-  }
-
-  gi.WriteByte(SV_CMD_TEMP_ENTITY);
-  gi.WriteByte(TE_AI_NODE_LINK);
-  gi.WritePosition(nodeA->position);
-  gi.WritePosition(nodeB->position);
-  gi.WriteByte(bits);
-  gi.Multicast(nodeA->position, MULTICAST_PVS);
-}
-
-/**
- * @brief The distance within which nodes are rendered, as a level has thousands.
- */
-#define AI_NODE_RENDER_DISTANCE 768.f
-
-/**
- * @brief Renders all navigation nodes and their links for developer visualization.
- */
-void G_Ai_Node_Render(void) {
-
-  if (!g_aiDrawNodes->integer) {
-    return;
-  }
-
-  if (!aiNodes) {
-    return;
-  }
-
-  GameClient *client = NULL;
-  G_ForEachClient(cl, {
-    if (cl->entity && !cl->ai) {
-      client = cl;
-      break;
-    }
-  });
-
-  if (!client) { // probably just hasn't spawned yet
-    return;
-  }
-
-  GameEntity *ent = client->entity;
-
-  Vector *uniqueLinks = $(alloc(Vector), initWithSize, sizeof(GameAiRenderLink));
-
-  for (uint32_t i = 0; i < aiNodes->count; i++) {
-    const GameAiNode *node = AI_NODE(aiNodes, i);
-
-    if (Vec3_Distance(node->position, ent->s.origin) > AI_NODE_RENDER_DISTANCE) {
-      continue;
-    }
-
-    if (G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pmState.viewOffset), i)) {
-
-      gi.WriteByte(SV_CMD_TEMP_ENTITY);
-      gi.WriteByte(TE_AI_NODE);
-      gi.WritePosition(node->position);
-      gi.WriteShort(i);
-
-      byte bits = 0;
-
-      if (!G_Ai_Node_CanPathTo(node->position)) {
-        bits |= 16;
-      }
-
-      gi.WriteByte(bits);
-      gi.Multicast(node->position, MULTICAST_PVS);
-    }
-
-    if (node->links) {
-
-      for (size_t l = 0; l < node->links->count; l++) {
-        const GameAiLink *link = AI_LINK(node->links, l);
-        GameAiUniqueLink ulink;
-        int32_t bit;
-
-        if (link->id > i) {
-          ulink.a = link->id;
-          ulink.b = i;
-          bit = 1;
-        } else {
-          ulink.a = i;
-          ulink.b = link->id;
-          bit = 2;
-        }
-
-        bit |= 4;
-
-        if (G_Ai_ShouldSlowDrop(i, link->id)) {
-          bit |= 16;
-        }
-
-        bool found = false;
-
-        for (uint32_t u = 0; u < uniqueLinks->count; u++) {
-          GameAiRenderLink *renderLink = VectorElement(uniqueLinks, GameAiRenderLink, u);
-          if (renderLink->link.v == ulink.v) {
-            renderLink->bits |= bit;
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          GameAiRenderLink renderLink = {
-            .link = ulink,
-            .bits = bit
-          };
-          $(uniqueLinks, add, &renderLink);
-        }
-      }
-    }
-  }
-
-  for (size_t i = 0; i < uniqueLinks->count; i++) {
-    const GameAiRenderLink *renderLink = VectorElement(uniqueLinks, GameAiRenderLink, i);
-    G_Ai_Node_RenderLink(renderLink->link, renderLink->bits);
-  }
-
-  release(uniqueLinks);
-
-  // draw the bots' targets
-  G_ForEachClient(cl, {
-
-    if (!cl->ai) {
-      continue;
-    }
-
-
-    if (cl->ai->moveTarget.type != AI_GOAL_PATH) {
-      continue;
-    }
-
-    gi.WriteByte(SV_CMD_TEMP_ENTITY);
-    gi.WriteByte(TE_AI_NODE_LINK);
-    gi.WritePosition(cl->entity->s.origin);
-    gi.WritePosition(cl->ai->moveTarget.path.pathPosition);
-    gi.WriteByte(8);
-    gi.Multicast(cl->entity->s.origin, MULTICAST_PVS);
-  });
-}
-
-/**
  * @return A player trace against the world alone, so that players and movers do not block it.
  */
 static CollisionTrace G_Ai_Node_WorldTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
@@ -711,17 +531,33 @@ void G_Ai_InitNodes(void) {
 
   G_Ai_ShutdownNodes();
 
-  if (!G_Ai_Nav_Build(&module.graph)) {
+  const NavParams params = {
+    .bsp = gi.Bsp(),
+    .gravity = G_LevelGravity(),
+    .BoxTrace = gi.BoxTrace,
+    .PointInsideBrush = gi.PointInsideBrush,
+    .EntityValue = gi.EntityValue,
+    .Warn = gi.Warn,
+    .Error = gi.Error
+  };
+
+  if (!Nav_Build(&params, &module.graph)) {
     G_Warn("This map has no floor to navigate; bots will be dumb!\n");
     return;
   }
 
-  const GameAiNavGraph *graph = &module.graph;
+  const NavGraph *graph = &module.graph;
+
+  gi.Print("  Built %d navigation nodes, %d at an offset, and found %d floors with no room for a player "
+           "and %d in a hurt or push trigger\n", graph->numNodes, graph->numOffset, graph->numNoFit, graph->numTrigger);
+  gi.Print("  Built %d walk, %d crouch, %d barrier jump and %d walk off ledge links\n",
+           graph->numTravel[NAV_TRAVEL_WALK], graph->numTravel[NAV_TRAVEL_CROUCH],
+           graph->numTravel[NAV_TRAVEL_BARRIER_JUMP], graph->numTravel[NAV_TRAVEL_WALK_OFF_LEDGE]);
 
   aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
-    const GameAiNavNode *in = &graph->nodes[i];
+    const NavNode *in = &graph->nodes[i];
 
     GameAiNode node = {
       .position = in->position,
@@ -733,7 +569,7 @@ void G_Ai_InitNodes(void) {
       node.links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
 
       for (int32_t j = 0; j < in->numLinks; j++) {
-        const GameAiNavLink *link = &graph->links[in->firstLink + j];
+        const NavLink *link = &graph->links[in->firstLink + j];
         const float distance = Vec3_Distance(in->position, graph->nodes[link->node].position);
 
         const GameAiLink out = {
@@ -754,7 +590,7 @@ void G_Ai_InitNodes(void) {
   module.graphNodes = (uint32_t) graph->numNodes;
   module.graphLinks = (uint32_t) graph->numLinks;
 
-  G_Ai_Nav_FreeNodes(&module.graph);
+  Nav_FreeNodes(&module.graph);
 
   G_Ai_Node_InvalidateSpatialIndex();
 }
@@ -765,13 +601,9 @@ void G_Ai_InitNodes(void) {
 #define AI_NODE_ITEM_DISTANCE 320.f
 
 /**
- * @brief Warns of each item that no node is near, while the nodes are drawn.
+ * @brief Reports each item that no node is near.
  */
 static void G_Ai_CheckNodes(void) {
-
-  if (!g_aiDrawNodes->integer) {
-    return;
-  }
 
   G_ForEachEntity(ent, {
     if (!ent->item) {
@@ -781,7 +613,7 @@ static void G_Ai_CheckNodes(void) {
     const GameAiNodeId node = G_Ai_Node_FindClosest(ent->s.origin, AI_NODE_ITEM_DISTANCE, true, false);
 
     if (node == AI_NODE_INVALID) {
-      G_Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
+      G_Ai_Debug("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
     }
   });
 }
@@ -922,7 +754,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
       }
 
       const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
-      G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), AI_TRAVEL_JUMP_PAD);
+      G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
     }
     return;
   }
@@ -950,7 +782,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
     return;
   }
 
-  G_Ai_Node_LinkTravel(start, end, G_Ai_Node_RideCost(time), AI_TRAVEL_JUMP_PAD);
+  G_Ai_Node_LinkTravel(start, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_JUMP_PAD);
 }
 
 /**
@@ -978,8 +810,8 @@ static void G_Ai_Node_LinkPlatLevel(const GameEntity *plat, const GameAiNodeId p
       continue;
     }
 
-    G_Ai_Node_LinkTravel((GameAiNodeId) i, platNode, distance, AI_TRAVEL_WALK);
-    G_Ai_Node_LinkTravel(platNode, (GameAiNodeId) i, distance, AI_TRAVEL_WALK);
+    G_Ai_Node_LinkTravel((GameAiNodeId) i, platNode, distance, NAV_TRAVEL_WALK);
+    G_Ai_Node_LinkTravel(platNode, (GameAiNodeId) i, distance, NAV_TRAVEL_WALK);
   }
 }
 
@@ -1006,7 +838,7 @@ static void G_Ai_Node_LinkPlat(const GameEntity *plat) {
   }
 
   const float speed = Maxf(1.f, plat->moveInfo.speed);
-  G_Ai_Node_LinkTravel(lower, upper, G_Ai_Node_RideCost(rise / speed), AI_TRAVEL_ELEVATOR);
+  G_Ai_Node_LinkTravel(lower, upper, G_Ai_Node_RideCost(rise / speed), NAV_TRAVEL_ELEVATOR);
 
   G_Ai_Node_LinkPlatLevel(plat, lower);
   G_Ai_Node_LinkPlatLevel(plat, upper);
@@ -1029,21 +861,21 @@ static void G_Ai_Node_LinkRides(void) {
     }
   });
 
-  int32_t counts[AI_TRAVEL_ELEVATOR + 1] = { 0 };
+  int32_t counts[NAV_TRAVEL_ELEVATOR + 1] = { 0 };
 
   for (size_t i = 0; i < aiNodes->count; i++) {
     const Vector *links = AI_NODE(aiNodes, i)->links;
 
     for (size_t j = 0; links && j < links->count; j++) {
       const int32_t type = AI_LINK(links, j)->travelType;
-      if (type >= AI_TRAVEL_TELEPORT && type <= AI_TRAVEL_ELEVATOR) {
+      if (type >= NAV_TRAVEL_TELEPORT && type <= NAV_TRAVEL_ELEVATOR) {
         counts[type]++;
       }
     }
   }
 
   gi.Print("  Linked %d teleporters, %d jump pads and %d elevators.\n",
-           counts[AI_TRAVEL_TELEPORT], counts[AI_TRAVEL_JUMP_PAD], counts[AI_TRAVEL_ELEVATOR]);
+           counts[NAV_TRAVEL_TELEPORT], counts[NAV_TRAVEL_JUMP_PAD], counts[NAV_TRAVEL_ELEVATOR]);
 }
 
 /**
@@ -1103,7 +935,7 @@ void G_Ai_ShutdownNodes(void) {
 
   aiPlatforms = release(aiPlatforms);
 
-  G_Ai_Nav_Free(&module.graph);
+  Nav_Free(&module.graph);
   module.graphNodes = module.graphLinks = 0;
 
   G_Ai_Node_InvalidateSpatialIndex();
