@@ -499,9 +499,10 @@ static void Sv_CheckCommandTimes(void) {
       continue;
     }
 
-    if (sv_enforceTime->value) { // check them
+    if (sv_enforceTime->value && !timeDemo->value) { // check them
 
-      if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
+      // a client in this process scales its commands by timeScale, as the server's clock does
+      if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT * timeScale->value) { // irregular movement
         cl->cmdMsecErrors++;
 
         Com_Debug(DEBUG_SERVER, "%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmdMsec);

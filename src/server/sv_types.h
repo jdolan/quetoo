@@ -205,7 +205,8 @@ typedef struct {
 /**
  * @brief User movement command duration is inspected regularly to ensure that
  * they are not cheating. If their movement is too far out of sync with the
- * server's clock, we take notice and eventually kick them.
+ * server's clock, we take notice and eventually kick them. The allowance scales
+ * by `timeScale`, and `timeDemo` disables the check.
  */
 #define CMD_MSEC_CHECK_INTERVAL 1000
 #define CMD_MSEC_ALLOWABLE_DRIFT (CMD_MSEC_CHECK_INTERVAL * 1.5)
