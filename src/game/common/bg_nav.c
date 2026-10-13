@@ -445,17 +445,35 @@ static NavSample Nav_SampleFloor(const Vec3 point, const Box3 footprint, NavNode
 }
 
 /**
+ * @brief Adds the node to the graph, in the given cell.
+ */
+static void Nav_AddNode(const int32_t cell, const NavNode *node) {
+
+  NavGraph *graph = module.graph;
+
+  if (graph->numNodes == module.capacity) {
+    module.capacity = Maxi(1024, module.capacity * 2);
+    graph->nodes = realloc(graph->nodes, sizeof(NavNode) * module.capacity);
+    if (!graph->nodes) {
+      module.params->Error(__func__, "Failed to allocate %d navigation nodes\n", module.capacity);
+    }
+  }
+
+  graph->cellNodes[cell] = graph->numNodes;
+  graph->nodes[graph->numNodes++] = *node;
+}
+
+/**
  * @brief Samples the floor of one cell, at its center first and then at small offsets, and adds
  * its node to the graph. Where those find no floor, points `NAV_FINE_STEP` apart across the
  * cell sample, to find a beam or a ledge between them, so that a node stands over its floor where it
  * can, and a bot does not steer onto the lip of a ledge. Last, the player's footprint samples at the
  * coarse points, for a floor too narrow for any point. A cell whose whole area finds no floor is
- * skipped.
+ * skipped. A point where a player only fits crouched is kept until every point is sampled, because
+ * a player stands at another point of the cell, away from a wall's trim, more often than not.
  * @return The outcome of the sample.
  */
 static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
-
-  NavGraph *graph = module.graph;
 
   const Vec3 center = Vec3_Add(Nav_CellOrigin(Nav_CellCoordinate(cell)),
                                MakeVec3(0.f, 0.f, NAV_SAMPLE_OFFSET));
@@ -477,6 +495,9 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
 
   NavSample sample = NAV_SAMPLE_NONE;
 
+  NavNode crouched;
+  int32_t crouchedPoint = -1;
+
   for (int32_t i = 0; i < numPoints; i++) {
 
     Vec2 delta;
@@ -496,16 +517,15 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
     const NavSample result = Nav_SampleFloor(point, i < numFine ? Box3_Zero() : footprint, &node);
     if (result == NAV_SAMPLE_NODE) {
 
-      if (graph->numNodes == module.capacity) {
-        module.capacity = Maxi(1024, module.capacity * 2);
-        graph->nodes = realloc(graph->nodes, sizeof(NavNode) * module.capacity);
-        if (!graph->nodes) {
-          module.params->Error(__func__, "Failed to allocate %d navigation nodes\n", module.capacity);
+      if (node.crouch) {
+        if (crouchedPoint == -1) {
+          crouched = node;
+          crouchedPoint = i;
         }
+        continue;
       }
 
-      graph->cellNodes[cell] = graph->numNodes;
-      graph->nodes[graph->numNodes++] = node;
+      Nav_AddNode(cell, &node);
 
       *offset = i > 0;
       return NAV_SAMPLE_NODE;
@@ -514,6 +534,13 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
     if (result == NAV_SAMPLE_NO_FIT || result == NAV_SAMPLE_TRIGGER) {
       sample = Maxi(sample, result);
     }
+  }
+
+  if (crouchedPoint != -1) {
+    Nav_AddNode(cell, &crouched);
+
+    *offset = crouchedPoint > 0;
+    return NAV_SAMPLE_NODE;
   }
 
   return sample;
