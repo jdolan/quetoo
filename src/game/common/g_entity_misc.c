@@ -165,8 +165,8 @@ static void G_misc_teleporter_Think(GameEntity *ent) {
   const Vec3 origin = G_misc_teleporter_Origin(ent);
 
   // find nodes closest to src and dst
-  const GameAiNodeId srcNode = G_Ai_Node_FindClosest(origin, 512.f, true, true);
-  const GameAiNodeId dstNode = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
+  const GameAiNodeId srcNode = G_Ai_Node_FindClosestStatic(origin, 512.f, true, true);
+  const GameAiNodeId dstNode = G_Ai_Node_FindClosestStatic(dest->s.origin, 512.f, true, true);
 
   if (srcNode != AI_NODE_INVALID && dstNode != AI_NODE_INVALID) {
 

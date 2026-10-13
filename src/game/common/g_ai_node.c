@@ -66,6 +66,26 @@ static struct {
    * @brief The count of nodes and links that the graph had, before the game added its own.
    */
   uint32_t graphNodes, graphLinks;
+
+  /**
+   * @brief The nodes on models that move, which `G_Ai_Node_UpdateMovers` moves and links.
+   */
+  Vector *moverNodes;
+
+  /**
+   * @brief The nodes that do not move, which `G_Ai_Node_UpdateMovers` linked to a node that moves.
+   */
+  Vector *moverLinked;
+
+  /**
+   * @brief Level time at which `G_Ai_Node_UpdateMovers` next links the nodes that move.
+   */
+  uint32_t moverLinkTime;
+
+  /**
+   * @brief True if a node that moves has moved since `G_Ai_Node_UpdateMovers` last linked them.
+   */
+  bool moverMoved;
 } module;
 
 /**
@@ -85,6 +105,21 @@ typedef struct {
    * @brief The liquid contents at the node.
    */
   int32_t contents;
+
+  /**
+   * @brief The inline model that the node stands on and that moves it, or 0.
+   */
+  int32_t model;
+
+  /**
+   * @brief The node's position in the space of `model`.
+   */
+  Vec3 local;
+
+  /**
+   * @brief The entity of `model`, which moves the node, once the level's entities spawn.
+   */
+  const GameEntity *mover;
 
   // only used for nav purposes
 
@@ -168,6 +203,11 @@ typedef struct {
   Vec3 position;
   bool onlyVisible;
   bool preferLevel;
+
+  /**
+   * @brief True to skip the nodes on models that move, for a link that the game makes once.
+   */
+  bool staticOnly;
 } GameAiNodeQueryFilter;
 
 /**
@@ -176,6 +216,10 @@ typedef struct {
 static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float *distance) {
   const GameAiNodeQueryFilter *filter = data;
   const GameAiNode *node = AI_NODE(aiNodes, nodenum);
+
+  if (filter->staticOnly && node->model) {
+    return false;
+  }
 
   Vec3 dir = Vec3_Subtract(filter->position, node->position);
 
@@ -194,13 +238,35 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
 #define AI_NODE_CELL_REACH Minf(NAV_CELL_SIZE, NAV_CELL_HEIGHT * 2.f)
 
 /**
- * @brief Finds the closest node of the built graph in the cells around the given position, or of
- * the nodes that the game added to it, which are in no cell.
- * @details Any node of the built graph outside of the cells searched is at least one cell width, or
- * two cell heights, from the position, so a node found within that distance is the closest of all.
- * The added nodes, for items, teleporters and elevators, are few, and each is compared. The level
+ * @brief Makes `node` the closest, if it passes the filter nearer than `closestDistance`. The level
  * preference of the filter only makes a distance longer, so a node whose plain distance is too long
  * is skipped before the filter traces to it.
+ */
+static void G_Ai_Node_FindClosestCell_compare(GameAiNodeQueryFilter *filter, const GameAiNodeId node,
+                                              GameAiNodeId *closest, float *closestDistance) {
+
+  if (Vec3_DistanceSquared(filter->position, AI_NODE(aiNodes, node)->position) > *closestDistance) {
+    return;
+  }
+
+  float distance;
+  if (!G_Ai_Node_FindClosestFilter(node, filter, &distance)) {
+    return;
+  }
+
+  if (distance <= *closestDistance) {
+    *closestDistance = distance;
+    *closest = node;
+  }
+}
+
+/**
+ * @brief Finds the closest node of the built graph in the cells around the given position, or of
+ * the nodes that the game added to it, and the nodes on models that move, which are in no cell.
+ * @details Any node of the built graph outside of the cells searched is at least one cell width, or
+ * two cell heights, from the position, so a node found within that distance is the closest of all.
+ * The added nodes, for items, teleporters and elevators, and the nodes that move, are few, and each
+ * is compared.
  * @param maxDistance The squared distance, at most `AI_NODE_CELL_REACH` squared, to search.
  */
 static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, const float maxDistance) {
@@ -250,19 +316,12 @@ static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, con
   }
 
   for (uint32_t node = module.graphNodes; node < aiNodes->count; node++) {
+    G_Ai_Node_FindClosestCell_compare(filter, node, &closest, &closestDistance);
+  }
 
-    if (Vec3_DistanceSquared(filter->position, AI_NODE(aiNodes, node)->position) > closestDistance) {
-      continue;
-    }
-
-    float distance;
-    if (!G_Ai_Node_FindClosestFilter(node, filter, &distance)) {
-      continue;
-    }
-
-    if (distance <= closestDistance) {
-      closestDistance = distance;
-      closest = node;
+  if (module.moverNodes) {
+    for (size_t i = 0; i < module.moverNodes->count; i++) {
+      G_Ai_Node_FindClosestCell_compare(filter, AI_NODE_ID(module.moverNodes, i), &closest, &closestDistance);
     }
   }
 
@@ -276,8 +335,10 @@ static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, con
  * nodes within `maxDistance` and selects the best one that passes the
  * `onlyVisible` / `preferLevel` filters. Falls back to a linear scan if
  * the spatial index is unavailable.
+ * @param staticOnly True to skip the nodes on models that move.
  */
-GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel) {
+static GameAiNodeId G_Ai_Node_FindClosest_(const Vec3 position, const float maxDistance, const bool onlyVisible,
+                                           const bool preferLevel, const bool staticOnly) {
 
   if (!aiNodes || aiNodes->count == 0) {
     return AI_NODE_INVALID;
@@ -290,7 +351,8 @@ GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance,
   GameAiNodeQueryFilter filter = {
     .position = position,
     .onlyVisible = onlyVisible,
-    .preferLevel = preferLevel
+    .preferLevel = preferLevel,
+    .staticOnly = staticOnly
   };
 
   if (module.graph.cellNodes) {
@@ -311,6 +373,10 @@ GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance,
   for (size_t i = 0; i < aiNodes->count; i++) {
     const GameAiNode *node = AI_NODE(aiNodes, i);
 
+    if (staticOnly && node->model) {
+      continue;
+    }
+
     Vec3 dir = Vec3_Subtract(position, node->position);
     if (preferLevel && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
       dir.z *= 4.0f;
@@ -326,6 +392,22 @@ GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance,
   }
 
   return closest;
+}
+
+/**
+ * @brief Finds the closest navigation node to the given position, of all nodes, for a bot that may
+ * stand on a model that moves.
+ */
+GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel) {
+  return G_Ai_Node_FindClosest_(position, maxDistance, onlyVisible, preferLevel, false);
+}
+
+/**
+ * @brief Finds the closest navigation node to the given position that does not move, for a link
+ * that the game makes once, such as an item's or a jump pad's, which would break as the node moved.
+ */
+GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel) {
+  return G_Ai_Node_FindClosest_(position, maxDistance, onlyVisible, preferLevel, true);
 }
 
 /**
@@ -584,8 +666,22 @@ void G_Ai_InitNodes(void) {
     GameAiNode node = {
       .position = in->position,
       .cell = in->cell,
-      .contents = in->contents
+      .contents = in->contents,
+      .model = in->model,
+      .local = in->local
     };
+
+    if (node.model) {
+      if (!module.moverNodes) {
+        module.moverNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
+        module.moverLinked = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
+      }
+
+      const GameAiNodeId id = (GameAiNodeId) i;
+      $(module.moverNodes, add, (ident) &id);
+
+      module.graph.cellNodes[in->cell] = -1;
+    }
 
     if (in->numLinks) {
       node.links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
@@ -740,7 +836,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
   const Vec3 center = Box3_Center(push->absBounds);
   const Vec3 pad = MakeVec3(center.x, center.y, push->absBounds.mins.z - PM_BOUNDS.mins.z);
 
-  const GameAiNodeId start = G_Ai_Node_FindClosest(pad, AI_PUSH_NODE_DISTANCE, true, false);
+  const GameAiNodeId start = G_Ai_Node_FindClosestStatic(pad, AI_PUSH_NODE_DISTANCE, true, false);
   if (start == AI_NODE_INVALID) {
     G_Ai_Debug("No node at %s @ %s\n", push->classname, vtos(pad));
     return;
@@ -757,7 +853,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
       const GameAiNode *node = AI_NODE(aiNodes, i);
       const float rise = node->position.z - origin.z;
 
-      if (node->cell == -1 || rise <= PM_STEP_HEIGHT || rise > apex) {
+      if (node->cell == -1 || node->model || rise <= PM_STEP_HEIGHT || rise > apex) {
         continue;
       }
 
@@ -798,7 +894,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
     return;
   }
 
-  const GameAiNodeId end = G_Ai_Node_FindClosest(landing, AI_PUSH_NODE_DISTANCE, true, false);
+  const GameAiNodeId end = G_Ai_Node_FindClosestStatic(landing, AI_PUSH_NODE_DISTANCE, true, false);
   if (end == AI_NODE_INVALID || end == start) {
     G_Ai_Debug("%s @ %s lands at %s, with no node in sight\n", push->classname, vtos(pad), vtos(landing));
     return;
@@ -819,7 +915,7 @@ static void G_Ai_Node_LinkPlatLevel(const GameEntity *plat, const GameAiNodeId p
   for (size_t i = 0; i < aiNodes->count; i++) {
     const GameAiNode *node = AI_NODE(aiNodes, i);
 
-    if (node->cell == -1 || fabsf(node->position.z - position.z) > PM_STEP_HEIGHT) {
+    if (node->cell == -1 || node->model || fabsf(node->position.z - position.z) > PM_STEP_HEIGHT) {
       continue;
     }
 
@@ -901,6 +997,251 @@ static void G_Ai_Node_LinkRides(void) {
 }
 
 /**
+ * @brief The interval in milliseconds at which the nodes on models that move are linked again to
+ * the nodes beside them.
+ */
+#define AI_MOVER_LINK_MILLIS 100
+
+/**
+ * @brief The horizontal distance within which a node on a model that moves links to a node that
+ * does not: a little more than a cell, so that one is always in reach as the model passes.
+ */
+#define AI_MOVER_LINK_DISTANCE (NAV_CELL_SIZE * 1.25f)
+
+/**
+ * @brief Finds the entity of each node on a model that moves, by the entity's inline model.
+ */
+static void G_Ai_Node_FindMovers(void) {
+
+  if (!module.moverNodes) {
+    return;
+  }
+
+  for (size_t n = 0; n < module.moverNodes->count; n++) {
+    GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, n));
+
+    G_ForEachEntity(ent, {
+      if (ent->model && ent->model[0] == '*' && strtol(ent->model + 1, NULL, 10) == node->model) {
+        node->mover = ent;
+        break;
+      }
+    });
+
+    if (!node->mover) {
+      G_Debug("No entity moves navigation node %u on model *%d\n", AI_NODE_ID(module.moverNodes, n), node->model);
+    }
+  }
+}
+
+/**
+ * @brief Removes the links of `node` to the nodes that are not on `model`.
+ */
+static void G_Ai_Node_UnlinkModel(GameAiNode *node, const int32_t model) {
+
+  if (!node->links) {
+    return;
+  }
+
+  for (size_t i = node->links->count; i > 0; i--) {
+    if (AI_NODE(aiNodes, AI_LINK(node->links, i - 1)->id)->model != model) {
+      $(node->links, removeAt, i - 1);
+    }
+  }
+}
+
+/**
+ * @brief The spacing in units of the floor samples under a dynamic walk link.
+ */
+#define AI_MOVER_FLOOR_SPACING 16.f
+
+/**
+ * @brief The highest drop onto or off a model that moves, which a dynamic link spans.
+ */
+#define AI_MOVER_DROP_HEIGHT 128.f
+
+/**
+ * @brief Adds a link from node `a` to node `b`, without the debug output of
+ * `G_Ai_Node_LinkTravel`, because the nodes that move are linked again many times a second.
+ */
+static void G_Ai_Node_LinkDynamic(const GameAiNodeId a, const GameAiNodeId b, const float cost, const NavTravelType type) {
+
+  GameAiNode *node = AI_NODE(aiNodes, a);
+
+  if (!node->links) {
+    node->links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
+  }
+
+  const GameAiLink link = {
+    .id = b,
+    .cost = cost,
+    .travelType = type
+  };
+
+  $(node->links, add, (ident) &link);
+}
+
+/**
+ * @return True if there is floor, and no liquid, under each point `AI_MOVER_FLOOR_SPACING` apart on
+ * the line from `a` to `b`, which are player origins on the same level.
+ */
+static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
+
+  const float length = Vec3_Distance(a, b);
+  const float depth = -PM_BOUNDS.mins.z + PM_STEP_HEIGHT * 2.f;
+
+  for (float d = AI_MOVER_FLOOR_SPACING; d < length; d += AI_MOVER_FLOOR_SPACING) {
+
+    const Vec3 point = Vec3_Mix(a, b, d / length);
+    const Vec3 start = Vec3_Add(point, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT));
+    const Vec3 end = Vec3_Subtract(point, MakeVec3(0.f, 0.f, depth));
+
+    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), NULL, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+
+    if (tr.fraction == 1.f || (tr.contents & CONTENTS_MASK_LIQUID)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @brief Links the node on a model that moves to each node that does not move in the cells around
+ * it, within `AI_MOVER_LINK_DISTANCE`: both ways with walks, to a node on its level with a clear
+ * line for the player's box, raised by a step, and floor under the line, and one way with a drop,
+ * from the higher of the two to the lower, within `AI_MOVER_DROP_HEIGHT`, with a clear line across
+ * at the higher level and down onto the lower.
+ */
+static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
+
+  const NavGraph *graph = &module.graph;
+  const GameAiNode *node = AI_NODE(aiNodes, id);
+
+  Box3 bounds = G_PlayerBounds();
+  bounds.mins.z += PM_STEP_HEIGHT;
+
+  const Vec3 rel = Vec3_Subtract(node->position, graph->mins);
+  const int32_t x = (int32_t) floorf(rel.x / NAV_CELL_SIZE);
+  const int32_t y = (int32_t) floorf(rel.y / NAV_CELL_SIZE);
+  const int32_t z = (int32_t) floorf(rel.z / NAV_CELL_HEIGHT);
+
+  const int32_t levels = (int32_t) ceilf(AI_MOVER_DROP_HEIGHT / NAV_CELL_HEIGHT);
+
+  for (int32_t dz = -levels; dz <= levels; dz++) {
+    for (int32_t dy = -1; dy <= 1; dy++) {
+      for (int32_t dx = -1; dx <= 1; dx++) {
+
+        const Vec3i xyz = MakeVec3i(x + dx, y + dy, z + dz);
+
+        if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= graph->size.x || xyz.y >= graph->size.y || xyz.z >= graph->size.z) {
+          continue;
+        }
+
+        const int32_t other = graph->cellNodes[(xyz.z * graph->size.y + xyz.y) * graph->size.x + xyz.x];
+        if (other == -1) {
+          continue;
+        }
+
+        const Vec3 position = AI_NODE(aiNodes, other)->position;
+
+        const float distance = Vec2_Distance(Vec3_XY(position), Vec3_XY(node->position));
+        if (distance > AI_MOVER_LINK_DISTANCE) {
+          continue;
+        }
+
+        const float height = position.z - node->position.z;
+
+        if (fabsf(height) <= PM_STEP_HEIGHT) {
+          const CollisionTrace tr = gi.Trace(node->position, position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+          if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, position)) {
+            continue;
+          }
+
+          G_Ai_Node_LinkDynamic(id, (GameAiNodeId) other, distance, NAV_TRAVEL_WALK);
+          G_Ai_Node_LinkDynamic((GameAiNodeId) other, id, distance, NAV_TRAVEL_WALK);
+        } else if (fabsf(height) <= AI_MOVER_DROP_HEIGHT) {
+          const Vec3 high = height > 0.f ? position : node->position;
+          const Vec3 low = height > 0.f ? node->position : position;
+          const Vec3 over = MakeVec3(low.x, low.y, high.z);
+
+          const CollisionTrace across = gi.Trace(high, over, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+          if (across.startSolid || across.fraction < 1.f) {
+            continue;
+          }
+
+          const CollisionTrace down = gi.Trace(over, low, G_PlayerBounds(), NULL, CONTENTS_MASK_CLIP_PLAYER);
+          if (down.startSolid || down.fraction < 1.f) {
+            continue;
+          }
+
+          const float cost = distance + fabsf(height);
+          if (height > 0.f) {
+            G_Ai_Node_LinkDynamic((GameAiNodeId) other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+          } else {
+            G_Ai_Node_LinkDynamic(id, (GameAiNodeId) other, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+          }
+        } else {
+          continue;
+        }
+
+        const GameAiNodeId linked = (GameAiNodeId) other;
+        $(module.moverLinked, add, (ident) &linked);
+      }
+    }
+  }
+}
+
+/**
+ * @brief Moves the nodes on models that move with their entities, each frame, and links them
+ * again to the nodes beside them every `AI_MOVER_LINK_MILLIS`, if any has moved since they were
+ * last linked. A bot whose path loses a link plans a new one.
+ */
+void G_Ai_Node_UpdateMovers(void) {
+
+  if (!module.moverNodes || !module.moverNodes->count) {
+    return;
+  }
+
+  for (size_t i = 0; i < module.moverNodes->count; i++) {
+    GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
+
+    if (node->mover) {
+      const Mat4 matrix = Mat4_FromRotationTranslationScale(node->mover->s.angles, node->mover->s.origin, 1.f);
+      const Vec3 position = Mat4_Transform(matrix, node->local);
+
+      if (!Vec3_Equal(position, node->position)) {
+        node->position = position;
+        module.moverMoved = true;
+      }
+    }
+  }
+
+  if (module.moverLinkTime > gameLevel.time || (module.moverLinkTime && !module.moverMoved)) {
+    return;
+  }
+
+  module.moverLinkTime = gameLevel.time + AI_MOVER_LINK_MILLIS;
+  module.moverMoved = false;
+
+  for (size_t i = 0; i < module.moverLinked->count; i++) {
+    G_Ai_Node_UnlinkModel(AI_NODE(aiNodes, AI_NODE_ID(module.moverLinked, i)), 0);
+  }
+
+  $(module.moverLinked, removeAll);
+
+  for (size_t i = 0; i < module.moverNodes->count; i++) {
+    GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
+    G_Ai_Node_UnlinkModel(node, node->model);
+  }
+
+  for (size_t i = 0; i < module.moverNodes->count; i++) {
+    G_Ai_Node_LinkMover(AI_NODE_ID(module.moverNodes, i));
+  }
+
+  G_Ai_Node_InvalidateSpatialIndex();
+}
+
+/**
  * @brief Called after the first second of gameplay to allow the AI to pick up nodes
  * from late-spawning entities.
  */
@@ -925,6 +1266,8 @@ void G_Ai_NodesReady(void) {
   gi.Print("  Game loaded %zu additional nodes with %zu new links.\n", addedNodes, addedLinks);
 
   G_Ai_Node_LinkRides();
+
+  G_Ai_Node_FindMovers();
 
   G_ForEachEntity(ent, {
     if (ent->classname && Str_Compare(ent->classname, "func_plat") == 0) {
@@ -956,6 +1299,11 @@ void G_Ai_ShutdownNodes(void) {
   }
 
   aiPlatforms = release(aiPlatforms);
+
+  module.moverNodes = release(module.moverNodes);
+  module.moverLinked = release(module.moverLinked);
+  module.moverLinkTime = 0;
+  module.moverMoved = false;
 
   Nav_Free(&module.graph);
   module.graphNodes = module.graphLinks = 0;
@@ -1107,7 +1455,7 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
     return -1.f;
   }
 
-  const bool builtLink = node->cell != -1 && linkNode->cell != -1;
+  const bool builtLink = node->cell != -1 && linkNode->cell != -1 && !node->model && !linkNode->model;
   if (!fromHazard && !builtLink && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
     return -1.f;
   }
@@ -1378,7 +1726,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 bool G_Ai_DropItemLikeNode(GameEntity *ent) {
 
   // find node closest to us
-  const GameAiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+  const GameAiNodeId srcNode = G_Ai_Node_FindClosestStatic(ent->s.origin, 512.f, true, true);
 
   if (srcNode == AI_NODE_INVALID) {
     return false;
@@ -1412,7 +1760,7 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
       const GameAiLink *link = AI_LINK(srcLinks, i);
 
       // not bidirectional
-      if (!G_Ai_Node_IsLinked(link->id, srcNode)) {
+      if (!G_Ai_Node_IsLinked(link->id, srcNode) || AI_NODE(aiNodes, link->id)->model) {
         continue;
       }
 

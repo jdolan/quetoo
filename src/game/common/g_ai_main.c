@@ -1817,11 +1817,40 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
 }
 
 /**
+ * @brief Updates the positions of the bot's next nodes, which move if they stand on a model that
+ * moves, and plans a new path at once if the link into its next node is gone, as a link to a node
+ * that moves is once the model moves on. If no path comes back, the bot drops its path, so that it
+ * does not follow a node that the model carries away, over a gap or a lava pit.
+ */
+static void G_Ai_RefreshPath(GameClient *cl) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type != AI_GOAL_PATH || !goal->path.path || goal->path.pathIndex >= goal->path.path->count) {
+    return;
+  }
+
+  const Vector *path = goal->path.path;
+  const uint32_t index = goal->path.pathIndex;
+
+  goal->path.pathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, index));
+  goal->path.nextPathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, Minz(index + 1, path->count - 1)));
+
+  if (index > 0 && !G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), VectorValue(path, GameAiNodeId, index))) {
+    if (!G_Ai_ReplanPath(cl)) {
+      G_Ai_ClearGoal(goal);
+    }
+  }
+}
+
+/**
  * @brief Move towards our current target
  */
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
+
+  G_Ai_RefreshPath(cl);
 
   if (ent->ground.ent) {
     cl->ai->groundPosition = ent->s.origin;
@@ -2643,6 +2672,8 @@ void G_Ai_Frame(void) {
   if (gameLevel.time == 1000) {
     G_Ai_NodesReady();
   }
+
+  G_Ai_Node_UpdateMovers();
 
   if (gameLevel.time % 1000 == 0) {
 
