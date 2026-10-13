@@ -473,9 +473,16 @@ static bool G_Ai_GoToItem(GameClient *cl, const float *costs, const GameAiChoice
 }
 
 /**
- * @return The item that the bot collects, or NULL if it collects none, or the item is gone.
+ * @see g_ai_state.h
  */
-static const GameEntity *G_Ai_GoalEntity(const GameClient *cl) {
+const char *G_Ai_StateName(const GameClient *cl) {
+  return stateNames[cl->ai->state];
+}
+
+/**
+ * @see g_ai_state.h
+ */
+const GameEntity *G_Ai_GoalEntity(const GameClient *cl) {
 
   const int32_t number = cl->ai->goalNumber;
 

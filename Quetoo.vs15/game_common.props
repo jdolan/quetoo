@@ -40,7 +40,9 @@
     <ClCompile Include="..\src\game\common\bg_nav.c" />
     <ClInclude Include="..\src\game\common\bg_nav.h" />
     <ClCompile Include="..\src\game\common\g_ai_node.c" />
+    <ClCompile Include="..\src\game\common\g_ai_probe.c" />
     <ClInclude Include="..\src\game\common\g_ai_node.h" />
+    <ClInclude Include="..\src\game\common\g_ai_probe.h" />
     <ClCompile Include="..\src\game\common\g_ai_state.c" />
     <ClInclude Include="..\src\game\common\g_ai_state.h" />
     <ClInclude Include="..\src\game\common\g_ai_types.h" />

@@ -48,6 +48,16 @@ void G_Ai_State_Reset(GameClient *cl);
 void G_Ai_Avoid(GameClient *cl, const GameEntity *item);
 
 /**
+ * @return The name of the bot's state, such as `collect` or `fight`.
+ */
+const char *G_Ai_StateName(const GameClient *cl);
+
+/**
+ * @return The item that the bot collects, or NULL if it collects none, or the item is gone.
+ */
+const GameEntity *G_Ai_GoalEntity(const GameClient *cl);
+
+/**
  * @brief Frees the state machine's travel cost buffer.
  */
 void G_Ai_State_Shutdown(void);

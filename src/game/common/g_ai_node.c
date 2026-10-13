@@ -1505,6 +1505,8 @@ void G_Ai_NodesReady(void) {
   });
 
   G_Ai_CheckNodes();
+
+  G_Ai_Probe_Graph();
 }
 
 /**

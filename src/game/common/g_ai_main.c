@@ -266,6 +266,7 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 
   if (taker->client && taker->client->ai) {
     G_Ai_Avoid(taker->client, item);
+    G_Ai_Probe_ItemTaken(taker->client, item);
   }
 
   if (!item->item || !G_Ai_IsMapControlItem(item->item) || item->solid != SOLID_NOT ||
@@ -2731,6 +2732,10 @@ static void G_Ai_ClientThink(GameEntity *ent) {
     msecLeft -= cmd.msec;
   }
 
+  if (ent->inUse && ent->client) {
+    G_Ai_Probe_Think(ent->client);
+  }
+
   ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
 }
 
@@ -2884,6 +2889,8 @@ void G_Ai_Init(void) {
 
   gi.AddCmd("addAi", G_Ai_Add_f, CMD_GAME, "Add a bot from the roster, with optional skill, aggression and awareness");
 
+  G_Ai_Probe_Init();
+
   G_Ai_InitSkins();
 }
 
@@ -2891,6 +2898,8 @@ void G_Ai_Init(void) {
  * @brief Loads map data for the AI subsystem.
  */
 void G_Ai_Load(void) {
+
+  G_Ai_Probe_Load();
 
   G_Ai_InitNodes();
 }
@@ -2902,6 +2911,7 @@ void G_Ai_Shutdown(void) {
 
   G_Ai_ShutdownSkins();
   G_Ai_State_Shutdown();
+  G_Ai_Probe_Shutdown();
   G_Ai_ShutdownNodes();
 
   gi.FreeTag(MEM_TAG_AI);

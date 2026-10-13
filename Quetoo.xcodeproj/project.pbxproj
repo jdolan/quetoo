@@ -280,6 +280,7 @@
 		CE05B28B3022486E0012862B /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
 		CE05B28C3022486E0012862B /* g_ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F427BDA2AE003D56AC /* g_ai_info.c */; };
 		CE05B28D3022486E0012862B /* g_ai_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F227BDA2AE003D56AC /* g_ai_item.c */; };
+		06CAAD1EB98519EB820BC2C6 /* g_ai_probe.c in Sources */ = {isa = PBXBuildFile; fileRef = 24CBFB8B8E393C7A86B6F94A /* g_ai_probe.c */; };
 		CE05B28E3022486E0012862B /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F527BDA2AE003D56AC /* g_ai_main.c */; };
 		CE05B28F3022486E0012862B /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
 		AA5E00000000000000000003 /* g_ai_state.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000001 /* g_ai_state.c */; };
@@ -315,6 +316,7 @@
 		CE05B2B03022486E0012862B /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
 		CE05B2B13022486E0012862B /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */; };
 		CE05B2B23022486E0012862B /* g_ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */; };
+		2EB6E31A178122BF6673F495 /* g_ai_probe.h in Headers */ = {isa = PBXBuildFile; fileRef = 608CEB7EF8E5DE6CF12E3854 /* g_ai_probe.h */; };
 		CE05B2B33022486E0012862B /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		CE05B2B43022486E0012862B /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		AA5E00000000000000000004 /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
@@ -547,6 +549,7 @@
 		D30014FE760BD1208935C861 /* g_ai_combat.c in Sources */ = {isa = PBXBuildFile; fileRef = C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */; };
 		CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */; };
 		CE27E9FD27BDA2AE003D56AC /* g_ai_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F227BDA2AE003D56AC /* g_ai_item.c */; };
+		86C7347A9CB739F077DF67D1 /* g_ai_probe.c in Sources */ = {isa = PBXBuildFile; fileRef = 24CBFB8B8E393C7A86B6F94A /* g_ai_probe.c */; };
 		F0BBFE48CAA699C7DD04C9CE /* g_ai_combat.h in Headers */ = {isa = PBXBuildFile; fileRef = 7610ECCDD66E323A33218A5E /* g_ai_combat.h */; };
 		CE27E9FE27BDA2AE003D56AC /* g_ai_goal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */; };
 		CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F427BDA2AE003D56AC /* g_ai_info.c */; };
@@ -560,6 +563,7 @@
 		AA5E00000000000000000006 /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
 		AA5E00000000000000000016 /* bg_nav.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000012 /* bg_nav.h */; };
 		CE27EA0527BDA2AF003D56AC /* g_ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */; };
+		3A453F3F8EDF1939D3C7748A /* g_ai_probe.h in Headers */ = {isa = PBXBuildFile; fileRef = 608CEB7EF8E5DE6CF12E3854 /* g_ai_probe.h */; };
 		CE27EA0627BDA2AF003D56AC /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */; };
 		CE2B082223F9EB7A007C77B6 /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
 		CE2B082323F9EB7A007C77B6 /* libclient-sound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED4393B1D9D344E0052BAFA /* libclient-sound.a */; };
@@ -936,6 +940,7 @@
 		CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
 		CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F427BDA2AE003D56AC /* g_ai_info.c */; };
 		CEC0FF0020260103000000F2 /* g_ai_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F227BDA2AE003D56AC /* g_ai_item.c */; };
+		CCA4333F9876F1849981F4AE /* g_ai_probe.c in Sources */ = {isa = PBXBuildFile; fileRef = 24CBFB8B8E393C7A86B6F94A /* g_ai_probe.c */; };
 		CEC0FF0020260103000000F3 /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F527BDA2AE003D56AC /* g_ai_main.c */; };
 		CEC0FF0020260103000000F4 /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
 		AA5E00000000000000000007 /* g_ai_state.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000001 /* g_ai_state.c */; };
@@ -967,6 +972,7 @@
 		CEC0FF00202601030000010C /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
 		CEC0FF00202601030000010D /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */; };
 		CEC0FF00202601030000010E /* g_ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */; };
+		BECABCE6B683581850493353 /* g_ai_probe.h in Headers */ = {isa = PBXBuildFile; fileRef = 608CEB7EF8E5DE6CF12E3854 /* g_ai_probe.h */; };
 		CEC0FF00202601030000010F /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		CEC0FF002026010300000110 /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		AA5E00000000000000000008 /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
@@ -1266,6 +1272,7 @@
 		D2A5C1000000000000000013 /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
 		D2A5C1000000000000000014 /* g_ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F427BDA2AE003D56AC /* g_ai_info.c */; };
 		D2A5C1000000000000000015 /* g_ai_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F227BDA2AE003D56AC /* g_ai_item.c */; };
+		8236B95B2330D9D30937F121 /* g_ai_probe.c in Sources */ = {isa = PBXBuildFile; fileRef = 24CBFB8B8E393C7A86B6F94A /* g_ai_probe.c */; };
 		D2A5C1000000000000000016 /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F527BDA2AE003D56AC /* g_ai_main.c */; };
 		D2A5C1000000000000000017 /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
 		AA5E00000000000000000009 /* g_ai_state.c in Sources */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000001 /* g_ai_state.c */; };
@@ -1306,6 +1313,7 @@
 		D2A5C1000000000000000038 /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
 		D2A5C1000000000000000039 /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */; };
 		D2A5C100000000000000003A /* g_ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */; };
+		BF6B507E838FBF8442734AE6 /* g_ai_probe.h in Headers */ = {isa = PBXBuildFile; fileRef = 608CEB7EF8E5DE6CF12E3854 /* g_ai_probe.h */; };
 		D2A5C100000000000000003B /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		D2A5C100000000000000003C /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		AA5E0000000000000000000A /* g_ai_state.h in Headers */ = {isa = PBXBuildFile; fileRef = AA5E00000000000000000002 /* g_ai_state.h */; };
@@ -2742,6 +2750,7 @@
 		C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_combat.c; sourceTree = "<group>"; };
 		CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_goal.c; sourceTree = "<group>"; };
 		CE27E9F227BDA2AE003D56AC /* g_ai_item.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_item.c; sourceTree = "<group>"; };
+		24CBFB8B8E393C7A86B6F94A /* g_ai_probe.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_probe.c; sourceTree = "<group>"; };
 		7610ECCDD66E323A33218A5E /* g_ai_combat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_combat.h; sourceTree = "<group>"; };
 		CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_goal.h; sourceTree = "<group>"; };
 		CE27E9F427BDA2AE003D56AC /* g_ai_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_info.c; sourceTree = "<group>"; };
@@ -2755,6 +2764,7 @@
 		AA5E00000000000000000002 /* g_ai_state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_state.h; sourceTree = "<group>"; };
 		AA5E00000000000000000012 /* bg_nav.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bg_nav.h; sourceTree = "<group>"; };
 		CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_item.h; sourceTree = "<group>"; };
+		608CEB7EF8E5DE6CF12E3854 /* g_ai_probe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_probe.h; sourceTree = "<group>"; };
 		CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_info.h; sourceTree = "<group>"; };
 		CE2CEB9125852E110001E599 /* r_depth_pass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_depth_pass.h; sourceTree = "<group>"; };
 		CE2CEB9225852E110001E599 /* r_depth_pass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_depth_pass.c; sourceTree = "<group>"; };
@@ -5050,7 +5060,9 @@
 				CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */,
 				CE27E9F427BDA2AE003D56AC /* g_ai_info.c */,
 				CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */,
+				608CEB7EF8E5DE6CF12E3854 /* g_ai_probe.h */,
 				CE27E9F227BDA2AE003D56AC /* g_ai_item.c */,
+				24CBFB8B8E393C7A86B6F94A /* g_ai_probe.c */,
 				CE27E9F727BDA2AE003D56AC /* g_ai_main.h */,
 				CE27E9F527BDA2AE003D56AC /* g_ai_main.c */,
 				CE27E9F927BDA2AE003D56AC /* g_ai_node.h */,
@@ -5263,6 +5275,7 @@
 				CE05B2B03022486E0012862B /* g_ai_grid.h in Headers */,
 				CE05B2B13022486E0012862B /* g_ai_info.h in Headers */,
 				CE05B2B23022486E0012862B /* g_ai_item.h in Headers */,
+				2EB6E31A178122BF6673F495 /* g_ai_probe.h in Headers */,
 				CE05B2B33022486E0012862B /* g_ai_main.h in Headers */,
 				CE05B2B43022486E0012862B /* g_ai_node.h in Headers */,
 				AA5E00000000000000000004 /* g_ai_state.h in Headers */,
@@ -5344,6 +5357,7 @@
 				CE4E05412FDAE2CE00B92C32 /* g_ai_grid.h in Headers */,
 				CE27EA0627BDA2AF003D56AC /* g_ai_info.h in Headers */,
 				CE27EA0527BDA2AF003D56AC /* g_ai_item.h in Headers */,
+				3A453F3F8EDF1939D3C7748A /* g_ai_probe.h in Headers */,
 				CE27EA0227BDA2AF003D56AC /* g_ai_main.h in Headers */,
 				CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */,
 				AA5E00000000000000000006 /* g_ai_state.h in Headers */,
@@ -5592,6 +5606,7 @@
 				CEC0FF00202601030000010C /* g_ai_grid.h in Headers */,
 				CEC0FF00202601030000010D /* g_ai_info.h in Headers */,
 				CEC0FF00202601030000010E /* g_ai_item.h in Headers */,
+				BECABCE6B683581850493353 /* g_ai_probe.h in Headers */,
 				CEC0FF00202601030000010F /* g_ai_main.h in Headers */,
 				CEC0FF002026010300000110 /* g_ai_node.h in Headers */,
 				AA5E00000000000000000008 /* g_ai_state.h in Headers */,
@@ -5735,6 +5750,7 @@
 				D2A5C1000000000000000038 /* g_ai_grid.h in Headers */,
 				D2A5C1000000000000000039 /* g_ai_info.h in Headers */,
 				D2A5C100000000000000003A /* g_ai_item.h in Headers */,
+				BF6B507E838FBF8442734AE6 /* g_ai_probe.h in Headers */,
 				D2A5C100000000000000003B /* g_ai_main.h in Headers */,
 				D2A5C100000000000000003C /* g_ai_node.h in Headers */,
 				AA5E0000000000000000000A /* g_ai_state.h in Headers */,
@@ -6840,6 +6856,7 @@
 				CE05B28B3022486E0012862B /* g_ai_grid.c in Sources */,
 				CE05B28C3022486E0012862B /* g_ai_info.c in Sources */,
 				CE05B28D3022486E0012862B /* g_ai_item.c in Sources */,
+				06CAAD1EB98519EB820BC2C6 /* g_ai_probe.c in Sources */,
 				CE05B28E3022486E0012862B /* g_ai_main.c in Sources */,
 				CE05B28F3022486E0012862B /* g_ai_node.c in Sources */,
 				AA5E00000000000000000003 /* g_ai_state.c in Sources */,
@@ -7015,6 +7032,7 @@
 				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */,
 				CE27E9FD27BDA2AE003D56AC /* g_ai_item.c in Sources */,
+				86C7347A9CB739F077DF67D1 /* g_ai_probe.c in Sources */,
 				CE27EA0027BDA2AE003D56AC /* g_ai_main.c in Sources */,
 				CE27EA0327BDA2AF003D56AC /* g_ai_node.c in Sources */,
 				AA5E00000000000000000005 /* g_ai_state.c in Sources */,
@@ -7498,6 +7516,7 @@
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
 				CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */,
 				CEC0FF0020260103000000F2 /* g_ai_item.c in Sources */,
+				CCA4333F9876F1849981F4AE /* g_ai_probe.c in Sources */,
 				CEC0FF0020260103000000F3 /* g_ai_main.c in Sources */,
 				CEC0FF0020260103000000F4 /* g_ai_node.c in Sources */,
 				AA5E00000000000000000007 /* g_ai_state.c in Sources */,
@@ -7724,6 +7743,7 @@
 				D2A5C1000000000000000013 /* g_ai_grid.c in Sources */,
 				D2A5C1000000000000000014 /* g_ai_info.c in Sources */,
 				D2A5C1000000000000000015 /* g_ai_item.c in Sources */,
+				8236B95B2330D9D30937F121 /* g_ai_probe.c in Sources */,
 				D2A5C1000000000000000016 /* g_ai_main.c in Sources */,
 				D2A5C1000000000000000017 /* g_ai_node.c in Sources */,
 				AA5E00000000000000000009 /* g_ai_state.c in Sources */,

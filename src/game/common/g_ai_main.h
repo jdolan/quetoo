@@ -35,6 +35,7 @@
 #include "g_ai_info.h"
 #include "g_ai_item.h"
 #include "g_ai_node.h"
+#include "g_ai_probe.h"
 #include "g_ai_state.h"
 #include "g_ai_types.h"
 
