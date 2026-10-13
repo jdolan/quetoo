@@ -71,6 +71,11 @@
 #define AI_NAV_MAX_HURTS 256
 
 /**
+ * @brief The most closed doors and walls that the build treats as solid.
+ */
+#define AI_NAV_MAX_BARRIERS 256
+
+/**
  * @brief The outcome of a floor sample.
  */
 typedef enum {
@@ -94,6 +99,13 @@ static struct {
    */
   Box3 hurts[AI_NAV_MAX_HURTS];
   int32_t numHurts;
+
+  /**
+   * @brief The doors that a bot cannot open by walking up to them, and the walls, which the build
+   * treats as solid as the world.
+   */
+  const GameEntity *barriers[AI_NAV_MAX_BARRIERS];
+  int32_t numBarriers;
 } module;
 
 /**
@@ -159,10 +171,34 @@ static Vec3 G_Ai_Nav_CellOrigin(const Vec3i xyz) {
 }
 
 /**
- * @return A player trace against the world alone, so that players and movers do not block it.
+ * @return A player trace against the world and the barriers, so that players and other movers do
+ * not block it.
  */
 static CollisionTrace G_Ai_Nav_Trace(const Vec3 start, const Vec3 end, const Box3 bounds) {
-  return gi.Clip(start, end, bounds, ge.entities[0], AI_NAV_MASK);
+
+  CollisionTrace trace = gi.Clip(start, end, bounds, ge.entities[0], AI_NAV_MASK);
+
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, start), Box3_Translate(bounds, end));
+
+  for (int32_t i = 0; i < module.numBarriers; i++) {
+    const GameEntity *barrier = module.barriers[i];
+
+    if (!Box3_Intersects(swept, barrier->absBounds)) {
+      continue;
+    }
+
+    const CollisionTrace tr = gi.Clip(start, end, bounds, barrier, AI_NAV_MASK);
+
+    if (tr.allSolid || tr.fraction < trace.fraction) {
+      const bool startSolid = trace.startSolid;
+      trace = tr;
+      trace.startSolid |= startSolid;
+    } else if (tr.startSolid) {
+      trace.startSolid = true;
+    }
+  }
+
+  return trace;
 }
 
 /**
@@ -659,6 +695,34 @@ static void G_Ai_Nav_InitHurts(void) {
 }
 
 /**
+ * @brief Gathers the doors that a bot cannot open by walking up to them, and the walls. A door with
+ * `health` or a `targetname` opens when shot or triggered, and has no trigger that opens it for a
+ * player who walks up to it (`G_func_door`).
+ */
+static void G_Ai_Nav_InitBarriers(void) {
+
+  G_ForEachEntity(ent, {
+    if (!ent->classname || ent->solid != SOLID_BSP) {
+      continue;
+    }
+
+    const bool door = !Str_Compare(ent->classname, "func_door") || !Str_Compare(ent->classname, "func_door_rotating");
+    const bool wall = !Str_Compare(ent->classname, "func_wall");
+
+    if (!wall && !(door && (ent->health || ent->targetName))) {
+      continue;
+    }
+
+    if (module.numBarriers == AI_NAV_MAX_BARRIERS) {
+      G_Warn("More than %d closed doors and walls; bots may path through the rest\n", AI_NAV_MAX_BARRIERS);
+      break;
+    }
+
+    module.barriers[module.numBarriers++] = ent;
+  });
+}
+
+/**
  * @brief Lays the cell grid over the world model's bounds, aligned to the cell size.
  */
 static void G_Ai_Nav_InitGrid(GameAiNavGraph *graph) {
@@ -700,6 +764,8 @@ bool G_Ai_Nav_Build(GameAiNavGraph *graph) {
   G_Ai_Nav_InitGrid(graph);
 
   G_Ai_Nav_InitHurts();
+
+  G_Ai_Nav_InitBarriers();
 
   int32_t numOffset = 0, numNoFit = 0, numHurt = 0;
 
