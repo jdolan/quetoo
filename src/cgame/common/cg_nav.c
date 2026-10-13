@@ -40,6 +40,17 @@ static struct {
    * @brief True if the graph is built for this level.
    */
   bool built;
+
+  /**
+   * @brief The entity number of each inline model that moves nodes, or 0 if it is not yet found.
+   */
+  int32_t movers[MAX_MODELS];
+
+  /**
+   * @brief The frame in which `Cg_AiMover` last searched for each inline model's entity, so that
+   * a model that is not in the frame is searched for once a frame, not once a node.
+   */
+  int32_t moverFrames[MAX_MODELS];
 } module;
 
 /**
@@ -49,7 +60,68 @@ void Cg_FreeAiNodes(void) {
 
   Nav_Free(&module.graph);
 
+  memset(module.movers, 0, sizeof(module.movers));
+  memset(module.moverFrames, 0, sizeof(module.moverFrames));
+
   module.built = false;
+}
+
+/**
+ * @return The entity of the inline model in the current frame, or NULL. A model whose entity is
+ * not in the frame is searched for at most once a frame.
+ */
+static const ClientEntity *Cg_AiMover(const int32_t model) {
+
+  if (model <= 0 || model >= MAX_MODELS) {
+    return NULL;
+  }
+
+  const int32_t frameNum = cgi.client->frame.frameNum;
+  const char *name = va("*%d", model);
+
+  const ClientEntity *ent = &cgi.client->entities[module.movers[model]];
+  if (module.movers[model] && ent->frameNum == frameNum && ent->current.model1 &&
+      !Str_Compare(cgi.ConfigString(CS_MODELS + ent->current.model1), name)) {
+    return ent;
+  }
+
+  if (module.moverFrames[model] == frameNum) {
+    return NULL;
+  }
+
+  module.moverFrames[model] = frameNum;
+  module.movers[model] = 0;
+
+  for (int32_t i = 1; i < MAX_ENTITIES; i++) {
+    ent = &cgi.client->entities[i];
+
+    if (ent->frameNum != frameNum || !ent->current.model1) {
+      continue;
+    }
+
+    if (!Str_Compare(cgi.ConfigString(CS_MODELS + ent->current.model1), name)) {
+      module.movers[model] = i;
+      return ent;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @return The position of the node: where it stands, or for a node on a model that moves, where the
+ * model carries it now.
+ */
+static Vec3 Cg_AiNodePosition(const NavNode *node) {
+
+  if (node->model) {
+    const ClientEntity *ent = Cg_AiMover(node->model);
+    if (ent) {
+      return Mat4_Transform(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f), node->local);
+    }
+  }
+
+  return node->position;
 }
 
 /**
@@ -101,7 +173,7 @@ static void Cg_AiNodeInfo_f(void) {
   float distance = FLT_MAX;
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
-    const float d = Vec3_Distance(graph->nodes[i].position, view);
+    const float d = Vec3_Distance(Cg_AiNodePosition(&graph->nodes[i]), view);
     if (d < distance) {
       distance = d;
       nearest = i;
@@ -114,15 +186,17 @@ static void Cg_AiNodeInfo_f(void) {
   }
 
   const NavNode *node = &graph->nodes[nearest];
+  const Vec3 origin = Cg_AiNodePosition(node);
 
-  cgi.Print("Node %d at %d %d %d, %d units away%s%s, %d links:\n", nearest,
-            (int32_t) node->position.x, (int32_t) node->position.y, (int32_t) node->position.z,
+  cgi.Print("Node %d at %d %d %d, %d units away%s%s%s, %d links:\n", nearest,
+            (int32_t) origin.x, (int32_t) origin.y, (int32_t) origin.z,
             (int32_t) distance, node->crouch ? ", crouch" : "",
-            (node->contents & CONTENTS_WATER) ? ", water" : "", node->numLinks);
+            (node->contents & CONTENTS_WATER) ? ", water" : "",
+            node->model ? va(", on model *%d", node->model) : "", node->numLinks);
 
   for (int32_t i = 0; i < node->numLinks; i++) {
     const NavLink *link = &graph->links[node->firstLink + i];
-    const Vec3 position = graph->nodes[link->node].position;
+    const Vec3 position = Cg_AiNodePosition(&graph->nodes[link->node]);
 
     cgi.Print("  %s to node %d at %d %d %d\n", Cg_AiTravelName(link->travelType), link->node,
               (int32_t) position.x, (int32_t) position.y, (int32_t) position.z);
@@ -226,7 +300,9 @@ void Cg_DrawAiNodes(const ClientFrame *frame) {
   for (int32_t i = 0; i < graph->numNodes; i++) {
     const NavNode *node = &graph->nodes[i];
 
-    if (Vec3_Distance(node->position, view) > CG_NAV_DRAW_DISTANCE) {
+    const Vec3 position = Cg_AiNodePosition(node);
+
+    if (Vec3_Distance(position, view) > CG_NAV_DRAW_DISTANCE) {
       continue;
     }
 
@@ -234,7 +310,7 @@ void Cg_DrawAiNodes(const ClientFrame *frame) {
 
     Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgameMedia.sprites.particle,
-      .origin = node->position,
+      .origin = position,
       .size = 6.f,
       .color = color,
     });
@@ -249,8 +325,8 @@ void Cg_DrawAiNodes(const ClientFrame *frame) {
       Cg_AddSprite(&(CGameSprite) {
         .type = SPRITE_BEAM,
         .image = cgameMedia.beams.line,
-        .origin = node->position,
-        .termination = graph->nodes[link->node].position,
+        .origin = position,
+        .termination = Cg_AiNodePosition(&graph->nodes[link->node]),
         .size = 1.5f,
         .color = Cg_AiLinkColor(link->travelType).vec3,
       });
