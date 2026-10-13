@@ -117,7 +117,7 @@ static void Cg_Init(void) {
   cg_addSprites = cgi.AddCvar("cg_addSprites", "1", 0, "Toggles adding sprites to the scene.");
   cg_addWeather = cgi.AddCvar("cg_addWeather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
   cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Scales the view and weapon bob while moving, and the weapon's drop, raise and kick (0 to 2).");
-  cg_drawAiNodes = cgi.AddCvar("cg_drawAiNodes", "0", CVAR_DEVELOPER, "Draws the bots' navigation graph near the view.");
+  cg_drawAiNodes = cgi.AddCvar("cg_drawAiNodes", "0", CVAR_DEVELOPER, "Draws the bots' navigation graph near the view, and the node nearest the view in the diagnostics table.");
   cg_drawBlend = cgi.AddCvar("cg_drawBlend", "1", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending.");
   cg_drawBlendDamage = cgi.AddCvar("cg_drawBlendDamage", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when taking damage.");
   cg_drawBlendLiquid = cgi.AddCvar("cg_drawBlendLiquid", "1", CVAR_ARCHIVE, "Controls the intensity of the blend effect while in a liquid.");

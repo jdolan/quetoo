@@ -190,16 +190,12 @@ static const char *Cg_AiTravelName(const NavTravelType type) {
 }
 
 /**
- * @brief Prints the view's position, and the node nearest it with its links.
+ * @see cg_nav.h
  */
-static void Cg_AiNodeInfo_f(void) {
-
-  const Vec3 view = cgi.view->origin;
-
-  cgi.Print("View at %d %d %d\n", (int32_t) view.x, (int32_t) view.y, (int32_t) view.z);
+void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data) {
 
   if (!module.built) {
-    cgi.Print("Set cg_drawAiNodes 1 to build the navigation graph\n");
+    row(data, "ai node", "none: set cg_drawAiNodes 1 to build the graph");
     return;
   }
 
@@ -209,7 +205,7 @@ static void Cg_AiNodeInfo_f(void) {
   float distance = FLT_MAX;
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
-    const float d = Vec3_Distance(Cg_AiNodePosition(&graph->nodes[i]), view);
+    const float d = Vec3_Distance(Cg_AiNodePosition(&graph->nodes[i]), position);
     if (d < distance) {
       distance = d;
       nearest = i;
@@ -217,26 +213,58 @@ static void Cg_AiNodeInfo_f(void) {
   }
 
   if (nearest == -1) {
-    cgi.Print("No navigation nodes\n");
+    row(data, "ai node", "none: the level has no nodes");
     return;
   }
 
   const NavNode *node = &graph->nodes[nearest];
   const Vec3 origin = Cg_AiNodePosition(node);
 
-  cgi.Print("Node %d at %d %d %d, %d units away%s%s%s, %d links:\n", nearest,
-            (int32_t) origin.x, (int32_t) origin.y, (int32_t) origin.z,
-            (int32_t) distance, node->crouch ? ", crouch" : "",
-            (node->contents & CONTENTS_WATER) ? ", water" : "",
-            node->model ? va(", on model *%d", node->model) : "", node->numLinks);
+  row(data, "ai node", va("^5%d^7 at %d %d %d, %d away%s%s%s%s%s", nearest,
+                          (int32_t) origin.x, (int32_t) origin.y, (int32_t) origin.z, (int32_t) distance,
+                          node->crouch ? ", crouch" : "", (node->contents & CONTENTS_WATER) ? ", water" : "",
+                          node->swim ? ", swim" : "", node->edge ? ", edge" : "",
+                          node->model ? va(", on *%d", node->model) : ""));
 
   for (int32_t i = 0; i < node->numLinks; i++) {
     const NavLink *link = &graph->links[node->firstLink + i];
-    const Vec3 position = Cg_AiNodePosition(&graph->nodes[link->node]);
+    const Vec3 to = Cg_AiNodePosition(&graph->nodes[link->node]);
 
-    cgi.Print("  %s to node %d at %d %d %d\n", Cg_AiTravelName(link->travelType), link->node,
-              (int32_t) position.x, (int32_t) position.y, (int32_t) position.z);
+    row(data, va("  %s", Cg_AiTravelName(link->travelType)), va("%d at %d %d %d", link->node,
+                                                                  (int32_t) to.x, (int32_t) to.y, (int32_t) to.z));
   }
+
+  for (int32_t i = 0; i < graph->numPushes; i++) {
+    const CGameAiFlight *flight = &module.flights[i];
+
+    if (flight->numPoints < 2 || Vec3_Distance(flight->points[0], origin) > NAV_CELL_SIZE * 2.f) {
+      continue;
+    }
+
+    const Vec3 end = flight->points[flight->numPoints - 1];
+
+    row(data, "  flight", flight->lands ? va("lands at %d %d %d", (int32_t) end.x, (int32_t) end.y, (int32_t) end.z)
+                                     : "does not land");
+  }
+}
+
+/**
+ * @brief Prints one row of `Cg_DescribeAiNode` to the console.
+ */
+static void Cg_AiNodeInfo_row(void *data, const char *name, const char *value) {
+  cgi.Print("%s: %s\n", name, value);
+}
+
+/**
+ * @brief Prints the view's position, and the node nearest it with its links.
+ */
+static void Cg_AiNodeInfo_f(void) {
+
+  const Vec3 view = cgi.view->origin;
+
+  cgi.Print("View at %d %d %d\n", (int32_t) view.x, (int32_t) view.y, (int32_t) view.z);
+
+  Cg_DescribeAiNode(view, Cg_AiNodeInfo_row, NULL);
 }
 
 /**

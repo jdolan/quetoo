@@ -48,6 +48,18 @@ void Cg_PrepareAiNodes(const ClientFrame *frame);
 void Cg_DrawAiNodes(const ClientFrame *frame);
 
 /**
+ * @brief Receives one row of `Cg_DescribeAiNode`.
+ */
+typedef void (*CGameAiNodeRowFunc)(void *data, const char *name, const char *value);
+
+/**
+ * @brief Describes the navigation node nearest `position`, one row at a time: its number, position,
+ * distance and flags, each of its links, and each push flight that starts within two cells of it.
+ * `aiNodeInfo` prints the rows, and the diagnostics view shows them while `cg_drawAiNodes` is set.
+ */
+void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data);
+
+/**
  * @brief Frees the navigation graph, so that the next level builds its own.
  */
 void Cg_FreeAiNodes(void);
