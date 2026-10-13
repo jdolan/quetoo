@@ -508,12 +508,12 @@ void G_Ai_Probe_Think(const GameClient *cl) {
       }
     }
 
-    G_Ai_Probe_Print(n, "POS", "pos=%d,%d,%d speed=%d state=%s goal=%s health=%d link=%d->%d type=%d weapon=%s fire=%s armed=%d enemy=%d combat=%d",
+    G_Ai_Probe_Print(n, "POS", "pos=%d,%d,%d speed=%d state=%s goal=%s health=%d link=%d->%d type=%d weapon=%s fire=%s armed=%d enemy=%d combat=%d water=%d ground=%d",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), G_Ai_StateName(cl), G_Ai_Probe_Goal(cl),
                      ent->health, from, to, travelType, cl->weapon ? cl->weapon->def.classname : "none", *fire ? fire : "none",
                      G_Ai_IsArmed(cl), enemy ? (int32_t) Vec3_Distance(ent->s.origin, combat->entity.ent->s.origin) : -1,
-                     enemy ? (int32_t) combat->entity.combatType : -1);
+                     enemy ? (int32_t) combat->entity.combatType : -1, ent->waterLevel, ent->ground.ent != NULL);
 
     c->positions[c->numPositions++ % AI_PROBE_STUCK_POSITIONS] = ent->s.origin;
 

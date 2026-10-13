@@ -96,7 +96,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 |---|---|
 | `GRAPH` | Once, with the node and link counts |
 | `NODE`, `TRIGGER` | Once, with `g_aiProbe 2`: each node, `edge=1` if it stands at the edge of the void, with its links, as `node:type:cost`, and each push and hurt trigger's bounds |
-| `POS` | Each second for each bot: position, speed, state, goal item, health, link, the weapon in hand, the weapons it can fire, whether it counts itself armed, the enemy's distance and the combat movement |
+| `POS` | Each second for each bot: position, speed, state, goal item, health, link, the weapon in hand, the weapons it can fire, whether it counts itself armed, the enemy's distance, the combat movement, the water level (0 to 3) and whether it is on the ground |
 | `SPEED` | Each 5 seconds: roster name, skill, average and highest speed, the share of time that the bot strafe jumps and is in the air |
 | `DEATH` + `HIST reason=death` | When a bot dies |
 | `PATH` | When a bot gets a new path: where it is, its speed, whether it is on the ground, and the first, second and last nodes |
