@@ -25,7 +25,34 @@
 /**
  * @brief The distance from the view within which nodes and links are drawn.
  */
-#define CG_NAV_DRAW_DISTANCE 512.f
+#define CG_NAV_DRAW_DISTANCE 768.f
+
+/**
+ * @brief The most points of a jump pad's flight that the client game keeps: one each server frame
+ * of `NAV_FLIGHT_SECONDS`.
+ */
+#define CG_NAV_FLIGHT_POINTS ((int32_t) (NAV_FLIGHT_SECONDS * QUETOO_TICK_RATE) + 1)
+
+/**
+ * @brief The points of a jump pad's flight between two segments of its drawn arc: 100 ms.
+ */
+#define CG_NAV_FLIGHT_STRIDE 4
+
+/**
+ * @brief The flight of a player on one of the level's jump pads, as `Nav_FlyPush` flies it.
+ */
+typedef struct {
+  /**
+   * @brief The player origin at each server frame of the flight, from the pad.
+   */
+  Vec3 points[CG_NAV_FLIGHT_POINTS];
+  int32_t numPoints;
+
+  /**
+   * @brief True if the flight lands. A vertical pad's flight falls back onto it, and does not.
+   */
+  bool lands;
+} CGameAiFlight;
 
 /**
  * @brief The navigation graph that the client game draws.
