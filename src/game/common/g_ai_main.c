@@ -472,13 +472,17 @@ float G_Ai_PreferredRange(const GameClient *cl) {
 
 /**
  * @return True if the bot can move one body width toward `dir` without hitting a wall or walking
- * off a ledge.
+ * off a ledge. The wall test sweeps the bot's box, raised by a step, because the center of the box
+ * can pass a corner or a gap that the box does not.
  */
 static bool G_Ai_CanStep(const GameEntity *ent, const Vec3 dir) {
 
   const Vec3 end = Vec3_Fmaf(ent->s.origin, Box3_Size(ent->bounds).x * 2.f, dir);
 
-  if (gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+  Box3 bounds = ent->bounds;
+  bounds.mins.z += PM_STEP_HEIGHT;
+
+  if (gi.Trace(ent->s.origin, end, bounds, ent, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
     return false;
   }
 
