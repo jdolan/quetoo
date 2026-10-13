@@ -133,6 +133,12 @@
 #define NAV_MAX_NODE_LINKS 128
 
 /**
+ * @brief The margin by which the build widens a `trigger_push`, so that nodes and walks keep this
+ * far from it, because a bot drifts a few units off its links, and a pad beside a link throws it.
+ */
+#define NAV_PUSH_MARGIN 16.f
+
+/**
  * @brief The most `trigger_hurt` and `trigger_push` entities that the build avoids.
  */
 #define NAV_MAX_TRIGGERS 256
@@ -1224,7 +1230,8 @@ static bool Nav_EntityHas(const Entity *entity, const char *key) {
  * cannot open by walking up to them, the walls and the rotating models, from the inline models of
  * the BSP.
  * @details A player touches a trigger where their bounds intersect, as `G_TouchOccupy` does, so
- * that is where no node may stand and no walk may pass. A jump pad's own link starts at the
+ * that is where no node may stand and no walk may pass. A `trigger_push` is widened by
+ * `NAV_PUSH_MARGIN`. A jump pad's own link starts at the
  * nearest node beside it. A door with `health` or a `targetname` opens when shot or triggered, and
  * has no trigger that opens it for a player who walks up to it (`G_func_door`). A door that spawns
  * open is not a barrier. A wall is solid where it spawns so (`G_func_wall`). A rotating door, and a
@@ -1255,7 +1262,11 @@ static void Nav_InitModels(void) {
         continue;
       }
 
-      module.triggers[module.numTriggers++] = bounds;
+      if (!Str_Compare(classname, "trigger_push")) {
+        module.triggers[module.numTriggers++] = Box3_Expand3(bounds, MakeVec3(NAV_PUSH_MARGIN, NAV_PUSH_MARGIN, 0.f));
+      } else {
+        module.triggers[module.numTriggers++] = bounds;
+      }
       continue;
     }
 
