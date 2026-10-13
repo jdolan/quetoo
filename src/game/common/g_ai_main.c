@@ -1326,14 +1326,9 @@ static bool G_Ai_ReturnToPath(GameClient *cl) {
 }
 
 /**
- * @brief The skill above which a bot strafe jumps along its path.
+ * @brief The least skill at which a bot strafe jumps along its path.
  */
-#define AI_STRAFE_JUMP_SKILL .5f
-
-/**
- * @brief The farthest that a strafe jumping bot looks along its path for a node to steer to.
- */
-#define AI_STRAFE_LOOK_DISTANCE 768.f
+#define AI_STRAFE_JUMP_SKILL .25f
 
 /**
  * @brief The most path nodes that a strafe jumping bot looks ahead.
@@ -1341,10 +1336,25 @@ static bool G_Ai_ReturnToPath(GameClient *cl) {
 #define AI_STRAFE_LOOK_NODES 12
 
 /**
- * @brief The interval in milliseconds at which a strafe jumping bot looks ahead again, unless it
- * reaches a node first.
+ * @brief The sharpest turn in degrees, at `AI_STRAFE_JUMP_SKILL`, that a bot takes in a strafe jump.
  */
-#define AI_STRAFE_LOOK_MILLIS 100
+#define AI_STRAFE_TURN_MIN 15.f
+
+/**
+ * @brief The sharpest turn in degrees, at skill 1, that a bot takes in a strafe jump.
+ */
+#define AI_STRAFE_TURN_MAX 60.f
+
+/**
+ * @brief The distance within which a strafe jumping bot ignores the turns of its path, which are
+ * the steps of the grid: one and a half cells.
+ */
+#define AI_STRAFE_NEAR_DISTANCE 96.f
+
+/**
+ * @brief The most error in degrees, at skill 0, in the wish direction of a strafe jumping bot.
+ */
+#define AI_STRAFE_ERROR 20.f
 
 /**
  * @brief The spacing in units of the floor samples under the line to the node that a bot steers to.
@@ -1352,27 +1362,10 @@ static bool G_Ai_ReturnToPath(GameClient *cl) {
 #define AI_STRAFE_FLOOR_SPACING 32.f
 
 /**
- * @brief The horizontal distance to each side of the line to the node that a bot steers to, at
- * which it MUST find floor to strafe jump, because it drifts to the side in the air.
+ * @brief The interval in milliseconds at which a strafe jumping bot looks ahead again, unless it
+ * reaches a node first.
  */
-#define AI_STRAFE_MARGIN 32.f
-
-/**
- * @brief The fraction of the run speed that a bot reaches on the ground before its first jump.
- */
-#define AI_STRAFE_TAKEOFF_SPEED .9f
-
-/**
- * @brief The least cosine between the bot's velocity and the direction to the node that it steers
- * to, for it to jump: 20 degrees. It makes a sharper turn on the ground, because air control turns
- * too slowly to correct a larger error before the bot leaves a narrow floor.
- */
-#define AI_STRAFE_ALIGNMENT .94f
-
-/**
- * @brief The most error in degrees, at skill 0, in the wish direction of a strafe jumping bot.
- */
-#define AI_STRAFE_ERROR 20.f
+#define AI_STRAFE_LOOK_MILLIS 100
 
 /**
  * @return The speed toward which the level's movement accelerates a player in the air, or 0 if
@@ -1399,7 +1392,7 @@ static bool G_Ai_CanStrafeJump(const GameClient *cl) {
   const GameEntity *ent = cl->entity;
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
-  if (cl->ai->personality.skill <= AI_STRAFE_JUMP_SKILL || G_Ai_AirWishSpeed(cl) <= 0.f) {
+  if (cl->ai->personality.skill < AI_STRAFE_JUMP_SKILL || G_Ai_AirWishSpeed(cl) <= 0.f) {
     return false;
   }
 
@@ -1421,8 +1414,8 @@ static bool G_Ai_CanStrafeJump(const GameClient *cl) {
 
 /**
  * @return True if the path link into the node at `index` is one that a bot can run along. Untyped
- * links, from hand-recorded graphs and from nodes that the game adds, qualify, because the line and
- * floor checks of `G_Ai_SteerIndex` decide for them.
+ * links, from nodes that the game adds, qualify, because the line and floor checks of
+ * `G_Ai_StrafeTarget` decide for them.
  */
 static bool G_Ai_IsRunLink(const Vector *path, const uint32_t index) {
 
@@ -1462,34 +1455,55 @@ static bool G_Ai_HasFloor(const GameEntity *ent, const Vec3 a, const Vec3 b) {
 }
 
 /**
- * @brief Finds the farthest node along the bot's path that it can run straight to: every link up
- * to it is a run link, the line to it is clear for the player's box, and there is floor under the
- * whole line. Steering to it removes the steps of a grid path.
- * @param run The horizontal distance to that node.
- * @return The index of that node in the path, or -1 if the bot cannot run straight to the next one.
+ * @return The sharpest turn in degrees that the bot takes in a strafe jump, which grows with skill.
  */
-static int32_t G_Ai_SteerIndex(GameClient *cl, float *run) {
+static float G_Ai_StrafeTurn(const GameClient *cl) {
+
+  const float t = (cl->ai->personality.skill - AI_STRAFE_JUMP_SKILL) / (1.f - AI_STRAFE_JUMP_SKILL);
+
+  return Mixf(AI_STRAFE_TURN_MIN, AI_STRAFE_TURN_MAX, Clampf(t, 0.f, 1.f));
+}
+
+/**
+ * @brief Finds the node that a strafe jumping bot steers to: the farthest node ahead on its path,
+ * over run links, before the path turns more than `G_Ai_StrafeTurn` from the bot's heading. The
+ * heading is the bot's velocity, or if it moves slower than half the run speed, the direction to the
+ * first node beyond `AI_STRAFE_NEAR_DISTANCE`. Nodes within that distance are passed. The line to
+ * the node MUST be clear for the player's box and have floor under it, with no liquid, because the
+ * bot cuts the corners of its path on the way. The result is kept for `AI_STRAFE_LOOK_MILLIS`, and
+ * `G_Ai_SetPathGoal` clears it.
+ * @param run The distance along the path to that node.
+ * @return The index of that node in the path, or -1 if no node passes: the path turns, its next
+ * link is not a run link, or the line to its next node is blocked.
+ */
+static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
 
   GameAi *ai = cl->ai;
+  const GameEntity *ent = cl->entity;
   const GameAiGoal *goal = &ai->moveTarget;
   const Vector *path = goal->path.path;
-
-  if (ai->steerTime > gameLevel.time && ai->steerPath == path && ai->steerPathIndex == goal->path.pathIndex &&
-      ai->steerIndex < (int32_t) path->count) {
-    *run = ai->steerRun;
-    return ai->steerIndex;
-  }
-
-  const GameEntity *ent = cl->entity;
-  const Vec3 origin = ent->s.origin;
-  const Vec3 floor = MakeVec3(origin.x, origin.y, ent->ground.ent ? origin.z : ai->groundPosition.z);
+  const Vec3 origin = MakeVec3(ent->s.origin.x, ent->s.origin.y, 0.f);
+  const Vec3 floor = MakeVec3(ent->s.origin.x, ent->s.origin.y, ent->ground.ent ? ent->s.origin.z : ai->groundPosition.z);
 
   Box3 bounds = Pm_Bounds(&cl->ps.pmState.params, false);
   bounds.mins.z += PM_STEP_HEIGHT;
 
-  int32_t steer = -1;
-  float steerRun = 0.f, walked = 0.f;
-  Vec3 previous = floor;
+  if (ai->strafeLookTime > gameLevel.time && ai->strafeLookPath == path &&
+      ai->strafeLookPathIndex == goal->path.pathIndex && ai->strafeLookIndex < (int32_t) path->count) {
+    *run = ai->strafeLookRun;
+    return ai->strafeLookIndex;
+  }
+
+  const Vec3 velocity = MakeVec3(ent->velocity.x, ent->velocity.y, 0.f);
+  Vec3 heading = Vec3_Length(velocity) >= PM_SPEED_RUN * .5f ? Vec3_Normalize(velocity) : Vec3_Zero();
+
+  const float limit = cosf(Radians(G_Ai_StrafeTurn(cl)));
+
+  int32_t target = -1;
+  float walked = 0.f;
+  Vec3 previous = origin;
+
+  *run = 0.f;
 
   for (uint32_t i = goal->path.pathIndex; i < path->count && i < goal->path.pathIndex + AI_STRAFE_LOOK_NODES; i++) {
 
@@ -1497,84 +1511,55 @@ static int32_t G_Ai_SteerIndex(GameClient *cl, float *run) {
       break;
     }
 
-    const Vec3 position = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, i));
+    const Vec3 node = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, i));
+    const Vec3 position = MakeVec3(node.x, node.y, 0.f);
 
-    walked += Vec2_Length(Vec2_Subtract(Vec3_XY(position), Vec3_XY(previous)));
+    walked += Vec3_Distance(position, previous);
     previous = position;
 
-    if (walked > AI_STRAFE_LOOK_DISTANCE) {
+    float distance;
+    const Vec3 to = Vec3_NormalizeLength(Vec3_Subtract(position, origin), &distance);
+
+    if (distance > AI_STRAFE_NEAR_DISTANCE) {
+      if (Vec3_Equal(heading, Vec3_Zero())) {
+        heading = to;
+      } else if (Vec3_Dot(to, heading) < limit) {
+        break;
+      }
+    }
+
+    const CollisionTrace tr = gi.Trace(ent->s.origin, node, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
+
+    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, node)) {
       break;
     }
 
-    const CollisionTrace tr = gi.Trace(origin, position, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
-
-    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, position)) {
-      break;
-    }
-
-    steer = (int32_t) i;
-    steerRun = Vec2_Length(Vec2_Subtract(Vec3_XY(position), Vec3_XY(origin)));
+    target = (int32_t) i;
+    *run = walked;
   }
 
-  ai->steerTime = gameLevel.time + AI_STRAFE_LOOK_MILLIS;
-  ai->steerPath = path;
-  ai->steerPathIndex = goal->path.pathIndex;
-  ai->steerIndex = steer;
-  ai->steerRun = steerRun;
+  ai->strafeLookTime = gameLevel.time + AI_STRAFE_LOOK_MILLIS;
+  ai->strafeLookPath = path;
+  ai->strafeLookPathIndex = goal->path.pathIndex;
+  ai->strafeLookIndex = target;
+  ai->strafeLookRun = *run;
 
-  *run = steerRun;
-  return steer;
+  return target;
 }
 
 /**
- * @return True if the bot should jump, now or on landing: its straight run is longer than one
- * jump, its velocity points at the node that it steers to, the floor is wide enough, and the
- * ceiling is clear.
- * @param chained True if the bot is already strafe jumping, so it needs no run-up.
+ * @return True if the bot should jump, now or on landing: the path ahead of it runs within its turn
+ * for longer than one jump.
+ * @param run The distance along the path to the node that the bot steers to.
  */
-static bool G_Ai_ShouldStrafeJump(const GameClient *cl, const Vec3 target, const float run, const bool chained) {
+static bool G_Ai_ShouldStrafeJump(const GameClient *cl, const float run) {
 
-  const GameEntity *ent = cl->entity;
   const PMoveParams *params = &cl->ps.pmState.params;
-
-  Vec3 velocity = ent->velocity;
-  velocity.z = 0.f;
-
-  float speed;
-  const Vec3 dir = Vec3_NormalizeLength(velocity, &speed);
-
-  if (!chained && speed < PM_SPEED_RUN * AI_STRAFE_TAKEOFF_SPEED) {
-    return false;
-  }
+  const float speed = Vec2_Length(Vec3_XY(cl->entity->velocity));
 
   const float airTime = 2.f * params->speedJump / Maxf(1.f, params->gravity);
 
-  if (run < Maxf(speed, PM_SPEED_RUN) * airTime) {
-    return false;
-  }
-
-  Vec3 to = Vec3_Subtract(target, ent->s.origin);
-  to.z = 0.f;
-  to = Vec3_Normalize(to);
-
-  if (Vec3_Dot(dir, to) < AI_STRAFE_ALIGNMENT) {
-    return false;
-  }
-
-  const Vec3 side = Vec3_Scale(MakeVec3(-to.y, to.x, 0.f), AI_STRAFE_MARGIN);
-  const Vec3 floor = MakeVec3(ent->s.origin.x, ent->s.origin.y, ent->ground.ent ? ent->s.origin.z : cl->ai->groundPosition.z);
-
-  if (!G_Ai_HasFloor(ent, Vec3_Add(floor, side), Vec3_Add(target, side)) ||
-      !G_Ai_HasFloor(ent, Vec3_Subtract(floor, side), Vec3_Subtract(target, side))) {
-    return false;
-  }
-
-  const float height = params->speedJump * params->speedJump / (2.f * Maxf(1.f, params->gravity));
-  const Vec3 up = Vec3_Add(ent->s.origin, MakeVec3(0.f, 0.f, height));
-
-  const CollisionTrace tr = gi.Trace(ent->s.origin, up, Pm_Bounds(params, false), ent, CONTENTS_MASK_CLIP_PLAYER);
-
-  return tr.fraction == 1.f;
+  return run >= Maxf(speed, PM_SPEED_RUN) * airTime;
 }
 
 /**
@@ -1618,28 +1603,17 @@ static Vec3 G_Ai_StrafeWish(const GameClient *cl, const Vec3 origin, Vec3 veloci
 }
 
 /**
- * @brief The longest move that `G_Ai_SimulateMove` follows, in milliseconds.
+ * @brief The longest drop that `G_Ai_SimulateDrop` follows, in milliseconds.
  */
-#define AI_STRAFE_HOP_MILLIS 2000
+#define AI_DROP_MILLIS 2000
 
 /**
- * @brief The time in milliseconds for which `G_Ai_SimulateMove` runs on after a strafe jump lands,
- * so that a landing at the edge of a floor, from which the bot's speed carries it off, fails.
+ * @brief Simulates the bot's walk off a ledge with `Pm_Move`. The bot steers straight at the
+ * target, as `G_Ai_Move` does in the air.
+ * @return True if the drop lands on the floor no lower than the target, or in water to the waist,
+ * from where the bot swims to the target, and touches no `trigger_hurt`, lava or slime on the way.
  */
-#define AI_STRAFE_LAND_MILLIS 200
-
-/**
- * @brief Simulates the bot's next move off the ground with `Pm_Move`. A strafe jump uses the air
- * control of `G_Ai_StrafeWish`: from the ground, one jump; from the air, the rest of the fall, a
- * jump on landing, and the fall after it. A drop walks off and steers straight at the target, as
- * `G_Ai_Move` does in the air.
- * @param jump True for a strafe jump, false for a drop.
- * @return True if the move lands on the floor, no lower than the target, and no lower than the bot
- * for a jump, and touches no `trigger_hurt`, lava or slime on the way. A jump must also stay on the
- * floor for `AI_STRAFE_LAND_MILLIS` after it lands. A drop may also land in water to the waist, from
- * where the bot swims to the target.
- */
-static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump) {
+static bool G_Ai_SimulateDrop(GameClient *cl, const Vec3 target) {
 
   GameEntity *ent = cl->entity;
 
@@ -1662,46 +1636,30 @@ static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump
 
   aiCurrentEntity = ent;
 
-  const float start = ent->ground.ent ? ent->s.origin.z : cl->ai->groundPosition.z;
-  const float floor = (jump ? Minf(start, target.z) : target.z) - PM_STEP_HEIGHT * 2.f;
+  const float floor = target.z - PM_STEP_HEIGHT * 2.f;
   const uint8_t msec = (uint8_t) ceilf(QUETOO_TICK_MILLIS / 3.f);
 
-  bool jumped = false;
-  bool landed = false;
-  uint32_t landTime = 0;
+  bool dropped = false;
 
-  for (uint32_t millis = 0; millis < AI_STRAFE_HOP_MILLIS; millis += msec) {
+  for (uint32_t millis = 0; millis < AI_DROP_MILLIS; millis += msec) {
 
-    Vec3 wish;
     float speed;
-
-    if (landed) {
-      wish = Vec3_Subtract(target, pm.s.origin);
-      wish.z = 0.f;
-      wish = Vec3_Normalize(wish);
-      speed = PM_SPEED_RUN;
-    } else if (jump) {
-      wish = G_Ai_StrafeWish(cl, pm.s.origin, pm.s.velocity, target, msec, 0.f);
-      speed = Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN);
-    } else {
-      wish = Vec3_Subtract(target, pm.s.origin);
-      wish.z = 0.f;
-      wish = Vec3_NormalizeLength(wish, &speed);
-      speed = pm.ground.ent ? PM_SPEED_RUN * AI_LEDGE_SPEED : Clampf(speed, 10.f, PM_SPEED_RUN);
-    }
+    Vec3 wish = Vec3_Subtract(target, pm.s.origin);
+    wish.z = 0.f;
+    wish = Vec3_NormalizeLength(wish, &speed);
+    speed = pm.ground.ent ? PM_SPEED_RUN * AI_LEDGE_SPEED : Clampf(speed, 10.f, PM_SPEED_RUN);
 
     pm.cmd = (PMoveCmd) {
       .msec = msec,
       .angles = MakeVec3(0.f, Vec3_Euler(wish).y, 0.f),
       .forward = (int16_t) speed,
-      .up = (jump && !jumped && pm.s.velocity.z <= 0.f) ? PM_SPEED_JUMP : 0
     };
 
     pm.cmd.angles = Vec3_Subtract(pm.cmd.angles, pm.s.deltaAngles);
 
     Pm_Move(&pm);
 
-    jumped |= jump ? (pm.s.flags & PMF_JUMPED) != 0 : !pm.ground.ent;
+    dropped |= !pm.ground.ent;
 
     const Box3 bounds = Box3_Translate(Pm_Bounds(&pm.s.params, false), pm.s.origin);
 
@@ -1709,27 +1667,12 @@ static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump
       return false;
     }
 
-    if (landed) {
-      if (!pm.ground.ent || pm.s.origin.z < floor) {
-        return false;
-      }
-
-      if (millis - landTime >= AI_STRAFE_LAND_MILLIS) {
-        return true;
-      }
-    } else if (!jump && jumped && pm.waterLevel >= WATER_WAIST) {
+    if (dropped && pm.waterLevel >= WATER_WAIST) {
       return true;
-    } else if (jumped && pm.ground.ent) {
-      if (pm.s.origin.z < floor) {
-        return false;
-      }
+    }
 
-      if (!jump) {
-        return true;
-      }
-
-      landed = true;
-      landTime = millis;
+    if (dropped && pm.ground.ent) {
+      return pm.s.origin.z >= floor;
     }
   }
 
@@ -1737,11 +1680,11 @@ static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump
 }
 
 /**
- * @brief Strafe jumps along the bot's path, as skilled players do to gain speed: on the ground
- * the bot jumps; in the air it releases jump while it rises and holds it while it falls, so that it
- * jumps again on landing, before friction slows it; and it steers at the optimal strafe angle
- * toward the farthest node that it can run straight to. It takes each jump only if
- * `G_Ai_SimulateMove` lands it safely, and decides at the top of each arc whether to jump again.
+ * @brief Strafe jumps along the bot's path, as skilled players do to gain speed. On the ground the
+ * bot jumps. In the air it releases jump while it rises, and holds it while it falls, so that it
+ * jumps again on landing, before friction slows it. It steers at the optimal strafe angle toward
+ * the farthest node of `G_Ai_StrafeTarget`. Before a turn sharper than `G_Ai_StrafeTurn`, it lands
+ * and runs, to turn on the ground.
  * @param dir The move direction relative to the view, as `G_Ai_Move` builds it.
  * @return True if the bot strafe jumps, and `dir` and `cmd->up` are set.
  */
@@ -1756,32 +1699,23 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
   }
 
   float run;
-  const int32_t steer = G_Ai_SteerIndex(cl, &run);
+  const int32_t steer = G_Ai_StrafeTarget(cl, &run);
 
   if (steer < 0) {
     ai->strafeJumping = false;
     return false;
   }
 
-  const Vec3 target = G_Ai_Node_GetPosition(VectorValue(ai->moveTarget.path.path, GameAiNodeId, steer));
-
   if (ent->ground.ent) {
-    if (!G_Ai_ShouldStrafeJump(cl, target, run, ai->strafeJumping) || !G_Ai_SimulateMove(cl, target, true)) {
+    if (!G_Ai_ShouldStrafeJump(cl, run)) {
       ai->strafeJumping = false;
       return false;
     }
 
     ai->strafeJumping = true;
-    ai->strafeFalling = false;
-    cmd->up = PM_SPEED_JUMP;
+    cmd->up = (cl->ps.pmState.flags & PMF_JUMP_HELD) ? 0 : PM_SPEED_JUMP;
   } else if (ai->strafeJumping) {
-    if (ent->velocity.z > 0.f) {
-      ai->strafeFalling = false;
-    } else if (!ai->strafeFalling) {
-      ai->strafeFalling = true;
-      ai->strafeAgain = G_Ai_ShouldStrafeJump(cl, target, run, true) && G_Ai_SimulateMove(cl, target, true);
-    }
-    cmd->up = (ai->strafeFalling && ai->strafeAgain) ? PM_SPEED_JUMP : 0;
+    cmd->up = (ent->velocity.z <= 0.f && G_Ai_ShouldStrafeJump(cl, run)) ? PM_SPEED_JUMP : 0;
   } else {
     return false;
   }
@@ -1792,6 +1726,7 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
     }
   }
 
+  const Vec3 target = G_Ai_Node_GetPosition(VectorValue(ai->moveTarget.path.path, GameAiNodeId, steer));
   const Vec3 wish = G_Ai_StrafeWish(cl, ent->s.origin, ent->velocity, target, cmd->msec,
                                     AI_STRAFE_ERROR * (1.f - ai->personality.skill));
   const float deltaYaw = G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(wish).y;
@@ -2071,7 +2006,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           G_Ai_Debug("Stopping early to prevent mover issues\n");
         // a ledge link drops from one place, if the fall lands where the link does
         } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
-                   G_Ai_SimulateMove(cl, cl->ai->moveTarget.path.pathPosition, false)) {
+                   G_Ai_SimulateDrop(cl, cl->ai->moveTarget.path.pathPosition)) {
           G_Ai_Debug("Walking off a ledge to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
         // walk links, and the links that the game adds to them, have floor all the way, so an edge
         // anywhere else means that we are off the path
@@ -2503,7 +2438,7 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->fallFrame = 0;
   cl->ai->wanderTurnTime = 0;
   cl->ai->strafeJumping = false;
-  cl->ai->steerTime = 0;
+  cl->ai->strafeLookTime = 0;
 
   cl->ai->viewVelocity = Vec3_Zero();
   cl->ai->perceivedVelocity = Vec3_Zero();

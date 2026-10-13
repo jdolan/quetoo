@@ -614,41 +614,30 @@ typedef struct GameAi {
   bool strafeJumping;
 
   /**
-   * @brief True once a strafe jumping bot passes the top of its arc, and has decided whether to
-   * jump again on landing.
+   * @brief Level time until which `strafeLookIndex` and `strafeLookRun` are valid, for
+   * `strafeLookPath` at `strafeLookPathIndex`.
    */
-  bool strafeFalling;
+  uint32_t strafeLookTime;
 
   /**
-   * @brief True if the strafe jumping bot jumps again on landing.
+   * @brief The path for which `strafeLookIndex` was found.
    */
-  bool strafeAgain;
+  const Vector *strafeLookPath;
 
   /**
-   * @brief Level time until which `steerIndex` and `steerRun` are valid, for `steerPath` at
-   * `steerPathIndex`.
+   * @brief The path index for which `strafeLookIndex` was found.
    */
-  uint32_t steerTime;
+  uint32_t strafeLookPathIndex;
 
   /**
-   * @brief The path for which `steerIndex` was computed.
+   * @brief The index of the path node that a strafe jumping bot steers to, or -1 for none.
    */
-  const Vector *steerPath;
+  int32_t strafeLookIndex;
 
   /**
-   * @brief The path index for which `steerIndex` was computed.
+   * @brief The distance along the path to the node at `strafeLookIndex`.
    */
-  uint32_t steerPathIndex;
-
-  /**
-   * @brief The index of the farthest path node that the bot can run straight to, or -1 for none.
-   */
-  int32_t steerIndex;
-
-  /**
-   * @brief The horizontal distance to the node at `steerIndex`.
-   */
-  float steerRun;
+  float strafeLookRun;
 } GameAi;
 
 #endif
