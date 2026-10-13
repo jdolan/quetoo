@@ -730,7 +730,8 @@ static bool Nav_Walk(const NavNode *a, const NavNode *b, float *distance) {
 
 /**
  * @brief Simulates a jump straight up from node `a` onto the ledge of node `b`.
- * @return True if the jump clears the ledge and lands at `b`.
+ * @return True if the jump clears the ledge and lands at `b`, and the box touches no trigger as it
+ * rises, up to the barrier height or a ceiling, and as it moves across to the ledge.
  */
 static bool Nav_BarrierJump(const NavNode *a, const NavNode *b, float *distance) {
 
@@ -752,7 +753,21 @@ static bool Nav_BarrierJump(const NavNode *a, const NavNode *b, float *distance)
     return false;
   }
 
+  const Vec3 top = Nav_Trace(a->position, Vec3_Add(a->position, Vec3_Scale(Vec3_Up(), module.barrierHeight)), PM_BOUNDS).end;
+  if (Nav_TouchesTrigger(Box3_Union(Box3_Translate(PM_BOUNDS, a->position), Box3_Translate(PM_BOUNDS, top)))) {
+    return false;
+  }
+
   *distance = Vec2_Distance(Vec3_XY(a->position), Vec3_XY(b->position));
+
+  const Vec3 across = MakeVec3(b->position.x, b->position.y, top.z);
+  const int32_t steps = Maxi(1, (int32_t) ceilf(*distance / NAV_WALK_STEP));
+
+  for (int32_t i = 1; i <= steps; i++) {
+    if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, Vec3_Mix(top, across, i / (float) steps)))) {
+      return false;
+    }
+  }
 
   return fabsf(origin.z - b->position.z) <= 1.f;
 }
@@ -1231,9 +1246,11 @@ static bool Nav_EntityHas(const Entity *entity, const char *key) {
  * the BSP.
  * @details A player touches a trigger where their bounds intersect, as `G_TouchOccupy` does, so
  * that is where no node may stand and no walk may pass. A `trigger_push` is widened by
- * `NAV_PUSH_MARGIN`. A jump pad's own link starts at the
- * nearest node beside it. A door with `health` or a `targetname` opens when shot or triggered, and
- * has no trigger that opens it for a player who walks up to it (`G_func_door`). A door that spawns
+ * `NAV_PUSH_MARGIN` at its sides and above it, because a player who walks over its top is thrown
+ * too. A floor separates it from the space below it, so it is not widened downward. A jump pad's
+ * own link starts at the nearest node beside it. A door with `health` or a `targetname` opens when
+ * shot or triggered, and has no trigger that opens it for a player who walks up to it
+ * (`G_func_door`). A door that spawns
  * open is not a barrier. A wall is solid where it spawns so (`G_func_wall`). A rotating door, and a
  * `func_rotating` that turns about the vertical axis, carry their floors with them, so their nodes
  * move with them. A `func_rotating` that turns about a horizontal axis is taken to be a smooth
@@ -1263,7 +1280,9 @@ static void Nav_InitModels(void) {
       }
 
       if (!Str_Compare(classname, "trigger_push")) {
-        module.triggers[module.numTriggers++] = Box3_Expand3(bounds, MakeVec3(NAV_PUSH_MARGIN, NAV_PUSH_MARGIN, 0.f));
+        Box3 push = Box3_Expand3(bounds, MakeVec3(NAV_PUSH_MARGIN, NAV_PUSH_MARGIN, 0.f));
+        push.maxs.z += NAV_PUSH_MARGIN;
+        module.triggers[module.numTriggers++] = push;
       } else {
         module.triggers[module.numTriggers++] = bounds;
       }
