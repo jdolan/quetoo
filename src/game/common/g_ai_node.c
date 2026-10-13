@@ -709,9 +709,9 @@ void G_Ai_InitNodes(void) {
 
   const NavGraph *graph = &module.graph;
 
-  gi.Print("  Built %d navigation nodes, %d at an offset and %d at the edge of the void, and found %d floors "
-           "with no room for a player and %d in a hurt or push trigger\n", graph->numNodes, graph->numOffset,
-           graph->numEdge, graph->numNoFit, graph->numTrigger);
+  gi.Print("  Built %d navigation nodes, %d at an offset, %d at the edge of the void and %d in open water, and "
+           "found %d floors with no room for a player and %d in a hurt or push trigger\n", graph->numNodes,
+           graph->numOffset, graph->numEdge, graph->numSwim, graph->numNoFit, graph->numTrigger);
   gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim and %d jump links\n",
            graph->numTravel[NAV_TRAVEL_WALK], graph->numTravel[NAV_TRAVEL_CROUCH],
            graph->numTravel[NAV_TRAVEL_BARRIER_JUMP], graph->numTravel[NAV_TRAVEL_WALK_OFF_LEDGE],

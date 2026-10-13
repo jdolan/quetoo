@@ -594,6 +594,41 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
 }
 
 /**
+ * @brief Adds a swim node at the center of a cell that has no floor, if the center is in water,
+ * and a player fits there and touches no hurt or push trigger, so that a bot swims through the
+ * water rather than along its floor.
+ * @return True if the node was added.
+ */
+static bool Nav_SampleWater(const int32_t cell) {
+
+  const Vec3 center = Nav_CellOrigin(Nav_CellCoordinate(cell));
+  const int32_t contents = Nav_PointContents(center);
+
+  if (!(contents & CONTENTS_WATER)) {
+    return false;
+  }
+
+  const CollisionTrace trace = Nav_Trace(center, center, PM_BOUNDS);
+  if (trace.startSolid || trace.allSolid) {
+    return false;
+  }
+
+  if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, center))) {
+    return false;
+  }
+
+  const NavNode node = {
+    .position = center,
+    .cell = cell,
+    .contents = contents & CONTENTS_MASK_LIQUID,
+    .swim = true
+  };
+
+  Nav_AddNode(cell, &node);
+  return true;
+}
+
+/**
  * @return True if the last `Nav_Trace` hit a model that moves first, so that a floor that it found
  * is only where the model spawned. A link between nodes that do not move MUST NOT stand on it.
  */
@@ -663,7 +698,7 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
         }
 
         const NavNode *node = &graph->nodes[graph->cellNodes[cell]];
-        if (node->model || fabsf(node->position.z - origin.z) > PM_STEP_HEIGHT) {
+        if (node->model || node->swim || fabsf(node->position.z - origin.z) > PM_STEP_HEIGHT) {
           continue;
         }
 
@@ -850,11 +885,11 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
 /**
  * @return True if a walk from the node in any of the 8 directions reaches, within
  * `NAV_EDGE_DISTANCE` and before a wall, an edge with no floor below it within `NAV_MAX_DROP`. A
- * node on a model that moves is not tested.
+ * node on a model that moves, or a swim node, is not tested.
  */
 static bool Nav_IsEdge(const NavNode *node) {
 
-  if (node->model) {
+  if (node->model || node->swim) {
     return false;
   }
 
@@ -1161,7 +1196,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
 /**
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
  * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the same
- * model, and the game links it to the rest as the model moves.
+ * model, and the game links it to the rest as the model moves. A node in water also swims, and a
+ * swim node only swims.
  * @return The count of links written to `links`.
  */
 static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
@@ -1173,7 +1209,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
 
   int32_t numLinks = 0;
 
-  for (size_t i = 0; i < lengthof(directions); i++) {
+  for (size_t i = 0; i < lengthof(directions) && !node->swim; i++) {
 
     bool walked = false;
 
@@ -1189,7 +1225,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       const int32_t target = graph->cellNodes[cell];
       const NavNode *other = &graph->nodes[target];
 
-      if (other->model != node->model) {
+      if (other->model != node->model || other->swim) {
         continue;
       }
 
@@ -1496,7 +1532,8 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
       case NAV_SAMPLE_TRIGGER:
         graph->numTrigger++;
         break;
-      default:
+      case NAV_SAMPLE_NONE:
+        graph->numSwim += Nav_SampleWater(i);
         break;
     }
   }

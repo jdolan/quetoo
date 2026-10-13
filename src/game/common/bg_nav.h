@@ -96,12 +96,13 @@ typedef enum {
  */
 typedef struct {
   /**
-   * @brief The player origin, standing or crouched, on the floor of the node's cell.
+   * @brief The player origin, standing or crouched, on the floor of the node's cell, or at its
+   * center for a swim node.
    */
   Vec3 position;
 
   /**
-   * @brief The index of the cell whose floor the node stands on.
+   * @brief The index of the cell whose floor the node stands on, or that a swim node floats in.
    */
   int32_t cell;
 
@@ -114,6 +115,12 @@ typedef struct {
    * @brief True if only the crouched bounding box fits at the node.
    */
   bool crouch;
+
+  /**
+   * @brief True if the node floats in water at the center of its cell, which has no floor. A swim
+   * node links only by swimming.
+   */
+  bool swim;
 
   /**
    * @brief True if the node stands near an edge with no floor below it within `NAV_MAX_DROP`, such
@@ -213,7 +220,7 @@ typedef struct {
   int32_t numLinks;
 
   /**
-   * @brief The node on the floor of each cell, or -1.
+   * @brief The node on the floor of each cell, or floating in it, or -1.
    */
   int32_t *cellNodes;
 
@@ -236,6 +243,11 @@ typedef struct {
    * @brief The count of nodes at the edge of the void.
    */
   int32_t numEdge;
+
+  /**
+   * @brief The count of swim nodes.
+   */
+  int32_t numSwim;
 
   /**
    * @brief The level's `trigger_push` entities.
