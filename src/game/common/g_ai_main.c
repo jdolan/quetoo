@@ -782,19 +782,35 @@ static bool G_Ai_IsHurtful(const Box3 bounds) {
  */
 static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end) {
 
-  const float length = Vec3_Distance(start, end);
   const Box3 bounds = G_PlayerBounds();
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, start), Box3_Translate(bounds, end));
+
+  GameEntity *ents[32];
+  const size_t len = gi.BoxEntities(swept, ents, lengthof(ents), BOX_OCCUPY);
+
+  Box3 triggers[lengthof(ents)];
+  size_t numTriggers = 0;
+
+  for (size_t i = 0; i < len; i++) {
+    if (ents[i]->classname && (!Str_Compare(ents[i]->classname, "trigger_hurt") ||
+                               !Str_Compare(ents[i]->classname, "trigger_push"))) {
+      triggers[numTriggers++] = ents[i]->absBounds;
+    }
+  }
+
+  if (!numTriggers) {
+    return false;
+  }
+
+  const float length = Vec3_Distance(start, end);
 
   for (float d = 0.f; d <= length + AI_TRIGGER_SPACING; d += AI_TRIGGER_SPACING) {
 
     const Vec3 point = Vec3_Mix(start, end, Minf(1.f, length > 0.f ? d / length : 1.f));
+    const Box3 box = Box3_Translate(bounds, point);
 
-    GameEntity *ents[32];
-    const size_t len = gi.BoxEntities(Box3_Translate(bounds, point), ents, lengthof(ents), BOX_OCCUPY);
-
-    for (size_t i = 0; i < len; i++) {
-      if (ents[i]->classname && (!Str_Compare(ents[i]->classname, "trigger_hurt") ||
-                                 !Str_Compare(ents[i]->classname, "trigger_push"))) {
+    for (size_t i = 0; i < numTriggers; i++) {
+      if (Box3_Intersects(box, triggers[i])) {
         return true;
       }
     }
@@ -1391,6 +1407,37 @@ static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
 }
 
 /**
+ * @return The point to which a bot on a walk or crouch link steers: its next node, or if the line
+ * from the bot to that node touches a push or hurt trigger, `AI_JUMP_LOOK_DISTANCE` ahead of it on
+ * the link's own line, which the navigation build kept clear of triggers, or if that line touches
+ * one too, the link's previous node. A bot that is off its link, as after a strafe jump, would
+ * otherwise walk into a jump pad beside the link. `G_Ai_RefreshPath` also plans a new path.
+ */
+static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+  const Vec3 b = goal->path.pathPosition;
+
+  if (!G_Ai_CrossesTrigger(cl->entity->s.origin, b)) {
+    return b;
+  }
+
+  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+
+  const Vec2 ab = Vec2_Subtract(Vec3_XY(b), Vec3_XY(a));
+  const float length = Vec2_Length(ab);
+
+  if (length < 1.f) {
+    return b;
+  }
+
+  const float along = Vec2_Dot(Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(a)), ab) / length;
+  const Vec3 point = Vec3_Mix(a, b, Clampf((along + AI_JUMP_LOOK_DISTANCE) / length, 0.f, 1.f));
+
+  return G_Ai_CrossesTrigger(cl->entity->s.origin, point) ? a : point;
+}
+
+/**
  * @return The point to which a bot on a jump link steers: `AI_JUMP_LOOK_DISTANCE` ahead of it on
  * the line of the jump. Off that line, it steers to the target if it stands on the target's level,
  * nearer the target than the source, as after a jump that lands past the target, and otherwise to
@@ -1472,6 +1519,12 @@ static bool G_Ai_ReturnToPath(GameClient *cl) {
  * @brief The spacing in units of the floor samples under the line to the node that a bot steers to.
  */
 #define AI_STRAFE_FLOOR_SPACING 32.f
+
+/**
+ * @brief The least distance that a strafe jumping bot slides past the node that it steers to, as it
+ * lands and turns.
+ */
+#define AI_STRAFE_SLIDE_DISTANCE 64.f
 
 /**
  * @brief The interval in milliseconds at which a strafe jumping bot looks ahead again, unless it
@@ -1582,7 +1635,8 @@ static float G_Ai_StrafeTurn(const GameClient *cl) {
  * heading is the bot's velocity, or if it moves slower than half the run speed, the direction to the
  * first node beyond `AI_STRAFE_NEAR_DISTANCE`. Nodes within that distance are passed. The line to
  * the node MUST be clear for the player's box, touch no `trigger_hurt` or `trigger_push`, and have
- * floor under it, with no liquid, because the bot cuts the corners of its path on the way. The result is kept for `AI_STRAFE_LOOK_MILLIS`, and
+ * floor under it, with no liquid, because the bot cuts the corners of its path on the way. Past the
+ * node, the line on which the bot slides as it lands MUST touch no such trigger either. The result is kept for `AI_STRAFE_LOOK_MILLIS`, and
  * `G_Ai_SetPathGoal` clears it.
  * @param run The distance along the path to that node.
  * @return The index of that node in the path, or -1 if no node passes: the path turns, its next
@@ -1643,6 +1697,11 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
     const CollisionTrace tr = gi.Trace(ent->s.origin, node, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
 
     if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, node) || G_Ai_CrossesTrigger(ent->s.origin, node)) {
+      break;
+    }
+
+    const Vec3 slide = Vec3_Add(node, Vec3_Scale(to, Maxf(Vec2_Length(Vec3_XY(ent->velocity)) / PM_FRICT_GROUND, AI_STRAFE_SLIDE_DISTANCE)));
+    if (G_Ai_CrossesTrigger(node, MakeVec3(slide.x, slide.y, node.z))) {
       break;
     }
 
@@ -1854,7 +1913,8 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
  * moves, and plans a new path at once if the link into its next node is gone, as a link to a node
  * that moves is once the model moves on, or if a crusher is about to sweep its next node. If no path
  * comes back, the bot drops its path, so that it does not follow a node that the model carries
- * away, over a gap or a lava pit, or walk under a crusher.
+ * away, over a gap or a lava pit, or walk under a crusher. A bot on the ground whose line to its
+ * next node touches a push or hurt trigger plans a new path too, at most once a second.
  */
 static void G_Ai_RefreshPath(GameClient *cl) {
 
@@ -1871,6 +1931,12 @@ static void G_Ai_RefreshPath(GameClient *cl) {
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, Minz(index + 1, path->count - 1)));
 
   const GameAiNodeId next = VectorValue(path, GameAiNodeId, index);
+
+  const GameAiLink *link = G_Ai_PathLink(cl);
+  if (link && link->travelType <= NAV_TRAVEL_CROUCH && cl->entity->ground.ent &&
+      G_Ai_CrossesTrigger(cl->entity->s.origin, goal->path.pathPosition) && G_Ai_ReturnToPath(cl)) {
+    return;
+  }
 
   if ((index > 0 && !G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next)) || G_Ai_Node_IsCrushing(next)) {
     if (!G_Ai_ReplanPath(cl)) {
@@ -1976,6 +2042,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           dest = cl->ai->moveTarget.path.trickPosition;
         } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_JUMP && ent->ground.ent) {
           dest = G_Ai_JumpDestination(cl);
+        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType <= NAV_TRAVEL_CROUCH && ent->ground.ent) {
+          dest = G_Ai_WalkDestination(cl);
         } else {
           dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
           toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);
