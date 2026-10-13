@@ -71,9 +71,9 @@
 #define AI_NAV_MAX_NODE_LINKS 48
 
 /**
- * @brief The most `trigger_hurt` entities that the build avoids.
+ * @brief The most `trigger_hurt` and `trigger_push` entities that the build avoids.
  */
-#define AI_NAV_MAX_HURTS 256
+#define AI_NAV_MAX_TRIGGERS 256
 
 /**
  * @brief The most closed doors and walls that the build treats as solid.
@@ -86,7 +86,7 @@
 typedef enum {
   AI_NAV_SAMPLE_NONE,
   AI_NAV_SAMPLE_NO_FIT,
-  AI_NAV_SAMPLE_HURT,
+  AI_NAV_SAMPLE_TRIGGER,
   AI_NAV_SAMPLE_NODE,
 } GameAiNavSample;
 
@@ -100,10 +100,11 @@ static struct {
   int32_t capacity;
 
   /**
-   * @brief The bounds of the level's `trigger_hurt` entities, which no node may touch.
+   * @brief The bounds of the level's `trigger_hurt` and `trigger_push` entities, which no node or
+   * walk may touch: one hurts, and the other throws the bot off its walk.
    */
-  Box3 hurts[AI_NAV_MAX_HURTS];
-  int32_t numHurts;
+  Box3 triggers[AI_NAV_MAX_TRIGGERS];
+  int32_t numTriggers;
 
   /**
    * @brief The doors that a bot cannot open by walking up to them, and the walls, which the build
@@ -250,6 +251,20 @@ static int32_t G_Ai_Nav_PointContents(const Vec3 point) {
 }
 
 /**
+ * @return True if the bounds touch a `trigger_hurt` or a `trigger_push`.
+ */
+static bool G_Ai_Nav_TouchesTrigger(const Box3 bounds) {
+
+  for (int32_t i = 0; i < module.numTriggers; i++) {
+    if (Box3_Intersects(bounds, module.triggers[i])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @return The bounding box of a standing or a crouched player.
  */
 static Box3 G_Ai_Nav_Bounds(const bool crouch) {
@@ -317,12 +332,8 @@ static GameAiNavSample G_Ai_Nav_SampleFloor(const Vec3 point, const Box3 footpri
     return AI_NAV_SAMPLE_NO_FIT;
   }
 
-  const Box3 bounds = Box3_Translate(G_Ai_Nav_Bounds(node->crouch), origin);
-
-  for (int32_t i = 0; i < module.numHurts; i++) {
-    if (Box3_Intersects(bounds, module.hurts[i])) {
-      return AI_NAV_SAMPLE_HURT;
-    }
+  if (G_Ai_Nav_TouchesTrigger(Box3_Translate(G_Ai_Nav_Bounds(node->crouch), origin))) {
+    return AI_NAV_SAMPLE_TRIGGER;
   }
 
   node->position = origin;
@@ -398,7 +409,7 @@ static GameAiNavSample G_Ai_Nav_SampleCell(const int32_t cell, bool *offset) {
       return AI_NAV_SAMPLE_NODE;
     }
 
-    if (result == AI_NAV_SAMPLE_NO_FIT || result == AI_NAV_SAMPLE_HURT) {
+    if (result == AI_NAV_SAMPLE_NO_FIT || result == AI_NAV_SAMPLE_TRIGGER) {
       sample = Maxi(sample, result);
     }
   }
@@ -528,6 +539,10 @@ static bool G_Ai_Nav_Walk(const GameAiNavNode *a, const GameAiNavNode *b, float 
       return false;
     }
 
+    if (G_Ai_Nav_TouchesTrigger(Box3_Translate(bounds, next))) {
+      return false;
+    }
+
     *distance += Vec3_Distance(origin, next);
     origin = next;
   }
@@ -584,6 +599,10 @@ static int32_t G_Ai_Nav_Drop(const GameAiNavNode *node, const Vec3i direction, f
 
     *distance += Vec3_Distance(origin, across.end);
     origin = across.end;
+
+    if (G_Ai_Nav_TouchesTrigger(Box3_Translate(bounds, origin))) {
+      return -1;
+    }
 
     Vec3 floor;
     if (G_Ai_Nav_Rest(origin, PM_STEP_HEIGHT + 1.f, bounds, &floor)) {
@@ -692,22 +711,27 @@ static float G_Ai_Nav_BarrierHeight(void) {
 }
 
 /**
- * @brief Gathers the bounds of the level's `trigger_hurt` entities. A player touches a trigger where
- * their bounds intersect, as `G_TouchOccupy` does, so that is where no node may stand.
+ * @brief Gathers the bounds of the level's `trigger_hurt` and `trigger_push` entities. A player
+ * touches a trigger where their bounds intersect, as `G_TouchOccupy` does, so that is where no node
+ * may stand and no walk may pass. A jump pad's own link starts at the nearest node beside it.
  */
-static void G_Ai_Nav_InitHurts(void) {
+static void G_Ai_Nav_InitTriggers(void) {
 
   G_ForEachEntity(ent, {
-    if (!ent->classname || Str_Compare(ent->classname, "trigger_hurt")) {
+    if (!ent->classname) {
       continue;
     }
 
-    if (module.numHurts == AI_NAV_MAX_HURTS) {
-      G_Warn("More than %d trigger_hurt entities; bots may path through the rest\n", AI_NAV_MAX_HURTS);
+    if (Str_Compare(ent->classname, "trigger_hurt") && Str_Compare(ent->classname, "trigger_push")) {
+      continue;
+    }
+
+    if (module.numTriggers == AI_NAV_MAX_TRIGGERS) {
+      G_Warn("More than %d hurt and push triggers; bots may walk into the rest\n", AI_NAV_MAX_TRIGGERS);
       break;
     }
 
-    module.hurts[module.numHurts++] = ent->absBounds;
+    module.triggers[module.numTriggers++] = ent->absBounds;
   });
 }
 
@@ -780,11 +804,11 @@ bool G_Ai_Nav_Build(GameAiNavGraph *graph) {
 
   G_Ai_Nav_InitGrid(graph);
 
-  G_Ai_Nav_InitHurts();
+  G_Ai_Nav_InitTriggers();
 
   G_Ai_Nav_InitBarriers();
 
-  int32_t numOffset = 0, numNoFit = 0, numHurt = 0;
+  int32_t numOffset = 0, numNoFit = 0, numTrigger = 0;
 
   for (int32_t i = 0; i < graph->numCells; i++) {
     bool offset = false;
@@ -796,8 +820,8 @@ bool G_Ai_Nav_Build(GameAiNavGraph *graph) {
       case AI_NAV_SAMPLE_NO_FIT:
         numNoFit++;
         break;
-      case AI_NAV_SAMPLE_HURT:
-        numHurt++;
+      case AI_NAV_SAMPLE_TRIGGER:
+        numTrigger++;
         break;
       default:
         break;
@@ -840,7 +864,7 @@ bool G_Ai_Nav_Build(GameAiNavGraph *graph) {
   }
 
   gi.Print("  Built %d navigation nodes, %d at an offset, and found %d floors with no room for a player "
-           "and %d in a trigger_hurt\n", graph->numNodes, numOffset, numNoFit, numHurt);
+           "and %d in a hurt or push trigger\n", graph->numNodes, numOffset, numNoFit, numTrigger);
   gi.Print("  Built %d walk, %d crouch, %d barrier jump and %d walk off ledge links\n",
            counts[AI_TRAVEL_WALK], counts[AI_TRAVEL_CROUCH], counts[AI_TRAVEL_BARRIER_JUMP],
            counts[AI_TRAVEL_WALK_OFF_LEDGE]);
