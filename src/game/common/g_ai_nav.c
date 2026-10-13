@@ -237,15 +237,17 @@ static bool G_Ai_Nav_Rest(const Vec3 start, const float distance, const Box3 bou
 
 /**
  * @brief Samples the floor beneath `point`, within one cell height.
+ * @param footprint The bounds that find the floor: a point, or the player's footprint, which also
+ * finds a beam or a ledge too narrow for a point to hit.
  */
-static GameAiNavSample G_Ai_Nav_SampleFloor(const Vec3 point, GameAiNavNode *node) {
+static GameAiNavSample G_Ai_Nav_SampleFloor(const Vec3 point, const Box3 footprint, GameAiNavNode *node) {
 
   if (G_Ai_Nav_PointContents(point) & AI_NAV_MASK) {
     return AI_NAV_SAMPLE_NONE;
   }
 
   const Vec3 end = Vec3_Subtract(point, Vec3_Scale(Vec3_Up(), AI_NAV_CELL_HEIGHT));
-  const CollisionTrace floor = G_Ai_Nav_Trace(point, end, Box3_Zero());
+  const CollisionTrace floor = G_Ai_Nav_Trace(point, end, footprint);
 
   if (floor.startSolid || floor.fraction == 1.f) {
     return AI_NAV_SAMPLE_NONE;
@@ -290,7 +292,9 @@ static GameAiNavSample G_Ai_Nav_SampleFloor(const Vec3 point, GameAiNavNode *nod
 
 /**
  * @brief Samples the floor of one cell, at its center first and then at small offsets, and adds
- * its node to the graph.
+ * its node to the graph. Points sample first, so that a node stands over solid floor where it can;
+ * the player's footprint samples where no point finds a floor. A cell whose whole area finds no
+ * floor is skipped.
  * @return The outcome of the sample.
  */
 static GameAiNavSample G_Ai_Nav_SampleCell(const int32_t cell, bool *offset) {
@@ -300,16 +304,30 @@ static GameAiNavSample G_Ai_Nav_SampleCell(const int32_t cell, bool *offset) {
   const Vec3 center = Vec3_Add(G_Ai_Nav_CellOrigin(G_Ai_Nav_CellCoordinate(cell)),
                                MakeVec3(0.f, 0.f, AI_NAV_SAMPLE_OFFSET));
 
+  const float half = AI_NAV_CELL_SIZE * .5f;
+  const Box3 area = MakeBox3(MakeVec3(-half, -half, 0.f), MakeVec3(half, half, 0.f));
+  const CollisionTrace any = G_Ai_Nav_Trace(center, Vec3_Subtract(center, Vec3_Scale(Vec3_Up(), AI_NAV_CELL_HEIGHT)), area);
+
+  if (!any.startSolid && any.fraction == 1.f) {
+    return AI_NAV_SAMPLE_NONE;
+  }
+
+  const Box3 footprints[] = {
+    Box3_Zero(),
+    MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f), MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f)),
+  };
+
   GameAiNavSample sample = AI_NAV_SAMPLE_NONE;
 
-  for (size_t i = 0; i < lengthof(offsets); i++) {
+  for (size_t i = 0; i < lengthof(footprints) * lengthof(offsets); i++) {
 
-    const Vec3 point = Vec3_Add(center, MakeVec3(offsets[i].x * AI_NAV_CELL_SIZE * .25f,
-                                                 offsets[i].y * AI_NAV_CELL_SIZE * .25f, 0.f));
+    const Vec2 delta = offsets[i % lengthof(offsets)];
+    const Vec3 point = Vec3_Add(center, MakeVec3(delta.x * AI_NAV_CELL_SIZE * .25f,
+                                                 delta.y * AI_NAV_CELL_SIZE * .25f, 0.f));
 
     GameAiNavNode node = { .cell = cell };
 
-    const GameAiNavSample result = G_Ai_Nav_SampleFloor(point, &node);
+    const GameAiNavSample result = G_Ai_Nav_SampleFloor(point, footprints[i / lengthof(offsets)], &node);
     if (result == AI_NAV_SAMPLE_NODE) {
 
       if (graph->numNodes == module.capacity) {
