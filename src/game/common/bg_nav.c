@@ -638,9 +638,12 @@ static int32_t Nav_FallTime(const float height) {
 
 /**
  * @return The node closest to `origin`, standing on the same floor within
- * `NAV_LANDING_DISTANCE`, or -1.
+ * `NAV_LANDING_DISTANCE`, and at least `reach` along `dir` from `start`, or -1.
+ * @remarks A drop's landing node MUST lie past the edge that the walk leaves, because a bot steers
+ * toward it to walk off. A node short of the edge, such as one under the floor that the walk starts
+ * on, leads the bot nowhere.
  */
-static int32_t Nav_NodeForOrigin(const Vec3 origin) {
+static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3 dir, const float reach) {
 
   const NavGraph *graph = module.graph;
 
@@ -661,6 +664,11 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin) {
 
         const NavNode *node = &graph->nodes[graph->cellNodes[cell]];
         if (node->model || fabsf(node->position.z - origin.z) > PM_STEP_HEIGHT) {
+          continue;
+        }
+
+        const Vec3 along = Vec3_Subtract(node->position, start);
+        if (along.x * dir.x + along.y * dir.y < reach) {
           continue;
         }
 
@@ -832,7 +840,8 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
       return -1;
     }
 
-    return Nav_NodeForOrigin(fall.end);
+    const Vec3 edge = Vec3_Subtract(origin, node->position);
+    return Nav_NodeForOrigin(fall.end, node->position, dir, edge.x * dir.x + edge.y * dir.y - NAV_WALK_STEP);
   }
 
   return -1;
