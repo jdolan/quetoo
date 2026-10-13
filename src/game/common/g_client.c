@@ -2048,6 +2048,15 @@ void G_ClientDisconnect(GameClient *cl) {
     cl->entity = NULL;
   }
 
+  G_ForEachClient(chaser, {
+    if (chaser->chaseTarget == cl) {
+      G_ClientChaseNext(chaser);
+      if (chaser->chaseTarget == cl) {
+        G_ClientChaseStop(chaser);
+      }
+    }
+  });
+
   G_ClientDidDisconnect(cl);
 
   memset(cl, 0, sizeof(GameClient));
