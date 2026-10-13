@@ -17,6 +17,7 @@ source .venv/bin/activate
 
 Run any of the installed commands:
 
+- `ai-probe`
 - `matfu`
 - `unpak`
 - `mdl2obj`
@@ -31,6 +32,7 @@ Run any of the installed commands:
 
 ## Tool scripts
 
+- `ai_probe.py`: run headless bot matches and read the game's bot probe (`g_aiProbe`)
 - `matfu.py`: Quetoo material authoring GUI
 - `unpak.py`: Quake PAK extraction
 - `mdl2obj.py`: Quake MDL v6 to OBJ
