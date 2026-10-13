@@ -665,25 +665,21 @@ static bool G_Ai_WantsPursuit(const GameClient *cl) {
 }
 
 /**
- * @return True if the bot, which has a combat target, should retreat from it. A bot that retreats
- * fights again only once its health exceeds its retreat health by `AI_RECOVER_SCALE`, so that it
- * does not switch at the threshold.
+ * @return True if the bot, which has a combat target, should retreat from it: for health, or from an
+ * enemy that outguns it. A bot that retreats fights again only once its health exceeds its retreat
+ * health by `AI_RECOVER_SCALE`, so that it does not switch at the threshold.
+ * @remarks An unarmed bot does not retreat from an enemy that outguns it, since nearly every enemy
+ * does. It fights, and collects a weapon while it fires.
  */
 static bool G_Ai_WantsRetreat(const GameClient *cl) {
 
-  if (!G_Ai_IsArmed(cl)) {
+  const float scale = cl->ai->state == AI_STATE_RETREAT ? AI_RECOVER_SCALE : 1.f;
+
+  if (cl->entity->health < G_Ai_RetreatHealth(cl) * scale) {
     return true;
   }
 
-  if (cl->ai->state == AI_STATE_RETREAT) {
-    if (cl->entity->health < G_Ai_RetreatHealth(cl) * AI_RECOVER_SCALE) {
-      return true;
-    }
-
-    return G_Ai_IsOutgunned(cl, cl->ai->combatTarget.entity.ent);
-  }
-
-  return G_Ai_ShouldRetreat(cl);
+  return G_Ai_IsArmed(cl) && G_Ai_IsOutgunned(cl, cl->ai->combatTarget.entity.ent);
 }
 
 /**
@@ -826,7 +822,7 @@ static void G_Ai_State_Detour(GameClient *cl) {
 /**
  * @brief Fights the combat target. Within `AI_ENGAGE_SCALE` of the weapon's preferred range, the
  * bot strafes around the enemy, and goes only for items close by. Beyond it, the bot collects items
- * while it fires, or paths toward the enemy if it has none to collect.
+ * while it fires, or, if it is armed and has none to collect, paths toward the enemy.
  */
 static void G_Ai_State_Fight(GameClient *cl) {
 
@@ -851,7 +847,7 @@ static void G_Ai_State_Fight(GameClient *cl) {
     }
   }
 
-  if (!engaged) {
+  if (!engaged && G_Ai_IsArmed(cl)) {
     const GameAiNodeId node = G_Ai_Node_FindClosest(enemy->s.origin, AI_NODE_DISTANCE, true, true);
 
     if (G_Ai_PathTo(cl, node, AI_PURSUE_PRIORITY, enemy)) {
