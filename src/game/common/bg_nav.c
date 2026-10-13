@@ -1591,7 +1591,7 @@ bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints
     *numPoints = 0;
   }
 
-  for (uint32_t millis = 0; millis <= NAV_FLIGHT_SECONDS * 1000.f; millis += msec) {
+  for (uint32_t millis = 0; millis <= NAV_FLIGHT_MILLIS; millis += msec) {
 
     if (points && *numPoints < maxPoints) {
       points[(*numPoints)++] = pm->s.origin;

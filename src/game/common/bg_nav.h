@@ -311,9 +311,15 @@ typedef struct {
 bool Nav_Build(const NavParams *params, NavGraph *graph);
 
 /**
+ * @brief The longest flight in milliseconds that `Nav_FlyPush` follows. It is an integer, so that
+ * an array sized by it is a constant array.
+ */
+#define NAV_FLIGHT_MILLIS 4000
+
+/**
  * @brief The longest flight in seconds that `Nav_FlyPush` follows.
  */
-#define NAV_FLIGHT_SECONDS 4.f
+#define NAV_FLIGHT_SECONDS (NAV_FLIGHT_MILLIS / 1000.f)
 
 /**
  * @brief Flies a player from where `pm` stands on the push, with no input, as a bot rides one. The

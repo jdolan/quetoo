@@ -29,9 +29,9 @@
 
 /**
  * @brief The most points of a jump pad's flight that the client game keeps: one each server frame
- * of `NAV_FLIGHT_SECONDS`.
+ * of `NAV_FLIGHT_MILLIS`.
  */
-#define CG_NAV_FLIGHT_POINTS ((int32_t) (NAV_FLIGHT_SECONDS * QUETOO_TICK_RATE) + 1)
+#define CG_NAV_FLIGHT_POINTS (NAV_FLIGHT_MILLIS / QUETOO_TICK_MILLIS + 1)
 
 /**
  * @brief The points of a jump pad's flight between two segments of its drawn arc: 100 ms.
@@ -49,7 +49,8 @@ typedef struct {
   int32_t numPoints;
 
   /**
-   * @brief True if the flight lands. A vertical pad's flight falls back onto it, and does not.
+   * @brief True if the flight lands within `NAV_FLIGHT_SECONDS`. A vertical pad's flight falls back
+   * onto it, and does not, nor does one that falls into the void.
    */
   bool lands;
 } CGameAiFlight;
