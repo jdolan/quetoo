@@ -541,7 +541,8 @@ typedef struct GameAi {
   uint32_t weaponCheckTime;
 
   /**
-   * @brief Level time before the bot attempts to reacquire a goal.
+   * @brief Level time until which the bot, once it has no move target, avoids the goal of a path
+   * that ended in distress, and chooses another.
    */
   uint32_t reacquireTime;
 

@@ -794,7 +794,8 @@ static bool G_Ai_ConsiderAlert(GameClient *cl) {
 /**
  * @brief Collects the item of most value per travel time, roams when no item has value, and
  * takes detours on the way. The bot changes its item only for one of `AI_SWITCH_SCALE` times more
- * utility.
+ * utility. After a path that ended in distress, the bot avoids the goal that it failed to reach,
+ * and chooses another at once.
  */
 static void G_Ai_State_Navigate(GameClient *cl) {
 
@@ -812,7 +813,7 @@ static void G_Ai_State_Navigate(GameClient *cl) {
     }
 
     G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
-    return;
+    ai->reacquireTime = 0;
   }
 
   if (!G_Ai_ShouldReview(cl)) {
