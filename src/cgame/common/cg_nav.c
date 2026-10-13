@@ -51,6 +51,11 @@ static struct {
    * a model that is not in the frame is searched for once a frame, not once a node.
    */
   int32_t moverFrames[MAX_MODELS];
+
+  /**
+   * @brief The flight of each of the graph's pushes.
+   */
+  CGameAiFlight *flights;
 } module;
 
 /**
@@ -59,6 +64,9 @@ static struct {
 void Cg_FreeAiNodes(void) {
 
   Nav_Free(&module.graph);
+
+  free(module.flights);
+  module.flights = NULL;
 
   memset(module.movers, 0, sizeof(module.movers));
   memset(module.moverFrames, 0, sizeof(module.moverFrames));
@@ -212,11 +220,72 @@ void Cg_InitAiNodes(void) {
 }
 
 /**
+ * @return A player trace against the world only, as the game flies jump pads.
+ */
+static CollisionTrace Cg_AiFlightTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+  return cgi.BoxTrace(start, end, bounds, 0, CONTENTS_MASK_CLIP_PLAYER);
+}
+
+/**
+ * @brief Flies each of the graph's pushes, as the game does to link them: from the floor under the
+ * center of the pad, with the level's movement and no input.
+ */
+static void Cg_PrepareAiFlights(const ClientFrame *frame) {
+
+  const NavGraph *graph = &module.graph;
+
+  module.flights = calloc(Maxi(1, graph->numPushes), sizeof(CGameAiFlight));
+  if (!module.flights) {
+    cgi.Error(__func__, "Failed to allocate %d flights\n", graph->numPushes);
+  }
+
+  for (int32_t i = 0; i < graph->numPushes; i++) {
+    const NavPush *push = &graph->pushes[i];
+    CGameAiFlight *flight = &module.flights[i];
+
+    if (push->startOff || Vec3_Equal(push->velocity, Vec3_Zero())) {
+      continue;
+    }
+
+    const Vec3 center = Box3_Center(push->bounds);
+    const Vec3 top = MakeVec3(center.x, center.y, push->bounds.maxs.z - PM_BOUNDS.mins.z);
+    const Vec3 bottom = MakeVec3(center.x, center.y, push->bounds.mins.z - PM_BOUNDS.mins.z - PM_STEP_HEIGHT * 4.f);
+
+    const CollisionTrace drop = Cg_AiFlightTrace(top, bottom, PM_BOUNDS);
+    if (drop.startSolid || drop.fraction == 1.f) {
+      continue;
+    }
+
+    PMove pm;
+    memset(&pm, 0, sizeof(pm));
+
+    pm.s.type = PM_NORMAL;
+    pm.s.origin = drop.end;
+    pm.s.params = frame->ps.pmState.params;
+
+    pm.PointContents = cgi.PointContents;
+    pm.BoxContents = cgi.BoxContents;
+    pm.Trace = Cg_AiFlightTrace;
+
+    pm.Debug = cgi.Debug;
+    pm.DebugMask = cgi.DebugMask;
+    pm.debugMask = DEBUG_PMOVE_CLIENT;
+
+    float seconds;
+    flight->lands = Nav_FlyPush(push, &pm, flight->points, CG_NAV_FLIGHT_POINTS, &flight->numPoints, &seconds);
+  }
+}
+
+/**
  * @see cg_nav.h
  */
 void Cg_PrepareAiNodes(const ClientFrame *frame) {
 
   if (!cg_drawAiNodes->integer || module.built) {
+    return;
+  }
+
+  if (Box3_Equal(frame->ps.pmState.params.bounds, Box3_Zero())) {
     return;
   }
 
@@ -235,7 +304,9 @@ void Cg_PrepareAiNodes(const ClientFrame *frame) {
   if (!Nav_Build(&params, &module.graph)) {
     Cg_Warn("This map has no floor to navigate\n");
   } else {
-    cgi.Print("Built %d navigation nodes and %d links\n", module.graph.numNodes, module.graph.numLinks);
+    Cg_PrepareAiFlights(frame);
+    cgi.Print("Built %d navigation nodes, %d links and %d jump pad flights\n", module.graph.numNodes,
+              module.graph.numLinks, module.graph.numPushes);
   }
 
   module.built = true;
@@ -286,6 +357,60 @@ static bool Cg_AiLinkIsReturn(const int32_t from, const NavLink *link) {
 }
 
 /**
+ * @brief Draws the flights of the jump pads near the view: a blue arc from the pad, with a pulsing
+ * blue marker at the pad and at the landing. A vertical pad's flight rises and falls back onto it,
+ * so its arc is its column, up to its apex. A flight is drawn if its pad or its landing is near.
+ */
+static void Cg_DrawAiFlights(void) {
+
+  const Vec3 view = cgi.view->origin;
+  const Vec3 color = ColorHSV(COLOR_HUE_BLUE, .8f, 1.f).vec3;
+  const float pulse = 6.f + 4.f * sinf(cgi.client->unclampedTime * .008f);
+
+  for (int32_t i = 0; i < module.graph.numPushes; i++) {
+    const CGameAiFlight *flight = &module.flights[i];
+
+    if (flight->numPoints < 2) {
+      continue;
+    }
+
+    const Vec3 start = flight->points[0];
+    const Vec3 end = flight->points[flight->numPoints - 1];
+
+    if (Vec3_Distance(start, view) > CG_NAV_DRAW_DISTANCE && Vec3_Distance(end, view) > CG_NAV_DRAW_DISTANCE) {
+      continue;
+    }
+
+    for (int32_t j = 0; j < flight->numPoints - 1; j += CG_NAV_FLIGHT_STRIDE) {
+      Cg_AddSprite(&(CGameSprite) {
+        .type = SPRITE_BEAM,
+        .image = cgameMedia.beams.line,
+        .origin = flight->points[j],
+        .termination = flight->points[Mini(j + CG_NAV_FLIGHT_STRIDE, flight->numPoints - 1)],
+        .size = 2.f,
+        .color = color,
+      });
+    }
+
+    Cg_AddSprite(&(CGameSprite) {
+      .atlasImage = cgameMedia.sprites.particle,
+      .origin = start,
+      .size = pulse,
+      .color = color,
+    });
+
+    if (flight->lands) {
+      Cg_AddSprite(&(CGameSprite) {
+        .atlasImage = cgameMedia.sprites.particle,
+        .origin = end,
+        .size = pulse,
+        .color = color,
+      });
+    }
+  }
+}
+
+/**
  * @see cg_nav.h
  */
 void Cg_DrawAiNodes(const ClientFrame *frame) {
@@ -296,6 +421,8 @@ void Cg_DrawAiNodes(const ClientFrame *frame) {
 
   const NavGraph *graph = &module.graph;
   const Vec3 view = cgi.view->origin;
+
+  Cg_DrawAiFlights();
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
     const NavNode *node = &graph->nodes[i];

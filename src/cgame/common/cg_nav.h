@@ -34,8 +34,9 @@
 void Cg_InitAiNodes(void);
 
 /**
- * @brief Builds the navigation graph from the level, as the game does for its bots, the first time
- * that `cg_drawAiNodes` is set on the level.
+ * @brief Builds the navigation graph from the level, as the game does for its bots, and flies its
+ * jump pads, the first time that `cg_drawAiNodes` is set on the level, once the frame carries the
+ * level's movement parameters, which the flights need.
  * @remarks This MUST run on the main thread, because the build can abort with `cgi.Error`.
  */
 void Cg_PrepareAiNodes(const ClientFrame *frame);

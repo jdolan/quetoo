@@ -23,6 +23,7 @@
 
 #include "shared/shared.h"
 #include "collision/cm_types.h"
+#include "bg_pmove.h"
 
 /**
  * @brief How a bot travels a link. The names follow the Quake III AAS travel types.
@@ -164,6 +165,29 @@ typedef struct {
 } NavLink;
 
 /**
+ * @brief A `trigger_push` of the level, as `Nav_Build` reads it from the entity, so that the game
+ * and the client game fly the same pads.
+ */
+typedef struct {
+  /**
+   * @brief The bounds of the trigger.
+   */
+  Box3 bounds;
+
+  /**
+   * @brief The velocity that the trigger gives a player in it: `speed`, 100 by default, times 10,
+   * along `angles` or `angle`, where an `angle` of -1 is up and -2 is down, as `G_SetMoveDir` reads
+   * them.
+   */
+  Vec3 velocity;
+
+  /**
+   * @brief True if the trigger starts off, and pushes only once something uses it.
+   */
+  bool startOff;
+} NavPush;
+
+/**
  * @brief The navigation graph of the level.
  */
 typedef struct {
@@ -212,6 +236,12 @@ typedef struct {
    * @brief The count of nodes at the edge of the void.
    */
   int32_t numEdge;
+
+  /**
+   * @brief The level's `trigger_push` entities.
+   */
+  NavPush *pushes;
+  int32_t numPushes;
 
   /**
    * @brief The count of links of each `NavTravelType`.
@@ -267,6 +297,27 @@ typedef struct {
  * @remarks The caller MUST free the graph with `Nav_Free`.
  */
 bool Nav_Build(const NavParams *params, NavGraph *graph);
+
+/**
+ * @brief The longest flight in seconds that `Nav_FlyPush` follows.
+ */
+#define NAV_FLIGHT_SECONDS 4.f
+
+/**
+ * @brief Flies a player from where `pm` stands on the push, with no input, as a bot rides one. The
+ * push sets the velocity again in each move that the player's box touches it, as
+ * `G_trigger_push_Push` does. One move is one server frame.
+ * @param push The push to fly.
+ * @param pm The move, with the level's movement parameters, the origin, and the trace and contents
+ * functions that the caller chooses. The flight moves it.
+ * @param points If not NULL, the player origin at the start of each move, up to `maxPoints`. The
+ * last is where the flight lands, if it lands.
+ * @param maxPoints The capacity of `points`.
+ * @param numPoints The count of points written, if `points` is not NULL.
+ * @param seconds The duration of the flight, written only if it lands.
+ * @return True if the flight lands within `NAV_FLIGHT_SECONDS`, at `pm->s.origin`.
+ */
+bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints, int32_t *numPoints, float *seconds);
 
 /**
  * @brief Frees the nodes and links of a graph that `Nav_Build` made, and keeps its cells.

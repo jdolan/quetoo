@@ -797,11 +797,6 @@ static void G_Ai_CheckNodes(void) {
 }
 
 /**
- * @brief The longest simulated jump pad flight, in seconds.
- */
-#define AI_RIDE_TIME 4.f
-
-/**
  * @brief The distance within which a ride starts or ends at a node.
  */
 #define AI_RIDE_NODE_DISTANCE 64.f
@@ -832,15 +827,17 @@ static float G_Ai_Node_RideCost(const float seconds) {
 
 /**
  * @brief Flies a player from `origin` on a `trigger_push` with the level's movement and no input,
- * as a bot rides one. The push sets the velocity again in each move that the player's box touches
- * the trigger, as `G_trigger_push_Push` does.
+ * as a bot rides one, with `Nav_FlyPush`, which the client game draws the same flight with.
  * @param landing The player origin where the flight lands.
  * @param time The duration of the flight, in seconds.
- * @return True if the flight lands within `AI_RIDE_TIME`.
+ * @return True if the flight lands within `NAV_FLIGHT_SECONDS`.
  */
 static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *landing, float *time) {
 
-  const Vec3 velocity = Vec3_Scale(push->moveDir, push->speed * 10.f);
+  const NavPush nav = {
+    .bounds = push->absBounds,
+    .velocity = Vec3_Scale(push->moveDir, push->speed * 10.f)
+  };
 
   PMove pm;
   memset(&pm, 0, sizeof(pm));
@@ -857,29 +854,12 @@ static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *l
   pm.DebugMask = gi.DebugMask;
   pm.debugMask = DEBUG_PMOVE_SERVER;
 
-  const Box3 bounds = Pm_Bounds(&pm.s.params, false);
-  const uint8_t msec = QUETOO_TICK_MILLIS;
-
-  for (uint32_t millis = 0; millis <= AI_RIDE_TIME * 1000.f; millis += msec) {
-
-    if (Box3_Intersects(Box3_Translate(bounds, pm.s.origin), push->absBounds)) {
-      pm.s.velocity = velocity;
-      pm.s.flags |= PMF_TIME_PUSHED;
-      pm.s.time = 240;
-    } else if (pm.ground.ent && !(pm.s.flags & PMF_TIME_PUSHED)) {
-      *landing = pm.s.origin;
-      *time = MILLIS_TO_SECONDS(millis);
-      return true;
-    }
-
-    pm.cmd = (PMoveCmd) {
-      .msec = msec
-    };
-
-    Pm_Move(&pm);
+  if (!Nav_FlyPush(&nav, &pm, NULL, 0, NULL, time)) {
+    return false;
   }
 
-  return false;
+  *landing = pm.s.origin;
+  return true;
 }
 
 /**
@@ -983,7 +963,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
   float time;
 
   if (!G_Ai_Node_FlyPush(push, drop.end, &landing, &time)) {
-    G_Ai_Debug("%s @ %s does not land within %.0f seconds\n", push->classname, vtos(pad), AI_RIDE_TIME);
+    G_Ai_Debug("%s @ %s does not land within %.0f seconds\n", push->classname, vtos(pad), NAV_FLIGHT_SECONDS);
     return;
   }
 

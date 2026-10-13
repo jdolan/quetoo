@@ -144,6 +144,11 @@
 #define NAV_PUSH_MARGIN 16.f
 
 /**
+ * @brief The `start_off` spawn flag of a `trigger_push`.
+ */
+#define NAV_PUSH_START_OFF 4
+
+/**
  * @brief The most `trigger_hurt` and `trigger_push` entities that the build avoids.
  */
 #define NAV_MAX_TRIGGERS 256
@@ -1294,6 +1299,52 @@ static bool Nav_EntityHas(const Entity *entity, const char *key) {
 }
 
 /**
+ * @brief Adds the `trigger_push` to the graph's pushes, with its velocity read as the game reads it.
+ */
+static void Nav_AddPush(const Entity *entity, const Box3 bounds, const int32_t spawnFlags) {
+
+  NavGraph *graph = module.graph;
+
+  graph->pushes = realloc(graph->pushes, sizeof(NavPush) * (graph->numPushes + 1));
+  if (!graph->pushes) {
+    module.params->Error(__func__, "Failed to allocate %d pushes\n", graph->numPushes + 1);
+  }
+
+  Vec3 angles = Vec3_Zero();
+
+  const Entity *anglesValue = module.params->EntityValue(entity, "angles");
+  if (anglesValue->parsed & ENTITY_VEC3) {
+    angles = anglesValue->vec3;
+  }
+
+  const Entity *angleValue = module.params->EntityValue(entity, "angle");
+  if (angleValue->parsed & ENTITY_FLOAT) {
+    angles = MakeVec3(0.f, angleValue->value, 0.f);
+  }
+
+  Vec3 dir = Vec3_Zero();
+
+  if (Vec3_Equal(angles, MakeVec3(0.f, -1.f, 0.f))) {
+    dir = Vec3_Up();
+  } else if (Vec3_Equal(angles, MakeVec3(0.f, -2.f, 0.f))) {
+    dir = Vec3_Down();
+  } else if (!Vec3_Equal(angles, Vec3_Zero())) {
+    Vec3_Vectors(angles, &dir, NULL, NULL);
+  }
+
+  float speed = module.params->EntityValue(entity, "speed")->value;
+  if (!speed) {
+    speed = 100.f;
+  }
+
+  graph->pushes[graph->numPushes++] = (NavPush) {
+    .bounds = bounds,
+    .velocity = Vec3_Scale(dir, speed * 10.f),
+    .startOff = (spawnFlags & NAV_PUSH_START_OFF) != 0
+  };
+}
+
+/**
  * @brief Gathers the level's `trigger_hurt` and `trigger_push` entities, and the doors that a bot
  * cannot open by walking up to them, the walls and the rotating models, from the inline models of
  * the BSP.
@@ -1324,6 +1375,10 @@ static void Nav_InitModels(void) {
     const int32_t spawnFlags = Nav_EntityInteger(model->entity, "spawnflags");
     const Vec3 origin = Nav_EntityOrigin(model->entity);
     const Box3 bounds = Box3_Translate(model->bounds, origin);
+
+    if (!Str_Compare(classname, "trigger_push")) {
+      Nav_AddPush(model->entity, bounds, spawnFlags);
+    }
 
     if (!Str_Compare(classname, "trigger_hurt") || !Str_Compare(classname, "trigger_push")) {
 
@@ -1479,6 +1534,43 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
 /**
  * @see bg_nav.h
  */
+bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints, int32_t *numPoints, float *seconds) {
+
+  const Box3 bounds = Pm_Bounds(&pm->s.params, false);
+  const uint8_t msec = QUETOO_TICK_MILLIS;
+
+  if (points) {
+    *numPoints = 0;
+  }
+
+  for (uint32_t millis = 0; millis <= NAV_FLIGHT_SECONDS * 1000.f; millis += msec) {
+
+    if (points && *numPoints < maxPoints) {
+      points[(*numPoints)++] = pm->s.origin;
+    }
+
+    if (Box3_Intersects(Box3_Translate(bounds, pm->s.origin), push->bounds)) {
+      pm->s.velocity = push->velocity;
+      pm->s.flags |= PMF_TIME_PUSHED;
+      pm->s.time = 240;
+    } else if (pm->ground.ent && !(pm->s.flags & PMF_TIME_PUSHED)) {
+      *seconds = MILLIS_TO_SECONDS(millis);
+      return true;
+    }
+
+    pm->cmd = (PMoveCmd) {
+      .msec = msec
+    };
+
+    Pm_Move(pm);
+  }
+
+  return false;
+}
+
+/**
+ * @see bg_nav.h
+ */
 void Nav_FreeNodes(NavGraph *graph) {
 
   free(graph->nodes);
@@ -1496,6 +1588,7 @@ void Nav_Free(NavGraph *graph) {
   free(graph->nodes);
   free(graph->links);
   free(graph->cellNodes);
+  free(graph->pushes);
 
   memset(graph, 0, sizeof(*graph));
 }
