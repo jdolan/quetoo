@@ -168,21 +168,22 @@ void Cg_PrepareAiNodes(const ClientFrame *frame) {
 }
 
 /**
- * @return The color of a link of the given travel type.
+ * @return The color of a link of the given travel type, by the kind of movement: green to walk, red
+ * to crouch, as crouch nodes are, grey to fall, yellow and orange to jump, and cyan to swim.
  */
 static Color Cg_AiLinkColor(const NavTravelType type) {
 
   switch (type) {
     case NAV_TRAVEL_CROUCH:
-      return ColorHSV(COLOR_HUE_YELLOW, 1.f, 1.f);
-    case NAV_TRAVEL_WALK_OFF_LEDGE:
       return ColorHSV(COLOR_HUE_RED, 1.f, 1.f);
+    case NAV_TRAVEL_WALK_OFF_LEDGE:
+      return ColorHSV(0.f, 0.f, .5f);
     case NAV_TRAVEL_BARRIER_JUMP:
+      return ColorHSV(COLOR_HUE_YELLOW, 1.f, 1.f);
+    case NAV_TRAVEL_JUMP:
       return ColorHSV(COLOR_HUE_ORANGE, 1.f, 1.f);
     case NAV_TRAVEL_SWIM:
       return ColorHSV(COLOR_HUE_CYAN, 1.f, 1.f);
-    case NAV_TRAVEL_JUMP:
-      return ColorHSV(COLOR_HUE_MAGENTA, 1.f, 1.f);
     default:
       return ColorHSV(COLOR_HUE_GREEN, .6f, .8f);
   }
@@ -229,7 +230,7 @@ void Cg_DrawAiNodes(const ClientFrame *frame) {
       continue;
     }
 
-    const Vec3 color = (node->crouch ? ColorHSV(COLOR_HUE_YELLOW, 1.f, 1.f) : ColorHSV(COLOR_HUE_ORANGE, 1.f, 1.f)).vec3;
+    const Vec3 color = (node->crouch ? ColorHSV(COLOR_HUE_RED, 1.f, 1.f) : ColorHSV(0.f, 0.f, 1.f)).vec3;
 
     Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgameMedia.sprites.particle,
