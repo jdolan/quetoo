@@ -25,7 +25,7 @@
 /**
  * @brief The distance from the view within which nodes and links are drawn.
  */
-#define CG_NAV_DRAW_DISTANCE 1024.f
+#define CG_NAV_DRAW_DISTANCE 512.f
 
 /**
  * @brief The navigation graph that the client game draws.

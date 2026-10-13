@@ -1812,7 +1812,7 @@ typedef struct {
   float lighting;
 } RenderBeam;
 
-#define MAX_BEAMS 0x200
+#define MAX_BEAMS 0x1000
 
 /**
  * @brief The maximum number of subviews drawn for a single view.
@@ -1884,7 +1884,7 @@ typedef struct {
   Box3 bounds;
 } RenderSpriteBatch;
 
-#define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
+#define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS * 2)
 
 /**
  * @brief Mirrors the game modules' `EF_MODULATE` (`g_types.h`), which is identical
