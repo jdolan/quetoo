@@ -751,30 +751,17 @@ static bool G_Ai_WantsPursuit(const GameClient *cl) {
 }
 
 /**
- * @return True if the bot, which has a combat target, should fight it. An unarmed bot fights only
- * an enemy within the engage range of its weapon; otherwise it collects a weapon, and fires at the
- * enemy on the way.
- */
-static bool G_Ai_WantsFight(const GameClient *cl) {
-
-  if (G_Ai_IsArmed(cl)) {
-    return true;
-  }
-
-  const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
-  const float scale = cl->ai->state == AI_STATE_FIGHT ? AI_DISENGAGE_SCALE : AI_ENGAGE_SCALE;
-
-  return Vec3_Distance(cl->entity->s.origin, enemy->s.origin) <= G_Ai_PreferredRange(cl) * scale;
-}
-
-/**
- * @return True if the bot, which has a combat target, should retreat from it: for health, or from an
- * enemy that outguns it. A bot that retreats fights again only once its health exceeds its retreat
- * health by `AI_RECOVER_SCALE`, so that it does not switch at the threshold.
- * @remarks An unarmed bot does not retreat from an enemy that outguns it, since nearly every enemy
- * does. It fights, and collects a weapon while it fires.
+ * @return True if the bot, which has a combat target, should retreat from it: if it is unarmed, for
+ * health, or from an enemy that outguns it. A bot that retreats fights again only once its health
+ * exceeds its retreat health by `AI_RECOVER_SCALE`, so that it does not switch at the threshold.
+ * @remarks An unarmed bot only defends itself with the Blaster: it retreats to the weapons, armor
+ * and health of most utility, and fires back on the way.
  */
 static bool G_Ai_WantsRetreat(const GameClient *cl) {
+
+  if (!G_Ai_IsArmed(cl)) {
+    return true;
+  }
 
   const float scale = cl->ai->state == AI_STATE_RETREAT ? AI_RECOVER_SCALE : 1.f;
 
@@ -782,7 +769,7 @@ static bool G_Ai_WantsRetreat(const GameClient *cl) {
     return true;
   }
 
-  return G_Ai_IsArmed(cl) && G_Ai_IsOutgunned(cl, cl->ai->combatTarget.entity.ent);
+  return G_Ai_IsOutgunned(cl, cl->ai->combatTarget.entity.ent);
 }
 
 /**
@@ -923,9 +910,10 @@ static void G_Ai_State_Detour(GameClient *cl) {
 }
 
 /**
- * @brief Fights the combat target. Within `AI_ENGAGE_SCALE` of the weapon's preferred range, the
- * bot strafes around the enemy, and goes only for items close by. Beyond it, the bot collects items
- * while it fires, or, if it is armed and has none to collect, paths toward the enemy.
+ * @brief Fights the combat target, as only an armed bot does. Within `AI_ENGAGE_SCALE` of the
+ * weapon's preferred range, the bot strafes around the enemy, and goes only for items close by.
+ * Beyond it, the bot collects items while it fires, or, if it has none to collect, paths toward the
+ * enemy.
  */
 static void G_Ai_State_Fight(GameClient *cl) {
 
@@ -950,7 +938,7 @@ static void G_Ai_State_Fight(GameClient *cl) {
     }
   }
 
-  if (!engaged && G_Ai_IsArmed(cl)) {
+  if (!engaged) {
     const GameAiNodeId node = G_Ai_Node_FindClosest(enemy->s.origin, AI_NODE_DISTANCE, true, true);
 
     if (G_Ai_PathTo(cl, node, AI_PURSUE_PRIORITY, enemy)) {
@@ -965,8 +953,9 @@ static void G_Ai_State_Fight(GameClient *cl) {
 
 /**
  * @brief Goes to the health, armor or weapon of most utility that does not lie toward the enemy,
- * while the aim stays on the enemy so that the bot fires back. With none to go to, the bot strafes
- * around the enemy and fights.
+ * while the aim stays on the enemy so that the bot fires back. An unarmed bot with none of those to
+ * go to takes any item of value, because its strafe around an enemy far away moves toward it. With
+ * none to go to, the bot strafes around the enemy and fights.
  */
 static void G_Ai_State_Retreat(GameClient *cl) {
 
@@ -984,6 +973,14 @@ static void G_Ai_State_Retreat(GameClient *cl) {
 
     if (G_Ai_GoToItem(cl, costs, &item, 0.f, true)) {
       return;
+    }
+
+    if (!G_Ai_IsArmed(cl)) {
+      const GameAiChoice any = G_Ai_ChooseItem(cl, costs, 0.f, false);
+
+      if (G_Ai_GoToItem(cl, costs, &any, 0.f, false)) {
+        return;
+      }
     }
   }
 
@@ -1054,13 +1051,7 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
   }
 
   if (ai->combatTarget.type == AI_GOAL_ENTITY) {
-    if (G_Ai_WantsRetreat(cl)) {
-      G_Ai_Enter(cl, AI_STATE_RETREAT);
-    } else if (G_Ai_WantsFight(cl)) {
-      G_Ai_Enter(cl, AI_STATE_FIGHT);
-    } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
-      G_Ai_Resume(cl);
-    }
+    G_Ai_Enter(cl, G_Ai_WantsRetreat(cl) ? AI_STATE_RETREAT : AI_STATE_FIGHT);
   } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
     if (ai->combatTargetLost && G_Ai_WantsPursuit(cl)) {
       G_Ai_Enter(cl, AI_STATE_CHASE);

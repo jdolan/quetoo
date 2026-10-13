@@ -245,6 +245,36 @@ static bool G_Ai_Perceives(const GameClient *cl, const GameEntity *other) {
 }
 
 /**
+ * @brief The distance within which an unarmed bot takes an enemy that has not attacked it as its
+ * target. The Blaster is a sidearm: a bot fires it to defend itself, not at an enemy across the map.
+ */
+#define AI_SIDEARM_RANGE 256.f
+
+/**
+ * @brief The multiple of `AI_SIDEARM_RANGE` within which an unarmed bot keeps its target, so that
+ * an enemy near the range is not dropped and taken again at each think, which restarts the aim.
+ */
+#define AI_SIDEARM_KEEP_SCALE 1.5f
+
+/**
+ * @return True if the bot would take the enemy as its target: any enemy if the bot is armed, and if
+ * it is not, only one that attacked it within `AI_ATTACKER_MILLIS` or stands within
+ * `AI_SIDEARM_RANGE`, or `AI_SIDEARM_KEEP_SCALE` of it to `keep` its current target. An unarmed bot
+ * that targets an enemy far away turns to aim at it, and so cannot strafe jump to the weapon that it
+ * needs, and fires a Blaster that will not kill it.
+ */
+static bool G_Ai_WouldTarget(const GameClient *cl, const GameEntity *enemy, const bool keep) {
+
+  if (G_Ai_IsArmed(cl) || G_Ai_IsAttacker(cl, enemy)) {
+    return true;
+  }
+
+  const float range = keep ? AI_SIDEARM_RANGE * AI_SIDEARM_KEEP_SCALE : AI_SIDEARM_RANGE;
+
+  return Vec3_Distance(cl->entity->s.origin, enemy->s.origin) <= range;
+}
+
+/**
  * @brief Readies the aim at a new combat target: the flick error of the turn toward it, the lead
  * error, the weapon, the combat style and the reaction time before the bot may fire.
  */
@@ -290,8 +320,8 @@ static void G_Ai_AcquireTarget(GameClient *cl, const GameEntity *enemy, const fl
 /**
  * @brief Funcgoal that chooses the bot's combat target. It does not move the bot: the state
  * machine decides whether to fight, chase or retreat. A bot keeps a target that it loses sight of
- * for `AI_TARGET_MEMORY_MILLIS`, and always takes a target, even when it retreats, so that it fires
- * back.
+ * for `AI_TARGET_MEMORY_MILLIS`, and takes a target even when it retreats, so that it fires back.
+ * An unarmed bot takes only the targets of `G_Ai_WouldTarget`.
  */
 uint32_t G_Ai_Target(GameClient *cl, PMoveCmd *cmd) {
 
@@ -308,7 +338,10 @@ uint32_t G_Ai_Target(GameClient *cl, PMoveCmd *cmd) {
 
     const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
 
-    if (G_Ai_Perceives(cl, enemy)) {
+    if (!G_Ai_WouldTarget(cl, enemy, true)) {
+      G_Ai_ClearGoal(&cl->ai->combatTarget);
+      cl->ai->combatTargetLost = false;
+    } else if (G_Ai_Perceives(cl, enemy)) {
       cl->ai->combatTargetSeenTime = gameLevel.time;
       cl->ai->combatTargetSeenPosition = enemy->s.origin;
     } else if (!G_Ai_IsTargetable(cl, enemy)) {
@@ -324,7 +357,7 @@ uint32_t G_Ai_Target(GameClient *cl, PMoveCmd *cmd) {
   float bestPriority = 0.f;
 
   G_ForEachEntity(ent, {
-    if (G_Ai_Perceives(cl, ent)) {
+    if (G_Ai_Perceives(cl, ent) && G_Ai_WouldTarget(cl, ent, ent == cl->ai->combatTarget.entity.ent)) {
 
       const float priority = G_Ai_EnemyPriority(cl, ent, true);
       if (priority > bestPriority) {
