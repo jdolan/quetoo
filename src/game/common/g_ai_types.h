@@ -361,6 +361,51 @@ typedef struct {
 } GameAiItemTiming;
 
 /**
+ * @brief Why a bot on a path does not strafe jump, as `G_Ai_StrafeJump` last found, for the probe.
+ */
+typedef enum {
+  /**
+   * @brief The bot strafe jumps.
+   */
+  AI_STRAFE_BLOCK_NONE,
+
+  /**
+   * @brief The bot's skill is too low, or the level's movement has no strafe jumping.
+   */
+  AI_STRAFE_BLOCK_SKILL,
+
+  /**
+   * @brief The bot is in water, on a mover, crouched, on a ladder, pushed, teleported, trick
+   * jumping or water jumping, or its path leads onto a mover that is not there.
+   */
+  AI_STRAFE_BLOCK_STATE,
+
+  /**
+   * @brief No node ahead passes the turn, floor and trigger tests of `G_Ai_StrafeTarget`.
+   */
+  AI_STRAFE_BLOCK_TURN,
+
+  /**
+   * @brief The path ahead is too short for the bot's skill: see `AI_STRAFE_RUN_MAX` and
+   * `AI_STRAFE_RUN_MIN`.
+   */
+  AI_STRAFE_BLOCK_SHORT,
+
+  /**
+   * @brief The simulated jump does not land safely.
+   */
+  AI_STRAFE_BLOCK_UNSAFE,
+
+  /**
+   * @brief The bot is in the air, but not strafe jumping: after a drop, a jump link, or a strafe
+   * jump that it gave up in flight.
+   */
+  AI_STRAFE_BLOCK_FALL,
+
+  AI_STRAFE_BLOCK_TOTAL
+} GameAiStrafeBlock;
+
+/**
  * @brief The most items that a bot avoids at once.
  */
 #define AI_AVOIDS 8
@@ -650,6 +695,11 @@ typedef struct GameAi {
    * @brief True from the takeoff of a strafe jump until the bot lands and does not jump again.
    */
   bool strafeJumping;
+
+  /**
+   * @brief Why the bot did not strafe jump on its last move along a path, for the probe.
+   */
+  GameAiStrafeBlock strafeBlock;
 
   /**
    * @brief Level time until which `strafeLookIndex` and `strafeLookRun` are valid, for

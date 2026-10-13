@@ -108,6 +108,8 @@ typedef struct {
   uint32_t frames;
   uint32_t strafeFrames;
   uint32_t airFrames;
+  uint32_t goalFrames;
+  uint32_t blockFrames[AI_STRAFE_BLOCK_TOTAL];
   Vec3 positions[AI_PROBE_STUCK_POSITIONS];
   uint32_t numPositions;
   bool stuck;
@@ -532,15 +534,29 @@ void G_Ai_Probe_Think(const GameClient *cl) {
   c->strafeFrames += cl->ai->strafeJumping;
   c->airFrames += !ground;
 
+  if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
+    c->blockFrames[cl->ai->strafeBlock]++;
+  } else {
+    c->goalFrames++;
+  }
+
   if (gameLevel.time - c->speedTime >= AI_PROBE_SPEED_MILLIS) {
-    G_Ai_Probe_Print(n, "SPEED", "name=%s skill=%.2f avg=%d max=%d strafe=%.2f air=%.2f",
+    const float frames = Maxf(1.f, c->frames);
+
+    G_Ai_Probe_Print(n, "SPEED", "name=%s skill=%.2f avg=%d max=%d strafe=%.2f air=%.2f "
+                     "goal=%.2f strafing=%.2f lowskill=%.2f state=%.2f turn=%.2f short=%.2f unsafe=%.2f fall=%.2f",
                      cl->ai->roster ? cl->ai->roster->name : "none", cl->ai->personality.skill,
-                     (int32_t) (c->speedSum / Maxf(1.f, c->frames)), (int32_t) c->speedMax,
-                     c->strafeFrames / Maxf(1.f, c->frames), c->airFrames / Maxf(1.f, c->frames));
+                     (int32_t) (c->speedSum / frames), (int32_t) c->speedMax,
+                     c->strafeFrames / frames, c->airFrames / frames, c->goalFrames / frames,
+                     c->blockFrames[AI_STRAFE_BLOCK_NONE] / frames, c->blockFrames[AI_STRAFE_BLOCK_SKILL] / frames,
+                     c->blockFrames[AI_STRAFE_BLOCK_STATE] / frames, c->blockFrames[AI_STRAFE_BLOCK_TURN] / frames,
+                     c->blockFrames[AI_STRAFE_BLOCK_SHORT] / frames, c->blockFrames[AI_STRAFE_BLOCK_UNSAFE] / frames,
+                     c->blockFrames[AI_STRAFE_BLOCK_FALL] / frames);
 
     c->speedTime = gameLevel.time;
     c->speedSum = c->speedMax = 0.f;
-    c->frames = c->strafeFrames = c->airFrames = 0;
+    c->frames = c->strafeFrames = c->airFrames = c->goalFrames = 0;
+    memset(c->blockFrames, 0, sizeof(c->blockFrames));
   }
 
   if (gameLevel.time - c->positionTime >= AI_PROBE_POSITION_MILLIS) {

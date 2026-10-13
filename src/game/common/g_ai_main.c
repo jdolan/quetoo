@@ -2103,6 +2103,8 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
 
   if (!G_Ai_CanStrafeJump(cl)) {
     ai->strafeJumping = false;
+    ai->strafeBlock = ai->personality.skill < AI_STRAFE_JUMP_SKILL || G_Ai_AirWishSpeed(cl) <= 0.f ?
+                      AI_STRAFE_BLOCK_SKILL : AI_STRAFE_BLOCK_STATE;
     return false;
   }
 
@@ -2116,6 +2118,7 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
 
   if (steer < 0 && !coast) {
     ai->strafeJumping = false;
+    ai->strafeBlock = AI_STRAFE_BLOCK_TURN;
     return false;
   }
 
@@ -2124,8 +2127,15 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
   if (coast) {
     cmd->up = 0;
   } else if (ent->ground.ent) {
-    if (!G_Ai_ShouldStrafeJump(cl, run) || !G_Ai_StrafeJumpIsSafe(cl, target)) {
+    if (!G_Ai_ShouldStrafeJump(cl, run)) {
       ai->strafeJumping = false;
+      ai->strafeBlock = AI_STRAFE_BLOCK_SHORT;
+      return false;
+    }
+
+    if (!G_Ai_StrafeJumpIsSafe(cl, target)) {
+      ai->strafeJumping = false;
+      ai->strafeBlock = AI_STRAFE_BLOCK_UNSAFE;
       return false;
     }
 
@@ -2134,8 +2144,11 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
   } else if (ai->strafeJumping) {
     cmd->up = (ent->velocity.z <= 0.f && G_Ai_ShouldStrafeJump(cl, run) && G_Ai_StrafeJumpIsSafe(cl, target)) ? PM_SPEED_JUMP : 0;
   } else {
+    ai->strafeBlock = AI_STRAFE_BLOCK_FALL;
     return false;
   }
+
+  ai->strafeBlock = AI_STRAFE_BLOCK_NONE;
 
   while (steer >= 0 && ai->moveTarget.path.pathIndex < (uint32_t) steer) {
     if (!G_Ai_AdvancePath(cl, &ai->moveTarget)) {
@@ -2341,6 +2354,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   bool waitPolitely = false;
 
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
+    cl->ai->strafeBlock = AI_STRAFE_BLOCK_STATE;
     // the next step(s) will be onto a mover, so if we can't move yet, we wait.
     if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
       const GameEntity *plat = G_Ai_Node_RaisedPlatform(cl->ai->moveTarget.path.pathPosition);
