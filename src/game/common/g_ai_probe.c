@@ -60,6 +60,17 @@
 #define AI_PROBE_PUSH_DISTANCE 32.f
 
 /**
+ * @brief The distance within which the probe finds the node nearest a client.
+ */
+#define AI_PROBE_VISIT_DISTANCE 128.f
+
+/**
+ * @brief The distance by which a node MUST be nearer a client than the node that it visits, for
+ * the client to visit the nearer node.
+ */
+#define AI_PROBE_VISIT_MARGIN 16.f
+
+/**
  * @brief The longest line of the log.
  */
 #define AI_PROBE_LINE 4096
@@ -99,12 +110,13 @@ typedef struct {
   uint32_t airFrames;
   Vec3 positions[AI_PROBE_STUCK_POSITIONS];
   uint32_t numPositions;
-  bool alive;
   bool stuck;
   bool pushed;
   bool ground;
   bool jumping;
   float jumpHeight;
+  int32_t visitNode;
+  bool used;
 } GameAiProbeClient;
 
 static Cvar *g_aiProbe;
@@ -275,11 +287,62 @@ static void G_Ai_Probe_Stuck(const GameClient *cl, GameAiProbeClient *c, const i
 }
 
 /**
+ * @return The probe's state for the client, cleared when another bot, or a player, takes the
+ * client slot.
+ */
+static GameAiProbeClient *G_Ai_Probe_Client(const GameClient *cl) {
+
+  GameAiProbeClient *c = &module.clients[cl->ps.client];
+
+  if (!c->used || c->ai != cl->ai) {
+    memset(c, 0, sizeof(*c));
+    c->ai = cl->ai;
+    c->used = true;
+    c->visitNode = -1;
+  }
+
+  return c;
+}
+
+/**
+ * @brief Records a `VISIT` when the node nearest the client changes, so that the log holds each
+ * client's route, node by node. The client leaves its node only for one at least
+ * `AI_PROBE_VISIT_MARGIN` nearer, so that a client between two nodes does not flip between them.
+ * @return The node nearest the client, or -1 if none is within `AI_PROBE_VISIT_DISTANCE`.
+ */
+static int32_t G_Ai_Probe_Visit(const GameClient *cl, GameAiProbeClient *c) {
+
+  const GameEntity *ent = cl->entity;
+  const int32_t node = G_Ai_Probe_Node(G_Ai_Node_FindClosest(ent->s.origin, AI_PROBE_VISIT_DISTANCE, false, true));
+
+  if (node == -1 || node == c->visitNode) {
+    return node;
+  }
+
+  if (c->visitNode != -1 && (uint32_t) c->visitNode < G_Ai_Node_Count()) {
+    const float current = Vec3_Distance(ent->s.origin, G_Ai_Node_GetPosition((GameAiNodeId) c->visitNode));
+    const float nearer = Vec3_Distance(ent->s.origin, G_Ai_Node_GetPosition((GameAiNodeId) node));
+
+    if (nearer + AI_PROBE_VISIT_MARGIN > current) {
+      return node;
+    }
+  }
+
+  c->visitNode = node;
+
+  G_Ai_Probe_Print(cl->ps.client, "VISIT", "node=%d pos=%d,%d,%d speed=%d ground=%d water=%d",
+                   node, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                   (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), ent->ground.ent != NULL, ent->waterLevel);
+
+  return node;
+}
+
+/**
  * @see g_ai_probe.h
  */
 void G_Ai_Probe_Init(void) {
 
-  g_aiProbe = gi.AddCvar("g_aiProbe", "0", CVAR_DEVELOPER, "Records what bots do to ai_probe_<level>.log: 1 for the bots, 2 for the navigation graph");
+  g_aiProbe = gi.AddCvar("g_aiProbe", "0", CVAR_DEVELOPER, "Records what bots do to ai_probe_<level>.log: 1 for the bots, 2 for the navigation graph, 4 for the players");
 }
 
 /**
@@ -382,16 +445,11 @@ void G_Ai_Probe_Think(const GameClient *cl) {
     return;
   }
 
-  GameAiProbeClient *c = &module.clients[cl->ps.client];
-
-  if (c->ai != cl->ai) {
-    memset(c, 0, sizeof(*c));
-    c->ai = cl->ai;
-  }
+  GameAiProbeClient *c = G_Ai_Probe_Client(cl);
 
   const GameEntity *ent = cl->entity;
   const int32_t n = cl->ps.client;
-  const bool alive = ent->health > 0;
+  const bool alive = !ent->dead;
   const bool ground = ent->ground.ent != NULL;
 
   int32_t from, to, travelType;
@@ -430,15 +488,6 @@ void G_Ai_Probe_Think(const GameClient *cl) {
   c->pathStart = pathStart;
   c->pathCount = pathCount;
   c->pathIndex = pathIndex;
-
-  if (c->alive && !alive) {
-    G_Ai_Probe_Print(n, "DEATH", "pos=%d,%d,%d water=%d link=%d->%d type=%d goal=%s",
-                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     ent->waterLevel, from, to, travelType, G_Ai_Probe_Goal(cl));
-    G_Ai_Probe_History(cl, "death");
-  }
-
-  c->alive = alive;
 
   if (!alive) {
     c->numPositions = 0;
@@ -519,6 +568,8 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
     G_Ai_Probe_Stuck(cl, c, from, to, travelType);
   }
+
+  G_Ai_Probe_Visit(cl, c);
 }
 
 /**
@@ -550,10 +601,74 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
  */
 void G_Ai_Probe_ItemTaken(const GameClient *cl, const GameEntity *item) {
 
-  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+  if (!module.file || !(g_aiProbe->integer & (cl->ai ? AI_PROBE_BOTS : AI_PROBE_PLAYERS))) {
     return;
   }
 
   G_Ai_Probe_Print(cl->ps.client, "PICKUP", "item=%s number=%d pos=%d,%d,%d", item->classname, item->s.number,
                    (int32_t) item->s.origin.x, (int32_t) item->s.origin.y, (int32_t) item->s.origin.z);
+}
+
+/**
+ * @see g_ai_probe.h
+ */
+void G_Ai_Probe_ClientMove(const GameClient *cl, const PMoveCmd *cmd) {
+
+  if (!module.file || !(g_aiProbe->integer & AI_PROBE_PLAYERS)) {
+    return;
+  }
+
+  const GameEntity *ent = cl->entity;
+
+  if (cl->ai || cl->persistent.spectator || ent->dead) {
+    return;
+  }
+
+  GameAiProbeClient *c = G_Ai_Probe_Client(cl);
+  const int32_t node = G_Ai_Probe_Visit(cl, c);
+
+  G_Ai_Probe_Print(cl->ps.client, "CMD", "node=%d pos=%d,%d,%d vel=%d,%d,%d angles=%.1f,%.1f move=%d,%d,%d msec=%d "
+                   "ground=%d water=%d buttons=%d",
+                   node, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                   (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
+                   cl->angles.y, cl->angles.x, cmd->forward, cmd->right, cmd->up, cmd->msec,
+                   ent->ground.ent != NULL, ent->waterLevel, cmd->buttons);
+}
+
+/**
+ * @see g_ai_probe.h
+ */
+void G_Ai_Probe_Killed(const GameClient *cl, const GameEntity *attacker, const uint32_t mod) {
+
+  if (!module.file || !(g_aiProbe->integer & (AI_PROBE_BOTS | AI_PROBE_PLAYERS))) {
+    return;
+  }
+
+  const GameEntity *ent = cl->entity;
+  const GameClient *killer = attacker && attacker->client ? attacker->client : NULL;
+
+  G_Ai_Probe_Print(cl->ps.client, "KILL", "attacker=%d mod=%u weapon=%s range=%d pos=%d,%d,%d bot=%d attackerBot=%d",
+                   killer ? killer->ps.client : -1, mod,
+                   killer && killer->weapon ? killer->weapon->def.classname : "none",
+                   killer ? (int32_t) Vec3_Distance(ent->s.origin, killer->entity->s.origin) : -1,
+                   (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                   cl->ai != NULL, killer && killer->ai);
+
+  GameAiProbeClient *c = G_Ai_Probe_Client(cl);
+  c->visitNode = -1;
+
+  if (!cl->ai || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+    return;
+  }
+
+  int32_t from, to, travelType;
+  G_Ai_Probe_Link(cl, &from, &to, &travelType);
+
+  G_Ai_Probe_Print(cl->ps.client, "DEATH", "pos=%d,%d,%d water=%d link=%d->%d type=%d goal=%s",
+                   (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                   ent->waterLevel, from, to, travelType, G_Ai_Probe_Goal(cl));
+  G_Ai_Probe_History(cl, "death");
+
+  c->numPositions = 0;
+  c->jumping = c->pushed = false;
 }

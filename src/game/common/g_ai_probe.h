@@ -37,6 +37,12 @@
 #define AI_PROBE_GRAPH 2
 
 /**
+ * @brief The `g_aiProbe` flag that records what each human player does: each movement command,
+ * with the node nearest the player, each node that the player passes, and the player's pickups.
+ */
+#define AI_PROBE_PLAYERS 4
+
+/**
  * @brief Registers `g_aiProbe`, a developer cvar whose flags select what the probe records. With
  * `g_aiProbe 0`, the default, the probe does nothing.
  */
@@ -61,8 +67,8 @@ void G_Ai_Probe_Shutdown(void);
 void G_Ai_Probe_Graph(void);
 
 /**
- * @brief Records what the bot does, with `AI_PROBE_BOTS`. The game calls it once each frame for each
- * bot.
+ * @brief Records what the bot does, with `AI_PROBE_BOTS`, and each node that it passes. The game
+ * calls it once each frame for each bot.
  */
 void G_Ai_Probe_Think(const GameClient *cl);
 
@@ -74,7 +80,23 @@ void G_Ai_Probe_Think(const GameClient *cl);
 void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason);
 
 /**
- * @brief Records that the bot took the item, with `AI_PROBE_BOTS`.
+ * @brief Records that the client took the item: a bot with `AI_PROBE_BOTS`, a player with
+ * `AI_PROBE_PLAYERS`.
  */
 void G_Ai_Probe_ItemTaken(const GameClient *cl, const GameEntity *item);
+
+/**
+ * @brief Records a human player's movement command, with `AI_PROBE_PLAYERS`, with the node nearest
+ * the player after the move, or -1 if none is within reach, and a `VISIT` if the player moved to
+ * another node. The game calls it after it moves the player with the command.
+ */
+void G_Ai_Probe_ClientMove(const GameClient *cl, const PMoveCmd *cmd);
+
+/**
+ * @brief Records that the client was killed, by whom, with which weapon and at which range, with
+ * `AI_PROBE_BOTS` or `AI_PROBE_PLAYERS`, for bots and players alike. The attacker is the victim
+ * itself for a suicide, and -1 for the world. The client's next `VISIT` starts a new route. For a bot, with `AI_PROBE_BOTS`, it also records the bot's `DEATH` and its
+ * samples before it. The game calls it as the client dies.
+ */
+void G_Ai_Probe_Killed(const GameClient *cl, const GameEntity *attacker, const uint32_t mod);
 #endif

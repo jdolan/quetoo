@@ -946,6 +946,8 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
 
   G_ClientObituary(cl, attacker, mod);
 
+  G_Ai_Probe_Killed(cl, attacker, mod);
+
   G_TossInventory(cl);
   G_TossInvisibility(cl);
   G_TossInvulnerability(cl);
@@ -2402,6 +2404,8 @@ void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
 #endif
 
     G_ClientMove(cl, cmd);
+
+    G_Ai_Probe_ClientMove(cl, cmd);
 
     G_ClientDidMove(cl, cmd);
   }

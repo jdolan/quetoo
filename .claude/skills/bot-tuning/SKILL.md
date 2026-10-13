@@ -13,7 +13,7 @@ The parts are:
 
 | Part | What it does |
 |---|---|
-| `g_aiProbe` (`src/game/common/g_ai_probe.c`) | A developer cvar. The game writes what each bot does to `ai_probe_<map>.log` in the write directory. 1 records the bots, 2 the navigation graph, 3 both. The default, 0, records nothing. |
+| `g_aiProbe` (`src/game/common/g_ai_probe.c`) | A developer cvar. The game writes what each bot does to `ai_probe_<map>.log` in the write directory. 1 records the bots, 2 the navigation graph, 4 the human players. The flags add: 5 records the bots and the players. The default, 0, records nothing. |
 | `src/tools/ai_probe.py run` | Runs a headless dedicated server on the tree's build, at `timeDemo 1`, adds bots by rcon, and stops the server cleanly. |
 | `src/tools/ai_probe.py summary`, `deaths`, `pushes` | Count and explain deaths, unplanned pushes, pickups and stuck time. |
 | `src/tools/ai_probe.py node`, `near`, `path`, `routes` | Query the navigation graph that the game used. |
@@ -98,12 +98,15 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `NODE`, `TRIGGER` | Once, with `g_aiProbe 2`: each node, `edge=1` if it stands at the edge of the void, with its links, as `node:type:cost`, and each push and hurt trigger's bounds |
 | `POS` | Each second for each bot: position, speed, state, goal item, health, link, the weapon in hand, the weapons it can fire, whether it counts itself armed, the enemy's distance, the combat movement, the water level (0 to 3) and whether it is on the ground |
 | `SPEED` | Each 5 seconds: roster name, skill, average and highest speed, the share of time that the bot strafe jumps and is in the air |
-| `DEATH` + `HIST reason=death` | When a bot dies |
+| `DEATH` + `HIST reason=death` | When a bot dies, from any cause |
+| `KILL` | With flag 1 or 4, when any bot or player dies: the attacker (the victim's own number for a suicide, -1 for the world), the means of death (`mod`, as `GameMeansOfDeath`), the weapon in the attacker's hand, the range, and whether each is a bot |
+| `VISIT` | Each time a client moves to another node: the client's route, node by node. The client leaves a node only for one at least 16 units nearer. A death starts a new route. Bots with flag 1, players with flag 4 |
+| `CMD` | With flag 4, each movement command of a human player: the nearest node (-1 if none is within 128 units), position, velocity, view angles (yaw, pitch), the move (forward, right, up), its duration, the ground, the water level and the buttons. Up to 250 lines a second for each player, about 150 MB an hour |
 | `PATH` | When a bot gets a new path: where it is, its speed, whether it is on the ground, and the first, second and last nodes |
 | `PATHEND` | When the game ends a bot's path, and why: `arrived`, `distress`, `unlinked` or `teleported` |
 | `PUSHED` | When a push trigger throws a bot. `planned=0` if the bot does not follow a pad link, with `HIST reason=pushed` |
 | `JUMP`, `LAND` | When a bot takes off on a gap jump link, and where it lands |
-| `PICKUP` | When a bot takes an item |
+| `PICKUP` | When a bot, or with flag 4 a player, takes an item |
 | `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds, with `HIST reason=stuck` at the first |
 
 Link types are the `NavTravelType` values: 0 for the links that `G_Ai_Node_Link` adds to splice
@@ -124,7 +127,29 @@ platforms, hazards or movers. Use them to see which route the planner prefers, a
 
 Node ids belong to one build of one map. If you change `bg_nav.c`, record the graph again.
 
-## 5. Watch it in the client
+## 5. Learn from a player
+
+Jay plays against the bots, or alone, with the probe on. He sets it before the map loads, for
+example `+set g_aiProbe 5`, and the log is in his write directory. Then:
+
+```sh
+python3 src/tools/ai_probe.py route "$LOG" --client 0         # a client's route and how it covers the map
+python3 src/tools/ai_probe.py linktimes "$LOG"                 # the node pairs that bots cross most slowly
+python3 src/tools/ai_probe.py moves "$LOG" --link 1458-1459    # the player's commands over a link
+python3 src/tools/ai_probe.py strafe "$LOG"                    # the player's jumps by takeoff speed
+python3 src/tools/ai_probe.py kills "$LOG"                     # kills by attacker, weapon and range
+```
+
+- `linktimes` compares the time between two consecutive `VISIT` nodes, for players and bots. A
+  pair that a bot crosses much more slowly is a place to look at the bot's movement.
+- A pair of consecutive `VISIT` nodes with no link between them in the graph is a move that the
+  graph does not have, such as a trick jump.
+- One player's style is a reference, not a target: scale toward it by skill.
+- Node ids belong to one build of the graph. `VISIT` and `CMD` also hold positions. To compare
+  recordings across graph builds, use the positions, not the node ids. The tool does not map them
+  yet.
+
+## 6. Watch it in the client
 
 To see what a player sees, run the client from the same stage, with the graph drawn:
 
@@ -140,7 +165,7 @@ To see what a player sees, run the client from the same stage, with the graph dr
   barrier jump, orange gap jump, cyan swim.
 - `screencapture` takes a screenshot of the window for a report.
 
-## 6. Method
+## 7. Method
 
 - **Measure before you change anything.** Record a baseline on the current build.
 - **Compare equal game time.** Use the event times, not the count of `SPEED` lines, which come
@@ -162,14 +187,14 @@ To see what a player sees, run the client from the same stage, with the graph dr
 - **Record what you find in the commit body**, with the map, the bot, the skill, the game time and
   the numbers before and after. That is where Quetoo keeps the reasons for its design.
 
-## 7. Add an event
+## 8. Add an event
 
 Add it to `g_ai_probe.c`, with a `G_Ai_Probe_*` hook where the game knows about it, and read it in
 `ai_probe.py`. Keep the line format: `key=value` pairs, no spaces in a value, positions as
 `x,y,z`. MUST NOT leave temporary probe code anywhere else in the game: if a question needs new
 data, add the event to the module so that the next investigation has it.
 
-## 8. Before you commit
+## 9. Before you commit
 
 - `g_aiProbe` MUST stay 0 by default.
 - `git diff` MUST show no temporary instrumentation outside `g_ai_probe.c`.

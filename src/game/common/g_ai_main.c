@@ -301,6 +301,9 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 
   if (taker->client && taker->client->ai) {
     G_Ai_Avoid(taker->client, item);
+  }
+
+  if (taker->client) {
     G_Ai_Probe_ItemTaken(taker->client, item);
   }
 
