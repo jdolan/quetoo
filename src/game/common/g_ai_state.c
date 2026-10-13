@@ -106,6 +106,12 @@
 #define AI_ROAM_SAMPLES 32
 
 /**
+ * @brief The time in milliseconds between the positions of a bot's trail, which spans
+ * `AI_TRAIL` times this.
+ */
+#define AI_TRAIL_MILLIS 5000
+
+/**
  * @brief The distance within which a bot has reached its roam point, or waits for the item that it
  * collects to return.
  */
@@ -564,15 +570,56 @@ static bool G_Ai_ShouldReview(GameClient *cl) {
 }
 
 /**
- * @return A random node that the bot can reach, at least `AI_ROAM_COST` away if one is found, or
- * else the farthest of those sampled.
+ * @brief Adds the bot's position to its trail, each `AI_TRAIL_MILLIS`. A trail from before the
+ * level time began again is from the last level, and is cleared, because the game keeps a bot's
+ * `GameAi` across a level change.
  */
-static GameAiNodeId G_Ai_RoamNode(const float *costs) {
+static void G_Ai_UpdateTrail(GameClient *cl) {
+
+  GameAi *ai = cl->ai;
+
+  if (ai->trailTime > gameLevel.time) {
+    ai->trailCount = 0;
+  }
+
+  if (ai->trailCount && gameLevel.time - ai->trailTime < AI_TRAIL_MILLIS) {
+    return;
+  }
+
+  ai->trail[ai->trailCount % AI_TRAIL] = cl->entity->s.origin;
+  ai->trailCount++;
+  ai->trailTime = gameLevel.time;
+}
+
+/**
+ * @return The distance from `position` to the nearest position of the bot's trail, or to the bot.
+ */
+static float G_Ai_TrailDistance(const GameClient *cl, const Vec3 position) {
+
+  const GameAi *ai = cl->ai;
+  float distance = Vec3_Distance(position, cl->entity->s.origin);
+
+  for (size_t i = 0; i < Minz(ai->trailCount, AI_TRAIL); i++) {
+    distance = Minf(distance, Vec3_Distance(position, ai->trail[i]));
+  }
+
+  return distance;
+}
+
+/**
+ * @return Of `AI_ROAM_SAMPLES` random nodes that the bot can reach, the one at least `AI_ROAM_COST`
+ * away that lies farthest from the bot's trail, so that it goes somewhere that it did not visit
+ * recently. If none is that far, the farthest of those sampled.
+ */
+static GameAiNodeId G_Ai_RoamNode(const GameClient *cl, const float *costs) {
 
   const uint32_t count = G_Ai_Node_Count();
 
   GameAiNodeId best = AI_NODE_INVALID;
   float bestCost = 0.f;
+
+  GameAiNodeId fresh = AI_NODE_INVALID;
+  float freshDistance = -1.f;
 
   for (int32_t i = 0; i < AI_ROAM_SAMPLES; i++) {
     const GameAiNodeId node = (GameAiNodeId) RandomRangeu(0, count);
@@ -582,7 +629,12 @@ static GameAiNodeId G_Ai_RoamNode(const float *costs) {
     }
 
     if (costs[node] >= AI_ROAM_COST) {
-      return node;
+      const float distance = G_Ai_TrailDistance(cl, G_Ai_Node_GetPosition(node));
+      if (distance > freshDistance) {
+        fresh = node;
+        freshDistance = distance;
+      }
+      continue;
     }
 
     if (costs[node] > bestCost) {
@@ -591,7 +643,7 @@ static GameAiNodeId G_Ai_RoamNode(const float *costs) {
     }
   }
 
-  return best;
+  return fresh != AI_NODE_INVALID ? fresh : best;
 }
 
 /**
@@ -836,7 +888,7 @@ static void G_Ai_State_Navigate(GameClient *cl) {
 
     if (node == AI_NODE_INVALID || node >= G_Ai_Node_Count() ||
         Vec3_Distance(cl->entity->s.origin, G_Ai_Node_GetPosition(node)) < AI_ROAM_REACHED) {
-      node = G_Ai_RoamNode(costs);
+      node = G_Ai_RoamNode(cl, costs);
     }
 
     if (G_Ai_PathTo(cl, node, AI_ROAM_PRIORITY, NULL)) {
@@ -994,6 +1046,8 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
   }
 
   GameAi *ai = cl->ai;
+
+  G_Ai_UpdateTrail(cl);
 
   if (G_Ai_IsAirborne(cl)) {
     return 1;

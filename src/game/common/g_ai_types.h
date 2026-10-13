@@ -366,6 +366,11 @@ typedef struct {
 #define AI_AVOIDS 8
 
 /**
+ * @brief The most positions that a bot remembers on its trail.
+ */
+#define AI_TRAIL 12
+
+/**
  * @brief An item that a bot took, or failed to reach, and so avoids for a time.
  */
 typedef struct {
@@ -467,6 +472,23 @@ typedef struct GameAi {
    * @brief The items that the bot avoids, so that it roams the map rather than circles a few items.
    */
   GameAiAvoid avoids[AI_AVOIDS];
+
+  /**
+   * @brief Where the bot was recently, one position each `AI_TRAIL_MILLIS`, so that it roams to
+   * somewhere new rather than back to where it came from.
+   */
+  Vec3 trail[AI_TRAIL];
+
+  /**
+   * @brief The count of positions that the bot added to its trail. The newest is at
+   * `trailCount - 1`, modulo `AI_TRAIL`.
+   */
+  uint32_t trailCount;
+
+  /**
+   * @brief Level time at which the bot last added a position to its trail.
+   */
+  uint32_t trailTime;
 
   /**
    * @brief Next level time to re-evaluate weapon selection.
