@@ -556,6 +556,17 @@ typedef struct GameAi {
   Vec2 aimError;
 
   /**
+   * @brief The view angles, before the aim error, at which the bot aims at its combat target: along
+   * the arc for a lobbed weapon.
+   */
+  Vec3 aimAngles;
+
+  /**
+   * @brief The time in milliseconds to hold a hand grenade, so that it flies to the combat target.
+   */
+  uint32_t aimHoldMillis;
+
+  /**
    * @brief The fractional error in the bot's estimate of its projectile speed. It is fixed for
    * each combat target, so that the lead is consistently wrong rather than jittery.
    */

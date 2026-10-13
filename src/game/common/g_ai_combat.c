@@ -629,6 +629,58 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
+ * @return True if the weapon lobs its projectile in an arc: the grenade launchers and hand
+ * grenades.
+ */
+static bool G_Ai_IsLobbed(const GameItem *weapon) {
+  return weapon == &gameItems[WEAPON_GRENADE_LAUNCHER] || weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER] ||
+         weapon == &gameItems[WEAPON_HAND_GRENADE];
+}
+
+/**
+ * @brief The time step in seconds of the arc that `G_Ai_LobTrace` follows.
+ */
+#define AI_LOB_STEP .05f
+
+/**
+ * @brief The longest flight in seconds that `G_Ai_LobTrace` follows.
+ */
+#define AI_LOB_SECONDS 2.f
+
+/**
+ * @return The trace of the bot's grenade from its eye along its view, on the arc that gravity
+ * bends, to where it first strikes: the launch speed and loft of `G_Ai_SpamAngles`, with the hand
+ * grenade's speed from `aimHoldMillis`, as `G_FireHandGrenade` throws it.
+ */
+static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
+
+  const bool timed = (cl->weapon->def.flags & WF_TIMED) != 0;
+  const float speed = timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f) : G_Ai_ProjectileSpeed(cl->weapon);
+  const float loft = timed ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
+  const float gravity = G_LevelGravity();
+
+  Vec3 origin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  Vec3 velocity = Vec3_Fmaf(MakeVec3(0.f, 0.f, loft), speed, cl->forward);
+
+  CollisionTrace trace = { .fraction = 1.f, .end = origin };
+
+  for (float t = 0.f; t < AI_LOB_SECONDS; t += AI_LOB_STEP) {
+
+    velocity.z -= gravity * AI_LOB_STEP;
+    const Vec3 next = Vec3_Fmaf(origin, AI_LOB_STEP, velocity);
+
+    trace = gi.Trace(origin, next, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+    if (trace.fraction < 1.f) {
+      break;
+    }
+
+    origin = next;
+  }
+
+  return trace;
+}
+
+/**
  * @brief The distance within which a bot holds fire with an explosive weapon, so that its own
  * splash does not hit it.
  */
@@ -636,14 +688,16 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
 
 /**
  * @return True if the bot's line of fire is clear: no teammate is in it, and an explosive weapon
- * would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on a wall or on the enemy.
+ * would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on a wall or on the enemy. A lobbed
+ * weapon's line of fire is its arc.
  */
 static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 
   const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const Vec3 end = Vec3_Fmaf(eye, MAX_WORLD_DIST, cl->forward);
 
-  const CollisionTrace trace = gi.Trace(eye, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace trace = G_Ai_IsLobbed(cl->weapon) ? G_Ai_LobTrace(cl) :
+                               gi.Trace(eye, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   const GameEntity *hit = trace.ent;
 
@@ -691,15 +745,20 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
         gameLevel.time - cl->ai->combatTargetSeenTime <= AI_TARGET_SEEN_MILLIS) {
 
       const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-      const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
+      Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
           Box3_Center(cl->ai->combatTarget.entity.ent->absBounds), eyeOrigin));
+
+      if (G_Ai_IsLobbed(cl->weapon)) {
+        Vec3_Vectors(cl->ai->aimAngles, &toEnemy, NULL, NULL);
+      }
 
       // skilled bots fire with tighter aim cone (10° to 25°)
       const float fireCone = Mixf(25.f, 10.f, cl->ai->personality.skill);
       if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone))) {
         const uint32_t grenadeHoldTime = cl->grenadeHoldTime;
         if (grenadeHoldTime) {
-          if (gameLevel.time - grenadeHoldTime < RandomRangeu(1500, 2500)) {
+          const uint32_t holdMillis = cl->ai->aimHoldMillis ?: RandomRangeu(1500, 2500);
+          if (gameLevel.time - grenadeHoldTime < holdMillis) {
             cmd->buttons |= BUTTON_ATTACK;
           }
         } else if (G_Ai_ClearToFire(cl, cl->ai->combatTarget.entity.ent)) {
@@ -861,13 +920,6 @@ void G_Ai_SpamViewAngles(const GameClient *cl, Vec3 *angles) {
 #define AI_SPLASH_AIM_SKILL .5f
 
 /**
- * @return True if the weapon lobs its projectile in an arc: the grenade launchers.
- */
-static bool G_Ai_IsLobbed(const GameItem *weapon) {
-  return weapon == &gameItems[WEAPON_GRENADE_LAUNCHER] || weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER];
-}
-
-/**
  * @brief Resolves the view angles and their rate of change that aim at the combat target. The
  * aim point lags the target's changes in velocity by the bot's reaction time, plus the aim error.
  */
@@ -897,14 +949,23 @@ void G_Ai_CombatAngles(GameClient *cl, const float seconds, Vec3 *angles, Vec3 *
     }
   }
 
-  uint32_t holdMillis;
-  if (!G_Ai_IsLobbed(weapon) || !G_Ai_SpamAngles(cl, weapon, aimPoint, angles, &holdMillis)) {
+  uint32_t holdMillis = 0;
+  const bool lobbed = G_Ai_IsLobbed(weapon) && G_Ai_SpamAngles(cl, weapon, aimPoint, angles, &holdMillis);
+  if (!lobbed) {
     *angles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(aimPoint, eyeOrigin)));
   }
 
+  cl->ai->aimAngles = *angles;
+  cl->ai->aimHoldMillis = holdMillis;
+
   const Vec3 relativeVelocity = Vec3_Subtract(cl->ai->perceivedVelocity, cl->entity->velocity);
   const Vec3 nextAimPoint = Vec3_Fmaf(aimPoint, AI_AIM_RATE_SECONDS, relativeVelocity);
-  const Vec3 nextAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(nextAimPoint, eyeOrigin)));
+
+  Vec3 nextAngles;
+  uint32_t nextHoldMillis;
+  if (!lobbed || !G_Ai_SpamAngles(cl, weapon, nextAimPoint, &nextAngles, &nextHoldMillis)) {
+    nextAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(nextAimPoint, eyeOrigin)));
+  }
 
   for (int32_t i = 0; i < 2; i++) {
     rate->xyz[i] = G_Ai_AngleDelta(angles->xyz[i], nextAngles.xyz[i]) / AI_AIM_RATE_SECONDS;
