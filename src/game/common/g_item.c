@@ -660,11 +660,9 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
 
     const int16_t newCount = Clampf(salvageCount + newArmor->def.quantity, 0, newArmor->def.max);
 
-    if (newCount < cl->maxArmor) {
-      *drop = currentArmor;
-      *give = newArmor;
-      *count = Clampf(newCount, 0, cl->maxArmor);
-    }
+    *drop = currentArmor;
+    *give = newArmor;
+    *count = Clampf(newCount, 0, cl->maxArmor);
 
     return true;
   }
