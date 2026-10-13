@@ -1616,7 +1616,8 @@ static Vec3 G_Ai_StrafeWish(const GameClient *cl, const Vec3 origin, Vec3 veloci
  * @param jump True for a strafe jump, false for a drop.
  * @return True if the move lands on the floor, no lower than the target, and no lower than the bot
  * for a jump, and touches no `trigger_hurt`, lava or slime on the way. A jump must also stay on the
- * floor for `AI_STRAFE_LAND_MILLIS` after it lands.
+ * floor for `AI_STRAFE_LAND_MILLIS` after it lands. A drop may also land in water to the waist, from
+ * where the bot swims to the target.
  */
 static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump) {
 
@@ -1696,6 +1697,8 @@ static bool G_Ai_SimulateMove(GameClient *cl, const Vec3 target, const bool jump
       if (millis - landTime >= AI_STRAFE_LAND_MILLIS) {
         return true;
       }
+    } else if (!jump && jumped && pm.waterLevel >= WATER_WAIST) {
+      return true;
     } else if (jumped && pm.ground.ent) {
       if (pm.s.origin.z < floor) {
         return false;
@@ -1948,9 +1951,15 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       dir = Vec3_Scale(dir, PM_SPEED_RUN);
     }
 
-    // if we're swimming, node is above us and we're "sticky feet", jump
-    if (swimming && ent->ground.ent) {
-      cmd->up = PM_SPEED_JUMP;
+    // if we're swimming, swim up or down to the node
+    if (swimming) {
+      const float rise = cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z;
+
+      if (rise > PM_STEP_HEIGHT || (rise > 0.f && ent->ground.ent)) {
+        cmd->up = PM_SPEED_JUMP;
+      } else if (rise < -PM_STEP_HEIGHT) {
+        cmd->up = -PM_SPEED_RUN;
+      }
     // if we're on a ladder and the node is a bbox below us, crouch to get down,
     // otherwise hold jump
     } else if (cl->ps.pmState.flags & PMF_ON_LADDER) {
