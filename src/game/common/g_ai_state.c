@@ -255,7 +255,7 @@ void G_Ai_Avoid(GameClient *cl, const GameEntity *item) {
   for (int32_t i = 0; i < AI_AVOIDS; i++) {
     GameAiAvoid *avoid = &cl->ai->avoids[i];
 
-    if (avoid->time && avoid->number == item->s.number) {
+    if (avoid->time && avoid->number == item->s.number && avoid->spawnId == item->s.spawnId) {
       slot = avoid;
       break;
     }
@@ -266,6 +266,7 @@ void G_Ai_Avoid(GameClient *cl, const GameEntity *item) {
   }
 
   slot->number = item->s.number;
+  slot->spawnId = item->s.spawnId;
   slot->time = gameLevel.time;
 }
 
@@ -277,7 +278,7 @@ static float G_Ai_AvoidScale(const GameClient *cl, const GameEntity *item) {
   for (int32_t i = 0; i < AI_AVOIDS; i++) {
     const GameAiAvoid *avoid = &cl->ai->avoids[i];
 
-    if (avoid->time && avoid->number == item->s.number) {
+    if (avoid->time && avoid->number == item->s.number && avoid->spawnId == item->s.spawnId) {
       const uint32_t elapsed = gameLevel.time - avoid->time;
 
       if (elapsed < AI_AVOID_MILLIS) {

@@ -375,6 +375,11 @@ typedef struct {
   int32_t number;
 
   /**
+   * @brief The item's spawn ID, because a dropped item's entity number is reused once it is taken.
+   */
+  uint8_t spawnId;
+
+  /**
    * @brief Level time at which the bot began to avoid the item.
    */
   uint32_t time;
