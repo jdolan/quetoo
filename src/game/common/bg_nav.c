@@ -1197,7 +1197,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
  * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the same
  * model, and the game links it to the rest as the model moves. A node in water also swims, and a
- * swim node only swims.
+ * swim node only swims. A walk to or from a node in liquid takes the time at `PM_SPEED_WATER`,
+ * because a player who walks on a floor in liquid moves no faster than one who swims.
  * @return The count of links written to `links`.
  */
 static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
@@ -1232,9 +1233,10 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       float distance;
       if (Nav_Walk(node, other, &distance)) {
         const bool crouch = node->crouch || other->crouch;
+        const bool wade = (node->contents | other->contents) != 0;
         const NavTravelType type = crouch ? NAV_TRAVEL_CROUCH : NAV_TRAVEL_WALK;
-        Nav_AddLink(links, &numLinks, target, type,
-                         Nav_TravelTime(distance, crouch ? PM_SPEED_DUCKED : PM_SPEED_RUN));
+        const float speed = wade ? PM_SPEED_WATER : crouch ? PM_SPEED_DUCKED : PM_SPEED_RUN;
+        Nav_AddLink(links, &numLinks, target, type, Nav_TravelTime(distance, speed));
         walked = true;
       } else if (Nav_BarrierJump(node, other, &distance)) {
         const float fall = module.barrierHeight - (other->position.z - node->position.z);
