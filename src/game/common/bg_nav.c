@@ -676,7 +676,11 @@ static int32_t Nav_FallTime(const float height) {
  * `NAV_LANDING_DISTANCE`, and at least `reach` along `dir` from `start`, or -1.
  * @remarks A drop's landing node MUST lie past the edge that the walk leaves, because a bot steers
  * toward it to walk off. A node short of the edge, such as one under the floor that the walk starts
- * on, leads the bot nowhere.
+ * on, leads the bot nowhere. For the same reason, the player's footprint at the landing node MUST
+ * be able to rise straight up to the height of `start`: a node beside a narrow hole, under the floor
+ * around it, lies past the edge of the hole but under the floor, where a bot that steers to it never
+ * falls. The footprint is flat, at the height of the player's origin, so that a crouch node, or a
+ * ceiling that only a player's head would touch, does not fail the test.
  */
 static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3 dir, const float reach) {
 
@@ -684,6 +688,9 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
 
   const Vec3 floor = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), -PM_BOUNDS.mins.z - NAV_CELL_HEIGHT * .5f));
   const Vec3i xyz = Nav_PointCoordinate(floor);
+
+  const Box3 footprint = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
+                                  MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
 
   int32_t best = -1;
   float bestDistance = NAV_LANDING_DISTANCE * NAV_LANDING_DISTANCE;
@@ -708,10 +715,18 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
         }
 
         const float distance = Vec3_DistanceSquared(node->position, origin);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = graph->cellNodes[cell];
+        if (distance >= bestDistance) {
+          continue;
         }
+
+        const Vec3 above = MakeVec3(node->position.x, node->position.y, start.z);
+        const CollisionTrace rise = Nav_Trace(node->position, above, footprint);
+        if (rise.startSolid || rise.fraction < 1.f) {
+          continue;
+        }
+
+        bestDistance = distance;
+        best = graph->cellNodes[cell];
       }
     }
   }
