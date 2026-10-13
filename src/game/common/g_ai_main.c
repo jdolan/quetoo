@@ -1680,6 +1680,14 @@ static bool G_Ai_CanStrafeJump(const GameClient *cl) {
 }
 
 /**
+ * @return True if the link is a ride: a teleporter, a jump pad or an elevator carries the bot.
+ */
+static bool G_Ai_IsRideLink(const GameAiLink *link) {
+  return link && (link->travelType == NAV_TRAVEL_TELEPORT || link->travelType == NAV_TRAVEL_JUMP_PAD ||
+                  link->travelType == NAV_TRAVEL_ELEVATOR);
+}
+
+/**
  * @return True if the path link into the node at `index` is one that a bot can run along. Untyped
  * links, from nodes that the game adds, qualify, because the line and floor checks of
  * `G_Ai_StrafeTarget` decide for them.
@@ -2561,7 +2569,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       if (cl->ai->distressJumpOffset <= gameLevel.time) {
         // if we're navving, node is above us, and we're on ground, jump; we're probably trying
         // to trick-jump or something
-        if (cl->ai->moveTarget.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent) {
+        if (cl->ai->moveTarget.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent &&
+            !G_Ai_IsRideLink(G_Ai_PathLink(cl))) {
           if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
 
             cl->ai->moveTarget.path.trickJump = TRICK_JUMP_START;
