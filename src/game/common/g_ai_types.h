@@ -654,6 +654,21 @@ typedef struct GameAi {
    * @brief The distance along the path to the node at `strafeLookIndex`.
    */
   float strafeLookRun;
+
+  /**
+   * @brief Level time until which `strafeSafe` is valid.
+   */
+  uint32_t strafeSafeTime;
+
+  /**
+   * @brief True if the strafe jump that `G_Ai_SimulateStrafeJump` last followed lands safely.
+   */
+  bool strafeSafe;
+
+  /**
+   * @brief The target of the strafe jump for which `strafeSafe` was found.
+   */
+  Vec3 strafeSafeTarget;
 } GameAi;
 
 #endif

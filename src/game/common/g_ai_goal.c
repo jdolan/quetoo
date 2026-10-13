@@ -80,13 +80,15 @@ void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, 
 /**
  * @brief Setup entity goal for the specified target.
  * @remarks It clears the bot's strafe look-ahead, which `G_Ai_StrafeTarget` keys by the path's
- * address, because the new path can reuse the address of one that was freed.
+ * address, because the new path can reuse the address of one that was freed, and the strafe jump
+ * that `G_Ai_StrafeJumpIsSafe` found safe.
  */
 void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_PATH, priority);
 
   cl->ai->strafeLookTime = 0;
+  cl->ai->strafeSafeTime = 0;
   
   goal->path.path = retain(path);
   goal->path.pathIndex = 0;
