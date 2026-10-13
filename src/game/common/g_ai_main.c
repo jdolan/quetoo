@@ -777,22 +777,23 @@ static bool G_Ai_IsHurtful(const Box3 bounds) {
 
 /**
  * @return True if the player's box, moved along the line from `start` to `end`, touches a
- * `trigger_hurt` or a `trigger_push`. Walk links keep out of both, but a bot that cuts a corner of
- * its path does not, and a jump pad beside the path throws it off.
+ * `trigger_push`, or with `hurt`, a `trigger_hurt`. Walk links keep out of both, but a bot that
+ * cuts a corner of its path does not, and a jump pad beside the path throws it off. The swept box of
+ * a long line holds many items and projectiles, so the search takes up to 256 entities.
  */
-static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end) {
+static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hurt) {
 
   const Box3 bounds = G_PlayerBounds();
   const Box3 swept = Box3_Union(Box3_Translate(bounds, start), Box3_Translate(bounds, end));
 
-  GameEntity *ents[32];
+  GameEntity *ents[256];
   const size_t len = gi.BoxEntities(swept, ents, lengthof(ents), BOX_OCCUPY);
 
   Box3 triggers[lengthof(ents)];
   size_t numTriggers = 0;
 
   for (size_t i = 0; i < len; i++) {
-    if (ents[i]->classname && (!Str_Compare(ents[i]->classname, "trigger_hurt") ||
+    if (ents[i]->classname && ((hurt && !Str_Compare(ents[i]->classname, "trigger_hurt")) ||
                                !Str_Compare(ents[i]->classname, "trigger_push"))) {
       triggers[numTriggers++] = ents[i]->absBounds;
     }
@@ -1408,7 +1409,7 @@ static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
 
 /**
  * @return The point to which a bot on a walk or crouch link steers: its next node, or if the line
- * from the bot to that node touches a push or hurt trigger, `AI_JUMP_LOOK_DISTANCE` ahead of it on
+ * from the bot to that node touches a push trigger, `AI_JUMP_LOOK_DISTANCE` ahead of it on
  * the link's own line, which the navigation build kept clear of triggers, or if that line touches
  * one too, the link's previous node. A bot that is off its link, as after a strafe jump, would
  * otherwise walk into a jump pad beside the link. `G_Ai_RefreshPath` also plans a new path.
@@ -1418,7 +1419,7 @@ static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
   const GameAiGoal *goal = &cl->ai->moveTarget;
   const Vec3 b = goal->path.pathPosition;
 
-  if (!G_Ai_CrossesTrigger(cl->entity->s.origin, b)) {
+  if (!G_Ai_CrossesTrigger(cl->entity->s.origin, b, false)) {
     return b;
   }
 
@@ -1434,7 +1435,7 @@ static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
   const float along = Vec2_Dot(Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(a)), ab) / length;
   const Vec3 point = Vec3_Mix(a, b, Clampf((along + AI_JUMP_LOOK_DISTANCE) / length, 0.f, 1.f));
 
-  return G_Ai_CrossesTrigger(cl->entity->s.origin, point) ? a : point;
+  return G_Ai_CrossesTrigger(cl->entity->s.origin, point, false) ? a : point;
 }
 
 /**
@@ -1696,12 +1697,13 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
 
     const CollisionTrace tr = gi.Trace(ent->s.origin, node, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
 
-    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, node) || G_Ai_CrossesTrigger(ent->s.origin, node)) {
+    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, node) ||
+        G_Ai_CrossesTrigger(ent->s.origin, node, true)) {
       break;
     }
 
     const Vec3 slide = Vec3_Add(node, Vec3_Scale(to, Maxf(Vec2_Length(Vec3_XY(ent->velocity)) / PM_FRICT_GROUND, AI_STRAFE_SLIDE_DISTANCE)));
-    if (G_Ai_CrossesTrigger(node, MakeVec3(slide.x, slide.y, node.z))) {
+    if (G_Ai_CrossesTrigger(node, MakeVec3(slide.x, slide.y, node.z), true)) {
       break;
     }
 
@@ -1914,7 +1916,9 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
  * that moves is once the model moves on, or if a crusher is about to sweep its next node. If no path
  * comes back, the bot drops its path, so that it does not follow a node that the model carries
  * away, over a gap or a lava pit, or walk under a crusher. A bot on the ground whose line to its
- * next node touches a push or hurt trigger plans a new path too, at most once a second.
+ * next node touches a push trigger plans a new path too, at most once a second. The first node of a
+ * path is not tested for a crusher, because the search does not test it, and a new path would
+ * start there again.
  */
 static void G_Ai_RefreshPath(GameClient *cl) {
 
@@ -1934,11 +1938,11 @@ static void G_Ai_RefreshPath(GameClient *cl) {
 
   const GameAiLink *link = G_Ai_PathLink(cl);
   if (link && link->travelType <= NAV_TRAVEL_CROUCH && cl->entity->ground.ent &&
-      G_Ai_CrossesTrigger(cl->entity->s.origin, goal->path.pathPosition) && G_Ai_ReturnToPath(cl)) {
+      G_Ai_CrossesTrigger(cl->entity->s.origin, goal->path.pathPosition, false) && G_Ai_ReturnToPath(cl)) {
     return;
   }
 
-  if ((index > 0 && !G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next)) || G_Ai_Node_IsCrushing(next)) {
+  if (index > 0 && (!G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next) || G_Ai_Node_IsCrushing(next))) {
     if (!G_Ai_ReplanPath(cl)) {
       G_Ai_ClearGoal(goal);
     }

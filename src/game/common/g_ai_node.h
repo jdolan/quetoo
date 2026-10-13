@@ -60,7 +60,7 @@ void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const floa
 void G_Ai_InitNodes(void);
 void G_Ai_NodesReady(void);
 void G_Ai_Node_UpdateMovers(void);
-bool G_Ai_Node_IsCrushing(const GameAiNodeId node);
+bool G_Ai_Node_IsCrushing(const GameAiNodeId id);
 void G_Ai_ShutdownNodes(void);
 
 typedef float (*GameAiNodeCostFunc)(const GameAiNodeId a, const GameAiNodeId b);

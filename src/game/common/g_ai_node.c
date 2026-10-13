@@ -117,6 +117,10 @@ static struct {
    * @brief The rotating models that do damage.
    */
   GameAiCrusher crushers[AI_MAX_CRUSHERS];
+
+  /**
+   * @brief The count of `crushers`.
+   */
   int32_t numCrushers;
 } module;
 
@@ -1088,6 +1092,12 @@ static void G_Ai_Node_LinkRides(void) {
 #define AI_MOVER_LINK_DISTANCE (NAV_CELL_SIZE * 1.25f)
 
 /**
+ * @brief The least damage of a `func_rotating` that crushes. A `func_rotating` with no `dmg` key
+ * does 2 damage when it is blocked, which a bot can ride and walk beside.
+ */
+#define AI_CRUSHER_DAMAGE 100
+
+/**
  * @brief The margin in degrees that widens the arc of a crusher's floor nodes to its whole body.
  */
 #define AI_CRUSHER_MARGIN 20.f
@@ -1099,10 +1109,11 @@ static void G_Ai_Node_LinkRides(void) {
 #define AI_CRUSHER_SAFE_SECONDS 4.f
 
 /**
- * @brief Finds the crusher of each model that moves, whose entity is a `func_rotating` that does
- * damage and turns about the vertical axis. Its arc is the arc of its nodes about its origin, and
- * its sweep is the cylinder that its bounds turn through. Each node that does not move, where a
- * player in its sweep would be crushed, records the crusher and its angle.
+ * @brief Finds the crusher of each model that moves, whose entity is a `func_rotating` that does at
+ * least `AI_CRUSHER_DAMAGE` and turns about the vertical axis. Its arc is the arc of its nodes about
+ * its origin. Its sweep is the cylinder of the farthest of its bounds' sides and its nodes, through
+ * its height. Each node that does not move, and whose box reaches more than a step into that
+ * cylinder, records the crusher and its angle. Where two sweeps overlap, the later crusher is kept.
  */
 static void G_Ai_Node_FindCrushers(void) {
 
@@ -1110,7 +1121,7 @@ static void G_Ai_Node_FindCrushers(void) {
     const GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, n));
     const GameEntity *ent = node->mover;
 
-    if (!ent || Str_Compare(ent->classname, "func_rotating") || !ent->damage || ent->moveDir.y == 0.f) {
+    if (!ent || Str_Compare(ent->classname, "func_rotating") || ent->damage < AI_CRUSHER_DAMAGE || ent->moveDir.y == 0.f) {
       continue;
     }
 
@@ -1121,7 +1132,12 @@ static void G_Ai_Node_FindCrushers(void) {
       }
     }
 
-    if (index != -1 || module.numCrushers == AI_MAX_CRUSHERS) {
+    if (index != -1) {
+      continue;
+    }
+
+    if (module.numCrushers == AI_MAX_CRUSHERS) {
+      G_Warn("More than %d crushers; bots may walk under %s @ %s\n", AI_MAX_CRUSHERS, ent->classname, vtos(ent->s.origin));
       continue;
     }
 
@@ -1154,10 +1170,12 @@ static void G_Ai_Node_FindCrushers(void) {
       .halfWidth = halfWidth + AI_CRUSHER_MARGIN
     };
 
-    float radius = 0.f;
-    for (int32_t i = 0; i < 4; i++) {
-      const Vec2 corner = MakeVec2((i & 1) ? ent->bounds.maxs.x : ent->bounds.mins.x, (i & 2) ? ent->bounds.maxs.y : ent->bounds.mins.y);
-      radius = Maxf(radius, Vec2_Length(corner));
+    float radius = Maxf(Maxf(-ent->bounds.mins.x, ent->bounds.maxs.x), Maxf(-ent->bounds.mins.y, ent->bounds.maxs.y));
+    for (size_t i = 0; i < module.moverNodes->count; i++) {
+      const GameAiNode *other = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
+      if (other->mover == ent) {
+        radius = Maxf(radius, Vec2_Length(Vec3_XY(other->local)) + PM_BOUNDS.maxs.x);
+      }
     }
 
     const float bottom = ent->s.origin.z + ent->bounds.mins.z;
@@ -1166,7 +1184,7 @@ static void G_Ai_Node_FindCrushers(void) {
     for (size_t i = 0; i < aiNodes->count; i++) {
       GameAiNode *other = AI_NODE(aiNodes, i);
 
-      if (other->model || other->position.z + PM_BOUNDS.maxs.z < bottom || other->position.z + PM_BOUNDS.mins.z > top) {
+      if (other->model || other->position.z + PM_BOUNDS.maxs.z < bottom || other->position.z + PM_BOUNDS.mins.z >= top - PM_STEP_HEIGHT) {
         continue;
       }
 
