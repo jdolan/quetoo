@@ -35,6 +35,11 @@
 #define AI_NAV_SAMPLE_OFFSET .5f
 
 /**
+ * @brief The spacing of the fine floor samples in a cell where its coarse samples find no floor.
+ */
+#define AI_NAV_FINE_STEP 8.f
+
+/**
  * @brief The horizontal distance of one step of a simulated walk.
  */
 #define AI_NAV_WALK_STEP 8.f
@@ -274,7 +279,7 @@ static bool G_Ai_Nav_Rest(const Vec3 start, const float distance, const Box3 bou
 /**
  * @brief Samples the floor beneath `point`, within one cell height.
  * @param footprint The bounds that find the floor: a point, or the player's footprint, which also
- * finds a beam or a ledge too narrow for a point to hit.
+ * finds a floor too narrow for any point to hit.
  */
 static GameAiNavSample G_Ai_Nav_SampleFloor(const Vec3 point, const Box3 footprint, GameAiNavNode *node) {
 
@@ -328,9 +333,11 @@ static GameAiNavSample G_Ai_Nav_SampleFloor(const Vec3 point, const Box3 footpri
 
 /**
  * @brief Samples the floor of one cell, at its center first and then at small offsets, and adds
- * its node to the graph. Points sample first, so that a node stands over solid floor where it can;
- * the player's footprint samples where no point finds a floor. A cell whose whole area finds no
- * floor is skipped.
+ * its node to the graph. Where those find no floor, points `AI_NAV_FINE_STEP` apart across the
+ * cell sample, to find a beam or a ledge between them, so that a node stands over its floor where it
+ * can, and a bot does not steer onto the lip of a ledge. Last, the player's footprint samples at the
+ * coarse points, for a floor too narrow for any point. A cell whose whole area finds no floor is
+ * skipped.
  * @return The outcome of the sample.
  */
 static GameAiNavSample G_Ai_Nav_SampleCell(const int32_t cell, bool *offset) {
@@ -348,22 +355,32 @@ static GameAiNavSample G_Ai_Nav_SampleCell(const int32_t cell, bool *offset) {
     return AI_NAV_SAMPLE_NONE;
   }
 
-  const Box3 footprints[] = {
-    Box3_Zero(),
-    MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f), MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f)),
-  };
+  const int32_t steps = (int32_t) (AI_NAV_CELL_SIZE / AI_NAV_FINE_STEP);
+  const int32_t numFine = (int32_t) lengthof(offsets) + steps * steps;
+  const int32_t numPoints = numFine + (int32_t) lengthof(offsets);
+
+  const Box3 footprint = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
+                                  MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
 
   GameAiNavSample sample = AI_NAV_SAMPLE_NONE;
 
-  for (size_t i = 0; i < lengthof(footprints) * lengthof(offsets); i++) {
+  for (int32_t i = 0; i < numPoints; i++) {
 
-    const Vec2 delta = offsets[i % lengthof(offsets)];
-    const Vec3 point = Vec3_Add(center, MakeVec3(delta.x * AI_NAV_CELL_SIZE * .25f,
-                                                 delta.y * AI_NAV_CELL_SIZE * .25f, 0.f));
+    Vec2 delta;
+    if (i < (int32_t) lengthof(offsets)) {
+      delta = Vec2_Scale(offsets[i], AI_NAV_CELL_SIZE * .25f);
+    } else if (i < numFine) {
+      const int32_t j = i - (int32_t) lengthof(offsets);
+      delta = MakeVec2((j % steps + .5f) * AI_NAV_FINE_STEP - half, (j / steps + .5f) * AI_NAV_FINE_STEP - half);
+    } else {
+      delta = Vec2_Scale(offsets[i - numFine], AI_NAV_CELL_SIZE * .25f);
+    }
+
+    const Vec3 point = Vec3_Add(center, MakeVec3(delta.x, delta.y, 0.f));
 
     GameAiNavNode node = { .cell = cell };
 
-    const GameAiNavSample result = G_Ai_Nav_SampleFloor(point, footprints[i / lengthof(offsets)], &node);
+    const GameAiNavSample result = G_Ai_Nav_SampleFloor(point, i < numFine ? Box3_Zero() : footprint, &node);
     if (result == AI_NAV_SAMPLE_NODE) {
 
       if (graph->numNodes == module.capacity) {
