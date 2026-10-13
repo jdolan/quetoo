@@ -54,6 +54,32 @@ static void G_Ai_Node_InvalidateSpatialIndex(void) {
 }
 
 /**
+ * @brief The most rotating models that do damage, whose sweep the bots wait out.
+ */
+#define AI_MAX_CRUSHERS 8
+
+/**
+ * @brief A `func_rotating` that turns about the vertical axis and does damage: its sweep around its
+ * axis, and the arc of its floor, in the model's space.
+ */
+typedef struct {
+  /**
+   * @brief The entity.
+   */
+  const GameEntity *ent;
+
+  /**
+   * @brief The center of the arc that the model covers, in degrees about its axis.
+   */
+  float center;
+
+  /**
+   * @brief Half the width of that arc, in degrees, with `AI_CRUSHER_MARGIN`.
+   */
+  float halfWidth;
+} GameAiCrusher;
+
+/**
  * @brief The navigation graph state.
  */
 static struct {
@@ -86,6 +112,12 @@ static struct {
    * @brief True if a node that moves has moved since `G_Ai_Node_UpdateMovers` last linked them.
    */
   bool moverMoved;
+
+  /**
+   * @brief The rotating models that do damage.
+   */
+  GameAiCrusher crushers[AI_MAX_CRUSHERS];
+  int32_t numCrushers;
 } module;
 
 /**
@@ -120,6 +152,16 @@ typedef struct {
    * @brief The entity of `model`, which moves the node, once the level's entities spawn.
    */
   const GameEntity *mover;
+
+  /**
+   * @brief The index plus one of the crusher whose sweep the node lies in, or 0.
+   */
+  int32_t crusher;
+
+  /**
+   * @brief The node's angle in degrees about the axis of its crusher.
+   */
+  float crushAngle;
 
   // only used for nav purposes
 
@@ -1046,6 +1088,133 @@ static void G_Ai_Node_LinkRides(void) {
 #define AI_MOVER_LINK_DISTANCE (NAV_CELL_SIZE * 1.25f)
 
 /**
+ * @brief The margin in degrees that widens the arc of a crusher's floor nodes to its whole body.
+ */
+#define AI_CRUSHER_MARGIN 20.f
+
+/**
+ * @brief The time in seconds that a bot needs inside a crusher's sweep: a node is closed if the
+ * crusher covers it now, or will within this time.
+ */
+#define AI_CRUSHER_SAFE_SECONDS 4.f
+
+/**
+ * @brief Finds the crusher of each model that moves, whose entity is a `func_rotating` that does
+ * damage and turns about the vertical axis. Its arc is the arc of its nodes about its origin, and
+ * its sweep is the cylinder that its bounds turn through. Each node that does not move, where a
+ * player in its sweep would be crushed, records the crusher and its angle.
+ */
+static void G_Ai_Node_FindCrushers(void) {
+
+  for (size_t n = 0; n < module.moverNodes->count; n++) {
+    const GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, n));
+    const GameEntity *ent = node->mover;
+
+    if (!ent || Str_Compare(ent->classname, "func_rotating") || !ent->damage || ent->moveDir.y == 0.f) {
+      continue;
+    }
+
+    int32_t index = -1;
+    for (int32_t i = 0; i < module.numCrushers; i++) {
+      if (module.crushers[i].ent == ent) {
+        index = i;
+      }
+    }
+
+    if (index != -1 || module.numCrushers == AI_MAX_CRUSHERS) {
+      continue;
+    }
+
+    Vec2 sum = Vec2_Zero();
+    for (size_t i = 0; i < module.moverNodes->count; i++) {
+      const GameAiNode *other = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
+      if (other->mover == ent) {
+        const float length = Vec2_Length(Vec3_XY(other->local));
+        if (length > 0.f) {
+          sum = Vec2_Add(sum, Vec2_Scale(Vec3_XY(other->local), 1.f / length));
+        }
+      }
+    }
+
+    const float center = AngleMod(Degrees(atan2f(sum.y, sum.x)));
+
+    float halfWidth = 0.f;
+    for (size_t i = 0; i < module.moverNodes->count; i++) {
+      const GameAiNode *other = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
+      if (other->mover == ent) {
+        const float angle = AngleMod(Degrees(atan2f(other->local.y, other->local.x)));
+        halfWidth = Maxf(halfWidth, SmallestAngleBetween(angle, center));
+      }
+    }
+
+    index = module.numCrushers++;
+    module.crushers[index] = (GameAiCrusher) {
+      .ent = ent,
+      .center = center,
+      .halfWidth = halfWidth + AI_CRUSHER_MARGIN
+    };
+
+    float radius = 0.f;
+    for (int32_t i = 0; i < 4; i++) {
+      const Vec2 corner = MakeVec2((i & 1) ? ent->bounds.maxs.x : ent->bounds.mins.x, (i & 2) ? ent->bounds.maxs.y : ent->bounds.mins.y);
+      radius = Maxf(radius, Vec2_Length(corner));
+    }
+
+    const float bottom = ent->s.origin.z + ent->bounds.mins.z;
+    const float top = ent->s.origin.z + ent->bounds.maxs.z;
+
+    for (size_t i = 0; i < aiNodes->count; i++) {
+      GameAiNode *other = AI_NODE(aiNodes, i);
+
+      if (other->model || other->position.z + PM_BOUNDS.maxs.z < bottom || other->position.z + PM_BOUNDS.mins.z > top) {
+        continue;
+      }
+
+      const Vec2 delta = Vec2_Subtract(Vec3_XY(other->position), Vec3_XY(ent->s.origin));
+      if (Vec2_Length(delta) > radius + PM_BOUNDS.maxs.x) {
+        continue;
+      }
+
+      other->crusher = index + 1;
+      other->crushAngle = AngleMod(Degrees(atan2f(delta.y, delta.x)));
+    }
+
+    G_Debug("%s @ %s crushes in an arc of %.0f degrees\n", ent->classname, vtos(ent->s.origin), halfWidth * 2.f);
+  }
+}
+
+/**
+ * @return True if the node lies in the sweep of a crusher that covers it now, or that will reach it
+ * within `AI_CRUSHER_SAFE_SECONDS`.
+ */
+bool G_Ai_Node_IsCrushing(const GameAiNodeId id) {
+
+  const GameAiNode *node = AI_NODE(aiNodes, id);
+
+  if (!node->crusher) {
+    return false;
+  }
+
+  const GameAiCrusher *crusher = &module.crushers[node->crusher - 1];
+  const float speed = crusher->ent->avelocity.y;
+
+  if (speed == 0.f) {
+    return false;
+  }
+
+  const float center = AngleMod(crusher->center + crusher->ent->s.angles.y);
+
+  if (SmallestAngleBetween(node->crushAngle, center) <= crusher->halfWidth) {
+    return true;
+  }
+
+  const float edge = speed > 0.f ? center + crusher->halfWidth : center - crusher->halfWidth;
+  const float travel = speed > 0.f ? AngleMod(node->crushAngle - edge) : AngleMod(edge - node->crushAngle);
+
+  return travel / fabsf(speed) < AI_CRUSHER_SAFE_SECONDS;
+}
+
+/**
  * @brief Finds the entity of each node on a model that moves, by the entity's inline model.
  */
 static void G_Ai_Node_FindMovers(void) {
@@ -1068,6 +1237,8 @@ static void G_Ai_Node_FindMovers(void) {
       G_Debug("No entity moves navigation node %u on model *%d\n", AI_NODE_ID(module.moverNodes, n), node->model);
     }
   }
+
+  G_Ai_Node_FindCrushers();
 }
 
 /**
@@ -1341,6 +1512,7 @@ void G_Ai_ShutdownNodes(void) {
   module.moverLinked = release(module.moverLinked);
   module.moverLinkTime = 0;
   module.moverMoved = false;
+  module.numCrushers = 0;
 
   Nav_Free(&module.graph);
   module.graphNodes = module.graphLinks = 0;
@@ -1485,6 +1657,10 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
   if (G_Ai_Node_RaisedPlatform(linkNode->position)) {
+    return -1.f;
+  }
+
+  if (G_Ai_Node_IsCrushing(link->id)) {
     return -1.f;
   }
 

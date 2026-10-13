@@ -1852,8 +1852,9 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
 /**
  * @brief Updates the positions of the bot's next nodes, which move if they stand on a model that
  * moves, and plans a new path at once if the link into its next node is gone, as a link to a node
- * that moves is once the model moves on. If no path comes back, the bot drops its path, so that it
- * does not follow a node that the model carries away, over a gap or a lava pit.
+ * that moves is once the model moves on, or if a crusher is about to sweep its next node. If no path
+ * comes back, the bot drops its path, so that it does not follow a node that the model carries
+ * away, over a gap or a lava pit, or walk under a crusher.
  */
 static void G_Ai_RefreshPath(GameClient *cl) {
 
@@ -1869,7 +1870,9 @@ static void G_Ai_RefreshPath(GameClient *cl) {
   goal->path.pathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, index));
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, Minz(index + 1, path->count - 1)));
 
-  if (index > 0 && !G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), VectorValue(path, GameAiNodeId, index))) {
+  const GameAiNodeId next = VectorValue(path, GameAiNodeId, index);
+
+  if ((index > 0 && !G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next)) || G_Ai_Node_IsCrushing(next)) {
     if (!G_Ai_ReplanPath(cl)) {
       G_Ai_ClearGoal(goal);
     }
