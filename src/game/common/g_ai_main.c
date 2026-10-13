@@ -350,9 +350,10 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 #define AI_ITEM_WAIT_MIN 1000.f
 
 /**
- * @brief The time in milliseconds that a bot of skill 1 allows itself to wait at a timed item.
+ * @brief The time in milliseconds that a bot of skill 1 allows itself to wait at a timed item. A bot
+ * MUST NOT stand idle for longer: see `AI_WAIT_MILLIS`.
  */
-#define AI_ITEM_WAIT_MAX 10000.f
+#define AI_ITEM_WAIT_MAX 3000.f
 
 /**
  * @see g_ai_main.h

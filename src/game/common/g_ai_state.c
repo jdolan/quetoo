@@ -95,6 +95,12 @@
 #define AI_AVOID_SCALE .2f
 
 /**
+ * @brief The longest time in milliseconds that a bot waits at an item for it to respawn. It gives
+ * the item up then, even if it remembered the respawn wrongly.
+ */
+#define AI_WAIT_MILLIS 3000
+
+/**
  * @brief The least travel cost of a roam point, so that a bot with nothing to collect crosses the
  * map.
  */
@@ -795,7 +801,7 @@ static bool G_Ai_ConsiderAlert(GameClient *cl) {
  * @brief Collects the item of most value per travel time, roams when no item has value, and
  * takes detours on the way. The bot changes its item only for one of `AI_SWITCH_SCALE` times more
  * utility. After a path that ended in distress, the bot avoids the goal that it failed to reach,
- * and chooses another at once.
+ * and chooses another at once. It waits at an item for its respawn for at most `AI_WAIT_MILLIS`.
  */
 static void G_Ai_State_Navigate(GameClient *cl) {
 
@@ -814,6 +820,12 @@ static void G_Ai_State_Navigate(GameClient *cl) {
 
     G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
     ai->reacquireTime = 0;
+  }
+
+  if (!G_Ai_IsWaiting(cl)) {
+    ai->waitTime = 0;
+  } else if (!ai->waitTime) {
+    ai->waitTime = gameLevel.time;
   }
 
   if (!G_Ai_ShouldReview(cl)) {
@@ -858,11 +870,18 @@ static void G_Ai_State_Navigate(GameClient *cl) {
 
   if (ai->moveTarget.type == AI_GOAL_NONE) {
 
-    if (goal) {
-      if (goal->solid != SOLID_TRIGGER && Vec3_Distance(cl->entity->s.origin, goal->s.origin) < AI_ROAM_REACHED) {
+    if (goal && G_Ai_IsWaiting(cl)) {
+
+      if (gameLevel.time - ai->waitTime < AI_WAIT_MILLIS) {
         return;
       }
 
+      G_Ai_Avoid(cl, goal);
+      G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+      goal = NULL;
+    }
+
+    if (goal) {
       if (!G_Ai_PathTo(cl, ai->goalNode, goalUtility, goal)) {
         G_Ai_Avoid(cl, goal);
         G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);

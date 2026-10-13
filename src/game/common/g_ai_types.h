@@ -547,6 +547,12 @@ typedef struct GameAi {
   uint32_t reacquireTime;
 
   /**
+   * @brief Level time at which the bot began to wait at its goal item for it to respawn, or 0 while
+   * it does not wait.
+   */
+  uint32_t waitTime;
+
+  /**
    * @brief Random per-bot offset applied to distress jump timing.
    */
   uint32_t distressJumpOffset;
