@@ -2010,6 +2010,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     } else if (G_Ai_ShouldBarrierJump(cl)) {
       cmd->up = PM_SPEED_JUMP;
       G_Ai_Debug("Barrier jump to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
+    } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_CROUCH) {
+      cmd->up = -PM_SPEED_DUCKED;
     }
   // run full speed towards the target
   } else {
