@@ -84,7 +84,7 @@ python3 src/tools/ai_probe.py pushes "$LOG" --link 309-308
   the bot hit the hurt trigger, often far from the edge that it fell from. The samples show the
   edge.
 - An unplanned push is a push from a `trigger_push` while the bot does not follow a jump pad link,
-  and its next link is not one either. The knockback of damage also sets `PMF_TIME_PUSHED`, so the
+  and its next link is not one either. `summary` and `pushes` read only those. The knockback of damage also sets `PMF_TIME_PUSHED`, so the
   probe records a push only within 32 units of a `trigger_push`.
 
 ### The log format
@@ -95,14 +95,16 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | Event | Written |
 |---|---|
 | `GRAPH` | Once, with the node and link counts |
-| `NODE`, `TRIGGER` | Once, with `g_aiProbe 2`: each node with its links, as `node:type:cost`, and each push and hurt trigger's bounds |
+| `NODE`, `TRIGGER` | Once, with `g_aiProbe 2`: each node, `edge=1` if it stands at the edge of the void, with its links, as `node:type:cost`, and each push and hurt trigger's bounds |
 | `POS` | Each second for each bot: position, state, goal item, health, link |
 | `SPEED` | Each 5 seconds: roster name, skill, average and highest speed, the share of time that the bot strafe jumps and is in the air |
 | `DEATH` + `HIST reason=death` | When a bot dies |
-| `PUSHED` + `HIST reason=pushed` | When a push trigger throws a bot that does not follow a pad link |
+| `PATH` | When a bot gets a new path: where it is, its speed, whether it is on the ground, and the first, second and last nodes |
+| `PATHEND` | When the game ends a bot's path, and why: `arrived`, `distress`, `unlinked` or `teleported` |
+| `PUSHED` | When a push trigger throws a bot. `planned=0` if the bot does not follow a pad link, with `HIST reason=pushed` |
 | `JUMP`, `LAND` | When a bot takes off on a gap jump link, and where it lands |
 | `PICKUP` | When a bot takes an item |
-| `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds |
+| `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds, with `HIST reason=stuck` at the first |
 
 Link types are the `NavTravelType` values: 0 for the links that `G_Ai_Node_Link` adds to splice
 item and spawn nodes into the graph, 1 walk, 2 crouch, 3 walk off ledge, 4 barrier jump,
@@ -145,9 +147,15 @@ To see what a player sees, run the client from the same stage, with the graph dr
   every 5 seconds. Run at least two matches for each build: bots make random choices.
 - **Keep the old build to compare with.** For example, save the change with
   `git diff <files> > change.patch`, then `git apply -R change.patch`, `make`, run, and
-  `git apply change.patch`.
+  `git apply change.patch`. Copy the changed files aside first. MUST NOT `git checkout` a file
+  with uncommitted work to undo a temporary edit: if a step before it fails, the work is lost.
+  Check that the patch is not empty, and in zsh write the file list out, because zsh does not
+  split a variable into words.
 - **Read the whole death table after a fix.** A fix that opens a route sends bots to new places,
   and a new group of deaths can appear somewhere else.
+- **Look for a new path in the air.** A bot that falls off an edge often got a new path just
+  before, while it was in the air. Read the `PATH` and `PATHEND` events of the seconds before a
+  death: where the new path starts, and whether the bot was on the ground.
 - **Separate planning from steering.** If the planner chooses a dangerous route, look at the graph
   and the costs (`path`, `routes`). If the route is fine but the bot leaves it, look at the
   samples (`deaths`, `pushes`) and at the movement code in `g_ai_main.c`.

@@ -25,8 +25,8 @@
 
 /**
  * @brief The `g_aiProbe` flag that records what each bot does: where it is, its goal and speed,
- * its deaths, the pushes of a `trigger_push` that its path did not plan, its gap jumps, its pickups
- * and the times that it is stuck.
+ * its paths and why they end, its deaths, its pushes by a `trigger_push`, planned or not, its gap
+ * jumps, its pickups and the times that it is stuck.
  */
 #define AI_PROBE_BOTS 1
 
@@ -65,6 +65,13 @@ void G_Ai_Probe_Graph(void);
  * bot.
  */
 void G_Ai_Probe_Think(const GameClient *cl);
+
+/**
+ * @brief Records that the bot's move goal ends, and why, with `AI_PROBE_BOTS`. The game calls it
+ * before it clears the goal.
+ * @param reason One word: `arrived`, `distress`, `unlinked` or `teleported`.
+ */
+void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason);
 
 /**
  * @brief Records that the bot took the item, with `AI_PROBE_BOTS`.

@@ -83,6 +83,10 @@ typedef struct {
  */
 typedef struct {
   const GameAi *ai;
+  const Vector *path;
+  int32_t pathStart;
+  uint32_t pathCount;
+  uint32_t pathIndex;
   GameAiProbeSample samples[AI_PROBE_SAMPLES];
   uint32_t numSamples;
   uint32_t sampleTime;
@@ -96,6 +100,7 @@ typedef struct {
   Vec3 positions[AI_PROBE_STUCK_POSITIONS];
   uint32_t numPositions;
   bool alive;
+  bool stuck;
   bool pushed;
   bool ground;
   bool jumping;
@@ -229,10 +234,14 @@ static const char *G_Ai_Probe_Goal(const GameClient *cl) {
 
 /**
  * @brief Writes a `STUCK` event if the bot follows a path out of combat, and its last
- * `AI_PROBE_STUCK_POSITIONS` positions lie within `AI_PROBE_STUCK_DISTANCE` of each other.
+ * `AI_PROBE_STUCK_POSITIONS` positions lie within `AI_PROBE_STUCK_DISTANCE` of each other, and its
+ * samples at the first `STUCK` event of each time that it is stuck.
  */
-static void G_Ai_Probe_Stuck(const GameClient *cl, const GameAiProbeClient *c, const int32_t from, const int32_t to,
+static void G_Ai_Probe_Stuck(const GameClient *cl, GameAiProbeClient *c, const int32_t from, const int32_t to,
                              const int32_t travelType) {
+
+  const bool stuck = c->stuck;
+  c->stuck = false;
 
   if (c->numPositions < AI_PROBE_STUCK_POSITIONS || cl->ai->moveTarget.type != AI_GOAL_PATH ||
       cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
@@ -250,6 +259,8 @@ static void G_Ai_Probe_Stuck(const GameClient *cl, const GameAiProbeClient *c, c
     return;
   }
 
+  c->stuck = true;
+
   const GameEntity *ent = cl->entity;
   const Vec3 next = cl->ai->moveTarget.path.pathPosition;
 
@@ -257,6 +268,10 @@ static void G_Ai_Probe_Stuck(const GameClient *cl, const GameAiProbeClient *c, c
                    (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                    G_Ai_StateName(cl), G_Ai_Probe_Goal(cl), from, to, travelType,
                    (int32_t) next.x, (int32_t) next.y, (int32_t) next.z, ent->ground.ent != NULL, (int32_t) spread);
+
+  if (!stuck) {
+    G_Ai_Probe_History(cl, "stuck");
+  }
 }
 
 /**
@@ -336,8 +351,9 @@ void G_Ai_Probe_Graph(void) {
 
     const Vec3 position = G_Ai_Node_GetPosition((GameAiNodeId) i);
 
-    G_Ai_Probe_Print(-1, "NODE", "id=%u pos=%d,%d,%d links=%s",
-                     i, (int32_t) position.x, (int32_t) position.y, (int32_t) position.z, text);
+    G_Ai_Probe_Print(-1, "NODE", "id=%u pos=%d,%d,%d edge=%d links=%s",
+                     i, (int32_t) position.x, (int32_t) position.y, (int32_t) position.z,
+                     G_Ai_Node_IsEdge((GameAiNodeId) i), text);
   }
 
   for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
@@ -394,6 +410,27 @@ void G_Ai_Probe_Think(const GameClient *cl) {
     };
   }
 
+  const Vector *path = cl->ai->moveTarget.type == AI_GOAL_PATH ? cl->ai->moveTarget.path.path : NULL;
+  const int32_t pathStart = path && path->count ? G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, 0)) : -1;
+  const uint32_t pathCount = path ? (uint32_t) path->count : 0;
+  const uint32_t pathIndex = path ? cl->ai->moveTarget.path.pathIndex : 0;
+
+  if (path && pathCount && (path != c->path || pathStart != c->pathStart || pathCount != c->pathCount ||
+                            pathIndex < c->pathIndex)) {
+    const GameAiNodeId start = VectorValue(path, GameAiNodeId, 0);
+    const GameAiNodeId next = VectorValue(path, GameAiNodeId, Mini((int32_t) path->count - 1, 1));
+    G_Ai_Probe_Print(n, "PATH", "pos=%d,%d,%d vel=%d,%d,%d ground=%d start=%d next=%d end=%d nodes=%zu goal=%s",
+                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                     (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z, ground,
+                     G_Ai_Probe_Node(start), G_Ai_Probe_Node(next),
+                     G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, path->count - 1)), path->count, G_Ai_Probe_Goal(cl));
+  }
+
+  c->path = path;
+  c->pathStart = pathStart;
+  c->pathCount = pathCount;
+  c->pathIndex = pathIndex;
+
   if (c->alive && !alive) {
     G_Ai_Probe_Print(n, "DEATH", "pos=%d,%d,%d water=%d link=%d->%d type=%d goal=%s",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
@@ -410,13 +447,15 @@ void G_Ai_Probe_Think(const GameClient *cl) {
   }
 
   const bool pushed = (cl->ps.pmState.flags & PMF_TIME_PUSHED) != 0;
-  if (pushed && !c->pushed && travelType != NAV_TRAVEL_JUMP_PAD && !G_Ai_Probe_NextIsPad(cl) &&
-      G_Ai_Probe_TouchesPush(ent)) {
-    G_Ai_Probe_Print(n, "PUSHED", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d goal=%s",
+  if (pushed && !c->pushed && G_Ai_Probe_TouchesPush(ent)) {
+    const bool planned = travelType == NAV_TRAVEL_JUMP_PAD || G_Ai_Probe_NextIsPad(cl);
+    G_Ai_Probe_Print(n, "PUSHED", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d planned=%d launch=%u goal=%s",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                     from, to, travelType, cl->ai->strafeJumping, ground, G_Ai_Probe_Goal(cl));
-    G_Ai_Probe_History(cl, "pushed");
+                     from, to, travelType, cl->ai->strafeJumping, ground, planned, cl->ai->pushTime, G_Ai_Probe_Goal(cl));
+    if (!planned) {
+      G_Ai_Probe_History(cl, "pushed");
+    }
   }
 
   c->pushed = pushed;
@@ -466,6 +505,30 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
     G_Ai_Probe_Stuck(cl, c, from, to, travelType);
   }
+}
+
+/**
+ * @see g_ai_probe.h
+ */
+void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
+
+  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+    return;
+  }
+
+  const GameEntity *ent = cl->entity;
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  int32_t from, to, travelType;
+  G_Ai_Probe_Link(cl, &from, &to, &travelType);
+
+  G_Ai_Probe_Print(cl->ps.client, "PATHEND", "reason=%s pos=%d,%d,%d vel=%d,%d,%d ground=%d type=%d link=%d->%d index=%u/%u goal=%s",
+                   reason, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                   (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
+                   ent->ground.ent != NULL, goal->type, from, to,
+                   goal->type == AI_GOAL_PATH ? goal->path.pathIndex : 0,
+                   goal->type == AI_GOAL_PATH && goal->path.path ? (uint32_t) goal->path.path->count : 0,
+                   G_Ai_Probe_Goal(cl));
 }
 
 /**

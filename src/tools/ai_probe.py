@@ -21,7 +21,8 @@ Usage:
 `run` builds the tree's dedicated server and game module into a private stage, so it never
 touches the user directory. The `node`, `near`, `path` and `routes` commands need a log that was
 recorded with `--graph`. Their path costs approximate `G_Ai_Node_StepCost`: the link cost, plus
-the penalty for a drop over 128 units and the falling damage that a full-health bot takes.
+the penalty for a drop over 128 units, the falling damage that a full-health bot takes, and the
+penalty for a node at the edge of the void.
 """
 
 import argparse
@@ -97,7 +98,7 @@ def histories(events, reason):
     kind = 'DEATH' if reason == 'death' else 'PUSHED'
     out = []
     for i, e in enumerate(events):
-        if e.kind != kind:
+        if e.kind != kind or e.get('planned') == '1':
             continue
         samples = []
         for h in events[i + 1:]:
@@ -136,7 +137,7 @@ def read_graph(events):
             for link in e['links'].split(','):
                 to, travel, cost = (int(v) for v in link.split(':'))
                 links.append((to, travel, cost))
-        nodes[int(e['id'])] = {'pos': e.pos(), 'links': links}
+        nodes[int(e['id'])] = {'pos': e.pos(), 'edge': e.get('edge') == '1', 'links': links}
     if not nodes:
         sys.exit('The log has no graph: record it with `run --graph`, or g_aiProbe 3')
     return nodes
@@ -151,6 +152,9 @@ def fall_damage(drop, gravity=800.0):
     return -((velocity + 700.0) * 0.05)
 
 
+EDGE_PENALTY = 32.0
+
+
 def step_cost(nodes, a, b, cost, health=100):
     drop = nodes[a]['pos'][2] - nodes[b]['pos'][2]
     if drop > 512:
@@ -159,7 +163,7 @@ def step_cost(nodes, a, b, cost, health=100):
     damage = fall_damage(drop)
     if damage + 8 >= health:
         return None
-    return cost + penalty + damage * 6
+    return cost + penalty + damage * 6 + (EDGE_PENALTY if nodes[b]['edge'] else 0.0)
 
 
 def shortest_paths_to(nodes, goal):
@@ -401,7 +405,7 @@ def cmd_node(args):
         if i not in nodes:
             sys.exit(f'No node {i}: the graph has nodes 0 to {max(nodes)}')
         node = nodes[i]
-        print(f'{i} {node["pos"]}')
+        print(f'{i} {node["pos"]}' + (' edge' if node['edge'] else ''))
         for to, travel, cost in node['links']:
             print(f'  -> {to:>5} {TRAVEL.get(travel, "?"):<9} cost {cost:>4} {nodes[to]["pos"] if to in nodes else "?"}')
         into = [(a, link_type(nodes, a, i)) for a, n in nodes.items() for to, _, _ in n['links'] if to == i]
@@ -415,7 +419,7 @@ def cmd_near(args):
     for distance, i in found:
         if distance > args.radius:
             break
-        print(f'{i:>5} {nodes[i]["pos"]} distance {distance:.0f}, {len(nodes[i]["links"])} links')
+        print(f'{i:>5} {nodes[i]["pos"]} distance {distance:.0f}, {len(nodes[i]["links"])} links' + (', edge' if nodes[i]['edge'] else ''))
 
 
 def cmd_path(args):
@@ -429,7 +433,7 @@ def cmd_path(args):
     path = walk(hop, args.start)
     print(f'cost {dist[args.start]:.0f}')
     for a, b in zip(path, path[1:] + [None]):
-        print(f'  {a:>5} {nodes[a]["pos"]}' + (f'  {link_type(nodes, a, b)}' if b is not None else ''))
+        print(f'  {a:>5} {nodes[a]["pos"]}' + (' edge' if nodes[a]['edge'] else '') + (f'  {link_type(nodes, a, b)}' if b is not None else ''))
 
 
 def cmd_routes(args):

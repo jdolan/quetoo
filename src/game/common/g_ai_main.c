@@ -2101,6 +2101,7 @@ static void G_Ai_RefreshPath(GameClient *cl) {
 
   if (index > 0 && (!G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next) || G_Ai_Node_IsCrushing(next))) {
     if (!G_Ai_ReplanPath(cl)) {
+      G_Ai_Probe_PathEnd(cl, "unlinked");
       G_Ai_ClearGoal(goal);
     }
   }
@@ -2186,6 +2187,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       case AI_GOAL_PATH:
         if (!G_Ai_CheckNav(cl, &cl->ai->moveTarget)) {
           if (!G_Ai_ApproachPathTarget(cl)) {
+            G_Ai_Probe_PathEnd(cl, "arrived");
             G_Ai_EndPath(cl);
           }
           continue;
@@ -2213,6 +2215,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     }
 
     if (!G_Ai_GoalDistress(cl, &cl->ai->moveTarget, dest)) {
+      G_Ai_Probe_PathEnd(cl, "distress");
       G_Ai_ClearGoal(&cl->ai->moveTarget);
       continue;
     }
@@ -2457,6 +2460,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   if (moveLen > 64.f) {
     if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
       if (!G_Ai_AdvancePath(cl, &cl->ai->moveTarget)) {
+        G_Ai_Probe_PathEnd(cl, "teleported");
         G_Ai_EndPath(cl);
       }
     }
