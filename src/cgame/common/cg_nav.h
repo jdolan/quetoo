@@ -28,6 +28,12 @@
 #if defined(__CG_LOCAL_H__)
 
 /**
+ * @brief Registers the `aiNodeInfo` command, which prints the view's position, and the navigation
+ * node nearest it with its links, to report a bad or missing node or link.
+ */
+void Cg_InitAiNodes(void);
+
+/**
  * @brief Builds the navigation graph from the level, as the game does for its bots, the first time
  * that `cg_drawAiNodes` is set on the level.
  * @remarks This MUST run on the main thread, because the build can abort with `cgi.Error`.

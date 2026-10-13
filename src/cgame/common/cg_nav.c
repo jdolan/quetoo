@@ -53,6 +53,89 @@ void Cg_FreeAiNodes(void) {
 }
 
 /**
+ * @return The name of the travel type, as `aiNodeInfo` prints it.
+ */
+static const char *Cg_AiTravelName(const NavTravelType type) {
+
+  switch (type) {
+    case NAV_TRAVEL_WALK:
+      return "walk";
+    case NAV_TRAVEL_CROUCH:
+      return "crouch";
+    case NAV_TRAVEL_WALK_OFF_LEDGE:
+      return "walk off ledge";
+    case NAV_TRAVEL_BARRIER_JUMP:
+      return "barrier jump";
+    case NAV_TRAVEL_TELEPORT:
+      return "teleport";
+    case NAV_TRAVEL_JUMP_PAD:
+      return "jump pad";
+    case NAV_TRAVEL_ELEVATOR:
+      return "elevator";
+    case NAV_TRAVEL_SWIM:
+      return "swim";
+    default:
+      return "none";
+  }
+}
+
+/**
+ * @brief Prints the view's position, and the node nearest it with its links.
+ */
+static void Cg_AiNodeInfo_f(void) {
+
+  const Vec3 view = cgi.view->origin;
+
+  cgi.Print("View at %d %d %d\n", (int32_t) view.x, (int32_t) view.y, (int32_t) view.z);
+
+  if (!module.built) {
+    cgi.Print("Set cg_drawAiNodes 1 to build the navigation graph\n");
+    return;
+  }
+
+  const NavGraph *graph = &module.graph;
+
+  int32_t nearest = -1;
+  float distance = FLT_MAX;
+
+  for (int32_t i = 0; i < graph->numNodes; i++) {
+    const float d = Vec3_Distance(graph->nodes[i].position, view);
+    if (d < distance) {
+      distance = d;
+      nearest = i;
+    }
+  }
+
+  if (nearest == -1) {
+    cgi.Print("No navigation nodes\n");
+    return;
+  }
+
+  const NavNode *node = &graph->nodes[nearest];
+
+  cgi.Print("Node %d at %d %d %d, %d units away%s%s, %d links:\n", nearest,
+            (int32_t) node->position.x, (int32_t) node->position.y, (int32_t) node->position.z,
+            (int32_t) distance, node->crouch ? ", crouch" : "",
+            (node->contents & CONTENTS_WATER) ? ", water" : "", node->numLinks);
+
+  for (int32_t i = 0; i < node->numLinks; i++) {
+    const NavLink *link = &graph->links[node->firstLink + i];
+    const Vec3 position = graph->nodes[link->node].position;
+
+    cgi.Print("  %s to node %d at %d %d %d\n", Cg_AiTravelName(link->travelType), link->node,
+              (int32_t) position.x, (int32_t) position.y, (int32_t) position.z);
+  }
+}
+
+/**
+ * @see cg_nav.h
+ */
+void Cg_InitAiNodes(void) {
+
+  cgi.AddCmd("aiNodeInfo", Cg_AiNodeInfo_f, CMD_CGAME, "Prints the navigation node nearest the view, with its links");
+}
+
+/**
  * @see cg_nav.h
  */
 void Cg_PrepareAiNodes(const ClientFrame *frame) {

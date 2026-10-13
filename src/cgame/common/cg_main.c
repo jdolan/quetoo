@@ -107,6 +107,8 @@ static void Cg_Init(void) {
 
   Cg_InitInput();
 
+  Cg_InitAiNodes();
+
   cg_addAtmospheric = cgi.AddCvar("cg_addAtmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
   cg_addDecals = cgi.AddCvar("cg_addDecals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
   cg_addEntities = cgi.AddCvar("cg_addEntities", "1", 0, "Toggles adding entities to the scene.");
