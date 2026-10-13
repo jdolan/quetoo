@@ -1637,8 +1637,9 @@ static float G_Ai_StrafeTurn(const GameClient *cl) {
  * first node beyond `AI_STRAFE_NEAR_DISTANCE`. Nodes within that distance are passed. The line to
  * the node MUST be clear for the player's box, touch no `trigger_hurt` or `trigger_push`, and have
  * floor under it, with no liquid, because the bot cuts the corners of its path on the way. Past the
- * node, the line on which the bot slides as it lands MUST touch no such trigger either. The result is kept for `AI_STRAFE_LOOK_MILLIS`, and
- * `G_Ai_SetPathGoal` clears it.
+ * node, the line on which the bot slides as it lands MUST touch no such trigger either, and have
+ * floor under it to its end, because a bot that lands at speed beside a ledge slides off it. The
+ * result is kept for `AI_STRAFE_LOOK_MILLIS`, and `G_Ai_SetPathGoal` clears it.
  * @param run The distance along the path to that node.
  * @return The index of that node in the path, or -1 if no node passes: the path turns, its next
  * link is not a run link, or the line to its next node is blocked.
@@ -1702,8 +1703,10 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
       break;
     }
 
-    const Vec3 slide = Vec3_Add(node, Vec3_Scale(to, Maxf(Vec2_Length(Vec3_XY(ent->velocity)) / PM_FRICT_GROUND, AI_STRAFE_SLIDE_DISTANCE)));
-    if (G_Ai_CrossesTrigger(node, MakeVec3(slide.x, slide.y, node.z), true)) {
+    const float slideDistance = Maxf(Vec2_Length(Vec3_XY(ent->velocity)) / PM_FRICT_GROUND, AI_STRAFE_SLIDE_DISTANCE);
+    const Vec3 slide = Vec3_Add(node, Vec3_Scale(to, slideDistance));
+    const Vec3 slideFloor = Vec3_Add(node, Vec3_Scale(to, slideDistance + AI_STRAFE_FLOOR_SPACING));
+    if (G_Ai_CrossesTrigger(node, MakeVec3(slide.x, slide.y, node.z), true) || !G_Ai_HasFloor(ent, node, slideFloor)) {
       break;
     }
 
