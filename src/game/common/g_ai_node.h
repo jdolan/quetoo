@@ -96,7 +96,8 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
  * penalties, which `G_Ai_Node_FindPath` minimizes.
  * @param costs An array of `G_Ai_Node_Count()` costs, which receives `FLT_MAX` for each node that
  * the client cannot reach.
- * @return True if the search ran.
+ * @return True if the search ran to completion. A search that runs out of queue entries returns
+ * false, because the nodes that it did not reach would read as unreachable.
  */
 bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float *costs);
 bool G_Ai_DropItemLikeNode(GameEntity *ent);

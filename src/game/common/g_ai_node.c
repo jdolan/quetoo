@@ -1334,7 +1334,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
       GameAiNodePriority *next = G_Ai_Node_AllocPathEntry();
       if (!next) {
         G_Warn("Travel cost entry pool exhausted (capacity %zu)\n", heapCapacity);
-        return true;
+        return false;
       }
 
       next->id = link->id;
@@ -1342,7 +1342,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 
       if (!G_Ai_HeapPush(queue, newCost, next)) {
         G_Warn("Travel cost heap exhausted (capacity %zu)\n", heapCapacity);
-        return true;
+        return false;
       }
     }
   }
