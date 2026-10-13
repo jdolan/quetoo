@@ -194,9 +194,13 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
 #define AI_NODE_CELL_REACH Minf(NAV_CELL_SIZE, NAV_CELL_HEIGHT * 2.f)
 
 /**
- * @brief Finds the closest node of the built graph in the cells around the given position.
- * @details Any node outside of the cells searched is at least one cell width, or two cell heights,
- * from the position, so a node found within that distance is the closest of all.
+ * @brief Finds the closest node of the built graph in the cells around the given position, or of
+ * the nodes that the game added to it, which are in no cell.
+ * @details Any node of the built graph outside of the cells searched is at least one cell width, or
+ * two cell heights, from the position, so a node found within that distance is the closest of all.
+ * The added nodes, for items, teleporters and elevators, are few, and each is compared. The level
+ * preference of the filter only makes a distance longer, so a node whose plain distance is too long
+ * is skipped before the filter traces to it.
  * @param maxDistance The squared distance, at most `AI_NODE_CELL_REACH` squared, to search.
  */
 static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, const float maxDistance) {
@@ -242,6 +246,23 @@ static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, con
           closest = node;
         }
       }
+    }
+  }
+
+  for (uint32_t node = module.graphNodes; node < aiNodes->count; node++) {
+
+    if (Vec3_DistanceSquared(filter->position, AI_NODE(aiNodes, node)->position) > closestDistance) {
+      continue;
+    }
+
+    float distance;
+    if (!G_Ai_Node_FindClosestFilter(node, filter, &distance)) {
+      continue;
+    }
+
+    if (distance <= closestDistance) {
+      closestDistance = distance;
+      closest = node;
     }
   }
 
