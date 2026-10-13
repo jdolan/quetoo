@@ -250,6 +250,17 @@ bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
 }
 
 /**
+ * @brief The chance that a bot of no awareness notes when a taken item returns.
+ */
+#define AI_ITEM_NOTICE_CHANCE_MIN .3f
+
+/**
+ * @brief The most error in milliseconds, at skill 0, in the time that a bot remembers for an item's
+ * return.
+ */
+#define AI_ITEM_TIMING_ERROR_MAX 10000.f
+
+/**
  * @see g_ai_main.h
  */
 void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
@@ -272,6 +283,10 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
       continue;
     }
 
+    if (Randomf() > Mixf(AI_ITEM_NOTICE_CHANCE_MIN, 1.f, cl->ai->personality.awareness)) {
+      continue;
+    }
+
     GameAiItemTiming *slot = &cl->ai->itemTimings[0];
     for (int32_t i = 0; i < AI_ITEM_TIMINGS; i++) {
       GameAiItemTiming *timing = &cl->ai->itemTimings[i];
@@ -284,15 +299,22 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
       }
     }
 
+    const float error = Mixf(AI_ITEM_TIMING_ERROR_MAX, 0.f, cl->ai->personality.skill) * RandomRangef(-1.f, 1.f);
+
     slot->number = item->s.number;
-    slot->respawnTime = item->nextThink;
+    slot->respawnTime = (uint32_t) Maxf(gameLevel.time + 1.f, item->nextThink + error);
   });
 }
 
 /**
- * @brief The time in milliseconds that a bot allows itself to wait at a timed item.
+ * @brief The time in milliseconds that a bot of skill 0 allows itself to wait at a timed item.
  */
-#define AI_ITEM_TIMING_SLACK 2000
+#define AI_ITEM_WAIT_MIN 1000.f
+
+/**
+ * @brief The time in milliseconds that a bot of skill 1 allows itself to wait at a timed item.
+ */
+#define AI_ITEM_WAIT_MAX 10000.f
 
 /**
  * @see g_ai_main.h
@@ -306,7 +328,9 @@ bool G_Ai_IsTimedItem(const GameClient *cl, const GameEntity *item, const uint32
       continue;
     }
 
-    return timing->respawnTime <= gameLevel.time + eta + AI_ITEM_TIMING_SLACK;
+    const uint32_t wait = (uint32_t) Mixf(AI_ITEM_WAIT_MIN, AI_ITEM_WAIT_MAX, cl->ai->personality.skill);
+
+    return timing->respawnTime <= gameLevel.time + eta + wait;
   }
 
   return false;

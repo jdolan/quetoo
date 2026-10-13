@@ -78,7 +78,8 @@ bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item);
 bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent);
 
 /**
- * @return True if the bot remembers that the taken item returns by the time it gets there.
+ * @return True if the bot remembers that the taken item returns by the time it gets there, or soon
+ * enough after that it will wait for it. Skilled bots wait longer.
  * @param eta The time in milliseconds that the bot needs to get to the item.
  */
 bool G_Ai_IsTimedItem(const GameClient *cl, const GameEntity *item, const uint32_t eta);
@@ -136,7 +137,8 @@ bool G_Ai_IsAttacker(const GameClient *cl, const GameEntity *ent);
 
 /**
  * @brief Lets the bots that see or hear a map control item taken remember when it respawns, and
- * lets a bot that took the item avoid it for a time.
+ * lets a bot that took the item avoid it for a time. Aware bots notice the pickup more often, and
+ * skilled bots remember the time more accurately.
  */
 void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker);
 
