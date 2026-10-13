@@ -22,6 +22,63 @@
 #include "g_local.h"
 
 /**
+ * @return The share, from 0 to 1, of the ammo item `ammo` that the client would gain from `count`.
+ */
+static float G_Ai_AmmoNeed(const GameClient *cl, const GameItem *ammo, const int32_t count) {
+
+  if (!ammo || count <= 0 || !ammo->def.max) {
+    return 0.f;
+  }
+
+  const int32_t room = ammo->def.max - cl->inventory[ammo->def.tag];
+
+  return Clampf(room / (float) count, 0.f, 1.f);
+}
+
+/**
+ * @see g_ai_item.h
+ */
+float G_Ai_ItemNeed(const GameClient *cl, const GameEntity *other) {
+
+  const GameItem *item = other->item;
+  const GameEntity *ent = cl->entity;
+
+  switch (item->def.type) {
+    case ITEM_TYPE_HEALTH: {
+      const bool mega = item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA;
+      const int32_t max = mega ? cl->maxBoostHealth : ent->maxHealth;
+
+      return Clampf((max - ent->health) / (float) Maxi(1, item->def.quantity), 0.f, 1.f);
+    }
+    case ITEM_TYPE_ARMOR: {
+      const GameItem *drop, *give;
+      int16_t count;
+
+      if (!G_ResolveArmorPickup(cl, item, &drop, &give, &count) || !give) {
+        return 0.f;
+      }
+
+      const GameItem *current = G_ClientArmor(cl);
+      const float before = current ? cl->inventory[current->def.tag] * G_ArmorInfo(current)->normalProtection : 0.f;
+      const float after = count * G_ArmorInfo(give)->normalProtection;
+      const GameItem *armor = item->def.tag == ARMOR_SHARD ? give : item;
+      const float full = Maxi(1, item->def.quantity) * G_ArmorInfo(armor)->normalProtection;
+
+      return Clampf((after - before) / full, 0.f, 1.f);
+    }
+    case ITEM_TYPE_AMMO:
+      return G_Ai_AmmoNeed(cl, item, other->count ? other->count : item->def.quantity);
+    case ITEM_TYPE_WEAPON:
+      if (cl->inventory[item->def.tag]) {
+        return G_Ai_AmmoNeed(cl, item->def.ammo ? &gameItems[item->def.ammo] : NULL, other->health);
+      }
+      return 1.f;
+    default:
+      return 1.f;
+  }
+}
+
+/**
  * @return True if the bot entity can pick up the item entity.
  */
 bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {

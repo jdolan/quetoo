@@ -58,6 +58,12 @@
 #define AI_HEAL_SCALE 3.f
 
 /**
+ * @brief The least share of an item that a bot would gain for it to want the item, so that a bot
+ * that needs little roams rather than tops itself up at the nearest item, again and again.
+ */
+#define AI_ITEM_MIN_NEED .25f
+
+/**
  * @brief A bot changes the item that it collects only for one of this many times more utility, so
  * that it finishes what it starts.
  */
@@ -273,8 +279,9 @@ static float G_Ai_AvoidScale(const GameClient *cl, const GameEntity *item) {
 }
 
 /**
- * @return The value of the item to the bot, or 0 if the bot does not want it, cannot take it, or
- * would arrive before it returns.
+ * @return The value of the item to the bot: its priority, or its ammo's for a weapon that the bot
+ * holds, by the share of it that the bot would gain. 0 if the bot would gain less than
+ * `AI_ITEM_MIN_NEED` of it, cannot take it, or would arrive before it returns.
  * @param eta The time in milliseconds that the bot needs to get to the item.
  * @param retreat True to value only health, armor and the weapons that would arm the bot.
  */
@@ -303,7 +310,16 @@ static float G_Ai_ItemValue(const GameClient *cl, const GameEntity *ent, const u
     return 0.f;
   }
 
-  float value = item->def.priority;
+  const float need = G_Ai_ItemNeed(cl, ent);
+
+  if (need < AI_ITEM_MIN_NEED) {
+    return 0.f;
+  }
+
+  const bool owned = item->def.type == ITEM_TYPE_WEAPON && cl->inventory[item->def.tag];
+  const GameItem *valued = owned && item->def.ammo ? &gameItems[item->def.ammo] : item;
+
+  float value = valued->def.priority * need;
 
   if (coveted || arms) {
     value *= AI_COVETED_SCALE;
