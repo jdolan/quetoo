@@ -67,6 +67,11 @@ typedef enum {
    * @brief Ride a `func_plat` up.
    */
   NAV_TRAVEL_ELEVATOR,
+
+  /**
+   * @brief Swim to the target: through water, or up to the surface and out onto a ledge.
+   */
+  NAV_TRAVEL_SWIM,
 } NavTravelType;
 
 /**
@@ -183,7 +188,7 @@ typedef struct {
   /**
    * @brief The count of links of each `NavTravelType`.
    */
-  int32_t numTravel[NAV_TRAVEL_ELEVATOR + 1];
+  int32_t numTravel[NAV_TRAVEL_SWIM + 1];
 } NavGraph;
 
 /**

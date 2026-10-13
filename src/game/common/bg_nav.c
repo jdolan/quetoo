@@ -65,10 +65,33 @@
 #define NAV_BARRIER_MARGIN 4.f
 
 /**
- * @brief The most links that one node can have: a walk or barrier jump to each of 4 levels, and
- * a drop, in each of 8 directions.
+ * @brief The deepest water that a swim link rises through to the surface.
  */
-#define NAV_MAX_NODE_LINKS 48
+#define NAV_MAX_SWIM_DEPTH 512.f
+
+/**
+ * @brief The step at which a swim up to the surface tests the water.
+ */
+#define NAV_SWIM_STEP 8.f
+
+/**
+ * @brief The depth below the surface at which a player who swims up floats, deep enough to water
+ * jump.
+ */
+#define NAV_SWIM_FLOAT 16.f
+
+/**
+ * @brief The margin below the highest ledge that a water jump climbs onto, which a swim link may
+ * climb out onto.
+ */
+#define NAV_WATER_JUMP_MARGIN 8.f
+
+/**
+ * @brief The most links that one node can have: a walk or barrier jump to each of 4 levels, and a
+ * drop, in each of 8 directions, and swims to the cells around a node in water and around the
+ * surface above it.
+ */
+#define NAV_MAX_NODE_LINKS 128
 
 /**
  * @brief The most `trigger_hurt` and `trigger_push` entities that the build avoids.
@@ -133,6 +156,7 @@ static struct {
   NavGraph *graph;
   float gravity;
   float barrierHeight;
+  float waterJumpHeight;
   int32_t capacity;
 
   /**
@@ -668,6 +692,115 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
 }
 
 /**
+ * @return True if the point is in water, which a player can swim through.
+ */
+static bool Nav_InWater(const Vec3 point) {
+  return (Nav_PointContents(point) & CONTENTS_WATER) != 0;
+}
+
+/**
+ * @brief Finds where a player who swims straight up from `from` floats at the surface.
+ * @return True if the player reaches the surface within `NAV_MAX_SWIM_DEPTH`.
+ */
+static bool Nav_SwimSurface(const Vec3 from, Vec3 *surface) {
+
+  for (float z = NAV_SWIM_STEP; z <= NAV_MAX_SWIM_DEPTH; z += NAV_SWIM_STEP) {
+
+    const Vec3 point = Vec3_Add(from, MakeVec3(0.f, 0.f, z));
+    if (Nav_InWater(point)) {
+      continue;
+    }
+
+    *surface = MakeVec3(from.x, from.y, Maxf(from.z, point.z - NAV_SWIM_FLOAT));
+
+    const CollisionTrace trace = Nav_Trace(from, *surface, PM_BOUNDS);
+    return !trace.startSolid && trace.fraction == 1.f;
+  }
+
+  return false;
+}
+
+/**
+ * @brief Links a node in water by swimming: to the nodes in water around it that the player can swim
+ * straight to, and to the nodes on the ledges around the surface above it that a water jump climbs
+ * onto.
+ */
+static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks) {
+
+  const NavGraph *graph = module.graph;
+  const NavNode *node = &graph->nodes[index];
+
+  const Vec3i xyz = Nav_CellCoordinate(node->cell);
+
+  for (int32_t dz = -2; dz <= 2; dz++) {
+    for (int32_t dy = -1; dy <= 1; dy++) {
+      for (int32_t dx = -1; dx <= 1; dx++) {
+
+        const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
+        if (cell == -1 || graph->cellNodes[cell] == -1 || graph->cellNodes[cell] == index) {
+          continue;
+        }
+
+        const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
+        if (!(other->contents & CONTENTS_WATER) || other->crouch || node->crouch) {
+          continue;
+        }
+
+        const Vec3 middle = Vec3_Mix(node->position, other->position, .5f);
+        if (!Nav_InWater(middle)) {
+          continue;
+        }
+
+        const CollisionTrace trace = Nav_Trace(node->position, other->position, PM_BOUNDS);
+        if (trace.startSolid || trace.fraction < 1.f) {
+          continue;
+        }
+
+        const float distance = Vec3_Distance(node->position, other->position);
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER));
+      }
+    }
+  }
+
+  Vec3 surface;
+  if (!Nav_SwimSurface(node->position, &surface)) {
+    return;
+  }
+
+  const Vec3i top = Nav_PointCoordinate(surface);
+  const int32_t rise = (int32_t) ceilf(module.waterJumpHeight / NAV_CELL_HEIGHT);
+
+  for (int32_t dz = -1; dz <= rise; dz++) {
+    for (int32_t dy = -1; dy <= 1; dy++) {
+      for (int32_t dx = -1; dx <= 1; dx++) {
+
+        const int32_t cell = Nav_CellIndex(MakeVec3i(top.x + dx, top.y + dy, top.z + dz));
+        if (cell == -1 || graph->cellNodes[cell] == -1 || graph->cellNodes[cell] == index) {
+          continue;
+        }
+
+        const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
+        if ((other->contents & CONTENTS_WATER) || other->crouch || other->position.z <= surface.z) {
+          continue;
+        }
+
+        Vec3 origin;
+        if (!Nav_StepMove(surface, other->position, PM_BOUNDS, module.waterJumpHeight, &origin)) {
+          continue;
+        }
+
+        if (fabsf(origin.z - other->position.z) > 1.f) {
+          continue;
+        }
+
+        const float distance = Vec3_Distance(node->position, surface) + Vec3_Distance(surface, other->position);
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER));
+      }
+    }
+  }
+}
+
+/**
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops where no
  * walk exists.
  * @return The count of links written to `links`.
@@ -725,6 +858,10 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     }
   }
 
+  if (node->contents & CONTENTS_WATER) {
+    Nav_LinkSwims(index, links, &numLinks);
+  }
+
   return numLinks;
 }
 
@@ -747,6 +884,31 @@ static float Nav_BarrierHeight(void) {
   }
 
   return height - NAV_BARRIER_MARGIN;
+}
+
+/**
+ * @return The highest ledge, above the floating origin, that every movement can water jump onto,
+ * less `NAV_WATER_JUMP_MARGIN`.
+ * @remarks A water jump starts only if the player box fits `PM_STEP_HEIGHT` plus its own height
+ * above the origin, over the ledge, which caps the climb whatever the jump speed and gravity.
+ */
+static float Nav_WaterJumpHeight(void) {
+
+  float height = PM_STEP_HEIGHT + Box3_Size(PM_BOUNDS).z;
+
+  for (size_t i = 0; i < Pm_MovementCount(); i++) {
+
+    const PMoveParams *params = Pm_Movement((PMovement) i)->params;
+
+    const float jump = params ? params->speedWaterJump : PM_SPEED_WATER_JUMP;
+    const float gravity = (params && params->gravity) ? Maxf(params->gravity, module.gravity) : module.gravity;
+
+    if (gravity > 0.f) {
+      height = Minf(height, jump * jump / (2.f * gravity));
+    }
+  }
+
+  return height - NAV_WATER_JUMP_MARGIN;
 }
 
 /**
@@ -877,6 +1039,7 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
   module.graph = graph;
   module.gravity = params->gravity;
   module.barrierHeight = Nav_BarrierHeight();
+  module.waterJumpHeight = Nav_WaterJumpHeight();
 
   Nav_InitGrid(graph);
 

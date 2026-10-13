@@ -94,6 +94,8 @@ static Color Cg_AiLinkColor(const NavTravelType type) {
       return ColorHSV(COLOR_HUE_RED, 1.f, 1.f);
     case NAV_TRAVEL_BARRIER_JUMP:
       return ColorHSV(COLOR_HUE_ORANGE, 1.f, 1.f);
+    case NAV_TRAVEL_SWIM:
+      return ColorHSV(COLOR_HUE_CYAN, 1.f, 1.f);
     default:
       return ColorHSV(COLOR_HUE_GREEN, .6f, .8f);
   }
