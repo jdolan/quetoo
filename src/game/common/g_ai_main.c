@@ -771,6 +771,39 @@ static bool G_Ai_IsHurtful(const Box3 bounds) {
 }
 
 /**
+ * @brief The spacing in units of the boxes that `G_Ai_CrossesTrigger` tests along a line.
+ */
+#define AI_TRIGGER_SPACING 16.f
+
+/**
+ * @return True if the player's box, moved along the line from `start` to `end`, touches a
+ * `trigger_hurt` or a `trigger_push`. Walk links keep out of both, but a bot that cuts a corner of
+ * its path does not, and a jump pad beside the path throws it off.
+ */
+static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end) {
+
+  const float length = Vec3_Distance(start, end);
+  const Box3 bounds = G_PlayerBounds();
+
+  for (float d = 0.f; d <= length + AI_TRIGGER_SPACING; d += AI_TRIGGER_SPACING) {
+
+    const Vec3 point = Vec3_Mix(start, end, Minf(1.f, length > 0.f ? d / length : 1.f));
+
+    GameEntity *ents[32];
+    const size_t len = gi.BoxEntities(Box3_Translate(bounds, point), ents, lengthof(ents), BOX_OCCUPY);
+
+    for (size_t i = 0; i < len; i++) {
+      if (ents[i]->classname && (!Str_Compare(ents[i]->classname, "trigger_hurt") ||
+                                 !Str_Compare(ents[i]->classname, "trigger_push"))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * @brief Follows the arc of the AI from the given origin and velocity, with no input, until it
  * lands.
  * @return True if the AI lands on no floor, on the sky, in lava or slime, or in a `trigger_hurt`, or
@@ -1548,8 +1581,8 @@ static float G_Ai_StrafeTurn(const GameClient *cl) {
  * over run links, before the path turns more than `G_Ai_StrafeTurn` from the bot's heading. The
  * heading is the bot's velocity, or if it moves slower than half the run speed, the direction to the
  * first node beyond `AI_STRAFE_NEAR_DISTANCE`. Nodes within that distance are passed. The line to
- * the node MUST be clear for the player's box and have floor under it, with no liquid, because the
- * bot cuts the corners of its path on the way. The result is kept for `AI_STRAFE_LOOK_MILLIS`, and
+ * the node MUST be clear for the player's box, touch no `trigger_hurt` or `trigger_push`, and have
+ * floor under it, with no liquid, because the bot cuts the corners of its path on the way. The result is kept for `AI_STRAFE_LOOK_MILLIS`, and
  * `G_Ai_SetPathGoal` clears it.
  * @param run The distance along the path to that node.
  * @return The index of that node in the path, or -1 if no node passes: the path turns, its next
@@ -1609,7 +1642,7 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
 
     const CollisionTrace tr = gi.Trace(ent->s.origin, node, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
 
-    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, node)) {
+    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, node) || G_Ai_CrossesTrigger(ent->s.origin, node)) {
       break;
     }
 
