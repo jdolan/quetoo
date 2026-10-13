@@ -52,6 +52,11 @@ void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
 bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode);
 bool G_Ai_IsArmed(const GameClient *cl);
+
+/**
+ * @return True if the AI holds the weapon, with enough ammo to fire it.
+ */
+bool G_Ai_CanFire(const GameClient *cl, const GameItem *weapon);
 bool G_Ai_IsOutgunned(const GameClient *cl, const GameEntity *enemy);
 bool G_Ai_ShouldRetreat(const GameClient *cl);
 
@@ -66,7 +71,9 @@ int32_t G_Ai_RetreatHealth(const GameClient *cl);
 bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other);
 
 /**
- * @return True if the AI is unarmed, and the item is a weapon that it lacks and that would arm it.
+ * @return True if the AI is unarmed, and the item would arm it: a weapon of at least the armed
+ * priority, which brings ammo too, or the ammo for such a weapon that the AI holds and cannot fire,
+ * or grenades, which bring the Hand Grenades with them.
  */
 bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item);
 

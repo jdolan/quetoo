@@ -25,8 +25,9 @@
 Cvar *g_aiNoTarget;
 
 /**
- * @brief Minimum weapon priority to be considered "armed" for combat.
- * Blaster (0.10) is below this threshold; Shotgun (0.15) and above are armed.
+ * @brief The weapon priority at which a bot of middling aggression is armed. `G_Ai_ArmedPriority`
+ * scales it from 1.25 times, for a cautious bot, which wants more than the Shotgun, down to .7
+ * times, for an aggressive one, and never to the Blaster.
  */
 #define AI_ARMED_PRIORITY 0.15f
 
@@ -48,16 +49,38 @@ Cvar *g_aiNoTarget;
 #define AI_OUTGUNNED_QUAD_PRIORITY .5f
 
 /**
+ * @brief How far above the Blaster's priority the armed priority MUST stay.
+ */
+#define AI_ARMED_BLASTER_MARGIN .01f
+
+/**
  * @return The lowest weapon priority at which the AI considers itself armed. Aggressive bots settle
- * for less.
+ * for less, but never for the Blaster, because a bot that takes the Blaster for a weapon neither
+ * arms itself nor flees, and duels rocket launchers with it across the map.
  */
 static float G_Ai_ArmedPriority(const GameClient *cl) {
-  return AI_ARMED_PRIORITY * Mixf(1.25f, .6f, cl->ai->personality.aggression);
+
+  const float priority = AI_ARMED_PRIORITY * Mixf(1.25f, .7f, cl->ai->personality.aggression);
+
+  return Maxf(priority, gameItems[WEAPON_BLASTER].def.priority + AI_ARMED_BLASTER_MARGIN);
 }
 
 /**
- * @return True if the bot has at least a Shotgun or better.
- * Blaster-only bots are considered unarmed and will prioritize weapon pickups.
+ * @see g_ai_main.h
+ */
+bool G_Ai_CanFire(const GameClient *cl, const GameItem *weapon) {
+
+  if (!cl->inventory[weapon->def.tag]) {
+    return false;
+  }
+
+  return !weapon->def.ammo || cl->inventory[weapon->def.ammo] >= weapon->def.quantity;
+}
+
+/**
+ * @return True if the bot can fire a weapon of at least `G_Ai_ArmedPriority`. A bot with only the
+ * Blaster, or with good weapons but no ammo for them, is unarmed, and arms itself before it picks a
+ * fight.
  */
 bool G_Ai_IsArmed(const GameClient *cl) {
 
@@ -65,7 +88,7 @@ bool G_Ai_IsArmed(const GameClient *cl) {
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     const GameItem *it = &gameItems[t];
-    if (cl->inventory[t] && it->def.priority >= threshold) {
+    if (it->def.priority >= threshold && G_Ai_CanFire(cl, it)) {
       return true;
     }
   }
@@ -78,11 +101,29 @@ bool G_Ai_IsArmed(const GameClient *cl) {
  */
 bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item) {
 
-  if (item->def.type != ITEM_TYPE_WEAPON || cl->inventory[item->def.tag]) {
+  if (G_Ai_IsArmed(cl)) {
     return false;
   }
 
-  return item->def.priority >= G_Ai_ArmedPriority(cl) && !G_Ai_IsArmed(cl);
+  const float threshold = G_Ai_ArmedPriority(cl);
+
+  if (item->def.type == ITEM_TYPE_WEAPON) {
+    return item->def.priority >= threshold;
+  }
+
+  if (item->def.type != ITEM_TYPE_AMMO) {
+    return false;
+  }
+
+  for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
+    const GameItem *it = &gameItems[t];
+    if (it->def.ammo == item->def.tag && it->def.priority >= threshold &&
+        (cl->inventory[t] || t == WEAPON_HAND_GRENADE)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -95,15 +136,9 @@ static float G_Ai_BestWeaponPriority(const GameClient *cl) {
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     const GameItem *it = &gameItems[t];
 
-    if (!cl->inventory[t]) {
-      continue;
+    if (G_Ai_CanFire(cl, it)) {
+      best = Maxf(best, it->def.priority);
     }
-
-    if (it->def.ammo && cl->inventory[it->def.ammo] < it->def.quantity) {
-      continue;
-    }
-
-    best = Maxf(best, it->def.priority);
   }
 
   return best;
