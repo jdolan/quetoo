@@ -1610,6 +1610,19 @@ static bool G_Ai_ReturnToPath(GameClient *cl) {
 #define AI_STRAFE_TURN_MAX 60.f
 
 /**
+ * @brief The run ahead that a bot needs to strafe jump, as a multiple of the distance that one jump
+ * covers, at `AI_STRAFE_JUMP_SKILL`. An unskilled bot strafe jumps only on long, straight runs.
+ */
+#define AI_STRAFE_RUN_MAX 2.f
+
+/**
+ * @brief The run ahead that a bot needs to strafe jump, as a multiple of the distance that one jump
+ * covers, at skill 1. A shorter run lets the bot jump toward turns that it cannot follow at strafe
+ * speed.
+ */
+#define AI_STRAFE_RUN_MIN 1.f
+
+/**
  * @brief The distance within which a strafe jumping bot ignores the turns of its path, which are
  * the steps of the grid: one and a half cells.
  */
@@ -1733,13 +1746,20 @@ static bool G_Ai_HasFloor(const GameEntity *ent, const Vec3 a, const Vec3 b) {
 }
 
 /**
- * @return The sharpest turn in degrees that the bot takes in a strafe jump, which grows with skill.
+ * @return The bot's strafe jump skill, from 0 at `AI_STRAFE_JUMP_SKILL` to 1 at skill 1.
  */
-static float G_Ai_StrafeTurn(const GameClient *cl) {
+static float G_Ai_StrafeSkill(const GameClient *cl) {
 
   const float t = (cl->ai->personality.skill - AI_STRAFE_JUMP_SKILL) / (1.f - AI_STRAFE_JUMP_SKILL);
 
-  return Mixf(AI_STRAFE_TURN_MIN, AI_STRAFE_TURN_MAX, Clampf(t, 0.f, 1.f));
+  return Clampf(t, 0.f, 1.f);
+}
+
+/**
+ * @return The sharpest turn in degrees that the bot takes in a strafe jump, which grows with skill.
+ */
+static float G_Ai_StrafeTurn(const GameClient *cl) {
+  return Mixf(AI_STRAFE_TURN_MIN, AI_STRAFE_TURN_MAX, G_Ai_StrafeSkill(cl));
 }
 
 /**
@@ -1837,7 +1857,8 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
 
 /**
  * @return True if the bot should jump, now or on landing: the path ahead of it runs within its turn
- * for longer than one jump.
+ * for the distance of one jump, times a multiple from `AI_STRAFE_RUN_MAX` to `AI_STRAFE_RUN_MIN` as
+ * skill grows.
  * @param run The distance along the path to the node that the bot steers to.
  */
 static bool G_Ai_ShouldStrafeJump(const GameClient *cl, const float run) {
@@ -1846,8 +1867,9 @@ static bool G_Ai_ShouldStrafeJump(const GameClient *cl, const float run) {
   const float speed = Vec2_Length(Vec3_XY(cl->entity->velocity));
 
   const float airTime = 2.f * params->speedJump / Maxf(1.f, params->gravity);
+  const float scale = Mixf(AI_STRAFE_RUN_MAX, AI_STRAFE_RUN_MIN, G_Ai_StrafeSkill(cl));
 
-  return run >= Maxf(speed, PM_SPEED_RUN) * airTime;
+  return run >= Maxf(speed, PM_SPEED_RUN) * airTime * scale;
 }
 
 /**
