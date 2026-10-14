@@ -171,7 +171,7 @@ typedef struct {
   int32_t travelTime;
 
   /**
-   * @brief The inline model of the door whose doorway the walk or jump crosses, or 0. The game lets
+   * @brief The inline model of the door whose doorway the walk, drop or jump crosses, or 0. The game lets
    * a bot use the link only while the door is away from where the map places it.
    */
   int32_t gate;

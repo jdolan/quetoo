@@ -994,6 +994,40 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
 }
 
 /**
+ * @brief Finds the node that a walk off a ledge from `node` in `direction` lands at through the
+ * doorway of a door, for a drop that `Nav_Drop` found blocked. The doors of each group within the
+ * drop's reach are left out of the traces in turn.
+ * @param gate Receives the inline model of a door of the group that the drop passes.
+ * @return The node that the drop lands at, or -1.
+ */
+static int32_t Nav_GatedDrop(const NavNode *node, const Vec3i direction, float *distance, float *height, int32_t *gate) {
+
+  Box3 bounds = Nav_Bounds(node->crouch);
+  bounds.mins.z -= NAV_MAX_DROP;
+
+  const Vec3 dir = Vec3_Normalize(MakeVec3(direction.x, direction.y, 0.f));
+  const Vec3 reach = Vec3_Add(node->position, Vec3_Scale(dir, NAV_LEDGE_DISTANCE));
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, node->position), Box3_Translate(bounds, reach));
+
+  for (int32_t i = 0; i < module.numBarriers; i++) {
+    if (!Nav_IsGateToTry(i, swept)) {
+      continue;
+    }
+
+    module.openGate = module.barriers[i].group;
+    const int32_t target = Nav_Drop(node, direction, distance, height);
+    module.openGate = -1;
+
+    if (target != -1) {
+      *gate = module.barriers[i].model;
+      return target;
+    }
+  }
+
+  return -1;
+}
+
+/**
  * @return True if a walk from the node in any of the 8 directions reaches, within
  * `NAV_EDGE_DISTANCE` and before a wall, an edge with no floor below it within `NAV_MAX_DROP`. A
  * node on a model that moves, or a swim node, is not tested.
@@ -1419,10 +1453,14 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     }
 
     float distance, height;
-    const int32_t target = Nav_Drop(node, directions[i], &distance, &height);
+    int32_t dropGate = 0;
+    int32_t target = Nav_Drop(node, directions[i], &distance, &height);
+    if (target == -1) {
+      target = Nav_GatedDrop(node, directions[i], &distance, &height, &dropGate);
+    }
     if (target != -1 && target != index) {
       const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) + Nav_FallTime(height);
-      Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, 0);
+      Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, dropGate);
     }
 
     float seconds;
@@ -1573,8 +1611,9 @@ static void Nav_AddPush(const Entity *entity, const Box3 bounds, const int32_t s
  * own link starts at the nearest node beside it. A door with `health` or a `targetname` opens when
  * shot or triggered, and has no trigger that opens it for a player who walks up to it
  * (`G_func_door`). Such a door is sampled where the map places it, closed, even if it spawns open,
- * as a bridge over a trap does. A walk through its doorway, and a jump through it or over its place,
- * is a gated link (`Nav_GatedWalk`, `Nav_GatedJump`), which the game opens and closes with the door.
+ * as a bridge over a trap does. A walk or a drop through its doorway, and a jump through it or over
+ * its place, is a gated link (`Nav_GatedWalk`, `Nav_GatedDrop`, `Nav_GatedJump`), which the game
+ * opens and closes with the door.
  * A wall is solid where it spawns so (`G_func_wall`). A door, a
  * `func_train`, a `func_bob` and a `func_rotating` that turns about the vertical axis carry their
  * floors with them, so their nodes move with them. A `func_rotating` that turns about a horizontal
