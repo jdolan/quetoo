@@ -502,7 +502,8 @@ static void Sv_CheckCommandTimes(void) {
     if (sv_enforceTime->value && !timeDemo->value) { // check them
 
       // a client in this process scales its commands by timeScale, as the server's clock does
-      if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT * timeScale->value) { // irregular movement
+      const float scale = cl->netChan.remoteAddress.type == NA_LOOP ? timeScale->value : 1.f;
+      if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT * scale) { // irregular movement
         cl->cmdMsecErrors++;
 
         Com_Debug(DEBUG_SERVER, "%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmdMsec);
