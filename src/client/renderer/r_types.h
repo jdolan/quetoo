@@ -1812,7 +1812,7 @@ typedef struct {
   float lighting;
 } RenderBeam;
 
-#define MAX_BEAMS 0x1000
+#define MAX_BEAMS 0x2000
 
 /**
  * @brief The maximum number of subviews drawn for a single view.
