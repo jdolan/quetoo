@@ -141,6 +141,12 @@ static struct {
    * @brief The number of nodes that the arrays of `G_Ai_Node_GateCosts` hold.
    */
   uint32_t pressCount;
+
+  /**
+   * @brief True while the search of a client in lava, from a node in it, runs, which MAY cross the
+   * lava to leave.
+   */
+  bool escape;
 } module;
 
 /**
@@ -2282,6 +2288,22 @@ static int32_t G_Ai_Node_Contents(const GameAiNode *node) {
 }
 
 /**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_IsHazard(const GameAiNodeId node) {
+  return (G_Ai_Node_Contents(AI_NODE(aiNodes, node)) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+}
+
+/**
+ * @return True if the client and the node `start` of its search are both in lava, so that the
+ * search MAY cross it to leave. A client in slime, which hurts slowly, searches as any other.
+ */
+static bool G_Ai_Node_InLava(const GameClient *cl, const GameAiNodeId start) {
+  return cl && cl->entity && cl->entity->waterLevel > WATER_NONE && (cl->entity->waterType & CONTENTS_LAVA) &&
+         (G_Ai_Node_Contents(AI_NODE(aiNodes, start)) & CONTENTS_LAVA);
+}
+
+/**
  * @brief Finds the shortest path between two nodes using the A* algorithm.
  */
 static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, const int32_t waterLevel) {
@@ -2372,7 +2394,9 @@ bool G_Ai_Node_HasGate(const char *targetName) {
  * a model that moves and a node off that model, which `G_Ai_Node_HasFloor` tested when it was
  * made. A crouch link, and any link into or out of a crouch node, which the build made for
  * Quetoo's crouched box, is refused to a client whose movement crouches to a taller box, or does not
- * crouch, as Quake's.
+ * crouch, as Quake's. A link within lava or slime, and a drop into it, are refused, except in a
+ * search of a client in lava, from a node in it (`escape`), so that such a search crosses the lava
+ * to leave.
  * @param fromHazard True if `node` is in lava or slime.
  * @param opens The `targetname` of the doors that the client is taken to press, whose links are
  * open if they are closed now, and closed if they are open now, or NULL.
@@ -2402,7 +2426,7 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
     return -1.f;
   }
 
-  if (fromHazard && toHazard) {
+  if (fromHazard && toHazard && !module.escape) {
     return -1.f;
   }
 
@@ -2416,7 +2440,7 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
     return -1.f;
   }
 
-  if (drop > 0.f && toHazard) {
+  if (drop > 0.f && toHazard && !module.escape) {
     return -1.f;
   }
 
@@ -2482,6 +2506,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
 
   GameAiNode *startNode = AI_NODE(aiNodes, start);
   startNode->cost = 0;
+  module.escape = G_Ai_Node_InLava(cl, start);
   costsStarted[start / 32] |= (uint32_t)1 << (start % 32);
   visited++;
 
@@ -2588,6 +2613,8 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
     G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
   }
 
+  module.escape = false;
+
   free(costsStarted);
   return returnPath;
 }
@@ -2617,6 +2644,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
   G_Ai_HeapPush(queue, 0.f, e);
 
   costs[start] = 0.f;
+  module.escape = G_Ai_Node_InLava(cl, start);
 
   for (;;) {
     const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
@@ -2655,6 +2683,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
       GameAiNodePriority *next = G_Ai_Node_AllocPathEntry();
       if (!next) {
         G_Warn("Travel cost entry pool exhausted (capacity %zu)\n", heapCapacity);
+        module.escape = false;
         return false;
       }
 
@@ -2663,10 +2692,13 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 
       if (!G_Ai_HeapPush(queue, newCost, next)) {
         G_Warn("Travel cost heap exhausted (capacity %zu)\n", heapCapacity);
+        module.escape = false;
         return false;
       }
     }
   }
+
+  module.escape = false;
 
   return true;
 }

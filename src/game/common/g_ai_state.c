@@ -182,6 +182,11 @@
 #define AI_BUTTON_NODES 8
 
 /**
+ * @brief The shortest time in milliseconds between two plans of a bot in `AI_STATE_ESCAPE`.
+ */
+#define AI_ESCAPE_MILLIS 500
+
+/**
  * @brief The longest time in milliseconds that a bot spends in `AI_STATE_ACTIVATE`.
  */
 #define AI_ACTIVATE_MILLIS 15000
@@ -307,6 +312,7 @@ static const char *const stateNames[AI_STATE_TOTAL] = {
   [AI_STATE_RETREAT] = "retreat",
   [AI_STATE_INVESTIGATE] = "investigate",
   [AI_STATE_ACTIVATE] = "activate",
+  [AI_STATE_ESCAPE] = "escape",
 };
 
 static struct {
@@ -1503,6 +1509,48 @@ static void G_Ai_State_Activate(GameClient *cl) {
 }
 
 /**
+ * @return True if the bot is in lava. A bot in slime, which hurts slowly, keeps its state.
+ */
+static bool G_Ai_IsInLava(const GameClient *cl) {
+  return cl->entity->waterLevel > WATER_NONE && (cl->entity->waterType & CONTENTS_LAVA);
+}
+
+/**
+ * @brief Goes by the cheapest path to the nearest node out of lava or slime, which a path that
+ * starts in it crosses. The bot plans again whenever its path ends while it is in the
+ * lava, at most each `AI_ESCAPE_MILLIS`, and keeps the path out of it until it stands on the ground,
+ * so that a bot whose feet leave the lava before it reaches a floor goes on.
+ */
+static void G_Ai_State_Escape(GameClient *cl) {
+
+  GameAi *ai = cl->ai;
+
+  if (ai->moveTarget.type != AI_GOAL_NONE || ai->reviewTime > gameLevel.time) {
+    return;
+  }
+
+  ai->reviewTime = gameLevel.time + AI_ESCAPE_MILLIS;
+
+  const float *costs = G_Ai_TravelCosts(cl);
+
+  if (!costs) {
+    return;
+  }
+
+  GameAiNodeId best = AI_NODE_INVALID;
+
+  for (uint32_t i = 0; i < G_Ai_Node_Count(); i++) {
+    if (costs[i] != FLT_MAX && !G_Ai_Node_IsHazard((GameAiNodeId) i) && (best == AI_NODE_INVALID || costs[i] < costs[best])) {
+      best = (GameAiNodeId) i;
+    }
+  }
+
+  if (best != AI_NODE_INVALID) {
+    G_Ai_PathTo(cl, best, AI_PURSUE_PRIORITY, NULL);
+  }
+}
+
+/**
  * @brief Goes to the position, once, then resumes the goal. Gives up after `AI_PURSUE_MILLIS`.
  */
 static void G_Ai_State_Pursue(GameClient *cl, const Vec3 position) {
@@ -1562,7 +1610,13 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
     return 1;
   }
 
-  if (ai->combatTarget.type == AI_GOAL_ENTITY) {
+  if (G_Ai_IsInLava(cl)) {
+    G_Ai_Enter(cl, AI_STATE_ESCAPE);
+  } else if (ai->state == AI_STATE_ESCAPE) {
+    if (cl->entity->ground.ent || ai->moveTarget.type == AI_GOAL_NONE) {
+      G_Ai_Resume(cl);
+    }
+  } else if (ai->combatTarget.type == AI_GOAL_ENTITY) {
     G_Ai_Enter(cl, G_Ai_WantsRetreat(cl) ? AI_STATE_RETREAT : AI_STATE_FIGHT);
   } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
     if (ai->combatTargetLost && G_Ai_WantsPursuit(cl)) {
@@ -1594,6 +1648,9 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
       break;
     case AI_STATE_ACTIVATE:
       G_Ai_State_Activate(cl);
+      break;
+    case AI_STATE_ESCAPE:
+      G_Ai_State_Escape(cl);
       break;
     default:
       G_Error("Invalid state %d\n", ai->state);

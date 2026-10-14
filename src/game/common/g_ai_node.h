@@ -60,6 +60,12 @@ Vec3 G_Ai_Node_GetPosition(const GameAiNodeId node);
  * @return True if the node stands at the edge of the void, as `NavNode::edge`.
  */
 bool G_Ai_Node_IsEdge(const GameAiNodeId node);
+
+/**
+ * @return True if the node is in lava or slime.
+ */
+bool G_Ai_Node_IsHazard(const GameAiNodeId node);
+
 GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 

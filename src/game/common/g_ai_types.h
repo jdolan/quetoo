@@ -287,6 +287,11 @@ typedef enum {
    */
   AI_STATE_ACTIVATE,
 
+  /**
+   * @brief Leave the lava that the bot is in, by the nearest way out.
+   */
+  AI_STATE_ESCAPE,
+
   AI_STATE_TOTAL
 } GameAiStateId;
 
