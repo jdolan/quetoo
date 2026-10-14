@@ -299,6 +299,8 @@ bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
  */
 void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 
+  G_Ai_State_ItemTaken(item, taker);
+
   if (taker->client && taker->client->ai) {
     G_Ai_Avoid(taker->client, item);
   }
@@ -306,8 +308,6 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
   if (taker->client) {
     G_Ai_Probe_ItemTaken(taker->client, item);
   }
-
-  G_Ai_State_ItemTaken(item);
 
   if (!item->item || !G_Ai_IsMapControlItem(item->item) || item->solid != SOLID_NOT ||
       item->nextThink <= gameLevel.time) {

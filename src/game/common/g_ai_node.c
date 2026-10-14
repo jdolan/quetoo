@@ -127,6 +127,20 @@ static struct {
    * @brief The door entity of each inline model, for the links through its doorway.
    */
   const GameEntity *gates[MAX_MODELS];
+
+  /**
+   * @brief For `G_Ai_Node_GateCosts`, the travel cost of each node on a path that has not yet
+   * crossed the doors, then of each node on a path that has, with the cost of each path's source,
+   * and the source.
+   */
+  float *pressCosts;
+  float *pressStarts;
+  GameAiNodeId *pressSources;
+
+  /**
+   * @brief The number of nodes that the arrays of `G_Ai_Node_GateCosts` hold.
+   */
+  uint32_t pressCount;
 } module;
 
 /**
@@ -200,6 +214,14 @@ typedef struct {
    * models that move, after it in `moverNodes`, as `GameAiMoverLink`, each also made back.
    */
   Vector *moverPairs;
+
+  /**
+   * @brief The links from the node that exist only while a door that a button moves stands where the
+   * press moves it, as `GameAiLink` with the door's inline model as `gate`. `G_Ai_Node_LinkPresses`
+   * makes them once, and only `G_Ai_Node_GateCosts` follows them, at the cost that the linking test
+   * gave, without `G_Ai_Node_StepCost`.
+   */
+  Vector *pressLinks;
 
   /**
    * @brief The index plus one of the crusher whose sweep the node lies in, or 0.
@@ -1533,10 +1555,38 @@ typedef struct {
 #define AI_MOVER_MAX_MOVED 32
 
 /**
- * @brief Adds a link that `G_Ai_Node_LinkMover` made for `node`, and keeps it in `moverLinks`.
+ * @brief Adds a press link from node `a` to node `b`, through the door with the inline model `gate`.
+ */
+static void G_Ai_Node_LinkPress(const GameAiNodeId a, const GameAiNodeId b, const float cost, const NavTravelType type,
+                                const int32_t gate) {
+
+  GameAiNode *node = AI_NODE(aiNodes, a);
+
+  if (!node->pressLinks) {
+    node->pressLinks = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
+  }
+
+  const GameAiLink link = {
+    .id = b,
+    .cost = cost,
+    .travelType = type,
+    .gate = gate
+  };
+
+  $(node->pressLinks, add, (ident) &link);
+}
+
+/**
+ * @brief Adds a link that `G_Ai_Node_LinkMover` made for `node`, and keeps it in `moverLinks`, or,
+ * if `gate` is not 0, adds it as a press link through the door with that inline model.
  */
 static void G_Ai_Node_LinkMover_add(GameAiNode *node, const GameAiNodeId a, const GameAiNodeId b,
-                                    const float cost, const NavTravelType type) {
+                                    const float cost, const NavTravelType type, const int32_t gate) {
+
+  if (gate) {
+    G_Ai_Node_LinkPress(a, b, cost, type, gate);
+    return;
+  }
 
   G_Ai_Node_LinkDynamic(a, b, cost, type);
 
@@ -1589,9 +1639,11 @@ static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
  * step, and floor under the line, or one way with a drop, from the higher of the two to the lower,
  * within `AI_MOVER_DROP_HEIGHT`, with a clear line across at the higher level and down onto the
  * lower. The nodes MUST be within `AI_MOVER_LINK_DISTANCE` of each other across.
+ * @param gate 0 for a link of the graph, or the inline model of the door for a press link.
  * @return True if the nodes are linked.
  */
-static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const GameAiNodeId other, const Box3 bounds) {
+static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const GameAiNodeId other, const Box3 bounds,
+                                  const int32_t gate) {
 
   const Vec3 position = AI_NODE(aiNodes, other)->position;
 
@@ -1608,8 +1660,8 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
       return false;
     }
 
-    G_Ai_Node_LinkMover_add(node, id, other, distance, NAV_TRAVEL_WALK);
-    G_Ai_Node_LinkMover_add(node, other, id, distance, NAV_TRAVEL_WALK);
+    G_Ai_Node_LinkMover_add(node, id, other, distance, NAV_TRAVEL_WALK, gate);
+    G_Ai_Node_LinkMover_add(node, other, id, distance, NAV_TRAVEL_WALK, gate);
     return true;
   }
 
@@ -1633,9 +1685,9 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
 
   const float cost = distance + fabsf(height);
   if (height > 0.f) {
-    G_Ai_Node_LinkMover_add(node, other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+    G_Ai_Node_LinkMover_add(node, other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE, gate);
   } else {
-    G_Ai_Node_LinkMover_add(node, id, other, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+    G_Ai_Node_LinkMover_add(node, id, other, cost, NAV_TRAVEL_WALK_OFF_LEDGE, gate);
   }
 
   return true;
@@ -1643,12 +1695,62 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
 
 /**
  * @brief Links the node on a model that moves to each node that does not move in the cells around
- * it, and to each node that the game added, such as an item's, with `G_Ai_Node_LinkMoverTo`. A
- * node that the model has carried into lava or slime is not linked.
+ * it, and to each node that the game added, such as an item's, with `G_Ai_Node_LinkMoverTo`.
+ * @param gate 0 for links of the graph, which `moverLinked` records, or the inline model of the
+ * door for press links.
+ */
+static void G_Ai_Node_LinkMoverAround(GameAiNode *node, const GameAiNodeId id, const int32_t gate) {
+
+  const NavGraph *graph = &module.graph;
+
+  Box3 bounds = G_PlayerBounds();
+  bounds.mins.z += PM_STEP_HEIGHT;
+
+  const Vec3 rel = Vec3_Subtract(node->position, graph->mins);
+  const int32_t x = (int32_t) floorf(rel.x / NAV_CELL_SIZE);
+  const int32_t y = (int32_t) floorf(rel.y / NAV_CELL_SIZE);
+  const int32_t z = (int32_t) floorf(rel.z / NAV_CELL_HEIGHT);
+
+  const int32_t levels = (int32_t) ceilf(AI_MOVER_DROP_HEIGHT / NAV_CELL_HEIGHT);
+
+  for (int32_t dz = -levels; dz <= levels; dz++) {
+    for (int32_t dy = -1; dy <= 1; dy++) {
+      for (int32_t dx = -1; dx <= 1; dx++) {
+
+        const Vec3i xyz = MakeVec3i(x + dx, y + dy, z + dz);
+
+        if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= graph->size.x || xyz.y >= graph->size.y || xyz.z >= graph->size.z) {
+          continue;
+        }
+
+        const int32_t other = graph->cellNodes[(xyz.z * graph->size.y + xyz.y) * graph->size.x + xyz.x];
+        if (other == -1) {
+          continue;
+        }
+
+        if (!G_Ai_Node_LinkMoverTo(node, id, (GameAiNodeId) other, bounds, gate) || gate) {
+          continue;
+        }
+
+        const GameAiNodeId linked = (GameAiNodeId) other;
+        $(module.moverLinked, add, (ident) &linked);
+      }
+    }
+  }
+
+  for (GameAiNodeId other = module.graphNodes; other < aiNodes->count; other++) {
+    if (!AI_NODE(aiNodes, other)->model && G_Ai_Node_LinkMoverTo(node, id, other, bounds, gate) && !gate) {
+      $(module.moverLinked, add, (ident) &other);
+    }
+  }
+}
+
+/**
+ * @brief Links the node on a model that moves to the nodes that do not move around it, with
+ * `G_Ai_Node_LinkMoverAround`. A node that the model has carried into lava or slime is not linked.
  */
 static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
 
-  const NavGraph *graph = &module.graph;
   GameAiNode *node = AI_NODE(aiNodes, id);
 
   if (node->moverStill) {
@@ -1676,46 +1778,7 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
     return;
   }
 
-  Box3 bounds = G_PlayerBounds();
-  bounds.mins.z += PM_STEP_HEIGHT;
-
-  const Vec3 rel = Vec3_Subtract(node->position, graph->mins);
-  const int32_t x = (int32_t) floorf(rel.x / NAV_CELL_SIZE);
-  const int32_t y = (int32_t) floorf(rel.y / NAV_CELL_SIZE);
-  const int32_t z = (int32_t) floorf(rel.z / NAV_CELL_HEIGHT);
-
-  const int32_t levels = (int32_t) ceilf(AI_MOVER_DROP_HEIGHT / NAV_CELL_HEIGHT);
-
-  for (int32_t dz = -levels; dz <= levels; dz++) {
-    for (int32_t dy = -1; dy <= 1; dy++) {
-      for (int32_t dx = -1; dx <= 1; dx++) {
-
-        const Vec3i xyz = MakeVec3i(x + dx, y + dy, z + dz);
-
-        if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= graph->size.x || xyz.y >= graph->size.y || xyz.z >= graph->size.z) {
-          continue;
-        }
-
-        const int32_t other = graph->cellNodes[(xyz.z * graph->size.y + xyz.y) * graph->size.x + xyz.x];
-        if (other == -1) {
-          continue;
-        }
-
-        if (!G_Ai_Node_LinkMoverTo(node, id, (GameAiNodeId) other, bounds)) {
-          continue;
-        }
-
-        const GameAiNodeId linked = (GameAiNodeId) other;
-        $(module.moverLinked, add, (ident) &linked);
-      }
-    }
-  }
-
-  for (GameAiNodeId other = module.graphNodes; other < aiNodes->count; other++) {
-    if (!AI_NODE(aiNodes, other)->model && G_Ai_Node_LinkMoverTo(node, id, other, bounds)) {
-      $(module.moverLinked, add, (ident) &other);
-    }
-  }
+  G_Ai_Node_LinkMoverAround(node, id, 0);
 }
 
 /**
@@ -1797,6 +1860,127 @@ static void G_Ai_Node_LinkMovers(void) {
 
       $(node->moverPairs, add, (ident) &link);
     }
+  }
+}
+
+/**
+ * @brief Makes the press links of the doors with a `targetname` that carry nodes: the links that the
+ * nodes on the doors with that `targetname` make, to the nodes that do not move and to each other,
+ * while the doors stand where a press moves them (`moveInfo.endOrigin` and `endAngles`). The doors
+ * and their nodes are put there for the traces, and back.
+ */
+static void G_Ai_Node_LinkPresses(void) {
+
+  if (!module.moverNodes) {
+    return;
+  }
+
+  Box3 bounds = G_PlayerBounds();
+  bounds.mins.z += PM_STEP_HEIGHT;
+
+  for (int32_t m = 1; m < MAX_MODELS; m++) {
+    const GameEntity *first = module.gates[m];
+
+    if (!first || !first->targetName) {
+      continue;
+    }
+
+    bool done = false;
+    for (int32_t k = 1; k < m && !done; k++) {
+      done = module.gates[k] && module.gates[k]->targetName && !Str_Compare(module.gates[k]->targetName, first->targetName);
+    }
+
+    if (done) {
+      continue;
+    }
+
+    GameEntity *doors[MAX_MODELS];
+    Vec3 origins[MAX_MODELS], angles[MAX_MODELS];
+    int32_t numDoors = 0;
+
+    for (int32_t k = m; k < MAX_MODELS; k++) {
+      if (module.gates[k] && module.gates[k]->targetName && !Str_Compare(module.gates[k]->targetName, first->targetName)) {
+        doors[numDoors++] = (GameEntity *) module.gates[k];
+      }
+    }
+
+    Vector *nodes = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
+    Vector *positions = $(alloc(Vector), initWithSize, sizeof(Vec3));
+
+    for (size_t i = 0; i < module.moverNodes->count; i++) {
+      const GameAiNodeId id = AI_NODE_ID(module.moverNodes, i);
+      const GameAiNode *node = AI_NODE(aiNodes, id);
+
+      for (int32_t k = 0; k < numDoors; k++) {
+        if (node->mover == doors[k]) {
+          $(nodes, add, (ident) &id);
+          $(positions, add, (ident) &node->position);
+          break;
+        }
+      }
+    }
+
+    if (nodes->count) {
+      for (int32_t k = 0; k < numDoors; k++) {
+        origins[k] = doors[k]->s.origin;
+        angles[k] = doors[k]->s.angles;
+        doors[k]->s.origin = doors[k]->moveInfo.endOrigin;
+        doors[k]->s.angles = doors[k]->moveInfo.endAngles;
+        gi.LinkEntity(doors[k]);
+      }
+
+      for (size_t i = 0; i < nodes->count; i++) {
+        GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(nodes, i));
+        const Mat4 matrix = Mat4_FromRotationTranslationScale(node->mover->s.angles, node->mover->s.origin, 1.f);
+        node->position = Mat4_Transform(matrix, node->local);
+      }
+
+      for (size_t i = 0; i < nodes->count; i++) {
+        const GameAiNodeId a = AI_NODE_ID(nodes, i);
+        GameAiNode *node = AI_NODE(aiNodes, a);
+
+        if (gi.PointContents(node->position) & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+          continue;
+        }
+
+        G_Ai_Node_LinkMoverAround(node, a, node->model);
+
+        for (size_t j = i + 1; j < nodes->count; j++) {
+          const GameAiNodeId b = AI_NODE_ID(nodes, j);
+          const GameAiNode *other = AI_NODE(aiNodes, b);
+
+          if (other->model == node->model || fabsf(other->position.z - node->position.z) > PM_STEP_HEIGHT) {
+            continue;
+          }
+
+          const float distance = Vec2_Distance(Vec3_XY(other->position), Vec3_XY(node->position));
+          if (distance > AI_MOVER_LINK_DISTANCE) {
+            continue;
+          }
+
+          const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+          if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, other->position)) {
+            continue;
+          }
+
+          G_Ai_Node_LinkPress(a, b, distance, NAV_TRAVEL_WALK, node->model);
+          G_Ai_Node_LinkPress(b, a, distance, NAV_TRAVEL_WALK, node->model);
+        }
+      }
+
+      for (size_t i = 0; i < nodes->count; i++) {
+        AI_NODE(aiNodes, AI_NODE_ID(nodes, i))->position = VectorValue(positions, Vec3, i);
+      }
+
+      for (int32_t k = 0; k < numDoors; k++) {
+        doors[k]->s.origin = origins[k];
+        doors[k]->s.angles = angles[k];
+        gi.LinkEntity(doors[k]);
+      }
+    }
+
+    release(nodes);
+    release(positions);
   }
 }
 
@@ -1917,6 +2101,7 @@ void G_Ai_NodesReady(void) {
   G_Ai_Node_LinkRides();
 
   G_Ai_Node_FindMovers();
+  G_Ai_Node_LinkPresses();
 
   G_ForEachEntity(ent, {
     if (ent->classname && Str_Compare(ent->classname, "func_plat") == 0) {
@@ -1952,6 +2137,10 @@ void G_Ai_ShutdownNodes(void) {
       if (node->moverPairs) {
         release(node->moverPairs);
       }
+
+      if (node->pressLinks) {
+        release(node->pressLinks);
+      }
     }
 
     aiNodes = release(aiNodes);
@@ -1970,6 +2159,13 @@ void G_Ai_ShutdownNodes(void) {
   Nav_Free(&module.graph);
   module.graphNodes = module.graphLinks = 0;
 
+  free(module.pressCosts);
+  free(module.pressStarts);
+  free(module.pressSources);
+  module.pressCosts = module.pressStarts = NULL;
+  module.pressSources = NULL;
+  module.pressCount = 0;
+
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
 }
@@ -1977,6 +2173,11 @@ void G_Ai_ShutdownNodes(void) {
 typedef struct {
   GameAiNodeId id;
   float priority;
+
+  /**
+   * @brief For `G_Ai_Node_GateCosts`, true if the path crossed the doorway.
+   */
+  bool crossed;
 } GameAiNodePriority;
 
 static struct GameAiHeap *aiNodePathQueue;
@@ -2120,6 +2321,51 @@ bool G_Ai_Node_IsLinkOpen(const GameAiLink *link) {
 }
 
 /**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *targetName) {
+
+  if (!link->gate || link->gate >= MAX_MODELS || !module.gates[link->gate] || !targetName) {
+    return false;
+  }
+
+  const char *name = module.gates[link->gate]->targetName;
+
+  return name && !Str_Compare(name, targetName);
+}
+
+/**
+ * @return True if the node stands on a door with the `targetName`, which moves it.
+ */
+static bool G_Ai_Node_IsMovedBy(const GameAiNode *node, const char *targetName) {
+  return node->mover && node->mover->targetName && targetName && !Str_Compare(node->mover->targetName, targetName);
+}
+
+/**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_HasGate(const char *targetName) {
+
+  for (uint32_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
+
+    for (size_t j = 0; node->links && j < node->links->count; j++) {
+      if (G_Ai_Node_IsLinkGatedBy(AI_LINK(node->links, j), targetName)) {
+        return true;
+      }
+    }
+
+    for (size_t j = 0; node->pressLinks && j < node->pressLinks->count; j++) {
+      if (G_Ai_Node_IsLinkGatedBy(AI_LINK(node->pressLinks, j), targetName)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * @return The cost for the client to travel the link out of `node`, with penalties for drops that
  * hurt and for a node at the edge of the void, or -1 if the client must not use the link. A link
  * that the game added is tested for lava and slime along its line, except a walk between a node on
@@ -2128,9 +2374,11 @@ bool G_Ai_Node_IsLinkOpen(const GameAiLink *link) {
  * Quetoo's crouched box, is refused to a client whose movement crouches to a taller box, or does not
  * crouch, as Quake's.
  * @param fromHazard True if `node` is in lava or slime.
+ * @param opens The `targetname` of the doors that the client is taken to press, whose links are
+ * open if they are closed now, and closed if they are open now, or NULL.
  */
 static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, const bool fromHazard,
-                                const GameAiLink *link) {
+                                const GameAiLink *link, const char *opens) {
 
   const GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
   const float drop = node->position.z - linkNode->position.z;
@@ -2145,7 +2393,7 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
     return -1.f;
   }
 
-  if (!G_Ai_Node_IsLinkOpen(link)) {
+  if (G_Ai_Node_IsLinkOpen(link) == G_Ai_Node_IsLinkGatedBy(link, opens)) {
     return -1.f;
   }
 
@@ -2265,7 +2513,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
 
     for (size_t i = 0; i < node->links->count; i++) {
       const GameAiLink *link = AI_LINK(node->links, i);
-      const float stepCost = G_Ai_Node_StepCost(cl, node, fromHazard, link);
+      const float stepCost = G_Ai_Node_StepCost(cl, node, fromHazard, link, NULL);
 
       if (stepCost < 0.f) {
         continue;
@@ -2390,7 +2638,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 
     for (size_t i = 0; i < node->links->count; i++) {
       const GameAiLink *link = AI_LINK(node->links, i);
-      const float stepCost = G_Ai_Node_StepCost(cl, node, fromHazard, link);
+      const float stepCost = G_Ai_Node_StepCost(cl, node, fromHazard, link, NULL);
 
       if (stepCost < 0.f) {
         continue;
@@ -2415,6 +2663,146 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 
       if (!G_Ai_HeapPush(queue, newCost, next)) {
         G_Warn("Travel cost heap exhausted (capacity %zu)\n", heapCapacity);
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources, const int32_t numSources,
+                         const char *doors, const float window, const int32_t key, GameAiGateCost *gateCosts) {
+
+  const uint32_t count = aiNodes->count;
+
+  if (count > module.pressCount) {
+    module.pressCosts = realloc(module.pressCosts, 2 * count * sizeof(float));
+    module.pressStarts = realloc(module.pressStarts, 2 * count * sizeof(float));
+    module.pressSources = realloc(module.pressSources, 2 * count * sizeof(GameAiNodeId));
+
+    if (!module.pressCosts || !module.pressStarts || !module.pressSources) {
+      G_Error("Failed to allocate gate costs for %u nodes\n", count);
+    }
+
+    module.pressCount = count;
+  }
+
+  for (uint32_t i = 0; i < 2 * count; i++) {
+    module.pressCosts[i] = FLT_MAX;
+  }
+
+  const size_t heapCapacity = (size_t) count * 8 + 16;
+  if (!G_Ai_Node_EnsurePathPool(heapCapacity)) {
+    return false;
+  }
+
+  struct GameAiHeap *queue = aiNodePathQueue;
+
+  for (int32_t i = 0; i < numSources; i++) {
+    const GameAiNodeId source = sources[i];
+
+    if (source >= count || costs[source] == FLT_MAX || costs[source] >= module.pressCosts[source]) {
+      continue;
+    }
+
+    module.pressCosts[source] = module.pressStarts[source] = costs[source];
+    module.pressSources[source] = source;
+
+    GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
+    if (!e) {
+      G_Warn("Gate cost entry pool exhausted (capacity %zu)\n", heapCapacity);
+      return false;
+    }
+
+    *e = (GameAiNodePriority) { .id = source, .priority = costs[source], .crossed = false };
+
+    if (!G_Ai_HeapPush(queue, e->priority, e)) {
+      G_Warn("Gate cost heap exhausted (capacity %zu)\n", heapCapacity);
+      return false;
+    }
+  }
+
+  for (;;) {
+    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
+    if (!current) {
+      break;
+    }
+
+    const bool crossed = current->crossed;
+    const size_t slot = (crossed ? count : 0) + current->id;
+    const float cost = module.pressCosts[slot];
+
+    if (current->priority > cost) {
+      continue;
+    }
+
+    const GameAiNode *node = AI_NODE(aiNodes, current->id);
+    const size_t numLinks = node->links ? node->links->count : 0;
+    const size_t numPress = node->pressLinks ? node->pressLinks->count : 0;
+
+    const float start = module.pressStarts[slot];
+    const GameAiNodeId source = module.pressSources[slot];
+    const bool fromHazard = (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+    const bool fromMoved = G_Ai_Node_IsMovedBy(node, doors);
+
+    for (size_t i = 0; i < numLinks + numPress; i++) {
+      const bool press = i >= numLinks;
+      const GameAiLink *link = press ? AI_LINK(node->pressLinks, i - numLinks) : AI_LINK(node->links, i);
+
+      if (press && !G_Ai_Node_IsLinkGatedBy(link, doors)) {
+        continue;
+      }
+
+      const GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
+      const bool toMoved = G_Ai_Node_IsMovedBy(linkNode, doors);
+      const bool onDoors = !press && fromMoved && linkNode->model == node->model;
+
+      if (!press && !onDoors && (fromMoved || toMoved)) {
+        continue;
+      }
+
+      const float stepCost = press || onDoors ? link->cost : G_Ai_Node_StepCost(cl, node, fromHazard, link, doors);
+
+      if (stepCost < 0.f) {
+        continue;
+      }
+
+      const float newCost = cost + stepCost;
+      const bool gated = press || G_Ai_Node_IsLinkGatedBy(link, doors);
+      const bool crosses = crossed || gated;
+
+      if ((!crossed || gated) && newCost - start > window) {
+        continue;
+      }
+
+      const size_t next = (crosses ? count : 0) + link->id;
+
+      if (newCost >= module.pressCosts[next] || (crosses && !toMoved && newCost >= costs[link->id])) {
+        continue;
+      }
+
+      module.pressCosts[next] = newCost;
+      module.pressStarts[next] = start;
+      module.pressSources[next] = source;
+
+      if (crosses && newCost < gateCosts[link->id].cost) {
+        gateCosts[link->id] = (GameAiGateCost) { .cost = newCost, .key = key, .source = source };
+      }
+
+      GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
+      if (!e) {
+        G_Warn("Gate cost entry pool exhausted (capacity %zu)\n", heapCapacity);
+        return false;
+      }
+
+      *e = (GameAiNodePriority) { .id = link->id, .priority = newCost, .crossed = crosses };
+
+      if (!G_Ai_HeapPush(queue, newCost, e)) {
+        G_Warn("Gate cost heap exhausted (capacity %zu)\n", heapCapacity);
         return false;
       }
     }

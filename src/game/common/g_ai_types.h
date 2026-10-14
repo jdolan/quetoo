@@ -513,22 +513,26 @@ typedef struct GameAi {
   GameAiNodeId goalNode;
 
   /**
-   * @brief In `AI_STATE_ACTIVATE`, the index of the goal item's access, and of the button of the
-   * access that the bot presses.
+   * @brief The index of the gate through which the bot goes to its goal item, or -1. It stays set
+   * after `AI_STATE_ACTIVATE`, until the bot takes an item or chooses another.
    */
-  int32_t access;
-  int32_t accessButton;
+  int32_t gate;
 
   /**
-   * @brief In `AI_STATE_ACTIVATE`, the node from which the bot walks into the button.
+   * @brief In `AI_STATE_ACTIVATE`, the index of the gate's button that the bot presses.
    */
-  GameAiNodeId accessNode;
+  int32_t gateButton;
+
+  /**
+   * @brief In `AI_STATE_ACTIVATE`, the node from which the bot presses the button.
+   */
+  GameAiNodeId gateNode;
 
   /**
    * @brief In `AI_STATE_ACTIVATE`, the level time at which the bot found the activated doors at
    * rest, with no path to the item, or 0.
    */
-  uint32_t accessRestTime;
+  uint32_t gateRestTime;
 
   /**
    * @brief True if the bot lost sight of its last combat target, rather than killed it or lost it

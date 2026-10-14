@@ -131,4 +131,58 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent);
  * a doorway is closed.
  */
 bool G_Ai_Node_IsLinkOpen(const GameAiLink *link);
+
+/**
+ * @return True if the link crosses the doorway of a door with the `targetName`.
+ */
+bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *targetName);
+
+/**
+ * @return True if a link crosses the doorway of a door with the `targetName`.
+ */
+bool G_Ai_Node_HasGate(const char *targetName);
+
+/**
+ * @brief The travel cost of a node through closed doors that a button opens, from
+ * `G_Ai_Node_GateCosts`.
+ */
+typedef struct {
+  /**
+   * @brief The travel cost, or `FLT_MAX` if no path through the doors is cheaper than the path
+   * without them.
+   */
+  float cost;
+
+  /**
+   * @brief The caller's key for the doors.
+   */
+  int32_t key;
+
+  /**
+   * @brief The node from which the path presses the button.
+   */
+  GameAiNodeId source;
+} GameAiGateCost;
+
+/**
+ * @brief Finds the nodes that the client reaches cheaper if it goes first to one of the `sources`,
+ * presses there the button that moves the doors with the `targetname` `doors`, and then crosses
+ * the doors: a link through their doorway, whose state the press changes, or a press link. A path
+ * starts at a source at the source's cost in `costs`, and MUST take each link through the doors
+ * within `window` of travel cost after it. A path that has crossed the doors goes on only through
+ * nodes that it reaches cheaper than `costs` does, except the nodes on the doors, whose costs in
+ * `costs` are those of where the doors are now. Each node keeps one path for each phase, the
+ * cheapest, so that a costlier path with more of the window left is lost. A node on the doors
+ * follows only its links on the same doors and its press links, because its other links are those
+ * of where the doors are now. Those links, as press links, cost what the build or the linking test
+ * gave, because `G_Ai_Node_StepCost` would test them where the doors are now. Each node whose path
+ * through the doors is cheaper than its cost in `gateCosts`, and, except a node on the doors, than
+ * its cost in `costs`, receives that path's cost, the `key` and its source. The caller sets each
+ * cost in `gateCosts` to `FLT_MAX` before the first call, so that the calls for several doors leave
+ * the cheapest path of each node.
+ * @param costs The travel costs from the client, from `G_Ai_Node_TravelCosts`.
+ * @return True if the search ran to completion.
+ */
+bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources, const int32_t numSources,
+                         const char *doors, const float window, const int32_t key, GameAiGateCost *gateCosts);
 #endif

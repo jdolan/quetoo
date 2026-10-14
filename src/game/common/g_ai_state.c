@@ -170,23 +170,16 @@
 #define AI_PURSUE_MILLIS 6000
 
 /**
- * @brief The most items that a map marks with `ai_access_by`, and the most buttons and doors of
- * each.
+ * @brief The most gates of a map, and the most buttons and doors of each.
  */
-#define AI_MAX_ACCESS 32
-#define AI_ACCESS_BUTTONS 4
-#define AI_ACCESS_DOORS 8
+#define AI_MAX_GATES 32
+#define AI_GATE_BUTTONS 4
+#define AI_GATE_DOORS 8
 
 /**
  * @brief The most nodes from which a bot walks to a button.
  */
 #define AI_BUTTON_NODES 8
-
-/**
- * @brief The factor by which the way from a button to the item that it opens is taken to be longer
- * than the straight line between them, because the way is not linked until the doors move.
- */
-#define AI_ACCESS_DETOUR_SCALE 1.5f
 
 /**
  * @brief The longest time in milliseconds that a bot spends in `AI_STATE_ACTIVATE`.
@@ -210,18 +203,18 @@
 #define AI_SHOOT_EYE_HEIGHT 22.f
 
 /**
- * @brief The time in milliseconds after the doors of an access come to rest activated, within which
+ * @brief The time in milliseconds after the doors of a gate come to rest activated, within which
  * a bot MUST find a path to the item.
  */
-#define AI_ACCESS_PATH_MILLIS 1000
+#define AI_GATE_PATH_MILLIS 1000
 
 /**
- * @brief The time in milliseconds for which no bot tries an access that failed once, because its
+ * @brief The time in milliseconds for which no bot tries a gate that failed once, because its
  * doors did not open a way to the item, or the bot did not press the button. Each further failure
- * doubles it, up to `AI_ACCESS_RETRY_DOUBLINGS` times, until the item is taken through the access.
+ * doubles it, up to `AI_GATE_RETRY_DOUBLINGS` times, until a bot takes an item through the gate.
  */
-#define AI_ACCESS_RETRY_MILLIS 60000
-#define AI_ACCESS_RETRY_DOUBLINGS 4
+#define AI_GATE_RETRY_MILLIS 60000
+#define AI_GATE_RETRY_DOUBLINGS 4
 
 /**
  * @brief The most doors that a map marks with `"ai_hint" "trap"`, grouped by `targetname`, and the
@@ -249,21 +242,22 @@ typedef struct {
 } GameAiTrap;
 
 /**
- * @brief An item that a map marks with `ai_access_by`: the doors with that `targetname`, and the
- * buttons that target them, which a bot touches to move the doors.
+ * @brief A gate: the doors with one `targetname`, whose doorways the navigation links cross, and
+ * the buttons that target them, which a bot touches or shoots to move the doors.
  */
 typedef struct {
-  const GameEntity *ent;
-  const GameEntity *doors[AI_ACCESS_DOORS];
+  const char *name;
+  const GameEntity *doors[AI_GATE_DOORS];
   int32_t numDoors;
-  const GameEntity *buttons[AI_ACCESS_BUTTONS];
+  const GameEntity *buttons[AI_GATE_BUTTONS];
   int32_t numButtons;
 
   /**
-   * @brief The nodes of each button within `AI_ACTIVATE_REACH` that see it.
+   * @brief The nodes from which a bot presses a button, and the button of each.
    */
-  GameAiNodeId buttonNodes[AI_ACCESS_BUTTONS][AI_BUTTON_NODES];
-  int32_t numButtonNodes[AI_ACCESS_BUTTONS];
+  GameAiNodeId sources[AI_GATE_BUTTONS * AI_BUTTON_NODES];
+  int32_t sourceButtons[AI_GATE_BUTTONS * AI_BUTTON_NODES];
+  int32_t numSources;
 
   /**
    * @brief The shortest time in milliseconds for which a door stays activated after a press: its
@@ -272,15 +266,15 @@ typedef struct {
   uint32_t openMillis;
 
   /**
-   * @brief The level time at which a bot last failed to use the access, or 0.
+   * @brief The level time at which a bot last failed to use the gate, or 0.
    */
   uint32_t failTime;
 
   /**
-   * @brief The count of failures since the item was last taken through the access.
+   * @brief The count of failures since a bot last took an item through the gate.
    */
   int32_t numFails;
-} GameAiAccess;
+} GameAiGate;
 
 /**
  * @brief An item that a bot may go to, with its node and its utility.
@@ -292,10 +286,10 @@ typedef struct {
   float utility;
 
   /**
-   * @brief The index of the item's access, and of its button, if the bot reaches the item only
-   * through a button, or -1.
+   * @brief The index of the gate, and of its button, if the bot reaches the item sooner through a
+   * gate, or -1.
    */
-  int32_t access;
+  int32_t gate;
   int32_t button;
 
   /**
@@ -327,10 +321,20 @@ static struct {
   uint32_t count;
 
   /**
-   * @brief The items that a map marks with `ai_access_by`.
+   * @brief The gates of the map.
    */
-  GameAiAccess access[AI_MAX_ACCESS];
-  int32_t numAccess;
+  GameAiGate gates[AI_MAX_GATES];
+  int32_t numGates;
+
+  /**
+   * @brief The travel costs from the bot that decides, to every node, through a gate.
+   */
+  GameAiGateCost *gateCosts;
+
+  /**
+   * @brief The number of costs that `gateCosts` holds.
+   */
+  uint32_t gateCount;
 
   /**
    * @brief The traps that a map marks with `"ai_hint" "trap"`.
@@ -505,45 +509,65 @@ static GameAiNodeId G_Ai_ItemNode(const GameEntity *ent) {
 }
 
 /**
- * @return The travel cost to the item through the nearest button of its access: to a node of the
- * button, and from there to the item, and the access, the button and the node, or `FLT_MAX` if the
- * item has no access, or the bot cannot reach a button and then the item before its doors move back.
+ * @return True if a door of the gate is activated, so that its doorways open.
  */
-static float G_Ai_AccessCost(const float *costs, const GameEntity *ent, int32_t *access, int32_t *button,
-                             GameAiNodeId *buttonNode) {
+static bool G_Ai_IsGateOpen(const GameAiGate *gate) {
 
-  float best = FLT_MAX;
-
-  for (int32_t i = 0; i < module.numAccess; i++) {
-    const GameAiAccess *a = &module.access[i];
-
-    if (a->ent != ent) {
-      continue;
-    }
-
-    if (a->numFails && gameLevel.time - a->failTime < (uint32_t) AI_ACCESS_RETRY_MILLIS << Mini(a->numFails - 1, AI_ACCESS_RETRY_DOUBLINGS)) {
-      continue;
-    }
-
-    for (int32_t j = 0; j < a->numButtons; j++) {
-
-      for (int32_t k = 0; k < a->numButtonNodes[j]; k++) {
-        const GameAiNodeId node = a->buttonNodes[j][k];
-        const float through = Vec3_Distance(G_Ai_Node_GetPosition(node), ent->s.origin) * AI_ACCESS_DETOUR_SCALE;
-
-        if (costs[node] == FLT_MAX || costs[node] + through >= best || G_Ai_TravelMillis(through) > a->openMillis) {
-          continue;
-        }
-
-        best = costs[node] + through;
-        *access = i;
-        *button = j;
-        *buttonNode = node;
-      }
+  for (int32_t i = 0; i < gate->numDoors; i++) {
+    if (G_func_door_IsActivated(gate->doors[i])) {
+      return true;
     }
   }
 
-  return best;
+  return false;
+}
+
+/**
+ * @return The travel costs from the bot to every node through the closed gates that it MAY try, or
+ * NULL if the map has none. The costs are valid until the next call.
+ * @param costs The travel costs from `G_Ai_TravelCosts`.
+ */
+static const GameAiGateCost *G_Ai_GateCosts(const GameClient *cl, const float *costs) {
+
+  if (!module.numGates) {
+    return NULL;
+  }
+
+  const uint32_t count = G_Ai_Node_Count();
+
+  if (count > module.gateCount) {
+    module.gateCosts = realloc(module.gateCosts, count * sizeof(GameAiGateCost));
+
+    if (!module.gateCosts) {
+      G_Error("Failed to allocate gate costs for %u nodes\n", count);
+    }
+
+    module.gateCount = count;
+  }
+
+  for (uint32_t i = 0; i < count; i++) {
+    module.gateCosts[i] = (GameAiGateCost) { .cost = FLT_MAX, .key = -1, .source = AI_NODE_INVALID };
+  }
+
+  for (int32_t i = 0; i < module.numGates; i++) {
+    const GameAiGate *gate = &module.gates[i];
+
+    if (gate->numFails && gameLevel.time - gate->failTime < (uint32_t) AI_GATE_RETRY_MILLIS << Mini(gate->numFails - 1, AI_GATE_RETRY_DOUBLINGS)) {
+      continue;
+    }
+
+    if (G_Ai_IsGateOpen(gate)) {
+      continue;
+    }
+
+    const float window = gate->openMillis == UINT32_MAX ? FLT_MAX : gate->openMillis * PM_SPEED_RUN / 1000.f;
+
+    if (!G_Ai_Node_GateCosts(cl, costs, gate->sources, gate->numSources, gate->name, window, i, module.gateCosts)) {
+      return NULL;
+    }
+  }
+
+  return module.gateCosts;
 }
 
 /**
@@ -552,12 +576,13 @@ static float G_Ai_AccessCost(const float *costs, const GameEntity *ent, int32_t 
  * @param maxCost The most travel cost, or 0 for no limit.
  * @param retreat True to choose only health, armor and the weapons that would arm the bot, and to
  * shun those that lie toward the enemy.
- * @param access True to choose also an item that the bot reaches only through a button.
+ * @param gateCosts The travel costs through gates, to choose also an item that the bot reaches
+ * sooner through a gate, or NULL.
  */
 static GameAiChoice G_Ai_ChooseItem(const GameClient *cl, const float *costs, const float maxCost, const bool retreat,
-                                    const bool access) {
+                                    const GameAiGateCost *gateCosts) {
 
-  GameAiChoice best = { .node = AI_NODE_INVALID, .access = -1, .button = -1, .buttonNode = AI_NODE_INVALID };
+  GameAiChoice best = { .node = AI_NODE_INVALID, .gate = -1, .button = -1, .buttonNode = AI_NODE_INVALID };
 
   const GameEntity *enemy = cl->ai->combatTarget.type == AI_GOAL_ENTITY ? cl->ai->combatTarget.entity.ent : NULL;
   const float noise = Mixf(AI_ITEM_NOISE_MAX, AI_ITEM_NOISE_MIN, cl->ai->personality.awareness);
@@ -574,12 +599,22 @@ static GameAiChoice G_Ai_ChooseItem(const GameClient *cl, const float *costs, co
     }
 
     float cost = costs[node];
-    int32_t through = -1;
+    int32_t gate = -1;
     int32_t button = -1;
     GameAiNodeId buttonNode = AI_NODE_INVALID;
 
-    if (cost == FLT_MAX && access) {
-      cost = G_Ai_AccessCost(costs, ent, &through, &button, &buttonNode);
+    if (gateCosts && gateCosts[node].cost < cost) {
+      const GameAiGate *g = &module.gates[gateCosts[node].key];
+
+      for (int32_t i = 0; i < g->numSources; i++) {
+        if (g->sources[i] == gateCosts[node].source) {
+          cost = gateCosts[node].cost;
+          gate = gateCosts[node].key;
+          button = g->sourceButtons[i];
+          buttonNode = g->sources[i];
+          break;
+        }
+      }
     }
 
     if (cost == FLT_MAX || (maxCost > 0.f && cost > maxCost)) {
@@ -604,7 +639,7 @@ static GameAiChoice G_Ai_ChooseItem(const GameClient *cl, const float *costs, co
       best.node = node;
       best.value = value;
       best.utility = utility;
-      best.access = through;
+      best.gate = gate;
       best.button = button;
       best.buttonNode = buttonNode;
     }
@@ -1053,19 +1088,21 @@ static void G_Ai_State_Navigate(GameClient *cl) {
     }
   }
 
-  const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, false, true);
+  const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, false, G_Ai_GateCosts(cl, costs));
 
   if (item.ent && item.ent != goal && (!goal || item.utility > goalUtility * AI_SWITCH_SCALE)) {
 
-    if (item.access != -1) {
+    ai->gate = item.gate;
+
+    if (item.gate != -1) {
       G_Ai_Enter(cl, AI_STATE_ACTIVATE);
-      ai->access = item.access;
-      ai->accessButton = item.button;
-      ai->accessNode = item.buttonNode;
-      ai->accessRestTime = 0;
+      ai->gateButton = item.button;
+      ai->gateNode = item.buttonNode;
+      ai->gateRestTime = 0;
       G_Ai_SetGoal(cl, item.ent, item.node);
 
       if (G_Ai_PathTo(cl, item.buttonNode, item.utility, NULL)) {
+        G_Ai_Probe_GateUse(cl, module.gates[item.gate].name, "choose");
         return;
       }
 
@@ -1247,7 +1284,7 @@ static void G_Ai_State_Fight(GameClient *cl) {
 
   if (costs) {
     const float maxCost = engaged ? AI_FIGHT_ITEM_COST : 0.f;
-    const GameAiChoice item = G_Ai_ChooseItem(cl, costs, maxCost, false, false);
+    const GameAiChoice item = G_Ai_ChooseItem(cl, costs, maxCost, false, NULL);
 
     if (G_Ai_GoToItem(cl, costs, &item, maxCost, false)) {
       return;
@@ -1285,14 +1322,14 @@ static void G_Ai_State_Retreat(GameClient *cl) {
   const float *costs = G_Ai_TravelCosts(cl);
 
   if (costs) {
-    const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, true, false);
+    const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, true, NULL);
 
     if (G_Ai_GoToItem(cl, costs, &item, 0.f, true)) {
       return;
     }
 
     if (!G_Ai_IsArmed(cl)) {
-      const GameAiChoice any = G_Ai_ChooseItem(cl, costs, 0.f, false, false);
+      const GameAiChoice any = G_Ai_ChooseItem(cl, costs, 0.f, false, NULL);
 
       if (G_Ai_GoToItem(cl, costs, &any, 0.f, false)) {
         return;
@@ -1307,26 +1344,12 @@ static void G_Ai_State_Retreat(GameClient *cl) {
 }
 
 /**
- * @return True if a door of the access is activated, so that the way to its item opens.
+ * @return True if every activated door of the gate has come to rest.
  */
-static bool G_Ai_IsAccessOpen(const GameAiAccess *access) {
+static bool G_Ai_IsGateAtRest(const GameAiGate *gate) {
 
-  for (int32_t i = 0; i < access->numDoors; i++) {
-    if (G_func_door_IsActivated(access->doors[i])) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * @return True if every activated door of the access has come to rest.
- */
-static bool G_Ai_IsAccessAtRest(const GameAiAccess *access) {
-
-  for (int32_t i = 0; i < access->numDoors; i++) {
-    if (access->doors[i]->moveInfo.state == MOVE_STATE_GOING_UP) {
+  for (int32_t i = 0; i < gate->numDoors; i++) {
+    if (gate->doors[i]->moveInfo.state == MOVE_STATE_GOING_UP) {
       return false;
     }
   }
@@ -1335,13 +1358,15 @@ static bool G_Ai_IsAccessAtRest(const GameAiAccess *access) {
 }
 
 /**
- * @brief Marks the access as failed, so that no bot tries it for a time that doubles with each
+ * @brief Marks the gate as failed, so that no bot tries it for a time that doubles with each
  * failure, and returns the bot to roam, away from the item.
  */
-static void G_Ai_FailAccess(GameClient *cl, GameAiAccess *access, const GameEntity *item) {
+static void G_Ai_FailGate(GameClient *cl, GameAiGate *gate, const GameEntity *item) {
 
-  access->failTime = gameLevel.time;
-  access->numFails++;
+  gate->failTime = gameLevel.time;
+  gate->numFails++;
+
+  G_Ai_Probe_GateUse(cl, gate->name, "fail");
 
   G_Ai_Avoid(cl, item);
   G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
@@ -1404,12 +1429,12 @@ static bool G_Ai_IsAtButton(const GameClient *cl, const GameEntity *button) {
 }
 
 /**
- * @brief Goes to the button of the goal item's access, and within `AI_ACTIVATE_REACH` walks into it,
- * or, for a button that a shot presses, shoots it once it sees it within `AI_SHOOT_REACH`.
- * Once a door of the access moves, and a path to the item exists, the bot collects the item. If no
- * path exists `AI_ACCESS_PATH_MILLIS` after the doors come to rest while the bot is at its button,
- * or the bot does not press the button within `AI_ACTIVATE_MILLIS`, the access fails. The bot gives up, and avoids the item, if it
- * finds no path back to the button's node.
+ * @brief Goes to the button of the gate on the way to the goal item, and within `AI_ACTIVATE_REACH`
+ * walks into it, or, for a button that a shot presses, shoots it once it sees it within
+ * `AI_SHOOT_REACH`. Once a door of the gate moves, and a path to the item exists, the bot collects
+ * the item. If no path exists `AI_GATE_PATH_MILLIS` after the doors come to rest while the bot is at
+ * its button, or the bot does not press the button within `AI_ACTIVATE_MILLIS`, the gate fails. The
+ * bot gives up, and avoids the item, if it finds no path back to the button's node.
  */
 static void G_Ai_State_Activate(GameClient *cl) {
 
@@ -1421,24 +1446,24 @@ static void G_Ai_State_Activate(GameClient *cl) {
 
   const GameEntity *item = G_Ai_GoalEntity(cl);
 
-  if (!item || ai->access < 0 || ai->access >= module.numAccess || module.access[ai->access].ent != item ||
-      ai->accessButton < 0 || ai->accessButton >= module.access[ai->access].numButtons) {
+  if (!item || ai->gate < 0 || ai->gate >= module.numGates || ai->gateButton < 0 ||
+      ai->gateButton >= module.gates[ai->gate].numButtons) {
     G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
     G_Ai_Enter(cl, AI_STATE_ROAM);
     return;
   }
 
-  GameAiAccess *access = &module.access[ai->access];
+  GameAiGate *gate = &module.gates[ai->gate];
 
   if (gameLevel.time - ai->stateTime > AI_ACTIVATE_MILLIS) {
-    G_Ai_FailAccess(cl, access, item);
+    G_Ai_FailGate(cl, gate, item);
     return;
   }
 
-  const GameEntity *target = access->buttons[ai->accessButton];
+  const GameEntity *target = gate->buttons[ai->gateButton];
   const Vec3 button = Box3_Center(target->absBounds);
 
-  if (G_Ai_IsAccessOpen(access)) {
+  if (G_Ai_IsGateOpen(gate)) {
     ai->shootTarget = NULL;
 
     if (!G_Ai_ShouldReview(cl)) {
@@ -1448,17 +1473,18 @@ static void G_Ai_State_Activate(GameClient *cl) {
     const float *costs = G_Ai_TravelCosts(cl);
 
     if (costs && ai->goalNode < G_Ai_Node_Count() && costs[ai->goalNode] != FLT_MAX) {
+      G_Ai_Probe_GateUse(cl, gate->name, "open");
       G_Ai_Enter(cl, AI_STATE_COLLECT);
       G_Ai_PathTo(cl, ai->goalNode, AI_PURSUE_PRIORITY, item);
       return;
     }
 
-    if (!G_Ai_IsAccessAtRest(access) || !G_Ai_IsAtButton(cl, target)) {
-      ai->accessRestTime = 0;
-    } else if (!ai->accessRestTime) {
-      ai->accessRestTime = gameLevel.time;
-    } else if (gameLevel.time - ai->accessRestTime > AI_ACCESS_PATH_MILLIS) {
-      G_Ai_FailAccess(cl, access, item);
+    if (!G_Ai_IsGateAtRest(gate) || !G_Ai_IsAtButton(cl, target)) {
+      ai->gateRestTime = 0;
+    } else if (!ai->gateRestTime) {
+      ai->gateRestTime = gameLevel.time;
+    } else if (gameLevel.time - ai->gateRestTime > AI_GATE_PATH_MILLIS) {
+      G_Ai_FailGate(cl, gate, item);
       return;
     }
   } else if (G_Ai_IsShotButton(target)) {
@@ -1469,7 +1495,7 @@ static void G_Ai_State_Activate(GameClient *cl) {
   }
 
   if (ai->moveTarget.type == AI_GOAL_NONE && !G_Ai_IsAtButton(cl, target) &&
-      !G_Ai_PathTo(cl, ai->accessNode, AI_PURSUE_PRIORITY, NULL)) {
+      !G_Ai_PathTo(cl, ai->gateNode, AI_PURSUE_PRIORITY, NULL)) {
     G_Ai_Avoid(cl, item);
     G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
     G_Ai_Enter(cl, AI_STATE_ROAM);
@@ -1588,17 +1614,17 @@ void G_Ai_State_Reset(GameClient *cl) {
   ai->reviewTime = 0;
   ai->statePathed = false;
   ai->combatTargetLost = false;
-  ai->access = ai->accessButton = -1;
-  ai->accessNode = AI_NODE_INVALID;
+  ai->gate = ai->gateButton = -1;
+  ai->gateNode = AI_NODE_INVALID;
   ai->shootTarget = NULL;
 
   G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
 }
 
 /**
- * @return True if the entity is a door that `ai_access_by` MAY name.
+ * @return True if the entity is a door that a button MAY move.
  */
-static bool G_Ai_IsAccessDoor(const GameEntity *ent) {
+static bool G_Ai_IsDoor(const GameEntity *ent) {
   return ent->classname && (!Str_Compare(ent->classname, "func_door") || !Str_Compare(ent->classname, "func_door_rotating"));
 }
 
@@ -1663,6 +1689,13 @@ static void G_Ai_ButtonNodes(const GameEntity *button, GameAiNodeId *nodes, int3
 }
 
 /**
+ * @return True if the map marks the door with `"ai_hint" "trap"`.
+ */
+static bool G_Ai_IsTrapDoor(const GameEntity *ent) {
+  return !Str_Compare(gi.EntityValue(ent->def, "ai_hint")->string, "trap");
+}
+
+/**
  * @brief Finds the doors that a map marks with `"ai_hint" "trap"`, grouped by `targetname`, and the
  * buttons that a bot touches to move them.
  */
@@ -1671,7 +1704,7 @@ static void G_Ai_LoadTraps(void) {
   module.numTraps = 0;
 
   G_ForEachEntity(ent, {
-    if (!G_Ai_IsAccessDoor(ent) || !ent->targetName || Str_Compare(gi.EntityValue(ent->def, "ai_hint")->string, "trap")) {
+    if (!G_Ai_IsDoor(ent) || !ent->targetName || !G_Ai_IsTrapDoor(ent)) {
       continue;
     }
 
@@ -1709,71 +1742,96 @@ static void G_Ai_LoadTraps(void) {
 }
 
 /**
+ * @brief Finds the gates: the doors with the `target` of each `func_button` that a bot touches or
+ * shoots, if a navigation link crosses their doorway, or their nodes link to others where a press
+ * moves them, and the nodes from which a bot presses the button. A door marked `"ai_hint" "trap"` is
+ * not part of a gate.
+ */
+static void G_Ai_LoadGates(void) {
+
+  module.numGates = 0;
+
+  G_ForEachEntity(ent, {
+    if (Str_Compare(ent->classname, "func_button") || !ent->target || !(ent->Touch || G_Ai_IsShotButton(ent))) {
+      continue;
+    }
+
+    GameAiGate *gate = NULL;
+
+    for (int32_t j = 0; j < module.numGates && !gate; j++) {
+      if (!Str_Compare(module.gates[j].name, ent->target)) {
+        gate = &module.gates[j];
+      }
+    }
+
+    if (!gate) {
+      if (!G_Ai_Node_HasGate(ent->target)) {
+        continue;
+      }
+
+      if (module.numGates == AI_MAX_GATES) {
+        G_Warn("More than %d doors that buttons move gate navigation links\n", AI_MAX_GATES);
+        break;
+      }
+
+      gate = &module.gates[module.numGates];
+      memset(gate, 0, sizeof(*gate));
+
+      gate->name = ent->target;
+      gate->openMillis = UINT32_MAX;
+
+      for (int32_t j = 0; j < sv_maxEntities->integer; j++) {
+        const GameEntity *other = ge.entities[j];
+
+        if (other->inUse && other->targetName && !Str_Compare(other->targetName, gate->name) &&
+            G_Ai_IsDoor(other) && !G_Ai_IsTrapDoor(other) && gate->numDoors < AI_GATE_DOORS) {
+          gate->doors[gate->numDoors++] = other;
+          const uint32_t open = G_Ai_DoorOpenMillis(other);
+          if (open < gate->openMillis) {
+            gate->openMillis = open;
+          }
+        }
+      }
+
+      if (!gate->numDoors) {
+        continue;
+      }
+
+      module.numGates++;
+    }
+
+    if (gate->numButtons == AI_GATE_BUTTONS) {
+      continue;
+    }
+
+    GameAiNodeId nodes[AI_BUTTON_NODES];
+    int32_t numNodes;
+
+    G_Ai_ButtonNodes(ent, nodes, &numNodes);
+
+    for (int32_t j = 0; j < numNodes; j++) {
+      gate->sources[gate->numSources] = nodes[j];
+      gate->sourceButtons[gate->numSources] = gate->numButtons;
+      gate->numSources++;
+    }
+
+    gate->buttons[gate->numButtons++] = ent;
+  });
+
+  for (int32_t i = 0; i < module.numGates; i++) {
+    const GameAiGate *gate = &module.gates[i];
+
+    G_Ai_Probe_Gate(gate->name, gate->numButtons, gate->numSources, gate->numDoors, gate->openMillis);
+  }
+}
+
+/**
  * @see g_ai_state.h
  */
 void G_Ai_State_Load(void) {
 
   G_Ai_LoadTraps();
-
-  module.numAccess = 0;
-
-  G_ForEachEntity(ent, {
-    const char *name = gi.EntityValue(ent->def, "ai_access_by")->string;
-
-    if (!*name) {
-      continue;
-    }
-
-    if (!ent->item) {
-      G_Warn("%s at %s has ai_access_by, which only items use\n", ent->classname, vtos(ent->s.origin));
-      continue;
-    }
-
-    if (module.numAccess == AI_MAX_ACCESS) {
-      G_Warn("More than %d items have ai_access_by\n", AI_MAX_ACCESS);
-      break;
-    }
-
-    GameAiAccess *access = &module.access[module.numAccess];
-    memset(access, 0, sizeof(*access));
-
-    access->ent = ent;
-    access->openMillis = UINT32_MAX;
-
-    for (int32_t j = 0; j < sv_maxEntities->integer; j++) {
-      const GameEntity *other = ge.entities[j];
-
-      if (!other->inUse) {
-        continue;
-      }
-
-      if (other->targetName && !Str_Compare(other->targetName, name) && G_Ai_IsAccessDoor(other) &&
-          access->numDoors < AI_ACCESS_DOORS) {
-        access->doors[access->numDoors++] = other;
-        const uint32_t open = G_Ai_DoorOpenMillis(other);
-        if (open < access->openMillis) {
-          access->openMillis = open;
-        }
-      }
-
-      if (other->target && !Str_Compare(other->target, name) && (other->Touch || G_Ai_IsShotButton(other)) &&
-          !Str_Compare(other->classname, "func_button") && access->numButtons < AI_ACCESS_BUTTONS) {
-        G_Ai_ButtonNodes(other, access->buttonNodes[access->numButtons], &access->numButtonNodes[access->numButtons]);
-        access->buttons[access->numButtons++] = other;
-      }
-    }
-
-    if (!access->numDoors || !access->numButtons) {
-      G_Warn("%s at %s: ai_access_by %s names %d doors, with %d buttons that a bot can press\n",
-             ent->classname, vtos(ent->s.origin), name, access->numDoors, access->numButtons);
-      continue;
-    }
-
-    G_Debug("%s at %s opens with %d buttons and %d doors, for %ums\n", ent->classname, vtos(ent->s.origin),
-            access->numButtons, access->numDoors, access->openMillis);
-
-    module.numAccess++;
-  });
+  G_Ai_LoadGates();
 }
 
 /**
@@ -1781,21 +1839,24 @@ void G_Ai_State_Load(void) {
  */
 void G_Ai_State_Unload(void) {
 
-  module.numAccess = 0;
+  module.numGates = 0;
   module.numTraps = 0;
 }
 
 /**
  * @see g_ai_state.h
  */
-void G_Ai_State_ItemTaken(const GameEntity *item) {
+void G_Ai_State_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 
-  for (int32_t i = 0; i < module.numAccess; i++) {
-    GameAiAccess *access = &module.access[i];
+  if (!taker->client || !taker->client->ai) {
+    return;
+  }
 
-    if (access->ent == item && G_Ai_IsAccessOpen(access)) {
-      access->numFails = 0;
-    }
+  GameAi *ai = taker->client->ai;
+
+  if (ai->gate >= 0 && ai->gate < module.numGates && G_Ai_GoalEntity(taker->client) == item) {
+    module.gates[ai->gate].numFails = 0;
+    ai->gate = -1;
   }
 }
 
@@ -1807,4 +1868,8 @@ void G_Ai_State_Shutdown(void) {
   free(module.costs);
   module.costs = NULL;
   module.count = 0;
+
+  free(module.gateCosts);
+  module.gateCosts = NULL;
+  module.gateCount = 0;
 }
