@@ -23,9 +23,10 @@
 #include "bg_pmove.h"
 
 /**
- * @brief The contents that a player stands on and collides with.
+ * @brief The contents that a bot stands on and collides with: a player's, and monster clip, which
+ * only bots collide with, so that a mapper MAY keep bots off a place that players use.
  */
-#define NAV_MASK CONTENTS_MASK_CLIP_PLAYER
+#define NAV_MASK CONTENTS_MASK_CLIP_MONSTER
 
 /**
  * @brief The height above a cell center at which its floor sample starts. Floors on a 16 unit

@@ -1246,7 +1246,7 @@ static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
       continue;
     }
 
-    const CollisionTrace tr = gi.Trace(cl->entity->s.origin, center, bounds, cl->entity, CONTENTS_MASK_CLIP_PLAYER);
+    const CollisionTrace tr = gi.Trace(cl->entity->s.origin, center, bounds, cl->entity, cl->entity->clipMask);
     if (tr.fraction < 1.f && tr.ent != trap->buttons[i]) {
       continue;
     }

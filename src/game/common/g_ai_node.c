@@ -753,7 +753,8 @@ bool G_Ai_Node_CanPathTo(const Vec3 position) {
   const Vec3 end = Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f));
 
   // check if the destination has ground
-  CollisionTrace tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), MakeVec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+  CollisionTrace tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), MakeVec3(1.f, 1.f, 0.f)), NULL,
+                               CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER_CLIP | CONTENTS_MASK_LIQUID);
 
   // bad ground
   bool stuckInMover = tr.ent
@@ -775,7 +776,7 @@ bool G_Ai_Node_CanPathTo(const Vec3 position) {
                Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f)),
                MakeBox3(MakeVec3(-4.f, -4.f, bounds.mins.z), MakeVec3(4.f, 4.f, bounds.maxs.z)),
                NULL,
-               CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+               CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER_CLIP | CONTENTS_MASK_LIQUID);
     stuckInMover = tr.ent
         && (tr.startSolid || tr.allSolid)
         && (((GameEntity *) tr.ent)->s.number != 0
@@ -810,7 +811,7 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index) {
  * @return A player trace against the world alone, so that players and movers do not block it.
  */
 static CollisionTrace G_Ai_Node_WorldTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
-  return gi.Clip(start, end, bounds, ge.entities[0], CONTENTS_MASK_CLIP_CORPSE);
+  return gi.Clip(start, end, bounds, ge.entities[0], CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER_CLIP);
 }
 
 /**
@@ -1168,11 +1169,11 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
 
       const Vec3 column = MakeVec3(origin.x, origin.y, node->position.z);
 
-      if (gi.Trace(origin, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+      if (gi.Trace(origin, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
         continue;
       }
 
-      if (gi.Trace(column, node->position, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+      if (gi.Trace(column, node->position, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
         continue;
       }
 
@@ -1196,7 +1197,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
 
       const Vec3 column = MakeVec3(pad.x, pad.y, item->s.origin.z);
 
-      if (gi.Trace(pad, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+      if (gi.Trace(pad, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
         continue;
       }
 
@@ -1698,7 +1699,7 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
   const float height = position.z - node->position.z;
 
   if (fabsf(height) <= PM_STEP_HEIGHT) {
-    const CollisionTrace tr = gi.Trace(node->position, position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+    const CollisionTrace tr = gi.Trace(node->position, position, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
     if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, position)) {
       return false;
     }
@@ -1716,12 +1717,12 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
   const Vec3 low = height > 0.f ? node->position : position;
   const Vec3 over = MakeVec3(low.x, low.y, high.z);
 
-  const CollisionTrace across = gi.Trace(high, over, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+  const CollisionTrace across = gi.Trace(high, over, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
   if (across.startSolid || across.fraction < 1.f) {
     return false;
   }
 
-  const CollisionTrace down = gi.Trace(over, low, G_PlayerBounds(), NULL, CONTENTS_MASK_CLIP_PLAYER);
+  const CollisionTrace down = gi.Trace(over, low, G_PlayerBounds(), NULL, CONTENTS_MASK_CLIP_MONSTER);
   if (down.startSolid || down.fraction < 1.f) {
     return false;
   }
@@ -1886,7 +1887,7 @@ static void G_Ai_Node_LinkMovers(void) {
         continue;
       }
 
-      const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+      const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
       if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, other->position)) {
         continue;
       }
@@ -2001,7 +2002,7 @@ static void G_Ai_Node_LinkPresses(void) {
             continue;
           }
 
-          const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+          const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
           if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, other->position)) {
             continue;
           }

@@ -283,10 +283,11 @@ void Cg_InitAiNodes(void) {
 }
 
 /**
- * @return A player trace against the world only, as the game flies jump pads.
+ * @return A bot's trace against the world only, which monster clip blocks, as the game flies
+ * jump pads.
  */
 static CollisionTrace Cg_AiFlightTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
-  return cgi.BoxTrace(start, end, bounds, 0, CONTENTS_MASK_CLIP_PLAYER);
+  return cgi.BoxTrace(start, end, bounds, 0, CONTENTS_MASK_CLIP_MONSTER);
 }
 
 /**

@@ -447,7 +447,7 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   Vec3_Vectors(MakeVec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
   const Vec3 end = Vec3_Fmaf(ent->s.origin, Box3_Size(ent->bounds).x * 2.0f, forward);
-  const CollisionTrace tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
+  const CollisionTrace tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, ent->clipMask);
 
   bool blocked = tr.fraction < 1.0f;
 
@@ -524,7 +524,7 @@ static bool G_Ai_CanStep(const GameEntity *ent, const Vec3 dir) {
   Box3 bounds = ent->bounds;
   bounds.mins.z += PM_STEP_HEIGHT;
 
-  if (gi.Trace(ent->s.origin, end, bounds, ent, CONTENTS_MASK_CLIP_PLAYER).fraction < 1.f) {
+  if (gi.Trace(ent->s.origin, end, bounds, ent, ent->clipMask).fraction < 1.f) {
     return false;
   }
 
@@ -584,11 +584,7 @@ static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box
 
   const GameEntity *ent= aiCurrentEntity;
 
-  if (G_IsMeat(ent) && ent->dead) {
-    return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_CORPSE);
-  } else {
-    return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
-  }
+  return gi.Trace(start, end, bounds, ent, ent->clipMask);
 }
 
 /**
@@ -943,7 +939,7 @@ bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity) {
     const Vec3 end = Vec3_Fmaf(origin, AI_FALL_STEP_SECONDS, velocity);
     velocity.z -= gravity * AI_FALL_STEP_SECONDS;
 
-    const CollisionTrace tr = gi.Trace(origin, end, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
+    const CollisionTrace tr = gi.Trace(origin, end, ent->bounds, ent, ent->clipMask);
 
     if (tr.startSolid) {
       return false;
@@ -965,14 +961,14 @@ bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity) {
 
       if (tr.plane.normal.z >= PM_STEP_NORMAL) {
         const Vec3 slide = Vec3_Fmaf(tr.end, AI_FALL_SLIDE_SECONDS, MakeVec3(velocity.x, velocity.y, 0.f));
-        const CollisionTrace wall = gi.Trace(tr.end, slide, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
+        const CollisionTrace wall = gi.Trace(tr.end, slide, ent->bounds, ent, ent->clipMask);
 
         if (wall.fraction < 1.f) {
           return false;
         }
 
         const Vec3 below = Vec3_Fmaf(slide, AI_FALL_SLIDE_DEPTH, Vec3_Down());
-        return gi.Trace(slide, below, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER).fraction == 1.f;
+        return gi.Trace(slide, below, ent->bounds, ent, ent->clipMask).fraction == 1.f;
       }
 
       velocity = Vec3_Subtract(velocity, Vec3_Scale(tr.plane.normal, Vec3_Dot(velocity, tr.plane.normal)));
@@ -2118,7 +2114,7 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
       }
     }
 
-    const CollisionTrace tr = gi.Trace(ent->s.origin, node, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
+    const CollisionTrace tr = gi.Trace(ent->s.origin, node, bounds, ent, ent->clipMask);
 
     if (tr.startSolid || tr.fraction < 1.f || !G_Ai_HasFloor(ent, floor, node) ||
         G_Ai_CrossesTrigger(ent->s.origin, node, true)) {

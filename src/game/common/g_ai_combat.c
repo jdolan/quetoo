@@ -862,7 +862,7 @@ static bool G_Ai_HasFloorAround(const GameEntity *ent) {
     const float angle = Radians(i * 45.f);
     const Vec3 end = Vec3_Add(start, MakeVec3(cosf(angle) * AI_DODGE_FLOOR_DISTANCE, sinf(angle) * AI_DODGE_FLOOR_DISTANCE, 0.f));
 
-    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
+    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), ent, ent->clipMask);
     const Vec3 point = Vec3_Fmaf(tr.end, -1.f, Vec3_Normalize(Vec3_Subtract(end, start)));
     const Vec3 below = Vec3_Subtract(point, MakeVec3(0.f, 0.f, AI_DODGE_HEIGHT + PM_STEP_HEIGHT * 4.f));
 
