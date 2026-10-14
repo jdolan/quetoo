@@ -79,8 +79,8 @@ python3 src/tools/ai_probe.py hazards "$LOG" --near 250,-500,250
 - `summary` groups deaths and unplanned pushes by the link that the bot last followed. Start with
   the largest group.
 - `deaths`, `pushes` and `hazards` print each event with the 32 samples before it, 100 ms apart:
-  position, velocity, link, link type, strafe jump state, ground, the bot's state, and whether
-  damage knocked it back. Read the samples to see what the bot
+  position, velocity, link, link type, strafe jump state, ground, the bot's state, whether
+  damage knocked it back, and whether it is on a ladder. Read the samples to see what the bot
   did: whether it strafe jumped, overshot its node, or left its link.
 - A death below about z -900 on a map with a void is a fall. The position of the death is where
   the bot hit the hurt trigger, often far from the edge that it fell from. The samples show the
@@ -107,7 +107,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `VISIT` | Each time a client moves to another node: the client's route, node by node. The client leaves a node only for one at least 16 units nearer. A death starts a new route. Bots with flag 1, players with flag 4 |
 | `CMD` | With flag 4, each movement command of a human player: the nearest node (-1 if none is within 128 units), position, velocity, view angles (yaw, pitch), the move (forward, right, up), its duration, the ground, the water level and the buttons. Up to 250 lines a second for each player, about 150 MB an hour |
 | `PATH` | When a bot gets a new path: where it is, its speed, whether it is on the ground, and the first, second and last nodes |
-| `PATHEND` | When the game ends a bot's path, and why: `arrived`, `distress`, `unlinked` or `teleported` |
+| `PATHEND` | When the game ends a bot's path, and why: `arrived`, `distress`, `unlinked` or `teleported`, with `HIST reason=distress` after a distress |
 | `PUSHED` | When a push trigger throws a bot. `planned=0` if the bot does not follow a pad link, with `HIST reason=pushed` |
 | `JUMP`, `LAND` | When a bot takes off on a gap jump link, and where it lands |
 | `PICKUP` | When a bot, or with flag 4 a player, takes an item |

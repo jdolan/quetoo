@@ -88,6 +88,7 @@ typedef struct {
   bool ground;
   const char *state;
   bool knocked;
+  bool ladder;
 } GameAiProbeSample;
 
 /**
@@ -232,10 +233,10 @@ static void G_Ai_Probe_History(const GameClient *cl, const char *reason) {
   for (uint32_t i = 0; i < count; i++) {
     const GameAiProbeSample *s = &c->samples[(c->numSamples - count + i) % AI_PROBE_SAMPLES];
 
-    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d state=%s knocked=%d",
+    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d state=%s knocked=%d ladder=%d",
                      reason, i, (int32_t) s->origin.x, (int32_t) s->origin.y, (int32_t) s->origin.z,
                      (int32_t) s->velocity.x, (int32_t) s->velocity.y, (int32_t) s->velocity.z,
-                     s->from, s->to, s->travelType, s->strafeJumping, s->ground, s->state, s->knocked);
+                     s->from, s->to, s->travelType, s->strafeJumping, s->ground, s->state, s->knocked, s->ladder);
   }
 }
 
@@ -487,7 +488,8 @@ void G_Ai_Probe_Think(const GameClient *cl) {
       .strafeJumping = cl->ai->strafeJumping,
       .ground = ground,
       .state = G_Ai_StateName(cl),
-      .knocked = (cl->ps.pmState.flags & PMF_TIME_PUSHED) && !G_Ai_Probe_TouchesPush(ent)
+      .knocked = (cl->ps.pmState.flags & PMF_TIME_PUSHED) && !G_Ai_Probe_TouchesPush(ent),
+      .ladder = (cl->ps.pmState.flags & PMF_ON_LADDER) != 0
     };
   }
 
@@ -644,6 +646,10 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
                    goal->type == AI_GOAL_PATH ? goal->path.pathIndex : 0,
                    goal->type == AI_GOAL_PATH && goal->path.path ? (uint32_t) goal->path.path->count : 0,
                    G_Ai_Probe_Goal(cl));
+
+  if (!Str_Compare(reason, "distress")) {
+    G_Ai_Probe_History(cl, "distress");
+  }
 }
 
 /**
