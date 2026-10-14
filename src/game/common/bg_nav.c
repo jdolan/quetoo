@@ -718,7 +718,8 @@ static bool Nav_TraceHitMover(void) {
 
 /**
  * @brief Moves the bounding box toward `target`, as Pmove would: up by `height`, across, and down
- * onto the floor.
+ * onto the floor. If the raised box is blocked, as under the edge of a low ceiling, it moves across
+ * at the height of `from`, as Pmove also tries.
  * @return True if the box arrives on a walkable floor.
  */
 static bool Nav_StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, const float height, Vec3 *to) {
@@ -730,11 +731,16 @@ static bool Nav_StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, 
 
   const Vec3 across = MakeVec3(target.x, target.y, up.end.z);
   const CollisionTrace over = Nav_Trace(up.end, across, bounds);
-  if (over.fraction < 1.f) {
+  if (over.fraction == 1.f) {
+    return Nav_Rest(over.end, height + PM_STEP_HEIGHT + 1.f, bounds, to);
+  }
+
+  const CollisionTrace flat = Nav_Trace(from, MakeVec3(target.x, target.y, from.z), bounds);
+  if (flat.startSolid || flat.fraction < 1.f) {
     return false;
   }
 
-  return Nav_Rest(over.end, height + PM_STEP_HEIGHT + 1.f, bounds, to);
+  return Nav_Rest(flat.end, PM_STEP_HEIGHT + 1.f, bounds, to);
 }
 
 /**
