@@ -1226,6 +1226,10 @@ static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
 
 /**
  * @brief Updates the distress counter for a goal and returns false if the goal should be abandoned.
+ * A bot on a ladder does not count a blocked view of its next node, which the lip of the floor over
+ * the ladder hides until the bot reaches the top. The bot is closing in if it comes nearer `dest`,
+ * and the caller passes the top of a ladder link as `dest`, not the point that the bot steers to,
+ * which stays the same distance ahead of it.
  */
 static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest) {
   const float pathDist = Vec3_Distance(cl->entity->s.origin, dest);
@@ -1262,7 +1266,7 @@ static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest)
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
     const CollisionTrace tr = gi.Trace(eyeOrigin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
 
-    if (tr.fraction < 1.0f) {
+    if (tr.fraction < 1.0f && !(cl->ps.pmState.flags & PMF_ON_LADDER)) {
       goal->distress += 0.25f;
     }
   }
@@ -2655,7 +2659,10 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         break;
     }
 
-    if (!G_Ai_GoalDistress(cl, &cl->ai->moveTarget, dest)) {
+    const bool climbing = cl->ai->moveTarget.type == AI_GOAL_PATH && G_Ai_PathLink(cl) &&
+                          G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_LADDER;
+
+    if (!G_Ai_GoalDistress(cl, &cl->ai->moveTarget, climbing ? cl->ai->moveTarget.path.pathPosition : dest)) {
       G_Ai_Probe_PathEnd(cl, "distress");
       G_Ai_ClearGoal(&cl->ai->moveTarget);
       continue;
@@ -2925,7 +2932,9 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     // we'll be pushed up against something
     float smolDist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
 
-    if (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) {
+    if (cl->ps.pmState.flags & PMF_ON_LADDER) {
+      smolDist = PM_SPEED_LADDER * .5f * MILLIS_TO_SECONDS(cmd->msec);
+    } else if (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) {
       smolDist *= 0.1f;
     }
 
