@@ -361,6 +361,14 @@ def summarize(path, events):
     for link, count in stuck.most_common(5):
         print(f'    {count:>5}  {link}')
 
+    gates = [e for e in events if e.kind == 'GATE']
+    uses = collections.Counter((e['name'], e['result']) for e in events if e.kind == 'GATEUSE')
+    print(f'  gates: {len(gates)}')
+    for gate in gates:
+        name = gate['name']
+        print(f'    {name}: {gate["buttons"]} buttons, {gate["sources"]} nodes, {gate["doors"]} doors; '
+              f'chosen {uses[name, "choose"]}, opened {uses[name, "open"]}, failed {uses[name, "fail"]}')
+
 
 def cmd_summary(args):
     for path in args.logs:

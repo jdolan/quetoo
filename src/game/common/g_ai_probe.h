@@ -86,6 +86,21 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason);
 void G_Ai_Probe_ItemTaken(const GameClient *cl, const GameEntity *item);
 
 /**
+ * @brief Records a gate that the game found, with `AI_PROBE_BOTS`: the `targetname` of its doors,
+ * the counts of its buttons, of the nodes from which a bot presses them, and of its doors, and the
+ * time in milliseconds for which its doors stay activated after a press, or -1 if they do not move
+ * back.
+ */
+void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t numSources, const int32_t numDoors,
+                     const uint32_t openMillis);
+
+/**
+ * @brief Records what a bot did with a gate, with `AI_PROBE_BOTS`: `choose` when it goes to the
+ * button, `open` when it goes through the open doors, and `fail` when it gives up.
+ */
+void G_Ai_Probe_GateUse(const GameClient *cl, const char *name, const char *result);
+
+/**
  * @brief Records a human player's movement command, with `AI_PROBE_PLAYERS`, with the node nearest
  * the player after the move, or -1 if none is within reach, and a `VISIT` if the player moved to
  * another node. The game calls it after it moves the player with the command.

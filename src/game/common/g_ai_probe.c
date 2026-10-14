@@ -636,6 +636,34 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
 /**
  * @see g_ai_probe.h
  */
+void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t numSources, const int32_t numDoors,
+                     const uint32_t openMillis) {
+
+  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+    return;
+  }
+
+  G_Ai_Probe_Print(-1, "GATE", "name=%s buttons=%d sources=%d doors=%d open=%d", name, numButtons, numSources,
+                   numDoors, openMillis == UINT32_MAX ? -1 : (int32_t) openMillis);
+}
+
+/**
+ * @see g_ai_probe.h
+ */
+void G_Ai_Probe_GateUse(const GameClient *cl, const char *name, const char *result) {
+
+  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+    return;
+  }
+
+  G_Ai_Probe_Print(cl->ps.client, "GATEUSE", "name=%s result=%s pos=%d,%d,%d goal=%s", name, result,
+                   (int32_t) cl->entity->s.origin.x, (int32_t) cl->entity->s.origin.y,
+                   (int32_t) cl->entity->s.origin.z, G_Ai_Probe_Goal(cl));
+}
+
+/**
+ * @see g_ai_probe.h
+ */
 void G_Ai_Probe_ItemTaken(const GameClient *cl, const GameEntity *item) {
 
   if (!module.file || !(g_aiProbe->integer & (cl->ai ? AI_PROBE_BOTS : AI_PROBE_PLAYERS))) {
