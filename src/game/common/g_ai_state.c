@@ -1517,9 +1517,9 @@ static bool G_Ai_IsInLava(const GameClient *cl) {
 
 /**
  * @brief Goes by the cheapest path to the nearest node out of lava or slime, which a path that
- * starts in it crosses. The bot plans again whenever its path ends while it is in the
+ * starts in it crosses, as up a ladder. The bot plans again whenever its path ends while it is in the
  * lava, at most each `AI_ESCAPE_MILLIS`, and keeps the path out of it until it stands on the ground,
- * so that a bot whose feet leave the lava before it reaches a floor goes on.
+ * so that a bot whose feet leave the lava on a ladder climbs on.
  */
 static void G_Ai_State_Escape(GameClient *cl) {
 

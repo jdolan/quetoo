@@ -184,6 +184,8 @@ static const char *Cg_AiTravelName(const NavTravelType type) {
       return "swim";
     case NAV_TRAVEL_JUMP:
       return "jump";
+    case NAV_TRAVEL_LADDER:
+      return "ladder";
     default:
       return "none";
   }
@@ -370,7 +372,8 @@ void Cg_PrepareAiNodes(const ClientFrame *frame) {
 
 /**
  * @return The color of a link of the given travel type, by the kind of movement: green to walk, red
- * to crouch, as crouch nodes are, grey to fall, yellow and orange to jump, and cyan to swim.
+ * to crouch, as crouch nodes are, grey to fall, yellow and orange to jump, cyan to swim, and violet
+ * to climb.
  */
 static Color Cg_AiLinkColor(const NavTravelType type) {
 
@@ -385,6 +388,8 @@ static Color Cg_AiLinkColor(const NavTravelType type) {
       return ColorHSV(COLOR_HUE_ORANGE, 1.f, 1.f);
     case NAV_TRAVEL_SWIM:
       return ColorHSV(COLOR_HUE_CYAN, 1.f, 1.f);
+    case NAV_TRAVEL_LADDER:
+      return ColorHSV(COLOR_HUE_VIOLET, 1.f, 1.f);
     default:
       return ColorHSV(COLOR_HUE_GREEN, .6f, .8f);
   }

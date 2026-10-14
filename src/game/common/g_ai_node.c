@@ -144,7 +144,7 @@ static struct {
 
   /**
    * @brief True while the search of a client in lava, from a node in it, runs, which MAY cross the
-   * lava to leave.
+   * lava and climb a ladder to leave.
    */
   bool escape;
 } module;
@@ -806,11 +806,12 @@ void G_Ai_InitNodes(void) {
   gi.Print("  Built %d navigation nodes, %d at an offset, %d at the edge of the void and %d in open water, and "
            "found %d floors with no room for a player and %d in a hurt or push trigger\n", graph->numNodes,
            graph->numOffset, graph->numEdge, graph->numSwim, graph->numNoFit, graph->numTrigger);
-  gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim and %d jump links, "
-           "%d of them through a doorway\n",
+  gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim, %d jump and %d ladder "
+           "links, %d of them through a doorway\n",
            graph->numTravel[NAV_TRAVEL_WALK], graph->numTravel[NAV_TRAVEL_CROUCH],
            graph->numTravel[NAV_TRAVEL_BARRIER_JUMP], graph->numTravel[NAV_TRAVEL_WALK_OFF_LEDGE],
-           graph->numTravel[NAV_TRAVEL_SWIM], graph->numTravel[NAV_TRAVEL_JUMP], graph->numGated);
+           graph->numTravel[NAV_TRAVEL_SWIM], graph->numTravel[NAV_TRAVEL_JUMP],
+           graph->numTravel[NAV_TRAVEL_LADDER], graph->numGated);
 
   aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
 
@@ -2290,13 +2291,30 @@ static int32_t G_Ai_Node_Contents(const GameAiNode *node) {
 /**
  * @see g_ai_node.h
  */
+const NavClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeId b) {
+
+  for (int32_t i = 0; i < module.graph.numClimbs; i++) {
+    const NavClimb *climb = &module.graph.climbs[i];
+
+    if (climb->bottom == (int32_t) a && climb->top == (int32_t) b) {
+      return climb;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @see g_ai_node.h
+ */
 bool G_Ai_Node_IsHazard(const GameAiNodeId node) {
   return (G_Ai_Node_Contents(AI_NODE(aiNodes, node)) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 }
 
 /**
  * @return True if the client and the node `start` of its search are both in lava, so that the
- * search MAY cross it to leave. A client in slime, which hurts slowly, searches as any other.
+ * search MAY cross it, and climb a ladder, to leave. A client in slime, which hurts slowly, searches
+ * as any other.
  */
 static bool G_Ai_Node_InLava(const GameClient *cl, const GameAiNodeId start) {
   return cl && cl->entity && cl->entity->waterLevel > WATER_NONE && (cl->entity->waterType & CONTENTS_LAVA) &&
@@ -2394,9 +2412,10 @@ bool G_Ai_Node_HasGate(const char *targetName) {
  * a model that moves and a node off that model, which `G_Ai_Node_HasFloor` tested when it was
  * made. A crouch link, and any link into or out of a crouch node, which the build made for
  * Quetoo's crouched box, is refused to a client whose movement crouches to a taller box, or does not
- * crouch, as Quake's. A link within lava or slime, and a drop into it, are refused, except in a
- * search of a client in lava, from a node in it (`escape`), so that such a search crosses the lava
- * to leave.
+ * crouch, as Quake's. A link within lava or slime, a drop into it, and a ladder link are refused,
+ * except in a search of a client in lava, from a node in it (`escape`), so that such a search
+ * crosses the lava, and climbs out of it, to leave. A bot climbs a ladder only to leave lava, because
+ * as a route a ladder leads bots into pits of slime, and some ladders stop a climb short.
  * @param fromHazard True if `node` is in lava or slime.
  * @param opens The `targetname` of the doors that the client is taken to press, whose links are
  * open if they are closed now, and closed if they are open now, or NULL.
@@ -2427,6 +2446,10 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   }
 
   if (fromHazard && toHazard && !module.escape) {
+    return -1.f;
+  }
+
+  if (link->travelType == NAV_TRAVEL_LADDER && !module.escape) {
     return -1.f;
   }
 

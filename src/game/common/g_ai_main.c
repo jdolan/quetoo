@@ -1540,6 +1540,41 @@ static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
 }
 
 /**
+ * @brief The distance ahead of a bot on a ladder link, on the link's line across, to which it steers.
+ */
+#define AI_LADDER_LOOK_DISTANCE 16.f
+
+/**
+ * @return The point to which a bot on a ladder link steers: `AI_LADDER_LOOK_DISTANCE` ahead of it on
+ * the line of the climb that the navigation build tested, from the column beside the ladder to the
+ * landing over its top, at the height of the landing. The nodes of the climb MAY stand beside that
+ * column, as at a ladder narrower than a cell, and beside it a beam MAY block the climb.
+ */
+static Vec3 G_Ai_LadderDestination(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  const GameAiNodeId from = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1);
+  const GameAiNodeId to = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex);
+  const NavClimb *climb = G_Ai_Node_GetClimb(from, to);
+
+  const Vec3 a = climb ? climb->column : G_Ai_Node_GetPosition(from);
+  const Vec3 b = climb ? climb->landing : goal->path.pathPosition;
+
+  const Vec2 ab = Vec2_Subtract(Vec3_XY(b), Vec3_XY(a));
+  const float length = Vec2_Length(ab);
+
+  if (length < 1.f) {
+    return b;
+  }
+
+  const float along = Vec2_Dot(Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(a)), ab) / length;
+  const Vec3 point = Vec3_Mix(a, b, Clampf((along + AI_LADDER_LOOK_DISTANCE) / length, 0.f, 1.f));
+
+  return MakeVec3(point.x, point.y, b.z);
+}
+
+/**
  * @return The point to which a bot on a jump link steers: `AI_JUMP_LOOK_DISTANCE` ahead of it on
  * the line of the jump. Off that line, it steers to the target if it stands on the target's level,
  * nearer the target than the source, as after a jump that lands past the target, and otherwise to
@@ -2387,6 +2422,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           dest = G_Ai_JumpDestination(cl);
         } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType <= NAV_TRAVEL_CROUCH && ent->ground.ent) {
           dest = G_Ai_WalkDestination(cl);
+        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_LADDER) {
+          dest = G_Ai_LadderDestination(cl);
         } else {
           dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
           toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);

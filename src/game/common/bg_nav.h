@@ -78,6 +78,11 @@ typedef enum {
    * @brief Run and jump across a gap, from the edge of the floor.
    */
   NAV_TRAVEL_JUMP,
+
+  /**
+   * @brief Climb a ladder up to the floor over its top.
+   */
+  NAV_TRAVEL_LADDER,
 } NavTravelType;
 
 /**
@@ -201,6 +206,37 @@ typedef struct {
 } NavPush;
 
 /**
+ * @brief A climb of a ladder, which a ladder link makes.
+ */
+typedef struct {
+  /**
+   * @brief The node at the ladder's foot.
+   */
+  int32_t bottom;
+
+  /**
+   * @brief The node on the floor over the ladder's top.
+   */
+  int32_t top;
+
+  /**
+   * @brief The time of the climb in hundredths of a second.
+   */
+  int32_t time;
+
+  /**
+   * @brief The player origin at the foot of the column beside the ladder that the build tested,
+   * which the nodes of the climb MAY stand beside.
+   */
+  Vec3 column;
+
+  /**
+   * @brief The player origin on the floor over the ladder's top, where the climb ends.
+   */
+  Vec3 landing;
+} NavClimb;
+
+/**
  * @brief The navigation graph of the level.
  */
 typedef struct {
@@ -264,12 +300,22 @@ typedef struct {
   /**
    * @brief The count of links of each `NavTravelType`.
    */
-  int32_t numTravel[NAV_TRAVEL_JUMP + 1];
+  int32_t numTravel[NAV_TRAVEL_LADDER + 1];
 
   /**
    * @brief The count of walks and jumps through the doorway of a door.
    */
   int32_t numGated;
+
+  /**
+   * @brief The climbs of the level's ladders, one for each ladder link.
+   */
+  NavClimb *climbs;
+
+  /**
+   * @brief The count of `climbs`.
+   */
+  int32_t numClimbs;
 } NavGraph;
 
 /**

@@ -116,7 +116,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 
 Link types are the `NavTravelType` values: 0 for the links that `G_Ai_Node_Link` adds to splice
 item and spawn nodes into the graph, 1 walk, 2 crouch, 3 walk off ledge, 4 barrier jump,
-5 teleport, 6 push, 7 plat, 8 swim, 9 jump.
+5 teleport, 6 push, 7 plat, 8 swim, 9 jump, 10 ladder.
 
 ## 4. Query the graph
 
@@ -167,7 +167,7 @@ To see what a player sees, run the client from the same stage, with the graph dr
 - The client draws the graph that `Nav_Build` makes. The game adds item, pad, teleporter and plat
   nodes after that, so ids at or above the build's node count appear only in the probe's graph.
 - Node colors: white normal, red crouch. Link colors: green walk, red crouch, grey ledge, yellow
-  barrier jump, orange gap jump, cyan swim.
+  barrier jump, orange gap jump, cyan swim, violet ladder.
 - `screencapture` takes a screenshot of the window for a report.
 
 ## 7. Method

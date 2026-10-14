@@ -181,6 +181,28 @@
 #define NAV_WALL_START_ON 0x4
 
 /**
+ * @brief The most climbs of the ladders of a level.
+ */
+#define NAV_MAX_CLIMBS 1024
+
+/**
+ * @brief The most distance in units between two columns that climb one face of a ladder.
+ */
+#define NAV_LADDER_SPACING NAV_CELL_SIZE
+
+/**
+ * @brief The most height in units below the bottom of a ladder at which its floor, or the top of a
+ * liquid in which a player swims to it, MAY be.
+ */
+#define NAV_LADDER_FLOOR (NAV_CELL_HEIGHT * 2.f)
+
+/**
+ * @brief The distance in units beyond the far side of the top of a ladder that a player walks onto
+ * the floor there.
+ */
+#define NAV_LADDER_EXIT 16.f
+
+/**
  * @brief The outcome of a floor sample.
  */
 typedef enum {
@@ -1395,11 +1417,232 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
 }
 
 /**
+ * @return The node that does not move nearest `origin`, within `NAV_CELL_SIZE` across and `height`
+ * up or down, which a player's box moves to from `origin` unblocked, or -1.
+ */
+static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
+
+  const NavGraph *graph = module.graph;
+  const Vec3i xyz = Nav_PointCoordinate(origin);
+  const int32_t levels = (int32_t) ceilf(height / NAV_CELL_HEIGHT) + 1;
+
+  int32_t best = -1;
+  float bestDistance = FLT_MAX;
+
+  for (int32_t dz = -levels; dz <= levels; dz++) {
+    for (int32_t dy = -1; dy <= 1; dy++) {
+      for (int32_t dx = -1; dx <= 1; dx++) {
+
+        const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
+        if (cell == -1 || graph->cellNodes[cell] == -1) {
+          continue;
+        }
+
+        const NavNode *node = &graph->nodes[graph->cellNodes[cell]];
+        if (node->model || fabsf(node->position.z - origin.z) > height) {
+          continue;
+        }
+
+        if (Vec2_Distance(Vec3_XY(node->position), Vec3_XY(origin)) > NAV_CELL_SIZE) {
+          continue;
+        }
+
+        const float distance = Vec3_Distance(node->position, origin);
+        if (distance >= bestDistance) {
+          continue;
+        }
+
+        const CollisionTrace trace = Nav_Trace(origin, node->position, Nav_Bounds(node->crouch));
+        if (trace.startSolid || trace.fraction < 1.f) {
+          continue;
+        }
+
+        bestDistance = distance;
+        best = graph->cellNodes[cell];
+      }
+    }
+  }
+
+  return best;
+}
+
+/**
+ * @brief Adds the climb of the column beside a ladder's face at `column`, whose outward normal is
+ * `normal`: from the floor under the ladder's bottom, or the liquid there, straight up beside the
+ * face until the player's box clears the top of the ladder, then across its top, onto the floor on
+ * top of the ladder, or `NAV_LADDER_EXIT` beyond its far side. A column with no room for the
+ * player's box, as against the wall that the ladder stands on, a column whose top is blocked, and a
+ * top with no floor or no node across it, as a ladder that only dresses a wall has, add no climb.
+ */
+static void Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal) {
+
+  const Box3 bounds = PM_BOUNDS;
+  const float lowest = ladder.mins.z - bounds.mins.z;
+  const float highest = ladder.maxs.z - bounds.mins.z + 1.f;
+
+  Vec3 start = MakeVec3(column.x, column.y, lowest);
+  while (start.z < highest && Nav_Trace(start, start, bounds).startSolid) {
+    start.z += NAV_FINE_STEP;
+  }
+
+  if (start.z >= highest) {
+    return;
+  }
+
+  Vec3 bottom = start;
+  const CollisionTrace floor = Nav_Trace(start, Vec3_Subtract(start, MakeVec3(0.f, 0.f, NAV_LADDER_FLOOR)), bounds);
+  if (floor.fraction < 1.f) {
+    bottom = floor.end;
+  } else if (!(Nav_PointContents(start) & CONTENTS_MASK_LIQUID)) {
+    return;
+  }
+
+  const Vec3 top = MakeVec3(column.x, column.y, highest);
+  const CollisionTrace rise = Nav_Trace(bottom, top, bounds);
+  if (rise.startSolid || rise.fraction < 1.f) {
+    return;
+  }
+
+  const float depth = fabsf(normal.x) * (ladder.maxs.x - ladder.mins.x) + fabsf(normal.y) * (ladder.maxs.y - ladder.mins.y);
+  const float distances[] = {
+    bounds.maxs.x * 2.f + NAV_LADDER_EXIT,
+    depth + bounds.maxs.x * 2.f + NAV_LADDER_EXIT
+  };
+
+  int32_t b = -1;
+  float across = 0.f;
+  Vec3 landing = Vec3_Zero();
+
+  for (size_t i = 0; i < lengthof(distances) && b == -1; i++) {
+    across = distances[i];
+    const Vec3 over = Vec3_Fmaf(top, -across, normal);
+
+    const CollisionTrace cross = Nav_Trace(top, over, bounds);
+    if (cross.startSolid || cross.fraction < 1.f) {
+      break;
+    }
+
+    if (!Nav_Rest(over, PM_STEP_HEIGHT * 2.f, bounds, &landing)) {
+      continue;
+    }
+
+    if (Nav_TouchesTrigger(Box3_Translate(bounds, landing))) {
+      continue;
+    }
+
+    b = Nav_LadderNode(landing, PM_STEP_HEIGHT);
+  }
+
+  const int32_t a = Nav_LadderNode(bottom, PM_STEP_HEIGHT * 2.f);
+
+  if (a == -1 || b == -1 || a == b) {
+    return;
+  }
+
+  NavGraph *graph = module.graph;
+
+  for (int32_t i = 0; i < graph->numClimbs; i++) {
+    if (graph->climbs[i].bottom == a && graph->climbs[i].top == b) {
+      return;
+    }
+  }
+
+  if (graph->numClimbs == NAV_MAX_CLIMBS) {
+    module.params->Warn(__func__, "More than %d ladder climbs; bots may not climb the rest\n", NAV_MAX_CLIMBS);
+    return;
+  }
+
+  if (!graph->climbs) {
+    graph->climbs = malloc(sizeof(NavClimb) * NAV_MAX_CLIMBS);
+    if (!graph->climbs) {
+      module.params->Error(__func__, "Failed to allocate %d ladder climbs\n", NAV_MAX_CLIMBS);
+    }
+  }
+
+  graph->climbs[graph->numClimbs++] = (NavClimb) {
+    .bottom = a,
+    .top = b,
+    .time = Nav_TravelTime(top.z - bottom.z, PM_SPEED_LADDER) + Nav_TravelTime(across, PM_SPEED_RUN),
+    .column = bottom,
+    .landing = landing
+  };
+}
+
+/**
+ * @return True if the brush has a side on the plane with the axial `normal` at `dist`.
+ */
+static bool Nav_HasSide(const CollisionBrush *brush, const Vec3 normal, const float dist) {
+
+  for (int32_t i = 0; i < brush->numBrushSides; i++) {
+    const CollisionPlane *plane = brush->brushSides[i].plane;
+
+    if (Vec3_Equal(plane->normal, normal) && fabsf(plane->dist - dist) < 1.f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Finds the climbs of the level's ladders: for each brush of the world with
+ * `CONTENTS_LADDER`, each of its vertical sides that is a face of its bounds, at columns
+ * `NAV_LADDER_SPACING` apart at most, because a player who faces any side climbs
+ * (`Pm_CheckLadder`). A ladder of an inline model, which moves or is not where the world is traced,
+ * and a sloped side, beside which a column would stand too far from the ladder, add no climb.
+ */
+static void Nav_FindClimbs(void) {
+
+  const CollisionBsp *bsp = module.params->bsp;
+
+  for (int32_t i = 0; i < bsp->numBrushes; i++) {
+    const CollisionBrush *brush = &bsp->brushes[i];
+
+    if (!(brush->contents & CONTENTS_LADDER)) {
+      continue;
+    }
+
+    const Box3 ladder = brush->bounds;
+
+    if (!(Nav_PointContents(Box3_Center(ladder)) & CONTENTS_LADDER)) {
+      continue;
+    }
+
+    for (int32_t axis = 0; axis < 2; axis++) {
+      const int32_t other = 1 - axis;
+      const float width = ladder.maxs.xyz[other] - ladder.mins.xyz[other];
+      const int32_t columns = Maxi(1, (int32_t) ceilf(width / NAV_LADDER_SPACING));
+
+      for (int32_t sign = -1; sign <= 1; sign += 2) {
+        Vec3 normal = Vec3_Zero();
+        normal.xyz[axis] = (float) sign;
+
+        const float face = sign > 0 ? ladder.maxs.xyz[axis] : ladder.mins.xyz[axis];
+
+        if (!Nav_HasSide(brush, normal, face * sign)) {
+          continue;
+        }
+
+        for (int32_t j = 0; j < columns; j++) {
+          Vec3 column = Vec3_Zero();
+          column.xyz[axis] = face + sign * (PM_BOUNDS.maxs.x + 1.f);
+          column.xyz[other] = ladder.mins.xyz[other] + (j + .5f) * width / columns;
+
+          Nav_AddClimb(ladder, column, normal);
+        }
+      }
+    }
+  }
+}
+
+/**
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
  * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the same
  * model, and the game links it to the rest as the model moves. A node in water also swims, and a
  * swim node only swims. A walk to or from a node in liquid takes the time at `PM_SPEED_WATER`,
- * because a player who walks on a floor in liquid moves no faster than one who swims.
+ * because a player who walks on a floor in liquid moves no faster than one who swims. A node at
+ * the foot of a ladder's climb links to its top. A bot does not climb down a ladder: it falls, by a
+ * drop link.
  * @return The count of links written to `links`.
  */
 static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
@@ -1476,6 +1719,14 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
 
   if ((node->contents & CONTENTS_WATER) && !node->model) {
     Nav_LinkSwims(index, links, &numLinks);
+  }
+
+  for (int32_t i = 0; i < module.graph->numClimbs; i++) {
+    const NavClimb *climb = &module.graph->climbs[i];
+
+    if (climb->bottom == index) {
+      Nav_AddLink(links, &numLinks, climb->top, NAV_TRAVEL_LADDER, climb->time, 0);
+    }
   }
 
   return numLinks;
@@ -1772,6 +2023,8 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
     return false;
   }
 
+  Nav_FindClimbs();
+
   int32_t capacity = graph->numNodes * 8;
   graph->links = malloc(sizeof(NavLink) * capacity);
   if (!graph->links) {
@@ -1865,6 +2118,7 @@ void Nav_Free(NavGraph *graph) {
   free(graph->links);
   free(graph->cellNodes);
   free(graph->pushes);
+  free(graph->climbs);
 
   memset(graph, 0, sizeof(*graph));
 }

@@ -50,7 +50,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 TRAVEL = {-1: 'none', 0: 'spliced', 1: 'walk', 2: 'crouch', 3: 'ledge', 4: 'barrier', 5: 'teleport',
-          6: 'push', 7: 'plat', 8: 'swim', 9: 'jump'}
+          6: 'push', 7: 'plat', 8: 'swim', 9: 'jump', 10: 'ladder'}
 
 TRAVEL_PUSH = 6
 
