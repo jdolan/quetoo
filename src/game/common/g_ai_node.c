@@ -89,6 +89,11 @@ static struct {
   NavGraph graph;
 
   /**
+   * @brief The movement for which `Nav_Build` made the graph.
+   */
+  PMoveParams movement;
+
+  /**
    * @brief The count of nodes and links that the graph had, before the game added its own.
    */
   uint32_t graphNodes, graphLinks;
@@ -272,6 +277,17 @@ static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to);
 static bool G_Ai_Node_Visible(const Vec3 position, const GameAiNodeId node) {
 
   return gi.Trace(position, G_Ai_Node_GetPosition(node), Box3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
+}
+
+/**
+ * @return True if the level's movement or gravity changed since `G_Ai_InitNodes` built the graph,
+ * so that its jumps and climbs out of water no longer match how players move.
+ */
+bool G_Ai_Node_IsStale(void) {
+
+  const PMoveParams movement = G_MovementParams();
+
+  return !Nav_SameMovement(&module.movement, &movement);
 }
 
 /**
@@ -797,6 +813,8 @@ void G_Ai_InitNodes(void) {
     .Warn = gi.Warn,
     .Error = gi.Error
   };
+
+  module.movement = params.movement;
 
   if (!Nav_Build(&params, &module.graph)) {
     G_Warn("This map has no floor to navigate; bots will be dumb!\n");

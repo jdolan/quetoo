@@ -3154,12 +3154,75 @@ static void G_Ai_Connect(GameClient *cl, const GameAiRoster *roster) {
 }
 
 /**
+ * @brief Builds the level's navigation graph again, for a movement or gravity that changed during
+ * the level. The entities that added nodes to the graph add them again: the teleporters, by their
+ * `Think`, and the items and spawn points that `G_Ai_DropItemLikeNode` linked. Items that hover
+ * over jump pads link again in `G_Ai_NodesReady`, if the first second of the level is over. Each
+ * bot drops its goals and paths, as it does when it respawns, because they name nodes of the old
+ * graph.
+ */
+static void G_Ai_ReloadNodes(void) {
+
+  GameEntity **drops = calloc(sv_maxEntities->integer, sizeof(GameEntity *));
+  GameEntity **teleporters = calloc(sv_maxEntities->integer, sizeof(GameEntity *));
+
+  if (!drops || !teleporters) {
+    G_Error("Failed to allocate %d entities\n", sv_maxEntities->integer);
+  }
+
+  int32_t numDrops = 0, numTeleporters = 0;
+
+  G_ForEachEntity(ent, {
+    if (ent->node != AI_NODE_INVALID) {
+      if (ent->classname && (!Str_Compare(ent->classname, "misc_teleporter") ||
+                             !Str_Compare(ent->classname, "trigger_teleporter"))) {
+        teleporters[numTeleporters++] = ent;
+      } else if (!ent->item || !(ent->spawnFlags & SF_ITEM_HOVER)) {
+        drops[numDrops++] = ent;
+      }
+      ent->node = AI_NODE_INVALID;
+    }
+  });
+
+  G_Ai_State_Unload();
+  G_Ai_InitNodes();
+
+  for (int32_t i = 0; i < numDrops; i++) {
+    G_Ai_DropItemLikeNode(drops[i]);
+  }
+
+  for (int32_t i = 0; i < numTeleporters; i++) {
+    teleporters[i]->Think(teleporters[i]);
+  }
+
+  free(drops);
+  free(teleporters);
+
+  if (gameLevel.time > 1000) {
+    G_Ai_NodesReady();
+    G_Ai_State_Load();
+  }
+
+  G_ForEachClient(cl, {
+    if (cl->ai) {
+      G_Ai_Respawn(cl);
+    }
+  });
+
+  gi.Print("Rebuilt the navigation graph for the level's movement\n");
+}
+
+/**
  * @brief Manages the bot population and runs each bot's think function every frame.
  */
 void G_Ai_Frame(void) {
 
   if (gameLevel.intermissionTime) {
     return;
+  }
+
+  if (G_Ai_Node_IsStale()) {
+    G_Ai_ReloadNodes();
   }
 
   if (gameLevel.time == 1000) {

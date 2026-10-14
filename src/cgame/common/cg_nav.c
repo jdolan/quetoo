@@ -70,6 +70,11 @@ static struct {
   bool built;
 
   /**
+   * @brief The movement for which `Nav_Build` made the graph.
+   */
+  PMoveParams movement;
+
+  /**
    * @brief The entity number of each inline model that moves nodes, or 0 if it is not yet found.
    */
   int32_t movers[MAX_MODELS];
@@ -339,13 +344,22 @@ static void Cg_PrepareAiFlights(const ClientFrame *frame) {
  */
 void Cg_PrepareAiNodes(const ClientFrame *frame) {
 
-  if (!cg_drawAiNodes->integer || module.built) {
+  if (!cg_drawAiNodes->integer) {
     return;
   }
 
   if (Box3_Equal(frame->ps.pmState.params.bounds, Box3_Zero())) {
     return;
   }
+
+  if (module.built) {
+    if (Nav_SameMovement(&module.movement, &frame->ps.pmState.params)) {
+      return;
+    }
+    Cg_FreeAiNodes();
+  }
+
+  module.movement = frame->ps.pmState.params;
 
   const NavParams params = {
     .bsp = cgi.Bsp(),

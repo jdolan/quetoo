@@ -100,6 +100,7 @@ bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
 void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const int32_t travelType);
 void G_Ai_InitNodes(void);
+bool G_Ai_Node_IsStale(void);
 void G_Ai_NodesReady(void);
 void G_Ai_Node_UpdateMovers(void);
 bool G_Ai_Node_IsCrushing(const GameAiNodeId id);

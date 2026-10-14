@@ -370,6 +370,14 @@ typedef struct {
 bool Nav_Build(const NavParams *params, NavGraph *graph);
 
 /**
+ * @return True if the graph that `Nav_Build` makes with the movement `a`, and the flights that
+ * `Nav_FlyPush` flies with it, are those for the movement `b`. The build reads only the gravity and
+ * the speeds of the jump and the water jump. A flight also reads the friction in the air and in
+ * water, and the player's bounds.
+ */
+bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b);
+
+/**
  * @brief The longest flight in milliseconds that `Nav_FlyPush` follows. It is an integer, so that
  * an array sized by it is a constant array.
  */

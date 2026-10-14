@@ -2250,6 +2250,15 @@ bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints
 /**
  * @see bg_nav.h
  */
+bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b) {
+  return a->gravity == b->gravity && a->speedJump == b->speedJump && a->speedWaterJump == b->speedWaterJump &&
+         a->frictionAir == b->frictionAir && a->frictionWater == b->frictionWater &&
+         Box3_Equal(a->bounds, b->bounds);
+}
+
+/**
+ * @see bg_nav.h
+ */
 void Nav_FreeNodes(NavGraph *graph) {
 
   free(graph->nodes);
