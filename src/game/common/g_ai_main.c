@@ -1013,6 +1013,40 @@ static inline float G_Ai_CommandYaw(const GameClient *cl, const PMoveCmd *cmd) {
 }
 
 /**
+ * @brief The horizontal speed below which `G_Ai_Brake` reverses the command, because the
+ * direction of the velocity no longer shows the way to the edge.
+ */
+#define AI_BRAKE_SPEED 20.f
+
+/**
+ * @brief Steers the AI against its horizontal velocity at run speed, so that it stops at an edge
+ * whatever way its command pointed. Below `AI_BRAKE_SPEED`, or if it already moves against its
+ * command, it reverses the command instead.
+ */
+static void G_Ai_Brake(const GameClient *cl, PMoveCmd *cmd) {
+
+  float speed;
+  const Vec3 back = Vec3_NormalizeLength(MakeVec3(-cl->entity->velocity.x, -cl->entity->velocity.y, 0.f), &speed);
+
+  Vec3 forward, right;
+  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd), 0.f), &forward, &right, NULL);
+
+  const Vec3 wish = Vec3_Add(Vec3_Scale(forward, cmd->forward), Vec3_Scale(right, cmd->right));
+
+  if (speed < AI_BRAKE_SPEED || Vec3_Dot(wish, back) >= 0.f) {
+    cmd->forward = -cmd->forward;
+    cmd->right = -cmd->right;
+    return;
+  }
+
+  Vec3 dir;
+  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(back).y, 0.f), &dir, NULL, NULL);
+
+  cmd->forward = dir.x * PM_SPEED_RUN;
+  cmd->right = dir.y * PM_SPEED_RUN;
+}
+
+/**
  * @brief The longest hold in milliseconds from the first launch of a `trigger_push`, after which
  * the AI moves again, so that it cannot stay still where it finds no ground, or inside a push.
  */
@@ -2564,8 +2598,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     } else {
 
       // non-path movement: back away from edges, cancel acrobatics jumps
-      cmd->forward = -cmd->forward;
-      cmd->right = -cmd->right;
+      G_Ai_Brake(cl, cmd);
       cmd->up = 0;
 
       if (moveWander) {
