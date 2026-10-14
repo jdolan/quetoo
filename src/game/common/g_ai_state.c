@@ -1375,7 +1375,23 @@ static bool G_Ai_IsShotButton(const GameEntity *button) {
 }
 
 /**
- * @return True if the bot stands where it presses the button: within `AI_ACTIVATE_REACH` of a button
+ * @return True if a player at `origin` walks straight into the button: its center is within
+ * `AI_ACTIVATE_REACH` and in sight, and its bounds overlap the height of the player's box, or lie
+ * within a step below it, as a plate in the floor does.
+ */
+static bool G_Ai_CanTouchButton(const Vec3 origin, const GameEntity *button) {
+
+  const Box3 bounds = button->absBounds;
+
+  if (bounds.maxs.z < origin.z + PM_BOUNDS.mins.z - PM_STEP_HEIGHT || bounds.mins.z > origin.z + PM_BOUNDS.maxs.z) {
+    return false;
+  }
+
+  return G_Ai_SeesButton(origin, 0.f, button, AI_ACTIVATE_REACH);
+}
+
+/**
+ * @return True if the bot stands where it presses the button: where it walks straight into a button
  * that it touches, or where it sees, within `AI_SHOOT_REACH`, a button that a shot presses.
  */
 static bool G_Ai_IsAtButton(const GameClient *cl, const GameEntity *button) {
@@ -1384,7 +1400,7 @@ static bool G_Ai_IsAtButton(const GameClient *cl, const GameEntity *button) {
     return G_Ai_SeesButton(cl->entity->s.origin, cl->ps.pmState.viewOffset.z, button, AI_SHOOT_REACH);
   }
 
-  return Vec3_Distance(cl->entity->s.origin, Box3_Center(button->absBounds)) < AI_ACTIVATE_REACH;
+  return G_Ai_CanTouchButton(cl->entity->s.origin, button);
 }
 
 /**
@@ -1447,7 +1463,7 @@ static void G_Ai_State_Activate(GameClient *cl) {
     }
   } else if (G_Ai_IsShotButton(target)) {
     ai->shootTarget = G_Ai_SeesButton(cl->entity->s.origin, cl->ps.pmState.viewOffset.z, target, AI_SHOOT_REACH) ? target : NULL;
-  } else if (Vec3_Distance(cl->entity->s.origin, button) < AI_ACTIVATE_REACH) {
+  } else if (G_Ai_CanTouchButton(cl->entity->s.origin, target)) {
     G_Ai_SetPositionGoal(cl, &ai->moveTarget, AI_PURSUE_PRIORITY, button);
     return;
   }
@@ -1603,9 +1619,8 @@ static uint32_t G_Ai_DoorOpenMillis(const GameEntity *door) {
 
 /**
  * @brief Finds the nodes, up to `AI_BUTTON_NODES`, nearest the button first, from which a bot
- * presses it: within `AI_ACTIVATE_REACH` of the button's center, which sees it and which is within
- * the height of the player's box at the node, to walk into it, or, for a button that a shot presses,
- * with an eye that sees it within `AI_SHOOT_REACH`.
+ * presses it: from which it walks into the button (`G_Ai_CanTouchButton`), or, for a button that a
+ * shot presses, with an eye that sees it within `AI_SHOOT_REACH`.
  */
 static void G_Ai_ButtonNodes(const GameEntity *button, GameAiNodeId *nodes, int32_t *numNodes) {
 
@@ -1622,18 +1637,8 @@ static void G_Ai_ButtonNodes(const GameEntity *button, GameAiNodeId *nodes, int3
       if (!G_Ai_SeesButton(position, AI_SHOOT_EYE_HEIGHT, button, AI_SHOOT_REACH)) {
         continue;
       }
-    } else {
-      if (distance > AI_ACTIVATE_REACH) {
-        continue;
-      }
-
-      if (center.z < position.z + PM_BOUNDS.mins.z || center.z > position.z + PM_BOUNDS.maxs.z) {
-        continue;
-      }
-
-      if (!G_Ai_SeesButton(position, 0.f, button, AI_ACTIVATE_REACH)) {
-        continue;
-      }
+    } else if (!G_Ai_CanTouchButton(position, button)) {
+      continue;
     }
 
     int32_t j = *numNodes;
