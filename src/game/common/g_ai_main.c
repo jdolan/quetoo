@@ -307,6 +307,8 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
     G_Ai_Probe_ItemTaken(taker->client, item);
   }
 
+  G_Ai_State_ItemTaken(item);
+
   if (!item->item || !G_Ai_IsMapControlItem(item->item) || item->solid != SOLID_NOT ||
       item->nextThink <= gameLevel.time) {
     return;
@@ -2813,6 +2815,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     }
 
     G_Ai_SpamViewAngles(cl, &idealAngles);
+    G_Ai_ShootViewAngles(cl, &idealAngles);
   } else {
     G_Ai_CombatAngles(cl, seconds, &idealAngles, &idealRate);
   }
@@ -3124,6 +3127,7 @@ void G_Ai_Frame(void) {
 
   if (gameLevel.time == 1000) {
     G_Ai_NodesReady();
+    G_Ai_State_Load();
   }
 
   G_Ai_Node_UpdateMovers();
@@ -3237,6 +3241,8 @@ void G_Ai_Init(void) {
 void G_Ai_Load(void) {
 
   G_Ai_Probe_Load();
+
+  G_Ai_State_Unload();
 
   G_Ai_InitNodes();
 }

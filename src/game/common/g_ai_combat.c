@@ -746,6 +746,33 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 }
 
 /**
+ * @brief The view error in degrees within which a bot fires at its shoot target.
+ */
+#define AI_SHOOT_AIM_DEGREES 4.f
+
+/**
+ * @brief Fires at the bot's shoot target, a button that is pressed by a shot, once the view is on
+ * it, with no grenade, and with no splash near the bot.
+ */
+static void G_Ai_Weaponry_shoot(GameClient *cl, PMoveCmd *cmd) {
+
+  const GameEntity *target = cl->ai->shootTarget;
+
+  if (!cl->weapon || G_Ai_IsLobbed(cl->weapon)) {
+    return;
+  }
+
+  Vec3 angles;
+  G_Ai_ShootViewAngles(cl, &angles);
+
+  if (fabsf(G_Ai_AngleDelta(cl->angles.x, angles.x)) < AI_SHOOT_AIM_DEGREES &&
+      fabsf(G_Ai_AngleDelta(cl->angles.y, angles.y)) < AI_SHOOT_AIM_DEGREES &&
+      G_Ai_ClearToFire(cl, target)) {
+    cmd->buttons |= BUTTON_ATTACK;
+  }
+}
+
+/**
  * @brief Funcgoal that controls the AI's weaponry.
  */
 uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
@@ -760,12 +787,16 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
   }
 
 
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY || cl->ai->shootTarget) {
     if (G_Ai_IsSpamming(cl)) {
       G_Ai_EndSpam(cl);
     }
   } else {
     G_Ai_Weaponry_spam(cl, cmd);
+  }
+
+  if (cl->ai->combatTarget.type != AI_GOAL_ENTITY && cl->ai->shootTarget) {
+    G_Ai_Weaponry_shoot(cl, cmd);
   }
 
   if (!G_Ai_IsSpamming(cl) && cl->ai->weaponCheckTime < gameLevel.time) { // check for a new weapon every once in a while
@@ -945,6 +976,21 @@ void G_Ai_SpamViewAngles(const GameClient *cl, Vec3 *angles) {
     uint32_t holdMillis;
     G_Ai_SpamAngles(cl, cl->weapon, cl->ai->spamPoint, angles, &holdMillis);
   }
+}
+
+/**
+ * @see g_ai_combat.h
+ */
+void G_Ai_ShootViewAngles(const GameClient *cl, Vec3 *angles) {
+
+  if (!cl->ai->shootTarget) {
+    return;
+  }
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+
+  *angles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(Box3_Center(cl->ai->shootTarget->absBounds), eye)));
+  angles->z = 0.f;
 }
 
 /**

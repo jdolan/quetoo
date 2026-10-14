@@ -28,4 +28,9 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd);
 uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd);
 void G_Ai_CombatAngles(GameClient *cl, const float seconds, Vec3 *angles, Vec3 *rate);
 void G_Ai_SpamViewAngles(const GameClient *cl, Vec3 *angles);
+
+/**
+ * @brief Turns the view toward the bot's shoot target, if it has one.
+ */
+void G_Ai_ShootViewAngles(const GameClient *cl, Vec3 *angles);
 #endif

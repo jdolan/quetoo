@@ -282,6 +282,11 @@ typedef enum {
    */
   AI_STATE_INVESTIGATE,
 
+  /**
+   * @brief Press the button that opens the way to the item to collect, then collect it.
+   */
+  AI_STATE_ACTIVATE,
+
   AI_STATE_TOTAL
 } GameAiStateId;
 
@@ -508,6 +513,24 @@ typedef struct GameAi {
   GameAiNodeId goalNode;
 
   /**
+   * @brief In `AI_STATE_ACTIVATE`, the index of the goal item's access, and of the button of the
+   * access that the bot presses.
+   */
+  int32_t access;
+  int32_t accessButton;
+
+  /**
+   * @brief In `AI_STATE_ACTIVATE`, the node from which the bot walks into the button.
+   */
+  GameAiNodeId accessNode;
+
+  /**
+   * @brief In `AI_STATE_ACTIVATE`, the level time at which the bot found the activated doors at
+   * rest, with no path to the item, or 0.
+   */
+  uint32_t accessRestTime;
+
+  /**
    * @brief True if the bot lost sight of its last combat target, rather than killed it or lost it
    * to death or disconnect.
    */
@@ -656,6 +679,11 @@ typedef struct GameAi {
    * @brief The spot at which the bot lobs grenades while it has no combat target.
    */
   Vec3 spamPoint;
+
+  /**
+   * @brief A button that the bot shoots to press it, while it has no combat target, or NULL.
+   */
+  const GameEntity *shootTarget;
 
   /**
    * @brief Level time at which the current burst of grenade spam ends, or, between bursts, at

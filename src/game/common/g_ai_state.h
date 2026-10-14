@@ -58,6 +58,24 @@ const char *G_Ai_StateName(const GameClient *cl);
 const GameEntity *G_Ai_GoalEntity(const GameClient *cl);
 
 /**
+ * @brief Finds the items that a map marks with `ai_access_by`, the doors that the key names, and
+ * the buttons that a bot presses to move them. Called once the level's entities and their nodes
+ * exist.
+ */
+void G_Ai_State_Load(void);
+
+/**
+ * @brief Forgets the access table of the last level, whose entities are gone, until
+ * `G_Ai_State_Load` finds the new level's.
+ */
+void G_Ai_State_Unload(void);
+
+/**
+ * @brief Clears the failures of the item's access, if the item is taken while the access is open.
+ */
+void G_Ai_State_ItemTaken(const GameEntity *item);
+
+/**
  * @brief Frees the state machine's travel cost buffer.
  */
 void G_Ai_State_Shutdown(void);
