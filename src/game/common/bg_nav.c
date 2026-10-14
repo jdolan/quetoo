@@ -1485,7 +1485,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
 
 /**
  * @return The node that does not move nearest `origin`, within `NAV_CELL_SIZE` across and `height`
- * up or down, which a player's box moves to from `origin` unblocked, or -1.
+ * up or down, which a player's box moves to from `origin` unblocked, or steps up onto, as onto the
+ * top of the ladder brush itself, or -1.
  */
 static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
 
@@ -1519,9 +1520,15 @@ static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
           continue;
         }
 
-        const CollisionTrace trace = Nav_Trace(origin, node->position, Nav_Bounds(node->crouch));
+        const Box3 bounds = Nav_Bounds(node->crouch);
+        const CollisionTrace trace = Nav_Trace(origin, node->position, bounds);
+
         if (trace.startSolid || trace.fraction < 1.f) {
-          continue;
+          Vec3 step;
+          if (!Nav_StepMove(origin, node->position, bounds, PM_STEP_HEIGHT, &step) ||
+              Vec3_Distance(step, node->position) > 1.f) {
+            continue;
+          }
         }
 
         bestDistance = distance;

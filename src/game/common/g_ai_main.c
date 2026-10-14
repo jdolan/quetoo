@@ -1763,7 +1763,9 @@ static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
  * @return The point to which a bot on a ladder link steers: `AI_LADDER_LOOK_DISTANCE` ahead of it on
  * the line of the climb that the navigation build tested, from the column beside the ladder to the
  * landing over its top, at the height of the landing. The nodes of the climb MAY stand beside that
- * column, as at a ladder narrower than a cell, and beside it a beam MAY block the climb.
+ * column, as at a ladder narrower than a cell, and beside it a beam MAY block the climb. Below the
+ * top, the point stays at the column, against the ladder, so that a bot that came past the column
+ * does not steer on under the landing, as beside a ladder that stands free of a wall.
  */
 static Vec3 G_Ai_LadderDestination(const GameClient *cl) {
 
@@ -1783,10 +1785,44 @@ static Vec3 G_Ai_LadderDestination(const GameClient *cl) {
     return b;
   }
 
-  const float along = Vec2_Dot(Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(a)), ab) / length;
+  float along = Vec2_Dot(Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(a)), ab) / length;
+
+  if (cl->entity->s.origin.z < b.z - PM_STEP_HEIGHT) {
+    along = Minf(along, 0.f);
+  }
+
   const Vec3 point = Vec3_Mix(a, b, Clampf((along + AI_LADDER_LOOK_DISTANCE) / length, 0.f, 1.f));
 
   return MakeVec3(point.x, point.y, b.z);
+}
+
+/**
+ * @brief The horizontal distance from the column of a climb within which a bot faces the ladder.
+ */
+#define AI_LADDER_GRAB_DISTANCE 48.f
+
+/**
+ * @return True if the bot follows a ladder link and is on the ladder, or within
+ * `AI_LADDER_GRAB_DISTANCE` of the climb's column. `Pm_CheckLadder` grabs a ladder only in front of
+ * the player's facing, so such a bot faces along the climb, not toward a sound or an enemy.
+ */
+static bool G_Ai_IsClimbing(const GameClient *cl) {
+
+  const GameAiLink *link = G_Ai_PathLink(cl);
+
+  if (!link || link->travelType != NAV_TRAVEL_LADDER) {
+    return false;
+  }
+
+  if (cl->ps.pmState.flags & PMF_ON_LADDER) {
+    return true;
+  }
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+  const NavClimb *climb = G_Ai_Node_GetClimb(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                                             VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
+
+  return climb && Vec2_Distance(Vec3_XY(climb->column), Vec3_XY(cl->entity->s.origin)) <= AI_LADDER_GRAB_DISTANCE;
 }
 
 /**
@@ -3014,7 +3050,9 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
   Vec3 idealAngles;
   Vec3 idealRate = Vec3_Zero();
 
-  if (combatTarget->type != AI_GOAL_ENTITY) {
+  const bool climbing = G_Ai_IsClimbing(cl);
+
+  if (combatTarget->type != AI_GOAL_ENTITY || climbing) {
     if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
       idealAngles = MakeVec3(0.0, cl->ai->moveTarget.wander.angle, 0.0);
     } else {
@@ -3026,6 +3064,8 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
         // if we're trick-jumping, aim towards where we intend to land
         if (cl->ai->moveTarget.path.trickJump) {
           aimTarget = cl->ai->moveTarget.path.trickPosition;
+        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_LADDER) {
+          aimTarget = G_Ai_LadderDestination(cl);
         // if we're above ground & on-land, and our next path is bidirectional, assume it's normal
         // pathing; aim towards our *next* target to look a bit more natural.
         } else if (((ent->waterLevel < WATER_WAIST
@@ -3085,14 +3125,16 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       }
     }
 
-    if (G_Ai_IsAlerted(cl)) {
-      const Vec3 eye = Vec3_Add(ent->s.origin, cl->ps.pmState.viewOffset);
-      idealAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(cl->ai->alertPosition, eye)));
-      idealAngles.z = 0.f;
-    }
+    if (!climbing) {
+      if (G_Ai_IsAlerted(cl)) {
+        const Vec3 eye = Vec3_Add(ent->s.origin, cl->ps.pmState.viewOffset);
+        idealAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(cl->ai->alertPosition, eye)));
+        idealAngles.z = 0.f;
+      }
 
-    G_Ai_SpamViewAngles(cl, &idealAngles);
-    G_Ai_ShootViewAngles(cl, &idealAngles);
+      G_Ai_SpamViewAngles(cl, &idealAngles);
+      G_Ai_ShootViewAngles(cl, &idealAngles);
+    }
   } else {
     G_Ai_CombatAngles(cl, seconds, &idealAngles, &idealRate);
   }
