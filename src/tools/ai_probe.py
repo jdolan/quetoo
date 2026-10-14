@@ -15,6 +15,7 @@ Usage:
     ai_probe.py summary <log> [<log> ...]
     ai_probe.py deaths <log> [--link A-B] [--near X,Y,R] [--count N]
     ai_probe.py pushes <log> [--link A-B] [--count N]
+    ai_probe.py hazards <log> [--link A-B] [--near X,Y,R] [--count N]   (entries into lava or slime)
     ai_probe.py node <log> <id> [<id> ...]
     ai_probe.py near <log> X Y Z [--radius R]
     ai_probe.py path <log> <from> <to>
@@ -101,8 +102,8 @@ def read_log(path):
 
 
 def histories(events, reason):
-    """Pair each DEATH or PUSHED event with the HIST samples that the game writes right after it."""
-    kind = 'DEATH' if reason == 'death' else 'PUSHED'
+    """Pair each DEATH, PUSHED or HAZARD event with the HIST samples that the game writes right after it."""
+    kind = {'death': 'DEATH', 'pushed': 'PUSHED', 'hazard': 'HAZARD'}[reason]
     out = []
     for i, e in enumerate(events):
         if e.kind != kind or e.get('planned') == '1':
@@ -344,6 +345,11 @@ def summarize(path, events):
     for (link, travel), count in by_link.most_common(10):
         print(f'    {count:>5}  {link} {travel}')
 
+    hazards = histories(events, 'hazard')
+    print(f'  entries into lava or slime: {len(hazards)}')
+    by_link = collections.Counter(last_link(h, s) for h, s in hazards)
+    for (link, travel), count in by_link.most_common(10):
+        print(f'    {count:>5}  {link} {travel}')
     print(f'  pickups: {sum(pickups.values())}')
     for item, count in pickups.most_common(12):
         print(f'    {count:>5}  {item}')
@@ -404,6 +410,10 @@ def cmd_deaths(args):
 
 def cmd_pushes(args):
     show(histories(read_log(args.log), 'pushed'), args)
+
+
+def cmd_hazards(args):
+    show(histories(read_log(args.log), 'hazard'), args)
 
 
 def cmd_node(args):
@@ -751,7 +761,7 @@ def main():
     p.add_argument('logs', nargs='+')
     p.set_defaults(func=cmd_summary)
 
-    for name, func in (('deaths', cmd_deaths), ('pushes', cmd_pushes)):
+    for name, func in (('deaths', cmd_deaths), ('pushes', cmd_pushes), ('hazards', cmd_hazards)):
         p = sub.add_parser(name, help=f'{name} with the 3.2 seconds of samples before each')
         p.add_argument('log')
         p.add_argument('--link', help='only the last link A-B, such as 616-636')

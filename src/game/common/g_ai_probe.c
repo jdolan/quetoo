@@ -86,6 +86,8 @@ typedef struct {
   int32_t travelType;
   bool strafeJumping;
   bool ground;
+  const char *state;
+  bool knocked;
 } GameAiProbeSample;
 
 /**
@@ -114,6 +116,7 @@ typedef struct {
   uint32_t numPositions;
   bool stuck;
   bool pushed;
+  bool hazard;
   bool ground;
   bool jumping;
   float jumpHeight;
@@ -229,10 +232,10 @@ static void G_Ai_Probe_History(const GameClient *cl, const char *reason) {
   for (uint32_t i = 0; i < count; i++) {
     const GameAiProbeSample *s = &c->samples[(c->numSamples - count + i) % AI_PROBE_SAMPLES];
 
-    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d",
+    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d state=%s knocked=%d",
                      reason, i, (int32_t) s->origin.x, (int32_t) s->origin.y, (int32_t) s->origin.z,
                      (int32_t) s->velocity.x, (int32_t) s->velocity.y, (int32_t) s->velocity.z,
-                     s->from, s->to, s->travelType, s->strafeJumping, s->ground);
+                     s->from, s->to, s->travelType, s->strafeJumping, s->ground, s->state, s->knocked);
   }
 }
 
@@ -466,7 +469,9 @@ void G_Ai_Probe_Think(const GameClient *cl) {
       .to = to,
       .travelType = travelType,
       .strafeJumping = cl->ai->strafeJumping,
-      .ground = ground
+      .ground = ground,
+      .state = G_Ai_StateName(cl),
+      .knocked = (cl->ps.pmState.flags & PMF_TIME_PUSHED) && !G_Ai_Probe_TouchesPush(ent)
     };
   }
 
@@ -493,9 +498,22 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
   if (!alive) {
     c->numPositions = 0;
-    c->jumping = c->pushed = false;
+    c->jumping = c->pushed = c->hazard = false;
     return;
   }
+
+  const bool hazard = ent->waterLevel && (ent->waterType & (CONTENTS_LAVA | CONTENTS_SLIME));
+  if (hazard && !c->hazard) {
+    G_Ai_Probe_Print(n, "HAZARD", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d state=%s enemy=%d lava=%d",
+                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                     (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
+                     from, to, travelType, cl->ai->strafeJumping, G_Ai_StateName(cl),
+                     cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTarget.entity.ent,
+                     (ent->waterType & CONTENTS_LAVA) != 0);
+    G_Ai_Probe_History(cl, "hazard");
+  }
+
+  c->hazard = hazard;
 
   const bool pushed = (cl->ps.pmState.flags & PMF_TIME_PUSHED) != 0;
   if (pushed && !c->pushed && G_Ai_Probe_TouchesPush(ent)) {

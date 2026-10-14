@@ -15,7 +15,7 @@ The parts are:
 |---|---|
 | `g_aiProbe` (`src/game/common/g_ai_probe.c`) | A developer cvar. The game writes what each bot does to `ai_probe_<map>.log` in the write directory. 1 records the bots, 2 the navigation graph, 4 the human players. The flags add: 5 records the bots and the players. The default, 0, records nothing. |
 | `src/tools/ai_probe.py run` | Runs a headless dedicated server on the tree's build, at `timeDemo 1`, adds bots by rcon, and stops the server cleanly. |
-| `src/tools/ai_probe.py summary`, `deaths`, `pushes` | Count and explain deaths, unplanned pushes, pickups and stuck time. |
+| `src/tools/ai_probe.py summary`, `deaths`, `pushes`, `hazards` | Count and explain deaths, unplanned pushes, entries into lava or slime, pickups and stuck time. |
 | `src/tools/ai_probe.py node`, `near`, `path`, `routes` | Query the navigation graph that the game used. |
 | `cg_drawAiNodes`, `aiNodeInfo` (`src/cgame/common/cg_nav.c`) | Draw the graph in the client, and print the node nearest the view. |
 
@@ -73,12 +73,14 @@ python3 src/tools/ai_probe.py summary "$LOG"
 python3 src/tools/ai_probe.py deaths "$LOG" --link 616-636 --count 3
 python3 src/tools/ai_probe.py deaths "$LOG" --near 0,800,300
 python3 src/tools/ai_probe.py pushes "$LOG" --link 309-308
+python3 src/tools/ai_probe.py hazards "$LOG" --near 250,-500,250
 ```
 
 - `summary` groups deaths and unplanned pushes by the link that the bot last followed. Start with
   the largest group.
-- `deaths` and `pushes` print each event with the 32 samples before it, 100 ms apart: position,
-  velocity, link, link type, strafe jump state and ground. Read the samples to see what the bot
+- `deaths`, `pushes` and `hazards` print each event with the 32 samples before it, 100 ms apart:
+  position, velocity, link, link type, strafe jump state, ground, the bot's state, and whether
+  damage knocked it back. Read the samples to see what the bot
   did: whether it strafe jumped, overshot its node, or left its link.
 - A death below about z -900 on a map with a void is a fall. The position of the death is where
   the bot hit the hurt trigger, often far from the edge that it fell from. The samples show the
@@ -99,6 +101,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `POS` | Each second for each bot: position, speed, state, goal item, health, link, the weapon in hand, the weapons it can fire, whether it counts itself armed, the enemy's distance, the combat movement, the water level (0 to 3) and whether it is on the ground |
 | `SPEED` | Each 5 seconds: roster name, skill, average and highest speed, the share of time that the bot strafe jumps and is in the air, and the share of time by the reason that it does or does not strafe jump on a path (`GameAiStrafeBlock`): `goal` (not on a path), `strafing`, `lowskill`, `state`, `turn`, `short`, `unsafe`, `fall`. These eight sum to 1 |
 | `DEATH` + `HIST reason=death` | When a bot dies, from any cause |
+| `HAZARD` + `HIST reason=hazard` | When a bot enters lava or slime: its link, state, whether it has an enemy, and `lava=1` for lava |
 | `KILL` | With flag 1 or 4, when any bot or player dies: the attacker (the victim's own number for a suicide, -1 for the world), the means of death (`mod`, as `GameMeansOfDeath`), the weapon in the attacker's hand, the range, and whether each is a bot |
 | `VISIT` | Each time a client moves to another node: the client's route, node by node. The client leaves a node only for one at least 16 units nearer. A death starts a new route. Bots with flag 1, players with flag 4 |
 | `CMD` | With flag 4, each movement command of a human player: the nearest node (-1 if none is within 128 units), position, velocity, view angles (yaw, pitch), the move (forward, right, up), its duration, the ground, the water level and the buttons. Up to 250 lines a second for each player, about 150 MB an hour |
