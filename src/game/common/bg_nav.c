@@ -664,38 +664,48 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
 }
 
 /**
- * @brief Adds a swim node at the center of a cell that has no floor, if the center is in water,
- * and a player fits there and touches no hurt or push trigger, so that a bot swims through the
- * water rather than along its floor.
+ * @brief Adds a swim node in a cell that has no floor, at its center, or else at the first of the
+ * offsets of `offsets` where the player fits, as beside the edge of a ledge over the liquid: where
+ * the point is in water, lava or slime, a player fits, and the player touches no hurt or push
+ * trigger, so that a bot swims through the liquid rather than along its floor, and a bot that falls
+ * into deep lava or slime has nodes near its surface by which to leave.
  * @return True if the node was added.
  */
-static bool Nav_SampleWater(const int32_t cell) {
+static bool Nav_SampleLiquid(const int32_t cell) {
 
   const Vec3 center = Nav_CellOrigin(Nav_CellCoordinate(cell));
-  const int32_t contents = Nav_PointContents(center);
 
-  if (!(contents & CONTENTS_WATER)) {
-    return false;
+  for (size_t i = 0; i < lengthof(offsets); i++) {
+
+    const Vec2 delta = Vec2_Scale(offsets[i], NAV_CELL_SIZE * .25f);
+    const Vec3 point = Vec3_Add(center, MakeVec3(delta.x, delta.y, 0.f));
+    const int32_t contents = Nav_PointContents(point);
+
+    if (!(contents & CONTENTS_MASK_LIQUID)) {
+      continue;
+    }
+
+    const CollisionTrace trace = Nav_Trace(point, point, PM_BOUNDS);
+    if (trace.startSolid || trace.allSolid) {
+      continue;
+    }
+
+    if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, point))) {
+      continue;
+    }
+
+    const NavNode node = {
+      .position = point,
+      .cell = cell,
+      .contents = contents & CONTENTS_MASK_LIQUID,
+      .swim = true
+    };
+
+    Nav_AddNode(cell, &node);
+    return true;
   }
 
-  const CollisionTrace trace = Nav_Trace(center, center, PM_BOUNDS);
-  if (trace.startSolid || trace.allSolid) {
-    return false;
-  }
-
-  if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, center))) {
-    return false;
-  }
-
-  const NavNode node = {
-    .position = center,
-    .cell = cell,
-    .contents = contents & CONTENTS_MASK_LIQUID,
-    .swim = true
-  };
-
-  Nav_AddNode(cell, &node);
-  return true;
+  return false;
 }
 
 /**
@@ -735,9 +745,15 @@ static int32_t Nav_TravelTime(const float distance, const float speed) {
 }
 
 /**
- * @return The time to fall the given height, in hundredths of a second.
+ * @return The time to fall the given height, in hundredths of a second, or 0 with no gravity or
+ * with gravity that lifts.
  */
 static int32_t Nav_FallTime(const float height) {
+
+  if (module.gravity <= 0.f || height <= 0.f) {
+    return 0;
+  }
+
   return (int32_t) ceilf(sqrtf(2.f * height / module.gravity) * 100.f);
 }
 
@@ -1238,7 +1254,8 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
 /**
  * @brief Finds the node that a running jump from `node` in `direction` lands at: the nearest one,
  * 1 to `NAV_MAX_JUMP_CELLS` cells away, from two cells below up to the barrier jump height. A
- * level without gravity has no jumps, and no jump starts or lands at a crouch or water node.
+ * level without gravity has no jumps, and no jump starts or lands at a crouch node or a node in
+ * liquid.
  * @param seconds The time of the jump.
  * @return The node that the jump lands at, or -1.
  */
@@ -1246,7 +1263,7 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
 
   const NavGraph *graph = module.graph;
 
-  if (module.gravity <= 0.f || node->crouch || (node->contents & CONTENTS_WATER)) {
+  if (module.gravity <= 0.f || node->crouch || (node->contents & CONTENTS_MASK_LIQUID)) {
     return -1;
   }
 
@@ -1262,7 +1279,7 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
       }
 
       const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
-      if (other == node || other->model || other->crouch || (other->contents & CONTENTS_WATER)) {
+      if (other == node || other->model || other->crouch || (other->contents & CONTENTS_MASK_LIQUID)) {
         continue;
       }
 
@@ -1331,10 +1348,10 @@ static int32_t Nav_GatedJump(const NavNode *node, const Vec3i direction, float *
 }
 
 /**
- * @return True if the point is in water, which a player can swim through.
+ * @return True if the point is in water, lava or slime, which a player can swim through.
  */
-static bool Nav_InWater(const Vec3 point) {
-  return (Nav_PointContents(point) & CONTENTS_WATER) != 0;
+static bool Nav_InLiquid(const Vec3 point) {
+  return (Nav_PointContents(point) & CONTENTS_MASK_LIQUID) != 0;
 }
 
 /**
@@ -1346,7 +1363,7 @@ static bool Nav_SwimSurface(const Vec3 from, Vec3 *surface) {
   for (float z = NAV_SWIM_STEP; z <= NAV_MAX_SWIM_DEPTH; z += NAV_SWIM_STEP) {
 
     const Vec3 point = Vec3_Add(from, MakeVec3(0.f, 0.f, z));
-    if (Nav_InWater(point)) {
+    if (Nav_InLiquid(point)) {
       continue;
     }
 
@@ -1360,9 +1377,20 @@ static bool Nav_SwimSurface(const Vec3 from, Vec3 *surface) {
 }
 
 /**
- * @brief Links a node in water by swimming: to the nodes in water around it that the player can swim
- * straight to, and to the nodes on the ledges around the surface above it that a water jump climbs
- * onto.
+ * @return True if a link from `node` to `other` would enter lava or slime from outside it. No bot
+ * drops, jumps or swims into lava or slime, so the build makes no such link.
+ */
+static bool Nav_EntersHazard(const NavNode *node, const NavNode *other) {
+
+  const int32_t hazard = CONTENTS_LAVA | CONTENTS_SLIME;
+
+  return (other->contents & hazard) && !(node->contents & hazard);
+}
+
+/**
+ * @brief Links a node in liquid by swimming: to the nodes in liquid around it that the player can
+ * swim straight to, and to the nodes on the ledges around the surface above it that a water jump
+ * climbs onto. A node in water does not swim into lava or slime (`Nav_EntersHazard`).
  */
 static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks) {
 
@@ -1381,12 +1409,16 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
-        if (!(other->contents & CONTENTS_WATER) || other->model || other->crouch || node->crouch) {
+        if (!(other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch || node->crouch) {
+          continue;
+        }
+
+        if (Nav_EntersHazard(node, other)) {
           continue;
         }
 
         const Vec3 middle = Vec3_Mix(node->position, other->position, .5f);
-        if (!Nav_InWater(middle)) {
+        if (!Nav_InLiquid(middle)) {
           continue;
         }
 
@@ -1419,7 +1451,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
-        if ((other->contents & CONTENTS_WATER) || other->model || other->crouch || other->position.z <= surface.z) {
+        if ((other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch || other->position.z <= surface.z) {
           continue;
         }
 
@@ -1775,11 +1807,11 @@ static void Nav_FindClimbs(void) {
 /**
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
  * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the same
- * model, and the game links it to the rest as the model moves. A node in water also swims, and a
+ * model, and the game links it to the rest as the model moves. A node in liquid also swims, and a
  * swim node only swims. A walk to or from a node in liquid takes the time at `PM_SPEED_WATER`,
  * because a player who walks on a floor in liquid moves no faster than one who swims. A node at
  * the foot of a ladder's climb links to its top. A bot does not climb down a ladder: it falls, by a
- * drop link.
+ * drop link. No drop, barrier jump, jump or swim enters lava or slime (`Nav_EntersHazard`).
  * @return The count of links written to `links`.
  */
 static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
@@ -1816,7 +1848,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       if (Nav_Walk(node, other, &distance)) {
         Nav_AddWalk(links, &numLinks, node, other, target, distance, 0);
         walked = true;
-      } else if (Nav_BarrierJump(node, other, &distance)) {
+      } else if (!Nav_EntersHazard(node, other) && Nav_BarrierJump(node, other, &distance)) {
         const float fall = module.barrierHeight - (other->position.z - node->position.z);
         const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) +
                              Nav_FallTime(module.barrierHeight) + Nav_FallTime(fall);
@@ -1838,7 +1870,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     if (target == -1) {
       target = Nav_GatedDrop(node, directions[i], &distance, &height, &dropGate);
     }
-    if (target != -1 && target != index) {
+    if (target != -1 && target != index && !Nav_EntersHazard(node, &graph->nodes[target])) {
       const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) + Nav_FallTime(height);
       Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, dropGate);
     }
@@ -1849,12 +1881,12 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     if (landing == -1) {
       landing = Nav_GatedJump(node, directions[i], &seconds, &gate);
     }
-    if (landing != -1) {
+    if (landing != -1 && !Nav_EntersHazard(node, &graph->nodes[landing])) {
       Nav_AddLink(links, &numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 100.f), gate);
     }
   }
 
-  if ((node->contents & CONTENTS_WATER) && !node->model) {
+  if ((node->contents & CONTENTS_MASK_LIQUID) && !node->model) {
     Nav_LinkSwims(index, links, &numLinks);
   }
 
@@ -1870,47 +1902,28 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
 }
 
 /**
- * @return The highest ledge that every movement can jump onto: the smallest jump height over all
- * movements, less `NAV_BARRIER_MARGIN`.
+ * @return The highest ledge that the level's movement jumps onto, less `NAV_BARRIER_MARGIN`. With
+ * no gravity, a jump has no top, and the ledge is taken to be as high as a water jump climbs.
  */
 static float Nav_BarrierHeight(void) {
 
-  float height = FLT_MAX;
-
-  for (size_t i = 0; i < Pm_MovementCount(); i++) {
-
-    const PMoveParams *params = Pm_Movement((PMovement) i)->params;
-
-    const float jump = params ? params->speedJump : PM_SPEED_JUMP;
-    const float gravity = (params && params->gravity) ? Maxf(params->gravity, module.gravity) : module.gravity;
-
-    height = Minf(height, jump * jump / (2.f * gravity));
-  }
+  const float jump = module.params->movement.speedJump;
+  const float height = module.gravity > 0.f ? jump * jump / (2.f * module.gravity) : PM_STEP_HEIGHT + Box3_Size(PM_BOUNDS).z;
 
   return height - NAV_BARRIER_MARGIN;
 }
 
 /**
- * @return The highest ledge, above the floating origin, that every movement can water jump onto,
+ * @return The highest ledge, above the floating origin, that the level's movement water jumps onto,
  * less `NAV_WATER_JUMP_MARGIN`.
  * @remarks A water jump starts only if the player box fits `PM_STEP_HEIGHT` plus its own height
  * above the origin, over the ledge, which caps the climb whatever the jump speed and gravity.
  */
 static float Nav_WaterJumpHeight(void) {
 
-  float height = PM_STEP_HEIGHT + Box3_Size(PM_BOUNDS).z;
-
-  for (size_t i = 0; i < Pm_MovementCount(); i++) {
-
-    const PMoveParams *params = Pm_Movement((PMovement) i)->params;
-
-    const float jump = params ? params->speedWaterJump : PM_SPEED_WATER_JUMP;
-    const float gravity = (params && params->gravity) ? Maxf(params->gravity, module.gravity) : module.gravity;
-
-    if (gravity > 0.f) {
-      height = Minf(height, jump * jump / (2.f * gravity));
-    }
-  }
+  const float jump = module.params->movement.speedWaterJump;
+  const float cap = PM_STEP_HEIGHT + Box3_Size(PM_BOUNDS).z;
+  const float height = module.gravity > 0.f ? Minf(cap, jump * jump / (2.f * module.gravity)) : cap;
 
   return height - NAV_WATER_JUMP_MARGIN;
 }
@@ -2128,7 +2141,7 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
   module.params = params;
   module.graph = graph;
   module.openGate = -1;
-  module.gravity = params->gravity;
+  module.gravity = params->movement.gravity;
   module.barrierHeight = Nav_BarrierHeight();
   module.waterJumpHeight = Nav_WaterJumpHeight();
 
@@ -2150,7 +2163,7 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
         graph->numTrigger++;
         break;
       case NAV_SAMPLE_NONE:
-        graph->numSwim += Nav_SampleWater(i);
+        graph->numSwim += Nav_SampleLiquid(i);
         break;
     }
   }

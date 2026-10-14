@@ -347,11 +347,9 @@ void Cg_PrepareAiNodes(const ClientFrame *frame) {
     return;
   }
 
-  const int16_t gravity = frame->ps.pmState.params.gravity;
-
   const NavParams params = {
     .bsp = cgi.Bsp(),
-    .gravity = gravity > 0 ? gravity : 800.f,
+    .movement = frame->ps.pmState.params,
     .BoxTrace = cgi.BoxTrace,
     .PointInsideBrush = cgi.PointInsideBrush,
     .EntityValue = cgi.EntityValue,

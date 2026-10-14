@@ -122,7 +122,7 @@ typedef struct {
   bool crouch;
 
   /**
-   * @brief True if the node floats in water at the center of its cell, which has no floor. A swim
+   * @brief True if the node floats in water, lava or slime in its cell, which has no floor. A swim
    * node links only by swimming.
    */
   bool swim;
@@ -319,8 +319,8 @@ typedef struct {
 } NavGraph;
 
 /**
- * @brief What `Nav_Build` needs from the game or the client game. The graph depends on the BSP and
- * its entities alone, so that both build the same graph.
+ * @brief What `Nav_Build` needs from the game or the client game. The graph depends on the BSP, its
+ * entities and the level's movement alone, so that both build the same graph.
  */
 typedef struct {
   /**
@@ -329,9 +329,11 @@ typedef struct {
   const CollisionBsp *bsp;
 
   /**
-   * @brief The level's gravity.
+   * @brief The level's movement, with the level's gravity, by which the build tests jumps and
+   * climbs out of water. A movement or gravity that changes during the level does not rebuild the
+   * graph, whose jumps then MAY not match it.
    */
-  float gravity;
+  PMoveParams movement;
 
   /**
    * @brief Traces a box against the given BSP head node.

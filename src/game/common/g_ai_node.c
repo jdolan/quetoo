@@ -263,6 +263,7 @@ static inline GameAiNodeId G_Ai_Node_Index(const GameAiNode *node) {
 }
 
 static void G_Ai_Node_FreePathPool(void);
+static int32_t G_Ai_Node_Contents(const GameAiNode *node);
 static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to);
 
 /**
@@ -333,6 +334,12 @@ typedef struct {
    * they stood when it was built.
    */
   bool skipMovers;
+
+  /**
+   * @brief True to skip the nodes in lava or slime, for a position that is not in it, so that a
+   * bot on the shore never takes a node in the lava as the start of its path, and walks into it.
+   */
+  bool skipHazards;
 } GameAiNodeQueryFilter;
 
 /**
@@ -343,6 +350,10 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
   const GameAiNode *node = AI_NODE(aiNodes, nodenum);
 
   if ((filter->staticOnly || filter->skipMovers) && node->model) {
+    return false;
+  }
+
+  if (filter->skipHazards && (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME))) {
     return false;
   }
 
@@ -472,13 +483,13 @@ static GameAiNodeId G_Ai_Node_FindClosest_(const Vec3 position, const float maxD
   }
 
   GameAiNodeId closest = AI_NODE_INVALID;
-  float closestDist = 0;
   const float distSquared = maxDistance * maxDistance;
 
   GameAiNodeQueryFilter filter = {
     .position = position,
     .onlyVisible = onlyVisible,
     .preferLevel = preferLevel,
+    .skipHazards = !(gi.PointContents(position) & (CONTENTS_LAVA | CONTENTS_SLIME)),
     .staticOnly = staticOnly
   };
 
@@ -511,25 +522,10 @@ static GameAiNodeId G_Ai_Node_FindClosest_(const Vec3 position, const float maxD
   }
 
   // Fallback: linear scan (kd-tree build failed).
+  float closestDistance = distSquared;
+
   for (size_t i = 0; i < aiNodes->count; i++) {
-    const GameAiNode *node = AI_NODE(aiNodes, i);
-
-    if (staticOnly && node->model) {
-      continue;
-    }
-
-    Vec3 dir = Vec3_Subtract(position, node->position);
-    if (preferLevel && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
-      dir.z *= 4.0f;
-    }
-    const float dist = Vec3_LengthSquared(dir);
-
-    if (dist < distSquared
-        && (closest == AI_NODE_INVALID || dist < closestDist)
-        && (!onlyVisible || G_Ai_Node_Visible(position, i))) {
-      closest = i;
-      closestDist = dist;
-    }
+    G_Ai_Node_FindClosestCell_compare(&filter, (GameAiNodeId) i, &closest, &closestDistance);
   }
 
   return closest;
@@ -794,7 +790,7 @@ void G_Ai_InitNodes(void) {
 
   const NavParams params = {
     .bsp = gi.Bsp(),
-    .gravity = G_LevelGravity(),
+    .movement = G_MovementParams(),
     .BoxTrace = gi.BoxTrace,
     .PointInsideBrush = gi.PointInsideBrush,
     .EntityValue = gi.EntityValue,
