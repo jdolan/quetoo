@@ -59,13 +59,13 @@ const GameEntity *G_Ai_GoalEntity(const GameClient *cl);
 
 /**
  * @brief Finds the items that a map marks with `ai_access_by`, the doors that the key names, and
- * the buttons that a bot presses to move them. Called once the level's entities and their nodes
- * exist.
+ * the buttons that a bot presses to move them, and the doors marked `"ai_hint" "trap"`, with their
+ * buttons. Called once the level's entities and their nodes exist.
  */
 void G_Ai_State_Load(void);
 
 /**
- * @brief Forgets the access table of the last level, whose entities are gone, until
+ * @brief Forgets the access and trap tables of the last level, whose entities are gone, until
  * `G_Ai_State_Load` finds the new level's.
  */
 void G_Ai_State_Unload(void);

@@ -224,6 +224,31 @@
 #define AI_ACCESS_RETRY_DOUBLINGS 4
 
 /**
+ * @brief The most doors that a map marks with `"ai_hint" "trap"`, grouped by `targetname`, and the
+ * most doors and buttons of each trap.
+ */
+#define AI_MAX_TRAPS 16
+#define AI_TRAP_DOORS 8
+#define AI_TRAP_BUTTONS 4
+
+/**
+ * @brief The distance from a trap's button within which a bot in a fight walks into it, while its
+ * enemy stands on the trap.
+ */
+#define AI_TRAP_REACH 256.f
+
+/**
+ * @brief The doors with one `targetname` that a map marks with `"ai_hint" "trap"`, and the buttons
+ * that target them, which a bot touches to spring the trap under an enemy.
+ */
+typedef struct {
+  const GameEntity *doors[AI_TRAP_DOORS];
+  int32_t numDoors;
+  const GameEntity *buttons[AI_TRAP_BUTTONS];
+  int32_t numButtons;
+} GameAiTrap;
+
+/**
  * @brief An item that a map marks with `ai_access_by`: the doors with that `targetname`, and the
  * buttons that target them, which a bot touches to move the doors.
  */
@@ -306,6 +331,12 @@ static struct {
    */
   GameAiAccess access[AI_MAX_ACCESS];
   int32_t numAccess;
+
+  /**
+   * @brief The traps that a map marks with `"ai_hint" "trap"`.
+   */
+  GameAiTrap traps[AI_MAX_TRAPS];
+  int32_t numTraps;
 } module;
 
 /**
@@ -1117,6 +1148,80 @@ static void G_Ai_State_Detour(GameClient *cl) {
 }
 
 /**
+ * @return The trap whose door the entity stands on, or NULL.
+ */
+static const GameAiTrap *G_Ai_TrapUnder(const GameEntity *ent) {
+
+  if (!ent->ground.ent) {
+    return NULL;
+  }
+
+  for (int32_t i = 0; i < module.numTraps; i++) {
+    const GameAiTrap *trap = &module.traps[i];
+
+    for (int32_t j = 0; j < trap->numDoors; j++) {
+      if (trap->doors[j] == ent->ground.ent) {
+        return trap;
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Walks into the nearest button of the trap under the enemy, if the bot is within
+ * `AI_TRAP_REACH` of it, with a clear line for its box, raised by a step, the bot does not stand on
+ * the trap itself, and the trap's doors are at rest, unsprung.
+ * @return True if the bot goes to spring the trap.
+ */
+static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
+
+  const GameAiTrap *trap = G_Ai_TrapUnder(enemy);
+
+  if (!trap || G_Ai_TrapUnder(cl->entity) == trap) {
+    return false;
+  }
+
+  for (int32_t i = 0; i < trap->numDoors; i++) {
+    if (trap->doors[i]->moveInfo.state != MOVE_STATE_BOTTOM) {
+      return false;
+    }
+  }
+
+  const GameEntity *nearest = NULL;
+  float nearestDistance = AI_TRAP_REACH;
+
+  Box3 bounds = G_PlayerBounds();
+  bounds.mins.z += PM_STEP_HEIGHT;
+
+  for (int32_t i = 0; i < trap->numButtons; i++) {
+    const Vec3 center = Box3_Center(trap->buttons[i]->absBounds);
+    const float distance = Vec3_Distance(cl->entity->s.origin, center);
+
+    if (distance >= nearestDistance) {
+      continue;
+    }
+
+    const CollisionTrace tr = gi.Trace(cl->entity->s.origin, center, bounds, cl->entity, CONTENTS_MASK_CLIP_PLAYER);
+    if (tr.fraction < 1.f && tr.ent != trap->buttons[i]) {
+      continue;
+    }
+
+    nearest = trap->buttons[i];
+    nearestDistance = distance;
+  }
+
+  if (!nearest) {
+    return false;
+  }
+
+  G_Ai_Debug("%s springs a trap under %s\n", cl->persistent.netName, enemy->client ? enemy->client->persistent.netName : "?");
+  G_Ai_SetPositionGoal(cl, &cl->ai->moveTarget, AI_PURSUE_PRIORITY, Box3_Center(nearest->absBounds));
+  return true;
+}
+
+/**
  * @brief Fights the combat target, as only an armed bot does. Within `AI_ENGAGE_SCALE` of the
  * weapon's preferred range, the bot strafes around the enemy, and goes only for items close by.
  * Beyond it, the bot collects items while it fires, or, if it has none to collect, paths toward the
@@ -1128,6 +1233,10 @@ static void G_Ai_State_Fight(GameClient *cl) {
   const GameEntity *enemy = ai->combatTarget.entity.ent;
 
   if (!G_Ai_ShouldReview(cl)) {
+    return;
+  }
+
+  if (G_Ai_SpringTrap(cl, enemy)) {
     return;
   }
 
@@ -1549,9 +1658,57 @@ static void G_Ai_ButtonNodes(const GameEntity *button, GameAiNodeId *nodes, int3
 }
 
 /**
+ * @brief Finds the doors that a map marks with `"ai_hint" "trap"`, grouped by `targetname`, and the
+ * buttons that a bot touches to move them.
+ */
+static void G_Ai_LoadTraps(void) {
+
+  module.numTraps = 0;
+
+  G_ForEachEntity(ent, {
+    if (!G_Ai_IsAccessDoor(ent) || !ent->targetName || Str_Compare(gi.EntityValue(ent->def, "ai_hint")->string, "trap")) {
+      continue;
+    }
+
+    GameAiTrap *trap = NULL;
+
+    for (int32_t j = 0; j < module.numTraps && !trap; j++) {
+      if (!Str_Compare(module.traps[j].doors[0]->targetName, ent->targetName)) {
+        trap = &module.traps[j];
+      }
+    }
+
+    if (!trap) {
+      if (module.numTraps == AI_MAX_TRAPS) {
+        G_Warn("More than %d traps have \"ai_hint\" \"trap\"\n", AI_MAX_TRAPS);
+        break;
+      }
+
+      trap = &module.traps[module.numTraps++];
+      memset(trap, 0, sizeof(*trap));
+
+      for (int32_t j = 0; j < sv_maxEntities->integer; j++) {
+        const GameEntity *other = ge.entities[j];
+
+        if (other->inUse && other->target && !Str_Compare(other->target, ent->targetName) && other->Touch &&
+            !Str_Compare(other->classname, "func_button") && trap->numButtons < AI_TRAP_BUTTONS) {
+          trap->buttons[trap->numButtons++] = other;
+        }
+      }
+    }
+
+    if (trap->numDoors < AI_TRAP_DOORS) {
+      trap->doors[trap->numDoors++] = ent;
+    }
+  });
+}
+
+/**
  * @see g_ai_state.h
  */
 void G_Ai_State_Load(void) {
+
+  G_Ai_LoadTraps();
 
   module.numAccess = 0;
 
@@ -1620,6 +1777,7 @@ void G_Ai_State_Load(void) {
 void G_Ai_State_Unload(void) {
 
   module.numAccess = 0;
+  module.numTraps = 0;
 }
 
 /**
