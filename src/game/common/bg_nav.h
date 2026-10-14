@@ -210,7 +210,7 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The node at the ladder's foot.
+   * @brief The node at the ladder's foot, or the node from which a running jump grabs the ladder.
    */
   int32_t bottom;
 
@@ -225,8 +225,8 @@ typedef struct {
   int32_t time;
 
   /**
-   * @brief The player origin at the foot of the column beside the ladder that the build tested,
-   * which the nodes of the climb MAY stand beside.
+   * @brief The player origin at the foot of the column beside the ladder that the build tested, or
+   * where a jump grabs the ladder. The nodes of the climb MAY stand beside that column.
    */
   Vec3 column;
 
@@ -234,7 +234,24 @@ typedef struct {
    * @brief The player origin on the floor over the ladder's top, where the climb ends.
    */
   Vec3 landing;
+
+  /**
+   * @brief True if the climb starts with a running jump from `bottom` onto the ladder at `column`.
+   */
+  bool jump;
+
+  /**
+   * @brief For a climb that starts with a jump, the player origin `NAV_LADDER_RUN_UP` behind
+   * `bottom` on the line of the jump, from which a bot runs along the line to jump at speed.
+   */
+  Vec3 runUp;
 } NavClimb;
+
+/**
+ * @brief The distance in units of clear floor behind the node of a jump onto a ladder, on the line
+ * of the jump, along which a bot that comes from another way gets up to speed.
+ */
+#define NAV_LADDER_RUN_UP 64.f
 
 /**
  * @brief The navigation graph of the level.

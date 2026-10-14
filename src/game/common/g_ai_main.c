@@ -1437,10 +1437,28 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 }
 
 /**
+ * @return The climb of the bot's ladder link, if the climb starts with a jump, or NULL.
+ */
+static const NavClimb *G_Ai_JumpClimb(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type != AI_GOAL_PATH || goal->path.pathIndex == 0) {
+    return NULL;
+  }
+
+  const NavClimb *climb = G_Ai_Node_GetClimb(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                                             VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
+
+  return climb && climb->jump ? climb : NULL;
+}
+
+/**
  * @return True if the bot is on the ground or in water to the waist, far from the walk, crouch,
- * ledge or jump link that it follows, or below both of its ends, so that the link no longer leads
- * where it goes. A bot that falls into water off its path plans a new one, which swims out, and a
- * bot that falls short of a jump plans one from where it lands.
+ * ledge or jump link that it follows, or of a ladder link that starts with a jump, or below both of
+ * its ends, so that the link no longer leads where it goes. A bot that falls into water off its
+ * path plans a new one, which swims out, and a bot that falls short of a jump, or misses the ladder,
+ * plans one from where it lands.
  */
 static bool G_Ai_IsOffPath(const GameClient *cl) {
 
@@ -1451,7 +1469,7 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
   const GameAiLink *link = G_Ai_PathLink(cl);
 
   if (!link || ((link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) &&
-                link->travelType != NAV_TRAVEL_JUMP)) {
+                link->travelType != NAV_TRAVEL_JUMP && !G_Ai_JumpClimb(cl))) {
     return false;
   }
 
@@ -1473,10 +1491,202 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
 #define AI_JUMP_LINE_DISTANCE 16.f
 
 /**
+ * @return True if the link from node `a` to node `b` starts with a running jump: a jump link, or a
+ * ladder link whose climb starts with a jump onto the ladder.
+ * @param target Where the jump lands, or grabs the ladder, if not NULL.
+ */
+static bool G_Ai_IsJump(const GameAiNodeId a, const GameAiNodeId b, Vec3 *target) {
+
+  const GameAiLink *link = G_Ai_Node_GetLink(a, b);
+
+  if (!link) {
+    return false;
+  }
+
+  if (link->travelType == NAV_TRAVEL_JUMP) {
+    if (target) {
+      *target = G_Ai_Node_GetPosition(b);
+    }
+    return true;
+  }
+
+  if (link->travelType != NAV_TRAVEL_LADDER) {
+    return false;
+  }
+
+  const NavClimb *climb = G_Ai_Node_GetClimb(a, b);
+
+  if (!climb || !climb->jump) {
+    return false;
+  }
+
+  if (target) {
+    *target = climb->column;
+  }
+
+  return true;
+}
+
+/**
+ * @return True if the bot follows a jump link, or a ladder link that starts with a jump.
+ */
+static bool G_Ai_IsJumpLink(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type != AI_GOAL_PATH || goal->path.pathIndex == 0) {
+    return false;
+  }
+
+  return G_Ai_IsJump(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                     VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex), NULL);
+}
+
+/**
+ * @return Where the bot's jump link lands, or where the jump of its ladder link grabs the ladder.
+ */
+static Vec3 G_Ai_JumpTarget(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  Vec3 target = goal->path.pathPosition;
+
+  if (goal->path.pathIndex > 0) {
+    G_Ai_IsJump(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex), &target);
+  }
+
+  return target;
+}
+
+/**
+ * @brief The least cosine of the angle between a bot's horizontal velocity and the line of its
+ * jump link, at which it jumps: about 25 degrees.
+ */
+#define AI_JUMP_HEADING .9f
+
+/**
+ * @return True if the bot moves horizontally along the line from `source` to `target`, within the
+ * angle of `AI_JUMP_HEADING`.
+ */
+static bool G_Ai_IsHeading(const GameClient *cl, const Vec3 source, const Vec3 target) {
+
+  const Vec3 line = Vec3_Normalize(MakeVec3(target.x - source.x, target.y - source.y, 0.f));
+  const Vec3 heading = Vec3_Normalize(MakeVec3(cl->entity->velocity.x, cl->entity->velocity.y, 0.f));
+
+  return Vec3_Dot(line, heading) >= AI_JUMP_HEADING;
+}
+
+/**
+ * @return True if the bot moves along the line of its jump link, toward the target, as the
+ * navigation build simulated the run before the jump. A bot that comes onto the line across it
+ * MUST NOT jump, or it leaves the floor at the wrong edge.
+ */
+static bool G_Ai_IsJumpHeading(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  const Vec3 source = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+
+  return G_Ai_IsHeading(cl, source, G_Ai_JumpTarget(cl));
+}
+
+/**
+ * @brief The least horizontal speed at which a bot jumps across a gap or onto a ladder, as a
+ * fraction of the run speed. The build simulates the jump at `NAV_JUMP_SPEED_FRACTION`, and air
+ * control makes up a little less.
+ */
+#define AI_JUMP_SPEED .7f
+
+/**
+ * @return True if the bot moves fast enough to make the jump of its link (`AI_JUMP_SPEED`).
+ */
+static bool G_Ai_IsJumpSpeed(const GameClient *cl) {
+  return Vec2_Length(Vec3_XY(cl->entity->velocity)) >= PM_SPEED_RUN * AI_JUMP_SPEED;
+}
+
+/**
+ * @brief The distance from the run-up point of a jump onto a ladder within which a bot turns to run
+ * along the line of the jump.
+ */
+#define AI_RUN_UP_REACH 16.f
+
+/**
+ * @brief The distance from the source node of a jump within which a bot that does not move along
+ * the jump's line slows down to turn onto it.
+ */
+#define AI_JUMP_TURN_DISTANCE 96.f
+
+/**
+ * @return True if the link from node `a` to node `b` is a ladder link whose climb starts with a
+ * jump onto the ladder.
+ * @param target Where the jump grabs the ladder.
+ */
+static bool G_Ai_IsLadderJump(const GameAiNodeId a, const GameAiNodeId b, Vec3 *target) {
+
+  const NavClimb *climb = G_Ai_Node_GetClimb(a, b);
+
+  if (!climb || !climb->jump) {
+    return false;
+  }
+
+  *target = climb->column;
+  return true;
+}
+
+/**
+ * @return True if the bot runs on the ground near the source node of a jump onto a ladder, on the
+ * link to it or on the jump's own link, within `AI_JUMP_TURN_DISTANCE` of it, and does not move
+ * along the jump's line, faster than `AI_LEDGE_SPEED`. It slows down to turn onto the line, so that
+ * it does not run off the floor at another edge near the takeoff, as at a corner over lava. Only a
+ * walk or a crouch leads to the source node so: a bot that comes by a jump, a drop or a barrier jump
+ * needs its speed. A gap jump has no run-up behind its source node, so a bot that slowed there
+ * could not jump at speed.
+ */
+static bool G_Ai_ShouldSlowForJump(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (!cl->entity->ground.ent || goal->type != AI_GOAL_PATH) {
+    return false;
+  }
+
+  const Vector *path = goal->path.path;
+  const uint32_t index = goal->path.pathIndex;
+
+  GameAiNodeId source = AI_NODE_INVALID;
+  Vec3 target;
+
+  if (index > 0 && G_Ai_IsLadderJump(VectorValue(path, GameAiNodeId, index - 1), VectorValue(path, GameAiNodeId, index), &target)) {
+    source = VectorValue(path, GameAiNodeId, index - 1);
+  } else if (index + 1 < path->count && (!G_Ai_PathLink(cl) || G_Ai_PathLink(cl)->travelType <= NAV_TRAVEL_CROUCH) &&
+             G_Ai_IsLadderJump(VectorValue(path, GameAiNodeId, index), VectorValue(path, GameAiNodeId, index + 1), &target)) {
+    source = VectorValue(path, GameAiNodeId, index);
+  }
+
+  if (source == AI_NODE_INVALID) {
+    return false;
+  }
+
+  const Vec3 position = G_Ai_Node_GetPosition(source);
+
+  if (Vec2_Distance(Vec3_XY(position), Vec3_XY(cl->entity->s.origin)) > AI_JUMP_TURN_DISTANCE) {
+    return false;
+  }
+
+  if (Vec2_Length(Vec3_XY(cl->entity->velocity)) <= PM_SPEED_RUN * AI_LEDGE_SPEED) {
+    return false;
+  }
+
+  return !G_Ai_IsHeading(cl, position, target);
+}
+
+/**
  * @return True if the bot is on the line from the source node of its jump link to the target, which
  * the navigation build simulated the jump along: within `AI_JUMP_LINE_DISTANCE` of it, between the
  * source and the target, and on the source's level. Off that line, the jump can hit a wall or fall
- * short, and past the target, or below the source after a fall, it MUST NOT jump again.
+ * short, and past the target, or below the source after a fall, it MUST NOT jump again. The target
+ * of a ladder link that starts with a jump is where the jump grabs the ladder.
  * @param along The distance along the line from the source node, or NULL.
  */
 static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
@@ -1484,13 +1694,14 @@ static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
   const Vec3 source = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 target = G_Ai_JumpTarget(cl);
 
   if (fabsf(cl->entity->s.origin.z - source.z) > PM_STEP_HEIGHT * 2.f) {
     return false;
   }
 
   const Vec2 a = Vec3_XY(source);
-  const Vec2 ab = Vec2_Subtract(Vec3_XY(goal->path.pathPosition), a);
+  const Vec2 ab = Vec2_Subtract(Vec3_XY(target), a);
   const Vec2 ap = Vec2_Subtract(Vec3_XY(cl->entity->s.origin), a);
 
   const float length = Vec2_Length(ab);
@@ -1578,14 +1789,21 @@ static Vec3 G_Ai_LadderDestination(const GameClient *cl) {
  * @return The point to which a bot on a jump link steers: `AI_JUMP_LOOK_DISTANCE` ahead of it on
  * the line of the jump. Off that line, it steers to the target if it stands on the target's level,
  * nearer the target than the source, as after a jump that lands past the target, and otherwise to
- * the source.
+ * the source. A bot on a jump onto a ladder that does not move along the line steers first to the
+ * climb's run-up point, from which it runs along the line to jump at speed.
  */
 static Vec3 G_Ai_JumpDestination(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
   const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
-  const Vec3 b = goal->path.pathPosition;
+  const Vec3 b = G_Ai_JumpTarget(cl);
+
+  const NavClimb *climb = G_Ai_JumpClimb(cl);
+  if (climb && !G_Ai_IsHeading(cl, a, b) &&
+      Vec2_Distance(Vec3_XY(climb->runUp), Vec3_XY(cl->entity->s.origin)) > AI_RUN_UP_REACH) {
+    return climb->runUp;
+  }
 
   float along;
   if (!G_Ai_IsOnJumpLine(cl, &along)) {
@@ -2027,16 +2245,22 @@ static bool G_Ai_SimulateDrop(GameClient *cl, const Vec3 target) {
  * or a knockback. If it has a path, and `G_Ai_SimulateDrop` lands it safely if it steers toward its
  * next node, it steers there as the simulation does. Else it steers back toward the place at which
  * it left the ground. Air acceleration removes the speed of a run in about half a second, so a bot
- * that steers early lands.
+ * that steers early lands. A bot in the air after a jump onto a ladder does not steer back: the fall
+ * that the simulation sees ends on the ladder, which it does not know.
  */
 static void G_Ai_AvoidHazard(GameClient *cl, PMoveCmd *cmd) {
 
   const GameEntity *ent = cl->entity;
   GameAi *ai = cl->ai;
 
+  if ((ent->ground.ent && cmd->up <= 0) || (cl->ps.pmState.flags & PMF_ON_LADDER) || !G_Ai_JumpClimb(cl)) {
+    ai->ladderJumping = false;
+  }
+
   if (ent->ground.ent ||
       ent->waterLevel >= WATER_WAIST ||
-      (cl->ps.pmState.flags & PMF_ON_LADDER)) {
+      (cl->ps.pmState.flags & PMF_ON_LADDER) ||
+      ai->ladderJumping) {
     return;
   }
 
@@ -2418,7 +2642,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
         if (cl->ai->moveTarget.path.trickJump) {
           dest = cl->ai->moveTarget.path.trickPosition;
-        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_JUMP && ent->ground.ent) {
+        } else if (G_Ai_IsJumpLink(cl) && ent->ground.ent) {
           dest = G_Ai_JumpDestination(cl);
         } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType <= NAV_TRAVEL_CROUCH && ent->ground.ent) {
           dest = G_Ai_WalkDestination(cl);
@@ -2470,6 +2694,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   const bool swimming = ent->waterLevel >= WATER_WAIST;
   bool waitPolitely = false;
+  bool turnToJump = false;
 
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
     cl->ai->strafeBlock = AI_STRAFE_BLOCK_STATE;
@@ -2496,6 +2721,9 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
                && (cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) <= -PM_STEP_HEIGHT) {
       dir = Vec3_Scale(dir, Clampf(len, 10.f, PM_SPEED_RUN));
       G_Ai_Debug("Trying to land on target\n");
+    } else if (!swimming && G_Ai_ShouldSlowForJump(cl)) {
+      dir = Vec3_Scale(dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
+      turnToJump = true;
     // we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
     // running off the edge, transition to walking so we don't overshoot targets beneath us
     } else if (!swimming && cl->ai->moveTarget.path.pathIndex > 0 &&
@@ -2610,14 +2838,16 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
                    cl->ai->moveTarget.path.pathPosition.z < ent->s.origin.z - PM_STEP_HEIGHT &&
                    G_Ai_SimulateDrop(cl, cl->ai->moveTarget.path.pathPosition)) {
           G_Ai_Debug("Dropping to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
-        } else if (travelType == NAV_TRAVEL_JUMP && !toPush && G_Ai_IsOnJumpLine(cl, NULL)) {
+        } else if (G_Ai_IsJumpLink(cl) && !toPush && G_Ai_IsOnJumpLine(cl, NULL) &&
+                   (!G_Ai_JumpClimb(cl) || (G_Ai_IsJumpHeading(cl) && G_Ai_IsJumpSpeed(cl)))) {
           if (!pm.ground.ent) {
             cmd->up = PM_SPEED_JUMP;
+            cl->ai->ladderJumping = G_Ai_JumpClimb(cl) != NULL;
             G_Ai_Debug("Jumping across a gap to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
           }
         // walk links, and the links that the game adds to them, have floor all the way, and a jump
         // link leaves it only on its line, so an edge anywhere else means that we are off the path
-        } else if (!toPush && (travelType <= NAV_TRAVEL_BARRIER_JUMP || travelType == NAV_TRAVEL_JUMP)) {
+        } else if (!toPush && (travelType <= NAV_TRAVEL_BARRIER_JUMP || G_Ai_IsJumpLink(cl))) {
           cmd->forward = -cmd->forward;
           cmd->right = -cmd->right;
           G_Ai_ReturnToPath(cl);
@@ -2688,6 +2918,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
                && cl->ai->moveTarget.path.trickJump != TRICK_JUMP_TURNING)
                || cl->ai->moveTarget.type != AI_GOAL_PATH)
                && !waitPolitely
+               && !turnToJump
                && !atEdge
                && !G_Ai_IsRidingMover(ent)) {
 
@@ -2704,7 +2935,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         // if we're navving, node is above us, and we're on ground, jump; we're probably trying
         // to trick-jump or something
         if (cl->ai->moveTarget.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent &&
-            !G_Ai_IsRideLink(G_Ai_PathLink(cl))) {
+            !G_Ai_IsRideLink(G_Ai_PathLink(cl)) && !G_Ai_JumpClimb(cl)) {
           if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
 
             cl->ai->moveTarget.path.trickJump = TRICK_JUMP_START;
@@ -3047,6 +3278,7 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->fallFrame = 0;
   cl->ai->wanderTurnTime = 0;
   cl->ai->strafeJumping = false;
+  cl->ai->ladderJumping = false;
   cl->ai->strafeLookTime = 0;
   cl->ai->strafeSafeTime = 0;
 

@@ -747,6 +747,12 @@ typedef struct GameAi {
   bool strafeJumping;
 
   /**
+   * @brief True from the takeoff of a jump onto a ladder until the bot lands, grabs the ladder or
+   * leaves the link.
+   */
+  bool ladderJumping;
+
+  /**
    * @brief Why the bot did not strafe jump on its last move along a path, for the probe.
    */
   GameAiStrafeBlock strafeBlock;
