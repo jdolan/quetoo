@@ -425,6 +425,19 @@ void G_Ai_Probe_Graph(void) {
     G_Ai_Probe_Print(-1, "NODE", "id=%u pos=%d,%d,%d edge=%d links=%s",
                      i, (int32_t) position.x, (int32_t) position.y, (int32_t) position.z,
                      G_Ai_Node_IsEdge((GameAiNodeId) i), text);
+
+    for (size_t j = 0; links && j < links->count; j++) {
+      const GameAiLink *link = VectorElement(links, GameAiLink, j);
+      const NavClimb *climb = link->travelType == NAV_TRAVEL_LADDER ? G_Ai_Node_GetClimb(i, link->id) : NULL;
+
+      if (climb) {
+        G_Ai_Probe_Print(-1, "CLIMB", "bottom=%d top=%d column=%d,%d,%d landing=%d,%d,%d time=%d",
+                         climb->bottom, climb->top,
+                         (int32_t) climb->column.x, (int32_t) climb->column.y, (int32_t) climb->column.z,
+                         (int32_t) climb->landing.x, (int32_t) climb->landing.y, (int32_t) climb->landing.z,
+                         climb->time);
+      }
+    }
   }
 
   for (int32_t i = 0; i < sv_maxEntities->integer; i++) {
