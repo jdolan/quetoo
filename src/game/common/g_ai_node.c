@@ -244,6 +244,21 @@ typedef struct {
    */
   float crushAngle;
 
+  /**
+   * @brief One more than the server frame for which `frameContents` and `raised` hold, or 0.
+   */
+  uint32_t frame;
+
+  /**
+   * @brief The contents at the node in `frame`, as `G_Ai_Node_Contents` returns them.
+   */
+  int32_t frameContents;
+
+  /**
+   * @brief True if a raised platform stands over the node in `frame` (`G_Ai_Node_RaisedPlatform`).
+   */
+  bool raised;
+
   // only used for nav purposes
 
   float cost;
@@ -269,6 +284,7 @@ static inline GameAiNodeId G_Ai_Node_Index(const GameAiNode *node) {
 
 static void G_Ai_Node_FreePathPool(void);
 static int32_t G_Ai_Node_Contents(const GameAiNode *node);
+static const GameAiNode *G_Ai_Node_Refresh(const GameAiNode *node);
 static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to);
 
 /**
@@ -2031,6 +2047,7 @@ void G_Ai_Node_UpdateMovers(void) {
 
       if (!Vec3_Equal(position, node->position)) {
         node->position = position;
+        node->frame = 0;
         module.moverMoved = true;
       }
     }
@@ -2301,11 +2318,30 @@ static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to) {
 }
 
 /**
- * @return The contents at the node: built with the graph, or tested for a node that the game added
- * or that a model moves.
+ * @return The node, with its contents and whether a raised platform stands over it tested for the
+ * current server frame, once a frame. A search tests them for each link that it tries, and the
+ * tests trace the world and its entities. The cache is not a part of the node's value, so the node
+ * MAY be const.
+ */
+static const GameAiNode *G_Ai_Node_Refresh(const GameAiNode *node) {
+
+  GameAiNode *n = (GameAiNode *) node;
+
+  if (n->frame != gameLevel.frameNum + 1) {
+    n->frame = gameLevel.frameNum + 1;
+    n->frameContents = n->cell != -1 && !n->model ? n->contents : gi.PointContents(n->position);
+    n->raised = G_Ai_Node_RaisedPlatform(n->position) != NULL;
+  }
+
+  return n;
+}
+
+/**
+ * @return The contents at the node: those that the build sampled, for a node of the built graph
+ * that does not move, and those at its position now, for any other node, once a server frame.
  */
 static int32_t G_Ai_Node_Contents(const GameAiNode *node) {
-  return node->cell != -1 && !node->model ? node->contents : gi.PointContents(node->position);
+  return G_Ai_Node_Refresh(node)->frameContents;
 }
 
 /**
@@ -2446,7 +2482,7 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   const int32_t linkContents = G_Ai_Node_Contents(linkNode);
   const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
-  if (G_Ai_Node_RaisedPlatform(linkNode->position)) {
+  if (G_Ai_Node_Refresh(linkNode)->raised) {
     return -1.f;
   }
 
