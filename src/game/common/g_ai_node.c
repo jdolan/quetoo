@@ -263,6 +263,7 @@ static inline GameAiNodeId G_Ai_Node_Index(const GameAiNode *node) {
 }
 
 static void G_Ai_Node_FreePathPool(void);
+static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to);
 
 /**
  * @brief Returns true if the given node is visible (unobstructed) from the specified position.
@@ -652,10 +653,15 @@ void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const floa
     nodeA->links = $(alloc(Vector), initWithSize, sizeof(GameAiLink));
   }
 
+  const GameAiNode *nodeB = AI_NODE(aiNodes, b);
+  const bool still = !nodeA->model && !nodeB->model;
+
   GameAiLink link = (GameAiLink) {
     .id = b,
     .cost = cost,
-    .travelType = travelType
+    .travelType = travelType,
+    .hazardTested = still,
+    .hazard = still && G_Ai_LinkPassesHazard(nodeA->position, nodeB->position)
   };
   $(nodeA->links, add, &link);
 
@@ -2455,7 +2461,8 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
 
   const bool builtLink = node->cell != -1 && linkNode->cell != -1 && !node->model && !linkNode->model;
   const bool moverWalk = node->model != linkNode->model && link->travelType == NAV_TRAVEL_WALK;
-  if (!fromHazard && !builtLink && !moverWalk && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
+  if (!fromHazard && !builtLink && !moverWalk &&
+      (link->hazardTested ? link->hazard : G_Ai_LinkPassesHazard(node->position, linkNode->position))) {
     return -1.f;
   }
 

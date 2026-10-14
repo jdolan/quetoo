@@ -50,6 +50,17 @@ typedef struct {
    * @brief The inline model of the door whose doorway the link crosses, as `NavLink::gate`, or 0.
    */
   int32_t gate;
+
+  /**
+   * @brief True if `hazard` holds the result of `G_Ai_LinkPassesHazard` for the link, which
+   * `G_Ai_Node_LinkTravel` tests once for a link between two nodes that do not move.
+   */
+  bool hazardTested;
+
+  /**
+   * @brief True if the link's line passes lava or slime, once `hazardTested`.
+   */
+  bool hazard;
 } GameAiLink;
 
 const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a);
