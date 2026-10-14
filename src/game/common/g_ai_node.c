@@ -144,7 +144,7 @@ static struct {
 
   /**
    * @brief True while the search of a client in lava, from a node in it, runs, which MAY cross the
-   * lava and climb a ladder to leave.
+   * lava to leave.
    */
   bool escape;
 } module;
@@ -2319,8 +2319,7 @@ bool G_Ai_Node_IsHazard(const GameAiNodeId node) {
 
 /**
  * @return True if the client and the node `start` of its search are both in lava, so that the
- * search MAY cross it, and climb a ladder, to leave. A client in slime, which hurts slowly, searches
- * as any other.
+ * search MAY cross it to leave. A client in slime, which hurts slowly, searches as any other.
  */
 static bool G_Ai_Node_InLava(const GameClient *cl, const GameAiNodeId start) {
   return cl && cl->entity && cl->entity->waterLevel > WATER_NONE && (cl->entity->waterType & CONTENTS_LAVA) &&
@@ -2418,10 +2417,9 @@ bool G_Ai_Node_HasGate(const char *targetName) {
  * a model that moves and a node off that model, which `G_Ai_Node_HasFloor` tested when it was
  * made. A crouch link, and any link into or out of a crouch node, which the build made for
  * Quetoo's crouched box, is refused to a client whose movement crouches to a taller box, or does not
- * crouch, as Quake's. A link within lava or slime, a drop into it, and a ladder link are refused,
- * except in a search of a client in lava, from a node in it (`escape`), so that such a search
- * crosses the lava, and climbs out of it, to leave. A bot climbs a ladder only to leave lava, because
- * as a route a ladder leads bots into pits of slime, and some ladders stop a climb short.
+ * crouch, as Quake's. A link within lava or slime, and a drop into it, are refused, except in a
+ * search of a client in lava, from a node in it (`escape`), so that such a search crosses the lava
+ * to leave.
  * @param fromHazard True if `node` is in lava or slime.
  * @param opens The `targetname` of the doors that the client is taken to press, whose links are
  * open if they are closed now, and closed if they are open now, or NULL.
@@ -2452,10 +2450,6 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   }
 
   if (fromHazard && toHazard && !module.escape) {
-    return -1.f;
-  }
-
-  if (link->travelType == NAV_TRAVEL_LADDER && !module.escape) {
     return -1.f;
   }
 

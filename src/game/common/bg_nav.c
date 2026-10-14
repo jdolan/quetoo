@@ -186,9 +186,26 @@
 #define NAV_MAX_CLIMBS 1024
 
 /**
- * @brief The most distance in units between two columns that climb one face of a ladder.
+ * @brief The most brushes of the level's ladders.
  */
-#define NAV_LADDER_SPACING NAV_CELL_SIZE
+#define NAV_MAX_LADDER_BRUSHES 1024
+
+/**
+ * @brief The distance in units between two columns that climb one face of a ladder.
+ */
+#define NAV_LADDER_SPACING (NAV_FINE_STEP * 2.f)
+
+/**
+ * @brief The time in hundredths of a second that a climb takes beyond its height at
+ * `PM_SPEED_LADDER`: to come to the ladder, turn to it and get on. A bot climbs about this much
+ * slower than the speed alone.
+ */
+#define NAV_LADDER_DELAY 100
+
+/**
+ * @brief The distance in units ahead of a player that `Pm_CheckLadder` traces for a ladder.
+ */
+#define NAV_LADDER_REACH 4.f
 
 /**
  * @brief The most height in units below the bottom of a ladder at which its floor, or the top of a
@@ -295,6 +312,12 @@ static struct {
    * @brief True while `Nav_JumpArc` simulates a jump at `NAV_GATED_JUMP_SPEED_FRACTION`.
    */
   bool gatedSpeed;
+
+  /**
+   * @brief True if `Nav_OnLadder` found a ladder face behind or level with another brush's face,
+   * since `Nav_FindClimbs` began the ladder.
+   */
+  bool ladderHidden;
 } module;
 
 /**
@@ -1467,14 +1490,56 @@ static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
 }
 
 /**
- * @brief Adds the climb of the column beside a ladder's face at `column`, whose outward normal is
- * `normal`: from the floor under the ladder's bottom, or the liquid there, straight up beside the
- * face until the player's box clears the top of the ladder, then across its top, onto the floor on
- * top of the ladder, or `NAV_LADDER_EXIT` beyond its far side. A column with no room for the
- * player's box, as against the wall that the ladder stands on, a column whose top is blocked, and a
- * top with no floor or no node across it, as a ladder that only dresses a wall has, add no climb.
+ * @return True if a player beside the ladder face with the outward `normal`, anywhere from `bottom`
+ * up to `top`, each `NAV_FINE_STEP * 2` and at `top`, is on the ladder: the trace of
+ * `Pm_CheckLadder` hits the ladder strictly before any other brush that a player collides with. A
+ * trace tests a leaf's brushes only if the leaf's contents match its mask, and a leaf does not carry
+ * `CONTENTS_LADDER`, so the ladder is traced as the player clip that it also is. The trace reports
+ * only the first brush that it hits: a brush in front of the ladder hides it, and of two brushes on
+ * the same plane, as the rungs that a ladder brush does not enclose, the one that it reports depends
+ * on where the player stands, so that a player climbs there only at some places. Either sets
+ * `module.ladderHidden`. A ladder brush that is also solid does not hide itself.
  */
-static void Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal) {
+static bool Nav_OnLadder(const Vec3 bottom, const Vec3 top, const Vec3 normal, const Box3 bounds) {
+
+  for (float z = bottom.z; ; z += NAV_FINE_STEP * 2.f) {
+    const Vec3 origin = MakeVec3(bottom.x, bottom.y, Minf(z, top.z));
+    const Vec3 end = Vec3_Fmaf(origin, -NAV_LADDER_REACH, normal);
+
+    const CollisionTrace ladder = module.params->BoxTrace(origin, end, bounds, 0, CONTENTS_LADDER | CONTENTS_PLAYER_CLIP);
+    if (ladder.fraction == 1.f) {
+      return false;
+    }
+
+    if (!(ladder.contents & CONTENTS_LADDER)) {
+      module.ladderHidden = true;
+      return false;
+    }
+
+    const CollisionTrace other = module.params->BoxTrace(origin, end, bounds, 0, NAV_MASK & ~CONTENTS_PLAYER_CLIP);
+    if (other.fraction <= ladder.fraction && !(other.contents & CONTENTS_LADDER)) {
+      module.ladderHidden = true;
+      return false;
+    }
+
+    if (z >= top.z) {
+      return true;
+    }
+  }
+}
+
+/**
+ * @brief Adds the climb of the column beside a ladder's face at `column`, whose outward normal is
+ * `normal`: from the floor under the ladder's bottom, or if it has none within `NAV_LADDER_FLOOR`,
+ * the top of the liquid under it, where a swimmer touches the ladder, straight up beside the face
+ * until the player's box clears the top of the ladder, then across its top, onto the floor on top
+ * of the ladder, or `NAV_LADDER_EXIT` beyond its far side. A column with no room for the player's
+ * box, as against the wall that the ladder stands on, a column where a player is not on the ladder
+ * all the way up (`Nav_OnLadder`), a column whose top is blocked, and a top with no
+ * floor or no node across it, as a ladder that only dresses a wall has, add no climb.
+ * @return True if the column climbs the ladder, as a climb added now or before.
+ */
+static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal) {
 
   const Box3 bounds = PM_BOUNDS;
   const float lowest = ladder.mins.z - bounds.mins.z;
@@ -1486,21 +1551,32 @@ static void Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
   }
 
   if (start.z >= highest) {
-    return;
+    return false;
   }
 
   Vec3 bottom = start;
   const CollisionTrace floor = Nav_Trace(start, Vec3_Subtract(start, MakeVec3(0.f, 0.f, NAV_LADDER_FLOOR)), bounds);
+
   if (floor.fraction < 1.f) {
     bottom = floor.end;
-  } else if (!(Nav_PointContents(start) & CONTENTS_MASK_LIQUID)) {
-    return;
+  } else {
+    while (!(Nav_PointContents(bottom) & CONTENTS_MASK_LIQUID) && bottom.z > floor.end.z) {
+      bottom.z = Maxf(bottom.z - NAV_FINE_STEP, floor.end.z);
+    }
+
+    if (!(Nav_PointContents(bottom) & CONTENTS_MASK_LIQUID)) {
+      return false;
+    }
   }
 
   const Vec3 top = MakeVec3(column.x, column.y, highest);
   const CollisionTrace rise = Nav_Trace(bottom, top, bounds);
   if (rise.startSolid || rise.fraction < 1.f) {
-    return;
+    return false;
+  }
+
+  if (!Nav_OnLadder(start, MakeVec3(column.x, column.y, ladder.maxs.z - bounds.mins.z - PM_STEP_HEIGHT), normal, bounds)) {
+    return false;
   }
 
   const float depth = fabsf(normal.x) * (ladder.maxs.x - ladder.mins.x) + fabsf(normal.y) * (ladder.maxs.y - ladder.mins.y);
@@ -1536,20 +1612,20 @@ static void Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
   const int32_t a = Nav_LadderNode(bottom, PM_STEP_HEIGHT * 2.f);
 
   if (a == -1 || b == -1 || a == b) {
-    return;
+    return false;
   }
 
   NavGraph *graph = module.graph;
 
   for (int32_t i = 0; i < graph->numClimbs; i++) {
     if (graph->climbs[i].bottom == a && graph->climbs[i].top == b) {
-      return;
+      return true;
     }
   }
 
   if (graph->numClimbs == NAV_MAX_CLIMBS) {
     module.params->Warn(__func__, "More than %d ladder climbs; bots may not climb the rest\n", NAV_MAX_CLIMBS);
-    return;
+    return false;
   }
 
   if (!graph->climbs) {
@@ -1562,10 +1638,12 @@ static void Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
   graph->climbs[graph->numClimbs++] = (NavClimb) {
     .bottom = a,
     .top = b,
-    .time = Nav_TravelTime(top.z - bottom.z, PM_SPEED_LADDER) + Nav_TravelTime(across, PM_SPEED_RUN),
+    .time = NAV_LADDER_DELAY + Nav_TravelTime(top.z - bottom.z, PM_SPEED_LADDER) + Nav_TravelTime(across, PM_SPEED_RUN),
     .column = bottom,
     .landing = landing
   };
+
+  return true;
 }
 
 /**
@@ -1585,33 +1663,79 @@ static bool Nav_HasSide(const CollisionBrush *brush, const Vec3 normal, const fl
 }
 
 /**
- * @brief Finds the climbs of the level's ladders: for each brush of the world with
- * `CONTENTS_LADDER`, each of its vertical sides that is a face of its bounds, at columns
- * `NAV_LADDER_SPACING` apart at most, because a player who faces any side climbs
- * (`Pm_CheckLadder`). A ladder of an inline model, which moves or is not where the world is traced,
- * and a sloped side, beside which a column would stand too far from the ladder, add no climb.
+ * @brief Finds the climbs of the level's ladders. A ladder is a group of brushes of the world with
+ * `CONTENTS_LADDER` that touch, as rails and rungs that are each a brush are. For each ladder, each
+ * vertical face of its bounds on which one of its brushes has a side is climbed, at its center first
+ * and then at columns `NAV_LADDER_SPACING` apart on each side of it, within the face, because a
+ * player who faces any side climbs (`Pm_CheckLadder`). The first column that climbs between two
+ * nodes is the one that the climb keeps, so a climb keeps to the middle of its ladder. A ladder of
+ * an inline model, which moves or is not where the world is traced, and a sloped side, beside which
+ * a column would stand too far from the ladder, add no climb. A ladder that no column climbs because
+ * its face is behind or level with another brush's is reported, for its mapper.
  */
 static void Nav_FindClimbs(void) {
 
   const CollisionBsp *bsp = module.params->bsp;
 
+  int32_t brushes[NAV_MAX_LADDER_BRUSHES];
+  int32_t groups[NAV_MAX_LADDER_BRUSHES];
+  int32_t numBrushes = 0;
+
   for (int32_t i = 0; i < bsp->numBrushes; i++) {
     const CollisionBrush *brush = &bsp->brushes[i];
 
-    if (!(brush->contents & CONTENTS_LADDER)) {
+    if (!(brush->contents & CONTENTS_LADDER) || !(Nav_PointContents(Box3_Center(brush->bounds)) & CONTENTS_LADDER)) {
       continue;
     }
 
-    const Box3 ladder = brush->bounds;
+    if (numBrushes == NAV_MAX_LADDER_BRUSHES) {
+      module.params->Warn(__func__, "More than %d ladder brushes; bots may not climb the rest\n", NAV_MAX_LADDER_BRUSHES);
+      break;
+    }
 
-    if (!(Nav_PointContents(Box3_Center(ladder)) & CONTENTS_LADDER)) {
+    brushes[numBrushes] = i;
+    groups[numBrushes] = numBrushes;
+    numBrushes++;
+  }
+
+  for (int32_t i = 0; i < numBrushes; i++) {
+    const Box3 bounds = Box3_Expand(bsp->brushes[brushes[i]].bounds, 1.f);
+
+    for (int32_t j = i + 1; j < numBrushes; j++) {
+      if (groups[j] == groups[i] || !Box3_Intersects(bounds, bsp->brushes[brushes[j]].bounds)) {
+        continue;
+      }
+
+      const int32_t from = groups[j];
+      for (int32_t k = 0; k < numBrushes; k++) {
+        if (groups[k] == from) {
+          groups[k] = groups[i];
+        }
+      }
+    }
+  }
+
+  for (int32_t g = 0; g < numBrushes; g++) {
+
+    Box3 ladder = Box3_Null();
+    for (int32_t i = 0; i < numBrushes; i++) {
+      if (groups[i] == g) {
+        ladder = Box3_Union(ladder, bsp->brushes[brushes[i]].bounds);
+      }
+    }
+
+    if (Box3_IsNull(ladder)) {
       continue;
     }
+
+    bool climbs = false;
+    module.ladderHidden = false;
 
     for (int32_t axis = 0; axis < 2; axis++) {
       const int32_t other = 1 - axis;
       const float width = ladder.maxs.xyz[other] - ladder.mins.xyz[other];
-      const int32_t columns = Maxi(1, (int32_t) ceilf(width / NAV_LADDER_SPACING));
+      const int32_t columns = 1 + 2 * (int32_t) floorf(width * .5f / NAV_LADDER_SPACING);
+      const float center = (ladder.mins.xyz[other] + ladder.maxs.xyz[other]) * .5f;
 
       for (int32_t sign = -1; sign <= 1; sign += 2) {
         Vec3 normal = Vec3_Zero();
@@ -1619,18 +1743,31 @@ static void Nav_FindClimbs(void) {
 
         const float face = sign > 0 ? ladder.maxs.xyz[axis] : ladder.mins.xyz[axis];
 
-        if (!Nav_HasSide(brush, normal, face * sign)) {
+        bool side = false;
+        for (int32_t i = 0; i < numBrushes && !side; i++) {
+          side = groups[i] == g && Nav_HasSide(&bsp->brushes[brushes[i]], normal, face * sign);
+        }
+
+        if (!side) {
           continue;
         }
 
         for (int32_t j = 0; j < columns; j++) {
+          const int32_t step = (j + 1) / 2 * (j % 2 ? 1 : -1);
+
           Vec3 column = Vec3_Zero();
           column.xyz[axis] = face + sign * (PM_BOUNDS.maxs.x + 1.f);
-          column.xyz[other] = ladder.mins.xyz[other] + (j + .5f) * width / columns;
+          column.xyz[other] = center + step * NAV_LADDER_SPACING;
 
-          Nav_AddClimb(ladder, column, normal);
+          climbs |= Nav_AddClimb(ladder, column, normal);
         }
       }
+    }
+
+    if (!climbs && module.ladderHidden) {
+      module.params->Warn(__func__, "The ladder at %s %s is behind or level with the face of a brush that a player "
+                          "collides with, so players grab it only at some places, if at all; extend it in front "
+                          "of that brush\n", vtos(ladder.mins), vtos(ladder.maxs));
     }
   }
 }
