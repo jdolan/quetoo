@@ -1573,12 +1573,67 @@ static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
 }
 
 /**
+ * @brief Links the node `id` on a model that moves to the node `other` that does not move: both
+ * ways with a walk, if `other` is on its level, with a clear line for the player's box, raised by a
+ * step, and floor under the line, or one way with a drop, from the higher of the two to the lower,
+ * within `AI_MOVER_DROP_HEIGHT`, with a clear line across at the higher level and down onto the
+ * lower. The nodes MUST be within `AI_MOVER_LINK_DISTANCE` of each other across.
+ * @return True if the nodes are linked.
+ */
+static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const GameAiNodeId other, const Box3 bounds) {
+
+  const Vec3 position = AI_NODE(aiNodes, other)->position;
+
+  const float distance = Vec2_Distance(Vec3_XY(position), Vec3_XY(node->position));
+  if (distance > AI_MOVER_LINK_DISTANCE) {
+    return false;
+  }
+
+  const float height = position.z - node->position.z;
+
+  if (fabsf(height) <= PM_STEP_HEIGHT) {
+    const CollisionTrace tr = gi.Trace(node->position, position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, position)) {
+      return false;
+    }
+
+    G_Ai_Node_LinkMover_add(node, id, other, distance, NAV_TRAVEL_WALK);
+    G_Ai_Node_LinkMover_add(node, other, id, distance, NAV_TRAVEL_WALK);
+    return true;
+  }
+
+  if (fabsf(height) > AI_MOVER_DROP_HEIGHT) {
+    return false;
+  }
+
+  const Vec3 high = height > 0.f ? position : node->position;
+  const Vec3 low = height > 0.f ? node->position : position;
+  const Vec3 over = MakeVec3(low.x, low.y, high.z);
+
+  const CollisionTrace across = gi.Trace(high, over, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+  if (across.startSolid || across.fraction < 1.f) {
+    return false;
+  }
+
+  const CollisionTrace down = gi.Trace(over, low, G_PlayerBounds(), NULL, CONTENTS_MASK_CLIP_PLAYER);
+  if (down.startSolid || down.fraction < 1.f) {
+    return false;
+  }
+
+  const float cost = distance + fabsf(height);
+  if (height > 0.f) {
+    G_Ai_Node_LinkMover_add(node, other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+  } else {
+    G_Ai_Node_LinkMover_add(node, id, other, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+  }
+
+  return true;
+}
+
+/**
  * @brief Links the node on a model that moves to each node that does not move in the cells around
- * it, within `AI_MOVER_LINK_DISTANCE`: both ways with walks, to a node on its level with a clear
- * line for the player's box, raised by a step, and floor under the line, and one way with a drop,
- * from the higher of the two to the lower, within `AI_MOVER_DROP_HEIGHT`, with a clear line across
- * at the higher level and down onto the lower. A node that the model has carried into lava or
- * slime is not linked.
+ * it, and to each node that the game added, such as an item's, with `G_Ai_Node_LinkMoverTo`. A
+ * node that the model has carried into lava or slime is not linked.
  */
 static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
 
@@ -1635,51 +1690,19 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
           continue;
         }
 
-        const Vec3 position = AI_NODE(aiNodes, other)->position;
-
-        const float distance = Vec2_Distance(Vec3_XY(position), Vec3_XY(node->position));
-        if (distance > AI_MOVER_LINK_DISTANCE) {
-          continue;
-        }
-
-        const float height = position.z - node->position.z;
-
-        if (fabsf(height) <= PM_STEP_HEIGHT) {
-          const CollisionTrace tr = gi.Trace(node->position, position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
-          if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, position)) {
-            continue;
-          }
-
-          G_Ai_Node_LinkMover_add(node, id, (GameAiNodeId) other, distance, NAV_TRAVEL_WALK);
-          G_Ai_Node_LinkMover_add(node, (GameAiNodeId) other, id, distance, NAV_TRAVEL_WALK);
-        } else if (fabsf(height) <= AI_MOVER_DROP_HEIGHT) {
-          const Vec3 high = height > 0.f ? position : node->position;
-          const Vec3 low = height > 0.f ? node->position : position;
-          const Vec3 over = MakeVec3(low.x, low.y, high.z);
-
-          const CollisionTrace across = gi.Trace(high, over, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
-          if (across.startSolid || across.fraction < 1.f) {
-            continue;
-          }
-
-          const CollisionTrace down = gi.Trace(over, low, G_PlayerBounds(), NULL, CONTENTS_MASK_CLIP_PLAYER);
-          if (down.startSolid || down.fraction < 1.f) {
-            continue;
-          }
-
-          const float cost = distance + fabsf(height);
-          if (height > 0.f) {
-            G_Ai_Node_LinkMover_add(node, (GameAiNodeId) other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
-          } else {
-            G_Ai_Node_LinkMover_add(node, id, (GameAiNodeId) other, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
-          }
-        } else {
+        if (!G_Ai_Node_LinkMoverTo(node, id, (GameAiNodeId) other, bounds)) {
           continue;
         }
 
         const GameAiNodeId linked = (GameAiNodeId) other;
         $(module.moverLinked, add, (ident) &linked);
       }
+    }
+  }
+
+  for (GameAiNodeId other = module.graphNodes; other < aiNodes->count; other++) {
+    if (!AI_NODE(aiNodes, other)->model && G_Ai_Node_LinkMoverTo(node, id, other, bounds)) {
+      $(module.moverLinked, add, (ident) &other);
     }
   }
 }
