@@ -159,11 +159,6 @@
 #define NAV_MAX_BARRIERS 256
 
 /**
- * @brief The `func_door` and `func_door_rotating` spawn flag of a door that spawns open.
- */
-#define NAV_DOOR_START_OPEN 0x1
-
-/**
  * @brief The `func_rotating` spawn flags that turn it about a horizontal axis: x_axis and y_axis.
  */
 #define NAV_ROTATING_HORIZONTAL 0xc
@@ -189,7 +184,8 @@ typedef enum {
 } NavSample;
 
 /**
- * @brief A closed door, a wall or a rotating model: an inline model, where it spawns.
+ * @brief A triggered door, a wall, a train, a bob or a rotating model: an inline model, where it
+ * spawns.
  */
 typedef struct {
   /**
@@ -1416,11 +1412,11 @@ static void Nav_AddPush(const Entity *entity, const Box3 bounds, const int32_t s
  * too. A floor separates it from the space below it, so it is not widened downward. A jump pad's
  * own link starts at the nearest node beside it. A door with `health` or a `targetname` opens when
  * shot or triggered, and has no trigger that opens it for a player who walks up to it
- * (`G_func_door`). A door that spawns
- * open is not a barrier. A wall is solid where it spawns so (`G_func_wall`). A rotating door, and a
- * `func_rotating` that turns about the vertical axis, carry their floors with them, so their nodes
- * move with them. A `func_rotating` that turns about a horizontal axis is taken to be a smooth
- * wheel, whose top stays where it spawns.
+ * (`G_func_door`). Such a door is sampled where the map places it, closed, even if it spawns open,
+ * as a bridge over a trap does. A wall is solid where it spawns so (`G_func_wall`). A door, a
+ * `func_train`, a `func_bob` and a `func_rotating` that turns about the vertical axis carry their
+ * floors with them, so their nodes move with them. A `func_rotating` that turns about a horizontal
+ * axis is taken to be a smooth wheel, whose top stays where it spawns.
  */
 static void Nav_InitModels(void) {
 
@@ -1462,9 +1458,10 @@ static void Nav_InitModels(void) {
     bool barrier = false, moves = false;
 
     if (!Str_Compare(classname, "func_door") || !Str_Compare(classname, "func_door_rotating")) {
-      const bool closed = !(spawnFlags & NAV_DOOR_START_OPEN);
-      barrier = closed && (Nav_EntityInteger(model->entity, "health") || Nav_EntityHas(model->entity, "targetname"));
-      moves = !Str_Compare(classname, "func_door_rotating");
+      barrier = Nav_EntityInteger(model->entity, "health") || Nav_EntityHas(model->entity, "targetname");
+      moves = true;
+    } else if (!Str_Compare(classname, "func_train") || !Str_Compare(classname, "func_bob")) {
+      barrier = moves = true;
     } else if (!Str_Compare(classname, "func_wall")) {
       barrier = (spawnFlags & NAV_WALL_SPAWN_FLAGS) == 0 || (spawnFlags & NAV_WALL_START_ON);
     } else if (!Str_Compare(classname, "func_rotating")) {

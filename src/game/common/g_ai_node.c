@@ -163,6 +163,35 @@ typedef struct {
   const GameEntity *mover;
 
   /**
+   * @brief The links that `G_Ai_Node_LinkMover` last made for the node on a model that moves, to
+   * and from the nodes that do not move, as `GameAiMoverLink`.
+   */
+  Vector *moverLinks;
+
+  /**
+   * @brief The position at which `G_Ai_Node_LinkMover` made `moverLinks`.
+   */
+  Vec3 moverLinksPosition;
+
+  /**
+   * @brief The level time at which `G_Ai_Node_LinkMover` made `moverLinks`.
+   */
+  uint32_t moverLinksTime;
+
+  /**
+   * @brief True if the node has stood at `moverLinksPosition` for less than
+   * `AI_MOVER_RELINK_MILLIS`, and no model near it has moved, so that its links of the last relink
+   * still hold.
+   */
+  bool moverStill;
+
+  /**
+   * @brief The links that `G_Ai_Node_LinkMovers` last made from the node to the nodes on other
+   * models that move, after it in `moverNodes`, as `GameAiMoverLink`, each also made back.
+   */
+  Vector *moverPairs;
+
+  /**
    * @brief The index plus one of the crusher whose sweep the node lies in, or 0.
    */
   int32_t crusher;
@@ -259,6 +288,12 @@ typedef struct {
    * @brief True to skip the nodes on models that move, for a link that the game makes once.
    */
   bool staticOnly;
+
+  /**
+   * @brief True to skip the nodes on models that move, for the k-d tree, which holds them where
+   * they stood when it was built.
+   */
+  bool skipMovers;
 } GameAiNodeQueryFilter;
 
 /**
@@ -268,7 +303,7 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
   const GameAiNodeQueryFilter *filter = data;
   const GameAiNode *node = AI_NODE(aiNodes, nodenum);
 
-  if (filter->staticOnly && node->model) {
+  if ((filter->staticOnly || filter->skipMovers) && node->model) {
     return false;
   }
 
@@ -385,7 +420,9 @@ static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, con
  * Uses the cached kd-tree spatial index (built lazily) to gather candidate
  * nodes within `maxDistance` and selects the best one that passes the
  * `onlyVisible` / `preferLevel` filters. Falls back to a linear scan if
- * the spatial index is unavailable.
+ * the spatial index is unavailable. The tree holds the nodes on models that move where they stood
+ * when it was built, so they are compared one by one, where they stand now, and the tree is not
+ * built again as they move.
  * @param staticOnly True to skip the nodes on models that move.
  */
 static GameAiNodeId G_Ai_Node_FindClosest_(const Vec3 position, const float maxDistance, const bool onlyVisible,
@@ -415,9 +452,23 @@ static GameAiNodeId G_Ai_Node_FindClosest_(const Vec3 position, const float maxD
 
   if (G_Ai_Node_EnsureSpatialIndex()) {
 
+    filter.skipMovers = true;
     const size_t node = G_Ai_KdTreeQuery(aiNodesKdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
+    filter.skipMovers = false;
 
-    return node == SIZE_MAX ? AI_NODE_INVALID : (GameAiNodeId) node;
+    float closestDistance = distSquared;
+
+    if (node != SIZE_MAX && G_Ai_Node_FindClosestFilter(node, &filter, &closestDistance)) {
+      closest = (GameAiNodeId) node;
+    }
+
+    if (module.moverNodes && !staticOnly) {
+      for (size_t i = 0; i < module.moverNodes->count; i++) {
+        G_Ai_Node_FindClosestCell_compare(&filter, AI_NODE_ID(module.moverNodes, i), &closest, &closestDistance);
+      }
+    }
+
+    return closest;
   }
 
   // Fallback: linear scan (kd-tree build failed).
@@ -1429,13 +1480,59 @@ static void G_Ai_Node_LinkDynamic(const GameAiNodeId a, const GameAiNodeId b, co
 }
 
 /**
- * @return True if there is floor, and no liquid, under each point `AI_MOVER_FLOOR_SPACING` apart on
- * the line from `a` to `b`, which are player origins on the same level.
+ * @brief A link that `G_Ai_Node_LinkMover` made, which it adds again while its node stays where it
+ * was.
+ */
+typedef struct {
+  GameAiNodeId from;
+  GameAiNodeId to;
+  float cost;
+  NavTravelType travelType;
+} GameAiMoverLink;
+
+/**
+ * @brief The longest time in milliseconds for which a node on a model at rest keeps the links that
+ * `G_Ai_Node_LinkMover` made, so that a link that a player or another model blocked comes back.
+ */
+#define AI_MOVER_RELINK_MILLIS 1000
+
+/**
+ * @brief The most models that move between two relinks, near which a node at rest is linked again,
+ * because the floor under its links, or a wall across them, MAY have moved. With more, every node is
+ * linked again.
+ */
+#define AI_MOVER_MAX_MOVED 32
+
+/**
+ * @brief Adds a link that `G_Ai_Node_LinkMover` made for `node`, and keeps it in `moverLinks`.
+ */
+static void G_Ai_Node_LinkMover_add(GameAiNode *node, const GameAiNodeId a, const GameAiNodeId b,
+                                    const float cost, const NavTravelType type) {
+
+  G_Ai_Node_LinkDynamic(a, b, cost, type);
+
+  const GameAiMoverLink link = {
+    .from = a,
+    .to = b,
+    .cost = cost,
+    .travelType = type
+  };
+
+  $(node->moverLinks, add, (ident) &link);
+}
+
+/**
+ * @return True if there is floor, and no liquid, under the player's box at each point
+ * `AI_MOVER_FLOOR_SPACING` apart on the line from `a` to `b`, which are player origins on the same
+ * level. The box is as wide as the player, because a player stands where any part of it has floor,
+ * and does not fall through a seam between two models side by side. Where the box starts in a wall,
+ * a point is traced instead.
  */
 static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
 
   const float length = Vec3_Distance(a, b);
   const float depth = -PM_BOUNDS.mins.z + PM_STEP_HEIGHT * 2.f;
+  const Box3 bounds = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f), MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
 
   for (float d = AI_MOVER_FLOOR_SPACING; d < length; d += AI_MOVER_FLOOR_SPACING) {
 
@@ -1443,7 +1540,11 @@ static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
     const Vec3 start = Vec3_Add(point, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT));
     const Vec3 end = Vec3_Subtract(point, MakeVec3(0.f, 0.f, depth));
 
-    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), NULL, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+    CollisionTrace tr = gi.Trace(start, end, bounds, NULL, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+
+    if (tr.startSolid) {
+      tr = gi.Trace(start, end, Box3_Zero(), NULL, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+    }
 
     if (tr.fraction == 1.f || (tr.contents & CONTENTS_MASK_LIQUID)) {
       return false;
@@ -1458,12 +1559,38 @@ static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
  * it, within `AI_MOVER_LINK_DISTANCE`: both ways with walks, to a node on its level with a clear
  * line for the player's box, raised by a step, and floor under the line, and one way with a drop,
  * from the higher of the two to the lower, within `AI_MOVER_DROP_HEIGHT`, with a clear line across
- * at the higher level and down onto the lower.
+ * at the higher level and down onto the lower. A node that the model has carried into lava or
+ * slime is not linked.
  */
 static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
 
   const NavGraph *graph = &module.graph;
-  const GameAiNode *node = AI_NODE(aiNodes, id);
+  GameAiNode *node = AI_NODE(aiNodes, id);
+
+  if (node->moverStill) {
+
+    for (size_t i = 0; i < node->moverLinks->count; i++) {
+      const GameAiMoverLink *link = &VectorValue(node->moverLinks, GameAiMoverLink, i);
+      G_Ai_Node_LinkDynamic(link->from, link->to, link->cost, link->travelType);
+
+      const GameAiNodeId linked = link->from == id ? link->to : link->from;
+      $(module.moverLinked, add, (ident) &linked);
+    }
+    return;
+  }
+
+  if (!node->moverLinks) {
+    node->moverLinks = $(alloc(Vector), initWithSize, sizeof(GameAiMoverLink));
+  } else {
+    $(node->moverLinks, removeAll);
+  }
+
+  node->moverLinksPosition = node->position;
+  node->moverLinksTime = gameLevel.time;
+
+  if (gi.PointContents(node->position) & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+    return;
+  }
 
   Box3 bounds = G_PlayerBounds();
   bounds.mins.z += PM_STEP_HEIGHT;
@@ -1505,8 +1632,8 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
             continue;
           }
 
-          G_Ai_Node_LinkDynamic(id, (GameAiNodeId) other, distance, NAV_TRAVEL_WALK);
-          G_Ai_Node_LinkDynamic((GameAiNodeId) other, id, distance, NAV_TRAVEL_WALK);
+          G_Ai_Node_LinkMover_add(node, id, (GameAiNodeId) other, distance, NAV_TRAVEL_WALK);
+          G_Ai_Node_LinkMover_add(node, (GameAiNodeId) other, id, distance, NAV_TRAVEL_WALK);
         } else if (fabsf(height) <= AI_MOVER_DROP_HEIGHT) {
           const Vec3 high = height > 0.f ? position : node->position;
           const Vec3 low = height > 0.f ? node->position : position;
@@ -1524,9 +1651,9 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
 
           const float cost = distance + fabsf(height);
           if (height > 0.f) {
-            G_Ai_Node_LinkDynamic((GameAiNodeId) other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+            G_Ai_Node_LinkMover_add(node, (GameAiNodeId) other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
           } else {
-            G_Ai_Node_LinkDynamic(id, (GameAiNodeId) other, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
+            G_Ai_Node_LinkMover_add(node, id, (GameAiNodeId) other, cost, NAV_TRAVEL_WALK_OFF_LEDGE);
           }
         } else {
           continue;
@@ -1535,6 +1662,88 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
         const GameAiNodeId linked = (GameAiNodeId) other;
         $(module.moverLinked, add, (ident) &linked);
       }
+    }
+  }
+}
+
+/**
+ * @brief Links the nodes on different models that move to each other, both ways with walks, within
+ * `AI_MOVER_LINK_DISTANCE` and a step of height, with a clear line for the player's box, raised by
+ * a step, and floor under the line, so that a floor of several doors side by side is one floor. A
+ * node that its model has carried into lava or slime is not linked. Two nodes that are both still
+ * get the links of the last relink back, with no traces.
+ */
+static void G_Ai_Node_LinkMovers(void) {
+
+  Box3 bounds = G_PlayerBounds();
+  bounds.mins.z += PM_STEP_HEIGHT;
+
+  for (size_t i = 0; i < module.moverNodes->count; i++) {
+    const GameAiNodeId a = AI_NODE_ID(module.moverNodes, i);
+    GameAiNode *node = AI_NODE(aiNodes, a);
+
+    if (!node->moverPairs) {
+      node->moverPairs = $(alloc(Vector), initWithSize, sizeof(GameAiMoverLink));
+    }
+
+    if (node->moverStill) {
+      for (size_t k = node->moverPairs->count; k > 0; k--) {
+        const GameAiMoverLink *link = &VectorValue(node->moverPairs, GameAiMoverLink, k - 1);
+
+        if (AI_NODE(aiNodes, link->to)->moverStill) {
+          G_Ai_Node_LinkDynamic(link->from, link->to, link->cost, link->travelType);
+          G_Ai_Node_LinkDynamic(link->to, link->from, link->cost, link->travelType);
+        } else {
+          $(node->moverPairs, removeAt, k - 1);
+        }
+      }
+    } else {
+      $(node->moverPairs, removeAll);
+    }
+
+    int32_t hazard = -1;
+
+    for (size_t j = i + 1; j < module.moverNodes->count; j++) {
+      const GameAiNodeId b = AI_NODE_ID(module.moverNodes, j);
+      const GameAiNode *other = AI_NODE(aiNodes, b);
+
+      if (node->moverStill && other->moverStill) {
+        continue;
+      }
+
+      if (other->model == node->model || fabsf(other->position.z - node->position.z) > PM_STEP_HEIGHT) {
+        continue;
+      }
+
+      const float distance = Vec2_Distance(Vec3_XY(other->position), Vec3_XY(node->position));
+      if (distance > AI_MOVER_LINK_DISTANCE) {
+        continue;
+      }
+
+      if (hazard == -1) {
+        hazard = (gi.PointContents(node->position) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+      }
+
+      if (hazard || (gi.PointContents(other->position) & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+        continue;
+      }
+
+      const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+      if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, other->position)) {
+        continue;
+      }
+
+      G_Ai_Node_LinkDynamic(a, b, distance, NAV_TRAVEL_WALK);
+      G_Ai_Node_LinkDynamic(b, a, distance, NAV_TRAVEL_WALK);
+
+      const GameAiMoverLink link = {
+        .from = a,
+        .to = b,
+        .cost = distance,
+        .travelType = NAV_TRAVEL_WALK
+      };
+
+      $(node->moverPairs, add, (ident) &link);
     }
   }
 }
@@ -1582,11 +1791,51 @@ void G_Ai_Node_UpdateMovers(void) {
     G_Ai_Node_UnlinkModel(node, node->model);
   }
 
+  const GameEntity *moved[AI_MOVER_MAX_MOVED];
+  Box3 movedBounds[AI_MOVER_MAX_MOVED];
+  size_t numMoved = 0;
+  bool allMoved = false;
+
+  for (size_t i = 0; i < module.moverNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
+
+    if (node->moverLinks && Vec3_Equal(node->position, node->moverLinksPosition)) {
+      continue;
+    }
+
+    size_t j = 0;
+    while (j < numMoved && moved[j] != node->mover) {
+      j++;
+    }
+
+    if (j < numMoved) {
+      continue;
+    }
+
+    if (!node->mover || numMoved == AI_MOVER_MAX_MOVED) {
+      allMoved = true;
+      break;
+    }
+
+    moved[numMoved] = node->mover;
+    movedBounds[numMoved++] = Box3_Expand(node->mover->absBounds, AI_MOVER_LINK_DISTANCE + Box3_Size(PM_BOUNDS).x);
+  }
+
+  for (size_t i = 0; i < module.moverNodes->count; i++) {
+    GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
+    node->moverStill = !allMoved && node->moverLinks && Vec3_Equal(node->position, node->moverLinksPosition) &&
+                       gameLevel.time - node->moverLinksTime < AI_MOVER_RELINK_MILLIS;
+
+    for (size_t j = 0; j < numMoved && node->moverStill; j++) {
+      node->moverStill = !Box3_ContainsPoint(movedBounds[j], node->position);
+    }
+  }
+
   for (size_t i = 0; i < module.moverNodes->count; i++) {
     G_Ai_Node_LinkMover(AI_NODE_ID(module.moverNodes, i));
   }
 
-  G_Ai_Node_InvalidateSpatialIndex();
+  G_Ai_Node_LinkMovers();
 }
 
 /**
@@ -1642,6 +1891,14 @@ void G_Ai_ShutdownNodes(void) {
 
       if (node->links) {
         release(node->links);
+      }
+
+      if (node->moverLinks) {
+        release(node->moverLinks);
+      }
+
+      if (node->moverPairs) {
+        release(node->moverPairs);
       }
     }
 
@@ -1762,10 +2019,11 @@ static bool G_Ai_LinkPassesHazard(const Vec3 from, const Vec3 to) {
 }
 
 /**
- * @return The contents at the node: built with the graph, or tested.
+ * @return The contents at the node: built with the graph, or tested for a node that the game added
+ * or that a model moves.
  */
 static int32_t G_Ai_Node_Contents(const GameAiNode *node) {
-  return node->cell != -1 ? node->contents : gi.PointContents(node->position);
+  return node->cell != -1 && !node->model ? node->contents : gi.PointContents(node->position);
 }
 
 /**
@@ -1793,7 +2051,10 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
 
 /**
  * @return The cost for the client to travel the link out of `node`, with penalties for drops that
- * hurt and for a node at the edge of the void, or -1 if the client must not use the link.
+ * hurt and for a node at the edge of the void, or -1 if the client must not use the link. A link
+ * that the game added is tested for lava and slime along its line, except a walk between a node on
+ * a model that moves and a node off that model, which `G_Ai_Node_HasFloor` tested when it was
+ * made.
  * @param fromHazard True if `node` is in lava or slime.
  */
 static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, const bool fromHazard,
@@ -1817,7 +2078,8 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   }
 
   const bool builtLink = node->cell != -1 && linkNode->cell != -1 && !node->model && !linkNode->model;
-  if (!fromHazard && !builtLink && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
+  const bool moverWalk = node->model != linkNode->model && link->travelType == NAV_TRAVEL_WALK;
+  if (!fromHazard && !builtLink && !moverWalk && G_Ai_LinkPassesHazard(node->position, linkNode->position)) {
     return -1.f;
   }
 
