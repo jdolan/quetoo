@@ -2081,8 +2081,8 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 }
 
 /**
- * @brief Drops a node on top of this object and connects it to any nearby
- * nodes.
+ * @brief Drops a node on top of this object and connects it to the nearest node, and to that
+ * node's neighbors that it walks to and from, with floor under the line to them.
  */
 bool G_Ai_DropItemLikeNode(GameEntity *ent) {
 
@@ -2125,10 +2125,15 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
         continue;
       }
 
+      if (link->travelType > NAV_TRAVEL_CROUCH) {
+        continue;
+      }
+
       const Vec3 linkPos = G_Ai_Node_GetPosition(link->id);
 
       // can't see
-      if (gi.Trace(ent->s.origin, linkPos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
+      if (gi.Trace(ent->s.origin, linkPos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0 ||
+          !G_Ai_Node_HasFloor(linkPos, pos)) {
         continue;
       }
 
