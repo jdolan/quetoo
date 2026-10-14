@@ -153,6 +153,11 @@ typedef struct {
   bool edge;
 
   /**
+   * @brief True if only a crouched player fits at the node, as `NavNode::crouch`.
+   */
+  bool crouch;
+
+  /**
    * @brief The inline model that the node stands on and that moves it, or 0.
    */
   int32_t model;
@@ -518,7 +523,8 @@ GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDis
 }
 
 /**
- * @brief Creates and appends a new navigation node at the specified world position.
+ * @brief Creates and appends a new navigation node at the specified world position. The node is a
+ * crouch node if the standing box, raised by a step off a floor that slopes, does not fit there.
  */
 GameAiNodeId G_Ai_Node_Create(const Vec3 position) {
 
@@ -531,10 +537,14 @@ GameAiNodeId G_Ai_Node_Create(const Vec3 position) {
     aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
   }
 
+  Box3 standing = PM_BOUNDS;
+  standing.mins.z += PM_STEP_HEIGHT;
+
   GameAiNode node = (GameAiNode) {
     .position = position,
     .cell = -1,
-    .contents = gi.PointContents(position) & CONTENTS_MASK_LIQUID
+    .contents = gi.PointContents(position) & CONTENTS_MASK_LIQUID,
+    .crouch = gi.Trace(position, position, standing, NULL, CONTENTS_MASK_SOLID).startSolid
   };
   $(aiNodes, add, &node);
 
@@ -784,6 +794,7 @@ void G_Ai_InitNodes(void) {
       .cell = in->cell,
       .contents = in->contents,
       .edge = in->edge,
+      .crouch = in->crouch,
       .model = in->model,
       .local = in->local
     };
@@ -2113,7 +2124,9 @@ bool G_Ai_Node_IsLinkOpen(const GameAiLink *link) {
  * hurt and for a node at the edge of the void, or -1 if the client must not use the link. A link
  * that the game added is tested for lava and slime along its line, except a walk between a node on
  * a model that moves and a node off that model, which `G_Ai_Node_HasFloor` tested when it was
- * made.
+ * made. A crouch link, and any link into or out of a crouch node, which the build made for
+ * Quetoo's crouched box, is refused to a client whose movement crouches to a taller box, or does not
+ * crouch, as Quake's.
  * @param fromHazard True if `node` is in lava or slime.
  */
 static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, const bool fromHazard,
@@ -2133,6 +2146,11 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   }
 
   if (!G_Ai_Node_IsLinkOpen(link)) {
+    return -1.f;
+  }
+
+  if (cl && (link->travelType == NAV_TRAVEL_CROUCH || node->crouch || linkNode->crouch) &&
+      Box3_Size(cl->ps.pmState.params.boundsDucked).z > Box3_Size(PM_CROUCHED_BOUNDS).z) {
     return -1.f;
   }
 
