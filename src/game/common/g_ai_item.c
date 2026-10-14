@@ -45,8 +45,8 @@ float G_Ai_ItemNeed(const GameClient *cl, const GameEntity *other) {
 
   switch (item->def.type) {
     case ITEM_TYPE_HEALTH: {
-      const bool mega = item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA;
-      const int32_t max = mega ? cl->maxBoostHealth : ent->maxHealth;
+      const bool boost = item->def.tag == HEALTH_SMALL || item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA;
+      const int32_t max = boost ? cl->maxBoostHealth : ent->maxHealth;
 
       return Clampf((max - ent->health) / (float) Maxi(1, item->def.quantity), 0.f, 1.f);
     }
