@@ -837,12 +837,12 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
 }
 
 /**
- * @brief The longest fall in seconds that `G_Ai_FallsToVoid` follows.
+ * @brief The longest fall in seconds that `G_Ai_FallsToHazard` follows.
  */
 #define AI_FALL_MAX_SECONDS 3.f
 
 /**
- * @brief The time step in seconds with which `G_Ai_FallsToVoid` follows a fall.
+ * @brief The time step in seconds with which `G_Ai_FallsToHazard` follows a fall.
  */
 #define AI_FALL_STEP_SECONDS .1f
 
@@ -931,7 +931,7 @@ static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hur
  * @return True if the AI lands on no floor, on the sky, in lava or slime, or in a `trigger_hurt`, or
  * if it slides off the floor on which it lands.
  */
-bool G_Ai_FallsToVoid(const GameClient *cl, Vec3 origin, Vec3 velocity) {
+bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity) {
 
   const GameEntity *ent = cl->entity;
   const float gravity = G_LevelGravity();
@@ -1010,46 +1010,6 @@ static bool G_Ai_IsOverspeed(const GameEntity *ent) {
  */
 static inline float G_Ai_CommandYaw(const GameClient *cl, const PMoveCmd *cmd) {
   return cmd->angles.y + cl->ps.pmState.deltaAngles.y;
-}
-
-/**
- * @brief Steers the AI back toward the place at which it left the ground, if it is in the air
- * with no path to follow, and its fall ends in the void. A path plans its own jumps and drops.
- */
-static void G_Ai_AvoidVoid(GameClient *cl, PMoveCmd *cmd) {
-
-  const GameEntity *ent = cl->entity;
-
-  if (ent->ground.ent ||
-      cl->ai->moveTarget.type == AI_GOAL_PATH ||
-      ent->waterLevel >= WATER_WAIST ||
-      (cl->ps.pmState.flags & PMF_ON_LADDER)) {
-    return;
-  }
-
-  if (cl->ai->fallFrame != gameLevel.frameNum) {
-    cl->ai->fallFrame = gameLevel.frameNum;
-    cl->ai->fallsToVoid = G_Ai_FallsToVoid(cl, ent->s.origin, ent->velocity);
-  }
-
-  if (!cl->ai->fallsToVoid) {
-    return;
-  }
-
-  Vec3 back = Vec3_Subtract(cl->ai->groundPosition, ent->s.origin);
-  back.z = 0.f;
-
-  if (Vec3_Length(back) < 1.f) {
-    back = Vec3_Negate(ent->velocity);
-    back.z = 0.f;
-  }
-
-  Vec3 dir;
-  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(Vec3_Normalize(back)).y, 0.f), &dir, NULL, NULL);
-
-  cmd->forward = dir.x * PM_SPEED_RUN;
-  cmd->right = dir.y * PM_SPEED_RUN;
-  cmd->up = 0;
 }
 
 /**
@@ -1991,6 +1951,66 @@ static bool G_Ai_SimulateDrop(GameClient *cl, const Vec3 target) {
 }
 
 /**
+ * @brief Steers the AI in the air if `G_Ai_FallsToHazard` ends its fall in the void, in lava or
+ * slime, or in a `trigger_hurt`, as after a jump that carries it past a small floor or over an edge,
+ * or a knockback. If it has a path, and `G_Ai_SimulateDrop` lands it safely if it steers toward its
+ * next node, it steers there as the simulation does. Else it steers back toward the place at which
+ * it left the ground. Air acceleration removes the speed of a run in about half a second, so a bot
+ * that steers early lands.
+ */
+static void G_Ai_AvoidHazard(GameClient *cl, PMoveCmd *cmd) {
+
+  const GameEntity *ent = cl->entity;
+  GameAi *ai = cl->ai;
+
+  if (ent->ground.ent ||
+      ent->waterLevel >= WATER_WAIST ||
+      (cl->ps.pmState.flags & PMF_ON_LADDER)) {
+    return;
+  }
+
+  if (ai->fallFrame != gameLevel.frameNum) {
+    ai->fallFrame = gameLevel.frameNum;
+    ai->fallsToHazard = G_Ai_FallsToHazard(cl, ent->s.origin, ent->velocity);
+    ai->fallToNode = ai->fallsToHazard && ai->moveTarget.type == AI_GOAL_PATH &&
+                     G_Ai_SimulateDrop(cl, ai->moveTarget.path.pathPosition);
+  }
+
+  if (!ai->fallsToHazard) {
+    return;
+  }
+
+  Vec3 to;
+  float speed;
+
+  if (ai->fallToNode) {
+    to = Vec3_Subtract(ai->moveTarget.path.pathPosition, ent->s.origin);
+    to.z = 0.f;
+    speed = Clampf(Vec3_Length(to), 10.f, PM_SPEED_RUN);
+
+    if (Vec3_Length(to) < 1.f) {
+      return;
+    }
+  } else {
+    to = Vec3_Subtract(ai->groundPosition, ent->s.origin);
+    to.z = 0.f;
+    speed = PM_SPEED_RUN;
+
+    if (Vec3_Length(to) < 1.f) {
+      to = Vec3_Negate(ent->velocity);
+      to.z = 0.f;
+    }
+  }
+
+  Vec3 dir;
+  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(Vec3_Normalize(to)).y, 0.f), &dir, NULL, NULL);
+
+  cmd->forward = dir.x * speed;
+  cmd->right = dir.y * speed;
+  cmd->up = 0;
+}
+
+/**
  * @brief The longest strafe jump that `G_Ai_SimulateStrafeJump` follows, in milliseconds.
  */
 #define AI_STRAFE_SIM_MILLIS 1500
@@ -2529,13 +2549,13 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
         } else if (((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
           (xyDist > fabsf(cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) && (xyDist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent && !toPush) {
-          if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToVoid(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
+          if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
             cmd->forward = -cmd->forward;
             cmd->right = -cmd->right;
           } else {
             cmd->up = PM_SPEED_JUMP;
           }
-        } else if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToVoid(cl, ent->s.origin, ent->velocity)) {
+        } else if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, ent->velocity)) {
           cmd->forward = -cmd->forward;
           cmd->right = -cmd->right;
         }
@@ -2644,7 +2664,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           }
         // try a jump
         } else if (cl->ai->moveTarget.distress > 12.f &&
-                   !G_Ai_FallsToVoid(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
+                   !G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
           cmd->up = PM_SPEED_JUMP;
         }
       }
@@ -2656,7 +2676,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     }
   }
 
-  G_Ai_AvoidVoid(cl, cmd);
+  G_Ai_AvoidHazard(cl, cmd);
   return 0;
 }
 

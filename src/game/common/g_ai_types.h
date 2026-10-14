@@ -587,15 +587,21 @@ typedef struct GameAi {
   Vec3 groundPosition;
 
   /**
-   * @brief Frame number for which `fallsToVoid` was computed.
+   * @brief Frame number for which `fallsToHazard` was computed.
    */
   uint32_t fallFrame;
 
   /**
-   * @brief Cached result of `G_Ai_FallsToVoid` for the bot's own fall. Valid only when
-   * `fallFrame == gameLevel.frameNum`.
+   * @brief True if the bot is in the air, and `G_Ai_FallsToHazard` ends its fall in a hazard.
+   * Valid only when `fallFrame == gameLevel.frameNum`.
    */
-  bool fallsToVoid;
+  bool fallsToHazard;
+
+  /**
+   * @brief True if the bot falls toward a hazard, and `G_Ai_SimulateDrop` lands it safely if it
+   * steers toward its next path node. Valid only when `fallFrame == gameLevel.frameNum`.
+   */
+  bool fallToNode;
 
   /**
    * @brief Level time before the bot may turn again while it wanders.

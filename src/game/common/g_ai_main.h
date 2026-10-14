@@ -114,7 +114,7 @@ float G_Ai_PreferredRange(const GameClient *cl);
  */
 void G_Ai_EndPath(GameClient *cl);
 bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other);
-bool G_Ai_FallsToVoid(const GameClient *cl, Vec3 origin, Vec3 velocity);
+bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity);
 Vec3 G_Ai_JumpVelocity(const GameClient *cl);
 
 /**

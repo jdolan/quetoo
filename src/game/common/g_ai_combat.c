@@ -873,7 +873,7 @@ uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
       if ((RandomRangeu(0, crouchFreq)) == 0) { // randomly crouch
         cmd->up = -PM_SPEED_JUMP;
       } else if ((RandomRangeu(0, jumpFreq)) == 0 && G_Ai_HasFloorAround(cl->entity) &&
-                 !G_Ai_FallsToVoid(cl, cl->entity->s.origin, G_Ai_JumpVelocity(cl))) { // randomly pop
+                 !G_Ai_FallsToHazard(cl, cl->entity->s.origin, G_Ai_JumpVelocity(cl))) { // randomly pop
         cmd->up = PM_SPEED_JUMP;
       }
     }
