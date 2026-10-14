@@ -169,6 +169,12 @@ typedef struct {
    * @brief The time to travel the link, in hundredths of a second.
    */
   int32_t travelTime;
+
+  /**
+   * @brief The inline model of the door whose doorway the walk or jump crosses, or 0. The game lets
+   * a bot use the link only while the door is away from where the map places it.
+   */
+  int32_t gate;
 } NavLink;
 
 /**
@@ -259,6 +265,11 @@ typedef struct {
    * @brief The count of links of each `NavTravelType`.
    */
   int32_t numTravel[NAV_TRAVEL_JUMP + 1];
+
+  /**
+   * @brief The count of walks and jumps through the doorway of a door.
+   */
+  int32_t numGated;
 } NavGraph;
 
 /**

@@ -122,6 +122,11 @@ static struct {
    * @brief The count of `crushers`.
    */
   int32_t numCrushers;
+
+  /**
+   * @brief The door entity of each inline model, for the links through its doorway.
+   */
+  const GameEntity *gates[MAX_MODELS];
 } module;
 
 /**
@@ -763,10 +768,11 @@ void G_Ai_InitNodes(void) {
   gi.Print("  Built %d navigation nodes, %d at an offset, %d at the edge of the void and %d in open water, and "
            "found %d floors with no room for a player and %d in a hurt or push trigger\n", graph->numNodes,
            graph->numOffset, graph->numEdge, graph->numSwim, graph->numNoFit, graph->numTrigger);
-  gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim and %d jump links\n",
+  gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim and %d jump links, "
+           "%d of them through a doorway\n",
            graph->numTravel[NAV_TRAVEL_WALK], graph->numTravel[NAV_TRAVEL_CROUCH],
            graph->numTravel[NAV_TRAVEL_BARRIER_JUMP], graph->numTravel[NAV_TRAVEL_WALK_OFF_LEDGE],
-           graph->numTravel[NAV_TRAVEL_SWIM], graph->numTravel[NAV_TRAVEL_JUMP]);
+           graph->numTravel[NAV_TRAVEL_SWIM], graph->numTravel[NAV_TRAVEL_JUMP], graph->numGated);
 
   aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
 
@@ -804,7 +810,8 @@ void G_Ai_InitNodes(void) {
         const GameAiLink out = {
           .id = link->node,
           .cost = Maxf(distance, link->travelTime * PM_SPEED_RUN / 100.f),
-          .travelType = link->travelType
+          .travelType = link->travelType,
+          .gate = link->gate
         };
 
         $(node.links, add, (ident) &out);
@@ -1406,9 +1413,20 @@ bool G_Ai_Node_IsCrushing(const GameAiNodeId id) {
 }
 
 /**
- * @brief Finds the entity of each node on a model that moves, by the entity's inline model.
+ * @brief Finds the door entity of each inline model, and the entity of each node on a model that
+ * moves, by the entity's inline model.
  */
 static void G_Ai_Node_FindMovers(void) {
+
+  G_ForEachEntity(ent, {
+    if (ent->model && ent->model[0] == '*' && ent->classname &&
+        (!Str_Compare(ent->classname, "func_door") || !Str_Compare(ent->classname, "func_door_rotating"))) {
+      const int32_t model = (int32_t) strtol(ent->model + 1, NULL, 10);
+      if (model > 0 && model < MAX_MODELS) {
+        module.gates[model] = ent;
+      }
+    }
+  });
 
   if (!module.moverNodes) {
     return;
@@ -1907,6 +1925,8 @@ void G_Ai_ShutdownNodes(void) {
 
   aiPlatforms = release(aiPlatforms);
 
+  memset(module.gates, 0, sizeof(module.gates));
+
   module.moverNodes = release(module.moverNodes);
   module.moverLinked = release(module.moverLinked);
   module.moverLinkTime = 0;
@@ -2050,6 +2070,22 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
 }
 
 /**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_IsLinkOpen(const GameAiLink *link) {
+
+  if (!link->gate) {
+    return true;
+  }
+
+  if (link->gate >= MAX_MODELS || !module.gates[link->gate]) {
+    return false;
+  }
+
+  return G_func_door_IsAway(module.gates[link->gate]);
+}
+
+/**
  * @return The cost for the client to travel the link out of `node`, with penalties for drops that
  * hurt and for a node at the edge of the void, or -1 if the client must not use the link. A link
  * that the game added is tested for lava and slime along its line, except a walk between a node on
@@ -2070,6 +2106,10 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   }
 
   if (G_Ai_Node_IsCrushing(link->id)) {
+    return -1.f;
+  }
+
+  if (!G_Ai_Node_IsLinkOpen(link)) {
     return -1.f;
   }
 

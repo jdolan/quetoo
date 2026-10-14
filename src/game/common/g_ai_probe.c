@@ -415,6 +415,9 @@ void G_Ai_Probe_Graph(void) {
     for (size_t j = 0; links && j < links->count && len < sizeof(text) - 32; j++) {
       const GameAiLink *link = VectorElement(links, GameAiLink, j);
       len += snprintf(text + len, sizeof(text) - len, "%s%d:%d:%d", j ? "," : "", link->id, link->travelType, (int32_t) link->cost);
+      if (link->gate) {
+        len += snprintf(text + len, sizeof(text) - len, ":%d", link->gate);
+      }
     }
 
     const Vec3 position = G_Ai_Node_GetPosition((GameAiNodeId) i);

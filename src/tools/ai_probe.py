@@ -141,11 +141,14 @@ def read_graph(events):
         if e.kind != 'NODE':
             continue
         links = []
+        gates = {}
         if e['links']:
             for link in e['links'].split(','):
-                to, travel, cost = (int(v) for v in link.split(':'))
+                to, travel, cost, *gate = (int(v) for v in link.split(':'))
                 links.append((to, travel, cost))
-        nodes[int(e['id'])] = {'pos': e.pos(), 'edge': e.get('edge') == '1', 'links': links}
+                if gate:
+                    gates[to] = gate[0]
+        nodes[int(e['id'])] = {'pos': e.pos(), 'edge': e.get('edge') == '1', 'links': links, 'gates': gates}
     if not nodes:
         sys.exit('The log has no graph: record it with `run --graph`, or g_aiProbe 3')
     return nodes
@@ -424,7 +427,9 @@ def cmd_node(args):
         node = nodes[i]
         print(f'{i} {node["pos"]}' + (' edge' if node['edge'] else ''))
         for to, travel, cost in node['links']:
-            print(f'  -> {to:>5} {TRAVEL.get(travel, "?"):<9} cost {cost:>4} {nodes[to]["pos"] if to in nodes else "?"}')
+            gate = node['gates'].get(to)
+            print(f'  -> {to:>5} {TRAVEL.get(travel, "?"):<9} cost {cost:>4} {nodes[to]["pos"] if to in nodes else "?"}' +
+                  (f' through door *{gate}' if gate else ''))
         into = [(a, link_type(nodes, a, i)) for a, n in nodes.items() for to, _, _ in n['links'] if to == i]
         print(f'  <- ' + ', '.join(f'{a} {t}' for a, t in into))
 

@@ -2246,7 +2246,8 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
 /**
  * @brief Updates the positions of the bot's next nodes, which move if they stand on a model that
  * moves, and plans a new path at once if the link into its next node is gone, as a link to a node
- * that moves is once the model moves on, or if a crusher is about to sweep its next node. If no path
+ * that moves is once the model moves on, if the door whose doorway the link crosses closes, or if a
+ * crusher is about to sweep its next node. If no path
  * comes back, the bot drops its path, so that it does not follow a node that the model carries
  * away, over a gap or a lava pit, or walk under a crusher. A bot on the ground whose line to its
  * next node touches a push trigger plans a new path too, at most once a second. The first node of a
@@ -2275,7 +2276,8 @@ static void G_Ai_RefreshPath(GameClient *cl) {
     return;
   }
 
-  if (index > 0 && (!G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next) || G_Ai_Node_IsCrushing(next))) {
+  if (index > 0 && (!G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next) || G_Ai_Node_IsCrushing(next) ||
+                    (link && !G_Ai_Node_IsLinkOpen(link)))) {
     if (!G_Ai_ReplanPath(cl)) {
       G_Ai_Probe_PathEnd(cl, "unlinked");
       G_Ai_ClearGoal(goal);

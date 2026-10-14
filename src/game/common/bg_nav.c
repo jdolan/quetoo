@@ -98,6 +98,13 @@
 #define NAV_JUMP_SPEED_FRACTION .8f
 
 /**
+ * @brief The fraction of the run speed at which a jump over the place of a door is simulated. The
+ * door closes the gap only while a button holds it, so the jump is the way back across for a bot
+ * that crossed on the door, which a jump at `NAV_JUMP_SPEED_FRACTION` would strand.
+ */
+#define NAV_GATED_JUMP_SPEED_FRACTION .9f
+
+/**
  * @brief The distance before the edge of the floor at which a jump link is simulated to take off,
  * because a bot jumps up to one frame early.
  */
@@ -200,6 +207,17 @@ typedef struct {
   bool moves;
 
   /**
+   * @brief True for a door, whose doorway a walk MAY cross while the door is open.
+   */
+  bool gate;
+
+  /**
+   * @brief The first barrier of the doors with the door's `targetname`, which move together, or
+   * the door's own.
+   */
+  int32_t group;
+
+  /**
    * @brief The model's head node.
    */
   int32_t headNode;
@@ -244,6 +262,17 @@ static struct {
    * @brief The barrier whose model the last `Nav_Trace` hit first, or -1 for the world.
    */
   int32_t traceBarrier;
+
+  /**
+   * @brief The group of the doors that `Nav_Trace` passes through, to find the walks and jumps
+   * through their doorways, or -1.
+   */
+  int32_t openGate;
+
+  /**
+   * @brief True while `Nav_JumpArc` simulates a jump at `NAV_GATED_JUMP_SPEED_FRACTION`.
+   */
+  bool gatedSpeed;
 } module;
 
 /**
@@ -323,7 +352,7 @@ static CollisionTrace Nav_Trace(const Vec3 start, const Vec3 end, const Box3 bou
   for (int32_t i = 0; i < module.numBarriers; i++) {
     const NavBarrier *barrier = &module.barriers[i];
 
-    if (!Box3_Intersects(swept, barrier->bounds)) {
+    if (!Box3_Intersects(swept, barrier->bounds) || (barrier->gate && barrier->group == module.openGate)) {
       continue;
     }
 
@@ -734,7 +763,7 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
  * @brief Adds a link to `links` that leads to `node`, unless one exists.
  */
 static void Nav_AddLink(NavLink *links, int32_t *numLinks, const int32_t node,
-                             const NavTravelType type, const int32_t time) {
+                        const NavTravelType type, const int32_t time, const int32_t gate) {
 
   for (int32_t i = 0; i < *numLinks; i++) {
     if (links[i].node == node) {
@@ -749,8 +778,24 @@ static void Nav_AddLink(NavLink *links, int32_t *numLinks, const int32_t node,
   links[(*numLinks)++] = (NavLink) {
     .node = node,
     .travelType = type,
-    .travelTime = time
+    .travelTime = time,
+    .gate = gate
   };
+}
+
+/**
+ * @brief Adds a walk, or a crouch, from `node` to `other`, at the speed of the water if either is in
+ * it, through the doorway of the door with inline model `gate`, or 0.
+ */
+static void Nav_AddWalk(NavLink *links, int32_t *numLinks, const NavNode *node, const NavNode *other,
+                        const int32_t target, const float distance, const int32_t gate) {
+
+  const bool crouch = node->crouch || other->crouch;
+  const bool wade = (node->contents | other->contents) != 0;
+  const NavTravelType type = crouch ? NAV_TRAVEL_CROUCH : NAV_TRAVEL_WALK;
+  const float speed = wade ? PM_SPEED_WATER : crouch ? PM_SPEED_DUCKED : PM_SPEED_RUN;
+
+  Nav_AddLink(links, numLinks, target, type, Nav_TravelTime(distance, speed), gate);
 }
 
 /**
@@ -790,6 +835,61 @@ static bool Nav_Walk(const NavNode *a, const NavNode *b, float *distance) {
   }
 
   return fabsf(origin.z - b->position.z) <= 1.f;
+}
+
+/**
+ * @return True if barrier `i` is a door that touches the box, and the first barrier of its group
+ * that does, so that the gate search opens each group once.
+ */
+static bool Nav_IsGateToTry(const int32_t i, const Box3 swept) {
+
+  const NavBarrier *barrier = &module.barriers[i];
+
+  if (!barrier->gate || !Box3_Intersects(swept, barrier->bounds)) {
+    return false;
+  }
+
+  for (int32_t j = 0; j < i; j++) {
+    const NavBarrier *other = &module.barriers[j];
+
+    if (other->gate && other->group == barrier->group && Box3_Intersects(swept, other->bounds)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @brief Simulates a walk from node `a` to node `b` through the doorway of a door, for a walk that
+ * `Nav_Walk` found blocked: with the doors of each group that the walk's box touches left out of
+ * the traces in turn, so that the link opens with the doors that block it, which move together.
+ * @return The inline model of a door of that group, or 0 if no one group blocks the walk.
+ */
+static int32_t Nav_GatedWalk(const NavNode *a, const NavNode *b, float *distance) {
+
+  if (a->model || b->model) {
+    return 0;
+  }
+
+  const Box3 bounds = Nav_Bounds(a->crouch || b->crouch);
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, a->position), Box3_Translate(bounds, b->position));
+
+  for (int32_t i = 0; i < module.numBarriers; i++) {
+    if (!Nav_IsGateToTry(i, swept)) {
+      continue;
+    }
+
+    module.openGate = module.barriers[i].group;
+    const bool walked = Nav_Walk(a, b, distance);
+    module.openGate = -1;
+
+    if (walked) {
+      return module.barriers[i].model;
+    }
+  }
+
+  return 0;
 }
 
 /**
@@ -944,7 +1044,8 @@ static bool Nav_IsEdge(const NavNode *node) {
 /**
  * @brief Simulates a running jump from node `a` across a gap to node `b`. The player walks straight
  * toward `b` to the edge of the floor, and jumps `NAV_JUMP_TAKEOFF_MARGIN` before it: the lowest
- * jump of all movements, at `NAV_JUMP_SPEED_FRACTION` of the run speed. The arc MUST be
+ * jump of all movements, at `NAV_JUMP_SPEED_FRACTION` of the run speed, or
+ * `NAV_GATED_JUMP_SPEED_FRACTION` for a jump through a door's doorway or over its place. The arc MUST be
  * `NAV_JUMP_CLEARANCE` above `b` when it arrives over it.
  * @param seconds The time of the run to the takeoff point, and of the flight until the player lands
  * at `b`.
@@ -995,7 +1096,7 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
   const int32_t index = Maxi(0, numSteps - 1 - (int32_t) (NAV_JUMP_TAKEOFF_MARGIN / NAV_WALK_STEP));
   const Vec3 takeoff = steps[index];
   const float remaining = distance - index * NAV_WALK_STEP;
-  const float speed = PM_SPEED_RUN * NAV_JUMP_SPEED_FRACTION;
+  const float speed = PM_SPEED_RUN * (module.gatedSpeed ? NAV_GATED_JUMP_SPEED_FRACTION : NAV_JUMP_SPEED_FRACTION);
   const float up = sqrtf(2.f * module.gravity * (module.barrierHeight + NAV_BARRIER_MARGIN));
 
   Vec3 origin = takeoff;
@@ -1096,6 +1197,61 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
 }
 
 /**
+ * @brief Finds the node that a running jump from `node` in `direction` lands at through the doorway
+ * of a door, or over the place of a door that spawns open, for a jump that `Nav_Jump` found
+ * blocked, at `NAV_GATED_JUMP_SPEED_FRACTION`. The doors of each group within the jump's reach,
+ * from two steps below it, where the top of a door is its floor, are left out of the traces in
+ * turn. The jump is gated only by a group without which it lands, and with which it does not, even
+ * at that speed.
+ * @param gate The inline model of the door that the jump passes.
+ * @return The node that the jump lands at, or -1.
+ */
+static int32_t Nav_GatedJump(const NavNode *node, const Vec3i direction, float *seconds, int32_t *gate) {
+
+  Box3 bounds = Nav_Bounds(false);
+  bounds.mins.z -= PM_STEP_HEIGHT * 2.f;
+  bounds.maxs.z += module.barrierHeight;
+
+  const Vec3 reach = Vec3_Add(node->position, Vec3_Scale(MakeVec3(direction.x, direction.y, 0.f), NAV_CELL_SIZE * NAV_MAX_JUMP_CELLS));
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, node->position), Box3_Translate(bounds, reach));
+
+  int32_t landing = -1;
+  int32_t closed = -2;
+
+  module.gatedSpeed = true;
+
+  for (int32_t i = 0; i < module.numBarriers && landing == -1; i++) {
+    if (!Nav_IsGateToTry(i, swept)) {
+      continue;
+    }
+
+    module.openGate = module.barriers[i].group;
+    landing = Nav_Jump(node, direction, seconds);
+    module.openGate = -1;
+
+    if (landing == -1) {
+      continue;
+    }
+
+    if (closed == -2) {
+      float time;
+      closed = Nav_Jump(node, direction, &time);
+    }
+
+    if (closed != -1) {
+      landing = -1;
+      break;
+    }
+
+    *gate = module.barriers[i].model;
+  }
+
+  module.gatedSpeed = false;
+
+  return landing;
+}
+
+/**
  * @return True if the point is in water, which a player can swim through.
  */
 static bool Nav_InWater(const Vec3 point) {
@@ -1161,7 +1317,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER));
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER), 0);
       }
     }
   }
@@ -1198,7 +1354,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, surface) + Vec3_Distance(surface, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER));
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER), 0);
       }
     }
   }
@@ -1242,18 +1398,18 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       }
 
       float distance;
+      int32_t gate = 0;
       if (Nav_Walk(node, other, &distance)) {
-        const bool crouch = node->crouch || other->crouch;
-        const bool wade = (node->contents | other->contents) != 0;
-        const NavTravelType type = crouch ? NAV_TRAVEL_CROUCH : NAV_TRAVEL_WALK;
-        const float speed = wade ? PM_SPEED_WATER : crouch ? PM_SPEED_DUCKED : PM_SPEED_RUN;
-        Nav_AddLink(links, &numLinks, target, type, Nav_TravelTime(distance, speed));
+        Nav_AddWalk(links, &numLinks, node, other, target, distance, 0);
         walked = true;
       } else if (Nav_BarrierJump(node, other, &distance)) {
         const float fall = module.barrierHeight - (other->position.z - node->position.z);
         const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) +
                              Nav_FallTime(module.barrierHeight) + Nav_FallTime(fall);
-        Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_BARRIER_JUMP, time);
+        Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_BARRIER_JUMP, time, 0);
+        walked = true;
+      } else if ((gate = Nav_GatedWalk(node, other, &distance))) {
+        Nav_AddWalk(links, &numLinks, node, other, target, distance, gate);
         walked = true;
       }
     }
@@ -1266,13 +1422,17 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     const int32_t target = Nav_Drop(node, directions[i], &distance, &height);
     if (target != -1 && target != index) {
       const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) + Nav_FallTime(height);
-      Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time);
+      Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, 0);
     }
 
     float seconds;
-    const int32_t landing = Nav_Jump(node, directions[i], &seconds);
+    int32_t gate = 0;
+    int32_t landing = Nav_Jump(node, directions[i], &seconds);
+    if (landing == -1) {
+      landing = Nav_GatedJump(node, directions[i], &seconds, &gate);
+    }
     if (landing != -1) {
-      Nav_AddLink(links, &numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 100.f));
+      Nav_AddLink(links, &numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 100.f), gate);
     }
   }
 
@@ -1413,7 +1573,9 @@ static void Nav_AddPush(const Entity *entity, const Box3 bounds, const int32_t s
  * own link starts at the nearest node beside it. A door with `health` or a `targetname` opens when
  * shot or triggered, and has no trigger that opens it for a player who walks up to it
  * (`G_func_door`). Such a door is sampled where the map places it, closed, even if it spawns open,
- * as a bridge over a trap does. A wall is solid where it spawns so (`G_func_wall`). A door, a
+ * as a bridge over a trap does. A walk through its doorway, and a jump through it or over its place,
+ * is a gated link (`Nav_GatedWalk`, `Nav_GatedJump`), which the game opens and closes with the door.
+ * A wall is solid where it spawns so (`G_func_wall`). A door, a
  * `func_train`, a `func_bob` and a `func_rotating` that turns about the vertical axis carry their
  * floors with them, so their nodes move with them. A `func_rotating` that turns about a horizontal
  * axis is taken to be a smooth wheel, whose top stays where it spawns.
@@ -1455,11 +1617,11 @@ static void Nav_InitModels(void) {
       continue;
     }
 
-    bool barrier = false, moves = false;
+    bool barrier = false, moves = false, gate = false;
 
     if (!Str_Compare(classname, "func_door") || !Str_Compare(classname, "func_door_rotating")) {
       barrier = Nav_EntityInteger(model->entity, "health") || Nav_EntityHas(model->entity, "targetname");
-      moves = true;
+      moves = gate = true;
     } else if (!Str_Compare(classname, "func_train") || !Str_Compare(classname, "func_bob")) {
       barrier = moves = true;
     } else if (!Str_Compare(classname, "func_wall")) {
@@ -1478,9 +1640,22 @@ static void Nav_InitModels(void) {
       continue;
     }
 
+    int32_t group = module.numBarriers;
+    const char *targetname = module.params->EntityValue(model->entity, "targetname")->string;
+
+    for (int32_t j = 0; gate && *targetname && j < module.numBarriers; j++) {
+      const Entity *other = module.params->bsp->models[module.barriers[j].model].entity;
+      if (module.barriers[j].gate && !Str_Compare(module.params->EntityValue(other, "targetname")->string, targetname)) {
+        group = module.barriers[j].group;
+        break;
+      }
+    }
+
     module.barriers[module.numBarriers++] = (NavBarrier) {
       .model = i,
       .moves = moves,
+      .gate = gate,
+      .group = group,
       .headNode = model->headNode,
       .origin = origin,
       .bounds = bounds
@@ -1525,6 +1700,7 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
 
   module.params = params;
   module.graph = graph;
+  module.openGate = -1;
   module.gravity = params->gravity;
   module.barrierHeight = Nav_BarrierHeight();
   module.waterJumpHeight = Nav_WaterJumpHeight();
@@ -1585,6 +1761,7 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
     for (int32_t j = 0; j < numLinks; j++) {
       graph->links[graph->numLinks++] = links[j];
       graph->numTravel[links[j].travelType]++;
+      graph->numGated += links[j].gate != 0;
     }
   }
 

@@ -1717,6 +1717,20 @@ void G_func_door(GameEntity *ent) {
   }
 }
 
+/**
+ * @see g_entity_func.h
+ */
+bool G_func_door_IsActivated(const GameEntity *ent) {
+  return ent->moveInfo.state == MOVE_STATE_GOING_UP || ent->moveInfo.state == MOVE_STATE_TOP;
+}
+
+/**
+ * @see g_entity_func.h
+ */
+bool G_func_door_IsAway(const GameEntity *ent) {
+  return G_func_door_IsActivated(ent) != ((ent->spawnFlags & DOOR_START_OPEN) != 0);
+}
+
 /*QUAKED func_door_rotating (0 .5 .8) ? start_open toggle reverse x_axis y_axis
  A door which rotates about an origin on its Z axis. By default, doors open when a player walks close to them.
 

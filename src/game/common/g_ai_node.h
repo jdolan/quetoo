@@ -45,6 +45,11 @@ typedef struct {
    * @brief The `NavTravelType`.
    */
   int32_t travelType;
+
+  /**
+   * @brief The inline model of the door whose doorway the link crosses, as `NavLink::gate`, or 0.
+   */
+  int32_t gate;
 } GameAiLink;
 
 const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a);
@@ -120,4 +125,10 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
 bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float *costs);
 bool G_Ai_DropItemLikeNode(GameEntity *ent);
 
+/**
+ * @return True if the link crosses no doorway, or the door whose doorway it crosses is away from
+ * where the map places it, or moves away from it. Until the level's doors are found, a link through
+ * a doorway is closed.
+ */
+bool G_Ai_Node_IsLinkOpen(const GameAiLink *link);
 #endif
