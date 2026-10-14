@@ -220,6 +220,12 @@
 #define NAV_LADDER_EXIT 16.f
 
 /**
+ * @brief The most that a detour through one other node in liquid MAY cost, as a multiple of the time
+ * of a swim link, for `Nav_PruneSwims` to remove the link.
+ */
+#define NAV_SWIM_PRUNE 1.2f
+
+/**
  * @brief The outcome of a floor sample.
  */
 typedef enum {
@@ -2361,6 +2367,152 @@ static void Nav_InitGrid(NavGraph *graph) {
 }
 
 /**
+ * @brief A swim link between two nodes in liquid, which `Nav_PruneSwims` MAY remove.
+ */
+typedef struct {
+  /**
+   * @brief The index of the node that the link leaves.
+   */
+  int32_t from;
+
+  /**
+   * @brief The index of the link in `NavGraph::links`.
+   */
+  int32_t link;
+} NavSwim;
+
+/**
+ * @brief Orders swim links by their time, then by their index, so that the order is the same in
+ * the game and the client game.
+ * @return Less than, equal to or greater than 0, as `a` sorts before, with or after `b`.
+ */
+static int32_t Nav_PruneSwims_compare(const void *a, const void *b) {
+
+  const NavSwim *x = a, *y = b;
+  const NavGraph *graph = module.graph;
+
+  const int32_t dt = graph->links[x->link].travelTime - graph->links[y->link].travelTime;
+
+  return dt ? dt : x->link - y->link;
+}
+
+/**
+ * @return The index of the swim link from node `a` to node `b` that `removed` keeps, and that is
+ * faster than `time`, or -1.
+ */
+static int32_t Nav_PruneSwims_link(const int32_t a, const int32_t b, const int32_t time, const bool *removed) {
+
+  const NavGraph *graph = module.graph;
+  const NavNode *node = &graph->nodes[a];
+
+  for (int32_t i = node->firstLink; i < node->firstLink + node->numLinks; i++) {
+    const NavLink *link = &graph->links[i];
+
+    if (link->node == b && link->travelType == NAV_TRAVEL_SWIM && !removed[i] && link->travelTime < time) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * @brief Removes the swim links between nodes in liquid that a detour through one other node in
+ * liquid replaces, at no more than `NAV_SWIM_PRUNE` times their time. A node in liquid links to
+ * every node in liquid in the 3 by 3 by 5 cells around it, which makes most of the links of a level
+ * with deep water, and a search visits each link. The links are tried from the fastest, and a
+ * detour uses only faster links that are kept, so each removed link keeps a route through the
+ * links that stay. The links out of the liquid, which water jumps make, stay.
+ */
+static void Nav_PruneSwims(NavGraph *graph) {
+
+  if (!graph->numLinks) {
+    return;
+  }
+
+  NavSwim *swims = malloc(sizeof(NavSwim) * graph->numLinks);
+  bool *removed = calloc(graph->numLinks, sizeof(bool));
+
+  if (!swims || !removed) {
+    module.params->Error(__func__, "Failed to allocate %d swim links\n", graph->numLinks);
+  }
+
+  int32_t numSwims = 0;
+
+  for (int32_t i = 0; i < graph->numNodes; i++) {
+    const NavNode *node = &graph->nodes[i];
+
+    if (!(node->contents & CONTENTS_MASK_LIQUID)) {
+      continue;
+    }
+
+    for (int32_t j = node->firstLink; j < node->firstLink + node->numLinks; j++) {
+      const NavLink *link = &graph->links[j];
+
+      if (link->travelType == NAV_TRAVEL_SWIM && (graph->nodes[link->node].contents & CONTENTS_MASK_LIQUID)) {
+        swims[numSwims++] = (NavSwim) { .from = i, .link = j };
+      }
+    }
+  }
+
+  qsort(swims, numSwims, sizeof(NavSwim), Nav_PruneSwims_compare);
+
+  for (int32_t i = 0; i < numSwims; i++) {
+    const NavNode *node = &graph->nodes[swims[i].from];
+    const NavLink *link = &graph->links[swims[i].link];
+
+    for (int32_t j = node->firstLink; j < node->firstLink + node->numLinks; j++) {
+      const NavLink *first = &graph->links[j];
+
+      if (first->travelType != NAV_TRAVEL_SWIM || removed[j] || first->travelTime >= link->travelTime ||
+          !(graph->nodes[first->node].contents & CONTENTS_MASK_LIQUID)) {
+        continue;
+      }
+
+      const int32_t second = Nav_PruneSwims_link(first->node, link->node, link->travelTime, removed);
+      if (second == -1) {
+        continue;
+      }
+
+      if (first->travelTime + graph->links[second].travelTime <= link->travelTime * NAV_SWIM_PRUNE) {
+        removed[swims[i].link] = true;
+        break;
+      }
+    }
+  }
+
+  int32_t numLinks = 0;
+
+  memset(graph->numTravel, 0, sizeof(graph->numTravel));
+  graph->numGated = 0;
+
+  for (int32_t i = 0; i < graph->numNodes; i++) {
+    NavNode *node = &graph->nodes[i];
+
+    const int32_t first = node->firstLink, count = node->numLinks;
+
+    node->firstLink = numLinks;
+    node->numLinks = 0;
+
+    for (int32_t j = first; j < first + count; j++) {
+      if (removed[j]) {
+        continue;
+      }
+
+      graph->links[numLinks++] = graph->links[j];
+      graph->numTravel[graph->links[j].travelType]++;
+      graph->numGated += graph->links[j].gate != 0;
+      node->numLinks++;
+    }
+  }
+
+  graph->numLinks = numLinks;
+
+  free(swims);
+  free(removed);
+}
+
+/**
  * @see bg_nav.h
  */
 bool Nav_Build(const NavParams *params, NavGraph *graph) {
@@ -2436,6 +2588,8 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
       graph->numGated += links[j].gate != 0;
     }
   }
+
+  Nav_PruneSwims(graph);
 
   return true;
 }
