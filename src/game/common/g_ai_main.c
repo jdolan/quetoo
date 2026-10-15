@@ -626,7 +626,7 @@ static bool G_Ai_ReplanPath(GameClient *cl) {
 
   GameAiGoal *goal = &cl->ai->moveTarget;
 
-  const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
+  const GameAiNodeId src = G_Ai_PathStart(cl, 512.f);
   const GameAiNodeId dest = VectorValue(goal->path.path, GameAiNodeId, goal->path.path->count - 1);
 
   if (src == AI_NODE_INVALID) {

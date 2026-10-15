@@ -660,7 +660,7 @@ static GameAiChoice G_Ai_ChooseItem(const GameClient *cl, const float *costs, co
  */
 static bool G_Ai_PathTo(GameClient *cl, const GameAiNodeId dest, const float priority, const GameEntity *target) {
 
-  const GameAiNodeId src = G_Ai_Node_FindClosest(cl->entity->s.origin, AI_NODE_DISTANCE, true, true);
+  const GameAiNodeId src = G_Ai_PathStart(cl, AI_NODE_DISTANCE);
 
   if (src == AI_NODE_INVALID || dest == AI_NODE_INVALID) {
     return false;

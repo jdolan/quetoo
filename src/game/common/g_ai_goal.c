@@ -78,23 +78,69 @@ void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, 
 }
 
 /**
- * @brief Setup entity goal for the specified target.
+ * @return True if the bot is on a ladder, on the ladder link of its move target's path.
+ * @param bottom The node at the start of the climb.
+ * @param top The node at its top.
+ */
+static bool G_Ai_IsOnClimb(const GameClient *cl, GameAiNodeId *bottom, GameAiNodeId *top) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (!(cl->ps.pmState.flags & PMF_ON_LADDER) || goal->type != AI_GOAL_PATH || !goal->path.path ||
+      goal->path.pathIndex == 0 || goal->path.pathIndex >= goal->path.path->count) {
+    return false;
+  }
+
+  *bottom = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1);
+  *top = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex);
+
+  const GameAiLink *link = G_Ai_Node_GetLink(*bottom, *top);
+
+  return link && link->travelType == NAV_TRAVEL_LADDER;
+}
+
+/**
+ * @see g_ai_goal.h
+ */
+GameAiNodeId G_Ai_PathStart(const GameClient *cl, const float maxDistance) {
+
+  GameAiNodeId bottom, top;
+
+  if (G_Ai_IsOnClimb(cl, &bottom, &top)) {
+    return top;
+  }
+
+  return G_Ai_Node_FindClosest(cl->entity->s.origin, maxDistance, true, true);
+}
+
+/**
+ * @brief Setup entity goal for the specified target. A bot that climbs a ladder keeps its climb in
+ * front of a new path that starts at the climb's top (`G_Ai_PathStart`), so that it does not let
+ * go of the ladder for a path from the node nearest it, as one in a pipe that the ladder passes.
  * @remarks It clears the bot's strafe look-ahead, which `G_Ai_StrafeTarget` keys by the path's
  * address, because the new path can reuse the address of one that was freed, and the strafe jump
  * that `G_Ai_StrafeJumpIsSafe` found safe.
  */
 void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget) {
 
+  GameAiNodeId bottom, top;
+  const bool climb = goal == &cl->ai->moveTarget && G_Ai_IsOnClimb(cl, &bottom, &top) &&
+                     path->count && VectorValue(path, GameAiNodeId, 0) == top;
+
   G_Ai_InitGoal(cl, goal, AI_GOAL_PATH, priority);
 
   cl->ai->strafeLookTime = 0;
   cl->ai->strafeSafeTime = 0;
-  
-  goal->path.path = retain(path);
-  goal->path.pathIndex = 0;
 
-  const GameAiNodeId node = VectorValue(path, GameAiNodeId, 0);
-  const GameAiNodeId next = VectorValue(path, GameAiNodeId, Minz(path->count - 1, 1));
+  if (climb) {
+    $(path, insert, &bottom, 0);
+  }
+
+  goal->path.path = retain(path);
+  goal->path.pathIndex = climb ? 1 : 0;
+
+  const GameAiNodeId node = VectorValue(path, GameAiNodeId, goal->path.pathIndex);
+  const GameAiNodeId next = VectorValue(path, GameAiNodeId, Minz(path->count - 1, goal->path.pathIndex + 1));
   goal->path.pathPosition = G_Ai_Node_GetPosition(node);
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
   goal->path.pathTarget = pathTarget;
