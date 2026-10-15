@@ -1806,16 +1806,18 @@ static bool Nav_ClimbOver(const Vec3 top, const Vec3 over, const Box3 bounds, Ve
  * @brief Adds the climbs of the column beside a ladder's face at `column`, whose outward normal is
  * `normal`, which go straight up beside the face until the player's box clears the top of the
  * ladder, then across its top (`Nav_ClimbOver`), onto the floor on top of the ladder, or
- * `NAV_LADDER_EXIT` beyond its far side. A climb ends at the node nearest the top of its column,
- * if that node stands over the ladder, behind its face, as the first node that the climber steps
- * onto, and otherwise at the node nearest where it lands. A climb starts at the floor under the
- * ladder's bottom, or if it has none within `NAV_LADDER_FLOOR`, at the top of the liquid under it,
- * where a swimmer touches the ladder. A climb also starts at each node in front of the face, within
- * `NAV_MAX_JUMP_CELLS` cells and below the top, from which a running jump grabs the ladder
- * (`Nav_LadderJump`), as over a pit, lava or slime. A column with no room for the player's box,
- * as against the wall that the ladder stands on, a column where a player is not on the ladder all
- * the way up (`Nav_OnLadder`), a column whose top is blocked, and a top with no floor or no node
- * across it, as a ladder that only dresses a wall has, add no climb.
+ * `NAV_LADDER_EXIT` beyond its far side. A climb ends at the node nearest the top of its column, if
+ * that node stands over the ladder, behind its face, as the first node that the climber steps onto,
+ * and otherwise at the node nearest where it lands. A climb starts at the floor under the ladder's
+ * bottom, or if it has none within `NAV_LADDER_FLOOR`, at the top of the liquid under it, where a
+ * swimmer touches the ladder. A climb also starts at the swim node nearest the column, each
+ * `NAV_CELL_HEIGHT` above that and from the ladder's bottom up, so that a swimmer grabs the ladder
+ * at its own depth and does not dive to the floor first, as in lava. A climb also starts at each
+ * node in front of the face, within `NAV_MAX_JUMP_CELLS` cells and below the top, from which a
+ * running jump grabs the ladder (`Nav_LadderJump`), as over a pit, lava or slime. A column with no
+ * room for the player's box, as against the wall that the ladder stands on, a column where a player
+ * is not on the ladder all the way up (`Nav_OnLadder`), a column whose top is blocked, and a top
+ * with no floor or no node across it, as a ladder that only dresses a wall has, add no climb.
  * @return True if the column climbs the ladder, as a climb added now or before.
  */
 static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal) {
@@ -1908,6 +1910,19 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
 
   if (a != -1 && a != b) {
     Nav_AddClimbLink(a, b, NAV_LADDER_DELAY + Nav_TravelTime(top.z - bottom.z, PM_SPEED_LADDER) + over, bottom, landing, false, bottom);
+    climbs = true;
+  }
+
+  Vec3 grab = MakeVec3(column.x, column.y, Maxf(bottom.z + NAV_CELL_HEIGHT, start.z));
+  for (; grab.z < highest; grab.z += NAV_CELL_HEIGHT) {
+
+    const int32_t n = Nav_LadderNode(grab, NAV_CELL_HEIGHT * .5f);
+    if (n == -1 || n == a || n == b || !(module.graph->nodes[n].contents & CONTENTS_MASK_LIQUID)) {
+      continue;
+    }
+
+    const int32_t time = NAV_LADDER_DELAY + Nav_TravelTime(top.z - grab.z, PM_SPEED_LADDER) + over;
+    Nav_AddClimbLink(n, b, time, grab, landing, false, grab);
     climbs = true;
   }
 
