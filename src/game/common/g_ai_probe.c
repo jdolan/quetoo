@@ -122,6 +122,7 @@ typedef struct {
   bool jumping;
   float jumpHeight;
   int32_t visitNode;
+  bool ladder;
   bool used;
 } GameAiProbeClient;
 
@@ -476,6 +477,16 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
   int32_t from, to, travelType;
   G_Ai_Probe_Link(cl, &from, &to, &travelType);
+
+  const bool ladder = (cl->ps.pmState.flags & PMF_ON_LADDER) != 0;
+
+  if (ladder != c->ladder) {
+    c->ladder = ladder;
+    G_Ai_Probe_Print(n, "LADDER", "on=%d pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d",
+                     ladder, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+                     (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
+                     from, to, travelType);
+  }
 
   if (gameLevel.time - c->sampleTime >= AI_PROBE_SAMPLE_MILLIS) {
     c->sampleTime = gameLevel.time;
