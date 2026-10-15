@@ -313,6 +313,7 @@ static const char *const stateNames[AI_STATE_TOTAL] = {
   [AI_STATE_INVESTIGATE] = "investigate",
   [AI_STATE_ACTIVATE] = "activate",
   [AI_STATE_ESCAPE] = "escape",
+  [AI_STATE_CLIMB] = "climb",
 };
 
 static struct {
@@ -1594,6 +1595,27 @@ static bool G_Ai_IsAirborne(const GameClient *cl) {
 }
 
 /**
+ * @brief Enters `AI_STATE_CLIMB` and keeps the path: the climb owns the bot until it leaves the
+ * ladder. A player who climbs is in the open and cannot fight back well, so the bot does not stop
+ * to fight, or take a new goal, which would leave it on the ladder with no path.
+ */
+static void G_Ai_Climb(GameClient *cl) {
+
+  GameAi *ai = cl->ai;
+
+  if (ai->state == AI_STATE_CLIMB) {
+    return;
+  }
+
+  G_Ai_Debug("%s: %s -> climb\n", cl->persistent.netName, stateNames[ai->state]);
+
+  ai->climbState = ai->state;
+  ai->state = AI_STATE_CLIMB;
+  ai->stateTime = gameLevel.time;
+  ai->shootTarget = NULL;
+}
+
+/**
  * @see g_ai_state.h
  */
 uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
@@ -1606,23 +1628,34 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
 
   G_Ai_UpdateTrail(cl);
 
-  if (G_Ai_IsAirborne(cl)) {
+  if (G_Ai_IsAirborne(cl) || ai->ladderLeaveTime > gameLevel.time) {
     return 1;
   }
 
   if (G_Ai_IsInLava(cl)) {
     G_Ai_Enter(cl, AI_STATE_ESCAPE);
-  } else if (ai->state == AI_STATE_ESCAPE) {
-    if (cl->entity->ground.ent || ai->moveTarget.type == AI_GOAL_NONE) {
-      G_Ai_Resume(cl);
+  } else if (G_Ai_IsCommittedToClimb(cl)) {
+    G_Ai_Climb(cl);
+    return AI_STATE_MILLIS;
+  } else {
+    if (ai->state == AI_STATE_CLIMB) {
+      G_Ai_Debug("%s: climb -> %s\n", cl->persistent.netName, stateNames[ai->climbState]);
+      ai->state = ai->climbState;
+      ai->stateTime = gameLevel.time;
     }
-  } else if (ai->combatTarget.type == AI_GOAL_ENTITY) {
-    G_Ai_Enter(cl, G_Ai_WantsRetreat(cl) ? AI_STATE_RETREAT : AI_STATE_FIGHT);
-  } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
-    if (ai->combatTargetLost && G_Ai_WantsPursuit(cl)) {
-      G_Ai_Enter(cl, AI_STATE_CHASE);
-    } else {
-      G_Ai_Resume(cl);
+
+    if (ai->state == AI_STATE_ESCAPE) {
+      if (cl->entity->ground.ent || ai->moveTarget.type == AI_GOAL_NONE) {
+        G_Ai_Resume(cl);
+      }
+    } else if (ai->combatTarget.type == AI_GOAL_ENTITY) {
+      G_Ai_Enter(cl, G_Ai_WantsRetreat(cl) ? AI_STATE_RETREAT : AI_STATE_FIGHT);
+    } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
+      if (ai->combatTargetLost && G_Ai_WantsPursuit(cl)) {
+        G_Ai_Enter(cl, AI_STATE_CHASE);
+      } else {
+        G_Ai_Resume(cl);
+      }
     }
   }
 
@@ -1674,6 +1707,7 @@ void G_Ai_State_Reset(GameClient *cl) {
   ai->gate = ai->gateButton = -1;
   ai->gateNode = AI_NODE_INVALID;
   ai->shootTarget = NULL;
+  ai->ladderLeaveTime = 0;
 
   G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
 }

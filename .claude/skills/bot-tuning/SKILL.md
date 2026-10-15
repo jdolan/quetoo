@@ -80,7 +80,7 @@ python3 src/tools/ai_probe.py hazards "$LOG" --near 250,-500,250
   the largest group.
 - `deaths`, `pushes` and `hazards` print each event with the 32 samples before it, 100 ms apart:
   position, velocity, link, link type, strafe jump state, ground, the bot's state, whether
-  damage knocked it back, and whether it is on a ladder. Read the samples to see what the bot
+  damage knocked it back, whether it is on a ladder, and the ladder controller's phase. Read the samples to see what the bot
   did: whether it strafe jumped, overshot its node, or left its link.
 - A death below about z -900 on a map with a void is a fall. The position of the death is where
   the bot hit the hurt trigger, often far from the edge that it fell from. The samples show the
@@ -113,7 +113,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `PICKUP` | When a bot, or with flag 4 a player, takes an item |
 | `GATE` | Once, for each gate: the `targetname` of doors that a button moves, with links through them, and the counts of its buttons, of the nodes from which a bot presses them, and of its doors |
 | `GATEUSE` | When a bot chooses a gate on the way to an item (`choose`), goes through it once the doors move (`open`), or gives up (`fail`). `summary` counts them for each gate |
-| `LADDER` | When a bot grabs a ladder (`on=1`) or leaves it (`on=0`), with its position, velocity and link. A climb completed if the bot left the ladder near the height of the climb's landing |
+| `LADDER` | When a bot grabs a ladder (`on=1`) or leaves it (`on=0`), with its position, velocity, link and the ladder controller's `phase` (`GameAiLadderPhase`). A climb completed if the bot left the ladder near the height of the climb's landing |
 | `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds, with `HIST reason=stuck` at the first |
 
 Link types are the `NavTravelType` values: 0 for the links that `G_Ai_Node_Link` adds to splice

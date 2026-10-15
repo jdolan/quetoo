@@ -80,7 +80,12 @@ bool G_Ai_Node_IsHazard(const GameAiNodeId node);
 /**
  * @return The climb of the ladder link from node `a` to node `b`, or NULL.
  */
-const NavClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeId b);
+const NavLadderClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeId b);
+
+/**
+ * @return The ladder face that the climb climbs.
+ */
+const NavLadder *G_Ai_Node_GetLadder(const NavLadderClimb *climb);
 
 GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
 GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);

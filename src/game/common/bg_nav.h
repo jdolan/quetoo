@@ -206,9 +206,53 @@ typedef struct {
 } NavPush;
 
 /**
+ * @brief The face of a ladder that bots climb: a vertical face of the bounds of a group of ladder
+ * brushes that touch, across the ladder's widest horizontal extent, with at least one climb. A
+ * bot follows it in its own frame, along the face's normal, across the face and up, rather than
+ * from the nodes of its climb.
+ */
+typedef struct {
+  /**
+   * @brief The bounds of the ladder's brushes.
+   */
+  Box3 bounds;
+
+  /**
+   * @brief The outward normal of the face that bots climb, which is horizontal and axial.
+   */
+  Vec3 normal;
+
+  /**
+   * @brief The horizontal axis across the face.
+   */
+  Vec3 lateral;
+
+  /**
+   * @brief The player origin in front of the middle of the face, where the player's box touches
+   * it, at the height of the ladder's bottom.
+   */
+  Vec3 center;
+
+  /**
+   * @brief Half the width of the face, along `lateral`.
+   */
+  float halfWidth;
+
+  /**
+   * @brief The player origin's height at which the player's box clears the ladder's top.
+   */
+  float top;
+} NavLadder;
+
+/**
  * @brief A climb of a ladder, which a ladder link makes.
  */
 typedef struct {
+  /**
+   * @brief The index of the ladder in `NavGraph::ladders`.
+   */
+  int32_t ladder;
+
   /**
    * @brief The node at the ladder's foot, or the node from which a running jump grabs the ladder.
    */
@@ -245,7 +289,7 @@ typedef struct {
    * `bottom` on the line of the jump, from which a bot runs along the line to jump at speed.
    */
   Vec3 runUp;
-} NavClimb;
+} NavLadderClimb;
 
 /**
  * @brief The distance in units of clear floor behind the node of a jump onto a ladder, on the line
@@ -327,12 +371,22 @@ typedef struct {
   /**
    * @brief The climbs of the level's ladders, one for each ladder link.
    */
-  NavClimb *climbs;
+  NavLadderClimb *climbs;
 
   /**
    * @brief The count of `climbs`.
    */
   int32_t numClimbs;
+
+  /**
+   * @brief The faces of the level's ladders that bots climb, which each climb names.
+   */
+  NavLadder *ladders;
+
+  /**
+   * @brief The count of `ladders`.
+   */
+  int32_t numLadders;
 } NavGraph;
 
 /**

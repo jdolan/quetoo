@@ -292,6 +292,11 @@ typedef enum {
    */
   AI_STATE_ESCAPE,
 
+  /**
+   * @brief Climb the ladder that the bot holds, and nothing else: no fight, no fire, no new goal.
+   */
+  AI_STATE_CLIMB,
+
   AI_STATE_TOTAL
 } GameAiStateId;
 
@@ -485,6 +490,22 @@ typedef struct GameAi {
    * @brief The active state of the decision state machine.
    */
   GameAiStateId state;
+
+  /**
+   * @brief The state that `AI_STATE_CLIMB` interrupted, to which the bot returns, with its path,
+   * off the ladder.
+   */
+  GameAiStateId climbState;
+
+  /**
+   * @brief Level time until which the bot leaves the ladder on which its climb was blocked.
+   */
+  uint32_t ladderLeaveTime;
+
+  /**
+   * @brief The direction in which the bot leaves that ladder: the normal of its face.
+   */
+  Vec3 ladderLeaveDir;
 
   /**
    * @brief Level time at which the bot entered its state.

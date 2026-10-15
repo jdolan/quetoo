@@ -2348,10 +2348,10 @@ static int32_t G_Ai_Node_Contents(const GameAiNode *node) {
 /**
  * @see g_ai_node.h
  */
-const NavClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeId b) {
+const NavLadderClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeId b) {
 
   for (int32_t i = 0; i < module.graph.numClimbs; i++) {
-    const NavClimb *climb = &module.graph.climbs[i];
+    const NavLadderClimb *climb = &module.graph.climbs[i];
 
     if (climb->bottom == (int32_t) a && climb->top == (int32_t) b) {
       return climb;
@@ -2359,6 +2359,13 @@ const NavClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeId b) {
   }
 
   return NULL;
+}
+
+/**
+ * @see g_ai_node.h
+ */
+const NavLadder *G_Ai_Node_GetLadder(const NavLadderClimb *climb) {
+  return &module.graph.ladders[climb->ladder];
 }
 
 /**

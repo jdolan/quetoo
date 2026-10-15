@@ -54,6 +54,24 @@ bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode)
 bool G_Ai_IsArmed(const GameClient *cl);
 
 /**
+ * @return The name of what the bot does about the ladder of its climb, for the probe.
+ */
+const char *G_Ai_LadderPhaseName(const GameClient *cl);
+
+/**
+ * @return True if the bot follows a climb and holds its ladder, or is within
+ * `AI_LADDER_GRAB_DISTANCE` of the climb's column, so that the climb owns its view and its moves,
+ * not a sound, an enemy or acrobatics.
+ */
+bool G_Ai_IsClimbing(const GameClient *cl);
+
+/**
+ * @return True if the bot committed to its climb: it holds the ladder of its climb, or flies to it
+ * on a ladder jump. A bot on the ground at the foot can still choose to fight instead.
+ */
+bool G_Ai_IsCommittedToClimb(const GameClient *cl);
+
+/**
  * @return True if the AI holds the weapon, with enough ammo to fire it.
  */
 bool G_Ai_CanFire(const GameClient *cl, const GameItem *weapon);

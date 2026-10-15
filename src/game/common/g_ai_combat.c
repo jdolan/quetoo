@@ -773,8 +773,10 @@ static void G_Ai_Weaponry_shoot(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
- * @brief Funcgoal that controls the AI's weaponry. A bot on a ladder faces the ladder, not its
- * enemy, so it keeps a grenade that it holds, rather than throw it into the ladder.
+ * @brief Funcgoal that controls the AI's weaponry. A bot committed to a climb
+ * (`G_Ai_IsCommittedToClimb`) does not fire, spam or change its weapon. It keeps a grenade that it
+ * holds for its usual hold time, so that the grenade does not go off in its hand, and then throws
+ * it where it faces.
  */
 uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 
@@ -787,6 +789,17 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
     return 1;
   }
 
+  if (G_Ai_IsCommittedToClimb(cl)) {
+    if (G_Ai_IsSpamming(cl)) {
+      G_Ai_EndSpam(cl);
+    }
+
+    const uint32_t holdMillis = cl->ai->aimHoldMillis ?: RandomRangeu(1500, 2500);
+    if (cl->grenadeHoldTime && gameLevel.time - cl->grenadeHoldTime < holdMillis) {
+      cmd->buttons |= BUTTON_ATTACK;
+    }
+    return 1;
+  }
 
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY || cl->ai->shootTarget) {
     if (G_Ai_IsSpamming(cl)) {
@@ -819,8 +832,7 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 
       // skilled bots fire with tighter aim cone (10° to 25°)
       const float fireCone = Mixf(25.f, 10.f, cl->ai->personality.skill);
-      const bool climbing = (cl->ps.pmState.flags & PMF_ON_LADDER) && cl->grenadeHoldTime;
-      if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone)) || climbing) {
+      if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone))) {
         const uint32_t grenadeHoldTime = cl->grenadeHoldTime;
         if (grenadeHoldTime) {
           const uint32_t holdMillis = cl->ai->aimHoldMillis ?: RandomRangeu(1500, 2500);
@@ -884,7 +896,7 @@ uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
   }
 
 
-  if (cl->ai->combatTarget.type != AI_GOAL_ENTITY) {
+  if (cl->ai->combatTarget.type != AI_GOAL_ENTITY || G_Ai_IsClimbing(cl)) {
     return 200;
   }
 

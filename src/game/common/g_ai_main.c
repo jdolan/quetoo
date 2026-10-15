@@ -1439,7 +1439,7 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 /**
  * @return The climb of the bot's ladder link, if the climb starts with a jump, or NULL.
  */
-static const NavClimb *G_Ai_JumpClimb(const GameClient *cl) {
+static const NavLadderClimb *G_Ai_JumpClimb(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
@@ -1447,7 +1447,7 @@ static const NavClimb *G_Ai_JumpClimb(const GameClient *cl) {
     return NULL;
   }
 
-  const NavClimb *climb = G_Ai_Node_GetClimb(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+  const NavLadderClimb *climb = G_Ai_Node_GetClimb(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
                                              VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
 
   return climb && climb->jump ? climb : NULL;
@@ -1469,7 +1469,7 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
   const GameAiLink *link = G_Ai_PathLink(cl);
 
   if (!link || ((link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) &&
-                link->travelType != NAV_TRAVEL_JUMP && !G_Ai_JumpClimb(cl))) {
+                 link->travelType != NAV_TRAVEL_JUMP && !G_Ai_JumpClimb(cl))) {
     return false;
   }
 
@@ -1514,7 +1514,7 @@ static bool G_Ai_IsJump(const GameAiNodeId a, const GameAiNodeId b, Vec3 *target
     return false;
   }
 
-  const NavClimb *climb = G_Ai_Node_GetClimb(a, b);
+  const NavLadderClimb *climb = G_Ai_Node_GetClimb(a, b);
 
   if (!climb || !climb->jump) {
     return false;
@@ -1624,7 +1624,7 @@ static bool G_Ai_IsJumpSpeed(const GameClient *cl) {
  */
 static bool G_Ai_IsLadderJump(const GameAiNodeId a, const GameAiNodeId b, Vec3 *target) {
 
-  const NavClimb *climb = G_Ai_Node_GetClimb(a, b);
+  const NavLadderClimb *climb = G_Ai_Node_GetClimb(a, b);
 
   if (!climb || !climb->jump) {
     return false;
@@ -1751,48 +1751,6 @@ static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
 }
 
 /**
- * @brief The distance ahead of a bot on a ladder link, on the link's line across, to which it steers.
- */
-#define AI_LADDER_LOOK_DISTANCE 16.f
-
-/**
- * @return The point to which a bot on a ladder link steers: `AI_LADDER_LOOK_DISTANCE` ahead of it on
- * the line of the climb that the navigation build tested, from the column beside the ladder to the
- * landing over its top, at the height of the landing. The nodes of the climb MAY stand beside that
- * column, as at a ladder narrower than a cell, and beside it a beam MAY block the climb. Below the
- * top, the point stays at the column, against the ladder, so that a bot that came past the column
- * does not steer on under the landing, as beside a ladder that stands free of a wall.
- */
-static Vec3 G_Ai_LadderDestination(const GameClient *cl) {
-
-  const GameAiGoal *goal = &cl->ai->moveTarget;
-
-  const GameAiNodeId from = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1);
-  const GameAiNodeId to = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex);
-  const NavClimb *climb = G_Ai_Node_GetClimb(from, to);
-
-  const Vec3 a = climb ? climb->column : G_Ai_Node_GetPosition(from);
-  const Vec3 b = climb ? climb->landing : goal->path.pathPosition;
-
-  const Vec2 ab = Vec2_Subtract(Vec3_XY(b), Vec3_XY(a));
-  const float length = Vec2_Length(ab);
-
-  if (length < 1.f) {
-    return b;
-  }
-
-  float along = Vec2_Dot(Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(a)), ab) / length;
-
-  if (cl->entity->s.origin.z < b.z - PM_STEP_HEIGHT) {
-    along = Minf(along, 0.f);
-  }
-
-  const Vec3 point = Vec3_Mix(a, b, Clampf((along + AI_LADDER_LOOK_DISTANCE) / length, 0.f, 1.f));
-
-  return MakeVec3(point.x, point.y, b.z);
-}
-
-/**
  * @brief The pitch in degrees at which a bot on a ladder looks down to descend, or up to climb.
  * `Pm_LadderMove` moves a player who holds forward up the ladder at a pitch of -15 or less, and
  * down it at 15 or more, so the view, the forward move and the jump or crouch that the bot holds
@@ -1801,20 +1759,286 @@ static Vec3 G_Ai_LadderDestination(const GameClient *cl) {
 #define AI_LADDER_PITCH 30.f
 
 /**
- * @brief The horizontal distance from the column of a climb within which a bot faces the ladder.
+ * @brief The distance beyond the column of a climb, into the ladder, to which a bot that moves into
+ * the ladder or climbs it steers.
  */
-#define AI_LADDER_GRAB_DISTANCE 48.f
+#define AI_LADDER_LOOK_DISTANCE 16.f
 
 /**
- * @return True if the bot follows a ladder link and is on the ladder, or within
- * `AI_LADDER_GRAB_DISTANCE` of the climb's column. `Pm_CheckLadder` grabs a ladder only in front of
- * the player's facing, so such a bot faces along the climb, not toward a sound or an enemy.
+ * @brief The distance across a ladder's face, from the line of its climb, within which a bot climbs
+ * or moves into the ladder, rather than first to the line.
  */
-static bool G_Ai_IsClimbing(const GameClient *cl) {
+#define AI_LADDER_ALIGN_DISTANCE 8.f
 
-  const GameAiLink *link = G_Ai_PathLink(cl);
+/**
+ * @brief The distance in front of the column of a climb at which a bot that is off the line of the
+ * climb moves across the face to the line, clear of the ladder.
+ */
+#define AI_LADDER_BACK_DISTANCE 24.f
 
-  if (!link || link->travelType != NAV_TRAVEL_LADDER) {
+/**
+ * @brief The horizontal distance from the column of a climb within which the climb owns the bot's
+ * view, so that a sound or an enemy does not turn it into a ladder that it must not grab yet.
+ */
+#define AI_LADDER_GRAB_DISTANCE 64.f
+
+/**
+ * @brief What a bot does about the ladder of its climb, in the ladder's frame.
+ */
+typedef enum {
+  /**
+   * @brief Not on a climb.
+   */
+  AI_LADDER_NONE,
+
+  /**
+   * @brief Off the line of the climb, near the face: move straight out, away from the ladder.
+   */
+  AI_LADDER_OUT,
+
+  /**
+   * @brief Off the line, clear of the face: move across the face to the point in front of the
+   * column.
+   */
+  AI_LADDER_ACROSS,
+
+  /**
+   * @brief On the line: move into the ladder at the column.
+   */
+  AI_LADDER_IN,
+
+  /**
+   * @brief In the air after a jump onto the ladder: fly to where the jump grabs it.
+   */
+  AI_LADDER_FLY,
+
+  /**
+   * @brief On the ladder, but behind the plane of the face, as on the side of a narrow ladder:
+   * move out along that side, past the face.
+   */
+  AI_LADDER_SIDE,
+
+  /**
+   * @brief On the ladder's face, off the line: strafe onto it before climbing on.
+   */
+  AI_LADDER_CENTER,
+
+  /**
+   * @brief On the line: climb.
+   */
+  AI_LADDER_CLIMB,
+
+  /**
+   * @brief Over the top: move onto the landing.
+   */
+  AI_LADDER_EXIT,
+} GameAiLadderPhase;
+
+/**
+ * @brief How a bot follows the ladder of its climb: where it steers, where it looks, and whether
+ * it holds jump.
+ */
+typedef struct {
+  /**
+   * @brief The phase of the climb.
+   */
+  GameAiLadderPhase phase;
+
+  /**
+   * @brief The point to which the bot steers.
+   */
+  Vec3 dest;
+
+  /**
+   * @brief The point at which the bot looks, from which only the yaw counts on a ladder.
+   */
+  Vec3 aim;
+
+  /**
+   * @brief The bot's pitch on the ladder.
+   */
+  float pitch;
+
+  /**
+   * @brief The bot's up move on the ladder.
+   */
+  int16_t up;
+} GameAiLadderMove;
+
+/**
+ * @return The climb that the bot follows: that of its ladder link, or, for a bot that holds a
+ * ladder on the link before one, as after it grabbed the ladder on its way to the foot, that of
+ * the next link. NULL if neither is a climb.
+ */
+static const NavLadderClimb *G_Ai_LadderClimb(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type != AI_GOAL_PATH || !goal->path.path) {
+    return NULL;
+  }
+
+  const Vector *path = goal->path.path;
+  const uint32_t index = goal->path.pathIndex;
+
+  if (index >= path->count) {
+    return NULL;
+  }
+
+  if (index > 0) {
+    const NavLadderClimb *climb = G_Ai_Node_GetClimb(VectorValue(path, GameAiNodeId, index - 1),
+                                                     VectorValue(path, GameAiNodeId, index));
+    if (climb) {
+      return climb;
+    }
+  }
+
+  if ((cl->ps.pmState.flags & PMF_ON_LADDER) && index + 1 < path->count) {
+    return G_Ai_Node_GetClimb(VectorValue(path, GameAiNodeId, index),
+                              VectorValue(path, GameAiNodeId, index + 1));
+  }
+
+  return NULL;
+}
+
+/**
+ * @return How the bot follows the ladder of its climb (`G_Ai_LadderClimb`), in the frame of the
+ * ladder's face: `d`, the distance in front of the line through the climb's column along the
+ * face's normal, `s`, the offset across the face from that line, and the height. A bot reaches the
+ * line clear of the ladder, so that `Pm_CheckLadder` grabs the face that the build tested at its
+ * middle, not its edge or its side: off the line and near the face, it moves straight out, then
+ * across the face, then in. On the ladder, it climbs only on the line: off it, it strafes onto it,
+ * which `Pm_LadderMove` moves across the ladder, and with its box across the plane of the face and
+ * beside it, as on the side of a narrow pole that it grabbed on its way to the foot, it strafes out
+ * along that side, past the face. The column stands just clear of the face, so a bot behind it
+ * crosses the plane.
+ * Over the top, it moves onto the landing. A bot in the air after a jump onto the ladder flies to
+ * where the jump grabs it. A bot that swims, as in lava below a ladder, goes straight in, because
+ * every moment there costs health.
+ */
+static GameAiLadderMove G_Ai_LadderMove(const GameClient *cl) {
+
+  GameAiLadderMove move = { .phase = AI_LADDER_NONE };
+
+  const NavLadderClimb *climb = G_Ai_LadderClimb(cl);
+  if (!climb) {
+    return move;
+  }
+
+  const NavLadder *ladder = G_Ai_Node_GetLadder(climb);
+  const GameEntity *ent = cl->entity;
+
+  const Vec2 n = Vec3_XY(ladder->normal);
+  const Vec2 l = Vec3_XY(ladder->lateral);
+  const Vec2 c = Vec3_XY(climb->column);
+  const Vec2 o = Vec3_XY(ent->s.origin);
+  const Vec2 p = Vec2_Subtract(o, c);
+
+  const float d = Vec2_Dot(p, n);
+  const float s = Vec2_Dot(p, l);
+  const float z = climb->landing.z;
+
+  const bool onLadder = (cl->ps.pmState.flags & PMF_ON_LADDER) != 0;
+
+  const Vec2 front = Vec2_Add(c, Vec2_Scale(n, AI_LADDER_BACK_DISTANCE));
+  const Vec2 into = Vec2_Subtract(c, Vec2_Scale(n, AI_LADDER_LOOK_DISTANCE));
+  const Vec2 facing = Vec2_Subtract(o, Vec2_Scale(n, AI_LADDER_GRAB_DISTANCE));
+
+  move.pitch = -AI_LADDER_PITCH;
+
+  if (ent->s.origin.z >= z - PM_STEP_HEIGHT) {
+    move.phase = AI_LADDER_EXIT;
+    move.dest = climb->landing;
+    move.aim = climb->landing;
+    move.up = onLadder ? PM_SPEED_JUMP : 0;
+  } else if (onLadder) {
+    if (d < -1.f && fabsf(s) > ladder->halfWidth) {
+      const float side = s < 0.f ? -1.f : 1.f;
+      const Vec2 out = Vec2_Add(o, Vec2_Scale(n, AI_LADDER_GRAB_DISTANCE));
+      const Vec2 at = Vec2_Subtract(o, Vec2_Scale(l, side * AI_LADDER_GRAB_DISTANCE));
+      move.phase = AI_LADDER_SIDE;
+      move.dest = MakeVec3(out.x, out.y, z);
+      move.aim = MakeVec3(at.x, at.y, z);
+      move.pitch = 0.f;
+    } else if (fabsf(s) > AI_LADDER_ALIGN_DISTANCE) {
+      const Vec2 onto = Vec2_Subtract(o, Vec2_Scale(l, s));
+      move.phase = AI_LADDER_CENTER;
+      move.dest = MakeVec3(onto.x, onto.y, z);
+      move.aim = MakeVec3(facing.x, facing.y, z);
+      move.pitch = 0.f;
+    } else {
+      move.phase = AI_LADDER_CLIMB;
+      move.dest = MakeVec3(into.x, into.y, z);
+      move.aim = MakeVec3(facing.x, facing.y, z);
+      move.up = PM_SPEED_JUMP;
+    }
+  } else if (climb->jump && !ent->ground.ent) {
+    move.phase = AI_LADDER_FLY;
+    move.dest = MakeVec3(c.x, c.y, z);
+    move.aim = MakeVec3(into.x, into.y, z);
+  } else if (fabsf(s) > AI_LADDER_ALIGN_DISTANCE && ent->waterLevel < WATER_WAIST) {
+    if (d < AI_LADDER_BACK_DISTANCE) {
+      const Vec2 out = Vec2_Add(front, Vec2_Scale(l, s));
+      move.phase = AI_LADDER_OUT;
+      move.dest = MakeVec3(out.x, out.y, z);
+    } else {
+      move.phase = AI_LADDER_ACROSS;
+      move.dest = MakeVec3(front.x, front.y, z);
+    }
+    move.aim = move.dest;
+  } else {
+    move.phase = AI_LADDER_IN;
+    move.dest = MakeVec3(into.x, into.y, z);
+    move.aim = MakeVec3(facing.x, facing.y, z);
+  }
+
+  return move;
+}
+
+/**
+ * @see g_ai_main.h
+ */
+const char *G_Ai_LadderPhaseName(const GameClient *cl) {
+
+  static const char *names[] = {
+    [AI_LADDER_NONE] = "none",
+    [AI_LADDER_OUT] = "out",
+    [AI_LADDER_ACROSS] = "across",
+    [AI_LADDER_IN] = "in",
+    [AI_LADDER_FLY] = "fly",
+    [AI_LADDER_SIDE] = "side",
+    [AI_LADDER_CENTER] = "center",
+    [AI_LADDER_CLIMB] = "climb",
+    [AI_LADDER_EXIT] = "exit",
+  };
+
+  return names[G_Ai_LadderMove(cl).phase];
+}
+
+/**
+ * @see g_ai_main.h
+ */
+bool G_Ai_IsClimbing(const GameClient *cl) {
+
+  const NavLadderClimb *climb = G_Ai_LadderClimb(cl);
+
+  if (!climb) {
+    return false;
+  }
+
+  const float distance = Vec2_Distance(Vec3_XY(climb->column), Vec3_XY(cl->entity->s.origin));
+
+  return G_Ai_IsCommittedToClimb(cl) || distance <= AI_LADDER_GRAB_DISTANCE;
+}
+
+/**
+ * @see g_ai_main.h
+ */
+bool G_Ai_IsCommittedToClimb(const GameClient *cl) {
+
+  const NavLadderClimb *climb = G_Ai_LadderClimb(cl);
+
+  if (!climb || cl->ai->ladderLeaveTime > gameLevel.time) {
     return false;
   }
 
@@ -1822,11 +2046,63 @@ static bool G_Ai_IsClimbing(const GameClient *cl) {
     return true;
   }
 
-  const GameAiGoal *goal = &cl->ai->moveTarget;
-  const NavClimb *climb = G_Ai_Node_GetClimb(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
-                                             VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
+  return climb->jump && !cl->entity->ground.ent && cl->entity->waterLevel < WATER_WAIST;
+}
 
-  return climb && Vec2_Distance(Vec3_XY(climb->column), Vec3_XY(cl->entity->s.origin)) <= AI_LADDER_GRAB_DISTANCE;
+/**
+ * @brief The time in milliseconds for which a bot whose climb was blocked moves away from the
+ * ladder, so that it lets go and falls clear of it.
+ */
+#define AI_LADDER_LEAVE_MILLIS 500
+
+/**
+ * @brief Lets go of the ladder of a climb that is blocked, as by another player above the bot.
+ * The bot moves away from the face, which ends `Pm_CheckLadder`'s grab, and it plans again on
+ * the ground, so that it does not hang on the ladder with no path.
+ */
+static void G_Ai_JumpOffLadder(GameClient *cl) {
+
+  const NavLadder *ladder = G_Ai_Node_GetLadder(G_Ai_LadderClimb(cl));
+
+  cl->ai->ladderLeaveTime = gameLevel.time + AI_LADDER_LEAVE_MILLIS;
+  cl->ai->ladderLeaveDir = Vec3_Normalize(MakeVec3(ladder->normal.x, ladder->normal.y, 0.f));
+}
+
+/**
+ * @return True if the bot leaves a blocked ladder (`G_Ai_JumpOffLadder`), and steers it away
+ * from the face at run speed, with no up move, which would climb.
+ */
+static bool G_Ai_LeaveLadder(GameClient *cl, PMoveCmd *cmd) {
+
+  if (cl->ai->ladderLeaveTime <= gameLevel.time) {
+    return false;
+  }
+
+  const float yaw = G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(cl->ai->ladderLeaveDir).y;
+
+  Vec3 dir;
+  Vec3_Vectors(MakeVec3(0.f, yaw, 0.f), &dir, NULL, NULL);
+
+  cmd->forward = dir.x * PM_SPEED_RUN;
+  cmd->right = dir.y * PM_SPEED_RUN;
+  cmd->up = 0;
+
+  return true;
+}
+
+/**
+ * @return True if the bot is on the ground near the ladder of its climb, and moves to its line or
+ * into it. It walks, so that it stops on the line, rather than run across it.
+ */
+static bool G_Ai_IsLadderApproach(const GameClient *cl) {
+
+  if (!cl->entity->ground.ent || !G_Ai_IsClimbing(cl)) {
+    return false;
+  }
+
+  const GameAiLadderPhase phase = G_Ai_LadderMove(cl).phase;
+
+  return phase == AI_LADDER_OUT || phase == AI_LADDER_ACROSS || phase == AI_LADDER_IN;
 }
 
 /**
@@ -1843,7 +2119,7 @@ static Vec3 G_Ai_JumpDestination(const GameClient *cl) {
   const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
   const Vec3 b = G_Ai_JumpTarget(cl);
 
-  const NavClimb *climb = G_Ai_JumpClimb(cl);
+  const NavLadderClimb *climb = G_Ai_JumpClimb(cl);
   if (climb && !G_Ai_IsHeading(cl, a, b) &&
       Vec2_Distance(Vec3_XY(climb->runUp), Vec3_XY(cl->entity->s.origin)) > AI_RUN_UP_REACH) {
     return climb->runUp;
@@ -2614,6 +2890,10 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     return 0;
   }
 
+  if (G_Ai_LeaveLadder(cl, cmd)) {
+    return 0;
+  }
+
   if (cl->ai->moveTarget.type == AI_GOAL_NONE && G_Ai_IsWaiting(cl)) {
     cmd->forward = 0;
     cmd->right = 0;
@@ -2690,8 +2970,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           dest = G_Ai_JumpDestination(cl);
         } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType <= NAV_TRAVEL_CROUCH && ent->ground.ent) {
           dest = G_Ai_WalkDestination(cl);
-        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_LADDER) {
-          dest = G_Ai_LadderDestination(cl);
+        } else if (G_Ai_LadderClimb(cl)) {
+          dest = G_Ai_LadderMove(cl).dest;
         } else {
           dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
           toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);
@@ -2704,6 +2984,12 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
     if (!G_Ai_GoalDistress(cl, &cl->ai->moveTarget, climbing ? cl->ai->moveTarget.path.pathPosition : dest)) {
       G_Ai_Probe_PathEnd(cl, "distress");
+      if (G_Ai_IsCommittedToClimb(cl) && (cl->ps.pmState.flags & PMF_ON_LADDER)) {
+        G_Ai_JumpOffLadder(cl);
+        G_Ai_ClearGoal(&cl->ai->moveTarget);
+        G_Ai_LeaveLadder(cl, cmd);
+        return 0;
+      }
       G_Ai_ClearGoal(&cl->ai->moveTarget);
       continue;
     }
@@ -2768,6 +3054,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
                && (cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) <= -PM_STEP_HEIGHT) {
       dir = Vec3_Scale(dir, Clampf(len, 10.f, PM_SPEED_RUN));
       G_Ai_Debug("Trying to land on target\n");
+    } else if (!swimming && G_Ai_IsLadderApproach(cl)) {
+      dir = Vec3_Scale(dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
     } else if (!swimming && G_Ai_ShouldSlowForJump(cl)) {
       dir = Vec3_Scale(dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
       turnToJump = true;
@@ -2796,10 +3084,14 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     // if we're on a ladder and the node is a bbox below us, crouch to get down,
     // otherwise hold jump
     } else if (cl->ps.pmState.flags & PMF_ON_LADDER) {
-      if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z) {
+      const GameAiLadderMove ladder = G_Ai_LadderMove(cl);
+
+      if (ladder.phase != AI_LADDER_NONE) {
+        cmd->up = ladder.up;
+      } else if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z) {
         cmd->up = -PM_SPEED_DUCKED;
       } else {
-        cmd->up = PM_SPEED_JUMP;
+        cmd->up = 0;
       }
     } else if (G_Ai_ShouldBarrierJump(cl)) {
       cmd->up = PM_SPEED_JUMP;
@@ -2984,7 +3276,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         // if we're navving, node is above us, and we're on ground, jump; we're probably trying
         // to trick-jump or something
         if (cl->ai->moveTarget.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent &&
-            !G_Ai_IsRideLink(G_Ai_PathLink(cl)) && !G_Ai_JumpClimb(cl)) {
+            !G_Ai_IsRideLink(G_Ai_PathLink(cl)) && !G_Ai_JumpClimb(cl) && !G_Ai_IsClimbing(cl)) {
           if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
 
             cl->ai->moveTarget.path.trickJump = TRICK_JUMP_START;
@@ -3006,6 +3298,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       // jump off of it
       if (G_Ai_IsRidingMover(ent)) {
         cl->ai->moveTarget.distress += 0.02f;
+      } else if (G_Ai_IsCommittedToClimb(cl)) {
+        cl->ai->moveTarget.distress += 0.2f;
       } else {
         cl->ai->moveTarget.distress += 0.2f;
 
@@ -3056,7 +3350,9 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
   const bool climbing = G_Ai_IsClimbing(cl);
 
-  if (combatTarget->type != AI_GOAL_ENTITY || climbing) {
+  if (cl->ai->ladderLeaveTime > gameLevel.time) {
+    idealAngles = MakeVec3(0.f, Vec3_Euler(cl->ai->ladderLeaveDir).y, 0.f);
+  } else if (combatTarget->type != AI_GOAL_ENTITY || climbing) {
     if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
       idealAngles = MakeVec3(0.0, cl->ai->moveTarget.wander.angle, 0.0);
     } else {
@@ -3068,8 +3364,8 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
         // if we're trick-jumping, aim towards where we intend to land
         if (cl->ai->moveTarget.path.trickJump) {
           aimTarget = cl->ai->moveTarget.path.trickPosition;
-        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_LADDER) {
-          aimTarget = G_Ai_LadderDestination(cl);
+        } else if (G_Ai_LadderClimb(cl)) {
+          aimTarget = G_Ai_LadderMove(cl).aim;
         // if we're above ground & on-land, and our next path is bidirectional, assume it's normal
         // pathing; aim towards our *next* target to look a bit more natural.
         } else if (((ent->waterLevel < WATER_WAIST
@@ -3118,7 +3414,11 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       // (you get less forward momentum on a jump if you are looking up/down)
       // so for now this is hardcoded to ladders
       if (cl->ps.pmState.flags & PMF_ON_LADDER) {
-        if ((cl->ai->moveTarget.path.pathPosition.z - cl->entity->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z) {
+        const GameAiLadderMove ladder = G_Ai_LadderMove(cl);
+
+        if (ladder.phase != AI_LADDER_NONE) {
+          idealAngles.x = ladder.pitch;
+        } else if ((cl->ai->moveTarget.path.pathPosition.z - cl->entity->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z) {
           idealAngles.x = AI_LADDER_PITCH;
         } else {
           idealAngles.x = -AI_LADDER_PITCH;

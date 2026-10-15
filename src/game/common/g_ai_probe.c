@@ -89,6 +89,7 @@ typedef struct {
   const char *state;
   bool knocked;
   bool ladder;
+  const char *phase;
 } GameAiProbeSample;
 
 /**
@@ -234,10 +235,10 @@ static void G_Ai_Probe_History(const GameClient *cl, const char *reason) {
   for (uint32_t i = 0; i < count; i++) {
     const GameAiProbeSample *s = &c->samples[(c->numSamples - count + i) % AI_PROBE_SAMPLES];
 
-    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d state=%s knocked=%d ladder=%d",
+    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d state=%s knocked=%d ladder=%d phase=%s",
                      reason, i, (int32_t) s->origin.x, (int32_t) s->origin.y, (int32_t) s->origin.z,
                      (int32_t) s->velocity.x, (int32_t) s->velocity.y, (int32_t) s->velocity.z,
-                     s->from, s->to, s->travelType, s->strafeJumping, s->ground, s->state, s->knocked, s->ladder);
+                     s->from, s->to, s->travelType, s->strafeJumping, s->ground, s->state, s->knocked, s->ladder, s->phase);
   }
 }
 
@@ -430,7 +431,7 @@ void G_Ai_Probe_Graph(void) {
 
     for (size_t j = 0; links && j < links->count; j++) {
       const GameAiLink *link = VectorElement(links, GameAiLink, j);
-      const NavClimb *climb = link->travelType == NAV_TRAVEL_LADDER ? G_Ai_Node_GetClimb(i, link->id) : NULL;
+      const NavLadderClimb *climb = link->travelType == NAV_TRAVEL_LADDER ? G_Ai_Node_GetClimb(i, link->id) : NULL;
 
       if (climb) {
         G_Ai_Probe_Print(-1, "CLIMB", "bottom=%d top=%d column=%d,%d,%d landing=%d,%d,%d time=%d",
@@ -482,10 +483,10 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
   if (ladder != c->ladder) {
     c->ladder = ladder;
-    G_Ai_Probe_Print(n, "LADDER", "on=%d pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d",
+    G_Ai_Probe_Print(n, "LADDER", "on=%d pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d phase=%s",
                      ladder, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                     from, to, travelType);
+                     from, to, travelType, G_Ai_LadderPhaseName(cl));
   }
 
   if (gameLevel.time - c->sampleTime >= AI_PROBE_SAMPLE_MILLIS) {
@@ -500,7 +501,8 @@ void G_Ai_Probe_Think(const GameClient *cl) {
       .ground = ground,
       .state = G_Ai_StateName(cl),
       .knocked = (cl->ps.pmState.flags & PMF_TIME_PUSHED) && !G_Ai_Probe_TouchesPush(ent),
-      .ladder = (cl->ps.pmState.flags & PMF_ON_LADDER) != 0
+      .ladder = (cl->ps.pmState.flags & PMF_ON_LADDER) != 0,
+      .phase = G_Ai_LadderPhaseName(cl)
     };
   }
 

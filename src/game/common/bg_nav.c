@@ -325,6 +325,11 @@ static struct {
    * since `Nav_FindClimbs` began the ladder.
    */
   bool ladderHidden;
+
+  /**
+   * @brief The index in `NavGraph::ladders` of the face that `Nav_FindClimbs` climbs.
+   */
+  int32_t ladder;
 } module;
 
 /**
@@ -1727,17 +1732,18 @@ static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t tim
   NavGraph *graph = module.graph;
 
   for (int32_t i = 0; i < graph->numClimbs; i++) {
-    NavClimb *climb = &graph->climbs[i];
+    NavLadderClimb *climb = &graph->climbs[i];
 
     if (climb->bottom == a && climb->top == b) {
       if (climb->jump && !jump) {
-        *climb = (NavClimb) {
+        *climb = (NavLadderClimb) {
           .bottom = a,
           .top = b,
           .time = time,
           .column = column,
           .landing = landing,
-          .runUp = runUp
+          .runUp = runUp,
+          .ladder = module.ladder
         };
       }
       return;
@@ -1750,20 +1756,21 @@ static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t tim
   }
 
   if (!graph->climbs) {
-    graph->climbs = malloc(sizeof(NavClimb) * NAV_MAX_CLIMBS);
+    graph->climbs = malloc(sizeof(NavLadderClimb) * NAV_MAX_CLIMBS);
     if (!graph->climbs) {
       module.params->Error(__func__, "Failed to allocate %d ladder climbs\n", NAV_MAX_CLIMBS);
     }
   }
 
-  graph->climbs[graph->numClimbs++] = (NavClimb) {
+  graph->climbs[graph->numClimbs++] = (NavLadderClimb) {
     .bottom = a,
     .top = b,
     .time = time,
     .column = column,
     .landing = landing,
     .jump = jump,
-    .runUp = runUp
+    .runUp = runUp,
+    .ladder = module.ladder
   };
 }
 
@@ -1922,6 +1929,61 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
 }
 
 /**
+ * @brief Adds the face of `ladder` with the outward axial `normal` to the graph's ladders, as the
+ * face whose climbs `Nav_AddClimb` adds next.
+ * @param axis The axis of `normal`.
+ * @param face The position of the face along `axis`.
+ */
+static void Nav_AddLadder(const Box3 ladder, const Vec3 normal, const int32_t axis,
+                          const float face) {
+
+  NavGraph *graph = module.graph;
+
+  graph->ladders = realloc(graph->ladders, sizeof(NavLadder) * (graph->numLadders + 1));
+  if (!graph->ladders) {
+    module.params->Error(__func__, "Failed to allocate %d ladders\n", graph->numLadders + 1);
+  }
+
+  const int32_t other = 1 - axis;
+
+  Vec3 lateral = Vec3_Zero();
+  lateral.xyz[other] = 1.f;
+
+  Vec3 center = Vec3_Zero();
+  center.xyz[axis] = face + normal.xyz[axis] * (PM_BOUNDS.maxs.x + 1.f);
+  center.xyz[other] = (ladder.mins.xyz[other] + ladder.maxs.xyz[other]) * .5f;
+  center.z = ladder.mins.z - PM_BOUNDS.mins.z;
+
+  module.ladder = graph->numLadders;
+
+  graph->ladders[graph->numLadders++] = (NavLadder) {
+    .bounds = ladder,
+    .normal = normal,
+    .lateral = lateral,
+    .center = center,
+    .halfWidth = (ladder.maxs.xyz[other] - ladder.mins.xyz[other]) * .5f,
+    .top = ladder.maxs.z - PM_BOUNDS.mins.z
+  };
+}
+
+/**
+ * @brief Removes the last of the graph's ladders if no climb names it.
+ */
+static void Nav_TrimLadder(void) {
+
+  NavGraph *graph = module.graph;
+  const int32_t last = graph->numLadders - 1;
+
+  for (int32_t i = 0; i < graph->numClimbs; i++) {
+    if (graph->climbs[i].ladder == last) {
+      return;
+    }
+  }
+
+  graph->numLadders--;
+}
+
+/**
  * @return True if the brush has a side on the plane with the axial `normal` at `dist`.
  */
 static bool Nav_HasSide(const CollisionBrush *brush, const Vec3 normal, const float dist) {
@@ -2036,6 +2098,8 @@ static void Nav_FindClimbs(void) {
           continue;
         }
 
+        Nav_AddLadder(ladder, normal, axis, face);
+
         for (int32_t j = 0; j < columns; j++) {
           const int32_t step = (j + 1) / 2 * (j % 2 ? 1 : -1);
 
@@ -2045,6 +2109,8 @@ static void Nav_FindClimbs(void) {
 
           climbs |= Nav_AddClimb(ladder, column, normal);
         }
+
+        Nav_TrimLadder();
       }
     }
 
@@ -2144,7 +2210,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
   }
 
   for (int32_t i = 0; i < module.graph->numClimbs; i++) {
-    const NavClimb *climb = &module.graph->climbs[i];
+    const NavLadderClimb *climb = &module.graph->climbs[i];
 
     if (climb->bottom == index) {
       Nav_AddLink(links, &numLinks, climb->top, NAV_TRAVEL_LADDER, climb->time, 0);
@@ -2679,6 +2745,7 @@ void Nav_Free(NavGraph *graph) {
   free(graph->cellNodes);
   free(graph->pushes);
   free(graph->climbs);
+  free(graph->ladders);
 
   memset(graph, 0, sizeof(*graph));
 }
