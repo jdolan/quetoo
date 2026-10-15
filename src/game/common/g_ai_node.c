@@ -2290,7 +2290,7 @@ static GameAiNodePriority *G_Ai_Node_AllocPathEntry(void) {
  * cannot dodge, at the lowest point of the map, under the fire and the splash of anyone above, so
  * a bot crosses water only where it saves much time, or where its goal is.
  */
-#define AI_WATER_EXPOSURE 2.f
+#define AI_WATER_EXPOSURE 1.5f
 
 /**
  * @brief The cost added to a link into a node at the edge of the void: half a cell, so that a path

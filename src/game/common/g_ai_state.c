@@ -1005,10 +1005,37 @@ static bool G_Ai_IsInWater(const GameEntity *ent) {
 }
 
 /**
+ * @brief The distance within which a bot in water goes on to the item in the water that it
+ * collects, rather than retreat from an enemy out of the water.
+ */
+#define AI_WATER_ITEM_DISTANCE 256.f
+
+/**
+ * @return True if the item that the bot collects is there, in water, within
+ * `AI_WATER_ITEM_DISTANCE`, as the quad damage in its pool on tokays. A player takes it first, and
+ * then leaves the water.
+ */
+static bool G_Ai_IsGoalInWater(const GameClient *cl) {
+
+  const GameEntity *goal = G_Ai_GoalEntity(cl);
+
+  if (!goal || goal->solid != SOLID_TRIGGER) {
+    return false;
+  }
+
+  if (Vec3_Distance(goal->s.origin, cl->entity->s.origin) > AI_WATER_ITEM_DISTANCE) {
+    return false;
+  }
+
+  return (gi.PointContents(goal->s.origin) & CONTENTS_WATER) != 0;
+}
+
+/**
  * @return True if the bot, which has a combat target, should retreat from it: if it is unarmed, for
  * health, from an enemy that outguns it, or if it is in water and the enemy is not, as a player in
  * water cannot dodge, and is below an enemy that fires down at them. A bot that retreats from the
- * water does so until it is out of it, so that it does not fight again at its edge. A bot that
+ * water does so until it is out of it, so that it does not fight again at its edge. A bot near the
+ * item in the water that it collects takes it first (`G_Ai_IsGoalInWater`). A bot that
  * retreats fights again only once its health exceeds its retreat health by `AI_RECOVER_SCALE`, so
  * that it does not switch at the threshold.
  * @remarks An unarmed bot only defends itself with the Blaster: it retreats to the weapons, armor
@@ -1025,7 +1052,7 @@ static bool G_Ai_WantsRetreat(const GameClient *cl) {
   const bool wet = retreating ? ent->waterLevel > WATER_NONE && (ent->waterType & CONTENTS_WATER)
                               : G_Ai_IsInWater(ent);
 
-  if (wet && !G_Ai_IsInWater(cl->ai->combatTarget.entity.ent)) {
+  if (wet && !G_Ai_IsInWater(cl->ai->combatTarget.entity.ent) && !G_Ai_IsGoalInWater(cl)) {
     return true;
   }
 
@@ -1286,8 +1313,9 @@ static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
 
 /**
  * @return True if the bot, in water to its waist or deeper, takes the path to the nearest node out
- * of liquid, as the first step of its retreat. The bot fires on the way, because its aim stays on
- * its combat target.
+ * of liquid, as a retreat with no item to go to. A retreat to an item leaves the water anyway if
+ * the item is on dry land, because a path into water costs more. The bot fires on the way, because
+ * its aim stays on its combat target.
  */
 static bool G_Ai_LeaveWater(GameClient *cl, const float *costs) {
 
@@ -1360,7 +1388,8 @@ static void G_Ai_State_Fight(GameClient *cl) {
  * @brief Goes to the health, armor or weapon of most utility that does not lie toward the enemy,
  * while the aim stays on the enemy so that the bot fires back. An unarmed bot with none of those to
  * go to takes any item of value, because its strafe around an enemy far away moves toward it. With
- * none to go to, the bot strafes around the enemy and fights.
+ * none to go to, a bot in water leaves it (`G_Ai_LeaveWater`), and a bot out of water strafes
+ * around the enemy and fights.
  */
 static void G_Ai_State_Retreat(GameClient *cl) {
 
@@ -1372,10 +1401,6 @@ static void G_Ai_State_Retreat(GameClient *cl) {
   }
 
   const float *costs = G_Ai_TravelCosts(cl);
-
-  if (G_Ai_LeaveWater(cl, costs)) {
-    return;
-  }
 
   if (costs) {
     const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, true, NULL);
@@ -1391,6 +1416,10 @@ static void G_Ai_State_Retreat(GameClient *cl) {
         return;
       }
     }
+  }
+
+  if (G_Ai_LeaveWater(cl, costs)) {
+    return;
   }
 
   if (ai->moveTarget.type != AI_GOAL_ENTITY || !G_Ai_GoalHasEntity(&ai->moveTarget, enemy)) {
