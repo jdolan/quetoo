@@ -791,7 +791,7 @@ static void MovePatchesToWorld(MapEntity *ent) {
 }
 
 /**
- * @brief TrenchBroom's layers and groups, key-values only, read by `LoadLayers` before the map is
+ * @brief TrenchBroom's layers and groups, key-values only, read by `ParseLayers` before the map is
  * parsed. The first is worldspawn, which holds the flags of TrenchBroom's default layer.
  */
 static MapEntity layers[MAX_BSP_ENTITIES];
@@ -867,7 +867,7 @@ static bool HasOmitFlag(const MapEntity *entity) {
  * @brief Reads worldspawn and TrenchBroom's layers and groups from the map file, skipping all
  * other entities and every brush, so that each entity can be resolved to its layer as it is parsed.
  */
-static void LoadLayers(const char *buffer) {
+static void ParseLayers(const char *buffer) {
   char token[MAX_TOKEN_CHARS];
 
   memset(layers, 0, sizeof(layers));
@@ -920,7 +920,7 @@ static void LoadLayers(const char *buffer) {
  * An entity that names no layer or group, or one that is not found, is in the default layer, which
  * is worldspawn.
  */
-static const MapEntity *ContainingLayer(const MapEntity *entity) {
+static const MapEntity *LayerForEntity(const MapEntity *entity) {
 
   const char *id = ValueForKey(entity, "_tb_group", ValueForKey(entity, "_tb_layer", NULL));
   if (id) {
@@ -950,7 +950,7 @@ static bool IsOmitted(const MapEntity *entity) {
 
   int32_t depth = 0;
 
-  for (const MapEntity *e = entity; e; e = ContainingLayer(e)) {
+  for (const MapEntity *e = entity; e; e = LayerForEntity(e)) {
     if (depth++ > numLayers) {
       Com_Error(ERROR_FATAL, "TrenchBroom group %s contains itself\n", ValueForKey(e, "_tb_id", ""));
     }
@@ -1111,7 +1111,7 @@ MapFormat LoadMapFile(const char *filename) {
     Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
   }
 
-  LoadLayers(buffer);
+  ParseLayers(buffer);
 
   Parser parser = Parse_Init(buffer, PARSER_DEFAULT);
 
