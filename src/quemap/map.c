@@ -910,7 +910,12 @@ static void ParseLayers(const char *buffer) {
     }
 
     if (HasOmitFlag(layer)) {
-      Com_Print("Omitting TrenchBroom layer \"%s\"\n", ValueForKey(layer, "_tb_name", "Default Layer"));
+      if (number == 0) {
+        Com_Warn("The default layer is omitted from export: worldspawn's brushes and every entity in the "
+                 "default layer are dropped, and only the other layers are compiled\n");
+      } else {
+        Com_Warn("Omitting TrenchBroom layer \"%s\"\n", ValueForKey(layer, "_tb_name", ""));
+      }
     }
   }
 }
