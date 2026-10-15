@@ -1775,17 +1775,45 @@ static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t tim
 }
 
 /**
+ * @brief Finds the way across the top of a ladder, from `top`, where the player's box clears the
+ * ladder, to `over`. A lip at the edge of the floor on top of the ladder, such as trim, blocks
+ * the box at `top`, but a player who holds forward there steps over it, so the way can start up
+ * to `PM_STEP_HEIGHT` higher.
+ * @return True if a way across is clear, with `out` set to its end.
+ */
+static bool Nav_ClimbOver(const Vec3 top, const Vec3 over, const Box3 bounds, Vec3 *out) {
+
+  for (float lift = 0.f; lift <= PM_STEP_HEIGHT; lift += NAV_FINE_STEP) {
+    const Vec3 from = Vec3_Add(top, MakeVec3(0.f, 0.f, lift));
+
+    const CollisionTrace up = Nav_Trace(top, from, bounds);
+    if (up.startSolid || up.fraction < 1.f) {
+      return false;
+    }
+
+    *out = Vec3_Add(over, MakeVec3(0.f, 0.f, lift));
+
+    const CollisionTrace cross = Nav_Trace(from, *out, bounds);
+    if (!cross.startSolid && cross.fraction == 1.f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @brief Adds the climbs of the column beside a ladder's face at `column`, whose outward normal is
  * `normal`, which go straight up beside the face until the player's box clears the top of the
- * ladder, then across its top, onto the floor on top of the ladder, or `NAV_LADDER_EXIT` beyond its
- * far side. A climb starts at the floor under the ladder's bottom, or if it has none within
- * `NAV_LADDER_FLOOR`, at the top of the liquid under it, where a swimmer touches the ladder. A
- * climb also starts at each node in front of the face, within `NAV_MAX_JUMP_CELLS` cells and
- * below the top, from which a running jump grabs the ladder (`Nav_LadderJump`), as over a pit, lava
- * or slime. A column with no room for the player's box, as against the wall that the ladder stands
- * on, a column where a player is not on the ladder all the way up (`Nav_OnLadder`), a column whose
- * top is blocked, and a top with no floor or no node across it, as a ladder that only dresses a
- * wall has, add no climb.
+ * ladder, then across its top (`Nav_ClimbOver`), onto the floor on top of the ladder, or
+ * `NAV_LADDER_EXIT` beyond its far side. A climb starts at the floor under the ladder's bottom,
+ * or if it has none within `NAV_LADDER_FLOOR`, at the top of the liquid under it, where a swimmer
+ * touches the ladder. A climb also starts at each node in front of the face, within
+ * `NAV_MAX_JUMP_CELLS` cells and below the top, from which a running jump grabs the ladder
+ * (`Nav_LadderJump`), as over a pit, lava or slime. A column with no room for the player's box,
+ * as against the wall that the ladder stands on, a column where a player is not on the ladder all
+ * the way up (`Nav_OnLadder`), a column whose top is blocked, and a top with no floor or no node
+ * across it, as a ladder that only dresses a wall has, add no climb.
  * @return True if the column climbs the ladder, as a climb added now or before.
  */
 static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal) {
@@ -1840,10 +1868,8 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
 
   for (size_t i = 0; i < lengthof(distances) && b == -1; i++) {
     across = distances[i];
-    const Vec3 over = Vec3_Fmaf(top, -across, normal);
-
-    const CollisionTrace cross = Nav_Trace(top, over, bounds);
-    if (cross.startSolid || cross.fraction < 1.f) {
+    Vec3 over;
+    if (!Nav_ClimbOver(top, Vec3_Fmaf(top, -across, normal), bounds, &over)) {
       break;
     }
 
