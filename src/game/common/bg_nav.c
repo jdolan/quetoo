@@ -1942,11 +1942,13 @@ static bool Nav_HasSide(const CollisionBrush *brush, const Vec3 normal, const fl
  * `CONTENTS_LADDER` that touch, as rails and rungs that are each a brush are. For each ladder, each
  * vertical face of its bounds on which one of its brushes has a side is climbed, at its center first
  * and then at columns `NAV_LADDER_SPACING` apart on each side of it, within the face, because a
- * player who faces any side climbs (`Pm_CheckLadder`). The first column that climbs between two
- * nodes is the one that the climb keeps, so a climb keeps to the middle of its ladder. A ladder of
- * an inline model, which moves or is not where the world is traced, and a sloped side, beside which
- * a column would stand too far from the ladder, add no climb. A ladder that no column climbs because
- * its face is behind or level with another brush's is reported, for its mapper.
+ * player who faces any side climbs (`Pm_CheckLadder`). Only the widest faces are climbed, as the
+ * front and the back of a ladder, and not its thin sides, which a bot could hold only by an edge
+ * of its box. The first column that climbs between two nodes is the one that the climb keeps, so
+ * a climb keeps to the middle of its ladder. A ladder of an inline model, which moves or is not
+ * where the world is traced, and a sloped side, beside which a column would stand too far from the
+ * ladder, add no climb. A ladder that no column climbs because its face is behind or level with
+ * another brush's is reported, for its mapper.
  */
 static void Nav_FindClimbs(void) {
 
@@ -2006,9 +2008,16 @@ static void Nav_FindClimbs(void) {
     bool climbs = false;
     module.ladderHidden = false;
 
+    const float widest = Maxf(ladder.maxs.x - ladder.mins.x, ladder.maxs.y - ladder.mins.y);
+
     for (int32_t axis = 0; axis < 2; axis++) {
       const int32_t other = 1 - axis;
       const float width = ladder.maxs.xyz[other] - ladder.mins.xyz[other];
+
+      if (width < widest) {
+        continue;
+      }
+
       const int32_t columns = 1 + 2 * (int32_t) floorf(width * .5f / NAV_LADDER_SPACING);
       const float center = (ladder.mins.xyz[other] + ladder.maxs.xyz[other]) * .5f;
 
