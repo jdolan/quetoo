@@ -616,8 +616,9 @@ typedef struct GameAi {
   uint32_t lookaheadFrame;
 
   /**
-   * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead.
-   * Valid only when `lookaheadFrame == gameLevel.frameNum`.
+   * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead, other than to
+   * the ladder of its climb, which it grabs, and which is not an edge. Valid only when
+   * `lookaheadFrame == gameLevel.frameNum`.
    */
   bool lookaheadNoGround;
 

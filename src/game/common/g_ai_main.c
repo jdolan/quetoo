@@ -3148,10 +3148,12 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     ahead.cmd.msec = cl->ai->moveTarget.type == AI_GOAL_PATH ? 100 : 250;
     Pm_Move(&ahead);
     cl->ai->lookaheadFrame = gameLevel.frameNum;
-    cl->ai->lookaheadNoGround = !ahead.ground.ent;
+    const bool grabsAhead = (ahead.s.flags & PMF_ON_LADDER) && G_Ai_IsClimbing(cl);
+    cl->ai->lookaheadNoGround = !ahead.ground.ent && !grabsAhead;
   }
 
-  const bool atEdge = ent->ground.ent && (cl->ai->lookaheadNoGround || !pm.ground.ent);
+  const bool grabs = (pm.s.flags & PMF_ON_LADDER) && G_Ai_IsClimbing(cl);
+  const bool atEdge = ent->ground.ent && (cl->ai->lookaheadNoGround || (!pm.ground.ent && !grabs));
 
   // predicted ground is gone
   if (atEdge) {
@@ -3266,6 +3268,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
     if (cl->ps.pmState.flags & PMF_ON_LADDER) {
       smolDist = PM_SPEED_LADDER * .5f * MILLIS_TO_SECONDS(cmd->msec);
+    } else if (G_Ai_IsLadderApproach(cl)) {
+      smolDist = PM_SPEED_RUN * AI_LEDGE_SPEED * .5f * MILLIS_TO_SECONDS(cmd->msec);
     } else if (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) {
       smolDist *= 0.1f;
     }
@@ -3298,7 +3302,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       // jump off of it
       if (G_Ai_IsRidingMover(ent)) {
         cl->ai->moveTarget.distress += 0.02f;
-      } else if (G_Ai_IsCommittedToClimb(cl)) {
+      } else if (G_Ai_IsClimbing(cl)) {
         cl->ai->moveTarget.distress += 0.2f;
       } else {
         cl->ai->moveTarget.distress += 0.2f;
