@@ -224,7 +224,7 @@
  * @brief The most that a detour through one other node in liquid MAY cost, as a multiple of the time
  * of a swim link, for `Nav_PruneSwims` to remove the link.
  */
-#define NAV_SWIM_PRUNE 1.2f
+#define NAV_SWIM_PRUNE 2.f
 
 /**
  * @brief The outcome of a floor sample.
