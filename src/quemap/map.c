@@ -32,6 +32,13 @@ MapFormat mapFormat;
 int32_t numEntities;
 MapEntity entities[MAX_BSP_ENTITIES];
 
+/**
+ * @brief TrenchBroom's layers and groups, key-values only, read by `ParseLayers` before the map is
+ * parsed. The first is worldspawn, which holds the flags of TrenchBroom's default layer.
+ */
+static int32_t numLayers;
+static MapEntity layers[MAX_BSP_ENTITIES];
+
 int32_t numBrushes;
 MapBrush brushes[MAX_BSP_BRUSHES];
 
@@ -789,13 +796,6 @@ static void MovePatchesToWorld(MapEntity *ent) {
 
   ent->numPatches = 0;
 }
-
-/**
- * @brief TrenchBroom's layers and groups, key-values only, read by `ParseLayers` before the map is
- * parsed. The first is worldspawn, which holds the flags of TrenchBroom's default layer.
- */
-static MapEntity layers[MAX_BSP_ENTITIES];
-static int32_t numLayers;
 
 /**
  * @brief Parses the key-value pairs that open an entity block, up to its first brush or its end.
