@@ -1806,9 +1806,11 @@ static bool Nav_ClimbOver(const Vec3 top, const Vec3 over, const Box3 bounds, Ve
  * @brief Adds the climbs of the column beside a ladder's face at `column`, whose outward normal is
  * `normal`, which go straight up beside the face until the player's box clears the top of the
  * ladder, then across its top (`Nav_ClimbOver`), onto the floor on top of the ladder, or
- * `NAV_LADDER_EXIT` beyond its far side. A climb starts at the floor under the ladder's bottom,
- * or if it has none within `NAV_LADDER_FLOOR`, at the top of the liquid under it, where a swimmer
- * touches the ladder. A climb also starts at each node in front of the face, within
+ * `NAV_LADDER_EXIT` beyond its far side. A climb ends at the node nearest the top of its column,
+ * if that node stands over the ladder, behind its face, as the first node that the climber steps
+ * onto, and otherwise at the node nearest where it lands. A climb starts at the floor under the
+ * ladder's bottom, or if it has none within `NAV_LADDER_FLOOR`, at the top of the liquid under it,
+ * where a swimmer touches the ladder. A climb also starts at each node in front of the face, within
  * `NAV_MAX_JUMP_CELLS` cells and below the top, from which a running jump grabs the ladder
  * (`Nav_LadderJump`), as over a pit, lava or slime. A column with no room for the player's box,
  * as against the wall that the ladder stands on, a column where a player is not on the ladder all
@@ -1864,16 +1866,16 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
 
   int32_t b = -1;
   float across = 0.f;
+  Vec3 end = top;
   Vec3 landing = Vec3_Zero();
 
   for (size_t i = 0; i < lengthof(distances) && b == -1; i++) {
     across = distances[i];
-    Vec3 over;
-    if (!Nav_ClimbOver(top, Vec3_Fmaf(top, -across, normal), bounds, &over)) {
+    if (!Nav_ClimbOver(top, Vec3_Fmaf(top, -across, normal), bounds, &end)) {
       break;
     }
 
-    if (!Nav_Rest(over, PM_STEP_HEIGHT * 2.f, bounds, &landing)) {
+    if (!Nav_Rest(end, PM_STEP_HEIGHT * 2.f, bounds, &landing)) {
       continue;
     }
 
@@ -1886,6 +1888,16 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
 
   if (b == -1) {
     return false;
+  }
+
+  const int32_t first = Nav_LadderNode(Vec3_Fmaf(end, across, normal), PM_STEP_HEIGHT);
+  if (first != -1) {
+    const Vec3 position = module.graph->nodes[first].position;
+    const Vec2 offset = Vec2_Subtract(Vec3_XY(position), Vec3_XY(column));
+    const bool behind = Vec2_Dot(offset, Vec3_XY(normal)) < -(bounds.maxs.x + 1.f);
+    if (behind && !Nav_TouchesTrigger(Box3_Translate(bounds, position))) {
+      b = first;
+    }
   }
 
   const int32_t over = Nav_TravelTime(across, PM_SPEED_RUN);

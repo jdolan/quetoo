@@ -1867,8 +1867,10 @@ typedef struct {
 
 /**
  * @return The climb that the bot follows: that of its ladder link, or, for a bot that holds a
- * ladder on the link before one, as after it grabbed the ladder on its way to the foot, that of
- * the next link. NULL if neither is a climb.
+ * ladder within `AI_LADDER_GRAB_DISTANCE` of the column of the link before, that climb, as after
+ * it reached the climb's top node, which stands at the edge of the ladder's top, before it stepped
+ * off, or that of the next link, as after it grabbed
+ * the ladder on its way to the foot. NULL if none is a climb.
  */
 static const NavLadderClimb *G_Ai_LadderClimb(const GameClient *cl) {
 
@@ -1893,7 +1895,20 @@ static const NavLadderClimb *G_Ai_LadderClimb(const GameClient *cl) {
     }
   }
 
-  if ((cl->ps.pmState.flags & PMF_ON_LADDER) && index + 1 < path->count) {
+  if (!(cl->ps.pmState.flags & PMF_ON_LADDER)) {
+    return NULL;
+  }
+
+  if (index > 1) {
+    const NavLadderClimb *climb = G_Ai_Node_GetClimb(VectorValue(path, GameAiNodeId, index - 2),
+                                                     VectorValue(path, GameAiNodeId, index - 1));
+    const Vec2 origin = Vec3_XY(cl->entity->s.origin);
+    if (climb && Vec2_Distance(Vec3_XY(climb->column), origin) <= AI_LADDER_GRAB_DISTANCE) {
+      return climb;
+    }
+  }
+
+  if (index + 1 < path->count) {
     return G_Ai_Node_GetClimb(VectorValue(path, GameAiNodeId, index),
                               VectorValue(path, GameAiNodeId, index + 1));
   }
