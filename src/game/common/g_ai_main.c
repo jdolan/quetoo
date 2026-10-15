@@ -1793,6 +1793,14 @@ static Vec3 G_Ai_LadderDestination(const GameClient *cl) {
 }
 
 /**
+ * @brief The pitch in degrees at which a bot on a ladder looks down to descend, or up to climb.
+ * `Pm_LadderMove` moves a player who holds forward up the ladder at a pitch of -15 or less, and
+ * down it at 15 or more, so the view, the forward move and the jump or crouch that the bot holds
+ * all agree.
+ */
+#define AI_LADDER_PITCH 30.f
+
+/**
  * @brief The horizontal distance from the column of a climb within which a bot faces the ladder.
  */
 #define AI_LADDER_GRAB_DISTANCE 48.f
@@ -3111,9 +3119,9 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       // so for now this is hardcoded to ladders
       if (cl->ps.pmState.flags & PMF_ON_LADDER) {
         if ((cl->ai->moveTarget.path.pathPosition.z - cl->entity->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z) {
-          idealAngles.x = Clampf(idealAngles.x, -10.f, -180.f);
+          idealAngles.x = AI_LADDER_PITCH;
         } else {
-          idealAngles.x = Clampf(idealAngles.x, 10.f, 180.f);
+          idealAngles.x = -AI_LADDER_PITCH;
         }
         G_Ai_Debug("Clamping X to %f\n", idealAngles.x);
       } else if (ent->waterLevel < WATER_WAIST) {
