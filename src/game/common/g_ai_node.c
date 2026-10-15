@@ -2968,13 +2968,6 @@ bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiN
  */
 bool G_Ai_DropItemLikeNode(GameEntity *ent) {
 
-  // find node closest to us
-  const GameAiNodeId srcNode = G_Ai_Node_FindClosestStatic(ent->s.origin, 512.f, true, true);
-
-  if (srcNode == AI_NODE_INVALID) {
-    return false;
-  }
-
   // make a new node on the item
   CollisionTrace down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, MakeVec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
   Vec3 pos;
@@ -2983,6 +2976,13 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
     pos = ent->s.origin;
   } else {
     pos = Vec3_Subtract(down.end, MakeVec3(0.f, 0.f, G_PlayerBounds().mins.z));
+  }
+
+  // find node closest to us
+  const GameAiNodeId srcNode = G_Ai_Node_FindClosestStatic(pos, 512.f, true, true);
+
+  if (srcNode == AI_NODE_INVALID) {
+    return false;
   }
 
   // grab all the links of the node that brought us here
