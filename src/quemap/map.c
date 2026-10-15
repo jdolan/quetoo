@@ -840,9 +840,9 @@ static void FreeKeyValues(MapEntity *entity) {
 }
 
 /**
- * @brief Consumes a `{ ... }` block, including any blocks nested within it, such as `patchDef2`.
+ * @brief Consumes a brush or `patchDef2` block, including the blocks nested within it.
  */
-static void SkipBlock(Parser *parser) {
+static void SkipBrush(Parser *parser) {
   char token[MAX_TOKEN_CHARS];
 
   for (int32_t depth = 0; Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token)); ) {
@@ -890,7 +890,7 @@ static void LoadLayers(const char *buffer) {
     ParseKeyValues(&parser, layer, number);
 
     while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token)) && !Str_Compare(token, "{")) {
-      SkipBlock(&parser);
+      SkipBrush(&parser);
     }
 
     if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
@@ -1014,7 +1014,7 @@ static MapEntity *ParseEntity(Parser *parser) {
       }
 
       if (omit) {
-        SkipBlock(parser);
+        SkipBrush(parser);
         continue;
       }
 
