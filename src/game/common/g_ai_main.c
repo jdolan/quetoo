@@ -2882,6 +2882,19 @@ static void G_Ai_RefreshPath(GameClient *cl) {
 }
 
 /**
+ * @brief The air in milliseconds that a bot under water keeps, to swim up before it drowns.
+ */
+#define AI_AIR_MILLIS 4000
+
+/**
+ * @return True if the bot is under water with less than `AI_AIR_MILLIS` of air, after which
+ * `G_ClientWaterInteraction` drowns it, so that it swims up whatever its path does.
+ */
+static bool G_Ai_NeedsAir(const GameClient *cl) {
+  return cl->entity->waterLevel == WATER_UNDER && cl->drownTime < gameLevel.time + AI_AIR_MILLIS;
+}
+
+/**
  * @brief Move towards our current target
  */
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
@@ -3091,7 +3104,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     if (swimming) {
       const float rise = cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z;
 
-      if (rise > PM_STEP_HEIGHT || (rise > 0.f && ent->ground.ent)) {
+      if (G_Ai_NeedsAir(cl) || rise > PM_STEP_HEIGHT || (rise > 0.f && ent->ground.ent)) {
         cmd->up = PM_SPEED_JUMP;
       } else if (rise < -PM_STEP_HEIGHT) {
         cmd->up = -PM_SPEED_RUN;

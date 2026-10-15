@@ -2286,6 +2286,13 @@ static GameAiNodePriority *G_Ai_Node_AllocPathEntry(void) {
 #define AI_DROP_DAMAGE_PENALTY_SCALE 6.f
 
 /**
+ * @brief The multiple of its time that a link into water costs. Water slows a player, who then
+ * cannot dodge, at the lowest point of the map, under the fire and the splash of anyone above, so
+ * a bot crosses water only where it saves much time, or where its goal is.
+ */
+#define AI_WATER_EXPOSURE 2.f
+
+/**
  * @brief The cost added to a link into a node at the edge of the void: half a cell, so that a path
  * keeps to the middle of a walkway where it can, and still crosses a narrow one where it must.
  */
@@ -2376,6 +2383,13 @@ bool G_Ai_Node_IsHazard(const GameAiNodeId node) {
 }
 
 /**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_IsLiquid(const GameAiNodeId node) {
+  return (G_Ai_Node_Contents(AI_NODE(aiNodes, node)) & CONTENTS_MASK_LIQUID) != 0;
+}
+
+/**
  * @return True if the client and the node `start` of its search are both in lava, so that the
  * search MAY cross it to leave. A client in slime, which hurts slowly, searches as any other.
  */
@@ -2385,7 +2399,25 @@ static bool G_Ai_Node_InLava(const GameClient *cl, const GameAiNodeId start) {
 }
 
 /**
- * @brief Finds the shortest path between two nodes using the A* algorithm.
+ * @return The water level of the client at the node, for a node whose contents are `contents`:
+ * `WATER_NONE` out of water, and `WATER_UNDER` if the water covers the client's eyes.
+ */
+static int32_t G_Ai_Node_WaterLevel(const GameClient *cl, const GameAiNode *node,
+                                    const int32_t contents) {
+
+  if (!(contents & CONTENTS_WATER)) {
+    return WATER_NONE;
+  }
+
+  const float height = cl->ps.pmState.viewOffset.z + 1.f;
+  const Vec3 eyes = Vec3_Add(node->position, MakeVec3(0.f, 0.f, height));
+
+  return (gi.PointContents(eyes) & CONTENTS_WATER) ? WATER_UNDER : WATER_WAIST;
+}
+
+/**
+ * @return The damage of a fall of `drop` units onto a node at `waterLevel`, as `G_ClientMove`
+ * deals it: halved for each level of water, so an eighth under water.
  */
 static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, const int32_t waterLevel) {
 
@@ -2532,8 +2564,11 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   }
 
   if (cl && cl->entity) {
-    const int32_t waterLevel = (linkContents & CONTENTS_WATER) ? 1 : 0;
-    const float estimatedDamage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), waterLevel);
+    float estimatedDamage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), WATER_NONE);
+    if (estimatedDamage > 0.f) {
+      const int32_t waterLevel = G_Ai_Node_WaterLevel(cl, linkNode, linkContents);
+      estimatedDamage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), waterLevel);
+    }
 
     if (estimatedDamage + AI_DROP_HEALTH_MARGIN >= cl->entity->health) {
       return -1.f;
@@ -2542,7 +2577,9 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
     dropPenalty += estimatedDamage * AI_DROP_DAMAGE_PENALTY_SCALE;
   }
 
-  return link->cost + dropPenalty + (linkNode->edge ? AI_EDGE_PENALTY : 0.f);
+  const float exposure = (linkContents & CONTENTS_WATER) ? AI_WATER_EXPOSURE : 1.f;
+
+  return link->cost * exposure + dropPenalty + (linkNode->edge ? AI_EDGE_PENALTY : 0.f);
 }
 
 /**

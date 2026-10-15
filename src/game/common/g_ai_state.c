@@ -998,15 +998,34 @@ static bool G_Ai_WantsPursuit(const GameClient *cl) {
 }
 
 /**
+ * @return True if the entity is in water to its waist or deeper.
+ */
+static bool G_Ai_IsInWater(const GameEntity *ent) {
+  return ent->waterLevel >= WATER_WAIST && (ent->waterType & CONTENTS_WATER);
+}
+
+/**
  * @return True if the bot, which has a combat target, should retreat from it: if it is unarmed, for
- * health, or from an enemy that outguns it. A bot that retreats fights again only once its health
- * exceeds its retreat health by `AI_RECOVER_SCALE`, so that it does not switch at the threshold.
+ * health, from an enemy that outguns it, or if it is in water and the enemy is not, as a player in
+ * water cannot dodge, and is below an enemy that fires down at them. A bot that retreats from the
+ * water does so until it is out of it, so that it does not fight again at its edge. A bot that
+ * retreats fights again only once its health exceeds its retreat health by `AI_RECOVER_SCALE`, so
+ * that it does not switch at the threshold.
  * @remarks An unarmed bot only defends itself with the Blaster: it retreats to the weapons, armor
  * and health of most utility, and fires back on the way.
  */
 static bool G_Ai_WantsRetreat(const GameClient *cl) {
 
   if (!G_Ai_IsArmed(cl)) {
+    return true;
+  }
+
+  const GameEntity *ent = cl->entity;
+  const bool retreating = cl->ai->state == AI_STATE_RETREAT;
+  const bool wet = retreating ? ent->waterLevel > WATER_NONE && (ent->waterType & CONTENTS_WATER)
+                              : G_Ai_IsInWater(ent);
+
+  if (wet && !G_Ai_IsInWater(cl->ai->combatTarget.entity.ent)) {
     return true;
   }
 
@@ -1266,6 +1285,32 @@ static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
 }
 
 /**
+ * @return True if the bot, in water to its waist or deeper, takes the path to the nearest node out
+ * of liquid, as the first step of its retreat. The bot fires on the way, because its aim stays on
+ * its combat target.
+ */
+static bool G_Ai_LeaveWater(GameClient *cl, const float *costs) {
+
+  if (!costs || !G_Ai_IsInWater(cl->entity)) {
+    return false;
+  }
+
+  GameAiNodeId best = AI_NODE_INVALID;
+
+  for (uint32_t i = 0; i < G_Ai_Node_Count(); i++) {
+    if (costs[i] == FLT_MAX || G_Ai_Node_IsLiquid((GameAiNodeId) i)) {
+      continue;
+    }
+
+    if (best == AI_NODE_INVALID || costs[i] < costs[best]) {
+      best = (GameAiNodeId) i;
+    }
+  }
+
+  return best != AI_NODE_INVALID && G_Ai_PathTo(cl, best, AI_PURSUE_PRIORITY, NULL);
+}
+
+/**
  * @brief Fights the combat target, as only an armed bot does. Within `AI_ENGAGE_SCALE` of the
  * weapon's preferred range, the bot strafes around the enemy, and goes only for items close by.
  * Beyond it, the bot collects items while it fires, or, if it has none to collect, paths toward the
@@ -1327,6 +1372,10 @@ static void G_Ai_State_Retreat(GameClient *cl) {
   }
 
   const float *costs = G_Ai_TravelCosts(cl);
+
+  if (G_Ai_LeaveWater(cl, costs)) {
+    return;
+  }
 
   if (costs) {
     const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, true, NULL);

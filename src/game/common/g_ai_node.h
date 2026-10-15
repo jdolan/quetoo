@@ -78,6 +78,11 @@ bool G_Ai_Node_IsEdge(const GameAiNodeId node);
 bool G_Ai_Node_IsHazard(const GameAiNodeId node);
 
 /**
+ * @return True if the node is in water, lava or slime.
+ */
+bool G_Ai_Node_IsLiquid(const GameAiNodeId node);
+
+/**
  * @return The climb of the ladder link from node `a` to node `b`, or NULL.
  */
 const NavLadderClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeId b);
