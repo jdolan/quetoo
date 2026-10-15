@@ -483,10 +483,22 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
   if (ladder != c->ladder) {
     c->ladder = ladder;
-    G_Ai_Probe_Print(n, "LADDER", "on=%d pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d phase=%s",
+
+    Vec3 forward;
+    Vec3_Vectors(MakeVec3(0.f, cl->angles.y, 0.f), &forward, NULL, NULL);
+
+    const Box3 bounds = Pm_Bounds(&cl->ps.pmState.params, cl->ps.pmState.flags & PMF_DUCKED);
+    const Vec3 ahead = Vec3_Fmaf(ent->s.origin, 4.f, forward);
+    const CollisionTrace tr = gi.Trace(ent->s.origin, ahead, bounds, ent, ent->clipMask);
+
+    G_Ai_Probe_Print(n, "LADDER", "on=%d pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d phase=%s "
+                     "yaw=%d flags=%x trace=%.2f,%x,%d,%d",
                      ladder, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                     from, to, travelType, G_Ai_LadderPhaseName(cl));
+                     from, to, travelType, G_Ai_LadderPhaseName(cl), (int32_t) cl->angles.y,
+                     (uint32_t) (cl->ps.pmState.flags & PMF_TIME_MASK), tr.fraction,
+                     (uint32_t) tr.contents,
+                     (int32_t) (tr.plane.normal.x * 100.f), (int32_t) (tr.plane.normal.y * 100.f));
   }
 
   if (gameLevel.time - c->sampleTime >= AI_PROBE_SAMPLE_MILLIS) {
