@@ -2887,11 +2887,28 @@ static void G_Ai_RefreshPath(GameClient *cl) {
 #define AI_AIR_MILLIS 4000
 
 /**
+ * @brief The distance above a bot under water within which it looks for air to swim up to.
+ */
+#define AI_AIR_DISTANCE 512.f
+
+/**
  * @return True if the bot is under water with less than `AI_AIR_MILLIS` of air, after which
- * `G_ClientWaterInteraction` drowns it, so that it swims up whatever its path does.
+ * `G_ClientWaterInteraction` drowns it, so that it swims up whatever its path does, unless a
+ * ceiling within `AI_AIR_DISTANCE` above it has liquid below it. Under that ceiling, as in a
+ * flooded passage, swimming up only pins the bot to the ceiling, so it follows its path instead.
  */
 static bool G_Ai_NeedsAir(const GameClient *cl) {
-  return cl->entity->waterLevel == WATER_UNDER && cl->drownTime < gameLevel.time + AI_AIR_MILLIS;
+
+  const GameEntity *ent = cl->entity;
+
+  if (ent->waterLevel != WATER_UNDER || cl->drownTime >= gameLevel.time + AI_AIR_MILLIS) {
+    return false;
+  }
+
+  const Vec3 end = Vec3_Add(ent->s.origin, MakeVec3(0.f, 0.f, AI_AIR_DISTANCE));
+  const CollisionTrace trace = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+
+  return trace.fraction == 1.f || !(gi.PointContents(trace.end) & CONTENTS_MASK_LIQUID);
 }
 
 /**
