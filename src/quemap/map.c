@@ -1115,11 +1115,12 @@ MapFormat LoadMapFile(const char *filename) {
 
   Parser parser = Parse_Init(buffer, PARSER_DEFAULT);
 
-  int32_t models = 0;
+  while (ParseEntity(&parser)) {
+  }
 
-  for (MapEntity *entity = ParseEntity(&parser); entity; entity = ParseEntity(&parser)) {
-    if (entity->numBrushSides) {
-      SetValueForKey(entity, "model", va("*%d", models++));
+  for (int32_t i = 0, models = 0; i < numEntities; i++) {
+    if (entities[i].numBrushSides) {
+      SetValueForKey(&entities[i], "model", va("*%d", models++));
     }
   }
 
