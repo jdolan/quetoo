@@ -1164,7 +1164,8 @@ static bool Nav_IsEdge(const NavNode *node) {
  * at `b`.
  * @return True if the floor ends on the way, with no wall or high step before it, and the arc from
  * the takeoff clears the world and every trigger, and lands at `b` with floor for
- * `NAV_JUMP_LANDING_DISTANCE` past it, up to a wall.
+ * `NAV_JUMP_LANDING_DISTANCE` past it, walked as the run is, up and down a step such as the trim
+ * at the edge of the floor, up to a wall or a rise too steep to walk.
  */
 static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
 
@@ -1253,14 +1254,30 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
       Vec3 landing = floor;
       for (float d = NAV_WALK_STEP; d <= NAV_JUMP_LANDING_DISTANCE; d += NAV_WALK_STEP) {
 
-        const CollisionTrace slide = Nav_Trace(landing, Vec3_Add(landing, Vec3_Scale(dir, NAV_WALK_STEP)), PM_BOUNDS);
+        const CollisionTrace lift = Nav_Trace(landing, Vec3_Add(landing, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT)), PM_BOUNDS);
+        if (lift.startSolid) {
+          break;
+        }
+
+        const CollisionTrace slide = Nav_Trace(lift.end, Vec3_Add(lift.end, Vec3_Scale(dir, NAV_WALK_STEP)), PM_BOUNDS);
         if (slide.fraction < 1.f) {
           break;
         }
 
-        if (!Nav_Rest(slide.end, PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &landing)) {
+        const float drop = lift.end.z - landing.z + PM_STEP_HEIGHT + 1.f;
+        const CollisionTrace down = Nav_Trace(slide.end, Vec3_Subtract(slide.end, Vec3_Scale(Vec3_Up(), drop)), PM_BOUNDS);
+        if (down.fraction == 1.f) {
           return false;
         }
+
+        if (down.startSolid || down.plane.normal.z < PM_STEP_NORMAL) {
+          if (down.end.z > landing.z) {
+            break;
+          }
+          return false;
+        }
+
+        landing = down.end;
       }
 
       *seconds = index * NAV_WALK_STEP / PM_SPEED_RUN + t + sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
