@@ -745,6 +745,8 @@ static void MoveBrushesToWorld(MapEntity *ent) {
 
   // fix up indexes
   entities[0].numBrushes += newBrushes;
+  entities[0].numBrushSides += ent->numBrushSides;
+  entities[0].bounds = Box3_Union(entities[0].bounds, ent->bounds);
   for (int32_t i = 1; i < numEntities; i++) {
     entities[i].firstBrush += newBrushes;
   }
