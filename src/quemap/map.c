@@ -32,6 +32,13 @@ MapFormat mapFormat;
 int32_t numEntities;
 MapEntity entities[MAX_BSP_ENTITIES];
 
+/**
+ * @brief TrenchBroom's layers and groups, key-values only, read by `ParseLayers` before the map is
+ * parsed. The first is worldspawn, which holds the flags of TrenchBroom's default layer.
+ */
+static int32_t numLayers;
+static MapEntity layers[MAX_BSP_ENTITIES];
+
 int32_t numBrushes;
 MapBrush brushes[MAX_BSP_BRUSHES];
 
@@ -745,6 +752,8 @@ static void MoveBrushesToWorld(MapEntity *ent) {
 
   // fix up indexes
   entities[0].numBrushes += newBrushes;
+  entities[0].numBrushSides += ent->numBrushSides;
+  entities[0].bounds = Box3_Union(entities[0].bounds, ent->bounds);
   for (int32_t i = 1; i < numEntities; i++) {
     entities[i].firstBrush += newBrushes;
   }
@@ -789,7 +798,180 @@ static void MovePatchesToWorld(MapEntity *ent) {
 }
 
 /**
- * @brief Parses one entity block (key-value pairs and brushes) from the map file.
+ * @brief Parses the key-value pairs that open an entity block, up to its first brush or its end.
+ */
+static void ParseKeyValues(Parser *parser, MapEntity *entity, int32_t number) {
+  char token[MAX_TOKEN_CHARS];
+
+  while (true) {
+
+    if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
+      Com_Error(ERROR_FATAL, "EOF without closing entity\n");
+    }
+
+    if (!Str_Compare(token, "{") || !Str_Compare(token, "}")) {
+      break;
+    }
+
+    MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
+
+    if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
+      Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", number);
+    }
+
+    Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, e->value, sizeof(e->value));
+
+    e->next = entity->values;
+    entity->values = e;
+  }
+}
+
+/**
+ * @brief Frees the key-value pairs of an entity.
+ */
+static void FreeKeyValues(MapEntity *entity) {
+
+  for (MapEntityKeyValue *e = entity->values, *next; e; e = next) {
+    next = e->next;
+    Mem_Free(e);
+  }
+
+  entity->values = NULL;
+}
+
+/**
+ * @brief Consumes a brush or `patchDef2` block, including the blocks nested within it.
+ */
+static void SkipBrush(Parser *parser) {
+  char token[MAX_TOKEN_CHARS];
+
+  for (int32_t depth = 0; Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token)); ) {
+    if (!Str_Compare(token, "{")) {
+      depth++;
+    } else if (!Str_Compare(token, "}") && --depth == 0) {
+      return;
+    }
+  }
+
+  Com_Error(ERROR_FATAL, "EOF without closing block\n");
+}
+
+/**
+ * @return True if the entity is omitted from export by its own TrenchBroom flag.
+ */
+static bool HasOmitFlag(const MapEntity *entity) {
+  return !Str_Compare(ValueForKey(entity, "_tb_layer_omit_from_export", "0"), "1");
+}
+
+/**
+ * @brief Reads worldspawn and TrenchBroom's layers and groups from the map file, skipping all
+ * other entities and every brush, so that each entity can be resolved to its layer as it is parsed.
+ */
+static void ParseLayers(const char *buffer) {
+  char token[MAX_TOKEN_CHARS];
+
+  memset(layers, 0, sizeof(layers));
+  numLayers = 0;
+
+  Parser parser = Parse_Init(buffer, PARSER_DEFAULT);
+
+  for (int32_t number = 0; Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token)); number++) {
+
+    if (Str_Compare(token, "{")) {
+      break;
+    }
+
+    if (numLayers == MAX_BSP_ENTITIES) {
+      Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES\n");
+    }
+
+    MapEntity *layer = &layers[numLayers];
+
+    ParseKeyValues(&parser, layer, number);
+
+    while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token)) && !Str_Compare(token, "{")) {
+      SkipBrush(&parser);
+    }
+
+    if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+      Com_Error(ERROR_FATAL, "EOF without closing entity\n");
+    }
+
+    if (Str_Compare(token, "}")) {
+      Com_Error(ERROR_FATAL, "Unexpected %s in entity %d\n", token, number);
+    }
+
+    const char *type = ValueForKey(layer, "_tb_type", "");
+    if (number == 0 || !Str_Compare(type, "_tb_layer") || !Str_Compare(type, "_tb_group")) {
+      numLayers++;
+    } else {
+      FreeKeyValues(layer);
+      continue;
+    }
+
+    if (HasOmitFlag(layer)) {
+      if (number == 0) {
+        Com_Warn("The default layer is omitted from export: worldspawn's brushes and every entity in the "
+                 "default layer are dropped, and only the other layers are compiled\n");
+      } else {
+        Com_Warn("Omitting TrenchBroom layer \"%s\"\n", ValueForKey(layer, "_tb_name", ""));
+      }
+    }
+  }
+}
+
+/**
+ * @return The TrenchBroom layer or group that contains the entity, or NULL if it is not contained.
+ * An entity that names no layer or group, or one that is not found, is in the default layer, which
+ * is worldspawn.
+ */
+static const MapEntity *LayerForEntity(const MapEntity *entity) {
+
+  const char *id = ValueForKey(entity, "_tb_group", ValueForKey(entity, "_tb_layer", NULL));
+  if (id) {
+    for (int32_t i = 1; i < numLayers; i++) {
+      if (!Str_Compare(ValueForKey(&layers[i], "_tb_id", ""), id)) {
+        return &layers[i];
+      }
+    }
+
+    Com_Warn("TrenchBroom layer or group %s not found, using the default layer\n", id);
+    return &layers[0];
+  }
+
+  if (!Str_Compare(ValueForKey(entity, "classname", ""), "worldspawn") ||
+    !Str_Compare(ValueForKey(entity, "_tb_type", ""), "_tb_layer")) {
+    return NULL;
+  }
+
+  return &layers[0];
+}
+
+/**
+ * @return True if the entity, or any layer or group that contains it, is omitted from export, as
+ * TrenchBroom's own export omits it. Worldspawn is omitted with the default layer.
+ */
+static bool IsOmitted(const MapEntity *entity) {
+
+  int32_t depth = 0;
+
+  for (const MapEntity *e = entity; e; e = LayerForEntity(e)) {
+    if (depth++ > numLayers) {
+      Com_Error(ERROR_FATAL, "TrenchBroom group %s contains itself\n", ValueForKey(e, "_tb_id", ""));
+    }
+
+    if (HasOmitFlag(e)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Parses one entity block (key-value pairs and brushes) from the map file. An entity that
+ * `IsOmitted` has its brushes skipped, and its slot is released and returned empty. Worldspawn
+ * keeps its key-value pairs.
  */
 static MapEntity *ParseEntity(Parser *parser) {
   char token[MAX_TOKEN_CHARS];
@@ -817,6 +999,10 @@ static MapEntity *ParseEntity(Parser *parser) {
     entity->firstBrushSide = numBrushSides;
     entity->firstPatch = numPatches;
 
+    ParseKeyValues(parser, entity, numEntities - 1);
+
+    const bool omit = IsOmitted(entity);
+
     while (true) {
 
       if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
@@ -828,26 +1014,28 @@ static MapEntity *ParseEntity(Parser *parser) {
         break;
       }
 
-      if (!Str_Compare(token, "{")) {
-        MapBrush *brush = ParseBrush(parser, entity);
-        if (brush) {
-          entity->numBrushes++;
-          entity->numBrushSides += brush->numBrushSides;
-          entity->bounds = Box3_Union(entity->bounds, brush->bounds);
-        }
-
-      } else {
-        MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
-
-        if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
-          Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", numEntities);
-        }
-
-        Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, e->value, sizeof(e->value));
-        
-        e->next = entity->values;
-        entity->values = e;
+      if (Str_Compare(token, "{")) {
+        Com_Error(ERROR_FATAL, "Unexpected %s in entity %d\n", token, numEntities - 1);
       }
+
+      if (omit) {
+        SkipBrush(parser);
+        continue;
+      }
+
+      MapBrush *brush = ParseBrush(parser, entity);
+      if (brush) {
+        entity->numBrushes++;
+        entity->numBrushSides += brush->numBrushSides;
+        entity->bounds = Box3_Union(entity->bounds, brush->bounds);
+      }
+    }
+
+    if (omit && entity != entities) {
+      FreeKeyValues(entity);
+      memset(entity, 0, sizeof(*entity));
+      numEntities--;
+      return entity;
     }
 
     const Vec3 origin = VectorForKey(entity, "origin", Vec3_Zero());
@@ -928,17 +1116,16 @@ MapFormat LoadMapFile(const char *filename) {
     Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
   }
 
+  ParseLayers(buffer);
+
   Parser parser = Parse_Init(buffer, PARSER_DEFAULT);
 
-  for (int32_t i = 0, models = 0; i < MAX_BSP_ENTITIES; i++) {
+  while (ParseEntity(&parser)) {
+  }
 
-    MapEntity *entity = ParseEntity(&parser);
-    if (!entity) {
-      break;
-    }
-
-    if (entity->numBrushSides) {
-      SetValueForKey(entity, "model", va("*%d", models++));
+  for (int32_t i = 0, models = 0; i < numEntities; i++) {
+    if (entities[i].numBrushSides) {
+      SetValueForKey(&entities[i], "model", va("*%d", models++));
     }
   }
 
