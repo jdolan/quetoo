@@ -28,6 +28,11 @@
 #define AI_PLATFORM(vector, index) (VectorValue((vector), GameEntity *, (index)))
 
 /**
+ * @brief The contents that hurt a player who stands in them: lava and slime.
+ */
+#define AI_CONTENTS_HAZARD (CONTENTS_LAVA | CONTENTS_SLIME)
+
+/**
  * @brief Cached spatial acceleration structures for the navigation graph.
  *
  * The kd-tree accelerates `G_Ai_Node_FindClosest` queries (O(log n) average vs.
@@ -281,6 +286,18 @@ static const GameAiNode *G_Ai_Node_Refresh(const GameAiNode *node);
 static bool G_Ai_Node_LinkPassesHazard(const Vec3 from, const Vec3 to);
 
 /**
+ * @return The player box `bounds` raised by a step, so that a trace of it along a floor that slopes,
+ * or that steps up, does not stop on the floor.
+ */
+static Box3 G_Ai_Node_StepBounds(const Box3 bounds) {
+
+  Box3 raised = bounds;
+  raised.mins.z += PM_STEP_HEIGHT;
+
+  return raised;
+}
+
+/**
  * @brief Returns true if the given node is visible (unobstructed) from the specified position.
  */
 static bool G_Ai_Node_Visible(const Vec3 position, const GameAiNodeId node) {
@@ -378,7 +395,7 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
     return false;
   }
 
-  if (filter->skipHazards && (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+  if (filter->skipHazards && (G_Ai_Node_Contents(node) & AI_CONTENTS_HAZARD)) {
     return false;
   }
 
@@ -514,7 +531,7 @@ static GameAiNodeId G_Ai_Node_FindClosest_(const Vec3 position, const float maxD
     .position = position,
     .onlyVisible = onlyVisible,
     .preferLevel = preferLevel,
-    .skipHazards = !(gi.PointContents(position) & (CONTENTS_LAVA | CONTENTS_SLIME)),
+    .skipHazards = !(gi.PointContents(position) & AI_CONTENTS_HAZARD),
     .staticOnly = staticOnly
   };
 
@@ -592,8 +609,7 @@ GameAiNodeId G_Ai_Node_Create(const Vec3 position) {
     return AI_NODE_INVALID;
   }
 
-  Box3 standing = PM_BOUNDS;
-  standing.mins.z += PM_STEP_HEIGHT;
+  const Box3 standing = G_Ai_Node_StepBounds(PM_BOUNDS);
 
   GameAiNode node = (GameAiNode) {
     .position = position,
@@ -608,25 +624,6 @@ GameAiNodeId G_Ai_Node_Create(const Vec3 position) {
   G_Ai_Debug("Dropped new node %zu\n", aiNodes->count - 1);
 
   return aiNodes->count - 1;
-}
-
-/**
- * @brief Returns true if node a has a directed link to node b.
- */
-bool G_Ai_Node_IsLinked(const GameAiNodeId a, const GameAiNodeId b) {
-  const GameAiNode *nodeA = AI_NODE(aiNodes, a);
-
-  if (nodeA->links) {
-    for (size_t i = 0; i < nodeA->links->count; i++) {
-      const GameAiLink *link = AI_LINK(nodeA->links, i);
-
-      if (link->id == b) {
-        return true;
-      }
-    }
-  }
-
-  return false;
 }
 
 /**
@@ -650,6 +647,13 @@ const GameAiLink *G_Ai_Node_GetLink(const GameAiNodeId a, const GameAiNodeId b) 
   }
 
   return NULL;
+}
+
+/**
+ * @brief Returns true if node a has a directed link to node b.
+ */
+bool G_Ai_Node_IsLinked(const GameAiNodeId a, const GameAiNodeId b) {
+  return G_Ai_Node_GetLink(a, b) != NULL;
 }
 
 /**
@@ -965,6 +969,14 @@ static float G_Ai_Node_RideCost(const float seconds) {
 }
 
 /**
+ * @return The time in seconds in which a player pushed straight up at `speed` rises `rise` units,
+ * under `gravity`. The rise MUST NOT exceed the apex of the flight.
+ */
+static float G_Ai_Node_RiseTime(const float speed, const float gravity, const float rise) {
+  return (speed - sqrtf(speed * speed - 2.f * gravity * rise)) / gravity;
+}
+
+/**
  * @brief Flies a player from `origin` on a `trigger_push` with the level's movement and no input,
  * as a bot rides one, with `Nav_FlyPush`, which the client game draws the same flight with.
  * @param landing The player origin where the flight lands.
@@ -1012,10 +1024,7 @@ static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *l
  */
 static bool G_Ai_Node_CanWalk(const Vec3 start, const Vec3 end) {
 
-  Box3 bounds = PM_BOUNDS;
-  bounds.mins.z += PM_STEP_HEIGHT;
-
-  const CollisionTrace trace = G_Ai_Node_WorldTrace(start, end, bounds);
+  const CollisionTrace trace = G_Ai_Node_WorldTrace(start, end, G_Ai_Node_StepBounds(PM_BOUNDS));
   return !trace.startSolid && trace.fraction == 1.f;
 }
 
@@ -1181,7 +1190,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
         continue;
       }
 
-      const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
+      const float time = G_Ai_Node_RiseTime(velocity.z, gravity, rise);
       G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
     }
 
@@ -1210,7 +1219,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
         continue;
       }
 
-      const float time = (velocity.z - sqrtf(velocity.z * velocity.z - 2.f * gravity * rise)) / gravity;
+      const float time = G_Ai_Node_RiseTime(velocity.z, gravity, rise);
       G_Ai_Node_LinkTravel(start, node, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
 
       item->node = node;
@@ -1253,8 +1262,7 @@ static void G_Ai_Node_LinkPlatLevel(const GameEntity *plat, const GameAiNodeId p
   const Vec3 position = G_Ai_Node_GetPosition(platNode);
   const float reach = Maxf(Box3_Size(plat->absBounds).x, Box3_Size(plat->absBounds).y) * .5f + AI_RIDE_NODE_DISTANCE;
 
-  Box3 bounds = PM_BOUNDS;
-  bounds.mins.z += PM_STEP_HEIGHT;
+  const Box3 bounds = G_Ai_Node_StepBounds(PM_BOUNDS);
 
   for (size_t i = 0; i < aiNodes->count; i++) {
     const GameAiNode *node = AI_NODE(aiNodes, i);
@@ -1370,6 +1378,92 @@ static void G_Ai_Node_LinkRides(void) {
 #define AI_CRUSHER_SAFE_SECONDS 4.f
 
 /**
+ * @return The next node on a model that moves that `ent` moves, from the index `*i` of
+ * `moverNodes`, which advances past it, or `NULL`.
+ */
+static const GameAiNode *G_Ai_Node_FindCrushers_next(const GameEntity *ent, size_t *i) {
+
+  while (*i < module.moverNodes->count) {
+    const GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, (*i)++));
+    if (node->mover == ent) {
+      return node;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Finds the arc of the nodes that `ent` moves, about its origin.
+ * @param center Receives the center of the arc, in degrees about its axis.
+ * @param halfWidth Receives half the width of the arc, in degrees.
+ */
+static void G_Ai_Node_FindCrushers_arc(const GameEntity *ent, float *center, float *halfWidth) {
+
+  Vec2 sum = Vec2_Zero();
+  const GameAiNode *node;
+
+  for (size_t i = 0; (node = G_Ai_Node_FindCrushers_next(ent, &i));) {
+    const float length = Vec2_Length(Vec3_XY(node->local));
+    if (length > 0.f) {
+      sum = Vec2_Add(sum, Vec2_Scale(Vec3_XY(node->local), 1.f / length));
+    }
+  }
+
+  *center = AngleMod(Degrees(atan2f(sum.y, sum.x)));
+  *halfWidth = 0.f;
+
+  for (size_t i = 0; (node = G_Ai_Node_FindCrushers_next(ent, &i));) {
+    const float angle = AngleMod(Degrees(atan2f(node->local.y, node->local.x)));
+    *halfWidth = Maxf(*halfWidth, SmallestAngleBetween(angle, *center));
+  }
+}
+
+/**
+ * @return The radius of the sweep of `ent`: the farthest of its bounds' sides and its nodes, with
+ * the player's box, from its origin.
+ */
+static float G_Ai_Node_FindCrushers_radius(const GameEntity *ent) {
+
+  const Box3 bounds = ent->bounds;
+  float radius = Maxf(Maxf(-bounds.mins.x, bounds.maxs.x), Maxf(-bounds.mins.y, bounds.maxs.y));
+
+  const GameAiNode *node;
+  for (size_t i = 0; (node = G_Ai_Node_FindCrushers_next(ent, &i));) {
+    radius = Maxf(radius, Vec2_Length(Vec3_XY(node->local)) + PM_BOUNDS.maxs.x);
+  }
+
+  return radius;
+}
+
+/**
+ * @brief Records the crusher `index` of `ent`, and its angle, in each node that does not move and
+ * whose box reaches more than a step into the cylinder of `radius` of its sweep.
+ */
+static void G_Ai_Node_FindCrushers_mark(const GameEntity *ent, const int32_t index, const float radius) {
+
+  const float bottom = ent->s.origin.z + ent->bounds.mins.z;
+  const float top = ent->s.origin.z + ent->bounds.maxs.z;
+
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    GameAiNode *node = AI_NODE(aiNodes, i);
+
+    if (node->model || node->position.z + PM_BOUNDS.maxs.z < bottom ||
+        node->position.z + PM_BOUNDS.mins.z >= top - PM_STEP_HEIGHT) {
+      continue;
+    }
+
+    const Vec2 delta = Vec2_Subtract(Vec3_XY(node->position), Vec3_XY(ent->s.origin));
+    if (Vec2_Length(delta) > radius + PM_BOUNDS.maxs.x) {
+      continue;
+    }
+
+    node->crusher = index + 1;
+    node->crushAngle = AngleMod(Degrees(atan2f(delta.y, delta.x)));
+  }
+}
+
+/**
  * @brief Finds the crusher of each model that moves, whose entity is a `func_rotating` that does at
  * least `AI_CRUSHER_DAMAGE` and turns about the vertical axis. Its arc is the arc of its nodes about
  * its origin. Its sweep is the cylinder of the farthest of its bounds' sides and its nodes, through
@@ -1402,27 +1496,8 @@ static void G_Ai_Node_FindCrushers(void) {
       continue;
     }
 
-    Vec2 sum = Vec2_Zero();
-    for (size_t i = 0; i < module.moverNodes->count; i++) {
-      const GameAiNode *other = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
-      if (other->mover == ent) {
-        const float length = Vec2_Length(Vec3_XY(other->local));
-        if (length > 0.f) {
-          sum = Vec2_Add(sum, Vec2_Scale(Vec3_XY(other->local), 1.f / length));
-        }
-      }
-    }
-
-    const float center = AngleMod(Degrees(atan2f(sum.y, sum.x)));
-
-    float halfWidth = 0.f;
-    for (size_t i = 0; i < module.moverNodes->count; i++) {
-      const GameAiNode *other = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
-      if (other->mover == ent) {
-        const float angle = AngleMod(Degrees(atan2f(other->local.y, other->local.x)));
-        halfWidth = Maxf(halfWidth, SmallestAngleBetween(angle, center));
-      }
-    }
+    float center, halfWidth;
+    G_Ai_Node_FindCrushers_arc(ent, &center, &halfWidth);
 
     index = module.numCrushers++;
     module.crushers[index] = (GameAiCrusher) {
@@ -1431,32 +1506,7 @@ static void G_Ai_Node_FindCrushers(void) {
       .halfWidth = halfWidth + AI_CRUSHER_MARGIN
     };
 
-    float radius = Maxf(Maxf(-ent->bounds.mins.x, ent->bounds.maxs.x), Maxf(-ent->bounds.mins.y, ent->bounds.maxs.y));
-    for (size_t i = 0; i < module.moverNodes->count; i++) {
-      const GameAiNode *other = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
-      if (other->mover == ent) {
-        radius = Maxf(radius, Vec2_Length(Vec3_XY(other->local)) + PM_BOUNDS.maxs.x);
-      }
-    }
-
-    const float bottom = ent->s.origin.z + ent->bounds.mins.z;
-    const float top = ent->s.origin.z + ent->bounds.maxs.z;
-
-    for (size_t i = 0; i < aiNodes->count; i++) {
-      GameAiNode *other = AI_NODE(aiNodes, i);
-
-      if (other->model || other->position.z + PM_BOUNDS.maxs.z < bottom || other->position.z + PM_BOUNDS.mins.z >= top - PM_STEP_HEIGHT) {
-        continue;
-      }
-
-      const Vec2 delta = Vec2_Subtract(Vec3_XY(other->position), Vec3_XY(ent->s.origin));
-      if (Vec2_Length(delta) > radius + PM_BOUNDS.maxs.x) {
-        continue;
-      }
-
-      other->crusher = index + 1;
-      other->crushAngle = AngleMod(Degrees(atan2f(delta.y, delta.x)));
-    }
+    G_Ai_Node_FindCrushers_mark(ent, index, G_Ai_Node_FindCrushers_radius(ent));
 
     G_Debug("%s @ %s crushes in an arc of %.0f degrees\n", ent->classname, vtos(ent->s.origin), halfWidth * 2.f);
   }
@@ -1494,18 +1544,42 @@ bool G_Ai_Node_IsCrushing(const GameAiNodeId id) {
 }
 
 /**
+ * @return The inline model of the entity, as its `model` names it (`*1`, `*2`...), or 0 if it has
+ * no inline model, or one out of range.
+ */
+static int32_t G_Ai_Node_InlineModel(const GameEntity *ent) {
+
+  if (!ent->model || ent->model[0] != '*') {
+    return 0;
+  }
+
+  const long model = strtol(ent->model + 1, NULL, 10);
+
+  return model > 0 && model < MAX_MODELS ? (int32_t) model : 0;
+}
+
+/**
  * @brief Finds the door entity of each inline model, and the entity of each node on a model that
- * moves, by the entity's inline model.
+ * moves, by the entity's inline model. Where several entities share an inline model, the last door
+ * is the model's door, and the first entity moves its nodes.
  */
 static void G_Ai_Node_FindMovers(void) {
 
+  const GameEntity *movers[MAX_MODELS] = { NULL };
+
   G_ForEachEntity(ent, {
-    if (ent->model && ent->model[0] == '*' && ent->classname &&
+    const int32_t model = G_Ai_Node_InlineModel(ent);
+    if (!model) {
+      continue;
+    }
+
+    if (!movers[model]) {
+      movers[model] = ent;
+    }
+
+    if (ent->classname &&
         (!Str_Compare(ent->classname, "func_door") || !Str_Compare(ent->classname, "func_door_rotating"))) {
-      const int32_t model = (int32_t) strtol(ent->model + 1, NULL, 10);
-      if (model > 0 && model < MAX_MODELS) {
-        module.doors[model] = ent;
-      }
+      module.doors[model] = ent;
     }
   });
 
@@ -1516,12 +1590,9 @@ static void G_Ai_Node_FindMovers(void) {
   for (size_t n = 0; n < module.moverNodes->count; n++) {
     GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, n));
 
-    G_ForEachEntity(ent, {
-      if (ent->model && ent->model[0] == '*' && strtol(ent->model + 1, NULL, 10) == node->model) {
-        node->mover = ent;
-        break;
-      }
-    });
+    if (node->model > 0 && node->model < MAX_MODELS) {
+      node->mover = movers[node->model];
+    }
 
     if (!node->mover) {
       G_Debug("No entity moves navigation node %u on model *%d\n", AI_NODE_ID(module.moverNodes, n), node->model);
@@ -1529,6 +1600,16 @@ static void G_Ai_Node_FindMovers(void) {
   }
 
   G_Ai_Node_FindCrushers();
+}
+
+/**
+ * @return The world position of the node on a model that moves, where its `mover` stands now.
+ */
+static Vec3 G_Ai_Node_MoverPosition(const GameAiNode *node) {
+
+  const Mat4 matrix = Mat4_FromRotationTranslationScale(node->mover->s.angles, node->mover->s.origin, 1.f);
+
+  return Mat4_Transform(matrix, node->local);
 }
 
 /**
@@ -1682,6 +1763,39 @@ static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
 }
 
 /**
+ * @return True if `b` is within a step of height and `AI_MOVER_LINK_DISTANCE` across of `a`.
+ * @param distance Receives the distance across.
+ */
+static bool G_Ai_Node_InReach(const Vec3 a, const Vec3 b, float *distance) {
+
+  if (fabsf(b.z - a.z) > PM_STEP_HEIGHT) {
+    return false;
+  }
+
+  *distance = Vec2_Distance(Vec3_XY(b), Vec3_XY(a));
+
+  return *distance <= AI_MOVER_LINK_DISTANCE;
+}
+
+/**
+ * @return True if a player walks from `a` to `b`, player origins of which one at least is on a
+ * model that moves: within a step of height and `AI_MOVER_LINK_DISTANCE` across of each other, with
+ * a clear line for the player's box raised by a step, and floor under the line.
+ * @param bounds The player's box, raised by a step.
+ * @param distance Receives the distance across.
+ */
+static bool G_Ai_Node_CanWalkMover(const Vec3 a, const Vec3 b, const Box3 bounds, float *distance) {
+
+  if (!G_Ai_Node_InReach(a, b, distance)) {
+    return false;
+  }
+
+  const CollisionTrace tr = gi.Trace(a, b, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
+
+  return !tr.startSolid && tr.fraction == 1.f && G_Ai_Node_HasFloor(a, b);
+}
+
+/**
  * @brief Links the node `id` on a model that moves to the node `other` that does not move: both
  * ways with a walk, if `other` is on its level, with a clear line for the player's box, raised by a
  * step, and floor under the line, or one way with a drop, from the higher of the two to the lower,
@@ -1695,7 +1809,7 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
 
   const Vec3 position = AI_NODE(aiNodes, other)->position;
 
-  const float distance = Vec2_Distance(Vec3_XY(position), Vec3_XY(node->position));
+  float distance = Vec2_Distance(Vec3_XY(position), Vec3_XY(node->position));
   if (distance > AI_MOVER_LINK_DISTANCE) {
     return false;
   }
@@ -1703,8 +1817,7 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
   const float height = position.z - node->position.z;
 
   if (fabsf(height) <= PM_STEP_HEIGHT) {
-    const CollisionTrace tr = gi.Trace(node->position, position, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
-    if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, position)) {
+    if (!G_Ai_Node_CanWalkMover(node->position, position, bounds, &distance)) {
       return false;
     }
 
@@ -1751,8 +1864,7 @@ static void G_Ai_Node_LinkMoverAround(GameAiNode *node, const GameAiNodeId id, c
 
   const NavGraph *graph = &module.graph;
 
-  Box3 bounds = G_PlayerBounds();
-  bounds.mins.z += PM_STEP_HEIGHT;
+  const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
 
   const Vec3 rel = Vec3_Subtract(node->position, graph->mins);
   const int32_t x = (int32_t) floorf(rel.x / NAV_CELL_SIZE);
@@ -1822,7 +1934,7 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
   node->moverLinksPosition = node->position;
   node->moverLinksTime = gameLevel.time;
 
-  if (gi.PointContents(node->position) & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+  if (gi.PointContents(node->position) & AI_CONTENTS_HAZARD) {
     return;
   }
 
@@ -1838,8 +1950,7 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
  */
 static void G_Ai_Node_LinkMovers(void) {
 
-  Box3 bounds = G_PlayerBounds();
-  bounds.mins.z += PM_STEP_HEIGHT;
+  const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
 
   for (size_t i = 0; i < module.moverNodes->count; i++) {
     const GameAiNodeId a = AI_NODE_ID(module.moverNodes, i);
@@ -1874,25 +1985,20 @@ static void G_Ai_Node_LinkMovers(void) {
         continue;
       }
 
-      if (other->model == node->model || fabsf(other->position.z - node->position.z) > PM_STEP_HEIGHT) {
-        continue;
-      }
-
-      const float distance = Vec2_Distance(Vec3_XY(other->position), Vec3_XY(node->position));
-      if (distance > AI_MOVER_LINK_DISTANCE) {
+      float distance;
+      if (other->model == node->model || !G_Ai_Node_InReach(node->position, other->position, &distance)) {
         continue;
       }
 
       if (hazard == -1) {
-        hazard = (gi.PointContents(node->position) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+        hazard = (gi.PointContents(node->position) & AI_CONTENTS_HAZARD) != 0;
       }
 
-      if (hazard || (gi.PointContents(other->position) & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+      if (hazard || (gi.PointContents(other->position) & AI_CONTENTS_HAZARD)) {
         continue;
       }
 
-      const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
-      if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, other->position)) {
+      if (!G_Ai_Node_CanWalkMover(node->position, other->position, bounds, &distance)) {
         continue;
       }
 
@@ -1923,8 +2029,7 @@ static void G_Ai_Node_LinkPresses(void) {
     return;
   }
 
-  Box3 bounds = G_PlayerBounds();
-  bounds.mins.z += PM_STEP_HEIGHT;
+  const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
 
   for (int32_t m = 1; m < MAX_MODELS; m++) {
     const GameEntity *first = module.doors[m];
@@ -1979,15 +2084,14 @@ static void G_Ai_Node_LinkPresses(void) {
 
       for (size_t i = 0; i < nodes->count; i++) {
         GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(nodes, i));
-        const Mat4 matrix = Mat4_FromRotationTranslationScale(node->mover->s.angles, node->mover->s.origin, 1.f);
-        node->position = Mat4_Transform(matrix, node->local);
+        node->position = G_Ai_Node_MoverPosition(node);
       }
 
       for (size_t i = 0; i < nodes->count; i++) {
         const GameAiNodeId a = AI_NODE_ID(nodes, i);
         GameAiNode *node = AI_NODE(aiNodes, a);
 
-        if (gi.PointContents(node->position) & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+        if (gi.PointContents(node->position) & AI_CONTENTS_HAZARD) {
           continue;
         }
 
@@ -1997,17 +2101,9 @@ static void G_Ai_Node_LinkPresses(void) {
           const GameAiNodeId b = AI_NODE_ID(nodes, j);
           const GameAiNode *other = AI_NODE(aiNodes, b);
 
-          if (other->model == node->model || fabsf(other->position.z - node->position.z) > PM_STEP_HEIGHT) {
-            continue;
-          }
-
-          const float distance = Vec2_Distance(Vec3_XY(other->position), Vec3_XY(node->position));
-          if (distance > AI_MOVER_LINK_DISTANCE) {
-            continue;
-          }
-
-          const CollisionTrace tr = gi.Trace(node->position, other->position, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
-          if (tr.startSolid || tr.fraction < 1.f || !G_Ai_Node_HasFloor(node->position, other->position)) {
+          float distance;
+          if (other->model == node->model ||
+              !G_Ai_Node_CanWalkMover(node->position, other->position, bounds, &distance)) {
             continue;
           }
 
@@ -2049,8 +2145,7 @@ void G_Ai_Node_UpdateMovers(void) {
     GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
 
     if (node->mover) {
-      const Mat4 matrix = Mat4_FromRotationTranslationScale(node->mover->s.angles, node->mover->s.origin, 1.f);
-      const Vec3 position = Mat4_Transform(matrix, node->local);
+      const Vec3 position = G_Ai_Node_MoverPosition(node);
 
       if (!Vec3_Equal(position, node->position)) {
         node->position = position;
@@ -2315,7 +2410,7 @@ static bool G_Ai_Node_LinkPassesHazard(const Vec3 from, const Vec3 to) {
   const float length = Vec3_Length(delta);
 
   if (length <= 0.f) {
-    return (gi.PointContents(from) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+    return (gi.PointContents(from) & AI_CONTENTS_HAZARD) != 0;
   }
 
   const Vec3 dir = Vec3_Scale(delta, 1.f / length);
@@ -2326,7 +2421,7 @@ static bool G_Ai_Node_LinkPassesHazard(const Vec3 from, const Vec3 to) {
     const float dist = Minf(length, i * step);
     const Vec3 point = Vec3_Fmaf(from, dist, dir);
 
-    if (gi.PointContents(point) & (CONTENTS_LAVA | CONTENTS_SLIME)) {
+    if (gi.PointContents(point) & AI_CONTENTS_HAZARD) {
       return true;
     }
   }
@@ -2388,7 +2483,7 @@ const NavLadder *G_Ai_Node_GetLadder(const NavLadderClimb *climb) {
  * @see g_ai_node.h
  */
 bool G_Ai_Node_IsHazard(const GameAiNodeId node) {
-  return (G_Ai_Node_Contents(AI_NODE(aiNodes, node)) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+  return (G_Ai_Node_Contents(AI_NODE(aiNodes, node)) & AI_CONTENTS_HAZARD) != 0;
 }
 
 /**
@@ -2529,7 +2624,7 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
   const GameAiNode *linkNode = AI_NODE(aiNodes, link->id);
   const float drop = node->position.z - linkNode->position.z;
   const int32_t linkContents = G_Ai_Node_Contents(linkNode);
-  const bool toHazard = (linkContents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+  const bool toHazard = (linkContents & AI_CONTENTS_HAZARD) != 0;
 
   if (G_Ai_Node_Refresh(linkNode)->raised) {
     return -1.f;
@@ -2645,7 +2740,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
       continue;
     }
 
-    const bool fromHazard = (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+    const bool fromHazard = (G_Ai_Node_Contents(node) & AI_CONTENTS_HAZARD) != 0;
 
     for (size_t i = 0; i < node->links->count; i++) {
       const GameAiLink *link = AI_LINK(node->links, i);
@@ -2755,7 +2850,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
       continue;
     }
 
-    const bool fromHazard = (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+    const bool fromHazard = (G_Ai_Node_Contents(node) & AI_CONTENTS_HAZARD) != 0;
 
     for (size_t i = 0; i < node->links->count; i++) {
       const GameAiLink *link = AI_LINK(node->links, i);
@@ -2875,7 +2970,7 @@ bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiN
 
     const float start = module.pressStarts[slot];
     const GameAiNodeId source = module.pressSources[slot];
-    const bool fromHazard = (G_Ai_Node_Contents(node) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+    const bool fromHazard = (G_Ai_Node_Contents(node) & AI_CONTENTS_HAZARD) != 0;
     const bool fromMoved = G_Ai_Node_IsMovedBy(node, doorName);
 
     for (size_t i = 0; i < numLinks + numPress; i++) {
