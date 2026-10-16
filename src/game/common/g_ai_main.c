@@ -2193,14 +2193,13 @@ static bool G_Ai_LeaveLadder(GameClient *cl, PMoveCmd *cmd) {
 /**
  * @return True if the bot is on the ground near the ladder of its climb, and moves to its line or
  * into it. It walks, so that it stops on the line, rather than run across it.
+ * @param phase The phase of the bot's climb (`G_Ai_LadderMove`).
  */
-static bool G_Ai_IsLadderApproach(const GameClient *cl) {
+static bool G_Ai_IsLadderApproach(const GameClient *cl, const GameAiLadderPhase phase) {
 
   if (!cl->entity->ground.ent || !G_Ai_IsClimbing(cl)) {
     return false;
   }
-
-  const GameAiLadderPhase phase = G_Ai_LadderMove(cl).phase;
 
   return phase == AI_LADDER_OUT || phase == AI_LADDER_ACROSS || phase == AI_LADDER_IN;
 }
@@ -2978,7 +2977,536 @@ static bool G_Ai_IsWaitingForMover(const GameClient *cl) {
 }
 
 /**
- * @brief Move towards our current target
+ * @brief The state that the phases of one pass of `G_Ai_Move` share.
+ */
+typedef struct {
+  /**
+   * @brief The point to which the bot moves.
+   */
+  Vec3 dest;
+
+  /**
+   * @brief The distance from the bot to `dest`.
+   */
+  float distance;
+
+  /**
+   * @brief The move relative to the command's view: the forward move in x, and the right move in
+   * y. A unit vector until `G_Ai_Move_speed` scales it.
+   */
+  Vec3 dir;
+
+  /**
+   * @brief The link into the node that the bot moves to (`G_Ai_PathLink`).
+   */
+  const GameAiLink *link;
+
+  /**
+   * @brief How the bot follows the ladder of its climb (`G_Ai_LadderMove`).
+   */
+  GameAiLadderMove ladder;
+
+  /**
+   * @brief True if the bot closes with, or circles, the enemy that is its move goal.
+   */
+  bool targetEnemy;
+
+  /**
+   * @brief True if the bot heads for the jump pad or teleporter of its path link
+   * (`G_Ai_PushDestination`), rather than for the link's node.
+   */
+  bool toPush;
+
+  /**
+   * @brief True if the bot wanders (`G_Ai_Wander`), with no point to move to.
+   */
+  bool moveWander;
+
+  /**
+   * @brief True if the bot waits for a mover ahead (`G_Ai_IsWaitingForMover`).
+   */
+  bool waitPolitely;
+
+  /**
+   * @brief True if the bot slows to turn onto the line of a jump (`G_Ai_ShouldSlowForJump`).
+   */
+  bool turnToJump;
+
+  /**
+   * @brief True if the bot stands on the ground, and its move loses it (`G_Ai_Move_predict`).
+   */
+  bool atEdge;
+
+  /**
+   * @brief The player move that predicts the bot's next frame with the command.
+   */
+  PMove pm;
+} GameAiMovePass;
+
+/**
+ * @brief Resolves the point to which a bot on a path steers: the landing of a trick jump, on the
+ * ground a point on the line of a jump link (`G_Ai_JumpDestination`) or of a walk or crouch link
+ * (`G_Ai_WalkDestination`), the point of its climb (`G_Ai_LadderMove`), or else the jump pad or
+ * teleporter of its link (`G_Ai_PushDestination`), or its next node.
+ */
+static void G_Ai_Move_path(GameClient *cl, GameAiMovePass *move) {
+
+  const GameEntity *ent = cl->entity;
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  move->link = G_Ai_PathLink(cl);
+  move->ladder = G_Ai_LadderMove(cl);
+
+  if (goal->path.trickJump) {
+    move->dest = goal->path.trickPosition;
+  } else if (G_Ai_IsJumpLink(cl) && ent->ground.ent) {
+    move->dest = G_Ai_JumpDestination(cl);
+  } else if (move->link && move->link->travelType <= NAV_TRAVEL_CROUCH && ent->ground.ent) {
+    move->dest = G_Ai_WalkDestination(cl);
+  } else if (move->ladder.phase != AI_LADDER_NONE) {
+    move->dest = move->ladder.dest;
+  } else {
+    move->dest = G_Ai_PushDestination(cl, goal->path.pathPosition);
+    move->toPush = !Vec3_Equal(move->dest, goal->path.pathPosition);
+  }
+}
+
+/**
+ * @brief Resolves the point to which the bot moves for its move goal: the goal's position, its
+ * entity, a point that circles the enemy (`G_Ai_CircleStrafe`), none for a bot that wanders, or the
+ * point that a bot on a path steers to (`G_Ai_Move_path`). A bot on a path first moves on to its
+ * next node if it reached this one (`G_Ai_CheckNav`), and plans a new path around a raised plat or
+ * back to a path that it left. A goal in distress (`G_Ai_GoalDistress`) is dropped. Each of these
+ * changes the goal, so the bot tries again, up to three times. A bot on a ladder link measures its
+ * distress against the top of the link, which it closes in on, not the point that it steers to,
+ * which stays ahead of it. A bot in distress on the ladder of its climb lets go of it
+ * (`G_Ai_JumpOffLadder`).
+ * @return True if the bot has a point to move to. False if it has none after three tries, or if it
+ * let go of a ladder, from which `G_Ai_LeaveLadder` then steers it away.
+ */
+static bool G_Ai_Move_goal(GameClient *cl, GameAiMovePass *move) {
+
+  const GameEntity *ent = cl->entity;
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  for (int32_t tries = 0; tries < 3; tries++) {
+
+    move->targetEnemy = false;
+    move->toPush = false;
+    move->dest = Vec3_Zero();
+    move->moveWander = false;
+    move->link = NULL;
+    move->ladder = (GameAiLadderMove) { .phase = AI_LADDER_NONE };
+
+    switch (goal->type) {
+      default:
+        move->dest = ent->s.origin;
+        move->moveWander = true;
+        break;
+      case AI_GOAL_POSITION:
+        move->dest = goal->position.pos;
+        break;
+      case AI_GOAL_ENTITY:
+        switch (goal->entity.combatType) {
+          case AI_COMBAT_NONE:
+          default:
+            move->dest = goal->entity.ent->s.origin;
+            break;
+          case AI_COMBAT_CLOSE:
+            move->dest = goal->entity.ent->s.origin;
+            move->targetEnemy = true;
+            break;
+          case AI_COMBAT_FLANK:
+            move->dest = G_Ai_CircleStrafe(cl, goal->entity.ent);
+            move->targetEnemy = true;
+            break;
+          case AI_COMBAT_WANDER:
+            move->moveWander = true;
+            move->targetEnemy = true;
+            break;
+        }
+        break;
+      case AI_GOAL_PATH:
+        if (!G_Ai_CheckNav(cl, goal)) {
+          if (!G_Ai_ApproachPathTarget(cl)) {
+            G_Ai_Probe_PathEnd(cl, "arrived");
+            G_Ai_EndPath(cl);
+          }
+          continue;
+        }
+
+        if (G_Ai_AvoidRaisedPlatform(cl)) {
+          continue;
+        }
+
+        if (G_Ai_IsOffPath(cl) && G_Ai_ReturnToPath(cl)) {
+          continue;
+        }
+
+        G_Ai_Move_path(cl, move);
+        break;
+    }
+
+    const bool climbing = move->link && move->link->travelType == NAV_TRAVEL_LADDER;
+
+    if (!G_Ai_GoalDistress(cl, goal, climbing ? goal->path.pathPosition : move->dest)) {
+      G_Ai_Probe_PathEnd(cl, "distress");
+      if (G_Ai_IsCommittedToClimb(cl) && (cl->ps.pmState.flags & PMF_ON_LADDER)) {
+        G_Ai_JumpOffLadder(cl);
+        G_Ai_ClearGoal(goal);
+        return false;
+      }
+      G_Ai_ClearGoal(goal);
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * @brief Turns the point to which the bot moves into a unit move relative to the command's view. A
+ * bot that wanders moves along the yaw of `G_Ai_Wander`. A bot that closes with an enemy within 200
+ * units MAY switch to flanking or wandering, so that it does not stick to the enemy.
+ */
+static void G_Ai_Move_direction(GameClient *cl, PMoveCmd *cmd, GameAiMovePass *move) {
+
+  const GameEntity *ent = cl->entity;
+
+  if (move->moveWander) {
+    Vec3 forward;
+    Vec3_Vectors(MakeVec3(0.f, G_Ai_Wander(cl, cmd), 0.f), &forward, NULL, NULL);
+    move->dest = Vec3_Add(ent->s.origin, forward);
+  }
+
+  const Vec3 delta = Vec3_Subtract(move->dest, ent->s.origin);
+  move->distance = Vec3_Length(delta);
+
+  if (move->targetEnemy && move->distance < 200.f &&
+      cl->ai->moveTarget.entity.combatType == AI_COMBAT_CLOSE && Randomb()) {
+    cl->ai->moveTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+  }
+
+  move->dir = G_Ai_CommandMove(cl, cmd, Vec3_Normalize(delta));
+}
+
+/**
+ * @brief Sets the speed of a bot on a path. A bot that waits for a mover ahead
+ * (`G_Ai_IsWaitingForMover`) steps out from under a raised plat (`G_Ai_LeavePlatform`), or else
+ * runs on, and its goal's distress runs out more slowly. A trick jump stops while the bot turns,
+ * and slows near its landing. A strafe jump (`G_Ai_StrafeJump`) sets the move itself, and can move
+ * the bot along its path, so the path link and the climb are looked up again after it. A bot in
+ * the air that falls onto a node more than a step below it slows to the distance to the node, so
+ * that it lands on it. On land, a bot walks at `AI_LEDGE_SPEED` up to a ladder
+ * (`G_Ai_IsLadderApproach`), to turn onto the line of a jump (`G_Ai_ShouldSlowForJump`), and on a
+ * walk-off-ledge link or a slow drop (`G_Ai_ShouldSlowDrop`), so that it does not overshoot the
+ * node below. Else it runs.
+ */
+static void G_Ai_Move_speed(GameClient *cl, PMoveCmd *cmd, GameAiMovePass *move) {
+
+  const GameEntity *ent = cl->entity;
+  GameAiGoal *goal = &cl->ai->moveTarget;
+  const bool swimming = ent->waterLevel >= WATER_WAIST;
+
+  if (G_Ai_IsWaitingForMover(cl)) {
+    const GameEntity *plat = G_Ai_Node_RaisedPlatform(goal->path.pathPosition);
+    move->dir = plat ? G_Ai_LeavePlatform(cl, cmd, plat) : Vec3_Scale(move->dir, PM_SPEED_RUN);
+    move->waitPolitely = true;
+    goal->distressExtension = true;
+  } else if (goal->path.trickJump) {
+    if (goal->path.trickJump == TRICK_JUMP_TURNING) {
+      move->dir = Vec3_Zero();
+    } else {
+      move->dir = Vec3_Scale(move->dir, Clampf(move->distance * 2.f, 10.f, PM_SPEED_RUN));
+    }
+  } else if (G_Ai_StrafeJump(cl, cmd, &move->dir)) {
+    move->link = G_Ai_PathLink(cl);
+    move->ladder = G_Ai_LadderMove(cl);
+  } else if (!swimming && !ent->ground.ent && ent->velocity.z < 0.f &&
+             Vec3_Dot(Vec3_Subtract(ent->s.origin, goal->path.pathPosition), Vec3_Down()) > 0.7f &&
+             goal->path.pathPosition.z - ent->s.origin.z <= -PM_STEP_HEIGHT) {
+    move->dir = Vec3_Scale(move->dir, Clampf(move->distance, 10.f, PM_SPEED_RUN));
+    G_Ai_Debug("Trying to land on target\n");
+  } else if (!swimming && G_Ai_IsLadderApproach(cl, move->ladder.phase)) {
+    move->dir = Vec3_Scale(move->dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
+  } else if (!swimming && G_Ai_ShouldSlowForJump(cl)) {
+    move->dir = Vec3_Scale(move->dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
+    move->turnToJump = true;
+  } else if (!swimming && goal->path.pathIndex > 0 &&
+             ((move->link && move->link->travelType == NAV_TRAVEL_WALK_OFF_LEDGE) ||
+              G_Ai_ShouldSlowDrop(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                                  VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex)))) {
+    move->dir = Vec3_Scale(move->dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
+  } else {
+    move->dir = Vec3_Scale(move->dir, PM_SPEED_RUN);
+  }
+}
+
+/**
+ * @brief Sets the up move of a bot on a path. A bot that swims rises to a node above it, or for air
+ * (`G_Ai_NeedsAir`), and dives to a node below it. A bot on a ladder takes the up move of its climb
+ * (`G_Ai_LadderMove`), or with no climb, crouches to climb down to a node more than its height
+ * below it. A bot on the ground jumps a barrier (`G_Ai_ShouldBarrierJump`), and crouches along a
+ * crouch link.
+ */
+static void G_Ai_Move_up(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass *move) {
+
+  const GameEntity *ent = cl->entity;
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (ent->waterLevel >= WATER_WAIST) {
+    const float rise = goal->path.pathPosition.z - ent->s.origin.z;
+
+    if (G_Ai_NeedsAir(cl) || rise > PM_STEP_HEIGHT || (rise > 0.f && ent->ground.ent)) {
+      cmd->up = PM_SPEED_JUMP;
+    } else if (rise < -PM_STEP_HEIGHT) {
+      cmd->up = -PM_SPEED_RUN;
+    }
+  } else if (cl->ps.pmState.flags & PMF_ON_LADDER) {
+    const float height = Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z;
+
+    if (move->ladder.phase != AI_LADDER_NONE) {
+      cmd->up = move->ladder.up;
+    } else if (goal->path.pathPosition.z - ent->s.origin.z < -height) {
+      cmd->up = -PM_SPEED_DUCKED;
+    } else {
+      cmd->up = 0;
+    }
+  } else if (G_Ai_ShouldBarrierJump(cl, move->link)) {
+    cmd->up = PM_SPEED_JUMP;
+    G_Ai_Debug("Barrier jump to %s\n", vtos(goal->path.pathPosition));
+  } else if (move->link && move->link->travelType == NAV_TRAVEL_CROUCH) {
+    cmd->up = -PM_SPEED_DUCKED;
+  }
+}
+
+/**
+ * @brief Predicts the bot's next frame with the command, and its move a little further ahead, 100
+ * milliseconds on a path and 250 otherwise, so that it stops in time at an edge or for a mover. The
+ * look-ahead is costly, so it runs once each server frame, and the passes of `G_Ai_ClientThink`
+ * share it. The bot is at an edge if it stands on the ground, and loses it in either prediction
+ * without grabbing the ladder of its climb.
+ */
+static void G_Ai_Move_predict(GameClient *cl, const PMoveCmd *cmd, GameAiMovePass *move) {
+
+  G_Ai_InitPMove(cl, &move->pm);
+
+  move->pm.cmd = *cmd;
+
+  Pm_Move(&move->pm);
+
+  if (cl->ai->lookaheadFrame != gameLevel.frameNum) {
+    PMove ahead = move->pm;
+    ahead.cmd.msec = cl->ai->moveTarget.type == AI_GOAL_PATH ? 100 : 250;
+    Pm_Move(&ahead);
+    cl->ai->lookaheadFrame = gameLevel.frameNum;
+    const bool grabsAhead = (ahead.s.flags & PMF_ON_LADDER) && G_Ai_IsClimbing(cl);
+    cl->ai->lookaheadNoGround = !ahead.ground.ent && !grabsAhead;
+  }
+
+  const bool grabs = (move->pm.s.flags & PMF_ON_LADDER) && G_Ai_IsClimbing(cl);
+  move->atEdge = cl->entity->ground.ent && (cl->ai->lookaheadNoGround || (!move->pm.ground.ent && !grabs));
+}
+
+/**
+ * @brief Handles an edge ahead of the bot (`GameAiMovePass::atEdge`). A bot with no path brakes
+ * (`G_Ai_Brake`) and does not jump: a wandering bot turns, and one that closes with an enemy
+ * wanders instead. A bot on a path that does not jump already backs off from the edge to wait for
+ * a mover ahead. It walks off a walk-off-ledge link within `AI_LEDGE_DISTANCE` of its line, and
+ * drops along an untyped link to a node below it, where `G_Ai_SimulateDrop` lands it. It jumps a
+ * jump link from its line (`G_Ai_IsOnJumpLine`) as the floor ends, and onto a ladder only along the
+ * line and at speed. Walk, crouch, walk-off-ledge and barrier jump links, and the untyped links
+ * that the game adds, leave the floor only where those cases let the bot drop, and a jump link
+ * only on its line, so an edge anywhere else means that the bot is off its path: it backs off, and
+ * plans a new one. On any other link, it jumps for a node above it or far across, and backs off
+ * from a fall to a hazard (`G_Ai_FallsToHazard`) if it moves too fast to steer
+ * (`G_Ai_IsOverspeed`).
+ */
+static void G_Ai_Move_edge(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass *move) {
+
+  const GameEntity *ent = cl->entity;
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type != AI_GOAL_PATH) {
+    G_Ai_Brake(cl, cmd);
+    cmd->up = 0;
+
+    if (move->moveWander) {
+      const float angle = 45 + Randomf() * 45;
+
+      if (move->targetEnemy) {
+        goal->entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+        goal->entity.flankAngle += Randomb() ? -angle : angle;
+      } else {
+        cl->ai->wanderAngle += Randomb() ? -angle : angle;
+      }
+    } else if (move->targetEnemy) {
+      goal->entity.combatType = AI_COMBAT_WANDER;
+    }
+    return;
+  }
+
+  if (cmd->up > 0) {
+    return;
+  }
+
+  const Vec3 node = goal->path.pathPosition;
+  const float xyDist = Vec2_Distance(Vec3_XY(node), Vec3_XY(ent->s.origin));
+  const NavTravelType travelType = move->link ? move->link->travelType : NAV_TRAVEL_NONE;
+  const bool jumpLink = G_Ai_IsJumpLink(cl);
+  const NavLadderClimb *jumpClimb = G_Ai_JumpClimb(cl);
+
+  if (G_Ai_IsWaitingForMover(cl)) {
+    G_Ai_ReverseMove(cmd);
+    G_Ai_Debug("Stopping early to prevent mover issues\n");
+  } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
+             G_Ai_SimulateDrop(cl, node)) {
+    G_Ai_Debug("Walking off a ledge to %s\n", vtos(node));
+  } else if (travelType == NAV_TRAVEL_NONE && !move->toPush && node.z < ent->s.origin.z - PM_STEP_HEIGHT &&
+             G_Ai_SimulateDrop(cl, node)) {
+    G_Ai_Debug("Dropping to %s\n", vtos(node));
+  } else if (jumpLink && !move->toPush && G_Ai_IsOnJumpLine(cl, NULL) &&
+             (!jumpClimb || (G_Ai_IsJumpHeading(cl) && G_Ai_IsJumpSpeed(cl)))) {
+    if (!move->pm.ground.ent) {
+      cmd->up = PM_SPEED_JUMP;
+      cl->ai->ladderJumping = jumpClimb != NULL;
+      G_Ai_Debug("Jumping across a gap to %s\n", vtos(node));
+    }
+  } else if (!move->toPush && (travelType <= NAV_TRAVEL_BARRIER_JUMP || jumpLink)) {
+    G_Ai_ReverseMove(cmd);
+    G_Ai_ReturnToPath(cl);
+  } else if ((node.z - ent->s.origin.z > -PM_STEP_HEIGHT ||
+              (xyDist > fabsf(node.z - ent->s.origin.z) && xyDist >= PM_STEP_HEIGHT * 6.f)) &&
+             !move->pm.ground.ent && !move->toPush) {
+    if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
+      G_Ai_ReverseMove(cmd);
+    } else {
+      cmd->up = PM_SPEED_JUMP;
+    }
+  } else if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, ent->velocity)) {
+    G_Ai_ReverseMove(cmd);
+  }
+}
+
+/**
+ * @brief Times the jump of a trick jump, away from an edge: the bot lets go of jump for a frame
+ * after it starts, and then holds it again.
+ */
+static void G_Ai_Move_trickJump(GameClient *cl, PMoveCmd *cmd) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->path.trickJump == TRICK_JUMP_START) {
+    goal->path.trickJump++;
+    cmd->up = 0;
+    G_Ai_Debug("Trick jump: letting go for a frame\n");
+  } else if (goal->path.trickJump == TRICK_JUMP_WAITING) {
+    cmd->up = PM_SPEED_JUMP;
+    G_Ai_Debug("Trick jump: holding jump again!!\n");
+  }
+}
+
+/**
+ * @brief Counts the bot's distress while it is stuck: while its predicted move is shorter than a
+ * walk, or than half the speed of a climb, or of its walk up to a ladder, or a tenth of a walk in
+ * liquid. A predicted move longer than 64 units is a teleport, after which a bot on a path moves on
+ * to its next node. A bot that turns for a trick jump, waits for a mover, slows to turn onto a
+ * jump, stands at an edge or rides a mover is not stuck. A stuck bot on the ground on a path, other
+ * than a ride, a jump onto a ladder or a climb, starts a trick jump to a node more than seven steps
+ * above it, or jumps to a node above it that is near and that it faces. Its distress grows, more
+ * slowly on a mover, so that it does not jump off. Unless it climbs, it sidesteps once its distress
+ * passes 8, and else jumps once it passes 12, if the jump does not fall to a hazard. A bot that
+ * moves sheds distress.
+ */
+static void G_Ai_Move_stuck(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass *move) {
+
+  const GameEntity *ent = cl->entity;
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  const float moved = Vec3_Length(Vec3_Subtract(ent->s.origin, move->pm.s.origin));
+
+  if (moved > 64.f) {
+    if (goal->type == AI_GOAL_PATH && !G_Ai_AdvancePath(cl, goal)) {
+      G_Ai_Probe_PathEnd(cl, "teleported");
+      G_Ai_EndPath(cl);
+    }
+    return;
+  }
+
+  if ((goal->type == AI_GOAL_PATH && goal->path.trickJump == TRICK_JUMP_TURNING) ||
+      move->waitPolitely || move->turnToJump || move->atEdge || G_Ai_IsRidingMover(ent)) {
+    return;
+  }
+
+  float minMove = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
+
+  if (cl->ps.pmState.flags & PMF_ON_LADDER) {
+    minMove = PM_SPEED_LADDER * .5f * MILLIS_TO_SECONDS(cmd->msec);
+  } else if (G_Ai_IsLadderApproach(cl, move->ladder.phase)) {
+    minMove = PM_SPEED_RUN * AI_LEDGE_SPEED * .5f * MILLIS_TO_SECONDS(cmd->msec);
+  } else if (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) {
+    minMove *= 0.1f;
+  }
+
+  if (moved >= minMove) {
+    if (goal->distress > 0) {
+      goal->distress -= 0.2f;
+    }
+    return;
+  }
+
+  if (cl->ai->distressJumpOffset <= gameLevel.time && goal->type == AI_GOAL_PATH && ent->ground.ent &&
+      move->pm.ground.ent && !G_Ai_IsRideLink(move->link) && !G_Ai_JumpClimb(cl) && !G_Ai_IsClimbing(cl)) {
+
+    const float rise = goal->path.pathPosition.z - ent->s.origin.z;
+
+    if (rise > PM_STEP_HEIGHT * 7.f) {
+      goal->path.trickJump = TRICK_JUMP_START;
+      goal->path.trickPosition = goal->path.pathPosition;
+      cmd->up = PM_SPEED_JUMP;
+
+      G_Ai_Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
+    } else if (rise > PM_STEP_HEIGHT &&
+               Vec2_Distance(Vec3_XY(goal->path.pathPosition), Vec3_XY(ent->s.origin)) < PM_STEP_HEIGHT * 7.f &&
+               G_Ai_FacingTarget(cl, goal->path.pathPosition)) {
+      cmd->up = PM_SPEED_JUMP;
+
+      G_Ai_Debug("Node above us & close, and we're probably stuck; regular jump\n");
+    }
+  }
+
+  if (G_Ai_IsRidingMover(ent)) {
+    goal->distress += 0.02f;
+  } else {
+    goal->distress += 0.2f;
+
+    if (!G_Ai_IsClimbing(cl)) {
+      if (goal->distress > 8.f && !cmd->right) {
+        cmd->right = cmd->forward;
+
+        if (goal->time & 1) {
+          cmd->right = -cmd->right;
+        }
+      } else if (goal->distress > 12.f && !G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
+        cmd->up = PM_SPEED_JUMP;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Moves the bot toward its move goal. A bot in flight from a jump pad (`G_Ai_FollowPush`),
+ * or with no goal while the state machine waits, holds still, and a bot that leaves a blocked
+ * ladder moves away from it (`G_Ai_LeaveLadder`). Else the bot resolves where it moves
+ * (`G_Ai_Move_goal`), turns that into a move (`G_Ai_Move_direction`), and on a path sets its speed
+ * (`G_Ai_Move_speed`) and up move (`G_Ai_Move_up`), or else runs, and swims up in water. It
+ * predicts the move (`G_Ai_Move_predict`), handles an edge ahead (`G_Ai_Move_edge`) or else times a
+ * trick jump (`G_Ai_Move_trickJump`), counts its distress if it is stuck (`G_Ai_Move_stuck`), and
+ * steers away from a fall to a hazard (`G_Ai_AvoidHazard`).
+ * @return 0 to move again in the next pass, or 1 if the bot has no goal to move to, which skips the
+ * other passes of this server frame.
  */
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
@@ -3012,400 +3540,38 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     return 0;
   }
 
-  bool targetEnemy = false;
-  bool toPush = false;
+  GameAiMovePass move = { .link = NULL };
 
-  Vec3 dir, angles, dest = Vec3_Zero();
-  bool moveWander = false;
-
-  // Resolve the move goal iteratively. The original code used tail-recursive calls
-  // when the path check or distress check failed, which could overflow the stack since
-  // G_Ai_Move has a large frame (~6.5 KB for two PMove locals). Three tries matches
-  // the maximum depth of the original recursion.
-  bool goalReady = false;
-  for (int32_t tries = 0; tries < 3 && !goalReady; tries++) {
-
-    targetEnemy = false;
-    toPush = false;
-    dest = Vec3_Zero();
-    moveWander = false;
-
-    switch (cl->ai->moveTarget.type) {
-      default:
-        dest = ent->s.origin;
-        moveWander = true;
-        break;
-      case AI_GOAL_POSITION:
-        dest = cl->ai->moveTarget.position.pos;
-        break;
-      case AI_GOAL_ENTITY:
-        switch (cl->ai->moveTarget.entity.combatType) {
-        case AI_COMBAT_NONE:
-        default:
-          dest = cl->ai->moveTarget.entity.ent->s.origin;
-          break;
-        case AI_COMBAT_CLOSE:
-          dest = cl->ai->moveTarget.entity.ent->s.origin;
-          targetEnemy = true;
-          break;
-        case AI_COMBAT_FLANK:
-          dest = G_Ai_CircleStrafe(cl, cl->ai->moveTarget.entity.ent);
-          targetEnemy = true;
-          break;
-        case AI_COMBAT_WANDER:
-          moveWander = true;
-          targetEnemy = true;
-          break;
-        }
-        break;
-      case AI_GOAL_PATH:
-        if (!G_Ai_CheckNav(cl, &cl->ai->moveTarget)) {
-          if (!G_Ai_ApproachPathTarget(cl)) {
-            G_Ai_Probe_PathEnd(cl, "arrived");
-            G_Ai_EndPath(cl);
-          }
-          continue;
-        }
-
-        if (G_Ai_AvoidRaisedPlatform(cl)) {
-          continue;
-        }
-
-        if (G_Ai_IsOffPath(cl) && G_Ai_ReturnToPath(cl)) {
-          continue;
-        }
-
-        if (cl->ai->moveTarget.path.trickJump) {
-          dest = cl->ai->moveTarget.path.trickPosition;
-        } else if (G_Ai_IsJumpLink(cl) && ent->ground.ent) {
-          dest = G_Ai_JumpDestination(cl);
-        } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType <= NAV_TRAVEL_CROUCH && ent->ground.ent) {
-          dest = G_Ai_WalkDestination(cl);
-        } else if (G_Ai_LadderClimb(cl)) {
-          dest = G_Ai_LadderMove(cl).dest;
-        } else {
-          dest = G_Ai_PushDestination(cl, cl->ai->moveTarget.path.pathPosition);
-          toPush = !Vec3_Equal(dest, cl->ai->moveTarget.path.pathPosition);
-        }
-        break;
-    }
-
-    const bool climbing = cl->ai->moveTarget.type == AI_GOAL_PATH && G_Ai_PathLink(cl) &&
-                          G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_LADDER;
-
-    if (!G_Ai_GoalDistress(cl, &cl->ai->moveTarget, climbing ? cl->ai->moveTarget.path.pathPosition : dest)) {
-      G_Ai_Probe_PathEnd(cl, "distress");
-      if (G_Ai_IsCommittedToClimb(cl) && (cl->ps.pmState.flags & PMF_ON_LADDER)) {
-        G_Ai_JumpOffLadder(cl);
-        G_Ai_ClearGoal(&cl->ai->moveTarget);
-        G_Ai_LeaveLadder(cl, cmd);
-        return 0;
-      }
-      G_Ai_ClearGoal(&cl->ai->moveTarget);
-      continue;
-    }
-
-    goalReady = true;
+  if (!G_Ai_Move_goal(cl, &move)) {
+    return G_Ai_LeaveLadder(cl, cmd) ? 0 : 1;
   }
 
-  if (!goalReady) {
-    return 1;
-  }
-
-  if (moveWander) {
-    const float wanderAngle = G_Ai_Wander(cl, cmd);
-
-    angles = MakeVec3(0.0, wanderAngle, 0.0);
-    Vec3_Vectors(angles, &dir, NULL, NULL);
-    dest = Vec3_Add(ent->s.origin, dir);
-  }
-
-  dir = Vec3_Subtract(dest, ent->s.origin);
-  const float len = Vec3_Length(dir);
-
-  if (targetEnemy && len < 200.0f) {
-    // switch to flank/wander, this helps us recover from being up close to enemies
-    if (cl->ai->moveTarget.entity.combatType == AI_COMBAT_CLOSE && Randomb()) {
-      cl->ai->moveTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
-    }
-  }
-
-  dir = G_Ai_CommandMove(cl, cmd, Vec3_Normalize(dir));
-
-  const bool swimming = ent->waterLevel >= WATER_WAIST;
-  bool waitPolitely = false;
-  bool turnToJump = false;
+  G_Ai_Move_direction(cl, cmd, &move);
 
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
     cl->ai->strafeBlock = AI_STRAFE_BLOCK_STATE;
-    // the next step(s) will be onto a mover, so if we can't move yet, we wait.
-    if (G_Ai_IsWaitingForMover(cl)) {
-      const GameEntity *plat = G_Ai_Node_RaisedPlatform(cl->ai->moveTarget.path.pathPosition);
-      dir = plat ? G_Ai_LeavePlatform(cl, cmd, plat) : Vec3_Scale(dir, PM_SPEED_RUN);
-      waitPolitely = true;
-      cl->ai->moveTarget.distressExtension = true;
-    // trick-jumping requires a bit of finesse
-    } else if (cl->ai->moveTarget.path.trickJump) {
-      if (cl->ai->moveTarget.path.trickJump == TRICK_JUMP_TURNING) {
-        dir = Vec3_Zero();
-      } else {
-        dir = Vec3_Scale(dir, Clampf(len * 2.f, 10.f, PM_SPEED_RUN));
-      }
-    } else if (G_Ai_StrafeJump(cl, cmd, &dir)) {
-    // if we aren't underwater, have no ground entity & falling downwards, we're probably in the air;
-    // rather than full-blasting, pull us towards what we're trying to drop on.
-    } else if (!swimming
-               && !ent->ground.ent
-               && ent->velocity.z < 0.f
-               && Vec3_Dot(Vec3_Subtract(ent->s.origin, cl->ai->moveTarget.path.pathPosition), Vec3_Down()) > 0.7f
-               && (cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) <= -PM_STEP_HEIGHT) {
-      dir = Vec3_Scale(dir, Clampf(len, 10.f, PM_SPEED_RUN));
-      G_Ai_Debug("Trying to land on target\n");
-    } else if (!swimming && G_Ai_IsLadderApproach(cl)) {
-      dir = Vec3_Scale(dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
-    } else if (!swimming && G_Ai_ShouldSlowForJump(cl)) {
-      dir = Vec3_Scale(dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
-      turnToJump = true;
-    // we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
-    // running off the edge, transition to walking so we don't overshoot targets beneath us
-    } else if (!swimming && cl->ai->moveTarget.path.pathIndex > 0 &&
-               ((G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_WALK_OFF_LEDGE) ||
-               G_Ai_ShouldSlowDrop(
-                 VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex - 1),
-                 VectorValue(cl->ai->moveTarget.path.path, GameAiNodeId, cl->ai->moveTarget.path.pathIndex)))) {
-      dir = Vec3_Scale(dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
-    // run full speed towards the target
-    } else {
-      dir = Vec3_Scale(dir, PM_SPEED_RUN);
-    }
-
-    // if we're swimming, swim up or down to the node
-    if (swimming) {
-      const float rise = cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z;
-
-      if (G_Ai_NeedsAir(cl) || rise > PM_STEP_HEIGHT || (rise > 0.f && ent->ground.ent)) {
-        cmd->up = PM_SPEED_JUMP;
-      } else if (rise < -PM_STEP_HEIGHT) {
-        cmd->up = -PM_SPEED_RUN;
-      }
-    // if we're on a ladder and the node is a bbox below us, crouch to get down,
-    // otherwise hold jump
-    } else if (cl->ps.pmState.flags & PMF_ON_LADDER) {
-      const GameAiLadderMove ladder = G_Ai_LadderMove(cl);
-
-      if (ladder.phase != AI_LADDER_NONE) {
-        cmd->up = ladder.up;
-      } else if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z) {
-        cmd->up = -PM_SPEED_DUCKED;
-      } else {
-        cmd->up = 0;
-      }
-    } else if (G_Ai_ShouldBarrierJump(cl, G_Ai_PathLink(cl))) {
-      cmd->up = PM_SPEED_JUMP;
-      G_Ai_Debug("Barrier jump to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
-    } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_CROUCH) {
-      cmd->up = -PM_SPEED_DUCKED;
-    }
-  // run full speed towards the target
+    G_Ai_Move_speed(cl, cmd, &move);
+    G_Ai_Move_up(cl, cmd, &move);
   } else {
-    dir = Vec3_Scale(dir, PM_SPEED_RUN);
+    move.dir = Vec3_Scale(move.dir, PM_SPEED_RUN);
 
-    // if we're not navving, hold jump under water
     if (ent->waterLevel >= WATER_WAIST) {
       cmd->up = PM_SPEED_JUMP;
     }
   }
 
-  cmd->forward = dir.x;
-  cmd->right = dir.y;
+  cmd->forward = move.dir.x;
+  cmd->right = move.dir.y;
 
-  PMove pm;
-  G_Ai_InitPMove(cl, &pm);
+  G_Ai_Move_predict(cl, cmd, &move);
 
-  pm.cmd = *cmd;
-
-  Pm_Move(&pm);
-
-  // predict a few frames ahead for timely edge/mover stoppage; cache result per
-  // tick so the three sub-passes of G_Ai_ClientThink share one expensive Pm_Move
-  if (cl->ai->lookaheadFrame != gameLevel.frameNum) {
-    PMove ahead = pm;
-    ahead.cmd.msec = cl->ai->moveTarget.type == AI_GOAL_PATH ? 100 : 250;
-    Pm_Move(&ahead);
-    cl->ai->lookaheadFrame = gameLevel.frameNum;
-    const bool grabsAhead = (ahead.s.flags & PMF_ON_LADDER) && G_Ai_IsClimbing(cl);
-    cl->ai->lookaheadNoGround = !ahead.ground.ent && !grabsAhead;
-  }
-
-  const bool grabs = (pm.s.flags & PMF_ON_LADDER) && G_Ai_IsClimbing(cl);
-  const bool atEdge = ent->ground.ent && (cl->ai->lookaheadNoGround || (!pm.ground.ent && !grabs));
-
-  // predicted ground is gone
-  if (atEdge) {
-
-    if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
-
-      // path goals: only apply edge logic when not intentionally jumping
-      if (cmd->up <= 0) {
-        const float xyDist = Vec2_Distance(Vec3_XY(cl->ai->moveTarget.path.pathPosition), Vec3_XY(ent->s.origin));
-        const GameAiLink *link = G_Ai_PathLink(cl);
-        const NavTravelType travelType = link ? link->travelType : NAV_TRAVEL_NONE;
-
-        // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
-        if (G_Ai_IsWaitingForMover(cl)) {
-          G_Ai_ReverseMove(cmd);
-          G_Ai_Debug("Stopping early to prevent mover issues\n");
-        // a ledge link drops from one place, if the fall lands where the link does
-        } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
-                   G_Ai_SimulateDrop(cl, cl->ai->moveTarget.path.pathPosition)) {
-          G_Ai_Debug("Walking off a ledge to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
-        } else if (travelType == NAV_TRAVEL_NONE && !toPush &&
-                   cl->ai->moveTarget.path.pathPosition.z < ent->s.origin.z - PM_STEP_HEIGHT &&
-                   G_Ai_SimulateDrop(cl, cl->ai->moveTarget.path.pathPosition)) {
-          G_Ai_Debug("Dropping to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
-        } else if (G_Ai_IsJumpLink(cl) && !toPush && G_Ai_IsOnJumpLine(cl, NULL) &&
-                   (!G_Ai_JumpClimb(cl) || (G_Ai_IsJumpHeading(cl) && G_Ai_IsJumpSpeed(cl)))) {
-          if (!pm.ground.ent) {
-            cmd->up = PM_SPEED_JUMP;
-            cl->ai->ladderJumping = G_Ai_JumpClimb(cl) != NULL;
-            G_Ai_Debug("Jumping across a gap to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
-          }
-        // walk links, and the links that the game adds to them, have floor all the way, and a jump
-        // link leaves it only on its line, so an edge anywhere else means that we are off the path
-        } else if (!toPush && (travelType <= NAV_TRAVEL_BARRIER_JUMP || G_Ai_IsJumpLink(cl))) {
-          G_Ai_ReverseMove(cmd);
-          G_Ai_ReturnToPath(cl);
-        // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
-        } else if (((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
-          (xyDist > fabsf(cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) && (xyDist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent && !toPush) {
-          if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
-            G_Ai_ReverseMove(cmd);
-          } else {
-            cmd->up = PM_SPEED_JUMP;
-          }
-        } else if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, ent->velocity)) {
-          G_Ai_ReverseMove(cmd);
-        }
-      }
-
-    } else {
-
-      // non-path movement: back away from edges, cancel acrobatics jumps
-      G_Ai_Brake(cl, cmd);
-      cmd->up = 0;
-
-      if (moveWander) {
-        const float angle = 45 + Randomf() * 45;
-
-        if (targetEnemy) {
-          cl->ai->moveTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
-          cl->ai->moveTarget.entity.flankAngle += Randomb() ? -angle : angle;
-        } else {
-          cl->ai->wanderAngle += Randomb() ? -angle : angle;
-        }
-      } else if (targetEnemy) {
-        // charging toward enemy would go off edge - switch to flanking
-        cl->ai->moveTarget.entity.combatType = AI_COMBAT_WANDER;
-      }
-    }
-  // trick jump code
+  if (move.atEdge) {
+    G_Ai_Move_edge(cl, cmd, &move);
   } else if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
-
-    if (cl->ai->moveTarget.path.trickJump == TRICK_JUMP_START) {
-      cl->ai->moveTarget.path.trickJump++;
-      cmd->up = 0;
-      G_Ai_Debug("Trick jump: letting go for a frame\n");
-    } else if (cl->ai->moveTarget.path.trickJump == TRICK_JUMP_WAITING) {
-      cmd->up = PM_SPEED_JUMP;
-      G_Ai_Debug("Trick jump: holding jump again!!\n");
-    }
+    G_Ai_Move_trickJump(cl, cmd);
   }
-  
-  // check for getting stuck
-  const Vec3 moveDir = Vec3_Subtract(ent->s.origin, pm.s.origin);
-  const float moveLen = Vec3_Length(moveDir);
-  
-  // check for teleport
-  if (moveLen > 64.f) {
-    if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
-      if (!G_Ai_AdvancePath(cl, &cl->ai->moveTarget)) {
-        G_Ai_Probe_PathEnd(cl, "teleported");
-        G_Ai_EndPath(cl);
-      }
-    }
-  // if we're not waiting to turn...
-  // and not waiting politely...
-  // and not riding a mover...
-  } else if (((cl->ai->moveTarget.type == AI_GOAL_PATH
-               && cl->ai->moveTarget.path.trickJump != TRICK_JUMP_TURNING)
-               || cl->ai->moveTarget.type != AI_GOAL_PATH)
-               && !waitPolitely
-               && !turnToJump
-               && !atEdge
-               && !G_Ai_IsRidingMover(ent)) {
 
-    // we'll be pushed up against something
-    float smolDist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
-
-    if (cl->ps.pmState.flags & PMF_ON_LADDER) {
-      smolDist = PM_SPEED_LADDER * .5f * MILLIS_TO_SECONDS(cmd->msec);
-    } else if (G_Ai_IsLadderApproach(cl)) {
-      smolDist = PM_SPEED_RUN * AI_LEDGE_SPEED * .5f * MILLIS_TO_SECONDS(cmd->msec);
-    } else if (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) {
-      smolDist *= 0.1f;
-    }
-
-    if (moveLen < smolDist) {
-      
-      if (cl->ai->distressJumpOffset <= gameLevel.time) {
-        // if we're navving, node is above us, and we're on ground, jump; we're probably trying
-        // to trick-jump or something
-        if (cl->ai->moveTarget.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent &&
-            !G_Ai_IsRideLink(G_Ai_PathLink(cl)) && !G_Ai_JumpClimb(cl) && !G_Ai_IsClimbing(cl)) {
-          if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
-
-            cl->ai->moveTarget.path.trickJump = TRICK_JUMP_START;
-            cl->ai->moveTarget.path.trickPosition = cl->ai->moveTarget.path.pathPosition;
-            cmd->up = PM_SPEED_JUMP;
-
-            G_Ai_Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
-          } else if ((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > PM_STEP_HEIGHT &&
-            Vec2_Distance(Vec3_XY(cl->ai->moveTarget.path.pathPosition), Vec3_XY(ent->s.origin)) < PM_STEP_HEIGHT * 7.f &&
-            G_Ai_FacingTarget(cl, cl->ai->moveTarget.path.pathPosition)) {
-
-            cmd->up = PM_SPEED_JUMP;
-            G_Ai_Debug("Node above us & close, and we're probably stuck; regular jump\n");
-          }
-        }
-      }
-
-      // if we're on a mover, distress differently so we don't unexpectedly
-      // jump off of it
-      if (G_Ai_IsRidingMover(ent)) {
-        cl->ai->moveTarget.distress += 0.02f;
-      } else {
-        cl->ai->moveTarget.distress += 0.2f;
-
-        if (!G_Ai_IsClimbing(cl)) {
-          if (cl->ai->moveTarget.distress > 8.f && !cmd->right) {
-            cmd->right = cmd->forward;
-
-            if (cl->ai->moveTarget.time & 1) {
-              cmd->right = -cmd->right;
-            }
-          } else if (cl->ai->moveTarget.distress > 12.f &&
-                     !G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
-            cmd->up = PM_SPEED_JUMP;
-          }
-        }
-      }
-    // we're making some distance, reduce our distress
-    } else {
-      if (cl->ai->moveTarget.distress > 0) {
-        cl->ai->moveTarget.distress -= 0.2f;
-      }
-    }
-  }
+  G_Ai_Move_stuck(cl, cmd, &move);
 
   G_Ai_AvoidHazard(cl, cmd);
   return 0;
