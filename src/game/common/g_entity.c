@@ -815,9 +815,14 @@ static void G_worldspawn(GameEntity *ent) {
   // the gameplay is g_gameplay if the admin named one, else this level's
   // metadata, else its worldspawn, else deathmatch, as the movement is below
   const Entity *gameplayMap = G_MapListEntryValue("gameplay");
-  const char *gameplay = (gameplayMap && (gameplayMap->parsed & ENTITY_INTEGER) && gameplayMap->integer > -1)
-                         ? G_GamePlayById(gameplayMap->integer)->name
-                         : gi.EntityValue(ent->def, "gameplay")->string;
+  const char *gameplay = gi.EntityValue(ent->def, "gameplay")->string;
+  if (gameplayMap && (gameplayMap->parsed & ENTITY_INTEGER)) {
+    if (gameplayMap->integer > -1) {
+      gameplay = G_GamePlayById(gameplayMap->integer)->name;
+    }
+  } else if (gameplayMap && *gameplayMap->string) {
+    gameplay = gameplayMap->string;
+  }
 
   gameLevel.gameplay = G_ResolveGamePlay(gameplay);
 
