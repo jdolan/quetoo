@@ -245,25 +245,12 @@
                           "class": "BindTextView",
                           "bind": "drop ammo"
                         }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "identifier": "grappleHook",
-                  "label": {
-                    "text": {
-                      "text": "Grapple hook"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
+                      },
                       {
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Fire hook"
+                            "text": "Hook / cycle camera"
                           }
                         },
                         "control": {
@@ -273,6 +260,7 @@
                       },
                       {
                         "class": "Input",
+                        "identifier": "hookStyleInput",
                         "label": {
                           "text": {
                             "text": "Hook style"
