@@ -25,7 +25,7 @@
 
 /**
  * @brief Funcgoal that runs the bot's decision state machine. The active state alone sets the
- * bot's move target: the long-term goal, a nearby item, the fight, the chase, the retreat or the
+ * bot's move target: the objective, a nearby item, the fight, the chase, the retreat or the
  * investigation of an alert. A bot that follows a path in the air keeps it until it lands.
  */
 uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd);
@@ -37,7 +37,7 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd);
 bool G_Ai_IsWaiting(const GameClient *cl);
 
 /**
- * @brief Returns the bot to `AI_STATE_ROAM` with no goal, as when it spawns, and forgets its wait,
+ * @brief Returns the bot to `AI_STATE_ROAM` with no objective, as when it spawns, and forgets its wait,
  * its alert and the items that it avoids.
  */
 void G_Ai_State_Reset(GameClient *cl);
@@ -56,7 +56,7 @@ const char *G_Ai_StateName(const GameClient *cl);
 /**
  * @return The item that the bot collects, or NULL if it collects none, or the item is gone.
  */
-const GameEntity *G_Ai_GoalEntity(const GameClient *cl);
+const GameEntity *G_Ai_ObjectiveEntity(const GameClient *cl);
 
 /**
  * @brief Finds the gates, the doors that buttons move and whose doorways navigation links cross,

@@ -76,12 +76,12 @@
 #define AI_SWITCH_SCALE 1.5f
 
 /**
- * @brief The most travel cost that a detour may add to the route to the goal: about one second.
+ * @brief The most travel cost that a detour may add to the route to the objective: about one second.
  */
 #define AI_DETOUR_COST PM_SPEED_RUN
 
 /**
- * @brief The most items for which a bot plans the route from the item to its goal.
+ * @brief The most items for which a bot plans the route from the item to its objective.
  */
 #define AI_DETOUR_CANDIDATES 3
 
@@ -745,9 +745,9 @@ const char *G_Ai_StateName(const GameClient *cl) {
 /**
  * @see g_ai_state.h
  */
-const GameEntity *G_Ai_GoalEntity(const GameClient *cl) {
+const GameEntity *G_Ai_ObjectiveEntity(const GameClient *cl) {
 
-  const int32_t number = cl->ai->goalNumber;
+  const int32_t number = cl->ai->objectiveNumber;
 
   if (number < 0 || number >= sv_maxEntities->integer) {
     return NULL;
@@ -755,7 +755,7 @@ const GameEntity *G_Ai_GoalEntity(const GameClient *cl) {
 
   const GameEntity *ent = ge.entities[number];
 
-  if (!ent->inUse || !ent->item || ent->s.spawnId != cl->ai->goalSpawnId) {
+  if (!ent->inUse || !ent->item || ent->s.spawnId != cl->ai->objectiveSpawnId) {
     return NULL;
   }
 
@@ -763,13 +763,13 @@ const GameEntity *G_Ai_GoalEntity(const GameClient *cl) {
 }
 
 /**
- * @brief Sets the bot's goal: the item to collect and its node, or a roam point with no item.
+ * @brief Sets the bot's objective: the item to collect and its node, or a roam point with no item.
  */
-static void G_Ai_SetGoal(GameClient *cl, const GameEntity *ent, const GameAiNodeId node) {
+static void G_Ai_SetObjective(GameClient *cl, const GameEntity *ent, const GameAiNodeId node) {
 
-  cl->ai->goalNumber = ent ? ent->s.number : -1;
-  cl->ai->goalSpawnId = ent ? ent->s.spawnId : 0;
-  cl->ai->goalNode = node;
+  cl->ai->objectiveNumber = ent ? ent->s.number : -1;
+  cl->ai->objectiveSpawnId = ent ? ent->s.spawnId : 0;
+  cl->ai->objectiveNode = node;
 }
 
 /**
@@ -795,10 +795,10 @@ static void G_Ai_Enter(GameClient *cl, const GameAiStateId state) {
 }
 
 /**
- * @brief Returns the bot to its goal: the item that it collects, or its roam point.
+ * @brief Returns the bot to its objective: the item that it collects, or its roam point.
  */
 static void G_Ai_Resume(GameClient *cl) {
-  G_Ai_Enter(cl, G_Ai_GoalEntity(cl) ? AI_STATE_COLLECT : AI_STATE_ROAM);
+  G_Ai_Enter(cl, G_Ai_ObjectiveEntity(cl) ? AI_STATE_COLLECT : AI_STATE_ROAM);
 }
 
 /**
@@ -806,9 +806,9 @@ static void G_Ai_Resume(GameClient *cl) {
  */
 bool G_Ai_IsWaiting(const GameClient *cl) {
 
-  const GameEntity *goal = G_Ai_GoalEntity(cl);
+  const GameEntity *objective = G_Ai_ObjectiveEntity(cl);
 
-  return goal && goal->solid != SOLID_TRIGGER && Vec3_Distance(cl->entity->s.origin, goal->s.origin) < AI_ROAM_REACHED;
+  return objective && objective->solid != SOLID_TRIGGER && Vec3_Distance(cl->entity->s.origin, objective->s.origin) < AI_ROAM_REACHED;
 }
 
 /**
@@ -912,33 +912,33 @@ static GameAiNodeId G_Ai_RoamNode(const GameClient *cl, const float *costs) {
 
 /**
  * @brief Chooses a detour: the item whose value per added travel time is greatest, among those that
- * are there and add at most `AI_DETOUR_COST` to the route to the goal. The added time is the travel
- * to the item and on from it to the goal, less the travel straight to the goal, so an item on the
+ * are there and add at most `AI_DETOUR_COST` to the route to the objective. The added time is the travel
+ * to the item and on from it to the objective, less the travel straight to it, so an item on the
  * route costs little, and an item behind the bot costs much. A detour never waits for an item to
  * return, because `G_Ai_State_Detour` ends once the item is gone.
  * @return True if the bot takes a detour.
  */
 static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
 
-  const GameAiNodeId goalNode = cl->ai->goalNode;
+  const GameAiNodeId objectiveNode = cl->ai->objectiveNode;
 
-  if (goalNode == AI_NODE_INVALID || goalNode >= G_Ai_Node_Count() || costs[goalNode] == FLT_MAX) {
+  if (objectiveNode == AI_NODE_INVALID || objectiveNode >= G_Ai_Node_Count() || costs[objectiveNode] == FLT_MAX) {
     return false;
   }
 
-  const float direct = costs[goalNode];
-  const GameEntity *goal = G_Ai_GoalEntity(cl);
+  const float direct = costs[objectiveNode];
+  const GameEntity *objective = G_Ai_ObjectiveEntity(cl);
 
   GameAiChoice candidates[AI_DETOUR_CANDIDATES] = { 0 };
 
   G_ForEachEntity(ent, {
-    if (!ent->item || ent == goal || ent->solid != SOLID_TRIGGER) {
+    if (!ent->item || ent == objective || ent->solid != SOLID_TRIGGER) {
       continue;
     }
 
     const GameAiNodeId node = G_Ai_ItemNode(ent);
 
-    if (node == AI_NODE_INVALID || node == goalNode || costs[node] == FLT_MAX || costs[node] > direct + AI_DETOUR_COST) {
+    if (node == AI_NODE_INVALID || node == objectiveNode || costs[node] == FLT_MAX || costs[node] > direct + AI_DETOUR_COST) {
       continue;
     }
 
@@ -966,7 +966,7 @@ static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
     GameAiChoice *choice = &candidates[i];
 
     float onward;
-    Vector *path = G_Ai_Node_FindPath(cl, choice->node, goalNode, direct + AI_DETOUR_COST, &onward);
+    Vector *path = G_Ai_Node_FindPath(cl, choice->node, objectiveNode, direct + AI_DETOUR_COST, &onward);
 
     if (!path) {
       continue;
@@ -1033,19 +1033,19 @@ static bool G_Ai_IsInWater(const GameEntity *ent) {
  * `AI_WATER_ITEM_DISTANCE`, as the quad damage in its pool on tokays. A player takes it first, and
  * then leaves the water.
  */
-static bool G_Ai_IsGoalInWater(const GameClient *cl) {
+static bool G_Ai_IsObjectiveInWater(const GameClient *cl) {
 
-  const GameEntity *goal = G_Ai_GoalEntity(cl);
+  const GameEntity *objective = G_Ai_ObjectiveEntity(cl);
 
-  if (!goal || goal->solid != SOLID_TRIGGER) {
+  if (!objective || objective->solid != SOLID_TRIGGER) {
     return false;
   }
 
-  if (Vec3_Distance(goal->s.origin, cl->entity->s.origin) > AI_WATER_ITEM_DISTANCE) {
+  if (Vec3_Distance(objective->s.origin, cl->entity->s.origin) > AI_WATER_ITEM_DISTANCE) {
     return false;
   }
 
-  return (gi.PointContents(goal->s.origin) & CONTENTS_WATER) != 0;
+  return (gi.PointContents(objective->s.origin) & CONTENTS_WATER) != 0;
 }
 
 /**
@@ -1053,7 +1053,7 @@ static bool G_Ai_IsGoalInWater(const GameClient *cl) {
  * health, from an enemy that outguns it, or if it is in water and the enemy is not, as a player in
  * water cannot dodge, and is below an enemy that fires down at them. A bot that retreats from the
  * water does so until it is out of it, so that it does not fight again at its edge. A bot near the
- * item in the water that it collects takes it first (`G_Ai_IsGoalInWater`). A bot that
+ * item in the water that it collects takes it first (`G_Ai_IsObjectiveInWater`). A bot that
  * retreats fights again only once its health exceeds its retreat health by `AI_RECOVER_SCALE`, so
  * that it does not switch at the threshold, and not within `AI_RETREAT_MILLIS` of the start of its
  * retreat, so that each change of the enemy's weapon does not switch it.
@@ -1076,7 +1076,7 @@ static bool G_Ai_WantsRetreat(const GameClient *cl) {
   const bool wet = retreating ? ent->waterLevel > WATER_NONE && (ent->waterType & CONTENTS_WATER)
                               : G_Ai_IsInWater(ent);
 
-  if (wet && !G_Ai_IsInWater(cl->ai->combatTarget.entity.ent) && !G_Ai_IsGoalInWater(cl)) {
+  if (wet && !G_Ai_IsInWater(cl->ai->combatTarget.entity.ent) && !G_Ai_IsObjectiveInWater(cl)) {
     return true;
   }
 
@@ -1111,7 +1111,7 @@ static bool G_Ai_ConsiderAlert(GameClient *cl) {
 /**
  * @brief Collects the item of most value per travel time, roams when no item has value, and
  * takes detours on the way. The bot changes its item only for one of `AI_SWITCH_SCALE` times more
- * utility. After a path that ended in distress, the bot avoids the goal that it failed to reach,
+ * utility. After a path that ended in distress, the bot avoids the objective that it failed to reach,
  * and chooses another at once. It waits at an item for its respawn for at most `AI_WAIT_MILLIS`.
  */
 static void G_Ai_State_Navigate(GameClient *cl) {
@@ -1123,13 +1123,13 @@ static void G_Ai_State_Navigate(GameClient *cl) {
   }
 
   if (ai->moveTarget.type == AI_GOAL_NONE && ai->reacquireTime > gameLevel.time) {
-    const GameEntity *goal = G_Ai_GoalEntity(cl);
+    const GameEntity *objective = G_Ai_ObjectiveEntity(cl);
 
-    if (goal) {
-      G_Ai_Avoid(cl, goal);
+    if (objective) {
+      G_Ai_Avoid(cl, objective);
     }
 
-    G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+    G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
     ai->reacquireTime = 0;
   }
 
@@ -1149,25 +1149,25 @@ static void G_Ai_State_Navigate(GameClient *cl) {
     return;
   }
 
-  const GameEntity *goal = G_Ai_GoalEntity(cl);
-  float goalUtility = 0.f;
+  const GameEntity *objective = G_Ai_ObjectiveEntity(cl);
+  float objectiveUtility = 0.f;
 
-  if (goal) {
-    const float cost = ai->goalNode < G_Ai_Node_Count() ? costs[ai->goalNode] : FLT_MAX;
-    const float value = cost == FLT_MAX ? 0.f : G_Ai_ItemValue(cl, goal, G_Ai_TravelMillis(cost), false);
+  if (objective) {
+    const float cost = ai->objectiveNode < G_Ai_Node_Count() ? costs[ai->objectiveNode] : FLT_MAX;
+    const float value = cost == FLT_MAX ? 0.f : G_Ai_ItemValue(cl, objective, G_Ai_TravelMillis(cost), false);
 
     if (value > 0.f) {
-      goalUtility = G_Ai_Utility(value, G_Ai_ItemCost(cl, goal, cost));
+      objectiveUtility = G_Ai_Utility(value, G_Ai_ItemCost(cl, objective, cost));
     } else {
-      G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
       G_Ai_ClearGoal(&ai->moveTarget);
-      goal = NULL;
+      objective = NULL;
     }
   }
 
   const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, false, G_Ai_GateCosts(cl, costs));
 
-  if (item.ent && item.ent != goal && (!goal || item.utility > goalUtility * AI_SWITCH_SCALE)) {
+  if (item.ent && item.ent != objective && (!objective || item.utility > objectiveUtility * AI_SWITCH_SCALE)) {
 
     ai->gate = item.gate;
 
@@ -1176,7 +1176,7 @@ static void G_Ai_State_Navigate(GameClient *cl) {
       ai->gateButton = item.button;
       ai->gateNode = item.buttonNode;
       ai->gateRestTime = 0;
-      G_Ai_SetGoal(cl, item.ent, item.node);
+      G_Ai_SetObjective(cl, item.ent, item.node);
 
       if (G_Ai_PathTo(cl, item.buttonNode, item.utility, NULL)) {
         G_Ai_Probe_GateUse(cl, module.gates[item.gate].name, "choose");
@@ -1184,7 +1184,7 @@ static void G_Ai_State_Navigate(GameClient *cl) {
       }
 
       G_Ai_Avoid(cl, item.ent);
-      G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
       G_Ai_Enter(cl, AI_STATE_ROAM);
       return;
     }
@@ -1193,7 +1193,7 @@ static void G_Ai_State_Navigate(GameClient *cl) {
     G_Ai_ClearGoal(&ai->moveTarget);
 
     if (G_Ai_PathTo(cl, item.node, item.utility, item.ent)) {
-      G_Ai_SetGoal(cl, item.ent, item.node);
+      G_Ai_SetObjective(cl, item.ent, item.node);
       return;
     }
 
@@ -1202,28 +1202,28 @@ static void G_Ai_State_Navigate(GameClient *cl) {
 
   if (ai->moveTarget.type == AI_GOAL_NONE) {
 
-    if (goal && G_Ai_IsWaiting(cl)) {
+    if (objective && G_Ai_IsWaiting(cl)) {
 
       if (gameLevel.time - ai->waitTime < AI_WAIT_MILLIS) {
         return;
       }
 
-      G_Ai_Avoid(cl, goal);
-      G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
-      goal = NULL;
+      G_Ai_Avoid(cl, objective);
+      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
+      objective = NULL;
     }
 
-    if (goal) {
-      if (!G_Ai_PathTo(cl, ai->goalNode, goalUtility, goal)) {
-        G_Ai_Avoid(cl, goal);
-        G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+    if (objective) {
+      if (!G_Ai_PathTo(cl, ai->objectiveNode, objectiveUtility, objective)) {
+        G_Ai_Avoid(cl, objective);
+        G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
       }
       return;
     }
 
     G_Ai_Enter(cl, AI_STATE_ROAM);
 
-    GameAiNodeId node = ai->goalNode;
+    GameAiNodeId node = ai->objectiveNode;
 
     if (node == AI_NODE_INVALID || node >= G_Ai_Node_Count() ||
         Vec3_Distance(cl->entity->s.origin, G_Ai_Node_GetPosition(node)) < AI_ROAM_REACHED) {
@@ -1231,9 +1231,9 @@ static void G_Ai_State_Navigate(GameClient *cl) {
     }
 
     if (G_Ai_PathTo(cl, node, AI_ROAM_PRIORITY, NULL)) {
-      G_Ai_SetGoal(cl, NULL, node);
+      G_Ai_SetObjective(cl, NULL, node);
     } else {
-      G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
     }
     return;
   }
@@ -1242,8 +1242,8 @@ static void G_Ai_State_Navigate(GameClient *cl) {
 }
 
 /**
- * @brief Takes the detour item, then resumes the goal. A detour that fails does not count against
- * the goal: the bot avoids the detour item from the start of the detour.
+ * @brief Takes the detour item, then resumes the objective. A detour that fails does not count against
+ * the objective: the bot avoids the detour item from the start of the detour.
  */
 static void G_Ai_State_Detour(GameClient *cl) {
 
@@ -1478,7 +1478,7 @@ static void G_Ai_FailGate(GameClient *cl, GameAiGate *gate, const GameEntity *it
   G_Ai_Probe_GateUse(cl, gate->name, "fail");
 
   G_Ai_Avoid(cl, item);
-  G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+  G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
   G_Ai_Enter(cl, AI_STATE_ROAM);
 }
 
@@ -1538,7 +1538,7 @@ static bool G_Ai_IsAtButton(const GameClient *cl, const GameEntity *button) {
 }
 
 /**
- * @brief Goes to the button of the gate on the way to the goal item, and within `AI_ACTIVATE_REACH`
+ * @brief Goes to the button of the gate on the way to the objective, and within `AI_ACTIVATE_REACH`
  * walks into it, or, for a button that a shot presses, shoots it once it sees it within
  * `AI_SHOOT_REACH`. Once a door of the gate moves, and a path to the item exists, the bot collects
  * the item. If no path exists `AI_GATE_PATH_MILLIS` after the doors come to rest while the bot is at
@@ -1553,11 +1553,11 @@ static void G_Ai_State_Activate(GameClient *cl) {
     return;
   }
 
-  const GameEntity *item = G_Ai_GoalEntity(cl);
+  const GameEntity *item = G_Ai_ObjectiveEntity(cl);
 
   if (!item || ai->gate < 0 || ai->gate >= module.numGates || ai->gateButton < 0 ||
       ai->gateButton >= module.gates[ai->gate].numButtons) {
-    G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+    G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
     G_Ai_Enter(cl, AI_STATE_ROAM);
     return;
   }
@@ -1581,10 +1581,10 @@ static void G_Ai_State_Activate(GameClient *cl) {
 
     const float *costs = G_Ai_TravelCosts(cl);
 
-    if (costs && ai->goalNode < G_Ai_Node_Count() && costs[ai->goalNode] != FLT_MAX) {
+    if (costs && ai->objectiveNode < G_Ai_Node_Count() && costs[ai->objectiveNode] != FLT_MAX) {
       G_Ai_Probe_GateUse(cl, gate->name, "open");
       G_Ai_Enter(cl, AI_STATE_COLLECT);
-      G_Ai_PathTo(cl, ai->goalNode, AI_PURSUE_PRIORITY, item);
+      G_Ai_PathTo(cl, ai->objectiveNode, AI_PURSUE_PRIORITY, item);
       return;
     }
 
@@ -1606,7 +1606,7 @@ static void G_Ai_State_Activate(GameClient *cl) {
   if (ai->moveTarget.type == AI_GOAL_NONE && !G_Ai_IsAtButton(cl, target) &&
       !G_Ai_PathTo(cl, ai->gateNode, AI_PURSUE_PRIORITY, NULL)) {
     G_Ai_Avoid(cl, item);
-    G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+    G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
     G_Ai_Enter(cl, AI_STATE_ROAM);
   }
 }
@@ -1654,7 +1654,7 @@ static void G_Ai_State_Escape(GameClient *cl) {
 }
 
 /**
- * @brief Goes to the position, once, then resumes the goal. Gives up after `AI_PURSUE_MILLIS`.
+ * @brief Goes to the position, once, then resumes the objective. Gives up after `AI_PURSUE_MILLIS`.
  */
 static void G_Ai_State_Pursue(GameClient *cl, const Vec3 position) {
 
@@ -1699,7 +1699,7 @@ static bool G_Ai_IsAirborne(const GameClient *cl) {
 /**
  * @brief Enters `AI_STATE_CLIMB` and keeps the path: the climb owns the bot until it leaves the
  * ladder. A player who climbs is in the open and cannot fight back well, so the bot does not stop
- * to fight, or take a new goal, which would leave it on the ladder with no path.
+ * to fight, or take a new objective, which would leave it on the ladder with no path.
  */
 static void G_Ai_Climb(GameClient *cl) {
 
@@ -1818,7 +1818,7 @@ void G_Ai_State_Reset(GameClient *cl) {
 
   memset(ai->avoids, 0, sizeof(ai->avoids));
 
-  G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
+  G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
 }
 
 /**
@@ -2054,7 +2054,7 @@ void G_Ai_State_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 
   GameAi *ai = taker->client->ai;
 
-  if (ai->gate >= 0 && ai->gate < module.numGates && G_Ai_GoalEntity(taker->client) == item) {
+  if (ai->gate >= 0 && ai->gate < module.numGates && G_Ai_ObjectiveEntity(taker->client) == item) {
     module.gates[ai->gate].numFails = 0;
     ai->gate = -1;
   }

@@ -250,7 +250,7 @@ typedef enum {
   AI_STATE_ROAM,
 
   /**
-   * @brief Take an item that adds little travel time to the route to the goal, then resume it.
+   * @brief Take an item that adds little travel time to the route to the objective, then resume it.
    */
   AI_STATE_DETOUR,
 
@@ -285,7 +285,7 @@ typedef enum {
   AI_STATE_ESCAPE,
 
   /**
-   * @brief Climb the ladder that the bot holds, and nothing else: no fight, no fire, no new goal.
+   * @brief Climb the ladder that the bot holds, and nothing else: no fight, no fire, no new objective.
    */
   AI_STATE_CLIMB,
 
@@ -511,7 +511,7 @@ typedef struct GameAi {
   uint32_t stateTime;
 
   /**
-   * @brief Level time at which the state next reviews the bot's choice of goal, item or approach.
+   * @brief Level time at which the state next reviews the bot's choice of objective, item or approach.
    */
   uint32_t reviewTime;
 
@@ -529,21 +529,21 @@ typedef struct GameAi {
   /**
    * @brief The entity number of the item to collect, or -1 for none.
    */
-  int32_t goalNumber;
+  int32_t objectiveNumber;
 
   /**
    * @brief The spawn ID of the item to collect, to detect entity reuse.
    */
-  uint8_t goalSpawnId;
+  uint8_t objectiveSpawnId;
 
   /**
    * @brief The node of the item to collect, or of the roam point, or `AI_NODE_INVALID` for none.
    * A detour returns to it.
    */
-  GameAiNodeId goalNode;
+  GameAiNodeId objectiveNode;
 
   /**
-   * @brief The index of the gate through which the bot goes to its goal item, or -1. It stays set
+   * @brief The index of the gate through which the bot goes to its objective, or -1. It stays set
    * after `AI_STATE_ACTIVATE`, until the bot takes an item or chooses another.
    */
   int32_t gate;
@@ -598,13 +598,13 @@ typedef struct GameAi {
   uint32_t weaponCheckTime;
 
   /**
-   * @brief Level time until which the bot, once it has no move target, avoids the goal of a path
+   * @brief Level time until which the bot, once it has no move target, avoids the objective of a path
    * that ended in distress, and chooses another.
    */
   uint32_t reacquireTime;
 
   /**
-   * @brief Level time at which the bot began to wait at its goal item for it to respawn, or 0 while
+   * @brief Level time at which the bot began to wait at its objective for it to respawn, or 0 while
    * it does not wait.
    */
   uint32_t waitTime;
@@ -689,7 +689,7 @@ typedef struct GameAi {
   uint32_t wanderTurnTime;
 
   /**
-   * @brief The yaw in degrees that the bot wanders toward with no goal. It is not in the union of
+   * @brief The yaw in degrees that the bot wanders toward with no move goal. It is not in the union of
    * `GameAiGoal`, whose entity pointer it shares memory with, because `G_Ai_Wander` turns it while
    * the move goal is the enemy.
    */

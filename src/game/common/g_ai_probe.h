@@ -24,7 +24,7 @@
 #if defined(__G_LOCAL_H__)
 
 /**
- * @brief The `g_aiProbe` flag that records what each bot does: where it is, its goal and speed,
+ * @brief The `g_aiProbe` flag that records what each bot does: where it is, its objective and speed,
  * its paths and why they end, its deaths, its pushes by a `trigger_push`, planned or not, its gap
  * jumps, its pickups and the times that it is stuck.
  */

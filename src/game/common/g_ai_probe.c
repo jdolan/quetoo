@@ -262,13 +262,13 @@ static const char *G_Ai_Probe_Token(const char *name) {
 }
 
 /**
- * @return The class name of the bot's goal item, or `none`.
+ * @return The class name of the bot's objective, or `none`.
  */
-static const char *G_Ai_Probe_Goal(const GameClient *cl) {
+static const char *G_Ai_Probe_Objective(const GameClient *cl) {
 
-  const GameEntity *goal = G_Ai_GoalEntity(cl);
+  const GameEntity *objective = G_Ai_ObjectiveEntity(cl);
 
-  return goal ? goal->classname : "none";
+  return objective ? objective->classname : "none";
 }
 
 /**
@@ -305,7 +305,7 @@ static void G_Ai_Probe_Stuck(const GameClient *cl, GameAiProbeClient *c, const i
 
   G_Ai_Probe_Print(cl->ps.client, "STUCK", "pos=%d,%d,%d state=%s goal=%s link=%d->%d type=%d next=%d,%d,%d ground=%d spread=%d",
                    (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   G_Ai_StateName(cl), G_Ai_Probe_Goal(cl), from, to, travelType,
+                   G_Ai_StateName(cl), G_Ai_Probe_Objective(cl), from, to, travelType,
                    (int32_t) next.x, (int32_t) next.y, (int32_t) next.z, ent->ground.ent != NULL, (int32_t) spread);
 
   if (!stuck) {
@@ -550,7 +550,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z, ground,
                      G_Ai_Probe_Node(start), G_Ai_Probe_Node(next),
-                     G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, path->count - 1)), path->count, G_Ai_Probe_Goal(cl));
+                     G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, path->count - 1)), path->count, G_Ai_Probe_Objective(cl));
   }
 
   c->path = path;
@@ -583,7 +583,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
     G_Ai_Probe_Print(n, "PUSHED", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d planned=%d launch=%u goal=%s",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                     from, to, travelType, cl->ai->strafeJumping, ground, planned, cl->ai->pushTime, G_Ai_Probe_Goal(cl));
+                     from, to, travelType, cl->ai->strafeJumping, ground, planned, cl->ai->pushTime, G_Ai_Probe_Objective(cl));
     if (!planned) {
       G_Ai_Probe_History(cl, "pushed");
     }
@@ -655,7 +655,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
     G_Ai_Probe_Print(n, "POS", "pos=%d,%d,%d speed=%d state=%s goal=%s health=%d link=%d->%d type=%d weapon=%s fire=%s armed=%d enemy=%d combat=%d water=%d ground=%d",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), G_Ai_StateName(cl), G_Ai_Probe_Goal(cl),
+                     (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), G_Ai_StateName(cl), G_Ai_Probe_Objective(cl),
                      ent->health, from, to, travelType, cl->weapon ? cl->weapon->def.classname : "none", *fire ? fire : "none",
                      G_Ai_IsArmed(cl), enemy ? (int32_t) Vec3_Distance(ent->s.origin, combat->entity.ent->s.origin) : -1,
                      enemy ? (int32_t) combat->entity.combatType : -1, ent->waterLevel, ent->ground.ent != NULL);
@@ -689,7 +689,7 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
                    ent->ground.ent != NULL, goal->type, from, to,
                    goal->type == AI_GOAL_PATH ? goal->path.pathIndex : 0,
                    goal->type == AI_GOAL_PATH && goal->path.path ? (uint32_t) goal->path.path->count : 0,
-                   G_Ai_Probe_Goal(cl));
+                   G_Ai_Probe_Objective(cl));
 
   if (!Str_Compare(reason, "distress")) {
     G_Ai_Probe_History(cl, "distress");
@@ -721,7 +721,7 @@ void G_Ai_Probe_GateUse(const GameClient *cl, const char *name, const char *resu
 
   G_Ai_Probe_Print(cl->ps.client, "GATEUSE", "name=%s result=%s pos=%d,%d,%d goal=%s", G_Ai_Probe_Token(name), result,
                    (int32_t) cl->entity->s.origin.x, (int32_t) cl->entity->s.origin.y,
-                   (int32_t) cl->entity->s.origin.z, G_Ai_Probe_Goal(cl));
+                   (int32_t) cl->entity->s.origin.z, G_Ai_Probe_Objective(cl));
 }
 
 /**
@@ -794,7 +794,7 @@ void G_Ai_Probe_Killed(const GameClient *cl, const GameEntity *attacker, const u
 
   G_Ai_Probe_Print(cl->ps.client, "DEATH", "pos=%d,%d,%d water=%d link=%d->%d type=%d goal=%s",
                    (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   ent->waterLevel, from, to, travelType, G_Ai_Probe_Goal(cl));
+                   ent->waterLevel, from, to, travelType, G_Ai_Probe_Objective(cl));
   G_Ai_Probe_History(cl, "death");
 
   c->numPositions = 0;
