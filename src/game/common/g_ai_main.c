@@ -727,17 +727,39 @@ static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
 #define AI_PUSH_LINK_MARGIN 16.f
 
 /**
+ * @brief Projects `p` on the horizontal line through `a` and `b`.
+ * @param along The signed horizontal distance from `a`, toward `b`, to the foot of `p` on the
+ * line, or NULL. 0 if `a` and `b` share a column.
+ * @param lateral The horizontal distance from the line to `p`, or NULL. The distance from `a` if
+ * `a` and `b` share a column.
+ * @return The horizontal distance from `a` to `b`.
+ */
+static float G_Ai_ProjectXY(const Vec3 a, const Vec3 b, const Vec3 p, float *along, float *lateral) {
+
+  const Vec2 ab = Vec2_Subtract(Vec3_XY(b), Vec3_XY(a));
+  const Vec2 ap = Vec2_Subtract(Vec3_XY(p), Vec3_XY(a));
+  const float length = Vec2_Length(ab);
+
+  if (along) {
+    *along = length > 0.f ? Vec2_Dot(ap, ab) / length : 0.f;
+  }
+
+  if (lateral) {
+    *lateral = length > 0.f ? fabsf(ab.x * ap.y - ab.y * ap.x) / length : Vec2_Length(ap);
+  }
+
+  return length;
+}
+
+/**
  * @return True if the horizontal line of the path link from `a` to `b` passes through the given
  * bounds, widened by the half width of a player.
  */
 static bool G_Ai_IsOnLink(const Box3 bounds, const Vec3 a, const Vec3 b) {
 
-  const Vec2 center = Vec3_XY(Box3_Center(bounds));
-  const Vec2 start = Vec3_XY(a);
-  const Vec2 delta = Vec2_Subtract(Vec3_XY(b), start);
-
-  const float t = Clampf(Vec2_Dot(Vec2_Subtract(center, start), delta) / Vec2_Dot(delta, delta), 0.f, 1.f);
-  const Vec2 closest = Vec2_Add(start, Vec2_Scale(delta, t));
+  float along;
+  const float length = G_Ai_ProjectXY(a, b, Box3_Center(bounds), &along, NULL);
+  const Vec2 closest = Vec3_XY(Vec3_Mix(a, b, length > 0.f ? Clampf(along / length, 0.f, 1.f) : 0.f));
 
   return closest.x >= bounds.mins.x - AI_PUSH_LINK_MARGIN && closest.x <= bounds.maxs.x + AI_PUSH_LINK_MARGIN &&
          closest.y >= bounds.mins.y - AI_PUSH_LINK_MARGIN && closest.y <= bounds.maxs.y + AI_PUSH_LINK_MARGIN;
@@ -769,8 +791,9 @@ static Vec3 G_Ai_PushApproach(const GameClient *cl, const GameEntity *ent, const
   const Vec3 size = Box3_Size(ent->absBounds);
 
   const float width = (fabsf(dir.y) * size.x + fabsf(dir.x) * size.y) * .5f;
-  const Vec2 offset = Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(center));
-  const float lateral = fabsf(offset.x * dir.y - offset.y * dir.x);
+
+  float lateral;
+  G_Ai_ProjectXY(center, Vec3_Add(center, dir), cl->entity->s.origin, NULL, &lateral);
 
   if (lateral <= Maxf(width - PM_BOUNDS.maxs.x, AI_PUSH_LANE_TOLERANCE)) {
     return MakeVec3(center.x, center.y, from.z);
@@ -1424,15 +1447,22 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
-  const Vec2 a = Vec3_XY(G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1)));
-  const Vec2 b = Vec3_XY(goal->path.pathPosition);
-  const Vec2 p = Vec3_XY(cl->entity->s.origin);
+  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 b = goal->path.pathPosition;
+  const Vec3 p = cl->entity->s.origin;
 
-  const Vec2 ab = Vec2_Subtract(b, a);
-  const float length = Vec2_LengthSquared(ab);
-  const float t = length > 0.f ? Clampf(Vec2_Dot(Vec2_Subtract(p, a), ab) / length, 0.f, 1.f) : 0.f;
+  float along, lateral;
+  const float length = G_Ai_ProjectXY(a, b, p, &along, &lateral);
 
-  return Vec2_Length(Vec2_Subtract(p, Vec2_Add(a, Vec2_Scale(ab, t))));
+  if (along <= 0.f) {
+    return Vec2_Distance(Vec3_XY(p), Vec3_XY(a));
+  }
+
+  if (along >= length) {
+    return Vec2_Distance(Vec3_XY(p), Vec3_XY(b));
+  }
+
+  return lateral;
 }
 
 /**
@@ -1693,17 +1723,12 @@ static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
     return false;
   }
 
-  const Vec2 a = Vec3_XY(source);
-  const Vec2 ab = Vec2_Subtract(Vec3_XY(target), a);
-  const Vec2 ap = Vec2_Subtract(Vec3_XY(cl->entity->s.origin), a);
+  float distance, lateral;
+  const float length = G_Ai_ProjectXY(source, target, cl->entity->s.origin, &distance, &lateral);
 
-  const float length = Vec2_Length(ab);
   if (length < 1.f) {
     return false;
   }
-
-  const float distance = Vec2_Dot(ap, ab) / length;
-  const float lateral = fabsf(ab.x * ap.y - ab.y * ap.x) / length;
 
   if (along) {
     *along = distance;
@@ -1730,14 +1755,13 @@ static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
 
   const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
 
-  const Vec2 ab = Vec2_Subtract(Vec3_XY(b), Vec3_XY(a));
-  const float length = Vec2_Length(ab);
+  float along;
+  const float length = G_Ai_ProjectXY(a, b, cl->entity->s.origin, &along, NULL);
 
   if (length < 1.f) {
     return b;
   }
 
-  const float along = Vec2_Dot(Vec2_Subtract(Vec3_XY(cl->entity->s.origin), Vec3_XY(a)), ab) / length;
   const Vec3 point = Vec3_Mix(a, b, Clampf((along + AI_JUMP_LOOK_DISTANCE) / length, 0.f, 1.f));
 
   return G_Ai_CrossesTrigger(cl->entity->s.origin, point, false) ? a : point;
