@@ -84,7 +84,7 @@
     <ClInclude Include="..\src\game\common\g_ai_node.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\common\g_ai_probe.h">
+    <ClInclude Include="..\src\game\common\g_ai_profile.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\common\g_ai_state.h">
@@ -197,7 +197,7 @@
     <ClCompile Include="..\src\game\common\g_ai_node.c">
       <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\common\g_ai_probe.c">
+    <ClCompile Include="..\src\game\common\g_ai_profile.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_ai_state.c">

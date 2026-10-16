@@ -1,6 +1,6 @@
 ---
 name: bot-tuning
-description: Investigate and tune Quetoo bot navigation and behavior on a map with the game's bot probe (g_aiProbe) and headless timeDemo matches driven by src/tools/ai_probe.py. Use when bots die, get stuck, get thrown by jump pads, ignore an item, or take a bad route on a map.
+description: Investigate and tune Quetoo bot navigation and behavior on a map with the game's bot profiler (g_aiProfile) and headless timeDemo matches driven by src/tools/ai_profile.py. Use when bots die, get stuck, get thrown by jump pads, ignore an item, or take a bad route on a map.
 ---
 
 # Investigate and tune bots
@@ -13,11 +13,11 @@ The parts are:
 
 | Part | What it does |
 |---|---|
-| `g_aiProbe` (`src/game/common/g_ai_probe.c`) | A developer cvar. The game writes what each bot does to `ai_probe_<map>.log` in the write directory. 1 records the bots, 2 the navigation graph, 4 the human players. The flags add: 5 records the bots and the players. The default, 0, records nothing. |
-| `src/tools/ai_probe.py run` | Runs a headless dedicated server on the tree's build, at `timeDemo 1`, adds bots by rcon, and stops the server cleanly. |
-| `src/tools/ai_probe.py summary`, `deaths`, `pushes`, `hazards` | Count and explain deaths, unplanned pushes, entries into lava or slime, pickups and stuck time. |
-| `src/tools/ai_probe.py node`, `near`, `path`, `routes` | Query the navigation graph that the game used. |
-| `src/tools/ai_probe.py suite`, `compare`, `graphdiff` | Run a match on each of the 26 maps, compare two builds by deaths, kills and pickups per game minute, and tell whether two builds make the same graphs. |
+| `g_aiProfile` (`src/game/common/g_ai_profile.c`) | A developer cvar. The game writes what each bot does to `ai_profile_<map>.log` in the write directory. 1 records the bots, 2 the navigation graph, 4 the human players. The flags add: 5 records the bots and the players. The default, 0, records nothing. |
+| `src/tools/ai_profile.py run` | Runs a headless dedicated server on the tree's build, at `timeDemo 1`, adds bots by rcon, and stops the server cleanly. |
+| `src/tools/ai_profile.py summary`, `deaths`, `pushes`, `hazards` | Count and explain deaths, unplanned pushes, entries into lava or slime, pickups and stuck time. |
+| `src/tools/ai_profile.py node`, `near`, `path`, `routes` | Query the navigation graph that the game used. |
+| `src/tools/ai_profile.py suite`, `compare`, `graphdiff` | Run a match on each of the 26 maps, compare two builds by deaths, kills and pickups per game minute, and tell whether two builds make the same graphs. |
 | `cg_drawNav`, `navInfo` (`src/cgame/common/cg_nav.c`) | Draw the graph in the client, and print the node nearest the view. |
 
 ## 1. Build
@@ -26,14 +26,14 @@ The parts are:
 make -j8
 ```
 
-`ai_probe.py run` uses `src/main/quetoo-dedicated` and `src/game/<module>/.libs/game.so` from the
+`ai_profile.py run` uses `src/main/quetoo-dedicated` and `src/game/<module>/.libs/game.so` from the
 tree. It links them into a private stage, so it never needs `make install` and never touches the
 user directory.
 
 ## 2. Run a match
 
 ```sh
-python3 src/tools/ai_probe.py run longyard --seconds 60 --bot Bastard:0.8 --graph --out "$TMPDIR/ly1"
+python3 src/tools/ai_profile.py run longyard --seconds 60 --bot Bastard:0.8 --graph --out "$TMPDIR/ly1"
 ```
 
 - `--bot NAME[:SKILL[,AGGRESSION[,AWARENESS]]]` adds a roster bot (`g_ai_info.c`) with `addAi`.
@@ -56,7 +56,7 @@ These facts are not visible from the call sites. You MUST NOT "simplify" the too
 
 - **A dedicated server ignores standard input when it is not a TTY** (`Sv_InitConsole`). You
   cannot send it `quit`.
-- **SIGTERM shuts the server down cleanly**, and the game then closes the probe log. SIGKILL loses
+- **SIGTERM shuts the server down cleanly**, and the game then closes the profile log. SIGKILL loses
   the log, because the file is buffered.
 - **Commands after `+map` do not run on a dedicated server**, even after `+wait`: the server holds
   them until a client begins (`Cbuf_CopyToDefer`). So the tool adds bots by rcon.
@@ -70,11 +70,11 @@ These facts are not visible from the call sites. You MUST NOT "simplify" the too
 ## 3. Read the result
 
 ```sh
-python3 src/tools/ai_probe.py summary "$LOG"
-python3 src/tools/ai_probe.py deaths "$LOG" --link 616-636 --count 3
-python3 src/tools/ai_probe.py deaths "$LOG" --near 0,800,300
-python3 src/tools/ai_probe.py pushes "$LOG" --link 309-308
-python3 src/tools/ai_probe.py hazards "$LOG" --near 250,-500,250
+python3 src/tools/ai_profile.py summary "$LOG"
+python3 src/tools/ai_profile.py deaths "$LOG" --link 616-636 --count 3
+python3 src/tools/ai_profile.py deaths "$LOG" --near 0,800,300
+python3 src/tools/ai_profile.py pushes "$LOG" --link 309-308
+python3 src/tools/ai_profile.py hazards "$LOG" --near 250,-500,250
 ```
 
 - `summary` groups deaths and unplanned pushes by the link that the bot last followed. Start with
@@ -88,19 +88,19 @@ python3 src/tools/ai_probe.py hazards "$LOG" --near 250,-500,250
   edge.
 - An unplanned push is a push from a `trigger_push` while the bot does not follow a jump pad link,
   and its next link is not one either. `summary` and `pushes` read only those. The knockback of
-  damage also sets `PMF_TIME_PUSHED`, so the probe records a push only within 32 units of a
+  damage also sets `PMF_TIME_PUSHED`, so the profiler records a push only within 32 units of a
   `trigger_push`.
 
 ### The log format
 
-Each line is `PROBE <time> <client> <EVENT> <key>=<value> ...`. The time is `gameLevel.time` in
+Each line is `PROFILE <time> <client> <EVENT> <key>=<value> ...`. The time is `gameLevel.time` in
 milliseconds. The client is -1 for an event of the level. A value MUST NOT contain a space.
 
 | Event | Written |
 |---|---|
 | `GRAPH` | Once, with the node and link counts |
-| `NODE`, `TRIGGER` | Once, with `g_aiProbe 2`: each node, `edge=1` if it stands at the edge of the void, with its links, as `node:type:cost`, or `node:type:cost:door` for a walk through the doorway of the door with inline model `door`, and each push and hurt trigger's bounds |
-| `CLIMB` | Once, with `g_aiProbe 2`, after the `NODE` of its bottom: each ladder climb, with its bottom and top nodes, the `column` where the climb meets the ladder (the foot, or where a jump grabs it), the `landing` over the top, and the time in milliseconds |
+| `NODE`, `TRIGGER` | Once, with `g_aiProfile 2`: each node, `edge=1` if it stands at the edge of the void, with its links, as `node:type:cost`, or `node:type:cost:door` for a walk through the doorway of the door with inline model `door`, and each push and hurt trigger's bounds |
+| `CLIMB` | Once, with `g_aiProfile 2`, after the `NODE` of its bottom: each ladder climb, with its bottom and top nodes, the `column` where the climb meets the ladder (the foot, or where a jump grabs it), the `landing` over the top, and the time in milliseconds |
 | `POS` | Each second for each bot: position, speed, state, goal item, health, link, the weapon in hand, the weapons it can fire, whether it counts itself armed, the enemy's distance, the combat movement, the water level (0 to 3) and whether it is on the ground |
 | `SPEED` | Each 5 seconds: roster name, skill, average and highest speed, the share of time that the bot strafe jumps and is in the air, and the share of time by the reason that it does or does not strafe jump on a path (`GameAiStrafeBlock`): `offPath` (not on a path), `strafing`, `lowskill`, `state`, `turn`, `short`, `unsafe`, `fall`. These eight sum to 1 |
 | `DEATH` + `HIST reason=death` | When a bot dies, from any cause |
@@ -118,7 +118,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `LADDER` | When a bot grabs a ladder (`on=1`) or leaves it (`on=0`), with its position, velocity, link and the ladder controller's `phase` (`GameAiLadderPhase`). A climb completed if the bot left the ladder near the height of the climb's landing. It also has the bot's view `yaw`, its pmove time `flags` (`PMF_TIME_MASK`, in hex), and the `trace` that `Pm_CheckLadder` makes, 4 units ahead: fraction, contents in hex, and the normal's x and y in hundredths. A let-go with `flags=40` (`PMF_TIME_PUSHED`) while the trace touches the ladder is a hit's knockback: `G_Damage` sets that flag on a climber for any hit, and `Pm_CheckLadder` does not grab while a time flag is set |
 | `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds, with `HIST reason=stuck` at the first |
 
-Link types are the `NavTravelType` values, which `ai_probe.py` and `navInfo` name as
+Link types are the `NavTravelType` values, which `ai_profile.py` and `navInfo` name as
 `Nav_TravelName` does: 0 `none`, for the links that `G_Ai_Node_Link` adds to splice item and spawn
 nodes into the graph, 1 `walk`, 2 `crouch`, 3 `walk_off_ledge`, 4 `barrier_jump`, 5 `teleport`,
 6 `push`, 7 `plat`, 8 `swim`, 9 `jump`, 10 `ladder`. The tool prints `-` for no link.
@@ -126,10 +126,10 @@ nodes into the graph, 1 `walk`, 2 `crouch`, 3 `walk_off_ledge`, 4 `barrier_jump`
 ## 4. Query the graph
 
 ```sh
-python3 src/tools/ai_probe.py node "$LOG" 636           # its links, and the links into it
-python3 src/tools/ai_probe.py near "$LOG" 0 448 588      # the nodes near a point
-python3 src/tools/ai_probe.py path "$LOG" 87 8           # the cheapest path, link by link
-python3 src/tools/ai_probe.py routes "$LOG" 8 669 670    # how many routes to node 8 cross 669 or 670
+python3 src/tools/ai_profile.py node "$LOG" 636           # its links, and the links into it
+python3 src/tools/ai_profile.py near "$LOG" 0 448 588      # the nodes near a point
+python3 src/tools/ai_profile.py path "$LOG" 87 8           # the cheapest path, link by link
+python3 src/tools/ai_profile.py routes "$LOG" 8 669 670    # how many routes to node 8 cross 669 or 670
 ```
 
 `path` and `routes` approximate `G_Ai_Node_StepCost`. They do not know about crushers, raised
@@ -139,15 +139,15 @@ Node ids belong to one build of one map. If you change `bg_nav.c`, record the gr
 
 ## 5. Learn from a player
 
-The developer plays against the bots, or alone, with the probe on, set before the map loads, for
-example `+set g_aiProbe 5`. The log is in the developer's write directory. Then:
+The developer plays against the bots, or alone, with the profiler on, set before the map loads, for
+example `+set g_aiProfile 5`. The log is in the developer's write directory. Then:
 
 ```sh
-python3 src/tools/ai_probe.py route "$LOG" --client 0         # a client's route and how it covers the map
-python3 src/tools/ai_probe.py linktimes "$LOG"                 # the node pairs that bots cross most slowly
-python3 src/tools/ai_probe.py moves "$LOG" --link 1458-1459    # the player's commands over a link
-python3 src/tools/ai_probe.py strafe "$LOG"                    # the player's jumps by takeoff speed
-python3 src/tools/ai_probe.py kills "$LOG"                     # kills by attacker, weapon and range
+python3 src/tools/ai_profile.py route "$LOG" --client 0         # a client's route and how it covers the map
+python3 src/tools/ai_profile.py linktimes "$LOG"                 # the node pairs that bots cross most slowly
+python3 src/tools/ai_profile.py moves "$LOG" --link 1458-1459    # the player's commands over a link
+python3 src/tools/ai_profile.py strafe "$LOG"                    # the player's jumps by takeoff speed
+python3 src/tools/ai_profile.py kills "$LOG"                     # kills by attacker, weapon and range
 ```
 
 - `linktimes` compares the time between two consecutive `VISIT` nodes, for players and bots. A
@@ -170,7 +170,7 @@ To see what a player sees, run the client from the same stage, with the graph dr
 - You MUST pass `+set s_volume 0`, which mutes the test client: the developer is often on calls.
 - `navInfo` prints the node nearest the view, with its links.
 - The client draws the graph that `Nav_Build` makes. The game adds item, pad, teleporter and plat
-  nodes after that, so ids at or above the build's node count appear only in the probe's graph.
+  nodes after that, so ids at or above the build's node count appear only in the profiler's graph.
 - The client also links the nodes that doors, trains, bobs and the rotating models that turn about
   the vertical axis carry, as they move, every 100 ms, near the view. It uses `Nav_MoverLink` and
   `Nav_MoverWalk`, the code that links them for the bots.
@@ -193,9 +193,9 @@ To see what a player sees, run the client from the same stage, with the graph dr
 - **Compare suites, not single matches.** A change on one map can move deaths to another map.
 
   ```sh
-  python3 src/tools/ai_probe.py suite "$TMPDIR/base1" --tree "$BASE"
-  python3 src/tools/ai_probe.py suite "$TMPDIR/cur1" --port 28200
-  python3 src/tools/ai_probe.py compare "$TMPDIR/base1,$TMPDIR/base2" "$TMPDIR/cur1,$TMPDIR/cur2"
+  python3 src/tools/ai_profile.py suite "$TMPDIR/base1" --tree "$BASE"
+  python3 src/tools/ai_profile.py suite "$TMPDIR/cur1" --port 28200
+  python3 src/tools/ai_profile.py compare "$TMPDIR/base1,$TMPDIR/base2" "$TMPDIR/cur1,$TMPDIR/cur2"
   ```
 
   A suite runs 26 maps for 40 wall seconds each, with Bastard at 0.99, Guard and Stroggo, 7 at a
@@ -224,15 +224,15 @@ To see what a player sees, run the client from the same stage, with the graph dr
 
 ## 8. Add an event
 
-Add it to `g_ai_probe.c`, with a `G_Ai_Probe_*` hook where the game knows about it, and read it in
-`ai_probe.py`. Keep the line format: `key=value` pairs, no spaces in a value, positions as
-`x,y,z`. MUST NOT leave temporary probe code anywhere else in the game: if a question needs new
+Add it to `g_ai_profile.c`, with a `G_Ai_Profile_*` hook where the game knows about it, and read it
+in `ai_profile.py`. Keep the line format: `key=value` pairs, no spaces in a value, positions as
+`x,y,z`. MUST NOT leave temporary profiling code anywhere else in the game: if a question needs new
 data, add the event to the module so that the next investigation has it.
 
 ## 9. Before you commit
 
-- `g_aiProbe` MUST stay 0 by default.
-- `git diff` MUST show no temporary instrumentation outside `g_ai_probe.c`.
+- `g_aiProfile` MUST stay 0 by default.
+- `git diff` MUST show no temporary instrumentation outside `g_ai_profile.c`.
 - A read-only subagent MUST review the change, as for any change.
 - A new source file goes into all three build systems. `python3 src/tools/verify_projects.py`
   checks that they agree.

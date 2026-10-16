@@ -303,7 +303,7 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
   }
 
   if (taker->client) {
-    G_Ai_Probe_ItemTaken(taker->client, item);
+    G_Ai_Profile_ItemTaken(taker->client, item);
   }
 
   if (!item->item || !G_Ai_IsMapControlItem(item->item) || item->solid != SOLID_NOT ||
@@ -2997,7 +2997,7 @@ static void G_Ai_RefreshPath(GameClient *cl) {
       (!G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next) ||
        G_Ai_Node_IsCrushing(next) || (link && !G_Ai_Node_IsLinkOpen(link)))) {
     if (!G_Ai_ReplanPath(cl)) {
-      G_Ai_Probe_PathEnd(cl, "unlinked");
+      G_Ai_Profile_PathEnd(cl, "unlinked");
       G_Ai_ClearGoal(goal);
     }
   }
@@ -3198,7 +3198,7 @@ static bool G_Ai_Move_goal(GameClient *cl, GameAiMovePass *move) {
       case AI_GOAL_PATH:
         if (!G_Ai_CheckNav(cl, goal)) {
           if (!G_Ai_ApproachPathTarget(cl)) {
-            G_Ai_Probe_PathEnd(cl, "arrived");
+            G_Ai_Profile_PathEnd(cl, "arrived");
             G_Ai_EndPath(cl);
           }
           continue;
@@ -3219,7 +3219,7 @@ static bool G_Ai_Move_goal(GameClient *cl, GameAiMovePass *move) {
     const bool climbing = move->link && move->link->travelType == NAV_TRAVEL_LADDER;
 
     if (!G_Ai_GoalDistress(cl, goal, climbing ? goal->path.pathPosition : move->dest)) {
-      G_Ai_Probe_PathEnd(cl, "distress");
+      G_Ai_Profile_PathEnd(cl, "distress");
       if (G_Ai_IsCommittedToClimb(cl) && (cl->ps.pmState.flags & PMF_ON_LADDER)) {
         G_Ai_JumpOffLadder(cl);
         G_Ai_ClearGoal(goal);
@@ -3500,7 +3500,7 @@ static void G_Ai_Move_stuck(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass 
 
   if (moved > 64.f) {
     if (goal->type == AI_GOAL_PATH && !G_Ai_AdvancePath(cl, goal)) {
-      G_Ai_Probe_PathEnd(cl, "teleported");
+      G_Ai_Profile_PathEnd(cl, "teleported");
       G_Ai_EndPath(cl);
     }
     return;
@@ -4030,7 +4030,7 @@ static void G_Ai_ClientThink(GameEntity *ent) {
   }
 
   if (ent->inUse && ent->client) {
-    G_Ai_Probe_Think(ent->client);
+    G_Ai_Profile_Think(ent->client);
   }
 
   ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
@@ -4257,7 +4257,7 @@ void G_Ai_Init(void) {
   gi.AddCmd("addAi", G_Ai_Add_f, CMD_GAME, "Add a bot from the roster, with optional skill, "
             "aggression and awareness");
 
-  G_Ai_Probe_Init();
+  G_Ai_Profile_Init();
 
   G_Ai_InitSkins();
 }
@@ -4267,7 +4267,7 @@ void G_Ai_Init(void) {
  */
 void G_Ai_Load(void) {
 
-  G_Ai_Probe_Load();
+  G_Ai_Profile_Load();
 
   G_Ai_State_Unload();
 
@@ -4281,7 +4281,7 @@ void G_Ai_Shutdown(void) {
 
   G_Ai_ShutdownSkins();
   G_Ai_State_Shutdown();
-  G_Ai_Probe_Shutdown();
+  G_Ai_Profile_Shutdown();
   G_Ai_Node_Shutdown();
 
   gi.FreeTag(MEM_TAG_AI);

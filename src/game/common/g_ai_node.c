@@ -2436,7 +2436,7 @@ void G_Ai_Node_Ready(void) {
 
   G_Ai_Node_CheckItems();
 
-  G_Ai_Probe_Graph();
+  G_Ai_Profile_Graph();
 }
 
 /**

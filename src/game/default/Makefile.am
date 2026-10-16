@@ -36,7 +36,7 @@ game_la_SOURCES = \
 	g_ai_item.c \
 	g_ai_main.c \
 	g_ai_node.c \
-	g_ai_probe.c \
+	g_ai_profile.c \
 	g_ai_state.c \
 	g_ballistics.c \
 	g_client.c \

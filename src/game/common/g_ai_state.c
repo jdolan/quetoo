@@ -425,7 +425,7 @@ typedef struct {
 } GameAiChoice;
 
 /**
- * @brief The name of each state, for debugging and the probe.
+ * @brief The name of each state, for debugging and the profiler.
  */
 static const char *const stateNames[AI_STATE_TOTAL] = {
   [AI_STATE_COLLECT] = "collect",
@@ -1406,7 +1406,7 @@ static bool G_Ai_State_navigate_switch(GameClient *cl, const GameAiChoice *item)
     G_Ai_SetObjective(cl, item->ent, item->node);
 
     if (G_Ai_PathTo(cl, item->buttonNode, item->utility, NULL)) {
-      G_Ai_Probe_GateUse(cl, module.gates[item->gate].name, "choose");
+      G_Ai_Profile_GateUse(cl, module.gates[item->gate].name, "choose");
     } else {
       G_Ai_Abandon(cl, item->ent);
     }
@@ -1785,7 +1785,7 @@ static void G_Ai_FailGate(GameClient *cl, GameAiGate *gate, const GameEntity *it
   gate->failTime = gameLevel.time;
   gate->numFails++;
 
-  G_Ai_Probe_GateUse(cl, gate->name, "fail");
+  G_Ai_Profile_GateUse(cl, gate->name, "fail");
 
   G_Ai_Abandon(cl, item);
 }
@@ -1868,7 +1868,7 @@ static bool G_Ai_State_activate_open(GameClient *cl, GameAiGate *gate, const Gam
   const float *costs = G_Ai_TravelCosts(cl);
 
   if (costs && ai->objectiveNode < G_Ai_Node_Count() && costs[ai->objectiveNode] != FLT_MAX) {
-    G_Ai_Probe_GateUse(cl, gate->name, "open");
+    G_Ai_Profile_GateUse(cl, gate->name, "open");
     G_Ai_Enter(cl, AI_STATE_COLLECT);
     G_Ai_PathTo(cl, ai->objectiveNode, AI_PURSUE_PRIORITY, item);
     return true;
@@ -2424,8 +2424,8 @@ static void G_Ai_LoadGates(void) {
   for (int32_t i = 0; i < module.numGates; i++) {
     const GameAiGate *gate = &module.gates[i];
 
-    G_Ai_Probe_Gate(gate->name, gate->numButtons, gate->numSources, gate->numDoors,
-                    gate->openMillis);
+    G_Ai_Profile_Gate(gate->name, gate->numButtons, gate->numSources, gate->numDoors,
+                      gate->openMillis);
   }
 }
 

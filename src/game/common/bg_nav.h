@@ -547,7 +547,7 @@ NavTravelType Nav_MoverLink(NavMoverTrace trace, const Vec3 a, const Vec3 b, con
 
 /**
  * @return The name of the travel type: the name of its `NavTravelType` constant, in lowercase and
- * without the prefix, such as `walk_off_ledge`. `src/tools/ai_probe.py` uses the same names.
+ * without the prefix, such as `walk_off_ledge`. `src/tools/ai_profile.py` uses the same names.
  */
 const char *Nav_TravelName(const NavTravelType type);
 

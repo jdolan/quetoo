@@ -1,7 +1,7 @@
 EXTRA_DIST = \
 	README.md \
 	__init__.py \
-	ai_probe.py \
+	ai_profile.py \
 	tools-env.sh \
 	matfu.py \
 	unpak.py \

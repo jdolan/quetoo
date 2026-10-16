@@ -36,7 +36,7 @@
 #include "g_ai_info.h"
 #include "g_ai_item.h"
 #include "g_ai_node.h"
-#include "g_ai_probe.h"
+#include "g_ai_profile.h"
 #include "g_ai_state.h"
 #include "g_ai_types.h"
 
@@ -58,7 +58,7 @@ bool G_Ai_IsArmed(const GameClient *cl);
 const GameAiLink *G_Ai_PathLink(const GameClient *cl);
 
 /**
- * @return The name of what the bot does about the ladder of its climb, for the probe.
+ * @return The name of what the bot does about the ladder of its climb, for the profiler.
  */
 const char *G_Ai_LadderPhaseName(const GameClient *cl);
 

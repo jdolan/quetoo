@@ -364,7 +364,8 @@ typedef struct {
 } GameAiItemTiming;
 
 /**
- * @brief Why a bot on a path does not strafe jump, as `G_Ai_StrafeJump` last found, for the probe.
+ * @brief Why a bot on a path does not strafe jump, as `G_Ai_StrafeJump` last found, for the
+ * profiler.
  */
 typedef enum {
   /**
@@ -805,7 +806,7 @@ typedef struct GameAi {
   bool ladderJumping;
 
   /**
-   * @brief Why the bot did not strafe jump on its last move along a path, for the probe.
+   * @brief Why the bot did not strafe jump on its last move along a path, for the profiler.
    */
   GameAiStrafeBlock strafeBlock;
 

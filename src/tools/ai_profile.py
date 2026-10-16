@@ -1,34 +1,34 @@
 #!/usr/bin/env python3
 """
-ai_probe.py - run headless bot matches and read the game's bot probe
+ai_profile.py - run headless bot matches and read the game's bot profiler
 
-The game module records what bots do when the developer cvar `g_aiProbe` is set (see
-src/game/common/g_ai_probe.h): 1 records the bots, 2 the navigation graph, 3 both. It writes
-`ai_probe_<map>.log` to the write directory. 4 records human players: each movement command
+The game module records what bots do when the developer cvar `g_aiProfile` is set (see
+src/game/common/g_ai_profile.h): 1 records the bots, 2 the navigation graph, 3 both. It writes
+`ai_profile_<map>.log` to the write directory. 4 records human players: each movement command
 (CMD, with the view angles as yaw,pitch), each node passed (VISIT) and each pickup; 5 records the
 bots and the players. Each line is
 
-    PROBE <time> <client> <EVENT> <key>=<value> ...
+    PROFILE <time> <client> <EVENT> <key>=<value> ...
 
 Usage:
-    ai_probe.py run <map> [--seconds 60] [--bot Bastard:0.8] [--clients N] [--graph] [--out DIR] [+set ...]
-    ai_probe.py summary <log> [<log> ...]
-    ai_probe.py deaths <log> [--link A-B] [--near X,Y,R] [--count N]
-    ai_probe.py pushes <log> [--link A-B] [--count N]
-    ai_probe.py hazards <log> [--link A-B] [--near X,Y,R] [--count N]   (entries into lava or slime)
-    ai_probe.py node <log> <id> [<id> ...]
-    ai_probe.py near <log> X Y Z [--radius R]
-    ai_probe.py path <log> <from> <to>
-    ai_probe.py routes <log> <goal> <node> [<node> ...]
-    ai_probe.py route <log> [--client N] [--top 10] [--show N]
-    ai_probe.py moves <log> (--node N | --link A-B) [--client N] [--count 5] [--raw]
-    ai_probe.py strafe <log> [--client N]
-    ai_probe.py linktimes <log> [<log> ...] [--min 3] [--count 20]   (logs of one graph build)
-    ai_probe.py kills <log> [--module default]
-    ai_probe.py suite <out> [--seconds 40] [--bot NAME ...] [--maps M,M ...] [--jobs 7] [--graph]
-                      [--tree DIR] [+set ...]
-    ai_probe.py compare <base>[,<base> ...] <current>[,<current> ...]
-    ai_probe.py graphdiff <base> <current>
+    ai_profile.py run <map> [--seconds 60] [--bot Bastard:0.8] [--clients N] [--graph] [--out DIR] [+set ...]
+    ai_profile.py summary <log> [<log> ...]
+    ai_profile.py deaths <log> [--link A-B] [--near X,Y,R] [--count N]
+    ai_profile.py pushes <log> [--link A-B] [--count N]
+    ai_profile.py hazards <log> [--link A-B] [--near X,Y,R] [--count N]   (entries into lava or slime)
+    ai_profile.py node <log> <id> [<id> ...]
+    ai_profile.py near <log> X Y Z [--radius R]
+    ai_profile.py path <log> <from> <to>
+    ai_profile.py routes <log> <goal> <node> [<node> ...]
+    ai_profile.py route <log> [--client N] [--top 10] [--show N]
+    ai_profile.py moves <log> (--node N | --link A-B) [--client N] [--count 5] [--raw]
+    ai_profile.py strafe <log> [--client N]
+    ai_profile.py linktimes <log> [<log> ...] [--min 3] [--count 20]   (logs of one graph build)
+    ai_profile.py kills <log> [--module default]
+    ai_profile.py suite <out> [--seconds 40] [--bot NAME ...] [--maps M,M ...] [--jobs 7] [--graph]
+                        [--tree DIR] [+set ...]
+    ai_profile.py compare <base>[,<base> ...] <current>[,<current> ...]
+    ai_profile.py graphdiff <base> <current>
 
 `run` builds the tree's dedicated server and game module into a private stage, so it never touches
 the user directory. `--tree` runs the build of another tree, for example a worktree of the base
@@ -61,7 +61,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TRAVEL = {-1: '-', 0: 'none', 1: 'walk', 2: 'crouch', 3: 'walk_off_ledge', 4: 'barrier_jump', 5: 'teleport',
           6: 'push', 7: 'plat', 8: 'swim', 9: 'jump', 10: 'ladder'}
 
-RCON_PASSWORD = 'probe'
+RCON_PASSWORD = 'profile'
 
 SUITE_MAPS = ['2deaths', 'abase', 'aerowalk', 'aghast', 'badplace', 'campgrounds', 'chthon', 'cistern',
               'claustrophobopolis', 'darkzone', 'edge', 'fraggin', 'fragpipe', 'gehenna', 'hallways',
@@ -72,7 +72,7 @@ SUITE_BOTS = ['Bastard:0.99', 'Guard', 'Stroggo']
 
 GRAPH_EVENTS = ('GRAPH', 'NODE', 'TRIGGER', 'CLIMB')
 
-LINE = re.compile(r'^PROBE (\d+) (-?\d+) (\w+) ?(.*)$')
+LINE = re.compile(r'^PROFILE (\d+) (-?\d+) (\w+) ?(.*)$')
 
 
 # ---------------------------------------------------------------------------
@@ -166,7 +166,7 @@ def read_graph(events):
                     gates[to] = gate[0]
         nodes[int(e['id'])] = {'pos': e.pos(), 'edge': e.get('edge') == '1', 'links': links, 'gates': gates}
     if not nodes:
-        sys.exit('The log has no graph: record it with `run --graph`, or g_aiProbe 3')
+        sys.exit('The log has no graph: record it with `run --graph`, or g_aiProfile 3')
     return nodes
 
 
@@ -244,7 +244,7 @@ def cmd_run(args):
         if not path.exists():
             sys.exit(f'{path} is missing: build the tree with `make -j8` first')
 
-    out = Path(args.out or tempfile.mkdtemp(prefix=f'ai_probe_{args.map}_')).resolve()
+    out = Path(args.out or tempfile.mkdtemp(prefix=f'ai_profile_{args.map}_')).resolve()
     stage = out / 'stage' / args.module
     write = out / 'write'
     stage.mkdir(parents=True, exist_ok=True)
@@ -256,7 +256,7 @@ def cmd_run(args):
         if target.exists():
             link.symlink_to(target)
 
-    log = write / f'ai_probe_{args.map}.log'
+    log = write / f'ai_profile_{args.map}.log'
     if log.exists():
         log.unlink()
 
@@ -268,7 +268,7 @@ def cmd_run(args):
                '+set', 'g_timeLimit', '0',
                '+set', 'g_fragLimit', '0',
                '+set', 'timeDemo', '1',
-               '+set', 'g_aiProbe', '3' if args.graph else '1',
+               '+set', 'g_aiProfile', '3' if args.graph else '1',
                *args.extra,
                '+map', args.map]
 
@@ -289,7 +289,7 @@ def cmd_run(args):
             sys.exit(f'The server did not quit on SIGTERM; {log} may be incomplete')
 
     if not log.exists():
-        sys.exit(f'No probe log: see {out / "server.log"}')
+        sys.exit(f'No profile log: see {out / "server.log"}')
 
     print(log)
     summarize(log, read_log(log))
@@ -816,13 +816,13 @@ def cmd_suite(args):
 
 
 def suite_logs(spec):
-    """The probe log of each map, by map name, of the comma-separated suite directories."""
+    """The profile log of each map, by map name, of the comma-separated suite directories."""
     logs = collections.defaultdict(list)
     for d in spec.split(','):
-        for log in sorted(Path(d).glob('*/write/ai_probe_*.log')):
+        for log in sorted(Path(d).glob('*/write/ai_profile_*.log')):
             logs[log.parent.parent.name].append(log)
     if not logs:
-        sys.exit(f'No probe logs in {spec}')
+        sys.exit(f'No profile logs in {spec}')
     return logs
 
 
@@ -902,7 +902,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
 
-    p = sub.add_parser('run', help='run a headless match with the probe')
+    p = sub.add_parser('run', help='run a headless match with the profiler')
     p.add_argument('map')
     p.add_argument('--seconds', type=float, default=60, help='wall seconds; with timeDemo, one bot on longyard plays about 170 game seconds in each')
     p.add_argument('--bot', action='append', default=[], help='NAME[:SKILL[,AGGRESSION[,AWARENESS]]], repeatable')
