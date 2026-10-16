@@ -51,16 +51,23 @@
 #define AI_ITEM_COST_SCALE (PM_SPEED_RUN * 2.f)
 
 /**
- * @brief The random spread of an item's utility, for the least and the most aware bots.
+ * @brief The random spread of an item's utility for the least aware bots.
  */
 #define AI_ITEM_NOISE_MAX .3f
+
+/**
+ * @brief The random spread of an item's utility for the most aware bots.
+ */
 #define AI_ITEM_NOISE_MIN .05f
 
 /**
- * @brief The value scales of an item that the bot covets or that would arm it, and of health and
- * armor for a bot that should retreat.
+ * @brief The value scale of an item that the bot covets or that would arm it.
  */
 #define AI_COVETED_SCALE 4.f
+
+/**
+ * @brief The value scale of health and armor for a bot that should retreat.
+ */
 #define AI_HEAL_SCALE 3.f
 
 /**
@@ -130,9 +137,14 @@
 #define AI_ROAM_REACHED 64.f
 
 /**
- * @brief The move target priorities of the states that do not collect an item.
+ * @brief The move target priority of a roaming bot.
  */
 #define AI_ROAM_PRIORITY .1f
+
+/**
+ * @brief The move target priority of the states other than collect and roam, and of a bot that
+ * collects the item behind a gate that it opened.
+ */
 #define AI_PURSUE_PRIORITY .7f
 
 /**
@@ -159,6 +171,12 @@
 #define AI_RECOVER_SCALE 1.5f
 
 /**
+ * @brief The distance within which a bot in water goes on to the item in the water that it
+ * collects, rather than retreat from an enemy out of the water.
+ */
+#define AI_WATER_ITEM_DISTANCE 256.f
+
+/**
  * @brief The least time in milliseconds for which a bot retreats once it starts.
  */
 #define AI_RETREAT_MILLIS 1500
@@ -170,10 +188,13 @@
 #define AI_TOWARD_ENEMY_SCALE .25f
 
 /**
- * @brief The chance that a bot chases a lost enemy, or investigates an alert, for the least and the
- * most aggressive bots.
+ * @brief The chance that the least aggressive bot chases a lost enemy, or investigates an alert.
  */
 #define AI_PURSUE_CHANCE_MIN .25f
+
+/**
+ * @brief The chance that the most aggressive bot chases a lost enemy, or investigates an alert.
+ */
 #define AI_PURSUE_CHANCE_MAX .9f
 
 /**
@@ -182,10 +203,18 @@
 #define AI_PURSUE_MILLIS 6000
 
 /**
- * @brief The most gates of a map, and the most buttons and doors of each.
+ * @brief The most gates of a map.
  */
 #define AI_MAX_GATES 32
+
+/**
+ * @brief The most buttons of a gate.
+ */
 #define AI_GATE_BUTTONS 4
+
+/**
+ * @brief The most doors of a gate.
+ */
 #define AI_GATE_DOORS 8
 
 /**
@@ -231,14 +260,25 @@
  * doubles it, up to `AI_GATE_RETRY_DOUBLINGS` times, until a bot takes an item through the gate.
  */
 #define AI_GATE_RETRY_MILLIS 60000
+
+/**
+ * @brief The most times that further failures of a gate double `AI_GATE_RETRY_MILLIS`.
+ */
 #define AI_GATE_RETRY_DOUBLINGS 4
 
 /**
- * @brief The most doors that a map marks with `"ai_hint" "trap"`, grouped by `targetname`, and the
- * most doors and buttons of each trap.
+ * @brief The most traps of a map: groups, by `targetname`, of doors marked `"ai_hint" "trap"`.
  */
 #define AI_MAX_TRAPS 16
+
+/**
+ * @brief The most doors of a trap.
+ */
 #define AI_TRAP_DOORS 8
+
+/**
+ * @brief The most buttons of a trap.
+ */
 #define AI_TRAP_BUTTONS 4
 
 /**
@@ -252,10 +292,29 @@
  * that target them, which a bot touches to spring the trap under an enemy.
  */
 typedef struct {
+  /**
+   * @brief The `targetname` of the doors.
+   */
   const char *name;
+
+  /**
+   * @brief The doors, on which an enemy stands to be trapped.
+   */
   const GameEntity *doors[AI_TRAP_DOORS];
+
+  /**
+   * @brief The number of doors.
+   */
   int32_t numDoors;
+
+  /**
+   * @brief The buttons that target the doors, which a bot touches.
+   */
   const GameEntity *buttons[AI_TRAP_BUTTONS];
+
+  /**
+   * @brief The number of buttons.
+   */
   int32_t numButtons;
 } GameAiTrap;
 
@@ -264,17 +323,45 @@ typedef struct {
  * the buttons that target them, which a bot touches or shoots to move the doors.
  */
 typedef struct {
+  /**
+   * @brief The `targetname` of the doors, which is the `target` of the buttons, and by which the
+   * navigation links that cross the doorways name the gate.
+   */
   const char *name;
+
+  /**
+   * @brief The doors, whose doorways the navigation links cross.
+   */
   const GameEntity *doors[AI_GATE_DOORS];
+
+  /**
+   * @brief The number of doors.
+   */
   int32_t numDoors;
+
+  /**
+   * @brief The buttons that target the doors, which a bot touches or shoots.
+   */
   const GameEntity *buttons[AI_GATE_BUTTONS];
+
+  /**
+   * @brief The number of buttons.
+   */
   int32_t numButtons;
 
   /**
-   * @brief The nodes from which a bot presses a button, and the button of each.
+   * @brief The nodes from which a bot presses a button.
    */
   GameAiNodeId sources[AI_GATE_BUTTONS * AI_BUTTON_NODES];
+
+  /**
+   * @brief The index in `buttons` of the button that a bot presses from each source.
+   */
   int32_t sourceButtons[AI_GATE_BUTTONS * AI_BUTTON_NODES];
+
+  /**
+   * @brief The number of sources.
+   */
   int32_t numSources;
 
   /**
@@ -298,16 +385,35 @@ typedef struct {
  * @brief An item that a bot may go to, with its node and its utility.
  */
 typedef struct {
+  /**
+   * @brief The item, or NULL for no choice.
+   */
   const GameEntity *ent;
+
+  /**
+   * @brief The node of the item.
+   */
   GameAiNodeId node;
+
+  /**
+   * @brief The value of the item to the bot (`G_Ai_ItemValue`).
+   */
   float value;
+
+  /**
+   * @brief The value of the item per travel time (`G_Ai_ItemUtility`), or per added travel time
+   * for a detour.
+   */
   float utility;
 
   /**
-   * @brief The index of the gate, and of its button, if the bot reaches the item sooner through a
-   * gate, or -1.
+   * @brief The index of the gate, if the bot reaches the item sooner through a gate, or -1.
    */
   int32_t gate;
+
+  /**
+   * @brief The index of the gate's button that the bot presses, or -1.
+   */
   int32_t button;
 
   /**
@@ -316,6 +422,9 @@ typedef struct {
   GameAiNodeId buttonNode;
 } GameAiChoice;
 
+/**
+ * @brief The name of each state, for debugging and the probe.
+ */
 static const char *const stateNames[AI_STATE_TOTAL] = {
   [AI_STATE_COLLECT] = "collect",
   [AI_STATE_ROAM] = "roam",
@@ -344,6 +453,10 @@ static struct {
    * @brief The gates of the map.
    */
   GameAiGate gates[AI_MAX_GATES];
+
+  /**
+   * @brief The number of gates that `gates` holds.
+   */
   int32_t numGates;
 
   /**
@@ -360,6 +473,10 @@ static struct {
    * @brief The traps that a map marks with `"ai_hint" "trap"`.
    */
   GameAiTrap traps[AI_MAX_TRAPS];
+
+  /**
+   * @brief The number of traps that `traps` holds.
+   */
   int32_t numTraps;
 } module;
 
@@ -558,7 +675,8 @@ static float G_Ai_ItemUtility(const GameClient *cl, const GameEntity *ent, const
     utility *= RandomRangef(1.f - noise, 1.f + noise);
   }
 
-  const GameEntity *enemy = cl->ai->combatTarget.type == AI_GOAL_ENTITY ? cl->ai->combatTarget.entity.ent : NULL;
+  const GameAiGoal *combatTarget = &cl->ai->combatTarget;
+  const GameEntity *enemy = combatTarget->type == AI_GOAL_ENTITY ? combatTarget->entity.ent : NULL;
 
   if (retreat && enemy &&
       Vec3_Distance(ent->s.origin, enemy->s.origin) < Vec3_Distance(ent->s.origin, cl->entity->s.origin)) {
@@ -1120,12 +1238,6 @@ static bool G_Ai_IsInWater(const GameEntity *ent) {
 }
 
 /**
- * @brief The distance within which a bot in water goes on to the item in the water that it
- * collects, rather than retreat from an enemy out of the water.
- */
-#define AI_WATER_ITEM_DISTANCE 256.f
-
-/**
  * @return True if the item that the bot collects is there, in water, within
  * `AI_WATER_ITEM_DISTANCE`, as the quad damage in its pool on tokays. A player takes it first, and
  * then leaves the water.
@@ -1527,7 +1639,9 @@ static bool G_Ai_MoveToEnemy(GameClient *cl) {
 
   GameAi *ai = cl->ai;
 
-  if (ai->moveTarget.type == AI_GOAL_ENTITY && G_Ai_GoalHasEntity(&ai->moveTarget, ai->combatTarget.entity.ent)) {
+  const GameEntity *enemy = ai->combatTarget.entity.ent;
+
+  if (ai->moveTarget.type == AI_GOAL_ENTITY && G_Ai_GoalHasEntity(&ai->moveTarget, enemy)) {
     return false;
   }
 
@@ -2144,7 +2258,8 @@ static GameAiTrap *G_Ai_LoadTraps_create(const char *name) {
   memset(trap, 0, sizeof(*trap));
 
   trap->name = name;
-  trap->numButtons = G_Ai_FindEntities(EOFS(target), name, G_Ai_IsTrapButton, trap->buttons, AI_TRAP_BUTTONS);
+  trap->numButtons = G_Ai_FindEntities(EOFS(target), name, G_Ai_IsTrapButton, trap->buttons,
+                                       AI_TRAP_BUTTONS);
 
   return trap;
 }
@@ -2191,7 +2306,8 @@ static GameAiGate *G_Ai_LoadGates_create(const char *name) {
 
   gate->name = name;
   gate->openMillis = UINT32_MAX;
-  gate->numDoors = G_Ai_FindEntities(EOFS(targetName), name, G_Ai_IsGateDoor, gate->doors, AI_GATE_DOORS);
+  gate->numDoors = G_Ai_FindEntities(EOFS(targetName), name, G_Ai_IsGateDoor, gate->doors,
+                                     AI_GATE_DOORS);
 
   if (!gate->numDoors) {
     return NULL;
