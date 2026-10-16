@@ -139,9 +139,9 @@
 #define NAV_JUMP_STEP .025f
 
 /**
- * @brief The most links that one node can have: a walk or barrier jump to each of 4 levels, a drop
- * and a jump, in each of 8 directions, and swims to the cells around a node in water and around the
- * surface above it.
+ * @brief The most links that one node can have: a walk or barrier jump to each level from one below
+ * up to the barrier jump height, a drop and a jump, in each of 8 directions, and swims to the cells
+ * around a node in water and around the surface above it.
  */
 #define NAV_MAX_NODE_LINKS 128
 
@@ -197,9 +197,9 @@
 #define NAV_LADDER_SPACING (NAV_FINE_STEP * 2.f)
 
 /**
- * @brief The time in hundredths of a second that a climb takes beyond its height at
- * `PM_SPEED_LADDER`: to come to the ladder, turn to it and get on. A bot climbs about this much
- * slower than the speed alone.
+ * @brief The time in hundredths of a second that a climb takes beyond its height at the
+ * movement's ladder speed: to come to the ladder, turn to it and get on. A bot climbs about this
+ * much slower than the speed alone.
  */
 #define NAV_LADDER_DELAY 100
 
@@ -289,6 +289,49 @@ static struct {
   float barrierHeight;
   float waterJumpHeight;
   int32_t capacity;
+
+  /**
+   * @brief The movement's run speed (`PMoveParams::speedGround`), at which the build times walks and
+   * simulates jumps.
+   */
+  float speedRun;
+
+  /**
+   * @brief The movement's speed in water (`PMoveParams::speedWater`), at which the build times swims
+   * and walks through liquid.
+   */
+  float speedWater;
+
+  /**
+   * @brief The movement's speed while crouched (`PMoveParams::speedDucked`).
+   */
+  float speedDucked;
+
+  /**
+   * @brief The movement's speed on a ladder (`PMoveParams::speedLadder`), at which the build times
+   * climbs.
+   */
+  float speedLadder;
+
+  /**
+   * @brief True once the build warned that a node has more than `NAV_MAX_NODE_LINKS` links.
+   */
+  bool linksFull;
+
+  /**
+   * @brief True once the build warned of more than `NAV_MAX_CLIMBS` climbs.
+   */
+  bool climbsFull;
+
+  /**
+   * @brief True once the build warned of more than `NAV_MAX_TRIGGERS` triggers.
+   */
+  bool triggersFull;
+
+  /**
+   * @brief True once the build warned of more than `NAV_MAX_BARRIERS` barriers.
+   */
+  bool barriersFull;
 
   /**
    * @brief The bounds of the level's `trigger_hurt` and `trigger_push` entities, which no node or
@@ -851,7 +894,11 @@ static void Nav_AddLink(NavLink *links, int32_t *numLinks, const int32_t node,
   }
 
   if (*numLinks == NAV_MAX_NODE_LINKS) {
-    module.params->Error(__func__, "A navigation node has more than %d links\n", NAV_MAX_NODE_LINKS);
+    if (!module.linksFull) {
+      module.params->Warn(__func__, "A navigation node has more than %d links; bots may miss the rest\n", NAV_MAX_NODE_LINKS);
+      module.linksFull = true;
+    }
+    return;
   }
 
   links[(*numLinks)++] = (NavLink) {
@@ -872,7 +919,7 @@ static void Nav_AddWalk(NavLink *links, int32_t *numLinks, const NavNode *node, 
   const bool crouch = node->crouch || other->crouch;
   const bool wade = (node->contents | other->contents) != 0;
   const NavTravelType type = crouch ? NAV_TRAVEL_CROUCH : NAV_TRAVEL_WALK;
-  const float speed = wade ? PM_SPEED_WATER : crouch ? PM_SPEED_DUCKED : PM_SPEED_RUN;
+  const float speed = wade ? module.speedWater : crouch ? module.speedDucked : module.speedRun;
 
   Nav_AddLink(links, numLinks, target, type, Nav_TravelTime(distance, speed), gate);
 }
@@ -1210,7 +1257,7 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
   const int32_t index = Maxi(0, numSteps - 1 - (int32_t) (NAV_JUMP_TAKEOFF_MARGIN / NAV_WALK_STEP));
   const Vec3 takeoff = steps[index];
   const float remaining = distance - index * NAV_WALK_STEP;
-  const float speed = PM_SPEED_RUN * (module.gatedSpeed ? NAV_GATED_JUMP_SPEED_FRACTION : NAV_JUMP_SPEED_FRACTION);
+  const float speed = module.speedRun * (module.gatedSpeed ? NAV_GATED_JUMP_SPEED_FRACTION : NAV_JUMP_SPEED_FRACTION);
   const float up = sqrtf(2.f * module.gravity * (module.barrierHeight + NAV_BARRIER_MARGIN));
 
   Vec3 origin = takeoff;
@@ -1280,7 +1327,7 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
         landing = down.end;
       }
 
-      *seconds = index * NAV_WALK_STEP / PM_SPEED_RUN + t + sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
+      *seconds = index * NAV_WALK_STEP / module.speedRun + t + sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
       return true;
     }
   }
@@ -1463,7 +1510,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER), 0);
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, module.speedWater), 0);
       }
     }
   }
@@ -1500,7 +1547,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, surface) + Vec3_Distance(surface, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, PM_SPEED_WATER), 0);
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, module.speedWater), 0);
       }
     }
   }
@@ -1700,7 +1747,7 @@ static bool Nav_LadderJump(const NavNode *node, const Vec3 column, const Vec3 no
   const int32_t index = Maxi(0, numSteps - 1 - (int32_t) (NAV_JUMP_TAKEOFF_MARGIN / NAV_WALK_STEP));
   const Vec3 takeoff = steps[index];
   const float remaining = distance - index * NAV_WALK_STEP;
-  const float speed = PM_SPEED_RUN * NAV_JUMP_SPEED_FRACTION;
+  const float speed = module.speedRun * NAV_JUMP_SPEED_FRACTION;
   const float up = sqrtf(2.f * module.gravity * (module.barrierHeight + NAV_BARRIER_MARGIN));
 
   Vec3 origin = takeoff;
@@ -1733,7 +1780,7 @@ static bool Nav_LadderJump(const NavNode *node, const Vec3 column, const Vec3 no
       }
 
       *grab = origin;
-      *seconds = index * NAV_WALK_STEP / PM_SPEED_RUN + t;
+      *seconds = index * NAV_WALK_STEP / module.speedRun + t;
       return true;
     }
   }
@@ -1768,7 +1815,10 @@ static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t tim
   }
 
   if (graph->numClimbs == NAV_MAX_CLIMBS) {
-    module.params->Warn(__func__, "More than %d ladder climbs; bots may not climb the rest\n", NAV_MAX_CLIMBS);
+    if (!module.climbsFull) {
+      module.params->Warn(__func__, "More than %d ladder climbs; bots may not climb the rest\n", NAV_MAX_CLIMBS);
+      module.climbsFull = true;
+    }
     return;
   }
 
@@ -1919,27 +1969,27 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
     }
   }
 
-  const int32_t over = Nav_TravelTime(across, PM_SPEED_RUN);
+  const int32_t over = Nav_TravelTime(across, module.speedRun);
   const bool foot = floor.fraction < 1.f || (Nav_PointContents(bottom) & CONTENTS_MASK_LIQUID);
   const int32_t a = foot ? Nav_LadderNode(bottom, PM_STEP_HEIGHT * 2.f) : -1;
 
   bool climbs = false;
 
   if (a != -1 && a != b) {
-    Nav_AddClimbLink(a, b, NAV_LADDER_DELAY + Nav_TravelTime(top.z - bottom.z, PM_SPEED_LADDER) + over, bottom, landing, false, bottom);
+    Nav_AddClimbLink(a, b, NAV_LADDER_DELAY + Nav_TravelTime(top.z - bottom.z, module.speedLadder) + over, bottom, landing, false, bottom);
     climbs = true;
   }
 
-  Vec3 grab = MakeVec3(column.x, column.y, Maxf(bottom.z + NAV_CELL_HEIGHT, start.z));
-  for (; grab.z < highest; grab.z += NAV_CELL_HEIGHT) {
+  Vec3 swim = MakeVec3(column.x, column.y, Maxf(bottom.z + NAV_CELL_HEIGHT, start.z));
+  for (; swim.z < highest; swim.z += NAV_CELL_HEIGHT) {
 
-    const int32_t n = Nav_LadderNode(grab, NAV_CELL_HEIGHT * .5f);
+    const int32_t n = Nav_LadderNode(swim, NAV_CELL_HEIGHT * .5f);
     if (n == -1 || n == a || n == b || !(module.graph->nodes[n].contents & CONTENTS_MASK_LIQUID)) {
       continue;
     }
 
-    const int32_t time = NAV_LADDER_DELAY + Nav_TravelTime(top.z - grab.z, PM_SPEED_LADDER) + over;
-    Nav_AddClimbLink(n, b, time, grab, landing, false, grab);
+    const int32_t time = NAV_LADDER_DELAY + Nav_TravelTime(top.z - swim.z, module.speedLadder) + over;
+    Nav_AddClimbLink(n, b, time, swim, landing, false, swim);
     climbs = true;
   }
 
@@ -1987,7 +2037,7 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
         }
 
         const int32_t time = NAV_LADDER_DELAY + (int32_t) (seconds * 100.f) +
-                             Nav_TravelTime(top.z - grab.z, PM_SPEED_LADDER) + over;
+                             Nav_TravelTime(top.z - grab.z, module.speedLadder) + over;
 
         Nav_AddClimbLink(n, b, time, grab, landing, true, runUp);
         climbs = true;
@@ -2196,7 +2246,7 @@ static void Nav_FindClimbs(void) {
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
  * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the same
  * model, and the game links it to the rest as the model moves. A node in liquid also swims, and a
- * swim node only swims. A walk to or from a node in liquid takes the time at `PM_SPEED_WATER`,
+ * swim node only swims. A walk to or from a node in liquid takes the time at the speed in water,
  * because a player who walks on a floor in liquid moves no faster than one who swims. A node at
  * the foot of a ladder's climb, or that jumps onto the ladder, links to its top. A bot does not
  * climb down a ladder: it falls, by a drop link. No drop, barrier jump, jump or swim enters lava or
@@ -2209,6 +2259,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
   const NavNode *node = &graph->nodes[index];
 
   const Vec3i xyz = Nav_CellCoordinate(node->cell);
+  const int32_t rise = Maxi(2, (int32_t) ceilf(module.barrierHeight / NAV_CELL_HEIGHT));
 
   int32_t numLinks = 0;
 
@@ -2216,7 +2267,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
 
     bool walked = false;
 
-    for (int32_t dz = -1; dz <= 2; dz++) {
+    for (int32_t dz = -1; dz <= rise; dz++) {
 
       const Vec3i neighbor = MakeVec3i(xyz.x + directions[i].x, xyz.y + directions[i].y, xyz.z + dz);
 
@@ -2239,7 +2290,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
         walked = true;
       } else if (!Nav_EntersHazard(node, other) && Nav_BarrierJump(node, other, &distance)) {
         const float fall = module.barrierHeight - (other->position.z - node->position.z);
-        const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) +
+        const int32_t time = Nav_TravelTime(distance, module.speedRun) +
                              Nav_FallTime(module.barrierHeight) + Nav_FallTime(fall);
         Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_BARRIER_JUMP, time, 0);
         walked = true;
@@ -2260,7 +2311,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       target = Nav_GatedDrop(node, directions[i], &distance, &height, &dropGate);
     }
     if (target != -1 && target != index && !Nav_EntersHazard(node, &graph->nodes[target])) {
-      const int32_t time = Nav_TravelTime(distance, PM_SPEED_RUN) + Nav_FallTime(height);
+      const int32_t time = Nav_TravelTime(distance, module.speedRun) + Nav_FallTime(height);
       Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, dropGate);
     }
 
@@ -2432,7 +2483,10 @@ static void Nav_InitModels(void) {
     if (!Str_Compare(classname, "trigger_hurt") || !Str_Compare(classname, "trigger_push")) {
 
       if (module.numTriggers == NAV_MAX_TRIGGERS) {
-        module.params->Warn(__func__, "More than %d hurt and push triggers; bots may walk into the rest\n", NAV_MAX_TRIGGERS);
+        if (!module.triggersFull) {
+          module.params->Warn(__func__, "More than %d hurt and push triggers; bots may walk into the rest\n", NAV_MAX_TRIGGERS);
+          module.triggersFull = true;
+        }
         continue;
       }
 
@@ -2465,7 +2519,10 @@ static void Nav_InitModels(void) {
     }
 
     if (module.numBarriers == NAV_MAX_BARRIERS) {
-      module.params->Warn(__func__, "More than %d closed doors, walls and rotating models; bots may path through the rest\n", NAV_MAX_BARRIERS);
+      if (!module.barriersFull) {
+        module.params->Warn(__func__, "More than %d closed doors, walls and rotating models; bots may path through the rest\n", NAV_MAX_BARRIERS);
+        module.barriersFull = true;
+      }
       continue;
     }
 
@@ -2677,6 +2734,10 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
   module.graph = graph;
   module.openGate = -1;
   module.gravity = params->movement.gravity;
+  module.speedRun = Maxf(1.f, params->movement.speedGround);
+  module.speedWater = Maxf(1.f, params->movement.speedWater);
+  module.speedDucked = Maxf(1.f, params->movement.speedDucked);
+  module.speedLadder = Maxf(1.f, params->movement.speedLadder);
   module.barrierHeight = Nav_BarrierHeight();
   module.waterJumpHeight = Nav_WaterJumpHeight();
 
@@ -2705,6 +2766,7 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
 
   if (!graph->numNodes) {
     Nav_Free(graph);
+    memset(&module, 0, sizeof(module));
     return false;
   }
 
@@ -2737,13 +2799,12 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
 
     for (int32_t j = 0; j < numLinks; j++) {
       graph->links[graph->numLinks++] = links[j];
-      graph->numTravel[links[j].travelType]++;
-      graph->numGated += links[j].gate != 0;
     }
   }
 
   Nav_PruneSwims(graph);
 
+  memset(&module, 0, sizeof(module));
   return true;
 }
 
@@ -2788,7 +2849,9 @@ bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints
  * @see bg_nav.h
  */
 bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b) {
-  return a->gravity == b->gravity && a->speedJump == b->speedJump && a->speedWaterJump == b->speedWaterJump &&
+  return a->movement == b->movement && a->gravity == b->gravity && a->speedJump == b->speedJump &&
+         a->speedWaterJump == b->speedWaterJump && a->speedGround == b->speedGround &&
+         a->speedWater == b->speedWater && a->speedDucked == b->speedDucked && a->speedLadder == b->speedLadder &&
          a->frictionAir == b->frictionAir && a->frictionWater == b->frictionWater &&
          Box3_Equal(a->bounds, b->bounds);
 }
@@ -2800,9 +2863,11 @@ void Nav_FreeNodes(NavGraph *graph) {
 
   free(graph->nodes);
   graph->nodes = NULL;
+  graph->numNodes = 0;
 
   free(graph->links);
   graph->links = NULL;
+  graph->numLinks = 0;
 }
 
 /**

@@ -443,8 +443,9 @@ bool Nav_Build(const NavParams *params, NavGraph *graph);
 /**
  * @return True if the graph that `Nav_Build` makes with the movement `a`, and the flights that
  * `Nav_FlyPush` flies with it, are those for the movement `b`. The build reads only the gravity and
- * the speeds of the jump and the water jump. A flight also reads the friction in the air and in
- * water, and the player's bounds.
+ * the speeds of the run, the water, the crouch, the ladder, the jump and the water jump. A flight
+ * also reads the movement that `Pm_Move` runs, the friction in the air and in water, and the
+ * player's bounds.
  */
 bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b);
 
@@ -476,7 +477,9 @@ bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b);
 bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints, int32_t *numPoints, float *seconds);
 
 /**
- * @brief Frees the nodes and links of a graph that `Nav_Build` made, and keeps its cells.
+ * @brief Frees the nodes and links of a graph that `Nav_Build` made, and zeroes their counts. It
+ * keeps the cells, the pushes, the ladders and the climbs, whose node indices then refer to nodes
+ * that the graph no longer holds.
  */
 void Nav_FreeNodes(NavGraph *graph);
 
