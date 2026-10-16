@@ -592,6 +592,33 @@ static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box
 }
 
 /**
+ * @brief Sets up a player move that simulates the AI from where it is, as it moves now, with no
+ * command, and that traces with `G_Ai_MoveTrace`.
+ */
+static void G_Ai_InitPMove(const GameClient *cl, PMove *pm) {
+
+  GameEntity *ent = cl->entity;
+
+  memset(pm, 0, sizeof(*pm));
+
+  pm->s = cl->ps.pmState;
+  pm->s.origin = ent->s.origin;
+  pm->s.velocity = ent->velocity;
+  pm->s.type = PM_NORMAL;
+  pm->ground = ent->ground;
+
+  pm->PointContents = gi.PointContents;
+  pm->BoxContents = gi.BoxContents;
+  pm->Trace = G_Ai_MoveTrace;
+
+  pm->Debug = gi.Debug;
+  pm->DebugMask = gi.DebugMask;
+  pm->debugMask = DEBUG_PMOVE_SERVER;
+
+  aiCurrentEntity = ent;
+}
+
+/**
  * @return The link into the node at `index` of the path, or NULL at the start of the path.
  */
 static const GameAiLink *G_Ai_Path_GetLink(const Vector *path, const uint32_t index) {
@@ -931,20 +958,22 @@ static bool G_Ai_IsHurtful(const Box3 bounds) {
 #define AI_TRIGGER_SPACING 16.f
 
 /**
- * @return True if the player's box, moved along the line from `start` to `end`, touches a
- * `trigger_push`, or with `hurt`, a `trigger_hurt`. Walk links keep out of both, but a bot that
- * cuts a corner of its path does not, and a jump pad beside the path throws it off. The swept box of
- * a long line holds many items and projectiles, so the search takes up to 256 entities.
+ * @brief The most entities that `G_Ai_BoxTriggers` searches. The box of a long line or a strafe
+ * jump holds many items and projectiles.
  */
-static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hurt) {
+#define AI_TRIGGERS_MAX 256
 
-  const Box3 bounds = G_PlayerBounds();
-  const Box3 swept = Box3_Union(Box3_Translate(bounds, start), Box3_Translate(bounds, end));
+/**
+ * @brief Gathers the bounds of each `trigger_push`, and with `hurt`, each `trigger_hurt`, in the
+ * box, from up to `AI_TRIGGERS_MAX` entities.
+ * @param triggers Receives the bounds, and holds at least `AI_TRIGGERS_MAX`.
+ * @return The number of triggers.
+ */
+static size_t G_Ai_BoxTriggers(const Box3 box, const bool hurt, Box3 *triggers) {
 
-  GameEntity *ents[256];
-  const size_t len = gi.BoxEntities(swept, ents, lengthof(ents), BOX_OCCUPY);
+  GameEntity *ents[AI_TRIGGERS_MAX];
+  const size_t len = gi.BoxEntities(box, ents, lengthof(ents), BOX_OCCUPY);
 
-  Box3 triggers[lengthof(ents)];
   size_t numTriggers = 0;
 
   for (size_t i = 0; i < len; i++) {
@@ -953,6 +982,36 @@ static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hur
       triggers[numTriggers++] = ents[i]->absBounds;
     }
   }
+
+  return numTriggers;
+}
+
+/**
+ * @return True if the box intersects any of the `numTriggers` bounds of `triggers`.
+ */
+static bool G_Ai_IntersectsAny(const Box3 box, const Box3 *triggers, const size_t numTriggers) {
+
+  for (size_t i = 0; i < numTriggers; i++) {
+    if (Box3_Intersects(box, triggers[i])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @return True if the player's box, moved along the line from `start` to `end`, touches a
+ * `trigger_push`, or with `hurt`, a `trigger_hurt`. Walk links keep out of both, but a bot that
+ * cuts a corner of its path does not, and a jump pad beside the path throws it off.
+ */
+static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hurt) {
+
+  const Box3 bounds = G_PlayerBounds();
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, start), Box3_Translate(bounds, end));
+
+  Box3 triggers[AI_TRIGGERS_MAX];
+  const size_t numTriggers = G_Ai_BoxTriggers(swept, hurt, triggers);
 
   if (!numTriggers) {
     return false;
@@ -963,12 +1022,9 @@ static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hur
   for (float d = 0.f; d <= length + AI_TRIGGER_SPACING; d += AI_TRIGGER_SPACING) {
 
     const Vec3 point = Vec3_Mix(start, end, Minf(1.f, length > 0.f ? d / length : 1.f));
-    const Box3 box = Box3_Translate(bounds, point);
 
-    for (size_t i = 0; i < numTriggers; i++) {
-      if (Box3_Intersects(box, triggers[i])) {
-        return true;
-      }
+    if (G_Ai_IntersectsAny(Box3_Translate(bounds, point), triggers, numTriggers)) {
+      return true;
     }
   }
 
@@ -2538,26 +2594,8 @@ static Vec3 G_Ai_StrafeWish(const GameClient *cl, const Vec3 origin, Vec3 veloci
  */
 static bool G_Ai_SimulateDrop_(GameClient *cl, const Vec3 target) {
 
-  GameEntity *ent = cl->entity;
-
   PMove pm;
-  memset(&pm, 0, sizeof(pm));
-
-  pm.s = cl->ps.pmState;
-  pm.s.origin = ent->s.origin;
-  pm.s.velocity = ent->velocity;
-  pm.s.type = PM_NORMAL;
-  pm.ground = ent->ground;
-
-  pm.PointContents = gi.PointContents;
-  pm.BoxContents = gi.BoxContents;
-  pm.Trace = G_Ai_MoveTrace;
-
-  pm.Debug = gi.Debug;
-  pm.DebugMask = gi.DebugMask;
-  pm.debugMask = DEBUG_PMOVE_SERVER;
-
-  aiCurrentEntity = ent;
+  G_Ai_InitPMove(cl, &pm);
 
   const float floor = target.z - PM_STEP_HEIGHT * 2.f;
   const uint8_t msec = (uint8_t) ceilf(QUETOO_TICK_MILLIS / 3.f);
@@ -2705,44 +2743,19 @@ static void G_Ai_AvoidHazard(GameClient *cl, PMoveCmd *cmd) {
  */
 static bool G_Ai_SimulateStrafeJump(GameClient *cl, const Vec3 target) {
 
-  GameEntity *ent = cl->entity;
+  const GameEntity *ent = cl->entity;
 
   PMove pm;
-  memset(&pm, 0, sizeof(pm));
+  G_Ai_InitPMove(cl, &pm);
 
-  pm.s = cl->ps.pmState;
-  pm.s.origin = ent->s.origin;
-  pm.s.velocity = ent->velocity;
-  pm.s.type = PM_NORMAL;
   pm.s.flags &= ~PMF_JUMP_HELD;
-  pm.ground = ent->ground;
-
-  pm.PointContents = gi.PointContents;
-  pm.BoxContents = gi.BoxContents;
-  pm.Trace = G_Ai_MoveTrace;
-
-  pm.Debug = gi.Debug;
-  pm.DebugMask = gi.DebugMask;
-  pm.debugMask = DEBUG_PMOVE_SERVER;
-
-  aiCurrentEntity = ent;
 
   const Box3 bounds = Pm_Bounds(&pm.s.params, false);
   const float speed = Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN);
   const float reach = Maxf(Vec2_Length(Vec3_XY(ent->velocity)), speed) * MILLIS_TO_SECONDS(AI_STRAFE_SIM_MILLIS);
 
-  GameEntity *ents[256];
-  const size_t len = gi.BoxEntities(Box3_Expand(Box3_Translate(bounds, ent->s.origin), reach), ents, lengthof(ents), BOX_OCCUPY);
-
-  Box3 triggers[lengthof(ents)];
-  size_t numTriggers = 0;
-
-  for (size_t i = 0; i < len; i++) {
-    if (ents[i]->classname && (!Str_Compare(ents[i]->classname, "trigger_push") ||
-                               !Str_Compare(ents[i]->classname, "trigger_hurt"))) {
-      triggers[numTriggers++] = ents[i]->absBounds;
-    }
-  }
+  Box3 triggers[AI_TRIGGERS_MAX];
+  const size_t numTriggers = G_Ai_BoxTriggers(Box3_Expand(Box3_Translate(bounds, ent->s.origin), reach), true, triggers);
 
   const float floor = Minf(ent->s.origin.z, target.z) - PM_STEP_HEIGHT * 2.f;
   const uint8_t msec = QUETOO_TICK_MILLIS;
@@ -2766,11 +2779,8 @@ static bool G_Ai_SimulateStrafeJump(GameClient *cl, const Vec3 target) {
 
     tookOff |= (pm.s.flags & PMF_JUMPED) != 0;
 
-    const Box3 box = Box3_Translate(bounds, pm.s.origin);
-    for (size_t i = 0; i < numTriggers; i++) {
-      if (Box3_Intersects(box, triggers[i])) {
-        return false;
-      }
+    if (G_Ai_IntersectsAny(Box3_Translate(bounds, pm.s.origin), triggers, numTriggers)) {
+      return false;
     }
 
     if (pm.waterLevel >= WATER_WAIST) {
@@ -3197,33 +3207,11 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   cmd->forward = dir.x;
   cmd->right = dir.y;
 
-  aiCurrentEntity = ent;
-
-  // predict ahead
   PMove pm;
-
-  memset(&pm, 0, sizeof(pm));
-  pm.s = cl->ps.pmState;
-
-  pm.s.origin = ent->s.origin;
-
-  pm.s.velocity = ent->velocity;
-
-  pm.s.type = PM_NORMAL;
+  G_Ai_InitPMove(cl, &pm);
 
   pm.cmd = *cmd;
-  pm.ground = ent->ground;
 
-  pm.PointContents = gi.PointContents;
-  pm.BoxContents = gi.BoxContents;
-  
-  pm.Trace = G_Ai_MoveTrace;
-
-  pm.Debug = gi.Debug;
-  pm.DebugMask = gi.DebugMask;
-  pm.debugMask = DEBUG_PMOVE_SERVER;
-
-  // perform a move; predict our next frame
   Pm_Move(&pm);
 
   // predict a few frames ahead for timely edge/mover stoppage; cache result per
