@@ -316,10 +316,24 @@ typedef struct {
    */
   int32_t numCells;
 
+  /**
+   * @brief The nodes of the graph.
+   */
   NavNode *nodes;
+
+  /**
+   * @brief The count of `nodes`.
+   */
   int32_t numNodes;
 
+  /**
+   * @brief The links of the graph, those of each node together, from its `NavNode::firstLink`.
+   */
   NavLink *links;
+
+  /**
+   * @brief The count of `links`.
+   */
   int32_t numLinks;
 
   /**
@@ -356,6 +370,10 @@ typedef struct {
    * @brief The level's `trigger_push` entities.
    */
   NavPush *pushes;
+
+  /**
+   * @brief The count of `pushes`.
+   */
   int32_t numPushes;
 
   /**
@@ -433,8 +451,11 @@ typedef struct {
 } NavParams;
 
 /**
- * @brief Makes the level's navigation graph from its collision model and entities: a node on each floor that a
- * player fits on in each cell, and walk, crouch, barrier jump and walk-off-ledge links between them.
+ * @brief Makes the level's navigation graph from its collision model and entities: a node on each
+ * floor that a player fits on in each cell, and a swim node in each cell with no floor that is in
+ * water, lava or slime, and the links between them: walks, crouches, barrier jumps, walks off
+ * ledges, running jumps across gaps, swims, and ladder climbs. It also reads the level's
+ * `trigger_push` entities, whose flights `Nav_FlyPush` follows, and the faces of its ladders.
  * @return True if the graph has at least one node.
  * @remarks The caller MUST free the graph with `Nav_Free`.
  */

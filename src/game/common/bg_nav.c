@@ -229,9 +229,24 @@
  * @brief The outcome of a floor sample.
  */
 typedef enum {
+  /**
+   * @brief The sample found no floor that a player stands on.
+   */
   NAV_SAMPLE_NONE,
+
+  /**
+   * @brief The sample found a floor with no room for a player, standing or crouched.
+   */
   NAV_SAMPLE_NO_FIT,
+
+  /**
+   * @brief The sample found a floor where a player touches a `trigger_hurt` or a `trigger_push`.
+   */
   NAV_SAMPLE_TRIGGER,
+
+  /**
+   * @brief The sample found a floor for a node.
+   */
   NAV_SAMPLE_NODE,
 } NavSample;
 
@@ -282,11 +297,36 @@ typedef struct {
  * @brief The build state.
  */
 static struct {
+  /**
+   * @brief What the build needs from the game or the client game.
+   */
   const NavParams *params;
+
+  /**
+   * @brief The graph that the build makes.
+   */
   NavGraph *graph;
+
+  /**
+   * @brief The movement's gravity (`PMoveParams::gravity`), by which the build simulates jumps and
+   * times falls.
+   */
   float gravity;
+
+  /**
+   * @brief The highest ledge that a jump climbs onto (`Nav_BarrierHeight`).
+   */
   float barrierHeight;
+
+  /**
+   * @brief The highest ledge above the floating origin that a water jump climbs onto
+   * (`Nav_WaterJumpHeight`).
+   */
   float waterJumpHeight;
+
+  /**
+   * @brief The count of nodes for which `NavGraph::nodes` is allocated.
+   */
   int32_t nodeCapacity;
 
   /**
@@ -337,6 +377,10 @@ static struct {
    * walk may touch: one hurts, and the other throws the bot off its walk.
    */
   Box3 triggers[NAV_MAX_TRIGGERS];
+
+  /**
+   * @brief The count of `triggers`.
+   */
   int32_t numTriggers;
 
   /**
@@ -344,6 +388,10 @@ static struct {
    * treats as solid as the world.
    */
   NavBarrier barriers[NAV_MAX_BARRIERS];
+
+  /**
+   * @brief The count of `barriers`.
+   */
   int32_t numBarriers;
 
   /**
