@@ -630,6 +630,34 @@ PMoveParams G_MovementParams(void) {
 }
 
 /**
+ * @brief Resolves a numeric level setting against the cvar that can override it.
+ * @details "default", or an empty string, defers to what the level requested. Any
+ * other value is the admin's, and wins over the level, unless it is not a number
+ * from 0 to `INT16_MAX`, which bounds every level setting's storage.
+ * @param source If not NULL, set to the cvar's name when the cvar's value is used.
+ */
+float G_LevelSetting(const Cvar *cvar, float requested, const char **source) {
+
+  if (!Str_Compare(cvar->string, "default") || *cvar->string == '\0') {
+    return requested;
+  }
+
+  char *end;
+  const float value = strtof(cvar->string, &end);
+  if (end == cvar->string || *end || !isfinite(value) || value < 0.f || value > INT16_MAX) {
+    G_Warn("%s \"%s\" is neither \"default\" nor a number from 0 to %d, using %g\n",
+           cvar->name, cvar->string, INT16_MAX, requested);
+    return requested;
+  }
+
+  if (source) {
+    *source = cvar->name;
+  }
+
+  return value;
+}
+
+/**
  * @brief The gravity in effect: the level's, if `g_gravity`, the map's metadata
  * or its worldspawn set one, and otherwise the movement's own.
  */
@@ -812,7 +840,13 @@ static void G_CheckRules(void) {
   if (g_gravity->modified) { // G_MovementParams() reads gameLevel.gravity each move
     g_gravity->modified = false;
 
-    gameLevel.gravity = g_gravity->integer;
+    gameLevel.gravity = G_LevelSetting(g_gravity, gameLevel.requested.gravity, NULL);
+  }
+
+  if (sv_minClients->modified) {
+    sv_minClients->modified = false;
+
+    gameLevel.minClients = G_LevelSetting(sv_minClients, gameLevel.requested.minClients, NULL);
   }
 
   if (g_numTeams->modified) { // reset teams, scores, etc
@@ -848,16 +882,16 @@ static void G_CheckRules(void) {
 
   if (g_fragLimit->modified) {
     g_fragLimit->modified = false;
-    gameLevel.fragLimit = g_fragLimit->integer;
+    gameLevel.fragLimit = G_LevelSetting(g_fragLimit, gameLevel.requested.fragLimit, NULL);
 
     gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", gameLevel.fragLimit);
   }
 
   if (g_timeLimit->modified) {
     g_timeLimit->modified = false;
-    gameLevel.timeLimit = g_timeLimit->value * 60 * 1000;
+    gameLevel.timeLimit = G_LevelSetting(g_timeLimit, gameLevel.requested.timeLimit, NULL) * 60 * 1000;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", g_timeLimit->value);
+    gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", gameLevel.timeLimit / 60000.f);
   }
 
   if (g_weaponStay->modified) {
@@ -1155,7 +1189,7 @@ void G_Init(void) {
     "0"
 #endif
     , CVAR_SERVER_INFO, NULL);
-  g_fragLimit = gi.AddCvar("g_fragLimit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
+  g_fragLimit = gi.AddCvar("g_fragLimit", "default", CVAR_SERVER_INFO, "The frag limit per level: \"default\" defers to the level, else 30.");
   g_friendlyFire = gi.AddCvar("g_friendlyFire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
     "Selects deathmatch, instagib or arena combat. Prefix with team_ for team play, "
@@ -1173,7 +1207,7 @@ void G_Init(void) {
   g_airSpeed = gi.AddCvar("g_airSpeed", "350", 0, "Wish-speed cap while airborne. Default 350.");
   g_duckSpeed = gi.AddCvar("g_duckSpeed", "140.0", 0, "Maximum ground speed while ducked. Default 140.0.");
   g_duckStandSpeed = gi.AddCvar("g_duckStandSpeed", "200.0", 0, "Rate the view rises/falls when standing/ducking. Default 200.0.");
-  g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
+  g_gravity = gi.AddCvar("g_gravity", "default", CVAR_SERVER_INFO, "The world gravity: \"default\" defers to the level, else the movement's.");
   g_movement = gi.AddCvar("g_movement", "default", CVAR_SERVER_INFO, "The player movement to run: \"default\" defers to the level, otherwise a movement name such as \"quetoo\" or \"quake\".");
   g_groundAcceleration = gi.AddCvar("g_groundAcceleration", "10.0", 0, "Ground acceleration. Default 10.0.");
   g_groundAccelerationSlick = gi.AddCvar("g_groundAccelerationSlick", "4.375", 0, "Ground acceleration on slick surfaces. Default 4.375.");
@@ -1211,7 +1245,7 @@ void G_Init(void) {
   g_showAttackerStats = gi.AddCvar("g_showAttackerStats", "0", CVAR_SERVER_INFO, "Allows can see their attackers' health and armor when they die.");
   g_spawnFarthest = gi.AddCvar("g_spawnFarthest", "1", CVAR_SERVER_INFO, NULL);
   g_spectatorChat = gi.AddCvar("g_spectatorChat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
-  g_timeLimit = gi.AddCvar("g_timeLimit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
+  g_timeLimit = gi.AddCvar("g_timeLimit", "default", CVAR_SERVER_INFO, "The time limit per level in minutes: \"default\" defers to the level, else 20.");
   g_weaponRespawnTime = gi.AddCvar("g_weaponRespawnTime", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weaponStay = gi.AddCvar("g_weaponStay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
 
@@ -1228,6 +1262,7 @@ void G_Init(void) {
       g_fragLimit->modified =
       g_friendlyFire->modified =
       g_gameplay->modified =
+      g_gravity->modified =
       g_numTeams->modified =
       g_selfDamage->modified =
       g_selfKnockback->modified =

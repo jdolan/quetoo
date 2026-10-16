@@ -1034,12 +1034,17 @@ typedef struct {
   PMovement movement;
 
   /**
-   * @brief What this level asked for, remembered so that setting `g_gameplay` or
-   * `g_movement` back to "default" returns to it rather than to Quetoo's.
+   * @brief What this level asked for, from its map list entry, its worldspawn or
+   * Quetoo's built-in value, remembered so that setting a cvar back to "default"
+   * returns to it.
    */
   struct {
     GamePlayId gameplay;
     PMovement movement;
+    float gravity;
+    float minClients;
+    float fragLimit;
+    float timeLimit;
   } requested;
 
   /**
@@ -1053,9 +1058,9 @@ typedef struct {
   int32_t numTeams;
 
     /**
-   * @brief Map-specified minimum clients override.
+   * @brief The minimum number of clients, humans and AI, the game fills to.
    */
-  int32_t minClientsMap;
+  int32_t minClients;
 
   /**
    * @brief Frag limit; game ends when a player reaches this.

@@ -145,10 +145,6 @@ static bool G_PrepareVote_Common(const GameClient *cl, const char *type, const c
     }
 
     case VOTE_ARG_INTEGER: {
-      if (!Str_Compare(type, "bots") && gameLevel.minClientsMap > -1) {
-        return false;
-      }
-
       char *end;
       const long value = strtol(arg, &end, 10);
       if (end == arg || *end || value < vote->min || value > vote->max) {
@@ -184,7 +180,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
   }
 
   if (!Str_Compare(type, "bots")) {
-    gi.SetCvarInteger("sv_minClients", (int32_t) strtol(arg, NULL, 10));
+    gameLevel.minClients = (int32_t) strtol(arg, NULL, 10);
     return true;
   }
 
@@ -209,8 +205,15 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return true;
   }
 
-  if (!Str_Compare(type, "fragLimit") || !Str_Compare(type, "timeLimit")) {
-    gi.SetCvarInteger(va("g_%s", type), (int32_t) strtol(arg, NULL, 10));
+  if (!Str_Compare(type, "fragLimit")) {
+    gameLevel.fragLimit = (int32_t) strtol(arg, NULL, 10);
+    gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", gameLevel.fragLimit);
+    return true;
+  }
+
+  if (!Str_Compare(type, "timeLimit")) {
+    gameLevel.timeLimit = (int32_t) strtol(arg, NULL, 10) * 60 * 1000;
+    gi.BroadcastPrint(PRINT_HIGH, "Time limit has been changed to %3.1f\n", gameLevel.timeLimit / 60000.f);
     return true;
   }
 

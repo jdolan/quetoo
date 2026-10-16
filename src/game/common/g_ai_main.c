@@ -4170,9 +4170,7 @@ void G_Ai_Frame(void) {
 
     const int32_t activeClients = humanClients + aiClients;
 
-    const int32_t baseMinClients = gameLevel.minClientsMap > -1 ? gameLevel.minClientsMap :
-                                   sv_minClients->integer;
-    const int32_t minClients = Maxi(0, baseMinClients);
+    const int32_t minClients = Maxi(0, gameLevel.minClients);
     const int32_t maxClients = Maxi(0, sv_maxClients->integer);
 
     const int32_t desiredClients = Mini(minClients, maxClients);

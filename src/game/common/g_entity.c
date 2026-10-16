@@ -118,6 +118,34 @@ static const Entity *G_MapListEntryValue(const char *key) {
 }
 
 /**
+ * @brief Resolves what the level requests for a numeric setting: its map list
+ * entry, then its worldspawn, then Quetoo's built-in value. A value outside 0 to
+ * `INT16_MAX` is unset. Prints the value in effect, and where it came from, which may be the cvar.
+ */
+static float G_RequestSetting(const GameEntity *worldspawn, const Cvar *cvar, const char *key, float builtin, float *requested) {
+
+  const char *source = "built-in";
+  *requested = builtin;
+
+  const Entity *entry = G_MapListEntryValue(key);
+  if (entry && (entry->parsed & ENTITY_FLOAT) && entry->value >= 0.f && entry->value <= INT16_MAX) {
+    source = "map list";
+    *requested = entry->value;
+  } else {
+    const Entity *def = gi.EntityValue(worldspawn->def, key);
+    if ((def->parsed & ENTITY_FLOAT) && def->value >= 0.f && def->value <= INT16_MAX) {
+      source = "worldspawn";
+      *requested = def->value;
+    }
+  }
+
+  const float value = G_LevelSetting(cvar, *requested, &source);
+
+  gi.Print("  %s: ^2%g^7 (%s)\n", key, value, source);
+  return value;
+}
+
+/**
  * @brief Populates the entity fields which are common to all classes from its definition.
  */
 static void G_InitEntityFields(GameEntity *ent) {
@@ -741,7 +769,7 @@ static void G_worldspawn_Music(void) {
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
 
-The map list's entry for the level takes precedence over the gameplay, movement, gravity, limits and music given here. Explicit server settings take precedence for gameplay, movement and gravity; limits use these values before falling back to server defaults.
+The map list's entry for the level takes precedence over the keys given here. A server setting other than "default" takes precedence over both.
  -------- KEYS --------
  message : The map title.
  games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
@@ -751,9 +779,10 @@ The map list's entry for the level takes precedence over the gameplay, movement,
  gameplay : The gameplay mode, one of deathmatch, team_deathmatch, instagib, team_instagib, arena, team_arena (default deathmatch).
  movement : The player movement, one of quetoo, race, quake, quake2, quake3 (default quetoo, or race in the race module).
  items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
- frag_limit : The frag limit (default g_fragLimit).
- capture_limit : The capture limit, in CTF (default g_captureLimit).
- time_limit : The time limit in minutes (default g_timeLimit).
+ min_clients : The number of clients, humans and AI, the game fills to; unset, 0.
+ frag_limit : The frag limit; unset, 30.
+ capture_limit : The capture limit, in CTF; unset, 8.
+ time_limit : The time limit in minutes; unset, 20.
  music : A comma-delimited list of music tracks; unset, all tracks are shuffled.
  author : The creator of the map, and any other credits. Metadata only: the game does not read it.
  version : The version of the map, as major.minor.build. Metadata only: the game does not read it.
@@ -781,25 +810,7 @@ static void G_worldspawn(GameEntity *ent) {
 
   gi.SetConfigString(CS_MESSAGE, gameLevel.message);
 
-  const Entity *gravityMap = G_MapListEntryValue("gravity");
-  if (Str_Compare(g_gravity->string, g_gravity->defaultString)) { // prefer an explicit g_gravity override
-    gameLevel.gravity = g_gravity->integer;
-  } else if (gravityMap && (gravityMap->parsed & ENTITY_INTEGER) && gravityMap->integer > 0) { // then map metadata gravity
-    gameLevel.gravity = gravityMap->integer;
-  } else { // or worldspawn; unset, it stays zero, and the movement's gravity applies
-    const Entity *gravity = gi.EntityValue(ent->def, "gravity");
-    if (gravity->parsed & ENTITY_INTEGER) {
-      if (gravity->integer) {
-        gameLevel.gravity = gravity->integer;
-      } else {
-        G_Warn("%s has gravity 0, which is unset: the movement's applies\n", gameLevel.name);
-      }
-    }
-  }
-
-  // clear the flag the cvar carried from creation so the first G_CheckRules frame
-  // can't overwrite the resolved value with g_gravity's default (runtime changes still apply)
-  g_gravity->modified = false;
+  gameLevel.gravity = G_RequestSetting(ent, g_gravity, "gravity", 0.f, &gameLevel.requested.gravity);
 
   // the gameplay is g_gameplay if the admin named one, else this level's
   // metadata, else its worldspawn, else deathmatch, as the movement is below
@@ -842,52 +853,12 @@ static void G_worldspawn(GameEntity *ent) {
     gameLevel.numTeams = -1; // G_InitSpawnPoints derives it from the spawn points
   }
 
-  const Entity *minClientsMap = G_MapListEntryValue("min_clients");
-  if (minClientsMap && (minClientsMap->parsed & ENTITY_INTEGER) && minClientsMap->integer > -1) {
-    gameLevel.minClientsMap = minClientsMap->integer;
-  } else {
-    gameLevel.minClientsMap = -1;
-  }
-
-  const Entity *fragLimitMap = G_MapListEntryValue("frag_limit");
-  if (fragLimitMap && (fragLimitMap->parsed & ENTITY_INTEGER) && fragLimitMap->integer > -1) { // prefer map metadata fragLimit
-    gameLevel.fragLimit = fragLimitMap->integer;
-  } else { // or fall back on worldspawn
-    const Entity *fragLimit = gi.EntityValue(ent->def, "frag_limit");
-    if (fragLimit->parsed & ENTITY_INTEGER) {
-      gameLevel.fragLimit = fragLimit->integer;
-    } else {
-      gameLevel.fragLimit = g_fragLimit->integer;
-    }
-  }
-
+  gameLevel.minClients = G_RequestSetting(ent, sv_minClients, "min_clients", 0.f, &gameLevel.requested.minClients);
+  gameLevel.fragLimit = G_RequestSetting(ent, g_fragLimit, "frag_limit", 30.f, &gameLevel.requested.fragLimit);
 #if defined(G_CTF)
-  const Entity *captureLimitMap = G_MapListEntryValue("capture_limit");
-  if (captureLimitMap && (captureLimitMap->parsed & ENTITY_INTEGER) && captureLimitMap->integer > -1) { // prefer map metadata captureLimit
-    gameLevel.captureLimit = captureLimitMap->integer;
-  } else { // or fall back on worldspawn
-    const Entity *captureLimit = gi.EntityValue(ent->def, "capture_limit");
-    if (captureLimit->parsed & ENTITY_INTEGER) {
-      gameLevel.captureLimit = captureLimit->integer;
-    } else {
-      gameLevel.captureLimit = g_captureLimit->integer;
-    }
-  }
+  gameLevel.captureLimit = G_RequestSetting(ent, g_captureLimit, "capture_limit", 8.f, &gameLevel.requested.captureLimit);
 #endif
-
-  float minutes;
-  const Entity *timeLimitMap = G_MapListEntryValue("time_limit");
-  if (timeLimitMap && (timeLimitMap->parsed & ENTITY_FLOAT) && timeLimitMap->value > -1.f) { // prefer map metadata timeLimit
-    minutes = timeLimitMap->value;
-  } else { // or fall back on worldspawn
-    const Entity *timeLimit = gi.EntityValue(ent->def, "time_limit");
-    if (timeLimit->parsed & ENTITY_FLOAT) {
-      minutes = timeLimit->value;
-    } else {
-      minutes = g_timeLimit->value;
-    }
-  }
-  gameLevel.timeLimit = minutes * 60 * 1000;
+  gameLevel.timeLimit = G_RequestSetting(ent, g_timeLimit, "time_limit", 20.f, &gameLevel.requested.timeLimit) * 60 * 1000;
 
   const Entity *musicMap = G_MapListEntryValue("music");
   if (musicMap && *musicMap->string) { // prefer map metadata music
