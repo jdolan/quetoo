@@ -104,7 +104,6 @@ GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDis
  * the pad.
  */
 bool G_Ai_Node_PushEntry(const GameEntity *push, Vec3 *entry);
-bool G_Ai_Node_CanPathTo(const Vec3 position);
 const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
 bool G_Ai_Node_CanFollowPath(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
@@ -146,11 +145,6 @@ bool G_Ai_Node_AddEntity(GameEntity *ent);
  * a doorway is closed.
  */
 bool G_Ai_Node_IsLinkOpen(const GameAiLink *link);
-
-/**
- * @return True if the link crosses the doorway of a door with the `targetname` `doorName`.
- */
-bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *doorName);
 
 /**
  * @return True if a link crosses the doorway of a door with the `targetname` `doorName`.

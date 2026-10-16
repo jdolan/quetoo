@@ -873,7 +873,7 @@ const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position) {
  * door, a button or a rotating model, is tested again with a thinner box, which only the model's
  * own body blocks. A raised platform over the node blocks it.
  */
-bool G_Ai_Node_CanPathTo(const Vec3 position) {
+static bool G_Ai_Node_CanPathTo(const Vec3 position) {
 
   const Vec3 end = Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f));
 
@@ -2827,9 +2827,9 @@ bool G_Ai_Node_IsLinkOpen(const GameAiLink *link) {
 }
 
 /**
- * @see g_ai_node.h
+ * @return True if the link crosses the doorway of a door with the `targetname` `doorName`.
  */
-bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *doorName) {
+static bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *doorName) {
 
   if (!link->gate || link->gate >= MAX_MODELS || !module.doors[link->gate] || !doorName) {
     return false;
