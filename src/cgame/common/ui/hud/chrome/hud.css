@@ -282,9 +282,14 @@
   spacing: 8;
 }
 
+/* The item timers belong to the clock, so they go bare as it does, rather than on the powerup card */
+
 #hud #itemTimers ItemTimerView {
-  padding: 4 14 4 8;
-  spacing: 8;
+  background-color: #00000000;
+  background-gradient-color: #00000000;
+  corner-cut: 0 0 0 0;
+  padding: 0 6 0 6;
+  spacing: 6;
 }
 
 #hud #itemTimers ImageView {
