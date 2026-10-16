@@ -1063,6 +1063,54 @@ static bool Nav_BarrierJump(const NavNode *a, const NavNode *b, float *distance)
 }
 
 /**
+ * @brief Walks the box from `start` along the horizontal `dir`, a step of `NAV_WALK_STEP` at a time
+ * up to `reach`, on the floor and down steps of at most `PM_STEP_HEIGHT`, to the first step with no
+ * floor beneath it.
+ * @param drop True for the walk of a drop, which a trigger or a model that moves under it stops,
+ * and which a box that starts in a solid does not stop.
+ * @param ledge The player origin at the step with no floor beneath it.
+ * @param distance The distance walked.
+ * @return True if the walk reaches a step with no floor before `reach` and before a wall.
+ */
+static bool Nav_WalkToLedge(const Vec3 start, const Vec3 dir, const float reach, const Box3 bounds,
+                            const bool drop, Vec3 *ledge, float *distance) {
+
+  Vec3 origin = start;
+  *distance = 0.f;
+
+  for (float d = NAV_WALK_STEP; d <= reach; d += NAV_WALK_STEP) {
+
+    const Vec3 target = Vec3_Add(start, Vec3_Scale(dir, d));
+
+    const CollisionTrace across = Nav_Trace(origin, MakeVec3(target.x, target.y, origin.z), bounds);
+    if ((across.startSolid && !drop) || across.fraction < 1.f) {
+      return false;
+    }
+
+    *distance += Vec3_Distance(origin, across.end);
+    origin = across.end;
+
+    if (drop && Nav_TouchesTrigger(Box3_Translate(bounds, origin))) {
+      return false;
+    }
+
+    Vec3 floor;
+    if (Nav_Rest(origin, PM_STEP_HEIGHT + 1.f, bounds, &floor)) {
+      if (drop && Nav_TraceHitMover()) {
+        return false;
+      }
+      origin = floor;
+      continue;
+    }
+
+    *ledge = origin;
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * @brief Simulates a walk from `node` in `direction`, off a ledge, and the fall that follows.
  * @return The node that the fall lands at, or -1.
  */
@@ -1072,51 +1120,25 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
 
   const Vec3 dir = Vec3_Normalize(MakeVec3(direction.x, direction.y, 0.f));
 
-  Vec3 origin = node->position;
-  *distance = 0.f;
-
-  for (float d = NAV_WALK_STEP; d <= NAV_LEDGE_DISTANCE; d += NAV_WALK_STEP) {
-
-    const Vec3 target = Vec3_Add(node->position, Vec3_Scale(dir, d));
-
-    const CollisionTrace across = Nav_Trace(origin, MakeVec3(target.x, target.y, origin.z), bounds);
-    if (across.fraction < 1.f) {
-      return -1;
-    }
-
-    *distance += Vec3_Distance(origin, across.end);
-    origin = across.end;
-
-    if (Nav_TouchesTrigger(Box3_Translate(bounds, origin))) {
-      return -1;
-    }
-
-    Vec3 floor;
-    if (Nav_Rest(origin, PM_STEP_HEIGHT + 1.f, bounds, &floor)) {
-      if (Nav_TraceHitMover()) {
-        return -1;
-      }
-      origin = floor;
-      continue;
-    }
-
-    const Vec3 end = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), NAV_MAX_DROP));
-    const CollisionTrace fall = Nav_Trace(origin, end, bounds);
-
-    if (fall.startSolid || fall.fraction == 1.f || fall.plane.normal.z < PM_STEP_NORMAL || Nav_TraceHitMover()) {
-      return -1;
-    }
-
-    *height = node->position.z - fall.end.z;
-    if (*height <= PM_STEP_HEIGHT) {
-      return -1;
-    }
-
-    const Vec3 edge = Vec3_Subtract(origin, node->position);
-    return Nav_NodeForOrigin(fall.end, node->position, dir, edge.x * dir.x + edge.y * dir.y - NAV_WALK_STEP);
+  Vec3 origin;
+  if (!Nav_WalkToLedge(node->position, dir, NAV_LEDGE_DISTANCE, bounds, true, &origin, distance)) {
+    return -1;
   }
 
-  return -1;
+  const Vec3 end = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), NAV_MAX_DROP));
+  const CollisionTrace fall = Nav_Trace(origin, end, bounds);
+
+  if (fall.startSolid || fall.fraction == 1.f || fall.plane.normal.z < PM_STEP_NORMAL || Nav_TraceHitMover()) {
+    return -1;
+  }
+
+  *height = node->position.z - fall.end.z;
+  if (*height <= PM_STEP_HEIGHT) {
+    return -1;
+  }
+
+  const Vec3 edge = Vec3_Subtract(origin, node->position);
+  return Nav_NodeForOrigin(fall.end, node->position, dir, edge.x * dir.x + edge.y * dir.y - NAV_WALK_STEP);
 }
 
 /**
@@ -1170,31 +1192,16 @@ static bool Nav_IsEdge(const NavNode *node) {
 
     const Vec3 dir = Vec3_Normalize(MakeVec3(directions[i].x, directions[i].y, 0.f));
 
-    Vec3 origin = node->position;
+    Vec3 ledge;
+    float distance;
+    if (!Nav_WalkToLedge(node->position, dir, NAV_EDGE_DISTANCE, bounds, false, &ledge, &distance)) {
+      continue;
+    }
 
-    for (float d = NAV_WALK_STEP; d <= NAV_EDGE_DISTANCE; d += NAV_WALK_STEP) {
-
-      const Vec3 target = Vec3_Add(node->position, Vec3_Scale(dir, d));
-
-      const CollisionTrace across = Nav_Trace(origin, MakeVec3(target.x, target.y, origin.z), bounds);
-      if (across.startSolid || across.fraction < 1.f) {
-        break;
-      }
-
-      origin = across.end;
-
-      Vec3 floor;
-      if (Nav_Rest(origin, PM_STEP_HEIGHT + 1.f, bounds, &floor)) {
-        origin = floor;
-        continue;
-      }
-
-      const CollisionTrace fall = Nav_Trace(origin, Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), NAV_MAX_DROP)), bounds);
-      if (!fall.startSolid && fall.fraction == 1.f) {
-        return true;
-      }
-
-      break;
+    const Vec3 end = Vec3_Subtract(ledge, Vec3_Scale(Vec3_Up(), NAV_MAX_DROP));
+    const CollisionTrace fall = Nav_Trace(ledge, end, bounds);
+    if (!fall.startSolid && fall.fraction == 1.f) {
+      return true;
     }
   }
 
@@ -1202,62 +1209,87 @@ static bool Nav_IsEdge(const NavNode *node) {
 }
 
 /**
- * @brief Simulates a running jump from node `a` across a gap to node `b`. The player walks straight
- * toward `b` to the edge of the floor, and jumps `NAV_JUMP_TAKEOFF_MARGIN` before it: the lowest
- * jump of all movements, at `NAV_JUMP_SPEED_FRACTION` of the run speed, or
- * `NAV_GATED_JUMP_SPEED_FRACTION` for a jump through a door's doorway or over its place. The arc MUST be
- * `NAV_JUMP_CLEARANCE` above `b` when it arrives over it.
- * @param seconds The time of the run to the takeoff point, and of the flight until the player lands
- * at `b`.
- * @return True if the floor ends on the way, with no wall or high step before it, and the arc from
- * the takeoff clears the world and every trigger, and lands at `b` with floor for
- * `NAV_JUMP_LANDING_DISTANCE` past it, walked as the run is, up and down a step such as the trim
- * at the edge of the floor, up to a wall or a rise too steep to walk.
+ * @brief Raises the player's box from `from` by `PM_STEP_HEIGHT`, or up to a ceiling, and moves it
+ * `NAV_WALK_STEP` along the horizontal `dir`, as Pmove steps.
+ * @param over The player origin where the box ends, at the height to which it rose.
+ * @return True if the box rises and moves across unblocked.
  */
-static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
+static bool Nav_StepAcross(const Vec3 from, const Vec3 dir, Vec3 *over) {
 
-  float distance;
-  const Vec3 dir = Vec3_NormalizeLength(MakeVec3(b->position.x - a->position.x, b->position.y - a->position.y, 0.f), &distance);
+  const Vec3 lift = Vec3_Add(from, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT));
+  const CollisionTrace up = Nav_Trace(from, lift, PM_BOUNDS);
+  if (up.startSolid) {
+    return false;
+  }
+
+  const Vec3 target = Vec3_Add(up.end, Vec3_Scale(dir, NAV_WALK_STEP));
+  const CollisionTrace across = Nav_Trace(up.end, target, PM_BOUNDS);
+  if (across.fraction < 1.f) {
+    return false;
+  }
+
+  *over = across.end;
+  return true;
+}
+
+/**
+ * @brief Walks the player's box from `start` along the horizontal `dir`, a step at a time
+ * (`Nav_StepAcross`), up and down a step, to the edge of the floor, and finds where a running jump
+ * takes off, `NAV_JUMP_TAKEOFF_MARGIN` before the edge.
+ * @param distance The horizontal distance to the jump's target, within which the floor MUST end.
+ * @param takeoff The player origin where the jump takes off.
+ * @return The count of steps from `start` to `takeoff`, or -1 if a wall, a high step or a model
+ * that moves blocks the walk, or the floor does not end within `distance` and `NAV_MAX_JUMP_STEPS`.
+ */
+static int32_t Nav_WalkToTakeoff(const Vec3 start, const Vec3 dir, const float distance,
+                                 Vec3 *takeoff) {
 
   Vec3 steps[NAV_MAX_JUMP_STEPS];
   int32_t numSteps = 0;
 
-  steps[numSteps++] = a->position;
+  steps[numSteps++] = start;
 
   while (true) {
     if (numSteps * NAV_WALK_STEP >= distance || numSteps == lengthof(steps)) {
-      return false;
+      return -1;
     }
 
-    const Vec3 from = steps[numSteps - 1];
-
-    const CollisionTrace up = Nav_Trace(from, Vec3_Add(from, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT)), PM_BOUNDS);
-    if (up.startSolid) {
-      return false;
-    }
-
-    const Vec3 target = Vec3_Add(up.end, Vec3_Scale(dir, NAV_WALK_STEP));
-    const CollisionTrace over = Nav_Trace(up.end, target, PM_BOUNDS);
-    if (over.fraction < 1.f) {
-      return false;
+    Vec3 over;
+    if (!Nav_StepAcross(steps[numSteps - 1], dir, &over)) {
+      return -1;
     }
 
     Vec3 next;
-    if (!Nav_Rest(over.end, PM_STEP_HEIGHT * 2.f + 1.f, PM_BOUNDS, &next)) {
+    if (!Nav_Rest(over, PM_STEP_HEIGHT * 2.f + 1.f, PM_BOUNDS, &next)) {
       break;
     }
 
     if (Nav_TraceHitMover()) {
-      return false;
+      return -1;
     }
 
     steps[numSteps++] = next;
   }
 
   const int32_t index = Maxi(0, numSteps - 1 - (int32_t) (NAV_JUMP_TAKEOFF_MARGIN / NAV_WALK_STEP));
-  const Vec3 takeoff = steps[index];
-  const float remaining = distance - index * NAV_WALK_STEP;
-  const float speed = module.speedRun * (module.gatedSpeed ? NAV_GATED_JUMP_SPEED_FRACTION : NAV_JUMP_SPEED_FRACTION);
+
+  *takeoff = steps[index];
+  return index;
+}
+
+/**
+ * @brief Simulates the flight of a running jump from `takeoff` along the horizontal `dir` at
+ * `speed`, the lowest jump of all movements, until the arc arrives over its target, `remaining`
+ * away.
+ * @param low The height below which the arc MUST NOT fall once past its peak, nor arrive.
+ * @param arrival The player origin where the arc arrives over the target.
+ * @param seconds The time of the flight to `arrival`.
+ * @return True if the arc clears the world and every trigger, and stays at or above `low` past its
+ * peak until it arrives.
+ */
+static bool Nav_FlyArc(const Vec3 takeoff, const Vec3 dir, const float remaining, const float speed,
+                       const float low, Vec3 *arrival, float *seconds) {
+
   const float up = sqrtf(2.f * module.gravity * (module.barrierHeight + NAV_BARRIER_MARGIN));
 
   Vec3 origin = takeoff;
@@ -1280,57 +1312,110 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
 
     origin = next;
 
-    if (t > up / module.gravity && origin.z < b->position.z + NAV_JUMP_CLEARANCE) {
+    if (t > up / module.gravity && origin.z < low) {
       return false;
     }
 
     if (across >= remaining) {
-      if (origin.z < b->position.z + NAV_JUMP_CLEARANCE) {
+      if (origin.z < low) {
         return false;
       }
 
-      Vec3 floor;
-      if (!Nav_Rest(origin, origin.z - b->position.z + PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &floor) || Nav_TraceHitMover()) {
-        return false;
-      }
-
-      if (fabsf(floor.z - b->position.z) > 1.f) {
-        return false;
-      }
-
-      Vec3 landing = floor;
-      for (float d = NAV_WALK_STEP; d <= NAV_JUMP_LANDING_DISTANCE; d += NAV_WALK_STEP) {
-
-        const CollisionTrace lift = Nav_Trace(landing, Vec3_Add(landing, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT)), PM_BOUNDS);
-        if (lift.startSolid) {
-          break;
-        }
-
-        const CollisionTrace slide = Nav_Trace(lift.end, Vec3_Add(lift.end, Vec3_Scale(dir, NAV_WALK_STEP)), PM_BOUNDS);
-        if (slide.fraction < 1.f) {
-          break;
-        }
-
-        const float drop = lift.end.z - landing.z + PM_STEP_HEIGHT + 1.f;
-        const CollisionTrace down = Nav_Trace(slide.end, Vec3_Subtract(slide.end, Vec3_Scale(Vec3_Up(), drop)), PM_BOUNDS);
-        if (down.fraction == 1.f) {
-          return false;
-        }
-
-        if (down.startSolid || down.plane.normal.z < PM_STEP_NORMAL) {
-          if (down.end.z > landing.z) {
-            break;
-          }
-          return false;
-        }
-
-        landing = down.end;
-      }
-
-      *seconds = index * NAV_WALK_STEP / module.speedRun + t + sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
+      *arrival = origin;
+      *seconds = t;
       return true;
     }
   }
+}
+
+/**
+ * @return True if the floor goes on for `NAV_JUMP_LANDING_DISTANCE` past `floor`, where a jump
+ * along the horizontal `dir` lands, walked as the run to the jump is (`Nav_StepAcross`), up and
+ * down a step such as the trim at the edge of the floor, up to a wall or a rise too steep to walk,
+ * which the player stops at. A step with no floor beneath it, or a slope too steep to stand on
+ * below the step, fails.
+ */
+static bool Nav_JumpArc_landing(const Vec3 floor, const Vec3 dir) {
+
+  Vec3 landing = floor;
+
+  for (float d = NAV_WALK_STEP; d <= NAV_JUMP_LANDING_DISTANCE; d += NAV_WALK_STEP) {
+
+    Vec3 over;
+    if (!Nav_StepAcross(landing, dir, &over)) {
+      break;
+    }
+
+    const float drop = over.z - landing.z + PM_STEP_HEIGHT + 1.f;
+    const Vec3 end = Vec3_Subtract(over, Vec3_Scale(Vec3_Up(), drop));
+    const CollisionTrace down = Nav_Trace(over, end, PM_BOUNDS);
+    if (down.fraction == 1.f) {
+      return false;
+    }
+
+    if (down.startSolid || down.plane.normal.z < PM_STEP_NORMAL) {
+      if (down.end.z > landing.z) {
+        break;
+      }
+      return false;
+    }
+
+    landing = down.end;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Simulates a running jump from node `a` across a gap to node `b`. The player walks straight
+ * toward `b` to the edge of the floor, and jumps `NAV_JUMP_TAKEOFF_MARGIN` before it: the lowest
+ * jump of all movements, at `NAV_JUMP_SPEED_FRACTION` of the run speed, or
+ * `NAV_GATED_JUMP_SPEED_FRACTION` for a jump through a door's doorway or over its place. The arc MUST be
+ * `NAV_JUMP_CLEARANCE` above `b` when it arrives over it.
+ * @param seconds The time of the run to the takeoff point, and of the flight until the player lands
+ * at `b`.
+ * @return True if the floor ends on the way, with no wall or high step before it, and the arc from
+ * the takeoff clears the world and every trigger, and lands at `b` with floor for
+ * `NAV_JUMP_LANDING_DISTANCE` past it, walked as the run is, up and down a step such as the trim
+ * at the edge of the floor, up to a wall or a rise too steep to walk.
+ */
+static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
+
+  float distance;
+  const Vec3 dir = Vec3_NormalizeLength(MakeVec3(b->position.x - a->position.x, b->position.y - a->position.y, 0.f), &distance);
+
+  Vec3 takeoff;
+  const int32_t index = Nav_WalkToTakeoff(a->position, dir, distance, &takeoff);
+  if (index == -1) {
+    return false;
+  }
+
+  const float remaining = distance - index * NAV_WALK_STEP;
+  const float speed = module.speedRun * (module.gatedSpeed ? NAV_GATED_JUMP_SPEED_FRACTION : NAV_JUMP_SPEED_FRACTION);
+
+  const float low = b->position.z + NAV_JUMP_CLEARANCE;
+
+  Vec3 origin;
+  float t;
+  if (!Nav_FlyArc(takeoff, dir, remaining, speed, low, &origin, &t)) {
+    return false;
+  }
+
+  Vec3 floor;
+  if (!Nav_Rest(origin, origin.z - b->position.z + PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &floor) || Nav_TraceHitMover()) {
+    return false;
+  }
+
+  if (fabsf(floor.z - b->position.z) > 1.f) {
+    return false;
+  }
+
+  if (!Nav_JumpArc_landing(floor, dir)) {
+    return false;
+  }
+
+  *seconds = index * NAV_WALK_STEP / module.speedRun + t + sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
+  return true;
 }
 
 /**
@@ -1660,17 +1745,12 @@ static bool Nav_RunUp(const Vec3 origin, const Vec3 dir, Vec3 *end) {
 
   for (float d = 0.f; d < NAV_LADDER_RUN_UP; d += NAV_WALK_STEP) {
 
-    const CollisionTrace up = Nav_Trace(from, Vec3_Add(from, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT)), PM_BOUNDS);
-    if (up.startSolid) {
+    Vec3 over;
+    if (!Nav_StepAcross(from, dir, &over)) {
       return false;
     }
 
-    const CollisionTrace over = Nav_Trace(up.end, Vec3_Add(up.end, Vec3_Scale(dir, NAV_WALK_STEP)), PM_BOUNDS);
-    if (over.fraction < 1.f) {
-      return false;
-    }
-
-    if (!Nav_Rest(over.end, PM_STEP_HEIGHT * 2.f + 1.f, PM_BOUNDS, &from) || Nav_TraceHitMover()) {
+    if (!Nav_Rest(over, PM_STEP_HEIGHT * 2.f + 1.f, PM_BOUNDS, &from) || Nav_TraceHitMover()) {
       return false;
     }
 
@@ -1710,80 +1790,26 @@ static bool Nav_LadderJump(const NavNode *node, const Vec3 column, const Vec3 no
     return false;
   }
 
-  Vec3 steps[NAV_MAX_JUMP_STEPS];
-  int32_t numSteps = 0;
-
-  steps[numSteps++] = node->position;
-
-  while (true) {
-    if (numSteps * NAV_WALK_STEP >= distance || numSteps == lengthof(steps)) {
-      return false;
-    }
-
-    const Vec3 from = steps[numSteps - 1];
-
-    const CollisionTrace up = Nav_Trace(from, Vec3_Add(from, Vec3_Scale(Vec3_Up(), PM_STEP_HEIGHT)), PM_BOUNDS);
-    if (up.startSolid) {
-      return false;
-    }
-
-    const CollisionTrace over = Nav_Trace(up.end, Vec3_Add(up.end, Vec3_Scale(dir, NAV_WALK_STEP)), PM_BOUNDS);
-    if (over.fraction < 1.f) {
-      return false;
-    }
-
-    Vec3 next;
-    if (!Nav_Rest(over.end, PM_STEP_HEIGHT * 2.f + 1.f, PM_BOUNDS, &next)) {
-      break;
-    }
-
-    if (Nav_TraceHitMover()) {
-      return false;
-    }
-
-    steps[numSteps++] = next;
+  Vec3 takeoff;
+  const int32_t index = Nav_WalkToTakeoff(node->position, dir, distance, &takeoff);
+  if (index == -1) {
+    return false;
   }
 
-  const int32_t index = Maxi(0, numSteps - 1 - (int32_t) (NAV_JUMP_TAKEOFF_MARGIN / NAV_WALK_STEP));
-  const Vec3 takeoff = steps[index];
   const float remaining = distance - index * NAV_WALK_STEP;
   const float speed = module.speedRun * NAV_JUMP_SPEED_FRACTION;
-  const float up = sqrtf(2.f * module.gravity * (module.barrierHeight + NAV_BARRIER_MARGIN));
 
-  Vec3 origin = takeoff;
-
-  for (float t = NAV_JUMP_STEP; ; t += NAV_JUMP_STEP) {
-
-    const float across = Minf(speed * t, remaining);
-    const float rise = up * t - .5f * module.gravity * t * t;
-
-    const Vec3 next = Vec3_Add(Vec3_Add(takeoff, Vec3_Scale(dir, across)), MakeVec3(0.f, 0.f, rise));
-
-    const CollisionTrace trace = Nav_Trace(origin, next, PM_BOUNDS);
-    if (trace.startSolid || trace.fraction < 1.f) {
-      return false;
-    }
-
-    if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, next))) {
-      return false;
-    }
-
-    origin = next;
-
-    if (t > up / module.gravity && origin.z < low) {
-      return false;
-    }
-
-    if (across >= remaining) {
-      if (origin.z < low || origin.z > high) {
-        return false;
-      }
-
-      *grab = origin;
-      *seconds = index * NAV_WALK_STEP / module.speedRun + t;
-      return true;
-    }
+  float t;
+  if (!Nav_FlyArc(takeoff, dir, remaining, speed, low, grab, &t)) {
+    return false;
   }
+
+  if (grab->z > high) {
+    return false;
+  }
+
+  *seconds = index * NAV_WALK_STEP / module.speedRun + t;
+  return true;
 }
 
 /**
