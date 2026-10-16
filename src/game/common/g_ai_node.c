@@ -1161,93 +1161,92 @@ static GameAiNodeId G_Ai_Node_PushStart(const GameEntity *push) {
 }
 
 /**
- * @brief Links the node on a `trigger_push` to the nodes that its push lands on.
- * @details An angled push is flown from the pad with `G_Ai_Node_FlyPush`, and linked from the node
- * of `G_Ai_Node_PushStart`, if it has one, else from the node nearest the pad. A vertical push links
- * to the ledges beside its column, which a bot steers onto in flight, and to a node that it makes
- * for each hovering item in its column, which a bot takes in flight, as a player does. The column
- * to an item rises from the pad's center, as a player flies, not from the node beside the pad.
+ * @brief Links the node `start` beside a vertical `trigger_push` to the ledges beside its column,
+ * which a bot steers onto in flight: the built nodes that do not move, above a step and below the
+ * `apex` of the flight, within `AI_RIDE_VERTICAL_REACH` across.
+ * @param speed The vertical speed of the push.
  */
-static void G_Ai_Node_LinkPush(const GameEntity *push) {
+static void G_Ai_Node_LinkPush_ledges(const GameAiNodeId start, const float speed, const float gravity,
+                                      const float apex) {
 
-  if (push->solid == SOLID_NOT) {
-    return;
-  }
-
-  const Vec3 center = Box3_Center(push->absBounds);
-  const Vec3 pad = MakeVec3(center.x, center.y, push->absBounds.mins.z - PM_BOUNDS.mins.z);
-
-  const GameAiNodeId start = G_Ai_Node_FindClosestStatic(pad, AI_PUSH_NODE_DISTANCE, true, false);
-  if (start == AI_NODE_INVALID) {
-    G_Ai_Debug("No node at %s @ %s\n", push->classname, vtos(pad));
-    return;
-  }
-
-  const float gravity = G_LevelGravity();
-  const Vec3 velocity = Vec3_Scale(push->moveDir, push->speed * 10.f);
   const Vec3 origin = G_Ai_Node_GetPosition(start);
 
-  if (push->moveDir.z >= AI_RIDE_VERTICAL) {
-    const float apex = velocity.z * velocity.z / (2.f * gravity);
+  for (size_t i = 0; i < aiNodes->count; i++) {
+    const GameAiNode *node = AI_NODE(aiNodes, i);
+    const float rise = node->position.z - origin.z;
 
-    for (size_t i = 0; i < aiNodes->count; i++) {
-      const GameAiNode *node = AI_NODE(aiNodes, i);
-      const float rise = node->position.z - origin.z;
-
-      if (node->cell == -1 || node->model || rise <= PM_STEP_HEIGHT || rise > apex) {
-        continue;
-      }
-
-      if (Vec2_Distance(Vec3_XY(node->position), Vec3_XY(origin)) > AI_RIDE_VERTICAL_REACH) {
-        continue;
-      }
-
-      const Vec3 column = MakeVec3(origin.x, origin.y, node->position.z);
-
-      if (gi.Trace(origin, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
-        continue;
-      }
-
-      if (gi.Trace(column, node->position, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
-        continue;
-      }
-
-      const float time = G_Ai_Node_RiseTime(velocity.z, gravity, rise);
-      G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
+    if (node->cell == -1 || node->model || rise <= PM_STEP_HEIGHT || rise > apex) {
+      continue;
     }
 
-    G_ForEachEntity(item, {
-      if (!item->item || item->node != AI_NODE_INVALID) {
-        continue;
-      }
+    if (Vec2_Distance(Vec3_XY(node->position), Vec3_XY(origin)) > AI_RIDE_VERTICAL_REACH) {
+      continue;
+    }
 
-      const float rise = item->s.origin.z - origin.z;
-      if (rise <= PM_STEP_HEIGHT || rise > apex) {
-        continue;
-      }
+    const Vec3 column = MakeVec3(origin.x, origin.y, node->position.z);
 
-      if (Vec2_Distance(Vec3_XY(item->s.origin), Vec3_XY(origin)) > AI_RIDE_VERTICAL_REACH) {
-        continue;
-      }
+    if (gi.Trace(origin, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
+      continue;
+    }
 
-      const Vec3 column = MakeVec3(pad.x, pad.y, item->s.origin.z);
+    if (gi.Trace(column, node->position, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
+      continue;
+    }
 
-      if (gi.Trace(pad, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
-        continue;
-      }
-
-      const GameAiNodeId node = G_Ai_Node_Create(item->s.origin);
-      if (node == AI_NODE_INVALID) {
-        continue;
-      }
-
-      const float time = G_Ai_Node_RiseTime(velocity.z, gravity, rise);
-      G_Ai_Node_LinkTravel(start, node, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
-
-      item->node = node;
-    });
-    return;
+    const float time = G_Ai_Node_RiseTime(speed, gravity, rise);
+    G_Ai_Node_LinkTravel(start, (GameAiNodeId) i, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
   }
+}
+
+/**
+ * @brief Links the node `start` beside a vertical `trigger_push` to a node that it makes for each
+ * hovering item in its column, which a bot takes in flight, as a player does. The column to an
+ * item rises from the pad's center, `pad`, as a player flies, not from the node beside the pad.
+ * @param speed The vertical speed of the push.
+ */
+static void G_Ai_Node_LinkPush_items(const GameAiNodeId start, const Vec3 pad, const float speed,
+                                     const float gravity, const float apex) {
+
+  const Vec3 origin = G_Ai_Node_GetPosition(start);
+
+  G_ForEachEntity(item, {
+    if (!item->item || item->node != AI_NODE_INVALID) {
+      continue;
+    }
+
+    const float rise = item->s.origin.z - origin.z;
+    if (rise <= PM_STEP_HEIGHT || rise > apex) {
+      continue;
+    }
+
+    if (Vec2_Distance(Vec3_XY(item->s.origin), Vec3_XY(origin)) > AI_RIDE_VERTICAL_REACH) {
+      continue;
+    }
+
+    const Vec3 column = MakeVec3(pad.x, pad.y, item->s.origin.z);
+
+    if (gi.Trace(pad, column, PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_MONSTER).fraction < 1.f) {
+      continue;
+    }
+
+    const GameAiNodeId node = G_Ai_Node_Create(item->s.origin);
+    if (node == AI_NODE_INVALID) {
+      continue;
+    }
+
+    const float time = G_Ai_Node_RiseTime(speed, gravity, rise);
+    G_Ai_Node_LinkTravel(start, node, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
+
+    item->node = node;
+  });
+}
+
+/**
+ * @brief Links the node `start` nearest an angled `trigger_push` whose pad is at `pad`, or the node
+ * of `G_Ai_Node_PushStart`, if it has one, to the node on which the flight of
+ * `G_Ai_Node_FlyPush` from the pad lands.
+ */
+static void G_Ai_Node_LinkPush_angled(const GameEntity *push, const GameAiNodeId start, const Vec3 pad) {
 
   Vec3 floor;
   if (!G_Ai_Node_PushFloor(push, &floor)) {
@@ -1272,6 +1271,42 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
   }
 
   G_Ai_Node_LinkTravel(entry == AI_NODE_INVALID ? start : entry, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
+}
+
+/**
+ * @brief Links the node on a `trigger_push` to the nodes that its push lands on.
+ * @details An angled push is flown from the pad with `G_Ai_Node_FlyPush`, and linked from the node
+ * of `G_Ai_Node_PushStart`, if it has one, else from the node nearest the pad. A vertical push links
+ * to the ledges beside its column, which a bot steers onto in flight, and to a node that it makes
+ * for each hovering item in its column, which a bot takes in flight, as a player does. The column
+ * to an item rises from the pad's center, as a player flies, not from the node beside the pad.
+ */
+static void G_Ai_Node_LinkPush(const GameEntity *push) {
+
+  if (push->solid == SOLID_NOT) {
+    return;
+  }
+
+  const Vec3 center = Box3_Center(push->absBounds);
+  const Vec3 pad = MakeVec3(center.x, center.y, push->absBounds.mins.z - PM_BOUNDS.mins.z);
+
+  const GameAiNodeId start = G_Ai_Node_FindClosestStatic(pad, AI_PUSH_NODE_DISTANCE, true, false);
+  if (start == AI_NODE_INVALID) {
+    G_Ai_Debug("No node at %s @ %s\n", push->classname, vtos(pad));
+    return;
+  }
+
+  if (push->moveDir.z < AI_RIDE_VERTICAL) {
+    G_Ai_Node_LinkPush_angled(push, start, pad);
+    return;
+  }
+
+  const float gravity = G_LevelGravity();
+  const Vec3 velocity = Vec3_Scale(push->moveDir, push->speed * 10.f);
+  const float apex = velocity.z * velocity.z / (2.f * gravity);
+
+  G_Ai_Node_LinkPush_ledges(start, velocity.z, gravity, apex);
+  G_Ai_Node_LinkPush_items(start, pad, velocity.z, gravity, apex);
 }
 
 /**
@@ -2040,6 +2075,124 @@ static void G_Ai_Node_LinkMovers(void) {
 }
 
 /**
+ * @brief Collects the doors with the `targetname` of the door of the inline model `m`, from `m` up.
+ * @param doors Receives the doors, at most `MAX_MODELS`.
+ * @return The count of `doors`, or 0 if the door of a lower inline model has the `targetname`, so
+ * that the doors were collected for it.
+ */
+static int32_t G_Ai_Node_LinkPresses_doors(const int32_t m, GameEntity **doors) {
+
+  const char *name = module.doors[m]->targetName;
+
+  for (int32_t k = 1; k < m; k++) {
+    if (module.doors[k] && module.doors[k]->targetName && !Str_Compare(module.doors[k]->targetName, name)) {
+      return 0;
+    }
+  }
+
+  int32_t numDoors = 0;
+
+  for (int32_t k = m; k < MAX_MODELS; k++) {
+    if (module.doors[k] && module.doors[k]->targetName && !Str_Compare(module.doors[k]->targetName, name)) {
+      doors[numDoors++] = (GameEntity *) module.doors[k];
+    }
+  }
+
+  return numDoors;
+}
+
+/**
+ * @brief Collects the nodes on the `doors`, and their positions where the doors stand now.
+ */
+static void G_Ai_Node_LinkPresses_nodes(GameEntity **doors, const int32_t numDoors, Vector *nodes, Vector *positions) {
+
+  for (size_t i = 0; i < module.moverNodes->count; i++) {
+    const GameAiNodeId id = AI_NODE_ID(module.moverNodes, i);
+    const GameAiNode *node = AI_NODE(aiNodes, id);
+
+    for (int32_t k = 0; k < numDoors; k++) {
+      if (node->mover == doors[k]) {
+        $(nodes, add, (ident) &id);
+        $(positions, add, (ident) &node->position);
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Puts the `doors` where a press moves them, and keeps where they stood in `origins` and
+ * `angles`.
+ */
+static void G_Ai_Node_LinkPresses_pose(GameEntity **doors, const int32_t numDoors, Vec3 *origins, Vec3 *angles) {
+
+  for (int32_t k = 0; k < numDoors; k++) {
+    origins[k] = doors[k]->s.origin;
+    angles[k] = doors[k]->s.angles;
+    doors[k]->s.origin = doors[k]->moveInfo.endOrigin;
+    doors[k]->s.angles = doors[k]->moveInfo.endAngles;
+    gi.LinkEntity(doors[k]);
+  }
+}
+
+/**
+ * @brief Puts the `doors` back where `G_Ai_Node_LinkPresses_pose` found them.
+ */
+static void G_Ai_Node_LinkPresses_restore(GameEntity **doors, const int32_t numDoors, const Vec3 *origins,
+                                          const Vec3 *angles) {
+
+  for (int32_t k = 0; k < numDoors; k++) {
+    doors[k]->s.origin = origins[k];
+    doors[k]->s.angles = angles[k];
+    gi.LinkEntity(doors[k]);
+  }
+}
+
+/**
+ * @brief Makes the press links of the `nodes` on doors that stand where a press moves them: to the
+ * nodes that do not move, and to each other, both ways with walks. The nodes are moved with their
+ * doors for the traces, and back to their `positions`. A node that the press moves into lava or
+ * slime is not linked.
+ * @param bounds The player's box, raised by a step.
+ */
+static void G_Ai_Node_LinkPresses_link(const Vector *nodes, const Vector *positions, const Box3 bounds) {
+
+  for (size_t i = 0; i < nodes->count; i++) {
+    GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(nodes, i));
+    node->position = G_Ai_Node_MoverPosition(node);
+  }
+
+  for (size_t i = 0; i < nodes->count; i++) {
+    const GameAiNodeId a = AI_NODE_ID(nodes, i);
+    GameAiNode *node = AI_NODE(aiNodes, a);
+
+    if (gi.PointContents(node->position) & AI_CONTENTS_HAZARD) {
+      continue;
+    }
+
+    G_Ai_Node_LinkMoverAround(node, a, node->model);
+
+    for (size_t j = i + 1; j < nodes->count; j++) {
+      const GameAiNodeId b = AI_NODE_ID(nodes, j);
+      const GameAiNode *other = AI_NODE(aiNodes, b);
+
+      float distance;
+      if (other->model == node->model ||
+          !G_Ai_Node_CanWalkMover(node->position, other->position, bounds, &distance)) {
+        continue;
+      }
+
+      G_Ai_Node_LinkPress(a, b, distance, NAV_TRAVEL_WALK, node->model);
+      G_Ai_Node_LinkPress(b, a, distance, NAV_TRAVEL_WALK, node->model);
+    }
+  }
+
+  for (size_t i = 0; i < nodes->count; i++) {
+    AI_NODE(aiNodes, AI_NODE_ID(nodes, i))->position = VectorValue(positions, Vec3, i);
+  }
+}
+
+/**
  * @brief Makes the press links of the doors with a `targetname` that carry nodes: the links that the
  * nodes on the doors with that `targetname` make, to the nodes that do not move and to each other,
  * while the doors stand where a press moves them (`moveInfo.endOrigin` and `endAngles`). The doors
@@ -2054,95 +2207,29 @@ static void G_Ai_Node_LinkPresses(void) {
   const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
 
   for (int32_t m = 1; m < MAX_MODELS; m++) {
-    const GameEntity *first = module.doors[m];
 
-    if (!first || !first->targetName) {
-      continue;
-    }
-
-    bool done = false;
-    for (int32_t k = 1; k < m && !done; k++) {
-      done = module.doors[k] && module.doors[k]->targetName && !Str_Compare(module.doors[k]->targetName, first->targetName);
-    }
-
-    if (done) {
+    if (!module.doors[m] || !module.doors[m]->targetName) {
       continue;
     }
 
     GameEntity *doors[MAX_MODELS];
-    Vec3 origins[MAX_MODELS], angles[MAX_MODELS];
-    int32_t numDoors = 0;
 
-    for (int32_t k = m; k < MAX_MODELS; k++) {
-      if (module.doors[k] && module.doors[k]->targetName && !Str_Compare(module.doors[k]->targetName, first->targetName)) {
-        doors[numDoors++] = (GameEntity *) module.doors[k];
-      }
+    const int32_t numDoors = G_Ai_Node_LinkPresses_doors(m, doors);
+    if (!numDoors) {
+      continue;
     }
 
     Vector *nodes = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
     Vector *positions = $(alloc(Vector), initWithSize, sizeof(Vec3));
 
-    for (size_t i = 0; i < module.moverNodes->count; i++) {
-      const GameAiNodeId id = AI_NODE_ID(module.moverNodes, i);
-      const GameAiNode *node = AI_NODE(aiNodes, id);
-
-      for (int32_t k = 0; k < numDoors; k++) {
-        if (node->mover == doors[k]) {
-          $(nodes, add, (ident) &id);
-          $(positions, add, (ident) &node->position);
-          break;
-        }
-      }
-    }
+    G_Ai_Node_LinkPresses_nodes(doors, numDoors, nodes, positions);
 
     if (nodes->count) {
-      for (int32_t k = 0; k < numDoors; k++) {
-        origins[k] = doors[k]->s.origin;
-        angles[k] = doors[k]->s.angles;
-        doors[k]->s.origin = doors[k]->moveInfo.endOrigin;
-        doors[k]->s.angles = doors[k]->moveInfo.endAngles;
-        gi.LinkEntity(doors[k]);
-      }
+      Vec3 origins[MAX_MODELS], angles[MAX_MODELS];
 
-      for (size_t i = 0; i < nodes->count; i++) {
-        GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(nodes, i));
-        node->position = G_Ai_Node_MoverPosition(node);
-      }
-
-      for (size_t i = 0; i < nodes->count; i++) {
-        const GameAiNodeId a = AI_NODE_ID(nodes, i);
-        GameAiNode *node = AI_NODE(aiNodes, a);
-
-        if (gi.PointContents(node->position) & AI_CONTENTS_HAZARD) {
-          continue;
-        }
-
-        G_Ai_Node_LinkMoverAround(node, a, node->model);
-
-        for (size_t j = i + 1; j < nodes->count; j++) {
-          const GameAiNodeId b = AI_NODE_ID(nodes, j);
-          const GameAiNode *other = AI_NODE(aiNodes, b);
-
-          float distance;
-          if (other->model == node->model ||
-              !G_Ai_Node_CanWalkMover(node->position, other->position, bounds, &distance)) {
-            continue;
-          }
-
-          G_Ai_Node_LinkPress(a, b, distance, NAV_TRAVEL_WALK, node->model);
-          G_Ai_Node_LinkPress(b, a, distance, NAV_TRAVEL_WALK, node->model);
-        }
-      }
-
-      for (size_t i = 0; i < nodes->count; i++) {
-        AI_NODE(aiNodes, AI_NODE_ID(nodes, i))->position = VectorValue(positions, Vec3, i);
-      }
-
-      for (int32_t k = 0; k < numDoors; k++) {
-        doors[k]->s.origin = origins[k];
-        doors[k]->s.angles = angles[k];
-        gi.LinkEntity(doors[k]);
-      }
+      G_Ai_Node_LinkPresses_pose(doors, numDoors, origins, angles);
+      G_Ai_Node_LinkPresses_link(nodes, positions, bounds);
+      G_Ai_Node_LinkPresses_restore(doors, numDoors, origins, angles);
     }
 
     release(nodes);
@@ -2151,17 +2238,10 @@ static void G_Ai_Node_LinkPresses(void) {
 }
 
 /**
- * @brief Moves the nodes on models that move with their entities, each frame, and links them
- * again to the nodes beside them every `AI_MOVER_LINK_MILLIS`, if any has moved since they were
- * last linked, and every `AI_MOVER_RELINK_MILLIS` if none has, so that a link that a player or
- * another model blocked when they came to rest comes back. A bot whose path loses a link plans a
- * new one.
+ * @brief Moves the nodes on models that move with their entities, and notes in `moverMoved` if any
+ * has moved. A node that moves is tested again for its contents in this frame.
  */
-void G_Ai_Node_UpdateMovers(void) {
-
-  if (!module.moverNodes || !module.moverNodes->count) {
-    return;
-  }
+static void G_Ai_Node_UpdateMovers_move(void) {
 
   for (size_t i = 0; i < module.moverNodes->count; i++) {
     GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
@@ -2176,16 +2256,13 @@ void G_Ai_Node_UpdateMovers(void) {
       }
     }
   }
+}
 
-  const uint32_t relinkTime = module.moverLinkTime - AI_MOVER_LINK_MILLIS + AI_MOVER_RELINK_MILLIS;
-
-  if (module.moverLinkTime > gameLevel.time ||
-      (module.moverLinkTime && !module.moverMoved && relinkTime > gameLevel.time)) {
-    return;
-  }
-
-  module.moverLinkTime = gameLevel.time + AI_MOVER_LINK_MILLIS;
-  module.moverMoved = false;
+/**
+ * @brief Removes the links that the last relink made: those of the nodes that do not move to the
+ * nodes that do, and those of the nodes that move to the nodes off their own model.
+ */
+static void G_Ai_Node_UpdateMovers_unlink(void) {
 
   for (size_t i = 0; i < module.moverLinked->count; i++) {
     G_Ai_Node_UnlinkModel(AI_NODE(aiNodes, AI_NODE_ID(module.moverLinked, i)), 0);
@@ -2197,6 +2274,15 @@ void G_Ai_Node_UpdateMovers(void) {
     GameAiNode *node = AI_NODE(aiNodes, AI_NODE_ID(module.moverNodes, i));
     G_Ai_Node_UnlinkModel(node, node->model);
   }
+}
+
+/**
+ * @brief Marks each node on a model that moves as `moverStill` if it stands where it was last
+ * linked, for less than `AI_MOVER_RELINK_MILLIS`, and outside of the reach of each model that has
+ * moved since. If more than `AI_MOVER_MAX_MOVED` models have moved, or a node that has moved has no
+ * entity, no node is still.
+ */
+static void G_Ai_Node_UpdateMovers_still(void) {
 
   const GameEntity *moved[AI_MOVER_MAX_MOVED];
   Box3 movedBounds[AI_MOVER_MAX_MOVED];
@@ -2237,6 +2323,35 @@ void G_Ai_Node_UpdateMovers(void) {
       node->moverStill = !Box3_ContainsPoint(movedBounds[j], node->position);
     }
   }
+}
+
+/**
+ * @brief Moves the nodes on models that move with their entities, each frame, and links them
+ * again to the nodes beside them every `AI_MOVER_LINK_MILLIS`, if any has moved since they were
+ * last linked, and every `AI_MOVER_RELINK_MILLIS` if none has, so that a link that a player or
+ * another model blocked when they came to rest comes back. A bot whose path loses a link plans a
+ * new one.
+ */
+void G_Ai_Node_UpdateMovers(void) {
+
+  if (!module.moverNodes || !module.moverNodes->count) {
+    return;
+  }
+
+  G_Ai_Node_UpdateMovers_move();
+
+  const uint32_t relinkTime = module.moverLinkTime - AI_MOVER_LINK_MILLIS + AI_MOVER_RELINK_MILLIS;
+
+  if (module.moverLinkTime > gameLevel.time ||
+      (module.moverLinkTime && !module.moverMoved && relinkTime > gameLevel.time)) {
+    return;
+  }
+
+  module.moverLinkTime = gameLevel.time + AI_MOVER_LINK_MILLIS;
+  module.moverMoved = false;
+
+  G_Ai_Node_UpdateMovers_unlink();
+  G_Ai_Node_UpdateMovers_still();
 
   for (size_t i = 0; i < module.moverNodes->count; i++) {
     G_Ai_Node_LinkMover(AI_NODE_ID(module.moverNodes, i));
