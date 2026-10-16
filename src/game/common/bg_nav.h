@@ -485,6 +485,67 @@ int32_t Nav_CellNode(const NavGraph *graph, const Vec3i xyz);
 bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b);
 
 /**
+ * @brief The horizontal distance within which a node on a model that moves links to another node:
+ * a little more than a cell, so that one is always in reach as the model passes.
+ */
+#define NAV_MOVER_LINK_DISTANCE (NAV_CELL_SIZE * 1.25f)
+
+/**
+ * @brief The highest drop onto or off a model that moves, which a link of a mover spans.
+ */
+#define NAV_MOVER_DROP_HEIGHT 128.f
+
+/**
+ * @brief The spacing in units of the floor samples under a walk link of a mover.
+ */
+#define NAV_MOVER_FLOOR_SPACING 16.f
+
+/**
+ * @brief A trace against the world and the entities that block a player, which the game and the
+ * client game each provide for the links of the nodes on models that move.
+ */
+typedef CollisionTrace (*NavMoverTrace)(const Vec3 start, const Vec3 end, const Box3 bounds,
+                                        const int32_t contents);
+
+/**
+ * @return True if `b` is within a step of height and `NAV_MOVER_LINK_DISTANCE` across of `a`.
+ * @param distance Receives the distance across.
+ */
+bool Nav_MoverReach(const Vec3 a, const Vec3 b, float *distance);
+
+/**
+ * @return True if there is floor, and no liquid, under the player's box at each point
+ * `NAV_MOVER_FLOOR_SPACING` apart on the line from `a` to `b`, which are player origins on the same
+ * level. The box is as wide as the player, because a player stands where any part of it has floor,
+ * and does not fall through a seam between two models side by side. Where the box starts in a wall,
+ * a point is traced instead.
+ */
+bool Nav_MoverFloor(NavMoverTrace trace, const Vec3 a, const Vec3 b);
+
+/**
+ * @return True if a player walks from `a` to `b`, player origins of which one at least is on a
+ * model that moves: within `Nav_MoverReach`, with a clear line for the player's box raised by a
+ * step, and floor under the line (`Nav_MoverFloor`).
+ * @param bounds The player's box.
+ * @param distance Receives the distance across.
+ */
+bool Nav_MoverWalk(NavMoverTrace trace, const Vec3 a, const Vec3 b, const Box3 bounds,
+                   float *distance);
+
+/**
+ * @brief Finds the link between the node at `a`, on a model that moves, and the node at `b`, within
+ * `NAV_MOVER_LINK_DISTANCE` across: a walk both ways if `b` is on its level (`Nav_MoverWalk`), or a
+ * drop from the higher of the two to the lower, within `NAV_MOVER_DROP_HEIGHT`, with a clear line
+ * across at the higher level for the player's box raised by a step, and down onto the lower.
+ * @param bounds The player's box.
+ * @param cost Receives the cost of the link: the distance across, plus the height of a drop.
+ * @return `NAV_TRAVEL_WALK`, `NAV_TRAVEL_WALK_OFF_LEDGE` from the higher node, or
+ * `NAV_TRAVEL_NONE` if the nodes do not link.
+ */
+NavTravelType Nav_MoverLink(NavMoverTrace trace, const Vec3 a, const Vec3 b, const Box3 bounds,
+                            float *cost);
+
+/**
  * @return The name of the travel type: the name of its `NavTravelType` constant, in lowercase and
  * without the prefix, such as `walk_off_ledge`. `src/tools/ai_probe.py` uses the same names.
  */

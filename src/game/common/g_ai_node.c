@@ -1519,12 +1519,6 @@ static void G_Ai_Node_LinkRides(void) {
 #define AI_MOVER_LINK_MILLIS 100
 
 /**
- * @brief The horizontal distance within which a node on a model that moves links to a node that
- * does not: a little more than a cell, so that one is always in reach as the model passes.
- */
-#define AI_MOVER_LINK_DISTANCE (NAV_CELL_SIZE * 1.25f)
-
-/**
  * @brief The least damage of a `func_rotating` that crushes. A `func_rotating` with no `dmg` key
  * does 2 damage when it is blocked, which a bot can ride and walk beside.
  */
@@ -1802,16 +1796,6 @@ static void G_Ai_Node_UnlinkModel(GameAiNode *node, const int32_t model) {
 }
 
 /**
- * @brief The spacing in units of the floor samples under a dynamic walk link.
- */
-#define AI_MOVER_FLOOR_SPACING 16.f
-
-/**
- * @brief The highest drop onto or off a model that moves, which a dynamic link spans.
- */
-#define AI_MOVER_DROP_HEIGHT 128.f
-
-/**
  * @brief Adds a link from node `a` to node `b`, without the debug output of
  * `G_Ai_Node_LinkTravel`, because the nodes that move are linked again many times a second.
  */
@@ -1921,79 +1905,18 @@ static void G_Ai_Node_LinkMoverTo_add(GameAiNode *node, const GameAiNodeId a, co
 }
 
 /**
- * @return True if there is floor, and no liquid, under the player's box at each point
- * `AI_MOVER_FLOOR_SPACING` apart on the line from `a` to `b`, which are player origins on the same
- * level. The box is as wide as the player, because a player stands where any part of it has floor,
- * and does not fall through a seam between two models side by side. Where the box starts in a wall,
- * a point is traced instead.
+ * @return A trace for the links of movers (`NavMoverTrace`), against the world and the entities.
  */
-static bool G_Ai_Node_HasFloor(const Vec3 a, const Vec3 b) {
-
-  const float length = Vec3_Distance(a, b);
-  const float depth = -PM_BOUNDS.mins.z + PM_STEP_HEIGHT * 2.f;
-  const Box3 bounds = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
-                               MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
-
-  for (float d = AI_MOVER_FLOOR_SPACING; d < length; d += AI_MOVER_FLOOR_SPACING) {
-
-    const Vec3 point = Vec3_Mix(a, b, d / length);
-    const Vec3 start = Vec3_Add(point, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT));
-    const Vec3 end = Vec3_Subtract(point, MakeVec3(0.f, 0.f, depth));
-
-    CollisionTrace tr = gi.Trace(start, end, bounds, NULL,
-                                 CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
-
-    if (tr.startSolid) {
-      tr = gi.Trace(start, end, Box3_Zero(), NULL, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
-    }
-
-    if (tr.fraction == 1.f || (tr.contents & CONTENTS_MASK_LIQUID)) {
-      return false;
-    }
-  }
-
-  return true;
+static CollisionTrace G_Ai_Node_MoverTrace(const Vec3 start, const Vec3 end, const Box3 bounds,
+                                           const int32_t contents) {
+  return gi.Trace(start, end, bounds, NULL, contents);
 }
 
 /**
- * @return True if `b` is within a step of height and `AI_MOVER_LINK_DISTANCE` across of `a`.
- * @param distance Receives the distance across.
- */
-static bool G_Ai_Node_InReach(const Vec3 a, const Vec3 b, float *distance) {
-
-  if (fabsf(b.z - a.z) > PM_STEP_HEIGHT) {
-    return false;
-  }
-
-  *distance = Vec2_Distance(Vec3_XY(b), Vec3_XY(a));
-
-  return *distance <= AI_MOVER_LINK_DISTANCE;
-}
-
-/**
- * @return True if a player walks from `a` to `b`, player origins of which one at least is on a
- * model that moves: within a step of height and `AI_MOVER_LINK_DISTANCE` across of each other, with
- * a clear line for the player's box raised by a step, and floor under the line.
- * @param bounds The player's box, raised by a step.
- * @param distance Receives the distance across.
- */
-static bool G_Ai_Node_CanWalkMover(const Vec3 a, const Vec3 b, const Box3 bounds, float *distance) {
-
-  if (!G_Ai_Node_InReach(a, b, distance)) {
-    return false;
-  }
-
-  const CollisionTrace tr = gi.Trace(a, b, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
-
-  return !tr.startSolid && tr.fraction == 1.f && G_Ai_Node_HasFloor(a, b);
-}
-
-/**
- * @brief Links the node `id` on a model that moves to the node `other` that does not move: both
- * ways with a walk, if `other` is on its level, with a clear line for the player's box, raised by a
- * step, and floor under the line, or one way with a drop, from the higher of the two to the lower,
- * within `AI_MOVER_DROP_HEIGHT`, with a clear line across at the higher level and down onto the
- * lower. The nodes MUST be within `AI_MOVER_LINK_DISTANCE` of each other across.
+ * @brief Links the node `id` on a model that moves to the node `other` that does not move, as
+ * `Nav_MoverLink` finds: both ways with a walk, or one way with a drop from the higher of the two
+ * to the lower.
+ * @param bounds The player's box.
  * @param gate 0 for a link of the graph, or the inline model of the door for a press link.
  * @return True if the nodes are linked.
  */
@@ -2002,50 +1925,22 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
 
   const Vec3 position = AI_NODE(module.nodes, other)->position;
 
-  float distance = Vec2_Distance(Vec3_XY(position), Vec3_XY(node->position));
-  if (distance > AI_MOVER_LINK_DISTANCE) {
-    return false;
-  }
-
-  const float height = position.z - node->position.z;
-
-  if (fabsf(height) <= PM_STEP_HEIGHT) {
-    if (!G_Ai_Node_CanWalkMover(node->position, position, bounds, &distance)) {
+  float cost;
+  switch (Nav_MoverLink(G_Ai_Node_MoverTrace, node->position, position, bounds, &cost)) {
+    case NAV_TRAVEL_WALK:
+      G_Ai_Node_LinkMoverTo_add(node, id, other, cost, NAV_TRAVEL_WALK, gate);
+      G_Ai_Node_LinkMoverTo_add(node, other, id, cost, NAV_TRAVEL_WALK, gate);
+      return true;
+    case NAV_TRAVEL_WALK_OFF_LEDGE:
+      if (position.z > node->position.z) {
+        G_Ai_Node_LinkMoverTo_add(node, other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE, gate);
+      } else {
+        G_Ai_Node_LinkMoverTo_add(node, id, other, cost, NAV_TRAVEL_WALK_OFF_LEDGE, gate);
+      }
+      return true;
+    default:
       return false;
-    }
-
-    G_Ai_Node_LinkMoverTo_add(node, id, other, distance, NAV_TRAVEL_WALK, gate);
-    G_Ai_Node_LinkMoverTo_add(node, other, id, distance, NAV_TRAVEL_WALK, gate);
-    return true;
   }
-
-  if (fabsf(height) > AI_MOVER_DROP_HEIGHT) {
-    return false;
-  }
-
-  const Vec3 high = height > 0.f ? position : node->position;
-  const Vec3 low = height > 0.f ? node->position : position;
-  const Vec3 over = MakeVec3(low.x, low.y, high.z);
-
-  const CollisionTrace across = gi.Trace(high, over, bounds, NULL, CONTENTS_MASK_CLIP_MONSTER);
-  if (across.startSolid || across.fraction < 1.f) {
-    return false;
-  }
-
-  const CollisionTrace down = gi.Trace(over, low, G_PlayerBounds(), NULL,
-                                       CONTENTS_MASK_CLIP_MONSTER);
-  if (down.startSolid || down.fraction < 1.f) {
-    return false;
-  }
-
-  const float cost = distance + fabsf(height);
-  if (height > 0.f) {
-    G_Ai_Node_LinkMoverTo_add(node, other, id, cost, NAV_TRAVEL_WALK_OFF_LEDGE, gate);
-  } else {
-    G_Ai_Node_LinkMoverTo_add(node, id, other, cost, NAV_TRAVEL_WALK_OFF_LEDGE, gate);
-  }
-
-  return true;
 }
 
 /**
@@ -2056,10 +1951,10 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
  */
 static void G_Ai_Node_LinkMoverAround(GameAiNode *node, const GameAiNodeId id, const int32_t gate) {
 
-  const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
+  const Box3 bounds = G_PlayerBounds();
 
   const Vec3i xyz = Nav_PointCoordinate(&module.graph, node->position);
-  const int32_t levels = (int32_t) ceilf(AI_MOVER_DROP_HEIGHT / NAV_CELL_HEIGHT);
+  const int32_t levels = (int32_t) ceilf(NAV_MOVER_DROP_HEIGHT / NAV_CELL_HEIGHT);
 
   for (int32_t dz = -levels; dz <= levels; dz++) {
     for (int32_t dy = -1; dy <= 1; dy++) {
@@ -2128,14 +2023,14 @@ static void G_Ai_Node_LinkMover(const GameAiNodeId id) {
 
 /**
  * @brief Links the nodes on different models that move to each other, both ways with walks, within
- * `AI_MOVER_LINK_DISTANCE` and a step of height, with a clear line for the player's box, raised by
+ * `NAV_MOVER_LINK_DISTANCE` and a step of height, with a clear line for the player's box, raised by
  * a step, and floor under the line, so that a floor of several doors side by side is one floor. A
  * node that its model has carried into lava or slime is not linked. Two nodes that are both still
  * get the links of the last relink back, with no traces.
  */
 static void G_Ai_Node_LinkMovers(void) {
 
-  const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
+  const Box3 bounds = G_PlayerBounds();
 
   for (size_t i = 0; i < module.moverNodes->count; i++) {
     const GameAiNodeId a = AI_NODE_ID(module.moverNodes, i);
@@ -2172,7 +2067,7 @@ static void G_Ai_Node_LinkMovers(void) {
 
       float distance;
       if (other->model == node->model ||
-          !G_Ai_Node_InReach(node->position, other->position, &distance)) {
+          !Nav_MoverReach(node->position, other->position, &distance)) {
         continue;
       }
 
@@ -2184,7 +2079,8 @@ static void G_Ai_Node_LinkMovers(void) {
         continue;
       }
 
-      if (!G_Ai_Node_CanWalkMover(node->position, other->position, bounds, &distance)) {
+      if (!Nav_MoverWalk(G_Ai_Node_MoverTrace, node->position, other->position, bounds,
+                         &distance)) {
         continue;
       }
 
@@ -2286,7 +2182,7 @@ static void G_Ai_Node_LinkPresses_restore(GameEntity **doors, const int32_t numD
  * nodes that do not move, and to each other, both ways with walks. The nodes are moved with their
  * doors for the traces, and back to their `positions`. A node that the press moves into lava or
  * slime is not linked.
- * @param bounds The player's box, raised by a step.
+ * @param bounds The player's box.
  */
 static void G_Ai_Node_LinkPresses_link(const Vector *nodes, const Vector *positions,
                                        const Box3 bounds) {
@@ -2312,7 +2208,8 @@ static void G_Ai_Node_LinkPresses_link(const Vector *nodes, const Vector *positi
 
       float distance;
       if (other->model == node->model ||
-          !G_Ai_Node_CanWalkMover(node->position, other->position, bounds, &distance)) {
+          !Nav_MoverWalk(G_Ai_Node_MoverTrace, node->position, other->position, bounds,
+                         &distance)) {
         continue;
       }
 
@@ -2338,7 +2235,7 @@ static void G_Ai_Node_LinkPresses(void) {
     return;
   }
 
-  const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
+  const Box3 bounds = G_PlayerBounds();
 
   for (int32_t m = 1; m < MAX_MODELS; m++) {
 
@@ -2446,7 +2343,7 @@ static void G_Ai_Node_UpdateMovers_still(void) {
 
     moved[numMoved] = node->mover;
     movedBounds[numMoved++] = Box3_Expand(node->mover->absBounds,
-                                          AI_MOVER_LINK_DISTANCE + Box3_Size(PM_BOUNDS).x);
+                                          NAV_MOVER_LINK_DISTANCE + Box3_Size(PM_BOUNDS).x);
   }
 
   for (size_t i = 0; i < module.moverNodes->count; i++) {
@@ -3380,7 +3277,7 @@ bool G_Ai_Node_AddEntity(GameEntity *ent) {
       const Vec3 linkPos = G_Ai_Node_GetPosition(link->id);
 
       if (gi.Trace(ent->s.origin, linkPos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0 ||
-          !G_Ai_Node_HasFloor(linkPos, pos)) {
+          !Nav_MoverFloor(G_Ai_Node_MoverTrace, linkPos, pos)) {
         continue;
       }
 

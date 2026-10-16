@@ -3204,6 +3204,116 @@ bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints
 /**
  * @see bg_nav.h
  */
+bool Nav_MoverReach(const Vec3 a, const Vec3 b, float *distance) {
+
+  if (fabsf(b.z - a.z) > PM_STEP_HEIGHT) {
+    return false;
+  }
+
+  *distance = Vec2_Distance(Vec3_XY(b), Vec3_XY(a));
+
+  return *distance <= NAV_MOVER_LINK_DISTANCE;
+}
+
+/**
+ * @see bg_nav.h
+ */
+bool Nav_MoverFloor(NavMoverTrace trace, const Vec3 a, const Vec3 b) {
+
+  const float length = Vec3_Distance(a, b);
+  const float depth = -PM_BOUNDS.mins.z + PM_STEP_HEIGHT * 2.f;
+  const Box3 bounds = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
+                               MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
+  const int32_t contents = CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID;
+
+  for (float d = NAV_MOVER_FLOOR_SPACING; d < length; d += NAV_MOVER_FLOOR_SPACING) {
+
+    const Vec3 point = Vec3_Mix(a, b, d / length);
+    const Vec3 start = Vec3_Add(point, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT));
+    const Vec3 end = Vec3_Subtract(point, MakeVec3(0.f, 0.f, depth));
+
+    CollisionTrace tr = trace(start, end, bounds, contents);
+
+    if (tr.startSolid) {
+      tr = trace(start, end, Box3_Zero(), contents);
+    }
+
+    if (tr.fraction == 1.f || (tr.contents & CONTENTS_MASK_LIQUID)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * @see bg_nav.h
+ */
+bool Nav_MoverWalk(NavMoverTrace trace, const Vec3 a, const Vec3 b, const Box3 bounds,
+                   float *distance) {
+
+  if (!Nav_MoverReach(a, b, distance)) {
+    return false;
+  }
+
+  Box3 raised = bounds;
+  raised.mins.z += PM_STEP_HEIGHT;
+
+  const CollisionTrace tr = trace(a, b, raised, CONTENTS_MASK_CLIP_MONSTER);
+
+  return !tr.startSolid && tr.fraction == 1.f && Nav_MoverFloor(trace, a, b);
+}
+
+/**
+ * @see bg_nav.h
+ */
+NavTravelType Nav_MoverLink(NavMoverTrace trace, const Vec3 a, const Vec3 b, const Box3 bounds,
+                            float *cost) {
+
+  float distance = Vec2_Distance(Vec3_XY(b), Vec3_XY(a));
+  if (distance > NAV_MOVER_LINK_DISTANCE) {
+    return NAV_TRAVEL_NONE;
+  }
+
+  const float height = b.z - a.z;
+
+  if (fabsf(height) <= PM_STEP_HEIGHT) {
+    if (!Nav_MoverWalk(trace, a, b, bounds, &distance)) {
+      return NAV_TRAVEL_NONE;
+    }
+
+    *cost = distance;
+    return NAV_TRAVEL_WALK;
+  }
+
+  if (fabsf(height) > NAV_MOVER_DROP_HEIGHT) {
+    return NAV_TRAVEL_NONE;
+  }
+
+  Box3 raised = bounds;
+  raised.mins.z += PM_STEP_HEIGHT;
+
+  const Vec3 high = height > 0.f ? b : a;
+  const Vec3 low = height > 0.f ? a : b;
+  const Vec3 over = MakeVec3(low.x, low.y, high.z);
+
+  const CollisionTrace across = trace(high, over, raised, CONTENTS_MASK_CLIP_MONSTER);
+  if (across.startSolid || across.fraction < 1.f) {
+    return NAV_TRAVEL_NONE;
+  }
+
+  const CollisionTrace down = trace(over, low, bounds, CONTENTS_MASK_CLIP_MONSTER);
+  if (down.startSolid || down.fraction < 1.f) {
+    return NAV_TRAVEL_NONE;
+  }
+
+  *cost = distance + fabsf(height);
+  return NAV_TRAVEL_WALK_OFF_LEDGE;
+}
+
+/**
+ * @see bg_nav.h
+ */
 const char *Nav_TravelName(const NavTravelType type) {
 
   switch (type) {
