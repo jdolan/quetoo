@@ -979,25 +979,18 @@ static GameAiNodeId G_Ai_RoamNode(const GameClient *cl, const float *costs) {
 }
 
 /**
- * @brief Chooses a detour: the item whose value per added travel time is greatest, among those that
- * are there and add at most `AI_DETOUR_COST` to the route to the objective. The added time is the travel
- * to the item and on from it to the objective, less the travel straight to it, so an item on the
- * route costs little, and an item behind the bot costs much. A detour never waits for an item to
- * return, because `G_Ai_State_detour` ends once the item is gone.
- * @return True if the bot takes a detour.
+ * @brief Gathers the `AI_DETOUR_CANDIDATES` items of most value that are there, other than the
+ * objective, and that the bot reaches within `AI_DETOUR_COST` more than the objective, most valued
+ * first.
+ * @param direct The travel cost to the objective.
+ * @param candidates The candidates, zeroed by the caller, of which those that are left have no
+ * entity.
  */
-static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
+static void G_Ai_ChooseDetour_candidates(const GameClient *cl, const float *costs, const float direct,
+                                         GameAiChoice *candidates) {
 
   const GameAiNodeId objectiveNode = cl->ai->objectiveNode;
-
-  if (objectiveNode == AI_NODE_INVALID || objectiveNode >= G_Ai_Node_Count() || costs[objectiveNode] == FLT_MAX) {
-    return false;
-  }
-
-  const float direct = costs[objectiveNode];
   const GameEntity *objective = G_Ai_State_Objective(cl);
-
-  GameAiChoice candidates[AI_DETOUR_CANDIDATES] = { 0 };
 
   G_ForEachEntity(ent, {
     if (!ent->item || ent == objective || ent->solid != SOLID_TRIGGER) {
@@ -1027,6 +1020,15 @@ static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
       }
     }
   });
+}
+
+/**
+ * @return Of the candidates, the one of most value per added travel time, among those that add at
+ * most `AI_DETOUR_COST` to the route to the objective, or a choice with no entity.
+ * @param direct The travel cost to the objective.
+ */
+static GameAiChoice G_Ai_ChooseDetour_best(const GameClient *cl, const float *costs, const float direct,
+                                           GameAiChoice *candidates) {
 
   GameAiChoice best = { .node = AI_NODE_INVALID };
 
@@ -1034,7 +1036,7 @@ static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
     GameAiChoice *choice = &candidates[i];
 
     float onward;
-    Vector *path = G_Ai_Node_FindPath(cl, choice->node, objectiveNode, direct + AI_DETOUR_COST, &onward);
+    Vector *path = G_Ai_Node_FindPath(cl, choice->node, cl->ai->objectiveNode, direct + AI_DETOUR_COST, &onward);
 
     if (!path) {
       continue;
@@ -1054,6 +1056,33 @@ static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
       best = *choice;
     }
   }
+
+  return best;
+}
+
+/**
+ * @brief Chooses a detour: the item whose value per added travel time is greatest, among those that
+ * are there and add at most `AI_DETOUR_COST` to the route to the objective. The added time is the travel
+ * to the item and on from it to the objective, less the travel straight to it, so an item on the
+ * route costs little, and an item behind the bot costs much. A detour never waits for an item to
+ * return, because `G_Ai_State_detour` ends once the item is gone.
+ * @return True if the bot takes a detour.
+ */
+static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
+
+  const GameAiNodeId objectiveNode = cl->ai->objectiveNode;
+
+  if (objectiveNode == AI_NODE_INVALID || objectiveNode >= G_Ai_Node_Count() || costs[objectiveNode] == FLT_MAX) {
+    return false;
+  }
+
+  const float direct = costs[objectiveNode];
+
+  GameAiChoice candidates[AI_DETOUR_CANDIDATES] = { 0 };
+
+  G_Ai_ChooseDetour_candidates(cl, costs, direct, candidates);
+
+  const GameAiChoice best = G_Ai_ChooseDetour_best(cl, costs, direct, candidates);
 
   if (!best.ent) {
     return false;
@@ -1177,18 +1206,12 @@ static bool G_Ai_ConsiderAlert(GameClient *cl) {
 }
 
 /**
- * @brief Collects the item of most value per travel time, roams when no item has value, and
- * takes detours on the way. The bot changes its item only for one of `AI_SWITCH_SCALE` times more
- * utility. After a path that ended in distress, the bot avoids the objective that it failed to reach,
- * and chooses another at once. It waits at an item for its respawn for at most `AI_WAIT_MILLIS`.
+ * @brief Gives up the objective after a path that ended in distress, so that the bot chooses
+ * another at once, and starts or ends the bot's wait at the item that it collects.
  */
-static void G_Ai_State_navigate(GameClient *cl) {
+static void G_Ai_State_navigate_reacquire(GameClient *cl) {
 
   GameAi *ai = cl->ai;
-
-  if (G_Ai_ConsiderAlert(cl)) {
-    return;
-  }
 
   if (ai->moveTarget.type == AI_GOAL_NONE && ai->reacquireTime > gameLevel.time) {
     G_Ai_GiveUp(cl, G_Ai_State_Objective(cl));
@@ -1200,6 +1223,140 @@ static void G_Ai_State_navigate(GameClient *cl) {
   } else if (!ai->waitTime) {
     ai->waitTime = gameLevel.time;
   }
+}
+
+/**
+ * @return The item that the bot collects, or NULL if it has none, or the item has no value to it
+ * any longer, in which case the bot gives up the objective and its move target.
+ * @param utility Receives the utility of the item, or 0.
+ */
+static const GameEntity *G_Ai_State_navigate_objective(GameClient *cl, const float *costs, float *utility) {
+
+  GameAi *ai = cl->ai;
+  const GameEntity *objective = G_Ai_State_Objective(cl);
+
+  *utility = 0.f;
+
+  if (!objective) {
+    return NULL;
+  }
+
+  const float cost = ai->objectiveNode < G_Ai_Node_Count() ? costs[ai->objectiveNode] : FLT_MAX;
+
+  *utility = G_Ai_ItemUtility(cl, objective, cost, false, 0.f, NULL);
+
+  if (*utility > 0.f) {
+    return objective;
+  }
+
+  G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
+  G_Ai_ClearGoal(&ai->moveTarget);
+  return NULL;
+}
+
+/**
+ * @brief Takes the chosen item as the objective: through its gate, from `AI_STATE_ACTIVATE`, or
+ * straight, from `AI_STATE_COLLECT`. A bot with no path to the item avoids it.
+ * @return True if the bot is done for this review: it goes to the item or to the gate's button, or
+ * abandoned the item behind the gate.
+ */
+static bool G_Ai_State_navigate_switch(GameClient *cl, const GameAiChoice *item) {
+
+  GameAi *ai = cl->ai;
+
+  ai->gate = item->gate;
+
+  if (item->gate != -1) {
+    G_Ai_Enter(cl, AI_STATE_ACTIVATE);
+    ai->gateButton = item->button;
+    ai->gateNode = item->buttonNode;
+    ai->gateRestTime = 0;
+    G_Ai_SetObjective(cl, item->ent, item->node);
+
+    if (G_Ai_PathTo(cl, item->buttonNode, item->utility, NULL)) {
+      G_Ai_Probe_GateUse(cl, module.gates[item->gate].name, "choose");
+    } else {
+      G_Ai_Abandon(cl, item->ent);
+    }
+
+    return true;
+  }
+
+  G_Ai_Enter(cl, AI_STATE_COLLECT);
+  G_Ai_ClearGoal(&ai->moveTarget);
+
+  if (G_Ai_PathTo(cl, item->node, item->utility, item->ent)) {
+    G_Ai_SetObjective(cl, item->ent, item->node);
+    return true;
+  }
+
+  G_Ai_State_Avoid(cl, item->ent);
+  return false;
+}
+
+/**
+ * @brief Roams to the bot's roam point, or, once it is reached or if the bot has none, to a new
+ * one (`G_Ai_RoamNode`).
+ */
+static void G_Ai_State_navigate_roam(GameClient *cl, const float *costs) {
+
+  G_Ai_Enter(cl, AI_STATE_ROAM);
+
+  GameAiNodeId node = cl->ai->objectiveNode;
+
+  if (node == AI_NODE_INVALID || node >= G_Ai_Node_Count() ||
+      Vec3_Distance(cl->entity->s.origin, G_Ai_Node_GetPosition(node)) < AI_ROAM_REACHED) {
+    node = G_Ai_RoamNode(cl, costs);
+  }
+
+  if (G_Ai_PathTo(cl, node, AI_ROAM_PRIORITY, NULL)) {
+    G_Ai_SetObjective(cl, NULL, node);
+  } else {
+    G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
+  }
+}
+
+/**
+ * @brief Sets a move target for a bot that has none: it waits at the objective for at most
+ * `AI_WAIT_MILLIS`, paths to the objective, or roams. A bot with no path to the objective, or that
+ * waited too long, gives it up.
+ */
+static void G_Ai_State_navigate_idle(GameClient *cl, const float *costs, const GameEntity *objective,
+                                     const float utility) {
+
+  if (objective && G_Ai_State_IsWaiting(cl)) {
+
+    if (gameLevel.time - cl->ai->waitTime < AI_WAIT_MILLIS) {
+      return;
+    }
+
+    G_Ai_GiveUp(cl, objective);
+    objective = NULL;
+  }
+
+  if (objective) {
+    if (!G_Ai_PathTo(cl, cl->ai->objectiveNode, utility, objective)) {
+      G_Ai_GiveUp(cl, objective);
+    }
+    return;
+  }
+
+  G_Ai_State_navigate_roam(cl, costs);
+}
+
+/**
+ * @brief Collects the item of most value per travel time, roams when no item has value, and
+ * takes detours on the way. The bot changes its item only for one of `AI_SWITCH_SCALE` times more
+ * utility. After a path that ended in distress, the bot avoids the objective that it failed to reach,
+ * and chooses another at once. It waits at an item for its respawn for at most `AI_WAIT_MILLIS`.
+ */
+static void G_Ai_State_navigate(GameClient *cl) {
+
+  if (G_Ai_ConsiderAlert(cl)) {
+    return;
+  }
+
+  G_Ai_State_navigate_reacquire(cl);
 
   if (!G_Ai_ShouldReview(cl)) {
     return;
@@ -1211,87 +1368,19 @@ static void G_Ai_State_navigate(GameClient *cl) {
     return;
   }
 
-  const GameEntity *objective = G_Ai_State_Objective(cl);
-  float objectiveUtility = 0.f;
-
-  if (objective) {
-    const float cost = ai->objectiveNode < G_Ai_Node_Count() ? costs[ai->objectiveNode] : FLT_MAX;
-
-    objectiveUtility = G_Ai_ItemUtility(cl, objective, cost, false, 0.f, NULL);
-
-    if (objectiveUtility <= 0.f) {
-      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
-      G_Ai_ClearGoal(&ai->moveTarget);
-      objective = NULL;
-    }
-  }
+  float utility;
+  const GameEntity *objective = G_Ai_State_navigate_objective(cl, costs, &utility);
 
   const GameAiChoice item = G_Ai_ChooseItem(cl, costs, 0.f, false, G_Ai_GateCosts(cl, costs));
 
-  if (item.ent && item.ent != objective && (!objective || item.utility > objectiveUtility * AI_SWITCH_SCALE)) {
-
-    ai->gate = item.gate;
-
-    if (item.gate != -1) {
-      G_Ai_Enter(cl, AI_STATE_ACTIVATE);
-      ai->gateButton = item.button;
-      ai->gateNode = item.buttonNode;
-      ai->gateRestTime = 0;
-      G_Ai_SetObjective(cl, item.ent, item.node);
-
-      if (G_Ai_PathTo(cl, item.buttonNode, item.utility, NULL)) {
-        G_Ai_Probe_GateUse(cl, module.gates[item.gate].name, "choose");
-        return;
-      }
-
-      G_Ai_Abandon(cl, item.ent);
+  if (item.ent && item.ent != objective && (!objective || item.utility > utility * AI_SWITCH_SCALE)) {
+    if (G_Ai_State_navigate_switch(cl, &item)) {
       return;
     }
-
-    G_Ai_Enter(cl, AI_STATE_COLLECT);
-    G_Ai_ClearGoal(&ai->moveTarget);
-
-    if (G_Ai_PathTo(cl, item.node, item.utility, item.ent)) {
-      G_Ai_SetObjective(cl, item.ent, item.node);
-      return;
-    }
-
-    G_Ai_State_Avoid(cl, item.ent);
   }
 
-  if (ai->moveTarget.type == AI_GOAL_NONE) {
-
-    if (objective && G_Ai_State_IsWaiting(cl)) {
-
-      if (gameLevel.time - ai->waitTime < AI_WAIT_MILLIS) {
-        return;
-      }
-
-      G_Ai_GiveUp(cl, objective);
-      objective = NULL;
-    }
-
-    if (objective) {
-      if (!G_Ai_PathTo(cl, ai->objectiveNode, objectiveUtility, objective)) {
-        G_Ai_GiveUp(cl, objective);
-      }
-      return;
-    }
-
-    G_Ai_Enter(cl, AI_STATE_ROAM);
-
-    GameAiNodeId node = ai->objectiveNode;
-
-    if (node == AI_NODE_INVALID || node >= G_Ai_Node_Count() ||
-        Vec3_Distance(cl->entity->s.origin, G_Ai_Node_GetPosition(node)) < AI_ROAM_REACHED) {
-      node = G_Ai_RoamNode(cl, costs);
-    }
-
-    if (G_Ai_PathTo(cl, node, AI_ROAM_PRIORITY, NULL)) {
-      G_Ai_SetObjective(cl, NULL, node);
-    } else {
-      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
-    }
+  if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
+    G_Ai_State_navigate_idle(cl, costs, objective, utility);
     return;
   }
 
@@ -1614,6 +1703,44 @@ static bool G_Ai_IsAtButton(const GameClient *cl, const GameEntity *button) {
 }
 
 /**
+ * @brief Collects the item once a path to it exists through the open gate, or fails the gate if
+ * none exists `AI_GATE_PATH_MILLIS` after its doors come to rest while the bot is at the button.
+ * @return True if the bot is done for this tick: it does not review now, collects the item, or the
+ * gate failed.
+ */
+static bool G_Ai_State_activate_open(GameClient *cl, GameAiGate *gate, const GameEntity *item,
+                                     const GameEntity *button) {
+
+  GameAi *ai = cl->ai;
+
+  ai->shootTarget = NULL;
+
+  if (!G_Ai_ShouldReview(cl)) {
+    return true;
+  }
+
+  const float *costs = G_Ai_TravelCosts(cl);
+
+  if (costs && ai->objectiveNode < G_Ai_Node_Count() && costs[ai->objectiveNode] != FLT_MAX) {
+    G_Ai_Probe_GateUse(cl, gate->name, "open");
+    G_Ai_Enter(cl, AI_STATE_COLLECT);
+    G_Ai_PathTo(cl, ai->objectiveNode, AI_PURSUE_PRIORITY, item);
+    return true;
+  }
+
+  if (!G_Ai_IsGateAtRest(gate) || !G_Ai_IsAtButton(cl, button)) {
+    ai->gateRestTime = 0;
+  } else if (!ai->gateRestTime) {
+    ai->gateRestTime = gameLevel.time;
+  } else if (gameLevel.time - ai->gateRestTime > AI_GATE_PATH_MILLIS) {
+    G_Ai_FailGate(cl, gate, item);
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * @brief Goes to the button of the gate on the way to the objective, and within `AI_ACTIVATE_REACH`
  * walks into it, or, for a button that a shot presses, shoots it once it sees it within
  * `AI_SHOOT_REACH`. Once a door of the gate moves, and a path to the item exists, the bot collects
@@ -1648,27 +1775,7 @@ static void G_Ai_State_activate(GameClient *cl) {
   const Vec3 button = Box3_Center(target->absBounds);
 
   if (G_Ai_IsGateOpen(gate)) {
-    ai->shootTarget = NULL;
-
-    if (!G_Ai_ShouldReview(cl)) {
-      return;
-    }
-
-    const float *costs = G_Ai_TravelCosts(cl);
-
-    if (costs && ai->objectiveNode < G_Ai_Node_Count() && costs[ai->objectiveNode] != FLT_MAX) {
-      G_Ai_Probe_GateUse(cl, gate->name, "open");
-      G_Ai_Enter(cl, AI_STATE_COLLECT);
-      G_Ai_PathTo(cl, ai->objectiveNode, AI_PURSUE_PRIORITY, item);
-      return;
-    }
-
-    if (!G_Ai_IsGateAtRest(gate) || !G_Ai_IsAtButton(cl, target)) {
-      ai->gateRestTime = 0;
-    } else if (!ai->gateRestTime) {
-      ai->gateRestTime = gameLevel.time;
-    } else if (gameLevel.time - ai->gateRestTime > AI_GATE_PATH_MILLIS) {
-      G_Ai_FailGate(cl, gate, item);
+    if (G_Ai_State_activate_open(cl, gate, item, target)) {
       return;
     }
   } else if (G_Ai_IsShotButton(target)) {
