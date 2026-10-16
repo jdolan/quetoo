@@ -191,6 +191,51 @@
   color: #8fc7dc;
 }
 
+/* The clock sits top center, where a glance finds it, with the item timers below it */
+
+#clock {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  spacing: 8;
+}
+
+#hud #clock CounterView {
+  alignment: center;
+}
+
+#hud #clock CounterView > .caption {
+  alignment: center;
+}
+
+#hud #clock CounterView > .value {
+  alignment: center;
+}
+
+#hud #clock #time .number {
+  font-size: 32;
+}
+
+#itemTimers {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 8;
+}
+
+#hud #itemTimers ItemTimerView {
+  padding: 4 14 4 8;
+  spacing: 8;
+}
+
+#hud #itemTimers ImageView {
+  width: 32;
+  height: 32;
+}
+
+#hud #itemTimers .number {
+  font-size: 22;
+}
+
 #hud #fps {
   alignment: bottom-right;
   padding-bottom: 120;

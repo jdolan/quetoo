@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1061
+#define PROTOCOL_MINOR 1062
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -104,6 +104,7 @@ typedef enum {
 #define CS_TEAM_INFO       (CS_GAME + 1)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME            (CS_GAME + 2)  // map time
 #define CS_NUM_TEAMS       (CS_GAME + 3)  // number of teams (0 - MAX_TEAMS)
+#define CS_TIME_UP         (CS_GAME + 4)  // map time, counting up
 #define CS_ITEM_SET        (CS_GAME + 5)  // active item set (GameItems)
 #define CS_HOOK_PULL_SPEED (CS_GAME + 6)  // hook speed
 #define CS_VOTE            (CS_GAME + 7)  // the vote in progress (bg_vote.h)
@@ -111,7 +112,11 @@ typedef enum {
 #define CS_RACE_RECORDS    (CS_GAME + 9) // the top times under this movement, name\time pairs
 #define CS_RACE_GHOST      (CS_GAME + 10) // the course record holder as a CS_CLIENTS string, for the ghost's skin
 #define CS_NEXT_MAP        (CS_GAME + 11) // the intermission's map candidates and tally (bg_intermission.h)
-#define CS_CORPSES         (CS_GAME + 12)  // the client info that corpses wear, MAX_CORPSES wide
+#define CS_ITEM_TIMER_MEGA (CS_GAME + 12) // seconds until the next mega health respawns (g_itemTimers)
+#define CS_ITEM_TIMER_QUAD (CS_GAME + 13) // seconds until the next quad damage respawns (g_itemTimers)
+#define CS_ITEM_TIMER_INVULNERABILITY (CS_GAME + 14) // seconds until the next invulnerability respawns (g_itemTimers)
+#define CS_ITEM_TIMER_INVISIBILITY (CS_GAME + 15) // seconds until the next invisibility respawns (g_itemTimers)
+#define CS_CORPSES         (CS_GAME + 16) // the client info that corpses wear, MAX_CORPSES wide
 
 /**
  * @brief Player state statistics (inventory, score, etc).

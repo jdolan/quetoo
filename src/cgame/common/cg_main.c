@@ -50,6 +50,7 @@ Cvar *cg_drawPing;
 Cvar *cg_drawPingWarn;
 Cvar *cg_hud;
 Cvar *cg_drawTargetName;
+Cvar *cg_drawTime;
 Cvar *cg_drawWeapon;
 Cvar *cg_drawWeaponAlpha;
 Cvar *cg_drawWeaponBob;
@@ -136,6 +137,7 @@ static void Cg_Init(void) {
   cg_drawPingWarn = cgi.AddCvar("cg_drawPingWarn", "200", CVAR_ARCHIVE, "The round trip time, in milliseconds, above which the ping is drawn as lagging");
   cg_hud = cgi.AddCvar("cg_hud", "default", CVAR_ARCHIVE, "The HUD variant: the ui/hud/<name> directory its layout and style are read from (Default is default)");
   cg_drawTargetName = cgi.AddCvar("cg_drawTargetName", "1", CVAR_ARCHIVE, "Draw the target's name");
+  cg_drawTime = cgi.AddCvar("cg_drawTime", "1", CVAR_ARCHIVE, "Draw the level time on the HUD (0 off, 1 counting down to the time limit, 2 counting up)");
   cg_drawWeapon = cgi.AddCvar("cg_drawWeapon", "1", CVAR_ARCHIVE, "Toggle drawing of the weapon model.");
   cg_drawWeaponAlpha = cgi.AddCvar("cg_drawWeaponAlpha", "1", CVAR_ARCHIVE, "The alpha transparency for drawing the weapon model.");
   cg_drawWeaponBob = cgi.AddCvar("cg_drawWeaponBob", "1", CVAR_ARCHIVE, "Scales the weapon model's sway with the player's velocity (0 to 2).");
