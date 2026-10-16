@@ -528,6 +528,46 @@ static GameAiNodeId G_Ai_ItemNode(const GameEntity *ent) {
 }
 
 /**
+ * @return The utility of the item to the bot, its value per travel time, at the given travel cost,
+ * spread at random by `noise`, or 0 if the bot cannot reach the item or would not value it. In a
+ * retreat, the utility of an item that lies nearer to the enemy than to the bot is scaled by
+ * `AI_TOWARD_ENEMY_SCALE`.
+ * @param cost The travel cost to the item, or `FLT_MAX` if the bot cannot reach it.
+ * @param retreat True to value only health, armor and the weapons that would arm the bot, and to
+ * shun those that lie toward the enemy.
+ * @param noise The random spread of the utility, or 0 for none.
+ * @param value If not NULL, receives the value of the item.
+ */
+static float G_Ai_ItemUtility(const GameClient *cl, const GameEntity *ent, const float cost, const bool retreat,
+                              const float noise, float *value) {
+
+  const float v = cost == FLT_MAX ? 0.f : G_Ai_ItemValue(cl, ent, G_Ai_TravelMillis(cost), retreat);
+
+  if (value) {
+    *value = v;
+  }
+
+  if (v <= 0.f) {
+    return 0.f;
+  }
+
+  float utility = G_Ai_Utility(v, G_Ai_ItemCost(cl, ent, cost));
+
+  if (noise > 0.f) {
+    utility *= RandomRangef(1.f - noise, 1.f + noise);
+  }
+
+  const GameEntity *enemy = cl->ai->combatTarget.type == AI_GOAL_ENTITY ? cl->ai->combatTarget.entity.ent : NULL;
+
+  if (retreat && enemy &&
+      Vec3_Distance(ent->s.origin, enemy->s.origin) < Vec3_Distance(ent->s.origin, cl->entity->s.origin)) {
+    utility *= AI_TOWARD_ENEMY_SCALE;
+  }
+
+  return utility;
+}
+
+/**
  * @return True if a door of the gate is activated, so that its doorways open.
  */
 static bool G_Ai_IsGateOpen(const GameAiGate *gate) {
@@ -603,7 +643,6 @@ static GameAiChoice G_Ai_ChooseItem(const GameClient *cl, const float *costs, co
 
   GameAiChoice best = { .node = AI_NODE_INVALID, .gate = -1, .button = -1, .buttonNode = AI_NODE_INVALID };
 
-  const GameEntity *enemy = cl->ai->combatTarget.type == AI_GOAL_ENTITY ? cl->ai->combatTarget.entity.ent : NULL;
   const float noise = Mixf(AI_ITEM_NOISE_MAX, AI_ITEM_NOISE_MIN, cl->ai->personality.awareness);
 
   G_ForEachEntity(ent, {
@@ -640,17 +679,11 @@ static GameAiChoice G_Ai_ChooseItem(const GameClient *cl, const float *costs, co
       continue;
     }
 
-    const float value = G_Ai_ItemValue(cl, ent, G_Ai_TravelMillis(cost), retreat);
+    float value;
+    const float utility = G_Ai_ItemUtility(cl, ent, cost, retreat, noise, &value);
 
-    if (value <= 0.f) {
+    if (utility <= 0.f) {
       continue;
-    }
-
-    float utility = G_Ai_Utility(value, G_Ai_ItemCost(cl, ent, cost)) * RandomRangef(1.f - noise, 1.f + noise);
-
-    if (retreat && enemy &&
-        Vec3_Distance(ent->s.origin, enemy->s.origin) < Vec3_Distance(ent->s.origin, cl->entity->s.origin)) {
-      utility *= AI_TOWARD_ENEMY_SCALE;
     }
 
     if (utility > best.utility) {
@@ -710,7 +743,8 @@ static const GameEntity *G_Ai_MoveEntity(const GameClient *cl) {
 /**
  * @brief Paths to the chosen item, unless the bot already goes to an item of at least
  * `1 / AI_SWITCH_SCALE` of its utility, so that a bot in a fight or a retreat does not change its
- * item at each review.
+ * item at each review. The item that the bot goes to is scored as a new choice is, but with no
+ * noise, so that a retreating bot gives up an item that now lies toward the enemy.
  * @param maxCost The most travel cost of the item that the bot goes to, or 0 for no limit.
  * @return True if the bot goes to an item.
  */
@@ -726,9 +760,9 @@ static bool G_Ai_GoToItem(GameClient *cl, const float *costs, const GameAiChoice
       cost = FLT_MAX;
     }
 
-    const float value = cost == FLT_MAX ? 0.f : G_Ai_ItemValue(cl, current, G_Ai_TravelMillis(cost), retreat);
+    const float utility = G_Ai_ItemUtility(cl, current, cost, retreat, 0.f, NULL);
 
-    if (value > 0.f && (current == choice->ent || choice->utility <= G_Ai_Utility(value, G_Ai_ItemCost(cl, current, cost)) * AI_SWITCH_SCALE)) {
+    if (utility > 0.f && (current == choice->ent || choice->utility <= utility * AI_SWITCH_SCALE)) {
       return true;
     }
   }
@@ -1155,11 +1189,10 @@ static void G_Ai_State_navigate(GameClient *cl) {
 
   if (objective) {
     const float cost = ai->objectiveNode < G_Ai_Node_Count() ? costs[ai->objectiveNode] : FLT_MAX;
-    const float value = cost == FLT_MAX ? 0.f : G_Ai_ItemValue(cl, objective, G_Ai_TravelMillis(cost), false);
 
-    if (value > 0.f) {
-      objectiveUtility = G_Ai_Utility(value, G_Ai_ItemCost(cl, objective, cost));
-    } else {
+    objectiveUtility = G_Ai_ItemUtility(cl, objective, cost, false, 0.f, NULL);
+
+    if (objectiveUtility <= 0.f) {
       G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
       G_Ai_ClearGoal(&ai->moveTarget);
       objective = NULL;
