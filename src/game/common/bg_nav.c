@@ -2813,7 +2813,7 @@ static void Nav_AddBarrier(const int32_t index, const char *classname, const int
   for (int32_t j = 0; gate && *targetname && j < module.numBarriers; j++) {
     const Entity *other = module.params->bsp->models[module.barriers[j].model].entity;
     if (module.barriers[j].gate &&
-        !Str_Compare(module.params->EntityValue(other, "targetname")->string, targetname)) {
+        !Str_CaseCompare(module.params->EntityValue(other, "targetname")->string, targetname)) {
       group = module.barriers[j].group;
       break;
     }

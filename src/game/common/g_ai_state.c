@@ -2249,7 +2249,7 @@ static int32_t G_Ai_FindEntities(const ptrdiff_t field, const char *name,
 
     const char *value = *(const char **) ((const byte *) ent + field);
 
-    if (value && !Str_Compare(value, name) && accept(ent)) {
+    if (value && !Str_CaseCompare(value, name) && accept(ent)) {
       ents[count++] = ent;
     }
   });
@@ -2263,7 +2263,7 @@ static int32_t G_Ai_FindEntities(const ptrdiff_t field, const char *name,
 static GameAiTrap *G_Ai_FindTrap(const char *name) {
 
   for (int32_t i = 0; i < module.numTraps; i++) {
-    if (!Str_Compare(module.traps[i].name, name)) {
+    if (!Str_CaseCompare(module.traps[i].name, name)) {
       return &module.traps[i];
     }
   }
@@ -2277,7 +2277,7 @@ static GameAiTrap *G_Ai_FindTrap(const char *name) {
 static GameAiGate *G_Ai_FindGate(const char *name) {
 
   for (int32_t i = 0; i < module.numGates; i++) {
-    if (!Str_Compare(module.gates[i].name, name)) {
+    if (!Str_CaseCompare(module.gates[i].name, name)) {
       return &module.gates[i];
     }
   }

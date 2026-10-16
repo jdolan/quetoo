@@ -2215,7 +2215,7 @@ static int32_t G_Ai_Node_LinkPresses_doors(const int32_t m, GameEntity **doors) 
 
   for (int32_t k = 1; k < m; k++) {
     if (module.doors[k] && module.doors[k]->targetName &&
-        !Str_Compare(module.doors[k]->targetName, name)) {
+        !Str_CaseCompare(module.doors[k]->targetName, name)) {
       return 0;
     }
   }
@@ -2224,7 +2224,7 @@ static int32_t G_Ai_Node_LinkPresses_doors(const int32_t m, GameEntity **doors) 
 
   for (int32_t k = m; k < MAX_MODELS; k++) {
     if (module.doors[k] && module.doors[k]->targetName &&
-        !Str_Compare(module.doors[k]->targetName, name)) {
+        !Str_CaseCompare(module.doors[k]->targetName, name)) {
       doors[numDoors++] = (GameEntity *) module.doors[k];
     }
   }
@@ -2866,7 +2866,7 @@ static bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *doorName
 
   const char *name = module.doors[link->gate]->targetName;
 
-  return name && !Str_Compare(name, doorName);
+  return name && !Str_CaseCompare(name, doorName);
 }
 
 /**
@@ -2874,7 +2874,7 @@ static bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *doorName
  */
 static bool G_Ai_Node_IsMovedBy(const GameAiNode *node, const char *doorName) {
   return node->mover && node->mover->targetName && doorName &&
-         !Str_Compare(node->mover->targetName, doorName);
+         !Str_CaseCompare(node->mover->targetName, doorName);
 }
 
 /**
