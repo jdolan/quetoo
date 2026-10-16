@@ -25,13 +25,22 @@ Usage:
     ai_probe.py strafe <log> [--client N]
     ai_probe.py linktimes <log> [<log> ...] [--min 3] [--count 20]   (logs of one graph build)
     ai_probe.py kills <log> [--module default]
+    ai_probe.py suite <out> [--seconds 40] [--bot NAME ...] [--maps M,M ...] [--jobs 7] [--graph]
+                      [--tree DIR] [+set ...]
+    ai_probe.py compare <base>[,<base> ...] <current>[,<current> ...]
+    ai_probe.py graphdiff <base> <current>
 
-`run` builds the tree's dedicated server and game module into a private stage, so it never
-touches the user directory. The `node`, `near`, `path` and `routes` commands need a log that was
-recorded with `--graph`. Their path costs approximate `G_Ai_Node_StepCost`: the link cost, plus
-the penalty for a drop over 128 units, the falling damage that a full-health bot takes, and the
-penalty for a node at the edge of the void. The game also multiplies the cost of a link into water
-by AI_WATER_EXPOSURE (1.5); the log does not say which nodes are in water, so these costs do not.
+`run` builds the tree's dedicated server and game module into a private stage, so it never touches
+the user directory. `--tree` runs the build of another tree, for example a worktree of the base
+commit, with this tree's tool. `suite` runs a match on each map of a set, several at a time.
+`compare` reads two or more suites and prints the deaths, kills and pickups per game minute of each
+map. `graphdiff` tells whether two suites recorded with `--graph` built the same graphs. Each suite
+takes one port for each map, from `--port`. The `node`, `near`, `path` and `routes` commands need a
+log that was recorded with `--graph`. Their path costs approximate `G_Ai_Node_StepCost`: the link
+cost, plus the penalty for a drop over 128 units, the falling damage that a full-health bot takes,
+and the penalty for a node at the edge of the void. The game also multiplies the cost of a link into
+water by AI_WATER_EXPOSURE (1.5); the log does not say which nodes are in water, so these costs do
+not.
 """
 
 import argparse
@@ -53,6 +62,15 @@ TRAVEL = {-1: '-', 0: 'none', 1: 'walk', 2: 'crouch', 3: 'walk_off_ledge', 4: 'b
           6: 'push', 7: 'plat', 8: 'swim', 9: 'jump', 10: 'ladder'}
 
 RCON_PASSWORD = 'probe'
+
+SUITE_MAPS = ['2deaths', 'abase', 'aerowalk', 'aghast', 'badplace', 'campgrounds', 'chthon', 'cistern',
+              'claustrophobopolis', 'darkzone', 'edge', 'fraggin', 'fragpipe', 'gehenna', 'hallways',
+              'lavatomb', 'longyard', 'miner', 'omf', 'pits', 'rage', 'rounding', 'slimyplace', 'tokays',
+              'torn', 'warehouse']
+
+SUITE_BOTS = ['Bastard:0.99', 'Guard', 'Stroggo']
+
+GRAPH_EVENTS = ('GRAPH', 'NODE', 'TRIGGER', 'CLIMB')
 
 LINE = re.compile(r'^PROBE (\d+) (-?\d+) (\w+) ?(.*)$')
 
@@ -217,9 +235,10 @@ def link_type(nodes, a, b):
 # ---------------------------------------------------------------------------
 
 def cmd_run(args):
-    dedicated = ROOT / 'src/main/quetoo-dedicated'
-    game = ROOT / f'src/game/{args.module}/.libs/game.so'
-    cgame = ROOT / f'src/cgame/{args.module}/.libs/cgame.so'
+    tree = Path(args.tree).resolve() if args.tree else ROOT
+    dedicated = tree / 'src/main/quetoo-dedicated'
+    game = tree / f'src/game/{args.module}/.libs/game.so'
+    cgame = tree / f'src/cgame/{args.module}/.libs/cgame.so'
 
     for path in (dedicated, game):
         if not path.exists():
@@ -255,7 +274,7 @@ def cmd_run(args):
 
     with open(out / 'server.log', 'w') as server_log:
         server = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=server_log, stderr=subprocess.STDOUT,
-                                  cwd=ROOT)
+                                  cwd=tree)
     try:
         wait_for_server(args.port, server)
         for bot in args.bot:
@@ -753,6 +772,132 @@ def cmd_kills(args):
         print(f'  {kind:<8} {mod:<24} {victim:<7} {len(ranges):>5} {median(ranges):>12}')
 
 
+# ---------------------------------------------------------------------------
+# Suites
+# ---------------------------------------------------------------------------
+
+def cmd_suite(args):
+    if args.jobs < 1:
+        sys.exit('--jobs MUST be 1 or more')
+    out = Path(args.out).resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    bots = args.bot or SUITE_BOTS
+    running = []
+    failed = []
+
+    def reap(limit):
+        while len(running) > limit:
+            done = [job for job in running if job[1].poll() is not None]
+            if not done:
+                time.sleep(0.5)
+            for name, job, output in done:
+                running.remove((name, job, output))
+                output.close()
+                if job.returncode:
+                    failed.append(name)
+
+    for i, name in enumerate(args.maps.split(',') if args.maps else SUITE_MAPS):
+        reap(args.jobs - 1)
+        command = [sys.executable, __file__, 'run', name, '--seconds', str(args.seconds),
+                   '--port', str(args.port + i), '--out', str(out / name), '--module', args.module]
+        command += [a for bot in bots for a in ('--bot', bot)]
+        if args.graph:
+            command.append('--graph')
+        if args.tree:
+            command += ['--tree', args.tree]
+        command += args.extra
+        output = open(out / f'{name}.txt', 'w')
+        running.append((name, subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT), output))
+    reap(0)
+
+    if failed:
+        sys.exit(f'These maps failed, see {out}/<map>.txt: {" ".join(failed)}')
+    print(out)
+
+
+def suite_logs(spec):
+    """The probe log of each map, by map name, of the comma-separated suite directories."""
+    logs = collections.defaultdict(list)
+    for d in spec.split(','):
+        for log in sorted(Path(d).glob('*/write/ai_probe_*.log')):
+            logs[log.parent.parent.name].append(log)
+    if not logs:
+        sys.exit(f'No probe logs in {spec}')
+    return logs
+
+
+def suite_counts(logs):
+    """Game minutes, world deaths, self kills, kills by players and pickups over the logs of one map."""
+    counts = [0.0, 0, 0, 0, 0]
+    for log in logs:
+        events = read_log(log)
+        counts[0] += game_seconds(events) / 60.0
+        for e in events:
+            if e.kind == 'KILL':
+                if e.get('attacker') == '-1':
+                    counts[1] += 1
+                elif e.get('attacker') == str(e.client):
+                    counts[2] += 1
+                else:
+                    counts[3] += 1
+            elif e.kind == 'PICKUP':
+                counts[4] += 1
+    return counts
+
+
+def cmd_compare(args):
+    base, current = suite_logs(args.base), suite_logs(args.current)
+    print('Each column holds the base value, then the current value.')
+    print(f'{"map":20} {"minutes":>11} {"world/min":>14} {"self/min":>14} {"kills/min":>14} {"pickups/min":>14}')
+    totals = [[0.0] * 5, [0.0] * 5]
+
+    def row(name, b, c):
+        if not b[0] or not c[0]:
+            print(f'{name:20} no game time')
+            return
+        rates = ' '.join(f'{b[i] / b[0]:6.2f} {c[i] / c[0]:6.2f}' for i in range(1, 5))
+        print(f'{name:20} {b[0]:5.0f} {c[0]:5.0f} {rates}')
+
+    for name in sorted(set(base) | set(current)):
+        if name not in base or name not in current:
+            print(f'{name:20} only in {"the base" if name in base else "the current suite"}')
+            continue
+        b, c = suite_counts(base[name]), suite_counts(current[name])
+        totals = [[t + v for t, v in zip(total, counts)] for total, counts in zip(totals, (b, c))]
+        row(name, b, c)
+    row('all', *totals)
+
+
+def graph_lines(log):
+    """The event and fields of each graph line, without the time and client."""
+    with open(log, errors='replace') as f:
+        return [(m.group(3), m.group(4)) for line in f
+                if (m := LINE.match(line.rstrip('\n'))) and m.group(3) in GRAPH_EVENTS]
+
+
+def cmd_graphdiff(args):
+    if ',' in args.base + args.current:
+        sys.exit('graphdiff compares one suite with one suite')
+    base, current = suite_logs(args.base), suite_logs(args.current)
+    differ = False
+    for name in sorted(set(base) | set(current)):
+        if name not in base or name not in current:
+            print(f'{name:20} only in {"the base" if name in base else "the current suite"}')
+            differ = True
+            continue
+        a, b = graph_lines(base[name][0]), graph_lines(current[name][0])
+        if not a or not b:
+            print(f'{name:20} no graph: record both suites with --graph')
+            differ = True
+        elif a == b:
+            print(f'{name:20} same')
+        else:
+            first = next((i for i, (x, y) in enumerate(zip(a, b)) if x != y), min(len(a), len(b)))
+            print(f'{name:20} differ: {len(a)} and {len(b)} lines, first difference at line {first + 1}')
+            differ = True
+    sys.exit(1 if differ else 0)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
@@ -766,7 +911,32 @@ def main():
     p.add_argument('--module', default='default')
     p.add_argument('--port', type=int, default=27999)
     p.add_argument('--out', help='the directory for the stage, the write directory and server.log')
+    p.add_argument('--tree', help='the tree whose build to run, by default this one')
     p.set_defaults(func=cmd_run)
+
+    p = sub.add_parser('suite', help='a match on each map of a set, several at a time')
+    p.add_argument('out', help='the directory for the matches, one directory and one .txt for each map')
+    p.add_argument('--seconds', type=float, default=40, help='wall seconds of each match')
+    p.add_argument('--bot', action='append', default=[],
+                   help=f'NAME[:SKILL[,AGGRESSION[,AWARENESS]]], repeatable; by default {" ".join(SUITE_BOTS)}')
+    p.add_argument('--maps', help='maps separated by commas, by default the 26 maps of quetoo-data')
+    p.add_argument('--jobs', type=int, default=7, help='matches at the same time')
+    p.add_argument('--graph', action='store_true', help='also record the navigation graph, for graphdiff')
+    p.add_argument('--module', default='default')
+    p.add_argument('--port', type=int, default=28100,
+                   help='the port of the first map; each next map takes the next port')
+    p.add_argument('--tree', help='the tree whose build to run, by default this one')
+    p.set_defaults(func=cmd_suite)
+
+    p = sub.add_parser('compare', help='deaths, kills and pickups per game minute of two suites, by map')
+    p.add_argument('base', help='a suite directory, or several separated by commas')
+    p.add_argument('current', help='a suite directory, or several separated by commas')
+    p.set_defaults(func=cmd_compare)
+
+    p = sub.add_parser('graphdiff', help='whether two suites recorded with --graph built the same graphs')
+    p.add_argument('base', help='a suite directory')
+    p.add_argument('current', help='a suite directory')
+    p.set_defaults(func=cmd_graphdiff)
 
     p = sub.add_parser('summary', help='deaths, pushes, pickups and stuck time')
     p.add_argument('logs', nargs='+')
@@ -839,7 +1009,7 @@ def main():
     p.set_defaults(func=cmd_kills)
 
     args, extra = parser.parse_known_args()
-    if extra and args.command != 'run':
+    if extra and args.command not in ('run', 'suite'):
         parser.error(f'unrecognized arguments: {" ".join(extra)}')
     unknown = [e for e in extra if e.startswith('--') and e != '--']
     if unknown:

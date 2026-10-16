@@ -17,6 +17,7 @@ The parts are:
 | `src/tools/ai_probe.py run` | Runs a headless dedicated server on the tree's build, at `timeDemo 1`, adds bots by rcon, and stops the server cleanly. |
 | `src/tools/ai_probe.py summary`, `deaths`, `pushes`, `hazards` | Count and explain deaths, unplanned pushes, entries into lava or slime, pickups and stuck time. |
 | `src/tools/ai_probe.py node`, `near`, `path`, `routes` | Query the navigation graph that the game used. |
+| `src/tools/ai_probe.py suite`, `compare`, `graphdiff` | Run a match on each of the 26 maps, compare two builds by deaths, kills and pickups per game minute, and tell whether two builds make the same graphs. |
 | `cg_drawNav`, `navInfo` (`src/cgame/common/cg_nav.c`) | Draw the graph in the client, and print the node nearest the view. |
 
 ## 1. Build
@@ -170,6 +171,9 @@ To see what a player sees, run the client from the same stage, with the graph dr
 - `navInfo` prints the node nearest the view, with its links.
 - The client draws the graph that `Nav_Build` makes. The game adds item, pad, teleporter and plat
   nodes after that, so ids at or above the build's node count appear only in the probe's graph.
+- The client also links the nodes that doors, trains, bobs and the rotating models that turn about
+  the vertical axis carry, as they move, every 100 ms, near the view. It uses `Nav_MoverLink` and
+  `Nav_MoverWalk`, the code that links them for the bots.
 - Node colors: white normal, red crouch. Link colors: green walk, red crouch, grey ledge, yellow
   barrier jump, orange gap jump, cyan swim, violet ladder.
 - Jump pads: a blue arc from each pad along its predicted flight, with a pulsing blue marker at
@@ -182,12 +186,30 @@ To see what a player sees, run the client from the same stage, with the graph dr
 - **Measure before you change anything.** Record a baseline on the current build.
 - **Compare equal game time.** Use the event times, not the count of `SPEED` lines, which come
   every 5 seconds. You SHOULD run at least two matches for each build: bots make random choices.
-- **Keep the old build to compare with.** For example, save the change with
-  `git diff <files> > change.patch`, then `git apply -R change.patch`, `make`, run, and
-  `git apply change.patch`. Copy the changed files aside first. MUST NOT `git checkout` a file
-  with uncommitted work to undo a temporary edit: if a step before it fails, the work is lost.
-  Check that the patch is not empty, and in zsh write the file list out, because zsh does not
-  split a variable into words.
+- **Keep the old build to compare with in a worktree.** Make a worktree of the base commit
+  outside the tree, configure it and `make -j8` in it, and give its path to `--tree`. You MUST NOT
+  swap files in the shared tree to build the base: the developer edits the same tree, and a
+  `git checkout` of a file with uncommitted work loses that work.
+- **Compare suites, not single matches.** A change on one map can move deaths to another map.
+
+  ```sh
+  python3 src/tools/ai_probe.py suite "$TMPDIR/base1" --tree "$BASE"
+  python3 src/tools/ai_probe.py suite "$TMPDIR/cur1" --port 28200
+  python3 src/tools/ai_probe.py compare "$TMPDIR/base1,$TMPDIR/base2" "$TMPDIR/cur1,$TMPDIR/cur2"
+  ```
+
+  A suite runs 26 maps for 40 wall seconds each, with Bastard at 0.99, Guard and Stroggo, 7 at a
+  time. Each suite takes 26 ports, from 28100. Suites that run at the same time MUST NOT share a
+  port, so give each one its own hundred, for example `--port 28200`. `--maps aerowalk,rage` runs
+  fewer maps. Run two suites of each build, and give `compare` their directories separated by
+  commas. Use a new directory for each suite: `compare` reads every log in it. World deaths per minute count the deaths
+  that no player causes: falls, lava, slime, drowning and crushes. Kills and pickups change with
+  the routes.
+- **Prove that a refactor keeps the graph.** Run both builds with `suite --graph --seconds 2`,
+  then `graphdiff` the two directories. It compares the `GRAPH`, `NODE`, `TRIGGER` and `CLIMB`
+  lines of each map, and exits with 1 if any map differs. A refactor MUST NOT show up here. The
+  game cuts a `NODE` line short on a node with very many links, so a difference in the last links
+  of such a node does not show up.
 - **Read the whole death table after a fix.** A fix that opens a route sends bots to new places,
   and a new group of deaths can appear somewhere else.
 - **Look for a new path in the air.** A bot that falls off an edge often got a new path just
