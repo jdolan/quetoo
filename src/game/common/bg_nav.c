@@ -20,7 +20,6 @@
  */
 
 #include "bg_nav.h"
-#include "bg_pmove.h"
 
 /**
  * @brief The contents that a bot stands on and collides with: a player's, and monster clip, which
@@ -539,6 +538,15 @@ static Box3 Nav_Bounds(const bool crouch) {
 }
 
 /**
+ * @return The footprint of a player: the horizontal extent of the player's bounding box, flat, at
+ * the height of the origin.
+ */
+static Box3 Nav_Footprint(void) {
+  return MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
+                  MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
+}
+
+/**
  * @brief Rests the bounding box on the floor beneath `start`, as Pmove would.
  * @return True if the box fits at `start` and lands on a walkable floor within `distance`.
  */
@@ -597,7 +605,9 @@ static NavSample Nav_SampleFloor(const Vec3 point, const Box3 footprint, NavNode
     return NAV_SAMPLE_NO_FIT;
   }
 
-  if (Nav_PointContents(origin) & CONTENTS_MASK_SOLID) {
+  const int32_t contents = Nav_PointContents(origin);
+
+  if (contents & CONTENTS_MASK_SOLID) {
     return NAV_SAMPLE_NO_FIT;
   }
 
@@ -606,7 +616,7 @@ static NavSample Nav_SampleFloor(const Vec3 point, const Box3 footprint, NavNode
   }
 
   node->position = origin;
-  node->contents = Nav_PointContents(origin) & CONTENTS_MASK_LIQUID;
+  node->contents = contents & CONTENTS_MASK_LIQUID;
 
   if (barrier != -1 && module.barriers[barrier].moves) {
     node->model = module.barriers[barrier].model;
@@ -662,8 +672,7 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
   const int32_t numFine = (int32_t) lengthof(offsets) + steps * steps;
   const int32_t numPoints = numFine + (int32_t) lengthof(offsets);
 
-  const Box3 footprint = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
-                                  MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
+  const Box3 footprint = Nav_Footprint();
 
   NavSample sample = NAV_SAMPLE_NONE;
 
@@ -836,8 +845,7 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
   const Vec3 floor = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), -PM_BOUNDS.mins.z - NAV_CELL_HEIGHT * .5f));
   const Vec3i xyz = Nav_PointCoordinate(graph, floor);
 
-  const Box3 footprint = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
-                                  MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
+  const Box3 footprint = Nav_Footprint();
 
   int32_t best = -1;
   float bestDistance = NAV_LANDING_DISTANCE * NAV_LANDING_DISTANCE;
@@ -2358,8 +2366,8 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     Nav_LinkSwims(index, links, &numLinks);
   }
 
-  for (int32_t i = 0; i < module.graph->numClimbs; i++) {
-    const NavLadderClimb *climb = &module.graph->climbs[i];
+  for (int32_t i = 0; i < graph->numClimbs; i++) {
+    const NavLadderClimb *climb = &graph->climbs[i];
 
     if (climb->bottom == index) {
       Nav_AddLink(links, &numLinks, climb->top, NAV_TRAVEL_LADDER, climb->millis, 0);
