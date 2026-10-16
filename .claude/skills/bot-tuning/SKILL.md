@@ -41,7 +41,7 @@ python3 src/tools/ai_probe.py run longyard --seconds 60 --bot Bastard:0.8 --grap
 - `--clients N` sets `sv_minClients`, and the game fills the server with random roster bots.
 - `--graph` also records the graph, which the graph commands need. It adds about 250 KB.
 - Arguments after the options go to the server, for example `+set g_gravity 400`.
-- Use a different `--port` for each match that runs at the same time.
+- Each match that runs at the same time MUST use a different `--port`.
 
 `timeDemo 1` runs the server as fast as it can. One bot on longyard plays about 170 game seconds
 in each wall second. More bots run slower.
@@ -80,14 +80,15 @@ python3 src/tools/ai_probe.py hazards "$LOG" --near 250,-500,250
   the largest group.
 - `deaths`, `pushes` and `hazards` print each event with the 32 samples before it, 100 ms apart:
   position, velocity, link, link type, strafe jump state, ground, the bot's state, whether
-  damage knocked it back, whether it is on a ladder, and the ladder controller's phase. Read the samples to see what the bot
-  did: whether it strafe jumped, overshot its node, or left its link.
+  damage knocked it back, whether it is on a ladder, and the ladder controller's phase. Read the
+  samples to see what the bot did: whether it strafe jumped, overshot its node, or left its link.
 - A death below about z -900 on a map with a void is a fall. The position of the death is where
   the bot hit the hurt trigger, often far from the edge that it fell from. The samples show the
   edge.
 - An unplanned push is a push from a `trigger_push` while the bot does not follow a jump pad link,
-  and its next link is not one either. `summary` and `pushes` read only those. The knockback of damage also sets `PMF_TIME_PUSHED`, so the
-  probe records a push only within 32 units of a `trigger_push`.
+  and its next link is not one either. `summary` and `pushes` read only those. The knockback of
+  damage also sets `PMF_TIME_PUSHED`, so the probe records a push only within 32 units of a
+  `trigger_push`.
 
 ### The log format
 
@@ -106,7 +107,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `KILL` | With flag 1 or 4, when any bot or player dies: the attacker (the victim's own number for a suicide, -1 for the world), the means of death (`mod`, as `GameMeansOfDeath`), the weapon in the attacker's hand, the range, and whether each is a bot |
 | `VISIT` | Each time a client moves to another node: the client's route, node by node. The client leaves a node only for one at least 16 units nearer. A death starts a new route. Bots with flag 1, players with flag 4 |
 | `CMD` | With flag 4, each movement command of a human player: the nearest node (-1 if none is within 128 units), position, velocity, view angles (yaw, pitch), the move (forward, right, up), its duration, the ground, the water level and the buttons. Up to 250 lines a second for each player, about 150 MB an hour |
-| `PATH` | When a bot gets a new path: where it is, its speed, whether it is on the ground, and the first, second and last nodes |
+| `PATH` | When a bot gets a new path: its position, its velocity (`vel`), whether it is on the ground, the first, second and last nodes (`start`, `next`, `end`), the count of nodes in the path (`nodes`), and its objective (`goal`) |
 | `PATHEND` | When the game ends a bot's path, and why: `arrived`, `distress`, `unlinked` or `teleported`, with its position, velocity, whether it is on the ground, the `goalType` of its move goal (`GameAiGoalType`), its link, its index in the path, and its objective, and `HIST reason=distress` after a distress |
 | `PUSHED` | When a push trigger throws a bot. `planned=0` if the bot does not follow a pad link, with `HIST reason=pushed` |
 | `JUMP`, `LAND` | When a bot takes off on a gap jump link, and where it lands |
@@ -137,8 +138,8 @@ Node ids belong to one build of one map. If you change `bg_nav.c`, record the gr
 
 ## 5. Learn from a player
 
-Jay plays against the bots, or alone, with the probe on. He sets it before the map loads, for
-example `+set g_aiProbe 5`, and the log is in his write directory. Then:
+The developer plays against the bots, or alone, with the probe on, set before the map loads, for
+example `+set g_aiProbe 5`. The log is in the developer's write directory. Then:
 
 ```sh
 python3 src/tools/ai_probe.py route "$LOG" --client 0         # a client's route and how it covers the map
@@ -165,19 +166,22 @@ To see what a player sees, run the client from the same stage, with the graph dr
 ./src/main/quetoo -p "$OUT/stage" -w "$TMPDIR/client" +set s_volume 0 +set cg_drawNav 1 +map longyard
 ```
 
-- MUST pass `+set s_volume 0`.
+- You MUST pass `+set s_volume 0`, which mutes the test client: the developer is often on calls.
 - `navInfo` prints the node nearest the view, with its links.
 - The client draws the graph that `Nav_Build` makes. The game adds item, pad, teleporter and plat
   nodes after that, so ids at or above the build's node count appear only in the probe's graph.
 - Node colors: white normal, red crouch. Link colors: green walk, red crouch, grey ledge, yellow
   barrier jump, orange gap jump, cyan swim, violet ladder.
+- Jump pads: a blue arc from each pad along its predicted flight, with a pulsing blue marker at
+  the pad, and at the landing if the flight lands. A vertical pad's arc is its column, up to its
+  apex. A flight is drawn if its pad or its landing is near the view.
 - `screencapture` takes a screenshot of the window for a report.
 
 ## 7. Method
 
 - **Measure before you change anything.** Record a baseline on the current build.
 - **Compare equal game time.** Use the event times, not the count of `SPEED` lines, which come
-  every 5 seconds. Run at least two matches for each build: bots make random choices.
+  every 5 seconds. You SHOULD run at least two matches for each build: bots make random choices.
 - **Keep the old build to compare with.** For example, save the change with
   `git diff <files> > change.patch`, then `git apply -R change.patch`, `make`, run, and
   `git apply change.patch`. Copy the changed files aside first. MUST NOT `git checkout` a file
@@ -192,8 +196,9 @@ To see what a player sees, run the client from the same stage, with the graph dr
 - **Separate planning from steering.** If the planner chooses a dangerous route, look at the graph
   and the costs (`path`, `routes`). If the route is fine but the bot leaves it, look at the
   samples (`deaths`, `pushes`) and at the movement code in `g_ai_main.c`.
-- **Record what you find in the commit body**, with the map, the bot, the skill, the game time and
-  the numbers before and after. That is where Quetoo keeps the reasons for its design.
+- **You SHOULD record what you find in the commit body**, with the map, the bot, the skill, the
+  game time and the numbers before and after. That is where Quetoo keeps the reasons for its
+  design.
 
 ## 8. Add an event
 
@@ -206,6 +211,6 @@ data, add the event to the module so that the next investigation has it.
 
 - `g_aiProbe` MUST stay 0 by default.
 - `git diff` MUST show no temporary instrumentation outside `g_ai_probe.c`.
-- A read-only subagent reviews the change, as for any change.
+- A read-only subagent MUST review the change, as for any change.
 - A new source file goes into all three build systems. `python3 src/tools/verify_projects.py`
   checks that they agree.
