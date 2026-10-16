@@ -63,9 +63,9 @@ static void loadView(ViewController *self) {
     MakeOutlet("hookStyle", &hookStyle)
   );
 #else
-  View *grappleHook;
+  View *hookStyleInput;
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("grappleHook", &grappleHook)
+    MakeOutlet("hookStyleInput", &hookStyleInput)
   );
 #endif
 
@@ -82,7 +82,7 @@ static void loadView(ViewController *self) {
   $(hookStyle, addOption, GameHookStyle_Name(HOOK_SWING_MANUAL), NULL);
   $(hookStyle, addOption, GameHookStyle_Name(HOOK_SWING_AUTO), NULL);
 #else
-  $(grappleHook, removeFromSuperview);
+  $(hookStyleInput, removeFromSuperview);
 #endif
 }
 

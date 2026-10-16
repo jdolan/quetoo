@@ -431,7 +431,7 @@
 		CE05B3F030224900C0DE0036 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE05B3F030224900C0DE0037 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
 		CE05B3F030224900C0DE0038 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
-		CE05B3F030224900C0DE0039 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
+		CE05B3F030224900C0DE0039 /* CrosshairHudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* CrosshairHudViewController.c */; };
 		CE05B3F030224900C0DE003A /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
 		CE05B3F030224900C0DE003B /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
 		CE05B3F030224900C0DE003C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
@@ -477,6 +477,12 @@
 		CE05B3F030224900C0DEAD04 /* cg_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D04 /* cg_tech.h */; };
 		CE05B3FC30224E3E0012870B /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CE05B3FC30224E3E0012870A /* cg_module.c */; };
 		CE0C0752260CC75700FFE27B /* box.h in Headers */ = {isa = PBXBuildFile; fileRef = CE0C0751260CC75700FFE27B /* box.h */; };
+		CE1111000000000000000005 /* CommunicationCaptureViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1111000000000000000001 /* CommunicationCaptureViewController.c */; };
+		CE1111000000000000000006 /* CommunicationCaptureViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1111000000000000000001 /* CommunicationCaptureViewController.c */; };
+		CE1111000000000000000007 /* CommunicationCaptureViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1111000000000000000001 /* CommunicationCaptureViewController.c */; };
+		CE1111000000000000000008 /* CommunicationCaptureViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1111000000000000000001 /* CommunicationCaptureViewController.c */; };
+		CE1111000000000000000009 /* CommunicationCaptureViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1111000000000000000003 /* CommunicationCaptureViewController.css */; };
+		CE111100000000000000000A /* CommunicationCaptureViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1111000000000000000004 /* CommunicationCaptureViewController.json */; };
 		CE12D55D1C5C58C300CD0C12 /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D55D1C5C58C300CD0C11 /* cg_module.c */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
@@ -549,7 +555,7 @@
 		CE1643F62FFB571100863996 /* r_occlude.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1643F32FFB571100863996 /* r_occlude.h */; };
 		CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
-		CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
+		CE1A283C1F75FE70005F62A9 /* CrosshairHudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* CrosshairHudViewController.c */; };
 		CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */; };
 		CE1A28481F7600AC005F62A9 /* CrosshairPreviewView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */; };
 		CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
@@ -615,7 +621,7 @@
 		CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
 		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
 		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
-		CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */; };
+		CE4E07CC20268832000B276C /* CrosshairHudViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* CrosshairHudViewController.css */; };
 		CE4E07CF2026883C000B276C /* MovementCombatViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */; };
 		CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C320267ED9000B276C /* LoadingViewController.css */; };
 		CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07C120267ED9000B276C /* MainView.css */; };
@@ -684,7 +690,7 @@
 		CE7D2C222030832C004BC58E /* PlayViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2120308305004BC58E /* PlayViewController.json */; };
 		CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C232030A107004BC58E /* ControlsViewController.json */; };
 		CE7D2C262030A3A3004BC58E /* MovementCombatViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C252030A380004BC58E /* MovementCombatViewController.json */; };
-		CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */; };
+		CE7D2C282030B0F8004BC58E /* CrosshairHudViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C272030B0D6004BC58E /* CrosshairHudViewController.json */; };
 		CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */; };
 		CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2F20310763004BC58E /* SettingsViewController.json */; };
 		CE7FCDD72596996600E49A2D /* cl_screen.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7FCDD52596996500E49A2D /* cl_screen.c */; };
@@ -1035,7 +1041,7 @@
 		CEC0FF002026010300000196 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CEC0FF002026010300000197 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CEC0FF002026010300000198 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
-		CEC0FF002026010300000199 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
+		CEC0FF002026010300000199 /* CrosshairHudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* CrosshairHudViewController.c */; };
 		CEC0FF00202601030000019A /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
 		CEC0FF00202601030000019B /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
 		CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
@@ -1369,7 +1375,7 @@
 		D2A5C100000000000000007A /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		D2A5C100000000000000007B /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
 		D2A5C100000000000000007C /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
-		D2A5C100000000000000007D /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
+		D2A5C100000000000000007D /* CrosshairHudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* CrosshairHudViewController.c */; };
 		D2A5C100000000000000007E /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
 		D2A5C100000000000000007F /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
 		D2A5C1000000000000000080 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
@@ -2029,8 +2035,10 @@
 				CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */,
 				CE4E07CF2026883C000B276C /* MovementCombatViewController.css in CopyFiles */,
 				CE7D2C262030A3A3004BC58E /* MovementCombatViewController.json in CopyFiles */,
-				CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */,
-				CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */,
+				CE4E07CC20268832000B276C /* CrosshairHudViewController.css in CopyFiles */,
+				CE7D2C282030B0F8004BC58E /* CrosshairHudViewController.json in CopyFiles */,
+				CE1111000000000000000009 /* CommunicationCaptureViewController.css in CopyFiles */,
+				CE111100000000000000000A /* CommunicationCaptureViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2376,6 +2384,10 @@
 		CE0729943081CD0900496E08 /* tools-env.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "tools-env.sh"; sourceTree = "<group>"; };
 		CE0729953081CD0900496E08 /* verify_projects.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = verify_projects.py; sourceTree = "<group>"; };
 		CE0C0751260CC75700FFE27B /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
+		CE1111000000000000000001 /* CommunicationCaptureViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CommunicationCaptureViewController.c; sourceTree = "<group>"; };
+		CE1111000000000000000002 /* CommunicationCaptureViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommunicationCaptureViewController.h; sourceTree = "<group>"; };
+		CE1111000000000000000003 /* CommunicationCaptureViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = CommunicationCaptureViewController.css; sourceTree = "<group>"; };
+		CE1111000000000000000004 /* CommunicationCaptureViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CommunicationCaptureViewController.json; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2699,8 +2711,8 @@
 		CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
 		CE1A28301F75FC1D005F62A9 /* PlayerSetupViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerSetupViewController.h; sourceTree = "<group>"; };
-		CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ResponseServiceViewController.c; sourceTree = "<group>"; };
-		CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResponseServiceViewController.h; sourceTree = "<group>"; };
+		CE1A28381F75FE70005F62A9 /* CrosshairHudViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CrosshairHudViewController.c; sourceTree = "<group>"; };
+		CE1A28391F75FE70005F62A9 /* CrosshairHudViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrosshairHudViewController.h; sourceTree = "<group>"; };
 		CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ControlsViewController.c; sourceTree = "<group>"; };
 		CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlsViewController.h; sourceTree = "<group>"; };
 		CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CrosshairPreviewView.c; sourceTree = "<group>"; };
@@ -2820,7 +2832,7 @@
 		CE4E07B320264B15000B276C /* common.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = common.css; sourceTree = "<group>"; };
 		CE4E07B6202676E7000B276C /* JoinServerViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = JoinServerViewController.css; sourceTree = "<group>"; };
 		CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MovementCombatViewController.css; sourceTree = "<group>"; };
-		CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = ResponseServiceViewController.css; sourceTree = "<group>"; };
+		CE4E07BD20267EAB000B276C /* CrosshairHudViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = CrosshairHudViewController.css; sourceTree = "<group>"; };
 		CE4E07C120267ED9000B276C /* MainView.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MainView.css; sourceTree = "<group>"; };
 		CE4E07C320267ED9000B276C /* LoadingViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = LoadingViewController.css; sourceTree = "<group>"; };
 		CE4E07C420267EE8000B276C /* CreateServerViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = CreateServerViewController.css; sourceTree = "<group>"; };
@@ -2906,7 +2918,7 @@
 		CE7D2C2120308305004BC58E /* PlayViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayViewController.json; sourceTree = "<group>"; };
 		CE7D2C232030A107004BC58E /* ControlsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ControlsViewController.json; sourceTree = "<group>"; };
 		CE7D2C252030A380004BC58E /* MovementCombatViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MovementCombatViewController.json; sourceTree = "<group>"; };
-		CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ResponseServiceViewController.json; sourceTree = "<group>"; };
+		CE7D2C272030B0D6004BC58E /* CrosshairHudViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CrosshairHudViewController.json; sourceTree = "<group>"; };
 		CE7D2C292030F25B004BC58E /* DialogViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DialogViewController.json; sourceTree = "<group>"; };
 		CE7D2C2A2030F269004BC58E /* DialogViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = DialogViewController.css; sourceTree = "<group>"; };
 		CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LoadingViewController.json; sourceTree = "<group>"; };
@@ -4586,19 +4598,23 @@
 		CE1A28351F75FE70005F62A9 /* controls */ = {
 			isa = PBXGroup;
 			children = (
+				CE1111000000000000000002 /* CommunicationCaptureViewController.h */,
+				CE1111000000000000000001 /* CommunicationCaptureViewController.c */,
+				CE1111000000000000000003 /* CommunicationCaptureViewController.css */,
+				CE1111000000000000000004 /* CommunicationCaptureViewController.json */,
 				CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */,
 				CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */,
 				CE7D2C232030A107004BC58E /* ControlsViewController.json */,
+				CE1A28391F75FE70005F62A9 /* CrosshairHudViewController.h */,
+				CE1A28381F75FE70005F62A9 /* CrosshairHudViewController.c */,
+				CE4E07BD20267EAB000B276C /* CrosshairHudViewController.css */,
+				CE7D2C272030B0D6004BC58E /* CrosshairHudViewController.json */,
 				CE1A28451F7600AC005F62A9 /* CrosshairPreviewView.h */,
 				CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */,
 				CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */,
 				CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */,
 				CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */,
 				CE7D2C252030A380004BC58E /* MovementCombatViewController.json */,
-				CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */,
-				CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */,
-				CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */,
-				CE7D2C272030B0D6004BC58E /* ResponseServiceViewController.json */,
 			);
 			path = controls;
 			sourceTree = "<group>";
@@ -6973,7 +6989,8 @@
 				CE05B3F030224900C0DE0036 /* PlayerModelView.c in Sources */,
 				CE05B3F030224900C0DE0037 /* PlayerSetupViewController.c in Sources */,
 				CE05B3F030224900C0DE0038 /* PlayViewController.c in Sources */,
-				CE05B3F030224900C0DE0039 /* ResponseServiceViewController.c in Sources */,
+				CE05B3F030224900C0DE0039 /* CrosshairHudViewController.c in Sources */,
+				CE1111000000000000000005 /* CommunicationCaptureViewController.c in Sources */,
 				CE05B3F030224900C0DE003A /* SettingsViewController.c in Sources */,
 				CECA90000000000000000011 /* CaptureLevelView.c in Sources */,
 				CE05B3F030224900C0DE003B /* StatsViewController.c in Sources */,
@@ -7147,7 +7164,8 @@
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
 				CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */,
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
-				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
+				CE1A283C1F75FE70005F62A9 /* CrosshairHudViewController.c in Sources */,
+				CE1111000000000000000006 /* CommunicationCaptureViewController.c in Sources */,
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
 				CECA90000000000000000012 /* CaptureLevelView.c in Sources */,
 				CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */,
@@ -7634,7 +7652,8 @@
 				CEC0FF002026010300000197 /* PlayerModelView.c in Sources */,
 				CEC0FF002026010300000198 /* PlayerSetupViewController.c in Sources */,
 				CEC0FF002026010300000196 /* PlayViewController.c in Sources */,
-				CEC0FF002026010300000199 /* ResponseServiceViewController.c in Sources */,
+				CEC0FF002026010300000199 /* CrosshairHudViewController.c in Sources */,
+				CE1111000000000000000007 /* CommunicationCaptureViewController.c in Sources */,
 				CEC0FF00202601030000019A /* SettingsViewController.c in Sources */,
 				CECA90000000000000000013 /* CaptureLevelView.c in Sources */,
 				CEC0FF00202601030000019B /* StatsViewController.c in Sources */,
@@ -7863,7 +7882,8 @@
 				D2A5C100000000000000007A /* PlayerModelView.c in Sources */,
 				D2A5C100000000000000007B /* PlayerSetupViewController.c in Sources */,
 				D2A5C100000000000000007C /* PlayViewController.c in Sources */,
-				D2A5C100000000000000007D /* ResponseServiceViewController.c in Sources */,
+				D2A5C100000000000000007D /* CrosshairHudViewController.c in Sources */,
+				CE1111000000000000000008 /* CommunicationCaptureViewController.c in Sources */,
 				D2A5C100000000000000007E /* SettingsViewController.c in Sources */,
 				CECA90000000000000000014 /* CaptureLevelView.c in Sources */,
 				D2A5C100000000000000007F /* StatsViewController.c in Sources */,

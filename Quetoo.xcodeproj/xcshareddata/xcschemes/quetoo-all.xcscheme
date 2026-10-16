@@ -142,7 +142,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map abase"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set timeDemo 1"

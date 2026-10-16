@@ -21,9 +21,9 @@
 
 #include "cg_local.h"
 
-#include "ResponseServiceViewController.h"
+#include "CrosshairHudViewController.h"
 
-#define _Class _ResponseServiceViewController
+#define _Class _CrosshairHudViewController
 
 #pragma mark - Crosshair selection
 
@@ -57,7 +57,7 @@ static Order sortAlphabetical(const ident a, const ident b) {
  */
 static void didSelectCrosshair(Select *select, Option *option) {
 
-  ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
+  CrosshairHudViewController *this = (CrosshairHudViewController *) select->delegate.self;
 
   $((View *) select, updateBindings, NULL);
   $((View *) this->crosshairView, updateBindings, NULL);
@@ -68,7 +68,7 @@ static void didSelectCrosshair(Select *select, Option *option) {
  */
 static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, double saturation, double value) {
 
-  ResponseServiceViewController *this = (ResponseServiceViewController *) hueColorPicker->delegate.self;
+  CrosshairHudViewController *this = (CrosshairHudViewController *) hueColorPicker->delegate.self;
 
   if (hue < 0.0) {
     cgi.SetCvarString(cg_drawCrosshairColor->name, "default");
@@ -90,7 +90,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
  */
 static void didSetCrosshairScale(Slider *slider, double value) {
 
-  ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
+  CrosshairHudViewController *this = (CrosshairHudViewController *) slider->delegate.self;
 
   $((View *) this->crosshairView, updateBindings, NULL);
 }
@@ -100,7 +100,7 @@ static void didSetCrosshairScale(Slider *slider, double value) {
  */
 static void didSetCrosshairAlpha(Slider *slider, double value) {
 
-  ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
+  CrosshairHudViewController *this = (CrosshairHudViewController *) slider->delegate.self;
 
   $((View *) this->crosshairView, updateBindings, NULL);
 }
@@ -110,7 +110,7 @@ static void didSetCrosshairAlpha(Slider *slider, double value) {
  */
 static void didSelectCrosshairHealth(Select *select, Option *option) {
 
-  ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
+  CrosshairHudViewController *this = (CrosshairHudViewController *) select->delegate.self;
 
   $((View *) this->crosshairView, updateBindings, NULL);
 }
@@ -171,9 +171,9 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  $(self->view, awakeWithResourceName, "ui/controls/ResponseServiceViewController.json");
+  $(self->view, awakeWithResourceName, "ui/controls/CrosshairHudViewController.json");
 
-  ResponseServiceViewController *this = (ResponseServiceViewController *) self;
+  CrosshairHudViewController *this = (CrosshairHudViewController *) self;
 
   Slider *crosshairScale;
   Slider *crosshairAlpha;
@@ -190,7 +190,7 @@ static void loadView(ViewController *self) {
 
   $(self->view, resolve, outlets);
 
-  self->view->stylesheet = $(alloc(Stylesheet), initWithResourceName, "ui/controls/ResponseServiceViewController.css");
+  self->view->stylesheet = $(alloc(Stylesheet), initWithResourceName, "ui/controls/CrosshairHudViewController.css");
   assert(self->view->stylesheet);
 
   $(self->view, enumerateSelection, "BindTextView", setDelegate, self);
@@ -234,7 +234,7 @@ static void viewWillAppear(ViewController *self) {
 
   super(ViewController, self, viewWillAppear);
 
-  ResponseServiceViewController *this = (ResponseServiceViewController *) self;
+  CrosshairHudViewController *this = (CrosshairHudViewController *) self;
 
   const SDL_Color color = MVC_HexToRGBA(cg_drawCrosshairColor->string);
   if (color.r || color.g || color.b) {
@@ -260,19 +260,19 @@ static void initialize(Class *clazz) {
 }
 
 /**
- * @fn Class *ResponseServiceViewController::_ResponseServiceViewController(void)
- * @memberof ResponseServiceViewController
+ * @fn Class *CrosshairHudViewController::_CrosshairHudViewController(void)
+ * @memberof CrosshairHudViewController
  */
-Class *_ResponseServiceViewController(void) {
+Class *_CrosshairHudViewController(void) {
   static Class *clazz;
   static Once once;
 
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
-      .name = "ResponseServiceViewController",
+      .name = "CrosshairHudViewController",
       .superclass = _ViewController(),
-      .instanceSize = sizeof(ResponseServiceViewController),
-      .interfaceSize = sizeof(ResponseServiceViewControllerInterface),
+      .instanceSize = sizeof(CrosshairHudViewController),
+      .interfaceSize = sizeof(CrosshairHudViewControllerInterface),
       .initialize = initialize,
     });
   });
