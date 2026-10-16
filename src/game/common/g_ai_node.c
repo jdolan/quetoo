@@ -578,12 +578,7 @@ static bool G_Ai_Node_FindClosest_tree(const size_t node, void *data, float *dis
  */
 static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, const float maxDistance) {
 
-  const NavGraph *graph = &module.graph;
-
-  const Vec3 rel = Vec3_Subtract(filter->position, graph->mins);
-  const int32_t x = (int32_t) floorf(rel.x / NAV_CELL_SIZE);
-  const int32_t y = (int32_t) floorf(rel.y / NAV_CELL_SIZE);
-  const int32_t z = (int32_t) floorf(rel.z / NAV_CELL_HEIGHT);
+  const Vec3i xyz = Nav_PointCoordinate(&module.graph, filter->position);
 
   GameAiNodeId closest = AI_NODE_INVALID;
   float closestDistance = maxDistance;
@@ -592,18 +587,7 @@ static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, con
     for (int32_t dy = -1; dy <= 1; dy++) {
       for (int32_t dx = -1; dx <= 1; dx++) {
 
-        const Vec3i xyz = MakeVec3i(x + dx, y + dy, z + dz);
-
-        if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0) {
-          continue;
-        }
-
-        if (xyz.x >= graph->size.x || xyz.y >= graph->size.y || xyz.z >= graph->size.z) {
-          continue;
-        }
-
-        const int32_t cell = (xyz.z * graph->size.y + xyz.y) * graph->size.x + xyz.x;
-        const int32_t node = graph->cellNodes[cell];
+        const int32_t node = Nav_CellNode(&module.graph, MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
 
         if (node == -1) {
           continue;
@@ -2028,28 +2012,16 @@ static bool G_Ai_Node_LinkMoverTo(GameAiNode *node, const GameAiNodeId id, const
  */
 static void G_Ai_Node_LinkMoverAround(GameAiNode *node, const GameAiNodeId id, const int32_t gate) {
 
-  const NavGraph *graph = &module.graph;
-
   const Box3 bounds = G_Ai_Node_StepBounds(G_PlayerBounds());
 
-  const Vec3 rel = Vec3_Subtract(node->position, graph->mins);
-  const int32_t x = (int32_t) floorf(rel.x / NAV_CELL_SIZE);
-  const int32_t y = (int32_t) floorf(rel.y / NAV_CELL_SIZE);
-  const int32_t z = (int32_t) floorf(rel.z / NAV_CELL_HEIGHT);
-
+  const Vec3i xyz = Nav_PointCoordinate(&module.graph, node->position);
   const int32_t levels = (int32_t) ceilf(AI_MOVER_DROP_HEIGHT / NAV_CELL_HEIGHT);
 
   for (int32_t dz = -levels; dz <= levels; dz++) {
     for (int32_t dy = -1; dy <= 1; dy++) {
       for (int32_t dx = -1; dx <= 1; dx++) {
 
-        const Vec3i xyz = MakeVec3i(x + dx, y + dy, z + dz);
-
-        if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= graph->size.x || xyz.y >= graph->size.y || xyz.z >= graph->size.z) {
-          continue;
-        }
-
-        const int32_t other = graph->cellNodes[(xyz.z * graph->size.y + xyz.y) * graph->size.x + xyz.x];
+        const int32_t other = Nav_CellNode(&module.graph, MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
         if (other == -1) {
           continue;
         }
