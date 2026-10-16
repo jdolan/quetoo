@@ -525,7 +525,7 @@ static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float 
  * is skipped before the filter traces to it.
  */
 static void G_Ai_Node_FindClosest_compare(GameAiNodeQueryFilter *filter, const GameAiNodeId node,
-                                              GameAiNodeId *closest, float *closestDistance) {
+                                          GameAiNodeId *closest, float *closestDistance) {
 
   const Vec3 position = AI_NODE(module.nodes, node)->position;
 
@@ -819,7 +819,7 @@ void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const floa
  * @brief Creates a directed link from node a to node b with the given traversal cost.
  */
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost) {
-  G_Ai_Node_LinkTravel(a, b, cost, 0);
+  G_Ai_Node_LinkTravel(a, b, cost, NAV_TRAVEL_NONE);
 }
 
 /**
@@ -891,10 +891,10 @@ static bool G_Ai_Node_CanPathTo(const Vec3 position) {
 
     const Box3 bounds = G_PlayerBounds();
     tr = gi.Trace(position,
-               Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f)),
-               MakeBox3(MakeVec3(-4.f, -4.f, bounds.mins.z), MakeVec3(4.f, 4.f, bounds.maxs.z)),
-               NULL,
-               CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER_CLIP | CONTENTS_MASK_LIQUID);
+                  Vec3_Subtract(position, MakeVec3(0, 0, PM_GROUND_DIST * 3.f)),
+                  MakeBox3(MakeVec3(-4.f, -4.f, bounds.mins.z), MakeVec3(4.f, 4.f, bounds.maxs.z)),
+                  NULL,
+                  CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER_CLIP | CONTENTS_MASK_LIQUID);
     stuckInMover = tr.ent
         && (tr.startSolid || tr.allSolid)
         && (((GameEntity *) tr.ent)->s.number != 0

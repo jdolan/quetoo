@@ -1727,7 +1727,7 @@ static void G_Ai_State_fight(GameClient *cl) {
  * while the aim stays on the enemy so that the bot fires back. An unarmed bot with none of those to
  * go to takes any item of value, because its circle strafe around an enemy far away moves toward
  * it. With none to go to, a bot in water leaves it (`G_Ai_LeaveWater`), and a bot out of water
- * strafes around the enemy and fights.
+ * circle strafes around the enemy and fights.
  */
 static void G_Ai_State_retreat(GameClient *cl) {
 

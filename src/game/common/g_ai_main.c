@@ -4079,9 +4079,9 @@ static void G_Ai_Connect(GameClient *cl, const GameAiRoster *roster) {
  * the level. The entities that added nodes to the graph add them again: the teleporters, by their
  * `Think`, and the items and spawn points that `G_Ai_Node_AddEntity` linked. Items that hover
  * over jump pads link again in `G_Ai_Node_Ready`, if the first second of the level is over. Each
- * bot drops its goals and paths, as it does when it respawns, because they name nodes of the old
- * graph. Every teleporter links again, also one that found no room for its node in the old graph,
- * except one whose first `Think` is still to come, which links then.
+ * bot drops its move goals, its objective and its paths, as it does when it respawns, because they
+ * name nodes of the old graph. Every teleporter links again, also one that found no room for its
+ * node in the old graph, except one whose first `Think` is still to come, which links then.
  */
 static void G_Ai_ReloadNodes(void) {
 
