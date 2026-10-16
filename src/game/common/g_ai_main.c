@@ -1063,6 +1063,26 @@ static inline float G_Ai_CommandYaw(const GameClient *cl, const PMoveCmd *cmd) {
 }
 
 /**
+ * @return The unit move, relative to the view that the command turns to (`G_Ai_CommandYaw`), that
+ * heads along the yaw of the world direction `dir`: the forward move in x, and the right move in y.
+ */
+static Vec3 G_Ai_CommandMove(const GameClient *cl, const PMoveCmd *cmd, const Vec3 dir) {
+
+  Vec3 move;
+  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(dir).y, 0.f), &move, NULL, NULL);
+
+  return move;
+}
+
+/**
+ * @brief Reverses the command's horizontal move.
+ */
+static void G_Ai_ReverseMove(PMoveCmd *cmd) {
+  cmd->forward = -cmd->forward;
+  cmd->right = -cmd->right;
+}
+
+/**
  * @brief The horizontal speed below which `G_Ai_Brake` reverses the command, because the
  * direction of the velocity no longer shows the way to the edge.
  */
@@ -1084,13 +1104,11 @@ static void G_Ai_Brake(const GameClient *cl, PMoveCmd *cmd) {
   const Vec3 wish = Vec3_Add(Vec3_Scale(forward, cmd->forward), Vec3_Scale(right, cmd->right));
 
   if (speed < AI_BRAKE_SPEED || Vec3_Dot(wish, back) >= 0.f) {
-    cmd->forward = -cmd->forward;
-    cmd->right = -cmd->right;
+    G_Ai_ReverseMove(cmd);
     return;
   }
 
-  Vec3 dir;
-  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(back).y, 0.f), &dir, NULL, NULL);
+  const Vec3 dir = G_Ai_CommandMove(cl, cmd, back);
 
   cmd->forward = dir.x * PM_SPEED_RUN;
   cmd->right = dir.y * PM_SPEED_RUN;
@@ -1157,10 +1175,7 @@ static Vec3 G_Ai_LeavePlatform(const GameClient *cl, const PMoveCmd *cmd, const 
   Vec3 away = Vec3_Subtract(cl->entity->s.origin, Box3_Center(plat->absBounds));
   away.z = 0.f;
 
-  Vec3 dir;
-  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(Vec3_Normalize(away)).y, 0.f), &dir, NULL, NULL);
-
-  return Vec3_Scale(dir, PM_SPEED_RUN);
+  return Vec3_Scale(G_Ai_CommandMove(cl, cmd, Vec3_Normalize(away)), PM_SPEED_RUN);
 }
 
 /**
@@ -2110,10 +2125,7 @@ static bool G_Ai_LeaveLadder(GameClient *cl, PMoveCmd *cmd) {
     return false;
   }
 
-  const float yaw = G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(cl->ai->ladderLeaveDir).y;
-
-  Vec3 dir;
-  Vec3_Vectors(MakeVec3(0.f, yaw, 0.f), &dir, NULL, NULL);
+  const Vec3 dir = G_Ai_CommandMove(cl, cmd, cl->ai->ladderLeaveDir);
 
   cmd->forward = dir.x * PM_SPEED_RUN;
   cmd->right = dir.y * PM_SPEED_RUN;
@@ -2668,8 +2680,7 @@ static void G_Ai_AvoidHazard(GameClient *cl, PMoveCmd *cmd) {
     }
   }
 
-  Vec3 dir;
-  Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(Vec3_Normalize(to)).y, 0.f), &dir, NULL, NULL);
+  const Vec3 dir = G_Ai_CommandMove(cl, cmd, Vec3_Normalize(to));
 
   cmd->forward = dir.x * speed;
   cmd->right = dir.y * speed;
@@ -2867,10 +2878,7 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
 
   const Vec3 wish = G_Ai_StrafeWish(cl, ent->s.origin, ent->velocity, target, cmd->msec,
                                     AI_STRAFE_ERROR * (1.f - ai->personality.skill));
-  const float deltaYaw = G_Ai_CommandYaw(cl, cmd) - Vec3_Euler(wish).y;
-
-  Vec3_Vectors(MakeVec3(0.f, deltaYaw, 0.f), dir, NULL, NULL);
-  *dir = Vec3_Scale(*dir, Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN));
+  *dir = Vec3_Scale(G_Ai_CommandMove(cl, cmd, wish), Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN));
 
   return true;
 }
@@ -3100,11 +3108,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     }
   }
 
-  dir = Vec3_Normalize(dir);
-  angles = Vec3_Euler(dir);
-
-  const float deltaYaw = G_Ai_CommandYaw(cl, cmd) - angles.y;
-  Vec3_Vectors(MakeVec3(0.0, deltaYaw, 0.0), &dir, NULL, NULL);
+  dir = G_Ai_CommandMove(cl, cmd, Vec3_Normalize(dir));
 
   const bool swimming = ent->waterLevel >= WATER_WAIST;
   bool waitPolitely = false;
@@ -3249,8 +3253,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
         // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
         if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Node_CanFollowPath(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
-          cmd->forward = -cmd->forward;
-          cmd->right = -cmd->right; // stop for now
+          G_Ai_ReverseMove(cmd);
           G_Ai_Debug("Stopping early to prevent mover issues\n");
         // a ledge link drops from one place, if the fall lands where the link does
         } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
@@ -3270,21 +3273,18 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         // walk links, and the links that the game adds to them, have floor all the way, and a jump
         // link leaves it only on its line, so an edge anywhere else means that we are off the path
         } else if (!toPush && (travelType <= NAV_TRAVEL_BARRIER_JUMP || G_Ai_IsJumpLink(cl))) {
-          cmd->forward = -cmd->forward;
-          cmd->right = -cmd->right;
+          G_Ai_ReverseMove(cmd);
           G_Ai_ReturnToPath(cl);
         // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
         } else if (((cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
           (xyDist > fabsf(cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z) && (xyDist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent && !toPush) {
           if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
-            cmd->forward = -cmd->forward;
-            cmd->right = -cmd->right;
+            G_Ai_ReverseMove(cmd);
           } else {
             cmd->up = PM_SPEED_JUMP;
           }
         } else if (G_Ai_IsOverspeed(ent) && G_Ai_FallsToHazard(cl, ent->s.origin, ent->velocity)) {
-          cmd->forward = -cmd->forward;
-          cmd->right = -cmd->right;
+          G_Ai_ReverseMove(cmd);
         }
       }
 
