@@ -2249,6 +2249,128 @@ static bool Nav_HasSide(const CollisionBrush *brush, const Vec3 normal, const fl
 }
 
 /**
+ * @brief Merges the groups of the ladder brushes that touch, so that each group is one ladder.
+ * @param brushes The indices of the ladder brushes in the BSP.
+ * @param groups The group of each of `brushes`: the index in `brushes` of a brush of the group.
+ */
+static void Nav_FindClimbs_group(const int32_t *brushes, int32_t *groups,
+                                 const int32_t numBrushes) {
+
+  const CollisionBsp *bsp = module.params->bsp;
+
+  for (int32_t i = 0; i < numBrushes; i++) {
+    const Box3 bounds = Box3_Expand(bsp->brushes[brushes[i]].bounds, 1.f);
+
+    for (int32_t j = i + 1; j < numBrushes; j++) {
+      if (groups[j] == groups[i] || !Box3_Intersects(bounds, bsp->brushes[brushes[j]].bounds)) {
+        continue;
+      }
+
+      const int32_t from = groups[j];
+      for (int32_t k = 0; k < numBrushes; k++) {
+        if (groups[k] == from) {
+          groups[k] = groups[i];
+        }
+      }
+    }
+  }
+}
+
+/**
+ * @brief Adds the face of the ladder with the bounds `ladder` and the outward axial `normal` to the
+ * graph's ladders, and the climbs of its columns: at its center first, and then
+ * `NAV_LADDER_SPACING` apart on each side of it, within the face. The face is removed if no climb
+ * names it.
+ * @param axis The axis of `normal`.
+ * @param face The position of the face along `axis`.
+ * @return True if a column climbs the face.
+ */
+static bool Nav_FindClimbs_face(const Box3 ladder, const Vec3 normal, const int32_t axis,
+                                const float face) {
+
+  const int32_t other = 1 - axis;
+  const float width = ladder.maxs.xyz[other] - ladder.mins.xyz[other];
+  const int32_t columns = 1 + 2 * (int32_t) floorf(width * .5f / NAV_LADDER_SPACING);
+  const float center = (ladder.mins.xyz[other] + ladder.maxs.xyz[other]) * .5f;
+
+  Nav_AddLadder(ladder, normal, axis, face);
+
+  bool climbs = false;
+
+  for (int32_t j = 0; j < columns; j++) {
+    const int32_t step = (j + 1) / 2 * (j % 2 ? 1 : -1);
+
+    Vec3 column = Vec3_Zero();
+    column.xyz[axis] = face + normal.xyz[axis] * (PM_BOUNDS.maxs.x + 1.f);
+    column.xyz[other] = center + step * NAV_LADDER_SPACING;
+
+    climbs |= Nav_AddClimb(ladder, column, normal);
+  }
+
+  Nav_TrimLadder();
+
+  return climbs;
+}
+
+/**
+ * @brief Adds the faces and the climbs of the ladder of the brushes of group `g`: each of its
+ * widest vertical faces on which one of its brushes has a side (`Nav_FindClimbs_face`). A ladder
+ * that no column climbs because its face is behind or level with another brush's is reported, for
+ * its mapper.
+ */
+static void Nav_FindClimbs_ladder(const int32_t *brushes, const int32_t *groups,
+                                  const int32_t numBrushes, const int32_t g) {
+
+  const CollisionBsp *bsp = module.params->bsp;
+
+  Box3 ladder = Box3_Null();
+  for (int32_t i = 0; i < numBrushes; i++) {
+    if (groups[i] == g) {
+      ladder = Box3_Union(ladder, bsp->brushes[brushes[i]].bounds);
+    }
+  }
+
+  if (Box3_IsNull(ladder)) {
+    return;
+  }
+
+  bool climbs = false;
+  module.ladderHidden = false;
+
+  const float widest = Maxf(ladder.maxs.x - ladder.mins.x, ladder.maxs.y - ladder.mins.y);
+
+  for (int32_t axis = 0; axis < 2; axis++) {
+    const int32_t other = 1 - axis;
+
+    if (ladder.maxs.xyz[other] - ladder.mins.xyz[other] < widest) {
+      continue;
+    }
+
+    for (int32_t sign = -1; sign <= 1; sign += 2) {
+      Vec3 normal = Vec3_Zero();
+      normal.xyz[axis] = (float) sign;
+
+      const float face = sign > 0 ? ladder.maxs.xyz[axis] : ladder.mins.xyz[axis];
+
+      bool side = false;
+      for (int32_t i = 0; i < numBrushes && !side; i++) {
+        side = groups[i] == g && Nav_HasSide(&bsp->brushes[brushes[i]], normal, face * sign);
+      }
+
+      if (side) {
+        climbs |= Nav_FindClimbs_face(ladder, normal, axis, face);
+      }
+    }
+  }
+
+  if (!climbs && module.ladderHidden) {
+    module.params->Warn(__func__, "The ladder at %s %s is behind or level with the face of a brush that a player "
+                        "collides with, so players grab it only at some places, if at all; extend it in front "
+                        "of that brush\n", vtos(ladder.mins), vtos(ladder.maxs));
+  }
+}
+
+/**
  * @brief Finds the climbs of the level's ladders. A ladder is a group of brushes of the world with
  * `CONTENTS_LADDER` that touch, as rails and rungs that are each a brush are. For each ladder, each
  * vertical face of its bounds on which one of its brushes has a side is climbed, at its center first
@@ -2286,88 +2408,90 @@ static void Nav_FindClimbs(void) {
     numBrushes++;
   }
 
-  for (int32_t i = 0; i < numBrushes; i++) {
-    const Box3 bounds = Box3_Expand(bsp->brushes[brushes[i]].bounds, 1.f);
-
-    for (int32_t j = i + 1; j < numBrushes; j++) {
-      if (groups[j] == groups[i] || !Box3_Intersects(bounds, bsp->brushes[brushes[j]].bounds)) {
-        continue;
-      }
-
-      const int32_t from = groups[j];
-      for (int32_t k = 0; k < numBrushes; k++) {
-        if (groups[k] == from) {
-          groups[k] = groups[i];
-        }
-      }
-    }
-  }
+  Nav_FindClimbs_group(brushes, groups, numBrushes);
 
   for (int32_t g = 0; g < numBrushes; g++) {
+    Nav_FindClimbs_ladder(brushes, groups, numBrushes, g);
+  }
+}
 
-    Box3 ladder = Box3_Null();
-    for (int32_t i = 0; i < numBrushes; i++) {
-      if (groups[i] == g) {
-        ladder = Box3_Union(ladder, bsp->brushes[brushes[i]].bounds);
-      }
-    }
+/**
+ * @brief Links `node`, in the cell at `xyz`, to the nodes in the next cells in `direction`, from
+ * one level below up to `rise` above: by a walk or a crouch, by a barrier jump, or by a walk
+ * through the doorway of a door (`Nav_GatedWalk`).
+ * @return True if any of them links the node.
+ */
+static bool Nav_LinkNode_walks(const NavNode *node, const Vec3i xyz, const Vec3i direction,
+                               const int32_t rise, NavLink *links, int32_t *numLinks) {
 
-    if (Box3_IsNull(ladder)) {
+  const NavGraph *graph = module.graph;
+
+  bool walked = false;
+
+  for (int32_t dz = -1; dz <= rise; dz++) {
+
+    const Vec3i neighbor = MakeVec3i(xyz.x + direction.x, xyz.y + direction.y, xyz.z + dz);
+
+    const int32_t target = Nav_CellNode(graph, neighbor);
+    if (target == -1) {
       continue;
     }
 
-    bool climbs = false;
-    module.ladderHidden = false;
+    const NavNode *other = &graph->nodes[target];
 
-    const float widest = Maxf(ladder.maxs.x - ladder.mins.x, ladder.maxs.y - ladder.mins.y);
-
-    for (int32_t axis = 0; axis < 2; axis++) {
-      const int32_t other = 1 - axis;
-      const float width = ladder.maxs.xyz[other] - ladder.mins.xyz[other];
-
-      if (width < widest) {
-        continue;
-      }
-
-      const int32_t columns = 1 + 2 * (int32_t) floorf(width * .5f / NAV_LADDER_SPACING);
-      const float center = (ladder.mins.xyz[other] + ladder.maxs.xyz[other]) * .5f;
-
-      for (int32_t sign = -1; sign <= 1; sign += 2) {
-        Vec3 normal = Vec3_Zero();
-        normal.xyz[axis] = (float) sign;
-
-        const float face = sign > 0 ? ladder.maxs.xyz[axis] : ladder.mins.xyz[axis];
-
-        bool side = false;
-        for (int32_t i = 0; i < numBrushes && !side; i++) {
-          side = groups[i] == g && Nav_HasSide(&bsp->brushes[brushes[i]], normal, face * sign);
-        }
-
-        if (!side) {
-          continue;
-        }
-
-        Nav_AddLadder(ladder, normal, axis, face);
-
-        for (int32_t j = 0; j < columns; j++) {
-          const int32_t step = (j + 1) / 2 * (j % 2 ? 1 : -1);
-
-          Vec3 column = Vec3_Zero();
-          column.xyz[axis] = face + sign * (PM_BOUNDS.maxs.x + 1.f);
-          column.xyz[other] = center + step * NAV_LADDER_SPACING;
-
-          climbs |= Nav_AddClimb(ladder, column, normal);
-        }
-
-        Nav_TrimLadder();
-      }
+    if (other->model != node->model || other->swim) {
+      continue;
     }
 
-    if (!climbs && module.ladderHidden) {
-      module.params->Warn(__func__, "The ladder at %s %s is behind or level with the face of a brush that a player "
-                          "collides with, so players grab it only at some places, if at all; extend it in front "
-                          "of that brush\n", vtos(ladder.mins), vtos(ladder.maxs));
+    float distance;
+    int32_t gate = 0;
+    if (Nav_Walk(node, other, &distance)) {
+      Nav_AddWalk(links, numLinks, node, other, target, distance, 0);
+      walked = true;
+    } else if (!Nav_EntersHazard(node, other) && Nav_BarrierJump(node, other, &distance)) {
+      const float fall = module.barrierHeight - (other->position.z - node->position.z);
+      const int32_t time = Nav_TravelMillis(distance, module.speedRun) +
+                           Nav_FallMillis(module.barrierHeight) + Nav_FallMillis(fall);
+      Nav_AddLink(links, numLinks, target, NAV_TRAVEL_BARRIER_JUMP, time, 0);
+      walked = true;
+    } else if ((gate = Nav_GatedWalk(node, other, &distance))) {
+      Nav_AddWalk(links, numLinks, node, other, target, distance, gate);
+      walked = true;
     }
+  }
+
+  return walked;
+}
+
+/**
+ * @brief Links node `index` across a gap in `direction`: by a walk off a ledge (`Nav_Drop`,
+ * `Nav_GatedDrop`), and by a running jump (`Nav_Jump`, `Nav_GatedJump`).
+ */
+static void Nav_LinkNode_gaps(const int32_t index, const Vec3i direction, NavLink *links,
+                              int32_t *numLinks) {
+
+  const NavGraph *graph = module.graph;
+  const NavNode *node = &graph->nodes[index];
+
+  float distance, height;
+  int32_t dropGate = 0;
+  int32_t target = Nav_Drop(node, direction, &distance, &height);
+  if (target == -1) {
+    target = Nav_GatedDrop(node, direction, &distance, &height, &dropGate);
+  }
+  if (target != -1 && target != index && !Nav_EntersHazard(node, &graph->nodes[target])) {
+    const int32_t time = Nav_TravelMillis(distance, module.speedRun) + Nav_FallMillis(height);
+    Nav_AddLink(links, numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, dropGate);
+  }
+
+  float seconds;
+  int32_t gate = 0;
+  int32_t landing = Nav_Jump(node, direction, &seconds);
+  if (landing == -1) {
+    landing = Nav_GatedJump(node, direction, &seconds, &gate);
+  }
+  if (landing != -1 && !Nav_EntersHazard(node, &graph->nodes[landing])) {
+    Nav_AddLink(links, numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 1000.f), gate);
   }
 }
 
@@ -2394,64 +2518,11 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
 
   for (size_t i = 0; i < lengthof(directions) && !node->swim; i++) {
 
-    bool walked = false;
-
-    for (int32_t dz = -1; dz <= rise; dz++) {
-
-      const Vec3i neighbor = MakeVec3i(xyz.x + directions[i].x, xyz.y + directions[i].y, xyz.z + dz);
-
-      const int32_t target = Nav_CellNode(graph, neighbor);
-      if (target == -1) {
-        continue;
-      }
-
-      const NavNode *other = &graph->nodes[target];
-
-      if (other->model != node->model || other->swim) {
-        continue;
-      }
-
-      float distance;
-      int32_t gate = 0;
-      if (Nav_Walk(node, other, &distance)) {
-        Nav_AddWalk(links, &numLinks, node, other, target, distance, 0);
-        walked = true;
-      } else if (!Nav_EntersHazard(node, other) && Nav_BarrierJump(node, other, &distance)) {
-        const float fall = module.barrierHeight - (other->position.z - node->position.z);
-        const int32_t time = Nav_TravelMillis(distance, module.speedRun) +
-                             Nav_FallMillis(module.barrierHeight) + Nav_FallMillis(fall);
-        Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_BARRIER_JUMP, time, 0);
-        walked = true;
-      } else if ((gate = Nav_GatedWalk(node, other, &distance))) {
-        Nav_AddWalk(links, &numLinks, node, other, target, distance, gate);
-        walked = true;
-      }
-    }
-
-    if (walked || node->model) {
+    if (Nav_LinkNode_walks(node, xyz, directions[i], rise, links, &numLinks) || node->model) {
       continue;
     }
 
-    float distance, height;
-    int32_t dropGate = 0;
-    int32_t target = Nav_Drop(node, directions[i], &distance, &height);
-    if (target == -1) {
-      target = Nav_GatedDrop(node, directions[i], &distance, &height, &dropGate);
-    }
-    if (target != -1 && target != index && !Nav_EntersHazard(node, &graph->nodes[target])) {
-      const int32_t time = Nav_TravelMillis(distance, module.speedRun) + Nav_FallMillis(height);
-      Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, dropGate);
-    }
-
-    float seconds;
-    int32_t gate = 0;
-    int32_t landing = Nav_Jump(node, directions[i], &seconds);
-    if (landing == -1) {
-      landing = Nav_GatedJump(node, directions[i], &seconds, &gate);
-    }
-    if (landing != -1 && !Nav_EntersHazard(node, &graph->nodes[landing])) {
-      Nav_AddLink(links, &numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 1000.f), gate);
-    }
+    Nav_LinkNode_gaps(index, directions[i], links, &numLinks);
   }
 
   if ((node->contents & CONTENTS_MASK_LIQUID) && !node->model) {
@@ -2570,6 +2641,89 @@ static void Nav_AddPush(const Entity *entity, const Box3 bounds, const int32_t s
 }
 
 /**
+ * @brief Adds the bounds of the `trigger_hurt` or `trigger_push` to the triggers that no node or
+ * walk touches. A `trigger_push` is widened by `NAV_PUSH_MARGIN` at its sides and above it.
+ */
+static void Nav_AddTrigger(const char *classname, const Box3 bounds) {
+
+  if (module.numTriggers == NAV_MAX_TRIGGERS) {
+    if (!module.triggersFull) {
+      module.params->Warn(__func__, "More than %d hurt and push triggers; bots may walk into the rest\n", NAV_MAX_TRIGGERS);
+      module.triggersFull = true;
+    }
+    return;
+  }
+
+  if (!Str_Compare(classname, "trigger_push")) {
+    Box3 push = Box3_Expand3(bounds, MakeVec3(NAV_PUSH_MARGIN, NAV_PUSH_MARGIN, 0.f));
+    push.maxs.z += NAV_PUSH_MARGIN;
+    module.triggers[module.numTriggers++] = push;
+  } else {
+    module.triggers[module.numTriggers++] = bounds;
+  }
+}
+
+/**
+ * @brief Adds inline model `index` of the BSP to the barriers if it is a door that a bot cannot
+ * open by walking up to it, a wall that spawns solid, a train, a bob or a rotating model. A door
+ * joins the group of the first door with its `targetname`.
+ * @param origin The entity's origin, by which the model is placed.
+ * @param bounds The model's bounds, placed.
+ */
+static void Nav_AddBarrier(const int32_t index, const char *classname, const int32_t spawnFlags,
+                           const Vec3 origin, const Box3 bounds) {
+
+  const CollisionModel *model = &module.params->bsp->models[index];
+
+  bool barrier = false, moves = false, gate = false;
+
+  if (!Str_Compare(classname, "func_door") || !Str_Compare(classname, "func_door_rotating")) {
+    barrier = Nav_EntityInteger(model->entity, "health") || Nav_EntityHas(model->entity, "targetname");
+    moves = gate = true;
+  } else if (!Str_Compare(classname, "func_train") || !Str_Compare(classname, "func_bob")) {
+    barrier = moves = true;
+  } else if (!Str_Compare(classname, "func_wall")) {
+    barrier = (spawnFlags & NAV_WALL_SPAWN_FLAGS) == 0 || (spawnFlags & NAV_WALL_START_ON);
+  } else if (!Str_Compare(classname, "func_rotating")) {
+    barrier = true;
+    moves = !(spawnFlags & NAV_ROTATING_HORIZONTAL);
+  }
+
+  if (!barrier) {
+    return;
+  }
+
+  if (module.numBarriers == NAV_MAX_BARRIERS) {
+    if (!module.barriersFull) {
+      module.params->Warn(__func__, "More than %d closed doors, walls and rotating models; bots may path through the rest\n", NAV_MAX_BARRIERS);
+      module.barriersFull = true;
+    }
+    return;
+  }
+
+  int32_t group = module.numBarriers;
+  const char *targetname = module.params->EntityValue(model->entity, "targetname")->string;
+
+  for (int32_t j = 0; gate && *targetname && j < module.numBarriers; j++) {
+    const Entity *other = module.params->bsp->models[module.barriers[j].model].entity;
+    if (module.barriers[j].gate && !Str_Compare(module.params->EntityValue(other, "targetname")->string, targetname)) {
+      group = module.barriers[j].group;
+      break;
+    }
+  }
+
+  module.barriers[module.numBarriers++] = (NavBarrier) {
+    .model = index,
+    .moves = moves,
+    .gate = gate,
+    .group = group,
+    .headNode = model->headNode,
+    .origin = origin,
+    .bounds = bounds
+  };
+}
+
+/**
  * @brief Gathers the level's `trigger_hurt` and `trigger_push` entities, and the doors that a bot
  * cannot open by walking up to them, the walls and the rotating models, from the inline models of
  * the BSP.
@@ -2609,71 +2763,11 @@ static void Nav_InitModels(void) {
     }
 
     if (!Str_Compare(classname, "trigger_hurt") || !Str_Compare(classname, "trigger_push")) {
-
-      if (module.numTriggers == NAV_MAX_TRIGGERS) {
-        if (!module.triggersFull) {
-          module.params->Warn(__func__, "More than %d hurt and push triggers; bots may walk into the rest\n", NAV_MAX_TRIGGERS);
-          module.triggersFull = true;
-        }
-        continue;
-      }
-
-      if (!Str_Compare(classname, "trigger_push")) {
-        Box3 push = Box3_Expand3(bounds, MakeVec3(NAV_PUSH_MARGIN, NAV_PUSH_MARGIN, 0.f));
-        push.maxs.z += NAV_PUSH_MARGIN;
-        module.triggers[module.numTriggers++] = push;
-      } else {
-        module.triggers[module.numTriggers++] = bounds;
-      }
+      Nav_AddTrigger(classname, bounds);
       continue;
     }
 
-    bool barrier = false, moves = false, gate = false;
-
-    if (!Str_Compare(classname, "func_door") || !Str_Compare(classname, "func_door_rotating")) {
-      barrier = Nav_EntityInteger(model->entity, "health") || Nav_EntityHas(model->entity, "targetname");
-      moves = gate = true;
-    } else if (!Str_Compare(classname, "func_train") || !Str_Compare(classname, "func_bob")) {
-      barrier = moves = true;
-    } else if (!Str_Compare(classname, "func_wall")) {
-      barrier = (spawnFlags & NAV_WALL_SPAWN_FLAGS) == 0 || (spawnFlags & NAV_WALL_START_ON);
-    } else if (!Str_Compare(classname, "func_rotating")) {
-      barrier = true;
-      moves = !(spawnFlags & NAV_ROTATING_HORIZONTAL);
-    }
-
-    if (!barrier) {
-      continue;
-    }
-
-    if (module.numBarriers == NAV_MAX_BARRIERS) {
-      if (!module.barriersFull) {
-        module.params->Warn(__func__, "More than %d closed doors, walls and rotating models; bots may path through the rest\n", NAV_MAX_BARRIERS);
-        module.barriersFull = true;
-      }
-      continue;
-    }
-
-    int32_t group = module.numBarriers;
-    const char *targetname = module.params->EntityValue(model->entity, "targetname")->string;
-
-    for (int32_t j = 0; gate && *targetname && j < module.numBarriers; j++) {
-      const Entity *other = module.params->bsp->models[module.barriers[j].model].entity;
-      if (module.barriers[j].gate && !Str_Compare(module.params->EntityValue(other, "targetname")->string, targetname)) {
-        group = module.barriers[j].group;
-        break;
-      }
-    }
-
-    module.barriers[module.numBarriers++] = (NavBarrier) {
-      .model = i,
-      .moves = moves,
-      .gate = gate,
-      .group = group,
-      .headNode = model->headNode,
-      .origin = origin,
-      .bounds = bounds
-    };
+    Nav_AddBarrier(i, classname, spawnFlags, origin, bounds);
   }
 }
 
@@ -2755,25 +2849,10 @@ static int32_t Nav_PruneSwims_link(const int32_t a, const int32_t b, const int32
 }
 
 /**
- * @brief Removes the swim links between nodes in liquid that a detour through one other node in
- * liquid replaces, at no more than `NAV_SWIM_PRUNE` times their time. A node in liquid links to
- * every node in liquid in the 3 by 3 by 5 cells around it, which makes most of the links of a level
- * with deep water, and a search visits each link. The links are tried from the fastest, and a
- * detour uses only faster links that are kept, so each removed link keeps a route through the
- * links that stay. The links out of the liquid, which water jumps make, stay.
+ * @brief Gathers the swim links between nodes in liquid into `swims`.
+ * @return The count of swim links gathered.
  */
-static void Nav_PruneSwims(NavGraph *graph) {
-
-  if (!graph->numLinks) {
-    return;
-  }
-
-  NavSwim *swims = malloc(sizeof(NavSwim) * graph->numLinks);
-  bool *removed = calloc(graph->numLinks, sizeof(bool));
-
-  if (!swims || !removed) {
-    module.params->Error(__func__, "Failed to allocate %d swim links\n", graph->numLinks);
-  }
+static int32_t Nav_PruneSwims_gather(const NavGraph *graph, NavSwim *swims) {
 
   int32_t numSwims = 0;
 
@@ -2793,31 +2872,14 @@ static void Nav_PruneSwims(NavGraph *graph) {
     }
   }
 
-  qsort(swims, numSwims, sizeof(NavSwim), Nav_PruneSwims_compare);
+  return numSwims;
+}
 
-  for (int32_t i = 0; i < numSwims; i++) {
-    const NavNode *node = &graph->nodes[swims[i].from];
-    const NavLink *link = &graph->links[swims[i].link];
-
-    for (int32_t j = node->firstLink; j < node->firstLink + node->numLinks; j++) {
-      const NavLink *first = &graph->links[j];
-
-      if (first->travelType != NAV_TRAVEL_SWIM || removed[j] || first->travelMillis >= link->travelMillis ||
-          !(graph->nodes[first->node].contents & CONTENTS_MASK_LIQUID)) {
-        continue;
-      }
-
-      const int32_t second = Nav_PruneSwims_link(first->node, link->node, link->travelMillis, removed);
-      if (second == -1) {
-        continue;
-      }
-
-      if (first->travelMillis + graph->links[second].travelMillis <= link->travelMillis * NAV_SWIM_PRUNE) {
-        removed[swims[i].link] = true;
-        break;
-      }
-    }
-  }
+/**
+ * @brief Removes the links that `removed` marks from the graph's links, which keep their order, and
+ * counts the links that stay by travel type and those that are gated.
+ */
+static void Nav_PruneSwims_compact(NavGraph *graph, const bool *removed) {
 
   int32_t numLinks = 0;
 
@@ -2845,6 +2907,58 @@ static void Nav_PruneSwims(NavGraph *graph) {
   }
 
   graph->numLinks = numLinks;
+}
+
+/**
+ * @brief Removes the swim links between nodes in liquid that a detour through one other node in
+ * liquid replaces, at no more than `NAV_SWIM_PRUNE` times their time. A node in liquid links to
+ * every node in liquid in the 3 by 3 by 5 cells around it, which makes most of the links of a level
+ * with deep water, and a search visits each link. The links are tried from the fastest, and a
+ * detour uses only faster links that are kept, so each removed link keeps a route through the
+ * links that stay. The links out of the liquid, which water jumps make, stay.
+ */
+static void Nav_PruneSwims(NavGraph *graph) {
+
+  if (!graph->numLinks) {
+    return;
+  }
+
+  NavSwim *swims = malloc(sizeof(NavSwim) * graph->numLinks);
+  bool *removed = calloc(graph->numLinks, sizeof(bool));
+
+  if (!swims || !removed) {
+    module.params->Error(__func__, "Failed to allocate %d swim links\n", graph->numLinks);
+  }
+
+  const int32_t numSwims = Nav_PruneSwims_gather(graph, swims);
+
+  qsort(swims, numSwims, sizeof(NavSwim), Nav_PruneSwims_compare);
+
+  for (int32_t i = 0; i < numSwims; i++) {
+    const NavNode *node = &graph->nodes[swims[i].from];
+    const NavLink *link = &graph->links[swims[i].link];
+
+    for (int32_t j = node->firstLink; j < node->firstLink + node->numLinks; j++) {
+      const NavLink *first = &graph->links[j];
+
+      if (first->travelType != NAV_TRAVEL_SWIM || removed[j] || first->travelMillis >= link->travelMillis ||
+          !(graph->nodes[first->node].contents & CONTENTS_MASK_LIQUID)) {
+        continue;
+      }
+
+      const int32_t second = Nav_PruneSwims_link(first->node, link->node, link->travelMillis, removed);
+      if (second == -1) {
+        continue;
+      }
+
+      if (first->travelMillis + graph->links[second].travelMillis <= link->travelMillis * NAV_SWIM_PRUNE) {
+        removed[swims[i].link] = true;
+        break;
+      }
+    }
+  }
+
+  Nav_PruneSwims_compact(graph, removed);
 
   free(swims);
   free(removed);
