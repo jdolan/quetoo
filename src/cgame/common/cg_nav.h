@@ -43,7 +43,9 @@ void Cg_InitNav(void);
 void Cg_PrepareNav(const ClientFrame *frame);
 
 /**
- * @brief Draws the navigation graph near the view, if `cg_drawNav` is set and it is built.
+ * @brief Draws the navigation graph near the view, if `cg_drawNav` is set and it is built: its
+ * nodes, which models that move carry, its links, the links that the nodes on those models make as
+ * they move, as the game makes them, and the flights of its jump pads.
  * @remarks This MUST run before `Cg_AddSprites`, which submits the sprites that it adds.
  */
 void Cg_AddNav(const ClientFrame *frame);

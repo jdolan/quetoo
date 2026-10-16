@@ -39,6 +39,32 @@
 #define CG_NAV_FLIGHT_STRIDE 4
 
 /**
+ * @brief The interval in milliseconds at which the nodes on models that move near the view are
+ * linked again, as the game links them every `AI_MOVER_LINK_MILLIS`.
+ */
+#define CG_NAV_MOVER_LINK_MILLIS 100
+
+/**
+ * @brief A link of a node on a model that moves, which `Nav_MoverLink` or `Nav_MoverWalk` found.
+ */
+typedef struct {
+  /**
+   * @brief The node that the link leaves.
+   */
+  int32_t from;
+
+  /**
+   * @brief The node that the link leads to.
+   */
+  int32_t to;
+
+  /**
+   * @brief `NAV_TRAVEL_WALK`, drawn once for both ways, or `NAV_TRAVEL_WALK_OFF_LEDGE`.
+   */
+  NavTravelType travelType;
+} CGameNavMoverLink;
+
+/**
  * @brief The flight of a player on one of the level's jump pads, as `Nav_FlyPush` flies it.
  */
 typedef struct {
@@ -89,6 +115,26 @@ static struct {
    * @brief The flight of each of the graph's pushes.
    */
   CGameNavFlight *flights;
+
+  /**
+   * @brief The links of the nodes on models that move near the view, from `Cg_LinkNavMovers`.
+   */
+  CGameNavMoverLink *moverLinks;
+
+  /**
+   * @brief The count of `moverLinks`.
+   */
+  int32_t numMoverLinks;
+
+  /**
+   * @brief The capacity of `moverLinks`.
+   */
+  int32_t moverLinksCapacity;
+
+  /**
+   * @brief The client time at which `Cg_LinkNavMovers` next links the movers.
+   */
+  uint32_t moverLinkTime;
 } module;
 
 /**
@@ -100,6 +146,11 @@ void Cg_FreeNav(void) {
 
   free(module.flights);
   module.flights = NULL;
+
+  free(module.moverLinks);
+  module.moverLinks = NULL;
+  module.numMoverLinks = module.moverLinksCapacity = 0;
+  module.moverLinkTime = 0;
 
   memset(module.movers, 0, sizeof(module.movers));
   memset(module.moverFrames, 0, sizeof(module.moverFrames));
@@ -460,6 +511,161 @@ static void Cg_AddNavFlights(void) {
 }
 
 /**
+ * @return A trace for the links of movers (`NavMoverTrace`), against the world and the entities.
+ */
+static CollisionTrace Cg_NavMoverTrace(const Vec3 start, const Vec3 end, const Box3 bounds,
+                                       const int32_t contents) {
+  return cgi.Trace(start, end, bounds, NULL, contents);
+}
+
+/**
+ * @brief Adds a link to `moverLinks`.
+ */
+static void Cg_LinkNavMovers_add(const int32_t from, const int32_t to, const NavTravelType type) {
+
+  if (module.numMoverLinks == module.moverLinksCapacity) {
+    module.moverLinksCapacity = Maxi(64, module.moverLinksCapacity * 2);
+    module.moverLinks = realloc(module.moverLinks,
+                                sizeof(CGameNavMoverLink) * module.moverLinksCapacity);
+    if (!module.moverLinks) {
+      Cg_Error("Failed to allocate %d mover links\n", module.moverLinksCapacity);
+    }
+  }
+
+  module.moverLinks[module.numMoverLinks++] = (CGameNavMoverLink) {
+    .from = from,
+    .to = to,
+    .travelType = type
+  };
+}
+
+/**
+ * @return True if the point is in lava or slime, where the game links no node that a model carried.
+ */
+static bool Cg_LinkNavMovers_hazard(const Vec3 point) {
+  return (cgi.PointContents(point) & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+}
+
+/**
+ * @brief Links each node on a model that moves, near the view, as the game links it: to the nodes
+ * that do not move in the cells around it (`Nav_MoverLink`), and with a walk to the nodes on other
+ * models that move (`Nav_MoverWalk`). A node that its model carried into lava or slime is not
+ * linked. The links are found again every `CG_NAV_MOVER_LINK_MILLIS`. The client game does not
+ * link the nodes that the game adds, such as items', or the press links of the bots' gates.
+ */
+static void Cg_LinkNavMovers(void) {
+
+  if (module.moverLinkTime > cgi.client->unclampedTime) {
+    return;
+  }
+
+  module.moverLinkTime = cgi.client->unclampedTime + CG_NAV_MOVER_LINK_MILLIS;
+  module.numMoverLinks = 0;
+
+  const NavGraph *graph = &module.graph;
+  const Vec3 view = cgi.view->origin;
+  const Box3 bounds = module.movement.bounds;
+  const int32_t levels = (int32_t) ceilf(NAV_MOVER_DROP_HEIGHT / NAV_CELL_HEIGHT);
+
+  for (int32_t i = 0; i < graph->numNodes; i++) {
+    const NavNode *node = &graph->nodes[i];
+
+    if (!node->model) {
+      continue;
+    }
+
+    const Vec3 position = Cg_NavNodePosition(node);
+
+    if (Vec3_Distance(position, view) > CG_NAV_DRAW_DISTANCE + NAV_MOVER_LINK_DISTANCE ||
+        Cg_LinkNavMovers_hazard(position)) {
+      continue;
+    }
+
+    const Vec3i xyz = Nav_PointCoordinate(graph, position);
+
+    for (int32_t dz = -levels; dz <= levels; dz++) {
+      for (int32_t dy = -1; dy <= 1; dy++) {
+        for (int32_t dx = -1; dx <= 1; dx++) {
+
+          const int32_t other = Nav_CellNode(graph, MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
+          if (other == -1 || graph->nodes[other].model) {
+            continue;
+          }
+
+          const Vec3 target = graph->nodes[other].position;
+
+          float cost;
+          switch (Nav_MoverLink(Cg_NavMoverTrace, position, target, bounds, &cost)) {
+            case NAV_TRAVEL_WALK:
+              Cg_LinkNavMovers_add(i, other, NAV_TRAVEL_WALK);
+              break;
+            case NAV_TRAVEL_WALK_OFF_LEDGE:
+              if (target.z > position.z) {
+                Cg_LinkNavMovers_add(other, i, NAV_TRAVEL_WALK_OFF_LEDGE);
+              } else {
+                Cg_LinkNavMovers_add(i, other, NAV_TRAVEL_WALK_OFF_LEDGE);
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    }
+
+    for (int32_t j = i + 1; j < graph->numNodes; j++) {
+      const NavNode *next = &graph->nodes[j];
+
+      if (!next->model || next->model == node->model) {
+        continue;
+      }
+
+      const Vec3 target = Cg_NavNodePosition(next);
+
+      float distance;
+      if (!Nav_MoverReach(position, target, &distance) || Cg_LinkNavMovers_hazard(target)) {
+        continue;
+      }
+
+      if (Nav_MoverWalk(Cg_NavMoverTrace, position, target, bounds, &distance)) {
+        Cg_LinkNavMovers_add(i, j, NAV_TRAVEL_WALK);
+      }
+    }
+  }
+}
+
+/**
+ * @brief Draws the links of the nodes on models that move, near the view, from `Cg_LinkNavMovers`.
+ */
+static void Cg_AddNavMoverLinks(void) {
+
+  Cg_LinkNavMovers();
+
+  const Vec3 view = cgi.view->origin;
+
+  for (int32_t i = 0; i < module.numMoverLinks; i++) {
+    const CGameNavMoverLink *link = &module.moverLinks[i];
+
+    const Vec3 from = Cg_NavNodePosition(&module.graph.nodes[link->from]);
+    const Vec3 to = Cg_NavNodePosition(&module.graph.nodes[link->to]);
+
+    if (Vec3_Distance(from, view) > CG_NAV_DRAW_DISTANCE &&
+        Vec3_Distance(to, view) > CG_NAV_DRAW_DISTANCE) {
+      continue;
+    }
+
+    Cg_AddSprite(&(CGameSprite) {
+      .type = SPRITE_BEAM,
+      .image = cgameMedia.beams.line,
+      .origin = from,
+      .termination = to,
+      .size = 1.5f,
+      .color = Cg_NavLinkColor(link->travelType).vec3,
+    });
+  }
+}
+
+/**
  * @see cg_nav.h
  */
 void Cg_AddNav(const ClientFrame *frame) {
@@ -472,6 +678,7 @@ void Cg_AddNav(const ClientFrame *frame) {
   const Vec3 view = cgi.view->origin;
 
   Cg_AddNavFlights();
+  Cg_AddNavMoverLinks();
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
     const NavNode *node = &graph->nodes[i];
