@@ -599,12 +599,13 @@ const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
 
 /**
  * @brief Resolves an armor pickup without applying it: the client loses `drop`, and has `count`
- * of `give`. A shard always adds to the client's armor, or gives jacket armor, whatever the cap. A
- * client with no armor takes any. Quake armor replaces the client's armor, with no salvage, only if
- * its protection times its quantity is greater (Quake's effective score). Quake II armor that
- * protects more replaces it, and keeps the old armor in proportion to their protections, as q2pro
- * does. Quake II armor that protects as much or less adds to the client's armor in the same
- * proportion, if that adds anything below the cap.
+ * of `give`. A shard is always taken, even at the cap, which still limits it: it adds to the
+ * client's armor, or gives jacket armor. A client with no armor takes any. Quake armor replaces the
+ * client's armor, with no salvage, only if its protection times its quantity is greater (Quake's
+ * effective score). Quake II armor that protects more replaces it, and keeps the old armor in
+ * proportion to their protections, as q2pro does. Quake II armor that protects as much or less adds
+ * to the client's armor in proportion to their protections, if that adds anything below the
+ * armor's maximum and the client's cap.
  * @return True if the client takes the armor.
  */
 bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
@@ -622,7 +623,8 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
   if (newArmor->def.tag == ARMOR_SHARD) {
     if (currentArmor) {
       *give = currentArmor;
-      *count = Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity, 0, cl->maxArmor);
+      *count = Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity, 0,
+                      cl->maxArmor);
     } else {
       *give = &gameItems[ARMOR_JACKET];
       *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);

@@ -151,7 +151,9 @@ static Vec3 G_misc_teleporter_Origin(const GameEntity *ent) {
 }
 
 /**
- * @brief Creates bot node links
+ * @brief Creates bot node links: a node where a player touches the teleporter, linked to the node
+ * nearest its destination. It runs one frame after the teleporter spawns, once the level's
+ * navigation graph is loaded.
  */
 static void G_misc_teleporter_Think(GameEntity *ent) {
 
