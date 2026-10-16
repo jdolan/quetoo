@@ -263,11 +263,11 @@ typedef struct {
   int16_t color;
 
   /**
-   * @brief Frag or point score.
+   * @brief Number of frags or points.
    */
   int16_t score;
 
-    /**
+  /**
    * @brief Number of deaths.
    */
   uint16_t deaths;

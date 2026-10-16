@@ -35,14 +35,23 @@ static struct {
  * @brief A comparator for sorting `GameScore`.
  */
 static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
+
   const GameScore *sa = (GameScore *) a;
   const GameScore *sb = (GameScore *) b;
 
-  // push spectators to the bottom of the board
-  const int16_t s1 = (sa->flags & SCORE_SPECTATOR ? -9999 : sa->score);
-  const int16_t s2 = (sb->flags & SCORE_SPECTATOR ? -9999 : sb->score);
+  if (sa->flags & SCORE_SPECTATOR) {
+    return OrderDescending;
+  }
 
-  return s2 - s1;
+  if (sb->flags & SCORE_SPECTATOR) {
+    return OrderAscending;
+  }
+
+  if (sa->score == sb->score) {
+    return sa->deaths - sb->deaths;
+  }
+
+  return sb->score - sa->score;
 }
 
 /**
