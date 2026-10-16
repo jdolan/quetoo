@@ -767,9 +767,9 @@ typedef struct GameAi {
   GameAiItemTiming itemTimings[AI_ITEM_TIMINGS];
 
   /**
-   * @brief Level time at which the bot may next reverse its strafe around its target.
+   * @brief Level time at which the bot may next reverse its circle strafe around its target.
    */
-  uint32_t strafeTime;
+  uint32_t circleStrafeTime;
 
   /**
    * @brief Where the bot last heard an enemy, or was shot from.

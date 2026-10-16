@@ -492,11 +492,16 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
 #define AI_RANGE_LONG 640.f
 
 /**
- * @brief The interval in milliseconds after which a strafing bot may reverse, for the least and
- * the most skilled bots.
+ * @brief The interval in milliseconds after which the least skilled bot that circle strafes may
+ * reverse.
  */
-#define AI_STRAFE_MILLIS_MAX 1000
-#define AI_STRAFE_MILLIS_MIN 400
+#define AI_CIRCLE_STRAFE_MILLIS_MAX 1000
+
+/**
+ * @brief The interval in milliseconds after which the most skilled bot that circle strafes may
+ * reverse.
+ */
+#define AI_CIRCLE_STRAFE_MILLIS_MIN 400
 
 /**
  * @see g_ai_main.h
@@ -539,12 +544,12 @@ static bool G_Ai_CanStep(const GameEntity *ent, const Vec3 dir) {
 }
 
 /**
- * @brief Strafes around the combat target: sideways, plus toward or away from it to hold the
- * weapon's preferred range. The bot reverses at intervals that shorten with skill, and when the
+ * @brief Circle strafes around the combat target: sideways, plus toward or away from it to hold the
+ * weapon's preferred range. It is not a strafe jump (`G_Ai_StrafeJump`). The bot reverses at intervals that shorten with skill, and when the
  * way ahead is blocked or ends at a ledge.
  * @return The point to move toward.
  */
-static Vec3 G_Ai_Strafe(GameClient *cl, const GameEntity *enemy) {
+static Vec3 G_Ai_CircleStrafe(GameClient *cl, const GameEntity *enemy) {
 
   const GameEntity *ent = cl->entity;
   float *side = &cl->ai->moveTarget.entity.flankAngle;
@@ -564,9 +569,9 @@ static Vec3 G_Ai_Strafe(GameClient *cl, const GameEntity *enemy) {
 
   const bool blocked = !G_Ai_CanStep(ent, dir);
 
-  if (blocked || cl->ai->strafeTime <= gameLevel.time) {
-    const uint32_t millis = (uint32_t) Mixf(AI_STRAFE_MILLIS_MAX, AI_STRAFE_MILLIS_MIN, cl->ai->personality.skill);
-    cl->ai->strafeTime = gameLevel.time + RandomRangeu(millis / 2, millis);
+  if (blocked || cl->ai->circleStrafeTime <= gameLevel.time) {
+    const uint32_t millis = (uint32_t) Mixf(AI_CIRCLE_STRAFE_MILLIS_MAX, AI_CIRCLE_STRAFE_MILLIS_MIN, cl->ai->personality.skill);
+    cl->ai->circleStrafeTime = gameLevel.time + RandomRangeu(millis / 2, millis);
 
     if (blocked || Randomb()) {
       *side = -*side;
@@ -3006,7 +3011,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           targetEnemy = true;
           break;
         case AI_COMBAT_FLANK:
-          dest = G_Ai_Strafe(cl, cl->ai->moveTarget.entity.ent);
+          dest = G_Ai_CircleStrafe(cl, cl->ai->moveTarget.entity.ent);
           targetEnemy = true;
           break;
         case AI_COMBAT_WANDER:
@@ -3709,7 +3714,7 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->ladderJumping = false;
   cl->ai->strafeLookTime = 0;
   cl->ai->strafeSafeTime = 0;
-  cl->ai->strafeTime = 0;
+  cl->ai->circleStrafeTime = 0;
   cl->ai->alertTime = 0;
   cl->ai->alertPosition = Vec3_Zero();
   cl->ai->attackedTime = 0;

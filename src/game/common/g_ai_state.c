@@ -136,13 +136,13 @@
 #define AI_PURSUE_PRIORITY .7f
 
 /**
- * @brief A fighting bot strafes around an enemy within this multiple of its preferred range. Beyond
+ * @brief A fighting bot circle strafes around an enemy within this multiple of its preferred range. Beyond
  * it, the bot collects items while it fires, or paths toward the enemy if it has none to collect.
  */
 #define AI_ENGAGE_SCALE 1.5f
 
 /**
- * @brief A bot that strafes around an enemy stops only beyond this multiple of its preferred range,
+ * @brief A bot that circle strafes around an enemy stops only beyond this multiple of its preferred range,
  * so that an enemy near `AI_ENGAGE_SCALE` does not switch the bot at each review.
  */
 #define AI_DISENGAGE_SCALE 2.f
@@ -1364,7 +1364,7 @@ static bool G_Ai_LeaveWater(GameClient *cl, const float *costs) {
 
 /**
  * @brief Fights the combat target, as only an armed bot does. Within `AI_ENGAGE_SCALE` of the
- * weapon's preferred range, the bot strafes around the enemy, and goes only for items close by.
+ * weapon's preferred range, the bot circle strafes around the enemy, and goes only for items close by.
  * Beyond it, the bot collects items while it fires, or, if it has none to collect, paths toward the
  * enemy.
  */
@@ -1411,7 +1411,7 @@ static void G_Ai_State_Fight(GameClient *cl) {
 /**
  * @brief Goes to the health, armor or weapon of most utility that does not lie toward the enemy,
  * while the aim stays on the enemy so that the bot fires back. An unarmed bot with none of those to
- * go to takes any item of value, because its strafe around an enemy far away moves toward it. With
+ * go to takes any item of value, because its circle strafe around an enemy far away moves toward it. With
  * none to go to, a bot in water leaves it (`G_Ai_LeaveWater`), and a bot out of water strafes
  * around the enemy and fights.
  */
